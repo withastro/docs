@@ -4,6 +4,8 @@ title: Roteamento
 description: Uma introdução a roteamento com Astro.
 i18nReady: true
 ---
+import FileTree from '~/components/FileTree.astro'
+
 
 Astro utiliza **roteamento baseado em arquivos** para gerar as URLs da sua build com base no layout dos arquivos no diretório `src/pages` do seu projeto. Quando um arquivo é adicionado ao diretório `src/pages` do seu projeto, ele é automaticamente disponibilizado como uma rota baseada no seu nome de arquivo.
 
@@ -34,103 +36,81 @@ Astro usa [elementos `<a>`](https://developer.mozilla.org/pt-BR/docs/Web/HTML/El
 
 ## Rotas dinâmicas
 
-Um único componente de página Astro pode também especificar parâmetros dinâmicos de rota em seu nome de arquivo para gerar múltiplas rotas que cumprem certos critérios. Você pode criar várias páginas relacionadas de uma vez, como páginas de autores, ou uma página para cada categoria de um blog. Parâmetros nomeados te permitem especificar valores para níveis "nomeados" desses caminhos de rotas, e parâmetros rest permitem rotas mais flexíveis que "pegam-tudo".
+Um arquivo de página Astro pode especificar parâmetros de rota dinâmicos em seu nome de arquivo para gerar páginas correspondentes. Por exemplo, você pode criar um arquivo `autores/[autor].astro` que gera uma página de biografia para cada autor no seu blog. `autor` se torna um _parâmetro_ que você pode acessar de dentro da página.
 
-:::note
-Até mesmo páginas e rotas dinamicamente criadas são geradas em tempo de build.
-:::
+No modo estático padrão do Astro, essas páginas são geradas em tempo de build, e logo, você precisa predeterminar a lista de `autor`es que ganham um arquivo correspondente. No modo SSR, uma página será gerada na requisição para qualquer rota que corresponde.
 
-Páginas Astro que criam rotas dinâmicas devem:
+### Modo Estático (SSG)
 
-1. usar a notação de `[colchetes]` para identificar os parâmetros dinâmicos
+Por conta de todas as rotas precisarem ser determinadas em tempo de build, uma rota dinãmica precisa exportar um `getStaticPaths()` que retorna um array de objetos com uma propriedade `params`. Cada um desses objetos irá gerar uma rota correspondente.
 
-2. exportar uma função `getStaticPaths()` para especificar exatamente quais caminhos serão pré-renderizados pelo Astro.
+`[cachorro].astro` define o parâmetro dinâmico `cachorro` em seu nome de arquivo, então os objetos retornados por `getStaticPaths()` devem incluir `cachorro` em suas `params`. A página pode então acessar esse parâmetro utilizando `Astro.params`.
 
-### Parâmetros Nomeados
-
-Você pode gerar rotas com um parâmetro `[nomeado]` providenciando a sua função `getStaticPaths()` os valores para utilizá-la assim:
-
-```astro
+```astro title="src/pages/cachorros/[cachorro].astro"
 ---
-// src/pages/cachorros/[cachorro].astro
-
 export function getStaticPaths() {
   return [
-    // Gera: /cachorros/clifford
     {params: {cachorro: 'clifford'}},
-    // Gera: /cachorros/rover
     {params: {cachorro: 'rover'}},
-    // Gera: /cachorros/spot
     {params: {cachorro: 'spot'}},
   ];
 }
+
+const { cachorro } = Astro.params;
 ---
+<div>Bom garoto, {cachorro}!</div>
 ```
 
-📚 Aprenda mais sobre [`getStaticPaths()`](/pt-br/reference/api-reference/#getstaticpaths).
+Isso irá gerar três páginas: `/cachorros/clifford`, `/cachorros/rover`, and `/cachorros/spot`, cada uma mostrando o nome do cachorro correspondente.
 
-Rotas podem ser geradas a partir de múltiplos parâmetros nomeados, a qualquer nível do caminho de arquivo:
+O nome do arquivo pode incluir múltiplos parâmetros, sendo que todos precisam ser inclusos nos objetos `params` em `getStaticPaths()`:
 
-- `pages/blog/[slug].astro` → (`/blog/ola-mundo`, `/blog/postagem-2`, etc.)
-- `pages/[nomeusuario]/configuracoes.astro` → (`/fred/configuracoes`, `/drew/configuracoes`, etc.)
-- `pages/[lingua]-[versao]/info.astro` → (`/en-v1/info`, `/fr-v2/info`, etc.)
-
-#### O objeto `Astro.params`
-
-Componentes Astro que geram rotas dinamicamente tem acesso ao objeto `Astro.params` para cada rota. Isso te permite utilizar as partes geradas de uma URL em seu script e template do componente.
-
-```astro / (id) |{id}/ /(?<!//.*)Astro.params/
+```astro title="src/pages/[lingua]-[versao]/info.astro"
 ---
-// Exemplo: src/pages/postagens/[id].astro
-const { id } = Astro.params;
+export function getStaticPaths() {
+ return [
+    {params: {lingua: 'en', versao: 'v1'}},
+    {params: {lingua: 'fr', versao: 'v2'}},
+  ];
+}
+const { lingua, versao } = Astro.params;
 ---
-<p>Postagem: {id}</p>
-
-
-// Objeto Astro.params passado para a rota `/postagens/abc`
-{ "id": "abc" }
+...
 ```
 
-Múltiplos segmentos dinâmicos de rota podem ser combinados para trabalharem da mesma forma.
+Isso irá gerar `/en-v1/info` e `/fr-v2/info`.
 
-```astro /(?<=const.*)(id|comentario)/
----
-// Exemplo: src/pages/postagens/[id]/[comentario].astro
-const { id, comentario } = Astro.params;
----
+Parâmetros podem ser incluidos em partes separadas do caminho, então poderíamos utilizar `src/pages/[lingua]/[versao]/info.astro` com o mesmo `getStaticPaths` para gerar `/en/v1/info` e `/fr/v2/info`.
 
-// Objeto Astro.params passado para a rota `/postagens/abc/um-comentario`
-{ "id": "abc", "comentario": "um-comentario" }
+📚 Leia mais sobre [`getStaticPaths()`](/pt-br/reference/api-reference/#getstaticpaths).
+
+#### Parâmetros Rest
+
+Se você precisa de mais flexibilidade no roteamento de sua URL, você pode utilizar um [parâmetro rest](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Functions/rest_parameters) (`[...caminho]`) no nome do seu arquivo `.astro` para corresponder caminhos de arquivo de qualquer profundidade:
+
+```astro title="src/pages/sequencias/[...caminho].astro"
+---
+export function getStaticPaths() {
+  return [
+    {params: {caminho: 'um/dois/três'}},
+    {params: {caminho: 'quatro'}},
+    {params: {caminho: undefined }}
+  ]
+}
+const { caminho } = Astro.params;
+---
+...
 ```
 
-### Parâmetros Rest
+Isso irá gerar `/sequencias/um/dois/três`, `/sequencias/quatro` e `/sequencias`. (Definir o parâmetro rest como `undefined` o permite corresponder a página de nível superior.)
 
-Se você precisa de mais flexibilidade no roteamento de sua URL, você pode utilizar um parâmetro rest no nome do seu arquivo `.astro` como um pega-tudo universal para caminhos de arquivos de qualquer profundidade adicionando três pontos (`...`) dentro de seus colchetes.
-
-Por exemplo:
-
-- `pages/postagens/[...slug].astro` → (`/postagens/a`, `/postagens/a/b`, `/postagens/a/b/c`, etc.)
-
-Parâmetros correspondentes serão passados como um parâmetro de consulta (`slug` nesse exemplo) para a página.
-
-```json
-// Objeto Astro.params passado para a rota `/postagens/a/b/c`
-{ "slug": "a/b/c" }
-```
-
-:::tip
-Parâmetros rest são opcionais por padrão, então `pages/postagens/[...slug].astro` pode corresponder com `/postagens/` também.
-:::
-
-#### Exemplo: Parâmetros rest
-
-Como um exemplo do mundo real, você pode implementar o visualizador de arquivos do GitHub com os seguintes parâmetros nomeados e rest:
+Parâmetros rest podem ser utilizados com **outros parâmetros nomeados**. Por exemplo, poderíamos representar o visualizador de arquivos do GitHub com uma rota dinâmica assim:
 
 ```
 /[org]/[repo]/tree/[branch]/[...arquivo]
 ```
 
-Nesse exemplo, uma requisição a `/withastro/astro/tree/main/docs/public/favicon.svg` iria resultar nos seguintes parâmetros sendo disponibilizados em sua página:
+Nesse exemplo, uma requisição a `/withastro/astro/tree/main/docs/public/favicon.svg` seria dividida nos seguintes parâmetros nomeados:
 
 ```js
 {
@@ -141,11 +121,11 @@ Nesse exemplo, uma requisição a `/withastro/astro/tree/main/docs/public/favico
 }
 ```
 
-#### Exemplo: Criar página raiz superior dinamicamente
+#### Exemplo: Páginas dinâmicas em múltiplos níveis
 
-Para dinamicamente criar um index.html na raiz (e.x. para conteúdo buscado de um CMS headless), inclua um objeto com `slug: undefined` em sua função `getStaticPaths()`.
+Aqui, nós utilizamos um parâmetro (`[...slug]`) e a funcionalidade [`props`](/pt-br/reference/api-reference/#passagem-de-dados-com-props) de `getStaticPaths()` para gerar páginas para slugs de diferentes profundidades.
 
-```astro title="src/pages/[...slug].astro" "slug: undefined"
+```astro title="src/pages/[...slug].astro"
 ---
 export async function getStaticPaths() {
   const paginas = [
@@ -185,18 +165,69 @@ const { titulo, texto } = Astro.props;
 </html>
 ```
 
+### Modo Servidor (SSR)
+
+No [modo SSR](/pt-br/guides/server-side-rendering/), rotas dinâmicas são definidas da mesma forma: inclua colchetes `[param]` ou `[...path]` no nome de seus sarquivos para corresponder a strings ou caminhos arbritários. Porém, já que as rotas não são mais contruídas com antecedência, a página será servida para qualquer rota correspondente. Já que essas não são rotas "estáticas", `getStaticPaths` não deve ser utilizado.
+
+```astro title="src/pages/recursos/[recurso]/[id].astro"
+---
+const { recurso, id } = Astro.params;
+---
+<h1>{recurso}: {id}</h1>
+```
+A página será servida para qualquer valor de `recurso` e `id`: `recursos/usuarios/1`, `recursos/cores/azul`, etc.
+
+#### Modificando o exemplo `[...slug]` para SSR
+
+Já que páginas SSR não podem utilizar `getStaticPaths`, elas não podem receber props. Aqui, nós modificamos nosso [exemplo anterior](#exemplo-páginas-dinâmicas-em-múltiplos-níveis) para funcionar com SSR ao olhar para o valor do parâmetro `slug` em um objeto. Se a rota está na raiz ("/"), o parâmetro slug será `undefined`. Se o valor não existe no objeto, nós redirecionamos para uma página de 404.
+
+```astro title="src/pages/[...slug].astro"
+---
+const paginas = [
+  {
+    slug: undefined,
+    titulo: "Loja Astro",
+    texto: "Bem-vindo à loja Astro!",
+  },
+  {
+    slug: "produtos",
+    titulo: "Produtos Astro",
+    texto: "Nós temos vários produtos para você",
+  },
+  {
+    slug: "produtos/manual-astro",
+    titulo: "O manual definitivo do Astro",
+    texto: "Se você quer aprender Astro, você precisa ler esse livro.",
+  },
+];
+
+const { slug } = Astro.params;
+const pagina = paginas.find((pagina) => pagina.slug === slug);
+if (!pagina) return Astro.redirect("/404");
+const { titulo, texto } = pagina;
+---
+<html>
+<head>
+  <title>{titulo}</title>
+</head>
+<body>
+  <h1>{titulo}</h1>
+  <p>{texto}</p>
+</body>
+</html>
+```
+
 ## Ordem de Prioridade de Rotas
 
 É possível que múltiplas rotas correspondam ao mesmo caminho de URL. Por exemplo, cada uma destas rotas iria corresponder a `postagens/criar`:
 
-```
-└── pages/
-│       ├── postagens/
-│       │   ├── criar.astro
-│       │   ├── [pid].astro
-│       │   └── [...slug].astro
-
-```
+<FileTree>
+- src/pages/
+  - postagens/
+    - criar.astro
+    - [pid].astro
+    - [...slug].astro
+</FileTree>
 
 Astro precisa saber qual rota deve ser utilizada para construir a página. Para fazer isso, Astro as ordena de acordo com as seguintes regras:
 
@@ -349,16 +380,15 @@ Isso permite que você crie páginas privadas e também co-localizar testes, uti
 
 Neste exemplo, apenas `src/pages/index.astro` e `src/pages/postagens/postagem1.md` serão construídas como rotas de página e arquivos HTML.
 
-```md mark="postagem1.md" mark="index.astro"
-src/
-└── pages/
-   ├── _diretorio-escondido/
-   │   ├── pagina1.md
-   │   └── pagina2.md
-   ├── _pagina-escondida.astro
-   ├── index.astro
-   └── postagens/
-       ├── _UmComponente.astro
-       ├── _utils.js
-       └── postagem1.md
-```
+<FileTree>
+- src/pages/
+  - _diretorio-escondido/
+    - pagina1.md
+    - pagina2.md
+  - _pagina-escondida.astro
+  - **index.astro**
+  - postagens/
+    - _AlgumComponente.astro
+    - _utils.js
+    - **postagem1.md**
+</FileTree>
