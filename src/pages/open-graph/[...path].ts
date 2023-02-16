@@ -1,53 +1,24 @@
 import { OGImageRoute } from 'astro-og-canvas';
-import { readFile } from 'fs/promises';
-import matter from 'gray-matter';
-import glob from 'tiny-glob';
-import { rtlLanguages } from '../../i18n/languages';
-import { getLanguageFromURL } from '../../util';
-
-// Work around `import.meta.glob` performance issue.
-// Using even a non-eager glob here seems to trigger an extremely slow
-// start time when using the dev server (similar to the `src/i18n/util.ts`
-// performance issues).
-//
-// To replace it, we’re hand-rolling a glob + Markdown frontmatter parsing
-// combo to extract title & description from each page.
+import { allPages } from '~/content';
+import { rtlLanguages } from '~/i18n/languages';
+import { getLanguageFromURL } from '~/util';
 
 /** Paths for all of our Markdown content we want to generate OG images for. */
-const paths = process.env.SKIP_OG ? [] : await glob('src/pages/**/*.{md,mdx}');
+const paths = process.env.SKIP_OG ? [] : allPages;
 
-/**
- * An object mapping file paths to a file loader method, mimicking
- * `import.meta.glob`’s return object.
- */
-const pages = Object.fromEntries(
-	paths.map((path) => [
-		// `OGImageRoute` expects glob paths to start with `/` as `import.meta.glob` would return.
-		'/' + path,
-		// Minimal version of a dynamic Markdown import.
-		async () => {
-			const fileContents = await readFile(path, 'utf8');
-			const file = matter(fileContents);
-			return {
-				frontmatter: file.data,
-				// An Astro `.md` import includes the page URL, so we’re faking that.
-				url: path.replace('src/pages', '').replace(/(\/index)?\.mdx?$/, ''),
-			};
-		},
-	])
-);
+/** An object mapping file paths to file metadata. */
+const pages = Object.fromEntries(paths.map(({ id, slug, data }) => [id, { data, slug }]));
 
 export const { getStaticPaths, get } = OGImageRoute({
 	param: 'path',
 
 	pages,
 
-	getImageOptions: async (_, mod) => {
-		const page = await mod();
+	getImageOptions: async (_, { data, slug }: typeof pages[string]) => {
 		return {
-			title: page.frontmatter.title,
-			description: page.frontmatter.description,
-			dir: rtlLanguages.has(getLanguageFromURL(page.url)) ? 'rtl' : 'ltr',
+			title: data.title,
+			description: data.description,
+			dir: rtlLanguages.has(getLanguageFromURL(slug)) ? 'rtl' : 'ltr',
 			logo: {
 				path: './src/docs-logo.png',
 				size: [400],
