@@ -5,7 +5,6 @@ import { defineConfig } from 'astro/config';
 import AutoImport from 'astro-auto-import';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeSlug from 'rehype-slug';
-import remarkGFM from 'remark-gfm';
 import remarkSmartypants from 'remark-smartypants';
 
 import { asideAutoImport, astroAsides } from './integrations/astro-asides';
@@ -33,9 +32,9 @@ export default defineConfig({
 	markdown: {
 		syntaxHighlight: 'shiki',
 		shikiConfig: { theme },
+		// Override with our own config
+		smartypants: false,
 		remarkPlugins: [
-			// These are here because setting custom plugins disables the default plugins
-			remarkGFM,
 			[remarkSmartypants, { dashes: false }],
 			// Add our custom plugin that marks links to fallback language pages
 			remarkFallbackLang(),
