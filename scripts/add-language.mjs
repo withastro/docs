@@ -201,7 +201,7 @@ class LanguageScaffolder {
 
 	#createDirectories() {
 		this.#mkdir(`../src/i18n/${this.#tag}`);
-		this.#mkdir(`../src/pages/${this.#tag}`);
+		this.#mkdir(`../src/content/docs/${this.#tag}`);
 	}
 
 	#createTranslationFileStubs() {
@@ -287,9 +287,8 @@ export default DocSearchDictionary({
 `,
 		},
 		{
-			getPath: (tag) => `../src/pages/${tag}/getting-started.mdx`,
+			getPath: (tag) => `../src/content/docs/${tag}/getting-started.mdx`,
 			getStub: () => `---
-layout: ~/layouts/MainLayout.astro
 title: GETTING-STARTED-TITLE-TRANSLATION
 description: DESCRIPTION-TRANSLATION
 ---
