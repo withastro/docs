@@ -1,28 +1,24 @@
-import type { MarkdownInstance } from 'astro';
 import path from 'node:path';
+import type { TutorialEntry } from '~/content/config';
+import { stripLangFromSlug } from '~/util';
 import { groupPagesByLang } from './groupPagesByLang';
 
-type TutorialPage = MarkdownInstance<{ title: string; unitTitle?: string }>;
-
-/** Get a page’s slug, without the language prefix (e.g. `'/en/migrate'` => `'migrate'`). */
-const slugFromUrl = (url: string) => url.split('/').slice(2).join('/');
-
 /** Get a full list of pages for the tutorial in the current language, falling back to English if not available. */
-export function getTutorialPages(allPages: TutorialPage[], lang: string) {
-	const pagesWithSlug = allPages.map((page) => ({ ...page, slug: slugFromUrl(page.url!) }));
-	const pagesByLang = groupPagesByLang(pagesWithSlug);
+export function getTutorialPages(allPages: TutorialEntry[], lang: string) {
+	const pagesByLang = groupPagesByLang(allPages);
 	/** Pages */
 	const pages = pagesByLang['en']
 		.map((englishPage) => {
-			const langPage = pagesByLang[lang]?.find((page) => page.slug === englishPage.slug);
+			const enSlug = stripLangFromSlug(englishPage.slug);
+			const langPage = pagesByLang[lang]?.find((page) => stripLangFromSlug(page.slug) === enSlug);
 			return {
 				...(langPage || englishPage),
 				isFallback: !langPage,
 			};
 		})
 		.sort((a, b) => {
-			const aPath = path.parse(a.file);
-			const bPath = path.parse(b.file);
+			const aPath = path.parse(a.id);
+			const bPath = path.parse(b.id);
 			// Directories are numbered so pages in different directories can be sorted easily.
 			if (aPath.dir < bPath.dir) return -1;
 			if (aPath.dir > bPath.dir) return 1;
@@ -36,11 +32,11 @@ export function getTutorialPages(allPages: TutorialPage[], lang: string) {
 }
 
 /** Turn a flat list of tutorial pages into a hierarchical array of units and lessons. */
-export function getTutorialUnits(tutorialPages: ReturnType<typeof getTutorialPages>) {
+export function getTutorialUnits(tutorialPages: TutorialEntry[]) {
 	return tutorialPages.reduce((units, page) => {
-		if (page.frontmatter.unitTitle) {
+		if (page.data.unitTitle) {
 			units.push({
-				title: page.frontmatter.unitTitle,
+				title: page.data.unitTitle,
 				lessons: [page],
 			});
 		} else {

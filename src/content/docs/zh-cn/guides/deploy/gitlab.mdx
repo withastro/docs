@@ -1,0 +1,58 @@
+---
+title: 部署你的 Astro 站点至 GitLab Pages
+description: 如何使用 GitLab Pages 将你的 Astro 网站部署到网络上。
+i18nReady: true
+---
+
+你可以使用 [GitLab Pages](https://pages.gitlab.io/) 为你的 [GitLab](https://about.gitlab.com/) 项目、组或用户账户托管 Astro 网站。
+
+:::tip[正在寻找示例?]
+看一看 [GitLab Pages 官方的 Astro 示例项目](https://gitlab.com/pages/astro)!
+:::
+
+## 如何部署
+
+1. 在 `astro.config.mjs` 文件中设置正确的 `site`。
+2. 在 `astro.config.mjs` 文件中设置 `outDir:public`。这会告诉 Astro 将静态构建输出放在 `public` 目录下，该目录是 GitLab Pages 指定的静态资源存放位置。
+
+   如果你在 Astro 项目中使用 [`public/` 目录](/zh-cn/core-concepts/project-structure/#public) 存放静态资源，你需要重命名该目录，并在 `astro.config.mjs` 文件中将 `publicDir` 的值改为新的目录名。
+
+   例如，当 `public/` 目录被重命名为 `static/`，正确的 `astro.config.mjs` 文件设置则如下：
+
+   ```js
+   import { defineConfig } from 'astro/config';
+   
+   export default defineConfig({
+     sitemap: true,
+     site: 'https://astro.build/',
+     outDir: 'public',
+     publicDir: 'static',
+   });
+   ```
+
+3. 在项目根目录下创建一个名为 `.gitlab-ci.yml` 的文件，文件内容如下。这样，每当你对项目内容作出更改，该文件便会自动构建并部署你的站点。
+
+   ```yaml
+   # 用于构建你的应用的Docker镜像
+   image: node:lts
+   
+   pages:
+     cache:
+       paths:
+         - node_modules/
+     script:
+       # 在这里指定构建你的应用所需的步骤
+       - npm install
+       - npm run build
+
+     artifacts:
+       paths:
+         # 包含用于发布的构建文件的文件夹
+         # 必须命名为"public"
+         - public
+
+     only:
+       # 仅在推送到以下分支时，
+       # 触发新的构建和部署
+       - main
+   ```
