@@ -30,7 +30,6 @@ export default [
 	slug: 'core-concepts/project-structure',
 	key: 'core-concepts/project-structure',
 },
-//This will have some content removed to go into astro syntax page
 {
 	text: 'Components',
 	slug: 'core-concepts/astro-components',
@@ -45,10 +44,9 @@ export default [
 { text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
 { text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
 { text: 'Add integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
-
 { text: 'Deploy your site', slug: 'guides/deploy', key: 'guides/deploy' },
-// { text: 'Test', slug: 'guides/testing', key: 'guides/testing' },
-// { text: 'All Recipes', slug: 'guides/deploy', key: 'guides/deploy' },
+{ text: 'All Recipes', slug: 'guides/recipes', key: 'guides/recipes' },
+
 
 // TODO: Can some of these be removed, merged, or pulled entirely into Recipes? (ex: RSS as recipe)
 { text: 'Guides', header: true, type: 'learn', key: 'features' },
@@ -77,7 +75,7 @@ export default [
 	slug: 'guides/server-side-rendering',
 	key: 'guides/server-side-rendering',
 },
-{ text: 'Authoring Content', slug: 'guides/content', key: 'guides/content' },
+// { text: 'Authoring Content', slug: 'guides/content', key: 'guides/content' },
 {
 	text: 'Content Collections',
 	slug: 'guides/content-collections',
@@ -85,13 +83,13 @@ export default [
 },
 // { text: 'MDX', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 { text: 'Images', slug: 'guides/images', key: 'guides/images' },
-{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
+// { text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 {
 	text: 'Sharing State',
 	slug: 'core-concepts/sharing-state',
 	key: 'core-concepts/sharing-state',
 },
-{ text: 'RSS', slug: 'guides/rss', key: 'guides/rss' },
+// { text: 'RSS', slug: 'guides/rss', key: 'guides/rss' },
 { text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
 { text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
 
