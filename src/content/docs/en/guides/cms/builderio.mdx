@@ -3,13 +3,664 @@ title: Builder.io & Astro
 description: Add content to your Astro project using Builder.io’s visual CMS
 type: cms
 service: Builder.io
-stub: true
+stub: false
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
-
-
+import FileTree from '~/components/FileTree.astro';
 
 [Builder.io](https://www.builder.io/) is a visual CMS that supports drag and drop content editing for building web sites.
+
+## Integrating with Astro
+
+:::note
+Builder.io can connect to your app in various ways. If You are using a JavaScript **framework** like Svelte, Vue, or React in your Astro project you can use one of builder.io's integrations [xxx].
+:::
+
+In this guide, you will use [Builder's REST API](xxx) to fetch your content. This way, things stay simple - your project doesn't need to use a framework or any client-side JavaScript at all. 
+
+You'll fetch your content at buld time, when Astro is generating your site. Later in this guide [xxx], You'll use webhooks to connect Builder to your hosting provider like Netlify or Vercel. That way, each time you'll make an edit in the Builder app your site gets automatically rebuilt.
+
+### Prerequisites
+
+To get started, you will need to have the following:
+
+0a. ??? *A basic knowledge of using a code editor / the command line* - You can read a beginner-friendly introduction here []
+
+0b. ??? *A basic knowledge of REST APIs*
+
+1. **An Astro project** - If you don't have an Astro project yet, our [Installation guide](/en/install/auto/) will get you up and running in no time - whether you want to start from scratch or use a template. 
+
+2. **A builder.io account and space** - If you don't have an account yet, [sign up for free](xxx) and create a new space.
+
+3. **A builder.io API key** - This key will be used to fetch your content and the HTML you create in the Builder editor. [Here's](https://www.builder.io/c/docs/using-your-api-key) Builder's guide how to find it. 
+
+4. A basic understanding of builder - models, sections, preview URL and the REST API. [xxx] [xxx]
+
+### Setting up credentials
+At the time of writing, the key for the Builder API we use here is public [xxx] - so you don't have to worry about hiding or encrypting it. 
+
+You could paste it into your API call directly, but since we'll be making a few of these calls, it makes sense to put it in a separate file that we can access from multiple places. 
+
+To add your Builder credentials to Astro, create a `.env` file in the root of your project with the following variable:
+
+```ini title=".env"
+BUILDER_API_PUBLIC_KEY=YOUR_KEY
+```
+
+Now, you should be able to use this environment variable in your project.
+
+Your root directory should now include this new file:
+
+<FileTree title="Project Structure">
+  - src/ 
+  - **.env** 
+  - astro.config.mjs 
+  - package.json
+</FileTree>
+
+### Configuring Builder
+Create or pick an existing model that you'll use to build your site. This guide uses a section model [xxx] representing a blog post. 
+
+#### Connecting the Preview URL 
+
+To use Builder's drag-and-drop editor, you'll create a page that returns the special `<builder-coponent>`. This component tells Builder where to insert the content from its CMS - it represents the portion of the page that's editable in the Builder app. 
+
+In this guide the `<builder-coponent>` represents the content of a blog post. Accordingly, we wrap it in our `<BaseLayout>` to simulate how it would look on the final page. 
+
+1. Create a file named `builder-preview.astro` in your `/src` folder.  
+
+```astro title="builder-preview.astro"
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
+const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
+---
+
+<BaseLayout>
+    <builder-component model={builderModel} api-key={builderAPIpublicKey}
+    ></builder-component>
+    <script async src="https://cdn.builder.io/js/webcomponents"></script>
+</BaseLayout>
+```
+
+:::info
+Read more about the preview-URL in the builder docs. [xxx]
+:::
+
+2. Set a preview URL in your model [xxx] - in this project it is `https://localhost:3000/builder-preview`. Don't forget the `https` part! Read more about preview URLs in the Builder docs [xxx]
+
+:::note
+We picked `localhost:3000` since this is the address where we are developing our project. Later, when our site is deployed, we will change our preview-URL to match our production URL like `https://myBlog.com/builder-preview`.
+:::
+
+Now when you go to the Builder app preview (read here how to do that - go to content and create new->Blogpost) you should see your `<BaseLayout>` with a big inviting space in between!
+
+[screenshot]
+
+:::tip
+**Troubleshooting**
+
+Things can easily go wrong when setting up the preview. If the preview doesn't work, you can try one of the following things:
+* Make sure that the routes match exactly - your Astro route and the one in your Builder preview-URL. Watch out for typos!
+* Make sure you include the full URL including the protocol (like `https://`)
+* Make sure the site is live -  
+
+Read Builder's troubleshooting guide for more help. [xxx]
+:::
+
+#### Fetching your Data
+
+To fetch your data from the builder CMS, you can simply make a fetch request to one of Builder's REST APIs. 
+
+Which API should You use? It depends on what kind of data you'd like to fetch:
+
+1. Use Builder's Content API [xxx] to fetch your content's custom data fields like a post's `title`, `author`, or `slug`
+
+2. Use builder's QWIK API [xxx] to fetch pre-rendered HTML that you can directly put in your Astro page
+
+##### Fetching data fields of your content
+
+If You had a Builder model named `blogPost` and wanted to create a page showing a list of all your blog posts, your component might look like this:
+
+```astro ins={12}
+---
+const builderModel = 'blogPost'
+
+const { results: posts } = await fetch(
+    `https://cdn.builder.io/api/v2/content/blogPost?${new URLSearchParams(
+            {
+                apiKey: YOUR_BUILDER_API_KEY,
+                fields: ["data.slug", "data.title"].join(","),
+                cachebust: "true",
+            }
+        ).toString()}`
+    )
+    .then((res) => res.json())
+    .catch(
+      // ...catch some errors...
+    );
+---
+<ul>
+    {
+        posts.map(({ data: { slug, title } }) => (
+            <a href={`/posts/${slug}`} > 
+            {title}
+            </a>
+        ))
+    }
+</ul>
+```
+
+##### Fetching pre-rendered HTML
+
+If You had a Builder model named `blogPost` and wanted to create a page showing the contents of your blog posts - i.e. whatever you've created in the Builder editor, your component might look like this:
+
+```astro title="[...slug].astro
+---
+const builderModel = 'blogPost'
+
+// fetch all posts, just as in the previous step
+// 💥 TO REVIEWER: open to suggestions how to simplify this
+export async function getStaticPaths() {
+    const { results: posts } = await fetch(
+        `https://cdn.builder.io/api/v2/content/${builderModel}?${new URLSearchParams(
+            {
+                apiKey: builderAPIpublicKey,
+                fields: ["data.slug", "data.title"].join(","),
+                cachebust: "true",
+            }
+        ).toString()}`
+    )
+        .then((res) => res.json())
+        .catch(
+      // ...catch some errors...);
+        )
+
+    return [
+        ...posts.map(({ data: { slug, title } }) => [
+            {
+                params: { slug },
+                props: { title },
+            },
+        ]),
+    ];
+}
+const { slug } = Astro.params;
+const { title } = Astro.props;
+
+// Builder's API requires this field but for this use case the url doesn't seem to matter - the API returns the same HTML
+const encodedUrl = encodeURIComponent("moot");
+
+const { html: postHTML } = await fetch(
+    `https://cdn.builder.io/api/v1/qwik/${builderModel}?${new URLSearchParams({
+        apiKey: builderAPIpublicKey,
+        url: encodedUrl,
+        "query.data.slug": slug,
+        cachebust: "true",
+    }).toString()}`
+)
+    .then((res) => res.json())
+    .catch(
+      // ...catch more errors...);
+        )
+---
+
+<BaseLayout pageTitle={title}>
+    <Fragment set:html={postHTML} />
+</BaseLayout>
+
+```
+
+## Making a blog with Astro and Builder
+
+With the integration set up, you can now create a blog with Astro and Builder.
+
+There are lots of ways to integrate Builder with Astro and structure your content in Builder's CMS. In this guide we'll keep it simple using Builder's REST APIs to fetch our content and a section model representing our blog posts. One use case for this might be if You want to build and manage a website for someone, but give them the power to design their own content using a visual tool like Builder.  
+
+By the end of this guide you'll have a website that
+* ✅ has a base layout, managed with Astro 
+* ✅ has blog posts which can be edited in Builder's visual editor
+* ✅ is totally static with 0 client side JavaScript
+* ✅ automatically updates each time you change something on Builder
+
+### Prerequisites
+
+1. **A Builder space** - For this tutorial, we recommend using a new space. If you already have a space with Builder, feel free to use it, but you will need to modify the code to match the model name and custom data fiels.
+
+2. **An Astro project integrated with Builder** - See [integrating with Astro](#integrating-with-astro) for instructions on how to set up the integration.
+
+### Creating A Base Layout
+Create a layout for the whole page. Your future blog posts that you'll create via the Builder app will go into the `<slot />`.
+
+Here we are using the `BaseLayout` as we left it at the end of our getting started with Astro tutorial [xxx]. The 
+
+```astro title='/src/layouts/BaseLayout'
+---
+import "../styles/global.css";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+
+const { pageTitle } = Astro.props;
+---
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+        <title>{pageTitle}</title>
+    </head>
+    <body>
+        <Header />
+        <h1>{pageTitle}</h1>
+        <slot />
+        <Footer />
+        <script>
+            import "../scripts/menu";
+        </script>
+    </body>
+</html>
+```
+
+### Creating a Blogpost Model
+
+Follow [Builder's official tutorial](https://www.builder.io/blog/creating-blog) for creating a blog post model.
+
+In short, to create a model for your blogpost go to the Builder app and click on the **Models** tab. Click on the <kbd>+ Create Model</kbd> button and create a model of the type `section`. A section model means that the content can sit between other elements of a page - like the header and footer that are part of our `<BaseLayout>`! 
+
+1. `blogPost` - A content type Blok with the following fields:
+
+   - `title` - A text field
+   - `description` - A text field
+   - `slug` - A text field
+
+### Creating content
+
+To add new content, go to the content section by clicking in the **Content** tab. Using the Blok library that you created in the previous step, create the following stories:
+
+1. `home` - A content type story with the `page` Blok. Inside the `body` field, add a `blogPostList` Blok.
+
+2. `blog/no-javascript` - A story with the `blogPost` content type inside the blog folder.
+   ```yaml
+   title: No JavaScript
+   description: A sample blog post
+   content: Hi there! This blog post doesn't use JavaScript.
+   ```
+3. `blog/astro-is-amazing` - A story with the `blogPost` content type inside the blog folder.
+   ```yaml
+   title: Astro is amazing
+   description: We love Astro
+   content: Hi there! This blog post was build with Astro.
+   ```
+
+Now that you have your content ready, return to your Astro project and start building your blog.
+
+### Connecting Bloks to components
+
+To connect your newly created Bloks to Astro components, create a new folder named `storyblok` in your `src` directory and add the following files:
+
+`Page.astro` is a nestable Block content type component that will recursively render all the Bloks inside the `body` property of the `page` Blok. It also adds the `storyblokEditable` attributes to the parent element which will allow us to edit the page in Storyblok.
+
+```astro title="src/storyblok/Page.astro"
+---
+import { storyblokEditable } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+const { blok } = Astro.props
+---
+
+<main {...storyblokEditable(blok)}>
+  {
+    blok.body?.map((blok) => {
+      return <StoryblokComponent blok={blok} />
+    })
+  }
+</main>
+```
+
+`BlogPost.astro` will render the `title`, `description` and `content` properties of the `blogPost` Blok.
+
+To transform the `content` property from a rich text field to HTML, you can use the `renderRichText` helper function.
+
+```astro title="src/storyblok/BlogPost.astro"
+---
+import { storyblokEditable, renderRichText } from '@storyblok/astro'
+const { blok } = Astro.props
+const content = renderRichText(blok.content)
+---
+<article {...storyblokEditable(blok)}>
+  <h1>{blok.title}</h1>
+  <p>{blok.description}</p>
+  <Fragment set:html={content} />
+</article>
+```
+
+`BlogPostList.astro` is a nestable Blok content type component that will render a list of blog posts previews.
+
+It uses the `useStoryblokApi` hook to fetch all the stories with the content type of `blogPost`. It uses the `version` query parameter to fetch the draft versions of the stories when in development mode and the published versions when building for production.
+
+`Astro.props` is used to set up the editor in Storyblok. Additional props can also be passed to your component here, if needed.
+
+```astro title="src/storyblok/BlogPostList.astro"
+---
+import { storyblokEditable } from '@storyblok/astro'
+import { useStoryblokApi } from '@storyblok/astro'
+
+const storyblokApi = useStoryblokApi();
+
+const { data } = await storyblokApi.get('cdn/stories', {
+  version: import.meta.env.DEV ? "draft" : "published",
+  content_type: 'blogPost',
+})
+
+const posts = data.stories.map(story => {
+  return {
+    title: story.content.title,
+    date: new Date(story.published_at).toLocaleDateString("en-US", {dateStyle: "full"}),
+    description: story.content.description,
+    slug: story.full_slug,
+  }
+})
+
+const { blok } = Astro.props
+---
+
+<ul {...storyblokEditable(blok)}>
+  {posts.map(post => (
+    <li>
+      <time>{post.date}</time>
+      <a href={post.slug}>{post.title}</a>
+      <p>{post.description}</p>
+    </li>
+  ))}
+</ul>
+```
+
+Finally, add your components to the `components` property of the `storyblok` config object in `astro.config.mjs`. The key is the name of the Blok in Storyblok, and the value is the path to the component relative to `src`.
+
+```js title="astro.config.mjs" ins={12-14}
+import { defineConfig } from 'astro/config';
+import storyblok from '@storyblok/astro';
+import { loadEnv } from 'vite';
+
+const env = loadEnv('', process.cwd(), 'STORYBLOK');
+
+export default defineConfig({
+    integrations: [
+        storyblok({
+            accessToken: env.STORYBLOK_TOKEN,
+            components: {
+                blogPost: 'storyblok/BlogPost',
+                blogPostList: 'storyblok/BlogPostList',
+                page: 'storyblok/Page',
+            },
+            apiOptions: {
+                region: 'us',
+            },
+        }),
+    ],
+});
+```
+
+### Generating pages
+
+#### Static site generation
+
+If you are using Astro's default static site generation, you will use [dynamic routes](/en/core-concepts/routing/#dynamic-routes) and the `getStaticPaths` function to generate your project pages.
+
+Create a new file in the `src/pages` directory called `[...slug].astro` and add the following code:
+
+```astro title="src/pages/[...slug].astro"
+---
+import { useStoryblokApi } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+
+export async function getStaticPaths() {
+  const storyblokApi = useStoryblokApi()
+  const { data } = await storyblokApi.get("cdn/stories", {
+    version: import.meta.env.DEV ? "draft" : "published",
+  });
+  const pages = data.stories.map(story => {
+    return {
+      params: {
+        slug: story.full_slug === 'home' ? undefined : story.full_slug
+      },
+      props: {
+        story
+      }
+    }
+  })
+  return pages
+}
+
+const { story } = Astro.props
+---
+<html lang="en">
+  <head>
+    <title>Storyblok & Astro</title>
+  </head>
+  <body>
+    <StoryblokComponent blok={story.content} />
+  </body>
+</html>
+```
+
+This file will generate a page for each story, with the slug and content fetched from the Storyblok API. If the story's slug is `home`, `getStaticPaths` returns an undefined slug, which generates the `/` route.
+
+
+xxxx
+
+### Creating a New Blog Post
+// ### Creating New Content
+// ### Using Builder's Visual Editor
+
+Make an edit in Builder's editor and click `Publish`. Your content won't be live yet, but you'll learn how to fetch it in the next step. 
+
+What happened now is 
+If you've crreated a blog post with the title, and created a heading and some text in the visual editor...[screenshot]
+To understand our project, let's take a moment at what happened when you create a blog post on builder. 
+
+* A new post is represented by new content using the model `blogpost`. This content has data fields like `title`, `author` and `slug`. You'll be fetching this data through Builder's `content API` [xxx] and use it to display a list of all your pieces of content (in this guide the pieces are blogposts)
+* You used Builder's visual editor to drag-and-drop text, images and media to visually create a blog post. This data is HTML and CSS, different from the data fields associated with our model. You'll fetch this pre-rendered HTML through Builder's `QWIK API` [xxx] and embed it on a dynamic route representing a single piece of content (one blogpost)
+
+### Displaying a List of Blogposts
+You're going to use Builder's `content API` [xxx] to fetch relevant data like `title` and `author` for each piece of content within your Builder model. So if your model is `blogpost`, you are going to fetch all the data _about_ each blogpost. This is useful if You want to display a list of all your blogposts without actually needing the whole contents of each one. You are going to fetch the content in the next step
+
+To make a list of all your content, create a new page in the `src/pages` folder. In this guide it's called `Blog.astro`.
+
+<FileTree title="Project Structure">
+    - src/pages/**Blog.astro** - .env - astro.config.mjs - package.json
+</FileTree>
+
+Fetch the data that interests You using Builder's `content API` [xxx] and querying the appropiate `fields`. In this example we are keeping it simple and only fetching `title` and `slug`: the title to give each link its text and the slug to give it its location. 
+
+:::note
+This data matches the custom entry fields [xxx] of your Builder model. In this example we added the fields `title` and `slug` to our Builder model - so that's what we are fetching. All of your custom fields are availabe under the `data` object.  
+:::
+
+[screenshot showing matching fields: in code editor on one side, on builder.io on the other model custom fields]
+
+You can go as creative here and fetch any data that You want - the name of the author, the length of the posts, or the publication date - it all depends on your Builder model. 
+
+Since you'll be using the name of this model in each API call, it makes sense to set it as an environment variable. See the previous section on how to do that [xxx]. 
+
+You can also process this data in this step using Astro of course.
+[example?] 
+
+```astro title="Blog.astro" ins={12}
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const pageTitle = "My Astro Learning Blog";
+
+const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
+const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
+
+const handleError = (err) => {
+    // The requested Builder content could not be found.
+    if (err.response.status === 404) {
+        return { data: null };
+    }
+    throw err;
+};
+
+const { results: posts } = await fetch(
+    `https://cdn.builder.io/api/v2/content/${builderModel}?${new URLSearchParams(
+            {
+                apiKey: builderAPIpublicKey,
+                fields: ["data.slug", "data.title"].join(","),
+                cachebust: "true",
+            }
+        ).toString()}`
+    )
+    .then((res) => res.json())
+    .catch(handleError);
+---
+
+<BaseLayout pageTitle={pageTitle}>
+    <ul>
+        {
+            posts.map(({ data: { slug, title } }) => (
+                <a href={`/posts/${slug}`} > 
+                {title}
+                </a>
+            ))
+        }
+    </ul>
+</BaseLayout>
+```
+
+Once your site builds or your dev server runs the code, you should be able to see your first blog post getting listed!
+
+The link isn't working though, since we haven't created the appropiate route yet. 
+
+### Displaying the Content of a Blogpost
+
+To display each blogpost you'll create a catch-all route [xxx] matching the route `/posts/${slug}` from the previous step [xxx].
+
+<FileTree title="Project Structure">
+    - src/pages/posts/**[slug].astro** - .env - astro.config.mjs - package.json
+</FileTree>
+
+
+On this page, you'll again fetch all the slugs of your content - you'll need them at build time to create all of your routes statically. 
+
+Then, for each slug, you'll fetch the HTML content of the blogpost using Builder's `QWIK API` [xxx]. This is the stuff you dragged-and-dropped in Builder's visual editor. 
+
+In this example this HTML is put into our `<BaseLayout>` - matching our `builder-preview` page created in step 1 [xxx]. 
+
+```astro title="pages/posts/[slug].astro"
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
+const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
+
+// 💥 TO REVIEWER: This is a lot of repeated code since we're making the same API call as in Blog.astro. 
+// 2 ideas to avoid that:
+// 1. Still making two API calls but putting them in a separate file.  
+// 2. Some kind of pre-build Integrations magic. Let me know if this is possible. 
+
+const handleError = (err) => {
+    // The requested Builder content could not be found.
+    if (err.response.status === 404) {
+        return { data: null };
+    }
+    throw err;
+};
+
+export async function getStaticPaths() {
+    // We need to repeat this here, as `getStaticPaths` doesn't have access to variables in its parent's scope.
+    // Relevant docs: https://docs.astro.build/en/reference/api-reference/#getstaticpaths
+    const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
+    const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
+    // const baseURL = "https://astro-builder-restapi.netlify.app/";
+
+    const { results: posts } = await fetch(
+        `https://cdn.builder.io/api/v2/content/${builderModel}?${new URLSearchParams(
+            {
+                apiKey: builderAPIpublicKey,
+                fields: ["data.slug", "data.title"].join(","),
+                cachebust: "true",
+            }
+        ).toString()}`
+    )
+        .then((res) => res.json())
+        .catch(handleError);
+
+    return [
+        ...posts.map(({ data: { slug, title } }) => [
+            {
+                params: { slug },
+                props: { title },
+            },
+        ]),
+    ];
+}
+const { slug } = Astro.params;
+const { title } = Astro.props;
+
+// Builder's API requires this field but for this use case the url doesn't seem to matter - the API returns the same HTML
+const encodedUrl = encodeURIComponent("moot");
+
+const { html: postHTML } = await fetch(
+    `https://cdn.builder.io/api/v1/qwik/${builderModel}?${new URLSearchParams({
+        apiKey: builderAPIpublicKey,
+        url: encodedUrl,
+        "query.data.slug": slug,
+        cachebust: "true",
+    }).toString()}`
+)
+    .then((res) => res.json())
+    .catch(handleError);
+---
+
+<BaseLayout pageTitle={title}>
+    <Fragment set:html={postHTML} />
+</BaseLayout>
+
+```
+
+To query your data, use the `useStoryblokApi` hook. This will initialize a new client instance using your integration configuration.
+
+To render your content, pass the `content` property of the Story to the `StoryblokComponent` as a `blok` prop. This component will render the Bloks that are defined inside the `content` property. In this case, it will render the `BlogPost` component.
+
+xxxx
+
+### Publishing your site
+
+To deploy your website, visit our [deployment guides](/en/guides/deploy/) and follow the instructions for your preferred hosting provider.
+
+#### Rebuild on Storyblok changes
+
+If your project is using Astro's default static mode, you will need to set up a webhook to trigger a new build when your content changes. If you are using Netlify or Vercel as your hosting provider, you can use its webhook feature to trigger a new build from Storyblok events.
+
+##### Netlify
+
+To set up a webhook in Netlify:
+
+1. Go to your site dashboard and click on **Build & deploy**.
+
+2. Under the **Continuous Deployment** tab, find the **Build hooks** section and click on **Add build hook**.
+
+3. Provide a name for your webhook and select the branch you want to trigger the build on. Click on **Save** and copy the generated URL.
+
+##### Vercel
+
+To set up a webhook in Vercel:
+
+1. Go to your project dashboard and click on **Settings**.
+
+2. Under the **Git** tab, find the **Deploy Hooks** section.
+
+3. Provide a name for your webhook and the branch you want to trigger the build on. Click **Add** and copy the generated URL.
+
+##### Adding a webhook to Storyblok
+
+In your Storyblok space **Settings**, click on the **Webhooks** tab. Paste the webhook URL you copied in the **Story published & unpublished** field and hit <kbd>Save</kbd> to create a webhook.
+
+Now, whenever you publish a new story, a new build will be triggered and your blog will be updated.
 
 ## Official Resources
 
