@@ -94,8 +94,9 @@ const nonDraftPosts = posts.filter((post) => !post.frontmatter.draft);
 
 Para habilitar la creación de páginas de borrador por defecto, actualiza tu `astro.config.mjs` añadiendo `drafts: true` a `markdown` o a la integración `mdx`:
 
-```js ins={4, 7}
-// astro.config.mjs
+```js title="astro.config.mjs" ins={5, 8}
+import { defineConfig } from 'astro/config';
+
 export default defineConfig({
   markdown: {
     drafts: true,
@@ -459,12 +460,35 @@ import { defineConfig } from 'astro/config';
 import remarkToc from 'remark-toc';
 import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis';
 
-export default {
+export default defineConfig({
   markdown: {
     // Aplicado a archivos .md y .mdx
    remarkPlugins: [remarkToc, rehypeAccessibleEmojis],
   },
-}
+});
+```
+
+### IDs de encabezados y plugins
+
+Astro inyecta un atributo `id` en todos los elementos de encabezado (`<h1>` a `<h6>`) en archivos Markdown y MDX y proporciona una utilidad `getHeadings()` para recuperar estos IDs en [propiedades exportadas de Markdown](#propiedades-exportadas).
+
+Puedes personalizar estos IDs de encabezado agregando un plugin de rehype que inyecte atributos `id` (por ejemplo, `rehype-slug`). Tus IDs personalizados, en lugar de los predeterminados de Astro, se reflejarán en la salida HTML y los elementos devueltos por `getHeadings()`.
+
+Por defecto, Astro inyecta atributos `id` después de que se ejecutan tus complementos de rehype. Si uno de tus complementos de rehype personalizados necesita acceder a los IDs inyectados por Astro, puedes importar y usar el complemento `rehypeHeadingIds` de Astro directamente. Asegúrate de agregar `rehypeHeadingIds` antes de cualquier complemento que lo requiera:
+
+```js title="astro.config.mjs" ins={2, 8}
+import { defineConfig } from 'astro/config';
+import { rehypeHeadingIds } from '@astrojs/markdown-remark';
+import { otherPluginThatReliesOnHeadingIDs } from 'some/plugin/source';
+
+export default defineConfig({
+  markdown: {
+    rehypePlugins: [
+      rehypeHeadingIds,
+      otherPluginThatReliesOnHeadingIDs,
+    ],
+  },
+});
 ```
 
 #### Modificación programática del frontmatter
@@ -491,28 +515,30 @@ Puedes agregar propiedades al frontmatter de todos tus archivos Markdown o MDX u
 2. Aplica este plugin a tu configuración de integración `markdown` o `mdx`:
 
     ```js title="astro.config.mjs" "import { exampleRemarkPlugin } from './example-remark-plugin.mjs';" "remarkPlugins: [exampleRemarkPlugin],"
+    import { defineConfig } from 'astro/config';
     import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
 
-    export default {
+    export default defineConfig({
       markdown: {
         remarkPlugins: [exampleRemarkPlugin],
         extendDefaultPlugins: true,
       },
-    };
+    });
     ```
 
     o bien
 
     ```js title="astro.config.mjs" "import { exampleRemarkPlugin } from './example-remark-plugin.mjs';" "remarkPlugins: [exampleRemarkPlugin],"
+    import { defineConfig } from 'astro/config';
     import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
 
-    export default {
+    export default defineConfig({
       integrations: [
         mdx({
           remarkPlugins: [exampleRemarkPlugin],
         }),
       ],
-    }
+    });
     ```
 
 Ahora, cada archivo Markdown o MDX tendrá `customProperty` en su frontmatter, la cual estará disponible al [importar markdown](#importando-markdown) y en [la propiedad `Astro.props.frontmatter` en tus plantillas](#layout-en-el-frontmatter).
@@ -547,14 +573,15 @@ export function remarkReadingTime() {
 Una vez que aplicas este complemento en tu configuración:
 
 ```js title="astro.config.mjs" "import { remarkReadingTime } from './remark-reading-time.mjs';" "remarkPlugins: [remarkReadingTime],"
+import { defineConfig } from 'astro/config';
 import { remarkReadingTime } from './remark-reading-time.mjs';
 
-export default {
+export default defineConfig({
   markdown: {
     remarkPlugins: [remarkReadingTime],
     extendDefaultPlugins: true,
   },
-};
+});
 
 ```
 
@@ -580,8 +607,7 @@ La integración MDX de Astro extenderá [la configuración de Markdown existente
 
 El siguiente ejemplo deshabilita el GitHub-Flavored Markdown y aplica un conjunto diferente de complementos remark para archivos MDX:
 
-```ts
-// astro.config.mjs
+```ts title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 export default defineConfig({
@@ -605,8 +631,7 @@ export default defineConfig({
 
 Para evitar extender la configuración de Markdown desde MDX, establece [la opción `extendMarkdownConfig`](/es/guides/integrations-guide/mdx/#extendmarkdownconfig) (habilitada por defecto) a `false`:
 
-```ts
-// astro.config.mjs
+```ts title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 export default defineConfig({
@@ -637,9 +662,10 @@ Shiki está habilitado de forma predeterminada, preconfigurado con el tema `gith
 
 Shiki es nuestro resaltador de sintaxis predeterminado. Puedes configurar todas las opciones a través del objeto `shikiConfig` así:
 
-```js
-// astro.config.mjs
-export default {
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
   markdown: {
     shikiConfig: {
       // Escoge entre los temas integrados de Shiki (o agrega los tuyos propios)
@@ -653,7 +679,7 @@ export default {
       wrap: true,
     },
   },
-};
+});
 ```
 
 #### Añadiendo tu propio tema
@@ -677,14 +703,17 @@ También sugerimos leer [la documentación de Shiki sobre sus temas](https://git
 
 Si deseas cambiar a `'prism'` o deshabilitar el resaltado de sintaxis por completo, puedes usar el objeto de configuración `markdown.syntaxHighlight`:
 
-```js ins={5}
-// astro.config.mjs
+```js title="astro.config.mjs" ins={6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
 export default {
   markdown: {
     // Puede ser 'shiki' (predeterminado), 'prism' o false para deshabilitar el resaltado
     syntaxHighlight: 'prism',
   },
 };
+});
 ```
 
 #### Configuración de Prism
