@@ -1,0 +1,197 @@
+---
+title: Serverseitiges Rendern (SSR)
+---
+
+**Serverseitiges Rendern**, auch bekannt als SSR, kann in Astro aktiviert werden. Wenn du SSR aktivierst, kannst du:
+
+- Sitzungen für den Anmeldestatus in deiner Anwendung implementieren.
+- Daten von einer API rendern, die dynamisch mit `fetch` abgerufen werden.
+- Deine Webseite auf einem Host mithilfe eines *Adapters* bereitstellen.
+
+## SSR in deinem Projekt aktivieren
+
+Um SSR zu aktivieren, musst du einen Adapter verwenden. Das liegt daran, dass SSR eine Server-_Laufzeitumgebung_ benötigt: Die Umgebung, in der dein serverseitiger Code ausgeführt wird. Diese Laufzeitumgebung bietet eine API, die der serverseitige Code nutzen kann.
+
+Durch die Installation eines Adapters erhält Astro Zugriff auf die entsprechende API und kann ein Skript ausgeben, das dein Projekt auf diesem Server ausführt.
+
+Die folgenden Adapter sind aktuell verfügbar, weitere werden in Zukunft folgen:
+
+- [Cloudflare](/de/guides/integrations-guide/cloudflare/)
+- [Deno](/de/guides/integrations-guide/deno/)
+- [Netlify](/de/guides/integrations-guide/netlify/)
+- [Node.js](/de/guides/integrations-guide/node/)
+- [Vercel](/de/guides/integrations-guide/vercel/)
+
+Unter den oben genannten Links zu den einzelnen Adaptern kannst du Anleitungen für die folgenden beiden Schritte (unter Verwendung von `mein-adapter` als Beispielplatzhalter) finden, um SSR zu aktivieren.
+1. Installiere den Adapter in deine Projektabhängigkeiten via npm oder dem Paketmanager deiner Wahl:
+
+    ```bash
+    npm install --save-dev @astrojs/mein-adapter
+    ```
+1. [Füge den Adapter](/de/reference/configuration-reference/#adapter) zum Import und Standard-Export deiner `astro.config.mjs`-Datei hinzu:
+
+    ```js ins={3,6-7}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import meinAdapter from '@astrojs/mein-adapter';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: meinAdapter(),
+    });
+    ```
+
+## Funktionen
+
+Astro bleibt standardmäßig ein Generator für statische Websites. Sobald du jedoch einen Adapter für serverseitiges Rendern aktivierst, wird **jede Route in deinem `pages`-Verzeichnis zu einer serverseitig gerenderten Route** und es stehen dir einige neue Funktionen zur Verfügung.
+
+### `Astro.request.headers`
+
+Die Header der Anfrage sind verfügbar unter `Astro.request.headers`. Dies ist ein [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers)-Objekt, ein Map-ähnliches Objekt, über das du Header (z.B. einen Cookie) abrufen kannst.
+```astro title="src/pages/index.astro" {2}
+---
+const cookie = Astro.request.headers.get('cookie');
+// ...
+---
+<html>
+  <!-- Hier ist die Seite... -->
+</html>
+```
+
+### `Astro.redirect`
+
+Diese Funktion des globalen `Astro`-Objekts ermöglicht es dir, auf eine andere Seite umzuleiten. Du könntest dies machen, nachdem du überprüft hast, ob der Nutzer angemeldet ist, indem du seine Sitzung aus einem Cookie abrufst.
+
+```astro title="src/pages/account.astro" {8}
+---
+import { isLoggedIn } from '../utils';
+
+const cookie = Astro.request.headers.get('cookie');
+
+// Wenn der Nutzer nicht angemeldet ist, leite ihn zur Anmeldeseite weiter
+if (!isLoggedIn(cookie)) {
+  return Astro.redirect('/login');
+}
+---
+<html>
+  <!-- Hier ist die Seite... -->
+</html>
+```
+
+### `Response`
+
+Du kannst auch eine [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) von deiner Seite zurückgeben. Dies könntest machen, um auf einer dynamischen Seite 404 zurückzugeben, nachdem du eine id in der Datenbank überprüft hast.
+
+```astro title="src/pages/[id].astro" {8-11}
+---
+import { getProduct } from '../api';
+
+const product = await getProduct(Astro.params.id);
+
+// Kein Produkt gefunden
+if (!product) {
+  return new Response(null, {
+    status: 404,
+    statusText: 'Nicht vorhanden'
+  });
+}
+---
+<html>
+  <!-- Hier ist die Seite... -->
+</html>
+```
+
+## API-Routen
+
+Eine [API-Route](https://medium.com/@rajat_m/what-are-restful-routes-and-how-to-use-them-929129ae7bf6) ist eine `.js`- oder `.ts`-Datei im `src/pages`-Verzeichnis, die einen [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) entgegennimmt und eine [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) zurückgibt. Es ist eine mächtige Fähigkeit von SSR, dass API-Routen sicher Code auf der Serverseite ausführen können.
+
+### SSR und Routen
+
+In Astro werden diese Routen zu serverseitig gerenderten Routen, was dir erlaubt, Funktionen zu nutzen, die zuvor auf der Clientseite nicht verfügbar waren, oder die explizite Abfragen eines Backend-Servers und zusätzlichen clientseitigen Code zum Rendern der Ergebnisse erforderten.
+
+Im folgenden Beispiel wird eine API-Route verwendet, um ein Produkt aus einer Datenbank abzurufen, ohne dass eine Seite für jede dieser Optionen erstellt werden muss.
+
+```js title="src/pages/[id].js"
+import { getProduct } from '../db';
+
+export async function get({ params }) {
+  const { id } = params;
+  const product = await getProduct(id);
+
+  if (!product) {
+    return new Response(null, {
+      status: 404,
+      statusText: 'Nicht vorhanden'
+    });
+  }
+
+  return new Response(JSON.stringify(product), {
+    status: 200
+  });
+}
+```
+
+In diesem Beispiel kann ein gültiger HTML-Code zurückgegeben werden, um die gesamte Seite oder einen Teil ihres Inhalts auszugeben.
+
+
+Neben dem Abrufen von Inhalten und dem serverseitigen Rendern können API-Routen als REST-API-Endpunkte verwendet werden, um Funktionen wie Authentifizierungen, Datenbankzugriffe und Überprüfungen auszuführen, ohne dass sensible Daten für den Client sichtbar werden.
+
+Im folgenden Beispiel wird eine API-Route verwendet, um Google reCaptcha v3 zu verifizieren, ohne dass der öffentliche Schlüssel an die Clients weitergegeben wird.
+
+
+```astro title="src/pages/index.astro"
+<html>
+  <head>
+    <script src="https://www.google.com/recaptcha/api.js"></script>
+  </head>
+
+  <body>
+    <button class="g-recaptcha" 
+      data-sitekey="ÖFFENTLICHER_SCHLÜSSEL" 
+      data-callback="onSubmit" 
+      data-action="submit"> Klick auf mich, um die Captcha-Herausforderung zu überprüfen! </button>
+
+    <script is:inline>
+      function onSubmit(token) {
+        fetch("/recaptcha", {
+          method: "POST",
+          body: JSON.stringify({ recaptcha: token })
+        })
+        .then((response) => response.json())
+        .then((gResponse) => {
+          if (gResponse.success) {
+            // Captcha-Verifizierung war erfolgreich
+          } else {
+            // Captcha-Verifizierung fehlgeschlagen
+          }
+        })
+      }
+    </script>
+  </body>
+</html>
+```
+
+In der API-Route kannst du sichere private Schlüssel eingeben oder deine geheimen Umgebungsvariablen lesen.
+
+```js title="src/pages/recaptcha.js"
+import fetch from 'node-fetch';
+
+export async function post({ request }) {
+  const data = request.json();
+
+  const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
+  const requestBody = {
+    secret: "DEIN_PRIVATER_WEBSITE_SCHLÜSSEL",   // Dies kann eine Umgebungsvariable sein
+    response: data.recaptcha          // Das vom Client übermittelte Token
+  };
+
+  const response = await fetch(recaptchaURL, {
+    method: "POST",
+    body: JSON.stringify(requestBody)
+  });
+
+  const responseData = await response.json();
+
+  return new Response(JSON.stringify(responseData), { status: 200 });
+}
+```

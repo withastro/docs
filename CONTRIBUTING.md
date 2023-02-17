@@ -86,7 +86,7 @@ Contributions to the documentation site are made by editing the docs repository.
 
 **Internationalization (i18n)**
 
-Please only add new text content to the docs **in English**, by modifying only **`.md` files located within `src/pages/en/`**. 
+Please only add new text content to the docs **in English**, by modifying only **`.md` files located within `src/content/docs/en/`**. 
 
 We have automated systems in place for notifying our community translators that there is new material to be translated, so there is no need to make changes to additional languages yourself. 
 

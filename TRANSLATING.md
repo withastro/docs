@@ -70,7 +70,7 @@ Each of these content types lives in a different place.
 
 ### 1. Documentation pages
 
-Each documentation page lives in the `src/pages` directory of this <abbr title="repository">repo</abbr>. There you’ll find directories for all of the languages currently translated. Each page is a Markdown file to support rich text formatting. For example, the English language “Getting Started” page is at `src/pages/en/getting-started.md` and the same page in French is at `src/pages/fr/getting-started.md`.
+Each documentation page lives in the `src/content/docs/` directory of this <abbr title="repository">repo</abbr>. There you’ll find directories for all of the languages currently translated. Each page is a Markdown file to support rich text formatting. For example, the English language “Getting Started” page is at `src/content/docs/en/getting-started.md` and the same page in French is at `src/content/docs/fr/getting-started.md`.
 
 ### 2. UI text
 
@@ -102,7 +102,7 @@ If you spot something on [docs.astro.build](https://docs.astro.build/) that you 
 
 4. Is the text specific to one page (page title, main content, etc.)?
 
-    ➤ Go to `src/pages/{language}/{page-slug}.md`
+    ➤ Go to `src/content/docs/{language}/{page-slug}.md`
 
 # Contributing to translations
 
