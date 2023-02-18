@@ -38,6 +38,7 @@ export default NavDictionary({
 	'guides/aliases': 'Alias d’Importation',
 	'guides/integrations-guide': 'Intégrations',
 	'guides/rss': 'Flux RSS',
+	'guides/testing': 'Test',
 	'guides/server-side-rendering': 'Rendu côté serveur (SSR)',
 	'guides/typescript': 'TypeScript',
 	'core-concepts/framework-components': 'Composants de Frameworks',
