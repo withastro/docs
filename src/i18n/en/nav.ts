@@ -51,38 +51,41 @@ export default [
 // TODO: Can some of these be removed, merged, or pulled entirely into Recipes? (ex: RSS as recipe)
 { text: 'Guides', header: true, type: 'learn', key: 'features' },
 //This will include some stuff from current Compontents page
-// {
-// 	text: 'Astro Component Syntax',
-// 	slug: 'core-concepts/astro-syntax',
-// 	key: 'core-concepts/astro-syntax',
-// },
 {
-	text: 'UI frameworks',
+	text: 'Astro Component Syntax',
+	slug: 'core-concepts/astro-syntax',
+	key: 'core-concepts/astro-syntax',
+},
+{
+	text: 'UI Frameworks',
 	slug: 'core-concepts/framework-components',
 	key: 'core-concepts/framework-components',
 },
-{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
-{ text: 'Endpoints', slug: 'core-concepts/endpoints', key: 'core-concepts/endpoints' },
-{ text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
+{
+	text: 'Content Collections',
+	slug: 'guides/content-collections',
+	key: 'guides/content-collections',
+},
+{
+	text: 'Server-side Rendering (SSR)',
+	slug: 'guides/server-side-rendering',
+	key: 'guides/server-side-rendering',
+},
 {
 	text: 'Scripts & Event Handling',
 	slug: 'guides/client-side-scripts',
 	key: 'guides/client-side-scripts',
 },
 { text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
-{
-	text: 'Server-side Rendering (SSR)',
-	slug: 'guides/server-side-rendering',
-	key: 'guides/server-side-rendering',
-},
-// { text: 'Authoring Content', slug: 'guides/content', key: 'guides/content' },
-{
-	text: 'Content Collections',
-	slug: 'guides/content-collections',
-	key: 'guides/content-collections',
-},
-// { text: 'MDX', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 { text: 'Images', slug: 'guides/images', key: 'guides/images' },
+{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
+{ text: 'Endpoints', slug: 'core-concepts/endpoints', key: 'core-concepts/endpoints' },
+{ text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
+
+// { text: 'Authoring Content', slug: 'guides/content', key: 'guides/content' },
+
+// { text: 'MDX', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
+
 // { text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 // { text: 'Sharing State', slug: 'core-concepts/sharing-state', key: 'core-concepts/sharing-state' },
 // { text: 'RSS', slug: 'guides/rss', key: 'guides/rss' },
