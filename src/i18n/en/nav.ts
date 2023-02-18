@@ -40,7 +40,7 @@ export default [
 { text: 'Markdown & MDX', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 { text: 'Routing', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
 
-{ text: 'Recipes', header: true, type: 'learn', key: 'startHere' },
+{ text: 'Recipes', header: true, type: 'learn', key: 'examples' },
 { text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
 { text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
 { text: 'Add integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
@@ -50,7 +50,6 @@ export default [
 
 // TODO: Can some of these be removed, merged, or pulled entirely into Recipes? (ex: RSS as recipe)
 { text: 'Guides', header: true, type: 'learn', key: 'features' },
-//This will include some stuff from current Compontents page
 {
 	text: 'Astro Component Syntax',
 	slug: 'core-concepts/astro-syntax',
@@ -81,16 +80,14 @@ export default [
 { text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
 { text: 'Endpoints', slug: 'core-concepts/endpoints', key: 'core-concepts/endpoints' },
 { text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
+{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
+{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
 
 // { text: 'Authoring Content', slug: 'guides/content', key: 'guides/content' },
-
 // { text: 'MDX', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
-
 // { text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 // { text: 'Sharing State', slug: 'core-concepts/sharing-state', key: 'core-concepts/sharing-state' },
 // { text: 'RSS', slug: 'guides/rss', key: 'guides/rss' },
-{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
-{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
 
 { text: 'Configuration', header: true, type: 'learn', key: 'configuration' },
 {
