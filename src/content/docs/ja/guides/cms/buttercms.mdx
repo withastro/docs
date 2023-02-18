@@ -1,0 +1,130 @@
+---
+title: ButterCMSとAstro
+description: ButterCMSを使ってコンテンツをAstroプロジェクトへ追加する
+type: cms
+service: ButterCMS
+stub: false
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+
+
+ButterCMSは、プロジェクトで利用できる構造化されたコンテンツを公開可能なヘッドCMSとブログエンジンです。
+
+## Astroとの連携
+
+このセクションでは、[ButterCMS SDK](https://www.npmjs.com/package/buttercms)を使ってデータをAstroプロジェクトに取り込む方法を解説します。
+
+始めるには以下の手順に従ってください。
+
+### 必須要件
+
+1. **Astroプロジェクト** - もしAstroプロジェクトをまだ持っていない場合は、[自動CLIでAstroをインストール](/ja/install/auto/)を見ると、すぐに使い始めることができます。
+
+2. **ButterCMSアカウント** - もしアカウントを持っていない場合は、無料トライアルとして[登録](https://buttercms.com/join/)できます。
+
+3. **ButterCMS APIトークン** - [Settings](https://buttercms.com/settings/)ページからAPIトークンを見つけることができます。
+
+### セットアップ
+
+1. `.env`ファイルをプロジェクトのルートディレクトリに作成し、環境変数にAPIトークンを追加します。
+
+```ini title=".env"
+BUTTER_TOKEN=APIトークンをここに記載
+```
+
+:::tip
+[環境変数](/ja/guides/environment-variables/)のAstroの`.env`ファイルについてをご覧ください。
+:::
+
+2. ButterCMS SDKを依存関係としてインストールします。
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install buttercms
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install buttercms
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add buttercms
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+3. プロジェクトに`src/lib/`を作り、そこへ`butter.cms.js`を作成します。
+
+```js title="src/lib/buttercms.js"
+import Butter from "buttercms";
+
+export const butterClient = Butter(import.meta.env.BUTTER_TOKEN);
+```
+
+これは、APIトークンを使用してSDKの認証を行い、プロジェクト全体で利用するためにエクスポートします。
+
+### データを取得する
+
+コンテンツを取得するために、このクライアントをインポートして、その中の`retrieve`関数を使用します。
+
+このサンプルでは、ショートテキストの`name`と数字の`price`、そしてWYSIWYGの`description`の3フィールドを持つ[コレクションを取得](https://buttercms.com/docs/api/#retrieve-a-collection)します。
+
+```astro title="src/pages/ShopItem.astro"
+---
+import { butterClient } from "../lib/buttercms";
+const response = await butterClient.content.retrieve(["shopitem"]);
+
+interface ShopItem {
+	name: string,
+	price: number,
+	description: string,
+}
+
+const items = response.data.data.shopitem as ShopItem[];
+---
+<body>
+	{items.map(item => <div>
+		<h2>{item.name} - ${item.price}</h2>
+		<p set:html={item.description}></p>
+	</div>)}
+</body>
+```
+
+インターフェイスはフィールドタイプを反映しています。WYSIWYGの`description`フィールドはHTML文字列としてロードされ、[`set:html`](/ja/reference/directives-reference/#sethtml)を使い描画します。
+
+同様に[ページを取得して](https://buttercms.com/docs/api/#get-a-single-page)フィールドを表示できます。
+
+```astro title="src/pages/ShopItem.astro"
+---
+import { butterClient } from "../lib/buttercms";
+const response = await butterClient.page.retrieve("*", "simple-page");
+const pageData = response.data.data;
+
+interface Fields {
+  seo_title: string,
+  headline: string,
+  hero_image: string,
+}
+
+const fields = pageData.fields as Fields;
+---
+<html>
+  <title>{fields.seo_title}</title>
+  <body>
+    <h1>{fields.headline}</h1>
+    <img src={fields.hero_image} />
+  </body>
+</html>
+```
+
+### もっと詳しく
+
+- [完全なButterCMS APIドキュメント](https://buttercms.com/docs/api/)
+- ButterCMSの[JavaScriptガイド](https://buttercms.com/docs/api-client/javascript/)
+
+## コミュニティリソース
+
+- 追加してください！

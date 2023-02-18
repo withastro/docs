@@ -129,7 +129,7 @@ class IntegrationPagesBuilder {
 #
 # TRANSLATORS: please remove this note and the <DontEditWarning/> component.
 
-layout: ~/layouts/IntegrationLayout.astro
+type: integration
 title: '${name}'
 description: ${createDescription(name, category)}
 githubURL: '${githubLink}'
@@ -139,7 +139,7 @@ i18nReady: false
 ---
 
 import Video from '~/components/Video.astro';
-import DontEditWarning from '../../../../components/DontEditWarning.astro';
+import DontEditWarning from '~/components/DontEditWarning.astro';
 
 <DontEditWarning/>\n\n` + readme;
 		return readme;
@@ -148,7 +148,7 @@ import DontEditWarning from '../../../../components/DontEditWarning.astro';
 	async #writeReadme(packageName: string, readme: string): Promise<void> {
 		const unscopedName = packageName.split('/').pop();
 		return await fs.promises.writeFile(
-			`src/pages/en/guides/integrations-guide/${unscopedName}.mdx`,
+			`src/content/docs/en/guides/integrations-guide/${unscopedName}.mdx`,
 			readme,
 			'utf8'
 		);
