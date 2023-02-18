@@ -10,6 +10,12 @@ module.exports = {
     sourceType: 'module',
   },
   rules: {},
+  settings: {
+    react: {
+      pragma: 'h',
+      version: '16.0',
+    },
+  },
   overrides: [
     {
       files: ['*.astro'],
@@ -24,6 +30,35 @@ module.exports = {
       files: ['*.ts'],
       parser: '@typescript-eslint/parser',
       extends: ['plugin:@typescript-eslint/recommended'],
+      rules: {
+        '@typescript-eslint/no-unused-vars': [
+          'error',
+          { argsIgnorePattern: '^_', destructuredArrayIgnorePattern: '^_' },
+        ],
+        '@typescript-eslint/no-non-null-assertion': 'off',
+      },
+    },
+    {
+      files: ['*.d.ts'],
+      rules: {
+        '@typescript-eslint/triple-slash-reference': 'off',
+      },
+    },
+    {
+      files: ['*.tsx'],
+      parser: '@typescript-eslint/parser',
+      plugins: ['react', '@typescript-eslint'],
+      parserOptions: {
+        tsconfigRootDir: __dirname,
+        project: ['./tsconfig.json'],
+      },
+      extends: [
+        'eslint:recommended',
+        'plugin:react/recommended',
+        'plugin:react/jsx-runtime',
+        'plugin:@typescript-eslint/recommended',
+        'plugin:@typescript-eslint/recommended-requiring-type-checking',
+      ],
       rules: {
         '@typescript-eslint/no-unused-vars': [
           'error',

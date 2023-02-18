@@ -70,7 +70,7 @@ Each of these content types lives in a different place.
 
 ### 1. Documentation pages
 
-Each documentation page lives in the `src/pages` directory of this <abbr title="repository">repo</abbr>. There you’ll find directories for all of the languages currently translated. Each page is a Markdown file to support rich text formatting. For example, the English language “Getting Started” page is at `src/pages/en/getting-started.md` and the same page in French is at `src/pages/fr/getting-started.md`.
+Each documentation page lives in the `src/content/docs/` directory of this <abbr title="repository">repo</abbr>. There you’ll find directories for all of the languages currently translated. Each page is a Markdown file to support rich text formatting. For example, the English language “Getting Started” page is at `src/content/docs/en/getting-started.md` and the same page in French is at `src/content/docs/fr/getting-started.md`.
 
 ### 2. UI text
 
@@ -102,11 +102,45 @@ If you spot something on [docs.astro.build](https://docs.astro.build/) that you 
 
 4. Is the text specific to one page (page title, main content, etc.)?
 
-    ➤ Go to `src/pages/{language}/{page-slug}.md`
+    ➤ Go to `src/content/docs/{language}/{page-slug}.md`
 
 # Contributing to translations
 
 Please see [CONTRIBUTING.md](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md) for information about contributing via a fork, our Style Guide, and more!
+
+## Pull Request Recommendations
+
+To ensure translation contributions are sustainable, we have a few recommendations on how PRs should look like.
+
+### Recommended size
+
+PRs should try to be small, changing only a few pages/files and not surpassing the 300 lines changed mark. This is not a hard rule! There will be cases in which you will change more than the recommended limit, especially when the page you're translating is more than 500 lines long or when you need to change multiple pages to pass the CI checks.
+
+For smaller updates, especially those that only change a sentence or a code sample, you are welcome to bundle a small number (usually fewer than 10) pages together. Please be aware that the more pages you add, the longer it takes to get reviews! While your PRs are waiting, the original pages may already have other changes added to them. So it is important to keep checking your PRs to the current version of the English site. Your PR cannot be merged until it matches the English version, because the Translation Status Overview would mistakenly think the page is 100% updated when your PR is merged.
+
+Following these guidelines ensures that PRs are small enough for reviewers to jump in and review quickly. It makes it easier for you to keep up with any changes to the original pages, and reduces the risk of complex merge conflicts when multiple translators are working together.
+
+### Title
+
+We recommend prefixing PR titles with `i18n(language): changes`, being `language` the [language's BCP 47 tag](#prerequisites) and `changes` a small description of the changes made, for example:
+
+```
+i18n(pt-BR): Update `markdown-content.mdx` translation
+```
+
+This way, it's easier for reviewers to filter for PRs from their squad and distinguishes changes to the main English docs from translations.
+
+### Description
+
+We already fill out a template description for you, so all you need to do is to remove anything that doesn't apply   in the "What kind of changes does this PR include?" question, and add a description in the heading below.
+
+Your description can be simple! Listing the pages and/or files changed is enough, although you are free to add any worries or questions you may have and explain any errors/issues you've encountered while translating.  This allows maintainers and other contributors to know if there are specific things to look at more closely, and allows them to help you out.
+
+### Commits
+
+In docs, all PRs are squashed on merge, so only its title will be shown in the main branch's commit history. This means you're free to have as many commits as you want in your PR, without the need to worry about complex git commands to erase your mistakes as you go. 
+
+Feel free to keep your commit messages simple, like "Fix broken link" or "Update translations to most recent changes" provided that they're descriptive.
 
 ## Review Tips
 

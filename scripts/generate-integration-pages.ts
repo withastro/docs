@@ -1,5 +1,16 @@
 import kleur from 'kleur';
-import type { Definition, HTML, Link, Root, Text } from 'mdast';
+import type {
+	Blockquote,
+	Definition,
+	HTML,
+	Link,
+	ListContent,
+	Paragraph,
+	PhrasingContent,
+	Root,
+	Text,
+} from 'mdast';
+import { toString } from 'mdast-util-to-string';
 import fetch from 'node-fetch';
 import fs from 'node:fs';
 import { remark } from 'remark';
@@ -118,7 +129,7 @@ class IntegrationPagesBuilder {
 #
 # TRANSLATORS: please remove this note and the <DontEditWarning/> component.
 
-layout: ~/layouts/IntegrationLayout.astro
+type: integration
 title: '${name}'
 description: ${createDescription(name, category)}
 githubURL: '${githubLink}'
@@ -128,7 +139,7 @@ i18nReady: false
 ---
 
 import Video from '~/components/Video.astro';
-import DontEditWarning from '../../../../components/DontEditWarning.astro';
+import DontEditWarning from '~/components/DontEditWarning.astro';
 
 <DontEditWarning/>\n\n` + readme;
 		return readme;
@@ -137,7 +148,7 @@ import DontEditWarning from '../../../../components/DontEditWarning.astro';
 	async #writeReadme(packageName: string, readme: string): Promise<void> {
 		const unscopedName = packageName.split('/').pop();
 		return await fs.promises.writeFile(
-			`src/pages/en/guides/integrations-guide/${unscopedName}.mdx`,
+			`src/content/docs/en/guides/integrations-guide/${unscopedName}.mdx`,
 			readme,
 			'utf8'
 		);
@@ -193,35 +204,38 @@ function closeUnclosedLinebreaks() {
 /** Remark plugin to replace GitHub note/warning syntax with docs-style asides. */
 function replaceAsides() {
 	return function transform(tree: Root) {
-		visit(tree, 'blockquote', (node) => {
+		visit(tree, 'blockquote', (node: Blockquote | Paragraph) => {
 			const openingParagraph = node.children[0];
-			const [firstChild, trailingText] = openingParagraph.children;
+
+			if (!('children' in openingParagraph)) return;
+			const [firstChild, trailingText, ...children] = openingParagraph.children;
 
 			// check for **Note:** or **Warning:** at the beginning of the first paragraph
-			if (firstChild.type !== 'strong' || !/Note|Warning/.test(firstChild.children[0].value)) {
-				return;
-			}
+			if (firstChild.type !== 'strong') return;
+			const firstChildText = toString(firstChild);
+			if (!/Note|Warning/.test(firstChildText)) return;
 
 			// assign aside type
-			const AsideType =
-				firstChild.children[0].value.toLowerCase() === 'warning' ? 'caution' : 'note';
+			const AsideType = firstChildText.toLowerCase() === 'warning' ? 'caution' : 'note';
 
 			// remove blockquotes `>`
 			node.type = 'paragraph';
 
-			// replace **strong** for :::aside
-			firstChild.type = 'text';
-			firstChild.value = `:::${AsideType}`;
-
 			// if trailingText starts with `: ` replace it with a newline
-			trailingText.value = trailingText.value.replace(/^: /, '\n');
+			if ('value' in trailingText) {
+				trailingText.value = trailingText.value.replace(/^: /, '\n');
+			}
 
-			// append ::: at end of the paragraph
-			const lastChild = {
-				type: 'text',
-				value: '\n:::',
-			};
-			openingParagraph.children.push(lastChild);
+			// Opening and closing ::: text to wrap blockquote.
+			const openAside: Text = { type: 'text', value: `:::${AsideType}` };
+			const closeAside: Text = { type: 'text', value: '\n:::' };
+
+			openingParagraph.children = [
+				openAside,
+				trailingText,
+				...children,
+				closeAside,
+			] as ListContent[];
 		});
 	};
 }
@@ -263,7 +277,7 @@ function removeTOC() {
 			const firstItemContent = node.children[0].children[0];
 			if (firstItemContent.type !== 'paragraph') return;
 			return firstItemContent.children.some(
-				(child) =>
+				(child: PhrasingContent) =>
 					child.type === 'link' &&
 					(child.url.startsWith('#why') || child.url.startsWith('#installation'))
 			);
