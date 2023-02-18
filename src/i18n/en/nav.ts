@@ -84,11 +84,7 @@ export default [
 // { text: 'MDX', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 { text: 'Images', slug: 'guides/images', key: 'guides/images' },
 // { text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
-{
-	text: 'Sharing State',
-	slug: 'core-concepts/sharing-state',
-	key: 'core-concepts/sharing-state',
-},
+// { text: 'Sharing State', slug: 'core-concepts/sharing-state', key: 'core-concepts/sharing-state' },
 // { text: 'RSS', slug: 'guides/rss', key: 'guides/rss' },
 { text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
 { text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
