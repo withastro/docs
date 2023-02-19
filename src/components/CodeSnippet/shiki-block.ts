@@ -1,10 +1,12 @@
 import { ShikiLine } from './shiki-line';
+import { CopyButton } from './copy-button';
 import { InlineMarkingDefinition, LineMarkingDefinition, MarkerTypeOrder } from './types';
 
 export class ShikiBlock {
 	private htmlBeforeFirstLine = '';
 	private shikiLines: ShikiLine[] = [];
 	private htmlAfterLastLine = '';
+	private copyButton: CopyButton | null = null;
 
 	constructor(highlightedCodeHtml: string) {
 		if (!highlightedCodeHtml) return;
@@ -22,6 +24,8 @@ export class ShikiBlock {
 
 		// Parse inner HTML code to ShikiLine instances
 		this.shikiLines = innerHtml.split(/\r?\n/).map((htmlLine) => new ShikiLine(htmlLine));
+
+		this.copyButton = new CopyButton();
 	}
 
 	applyMarkings(lineMarkings: LineMarkingDefinition[], inlineMarkings: InlineMarkingDefinition[]) {
@@ -49,6 +53,6 @@ export class ShikiBlock {
 			})
 			.join('\n');
 
-		return `${this.htmlBeforeFirstLine}${linesHtml}${this.htmlAfterLastLine}`;
+		return `${this.htmlBeforeFirstLine}${this.copyButton?.renderToHtml()}${linesHtml}${this.htmlAfterLastLine}`;
 	}
 }
