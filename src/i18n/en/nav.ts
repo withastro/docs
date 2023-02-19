@@ -12,6 +12,7 @@ export default [
 	{ text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },
 	{ text: 'Installation', slug: 'install/auto', key: 'install' },
 	{ text: 'Editor Setup', slug: 'editor-setup', key: 'editor-setup' },
+	{ text: 'CLI Commands', slug: 'reference/cli-reference', key: 'reference/cli-reference' },
 	{ text: 'Upgrade to v2', slug: 'guides/upgrade-to/v2', key: 'guides/upgrade-to/v2' },
 
 	{ text: 'Core Concepts', header: true, type: 'learn', key: 'coreConcepts' },
@@ -109,7 +110,6 @@ export default [
 		slug: 'reference/configuration-reference',
 		key: 'reference/configuration-reference',
 	},
-	{ text: 'CLI', slug: 'reference/cli-reference', key: 'reference/cli-reference' },
 	{ text: 'Runtime API', slug: 'reference/api-reference', key: 'reference/api-reference' },
 	{
 		text: 'Integrations API',
