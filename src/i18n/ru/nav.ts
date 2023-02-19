@@ -46,7 +46,7 @@ export default NavDictionary({
 	'blog-tutorial': 'Создать блог',
 	'guides/client-side-scripts': 'Скрипты и обработка событий',
 	'guides/cms': 'Подключение CMS',
-	'guides/content': 'Авторский контент',
+	// 'guides/content': 'Авторский контент',
 	'guides/content-collections': 'Коллекции контента',
 	'guides/migrate-to-astro': 'Перейти на Astro',
 	'guides/testing': 'Тестирование',
