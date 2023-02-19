@@ -15,13 +15,12 @@ const HEADER = `---
 # Instead, change this file: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
 # Translators, please remove this note and the <DontEditWarning/> component.
 
-layout: ~/layouts/MainLayout.astro
 title: Error reference
 i18nReady: true
 githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
 ---
 
-import DontEditWarning from '../../../components/DontEditWarning.astro'
+import DontEditWarning from '~/components/DontEditWarning.astro'
 
 <DontEditWarning />
 
@@ -85,7 +84,7 @@ export async function run() {
 
 		const fileName = getKebabFilename(comment.longname);
 		fs.writeFileSync(
-			`src/pages/en/reference/errors/${fileName}.mdx`,
+			`src/content/docs/en/reference/errors/${fileName}.mdx`,
 			getErrorReferenceEntryHeader(errorTitle) + completeReferenceEntry
 		);
 
@@ -100,7 +99,7 @@ export async function run() {
 	}
 
 	fs.writeFileSync(
-		'src/pages/en/reference/error-reference.mdx',
+		'src/content/docs/en/reference/error-reference.mdx',
 		HEADER + astroResult + FOOTER,
 		'utf8'
 	);
@@ -203,12 +202,11 @@ function getErrorReferenceEntryHeader(errorTitle) {
 # Instead, change this file: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
 # Translators, please remove this note and the <DontEditWarning/> component.
 
-layout: ~/layouts/MainLayout.astro
 title: ${errorTitle}
 i18nReady: true
 githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
 ---
-import DontEditWarning from '../../../../components/DontEditWarning.astro'
+import DontEditWarning from '~/components/DontEditWarning.astro'
 
 <DontEditWarning />
 
