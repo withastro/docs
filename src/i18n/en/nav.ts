@@ -12,7 +12,7 @@ export default [
 	{ text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },
 	{ text: 'Installation', slug: 'install/auto', key: 'install' },
 	{ text: 'Editor Setup', slug: 'editor-setup', key: 'editor-setup' },
-	{ text: 'CLI Commands', slug: 'reference/cli-reference', key: 'reference/cli-reference' },
+	{ text: 'The Astro CLI', slug: 'reference/cli-reference', key: 'reference/cli-reference' },
 	{ text: 'Upgrade to v2', slug: 'guides/upgrade-to/v2', key: 'guides/upgrade-to/v2' },
 
 	{ text: 'Core Concepts', header: true, type: 'learn', key: 'coreConcepts' },
@@ -22,10 +22,10 @@ export default [
 
 	{ text: 'Tutorials', header: true, type: 'learn', key: 'tutorials' },
 	{ text: 'Build a Blog', slug: 'tutorial/0-introduction', key: 'blog-tutorial' },
-	// { text: 'Thinking with Islands', slug: 'tutorial/0-introduction', key: 'blog-tutorial' },
+	// { text: 'Thinking with Islands', slug: 'tutorial/0-introduction', key: 'island-tutorial' },
 
 	{ text: 'Basics', header: true, type: 'learn', key: 'basics' },
-	// { text: 'The Astro CLI', slug: 'core-concepts/astro-pages', key: 'core-concepts/astro-pages' },
+	
 	{
 		text: 'Project Structure',
 		slug: 'core-concepts/project-structure',

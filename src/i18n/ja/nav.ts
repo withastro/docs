@@ -40,13 +40,13 @@ export default NavDictionary({
 	'guides/client-side-scripts': 'スクリプトとイベントハンドリング',
 	'guides/styling': 'CSSとスタイル',
 	'guides/server-side-rendering': 'サーバーサイドレンダリング（SSR）',
-	'guides/content': 'コンテンツの執筆',
+	// 'guides/content': 'コンテンツの執筆',
 	'guides/content-collections': 'コンテンツコレクション',
 	'guides/cms': 'CMSとの接続',
 	'guides/images': '画像',
-	'guides/fonts': 'フォント',
-	'core-concepts/sharing-state': '状態の共有',
-	'guides/rss': 'RSS',
+	// 'guides/fonts': 'フォント',
+	// 'core-concepts/sharing-state': '状態の共有',
+	// 'guides/rss': 'RSS',
 	'guides/testing': 'テスト',
 
 	// Configuration
