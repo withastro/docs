@@ -1,11 +1,8 @@
-import type { MarkdownInstance } from 'astro';
+import type { CollectionEntry } from 'astro:content';
 
-export const groupPagesByLang = <T extends MarkdownInstance<Record<string, unknown>>>(pages: T[]) =>
+export const groupPagesByLang = <T extends CollectionEntry<'docs'>>(pages: T[]) =>
 	pages.reduce((pages, page) => {
-		if (!page.url) {
-			throw new Error('No `url` for page: ' + page.file);
-		}
-		const lang = page.url.split('/')[1];
+		const lang = page.slug.split('/')[0];
 		if (!pages[lang]) pages[lang] = [];
 		pages[lang].push(page);
 		return pages;
