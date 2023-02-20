@@ -8,10 +8,29 @@ const currentUrl = Astro.url.pathname.replace(/\/$/, '');
 	<UIString key="feedback.button" />
 </button>
 <script>
-	const script = document.createElement('script');
-	script.setAttribute('defer', '');
-	script.setAttribute('src', 'https://feedback.fish/ff.js?pid=1b24b5d16c81bd');
-	document.body.append(script);
+	type ElementList = ReturnType<typeof document.querySelectorAll>;
+
+	// Based on https://github.com/withastro/astro/blob/main/packages/astro/src/runtime/client/visible.ts
+	const onVisible = <T extends ElementList>(nodes: T, callback: () => void) => {
+		const io = new IntersectionObserver((entries) => {
+			for (const { isIntersecting } of entries) {
+				if (!isIntersecting) continue;
+				// As soon as we hydrate, disconnect this IntersectionObserver.
+				io.disconnect();
+				callback();
+				break; // Break loop on first match.
+			}
+		});
+		for (const node of nodes) io.observe(node);
+	};
+
+	const buttons = document.querySelectorAll<HTMLButtonElement>('button[data-feedback-fish]');
+	onVisible(buttons, () => {
+		const script = document.createElement('script');
+		script.setAttribute('defer', '');
+		script.setAttribute('src', 'https://feedback.fish/ff.js?pid=1b24b5d16c81bd');
+		document.body.append(script);
+	});
 </script>
 
 <style>
