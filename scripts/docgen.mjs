@@ -11,14 +11,13 @@ const HEADER = `---
 # Instead, change this file: https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts
 # Translators, please remove this note and the <DontEditWarning/> component. 
 
-layout: ~/layouts/MainLayout.astro
 title: Configuration Reference
 i18nReady: true
 githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts
 ---
 
-import Since from '../../../components/Since.astro'
-import DontEditWarning from '../../../components/DontEditWarning.astro'
+import Since from '~/components/Since.astro'
+import DontEditWarning from '~/components/DontEditWarning.astro'
 
 <DontEditWarning />
 
@@ -114,7 +113,7 @@ export async function run() {
 
 	console.log(result);
 	fs.writeFileSync(
-		'src/pages/en/reference/configuration-reference.mdx',
+		'src/content/docs/en/reference/configuration-reference.mdx',
 		HEADER + result + FOOTER,
 		'utf8'
 	);

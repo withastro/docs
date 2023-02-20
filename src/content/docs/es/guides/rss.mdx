@@ -1,0 +1,199 @@
+---
+title: RSS
+description: Introducción a RSS en Astro
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import Since from '~/components/Since.astro';
+
+Astro proporciona una generación rápida y automática de RSS feeds para blogs u otros sitios web con mucho contenido. Para más información acerca de RSS feeds en general, visita [aboutfeeds.com](https://aboutfeeds.com/).
+
+## Configurando `@astrojs/rss`
+
+El [paquete `@astrojs/rss`](https://github.com/withastro/astro/tree/main/packages/astro-rss) provee helpers para generar RSS feeds utilizando [API endpoints](/es/core-concepts/endpoints/#endpoints-de-archivos-estáticos). Esto desbloquea la generación de RSS feeds para builds estáticos _y_ on-demand para cuando utilizamos un [adaptador SSR](/es/guides/server-side-rendering/#añadiendo-un-adaptador).
+
+Primero, instala `@astrojs/rss` utilizando tu gestor de paquetes favorito:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @astrojs/rss
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install @astrojs/rss
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/rss
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Luego asegurate de haber [configurado un `site`](/es/reference/configuration-reference/#site) en el `astro.config` de tu proyecto. Lo usarás para generar links a tus artículos RSS.
+
+¡Ahora, generemos nuestro primer RSS feed! Crea un archivo `rss.xml.js` en la carpeta `src/pages/`. La URL en producción será `rss.xml`, así que siéntete libre de renombrarlo si así lo deseas.
+
+Luego, importa la helper function `rss` del paquete `@astrojs/rss` y llámala con los siguientes parámetros:
+
+```js title="src/pages/rss.xml.js"
+import rss from '@astrojs/rss';
+
+export function get(context) {
+  return rss({
+    // `<title>` campo en el xml generado
+    title: 'Buzz’s Blog',
+    // `<description>` campo en el xml generado
+    description: 'A humble Astronaut’s guide to the stars',
+    // Usa el "site" desde el contexto del endpoint
+    // https://docs.astro.build/en/reference/api-reference/#contextsite
+    site: context.site,
+    // Array de `<item>`s en el xml generado
+    // Consulta la sección "Generando `items`" para ejemplos utilizando colecciones de contenido y glob imports
+    items: [],
+    // (opcional) inyecta xml personalizado
+    customData: `<language>en-us</language>`,
+  });
+}
+```
+
+## Generando `items`
+
+El campo `items` acepta una lista de objetos RSS feed, cada uno con un `link`, `title`, `pubDate`, y campos opcionales `description`, `content` y `customData`. Puedes generar este arreglo desde una colección de contenido o utilizando glob imports.
+
+### Usando colecciones de contenido
+
+Para crear un RSS feed de páginas manejadas en [colecciones de contenido](/es/guides/content-collections/), utiliza la función `getCollection()` para recuperar la lista de tus artículos.
+
+```js title="src/pages/rss.xml.js" "items:" "const blog = await getCollection('blog');"
+export async function get(context) {
+  const blog = await getCollection('blog');
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    items: blog.map((post) => ({
+      title: post.data.title,
+      pubDate: post.data.pubDate,
+      description: post.data.description,
+      customData: post.data.customData,
+      // Calcula el link RSS desde el `slug` del post 
+      // Este ejemplo asume que todos los posts son renderizados como rutas `/blog/[slug]`
+      link: `/blog/${post.slug}/`,
+    })),
+  });
+}
+```
+
+Puedes configurar tu esquema de colección para verificar y enforzar estas propiedades en el RSS. Importa y aplica `rssSchema` para asegurarte que cada entrada de colección produzca un item RSS válido.
+
+```js title="src/content/config.ts" "rssSchema"
+import { rssSchema } from '@astrojs/rss';
+const blog = defineCollection({
+  schema: rssSchema,
+});
+
+export const collections = { blog };
+```
+
+### Usando glob imports
+
+<Since v="2.1.0" pkg="@astrojs/rss" />
+
+Para crear un RSS feed de documentos en `src/pages/`, utiliza la función `pagesGlobToRssItems()`. Esta acepta un resultado de [`import.meta.glob`](https://vitejs.dev/guide/features.html#glob-import) y devuelve un array de items RSS válidos (consulta [más sobre escribir patrones glob](/es/guides/imports/#patrones-glob) para especificar qué páginas incluir).
+
+Esta función asume, pero no verifica, que todas las propiedades RSS necesarias están presentes en el frontmatter de cada documento. Si encuentras errores, verifica manualmente el frontmatter de cada página.
+
+```js title="src/pages/rss.xml.js" "pagesGlobToRssItems" "await pagesGlobToRssItems("
+import rss, { pagesGlobToRssItems } from '@astrojs/rss';
+export async function get(context) {
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    items: await pagesGlobToRssItems(
+      import.meta.glob('./blog/*.{md,mdx}'),
+    ),
+  });
+}
+```
+
+:::note[¿Estás usando una versión anterior?]
+En versiones de `@astrojs/rss` anteriores a la v2.1.0, pasa tu resultado de glob directamente a `items` sin el wrapper `pagesGlobToRssItems()`:
+```js
+items: import.meta.glob('./blog/*.{md,mdx}'),
+```
+:::
+
+### Incluyendo contenido completo de un artículo
+
+<Since v="1.6.14" />
+
+La llave `content` contiene el contenido completo del post como HTML. Esto te permite hacer disponible todo el contenido del post a los lectores de RSS.
+
+:::tip
+Cuando estés usando contenido HTML en XML, te recomendamos usar un paquete como [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) para asegurarse de que tu contenido está correctamente desinfectado, escapado y codificado.
+:::
+
+Cuando utilices colecciones de contenido, renderiza el `body` del post usando un parser de Markdown estándar como [`markdown-it`](https://github.com/markdown-it/markdown-it) y desinfecta el resultado:
+
+```js title="src/pages/rss.xml.js" ins={2, 3, 4, 15}
+import rss from '@astrojs/rss';
+import sanitizeHtml from 'sanitize-html';
+import MarkdownIt from 'markdown-it';
+const parser = new MarkdownIt();
+export async function get(context) {
+  const blog = await getCollection('blog');
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    items: blog.map((post) => ({
+      link: `/blog/${post.slug}/`,
+      // Note: this will not process components or JSX expressions in MDX files.
+      content: sanitizeHtml(parser.render(post.body)),
+      ...post.data,
+    })),
+  });
+}
+```
+
+Cuando utilices imports glob con Markdown, recomendamos utilizar la función `compiledContent()` para recuperar el HTML renderizado para desinfectarlo. Nota: esta función **no** es compatible con archivos MDX.
+
+```js title="src/pages/rss.xml.js" ins={2, 13}
+import rss from '@astrojs/rss';
+import sanitizeHtml from 'sanitize-html';
+export function get(context) {
+  const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true }); 
+  const posts = Object.values(postImportResult);
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    items: posts.map((post) => ({
+      link: post.url,
+      content: sanitizeHtml(post.compiledContent()),
+      ...post.frontmatter,
+    })),
+  });
+}
+```
+
+## Añadiendo una hoja de estilos
+
+Puedes estilar tu RSS feed para proveer una experiencia de usuario más placentera a la hora de ver el archivo en el navegador.
+
+Utiliza la opción `stylesheet` de la helper function `rss` para especificar un path absoluto a tu hoja de estilos.
+
+```js
+rss({
+  // ej. utiliza tus estilos de "public/rss/styles.xsl"
+  stylesheet: '/rss/styles.xsl',
+  // ...
+});
+```
+
+Si no tienes alguna hoja de estilos de RSS en mente o no conoces una, recomendamos [Pretty Feed v3 default stylesheet](https://github.com/genmon/aboutfeeds/blob/main/tools/pretty-feed-v3.xsl), la cual puedes descargar de GitHub y guardar en la carpeta `public/` de tu proyecto.
