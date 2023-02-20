@@ -90,6 +90,6 @@ export default UIDictionary({
 	'tutorial.getReady': '준비…',
 	// Feedback Fish widget >>>> TODO: 컨텍스트 확인 못함
 	'feedback.button': '의견을 보내주세요',
-	// `<FileTree>` component 
+	// `<FileTree>` component
 	'fileTree.directoryLabel': '디렉토리',
 });
