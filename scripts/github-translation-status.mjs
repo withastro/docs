@@ -536,6 +536,7 @@ const githubTranslationStatus = new GitHubTranslationStatus({
 		es: 'Español',
 		fr: 'Français',
 		ja: '日本語',
+		ko: '한국어',
 		pl: 'Polski',
 		'pt-br': 'Português do Brasil',
 		'zh-cn': '简体中文',
