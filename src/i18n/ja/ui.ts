@@ -93,5 +93,5 @@ export default UIDictionary({
 	// 'feedback.messageA11yLabel': 'Message',
 	'feedback.placeholder': 'なにをお知らせしますか？',
 	'feedback.submit': 'フィードバックを送る',
-	// 'feedback.close': 'Close',
+	// 'feedback.close': 'Close feedback form',
 });

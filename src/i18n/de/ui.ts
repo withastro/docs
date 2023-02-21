@@ -67,5 +67,5 @@ export default UIDictionary({
 	'feedback.messageA11yLabel': 'Nachricht',
 	'feedback.placeholder': 'Was sollen wir wissen?',
 	'feedback.submit': 'Feedback abschicken',
-	'feedback.close': 'Schließen',
+	'feedback.close': 'Feedback-Formular schließen',
 });

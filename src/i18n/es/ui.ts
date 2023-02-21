@@ -68,5 +68,5 @@ export default UIDictionary({
 	'feedback.messageA11yLabel': 'Mensaje',
 	'feedback.placeholder': '¿Qué quieres que sepamos?',
 	'feedback.submit': 'Enviar opinión',
-	'feedback.close': 'Cerrar',
+	'feedback.close': 'Cerrar formulario de opinión',
 });

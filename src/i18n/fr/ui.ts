@@ -69,5 +69,5 @@ export default UIDictionary({
 	'feedback.messageA11yLabel': 'Message',
 	'feedback.placeholder': 'Que faut-il savoir ?',
 	'feedback.submit': 'Envoyez des commentaires',
-	'feedback.close': 'Fermer',
+	'feedback.close': 'Fermer le formulaire de commentaires',
 });

@@ -95,7 +95,7 @@ export default {
 	'feedback.messageA11yLabel': 'Message',
 	'feedback.placeholder': 'What do you want us to know?',
 	'feedback.submit': 'Send feedback',
-	'feedback.close': 'Close',
+	'feedback.close': 'Close feedback form',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': 'Directory',
 };

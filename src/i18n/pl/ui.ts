@@ -96,7 +96,7 @@ export default {
 	'feedback.messageA11yLabel': 'Wiadomość',
 	'feedback.placeholder': 'Co chciałbyś żebyśmy wiedzieli?',
 	'feedback.submit': 'Wyślij feedback',
-	'feedback.close': 'Zamknij',
+	'feedback.close': 'Zamknij formularz opinii',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': 'Folder',
 };

@@ -41,7 +41,7 @@ export default UIDictionary({
 	'feedback.messageA11yLabel': 'Сообщение',
 	'feedback.placeholder': 'О чём ты хочешь нам рассказать?',
 	'feedback.submit': 'Отправить отзыв',
-	'feedback.close': 'CloseЗакрыть',
+	'feedback.close': 'Закрыть форму обратной связи',
 	'fileTree.directoryLabel': 'Директория',
 	'footer.privacyPolicy': 'Политика конфиденциальности',
 	'install.autoTab': 'Автоматический CLI',
