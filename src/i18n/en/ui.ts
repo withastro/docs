@@ -92,7 +92,7 @@ export default {
 	'feedback.issue': 'Issue',
 	'feedback.idea': 'Idea',
 	'feedback.other': 'Other',
-	'feedback.messageA11yLabel': 'Feedback message',
+	'feedback.messageA11yLabel': 'Message',
 	'feedback.placeholder': 'What do you want us to know?',
 	'feedback.submit': 'Send feedback',
 	'feedback.close': 'Close',

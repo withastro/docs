@@ -58,4 +58,14 @@ export default UIDictionary({
 	'aside.tip': 'Tipp',
 	'aside.caution': 'Achtung',
 	'aside.danger': 'Gefahr',
+	// Feedback Fish widget
+	'feedback.button': 'Gib uns Feedback',
+	'feedback.modalTitle': 'Wie kann ich helfen?',
+	'feedback.issue': 'Problem',
+	'feedback.idea': 'Idee',
+	'feedback.other': 'Sonstiges',
+	'feedback.messageA11yLabel': 'Nachricht',
+	'feedback.placeholder': 'Was sollen wir wissen?',
+	'feedback.submit': 'Feedback abschicken',
+	'feedback.close': 'Schließen',
 });
