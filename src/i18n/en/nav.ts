@@ -69,6 +69,7 @@ export default [
 		key: 'guides/content-collections',
 	},
 	{ text: 'Connecting a CMS', slug: 'guides/cms', key: 'guides/cms' },
+	{ text: 'Backend as a Service', slug: 'guides/baas', key: 'guides/baas' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 	{

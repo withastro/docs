@@ -86,4 +86,6 @@ export default UIDictionary({
 	'tutorial.getReady': 'ここで学ぶことは…',
 	// Feedback Fish widget
 	'feedback.button': 'フィードバックする',
+	// BaaS Guides vocabulary
+	'baas.navTitle': 'その他のサービスとしてのバックエンド ガイド',
 });

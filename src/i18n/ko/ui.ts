@@ -92,4 +92,6 @@ export default UIDictionary({
 	'feedback.button': '의견을 보내주세요',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': '디렉토리',
+	// BaaS Guides vocabulary
+	'baas.navTitle': '더 많은 Backend as a Service 가이드',
 });

@@ -15,6 +15,12 @@ export const deploySchema = baseSchema.extend({
 	type: z.literal('deploy'),
 });
 
+export const baasSchema = baseSchema.extend({
+	type: z.literal('baas'),
+	stub: z.boolean().default(false),
+	service: z.string(),
+});
+
 export const cmsSchema = baseSchema.extend({
 	type: z.literal('cms'),
 	stub: z.boolean().default(false),
@@ -49,6 +55,10 @@ export type DeployEntry = CollectionEntry<'docs'> & {
 	data: z.infer<typeof deploySchema>;
 };
 
+export type BaasEntry = CollectionEntry<'docs'> & {
+	data: z.infer<typeof baasSchema>;
+};
+
 export type CmsEntry = CollectionEntry<'docs'> & {
 	data: z.infer<typeof cmsSchema>;
 };
@@ -66,6 +76,10 @@ export type TutorialEntry = CollectionEntry<'docs'> & {
 };
 
 export type IntegrationCategory = z.infer<typeof integrationSchema>['category'];
+
+export function isBaasEntry(entry: CollectionEntry<'docs'>): entry is BaasEntry {
+	return entry.data.type === 'baas';
+}
 
 export function isCmsEntry(entry: CollectionEntry<'docs'>): entry is CmsEntry {
 	return entry.data.type === 'cms';
@@ -90,6 +104,7 @@ export function isEnglishEntry(entry: CollectionEntry<'docs'>): boolean {
 const docs = defineCollection({
 	schema: z.union([
 		baseSchema,
+		baasSchema,
 		cmsSchema,
 		integrationSchema,
 		migrationSchema,

@@ -59,4 +59,6 @@ export default UIDictionary({
 	'404.title': 'No encontrado',
 	'404.content': 'Esta página no está en nuestro sistema solar.',
 	'404.linkText': 'Volver a la página principal.',
+	// BaaS Guides vocabulary
+	'baas.navTitle': 'Más guías de backend como servicio',
 });
