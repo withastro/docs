@@ -89,9 +89,9 @@ export default {
 	// Feedback Fish widget
 	'feedback.button': 'Give us feedback',
 	'feedback.modalTitle': 'What’s on your mind?',
-	'feedback.issue': 'issue',
-	'feedback.idea': 'idea',
-	'feedback.other': 'other',
+	'feedback.issue': 'Issue',
+	'feedback.idea': 'Idea',
+	'feedback.other': 'Other',
 	'feedback.messageA11yLabel': 'Feedback message',
 	'feedback.placeholder': 'I found that…',
 	'feedback.submit': 'Send feedback',
