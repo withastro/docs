@@ -61,7 +61,9 @@ export default UIDictionary({
 	'404.linkText': 'Volver a la página principal.',
 	// Feedback Fish widget
 	'feedback.button': 'Déjanos tu opinión',
-	'feedback.modalTitle': '¿Qué tienes en mente?',
+	'feedback.a11yLabel': 'Formulario de opinión',
+	'feedback.formTitle': '¿Qué tienes en mente?',
+	'feedback.categoryGroupLabel': 'Elija el tipo de respuesta',
 	'feedback.issue': 'Problema',
 	'feedback.idea': 'Idea',
 	'feedback.other': 'Otro',

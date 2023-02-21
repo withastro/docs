@@ -61,8 +61,10 @@ export default UIDictionary({
 	'aside.caution': 'Attention',
 	'aside.danger': 'Danger',
 	// Feedback Fish widget
-	'feedback.button': 'Laisser un commentaire',
-	'feedback.modalTitle': 'Comment pouvons-nous vous aider ?',
+	'feedback.button': 'Laissez un commentaire',
+	'feedback.a11yLabel': 'Formulaire de commentaires',
+	'feedback.formTitle': 'Comment pouvons-nous vous aider ?',
+	'feedback.categoryGroupLabel': 'Choisissez le type de commentaire',
 	'feedback.issue': 'Problème',
 	'feedback.idea': 'Idée',
 	'feedback.other': 'Autres',

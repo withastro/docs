@@ -1,4 +1,6 @@
-export default {
+import { UIDictionary } from '../translation-checkers';
+
+export default UIDictionary({
 	'a11y.skipLink': 'Przejdź do treści',
 	'a11y.sectionLink': 'Dział zatytułowany',
 	'navbar.a11yTitle': 'Góra',
@@ -89,7 +91,9 @@ export default {
 	'tutorial.getReady': 'Przygotuj się na…',
 	// Feedback Fish widget
 	'feedback.button': 'Przekaż nam opinię',
-	'feedback.modalTitle': 'Czym chcesz się podzielić?',
+	'feedback.a11yLabel': 'Formularz opinii',
+	'feedback.formTitle': 'Czym chcesz się podzielić?',
+	'feedback.categoryGroupLabel': 'Wybierz kategorię opinii',
 	'feedback.issue': 'Problem',
 	'feedback.idea': 'Pomysł',
 	'feedback.other': 'Inne',
@@ -99,4 +103,4 @@ export default {
 	'feedback.close': 'Zamknij formularz opinii',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': 'Folder',
-};
+});

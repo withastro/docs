@@ -60,7 +60,9 @@ export default UIDictionary({
 	'aside.danger': 'Gefahr',
 	// Feedback Fish widget
 	'feedback.button': 'Gib uns Feedback',
-	'feedback.modalTitle': 'Wie kann ich helfen?',
+	'feedback.a11yLabel': 'Feedback-Formular',
+	'feedback.formTitle': 'Wie kann ich helfen?',
+	'feedback.categoryGroupLabel': 'Feedback-Typ wählen',
 	'feedback.issue': 'Problem',
 	'feedback.idea': 'Idee',
 	'feedback.other': 'Sonstiges',

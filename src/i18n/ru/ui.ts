@@ -34,7 +34,9 @@ export default UIDictionary({
 	'fallbackContent.notice':
 		'Эта страница ещё не доступна на русском, поэтому вы видите английскую версию. Вы можете помочь перевести её!',
 	'feedback.button': 'Оставьте отзыв',
-	'feedback.modalTitle': 'Хотите поделиться?',
+	'feedback.a11yLabel': 'Форма обратной связи',
+	'feedback.formTitle': 'Хотите поделиться?',
+	'feedback.categoryGroupLabel': 'Выберите тип обратной связи',
 	'feedback.issue': 'Проблема',
 	'feedback.idea': 'Идея',
 	'feedback.other': 'Другое',

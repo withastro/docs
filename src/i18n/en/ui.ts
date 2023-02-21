@@ -88,7 +88,9 @@ export default {
 	'tutorial.getReady': 'Get ready to…',
 	// Feedback Fish widget
 	'feedback.button': 'Give us feedback',
-	'feedback.modalTitle': 'What’s on your mind?',
+	'feedback.a11yLabel': 'Feedback form',
+	'feedback.formTitle': 'What’s on your mind?',
+	'feedback.categoryGroupLabel': 'Choose feedback category',
 	'feedback.issue': 'Issue',
 	'feedback.idea': 'Idea',
 	'feedback.other': 'Other',
