@@ -1,0 +1,225 @@
+---
+title: Renderização no lado do Servidor
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import Since from '~/components/Since.astro';
+
+**Renderização no lado do Servidor**, também conhecido como SSR, pode ser habilitado no Astro. Quando você habilita o SSR você pode:
+- Implementar sessões para um estado de login no seu app.
+- Renderizar dados de uma API chamada dinamicamente com `fetch`.
+- Fazer deploy do seu site em uma hospedagem utilizando um **adaptador**. 
+
+## Habilitando o SSR em seu Projeto
+
+Para começar, habilite as funcionalidades de SSR no modo de desenvolvimento com a opção `output: server` da configuração:
+
+```js ins={5}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+export default defineConfig({
+  output: 'server'
+});
+```
+
+### Adicionando um Adaptador
+
+Quando for a hora de fazer deploy de um projeto SSR, você também vai precisar adicionar um adaptador. Isso porque SSR precisa de um _runtime_ do servidor: o ambiente que executa o seu código no lado do servidor. Cada adaptador permite que o Astro retorne um script que executa seu projeto em um runtime específico.
+
+Instalar um adaptador dá ao Astro acesso à API correspondente, e permite que Astro retorne um script que executa o seu projeto em qualquer tipo de servidor.
+
+Estes são os adaptadores disponíveis hoje, com mais por vir no futuro:
+
+- [Cloudflare](/pt-br/guides/integrations-guide/cloudflare/)
+- [Deno](/pt-br/guides/integrations-guide/deno/)
+- [Netlify](/pt-br/guides/integrations-guide/netlify/)
+- [Node.js](/pt-br/guides/integrations-guide/node/)
+- [Vercel](/pt-br/guides/integrations-guide/vercel/)
+
+#### Instalação com `astro add`
+
+Você pode adicionar qualquer um dos adaptadores oficiais com o comando `astro add`. Ele irá instalar o adaptador e fazer as mudanças apropriadas em seu arquivo `astro.config.mjs` em uma só etapa. Por exemplo, para instalar o adaptador para Netlify, execute:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add netlify
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+#### Instalação Manual
+
+Você também pode adicionar um adaptador manualmente instalando o pacote e atualizando `astro.config.mjs` sozinho. (Veja os links acima para instruções específicadas de cada adaptador para completar as etapas necessárias para habilitar SSR.) Utilizando `meu-adaptador` como um exemplo, as instruções vão se parecer com isso:
+
+1. Instale o adaptador nas depedências do seu projetado utilizando seu gerenciador de pacotes preferido:
+
+  <PackageManagerTabs>
+    <Fragment slot="npm">
+    ```shell
+    npx astro add netlify
+    ```
+    </Fragment>
+    <Fragment slot="pnpm">
+    ```shell
+    pnpm astro add netlify
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```shell
+    yarn astro add netlify
+    ```
+    </Fragment>
+  </PackageManagerTabs>
+
+1. [Adicione o adaptador](/pt-br/reference/configuration-reference/#adapter) no import e default export do seu arquivo `astro.config.mjs`
+
+    ```js ins={3,6-7}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import meuAdaptador from '@astrojs/meu-adaptador';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: meuAdaptador(),
+    });
+    ```
+
+## Funcionalidades
+
+O Astro continuará sendo um gerador de sites estáticos por padrão. Porém, quando você habilita um adaptador de renderização no lado do servidor, **todas as rotas no seu diretório pages se torna uma rota renderizada no servidor** e algumas novas funcionalidades são disponibilizadas a você.
+
+### Renderização Híbrida
+
+<Since v="2.0.0" />
+
+Para habilitar a **renderização híbrida**, qualquer [página](/pt-br/core-concepts/astro-pages/) ou [endpoint do servidor](/pt-br/core-concepts/endpoints/#endpoints-do-servidor-rotas-de-api) que suporta a exportação de variáveis (`.astro`, `.mdx`, `.ts`, or `.js`) pode optar pela pré-renderização. Esses arquivos serão estaticamente renderizados em tempo de build, similiar ao modo de [`output`](/pt-br/reference/configuration-reference/#output) estático padrão.
+
+Simplesmente adicione `export const prerender = true`:
+
+```astro title="src/pages/minhapagina.astro" {2}
+---
+export const prerender = true;
+// ...
+---
+<html>
+  <!-- Página aqui... -->
+</html>
+```
+
+```mdx title="src/pages/minhapagina.mdx" {5}
+---
+layout: '../layouts/markdown.astro'
+title: 'Minha página'
+---
+export const prerender = true;
+# Esta é minha página
+```
+
+```js title="src/pages/meuendpoint.js" {1}
+export const prerender = true;
+export async function get() {
+  return {
+    body: JSON.stringify({ message: `Este é meu endpoint` }),
+  };
+}
+```
+
+### `Astro.request.headers`
+
+Os cabeçalhos de uma requisição estão disponíveis em `Astro.request.headers`. Ele é um objeto [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers), parecido com um Map, onde você pode pegar cabeçalhos como o cookie.
+
+```astro title="src/pages/index.astro" {2}
+---
+const cookie = Astro.request.headers.get('cookie');
+// ...
+---
+<html>
+  <!-- Página aqui... -->
+</html>
+```
+
+:::caution
+As funcionalidades abaixo estão disponíveis apenas em páginas. (Você não pode usá-las dentro de componentes, incluindo componentes de layout)
+
+Isso é por que essas funcionalidades modificam os [Response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header), que não podem ser modificados após serem enviados ao navegador. No modo SSR, Astro utiliza streaming de HTML para enviar cada componente ao navegador enquanto são renderizados. Isso permite que o usuário veja o HTML o mais rápido o possível, mas também significa que no momento em que o Astro executar o código de seu componente, ele já terá enviado os Response headers.
+:::
+
+### `Astro.cookies`
+
+Este é um utilitário para ler e modificar um único cookie. Ele te permite verificar, definir, pegar e deletar um cookie.
+
+Para mais detalhes sobre [`Astro.cookies` e o tipo `AstroCookie`](/pt-br/reference/api-reference/#astrocookies) na referência da API.
+
+O exemplo abaixo atualiza o valor de um cookie da contagem de visualizações da página.
+
+```astro title="src/pages/index.astro" {4,5,9}
+---
+let contagem = 0
+if(Astro.cookies.has("contagem")){
+  const cookie = Astro.cookies.get("contagem")
+	contagem = cookie.number() + 1
+}
+Astro.cookies.set("contagem", contagem)
+---
+<html>
+  <h1>Contagem = {contagem}</h1>
+</html>
+```
+
+### `Astro.redirect`
+
+Na global `Astro`, este método permite que você redirecione para outra página. Você talvez faça isso após checar se o usuário está logado obtendo sua sessão de um cookie.
+
+```astro title="src/pages/conta.astro" {8}
+---
+import { isLogado } from '../utils';
+
+const cookie = Astro.request.headers.get('cookie');
+
+// Se o usuário não estiver logado, ele é então redirecionado para a página de login
+if (!isLogado(cookie)) {
+  return Astro.redirect('/login');
+}
+---
+<html>
+  <!-- Página aqui... -->
+</html>
+```
+
+### `Response`
+
+Você também consegue retornar uma [Response](https://developer.mozilla.org/pt-BR/docs/Web/API/Response) de qualquer página. Você talvez faça isso para retornar um 404 em uma página dinâmica após verificar um id em um banco de dados.
+
+```astro title="src/pages/[id].astro" {8-11}
+---
+import { getProduto } from '../api';
+
+const produto = await getProduto(Astro.params.id);
+
+// O produto não foi encontrado
+if (!produto) {
+  return new Response(null, {
+    status: 404,
+    statusText: 'Não encontrado'
+  });
+}
+---
+<html>
+  <!-- Página aqui... -->
+</html>
+```
+
+### Endpoints do Servidor
+
+Um endpoint do servidor, também conhecido como **rota de API**, é um arquivo `.js` ou `.ts` dentro da pasta `src/pages` que recebe um [Request](https://developer.mozilla.org/pt-BR/docs/Web/API/Request) e retorna uma [Response](https://developer.mozilla.org/pt-BR/docs/Web/API/Response). Sendo uma poderosa funcionalidade de SSR, rotas de API são capazes de executar código no lado do servidor de forma segura. Para aprender mais, veja nosso [Guia de Endpoints](/pt-br/core-concepts/endpoints/#endpoints-do-servidor-rotas-de-api).

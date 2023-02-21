@@ -11,7 +11,7 @@ import { getLanguageCodeFromPathname, mdFilePathToUrl } from './remark-fallback-
  * Rehype plugin to translate the headings' anchors according to the currently selected language.
  */
 export function rehypei18nAutolinkHeadings() {
-	const pageSourceDir = path.resolve('./src/pages');
+	const pageSourceDir = path.resolve('./src/content/docs');
 	const baseUrl = 'https://docs.astro.build/';
 
 	const transformer: Transformer<Root> = (tree, file) => {
