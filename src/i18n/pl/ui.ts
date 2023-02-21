@@ -89,6 +89,14 @@ export default {
 	'tutorial.getReady': 'Przygotuj się na…',
 	// Feedback Fish widget
 	'feedback.button': 'Przekaż nam opinię',
+	'feedback.modalTitle': 'Czym chcesz się podzielić?',
+	'feedback.issue': 'Problem',
+	'feedback.idea': 'Pomysł',
+	'feedback.other': 'Inne',
+	'feedback.messageA11yLabel': 'Wiadomość',
+	'feedback.placeholder': 'Co chciałbyś żebyśmy wiedzieli?',
+	'feedback.submit': 'Wyślij feedback',
+	'feedback.close': 'Zamknij',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': 'Folder',
 };
