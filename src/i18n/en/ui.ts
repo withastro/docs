@@ -93,7 +93,7 @@ export default {
 	'feedback.idea': 'Idea',
 	'feedback.other': 'Other',
 	'feedback.messageA11yLabel': 'Feedback message',
-	'feedback.placeholder': 'I found that…',
+	'feedback.placeholder': 'What do you want us to know?',
 	'feedback.submit': 'Send feedback',
 	'feedback.close': 'Close',
 	// `<FileTree>` component
