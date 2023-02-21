@@ -59,4 +59,14 @@ export default UIDictionary({
 	'404.title': 'No encontrado',
 	'404.content': 'Esta página no está en nuestro sistema solar.',
 	'404.linkText': 'Volver a la página principal.',
+	// Feedback Fish widget
+	'feedback.button': 'Déjanos tu opinión',
+	'feedback.modalTitle': '¿Qué tienes en mente?',
+	'feedback.issue': 'Problema',
+	'feedback.idea': 'Idea',
+	'feedback.other': 'Otro',
+	'feedback.messageA11yLabel': 'Mensaje',
+	'feedback.placeholder': '¿Qué quieres que sepamos?',
+	'feedback.submit': 'Enviar opinión',
+	'feedback.close': 'Cerrar',
 });
