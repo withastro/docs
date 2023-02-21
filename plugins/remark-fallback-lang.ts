@@ -5,7 +5,7 @@ import type { Plugin, Transformer } from 'unified';
 import { visit } from 'unist-util-visit';
 
 export function remarkFallbackLang(): Plugin<[], Root> {
-	const pageSourceDir = path.resolve('./src/pages');
+	const pageSourceDir = path.resolve('./src/content/docs');
 	const baseUrl = 'https://docs.astro.build/';
 
 	const transformer: Transformer<Root> = (tree, file) => {

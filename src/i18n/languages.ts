@@ -12,8 +12,9 @@ export default {
 	fr: 'Français',
 	ar: 'العربية',
 	ja: '日本語',
+	ko: '한국어',
 	pl: 'Polski',
 	ru: 'Русский',
-};
+} as const;
 
 export const rtlLanguages = new Set(['ar']);

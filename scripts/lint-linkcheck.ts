@@ -67,7 +67,7 @@ class LinkChecker {
 const linkChecker = new LinkChecker({
 	baseUrl: 'https://docs.astro.build',
 	buildOutputDir: './dist',
-	pageSourceDir: './src/pages',
+	pageSourceDir: './src/content/docs',
 	checks: [
 		new TargetExists(),
 		new SameLanguage({
