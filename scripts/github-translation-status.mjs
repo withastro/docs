@@ -529,7 +529,7 @@ class GitHubTranslationStatus {
 const githubTranslationStatus = new GitHubTranslationStatus({
 	pageSourceDir: './src/content/docs',
 	sourceLanguage: 'en',
-	targetLanguages: ['ar', 'de', 'es', 'fr', 'ja', 'pl', 'pt-br', 'zh-cn'],
+	targetLanguages: ['ar', 'de', 'es', 'fr', 'ja', 'ko', 'pl', 'pt-br', 'zh-cn'],
 	languageLabels: {
 		ar: 'العربية',
 		de: 'Deutsch',
