@@ -27,10 +27,11 @@ const instanceId = Math.round(Math.random() * 10e9).toString(36);
 	<button data-open-modal disabled>
 		<UIString key="feedback.button" />
 	</button>
+
 	<dialog style="padding:0" aria-label={t('feedback.a11yLabel')}>
 		<div class="dialog-frame">
-			<button data-close-modal
-				><span class="sr-only"><UIString key="feedback.close" /></span>
+			<button data-close-modal>
+				<span class="sr-only"><UIString key="feedback.close" /></span>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					fill="currentcolor"
@@ -109,10 +110,10 @@ const instanceId = Math.round(Math.random() * 10e9).toString(36);
 			const form = this.querySelector('form')!;
 			const success = this.querySelector<HTMLDivElement>('div.success-pane')!;
 
-			const setSuccess = (val: boolean) => {
-				form.hidden = val;
-				success.hidden = !val;
-				if (val) success.focus();
+			const showSuccess = (show: boolean) => {
+				form.hidden = show;
+				success.hidden = !show;
+				if (show) success.focus();
 			};
 
 			/** Close the modal if a user clicks outside of the modal. */
@@ -121,7 +122,7 @@ const instanceId = Math.round(Math.random() * 10e9).toString(36);
 			};
 
 			const openModal = (event: MouseEvent) => {
-				setSuccess(false);
+				showSuccess(false);
 				dialog.showModal();
 				form.querySelector('input')?.focus();
 				// Prevent click bubbling up and immediately closing the modal again.
@@ -139,17 +140,16 @@ const instanceId = Math.round(Math.random() * 10e9).toString(36);
 
 			form.addEventListener('submit', async (event) => {
 				event.preventDefault();
+				// Disable submit button while submitting to guard against re-submits.
 				submitBtn.disabled = true;
 				try {
-					const text = form.text.value;
-					const category = form.category.value;
 					const res = await fetch('https://api.feedback.fish/feedback', {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({
 							projectId: '1b24b5d16c81bd',
-							text,
-							category,
+							text: form.text.value,
+							category: form.category.value,
 							metadata: { url: location.pathname.replace(/\/$/, '') },
 						}),
 					});
@@ -159,14 +159,16 @@ const instanceId = Math.round(Math.random() * 10e9).toString(36);
 				} catch (e) {
 					console.error('Error submitting feedback form\n', e);
 				}
-				setSuccess(true);
+				showSuccess(true);
 				submitBtn.disabled = false;
 				form.reset();
 			});
 
+			// Enable the “Give us feedback” button once JS has loaded.
 			openBtn.disabled = false;
 		}
 	}
+
 	customElements.define('feedback-form', FeedbackForm);
 </script>
 
