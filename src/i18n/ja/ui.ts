@@ -86,4 +86,14 @@ export default UIDictionary({
 	'tutorial.getReady': 'ここで学ぶことは…',
 	// Feedback Fish widget
 	'feedback.button': 'フィードバックする',
+	// 'feedback.a11yLabel': 'Feedback form',
+	'feedback.formTitle': 'どんなことを？',
+	// 'feedback.categoryGroupLabel': 'Choose feedback category',
+	'feedback.issue': '問題',
+	'feedback.idea': 'アイデア',
+	'feedback.other': 'その他',
+	// 'feedback.messageA11yLabel': 'Message',
+	'feedback.placeholder': 'なにをお知らせしますか？',
+	'feedback.submit': 'フィードバックを送る',
+	// 'feedback.close': 'Close feedback form',
 });
