@@ -81,7 +81,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 - Falsch geschriebene Markennamen (wir halten uns an die offizielle Schreibweise auf der Hersteller-Website)
 	- Github --> GitHub
 	- Javascript --> JavaScript
-	- Typescript --> TypeScript
+	- TypeScript --> TypeScript
 	- VSCode --> VS Code
 
 &nbsp;
