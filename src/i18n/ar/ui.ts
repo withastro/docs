@@ -64,4 +64,15 @@ export default UIDictionary({
 	'integrations.renderers': 'إطارات عمل الواجهات',
 	'integrations.adapters': 'مُهايئ التصير على الخادم',
 	'integrations.others': 'أخرى',
+	// Feedback Fish widget
+	'feedback.formTitle': 'بماذا تفكر؟',
+	'feedback.a11yLabel': 'نموذج الملاحظات',
+	'feedback.categoryGroupLabel': 'اختر نوع الملاحظات',
+	'feedback.issue': 'مشكلة',
+	'feedback.idea': 'فكرة',
+	'feedback.other': 'أخرى',
+	'feedback.messageA11yLabel': 'رسالة',
+	'feedback.placeholder': 'ماذا تريدنا أن  نعرف?',
+	'feedback.submit': 'أرسل رأيك',
+	'feedback.close': 'إغلاق نموذج الملاحظات',
 });
