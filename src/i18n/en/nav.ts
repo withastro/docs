@@ -50,7 +50,7 @@ export default [
 	// TODO: Can some of these be removed, merged, or pulled entirely into Recipes? (ex: RSS as recipe)
 	{ text: 'Guides', header: true, type: 'learn', key: 'features' },
 	{
-		text: 'Astro Component Syntax',
+		text: 'Astro Template Syntax',
 		slug: 'core-concepts/astro-syntax',
 		key: 'core-concepts/astro-syntax',
 	},
