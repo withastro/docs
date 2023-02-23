@@ -78,6 +78,7 @@ export default [
 	{ text: 'Routing', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
+	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 	{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
 	{ text: 'Endpoints', slug: 'core-concepts/endpoints', key: 'core-concepts/endpoints' },
 	{ text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
@@ -86,7 +87,6 @@ export default [
 
 	// { text: 'Authoring Content', slug: 'guides/content', key: 'guides/content' },
 	// { text: 'MDX', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
-	// { text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 	// { text: 'Sharing State', slug: 'core-concepts/sharing-state', key: 'core-concepts/sharing-state' },
 	// { text: 'RSS', slug: 'guides/rss', key: 'guides/rss' },
 
