@@ -44,7 +44,7 @@ export default [
 	{ text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
 	{ text: 'Add integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
 	{ text: 'Deploy your site', slug: 'guides/deploy', key: 'guides/deploy' },
-	{ text: 'All Recipes', slug: 'recipes', key: 'recipes' },
+	{ text: 'More Recipes', slug: 'recipes', key: 'recipes' },
 
 
 	// TODO: Can some of these be removed, merged, or pulled entirely into Recipes? (ex: RSS as recipe)
