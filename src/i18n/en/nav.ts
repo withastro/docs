@@ -38,8 +38,6 @@ export default [
 	},
 	{ text: 'Pages', slug: 'core-concepts/astro-pages', key: 'core-concepts/astro-pages' },
 	{ text: 'Layouts', slug: 'core-concepts/layouts', key: 'core-concepts/layouts' },
-	{ text: 'Markdown & MDX', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
-	{ text: 'Routing', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
 
 	{ text: 'Recipes', header: true, type: 'learn', key: 'examples' },
 	{ text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
@@ -76,6 +74,8 @@ export default [
 		slug: 'guides/client-side-scripts',
 		key: 'guides/client-side-scripts',
 	},
+	{ text: 'Markdown & MDX', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
+	{ text: 'Routing', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
