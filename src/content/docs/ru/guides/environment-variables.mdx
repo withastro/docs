@@ -1,0 +1,111 @@
+---
+title: Использование переменных окружения
+description: Узнайте как использовать переменные окружения в проекте Astro.
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+Astro использует встроенную в Vite поддержку переменных окружения, и позволяет вам использовать [любые его методы](https://vitejs.dev/guide/env-and-mode.html) для работы с переменными.
+
+Обратите внимание, что, хотя _все_ переменные окружения доступны в коде на стороне сервера, только переменные с префиксом `PUBLIC_` доступны на стороне клиента в целях безопасности.
+
+```ini title=".env"
+SECRET_PASSWORD=password123
+PUBLIC_ANYBODY=there
+```
+
+В этом примере, `PUBLIC_ANYBODY` (доступная через `import.meta.env.PUBLIC_ANYBODY`) будет доступна в серверном и клиентском коде, в то время, как `SECRET_PASSWORD` (доступная через `import.meta.env.SECRET_PASSWORD`) будет существовать только на стороне сервера.
+
+:::caution
+`.env` файлы не загружаются внутри [конфигурационных файлов](/ru/guides/configuring-astro/#environment-variables). 
+:::
+
+## Переменные окружения по умолчанию
+
+Astro включает в себя несколько готовых переменных окружения:
+
+- `import.meta.env.MODE`: Режим в котором ваш сайт сейчас запущен. Это `development` при запуске с помощью `astro dev` и `production` при запуске с помощью `astro build`.
+- `import.meta.env.PROD`: `true` если ваш сайт работает в продакшн режиме; `false` в другом случае.
+- `import.meta.env.DEV`: `true` если ваш сайт работает в режиме разработки; `false` в другом случае. Всегда противоположно `import.meta.env.PROD`.
+- `import.meta.env.BASE_URL`: Базовый URL, с которого обслуживается ваш сайт. Определяется [опцией `base` конфига](/ru/reference/configuration-reference/#base).
+- `import.meta.env.SITE`: Устанавливается [опцией `site`](/ru/reference/configuration-reference/#site) указанной в `astro.config` вашего проекта.
+
+## Настройка переменных окружения
+
+### `.env` файлы
+Переменные окружения могут быть загружены с помощью `.env` файлов из директории вашего проекта.
+
+Вы также можете задать режим (`production` или `development`) в имени файла, например, `.env.production` или `.env.development`, что сделает ваши переменные доступными только в заданном режиме.
+
+Просто создайте `.env` файл в директории проекта и добавьте в него переменные:
+
+```ini title=".env"
+# Будет доступна только на стороне сервера!
+DB_PASSWORD="foobar"
+# Будет доступна везде!
+PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
+```
+
+Дополнительные сведения о `.env` файлах, приведены в [документации Vite](https://vitejs.dev/guide/env-and-mode.html#env-files).
+
+### Используя CLI
+Вы также можете добавить переменные окружения при запуске проекта:
+
+<PackageManagerTabs>
+ <Fragment slot="yarn">
+    ```shell
+    POKEAPI=https://pokeapi.co/api/v2 yarn run dev
+    ```
+ </Fragment>
+ <Fragment slot="npm">
+    ```shell
+    POKEAPI=https://pokeapi.co/api/v2 npm run dev
+    ```
+ </Fragment>
+ <Fragment slot="pnpm">
+    ```shell
+    POKEAPI=https://pokeapi.co/api/v2 pnpm run dev
+    ```
+ </Fragment>
+</PackageManagerTabs>
+
+:::caution
+Переменные, заданные таким способом, будут доступны везде в рамках вашего проекта, включая клиент.
+:::
+## Получение переменных окружения
+
+Вместо использования `process.env`, в Vite вы работаете с `import.meta.env`, которая использует функцию `import.meta` добавленную в ES2020.
+
+For example, use `import.meta.env.PUBLIC_POKEAPI` to get the `PUBLIC_POKEAPI` environment variable.
+
+```js /(?<!//.*)import.meta.env.[A-Z_]+/
+// When import.meta.env.SSR === true
+const data = await db(import.meta.env.DB_PASSWORD);
+
+// When import.meta.env.SSR === false
+const data = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
+```
+
+:::caution
+Поскольку Vite статически заменяет `import.meta.env`, вы не сможете получить к нему доступ с помощью динамических ключей, таких как `import.meta.env[key]`.
+:::
+
+## IntelliSense для TypeScript
+
+По умолчанию, Astro предоставляет определение типа для `import.meta.env` в файле `astro/client.d.ts`. 
+
+В то время, как вы объявляете переменные окружения в `.env.[mode]` файлах, вы можете захотеть получить поддержку TypeScript IntelliSense для пользовательских переменных, которые имеют префикс `PUBLIC_`.
+
+Для достижения этой цели, вы можете создать файл `env.d.ts` в каталоге `src/` и настроить `ImportMetaEnv` следующим образом:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly DB_PASSWORD: string;
+  readonly PUBLIC_POKEAPI: string;
+  // more env variables...
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
