@@ -529,13 +529,14 @@ class GitHubTranslationStatus {
 const githubTranslationStatus = new GitHubTranslationStatus({
 	pageSourceDir: './src/content/docs',
 	sourceLanguage: 'en',
-	targetLanguages: ['ar', 'de', 'es', 'fr', 'ja', 'pl', 'pt-br', 'zh-cn'],
+	targetLanguages: ['ar', 'de', 'es', 'fr', 'ja', 'ko', 'pl', 'pt-br', 'zh-cn'],
 	languageLabels: {
 		ar: 'العربية',
 		de: 'Deutsch',
 		es: 'Español',
 		fr: 'Français',
 		ja: '日本語',
+		ko: '한국어',
 		pl: 'Polski',
 		'pt-br': 'Português do Brasil',
 		'zh-cn': '简体中文',
