@@ -32,7 +32,7 @@ export default NavDictionary({
 	'guides/cms': 'Conectando un CMS',
 	'guides/integrations-guide': 'Integraciones',
 	'guides/deploy': 'Desplegar',
-	'recipes': 'Más recetas',
+	'guides/recipes': 'Más recetas',
 
 	//guides
 	features: 'Guías',
