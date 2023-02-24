@@ -12,7 +12,6 @@ export default [
 	{ text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },
 	{ text: 'Installation', slug: 'install/auto', key: 'install' },
 	{ text: 'Editor Setup', slug: 'editor-setup', key: 'editor-setup' },
-	{ text: 'The Astro CLI', slug: 'reference/cli-reference', key: 'reference/cli-reference' },
 	{ text: 'Upgrade to v2', slug: 'guides/upgrade-to/v2', key: 'guides/upgrade-to/v2' },
 
 	{ text: 'Core Concepts', header: true, type: 'learn', key: 'coreConcepts' },
@@ -122,6 +121,7 @@ export default [
 		slug: 'reference/directives-reference',
 		key: 'reference/directives-reference',
 	},
+	{ text: 'The Astro CLI', slug: 'reference/cli-reference', key: 'reference/cli-reference' },
 	{
 		text: 'Error Reference',
 		slug: 'reference/error-reference',
