@@ -38,21 +38,19 @@ export default [
 	},
 	{ text: 'Pages', slug: 'core-concepts/astro-pages', key: 'core-concepts/astro-pages' },
 	{ text: 'Layouts', slug: 'core-concepts/layouts', key: 'core-concepts/layouts' },
-	{ text: 'Markdown & MDX', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
-	{ text: 'Routing', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
 
 	{ text: 'Recipes', header: true, type: 'learn', key: 'examples' },
 	{ text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
 	{ text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
 	{ text: 'Add integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
 	{ text: 'Deploy your site', slug: 'guides/deploy', key: 'guides/deploy' },
-	{ text: 'All Recipes', slug: 'guides/recipes', key: 'guides/recipes' },
+	{ text: 'More Recipes', slug: 'recipes', key: 'guides/recipes' },
 
 
 	// TODO: Can some of these be removed, merged, or pulled entirely into Recipes? (ex: RSS as recipe)
 	{ text: 'Guides', header: true, type: 'learn', key: 'features' },
 	{
-		text: 'Astro Component Syntax',
+		text: 'Astro Template Syntax',
 		slug: 'core-concepts/astro-syntax',
 		key: 'core-concepts/astro-syntax',
 	},
@@ -76,8 +74,11 @@ export default [
 		slug: 'guides/client-side-scripts',
 		key: 'guides/client-side-scripts',
 	},
+	{ text: 'Markdown & MDX', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
+	{ text: 'Routing', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
+	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 	{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
 	{ text: 'Endpoints', slug: 'core-concepts/endpoints', key: 'core-concepts/endpoints' },
 	{ text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
@@ -86,7 +87,6 @@ export default [
 
 	// { text: 'Authoring Content', slug: 'guides/content', key: 'guides/content' },
 	// { text: 'MDX', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
-	// { text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 	// { text: 'Sharing State', slug: 'core-concepts/sharing-state', key: 'core-concepts/sharing-state' },
 	// { text: 'RSS', slug: 'guides/rss', key: 'guides/rss' },
 
