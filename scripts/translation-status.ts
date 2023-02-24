@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 import output from './lib/output.mjs';
 import type { PageData, PageIndex, PageTranslationStatus } from './lib/translation-status/types';
 import { toUtcString, tryGetFrontMatterBlock } from './lib/translation-status/utils.js';
+import languages from '../src/i18n/languages';
 
 /**
  * Uses the git commit history to build an HTML-based overview of
@@ -419,18 +420,8 @@ const translationStatusBuilder = new TranslationStatusBuilder({
 	pageSourceDir: './src/content/docs',
 	htmlOutputFilePath: './dist/translation-status/index.html',
 	sourceLanguage: 'en',
-	targetLanguages: ['ar', 'de', 'es', 'fr', 'ja', 'ko', 'pl', 'pt-br', 'zh-cn'],
-	languageLabels: {
-		ar: 'العربية',
-		de: 'Deutsch',
-		es: 'Español',
-		fr: 'Français',
-		ja: '日本語',
-		ko: '한국어',
-		pl: 'Polski',
-		'pt-br': 'Português do Brasil',
-		'zh-cn': '简体中文',
-	},
+	targetLanguages: Object.keys(languages).filter((lang) => lang !== 'en').sort(),
+	languageLabels: languages,
 	githubRepo: process.env.GITHUB_REPOSITORY || 'withastro/docs',
 });
 
