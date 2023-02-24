@@ -38,6 +38,7 @@ export const { getStaticPaths, get } = OGImageRoute({
 						'Noto Sans SC Black',
 						'Noto Sans TC Black',
 						'Noto Sans JP Black',
+						'Noto Sans KR Black',
 					],
 					weight: 'ExtraBold',
 				},
@@ -51,6 +52,7 @@ export const { getStaticPaths, get } = OGImageRoute({
 						'Noto Sans SC',
 						'Noto Sans TC',
 						'Noto Sans JP',
+						'Noto Sans KR',
 					],
 					weight: 'Normal',
 				},
@@ -73,6 +75,9 @@ export const { getStaticPaths, get } = OGImageRoute({
 
 				'https://api.fontsource.org/v1/fonts/noto-sans-arabic/arabic-400-normal.ttf',
 				'https://api.fontsource.org/v1/fonts/noto-sans-arabic/arabic-800-normal.ttf',
+
+				'https://api.fontsource.org/v1/fonts/noto-sans-kr/korean-400-normal.ttf',
+				'https://api.fontsource.org/v1/fonts/noto-sans-kr/korean-900-normal.ttf',
 			],
 		};
 	},
