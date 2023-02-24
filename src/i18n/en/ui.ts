@@ -66,6 +66,10 @@ export default {
 	'aside.tip': 'Tip',
 	'aside.caution': 'Caution',
 	'aside.danger': 'Danger',
+	// `<CodeSnippet>` vocabulary
+	'codeSnippet.terminalCaption': 'Terminal window',
+	// `<LanguageSelect>` vocabulary
+	'languageSelect.label': 'Select language',
 	// Integrations vocabulary
 	'integrations.changelog': 'Changelog',
 	'integrations.footerTitle': 'More Integrations',
