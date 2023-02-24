@@ -51,6 +51,8 @@ export default {
 	'cms.navTitle': 'More CMS guides',
 	// Migration Guides vocabulary
 	'migration.navTitle': 'More migration guides',
+	// Recipes vocabulary
+	'recipes.navTitle': 'More recipes',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'See all contributors',
 	// Fallback content notice shown when a page is not yet translated
