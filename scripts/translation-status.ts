@@ -6,10 +6,10 @@ import os from 'os';
 import path from 'path';
 import simpleGit from 'simple-git';
 import { fileURLToPath } from 'url';
+import languages from '../src/i18n/languages';
 import output from './lib/output.mjs';
 import type { PageData, PageIndex, PageTranslationStatus } from './lib/translation-status/types';
 import { toUtcString, tryGetFrontMatterBlock } from './lib/translation-status/utils.js';
-import languages from '../src/i18n/languages';
 
 /**
  * Uses the git commit history to build an HTML-based overview of
@@ -420,7 +420,9 @@ const translationStatusBuilder = new TranslationStatusBuilder({
 	pageSourceDir: './src/content/docs',
 	htmlOutputFilePath: './dist/translation-status/index.html',
 	sourceLanguage: 'en',
-	targetLanguages: Object.keys(languages).filter((lang) => lang !== 'en').sort(),
+	targetLanguages: Object.keys(languages)
+		.filter((lang) => lang !== 'en')
+		.sort(),
 	languageLabels: languages,
 	githubRepo: process.env.GITHUB_REPOSITORY || 'withastro/docs',
 });
