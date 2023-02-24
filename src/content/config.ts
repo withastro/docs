@@ -45,6 +45,11 @@ export const tutorialSchema = baseSchema.extend({
 	unitTitle: z.string().optional(),
 });
 
+export const recipeSchema = baseSchema.extend({
+	type: z.literal('recipe'),
+	description: z.string(),
+});
+
 export type DeployEntry = CollectionEntry<'docs'> & {
 	data: z.infer<typeof deploySchema>;
 };
@@ -65,6 +70,10 @@ export type TutorialEntry = CollectionEntry<'docs'> & {
 	data: z.infer<typeof tutorialSchema>;
 };
 
+export type RecipeEntry = CollectionEntry<'docs'> & {
+	data: z.infer<typeof recipeSchema>;
+};
+
 export type IntegrationCategory = z.infer<typeof integrationSchema>['category'];
 
 export function isCmsEntry(entry: CollectionEntry<'docs'>): entry is CmsEntry {
@@ -83,6 +92,10 @@ export function isMigrationEntry(entry: CollectionEntry<'docs'>): entry is Migra
 	return entry.data.type === 'migration';
 }
 
+export function isRecipeEntry(entry: CollectionEntry<'docs'>): entry is RecipeEntry {
+	return entry.data.type === 'recipe';
+}
+
 export function isEnglishEntry(entry: CollectionEntry<'docs'>): boolean {
 	return entry.slug.startsWith('en/');
 }
@@ -95,6 +108,7 @@ const docs = defineCollection({
 		migrationSchema,
 		tutorialSchema,
 		deploySchema,
+		recipeSchema,
 	]),
 });
 
