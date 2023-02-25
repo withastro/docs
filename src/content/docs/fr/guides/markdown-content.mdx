@@ -261,75 +261,72 @@ Consultez le [site Web MDX](https://mdxjs.com/table-of-components/) pour obtenir
 
 ## Importer du contenu Markdown
 
-Vous pouvez importer des fichiers Markdown directement dans vos fichiers Astro ! Vous pouvez importer une page spécifique avec `import` ou plusieurs avec `Astro.glob()`.
+Vous pouvez importer des fichiers Markdown et MDX directement dans vos fichiers Astro. Cela vous donne accès à leur contenu Markdown, ainsi qu'à d'autres propriétés telles que les valeurs frontmatter qui peuvent être utilisées dans les expressions de type JSX d'Astro.
 
-```astro
+Vous pouvez importer une page spécifique avec une déclaration `import` ou plusieurs avec [`Astro.glob()`](/fr/guides/imports/#astroglob).
+
+```astro title="src/pages/index.astro"
 ---
-// Importation d'un fichier Markdown. les "import()" dynamiques sont aussi supporté !
+// Import d'un fichier
+import * as myPost from '../pages/post/my-post.md';
+
+// Import de plusieurs fichiers avec Astro.glob
+const posts = await Astro.glob('../pages/post/*.md');
+---
+```
+
+Quand vous importez des fichiers Markdown et MDX dans un composant Astro, vous obtenez un objet contenant leurs [propriétés exportées](#propriétés-exportées).
+
+```md title="/src/pages/posts/great-post.md"
+---
+title: 'Le meilleur billet que je n\'ai jamais écrit'
+author: 'Ben'
+---
+
+Voici mon _incroyable_ billet !
+```
+
+```astro title="src/pages/my-posts.astro"
+---
 import * as greatPost from '../pages/post/great-post.md';
-// Également, vous pouvez importer plusieurs fichiers avec Astro.glob
+
 const posts = await Astro.glob('../pages/post/*.md');
 ---
 
-Article sympa : <a href={greatPost.url}>{greatPost.frontmatter.title}</a>
+<p>{greatPost.frontmatter.title}</p>
+<p>Écrit par : {greatPost.frontmatter.author}</p>
+
+<p>Archives de billets :</p>
 <ul>
-  {posts.map(post => <li>{post.frontmatter.title}</li>)}
+  {posts.map(post => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
 </ul>
 ```
 
-Chaque fichier Markdown exporte les propriétés suivantes :
+Dans les fichiers MDX, vous pouvez accéder aux propriétés depuis le frontmatter et la déclaration `export` :
 
-- `frontmatter` : Toutes les données spécifiées dans le Frontmatter de ce fichier, utilisant la syntaxe YAML.
-- `file` : Le chemin absolu de ce fichier (par exemple, `/home/user/projets/.../file.md`).
-- `url` : Si c'est une Page, son URL (par exemple, `/fr/guides/markdown-content/`).
-- `getHeaders()` : Une fonction asynchrone qui renvoie les entêtes du fichier Markdown. La réponse suit ce type : `{ depth: number; slug: string; text: string }[]`.
-- `rawContent()` : Une fonction qui retourne le contenu brut du fichier Markdown (sans le Frontmatter) en tant que `string`. C'est pratique lorsque vous souhaitez calculer par exemple le "temps de lecture". Cet exemple utilise le [Package populaire "reading-time"](https://www.npmjs.com/package/reading-time) :
+```mdx title="/src/pages/posts/mdx-post.mdx"
+---
+title: 'Le meilleur billet que je n\'ai jamais écrit'
+author: 'Ben'
+---
+export const description = 'Mettez-vous à l'aise ! Cela va être une superbe lecture.'
 
-  ```astro
-  ---
-  import readingTime from 'reading-time';
-  const posts = await Astro.glob('./posts/**/*.md');
-  ---
-  {posts.map((post) => (
-    <Fragment>
-      <h2>{post.frontmatter.title}</h2>
-      <p>{readingTime(post.rawContent()).text}</p>
-    </Fragment>
-  ))}
-  ```
+Voici mon _super_ billet !
+```
 
-- `compiledContent()` : Une fonction asynchrone qui retourne le contenu brut après le Build dans une syntaxe valide pour Astro. Notez que **cela n'évalue pas les `{expressions JSX}`, les `<Composants />` ou même les Layouts**! Seuls les blocs Markdown standards comme les `## titres` et les `- listes` seront transformés en HTML. C'est assez utile dans les cas où vous souhaitez afficher le résumé d'un article de blog. Comme la syntaxe Astro est compatible en HTML, nous pouvons utiliser des librairies comme ["node-html-parser"](https://www.npmjs.com/package/node-html-parser) pour récupérer le premier paragraphe de cette façon :
+```astro title="src/pages/my-posts.astro"
+---
+import * as greatPost from '../pages/post/mdx-post.mdx';
+---
 
-  ```astro
-  ---
-  import { parse } from 'node-html-parser';
-  const posts = await Astro.glob('./posts/**/*.md');
-  ---
-  {posts.map(async (post) => {
-    const firstParagraph = parse(await post.compiledContent())
-      .querySelector('p:first-of-type');
-    return (
-      <Fragment>
-        <h2>{post.frontmatter.title}</h2>
-        {firstParagraph ? <p>{firstParagraph.innerText}</p> : null}
-      </Fragment>
-    );
-  })}
-  ```
-
-- `Content` : Un composant qui affiche le contenu du fichier Markdown. Voici un exemple :
-
-  ```astro
-  ---
-  import {Content as PromoBanner} from '../components/promoBanner.md';
-  ---
-  <h2>La Promo du jour</h2>
-  <PromoBanner />
-  ```
+<p>{greatPost.frontmatter.title}</p>
+<p>Écrit par : {greatPost.frontmatter.author}</p>
+<p>{greatPost.description}</p>
+```
 
 Vous pouvez éventuellement fournir un type pour la variable `frontmatter` en utilisant un générique TypeScript :
 
-```astro
+```astro title="src/pages/index.astro" ins={2-5} ins="<Frontmatter>"
 ---
 interface Frontmatter {
   title: string;
@@ -339,15 +336,15 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 ---
 
 <ul>
-  {posts.map(post => <li>{post.title}</li>)}
-  <!-- post.title sera un `string` ! -->
+  {posts.map(post => <li>{post.frontmatter.title}</li>)}
+  <!-- post.frontmatter.title va être une `string` ! -->
 </ul>
 ```
 
 ### Propriétés exportées
 
 :::note[Vous utilisez une mise en page Astro ?]
-Voir les [propriétés exportées vers un composant de mise en page Astro](/fr/core-concepts/layouts/#propriétés-de-mise-en-page-markdown) en utilisant la [mise en page spéciale d'Astro pour le frontmatter](#lavant-propos-layout).
+Voir les [propriétés exportées vers un composant de mise en page Astro](/fr/core-concepts/layouts/#propriétés-de-mise-en-page-markdown) en utilisant la [mise en page spéciale d'Astro pour le frontmatter](#frontmatter-layout).
 :::
 
 ## Composant Markdown
