@@ -279,13 +279,13 @@ class TranslationStatusBuilder {
 				`<summary><strong>` +
 					`${this.languageLabels[lang]} (${lang})` +
 					`</strong><br>` +
-					`<sup>` +
+					`<span class="progress-summary">` +
 					`${statusByPage.length - outdated.length - missing.length} done, ` +
 					`${outdated.length} need${outdated.length === 1 ? 's' : ''} updating, ` +
 					`${missing.length} missing` +
-					'<br><sup>' +
+					`</span>` +
+					'<br>' +
 					this.renderProgressBar(statusByPage.length, outdated.length, missing.length) +
-					`</sup></sup>` +
 					`</summary>`
 			);
 			lines.push(``);
@@ -352,10 +352,11 @@ class TranslationStatusBuilder {
 			cols.push(
 				...this.targetLanguages.map((lang) => {
 					const translation = content.translations[lang];
-					if (translation.isMissing) return `<span title="${lang}: Missing">❌</span>`;
+					if (translation.isMissing)
+						return `<span title="${lang}: Missing"><span aria-hidden="true">❌</span></span>`;
 					if (translation.isOutdated)
-						return `<a href="${translation.githubUrl}" title="${lang}: Needs updating">🔄</a>`;
-					return `<a href="${translation.githubUrl}" title="${lang}: Completed">✔</a>`;
+						return `<a href="${translation.githubUrl}" title="${lang}: Needs updating"><span aria-hidden="true">🔄</span></a>`;
+					return `<a href="${translation.githubUrl}" title="${lang}: Completed"><span aria-hidden="true">✔</span></a>`;
 				})
 			);
 			lines.push(`<tr>\n${cols.map((col) => `<td>${col}</td>`).join('\n')}\n</tr>`);
@@ -383,10 +384,7 @@ class TranslationStatusBuilder {
 		);
 		createUrl.searchParams.set('filename', lang + '/' + filename);
 		createUrl.searchParams.set('value', '---\ntitle:\ndescription:\n---\n');
-		return `<strong><code>${this.renderLink(
-			createUrl.href,
-			`Create\xa0page\xa0+`
-		)}</code></strong>`;
+		return this.renderLink(createUrl.href, `Create\xa0page\xa0+`, 'create-button');
 	}
 
 	/**
@@ -401,18 +399,22 @@ class TranslationStatusBuilder {
 		const outdatedLength = Math.round((outdated / total) * size);
 		const missingLength = Math.round((missing / total) * size);
 		const doneLength = size - outdatedLength - missingLength;
-		return [
-			[doneLength, '🟪'],
-			[outdatedLength, '🟧'],
-			[missingLength, '⬜'],
-		]
-			.map(([length, icon]) => Array(length).fill(icon))
-			.flat()
-			.join('');
+		return (
+			'<span class="progress-bar" aria-hidden="true">' +
+			[
+				[doneLength, '🟪'],
+				[outdatedLength, '🟧'],
+				[missingLength, '⬜'],
+			]
+				.map(([length, icon]) => Array(length).fill(icon))
+				.flat()
+				.join('') +
+			'</span>'
+		);
 	}
 
-	renderLink(href: string, text: string): string {
-		return `<a href="${escape(href)}">${escape(text)}</a>`;
+	renderLink(href: string, text: string, className = ''): string {
+		return `<a href="${escape(href)}" class="${escape(className)}">${escape(text)}</a>`;
 	}
 }
 
