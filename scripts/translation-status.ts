@@ -352,10 +352,11 @@ class TranslationStatusBuilder {
 			cols.push(
 				...this.targetLanguages.map((lang) => {
 					const translation = content.translations[lang];
-					if (translation.isMissing) return `<span title="${lang}: Missing">❌</span>`;
+					if (translation.isMissing)
+						return `<span title="${lang}: Missing"><span aria-hidden="true">❌</span></span>`;
 					if (translation.isOutdated)
-						return `<a href="${translation.githubUrl}" title="${lang}: Needs updating">🔄</a>`;
-					return `<a href="${translation.githubUrl}" title="${lang}: Completed">✔</a>`;
+						return `<a href="${translation.githubUrl}" title="${lang}: Needs updating"><span aria-hidden="true">🔄</span></a>`;
+					return `<a href="${translation.githubUrl}" title="${lang}: Completed"><span aria-hidden="true">✔</span></a>`;
 				})
 			);
 			lines.push(`<tr>\n${cols.map((col) => `<td>${col}</td>`).join('\n')}\n</tr>`);
