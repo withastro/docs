@@ -383,10 +383,7 @@ class TranslationStatusBuilder {
 		);
 		createUrl.searchParams.set('filename', lang + '/' + filename);
 		createUrl.searchParams.set('value', '---\ntitle:\ndescription:\n---\n');
-		return `<strong><code>${this.renderLink(
-			createUrl.href,
-			`Create\xa0page\xa0+`
-		)}</code></strong>`;
+		return this.renderLink(createUrl.href, `Create\xa0page\xa0+`, 'create-button');
 	}
 
 	/**
@@ -411,8 +408,8 @@ class TranslationStatusBuilder {
 			.join('');
 	}
 
-	renderLink(href: string, text: string): string {
-		return `<a href="${escape(href)}">${escape(text)}</a>`;
+	renderLink(href: string, text: string, className = ''): string {
+		return `<a href="${escape(href)}" class="${escape(className)}">${escape(text)}</a>`;
 	}
 }
 
