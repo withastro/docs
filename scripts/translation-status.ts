@@ -279,13 +279,13 @@ class TranslationStatusBuilder {
 				`<summary><strong>` +
 					`${this.languageLabels[lang]} (${lang})` +
 					`</strong><br>` +
-					`<sup>` +
+					`<span class="progress-summary">` +
 					`${statusByPage.length - outdated.length - missing.length} done, ` +
 					`${outdated.length} need${outdated.length === 1 ? 's' : ''} updating, ` +
 					`${missing.length} missing` +
-					'<br><sup>' +
+					`</span>` +
+					'<br>' +
 					this.renderProgressBar(statusByPage.length, outdated.length, missing.length) +
-					`</sup></sup>` +
 					`</summary>`
 			);
 			lines.push(``);
@@ -398,14 +398,18 @@ class TranslationStatusBuilder {
 		const outdatedLength = Math.round((outdated / total) * size);
 		const missingLength = Math.round((missing / total) * size);
 		const doneLength = size - outdatedLength - missingLength;
-		return [
-			[doneLength, '🟪'],
-			[outdatedLength, '🟧'],
-			[missingLength, '⬜'],
-		]
-			.map(([length, icon]) => Array(length).fill(icon))
-			.flat()
-			.join('');
+		return (
+			'<span class="progress-bar" aria-hidden="true">' +
+			[
+				[doneLength, '🟪'],
+				[outdatedLength, '🟧'],
+				[missingLength, '⬜'],
+			]
+				.map(([length, icon]) => Array(length).fill(icon))
+				.flat()
+				.join('') +
+			'</span>'
+		);
 	}
 
 	renderLink(href: string, text: string, className = ''): string {
