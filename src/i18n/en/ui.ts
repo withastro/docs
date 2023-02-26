@@ -4,7 +4,7 @@ export default {
 	'navbar.a11yTitle': 'Top',
 	// Site settings
 	'site.title': 'Astro Documentation',
-	'site.description': 'Build faster websites with less client-side Javascript.',
+	'site.description': 'Build faster websites with less client-side JavaScript.',
 	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.og.imageAlt':
 		'astro logo on a starry expanse of space, with a purple saturn-like planet floating in the right foreground',

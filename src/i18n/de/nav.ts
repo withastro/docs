@@ -21,7 +21,7 @@ export default NavDictionary({
 	'core-concepts/layouts': 'Layouts',
 	'guides/markdown-content': 'Markdown',
 	'core-concepts/routing': 'Routing',
-	'guides/imports': 'Statische Inhalte',
+	'guides/imports': 'Importe',
 	'core-concepts/endpoints': 'Endpunkte',
 	'guides/troubleshooting': 'Fehlerbehebung',
 	'guides/deploy': 'Veröffentlichung',
