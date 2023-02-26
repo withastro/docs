@@ -43,6 +43,7 @@ export const logos = LogoCheck({
 	directus: { file: 'directus.svg', padding: '0 .1em' },
 	ghost: { file: 'ghost.png', padding: '.125em' },
 	'netlify-cms': { file: 'netlify-cms.svg', padding: '.1625em' },
+	'tina-cms': { file: 'tina-cms.svg', padding: '.15em' },
 	payload: { file: 'payload.svg', padding: '.3em .25em .3em .3em' },
 	prismic: { file: 'prismic.svg', padding: '.25em' },
 	sanity: { file: 'sanity.svg', padding: '0 .1em' },
