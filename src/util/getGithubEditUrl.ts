@@ -8,7 +8,7 @@ export function getGithubEditUrl(Astro: Readonly<AstroGlobal>) {
 	const isFallback = !!Astro.params.fallback;
 	const currentPage = Astro.url.pathname;
 	const lang = getLanguageFromURL(currentPage);
-	const filePath = `src/pages${currentPage.replace(/\/$/, '')}.mdx`;
+	const filePath = `src/content/docs${currentPage.replace(/\/$/, '')}.mdx`;
 	const currentFile = isFallback ? filePath.replace(`/${lang}/`, '/en/') : filePath;
 	const githubEditUrl =
 		content.githubURL && (lang === 'en' || isFallback)
