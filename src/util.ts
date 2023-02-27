@@ -25,7 +25,7 @@ export const getLangFromSlug = (slug: CollectionEntry<'docs'>['slug']) => slug.s
 /** Remove the subpage segment of a URL string */
 export function removeSubpageSegment(path: string) {
 	// Include new pages with subpages as part of this regex.
-	const regex = /(?:install|deploy|integrations-guide|tutorial|migrate-to-astro|cms)\//;
+	const regex = /(?:install|deploy|integrations-guide|tutorial|migrate-to-astro|cms|baas)\//;
 	const matches = regex.exec(path);
 
 	if (matches) {
