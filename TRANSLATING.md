@@ -24,7 +24,7 @@ We do expect translators to be Astro users, so that they are familiar with Astro
 
 To find translations pending review, you can filter through this repo's [Pull Requests with the i18n label](https://github.com/withastro/docs/pulls?q=is%3Apr+is%3Aopen+label%3Ai18n).
 
-See our automated [Translation Status Overview issue](https://github.com/withastro/docs/issues/438) for a quick list of which pages are missing a translation or need updating to match a change to the English version.
+See our automated [Translation Status Overview](https://i18n.docs.astro.build/) for a quick list of which pages are missing a translation or need updating to match a change to the English version.
 
 > **Warning**
 > Please do not translate any pages without first checking their status in our [Overview Issue](https://github.com/withastro/docs/issues/438)! If a page is not listed here as needing a translation or an update, we can not accept your PR.
