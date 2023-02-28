@@ -1,4 +1,5 @@
 ---
+import type { CollectionEntry } from 'astro:content';
 import Sponsors from './Sponsors.astro';
 import { removeLeadingSlash, removeTrailingSlash } from '../../util';
 import { getNav } from '../../util/getNav';
@@ -7,15 +8,15 @@ import SidebarContent from './SidebarContent.astro';
 import SidebarToggleTabGroup from '../TabGroup/SidebarToggleTabGroup';
 import CommunityMenu from '../RightSidebar/CommunityMenu.astro';
 import ThemeToggleButton from '../Header/ThemeToggleButton';
-import { getPageCategory } from '~/util/getPageCategory';
 
 export interface Props {
 	currentPage: string;
+	currentPageType: CollectionEntry<'docs'>['data']['type'];
 }
 
 const t = useTranslations(Astro);
 
-const { currentPage } = Astro.props as Props;
+const { currentPage, currentPageType } = Astro.props as Props;
 const currentPageMatch = removeLeadingSlash(removeTrailingSlash(currentPage));
 
 // Group nav menu by sections to properly render.
@@ -34,9 +35,9 @@ const apiSections = sidebarSections.filter((section) => section.type === 'api');
 let activeTab: 'learn' | 'api' = 'learn';
 
 // Certain pages are not in the sidebar nav, so we manually set the active tab based on other factors (e.g. Algolia page category).
-const isReference = ['Error Reference', 'Reference'].includes(
-	getPageCategory(new URL(currentPage, import.meta.url))
-);
+const referencePagesTypes: Array<typeof currentPageType> = ['error'];
+const isReference = referencePagesTypes.includes(currentPageType);
+
 if (isReference) {
 	activeTab = 'api';
 } else {
@@ -62,12 +63,14 @@ if (isReference) {
 			defaultActiveTab={activeTab}
 			sidebarSections={learnSections}
 			currentPageMatch={currentPageMatch}
+			currentPageType={currentPageType}
 		/>
 		<SidebarContent
 			type={'api'}
 			defaultActiveTab={activeTab}
 			sidebarSections={apiSections}
 			currentPageMatch={currentPageMatch}
+			currentPageType={currentPageType}
 		/>
 		<li>
 			<CommunityMenu hideOnLargerScreens={true} />
@@ -86,7 +89,7 @@ if (isReference) {
 
 <script>
 	window.addEventListener('DOMContentLoaded', () => {
-		var target = document.querySelector('[data-current-parent="true"]');
+		var target = document.querySelector('[data-current-parent="true"]') || document.querySelector('[aria-current="page"]');
 		target?.scrollIntoView({ block: 'center' });
 	});
 </script>

@@ -22,17 +22,24 @@ export const stripLangFromSlug = (slug: CollectionEntry<'docs'>['slug']) =>
 /** Get a page’s lang tag from its slug (e.g. `'en/migrate'` => `'en'`). */
 export const getLangFromSlug = (slug: CollectionEntry<'docs'>['slug']) => slug.split('/')[0];
 
-/** Remove the subpage segment of a URL string */
-export function removeSubpageSegment(path: string) {
-	// Include new pages with subpages as part of this regex.
-	const regex = /(?:install|deploy|integrations-guide|tutorial|migrate-to-astro|recipes|cms)\//;
-	const matches = regex.exec(path);
+type mainPagesKeys = CollectionEntry<'docs'>['data']['type'];
 
-	if (matches) {
-		const matchIndex = matches.index;
-		// Get the first slash index after the main page path segment.
-		const slashIndex = path.slice(matchIndex).indexOf('/') + matchIndex;
-		return path.slice(0, slashIndex);
-	}
-	return path;
+type mainPages = {
+	[Key in mainPagesKeys]?: string;
+};
+
+/** Get a page's main page from its type/category (e.g. `type: cms` -> `'guides/cms'` ) */
+export function getCategoryMainPage(category: mainPagesKeys) {
+	const mainPagesFromCategories: mainPages = {
+		cms: 'guides/cms',
+		install: 'install/auto',
+		integration: 'guides/integrations-guide',
+		tutorial: 'tutorial/0-introduction/',
+		migration: 'guides/migrate-to-astro',
+		recipe: 'recipes',
+		deploy: 'guides/deploy',
+		error: 'reference/error-reference'
+	};
+
+	return mainPagesFromCategories[category];
 }

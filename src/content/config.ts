@@ -50,6 +50,14 @@ export const recipeSchema = baseSchema.extend({
 	description: z.string(),
 });
 
+export const installSchema = baseSchema.extend({
+	type: z.literal('install'),
+});
+
+export const errorSchema = baseSchema.extend({
+	type: z.literal('error'),
+});
+
 export type DeployEntry = CollectionEntry<'docs'> & {
 	data: z.infer<typeof deploySchema>;
 };
@@ -72,6 +80,14 @@ export type TutorialEntry = CollectionEntry<'docs'> & {
 
 export type RecipeEntry = CollectionEntry<'docs'> & {
 	data: z.infer<typeof recipeSchema>;
+};
+
+export type InstallEntry = CollectionEntry<'docs'> & {
+	data: z.infer<typeof installSchema>;
+};
+
+export type ErrorEntry = CollectionEntry<'docs'> & {
+	data: z.infer<typeof errorSchema>;
 };
 
 export type IntegrationCategory = z.infer<typeof integrationSchema>['category'];
@@ -109,6 +125,8 @@ const docs = defineCollection({
 		tutorialSchema,
 		deploySchema,
 		recipeSchema,
+		installSchema,
+		errorSchema
 	]),
 });
 
