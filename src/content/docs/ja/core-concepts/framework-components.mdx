@@ -11,31 +11,7 @@ Astroは[React](https://ja.reactjs.org/)、[Preact](https://preactjs.com/)、[Sv
 
 ## インテグレーションをインストール
 
-AstroはReact、Preact、Svelte、Vue、SolidJS、AlpineJS、Litのインテグレーションをオプションとして提供しています。1つまたは複数のAstroインテグレーションをプロジェクトにインストールし、設定できます。
-
-フレームワークを使えるようにAstroを設定するためには、まずインテグレーションと関連するpeer dependenciesをインストールします。
-
-```bash
-npm install --save-dev @astrojs/react react react-dom
-```
-
-次に、それらをインポートし、`astro.config.mjs`のintegrationsの配列に関数を追加します。
-
-```js title="astro.config.mjs" ins={3} ins=/(?<!p)react\\(\\)/
-import { defineConfig } from 'astro/config';
-
-import react from '@astrojs/react';
-import preact from '@astrojs/preact';
-import svelte from '@astrojs/svelte';
-import vue from '@astrojs/vue';
-import solid from '@astrojs/solid-js';
-import lit from '@astrojs/lit';
-import alpine from '@astrojs/alpinejs';
-
-export default defineConfig({
-  integrations: [react(), preact(), svelte(), vue(), solid() , lit(), alpine()],
-});
-```
+AstroはReact、Preact、Svelte、Vue、SolidJS、AlpineJS、Litの[インテグレーション](/ja/guides/integrations-guide/)をオプションとして提供しています。1つまたは複数のAstroインテグレーションをプロジェクトにインストールし、設定できます。
 
 ⚙️ Astroのインテグレーションをインストールし、設定するにあたっての詳細は[インテグレーションガイド](/ja/guides/integrations-guide/)をご覧ください。
 
@@ -59,31 +35,36 @@ import MyReactComponent from '../components/MyReactComponent.jsx';
 </html>
 ```
 
-デフォルトでは、フレームワークのコンポーネントは静的なHTMLとしてレンダリングされます。これはインタラクティブでないコンポーネントを表示するのに便利で、必要のないJavaScriptをクライアントに送信するのを防ぎます。
+デフォルトでは、フレームワークのコンポーネントは静的なHTMLとしてレンダリングされます。これはインタラクティブでないコンポーネントをテンプレート化するのに便利で、必要のないJavaScriptをクライアントに送信するのを防ぎます。
 
 ## インタラクティブなコンポーネント
 
-`client:*` というディレクティブの内の1つを使用してフレームワークのコンポーネントをインタラクティブ（ハイドレーションした状態）にできます。これはコンポーネントがどのようにレンダリングされ、ハイドレーションされるかを定義するためのコンポーネントの属性です。
+フレームワークのコンポーネントは[`client:*`ディレクティブ](/ja/reference/directives-reference/#client-directives)を使用してインタラクティブ（ハイドレーションした状態）にできます。これはコンポーネントのJavaScriptがいつブラウザに送信されるべきかを定義するためのコンポーネントの属性です。
 
-この[clientディレクティブ](/ja/reference/directives-reference/#client-directives)はコンポーネントがビルド時にレンダリングされるかどうか、コンポーネントで使用されているJavaScriptがクライアントサイドでいつブラウザに読み込まれるかを表しています。
-
-ほとんどのディレクティブでビルド時にサーバー内でコンポーネントをレンダリングします。コンポーネント内のJavaScriptは特定のディレクティブに応じてクライアントに送信されます。コンポーネントは自身に含まれるJavaScriptをインポートし終えた段階でハイドレーションします。
+`client:only`を除く全てのclientディレクティブで、コンポーネントはまず最初にサーバー上でレンダリングされて静的なHTMLを生成します。JavaScriptのコンポーネントは指定したディレクティブに従ってブラウザに送信されます。その後コンポーネントはハイドレートしインタラクティブになります。
 
 ```astro title="src/pages/interactive-components.astro" /client:\S+/
 ---
 // 例: ブラウザでコンポーネントをハイドレーションする
 import InteractiveButton from '../components/InteractiveButton.jsx';
 import InteractiveCounter from '../components/InteractiveCounter.jsx';
+import InteractiveModal from "../components/InteractiveModal.svelte"
 ---
 <!-- このコンポーネントのJavaScriptはページ読み込み時にインポートが開始されます -->
 <InteractiveButton client:load />
 
 <!-- このコンポーネントのJavaScriptはユーザーがスクロールしてコンポーネントがページ内に表示されるまでクライアントに送信さません -->
 <InteractiveCounter client:visible />
+
+<!-- このコンポーネントはサーバーでレンダリングされませんが、ページ読み込み時にクライアント上でレンダリングされます -->
+<InteractiveModal client:only="svelte" />
 ```
 
-:::caution
-コンポーネントのフレームワーク（たとえばReact、Svelteなど）がレンダリングするのに必要なJavaScriptはページと一緒にダウンロードされます。`client:*`というディレクティブはいつコンポーネントで使用されるJavaScriptがインポートされるかと、いつコンポーネントがハイドレーションされるかを決定するだけです。
+コンポーネントをレンダリングするために必要なJavaScriptフレームワーク（React、Svelteなど）は、コンポーネント自身のJavaScriptと一緒にブラウザに送信されます。ページ上の複数のコンポーネントが同じフレームワークを使用する場合、フレームワークは一度だけ送信されます。
+
+
+:::note[アクセシビリティ]
+これらのコンポーネントをAstroで使用した場合、多くのフレームワーク固有のアクセシビリティパターンは同じように動作するはずです。アクセシビリティに関するJavaScriptが適切に読み込まれ、実行されるよう必ずクライアントディレクティブを設定してください。
 :::
 
 ### 利用可能なハイドレーションのディレクティブ
@@ -112,6 +93,27 @@ import MyVueComponent from '../components/MyVueComponent.vue';
 
 :::caution
 **Astro**コンポーネント（`.astro`）だけが複数のフレームワークのコンポーネントを含められます。
+:::
+
+## フレームワークコンポーネントにPropsを渡す
+
+Astroコンポーネントからフレームワークコンポーネントにpropを渡せます。
+
+```astro title="src/pages/frameworks-props.astro"
+---
+import TodoList from '../components/TodoList.jsx';
+import Counter from '../components/Counter.svelte';
+---
+<div>
+  <TodoList initialTodos={["learn Astro", "review PRs"]} />
+  <Counter startingCount={1} />
+</div>
+```
+
+:::caution[関数をプロパティとして渡す]
+フレームワークコンポーネントに関数をプロパティとして渡せますが、それはサーバーレンダリングの間だけ機能します。もしこの関数をハイドレードされたコンポーネント（例えば、イベントハンドラーとして）で使用しようとするとエラーが発生します。
+
+これはAstroでは関数をシリアライズ（サーバーからクライアントへの転送）できないためです。
 :::
 
 
@@ -173,7 +175,7 @@ SvelteとVueでは、これらのスロットは`<slot>`要素に`name`属性を
 
 ## フレームワークコンポーネントをネストさせる
 
-Astroファイルの中には、フレームワークコンポーネントの子もハイドレーションされたコンポーネントにできます。これは、フレームワークのどれからでも、コンポーネントを再帰的にネストできることを意味します。
+Astroファイルの中には、フレームワークコンポーネントの子要素もハイドレーションされたコンポーネントにできます。これは、フレームワークのどれからでも、コンポーネントを再帰的にネストできることを意味します。
 
 ```astro title="src/pages/nested-components.astro" {10-11}
 ---

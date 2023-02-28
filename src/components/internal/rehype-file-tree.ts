@@ -79,7 +79,7 @@ export const fileTreeProcessor = rehype().use(function fileTree() {
 			const icon = h('span', isDirectory ? FolderIcon : FileIcon(firstChildTextContent));
 			if (!icon.properties) icon.properties = {};
 			if (isDirectory) {
-				icon.properties['aria-label'] = directoryLabel;
+				icon.children.unshift(h('span', { class: 'sr-only' }, directoryLabel));
 			}
 
 			node.properties.class = isDirectory ? 'directory' : 'file';
