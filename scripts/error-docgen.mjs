@@ -205,7 +205,6 @@ function getErrorReferenceEntryHeader(errorTitle) {
 title: ${errorTitle}
 i18nReady: true
 githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
-type: error
 ---
 import DontEditWarning from '~/components/DontEditWarning.astro'
 
