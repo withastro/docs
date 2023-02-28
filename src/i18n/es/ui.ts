@@ -11,7 +11,7 @@ export default UIDictionary({
 	// Site settings
 	'site.title': 'Documentación de Astro',
 	'site.description':
-		'Construye páginas web más rápidas con menos Javascript en el lado del cliente.',
+		'Construye páginas web más rápidas con menos JavaScript en el lado del cliente.',
 	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.og.imageAlt':
 		'Logo de Astro en el espacio estrellado, con un planeta púrpura parecido a Saturno flotando en el fondo a la derecha.',
@@ -59,4 +59,16 @@ export default UIDictionary({
 	'404.title': 'No encontrado',
 	'404.content': 'Esta página no está en nuestro sistema solar.',
 	'404.linkText': 'Volver a la página principal.',
+	// Feedback Fish widget
+	'feedback.button': 'Déjanos tu opinión',
+	'feedback.a11yLabel': 'Formulario de opinión',
+	'feedback.formTitle': '¿Qué tienes en mente?',
+	'feedback.categoryGroupLabel': 'Elija el tipo de respuesta',
+	'feedback.issue': 'Problema',
+	'feedback.idea': 'Idea',
+	'feedback.other': 'Otro',
+	'feedback.messageA11yLabel': 'Mensaje',
+	'feedback.placeholder': '¿Qué quieres que sepamos?',
+	'feedback.submit': 'Enviar opinión',
+	'feedback.close': 'Cerrar formulario de opinión',
 });
