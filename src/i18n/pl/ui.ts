@@ -7,7 +7,7 @@ export default UIDictionary({
 	// Site settings
 	'site.title': 'Dokumentacja Astro',
 	'site.description':
-		'Buduj szybsze strony internetowe z mniejszą ilością Javascript po stronie klienta.',
+		'Buduj szybsze strony internetowe z mniejszą ilością JavaScript po stronie klienta.',
 	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.og.imageAlt':
 		'logo Astro na rozgwieżdżonej przestrzeni kosmicznej, z purpurową, nasyconą planetą unoszącą się na prawym pierwszym planie',
