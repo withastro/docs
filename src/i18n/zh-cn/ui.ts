@@ -65,6 +65,10 @@ export default UIDictionary({
 	'aside.tip': '提示',
 	'aside.caution': '警告',
 	'aside.danger': '危险',
+	// `<CodeSnippet>` vocabulary
+	'codeSnippet.terminalCaption': '终端窗口',
+	// `<LanguageSelect>` vocabulary
+	'languageSelect.label': '选择语言',
 	// Integrations vocabulary
 	'integrations.changelog': '更新日志',
 	'integrations.footerTitle': '更多集成',
