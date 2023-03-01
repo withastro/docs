@@ -4,7 +4,7 @@ export default {
 	'navbar.a11yTitle': 'Top',
 	// Site settings
 	'site.title': 'Astro Documentation',
-	'site.description': 'Build faster websites with less client-side Javascript.',
+	'site.description': 'Build faster websites with less client-side JavaScript.',
 	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.og.imageAlt':
 		'astro logo on a starry expanse of space, with a purple saturn-like planet floating in the right foreground',
@@ -66,6 +66,10 @@ export default {
 	'aside.tip': 'Tip',
 	'aside.caution': 'Caution',
 	'aside.danger': 'Danger',
+	// `<CodeSnippet>` vocabulary
+	'codeSnippet.terminalCaption': 'Terminal window',
+	// `<LanguageSelect>` vocabulary
+	'languageSelect.label': 'Select language',
 	// Integrations vocabulary
 	'integrations.changelog': 'Changelog',
 	'integrations.footerTitle': 'More Integrations',
@@ -88,6 +92,17 @@ export default {
 	'tutorial.getReady': 'Get ready to…',
 	// Feedback Fish widget
 	'feedback.button': 'Give us feedback',
+	'feedback.a11yLabel': 'Feedback form',
+	'feedback.formTitle': 'What’s on your mind?',
+	'feedback.categoryGroupLabel': 'Choose feedback category',
+	'feedback.issue': 'Issue',
+	'feedback.idea': 'Idea',
+	'feedback.other': 'Other',
+	'feedback.messageA11yLabel': 'Message',
+	'feedback.placeholder': 'What do you want us to know?',
+	'feedback.submit': 'Send feedback',
+	'feedback.close': 'Close feedback form',
+	'feedback.success': 'Thanks! We received your feedback.',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': 'Directory',
 };
