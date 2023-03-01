@@ -63,6 +63,7 @@ export const logos = LogoCheck({
 	docusaurus: { file: 'docusaurus.svg', padding: '.225em' },
 	nuxtjs: { file: 'nuxtjs.svg', padding: '.25em' },
 	keystonejs: { file: 'keystonejs.svg', padding: '.25em' },
+	docker: { file: 'docker.svg', padding: '.1875em' },
 });
 
 export type LogoKey = keyof typeof logos;
