@@ -7,61 +7,63 @@ type: recipe
 
 [Server endpoints](/en/core-concepts/endpoints/#server-endpoints-api-routes) can be used as REST API endpoints to run functions such as authentications, database access, and verifications without exposing sensitive data to the client.
 
-In the example below, an API route is used to verify Google reCAPTCHA v3 without exposing the secret to clients.
+In this recipe, an API route is used to verify Google reCAPTCHA v3 without exposing the secret to clients.
 
-On the server, we define a post method that accepts recaptcha data, then verifies it with reCAPTCHA's API. Here, we can safely define secret values or read environment variables.
+## Recipe
 
-```js title="src/pages/recaptcha.js"
-export async function post({ request }) {
-  const data = await request.json();
+1. Create a `post` endpoint that accepts recaptcha data, then verifies it with reCAPTCHA's API. Here, you can safely define secret values or read environment variables.
 
-  const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
-  const requestBody = {
-    secret: "YOUR_SITE_SECRET_KEY",   // This can be an environment variable
-    response: data.recaptcha          // The token passed in from the client
-  };
+    ```js title="src/pages/recaptcha.js"
+    export async function post({ request }) {
+      const data = await request.json();
 
-  const response = await fetch(recaptchaURL, {
-    method: "POST",
-    body: JSON.stringify(requestBody)
-  });
+      const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
+      const requestBody = {
+        secret: "YOUR_SITE_SECRET_KEY",   // This can be an environment variable
+        response: data.recaptcha          // The token passed in from the client
+      };
 
-  const responseData = await response.json();
+      const response = await fetch(recaptchaURL, {
+        method: "POST",
+        body: JSON.stringify(requestBody)
+      });
 
-  return new Response(JSON.stringify(responseData), { status: 200 });
-}
-```
+      const responseData = await response.json();
 
-Then, we access our endpoint using `fetch` from a client script:
+      return new Response(JSON.stringify(responseData), { status: 200 });
+    }
+    ```
 
-```astro title="src/pages/index.astro"
-<html>
-  <head>
-    <script src="https://www.google.com/recaptcha/api.js"></script>
-  </head>
+2. Access your endpoint using `fetch` from a client script:
 
-  <body>
-    <button class="g-recaptcha" 
-      data-sitekey="PUBLIC_SITE_KEY" 
-      data-callback="onSubmit" 
-      data-action="submit"> Click me to verify the captcha challenge! </button>
+    ```astro title="src/pages/index.astro"
+    <html>
+      <head>
+        <script src="https://www.google.com/recaptcha/api.js"></script>
+      </head>
 
-    <script is:inline>
-      function onSubmit(token) {
-        fetch("/recaptcha", {
-          method: "POST",
-          body: JSON.stringify({ recaptcha: token })
-        })
-        .then((response) => response.json())
-        .then((gResponse) => {
-          if (gResponse.success) {
-            // Captcha verification was a success
-          } else {
-            // Captcha verification failed
+      <body>
+        <button class="g-recaptcha" 
+          data-sitekey="PUBLIC_SITE_KEY" 
+          data-callback="onSubmit" 
+          data-action="submit"> Click me to verify the captcha challenge! </button>
+
+        <script is:inline>
+          function onSubmit(token) {
+            fetch("/recaptcha", {
+              method: "POST",
+              body: JSON.stringify({ recaptcha: token })
+            })
+            .then((response) => response.json())
+            .then((gResponse) => {
+              if (gResponse.success) {
+                // Captcha verification was a success
+              } else {
+                // Captcha verification failed
+              }
+            })
           }
-        })
-      }
-    </script>
-  </body>
-</html>
-```
+        </script>
+      </body>
+    </html>
+    ```
