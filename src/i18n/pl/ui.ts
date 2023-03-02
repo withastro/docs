@@ -1,11 +1,13 @@
-export default {
+import { UIDictionary } from '../translation-checkers';
+
+export default UIDictionary({
 	'a11y.skipLink': 'Przejdź do treści',
 	'a11y.sectionLink': 'Dział zatytułowany',
 	'navbar.a11yTitle': 'Góra',
 	// Site settings
 	'site.title': 'Dokumentacja Astro',
 	'site.description':
-		'Buduj szybsze strony internetowe z mniejszą ilością Javascript po stronie klienta.',
+		'Buduj szybsze strony internetowe z mniejszą ilością JavaScript po stronie klienta.',
 	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.og.imageAlt':
 		'logo Astro na rozgwieżdżonej przestrzeni kosmicznej, z purpurową, nasyconą planetą unoszącą się na prawym pierwszym planie',
@@ -89,6 +91,16 @@ export default {
 	'tutorial.getReady': 'Przygotuj się na…',
 	// Feedback Fish widget
 	'feedback.button': 'Przekaż nam opinię',
+	'feedback.a11yLabel': 'Formularz opinii',
+	'feedback.formTitle': 'Czym chcesz się podzielić?',
+	'feedback.categoryGroupLabel': 'Wybierz kategorię opinii',
+	'feedback.issue': 'Problem',
+	'feedback.idea': 'Pomysł',
+	'feedback.other': 'Inne',
+	'feedback.messageA11yLabel': 'Wiadomość',
+	'feedback.placeholder': 'Co chciałbyś żebyśmy wiedzieli?',
+	'feedback.submit': 'Wyślij feedback',
+	'feedback.close': 'Zamknij formularz opinii',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': 'Folder',
-};
+});
