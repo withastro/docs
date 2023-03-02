@@ -1,0 +1,119 @@
+---
+title: Assets (Experimental)
+description: Learn how to enable experimental asset support in Astro.
+i18nReady: false
+---
+
+**Built-in Asset Support** is enabled in Astro behind an experimental flag. This built-in feature is intended to replace the optional `@astrojs/image` integration. The new `images` experience features
+
+- Brand new, more intuitive `Image` component
+- Automatic image optimization in Markdown and MDX files
+- Integration with [Content Collections](./content-collections/)
+- Improved error messages, types, and documentation
+
+> Assets are an _experimental_ Astro feature. Be mindful that the API is subject to change before it is marked as stable.
+
+## **Enabling Assets in Your Project**
+
+To enable built-in asset support, you must add the following lines to your `astro.config.mjs` configuration file.
+
+```diff
+ // astro.config.mjs
+ import { defineConfig } from 'astro/config';
+
+ export default defineConfig({
++ experimental: {
++   images: true
++ }
+ });
+```
+
+## New `src/assets` directory
+
+We recommend putting images in the `src/assets` directory. This is entirely optional, but does unlock a tighter integration with Content Collections.
+
+### Content Collections integration
+
+A common use case for blog posts is to reference assets in their metadata (think, cover image for an article, picture for an author etc).
+
+With the `src/assets` folder, we're also introducing a new `asset` helper to the `astro:content` module. The `asset` helper will validate that the user references a valid asset from the `src/assets` folder:
+
+```
+import { asset, defineCollection, z } from "astro:content";
+
+const blogCollection = defineCollection({
+  schema: z.object({
+    title: z.string(),
+    image: asset({ width: 1120, height: 1120 }),
+  }),
+});
+
+```
+
+Additionally, assets referred this way will be transformed automatically to the same shape as if the image was imported, so they're ready to be used optimally.
+
+## New signature for images imports
+
+Previously, importing an image would return a simple `string` with the path of the image. With the new `image` features enabled, imported image assets now match the following signature:
+
+```tsx
+interface ImageAsset {
+  src: string;
+  width: number;
+  height: number;
+  format: string;
+}
+```
+
+## Features
+
+Enabling asset support allows you to access the `astro:assets` module. This module exposes the following features:
+
+- `Image` (see [Image Component](#image-component))
+
+### Image Component
+
+The `<Image>` component generates an `<img>` tag with all the necessary attributes needed to display the image while avoiding Content Layout Shift **(CLS)**.
+
+> CLS is a score that reflects how much content shifted on your page during loading. The ideal number for CLS is as close to zero as possible.
+
+```tsx
+---
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // Image is 1600x900
+---
+
+<!-- `alt` is mandatory on the Image component -->
+<Image src={myImage} alt="..." />
+```
+
+```tsx
+<!-- Output -->
+<!-- Image is optimized, proper attributes are enforced -->
+<img
+  src="/_astro/my_image.hash.webp"
+  width="1600"
+  height="900"
+  decoding="async"
+  loading="lazy"
+  alt="..."
+/>
+```
+
+### Properties
+
+### width and height
+
+These properties are used to size the image while ensuring there will be no CLS. These properties are required for remote images. When using local images, the `width` and `height` can be automatically inferred from the source file.
+
+### format
+
+`format` is used to set the [image file type](https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types#common_image_file_types). This property is optional, but the default is `webp`.
+
+### quality
+
+`quality` affects the image transformation quality. It can either be a number from `0` to `100`, or a preset from `low`, `medium`, `high`, `max`. This property is optional.
+
+### alt
+
+`alt` is a required property in all cases when using the component. Including descriptive `alt` text is an accessibility best practice. For cases where alt text is not required, you may pass an empty string (`""`).
