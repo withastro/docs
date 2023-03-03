@@ -1,0 +1,51 @@
+---
+title: Image Service API
+i18nReady: false
+---
+
+Astro [Assets](/en/guides/assets) were designed to make it easy for any image optimization service to build a service on top of Astro.
+
+Two types of services exists: Local and External.
+
+- Local services handle the image transformation directly at build in SSG / runtime in dev / SSR. You can think of those as wrapper around libraries like Sharp, ImageMagick or Squoosh.
+- External services point to URLs and can be used for adding support for services such as Cloudinary, Vercel or any RIAPI-compliant server.
+
+Services definitions take the shape of an exported default object with various required methods ("hooks") used to create all the required properties. The major difference, API-wise, between Local and External services is the presence of a `transform` method doing the actual transformation.
+
+The different methods available are the following:
+
+**Required methods**
+
+- `getURL(options: ImageTransform): string`
+  - For local services, return the URL of the endpoint managing your transformation (in SSR and dev).
+  - For external services, return the final URL of the image.
+  - `options` contain the parameters passed by the user
+
+**Required for Local services only**
+
+- `parseURL(url: URL): ImageTransform`
+  - For SSR and dev, parses the generated URLs by `getURL` back into an ImageTransform to be used by `transform`.
+- `transform(buffer: Buffer, options: ImageTransform): { data: Buffer, format: OutputFormat }`
+  - Transform and return the image. It is necessary to return a `format` to ensure that the proper MIME type is served to users in development and SSR.
+
+Ultimately, in development and SSR, it is up to the local endpoint (that `getURL` points to) to call both `parseURL` and `transform` if wanted. `transform` however, is called during the build to create the final assets files.
+
+**Optional**
+
+- `getHTMLAttributes(options: ImageTransform): Record<string, any>`
+  - Return all additional attributes needed to render the image in HTML. For instance, you might want to return a specific `class` or `style`, or `width` and `height`.
+
+### User configuration
+
+User can choose the image service to use through their `astro.config.mjs` file. The config takes the following form:
+
+```ts
+import { defineConfig } from "astro/config";
+
+// https://astro.build/config
+export default defineConfig({
+  image: {
+    service: "your-entrypoint", // 'astro/image/services/squoosh' | 'astro/image/services/sharp' | string
+  },
+});
+```
