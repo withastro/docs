@@ -108,6 +108,7 @@ export default [
 		key: 'reference/integrations-reference',
 	},
 	{ text: 'Adapter API', slug: 'reference/adapter-reference', key: 'reference/adapter-reference' },
+	{ text: 'Image Service API', slug: 'reference/image-service-reference', key: 'reference/image-service-reference' },
 	{
 		text: 'Template Directives',
 		slug: 'reference/directives-reference',
