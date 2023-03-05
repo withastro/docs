@@ -4,15 +4,17 @@ description: Learn how to enable experimental asset support in Astro.
 i18nReady: false
 ---
 
-**Built-in Asset Support** is enabled in Astro behind an experimental flag. This built-in feature is intended to replace the optional `@astrojs/image` integration. The new assets experience features:
+**Built-in Asset Support** is enabled in Astro behind an experimental flag. This built-in feature will eventually replace the optional `@astrojs/image` integration. 
 
-- A new built-in `Image` component
-- Automatic image optimization in Markdown and MDX files
+The new assets experience currently features:
+
+- A new built-in `<Image />` component
+- Relative images with automatic optimization in Markdown and MDX files
 - Integration with [Content Collections](/en/guides/content-collections/)
 - Improved error messages and types
 
 :::caution
-Assets are an _experimental_ Astro feature. Be mindful that the API is subject to change before it is marked as stable.
+Assets are an _experimental_ Astro feature. This API is subject to change before it is marked as stable.
 :::
 
 ## Enabling Assets in your Project
@@ -31,69 +33,30 @@ export default defineConfig({
 });
 ```
 
-### If currently using `@astrojs/image`
+### Move your images to `src/assets/`
 
-Built-in asset support is incompatible with the `@astrojs/image` integration. 
+Create a new folder `src/assets/` which Astro will recogize as your new assets folder.
 
-#### Remove the `@astro.js` integration
+We **strongly recommend** storing all local images the `src/assets/` directory. This location is optional for now, but may become the required location for all asset types in the future.
 
-You must remove the integration from both your `package.json` dependencies and `astro.config.mjs` file.
+Your images stored in `src/assets/` can be used by components (`.astro`, `.mdx` and other UI frameworks) and [in Markdown files](#update-your-markdown-files).
 
-```js title="astro.config.mjs" del={2,6}
-import { defineConfig } from 'astro/config';
- import image from '@astrojs/image';
+{/* Import them from a **relative file path** or [import alias](/en/guides/aliases/) in any component file and then use the import as the `Image` component's `src` attribute. */}
 
-export default defineConfig({
-  integrations: []
-    image()
-  ]
-});
-```
-
-#### Migrate any existing `<Image />` components
-
-Migrate any existing `<Image />` components from `@astrojs/image/components` to `astro:assets`.
-
-The supported props are identical with the exception of `aspectRatio`, which is now automatically inferred from the `width` and `height` attributes.
-
-```diff
+{/* astro
 ---
-- import { Image } from '@astrojs/image/components';
-+ import { Image } from 'astro:assets'
-import localImage from "../assets/logo.png";
-const localAlt = "The Astro Logo";
+// src/pages/index.astro
+import { Image } from 'astro:assets';
+
+// Access images in `src/images/`
+import logo from '../assets/images/logo.png';
 ---
+<Image src={logo} alt="Astro" /> */}
 
-<Image 
-  src={localImage}
-  width={300}
--  aspectRatio="16:9"
-  alt={localAlt} 
-/>
-```
 
-#### Remove any existing `<Picture />` components
+### Update existing `<img>` tags
 
-Currently, the built-in assets feature does not expose a `Picture` component. Migrate to the `Image` component or to the HTML `picture` tag.
-
-```diff
----
-- import { Picture } from '@astrojs/image/components';
-+ import { Image } from 'astro:assets'
-import localImage from '../assets/logo.png';
-const localAlt = "The Astro Logo";
----
-
-<!--Local image with multiple sizes and formats-->
-- <Picture src={localImage} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" formats={['avif', 'jpeg', 'png', 'webp']} alt="The Astro logo" />
-+ <Image src={localImage} alt="The Astro logo" />
-```
-
-### If currently using the native `img` tag
-
-#### Update the attributes of any existing HTML `img` tags
-
-Previously, importing an image would return a simple `string` with the path of the image. With the new `image` features enabled, imported image assets now match the following signature.
+Previously, importing an image would return a simple `string` with the path of the image. With the new `image` features enabled, imported image assets now match the following signature:
 
 ```ts
 interface ImageAsset {
@@ -104,59 +67,95 @@ interface ImageAsset {
 }
 ```
 
-As such, you should update your `img` tags to account for this new signature.
-```astro ".src"
+You must update the `src` attribute of any existing `<img>` tags, and you may also update other attributes that are now available to you from the imported image.
+
+```astro title="src/components/MyComponent.astro" ".src" ".width" ".height" del={2,5} ins={3,6}
 ---
 import rocket from '../images/rocket.svg';
+import rocket from '../assets/images/rocket.svg'
 ---
+<img src={rocket} width="250" height="250" alt="A rocketship in space." />
 <img src={rocket.src} width={rocket.width} height={rocket.height} alt="A rocketship in space." />
 ```
 
 ### Update your Markdown files
 
-Relative images can now be referenced in Markdown and MDX files. These will automatically be optimized and hashed by Astro's build process.
+Relative images located in `src/assets` can now be referenced in Markdown and MDX files. These will automatically be optimized and hashed by Astro's build process.
 
-This allows you to move your images from the `public/` directory to the new, reserved `src/assets/` directory.
+This allows you to move your images from the `public/` directory to the new, reserved `src/assets/` directory. (See the URL path of these built images in the example below.)
 
-Remote images are also valid, but are not automatically optimized by Astro's build process.
+Your existing images in `public/` and remote images are still valid, but are not automatically optimized by Astro's build process.
 
-```md
-<!-- src/pages/post-1.md -->
+```md title="src/pages/posts/post-1.md" "/_astro" ".hash" "../../assets/"
 # My Markdown Page
 
 <!-- Local image stored at src/assets/stars.png -->
 ![A starry night sky.](../../assets/stars.png)
 <img src="/_astro/stars.hash.png" alt="A starry night sky.">
 
+<!-- Image stored at public/images/stars.png -->
+![A starry night sky.](/images/stars.png)
+<img src="/images/stars.png" alt="A starry night sky.">
+
 <!-- Remote image on another server -->
-![Astro](https://astro.build/assets/logo.png)
-<img src="https://astro.build/assets/logo.png" width="25" alt="Astro">
+![Astro logo](https://astro.build/assets/logo.png)
+<img src="https://astro.build/assets/logo.png" width="25" alt="Astro logo">
 ```
 
-### Move processed images to the `src/assets` directory
+### Convert from `@astrojs/image`
 
-We recommend moving source images in the `src/assets` directory. This is entirely optional, but will become the recommended location for other asset types in the future.
+**Built-in asset support is incompatible with the `@astrojs/image` integration.**
 
-Your images stored in `src/assets/` can be used by components (`.astro`, `.mdx` and other UI frameworks) and in Markdown files.
+To avoid errors in your project, complete the following steps:
 
-Import them from a **relative file path** or [import alias](/en/guides/aliases/) in any component file and then use the import as the `Image` component's `src` attribute.
+1. Remove the `@astrojs/image` integration.
 
-```astro
----
-// src/pages/index.astro
-import { Image } from 'astro:assets';
+    You must [remove the integration](/en/guides/integrations-guide/#removing-an-integration) by uninstalling and then removing from your `astro.config.mjs` file.
 
-// Access images in `src/images/`
-import logo from '../assets/images/logo.png';
----
-<Image src={logo} alt="Astro" />
-```
+2. Migrate any existing `<Image />` components.
 
-### Content Collections
+    Change all `import` statements from `@astrojs/image/components` to `astro:assets` to use the new built-in `<Image />` component.
 
-A common use case for blog posts is to reference assets in their metadata (think, a cover image for an article or picture for an author).
+    The supported props are identical with the exception of `aspectRatio`, which is now automatically inferred from the `width` and `height` attributes.
 
-With the `src/assets` folder, we're also introducing a new `asset` helper to the `astro:content` module. The `asset` helper will validate that the user references a valid asset from the `src/assets` folder:
+      ```astro title="src/components/MyComponent.astro" del= {2,11} ins={3}
+      ---
+      import { Image } from '@astrojs/image/components';
+      import { Image } from 'astro:assets'
+      import localImage from "../assets/logo.png";
+      const localAlt = "The Astro Logo";
+      ---
+
+      <Image 
+        src={localImage}
+        width={300}
+        aspectRatio="16:9"
+        alt={localAlt} 
+      />
+      ```
+
+
+3. Remove any existing `<Picture />` components
+
+    Currently, the built-in assets feature does not include a `<Picture />` component. 
+    
+    Instead, use the new `<Image />` component or the HTML `<picture>` tag.
+
+    ```astro del={2,8} ins={3,9}
+    ---
+    import { Picture } from '@astrojs/image/components';
+    import { Image } from 'astro:assets'
+    import localImage from '../assets/logo.png';
+    const localAlt = "The Astro Logo";
+    ---
+
+    <Picture src={localImage} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" formats={['avif', 'jpeg', 'png', 'webp']} alt="The Astro logo" />
+    <Image src={localImage} alt="The Astro logo" />
+    ```
+
+### Update content collections schemas
+
+A new `asset` helper for content collections can validate the metadata of images located in the `src/assets/` folder, such as author photos or blog cover images.
 
 ```ts
 import { asset, defineCollection, z } from "astro:content";
@@ -169,7 +168,8 @@ const blogCollection = defineCollection({
 });
 ```
 
-Assets referred this way will be transformed automatically to the same shape as if the image was imported, so they're ready to be passed to the `Image` component or the `getImage` function.
+The image metadata will be transformed to match the signature of imported images, and therefore can be passed directly to the `<Image />` component or the `getImage()` function.
+
 
 ## Features
 
