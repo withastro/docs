@@ -51,6 +51,7 @@ export default NavDictionary({
 	'reference/api-reference': "API d'Exécution",
 	'reference/integrations-reference': "API d'Intégration",
 	'reference/adapter-reference': 'API des adaptateurs (expérimental)',
+	'reference/error-reference': 'Référence des erreurs',
 	'core-concepts/routing': 'Règles de Routage',
 	'reference/directives-reference': 'Utilisation des Directives',
 	'guides/publish-to-npm': 'Format de Packet NPM',
