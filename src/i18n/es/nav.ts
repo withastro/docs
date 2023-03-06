@@ -40,6 +40,7 @@ export default NavDictionary({
 	'reference/configuration-reference': 'Configuración',
 	'reference/cli-reference': 'CLI',
 	'reference/api-reference': 'API',
+	'reference/error-reference': 'Referencia de errores',
 	'reference/integrations-reference': 'API de Integraciones',
 	'reference/adapter-reference': 'API de adaptadores',
 	'reference/directives-reference': 'Directivas en maquetado',
