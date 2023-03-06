@@ -45,8 +45,6 @@ export default [
 	{ text: 'Deploy your site', slug: 'guides/deploy', key: 'guides/deploy' },
 	{ text: 'More Recipes', slug: 'recipes', key: 'guides/recipes' },
 
-
-	// TODO: Can some of these be removed, merged, or pulled entirely into Recipes? (ex: RSS as recipe)
 	{ text: 'Guides', header: true, type: 'learn', key: 'features' },
 	{
 		text: 'Astro Template Syntax',
@@ -58,11 +56,13 @@ export default [
 		slug: 'core-concepts/framework-components',
 		key: 'core-concepts/framework-components',
 	},
+	{ text: 'Markdown & MDX', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 	{
 		text: 'Content Collections',
 		slug: 'guides/content-collections',
 		key: 'guides/content-collections',
 	},
+	{ text: 'Routing', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
 	{
 		text: 'Server-side Rendering (SSR)',
 		slug: 'guides/server-side-rendering',
@@ -73,8 +73,6 @@ export default [
 		slug: 'guides/client-side-scripts',
 		key: 'guides/client-side-scripts',
 	},
-	{ text: 'Markdown & MDX', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
-	{ text: 'Routing', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
@@ -83,11 +81,6 @@ export default [
 	{ text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
 	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
 	{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
-
-	// { text: 'Authoring Content', slug: 'guides/content', key: 'guides/content' },
-	// { text: 'MDX', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
-	// { text: 'Sharing State', slug: 'core-concepts/sharing-state', key: 'core-concepts/sharing-state' },
-	// { text: 'RSS', slug: 'guides/rss', key: 'guides/rss' },
 
 	{ text: 'Configuration', header: true, type: 'learn', key: 'configuration' },
 	{
