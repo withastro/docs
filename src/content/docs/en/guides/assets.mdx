@@ -10,7 +10,7 @@ The new assets experience currently features:
 
 - A new built-in `<Image />` component
 - Relative images with automatic optimization in Markdown and MDX files
-- Integration with [Content Collections](/en/guides/content-collections/)
+- Integration with content collections
 - Improved error messages and types
 
 :::caution
@@ -25,7 +25,7 @@ Please check every section below to avoid errors and to get the most out of usin
 
 ### Update Config
 
-To enable built-in asset support, add the following lines to your `astro.config.mjs` configuration file.
+To enable built-in asset support, add the following lines to your `astro.config.mjs` configuration file:
 
 ```js title="astro.config.mjs" ins={4-6}
 import { defineConfig } from 'astro/config';
@@ -41,22 +41,9 @@ export default defineConfig({
 
 Create a new folder `src/assets/` which Astro will recogize as your new assets folder.
 
-We **strongly recommend** storing all local images the `src/assets/` directory. This location is optional for now, but may become the required location for all asset types in the future.
+We **strongly recommend** storing all local images in the `src/assets/` directory. This location is optional for now, but may become the required location for all asset types in the future.
 
-Your images stored in `src/assets/` can be used by components (`.astro`, `.mdx` and other UI frameworks) and [in Markdown files](#update-your-markdown-files).
-
-{/* Import them from a **relative file path** or [import alias](/en/guides/aliases/) in any component file and then use the import as the `Image` component's `src` attribute. */}
-
-{/* astro
----
-// src/pages/index.astro
-import { Image } from 'astro:assets';
-
-// Access images in `src/images/`
-import logo from '../assets/images/logo.png';
----
-<Image src={logo} alt="Astro" /> */}
-
+Your images stored in `src/assets/` can be used by components (`.astro`, `.mdx` and other UI frameworks) and in Markdown files.
 
 ### Update existing `<img>` tags
 
@@ -86,7 +73,7 @@ import rocket from '../assets/images/rocket.svg'
 
 Relative images can now be referenced in Markdown and MDX files. These will automatically be optimized and hashed by Astro's build process.
 
-This allows you to move your images from the `public/` directory to the new, reserved `src/assets/` directory (See the URL path of these built images in the example below.) or anywhere near your Markdown files.
+This allows you to move your images from the `public/` directory to the new, reserved `src/assets/` directory or move them near your Markdown files. (See the URL path of these built images in the example below.)
 
 Your existing images in `public/` and remote images are still valid, but are not automatically optimized by Astro's build process.
 
@@ -120,7 +107,9 @@ To avoid errors in your project, complete the following steps:
 
     Change all `import` statements from `@astrojs/image/components` to `astro:assets` to use the new built-in `<Image />` component.
 
-    Remove any component attributes from your `<Image /> components that are not [currently supported image asset properties](#properties). For example `aspectRatio` is no longer supported, as it is now automatically inferred from the `width` and `height` attributes.
+    Remove any component attributes that are not [currently supported image asset properties](#properties).
+    
+    For example `aspectRatio` is no longer supported, as it is now automatically inferred from the `width` and `height` attributes.
 
       ```astro title="src/components/MyComponent.astro" del= {2,11} ins={3}
       ---
@@ -143,19 +132,8 @@ To avoid errors in your project, complete the following steps:
 
     Currently, the built-in assets feature does not include a `<Picture />` component.
 
-    Instead, use the new `<Image />` component or the HTML `<picture>` tag.
+    Instead, you can use the HTML image attributes `srcset` and `sizes` or the `<picture>` tag [for art direction or to create responsive images](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#art_direction).
 
-    ```astro del={2,8} ins={3,9}
-    ---
-    import { Picture } from '@astrojs/image/components';
-    import { Image } from 'astro:assets'
-    import localImage from '../assets/logo.png';
-    const localAlt = "The Astro Logo";
-    ---
-
-    <Picture src={localImage} widths={[200, 400, 800]} sizes="(max-width: 800px) 100vw, 800px" formats={['avif', 'jpeg', 'png', 'webp']} alt="The Astro logo" />
-    <Image src={localImage} alt="The Astro logo" />
-    ```
 
 ### Update content collections schemas
 
@@ -172,7 +150,7 @@ const blogCollection = defineCollection({
     cover: image().refine((img) => img.width >= 1080, {message: 'Cover image must be at least 1080 pixels wide!'}),
   }),
 });
-
+```
 
 ## `astro:assets` module
 
@@ -181,13 +159,17 @@ Enabling asset support allows you to access the `astro:assets` module. This modu
 - `Image`
 - `getImage()`
 
-### `<Image />`
+### `<Image />` (experimental)
 
-The `<Image />` component generates an `<img>` tag. This component can transform an image's dimensions, file type and quality to produce an optimized image that avoids Content Layout Shift **(CLS)**.
+The `<Image />` component generates an `<img>` tag.
+
+This component can transform an image's dimensions, file type and quality to produce an optimized image that avoids Content Layout Shift **(CLS)**.
 
 :::tip[What is Content Layout Shift?]
 CLS is a score that reflects how much content shifted on your page during loading. The ideal number for CLS is as close to zero as possible, which the `Image` component enforces by automatically selecting the correct `width` and `height` for local images.
 :::
+
+Import images from a **relative file path** or [import alias](/en/guides/aliases/) in any component file and then use the import as the `<Image />` component's `src` attribute.
 
 ```astro
 ---
@@ -196,7 +178,7 @@ import myImage from "../assets/my_image.png"; // Image is 1600x900
 ---
 
 <!-- `alt` is mandatory on the Image component -->
-<Image src={myImage} alt="..." />
+<Image src={myImage} alt="A description of my image." />
 ```
 
 ```astro
@@ -208,7 +190,7 @@ import myImage from "../assets/my_image.png"; // Image is 1600x900
   height="900"
   decoding="async"
   loading="lazy"
-  alt="..."
+  alt="A description of my image."
 />
 ```
 
@@ -226,7 +208,9 @@ You can optionally state the [image file type](https://developer.mozilla.org/en-
 
 ##### quality
 
-`quality` is an optional prperty that can either be a preset (`low`, `medium`, `high`, `max`) that is automatically normalized between formats or a number from `0` to `100` (interpreted differently between formats).
+`quality` is an optional property that can either be:
+- a preset (`low`, `medium`, `high`, `max`) that is automatically normalized between formats.
+- a number from `0` to `100` (interpreted differently between formats).
 
 ##### alt (required)
 
@@ -238,7 +222,9 @@ If the image is merely decorative (i.e. doesn't contribute to the understanding 
 
 ##### Additional properties
 
-In addition to the properties above, the `<Image />` component accepts all properties accepted by the HTML `<img>` tag. For example, you can provide a `class` to the final `img` element.
+In addition to the properties above, the `<Image />` component accepts all properties accepted by the HTML `<img>` tag. 
+
+For example, you can provide a `class` to the final `img` element.
 
 ```astro
 ---
@@ -247,7 +233,7 @@ import myImage from "../assets/my_image.png";
 ---
 
 <!-- `alt` is mandatory on the Image component -->
-<Image src={myImage} alt="..." class="my-class" />
+<Image src={myImage} alt="" class="my-class" />
 ```
 
 ```astro
@@ -259,6 +245,7 @@ import myImage from "../assets/my_image.png";
   decoding="async"
   loading="lazy"
   class="my-class"
+  alt=""
 />
 ```
 
