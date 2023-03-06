@@ -96,9 +96,13 @@ export function isRecipeEntry(entry: CollectionEntry<'docs'>): entry is RecipeEn
 	return entry.data.type === 'recipe';
 }
 
-export function isEnglishEntry(entry: CollectionEntry<'docs'>): boolean {
-	return entry.slug.startsWith('en/');
+export function createIsLangEntry(lang: string) {
+	return function isLangEntry(entry: CollectionEntry<'docs'>): boolean {
+		return entry.slug.startsWith(lang + '/');
+	};
 }
+
+export const isEnglishEntry = createIsLangEntry('en');
 
 const docs = defineCollection({
 	schema: z.union([
