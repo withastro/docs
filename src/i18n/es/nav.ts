@@ -61,6 +61,7 @@ export default NavDictionary({
 	reference: 'Referencia',
 	'reference/configuration-reference': 'Configuración',
 	'reference/api-reference': 'API',
+	'reference/error-reference': 'Referencia de errores',
 	'reference/integrations-reference': 'API de Integraciones',
 	'reference/adapter-reference': 'API de adaptadores',
 	'reference/directives-reference': 'Directivas en maquetado',
