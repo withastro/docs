@@ -56,17 +56,12 @@ export default [
 		slug: 'core-concepts/framework-components',
 		key: 'core-concepts/framework-components',
 	},
+	{ text: 'Routing', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
 	{ text: 'Markdown & MDX', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 	{
 		text: 'Content Collections',
 		slug: 'guides/content-collections',
 		key: 'guides/content-collections',
-	},
-	{ text: 'Routing', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
-	{
-		text: 'Server-side Rendering (SSR)',
-		slug: 'guides/server-side-rendering',
-		key: 'guides/server-side-rendering',
 	},
 	{
 		text: 'Scripts & Event Handling',
@@ -77,6 +72,11 @@ export default [
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 	{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
+	{
+		text: 'Server-side Rendering (SSR)',
+		slug: 'guides/server-side-rendering',
+		key: 'guides/server-side-rendering',
+	},
 	{ text: 'Endpoints', slug: 'core-concepts/endpoints', key: 'core-concepts/endpoints' },
 	{ text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
 	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
