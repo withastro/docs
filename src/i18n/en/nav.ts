@@ -69,6 +69,7 @@ export default [
 		key: 'guides/client-side-scripts',
 	},
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
+	{ text: 'Assets (Experimental)', slug: 'guides/assets', key: 'guides/assets' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 	{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
@@ -109,6 +110,7 @@ export default [
 		key: 'reference/integrations-reference',
 	},
 	{ text: 'Adapter API', slug: 'reference/adapter-reference', key: 'reference/adapter-reference' },
+	{ text: 'Image Service API', slug: 'reference/image-service-reference', key: 'reference/image-service-reference' },
 	{
 		text: 'Template Directives',
 		slug: 'reference/directives-reference',
