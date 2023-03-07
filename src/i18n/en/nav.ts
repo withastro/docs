@@ -24,7 +24,7 @@ export default [
 	// { text: 'Thinking with Islands', slug: 'tutorial/0-introduction', key: 'island-tutorial' },
 
 	{ text: 'Basics', header: true, type: 'learn', key: 'basics' },
-	
+
 	{
 		text: 'Project Structure',
 		slug: 'core-concepts/project-structure',
@@ -110,7 +110,11 @@ export default [
 		key: 'reference/integrations-reference',
 	},
 	{ text: 'Adapter API', slug: 'reference/adapter-reference', key: 'reference/adapter-reference' },
-	{ text: 'Image Service API', slug: 'reference/image-service-reference', key: 'reference/image-service-reference' },
+	{
+		text: 'Image Service API',
+		slug: 'reference/image-service-reference',
+		key: 'reference/image-service-reference',
+	},
 	{
 		text: 'Template Directives',
 		slug: 'reference/directives-reference',
