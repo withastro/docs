@@ -18,13 +18,38 @@ Astro provides two types of image services: Local and External.
 
 ## Building using the Image Services API
 
-Services definitions take the shape of an exported default object with various required methods ("hooks") to create the required properties for your image. 
+Services definitions take the shape of an exported default object with various required methods ("hooks"). 
 
-Local services provide a `transform()` method to perform transformations on your image. External services can only return the final URL and image attributes.
+Local services provide a `transform()` method to perform transformations on your image and  `getURL()` and `parseURL()` methods to use an endpoint for dev mode and SSR. External services provide a `getURL()` that points to the `src` of the output `<img>` tag. Both types of services can provide `getHTMLAttributes()` to determine the attributes of the output `<img>`.
 
-### Local Service
+### External Services
 
-To create your own local service, you can point to the [built-in endpoint](https://github.com/withastro/astro/blob/main/packages/astro/src/assets/image-endpoint.ts) (`/_image`), or you can additionally create your own endpoint that can call the service's functions.
+An external service points to a remote URL to be used as the `src` attribute of the final `<img>` tag. This remote endpoint should download, transform, and return the image.
+
+```js
+import type { ExternalImageService } from "astro";
+
+const service: ExternalImageService = {
+  getURL(options: ImageTransform) {
+    return `https://mysupercdn.com/${options.src}?q=${options.quality}&w=${options.width}&h=${options.height}`;
+  },
+  getHTMLAttributes(options) {
+    const { src, format, quality, ...attributes } = options;
+		return {
+			...attributes,
+			loading: options.loading ?? 'lazy',
+			decoding: options.decoding ?? 'async',
+		};
+	}
+};
+
+
+export default service;
+```
+
+### Local Services
+
+To create your own local service, you can point to the [built-in endpoint](https://github.com/withastro/astro/blob/main/packages/astro/src/assets/image-endpoint.ts) (`/_image`), or you can additionally create your own endpoint that can call the service's methods.
 
 ```js
 import type { LocalImageService } from "astro";
@@ -43,8 +68,8 @@ const service: LocalImageService = {
   parseURL(url: URL) {
     return {
       src: params.get('href')!,
-      width: params.has('w') ? parseInt(params.get('w')) : undefined,
-      height: params.has('h') ? parseInt(params.get('h')) : undefined,
+      width: params.has('w') ? parseInt(params.get('w')!) : undefined,
+      height: params.has('h') ? parseInt(params.get('h')!) : undefined,
 			format: params.get('f'),
       quality: params.get('q'),
     };
@@ -89,33 +114,6 @@ In dev mode and SSR mode, Astro doesn't know ahead of time which images need to 
 
 #### getConfiguredImageService
 
-
-
-### External Service
-
-To use an external service . . . 
-
-```js
-import type { ExternalImageService } from "astro";
-
-const service: ExternalImageService = {
-  getURL(options: ImageTransform) {
-    return `https://mysupercdn.com/${options.src}?q=${options.quality}&w=${options.width}&h=${options.height}`;
-  },
-  getHTMLAttributes(options) {
-    const { src, format, quality, ...attributes } = options;
-		return {
-			...attributes,
-			loading: options.loading ?? 'lazy',
-			decoding: options.decoding ?? 'async',
-		};
-	}
-};
-
-
-export default service;
-```
-
 ## Hooks
 
 ### `getURL()`
@@ -124,7 +122,7 @@ export default service;
 
 `getURL(options: ImageTransform): string`
 
-For local services, this hook returns the URL of the endpoint that generates your image (in SSR and dev mode). The local endpoint that `getURL()` points to may call both `parseURL()` and `transform()`.
+For local services, this hook returns the URL of the endpoint that generates your image (in SSR and dev mode). It is unused during build. The local endpoint that `getURL()` points to may call both `parseURL()` and `transform()`.
 
 For external services, this hook returns the final URL of the image.
 
@@ -146,19 +144,19 @@ export type ImageTransform = {
 
 ### `parseURL()`
 
-**Required for Local services; unavailable for external services**
+**Required for local services; unavailable for external services**
 
 `parseURL(url: URL): { src: string, [key: string]: any}`
 
-This hook parses the generated URLs by `getURL()` back into an object with the different properties to be used by `transform` (in SSR and dev mode).
+This hook parses the generated URLs by `getURL()` back into an object with the different properties to be used by `transform` (in SSR and dev mode). It is unused during build.
 
 ### `transform()`
 
-**Required for Local services only; unavailable for external services**
+**Required for local services only; unavailable for external services**
 
 `transform(buffer: Buffer, options: { src: string, [key: string]: any }): { data: Buffer, format: OutputFormat }`
 
-This hook transforms and returns the image and is called during the build to create the final assets files.
+This hook transforms and returns the image and is called during the build to create the final asset files.
 
 You must return a `format` to ensure that the proper MIME type is served to users in SSR and development mode.
 
@@ -169,41 +167,6 @@ You must return a `format` to ensure that the proper MIME type is served to user
 `getHTMLAttributes(options: ImageTransform): Record<string, any>`
 
 This hook returns all additional attributes used to render the image as HTML, based on the parameters passed by the user (`options`).
-
-## Hooks
-
-### `getURL()`
-
-**Required for local and external services**
-
-`getURL(options: ImageTransform): string`
-  - For local services, return the URL of the endpoint managing your transformation (in SSR and dev).
-  - For external services, return the final URL of the image.
-  - `options` contain the parameters passed by the user
-
-### `parseURL():`
-
-**Required for Local services; unavailable for external services**
-
-`parseURL(url: URL): { src: string, [key: string]: any}`
-  - For SSR and dev, parses the generated URLs by `getURL` back into an object with the different properties to be used by `transform`.
-
-### `transform()`
-
-**Required for Local services only; unavailable for external services**
-
-`transform(buffer: Buffer, options: { src: string, [key: string]: any }): { data: Buffer, format: OutputFormat }`
-  - Transform and return the image. It is necessary to return a `format` to ensure that the proper MIME type is served to users in development and SSR.
-
-Ultimately, in development and SSR, it is up to the local endpoint (that `getURL` points to) to call both `parseURL` and `transform` if wanted. `transform` however, is called during the build to create the final assets files.
-
-### `getHTMLAttributes()`
-
-**Optional for both local and external services**
-
-`getHTMLAttributes(options: ImageTransform): Record<string, any>`
-  - Return all additional attributes needed to render the image in HTML. For instance, you might want to return a specific `class` or `style`, or `width` and `height`.
-  - `options` contain the parameters passed by the user
 
 ## User configuration
 
