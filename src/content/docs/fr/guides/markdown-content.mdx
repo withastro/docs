@@ -483,6 +483,7 @@ Par défaut, Astro injecte les attributs `id` après l'exécution de vos plugins
 import { defineConfig } from 'astro/config';
 import { rehypeHeadingIds } from '@astrojs/markdown-remark';
 import { otherPluginThatReliesOnHeadingIDs } from 'some/plugin/source';
+
 export default defineConfig({
   markdown: {
     rehypePlugins: [
@@ -493,43 +494,184 @@ export default defineConfig({
 });
 ```
 
-#### Comment ajouter un plugin Markdown dans Astro
+#### Personnaliser un plugin
 
-1. Installez la dépendance npm dans votre projet.
+Pour personnaliser un plugin, il faut lui fournir un objet `options` dans un tableau imbriqué.
 
-2. Mettez à jour `remarkPlugins` ou `rehypePlugins` dans les options `markdown` :
+L'exemple ci-dessous ajoute [l'option de titres au plugin `remarkToc`](https://github.com/remarkjs/remark-toc#optionsheading) pour modifier l'emplacement de la table des matières, et [l'option `behavior` au plugin `rehype-autolink-headings`](https://github.com/rehypejs/rehype-autolink-headings#optionsbehavior) afin d'ajouter la balise d'ancrage après le texte du titre.
 
-```js
-// astro.config.mjs
-export default {
-  markdown: {
-    remarkPlugins: [
-      // Ajoutez un plugin Remark que vous souhaitez activer pour votre projet.
-      // Si vous avez besoin d'options pour le plugin, vous pouvez utiliser un tableau et mettre les options en tant que deuxième élément.
-      // ['remark-autolink-headings', { behavior: 'prepend'}],
-    ],
-    rehypePlugins: [
-      // Ajoutez un plugin Rehype que vous souhaitez activer pour votre projet.
-      // Si vous avez besoin d'options pour le plugin, vous pouvez utiliser un tableau et mettre les options en tant que deuxième élément.
-      // 'rehype-slug',
-      // ['rehype-autolink-headings', { behavior: 'prepend'}],
-    ],
-  },
-};
-   ```
-
-Vous pouvez indiquer le nom des plugins ou aussi bien choisir de les importer :
-
-```js
-// astro.config.mjs
-import autolinkHeadings from 'remark-autolink-headings';
+```js title="astro.config.mjs"
+import remarkToc from 'remark-toc';
+import { rehypeHeadingIds } from '@astrojs/markdown-remark';
+import rehypeSlug from 'rehype-slug';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 
 export default {
   markdown: {
-    remarkPlugins: [[autolinkHeadings, { behavior: 'prepend' }]],
+    remarkPlugins: [ [remarkToc, { heading: "contents" }] ],
+    rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, { behavior: 'append' }]],
   },
-};
-   ```
+}
+```
+
+### Modifier le frontmatter par un programme
+
+Vous pouvez ajouter des propriétés frontmatter à tout vos fichiers Markdown et MDX en utilisant un [plugin remark ou rehype](#plugins-markdown).
+
+1. Ajoutez un `customProperty` à la propriété `data.astro.frontmatter` de l'argument `file` de votre plugin :
+
+ ```js title="example-remark-plugin.mjs"
+ export function exampleRemarkPlugin() {
+   // All remark and rehype plugins return a separate function
+   return function (tree, file) {
+     file.data.astro.frontmatter.customProperty = 'Propriété générée';
+   }
+ }
+ ```
+
+:::tip
+<Since v="2.0.0" />
+
+`data.astro.frontmatter` contient toutes les propriétés d'un document Markdown ou MDX donné. Cela vous permet de modifier les propriétés existantes du frontmatter, ou de calculer de nouvelles propriétés à partir de ce frontmatter existant.
+:::
+
+2. Appliquez ce plugin à votre configuration d'intégration `markdown` ou `mdx` :
+
+ ```js title="astro.config.mjs" "import { exampleRemarkPlugin } from './example-remark-plugin.mjs';" "remarkPlugins: [exampleRemarkPlugin],"
+ import { defineConfig } from 'astro/config';
+ import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
+ 
+ export default defineConfig({
+   markdown: {
+     remarkPlugins: [exampleRemarkPlugin],
+     extendDefaultPlugins: true,
+   },
+ });
+ ```
+
+ou
+
+ ```js title="astro.config.mjs" "import { exampleRemarkPlugin } from './example-remark-plugin.mjs';" "remarkPlugins: [exampleRemarkPlugin],"
+ import { defineConfig } from 'astro/config';
+ import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
+ 
+ export default defineConfig({
+   integrations: [
+     mdx({
+       remarkPlugins: [exampleRemarkPlugin],
+     }),
+   ],
+ });
+ ```
+
+Désormais, chaque fichier Markdown ou MDX contiendra `customProperty` dans son frontmatter, ce qui le rendra disponible lors de [l'importation de votre markdown](#importer-du-contenu-markdown) et depuis [la propriété `Astro.props.frontmatter` dans vos layouts](#frontmatter-layout)
+
+#### Exemple : calculer le temps de lecture
+
+Vous pouvez utiliser un [plugin remark](https://github.com/remarkjs/remark) pour ajouter un temps de lecture à votre frontmatter. Nous recommandons deux packages d'aide :
+- [`reading-time`](https://www.npmjs.com/package/reading-time) pour calculer les minutes de lecture
+- [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string) pour extraire tout le texte de votre markdown
+
+```shell
+npm install reading-time mdast-util-to-string
+```
+
+Nous pouvons appliquer ces packages à un plugin remark comme ci-après :
+
+```js title="remark-reading-time.mjs"
+import getReadingTime from 'reading-time';
+import { toString } from 'mdast-util-to-string';
+
+export function remarkReadingTime() {
+  return function (tree, { data }) {
+    const textOnPage = toString(tree);
+    const readingTime = getReadingTime(textOnPage);
+    // readingTime.text nous donnera les minutes lues sous la forme d'une chaîne de caractères compréhensible par tous,
+    // par exemple "3 min read"
+    data.astro.frontmatter.minutesRead = readingTime.text;
+  };
+}
+```
+
+Une fois que vous avez appliqué ce plugin à votre configuration:
+
+```js title="astro.config.mjs" "import { remarkReadingTime } from './remark-reading-time.mjs';" "remarkPlugins: [remarkReadingTime],"
+import { defineConfig } from 'astro/config';
+import { remarkReadingTime } from './remark-reading-time.mjs';
+
+export default defineConfig({
+  markdown: {
+    remarkPlugins: [remarkReadingTime],
+    extendDefaultPlugins: true,
+  },
+});
+```
+
+...tous les documents Markdown auront une valeur calculée `minutesRead`. Vous pouvez l'utiliser pour inclure une bannière "X min de lecture" dans une [mise en page markdown](#pages-markdown-et-mdx), par exemple :
+
+```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.frontmatter;" "<p>{minutesRead}</p>"
+---
+const { minutesRead } = Astro.props.frontmatter;
+---
+
+<html>
+  <head>...</head>
+  <body>
+    <p>{minutesRead}</p>
+    <slot />
+  </body>
+</html>
+```
+
+### Extension de la configuration Markdown à partir de MDX
+
+L'intégration MDX d'Astro étend par défaut la [configuration Markdown existante de votre projet](/fr/reference/configuration-reference/#options-de-markdown). Pour remplacer des options individuelles, vous pouvez spécifier leur équivalent dans votre configuration MDX.
+
+L'exemple suivant désactive le Markdown de Github et applique un panel différent de plugins remark pour les fichiers MDX :
+
+```ts title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  markdown: {
+    syntaxHighlight: 'prism',
+    remarkPlugins: [remarkPlugin1],
+    gfm: true,
+  },
+  integrations: [
+    mdx({
+      // `syntaxHighlight` hérité de Markdown
+
+      // Markdown `remarkPlugins` est ignoré,
+      // uniquement `remarkPlugin2` est appliqué.
+      remarkPlugins: [remarkPlugin2],
+      // `gfm` remplacé par `false`
+      gfm: false,
+    })
+  ]
+});
+```
+
+Pour éviter d'étendre votre configuration Markdown à partir de MDX, mettez [l'option `extendMarkdownConfig`](/fr/guides/integrations-guide/mdx/#extendmarkdownconfig) (activée par défaut) à `false` :
+
+```ts title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  markdown: {
+    remarkPlugins: [remarkPlugin],
+  },
+  integrations: [
+    mdx({
+      // La configuration Markdown est désormais ignorée
+      extendMarkdownConfig: false,
+      // Pas de `remarkPlugins` appliqué
+    })
+  ]
+});
+```
 
 ### Coloration syntaxique
 
