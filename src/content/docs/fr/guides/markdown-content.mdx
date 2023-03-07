@@ -33,6 +33,7 @@ You can manage your Markdown and MDX files in Astro in a special `src/content/` 
 
 Pour en savoir plus sur l'utilisation des [collections de contenu dans Astro](/fr/guides/content-collections/).
 
+
 ### Routage basé sur les fichiers
 
 Astro traite n'importe quel fichier `.md` (ou une autre extension prise en charge) ou `.mdx` à l'intérieur du répertoire `/src/pages/` comme une page.
@@ -45,7 +46,7 @@ Placer un fichier dans ce répertoire, ou dans un sous-répertoire, construira a
 title: Hello, World
 ---
 
-# Bonjour à tous!
+# Bonjour à tous !
 
 Ce fichier Markdown créer une page à l'adresse `ton-domaine.com/page-1/`
 
@@ -155,6 +156,7 @@ Vous pouvez également [donner du style à votre Markdown](/fr/guides/styling/#m
 
 📚 En savoir plus à propos des [Layouts Markdown](/fr/core-concepts/layouts/#mises-en-page-markdownmdx).
 
+
 ### Identifiants d'En-tête
 
 L'utilisation d'en-tête en Markdown et MDX va automatiquement vous donner des liens d'ancrage afin que vous puissiez accéder directement à certaines sections de votre page.
@@ -197,7 +199,6 @@ export const title = 'Mon premier billet sur le MDX'
 
 # {title}
 ```
-
 ### Utilisation de variables frontmatter en MDX
 
 L'intégration MDX d'Astro inclut le support pour l'utilisation par défaut de frontmatter en MDX. Ajoutez les propriétés de frontmatter comme vous le feriez dans des fichiers Markdown, et ces variables sont accessibles pour être utilisées dans la template, dans son [composant `layout`](#frontmatter-layout), et comme propriétés nommées lors de l'[importation du fichier](#importer-du-contenu-markdown) ailleurs.
@@ -347,6 +348,208 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 Voir les [propriétés exportées vers un composant de mise en page Astro](/fr/core-concepts/layouts/#propriétés-de-mise-en-page-markdown) en utilisant la [mise en page spéciale d'Astro pour le frontmatter](#frontmatter-layout).
 :::
 
+Les propriétés suivantes sont disponibles pour un composant `.astro` lorsqu'il utilise une instruction `import` ou `Astro.glob()` :
+
+- **`file`** - Le chemin absolu vers le fichier (par exemple `/home/user/projects/.../file.md`).
+- **`url`** - S'il s'agit d'une page, l'URL de la page (e.g. `/en/guides/markdown-content`).
+- **`frontmatter`** - Contient toutes les données spécifiées dans le frontmatter YAML du fichier.
+- **`getHeadings`** - Une fonction asynchrone qui retourne un tableau de tous les titres (c.-à-d. les éléments `h1 -> h6`) du fichier. Le `slug` de chaque titre correspond à l'identifiant généré pour un titre donné et peut être utilisé pour les liens d'ancrage. Cette liste suit le type : `{ depth: number; slug: string; text: string }[]`.
+- **`Content`** - Un composant qui renvoie le contenu complet et rendu du fichier.
+- **(Markdown uniquement) `rawContent()`** - Une fonction qui renvoie le document Markdown brut sous forme de chaîne de caractères.
+- **(Markdown uniquement) `compiledContent()`** - Une fonction qui renvoie le document Markdown compilé en une chaîne HTML. Notez que cela n'inclut pas les mises en page configurées dans votre frontmatter ! Seul le document markdown lui-même sera renvoyé au format HTML.
+- **(MDX uniquement)** - Les fichiers MDX peuvent également exporter des données à l'aide de l'instruction `export`.
+
+
+### Le composant `Content`
+
+Importer `Content` pour rendre un composant qui renvoie le contenu complet d'un fichier Markdown ou MDX :
+
+```astro title="src/pages/content.astro" "Content"
+---
+import {Content as PromoBanner} from '../components/promoBanner.md';
+---
+
+<h2>Promotion du jour</h2>
+<PromoBanner />
+```
+
+#### Exemple : Routage dynamique des pages
+
+À la place de mettre vos fichiers Markdown/MDX dans le dossier `src/pages/` pour créer des routes de pages, vous pouvez [générer des pages dynamiquement](/fr/core-concepts/routing/#routes-dynamiques).
+
+Pour accéder à votre contenu Markdown, passez le composant `<Content/>` à travers le `props` de la page Astro.
+Vous pouvez alors récupérer le composant dans `Astro.props` et le rendre dans votre template.
+
+```astro title="src/pages/[slug].astro" {9-11} "Content" "Astro.props.post"
+---
+export async function getStaticPaths() {
+  const posts = await Astro.glob('../posts/**/*.md')
+  return posts.map(post => ({
+    params: { 
+      slug: post.frontmatter.slug 
+    },
+    props: {
+      post
+    },
+  }))
+}
+
+const { Content } = Astro.props.post
+---
+<article>
+  <Content/>
+</article>
+```
+
+
+### Exportations MDX uniquement
+
+Les fichiers MDX peuvent aussi exporter des données avec l'instruction `export`.
+
+Par exemple, vous pouvez exporter un champ `title` depuis une page ou un composant MDX.
+
+```mdx title="/src/pages/posts/post-1.mdx"
+export const title = 'Mon premier billet MDX'
+```
+
+Ce `title` sera accessible depuis les instructions `import` et [Astro.glob()](/en/reference/api-reference/#astroglob) :
+
+```astro
+---
+// src/pages/index.astro
+const posts = await Astro.glob('./*.mdx');
+---
+
+{posts.map(post => <p>{post.title}</p>)}
+```
+
+### Composants personnalisés avec du MDX importé
+
+Lors du rendu d'un contenu MDX importé, les [composants personnalisés](#affectation-de-composants-personnalisés-à-des-éléments-html) peuvent être passés via la propriété `components`.
+
+```astro title="src/pages/page.astro" "components={{...components, h1: Heading }}"
+---
+import { Content, components } from '../content.mdx';
+import Heading from '../Heading.astro';
+---
+<!-- Crée un <h1> personnalisé pour la syntaxe #, _et_ applique n'importe quel composant personnalisé défini dans `content.mdx` -->
+<Content components={{...components, h1: Heading }} />
+```
+
+:::note
+Les composants personnalisés définis et exportés dans un fichier MDX doivent être importés et renvoyés au composant `<Content />` via la propriété `components`.
+:::
+
+## Configuration de Markdown et MDX
+
+Vous pouvez personnaliser votre traitement du Markdown en modifiant votre fichier `astro.config.mjs`. [Vous pouvez lire la référence complète ici](/fr/reference/configuration-reference/#options-de-markdown).
+
+### Plugins Markdown
+
+Astro supporte des plugins [remark](https://github.com/remarkjs/remark) et [rehype](https://github.com/rehypejs/rehype) Markdown de la part des autres développeurs. Vous pouvez les spécifier dans `astro.config.mjs`.
+
+> **Note :** Par défaut, Astro utilise [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) et [remark-smartypants](https://github.com/silvenon/remark-smartypants). Activer des plugins personnalisés aux valeurs `remarkPlugins` ou `rehypePlugins` vous enlèvera ces plugins par défaut et vous devrez explicitement les ajouter si vous souhaitez les utiliser.
+
+#### Comment ajouter un plugin Markdown dans Astro
+
+1. Installez la dépendance npm dans votre projet.
+
+2. Mettez à jour `remarkPlugins` ou `rehypePlugins` dans les options `markdown` :
+
+```js
+// astro.config.mjs
+export default {
+  markdown: {
+    remarkPlugins: [
+      // Ajoutez un plugin Remark que vous souhaitez activer pour votre projet.
+      // Si vous avez besoin d'options pour le plugin, vous pouvez utiliser un tableau et mettre les options en tant que deuxième élément.
+      // ['remark-autolink-headings', { behavior: 'prepend'}],
+    ],
+    rehypePlugins: [
+      // Ajoutez un plugin Rehype que vous souhaitez activer pour votre projet.
+      // Si vous avez besoin d'options pour le plugin, vous pouvez utiliser un tableau et mettre les options en tant que deuxième élément.
+      // 'rehype-slug',
+      // ['rehype-autolink-headings', { behavior: 'prepend'}],
+    ],
+  },
+};
+   ```
+
+Vous pouvez indiquer le nom des plugins ou aussi bien choisir de les importer :
+
+```js
+// astro.config.mjs
+import autolinkHeadings from 'remark-autolink-headings';
+
+export default {
+  markdown: {
+    remarkPlugins: [[autolinkHeadings, { behavior: 'prepend' }]],
+  },
+};
+   ```
+
+### Coloration syntaxique
+
+Astro supporte nativement [Shiki](https://shiki.matsu.io/) et [Prism](https://prismjs.com/). Cela vous permet de profiter de la coloration syntaxique pour :
+
+- tous les blocs de code (texte entouré par \`\`\`) utilisés dans un fichier Markdown (`.md`) et le [composant natif `<Markdown />`](#composant-markdown).
+- le contenu dans le [composant natif `<Code />`](/fr/reference/api-reference/#code-) (géré par Shiki) ou le [composant `<Prism />`](/fr/reference/api-reference/#prism-) (géré par Prism).
+
+Shiki est activé par défaut, préconfiguré avec le thème `github-dark`. Le code compilé sera limité à des `styles` intégrés au HTML sans aucune classe CSS supplémentaire, ni feuilles de styles, ou JS sur le client.
+
+Si vous choisissez d'utiliser Prism, nous appliquerons les classes CSS de Prism à la place. Notez que **vous avez besoin de vos propres feuilles de styles CSS** pour que la coloration syntaxique apparaisse ! Consultez la [section de configuration de Prism](#configuration-de-prism) pour plus de détails.
+
+#### Choisissez un colorateur syntaxique
+
+Shiki est notre colorateur syntaxique par défaut. Si vous souhaitez utiliser `'prism'` ou désactiver la coloration syntaxique entièrement, vous pouvez utiliser l'objet de configuration `markdown` :
+
+```js
+// astro.config.mjs
+export default {
+  markdown: {
+    // Peut aussi être 'shiki' (par défaut), 'prism' ou false pour désactiver la coloration
+    syntaxHighlight: 'prism',
+  }
+};
+```
+
+#### Configuration de Shiki
+
+Lorsque vous utilisez Shiki, vous pouvez configurer toutes les options via l'objet de configuration `shikiConfig` comme suit :
+
+```js
+// astro.config.mjs
+export default {
+  markdown: {
+    shikiConfig: {
+      // Choisir parmi les thèmes de Shiki (ou ajoutez le votre)
+      // https://github.com/shikijs/shiki/blob/main/docs/themes.md
+      theme: 'dracula',
+      // Ajouter un langage customisé
+      // Note : Shiki a de nombreux langages pré-intégrées, y compris .astro !
+      // https://github.com/shikijs/shiki/blob/main/docs/languages.md
+      langs: [],
+      // Activer le retour à la ligne pour éviter le défilement horizontal
+      wrap: true,
+    },
+  },
+};
+```
+
+Nous suggérons jeter un oeil [dans leur documentation de thème](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) pour explorer le chargement de thème personnalisé, les modes « light » et « dark », ou le style via des variables CSS.
+
+#### Configuration de Prism
+
+Lorsque vous utilisez Prism, vous aurez besoin d'ajouter une feuille de styles à votre projet pour la coloration syntaxique. Si vous êtes nouveau et préférez utiliser Prism plutôt que Shiki, nous vous suggérons :
+
+1. [Définir `syntaxHighlight: 'prism'`](#choisissez-un-colorateur-syntaxique) depuis votre configuration `@astrojs/markdown-remark`.
+2. Choisir une feuille de styles préfabriquée depuis les [Thèmes Prism](https://github.com/PrismJS/prism-themes).
+3. Ajouter cette feuille de styles dans [le répertoire `public/` de votre projet](/fr/core-concepts/project-structure/#public).
+4. Charger cette feuille de styles dans le [`<head>` de votre page](/fr/core-concepts/astro-pages/#pages-astro) via une balise `<link>`.
+
+Vous pouvez aussi visiter la [liste des langages supportés par Prism](https://prismjs.com/#supported-languages) pour les options et leur usage.
+
+
 ## Composant Markdown
 
 > **Note :** Le composant `<Markdown />` n'est pas compatible avec le mode SSR et risque d'être supprimé avant la version 1.0. Il devrait être évité si possible. Pour utiliser Markdown dans vos Templates de composants, utilisez un fichier `.md` et ensuite [utilisez `import` vers votre Markdown](#importer-du-contenu-markdown) dans votre Template comme composant.
@@ -426,112 +629,3 @@ const content = await fetch('https://raw.githubusercontent.com/withastro/docs/ma
 ```
 
 ⚠️ L'utilisation du composant `Markdown` pour afficher du Markdown distant peut vous rendre vulnérable à une attaque [cross-site scripting (XSS)](https://fr.wikipedia.org/wiki/Cross-site_scripting). Si vous affichez du contenu que vous ne contrôlez pas, assurez-vous de le sécuriser (_sanitize_) **avant** de l'afficher.
-
-## Configurer Markdown
-
-Vous pouvez personnaliser votre traitement du Markdown en modifiant votre fichier `astro.config.mjs`. [Vous pouvez lire la référence complète ici](/fr/reference/configuration-reference/#options-de-markdown).
-
-### Plugins Markdown
-
-Astro supporte des plugins [remark](https://github.com/remarkjs/remark) et [rehype](https://github.com/rehypejs/rehype) Markdown de la part des autres développeurs. Vous pouvez les spécifier dans `astro.config.mjs`.
-
-> **Note :** Par défaut, Astro utilise [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) et [remark-smartypants](https://github.com/silvenon/remark-smartypants). Activer des plugins personnalisés aux valeurs `remarkPlugins` ou `rehypePlugins` vous enlèvera ces plugins par défaut et vous devrez explicitement les ajouter si vous souhaitez les utiliser.
-
-#### Comment ajouter un plugin Markdown dans Astro
-
-1. Installez la dépendance npm dans votre projet.
-
-2. Mettez à jour `remarkPlugins` ou `rehypePlugins` dans les options `markdown` :
-
-   ```js
-   // astro.config.mjs
-   export default {
-     markdown: {
-       remarkPlugins: [
-         // Ajoutez un plugin Remark que vous souhaitez activer pour votre projet.
-         // Si vous avez besoin d'options pour le plugin, vous pouvez utiliser un tableau et mettre les options en tant que deuxième élément.
-         // ['remark-autolink-headings', { behavior: 'prepend'}],
-       ],
-       rehypePlugins: [
-         // Ajoutez un plugin Rehype que vous souhaitez activer pour votre projet.
-         // Si vous avez besoin d'options pour le plugin, vous pouvez utiliser un tableau et mettre les options en tant que deuxième élément.
-         // 'rehype-slug',
-         // ['rehype-autolink-headings', { behavior: 'prepend'}],
-       ],
-     },
-   };
-   ```
-
-   Vous pouvez indiquer le nom des plugins ou aussi bien choisir de les importer :
-
-   ```js
-   // astro.config.mjs
-   import autolinkHeadings from 'remark-autolink-headings';
-
-   export default {
-     markdown: {
-       remarkPlugins: [[autolinkHeadings, { behavior: 'prepend' }]],
-     },
-   };
-   ```
-
-### Coloration syntaxique
-
-Astro supporte nativement [Shiki](https://shiki.matsu.io/) et [Prism](https://prismjs.com/). Cela vous permet de profiter de la coloration syntaxique pour :
-
-- tous les blocs de code (texte entouré par \`\`\`) utilisés dans un fichier Markdown (`.md`) et le [composant natif `<Markdown />`](#composant-markdown).
-- le contenu dans le [composant natif `<Code />`](/fr/reference/api-reference/#code-) (géré par Shiki) ou le [composant `<Prism />`](/fr/reference/api-reference/#prism-) (géré par Prism).
-
-Shiki est activé par défaut, préconfiguré avec le thème `github-dark`. Le code compilé sera limité à des `styles` intégrés au HTML sans aucune classe CSS supplémentaire, ni feuilles de styles, ou JS sur le client.
-
-Si vous choisissez d'utiliser Prism, nous appliquerons les classes CSS de Prism à la place. Notez que **vous avez besoin de vos propres feuilles de styles CSS** pour que la coloration syntaxique apparaisse ! Consultez la [section de configuration de Prism](#configuration-de-prism) pour plus de détails.
-
-#### Choisissez un colorateur syntaxique
-
-Shiki est notre colorateur syntaxique par défaut. Si vous souhaitez utiliser `'prism'` ou désactiver la coloration syntaxique entièrement, vous pouvez utiliser l'objet de configuration `markdown` :
-
-```js
-// astro.config.mjs
-export default {
-  markdown: {
-    // Peut aussi être 'shiki' (par défaut), 'prism' ou false pour désactiver la coloration
-    syntaxHighlight: 'prism',
-  }
-};
-```
-
-#### Configuration de Shiki
-
-Lorsque vous utilisez Shiki, vous pouvez configurer toutes les options via l'objet de configuration `shikiConfig` comme suit :
-
-```js
-// astro.config.mjs
-export default {
-  markdown: {
-    shikiConfig: {
-      // Choisir parmi les thèmes de Shiki (ou ajoutez le votre)
-      // https://github.com/shikijs/shiki/blob/main/docs/themes.md
-      theme: 'dracula',
-      // Ajouter un langage customisé
-      // Note : Shiki a de nombreux langages pré-intégrées, y compris .astro !
-      // https://github.com/shikijs/shiki/blob/main/docs/languages.md
-      langs: [],
-      // Activer le retour à la ligne pour éviter le défilement horizontal
-      wrap: true,
-    },
-  },
-};
-```
-
-Nous suggérons jeter un oeil [dans leur documentation de thème](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) pour explorer le chargement de thème personnalisé, les modes « light » et « dark », ou le style via des variables CSS.
-
-#### Configuration de Prism
-
-Lorsque vous utilisez Prism, vous aurez besoin d'ajouter une feuille de styles à votre projet pour la coloration syntaxique. Si vous êtes nouveau et préférez utiliser Prism plutôt que Shiki, nous vous suggérons :
-
-1. [Définir `syntaxHighlight: 'prism'`](#choisissez-un-colorateur-syntaxique) depuis votre configuration `@astrojs/markdown-remark`.
-2. Choisir une feuille de styles préfabriquée depuis les [Thèmes Prism](https://github.com/PrismJS/prism-themes).
-3. Ajouter cette feuille de styles dans [le répertoire `public/` de votre projet](/fr/core-concepts/project-structure/#public).
-4. Charger cette feuille de styles dans le [`<head>` de votre page](/fr/core-concepts/astro-pages/#pages-astro) via une balise `<link>`.
-
-Vous pouvez aussi visiter la [liste des langages supportés par Prism](https://prismjs.com/#supported-languages) pour les options et leur usage.
