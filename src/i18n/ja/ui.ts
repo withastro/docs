@@ -6,7 +6,7 @@ export default UIDictionary({
 	// Site settings
 	'site.title': 'Astroドキュメント',
 	'site.description':
-		'より少ないクライアントサイドJavascriptで、より高速なWebサイトを構築できます。',
+		'より少ないクライアントサイドJavaScriptで、より高速なWebサイトを構築できます。',
 	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.og.imageAlt': '星空にAstroロゴ、右手前には紫色の土星のような惑星が見える。',
 	// Left Sidebar
