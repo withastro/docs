@@ -377,13 +377,13 @@ import {Content as PromoBanner} from '../components/promoBanner.md';
 
 À la place de mettre vos fichiers Markdown/MDX dans le dossier `src/pages/` pour créer des routes de pages, vous pouvez [générer des pages dynamiquement](/fr/core-concepts/routing/#routes-dynamiques).
 
-Pour accéder à votre contenu Markdown, passez le composant `<Content/>` à travers le `props` de la page Astro.
-Vous pouvez alors récupérer le composant dans `Astro.props` et le rendre dans votre template.
+Pour accéder à votre contenu Markdown, passez le composant `<Content/>` à travers le `props` de la page Astro. Vous pouvez alors récupérer le composant dans `Astro.props` et le rendre dans votre template.
 
 ```astro title="src/pages/[slug].astro" {9-11} "Content" "Astro.props.post"
 ---
 export async function getStaticPaths() {
   const posts = await Astro.glob('../posts/**/*.md')
+
   return posts.map(post => ({
     params: { 
       slug: post.frontmatter.slug 
@@ -442,13 +442,56 @@ Les composants personnalisés définis et exportés dans un fichier MDX doivent 
 
 ## Configuration de Markdown et MDX
 
-Vous pouvez personnaliser votre traitement du Markdown en modifiant votre fichier `astro.config.mjs`. [Vous pouvez lire la référence complète ici](/fr/reference/configuration-reference/#options-de-markdown).
+La prise en charge du Markdown dans astro est géré par [remark](https://remark.js.org/), un outil puissant de parsing et de traitement doté d'un écosystème actif. D'autres parser de Markdown comme Pandoc et markdown-it ne sont pas supportés actuellement.
+
+Astro applique par défaut les plugins [Markdown de GitHub](https://github.com/remarkjs/remark-gfm) et [SmartyPants](https://github.com/silvenon/remark-smartypants). Cela permet de générer des liens cliquables à partir du texte et de mettre en forme les [citations et les em-dashes](https://daringfireball.net/projects/smartypants/).
+
+Vous pouvez personnaliser la façon dont remark parse votre Markdown dans `astro.config.mjs`. Voir la liste complète des [options de configuration Markdown](/fr/reference/configuration-reference/#options-de-markdown).
 
 ### Plugins Markdown
 
-Astro supporte des plugins [remark](https://github.com/remarkjs/remark) et [rehype](https://github.com/rehypejs/rehype) Markdown de la part des autres développeurs. Vous pouvez les spécifier dans `astro.config.mjs`.
+Astro prend en charge l'ajout de plugins tiers [remark](https://github.com/remarkjs/remark) et [rehype](https://github.com/rehypejs/rehype) pour Markdown et MDX. Ces plugins vous permettent d'ajouter de nouvelles fonctionnalités à votre Markdown, comme [la génération automatique d'une table des matières](https://github.com/remarkjs/remark-toc), [appliquer des étiquettes d'émoji accessibles](https://github.com/florianeckerstorfer/remark-a11y-emoji) et [styliser votre markdown](/fr/guides/styling/#markdown-styling).
 
-> **Note :** Par défaut, Astro utilise [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) et [remark-smartypants](https://github.com/silvenon/remark-smartypants). Activer des plugins personnalisés aux valeurs `remarkPlugins` ou `rehypePlugins` vous enlèvera ces plugins par défaut et vous devrez explicitement les ajouter si vous souhaitez les utiliser.
+Nous vous encourageons à consulter [awesome-remark](https://github.com/remarkjs/awesome-remark) et [awesome-rehype](https://github.com/rehypejs/awesome-rehype) pour les plugins populaires ! Lisez le README de chaque plugin pour connaitre les instructions d'installation spécifiques.
+
+Cet exemple applique [`remark-toc`](https://github.com/remarkjs/remark-toc) et [`rehype-accessible-emojis`](https://www.npmjs.com/package/rehype-accessible-emojis) aux fichiers Markdown et MDX :
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import remarkToc from 'remark-toc';
+import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis';
+
+export default defineConfig({
+  markdown: {
+    // Appliqué aux fichiers .md et .mdx
+    remarkPlugins: [remarkToc, rehypeAccessibleEmojis],
+  },
+});
+```
+
+Notez que par défaut, `remarkToc` nécessite un [titre](https://github.com/remarkjs/remark-toc#optionsheading) "ToC" ou "Table des matières" (insensible à la casse) sur la page pour afficher la table des matières.
+
+#### ID de titres et plugins
+
+Astro injecte un attribut `id` dans tous les éléments titre (`<h1>` à `<h6>`) dans les fichiers Markdown et MDX et fournit un utilitaire `getHeadings()` pour récupérer ces identifiants dans les [propriétés Markdown exportées](#propriétés-exportées).
+
+Vous pouvez personnaliser les ID de ces titres en ajoutant un plugin rehype qui injecte les attributs `id` (par exemple `rehype-slug`). Vos ID personnalisés, au lieu des valeurs par défaut d'Astro, seront reflétés dans la sortie HTML et dans les éléments retournés par `getHeadings()`.
+
+Par défaut, Astro injecte les attributs `id` après l'exécution de vos plugins rehype. Si l'un de vos plugins rehype personnalisés a besoin d'accéder aux ID injectés par Astro, vous pouvez importer et utiliser directement le plugin `rehypeHeadingIds` d'Astro. Assurez-vous d'ajouter `rehypeHeadingIds` avant tous les plugins qui en dépendent :
+
+```js title="astro.config.mjs" ins={2, 8}
+import { defineConfig } from 'astro/config';
+import { rehypeHeadingIds } from '@astrojs/markdown-remark';
+import { otherPluginThatReliesOnHeadingIDs } from 'some/plugin/source';
+export default defineConfig({
+  markdown: {
+    rehypePlugins: [
+      rehypeHeadingIds,
+      otherPluginThatReliesOnHeadingIDs,
+    ],
+  },
+});
+```
 
 #### Comment ajouter un plugin Markdown dans Astro
 
