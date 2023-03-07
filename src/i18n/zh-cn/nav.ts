@@ -3,7 +3,7 @@ import { NavDictionary } from '../translation-checkers';
 export default NavDictionary({
 	startHere: '起步',
 	'getting-started': '入门指南',
-	'install': '安装',
+	install: '安装',
 	'editor-setup': '编辑器设置',
 	'reference/cli-reference': '命令行',
 	'guides/upgrade-to/v2': '升级到 v2',
@@ -11,10 +11,10 @@ export default NavDictionary({
 	coreConcepts: '核心理念',
 	'concepts/why-astro': '为什么选择Astro',
 	'concepts/islands': 'Astro群岛',
-  
+
 	tutorials: '教程',
 	'blog-tutorial': '搭建博客',
-  
+
 	basics: '基础内容',
 	'core-concepts/project-structure': '项目结构',
 	'core-concepts/astro-components': '组件',
@@ -22,20 +22,20 @@ export default NavDictionary({
 	'core-concepts/layouts': '结构布局',
 	'guides/markdown-content': 'Markdown',
 	'core-concepts/routing': '路由规则',
-  
-	examples: "方案",
+
+	examples: '方案',
 	'guides/migrate-to-astro': '迁移到 Astro',
 	'guides/cms': '连接到 CMS',
 	'guides/integrations-guide': '集成',
 	'guides/deploy': '部署',
-	'guides/recipes': "所有方案",
+	'guides/recipes': '所有方案',
 	// 'core-concepts/sharing-state': '共享状态',
 	// 'guides/fonts': '字体',
 	// 'guides/rss': 'RSS',
 	// 'guides/content': '创作内容',
 
 	features: '使用指南',
-	'core-concepts/astro-syntax': "Astro 组件语法",
+	'core-concepts/astro-syntax': 'Astro 组件语法',
 	'core-concepts/framework-components': '框架组件',
 	'guides/content-collections': '内容集合',
 	'guides/server-side-rendering': '服务端渲染 (SSR)',

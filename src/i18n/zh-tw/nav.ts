@@ -34,7 +34,7 @@ export default NavDictionary({
 	'guides/images': '圖像',
 	// 'guides/fonts': '字體',
 	// 'core-concepts/sharing-state': '共享狀態',
-  // 'guides/rss': 'RSS',
+	// 'guides/rss': 'RSS',
 
 	// Configuration
 	configuration: '設定',

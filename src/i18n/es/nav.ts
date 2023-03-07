@@ -4,7 +4,7 @@ export default NavDictionary({
 	//startHere
 	startHere: 'Configuración',
 	'getting-started': 'Empezando',
-	'install': 'Instalación',
+	install: 'Instalación',
 	'editor-setup': 'Configuración del editor de código',
 	'reference/cli-reference': 'CLI',
 	'guides/upgrade-to/v2': 'Actualizando a la versión v2',
