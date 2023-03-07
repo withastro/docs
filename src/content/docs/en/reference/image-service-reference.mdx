@@ -20,23 +20,33 @@ Astro provides two types of image services: Local and External.
 
 Services definitions take the shape of an exported default object with various required methods ("hooks") to create the required properties for your image. 
 
-Local services have a `transform()` method available to perform transformations on your image. External services can only return the final URL and image attributes.
+Local services provide a `transform()` method to perform transformations on your image. External services can only return the final URL and image attributes.
 
 ### Local Service
 
-To create your own local service, you can choose to use the built-in endpoint (`/_image`) and pass your own `transform` function, or you can additionally create your own endpoint that calls the service's functions.
+To create your own local service, you can point to the [built-in endpoint](https://github.com/withastro/astro/blob/main/packages/astro/src/assets/image-endpoint.ts) (`/_image`), or you can additionally create your own endpoint that can call the service's functions.
 
 ```js
 import type { LocalImageService } from "astro";
 const service: LocalImageService = {
   getURL(options: ImageTransform) {
-    const href = typeof options.src === "string" ? options.src : options.src.src;
-    return `/my_super_endpoint_that_transforms_images?href={href}&w=${options.width}`;
+    const searchParams = new URLSearchParams();
+		searchParams.append('href', typeof options.src === "string" ? options.src : options.src.src);
+		options.width && searchParams.append('w', options.width.toString());
+		options.height && searchParams.append('h', options.height.toString());
+		options.quality && searchParams.append('q', options.quality.toString());
+		options.format && searchParams.append('f', options.format);
+    return `/my_custom_endpoint_that_transforms_images?${searchParams}`;
+    // Or use the built-in endpoint, which will call your parseURL and transform functions:
+    // return `/_image?${searchParams}`;
   },
   parseURL(url: URL) {
     return {
-      src: url.searchParams.get("href"),
-      width: url.searchParams.get("w"),
+      src: params.get('href')!,
+      width: params.has('w') ? parseInt(params.get('w')) : undefined,
+      height: params.has('h') ? parseInt(params.get('h')) : undefined,
+			format: params.get('f'),
+      quality: params.get('q'),
     };
   },
   transform(buffer: Buffer, options: { src: string, [key: string]: any }): { data: Buffer, format: OutputFormat } {
@@ -46,17 +56,40 @@ const service: LocalImageService = {
       format: options.format,
     };
   },
+  getHTMLAttributes(options) {
+		let targetWidth = options.width;
+		let targetHeight = options.height;
+		if (typeof options.src === "object") {
+			const aspectRatio = options.src.width / options.src.height;
+
+			if (targetHeight && !targetWidth) {
+				targetWidth = Math.round(targetHeight * aspectRatio);
+			} else if (targetWidth && !targetHeight) {
+				targetHeight = Math.round(targetWidth / aspectRatio);
+			}
+		}
+
+		const { src, width, height, format, quality, ...attributes } = options;
+
+		return {
+			...attributes,
+			width: targetWidth,
+			height: targetHeight,
+			loading: attributes.loading ?? 'lazy',
+			decoding: attributes.decoding ?? 'async',
+		};
+	}
 };
 export default service;
 ```
-
-#### How this Works
 
 At build time for static sites and pre-rendered routes, both `<Image/>` and `getImage(options)` call the `transform()` function. They pass options either through component attributes or an `options` argument, respectively. The transformed images will be built to a `dist/_astro` folder.
 
 In dev mode and SSR mode, Astro doesn't know ahead of time which images need to be optimized. Astro uses a GET endpoint (by default, (`/_image`) to process the images at runtime. `<Image/>` and `getImage()` pass their options to `getURL()`, which will return the endpoint URL. Then, the endpoint calls `parseURL()` and passes the resulting properties to `transform()`.
 
 #### getConfiguredImageService
+
+
 
 ### External Service
 
@@ -67,8 +100,16 @@ import type { ExternalImageService } from "astro";
 
 const service: ExternalImageService = {
   getURL(options: ImageTransform) {
-    return `https://mysupercdn.com/${options.src}?q=${options.quality}`;
+    return `https://mysupercdn.com/${options.src}?q=${options.quality}&w=${options.width}&h=${options.height}`;
   },
+  getHTMLAttributes(options) {
+    const { src, format, quality, ...attributes } = options;
+		return {
+			...attributes,
+			loading: options.loading ?? 'lazy',
+			decoding: options.decoding ?? 'async',
+		};
+	}
 };
 
 
