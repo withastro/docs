@@ -20,6 +20,7 @@ export default NavDictionary({
 	'core-concepts/astro-pages': 'Seiten',
 	'core-concepts/layouts': 'Layouts',
 	'guides/markdown-content': 'Markdown',
+	'guides/client-side-scripts': 'Skripte & Ereignisbehandlung',
 	'core-concepts/routing': 'Routing',
 	'guides/imports': 'Importe',
 	'core-concepts/endpoints': 'Endpunkte',
