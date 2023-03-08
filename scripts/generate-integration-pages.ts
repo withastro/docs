@@ -53,7 +53,7 @@ class IntegrationPagesBuilder {
 			} else {
 				output.warning(
 					'You have not set the GITHUB_TOKEN environment variable. ' +
-						'Calls to GitHub\'s API may hit rate limits without it.'
+						'Calls to GitHub’s API may hit rate limits without it.'
 				);
 			}
 		}
