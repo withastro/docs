@@ -179,6 +179,38 @@ type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
 ```
 :::
 
+### Infer `getStaticPaths()` types
+
+<Since v="2.1.0" />
+
+Astro includes helpers for working with the types returned by your [`getStaticPaths()`](/en/reference/api-reference/#getstaticpaths) function for dynamic routes.
+
+You can get the type of [`Astro.params`](/en/reference/api-reference/#astroparams) with `InferGetStaticParamsType` and the type of [`Astro.props`](/en/reference/api-reference/#astroprops) with `InferGetStaticPropsType`:
+
+```astro title="src/pages/posts/[...slug].astro" {2,14-15}
+---
+import { InferGetStaticParamsType, InferGetStaticPropsType } from 'astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((post) => {
+    return {
+      params: { slug: post.slug },
+      props: { draft: post.data.draft, title: post.data.title },
+    };
+  });
+}
+
+type Params = InferGetStaticParamsType<typeof getStaticPaths>;
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { slug } = Astro.params;
+//               ^? { slug: string; }
+const { title } = Astro.props;
+//                ^? { draft: boolean; title: string; }
+---
+```
+
 ## Type checking
 
 To see type errors in your editor, please make sure that you have the [Astro VS Code extension](/en/editor-setup/) installed. Please note that the `astro start` and `astro build` commands will transpile the code with esbuild, but will not run any type checking. To prevent your code from building if it contains TypeScript errors, change your "build" script in `package.json` to the following:
