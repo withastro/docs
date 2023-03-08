@@ -65,6 +65,7 @@ export const logos = LogoCheck({
 	keystonejs: { file: 'keystonejs.svg', padding: '.25em' },
 	appwriteio: { file: 'appwriteio.svg', padding: '.125em' },
 	supabase: { file: 'supabase.svg', padding: '.125em' },
+	markdoc: { file: 'markdoc.svg', padding: '.35em 0 .35em .1em' },
 });
 
 export type LogoKey = keyof typeof logos;
