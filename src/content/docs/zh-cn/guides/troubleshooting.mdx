@@ -1,28 +1,18 @@
 ---
-title: 故障排查
+title: 故障排除
 description: 需要帮助吗？卡在什么地方了？我们已经帮你解决了。
+i18nReady: true
 ---
 
 Astro 提供了几个不同的工具来帮助你排除故障和调试你的代码。
 
 ## 常见错误信息
 
-下面是你在终端可能看到的一些常见错误信息，它们可能意味着什么，以及如何处理它们。
+下面是你在终端可能会看到的一些常见错误信息，包括它们可能的含义及解决方案。
 
-### 转化失败，出现 X 错误
+### Cannot use import statement outside a module（不能在模块外使用导入语句）
 
-这条信息经常出现，因为目前 Astro 要求导入和导出语句必须在 `.astro`文件顶层。
-
-**解决方案**：把你的导入和导出语句写在你的组件脚本的顶部。
-
-**状态**：现有限制，正在进行修复。
-
-**不确定这是否是你的问题？**
-检查一下是否有其他人报告过[这个问题](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Transform+failed+with+*+error)!
-
-### 不能在模块外使用导入语句
-
-在 Astro 组件中，`<script>` 标签会被挂起并默认作为 [JS 模块](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules)加载。如果你在标签中包含了 [`is:inline` 指令](/zh-cn/reference/directives-reference/#isinline)或任何其他属性，将不使用该行为。
+在 Astro 组件中，`<script>` 标签会被挂起并默认作为 [JS 模块](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Modules)加载。如果你在标签中包含了 [`is:inline` 指令](/zh-cn/reference/directives-reference/#isinline)或任何其他属性，将不使用该行为。
 
 **解决方案**：如果你在 `<script>` 标签中添加了任何属性，你也必须添加 `type="module"` 属性，以便能够使用导入语句。
 
@@ -31,38 +21,45 @@ Astro 提供了几个不同的工具来帮助你排除故障和调试你的代�
 **不确定这是你的问题？**
 检查一下是否有其他人报告过[这个问题](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Cannot+use+import+statement)!
 
-### 无法渲染组件
+### `document` (or `window`) is not defined（`document` 或 `window` 对象未定义）
 
-这表示你已经导入并在你的Astro模板中使用的组件出现了错误。
+当试图在服务器上访问 `document` 或 `window` 时，会出现这个错误。
 
-#### 常见原因
+Astro 组件是在服务器上运行的，因此你不能在 frontmatter (代码栅栏)中访问这些浏览器特定的对象。
 
-这可能是由于在渲染时试图访问 `window` 或 `document` 对象造成的。默认情况下，Astro 会[同构](https://en.wikipedia.org/wiki/Isomorphic_JavaScript)渲染你的组件，这意味着它在浏览器运行时间不可用的服务器上运行。你可以使用 [`client:only` 指令](/zh-cn/reference/directives-reference/#clientonly)禁用预渲染步骤。
+框架组件默认是在服务器上运行的，因此在渲染期间访问 `document` 或 `window` 时可能会出现这个错误。
 
-**解决方法**：尝试在渲染后访问这些对象（如 React 中的[`useEffect()`](https://reactjs.org/docs/hooks-reference.html#useeffect) 或 Vue 中的 [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) 和 Svelte中的 [`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount) ）。
+**解决方案**：定位到代码中调用 `document` 或 `window` 的位置。如果你没有直接调用 `document` 或 `window`，但报错依旧存在，请检查你引用的包是否是在客户端运行的。
+
+- 如果该代码位于 Astro 组件中，将其移动到 frontmatter (代码栅栏)之外的 `<script>` 标签中。这会告诉 Astro 在客户端运行该代码，`document` 和 `window` 在客户端是可用的。
+
+- 如果该代码位于框架组件中，尝试使用生命周期方法（例如 React 中的 [`useEffect()`](https://zh-hans.reactjs.org/docs/hooks-reference.html#useeffect)、Vue 中的 [`onMounted()`](https://cn.vuejs.org/api/composition-api-lifecycle.html#onmounted) 和 Svelte 中的 [`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount) ），在渲染后访问这些对象。你也可以通过添加 [`client:only`](/zh-cn/reference/directives-reference/#clientonly) 指令来阻止组件在服务器上渲染。
+
+**状态**：预期 Astro 行为。
+
+### Expected a default export（期待默认导出）
+
+当试图导入或渲染一个无效的、无法正常工作的组件时，会出现这个错误（该错误信息是由 Astro 中导入 UI 组件的方式造成的）。
+
+**解决方案**：尝试寻找你正在导入和渲染的任何组件的错误，并确保它能正常工作。考虑从 [astro.new](https://astro.new) 打开一个 Astro 入门模板，并在最小的 Astro 项目中对组件进行故障排除。
 
 **状态**：预期 Astro 行为。
 
-#### 不是这个？
+### Refused to execute inline script（拒绝执行内联脚本）
 
-**解决方案**：检查你的 [Astro](/zh-cn/core-concepts/astro-components/) 或 [UI 框架](/zh-cn/core-concepts/framework-components/)组件的相应文档。考虑从 [astro.new](https://astro.new) 中打开 Astro 入门模板，并在最小的 Astro 项目中对组件进行故障排除。
+你可能会在浏览器控制台中看到以下错误：
 
-**不确定这是你的问题？**
-检查一下是否有其他人报告过[这个问题](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Unable+to+render+Component)!
+> Refused to execute inline script because it violates the following Content Security Policy directive: … (拒绝执行内联脚本，因为它违反了以下内容安全策略指令)
 
-### 预期的默认导出
+这意味着你的网站的[内容安全策略](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/CSP)（CSP）不允许运行内联的 `<script>` 标签，而 Astro 默认输出这些标签。
 
-当试图导入或渲染无效组件，或无法正常工作的组件时，会出现这个错误。（该特定消息是因为 Astro 中导入 UI 组件方式造成的）
-
-**解决办法**：尝试寻找你正在导入和渲染的任何组件的错误，并确保它工作正常。考虑从 [astro.new](https://astro.new) 打开 Astro 入门模板，并在最小的 Astro 项目中对组件进行故障排除。
-
-**状态**：预期 Astro 行为。
+**解决方案**：更新你的 CSP 以包含 `script-src: 'unsafe-inline'`，从而允许运行内联脚本。
 
 ## 常见问题
 
 ### 我的组件无法渲染
 
-首先，检查你是否在 [`.astro` 组件脚本](/zh-cn/core-concepts/astro-components/#组件脚本)或 [`.md` frontmatter](/zh-cn/guides/markdown-content/#在-markdown-中使用组件) 中**导入了该组件**。
+首先，检查你是否在 [`.astro` 组件脚本](/zh-cn/core-concepts/astro-components/#组件脚本)或 [`.mdx` 文件](/zh-cn/guides/markdown-content/#在-markdown-中使用组件) 中**导入了该组件**。
 
 然后检查你的导入语句。
 
@@ -70,7 +67,7 @@ Astro 提供了几个不同的工具来帮助你排除故障和调试你的代�
 
 - 你的导入与导入的组件有名称相同吗？（检查你的组件名称和它是否[遵循 `.astro` 语法](/zh-cn/core-concepts/astro-components/#astro-和-jsx-间的差异)）
 
-- 你在导入时是否包含了扩展名？（检查你导入的文件是否包含扩展名。例如：`.astro`、`.md`、`.jsx`、`.vue`）
+- 你在导入时是否包含了扩展名？（检查你导入的文件是否包含扩展名。例如：`.astro`、`.md`、`.vue`、`.svelte`。注意：只有`.js(x)` 和 `.ts(x)` 文件**不需要**在导入语句中加入扩展名。）
 
 ### 我的组件没有互动
 
@@ -79,14 +76,21 @@ Astro 提供了几个不同的工具来帮助你排除故障和调试你的代�
 默认情况下，[UI 框架组件在客户端不会激活](/zh-cn/core-concepts/framework-components/#激活组件) 。如果没有提供 `client:*` 指令，它的 HTML 将直接渲染到页面上，而无需 JavaScript。
 
 :::tip
-[Astro 组件](/zh-cn/core-concepts/astro-components/)是纯 HTML 的模板组件，没有客户端运行时。但是，你可以在 Astro 组件模板中使用 `<script>` 标签，向浏览器传递要在全局范围内执行的 JavaScript。
+[Astro 组件](/zh-cn/core-concepts/astro-components/)是纯 HTML 的模板组件，没有客户端运行环境。但是，你可以在 Astro 组件模板中使用 `<script>` 标签，向浏览器传递要在全局范围内执行的 JavaScript。
 :::
 
 ### 无法找到软件包 'X'
 
-请参阅 [Astro 的集成指南](/zh-cn/guides/integrations-guide/)，了解关于向 Astro 添加框架渲染器、CSS 工具和其他包的说明。
+如果你在启动 Astro 时看到 `"Cannot find package 'react'"` 或其他类似警告，这意味着你需要手动安装该包。不是所有的包管理器都会自动为你安装对等依赖。如果你是在 Node v16 以上并且使用 npm，则不需要担心。
 
-你可能需要为一些集成安装对等依赖。如果你看到 `missing peer dependencies` 的警告，你可以按照[处理依赖](/zh-cn/guides/integrations-guide/#处理集成依赖)的说明进行处理。
+例如，React 是 `@astrojs/react` 集成的对等依赖。这意味着除安装集成外还需安装官方的 `react` 和 `react-dom` 包。然后，该集成将自动从这些包中提取。
+
+```shell ins="react react-dom"
+# 示例：同时安装集成和框架
+npm install @astrojs/react react react-dom
+```
+
+请参阅 [Astro 的集成指南](/zh-cn/guides/integrations-guide/)，了解关于向 Astro 添加框架渲染器、CSS 工具和其他包的说明。
 
 ### `Astro.glob()` - 没有找到匹配项
 
@@ -95,7 +99,6 @@ Astro 提供了几个不同的工具来帮助你排除故障和调试你的代�
 #### 文件路径
 
 例如，在 `src/pages/index.astro` 中使用 `.../components/**/*.js` 来导入以下两个文件：
-
 - `src/components/MyComponent.js`。
 - `src/components/includes/MyOtherComponent.js`。
 
@@ -103,11 +106,11 @@ Astro 提供了几个不同的工具来帮助你排除故障和调试你的代�
 
  `Astro.glob()` 不支持动态变量和字符串插值。
 
-这不是 Astro 的错误。这是由于 [Vite 的 `import.meta.glob()` 函数](https://vitejs.dev/guide/features.html#glob-import)的限制，它只支持静态字符串字面量。
+这不是 Astro 的 bug。这是由于 [Vite 的 `import.meta.glob()` 函数](https://cn.vitejs.dev/guide/features.html#glob-import)的限制，它只支持静态字符串字面量。
 
-通常可以使用 `Astro.glob()` 导入包括所有你需要的文件集，然后对其进行过滤。
+通常可以使用 `Astro.glob()` 导入包括所有你需要的文件集，然后对其进行过滤，以此来解决这个问题。
 
-```astro
+```astro {6-7}
 ---
 // src/components/featured.astro
 const { postSlug } = Astro.props
@@ -124,11 +127,21 @@ const myFeaturedPost = posts.find(post => post.file.includes(pathToMyFeaturedPos
 
 ### 和 Yarn 2+（Berry）一起使用 Astro
 
-Yarn 2+，又名 Berry，使用名叫 [Plug'n'Play (PnP)](https://yarnpkg.com/features/pnp) 的技术来存储和管理 Node 模块，这在使用 `create-astro` 初始化新 Astro 项目或在使用 Astro 工作时可能[导致问题](https://github.com/withastro/astro/issues/3450)。解决办法是在 `yarnrc.yml` 中将 [`nodeLinker` 属性](https://yarnpkg.com/configuration/yarnrc#nodeLinker)设置为 `node-modules`。
+Yarn 2+，又名 Berry，使用名叫 [Plug'n'Play (PnP)](https://yarnpkg.com/features/pnp) 的技术来存储和管理 Node 模块，这在使用 `create astro` 初始化新 Astro 项目或在使用 Astro 工作时可能[导致问题](https://github.com/withastro/astro/issues/3450)。解决办法是在 `yarnrc.yml` 中将 [`nodeLinker` 属性](https://yarnpkg.com/configuration/yarnrc#nodeLinker)设置为 `node-modules`。
 
-```yaml
+```yaml title=".yarnrc.yml"
 nodeLinker: "node-modules"
 ```
+
+### 在组件中使用 `<head>` 标签
+
+在 Astro 中，使用 `<head>` 标签的方式与任何其他 HTML 标签相同：它不会移动到页面的顶部或与现有的 `<head>` 合并。因此，通常只需要在页面中包含一个 `<head>` 标签。我们建议在 [布局组件](/zh-cn/core-concepts/layouts/) 中编写单个 `<head>` 和其内容。
+
+### 包含了意外的 `<script>` 或 `<style>` 标签
+
+你可能会注意到，即使组件不出现在最终输出中，导入的组件的 `<script>` 或 `<style>` 标签也会包含在 HTML 源中。例如，这样的情况会发生在未展示的[条件渲染](/zh-cn/core-concepts/astro-components/#动态-html)组件中。
+
+Astro 的构建过程是基于模块图的：一旦组件包含在模板中，它的 `<script>` 和 `<style>` 标签就会被处理、优化和打包，无论该组件是否出现在最终输出中。当使用 `is:inline` 指令时，该规则将不适用于脚本。
 
 ## 技巧和窍门
 
@@ -138,9 +151,9 @@ nodeLinker: "node-modules"
 
 #### Frontmatter
 
-在 Astro Frontmatter 中的 `console.log()` 语句总是输出到运行  Astro CLI 的 **终端**上。这是因为 Astro 运行在服务器上，而不是在浏览器上。
+在 Astro Frontmatter 中的 `console.log()` 语句会输出到运行  Astro CLI 的 **终端**上。这是因为 Astro 运行在服务器上，而不是在浏览器上。
 
-```astro
+```astro {5}
 ---
 const sum = (a, b) => a + b;
 
@@ -151,7 +164,7 @@ console.log(sum(2, 2));
 
 #### JS脚本
 
-在Astro `<script>`标签内编写或导入的代码会在浏览器中运行。任何`console.log()`语句或其他调试输出将被打印到浏览器的控制台。
+在Astro `<script>`标签内编写或导入的代码会在浏览器中运行。任何`console.log()`语句或其他调试输出都会打印到浏览器的控制台。
 
 ### 调试框架组件
 
@@ -163,7 +176,7 @@ console.log(sum(2, 2));
 
 为了帮助你调试 Astro 组件，Astro 提供了内置 [`<Debug />`](/zh-cn/reference/api-reference/#debug-) 组件，你可以用它直接组件 HTML 模板中渲染任何值。这对于在浏览器中进行快速调试是很有用的，而不必在终端和浏览器之间来回切换。
 
-```astro
+```astro {2,7}
 ---
 import { Debug } from 'astro/components';
 const sum = (a, b) => a + b;
@@ -175,7 +188,7 @@ const sum = (a, b) => a + b;
 
 调试组件支持多种语法选项，使调试更加灵活和简明。
 
-```astro
+```astro {2,7-9}
 ---
 import { Debug } from 'astro/components';
 const sum = (a, b) => a + b;

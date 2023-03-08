@@ -4,7 +4,7 @@ export default {
 	'navbar.a11yTitle': 'Top',
 	// Site settings
 	'site.title': 'Astro Documentation',
-	'site.description': 'Build faster websites with less client-side Javascript.',
+	'site.description': 'Build faster websites with less client-side JavaScript.',
 	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.og.imageAlt':
 		'astro logo on a starry expanse of space, with a purple saturn-like planet floating in the right foreground',
@@ -51,6 +51,8 @@ export default {
 	'cms.navTitle': 'More CMS guides',
 	// Migration Guides vocabulary
 	'migration.navTitle': 'More migration guides',
+	// Recipes vocabulary
+	'recipes.navTitle': 'More recipes',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'See all contributors',
 	// Fallback content notice shown when a page is not yet translated
@@ -66,6 +68,10 @@ export default {
 	'aside.tip': 'Tip',
 	'aside.caution': 'Caution',
 	'aside.danger': 'Danger',
+	// `<CodeSnippet>` vocabulary
+	'codeSnippet.terminalCaption': 'Terminal window',
+	// `<LanguageSelect>` vocabulary
+	'languageSelect.label': 'Select language',
 	// Integrations vocabulary
 	'integrations.changelog': 'Changelog',
 	'integrations.footerTitle': 'More Integrations',

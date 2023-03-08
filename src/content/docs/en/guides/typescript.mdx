@@ -83,6 +83,31 @@ import Layout from '@layouts/Layout.astro';
 }
 ```
 
+## Extending `window` and `globalThis`
+
+You may want to add a property to the global object. You can do this by adding a global declaration to your `env.d.ts` file:
+
+```ts title="env.d.ts"
+declare global {
+	var myString: string;
+	function myFunction(): boolean;
+}
+
+export {};
+```
+
+This will provide typing to `globalThis.myString` and `globalThis.myFunction`, as well as `window.myString` and `window.myFunction`.
+
+Note that `window` is only available in client-side code. `globalThis` is available both server-side and client-side, but its server-side value won't be shared with the client.
+
+If you only want to type a property on the `window` object, provide a `Window` interface instead:
+
+```ts title="env.d.ts"
+interface Window {
+	myFunction(): boolean;
+}
+```
+
 ## Component Props
 
 Astro supports typing your component props via TypeScript. To enable, add a TypeScript `Props` interface to your component frontmatter. An `export` statement may be used, but is not necessary. The [Astro VSCode Extension](/en/editor-setup/) will automatically look for the `Props` interface and give you proper TS support when you use that component inside another template.
@@ -153,6 +178,38 @@ declare namespace astroHTML.JSX {
 type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
 ```
 :::
+
+### Infer `getStaticPaths()` types
+
+<Since v="2.1.0" />
+
+Astro includes helpers for working with the types returned by your [`getStaticPaths()`](/en/reference/api-reference/#getstaticpaths) function for dynamic routes.
+
+You can get the type of [`Astro.params`](/en/reference/api-reference/#astroparams) with `InferGetStaticParamsType` and the type of [`Astro.props`](/en/reference/api-reference/#astroprops) with `InferGetStaticPropsType`:
+
+```astro title="src/pages/posts/[...slug].astro" {2,14-15}
+---
+import { InferGetStaticParamsType, InferGetStaticPropsType } from 'astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((post) => {
+    return {
+      params: { slug: post.slug },
+      props: { draft: post.data.draft, title: post.data.title },
+    };
+  });
+}
+
+type Params = InferGetStaticParamsType<typeof getStaticPaths>;
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { slug } = Astro.params;
+//               ^? { slug: string; }
+const { title } = Astro.props;
+//                ^? { draft: boolean; title: string; }
+---
+```
 
 ## Type checking
 
