@@ -21,18 +21,3 @@ export const stripLangFromSlug = (slug: CollectionEntry<'docs'>['slug']) =>
 
 /** Get a page’s lang tag from its slug (e.g. `'en/migrate'` => `'en'`). */
 export const getLangFromSlug = (slug: CollectionEntry<'docs'>['slug']) => slug.split('/')[0];
-
-/** Remove the subpage segment of a URL string */
-export function removeSubpageSegment(path: string) {
-	// Include new pages with subpages as part of this regex.
-	const regex = /(?:install|deploy|integrations-guide|tutorial|migrate-to-astro|cms)\//;
-	const matches = regex.exec(path);
-
-	if (matches) {
-		const matchIndex = matches.index;
-		// Get the first slash index after the main page path segment.
-		const slashIndex = path.slice(matchIndex).indexOf('/') + matchIndex;
-		return path.slice(0, slashIndex);
-	}
-	return path;
-}
