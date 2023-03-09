@@ -13,7 +13,6 @@ Astro docs welcomes contributions that:
 - Add a new official recipe, by PRing a new page to `src/content/docs/recipes/` 
 - Add a new community recipe by PRing a link to `src/content/docs/guides/recipes.mdx`
 
-
 ## CMS, Deploy, and Migrate
 
 The `src/content/guides/` directory in the docs has three subdirectories for established guides:
