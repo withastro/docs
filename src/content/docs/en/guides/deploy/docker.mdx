@@ -1,0 +1,144 @@
+---
+title: Build your Astro Site with Docker
+description: How to build your Astro site using Docker.
+type: deploy
+i18nReady: false
+---
+
+[Docker](<https://docker.com>) is a tool to create, deploy, and run applications using containers. It is a great way to build your Astro site in a scalable way and deploy it to the web.
+
+Docker images and containers can be deployed to many different platforms, like AWS, Azure, [Google Cloud](</en/guides/deploy/google-cloud/#cloud-run-ssr-and-static>), and more. This guide won't cover how to deploy your site to a specific platform, but will focus on building your site with Docker.
+
+:::note[Note]
+There are many different ways to build your Astro site, which all are valid. Therefore, this guide can't show all possible options, but will rather give you a starting point.
+:::
+
+## General requirements
+
+1. To use Docker, you'll have to install docker on your local machine. You can find [installation instructions for your operating system here](<https://docs.docker.com/get-docker/>).
+2. You'll need a `Dockerfile` in your project. This file contains the instructions to build your site. You can find [more information about Dockerfiles here](<https://docs.docker.com/engine/reference/builder/>).
+
+## Creating container in `Dockerfile`
+
+First of all, you'll need to create a file called `Dockerfile` in your project's root directory. This file will differ depending on your needs. We have some examples listed below.
+
+### SSR
+
+This following Dockerfile will build your site and serve it using Node.js (SSR adapter) on port `3000`.
+
+```docker title="Dockerfile"
+FROM node:lts AS runtime
+WORKDIR /app
+
+COPY . .
+
+RUN npm install
+RUN npm run build
+
+ENV HOST=0.0.0.0
+ENV PORT=3000
+EXPOSE 3000
+CMD node ./dist/server/entry.mjs
+```
+
+:::tip[Keep this in mind]
+These are just examples of Dockerfiles. You can customize them to your needs. For example, you could use another image, like `node:lts-alpine`.
+
+```docker title="Dockerfile" del={1} add={2}
+FROM node:lts as runtime
+FROM node:lts-alpine as runtime
+```
+:::
+
+### Static
+
+#### Apache (httpd)
+
+:::caution[Recommendation]
+Using this approach is for simple websites that don't need any special configuration. For more complex websites, it is recommended to use a custom configuration, either in apache or NGINX.
+:::
+
+The following Dockerfile will build your site and serve it using Apache HTTPD (default config) on port `80` without any configuration.
+
+```docker title="Dockerfile"
+FROM node:lts AS build
+WORKDIR /app
+COPY . .
+RUN npm i
+RUN npm run build
+
+FROM httpd:2.4 AS runtime
+COPY --from=build /app/dist /usr/local/apache2/htdocs/
+EXPOSE 80
+```
+
+#### NGINX
+
+```docker title="Dockerfile"
+FROM node:lts AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build -- --mode custom
+
+FROM nginx:alpine AS runtime
+COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
+COPY --from=build /app/dist /usr/share/nginx/html
+```
+
+Before you can actually build the Dockerfile above, you'll need to create a configuration file for NGINX. Create a folder called `nginx` in your project's root directory and create a file called `nginx.conf` in it.
+
+```nginx title="nginx.conf"
+worker_processes  1;
+
+events {
+  worker_connections  1024;
+}
+
+http {
+  server {
+    listen 8080;
+    server_name   _;
+
+    root   /usr/share/nginx/html;
+    index  index.html index.htm;
+    include /etc/nginx/mime.types;
+
+    gzip on;
+    gzip_min_length 1000;
+    gzip_proxied expired no-cache no-store private auth;
+    gzip_types text/plain text/css application/json application/javascript application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+
+    location / {
+      try_files $uri $uri/ /index.html;
+    }
+  }
+}
+```
+
+## Building container
+
+Building your container is as easy as running the following command in your project's root directory:
+
+```bash
+docker build -t <your-astro-image-name> .
+```
+
+This will output a container, which you can run locally or deploy to a platform of your choice.
+
+## Running locally
+
+To run your container locally, you can use the following command:
+
+```bash
+docker run -p <local-port>:<container-port> <your-astro-image-name>
+```
+
+Now you should be able to access your site at `http://localhost:<local-port>`.
+
+## Deployment
+
+Now that your website is successfully built and packaged in a container, it's time to deploy!
+
+Good luck on your futher deploying journey, Astronaut 🚀 !
