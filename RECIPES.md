@@ -9,7 +9,7 @@ Like all contributions to our docs, take a look at the [WRITING.md](https://gith
 Astro docs welcomes contributions that:
 
 - Edit an existing guide with corrected content or [new links](#add-new-links), by PRing the existing file in the docs repo.
-- Add a new CMS, Deploy or Migration guide (see below for instructions to create new pages in Docs)
+- Add a new CMS, Deploy or Migration guide. (See below for instructions to create the required files in Docs.)
 - Add a new official recipe, by PRing a new page to `src/content/docs/recipes/` 
 - Add a new community recipe by PRing a link to `src/content/docs/guides/recipes.mdx`
 
