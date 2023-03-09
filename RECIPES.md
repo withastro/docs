@@ -24,7 +24,7 @@ The `src/content/guides/` directory in the docs has three subdirectories for est
 The best way to start a new guide for these sections is to choose an existing one as an example.
 
 These require:
-- Their own guide page.
+- A new guide page.
 - A logo in `public/logos/`.
 - An update to [`src/data/logo.ts`](https://github.com/withastro/docs/blob/main/src/data/logos.ts) to add the logo.
 
