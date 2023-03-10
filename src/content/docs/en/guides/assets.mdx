@@ -58,7 +58,7 @@ Your images stored in `src/assets/` can be used by components (`.astro`, `.mdx`,
 Previously, importing an image would return a simple `string` with the path of the image. With the new `image` features enabled, imported image assets now match the following signature:
 
 ```ts
-interface ImageAsset {
+interface ImageMetadata {
   src: string;
   width: number;
   height: number;
@@ -145,19 +145,57 @@ To avoid errors in your project, complete the following steps:
 
 ### Update content collections schemas
 
-A new `image` helper for content collections can validate the metadata of images located in the `src/assets/` folder, such as author photos or blog cover images.
+You can now declare images in your frontmatter as their paths relative to the `src/assets/` folder. The image will be imported and transformed into metadata that matches the signature of imported images, allowing you to pass its properties directly to the `<Image />` component or the `getImage()` function.
 
-The image metadata will be transformed to match the signature of imported images, and therefore can be passed directly to the `<Image />` component or the `getImage()` function.
+A new `image` helper for content collections lets you validate the image metadata using Zod.
 
-```ts
-import { image, defineCollection, z } from "astro:content";
+```ts title="src/content/config.ts"
+import { defineCollection, z, image } from "astro:content";
+import type { ImageMetadata } from "astro/dist/assets/types";
 
 const blogCollection = defineCollection({
-  schema: z.object({
-    title: z.string(),
-    cover: image().refine((img) => img.width >= 1080, {message: 'Cover image must be at least 1080 pixels wide!'}),
-  }),
+	schema: z.object({
+		title: z.string(),
+		cover: image().refine((img: ImageMetadata) => img.width >= 1080, {
+			message: "Cover image must be at least 1080 pixels wide!",
+		}),
+		coverAlt: z.string(),
+	}),
 });
+
+export const collections = {
+	blog: blogCollection,
+};
+```
+
+```md title="src/content/blog/my-post.md"
+---
+title: "My first blog post"
+cover: "firstpostcover.jpeg" # will resolve to "src/assets/firstblogcover.jpeg"
+coverAlt: "A photograph of a sunset behind a mountain range"
+---
+
+This is a blog post
+```
+A blog index page might render the cover photo and title of each blog post. This example destructures the image metadata as props to `<Image/>`:
+
+```astro title="src/pages/blog.astro" {10}
+---
+import { Image } from "astro:assets";
+import { getCollection } from "astro:content";
+const allBlogPosts = await getCollection("blog");
+---
+
+{
+	allBlogPosts.map((post) => (
+		<div>
+			<Image {...post.data.cover} alt={post.data.coverAlt} />
+			<h2>
+				<a href={"/blog/" + post.slug}>{post.data.title}</a>
+			</h2>
+		</div>
+	))
+}
 ```
 
 ## `astro:assets` module
