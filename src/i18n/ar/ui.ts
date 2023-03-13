@@ -30,7 +30,7 @@ export default UIDictionary({
 	'rightSidebar.openCollective': 'Open Collective',
 	'rightSidebar.contribute': 'المساهمة',
 
-	'rightSidebar.github': 'توثيق Astro على Github',
+	'rightSidebar.github': 'توثيق Astro على GitHub',
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': 'استخدم الوضع النهاري',
 	'themeToggle.useDark': 'استخدم الوضع الليلي',

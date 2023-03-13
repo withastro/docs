@@ -32,9 +32,9 @@ export default NavDictionary({
 	'guides/server-side-rendering': '伺服器渲染 (SSR)',
 	'guides/styling': 'CSS 樣式',
 	'guides/images': '圖像',
-	'guides/fonts': '字體',
-	'core-concepts/sharing-state': '共享狀態',
-	'guides/rss': 'RSS',
+	// 'guides/fonts': '字體',
+	// 'core-concepts/sharing-state': '共享狀態',
+	// 'guides/rss': 'RSS',
 
 	// Configuration
 	configuration: '設定',
