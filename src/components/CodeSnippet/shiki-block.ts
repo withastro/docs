@@ -23,9 +23,10 @@ export class ShikiBlock {
 		this.htmlAfterLastLine = matches[3];
 
 		// Parse inner HTML code to ShikiLine instances
-		this.shikiLines = innerHtml.split(/\r?\n/).map((htmlLine) => new ShikiLine(htmlLine));
+		const innerHtmlLines = innerHtml.split(/\r?\n/);
+		this.shikiLines = innerHtmlLines.map((htmlLine) => new ShikiLine(htmlLine));
 
-		this.copyButton = new CopyButton();
+		this.copyButton = new CopyButton(innerHtmlLines);
 	}
 
 	applyMarkings(lineMarkings: LineMarkingDefinition[], inlineMarkings: InlineMarkingDefinition[]) {
