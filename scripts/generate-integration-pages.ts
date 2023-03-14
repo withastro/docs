@@ -31,6 +31,10 @@ const prettyCategoryDescription: Record<string, unknown> = {
 	adapter: 'SSR adapter to deploy your Astro project',
 	other: 'integration in your Astro project',
 };
+
+// Add pages titles that should be marked as `i18nReady: false` as part of this array.
+const translationBlacklist: string[] = ['@astrojs/alpinejs'];
+
 class IntegrationPagesBuilder {
 	readonly #githubToken?: string;
 	readonly #sourceBranch: string;
@@ -135,7 +139,7 @@ description: ${createDescription(name, category)}
 githubURL: '${githubLink}'
 hasREADME: true
 category: ${category}
-i18nReady: false
+i18nReady: ${translationBlacklist.includes(name) ? 'false' : 'true'}
 ---
 
 import Video from '~/components/Video.astro';
