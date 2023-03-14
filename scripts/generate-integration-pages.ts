@@ -33,7 +33,7 @@ const prettyCategoryDescription: Record<string, unknown> = {
 };
 
 // Add pages titles that should be marked as `i18nReady: false` as part of this array.
-const translationBlacklist: string[] = ['@astrojs/alpinejs'];
+const translationBlacklist: string[] = [];
 
 class IntegrationPagesBuilder {
 	readonly #githubToken?: string;
