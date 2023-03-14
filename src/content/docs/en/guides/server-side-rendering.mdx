@@ -231,3 +231,63 @@ if (!product) {
 
 A server endpoint, also known as an **API route**, is a special function exported from a `.js` or `.ts` file within the `src/pages/` folder. 
 The function takes an [endpoint context](/en/reference/api-reference/#endpoint-context) and returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response). A powerful feature of SSR, API routes are able to securely execute code on the server. To learn more, see our [Endpoints Guide](/en/core-concepts/endpoints/#server-endpoints-api-routes).
+
+### Streaming
+
+Astro enables HTTP streaming for all pages that are not prerendered. This means that your page's content will be sent incrementally to the page as it resolves async functions and requests.
+
+You can `await` promises in the frontmatter of your page, or you can move those requests down into Astro components the page renders. The page will then send down the HTML it's capable of sending down without waiting for those async components, and then it will start rendering the components in the order they are found in your page's HTML one-by-one.
+
+For example, given a page that fetches some data:
+
+```astro title="src/pages/index.astro"
+---
+const data = await fetch('https://example.com')
+const otherData = await fetch('https//other-example.com')
+---
+<html>
+  <head>
+    <title>Astro example</title>
+  </head>
+  <body>
+    <p>{data.example}</p>
+    <p>{otherData.example}</p>
+  </body>
+</html>
+```
+
+We can move the fetch call into a component to allow the page to send down the shell of the markup (the html, head, and body) before the fetch request is done loading:
+
+```astro title="src/components/Example.astro"
+---
+const data = await fetch('https://example.com')
+---
+<p>{data.example}<p>
+```
+
+```astro title="src/components/OtherExample.astro"
+---
+const otherData = await fetch('https://other-example.com')
+---
+<p>{otherData.example}<p>
+```
+
+And update our page to stream in the component instead:
+
+```astro title="src/pages/index.astro" {1, 9}
+---
+import Example from '../components/Example.astro'
+import OtherExample from '../components/OtherExample.astro'
+---
+<html>
+  <head>
+    <title>Astro example</title>
+  </head>
+  <body>
+    <Example />
+    <OtherExample />
+  </body>
+</html>
+```
+
+Now the page will stream in the HTML around the async components first, and then resolve each component one by one, streaming the resulting HTML.
