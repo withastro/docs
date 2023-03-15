@@ -1,8 +1,4 @@
-# Astro Docs <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://astro.build/assets/press/astro-icon-light.png">
-  <source media="(prefers-color-scheme: light)" srcset="https://astro.build/assets/press/astro-icon-dark.png">
-  <img align="right" valign="center" height="157" width="126" src="https://astro.build/assets/press/astro-icon-dark.png" alt="Astro logo" />
-</picture>
+# Astro Docs <picture><source media="(prefers-color-scheme: dark)" srcset="https://astro.build/assets/press/astro-icon-light.png"><source media="(prefers-color-scheme: light)" srcset="https://astro.build/assets/press/astro-icon-dark.png"><img align="right" valign="center" height="157" width="126" src="https://astro.build/assets/press/astro-icon-dark.png" alt="Astro logo" /></picture>
 
 
 To all who come to this happy place: welcome.
