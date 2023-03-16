@@ -24,6 +24,7 @@ interface IntegrationData {
 	category: 'renderer' | 'adapter' | 'other';
 	readme: string;
 	srcdir: string;
+	i18nReady: string;
 }
 
 const prettyCategoryDescription: Record<string, unknown> = {
@@ -31,11 +32,13 @@ const prettyCategoryDescription: Record<string, unknown> = {
 	adapter: 'SSR adapter to deploy your Astro project',
 	other: 'integration in your Astro project',
 };
+
 class IntegrationPagesBuilder {
 	readonly #githubToken?: string;
 	readonly #sourceBranch: string;
 	readonly #sourceRepo: string;
 	readonly #deprecatedIntegrations = new Set(['turbolinks']);
+	readonly #i18nNotReadyIntegrations = new Set(['markdoc']);
 
 	constructor(opts: { githubToken?: string; sourceBranch: string; sourceRepo: string }) {
 		this.#githubToken = opts.githubToken;
@@ -88,8 +91,9 @@ class IntegrationPagesBuilder {
 						: keywords.includes('astro-adapter')
 						? 'adapter'
 						: 'other';
+					const i18nReady = (!this.#i18nNotReadyIntegrations.has(pkg.name)).toString();
 					const readme = await (await fetch(readmeURL)).text();
-					return { name, category, readme, srcdir: pkg.name };
+					return { name, category, readme, srcdir: pkg.name, i18nReady };
 				})
 		);
 	}
@@ -101,7 +105,7 @@ class IntegrationPagesBuilder {
 	 * - Add the correct base to any relative links
 	 * - _Remove_ the base from any docs links
 	 */
-	async #processReadme({ name, readme, srcdir, category }: IntegrationData): Promise<string> {
+	async #processReadme({ name, readme, srcdir, category, i18nReady }: IntegrationData): Promise<string> {
 		// Remove title from body
 		readme = readme.replace(/^# (.+)/, '');
 		const githubLink = `https://github.com/${this.#sourceRepo}/tree/${
@@ -135,7 +139,7 @@ description: ${createDescription(name, category)}
 githubURL: '${githubLink}'
 hasREADME: true
 category: ${category}
-i18nReady: false
+i18nReady: ${i18nReady}
 ---
 
 import Video from '~/components/Video.astro';
