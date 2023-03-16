@@ -105,7 +105,13 @@ class IntegrationPagesBuilder {
 	 * - Add the correct base to any relative links
 	 * - _Remove_ the base from any docs links
 	 */
-	async #processReadme({ name, readme, srcdir, category, i18nReady }: IntegrationData): Promise<string> {
+	async #processReadme({
+		name,
+		readme,
+		srcdir,
+		category,
+		i18nReady,
+	}: IntegrationData): Promise<string> {
 		// Remove title from body
 		readme = readme.replace(/^# (.+)/, '');
 		const githubLink = `https://github.com/${this.#sourceRepo}/tree/${
