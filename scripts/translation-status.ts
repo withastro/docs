@@ -11,6 +11,14 @@ import output from './lib/output.mjs';
 import type { PageData, PageIndex, PageTranslationStatus } from './lib/translation-status/types';
 import { toUtcString, tryGetFrontMatterBlock } from './lib/translation-status/utils.js';
 
+interface PullRequest {
+	html_url: string;
+	title: string;
+	labels: {
+		name: string;
+	}[];
+}
+
 /**
  * Uses the git commit history to build an HTML-based overview of
  * the current Astro Docs translation status.
@@ -80,9 +88,12 @@ class TranslationStatusBuilder {
 		// Determine translation status by source page
 		const statusByPage = this.getTranslationStatusByPage(pages);
 
+		// Fetch all pull requests
+		const pullRequests = await this.getPullRequests();
+
 		// Render a human-friendly summary
 		output.debug(`- Building HTML file...`);
-		const html = this.renderHtmlStatusPage(statusByPage);
+		const html = this.renderHtmlStatusPage(statusByPage, pullRequests);
 
 		// Write HTML output to file
 		fs.writeFileSync(this.htmlOutputFilePath, html);
@@ -90,6 +101,15 @@ class TranslationStatusBuilder {
 		output.debug('');
 		output.debug('*** Success!');
 		output.debug('');
+	}
+
+	/** Get all pull requests with the `i18n` tag */
+	async getPullRequests() {
+		const pullRequests = (await fetch(
+			`https://api.github.com/repos/${this.githubRepo}/pulls?state=open&per_page=50`
+		).then((res) => res.json())) as PullRequest[];
+
+		return pullRequests.filter((pr) => pr.labels.find((label) => label.name === 'i18n'));
 	}
 
 	async createPageIndex(): Promise<PageIndex> {
@@ -245,7 +265,7 @@ class TranslationStatusBuilder {
 	 * Renders the primary HTML output of this script by loading a template from disk,
 	 * rendering the individual views to HTML, and inserting them into the template.
 	 */
-	renderHtmlStatusPage(statusByPage: PageTranslationStatus[]) {
+	renderHtmlStatusPage(statusByPage: PageTranslationStatus[], prs: PullRequest[]) {
 		// Load HTML template
 		const templateFilePath = path.join(
 			path.dirname(fileURLToPath(import.meta.url)),
@@ -262,6 +282,7 @@ class TranslationStatusBuilder {
 				'<!-- TranslationStatusByLanguage -->',
 				this.renderTranslationStatusByLanguage(statusByPage)
 			)
+			.replace('<!-- TranslationNeedsReview -->', this.renderTranslationNeedsReview(prs))
 			.replace(
 				'<!-- TranslationStatusByPage -->',
 				this.renderTranslationStatusByPage(statusByPage)
@@ -328,6 +349,21 @@ class TranslationStatusBuilder {
 			lines.push(`</details>`);
 			lines.push(``);
 		});
+
+		return lines.join('\n');
+	}
+
+	renderTranslationNeedsReview(prs: PullRequest[]) {
+		const lines: string[] = [];
+
+		if (prs.length > 0) {
+			lines.push(`<ul>`);
+			lines.push(
+				...prs.map((pr) => `<li>` + `${this.renderLink(pr.html_url, pr.title)} ` + `</li>`)
+			);
+			lines.push(`</ul>`);
+		}
+		lines.push(``);
 
 		return lines.join('\n');
 	}
