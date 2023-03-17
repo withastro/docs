@@ -10,6 +10,7 @@ import languages from '../src/i18n/languages';
 import output from './lib/output.mjs';
 import type { PageData, PageIndex, PageTranslationStatus } from './lib/translation-status/types';
 import { toUtcString, tryGetFrontMatterBlock } from './lib/translation-status/utils.js';
+import { githubGet } from './lib/github-get.mjs';
 
 interface PullRequest {
 	html_url: string;
@@ -37,6 +38,7 @@ class TranslationStatusBuilder {
 		targetLanguages: string[];
 		languageLabels: { [key: string]: string };
 		githubRepo: string;
+		githubToken?: string;
 	}) {
 		this.pageSourceDir = config.pageSourceDir;
 		this.htmlOutputFilePath = path.resolve(config.htmlOutputFilePath);
@@ -44,6 +46,7 @@ class TranslationStatusBuilder {
 		this.targetLanguages = config.targetLanguages;
 		this.languageLabels = config.languageLabels;
 		this.githubRepo = config.githubRepo;
+		this.githubToken = config.githubToken;
 		this.git = simpleGit({
 			maxConcurrentProcesses: Math.max(2, Math.min(32, os.cpus().length)),
 		});
@@ -55,6 +58,7 @@ class TranslationStatusBuilder {
 	readonly targetLanguages;
 	readonly languageLabels;
 	readonly githubRepo;
+	readonly githubToken;
 	readonly git;
 
 	async run() {
@@ -105,9 +109,10 @@ class TranslationStatusBuilder {
 
 	/** Get all pull requests with the `i18n` tag */
 	async getPullRequests() {
-		const pullRequests = (await fetch(
-			`https://api.github.com/repos/${this.githubRepo}/pulls?state=open&per_page=50`
-		).then((res) => res.json())) as PullRequest[];
+		const pullRequests: PullRequest[] = await githubGet({
+			url: `https://api.github.com/repos/${this.githubRepo}/pulls?state=open&per_page=50`,
+			githubToken: this.githubToken,
+		});
 
 		return pullRequests.filter((pr) => pr.labels.find((label) => label.name === 'i18n'));
 	}
@@ -463,6 +468,7 @@ const translationStatusBuilder = new TranslationStatusBuilder({
 		.sort(),
 	languageLabels: languages,
 	githubRepo: process.env.GITHUB_REPOSITORY || 'withastro/docs',
+	githubToken: process.env.GITHUB_TOKEN,
 });
 
 await translationStatusBuilder.run();
