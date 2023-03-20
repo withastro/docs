@@ -1,0 +1,228 @@
+---
+title: Add internationalization features 
+description: Use dynamic routing and content collections to add i18n support to your Astro site.
+type: recipe
+i18nReady: false
+---
+import FileTree from '~/components/FileTree.astro'
+
+Astro doesn't have built-in internationalization (i18n) support, but you can build your own i18n solution. In this recipe, you'll learn how to use content collections and dynamic routing to serve content for different languages.
+
+## Recipe
+
+### Set up pages for each language
+
+1. Create a directory for each language you want to support. For example, `en/` and `fr/` if you are supporting English and French:
+
+<FileTree>
+    - src/
+      - pages/
+        - en/
+          - about.astro
+          - index.astro
+        - fr/
+          - about.astro
+          - index.astro
+</FileTree>
+
+    
+2. Set up `src/pages/index.astro` to redirect to your default language.
+
+    ```astro
+    ---
+    // src/pages/index.astro
+    ---
+    <meta http-equiv="refresh" content="0;url=/en/" />
+    ```
+    
+
+### Translate UI
+
+1. Create a file to store your translation strings in. For this guide we’ll use a `src/i18n/ui.ts` file:
+
+    ```ts
+    // src/i18n/ui.ts
+    
+    export const defaultLang = 'en';
+    
+    export const ui = {
+      en: {
+        'nav.home': 'Home',
+        'nav.about': 'About',
+        'nav.twitter': 'Twitter',
+      },
+      fr: {
+        'nav.home': 'Acceuil',
+        'nav.about': 'À propos',
+      }
+    } as const;
+    ```
+    
+2. Create a helper to let us get translations strings for different parts of our UI in `src/i18n/utils.ts` and a helper to detect the page language based on the current URL:
+
+    ```js
+    // src/i18n/utils.ts
+    
+    import { ui, defaultLang } from './ui';
+    
+    export function useTranslations(lang: keyof typeof ui) {
+      return function t(key: keyof typeof ui[defaultLang]) {
+        return ui[lang][key] || ui[defaultLang][key];
+      }
+    }
+    
+    export function getLangFromUrl(url: URL) {
+      const [, lang] = Astro.url.pathname.split('/');
+      return lang || defaultLang;
+    }
+    ```
+    
+3. Use our helpers to choose the UI string that corresponds to the current language. For example, a nav component might look like:
+
+    ```astro 
+    ---
+    // src/components/Nav.astro
+    import { getLangFromUrl, useTranslations } from "../i18n/utils.ts"
+    
+    const lang = getLangFromUrl(Astro.url);
+    const t = useTranslations(lang);
+    ---
+    <ul>
+        <li>
+            <a href={`/${lang}/home/`}>{t('nav.home')}</a>
+        </li>
+        <li>
+            <a href={`/${lang}/about/`}>{t('nav.about')}</a>
+        </li>
+        <li>
+            <a href="https://twitter.com/astrodotbuild">
+              {t('nav.twitter')}
+            </a>
+        </li>
+    </ul>
+    ```
+
+4. Each page should have a `lang` attribute on the `<html>` element that matches the language on the page. In this example, a reusable `Layout` grabs the language from the route:
+
+    ```astro
+    ---
+    // src/layouts/Base.astro
+    
+    import { getLangFromUrl } from "../i18n/utils.ts";
+    
+    const lang = getLangFromUrl(Astro.url);
+    ---
+    <html lang={lang}>
+        <head>
+            <meta charset="utf-8" />
+            <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+            <meta name="viewport" content="width=device-width" />
+            <meta name="generator" content={Astro.generator} />
+            <title>Astro</title>
+        </head>
+        <body>
+            <slot />
+        </body>
+    </html>
+    ```
+    
+    ```astro
+    ---
+    // src/pages/en/about.astro
+    import Base from "../../layouts/Base.astro"
+    ---
+    <Base>
+        <h1>About me</h1>
+        ...
+    </Base>
+    ```
+
+### Use content collections for translated posts
+
+1. Create a folder in `src/content` for each type of content you want to include, and create subdirectories for each supported language. For example, to support English and French blog posts:
+
+<FileTree>
+    - src/
+      - content/
+          - blog/
+            - en/
+                - post1.md
+                - post2.md
+            - fr/
+              - post1.md
+              - post2.md
+</FileTree>
+2. Create a `src/content/config.ts` file and export a collection for each type of content.
+
+    ```ts
+    //src/content/config.ts
+    import { defineCollection, z } from 'astro:content';
+
+    const blogCollection = defineCollection({
+      schema: z.object({
+        title: z.string(),
+        author: z.string(),
+        date: z.date()
+      })
+    });
+
+    export const collections = {
+      'blog': blogCollection
+    };
+
+    ```
+    📚 [Read more about Content Collections.](/en/guides/content-collections/)
+
+3. Use [dynamic routes](/en/core-concepts/routing/#dynamic-routes) to fetch and render content based on a `lang` and a `slug` parameter. In static rendering mode, use `getStaticPaths` to map each content entry to a page:
+    ```astro
+    //src/pages/[lang]/blog/[...slug].astro
+    ---
+    import { getCollection } from 'astro:content'
+
+    export async function getStaticPaths() {
+      const pages = await getCollection('blog')
+
+      const paths = pages.map(page => {
+        const [lang, ...slug] = page.slug.split('/');
+        return { params: { lang, slug: slug.join('/') || undefined }, props: page }
+      })
+
+      return paths;
+    }
+
+    const { lang, slug } = Astro.params;
+    const page = Astro.props;
+    const formattedDate = page.data.date.toLocaleString(lang);
+
+    const { Content } = await page.render();
+    ---
+    <h1>{page.data.title}</h1>
+    <p>by {page.data.author} at {formattedDate}</p>
+    <Content/>
+    ```
+    
+    In [SSR mode](/en/guides/server-side-rendering/), fetch the requested entry directly:
+
+    ```astro
+    //src/pages/[lang]/blog/[...slug].astro
+    ---
+    import { getEntryBySlug } from 'astro:content';
+    
+    const { lang, slug } = Astro.params;
+    const page = await getEntryBySlug('blog', `${lang}/${slug}`);
+    if (!page) {
+      return Astro.redirect("/404");
+    }
+    const formattedDate = page.data.date.toLocaleString(lang);
+    const { Content, headings } = await page.render();
+    ---
+    <h1>{page.data.title}</h1>
+    <p>by {page.data.author} at {formattedDate}</p>
+    <Content/>
+    ```
+
+### Use links to switch between languages
+
+## Resources
+- [Choosing a Language Tag](https://www.w3.org/International/questions/qa-choosing-language-tags)
+- [Right-to-left Styling 101](https://rtlstyling.com/)
