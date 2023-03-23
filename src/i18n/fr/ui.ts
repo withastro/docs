@@ -60,4 +60,16 @@ export default UIDictionary({
 	'aside.tip': 'Astuce',
 	'aside.caution': 'Attention',
 	'aside.danger': 'Danger',
+	// Feedback Fish widget
+	'feedback.button': 'Laissez un commentaire',
+	'feedback.a11yLabel': 'Formulaire de commentaires',
+	'feedback.formTitle': 'Comment pouvons-nous vous aider ?',
+	'feedback.categoryGroupLabel': 'Choisissez le type de commentaire',
+	'feedback.issue': 'Problème',
+	'feedback.idea': 'Idée',
+	'feedback.other': 'Autres',
+	'feedback.messageA11yLabel': 'Message',
+	'feedback.placeholder': 'Que faut-il savoir ?',
+	'feedback.submit': 'Envoyez des commentaires',
+	'feedback.close': 'Fermer le formulaire de commentaires',
 });

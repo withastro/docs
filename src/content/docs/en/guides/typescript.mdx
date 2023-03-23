@@ -4,7 +4,7 @@ description: Learn how to use Astro's built-in TypeScript support.
 i18nReady: true
 ---
 import Since from '~/components/Since.astro'
-
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
 
 Astro ships with built-in support for [TypeScript](https://www.typescriptlang.org/). You can import `.ts` and `.tsx` files in your Astro project, write TypeScript code directly inside your [Astro component](/en/core-concepts/astro-components/#the-component-script), and even use an [`astro.config.ts`](/en/guides/configuring-astro/#the-astro-config-file) file if you like.
@@ -33,6 +33,40 @@ Additionally, our templates include an `env.d.ts` file inside the `src` folder t
 ```typescript title="env.d.ts"
 /// <reference types="astro/client" />
 ```
+
+If you are not using VSCode, you can install the [Astro TypeScript plugin](https://www.npmjs.com/package/@astrojs/ts-plugin) to support importing `.astro` files from `.ts` files (which can be useful for re-exporting). 
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @astrojs/ts-plugin
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install @astrojs/ts-plugin
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/ts-plugin
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Then, add the following to your `tsconfig.json`:
+
+```json title="tsconfig.json"
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "@astrojs/ts-plugin"
+      },
+    ],
+```
+
+To check that the plugin is working, create a `.ts` file and import an Astro component into it. You should have no warning messages from your editor.
+
 
 ### UI Frameworks
 
@@ -80,6 +114,31 @@ import Layout from '@layouts/Layout.astro';
       "@layouts/*": ["src/layouts/*"]
     }
   }
+}
+```
+
+## Extending `window` and `globalThis`
+
+You may want to add a property to the global object. You can do this by adding a global declaration to your `env.d.ts` file:
+
+```ts title="env.d.ts"
+declare global {
+	var myString: string;
+	function myFunction(): boolean;
+}
+
+export {};
+```
+
+This will provide typing to `globalThis.myString` and `globalThis.myFunction`, as well as `window.myString` and `window.myFunction`.
+
+Note that `window` is only available in client-side code. `globalThis` is available both server-side and client-side, but its server-side value won't be shared with the client.
+
+If you only want to type a property on the `window` object, provide a `Window` interface instead:
+
+```ts title="env.d.ts"
+interface Window {
+	myFunction(): boolean;
 }
 ```
 
@@ -153,6 +212,38 @@ declare namespace astroHTML.JSX {
 type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
 ```
 :::
+
+### Infer `getStaticPaths()` types
+
+<Since v="2.1.0" />
+
+Astro includes helpers for working with the types returned by your [`getStaticPaths()`](/en/reference/api-reference/#getstaticpaths) function for dynamic routes.
+
+You can get the type of [`Astro.params`](/en/reference/api-reference/#astroparams) with `InferGetStaticParamsType` and the type of [`Astro.props`](/en/reference/api-reference/#astroprops) with `InferGetStaticPropsType`:
+
+```astro title="src/pages/posts/[...slug].astro" {2,14-15}
+---
+import { InferGetStaticParamsType, InferGetStaticPropsType } from 'astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((post) => {
+    return {
+      params: { slug: post.slug },
+      props: { draft: post.data.draft, title: post.data.title },
+    };
+  });
+}
+
+type Params = InferGetStaticParamsType<typeof getStaticPaths>;
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { slug } = Astro.params;
+//               ^? { slug: string; }
+const { title } = Astro.props;
+//                ^? { draft: boolean; title: string; }
+---
+```
 
 ## Type checking
 

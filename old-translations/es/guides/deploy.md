@@ -31,7 +31,7 @@ Por defecto, la salida de la compilación se colocará en `dist/`. Puedes desple
 
 ## Páginas de GitHub
 
-> **Advertencia:** De forma predeterminada, las páginas de Github romperán el directorio `_astro/` de su sitio web desplegado. Para deshabilitar este comportamiento y solucionar este problema, asegúrate de usar el script `deploy.sh` de abajo o agrega manualmente un archivo `.nojekyll` vacío a tu directorio `public/`.
+> **Advertencia:** De forma predeterminada, las páginas de GitHub romperán el directorio `_astro/` de su sitio web desplegado. Para deshabilitar este comportamiento y solucionar este problema, asegúrate de usar el script `deploy.sh` de abajo o agrega manualmente un archivo `.nojekyll` vacío a tu directorio `public/`.
 
 1. Establece el `.site` correcto en `astro.config.mjs`.
 2. Dentro de tu proyecto, crea `deploy.sh` con el siguiente contenido (sin comentar las líneas apropiadas) y ejecútalo para implementar:
@@ -87,7 +87,7 @@ env:
   githubEmail: <YOUR GITHUB EMAIL ADDRESS>
   deployToRepo: <NAME OF REPO TO DEPLOY TO (E.G. <YOUR USERNAME>.github.io)>
 
-name: Github Pages Astro CI
+name: GitHub Pages Astro CI
 
 on:
   # Activa el flujo de trabajo en eventos de push y pull requests, pero solo para la rama principal

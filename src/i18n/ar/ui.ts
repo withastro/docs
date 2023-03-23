@@ -15,7 +15,7 @@ export default UIDictionary({
 	'navbar.a11yTitle': 'الأعلى',
 	// Site settings
 	'site.title': 'Astro التوثيق',
-	'site.description': 'Build faster websites with less client-side Javascript.',
+	'site.description': 'Build faster websites with less client-side JavaScript.',
 	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.og.imageAlt':
 		'astro logo on a starry expanse of space, with a purple saturn-like planet floating in the right foreground',
@@ -30,7 +30,7 @@ export default UIDictionary({
 	'rightSidebar.openCollective': 'Open Collective',
 	'rightSidebar.contribute': 'المساهمة',
 
-	'rightSidebar.github': 'توثيق Astro على Github',
+	'rightSidebar.github': 'توثيق Astro على GitHub',
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': 'استخدم الوضع النهاري',
 	'themeToggle.useDark': 'استخدم الوضع الليلي',
@@ -64,4 +64,15 @@ export default UIDictionary({
 	'integrations.renderers': 'إطارات عمل الواجهات',
 	'integrations.adapters': 'مُهايئ التصير على الخادم',
 	'integrations.others': 'أخرى',
+	// Feedback Fish widget
+	'feedback.formTitle': 'بماذا تفكر؟',
+	'feedback.a11yLabel': 'نموذج الملاحظات',
+	'feedback.categoryGroupLabel': 'اختر نوع الملاحظات',
+	'feedback.issue': 'مشكلة',
+	'feedback.idea': 'فكرة',
+	'feedback.other': 'أخرى',
+	'feedback.messageA11yLabel': 'رسالة',
+	'feedback.placeholder': 'ماذا تريدنا أن  نعرف?',
+	'feedback.submit': 'أرسل رأيك',
+	'feedback.close': 'إغلاق نموذج الملاحظات',
 });

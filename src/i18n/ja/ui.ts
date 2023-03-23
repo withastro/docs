@@ -6,7 +6,7 @@ export default UIDictionary({
 	// Site settings
 	'site.title': 'Astroドキュメント',
 	'site.description':
-		'より少ないクライアントサイドJavascriptで、より高速なWebサイトを構築できます。',
+		'より少ないクライアントサイドJavaScriptで、より高速なWebサイトを構築できます。',
 	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.og.imageAlt': '星空にAstroロゴ、右手前には紫色の土星のような惑星が見える。',
 	// Left Sidebar
@@ -86,4 +86,14 @@ export default UIDictionary({
 	'tutorial.getReady': 'ここで学ぶことは…',
 	// Feedback Fish widget
 	'feedback.button': 'フィードバックする',
+	// 'feedback.a11yLabel': 'Feedback form',
+	'feedback.formTitle': 'どんなことを？',
+	// 'feedback.categoryGroupLabel': 'Choose feedback category',
+	'feedback.issue': '問題',
+	'feedback.idea': 'アイデア',
+	'feedback.other': 'その他',
+	// 'feedback.messageA11yLabel': 'Message',
+	'feedback.placeholder': 'なにをお知らせしますか？',
+	'feedback.submit': 'フィードバックを送る',
+	// 'feedback.close': 'Close feedback form',
 });

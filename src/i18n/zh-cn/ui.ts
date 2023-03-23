@@ -26,7 +26,7 @@ export default UIDictionary({
 	'rightSidebar.joinDiscord': '加入我们的 Discord',
 	'rightSidebar.readBlog': '阅读我们的博客',
 	'rightSidebar.openCollective': '我们的 Open Collective',
-	'rightSidebar.github': 'Github 上的 Astro 文档',
+	'rightSidebar.github': 'GitHub 上的 Astro 文档',
 	// Footer
 	'footer.privacyPolicy': '隐私协议',
 	// `<ThemeToggleButton>` acessibility labels
@@ -65,6 +65,10 @@ export default UIDictionary({
 	'aside.tip': '提示',
 	'aside.caution': '警告',
 	'aside.danger': '危险',
+	// `<CodeSnippet>` vocabulary
+	'codeSnippet.terminalCaption': '终端窗口',
+	// `<LanguageSelect>` vocabulary
+	'languageSelect.label': '选择语言',
 	// Integrations vocabulary
 	'integrations.changelog': '更新日志',
 	'integrations.footerTitle': '更多集成',
@@ -87,6 +91,17 @@ export default UIDictionary({
 	'tutorial.getReady': '准备好…',
 	// Feedback Fish widget
 	'feedback.button': '给予我们反馈',
+	'feedback.a11yLabel': '反馈表单',
+	'feedback.formTitle': '你有什么想法？',
+	'feedback.categoryGroupLabel': '选择反馈类型',
+	'feedback.issue': '问题',
+	'feedback.idea': '想法',
+	'feedback.other': '其它',
+	'feedback.messageA11yLabel': '留言',
+	'feedback.placeholder': '你想让我们知道什么？',
+	'feedback.submit': '发送反馈',
+	'feedback.close': '关闭反馈表单',
+	'feedback.success': '感谢！我们收到了你的反馈。',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': '目录',
 });
