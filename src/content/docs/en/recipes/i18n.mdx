@@ -150,13 +150,19 @@ Astro doesn't have built-in internationalization (i18n) support, but you can bui
       </Fragment>
     </StaticSsrTabs>
 
-### Translate UI
+### Translate UI strings
 
-1. Create a file to store your translation strings in. For this guide we’ll use a `src/i18n/ui.ts` file:
+Create dictionaries of terms to translate the labels for UI elements around your site. This allows your visitors to experience your site fully in their language.
+
+1. Create a `src/i18n/ui.ts` file to store your translation strings in:
 
     ```ts
     // src/i18n/ui.ts
-    
+    export const languages = {
+      en: 'English',
+      fr: 'français',
+    };
+
     export const defaultLang = 'en';
     
     export const ui = {
@@ -168,45 +174,52 @@ Astro doesn't have built-in internationalization (i18n) support, but you can bui
       fr: {
         'nav.home': 'Acceuil',
         'nav.about': 'À propos',
-      }
+      },
     } as const;
     ```
     
-2. Create a helper to let us get translations strings for different parts of our UI in `src/i18n/utils.ts` and a helper to detect the page language based on the current URL:
+2. Create a helper function to detect the page language based on the current URL and a helper to let us get translations strings for different parts of our UI in `src/i18n/utils.ts`:
 
     ```js
     // src/i18n/utils.ts
-    
     import { ui, defaultLang } from './ui';
+    
+    export function getLangFromUrl(url: URL) {
+      const [, lang] = Astro.url.pathname.split('/');
+      return lang || defaultLang;
+    }
     
     export function useTranslations(lang: keyof typeof ui) {
       return function t(key: keyof typeof ui[defaultLang]) {
         return ui[lang][key] || ui[defaultLang][key];
       }
     }
-    
-    export function getLangFromUrl(url: URL) {
-      const [, lang] = Astro.url.pathname.split('/');
-      return lang || defaultLang;
-    }
     ```
+
+    :::note[Did you notice?]
+    In step 1, the `nav.twitter` string was not translated to French. The `useTranslations` helper here will return the deault language’s value if a key is not translated so that French users will still see “Twitter”.
+    :::
     
 3. Use our helpers to choose the UI string that corresponds to the current language. For example, a nav component might look like:
 
     ```astro 
     ---
     // src/components/Nav.astro
-    import { getLangFromUrl, useTranslations } from "../i18n/utils.ts"
+    import { getLangFromUrl, useTranslations } from '../i18n/utils';
     
     const lang = getLangFromUrl(Astro.url);
     const t = useTranslations(lang);
     ---
     <ul>
         <li>
-            <a href={`/${lang}/home/`}>{t('nav.home')}</a>
+            <a href={`/${lang}/home/`}>
+              {t('nav.home')}
+            </a>
         </li>
         <li>
-            <a href={`/${lang}/about/`}>{t('nav.about')}</a>
+            <a href={`/${lang}/about/`}>
+              {t('nav.about')}
+            </a>
         </li>
         <li>
             <a href="https://twitter.com/astrodotbuild">
@@ -216,13 +229,13 @@ Astro doesn't have built-in internationalization (i18n) support, but you can bui
     </ul>
     ```
 
-4. Each page should have a `lang` attribute on the `<html>` element that matches the language on the page. In this example, a reusable `Layout` grabs the language from the route:
+4. Each page should have a `lang` attribute on the `<html>` element that matches the language on the page. In this example, a [reusable layout](/en/core-concepts/layouts/) grabs the language from the route:
 
     ```astro
     ---
     // src/layouts/Base.astro
     
-    import { getLangFromUrl } from "../i18n/utils.ts";
+    import { getLangFromUrl } from '../i18n/utils';
     
     const lang = getLangFromUrl(Astro.url);
     ---
@@ -231,7 +244,6 @@ Astro doesn't have built-in internationalization (i18n) support, but you can bui
             <meta charset="utf-8" />
             <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
             <meta name="viewport" content="width=device-width" />
-            <meta name="generator" content={Astro.generator} />
             <title>Astro</title>
         </head>
         <body>
@@ -239,6 +251,8 @@ Astro doesn't have built-in internationalization (i18n) support, but you can bui
         </body>
     </html>
     ```
+
+    Using this base layout will make sure our pages use the correct `lang` attribute automatically.
     
     ```astro
     ---
