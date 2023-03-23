@@ -7,10 +7,10 @@ import path from 'path';
 import simpleGit from 'simple-git';
 import { fileURLToPath } from 'url';
 import languages from '../src/i18n/languages';
+import { githubGet } from './lib/github-get.mjs';
 import output from './lib/output.mjs';
 import type { PageData, PageIndex, PageTranslationStatus } from './lib/translation-status/types';
 import { toUtcString, tryGetFrontMatterBlock } from './lib/translation-status/utils.js';
-import { githubGet } from './lib/github-get.mjs';
 
 interface PullRequest {
 	html_url: string;
