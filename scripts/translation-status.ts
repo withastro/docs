@@ -364,7 +364,10 @@ class TranslationStatusBuilder {
 		if (prs.length > 0) {
 			lines.push(`<ul>`);
 			lines.push(
-				...prs.map((pr) => `<li>` + `${this.renderLink(pr.html_url, pr.title)} ` + `</li>`)
+				...prs.map((pr) => {
+					const title = pr.title.replaceAll('`', '');
+					return `<li>` + this.renderLink(pr.html_url, title) + `</li>`;
+				})
 			);
 			lines.push(`</ul>`);
 		}
