@@ -110,7 +110,7 @@ class TranslationStatusBuilder {
 	/** Get all pull requests with the `i18n` tag */
 	async getPullRequests() {
 		const pullRequests: PullRequest[] = await githubGet({
-			url: `https://api.github.com/repos/${this.githubRepo}/pulls?state=open&per_page=50`,
+			url: `https://api.github.com/repos/${this.githubRepo}/pulls?state=open&per_page=100`,
 			githubToken: this.githubToken,
 		});
 
