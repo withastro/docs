@@ -1,21 +1,27 @@
 import { setOutput } from '@actions/core';
-import simpleGit from 'simple-git';
-import os from 'os';
 import glob from 'fast-glob';
 import { join } from 'path';
 import languages from '../src/i18n/languages';
 import { githubGet } from './lib/github-get.mjs';
+import { TranslationStatusBuilder, COMMIT_IGNORE } from './translation-status'
 
 const PAGE_SOURCE_DIRECTORY = './src/content/docs';
 
 await setDiscordMessage();
 
 async function setDiscordMessage() {
-	const git = simpleGit({
-		maxConcurrentProcesses: Math.max(2, Math.min(32, os.cpus().length)),
-	});
+  const builder = new TranslationStatusBuilder({
+    pageSourceDir: './src/content/docs',
+    htmlOutputFilePath: './dist/translation-status/index.html',
+    sourceLanguage: 'en',
+    targetLanguages: Object.keys(languages)
+      .filter((lang) => lang !== 'en')
+      .sort(),
+    languageLabels: languages,
+    githubRepo: process.env.GITHUB_REPOSITORY || 'withastro/docs',
+  });
 
-	const pagePaths = await glob(`**/*.{md,mdx}`, {
+  const pagePaths = await glob(`**/*.{md,mdx}`, {
 		cwd: join(PAGE_SOURCE_DIRECTORY, 'en'),
 	});
 
@@ -23,17 +29,10 @@ async function setDiscordMessage() {
 
 	// for each page, find the last major commit. if the last major commit is older than a week, ignore it.
 	for (const path of pagePaths) {
-		const history = await git.log({
-			file: join(PAGE_SOURCE_DIRECTORY, 'en', path),
-			strictDate: true,
-		});
-		const lastCommit =
-			history.all.find((logEntry) => {
-				return !logEntry.message.match(/(en-only|typo|broken link|i18nReady|i18nIgnore)/i);
-			}) || history.latest;
+    const lastCommit = (await builder.getGitHistory(join(PAGE_SOURCE_DIRECTORY, 'en', path))).lastMajorCommitDate
 
 		// ignore files if no major changes in the last week
-		if (new Date(lastCommit!.date) < new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)) continue;
+		if (new Date(lastCommit) < new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)) continue;
 
 		const todo: string[] = [];
 
@@ -42,16 +41,9 @@ async function setDiscordMessage() {
 			if (language === 'en') continue;
 
 			try {
-				const languageHistory = await git.log({
-					file: join(PAGE_SOURCE_DIRECTORY, language, path),
-					strictDate: true,
-				});
-				const languageLastCommit =
-					languageHistory.all.find((logEntry) => {
-						return !logEntry.message.match(/(en-only|typo|broken link|i18nReady|i18nIgnore)/i);
-					}) || languageHistory.latest;
+        const languageLastCommit = (await builder.getGitHistory(join(PAGE_SOURCE_DIRECTORY, language, path))).lastMajorCommitDate
 
-				if (languageLastCommit!.date < lastCommit!.date) todo.push(language);
+				if (languageLastCommit < lastCommit) todo.push(language);
 			} catch {
 				// file doesn't exist
 				todo.push(language);
@@ -88,15 +80,14 @@ async function setDiscordMessage() {
 						};
 					}) =>
 						c.sha === sha &&
-						!c.commit.message.match(/(en-only|typo|broken link|i18nReady|i18nIgnore)/i)
+						!c.commit.message.match(COMMIT_IGNORE)
 				);
+        const lastCommit = (await builder.getGitHistory(join(PAGE_SOURCE_DIRECTORY, 'en', path))).lastMajorCommitDate
 				if (
 					commit &&
-					(commit.message.match(/(en-only|typo|broken link|i18nReady|i18nIgnore)/i) ||
+					(commit.message.match(COMMIT_IGNORE) ||
 						commit.commit.author.date <
-							(await git
-								.log({ file: join(PAGE_SOURCE_DIRECTORY, 'en', path), strictDate: true })
-								.then((history) => history.latest!.date)))
+							lastCommit)
 				)
 					continue;
 				toTranslate[path] = toTranslate[path].filter((l) => l !== lang);
@@ -104,6 +95,7 @@ async function setDiscordMessage() {
 			}
 		}
 	}
+
 
 	const list = Object.keys(toTranslate)
 		.map((path) => {

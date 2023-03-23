@@ -11,13 +11,15 @@ import output from './lib/output.mjs';
 import type { PageData, PageIndex, PageTranslationStatus } from './lib/translation-status/types';
 import { toUtcString, tryGetFrontMatterBlock } from './lib/translation-status/utils.js';
 
+export const COMMIT_IGNORE = /(en-only|typo|broken link|i18nReady|i18nIgnore)/i;
+
 /**
  * Uses the git commit history to build an HTML-based overview of
  * the current Astro Docs translation status.
  *
  * This code is designed to be run on every push to the `main` branch.
  */
-class TranslationStatusBuilder {
+export class TranslationStatusBuilder {
 	constructor(config: {
 		pageSourceDir: string;
 		/**
@@ -173,7 +175,7 @@ class TranslationStatusBuilder {
 		// usually do not require translations to be updated
 		const lastMajorCommit =
 			gitLog.all.find((logEntry) => {
-				return !logEntry.message.match(/(en-only|typo|broken link|i18nReady|i18nIgnore)/i);
+				return !logEntry.message.match(COMMIT_IGNORE);
 			}) || lastCommit;
 
 		return {
