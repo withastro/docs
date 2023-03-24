@@ -42,7 +42,7 @@ export default NavDictionary({
 	'guides/client-side-scripts': '处理脚本和事件',
 	'guides/styling': 'CSS 样式',
 	'guides/images': '图像',
-	'guides/imports': '静态资源',
+	'guides/imports': 'Imports',
 	'core-concepts/endpoints': 'API 端点',
 	'guides/data-fetching': '数据获取',
 	'guides/testing': '测试',
