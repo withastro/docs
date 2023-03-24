@@ -4,14 +4,35 @@ description: AstroでMarkdownやMDXを使ってコンテンツを作成する方
 i18nReady: true
 ---
 
+import Since from '~/components/Since.astro'
+import FileTree from '~/components/FileTree.astro'
+
 [Markdown](https://daringfireball.net/projects/markdown/)は、ブログ投稿やドキュメントのようなテキストを多用するコンテンツのオーサリングによく使います。Astroは標準的なMarkdownファイルをビルトインでサポートしています。
 
 [@astrojs/mdxインテグレーション](/ja/guides/integrations-guide/mdx/)をインストールすると、[MDX](https://mdxjs.com/)（`.mdx`）ファイルにも対応し、MarkdownコンテンツでのJavaScript式やコンポーネントのサポートなどの追加機能を提供します。
 
 Markdownコンテンツを書くには、どちらか一方、または両方のタイプのファイルを使用します。
 
-
 ## MarkdownページとMDXページ
+
+### Content collections 
+
+You can manage your Markdown and MDX files in Astro in a special `src/content/` folder. [Content collections](/en/guides/content-collections/) help you organize your content, validate your frontmatter, and provide automatic TypeScript type-safety while working with your content. 
+
+<FileTree>
+- src/content/
+  - **newsletter/** 
+    - week-1.md
+    - week-2.md
+  - **authors/**
+    - grace-hopper.md
+    - alan-turing.md
+</FileTree>
+
+
+
+See more about using [content collections in Astro](/en/guides/content-collections/).
+
 
 ### ファイルベースルーティング
 
@@ -75,8 +96,9 @@ const nonDraftPosts = posts.filter((post) => !post.frontmatter.draft);
 
 デフォルトで下書きページもビルドするには、`markdown`または`mdx`インテグレーションに`drafts: true`を追加して`astro.config.mjs`を更新します。
 
-```js ins={4, 7}
-// astro.config.mjs
+```js title="astro.config.mjs" ins={5, 8}
+import { defineConfig } from 'astro/config';
+
 export default defineConfig({
   markdown: {
     drafts: true,
@@ -111,8 +133,7 @@ description: Astroの凄さを知ってください！
 これはMarkdownで書かれた記事です。
 ```
 
-フロントマタープロパティは、`Astro.props`を使ってレイアウトで利用できます。
-
+[Specific properties are then available to the layout component](/en/core-concepts/layouts/#markdown-layout-props)  through `Astro.props`. For example, you can access frontmatter properties through `Astro.props.frontmatter`:
 
 **`src/layouts/BlogPostLayout.astro`**
 
@@ -124,13 +145,17 @@ const {frontmatter} = Astro.props;
   <!-- ... -->
   <h1>{frontmatter.title}</h1>
   <h2>投稿者: {frontmatter.author}</h2>
-  <p>{frontmatter.description}<p>
+  <p>{frontmatter.description}</p>
   <slot /> <!-- Markdownコンテンツはここに挿入されます -->
    <!-- ... -->
 </html>
 ```
 
+
+You can also [style your Markdown](/en/guides/styling/#markdown-styling) in your layout component.
+
 📚 [Markdownのレイアウト](/ja/core-concepts/layouts/#markdownとmdxのレイアウト)の詳細を見る。
+
 
 ### 見出しID
 
@@ -155,7 +180,6 @@ URL`https://my-domain.com/page-1/#イントロダクション`を使って、ペ
 
 たとえば、`<` がHTML要素の先頭と解釈されないようにするには、`&lt;`と記述します。また、MDXで`{`がJavaScriptの式の先頭と解釈されないようにするには、`&lcub;`と記述します。
 
-
 ## MDXのみで使える機能
 
 Astroの[MDXインテグレーション](/ja/guides/integrations-guide/mdx/)を追加すると、JSX変数、式、コンポーネントによってMarkdownオーサリングを強化できます。
@@ -175,7 +199,6 @@ export const title = 'はじめてのMDXの投稿'
 
 # {title}
 ```
-
 ### MDXでフロントマター変数を使用する
 
 Astro MDXインテグレーションには、MDXでフロントマターを使用するためのサポートがデフォルトで含まれています。Markdownファイルと同じようにfrontmatterプロパティを追加すると、これらの変数はテンプレートや[`layout`コンポーネント](#フロントマター-layout)内において、あるいはどこかに[ファイルをインポートする](#markdownのインポート)ときに名前付きプロパティとして使用する際にアクセスできます。
@@ -225,6 +248,7 @@ export const components = {blockquote: Blockquote}
 > この引用文はカスタムBlockquoteになります。
 ```
 
+
 ```astro title="src/components/Blockquote.astro"
 ---
 const props = Astro.props;
@@ -234,9 +258,7 @@ const props = Astro.props;
   <slot /> <!-- 子コンテンツのために `<slot/>` を必ず追加してください！ -->
 </blockquote>
 ```
-
 カスタムコンポーネントとして上書き可能なHTML要素の全リストは、[MDXのウェブサイト](https://mdxjs.com/table-of-components/)をご覧ください。
-
 
 ## Markdownのインポート
 
@@ -259,11 +281,11 @@ AstroコンポーネントでMarkdownやMDXファイルをインポートする�
 
 ```md title="/src/pages/posts/great-post.md"
 ---
-title: '今まで書いた中で最高の投稿'
+title: '史上最高の投稿'
 author: 'Ben'
 ---
 
-**素晴らしい**投稿をご紹介します。
+**素晴らしい**投稿！
 ```
 
 ```astro title="src/pages/my-posts.astro"
@@ -286,12 +308,12 @@ MDXファイルでは、フロントマターと`export`文の両方からプロ
 
 ```mdx title="/src/pages/posts/mdx-post.mdx"
 ---
-title: '今まで書いた中で最高の投稿'
+title: '史上最高の投稿'
 author: 'Ben'
 ---
 export const description = '快適に過ごそう! これは素晴らしい読み物になりそうです。'
 
-私の**素晴らしい**投稿をご紹介します。
+**素晴らしい**投稿！
 ```
 
 ```astro title="src/pages/my-posts.astro"
@@ -379,6 +401,7 @@ const { Content } = Astro.props.post
 </article>
 ```
 
+
 ### エクスポート（MDXのみ）
 
 MDXファイルでは、`export`文を使用してデータをエクスポートできます。
@@ -456,36 +479,42 @@ You can customize these heading IDs by adding a rehype plugin that injects `id` 
 
 By default, Astro injects `id` attributes after your rehype plugins have run. If one of your custom rehype plugins needs to access the IDs injected by Astro, you can import and use Astro’s `rehypeHeadingIds` plugin directly. Be sure to add `rehypeHeadingIds` before any plugins that rely on it:
 
-```js {2,7}
-// astro.config.mjs
+```js title="astro.config.mjs" ins={2, 8}
+import { defineConfig } from 'astro/config';
 import { rehypeHeadingIds } from '@astrojs/markdown-remark';
-export default {
+import { otherPluginThatReliesOnHeadingIDs } from 'some/plugin/source';
+
+export default defineConfig({
   markdown: {
     rehypePlugins: [
       rehypeHeadingIds,
       otherPluginThatReliesOnHeadingIDs,
     ],
   },
-}
+});
 ```
 
 #### Customizing a plugin
 
-In order to customize a plugin, provide an options object after it in a nested array. The example below adds the [`behavior` option to the `rehype-autolink-headings` plugin](https://github.com/rehypejs/rehype-autolink-headings#optionsbehavior) in order to add the anchor tag after the headline text.
+In order to customize a plugin, provide an options object after it in a nested array. 
+
+The example below adds the [heading option to the `remarkToc` plugin](https://github.com/remarkjs/remark-toc#optionsheading) to change where the table of contents is placed, and the [`behavior` option to the `rehype-autolink-headings` plugin](https://github.com/rehypejs/rehype-autolink-headings#optionsbehavior) in order to add the anchor tag after the headline text.
 
 ```js title="astro.config.mjs"
+import remarkToc from 'remark-toc';
 import { rehypeHeadingIds } from '@astrojs/markdown-remark';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+
 export default {
   markdown: {
-    remarkPlugins: [],
+    remarkPlugins: [ [remarkToc, { heading: "contents"} ] ],
     rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, { behavior: 'append' }]],
   },
 }
 ```
 
-#### 例：フロントマターの挿入
+### Modifying frontmatter programmatically
 
 [remarkやrehypeのプラグイン](#markdownプラグイン)を使用することで、すべてのMarkdownファイルやMDXファイルにfrontmatterプロパティを追加できます。
 
@@ -500,6 +529,12 @@ export default {
     }
     ```
 
+    :::tip
+    <Since v="2.0.0" />
+
+    `data.astro.frontmatter` contains all properties from a given Markdown or MDX document. This allows you to modify existing frontmatter properties, or compute new properties from this existing frontmatter.
+    :::
+
 2. このプラグインを`markdown`または`mdx`のインテグレーション設定に適用します。
 
     ```js title="astro.config.mjs" "import { exampleRemarkPlugin } from './example-remark-plugin.mjs';" "remarkPlugins: [exampleRemarkPlugin],"
@@ -507,24 +542,25 @@ export default {
 
     export default {
       markdown: {
-        remarkPlugins: [exampleRemarkPlugin],
-        extendDefaultPlugins: true,
+        remarkPlugins: [exampleRemarkPlugin]
       },
     };
 
     ```
+
     または
 
     ```js title="astro.config.mjs" "import { exampleRemarkPlugin } from './example-remark-plugin.mjs';" "remarkPlugins: [exampleRemarkPlugin],"
+    import { defineConfig } from 'astro/config';
     import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
 
-    export default {
+    export default defineConfig({
       integrations: [
         mdx({
           remarkPlugins: [exampleRemarkPlugin],
         }),
       ],
-    }
+    });
     ```
 
 これで、すべてのMarkdownまたはMDXファイルは、フロントマターに`customProperty`を持ち、[Markdownのインポート](#markdownのインポート)時や[レイアウトの`Astro.props.frontmatter`プロパティ](#フロントマター-layout)から利用できるようになります。
@@ -563,8 +599,7 @@ import { remarkReadingTime } from './remark-reading-time.mjs';
 
 export default {
   markdown: {
-    remarkPlugins: [remarkReadingTime],
-    extendDefaultPlugins: true,
+    remarkPlugins: [remarkReadingTime]
   },
 };
 
@@ -592,10 +627,10 @@ Astro's MDX integration will extend [your project's existing Markdown configurat
 
 The following example disables GitHub-Flavored Markdown and applies a different set of remark plugins for MDX files:
 
-```ts
-// astro.config.mjs
-import { defineConfig } froAm 'astro/config';
+```ts title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
+
 export default defineConfig({
   markdown: {
     syntaxHighlight: 'prism',
@@ -605,6 +640,7 @@ export default defineConfig({
   integrations: [
     mdx({
       // `syntaxHighlight` inherited from Markdown
+
       // Markdown `remarkPlugins` ignored,
       // only `remarkPlugin2` applied.
       remarkPlugins: [remarkPlugin2],
@@ -617,10 +653,10 @@ export default defineConfig({
 
 To avoid extending your Markdown config from MDX, set [the `extendMarkdownConfig` option](/en/guides/integrations-guide/mdx/#extendmarkdownconfig) (enabled by default) to `false`:
 
-```ts
-// astro.config.mjs
+```ts title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
+
 export default defineConfig({
   markdown: {
     remarkPlugins: [remarkPlugin],
@@ -649,9 +685,10 @@ Shikiはデフォルトで有効になっており、`github-dark`テーマで�
 
 Shikiはデフォルトのシンタックスハイライトです。すべてのオプションは`shikiConfig`オブジェクト経由で以下のように設定できます。
 
-```js
-// astro.config.mjs
-export default {
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
   markdown: {
     shikiConfig: {
       // Shikiの組み込みテーマから選択（または独自のテーマを追加）
@@ -665,7 +702,7 @@ export default {
       wrap: true,
     },
   },
-};
+});
 ```
 
 #### 独自テーマの追加
@@ -689,14 +726,15 @@ export default defineConfig({
 
 デフォルトを`'prism'`に切り替えたい場合、またはシンタックスハイライトを完全に無効にしたい場合は、`markdown.syntaxHighlighting`設定オブジェクトを使用できます。
 
-```js ins={5}
-// astro.config.mjs
-export default {
+```js title="astro.config.mjs" ins={6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
   markdown: {
     // 'shiki'（デフォルト）、'prism'、またはハイライトを無効にする場合は false を指定します
     syntaxHighlight: 'prism',
   },
-};
+});
 ```
 
 #### Prismの設定
