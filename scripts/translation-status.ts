@@ -431,4 +431,4 @@ const translationStatusBuilder = new TranslationStatusBuilder({
 	githubRepo: process.env.GITHUB_REPOSITORY || 'withastro/docs',
 });
 
-await translationStatusBuilder.run();
+if (import.meta.url.endsWith(process.argv[1])) await translationStatusBuilder.run();
