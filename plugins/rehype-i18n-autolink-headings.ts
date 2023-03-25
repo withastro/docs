@@ -21,15 +21,25 @@ export function rehypei18nAutolinkHeadings() {
 
 		// Find anchor links
 		visit(tree, 'element', (node) => {
-			if (node.tagName === 'a' && node.properties?.class === 'anchor-link') {
-				// Find a11y text labels
-				visit(node, 'text', (text) => {
-					const heading = text.value.replace(englishText!, '');
-					const t = useTranslationsForLang(pageLang as UILanguageKeys);
-					const title = t('a11y.sectionLink') || englishText;
+			if (node.tagName === 'a') {
+				if (node.properties?.class === 'anchor-link') {
+					// Find a11y text labels
+					visit(node, 'text', (text) => {
+						const heading = text.value.replace(englishText!, '');
+						const t = useTranslationsForLang(pageLang as UILanguageKeys);
+						const title = t('a11y.sectionLink') || englishText;
 
-					text.value = title + heading;
-				});
+						text.value = title + heading;
+					});
+				}
+
+				if (node.properties) {
+					// The link is an external link
+					if (!/(http|https):\/\/[^ ]+/g.test(node.properties?.href as string)) return;
+
+					(node.properties).target = "_blank";
+					node.properties.rel = "noopener noreferrer";
+				}
 			}
 		});
 	};
