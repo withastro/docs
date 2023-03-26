@@ -8,7 +8,11 @@ import simpleGit from 'simple-git';
 import { fileURLToPath } from 'url';
 import { githubGet } from '../../lib/github-get.mjs';
 import output from '../../lib/output.mjs';
-import type { PageData, PageIndex, PageTranslationStatus } from '../../lib/translation-status/types';
+import type {
+	PageData,
+	PageIndex,
+	PageTranslationStatus,
+} from '../../lib/translation-status/types';
 import { toUtcString, tryGetFrontMatterBlock } from '../../lib/translation-status/utils.js';
 
 export const COMMIT_IGNORE = /(en-only|typo|broken link|i18nReady|i18nIgnore)/i;
