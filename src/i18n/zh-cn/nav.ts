@@ -23,9 +23,9 @@ export default NavDictionary({
 	examples: '方案',
 	'guides/migrate-to-astro': '迁移到 Astro',
 	'guides/cms': '连接到 CMS',
-	'guides/integrations-guide': '集成',
-	'guides/deploy': '部署',
-	'guides/recipes': '所有方案',
+	'guides/integrations-guide': '添加集成',
+	'guides/deploy': '部署你的站点',
+	'guides/recipes': '更多方案',
 
 	features: '使用指南',
 	'core-concepts/astro-syntax': 'Astro 模板语法',
