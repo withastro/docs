@@ -98,6 +98,7 @@ export default {
 	'feedback.formTitle': 'What’s on your mind?',
 	'feedback.categoryGroupLabel': 'Choose feedback category',
 	'feedback.issue': 'Issue',
+	'feedback.createIssue': 'Create GitHub Issue',
 	'feedback.idea': 'Idea',
 	'feedback.other': 'Other',
 	'feedback.messageA11yLabel': 'Message',
