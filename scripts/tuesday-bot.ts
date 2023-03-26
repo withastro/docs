@@ -40,13 +40,16 @@ async function setDiscordMessage() {
 		Object.keys(toTranslate).length
 	} pages with major changes. Please help us translate these pages to your language!\n\n${list}`;
 
-	// message length limit is 2000 characters
-	while (message.length > 1902) {
-		const lastNewline = message.lastIndexOf('\n', 2000);
+	const suffix = '\n\nSee our [Translation Status page](https://i18n.docs.astro.build) for more, including open PRs.';
+
+	// Keep the entire message including the suffix within Discord's limits
+	const maxLengthWithoutSuffix = 2000 - suffix.length;
+	while (message.length > maxLengthWithoutSuffix) {
+		const lastNewline = message.lastIndexOf('\n', maxLengthWithoutSuffix);
 		message = message.slice(0, lastNewline);
 	}
 
-	message += '\n\nSee our [Translation Status page](https://i18n.docs.astro.build) for more, including open PRs.';
+	message += suffix;
 
 	setOutput('DISCORD_MESSAGE', message);
 }
