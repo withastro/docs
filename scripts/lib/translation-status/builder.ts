@@ -275,8 +275,6 @@ export class TranslationStatusBuilder {
 		// Load HTML template
 		const templateFilePath = path.join(
 			path.dirname(fileURLToPath(import.meta.url)),
-			'lib',
-			'translation-status',
 			'template.html'
 		);
 		const html = fs.readFileSync(templateFilePath, { encoding: 'utf8' });
