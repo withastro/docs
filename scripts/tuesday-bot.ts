@@ -38,7 +38,7 @@ async function setDiscordMessage() {
 
 	let message = `**Translation Tuesday!** <@951985780828545095>\n\nWe have ${
 		Object.keys(toTranslate).length
-	} pages with major changes. Please help us translate these pages to your language!\n\n${list}`;
+	} pages with major changes since last week. Please help us translate these pages to your language!\n\n${list}`;
 
 	const suffix = '\n\nSee our [Translation Status page](https://i18n.docs.astro.build) for more, including open PRs.';
 
