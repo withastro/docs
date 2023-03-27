@@ -64,6 +64,7 @@ export const logos = LogoCheck({
 	docusaurus: { file: 'docusaurus.svg', padding: '.225em' },
 	nuxtjs: { file: 'nuxtjs.svg', padding: '.25em' },
 	keystonejs: { file: 'keystonejs.svg', padding: '.25em' },
+	cloudcannon: { file: 'cloudcannon.svg', padding: '.25em' },
 	markdoc: { file: 'markdoc.svg', padding: '.35em 0 .35em .1em' },
 });
 
