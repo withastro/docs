@@ -4,7 +4,6 @@ import remarkDirective from 'remark-directive';
 import type * as unified from 'unified';
 import { remove } from 'unist-util-remove';
 import { visit } from 'unist-util-visit';
-import { isMDXFile } from './utils/isMDX';
 import { makeComponentNode } from './utils/makeComponentNode';
 
 const AsideTagname = 'AutoImportedAside';
@@ -36,7 +35,7 @@ export const asideAutoImport: Record<string, [string, string][]> = {
 function remarkAsides(): unified.Plugin<[], mdast.Root> {
 	const variants = new Set(['note', 'tip', 'caution', 'danger']);
 
-	const transformer: unified.Transformer<mdast.Root> = (tree, file) => {
+	const transformer: unified.Transformer<mdast.Root> = (tree) => {
 		// @ts-expect-error Possibly infinite type instantiation we can’t do anything about.
 		visit(tree, (node, index, parent) => {
 			if (!parent || index === null || node.type !== 'containerDirective') return;
@@ -60,7 +59,7 @@ function remarkAsides(): unified.Plugin<[], mdast.Root> {
 			// Replace this node with the aside component it represents.
 			parent.children[index] = makeComponentNode(
 				AsideTagname,
-				{ mdx: isMDXFile(file), attributes: { type, title } },
+				{ attributes: { type, title } },
 				...node.children
 			);
 		});
