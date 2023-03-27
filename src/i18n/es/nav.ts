@@ -1,47 +1,69 @@
 import { NavDictionary } from '../translation-checkers';
 
 export default NavDictionary({
+	//startHere
 	startHere: 'Configuración',
 	'getting-started': 'Empezando',
 	install: 'Instalación',
 	'editor-setup': 'Configuración del editor de código',
+	'reference/cli-reference': 'CLI',
+	'guides/upgrade-to/v2': 'Actualizando a la versión v2',
+
+	//coreConcepts
 	coreConcepts: 'Conceptos básicos',
 	'concepts/why-astro': '¿Por qué usar Astro?',
 	'concepts/mpa-vs-spa': 'MPA vs. SPA',
 	'concepts/islands': 'Astro Islands',
+
+	//tutorials
+	tutorials: 'Tutoriales',
+	'blog-tutorial': 'Crea un Blog',
+
+	//basics
 	basics: 'Fundamentos',
 	'core-concepts/project-structure': 'Estructura de proyecto',
 	'core-concepts/astro-components': 'Componentes',
 	'core-concepts/astro-pages': 'Páginas',
 	'core-concepts/layouts': 'Plantillas de página',
-	'guides/markdown-content': 'Markdown & MDX',
+
+	//recipes
+	examples: 'Recetas',
+	'guides/migrate-to-astro': 'Migrar a Astro',
+	'guides/cms': 'Conectando un CMS',
+	'guides/integrations-guide': 'Agrega integraciones',
+	'guides/deploy': 'Desplegar',
+	'guides/recipes': 'Más recetas',
+
+	//guides
+	features: 'Guías',
+	'core-concepts/astro-syntax': 'Sintaxis de Astro',
+	'core-concepts/framework-components': 'Componentes de otros frameworks',
+	'guides/server-side-rendering': 'Renderizado en el servidor',
+	'guides/client-side-scripts': 'Renderizado en el cliente',
+	'guides/markdown-content': 'Contenido en Markdown',
 	'core-concepts/routing': 'Enrutamiento',
+	'guides/styling': 'Estilos & CSS',
+	'guides/images': 'Imágenes',
+	'guides/fonts': 'Usando fuentes personalizadas',
 	'guides/imports': 'Recursos estáticos',
 	'core-concepts/endpoints': 'Endpoints',
-	'guides/troubleshooting': 'Solución de problemas',
-	'guides/deploy': 'Desplegar',
-	features: 'Características',
-	'guides/configuring-astro': 'Configuración de Astro',
-	'guides/styling': 'Estilos & CSS',
-	'guides/content': 'Contenido de autoría',
-	'guides/cms': 'Conectando un CMS',
 	'guides/data-fetching': 'Fetching de datos',
-	'guides/environment-variables': 'Variables de entorno',
-	'guides/images': 'Imágenes',
-	'guides/fonts': 'Fuentes',
-	'core-concepts/sharing-state': 'Compartiendo estado',
-	'guides/aliases': 'Alias de importación',
-	'guides/integrations-guide': 'Integraciones',
-	'guides/rss': 'RSS',
-	'guides/server-side-rendering': 'Renderizado en el servidor',
+	'guides/testing': 'Pruebas',
+	'guides/troubleshooting': 'Solución de problemas',
+
+	//configurations
+	configuration: 'Configuraciones',
+	'guides/configuring-astro': 'Configuración de Astro',
 	'guides/typescript': 'TypeScript',
-	'core-concepts/framework-components': 'Componentes de otros frameworks',
+	'guides/environment-variables': 'Variables de entorno',
+
+	//reference
 	reference: 'Referencia',
 	'reference/configuration-reference': 'Configuración',
-	'reference/cli-reference': 'CLI',
 	'reference/api-reference': 'API',
 	'reference/integrations-reference': 'API de Integraciones',
 	'reference/adapter-reference': 'API de adaptadores',
 	'reference/directives-reference': 'Directivas en maquetado',
+	'reference/error-reference': 'Referencia de errores',
 	'guides/publish-to-npm': 'Publica en NPM',
 });

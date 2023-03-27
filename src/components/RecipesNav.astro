@@ -1,0 +1,46 @@
+---
+import { recipePages } from '~/content';
+import { createIsLangEntry, isEnglishEntry } from '~/content/config';
+import { getLanguageFromURL, stripLangFromSlug } from '~/util';
+import CardsNav from './NavGrid/CardsNav.astro';
+
+export interface Props {
+	minimal?: boolean;
+}
+
+const lang = getLanguageFromURL(Astro.url.pathname);
+const langRecipes = recipePages.filter(createIsLangEntry(lang));
+const englishRecipes = recipePages.filter(isEnglishEntry);
+
+/** An array of all recipes, using translations if available and falling back to English otherwise. */
+const recipes = englishRecipes.map((fallback) => {
+	const slug = stripLangFromSlug(fallback.slug);
+	const translation = langRecipes.find((doc) => stripLangFromSlug(doc.slug) === slug);
+	return translation || fallback;
+});
+---
+
+<div>
+	<CardsNav
+		minimal={Astro.props.minimal}
+		links={recipes.map(({ data, slug }) => {
+			const linkLang = slug.split('/').shift();
+			return {
+				title: data.title,
+				description: data.description,
+				// Fallback entries will have a slug starting with 'en/',
+				// so we replace that to link to the correct language.
+				href: '/' + slug.replace('en/', `${lang}/`) + '/',
+				// Fallback content will be in English, unlike the page,
+				// so we set an explicit `lang="en"` for these entries.
+				lang: linkLang !== lang ? linkLang : undefined,
+			};
+		})}
+	/>
+</div>
+
+<style>
+	div > :global(*) {
+		margin-top: -2rem;
+	}
+</style>
