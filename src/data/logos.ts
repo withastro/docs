@@ -49,6 +49,7 @@ export const logos = LogoCheck({
 	sanity: { file: 'sanity.svg', padding: '0 .1em' },
 	storyblok: { file: 'storyblok.svg', padding: '.3em .25em .25em' },
 	spinal: { file: 'spinal.svg', padding: '.15em .15em' },
+	space: { file: 'space.svg', padding: '.10em .10em' },
 	wordpress: { file: 'wordpress.svg', padding: '.2em' },
 	kinsta: { file: 'kinsta.svg', padding: '0' },
 	gatsby: { file: 'gatsby.svg', padding: '0' },
@@ -63,6 +64,7 @@ export const logos = LogoCheck({
 	docusaurus: { file: 'docusaurus.svg', padding: '.225em' },
 	nuxtjs: { file: 'nuxtjs.svg', padding: '.25em' },
 	keystonejs: { file: 'keystonejs.svg', padding: '.25em' },
+	cloudcannon: { file: 'cloudcannon.svg', padding: '.25em' },
 	markdoc: { file: 'markdoc.svg', padding: '.35em 0 .35em .1em' },
 });
 

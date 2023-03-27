@@ -31,6 +31,7 @@ export default NavDictionary({
 	features: 'Anleitungen',
 	'guides/configuring-astro': 'Astro konfigurieren',
 	'guides/styling': 'Styling & CSS',
+	'guides/images': 'Bilder',
 	'guides/data-fetching': 'Abrufen von Daten',
 	'guides/environment-variables': 'Umgebungsvariablen',
 	'guides/aliases': 'Import-Aliasnamen',
