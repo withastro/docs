@@ -521,8 +521,8 @@ This guide shows you how to convert an existing Astro project with Markdown file
 
     The tutorial blog project also dynamically generates a page for each tag. This page now becomes:
 
-    ```js title="src/pages/tags/[tag].astro" "post.data" "getCollection(\"posts\")"
-    ...
+    ```astro title="src/pages/tags/[tag].astro" "post.data" "getCollection(\"posts\")" "post.data.title"
+    ---
     export async function getStaticPaths() {
       const allPosts = await getCollection("posts");
       const uniqueTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
@@ -537,10 +537,21 @@ This guide shows you how to convert an existing Astro project with Markdown file
         };
       });
     }
-    ...
+    
+    const { tag } = Astro.params;
+    const { posts } = Astro.props;
+    ---
+
+    <BaseLayout pageTitle={tag}>
+        <p>Posts tagged with {tag}</p>
+        <ul>
+            { posts.map((post) => <BlogPost url={post.url} title={post.data.title} />) }
+        </ul>
+    </BaseLayout>
     ```
 
     The same logic appears in the tag index page, which becomes:
+    
     ```astro title="src/pages/tags/index.astro" "post.data" "getCollection(\"posts\")"
     ---
     import { getCollection } from "astro:content";
@@ -555,6 +566,22 @@ This guide shows you how to convert an existing Astro project with Markdown file
     :::note
     Any individual Markdown or MDX file imports should be replaced by [`getEntryBySlug()`](/en/reference/api-reference/#getentrybyslug).
     :::
+    
+8. Update the code that uses the publish date in the `layouts/MarkdownPostLayout.astro` file.
+
+    Previously, `pubDate` was a string. Now, after introducing types for your posts' frontmatter, `pubDate` is a `Date`.
+    To render the date, convert it to a string:
+
+    ```astro title="src/layouts/MarkdownPostLayout.astro" "frontmatter.pubDate.toDateString()"
+    ...
+    <BaseLayout pageTitle={frontmatter.title}>
+      <p>{frontmatter.pubDate.toDateString()}</p>
+      <p><em>{frontmatter.description}</em></p>
+      <p>Written by: {frontmatter.author}</p>
+      <img src={frontmatter.image.url} width="300" alt={frontmatter.image.alt} />
+    ...
+    ```
+    
 
     Lastly, the tutorial blog project includes an RSS feed. This function must also use `getCollection` and the `data` object, and be converted to an async function to do so:
 
