@@ -310,13 +310,13 @@ For these generated pages (like `configuration-reference.md`), we recommend **ig
 
 ### Tutorials
 
-Some of our pages are tutorials, which are a linear sequence of lessons made to introduce users to Astro concepts. They also include custom components that you can find the labels for translation in the language's `i18n/ui.ts` file, as described in the [Translation Structure section](#2-ui-text).
+Some of our pages belong to tutorials, which are a linear sequence of lessons to introduce users to Astro concepts. They also include custom components that you can find the labels for translation in the language's `i18n/ui.ts` file, as described in the [Translation Structure section](#2-ui-text).
 
-Considering it's nature, we cannot merge partial tutorial translations, only fully translated ones. We care about making our contribution workflow sustainable, so we've made a few guidelines to avoid burdening any contributor working on them:
+Considering how distracting it would be to try to follow a tutorial with only some translated pages, we cannot merge partial tutorial translations, only fully translated ones. But, that's a huge job for one translator! We care about making our translator workflow sustainable, so we've made a few guidelines specifically for the tutorial pages to avoid burdening any contributor working on them:
 
-- Tutorial translation PRs are recommended to contain 1-3 lessons (each lesson is its own Markdown file) or a full unit if small (equivalent to a chapter of the tutorial), this allows reviewers to have an easier time as opposed to having them to review the entire tutorial in one go.
+- Tutorial translation PRs are recommended to contain 1-3 lessons (each lesson is its own `.mdx` file) or a full unit if small (equivalent to a chapter of the tutorial). This is not only to help translators work in smaller units, but also allows reviewers to have smaller PRs to review.
 
-- All translations are going to be merged in a custom branch and then merged into `main` once the tutorial is 100% complete. No need to change anything in your PRs, keep them targetting `main` and we will take care of creating and changing the merge target to the custom branch set up by us.
+- All translations will be merged in a custom branch first, and then merged into `main` once the tutorial is 100% complete. No need to change anything in your PR workflow! Your PRs should be to the `main` branch, like any other translation PR, and we will take care of creating and changing the merge target to the custom branch set up by us. This allows the tutorial to be translated in smaller pieces, in the same way you would translate any other page, without making these changes go live on the docs site until the tutorial is fully translated.
 
 ## Adding a new language
 
