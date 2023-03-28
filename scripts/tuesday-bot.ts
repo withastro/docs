@@ -34,11 +34,11 @@ async function setDiscordMessage() {
 				Object.keys(languages).length - 1
 					? ['all']
 					: Object.keys(s.translations);
-			return `- [\`${s.subpath}\`](https://github.com/withastro/docs/tree/main/${join(
+			return `- [\`${s.subpath}\`](<https://github.com/withastro/docs/tree/main/${join(
 				PAGE_SOURCE_DIRECTORY,
 				'en',
 				s.subpath
-			)}) (${
+			)}>) (${
 				langs[0] === 'all'
 					? 'all'
 					: langs
@@ -52,12 +52,12 @@ async function setDiscordMessage() {
 		})
 		.join('\n');
 
-	let message = `**Translation Tuesday!** <@951985780828545095>\n\nWe have ${
+	let message = `**Translation Tuesday!** <@&951985780828545095>\n\nWe have ${
 		Object.keys(toTranslate).length
 	} pages with major changes since last week. Please help us translate these pages to your language!\n\n${list}`;
 
 	const suffix =
-		'\n\nSee our [Translation Status page](https://i18n.docs.astro.build) for more, including open PRs.';
+		'\n\nSee our [Translation Status page](<https://i18n.docs.astro.build>) for more, including open PRs.';
 
 	// Keep the entire message including the suffix within Discord's limits
 	const maxLengthWithoutSuffix = 2000 - suffix.length;
