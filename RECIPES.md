@@ -1,17 +1,48 @@
 # Contributing to Recipes
 
-Our "Recipes" section in the sidebar highlights step-by-step how-to guides for accomplishing a specific task in Astro. These include established landing pages for deployment, CMS, and migration guide, as well as a [dedicated section](https://docs.astro.build/en/recipes/) for a wider range of tasks you can accomplish with Astro.
+Our "Recipes" section in the sidebar highlights **step-by-step how-to guides** for **accomplishing a specific task** in Astro. These include established landing pages for deployment, CMS, and migration guide, as well as a [dedicated section](https://docs.astro.build/en/recipes/) for a wider range of tasks you can accomplish with Astro.
+
+## Contributing a recipe
+
+Astro docs welcomes recipe contributions that:
+
+- Edit an [existing recipe](existing-recipes) with corrected content or [new resource links](#add-new-links), by PRing the existing file in the docs repo.
+- Add a new [community recipe](#community-recipes) by PRing a link to the ["More Recipes" page](#more-recipes-page): `src/content/docs/guides/recipes.mdx`.
+- [Add a new CMS, Deploy or Migration recipe](#cms-deploy-and-migrate) to these existing categories.
+- Add a new [official recipe](#official-recipes), by PRing a new page (`.mdx` file) to the `src/content/docs/recipes/` folder.
+
+
+## Existing Recipes
+
+Existing [official recipe](#official-recipes) are located in the `src/content/docs/recipes/` folder or can be found within a specific folder for [categorized recipes with their own landing pages](#cms-deploy-and-migrate). These have been written by Team Docs and we actively maintain this content. We welcome corrections, updates or more resource links to any of these pages! This content is intended to be kept accurate and up to date. You are welcome to PR a quick fix or resource, or to make an Issue on GitHub to let us know of larger content changes that may be necessary.
+
+### Community Recipes
+
+Community Recipes are for external links that fit the definition of a recipe: short, focused how-to guides. This lets us include community resources without requiring long-term maintenance. They are listed on our [More Recipes](#more-recipes-page) page in docs.
+
+You can share a published recipe in our “Community Recipes” section. This includes posts on a personal or company blog, or on your preferred blogging platform like [DEV.to](https://dev.to/). This follows the IndieWeb principle of “Publish (on your) Own Site, Syndicate Elsewhere” (often abbreviated to [POSSE](https://indieweb.org/POSSE)).
+
+After you publish your article, [open a PR adding a link to this page](https://github.com/withastro/docs/edit/main/src/content/docs/en/recipes.mdx).
+
+The link should be of the form `[Post or article title](full URL)` and it should be added to the bottom of the list of existing community recipes. Use the existing entries above it as a guide, and if any changes are necessary, we can make them while reviwing the PR.
+
+Please note that all community recipe PRs will be reviewed to make sure they fit our definition of a recipe (a **step-by-step how-to guides** for **accomplishing a specific task** in Astro). They may also be tested by a Team Docs member who will attempt to follow your recipe and make sure it works. So, while this may seem like a tiny PR, please know that there is work going on behind the scenes and it may take some time to properly evaluate your recipe!
+
+### Is my guide a recipe?
+
+Our recipe format is inspired by Diataxis's [how-to guides](https://diataxis.fr/how-to-guides/). Recipes:
+
+- Provide step-by-step instructions
+- Meet a user at a specific starting point (see our [Prerequisites](https://docs.astro.build/en/recipes/build-forms-api/#prerequisites) sections)
+- Explain how to accomplish a specific task
+- Use real-world examples
+
+See our [HTML Forms](https://docs.astro.build/en/recipes/build-forms-api/) recipe as an example. It teaches a specific, practical goal (how to build and handle a form). It provides an example that can be modified and incorporated into your project. It uses step-by-step instructions and keeps explanations to a minimum.
 
 Like all contributions to our docs, take a look at the [WRITING.md](https://github.com/withastro/docs/blob/main/WRITING.md
 ) and [CONTRIBUTING.md](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md
 ) files for guidance on drafting your PR.
 
-Astro docs welcomes contributions that:
-
-- Edit an existing guide with corrected content or [new links](#add-new-links), by PRing the existing file in the docs repo.
-- Add a new CMS, Deploy or Migration guide. (See below for instructions to create the required files in Docs.)
-- Add a new official recipe, by PRing a new page to `src/content/docs/recipes/` 
-- Add a new community recipe by PRing a link to `src/content/docs/guides/recipes.mdx`
 
 ## CMS, Deploy, and Migrate
 
@@ -52,30 +83,15 @@ The CMS, Deploy, and Migrate guides all have sections for external links. You ca
 
 ## More Recipes page
 
-This landing page shows how-to guides that don't fit in the above categories. 
+This landing page shows how-to guides that don't fit in the above categories.
 
-The Official Recipes section is for officially maintained recipes, found in the `src/content/guides/recipes` folder. Like the rest of our docs, these must meet the standards of our [Writing Guide](https://github.com/withastro/docs/blob/main/WRITING.md) and require long-term maintenance to make sure they're up to date.
-
-Community Recipes are for external links that fit the definition of a recipe: short, focused how-to guides. This lets us include community resources without requiring long-term maintenance.
-
-### Is my guide a recipe?
-
-Our recipe format is inspired by Diataxis's [how-to guides](https://diataxis.fr/how-to-guides/). Recipes:
-
-- Provide step-by-step instructions
-- Meet a user at a specific starting point (see our [Prerequisites](https://docs.astro.build/en/recipes/build-forms-api/#prerequisites) sections)
-- Explain how to accomplish a specific task
-- Use real-world examples
-
-See our [HTML Forms](https://docs.astro.build/en/recipes/build-forms-api/) recipe as an example. It teaches a specific, practical goal (how to build and handle a form). It provides an example that can be modified and incorporated into your project. It uses step-by-step instructions and keeps explanations to a minimum.
-
-### Community Recipes
-
-You can share a published recipe in our “Community Recipes” section. This includes posts on a personal or company blog, or on your preferred blogging platform like [DEV.to](https://dev.to/). This follows the IndieWeb principle of “Publish (on your) Own Site, Syndicate Elsewhere” (often abbreviated to [POSSE](https://indieweb.org/POSSE)).
-
-After you publish your article, [open a PR adding a link to this page](https://github.com/withastro/docs/edit/main/src/content/docs/en/recipes.mdx).
+The Official Recipes section is for officially maintained recipes, found in the `src/content/guides/recipes` folder. Like the rest of our docs, these must meet the standards of our Writing Guide and require long-term maintenance to make sure they're up to date.
 
 ### Official Recipes
+
+The Official Recipes section is for officially maintained recipes, found in the `src/content/guides/recipes` folder, that do not fit into one of our pre-existing categories. Like the rest of our docs, these must meet the standards of our [Writing Guide](https://github.com/withastro/docs/blob/main/WRITING.md) and require long-term maintenance to make sure they're up to date.
+
+Community Recipes are for external links that fit the definition of a recipe: short, focused how-to guides. This lets us include community resources without requiring long-term maintenance.
 
 To add an official recipe:
 
