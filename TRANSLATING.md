@@ -32,7 +32,7 @@ See our automated [Translation Status Overview](https://i18n.docs.astro.build/) 
 Not every page is marked as "ready to translate." So, even if you find a page that is not yet translated on the Docs site, you must first confirm that it is on the list of available pages to translate. Do not translate documents that are missing:
 
 - A "Translate this page" button in the Docs site.
-- The `i18nReady: true` frontmatter property in its Markdown file.
+- The `i18nReady: true` frontmatter property in its MDX file.
 
 You can read more about how pages are marked "ready for (initial) translating" and "needs updating" in [CONTRIBUTING.md](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md).
 
@@ -72,7 +72,7 @@ Each of these content types lives in a different place.
 
 ### 1. Documentation pages
 
-Each documentation page lives in the `src/content/docs/` directory of this <abbr title="repository">repo</abbr>. There you’ll find directories for all of the languages currently translated. Each page is a Markdown file to support rich text formatting. For example, the English language “Getting Started” page is at `src/content/docs/en/getting-started.md` and the same page in French is at `src/content/docs/fr/getting-started.md`.
+Each documentation page lives in the `src/content/docs/` directory of this <abbr title="repository">repo</abbr>. There you’ll find directories for all of the languages currently translated. Each page is a MDX file to support rich text formatting. For example, the English language “Getting Started” page is at `src/content/docs/en/getting-started.mdx` and the same page in French is at `src/content/docs/fr/getting-started.mdx`.
 
 ### 2. UI text
 
@@ -104,7 +104,7 @@ If you spot something on [docs.astro.build](https://docs.astro.build/) that you 
 
 4. Is the text specific to one page (page title, main content, etc.)?
 
-    ➤ Go to `src/content/docs/{language}/{page-slug}.md`
+    ➤ Go to `src/content/docs/{language}/{page-slug}.mdx`
 
 # Contributing to translations
 
@@ -198,7 +198,7 @@ Feel free to take a look at the [Deutsch Guide](https://github.com/withastro/doc
 
 ### Frontmatter
 
-Our pages are generated from Markdown files which have frontmatter properties. These are variables that hold information about the page (values) that we later use to specify the page's title, description, and other special data.
+Our pages are generated from MDX files which have frontmatter properties. These are variables that hold information about the page (values) that we later use to specify the page's title, description, and other special data.
 
 Here's an example file showing the **properties** of `layout`, `title`, `description`, and `i18nReady` along with their corresponding values for this page.
 
@@ -264,7 +264,7 @@ Here is the above example correctly translated:
 
 ### Components
 
-Astro allows us to import and include custom components in our Markdown pages. Take this fragment of the `islands.md` page, which renders a diagram, as an example:
+Astro allows us to import and include custom components in our pages using MDX. Take this fragment of the `islands.mdx` page, which renders a diagram, as an example:
 
 ```jsx
 <IslandsDiagram>
@@ -281,7 +281,7 @@ Astro allows us to import and include custom components in our Markdown pages. T
 
 **Do translate**: slotted content (content between the opening and closing tags).
 
-**Do not translate**: import statements in the frontmatter, component names, and slot names (like `slot="headerApp"`).
+**Do not translate**: import statements, component names, and slot names (like `slot="headerApp"`).
 
 Here is the above example correctly translated:
 
@@ -306,7 +306,7 @@ Some of our English page content is generated from outside sources, and must not
 
 However, these pages are translated directly here and **these warnings are not meant for translations**.
 
-For these generated pages (like `configuration-reference.md`), we recommend **ignoring and removing the note and component (including its import) from the file**, thus avoiding confusion for other translators thinking that this warning applies to translations as well.
+For these generated pages (like `configuration-reference.mdx`), we recommend **ignoring and removing the note and component (including its import) from the file**, thus avoiding confusion for other translators thinking that this warning applies to translations as well.
 
 ### Tutorials
 
