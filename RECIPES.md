@@ -26,7 +26,7 @@ After you publish your article, [open a PR adding a link to this page](https://g
 
 The link should be of the form `[Post or article title](full URL)` and it should be added to the bottom of the list of existing community recipes. Use the existing entries above it as a guide, and if any changes are necessary, we can make them while reviewing the PR.
 
-Please note that all community recipe PRs will be reviewed to make sure they fit our definition of a recipe (a **step-by-step how-to guides** for **accomplishing a specific task** in Astro). They may also be tested by a Team Docs member who will attempt to follow your recipe and make sure it works. So, while this may seem like a tiny PR, please know that there is work going on behind the scenes and it may take some time to properly evaluate your recipe!
+Please note that all community recipe PRs will be reviewed to make sure they fit our definition of a recipe (a **step-by-step how-to guide** for **accomplishing a specific task** in Astro). They may also be tested by a Team Docs member who will attempt to follow your recipe and make sure it works. So, while this may seem like a tiny PR, please know that there is work going on behind the scenes and it may take some time to properly evaluate your recipe!
 
 ### Is my guide a recipe?
 
