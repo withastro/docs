@@ -39,6 +39,11 @@ Our recipe format is inspired by Diataxis's [how-to guides](https://diataxis.fr/
 
 See our [HTML Forms](https://docs.astro.build/en/recipes/build-forms-api/) recipe as an example. It teaches a specific, practical goal (how to build and handle a form). It provides an example that can be modified and incorporated into your project. It uses step-by-step instructions and keeps explanations to a minimum.
 
+Examples that would not be considered recipes:
+- A blog post in narrative form that reports on what you did instead of structuring concise instructions for the reader to follow. (e.g. "How I finally got content collections set up with my custom remark plugin in my Astro project")
+- A walk-through that teaches more than one task. (e.g. "How to set up Vue, TypeScript, and Partytown in Astro")
+- A conceptual explanation of a topic, instead of a how-to guide that leads the reader through completing a specific task. (e.g. "How partial hydration works in Astro")
+
 Like all contributions to our docs, take a look at the [WRITING.md](https://github.com/withastro/docs/blob/main/WRITING.md
 ) and [CONTRIBUTING.md](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md
 ) files for guidance on drafting your PR.
