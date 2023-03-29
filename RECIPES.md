@@ -2,8 +2,6 @@
 
 Our "Recipes" section in the sidebar highlights **step-by-step how-to guides** for **accomplishing a specific task** in Astro. These include established landing pages for deployment, CMS, and migration guide, as well as a [dedicated section](https://docs.astro.build/en/recipes/) for a wider range of tasks you can accomplish with Astro.
 
-## Contributing a recipe
-
 Astro docs welcomes recipe contributions that:
 
 - Edit an [existing recipe](existing-recipes) with corrected content or [new resource links](#add-new-links), by PRing the existing file in the docs repo.
@@ -12,11 +10,13 @@ Astro docs welcomes recipe contributions that:
 - Add a new [official recipe](#official-recipes), by PRing a new page (`.mdx` file) to the `src/content/docs/recipes/` folder.
 
 
-## Existing Recipes
+## Edit Existing Recipes
 
-Existing [official recipe](#official-recipes) are located in the `src/content/docs/recipes/` folder or can be found within a specific folder for [categorized recipes with their own landing pages](#cms-deploy-and-migrate). These have been written by Team Docs and we actively maintain this content. We welcome corrections, updates or more resource links to any of these pages! This content is intended to be kept accurate and up to date. You are welcome to PR a quick fix or resource, or to make an Issue on GitHub to let us know of larger content changes that may be necessary.
+These have been written by Team Docs and we actively maintain this content. We welcome corrections, updates or more resource links to any of these pages! This content is intended to be kept accurate and up to date. You are welcome to PR a quick fix or resource, or to make an Issue on GitHub to let us know of larger content changes that may be necessary.
 
-### Community Recipes
+You can use the "Edit This Page" link in the right sidebar to make a change on GitHub directly and submit a pull request, or see the [Contributing Guide](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md#making-prs-pull-requests) for other ways to edit the Docs site.
+
+## Community Recipes
 
 Community Recipes are for external links that fit the definition of a recipe: short, focused how-to guides. This lets us include community resources without requiring long-term maintenance. They are listed on our [More Recipes](#more-recipes-page) page in docs.
 
@@ -49,9 +49,9 @@ Like all contributions to our docs, take a look at the [WRITING.md](https://gith
 ) files for guidance on drafting your PR.
 
 
-## CMS, Deploy, and Migrate
+## CMS, Deploy and Migrate
 
-The `src/content/guides/` directory in the docs has three subdirectories for established guides:
+The `src/content/guides/` directory in the docs has three subdirectories for established guide categories:
 
 - `cms/`
 - `deploy/`
@@ -64,7 +64,7 @@ These require:
 - A logo in `public/logos/`.
 - An update to [`src/data/logo.ts`](https://github.com/withastro/docs/blob/main/src/data/logos.ts) to add the logo.
 
-### Adding a new guide
+### Add a new guide
 
 1. Add a new `.mdx` file to one of the subdirectories. Copy the contents of an existing file, and change the `title` and `description` in the frontmatter.
 
@@ -74,11 +74,11 @@ These require:
 
 4. Update [`src/data/logo.ts`](https://github.com/withastro/docs/blob/main/src/data/logos.ts) to add the logo.
 
-### Stubs
+### Add a new stub
 
 Some guides are marked as `stub: true` in the frontmatter. These are not yet full guides, but instead include introductory content and link to external resources.
 
-If you don't have a full guide yet, feel free to create a stub with an introductory paragraph and a “Community Resources” and/or “Official Resources” section. See [this example PR creating a new stub](https://github.com/withastro/docs/pull/2336/files).
+If you don't have a full guide yet, feel free to create a stub with an introductory paragraph and a “Community Resources” and/or “Official Resources” section following the steps above. See [this example PR creating a new stub](https://github.com/withastro/docs/pull/2336/files).
 
 You can expand a stub, even if it's an incremental improvement. For example, you can expand a CMS guide by adding an "Integrating with Astro" section to explain how to connect the CMS to Astro. You can also provide a step-by-step section to use that integration to build something. (See [Making a blog with Astro and Contentful](https://docs.astro.build/en/guides/cms/contentful/#making-a-blog-with-astro-and-contentful).)
 
@@ -86,17 +86,9 @@ You can expand a stub, even if it's an incremental improvement. For example, you
 
 The CMS, Deploy, and Migrate guides all have sections for external links. You can add a new link by [creating a PR](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md).
 
-## More Recipes page
-
-This landing page shows how-to guides that don't fit in the above categories.
-
-The Official Recipes section is for officially maintained recipes, found in the `src/content/guides/recipes` folder. Like the rest of our docs, these must meet the standards of our Writing Guide and require long-term maintenance to make sure they're up to date.
-
-### Official Recipes
+## Add a new official recipe
 
 The Official Recipes section is for officially maintained recipes, found in the `src/content/guides/recipes` folder, that do not fit into one of our pre-existing categories. Like the rest of our docs, these must meet the standards of our [Writing Guide](https://github.com/withastro/docs/blob/main/WRITING.md) and require long-term maintenance to make sure they're up to date.
-
-Community Recipes are for external links that fit the definition of a recipe: short, focused how-to guides. This lets us include community resources without requiring long-term maintenance.
 
 To add an official recipe:
 
