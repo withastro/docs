@@ -32,7 +32,7 @@ We encourage you to:
 
 - **Make a PR directly** for very obvious documentation fixes like typos or broken links.
 
-- **Look at our Existing Issues** (especially those labelled `help wanted` and `good first issue`) for contributions we are actively seeking.
+- **Look at our Existing Issues** (especially those labelled [`help wanted`](https://github.com/withastro/docs/issues?q=is:open+is:issue+label:%22help+wanted%22) and [`good first issue`](https://github.com/withastro/docs/issues?q=is:open+is:issue+label:%22good+first+issue%22)) for contributions we are actively seeking.
 
 - **Review Existing PRs** (especially translations!) to help us get our fixes implemented live on the website sooner.
 
