@@ -20,7 +20,7 @@ There are lots of ways to contribute to the Astro Docs website!
 
 The Astro Docs website is ... an Astro website! Maintaining it requires not only written content but also maintaining Astro code and addressing a11y, CSS, UI, and UX concerns. We also make our documentation available in several languages, so we need help translating the entire site.
 
-You can also make a huge contribution by getting involved by leaving review comments on PRs, adding ideas in existing GitHub Issues and Discussions and participating in our "Pinned" issue maintenance tasks! 
+You can also make a huge contribution by getting involved by leaving review comments on [PRs](https://github.com/withastro/docs/pulls), adding ideas in existing GitHub [Issues](https://github.com/withastro/docs/issues) and [Discussions](https://github.com/withastro/docs/discussions) and participating in our "Pinned" issue maintenance tasks! 
 
 Every PR, especially translation PRs, needs reviewers! Reviewing PRs and leaving comments, suggestions or an approving "LGTM!" ("Looks Good To Me!") is a great way to get started on Team Docs, and to learn more about Astro.
 
