@@ -26,14 +26,14 @@ export default NavDictionary({
 	'guides/markdown-content': 'Markdown et MDX',
 	'guides/imports': 'Fichiers Statiques',
 	'guides/troubleshooting': 'Dépannage',
-	
+
 	// Recipes
 	examples: 'Recettes',
 	'guides/cms': 'Utiliser un CMS avec Astro',
 	'guides/migrate-to-astro': 'Migrer vers Astro',
 	'guides/integrations-guide': 'Intégrations',
 	'guides/deploy': 'Déployer',
-	
+
 	// Features
 	features: 'Fonctionnalités',
 	'guides/configuring-astro': 'Configurer Astro',
@@ -47,7 +47,7 @@ export default NavDictionary({
 	'guides/server-side-rendering': 'Rendu côté serveur (SSR)',
 	'guides/typescript': 'TypeScript',
 	'core-concepts/framework-components': 'Composants de Frameworks',
-	
+
 	// Référence
 	reference: 'Référence',
 	'reference/configuration-reference': 'Configuration',
