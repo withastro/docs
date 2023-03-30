@@ -28,7 +28,7 @@ export default NavDictionary({
 	'guides/troubleshooting': 'Dépannage',
 	
 	// Recipes
-	recipes: 'Recettes',
+	examples: 'Recettes',
 	'guides/cms': 'Utiliser un CMS avec Astro',
 	'guides/migrate-to-astro': 'Migrer vers Astro',
 	'guides/integrations-guide': 'Intégrations',
