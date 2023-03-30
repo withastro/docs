@@ -16,19 +16,31 @@ This document is an active work in progress! But, we hope you'll find some usefu
 
 ## Types of Contributions
 
+There are lots of ways to contribute to the Astro Docs website! 
+
+The Astro Docs website is ... an Astro website! Maintaining it requires not only written content but also maintaining Astro code and addressing a11y, CSS, UI, and UX concerns. We also make our documentation available in several languages, so we need help translating the entire site.
+
+You can also make a huge contribution by getting involved by leaving review comments on [PRs](https://github.com/withastro/docs/pulls), adding ideas in existing GitHub [Issues](https://github.com/withastro/docs/issues) and [Discussions](https://github.com/withastro/docs/discussions) and participating in our "Pinned" issue maintenance tasks! 
+
+Every PR, especially translation PRs, needs reviewers! Reviewing PRs and leaving comments, suggestions, or an approving "LGTM!" ("Looks Good To Me!") is a great way to get started on Team Docs, and to learn more about Astro.
+
 We encourage you to:
 
 - **File an Issue** to let us know of outdated, confusing, or incorrect documentation. You can also let us know of any problems you encounter on the site itself.
 
 - **Start a Discussion** if you're not sure that your "issue" rises to the level of incorrect documentation requiring a "fix," but you still want to share ideas and opinions.
 
-- **Make a PR directly** for very obvious documentation fixes like typos or broken links. 
+- **Make a PR directly** for very obvious documentation fixes like typos or broken links.
 
-We provide new content and rework existing content _in response to GitHub Issues and Discussions_. 
+- **Look at our Existing Issues** (especially those labelled [`help wanted`](https://github.com/withastro/docs/issues?q=is:open+is:issue+label:%22help+wanted%22) and [`good first issue`](https://github.com/withastro/docs/issues?q=is:open+is:issue+label:%22good+first+issue%22)) for contributions we are actively seeking.
+
+- **Review Existing PRs** (especially translations!) to help us get our fixes implemented live on the website sooner.
+
+We provide new content and rework existing content _in response to GitHub Issues and Discussions_.
 
 Submitting an Issue is usually the first step to making a change. After an Issue has been considered by the community, we often reach out to community members to encourage them to submit PRs based on existing Issues.
 
-Larger contributions to the docs are encouraged after participating in Issues and Discussions, as unsolicited material may not fit into our existing plans. 
+Larger contributions to the docs are encouraged after participating in Issues and Discussions, as unsolicited material may not fit into our existing plans.
 
 > Tip: Existing PRs and Issues need reviewing, triaging, and feedback, too! You can make valuable contributions by commenting, suggesting, testing, researching, brainstorming and generally helping in all areas on GitHub!
 
@@ -65,11 +77,11 @@ Larger contributions to the docs are encouraged after participating in Issues an
 
 ## Making a New Issue
 
-If you're unsure which type of contribution best represents your concern, please [make a new issue](https://github.com/withastro/docs/issues/new)! 
+If you're unsure which type of contribution best represents your concern, please [make a new issue](https://github.com/withastro/docs/issues/new)!
 
 ### Writing an Issue
 
-Helpful issues usually include: 
+Helpful issues usually include:
 - Clear descriptive titles
 - Links to relevant pages/files
 - Explanations as to why (or _for whom_) this is a problem
@@ -86,11 +98,11 @@ Contributions to the documentation site are made by editing the docs repository.
 
 **Internationalization (i18n)**
 
-Please only add new text content to the docs **in English**, by modifying only **`.md` files located within `src/content/docs/en/`**. 
+Please only add new text content to the docs **in English**, by modifying only **`.md` files located within `src/content/docs/en/`**.
 
-We have automated systems in place for notifying our community translators that there is new material to be translated, so there is no need to make changes to additional languages yourself. 
+We have automated systems in place for notifying our community translators that there is new material to be translated, so there is no need to make changes to additional languages yourself.
 
-Our Docs are translated into several languages and we rely on automation to notify our translators that English pages have changed. By default, when a PR to an English page is merged, our Translation Status Tracker is updated.  
+Our Docs are translated into several languages and we rely on automation to notify our translators that English pages have changed. By default, when a PR to an English page is merged, our Translation Status Tracker is updated.
 
 **When choosing a PR title, please consider whether your PR should or should NOT trigger a rewrite to pages in other languages**: some tiny fixes are English only (e.g. spelling of English words) but some *will* require updating all language pages (e.g. a small error in a code sample).  Please use the keyword "en-only" in your PR title to override this default behavior and indicate that your PR does **NOT** require translating.
 
@@ -158,7 +170,7 @@ git checkout -b add/partial-hydration-typo-fix
 ```
 ### Opening a PR
 
-One you have made your changes using any of the above methods, you’re ready to create a “Pull Request!” 
+One you have made your changes using any of the above methods, you’re ready to create a “Pull Request!”
 
 This will let the Astro docs team know you have some changes to propose. At this point we can give you feedback and might request changes. For translations, we like to have at least one other person who knows the language you are translating into review the PR.
 
@@ -198,7 +210,7 @@ In the terminal on your computer:
 3. Push the updates back to your fork on GitHub: `git push origin main`
 
 ##### Automatically with a GitHub app
-1. Go to [the “Pull” Github app page](https://github.com/apps/pull)
+1. Go to [the “Pull” GitHub app page](https://github.com/apps/pull)
 2. Click <kbd>Install</kbd>
 3. Follow the instructions to select your fork
 

@@ -51,6 +51,8 @@ export default {
 	'cms.navTitle': 'More CMS guides',
 	// Migration Guides vocabulary
 	'migration.navTitle': 'More migration guides',
+	// Recipes vocabulary
+	'recipes.navTitle': 'More recipes',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'See all contributors',
 	// Fallback content notice shown when a page is not yet translated
@@ -96,6 +98,7 @@ export default {
 	'feedback.formTitle': 'What’s on your mind?',
 	'feedback.categoryGroupLabel': 'Choose feedback category',
 	'feedback.issue': 'Issue',
+	'feedback.createIssue': 'Create GitHub Issue',
 	'feedback.idea': 'Idea',
 	'feedback.other': 'Other',
 	'feedback.messageA11yLabel': 'Message',

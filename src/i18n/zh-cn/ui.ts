@@ -26,7 +26,7 @@ export default UIDictionary({
 	'rightSidebar.joinDiscord': '加入我们的 Discord',
 	'rightSidebar.readBlog': '阅读我们的博客',
 	'rightSidebar.openCollective': '我们的 Open Collective',
-	'rightSidebar.github': 'Github 上的 Astro 文档',
+	'rightSidebar.github': 'GitHub 上的 Astro 文档',
 	// Footer
 	'footer.privacyPolicy': '隐私协议',
 	// `<ThemeToggleButton>` acessibility labels
