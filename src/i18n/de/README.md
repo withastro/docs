@@ -16,8 +16,8 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 
 | Originalbegriff             | Übersetzung                          | Anmerkungen
 |:----------------------------|:-------------------------------------|:------------
+| asset                       | Asset                                | Wird nicht übersetzt (gängiger Domänenbegriff).
 | branch                      | der Branch                           | Wird nicht übersetzt (gängiger Domänenbegriff).
-| build                       | Erzeugung / Erstellung               | Wird aus Konsistenzgründen zu bestehenden Übersetzungen vorerst so übersetzt. Eventuell werden wir "Build" aber zukünftig als gängigen Domänenbegriff einstufen und nicht übersetzen.
 | build process               | Erzeugungs- / Erstellungsvorgang     | s.o.
 | build time                  | Erzeugungs- / Erstellungszeitpunkt   | s.o.
 | to build                    | erzeugen                             | Da die Alternativen "bauen" oder gar "builden" merkwürdig klingen, wird diese Übersetzung vermutlich so bleiben.
@@ -35,6 +35,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 | frontmatter value           | der Frontmatter-Wert                 |
 | to hydrate (an element)     | hydratisieren                        | Falsch hingegen wäre "hydrieren".
 | island(s)                   | die Astro-Insel(n)                   | Der Präfix "Astro-" wird davorgesetzt, sofern wir über Astros Umsetzung der Inselarchitektur sprechen.
+| media query                 | Media Query                          | Wird nicht übersetzt (gängiger Domänenbegriff).
 | page                        | die Seite                            | Eine einzelne (HTML-)Seite. Wir vermeiden die längere Form "Webseite", um Verwechslungen mit "Website" zu vermeiden.
 | partial hydration           | die partielle Hydratation            | Falsch hingegen wäre "Hydrierung".
 | project root (directory)    | das Projektstamm&shy;verzeichnis     | Aufgrund der Wortlänge wird die Aufnahme eines weichen Bindestrichs empfohlen: `Projektstamm&shy;verzeichnis`
@@ -43,6 +44,8 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 | script                      | das Skript                           |
 | selective hydration         | die selektive Hydratation            | Falsch hingegen wäre "Hydrierung".
 | site, website               | die Website                          | Eine vollständige Webpräsenz unter einer gemeinsamen Domain, bestehend aus beliebig vielen (HTML-)Seiten.
+| style, styles               | Style, Styles                        | Wird nicht übersetzt (gängiger Domänenbegriff).
+| scoped style                | Scoped Style                         | Beim ersten Vorkommen sollte die deutsche Erklärung `(auf Komponenten begrenzte lokale CSS-Stile)` dahinter ergänzt werden.
 | template                    | die Vorlage                          |
 | ui                          | die Benutzeroberfläche               |
 | web                         | das Internet                         |

@@ -66,6 +66,7 @@ export const logos = LogoCheck({
 	keystonejs: { file: 'keystonejs.svg', padding: '.25em' },
 	cloudcannon: { file: 'cloudcannon.svg', padding: '.25em' },
 	markdoc: { file: 'markdoc.svg', padding: '.35em 0 .35em .1em' },
+	gitbook: { file: 'gitbook.svg', padding: '.25em' },
 });
 
 export type LogoKey = keyof typeof logos;
