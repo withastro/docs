@@ -74,31 +74,34 @@ Here is an example edit we made to one of our own recipes to illustrate the diff
 **Example:** Introduce a set of instructions with a "Big Step" (e.g. overall goal) + reason before listing specific steps to follow
 
 **Before: narrative style**
-"As well as needing your content in different languages, you will often need to translate labels for UI elements around your site. We can do this by creating dictionaries of terms instead of hard-coding text in one langugae in our templates."
-
-1.
-2. ...
+> As well as needing your content in different languages, you will often need to translate labels for UI elements around your site. We can do this by creating dictionaries of terms instead of hard-coding text in one language in our templates.
+>
+> 1.
+> 2. ...
 
 **After: imperative style**
-"Create dictionaries of terms to translate the labels for UI elements around your site. This allows your visitors to experience your site fully in their language."
-
-1.
-2. ...
+> Create dictionaries of terms to translate the labels for UI elements around your site. This allows your visitors to experience your site fully in their language.
+>
+> 1.
+> 2. ...
 
 
 ### Opinionated Instructions
 
-Sometimes you will need to give an instruction where the reader could make a different choice than you, and the recipe would still work. You will need to illustrate the example with the decision you made, but you want to make it clear that other decisions are acceptable. In this case, try to separate the instruction from the opinion, then state the choice that your example uses. Your reader will be able to first process what you are doing, and then will see the choice you have made separately and can make a similar or different choice in their own project. 
+Sometimes you will need to give an instruction where the reader has options. You want to illustrate the example with the specific choice you made, but you also want to make it clear that other decisions are acceptable. 
 
-This is more reassuring than a vauge "it could go anywhere!" statement. Additionally now you do not need to further explain the filename of a code snippet, that this file will not necessarily exist in their project, etc.
+In this case, try to separate the instruction from the opinion. First give the action to take with a more general description. Then state the opinionated choice that your example uses. Your reader will be able to first process what you are doing, and then will see the choice you have made. They can still follow your instruction, making a choice that works in their own project. 
+
+This can be easier to follow (and perhaps more reassuring!) than a statement that gives multiple options. This is also usually easier to write, since you do not have to remind the reader that this file is from *your* example, and may not appear in their project.
 
 **Example:** An instruction to add a component where the component *could* go in multiple files/places and still achieve the goal.
 
-**Before: vague**
-"Add the `LanguagePicker` component to your site. A good place might be in a navigation comonent or a footer shown on every page."
+**Before: vague initial instruction**
 
-**After: opinionated, as a separate step**
-"Add the `LanguagePicker` component to your site in a component that is shown on every page. The example below adds this to the page footer:"
+> Add the `LanguagePicker` component to your site. A good place might be in a navigation component or a footer shown on every page.
+
+**After: add necessary context to the instruction, followed by opinionated usage**
+> Add the `LanguagePicker` component to your site in a component that is shown on every page. The example below adds this to the page footer:
 
 <!-- 
 
