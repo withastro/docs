@@ -49,6 +49,57 @@ As a general guide for writing tone, you can follow the [Google Developers Guide
 
 Also see tips on how to [write inclusive documentation](https://developers.google.com/style/inclusive-documentation) and [write accessible documentation](https://developers.google.com/style/accessibility)
 
+## Recipe Writing
+
+Here are some tips and examples to match Astro Docs' style for instructional content, like a recipe:
+
+### Imperative (instruction, command) tense
+
+Whenever possible, give the reader a direct instruction:
+
+e.g. Type the command...
+
+Do not use _"Let's..."_ or _"Next, we will..."_. You are not sitting there with your reader! (This also means you will never need the words _we_, _us_, and _our_. If you see them, rephrase!)
+
+If you must address the reader, it is OK to use "you" and "your". Especially for emphasis in very important steps where something could go wrong:
+
+e.g. Before continuing, you must check your... or else...
+
+### Avoid "story telling"
+
+Recipes should be commands to follow, as concisely and directly as possible. Do not tell a story around what is happening, but do provide context or clarity if needed as a brief goal/benefit/reason.
+
+Here is an example edit we made to one of our own recipes to illustrate the difference:
+
+**Example:** Introduce a set of instructions with a "Big Step" (e.g. overall goal) + reason before listing specific steps to follow
+
+**Before: narrative style**
+"As well as needing your content in different languages, you will often need to translate labels for UI elements around your site. We can do this by creating dictionaries of terms instead of hard-coding text in one langugae in our templates."
+
+1.
+2. ...
+
+**After: imperative style**
+"Create dictionaries of terms to translate the labels for UI elements around your site. This allows your visitors to experience your site fully in their language."
+
+1.
+2. ...
+
+
+### Opinionated Instructions
+
+Sometimes you will need to give an instruction where the reader could make a different choice than you, and the recipe would still work. You will need to illustrate the example with the decision you made, but you want to make it clear that other decisions are acceptable. In this case, try to separate the instruction from the opinion, then state the choice that your example uses. Your reader will be able to first process what you are doing, and then will see the choice you have made separately and can make a similar or different choice in their own project. 
+
+This is more reassuring than a vauge "it could go anywhere!" statement. Additionally now you do not need to further explain the filename of a code snippet, that this file will not necessarily exist in their project, etc.
+
+**Example:** An instruction to add a component where the component *could* go in multiple files/places and still achieve the goal.
+
+**Before: vague**
+"Add the `LanguagePicker` component to your site. A good place might be in a navigation comonent or a footer shown on every page."
+
+**After: opinionated, as a separate step**
+"Add the `LanguagePicker` component to your site in a component that is shown on every page. The example below adds this to the page footer:"
+
 <!-- 
 
 
