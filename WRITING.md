@@ -65,9 +65,9 @@ If you must address the reader, it is OK to use "you" and "your". Especially for
 
 e.g. Before continuing, you must check your... or else...
 
-### Avoid "story telling"
+### Avoid "storytelling"
 
-Recipes should be commands to follow, as concisely and directly as possible. Do not tell a story around what is happening, but do provide context or clarity if needed as a brief goal/benefit/reason.
+Recipes should be a set of instructions to follow, as concisely and directly as possible. Do not tell a story around what is happening, but do provide context or clarity if needed as a brief goal/benefit/reason.
 
 Here is an example edit we made to one of our own recipes to illustrate the difference:
 
@@ -90,9 +90,9 @@ Here is an example edit we made to one of our own recipes to illustrate the diff
 
 Sometimes you will need to give an instruction where the reader has options. You want to illustrate the example with the specific choice you made, but you also want to make it clear that other decisions are acceptable. 
 
-In this case, try to separate the instruction from the opinion. First give the action to take with a more general description. Then state the opinionated choice that your example uses. Your reader will be able to first process what you are doing, and then will see the choice you have made. They can still follow your instruction, making a choice that works in their own project. 
+In this case, try to separate the instruction from the opinion. First, give the action to take with a more general description. Then state the opinionated choice that your example uses. Your reader will be able to first process what you are doing and then will see the choice you have made. They can still follow your instruction, making a choice that works for their own project. 
 
-This can be easier to follow (and perhaps more reassuring!) than a statement that gives multiple options. This is also usually easier to write, since you do not have to remind the reader that this file is from *your* example, and may not appear in their project.
+This can be easier to follow (and perhaps more reassuring!) than a statement that gives multiple options. This is also usually easier to write since you do not have to remind the reader that this file is from *your* example, and may not appear in their project.
 
 **Example:** An instruction to add a component where the component *could* go in multiple files/places and still achieve the goal.
 
