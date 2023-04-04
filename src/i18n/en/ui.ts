@@ -23,6 +23,7 @@ export default {
 	'rightSidebar.readBlog': 'Read our blog posts',
 	'rightSidebar.openCollective': 'Our Open Collective',
 	'rightSidebar.contribute': 'Contribute',
+	'rightSidebar.contributorGuides': 'Contributor Guides',
 	'rightSidebar.editPage': 'Edit this page',
 	'rightSidebar.translatePage': 'Translate this page',
 	'rightSidebar.github': 'Astro Docs on GitHub',
