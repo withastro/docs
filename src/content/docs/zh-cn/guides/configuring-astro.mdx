@@ -78,26 +78,35 @@ export default defineConfig({
 如果你提供了 `root` 相对路径或 `--root` CLI 标志，Astro 将基于你运行 `astro` 命令的目录来解析。
 
 ```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
 export default defineConfig({
-    // 基于你当前的工作目录解析 "./foo" 目录
-    root: 'foo'
+  // 基于你当前的工作目录解析 "./foo" 目录
+  root: 'foo'
 })
 ```
 
 Astro 会将所有其他相对文件和目录字符串解析为相对于项目根目录的字符串：
 
 ```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
 export default defineConfig({
-    //  基于你当前的工作目录解析 "./foo" 目录
-    root: 'foo',
-    //  基于你当前的工作目录解析 "./foo/public" 目录
-    publicDir: 'public',
+  //  基于你当前的工作目录解析 "./foo" 目录
+  root: 'foo',
+  //  基于你当前的工作目录解析 "./foo/public" 目录
+  publicDir: 'public',
 })
 ```
 
 使用 `import.meta.url` 引用相对于配置文件的文件或目录（除非你正在编写 common.js 模块标准的 `astro.config.cjs` 文件）。
 
-```js
+```js "import.meta.url"
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
 export default defineConfig({
     // 基于配置文件解析 "./foo" 目录
     root: new URL("./foo", import.meta.url),
@@ -106,11 +115,18 @@ export default defineConfig({
 })
 ```
 
+:::note
+Vite 特定的 `import.meta` 属性，如 `import.meta.env` 或 `import.meta.glob`，无法在你的配置文件中访问。我们推荐使用 [dotenv](https://github.com/motdotla/dotenv) 或 [fast-glob](https://github.com/mrmlnc/fast-glob) 作为替代方案。
+:::
+
 ## 自定义输出文件名
 
 对于使用 Astro 进行处理的代码，如导入的 JavaScript 或 CSS 文件，你可以在 `astro.config.*` 文件中的 `vite.build.rollupOptions`条目使用 [`entryFileNames`](https://rollupjs.org/guide/en/#outputentryfilenames)、[`chunkFileNames`](https://rollupjs.org/guide/en/#outputchunkfilenames) 和 [`assetFileNames`](https://rollupjs.org/guide/en/#outputassetfilenames) 来定制输出文件名。
 
-```js
+```js ins={9-11}
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
 export default defineConfig({
   vite: {
     build: {
@@ -125,8 +141,20 @@ export default defineConfig({
   },
 })
 ```
-
 这适合用于当你的脚本名称可能受到广告拦截器的影响（如 `ads.js` 或 `google-tag-manager.js`）时。
+
+## 环境变量
+
+Astro 会在加载其他文件之前评估配置文件。因此，你不能使用 `import.meta.env` 访问在 `.env` 文件中设置的环境变量。
+
+你可以在配置文件中使用 `process.env` 访问其他环境变量，如 [CLI 设置的环境变量](/zh-cn/guides/environment-variables/#using-the-cli)。
+
+你也可以使用 [Vite 的 `loadEnv` 助手函数](https://cn.vitejs.dev/config/#using-environment-variables-in-config)来手动加载 `.env` 文件。
+
+```js title="astro.config.mjs"
+import { loadEnv } from "vite";
+const { SECRET_PASSWORD } = loadEnv(import.meta.env.MODE, process.cwd(), "");
+```
 
 ## 配置参考
 
