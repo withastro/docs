@@ -30,7 +30,7 @@ yarn create astro
 pnpm create astro@latest
 ```
 
-[`create-astro`](https://github.com/withastro/astro/tree/main/packages/create-astro) 工具让你从预设的 [启动模板](/zh-CN/examples) 中选择，或者你也可以直接从 Github 导入自己的 Astro 项目。
+[`create-astro`](https://github.com/withastro/astro/tree/main/packages/create-astro) 工具让你从预设的 [启动模板](/zh-CN/examples) 中选择，或者你也可以直接从 GitHub 导入自己的 Astro 项目。
 
 ```bash
 # 提醒：把「my-astro-project」改为项目的名称。

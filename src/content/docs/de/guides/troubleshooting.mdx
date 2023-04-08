@@ -1,0 +1,208 @@
+---
+title: Fehlerbehebung
+description: Brauchst du Hilfe? Hängst du bei etwas fest? Wir haben das Richtige für dich.
+i18nReady: true
+---
+
+Astro bietet verschiedene Tools, die dir bei der Fehlersuche und beim Debuggen deines Codes helfen.
+
+## Allgemeine Fehlermeldungen
+
+Hier eine Auswahl häufiger Fehlermeldungen, die im Terminal erscheinen können, was sie bedeuten können und was du dagegen tun kannst.
+
+### Cannot use import statement outside a module
+
+In Astro-Komponenten werden `<script>`-Tags standardmäßig als [JS-Module](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) gehoistet und geladen. Wenn du die Direktive [`is:inline`](/de/reference/directives-reference/#isinline) oder ein anderes Attribut in deinen Tag eingebaut hast, wird dieses Standardverhalten aufgehoben.
+
+**Lösung**: Wenn du deinem `<script>`-Tag Attribute hinzugefügt hast, musst du auch das Attribut `type="module"` hinzufügen, um Import-Anweisungen verwenden zu können.
+
+**Status**: Erwartetes Astro-Verhalten, wie vorgesehen.
+
+**Nicht sicher, ob das dein Problem ist?**  
+Überprüfe, ob jemand anderes [dieses Problem](https://github.com/withastro/astro/issues?q=is%3Aissue+ist%3Aopen+Cannot+use+import+statement) gemeldet hat!
+
+### `document` (or `window`) is not defined
+
+Dieser Fehler tritt auf, wenn du versuchst, serverseitig auf `document` oder `window` zuzugreifen.
+
+Astro-Komponenten werden auf dem Server ausgeführt, daher kannst du innerhalb des Frontmatter nicht auf diese browserspezifischen Objekte zugreifen.
+
+Framework-Komponenten werden standardmäßig auf dem Server ausgeführt, daher kann dieser Fehler beim Zugriff auf `document` oder `window` während des Renderings auftreten.
+
+**Lösung**: Überprüfe den Code, der `document` oder `window` aufruft. Wenn du `document` oder `window` nicht direkt verwendest und trotzdem diesen Fehler bekommst, überprüfe, ob die Pakete, die du importierst, auf dem Client laufen sollen.
+
+- Wenn sich der Code in einer Astro-Komponente befindet, verschiebe ihn in ein `<script>`-Tag außerhalb des Frontmatter. Dadurch wird Astro angewiesen, den Code auf dem Client auszuführen, wo `document` und `window` verfügbar sind.
+
+- Wenn sich der Code in einer Framework-Komponente befindet, versuche, nach dem Rendering mit Lifecycle-Methoden auf diese Objekte zuzugreifen (z. B. [`useEffect()`](https://react.dev/reference/react/useEffect) in React, [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) in Vue und [`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount) in Svelte). Du kannst auch verhindern, dass die Komponente überhaupt auf dem Server gerendert wird, indem du die Direktive [`client:only`](/de/reference/directives-reference/#clientonly) hinzufügst.
+
+**Status**: Erwartetes Astro-Verhalten, wie vorgesehen.
+
+### Expected a default export
+
+Dieser Fehler kann auftreten, wenn du versuchst, eine ungültige Komponente zu importieren oder zu rendern, oder wenn eine Komponente nicht richtig funktioniert. (Diese spezielle Meldung tritt aufgrund der Funktionsweise des Importierens einer UI-Komponente auf.)
+
+**Lösung**: Suche nach Fehlern in jeder Komponente, die du importierst und renderst, und stelle sicher, dass sie richtig funktioniert. Erwäge, eine Astro-Startvorlage aus [astro.new](https://astro.new) zu öffnen und nur deine Komponente in einem minimalen Astro-Projekt zu testen.
+
+**Status**: Erwartetes Astro-Verhalten, wie vorgesehen.
+
+### Refused to execute inline script
+
+Möglicherweise wird in der Browserkonsole der folgende Fehler protokolliert:
+
+> Refused to execute inline script because it violates the following Content Security Policy directive: …
+
+Das bedeutet, dass die [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) (CSP) deiner Website die Ausführung von Inline-`<script>`-Tags verbietet, die Astro standardmäßig ausgibt.
+
+**Lösung:** Aktualisiere deine CSP und füge ein `script-src: 'unsafe-inline'` ein, damit Inline-Skripte ausgeführt werden können.
+
+## Generelle Probleme
+
+### Meine Komponente wird nicht gerendert
+
+Überprüfe zuerst, ob du die Komponente in deinem [`.astro`-Komponentenskript](/de/core-concepts/astro-components/#das-komponentenskript) oder deiner [`.mdx`-Datei](/de/guides/markdown-content/#verwendung-von-komponenten-in-markdown) **importiert** hast.
+
+Dann überprüfe deine Importanweisung:
+
+- Verweist dein Import auf den falschen Ort? (Überprüfe deinen Importpfad.)
+
+- Hat dein Import den gleichen Namen wie die importierte Komponente? (Überprüfe deinen Komponentennamen und dass er der [`.astro`-Syntax folgt](/de/core-concepts/astro-components/#jsx-ausdrücke).)
+
+- Hast du die Erweiterung in den Import aufgenommen? (Überprüfe, ob deine importierte Datei eine Erweiterung enthält, z.B. `.astro`, `.md`, `.vue`, `.svelte`. Hinweis: Dateierweiterungen sind nur für `.js(x)` und `.ts(x)` Dateien **nicht** erforderlich.)
+
+### Meine Komponente ist nicht interaktiv
+
+Wenn deine Komponente zwar gerendert wird (siehe oben), aber nicht auf Benutzerinteraktionen reagiert, fehlt dir vielleicht eine [`client:*`-Direktive](/de/reference/directives-reference/#client-directives), um deine Komponente zu hydratisieren.
+
+Standardmäßig wird eine [UI-Framework-Komponente im Client nicht hydratisiert](/de/core-concepts/framework-components/#interaktive-komponenten-hydratisieren). Wenn keine `client:*`-Direktive angegeben wird, wird ihr HTML-Code ohne JavaScript auf der Seite gerendert.
+
+:::tip
+[Astro-Komponenten](/de/core-concepts/astro-components/) sind reine HTML-Vorlagenkomponenten ohne clientseitige Laufzeit. Du kannst jedoch ein `<script>`-Tag in deiner Astro-Komponentenvorlage verwenden, um JavaScript an den Browser zu senden, das im globalen Bereich ausgeführt wird.
+:::
+
+### Cannot find package 'X'
+
+Wenn du beim Starten von Astro die Warnung `"Cannot find package 'react'"` (oder eine ähnliche Warnung) siehst, bedeutet das, dass du das Paket in deinem Projekt installieren musst.  Nicht alle Paketmanager installieren Peer-Abhängigkeiten automatisch für dich. Wenn du mit Node v16+ arbeitest und npm verwendest, solltest du dir um diesen Abschnitt keine Sorgen machen müssen.
+
+React zum Beispiel ist eine Peer-Abhängigkeit der Integration `@astrojs/react`. Das bedeutet, dass du die offiziellen Pakete `react` und `react-dom` zusammen mit deiner Integration installieren solltest. Die Integration wird dann automatisch von diesen Paketen abhängen.
+
+```shell ins="react react-dom"
+# Beispiel: Integrationen und Frameworks gemeinsam installieren
+npm install @astrojs/react react react-dom
+```
+Im [Astro-Integrationsleitfaden](/de/guides/integrations-guide/) findest du Anweisungen zum Hinzufügen von Framework-Renderern, CSS-Tools und anderen Paketen für Astro.
+
+### `Astro.glob()` - no matches found
+
+Wenn du `Astro.glob()` verwendest, um Dateien zu importieren, achte darauf, dass du die richtige Glob-Syntax verwendest, die alle benötigten Dateien abdeckt.
+
+#### Dateipfade
+
+Verwende zum Beispiel `../components/**/*.js` in `src/pages/index.astro`, um die beiden folgenden Dateien zu importieren:
+- `src/components/MyComponent.js`
+- `src/components/includes/MyOtherComponent.js`
+
+#### Unterstützte Werte
+
+ `astro.glob()` unterstützt keine dynamischen Variablen und keine Zeichenketten-Interpolation.
+
+Dies ist kein Fehler in Astro. Das liegt an einer Einschränkung der [Vite-Funktion `import.meta.glob()`](https://vitejs.dev/guide/features.html#glob-import), die nur statische Zeichenketten-Literale unterstützt.
+
+Eine gängige Lösung ist es, stattdessen eine größere Gruppe von Dateien zu importieren, die alle benötigten Dateien enthält, und diese dann mit `Astro.glob()` zu filtern:
+
+```astro {6-7}
+---
+// src/components/featured.astro
+const { postSlug } = Astro.props;
+const pathToMyFeaturedPost = `src/pages/blog/${postSlug}.md`;
+
+const posts = await Astro.glob('../pages/blog/*.md');
+const myFeaturedPost = posts.find(post => post.file.includes(pathToMyFeaturedPost));
+---
+
+<p>
+  Wirf einen Blick auf meinen Lieblingspost, <a href={myFeaturedPost.url}>{myFeaturedPost.frontmatter.title}</a>!
+</p>
+```
+
+### Astro mit Yarn 2+ (Berry) verwenden
+
+Yarn 2+, auch bekannt als Berry, verwendet eine Technik namens [Plug'n'Play (PnP)](https://yarnpkg.com/features/pnp), um Node-Module zu speichern und zu verwalten, die [Probleme](https://github.com/withastro/astro/issues/3450) beim Initialisieren eines neuen Astro-Projekts mit `create astro` oder bei der Arbeit mit Astro verursachen kann. Dies kann man umgehen, indem man die [Eigenschaft `nodeLinker`](https://yarnpkg.com/configuration/yarnrc#nodeLinker) in `.yarnrc.yml` auf `node-modules` setzt:
+
+```yaml title=".yarnrc.yml"
+nodeLinker: "node-modules"
+```
+
+### Verwendung von `<head>` in einer Komponente
+
+In Astro funktioniert der `<head>`-Tag wie jeder andere HTML-Tag: Er wird nicht an den Anfang der Seite verschoben oder mit dem vorhandenen `<head>` zusammengeführt. Deshalb solltest du in der Regel nur ein einziges `<head>`-Tag auf einer Seite verwenden. Wir empfehlen, diesen einzelnen `<head>` und seinen Inhalt in eine [Layout-Komponente](/de/core-concepts/layouts/) zu schreiben.
+
+### Ein unerwartetes `<script>`- oder `<style>`-Tag ist enthalten
+
+Es kann vorkommen, dass die `<script>`- oder `<style>`-Tags einer importierten Komponente in deinem HTML-Quelltext enthalten sind, auch wenn die Komponente in der endgültigen Ausgabe nicht erscheint. Dies ist zum Beispiel der Fall bei [bedingt gerenderten](/de/core-concepts/astro-components/#jsx-ausdrücke) Komponenten, die nicht angezeigt werden.
+
+Der Build-Prozess von Astro arbeitet mit dem Modul-Graph: Sobald eine Komponente in der Vorlage enthalten ist, werden ihre `<script>`- und `<style>`-Tags verarbeitet, optimiert und gebündelt, unabhängig davon, ob sie in der endgültigen Ausgabe erscheint oder nicht. Dies gilt nicht für Skripte, wenn die Direktive "is:inline" angewendet wird.
+
+## Tipps und Tricks
+
+### Debugging mit `console.log()`
+
+`console.log()` ist eine einfache, aber beliebte Methode, um deinen Astro-Code zu debuggen. Wo du deine `console.log`-Anweisung schreibst, bestimmt, wo deine Debugging-Ausgaben ausgegeben werden.
+
+#### Frontmatter
+
+Eine `console.log()`-Anweisung im Astro-Frontmatter wird immer in dem **Terminal** ausgegeben, auf dem die Astro-CLI läuft. Das liegt daran, dass Astro auf dem Server läuft und nie im Browser.
+
+```astro {5}
+---
+const sum = (a, b) => a + b;
+
+// Beispiel: Gibt "4" im CLI-Terminal aus
+console.log(sum(2, 2));
+---
+```
+
+#### JS-Skripte
+
+Code, der innerhalb eines Astro-`<script>`-Tags geschrieben oder importiert wird, wird im Browser ausgeführt. Alle `console.log()`-Anweisungen oder andere Debug-Ausgaben werden auf der Konsole deines Browsers ausgegeben.
+
+### Debugging von Framework-Komponenten
+
+[Framework-Komponenten](/de/core-concepts/framework-components/) (wie React und Svelte) sind einzigartig: sie werden standardmäßig serverseitig gerendert, was bedeutet, dass die `console.log()` debug-Ausgaben im Terminal sichtbar sind. Sie können aber auch für den Browser hydratisiert werden, so dass deine debug-Logs auch im Browser erscheinen können.
+
+Dies kann nützlich sein, um Unterschiede zwischen der SSR-Ausgabe und den hydratisierten Komponenten im Browser zu debuggen.
+
+### Astro `<Debug />` Komponente
+
+Um dir das Debuggen deiner Astro-Komponenten zu erleichtern, bietet Astro eine eingebaute [`<Debug />`](/de/reference/api-reference/#debug-) Komponente, die jeden Wert direkt in die HTML-Vorlage deiner Komponente überträgt. Das ist nützlich für das schnelle Debugging im Browser, ohne dass du zwischen deinem Terminal und deinem Browser hin- und herwechseln musst.
+
+```astro {2,7}
+---
+import { Debug } from 'astro/components';
+const sum = (a, b) => a + b;
+---
+
+<!-- Beispiel: Gibt {Antwort: 6} im Browser aus-->
+<Debug answer={sum(2, 4)} />
+```
+
+Die Debug-Komponente unterstützt eine Vielzahl von Syntaxoptionen für noch flexibleres und übersichtlicheres Debugging:
+
+```astro {2,7-9}
+---
+import { Debug } from 'astro/components';
+const sum = (a, b) => a + b;
+const answer = sum(2, 4);
+---
+<!-- Beispiel: Alle drei Beispiele sind gleichwertig. -->
+<Debug answer={sum(2, 4)} />
+<Debug {{answer: sum(2, 4)}} />
+<Debug {answer} />
+```
+
+## Brauchst du mehr?
+
+Komm und chatte mit uns auf [Discord](https://astro.build/chat) und erkläre dein Problem im Channel "#support". Wir helfen dir immer gerne!
+
+Besuche die aktuellen [offenen Tickets in Astro](https://github.com/withastro/astro/issues/), um zu sehen, ob dein Problem bereits bekannt ist. Andernfalls kannst du einen Fehlerbericht einreichen.
+
+Du kannst auch unsere [RFC Diskussionen](https://github.com/withastro/rfcs/discussions/) besuchen, um zu sehen, ob du eine bekannte Einschränkung von Astro gefunden hast, und um zu prüfen, ob es aktuelle Vorschläge gibt, die sich auf deinen Anwendungsfall beziehen.

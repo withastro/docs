@@ -77,7 +77,7 @@ Rest-Parameter sind standardmäßig optional, `pages/post/[...slug]` würde also
 
 #### Beispiel: Rest-Parameter
 
-Für ein `real-world`-Beispiel würdest du den `Github File Viewer` folgendermaßen implementieren:
+Für ein `real-world`-Beispiel würdest du den `GitHub File Viewer` folgendermaßen implementieren:
 
 ```
 /[org]/[repo]/tree/[branch]/[...file]
