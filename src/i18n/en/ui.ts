@@ -90,4 +90,6 @@ export default {
 	'feedback.button': 'Give us feedback',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': 'Directory',
+	// CopyButton class in `<CodeSnippet>` component
+	'copyButton.title': 'Copy to clipboard',
 };

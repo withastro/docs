@@ -8,7 +8,7 @@ export class ShikiBlock {
 	private htmlAfterLastLine = '';
 	private copyButton: CopyButton | null = null;
 
-	constructor(highlightedCodeHtml: string) {
+	constructor(highlightedCodeHtml: string, copyButtonTitle: string) {
 		if (!highlightedCodeHtml) return;
 
 		const codeBlockRegExp = /^\s*(<pre.*?><code.*?>)([\s\S]*)(<\/code><\/pre>)\s*$/;
@@ -26,7 +26,7 @@ export class ShikiBlock {
 		const innerHtmlLines = innerHtml.split(/\r?\n/);
 		this.shikiLines = innerHtmlLines.map((htmlLine) => new ShikiLine(htmlLine));
 
-		this.copyButton = new CopyButton(innerHtmlLines);
+		this.copyButton = new CopyButton(innerHtmlLines, copyButtonTitle);
 	}
 
 	applyMarkings(lineMarkings: LineMarkingDefinition[], inlineMarkings: InlineMarkingDefinition[]) {
