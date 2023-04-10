@@ -1,0 +1,112 @@
+---
+title: Umgebungsvariablen verwenden
+description: Lerne, wie du Umgebungsvariablen in einem Astro-Projekt verwenden kannst.
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+Astro nutzt die in Vite eingebaute Unterstützung für Umgebungsvariablen und lässt dich [mit jeder seiner Methoden](https://vitejs.dev/guide/env-and-mode.html) mit ihnen arbeiten.
+
+Beachte, dass zwar _alle_ Umgebungsvariablen im serverseitigen Code verfügbar sind, aber aus Sicherheitsgründen nur Umgebungsvariablen mit dem Präfix `PUBLIC_` im clientseitigen Code verfügbar sind.
+
+```ini title=".env"
+SECRET_PASSWORD=password123
+PUBLIC_ANYBODY=there
+```
+
+In diesem Beispiel ist `PUBLIC_ANYBODY` (zugänglich über `import.meta.env.PUBLIC_ANYBODY`) sowohl im Server- als auch im Client-Code verfügbar, während `SECRET_PASSWORD` (zugänglich über `import.meta.env.SECRET_PASSWORD`) nur serverseitig verfügbar ist.
+
+:::caution
+`.env`-Dateien werden nicht in [Konfigurationsdateien](/de/guides/configuring-astro/) geladen.
+:::
+
+## Standard-Umgebungsvariablen
+
+Astro enthält ein paar Umgebungsvariablen, die sofort einsatzbereit sind:
+
+- `import.meta.env.MODE`: Der Modus, in dem deine Website läuft. Das ist `development`, wenn du `astro dev` benutzt und `production`, wenn du `astro build` benutzt.
+- `import.meta.env.PROD`: `wahr`, wenn deine Website im Produktionsmodus läuft; andernfalls `falsch`.
+- `import.meta.env.DEV`: `true`, wenn deine Website im Entwicklungsmodus läuft; sonst `false`. Immer das Gegenteil von `import.meta.env.PROD`.
+- `import.meta.env.BASE_URL`: Die Basis-URL, von der aus deine Seite geladen wird. Sie wird durch die [Konfigurationsoption `base`](/de/reference/configuration-reference/#base) bestimmt.
+{/* TODO: update anchor link (#buildassetsprefix) when the linked file has been updated */}
+- `import.meta.env.ASSETS_PREFIX`: Das Präfix für die von Astro erzeugten Asset-Links, wenn die [Konfigurationsoption `build.assetsPrefix`](/de/reference/configuration-reference/) gesetzt ist. Damit können Asset-Links erstellt werden, die nicht von Astro verarbeitet werden.
+
+## Umgebungsvariablen setzen
+
+### `.env`-Dateien
+Umgebungsvariablen können aus `.env`-Dateien in deinem Projektverzeichnis geladen werden.
+
+Du kannst auch einen Modus (entweder `production` oder `development`) an den Dateinamen anhängen, z.B. `.env.production` oder `.env.development`, so dass die Umgebungsvariablen nur in diesem Modus wirksam werden.
+
+Erstelle einfach eine `.env` Datei im Projektverzeichnis und füge ihr einige Variablen hinzu.
+
+```ini title=".env"
+# Diese Funktion ist nur verfügbar, wenn sie auf dem Server ausgeführt wird!
+DB_PASSWORD="foobar"
+# Das wird überall verfügbar sein!
+PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
+```
+
+Mehr über `.env`-Dateien findest du in der [Vite-Dokumentation](https://vitejs.dev/guide/env-and-mode.html#env-files).
+
+### Verwendung der Kommandozeilenschnittstelle (CLI)
+Du kannst auch Umgebungsvariablen hinzufügen, während du dein Projekt ausführst:
+
+<PackageManagerTabs>
+ <Fragment slot="yarn">
+    ```shell
+    POKEAPI=https://pokeapi.co/api/v2 yarn run dev
+    ```
+ </Fragment>
+ <Fragment slot="npm">
+    ```shell
+    POKEAPI=https://pokeapi.co/api/v2 npm run dev
+    ```
+ </Fragment>
+ <Fragment slot="pnpm">
+    ```shell
+    POKEAPI=https://pokeapi.co/api/v2 pnpm run dev
+    ```
+ </Fragment>
+</PackageManagerTabs>
+
+:::caution
+Auf diese Weise eingesetzte Variablen sind überall in deinem Projekt verfügbar, auch auf dem Client.
+:::
+## Abrufen von Umgebungsvariablen
+
+Anstatt `process.env` zu verwenden, benutzt du mit Vite `import.meta.env`, das die in ES2020 hinzugefügte Funktion `import.meta` nutzt.
+
+Verwende zum Beispiel `import.meta.env.PUBLIC_POKEAPI`, um die Umgebungsvariable `PUBLIC_POKEAPI` zu erhalten.
+
+```js /(?<!//.*)import.meta.env.[A-Z_]+/
+// Wenn import.meta.env.SSR === true
+const data = await db(import.meta.env.DB_PASSWORD);
+
+// Wenn import.meta.env.SSR === false
+const data = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
+```
+
+:::caution
+Da Vite die Datei `import.meta.env` statisch ersetzt, kannst du nicht mit dynamischen Schlüsseln wie `import.meta.env[key]` darauf zugreifen.
+:::
+
+## IntelliSense für TypeScript
+
+Standardmäßig bietet Astro eine Typdefinition für `import.meta.env` in `astro/client.d.ts`.
+
+Du kannst zwar weitere benutzerdefinierte Umgebungsvariablen in `.env.[mode]`-Dateien definieren, aber du möchtest vielleicht TypeScript IntelliSense für benutzerdefinierte Umgebungsvariablen nutzen, denen das Präfix `PUBLIC_` vorangestellt ist.
+
+Um das zu erreichen, kannst du eine `env.d.ts` in `src/` erstellen und `ImportMetaEnv` wie folgt konfigurieren:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly DB_PASSWORD: string;
+  readonly PUBLIC_POKEAPI: string;
+  // mehr Umgebungsvariablen...
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
