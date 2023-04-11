@@ -3,6 +3,8 @@ title: TypeScript
 description: 了解如何使用 Astro 内置的 TypeScript 支持。
 ---
 import Since from '~/components/Since.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import Tabs from '~/components/tabs/Tabs'
 
 
 
@@ -82,7 +84,7 @@ import Layout from '@layouts/Layout.astro';
 }
 ```
 
-## 扩展 `window` and `globalThis`
+## 扩展 `window` 和 `globalThis`
 
 您可能需要在全局对象中添加一项属性。您可以在 `env.d.ts` 文件中添加全局声明来实现这一点：
 
@@ -179,6 +181,38 @@ declare namespace astroHTML.JSX {
 type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
 ```
 :::
+
+### 推断 `getStaticPaths()` 的类型
+<Since v="2.1.0" />
+
+Astro 中有帮助你处理动态路由 [`getStaticPaths()`](/zh-cn/reference/api-reference/#getstaticpaths) 函数返回类型的类型。
+
+你可以使用 `InferGetStaticParamsType` 和 `InferGetStaticPropsType` 来获取 [`Astro.params`](/zh-cn/reference/api-reference/#astroparams) 和 [`Astro.props`](/en/reference/api-reference/#astroprops) 的类型。
+
+
+```astro title="src/pages/posts/[...slug].astro" {2,14-15}
+---
+import { InferGetStaticParamsType, InferGetStaticPropsType, GetStaticPaths } from 'astro';
+
+export const getStaticPaths = (async () => {
+  const posts = await getCollection('blog');
+  return posts.map((post) => {
+    return {
+      params: { slug: post.slug },
+      props: { draft: post.data.draft, title: post.data.title },
+    };
+  });
+}) satisfies GetStaticPaths;
+
+type Params = InferGetStaticParamsType<typeof getStaticPaths>;
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { slug } = Astro.params as Params;
+//               			 ^? { slug: string; }
+const { title } = Astro.props;
+//                			^? { draft: boolean; title: string; }
+---
+```
 
 ## 类型检验
 
