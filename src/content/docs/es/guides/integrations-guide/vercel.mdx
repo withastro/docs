@@ -1,0 +1,198 @@
+---
+type: integration
+title: '@astrojs/vercel'
+description: Learn how to use the @astrojs/vercel SSR adapter to deploy your Astro project.
+githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/vercel/'
+hasREADME: true
+category: adapter
+i18nReady: true
+---
+
+import Video from '~/components/Video.astro';
+
+Este adaptador permite que Astro despliegue tu sitio SSR en [Vercel](https://www.vercel.com/).
+
+Aprende como desplegar tu sitio Astro en nuestro [guía de despliegue en Vercel](/es/guides/deploy/vercel/).
+
+## Por qué Astro Vercel
+
+Si estás usando Astro como un generador de sitios estáticos — su comportamiento es fuera de serie — no necesitas un adaptador.
+
+Si deseas [usar renderizado del lado del servidor (SSR)](/es/guides/server-side-rendering/), Astro requiere un adaptador que coincida con el tiempo de ejecución de tu despliegue.
+
+[Vercel](https://www.vercel.com/) es una plataforma de despliegue que te permite alojar tu sitio conectándote directamente a tu repositorio de GitHub. Este adaptador mejora el proceso de compilación de Astro para preparar tu proyecto para el despliegue a través de Vercel.
+
+## Instalación
+
+Agrega el adaptador Vercel para habilitar SSR en tu proyecto Astro con el siguiente comando `astro add`. Esto instalará el adaptador y realizará los cambios apropiados en tu archivo `astro.config.mjs` en un solo paso.
+
+```sh
+# Usando NPM
+npx astro add vercel
+# Usando Yarn
+yarn astro add vercel
+# Usando PNPM
+pnpm astro add vercel
+```
+
+Si prefieres instalar el adaptador manualmente, completa los siguientes dos pasos:
+
+1. Instala el adaptador Vercel en las dependencias de tu proyecto usando tu administrador de paquetes preferido. Si estás usando npm o no estás seguro, ejecuta esto en la terminal:
+
+    ```bash
+      npm install @astrojs/vercel
+    ```
+
+2.  Agrega dos nuevas líneas a tu archivo de configuración de proyecto `astro.config.mjs`.
+
+    ```js ins={3, 6-7}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import vercel from '@astrojs/vercel/serverless';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: vercel(),
+    });
+    ```
+
+### Objetivos
+
+Puedes desplegar en diferentes objetivos:
+
+*   `edge`: SSR dentro de una [función Edge](https://vercel.com/docs/concepts/functions/edge-functions).
+*   `serverless`: SSR dentro de una [función Node.js](https://vercel.com/docs/concepts/functions/serverless-functions).
+*   `static`: genera un sitio estático siguiendo los formatos de salida, redirecciones, etc. de Vercel.
+
+:::note
+Desplegar en el Edge tiene [sus limitaciones](https://vercel.com/docs/concepts/functions/edge-functions#known-limitations). Una función de borde no puede tener más de 1 MB de tamaño y no admiten API nativas de Node.js, entre otras.
+:::
+
+You can change where to target by changing the import:
+
+
+```js
+import vercel from '@astrojs/vercel/edge';
+import vercel from '@astrojs/vercel/serverless';
+import vercel from '@astrojs/vercel/static';
+```
+
+## Uso
+
+📚 **[Lee la guía completa para despliegue aquí.](/es/guides/deploy/vercel/)**
+
+Puedes desplegar por CLI (`vercel deploy`) o conectando tu nuevo repositorio en el [Panel de Vercel](https://vercel.com/). Alternativamente, puedes crear un build de producción localmente:
+
+```sh
+astro build
+vercel deploy --prebuilt
+```
+
+## configuración
+
+Para configurar este adaptador, pasa un objecto a la invocación de función `vercel()` en `astro.config.mjs`:
+
+### analytics
+
+**Tipo:** `boolean`<br/>
+**Disponible para:** Serverless, Edge y Estático<br/>
+**Agregado en:** `@astrojs/vercel@3.1.0`
+
+Puedes habilitar [Vercel Analytics](https://vercel.com/analytics) (incluyendo Web Vitals y Audiences) configurando `analytics: true`. Esto inyectará los scripts de seguimiento de Vercel en todas tus páginas.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/serverless';
+
+export default defineConfig({
+  output: 'server',
+  adapter: vercel({
+    analytics: true
+  })
+});
+```
+
+### includeFiles
+
+**Tipo:** `string[]`<br/>
+**Disponible para:** Edge, Serverless
+
+Usa esta propiedad para forzar a que los archivos se incluyan en el empaquetado de tu función. Esto es útil cuando notas que faltan archivos.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/serverless';
+
+export default defineConfig({
+  output: 'server',
+  adapter: vercel({
+    includeFiles: ['./my-data.json']
+  })
+});
+```
+
+:::note
+Cuando se construye para el Edge, todas las dependencias se empaquetan en un solo archivo para ahorrar espacio. **No se empaquetará ningún archivo adicional**. Por lo tanto, si *necesitas* algún archivo dentro de la función, debes especificarlo en `includeFiles`.
+:::
+
+### excludeFiles
+
+**Tipo:** `string[]`<br/>
+**Disponible para:** Serverless
+
+Esa esta propiedad para excluir cualquier archivo del proceso de empaquetado que de otra manera se incluirá.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/serverless';
+
+export default defineConfig({
+  output: 'server',
+  adapter: vercel({
+    excludeFiles: ['./src/some_big_file.jpg']
+  })
+});
+```
+
+### Middleware de Vercel
+
+Puedes usar el middleware de Vercel para interceptar una solicitud y redirigirla antes de enviar una respuesta. El middleware de Vercel puede ejecutarse para despliegues de borde, SSR y estáticos. No necesitas instalar `@vercel/edge` para escribir middleware, pero si necesitas instalarlo para usar características como la geolocalización. Para obtener más información, consulta la [documentación de middleware de Vercel](https://vercel.com/docs/concepts/functions/edge-middleware).
+
+1.  Agrega un archivo `middleware.js` en la raíz de tu proyecto:
+
+    ```js
+    // middleware.js
+    export const config = {
+      // Solo ejecuta el middleware en la ruta admin
+      matcher: '/admin',
+    };
+
+    export default function middleware(request) {
+      const url = new URL(request.url);
+      // Puedes recuperar la ubicación IP o las cookies aquí.
+      if (url.pathname === "/admin") {
+        url.pathname = "/"
+      }
+      return Response.redirect(url);
+    }
+    ```
+2.  Mientras desarrollas localmente, puedes ejecutar `vercel dev` para ejecutar el middleware. En producción, Vercel lo manejará por ti.
+
+## Solución de problemas
+
+**Un par de paquetes complejos conocidos (ejemplo: [puppeteer](https://github.com/puppeteer/puppeteer)) no admiten el empaquetado y, por lo tanto, no funcionarán correctamente con este adaptador.** De forma predeterminada, Vercel no incluye los archivos y paquetes instalados de npm de la carpeta `./node_modules` de tu proyecto. Para abordar esto, el adaptador `@astrojs/vercel` empaqueta automáticamente tu salida de compilación final usando `esbuild`.
+
+Para obtener ayuda, consulta el canal `#support` en [Discord](https://astro.build/chat). ¡Nuestros amables miembros del equipo de soporte están aquí para ayudarte!
+
+## Contribuyendo
+
+Este paquete es mantenido por el equipo principal de Astro. ¡Estás invitado a enviar un problema o PR!
+
+## Changelog
+
+Ve el [CHANGELOG.md](https://github.com/withastro/astro/tree/main/packages/integrations/vercel/CHANGELOG.md) para un historial de cambios en esta integración.
+
+[astro-integration]: /es/guides/integrations-guide/
