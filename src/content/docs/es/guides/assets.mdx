@@ -1,0 +1,372 @@
+---
+title: Assets (Experimental)
+description: Aprende como activar el soporte de assets experimental en Astro.
+i18nReady: false
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+**Soporte de assets optimizados incorporados** está activado en Astro detras de un flag experimental. Está característica incorporada acabará reemplazando la integración de `@astro/image`.
+
+Las caracacterísticas de la nueva experiencia de assets:
+
+- Un nuevo componente `<Image />` incorporado
+- Imagines relativas con optimización automatica con Markdown
+- integración con coleccions de contenido
+- Mejora en los mensajes de error y de tipos
+
+:::caution
+Los assets son una característica experimental introcudia en la versión 2.1. Esta API es sujeto a cambiar antes de que sea marcada como estable. 
+:::
+
+## Activando assets en tu proyecto
+
+Activando assets puede causar algunos cambios que pueden romper tu proyecto. También requiere algunos cambios manuales para tomar ventaja de las nuevas características.
+
+Por favor, mira todas las secciones abajo para evitar errores y conseguir lo máximo de usar los assets experimentales!
+
+### Actualiza configuración
+
+Para activar el soporte incorporado de los assets, añade las siguientes lineas en tu archivo de configuración `astro.config.mjs` 
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+   assets: true
+  }
+});
+```
+
+Cuando ejecutes Astro, actualizará tu archivo `src/env.d.ts` para configurar los tipos automaticamente. Para hacer esto manualmente, remplaza la referencia `astro/client` con `astro/client-image` 
+
+```ts title="src/env.d.ts" del={1} ins={2}
+/// <reference types="astro/client" />
+/// <reference types="astro/client-image" />
+```
+
+### Mueve tus imagenes a `src/assets/` 
+
+Crea un `src/assets/`, que Astro reconozerá como tu nueva carpeta para los assets.
+
+Recomendamos que guardes todas las imagenes que van a ser optimizadas en el directorio `src/assets/`, aunque está localización es opcional. 
+
+Your images stored in `src/assets/` can be used by components (`.astro`, `.mdx`, and other UI frameworks) and in Markdown files.
+Tus imagenes guardadas en `src/assets/`, pueden ser usadas en componentes (`.astro`, `.mdx` y otros frameworks UI) y en los archivos Markdown.
+
+### Actualiza las tags `<img>` existentes
+
+Antes, importar una imagen resultaría en un simple `string` con el patrón de la imagen. Con las nuevas característica de `image` activadas, importar imagenes ahora siguen la siguiente signatura:
+
+```ts
+interface ImageMetadata {
+  src: string;
+  width: number;
+  height: number;
+  format: string;
+}
+```
+
+Debes actualizar el atributo `src` de cada etiqueta `<img>` existente, y también puede que debas actualizar otros atributos que ahora están disponibles para ti desde la imagen importada.
+
+```astro title="src/components/MyComponent.astro" ".src" ".width" ".height" del={2,5} ins={3,6}
+---
+import rocket from '../images/rocket.svg';
+import rocket from '../assets/images/rocket.svg'
+---
+<img src={rocket} width="250" height="250" alt="A rocketship in space." />
+<img src={rocket.src} width={rocket.width} height={rocket.height} alt="A rocketship in space." />
+```
+
+### Actualiza tus archivos Markdown
+
+Las imagenes relativas pueden ser referenciadas en archivos Markdown. Esto estará automaticamente optimizado y troceado por el proceso build de Astro.
+
+Esto te permite mover tus imagenes de el directorio `public/` al nuevo, resevado directorio `src/assets/` o moverlas cerca de tus archivos Markdown. (Mira la URL del patrón de estás imagenes construídas en el ejemplo de abajo)
+
+Tus imagenes existentes en `public/` y imagenes remotas, siguen siendo válidas pero no automaticamente optimizadas por el proceso build de Astro.
+
+```md title="src/pages/posts/post-1.md" "/_astro" ".hash" "../../assets/"
+# My Markdown Page
+
+<!-- Local image stored at src/assets/stars.png -->
+![A starry night sky.](../../assets/stars.png)
+<img src="/_astro/stars.hash.png" alt="A starry night sky.">
+
+<!-- Image stored at public/images/stars.png -->
+![A starry night sky.](/images/stars.png)
+<img src="/images/stars.png" alt="A starry night sky.">
+
+<!-- Remote image on another server -->
+![Astro logo](https://astro.build/assets/logo.png)
+<img src="https://astro.build/assets/logo.png" width="25" alt="Astro logo">
+```
+
+### Convertido de `@astrojs/image`
+
+**Soporte incorporado de assets es incompatible con la integración `@astrojs/image`.**
+
+Para evitar errores en tu proyecto, completa los siguientes pasos:
+
+1. Remueve la integración `@astrojs/image`.
+
+    Debes [remover la integración](/es/guides/integrations-guide/#removing-an-integration) desinstalando y después quitandola de tu archivo `astro.config.mjs`.
+
+2. Migra todo componente `<Image />` existente.
+
+    Cambia todas las declaraciones `import` de `@astrojs/image/components` a `astro:assets` para usar el nuevo componente incorporado de `<Image />`.
+
+    Remueve cada atributo del componente que no esté [actualmente soportado en las propiedades de las imagenes asset](#properties)  
+
+    Por ejemplo `aspectRatio`, no sigue soportado ya que está automaticamente inferido de los atributos `width` y `height`.
+
+      ```astro title="src/components/MyComponent.astro" del= {2,11} ins={3}
+      ---
+      import { Image } from '@astrojs/image/components';
+      import { Image } from 'astro:assets'
+      import localImage from "../assets/logo.png";
+      const localAlt = "The Astro Logo";
+      ---
+
+      <Image
+        src={localImage}
+        width={300}
+        aspectRatio="16:9"
+        alt={localAlt}
+      />
+      ```
+
+
+3. Remueve cualquier componente `<Picture />` existente.
+
+    Actualmente, la características incorporada de assets no incluye un componente `<Picture />`.
+
+    En su lugar, you can use the HTML image attributes `srcset` and `sizes` or the `<picture>` tag [for art direction or to create responsive images](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#art_direction).
+    En su lugar, puedes usar los atributos HTML `srcset` y `sizes` o la etiqueta `<picture>` [para una dirección artística o para crear imagenes responsivas](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#art_direction).
+
+
+### Actualiza los esquemas de las colecciones de contenido
+
+Ahora puedes declarar imágenes en tu frontmatter como sus patrones relativos en la actual carpeta.
+
+```md title="src/content/blog/my-post.md"
+---
+title: "My first blog post"
+cover: "./firstpostcover.jpeg" # will resolve to "src/content/blog/firstblogcover.jpeg"
+coverAlt: "A photograph of a sunset behind a mountain range"
+---
+
+This is a blog post
+```
+
+Un nuevo ayudante `image` para colecciones de contenido te permite validar la metadata de la imagen usando Zod.
+
+```ts title="src/content/config.ts"
+import { defineCollection, z } from "astro:content";
+
+const blogCollection = defineCollection({
+	schema: ({ image }) => z.object({
+		title: z.string(),
+		cover: image().refine((img) => img.width >= 1080, {
+			message: "Cover image must be at least 1080 pixels wide!",
+		}),
+		coverAlt: z.string(),
+	}),
+});
+
+export const collections = {
+	blog: blogCollection,
+};
+```
+
+Esta imagen será importada y transformada en metadata que coincida con la signatura de imágenes importadas, permitiendo pasarle un `src` a `<Image />` o `getImage()`. Un index de una página artículo puede que renderize la imagen cubierta y el título de cada artículo. 
+
+```astro title="src/pages/blog.astro" {10}
+---
+import { Image } from "astro:assets";
+import { getCollection } from "astro:content";
+const allBlogPosts = await getCollection("blog");
+---
+
+{
+	allBlogPosts.map((post) => (
+		<div>
+			<Image src={post.data.cover} alt={post.data.coverAlt} />
+			<h2>
+				<a href={"/blog/" + post.slug}>{post.data.title}</a>
+			</h2>
+		</div>
+	))
+}
+```
+
+## Modulo `astro:assets`
+
+Activar el soporte de assets te permite acceder al modulo `astro:assets`. Este modulo expone las siguientes características: 
+
+- `<Image />` (disponible en archivos `.astro` y `.mdx`)
+- `getImage()` (disponible en `.astro`, `.mdx`, `.ts`, `.js` en el servidor)
+
+:::caution
+`<Image />` es un componente de Astro y [no puede ser usado en componentes de frameworks](/es/core-concepts/framework-components/#can-i-use-astro-components-inside-my-framework-components)
+
+`getImage()` confía en APIs solo del servidor y rompe el build cuando es usado en el cliente.
+:::
+
+### `<Image />` (`astro:assets`)
+
+El componente `Image />` genera una etiqueta `<img>`. 
+
+This component can transform an image's dimensions, file type, and quality to produce an optimized image. The resulting `<img>` tag will include the correct `width` and `height` attributes to avoid Cumulative Layout Shift **(CLS)**.
+Este componente puede transformar las dimensiones de una imagen, tipo de archivo y calidad para producir una imagen optimizada. La etiqueta `<img>` resultante incluirá los correctos atributos `width` y `height` para evitar  un Cumulative Layout Shift **(CLS)**.
+
+:::tip[Qué es el Cumulative Layout Shift?]
+CLS es una puntación que reflecta cuanto contenido se ha desplazado en tu página mientras carga. El nuevo ideal para CLS es lo más cercano a cero posible, que el componente `Image` enfuerza para automaticamente seleccionar el correcto `width`y `height` para imagenes locales.
+:::
+
+Importa imagenes desde un **patrón de archivo relativo** o un [import alias](/es/guides/aliases/) en cualquier componente y entonces usa el importe como el atributo `src` del componente `<Image />`. 
+
+```astro
+---
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // Image is 1600x900
+---
+
+<!-- `alt` is mandatory on the Image component -->
+<Image src={myImage} alt="A description of my image." />
+```
+
+```astro
+<!-- Output -->
+<!-- Image is optimized, proper attributes are enforced -->
+<img
+  src="/_astro/my_image.hash.webp"
+  width="1600"
+  height="900"
+  decoding="async"
+  loading="lazy"
+  alt="A description of my image."
+/>
+```
+
+#### Propiedades
+
+##### width y height (ancho y alto)
+
+Estás propiedades definen las dimensiones de la imagen.
+
+Cuando se usan imagenes locales en su aspect ratio original, el `width` y `height` pueden ser automaticamente inferidos del archivo fuente y son opcionales. Sim embargo, ambas de estas propiedades son requeridas para imagenes remotas.
+
+##### formato
+
+Opcionalmente, puedes indicar el [tipo de archivo de la imagen](https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types#common_image_file_types) que es usado. Por defecto el formato usado es `webp`. 
+
+##### calidad
+
+`quality` es una propiedad opcional que puede ser ya sea:
+
+- Un preajuste (`low`, `mid`, `high`, `max`) que está automaticamente normalizado entre formatos.
+- Un numero de `0` a `100` (interpretado diferentemente entre formatos).
+
+##### alt (requerido)
+
+Usa el atributo `alt` para proporcionar [texto descriptivo alt](https://www.w3.org/WAI/tutorials/images/) para las imagenes.
+
+Este atributo es requerido para el componente `<Image />`. Este componente lanzará un error si no hay un texto alt proporcionado.
+
+Si la imagen es meramente decorativa (es decir no contribuye con el entendimiento de la página), pon un `alt=""` para que los lectores de pantalla sepan ignorar la imagen.
+
+##### Propiedades adicionales
+
+En suma a las propiedades de arriba, el componente `<Image />` acepta todas las propiedades aceptados por la etiqueta `<img>` en HTML. 
+
+Por ejemplo, puedes proporcionar una `class` al final elemento `img`.
+
+```astro
+---
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png";
+---
+
+<!-- `alt` is mandatory on the Image component -->
+<Image src={myImage} alt="" class="my-class" />
+```
+
+```astro
+<!-- Output -->
+<img
+  src="/_astro/my_image.hash.webp"
+  width="1600"
+  height="900"
+  decoding="async"
+  loading="lazy"
+  class="my-class"
+  alt=""
+/>
+```
+
+### `getImage()` (`astro:assets`)
+
+Está función esta intencionada para generar imagenes destinadas a ser usadas en algún otro sitio más que directamente en HTML, por ejemplo en una [Ruta API](/es/core-concepts/endpoints/#server-endpoints-api-routes). También te permitira crear tu propio componente `<Image />`.
+
+`getImage()` coge un objecto de opciones con las msimas propiedades que el componente Image (excepto `alt`).
+
+```astro
+---
+import { getImage } from "astro:assets";
+import myBackground from "../background.png"
+
+const optimizedBackground = await getImage({src: myBackground, format: 'avif'})
+---
+
+<div style={`background-image: url(${optimizedBackground.src});`}></div>
+```
+
+It returns an object with the following properties:
+
+```js
+{
+  options: {...} // Original parameters passed,
+  src: "https//..." // Path to the generated image,
+  attributes: {...} // Additional HTML attributes needed to render the image (width, height, style, etc..)
+}
+```
+
+## Usar sharp
+
+Por defecto, Astro usa [Squoosh](https://github.com/GoogleChromeLabs/squoosh) para transformar tus imagenes. Esto soporta todos los entornos JavaScript.
+
+Si estás desplegando a un entorno Node, quizá quieras usar [sharp](https://github.com/lovell/sharp), que ofrece un rendimiento más rápido pero, requiere Node. Para usar sharp, primero instalalo.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install sharp
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install sharp
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add sharp
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Después, activa el servicio de Astro de sharp en tu configuración:
+
+```js title="astro.config.mjs"
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+	experimental: {
+		assets: true,
+	},
+	image: {
+		service: "astro/assets/services/sharp",
+	},
+});
+```
