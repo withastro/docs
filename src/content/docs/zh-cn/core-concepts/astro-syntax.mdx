@@ -1,0 +1,189 @@
+---
+title: Astro 模版语法
+description: 关于 .astro 模版语法的介绍。
+---
+
+**如果你懂 HTML，那么就已经有足够的知识来编写你的第一个 Astro 组件了**。
+
+Astro 组件的语法是 HTML 的超集。该语法[设计地让所有拥有编写 HTML 或 JSX 经验的人都感到熟悉](#astro-和-jsx-间的差异)， 并且它添加了对组件和 JavaScript 表达式的支持。
+
+
+## JSX 风格的表达式
+
+你可以在 Astro 组件的两个栅栏 (`---`) 之间定义 JavaScript 变量。然后，你可以使用 JSX 风格的表达式将这些变量注入到组件的 HTML 模板中！
+
+:::note[动态 vs 响应式]
+使用这种方法，你可以包含**动态值**，它们在 frontmatter 中计算。但是，一旦包含在这些值就不会**响应式**地更新，并且永远不会改变。因为在渲染步骤中，Astro 组件模板只会只运行一次。
+
+查看更多关于 [Astro 和 JSX之间的差异](#astro-和-jsx-间的差异)。
+:::
+
+### 变量
+
+在 HTML 中可以通过花括号使用局部变量：
+
+```astro title="src/components/Variables.astro" "{name}"
+---
+const name = "Astro";
+---
+<div>
+  <h1>Hello {name}!</h1>  <!-- Outputs <h1>Hello Astro!</h1> -->
+</div>
+```
+
+### 动态属性
+
+可以在花括号中使用局部变量来将属性值传递给 HTML 元素和组件：
+
+```astro title="src/components/DynamicAttributes.astro" "{name}" "${name}"
+---
+const name = "Astro";
+---
+<h1 class={name}>支持属性表达式</h1>
+
+<MyComponent templateLiteralNameAttribute={`MyNameIs${name}`} />
+```
+
+:::caution
+HTML 属性将被转换为字符串，因此无法将函数和对象传递给 HTML 元素。例如，在 Astro 组件中无法为 HTML 元素分配事件处理程序：
+
+```astro
+---
+// dont-do-this.astro
+function handleClick () {
+    console.log("点击了按钮!");
+}
+---
+<!-- ❌ 不会正常工作！ ❌ -->
+<button onClick={handleClick}>点击后什么也不会发生!</button>
+```
+
+你应该在客户端脚本中添加事件处理器，就像在 HTML 中使用原始 JavaScript 中一样：
+
+```astro
+---
+// do-this-instead.astro
+---
+<button id="button">点我</button>
+<script>
+  function handleClick () {
+    console.log("点击了按钮!");
+  }
+  document.getElementById("button").addEventListener("click", handleClick);
+</script>
+```
+:::
+
+### 动态 HTML
+
+局部变量可以在类似 JSX 的函数中使用，来产生动态生成的 HTML 元素：
+
+```astro title="src/components/DynamicHtml.astro" "{item}"
+---
+const items = ["狗", "猫", "鸭嘴兽"];
+---
+<ul>
+  {items.map((item) => (
+    <li>{item}</li>
+  ))}
+</ul>
+```
+
+Astro 可以使用 JSX 逻辑运算符和三元表达式有条件地显示 HTML。
+
+```astro title="src/components/ConditionalHtml.astro" "visible"
+---
+const visible = true;
+---
+{visible && <p>显示我!</p>}
+
+{visible ? <p>显示我!</p> : <p>显示其他!</p>}
+```
+
+### 动态标签
+
+你也可以通过将一个变量设置为HTML标签名称或组件导入来使用动态标签：
+
+```astro title="src/components/DynamicTags.astro" /Element|(?<!My)Component/
+---
+import MyComponent from "./MyComponent.astro";
+const Element = 'div'
+const Component = MyComponent;
+---
+<Element>Hello!</Element> <!-- 渲染成 <div>Hello!</div> -->
+<Component /> <!-- 渲染成 <MyComponent /> -->
+```
+
+当你使用动态标签时:
+
+- **变量名称必须大写。** 比如 `Element`, 不是 `element`。 否则，Astro会尝试将你的变量名渲染成一个字面量的HTML标签。
+
+- **不支持 Hydration 指令。** 当使用 [`client:*` hydration 指令](/zh-cn/core-concepts/framework-components/#激活组件)，Astro 需要知道在生产中要打包哪些组件，而动态标签模式会妨碍这个功能的实现。
+
+### 片段和多元素
+
+与 JavaScript 或 JSX 不同，Astro 组件模板可以渲染多个元素，而无需将一切都包裹在单个 `<div>` 或`<>`中。
+
+```astro title="src/components/RootElements.astro"
+---
+// 多元素模板
+---
+<p>无需将元素包裹在一个元素中。</p>
+<p>Astro 支持在模板中使用多个根元素。</p>
+```
+
+然而，当使用表达式动态创建多个元素时，你应该在这些元素内部使用**片段**来包裹，就像在 JavaScript 或 JSX 中一样。Astro 支持使用 `<Fragment> </Fragment>` 或者简写形式的 `<> </>` 。
+
+```astro title="src/components/FragmentWrapper.astro" "<>" "</>"
+---
+const items = ["狗", "猫", "鸭嘴兽"];
+---
+<ul>
+  {items.map((item) => (
+    <>
+      <li>红色的 {item}</li>
+      <li>蓝色的 {item}</li>
+      <li>绿色的 {item}</li>
+    </>
+  ))}
+</ul>
+```
+
+在使用 [`set:*` 指令](/zh-cn/reference/directives-reference/#sethtml)时，片段也可以用于避免使用包装元素，如下所示：
+
+```astro title="src/components/SetHtml.astro" "Fragment"
+---
+const htmlString = '<p>Raw HTML content</p>';
+---
+<Fragment set:html={htmlString} />
+```
+
+### Astro 和 JSX 间的差异
+
+Astro 组件的语法是 HTML 的超集。它的设计使得任何有 HTML 或 JSX 经验的人都感到熟悉，但 `.astro` 文件和 JSX 之间有几个关键的区别。
+
+#### 属性
+
+在 Astro 中，所有 HTML 属性都使用标准的 `kebab-case` 格式，而不是 JSX 中使用的 `camelCase`。这甚至适用于 `class`，而 React 是不支持的。
+
+```jsx del={1} ins={2} title="example.astro"
+<div className="box" dataValue="3" />
+<div class="box" data-value="3" />
+```
+
+#### 注释
+
+在 Astro 中，你可以使用标准 HTML 注释或 JavaScript 风格注释。
+
+```astro title="example.astro"
+---
+---
+<!-- 使用 HTML 注释语法在 .astro 文件是有效 -->
+{/* JS 风格注释同样有效 */}
+```
+
+:::caution
+HTML 风格注释将包含在浏览器 DOM 中，而 JavaScript 风格注释将被跳过。如果你需要留下 TODO 消息或其他仅用于开发的解释，那么你可能需要使用 JavaScript 风格的注释。
+:::
+
+
