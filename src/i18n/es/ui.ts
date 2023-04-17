@@ -29,6 +29,7 @@ export default UIDictionary({
 	'rightSidebar.readBlog': 'Lee nuestro blog',
 	'rightSidebar.openCollective': 'Nuestro Open Collective',
 	'rightSidebar.contribute': 'Contribuye',
+	'rightSidebar.contributorGuides': 'Guías de Contribuyentes',
 	'rightSidebar.editPage': 'Edita esta página',
 	'rightSidebar.translatePage': 'Traduce esta página',
 	'rightSidebar.github': 'Documentación de Astro en GitHub',
