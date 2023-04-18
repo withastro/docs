@@ -6,4 +6,6 @@ export default NavDictionary({
 	install: '설치',
 	coreConcepts: "핵심 개념",
 	"concepts/why-astro": "왜 Astro인가",
+	'editor-setup': '에디터 설정하기',
+	'guides/upgrade-to/v2': 'v2로 업그레이드 하기',
 });
