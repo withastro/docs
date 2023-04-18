@@ -234,13 +234,11 @@ The function takes an [endpoint context](/en/reference/api-reference/#endpoint-c
 
 ### Streaming
 
-Astro enables HTTP streaming by default for all pages that are not [prerendered](#hybrid-rendering). This means that your page's content will be sent incrementally to the page as it resolves async functions and requests.
+Since browsers support HTTP streaming, a document will be broken up into chunks, sent over the network in order, and rendered on the page in that order.
 
-To control the order in which your page renders content, you can adjust where you `await` promises. 
+Astro additionally uses streaming to help "unblock" data fetching. Before this feature, Astro would wait until all data finished loading before sending HTML. Now, Astro will render and send components over the network until it finds one that `await`s a Promise. It will wait for the component's Promises to resolve, then render and send the component over the network. 
 
-When you `await` promises in the frontmatter of your page, your initial page rendering waits for this async data. Moving those requests into separate Astro components means that your page around these components can now render without waiting. Then, it will start rendering the async components in the order they are found in your page's HTML, one by one.
-
-For example, the following page fetches some data in its frontmatter, which delays page rendering:
+For example, the following page `await`s some data in its frontmatter. Astro will wait for all of the `fetch` calls to resolve before sending any HTML to the browser.
 
 ```astro title="src/pages/index.astro"
 ---
@@ -255,13 +253,14 @@ const factData = await factResponse.json();
     <title>A name and a fact</title>
   </head>
   <body>
+    <h1>A name and a fact</h1>
     <p>{randomPerson.name.first}</p>
     <p>{factData.fact}</p>
   </body>
 </html>
 ```
 
-We can move the fetch call into a component to allow the page to send down the shell of the markup (the html, head, and body) before the fetch request is done loading:
+Only the two paragraphs actually depend on the data. It would be better if Astro could render the title and the rest of the HTML first, and then send the paragraphs when the data is ready. You can do that by moving the `await` calls into smaller components: 
 
 ```astro title="src/components/RandomName.astro"
 ---
@@ -280,8 +279,6 @@ const factData = await factResponse.json();
 <p>{factData.fact}</p>
 ```
 
-And update our page to stream in the component instead:
-
 ```astro title="src/pages/index.astro" {1, 9}
 ---
 import RandomName from '../components/RandomName.astro'
@@ -292,10 +289,12 @@ import RandomFact from '../components/RandomFact.astro'
     <title>A name and a fact</title>
   </head>
   <body>
+    <h1>A name and a fact</h1>
     <RandomName />
     <RandomFact />
   </body>
 </html>
 ```
 
-Now the page will stream in the HTML around the async components first, and then resolve each component one by one, streaming the resulting HTML.
+The page will now send each part of the page whenever it is ready. Astro will first send the `head`, `body`, and `h1` tags to the browser. It will then wait for `RandomName` to finish loading its Promises, and then send the resulting HTML over the network. Then it will do the same for `RandomFact`.
+
