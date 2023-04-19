@@ -111,4 +111,5 @@ export default {
 	'fileTree.directoryLabel': 'Directory',
 	// CopyButton class in `<CodeSnippet>` component
 	'copyButton.title': 'Copy to clipboard',
+	'copyButton.tooltip': 'Copied!',
 };

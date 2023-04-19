@@ -1,5 +1,5 @@
 import { ShikiLine } from './shiki-line';
-import { CopyButton } from './copy-button';
+import { CopyButton, CopyButtonArgs } from './copy-button';
 import { InlineMarkingDefinition, LineMarkingDefinition, MarkerTypeOrder } from './types';
 
 export class ShikiBlock {
@@ -8,7 +8,7 @@ export class ShikiBlock {
 	private htmlAfterLastLine = '';
 	private copyButton: CopyButton | null = null;
 
-	constructor(highlightedCodeHtml: string, copyButtonTitle: string) {
+	constructor(highlightedCodeHtml: string, copyButtonArgs: CopyButtonArgs) {
 		if (!highlightedCodeHtml) return;
 
 		const codeBlockRegExp = /^\s*(<pre.*?><code.*?>)([\s\S]*)(<\/code><\/pre>)\s*$/;
@@ -26,7 +26,7 @@ export class ShikiBlock {
 		const innerHtmlLines = innerHtml.split(/\r?\n/);
 		this.shikiLines = innerHtmlLines.map((htmlLine) => new ShikiLine(htmlLine));
 
-		this.copyButton = new CopyButton(innerHtmlLines, copyButtonTitle);
+		this.copyButton = new CopyButton(innerHtmlLines, copyButtonArgs);
 	}
 
 	applyMarkings(lineMarkings: LineMarkingDefinition[], inlineMarkings: InlineMarkingDefinition[]) {
