@@ -397,24 +397,33 @@ function parseMarkingDefinition(serializedArr: string, parts: RegExp, parseError
 	// Find all buttons with the \`copy-button\` class on page.
 	const buttons = document.querySelectorAll('button.copy-button') as NodeListOf<HTMLButtonElement>;
 
+	// Reset timeouts on button reclick.
+	let buttonTimeout: NodeJS.Timeout, tooltipTimeout: NodeJS.Timeout;
+
 	// Handle clicks on each button.
 	buttons.forEach((button) => {
 		button.addEventListener('click', async () => {
 			const codeText = decodeURIComponent(button.value);
 			try {
+				clearTimeout(buttonTimeout);
+				clearTimeout(tooltipTimeout);
+
 				await navigator.clipboard.writeText(codeText);
+
 				button.classList.add('copy-button-success');
-				setTimeout(() => {
+				buttonTimeout = setTimeout(() => {
 					button.classList.remove('copy-button-success');
 				}, 3000);
 
 				button.nextElementSibling?.classList.add('copy-button-tooltip-visible');
-				setTimeout(() => {
+				tooltipTimeout = setTimeout(() => {
 					button.nextElementSibling?.classList.remove('copy-button-tooltip-visible');
 				}, 3000);
 			} catch (err) {
+				clearTimeout(buttonTimeout);
+
 				button.classList.add('copy-button-error');
-				setTimeout(() => {
+				buttonTimeout = setTimeout(() => {
 					button.classList.remove('copy-button-error');
 				}, 3000);
 			}
