@@ -68,6 +68,7 @@ export const logos = LogoCheck({
 	markdoc: { file: 'markdoc.svg', padding: '.35em 0 .35em .1em' },
 	gitbook: { file: 'gitbook.svg', padding: '.25em' },
 	'frontmatter-cms': { file: 'frontmatter-cms.svg', padding: '.25em' },
+	statamic: { file: 'statamic.svg', padding: '.2em' },
 });
 
 export type LogoKey = keyof typeof logos;
