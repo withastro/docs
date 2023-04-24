@@ -22,6 +22,7 @@ export default UIDictionary({
 	'rightSidebar.editPage': '编辑本页内容',
 	'rightSidebar.translatePage': '翻译本页内容',
 	'rightSidebar.contribute': '贡献',
+	'rightSidebar.contributorGuides': '贡献者指南',
 	'rightSidebar.community': '社区',
 	'rightSidebar.joinDiscord': '加入我们的 Discord',
 	'rightSidebar.readBlog': '阅读我们的博客',
