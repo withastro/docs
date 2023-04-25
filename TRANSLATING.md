@@ -32,7 +32,7 @@ See our automated [Translation Status Overview](https://i18n.docs.astro.build/) 
 Not every page is marked as "ready to translate." So, even if you find a page that is not yet translated on the Docs site, you must first confirm that it is on the list of available pages to translate. Do not translate documents that are missing:
 
 - A "Translate this page" button in the Docs site.
-- The `i18nReady: true` frontmatter property in its Markdown file.
+- The `i18nReady: true` frontmatter property in its MDX file.
 
 You can read more about how pages are marked "ready for (initial) translating" and "needs updating" in [CONTRIBUTING.md](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md).
 
@@ -53,10 +53,12 @@ Currently we are aiming to translate the Astro documentation into the following 
 Supporting a language means that Astro takes responsibility for maintaining that language going forward. It’s not just a one-time translation, and it is not just a few pages. It is continuous and ongoing updates for both content and site design, maintaining complete versions of the docs in every supported language.
 
 ### How do you choose which languages to support?
+
 1. Where our traffic comes from, and the user base we need to support
 2. Availability of community members who can commit time to maintaining the translations
 
 ### What about unsupported languages?
+
 The official docs will only contain supported languages for now, but we will be looking to add more officially supported languages as we grow.  If you would like to host translated docs yourself in another language, please let us know! We are happy to help you set this up and coordinate with future changes to the docs.
 
 ## Translation Structure
@@ -70,7 +72,7 @@ Each of these content types lives in a different place.
 
 ### 1. Documentation pages
 
-Each documentation page lives in the `src/content/docs/` directory of this <abbr title="repository">repo</abbr>. There you’ll find directories for all of the languages currently translated. Each page is a Markdown file to support rich text formatting. For example, the English language “Getting Started” page is at `src/content/docs/en/getting-started.md` and the same page in French is at `src/content/docs/fr/getting-started.md`.
+Each documentation page lives in the `src/content/docs/` directory of this <abbr title="repository">repo</abbr>. There you’ll find directories for all of the languages currently translated. Each page is a MDX file to support rich text formatting. For example, the English language “Getting Started” page is at `src/content/docs/en/getting-started.mdx` and the same page in French is at `src/content/docs/fr/getting-started.mdx`.
 
 ### 2. UI text
 
@@ -102,7 +104,7 @@ If you spot something on [docs.astro.build](https://docs.astro.build/) that you 
 
 4. Is the text specific to one page (page title, main content, etc.)?
 
-    ➤ Go to `src/content/docs/{language}/{page-slug}.md`
+    ➤ Go to `src/content/docs/{language}/{page-slug}.mdx`
 
 # Contributing to translations
 
@@ -138,7 +140,7 @@ Your description can be simple! Listing the pages and/or files changed is enough
 
 ### Commits
 
-In docs, all PRs are squashed on merge, so only its title will be shown in the main branch's commit history. This means you're free to have as many commits as you want in your PR, without the need to worry about complex git commands to erase your mistakes as you go. 
+In docs, all PRs are squashed on merge, so only its title will be shown in the main branch's commit history. This means you're free to have as many commits as you want in your PR, without the need to worry about complex git commands to erase your mistakes as you go.
 
 Feel free to keep your commit messages simple, like "Fix broken link" or "Update translations to most recent changes" provided that they're descriptive.
 
@@ -151,7 +153,6 @@ We even have an entire section in our Maintainer's Guide about [how to manually 
 So, if you're interested in helping review translation PRs, thank you! We really appreciate the effort, and we put an effort into showing it!
 
 Learn more about [how to review and suggest changes](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/reviewing-proposed-changes-in-a-pull-request) on GitHub Docs.
-
 
 ### Checklist
 
@@ -195,10 +196,9 @@ Translators are free to create and mantain a glossary, style guide and other tip
 
 Feel free to take a look at the [Deutsch Guide](https://github.com/withastro/docs/blob/main/src/i18n/de/README.md) for an example.
 
-
 ### Frontmatter
 
-Our pages are generated from Markdown files which have frontmatter properties. These are variables that hold information about the page (values) that we later use to specify the page's title, description, and other special data. 
+Our pages are generated from MDX files which have frontmatter properties. These are variables that hold information about the page (values) that we later use to specify the page's title, description, and other special data.
 
 Here's an example file showing the **properties** of `layout`, `title`, `description`, and `i18nReady` along with their corresponding values for this page.
 
@@ -212,13 +212,14 @@ i18nReady: true
 
 // Rest of the file's content is here...
 ```
+
 **tl/dr: Translate only some values, never translate properties!**
 
 The frontmatter **properties** themselves, like `title` and `description`, should not be translated, as doing so would cause a runtime error and break our CI.
 
 The only frontmatter **values** that should be translated are those corresponding to the `title` and `description` properties: "*Data Fetching*" and "*Learn how to fetch remote data with Astro using the fetch API*."
 
-Other frontmatter properties that aren't mentioned here should be ignored and not translated, as we use them for handling our "Edit this page" links or for specifying in which category an integration belongs, etc. 
+Other frontmatter properties that aren't mentioned here should be ignored and not translated, as we use them for handling our "Edit this page" links or for specifying in which category an integration belongs, etc.
 
 Here is the above example correctly translated:
 
@@ -232,7 +233,6 @@ i18nReady: true
 
 // Rest of the file's content is here...
 ```
-
 
 ### Code Samples
 
@@ -250,7 +250,7 @@ Prefer to try Astro in your browser? Visit [astro.new](https://astro.new/) to br
 :::
 ```
 
-**Do translate**: the custom inline labels inside `[square brackets]`, and the text inside the aside block. 
+**Do translate**: the custom inline labels inside `[square brackets]`, and the text inside the aside block.
 
 **Do not translate**: the aside's type (e.g. `:::tip`). These type names are instead translated once in each language's `i18n/nav.ts` file and are automatically replaced in your translated page as necessary.
 
@@ -264,7 +264,7 @@ Here is the above example correctly translated:
 
 ### Components
 
-Astro allows us to import and include custom components in our Markdown pages. Take this fragment of the `islands.md` page, which renders a diagram, as an example:
+Astro allows us to import and include custom components in our pages using MDX. Take this fragment of the `islands.mdx` page, which renders a diagram, as an example:
 
 ```jsx
 <IslandsDiagram>
@@ -281,7 +281,7 @@ Astro allows us to import and include custom components in our Markdown pages. T
 
 **Do translate**: slotted content (content between the opening and closing tags).
 
-**Do not translate**: import statements in the frontmatter, component names, and slot names (like `slot="headerApp"`) 
+**Do not translate**: import statements, component names, and slot names (like `slot="headerApp"`).
 
 Here is the above example correctly translated:
 
@@ -306,25 +306,34 @@ Some of our English page content is generated from outside sources, and must not
 
 However, these pages are translated directly here and **these warnings are not meant for translations**.
 
-For these generated pages (like `configuration-reference.md`), we recommend **ignoring and removing the note and component (including its import) from the file**, thus avoiding confusion for other translators thinking that this warning applies to translations as well.
+For these generated pages (like `configuration-reference.mdx`), we recommend **ignoring and removing the note and component (including its import) from the file**, thus avoiding confusion for other translators thinking that this warning applies to translations as well.
 
+### Tutorials
+
+Some of our pages belong to tutorials, which are a linear sequence of lessons to introduce users to Astro concepts. They also include custom components that you can find the labels for translation in the language's `i18n/ui.ts` file, as described in the [Translation Structure section](#2-ui-text).
+
+Considering how distracting it would be to try to follow a tutorial with only some translated pages, we cannot merge partial tutorial translations, only fully translated ones. But, that's a huge job for one translator! We care about making our translator workflow sustainable, so we've made a few guidelines specifically for the tutorial pages to avoid burdening any contributor working on them:
+
+- Tutorial translation PRs are recommended to contain 1-3 lessons (each lesson is its own `.mdx` file) or a full unit if small (equivalent to a chapter of the tutorial). This is not only to help translators work in smaller units, but also allows reviewers to have smaller PRs to review.
+
+- All translations will be merged in a custom branch first, and then merged into `main` once the tutorial is 100% complete. No need to change anything in your PR workflow! Your PRs should be to the `main` branch, like any other translation PR, and we will take care of creating and changing the merge target to the custom branch set up by us. This allows the tutorial to be translated in smaller pieces, in the same way you would translate any other page, without making these changes go live on the docs site until the tutorial is fully translated.
 
 ## Adding a new language
 
 > 🛑 **Please don’t add a new language without first consulting with the docs team in [the `#docs-i18n` channel on Discord](https://astro.build/chat).**
 
-### Prerequisites 
+### Prerequisites
 
 To get started adding a language, you’ll need:
 
 1. **Its BCP 47 tag**
 
     Examples: `en` / `pt-BR` / `ar`
-    
+
     This will be used for the HTML `lang` attribute and as the base for URLs for this language, e.g. `/{tag}/getting-started`. These tags can encode script-type and regions as well as language, but most often we will only need the language part unless we want to distinguish regional variants (as in the `pt-BR` example above).
 
     #### Resources
-    
+
     - [Choosing a Language Tag](https://www.w3.org/International/questions/qa-choosing-language-tags) (in-depth guide)
     - [Subtag lookup web app](https://r12a.github.io/app-subtags/)
     - [IANA subtag registry](http://www.iana.org/assignments/language-subtag-registry/language-subtag-registry)
