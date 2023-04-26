@@ -28,7 +28,7 @@ yarn create astro
 pnpm create astro@latest
 ```
 
-[`create-astro`](https://github.com/withastro/astro/tree/main/packages/create-astro) 精靈提供一些[上手範本](/zh-TW/examples)進行挑選。或者，也可以直接從 Github 匯入自己的 Astro 專案。
+[`create-astro`](https://github.com/withastro/astro/tree/main/packages/create-astro) 精靈提供一些[上手範本](/zh-TW/examples)進行挑選。或者，也可以直接從 GitHub 匯入自己的 Astro 專案。
 
 ```bash
 # 提醒：把「my-astro-project」改為專案的名稱。

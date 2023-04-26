@@ -60,13 +60,46 @@ const rawHTMLString = "Hello <strong>World</strong>"
   <!-- 输出：<h1>Hello <strong>World</strong></h1> -->
 ```
 
-你也可以在 `<Fragment>` 上使用 `set:html` 来避免添加不必要的包装元素。这在从 CMS 获取 HTML 时特别有用。
+你也可以在 `<Fragment>` 上使用 `set:html` 来避免添加不必要的封装元素。这在从 CMS 获取 HTML 时特别有用。
 
 ```astro
 ---
 const cmsContent = await fetchHTMLFromMyCMS();
 ---
 <Fragment set:html={cmsContent}>
+```
+
+`set:html={Promise<string>}` 将封装在 Promise 中的 HTML 字符串注入到元素中。
+
+这可用于注入存储在外部的 HTML，例如在数据库中。
+
+```astro
+---
+import api from '../db/api.js';
+---
+<article set:html={api.getArticle(Astro.props.id)}></article>
+```
+
+`set:html={Promise<Response>}`将一个[Response 响应](https://developer.mozilla.org/zh-CN/docs/Web/API/Response)注入到元素中。
+
+这在使用 `fetch()` 时最有用。 例如，从以前的静态站点生成器中获取旧的文章。
+
+```astro
+<article set:html={fetch('http://example/old-posts/making-soup.html')}></article>
+```
+
+`set:html` 可以用在任何标签上，不必包含 HTML。例如，在 `<script>` 标签上使用 [`JSON.stringify()`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify) 将 [JSON-LD](https://json-ld.org/) 模式添加到您的页面。
+
+```astro
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org/",
+  "@type": "Person",
+  name: "Houston",
+  hasOccupation: {
+    "@type": "Occupation",
+    name: "Astronaut"
+  }
+})}/>
 ```
 
 ### `set:text`
@@ -80,6 +113,8 @@ const cmsContent = await fetchHTMLFromMyCMS();
 这些指令描述了如何激活 [UI 框架组件](/zh-cn/core-concepts/framework-components/)。
 
 默认情况下，UI 框架组件不会在客户端激活。如果没有 `client:*` 指令，它的 HTML 将被渲染到页面上，而无需 JavaScript。
+
+客户端指令只能用于直接引入到 `.astro` 组件中的 UI 框架组件。 使用[动态标签](/zh-cn/core-concepts/astro-syntax/#dynamic-tags)和[通过 `components` prop 传递的自定义组件](/zh-cn/guides/markdown-content/#使用导入的-mdx-的自定义组件)时，不支持 Hydration 指令。
 
 ### `client:load`
 
@@ -97,7 +132,7 @@ const cmsContent = await fetchHTMLFromMyCMS();
 - **优先级**：中
 - **适用于**：优先级较低的 UI 元素，不需要立即进行互动。
 
-一旦页面完成了初始加载，并触发 `requestIdleCallback` 事件，就会加载并激活组件中的 JavaScript。如果你所在的浏览器不支持 [`requestIdleCallback`](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback)，那么就会使用文档 [`load`](https://developer.mozilla.org/en-US/docs/Web/API/Window/load_event) 事件。
+一旦页面完成了初始加载，并触发 `requestIdleCallback` 事件，就会加载并激活组件中的 JavaScript。如果你所在的浏览器不支持 [`requestIdleCallback`](https://developer.mozilla.org/zh-CN/docs/Web/API/Window/requestIdleCallback)，那么就会使用文档 [`load`](https://developer.mozilla.org/zh-CN/docs/Web/API/Window/load_event) 事件。
 
 ```astro
 <ShowHideButton client:idle />
@@ -108,7 +143,7 @@ const cmsContent = await fetchHTMLFromMyCMS();
 - **优先级**：低
 - **适用于**：低优先级 UI 元素，这些元素要么在页面的下方（折叠中），要么加载时非常耗费资源，如果用户没有看到这些元素，你宁愿不加载它们。
 
-一旦组件进入用户的视口，就加载组件的 JavaScript 并使其激活。这在其内部使用 `IntersectionObserver` 来跟踪无障碍。
+一旦组件进入用户的视口，就加载组件的 JavaScript 并使其激活。这在其内部使用 `IntersectionObserver` 来跟踪可见性。
 
 ```astro
 <HeavyImageCarousel client:visible />
@@ -151,7 +186,7 @@ const cmsContent = await fetchHTMLFromMyCMS();
 
 默认情况下，Astro 会自动将 `<style>` CSS 规则扩展到组件上。你可以用 `is:global` 指令禁用该行为。
 
-`is:global` 使 `<style>` 标签的内容在包含该组件的页面上全面应用。这使得 Astro 的 CSS 作用域系统失效。这相当于用 `:global()` 来包装 `<style>` 标签内的所有选择器。
+`is:global` 使 `<style>` 标签的内容在包含该组件的页面上全面应用。这使得 Astro 的 CSS 作用域系统失效。这相当于用 `:global()` 来封装 `<style>` 标签内的所有选择器。
 
 你可以在组件中同时使用 `<style>` 和 `<style is:global>`，创建一些全局样式规则，同时仍对大部分组件 CSS 进行作用域控制。
 
@@ -165,13 +200,13 @@ const cmsContent = await fetchHTMLFromMyCMS();
 
 ### `is:inline`
 
-默认情况下，Astro 会处理、压缩和捆绑它在页面上看到的任何 `<script>` 和 `<style>` 标签。你可以用 `is:inline` 指令禁用该行为。
+默认情况下，Astro 会处理、压缩和打包它在页面上看到的任何 `<script>` 和 `<style>` 标签。你可以用 `is:inline` 指令禁用该行为。
 
-`is:inline` 可以让 Astro 将 `<script>` 或 `<style>` 标签原封不动地留在最终输出的 HTML 中。这些内容将不会被处理、压缩或捆绑。它限制了 Astro 的一些功能，比如导入 npm 包或使用像 Sass 这样的 CSS 编译语言。
+`is:inline` 可以让 Astro 将 `<script>` 或 `<style>` 标签原封不动地留在最终输出的 HTML 中。这些内容将不会被处理、压缩或打包。它限制了 Astro 的一些功能，比如导入 npm 包或使用像 Sass 这样的 CSS 编译语言。
 
 `is:inline` 指令意味着 `<style>` 和 `<script>` 标签：
 
-- 不会被捆绑到外部文件中。
+- 不会被打包到外部文件中。这意味着控制外部文件加载的[属性（如 `defer`）](https://javascript.info/script-async-defer)将不起作用。
 - 不会被重复使用——该元素会在渲染时出现多次。
 - 它的 `import`/`@import`/`url()` 引用不基于 `.astro` 文件地址进行解析。
 - 将进行预处理，例如 `<style lang="sass">` 属性仍将生成纯 CSS。
@@ -195,11 +230,11 @@ const cmsContent = await fetchHTMLFromMyCMS();
 </script>
 ```
 
-📚 查看[客户端脚本](/zh-cn/core-concepts/astro-components/#客户端脚本)如何在 Astro 组件中工作。
+📚 查看[客户端脚本](/zh-cn/guides/client-side-scripts/)如何在 Astro 组件中工作。
 
 ### `define:vars`
 
-`define:vars={...}` 可以将服务器端的变量从组件 frontmatter 传递给客户端的 `<script>` 或 `<style>` 标签。支持任何 **JSON 可序列化的** front matter 变量，包括通过 `Astro.props` 传递给组件的 `props`。值可以使用 [`JSON.stringify()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify) 进行序列化。
+`define:vars={...}` 可以将服务器端的变量从组件 frontmatter 传递给客户端的 `<script>` 或 `<style>` 标签。支持任何 **JSON 可序列化的** frontmatter 变量，包括通过 `Astro.props` 传递给组件的 `props`。值可以使用 [`JSON.stringify()`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify) 进行序列化。
 
 ```astro
 ---
@@ -220,7 +255,11 @@ const message = "Astro is awesome!";
 ```
 
 :::caution
-在 `<script>` 或 `<style>` 标签上使用 `define:vars` 相当于使用 [`is:inline` 指令](#isinline)，这意味着脚本或样式不会被捆绑，将直接内联到 HTML 中。
+在 `<script>` 或 `<style>` 标签上使用 `define:vars` 相当于使用 [`is:inline` 指令](#isinline)，这意味着脚本或样式不会被打包，将直接内联到 HTML 中。
+
+这是因为当 Astro 打包一个脚本时，即使你在一个页面上多次包含了包含脚本的组件，它也会包含并运行该脚本一次。`define：vars` 需要一个脚本来重新运行每组值，所以 Astro 创建了一个内联脚本来代替。
+
+对于脚本，请尝试[手动将变量传递给脚本](/zh-cn/guides/client-side-scripts/#将-frontmatter-变量传递给脚本)。
 :::
 
 ## 高级指令

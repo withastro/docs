@@ -64,7 +64,7 @@ export default UIDictionary({
 	'progress.done': 'Готово',
 	'progress.todo': 'Что нужно сделать',
 	'rightSidebar.a11yTitle': 'Вторичное',
-	'rightSidebar.github': 'Документация Astro на Github',
+	'rightSidebar.github': 'Документация Astro на GitHub',
 	'rightSidebar.overview': 'Обзор',
 	'since.addedIn': 'Добавлено в:',
 	'since.beta': 'Бета',
