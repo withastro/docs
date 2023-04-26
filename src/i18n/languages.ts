@@ -2,7 +2,7 @@
  * Map of language codes to a written out language name.
  * Used to populate the language switcher in the navbar.
  */
-export default {
+let languages = {
 	en: 'English',
 	de: 'Deutsch',
 	'pt-br': 'Português do Brasil',
@@ -16,5 +16,14 @@ export default {
 	pl: 'Polski',
 	ru: 'Русский',
 } as const;
+
+if (import.meta.env.PUBLIC_ONLY_EN) {
+	// @ts-expect-error
+	languages = {
+		en: 'English',
+	};
+}
+
+export default languages;
 
 export const rtlLanguages = new Set(['ar']);

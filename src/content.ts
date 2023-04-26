@@ -5,3 +5,8 @@ export const allPages = await getCollection('docs');
 export const tutorialPages = allPages.filter(isTutorialEntry);
 export const recipePages = allPages.filter(isRecipeEntry);
 export const englishPages = allPages.filter(isEnglishEntry);
+
+if (import.meta.env.PUBLIC_ONLY_EN) {
+	allPages.length = 0;
+	allPages.push(...englishPages);
+}
