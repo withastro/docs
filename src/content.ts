@@ -1,12 +1,17 @@
 import { getCollection } from 'astro:content';
 import { isEnglishEntry, isRecipeEntry, isTutorialEntry } from './content/config';
 
-export const allPages = await getCollection('docs');
+export const allPages = await getAllPages();
 export const tutorialPages = allPages.filter(isTutorialEntry);
 export const recipePages = allPages.filter(isRecipeEntry);
 export const englishPages = allPages.filter(isEnglishEntry);
 
-if (import.meta.env.PUBLIC_ONLY_EN) {
-	allPages.length = 0;
-	allPages.push(...englishPages);
+async function getAllPages() {
+	const pages = await getCollection('docs');
+
+	if (import.meta.env.PUBLIC_ONLY_EN) {
+		return pages.filter(isEnglishEntry);
+	} else {
+		return pages;
+	}
 }
