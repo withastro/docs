@@ -18,7 +18,7 @@ let languages = {
 } as const;
 
 if (import.meta.env.PUBLIC_ONLY_EN) {
-	// @ts-expect-error
+	// @ts-expect-error This conflicts with the const type above, but it's fine when building
 	languages = {
 		en: 'English',
 	};
