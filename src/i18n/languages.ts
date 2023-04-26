@@ -22,7 +22,7 @@ if (import.meta.env.PUBLIC_TWO_LANG) {
 	// @ts-expect-error This conflicts with the const type above, but it's fine when building
 	languages = {
 		en: 'English',
-		de: 'Deutsch',
+		ko: '한국어',
 	};
 }
 
