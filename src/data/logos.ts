@@ -66,6 +66,7 @@ export const logos = LogoCheck({
 	keystonejs: { file: 'keystonejs.svg', padding: '.25em' },
 	appwriteio: { file: 'appwriteio.svg', padding: '.125em' },
 	supabase: { file: 'supabase.svg', padding: '.125em' },
+	tigris: { file: 'tigris.png', padding: '.3em .1em' },
 	cloudcannon: { file: 'cloudcannon.svg', padding: '.25em' },
 	markdoc: { file: 'markdoc.svg', padding: '.35em 0 .35em .1em' },
 	gitbook: { file: 'gitbook.svg', padding: '.25em' },
