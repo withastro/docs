@@ -1,5 +1,10 @@
 import { getCollection } from 'astro:content';
-import { isEnglishEntry, isRecipeEntry, isTutorialEntry } from './content/config';
+import {
+	createIsLangEntry,
+	isEnglishEntry,
+	isRecipeEntry,
+	isTutorialEntry,
+} from './content/config';
 
 export const allPages = await getAllPages();
 export const tutorialPages = allPages.filter(isTutorialEntry);
@@ -9,8 +14,12 @@ export const englishPages = allPages.filter(isEnglishEntry);
 async function getAllPages() {
 	const pages = await getCollection('docs');
 
-	if (import.meta.env.PUBLIC_ONLY_EN) {
-		return pages.filter(isEnglishEntry);
+	// Build for two languages only to speed up Astro's smoke tests
+	if (import.meta.env.PUBLIC_TWO_LANG) {
+		const isDeutschEntry = createIsLangEntry('de');
+		return pages.filter((entry) => {
+			return isEnglishEntry(entry) || isDeutschEntry(entry);
+		});
 	} else {
 		return pages;
 	}

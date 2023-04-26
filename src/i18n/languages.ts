@@ -17,10 +17,12 @@ let languages = {
 	ru: 'Русский',
 } as const;
 
-if (import.meta.env.PUBLIC_ONLY_EN) {
+// Build for two languages only to speed up Astro's smoke tests
+if (import.meta.env.PUBLIC_TWO_LANG) {
 	// @ts-expect-error This conflicts with the const type above, but it's fine when building
 	languages = {
 		en: 'English',
+		de: 'Deutsch',
 	};
 }
 
