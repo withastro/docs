@@ -6,7 +6,7 @@ import {
 	isTutorialEntry,
 } from './content/config';
 
-const isKoreanEntry = createIsLangEntry('de');
+const isKoreanEntry = createIsLangEntry('ko');
 
 export const allPages = await getCollection('docs', (entry) => {
 	if (import.meta.env.PUBLIC_TWO_LANG) {
