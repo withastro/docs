@@ -1,0 +1,64 @@
+---
+import { getEntryBySlug } from 'astro:content';
+import { removeLeadingSlash, removeTrailingSlash } from '~/util';
+
+export interface Props {
+	slugs: string[];
+}
+
+const slugs = Astro.props.slugs.map((slug) => removeLeadingSlash(removeTrailingSlash(slug)));
+
+const entries = await Promise.all(
+	slugs.map(async (slug, i) => {
+		const entry = await getEntryBySlug('docs', slug);
+		if (!entry) {
+			throw new Error(`Could not find entry for slug "${Astro.props.slugs[i]}"`);
+		}
+		return entry;
+	})
+);
+
+const isList = entries.length > 1;
+const noun = isList ? 'recipes' : 'recipe';
+---
+
+<div class="root">
+	<div class="flex">
+		<img src="/houston_chef.webp" width="26" alt="" />
+		<strong>Related {noun}:</strong>
+		{!isList && <a href={`/${entries[0]!.slug}/`}> {entries[0]!.data.title}</a>}
+	</div>
+	{
+		isList && (
+			<ul>
+				{entries.map((entry) => (
+					<li>
+						<a href={`/${entry!.slug}/`}>{entry!.data.title}</a>
+					</li>
+				))}
+			</ul>
+		)
+	}
+</div>
+
+<style>
+	.flex {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.25rem;
+	}
+	.flex > img {
+		margin-right: 0.25rem;
+	}
+	ul {
+		margin-left: 0.5rem;
+	}
+	.root {
+		background-color: var(--theme-bg-offset);
+		border-radius: 8px;
+		padding: 24px;
+		width: max-content;
+		max-width: 100%;
+	}
+</style>
