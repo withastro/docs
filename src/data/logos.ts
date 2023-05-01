@@ -42,7 +42,7 @@ export const logos = LogoCheck({
 	contentful: { file: 'contentful.svg', padding: '.05em' },
 	directus: { file: 'directus.svg', padding: '0 .1em' },
 	ghost: { file: 'ghost.png', padding: '.125em' },
-	'netlify-cms': { file: 'netlify-cms.svg', padding: '.1625em' },
+	'decap-cms': { file: 'decap-cms.svg', padding: '0 .225em 0 .26em' },
 	'tina-cms': { file: 'tina-cms.svg', padding: '.15em' },
 	payload: { file: 'payload.svg', padding: '.3em .25em .3em .3em' },
 	prismic: { file: 'prismic.svg', padding: '.25em' },
@@ -67,6 +67,7 @@ export const logos = LogoCheck({
 	cloudcannon: { file: 'cloudcannon.svg', padding: '.25em' },
 	markdoc: { file: 'markdoc.svg', padding: '.35em 0 .35em .1em' },
 	gitbook: { file: 'gitbook.svg', padding: '.25em' },
+	'frontmatter-cms': { file: 'frontmatter-cms.svg', padding: '.25em' },
 	statamic: { file: 'statamic.svg', padding: '.2em' },
 });
 
