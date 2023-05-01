@@ -5,5 +5,126 @@ type: baas
 service: Firebase
 stub: true
 ---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import FileTree from '~/components/FileTree.astro'
+
 
 [Firebase](https://firebase.google.com/) is an app development platform that provides a NoSQL database, authentication, realtime subscriptions, functions, and storage.
+
+## Adding authentication with Firebase
+
+### Preqrequisites
+
+- A Firebase project with a web app configured: Check the [Firebase docs](https://firebase.google.com/docs/web/setup) for more information on how to create a new project and configure a web app.
+- An Astro project with server side rendering (SSR) enabled: Check our [server side rendering](/en/guides/server-side-rendering/#enabling-ssr-in-your-project) page for more information.
+- Firebase credentials: You will need two sets of credentials to connect Astro to Firebase:
+  - Web app credentials: These credentials will be used by the client side of your app. You can find them in the Firebase console under Project settings > General, scroll down to the "Your apps" section and click on the "Web app" icon.
+  - Project credentials: These credentials will be used by the server side of your app. You can generate them in the Firebase console under Project settings > Service accounts > Firebase Admin SDK > Generate new private key.
+
+### Setting up credentials
+
+To add your Firebase credentials to Astro, create an `.env` file in the root of your project with the following variables:
+
+```ini title=".env"
+FIREBASE_PRIVATE_KEY_ID=YOUR_SPACE_ID
+FIREBASE_PRIVATE_KEY=YOUR_DELIVERY_TOKEN
+FIREBASE_PROJECT_ID=YOUR_PREVIEW_TOKEN
+```
+
+Now, you should be able to use these environment variables in your project. 
+
+If you would like to have IntelliSense for your Firebase environment variables, create an `env.d.ts` file in the `src/` directory and configure your types like this:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly FIREBASE_PRIVATE_KEY_ID: string;
+  readonly FIREBASE_PRIVATE_KEY: string;
+  readonly FIREBASE_PROJECT_ID: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+:::tip
+Read more about [environment variables](/en/guides/environment-variables/) and `.env` files in Astro.
+:::
+
+Your root directory should now include these new files:
+
+<FileTree title="Project Structure">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+
+### Installing dependencies
+
+To connect Astro with Firebase, install the following packages using the single command below for your preferred package manager:
+
+- `firebase` - the Firebase SDK for the client side
+- `firebase-admin` - the Firebase Admin SDK for the server side
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install firebase firebase-admin
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install firebase firebase-admin
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn install firebase firebase-admin
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Next, create a folder called `firebase` in the `src/` directory and create two new files called `client.ts` and `server.ts`  inside of it. This two file will contain the code to initialize Firebase on the client and server side of your app.
+
+
+```ts title="src/firebase/server.ts"
+import type { ServiceAccount } from "firebase-admin";
+import { initializeApp, cert } from "firebase-admin/app";
+
+const serviceAccount = {
+  type: "service_account",
+  project_id: import.meta.env.FIREBASE_PROJECT_ID,
+  private_key_id: import.meta.env.FIREBASE_PRIVATE_KEY_ID,
+  private_key: import.meta.env.FIREBASE_PRIVATE_KEY,
+  client_email:
+    "firebase-adminsdk@astro-auth-6cc43.iam.gserviceaccount.com",
+  client_id: "100068165142027748424",
+  auth_uri: "https://accounts.google.com/o/oauth2/auth",
+  token_uri: "https://oauth2.googleapis.com/token",
+  auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
+  client_x509_cert_url:
+    "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk.iam.gserviceaccount.com",
+};
+
+export const app = initializeApp({
+  credential: cert(serviceAccount as ServiceAccount),
+});
+```
+
+```ts title="src/firebase/client.ts"
+import { initializeApp } from "firebase/app";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD8bSsEcYrV7Whgf8L6UD_P4M9SR_jb81k",
+  authDomain: "astro-firebase.firebaseapp.com",
+  projectId: "astro-firebase",
+  storageBucket: "astro-firebase.appspot.com",
+  messagingSenderId: "469295571959",
+  appId: "1:469295571959:web:20b9159723f8113f2744f2",
+};
+
+export const app = initializeApp(firebaseConfig);
+```
