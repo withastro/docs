@@ -11,6 +11,432 @@ import FileTree from '~/components/FileTree.astro'
 
 [Firebase](https://firebase.google.com/) is an app development platform that provides a NoSQL database, authentication, realtime subscriptions, functions, and storage.
 
+## Adding authentication with Firebase
+
+### Prerequisites
+
+- A Firebase project with a web app configured: Check the [Firebase docs](https://firebase.google.com/docs/web/setup) for more information on how to create a new project and configure a web app.
+- An Astro project with server side rendering (SSR) enabled: Check our [server side rendering](/en/guides/server-side-rendering/#enabling-ssr-in-your-project) page for more information.
+- Firebase credentials: You will need two sets of credentials to connect Astro to Firebase:
+  - Web app credentials: These credentials will be used by the client side of your app. You can find them in the Firebase console under Project settings > General, scroll down to the "Your apps" section and click on the "Web app" icon.
+  - Project credentials: These credentials will be used by the server side of your app. You can generate them in the Firebase console under Project settings > Service accounts > Firebase Admin SDK > Generate new private key.
+
+### Setting up credentials
+
+To add your Firebase credentials to Astro, create an `.env` file in the root of your project with the following variables:
+
+```ini title=".env"
+FIREBASE_PRIVATE_KEY_ID=YOUR_SPACE_ID
+FIREBASE_PRIVATE_KEY=YOUR_DELIVERY_TOKEN
+FIREBASE_PROJECT_ID=YOUR_PREVIEW_TOKEN
+```
+
+Now, you should be able to use these environment variables in your project. 
+
+If you would like to have IntelliSense for your Firebase environment variables, create an `env.d.ts` file in the `src/` directory and configure your types like this:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly FIREBASE_PRIVATE_KEY_ID: string;
+  readonly FIREBASE_PRIVATE_KEY: string;
+  readonly FIREBASE_PROJECT_ID: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+:::tip
+Read more about [environment variables](/en/guides/environment-variables/) and `.env` files in Astro.
+:::
+
+Your root directory should now include these new files:
+
+<FileTree title="Project Structure">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+
+### Installing dependencies
+
+To connect Astro with Firebase, install the following packages using the single command below for your preferred package manager:
+
+- `firebase` - the Firebase SDK for the client side
+- `firebase-admin` - the Firebase Admin SDK for the server side
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install firebase firebase-admin
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install firebase firebase-admin
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn install firebase firebase-admin
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Next, create a folder named `firebase` in the `src/` directory. 
+Inside the firebase folder create two files, `client.ts` and `server.ts`.
+
+The `client.ts` file will contain the code to initialize Firebase in the client using the web app credentials.
+
+```ts title="src/firebase/client.ts"
+import { initializeApp } from "firebase/app";
+
+const firebaseConfig = {
+  apiKey: "my-public-api-key",
+  authDomain: "astro-firebase.firebaseapp.com",
+  projectId: "astro-firebase",
+  storageBucket: "astro-firebase.appspot.com",
+  messagingSenderId: "469295531959",
+  appId: "1:469295531959:web:20b9159723f8113f2744f2",
+};
+
+export const app = initializeApp(firebaseConfig);
+```
+
+:::note
+Do not forget to replace the `firebaseConfig` object with your own web app credentials.
+:::
+
+The `server.ts` file will contain the code to initialize Firebase in the server using the project credentials. Since this file will be used in the server, we will use the Firebase Admin SDK instead of the Firebase SDK.
+
+```ts title="src/firebase/server.ts"
+import type { ServiceAccount } from "firebase-admin";
+import { initializeApp, cert } from "firebase-admin/app";
+
+const serviceAccount = {
+  type: "service_account",
+  project_id: import.meta.env.FIREBASE_PROJECT_ID,
+  private_key_id: import.meta.env.FIREBASE_PRIVATE_KEY_ID,
+  private_key: import.meta.env.FIREBASE_PRIVATE_KEY,
+  client_email: "example@astro.build",
+  client_id: "100068165101237748424",
+  auth_uri: "https://accounts.google.com/o/oauth2/auth",
+  token_uri: "https://oauth2.googleapis.com/token",
+  auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
+  client_x509_cert_url:
+    "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk.iam.gserviceaccount.com",
+};
+
+export const app = initializeApp({
+  credential: cert(serviceAccount as ServiceAccount),
+});
+```
+
+:::note
+Do not forget to replace the `serviceAccount` object with your own project credentials.
+:::
+
+Finally, your root directory should now include these new files:
+
+<FileTree title="Project Structure">
+- src
+  - env.d.ts
+  - firebase
+    - **client.ts**
+    - **server.ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Setting up server endpoints
+
+To set up authentication in Astro, we will use [Astro server endpoints](/en/core-concepts/endpoints/) to create three server endpoints:
+
+- `GET /api/auth/signin` - to sign in a user
+- `GET /api/auth/signout` - to sign out a user
+- `POST /api/auth/register` - to register a user
+
+To better organize our endpoints, we will create a folder named `auth` inside the `api` folder. Inside the `auth` folder, we will store all the endpoints related to authentication.
+
+Create a file named `signin.ts` inside the `pages/api/auth/` folder. This file will contain the code to sign in a user using Firebase.
+
+```ts title="src/pages/api/auth/signin.ts"
+import type { APIRoute } from "astro";
+import { app } from "../../../lib/firebase/server";
+import { getAuth } from "firebase-admin/auth";
+
+export const get: APIRoute = async ({ request, cookies, redirect }) => {
+  const auth = getAuth(app);
+
+  /* Get token from request headers */
+  const idToken = request.headers.get("Authorization")?.split("Bearer ")[1];
+  if (!idToken) {
+    return new Response(
+      JSON.stringify({
+        error: "No token found",
+      }),
+      { status: 401 }
+    );
+  }
+
+  /* Verify the token */
+  const decodedToken = await auth.verifyIdToken(idToken).catch(() => null);
+
+  if (!decodedToken) {
+    return new Response(
+      JSON.stringify({
+        error: "Invalid token",
+      }),
+      { status: 401 }
+    );
+  }
+
+  const fiveDays = 60 * 60 * 24 * 5 * 1000;
+
+  /* Create and set session cookie */
+  const sessionCookie = await auth.createSessionCookie(idToken, {
+    expiresIn: fiveDays,
+  });
+
+  cookies.set("session", sessionCookie, {
+    path: "/",
+    // more options
+  });
+
+  return redirect("/dashboard");
+};
+```
+
+:::note
+This is a basic implementation of the login endpoint. You can add more logic to this endpoint to suit your needs.
+:::
+
+Next, create a file named `signout.ts` inside the `auth` folder. This file will contain the code to log out a user by deleting the session cookie.
+
+```ts title="src/pages/api/auth/signout.ts"
+import type { APIRoute } from "astro";
+
+export const get: APIRoute = async ({ redirect, cookies }) => {
+  cookies.delete("session", {
+    path: "/",
+  });
+  return redirect("/signin");
+};
+```
+
+:::note
+This is a basic implementation of the logout endpoint. You can add more logic to this endpoint to suit your needs.
+:::
+
+Next, create a file named `register.ts` inside the `auth` folder. This file will contain the code to register a user using Firebase.
+
+```ts title="src/pages/api/auth/register.ts"
+import type { APIRoute } from "astro";
+import { getAuth } from "firebase-admin/auth";
+import { app } from "../../../firebase/server";
+
+export const post: APIRoute = async ({ request, redirect }) => {
+  const auth = getAuth(app);
+
+  /* Get form data */
+  const formData = await request.formData();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+  const name = formData.get("name")?.toString();
+
+  if (!email || !password || !name) {
+    return new Response(
+      JSON.stringify({
+        error: "Missing data",
+      }),
+      { status: 400 }
+    );
+  }
+
+  /* Create user */
+  try {
+    await auth.createUser({
+      email,
+      password,
+      displayName: name,
+    });
+  } catch (error: any) {
+    return new Response(
+      JSON.stringify({
+        error: error.code,
+      }),
+      { status: 400 }
+    );
+  }
+  return redirect("/signin");
+};
+```
+
+:::note
+This is a basic implementation of the register endpoint. You can add more logic to this endpoint to suit your needs.
+:::
+
+Finally, your project directory should now include these new files:
+
+<FileTree title="Project Structure">
+- src
+  - env.d.ts
+  - firebase
+    - client.ts
+    - server.ts
+  - pages
+    - api
+      - auth
+        - **login.ts**
+        - **logout.ts**
+        - **register.ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Creating pages
+
+Now that we have authentication endpoints set up, we can create the pages that will use them. We will create three new pages:
+
+- `pages/register` - will contain a form to register a user
+- `pages/dashboard` - will contain a dashboard that can only be accessed by authenticated users
+- `pages/signin` - will contain a form to sign in a user
+
+Create a file named `register.astro` inside the `pages` folder.
+
+```astro title="src/pages/register.astro"
+---
+import Layout from "../layouts/Layout.astro";
+---
+<Layout title="Register">
+	<h1>Register</h1>
+  <p>Already have an account? <a href="/signin">Sign in</a></p>
+	<form action="/api/auth/register" method="post">
+    <label for="name">Name</label>
+    <input type="text" name="name" id="name" />
+    <label for="email" for="email">Email</label>
+		<input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+		<input type="password" name="password" id="password" />
+		<button type="submit">Login</button>
+	</form>
+</Layout>
+```
+
+The markup of the page contains a form that will send a `POST` request to the `/api/auth/register` endpoint. The endpoint will create a new user using the data from the form and redirect the user to the `/signin` page.
+
+Next, create a file named `dashboard.astro` inside the `pages` folder.
+
+```astro title="src/pages/dashboard.astro"
+---
+import { app } from "../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+import Layout from "../layouts/Layout.astro";
+
+const auth = getAuth(app);
+
+/* Check current session */
+const sessionCookie = Astro.cookies.get("session").value;
+
+if (!sessionCookie) {
+  return Astro.redirect("/signin");
+}
+const decodedCookie = await auth.verifySessionCookie(sessionCookie);
+const user = await auth.getUser(decodedCookie.uid);
+
+if (!user) {
+  return Astro.redirect("/signin");
+}
+---
+<Layout title="dashboard">
+	<h1>Welcome {user.displayName}</h1>
+	<p>We are happy to see you here</p>
+  <form action="/api/auth/signout">
+    <button type="submit">Sign out</button>
+  </form>
+</Layout>
+</html>
+```
+
+In the frontmatter of the page, using the Firebase server app we verify the user's session cookie. If the user is not authenticated, the page will redirect the user to the `/signin` page.
+
+In the markup of the page, we display the user's name and a button to sign out. The signout button will send a `GET` request to the `/api/auth/signout` endpoint. The endpoint will delete the user's session cookie and redirect the user to the `/signin` page.
+
+Finally, create a file named `signin.astro` inside the `pages` folder.
+
+```astro title="src/pages/signin.astro"
+---
+import { app } from "../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+import Layout from "../layouts/Layout.astro";
+
+/* Check if the user is authenticated */
+const auth = getAuth(app);
+const sessionCookie = Astro.cookies.get("session").value;
+if (sessionCookie) {
+  const decodedCookie = await auth.verifySessionCookie(sessionCookie);
+  if (decodedCookie) {
+    return Astro.redirect("/dashboard");
+  }
+}
+---
+
+<Layout title="Sign in">
+	<h1>Sign in</h1>
+  <p>New here? <a href="/register">Create an account</a></p>
+	<form action="/api/auth/signin" method="post">
+    <label for="email" for="email">Email</label>
+		<input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+		<input type="password" name="password" id="password" />
+		<button type="submit">Login</button>
+	</form>
+</Layout>
+<script>
+  import { getAuth, inMemoryPersistence, signInWithEmailAndPassword } from "firebase/auth"
+  import { app } from "../firebase/client"
+
+  const auth = getAuth(app);
+  auth.setPersistence(inMemoryPersistence)
+
+  const form = document.querySelector('form') as HTMLFormElement;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const email = formData.get('email')?.toString();
+    const password = formData.get('password')?.toString();
+
+    if (!email || !password) {
+      return;
+    }
+    const userCredential = await signInWithEmailAndPassword(auth, email, password)
+    const idToken = await userCredential.user.getIdToken();
+    const response = await fetch('/api/auth/signin', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${idToken}`
+      }
+    })
+    
+    if (response.redirected) {
+      window.location.assign(response.url)
+    }
+  });
+</script>
+```
+
+In the frontmatter of the page, using the Firebase server app we verify the user's session cookie. If the user is authenticated, the page will redirect the user to the `/dashboard` page.
+
+The markup contains a form that will send a `POST` request to the `/api/auth/signin` endpoint with the ID token generated by the Firebase client app.
+
+The endpoint will verify the ID token and create a new session cookie for the user. Then, the endpoint will redirect the user to the `/dashboard` page.
+
 ## Community Resources
 
 - [Astro and Firebase SSR app example](https://github.com/kevinzunigacuellar/astro-firebase)
