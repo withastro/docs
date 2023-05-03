@@ -79,4 +79,5 @@ export default UIDictionary({
 	'tutorial.getReady': 'Приготовьтесь к...',
 	'tutorial.trackerLabel': 'Трекер обучения',
 	'tutorial.unit': 'Единица',
+
 });
