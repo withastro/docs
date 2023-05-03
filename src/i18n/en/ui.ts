@@ -109,6 +109,6 @@ export default {
 	'feedback.success': 'Thanks! We received your feedback.',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': 'Directory',
-	// BaaS Guides vocabulary
-	'baas.navTitle': 'More Backend as a Service guides',
+	// Backend Guides vocabulary
+	'backend.navTitle': 'More backend service guides',
 };
