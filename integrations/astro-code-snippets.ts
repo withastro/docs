@@ -3,7 +3,6 @@ import type { BlockContent, Parent, Root } from 'mdast';
 import type { Plugin, Transformer } from 'unified';
 import { visit } from 'unist-util-visit';
 import type { BuildVisitor } from 'unist-util-visit/complex-types';
-import { isMDXFile } from './utils/isMDX';
 import { makeComponentNode } from './utils/makeComponentNode';
 
 const CodeSnippetTagname = 'AutoImportedCodeSnippet';
@@ -59,88 +58,78 @@ declare module 'mdast' {
 }
 
 export function remarkCodeSnippets(): Plugin<[], Root> {
-	const makeVisitor =
-		(format: 'md' | 'mdx'): BuildVisitor<Root, 'code'> =>
-		(code, index, parent) => {
-			if (index === null || parent === null) return;
-			const isMDX = format === 'mdx';
+	const visitor: BuildVisitor<Root, 'code'> = (code, index, parent) => {
+		if (index === null || parent === null) return;
 
-			// Parse optional meta information after the opening code fence,
-			// trying to get a meta title and an array of highlighted lines
-			const { title: metaTitle, lineMarkings, inlineMarkings } = parseMeta(code.meta || '');
-			let title = metaTitle;
+		// Parse optional meta information after the opening code fence,
+		// trying to get a meta title and an array of highlighted lines
+		const { title: metaTitle, lineMarkings, inlineMarkings } = parseMeta(code.meta || '');
+		let title = metaTitle;
 
-			// Preprocess the code
-			const { preprocessedCode, extractedFileName, removedLineIndex, removedLineCount } =
-				preprocessCode(
-					code.value,
-					code.lang || '',
-					// Only try to extract a file name from the code if no meta title was found above
-					title === undefined
-				);
-			code.value = preprocessedCode;
-			if (extractedFileName) {
-				title = extractedFileName;
-			}
-
-			// If there was no title in the meta information or in the code, check if the previous
-			// Markdown paragraph contains a file name that we can use as a title
-			if (title === undefined && index > 0) {
-				// Check the previous node to see if it matches our requirements
-				const prev = parent.children[index - 1];
-				const strongContent =
-					// The previous node must be a paragraph...
-					prev.type === 'paragraph' &&
-					// ...it must contain exactly one child with strong formatting...
-					prev.children.length === 1 &&
-					prev.children[0].type === 'strong' &&
-					// ...this child must also contain exactly one child
-					prev.children[0].children.length === 1 &&
-					// ...which is the result of this expression
-					prev.children[0].children[0];
-
-				// Require the strong content to be either raw text or inline code and retrieve its value
-				const prevParaStrongTextValue =
-					strongContent && strongContent.type === 'text' && strongContent.value;
-				const prevParaStrongCodeValue =
-					strongContent && strongContent.type === 'inlineCode' && strongContent.value;
-				const potentialFileName = prevParaStrongTextValue || prevParaStrongCodeValue;
-
-				// Check if it's a file name
-				const matches = potentialFileName && FileNameCommentRegExp.exec(`// ${potentialFileName}`);
-				if (matches) {
-					// Yes, store the file name and replace the paragraph with an empty node
-					title = matches[2];
-					parent.children[index - 1] = {
-						type: 'html',
-						value: '',
-					};
-				}
-			}
-
-			const attributes = {
-				lang: code.lang,
-				title: encodeMarkdownStringProp(title),
-				removedLineIndex,
-				removedLineCount,
-				lineMarkings: encodeMarkdownStringArrayProp(lineMarkings),
-				inlineMarkings: encodeMarkdownStringArrayProp(inlineMarkings),
-			};
-
-			const codeSnippetWrapper = makeComponentNode(
-				CodeSnippetTagname,
-				{ mdx: isMDX, attributes },
-				code
+		// Preprocess the code
+		const { preprocessedCode, extractedFileName, removedLineIndex, removedLineCount } =
+			preprocessCode(
+				code.value,
+				code.lang || '',
+				// Only try to extract a file name from the code if no meta title was found above
+				title === undefined
 			);
+		code.value = preprocessedCode;
+		if (extractedFileName) {
+			title = extractedFileName;
+		}
 
-			parent.children.splice(index, 1, codeSnippetWrapper);
+		// If there was no title in the meta information or in the code, check if the previous
+		// Markdown paragraph contains a file name that we can use as a title
+		if (title === undefined && index > 0) {
+			// Check the previous node to see if it matches our requirements
+			const prev = parent.children[index - 1];
+			const strongContent =
+				// The previous node must be a paragraph...
+				prev.type === 'paragraph' &&
+				// ...it must contain exactly one child with strong formatting...
+				prev.children.length === 1 &&
+				prev.children[0].type === 'strong' &&
+				// ...this child must also contain exactly one child
+				prev.children[0].children.length === 1 &&
+				// ...which is the result of this expression
+				prev.children[0].children[0];
+
+			// Require the strong content to be either raw text or inline code and retrieve its value
+			const prevParaStrongTextValue =
+				strongContent && strongContent.type === 'text' && strongContent.value;
+			const prevParaStrongCodeValue =
+				strongContent && strongContent.type === 'inlineCode' && strongContent.value;
+			const potentialFileName = prevParaStrongTextValue || prevParaStrongCodeValue;
+
+			// Check if it's a file name
+			const matches = potentialFileName && FileNameCommentRegExp.exec(`// ${potentialFileName}`);
+			if (matches) {
+				// Yes, store the file name and replace the paragraph with an empty node
+				title = matches[2];
+				parent.children[index - 1] = {
+					type: 'html',
+					value: '',
+				};
+			}
+		}
+
+		const attributes = {
+			lang: code.lang,
+			title: encodeMarkdownStringProp(title),
+			removedLineIndex,
+			removedLineCount,
+			lineMarkings: encodeMarkdownStringArrayProp(lineMarkings),
+			inlineMarkings: encodeMarkdownStringArrayProp(inlineMarkings),
 		};
 
-	const mdVisitor = makeVisitor('md');
-	const mdxVisitor = makeVisitor('mdx');
+		const codeSnippetWrapper = makeComponentNode(CodeSnippetTagname, { attributes }, code);
 
-	const transformer: Transformer<Root> = (tree, file) => {
-		visit(tree, 'code', isMDXFile(file) ? mdxVisitor : mdVisitor);
+		parent.children.splice(index, 1, codeSnippetWrapper);
+	};
+
+	const transformer: Transformer<Root> = (tree) => {
+		visit(tree, 'code', visitor);
 	};
 
 	return function attacher() {
