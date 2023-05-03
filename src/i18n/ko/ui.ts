@@ -93,5 +93,4 @@ export default UIDictionary({
 	// `<FileTree>` component
 	'fileTree.directoryLabel': '디렉토리',
 	// BaaS Guides vocabulary
-
 });
