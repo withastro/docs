@@ -93,5 +93,5 @@ export default UIDictionary({
 	// `<FileTree>` component
 	'fileTree.directoryLabel': '디렉토리',
 	// BaaS Guides vocabulary
-	'baas.navTitle': '더 많은 Backend as a Service 가이드',
+
 });

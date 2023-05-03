@@ -106,5 +106,5 @@ export default UIDictionary({
 	// `<FileTree>` component
 	'fileTree.directoryLabel': '目录',
 	// BaaS Guides vocabulary
-	'baas.navTitle': '更多後端即服務指南',
+
 });
