@@ -1,12 +1,12 @@
 import { unescape } from 'html-escaper';
 
 export type CopyButtonArgs = {
-	copyButtonTitle?: string
-	copyButtonTooltip?: string
-}
+	copyButtonTitle?: string;
+	copyButtonTooltip?: string;
+};
 
 export class CopyButton {
-	private codeLines: string[] = []
+	private codeLines: string[] = [];
 	private code: string;
 	private title: string;
 	private tooltip: string;
@@ -40,17 +40,27 @@ export class CopyButton {
 				textLine += text;
 			}
 
-			this.code += textLine + '\n'
+			this.code += textLine + '\n';
 		}
 
-		this.code = this.code.replace(/&amp;/g, "&")
-			.replace(/&lt;/g, "<")
-			.replace(/&gt;/g, ">")
-			.replace(/&quot;/g, "\"")
+		this.code = this.code
+			.replace(/&amp;/g, '&')
+			.replace(/&lt;/g, '<')
+			.replace(/&gt;/g, '>')
+			.replace(/&quot;/g, '"')
 			.replace(/&#39;/g, "'");
 	}
 
 	renderToHtml() {
-		return `<div class="copy-button-wrapper"><button class="copy-button" title="${this.title}" aria-label="Copy" value="${encodeURIComponent(this.code)}"><svg xmlns="http://www.w3.org/2000/svg" height="24" width="24"><g transform="scale(0.5 0.5)"><path d="M15 37.95q-1.25 0-2.125-.875T12 34.95v-28q0-1.25.875-2.125T15 3.95h22q1.25 0 2.125.875T40 6.95v28q0 1.25-.875 2.125T37 37.95Zm0-3h22v-28H15v28Zm-6 9q-1.25 0-2.125-.875T6 40.95V12.3q0-.65.425-1.075Q6.85 10.8 7.5 10.8q.65 0 1.075.425Q9 11.65 9 12.3v28.65h22.2q.65 0 1.075.425.425.425.425 1.075 0 .65-.425 1.075-.425.425-1.075.425Zm6-37v28-28Z" fill="currentcolor"/></g></svg></button><p class="copy-button-tooltip">${this.tooltip}</p></div>`;
+		return `<div class="copy-button-wrapper">
+	<button
+		class="copy-button"
+		title="${this.title}"
+		value="${encodeURIComponent(this.code)}"
+	><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24" aria-hidden="true">
+			<path d="M7.5 18.98q-.63 0-1.06-.44T6 17.48v-14q0-.63.44-1.07t1.06-.44h11q.63 0 1.06.44T20 3.47v14q0 .63-.44 1.07t-1.06.44Zm0-1.5h11v-14h-11v14Zm-3 4.5q-.63 0-1.06-.44T3 20.48V6.15q0-.33.21-.54.21-.21.54-.21.33 0 .54.21.21.21.21.54v14.32h11.1q.33 0 .54.22.21.21.21.53 0 .33-.21.54-.22.22-.54.22Zm3-18.5v14-14Z"/>
+		</svg></button>
+	<p class="copy-button-tooltip">${this.tooltip}</p>
+</div>`;
 	}
 }
