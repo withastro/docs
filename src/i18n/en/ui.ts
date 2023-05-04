@@ -60,6 +60,9 @@ export default {
 	'fallbackContent.notice':
 		'This page is not yet available in your language, so we’re showing you the English version. You can help by translating it!',
 	'fallbackContent.linkText': 'Learn more about how you can contribute',
+	// Outdated content notice shown when a page is outdated
+	'outdatedContent.notice':
+		'The content on this page is behind the english translation & may be outdated. You can help by translating it!',
 	// 404 Page
 	'404.title': 'Not Found',
 	'404.content': 'This page isn’t in our solar system.',
