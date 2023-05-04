@@ -1,3 +1,5 @@
+import { unescape } from 'html-escaper';
+
 export type CopyButtonArgs = {
 	copyButtonTitle?: string
 	copyButtonTooltip?: string
