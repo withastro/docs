@@ -52,7 +52,7 @@ export class CopyButton {
 	}
 
 	renderToHtml() {
-		return `<div class="copy-button-wrapper">
+		return `<div class="copy-button-wrapper" aria-live="polite">
 	<button
 		class="copy-button"
 		title="${this.title}"
