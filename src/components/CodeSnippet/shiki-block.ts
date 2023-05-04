@@ -54,6 +54,6 @@ export class ShikiBlock {
 			})
 			.join('\n');
 		const copyButton = this.copyButton?.renderToHtml();
-		return `${this.htmlBeforeFirstLine}${linesHtml}${copyButton}${this.htmlAfterLastLine}`;
+		return `${this.htmlBeforeFirstLine}${linesHtml}${this.htmlAfterLastLine}${copyButton}`;
 	}
 }
