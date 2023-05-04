@@ -72,6 +72,7 @@ export const logos = LogoCheck({
 	gitbook: { file: 'gitbook.svg', padding: '.25em' },
 	'frontmatter-cms': { file: 'frontmatter-cms.svg', padding: '.25em' },
 	statamic: { file: 'statamic.svg', padding: '.2em' },
+	xata: { file: 'xata.svg', padding: '.8rem' },
 });
 
 export type LogoKey = keyof typeof logos;
