@@ -105,4 +105,5 @@ export default UIDictionary({
 	'feedback.success': '感谢！我们收到了你的反馈。',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': '目录',
+	// BaaS Guides vocabulary
 });
