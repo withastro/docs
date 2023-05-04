@@ -313,7 +313,7 @@ Astro Docs uses a `<RecipeLink>` component for displaying links to recipes with 
 ```mdx
 import RecipeLinks from "~/components/RecipeLinks.astro";
 
-<RecipeLinks slugs={["en/recipes/captcha", "en/recipes/build-forms-api" ]}/>
+<RecipeLinks slugs={["en/recipes/captcha", "en/recipes/build-forms-api"]}/>
 ```
 
 ## Lists vs. Headings
