@@ -53,7 +53,7 @@ export class ShikiBlock {
 				return line.renderToHtml();
 			})
 			.join('\n');
-
-		return `${this.htmlBeforeFirstLine}${this.copyButton?.renderToHtml()}${linesHtml}${this.htmlAfterLastLine}`;
+		const copyButton = this.copyButton?.renderToHtml();
+		return `${this.htmlBeforeFirstLine}${linesHtml}${copyButton}${this.htmlAfterLastLine}`;
 	}
 }
