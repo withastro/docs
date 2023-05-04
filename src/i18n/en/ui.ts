@@ -112,4 +112,6 @@ export default {
 	// CopyButton class in `<CodeSnippet>` component
 	'copyButton.title': 'Copy to clipboard',
 	'copyButton.tooltip': 'Copied!',
+	// Backend Guides vocabulary
+	'backend.navTitle': 'More backend service guides',
 };

@@ -26,6 +26,12 @@ async function setDiscordMessage() {
 	);
 
 	const list = toTranslate
+		.filter(
+			(s) =>
+				Object.keys(s.translations).filter(
+					(l) => s.translations[l]?.isMissing || s.translations[l]?.isOutdated
+				).length > 0
+		)
 		.map((s) => {
 			const langs =
 				Object.keys(s.translations).filter(
