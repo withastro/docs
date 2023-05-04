@@ -1,0 +1,176 @@
+---
+title: Middleware (Experimental)
+description: Learn how to enable experimental middleware support in Astro.
+i18nReady: false
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+**Middleware** is enabled in Astro behind an experimental flag. Middleware allows you to intercept requests and responses and inject behaviors dynamically ` every time a page or endpoint is about to be rendered. This also allows you to set and share request-specific information across endpoints and pages by mutating a `locals` object that is available in all Astro components and API endpoints. Middleware is available in both SSG and SSR Astro projects.
+
+:::caution
+Middleware is an experimental Astro feature introduced in v2.4. This API is subject to change before it is marked as stable.
+:::
+
+## Enabling Assets in your Project
+
+Enabling middleware should not cause any breaking changes in your project, but you may encounter errors or bugs as you use experimental middleware features.
+
+Please refer to the [middleware RFC](https://github.com/withastro/roadmap/pull/555) for more information.
+
+
+### Update Astro config
+
+To enable built-in asset support, add the following lines to your `astro.config.mjs` configuration file:
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+   middleware: true
+  }
+});
+```
+
+## Basic Usage
+
+1. Create `src/middleware.js|ts` (Alternatively, you can create `src/middleware/index.js|ts`.)
+
+2. Inside this file, export an [`onRequest()`](#onrequest) function that modifies a [`locals`](#locals) object. This must not be a default export.
+
+```js title="src/middleware.js"
+export function onRequest ({ locals, request }, resolve) {
+	// locals = {}
+};
+```
+
+3. Inside any `.astro` file, access `Astro.locals`
+
+```astro title="src/components/Component.astro"
+---
+const data = Astro.locals;
+---
+
+<p>This {data.property} is from middleware.</p>
+
+```
+
+### Authentication example
+
+Here is an example of an authentication middleware:
+
+```ts
+import type { MiddlewareResponseHandler } from "astro/middleware"
+const auth: MiddlewareResponseHandler = async ({ cookies, locals }, next) => {
+	if (!cookies.has("sid")) {
+		return new Response(null, {
+			status: 405, // Not allowed
+		})
+	}
+	let sessionId = cookies.get("sid")
+	let user = await getUserFromSession(sessionId)
+	if (!user) {
+		return new Response(null, {
+			status: 405, // Not allowed
+		})
+	}
+	locals.user = user
+	return next()
+}
+export { auth as onRequest }
+```
+
+Which you can then access via your Astro components:
+
+```astro
+---
+const { user } = Astro.locals
+---
+<h1>Hello {user.name}</h1>
+```
+
+For more usage examples, please see [the middleware RFC proposal](https://github.com/withastro/roadmap/blob/rfc/stage-3-middleware/proposals/0032-middleware-api.md#middleware-workflow-and-examples)
+
+### Chaining middleware
+
+Multiple middlewares can be joined, in a specified order, using [`sequence()`](#sequence)
+
+```js title="src/middleware.js"
+import {sequence} from "astro/middleware";
+
+function validation() {}
+function auth() {}
+
+export const onRequest = sequence(validation, auth);
+```
+
+```js
+import {sequence} from "astro/middleware";
+
+async function validation(_, next) {
+    console.log("validation request");
+    const response = await next();
+    console.log("validation response");
+    return response;
+}
+async function auth(_, next) {
+  console.log("auth request");
+  const response = await next();
+  console.log("auth response");
+  return response;
+
+}
+async function greeting(_, next) {
+  console.log("greeting request");
+  const response = await next();
+  console.log("greeting response");
+  return response;
+
+}
+
+export const onRequest = sequence(validation, auth, greeting);
+```
+
+will result in the following console order:
+
+```sh
+validation request
+auth request
+greeting request
+greeting response
+auth response
+validation response
+```
+
+## API reference
+
+### onRequest()
+
+A required exported function from `src/middleware.js` that will be called before rendering every page or API route. It accepts two arguments: [context](#context) and [next()](#next)
+
+### context
+
+An object that includes information to be made available to other middleware, API routes and `.astro` routes during the rendering process. 
+
+This is a required argument passed to `onRequest()` that must contain the [`locals`](#locals) object as well as any additional properties to be shared during rendering. For example, the `context` object may include cookies used in authentication.
+
+### next ()
+
+A function that retrieves that intercepts (reads and modifies) the `Response` of a `Request` or calls the "next" middleware in the chain. For example, this function could modify the HTML body of a response.
+
+This is an optional argument of `onRequest()`.
+
+
+### locals
+An object containing data from a response that can be manipulated inside middleware. This `locals` object is forwarded across the request handling process and is available as a property to APIContext and AstroGlobal. This allows data to be shared between middlewares, API routes, and .astro pages. This is useful for storing request-specific data, such as user data, across the rendering step.
+
+- locals needs to be serializable: The information must be serializable because storing information that evaluates at runtime is unsafe. If, for example, we were able to store With a JavaScript function, an attacker could exploit the victim's website and execute some unsafe code.
+- locals can't be overridden: The value of locals needs to be an object, and it can't be overridden at runtime. Doing so would risk wiping out all the information stored by the user.
+
+It's important to note that locals is an object that lives and dies within a single Astro route; when your route page is rendered, locals won't exist anymore and a new one will be created.
+
+If a user needs to persist some information that lives among multiple pages requests, they will need to store that information somewhere else.
+
+### sequence()
+
+A function that accepts middleware functions as arguments, and will execute them in the order in which they are passed.
