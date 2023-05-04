@@ -1,5 +1,5 @@
-import { ShikiLine } from './shiki-line';
 import { CopyButton, CopyButtonArgs } from './copy-button';
+import { ShikiLine } from './shiki-line';
 import { InlineMarkingDefinition, LineMarkingDefinition, MarkerTypeOrder } from './types';
 
 export class ShikiBlock {
