@@ -62,41 +62,22 @@ const data = Astro.locals;
 <p>This {data.property} is from middleware.</p>
 
 ```
+### Example: redacting sensitive information
 
-### Authentication example
+The example below uses middleware to replace "PRIVATE INFO" with the word "REDACTED" to allow you to render modified HTML on your page:
 
-Here is an example of an authentication middleware:
-
-```ts
-import type { MiddlewareResponseHandler } from "astro/middleware"
-const auth: MiddlewareResponseHandler = async ({ cookies, locals }, next) => {
-	if (!cookies.has("sid")) {
-		return new Response(null, {
-			status: 405, // Not allowed
-		})
-	}
-	let sessionId = cookies.get("sid")
-	let user = await getUserFromSession(sessionId)
-	if (!user) {
-		return new Response(null, {
-			status: 405, // Not allowed
-		})
-	}
-	locals.user = user
-	return next()
+```js
+export const onRequest = async (context, next) => {
+   const response = await next();
+   const html = response.text();
+   const redactedHtml = html.replace("PRIVATE INFO", "REDACTED");
+   
+   return new Response(redactedHtml, {
+     status: 200,
+     headers: response.headers
+   });
 }
-export { auth as onRequest }
 ```
-
-Which you can then access via your Astro components:
-
-```astro
----
-const { user } = Astro.locals
----
-<h1>Hello {user.name}</h1>
-```
-
 For more usage examples, please see [the middleware RFC proposal](https://github.com/withastro/roadmap/blob/rfc/stage-3-middleware/proposals/0032-middleware-api.md#middleware-workflow-and-examples)
 
 ### Chaining middleware
