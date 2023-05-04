@@ -1,12 +1,14 @@
 import { ShikiLine } from './shiki-line';
+import { CopyButton, CopyButtonArgs } from './copy-button';
 import { InlineMarkingDefinition, LineMarkingDefinition, MarkerTypeOrder } from './types';
 
 export class ShikiBlock {
 	private htmlBeforeFirstLine = '';
 	private shikiLines: ShikiLine[] = [];
 	private htmlAfterLastLine = '';
+	private copyButton: CopyButton | null = null;
 
-	constructor(highlightedCodeHtml: string) {
+	constructor(highlightedCodeHtml: string, copyButtonArgs: CopyButtonArgs) {
 		if (!highlightedCodeHtml) return;
 
 		const codeBlockRegExp = /^\s*(<pre.*?><code.*?>)([\s\S]*)(<\/code><\/pre>)\s*$/;
@@ -21,7 +23,10 @@ export class ShikiBlock {
 		this.htmlAfterLastLine = matches[3];
 
 		// Parse inner HTML code to ShikiLine instances
-		this.shikiLines = innerHtml.split(/\r?\n/).map((htmlLine) => new ShikiLine(htmlLine));
+		const innerHtmlLines = innerHtml.split(/\r?\n/);
+		this.shikiLines = innerHtmlLines.map((htmlLine) => new ShikiLine(htmlLine));
+
+		this.copyButton = new CopyButton(innerHtmlLines, copyButtonArgs);
 	}
 
 	applyMarkings(lineMarkings: LineMarkingDefinition[], inlineMarkings: InlineMarkingDefinition[]) {
@@ -48,7 +53,7 @@ export class ShikiBlock {
 				return line.renderToHtml();
 			})
 			.join('\n');
-
-		return `${this.htmlBeforeFirstLine}${linesHtml}${this.htmlAfterLastLine}`;
+		const copyButton = this.copyButton?.renderToHtml();
+		return `${this.htmlBeforeFirstLine}${linesHtml}${this.htmlAfterLastLine}${copyButton}`;
 	}
 }
