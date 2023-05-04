@@ -308,7 +308,7 @@ The tabs will be displayed in alphabetical order, according to the slot name (e.
 
 Astro Docs uses a `<RecipeLink>` component for displaying links to recipes with consistent styling. This is helpful when some page content has one or more relevant recipes you want to link to.
 
-`<RecipeLink>` takes a single `slugs` prop, which should be an array of the slugs of the recipes you want to link to. A slug has no leading or trailing slash and should match the language of the page you are currently on. For example, use `pt-br/recipes/captcha` on a Brazilian Portuguese page and not `en/recipes/captcha`.
+`<RecipeLink>` takes a single `slugs` prop, which is an array of the slugs of the recipes you want to link to. A slug has no leading or trailing slash and should match the language of the page you are currently on. For example, use `pt-br/recipes/captcha` on a Brazilian Portuguese page and not `en/recipes/captcha`.
 
 ```mdx
 import RecipeLinks from "~/components/RecipeLinks.astro";
