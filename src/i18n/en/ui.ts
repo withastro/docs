@@ -62,7 +62,7 @@ export default {
 	'fallbackContent.linkText': 'Learn more about how you can contribute',
 	// Outdated content notice shown when a page is outdated
 	'outdatedContent.notice':
-		'The content on this page is an older translation that requires updating to match the current English version. You can help by translating it! Visit our [contributing](/en/contribute/) page for details.',
+		'The content on this page is an older translation that requires updating to match the current English version. You can help by translating it!',
 	// 404 Page
 	'404.title': 'Not Found',
 	'404.content': 'This page isn’t in our solar system.',
