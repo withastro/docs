@@ -24,8 +24,9 @@ export default UIDictionary({
 	'rightSidebar.readBlog': 'ブログを読む',
 	'rightSidebar.openCollective': 'Open Collectiveで支援する',
 	'rightSidebar.contribute': '貢献する',
+	'rightSidebar.contributorGuides': 'コントリビューターガイド',
 	'rightSidebar.editPage': 'このページを編集する',
-	'rightSidebar.translatePage': 'このページを翻訳',
+	'rightSidebar.translatePage': 'このページを翻訳する',
 	'rightSidebar.github': 'GitHubリポジトリ',
 	// Footer
 	'footer.privacyPolicy': 'プライバシーポリシー',
