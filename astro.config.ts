@@ -28,12 +28,7 @@ export default defineConfig({
 		sitemap(),
 		astroAsides(),
 		astroCodeSnippets(),
-		mdx({
-			rehypePlugins: [
-				// Collapse static parts of the hast to html
-				rehypeOptimizeStatic,
-			],
-		}),
+		mdx(),
 	],
 	markdown: {
 		syntaxHighlight: 'shiki',
@@ -53,6 +48,8 @@ export default defineConfig({
 			rehypeTasklistEnhancer(),
 			// Translates the autolink headings anchors
 			rehypei18nAutolinkHeadings(),
+			// Collapse static parts of the hast to html
+			rehypeOptimizeStatic,
 		],
 	},
 });
