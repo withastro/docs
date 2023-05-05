@@ -49,7 +49,7 @@ export default defineConfig({
 			// Translates the autolink headings anchors
 			rehypei18nAutolinkHeadings(),
 			// Collapse static parts of the hast to html
-			rehypeOptimizeStatic(),
+			rehypeOptimizeStatic,
 		],
 	},
 });
