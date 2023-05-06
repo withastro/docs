@@ -46,7 +46,9 @@ export class CopyButton {
 		this.code = this.code
 			.replace(/&amp;/g, '&')
 			.replace(/&lt;/g, '<')
+      .replace(/&#x3C;/g, '<')
 			.replace(/&gt;/g, '>')
+      .replace(/&#x3E;/g, '>')
 			.replace(/&quot;/g, '"')
 			.replace(/&#39;/g, "'");
 	}
