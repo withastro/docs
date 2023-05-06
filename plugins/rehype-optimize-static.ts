@@ -1,7 +1,7 @@
 import type { Root } from 'hast';
+import { toHtml } from 'hast-util-to-html';
 import type { Transformer } from 'unified';
 import { walk } from 'unist-util-walker';
-import { toHtml } from 'hast-util-to-html';
 
 // accessing untyped hast and mdx types
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

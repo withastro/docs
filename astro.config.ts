@@ -12,8 +12,8 @@ import { astroCodeSnippets, codeSnippetAutoImport } from './integrations/astro-c
 import { sitemap } from './integrations/sitemap';
 import { autolinkConfig } from './plugins/rehype-autolink-config';
 import { rehypei18nAutolinkHeadings } from './plugins/rehype-i18n-autolink-headings';
-import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { rehypeOptimizeStatic } from './plugins/rehype-optimize-static';
+import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
 import { theme } from './syntax-highlighting-theme';
 
