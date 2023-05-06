@@ -1,4 +1,4 @@
-import { unescape } from 'html-escaper';
+import { decode } from 'html-entities';
 
 export type CopyButtonArgs = {
 	copyButtonTitle?: string;
@@ -36,19 +36,14 @@ export class CopyButton {
 
 			for (const tokenMatch of tokenMatches) {
 				const [, innerHtml] = tokenMatch;
-				const text = unescape(innerHtml);
+				const text = innerHtml;
 				textLine += text;
 			}
 
 			this.code += textLine + '\n';
 		}
 
-		this.code = this.code
-			.replace(/&amp;/g, '&')
-			.replace(/&lt;/g, '<')
-			.replace(/&gt;/g, '>')
-			.replace(/&quot;/g, '"')
-			.replace(/&#39;/g, "'");
+		this.code = decode(this.code)
 	}
 
 	renderToHtml() {
