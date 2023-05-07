@@ -1,4 +1,4 @@
-import { unescape } from 'html-escaper';
+import * as he from 'he';
 
 export type CopyButtonArgs = {
 	copyButtonTitle?: string;
@@ -36,7 +36,7 @@ export class CopyButton {
 
 			for (const tokenMatch of tokenMatches) {
 				const [, innerHtml] = tokenMatch;
-				const text = unescape(innerHtml);
+				const text = he.decode(innerHtml);
 				textLine += text;
 			}
 
