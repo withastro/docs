@@ -1,4 +1,4 @@
-import { decode } from 'he';
+import { decode } from 'html-entities';
 
 export type CopyButtonArgs = {
 	copyButtonTitle?: string;
