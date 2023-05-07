@@ -1,4 +1,4 @@
-import * as he from 'he';
+import { decode } from 'he';
 
 export type CopyButtonArgs = {
 	copyButtonTitle?: string;
@@ -36,7 +36,7 @@ export class CopyButton {
 
 			for (const tokenMatch of tokenMatches) {
 				const [, innerHtml] = tokenMatch;
-				const text = he.decode(innerHtml);
+				const text = decode(innerHtml);
 				textLine += text;
 			}
 
