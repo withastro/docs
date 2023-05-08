@@ -1,0 +1,210 @@
+---
+type: tutorial
+title: Construye tu primera isla de Astro
+i18nReady: true
+description: |-
+  Tutorial: Crea tu primer blog con Astro —
+  Utiliza un componente de Preact para saludar a tus visitantes con un mensaje seleccionado al azar.
+---
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import Spoiler from '~/components/Spoiler.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+
+
+ Utiliza un componente de Preact para saludar a tus visitantes con un mensaje seleccionado al azar.
+
+<PreCheck>
+  - Añadir Preact a tu proyecto de Astro
+  - Incluir islas de Astro (componentes `.jsx` de Preact) en tu página de inicio
+  - Usar las directivas `client:` para que las islas sean interactivas
+</PreCheck>
+
+## Añade Preact a tu proyecto de Astro
+
+1. Si se está ejecutando, sal del servidor de desarrollo para acceder al terminal (método abreviado de teclado: <kbd>Ctrl + C</kbd>).
+
+2. Añade la posibilidad de utilizar componentes Preact en tu proyecto de Astro con un solo comando:
+
+    ```shell
+    npx astro add preact
+    ```
+
+2. Sigue las instrucciones de la línea de comandos para confirmar la adición de Preact a tu proyecto.
+ 
+
+## Incluir un banner de felicitación de Preact
+
+Este componente tomará un array de mensajes de bienvenida como props y seleccionará aleatoriamente uno de ellos para mostrarlo como mensaje de bienvenida. El usuario puede hacer clic en un botón para obtener un nuevo mensaje aleatorio.
+
+1. Crea un nuevo fichero en `src/components/` llamado `Greeting.jsx`.
+
+    Ten en cuenta la extensión de archivo `.jsx`. Este archivo se escribirá en Preact, no en Astro.
+
+2. Añade el siguiente código a `Greeting.jsx`:
+
+    ```jsx title="src/components/Greeting.jsx"
+    import { h } from 'preact';
+    import { useState } from 'preact/hooks';
+
+    export default function Greeting({messages}) {
+
+      const randomMessage = () => messages[(Math.floor(Math.random() * messages.length))];
+      
+      const [greeting, setGreeting] = useState(randomMessage());
+
+      return (
+        <div> 
+          <h3>{greeting}!Gracias por su visita¡.</h3>
+          <button onClick={() => setGreeting(randomMessage())}>
+            Nuevo saludo
+          </button>
+        </div>
+      );
+    }
+    ```
+
+3. Importa y utiliza este componente en tu página de inicio `index.astro`.
+
+    ```astro title="src/pages/index.astro" ins={3,8}
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    import Greeting from '../components/Greeting.jsx';
+    const pageTitle = "Home Page";
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <h2>El impresionante subtítulo de mi blog</h2>
+      <Greeting messages={["Hola", "Qué tal", "Hola a todos"]} />
+    </BaseLayout>
+    ```
+
+    Comprueba la vista previa en tu navegador: deberías ver un saludo aleatorio, ¡pero el botón no funcionará!
+
+
+4. Añade un segundo componente `<Greeting />` con la directiva `client:load`.
+
+    ```astro title="src/pages/index.astro" ins={9} "client:load"
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    import Greeting from '../components/Greeting';
+    const pageTitle = "Home Page";
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <h2>El impresionante subtítulo de mi blog</h2>
+      <Greeting messages={["Hola", "Qué tal", "Hola a todos"]} />
+      <Greeting client:load messages={["Hej", "Hallo", "Hola", "Habari"]} />
+    </BaseLayout>
+    ```
+
+  5. Vuelve a visitar tu página y compara los dos componentes. El segundo botón funciona porque la directiva `client:load` le dice a Astro que envíe y vuelva a ejecutar su JavaScript al _client_ cuando la página _loads_, haciendo que el componente sea interactivo. A esto lo llamamos un componente **hidratado**.
+  
+  6. Una vez que la diferencia esté clara, elimina el componente Greeting sin hidratar
+
+
+      ```astro title="src/pages/index.astro" del={8} "client:load"
+      ---
+      import BaseLayout from '../layouts/BaseLayout.astro';
+      import Greeting from '../components/Greeting';
+      const pageTitle = "Home Page";
+      ---
+      <BaseLayout pageTitle={pageTitle}>
+        <h2>El impresionante subtítulo de mi blog</h2>
+        <Greeting messages={["Hola", "Qué tal", "Hola a todos"]} />
+        <Greeting client:load messages={["Hej", "Hallo", "Hola", "Habari"]} />
+      </BaseLayout>
+      ```
+
+<Box icon="question-mark">
+
+### Analizar el patrón
+
+Hay otras directivas `client:` para explorar. Cada una envía el JavaScript al cliente en un momento diferente. Por ejemplo, `client:visible` sólo enviará el JavaScript del componente cuando sea visible en la página.
+
+Considera un componente Astro con el siguiente código:
+
+```astro
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AstroBanner from '../components/AstroBanner.astro';
+import PreactBanner from '../components/PreactBanner';
+import SvelteCounter from '../components/SvelteCounter.svelte';
+---
+<BaseLayout>
+  <AstroBanner />
+  <PreactBanner />
+  <PreactBanner client:load />
+  <SvelteCounter />
+  <SvelteCounter client:visible />
+</BaseLayout>
+```
+
+1. ¿Cuáles de los cinco componentes serán islas hidratadas, enviando JavaScript al cliente?
+
+    <p>
+      <Spoiler>`<PreactBanner client:load />`  y `<SvelteCounter client:visible />` serán islas hidratadas.</Spoiler>
+    </p>
+
+2. ¿En qué se parecen los dos componentes `<PreactBanner />`? ¿En qué se diferenciarán? 
+
+    <p>
+      <Spoiler>**Iguales**: Ambos muestran los mismos elementos HTML y tienen el mismo aspecto inicial. **Diferentes**: El componente con la directiva `client:load` se renderizará después de cargar la página, y cualquier elemento interactivo que tenga funcionará.</Spoiler>
+    </p>
+
+3. Supongamos que el componente `SvelteCounter` muestra un número y tiene un botón para aumentarlo. Si no pudieras ver el código de tu sitio web, sólo la página publicada en directo, ¿cómo sabrías cuál de los dos componentes `<SvelteCounter />` utiliza `client:visible`? 
+
+    <p>
+      <Spoiler>Prueba a pulsar el botón y observa cuál es el interactivo. Si responde a tu entrada, debe haber tenido una directiva `client:`.</Spoiler>
+    </p>
+</Box>
+
+
+
+<Box icon="question-mark">
+
+### Pon a prueba tus conocimientos
+
+Para cada uno de los siguientes componentes, identifica lo que se enviará al navegador:
+
+1. `<ReactCounter client:load/>`
+
+    <MultipleChoice>
+      <Option>
+        Sólo HTML y CSS
+      </Option>
+      <Option isCorrect>
+        HTML, CSS y JavaScript
+      </Option>
+    </MultipleChoice>
+
+2. `<SvelteCard />`
+
+    <MultipleChoice>
+      <Option  isCorrect>
+        Sólo HTML y CSS
+      </Option>
+      <Option>
+        HTML, CSS y JavaScript
+      </Option>
+    </MultipleChoice>
+</Box>
+
+<Box icon="check-list">
+
+## Checklist
+
+<Checklist>
+- [ ] Puedo instalar una integración Astro.
+- [ ] Puedo escribir componentes de UI framework en su propio lenguaje.
+- [ ] Puedo utilizar una directiva `client:` para la hidratación en mi componente del framework UI.
+</Checklist>
+</Box>
+
+### Recursos
+
+- [Guía de integraciones Astro](/es/guides/integrations-guide/)
+
+- [Uso de componentes de UI Framework en Astro](/es/core-concepts/framework-components/#usando-componente-de-framework)
+
+- [Referencia de las directivas del cliente Astro](/es/reference/directives-reference/#directivas-del-cliente)
