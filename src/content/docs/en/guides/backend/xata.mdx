@@ -6,6 +6,8 @@ service: Xata
 stub: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import FileTree from '~/components/FileTree.astro'
+
 
 [Xata](https://xata.io) is a **Serverless Data Platform** because it combines the features of a relational database, a search engine, and an analytics engine by exposing a single consistent REST API.
 
@@ -62,6 +64,123 @@ yarn xata:init
 </PackageManagerTabs>
 
 This will walk you through the database connection. Create a workspace and apply the schema migration.
+
+## Adding a database with Xata
+
+### Prerequisites
+
+- A [Xata](https://app.xata.io/signin) account with a created database (you can use the sample database from the Web UI).
+- An Access Token (`XATA_TOKEN_API`).
+
+### Environment configuration
+
+The quickest way to integrate is via the Xata CLI
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install -g @xata.io/cli@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add -g @xata.io/cli@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn global install @xata.io/cli@latest
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+The package will expose the `xata` command to your `$PATH` and now it's possible to initialize the integration:
+
+```shell
+xata init
+```
+
+:::note
+You can just execute the binary with `npx`, `pnpm dlx`, or `yarn dlx` if preferred.
+:::
+
+Once you follow the prompt, you should have a `.env` file in the root of your project with the following variables defined:
+
+```ini title=".env"
+XATA_API_KEY=hash_key
+
+# Xata branch that will be used
+# if there's not a xata branch with
+#the same name as your git branch
+XATA_FALLBACK_BRANCH=main
+```
+
+To have IntelliSense for your environment variables, edit or create the file `env.d.ts` in your `/src` directory to make your environment variables type-safe:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly XATA_API_KEY: string;
+  readonly XATA_FALLBACK_BRANCH?: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+:::tip
+Read more about [environment variables](/en/guides/environment-variables/) and `.env` files in Astro.
+:::
+
+And a `.xatarc` file with a `databaseURL`. Though it can be extended to have more definitions, such as the output path for your codegen, e.g.:
+
+```json title=".xatarc"
+{
+  "databaseURL": "https://{{ Xata DB URL }}",
+  "codegen": {
+    "output": "src/xata.codegen.ts"
+  }
+}
+```
+
+Additionally, the prompt may have assisted you on creating an instance of the SDK (Software Development Kit) and, if you chose TypeScript, you also have the types generated from your schema. Notice `@xata.io/client` was added to your `package.json` as well.
+
+Finally, your project should have the following structure:
+
+<FileTree title="Project Structure">
+- src/
+  - **xata.codegen.ts**
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+- **.xatarc**
+</FileTree>
+
+## Create your queries
+
+To illustrate how to make a query, let's query the first 50 posts from Xata's Sample Blog Database.
+
+```astro title="src/pages/blog/index.astro"
+---
+import { getXataClient } from "../xata.codegen";
+
+const xata = getXataClient();
+const { records } = await xata.db.Posts.getPaginated({
+  pagination: {
+    size: 50
+  }
+})
+---
+
+<ul>
+  {records.map(post) => (
+    <li>{post.title}</li>
+  )}
+</ul>
+```
+
+Since the SDK is generated dynamically, and will be updated any time you tweak your schema, it's better to leave it untouched. In case you wish to hoist a few common queries to keep your code base DRY, it's a best practice to create an additional file where your queries can be re-used.
 
 ## Official Resources
 - [Xata Astro Starter](https://github.com/xataio/examples/tree/main/apps/starter-astro)
