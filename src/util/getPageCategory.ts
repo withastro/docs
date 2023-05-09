@@ -5,6 +5,7 @@ const defaultCategory = 'Learn';
 // these paths and will return early when one matches. This means more specific
 // paths need to be earlier in the array, e.g. `reference/errors/` before `reference/`.
 const categories = [
+	['guides/rss/', 'Recipes'],
 	['guides/backend/', 'Recipes'],
 	['guides/cms/', 'Recipes'],
 	['guides/deploy/', 'Recipes'],
