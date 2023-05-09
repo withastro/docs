@@ -26,7 +26,7 @@ export class ShikiBlock {
 		const innerHtmlLines = innerHtml.split(/\r?\n/);
 		this.shikiLines = innerHtmlLines.map((htmlLine) => new ShikiLine(htmlLine));
 
-		this.copyButton = new CopyButton(innerHtmlLines, copyButtonArgs);
+		this.copyButton = new CopyButton(this.shikiLines, copyButtonArgs);
 	}
 
 	applyMarkings(lineMarkings: LineMarkingDefinition[], inlineMarkings: InlineMarkingDefinition[]) {
