@@ -13,7 +13,6 @@ import { sitemap } from './integrations/sitemap';
 import { autolinkConfig } from './plugins/rehype-autolink-config';
 import { rehypei18nAutolinkHeadings } from './plugins/rehype-i18n-autolink-headings';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
-import { rehypeOptimizeStatic } from './plugins/rehype-optimize-static';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
 import { theme } from './syntax-highlighting-theme';
 
@@ -48,8 +47,6 @@ export default defineConfig({
 			rehypeTasklistEnhancer(),
 			// Translates the autolink headings anchors
 			rehypei18nAutolinkHeadings(),
-			// Collapse static parts of the hast to html
-			rehypeOptimizeStatic,
 		],
 	},
 });
