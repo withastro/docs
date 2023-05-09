@@ -1,5 +1,5 @@
 import chroma from 'chroma-js';
-import { escape, unescape } from 'html-escaper';
+import { escape, unescape } from '~/util/html-entities';
 import { ensureTextContrast } from './color-contrast';
 import {
 	InlineMarkingDefinition,
