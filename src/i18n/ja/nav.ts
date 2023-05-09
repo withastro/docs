@@ -7,11 +7,6 @@ export default NavDictionary({
 	install: 'インストール',
 	'editor-setup': 'エディタのセットアップ',
 	'guides/upgrade-to/v2': 'v2へのアップグレード',
-	'guides/migrate-to-astro': 'Astroへの移行',
-
-	// Tutorials
-	tutorials: 'チュートリアル',
-	'blog-tutorial': 'ブログを作る',
 
 	// Core Concepts
 	coreConcepts: 'コアコンセプト',
@@ -19,35 +14,46 @@ export default NavDictionary({
 	'concepts/mpa-vs-spa': 'MPA vs. SPA',
 	'concepts/islands': 'Astroアイランド',
 
+	// Tutorials
+	tutorials: 'チュートリアル',
+	'blog-tutorial': 'ブログを作る',
+	// 'island-tutorial': 'Thinking with Islands',
+
 	// Basics
 	basics: '基本',
 	'core-concepts/project-structure': 'ディレクトリ構成',
-	'core-concepts/astro-components': 'Astroコンポーネント',
+	'core-concepts/astro-components': 'コンポーネント',
 	'core-concepts/astro-pages': 'ページ',
 	'core-concepts/layouts': 'レイアウト',
-	'guides/markdown-content': 'MarkdownとMDX',
-	'core-concepts/routing': 'ルーティング',
-	'guides/imports': 'インポート',
-	'core-concepts/endpoints': 'エンドポイント',
-	'guides/data-fetching': 'データフェッチ',
-	'guides/deploy': 'デプロイ',
-	'guides/troubleshooting': 'トラブルシューティング',
+
+	// Recipes
+	examples: 'レシピ',
+	'guides/migrate-to-astro': 'Astroへの移行',
+	'guides/cms': 'CMSとの接続',
+	'guides/backend': 'バックエンドサービスの追加',
+	'guides/integrations-guide': 'インテグレーションの追加',
+	'guides/deploy': 'サイトのデプロイ',
+	'guides/recipes': 'すべてのレシピ',
 
 	// Guides
 	features: 'ガイド',
-	'guides/integrations-guide': 'インテグレーション',
+	'core-concepts/astro-syntax': 'Astroテンプレートの構文',
 	'core-concepts/framework-components': 'UIフレームワーク',
+	'core-concepts/routing': 'ルーティング',
+	'guides/markdown-content': 'MarkdownとMDX',
+	'guides/content-collections': 'コンテンツコレクション',
 	'guides/client-side-scripts': 'スクリプトとイベントハンドリング',
 	'guides/styling': 'CSSとスタイル',
-	'guides/server-side-rendering': 'サーバーサイドレンダリング（SSR）',
-	'guides/content': 'コンテンツの執筆',
-	'guides/content-collections': 'コンテンツコレクション',
-	'guides/cms': 'CMSとの接続',
+	'guides/assets': 'アセット（実験的）',
 	'guides/images': '画像',
 	'guides/fonts': 'フォント',
-	'core-concepts/sharing-state': '状態の共有',
-	'guides/rss': 'RSS',
+	'guides/imports': 'インポート',
+	'guides/server-side-rendering': 'サーバーサイドレンダリング（SSR）',
+	'core-concepts/endpoints': 'エンドポイント',
+	'guides/data-fetching': 'データフェッチ',
+	'guides/middleware': 'ミドルウェア（実験的）',
 	'guides/testing': 'テスト',
+	'guides/troubleshooting': 'トラブルシューティング',
 
 	// Configuration
 	configuration: '設定',
@@ -59,11 +65,12 @@ export default NavDictionary({
 	// Reference
 	reference: 'リファレンス',
 	'reference/configuration-reference': '設定方法',
-	'reference/cli-reference': 'CLI',
 	'reference/api-reference': 'ランタイムAPI',
 	'reference/integrations-reference': 'インテグレーションAPI',
 	'reference/adapter-reference': 'アダプターAPI',
+	'reference/image-service-reference': '画像サービスAPI',
 	'reference/directives-reference': 'テンプレートディレクティブ',
+	'reference/cli-reference': 'Astro CLI',
 	'reference/error-reference': 'エラーリファレンス',
 	'guides/publish-to-npm': 'NPMパッケージの形式',
 });

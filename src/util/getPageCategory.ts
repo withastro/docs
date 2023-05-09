@@ -16,7 +16,7 @@ const categories = [
  * @param url URL for the current page.
  * @returns The category for the current page as used by Algolia DocSearch to group search results.
  */
-export function getPageCategory(url: URL) {
+export function getPageCategory(url: { pathname: string }) {
 	const langAgnosticPath = url.pathname.replace(/\/\w\w(-\w\w)?\//, '');
 	for (const [path, label] of categories) {
 		if (langAgnosticPath.startsWith(path)) return label;

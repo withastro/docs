@@ -120,6 +120,18 @@ If you **do not** already extend Astro's `strict` or `strictest` recommended Typ
 }
 ```
 
+If you use `.js` or `.mjs` files in an Astro project, you can enable IntelliSense and type checking in your editor by enabling `allowJs` in your `tsconfig.json`:
+```json title="tsconfig.json" ins={6}
+{
+  // Note: No change needed if you use "astro/tsconfigs/strict" or "astro/tsconfigs/strictest"
+  "extends": "astro/tsconfigs/base",
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "allowJs": true
+  }
+}
+```
+
 ### Defining a collection schema
 
 Schemas enforce consistent frontmatter within a collection. A schema **guarantees** that your frontmatter exists in a predictable form when you need to reference or query it. If any file violates its collection schema, Astro will provide a helpful error to let you know.
@@ -221,8 +233,10 @@ defineCollection({
     tags: z.array(z.string()),
     // An optional frontmatter property. Very common!
     footnote: z.string().optional(),
-    // Convert a standard date-string into a `Date` object
-    publishDate: z.string().transform(str => new Date(str)),
+    // In frontmatter, dates written without quotes around them are interpreted as Date objects
+    publishDate: z.date(),
+    // You can also transform a date string (e.g. "2022-07-08") to a Date object
+    // publishDate: z.string().transform((str) => new Date(str)),
     // Advanced: Validate that the string is also an email
     authorContact: z.string().email(),
     // Advanced: Validate that the string is also a URL
@@ -344,7 +358,7 @@ const { Content, headings } = await entry.render();
 
 ## Generating Routes from Content
 
-Content collections are stored outside of the `src/pages/` directory. You will need to create a new [dynamic route](/en/core-concepts/routing/#dynamic-routes) to generate HTML pages from your collection entries. Your dynamic route will map the incoming request param (ex: `Astro.params.slug` in `src/pages/blog/[...slug].astro`) to fetch the correct entry inside a collection.
+Content collections are stored outside of the `src/pages/` directory. This means that no routes are generated for your collection items by default. You will need to manually create a new [dynamic route](/en/core-concepts/routing/#dynamic-routes) to generate HTML pages from your collection entries. Your dynamic route will map the incoming request param (ex: `Astro.params.slug` in `src/pages/blog/[...slug].astro`) to fetch the correct entry inside a collection.
 
 The exact method for generating routes will depend on your build [`output`](/en/reference/configuration-reference/#output) mode: 'static' (the default) or 'server' (for SSR).
 
@@ -383,16 +397,21 @@ If you are building a dynamic website (using Astro's SSR support), you are not e
 ```astro
 ---
 // src/pages/posts/[...slug].astro
-import { getEntryBySlug } from 'astro:content';
+import { getEntryBySlug } from "astro:content";
 // 1. Get the slug from the incoming server request
 const { slug } = Astro.params;
+if (slug === undefined) {
+	throw new Error("Slug is required");
+}
 // 2. Query for the entry directly using the request slug
-const entry = await getEntryBySlug('blog', slug);
-// 3. (Optional) render the entry to HTML in the template
+const entry = await getEntryBySlug("blog", slug);
+// 3. Redirect if the entry does not exist
+if (entry === undefined) {
+	return Astro.redirect("/404");
+}
+// 4. (Optional) Render the entry to HTML in the template
 const { Content } = await entry.render();
 ---
-<h1>{entry.data.title}</h1>
-<Content />
 ```
 
 ## Migrating from File-Based Routing 
@@ -502,8 +521,8 @@ This guide shows you how to convert an existing Astro project with Markdown file
 
     The tutorial blog project also dynamically generates a page for each tag. This page now becomes:
 
-    ```js title="src/pages/tags/[tag].astro" "post.data" "getCollection(\"posts\")"
-    ...
+    ```astro title="src/pages/tags/[tag].astro" "post.data" "getCollection(\"posts\")" "post.data.title"
+    ---
     export async function getStaticPaths() {
       const allPosts = await getCollection("posts");
       const uniqueTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
@@ -518,10 +537,21 @@ This guide shows you how to convert an existing Astro project with Markdown file
         };
       });
     }
-    ...
+    
+    const { tag } = Astro.params;
+    const { posts } = Astro.props;
+    ---
+
+    <BaseLayout pageTitle={tag}>
+        <p>Posts tagged with {tag}</p>
+        <ul>
+            { posts.map((post) => <BlogPost url={'/posts/' + post.slug} title={post.data.title} />) }
+        </ul>
+    </BaseLayout>
     ```
 
     The same logic appears in the tag index page, which becomes:
+    
     ```astro title="src/pages/tags/index.astro" "post.data" "getCollection(\"posts\")"
     ---
     import { getCollection } from "astro:content";
@@ -536,10 +566,26 @@ This guide shows you how to convert an existing Astro project with Markdown file
     :::note
     Any individual Markdown or MDX file imports should be replaced by [`getEntryBySlug()`](/en/reference/api-reference/#getentrybyslug).
     :::
+    
+8. Update the code that uses the publish date in the `layouts/MarkdownPostLayout.astro` file.
 
-    Lastly, the tutorial blog project includes an RSS feed. This file must also use `getCollection` and use the `data` object:
+    Previously, `pubDate` was a string. Now, after introducing types for your posts' frontmatter, `pubDate` is a `Date`.
+    To render the date, convert it to a string:
 
-    ```js title="src/pages/rss.xml.js" {5, 10-15} 
+    ```astro title="src/layouts/MarkdownPostLayout.astro" "frontmatter.pubDate.toDateString()"
+    ...
+    <BaseLayout pageTitle={frontmatter.title}>
+      <p>{frontmatter.pubDate.toDateString()}</p>
+      <p><em>{frontmatter.description}</em></p>
+      <p>Written by: {frontmatter.author}</p>
+      <img src={frontmatter.image.url} width="300" alt={frontmatter.image.alt} />
+    ...
+    ```
+    
+
+    Lastly, the tutorial blog project includes an RSS feed. This function must also use `getCollection` and the `data` object, and be converted to an async function to do so:
+
+    ```js title="src/pages/rss.xml.js" {4-5, 10-15} 
     import rss from "@astrojs/rss";
     import { getCollection } from "astro:content";
 

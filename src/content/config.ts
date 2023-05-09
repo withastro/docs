@@ -15,6 +15,12 @@ export const deploySchema = baseSchema.extend({
 	type: z.literal('deploy'),
 });
 
+export const backendSchema = baseSchema.extend({
+	type: z.literal('backend'),
+	stub: z.boolean().default(false),
+	service: z.string(),
+});
+
 export const cmsSchema = baseSchema.extend({
 	type: z.literal('cms'),
 	stub: z.boolean().default(false),
@@ -45,8 +51,17 @@ export const tutorialSchema = baseSchema.extend({
 	unitTitle: z.string().optional(),
 });
 
+export const recipeSchema = baseSchema.extend({
+	type: z.literal('recipe'),
+	description: z.string(),
+});
+
 export type DeployEntry = CollectionEntry<'docs'> & {
 	data: z.infer<typeof deploySchema>;
+};
+
+export type BackendEntry = CollectionEntry<'docs'> & {
+	data: z.infer<typeof backendSchema>;
 };
 
 export type CmsEntry = CollectionEntry<'docs'> & {
@@ -65,7 +80,15 @@ export type TutorialEntry = CollectionEntry<'docs'> & {
 	data: z.infer<typeof tutorialSchema>;
 };
 
+export type RecipeEntry = CollectionEntry<'docs'> & {
+	data: z.infer<typeof recipeSchema>;
+};
+
 export type IntegrationCategory = z.infer<typeof integrationSchema>['category'];
+
+export function isBackendEntry(entry: CollectionEntry<'docs'>): entry is BackendEntry {
+	return entry.data.type === 'backend';
+}
 
 export function isCmsEntry(entry: CollectionEntry<'docs'>): entry is CmsEntry {
 	return entry.data.type === 'cms';
@@ -83,18 +106,28 @@ export function isMigrationEntry(entry: CollectionEntry<'docs'>): entry is Migra
 	return entry.data.type === 'migration';
 }
 
-export function isEnglishEntry(entry: CollectionEntry<'docs'>): boolean {
-	return entry.slug.startsWith('en/');
+export function isRecipeEntry(entry: CollectionEntry<'docs'>): entry is RecipeEntry {
+	return entry.data.type === 'recipe';
 }
+
+export function createIsLangEntry(lang: string) {
+	return function isLangEntry(entry: CollectionEntry<'docs'>): boolean {
+		return entry.slug.startsWith(lang + '/');
+	};
+}
+
+export const isEnglishEntry = createIsLangEntry('en');
 
 const docs = defineCollection({
 	schema: z.union([
 		baseSchema,
+		backendSchema,
 		cmsSchema,
 		integrationSchema,
 		migrationSchema,
 		tutorialSchema,
 		deploySchema,
+		recipeSchema,
 	]),
 });
 

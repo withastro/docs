@@ -3,9 +3,10 @@ import languages from '../../i18n/languages';
 import './HeaderButton.css';
 import './LanguageSelect.css';
 
-const LanguageSelect = ({ lang }: { lang: string }) => {
+const LanguageSelect = ({ lang, label }: { lang: string; label: string }) => {
 	return (
-		<div className="language-select-wrapper">
+		<label className="language-select-wrapper">
+			<span className="sr-only">{label}</span>
 			<svg
 				width="1.25em"
 				height="1.25em"
@@ -26,7 +27,6 @@ const LanguageSelect = ({ lang }: { lang: string }) => {
 			<select
 				className="header-button language-select"
 				value={lang}
-				aria-label="Select language"
 				onChange={(e: ChangeEvent<HTMLSelectElement>) => {
 					const newLang = e.currentTarget.value;
 					const [_leadingSlash, _oldLang, ...rest] = window.location.pathname.split('/');
@@ -40,7 +40,7 @@ const LanguageSelect = ({ lang }: { lang: string }) => {
 					</option>
 				))}
 			</select>
-		</div>
+		</label>
 	);
 };
 
