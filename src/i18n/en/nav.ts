@@ -21,7 +21,7 @@ export default [
 
 	{ text: 'Tutorials', header: true, type: 'learn', key: 'tutorials' },
 	{ text: 'Build a Blog', slug: 'tutorial/0-introduction', key: 'blog-tutorial' },
-	{ text: 'Building with Islands', slug: 'tutorial/0-introduction', key: 'island-tutorial' },
+	{ text: 'Building with Islands', slug: 'islands/0-introduction', key: 'island-tutorial' },
 
 	{ text: 'Basics', header: true, type: 'learn', key: 'basics' },
 
