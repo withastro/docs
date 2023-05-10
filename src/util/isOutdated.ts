@@ -1,7 +1,7 @@
-import languages from '~/i18n/languages';
-import { TranslationStatusBuilder } from '../../scripts/lib/translation-status/builder';
-import { stripLangFromSlug } from '~/util';
 import type { CollectionEntry } from 'astro:content';
+import languages from '~/i18n/languages';
+import { stripLangFromSlug } from '~/util';
+import { TranslationStatusBuilder } from '../../scripts/lib/translation-status/builder';
 
 const builder = new TranslationStatusBuilder({
 	pageSourceDir: './src/content/docs',
