@@ -46,6 +46,11 @@ export const migrationSchema = baseSchema.extend({
 	stub: z.boolean().default(false),
 });
 
+export const islandsSchema = baseSchema.extend({
+	type: z.literal('islands'),
+	unitTitle: z.string().optional(),
+});
+
 export const tutorialSchema = baseSchema.extend({
 	type: z.literal('tutorial'),
 	unitTitle: z.string().optional(),
@@ -80,6 +85,10 @@ export type TutorialEntry = CollectionEntry<'docs'> & {
 	data: z.infer<typeof tutorialSchema>;
 };
 
+export type IslandsEntry = CollectionEntry<'docs'> & {
+	data: z.infer<typeof islandsSchema>;
+};
+
 export type RecipeEntry = CollectionEntry<'docs'> & {
 	data: z.infer<typeof recipeSchema>;
 };
@@ -100,6 +109,10 @@ export function isIntegrationEntry(entry: CollectionEntry<'docs'>): entry is Int
 
 export function isTutorialEntry(entry: CollectionEntry<'docs'>): entry is TutorialEntry {
 	return entry.data.type === 'tutorial';
+}
+
+export function isIslandsEntry(entry: CollectionEntry<'docs'>): entry is IslandsEntry {
+	return entry.data.type === 'islands';
 }
 
 export function isMigrationEntry(entry: CollectionEntry<'docs'>): entry is MigrationEntry {
@@ -126,6 +139,7 @@ const docs = defineCollection({
 		integrationSchema,
 		migrationSchema,
 		tutorialSchema,
+		islandsSchema,
 		deploySchema,
 		recipeSchema,
 	]),

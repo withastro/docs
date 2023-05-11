@@ -4,6 +4,7 @@ import {
 	isEnglishEntry,
 	isRecipeEntry,
 	isTutorialEntry,
+	isIslandsEntry,
 } from './content/config';
 
 const isKoreanEntry = createIsLangEntry('ko');
@@ -17,5 +18,6 @@ export const allPages = await getCollection('docs', (entry) => {
 	}
 });
 export const tutorialPages = allPages.filter(isTutorialEntry);
+export const islandsPages = allPages.filter(isIslandsEntry);
 export const recipePages = allPages.filter(isRecipeEntry);
 export const englishPages = allPages.filter(isEnglishEntry);

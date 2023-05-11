@@ -93,6 +93,18 @@ export default {
 	'tutorial.unit': 'Unit',
 	// Tutorial
 	'tutorial.getReady': 'Get ready to…',
+	// Island Tutorial Right Sidebar
+	'island.contentsLabel': 'Table of Contents',
+	'island.0': 'Introduction',
+	'island.1': '1. UI Framework Components',
+	'island.2': '2. Client Directives',
+	'island.3': '3. Data from Astro to Islands',
+	'island.4': '4. Server vs Client',
+	'island.5': '5. Data Fetching in Islands',
+	'island.6': '6. Styling Islands',
+	'island.7': '7. Advanced Island Patterns',
+	'island.8': 'Next Steps',
+
 	// Feedback Fish widget
 	'feedback.button': 'Give us feedback',
 	'feedback.a11yLabel': 'Feedback form',
