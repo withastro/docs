@@ -266,6 +266,49 @@ defineCollection({
 })
 ```
 
+### Defining collection references
+
+Collection entries can also "reference" other related entries. A common example is a blog post that references an author stored in an `authors` collection, or other related posts stored in the same collection.
+
+You can define these relationships using the `reference()` utility from your collection schema. This accepts a collection name, and validates the entry identifier(s) specified in your content frontmatter or data file.
+
+```ts
+import { defineCollection, reference, z } from 'astro:content';
+
+const blog = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    // Reference a single author from the `authors` collection by `id`
+    author: reference('authors'),
+    // Reference an array of related posts from the `blog` collection by `slug`
+    relatedPosts: z.array(reference('blog')),
+  })
+});
+
+const authors = defineCollection({
+  type: 'data',
+  schema: z.object({
+    name: z.string(),
+    portfolio: z.string().url(),
+  })
+});
+
+export const collections = { blog, authors };
+```
+
+This example blog post specifies the `slug`s of related posts and the `id` of the post author:
+
+```yaml title="src/content/blog/welcome.md"
+---
+title: "Welcome to my blog"
+author: ben-holmes # references `src/content/authors/ben-holmes.json`
+relatedPosts:
+- about-me # references `src/content/blog/about-me.md`
+- my-year-in-review # references `src/content/blog/my-year-in-review.md`
+---
+```
+
 ### Defining custom slugs
 
 When using `type: 'content'`, every content entry generates a URL-friendly `slug` property from its [file `id`](/en/reference/api-reference/#id). The slug is used to query the entry directly from your collection. It is also useful when creating new pages and URLs from your content.
@@ -374,7 +417,7 @@ const { post } = Astro.props;
 
 ### Rendering content to HTML
 
-Once queried, you can render a collection entry to HTML using the entry `render()` function property. Calling this function gives you access to rendered content and metadata, including both a `<Content />` component and a list of all rendered headings.
+Once queried, you can render Markdown and MDX entries to HTML using the entry `render()` function property. Calling this function gives you access to rendered content and metadata, including both a `<Content />` component and a list of all rendered headings.
 
 ```astro {5}
 ---
@@ -383,7 +426,7 @@ import { getEntry } from 'astro:content';
 const entry = await getEntry('blog', 'post-1');
 const { Content, headings } = await entry.render();
 ---
-<p>Written by: {entry.data.author}</p>
+<p>Published on: {entry.data.published.toDateString()}</p>
 <Content />
 ```
 
