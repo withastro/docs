@@ -48,7 +48,7 @@ module.exports = {
       plugins: ['react', '@typescript-eslint'],
       parserOptions: {
         ecmaFeatures: {
-            jsx: true
+          jsx: true
         },
         tsconfigRootDir: __dirname,
         project: ['./tsconfig.json'],
