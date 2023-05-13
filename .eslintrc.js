@@ -9,7 +9,6 @@ module.exports = {
     ecmaVersion: 'latest',
     sourceType: 'module',
   },
-  rules: {},
   settings: {
     react: {
       pragma: 'h',
@@ -24,7 +23,6 @@ module.exports = {
         parser: '@typescript-eslint/parser',
         extraFileExtensions: ['.astro'],
       },
-      rules: {},
     },
     {
       files: ['*.ts'],
@@ -49,6 +47,9 @@ module.exports = {
       parser: '@typescript-eslint/parser',
       plugins: ['react', '@typescript-eslint'],
       parserOptions: {
+        ecmaFeatures: {
+            jsx: true
+        },
         tsconfigRootDir: __dirname,
         project: ['./tsconfig.json'],
       },
