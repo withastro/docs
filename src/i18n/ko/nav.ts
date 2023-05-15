@@ -11,4 +11,5 @@ export default NavDictionary({
 	basics: '기본',
 	'core-concepts/project-structure': '프로젝트 구조',
 	'guides/aliases': '별칭',
+	'core-concepts/astro-pages': '페이지',
 });
