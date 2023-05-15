@@ -12,4 +12,5 @@ export default NavDictionary({
 	'core-concepts/project-structure': '프로젝트 구조',
 	'core-concepts/astro-components': '컴포넌트',
 	'core-concepts/astro-pages': '페이지',
+	'core-concepts/layouts': '레이아웃',
 });
