@@ -10,5 +10,6 @@ export default NavDictionary({
 	'guides/upgrade-to/v2': 'v2로 업그레이드 하기',
 	basics: '기본',
 	'core-concepts/project-structure': '프로젝트 구조',
+	'core-concepts/astro-components': '컴포넌트',
 	'core-concepts/astro-pages': '페이지',
 });
