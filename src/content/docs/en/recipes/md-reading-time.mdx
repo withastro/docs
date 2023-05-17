@@ -1,0 +1,72 @@
+---
+title: Add Markdown Reading Time
+description: Learn how to add a reading time every Markdown or MDX file.
+i18nReady: false
+type: recipe
+---
+
+Plugins can be used extend Markdown with new capabilities. In this recipe, you'll learn how to add a reading time property to your Markdown or MDX files.
+
+## Prerequisites
+
+- The [remark or rehype plugin](/en/guides/markdown-content#markdown-plugins).
+
+## Recipe
+
+### Install Plugin
+
+You can use a [remark plugin](https://github.com/remarkjs/remark) to add a reading time to your frontmatter. We recommend two helper packages:
+- [`reading-time`](https://www.npmjs.com/package/reading-time) to calculate minutes read
+- [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string) to extract all text from your markdown
+
+```shell
+npm install reading-time mdast-util-to-string
+```
+
+We can apply these packages to a remark plugin like so:
+
+```js title="remark-reading-time.mjs"
+import getReadingTime from 'reading-time';
+import { toString } from 'mdast-util-to-string';
+
+export function remarkReadingTime() {
+  return function (tree, { data }) {
+    const textOnPage = toString(tree);
+    const readingTime = getReadingTime(textOnPage);
+    // readingTime.text will give us minutes read as a friendly string,
+    // i.e. "3 min read"
+    data.astro.frontmatter.minutesRead = readingTime.text;
+  };
+}
+```
+
+### Add Plugin to Config
+
+Once you apply this plugin to your config:
+
+```js title="astro.config.mjs" "import { remarkReadingTime } from './remark-reading-time.mjs';" "remarkPlugins: [remarkReadingTime],"
+import { defineConfig } from 'astro/config';
+import { remarkReadingTime } from './remark-reading-time.mjs';
+
+export default defineConfig({
+  markdown: {
+    remarkPlugins: [remarkReadingTime]
+  },
+});
+```
+
+...all Markdown documents will have a calculated `minutesRead`. You can use this to include an "X min read" banner in a [markdown layout](/en/guides/markdown-content#markdown-and-mdx-pages), for instance:
+
+```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.frontmatter;" "<p>{minutesRead}</p>"
+---
+const { minutesRead } = Astro.props.frontmatter;
+---
+
+<html>
+  <head>...</head>
+  <body>
+    <p>{minutesRead}</p>
+    <slot />
+  </body>
+</html>
+```
