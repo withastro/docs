@@ -24,6 +24,7 @@ export default UIDictionary({
 	'rightSidebar.readBlog': 'Leia nossas postagens no blog',
 	'rightSidebar.openCollective': 'Nossa Open Collective',
 	'rightSidebar.contribute': 'Contribua',
+	'rightSidebar.contributorGuides': 'Guias de Contribuidor',
 	'rightSidebar.editPage': 'Edite esta página',
 	'rightSidebar.translatePage': 'Traduza esta página',
 	'rightSidebar.a11yTitle': 'Secundária',
@@ -103,4 +104,7 @@ export default UIDictionary({
 	'feedback.success': 'Obrigado! Nós recebemos seu feedback.',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': 'Diretório',
+	// `<RecipeLinks>` vocabulary
+	'recipesLink.singular': 'Receita relacionada:',
+	'recipesLink.plural': 'Receitas relacionadas',
 });
