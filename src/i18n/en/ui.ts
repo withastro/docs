@@ -54,6 +54,9 @@ export default {
 	'migration.navTitle': 'More migration guides',
 	// Recipes vocabulary
 	'recipes.navTitle': 'More recipes',
+	// `<RecipeLinks>` vocabulary
+	'recipesLink.singular': 'Related recipe:',
+	'recipesLink.plural': 'Related recipes',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'See all contributors',
 	// Fallback content notice shown when a page is not yet translated
