@@ -104,4 +104,7 @@ export default UIDictionary({
 	'feedback.success': 'Obrigado! Nós recebemos seu feedback.',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': 'Diretório',
+	// `<RecipeLinks>` vocabulary
+	'recipesLink.singular': 'Receita relacionada:',
+	'recipesLink.plural': 'Receitas relacionadas',
 });
