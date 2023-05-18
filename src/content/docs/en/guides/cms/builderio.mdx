@@ -130,85 +130,16 @@ For more help, read (Builder's troubleshooting guide)[https://www.builder.io/c/d
 #### Fetching data
 (xxx work on this --- simplify)
 
-To test this setup, create a new piece of content for the [section model you've set up in step 3](configuring builder). In Builder's editor click on **+ Add Block** and add some text.
+To test this setup, create a new piece of content for the [section model you've set up in step 3](configuring builder). In Builder's editor click on **+ Add Block** and add some text. Give the content entry a name (above th editor) and then click **Publish**. 
 
-.To fetch your data from the Builder CMS, you can simply make a fetch request to one of Builder's REST APIs. 
+To display the blocks You just added, fetch their HTML using Builder's API. Your component might look like this:
 
-Which API should You use? It depends on what kind of data you'd like to fetch:
-
-1. Use Builder's Content API [xxx] to fetch your content's custom data fields like a post's `title`, `author`, or `slug`
-
-2. Use builder's QWIK API [xxx] to fetch pre-rendered HTML that you can directly put in your Astro page
-
-##### Fetching data fields of your content
-
-If You had a Builder model named `blogPost` and wanted to create a page showing a list of all your blog posts, your component might look like this:
-
-```astro ins={12}
+```astro title="/src/pages/Somepage.astro
 ---
-const builderModel = 'blogPost'
+    import BaseLayout from "../layouts/BaseLayout.astro";
 
-const { results: posts } = await fetch(
-    `https://cdn.builder.io/api/v2/content/blogPost?${new URLSearchParams(
-            {
-                apiKey: YOUR_BUILDER_API_KEY,
-                fields: ["data.slug", "data.title"].join(","),
-                cachebust: "true",
-            }
-        ).toString()}`
-    )
-    .then((res) => res.json())
-    .catch(
-      // ...catch some errors...
-    );
----
-<ul>
-    {
-        posts.map(({ data: { slug, title } }) => (
-            <a href={`/posts/${slug}`} > 
-            {title}
-            </a>
-        ))
-    }
-</ul>
-```
-
-##### Fetching pre-rendered HTML
-
-If You had a Builder model named `blogPost` and wanted to create a page showing the contents of your blog posts - i.e. whatever you've created in the Builder editor, your component might look like this:
-
-```astro title="[slug].astro
----
-const builderModel = 'blogPost'
-
-// fetch all posts, just as in the previous step
-// 💥 TO REVIEWER: open to suggestions how to simplify this
-export async function getStaticPaths() {
-    const { results: posts } = await fetch(
-        `https://cdn.builder.io/api/v2/content/${builderModel}?${new URLSearchParams(
-            {
-                apiKey: builderAPIpublicKey,
-                fields: ["data.slug", "data.title"].join(","),
-                cachebust: "true",
-            }
-        ).toString()}`
-    )
-        .then((res) => res.json())
-        .catch(
-      // ...catch some errors...
-        );
-        
-    return [
-        ...posts.map(({ data: { slug, title } }) => [
-            {
-                params: { slug },
-                props: { title },
-            },
-        ]),
-    ];
-}
-const { slug } = Astro.params;
-const { title } = Astro.props;
+const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
+const builderModel = 'blogpost'
 
 // Builder's API requires this field but for this use case the url doesn't seem to matter - the API returns the same HTML
 const encodedUrl = encodeURIComponent("moot");
@@ -217,7 +148,6 @@ const { html: postHTML } = await fetch(
     `https://cdn.builder.io/api/v1/qwik/${builderModel}?${new URLSearchParams({
         apiKey: builderAPIpublicKey,
         url: encodedUrl,
-        "query.data.slug": slug,
         cachebust: "true",
     }).toString()}`
 )
@@ -227,11 +157,20 @@ const { html: postHTML } = await fetch(
       );
 ---
 
-<BaseLayout pageTitle={title}>
+<BaseLayout pageTitle={'somepage'}>
     <Fragment set:html={postHTML} />
 </BaseLayout>
-
 ```
+
+:::info
+Builder has several APIs and which to use depends on what kind of data You want to fetch
+
+(This assumes that You want to use Builder's REST API as opposed to an integration)
+
+1. If You want to get the blocks that You've added in the Builder editor, use the [QWIK API](xxx). This will give You pre-rendered HTML that you can directly put in your Astro page. (see above)
+
+2. If You want to fetch your content's custom data fields like a post's `title` or `slug`, use Builder's Content API [xxx]. [See a later section of this guide for an example]().
+:::
 
 ## Making a blog with Astro and Builder
 
@@ -528,14 +467,18 @@ To display each blogpost you'll create a catch-all route [xxx] matching the rout
 
 ## TODO
 [x] write draft
-[] follow the tutorial: general connecting  
+[x] follow the tutorial: general connecting  
 * its a little odd to find <BaseLayout> in the very first code example
 * also, BUILDER_BLOGPOST_MODEL
 * might simplify the first part by making it a **page** model
 [] follow the tutorial: build blog
 [] dynamic preview URL??????
+[] go through stars * notes
 [] fix typos -- AI
 [] go through code -- AI 
 [] revise, simplify, clarify -- AI
 [] add links
 [] add screenshots 
+[] unify tone --- AI, other astro stuff
+[] write PR --- mention new ideas
+[] ask Discord about squashing commits
