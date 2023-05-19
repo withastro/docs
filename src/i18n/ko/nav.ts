@@ -13,4 +13,5 @@ export default NavDictionary({
 	'guides/aliases': '별칭',
 	'core-concepts/astro-components': '컴포넌트',
 	'core-concepts/astro-pages': '페이지',
+	'core-concepts/layouts': '레이아웃',
 });
