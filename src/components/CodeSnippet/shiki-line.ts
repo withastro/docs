@@ -1,5 +1,5 @@
 import chroma from 'chroma-js';
-import { escape, unescape } from '~/util/html-entities';
+import { unescape } from '~/util/html-entities';
 import { ensureTextContrast } from './color-contrast';
 import {
 	InlineMarkingDefinition,
@@ -224,15 +224,14 @@ export class ShikiLine {
 
 			// The text position is inside the current token
 			if (textPosition > token.textStart && textPosition < token.textEnd) {
-				// To determine the correct position in tokensHtml based on textPosition,
-				// we need to take position shifts due to HTML entity escaping into account,
-				// so we insert a special character ('\n') at textPosition, escape the string,
-				// and finally determine the new special character position
-				const innerHtmlOffset = escape(
+				// NOTE: We used to escape the string before `indexOf` as rehype would escape HTML entities
+				// at render-time, causing the text position to shift. However, with rehype-optimize-static,
+				// the HTML is preserved as is, so we don't have to anticipate for the shift anymore.
+				const innerHtmlOffset = (
 					token.text.slice(0, textPosition - token.textStart) +
-						// Insert our special character at textPosition
-						'\n' +
-						token.text.slice(textPosition - token.textStart)
+					// Insert our special character at textPosition
+					'\n' +
+					token.text.slice(textPosition - token.textStart)
 				).indexOf('\n');
 
 				return {
