@@ -14,7 +14,7 @@ export const { getStaticPaths, get } = OGImageRoute({
 
 	pages,
 
-	getImageOptions: async (_, { data, slug }: typeof pages[string]) => {
+	getImageOptions: async (_, { data, slug }: (typeof pages)[string]) => {
 		return {
 			title: data.title,
 			description: data.description,

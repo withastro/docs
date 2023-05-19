@@ -1,0 +1,170 @@
+---
+title: Astro Adapter API
+i18nReady: true
+---
+{/* TODO: Readd anchor after updating server-side-rendering.mdx (/de/guides/server-side-rendering#adding-an-adapter) */}
+Astro ist so konzipiert, SSR (Server-seitiges Rendering) ganz einfach bei jedem beliebigen Cloud-Anbieter einzusetzen. Diese Fähigkeit wird durch __adapters__ bereitgestellt, die [Integrationen](/de/reference/integrations-reference/) sind. In der [SSR-Anleitung](/de/guides/server-side-rendering/) erfährst du, wie du einen vorhandenen Adapter verwenden kannst.
+
+## Was ist ein Adapter
+
+Ein Adapter ist eine besondere Art von [Integration](/de/reference/integrations-reference/), die einen Einstiegspunkt für das serverseitige Rendering bietet. Ein Adapter macht zwei Dinge:
+
+- Implementiert hostspezifische APIs für die Bearbeitung von Anfragen.
+- Konfiguriert den Build gemäß den Konventionen des Hosts.
+
+## Einen Adapter bauen
+
+Ein Adapter ist eine [Integration](/de/reference/integrations-reference/) und kann alles tun, was eine Integration tun kann.
+
+Ein Adapter __muss__ die `setAdapter`-API im `astro:config:done`-Hook wie folgt aufrufen:
+
+```js title="my-adapter.mjs"
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js'
+        });
+      },
+    },
+  };
+}
+```
+
+Das Objekt, das an `setAdapter` übergeben wird, ist definiert als:
+
+```ts
+interface AstroAdapter {
+	name: string;
+	serverEntrypoint?: string;
+	exports?: string[];
+}
+```
+
+Die Eigenschaften sind:
+
+* __name__: Ein eindeutiger Name für deinen Adapter, der für die Protokollierung verwendet wird.
+* __serverEntrypoint__: Der Einstiegspunkt für das serverseitige Rendering.
+* __exports__: Ein Array mit benannten Exporten, wenn es in Verbindung mit `createExports` verwendet wird (wird unten erklärt).
+
+### Server-Einstiegspunkt
+
+Die Adapter-API von Astro versucht, mit jeder Art von Host zu arbeiten und bietet eine flexible Möglichkeit, sich an die APIs der Hosts anzupassen.
+
+#### Exporte
+
+Einige Serverless Hosts erwarten, dass du eine Funktion exportierst, wie z.B. `handler`:
+
+```js
+export function handler(event, context) {
+  // ...
+}
+```
+
+Mit der Adapter-API erreichst du das, indem du `createExports` in deinem `serverEntrypoint` implementierst:
+
+```js
+import { App } from 'astro/app';
+
+export function createExports(manifest) {
+  const app = new App(manifest);
+
+  const handler = (event, context) => {
+    // ...
+  };
+
+  return { handler };
+}
+```
+
+Und in deiner Integration, wo du `setAdapter` aufrufst, gibst du diesen Namen in `exports` an:
+
+```js title="my-adapter.mjs" ins={9}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          exports: ['handler'],
+        });
+      },
+    },
+  };
+}
+```
+
+#### Start
+
+Einige Hosts erwarten, dass du den Server selbst *starten* kannst, indem du zum Beispiel einen Port abhörst. Für diese Arten von Hosts kannst du mit der Adapter-API eine `start`-Funktion exportieren, die aufgerufen wird, wenn das Bundle-Skript ausgeführt wird.
+
+```js
+import { App } from 'astro/app';
+
+export function start(manifest) {
+  const app = new App(manifest);
+
+  addEventListener('fetch', event => {
+    // ...
+  });
+}
+```
+
+#### `astro/app`
+
+Dieses Modul wird für das Rendern von Seiten verwendet, die mit `astro build` vorgebaut wurden. Astro verwendet die Standardobjekte [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) und [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response). Hosts, die eine andere API für Request/Response haben, sollten in ihrem Adapter auf diese Typen umstellen.
+
+```js
+import { App } from 'astro/app';
+import http from 'http';
+
+export function start(manifest) {
+  const app = new App(manifest);
+
+  addEventListener('fetch', event => {
+    event.respondWith(
+      app.render(event.request)
+    );
+  });
+}
+```
+
+Die folgenden Methoden sind vorgesehen:
+
+##### `app.render(request)`
+
+Diese Methode ruft die Astro-Seite auf, die der Anfrage entspricht, rendert sie und gibt ein Promise an ein [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) Objekt zurück. Dies funktioniert auch für API-Routen, die keine Seiten rendern.
+
+```js
+const response = await app.render(request);
+```
+
+##### `app.match(request)`
+
+Diese Methode wird verwendet, um festzustellen, ob eine Anfrage auf die Routing-Regeln der Astro-App zutrifft.
+
+```js
+if(app.match(request)) {
+  const response = await app.render(request);
+}
+```
+
+Normalerweise kannst du `app.render(request)` aufrufen, ohne `.match` zu verwenden, weil Astro 404-Fehler behandelt, wenn du eine `404.astro`-Datei bereitstellst. Verwende `app.match(request)`, wenn du 404-Fehler auf eine andere Weise behandeln willst.
+
+## Installation über `astro add` zulassen
+
+[Der Befehl `astro-add`](/de/reference/cli-reference/#astro-add) ermöglicht es Nutzern, Integrationen und Adapter einfach zu ihrem Projekt hinzuzufügen. Wenn du möchtest, dass _dein_ Adapter mit diesem Tool installiert werden kann, **füge `astro-adapter` in das Feld `keywords` in deiner `package.json`** ein:
+
+```json
+{
+  "name": "example",
+  "keywords": ["astro-adapter"],
+}
+```
+
+Sobald du [deinen Adapter bei npm](https://docs.npmjs.com/cli/v8/commands/npm-publish) veröffentlicht hast, wird dein Paket mit allen in der `package.json` angegebenen Peer-Abhängigkeiten installiert, wenn du `astro add example` ausführst. Wir werden die Benutzer auch anweisen, ihre Projektkonfiguration manuell zu aktualisieren.
