@@ -117,7 +117,7 @@ BUILDER_API_PUBLIC_KEY=YOUR_KEY
 BUILDER_BLOGPOST_MODEL='Blog Post'
 ```
 
-### Setting up the Preview URL 
+### Setting up the preview URL 
 
 :::info
 If you want to dig in, [read more about the preview URL in the Builder docs](https://www.builder.io/c/docs/html-api#previewing-content-on-your-site).
@@ -163,8 +163,8 @@ const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
 When you deploy your site, change the preview URL to match your production URL, for example `https://myAwesomeAstroBlog.com/builder-preview`.
 :::
 
-#### Creating content to test it 
-1. In your Builder space under the **Content** tab, click on **New** to create a new content entry and if a list pops up choose the "blogpost" model you just created.
+#### Testing it 
+1. In your Builder space under the **Content** tab, click on **New** to create a new content entry for your "blogpost" model.
 
 2. In the Builder editor that just opened, you should be able to see the `builder-preview.astro` page with a big inviting **+ Add Block** in the middle!
 
@@ -184,24 +184,100 @@ For more ideas, read (Builder's troubleshooting guide)[https://www.builder.io/c/
 :::
 
 ### Creating a blog post
-// ### Creating New Content
-// ### Using Builder's Visual Editor
+alt: ### Creating New Content
+alt: ### Using Builder's Visual Editor
 
 :::caution
 Before You can create new content in Builder, make sure the preview URL for your model is working. See the [instructions](/#Setting-up-the-Preview-URL) above. 
 :::
 
-To add new content, go to the **Content** tab, then click on *+ New* and choose the `blogpost` model You've just created. If You followed the steps under [integrating with Astro] and everything worked, you should see something like this: 
+If You've followed the steps under [testing it](xxx), go to the content entry for the 'blogpost' model you just created. Otherwise create it now: Go to the **Content** tab in your Builder space and click on *+ New*. You should see the Builder editor now:
 
 [screenshot with empty blogpost]
 
-The data fields you've just created are in the panel on the right under the *options* tab. Fill those in and then add some content to your post! To do that, click on the *+ Add Block* button and add whatever you want - maybe a text field with some text to start with. Here is where you can use the full power of Builder's drag and drop editor and design your blog post to your heart's contents!  
+1. In the panel on the right under the **options** tab, fill in data fields 'title' and 'slug'. These are the fields you've created in a previous step(xxx).
 
-When You're ready click on the big blue `Publish` in the upper right. 
+2. Design your post! Click on the *+ Add Block* button and add whatever you want - maybe a text field with some text to start with.
 
-The content is now live in the Builder CMS. 
+3. When You're ready click on the big blue **Publish** button in the upper right corner. 
 
-To actually connect this content with your website, you'll create a catch-all route that fetches and renders it.
+Your content is now live in the Builder CMS but not part of your Astro project yet. You'll be fetching and displaying it in the following steps. 
+
+Feel free to add as many blog posts as you want, then switch to your favorite code editor to start hacking with Astro!
+
+### Displaying a list of blog posts
+
+Create the page `src/pages/index.astro` that will display a list of posts, each linking to its own page:
+
+<FileTree title="Project Structure">
+- src/
+  - env.d.ts
+  - pages/
+    - **index.astro**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+Then add the following content:
+
+```astro title="src/pages/BlogPostList.astro" 
+---
+const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
+const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
+
+const { results: posts } = await fetch(
+    `https://cdn.builder.io/api/v2/content/${builderModel}?${new URLSearchParams(
+            {
+                apiKey: builderAPIpublicKey,
+                fields: ["data.slug", "data.title"].join(","),
+                cachebust: "true",
+            }
+        ).toString()}`
+    )
+    .then((res) => res.json())
+    .catch(
+            // ...catch some errors...
+    );
+---
+<html lang="en">
+  <head>
+    <title>Blog Index</title>
+  </head>
+  <body>
+    <ul>
+        {
+            posts.map(({ data: { slug, title } }) => (
+                <a href={`/posts/${slug}`} > 
+                {title}
+                </a>
+            ))
+        }
+    </ul>
+  </body>
+</html>
+```
+
+xoxoxo START FROM HERE xoxoxo
+
+:::caution
+URLs used to access APIs change fairly frequently. Check [Builder's API reference]() for the latest URL. 
+:::
+
+On lines ... and .... `slug` and `title` match the fields you've set up in your Builder model during the previous step(xxx). (All of your custom fields are availabe under the `data` object.) We are telling the Builder API to give us the `slug` and `title` of all our blog posts so that we can create our links using this data. 
+:::
+
+
+
+[screenshot showing matching fields: in code editor on one side, on builder.io on the other model custom fields]
+
+In this example we are keeping it simple and olnly fetching the bare necessities to show You how to create a list of blog posts. But You can fetch any data that you've set up in your Builder model - the name of the author, the length of the posts, or the publication date - it all depends on your Builder model. 
+
+Now You should be able to go to the `/BlogPostList` route and see your first blog post getting listed! You can even follow the link and it should lead You to the blogpost. 
+
+To finish off, You'll set up a web hook so that as You publish new posts on Builder, this list will get updated automatically.
+
+You'll be creating the routes that these links point to in the next step.
 
 ### Creating the component for a blog post 
 ### Displaying the content of a blogpost
@@ -288,59 +364,6 @@ The HTML is put into the slot of our `<BaseLayout>` matching our `builder-previe
 :::
 
 Now you can go to the route `/posts/hello-world` and you should be able to see your blog post! (The full URL depends on how you are running your project and might go something like `localhost:3000/posts/hello-world`)
-
-### Creating a list of all blog posts
-To make a list of all your content, go to your `src/pages` folder and create a file called `BlogPostList.astro` with the following content:
-
-```astro title="src/pages/BlogPostList.astro" ins={12}
----
-import BaseLayout from "../layouts/BaseLayout.astro";
-
-const pageTitle = "My Astro Learning Blog";
-
-const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
-const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
-
-const { results: posts } = await fetch(
-    `https://cdn.builder.io/api/v2/content/${builderModel}?${new URLSearchParams(
-            {
-                apiKey: builderAPIpublicKey,
-                fields: ["data.slug", "data.title"].join(","),
-                cachebust: "true",
-            }
-        ).toString()}`
-    )
-    .then((res) => res.json())
-    .catch(
-            // ...catch some errors...
-    );
----
-
-<BaseLayout pageTitle={pageTitle}>
-    <ul>
-        {
-            posts.map(({ data: { slug, title } }) => (
-                <a href={`/posts/${slug}`} > 
-                {title}
-                </a>
-            ))
-        }
-    </ul>
-</BaseLayout>
-```
-This will generate a list of titles each linking to the appropiate blog post. Notice how they are using the same route - `/posts/${slug}` - that you've set up in the previous step (xxx).
-
-:::note
-The magic happens on lines ... and .... `slug` and `title` match the fields you've set up in your Builder model during the previous step(xxx). (All of your custom fields are availabe under the `data` object.) We are telling the Builder API to give us the `slug` and `title` of all our blog posts so that we can create our links using this data. 
-:::
-
-[screenshot showing matching fields: in code editor on one side, on builder.io on the other model custom fields]
-
-In this example we are keeping it simple and olnly fetching the bare necessities to show You how to create a list of blog posts. But You can fetch any data that you've set up in your Builder model - the name of the author, the length of the posts, or the publication date - it all depends on your Builder model. 
-
-Now You should be able to go to the `/BlogPostList` route and see your first blog post getting listed! You can even follow the link and it should lead You to the blogpost. 
-
-To finish off, You'll set up a web hook so that as You publish new posts on Builder, this list will get updated automatically.
 
 ### Publishing your site
 
