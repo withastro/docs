@@ -221,13 +221,45 @@ Create the page `src/pages/index.astro` that will display a list of posts, each 
 
 Then add the following content:
 
-```astro title="src/pages/BlogPostList.astro" 
+```astro title="src/pages/index.astro /data.(title|slug)/" 
 ---
 const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
 const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
 
 const { results: posts } = await fetch(
-    `https://cdn.builder.io/api/v2/content/${builderModel}?${new URLSearchParams(
+    `https://cdn.builder.io/api/v3/content/${builderModel}?${new URLSearchParams(
+            {
+                apiKey: builderAPIpublicKey,
+                fields: ["data.slug", "data.title"].join(","),
+                cachebust: "true",
+            }
+        ).toString()}`
+    )
+    .then((res) => res.json())
+    .catch(
+            // ...catch some errors...
+    );
+---
+```
+
+:::caution
+URLs used to access APIs change fairly frequently. Check [Builder's API reference](https://www.builder.io/c/docs/content-api-versions) for the latest URL. 
+:::
+
+Fetching via the content API returns an array of objects containing data for each post. The `fields` query parameter tells Builder which data to send (see line / ??? highlighted code). `slug` and `title` should match the names of the custom data fields in your Builder model (see this step xxx). 
+:::
+
+???[screenshot showing matching fields: in code editor on one side, on builder.io on the other model custom fields]
+
+Use the `posts` array returned from the fetch to display a list of blog posts on the page:
+
+```astro title="src/pages/index.astro" ins={20-45}
+---
+const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
+const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
+
+const { results: posts } = await fetch(
+    `https://cdn.builder.io/api/v3/content/${builderModel}?${new URLSearchParams(
             {
                 apiKey: builderAPIpublicKey,
                 fields: ["data.slug", "data.title"].join(","),
@@ -258,26 +290,9 @@ const { results: posts } = await fetch(
 </html>
 ```
 
-xoxoxo START FROM HERE xoxoxo
-
-:::caution
-URLs used to access APIs change fairly frequently. Check [Builder's API reference]() for the latest URL. 
+:::info
+To debug or fine-tune the API results, you can use [Builder's API explorer](https://builder.io/api-explorer) 
 :::
-
-On lines ... and .... `slug` and `title` match the fields you've set up in your Builder model during the previous step(xxx). (All of your custom fields are availabe under the `data` object.) We are telling the Builder API to give us the `slug` and `title` of all our blog posts so that we can create our links using this data. 
-:::
-
-
-
-[screenshot showing matching fields: in code editor on one side, on builder.io on the other model custom fields]
-
-In this example we are keeping it simple and olnly fetching the bare necessities to show You how to create a list of blog posts. But You can fetch any data that you've set up in your Builder model - the name of the author, the length of the posts, or the publication date - it all depends on your Builder model. 
-
-Now You should be able to go to the `/BlogPostList` route and see your first blog post getting listed! You can even follow the link and it should lead You to the blogpost. 
-
-To finish off, You'll set up a web hook so that as You publish new posts on Builder, this list will get updated automatically.
-
-You'll be creating the routes that these links point to in the next step.
 
 ### Creating the component for a blog post 
 ### Displaying the content of a blogpost
