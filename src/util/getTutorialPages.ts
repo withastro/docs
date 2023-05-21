@@ -20,8 +20,10 @@ export function getTutorialPages(allPages: TutorialEntry[], lang: string) {
 			const aPath = path.parse(a.id);
 			const bPath = path.parse(b.id);
 			// Directories are numbered so pages in different directories can be sorted easily.
-			if (aPath.dir < bPath.dir) return -1;
-			if (aPath.dir > bPath.dir) return 1;
+			const aPathDir = path.basename(aPath.dir);
+			const bPathDir = path.basename(bPath.dir);
+			if (aPathDir < bPathDir) return -1;
+			if (aPathDir > bPathDir) return 1;
 			// Index files should come first within a directory.
 			if (aPath.name === 'index') return -1;
 			if (bPath.name === 'index') return 1;
