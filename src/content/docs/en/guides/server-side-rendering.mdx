@@ -103,7 +103,7 @@ Astro will remain a static-site generator by default. But once you enable a serv
 
 <Since v="2.0.0" />
 
-To enable **hybrid rendering**, any [page](/en/core-concepts/astro-pages/) or [server endpoint](/en/core-concepts/endpoints/#server-endpoints-api-routes) that supports exporting variables (`.astro`, `.mdx`, `.ts`, or `.js`) can opt-in to prerendering. These files will be statically rendered at build-time, similar to the default static [`output`](/en/reference/configuration-reference/#output) mode.
+Any individual [page](/en/core-concepts/astro-pages/) or [server endpoint](/en/core-concepts/endpoints/#server-endpoints-api-routes) that supports exporting variables (`.astro`, `.mdx`, `.ts`, or `.js`) can opt in to pre-rendering when your Astro project is configured to use SSR with `output: server`. These files will be statically rendered at build-time, similar to the default [`output: static`](/en/reference/configuration-reference/#output) mode.
 
 Simply add `export const prerender = true`:
 
@@ -134,6 +134,38 @@ export const prerender = true;
 export async function get() {
   return {
     body: JSON.stringify({ message: `This is my endpoint` }),
+  };
+}
+```
+
+#### Static pre-rendering by default
+
+<Since v="2.5.0" />
+
+You may have a site that is *mostly* static and can benefit from pre-rendering, but only a few of your pages or endpoints need to be server-rendered. SSR in Astro defaults to rendering on the server and requires you to individually designate the pages that should be static.
+
+To avoid declaring most of your pages as pre-rendered, change the `output` from `'server'` to `'hybrid'` and take advantage of SSR with static pre-rendering by default:
+
+```js
+export { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  output: 'hybrid',
+  experimental: {
+    hybridOutput: true,
+  },
+});
+```
+
+With this configuration, all of your pages and API endpoints will be pre-rendered, even though your project is configured with an adapter to use SSR. You can then *opt-out* of pre-rendering any individual file or route by adding `export const prerender = false` to any files that should be server-rendered.
+
+```js title="src/pages/randomnumber.js" {1}
+export const prerender = false;
+
+export async function get() {
+  let number = Math.random();
+  return {
+    body: JSON.stringify({ number, message: `Here's a random number: ${number}` }),
   };
 }
 ```
