@@ -53,4 +53,9 @@ export default NavDictionary({
 	'guides/upgrade-to/v2': 'Обновление до v2',
 	'reference/error-reference': 'Справочник по ошибкам',
 	tutorials: 'Обучение',
+	examples: 'Рецепты',
+	'guides/recipes': 'Больше рецептов',
+	'guides/fonts': 'Шрифты',
+	'guides/assets': 'Ресурсы (эксперим.)',
+	'core-concepts/astro-syntax': 'Синтаксис Astro',
 });
