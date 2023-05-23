@@ -24,6 +24,7 @@ export default NavDictionary({
 	'guides/migrate-to-astro': '迁移到 Astro',
 	'guides/cms': '连接到 CMS',
 	'guides/integrations-guide': '添加集成',
+  'guides/backend': '添加后端服务',
 	'guides/deploy': '部署你的站点',
 	'guides/recipes': '更多方案',
 
@@ -42,6 +43,7 @@ export default NavDictionary({
 	'guides/imports': '导入',
 	'core-concepts/endpoints': 'API 端点',
 	'guides/data-fetching': '数据获取',
+  'guides/middleware': '中间件 (实验性)',
 	'guides/testing': '测试',
 	'guides/troubleshooting': '故障排除',
 
