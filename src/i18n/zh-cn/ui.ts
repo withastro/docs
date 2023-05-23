@@ -52,7 +52,7 @@ export default UIDictionary({
 	'cms.navTitle': '更多 CMS 指南',
 	// Migration Guides vocabulary
 	'migration.navTitle': '更多迁移指南',
-  // Recipes vocabulary
+	// Recipes vocabulary
 	'recipes.navTitle': '更多方案',
 	// `<RecipeLinks>` vocabulary
 	'recipesLink.singular': '相关方案：',
@@ -62,8 +62,9 @@ export default UIDictionary({
 	// Fallback content notice shown when a page is not yet translated
 	'fallbackContent.notice': '此页暂不支持你的语言，我们将为你展示英文页面。你可以帮忙翻译它！',
 	'fallbackContent.linkText': '了解更多关于贡献的内容',
-  // Outdated content notice shown when a page is outdated
-	'outdatedContent.notice': '这个页面上的内容是一个旧的过时翻译，需要更新以匹配当前的英文版本。你可以通过翻译它来帮助我们！',
+	// Outdated content notice shown when a page is outdated
+	'outdatedContent.notice':
+		'这个页面上的内容是一个旧的过时翻译，需要更新以匹配当前的英文版本。你可以通过翻译它来帮助我们！',
 	// 404 Page
 	'404.title': '未能找到此页面',
 	'404.content': '该页面不在我们的星系中。',
@@ -103,7 +104,7 @@ export default UIDictionary({
 	'feedback.formTitle': '你有什么想法？',
 	'feedback.categoryGroupLabel': '选择反馈类型',
 	'feedback.issue': '问题',
-  'feedback.createIssue': '创建 GitHub Issue',
+	'feedback.createIssue': '创建 GitHub Issue',
 	'feedback.idea': '想法',
 	'feedback.other': '其它',
 	'feedback.messageA11yLabel': '留言',
@@ -113,7 +114,7 @@ export default UIDictionary({
 	'feedback.success': '感谢！我们收到了你的反馈。',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': '目录',
-  // CopyButton class in `<CodeSnippet>` component
+	// CopyButton class in `<CodeSnippet>` component
 	'copyButton.title': '复制到剪贴板',
 	'copyButton.tooltip': '复制成功！',
 	// Backend Guides vocabulary
