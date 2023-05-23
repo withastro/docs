@@ -427,7 +427,7 @@ export class TranslationStatusBuilder {
 	renderCreatePageButton(lang: string, filename: string): string {
 		// We include `lang` twice because GitHub eats the last path segment when setting filename.
 		const createUrl = new URL(
-			`https://github.com/${this.githubRepo}/new/main/src/content/docs/${lang}`
+			`https://github.com/${this.githubRepo}/new/main/src/content/docs`
 		);
 		createUrl.searchParams.set('filename', lang + '/' + filename);
 		createUrl.searchParams.set('value', '---\ntitle:\ndescription:\n---\n');
