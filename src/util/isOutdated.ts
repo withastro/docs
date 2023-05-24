@@ -15,8 +15,9 @@ const builder = new TranslationStatusBuilder({
 	githubToken: process.env.GITHUB_TOKEN,
 });
 
+const isShallowRepo = await builder.git.revparse(['--is-shallow-repository']);
+
 export async function isOutdated(pagePath: CollectionEntry<'docs'>['id']) {
-	const isShallowRepo = await builder.git.revparse(['--is-shallow-repository']);
 	if (isShallowRepo !== 'false') return false;
 
 	// @ts-expect-error uses id in place of slug, but it works the same way
