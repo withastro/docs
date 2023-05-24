@@ -55,6 +55,7 @@ export class TranslationStatusBuilder {
 		this.git = simpleGit({
 			maxConcurrentProcesses: Math.max(2, Math.min(32, os.cpus().length)),
 		});
+		this.pageDataCache = new Map<string, PageData>();
 	}
 
 	readonly pageSourceDir;
@@ -65,6 +66,7 @@ export class TranslationStatusBuilder {
 	readonly githubRepo;
 	readonly githubToken;
 	readonly git;
+	readonly pageDataCache;
 
 	async run() {
 		// Before we start, validate that this is not a shallow clone of the repo
@@ -168,6 +170,9 @@ export class TranslationStatusBuilder {
 	 * and creates a new page data object based on its frontmatter and git history.
 	 */
 	async getSinglePageData(pagePath: string): Promise<PageData> {
+		const cached = this.pageDataCache.get(pagePath);
+		if (cached) return cached;
+
 		const fullFilePath = `${this.pageSourceDir}/${pagePath}`;
 
 		// Retrieve git history for the current page
@@ -177,13 +182,15 @@ export class TranslationStatusBuilder {
 		const frontMatterBlock = tryGetFrontMatterBlock(fullFilePath);
 		const i18nReady = /^\s*i18nReady:\s*true\s*$/m.test(frontMatterBlock);
 
-		return {
+		const pageData: PageData = {
 			...(i18nReady ? { i18nReady: true } : {}),
 			lastChange: gitHistory.lastCommitDate,
 			lastCommitMsg: gitHistory.lastCommitMessage,
 			lastMajorChange: gitHistory.lastMajorCommitDate,
 			lastMajorCommitMsg: gitHistory.lastMajorCommitMessage,
 		};
+		this.pageDataCache.set(pagePath, pageData);
+		return pageData;
 	}
 
 	async getGitHistory(filePath: string) {
