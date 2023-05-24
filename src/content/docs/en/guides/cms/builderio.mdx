@@ -111,6 +111,12 @@ Click on the new model and use the **+ New Custom Field** button to create 2 new
 This guide relies on these fields to be exactly like this and later code will not run correctly if these fields don't exist, are empty, or the titles misspelled.
 :::
 
+:::caution
+Make sure your slug is not just a number!
+
+There is a pitfall with the `slug` field: it allows you to enter a number but this seems to break the API call later and is hard to debug. 
+:::
+
 Put the name of the model in the `.env` file for convenience:
 ```ini title="/.env" ins={2}
 BUILDER_API_PUBLIC_KEY=YOUR_KEY
@@ -296,8 +302,6 @@ To debug or fine-tune the API results, you can use [Builder's API explorer](http
 
 ### Displaying a single blogpost
 
-xoxoxo START HERE: possibly remove the fetching of slugs via content API and just straight up get everything needed via the Qwik API? Is it possible to work this with getStaticPaths? test on Stackblitz xoxoxo 
-
 Create the page `src/pages/post/[slug].astro` that will [dynamically generate a page](/en/core-concepts/routing/#dynamic-routes) for each post.
 
 <FileTree title="Project Structure">
@@ -316,9 +320,6 @@ Then add the following content:
 
 ```astro title="src/pages/posts/[slug].astro"
 ---
-const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
-const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
-
 export async function getStaticPaths() {
   const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
   const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
@@ -327,7 +328,7 @@ export async function getStaticPaths() {
         `https://cdn.builder.io/api/v3/content/${builderModel}?${new URLSearchParams(
             {
                 apiKey: builderAPIpublicKey,
-                fields: ["data.slug", "data.title"].join(","),
+                fields: ["data.slug"].join(","),
                 cachebust: "true",
             }
         ).toString()}`
@@ -338,27 +339,26 @@ export async function getStaticPaths() {
         )
 
     return [
-        ...posts.map(({ data: { slug, title } }) => [
+        ...posts.map(({ data: { slug } }) => [
             {
                 params: { slug },
-                props: { title },
             },
         ]),
     ];
 }
 const { slug } = Astro.params;
-const { title } = Astro.props;
 ```
 
-The fetch call is the exact same of the previous step(xxx). The goal is
+The fetch call is very similar to the one in the previous step(xxx). Here, the `getStaticPaths` function creates a static route for each blog post, based on the `slug` data field.
+
+alt: This file generates a [dynamic route](https://docs.astro.build/en/core-concepts/routing/#static-ssg-mode) for each blog post based on the `slug` custom data field You filled when You created your blogpost on Builder.     
 
 [⚡️ TO REVIEWER: I've looked into ways how to not repeat this fetch call and landed on the `integrations API`. That seemed a little complex. I'm thinking mb it's not too bad to repeat this code here, but I'm very open for suggestions or pointers on how to DRY it']
 
+Next, add the following content:
+
 ```astro title="src/pages/posts/[slug].astro" ins={25-99}
 ---
-const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
-const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
-
 export async function getStaticPaths() {
   const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
   const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
@@ -367,7 +367,7 @@ export async function getStaticPaths() {
         `https://cdn.builder.io/api/v3/content/${builderModel}?${new URLSearchParams(
             {
                 apiKey: builderAPIpublicKey,
-                fields: ["data.slug", "data.title"].join(","),
+                fields: ["data.slug"].join(","),
                 cachebust: "true",
             }
         ).toString()}`
@@ -378,17 +378,17 @@ export async function getStaticPaths() {
         )
 
     return [
-        ...posts.map(({ data: { slug, title } }) => [
+        ...posts.map(({ data: { slug } }) => [
             {
                 params: { slug },
-                props: { title },
             },
         ]),
     ];
 }
 const { slug } = Astro.params;
-const { title } = Astro.props;
 
+const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
+const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
 // Builder's API requires this field but for this use case the url doesn't seem to matter - the API returns the same HTML
 const encodedUrl = encodeURIComponent("moot");
 
@@ -405,26 +405,22 @@ const { html: postHTML } = await fetch(
       // ...catch more errors...);
         )
 ---
-
-<article>
-    <Fragment set:html={postHTML} />
-</article>
 ```
 
-
 ::: caution
-This code is relying on the fact that each content entry in the `blogpost` model has in fact fields called `title` and `slug`, so make sure these fields are required and all pieces of content have them, including those that might have been created before. It's best to create a new model with the proper rules set up from the beginning for that reason. 
+This code is relying on the fact that each content entry in the `blogpost` model has in fact fields called `slug`, so make sure these fields are required and all pieces of content have them, including those that might have been created before. It's best to create a new model with the proper rules set up from the beginning for that reason. 
 :::
 
-This file generates a [dynamic route](https://docs.astro.build/en/core-concepts/routing/#static-ssg-mode) for each blog post based on the `slug` custom data field You filled when You created your blogpost on Builder.     
+:::info
+The variables `builderModel` and `builderAPIpublicKey` need to be created again, since [`getStaticPaths` runs in its own isolated scope](https://docs.astro.build/en/reference/api-reference/#getstaticpaths).
+:::
+
+Here, you are fetching the HTML of each blogpost based on its `slug` custom data field. This HTML is made of the blocks you put on the page in Builder's editor.
 
 Finally, render the HTML:
 
 ```astro title="src/pages/posts/[slug].astro" ins={25-99}
 ---
-const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
-const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
-
 export async function getStaticPaths() {
   const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
   const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
@@ -433,7 +429,7 @@ export async function getStaticPaths() {
         `https://cdn.builder.io/api/v3/content/${builderModel}?${new URLSearchParams(
             {
                 apiKey: builderAPIpublicKey,
-                fields: ["data.slug", "data.title"].join(","),
+                fields: ["data.slug"].join(","),
                 cachebust: "true",
             }
         ).toString()}`
@@ -444,17 +440,17 @@ export async function getStaticPaths() {
         )
 
     return [
-        ...posts.map(({ data: { slug, title } }) => [
+        ...posts.map(({ data: { slug } }) => [
             {
                 params: { slug },
-                props: { title },
             },
         ]),
     ];
 }
 const { slug } = Astro.params;
-const { title } = Astro.props;
 
+const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
+const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
 // Builder's API requires this field but for this use case the url doesn't seem to matter - the API returns the same HTML
 const encodedUrl = encodeURIComponent("moot");
 
@@ -471,18 +467,29 @@ const { html: postHTML } = await fetch(
       // ...catch more errors...);
         )
 ---
+<html lang="en">
+  <head>
+    <title>Preview for builder.io</title>
+  </head>
+  <body>     
+    <header>
+      Here be a header
+    </header>
 
-<article>
-    <Fragment set:html={postHTML} />
-</article>
+    <article>
+        <Fragment set:html={postHTML} />
+    </article>
+
+    <footer>
+      Here be a footer
+    </footer>
+  </body>     
+</html>
 ```
 
-:::note
-The HTML used here is made of the blocks You put on the page in Builder's editor!
-The HTML is put into the slot of our `<BaseLayout>` matching our `builder-preview` page created in step 1 [xxx]. 
-:::
+This page matches the `builder-preview` page you created previously (xxx).
 
-Now you can go to the route `/posts/hello-world` and you should be able to see your blog post! (The full URL depends on how you are running your project and might go something like `localhost:3000/posts/hello-world`)
+Now when you click on a link on the `index` page, you should be able to see the matching blog post!
 
 ### Publishing your site
 
