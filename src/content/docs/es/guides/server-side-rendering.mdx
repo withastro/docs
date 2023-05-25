@@ -9,7 +9,7 @@ import Since from '~/components/Since.astro';
 **Renderizado en el servidor**, también conocido como SSR (server side rendering), se puede habilitar en Astro. Cuando habilitas SSR puedes:
 
 - Implementar sesiones para iniciar sesión en su aplicación.
-- Renderizar datos desde una llamada de API dinámicamente con `fetch`.
+- Renderizar datos desde una llamada de API dinámicamente con `fetch`. @version 2.0.0
 - Desplegar su sitio en un servidor usando un *adaptador*.
 
 ## Habilitando SSR en su proyecto
@@ -236,3 +236,102 @@ if (!product) {
 
 Un server endpoint, también conocido como una **ruta API**, es una función exportada desde un archivo `.js` o `.ts` dentro de la carpeta `src/pages/`. 
 La función recibe un [contexto del endpoint](/es/reference/api-reference/#contexto-del-endpoint) y devuelve una [Response](https://developer.mozilla.org/es/docs/Web/API/Response). Una característica poderosa de SSR, las rutas API son capaces de ejecutar código de forma segura en el servidor. Para aprender más, consulta nuestra [guía de endpoints](/es/core-concepts/endpoints/#endpoints-del-servidor-rutas-de-api).
+
+### Streaming
+
+Los navegadores admiten de forma nativa la transmisión HTTP, donde un documento se divide en fragmentos, se envía por la red en orden y se representa en la página en ese mismo orden.
+
+Durante este proceso, los navegadores consumen HTML de forma incremental: analizando, representando en el DOM y pintando en la pantalla. Esto ocurre tanto si se transmite intencionalmente el HTML como si no. Las condiciones de la red pueden hacer que los documentos grandes se descarguen lentamente, y esperar a que se recuperen los datos puede bloquear la representación de la página.
+
+### Utilizando streaming para mejorar el rendimiento de la página
+
+La siguiente página utiliza `await` para obtener algunos datos en su frontmatter. Astro esperará a que todas las llamadas `fetch` se resuelvan antes de enviar cualquier HTML al navegador.
+
+```astro title="src/pages/index.astro"
+---
+const personResponse = await fetch('https://randomuser.me/api/');
+const personData = await personResponse.json();
+const randomPerson = personData.results[0];
+const factResponse = await fetch('https://catfact.ninja/fact');
+const factData = await factResponse.json();
+---
+<html>
+  <head>
+    <title>A name and a fact</title>
+  </head>
+  <body>
+    <h2>A name</h2>
+    <p>{randomPerson.name.first}</p>
+    <h2>A fact</h2>
+    <p>{factData.fact}</p>
+  </body>
+</html>
+```
+
+Mover las llamadas `await` a componentes más pequeños te permite aprovechar el streaming de Astro. Utilizando los siguientes componentes para realizar las recuperaciones de datos, Astro puede representar primero algo de HTML, como el título, y luego los párrafos cuando los datos estén listos.
+
+```astro title="src/components/RandomName.astro"
+---
+const personResponse = await fetch('https://randomuser.me/api/');
+const personData = await personResponse.json();
+const randomPerson = personData.results[0];
+---
+<p>{randomPerson.name.first}</p>
+```
+
+```astro title="src/components/RandomFact.astro"
+---
+const factResponse = await fetch('https://catfact.ninja/fact');
+const factData = await factResponse.json();
+---
+<p>{factData.fact}</p>
+```
+
+
+La página de Astro a continuación, utilizando estos componentes, puede renderizar partes de la página más rápidamente. Las etiquetas `<head>`, `<body>` y `<h1>` ya no están bloqueadas por las recuperaciones de datos. Luego, el navegador esperará a que `RandomName` termine de cargar sus Promises y enviará el HTML resultante a través de la red. Renderizará el siguiente encabezado y luego esperará a que `RandomFact` envíe su HTML resultante al navegador.
+
+```astro title="src/pages/index.astro"
+---
+import RandomName from '../components/RandomName.astro'
+import RandomFact from '../components/RandomFact.astro'
+---
+<html>
+  <head>
+    <title>A name and a fact</title>
+  </head>
+  <body>
+    <h2>A name</h2>
+    <RandomName />
+    <h2>A fact</h2>
+    <RandomFact />
+  </body>
+</html>
+```
+
+#### Incluyendo Promises directamente
+
+También puedes incluir Promises directamente en la plantilla. En lugar de bloquear todo el componente, solo bloqueará el marcado que viene después de él.
+
+```astro title="src/pages/index.astro"
+---
+const personPromise = fetch('https://randomuser.me/api/')
+  .then(resp => response.json())
+  .then(arr => arr[0].name.first);
+const factPromise = fetch('https://catfact.ninja/fact')
+  .then(resp => response.json())
+  .then(factData => factData.fact);
+---
+<html>
+  <head>
+    <title>A name and a fact</title>
+  </head>
+  <body>
+    <h2>A name</h2>
+    <p>{personPromise}</p>
+    <h2>A fact</h2>
+    <p>{factPromise}</p>
+  </body>
+</html>
+```
+
+En este ejemplo, `A name` se renderizará mientras se carga `personPromise`. En ese momento, aparecerá `A fact` mientras se carga `factPromise`.
