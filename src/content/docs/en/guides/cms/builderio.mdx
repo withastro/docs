@@ -11,11 +11,11 @@ import FileTree from '~/components/FileTree.astro';
 
 [Builder.io](https://www.builder.io/) is a visual CMS that supports drag and drop content editing for building web sites.
 
-At the end of this recipe you'll be able to create blog posts in Builder's visual editor and have your Astro site fetch this content automatically at build time using a webhook.
+At the end of this recipe you'll be able to create blog posts in the Builder app and have your Astro site update with this new content automatically using a webhook.
 
 To do this, you'll use Builder's [Content API](https://www.builder.io/c/docs/content-api) and [Qwik API](https://www.builder.io/c/docs/qwik-api) to connect your Builder space to Astro with zero client-side JavaScript.
 
-:::note[Other options]
+:::note
 The official Builder quickstart guide is [here](https://www.builder.io/c/docs/quickstart#step-1-add-builder-as-a-dependency) (in the list of frameworks pick 'REST API' on the far right). 
 
 
@@ -28,23 +28,24 @@ To get started, you will need to have the following:
 
 * **An Astro project** - If you don't have an Astro project yet, our [Installation guide](/en/install/auto/) will get you up and running in no time. 
 
-* **A Builder account and space** - If you don't have an account yet, [sign up for free](https://www.builder.io/) and create a new space. If you already have a space with Builder, feel free to use it, but you will need to modify the code to match the model name and custom data fiels.
+* **A Builder account and space** - If you don't have an account yet, [sign up for free](https://www.builder.io/) and create a new space. If you already have a space with Builder, feel free to use it, but you will need to modify the code to match the model name and custom data fields.
 
-* **A Builder API key** - This public key will be used when fetching your content from Builder. Builder's guide on how to find it is [here](https://www.builder.io/c/docs/using-your-api-key#finding-your-public-api-key). 
+* **A Builder API key** - This public key will be used to fetch your content from Builder. Builder's guide on how to find it is [here](https://www.builder.io/c/docs/using-your-api-key#finding-your-public-api-key). 
 
 ### Foundational knowledge
 This is some of the stuff that this guide assumes that you know and won't be explaining.
 
 **You don't have to be an expert in any of these to finish this guide. When in doubt, just start hacking! If you get stuck, you can always ask for help on [our super friendly Discord 💜](https://astro.build/chat)**.
 
-* **A basic knowledge of JavaScript** - destructuring assignment, fetch, then...catch blocks
-* **A basic knowledge of how Astro works** - Relevant topics for this guide: SSGs, dynamic URLs, structure of an .astro file.
+* **A basic knowledge of JavaScript** - including [destructuring assignments](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment#object_destructuring), and[`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/fetch)
 
-* **How to use a code editor** - You can read a beginner-friendly introduction [here](https://www.tatianamac.com/posts/beginner-eleventy-tutorial-partii/#2.-source-code-editor).
+* **A basic knowledge of how Astro works** - Relevant topics for this guide: [basic structure of an `.astro` file](https://docs.astro.build/en/core-concepts/astro-pages/#astro-pages), [dynamic routes](https://docs.astro.build/en/core-concepts/routing/#dynamic-routes).
+
+* **How to use a code editor** - You'll be adding files and code to your Astro project and starting a dev server. You can read a beginner-friendly introduction to these topics [here](https://www.tatianamac.com/posts/beginner-eleventy-tutorial-partii/#2.-source-code-editor).
 
 * **The concept of a REST APIs** - we send queries, they send back data.
 
-* **A basic understanding of Builder or another CMS system** - [section models](https://www.builder.io/c/docs/models-sections), [custom data fields](https://www.builder.io/c/docs/custom-fields) and especially the [the preview URL](https://www.builder.io/c/docs/html-api#previewing-content-on-your-site).
+* **A basic understanding of Builder or another CMS system** - especially the Builder-specific [preview URL](https://www.builder.io/c/docs/html-api#previewing-content-on-your-site), as well as [section models](https://www.builder.io/c/docs/models-sections) and [custom data fields](https://www.builder.io/c/docs/custom-fields).
 
 ## Setting up credentials
 
@@ -57,7 +58,7 @@ BUILDER_API_PUBLIC_KEY=YOUR_API_KEY
 Now, you should be able to use this API key in your project. 
 
 :::note
-At the time of writing, [this key is public][https://www.builder.io/c/docs/using-your-api-key#prerequisites] - so you don't have to worry about hiding or encrypting it. 
+At the time of writing, [this key is public](https://www.builder.io/c/docs/using-your-api-key#prerequisites), so you don't have to worry about hiding or encrypting it. 
 :::
 
 If you would like to have IntelliSense for your environment variables, you can create a `env.d.ts` file in the `src/` directory and configure `ImportMetaEnv` like this:
@@ -94,7 +95,7 @@ With the set up above, you can now create a blog with Astro and Builder.
 You can find some gifs illustrating this procedure in one of Builder's official tutorials [here](https://www.builder.io/blog/creating-blog#creating-a-blog-article-model).
 :::
 
-In the Builder app create the model that will represent a blogpost: go to the **Models** tab and click the **+ Create Model** button to create model with the following fields and values:
+In the Builder app create the model that will represent a blog post: go to the **Models** tab and click the **+ Create Model** button to create model with the following fields and values:
 
 - **Type:** Section
 - **Name:** blogpost
@@ -110,17 +111,26 @@ In your new model use the **+ New Custom Field** button to create 2 new fields:
     - **Name:** "title"
     - **Required:** Yes
     - **Default value** "I forgot to give this a title"
+
     (leave the other parameters as their defaults)
+
 2. Text field
     - **Name:** "slug"
     - **Required:** Yes
     - **Default value** "some-slugs-take-their-time"
+
     (leave the other parameters as their defaults)
 
 Then click the **Save** button in the upper right. 
 
+And put the name of the model in the `.env` file for convenience:
+```ini title="/.env" ins={2}
+BUILDER_API_PUBLIC_KEY=YOUR_KEY
+BUILDER_BLOGPOST_MODEL='blogpost'
+```
+
 :::caution
-This guide relies on these fields to be exactly like this and later code will not run correctly if these fields don't exist, are empty, or the titles misspelled.
+This guide relies on these fields being exactly like this and later code will not run correctly if these fields don't exist, are empty, or the titles misspelled.
 :::
 
 :::caution
@@ -129,12 +139,6 @@ Make sure your slug is not just a number!
 There is a pitfall with the `slug` field: it allows you to enter a number but this seems to break the API call later and is hard to debug. 
 :::
 
-Put the name of the model in the `.env` file for convenience:
-```ini title="/.env" ins={2}
-BUILDER_API_PUBLIC_KEY=YOUR_KEY
-BUILDER_BLOGPOST_MODEL='blogpost'
-```
-
 ### Setting up the preview URL
 
 :::note
@@ -142,6 +146,7 @@ The official Builder guide on setting up a preview URL with the HTML API is [her
 :::
 
 #### Creating a route for the preview
+
 To use Builder's visual editor, create the page `src/pages/builder-preview.astro` that will render the special `<builder-component>`:
 
 <FileTree title="Project Structure">
@@ -184,11 +189,8 @@ const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
 `<builder-component>` tells Builder where to insert the content from its CMS - it represents the portion of the page that's editable in the Builder app. In this guide it stands for the content of a blog post. The whole `builder-preview.astro` page recreates how a blog post will be embedded into the site later on - sitting between a `<header>` and a `<footer>`.
 
 #### Setting the new route as the preview URL
-1. Copy the full URL of the `/builder-preview` route you just created to your clipboard. One way to do this is to run your Astro project (e.g. start the dev server), and type in the route in the address bar of the browser. Then copy the full URL to your clipboard, including the protocol, for example `https://`. (You might have to click into the address bar again for the protocol to show.) 
 
-:::note
-The full URL might go something like `https://localhost:3000/builder-preview` and will depend on your project environment.
-:::
+1. Copy the full URL of your preview to your clipboard. It should include the protocol and go something like this: `https://{your host}/builder-preview`. One way to do this is to run your Astro project (e.g. start the dev server),  type in the route into the address bar of the browser, then click into the address bar again to show the protocol.
 
 2. Go to the **Models** tab in your Builder space, pick the model  you've created and paste the URL from step 1 into the **Preview URL** field. Make sure the URL is complete and includes the protocol, for example `https://`.
 
@@ -201,41 +203,40 @@ When you deploy your site, change the preview URL to match your production URL, 
 #### Testing the preview URL set up 
 1. Make sure your site is live (e.g. your dev server is running) and the `/builder-preview` route is working.
 
-2. In your Builder space under the **Content** tab, click on **+ New** to create a new content entry for your "blogpost" model.
+2. In your Builder space under the **Content** tab, click on **+ New** to create a new content entry for your `blogpost` model.
 
 3. In the Builder editor that just opened, you should be able to see the `builder-preview.astro` page with a big inviting **+ Add Block** in the middle!
 
-[screenshot]
-
 :::tip[Troubleshooting]
 
-Things can sometimes go wrong when setting up the preview. If the preview doesn't work, you can try one of the following things:
+Things can sometimes go wrong when setting up the preview. If something's not right, you can try one of these things:
 
-* Make sure the site is live - for example, your dev server is running 
-* Make sure that the URLs match exactly - the one in your Astro project and the one set in the Builder app
-* Make sure you include the full URL including the protocol (like `https://`)
-* If you're working in a virtual environment like *Stackblitz* or *Gitpod*, you might have to copy and paste the URL again when you restart your workspace, since this usually generates a new URL for your project
+* Make sure the site is live - for example, your dev server is running.
+
+* Make sure that the URLs match exactly - the one in your Astro project and the one set in the Builder app.
+
+* Make sure it's the full URL including the protocol, for example `https://`.
+
+* If you're working in a virtual environment like *Stackblitz* or *Gitpod*, you might have to copy and paste the URL again when you restart your workspace, since this usually generates a new URL for your project.
 
 For more ideas, read (Builder's troubleshooting guide)[https://www.builder.io/c/docs/guides/preview-url-working].
 :::
 
 ### Creating a blog post
 
-:::caution[Prerequisites]
-Before you can create new content in Builder, make sure [the preview URL for your model is working](#setting-up-the-preview-url). 
-:::
-
 :::note[For the visual types]
-You can find a short video illustrating this process in [one of Builder's official tutorials](https://www.builder.io/blog/creating-blog#create-a-blog-article).
+You can find a short video illustrating this process in one of Builder's official tutorials [here](https://www.builder.io/blog/creating-blog#create-a-blog-article).
 :::
 
-1. Open the visual editor for a content entry of our 'blogpost' model. If you followed [the previous step](#testing-the-preview-url-set-up), you can use that entry. Otherwise create a new one: Go to the **Content** tab in your Builder space and click on **+ New**. 
+0. Before you can create new content in Builder, make sure [the preview URL for your model is working](#setting-up-the-preview-url). 
 
-1. In the panel on the right under the **options** tab, you should see the data fields 'title' and 'slug'. These are the fields you've created when you [set up your model](#creating-a-model-for-a-blogpost). Fill them in with the following values:
-- **title:** 'First post, yeah!'
-- **slug:** 'first-post-yeah'
+1. Open the visual editor for a content entry of our 'blogpost' model. If you've followed [the previous section](#testing-the-preview-url-set-up), you can use that entry. Otherwise create a new one: Go to the **Content** tab in your Builder space and click on **+ New**. 
 
-2. Design your post! Click on the *+ Add Block* button and add something - maybe a text field with some text to start with.
+1. In the panel on the right under the **options** tab, you should see the data fields `title` and `slug`. These are the fields you've created when you [set up your model](#creating-a-model-for-a-blogpost). Fill them in with the following values:
+    - **title:** 'First post, woohoo!'
+    - **slug:** 'first-post-woohoo'
+
+2. Design your post. Click on the **+ Add Block** button and add something - maybe a text field with some text to start with.
 
 3. In the text field above the editor, give your entry a name. This is how it will be listed in the Builder app. 
 
@@ -282,11 +283,11 @@ const { results: posts } = await fetch(
 ---
 ```
 
+Fetching via the content API returns an array of objects containing data for each post. The `fields` query parameter tells Builder which data is included (see highlighted code). `slug` and `title` should match the names of the custom data fields you've added to [your Builder model](#creating-a-model-for-a-blogpost). 
+
 :::caution[API URls]
 URLs used to access APIs change fairly frequently. Check [Builder's API reference](https://www.builder.io/c/docs/content-api-versions) for the latest. 
 :::
-
-Fetching via the content API returns an array of objects containing data for each post. The `fields` query parameter tells Builder which data is included (see highlighted code). `slug` and `title` should match the names of the custom data fields you've added to [your Builder model](#creating-a-model-for-a-blogpost). 
 
 Use the `posts` array returned from the fetch to display a list of blog posts on the page:
 
@@ -330,10 +331,10 @@ const { results: posts } = await fetch(
 Go to your `/` route and you should be able to see a list of links each with the title of a blog post!
 
 :::tip
-To debug or fine-tune the API results, you can use [Builder's API explorer](https://builder.io/api-explorer).
+To debug or fine-tune API results, you can use [Builder's API explorer](https://builder.io/api-explorer).
 :::
 
-### Displaying a single blogpost
+### Displaying a single blog post
 
 Create the page `src/pages/posts/[slug].astro` that will [dynamically generate a page](/en/core-concepts/routing/#dynamic-routes) for each post.
 
@@ -441,7 +442,7 @@ const { html: postHTML } = await fetch(
 ---
 ```
 
-Here, you are fetching the HTML of each blogpost based on its `slug` custom data field. This HTML is made of the blocks you put on the page in Builder's editor.
+The `slug` returned from `getStaticPaths` is used to fetch the corresponding post. The HTML that Builder sends back is made of the blocks you put on the page in Builder's editor.
 
 :::caution
 This code relies on the fact that each content entry in the `blogpost` model has non-empty fields called `slug` and `title`. If you didn't create a fresh model for this guide, make sure that all content entries have these fields filled, including those that you started with.
@@ -566,7 +567,7 @@ Builder provides a guide for setting up a webhook [here](https://www.builder.io/
 To set up a webhook in Builder: 
 
 0. Have the URL ready that your hosting provider generated [in the previous step](#rebuild-on-builder-changes).
-1. In your Builder dashboard go to the **Models** tab, and pick the **blogpost** model. 
+1. In your Builder dashboard go to the **Models** tab, and pick the **`blogpost`** model. 
 2. In the new dialog, click on **Show More Options** and then on **Edit Webhooks** at the bottom.
 3. Now add a new webhook by clicking on **+ Webhook** and then expand the webhook that appeared by clicking on it.
 4. Paste the URL from step 0 that was generated by your hosting provider into the **Url** field.
@@ -575,7 +576,7 @@ To set up a webhook in Builder:
 With this set up in place, when you click on the **Publish** button Builder lets your hosting provider know that new content was added. This causes your site to be rebuilt and during this process Astro fetches the newly published data. Nothing to do but lean back and pump out that sweet sweet content. 
 
 :::note
-Not disabling the payload can cause the automated build process to break as your site grows and Builder sends more and more data to your hosting provider. With the payload disabled, Builder always sends a simple POST request.
+Not disabling the payload can cause the automated build process to break as your site grows and Builder sends more and more data to your hosting provider. With the payload disabled, Builder sends a simpler POST request.
 ::::
 
 
@@ -626,13 +627,15 @@ Not disabling the payload can cause the automated build process to break as your
 [x] preview site - 
 * pay attention to how headings are being rendered in table of contents --- are they too long?
 * unify flow of code snippet - explanation - info box
-[] remove screenshot mentions
-[] remove meta sections 
+[x] remove screenshot mentions
 [] revise, simplify, clarify -- AI === info boxes
+[] code: query of the Qwik API. what if slug is not unique? it seems safer to query based on id. 
+[] prettify code: copy paste code into code editor to unify formatting and tab-spacing
 [] fix typos -- AI
 * dodgy: no 'fetching data section'
 * awkward: some repetition between #### testing it and the next step ### creating a blog post. idea: remove testing it and put create a blog post in its place
 [] add a logo to `/public/logos`? see here: https://github.com/withastro/docs/blob/main/RECIPES.md#cms-deploy-and-migrate
+[] remove meta sections 
 [] write PR --- mention new ideas
 
 ## FURTHER ideas
