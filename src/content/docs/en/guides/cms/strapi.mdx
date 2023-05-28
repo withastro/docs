@@ -30,7 +30,7 @@ To get started, you will need to have the following:
 If you already have a server you can skip this step, but make sure to implement the code according to your content structure.
 :::
 
-1. Create a Strapi server in the `backend` directory:<br>
+1. Create a Strapi server in the `backend` directory:
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```shell
@@ -49,7 +49,7 @@ If you already have a server you can skip this step, but make sure to implement 
   </Fragment>
 </PackageManagerTabs>
 2. After the server is ready it will start and ask you to create an admin account
-3. In the future you can run the server with the following command:<br>
+3. In the future you can run the server with the following command:
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -78,7 +78,7 @@ Now go back to your Astro project to add your Strapi url, create a `.env` file i
 STRAPI_URL="http://127.0.0.1:1337"
 ```
 :::note
-In some cases using `localhost:1337` will not work, so just to be sure use the loopback addres
+In some cases using `localhost:1337` will not work, so just to be sure use the ip address
 :::
 
 From now on, you should be able to use these environment variables in your project.
@@ -91,10 +91,11 @@ interface ImportMetaEnv {
 }
 ```
 
-Your root directory should now include this new file:
+Your root directory should now include the new file(s):
 
 <FileTree title="Project Structure">
 - src/
+  - **env.d.ts**
 - **.env**
 - astro.config.mjs
 - package.json
@@ -179,9 +180,9 @@ The function requires an object with the following properties:
 3. `wrappedByKey` - Lots of times when using Strapi the response is wrapped in an object with the `data` key
 4. `wrappedByList` - When you use the filter feature you will get a list back, even if there is only one result
 
-### Create the interfaces
+### Optional: Create the interface(s)
 
-If you are using typescript we will need to create the corresponding interface to the Strapi content types. Create the file `src/interfaces/article.ts` with the content below. Don't forget to modify this to fit your actual needs.
+If you are using typescript we will need to create the corresponding interface to the Strapi content types. Create the file `src/interfaces/article.ts` with the content below. Don't forget to modify this interface or even create more to fit your actual needs.
 ```ts title="src/interfaces/article.ts"
 export default interface Article {
   id: number;
@@ -199,12 +200,11 @@ export default interface Article {
 
 <FileTree title="Project Structure">
 - src/
- - interfaces/
+  - interfaces/
     - **article.ts**
- - lib/
+  - lib/
     - strapi.ts
-  - pages/
-    - index.astro
+  - env.d.ts
 - .env
 - astro.config.mjs
 - package.json
@@ -220,18 +220,21 @@ The page `src/pages/blog/index.astro` will display a list of posts, each with a 
 
 <FileTree title="Project Structure">
 - src/
- - interfaces/
-    - **article.ts**
- - lib/
+  - interfaces/
+    - article.ts
+  - lib/
     - strapi.ts
   - pages/
-    - index.astro
+    - **index.astro**
+  - env.d.ts
 - .env
 - astro.config.mjs
 - package.json
 </FileTree>
 
-Now we are going to create (or modify) the `src/pages/blog/index.astro` file. Import our wrapper, then the interface and fetch the articles. The api returns a list containing the articles. The `endpoint` parameter specifies the content type that we want from Strapi, and the `wrappedByKey` specifies to the function to unwrap the api response with the key given.
+Now we are going to create (or modify) the `src/pages/blog/index.astro` file. Import our wrapper, then the interface and fetch the articles. The api returns a list containing the articles. We are going to use 2 parameters for the `fetchApi` function:
+1. The `endpoint` parameter specifies the content type that we want from strapi
+2. The `wrappedByKey` specifies to the function to unwrap the api response with `data` key
 
 ```astro title="src/pages/blog/index.astro"
 ---
@@ -245,7 +248,7 @@ const articles = await fetchApi<Article[]>({
 ---
 ```
 
-In this case the api call will be to the following url: `http://localhost:1337/api/articles`, and the data will be a list of jsons:
+In this case the api call will make the request to the following url: `http://localhost:1337/api/articles`, and the data will be a list of jsons, similar to the one following:
 ```
 [
   {
@@ -263,7 +266,7 @@ In this case the api call will be to the following url: `http://localhost:1337/a
   // ...
 ]
 ```
-Now we can move on to rendering the posts in a list, with a bit of styling.
+Now we can move on to rendering the posts in a list.
 
 ```astro title="src/pages/blog/index.astro"
 ---
@@ -336,14 +339,15 @@ In both cases you will need to create the same file, `src/pages/blog/[slug].astr
 
 <FileTree title="Project Structure">
 - src/
- - interfaces/
-    - **article.ts**
- - lib/
+  - interfaces/
+    - article.ts
+  - lib/
     - strapi.ts
   - pages/
     - index.astro
     - blog/
-      - [slug].astro
+      - **[slug].astro**
+  - env.d.ts
 - .env
 - astro.config.mjs
 - package.json
@@ -392,7 +396,11 @@ In the `getStaticPathS()` function we are calling the wrapper and then returning
 
 #### Server-side rendering
 
-If you’ve [opted into SSR mode](/en/guides/server-side-rendering/#enabling-ssr-in-your-project), you will use dynamic routes to fetch the page data from Storyblok.
+If you’ve [opted into SSR mode](/en/guides/server-side-rendering/#enabling-ssr-in-your-project), you will use dynamic routes to fetch the page data from Strapi.
+
+:::tip
+For the time of development you can add the `output: "server"` property to the `astro.config.mjs` file to enable SSR mode.
+:::
 
 Let's create (or modify) the `src/pages/blog/[slug].astro` file:
 
@@ -430,7 +438,7 @@ try {
 
 This file will fetch and render the page data from Strapi that matches the dynamic `slug` parameter.
 
-Since you are using a redirect to `/404`, create a 404 page in `src/pages`: 
+Since we are using a redirect to `/404`, create a 404 page in `src/pages`: 
 
 ```astro title="src/pages/404.astro"
 <html lang="en">
@@ -439,11 +447,12 @@ Since you are using a redirect to `/404`, create a 404 page in `src/pages`:
   </head>
   <body>
     <p>Sorry, this page does not exist.</p>
+    <img src="https://http.cat/404" />
   </body>
 </html>
 ```
 
-If the article is not found, the request will be redirected to the 404 page.
+If the article is not found, the user will be redirected to this 404 page and greeted by a lovely cat.
 
 ### Publishing your site
 
