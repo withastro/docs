@@ -13,7 +13,10 @@ import Since from '~/components/Since.astro';
 
 ## Enabling SSR in Your Project
 
-To get started, enable SSR features in development mode with the `output: server` configuration option:
+To enable SSR features in development mode, add one of the two `output` configuration options: `server` or (introduced in v2.6.0) `hybrid`. Both of these modes allow all or just some of your [pages](/en/core-concepts/astro-pages/) or [server endpoints](/en/core-concepts/endpoints/#server-endpoints-api-routes) to be server-rendered. Each configuration option has a different default behavior, and allows indidual routes to opt-out of the default accordingly:
+
+- __`output: 'server'`__: Server-rendered by default. Any individual page or endpoint can be pre-rendered. Use this when most or all of your site should be server-rendered.
+- __`output: 'hybrid'`__: Pre-rendered to HTML by default. Any individual page or endpoint can *opt-out* of pre-rendering. Use this when most of your site should be static.
 
 ```js ins={5}
 // astro.config.mjs
@@ -21,6 +24,34 @@ import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   output: 'server'
+});
+```
+
+You can then opt-out of the default rendering behavior with an export statement in any page or route:
+
+```astro title="src/pages/mypage.astro" {2}
+---
+export const prerender = true;
+// ...
+---
+<html>
+  <!-- Static, pre-rendered page here... -->
+</html>
+```
+See more usage examples of [configuring individual routes](#configuring-individual-routes)
+
+### Converting a static site to hybrid rendering
+
+To convert an existing static Astro site to allow hybrid rendering, change the `output` to `'hybrid'` and add an adapter:
+
+```diff
+import { defineConfig } from 'astro/config';
++ import nodejs from '@astrojs/nodejs';
+
+export default defineConfig({
++ adapter: nodejs(),  
++ output: 'hybrid',
+- output: 'static', 
 });
 ```
 
@@ -97,18 +128,15 @@ You can also add an adapter manually by installing the package and updating `ast
 
 ## Features
 
-Astro will remain a static-site generator by default. But once you enable a server-side rendering adapter, **every route in your pages directory defaults to a server-rendered route** and a few new features become available to you.
+Astro will remain a static-site generator by default. But once you enable server-side rendering and add an adapter, a few new features become available to you.
 
-### Hybrid Rendering
+### Configuring individual routes
 
-<Since v="2.0.0" />
+Both `server` and `hybrid` modes allow for server-rendered pages and endpoints and will render all pages according to their default mode. However, both modes allow you to mark an individual page to opt-out of this default behavior.
 
-Hybrid rendering is when you have a site where some pages are prerendered to HTML and some are server rendered. There are two ways to do prerendering:
+### Opting-out of server-rendering
 
-- __`output: 'server'`__: Any individual [page](/en/core-concepts/astro-pages/) or [server endpoint](/en/core-concepts/endpoints/#server-endpoints-api-routes) can be prerendered.
-- __`output: 'hybrid'`__: Any page or endpoint can be marked to *not* be prerendered. Use this when most of your site should be static.
-
-For a mostly-server rerendered app, simply add `export const prerender = true`:
+For a mostly server-rendered app configured as `output: server`, add `export const prerender = true` to any page or route to pre-render a static page or endpoint:
 
 ```astro title="src/pages/mypage.astro" {2}
 ---
@@ -116,7 +144,7 @@ export const prerender = true;
 // ...
 ---
 <html>
-  <!-- Page here... -->
+  <!-- Static, pre-rendered page here... -->
 </html>
 ```
 
@@ -127,7 +155,7 @@ title: 'My page'
 ---
 export const prerender = true;
 
-# This is my page
+# This is my static, pre-rendered page
 ```
 
 And for an endpoint:
@@ -137,25 +165,14 @@ export const prerender = true;
 
 export async function get() {
   return {
-    body: JSON.stringify({ message: `This is my endpoint` }),
+    body: JSON.stringify({ message: `This is my static endpoint` }),
   };
 }
 ```
 
-In a static site you can mark some routes to be server-rendered. To do this, change the `output` to `'hybrid'` and add an adapter:
+### Opting out of pre-rendering
 
-```diff
-import { defineConfig } from 'astro/config';
-+ import nodejs from '@astrojs/nodejs';
-
-export default defineConfig({
-+ adapter: nodejs(),  
-+ output: 'hybrid',
-- output: 'static', 
-});
-```
-
-You can then *opt-out* of pre-rendering any individual file or route by adding `export const prerender = false` to any files that should be server-rendered.
+For a mostly static site configured as `output: hybrid`, add `export const prerender = false` to any files that should be server-rendered:
 
 ```js title="src/pages/randomnumber.js" {1}
 export const prerender = false;
