@@ -1,0 +1,65 @@
+---
+title: Minify HTML responses with middleware
+description: Use Astro middleware to minify HTML responses
+i18nReady: false
+type: recipe
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+Astro supports built-in [HTML minification](/en/reference/configuration-reference/#compresshtml) which works for `.astro` components, but not for [islands](/en/concepts/islands/). This recipe shows how to use Astro middleware to minify complete HTML responses.
+
+## Prerequisites
+
+- An Astro project with [middleware enabled](/en/guides/middleware/#enabling-middleware-in-your-project)
+
+## Recipe
+
+1. Install the `html-minifier` package:
+
+  <PackageManagerTabs>
+    <Fragment slot="npm">
+    ```shell
+    npm install html-minifier
+    ```
+    </Fragment>
+    <Fragment slot="pnpm">
+    ```shell
+    pnpm install html-minifier
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```shell
+    yarn add html-minifier
+    ```
+    </Fragment>
+  </PackageManagerTabs>
+
+2. Create a middleware file `src/middleware.ts`:
+
+  ```ts
+  import {minify} from "html-minifier";
+
+  export const onRequest = async (context, next) => {
+    const response = await next();
+
+    // return early if the response is not a HTML response
+    if (
+      !response.text ||
+      !response.headers.get('content-type')?.includes('text/html')
+    ) return new Response(response.body, {status: response.status, headers: response.headers})
+
+    const html = await response.text();
+    const minifiedHtml = minify(html)
+    
+    return new Response(minifiedHtml, {
+      status: 200,
+      headers: response.headers
+    });
+  }
+  ```
+
+## Resources
+
+- [`html-minifier` options](https://github.com/kangax/html-minifier#options-quick-reference)
+- [Astro middleware](/en/guides/middleware/)
