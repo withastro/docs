@@ -6,82 +6,36 @@ service: Strapi
 stub: false
 i18nReady: true
 ---
-import FileTree from '~/components/FileTree.astro'
-import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
-
+import FileTree from '~/components/FileTree.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
 [Strapi](https://strapi.io/) is the next-gen headless CMS, open-source, javascript, enabling content-rich experiences to be created, managed and exposed to any digital device.
 
 ## Integrating with Astro
 
-In this section, you will create a little wrapper to connect Strapi with Astro.
+In this section, you will create a wrapper function to connect Strapi with Astro.
 
 ### Prerequisites
 
 To get started, you will need to have the following:
 
-1. **An Astro project** - If you don't have an Astro project yet, our [Installation guide](/en/install/auto/) will get you up and running in no time. In this guide we will use the built-in blog template.
-2. **A Strapi CMS server** - If you don't have a server, create one using the guide below. We will use the blog template during this guide.
-
-### Optional: Creating the Strapi CMS Server
-
-:::note
-If you already have a server you can skip this step, but make sure to implement the code according to your content structure.
-:::
-
-1. Create a Strapi server in the `backend` directory:
-<PackageManagerTabs>
-  <Fragment slot="npm">
-  ```shell
-  npx create-strapi-app backend  --quickstart --template @strapi/template-blog@1.0.0 blog
-  ```
-  </Fragment>
-  <Fragment slot="pnpm">
-  ```shell
-  pnpm dlx create-strapi-app backend  --quickstart --template @strapi/template-blog@1.0.0 blog
-  ```
-  </Fragment>
-  <Fragment slot="yarn">
-  ```shell
-  yarn create strapi-app backend  --quickstart --template @strapi/template-blog@1.0.0 blog
-  ```
-  </Fragment>
-</PackageManagerTabs>
-2. After the server is ready it will start and ask you to create an admin account
-3. In the future you can run the server with the following command:
-
-<PackageManagerTabs>
-  <Fragment slot="npm">
-  ```shell
-  cd backend && npm run develop
-  ```
-  </Fragment>
-  <Fragment slot="pnpm">
-  ```shell
-  cd backend && pnpm run develop
-  ```
-  </Fragment>
-  <Fragment slot="yarn">
-  ```shell
-  cd backend && yarn develop
-  ```
-  </Fragment>
-</PackageManagerTabs>
-
+1. **An Astro project** - If you don't have an Astro project yet, our [Installation guide](/en/install/auto/) will get you up and running in no time.
+2. **A Strapi CMS server** - You need a Strapi server to connect to, you can set one up on a [local environment](https://docs.strapi.io/dev-docs/quick-start)
 
 ### Setting up the .env file
 
-Now go back to your Astro project to add your Strapi url, create a `.env` file in the root of your project with the following variable:
+To add your Strapi url to Astro, create a `.env` file in the root of your project with the following variable:
 
 ```ini title=".env"
 STRAPI_URL="http://127.0.0.1:1337"
 ```
-:::note
-In some cases using `localhost:1337` will not work, so just to be sure use the ip address
+
+:::tip
+In some cases using `STRAPI_URL=http://localhost:1337` will not work, so just to be safe, use the ip address
 :::
 
-From now on, you should be able to use these environment variables in your project.
+Now, you should be able to use these environment variables in your project.
 
 If you would like to have IntelliSense for your environment variable, you can create a `env.d.ts` file in the `src/` directory and configure `ImportMetaEnv` like this:
 
@@ -94,37 +48,16 @@ interface ImportMetaEnv {
 Your root directory should now include the new file(s):
 
 <FileTree title="Project Structure">
-- src/
-  - **env.d.ts**
-- **.env**
-- astro.config.mjs
-- package.json
+  - src/
+    - **env.d.ts**
+  - **.env**
+  - astro.config.mjs
+  - package.json
 </FileTree>
-
-### Installing the dependencies
-To render markdown content you will need the [md](https://github.com/astro-community/md) package from the Astro Community.
-
-<PackageManagerTabs>
-  <Fragment slot="npm">
-  ```shell
-  npm install @astropub/md
-  ```
-  </Fragment>
-  <Fragment slot="pnpm">
-  ```shell
-  pnpm install @astropub/md
-  ```
-  </Fragment>
-  <Fragment slot="yarn">
-  ```shell
-  yarn add @astropub/md
-  ```
-  </Fragment>
-</PackageManagerTabs>
 
 ### Creating the api wrapper
 
-Firstly, we will create this little wrapper function to easily interact with the Strapi api:
+Firstly, you will need create this wrapper function to interact with the Strapi api:
 
 ```ts title="lib/strapi.ts"
 interface Props {
@@ -139,6 +72,7 @@ interface Props {
  * @param endpoint - The endpoint to fetch from
  * @param query - The query parameters to add to the url
  * @param wrappedByKey - The key to unwrap the response from
+ * @param wrappedByList - If the response is a list, unwrap it
  * @returns
  */
 export default async function fetchApi<T>({
@@ -147,7 +81,7 @@ export default async function fetchApi<T>({
   wrappedByKey,
   wrappedByList,
 }: Props): Promise<T> {
-  if (endpoint.startsWith("/")) {
+  if (endpoint.startsWith('/')) {
     endpoint = endpoint.slice(1);
   }
 
@@ -175,14 +109,15 @@ export default async function fetchApi<T>({
 
 The function requires an object with the following properties:
 
-1. `endpoint` - This is the enpoint we are going to fetch
-2. `query` - The query parameters to add to the url, in this guide we will not use this
-3. `wrappedByKey` - Lots of times when using Strapi the response is wrapped in an object with the `data` key
-4. `wrappedByList` - When you use the filter feature you will get a list back, even if there is only one result
+1. `endpoint` - This is the enpoint you are fetching
+2. `query` - The query parameters to add to the end of url
+3. `wrappedByKey` - A lot of times when using Strapi, the response is wrapped in an object with the `data` key
+4. `wrappedByList` - When you use the filter in Strapi you will get a list back, even if there is only one result. This parameter will unwrap the list and return the first item.
 
-### Optional: Create the interface(s)
+### Optional: Create the interfaces
 
-If you are using typescript we will need to create the corresponding interface to the Strapi content types. Create the file `src/interfaces/article.ts` with the content below. Don't forget to modify this interface or even create more to fit your actual needs.
+If you are using typescript you should to create the corresponding interfaces to the Strapi content types. For example create the file `src/interfaces/article.ts` with the content below.
+
 ```ts title="src/interfaces/article.ts"
 export default interface Article {
   id: number;
@@ -198,57 +133,62 @@ export default interface Article {
 }
 ```
 
+:::note
+Don't forget to modify this interface or even create more to fit your actual needs.
+:::
+
 <FileTree title="Project Structure">
-- src/
-  - interfaces/
-    - **article.ts**
-  - lib/
-    - strapi.ts
-  - env.d.ts
-- .env
-- astro.config.mjs
-- package.json
+  - src/
+    - interfaces/
+      - **article.ts**
+    - lib/
+      - strapi.ts
+    - env.d.ts
+  - .env
+  - astro.config.mjs
+  - package.json
 </FileTree>
 
 ### Displaying a list of articles
 
-:::note
-If you are following along with the Astro blog starter, make sure to delete the `src/contents` folder and the `src/rss.xml.js` file, because we are going to use Strapi instead of markdown files. 
-:::
-
-The page `src/pages/blog/index.astro` will display a list of posts, each with a description and link to its own page.
+The page `src/pages/blog/index.astro` displays a list of posts, each with a description and a link to its own page.
 
 <FileTree title="Project Structure">
-- src/
-  - interfaces/
-    - article.ts
-  - lib/
-    - strapi.ts
-  - pages/
-    - **index.astro**
-  - env.d.ts
-- .env
-- astro.config.mjs
-- package.json
+  - src/
+    - interfaces/
+      - article.ts
+    - lib/
+      - strapi.ts
+    - pages/
+      - **index.astro**
+    - env.d.ts
+  - .env
+  - astro.config.mjs
+  - package.json
 </FileTree>
 
-Now we are going to create (or modify) the `src/pages/blog/index.astro` file. Import our wrapper, then the interface and fetch the articles. The api returns a list containing the articles. We are going to use 2 parameters for the `fetchApi` function:
-1. The `endpoint` parameter specifies the content type that we want from strapi
-2. The `wrappedByKey` specifies to the function to unwrap the api response with `data` key
+Create the `src/pages/blog/index.astro` file. Import the wrapper function, then the interface and fetch the articles. The api returns a list containing the articles. 
 
 ```astro title="src/pages/blog/index.astro"
 ---
-import fetchApi from "../../lib/strapi";
-import type Article from "../../interfaces/article";
+import fetchApi from '../../lib/strapi';
+import type Article from '../../interfaces/article';
 
 const articles = await fetchApi<Article[]>({
-  endpoint: "articles",
-  wrappedByKey: "data",
+  endpoint: 'articles',
+  wrappedByKey: 'data',
 });
 ---
 ```
 
-In this case the api call will make the request to the following url: `http://localhost:1337/api/articles`, and the data will be a list of jsons, similar to the one following:
+The parameters of the `fetchApi` function:
+
+1. The `endpoint` parameter specifies the content type that we want from strapi
+2. The `wrappedByKey` specifies to the function to unwrap the api response with `data` key
+
+
+The api call makes the request to the following url: `http://localhost:1337/api/articles`, and the data will be a list of jsons, similar to the one following:
+
 ```
 [
   {
@@ -266,110 +206,104 @@ In this case the api call will make the request to the following url: `http://lo
   // ...
 ]
 ```
-Now we can move on to rendering the posts in a list.
+
+Using the `articles` array returned by the api, display the articles in a list.
 
 ```astro title="src/pages/blog/index.astro"
 ---
-import BaseHead from "../../components/BaseHead.astro";
-import Header from "../../components/Header.astro";
-import Footer from "../../components/Footer.astro";
-import { SITE_TITLE, SITE_DESCRIPTION } from "../../consts";
-import FormattedDate from "../../components/FormattedDate.astro";
-import fetchApi from "../../lib/strapi";
-import type Article from "../../interfaces/article";
+import fetchApi from '../../lib/strapi';
+import type Article from '../../interfaces/article';
 
 const articles = await fetchApi<Article[]>({
-  endpoint: "articles",
-  wrappedByKey: "data",
+  endpoint: 'articles',
+  wrappedByKey: 'data',
 });
 ---
 
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-    <style>
-      div {
-        width: 500px;
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1rem;
-        margin-bottom: 1rem;
-      }
-      a:visited {
-        color: #8e32dc;
-      }
-    </style>
+    <title>Strapi & Astro</title>
   </head>
+
   <body>
-    <Header />
     <main>
-      <section>
-        <ul>
-          {
-            articles.map((article) => (
-              <li>
-                <FormattedDate
-                  date={new Date(article.attributes.publishedAt)}
-                />
-                <a href={`/blog/${article.attributes.slug}/`}>
-                  {article.attributes.title}
-                </a>
-                {article.attributes.description.slice(0, 40)}...
-              </li>
-            ))
-          }
-        </ul>
-      </section>
+      <ul>
+        {
+          articles.map((article) => (
+            <a href={`/blog/${article.attributes.slug}/`}>
+              {article.attributes.title}
+            </a>
+          ))
+        }
+      </ul>
     </main>
-    <Footer />
   </body>
 </html>
 ```
 
-:::note
-The components used in this example are from the Astro blog starter. You can safely remove them from the code if you don't want to use them.
-:::
-
 ### Generating pages
 
-As you may know, there are two methods of rendering in the astro framework: Static page generation and Server-Side Rendering (SSR). Make sure to take a look at the [deployment docs](https://docs.astro.build/en/guides/deploy/) to choose the right one for your environment.
+As you may know, there are two methods of rendering in the astro framework: Static page generation and Server-Side Rendering (SSR). Make sure to take a look at the [deployment docs](https://docs.astro.build/en/guides/deploy/) to choose the right one for your situation.
 
-In both cases you will need to create the same file, `src/pages/blog/[slug].astro`.
+In both cases you need to create the `src/pages/blog/[slug].astro` file.
 
 <FileTree title="Project Structure">
-- src/
-  - interfaces/
-    - article.ts
-  - lib/
-    - strapi.ts
-  - pages/
-    - index.astro
-    - blog/
-      - **[slug].astro**
-  - env.d.ts
-- .env
-- astro.config.mjs
-- package.json
+  - src/
+    - interfaces/
+      - article.ts
+    - lib/
+      - strapi.ts
+    - pages/
+      - index.astro
+      - blog/
+        - **[slug].astro**
+    - env.d.ts
+  - .env
+  - astro.config.mjs
+  - package.json
 </FileTree>
 
 #### Static site generation
 
-The page `src/pages/post/[slug].astro` [dynamically generates a page](/en/core-concepts/routing/#dynamic-routes) for each article.
+The file `src/pages/post/[slug].astro` [dynamically generates a page](/en/core-concepts/routing/#dynamic-routes) for each article.
 
-Let's create (or modify) the `src/pages/blog/[slug].astro` file:
+Import the wrapper function and the interfaces, then fetch the articles. The api returns a list of articles.
 
 ```astro title="src/pages/blog/[slug].astro
 ---
-import BlogPost from "../../layouts/BlogPost.astro";
-import { Markdown } from "@astropub/md";
-import fetchApi from "../../lib/strapi";
-import type Article from "../../interfaces/article";
+import fetchApi from '../../lib/strapi';
+import type Article from '../../interfaces/article';
 
 export async function getStaticPaths() {
   const articles = await fetchApi<Article[]>({
-    endpoint: "articles",
-    wrappedByKey: "data",
+    endpoint: 'articles',
+    wrappedByKey: 'data',
+  });
+
+  return articles.map((article) => ({
+    params: { slug: article.attributes.slug },
+    props: article,
+  }));
+}
+type Props = Article;
+
+const article = Astro.props;
+---
+```
+
+Create the template for each page using the properties of each post object.
+
+
+```astro title="src/pages/blog/[slug].astro ins={21-43}
+---
+import fetchApi from '../../lib/strapi';
+import type Article from '../../interfaces/article';
+
+export async function getStaticPaths() {
+  const articles = await fetchApi<Article[]>({
+    endpoint: 'articles',
+    wrappedByKey: 'data',
   });
 
   return articles.map((article) => ({
@@ -382,34 +316,48 @@ type Props = Article;
 const article = Astro.props;
 ---
 
-<BlogPost {...article.attributes}>
-  <h1>{article.attributes.title}</h1>
-  <Markdown of={article.attributes.content} />
-</BlogPost>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>{article.attributes.title}</title>
+  </head>
+
+  <body>
+    <main>
+      <img src={import.meta.env.STRAPI_URL + article.attributes.image.data.attributes.url} />
+
+      <h1>{article.attributes.title}</h1>
+
+      <!-- Render plain text -->
+      <p>{article.attributes.content}</p>
+      <!-- Render markdown -->
+      <MyMardownComponent>
+        {article.attributes.content}
+      </MyMardownComponent>
+      <!-- Render html -->
+      <Fragment set:html={article.attributes.content} />
+    </main>
+  </body>
+</html>
 ```
-
-:::note
-The components used in this example are from the Astro blog starter. You can safely remove them from the code if you don't want to use them.
+:::tip
+Make sure to choose the right rendering for your content. For markdown check out our [markdown guide](/en/guides/markdown-content/). If you are rendering html refer to [this guide](/en/reference/directives-reference/#sethtml) for safety.
 :::
-
-In the `getStaticPathS()` function we are calling the wrapper and then returning a list of objects, each containing two more objects: `params` and `props`. The `params` property is used to tell astro on which path to render the page and the `props` property is used to pass down data to these pages. In our case we are using the slug to generate the paths and passing down the article object. 
 
 #### Server-side rendering
 
-If you’ve [opted into SSR mode](/en/guides/server-side-rendering/#enabling-ssr-in-your-project), you will use dynamic routes to fetch the page data from Strapi.
+If you've [opted into SSR mode](/en/guides/server-side-rendering/#enabling-ssr-in-your-project), you will use dynamic routes to fetch the page data from Strapi.
 
 :::tip
-For the time of development you can add the `output: "server"` property to the `astro.config.mjs` file to enable SSR mode.
+For the time of development add the `output: "server"` property to the `astro.config.mjs` file to enable SSR mode.
 :::
 
-Let's create (or modify) the `src/pages/blog/[slug].astro` file:
+Create the `src/pages/blog/[slug].astro` file:
 
 ```astro title="src/pages/blog/[slug].astro"
 ---
-import BlogPost from "../../../layouts/BlogPost.astro";
-import { Markdown } from "@astropub/md";
-import fetchApi from "../../../lib/strapi";
-import type Article from "../../../interfaces/article";
+import fetchApi from '../../../lib/strapi';
+import type Article from '../../../interfaces/article';
 
 const { slug } = Astro.params;
 
@@ -417,28 +365,50 @@ let article: Article;
 
 try {
   article = await fetchApi<Article>({
-    endpoint: "articles",
-    wrappedByKey: "data",
+    endpoint: 'articles',
+    wrappedByKey: 'data',
     wrappedByList: true,
     query: {
-      "filters[slug][$eq]": slug || "",
+      'filters[slug][$eq]': slug || '',
     },
   });
-  console.log(article);
 } catch (error) {
-  return Astro.redirect("/404");
+  return Astro.redirect('/404');
 }
 ---
 
-<BlogPost {...article.attributes}>
-  <h1>{article.attributes.title}</h1>
-  <Markdown of={article.attributes.content} />
-</BlogPost>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>{article.attributes.title}</title>
+  </head>
+
+  <body>
+    <main>
+      <img src={import.meta.env.STRAPI_URL + article.attributes.image.data.attributes.url} />
+
+      <h1>{article.attributes.title}</h1>
+
+      <!-- Render plain text -->
+      <p>{article.attributes.content}</p>
+      <!-- Render markdown -->
+      <MyMardownComponent>
+        {article.attributes.content}
+      </MyMardownComponent>
+      <!-- Render html -->
+      <Fragment set:html={article.attributes.content} />
+    </main>
+  </body>
+</html>
 ```
+
+:::tip
+Make sure to choose the right rendering for your content. For markdown check out our [markdown guide](/en/guides/markdown-content/). If you are rendering html refer to [this guide](/en/reference/directives-reference/#sethtml) for safety.
+:::
 
 This file will fetch and render the page data from Strapi that matches the dynamic `slug` parameter.
 
-Since we are using a redirect to `/404`, create a 404 page in `src/pages`: 
+Since you are using a redirect to `/404`, create a 404 page in `src/pages`:
 
 ```astro title="src/pages/404.astro"
 <html lang="en">
@@ -466,9 +436,9 @@ If your project is using Astro's default static mode, you will need to set up a 
 
 To set up a webhook in Netlify:
 
-1. Go to your site dashboard and click on **Build & deploy**. 
+1. Go to your site dashboard and click on **Build & deploy**.
 
-2. Under the **Continuous Deployment** tab, find the **Build hooks** section and click on **Add build hook**. 
+2. Under the **Continuous Deployment** tab, find the **Build hooks** section and click on **Add build hook**.
 
 3. Provide a name for your webhook and select the branch you want to trigger the build on. Click on **Save** and copy the generated URL.
 
@@ -476,9 +446,9 @@ To set up a webhook in Netlify:
 
 To set up a webhook in Vercel:
 
-1. Go to your project dashboard and click on **Settings**. 
+1. Go to your project dashboard and click on **Settings**.
 
-2. Under the **Git** tab, find the **Deploy Hooks** section. 
+2. Under the **Git** tab, find the **Deploy Hooks** section.
 
 3. Provide a name for your webhook and the branch you want to trigger the build on. Click **Add** and copy the generated URL.
 
@@ -489,7 +459,3 @@ Follow this [guide](https://strapi.io/blog/webhooks) to create a webhook in your
 ## Official Resources
 
 - [Strapi Blog Guide For React](https://strapi.io/blog/build-a-blog-with-next-react-js-strapi) by Strapi
-
-## Community Resources 
-
-- [Astro Markdown](https://github.com/astro-community/md) by the Astro Community
