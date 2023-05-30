@@ -67,6 +67,58 @@ export const onRequest = (context, next) => {
 
 ```
 
+To type the information inside `Astro.locals`, which gives you autocompletion inside `.astro` files and middleware code, declare a global namespace in the `env.d.ts` file:
+
+```ts title="src/env.d.ts"
+/// <reference types="astro/client" />
+declare global {
+    namespace App {
+        interface Locals {
+            user: {
+                name: string
+            },
+            welcomeTitle: () => String,
+            orders: Map<string, object>
+        }
+    }
+}
+```
+
+Then, inside middleware file, we can take advantage of autocompletion and type safety.
+
+You can store any type of data inside `Astro.locals`: strings, numbers, and even complex data types such as functions, and maps.
+
+
+ ```js title="src/middleware.js"
+ export function onRequest ({ locals, request }, next) {
+    // intercept response data from a request
+    // optionally, transform the response by modifying `locals`
+    locals.user.name = "John Wick"
+    locals.welcomeTitle = () => {
+        return "Welcome back  " + locals.user.name
+    }
+
+   // return a Response or the result of calling `next()`
+   return next()
+ };
+```
+Then you can use this information inside any `.astro` file.
+
+```astro title="src/pages/Orders.astro"
+---
+const title = Astro.locals.welcomeTitle();
+const orders = Array.from(Astro.locals.orders.entries());
+---
+<h1>{title}</h1>
+<p>This {data.property} is from middleware.</p>
+<ul>
+    {orders.map(order => {
+        return <li>{// do something with each order}</li>
+    })}
+</ul>
+```
+
+
 ### Example: redacting sensitive information
 
 The example below uses middleware to replace "PRIVATE INFO" with the word "REDACTED" to allow you to render modified HTML on your page:
