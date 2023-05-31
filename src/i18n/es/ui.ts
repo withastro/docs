@@ -18,7 +18,7 @@ export default UIDictionary({
 		'Logo de Astro en el espacio estrellado, con un planeta púrpura parecido a Saturno flotando en el fondo a la derecha.',
 	// Left Sidebar
 	'leftSidebar.a11yTitle': 'Primario',
-	'leftSidebar.learnTab': 'Aprenda',
+	'leftSidebar.learnTab': 'Aprende',
 	'leftSidebar.referenceTab': 'Referencias',
 	'leftSidebar.viewInEnglish': 'Ver en inglés',
 	'leftSidebar.sponsoredBy': 'Patrocinado por',
