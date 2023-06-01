@@ -2,6 +2,8 @@
 title: APIs de integraciones de Astro
 i18nReady: true
 ---
+import Badge from '~/components/Badge.astro';
+import Since from '~/components/Since.astro'
 
 Las **integraciones de Astro** agregan nuevas funcionalidades y comportamientos para tu proyecto con unas pocas líneas de código.
 
@@ -24,8 +26,11 @@ interface AstroIntegration {
     'astro:config:setup'?: (options: {
       config: AstroConfig;
       command: 'dev' | 'build';
+      isRestart: boolean;
       updateConfig: (newConfig: Record<string, any>) => void;
       addRenderer: (renderer: AstroRenderer) => void;
+      addWatchFile: (path: URL | string) => void;
+      addClientDirective: (directive: ClientDirectiveConfig) => void;
       injectScript: (stage: InjectedScriptStage, content: string) => void;
       injectRoute: ({ pattern: string, entryPoint: string }) => void;
     }) => void;
@@ -64,6 +69,7 @@ interface AstroIntegration {
   updateConfig: (newConfig: Record<string, any>) => void;
   addRenderer: (renderer: AstroRenderer) => void;
   addWatchFile: (path: URL | string) => void;
+  addClientDirective: (directive: ClientDirectiveConfig) => void;
   injectScript: (stage: InjectedScriptStage, content: string) => void;
   injectRoute: ({ pattern: string, entryPoint: string }) => void;
 }) => void;
@@ -137,6 +143,55 @@ addWatchFile('/home/user/.../my-config.json');
 addWatchFile(new URL('./tailwind.config.js', config.root));
 ```
 
+#### Opción `addClientDirective`
+
+<Since v="2.5.0" />
+<Badge variant="accent">Experimental</Badge>
+
+**Tipo:** `(directive:` [`ClientDirectiveConfig`](https://github.com/withastro/astro/blob/00327c213f74627ac9ca1dec774efa5bf71e9375/packages/astro/src/%40types/astro.ts#L1872-L1875) `) => void;`
+
+Añade una [directiva de cliente personalizada](/es/reference/directives-reference/#directivas-de-cliente-personalizadas) para utilizarla en los archivos Astro. Como se trata de una función experimental, también tienes que activar la opción de configuración [`experimental.customClientDirectives`](/en/reference/configuration-reference/#experimentalcustomclientdirectives) para utilizar esta API.
+
+Ten en cuenta que los puntos de entrada de la directiva sólo se empaquetan a través de esbuild y deben ser pequeños para que no ralenticen la hidratación de los componentes.
+
+Ejemplo de uso:
+
+```js
+// Crea una directiva `client:click`
+addClientDirective({
+  name: 'click',
+  entrypoint: 'astro-click-directive/click.js' 
+})
+```
+
+__astro-click-directive/click.js__
+
+```js
+/**
+ * Hidratar al hacer el primer click en la ventana
+ * @type {import('astro').ClientDirective}
+ */
+export default (load, opts, el) => {
+  window.addEventListener('click', async () => {
+    const hydrate = await load()
+    await hydrate()
+  }, { once: true })
+}
+```
+
+También puedes añadir tipos para las directivas en el archivo de definición de tipos de tu biblioteca:
+
+__astro-click-directive/index.d.ts__
+
+```ts
+declare module 'astro' {
+  interface AstroClientDirectives {
+    'client:click'?: boolean
+  }
+}
+```
+
+
 #### Opción `injectRoute`
 
 **Tipo:** `({ pattern: string, entryPoint: string }) => void;`
@@ -179,7 +234,7 @@ El **`stage`** indica cómo debe insertarse este script (el `content`). Algunas 
 
 **Hook anterior:** [`astro:config:setup`](#astroconfigsetup)
 
-**Siguiente hook:** [`astro:server:setup`](#astroserversetup) cuando se ejecuta en modo "dev" o "vista previa", y [`astro:build:start`](#astrobuildstart) durante las compilaciones de producción
+**Siguiente hook:** [`astro:server:setup`](#astroserversetup) cuando se ejecuta en modo "dev", y [`astro:build:start`](#astrobuildstart) durante las compilaciones de producción
 
 **Cuándo:** Después que la configuración de Astro se haya resuelto y otras integraciones hayan ejecutado sus hooks `astro:config:setup`.
 
@@ -201,7 +256,7 @@ Una copia de solo lectura de [Astro config](/es/reference/configuration-referenc
 
 **Siguiente hook:** [`astro:server:start`](#astroserverstart)
 
-**Cuándo:** Justo después de que se crea el servidor Vite en modo "dev" o "vista previa", pero antes de que se dispare el evento `listen()`. [Consulta la API createServer de Vite](https://vitejs.dev/guide/api-javascript.html#createserver) para obtener más información.
+**Cuándo:** Justo después de que se crea el servidor Vite en modo "dev", pero antes de que se dispare el evento `listen()`. [Consulta la API createServer de Vite](https://vitejs.dev/guide/api-javascript.html#createserver) para obtener más información.
 
 **Por qué:** Para actualizar las opciones del servidor de Vite y el middleware.
 
@@ -213,7 +268,7 @@ Una copia de solo lectura de [Astro config](/es/reference/configuration-referenc
 
 **Tipo:** [`ViteDevServer`](https://vitejs.dev/guide/api-javascript.html#vitedevserver)
 
-Una instancia mutable del servidor de Vite utilizada en modo "dev" y "vista previa". Por ejemplo, esto es [utilizado por nuestra integración Partytown](/es/guides/integrations-guide/partytown/) para inyectar el servidor Partytown como middleware:
+Una instancia mutable del servidor de Vite utilizada en modo "dev". Por ejemplo, esto es [utilizado por nuestra integración Partytown](/es/guides/integrations-guide/partytown/) para inyectar el servidor Partytown como middleware:
 
 ```js
 export default {
@@ -328,7 +383,7 @@ La dirección, familia y número de puerto proporcionados por el [módulo NodeJS
 **Por qué:** Para acceder a rutas y recursos generados para extensión (por ejemplo, copiar contenido en la carpeta `/assets` generado). Si planeas transformar los recursos generados, te recomendamos explorar la [API de plugin de Vite](https://vitejs.dev/guide/api-plugin.html) y [la configuración a través de `astro:config:setup`](#opción-updateconfig) en su lugar.
 
 ```js
-'astro:build:done'?: (options: { dir: URL; routes: RouteData[] }) => void | Promise<void>;
+'astro:build:done'?: (options: { dir: URL; routes: RouteData[], pages: { pathname: string }[] }) => void | Promise<void>;
 ```
 
 #### Opción `dir`
@@ -359,7 +414,7 @@ export default function myIntegration() {
 
 **Tipo:** [`RouteData[]`](#referencia-del-tipo-routedata)
 
-Una lista de todas las rutas generadas junto con sus metadatos asociados. **¡Estará vacío cuando uses un adaptador SSR!**
+Una lista de todas las rutas generadas junto con sus metadatos asociados.
 
 Puedes consultar la referencia completa del tipo `RouteData` a continuación, pero las propiedades más comunes son:
 
@@ -403,6 +458,15 @@ interface RouteData {
   generate: (data?: any) => string;
 }
 ```
+
+#### Opción `pages`
+
+**Tipo:** `{ pathname: string }[]`
+
+Una lista de todas las páginas generadas. Es un objeto con una propiedad.
+
+- `pathname` - la ruta final de la página.
+
 
 ## Permitir la instalación con `astro add`
 
