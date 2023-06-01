@@ -62,9 +62,6 @@ export default UIDictionary({
 	// Fallback content notice shown when a page is not yet translated
 	'fallbackContent.notice': '此页暂不支持你的语言，我们将为你展示英文页面。你可以帮忙翻译它！',
 	'fallbackContent.linkText': '了解更多关于贡献的内容',
-	// Outdated content notice shown when a page is outdated
-	'outdatedContent.notice':
-		'这个页面上的内容是一个旧的过时翻译，需要更新以匹配当前的英文版本。你可以通过翻译它来帮助我们！',
 	// 404 Page
 	'404.title': '未能找到此页面',
 	'404.content': '该页面不在我们的星系中。',
