@@ -5,6 +5,7 @@ i18nReady: true
 ---
 import FileTree from '~/components/FileTree.astro'
 import RecipeLinks from "~/components/RecipeLinks.astro"
+import Since from '~/components/Since.astro'
 
 Astro uses **file-based routing** to generate your build URLs based on the file layout of your project `src/pages/` directory.
 
@@ -219,6 +220,74 @@ const { title, text } = page;
 </html>
 ```
 
+## Redirects (experimental)
+
+<Since v="2.6.0" />
+
+You can specify a mapping of redirects in your Astro config. For most redirects, this is a mapping of old route to the new route:
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    redirects: false
+  },
+  redirects: {
+    '/old-page': '/new-page'
+  }
+});
+```
+
+These redirects follow the same rules as file-based routes. Dynamic routes are allowed as long as both the new and old route contain the same parameters, for ex:
+
+```js
+{
+  "/blog/[...slug]": "/articles/[...slug]"
+}
+```
+
+You can also specify the status code by providing an object as the value:
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    redirects: false
+  },
+  redirects: {
+    '/old-page': {
+      status: 302,
+      destination: '/new-page'
+    }
+  }
+});
+```
+
+When running `astro build` Astro will write out HTML files with the [meta refresh](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#examples) tag by default. Supported adapters will instead write out the host's configuration file with the redirects.
+
+The status code is `301` by default. If building to HTML files the status code is not used by the server.
+
+### Dynamic redirects
+
+On the `Astro` global, the `Astro.redirect` method allows you to redirect to another page dynamically. You might do this after checking if the user is logged in by getting their session from a cookie.
+
+```astro title="src/pages/account.astro" {8}
+---
+import { isLoggedIn } from '../utils';
+
+const cookie = Astro.request.headers.get('cookie');
+
+// If the user is not logged in, redirect them to the login page
+if (!isLoggedIn(cookie)) {
+  return Astro.redirect('/login');
+}
+---
+<html>
+  <!-- Page here... -->
+</html>
+```
 
 ## Route Priority Order
 
@@ -244,6 +313,8 @@ Given the example above, here are a few examples of how the rules will match a r
 - `pages/posts/create.astro` - Will build `/posts/create`
 - `pages/posts/[pid].astro` - Will build `/posts/1`, `/posts/abc`, etc. But not `/posts/create`
 - `pages/posts/[...slug].astro` - Will build `/posts/1/2`, `/posts/a/b/c`, etc. But not `/posts/create`, `/posts/1`, `/posts/abc`
+
+Redirects also follow the same rules, but are prioritized *last*; if there is a file-based route and a redirect with the same route rule, the file-based route is chosen.
 
 ## Pagination
 
