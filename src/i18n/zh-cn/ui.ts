@@ -52,6 +52,11 @@ export default UIDictionary({
 	'cms.navTitle': '更多 CMS 指南',
 	// Migration Guides vocabulary
 	'migration.navTitle': '更多迁移指南',
+	// Recipes vocabulary
+	'recipes.navTitle': '更多方案',
+	// `<RecipeLinks>` vocabulary
+	'recipesLink.singular': '相关方案：',
+	'recipesLink.plural': '相关方案',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': '查看所有贡献者',
 	// Fallback content notice shown when a page is not yet translated
@@ -96,6 +101,7 @@ export default UIDictionary({
 	'feedback.formTitle': '你有什么想法？',
 	'feedback.categoryGroupLabel': '选择反馈类型',
 	'feedback.issue': '问题',
+	'feedback.createIssue': '创建 GitHub Issue',
 	'feedback.idea': '想法',
 	'feedback.other': '其它',
 	'feedback.messageA11yLabel': '留言',
@@ -105,5 +111,9 @@ export default UIDictionary({
 	'feedback.success': '感谢！我们收到了你的反馈。',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': '目录',
-	// BaaS Guides vocabulary
+	// CopyButton class in `<CodeSnippet>` component
+	'copyButton.title': '复制到剪贴板',
+	'copyButton.tooltip': '复制成功！',
+	// Backend Guides vocabulary
+	'backend.navTitle': '更多后端服务指南',
 });
