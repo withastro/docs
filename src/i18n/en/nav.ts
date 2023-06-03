@@ -41,9 +41,10 @@ export default [
 	{ text: 'Recipes', header: true, type: 'learn', key: 'examples' },
 	{ text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
 	{ text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
+	{ text: 'Add backend services', slug: 'guides/backend', key: 'guides/backend' },
 	{ text: 'Add integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
 	{ text: 'Deploy your site', slug: 'guides/deploy', key: 'guides/deploy' },
-	{ text: 'More Recipes', slug: 'recipes', key: 'guides/recipes' },
+	{ text: 'More recipes', slug: 'recipes', key: 'guides/recipes' },
 
 	{ text: 'Guides', header: true, type: 'learn', key: 'features' },
 	{
@@ -80,6 +81,7 @@ export default [
 	},
 	{ text: 'Endpoints', slug: 'core-concepts/endpoints', key: 'core-concepts/endpoints' },
 	{ text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
+	{ text: 'Middleware (experimental)', slug: 'guides/middleware', key: 'guides/middleware' },
 	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
 	{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
 
