@@ -8,7 +8,7 @@ import Since from '~/components/Since.astro';
 **Server-side Rendering**, aka SSR, can be enabled in Astro. When you enable SSR you can:
 
 - Implement sessions for login state in your app.
-- Render data from an API called dynamically with `fetch`.
+- Render data from an API called dynamically with `fetch`.@version 2.0.0
 - Deploy your site to a host using an *adapter*.
 
 ## Enabling SSR in Your Project
@@ -103,7 +103,7 @@ Astro will remain a static-site generator by default. But once you enable a serv
 
 <Since v="2.0.0" />
 
-To enable **hybrid rendering**, any [page](/en/core-concepts/astro-pages/) or [server endpoint](/en/core-concepts/endpoints/#server-endpoints-api-routes) that supports exporting variables (`.astro`, `.mdx`, `.ts`, or `.js`) can opt-in to prerendering. These files will be statically rendered at build-time, similar to the default static [`output`](/en/reference/configuration-reference/#output) mode.
+Any individual [page](/en/core-concepts/astro-pages/) or [server endpoint](/en/core-concepts/endpoints/#server-endpoints-api-routes) that supports exporting variables (`.astro`, `.mdx`, `.ts`, or `.js`) can opt in to pre-rendering when your Astro project is configured to use SSR with `output: server`. These files will be statically rendered at build-time, similar to the default [`output: static`](/en/reference/configuration-reference/#output) mode.
 
 Simply add `export const prerender = true`:
 
@@ -134,6 +134,38 @@ export const prerender = true;
 export async function get() {
   return {
     body: JSON.stringify({ message: `This is my endpoint` }),
+  };
+}
+```
+
+#### Static pre-rendering by default
+
+<Since v="2.5.0" />
+
+You may have a site that is *mostly* static and can benefit from pre-rendering, but only a few of your pages or endpoints need to be server-rendered. SSR in Astro defaults to rendering on the server and requires you to individually designate the pages that should be static.
+
+To avoid declaring most of your pages as pre-rendered, change the `output` from `'server'` to `'hybrid'` and take advantage of SSR with static pre-rendering by default:
+
+```js
+export { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  output: 'hybrid',
+  experimental: {
+    hybridOutput: true,
+  },
+});
+```
+
+With this configuration, all of your pages and API endpoints will be pre-rendered, even though your project is configured with an adapter to use SSR. You can then *opt-out* of pre-rendering any individual file or route by adding `export const prerender = false` to any files that should be server-rendered.
+
+```js title="src/pages/randomnumber.js" {1}
+export const prerender = false;
+
+export async function get() {
+  let number = Math.random();
+  return {
+    body: JSON.stringify({ number, message: `Here's a random number: ${number}` }),
   };
 }
 ```
@@ -240,3 +272,103 @@ if (!product) {
 
 A server endpoint, also known as an **API route**, is a special function exported from a `.js` or `.ts` file within the `src/pages/` folder. 
 The function takes an [endpoint context](/en/reference/api-reference/#endpoint-context) and returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response). A powerful feature of SSR, API routes are able to securely execute code on the server. To learn more, see our [Endpoints Guide](/en/core-concepts/endpoints/#server-endpoints-api-routes).
+
+### Streaming
+
+Browsers natively support HTTP streaming, where a document is broken up into chunks, sent over the network in order, and rendered on the page in that order.
+
+During this process, browsers consume HTML incrementally: parsing, rendering into the DOM, and painting. This happens whether or not you intentionally stream your HTML. Network conditions can cause large documents to be downloaded slowly, and waiting for data fetches can block page rendering.
+
+
+### Using streaming to improve page performance
+
+The following page `await`s some data in its frontmatter. Astro will wait for all of the `fetch` calls to resolve before sending any HTML to the browser.
+
+```astro title="src/pages/index.astro"
+---
+const personResponse = await fetch('https://randomuser.me/api/');
+const personData = await personResponse.json();
+const randomPerson = personData.results[0];
+const factResponse = await fetch('https://catfact.ninja/fact');
+const factData = await factResponse.json();
+---
+<html>
+  <head>
+    <title>A name and a fact</title>
+  </head>
+  <body>
+    <h2>A name</h2>
+    <p>{randomPerson.name.first}</p>
+    <h2>A fact</h2>
+    <p>{factData.fact}</p>
+  </body>
+</html>
+```
+
+Moving the `await` calls into smaller components allows you to take advantage of Astro's streaming. Using the following components to perform the data fetches, Astro can render some HTML first, such as the title, and then the paragraphs when the data is ready.
+
+```astro title="src/components/RandomName.astro"
+---
+const personResponse = await fetch('https://randomuser.me/api/');
+const personData = await personResponse.json();
+const randomPerson = personData.results[0];
+---
+<p>{randomPerson.name.first}</p>
+```
+
+```astro title="src/components/RandomFact.astro"
+---
+const factResponse = await fetch('https://catfact.ninja/fact');
+const factData = await factResponse.json();
+---
+<p>{factData.fact}</p>
+```
+
+
+The Astro page below using these components can render parts of the page sooner. The `<head`>, `<body>`, and `<h1>` tags are no longer blocked by data fetches. The browser will then wait for `RandomName` to finish loading its Promises, and then send the resulting HTML over the network. It will render the next heading, and then it will wait for `RandomFact` and send its resulting HTML over the browser.
+
+```astro title="src/pages/index.astro"
+---
+import RandomName from '../components/RandomName.astro'
+import RandomFact from '../components/RandomFact.astro'
+---
+<html>
+  <head>
+    <title>A name and a fact</title>
+  </head>
+  <body>
+    <h2>A name</h2>
+    <RandomName />
+    <h2>A fact</h2>
+    <RandomFact />
+  </body>
+</html>
+```
+
+#### Including Promises directly
+
+You can also include promises directly in the template. Instead of blocking the entire component, it will only block the markup that comes after it.
+
+```astro title="src/pages/index.astro"
+---
+const personPromise = fetch('https://randomuser.me/api/')
+  .then(resp => response.json())
+  .then(arr => arr[0].name.first);
+const factPromise = fetch('https://catfact.ninja/fact')
+  .then(resp => response.json())
+  .then(factData => factData.fact);
+---
+<html>
+  <head>
+    <title>A name and a fact</title>
+  </head>
+  <body>
+    <h2>A name</h2>
+    <p>{personPromise}</p>
+    <h2>A fact</h2>
+    <p>{factPromise}</p>
+  </body>
+</html>
+```
+
+In this example, `A name` will render while `personPromise` is loading. At that point, `A fact` will be appear, while `factPromise` is loading.
