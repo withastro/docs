@@ -34,10 +34,19 @@ An external service points to a remote URL to be used as the `src` attribute of 
 import type { ExternalImageService } from "astro";
 
 const service: ExternalImageService = {
-  getURL(options: ImageTransform) {
+  validateOptions(options: ImageTransform, serviceConfig: Record<string, any>) {
+    // Enforce the user set max width.
+    if (options.width > serviceConfig.maxWidth) {
+      console.warn(`Image width ${options.width} exceeds max width ${serviceConfig.maxWidth}. Falling back to max width.`);
+      options.width = serviceConfig.maxWidth;
+    }
+
+    return options;
+  },
+  getURL(options, serviceConfig) {
     return `https://mysupercdn.com/${options.src}?q=${options.quality}&w=${options.width}&h=${options.height}`;
   },
-  getHTMLAttributes(options) {
+  getHTMLAttributes(options, serviceConfig) {
     const { src, format, quality, ...attributes } = options;
 		return {
 			...attributes,
@@ -58,7 +67,7 @@ To create your own local service, you can point to the [built-in endpoint](https
 ```js
 import type { LocalImageService } from "astro";
 const service: LocalImageService = {
-  getURL(options: ImageTransform) {
+  getURL(options: ImageTransform, serviceConfig: Record<string, any>) {
     const searchParams = new URLSearchParams();
 		searchParams.append('href', typeof options.src === "string" ? options.src : options.src.src);
 		options.width && searchParams.append('w', options.width.toString());
@@ -69,7 +78,7 @@ const service: LocalImageService = {
     // Or use the built-in endpoint, which will call your parseURL and transform functions:
     // return `/_image?${searchParams}`;
   },
-  parseURL(url: URL) {
+  parseURL(url: URL, serviceConfig) {
     return {
       src: params.get('href')!,
       width: params.has('w') ? parseInt(params.get('w')!) : undefined,
@@ -78,14 +87,14 @@ const service: LocalImageService = {
       quality: params.get('q'),
     };
   },
-  transform(buffer: Buffer, options: { src: string, [key: string]: any }): { data: Buffer, format: OutputFormat } {
+  transform(buffer: Buffer, options: { src: string, [key: string]: any }, serviceConfig): { data: Buffer, format: OutputFormat } {
     const { buffer } = mySuperLibraryThatEncodesImages(options);
     return {
       data: buffer,
       format: options.format,
     };
   },
-  getHTMLAttributes(options) {
+  getHTMLAttributes(options, serviceConfig) {
 		let targetWidth = options.width;
 		let targetHeight = options.height;
 		if (typeof options.src === "object") {
@@ -116,20 +125,20 @@ At build time for static sites and pre-rendered routes, both `<Image />` and `ge
 
 In dev mode and SSR mode, Astro doesn't know ahead of time which images need to be optimized. Astro uses a GET endpoint (by default, `/_image`) to process the images at runtime. `<Image />` and `getImage()` pass their options to `getURL()`, which will return the endpoint URL. Then, the endpoint calls `parseURL()` and passes the resulting properties to `transform()`.
 
-#### getConfiguredImageService
+#### getConfiguredImageService & imageServiceConfig
 
-If you implement your own endpoint as an Astro endpoint, you can use `getConfiguredImageService` to call your service's `parseURL` and `transform` methods.
+If you implement your own endpoint as an Astro endpoint, you can use `getConfiguredImageService` and `imageServiceConfig` to call your service's `parseURL` and `transform` methods and provide the service's config object.
 
 ```ts title="src/api/my_custom_endpoint_that_transforms_images.ts"
 import type { APIRoute } from "astro";
-import { getConfiguredImageService } from 'astro:assets';
+import { getConfiguredImageService, imageServiceConfig } from 'astro:assets';
 
 export const get: APIRoute = async ({ request }) => {
   const imageService = await getConfiguredImageService();
 
-  const imageTransform = imageService.parseURL(new URL(request.url));
+  const imageTransform = imageService.parseURL(new URL(request.url), imageServiceConfig);
   // ... fetch the image from imageTransform.src and store it in inputBuffer
-  const { data, format } = await imageService.transform(inputBuffer, imageTransform);
+  const { data, format } = await imageService.transform(inputBuffer, imageTransform, imageServiceConfig);
   return new Response(data, {
 			status: 200,
 			headers: {
@@ -149,7 +158,7 @@ export const get: APIRoute = async ({ request }) => {
 
 **Required for local and external services**
 
-`getURL(options: ImageTransform): string`
+`getURL(options: ImageTransform, imageServiceConfig: Record<string, any>): string`
 
 For local services, this hook returns the URL of the endpoint that generates your image (in SSR and dev mode). It is unused during build. The local endpoint that `getURL()` points to may call both `parseURL()` and `transform()`.
 
@@ -175,7 +184,7 @@ export type ImageTransform = {
 
 **Required for local services; unavailable for external services**
 
-`parseURL(url: URL): { src: string, [key: string]: any}`
+`parseURL(url: URL, imageServiceConfig: Record<string, any>): { src: string, [key: string]: any}`
 
 This hook parses the generated URLs by `getURL()` back into an object with the different properties to be used by `transform` (in SSR and dev mode). It is unused during build.
 
@@ -183,7 +192,7 @@ This hook parses the generated URLs by `getURL()` back into an object with the d
 
 **Required for local services only; unavailable for external services**
 
-`transform(buffer: Buffer, options: { src: string, [key: string]: any }): { data: Buffer, format: OutputFormat }`
+`transform(buffer: Buffer, options: { src: string, [key: string]: any }, imageServiceConfig: Record<string, any>): { data: Buffer, format: OutputFormat }`
 
 This hook transforms and returns the image and is called during the build to create the final asset files.
 
@@ -193,7 +202,7 @@ You must return a `format` to ensure that the proper MIME type is served to user
 
 **Optional for both local and external services**
 
-`getHTMLAttributes(options: ImageTransform): Record<string, any>`
+`getHTMLAttributes(options: ImageTransform, imageServiceConfig: Record<string, any>): Record<string, any>`
 
 This hook returns all additional attributes used to render the image as HTML, based on the parameters passed by the user (`options`).
 
@@ -201,9 +210,9 @@ This hook returns all additional attributes used to render the image as HTML, ba
 
 **Optional for both local and external services**
 
-`validateOptions(options: ImageTransform): ImageTransform`
+`validateOptions(options: ImageTransform, imageServiceConfig: Record<string, any>): ImageTransform`
 
-This hook allows you to validate and augment the options passed by the user. This is useful for setting default options, or telling the user that a parameter is required. 
+This hook allows you to validate and augment the options passed by the user. This is useful for setting default options, or telling the user that a parameter is required.
 
 [See how `validateOptions()` is used in Astro built-in services](https://github.com/withastro/astro/blob/af4bd5e79c0bd662d58aeb016a61950e176b0a26/packages/astro/src/assets/services/service.ts#L106).
 
@@ -219,7 +228,12 @@ export default defineConfig({
     assets: true,
   },
   image: {
-    service: "your-entrypoint", // 'astro/assets/services/squoosh' | 'astro/assets/services/sharp' | string
+    service: {
+      entrypoint: "your-entrypoint", // 'astro/assets/services/squoosh' | 'astro/assets/services/sharp' | string,
+      config: {
+        // ... service-specific config. Optional.
+      }
+    }
   },
 });
 ```

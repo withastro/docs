@@ -1,0 +1,99 @@
+---
+title: Headless Statamic y Astro
+description: Agrega contenido a tu proyecto de Astro usando Statamic como CMS
+type: cms
+stub: false
+service: Statamic
+i18nReady: true
+---
+
+[Statamic](https://statamic.com/) es un CMS moderno que utiliza archivos planos. Permite a los desarrolladores crear fácilmente sitios web y aplicaciones dinámicas, mientras que ofrece a los editores de contenido una interfaz intuitiva y fácil de usar para administrar el contenido.
+
+## Integración con Astro
+
+Statamic viene con una [API REST](https://statamic.dev/rest-api) y una [API GraphQL](https://statamic.dev/graphql) integradas para conectar tus datos a Astro.
+
+### Prerrequisitos
+
+Para empezar, necesitarás lo siguiente:
+
+1. Solo están disponibles las API REST y GraphQL API en la versión pro de Statamic. Puedes probar la versión Pro gratis en tu [máquina local](https://statamic.dev/tips/how-to-enable-statamic-pro#trial-mode).
+2. **Un proyecto Astro** - Si todavía necesitas un proyecto Astro, nuestra [guía de instalación](/es/install/auto/) te pondrá en marcha rápidamente.
+3. **Un sitio Statamic** - Si necesitas un sitio Statamic, [la guía de instalación de Statamic](https://statamic.dev/quick-start-guide) te ayudará a empezar.
+Recuerda [habilitar la API REST](https://statamic.dev/rest-api#enable-the-api) o la [API GraphQL](https://statamic.dev/graphql#enable-graphql) añadiendo `STATAMIC_API_ENABLED=true` o `STATAMIC_GRAPHQL_ENABLED=true` en el archivo `.env` y habilitando los recursos necesarios en el archivo de configuración de la API.
+
+:::caution
+Todos los ejemplos asumen que tu sitio web tiene una colección llamada `posts`, que tiene un blueprint llamado `post`, y este blueprint tiene un campo de título (tipo de campo texto) y contenido (tipo de campo markdown).
+:::
+
+### Obteniendo Datos
+:::caution
+Si estás usando Statamic y Astro en tu máquina local, recuerda usar `127.0.0.1` en lugar de `localhost` al solicitar los datos a la API.
+
+Cuando se solicita los datos desde el frontmatter de Astro, `localhost` no se resuelve correctamente como lo hace en el navegador y cualquier solicitud a cualquiera de las API fallará.
+:::
+
+#### REST API
+
+Obtén los datos de Statamic de la URL de la API REST de tu sitio. Por defecto, es `https://[YOUR-SITE]/api/`. A continuación, puedes renderizar las propiedades de tus datos utilizando la directiva `set:html={}` de Astro. 
+
+Por ejemplo, para mostrar una lista de títulos y su contenido de una [colección](https://statamic.dev/collections) seleccionada:
+
+```astro title="src/pages/index.astro
+---
+const res = await fetch("https://[YOUR-SITE]/api/collections/posts/entries?sort=-date")
+const posts = await res.json()
+---
+<h1>Astro + Statamic 🚀</h1>
+{
+  posts.map((post) => (
+      <h2 set:html={post.title} />
+      <p set:html={post.content} />
+  ))
+}
+```
+
+#### GraphQL
+
+Obtén los datos de Statamic de la URL de la API GraphQL de tu sitio. Por defecto, es `https://[YOUR-SITE]/graphql/`. A continuación, puedes renderizar las propiedades de tus datos utilizando la directiva `set:html={}` de Astro.
+
+Por ejemlo, para mostrar una lista de títulos y su contenido de una [colección](https://statamic.dev/collections) seleccionada:
+
+```astro title="src/pages/index.astro
+---
+const res = await fetch("https://[YOUR-SITE]/graphql/",
+  {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      query: `
+        posts: entries(collection: "posts", sort: "date desc") {
+          data {
+            title
+            ... on Entry_Posts_Post {
+              content
+            }
+          }
+        }
+      `
+    }),
+  });
+const entries = await res.json()
+---
+<h1>Astro + Statamic 🚀</h1>
+{
+  entires.data.posts.data.map((post) => (
+      <h2 set:html={post.title} />
+      <p set:html={post.content} />
+  ))
+}
+```
+
+### Publicando tu sitio
+
+Para desplegar tu sitio Astro, visita nuestras [guías de despliegue](/es/guides/deploy/) y sigue las instrucciones para tu proveedor de alojamiento preferido.
+
+## Recursos de la comunidad
+
+- [Como construir un sitio estático usando Statamic como CMS headless](https://buddy.works/guides/statamic-rest-api)
+- [Implementando previsualizaciones en vivo en Statamic headless usando Astro](https://maciekpalmowski.dev/implementing-live-previews-in-headless-statamic-when-using-astro/)

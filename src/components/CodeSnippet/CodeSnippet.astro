@@ -9,6 +9,10 @@ import {
 	MarkerTypeOrder,
 } from './types';
 
+const t = useTranslations(Astro);
+const copyButtonTitle = t('copyButton.title');
+const copyButtonTooltip = t('copyButton.tooltip');
+
 export interface Props {
 	lang?: string;
 	title?: string;
@@ -26,8 +30,6 @@ const {
 	lineMarkings = '',
 	inlineMarkings = '',
 } = Astro.props as Props;
-
-const t = useTranslations(Astro);
 
 const isTerminal = ['shellscript', 'shell', 'bash', 'sh', 'zsh'].includes(lang);
 const intRemovedLineIndex = parseInt(removedLineIndex) || 0;
@@ -107,7 +109,7 @@ function applyMarkings(
 		};
 	});
 
-	const shikiBlock = new ShikiBlock(highlightedCodeHtml);
+	const shikiBlock = new ShikiBlock(highlightedCodeHtml, { copyButtonTitle, copyButtonTooltip });
 	shikiBlock.applyMarkings(lineMarkings, inlineMarkings);
 	return shikiBlock.renderToHtml();
 }
@@ -143,6 +145,7 @@ function parseMarkingDefinition(serializedArr: string, parts: RegExp, parseError
 <style lang="scss" is:global>
 	.code-snippet {
 		--glow-border: 1px solid var(--theme-glow-highlight);
+		position: relative;
 
 		.header,
 		pre {
@@ -271,7 +274,81 @@ function parseMarkingDefinition(serializedArr: string, parts: RegExp, parseError
 			}
 		}
 
+		.copy-button-wrapper {
+			display: flex;
+			gap: 0.25rem;
+			flex-direction: row-reverse;
+			position: absolute;
+			top: calc(0.5rem + var(--code-header-height, 0px));
+			inset-inline-end: 0.5rem;
+
+			.copy-button {
+				display: flex;
+				cursor: pointer;
+				border-radius: 0.4rem;
+				transition: opacity 0.15s linear;
+				border: 1px solid var(--theme-dim);
+				padding: 0.375rem;
+				align-self: flex-end;
+				background-color: var(--theme-code-bg);
+				color: var(--theme-code-text);
+
+				@media (hover: hover) {
+					& {
+						opacity: 0;
+					}
+				}
+
+				&-success {
+					color: hsl(var(--color-green));
+				}
+
+				&-error {
+					color: hsl(var(--color-red));
+				}
+
+				&:focus,
+				&:hover {
+					border-color: currentColor;
+				}
+			}
+		}
+		&:focus-within,
+		&:hover {
+			.copy-button {
+				opacity: 1;
+			}
+		}
+
+		.copy-button-tooltip {
+			--tooltip-arrow-size: 0.375rem;
+			--tooltip-bg: var(--theme-dim);
+			display: none;
+			position: relative;
+			align-self: center;
+			background-color: var(--tooltip-bg);
+			color: var(--theme-text);
+			font-size: var(--theme-text-sm);
+			padding: 0.125rem 0.5rem;
+			border-radius: 0.3rem;
+			margin-inline-end: var(--tooltip-arrow-size);
+
+			&::after {
+				content: '';
+				position: absolute;
+				inset-inline-end: calc(-2 * var(--tooltip-arrow-size));
+				border: var(--tooltip-arrow-size) solid transparent;
+				border-inline-start-color: var(--tooltip-bg);
+				transform: translateY(50%);
+			}
+
+			&-visible {
+				display: block;
+			}
+		}
 		&.has-title {
+			--code-header-height: 2rem;
+
 			& .header {
 				display: inline-block;
 			}
@@ -284,6 +361,7 @@ function parseMarkingDefinition(serializedArr: string, parts: RegExp, parseError
 		&.is-terminal {
 			--theme-glow-highlight: rgba(255, 255, 255, 0.2);
 			--theme-glow-diffuse: rgba(0, 0, 0, 0.4);
+			--code-header-height: 1.75rem;
 
 			& .header {
 				display: flex;
@@ -333,3 +411,33 @@ function parseMarkingDefinition(serializedArr: string, parts: RegExp, parseError
 	</figcaption>
 	<Fragment set:html={codeSnippetHtml} />
 </figure>
+<script>
+	// Find all buttons with the \`copy-button\` class on page.
+	const buttons = document.querySelectorAll<HTMLButtonElement>('button.copy-button');
+
+	/** Store timeout to clear when button is repeatedly clicked. */
+	let copyTimeout: any;
+
+	// Handle clicks on each button.
+	buttons.forEach((button) => {
+		button.addEventListener('click', async () => {
+			const codeText = decodeURIComponent(button.value);
+			try {
+				clearTimeout(copyTimeout);
+				await navigator.clipboard.writeText(codeText);
+				button.classList.add('copy-button-success');
+				button.nextElementSibling?.classList.add('copy-button-tooltip-visible');
+				copyTimeout = setTimeout(() => {
+					button.classList.remove('copy-button-success');
+					button.nextElementSibling?.classList.remove('copy-button-tooltip-visible');
+				}, 3000);
+			} catch (err) {
+				clearTimeout(copyTimeout);
+				button.classList.add('copy-button-error');
+				copyTimeout = setTimeout(() => {
+					button.classList.remove('copy-button-error');
+				}, 3000);
+			}
+		});
+	});
+</script>
