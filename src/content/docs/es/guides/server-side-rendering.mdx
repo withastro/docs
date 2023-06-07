@@ -14,7 +14,11 @@ import Since from '~/components/Since.astro';
 
 ## Habilitando SSR en su proyecto
 
-Para empezar, habilita las características de SSR en el modo desarrollo con la opción de configuración `output: server`:
+Para hablitar las características SSR para despliegues en producción, actualiza tu configuración `output` a `'server'` o `'hybrid'` (introducido en **v2.6.0**). Ambos modos controlan cuales [páginas](/es/core-concepts/astro-pages/) o [endpoints del servidor](/es/core-concepts/endpoints/#endpoints-del-servidor-rutas-de-api) deben ser renderizados en el servidor. Cada opción de configuración tiene un comportamiento por defecto diferente, y permite que las rutas individuales opten por no utilizar el valor por defecto:
+
+- __`output: 'server'`__: Renderizado en el servidor por defecto. Utiliza esto cuando la mayoría o todo tu sitio debe ser renderizado en el servidor. Cualquier página o endpoint individual puede *optar* por pre-renderizar.
+- __`output: 'hybrid'`__: Pre-renderizado a HTML por defecto. Utiliza esto cuando la mayoría de tu sitio debe ser estático. Cualquier página o endpoint individual puede *optar* por no pre-renderizar.
+
 
 ```js ins={5}
 // astro.config.mjs
@@ -22,6 +26,33 @@ import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   output: 'server'
+});
+```
+
+Puedes optar por no utilizar el comportamiento de renderizado por defecto con una declaración de exportación en cualquier página o ruta:
+
+```astro title="src/pages/mypage.astro" {2}
+---
+export const prerender = true;
+// ...
+---
+<html>
+  <!-- Estático, página pre-renderizada aquí... -->
+</html>
+```
+See more usage examples of [configuring individual routes](#configuring-individual-routes)
+Ver más ejemplos de uso de [configuración de rutas individuales](#configuración-de-rutas-individuales)
+
+### Converting a static site to hybrid rendering
+
+To convert an existing static Astro site to allow hybrid rendering, change the `output` to `'hybrid'` and add an adapter:
+
+```diff
+import { defineConfig } from 'astro/config';
++ import nodejs from '@astrojs/nodejs';
+export default defineConfig({
++ adapter: nodejs(),  
++ output: 'hybrid',
 });
 ```
 
@@ -98,15 +129,15 @@ También puedes añadir un adaptador manualmente instalando el paquete y actuali
 
 ## Características
 
-Astro seguirá siendo un generador de sitios estáticos por defecto. Pero una vez que habilites un adaptador de renderizado en el servidor, **cada ruta en la carpeta de páginas se convertirá en una ruta renderizada por el servidor** y algunas características nuevas estarán disponibles para ti.
+Astro seguirá siendo un generador de sitios estáticos por defecto. Pero una vez que habilites el renderizado en el servidor y agregues un adaptador, algunas características nuevas estarán disponibles para ti.
 
-### Renderizado Híbrido
+### Configuración de rutas individuales
 
-<Since v="2.0.0" />
+Ambos modos `server` e `hybrid` permiten páginas y endpoints renderizados en el servidor y renderizarán todas las páginas de acuerdo a su modo por defecto. Sin embargo, ambos modos permiten marcar una página individual para optar por no utilizar este comportamiento por defecto.
 
-Cualquier [página individual](/es/core-concepts/astro-pages/) o [endpoint del servidor](/es/core-concepts/endpoints/#endpoints-del-servidor-rutas-de-api) que tienen soporte para exportar variables (`.astro`, `.mdx`, `.ts`, or `.js`) puede optar por prerenderizar cuando tu proyecto Astro está configurado para utilizar SSR con `output: server`. Estos archivos se renderizarán estáticamente en tiempo de compilación, similar al modo por defecto [`output: static`](/es/reference/configuration-reference/#output).
+### Optar por no renderizar en el servidor
 
-Simplemente agrega `export const prerender = true`:
+Para una aplicación principalmente renderizada en el servidor configurada como `output: server`, añade `export const prerender = true` a cualquier página o ruta para pre-renderizar una página o endpoint estático:
 
 ```astro title="src/pages/index.astro" {2}
 ---
@@ -114,7 +145,7 @@ export const prerender = true;
 // ...
 ---
 <html>
-  <!-- Página aquí... -->
+  <!-- Estático, página pre-renderizada aquí... -->
 </html>
 ```
 
@@ -124,38 +155,23 @@ layout: '../layouts/markdown.astro'
 title: 'My page'
 ---
 export const prerender = true;
-# Esta es mi página
+# Esta es mi página estática, pre-renderizada
 ```
 
+Y para un endpoint:
 
 ```js title="src/pages/myendpoint.js" {1}
 export const prerender = true;
 export async function get() {
   return {
-    body: JSON.stringify({ message: `Este es mi endpoint` }),
+    body: JSON.stringify({ message: `Este es mi endpoint estático` }),
   };
 }
 ```
 
-#### Prerenderizado estático por defecto
+### Optar por no pre-renderizar
 
-<Since v="2.5.0" />
-
-Es posible que tengas un sitio que es *principalmente* estático y puede beneficiarse de la representación previa, pero solo algunas de tus páginas o endpoints necesitan ser renderizados en el servidor. SSR en Astro se configura de manera predeterminada para renderizar en el servidor y requiere que designes individualmente las páginas que deben ser estáticas.
-
-Para evitar declarar la mayoría de tus páginas como pre-renderizadas, cambia el valor de `output` de `'server'` a `'hybrid'` y aprovecha el SSR con prerenderizado estático por defecto:
-
-```js
-export { defineConfig } from 'astro/config';
-export default defineConfig({
-  output: 'hybrid',
-  experimental: {
-    hybridOutput: true,
-  },
-});
-```
-
-Con esta configuración, todas tus páginas y endpoints de API se pre-renderizarán, incluso si tu proyecto está configurado con un adaptador para usar SSR. Luego puedes *optar por no hacerlo* de la representación previa para cualquier archivo o ruta individual agregando `export const prerender = false` a los archivos que deben ser renderizados en el servidor.
+Para la mayoría de los sitios estáticos configurados como `output: hybrid`, añade `export const prerender = false` a cualquier archivo que debería ser renderizado en el servidor:
 
 ```js title="src/pages/randomnumber.js" {1}
 export const prerender = false;
