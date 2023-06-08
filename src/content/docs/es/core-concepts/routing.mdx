@@ -5,10 +5,11 @@ i18nReady: true
 ---
 import FileTree from '~/components/FileTree.astro'
 import RecipeLinks from "~/components/RecipeLinks.astro"
+import Since from '~/components/Since.astro'
 
 Astro utiliza **enrutamiento basado en archivos** para generar las URLs finales según el contenido de la carpeta `src/pages/`. 
 
-## Navigating between pages
+## Navegando entre páginas
 
 Astro usa elementos HTML estándar [`<a>`](https://developer.mozilla.org/es/docs/Web/HTML/Element/a) para navegar entre rutas. No se proporciona ningún componente `<Link>` específico en Astro.
 
@@ -221,6 +222,76 @@ const { title, text } = page;
 </html>
 ```
 
+## Redirecciones
+
+A veces necesitarás redirigir a tus lectores a una nueva página, ya sea de forma permanente debido a cambios en la estructura de tu sitio o como respuesta a una acción como iniciar sesión en una ruta autenticada.
+
+Puedes definir reglas para [redirigir a los usuarios a páginas movidas permanentemente](#redirecciones-configuradas-experimental) en tu configuración de Astro. O puedes redirigir a los [usuarios dinámicamente](#redirecciones-dinámicas) a medida que utilizan tu sitio.
+
+### Redirecciones configuradas (experimental)
+<Since v="2.6.0" />
+
+Después de habilitar la configuración experimental `redirects: true`, puedes especificar un mapeo de redirecciones permanentes en la configuración de Astro. Para la mayoría de las redirecciones, esto es un mapeo de una ruta antigua a la nueva ruta:
+
+```js title="astro.config.mjs" {5, 7-9}
+import { defineConfig } from 'astro/config';
+export default defineConfig({
+  experimental: {
+    redirects: true
+  },
+  redirects: {
+    '/old-page': '/new-page'
+  }
+});
+```
+
+Estas redirecciones siguen las mismas reglas que las rutas basadas en archivos. Se permiten rutas dinámicas siempre y cuando tanto las rutas nuevas como las antiguas contengan los mismos parámetros, por ejemplo:
+
+```js
+{
+  "/blog/[...slug]": "/articles/[...slug]"
+}
+```
+
+Usando SSR o un adaptador estático, también puedes proporcionar un objeto como valor, lo que te permite especificar el código de estado (`status`) además del nuevo destino (`destination`):
+
+```js
+import { defineConfig } from 'astro/config';
+export default defineConfig({
+  experimental: {
+    redirects: true
+  },
+  redirects: {
+    '/old-page': {
+      status: 302,
+      destination: '/new-page'
+    }
+  }
+});
+```
+
+Al ejecutar `astro build`, Astro generará archivos HTML con la etiqueta [meta refresh](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#examples) de forma predeterminada. En cambio, los adaptadores compatibles escribirán el archivo de configuración del host con las redirecciones.
+
+Por defecto, el código de estado es `301`. Si estás generando archivos HTML estáticos, el servidor no utiliza el código de estado.
+
+### Redirecciones dinámicas
+
+En el objeto global `Astro`, el método `Astro.redirect` te permite redirigir a otra página de forma dinámica. Puedes hacer esto después de verificar si el usuario ha iniciado sesión obteniendo su sesión desde una cookie.
+
+```astro title="src/pages/account.astro" {8}
+---
+import { isLoggedIn } from '../utils';
+const cookie = Astro.request.headers.get('cookie');
+// Si el usuario no ha iniciado sesión, redirígelos a la página de inicio de sesión
+if (!isLoggedIn(cookie)) {
+  return Astro.redirect('/login');
+}
+---
+<html>
+  <!-- Aquí está la página... -->
+</html>
+```
+
 
 ### Orden de prioridad de rutas
 
@@ -238,7 +309,9 @@ Astro necesita saber qué ruta debe usarse para construir la página. Para ello,
 
 - Las rutas estáticas sin parámetros de ruta tendrán prioridad sobre todas las demás rutas
 - Las rutas dinámicas que usan parámetros nombrados tienen prioridad sobre los parámetros rest
+- Las rutas dinámicas pre-renderizadas tienen prioridad sobre las rutas dinámicas del servidor
 - Los parámetros rest tienen la prioridad más baja
+- Los endpoints siempre tienen prioridad sobre las páginas
 - Los empates se resuelven alfabéticamente
 
 Dado el ejemplo anterior, aquí hay algunos ejemplos de cómo las reglas harán coincidir una URL solicitada con la ruta utilizada al compilar el HTML:
@@ -246,6 +319,8 @@ Dado el ejemplo anterior, aquí hay algunos ejemplos de cómo las reglas harán 
 - `pages/posts/create.astro` - Construirá `/posts/create`
 - `pages/posts/[pid].astro` - Construirá `/posts/1`, `/posts/abc`, etc. Pero no `/posts/create`
 - `pages/posts/[...slug].astro` - Construirá `/posts/1/2`, `/posts/a/b/c`, etc. Pero no `/posts/create`, ` /mensajes/1`, `/mensajes/abc`
+
+Las redirecciones también siguen las mismas reglas, pero se priorizan en *último lugar*. Si existe una ruta basada en archivos y una redirección con la misma regla de ruta, se elige la ruta basada en archivos.
 
 ## Paginación
 
