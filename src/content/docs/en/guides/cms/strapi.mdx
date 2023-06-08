@@ -10,32 +10,28 @@ i18nReady: true
 import FileTree from '~/components/FileTree.astro';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
-[Strapi](https://strapi.io/) is the next-gen headless CMS, open-source, javascript, enabling content-rich experiences to be created, managed and exposed to any digital device.
+[Strapi](https://strapi.io/) is an open-source, customizable, headless CMS.
 
 ## Integrating with Astro
 
-In this section, you will create a wrapper function to connect Strapi with Astro.
+This guide will build a wrapper function to connect Strapi with Astro.
 
 ### Prerequisites
 
 To get started, you will need to have the following:
 
 1. **An Astro project** - If you don't have an Astro project yet, our [Installation guide](/en/install/auto/) will get you up and running in no time.
-2. **A Strapi CMS server** - You need a Strapi server to connect to, you can set one up on a [local environment](https://docs.strapi.io/dev-docs/quick-start)
+2. **A Strapi CMS server** - You can [set up a Strapi server on a local environment](https://docs.strapi.io/dev-docs/quick-start).
 
-### Setting up the .env file
+### Adding the Strapi URL in `.env`
 
-To add your Strapi url to Astro, create a `.env` file in the root of your project with the following variable:
+To add your Strapi URL to Astro, create a `.env` file in the root of your project (if one does not already exist) and add the following variable:
 
 ```ini title=".env"
-STRAPI_URL="http://127.0.0.1:1337"
+STRAPI_URL="http://127.0.0.1:1337" // or use your IP address
 ```
 
-:::tip
-In some cases using `STRAPI_URL=http://localhost:1337` will not work, so just to be safe, use the ip address
-:::
-
-Now, you should be able to use these environment variables in your project.
+Now, you can use this environment variable in your Astro project.
 
 If you would like to have IntelliSense for your environment variable, you can create a `env.d.ts` file in the `src/` directory and configure `ImportMetaEnv` like this:
 
@@ -55,9 +51,9 @@ Your root directory should now include the new file(s):
   - package.json
 </FileTree>
 
-### Creating the api wrapper
+### Creating the API wrapper
 
-Firstly, you will need create this wrapper function to interact with the Strapi api:
+Create a new file at `lib/strapi.ts` and add the following wrapper function to interact with the Strapi API:
 
 ```ts title="lib/strapi.ts"
 interface Props {
@@ -107,16 +103,16 @@ export default async function fetchApi<T>({
 }
 ```
 
-The function requires an object with the following properties:
+This function requires an object with the following properties:
 
-1. `endpoint` - This is the enpoint you are fetching
-2. `query` - The query parameters to add to the end of url
-3. `wrappedByKey` - A lot of times when using Strapi, the response is wrapped in an object with the `data` key
-4. `wrappedByList` - When you use the filter in Strapi you will get a list back, even if there is only one result. This parameter will unwrap the list and return the first item.
+1. `endpoint` - The enpoint you are fetching.
+2. `query` - The query parameters to add to the end of URL
+3. `wrappedByKey` - The `data` key in the object that wraps your `Response`.
+4. `wrappedByList` - A parameter to "unwrap" the list returned by Strapi, and return only the first item.
 
-### Optional: Create the interfaces
+### Optional: Creating the Article interface
 
-If you are using typescript you should to create the corresponding interfaces to the Strapi content types. For example create the file `src/interfaces/article.ts` with the content below.
+If you are using TypeScript, create the following Article interface to correspond to the Strapi content types at `src/interfaces/article.ts`:
 
 ```ts title="src/interfaces/article.ts"
 export default interface Article {
@@ -134,7 +130,7 @@ export default interface Article {
 ```
 
 :::note
-Don't forget to modify this interface or even create more to fit your actual needs.
+You can modify this interface, or create multiple interfaces, to correspond to your own project data.
 :::
 
 <FileTree title="Project Structure">
@@ -151,102 +147,80 @@ Don't forget to modify this interface or even create more to fit your actual nee
 
 ### Displaying a list of articles
 
-The page `src/pages/blog/index.astro` displays a list of posts, each with a description and a link to its own page.
+1. Update your home page `src/pages/index.astro` to display a list of blog posts, each with a description and a link to its own page.
 
-<FileTree title="Project Structure">
-  - src/
-    - interfaces/
-      - article.ts
-    - lib/
-      - strapi.ts
-    - pages/
-      - **index.astro**
-    - env.d.ts
-  - .env
-  - astro.config.mjs
-  - package.json
-</FileTree>
+2. Import the wrapper function and the interface. Add the following API call to fetch your articles and return a list:
 
-Create the `src/pages/blog/index.astro` file. Import the wrapper function, then the interface and fetch the articles. The api returns a list containing the articles. 
+  ```astro title="src/pages/index.astro"
+  ---
+  import fetchApi from '../../lib/strapi';
+  import type Article from '../../interfaces/article';
 
-```astro title="src/pages/blog/index.astro"
----
-import fetchApi from '../../lib/strapi';
-import type Article from '../../interfaces/article';
+  const articles = await fetchApi<Article[]>({
+    endpoint: 'articles', // the content type to fetch
+    wrappedByKey: 'data', // the key to unwrap the response
+  });
+  ---
+  ```
 
-const articles = await fetchApi<Article[]>({
-  endpoint: 'articles',
-  wrappedByKey: 'data',
-});
----
-```
+  The API call requests data from `http://localhost:1337/api/articles` and returns `articles`: an array of json objects representing your data:
 
-The parameters of the `fetchApi` function:
+  ```
+  [
+    {
+      id: 1,
+      attributes: {
+        title: "What's inside a Black Hole",
+        description: 'Maybe the answer is in this article, or not...',
+        content: "Well, we don't know yet...",
+        slug: 'what-s-inside-a-black-hole',
+        createdAt: '2023-05-28T13:19:46.421Z',
+        updatedAt: '2023-05-28T13:19:46.421Z',
+        publishedAt: '2023-05-28T13:19:45.826Z'
+      }
+    },
+    // ...
+  ]
+  ```
 
-1. The `endpoint` parameter specifies the content type that we want from strapi
-2. The `wrappedByKey` specifies to the function to unwrap the api response with `data` key
+3. Using data from the `articles` array returned by the API, display your Strapi blog posts in a list. These posts will link to their own individual pages, which you will create in the next step.
 
+  ```astro title="src/pages/blog/index.astro"
+  ---
+  import fetchApi from '../../lib/strapi';
+  import type Article from '../../interfaces/article';
 
-The api call makes the request to the following url: `http://localhost:1337/api/articles`, and the data will be a list of jsons, similar to the one following:
+  const articles = await fetchApi<Article[]>({
+    endpoint: 'articles',
+    wrappedByKey: 'data',
+  });
+  ---
 
-```
-[
-  {
-    id: 1,
-    attributes: {
-      title: "What's inside a Black Hole",
-      description: 'Maybe the answer is in this article, or not...',
-      content: "Well, we don't know yet...",
-      slug: 'what-s-inside-a-black-hole',
-      createdAt: '2023-05-28T13:19:46.421Z',
-      updatedAt: '2023-05-28T13:19:46.421Z',
-      publishedAt: '2023-05-28T13:19:45.826Z'
-    }
-  },
-  // ...
-]
-```
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <title>Strapi & Astro</title>
+    </head>
 
-Using the `articles` array returned by the api, display the articles in a list.
+    <body>
+      <main>
+        <ul>
+          {
+            articles.map((article) => (
+              <a href={`/blog/${article.attributes.slug}/`}>
+                {article.attributes.title}
+              </a>
+            ))
+          }
+        </ul>
+      </main>
+    </body>
+  </html>
+  ```
 
-```astro title="src/pages/blog/index.astro"
----
-import fetchApi from '../../lib/strapi';
-import type Article from '../../interfaces/article';
+### Generating article pages
 
-const articles = await fetchApi<Article[]>({
-  endpoint: 'articles',
-  wrappedByKey: 'data',
-});
----
-
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <title>Strapi & Astro</title>
-  </head>
-
-  <body>
-    <main>
-      <ul>
-        {
-          articles.map((article) => (
-            <a href={`/blog/${article.attributes.slug}/`}>
-              {article.attributes.title}
-            </a>
-          ))
-        }
-      </ul>
-    </main>
-  </body>
-</html>
-```
-
-### Generating pages
-
-As you may know, there are two methods of rendering in the astro framework: Static page generation and Server-Side Rendering (SSR). Make sure to take a look at the [deployment docs](https://docs.astro.build/en/guides/deploy/) to choose the right one for your situation.
-
-In both cases you need to create the `src/pages/blog/[slug].astro` file.
+Create the file `src/pages/blog/[slug].astro` to [dynamically generate a page](/en/core-concepts/routing/#dynamic-routes) for each article.
 
 <FileTree title="Project Structure">
   - src/
@@ -266,9 +240,7 @@ In both cases you need to create the `src/pages/blog/[slug].astro` file.
 
 #### Static site generation
 
-The file `src/pages/post/[slug].astro` [dynamically generates a page](/en/core-concepts/routing/#dynamic-routes) for each article.
-
-Import the wrapper function and the interfaces, then fetch the articles. The api returns a list of articles.
+In Astro's default static mode (SSG), use [`getStaticPaths()`](/en/reference/api-reference/#getstaticpaths) to fetch your list of articles from Strapi.
 
 ```astro title="src/pages/blog/[slug].astro
 ---
@@ -346,11 +318,7 @@ Make sure to choose the right rendering for your content. For markdown check out
 
 #### Server-side rendering
 
-If you've [opted into SSR mode](/en/guides/server-side-rendering/#enabling-ssr-in-your-project), you will use dynamic routes to fetch the page data from Strapi.
-
-:::tip
-For the time of development add the `output: "server"` property to the `astro.config.mjs` file to enable SSR mode.
-:::
+If you've [opted into SSR mode](/en/guides/server-side-rendering/#enabling-ssr-in-your-project) with `output: server` or `output: hybrid`, [generate your dynamic routes](/en/core-concepts/routing/#server-ssr-mode) using the following code:
 
 Create the `src/pages/blog/[slug].astro` file:
 
@@ -402,10 +370,6 @@ try {
 </html>
 ```
 
-:::tip
-Make sure to choose the right rendering for your content. For markdown check out our [markdown guide](/en/guides/markdown-content/). If you are rendering html refer to [this guide](/en/reference/directives-reference/#sethtml) for safety.
-:::
-
 This file will fetch and render the page data from Strapi that matches the dynamic `slug` parameter.
 
 Since you are using a redirect to `/404`, create a 404 page in `src/pages`:
@@ -422,7 +386,7 @@ Since you are using a redirect to `/404`, create a 404 page in `src/pages`:
 </html>
 ```
 
-If the article is not found, the user will be redirected to this 404 page and greeted by a lovely cat.
+If the article is not found, the user will be redirected to this 404 page and be greeted by a lovely cat.
 
 ### Publishing your site
 
@@ -454,7 +418,7 @@ To set up a webhook in Vercel:
 
 ##### Adding a webhook to Strapi
 
-Follow this [guide](https://strapi.io/blog/webhooks) to create a webhook in your Strapi admin panel.
+Follow [the Strapi webhooks guide](https://strapi.io/blog/webhooks) to create a webhook in your Strapi admin panel.
 
 ## Official Resources
 
