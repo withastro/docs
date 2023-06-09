@@ -115,6 +115,48 @@ El valor puede ser una ruta absoluta del sistema de archivos o una ruta relativa
 }
 ```
 
+### redirects (Experimental)
+
+<p>
+
+**Tipo:** `RedirectConfig`<br />
+**Por defecto:** `{}`<br />
+<Since v="2.6.0" />
+</p>
+
+Especifica un mapeo de redirecciones donde la clave es la ruta a coincidir y el valor es la ruta a la que se redirige.
+
+Puedes redirigir tanto rutas estáticas como dinámicas, pero solo a un tipo de ruta similar.
+Por ejemplo, no puedes tener una redirección `'/article': '/blog/[...slug]'`.
+
+
+```js
+{
+  redirects: {
+    '/old': '/new',
+    '/blog/[...slug]': '/articles/[...slug]',
+  }
+}
+```
+
+Para sitios generados estáticamente sin un adaptador instalado, esto producirá una redirección del cliente utilizando una [etiqueta `<meta http-equiv="refresh">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#http-equiv) y no admitirá códigos de estado.
+
+Cuando se utiliza SSR o un adaptador estático en el modo `output: static`, se admiten los códigos de estado.
+Astro servirá las solicitudes GET redirigidas con un estado `301` y utilizará un estado `308` para cualquier otro método de solicitud.
+
+Puedes personalizar el [código de estado de redirección](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages) utilizando un objeto en la configuración de redirección:
+
+```js
+{
+  redirects: {
+    '/other': {
+      status: 302,
+      destination: '/place',
+    },
+  }
+}
+```
+
 ### site
 
 <p>
@@ -397,6 +439,49 @@ detecta que el archivo es un módulo de JavaScript.
 }
 ```
 
+### build.redirects
+
+<p>
+
+**Tipo:** `boolean`<br />
+**Por defecto:** `true`<br />
+<Since v="2.6.0" />
+</p>
+
+Especifica si las redirecciones se generarán en HTML durante la compilación. Esta opción solo se aplica al modo `output: 'static'`; en SSR, las redirecciones se tratan de la misma manera que todas las respuestas.
+
+Esta opción está destinada principalmente a ser utilizada por adaptadores que tienen archivos de configuración especiales para redirecciones y no necesitan/desean redirecciones basadas en HTML.
+
+```js
+{
+  build: {
+    redirects: false
+  }
+}
+```
+
+
+### build.inlineStylesheets
+
+<p>
+
+**Tipo:** `'always' | 'auto' | 'never'`<br />
+**Por defecto:** `never`<br />
+<Since v="2.6.0" />
+</p>
+
+Controla si los estilos se envían al navegador en un archivo CSS separado o se incrustan en etiquetas `<style>`. Elige entre las siguientes opciones:
+ - `'always'` - Todos los estilos se incrustan en etiquetas `<style>`.
+ - `'auto'` - solo las hojas de estilo más pequeñas que ViteConfig.build.assetsInlineLimit (por defecto: 4 kB) se incrustan. De lo contrario, los estilos se envían en hojas de estilo externas.
+ - `'never'` - todos los estilos se envían en hojas de estilo externas.
+
+```js
+{
+	build: {
+		inlineStylesheets: `auto`,
+	},
+}
+```
 
 ## Opciones del Servidor
 
@@ -707,105 +792,20 @@ Para habilitar esta característica, establezca `experimental.assets` en `true` 
 }
 ```
 
-
-### experimental.inlineStylesheets
-
-<p>
-**Tipo:** `'always' | 'auto' | 'never'`<br />
-**Por defecto:** `never`<br />
-<Since v="2.4.0" />
-</p>
-
-Controla si los estilos se envían al navegador en un archivo de css independiente o dentro de la etiqueta `<style>`. Elige entre las siguientes opciones:
- - `'always'` - todos los estilos se incrustan en etiquetas `<style>`.
- - `'auto'` - sólo las hojas de estilo más pequeñas que `ViteConfig.build.assetsInlineLimit` (por defecto: 4kb) se incrustan. De lo contrario, los estilos se envían en hojas de estilo externas.
- - `'never'` - todos los estilos se envían en hojas de estilo externas.
-
-```js
-{
-	experimental: {
-		inlineStylesheets: `auto`,
-	},
-}
-```
-
-### experimental.customClientDirectives
-
-<p>
-
-**Tipo:** `boolean`<br />
-**Por defecto:** `false`<br />
-<Since v="2.5.0" />
-</p>
-
-Permite que las integraciones utilicen la [API experimental `addClientDirective`](/es/reference/integrations-reference/#opción-addclientdirective) en el hook `astro:config:setup` para añadir directivas de cliente personalizadas en los archivos de Astro.
-Para activar esta función, establece `experimental.customClientDirectives` en `true` en tu configuración de Astro:
-
-```js
-{
-	experimental: {
-		customClientDirectives: true,
-	},
-}
-```
-
-
-### experimental.middleware
+### experimental.redirects
 
 <p>
 **Tipo:** `boolean`<br />
 **Por defecto:** `false`<br />
-<Since v="2.4.0" />
+<Since v="2.6.0" />
 </p>
 
-Activa la compatibilidad experimental con el middleware de Astro.
-
-Para activar esta función, establece `experimental.middleware` en `true` en tu configuración de Astro:
+Habilita el soporte experimental para la configuración de redirecciones. Con esto habilitado, puedes establecer redirecciones a través de la propiedad superior `redirects`. Para activar esta función, establece `experimental.redirects` en `true`.
 
 ```js
 {
 	experimental: {
-		middleware: true,
+		redirects: true,
 	},
 }
 ```
-
-
-### experimental.hybridOutput
-
-<p>
-**Tipo:** `boolean`<br />
-**Por defecto:** `false`<br />
-<Since v="2.5.0" />
-</p>
-
-Habilita el soporte experimental para SSR híbrido con pre-renderizado habilitado por defecto.
-
-Para activar esta función, primero establece `experimental.hybridOutput` como `true` en tu configuración de Astro, y establece `output` como `hybrid`.
-
-```js
-{
- output: 'hybrid',
-	experimental: {
-		hybridOutput: true,
-	},
-}
-```
-
-Luego añade `export const prerender = false` a cualquier página o endpoint que desees excluir del pre-renderizado.
-
-```astro
----
-// pages/contact.astro
-export const prerender = false
-if (Astro.request.method === 'POST') {
- // gestionar el envío de formularios
-}
----
-<form method="POST">
-	<input type="text" name="name" />
-	<input type="email" name="email" />
-	<button type="submit">Submit</button>
-</form>
-```
-
