@@ -56,7 +56,6 @@ export async function run() {
 		const errorTitle = sanitizeString(
 			astroErrorData.errors[comment.meta.code.name].title ?? comment.name
 		);
-		const errorCode = astroErrorData.errors[comment.name].code;
 		const completeReferenceEntry = [
 			// Errors can be deprecated, as such we add a little "deprecated" caution to errors that needs it
 			getDeprecatedText(comment.deprecated),
@@ -64,7 +63,6 @@ export async function run() {
 			// Get the error message and print it in a blockquote
 			getMessage(
 				comment.name,
-				errorCode,
 				astroErrorData.errors[comment.name].message,
 				comment.tags.find((tag) => tag.title === 'message')?.value
 			),
@@ -90,9 +88,7 @@ export async function run() {
 
 		// Build string for error reference list
 		astroResult += [
-			`- [**${comment.name}**](/en/reference/errors/${fileName}/) (E${padCode(
-				errorCode
-			)})<br/>${errorTitle}\n`,
+			`- [**${comment.name}**](/en/reference/errors/${fileName}/)<br/>${errorTitle}\n`,
 		]
 			.filter((l) => l !== undefined)
 			.join('\n');
@@ -106,12 +102,11 @@ export async function run() {
 
 	/**
 	 * @param {string} errorName
-	 * @param {number} errorCode
 	 * @param {string} message
 	 * @param {string} cleanMessage
 	 * @returns {(string | undefined)} Formatted message for the error or `undefined`
 	 */
-	function getMessage(errorName, errorCode, message, cleanMessage) {
+	function getMessage(errorName, message, cleanMessage) {
 		let resultMessage = undefined;
 
 		if (cleanMessage) {
@@ -127,7 +122,6 @@ export async function run() {
 		}
 
 		if (resultMessage) {
-			resultMessage += ` (E${padCode(errorCode)})\n`;
 			return resultMessage;
 		}
 
