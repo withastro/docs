@@ -21,7 +21,6 @@ export default defineConfig({
 ### root
 
 <p>
-
 **Tipo:** `string`<br />
 **CLI:** `--root`<br />
 **Por defecto:** `"."` (carpeta de trabajo actual)
@@ -46,7 +45,6 @@ $ astro build --root ./my-project-directory
 ### srcDir
 
 <p>
-
 **Tipo:** `string`<br />
 **Por defecto:** `"./src"`
 </p>
@@ -65,7 +63,6 @@ El valor puede ser una ruta absoluta del sistema de archivos o una ruta relativa
 ### publicDir
 
 <p>
-
 **Tipo:** `string`<br />
 **Por defecto:** `"./public"`
 </p>
@@ -84,7 +81,6 @@ El valor puede ser una ruta absoluta del sistema de archivos o una ruta relativa
 ### outDir
 
 <p>
-
 **Tipo:** `string`<br />
 **Por defecto:** `"./dist"`
 </p>
@@ -102,10 +98,68 @@ El valor puede ser una ruta absoluta del sistema de archivos o una ruta relativa
 - build.server
 
 
-### site
+### cacheDir
+
+<p>
+**Tipo:** `string`<br />
+**Por defecto:** `"./node_modules/.astro"`
+</p>
+
+Establece el directorio para almacenar en caché los artefactos de compilación. Los archivos de este directorio se utilizarán en compilaciones posteriores para acelerar el tiempo de compilación.
+
+El valor puede ser una ruta absoluta del sistema de archivos o una ruta relativa a la raíz del proyecto.
+
+```js
+{
+  cacheDir: './my-custom-cache-directory'
+}
+```
+
+### redirects (Experimental)
 
 <p>
 
+**Tipo:** `RedirectConfig`<br />
+**Por defecto:** `{}`<br />
+<Since v="2.6.0" />
+</p>
+
+Especifica un mapeo de redirecciones donde la clave es la ruta a coincidir y el valor es la ruta a la que se redirige.
+
+Puedes redirigir tanto rutas estáticas como dinámicas, pero solo a un tipo de ruta similar.
+Por ejemplo, no puedes tener una redirección `'/article': '/blog/[...slug]'`.
+
+
+```js
+{
+  redirects: {
+    '/old': '/new',
+    '/blog/[...slug]': '/articles/[...slug]',
+  }
+}
+```
+
+Para sitios generados estáticamente sin un adaptador instalado, esto producirá una redirección del cliente utilizando una [etiqueta `<meta http-equiv="refresh">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#http-equiv) y no admitirá códigos de estado.
+
+Cuando se utiliza SSR o un adaptador estático en el modo `output: static`, se admiten los códigos de estado.
+Astro servirá las solicitudes GET redirigidas con un estado `301` y utilizará un estado `308` para cualquier otro método de solicitud.
+
+Puedes personalizar el [código de estado de redirección](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages) utilizando un objeto en la configuración de redirección:
+
+```js
+{
+  redirects: {
+    '/other': {
+      status: 302,
+      destination: '/place',
+    },
+  }
+}
+```
+
+### site
+
+<p>
 **Tipo:** `string`
 </p>
 
@@ -117,10 +171,26 @@ La URL final donde se desplegará. Astro usa esta URL completa para generar el s
 ```
 
 
+### compressHTML
+
+<p>
+**Tipo:** `boolean`<br />
+**Por defecto:** `false`
+</p>
+
+Esta es una opción para minificar tu salida HTML y reducir el tamaño de tus archivos HTML. Cuando está activada, Astro elimina todos los espacios en blanco de tu HTML, incluyendo los saltos de línea, en los componentes `.astro`. Esto ocurre tanto en el modo de desarrollo como en la compilación final.
+Para activarlo, establece el parámetro `compressHTML` en `true`.
+
+```js
+{
+  compressHTML: true
+}
+```
+
+
 ### base
 
 <p>
-
 **Tipo:** `string`
 </p>
 
@@ -145,7 +215,6 @@ Cuando utilices esta opción, todas tus importaciones de activos estáticos y UR
 ### trailingSlash
 
 <p>
-
 **Tipo:** `'always' | 'never' | 'ignore'`<br />
 **Por defecto:** `'ignore'`
 </p>
@@ -169,10 +238,25 @@ También puedes configurar esto si prefieres ser más estricto, de modo que las 
 - build.format
 
 
+### scopedStyleStrategy
+
+<p>
+**Tipo:** `'where' | 'class'`<br />
+**Por defecto:** `'where'`<br />
+<Since v="2.4" />
+</p>
+
+Especifica la estrategia utilizada para delimitar los estilos dentro de los componentes de Astro. Elige entre:
+  - `'where'` - Utilizar selectores `:where`, sin que aumente la especificidad.
+  - `'class'` - Utilizar selectores basados en clases, lo que provoca un aumento de la especificidad de +1.
+
+Utilizar `'class'` es útil cuando quieres asegurar que los selectores de elementos dentro de un componente de Astro anulan los valores predeterminados de estilo global (p. ej. de una hoja de estilos global).
+Utilizar `'where'` te brinda más control sobre la especificidad, pero requiere que utilices selectores de mayor especificidad, capas y otras herramientas para controlar qué selectores se aplican.
+
+
 ### adapter
 
 <p>
-
 **Tipo:** `AstroIntegration`
 </p>
 
@@ -195,15 +279,15 @@ import netlify from '@astrojs/netlify/functions';
 ### output
 
 <p>
-
 **Tipo:** `'static' | 'server'`<br />
-**Default:** `'static'`
+**Por defecto:** `'static'`
 </p>
 
 Especifica el tipo de la compilación.
 
 - 'static': construye un sitio estático para implementarlo en cualquier host estático.
 - 'server': construye una aplicación que se implementará en un host compatible con SSR (renderizado en el servidor).
+- 'hybrid' - Construye un sitio estático con algunas páginas renderizadas en el lado del servidor.
 
 ```js
 import { defineConfig } from 'astro/config';
@@ -221,7 +305,6 @@ export default defineConfig({
 ### build.format
 
 <p>
-
 **Tipo:** `('file' | 'directory')`<br />
 **Por defecto:** `'directory'`
 </p>
@@ -250,19 +333,18 @@ Esto significa que cuando crees URLs relativas usando `new URL('./relativa', Ast
 ### build.client
 
 <p>
-
-**Type:** `string`<br />
+**Tipo:** `string`<br />
 **Por defecto:** `'./dist/client'`
 </p>
 
-Controla el directorio de salida del CSS y JavaScript del lado del cliente solamente cuando esté configurado `output: 'server'`.
+Controla el directorio de salida del CSS y JavaScript del lado del cliente solamente cuando esté configurado `output: 'server'` o `output: 'hybrid'`.
 `outDir` controla dónde se compila el código.
 
 Este valor es relativo al `outDir`.
 
 ```js
 {
-  output: 'server',
+  output: 'server', // o 'hybrid'
   build: {
     client: './client'
   }
@@ -273,8 +355,7 @@ Este valor es relativo al `outDir`.
 ### build.server
 
 <p>
-
-**Type:** `string`<br />
+**Tipo:** `string`<br />
 **Por defecto:** `'./dist/server'`
 </p>
 
@@ -294,7 +375,6 @@ Este valor es relativo al `outDir`.
 ### build.assets
 
 <p>
-
 **Tipo:** `string`<br />
 **Por defecto:** `'_astro'`<br />
 <Since v="2.0.0" />
@@ -316,7 +396,6 @@ Especifica el directorio en la salida de compilación donde los activos generado
 ### build.assetsPrefix
 
 <p>
-
 **Tipo:** `string`<br />
 **Por defecto:** `undefined`<br />
 <Since v="2.2.0" />
@@ -341,8 +420,7 @@ Para cambiar el nombre de la ruta `_astro`, especifique un nuevo directorio en `
 ### build.serverEntry
 
 <p>
-
-**Type:** `string`<br />
+**Tipo:** `string`<br />
 **Por defecto:** `'entry.mjs'`
 </p>
 
@@ -361,6 +439,49 @@ detecta que el archivo es un módulo de JavaScript.
 }
 ```
 
+### build.redirects
+
+<p>
+
+**Tipo:** `boolean`<br />
+**Por defecto:** `true`<br />
+<Since v="2.6.0" />
+</p>
+
+Especifica si las redirecciones se generarán en HTML durante la compilación. Esta opción solo se aplica al modo `output: 'static'`; en SSR, las redirecciones se tratan de la misma manera que todas las respuestas.
+
+Esta opción está destinada principalmente a ser utilizada por adaptadores que tienen archivos de configuración especiales para redirecciones y no necesitan/desean redirecciones basadas en HTML.
+
+```js
+{
+  build: {
+    redirects: false
+  }
+}
+```
+
+
+### build.inlineStylesheets
+
+<p>
+
+**Tipo:** `'always' | 'auto' | 'never'`<br />
+**Por defecto:** `never`<br />
+<Since v="2.6.0" />
+</p>
+
+Controla si los estilos se envían al navegador en un archivo CSS separado o se incrustan en etiquetas `<style>`. Elige entre las siguientes opciones:
+ - `'always'` - Todos los estilos se incrustan en etiquetas `<style>`.
+ - `'auto'` - solo las hojas de estilo más pequeñas que ViteConfig.build.assetsInlineLimit (por defecto: 4 kB) se incrustan. De lo contrario, los estilos se envían en hojas de estilo externas.
+ - `'never'` - todos los estilos se envían en hojas de estilo externas.
+
+```js
+{
+	build: {
+		inlineStylesheets: `auto`,
+	},
+}
+```
 
 ## Opciones del Servidor
 
@@ -384,7 +505,6 @@ Para establecer una configuración diferente basada en el comando ejecutar ("dev
 ### server.host
 
 <p>
-
 **Tipo:** `string | boolean`<br />
 **Por defecto:** `false`<br />
 <Since v="0.24.0" />
@@ -399,7 +519,6 @@ Establece en qué direcciones de IP el servidor debe escuchar (es decir, direcci
 ### server.port
 
 <p>
-
 **Tipo:** `number`<br />
 **Por defecto:** `3000`
 </p>
@@ -418,7 +537,6 @@ Si el puerto dado ya está en uso, Astro probará automáticamente el siguiente 
 ### server.headers
 
 <p>
-
 **Tipo:** `OutgoingHttpHeaders`<br />
 **Por defecto:** `{}`<br />
 <Since v="1.7.0" />
@@ -432,9 +550,8 @@ Establece encabezados de respuesta HTTP personalizados para enviar en `astro dev
 ### image.service (Experimental)
 
 <p>
-
-**Tipo:** `'astro/assets/services/sharp' | 'astro/assets/services/squoosh' | string`<br />
-**Por defecto:** `'astro/assets/services/squoosh'`<br />
+**Tipo:** `Object`<br />
+**Por defecto:** `{entrypoint: 'astro/assets/services/squoosh', config?: {}}`<br />
 <Since v="2.1.0" />
 </p>
 
@@ -448,7 +565,7 @@ uno de los dos servicios incorporados de Astro o una implementación de terceros
 {
   image: {
     // Ejemplo: Habilita el servicio de imágenes basado en Sharp
-    service: 'astro/assets/services/sharp',
+    service: { entrypoint: 'astro/assets/services/sharp' },
   },
 }
 ```
@@ -459,7 +576,6 @@ uno de los dos servicios incorporados de Astro o una implementación de terceros
 ### markdown.drafts
 
 <p>
-
 **Tipo:** `boolean`<br />
 **Por defecto:** `false`
 </p>
@@ -481,7 +597,6 @@ Una página de Markdown se considera un borrador si incluye `draft: true` en el 
 ### markdown.shikiConfig
 
 <p>
-
 **Tipo:** `Partial<ShikiConfig>`
 </p>
 
@@ -491,7 +606,6 @@ Opciones de configuración de Shiki. Consulta [la documentación de configuraci�
 ### markdown.syntaxHighlight
 
 <p>
-
 **Tipo:** `'shiki' | 'prism' | false`<br />
 **Por defecto:** `shiki`
 </p>
@@ -513,7 +627,6 @@ Qué resaltador de sintaxis usar, si lo hay.
 ### markdown.remarkPlugins
 
 <p>
-
 **Tipo:** `RemarkPlugins`
 </p>
 
@@ -532,7 +645,6 @@ import remarkToc from 'remark-toc';
 ### markdown.rehypePlugins
 
 <p>
-
 **Tipo:** `RehypePlugins`
 </p>
 
@@ -551,7 +663,6 @@ import rehypeMinifyHtml from 'rehype-minify';
 ### markdown.gfm
 
 <p>
-
 **Tipo:** `boolean`<br />
 **Por defecto:** `true`<br />
 <Since v="2.0.0" />
@@ -571,7 +682,6 @@ Astro usa [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) por
 ### markdown.smartypants
 
 <p>
-
 **Tipo:** `boolean`<br />
 **Por defecto:** `true`<br />
 <Since v="2.0.0" />
@@ -591,7 +701,6 @@ Astro usa el formateador [SmartyPants](https://daringfireball.net/projects/smart
 ### markdown.remarkRehype
 
 <p>
-
 **Tipo:** `RemarkRehype`
 </p>
 
@@ -681,3 +790,22 @@ Para habilitar esta característica, establezca `experimental.assets` en `true` 
 		assets: true,
 	},
 }
+```
+
+### experimental.redirects
+
+<p>
+**Tipo:** `boolean`<br />
+**Por defecto:** `false`<br />
+<Since v="2.6.0" />
+</p>
+
+Habilita el soporte experimental para la configuración de redirecciones. Con esto habilitado, puedes establecer redirecciones a través de la propiedad superior `redirects`. Para activar esta función, establece `experimental.redirects` en `true`.
+
+```js
+{
+	experimental: {
+		redirects: true,
+	},
+}
+```
