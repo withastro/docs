@@ -40,3 +40,133 @@ Une directive de modèle n'est jamais incluse directement dans la sortie HTML fi
 ```
 
 Les valeurs en double sont supprimées automatiquement.
+
+### `set:html`
+
+`set:html={string}` injecte une chaîne de caractères HTML dans un élément, similaire à la propriété `el.innerHTML`.
+
+**La valeur n'est pas automatiquement échappée par Astro !** Assurez-vous que vous faites confiance à la valeur ou que vous l'avez échappée manuellement avant de la transmettre au modèle. Oublier de le faire vous exposera aux [attaques de type Cross Site Scripting (XSS).](https://owasp.org/www-community/attacks/xss/)
+
+```astro
+---
+const rawHTMLString = "Hello <strong>World</strong>"
+---
+<h1>{rawHTMLString}</h1>
+  <!-- Sortie: <h1>Hello &lt;strong&gt;World&lt;/strong&gt;</h1> -->
+<h1 set:html={rawHTMLString} />
+  <!-- Sortie: <h1>Hello <strong>World</strong></h1> -->
+```
+
+Vous pouvez également utiliser `set:html` sur un `<Fragment>` pour éviter d'ajouter un élément d'enveloppe inutile. Cela peut être particulièrement utile lors de la récupération de code HTML à partir d'un CMS.
+
+```astro
+---
+const cmsContent = await fetchHTMLFromMyCMS();
+---
+<Fragment set:html={cmsContent}>
+```
+
+`set:html={Promise<string>}` injecte une chaîne de caractères HTML dans un élément qui est enveloppé dans une Promise.
+
+Cela peut être utilisé pour injecter du HTML stocké en externe, comme dans une base de données.
+
+```astro
+---
+import l'API from '../db/api.js';
+---
+<article set:html={api.getArticle(Astro.props.id)}></article>
+```
+
+`set:html={Promise<Response>}` injecte une [Response](https://developer.mozilla.org/fr/docs/Web/API/Response) dans un élément.
+
+Ceci est particulièrement utile lors de l'utilisation de `fetch()`. Par exemple, récupérer d'anciens posts à partir d'un précédent générateur de site statique.
+
+```astro
+<article set:html={fetch('http://example/old-posts/making-soup.html')}></article>
+```
+
+`set:html` peut être utilisé sur n'importe quelle balise et n'a pas besoin d'inclure de HTML. Par exemple, vous pouvez l'utiliser avec [`JSON.stringify()`](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify) sur une balise `<script>` pour ajouter un schéma [JSON-LD](https://json-ld.org/) à votre page.
+
+```astro
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org/",
+  "@type": "Person",
+  name: "Houston",
+  hasOccupation: {
+    "@type": "Occupation",
+    name: "Astronaut"
+  }
+})}/>
+```
+
+### `set:text`
+
+`set:text={string}` injecte une chaîne de caractères dans un élément, similaire à la propriété `el.innerText`. Contrairement à `set:html`, la valeur `string` transmise est automatiquement échappée par Astro.
+
+Cela équivaut à passer directement une variable dans une expression de modèle (ex : `<div>{someText}</div>`) et, par conséquent, cette directive n'est pas couramment utilisée.
+## Directives Client
+
+Ces directives contrôlent la façon dont les [composants de Framework UI](/fr/core-concepts/framework-components/) sont hydratés sur la page.
+
+Par défaut, un composant de Framework UI n'est pas hydraté côté client. Si aucune directive `client:*` n'est fournie, son HTML est rendu sur la page sans JavaScript.
+
+Une directive client ne peut être utilisée que sur un composant de Framework UI directement importé dans un composant `.astro`. Les directives d'hydratation ne sont pas prises en charge lors de l'utilisation de [balises dynamiques](/fr/core-concepts/astro-syntax/#dynamic-tags) et de [composants personnalisés transmis via la prop `components`](/fr/guides/markdown-content/#composants-personnalisés-avec-du-mdx-importé).
+
+### `client:load`
+
+- **Priorité :** Élevée
+- **Utile pour :** Les éléments UI immédiatement visibles qui doivent être interactifs le plus tôt possible.
+
+Charge et hydrate le composant JavaScript immédiatement au chargement de la page.
+
+```astro
+<BuyButton client:load />
+```
+### `client:idle`
+
+- **Priorité :** Moyenne
+- **Utile pour :** Les éléments UI de priorité moindre qui n'ont pas besoin d'être immédiatement interactifs.
+
+Charge et hydrate le composant JavaScript une fois que le chargement initial de la page est terminé et que l'événement `requestIdleCallback` s'est déclenché. Si vous utilisez un navigateur qui ne prend pas en charge [`requestIdleCallback`](https://developer.mozilla.org/fr/docs/Web/API/Window/requestIdleCallback), alors l'évenement [`load`](https://developer.mozilla.org/fr/docs/Web/API/Window/load_event) est utilisé.
+
+```astro
+<ShowHideButton client:idle />
+```
+### `client:visible`
+
+- **Priorité :** Faible
+- **Utile pour :** Les éléments UI de faible priorité qui sont soit loin en bas de page ("sous la ligne de flottaison") ou qui consomment tellement de ressources que vous préféreriez ne pas les charger du tout si l'utilisateur ne voit jamais ces éléments.
+
+Charge et hydrate le JavaScript du composant une fois que le celui-ci est entré dans la fenêtre d'affichage de l'utilisateur. Ceci utilise un `IntersectionObserver` en interne pour garder une trace de la visibilité.
+
+```astro
+<HeavyImageCarousel client:visible />
+```
+
+### `client:media`
+
+- **Priorité :** Faible
+- **Utile pour :** Les barres latérales ou autres éléments qui ne peuvent être visibles que sur certaines tailles d'écran.
+
+`client:media={string}` charge et hydrate le composant JavaScript une fois qu'une certaine requête média CSS est satisfaite.
+
+:::note
+Si le composant est déjà masqué et affiché par une requête multimédia dans votre CSS, il peut être plus simple d'utiliser simplement `client: visible` et de ne pas passer cette même requête multimédia dans la directive.
+:::
+
+```astro
+<SidebarToggle client:media="(max-width: 50em)" />
+```
+### `client:only`
+
+`client:only={string}` **ignore** le rendu HTML côté serveur et s'affiche uniquement côté client. Cette directive agit de la même manière que `client:load` dans le où elle charge, rend et hydrate le composant immédiatement au chargement de la page.
+
+**Vous devez transmettre le bon Framework du composant en tant que valeur !** Parce qu'Astro n'exécute pas le composant pendant le Build / sur le serveur, Astro ne sait pas quel framework votre composant utilise à moins que vous ne lui disiez explicitement.
+
+```astro
+<SomeReactComponent client:only="react" />
+<SomePreactComponent client:only="preact" />
+<SomeSvelteComponent client:only="svelte" />
+<SomeVueComponent client:only="vue" />
+<SomeSolidComponent client:only="solid-js" />
+```
