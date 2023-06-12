@@ -170,3 +170,105 @@ Si le composant est déjà masqué et affiché par une requête multimédia dans
 <SomeVueComponent client:only="vue" />
 <SomeSolidComponent client:only="solid-js" />
 ```
+
+### Directives Client personnalisées
+
+Depuis Astro 2.6.0, les intégrations peuvent également ajouter des directives `client:*` personnalisées pour modifier comment et quand les composants doivent être hydratés.
+
+Visitez la page [API `addClientDirective`](/fr/reference/integrations-reference/#addclientdirective-option) pour en savoir plus sur la création d'une directive client personnalisée.
+
+## Directives de Script et de Style
+
+Ces directives ne peuvent être utilisées que sur les balises HTML `<script>` et `<style>` pour contrôler la façon dont votre JavaScript côté client et votre CSS sont gérés sur la page.
+### `is:global`
+
+Par défaut, Astro limite automatiquement la portée des règles CSS du `<style>` au composant. Vous pouvez désactiver ce comportement avec la directive `is:global`.
+
+`is:global` fait en sorte que le contenu d'une balise `<style>` s'applique globalement sur la page lorsque le composant est inclus. Cela désactive le système de portée des règles CSS d'Astro. Cela équivaut à envelopper tous les sélecteurs dans la balise `<style>` avec `:global()`.
+
+Vous pouvez combiner `<style>` et `<style is:global>` ensemble dans le même composant pour créer des règles de style globales tout en limitant la portée de la plupart des règles CSS de votre composant.
+
+📚 Consultez la page [CSS et Stylisation](/fr/guides/styling/#styles-globaux) pour plus de détails sur le fonctionnement des styles globaux.
+
+```astro
+<style is:global>
+  body a { color: red; }
+</style>
+```
+
+### `is:inline`
+
+Par défaut, Astro traitera, optimisera et regroupera toutes les balises `<script>` et `<style>` qu'il voit sur la page. Vous pouvez désactiver ce comportement avec la directive `is:inline`.
+
+`is:inline` indique à Astro de laisser la balise `<script>` ou `<style>` telle quelle dans la sortie HTML finale. Le contenu ne sera ni traité, optimisé ou regroupé. Cela limite certaines fonctionnalités d'Astro, comme l'importation d'un paquet npm ou l'utilisation d'un langage de compilation vers CSS comme Sass.
+
+La directive `is:inline` signifie que les balises `<style>` et `<script>` :
+
+- Ne seront pas regroupées dans un fichier externe. Cela signifie que les [attributs comme `defer`](https://javascript.info/script-async-defer) qui contrôlent le chargement d'un fichier externe n'auront aucun effet.
+- Ne seront pas dédupliquées : l'élément apparaîtra autant de fois qu'il sera rendu.
+- Les références `import`/`@import`/`url()` ne seront pas résolues relativement au fichier `.astro`.
+- Seront rendues dans le HTML de la sortie final exactement là où elles ont été créées.
+- Les styles seront globaux et non limités au composant.
+
+:::caution
+La directive `is:inline` est implicite chaque fois qu'un attribut autre que `src` est utilisé sur une balise `<script>` ou `<style>`.
+:::
+
+```astro
+<style is:inline>
+  /* inline: les imports relatifs et de paquets npm ne sont pas supportés */
+  @import '/assets/some-public-styles.css';
+  span { color: green; }
+</style>
+
+<script is:inline>
+   /* inline: les imports relatifs et de paquets npm ne sont pas supportés */
+  console.log('Je suis en ligne ici dans le HTMl de sortie final.');
+</script>
+```
+
+📚 Découvrez comment les [scripts côté client](/fr/guides/client-side-scripts/) fonctionnent dans les composants Astro.
+
+### `define:vars`
+
+`define:vars={...}` peut passer des variables côté serveur du frontmatter de votre composant dans les balises client `<script>` ou `<style>`. Toute variable du frontmatter sérialisable en JSON est supportée, y compris les "props" transmis à votre composant via `Astro.props`. Les valeurs sont sérialisées avec [`JSON.stringify()`](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).
+
+```astro
+---
+const foregroundColor = "rgb(221 243 228)";
+const backgroundColor = "rgb(24 121 78)";
+const message = "Astro est génial !";
+---
+<style define:vars={{ textColor: foregroundColor, backgroundColor }}>
+  h1 {
+    background-color: var(--backgroundColor);
+    color: var(--textColor);
+  }
+</style>
+
+<script define:vars={{ message }}>
+  alert(message);
+</script>
+```
+
+:::caution
+L'utilisation de `define:vars` sur une balise `<script>` implique la [directive `is:inline`](#isinline), ce qui signifie que vos scripts ne seront pas regroupés et seront intégrés directement dans le code HTML.
+
+En effet, lorsque Astro regroupe un script, il inclut et exécute le script une seule fois même si vous incluez le composant contenant le script plusieurs fois sur une même page. `define:vars` nécessite qu'un script soit réexécuté avec chaque ensemble de valeurs, donc Astro crée un script en ligne à la place.
+
+Pour les scripts, essayez plutôt de [transmettre les variables aux scripts manuellement](/fr/guides/client-side-scripts/#passer-les-variables-frontmatter-aux-scripts).
+:::
+
+## Directives Avancées
+### `is:raw`
+
+`is:raw` indique au compilateur d'Astro de traiter tous les enfants de cet élément comme du texte. Cela signifie que toute syntaxe spéciale de template Astro sera ignorée à l'intérieur de ce composant.
+
+Par exemple, si vous aviez un composant Katex personnalisé qui convertit du texte en HTML, vous pourriez demander aux utilisateurs de faire ceci :
+
+```astro
+---
+import Katex from '../components/Katex.astro' ;
+---
+<Katex is:raw>Certaines {syntaxes} contradictoires ici</Katex>
+```
