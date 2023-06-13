@@ -51,7 +51,7 @@ As a maintainer, here are some helpful things you can do:
 
 - Give general feedback or opinions, even if you do not intend to follow up with or take responsibility for the PR itself. Comments such as "I can reproduce this problem!" or "I agree, this code example isn't working as written," can save others time when they are trying to evaluate PRs.
 
-- Leave the message **LGTM** (_Looks good to me_, _Let's get that money_...) on a PR you sign off on... but don't feel comfortable merging yourself. For example, a proposed new section or explanation looks good to you, but you suspect that other maintainers will also want the opportunity to review it.
+- Leave the message **LGTM** (_Looks good to me_, _Let's get that money_, _Let's get to merging...) on a PR you sign off on... but don't feel comfortable merging yourself. For example, a proposed new section or explanation looks good to you, but you suspect that other maintainers will also want the opportunity to review it.
 
 - Mention a particular maintainer or community member whose guidance or inclusion you know would be helpful. Different maintainers work on different parts of Astro, and if you know who the right person to seek extra clarification or approval from is, ping them!
 
