@@ -218,7 +218,7 @@ Obtener una cookie mediante `Astro.cookies.get()` retorna un tipo `AstroCookie`.
 | `boolean` | `() => boolean`             | Convierte el valor de la cookie en un booleano.                                                                                             |
 
 ### `Astro.redirect()`
-En el modo de [renderizado del lado del servidor](/es/guides/server-side-rendering/), `Astro.redirect()` te permite redireccionar a otra página.
+`Astro.redirect()` te permite redireccionar a otra página.
 Una página (no un componente hijo) debe `return` (devolver) el resultado de `Astro.redirect()` para que la redirección ocurra.
 
 ```astro title="src/pages/account.astro" {8}
@@ -420,6 +420,23 @@ Y renderizaría este HTML:
 </ul>
 ```
 
+### `Astro.locals`
+
+`Astro.locals` es un objeto que contiene cualquier valor del objeto [`context.locals`](#contextlocals) de un middleware. Utiliza esto para acceder a los datos devueltos por el middleware en tus archivos `.astro`.
+
+```astro title="src/pages/Orders.astro"
+---
+const title = Astro.locals.welcomeTitle();
+const orders = Array.from(Astro.locals.orders.entries());
+---
+<h1>{title}</h1>
+<ul>
+    {orders.map(order => {
+        return <li>{// hacer algo con cada pedido}</li>
+    })}
+</ul>
+```
+
 ## Contexto del Endpoint
 
 [Las funciones de Endpoint](/es/core-concepts/endpoints/) reciben un objeto de contexto como primer parámetro. Posee muchas de las propiedades del objeto global `Astro`.
@@ -431,6 +448,21 @@ export function get(context: APIContext) {
   // ...
 }
 ```
+
+### `context.locals`
+
+`context.locals` es un objeto disponible **solo en las funciones de middleware**. Puedes utilizar este objeto para almacenar información arbitraria durante el ciclo de vida de una solicitud.
+
+
+```ts title="src/middleware.ts"
+import type { MiddlewareResponseHandler } from 'astro';
+export const onRequest: MiddlewareResponseHandler = ({ locals }, next) => {
+    locals.title = "New Title"
+    return next();
+}
+```
+
+Ver también: [`Astro.locals`](#astrolocals)
 
 ### `context.params`
 
@@ -726,6 +758,7 @@ Las colecciones de contenido ofrecen APIs para configurar y consultar tus docume
 // src/content/config.ts
 import { z, defineCollection } from 'astro:content';
 const blog = defineCollection({
+  type: 'content',
   schema: z.object({
     title: z.string(),
     permalink: z.string().optional(),
@@ -738,6 +771,22 @@ export const collections = { blog };
 
 Esta función acepta las siguientes propiedades:
 
+#### `type`
+
+<Since v="2.5" />
+
+**Tipo:** `'content' | 'data'`  
+**Por defecto:** `'content'`
+
+`type` es un string que define el tipo de entradas almacenadas dentro de una colección:
+
+- `'content'` - para formatos de creación de contenido como Markdown (`.md`), MDX (`.mdx`) o Markdoc (`.mdoc`)
+- `'data'` - para formatos de datos únicamente como JSON (`.json`) o YAML (`.yaml`)
+
+:::tip
+Esto significa que las colecciones **no pueden** almacenar una mezcla de formatos de contenido y datos. Debes dividir estas entradas en colecciones separadas por tipo.
+:::
+
 #### `schema`
 
 **Type:** `TSchema extends ZodType`
@@ -745,6 +794,34 @@ Esta función acepta las siguientes propiedades:
 El `schema` es un objeto de Zod opcional para configurar el tipo y la forma del frontmatter del documento para una colección. Cada valor debe usar [un validador de Zod](https://github.com/colinhacks/zod).
 
 [Consulta la guía de `Colección de Contenido`](/es/guides/content-collections/#defining-a-collection-schema) para ejemplos de uso.
+
+### `reference()`
+
+**Tipo:** `(collection: string) => ZodEffects<ZodString, { collection, id: string } | { collection, slug: string }>`
+
+La función `reference()` se utiliza en la configuración del contenido para definir una relación, o "referencia" de una colección a otra. Esta función acepta el nombre de la colección y valida el identificador/es de entrada especificados en el frontmatter o archivo de datos del contenido.
+
+Este ejemplo define referencias desde un autor de blog a la colección `authors` y a un arreglo de publicaciones relacionadas en la misma colección `blog`:
+
+```ts
+import { defineCollection, reference, z } from 'astro:content';
+const blog = defineCollection({
+  type: 'content',
+  schema: z.object({
+    // Hace referencia a un único autor de la colección `authors` mediante el campo `id`.
+    author: reference('authors'),
+    // Hace referencia a un arreglo de publicaciones relacionadas de la colección `blog` mediante el campo `slug`.
+    relatedPosts: z.array(reference('blog')),
+  })
+});
+const authors = defineCollection({
+  type: 'data',
+  schema: z.object({ /* ... */ })
+});
+export const collections = { blog, authors };
+```
+
+[Consulta la guía de `Content Collection`](/es/guides/content-collections/#defining-collection-references) para ver un ejemplo de uso.
 
 ### `getCollection()`
 
@@ -770,20 +847,76 @@ const draftBlogPosts = await getCollection('blog', ({ data }) => {
 
 ### `getEntry()`
 
-**Type:** `(collection: string, id: string) => CollectionEntry<collection>`
+<p>
+  <Since v="2.5.0" />
+</p>
 
-`getEntry()` es una función que recupera una sola entrada de colección por nombre de colección e [identificador de entrada](#id).
+**Tipos:**
+
+- `(collection: string, contentSlugOrDataId: string) => CollectionEntry<collection>`
+- `({ collection: string, id: string }) => CollectionEntry<collection>`
+- `({ collection: string, slug: string }) => CollectionEntry<collection>`
+
+`getEntry()` es una función que recupera una única entrada de una colección mediante el nombre de la colección y ya sea el `id` de la entrada (para colecciones `type: 'data'`) o el `slug` de la entrada (para colecciones `type: 'content'`). `getEntry()` también se puede utilizar para obtener las entradas referenciadas y acceder a las propiedades `data`, `body` o `render()`:
 
 ```astro
 ---
 import { getEntry } from 'astro:content';
-const enterprise = await getEntry('blog', 'enterprise.md');
+// Obtiene `src/content/blog/enterprise.md`
+const enterprisePost = await getEntry('blog', 'enterprise');
+// Obtiene `src/content/captains/picard.yaml`
+const picardProfile = await getEntry('captains', 'picard');
+// Obtener el perfil referenciado por `data.captain`
+const enterpriseCaptainProfile = await getEntry(enterprise.data.captain);
 ---
 ```
 
+Consulta la guía de "Colecciones de Contenido" para ver ejemplos de [consulta de entradas de colecciones](/es/guides/content-collections/#querying-collections).
+
+### `getEntries()`
+
+<p>
+  <Since v="2.5" />
+</p>
+
+**Tipos:**
+
+- `(Array<{ collection: string, id: string }>) => CollectionEntry<collection>`
+- `(Array<{ collection: string, slug: string }>) => CollectionEntry<collection>`
+
+`getEntries()` es una función que recupera múltiples entradas de una misma colección. Esto es útil para [devolver un arreglo de entradas referenciadas](/es/guides/content-collections/#defining-collection-references) para acceder a sus propiedades asociadas `data`, `body` y `render()`.
+
+```astro
+---
+import { getEntries } from 'astro:content';
+const enterprisePost = await getEntry('blog', 'enterprise');
+// Obtener las publicaciones relacionadas referenciadas por `data.relatedPosts`
+const captainProfile = await getEntries(enterprise.data.relatedPosts);
+---
+```
+
+### `getEntryBySlug()`
+
+**Tipo:** `(collection: string, slug: string) => CollectionEntry<collection>`
+
+:::caution[Obsoleto]
+Utiliza la [función `getEntry()`](#getentry) para consultar las entradas de contenido. Esta función acepta los mismos argumentos que `getEntryBySlug()`, y admite la consulta por `id` para colecciones JSON o YAML.
+:::
+
+`getEntryBySlug()` is a function that retrieves a single collection entry by collection name and entry `slug`.
+
+
+```astro
+---
+import { getEntryBySlug } from 'astro:content';
+const enterprise = await getEntryBySlug('blog', 'enterprise');
+---
+```
+[Consulta la guía `Content Collection`](/es/guides/content-collections/#querying-collections) para ver un ejemplo de uso.
+
 ### Colección de Tipo Entrada
 
-Las funciones [`getCollection()`](#getcollection) y [`getEntry()`](#getentry) devuelven cada una entradas con el tipo `CollectionEntry`. Este tipo está disponible como una utilidad de `astro:content`:
+Las funciones de consulta, incluyendo [`getCollection()`](#getcollection), [`getEntry()`](#getentry) y [`getEntries()`](#getentries), devuelven entradas con el tipo `CollectionEntry`. Este tipo está disponible como una utilidad desde `astro:content`:
 
 ```ts
 import type { CollectionEntry } from 'astro:content';
@@ -796,31 +929,45 @@ Una `CollectionEntry<TCollectionName>` es un objeto con los siguientes valores:
 
 #### `id`
 
-**Example Type:** `'entry-1.md' | 'entry-2.md' | ...`
+**Disponible para:** `type: 'content'` and `type: 'data'` collections  
+**Tipos de ejemplo:**
+  - colecciones de contenido: `'entry-1.md' | 'entry-2.md' | ...`
+  - colecciones de datos: `'author-1' | 'author-2' | ...`
 
-Un identificador único que usa la ruta de archivo relativa a `src/content/[collection]`. Enumera todos los posibles valores de cadena basados en las rutas de archivo de entrada de colección.
+Un identificador único que usa la ruta de archivo relativa a `src/content/[collection]`. Enumera todos los posibles valores de cadena basados en las rutas de archivo de entrada de colección. Ten en cuenta que las colecciones [definidas como `type: 'content'`](#type) incluyen la extensión de archivo en su ID, mientras que las colecciones definidas como `type: 'data'` no lo hacen.
 
-#### `slug`
+#### `collection`
 
-**Example Type:** `'entry-1' | 'entry-2' | ...`
+**Disponible para:** `type: 'content'` and `type: 'data'` collections  
+**Tipo de ejemplo:** `'blog' | 'authors' | ...`
 
-Un slug listo para usar en una URL. Por defecto es el `id` sin la extensión de archivo, pero puede ser descartado estableciendo [la propiedad del slug](/es/guides/content-collections/#defining-custom-slugs) en el frontmatter del archivo
+El nombre de una carpeta de nivel superior en `src/content/` en la cual se encuentran las entradas. Este es el nombre utilizado para hacer referencia a la colección en tu esquema y en las funciones de consulta.
 
 #### `data`
 
-**Type:** `CollectionSchema<TCollectionName>`
+**Disponible para:** `tipo: 'content'` y `tipo: collecciones 'data'`  
+**Tipo:** `CollectionSchema<TCollectionName>`
 
 Un objeto de propiedades de frontmatter inferidas de su esquema de colección ([ver referencia de `defineCollection()`](#definecollection)). Por defecto es `any` si no es configurado un esquema.
 
+#### `slug`
+
+**Disponible para:** `type: 'content'` collections only  
+**Tipo de ejemplo:** `'entry-1' | 'entry-2' | ...`
+
+Un slug listo para ser utilizado en una URL para documentos Markdown o MDX. Por defecto, se genera a partir del `id` sin la extensión de archivo, pero se puede modificar estableciendo [la propiedad `slug`](/es/guides/content-collections/#defining-custom-slugs) en el frontmatter del archivo.
+
 #### `body`
 
-**Type:** `string`
+**Disponible para:** `tipo: 'content'` solo colecciones
+**Tipo:** `string`
 
 Un string que contiene el cuerpo sin compilar del documento Markdown o MDX.
 
 #### `render()`
 
-**Type:** `() => Promise<RenderedEntry>`
+**Disponible para:** `type: 'content'` solo colecciones
+**Tipo:** `() => Promise<RenderedEntry>`
 
 Una función para compilar un documento Markdown o MDX dado para su renderizado. Regresa las siguientes propiedades:
 
@@ -862,7 +1009,7 @@ El componente Markdown ya no está integrado en Astro. Descubre cómo [importar 
 
 ### `<Code />`
 
-```astro
+```astro 'theme="dark-plus"' /wrap\b/ /(inline) \/>/
 ---
 import { Code } from 'astro/components';
 ---
@@ -872,6 +1019,11 @@ import { Code } from 'astro/components';
 <Code code={`const foo = 'bar';`} lang="js" theme="dark-plus" />
 <!-- Opcional: habilita css wrap -->
 <Code code={`const foo = 'bar';`} lang="js" wrap />
+<!-- Opcional: salida de código en línea -->
+<p>
+  <Code code={`const foo = 'bar';`} lang="js" inline />
+  will be rendered inline.
+</p>
 ```
 
 Este componente proporciona resaltado de sintaxis para bloques de código en el momento de la compilación (no incluye JavaScript del lado del cliente). El componente funciona internamente con Shiki y es compatible con todos los [temas populares](https://github.com/shikijs/shiki/blob/main/docs/themes.md) y [lenguajes de programación](https://github.com/shikijs/shiki/blob/main/docs/languages.md). Además, puedes agregar temas y lenguajes de programación personalizados modificando `theme` y `lang` respectivamente.
