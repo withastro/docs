@@ -1,42 +1,15 @@
 ---
-title: Middleware (Experimental)
-description: Learn how to enable experimental middleware support in Astro.
+title: Middleware
+description: Learn how to use middleware in Astro.
 i18nReady: false
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
-**Middleware** is enabled in Astro behind an experimental flag. Middleware allows you to intercept requests and responses and inject behaviors dynamically every time a page or endpoint is about to be rendered. 
+**Middleware** allows you to intercept requests and responses and inject behaviors dynamically every time a page or endpoint is about to be rendered. 
 
 This also allows you to set and share request-specific information across endpoints and pages by mutating a `locals` object that is available in all Astro components and API endpoints
 
 Middleware is available in both SSG and SSR Astro projects.
-
-:::caution
-Middleware is an experimental Astro feature introduced in v2.4. This API is subject to change before it is marked as stable.
-:::
-
-## Enabling Middleware in your Project
-
-Enabling middleware should not cause any breaking changes in your project, but you may encounter errors or bugs as you use experimental middleware features.
-
-Please refer to the [middleware RFC](https://github.com/withastro/roadmap/pull/555) for more information.
-
-
-There are two ways to enable experimental middleware support: update `astro.config.mjs` manually or use the CLI.
-
-To enable middleware manually, add the following lines to your `astro.config.mjs` configuration file:
-
-```js title="astro.config.mjs" ins={4-6}
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  experimental: {
-   middleware: true
-  }
-});
-```
-
-To enable using the CLI instead, you can use the `--experimental-middleware` flag.
 
 ## Basic Usage
 
@@ -44,16 +17,16 @@ To enable using the CLI instead, you can use the `--experimental-middleware` fla
 
 2. Inside this file, export an [`onRequest()`](#onrequest) function. This must not be a default export.
 
-```js title="src/middleware.js"
-export function onRequest ({ locals, request }, next) {
-	// intercept response data from a request
-  // optionally, transform the response by modifying `locals`
-  locals.title = "New title"
+    ```js title="src/middleware.js"
+    export function onRequest ({ locals, request }, next) {
+        // intercept response data from a request
+      // optionally, transform the response by modifying `locals`
+      locals.title = "New title"
 
-  // return a Response or the result of calling `next()`
-  return next()
-};
-```
+      // return a Response or the result of calling `next()`
+      return next()
+    };
+    ```
 
 3. Inside any `.astro` file, access response data using `Astro.locals`
 
@@ -65,6 +38,85 @@ const data = Astro.locals;
 <p>This {data.property} is from middleware.</p>
 
 ```
+
+### Middleware types
+
+You can import and use the utility function `defineMiddleware()` to take advantage of type safety:
+
+
+```ts tilte="src/middleware.ts"
+import { defineMiddleware } from "astro/middleware";
+
+// `context` and `next` are automatically typed
+export const onRequest = defineMiddleware((context, next) => {
+
+})
+```
+
+Instead, if you're using JsDoc to take advantage of type safety, you can use `MiddlewareRequestHandler`:
+
+```js tilte="src/middleware.js"
+
+/**
+ * @type import("astro").MiddlewareResponseHandler
+ */
+// `context` and `next` are automatically typed
+export const onRequest = (context, next) => {
+
+}
+
+```
+
+To type the information inside `Astro.locals`, which gives you autocompletion inside `.astro` files and middleware code, declare a global namespace in the `env.d.ts` file:
+
+```ts title="src/env.d.ts"
+/// <reference types="astro/client" />
+declare namespace App {
+    interface Locals {
+        user: {
+            name: string
+        },
+        welcomeTitle: () => String,
+        orders: Map<string, object>
+    }
+}
+```
+
+Then, inside middleware file, we can take advantage of autocompletion and type safety.
+
+You can store any type of data inside `Astro.locals`: strings, numbers, and even complex data types such as functions, and maps.
+
+
+ ```js title="src/middleware.js"
+ export function onRequest ({ locals, request }, next) {
+    // intercept response data from a request
+    // optionally, transform the response by modifying `locals`
+    locals.user.name = "John Wick"
+    locals.welcomeTitle = () => {
+        return "Welcome back  " + locals.user.name
+    }
+
+   // return a Response or the result of calling `next()`
+   return next()
+ };
+```
+Then you can use this information inside any `.astro` file.
+
+```astro title="src/pages/Orders.astro"
+---
+const title = Astro.locals.welcomeTitle();
+const orders = Array.from(Astro.locals.orders.entries());
+---
+<h1>{title}</h1>
+<p>This {data.property} is from middleware.</p>
+<ul>
+    {orders.map(order => {
+        return <li>{// do something with each order}</li>
+    })}
+</ul>
+```
+
+
 ### Example: redacting sensitive information
 
 The example below uses middleware to replace "PRIVATE INFO" with the word "REDACTED" to allow you to render modified HTML on your page:
@@ -81,7 +133,6 @@ export const onRequest = async (context, next) => {
    });
 }
 ```
-For more usage examples, please see [the middleware RFC proposal](https://github.com/withastro/roadmap/blob/rfc/stage-3-middleware/proposals/0032-middleware-api.md#middleware-workflow-and-examples)
 
 ### Chaining middleware
 
