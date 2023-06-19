@@ -1,0 +1,136 @@
+---
+title: Incremental Static Regeneration
+---
+If your website fetches content from a CMS or a database that updates infrequently, you can use a technique called **Incremental Static Regeneration**, or ISR, to update your site without rebuilding the entire project. This is a great way to keep your site up-to-date while still enjoying the benefits of static hosting.
+
+Note: ISR is often presented as an alternative to SSG and SSR, but it's more helpful to think of it as SSR with caching.
+Note: ISR is different from **incremental builds**, which speeds up full rebuilds by reusing work done by the previous builds.
+
+## Applying ISR in Your Project
+
+ISR involves saving the response such that it can be reused for future requests. The exact implementation depends on your deployment target.
+
+### Self-hosted Node.js
+ISR can be implemented in Node.js by writing a caching middleware. The following middleware caches the response in memory for 60 seconds:
+
+```ts title="src/middleware.ts"
+
+const cache = {}
+
+export const onRequest = async ({ request }, next) => {
+    const cached = cache[request.url]
+    
+    if (cached) {
+        if (cached.expires > Date.now()) {
+            // return cached response
+            return cached.response.clone()
+        }
+        else {
+            // remove stale response
+            delete cache[request.url]
+        }
+    }
+    
+    else {
+        const response = await next()
+        cache[request.url] = {
+            expires: Date.now() + 60 * 1000,
+            response: response.clone()
+        }
+        // return fresh response
+        return response
+    }
+}
+```
+
+### Node.js on AWS Lambda
+Lambda instances are ephemeral, which means they might lose all state between invocation - on-disk and in-memory.
+TODO: Investigate disk mounts
+
+### Self-hosted Deno
+The middleware approach used for Node will work on Deno. However, Deno also implements the Web Cache API that can persist the cache across restarts. The following middleware uses the Web Cache API to cache responses for 60 seconds:
+
+```ts title="src/middleware.ts"
+
+const cache = await caches.open('astro')
+
+export const onRequest = async ({ request }, next) => {
+    const cachedResponse = await cache.match(request)
+    
+    if (cachedResponse) {
+        const expires = Number(cachedResponse.headers.get('X-expires'))
+        if (expires > Date.now()) {
+            // return cached response
+            return cachedResponse
+        }
+        else {
+            // remove stale response
+            await cache.delete(request)
+        }
+    }
+    
+    else {
+        const response = await next()
+        
+        // set expiry
+        response.headers.set('X-expires', String(Date.now() + 60 * 1000))
+
+        await cache.put(request.url, response.clone())
+        // return fresh response
+        return response
+    }
+}
+```
+
+### Deno Deploy
+Deno Deploy does not provide a way to persist data. However, you may be able to use a third-party database to manually cache responses. While this avoids calls to your CMS, you may still experience significant latencies due to the network round-trip time between the Deno Deploy instance and your database.
+
+### Vercel
+Vercel provides a built-in caching layer that automatically saves cacheable responses. Make sure your server-rendered page sets a `Cache-Control` header.
+
+```astro title="src/pages/index.astro"
+---
+Astro.response.headers.set('Cache-Control', 'max-age=60')
+---
+<h1>Welcome to Astro</h1>
+```
+TODO: Investigate differences between vercel server functions and edge functions.
+
+### Netlify
+TODO: Investigate Netlify On-demand builders
+
+### Cloudflare Workers
+Cloudflare Workers implements the Web Cache API, with a glaring difference being the fact it will automatically delete stale cache. You can use a combination of a caching middleware along with settings response headers in your frontmatter.
+  
+```astro title="src/pages/index.astro"
+---
+Astro.response.headers.set('Cache-Control', 'max-age=60')
+---
+<h1>Welcome to Astro</h1>
+```
+  
+```ts title="src/middleware.ts"
+
+// caches.default is specific to cloudflare
+const cache = caches.default
+
+export const onRequest = async ({ request }, next) => {
+    const cachedResponse = await cache.match(request)
+    
+    if (cachedResponse) {
+        // return cached response
+        return cachedResponse
+    }
+    
+    else {
+        // render a fresh response
+        const response = await next()
+        
+        // add to cache
+        await cache.put(request.url, response.clone())
+        
+        // return fresh response
+        return response
+    }
+}
+```
