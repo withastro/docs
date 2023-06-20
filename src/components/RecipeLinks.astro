@@ -1,39 +1,57 @@
 ---
-import { getEntryBySlug } from 'astro:content';
-import { removeLeadingSlash, removeTrailingSlash } from '~/util';
+import { recipePages } from '~/content';
+import { getLanguageFromURL, stripLangFromSlug } from '~/util';
+import UIString from './UIString.astro';
 
 export interface Props {
 	slugs: string[];
 }
 
-const slugs = Astro.props.slugs.map((slug) => removeLeadingSlash(removeTrailingSlash(slug)));
+const lang = getLanguageFromURL(Astro.url.pathname);
+const fallbackSlug = (slug: string) =>
+	'en/' + stripLangFromSlug(slug as Parameters<typeof stripLangFromSlug>[0]);
 
-const entries = await Promise.all(
-	slugs.map(async (slug, i) => {
-		const entry = await getEntryBySlug('docs', slug);
-		if (!entry) {
-			throw new Error(`Could not find entry for slug "${Astro.props.slugs[i]}"`);
-		}
-		return entry;
-	})
-);
+const recipes = Astro.props.slugs.map((slug) => {
+	let isFallback = lang !== 'en' && slug.startsWith('en/');
+	let entry = recipePages.find((recipe) => recipe.slug === slug);
+	if (!entry) {
+		isFallback = true;
+		entry = recipePages.find((recipe) => recipe.slug === fallbackSlug(slug));
+	}
+	if (!entry) {
+		throw new Error(`Could not find entry for slug "${slug}"`);
+	}
+	return { slug, isFallback, title: entry.data.title };
+});
 
-const isList = entries.length > 1;
-const noun = isList ? 'recipes' : 'recipe';
+const isList = recipes.length > 1;
+const labelKey = isList ? 'recipesLink.plural' : 'recipesLink.singular';
+const firstRecipe = recipes[0];
+if (!firstRecipe) {
+	throw new Error('No slugs passed to `<RecipeLinks>` component. Make sure you pass at least one.');
+}
 ---
 
 <div class="root">
 	<div class="flex">
 		<img src="/houston_chef.webp" width="26" alt="" />
-		<strong>Related {noun}:</strong>
-		{!isList && <a href={`/${entries[0]!.slug}/`}> {entries[0]!.data.title}</a>}
+		<strong><UIString key={labelKey} /></strong>
+		{
+			!isList && (
+				<a href={`/${firstRecipe.slug}/`}>
+					{firstRecipe.title} {firstRecipe.isFallback && '(EN)'}
+				</a>
+			)
+		}
 	</div>
 	{
 		isList && (
 			<ul>
-				{entries.map((entry) => (
+				{recipes.map((recipe) => (
 					<li>
-						<a href={`/${entry!.slug}/`}>{entry!.data.title}</a>
+						<a href={`/${recipe.slug}/`}>
+							{recipe.title} {recipe.isFallback && '(EN)'}
+						</a>
 					</li>
 				))}
 			</ul>

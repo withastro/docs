@@ -2,6 +2,7 @@
 title: Astro Integration API
 i18nReady: true
 ---
+import Since from '~/components/Since.astro'
 
 **Astro Integrations** add new functionality and behaviors for your project with only a few lines of code.
 
@@ -28,6 +29,7 @@ interface AstroIntegration {
       updateConfig: (newConfig: Record<string, any>) => void;
       addRenderer: (renderer: AstroRenderer) => void;
       addWatchFile: (path: URL | string) => void;
+      addClientDirective: (directive: ClientDirectiveConfig) => void;
       injectScript: (stage: InjectedScriptStage, content: string) => void;
       injectRoute: ({ pattern: string, entryPoint: string }) => void;
     }) => void;
@@ -65,6 +67,7 @@ interface AstroIntegration {
   isRestart: boolean;
   updateConfig: (newConfig: Record<string, any>) => void;
   addRenderer: (renderer: AstroRenderer) => void;
+  addClientDirective: (directive: ClientDirectiveConfig) => void;
   addWatchFile: (path: URL | string) => void;
   injectScript: (stage: InjectedScriptStage, content: string) => void;
   injectRoute: ({ pattern: string, entryPoint: string }) => void;
@@ -137,6 +140,53 @@ Example usage:
 // Must be an absolute path!
 addWatchFile('/home/user/.../my-config.json');
 addWatchFile(new URL('./tailwind.config.js', config.root));
+```
+
+#### `addClientDirective` option
+
+<Since v="2.6.0" />
+
+**Type:** `(directive:` [`ClientDirectiveConfig`](https://github.com/withastro/astro/blob/00327c213f74627ac9ca1dec774efa5bf71e9375/packages/astro/src/%40types/astro.ts#L1872-L1875) `) => void;`
+
+Adds a [custom client directive](/en/reference/directives-reference/#custom-client-directives) to be used in `.astro` files.
+
+Note that directive entrypoints are only bundled through esbuild and should be kept small so they don't slow down component hydration.
+
+Example usage:
+
+```js
+// Create a `client:click` directive
+addClientDirective({
+  name: 'click',
+  entrypoint: 'astro-click-directive/click.js' 
+})
+```
+
+__astro-click-directive/click.js__
+
+```js
+/**
+ * Hydrate on first click on the window
+ * @type {import('astro').ClientDirective}
+ */
+export default (load, opts, el) => {
+  window.addEventListener('click', async () => {
+    const hydrate = await load()
+    await hydrate()
+  }, { once: true })
+}
+```
+
+You can also add types for the directives in your library's type definition file:
+
+__astro-click-directive/index.d.ts__
+
+```ts
+declare module 'astro' {
+  interface AstroClientDirectives {
+    'client:click'?: boolean
+  }
+}
 ```
 
 #### `injectRoute` option
@@ -330,7 +380,7 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 **Why:** To access generated routes and assets for extension (ex. copy content into the generated `/assets` directory). If you plan to transform generated assets, we recommend exploring the [Vite Plugin API](https://vitejs.dev/guide/api-plugin.html) and [configuring via `astro:config:setup`](#updateconfig-option) instead.
 
 ```js
-'astro:build:done'?: (options: { dir: URL; routes: RouteData[] }) => void | Promise<void>;
+'astro:build:done'?: (options: { dir: URL; routes: RouteData[], pages: { pathname: string }[] }) => void | Promise<void>;
 ```
 
 #### `dir` option
@@ -361,7 +411,7 @@ export default function myIntegration() {
 
 **Type:** [`RouteData[]`](#routedata-type-reference)
 
-A list of all generated routes alongside their associated metadata. **This will be empty when using an SSR adapter!**
+A list of all generated routes alongside their associated metadata.
 
 You can reference the full `RouteData` type below, but the most common properties are:
 
@@ -405,6 +455,14 @@ interface RouteData {
   generate: (data?: any) => string;
 }
 ```
+
+#### `pages` option
+
+**Type:** `{ pathname: string }[]`
+
+A list of all generated pages. It is an object with one property.
+
+- `pathname` - the finalized path of the page.
 
 ## Allow installation with `astro add`
 
