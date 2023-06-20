@@ -85,7 +85,7 @@ Parâmetros podem ser incluidos em partes separadas do caminho. Por exemplo, o a
 
 📚 Leia mais sobre [`getStaticPaths()`](/pt-br/reference/api-reference/#getstaticpaths).
 
-<RecipeLinks slugs={["en/recipes/i18n"]} />
+<RecipeLinks slugs={["pt-br/recipes/i18n"]} />
 
 #### Parâmetros Rest
 
@@ -220,6 +220,78 @@ const { titulo, texto } = pagina;
 </html>
 ```
 
+## Redirecionamentos
+
+As vezes você irá precisar redirecionar seus leitores para uma nova página, seja permanentemente pois a estrutura do seu site mudou ou em resposta a uma ação como logar em uma rota autenticada.
+
+Você pode definir regras para [redirecionar usuários para páginas permanentemente movidas](#redirecionamentos-configurados-experimental) na sua configuração do Astro. Ou, [redirecionar usuários dinamicamente](#redirecionamentos-dinâmicos) enquanto eles utilizam seu site.
+
+### Redirecionamentos Configurados (experimental)
+<Since v="2.6.0" />
+
+Depois de habilitar a flag experimental `redirects: true`, você pode especificar um mapeamento de redirecionamentos permanentes na sua configuração do Astro. Para a maioria dos redirecionamentos, isto é um mapeamento de uma rota antiga para uma nova rota:
+
+```js title="astro.config.mjs" {5, 7-9}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    redirects: true
+  },
+  redirects: {
+    '/pagina-antiga': '/nova-pagina'
+  }
+});
+```
+
+Estes redirecionamentos seguem as mesmas regras que rotas baseadas em arquivos. Rotas dinâmicas são permitidas contanto que ambas as antigas e novas rotas contenham os mesmos parâmetros, por exemplo:
+
+```js
+{
+  "/blog/[...slug]": "/artigos/[...slug]"
+}
+```
+
+Usando um adaptador de SSR ou estático, você também pode providenciar um objeto como o valor, te permitindo especificar o código de `status` em adição ao novo destino (`destination`):
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    redirects: true
+  },
+  redirects: {
+    '/pagina-antiga': {
+      status: 302,
+      destination: '/nova-pagina'
+    }
+  }
+});
+```
+
+Ao executar `astro build`, o Astro irá retornar arquivos HTML com a tag [meta refresh](https://developer.mozilla.org/pt-BR/docs/Web/HTML/Element/meta#exemplos) por padrão. Adaptadores suportados irão ao invés disso, escrever o arquivo de configuração da hospedagem com os redirecionamentos.
+
+O código de estado é `301` por padrão. Se estiver fazendo build de arquivos HTML, o código de estado não é utilizado pelo servidor.
+
+### Redirecionamentos dinâmicos
+
+Na global `Astro`, o método `Astro.redirect` te permite redirecionar para outra página dinamicamente. Você pode fazer isso após checar se o usuário está logado ao pegar sua sessão de um cookie.
+
+```astro title="src/pages/conta.astro" {8}
+---
+import { isLoggedIn } from '../utils';
+const cookie = Astro.request.headers.get('cookie');
+// Se o usuário não estiver logado, o redireciona para a página de login
+if (!isLoggedIn(cookie)) {
+  return Astro.redirect('/login');
+}
+---
+<html>
+  <!-- Página aqui... -->
+</html>
+```
+
 ## Ordem de Prioridade de Rotas
 
 É possível que múltiplas rotas correspondam ao mesmo caminho de URL. Por exemplo, cada uma destas rotas iria corresponder a `postagens/criar`:
@@ -236,7 +308,9 @@ Astro precisa saber qual rota deve ser utilizada para construir a página. Para 
 
 - Rotas estáticas sem parâmetros de caminho terão precedência sobre todas as outras rotas
 - Rotas dinâmicas utilizando parâmetros nomeados terão precedência sobre parâmetros rest
+- Rotas dinâmicas pré-renderizadas terão precedência sobre rotas dinâmicas do servidor
 - Parâmetros rest terão a menor prioridade
+- Endpoints sempre terão precedência sobre páginas
 - Empates são resolvidos alfabeticamente
 
 Com base no exemplo acima, aqui estão alguns exemplos de como as regras irão corresponder a URL requisitada para a rota utilizada para construir o HTML:
