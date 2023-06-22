@@ -121,7 +121,11 @@ export async function run() {
 			}
 		}
 
-		return resultMessage;
+		if (resultMessage) {
+			return resultMessage + '\n';
+		}
+
+		return undefined;
 	}
 
 	/**
