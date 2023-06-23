@@ -44,7 +44,7 @@ Examples that would not be considered recipes:
 - A walk-through that teaches more than one task. (e.g. "How to set up Vue, TypeScript, and Partytown in Astro")
 - A conceptual explanation of a topic, instead of a how-to guide that leads the reader through completing a specific task. (e.g. "How partial hydration works in Astro")
 
-Like all contributions to our docs, take a look at the [WRITING.md](https://github.com/withastro/docs/blob/main/WRITING.md
+Like all contributions to our docs, take a look at the [WRITING.md](https://github.com/withastro/docs/blob/main/contributor-guides/writing-and-style-guide.md
 ) and [CONTRIBUTING.md](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md
 ) files for guidance on drafting your PR.
 
@@ -88,7 +88,7 @@ The CMS, Deploy, and Migrate guides all have sections for external links. You ca
 
 ## Add a new official recipe
 
-The Official Recipes section is for officially maintained recipes, found in the `src/content/guides/recipes` folder, that do not fit into one of our pre-existing categories. Like the rest of our docs, these must meet the standards of our [Writing Guide](https://github.com/withastro/docs/blob/main/WRITING.md) and require long-term maintenance to make sure they're up to date.
+The Official Recipes section is for officially maintained recipes, found in the `src/content/guides/recipes` folder, that do not fit into one of our pre-existing categories. Like the rest of our docs, these must meet the standards of our [Writing Guide](https://github.com/withastro/docs/blob/main/contributor-guides/writing-and-style-guide.md) and require long-term maintenance to make sure they're up to date.
 
 To add an official recipe:
 
