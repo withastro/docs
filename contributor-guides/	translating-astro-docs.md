@@ -61,7 +61,7 @@ Supporting a language means that Astro takes responsibility for maintaining that
 
 ### What about unsupported languages?
 
-The official docs will only contain supported languages for now, but we will be looking to add more officially supported languages as we grow.  If you would like to host translated docs yourself in another language, please let us know! We are happy to help you set this up and coordinate with future changes to the docs.
+The official docs will only contain supported languages for now, but we will be looking to add more officially supported languages as we grow. If you would like to host translated docs yourself in another language, please let us know! We are happy to help you set this up and coordinate with future changes to the docs.
 
 ## Translation Structure
 
