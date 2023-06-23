@@ -28,8 +28,6 @@ As a more regular, established member of the community, (and a busier one, perha
 
 - pinging `@team-docs` in a support thread with a specific comment or question about to the existing documentation that relates to the support thread.
 
-- The ["Docs Stack" GitHub project board](https://github.com/orgs/withastro/projects/8/views/1), so you can see what core Docs maintainers are working on.
-
 - Discord events such as Docs Triage in #live-chat where you are welcome to join and provide feedback as we tackle existing Issues and PRs.
 
 > If someone asks a question, answer with documentation. If the documentation doesn’t exist, write the documentation, then answer the question with documentation.
