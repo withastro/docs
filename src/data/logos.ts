@@ -73,6 +73,7 @@ export const logos = LogoCheck({
 	'frontmatter-cms': { file: 'frontmatter-cms.svg', padding: '.25em' },
 	statamic: { file: 'statamic.svg', padding: '.2em' },
 	xata: { file: 'xata.svg', padding: '0.234em 0.234em 0.1875em' },
+	strapi: { file: 'strapi.svg', padding: '.25em' },
 });
 
 export type LogoKey = keyof typeof logos;
