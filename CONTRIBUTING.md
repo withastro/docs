@@ -8,6 +8,9 @@ We welcome contributions of any size and contributors of any skill level. As an 
 
 **See also**:
 
+- [Writing Guide](https://github.com/withastro/docs/blob/main/contributor-guides/writing-and-style-guide.md)
+- [Translating Guide](https://github.com/withastro/docs/blob/main/contributor-guides/translating-astro-docs.md)
+- [Recipe Guide](https://github.com/withastro/docs/blob/main/contributor-guides/submitting-a-recipe.md)
 - [Astro Maintainers](https://github.com/withastro/docs/blob/main/contributor-guides/astro-maintainers-guide-to-docs.md) manual
 - [Support Squad members](https://github.com/withastro/docs/blob/main/contributor-guides/support-squad-guide-to-docs.md) manual
 
