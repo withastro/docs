@@ -6,7 +6,7 @@ export default DocSearchDictionary({
 	shortcutLabel: 'Presiona / para buscar',
 	resultsFooterLede: '¿Buscas una integración o tema de Astro? ¿Necesitas más ayuda?',
 	resultsFooterIntegrations: 'Directorio de integraciones de Astro',
-	resultsFooterThemes: 'Showcase de temas de Astro',
+	resultsFooterThemes: 'Galeria de temas de Astro',
 	resultsFooterDiscord: 'Únete a nosotros en Discord',
 	modal: {},
 });

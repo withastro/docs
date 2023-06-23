@@ -17,7 +17,7 @@ export default [
 	{ text: 'Conceptos básicos', header: true, type: 'learn', key: 'basics' },
 
 	{
-		text: 'Estructura del Proyecto',
+		text: 'Estructura del proyecto',
 		slug: 'core-concepts/project-structure',
 		key: 'core-concepts/project-structure',
 	},
@@ -32,10 +32,10 @@ export default [
 	{ text: 'Recetas', header: true, type: 'learn', key: 'examples' },
 	{ text: 'Migrar a Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
 	{ text: 'Conectar un CMS', slug: 'guides/cms', key: 'guides/cms' },
-	{ text: 'Agregar Servicios Backend', slug: 'guides/backend', key: 'guides/backend' },
-	{ text: 'Agregar Integraciones', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
-	{ text: 'Desplegar tu Sitio', slug: 'guides/deploy', key: 'guides/deploy' },
-	{ text: 'Más Recetas', slug: 'recipes', key: 'guides/recipes' },
+	{ text: 'Agregar servicios backend', slug: 'guides/backend', key: 'guides/backend' },
+	{ text: 'Agregar integraciones', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
+	{ text: 'Desplegar tu sitio', slug: 'guides/deploy', key: 'guides/deploy' },
+	{ text: 'Más recetas', slug: 'recipes', key: 'guides/recipes' },
 
 	{ text: 'Guías', header: true, type: 'learn', key: 'features' },
 	{
@@ -70,7 +70,7 @@ export default [
 		slug: 'guides/server-side-rendering',
 		key: 'guides/server-side-rendering',
 	},
-	{ text: 'Puntos Finales', slug: 'core-concepts/endpoints', key: 'core-concepts/endpoints' },
+	{ text: 'Endpoints', slug: 'core-concepts/endpoints', key: 'core-concepts/endpoints' },
 	{ text: 'Obtención de Datos', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
 	{ text: 'Middleware', slug: 'guides/middleware', key: 'guides/middleware' },
 	{ text: 'Pruebas', slug: 'guides/testing', key: 'guides/testing' },

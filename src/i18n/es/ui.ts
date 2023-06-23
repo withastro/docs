@@ -19,7 +19,7 @@ export default UIDictionary({
 	// Barra lateral derecha
 	'rightSidebar.a11yTitle': 'Secundario',
 	'rightSidebar.onThisPage': 'En esta página',
-	'rightSidebar.overview': 'Visión general',
+	'rightSidebar.overview': 'Sinopsis',
 	'rightSidebar.community': 'Comunidad',
 	'rightSidebar.joinDiscord': 'Únete a nuestro Discord',
 	'rightSidebar.readBlog': 'Lee nuestras publicaciones en el blog',
@@ -64,16 +64,16 @@ export default UIDictionary({
 	// Aviso de contenido de respaldo que se muestra cuando una página aún no está traducida
 	'fallbackContent.notice':
 		'Esta página aún no está disponible en tu idioma, así que te mostramos la versión en inglés. ¡Puedes ayudar traduciéndola!',
-	'fallbackContent.linkText': 'Obtén más información sobre cómo puedes contribuir',
+	'fallbackContent.linkText': 'Obtén más información sobre cómo contribuir',
 	// Página 404
 	'404.title': 'No encontrado',
 	'404.content': 'Esta página no está en nuestro sistema solar.',
-	'404.linkText': 'Llévame a casa.',
+	'404.linkText': 'Volver a la página principal.',
 	// Etiquetas predeterminadas del componente Aside
 	'aside.note': 'Nota',
 	'aside.tip': 'Consejo',
 	'aside.caution': 'Precaución',
-	'aside.danger': 'Peligró',
+	'aside.danger': 'Peligro',
 	// Vocabulario de <CodeSnippet>
 	'codeSnippet.terminalCaption': 'Ventana de terminal',
 	// Vocabulario de <LanguageSelect>
@@ -81,7 +81,7 @@ export default UIDictionary({
 	// Vocabulario de integraciones
 	'integrations.changelog': 'Registro de cambios',
 	'integrations.footerTitle': 'Más integraciones',
-	'integrations.renderers': 'Frameworks de IU',
+	'integrations.renderers': 'Frameworks UI',
 	'integrations.adapters': 'Adaptadores SSR',
 	'integrations.others': 'Otros',
 	// Componente Checklist
