@@ -44,7 +44,7 @@ Examples that would not be considered recipes:
 - A walk-through that teaches more than one task. (e.g. "How to set up Vue, TypeScript, and Partytown in Astro")
 - A conceptual explanation of a topic, instead of a how-to guide that leads the reader through completing a specific task. (e.g. "How partial hydration works in Astro")
 
-Like all contributions to our docs, take a look at the [WRITING.md](https://github.com/withastro/docs/blob/main/contributor-guides/writing-and-style-guide.md
+Like all contributions to our docs, take a look at the [Writing Guide](https://github.com/withastro/docs/blob/main/contributor-guides/writing-and-style-guide.md
 ) and [CONTRIBUTING.md](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md
 ) files for guidance on drafting your PR.
 
