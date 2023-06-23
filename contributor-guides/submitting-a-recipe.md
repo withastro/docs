@@ -18,7 +18,7 @@ You can use the "Edit This Page" link in the right sidebar to make a change on G
 
 ## Community Recipes
 
-Community Recipes are for external links that fit the definition of a recipe: short, focused how-to guides. This lets us include community resources without requiring long-term maintenance. They are listed on our [More Recipes](#more-recipes-page) page in docs.
+Community Recipes are for external links that fit the definition of a recipe: short, focused how-to guides. This lets us include community resources without requiring long-term maintenance. They are listed on our [More Recipes](https://docs.astro.build/en/recipes/) page in docs.
 
 You can share a published recipe in our “Community Recipes” section. This includes posts on a personal or company blog, or on your preferred blogging platform like [DEV.to](https://dev.to/). This follows the IndieWeb principle of “Publish (on your) Own Site, Syndicate Elsewhere” (often abbreviated to [POSSE](https://indieweb.org/POSSE)).
 
@@ -33,7 +33,7 @@ Please note that all community recipe PRs will be reviewed to make sure they fit
 Our recipe format is inspired by Diataxis's [how-to guides](https://diataxis.fr/how-to-guides/). Recipes:
 
 - Provide step-by-step instructions
-- Meet a user at a specific starting point (see our [Prerequisites](https://docs.astro.build/en/recipes/build-forms-api/#prerequisites) sections)
+- Meet a user at a specific starting point by providing a Prerequisites section
 - Explain how to accomplish a specific task
 - Use real-world examples
 
@@ -44,9 +44,9 @@ Examples that would not be considered recipes:
 - A walk-through that teaches more than one task. (e.g. "How to set up Vue, TypeScript, and Partytown in Astro")
 - A conceptual explanation of a topic, instead of a how-to guide that leads the reader through completing a specific task. (e.g. "How partial hydration works in Astro")
 
-Like all contributions to our docs, take a look at the [Writing Guide](https://github.com/withastro/docs/blob/main/contributor-guides/writing-and-style-guide.md
-) and [CONTRIBUTING.md](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md
-) files for guidance on drafting your PR.
+Like all contributions to our docs, take a look at our [Writing Guide](https://github.com/withastro/docs/blob/main/contributor-guides/writing-and-style-guide.md
+) and [Main Contributing Guide](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md
+) for guidance on drafting your PR.
 
 
 ## CMS, Deploy and Migrate
