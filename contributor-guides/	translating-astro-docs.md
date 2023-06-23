@@ -46,9 +46,9 @@ Currently we are aiming to translate the Astro documentation into the following 
 - French
 - German
 - Japanese
-- Spanish
 - Korean
 - Polish
+- Spanish
 
 ### Why can Astro only support a few languages?
 
