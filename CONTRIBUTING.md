@@ -8,8 +8,8 @@ We welcome contributions of any size and contributors of any skill level. As an 
 
 **See also**:
 
-- [Astro Maintainers](MAINTAINERS.md) manual
-- [Support Squad members](SUPPORTSQUAD.md) manual
+- [Astro Maintainers](https://github.com/withastro/docs/blob/main/contributor-guides/astro-maintainers-guide-to-docs.md) manual
+- [Support Squad members](https://github.com/withastro/docs/blob/main/contributor-guides/support-squad-guide-to-docs.md) manual
 
 
 This document is an active work in progress! But, we hope you'll find some useful information here to get started.
