@@ -43,7 +43,7 @@ export default NavDictionary({
 	'guides/imports': '导入',
 	'core-concepts/endpoints': 'API 端点',
 	'guides/data-fetching': '数据获取',
-	'guides/middleware': '中间件 (实验性)',
+	'guides/middleware': '中间件',
 	'guides/testing': '测试',
 	'guides/troubleshooting': '故障排除',
 
