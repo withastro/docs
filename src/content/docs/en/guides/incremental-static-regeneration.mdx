@@ -3,8 +3,14 @@ title: Incremental Static Regeneration
 ---
 If your website fetches content from a CMS or a database that updates infrequently, you can use a technique called **Incremental Static Regeneration**, or ISR, to update your site without rebuilding the entire project. This is a great way to keep your site up-to-date while still enjoying the benefits of static hosting.
 
-Note: ISR is often presented as an alternative to SSG and SSR, but it's more helpful to think of it as SSR with caching.
-Note: ISR is different from **incremental builds**, which speeds up full rebuilds by reusing work done by the previous builds.
+:::note
+ISR is often presented as an alternative to SSG and SSR, but it's more helpful to think of it as SSR with caching.
+:::
+
+:::note
+Incremental static regeneration is different from **incremental builds**, which speeds up full rebuilds by reusing work done by the previous builds.
+:::
+
 
 ## Applying ISR in Your Project
 
@@ -45,7 +51,9 @@ export const onRequest = async ({ request }, next) => {
 
 ### Node.js on AWS Lambda
 Lambda instances are ephemeral, which means they might lose all state between invocation - on-disk and in-memory.
+:::note
 TODO: Investigate disk mounts
+:::
 
 ### Self-hosted Deno
 The middleware approach used for Node will work on Deno. However, Deno also implements the Web Cache API that can persist the cache across restarts. The following middleware uses the Web Cache API to cache responses for 60 seconds:
@@ -85,26 +93,55 @@ export const onRequest = async ({ request }, next) => {
 ### Deno Deploy
 Deno Deploy does not provide a way to persist data. However, you may be able to use a third-party database to manually cache responses. While this avoids calls to your CMS, you may still experience significant latencies due to the network round-trip time between the Deno Deploy instance and your database.
 
+### Nginx, Traeffik, other reverse proxies that offer caching
+:::note
+TODO
+:::
+
 ### Vercel
-Vercel provides a built-in caching layer that automatically saves cacheable responses. Make sure your server-rendered page sets a `Cache-Control` header.
+Vercel provides a built-in caching layer that automatically saves cacheable responses. Make sure your server-rendered page or endpoint sets a `Cache-Control` header.
 
 ```astro title="src/pages/index.astro"
 ---
-Astro.response.headers.set('Cache-Control', 'max-age=60')
+Astro.response.headers.set('Cache-Control', 's-maxage=60')
 ---
 <h1>Welcome to Astro</h1>
 ```
-TODO: Investigate differences between vercel server functions and edge functions.
+
+```ts title="src/pages/api.ts"
+export async function get({ params, request }) {
+    ...
+    return new Response(content, {
+        headers: { "Cache-Control": "s-maxage=60" }
+    })
+}
+```
+:::note
+The presence of `s-maxage=60` in your `Cache-Control` header tells the caching server to cache the response for 60 seconds, whereas `max-age=60` tells the same to your visitors' browsers as well. Use `max-age` when your content is unlikely to be edited. If a page with `max-age` updates after it has been visited by a user, their browser will show them the cached version until the expiration time.
+:::
 
 ### Netlify
-TODO: Investigate Netlify On-demand builders
+Netlify supports caching responses why its (On-demand builders)[https://docs.netlify.com/configure-builds/on-demand-builders/] feature. You can leverage it by enabling them in your config file.
 
-### Cloudflare Workers
+```ts title="stro.config.js" ins={6}
+import { defineConfig } from 'astro/config'
+import netlify from '@astrojs/netlify/functions'
+
+export default defineConfig({
+  output: 'server',
+  adapter: netlify({ builders: true })
+})
+```
+:::note
+TODO: Investigate whether this works on edge functions.
+:::
+
+### Cloudflare Pages/Workers
 Cloudflare Workers implements the Web Cache API, with a glaring difference being the fact it will automatically delete stale cache. You can use a combination of a caching middleware along with settings response headers in your frontmatter.
   
 ```astro title="src/pages/index.astro"
 ---
-Astro.response.headers.set('Cache-Control', 'max-age=60')
+Astro.response.headers.set('Cache-Control', 'max-age=3600')
 ---
 <h1>Welcome to Astro</h1>
 ```
@@ -127,7 +164,7 @@ export const onRequest = async ({ request }, next) => {
         const response = await next()
         
         // add to cache
-        await cache.put(request.url, response.clone())
+        await cache.put(request, response.clone())
         
         // return fresh response
         return response
