@@ -33,7 +33,11 @@ export default [
 	{ text: 'Migrar a Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
 	{ text: 'Conectar un CMS', slug: 'guides/cms', key: 'guides/cms' },
 	{ text: 'Agregar servicios backend', slug: 'guides/backend', key: 'guides/backend' },
-	{ text: 'Agregar integraciones', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
+	{
+		text: 'Agregar integraciones',
+		slug: 'guides/integrations-guide',
+		key: 'guides/integrations-guide',
+	},
 	{ text: 'Desplegar tu sitio', slug: 'guides/deploy', key: 'guides/deploy' },
 	{ text: 'Más recetas', slug: 'recipes', key: 'guides/recipes' },
 
@@ -96,13 +100,21 @@ export default [
 		slug: 'reference/configuration-reference',
 		key: 'reference/configuration-reference',
 	},
-	{ text: 'API de Tiempo de Ejecución', slug: 'reference/api-reference', key: 'reference/api-reference' },
+	{
+		text: 'API de Tiempo de Ejecución',
+		slug: 'reference/api-reference',
+		key: 'reference/api-reference',
+	},
 	{
 		text: 'API de Integraciones',
 		slug: 'reference/integrations-reference',
 		key: 'reference/integrations-reference',
 	},
-	{ text: 'API de Adaptador', slug: 'reference/adapter-reference', key: 'reference/adapter-reference' },
+	{
+		text: 'API de Adaptador',
+		slug: 'reference/adapter-reference',
+		key: 'reference/adapter-reference',
+	},
 	{
 		text: 'API de Servicio de Imágenes',
 		slug: 'reference/image-service-reference',
@@ -119,5 +131,9 @@ export default [
 		slug: 'reference/error-reference',
 		key: 'reference/error-reference',
 	},
-	{ text: 'Formato de Paquete NPM', slug: 'reference/publish-to-npm', key: 'guides/publish-to-npm' },
+	{
+		text: 'Formato de Paquete NPM',
+		slug: 'reference/publish-to-npm',
+		key: 'guides/publish-to-npm',
+	},
 ] as const;

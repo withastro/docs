@@ -6,7 +6,8 @@ export default UIDictionary({
 	'navbar.a11yTitle': 'Inicio',
 	// Configuración del sitio
 	'site.title': 'Documentación de Astro',
-	'site.description': 'Construye sitios web más rápidos con menos JavaScript en el lado del cliente.',
+	'site.description':
+		'Construye sitios web más rápidos con menos JavaScript en el lado del cliente.',
 	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.og.imageAlt':
 		'Logo de Astro en un espacio estrellado, con un planeta púrpura similar a Saturno flotando en el primer plano derecho',
