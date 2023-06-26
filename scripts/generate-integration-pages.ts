@@ -127,7 +127,8 @@ class IntegrationPagesBuilder {
 			.use(relativeLinks, { base: `https://docs.astro.build/` })
 			.use(githubVideos)
 			.use(replaceAsides)
-			.use(closeUnclosedLinebreaks);
+			.use(closeUnclosedLinebreaks)
+			.use(stripPrettierIgnoreComments);
 		readme = (await processor.process(readme)).toString();
 		readme =
 			`---
@@ -207,6 +208,15 @@ function closeUnclosedLinebreaks() {
 	return function transform(tree: Root) {
 		visit(tree, 'html', function htmlVisitor(node) {
 			node.value = node.value.replaceAll(/<br>/gi, '<br/>');
+		});
+	};
+}
+
+/** Remove `<!-- prettier-ignore -->` comments. */
+function stripPrettierIgnoreComments() {
+	return function transform(tree: Root) {
+		visit(tree, 'html', function htmlVisitor(node) {
+			node.value = node.value.replaceAll(/<!--\s*prettier-ignore(-[\w-]+)?\s*-->/gi, '');
 		});
 	};
 }
