@@ -38,7 +38,7 @@ class IntegrationPagesBuilder {
 	readonly #sourceBranch: string;
 	readonly #sourceRepo: string;
 	readonly #deprecatedIntegrations = new Set(['turbolinks']);
-	readonly #i18nNotReadyIntegrations = new Set(['markdoc']);
+	readonly #i18nNotReadyIntegrations = new Set<string>([]);
 
 	constructor(opts: { githubToken?: string; sourceBranch: string; sourceRepo: string }) {
 		this.#githubToken = opts.githubToken;
