@@ -1,113 +1,123 @@
 import { UIDictionary } from '../translation-checkers';
 
 export default UIDictionary({
-	'a11y.skipLink': 'Saltearse al contenido',
+	'a11y.skipLink': 'Ir al contenido',
 	'a11y.sectionLink': 'Sección titulada',
-	'navbar.a11yTitle': 'Superior',
-	// Aside component default labels
-	'aside.note': 'Nota',
-	'aside.tip': 'Sugerencia',
-	'aside.caution': 'Precaución',
-	'aside.danger': 'Peligro',
-	// Site settings
+	'navbar.a11yTitle': 'Inicio',
+	// Configuración del sitio
 	'site.title': 'Documentación de Astro',
 	'site.description':
-		'Construye páginas web más rápidas con menos JavaScript en el lado del cliente.',
+		'Construye sitios web más rápidos con menos JavaScript en el lado del cliente.',
 	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.og.imageAlt':
-		'Logo de Astro en el espacio estrellado, con un planeta púrpura parecido a Saturno flotando en el fondo a la derecha.',
-	// Left Sidebar
+		'Logo de Astro en un espacio estrellado, con un planeta púrpura similar a Saturno flotando en el primer plano derecho',
+	// Barra lateral izquierda
 	'leftSidebar.a11yTitle': 'Primario',
-	'leftSidebar.learnTab': 'Aprenda',
-	'leftSidebar.referenceTab': 'Referencias',
+	'leftSidebar.learnTab': 'Aprender',
+	'leftSidebar.referenceTab': 'Referencia',
 	'leftSidebar.viewInEnglish': 'Ver en inglés',
 	'leftSidebar.sponsoredBy': 'Patrocinado por',
-	// Right Sidebar
+	// Barra lateral derecha
 	'rightSidebar.a11yTitle': 'Secundario',
 	'rightSidebar.onThisPage': 'En esta página',
 	'rightSidebar.overview': 'Sinopsis',
 	'rightSidebar.community': 'Comunidad',
-	'rightSidebar.joinDiscord': 'Únete al Discord',
-	'rightSidebar.readBlog': 'Lee nuestro blog',
+	'rightSidebar.joinDiscord': 'Únete a nuestro Discord',
+	'rightSidebar.readBlog': 'Lee nuestras publicaciones en el blog',
 	'rightSidebar.openCollective': 'Nuestro Open Collective',
-	'rightSidebar.contribute': 'Contribuye',
-	'rightSidebar.contributorGuides': 'Guías de Contribuyentes',
-	'rightSidebar.editPage': 'Edita esta página',
-	'rightSidebar.translatePage': 'Traduce esta página',
+	'rightSidebar.contribute': 'Contribuir',
+	'rightSidebar.contributorGuides': 'Guías para colaboradores',
+	'rightSidebar.editPage': 'Editar esta página',
+	'rightSidebar.translatePage': 'Traducir esta página',
 	'rightSidebar.github': 'Documentación de Astro en GitHub',
-	// Footer
+	// Pie de página
 	'footer.privacyPolicy': 'Política de privacidad',
-	// `<ThemeToggleButton>` acessibility labels
+	// Etiquetas de accesibilidad para <ThemeToggleButton>
 	'themeToggle.useLight': 'Usar tema claro',
 	'themeToggle.useDark': 'Usar tema oscuro',
-	// Used in previous/next page links at the bottom of pages
+	// Se utiliza en los enlaces de página anterior/siguiente en la parte inferior de las páginas
 	'articleNav.nextPage': 'Siguiente página',
-	'articleNav.prevPage': 'Página anterior',
-	// Used in `<Since>`: Added in: v0.24.0 [NEW]
+	'articleNav.prevPage': 'Atrás',
+	// Se utiliza en <Since>: Agregado en: v0.24.0 [NUEVO]
 	'since.addedIn': 'Agregado en:',
 	'since.new': 'Nuevo',
 	'since.beta': 'Beta',
-	// Installation Guide
-	'install.autoTab': 'CLI Automático',
-	'install.manualTab': 'Instalación Manual',
-	// `<DeployGuidesNav>` vocabulary
+	// Guía de instalación
+	'install.autoTab': 'CLI automática',
+	'install.manualTab': 'Configuración manual',
+	// Vocabulario de <DeployGuidesNav>
 	'deploy.sectionTitle': 'Guías de implementación',
-	'deploy.altSectionTitle': 'Más guías de despliegue',
-	'deploy.filterLabel': 'Filtrar por tipo de despliegue',
+	'deploy.altSectionTitle': 'Más guías de implementación',
+	'deploy.filterLabel': 'Filtrar por tipo de implementación',
 	'deploy.ssrTag': 'SSR',
 	'deploy.staticTag': 'Estático',
-	// CMS Guides vocabulary
+	// Vocabulario de guías de CMS
 	'cms.navTitle': 'Más guías de CMS',
-	// Migration Guides vocabulary
+	// Vocabulario de guías de migración
 	'migration.navTitle': 'Más guías de migración',
-	// Recipes vocabulary
+	// Vocabulario de recetas
 	'recipes.navTitle': 'Más recetas',
-	// `<ContributorList>` fallback text
-	'contributors.seeAll': 'Ver a todos los contribuidores',
-	// Fallback content notice shown when a page is not yet translated
+	// Vocabulario de <RecipeLinks>
+	'recipesLink.singular': 'Receta relacionada:',
+	'recipesLink.plural': 'Recetas relacionadas',
+	// Texto de respaldo para <ContributorList>
+	'contributors.seeAll': 'Ver todos los colaboradores',
+	// Aviso de contenido de respaldo que se muestra cuando una página aún no está traducida
 	'fallbackContent.notice':
-		'Esta página aún no está disponible en tu idioma, mientras tanto verás la versión en inglés. ¡Ayúdanos a traducirla!',
-	'fallbackContent.linkText': 'Más información sobre cómo contribuir',
-	// 404 Page
+		'Esta página aún no está disponible en tu idioma, así que te mostramos la versión en inglés. ¡Puedes ayudar traduciéndola!',
+	'fallbackContent.linkText': 'Obtén más información sobre cómo contribuir',
+	// Página 404
 	'404.title': 'No encontrado',
 	'404.content': 'Esta página no está en nuestro sistema solar.',
 	'404.linkText': 'Volver a la página principal.',
-	// `<CodeSnippet>` vocabulary
-	'codeSnippet.terminalCaption': 'Ventana del terminal',
-	// `<LanguageSelect>` vocabulary
+	// Etiquetas predeterminadas del componente Aside
+	'aside.note': 'Nota',
+	'aside.tip': 'Consejo',
+	'aside.caution': 'Precaución',
+	'aside.danger': 'Peligro',
+	// Vocabulario de <CodeSnippet>
+	'codeSnippet.terminalCaption': 'Ventana de terminal',
+	// Vocabulario de <LanguageSelect>
 	'languageSelect.label': 'Seleccionar idioma',
-	// Integrations vocabulary
+	// Vocabulario de integraciones
 	'integrations.changelog': 'Registro de cambios',
 	'integrations.footerTitle': 'Más integraciones',
-	'integrations.renderers': 'UI Frameworks',
+	'integrations.renderers': 'Frameworks UI',
 	'integrations.adapters': 'Adaptadores SSR',
 	'integrations.others': 'Otros',
-	// Checklist component
+	// Componente Checklist
 	'checklist.or': 'o',
-	// Multiple Choice component
+	// Componente Multiple Choice
 	'multipleChoice.defaultCorrect': '¡Correcto!',
 	'multipleChoice.defaultIncorrect': '¡Inténtalo de nuevo!',
 	'multipleChoice.submitLabel': 'Enviar',
-	// Tutorial Progress
-	'progress.todo': 'Tareas pendientes',
-	'progress.done': 'Completo',
-	// Tutorial Navigation
-	'tutorial.trackerLabel': 'Rastreador de tutoriales',
+	// Progreso del tutorial
+	'progress.todo': 'Por hacer',
+	'progress.done': 'Completado',
+	// Navegación del tutorial
+	'tutorial.trackerLabel': 'Seguimiento del tutorial',
 	'tutorial.unit': 'Unidad',
 	// Tutorial
 	'tutorial.getReady': 'Prepárate para...',
-	// Feedback Fish widget
-	'feedback.button': 'Déjanos tu opinión',
+	// Widget Feedback Fish
+	'feedback.button': 'Danos tu opinión',
 	'feedback.a11yLabel': 'Formulario de opinión',
 	'feedback.formTitle': '¿Qué tienes en mente?',
-	'feedback.categoryGroupLabel': 'Elija el tipo de respuesta',
+	'feedback.categoryGroupLabel': 'Elige una categoría de opinión',
 	'feedback.issue': 'Problema',
+	'feedback.createIssue': 'Crear un problema en GitHub',
 	'feedback.idea': 'Idea',
 	'feedback.other': 'Otro',
 	'feedback.messageA11yLabel': 'Mensaje',
-	'feedback.placeholder': '¿Qué quieres que sepamos?',
+	'feedback.placeholder': '¿Qué nos quieres decir?',
 	'feedback.submit': 'Enviar opinión',
 	'feedback.close': 'Cerrar formulario de opinión',
-	// `<FileTree>` component
+	'feedback.success': '¡Gracias! Hemos recibido tu opinión.',
+	// Componente <FileTree>
 	'fileTree.directoryLabel': 'Directorio',
+	// Clase CopyButton en el componente <CodeSnippet>
+	'copyButton.title': 'Copiar al portapapeles',
+	'copyButton.tooltip': '¡Copiado!',
+	// Vocabulario de guías de backend
+	'backend.navTitle': 'Más guías de servicios backend',
 });

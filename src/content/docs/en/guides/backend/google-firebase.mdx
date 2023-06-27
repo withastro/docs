@@ -4,6 +4,7 @@ description: Add a backend to your project with Firebase
 type: backend
 service: Firebase
 stub: false
+i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import FileTree from '~/components/FileTree.astro'
@@ -20,8 +21,8 @@ See our separate guide for [deploying to Firebase hosting](/en/guides/deploy/goo
 - A [Firebase project with a web app configured](https://firebase.google.com/docs/web/setup).
 - An Astro project with [server-side rendering (SSR)](/en/guides/server-side-rendering/#enabling-ssr-in-your-project) enabled.
 - Firebase credentials: You will need two sets of credentials to connect Astro to Firebase:
-  - Web app credentials: These credentials will be used by the client side of your app. You can find them in the Firebase console under Project settings > General. Scroll down to the "Your apps" section and click on the "Web app" icon.
-  - Project credentials: These credentials will be used by the server side of your app. You can generate them in the Firebase console under Project settings > Service accounts > Firebase Admin SDK > Generate new private key.
+  - Web app credentials: These credentials will be used by the client side of your app. You can find them in the Firebase console under *Project settings > General*. Scroll down to the **Your apps** section and click on the **Web app** icon.
+  - Project credentials: These credentials will be used by the server side of your app. You can generate them in the Firebase console under *Project settings > Service accounts > Firebase Admin SDK > Generate new private key*.
 
 ### Adding Firebase credentials
 
@@ -112,7 +113,7 @@ const firebaseConfig = {
   apiKey: "my-public-api-key",
   authDomain: "my-auth-domain",
   projectId: "my-project-id",
-  storageBucket: "my-storage-bucket,
+  storageBucket: "my-storage-bucket",
   messagingSenderId: "my-sender-id",
   appId: "my-app-id",
 };
@@ -170,7 +171,7 @@ Finally, your project should now include these new files:
 ### Prerequisites
 
 - An Astro project [initialized with Firebase](#initializing-firebase-in-astro).
-- A Firebase project with email/password authentication enabled in the Firebase console under Authentication > Sign-in method.
+- A Firebase project with email/password authentication enabled in the Firebase console under *Authentication > Sign-in* method.
 
 ### Creating auth server endpoints
 
@@ -196,35 +197,29 @@ export const get: APIRoute = async ({ request, cookies, redirect }) => {
   const idToken = request.headers.get("Authorization")?.split("Bearer ")[1];
   if (!idToken) {
     return new Response(
-      JSON.stringify({
-        error: "No token found",
-      }),
+      "No token found",
       { status: 401 }
     );
   }
 
-  /* Verify the token */
-  const decodedToken = await auth.verifyIdToken(idToken).catch(() => null);
-
-  if (!decodedToken) {
+  /* Verify id token */
+  try {
+    await auth.verifyIdToken(idToken);
+  } catch (error) {
     return new Response(
-      JSON.stringify({
-        error: "Invalid token",
-      }),
+      "Invalid token",
       { status: 401 }
     );
   }
-
-  const fiveDays = 60 * 60 * 24 * 5 * 1000;
 
   /* Create and set session cookie */
+  const fiveDays = 60 * 60 * 24 * 5 * 1000;
   const sessionCookie = await auth.createSessionCookie(idToken, {
     expiresIn: fiveDays,
   });
 
   cookies.set("session", sessionCookie, {
     path: "/",
-    // more options
   });
 
   return redirect("/dashboard");
@@ -270,9 +265,7 @@ export const post: APIRoute = async ({ request, redirect }) => {
 
   if (!email || !password || !name) {
     return new Response(
-      JSON.stringify({
-        error: "Missing data",
-      }),
+      "Missing form data",
       { status: 400 }
     );
   }
@@ -286,9 +279,7 @@ export const post: APIRoute = async ({ request, redirect }) => {
     });
   } catch (error: any) {
     return new Response(
-      JSON.stringify({
-        error: error.code,
-      }),
+      "Something went wrong",
       { status: 400 }
     );
   }
@@ -321,7 +312,7 @@ After creating server endpoints for authentication, your project directory shoul
 
 ### Creating pages
 
-Create the pages that will use the Firesbase endpoints:
+Create the pages that will use the Firebase endpoints:
 
 - `src/pages/register` - will contain a form to register a user
 - `src/pages/signin` - will contain a form to sign in a user
@@ -333,18 +324,19 @@ The example `src/pages/register.astro` below includes a form that will send a `P
 ---
 import Layout from "../layouts/Layout.astro";
 ---
+
 <Layout title="Register">
-	<h1>Register</h1>
+  <h1>Register</h1>
   <p>Already have an account? <a href="/signin">Sign in</a></p>
-	<form action="/api/auth/register" method="post">
+  <form action="/api/auth/register" method="post">
     <label for="name">Name</label>
     <input type="text" name="name" id="name" />
     <label for="email" for="email">Email</label>
-		<input type="email" name="email" id="email" />
+    <input type="email" name="email" id="email" />
     <label for="password">Password</label>
-		<input type="password" name="password" id="password" />
-		<button type="submit">Login</button>
-	</form>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+  </form>
 </Layout>
 ```
 
@@ -372,44 +364,53 @@ if (sessionCookie) {
 ---
 
 <Layout title="Sign in">
-	<h1>Sign in</h1>
+  <h1>Sign in</h1>
   <p>New here? <a href="/register">Create an account</a></p>
-	<form action="/api/auth/signin" method="post">
+  <form action="/api/auth/signin" method="post">
     <label for="email" for="email">Email</label>
-		<input type="email" name="email" id="email" />
+    <input type="email" name="email" id="email" />
     <label for="password">Password</label>
-		<input type="password" name="password" id="password" />
-		<button type="submit">Login</button>
-	</form>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+  </form>
 </Layout>
 <script>
-  import { getAuth, inMemoryPersistence, signInWithEmailAndPassword } from "firebase/auth"
-  import { app } from "../firebase/client"
+  import {
+    getAuth,
+    inMemoryPersistence,
+    signInWithEmailAndPassword,
+  } from "firebase/auth";
+  import { app } from "../firebase/client";
 
   const auth = getAuth(app);
-  auth.setPersistence(inMemoryPersistence)
+  // This will prevent the browser from storing session data
+  auth.setPersistence(inMemoryPersistence);
 
-  const form = document.querySelector('form') as HTMLFormElement;
-  form.addEventListener('submit', async (e) => {
+  const form = document.querySelector("form") as HTMLFormElement;
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const formData = new FormData(form);
-    const email = formData.get('email')?.toString();
-    const password = formData.get('password')?.toString();
+    const email = formData.get("email")?.toString();
+    const password = formData.get("password")?.toString();
 
     if (!email || !password) {
       return;
     }
-    const userCredential = await signInWithEmailAndPassword(auth, email, password)
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
     const idToken = await userCredential.user.getIdToken();
-    const response = await fetch('/api/auth/signin', {
-      method: 'GET',
+    const response = await fetch("/api/auth/signin", {
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${idToken}`
-      }
-    })
-    
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+
     if (response.redirected) {
-      window.location.assign(response.url)
+      window.location.assign(response.url);
     }
   });
 </script>
@@ -442,14 +443,14 @@ if (!user) {
   return Astro.redirect("/signin");
 }
 ---
+
 <Layout title="dashboard">
-	<h1>Welcome {user.displayName}</h1>
-	<p>We are happy to see you here</p>
+  <h1>Welcome {user.displayName}</h1>
+  <p>We are happy to see you here</p>
   <form action="/api/auth/signout">
     <button type="submit">Sign out</button>
   </form>
 </Layout>
-</html>
 ```
 
 ### Adding OAuth providers
@@ -460,12 +461,11 @@ In the Firebase console, go to the **Authentication** section and click on the *
 
 The example below uses the **Google** provider.
 
-
 Edit the `signin.astro` page to add:
 - a button to sign in with Google underneath the existing form
 - an event listener on the button to handle the sign in process in the existing `<script>`.
 
-```astro title="src/pages/signin.astro" ins={27, 34, 35, 65-78}
+```astro title="src/pages/signin.astro" ins={27, 34, 35, 69-83}
 ---
 import { app } from "../firebase/server";
 import { getAuth } from "firebase-admin/auth";
@@ -483,15 +483,15 @@ if (sessionCookie) {
 ---
 
 <Layout title="Sign in">
-	<h1>Sign in</h1>
+  <h1>Sign in</h1>
   <p>New here? <a href="/register">Create an account</a></p>
-	<form action="/api/auth/signin" method="post">
+  <form action="/api/auth/signin" method="post">
     <label for="email" for="email">Email</label>
-		<input type="email" name="email" id="email" />
+    <input type="email" name="email" id="email" />
     <label for="password">Password</label>
-		<input type="password" name="password" id="password" />
-		<button type="submit">Login</button>
-	</form>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+  </form>
   <button id="google">Sign in with Google</button>
 </Layout>
 <script>
@@ -502,48 +502,53 @@ if (sessionCookie) {
     GoogleAuthProvider,
     signInWithPopup,
   } from "firebase/auth";
-  import { app } from "../firebase/client"
+  import { app } from "../firebase/client";
 
   const auth = getAuth(app);
-  auth.setPersistence(inMemoryPersistence)
+  auth.setPersistence(inMemoryPersistence);
 
-  const form = document.querySelector('form') as HTMLFormElement;
-  form.addEventListener('submit', async (e) => {
+  const form = document.querySelector("form") as HTMLFormElement;
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const formData = new FormData(form);
-    const email = formData.get('email')?.toString();
-    const password = formData.get('password')?.toString();
+    const email = formData.get("email")?.toString();
+    const password = formData.get("password")?.toString();
 
     if (!email || !password) {
       return;
     }
-    const userCredential = await signInWithEmailAndPassword(auth, email, password)
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
     const idToken = await userCredential.user.getIdToken();
-    const response = await fetch('/api/auth/signin', {å
+    const response = await fetch("/api/auth/signin", {
       headers: {
-        'Authorization': `Bearer ${idToken}`
-      }
-    })
-    
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+
     if (response.redirected) {
-      window.location.assign(response.url)
+      window.location.assign(response.url);
     }
   });
 
-  const googleSignin = document.querySelector('#google') as HTMLButtonElement;
+  const googleSignin = document.querySelector("#google") as HTMLButtonElement;
   googleSignin.addEventListener("click", async () => {
     const provider = new GoogleAuthProvider();
     const userCredential = await signInWithPopup(auth, provider);
     const idToken = await userCredential.user.getIdToken();
     const res = await fetch("/api/auth/signin", {
-    headers: {
-      Authorization: `Bearer ${idToken}`,
-    },
-  });
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
 
-  if (res.redirected) {
-    window.location.assign(res.url);
-  }})
+    if (res.redirected) {
+      window.location.assign(res.url);
+    }
+  });
 </script>
 ```
 
@@ -566,17 +571,13 @@ In this recipe, the Firestore collection will be called **friends** and will con
 - `age`: a number field
 - `isBestFriend`: a boolean field
 
-
 ### Creating the server endpoints
 
 Create two new files in a new directory `src/pages/api/friends/`: `index.ts` and `[id].ts`. These will create two server endpoints to interact with the Firestore database in the following ways:
 
 - `POST /api/friends`: to create a new document in the friends collection.
-- `GET /api/friends/:id`: to get a document in the friends collection.
 - `POST /api/friends/:id`: to update a document in the friends collection.
 - `DELETE /api/friends/:id`: to delete a document in the friends collection.
-
-
 
 `index.ts` will contain the code to create a new document in the friends collection:
 
@@ -605,7 +606,9 @@ export const post: APIRoute = async ({ request, redirect }) => {
       isBestFriend,
     });
   } catch (error) {
-    console.error(error);
+    return new Response("Something went wrong", {
+      status: 500,
+    });
   }
   return redirect("/dashboard");
 };
@@ -650,7 +653,9 @@ export const post: APIRoute = async ({ params, redirect, request }) => {
       isBestFriend,
     });
   } catch (error) {
-    console.error(error);
+    return new Response("Something went wrong", {
+      status: 500,
+    });
   }
   return redirect("/dashboard");
 };
@@ -665,10 +670,12 @@ export const del: APIRoute = async ({ params, redirect }) => {
   try {
     await friendsRef.doc(params.id).delete();
   } catch (error) {
-    console.error(error);
+    return new Response("Something went wrong", {
+      status: 500,
+    });
   }
   return redirect("/dashboard");
-}
+};
 ```
 
 :::note
@@ -733,9 +740,9 @@ If the user clicks the delete button, this page will send a `DELETE` request to 
 
 ```astro title="src/pages/edit/[id].astro"
 ---
-import Layout from '../../layouts/Layout.astro'
-import { app } from '../../firebase/server'
-import { getFirestore } from 'firebase-admin/firestore'
+import Layout from "../../layouts/Layout.astro";
+import { app } from "../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
 
 interface Friend {
   name: string;
@@ -743,22 +750,23 @@ interface Friend {
   isBestFriend: boolean;
 }
 
-const { id } = Astro.params
+const { id } = Astro.params;
 
 if (!id) {
-  return Astro.redirect('/404')
+  return Astro.redirect("/404");
 }
 
-const db = getFirestore(app)
+const db = getFirestore(app);
 const friendsRef = db.collection("friends");
-const friendSnapshot = await friendsRef.doc(id).get()
+const friendSnapshot = await friendsRef.doc(id).get();
 
 if (!friendSnapshot.exists) {
-  return Astro.redirect('/404')
+  return Astro.redirect("/404");
 }
 
-const friend = friendSnapshot.data() as Friend
+const friend = friendSnapshot.data() as Friend;
 ---
+
 <Layout title="Edit {friend.name}">
   <h1>Edit {friend.name}</h1>
   <p>Here you can edit or delete your friend's data.</p>
@@ -768,22 +776,29 @@ const friend = friendSnapshot.data() as Friend
     <label for="age">Age</label>
     <input type="number" id="age" name="age" value={friend.age} />
     <label for="isBestFriend">Is best friend?</label>
-    <input type="checkbox" id="isBestFriend" name="isBestFriend" checked={friend.isBestFriend}/>
+    <input
+      type="checkbox"
+      id="isBestFriend"
+      name="isBestFriend"
+      checked={friend.isBestFriend}
+    />
     <button type="submit">Edit friend</button>
   </form>
   <button type="button" id="delete-document">Delete</button>
 </Layout>
 <script>
-  const deleteButton = document.getElementById('delete-document') as HTMLButtonElement
-  const url = document.querySelector('form')?.getAttribute('action') as string
-  deleteButton.addEventListener('click', async () => {
+  const deleteButton = document.getElementById(
+    "delete-document"
+  ) as HTMLButtonElement;
+  const url = document.querySelector("form")?.getAttribute("action") as string;
+  deleteButton.addEventListener("click", async () => {
     const response = await fetch(url, {
-      method: 'DELETE'
-    })
+      method: "DELETE",
+    });
     if (response.redirected) {
-      window.location.assign(response.url)
+      window.location.assign(response.url);
     }
-  })
+  });
 </script>
 ```
 
@@ -793,9 +808,9 @@ const friend = friendSnapshot.data() as Friend
 
 ```astro title="src/pages/friend/[id].astro"
 ---
-import Layout from '../../layouts/Layout.astro'
-import { app } from '../../firebase/server'
-import { getFirestore } from 'firebase-admin/firestore'
+import Layout from "../../layouts/Layout.astro";
+import { app } from "../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
 
 interface Friend {
   name: string;
@@ -803,26 +818,27 @@ interface Friend {
   isBestFriend: boolean;
 }
 
-const { id } = Astro.params
+const { id } = Astro.params;
 
 if (!id) {
-  return Astro.redirect('/404')
+  return Astro.redirect("/404");
 }
 
-const db = getFirestore(app)
+const db = getFirestore(app);
 const friendsRef = db.collection("friends");
-const friendSnapshot = await friendsRef.doc(id).get()
+const friendSnapshot = await friendsRef.doc(id).get();
 
 if (!friendSnapshot.exists) {
-  return Astro.redirect('/404')
+  return Astro.redirect("/404");
 }
 
-const friend = friendSnapshot.data() as Friend
+const friend = friendSnapshot.data() as Friend;
 ---
+
 <Layout title={friend.name}>
   <h1>{friend.name}</h1>
   <p>Age: {friend.age}</p>
-  <p>Is best friend: {friend.isBestFriend ? 'Yes' : 'No'}</p>
+  <p>Is best friend: {friend.isBestFriend ? "Yes" : "No"}</p>
 </Layout>
 ```
 
@@ -843,7 +859,7 @@ interface Friend {
   isBestFriend: boolean;
 }
 
-const db = getFirestore(app)
+const db = getFirestore(app);
 const friendsRef = db.collection("friends");
 const friendsSnapshot = await friendsRef.get();
 const friends = friendsSnapshot.docs.map((doc) => ({
@@ -858,9 +874,7 @@ const friends = friendsSnapshot.docs.map((doc) => ({
     {
       friends.map((friend) => (
         <li>
-          <a href={`/friend/${friend.id}`}>
-            <span>{friend.name}</span>
-          </a>
+          <a href={`/friend/${friend.id}`}>{friend.name}</a>
           <span>({friend.age})</span>
           <strong>{friend.isBestFriend ? "Bestie" : "Friend"}</strong>
           <a href={`/edit/${friend.id}`}>Edit</a>
@@ -869,6 +883,7 @@ const friends = friendsSnapshot.docs.map((doc) => ({
     }
   </ul>
 </Layout>
+
 ```
 
 After creating all the pages, you should have the following file structure:
