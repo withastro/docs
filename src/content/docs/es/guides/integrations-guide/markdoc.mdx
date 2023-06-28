@@ -1,0 +1,417 @@
+---
+type: integration
+title: '@astrojs/markdoc'
+description: Aprende a usar la integración @astrojs/markdoc en tu proyecto Astro.
+githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/markdoc/'
+hasREADME: true
+category: other
+i18nReady: true
+---
+
+import Video from '~/components/Video.astro';
+
+
+Esta **[integración de Astro][astro-integration]** permite el uso de [Markdoc](https://markdoc.dev/) para crear componentes, páginas y entradas de colecciones de contenido.
+
+## ¿Por qué Markdoc?
+
+Markdoc te permite mejorar tu Markdown con [componentes Astro][astro-components]. Si tienes contenido existente escrito en Markdoc, esta integración te permite traer esos archivos a tu proyecto Astro usando colecciones de contenido.
+
+## Instalación
+
+### Instalación rápida
+
+La herramienta de línea de comandos `astro add` automatiza la instalación por ti. Ejecuta uno de los siguientes comandos en una nueva ventana de terminal. (Si no estás seguro de qué gestor de paquetes estás usando, ejecuta el primer comando.) Luego, sigue las indicaciones y escribe "y" en la terminal (que significa "sí") para cada una.
+
+```sh
+# Usando NPM
+npx astro add markdoc
+# Usando Yarn
+yarn astro add markdoc
+# Usando PNPM
+pnpm astro add markdoc
+```
+
+Si tienes algún problema, [no dudes en reportarlo en GitHub](https://github.com/withastro/astro/issues) e intenta los pasos de instalación manual a continuación.
+
+### Instalación manual
+
+Primero, instala el paquete `@astrojs/markdoc` usando tu gestor de paquetes. Si estás usando npm o no estás seguro, ejecuta esto en la terminal:
+
+```sh
+npm install @astrojs/markdoc
+```
+
+Luego, aplica esta integración a tu archivo `astro.config.*` usando la propiedad `integrations`:
+
+**`astro.config.mjs`**
+
+```js ins={2} "markdoc()"
+import { defineConfig } from 'astro/config';
+import markdoc from '@astrojs/markdoc';
+
+export default defineConfig({
+  // ...
+  integrations: [markdoc()],
+});
+```
+
+### Integración del editor
+
+[VS Code](https://code.visualstudio.com/) admite Markdown de forma predeterminada. Sin embargo, para el soporte del editor Markdoc, es posible que desees agregar la siguiente configuración en tu configuración de VSCode. Esto garantiza que la creación de archivos Markdoc proporcione una experiencia de edición similar a Markdown.
+
+```json title=".vscode/settings.json"
+{
+  "files.associations": {
+    "*.mdoc": "markdown"
+  }
+}
+```
+
+## Uso
+
+Los archivos Markdoc solo se pueden usar dentro de las colecciones de contenido. Agrega entradas a cualquier colección de contenido usando la extensión `.mdoc`:
+
+```sh
+
+```sh
+src/content/docs/
+  why-markdoc.mdoc
+  quick-start.mdoc
+```
+
+Then, query your collection using the [Content Collection APIs](/en/guides/content-collections/#querying-collections):
+Luego, consulta tu colección usando las [APIs de colecciones de contenido](/es/guides/content-collections/#querying-collections):
+
+```astro
+---
+import { getEntryBySlug } from 'astro:content';
+
+const entry = await getEntryBySlug('docs', 'why-markdoc');
+const { Content } = await entry.render();
+---
+
+<!--Access frontmatter properties with `data`-->
+<h1>{entry.data.title}</h1>
+<!--Render Markdoc contents with the Content component-->
+<Content />
+```
+
+📚 See the [Astro Content Collection docs][astro-content-collections] for more information.
+
+## Configuration
+
+`@astrojs/markdoc` offers configuration options to use all of Markdoc's features and connect UI components to your content.
+
+### Use Astro components as Markdoc tags
+
+You can configure [Markdoc tags][markdoc-tags] that map to `.astro` components. You can add a new tag by creating a `markdoc.config.mjs|ts` file at the root of your project and configuring the `tag` attribute.
+
+This example renders an `Aside` component, and allows a `type` prop to be passed as a string:
+
+```js
+// markdoc.config.mjs
+import { defineMarkdocConfig } from '@astrojs/markdoc/config';
+import Aside from './src/components/Aside.astro';
+
+export default defineMarkdocConfig({
+  tags: {
+    aside: {
+      render: Aside,
+      attributes: {
+        // Markdoc requires type defs for each attribute.
+        // These should mirror the `Props` type of the component
+        // you are rendering.
+        // See Markdoc's documentation on defining attributes
+        // https://markdoc.dev/docs/attributes#defining-attributes
+        type: { type: String },
+      },
+    },
+  },
+});
+```
+
+This component can now be used in your Markdoc files with the `{% aside %}` tag. Children will be passed to your component's default slot:
+
+```md
+# Welcome to Markdoc 👋
+
+{% aside type="tip" %}
+
+Use tags like this fancy "aside" to add some _flair_ to your docs.
+
+{% /aside %}
+```
+
+### Custom headings
+
+`@astrojs/markdoc` automatically adds anchor links to your headings, and [generates a list of `headings` via the content collections API](/en/guides/content-collections/#rendering-content-to-html). To further customize how headings are rendered, you can apply an Astro component [as a Markdoc node][markdoc-nodes].
+
+This example renders a `Heading.astro` component using the `render` property:
+
+```js
+// markdoc.config.mjs
+import { defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
+import Heading from './src/components/Heading.astro';
+
+export default defineMarkdocConfig({
+  nodes: {
+    heading: {
+      ...nodes.heading, // Preserve default anchor link generation
+      render: Heading,
+    },
+  },
+});
+```
+
+All Markdown headings will render the `Heading.astro` component and pass the following `attributes` as component props:
+
+*   `level: number` The heading level 1 - 6
+*   `id: string` An `id` generated from the heading's text contents. This corresponds to the `slug` generated by the [content `render()` function](/en/guides/content-collections/#rendering-content-to-html).
+
+For example, the heading `### Level 3 heading!` will pass `level: 3` and `id: 'level-3-heading'` as component props.
+
+### Syntax highlighting
+
+`@astrojs/markdoc` provides [Shiki](https://github.com/shikijs/shiki) and [Prism](https://github.com/PrismJS) extensions to highlight your code blocks.
+
+#### Shiki
+
+Apply the `shiki()` extension to your Markdoc config using the `extends` property. You can optionally pass a shiki configuration object:
+
+```js
+// markdoc.config.mjs
+import { defineMarkdocConfig } from '@astrojs/markdoc/config';
+import shiki from '@astrojs/markdoc/shiki';
+
+export default defineMarkdocConfig({
+  extends: [
+    shiki({
+      // Choose from Shiki's built-in themes (or add your own)
+      // Default: 'github-dark'
+      // https://github.com/shikijs/shiki/blob/main/docs/themes.md
+      theme: 'dracula',
+      // Enable word wrap to prevent horizontal scrolling
+      // Default: false
+      wrap: true,
+      // Pass custom languages
+      // Note: Shiki has countless langs built-in, including `.astro`!
+      // https://github.com/shikijs/shiki/blob/main/docs/languages.md
+      langs: [],
+    }),
+  ],
+});
+```
+
+#### Prism
+
+Apply the `prism()` extension to your Markdoc config using the `extends` property.
+
+```js
+// markdoc.config.mjs
+import { defineMarkdocConfig } from '@astrojs/markdoc/config';
+import prism from '@astrojs/markdoc/prism';
+
+export default defineMarkdocConfig({
+  extends: [prism()],
+});
+```
+
+📚 To learn about configuring Prism stylesheets, [see our syntax highlighting guide](/en/guides/markdown-content/#prism-configuration).
+
+### Set the root HTML element
+
+Markdoc wraps documents with an `<article>` tag by default. This can be changed from the `document` Markdoc node. This accepts an HTML element name or `null` if you prefer to remove the wrapper element:
+
+```js
+// markdoc.config.mjs
+import { defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  nodes: {
+    document: {
+      ...nodes.document, // Apply defaults for other options
+      render: null, // default 'article'
+    },
+  },
+});
+```
+
+### Custom Markdoc nodes / elements
+
+You may want to render standard Markdown elements, such as paragraphs and bolded text, as Astro components. For this, you can configure a [Markdoc node][markdoc-nodes]. If a given node receives attributes, they will be available as component props.
+
+This example renders blockquotes with a custom `Quote.astro` component:
+
+```js
+// markdoc.config.mjs
+import { defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
+import Quote from './src/components/Quote.astro';
+
+export default defineMarkdocConfig({
+  nodes: {
+    blockquote: {
+      ...nodes.blockquote, // Apply Markdoc's defaults for other options
+      render: Quote,
+    },
+  },
+});
+```
+
+📚 [Find all of Markdoc's built-in nodes and node attributes on their documentation.](https://markdoc.dev/docs/nodes#built-in-nodes)
+
+### Use client-side UI components
+
+Tags and nodes are restricted to `.astro` files. To embed client-side UI components in Markdoc, [use a wrapper `.astro` component that renders a framework component](https://github.com/withastro/astro/tree/main/packages/integrations/markdoc/en/core-concepts/framework-components/#nesting-framework-components) with your desired `client:` directive.
+
+This example wraps a React `Aside.tsx` component with a `ClientAside.astro` component:
+
+```astro
+---
+// src/components/ClientAside.astro
+import Aside from './Aside';
+---
+
+<Aside {...Astro.props} client:load />
+```
+
+This Astro component can now be passed to the `render` prop for any [tag][markdoc-tags] or [node][markdoc-nodes] in your config:
+
+```js
+// markdoc.config.mjs
+import { defineMarkdocConfig } from '@astrojs/markdoc/config';
+import ClientAside from './src/components/ClientAside.astro';
+
+export default defineMarkdocConfig({
+  tags: {
+    aside: {
+      render: ClientAside,
+      attributes: {
+        type: { type: String },
+      },
+    },
+  },
+});
+```
+
+### Markdoc config
+
+The `markdoc.config.mjs|ts` file accepts [all Markdoc configuration options](https://markdoc.dev/docs/config), including [tags](https://markdoc.dev/docs/tags) and [functions](https://markdoc.dev/docs/functions).
+
+You can pass these options from the default export in your `markdoc.config.mjs|ts` file:
+
+```js
+// markdoc.config.mjs
+import { defineMarkdocConfig } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  functions: {
+    getCountryEmoji: {
+      transform(parameters) {
+        const [country] = Object.values(parameters);
+        const countryToEmojiMap = {
+          japan: '🇯🇵',
+          spain: '🇪🇸',
+          france: '🇫🇷',
+        };
+        return countryToEmojiMap[country] ?? '🏳';
+      },
+    },
+  },
+});
+```
+
+Now, you can call this function from any Markdoc content entry:
+
+```md
+¡Hola {% getCountryEmoji("spain") %}!
+```
+
+📚 [See the Markdoc documentation](https://markdoc.dev/docs/functions#creating-a-custom-function) for more on using variables or functions in your content.
+
+### Pass Markdoc variables
+
+You may need to pass [variables][markdoc-variables] to your content. This is useful when passing SSR parameters like A/B tests.
+
+Variables can be passed as props via the `Content` component:
+
+```astro
+---
+import { getEntryBySlug } from 'astro:content';
+
+const entry = await getEntryBySlug('docs', 'why-markdoc');
+const { Content } = await entry.render();
+---
+
+<!--Pass the `abTest` param as a variable-->
+<Content abTestGroup={Astro.params.abTestGroup} />
+```
+
+Now, `abTestGroup` is available as a variable in `docs/why-markdoc.mdoc`:
+
+```md
+{% if $abTestGroup === 'image-optimization-lover' %}
+
+Let me tell you about image optimization...
+
+{% /if %}
+```
+
+To make a variable global to all Markdoc files, you can use the `variables` attribute from your `markdoc.config.mjs|ts`:
+
+```js
+import { defineMarkdocConfig } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  variables: {
+    environment: process.env.IS_PROD ? 'prod' : 'dev',
+  },
+});
+```
+
+### Access frontmatter from your Markdoc content
+
+To access frontmatter, you can pass the entry `data` property [as a variable](#pass-markdoc-variables) where you render your content:
+
+```astro
+---
+import { getEntry } from 'astro:content';
+
+const entry = await getEntry('docs', 'why-markdoc');
+const { Content } = await entry.render();
+---
+
+<Content frontmatter={entry.data} />
+```
+
+This can now be accessed as `$frontmatter` in your Markdoc.
+
+## Examples
+
+*   The [Astro Markdoc starter template](https://github.com/withastro/astro/tree/latest/examples/with-markdoc) shows how to use Markdoc files in your Astro project.
+
+## Troubleshooting
+
+For help, check out the `#support` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
+
+You can also check our [Astro Integration Documentation][astro-integration] for more on integrations.
+
+## Contributing
+
+This package is maintained by Astro's Core team. You're welcome to submit an issue or PR!
+
+## Changelog
+
+See [CHANGELOG.md](https://github.com/withastro/astro/tree/main/packages/integrations/markdoc/CHANGELOG.md) for a history of changes to this integration.
+
+[astro-integration]: /en/guides/integrations-guide/
+
+[astro-components]: /en/core-concepts/astro-components/
+
+[astro-content-collections]: /en/guides/content-collections/
+
+[markdoc-tags]: https://markdoc.dev/docs/tags
+
+[markdoc-nodes]: https://markdoc.dev/docs/nodes
+
+[markdoc-variables]: https://markdoc.dev/docs/variables
