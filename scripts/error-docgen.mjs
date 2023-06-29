@@ -3,8 +3,10 @@ import jsdoc from 'jsdoc-api';
 import fetch from 'node-fetch';
 import ts from 'typescript';
 
-const errorURL =
-	'https://raw.githubusercontent.com/withastro/astro/main/packages/astro/src/core/errors/errors-data.ts';
+const sourceBranch = process.env.SOURCE_BRANCH || 'main';
+const sourceRepo = process.env.SOURCE_REPO || 'withastro/astro';
+
+const errorURL = `https://raw.githubusercontent.com/${sourceRepo}/${sourceBranch}/packages/astro/src/core/errors/errors-data.ts`;
 
 // Fill this in to test a response locally, with fetching.
 const STUB = undefined; // fs.readFileSync('../astro/packages/astro/src/core/errors/errors-data.ts', {encoding: 'utf-8',});
