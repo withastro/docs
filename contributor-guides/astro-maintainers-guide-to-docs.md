@@ -61,7 +61,7 @@ As a maintainer, here are some helpful things you can do:
 
 For PRs related to text content, including formatting of content for ease of readability as well as organizing and structuring content:
 
-- Consult our [writing guide](/WRITING.md) when evaluating new or revised text content to the docs.
+- Consult our [writing guide](/writing-and-style-guide.md) when evaluating new or revised text content to the docs.
 - Proofread, edit, make suggestions and leave "LGTM" (and/or "NWTWWHB") as appropriate.
 - For most non-trivial PRs, the Docs Lead will likely want to do a final review themselves before the PR is merged.
 
@@ -88,7 +88,7 @@ We encourage our maintainers to audit and improve the accessibility of our code 
 
 For PRs that are translations to existing Docs content, including new page additions as well as smaller updates and corrections:
 
-- Consult the [Internationalization Guide](/TRANSLATING.md) to familiarize yourself with the translators' process.
+- Consult the [Internationalization Guide](/translating-astro-docs.md) to familiarize yourself with the translators' process.
 - If you see "LGTM" in a message within the PR, that means at least one other native speaker has approved the translation, and the PR can be immediately merged! 🥳
 - If you speak the language natively, check the content for accuracy. Note: some languages have created their own glossaries and/or language guides located in their language folder within `/src/i18n/`.
 - If you do not speak the language natively, and the PR has not had any recent activity, you can use online translation tools (e.g. Google Translate) and scan the results for anything that looks wildly out of place. Also, visit the page in the PR’s Netlify deploy preview to verify that nothing is visually out of place. While we always prefer to have a review from a native speaker of the language, having translated docs with some errors is usually better than having no docs at all.
