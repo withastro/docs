@@ -1,5 +1,5 @@
 ---
-title: Estilos & CSS
+title: Estilos y CSS
 description: Aprende a diseñar componentes en Astro con estilos locales, CSS externo y herramientas Sass y PostCSS
 i18nReady: true
 ---
@@ -23,13 +23,28 @@ Estilar un componente de Astro es tan fácil como agregar una etiqueta `<style>`
 
 Las reglas de CSS en Astro `<style>` tienen **un alcance local de forma predeterminada**. Los estilos con alcance local se compilan para que sólo se apliquen al HTML escrito dentro de ese mismo componente. El CSS escrito dentro de un componente de Astro se encapsula automáticamente dentro del mismo.
 
-```astro del={2,5} ins={3,6} ins=":where(.astro-HHNQFKH6)"
+Este CSS:
+```astro title="index.astro"
 <style>
-  h1 { color: red; }
-  h1:where(.astro-HHNQFKH6) { color: red; }
+  h1 { 
+    color: red; 
+  }
 
-  .text { color: blue; }
-  .text:where(.astro-HHNQFKH6) { color: blue; }
+  .text { 
+    color: blue; 
+  }
+</style>
+```
+
+Se compila en esto:
+```astro
+<style>
+  h1:where(.astro-HHNQFKH6) {
+     color: red;
+  }
+  .text:where(.astro-HHNQFKH6) {
+    color: blue;
+  }
 </style>
 ```
 
@@ -39,7 +54,7 @@ Los estilos locales tampoco se aplicarán a otros componentes de Astro contenido
 
 La especificidad de los estilos locales se conserva, lo que les permite convivir junto con otros archivos o librerías de CSS y, al mismo tiempo, conservar el encapsulamiento que impide que los estilos se filtren fuera del componente.
 
-#### Estilos globales
+### Estilos globales
 
 Si bien recomendamos estilos locales para la mayoría de los componentes, eventualmente puedes encontrar una razón válida para escribir CSS global. Puedes desactivar el CSS con alcance local predeterminado con el atributo `<style is:global>`.
 
@@ -145,6 +160,15 @@ Este patrón te permite estilar componentes hijos directamente. Astro pasará el
 Debido a que la propiedad `class` incluye al hijo en el ámbito de su padre, es posible que los estilos caigan en cascada de padre a hijo. Para evitar que esto tenga efectos secundarios no deseados, asegúrese de usar nombres de clase únicos en el componente secundario.
 :::
 
+### Estilos en línea
+
+Puedes estilar elementos HTML en línea utilizando el atributo `style`. Esto puede ser un string CSS o un objeto de propiedades CSS.
+
+```astro title="src/pages/index.astro"
+// Estos son equivalentes:
+<p style={{ color: "brown", textDecoration: "underline" }}>My text</p>
+<p style="color: brown; text-decoration: underline;">My text</p>
+```
 
 ## Estilos externos
 
@@ -400,9 +424,22 @@ import "../components/hazlo-morado.css"
 
 ## Integraciones CSS
 
-¡Astro viene con soporte para agregar bibliotecas, herramientas y frameworks de CSS populares a tu proyecto como [Tailwind][tailwind] y más!
+¡Astro viene con soporte para agregar bibliotecas, herramientas y frameworks de CSS populares a tu proyecto como [Tailwind](https://tailwindcss.com) y más!
 
-📚 Consulta la [guía de integraciones](/es/guides/integrations-guide/) para obtener instrucciones sobre cómo instalar, importar y configurar estas integraciones.
+### Tailwind
+
+Para usar Tailwind en tu proyecto, instala la integración oficial de [Astro Tailwind][tailwind] utilizando el comando `astro add` para tu gestor de paquetes:
+
+```sh
+# Usando NPM
+npx astro add tailwind
+# Usando Yarn
+yarn astro add tailwind
+# Usando PNPM
+pnpm astro add tailwind
+```
+
+📚 Consulta la [guía de integraciones](/es/guides/integrations-guide/) para obtener instrucciones sobre cómo instalar, importar y configurar estas integraciones de Astro.
 
 
 ## Preprocesadores CSS
@@ -412,7 +449,7 @@ Astro es compatible con preprocesadores de CSS como [Sass][sass], [Stylus][stylu
 ### Sass y SCSS
 
 ```shell
-npm install -D sass
+npm install sass
 ```
 
 Usa `<style lang="scss">` o `<style lang="sass">` en los archivos `.astro`.
@@ -420,7 +457,7 @@ Usa `<style lang="scss">` o `<style lang="sass">` en los archivos `.astro`.
 ### Stylus
 
 ```shell
-npm install -D stylus
+npm install stylus
 ```
 
 Usa `<style lang="styl">` o `<style lang="stylus">` en los archivos `.astro`.
@@ -428,7 +465,7 @@ Usa `<style lang="styl">` o `<style lang="stylus">` en los archivos `.astro`.
 ### Less
 
 ```shell
-npm install -D less
+npm install less
 ```
 
 Usa `<style lang="less">` en los archivos `.astro`.
@@ -485,6 +522,29 @@ Puede aplicar estilos globales a tu contenido de Markdown agregando [etiquetas `
 
 Si usas Tailwind, el [plugin de tipografía](https://tailwindcss.com/docs/typography-plugin) puede ser útil para estilar Markdown.
 
+## Producción
+
+### Control de paquetes
+
+Cuando Astro genera tu sitio para desplegarlo en producción, combina tu CSS en fragmentos. Cada página de tu sitio es un fragmento separado, y además, el CSS que se comparte entre varias páginas se separa en fragmentos adicionales para su reutilización.
+
+En cada uno de tus archivos HTML se agregarán etiquetas `<link rel="stylesheet">`, una por cada fragmento que necesite la página.
+
+Los sitios con un gran número de páginas y diferentes estilos compartidos pueden generar muchas solicitudes de hojas de estilo y afectar el rendimiento del sitio. Puedes configurar la opción `inlineStylesheets` para reducir la cantidad de estas solicitudes al colocar las hojas de estilo (minimizadas) dentro de una etiqueta `<style>` en lugar de solicitarlas externamente.
+
+```js
+import { defineConfig } from 'astro/config';
+export default defineConfig({
+  build: {
+    inlineStylesheets: 'auto'
+  }
+});
+```
+
+La opción `'auto'` incrustará solo las hojas de estilo que estén por debajo del umbral establecido por `vite.build.assetsInlineLimit`, reduciendo la cantidad de solicitudes para hojas de estilo más pequeñas. Las hojas de estilo más grandes, como las utilizadas globalmente por todas las páginas, aún se obtendrán externamente y se almacenarán en caché. Esta opción proporciona un equilibrio entre la cantidad de hojas de estilo cargadas y los estilos que se pueden almacenar en caché entre las páginas.
+
+También puedes establecer esta opción en `'always'`, lo cual incrustará todas las hojas de estilo.
+
 ## Avanzado
 
 :::caution
@@ -532,7 +592,7 @@ Consulta la [documentación de Vite](https://vitejs.dev/guide/assets.html#import
 [sass]: https://sass-lang.com/
 [stylus]: https://stylus-lang.com/
 [svelte-style]: https://svelte.dev/docs#component-format-style
-[tailwind]: https://github.com/withastro/astro/tree/main/packages/integrations/tailwind
+[tailwind]: /es/guides/integrations-guide/tailwind/
 [vite-preprocessors]: https://vitejs.dev/guide/features.html#css-pre-processors
 [vue-css-modules]: https://vue-loader.vuejs.org/guide/css-modules.html
 [vue-scoped]: https://vue-loader.vuejs.org/guide/scoped-css.html
