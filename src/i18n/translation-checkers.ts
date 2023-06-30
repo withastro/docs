@@ -10,7 +10,7 @@ export type UILanguageKeys = keyof typeof languages;
 /** Helper to type check a dictionary of UI string translations. */
 export const UIDictionary = (dict: Partial<typeof enUI>) => dict;
 
-type NavDictionaryKeys = typeof enNav[number]['key'];
+type NavDictionaryKeys = (typeof enNav)[number]['key'];
 export type NavDict = Array<
 	{
 		text: string;
