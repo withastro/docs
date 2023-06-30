@@ -2,13 +2,14 @@
 title: Server-side Rendering
 i18nReady: true
 ---
-import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import FileTree from '~/components/FileTree.astro';
 import Since from '~/components/Since.astro';
 
 **Server-side Rendering**, aka SSR, can be enabled in Astro. When you enable SSR you can:
 
 - Implement sessions for login state in your app.
-- Render data from an API called dynamically with `fetch`.@version 2.0.0
+- Render data from an API called dynamically with `fetch`.
 - Deploy your site to a host using an *adapter*.
 
 ## Enabling SSR in Your Project
@@ -46,7 +47,7 @@ To convert an existing static Astro site to allow hybrid rendering, change the `
 
 ```diff
 import { defineConfig } from 'astro/config';
-+ import nodejs from '@astrojs/nodejs';
++ import nodejs from '@astrojs/node';
 
 export default defineConfig({
 + adapter: nodejs(),  
@@ -319,7 +320,7 @@ const factData = await factResponse.json();
 ```
 
 
-The Astro page below using these components can render parts of the page sooner. The `<head`>, `<body>`, and `<h1>` tags are no longer blocked by data fetches. The browser will then wait for `RandomName` to finish loading its Promises, and then send the resulting HTML over the network. It will render the next heading, and then it will wait for `RandomFact` and send its resulting HTML over the browser.
+The Astro page below using these components can render parts of the page sooner. The `<head>`, `<body>`, and `<h1>` tags are no longer blocked by data fetches. The server will then fetch data for `RandomName` and `RandomFact` in parallel and stream the resulting HTML to the browser.
 
 ```astro title="src/pages/index.astro"
 ---
@@ -346,10 +347,10 @@ You can also include promises directly in the template. Instead of blocking the 
 ```astro title="src/pages/index.astro"
 ---
 const personPromise = fetch('https://randomuser.me/api/')
-  .then(resp => response.json())
+  .then(response => response.json())
   .then(arr => arr[0].name.first);
 const factPromise = fetch('https://catfact.ninja/fact')
-  .then(resp => response.json())
+  .then(response => response.json())
   .then(factData => factData.fact);
 ---
 <html>
@@ -366,3 +367,32 @@ const factPromise = fetch('https://catfact.ninja/fact')
 ```
 
 In this example, `A name` will render while `personPromise` is loading. At that point, `A fact` will be appear, while `factPromise` is loading.
+
+
+### Split the SSR build into multiple files
+
+By default, Astro builds all pages into one single file called `entry.mjs`. You can configure [`split`](/en/reference/configuration-reference/#buildsplit) in your build options to instead emit a single file for each page:
+
+```js title="astro.config.mjs" ins={6}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  build: {
+      split: true
+  }
+});
+```
+
+The emitted page files will be saved in the directory specified for [`outDir`](/en/reference/configuration-reference/#outdir), under a newly created `pages/` directory.
+
+The files inside the `pages/` directory of the build will mirror the directory structure of your page files in `src/pages/`, for example:
+
+<FileTree>
+- dist/
+    - pages/
+        - blog/
+            - entry.\_slug\_.astro.mjs
+            - entry.about.astro.mjs
+        - entry.index.astro.mjs
+</FileTree>

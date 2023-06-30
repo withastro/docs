@@ -46,9 +46,9 @@ Currently we are aiming to translate the Astro documentation into the following 
 - French
 - German
 - Japanese
-- Spanish
 - Korean
 - Polish
+- Spanish
 
 ### Why can Astro only support a few languages?
 
@@ -61,7 +61,7 @@ Supporting a language means that Astro takes responsibility for maintaining that
 
 ### What about unsupported languages?
 
-The official docs will only contain supported languages for now, but we will be looking to add more officially supported languages as we grow.  If you would like to host translated docs yourself in another language, please let us know! We are happy to help you set this up and coordinate with future changes to the docs.
+The official docs will only contain supported languages for now, but we will be looking to add more officially supported languages as we grow. If you would like to host translated docs yourself in another language, please let us know! We are happy to help you set this up and coordinate with future changes to the docs.
 
 ## Translation Structure
 
@@ -240,7 +240,7 @@ i18nReady: true
 
 We have lots of code samples throughout our docs, and although we **recommend translating comments**, as they give a contextual clue of what's happening in the code, each language is **free to decide** whether or not they want to translate titles, variables, string values, function names, etc.
 
-Be aware that if code samples are being translated, you may need to update some of the code sample's highlighted lines. Read the [Code Samples section](https://github.com/withastro/docs/blob/main/WRITING.md#code-samples) in our Writing Guide to know more about our syntax.
+Be aware that if code samples are being translated, you may need to update some of the code sample's highlighted lines. Read the [Code Samples section](https://github.com/withastro/docs/blob/main/contributor-guides/writing-and-style-guide.md#custom-components) in our Writing Guide to know more about our syntax.
 
 ### Asides
 
