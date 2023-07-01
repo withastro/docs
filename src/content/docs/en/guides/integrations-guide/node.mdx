@@ -62,7 +62,7 @@ If you prefer to install the adapter manually instead, complete the following tw
     export default defineConfig({
       output: 'server',
       adapter: node({
-        mode: 'standalone'
+        mode: 'standalone',
       }),
     });
     ```
@@ -76,6 +76,7 @@ If you prefer to install the adapter manually instead, complete the following tw
 Controls whether the adapter builds to `middleware` or `standalone` mode.
 
 *   `middleware` mode allows the built output to be used as middleware for another Node.js server, like Express.js or Fastify.
+
     ```js
     import { defineConfig } from 'astro/config';
     import node from '@astrojs/node';
@@ -83,10 +84,11 @@ Controls whether the adapter builds to `middleware` or `standalone` mode.
     export default defineConfig({
       output: 'server',
       adapter: node({
-        mode: 'middleware'
+        mode: 'middleware',
       }),
     });
     ```
+
 *   `standalone` mode builds to server that automatically starts with the entry module is run. This allows you to more easily deploy your build to a host without any additional code.
 
 ## Usage
@@ -104,7 +106,10 @@ import express from 'express';
 import { handler as ssrHandler } from './dist/server/entry.mjs';
 
 const app = express();
-app.use(express.static('dist/client/'))
+// Change this based on your astro.config.mjs, `base` option.
+// They should match. The default value is "/".
+const base = '/';
+app.use(base, express.static('dist/client/'));
 app.use(ssrHandler);
 
 app.listen(8080);
@@ -129,6 +134,25 @@ await app
 app.use(ssrHandler);
 
 app.listen({ port: 8080 });
+```
+
+Additionally, you can also pass in an object to be accessed with `Astro.locals` or in Astro middleware:
+
+```js
+import express from 'express';
+import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+const app = express();
+app.use(express.static('dist/client/'));
+app.use((req, res, next) => {
+  const locals = {
+    title: 'New title',
+  };
+
+  ssrHandler(req, res, next, locals);
+});
+
+app.listen(8080);
 ```
 
 Note that middleware mode does not do file serving. You'll need to configure your HTTP framework to do that for you. By default the client assets are written to `./dist/client/`.
@@ -171,16 +195,16 @@ You may see this when running the entry script if it was built with npm or Yarn.
 // astro.config.mjs
 import { defineConfig } from 'astro/config';
 
-import node from "@astrojs/node";
+import node from '@astrojs/node';
 
 export default defineConfig({
-  output: "server",
+  output: 'server',
   adapter: node(),
   vite: {
     ssr: {
-      noExternal: ["path-to-regexp"]
-    }
-  }
+      noExternal: ['path-to-regexp'],
+    },
+  },
 });
 ```
 
