@@ -3,16 +3,26 @@ title: Renderizado en el servidor
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import FileTree from '~/components/FileTree.astro';
 import Since from '~/components/Since.astro';
 
 
-**Renderizado en el servidor**, también conocido como SSR (server side rendering), se puede habilitar en Astro. Cuando habilitas SSR puedes:
+El renderizado en el lado del servidor (SSR) se refiere a la generación de páginas HTML en el servidor bajo demanda y enviarlas al cliente.
 
+SSR te permite:
 - Implementar sesiones para iniciar sesión en su aplicación.
-- Renderizar datos desde una llamada de API dinámicamente con `fetch`.
-- Desplegar su sitio en un servidor usando un *adaptador*.
+- Renderizar datos desde una llamada de API dinámicamente con `fetch`. 
+- Desplegar tu sitio en un servidor usando un *adaptador*.
 
-## Habilitando SSR en su proyecto
+Considera habilitar el renderizado en el lado del servidor (SSR) en tu proyecto de Astro si necesitas lo siguiente:
+
+- **Endpoints de API**: SSR te permite crear páginas específicas que funcionan como endpoints de API para tareas como el acceso a bases de datos, la autenticación y la autorización, al tiempo que mantienen oculta la información confidencial del cliente.
+
+- **Páginas protegidas**: Si necesitas restringir el acceso a una página según los privilegios del usuario, puedes habilitar SSR para manejar el acceso del usuario en el servidor.
+
+- **Contenido que cambia con frecuencia**: Habilitar SSR te permite generar páginas individuales sin necesidad de reconstruir estáticamente todo tu sitio. Esto es útil cuando el contenido de una página se actualiza con frecuencia.
+
+## Habilitando SSR en tu proyecto
 
 Para hablitar las características SSR para despliegues en producción, actualiza tu configuración `output` a `'server'` o `'hybrid'` (introducido en **v2.6.0**). Ambos modos controlan cuales [páginas](/es/core-concepts/astro-pages/) o [endpoints del servidor](/es/core-concepts/endpoints/#endpoints-del-servidor-rutas-de-api) deben ser renderizados en el servidor. Cada opción de configuración tiene un comportamiento por defecto diferente, y permite que las rutas individuales opten por no utilizar el valor por defecto:
 
@@ -333,7 +343,7 @@ const factData = await factResponse.json();
 <p>{factData.fact}</p>
 ```
 
-La página Astro a continuación, utilizando estos componentes, puede renderizar partes de la página más rápido. Las etiquetas `<head>`, `<body>` y `<h1>` ya no se bloquean por las solicitudes de datos. El servidor luego obtendrá los datos de `RandomName` y `RandomFact` en paralelo y transmitirá el HTML resultante al navegador.
+La página Astro a continuación, utilizando estos componentes, puede renderizar partes de la página más rápido. Las etiquetas `<head>`, `<body>` y `<h1>` ya no se bloquean por las solicitudes de datos. El servidor luego obtendrá los datos `RandomName` y `RandomFact` en paralelo y transmitirá el HTML resultante al navegador.
 
 ```astro title="src/pages/index.astro"
 ---
@@ -355,15 +365,15 @@ import RandomFact from '../components/RandomFact.astro'
 
 #### Incluyendo promesas directamente
 
-También puedes incluir promesas directamente en la plantilla. En lugar de bloquear todo el componente, solo bloqueará el marcado que viene después de él.
+También puedes incluir promesas directamente en la plantilla. En lugar de bloquear todo el componente, se resolverá la promesa en paralelo y solo se bloqueará el marcado que viene después de ella.
 
 ```astro title="src/pages/index.astro"
 ---
 const personPromise = fetch('https://randomuser.me/api/')
-  .then(resp => response.json())
+  .then(response => response.json())
   .then(arr => arr[0].name.first);
 const factPromise = fetch('https://catfact.ninja/fact')
-  .then(resp => response.json())
+  .then(response => response.json())
   .then(factData => factData.fact);
 ---
 <html>
@@ -379,4 +389,34 @@ const factPromise = fetch('https://catfact.ninja/fact')
 </html>
 ```
 
-En este ejemplo, `A name` se renderizará mientras se carga `personPromise`. En ese momento, aparecerá `A fact` mientras se carga `factPromise`.
+En este ejemplo, `A name` se renderizará mientras se cargan `personPromise` y `factPromise`.
+
+Una vez que `personPromise` se haya resuelto, aparecerá `A fact` y `factPromise` se mostrará cuando haya terminado de cargarse.
+
+### Dividir la compilación SSR en varios archivos
+
+Por defecto, Astro compila todas las páginas en un solo archivo llamado `entry.mjs`. Puedes configurar [`split`](/es/reference/configuration-reference/#buildsplit) en tus opciones de compilación para que en su lugar emita un solo archivo para cada página:
+
+```js title="astro.config.mjs" ins={6}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  build: {
+      split: true
+  }
+});
+```
+
+Los archivos de página emitidos se guardarán en el directorio especificado para [`outDir`](/es/reference/configuration-reference/#outdir), en un directorio `pages/` recién creado.
+
+Los archivos dentro del directorio `pages/` de la compilación reflejarán la estructura de directorios de tus archivos de página en `src/pages/`, por ejemplo:
+
+<FileTree>
+- dist/
+    - pages/
+        - blog/
+            - entry.\_slug\_.astro.mjs
+            - entry.about.astro.mjs
+        - entry.index.astro.mjs
+</FileTree>
