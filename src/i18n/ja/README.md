@@ -38,6 +38,7 @@ Astroの日本語翻訳にはAstroユーザーであり、ネイティブレベ�
 | render | レンダリング（する） |
 | route | ルーティング | routeとrootを区別するため、訳文ではrouteを基本的に「ルーティング」と訳します
 | Markdown | Markdown | Markdownはマークダウンとカタカナ表記にしません
+| Issue | Issue | GitHubにおけるIssueについてはカタカナ表記にしません
 
 ## このガイドへの追加や変更
 
