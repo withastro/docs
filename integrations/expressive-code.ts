@@ -1,6 +1,6 @@
 import path from 'path';
 import { astroExpressiveCode, ExpressiveCodeTheme, pluginFramesTexts } from 'astro-expressive-code';
-import { theme } from '../syntax-highlighting-theme';
+import { theme } from './syntax-highlighting-theme';
 import { translations } from '../src/i18n/util';
 
 // Provide Expressive Code with texts from our translations
