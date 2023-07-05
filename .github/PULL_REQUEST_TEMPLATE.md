@@ -1,9 +1,10 @@
 <!-- Thank you for opening a PR! We really appreciate you taking the time to help out 🙌 -->
 
 <!-- 
-NOTE: Replace "current" with a future version of Astro if this PR is for an upcoming release (e.g. a feature not yet released) and include a link to the `withastro/astro` implementation PR.
+NOTE: If this PR is for an upcoming release (e.g. a feature not yet released), uncomment the line below. Replace `version` with a future version of Astro (e.g. `2.8.0`) and include a link to the `withastro/astro` implementation PR.
 -->
-### For Astro version: `current` <!-- [<`withastro/astro` implementation PR>](<url>) -->
+
+<!-- ### For Astro version: `version`. See [Astro PR #](url). -->
 
 #### What kind of changes does this PR include?
 <!-- Delete any that don’t apply -->
