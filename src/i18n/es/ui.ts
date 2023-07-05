@@ -75,8 +75,6 @@ export default UIDictionary({
 	'aside.tip': 'Consejo',
 	'aside.caution': 'Precaución',
 	'aside.danger': 'Peligro',
-	// Vocabulario de <CodeSnippet>
-	'codeSnippet.terminalCaption': 'Ventana de terminal',
 	// Vocabulario de <LanguageSelect>
 	'languageSelect.label': 'Seleccionar idioma',
 	// Vocabulario de integraciones
@@ -115,9 +113,10 @@ export default UIDictionary({
 	'feedback.success': '¡Gracias! Hemos recibido tu opinión.',
 	// Componente <FileTree>
 	'fileTree.directoryLabel': 'Directorio',
-	// Clase CopyButton en el componente <CodeSnippet>
-	'copyButton.title': 'Copiar al portapapeles',
-	'copyButton.tooltip': '¡Copiado!',
+	// Code snippet vocabulary
+	'expressiveCode.terminalWindowFallbackTitle': 'Ventana de terminal',
+	'expressiveCode.copyButtonTooltip': 'Copiar al portapapeles',
+	'expressiveCode.copyButtonCopied': '¡Copiado!',
 	// Vocabulario de guías de backend
 	'backend.navTitle': 'Más guías de servicios backend',
 });
