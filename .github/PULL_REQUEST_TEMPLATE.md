@@ -1,12 +1,9 @@
 <!-- Thank you for opening a PR! We really appreciate you taking the time to help out 🙌 -->
 
 <!-- 
-Do not delete this field, it is used to indicate in which future version this document should be published, if your PR should be merged with the current version or you are not sure simply replace "<version>" with "current".
-
-Minor content corrections, translations, new recipes/guides among others should set "<version>" to "current".
+NOTE: Replace "current" with a future version of Astro if this PR is for an upcoming release (e.g. a feature not yet released) and include a link to the `withastro/astro` implementation PR.
 -->
-
-### Release in Astro version `<version>`
+### For Astro version: `current` <!-- [<`withastro/astro` implementation PR>](<url>) -->
 
 #### What kind of changes does this PR include?
 <!-- Delete any that don’t apply -->
