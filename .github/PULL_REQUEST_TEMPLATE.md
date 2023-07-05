@@ -1,5 +1,13 @@
 <!-- Thank you for opening a PR! We really appreciate you taking the time to help out 🙌 -->
 
+<!-- 
+Do not delete this field, it is used to indicate in which future version this document should be published, if your PR should be merged with the current version or you are not sure simply replace "<version>" with "current".
+
+Minor content corrections, translations, new recipes/guides among others should set "<version>" to "current".
+-->
+
+### Release in Astro version `<version>`
+
 #### What kind of changes does this PR include?
 <!-- Delete any that don’t apply -->
 
