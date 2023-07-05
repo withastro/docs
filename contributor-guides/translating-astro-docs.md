@@ -150,7 +150,7 @@ Feel free to keep your commit messages simple, like "Fix broken link" or "Update
 
 We love our reviewers! Reviewing PRs is an important task — it's thanks to the efforts of our reviewers that we can guarantee consistent, high-quality translations. Many projects track PRs that you submit, but we also celebrate review stats, visible on your very own [Astro Badge](https://astro.badg.es)! Visit our Discord and you'll see that we shout out every PR merged with a list contributors who helped with review comments.
 
-We even have an entire section in our Maintainer's Guide about [how to manually add reviewer's names to commit messages](https://github.com/withastro/docs/blob/main/MAINTAINERS.md#getting-co-authored-by-commit-message-name-and-email) before merging in case they are not automatically included!
+We even have an entire section in our Maintainer's Guide about [how to manually add reviewer's names to commit messages](https://github.com/withastro/docs/blob/main/contributor-guides/astro-maintainers-guide-to-docs.md#getting-co-authored-by-commit-message-name-and-email) before merging in case they are not automatically included!
 
 So, if you're interested in helping review translation PRs, thank you! We really appreciate the effort, and we put an effort into showing it!
 
