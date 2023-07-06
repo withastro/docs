@@ -1,9 +1,9 @@
 ---
 title: Middleware
 description: Learn how to use middleware in Astro.
-i18nReady: false
+i18nReady: true
 ---
-import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
 **Middleware** allows you to intercept requests and responses and inject behaviors dynamically every time a page or endpoint is about to be rendered. 
 
@@ -20,15 +20,15 @@ Middleware is available in both SSG and SSR Astro projects.
     ```js title="src/middleware.js"
     export function onRequest ({ locals, request }, next) {
         // intercept response data from a request
-      // optionally, transform the response by modifying `locals`
-      locals.title = "New title"
+        // optionally, transform the response by modifying `locals`
+        locals.title = "New title";
 
-      // return a Response or the result of calling `next()`
-      return next()
+        // return a Response or the result of calling `next()`
+        return next();
     };
     ```
 
-3. Inside any `.astro` file, access response data using `Astro.locals`
+3. Inside any `.astro` file, access response data using `Astro.locals`.
 
 ```astro title="src/components/Component.astro"
 ---
@@ -36,7 +36,6 @@ const data = Astro.locals;
 ---
 <h1>{data.title}</h1>
 <p>This {data.property} is from middleware.</p>
-
 ```
 
 ### Middleware types
@@ -44,27 +43,27 @@ const data = Astro.locals;
 You can import and use the utility function `defineMiddleware()` to take advantage of type safety:
 
 
-```ts tilte="src/middleware.ts"
+```ts
+// src/middleware.ts
 import { defineMiddleware } from "astro/middleware";
 
 // `context` and `next` are automatically typed
 export const onRequest = defineMiddleware((context, next) => {
 
-})
+});
 ```
 
 Instead, if you're using JsDoc to take advantage of type safety, you can use `MiddlewareRequestHandler`:
 
-```js tilte="src/middleware.js"
-
+```js
+// src/middleware.js
 /**
- * @type import("astro").MiddlewareResponseHandler
+ * @type {import("astro").MiddlewareResponseHandler}
  */
 // `context` and `next` are automatically typed
 export const onRequest = (context, next) => {
 
-}
-
+};
 ```
 
 To type the information inside `Astro.locals`, which gives you autocompletion inside `.astro` files and middleware code, declare a global namespace in the `env.d.ts` file:
@@ -76,33 +75,33 @@ declare namespace App {
         user: {
             name: string
         },
-        welcomeTitle: () => String,
+        welcomeTitle: () => string,
         orders: Map<string, object>
     }
 }
 ```
 
-Then, inside middleware file, we can take advantage of autocompletion and type safety.
+Then, inside the middleware file, we can take advantage of autocompletion and type safety.
 
-You can store any type of data inside `Astro.locals`: strings, numbers, and even complex data types such as functions, and maps.
+You can store any type of data inside `Astro.locals`: strings, numbers, and even complex data types such as functions and maps.
 
-
- ```js title="src/middleware.js"
- export function onRequest ({ locals, request }, next) {
+```js title="src/middleware.js"
+export function onRequest ({ locals, request }, next) {
     // intercept response data from a request
     // optionally, transform the response by modifying `locals`
-    locals.user.name = "John Wick"
+    locals.user.name = "John Wick";
     locals.welcomeTitle = () => {
-        return "Welcome back  " + locals.user.name
-    }
+        return "Welcome back " + locals.user.name;
+    };
 
-   // return a Response or the result of calling `next()`
-   return next()
- };
+    // return a Response or the result of calling `next()`
+    return next();
+};
 ```
+
 Then you can use this information inside any `.astro` file.
 
-```astro title="src/pages/Orders.astro"
+```astro title="src/pages/orders.astro"
 ---
 const title = Astro.locals.welcomeTitle();
 const orders = Array.from(Astro.locals.orders.entries());
@@ -111,44 +110,34 @@ const orders = Array.from(Astro.locals.orders.entries());
 <p>This {data.property} is from middleware.</p>
 <ul>
     {orders.map(order => {
-        return <li>{// do something with each order}</li>
+        return <li>{/* do something with each order */}</li>;
     })}
 </ul>
 ```
-
 
 ### Example: redacting sensitive information
 
 The example below uses middleware to replace "PRIVATE INFO" with the word "REDACTED" to allow you to render modified HTML on your page:
 
-```js
+```js title="src/middleware.js"
 export const onRequest = async (context, next) => {
-   const response = await next();
-   const html = await response.text();
-   const redactedHtml = html.replace("PRIVATE INFO", "REDACTED");
-   
-   return new Response(redactedHtml, {
-     status: 200,
-     headers: response.headers
-   });
-}
+    const response = await next();
+    const html = await response.text();
+    const redactedHtml = html.replaceAll("PRIVATE INFO", "REDACTED");
+    
+    return new Response(redactedHtml, {
+        status: 200,
+        headers: response.headers
+    });
+};
 ```
 
 ### Chaining middleware
 
-Multiple middlewares can be joined, in a specified order, using [`sequence()`](#sequence):
+Multiple middlewares can be joined in a specified order using [`sequence()`](#sequence):
 
 ```js title="src/middleware.js"
-import {sequence} from "astro/middleware";
-
-function validation() {}
-function auth() {}
-
-export const onRequest = sequence(validation, auth);
-```
-
-```js
-import {sequence} from "astro/middleware";
+import { sequence } from "astro/middleware";
 
 async function validation(_, next) {
     console.log("validation request");
@@ -156,19 +145,19 @@ async function validation(_, next) {
     console.log("validation response");
     return response;
 }
+
 async function auth(_, next) {
-  console.log("auth request");
-  const response = await next();
-  console.log("auth response");
-  return response;
-
+    console.log("auth request");
+    const response = await next();
+    console.log("auth response");
+    return response;
 }
-async function greeting(_, next) {
-  console.log("greeting request");
-  const response = await next();
-  console.log("greeting response");
-  return response;
 
+async function greeting(_, next) {
+    console.log("greeting request");
+    const response = await next();
+    console.log("greeting response");
+    return response;
 }
 
 export const onRequest = sequence(validation, auth, greeting);
@@ -185,7 +174,7 @@ auth response
 validation response
 ```
 
-## API reference
+## API Reference
 
 ### `onRequest()`
 
@@ -197,7 +186,7 @@ An object that includes information to be made available to other middleware, AP
 
 This is an optional argument passed to `onRequest()` that may contain the [`locals`](#locals) object as well as any additional properties to be shared during rendering. For example, the `context` object may include cookies used in authentication.
 
-This is the same `context` object that is passed to API routes.
+This is the same [`context`](/en/reference/api-reference/#endpoint-context) object that is passed to API routes.
 
 ### `next()`
 

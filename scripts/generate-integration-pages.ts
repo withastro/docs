@@ -38,7 +38,7 @@ class IntegrationPagesBuilder {
 	readonly #sourceBranch: string;
 	readonly #sourceRepo: string;
 	readonly #deprecatedIntegrations = new Set(['turbolinks']);
-	readonly #i18nNotReadyIntegrations = new Set(['markdoc']);
+	readonly #i18nNotReadyIntegrations = new Set<string>([]);
 
 	constructor(opts: { githubToken?: string; sourceBranch: string; sourceRepo: string }) {
 		this.#githubToken = opts.githubToken;
@@ -127,7 +127,9 @@ class IntegrationPagesBuilder {
 			.use(relativeLinks, { base: `https://docs.astro.build/` })
 			.use(githubVideos)
 			.use(replaceAsides)
-			.use(closeUnclosedLinebreaks);
+			.use(enforceCodeLang)
+			.use(closeUnclosedLinebreaks)
+			.use(stripPrettierIgnoreComments);
 		readme = (await processor.process(readme)).toString();
 		readme =
 			`---
@@ -207,6 +209,26 @@ function closeUnclosedLinebreaks() {
 	return function transform(tree: Root) {
 		visit(tree, 'html', function htmlVisitor(node) {
 			node.value = node.value.replaceAll(/<br>/gi, '<br/>');
+		});
+	};
+}
+
+/** Remove `<!-- prettier-ignore -->` comments. */
+function stripPrettierIgnoreComments() {
+	return function transform(tree: Root) {
+		visit(tree, 'html', function htmlVisitor(node) {
+			node.value = node.value.replaceAll(/<!--\s*prettier-ignore(-[\w-]+)?\s*-->/gi, '');
+		});
+	};
+}
+
+function enforceCodeLang() {
+	return function transform(tree: Root) {
+		visit(tree, 'code', function codeblockVisitor(node) {
+			if (/^(ins=|del=|\{|"|\/)/.test(node.lang)) {
+				node.meta = node.lang + ' ' + node.meta;
+				node.lang = 'diff';
+			}
 		});
 	};
 }
