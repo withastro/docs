@@ -15,6 +15,10 @@
 - What does this PR change? Give us a brief description.
 - Did you change something visual? A before/after screenshot can be helpful.
 
+<!-- Are these docs for an upcoming Astro release? -->
+<!-- Uncomment the line below and fill in the future Astro version and link the relevant `withastro/astro` PR.  -->
+<!-- #### For Astro version: `version`. See [Astro PR #](url). -->
+
 <!--
 Here’s what will happen next:
 
