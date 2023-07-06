@@ -11,7 +11,7 @@ export default {
 	// Left Sidebar
 	'leftSidebar.a11yTitle': 'Principale',
 	'leftSidebar.learnTab': 'Impara',
-	'leftSidebar.referenceTab': 'Riferimento',
+	'leftSidebar.referenceTab': 'Reference',
 	'leftSidebar.viewInEnglish': 'Visualizza in Inglese',
 	'leftSidebar.sponsoredBy': 'Sponsorizzato da',
 	// Right Sidebar

@@ -98,7 +98,7 @@ export default [
 		key: 'guides/environment-variables',
 	},
 
-	{ text: 'Riferimenti', header: true, type: 'api', key: 'reference' },
+	{ text: 'API Reference', header: true, type: 'api', key: 'reference' },
 	{
 		text: 'Configurazione',
 		slug: 'reference/configuration-reference',
@@ -127,7 +127,7 @@ export default [
 	},
 	{ text: 'La CLI di Astro', slug: 'reference/cli-reference', key: 'reference/cli-reference' },
 	{
-		text: 'Riferimento degli Errori',
+		text: 'Reference degli Errori',
 		slug: 'reference/error-reference',
 		key: 'reference/error-reference',
 	},
