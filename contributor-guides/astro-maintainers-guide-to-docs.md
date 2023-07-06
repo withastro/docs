@@ -137,15 +137,23 @@ Maintainers who submit PRs are expected to **merge their own PRs**, but only **a
 
 Typically, this will be an approval from another maintainer, often the Docs Lead or Docs Infrastructure Lead. But, in the case of minor PRs (e.g. typo fixes, broken links, etc.), any second LGTM is acceptable.
 
-Lastly, we have a "DocsBot" that posts congratulation messages in the #docs Discord channel. **Our bot also acknowledges co-authors!** During "Squash and Merge," if you would like to acknowledge any reviewer, please type in the exact phrase `Co-authored-by:` and include any missing reviewers or contributors whom you'd like to acknowledge!
+### `Co-authored-by:` credit
 
-### Getting `Co-Authored-by` Commit Message Name and Email
+We have a "DocsBot" that posts congratulation messages in the #docs Discord channel. **Our bot also acknowledges co-authors!** During "Squash and Merge," if you would like to acknowledge any reviewer, please type in the exact phrase `Co-authored-by:` and include any missing reviewers or contributors whom you'd like to acknowledge! For example:
 
-For the bot to work properly, you must use the exact co-author's name and email associated with their GitHub account. 
+```
+Co-authored-by: Sarah Rainsberger <sarah@rainsberger.ca>
+Co-authored-by: Chris Swithinbank <swithinbank@gmail.com>
+Co-authored-by: Yan Thomas <61414485+Yan-Thomas@users.noreply.github.com>
+Co-authored-by: Hippo <6137925+hippotastic@users.noreply.github.com>
+Co-authored-by: Kevin Zuniga Cuellar <46791833+kevinzunigacuellar@users.noreply.github.com>
+Co-authored-by: ElianCodes <hello@elian.codes>
+Co-authored-by: Reuben Tier <64310361+TheOtterlord@users.noreply.github.com>
+```
 
-You can look up that information using a GitHub commit they have made from any PR, even one from another repository! Please don't hesitate to take the extra step and include others!
+You must use the exact co-author's name and email associated with their GitHub account. You can look up that information using a GitHub commit they have made from any PR, even one from another repository! Please don't hesitate to take the extra step and include others!
 
-From an individual's commit, say `https://github.com/withastro/docs/commit/de11f2f2abf7ef54c874ebe0c85301d9bad36094`, add `.patch` to the end of the URL.
+From an individual's commit, e.g. `https://github.com/withastro/docs/commit/de11f2f2abf7ef54c874ebe0c85301d9bad36094`, add `.patch` to the end of the URL.
 
 This will bring up a "patchfile" containing all of the information about the commit, including the author's name and email address associated with the commit. You'll find this information in a field labelled `From:`.
 
