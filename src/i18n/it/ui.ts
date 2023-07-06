@@ -1,7 +1,7 @@
 export default {
 	'a11y.skipLink': 'Vai al Contenuto',
 	'a11y.sectionLink': 'Sezione intitolata',
-	'navbar.a11yTitle': 'Cima',
+	'navbar.a11yTitle': 'Barra di navigazione',
 	// Site settings
 	'site.title': 'Documentazione di Astro',
 	'site.description': 'Costruisci siti web veloci con meno JavaScript sul client.',
