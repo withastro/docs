@@ -1,11 +1,5 @@
 <!-- Thank you for opening a PR! We really appreciate you taking the time to help out 🙌 -->
 
-<!-- 
-NOTE: If this PR is for an upcoming release (e.g. a feature not yet released), uncomment the line below. Replace `version` with a future version of Astro (e.g. `2.8.0`) and include a link to the `withastro/astro` implementation PR.
--->
-
-<!-- ### For Astro version: `version`. See [Astro PR #](url). -->
-
 #### What kind of changes does this PR include?
 <!-- Delete any that don’t apply -->
 
@@ -20,6 +14,10 @@ NOTE: If this PR is for an upcoming release (e.g. a feature not yet released), u
 - Closes # <!-- Add an issue number if this PR will close it. -->
 - What does this PR change? Give us a brief description.
 - Did you change something visual? A before/after screenshot can be helpful.
+
+<!-- Are these docs for an upcoming Astro release? -->
+<!-- Uncomment the line below and fill in the future Astro version and link the relevant `withastro/astro` PR.  -->
+<!-- #### For Astro version: `version`. See [Astro PR #](url). -->
 
 <!--
 Here’s what will happen next:
