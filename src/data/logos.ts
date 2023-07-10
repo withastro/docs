@@ -10,6 +10,7 @@ export const logos = LogoCheck({
 	cleavr: { file: 'cleavr.svg', padding: '0.125em 0.125em 0.1375em' },
 	cloudflare: { file: 'cloudflare-pages.svg', padding: '.1875em' },
 	crystallize: { file: 'crystallize.svg', padding: '.1875em' },
+	datocms: { file: 'datocms.svg', padding: '0.25em 0.25em 0.25em 0.3em' },
 	deno: { file: 'deno.svg', padding: '0' },
 	edgio: { file: 'edgio.svg', padding: '.1625em' },
 	github: { file: 'github.svg', padding: '0.125em 0.125em 0.1375em' },
@@ -73,6 +74,7 @@ export const logos = LogoCheck({
 	'frontmatter-cms': { file: 'frontmatter-cms.svg', padding: '.25em' },
 	statamic: { file: 'statamic.svg', padding: '.2em' },
 	xata: { file: 'xata.svg', padding: '0.234em 0.234em 0.1875em' },
+	strapi: { file: 'strapi.svg', padding: '.25em' },
 });
 
 export type LogoKey = keyof typeof logos;
