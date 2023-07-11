@@ -13,76 +13,104 @@ Crea un plugin de [remark](https://github.com/remarkjs/remark) que añada una pr
 
 1. Instalar paquetes auxiliares
 
-  Instala estos dos paquetes auxiliares:
-  - [`reading-time`](https://www.npmjs.com/package/reading-time) para calcular el tiempo de lectura en minutos
-  - [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string) para extraer todo el texto de tu documento Markdown
+   Instala estos dos paquetes auxiliares:
+   - [`reading-time`](https://www.npmjs.com/package/reading-time) para calcular el tiempo de lectura en minutos
+   - [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string) para extraer todo el texto de tu documento Markdown
 
-  <PackageManagerTabs>
-    <Fragment slot="npm">
-    ```shell
-  npm install reading-time mdast-util-to-string
-    ```
-    </Fragment>
-    <Fragment slot="pnpm">
-    ```shell
-  pnpm install reading-time mdast-util-to-string
-    ```
-    </Fragment>
-    <Fragment slot="yarn">
-    ```shell
-  yarn add reading-time mdast-util-to-string
-    ```
-    </Fragment>
-  </PackageManagerTabs>
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+   npm install reading-time mdast-util-to-string
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+   pnpm install reading-time mdast-util-to-string
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+   yarn add reading-time mdast-util-to-string
+     ```
+     </Fragment>
+   </PackageManagerTabs>
 
 2. Crear un plugin de remark
 
-  Este plugin utiliza el paquete `mdast-util-to-string` para obtener el texto del archivo Markdown. Luego, este texto se pasa al paquete `reading-time` para calcular el tiempo de lectura en minutos.
+   Este plugin utiliza el paquete `mdast-util-to-string` para obtener el texto del archivo Markdown. Luego, este texto se pasa al paquete `reading-time` para calcular el tiempo de lectura en minutos.
 
-  ```js title="remark-reading-time.mjs"
-  import getReadingTime from 'reading-time';
-  import { toString } from 'mdast-util-to-string';
+   ```js title="remark-reading-time.mjs"
+   import getReadingTime from 'reading-time';
+   import { toString } from 'mdast-util-to-string';
 
-  export function remarkReadingTime() {
-    return function (tree, { data }) {
-      const textOnPage = toString(tree);
-      const readingTime = getReadingTime(textOnPage);
-      // readingTime.text nos dará el tiempo de lectura en minutos como un string legible,
-      // p. ej. "3 min read"
-      data.astro.frontmatter.minutesRead = readingTime.text;
-    };
-  }
-  ```
+   export function remarkReadingTime() {
+     return function (tree, { data }) {
+       const textOnPage = toString(tree);
+       const readingTime = getReadingTime(textOnPage);
+       // readingTime.text nos dará el tiempo de lectura en minutos como un string legible,
+       // p. ej. "3 min read"
+       data.astro.frontmatter.minutesRead = readingTime.text;
+     };
+   }
+   ```
 
 3. Agrega el plugin a tu configuración de la siguiente manera:
 
-  ```js title="astro.config.mjs" "import { remarkReadingTime } from './remark-reading-time.mjs';" "remarkPlugins: [remarkReadingTime],"
-  import { defineConfig } from 'astro/config';
-  import { remarkReadingTime } from './remark-reading-time.mjs';
+   ```js title="astro.config.mjs" "import { remarkReadingTime } from './remark-reading-time.mjs';" "remarkPlugins: [remarkReadingTime],"
+   import { defineConfig } from 'astro/config';
+   import { remarkReadingTime } from './remark-reading-time.mjs';
 
-  export default defineConfig({
-    markdown: {
-      remarkPlugins: [remarkReadingTime],
-    },
-  });
-  ```
+   export default defineConfig({
+     markdown: {
+       remarkPlugins: [remarkReadingTime],
+     },
+   });
+   ```
 
-  Ahora todos los documentos Markdown tendrán una propiedad calculada `minutesRead` en su frontmatter.
+   Ahora todos los documentos Markdown tendrán una propiedad calculada `minutesRead` en su frontmatter.
 
 4. Mostrar tiempo de lectura
 
-  Utiliza la propiedad `minutesRead` del frontmatter de `Astro.props` para agregar el tiempo de lectura a un diseño de [Markdown](/es/guides/markdown-content/#páginas-de-markdown-y-mdx). El siguiente ejemplo de diseño muestra el tiempo de lectura encima del contenido de la página:
+   Si tus artículos de blog se almacenan en una [colección de contenido](/es/guides/content-collections/), accede a `remarkPluginFrontmatter` desde la función `entry.render()`. Luego, renderiza `minutesRead` en tu plantilla donde quieras que aparezca.
 
-  ```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.frontmatter;" "<p>{minutesRead}</p>"
-  ---
-  const { minutesRead } = Astro.props.frontmatter;
-  ---
+   ```astro title="src/pages/posts/[slug].astro" "const { Content, remarkPluginFrontmatter } = await entry.render();" "<p>{remarkPluginFrontmatter.minutesRead}</p>"
+   ---
+   import { CollectionEntry, getCollection } from 'astro:content';
+ 
+   export async function getStaticPaths() {
+     const blog = await getCollection('blog');
+     return blog.map(entry => ({
+       params: { slug: entry.slug },
+       props: { entry },
+     }));
+   }
+ 
+   const { entry } = Astro.props;
+   const { Content, remarkPluginFrontmatter } = await entry.render();
+   ---
+ 
+   <html>
+     <head>...</head>
+     <body>
+       ...
+       <p>{remarkPluginFrontmatter.minutesRead}</p>
+       ...
+     </body>
+   </html>
+   ```
 
-  <html>
-    <head>...</head>
-    <body>
-      <p>{minutesRead}</p>
-      <slot />
-    </body>
-  </html>
-  ```
+   Si estás usando una [plantilla de Markdown](/es/guides/markdown-content/#paginas-de-markdown-y-mdx), usa la propiedad de frontmatter `minutesRead` de `Astro.props` en tu plantilla de diseño.
+
+   ```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.frontmatter;" "<p>{minutesRead}</p>"
+   ---
+   const { minutesRead } = Astro.props.frontmatter;
+   ---
+ 
+   <html>
+     <head>...</head>
+     <body>
+       <p>{minutesRead}</p>
+       <slot />
+     </body>
+   </html>
+   ```
