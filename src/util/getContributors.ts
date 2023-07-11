@@ -17,7 +17,7 @@ interface Commit {
 }
 
 const printError = (e: Error) =>
-	console.warn(`[error]  /src/util/getContributors.astro\n         ${e?.message ?? e}`);
+	console.warn(`[error]  /src/util/getContributors.ts\n         ${e?.message ?? e}`);
 
 async function recursiveFetch(endpoint: string, page = 1) {
 	try {
