@@ -1,0 +1,192 @@
+---
+title: Client-side routing (experimental)
+description: >-
+  How to enable experimental support for client-side routing in your Astro site.
+i18nReady: true
+---
+
+Support for client-side routing in Astro projects can be enabled behind an experimental flag. Client-side routing in Astro is powered by a new browser API, [view transitions](https://developer.chrome.com/docs/web-platform/view-transitions/) with fallback options for non-supporting browsers.
+
+Using our new view transitions support you can have seamless animations between pages. Astro comes with:
+
+- A component `<ViewTransitions />` that does the routing for you.
+- A few built-in animations, such as `slide` and `fade`.
+- Support for both forwards and backwards navigation animations.
+- The ability to customize animations any way you like.
+- Fallback support for browser that do not yet support view transition APIs.
+
+:::caution
+Client-side routing is an experimental feature enabled in Astro 2.9. The API is subject to change before it is marked as stable.
+:::
+
+## Enabling Client-side Routing in your Project
+
+You can enable support for client-side routing through the `viewTransitions` experimental flag in your Astro config:
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+   viewTransitions: true
+  }
+});
+```
+
+Enabling this flag gives you access to the `ViewTransitions` component, as well as the ability to use `transition:animate` and other directives in your Astro components. Without this flag enabled, these features will be ignored.
+
+## Using Client-side Routing on a Page
+
+Astro does not automatically make your entire site into a SPA (Single-page App). Instead by default all pages on an Astro site get regular browser navigation. You can enable client-side routing on a per-page basis by importing the `ViewTransitions` component and placing it inside of your head.
+
+If you'd like to enable it on your entire site, you can do so by putting it in a reused component, such as a layout component or a commonly used head component, as are common conventions in Astro sites.
+
+For example, you might have a head component which you can update with:
+
+```astro title="components/CommonHead.astro" ins={2,12}
+---
+import { ViewTransitions } from 'astro:transitions';
+---
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<meta name="generator" content={Astro.generator} />
+
+<!-- Primary Meta Tags -->
+<title>{title}</title>
+<meta name="title" content={title} />
+<meta name="description" content={description} />
+
+<ViewTransitions />
+```
+
+Just by doing that, now the next page that you navigate to will happen without full-page navigation. Next you'll likely want to enable animations between common parts of your page.
+
+## Using Built-in Animation Directives
+
+Astro comes with a few built-in animations which you can add with the `transition:animate` directive. For example, you might want to do a slide animation for the body content while preserving the header in place.
+
+```astro
+---
+import { CommonHead } from '../components/CommonHead.astro';
+---
+<html>
+  <head>
+    <CommonHead />
+  </head>
+  <body>
+    <header transition:animate="morph">
+      ...
+    </header>
+    <main transition:animate="slide">
+      ...
+    </main>
+  </body>
+</html>
+```
+
+The `transition:animate` directive takes a string value, which is the name of the built-in animate, or an object for custom animations (described later). The built-in animations are:
+
+- `slide`: An animation where the old content slides out to the left and new content slides in from the right. On backwards navigation the animations are the opposite.
+- `fade`: A cross-fade where the old content fades out and the new content fades in.
+- `morph`: This is the default where the browser determines the best way to animate the element depending on how similar the pages are. One use-case for this animation is if the element is positionally different between pages; it will appear to float to its new position. Another is if the element is in the exact same position; it will appear to not move at all.
+
+Additionally all of these animations can be customized by importing them through the `astro:transitions` namespace. See the __Customizing Animations__ section to learn how to use those.
+
+### Naming a transition
+
+Transitioning elements is built on the concept of a `view-transition-name`. An element that is in both the old and new page can be animated by giving them a common name.
+
+Astro will automatically give elements a `view-transition-name` that's based on the component it is in and where it is placed in the DOM. Most of the time this will be the same name between pages, which allows you not to worry about giving distinct names.
+
+In some cases an element by be positionally very different, in which case Astro's auto-naming will be wrong. You can specify a name for an element using `transition:name` directive, which will ensure it animates properly.
+
+```astro
+<aside transition:name="hero">
+```
+
+Note that the `transition:name` must be distinct per element. It's only recommended setting this yourself if you know that Astro can't infer a proper name itself.
+
+## Customizing Animations
+
+You can customize all aspects of a transition. For the built-in animations you can customize by importing them through the `astro:transitions` namespace, and then passing in customization options. For example, here we are customizing the duration of the `fade` animation:
+
+```astro
+---
+import { fade } from 'astro:transitions';
+---
+
+<header transition:animate={fade({ duration: '0.4s' })}>
+```
+
+Additionally you have fully control over animations and can define your own. The syntax is verbose as you must define both the forwards and backwards, as well as new and old pages. The types for this are:
+
+```ts
+export interface TransitionAnimation {
+  name: string; // The name of the keyframe
+  delay?: number | string;
+  duration?: number | string;
+  easing?: string;
+	fillMode?: string;
+	direction?: string;
+}
+
+export interface TransitionAnimationPair {
+	old: TransitionAnimation | TransitionAnimation[];
+	new: TransitionAnimation | TransitionAnimation[];
+}
+
+export interface TransitionDirectionalAnimations {
+	forwards: TransitionAnimationPair;
+	backwards: TransitionAnimationPair;
+}
+```
+
+A fully example of the fade animation is:
+
+```astro
+---
+const anim = {
+  old: {
+    name: 'fadeIn',
+    duration: '0.2s',
+    easing: 'linear',
+    fillMode: 'forwards',
+  },
+  new: {
+    name: 'fadeOut',
+    duration: '0.3s',
+    easing: 'linear',
+    fillMode: 'backwards',
+  }
+};
+
+const myFade = {
+	forwards: anim,
+	backwards: anim,
+};
+---
+
+<header transition:animate={myFade}> ... </header>
+```
+
+## Fallback control
+
+The `<ViewTransitions />` router works best in browser that support view transitions (Chromium browsers a the moment), but also includes fallback support for other browsers. Even if the browser does not support view transitions you will still get in-browser navigation.
+
+Astro simulates what occurs in a view transition as a fallback, but it is has some limitations. The `morph` animation cannot be simulated in traditional CSS. So any element using this animation will not be animated. Otherwise, you should get a comparable experience.
+
+You can control fallback support with the `fallback` property. For example:
+
+```astro
+---
+import { ViewTransitions } from 'astro:transitions';
+---
+<title>My site</title>
+
+<ViewTransitions fallback="swap">
+```
+
+The possible values are:
+
+- `animate` - This is the default. Astro will simulate view transitions using custom attributes before swapping the page.
+- `swap` - Astro will not attempt to animate the page. Instead the old page will simply be swapped for the new one.
+- `none` - Astro will not do client-side routing at all. Instead you will get full page navigation in non-supporting browsers.
