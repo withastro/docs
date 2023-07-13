@@ -3,46 +3,240 @@ title: Assets (Experimental)
 description: Learn how to enable experimental asset support in Astro.
 i18nReady: false
 ---
-import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
-**Built-in optimized asset support** is enabled in Astro behind an experimental flag. This built-in feature will eventually replace the optional `@astrojs/image` integration.
 
-The new assets experience currently features:
+Astro provides several ways for you to use images on your site, whether they are stored locally inside your project, linked to remotely, or stored in a CMS or CDN!
 
-- A new built-in `<Image />` component
-- Relative images with automatic optimization in Markdown, [MDX](/en/guides/integrations-guide/mdx/), and [Markdoc](/en/guides/integrations-guide/markdoc/)
-- Integration with content collections
-- Improved error messages and types
+## Where to store images
 
-## New stuff - rough notes
+### `src/` vs `public/`
+
+We recommend that local images are kept in `src/` when possible so that Astro can transform, optimize and bundle them. Files in the `/public` directory are always served or copied into the build folder as-is, with no processing. 
+
+In Astro v3.0, your local images stored in `src/` can be used by all files in your project: `.astro`, `.md`, `.mdx`, `.mdoc` and other UI frameworks. Store your images in the `public/` folder only if you want to avoid any processing.
+
+
+### `src/assets/`
+
+We recommend storing all local images to be optimized in the `src/assets/` directory to make use of our official `~/assets` alias, although this location is optional. 
+
+If you don't know where to put your images, or if you're building a product around Astro (e.g. a CMS), this folder ensures the greatest stability as we continue to build more asset features. But, images can be stored anywhere, including alongside your content, if you prefer.
+
+### Remote images
+
+You can also choose to store your images remotely, in a content management system (CMS) or digital asset management (DAM) platform. 
+
+Astro can fetch your data remotely using APIs or display images from their full URL path. See our [CMS guides](/en/guides/cms/) for examples of integrating common services.
+
 
 ## Images in `.astro` files
 
-- **local images** must be imported either using the built-in alias for the `/assets/` folder: `import cat from '~/assets/funny/threads.jpg';` or the relative path from the existing astro page: `../assets/funny/threads.jpg` Required for both HTML `<img>` and Astro `<Image />`.
-- `<Image />` also requires importing the Image component from the `astro:assets` module: `import { Image } from 'astro:assets'`
 
-- **remote images** are not imported; use their full URL as the `src` property. When using the `<Image />` component, you must specify both `width` and `height` in addition to the always-required `alt`: `<Image alt="a chickadee sitting on a branch with fluff in its beak" src="https://www.rainsberger.ca/_astro/chickadee.98dc0d4d.webp" width="200" height="150"/>`
-
-- **images in public**  are not imported; use their path relative to your public folder as the `src` property, both for the HTML `<img>` tag and for the Astro `<Image />` component. The image component also requires a specified `width` and `height` in addition to the always-required  `alt` property: `<Image src="/public/cat.jpg" alt="a cat sleeping on a bed" height="150" width="200"/>`
-
-```astro title="src/pages/index.astro"
+```astro title="src/pages/blog/MyImages.astro"
 ---
 import { Image } from 'astro:assets';
-import localImage1 from '~/assets/localImage.png';
-import localImage2 from '../images/subfolder/localImage2.jpg';
+import localBirdImage from '~/assets/localBirdImage.png';
+import localCarImage from '../../images/subfolder/localCar.jpg';
 ---
-<img src={localImage1.src} alt="A bird sitting on a nest of eggs.">
-<img src={localImage2.src} alt="A bird sitting on a nest of eggs.">
-<img src="https://example.com/remote-bird-image.jpg" alt="A bird sitting on a nest of eggs.">
-<img src="/images/bird-image-in-public-folder.jpg" alt="A bird sitting on a nest of eggs.">
+<Image src={localBirdImage} alt="A bird sitting on a nest of eggs."/>
+<Image src={localCarImage} alt="A car driving over a bridge."/>
+<Image src="/bird-public-folder.jpg" alt="A bird." width="50" height="50"/>
+<Image src="https://example.com/remote-bird.jpg" alt="A bird." width="50" height="50"/>
 
-
-<Image src={localImage1} alt="A bird sitting on a nest of eggs."/>
-<Image src={localImage2} alt="A bird sitting on a nest of eggs."/>
-<Image src="/images/bird-image-in-public-folder.jpg" alt="A bird sitting on a nest of eggs." width="200" height="150"/>
-<Image src="https://example.com/remote-bird-image.jpg" alt="A bird sitting on a nest of eggs." width="200" height="150"/>
-
+<img src={localBirdImage.src} alt="A bird sitting on a nest of eggs.">
+<img src={localCarImage.src} alt="A car driving over a bridge.">
+<img src="/images/bird-in-public-folder.jpg" alt="A bird.">
+<img src="https://example.com/remote-bird.jpg" alt="A bird.">
 ```
+
+### `<Image />` (`astro:assets`)
+
+Use the built-in `<Image />` Astro component to display optimized versions of your images.
+
+```astro title="src/components/MyComponent.astro"
+---
+// import the Image component and the image
+import { Image } from 'astro:assets';
+import myImage from "~/assets/my_image.png"; // Image is 1600x900
+---
+
+<!-- `alt` is mandatory on the Image component -->
+<Image src={myImage} alt="A description of my image." />
+```
+
+```html
+<!-- Output -->
+<!-- Image is optimized, proper attributes are enforced -->
+<img
+  src="/_astro/my_image.hash.webp"
+  width="1600"
+  height="900"
+  decoding="async"
+  loading="lazy"
+  alt="A description of my image."
+/>
+```
+
+`<Image />` can transform an image's dimensions, file type, and quality to produce an optimized `<img>` tag to avoid **Cumulative Layout Shift (CLS)**.
+
+:::tip[What is Cumulative Layout Shift?]
+[Cumulative Layout Shift (CLS)](https://web.dev/cls/) is a Core Web Vital metric for measuring how much content shifted on your page during loading. The `<Image />` component optimizes for CLS by automatically selecting the correct `width` and `height` for your local images.
+:::
+
+#### Properties
+
+##### src (required)
+
+The source location of your image file depends on where your image file is located:
+
+- **Local images in `src/`**: you must **also import the image** using a relative file path or [import alias](/en/guides/aliases/) such as the included `~/assets/` alias. Then use the import name as the `src` value:
+
+```astro "myImportedImage" "{myImportedImage}"
+---
+import { Image } from 'astro:assets';
+import myImportedImage from `~/assets/my-local-image.png`
+---
+<Image src={myImportedImage}  alt="descriptive text" />
+```
+
+- **Images in the `public/` folder**-  use the image's **file path relative to the public folder**:
+
+```astro '"/images/my-public-image.png"'
+---
+import { Image } from 'astro:assets';
+---
+<Image 
+  src="/images/my-public-image.png"
+  alt="descriptive text"
+  width="200"
+  height="150" />
+```
+
+- **Remote images** - use the image's **full URL** as the property value:
+
+```astro '"https://example.com/remote-image.jpg"'
+---
+import { Image } from 'astro:assets';
+---
+<Image 
+  src="https://example.com/remote-image.jpg"
+  alt="descriptive text"
+  width="200"
+  height="150" />
+```
+
+##### alt (required)
+
+Use the required `alt` attribute to provide a string of [descriptive alt text](https://www.w3.org/WAI/tutorials/images/) for images.
+
+If an image is merely decorative (i.e. doesn't contribute to the understanding of the page), set `alt=""` so that screen readers and other assistive technologies know to ignore the image.
+
+##### width and height (required for `public/` and remote images)
+
+These properties define the dimensions to use for the image.
+
+When using local images in their original aspect ratio, the `width` and `height` can be automatically inferred from the source file and are optional.
+
+However, both of these properties are required for remote images and images stored in your `public/` folder.
+
+##### format 
+
+You can optionally state the [image file type](https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types#common_image_file_types) output to be used
+
+By default, the `<Image />` component will produce a `webp` file.
+
+##### quality
+
+`quality` is an optional property that can either be:
+- a preset (`low`, `mid`, `high`, `max`) that is automatically normalized between formats.
+- a number from `0` to `100` (interpreted differently between formats).
+
+We don't know what they mean, either.
+
+##### Additional properties
+
+In addition to the properties above, the `<Image />` component accepts all properties accepted by the HTML `<img>` tag.
+
+For example, you can provide a `class` to the final `<img>` element.
+
+```astro
+---
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png";
+---
+
+<!-- `alt` is mandatory on the Image component -->
+<Image src={myImage} alt="" class="my-class" />
+```
+
+```astro
+<!-- Output -->
+<img
+  src="/_astro/my_image.hash.webp"
+  width="1600"
+  height="900"
+  decoding="async"
+  loading="lazy"
+  class="my-class"
+  alt=""
+/>
+```
+
+### `<img>`
+
+The [Astro template syntax](/en/core-concepts/astro-syntax/) also supports writing an `<img>` tag directly, with full control over its final output.
+
+It accepts all HTML `<img>` tag properties, and the only required property is `src`.
+
+#### Local images in `src/`
+
+Local images must be **imported from the relative path** from the existing `.astro` file, or use an [import alias](/en/guides/aliases/), such as the included `~/assets/` alias. Then, you can access the image's `src` and other properties to use in the `<img>` tag.
+
+```astro ".src" "img"
+---
+// import local images
+import myCat from `~/assets/local-cat.png`
+import myDog from `../../images/pets/local-dog.jpg`
+---
+// access the image properties
+<img src={myCat.src} alt="descriptive text" />
+<img src={myDog.src} alt="descriptive text" />
+```
+
+Imported image assets match the following signature:
+
+```ts
+interface ImageMetadata {
+  src: string;
+  width: number;
+  height: number;
+  format: string;
+}
+```
+
+#### Images in `public/`
+For images located within `public/` use the image's **file path relative to the public folder** as the `src` value:
+
+```astro '"/images/public-cat.jpg"'
+<img src="/images/public-cat.jpg" alt="a sleeping cat">
+```
+
+#### Remote images
+
+For remote images, use the image's **full URL** as the `src` value:
+
+```astro '"https://example.com/remote-cat.jpg"'
+<img
+  src="https://example.com/remote-cat.jpg"
+  alt="a sleeping cat"
+  width="200"
+  height="150"
+  loading="lazy"
+  class="my-class"
+/>
+```
+
 
 
 ## Images in Markdown
@@ -61,7 +255,7 @@ import localImage2 from '../images/subfolder/localImage2.jpg';
 ## Images in MDX files
 
 - in `.mdx` files, you can use:
-  - the above methods for `.astro` files, both the HTML `<img>` element and the `<Image>` component. Remember that the image must be imported (AFTER any YAML frontmatter), and that the import is used differently in each case (e.g. img uses `src={image.src}` and Image uses `src={image}` directly.)
+  - the above methods for `.astro` files, both [the HTML `<img>` element](#img) and [the Astro `<Image />` component](#image--astroassets). Remember that the image must be imported (AFTER any YAML frontmatter), and that the import is used differently in each case (e.g. img uses `src={image.src}` and Image uses `src={image}` directly.)
   - the above method for Markdown syntax. No image import is required.
 
 ## Choosing `<img>` vs `<Image />`
