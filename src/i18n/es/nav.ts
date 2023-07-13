@@ -77,7 +77,7 @@ export default [
 	{ text: 'Endpoints', slug: 'core-concepts/endpoints', key: 'core-concepts/endpoints' },
 	{ text: 'Obtención de Datos', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
 	{ text: 'Middleware', slug: 'guides/middleware', key: 'guides/middleware' },
-	{ text: 'Pruebas', slug: 'guides/testing', key: 'guides/testing' },
+	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
 	{ text: 'Solución de Problemas', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
 
 	{ text: 'Configuración', header: true, type: 'learn', key: 'configuration' },
