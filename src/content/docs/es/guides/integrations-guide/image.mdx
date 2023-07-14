@@ -10,9 +10,9 @@ i18nReady: true
 
 import Video from '~/components/Video.astro';
 
-> ⚠️ ¡Esta integración es todavía experimental! Actualmente sólo es compatible con entornos de nodos, ¡pero estate atento a la compatibilidad con Deno en el futuro!
+> ⚠️ ¡Esta integración será archivada en Astro v3.0 (Otoño 2023) en favor del módulo `astro:assets`. Por favor, consulta la [documentación de Assets](/es/guides/assets/) para más información!
 
-Esta **[integración de Astro][astro-integration]** facilita la optimización de imágenes en tu [proyecto de Astro](https://astro.build/), ¡con soporte completo para construcciones de SSG (Static Site Generator) y renderizado en el lado del servidor!
+Esta **[integración de Astro][astro-integration]** optimiza imágenes en tu [proyecto de Astro](https://astro.build/). Es compatible con Astro v2 solo para todos los sitios estáticos y para [algunos hosts de implementación de renderizado en el lado del servidor](#instalacion).
 
 ## ¿Por qué `@astrojs/image`?
 
@@ -124,7 +124,17 @@ O, alternativamente, si tu proyecto está utilizando los tipos a través de un a
 ```astro title="src/pages/index.astro"
 ---
 import { Image, Picture } from '@astrojs/image/components';
+import heroImage from '../assets/hero.png';
 ---
+// imagen optimizada, manteniendo el ancho, alto y formato de imagen originales
+<Image src={heroImage} alt="descriptive text" />
+// especifica varios tamaños para imágenes responsivas o dirección de arte
+<Picture
+  src={heroImage}
+  widths={[200, 400, 800]}
+  sizes="(max-width: 800px) 100vw, 800px"
+  alt="descriptive text"
+/>
 ```
 
 Los transformadores de imagen incluidos admiten el redimensionamiento de imágenes y la codificación en diferentes formatos de imagen. Los servicios de imágenes de terceros también podrán agregar soporte para transformaciones personalizadas (p. ej: `blur`, `filter`, `rotate`, etc).
@@ -634,6 +644,61 @@ const imageUrl =
   sizes="(max-width: 800px) 100vw, 800px"
   alt="descriptive text"
 />
+```
+
+### Estableciendo valores predeterminados
+
+Por el momento, no hay forma de especificar valores predeterminados para todos los componentes `<Image />` y `<Picture />`. Los atributos requeridos deben establecerse en cada componente individual.
+
+Como una alternativa, puedes envolver estos componentes en otro componente Astro para reutilizarlos. Por ejemplo, podrías crear un componente para las imágenes de tu blog:
+
+```astro title="src/components/BlogPostImage.astro"
+---
+import { Picture } from '@astrojs/image/components';
+const { src, ...attrs } = Astro.props;
+---
+<Picture src={src} widths={[400, 800, 1500]} sizes="(max-width: 767px) 100vw, 736px" {...attrs} />
+<style>
+  img,
+  picture :global(img),
+  svg {
+    margin-block: 2.5rem;
+    border-radius: 0.75rem;
+  }
+</style>
+```
+
+### Usando `<img>` con la integración de imágenes
+
+La integración oficial de imágenes cambiará las importaciones de imágenes para devolver un objeto en lugar de un string de origen.
+
+El objeto tiene las siguientes propiedades, derivadas del archivo importado:
+
+```ts
+{
+  src: string;
+  width: number;
+  height: number;
+  format: 'avif' | 'gif' | 'heic' | 'heif' | 'jpeg' | 'jpg' | 'png' | 'tiff' | 'webp';
+}
+```
+
+Si tienes instalada la integración de imágenes, consulta la propiedad `src` del objeto al usar `<img>`.
+
+```astro ".src"
+---
+import rocket from '../images/rocket.svg';
+---
+<img src={rocket.src} alt="A rocketship in space." />
+```
+
+Alternativamente, agrega `?url` a tus importaciones para decirles que devuelvan una cadena de origen.
+
+```astro "?url"
+---
+import rocket from '../images/rocket.svg?url';
+---
+<img src={rocket} alt="A rocketship in space." />
 ```
 
 ## Solución de problemas
