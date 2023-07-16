@@ -1,8 +1,8 @@
 import { DocSearchDictionary } from '../translation-checkers';
 
 export default DocSearchDictionary({
-	button: 'بحث',
-	placeholder: 'بحث في الوثائق',
+	button: 'البحث',
+	placeholder: 'ابحث في الوثائق',
 	shortcutLabel: 'اضغط على / للبحث',
 	resultsFooterLede: 'هل تبحث عن إضافة أو ثيم لأسترو؟ هل تريد المزيد من المساعدة؟',
 	resultsFooterIntegrations: 'دليل إضافات أسترو',
