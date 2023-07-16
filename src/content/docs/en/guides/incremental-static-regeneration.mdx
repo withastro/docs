@@ -12,9 +12,9 @@ Incremental static regeneration is different from **incremental builds**, which 
 :::
 
 
-## Applying ISR in Your Project
+## Implementing ISR for Your Project
 
-ISR involves saving the response such that it can be reused for future requests. The exact implementation depends on your deployment target.
+ISR involves saving the response such that it can be reused for future requests. The exact implementation depends on where you are deploying.
 
 ### Self-hosted Node.js
 ISR can be implemented in Node.js by writing a caching middleware. The following middleware caches the response in memory for 60 seconds:
@@ -121,7 +121,7 @@ The presence of `s-maxage=60` in your `Cache-Control` header tells the caching s
 :::
 
 ### Netlify
-Netlify supports caching responses why its (On-demand builders)[https://docs.netlify.com/configure-builds/on-demand-builders/] feature. You can leverage it by enabling them in your config file.
+Netlify supports caching responses via its (On-demand builders)[https://docs.netlify.com/configure-builds/on-demand-builders/] feature. You can leverage it by enabling `builders` in your config file.
 
 ```ts title="stro.config.js" ins={6}
 import { defineConfig } from 'astro/config'
@@ -132,15 +132,17 @@ export default defineConfig({
   adapter: netlify({ builders: true })
 })
 ```
+This approach does not allow control over the duration that the pages stay cached.
 :::note
-TODO: Investigate whether this works on edge functions.
+Platform Team: Netlify adapter should be updated to take advantage of `ttl` in the handler's return value, and expose it to the end-developer.
 :::
 
 ### Cloudflare Pages/Workers
-Cloudflare Workers implements the Web Cache API, with a glaring difference being the fact it will automatically delete stale cache. You can use a combination of a caching middleware along with settings response headers in your frontmatter.
+Cloudflare Workers implements the Web Cache API. You can use a combination of a caching middleware, and `Cache-Control` headers.
   
 ```astro title="src/pages/index.astro"
 ---
+// this header says: the browser and the cdn can store and reuse this page for 1 hour
 Astro.response.headers.set('Cache-Control', 'max-age=3600')
 ---
 <h1>Welcome to Astro</h1>
@@ -148,16 +150,18 @@ Astro.response.headers.set('Cache-Control', 'max-age=3600')
   
 ```ts title="src/middleware.ts"
 
-// caches.default is specific to cloudflare
-const cache = caches.default
 
-export const onRequest = async ({ request }, next) => {
+const cachingMiddleware = async ({ request }, next) => {
+    
+    // caches.default is only available on cloudflare workers
+    // other platforms implementing the Web Cache API require using the `open` method
+    // `const cache = await caches.open("default")`
+    const cache = caches.default
+
     const cachedResponse = await cache.match(request)
     
-    if (cachedResponse) {
-        // return cached response
-        return cachedResponse
-    }
+    // return the cached response if there was one
+    if (cachedResponse) return cachedResponse
     
     else {
         // render a fresh response
@@ -170,4 +174,15 @@ export const onRequest = async ({ request }, next) => {
         return response
     }
 }
+
+export const onRequest =
+    // avoid using caches when it is not available. for example, when testing locally with node
+    globalThis.caches instanceof globalThis.CacheStorage
+        ? cachingMiddleware
+        // a middleware that does nothing
+        : (_, next) => next()
 ```
+
+:::note
+Cloudflare may remove the cached response from their server before the time is up. They may do this if the page was not receving visitors, or if the server is approaching capacity. If it is important to you that your visitors don't wait for the page to render afresh, you may be able to take advantage of Cloudflare's Cache Reserve feature, which stores cache on their object storage offering, R2.
+:::
