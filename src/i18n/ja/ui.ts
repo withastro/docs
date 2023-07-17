@@ -71,8 +71,6 @@ export default UIDictionary({
 	'aside.tip': 'ヒント',
 	'aside.caution': '注意',
 	'aside.danger': '危険',
-	// `<CodeSnippet>` vocabulary
-	'codeSnippet.terminalCaption': 'ターミナルウィンドウ',
 	// `<LanguageSelect>` vocabulary
 	'languageSelect.label': '言語の選択',
 	// Integrations vocabulary
@@ -111,6 +109,8 @@ export default UIDictionary({
 	'feedback.success': 'ありがとうございますｌフィードバックを受け取りました。',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': 'ディレクトリ',
+	// Code snippet vocabulary
+	'expressiveCode.terminalWindowFallbackTitle': 'ターミナルウィンドウ',
 	// Backend Guides vocabulary
 	'backend.navTitle': 'その他のバックエンドサービスガイド',
 });
