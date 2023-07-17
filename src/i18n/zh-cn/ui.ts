@@ -71,8 +71,6 @@ export default UIDictionary({
 	'aside.tip': '提示',
 	'aside.caution': '警告',
 	'aside.danger': '危险',
-	// `<CodeSnippet>` vocabulary
-	'codeSnippet.terminalCaption': '终端窗口',
 	// `<LanguageSelect>` vocabulary
 	'languageSelect.label': '选择语言',
 	// Integrations vocabulary
@@ -111,9 +109,10 @@ export default UIDictionary({
 	'feedback.success': '感谢！我们收到了你的反馈。',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': '目录',
-	// CopyButton class in `<CodeSnippet>` component
-	'copyButton.title': '复制到剪贴板',
-	'copyButton.tooltip': '复制成功！',
+	// Code snippet vocabulary
+	'expressiveCode.terminalWindowFallbackTitle': '终端窗口',
+	'expressiveCode.copyButtonTooltip': '复制到剪贴板',
+	'expressiveCode.copyButtonCopied': '复制成功！',
 	// Backend Guides vocabulary
 	'backend.navTitle': '更多后端服务指南',
 });

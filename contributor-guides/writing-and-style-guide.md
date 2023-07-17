@@ -1,3 +1,4 @@
+
 # Writing Guide
 
 This writing guide is in progress! If you have any questions or suggestions, please [make a new issue](https://github.com/withastro/docs/issues/new) and let us know.
@@ -27,6 +28,7 @@ Usually this means choosing:
 You can check your writing by pasting it into [Hemingway App](https://hemingwayapp.com/). It will show you if a sentence is too long and will encourage you to use active voice, which is generally shorter and easier to read.
 
 ### Voice
+
 Please try to use the following language conventions when contributing to the docs:
 
 - When addressing the reader, do so in the present tense and do not include yourself. You can use *you*, but do not use *we*, *we'll*, *us*, *let's* etc. (You are not with the reader at this exact moment.) Instead, use phrases like, "You can now safely delete this line of code." Or simply, "Delete this line of code. It is no longer needed." Never use *I*. This guide is not about what you can do!  
@@ -46,6 +48,7 @@ As a general guide for writing tone, you can follow the [Google Developers Guide
 >Remember that many readers aren't fluent English speakers, many of them come from cultures different from yours, and your document might be translated into other languages. For more information, see Writing for a global audience.
 
 Also see tips on how to [write inclusive documentation](https://developers.google.com/style/inclusive-documentation) and [write accessible documentation](https://developers.google.com/style/accessibility)
+
 ## Recipe Writing
 
 Here are some tips and examples to match Astro Docs' style for instructional content, like a recipe:
@@ -75,6 +78,7 @@ Here is an example edit we made to one of our own recipes to illustrate the diff
 >
 > 1.
 > 2. ...
+
 **After: imperative style**
 > Create dictionaries of terms to translate the labels for UI elements around your site. This allows your visitors to experience your site fully in their language.
 >
@@ -103,6 +107,7 @@ This can be easier to follow (and perhaps more reassuring!) than a statement tha
 
 
 -->
+
 ## Custom Components
 
 ### Aside Component
@@ -199,3 +204,249 @@ Type: `string | boolean`
 Default: `false`
 <Since v="0.24.0" />
 ```
+
+Setting a custom package name helps us document integrations and other packages. For example:
+
+```mdx
+<Since v="2.1.0" pkg="@astrojs/rss" />
+```
+
+### Version Component
+
+Sometimes it may be useful to display the latest version of a package on a page. For this, you can use the `<Version />` component, which must receive a valid package name from the npm registry as its `pkgName` prop.
+
+```md
+Astro's latest version:  <Version pkgName="astro" />
+```
+
+This will render **Astro's latest version: v1.2.1**.
+
+The `<Version />` component is currently used in our Integrations pages as a way to keep each integration’s version up-to-date without having to merge changes to these pages directly. It's worth noting that this component is only updated at build-time, thus a package's version will not change until the site is rebuilt, be it manually or because a new PR was merged into main.
+
+### Tabs Component
+
+Astro Docs uses a `<Tabs>` component to allow readers to choose between different content views.
+
+There are also two variants of this component, `<PackageManagerTabs>` and `<UIFrameworkTabs>`, for our most common use cases where readers might be interested in only one of several instructions or code samples: package managers and UI frameworks. Other custom components may be added over time. You can find all existing Tabs variations in `src/components/tabs/`.
+
+Note that these components share state, so if a reader changes the active tab of one `<PackageManagerTabs>` or `<UIFrameworkTabs>` component, then all other instances of this component on the same page will also change. This allows the reader to see the same content choice by default while reading through the entire page.
+
+#### Examples
+
+To use an existing Tabs component (e.g. `<PackageManagerTabs>` , `<UIFrameworkTabs>`), import it in the `.mdx` file:
+
+```mdx
+import InstallGuideTabGroup from '~/components/TabGroup/InstallGuideTabGroup.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+```
+
+Then, create a `<Fragment>` for each tab. The fragment's slot name will identify the tab label and the content between the opening and closing `<Fragment>...</Fragment>` tags will be the panel content.
+
+Here is an example of `<PackageManagerTabs>` showing the `create astro` commands from our [Automatic Astro Installation](https://docs.astro.build/en/install/auto/#1-run-the-setup-wizard) page.
+
+````jsx
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # create a new project with npm
+  npm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # create a new project with pnpm
+  pnpm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # create a new project with yarn
+  yarn create astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+````
+
+#### Creating your own custom Tabs component variation
+
+If necessary, you can also create your own custom Tabs component using the base `Tabs.tsx` component. To do this, create a new Astro component in the [`src/components/tabs`](https://github.com/withastro/docs/blob/main/src/components/tabs/) directory, e.g. `MyCustomTabs.astro`. (Do not use `<Tabs>` directly in a Markdown page. Create your own component instead.)
+
+Inside `MyCustomTabs.jsx`, import the Tabs component and create one `<Tabs>` component. Be sure to include the `client:visible` directive and give a unique name to the `sharedStore`. Each created Tabs component should have its own `sharedStore` to avoid unrelated tabs changing one another accidentally.
+
+```astro
+---
+import Tabs from './Tabs';
+---
+<Tabs client:visible sharedStore="my-shared-store">
+</Tabs>
+```
+To create your custom tab component, follow the pattern below using a `<Fragment>` with a named slot for each tab and panel to be created. Note that you must define your tab names here (e.g. Preact, React, Solid, Svelte, Vue), but the content for each panel will be written when your custom component is imported and used in a Markdown page, as in the previous `<PackageManagerTabs>` example.
+
+```jsx
+---
+import Tabs from './Tabs';
+---
+
+<Tabs client:visible sharedStore="ui-frameworks">
+	<Fragment slot="tab.preact">Preact</Fragment>
+	<Fragment slot="tab.react">React</Fragment>
+	<Fragment slot="tab.solid">Solid</Fragment>
+	<Fragment slot="tab.svelte">Svelte</Fragment>
+	<Fragment slot="tab.vue">Vue</Fragment>
+
+	<Fragment slot="panel.preact"><slot name="preact" /></Fragment>
+	<Fragment slot="panel.react"><slot name="react" /></Fragment>
+	<Fragment slot="panel.solid"><slot name="solid" /></Fragment>
+	<Fragment slot="panel.svelte"><slot name="svelte" /></Fragment>
+	<Fragment slot="panel.vue"><slot name="vue" /></Fragment>
+</Tabs>
+```
+
+The tabs will be displayed in alphabetical order, according to the slot name (e.g. `tab.*` and `panel.*`). For custom ordering, you can prefix your slot names with numbers (e.g. `tab.1.react`, `tab.2.preact`).
+
+### Related recipe links
+
+Astro Docs uses a `<RecipeLink>` component for displaying links to recipes with consistent styling. This is helpful when some page content has one or more relevant recipes you want to link to.
+
+`<RecipeLink>` takes a single `slugs` prop, which is an array of the slugs of the recipes you want to link to. A slug has no leading or trailing slash and should match the language of the page you are currently on. For example, use `pt-br/recipes/captcha` on a Brazilian Portuguese page and not `en/recipes/captcha`.
+
+```mdx
+import RecipeLinks from "~/components/RecipeLinks.astro";
+
+<RecipeLinks slugs={["en/recipes/captcha", "en/recipes/build-forms-api"]}/>
+```
+
+## Lists vs. Headings
+
+Both lists and headings are used in our docs for readability. We will often start by using `<ul>` to list related items. 
+
+But, when individual line items become large, span multiple paragraphs, or contain too many `<code>` terms affecting readability, then we will change to section headings.
+
+Use unordered (bulleted) lists when the order of the items is not important.
+
+Use ordered (numbered) lists when giving steps or instructions to be followed in sequence.
+
+## Headings
+
+New sections should be at the `<h2>` level. The page title is an `<h1>` element.
+
+Please keep headings short. `<h2>` and `<h3>` headings will appear in the right sidebar / "On this page" menu, so please check previews and consider shortening headings if the sidebar entry looks too long.
+
+Headings should not end in punctuation (e.g. ":") but should format `<code>` when appropriate.
+
+Do use headings to break up text into organized sections! Many readers prefer to skim, and your headings will show up in the sidebar / table of contents menu to help your readers navigate, and let them know they are on the correct page.
+
+## Examples (e.g. examples)
+
+Current practice is to use the words "for example" in full within the text of a sentence, but (e.g. Netlify, Vercel) inside a parenthetical so as to not take the reader out of the flow the sentence.
+ 
+> For example, when passing props . . . 
+
+> If you store your Astro project in an online Git provider (e.g. GitHub, GitLab), you can . . . 
+
+## Code Samples
+
+We take great pride in our code samples, but they require a little extra work to write! 
+
+Don't worry! We'll help you out in a PR if your code authoring needs some adjustment before merging. But, you can make use of all our features below and preview them locally to make sure your code looks the way you want.
+
+If you are **editing existing code samples**, then please make sure to preview your updated code sample! Update any necessary syntax such as line highlighting or title (file name).
+
+If you are **adding new code samples**, you have the option of adding a file name (usually recommended!) to be displayed as a title. You can also highlight individual words, phrases, or entire lines in regular or "diff" (red/green) style. 
+
+**All extra code styling is written on the opening line of the code block, immediately after the language.**
+
+Here are two examples of what our code snippets look like written in Markdown, just so you can see what it looks like in action. Syntax explanations follow.
+
+#### Example 1 
+- Use the file name as a title
+- highlight rows 9 and 10
+``````markdown
+```astro title="src/pages/nested-components.astro" {9-10}
+``````
+
+#### Example 2 
+- use the file name as a title (alt method)
+- apply "+ diff" styling (green backround) to any occurance of `<Button />`
+- highlight any occurance of `{props.title}` and `{props.social}`
+
+``````markdown
+```jsx /{props.(title|socialLinks)}/ ins="<Button />"
+// src/components/MySidebar.jsx
+``````
+
+### File Name as Title
+
+Most code should include a sample file name so that we give the reader not only copy-pastable code, but also provide the file into which that code should be pasted.
+
+`title="src/pages/index.astro"` 
+
+Alternatively, write the file name as a code comment in a separate line. Write the file name of `.astro` files immediately after the opening `---`
+``````markdown
+ ```astro
+ ---
+ // src/pages/index.astro
+ ---
+```
+``````
+
+``````markdown
+ ```jsx
+ // src/components/MyReactComponent.jsx
+``````
+
+### Line Highlighting
+
+Use Curly braces to highlight (default), or show "diff" style (+/-) "inserted" or "deleted" lines.
+
+- {4-7,10} - Highlights lines 4, 5, 6, 7 and 10
+- del={2} - Shows "diff" style (-) at line 2
+- ins={7-9} - Shows "diff" style (+) lines 7-9
+
+
+### Text Highlighting
+
+Use quotation marks to highlight (default), or assign red/green "diff" style background colors for individual words and phrases.
+
+Regular expressions are supported within slashes `/ /`. See a handy [tool for converting between natural English and Regex](https://www.autoregex.xyz/)!
+
+- "{item}" - All instances of `{item}` are highlighted
+
+- del="My blog title" - All instances of "My blog title" have a red background color
+
+- ins="Astro.props" - All instances of "Astro.props" have a green background color
+
+- /{frontmatter.(title|description)}/ - Highlight all instances of `{frontmatter.title}` and `{frontmatter.description}`
+
+> ***Note***
+> - del="<p class=\"hi\">" - Use `\` to escape quotation marks and other special characters in the search string
+>
+>- del='\<p class="hi">' - Use single quotes to make it easier to match double quotes
+
+
+
+
+### Don't destructure props 
+
+The following prop syntax is relevant to all component frameworks we support:
+
+```jsx
+// src/components/MySidebar.jsx
+export default function MySidebar(props) {
+  return (
+    <aside>
+      <header>{props.title}</header>
+      <main>{props.children}</main>
+      <footer>{props.socialLinks}</footer>
+    </aside>
+  )
+}
+
+```
+
+## Next Steps
+
+- [Read the docs](https://docs.astro.build/)
+- [Fork the docs](https://github.com/withastro/docs/fork)
+- [Raise an issue](https://github.com/withastro/docs/issues/new)
+- [Discuss the docs](https://discord.gg/cZDZU3hJHc)
