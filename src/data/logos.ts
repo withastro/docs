@@ -47,6 +47,7 @@ export const logos = LogoCheck({
 	'tina-cms': { file: 'tina-cms.svg', padding: '.15em' },
 	payload: { file: 'payload.svg', padding: '.3em .25em .3em .3em' },
 	prismic: { file: 'prismic.svg', padding: '.25em' },
+	caisy: { file: 'caisy.svg', padding: '.05em' },
 	sanity: { file: 'sanity.svg', padding: '0 .1em' },
 	storyblok: { file: 'storyblok.svg', padding: '.3em .25em .25em' },
 	spinal: { file: 'spinal.svg', padding: '.15em .15em' },
