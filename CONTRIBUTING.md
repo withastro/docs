@@ -8,13 +8,24 @@ We welcome contributions of any size and contributors of any skill level. As an 
 
 **See also**:
 
-- [Astro Maintainers](MAINTAINERS.md) manual
-- [Support Squad members](SUPPORTSQUAD.md) manual
+- [Writing Guide](https://github.com/withastro/docs/blob/main/contributor-guides/writing-and-style-guide.md)
+- [Translating Guide](https://github.com/withastro/docs/blob/main/contributor-guides/translating-astro-docs.md)
+- [Recipe Guide](https://github.com/withastro/docs/blob/main/contributor-guides/submitting-a-recipe.md)
+- [Astro Maintainers](https://github.com/withastro/docs/blob/main/contributor-guides/astro-maintainers-guide-to-docs.md) manual
+- [Support Squad members](https://github.com/withastro/docs/blob/main/contributor-guides/support-squad-guide-to-docs.md) manual
 
 
 This document is an active work in progress! But, we hope you'll find some useful information here to get started.
 
 ## Types of Contributions
+
+There are lots of ways to contribute to the Astro Docs website! 
+
+The Astro Docs website is ... an Astro website! Maintaining it requires not only written content but also maintaining Astro code and addressing a11y, CSS, UI, and UX concerns. We also make our documentation available in several languages, so we need help translating the entire site.
+
+You can also make a huge contribution by getting involved by leaving review comments on [PRs](https://github.com/withastro/docs/pulls), adding ideas in existing GitHub [Issues](https://github.com/withastro/docs/issues) and [Discussions](https://github.com/withastro/docs/discussions) and participating in our "Pinned" issue maintenance tasks! 
+
+Every PR, especially translation PRs, needs reviewers! Reviewing PRs and leaving comments, suggestions, or an approving "LGTM!" ("Looks Good To Me!") is a great way to get started on Team Docs, and to learn more about Astro.
 
 We encourage you to:
 
@@ -23,6 +34,10 @@ We encourage you to:
 - **Start a Discussion** if you're not sure that your "issue" rises to the level of incorrect documentation requiring a "fix," but you still want to share ideas and opinions.
 
 - **Make a PR directly** for very obvious documentation fixes like typos or broken links.
+
+- **Look at our Existing Issues** (especially those labelled [`help wanted`](https://github.com/withastro/docs/issues?q=is:open+is:issue+label:%22help+wanted%22) and [`good first issue`](https://github.com/withastro/docs/issues?q=is:open+is:issue+label:%22good+first+issue%22)) for contributions we are actively seeking.
+
+- **Review Existing PRs** (especially translations!) to help us get our fixes implemented live on the website sooner.
 
 We provide new content and rework existing content _in response to GitHub Issues and Discussions_.
 
@@ -144,7 +159,7 @@ pnpm install
 pnpm start
 ```
 
-If you’re copying these instructions, remember to [configure this project as a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/configuring-a-remote-for-a-fork).
+If you’re copying these instructions, remember to [configure this project as a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/configuring-a-remote-repository-for-a-fork).
 
 ```shell
 git remote add upstream git@github.com:withastro/docs.git

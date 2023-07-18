@@ -1,0 +1,82 @@
+---
+import { recipePages } from '~/content';
+import { getLanguageFromURL, stripLangFromSlug } from '~/util';
+import UIString from './UIString.astro';
+
+export interface Props {
+	slugs: string[];
+}
+
+const lang = getLanguageFromURL(Astro.url.pathname);
+const fallbackSlug = (slug: string) =>
+	'en/' + stripLangFromSlug(slug as Parameters<typeof stripLangFromSlug>[0]);
+
+const recipes = Astro.props.slugs.map((slug) => {
+	let isFallback = lang !== 'en' && slug.startsWith('en/');
+	let entry = recipePages.find((recipe) => recipe.slug === slug);
+	if (!entry) {
+		isFallback = true;
+		entry = recipePages.find((recipe) => recipe.slug === fallbackSlug(slug));
+	}
+	if (!entry) {
+		throw new Error(`Could not find entry for slug "${slug}"`);
+	}
+	return { slug, isFallback, title: entry.data.title };
+});
+
+const isList = recipes.length > 1;
+const labelKey = isList ? 'recipesLink.plural' : 'recipesLink.singular';
+const firstRecipe = recipes[0];
+if (!firstRecipe) {
+	throw new Error('No slugs passed to `<RecipeLinks>` component. Make sure you pass at least one.');
+}
+---
+
+<div class="root">
+	<div class="flex">
+		<img src="/houston_chef.webp" width="26" alt="" />
+		<strong><UIString key={labelKey} /></strong>
+		{
+			!isList && (
+				<a href={`/${firstRecipe.slug}/`}>
+					{firstRecipe.title} {firstRecipe.isFallback && '(EN)'}
+				</a>
+			)
+		}
+	</div>
+	{
+		isList && (
+			<ul>
+				{recipes.map((recipe) => (
+					<li>
+						<a href={`/${recipe.slug}/`}>
+							{recipe.title} {recipe.isFallback && '(EN)'}
+						</a>
+					</li>
+				))}
+			</ul>
+		)
+	}
+</div>
+
+<style>
+	.flex {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.25rem;
+	}
+	.flex > img {
+		margin-right: 0.25rem;
+	}
+	ul {
+		margin-left: 0.5rem;
+	}
+	.root {
+		background-color: var(--theme-bg-offset);
+		border-radius: 8px;
+		padding: 24px;
+		width: max-content;
+		max-width: 100%;
+	}
+</style>

@@ -2,19 +2,31 @@
 title: Server-side Rendering
 i18nReady: true
 ---
-import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import FileTree from '~/components/FileTree.astro';
 import Since from '~/components/Since.astro';
 
+Server-side rendering (SSR) refers to generating HTML pages on the server on-demand and sending them to the client.
 
-**Server-side Rendering**, aka SSR, can be enabled in Astro. When you enable SSR you can:
-
+SSR allows you to:
 - Implement sessions for login state in your app.
 - Render data from an API called dynamically with `fetch`.
 - Deploy your site to a host using an *adapter*.
 
+Consider enabling server-side rendering in your Astro project if you need the following:
+
+- **API endpoints**: SSR enables you to create specific pages that function as API endpoints for tasks like database access, authentication, and authorization while keeping sensitive data hidden from the client.
+
+- **Protected pages**: If you need to restrict access to a page based on user privileges, you can enable SSR to handle user access on the server.
+
+- **Frequently changing content**: Enabling SSR lets you generate individual pages without requiring a static rebuild of your site. This is useful when the content of a page updates frequently.
+
 ## Enabling SSR in Your Project
 
-To get started, enable SSR features in development mode with the `output: server` configuration option:
+To enable SSR features for production deployments, update your `output` configuration to `'server'` or `'hybrid'` (introduced in **v2.6.0**). Both of these modes control which [pages](/en/core-concepts/astro-pages/) or [server endpoints](/en/core-concepts/endpoints/#server-endpoints-api-routes) should be server-rendered. Each configuration option has a different default behavior, and allows individual routes to opt-out of the default accordingly:
+
+- __`output: 'server'`__: Server-rendered by default. Use this when most or all of your site should be server-rendered. Any individual page or endpoint can *opt-in* to pre-rendering.
+- __`output: 'hybrid'`__: Pre-rendered to HTML by default. Use this when most of your site should be static. Any individual page or endpoint can *opt-out* of pre-rendering.
 
 ```js ins={5}
 // astro.config.mjs
@@ -22,6 +34,33 @@ import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   output: 'server'
+});
+```
+
+You can then opt-out of the default rendering behavior with an export statement in any page or route:
+
+```astro title="src/pages/mypage.astro" {2}
+---
+export const prerender = true;
+// ...
+---
+<html>
+  <!-- Static, pre-rendered page here... -->
+</html>
+```
+See more usage examples of [configuring individual routes](#configuring-individual-routes)
+
+### Converting a static site to hybrid rendering
+
+To convert an existing static Astro site to allow hybrid rendering, change the `output` to `'hybrid'` and add an adapter:
+
+```diff
+import { defineConfig } from 'astro/config';
++ import nodejs from '@astrojs/node';
+
+export default defineConfig({
++ adapter: nodejs(),  
++ output: 'hybrid',
 });
 ```
 
@@ -98,15 +137,15 @@ You can also add an adapter manually by installing the package and updating `ast
 
 ## Features
 
-Astro will remain a static-site generator by default. But once you enable a server-side rendering adapter, **every route in your pages directory defaults to a server-rendered route** and a few new features become available to you.
+Astro will remain a static-site generator by default. But once you enable server-side rendering and add an adapter, a few new features become available to you.
 
-### Hybrid Rendering
+### Configuring individual routes
 
-<Since v="2.0.0" />
+Both `server` and `hybrid` modes allow for server-rendered pages and endpoints and will render all pages according to their default mode. However, both modes allow you to mark an individual page to opt-out of this default behavior.
 
-To enable **hybrid rendering**, any [page](/en/core-concepts/astro-pages/) or [server endpoint](/en/core-concepts/endpoints/#server-endpoints-api-routes) that supports exporting variables (`.astro`, `.mdx`, `.ts`, or `.js`) can opt-in to prerendering. These files will be statically rendered at build-time, similar to the default static [`output`](/en/reference/configuration-reference/#output) mode.
+### Opting-out of server-rendering
 
-Simply add `export const prerender = true`:
+For a mostly server-rendered app configured as `output: server`, add `export const prerender = true` to any page or route to pre-render a static page or endpoint:
 
 ```astro title="src/pages/mypage.astro" {2}
 ---
@@ -114,7 +153,7 @@ export const prerender = true;
 // ...
 ---
 <html>
-  <!-- Page here... -->
+  <!-- Static, pre-rendered page here... -->
 </html>
 ```
 
@@ -125,23 +164,39 @@ title: 'My page'
 ---
 export const prerender = true;
 
-# This is my page
+# This is my static, pre-rendered page
 ```
 
+And for an endpoint:
 
 ```js title="src/pages/myendpoint.js" {1}
 export const prerender = true;
 
 export async function get() {
   return {
-    body: JSON.stringify({ message: `This is my endpoint` }),
+    body: JSON.stringify({ message: `This is my static endpoint` }),
+  };
+}
+```
+
+### Opting out of pre-rendering
+
+For a mostly static site configured as `output: hybrid`, add `export const prerender = false` to any files that should be server-rendered:
+
+```js title="src/pages/randomnumber.js" {1}
+export const prerender = false;
+
+export async function get() {
+  let number = Math.random();
+  return {
+    body: JSON.stringify({ number, message: `Here's a random number: ${number}` }),
   };
 }
 ```
 
 ### `Astro.request.headers`
 
-The headers for the request are available on `Astro.request.headers`. It is a [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers) object, a Map-like object where you can retrieve headers such as the cookie.
+The headers for the request are available on `Astro.request.headers`. This works like the browser's [`Request.headers`](https://developer.mozilla.org/en-US/docs/Web/API/Request/headers). It is a [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers) object, a Map-like object where you can retrieve headers such as the cookie.
 
 ```astro title="src/pages/index.astro" {2}
 ---
@@ -151,6 +206,16 @@ const cookie = Astro.request.headers.get('cookie');
 <html>
   <!-- Page here... -->
 </html>
+```
+
+### `Astro.request.method`
+
+The HTTP method used in the request is available as `Astro.request.method`. This works like the browser's [`Request.method`](https://developer.mozilla.org/en-US/docs/Web/API/Request/method). It returns the string representation of the HTTP method used in the request.
+
+```astro title="src/pages/index.astro"
+---
+console.log(Astro.request.method) // GET (when navigated to in the browser)
+---
 ```
 
 :::caution
@@ -184,26 +249,6 @@ Astro.cookies.set("counter",counter)
 </html>
 ```
 
-### `Astro.redirect`
-
-On the `Astro` global, this method allows you to redirect to another page. You might do this after checking if the user is logged in by getting their session from a cookie.
-
-```astro title="src/pages/account.astro" {8}
----
-import { isLoggedIn } from '../utils';
-
-const cookie = Astro.request.headers.get('cookie');
-
-// If the user is not logged in, redirect them to the login page
-if (!isLoggedIn(cookie)) {
-  return Astro.redirect('/login');
-}
----
-<html>
-  <!-- Page here... -->
-</html>
-```
-
 ### `Response`
 
 You can also return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) from any page. You might do this to return a 404 on a dynamic page after looking up an id in the database.
@@ -231,3 +276,132 @@ if (!product) {
 
 A server endpoint, also known as an **API route**, is a special function exported from a `.js` or `.ts` file within the `src/pages/` folder. 
 The function takes an [endpoint context](/en/reference/api-reference/#endpoint-context) and returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response). A powerful feature of SSR, API routes are able to securely execute code on the server. To learn more, see our [Endpoints Guide](/en/core-concepts/endpoints/#server-endpoints-api-routes).
+
+### Streaming
+
+Browsers natively support HTTP streaming, where a document is broken up into chunks, sent over the network in order, and rendered on the page in that order.
+
+During this process, browsers consume HTML incrementally: parsing, rendering into the DOM, and painting. This happens whether or not you intentionally stream your HTML. Network conditions can cause large documents to be downloaded slowly, and waiting for data fetches can block page rendering.
+
+
+### Using streaming to improve page performance
+
+The following page `await`s some data in its frontmatter. Astro will wait for all of the `fetch` calls to resolve before sending any HTML to the browser.
+
+```astro title="src/pages/index.astro"
+---
+const personResponse = await fetch('https://randomuser.me/api/');
+const personData = await personResponse.json();
+const randomPerson = personData.results[0];
+const factResponse = await fetch('https://catfact.ninja/fact');
+const factData = await factResponse.json();
+---
+<html>
+  <head>
+    <title>A name and a fact</title>
+  </head>
+  <body>
+    <h2>A name</h2>
+    <p>{randomPerson.name.first}</p>
+    <h2>A fact</h2>
+    <p>{factData.fact}</p>
+  </body>
+</html>
+```
+
+Moving the `await` calls into smaller components allows you to take advantage of Astro's streaming. Using the following components to perform the data fetches, Astro can render some HTML first, such as the title, and then the paragraphs when the data is ready.
+
+```astro title="src/components/RandomName.astro"
+---
+const personResponse = await fetch('https://randomuser.me/api/');
+const personData = await personResponse.json();
+const randomPerson = personData.results[0];
+---
+<p>{randomPerson.name.first}</p>
+```
+
+```astro title="src/components/RandomFact.astro"
+---
+const factResponse = await fetch('https://catfact.ninja/fact');
+const factData = await factResponse.json();
+---
+<p>{factData.fact}</p>
+```
+
+
+The Astro page below using these components can render parts of the page sooner. The `<head>`, `<body>`, and `<h1>` tags are no longer blocked by data fetches. The server will then fetch data for `RandomName` and `RandomFact` in parallel and stream the resulting HTML to the browser.
+
+```astro title="src/pages/index.astro"
+---
+import RandomName from '../components/RandomName.astro'
+import RandomFact from '../components/RandomFact.astro'
+---
+<html>
+  <head>
+    <title>A name and a fact</title>
+  </head>
+  <body>
+    <h2>A name</h2>
+    <RandomName />
+    <h2>A fact</h2>
+    <RandomFact />
+  </body>
+</html>
+```
+
+#### Including Promises directly
+
+You can also include promises directly in the template. Instead of blocking the entire component, it will resolve the promise in parallel and only block the markup that comes after it.
+
+```astro title="src/pages/index.astro"
+---
+const personPromise = fetch('https://randomuser.me/api/')
+  .then(response => response.json())
+  .then(arr => arr[0].name.first);
+const factPromise = fetch('https://catfact.ninja/fact')
+  .then(response => response.json())
+  .then(factData => factData.fact);
+---
+<html>
+  <head>
+    <title>A name and a fact</title>
+  </head>
+  <body>
+    <h2>A name</h2>
+    <p>{personPromise}</p>
+    <h2>A fact</h2>
+    <p>{factPromise}</p>
+  </body>
+</html>
+```
+
+In this example, `A name` will render while `personPromise` and `factPromise` are loading.
+Once `personPromise` has resolved, `A fact` will appear and `factPromise` will render when it's finished loading.
+
+### Split the SSR build into multiple files
+
+By default, Astro builds all pages into one single file called `entry.mjs`. You can configure [`split`](/en/reference/configuration-reference/#buildsplit) in your build options to instead emit a single file for each page:
+
+```js title="astro.config.mjs" ins={6}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  build: {
+      split: true
+  }
+});
+```
+
+The emitted page files will be saved in the directory specified for [`outDir`](/en/reference/configuration-reference/#outdir), under a newly created `pages/` directory.
+
+The files inside the `pages/` directory of the build will mirror the directory structure of your page files in `src/pages/`, for example:
+
+<FileTree>
+- dist/
+    - pages/
+        - blog/
+            - entry.\_slug\_.astro.mjs
+            - entry.about.astro.mjs
+        - entry.index.astro.mjs
+</FileTree>

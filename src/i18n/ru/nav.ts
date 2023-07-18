@@ -44,6 +44,7 @@ export default NavDictionary({
 	'getting-started': 'Начало работы',
 	install: 'Установка',
 	'blog-tutorial': 'Создать блог',
+	'guides/backend': 'Услуги бэкенда',
 	'guides/client-side-scripts': 'Скрипты и обработка событий',
 	'guides/cms': 'Подключение CMS',
 	// 'guides/content': 'Авторский контент',
@@ -53,4 +54,9 @@ export default NavDictionary({
 	'guides/upgrade-to/v2': 'Обновление до v2',
 	'reference/error-reference': 'Справочник по ошибкам',
 	tutorials: 'Обучение',
+	examples: 'Рецепты',
+	'guides/recipes': 'Больше рецептов',
+	'guides/fonts': 'Шрифты',
+	'guides/assets': 'Ресурсы (эксперим.)',
+	'core-concepts/astro-syntax': 'Синтаксис Astro',
 });

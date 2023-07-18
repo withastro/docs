@@ -22,6 +22,7 @@ export default UIDictionary({
 	'rightSidebar.editPage': '编辑本页内容',
 	'rightSidebar.translatePage': '翻译本页内容',
 	'rightSidebar.contribute': '贡献',
+	'rightSidebar.contributorGuides': '贡献者指南',
 	'rightSidebar.community': '社区',
 	'rightSidebar.joinDiscord': '加入我们的 Discord',
 	'rightSidebar.readBlog': '阅读我们的博客',
@@ -51,6 +52,11 @@ export default UIDictionary({
 	'cms.navTitle': '更多 CMS 指南',
 	// Migration Guides vocabulary
 	'migration.navTitle': '更多迁移指南',
+	// Recipes vocabulary
+	'recipes.navTitle': '更多方案',
+	// `<RecipeLinks>` vocabulary
+	'recipesLink.singular': '相关方案：',
+	'recipesLink.plural': '相关方案',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': '查看所有贡献者',
 	// Fallback content notice shown when a page is not yet translated
@@ -65,8 +71,6 @@ export default UIDictionary({
 	'aside.tip': '提示',
 	'aside.caution': '警告',
 	'aside.danger': '危险',
-	// `<CodeSnippet>` vocabulary
-	'codeSnippet.terminalCaption': '终端窗口',
 	// `<LanguageSelect>` vocabulary
 	'languageSelect.label': '选择语言',
 	// Integrations vocabulary
@@ -95,6 +99,7 @@ export default UIDictionary({
 	'feedback.formTitle': '你有什么想法？',
 	'feedback.categoryGroupLabel': '选择反馈类型',
 	'feedback.issue': '问题',
+	'feedback.createIssue': '创建 GitHub Issue',
 	'feedback.idea': '想法',
 	'feedback.other': '其它',
 	'feedback.messageA11yLabel': '留言',
@@ -104,4 +109,10 @@ export default UIDictionary({
 	'feedback.success': '感谢！我们收到了你的反馈。',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': '目录',
+	// Code snippet vocabulary
+	'expressiveCode.terminalWindowFallbackTitle': '终端窗口',
+	'expressiveCode.copyButtonTooltip': '复制到剪贴板',
+	'expressiveCode.copyButtonCopied': '复制成功！',
+	// Backend Guides vocabulary
+	'backend.navTitle': '更多后端服务指南',
 });

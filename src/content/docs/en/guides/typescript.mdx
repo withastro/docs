@@ -35,7 +35,7 @@ Additionally, our templates include an `env.d.ts` file inside the `src` folder t
 /// <reference types="astro/client" />
 ```
 
-If you are not using VSCode, you can install the [Astro TypeScript plugin](https://www.npmjs.com/package/@astrojs/ts-plugin) to support importing `.astro` files from `.ts` files (which can be useful for re-exporting). 
+If you are not using VSCode, you can install the [Astro TypeScript plugin](https://www.npmjs.com/package/@astrojs/ts-plugin) to support importing `.astro` files from `.ts` files (which can be useful for re-exporting).
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -64,6 +64,7 @@ Then, add the following to your `tsconfig.json`:
         "name": "@astrojs/ts-plugin"
       },
     ],
+  }
 ```
 
 To check that the plugin is working, create a `.ts` file and import an Astro component into it. You should have no warning messages from your editor.
@@ -71,7 +72,7 @@ To check that the plugin is working, create a `.ts` file and import an Astro com
 
 ### UI Frameworks
 
-If your project uses a [UI framework](/en/core-concepts/framework-components/), additional settings depending on the framework might be needed. Please see your framework's TypeScript documentation for more information. ([Vue](https://vuejs.org/guide/typescript/overview.html#using-vue-with-typescript), [React](https://reactjs.org/docs/static-type-checking.html), [Preact](https://preactjs.com/guide/v10/typescript), [Solid](https://www.solidjs.com/guides/typescript))
+If your project uses a [UI framework](/en/core-concepts/framework-components/), additional settings depending on the framework might be needed. Please see your framework's TypeScript documentation for more information. ([Vue](https://vuejs.org/guide/typescript/overview.html#using-vue-with-typescript), [React](https://react-typescript-cheatsheet.netlify.app/docs/basic/setup), [Preact](https://preactjs.com/guide/v10/typescript), [Solid](https://www.solidjs.com/guides/typescript))
 
 ## Type Imports
 
@@ -234,6 +235,26 @@ type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
 ```
 :::
 
+### Polymorphic type
+
+<Since v="2.5.0" />
+
+Astro includes a helper to make it easier to build components that can render as different HTML elements with full type safety. This is useful for components like `<Link>` that can render as either `<a>` or `<button>` depending on the props passed to it.
+
+The example below implements a fully-typed, polymorphic component that can render as any HTML element. The [`HTMLTag`](#built-in-html-attributes) type is used to ensure that the `as` prop is a valid HTML element.
+
+```astro
+---
+import { HTMLTag, Polymorphic } from 'astro/types';
+
+type Props<Tag extends HTMLTag> = Polymorphic<{ as: Tag }>;
+
+const { as: Tag, ...props } = Astro.props;
+---
+
+<Tag {...props} />
+```
+
 ### Infer `getStaticPaths()` types
 
 <Since v="2.1.0" />
@@ -244,9 +265,9 @@ You can get the type of [`Astro.params`](/en/reference/api-reference/#astroparam
 
 ```astro title="src/pages/posts/[...slug].astro" {2,14-15}
 ---
-import { InferGetStaticParamsType, InferGetStaticPropsType } from 'astro';
+import { InferGetStaticParamsType, InferGetStaticPropsType, GetStaticPaths } from 'astro';
 
-export async function getStaticPaths() {
+export const getStaticPaths = (async () => {
   const posts = await getCollection('blog');
   return posts.map((post) => {
     return {
@@ -254,15 +275,15 @@ export async function getStaticPaths() {
       props: { draft: post.data.draft, title: post.data.title },
     };
   });
-}
+}) satisfies GetStaticPaths;
 
 type Params = InferGetStaticParamsType<typeof getStaticPaths>;
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 
-const { slug } = Astro.params;
-//               ^? { slug: string; }
+const { slug } = Astro.params as Params;
+//               			 ^? { slug: string; }
 const { title } = Astro.props;
-//                ^? { draft: boolean; title: string; }
+//                			^? { draft: boolean; title: string; }
 ---
 ```
 

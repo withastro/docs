@@ -10,7 +10,7 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 The new assets experience currently features:
 
 - A new built-in `<Image />` component
-- Relative images with automatic optimization in Markdown
+- Relative images with automatic optimization in Markdown, [MDX](/en/guides/integrations-guide/mdx/), and [Markdoc](/en/guides/integrations-guide/markdoc/)
 - Integration with content collections
 - Improved error messages and types
 
@@ -49,9 +49,9 @@ When you next run Astro, it will update your `src/env.d.ts` file to configure ty
 
 Create `src/assets/`, which Astro will recognize as your new assets folder.
 
-We recommend storing all images to be optimized in the `src/assets/` directory, although this location is optional.
+We recommend storing all images to be optimized in the `src/assets/` directory to make use of our official `~/assets` alias, although this location is optional. If you don't know where to put your images, or if you're building a product around Astro (e.g. a CMS), you can put your images there and we promise we won't break them! But, images can be stored anywhere, including alongside your content, if you prefer.
 
-Your images stored in `src/assets/` can be used by components (`.astro`, `.mdx`, and other UI frameworks) and in Markdown files.
+Your images can be used by components (`.astro`, `.mdx`, and other UI frameworks) and in Markdown files.
 
 ### Update existing `<img>` tags
 
@@ -77,11 +77,11 @@ import rocket from '../assets/images/rocket.svg'
 <img src={rocket.src} width={rocket.width} height={rocket.height} alt="A rocketship in space." />
 ```
 
-### Update your Markdown files
+### Update your Markdown, MDX, and Markdoc files
 
-Relative images can now be referenced in Markdown files. These will automatically be optimized and hashed by Astro's build process.
+Relative images can now be referenced in Markdown, MDX, and Markdoc files. These will automatically be optimized and hashed by Astro's build process.
 
-This allows you to move your images from the `public/` directory to the new, reserved `src/assets/` directory or move them near your Markdown files. (See the URL path of these built images in the example below.)
+This allows you to move your images from the `public/` directory to the new, reserved `src/assets/` directory or move them near your Markdown, MDX, or Markdoc files. (See the URL path of these built images in the example below.)
 
 Your existing images in `public/` and remote images are still valid but are not automatically optimized by Astro's build process.
 
@@ -97,13 +97,19 @@ Your existing images in `public/` and remote images are still valid but are not 
 <img src="/images/stars.png" alt="A starry night sky.">
 
 <!-- Remote image on another server -->
-![Astro logo](https://astro.build/assets/logo.png)
-<img src="https://astro.build/assets/logo.png" width="25" alt="Astro logo">
+![Astro logo](https://docs.astro.build/assets/logomark-light.png)
+<img src="https://docs.astro.build/assets/logomark-light.png" width="25" alt="Astro logo">
 ```
 
 ### Convert from `@astrojs/image`
 
 **Built-in asset support is incompatible with the `@astrojs/image` integration.**
+
+:::note[cropping images]
+The Assets API does not support image cropping. The current behaviour is to resize images to fit.
+
+Use the `@astrojs/image` integration if you need support for cropping images. Alternatively, you can use the [`object-fit` CSS property](https://developer.mozilla.org/en-US/docs/Web/CSS/object-fit) to achieve a similar result. 
+:::
 
 To avoid errors in your project, complete the following steps:
 
@@ -116,7 +122,7 @@ To avoid errors in your project, complete the following steps:
     Change all `import` statements from `@astrojs/image/components` to `astro:assets` to use the new built-in `<Image />` component.
 
     Remove any component attributes that are not [currently supported image asset properties](#properties).
-    
+
     For example `aspectRatio` is no longer supported, as it is now automatically inferred from the `width` and `height` attributes.
 
       ```astro title="src/components/MyComponent.astro" del= {2,11} ins={3}
@@ -145,12 +151,12 @@ To avoid errors in your project, complete the following steps:
 
 ### Update content collections schemas
 
-You can now declare images in your frontmatter as their paths relative to the `src/assets/` folder. 
+You can now declare images in your frontmatter as their paths relative to the current folder.
 
 ```md title="src/content/blog/my-post.md"
 ---
 title: "My first blog post"
-cover: "firstpostcover.jpeg" # will resolve to "src/assets/firstblogcover.jpeg"
+cover: "./firstpostcover.jpeg" # will resolve to "src/content/blog/firstblogcover.jpeg"
 coverAlt: "A photograph of a sunset behind a mountain range"
 ---
 
@@ -160,9 +166,10 @@ This is a blog post
 A new `image` helper for content collections lets you validate the image metadata using Zod.
 
 ```ts title="src/content/config.ts"
-import { defineCollection, z, image } from "astro:content";
+import { defineCollection, z } from "astro:content";
+
 const blogCollection = defineCollection({
-	schema: z.object({
+	schema: ({ image }) => z.object({
 		title: z.string(),
 		cover: image().refine((img) => img.width >= 1080, {
 			message: "Cover image must be at least 1080 pixels wide!",
@@ -273,7 +280,7 @@ If the image is merely decorative (i.e. doesn't contribute to the understanding 
 
 ##### Additional properties
 
-In addition to the properties above, the `<Image />` component accepts all properties accepted by the HTML `<img>` tag. 
+In addition to the properties above, the `<Image />` component accepts all properties accepted by the HTML `<img>` tag.
 
 For example, you can provide a `class` to the final `img` element.
 
@@ -354,14 +361,14 @@ If you're deploying to a Node environment, you may want to use [sharp](https://g
 Then, enable Astro's sharp image service in your config:
 
 ```js title="astro.config.mjs"
-import { defineConfig } from "astro/config";
+import { defineConfig, sharpImageService } from "astro/config";
 
 export default defineConfig({
 	experimental: {
 		assets: true,
 	},
 	image: {
-		service: "astro/assets/services/sharp",
+		service: sharpImageService(),
 	},
 });
 ```

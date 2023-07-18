@@ -1,6 +1,8 @@
 ---
 title: 服务端渲染
 ---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import Since from '~/components/Since.astro';
 
 你可以在 Astro 中启用**服务器端渲染**（又称 SSR, Server Side Rendering）。启用后你可以：
 
@@ -10,9 +12,20 @@ title: 服务端渲染
 
 ## 启用 SSR
 
-为了启用 SSR，你需要使用适配器（Adapter)。这是因为 SSR 需要服务器**运行时**环境运行服务器端代码。服务器端代码可以调用该运行时提供的 API。
+首先，在开发模式使用`output: server`配置选项来启用 SSR 功能：
 
-安装一个适配器可以让 Astro 访问相应的 API，并允许 Astro 输出一个脚本，在那种服务器上运行你的项目。
+```js ins={5}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  output: 'server'
+});
+```
+
+### 添加一个适配器
+
+当需要部署 SSR 项目时，你还需要添加一个适配器。这是因为 SSR 需要一个服务器 _运行时_：运行服务器端代码的环境。每个适配器都允许 Astro 输出在特定运行时运行项目的脚本。
 
 现有以下适配器，未来将有更多适配器：
 
@@ -22,22 +35,62 @@ title: 服务端渲染
 - [Node.js](https://github.com/withastro/astro/tree/main/packages/integrations/node)
 - [Vercel](https://github.com/withastro/astro/tree/main/packages/integrations/vercel)
 
-你可以在上面的各个适配器链接中找到相关说明，并完成以下两个步骤启用 SSR（以下示例使用 `my-adapter` 作为占位符的）：
+#### 使用 `astro add` 安装
 
-1. 通过 npm 或其他包管理器安装适配器：
+你可以使用以下 `astro add` 命令添加任何官方适配器。这将安装一步适配器并对你的 `astro.config.mjs` 文件进行适当的更改。 例如，要安装 Netlify 适配器，请运行：
 
-   ```bash
-      npm install --save-dev @astrojs/my-adapter
-    ```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add netlify
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
-1. 在 `astro.config.mjs` 文件添加[适配器](/zh-cn/reference/configuration-reference/)导入和默认导出。
+#### 手动安装
 
-    ```diff
+你还可以通过自己手动安装软件包和更新 `astro.config.mjs` 来手动添加一个适配器。（请参阅上面的链接以获取特定于适配器的说明，以完成以下两个步骤以启用 SSR。）使用 `my-adapter` 作为示例占位符，说明将类似于：
+
+1. 使用你首选的包管理器将适配器安装到你的项目依赖项：
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm install @astrojs/my-adapter
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm install @astrojs/my-adapter
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn add @astrojs/my-adapter
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+2. [添加一个适配器](/zh-cn/reference/configuration-reference/#adapter) 到你的 `astro.config.mjs` 文件的导入和默认导出：
+
+    ```js ins={3,6-7}
     // astro.config.mjs
     import { defineConfig } from 'astro/config';
-    + import myAdapter from '@astrojs/my-adapter';
+    import myAdapter from '@astrojs/my-adapter';
+
     export default defineConfig({
-    +   adapter: myAdapter(),
+      output: 'server',
+      adapter: myAdapter(),
     });
     ```
 
@@ -45,17 +98,87 @@ title: 服务端渲染
 
 Astro 在默认情况下仍是静态网站生成器。但是一旦你启用了服务器端渲染适配器，**你的页面目录中的每条路由都会成为服务器渲染的路由**，一些新的功能就可以为你所用。
 
+### 混合渲染
+
+<Since v="2.0.0" />
+
+要启用 **混合渲染**，任何支持导出变量的[页面](/zh-cn/core-concepts/astro-pages/) 或[服务器端点](/zh-cn/core-concepts/endpoints/#服务器端点api-路由)（.astro、.mdx、.ts 或 .js）都可以选择加入预渲染。这些文件将在构建时被静态渲染，类似于默认的 static [`output`](/zh-cn/reference/configuration-reference/#output) 模式。
+
+只需添加 `export const prerender = true`：
+
+```astro title="src/pages/mypage.astro" {2}
+---
+export const prerender = true;
+// ...
+---
+<html>
+  <!-- 你的页面... -->
+</html>
+```
+
+```mdx title="src/pages/mypage.mdx" {5}
+---
+layout: '../layouts/markdown.astro'
+title: 'My page'
+---
+export const prerender = true;
+
+# 你的页面
+```
+
+
+```js title="src/pages/myendpoint.js" {1}
+export const prerender = true;
+
+export async function get() {
+  return {
+    body: JSON.stringify({ message: `This is my endpoint` }),
+  };
+}
+```
+
 ### `Astro.request.headers`
 
-你可以通过 `Astro.request.headers` 获取请求的 header 信息。[Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers) 对象类似 Map，你可以在此检索 cookie 等 header 信息。
+你可以通过 `Astro.request.headers` 获取请求的 header 信息。[Headers](https://developer.mozilla.org/zh-CN/docs/Web/API/Headers) 对象类似 Map，你可以在此检索 cookie 等 header 信息。
 
-```astro
+```astro title="src/pages/index.astro" {2}
 ---
 const cookie = Astro.request.headers.get('cookie');
 // ...
 ---
 <html>
-  <!-- Page here... -->
+  <!-- 你的页面 -->
+</html>
+```
+
+:::caution
+以下功能仅在页面级别可用。 （你不能在组件内部使用它们，包括布局组件。）
+
+这是因为这些功能会修改 [Response headers](https://developer.mozilla.org/zh-CN/docs/Glossary/Response_header)，这些 headers 在发送到浏览器后无法修改。 在 SSR 模式下，Astro 使用 HTML 流将每个组件发送到浏览器来渲染它们。 这可以确保用户尽快看到你的 HTML，但这也意味着当 Astro 运行你的组件代码时，它已经发送了 Response headers。
+:::
+
+### `Astro.cookies`
+
+这是一个用于读取和修改单个 cookie 的工具方法。 它允许您检查、设置、获取和删除 cookie。
+
+在 API 参考中查看有关 [`Astro.cookies` 和 `AstroCookie` 类型](/zh-cn/reference/api-reference/#astrocookies)的更多详细信息。
+
+下面的示例更新了页面显示的计数器的 cookie 值。
+
+```astro title="src/pages/index.astro" {4,5,9}
+---
+let counter = 0
+
+if(Astro.cookies.has("counter")){
+  const cookie = Astro.cookies.get("counter")
+	counter = cookie.number() + 1
+}
+
+Astro.cookies.set("counter",counter)
+
+---
+<html>
+  <h1>Counter = {counter}</h1>
 </html>
 ```
 
@@ -63,7 +186,7 @@ const cookie = Astro.request.headers.get('cookie');
 
 在 `Astro` global 中，你可以用该方法重定向至另一页面。你可以在通过从 cookie 中获取到的用户会话来检查用户是否已经登录，然后之后再做这个动作。
 
-```astro
+```astro title="src/pages/account.astro" {8}
 ---
 import { isLoggedIn } from '../utils';
 
@@ -81,11 +204,9 @@ if(!isLoggedIn(cookie)) {
 
 ### `Response`
 
-任何页面都可以返回 [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response)。可以在数据库中查找 ID 后，再动态返回 404 页面。
+任何页面都可以返回 [Response](https://developer.mozilla.org/zh-CN/docs/Web/API/Response)。可以在数据库中查找 ID 后，再动态返回 404 页面。
 
-__[id].astro__
-
-```astro
+```astro title="src/pages/[id].astro" {8-11}
 ---
 import { getProduct } from '../api';
 
@@ -104,27 +225,6 @@ if(!product) {
 </html>
 ```
 
-#### API 路由
+### 服务器端点
 
-`src/pages/`，目录中的 `.js` 或 `.ts` 文件都是 API 路由，它接收 [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) 并返回 [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response)数据。
-
-__[id].js__
-```js
-import { getProduct } from '../db';
-
-export async function get({ params }) {
-  const { id } = params;
-  const product = await getProduct(id);
-
-  if(!product) {
-    return new Response(null, {
-      status: 404,
-      statusText: 'Not found'
-    });
-  }
-
-  return new Response(JSON.stringify(product), {
-    status: 200
-  });
-}
-```
+服务器端点，也称为 **API 路由**，是从 `src/pages/` 文件夹中的 `.js`或 `.ts` 文件导出的特殊函数。该函数接收一个[端点上下文对象](/zh-cn/reference/api-reference/#端点上下文)并返回一个 [Response](https://developer.mozilla.org/zh-CN/docs/Web/API/Response)。 这是 SSR 的一个强大功能，API 路由能够在服务器上安全地执行代码。 要了解更多信息，请参阅我们的[端点指南](/zh-cn/core-concepts/endpoints/#服务器端点api-路由)。

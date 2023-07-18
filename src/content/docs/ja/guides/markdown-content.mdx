@@ -4,14 +4,32 @@ description: AstroでMarkdownやMDXを使ってコンテンツを作成する方
 i18nReady: true
 ---
 
+import Since from '~/components/Since.astro'
+import FileTree from '~/components/FileTree.astro'
+
 [Markdown](https://daringfireball.net/projects/markdown/)は、ブログ投稿やドキュメントのようなテキストを多用するコンテンツのオーサリングによく使います。Astroは標準的なMarkdownファイルをビルトインでサポートしています。
 
 [@astrojs/mdxインテグレーション](/ja/guides/integrations-guide/mdx/)をインストールすると、[MDX](https://mdxjs.com/)（`.mdx`）ファイルにも対応し、MarkdownコンテンツでのJavaScript式やコンポーネントのサポートなどの追加機能を提供します。
 
 Markdownコンテンツを書くには、どちらか一方、または両方のタイプのファイルを使用します。
 
-
 ## MarkdownページとMDXページ
+
+### コンテンツコレクション
+
+Astroでは、MarkdownやMDXのファイルを専用の`src/content/`フォルダで管理できます。[コンテンツコレクション](/ja/guides/content-collections/)は、コンテンツの整理、フロントマターの検証、コンテンツを扱う際のTypeScriptの自動型安全性確保に役立ちます。
+
+<FileTree>
+- src/content/
+  - **newsletter/** 
+    - week-1.md
+    - week-2.md
+  - **authors/**
+    - grace-hopper.md
+    - alan-turing.md
+</FileTree>
+
+詳しい使い方は[Astroのコンテンツコレクション](/ja/guides/content-collections/)をご覧ください。
 
 ### ファイルベースルーティング
 
@@ -40,7 +58,7 @@ title: Hello, World
 
 ### 下書きページ
 
-`draft: true`はオプションのfront-matterの値で、個々のMarkdownまたはMDXページや投稿を「非公開」としてマークできます。デフォルトでは、マークされたページは次の動作になります。
+`draft: true`はオプションのフロントマターの値で、個々のMarkdownまたはMDXページや投稿を「非公開」としてマークできます。デフォルトでは、マークされたページは次の動作になります。
 - サイトのビルド対象から外す（**ページはビルドされない**）
 - [`Astro.glob()`](/ja/reference/api-reference/#astroglob)によって返される (**投稿の一覧で表示されます**)
 
@@ -58,7 +76,7 @@ draft: true
 
 この記事をビルドして公開するには
 
-- front-matterを`draft: false`に更新する。
+- フロントマターを`draft: false`に更新する。
 - または、`draft`プロパティ全体を削除してください。
 
 しかし、このページは `Astro.glob()` にマッチするすべてのリクエストで返されます。
@@ -75,8 +93,9 @@ const nonDraftPosts = posts.filter((post) => !post.frontmatter.draft);
 
 デフォルトで下書きページもビルドするには、`markdown`または`mdx`インテグレーションに`drafts: true`を追加して`astro.config.mjs`を更新します。
 
-```js ins={4, 7}
-// astro.config.mjs
+```js title="astro.config.mjs" ins={5, 8}
+import { defineConfig } from 'astro/config';
+
 export default defineConfig({
   markdown: {
     drafts: true,
@@ -95,14 +114,13 @@ export default defineConfig({
 
 Astroは、MarkdownとMDXファイルを使用する際に利用できる、追加のビルトインMarkdown機能を提供します。
 
-### Front-matter `layout`
+### フロントマター `layout`
 
-Astroは、MarkdownおよびMDXページに、Astro[レイアウトコンポーネント](/ja/core-concepts/layouts/#markdownとmdxのレイアウト)への相対パス（または[エイリアス](/ja/guides/aliases/)）を指定できる特別なfront-matter用の`layout`プロパティを提供します。
+Astroは、MarkdownおよびMDXページに、Astro[レイアウトコンポーネント](/ja/core-concepts/layouts/#markdownとmdxのレイアウト)への相対パス（または[エイリアス](/ja/guides/aliases/)）を指定できる特別なフロントマター用の`layout`プロパティを提供します。
 
-**`src/pages/posts/post-1.md`**
-
-```markdown {2}
+```markdown {3}
 ---
+# src/pages/posts/post-1.md
 layout: ../../layouts/BlogPostLayout.astro
 title: Astroの概要
 author: Himanshu
@@ -111,26 +129,27 @@ description: Astroの凄さを知ってください！
 これはMarkdownで書かれた記事です。
 ```
 
-front-matterプロパティは、`Astro.props`を使ってレイアウトで利用できます。
-
-
-**`src/layouts/BlogPostLayout.astro`**
+[特定のプロパティは、`Astro.props`を通してレイアウトコンポーネントで利用できます](/ja/core-concepts/layouts/#markdownレイアウトのprops)。たとえば、`Astro.props.frontmatter`を通して、フロントマターのプロパティにアクセスできます。
 
 ```astro /frontmatter(?:.\w+)?/
 ---
+// src/layouts/BlogPostLayout.astro
 const {frontmatter} = Astro.props;
 ---
 <html>
   <!-- ... -->
   <h1>{frontmatter.title}</h1>
   <h2>投稿者: {frontmatter.author}</h2>
-  <p>{frontmatter.description}<p>
+  <p>{frontmatter.description}</p>
   <slot /> <!-- Markdownコンテンツはここに挿入されます -->
    <!-- ... -->
 </html>
 ```
 
+また、レイアウトコンポーネントで[Markdownをスタイリング](/ja/guides/styling/#markdownのスタイル)することもできます。
+
 📚 [Markdownのレイアウト](/ja/core-concepts/layouts/#markdownとmdxのレイアウト)の詳細を見る。
+
 
 ### 見出しID
 
@@ -155,16 +174,15 @@ URL`https://my-domain.com/page-1/#イントロダクション`を使って、ペ
 
 たとえば、`<` がHTML要素の先頭と解釈されないようにするには、`&lt;`と記述します。また、MDXで`{`がJavaScriptの式の先頭と解釈されないようにするには、`&lcub;`と記述します。
 
-
 ## MDXのみで使える機能
 
 Astroの[MDXインテグレーション](/ja/guides/integrations-guide/mdx/)を追加すると、JSX変数、式、コンポーネントによってMarkdownオーサリングを強化できます。
 
-また、[MDXにおけるMarkdownスタイルのfront-matter](https://mdxjs.com/guides/frontmatter/)のサポートなど、標準的なMDXにさらに機能を追加しています。これにより、[front-matter `layout`](#front-matter-layout)プロパティや[下書きページ](#下書きページ)の設定など、Astroの組み込みMarkdown機能のほとんどを使用できます。
+また、[MDXにおけるMarkdownスタイルのフロントマター](https://mdxjs.com/guides/frontmatter/)のサポートなど、標準的なMDXにさらに機能を追加しています。これにより、[フロントマター `layout`](#フロントマター-layout)プロパティや[下書きページ](#下書きページ)の設定など、Astroの組み込みMarkdown機能のほとんどを使用できます。
 
 `.mdx`ファイルは、AstroのHTMLライクな構文ではなく、[MDX構文](https://mdxjs.com/docs/what-is-mdx/#mdx-syntax)で記述する必要があります。
 
-### MDXでエクスポートされた変数を使用する
+### MDXでエクスポートされた変数を使用
 
 MDXは、`export`文を使用してMDXコンテンツに変数を追加することをサポートします。これらの変数は、テンプレート自体でも、[ファイルをどこかにインポートする](#markdownのインポート)ときに名前付きプロパティとしてでもアクセスできます。
 
@@ -175,10 +193,9 @@ export const title = 'はじめてのMDXの投稿'
 
 # {title}
 ```
+### MDXでフロントマター変数を使用
 
-### MDXでfront-matter変数を使用する
-
-Astro MDXインテグレーションには、MDXでfront-matterを使用するためのサポートがデフォルトで含まれています。Markdownファイルと同じようにfrontmatterプロパティを追加すると、これらの変数はテンプレートや[`layout`コンポーネント](#front-matter-layout)内において、あるいはどこかに[ファイルをインポートする](#markdownのインポート)ときに名前付きプロパティとして使用する際にアクセスできます。
+Astro MDXインテグレーションには、MDXでフロントマターを使用するためのサポートがデフォルトで含まれています。Markdownファイルと同じようにフロントマタープロパティを追加すると、これらの変数はテンプレートや[`layout`コンポーネント](#フロントマター-layout)内において、あるいはどこかに[ファイルをインポートする](#markdownのインポート)ときに名前付きプロパティとして使用する際にアクセスできます。
 
 ```mdx title="/src/pages/posts/post-1.mdx"
 ---
@@ -189,7 +206,7 @@ title: 'はじめてのMDXの投稿'
 # {frontmatter.title}
 ```
 
-### MDXでコンポーネントを使用する
+### MDXでコンポーネントを使用
 
 MDXインテグレーションをインストールすると、[Astroコンポーネント](/ja/core-concepts/astro-components/#コンポーネントのprops)と[UIフレームワークコンポーネント](/ja/core-concepts/framework-components/#フレームワークコンポーネントを利用)の両方をMDX（`.mdx`）ファイルにインポートして、他のAstroコンポーネントと同じように使用できるようになります。
 
@@ -197,7 +214,7 @@ MDXインテグレーションをインストールすると、[Astroコンポ�
 
 [MDX docs](https://mdxjs.com/docs/what-is-mdx/#esm)でimportとexport文の他の使用例を確認してください。
 
-```astro title="src/pages/about.mdx" {5-6} /<.+\/>/
+```mdx title="src/pages/about.mdx" {5-6} /<.+\/>/
 ---
 layout: ../layouts/BaseLayout.astro
 title: About me
@@ -225,6 +242,7 @@ export const components = {blockquote: Blockquote}
 > この引用文はカスタムBlockquoteになります。
 ```
 
+
 ```astro title="src/components/Blockquote.astro"
 ---
 const props = Astro.props;
@@ -234,16 +252,13 @@ const props = Astro.props;
   <slot /> <!-- 子コンテンツのために `<slot/>` を必ず追加してください！ -->
 </blockquote>
 ```
-
 カスタムコンポーネントとして上書き可能なHTML要素の全リストは、[MDXのウェブサイト](https://mdxjs.com/table-of-components/)をご覧ください。
-
 
 ## Markdownのインポート
 
-MarkdownファイルやMDXファイルをAstroファイルに直接インポートできます。これにより、そのMarkdownコンテンツや、AstroのJSXライクな式で使用できるfront-matterの値などのプロパティにアクセスできます。
+MarkdownファイルやMDXファイルをAstroファイルに直接インポートできます。これにより、そのMarkdownコンテンツや、AstroのJSXライクな式で使用できるフロントマターの値などのプロパティにアクセスできます。
 
-`import`文で特定の1ページを、[`Astro.glob()`](/ja/guides/imports/)で複数のページをインポートできます。
-{/* TODO: インポートページが更新されたら /ja/guides/imports/#astroglob にリンク先を更新する */}
+`import`文で特定の1ページを、[`Astro.glob()`](/ja/guides/imports/#astroglob)で複数のページをインポートできます。
 
 ```astro title="src/pages/index.astro"
 ---
@@ -259,11 +274,11 @@ AstroコンポーネントでMarkdownやMDXファイルをインポートする�
 
 ```md title="/src/pages/posts/great-post.md"
 ---
-title: '今まで書いた中で最高の投稿'
+title: '史上最高の投稿'
 author: 'Ben'
 ---
 
-**素晴らしい**投稿をご紹介します。
+**素晴らしい**投稿！
 ```
 
 ```astro title="src/pages/my-posts.astro"
@@ -282,16 +297,16 @@ const posts = await Astro.glob('../pages/post/*.md');
 </ul>
 ```
 
-MDXファイルでは、front-matterと`export`文の両方からプロパティにアクセスできます。
+MDXファイルでは、フロントマターと`export`文の両方からプロパティにアクセスできます。
 
 ```mdx title="/src/pages/posts/mdx-post.mdx"
 ---
-title: '今まで書いた中で最高の投稿'
+title: '史上最高の投稿'
 author: 'Ben'
 ---
 export const description = '快適に過ごそう! これは素晴らしい読み物になりそうです。'
 
-私の**素晴らしい**投稿をご紹介します。
+**素晴らしい**投稿！
 ```
 
 ```astro title="src/pages/my-posts.astro"
@@ -324,18 +339,18 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 ### エクスポートしたプロパティ
 
 :::note[Astroレイアウトをお使いですか？]
-Astroの特別な[front-matterレイアウト](#front-matter-layout)を使用する際に、[Astroレイアウトコンポーネントにエクスポートされるプロパティ](/ja/core-concepts/layouts/#markdownとmdxのレイアウト)を参照してください。
+Astroの特別な[フロントマターレイアウト](#フロントマター-layout)を使用する際に、[Astroレイアウトコンポーネントにエクスポートされるプロパティ](/ja/core-concepts/layouts/#markdownとmdxのレイアウト)を参照してください。
 :::
 
 `.astro`コンポーネントで`import`文または`Astro.glob()`を使用した場合、以下のプロパティが使用できます。
 
 - **`file`** - ファイルの絶対パス（例：`/home/user/projects/.../file.md`）。
 - **`url`** - もしページなら、そのページのURL (例:`/en/guides/markdown-content`)。
-- **`frontmatter`** - ファイルのYAML front-matterで指定された全データを含みます。
+- **`frontmatter`** - ファイルのYAML フロントマターで指定された全データを含みます。
 - **`getHeadings`** - ファイル内のすべての見出し（すなわち`h1 -> h6`要素）の配列を返す非同期関数です。各見出しの`slug`は、与えられた見出しに対して生成されたIDに対応し、アンカーリンクに使用できます。このリストは次の型に従います。`{ depth: number; slug: string; text: string }[]`。
 - **`Content`** - ファイルのレンダリングされた完全なコンテンツを返すコンポーネントです。
 - **(Markdownのみ) `rawContent()`** - 生のMarkdownドキュメントを文字列として返す関数です。
-- **(Markdownのみ) `compiledContent()`** - HTML文字列にコンパイルされたMarkdownドキュメントを返す関数です。これはfront-matterで設定されたレイアウトを含まないことに注意してください。Markdownドキュメント自身のみがHTMLとして返されます。
+- **(Markdownのみ) `compiledContent()`** - HTML文字列にコンパイルされたMarkdownドキュメントを返す関数です。これはフロントマターで設定されたレイアウトを含まないことに注意してください。Markdownドキュメント自身のみがHTMLとして返されます。
 - **(MDXのみ)** - MDXファイルは、`export`文を使用してデータをエクスポートすることもできます。
 
 ### `Content` コンポーネント
@@ -379,6 +394,7 @@ const { Content } = Astro.props.post
 </article>
 ```
 
+
 ### エクスポート（MDXのみ）
 
 MDXファイルでは、`export`文を使用してデータをエクスポートできます。
@@ -421,7 +437,7 @@ MDXファイルで定義され、エクスポートされたカスタムコン�
 
 AstroのMarkdownサポートは、活発なエコシステムを持つ強力なパースおよび処理ツールである[remark](https://remark.js.org/)によって提供されています。Pandocやmarkdown-itなどの他のMarkdownパーサーは、現在サポートされていません。
 
-Astroは、[GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm)と [Smartypants](https://github.com/silvenon/remark-smartypants)プラグインをデフォルトで適用します。これにより、テキストからクリッカブルリンクを生成したり、読みやすさのために引用をフォーマットしたりといった、いくつかの便利な機能が提供されます。
+Astroはデフォルトで[GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm)プラグインを適用しています。これにより、テキストからクリック可能なリンクが生成されるなど、いくつかの利点があります。
 
 remarkがMarkdownをどのように解析するかは、`astro.config.mjs`でカスタマイズできます。[Markdownの設定オプション](/ja/reference/configuration-reference/#マークダウンのオプション)の全リストをご覧ください。
 
@@ -441,18 +457,57 @@ import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis';
 export default {
   markdown: {
     // .md と .mdx ファイルに適用
-    remarkPlugins: [remarkToc],
-    // remark-gfm と remark-smartypants を保持
-    extendDefaultPlugins: true,
+    remarkPlugins: [remarkToc, rehypeAccessibleEmojis],
   },
-  integrations: [mdx({
-    // .mdx ファイルのみに適用
-    rehypePlugins: [rehypeAccessibleEmojis],
-  })],
 }
 ```
 
-#### 例：front-matterの挿入
+なお、デフォルトでは、`remarkToc`は目次を表示するために、ページ上に「ToC」または「Table of Contents」の[見出し](https://github.com/remarkjs/remark-toc#optionsheading)（大文字小文字を区別しない）を必要とします。
+
+#### 見出しのIDとプラグイン
+
+Astroは、MarkdownやMDXファイルのすべての見出し要素（`<h1>`～`<h6>`）に`id`属性を注入し、[Markdownでエクスポートしたプロパティ](#エクスポートしたプロパティ)でこれらのIDを取得するための`getHeadings()`ユーティリティを提供しています。
+
+`id`属性（`rehype-slug`など）を注入するrehypeプラグインを追加することで、これらの見出しIDをカスタマイズできます。Astroのデフォルトではなく、あなたのカスタムIDがHTML出力と`getHeadings()`が返すアイテムに反映されます。
+
+デフォルトでは、Astroはrehypeプラグインが実行された後に`id`属性を注入します。もし、カスタムrehypeプラグインの1つがAstroによって注入されたIDにアクセスする必要がある場合、Astroの`rehypeHeadingIds`プラグインを直接インポートして使用できます。`rehypeHeadingIds`に依存するプラグインの前に必ず`rehypeHeadingIds`を追加してください。
+
+```js title="astro.config.mjs" ins={2, 8}
+import { defineConfig } from 'astro/config';
+import { rehypeHeadingIds } from '@astrojs/markdown-remark';
+import { otherPluginThatReliesOnHeadingIDs } from 'some/plugin/source';
+
+export default defineConfig({
+  markdown: {
+    rehypePlugins: [
+      rehypeHeadingIds,
+      otherPluginThatReliesOnHeadingIDs,
+    ],
+  },
+});
+```
+
+#### プラグインの設定
+
+プラグインを設定するためには、ネストされた配列の中で、プラグインの後にオプションオブジェクトを指定します。
+
+以下の例では、[`remarkToc`プラグインに`heading`オプション](https://github.com/remarkjs/remark-toc#optionsheading)を追加して目次の配置を変更し、[`rehype-autolink-headings`プラグインに`behavior`オプション](https://github.com/rehypejs/rehype-autolink-headings#optionsbehavior)を追加して、見出しテキストの後にアンカータグを追加しています。
+
+```js title="astro.config.mjs"
+import remarkToc from 'remark-toc';
+import { rehypeHeadingIds } from '@astrojs/markdown-remark';
+import rehypeSlug from 'rehype-slug';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+
+export default {
+  markdown: {
+    remarkPlugins: [ [remarkToc, { heading: "contents"} ] ],
+    rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, { behavior: 'append' }]],
+  },
+}
+```
+
+### プログラムによるフロントマターの変更
 
 [remarkやrehypeのプラグイン](#markdownプラグイン)を使用することで、すべてのMarkdownファイルやMDXファイルにfrontmatterプロパティを追加できます。
 
@@ -467,6 +522,12 @@ export default {
     }
     ```
 
+    :::tip
+    <Since v="2.0.0" />
+
+    `data.astro.frontmatter`は、与えられたMarkdownまたはMDXドキュメントからのすべてのプロパティを含んでいます。これにより、既存のフロントマタープロパティを修正したり、この既存のフロントマターから新しいプロパティを計算したりできます。
+    :::
+
 2. このプラグインを`markdown`または`mdx`のインテグレーション設定に適用します。
 
     ```js title="astro.config.mjs" "import { exampleRemarkPlugin } from './example-remark-plugin.mjs';" "remarkPlugins: [exampleRemarkPlugin],"
@@ -474,27 +535,28 @@ export default {
 
     export default {
       markdown: {
-        remarkPlugins: [exampleRemarkPlugin],
-        extendDefaultPlugins: true,
+        remarkPlugins: [exampleRemarkPlugin]
       },
     };
 
     ```
+
     または
 
     ```js title="astro.config.mjs" "import { exampleRemarkPlugin } from './example-remark-plugin.mjs';" "remarkPlugins: [exampleRemarkPlugin],"
+    import { defineConfig } from 'astro/config';
     import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
 
-    export default {
+    export default defineConfig({
       integrations: [
         mdx({
           remarkPlugins: [exampleRemarkPlugin],
         }),
       ],
-    }
+    });
     ```
 
-これで、すべてのMarkdownまたはMDXファイルは、front-matterに`customProperty`を持ち、[Markdownのインポート](#markdownのインポート)時や[レイアウトの`Astro.props.frontmatter`プロパティ](#front-matter-layout)から利用できるようになります。
+これで、すべてのMarkdownまたはMDXファイルは、フロントマターに`customProperty`を持ち、[Markdownのインポート](#markdownのインポート)時や[レイアウトの`Astro.props.frontmatter`プロパティ](#フロントマター-layout)から利用できるようになります。
 
 #### 例：読書時間の計算
 
@@ -530,14 +592,13 @@ import { remarkReadingTime } from './remark-reading-time.mjs';
 
 export default {
   markdown: {
-    remarkPlugins: [remarkReadingTime],
-    extendDefaultPlugins: true,
+    remarkPlugins: [remarkReadingTime]
   },
 };
 
 ```
 
-これにより、すべてのMarkdownドキュメントは計算された`minutesRead`を持つようになります。これを使用して、たとえば[Markdownレイアウト](#markdownページとmdxページ)に読書時間を表示するバナーを含めることができます。
+これにより、すべてのMarkdownドキュメントは計算された`minutesRead`を持つようになります。これを使用して、たとえば[Markdownレイアウト](#markdownページとmdxページ)に読書時間を表示するバナーを含められます。
 
 ```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.frontmatter;" "<p>{minutesRead}</p>"
 ---
@@ -551,6 +612,57 @@ const { minutesRead } = Astro.props.frontmatter;
     <slot />
   </body>
 </html>
+```
+
+### MDXからMarkdown設定を継承
+
+AstroのMDX統合は、デフォルトで[プロジェクトの既存のMarkdown設定](/ja/reference/configuration-reference/#マークダウンのオプション)を継承します。個々のオプションを上書きするには、MDXの構成で同等のものを指定します。
+
+次の例では、GitHub-Flavored Markdownを無効にし、MDXファイルに対して異なるremarkプラグインのセットを適用しています。
+
+```ts title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  markdown: {
+    syntaxHighlight: 'prism',
+    remarkPlugins: [remarkPlugin1],
+    gfm: true,
+  },
+  integrations: [
+    mdx({
+      // Markdownから継承した`syntaxHighlight`
+
+      // Markdownの`remarkPlugins`は無視され、
+      // `remarkPlugin2`のみが適用される
+      remarkPlugins: [remarkPlugin2],
+      // `gfm`は`false`に上書きされる
+      gfm: false,
+    })
+  ]
+});
+```
+
+MDXからMarkdownの設定を継承しないようにするには、[`extendMarkdownConfig`オプション](/ja/guides/integrations-guide/mdx/#extendmarkdownconfig))（デフォルトで有効）を`false`に設定します。
+
+
+```ts title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  markdown: {
+    remarkPlugins: [remarkPlugin],
+  },
+  integrations: [
+    mdx({
+      // Markdownの設定は無視される
+      extendMarkdownConfig: false,
+      // `remarkPlugins`は適用されない
+    })
+  ]
+});
 ```
 
 ### シンタックスハイライト
@@ -567,9 +679,10 @@ Shikiはデフォルトで有効になっており、`github-dark`テーマで�
 
 Shikiはデフォルトのシンタックスハイライトです。すべてのオプションは`shikiConfig`オブジェクト経由で以下のように設定できます。
 
-```js
-// astro.config.mjs
-export default {
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
   markdown: {
     shikiConfig: {
       // Shikiの組み込みテーマから選択（または独自のテーマを追加）
@@ -583,7 +696,7 @@ export default {
       wrap: true,
     },
   },
-};
+});
 ```
 
 #### 独自テーマの追加
@@ -607,14 +720,15 @@ export default defineConfig({
 
 デフォルトを`'prism'`に切り替えたい場合、またはシンタックスハイライトを完全に無効にしたい場合は、`markdown.syntaxHighlighting`設定オブジェクトを使用できます。
 
-```js ins={5}
-// astro.config.mjs
-export default {
+```js title="astro.config.mjs" ins={6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
   markdown: {
     // 'shiki'（デフォルト）、'prism'、またはハイライトを無効にする場合は false を指定します
     syntaxHighlight: 'prism',
   },
-};
+});
 ```
 
 #### Prismの設定
