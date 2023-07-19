@@ -55,8 +55,8 @@ async function recursiveFetch(endpoint: string, page = 1) {
 		}
 
 		return data;
-	} catch (e: any) {
-		printError(e);
+	} catch (e) {
+		printError(e as Error);
 		return [];
 	}
 }
