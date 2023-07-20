@@ -163,6 +163,43 @@ You may notice an imported component's `<script>` or `<style>` tags included in 
 
 Astro's build process works on the module graph: once a component is included in the template, its `<script>` and `<style>` tags are processed, optimized, and bundled, whether it appears in the final output or not. This does not apply to scripts when the `is:inline` directive is applied.
 
+Dynamic imports will also confuse Astro's analyzer. In this case, the dynamic import causes `index.astro` to include `<script>` and `<style>` tags for both `Accordion.astro` and `Tabs.astro`.
+
+```js title="src/components.ts"
+export { default as Accordion } from './Accordion.astro';
+export { default as Tabs } from './Tabs.astro';
+```
+
+```astro title="src/pages/index.astro"
+---
+// Astro cannot statically analyze this dynamic import:
+const { Accordion } = await import('../components');
+---
+<Accordion />
+```
+
+### A component's `<script>` tag is not included in the bundle
+
+In some rare cases, Astro may fail to include a `<script>` tag in the final bundle. This occurs when the component is imported but not directly re-exported. For example:
+
+```js title="src/components.ts"
+import Accordion from './Accordion.astro';
+
+export function getAccordion() {
+	return Accordion;
+}
+```
+
+```astro title="src/pages/index.astro"
+---
+import { getAccordion } from '../components';
+// Astro cannot detect that Accordion was imported here:
+const Accordion = getAccordion();
+---
+<Accordion />
+```
+
+
 ## Tips and tricks
 
 ### Debugging with `console.log()`
