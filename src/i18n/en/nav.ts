@@ -84,7 +84,7 @@ export default [
 	{ text: 'Middleware', slug: 'guides/middleware', key: 'guides/middleware' },
 	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
 	{
-		text: 'Client-side Routing (Experimental)',
+		text: 'View Transitions (Experimental)',
 		slug: 'guides/client-side-routing',
 		key: 'guides/client-side-routing',
 	},
