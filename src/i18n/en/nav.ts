@@ -85,8 +85,8 @@ export default [
 	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
 	{
 		text: 'View Transitions (Experimental)',
-		slug: 'guides/client-side-routing',
-		key: 'guides/client-side-routing',
+		slug: 'guides/view-transitions',
+		key: 'guides/view-transitions',
 	},
 	{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
 
