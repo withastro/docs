@@ -331,6 +331,63 @@ import rocket from '~/assets/rocket.png';
 
 ```
 
+## Images in Content Collections
+
+You can declare an associated image for a content collections entry, such as a blog post's cover image, in your frontmatter using its path relative to the current folder:
+
+```md title="src/content/blog/my-post.md" {3}
+---
+title: "My first blog post"
+cover: "./firstpostcover.jpeg" # will resolve to "src/content/blog/firstblogcover.jpeg"
+coverAlt: "A photograph of a sunset behind a mountain range."
+---
+
+This is a blog post
+```
+
+The `image` helper for content collections lets you validate the image metadata using Zod.
+
+```ts title="src/content/config.ts"
+import { defineCollection, z } from "astro:content";
+
+const blogCollection = defineCollection({
+	schema: ({ image }) => z.object({
+		title: z.string(),
+		cover: image().refine((img) => img.width >= 1080, {
+			message: "Cover image must be at least 1080 pixels wide!",
+		}),
+		coverAlt: z.string(),
+	}),
+});
+
+export const collections = {
+	blog: blogCollection,
+};
+```
+
+The image will be imported and transformed into metadata, allowing you to pass it as a `src` to `<Image/>`, `<img>`, or `getImage()`. 
+
+The example below shows a blog index page that renders the cover photo and title of each blog post from the schema above:
+
+```astro title="src/pages/blog.astro" {10}
+---
+import { Image } from "astro:assets";
+import { getCollection } from "astro:content";
+const allBlogPosts = await getCollection("blog");
+---
+
+{
+	allBlogPosts.map((post) => (
+		<div>
+			<Image src={post.data.cover} alt={post.data.coverAlt} />
+			<h2>
+				<a href={"/blog/" + post.slug}>{post.data.title}</a>
+			</h2>
+		</div>
+	))
+}
+```
+
 ## Images in UI framework components
 
 When adding images in a UI framework component, use the framework's own image syntax to render an image (e.g. `<img />` in JSX, `<img>` in Svelte).
