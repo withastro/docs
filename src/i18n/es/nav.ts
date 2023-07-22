@@ -78,6 +78,11 @@ export default [
 	{ text: 'Fetching de Datos', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
 	{ text: 'Middleware', slug: 'guides/middleware', key: 'guides/middleware' },
 	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
+	{
+		text: 'View Transitions (Experimental)',
+		slug: 'guides/view-transitions',
+		key: 'guides/view-transitions',
+	},
 	{ text: 'Solución de Problemas', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
 
 	{ text: 'Configuración', header: true, type: 'learn', key: 'configuration' },
