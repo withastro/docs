@@ -27,7 +27,7 @@ export default [
 		key: 'core-concepts/astro-components',
 	},
 	{ text: 'Páginas', slug: 'core-concepts/astro-pages', key: 'core-concepts/astro-pages' },
-	{ text: 'Layouts', slug: 'core-concepts/layouts', key: 'core-concepts/layouts' },
+	{ text: 'Plantillas', slug: 'core-concepts/layouts', key: 'core-concepts/layouts' },
 
 	{ text: 'Recetas', header: true, type: 'learn', key: 'examples' },
 	{ text: 'Migrar a Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
