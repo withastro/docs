@@ -1,0 +1,289 @@
+---
+title: Migrating from Create React App
+description: Tips for migrating an existing Create React App project to Astro
+type: migration
+stub: false
+framework: Create React App
+i18nReady: true
+---
+import AstroJSXTabs from '~/components/tabs/AstroJSXTabs.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+Here are some key concepts and migration strategies to help you get started. Use the rest of our docs and our [Discord community](https://astro.build/chat) to keep going!
+
+## Key Similarities between Create React App and Astro
+
+- The [syntax of `.astro` files is similar to JSX](/en/core-concepts/astro-syntax/#differences-between-astro-and-jsx). Writing Astro should feel familiar.
+
+- Astro uses file-based routing, and [allows specially named pages to create dynamic routes](/en/core-concepts/routing/#dynamic-routes).
+
+- Astro is [component-based](/en/core-concepts/astro-components/), and your markup structure will be similar before and after your migration.
+
+- Astro has [official integrations for React, Preact, and Solid](/en/guides/integrations-guide/react/) so you can use your existing JSX components. Note that in Astro, these files **must** have a `.jsx` or `.tsx` extension.
+
+- Astro has support for [installing NPM packages](/en/guides/imports/#npm-packages), including React libraries. Many of your existing dependencies will work in Astro.
+
+## Key Differences between Create React App and Astro
+
+When you rebuild your Create React App site in Astro, you will notice some important differences:
+
+- [MPA vs SPA](/en/concepts/mpa-vs-spa/): Create React App is a single-page application that uses `index.js` as your project's root. Astro is a multi-page site, and `index.astro` is your home page.
+
+- [`.astro` components](/en/core-concepts/astro-components/) are not written as exported functions that return page templating. Instead, you'll split your code into a "code fence" for your JavaScript and a body exclusively for the HTML you generate.
+
+- [Content-focus](/en/concepts/why-astro/): Astro was designed primarily for content-focused sites with small pieces of interactivity. An existing Create React App app might be built for high client-side interactivity and may include items that are difficult to replicate using `.astro` components, such as dashboards.
+
+## Convert your Create React App Project
+
+Each project migration will look different, but there are some common actions you will perform when converting from Create React App to Astro.
+
+### Create a new Astro project
+Use the `create astro` command for your package manager to launch Astro's CLI wizard or choose a community theme from the [Astro Theme Showcase](https://astro.build/themes).
+
+You can pass a `--template` argument to the `create astro` command to start a new Astro project with one of our official starters (e.g. `docs`, `blog`, `portfolio`). Or, you can [start a new project from any existing Astro repository on GitHub](/en/install/auto/#starter-templates).
+
+ <PackageManagerTabs>
+    <Fragment slot="npm">
+    ```shell
+    # launch the Astro CLI Wizard 
+    npm create astro@latest
+
+    # create a new project with an official example
+    npm create astro@latest -- --template <example-name>
+    ```
+    </Fragment>
+    <Fragment slot="pnpm">
+    ```shell
+    # launch the Astro CLI Wizard 
+    pnpm create astro@latest
+
+    # create a new project with an official example
+    pnpm create astro@latest --template <example-name>
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```shell
+    # launch the Astro CLI Wizard 
+    yarn create astro@latest
+
+    # create a new project with an official example
+    yarn create astro@latest --template <example-name>
+    ```
+    </Fragment>
+  </PackageManagerTabs>
+
+Then, copy your existing Creat React App project files over to your new Astro project in a separate folder outside of `src`.
+
+:::tip
+Visit https://astro.new for the full list of official starter templates, and links for opening a new project in StackBlitz, CodeSandbox, or Gitpod.
+:::
+
+### Install integrations (optional)
+
+You may find it useful to install some of [Astro's optional integrations](/en/guides/integrations-guide/) to use while converting your Create React App project to Astro. For example, **@astrojs/react** lets you reuse some existing React UI components in your new Astro site, or keep writing with React components.
+
+### Put your source code in `src`
+
+Following [Astro's project structure](/en/core-concepts/project-structure/):
+
+1. **Keep** Create React App's `public/` folder untouched. 
+   
+    Astro uses the `public/` directory for static assets, just like Create React App. There is no change needed to this folder, nor its contents.
+
+2. **Copy or Move** Create React App's other files and folders (e.g. `components`, `hooks`, `styles`, etc.) into Astro's `src/` folder as you rebuild your site, following [Astro's project structure](/en/core-concepts/project-structure/).
+
+    Astro's `src/pages/` folder is a special folder used for file-based routing. All other folders are optional. The contents of your `src/` folder can be organized any way. You can also include common folders in Astro projects include `src/layouts/`, `src/components`, `src/styles`, `src/scripts`.
+
+### The Astro config file
+
+Astro has a configuration file at the root of your project called [`astro.config.mjs`](/en/guides/configuring-astro/). This is used only for configuring your Astro project and any installed integrations, including [SSR adapters](/en/guides/deploy/).
+
+### Tips: Convert JSX files to `.astro` files
+
+Here are some tips for converting a Create React App `.js` component into a `.astro` component:
+
+1. Use the returned JSX of the existing Create React App component function as the basis for your HTML template.
+
+2. Change any [Create React App or JSX syntax to Astro](#reference-convert-create-react-app-syntax-to-astro) or to HTML web standards. This includes `{children}` and `className`, for example.
+
+4. Move any necessary JavaScript, including import statements, into a ["code fence" (`---`)](/en/core-concepts/astro-components/#the-component-script). Note: JavaScript to [conditionally render content](/en/core-concepts/astro-syntax/#dynamic-html) is often written inside the HTML template directly in Astro.
+
+5. Use [`Astro.props`](/en/reference/api-reference/#astroprops) to access any additional props that were previously passed to your Create React App function.
+
+6. Decide whether any imported components also need to be converted to Astro. With the official integration installed, you can [use existing React components in your Astro file](/en/core-concepts/framework-components/). But, you may want to convert them to `.astro` components, especially if they do not need to be interactive!
+
+7. Replace `useEffect()` with import statements or [`Astro.glob()`](/en/reference/api-reference/#astroglob) to query your local files. Use `fetch()` to fetch external data.
+
+#### Compare: JSX vs Astro
+
+Compare the following Create React App component and a corresponding Astro component:
+
+<AstroJSXTabs>
+  <Fragment slot="jsx">
+    ```jsx title="StarCount.jsx"
+    import React, { useState, useEffect } from 'react';
+import Header from './Header';
+import Footer from './Footer';
+
+const Component = () => {
+    const [stars, setStars] = useState(0);
+    const [message, setMessage] = useState('');
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const res = await fetch('https://api.github.com/repos/withastro/astro');
+            const json = await res.json();
+
+            setStars(json.stargazers_count || 0);
+            setMessage(json.message);
+        };
+
+        fetchData();
+    }, []);
+
+    return (
+        <>
+            <Header />
+            <p style={{
+                backgroundColor: `#f4f4f4`,
+                padding: `1em 1.5em`,
+                textAlign: `center`,
+                marginBottom: `1em`
+            }}>Astro has {stars} 🧑‍🚀</p>
+            <Footer />
+        </>
+    )
+};
+
+export default Component;
+    ```
+  </Fragment>
+  <Fragment slot="astro">
+    ```astro title="StarCount.astro"
+    ---
+    import Header from "./header";
+    import Footer from "./footer";
+    import "./layout.css";
+
+    const res = await fetch('https://api.github.com/repos/withastro/astro')
+    const json = await res.json()
+    const message = json.message;
+    const stars = json.stargazers_count || 0;
+    ---
+    <Header />
+    <p class="banner">Astro has {stars} 🧑‍🚀</p>
+    <Footer />
+
+    <style>
+      .banner {
+        background-color: #f4f4f4; 
+        padding: 1em 1.5em;
+        text-align: center;
+        margin-bottom: 1em;
+      }
+    <style>
+    ```
+  </Fragment>
+</AstroJSXTabs>
+
+### Migrating Pages and Posts
+
+Similar to Create React App, in Astro **all your page content must live within `src/`**, in either `src/pages` or `src/content`.
+
+#### React pages
+
+Your existing Create React App JSX (`.js`) pages will need to be [converted from JSX files to `.astro` pages](#tips-convert-jsx-files-to-astro-files). You cannot use an existing JSX page file in Astro.
+
+These [`.astro` pages](/en/core-concepts/astro-pages/) must be located within `src/pages/` and will have page routes generated automatically based on their file path.
+
+#### Markdown and MDX pages
+
+Astro has built-in support for Markdown and an optional integration for MDX files. You can reuse any existing [Markdown and MDX files](/en/guides/markdown-content/), but they may require some adjustments to their frontmatter, such as adding [Astro's special `layout` frontmatter property](/en/core-concepts/layouts/#markdownmdx-layouts). You will no longer need to manually create pages for each Markdown-generated route. These files can be placed within `src/pages/` to take advantage of automatic file-based routing.
+
+Alternatively, you can use [content collections](/en/guides/content-collections/) in Astro to store and manage your content. When part of a collection, Markdown and MDX files will live in folders within `src/content/`. You will retrieve the content yourself and [generate those pages dynamically](/en/guides/content-collections/#generating-routes-from-content).
+
+### Migrating Tests
+
+As Astro outputs raw HTML, it is possible to write end-to-end tests using the output of the build step. Any end-to-end tests written previously might work out-of-the-box if you have been able to match the markup of your Create React App site. Testing libraries such as Jest and React Testing Library can be imported and used in Astro to test your React components.
+
+See Astro's [testing guide](/en/guides/testing/) for more.
+
+## Reference: Convert Create React App Syntax to Astro
+
+### Create React App Imports to Astro
+
+Update any [file imports](/en/guides/imports/) to reference relative file paths exactly. This can be done using [import aliases](/en/guides/typescript/#import-aliases), or by writing out a relative path in full. 
+
+Note that `.astro` and several other file types must be imported with their full file extension.
+
+```astro title="src/pages/authors/Fred.astro"
+---
+import Card from `../../components/Card.astro`
+---
+<Card />
+```
+
+### Create React App Children Props to Astro
+
+Convert any instances of `{children}` to an Astro `<slot />`. Astro does not need to receive `{children}` as a function prop and will automatically render child content in a `<slot />`.
+
+```astro title="src/components/MyComponent" del={3-9} ins={11-13}
+---
+---
+export default function MyComponent(props) { 
+    return (
+      <div>
+        {props.children}
+      </div>
+    );  
+}
+
+<div>
+  <slot />
+</div>
+```
+
+React components that pass multiple sets of children can be migrated to an Astro component using [named slots](/en/core-concepts/astro-components/#named-slots).
+
+See more about [specific `<slot />` usage in Astro](/en/core-concepts/astro-components/#slots).
+
+### Create React App Data Fetching to Astro
+
+Fetching data in a Create React App component is similar to Astro, with some slight differences.
+
+You will need to remove any instances of a side effect hook (`useEffect`) for either `Astro.glob()` or `getCollection()`/`getEntryBySlug()` to access data other files in your project source. To [fetch remote data](/en/guides/data-fetching/), use `fetch()`.
+
+These data requests are made in the frontmatter of the Astro component and use top-level await.
+
+```astro title="src/pages/index.astro"
+---
+import { getCollection } from 'astro:content';
+
+// Get all `src/content/blog/` entries
+const allBlogPosts = await getCollection('blog');
+
+// Get all `src/pages/posts/` entries
+const allPosts = await Astro.glob('../pages/posts/*.md');
+
+const response = await fetch('https://randomuser.me/api/');
+const data = await response.json();
+const randomUser = data.results[0];
+---
+```
+
+See more about [local files imports with `Astro.glob()`](/en/guides/imports/#astroglob), [querying using the Collections API](/en/guides/content-collections/#querying-collections) or [fetching remote data](/en/guides/data-fetching/).
+
+### Create React App Styling to Astro
+
+You may need to replace any [CSS-in-JS libraries](https://github.com/withastro/astro/issues/4432) (e.g. styled-components) with other available CSS options in Astro.
+
+If necessary, convert any inline style objects (`style={{ fontWeight: "bold" }}`) to inline HTML style attributes (`style="font-weight:bold;"`). Or, use an [Astro `<style>` tag](/en/guides/styling/#styling-in-astro) for scoped CSS styles.
+
+```astro title="src/components/Card.astro" del={1} ins={2}
+<div style={{backgroundColor: `#f4f4f4`, padding: `1em`}}>{message}</div>
+<div style="background-color: #f4f4f4; padding: 1em;">{message}</div>
+```
+
+Tailwind is supported after installing the [Tailwind integration](/en/guides/integrations-guide/tailwind/). No changes to your existing Tailwind code are required!
+
+See more about [Styling in Astro](/en/guides/styling/).
