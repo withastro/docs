@@ -9,25 +9,9 @@ i18nReady: true
 
 ## Como fazer o deploy
 
-Fazer deploy de um projeto para o Google Cloud requer apenas alguns cliques. (A maioria das ações também podem ser feitas usando a [CLI gcloud](https://cloud.google.com/sdk/gcloud/)).
+### Cloud Storage (somente estático)
 
-### Cloud Run
-
-1. Crie um novo projeto GCP, ou selecione um que você já tenha.
-
-2. Verifique se a API Cloud Run está ativada.
-
-3. Crie um novo serviço.
-
-4. Use um container do Docker ou crie o seu usando [Cloud Build](https://cloud.google.com/build).
-
-5. Configure uma porta a partir da qual os arquivos são servidos.
-
-6. Habilite o acesso público adicionando uma nova permissão, chamada `Cloud Run Invoker`, ao `allUsers`.
-
-### Cloud Storage
-
-1. Crie um novo projeto GCP, ou selecione um que você já tenha.
+1. [Crie um novo projeto GCP](https://console.cloud.google.com/projectcreate), ou selecione um que você já tenha.
 
 2. Crie um novo bucket em [Cloud Storage](https://cloud.google.com/storage).
 
@@ -38,3 +22,116 @@ Fazer deploy de um projeto para o Google Cloud requer apenas alguns cliques. (A 
 5. Habilite o acesso público adicionando uma nova permissão, chamada `Storage Object Viewer`, ao `allUsers`.
 
 6. Edite a configuração do site e adicione `ìndex.html` como entrypoint e `404.html` como página de erro.
+
+### Cloud Run (SSR e estático)
+
+Cloud Run é uma plataforma serverless que permite você executar um container sem ter que gerenciar nenhuma intraestrutura. Ele pode ser usado para fazer deploy tanto de sites estáticos como de sites SSR.
+
+#### Prepare o Serviço
+
+1. [Crie um novo projeto GCP](https://console.cloud.google.com/projectcreate), ou selecione um que você já tenha.
+
+2. Confira que o [Cloud Run API]() está habilitado.
+
+3. Crie um novo serviço.
+
+#### Crie um DockerFile
+
+##### Dockerfile para sites estáticos (exemplo)
+
+O seguinte Dockerfile vai fazer a build do seu site e servir ele usando Apache HTTPD (com configurações padrão) na porta `80`.
+
+```docker title="Dockerfile"
+FROM node:lts as build
+WORKDIR /app
+COPY . .
+RUN npm i
+RUN npm run build
+
+FROM httpd:2.4 as runtime
+COPY --from=build /app/dist /usr/local/apache2/htdocs/
+EXPOSE 80
+```
+
+:::note[notes]
+Se você está usando um gerenciador de pacotes além do `npm`, você vai ter que alterar os comandos:
+
+```docker title="Dockerfile" add={4} "pnpm"
+FROM node:lts as build
+WORKDIR /app
+COPY . .
+RUN npm i -g pnpm@latest
+RUN pnpm i
+RUN pnpm run build
+...
+```
+:::
+
+##### Dockerfile para sites SSR (exemplo)
+
+O seguinte Dockerfile vai fazer a build do seu site e servir ele usando Nodejs (adaptador SSR) na porta `3000`.
+
+```docker title="Dockerfile"
+FROM node:lts as runtime
+WORKDIR /app
+COPY . .
+RUN npm install
+RUN npm run build
+ENV HOST=0.0.0.0
+ENV PORT=3000
+EXPOSE 3000
+CMD node ./dist/server/entry.mjs
+```
+
+:::tip[Tenha isso em mente]
+Estes são apenas exemplos de Dockerfiles. Você pode customizar eles para suas necessidades. Por exemplo, você pode usar outra imagem, como a `node:lts-alpine`. 
+
+```docker title=".Dockerfile del={1} add={2}
+FROM node:lts as runtime
+FROM node:lts-alpine as runtime
+```
+:::
+
+#### Construa o Container
+
+Com o Dockerfile criado, rode a build dele para uma imagem e faça push dele para o Google Cloud. Existem algumas formas de conseguir isso:
+
+**Rodar a build localmente usando Docker**:
+
+Use o comando `docker build` para fazer a build da imagem, `docker tag` para dar uma etiqueta a ela, e então `docker push` para colocá-la em um registro. No caso do Google Cloud, o [`Google Cloud Registry`](https://cloud.google.com/container-registry/docs/pushing-and-pulling#add-registry) é a opção mais fácil, mas você também pode usar o [Docker Hub](<https://hub.docker.com/>).
+
+```bash
+# faz a build do seu container
+docker build .
+
+docker tag SOURCE_IMAGE HOSTNAME/PROJECT-ID/TARGET-IMAGE:TAG
+
+# Coloca sua imagem em um registro
+docker push HOSTNAME/PROJECT-ID/IMAGE:TAG
+```
+
+Mude os seguintes falores nos comandos a cima para condizer ao seu projeto:
+
+- `SOURCE_IMAGE`: o nome ou ID da imagem local.
+- `HOSTNAME`: a hospedagem do registro (`gcr.io`, `eu.grc.io`, `asia.gcr.io`, `us.gcr.io`).
+- `PROJECT`: o ID do seu projeto do Google Cloud.
+- `TARGET-IMAGE`: o nome que a imagem terá ao ser armazenada no registro.
+- `TAG` é a versão associada com a imagem
+
+[Leia mais na documentação do Google Cloud.](https://cloud.google.com/container-registry/docs/pushing-and-pulling)
+
+**Usando outra ferramenta**:
+
+Você pode usar uma ferramente CI/CD que suporte Docker, como o [GitHub Actions](https://github.com/marketplace/actions/push-to-gcr-github-action).
+
+**Rodar a build usando [Cloud Build](https://cloud.google.com/build)**:
+
+Ao invés de rodar a build do Dockerfile localmente, você pode instruir o Google Cloud para rodar a build da imagem remotamente. Veja a [documentação de Build do Google Cloud aqui](<https://cloud.google.com/build/docs/build-push-docker-image>).
+
+#### Fazendo deploy do container
+
+O deploy pode ser tratado manualmente no seu terminal [usando `gcloud`](<https://cloud.google.com/run/docs/deploying#service>) ou automaticamente usando [Cloud Build](https://cloud.google.com/build) ou qualquer outro sistema CI/CD.
+
+:::note[Precisa de acesso público?]
+Não se esqueça de adicionar a permissão `Cloud Run Invoker` para o grupo `allUsers` nas configurações de permissão do Cloud Run!
+:::
