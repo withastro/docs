@@ -51,7 +51,7 @@ As a maintainer, here are some helpful things you can do:
 
 - Give general feedback or opinions, even if you do not intend to follow up with or take responsibility for the PR itself. Comments such as "I can reproduce this problem!" or "I agree, this code example isn't working as written," can save others time when they are trying to evaluate PRs.
 
-- Leave the message **LGTM** (_Looks good to me_, _Let's get that money_...) on a PR you sign off on... but don't feel comfortable merging yourself. For example, a proposed new section or explanation looks good to you, but you suspect that other maintainers will also want the opportunity to review it.
+- Leave the message **LGTM** (_Looks good to me_, _Let's get that money_, _Let's get to merging_...) on a PR you sign off on... but don't feel comfortable merging yourself. For example, a proposed new section or explanation looks good to you, but you suspect that other maintainers will also want the opportunity to review it. If your approval concerns only a specific aspect of the PR (e.g. you have verified a code sample is correct; you agree with the intention, if not the exact wording etc.) then please be specific about *what* looks good to you. This is to help the maintainer who will assume responsibility for merging the PR know which aspects have been reviewed, and also to not give the PR author "false hope" that the entire PR is ready to merge!
 
 - Mention a particular maintainer or community member whose guidance or inclusion you know would be helpful. Different maintainers work on different parts of Astro, and if you know who the right person to seek extra clarification or approval from is, ping them!
 
@@ -61,7 +61,7 @@ As a maintainer, here are some helpful things you can do:
 
 For PRs related to text content, including formatting of content for ease of readability as well as organizing and structuring content:
 
-- Consult our [writing guide](/WRITING.md) when evaluating new or revised text content to the docs.
+- Consult our [writing guide](/writing-and-style-guide.md) when evaluating new or revised text content to the docs.
 - Proofread, edit, make suggestions and leave "LGTM" (and/or "NWTWWHB") as appropriate.
 - For most non-trivial PRs, the Docs Lead will likely want to do a final review themselves before the PR is merged.
 
@@ -88,7 +88,7 @@ We encourage our maintainers to audit and improve the accessibility of our code 
 
 For PRs that are translations to existing Docs content, including new page additions as well as smaller updates and corrections:
 
-- Consult the [Internationalization Guide](/TRANSLATING.md) to familiarize yourself with the translators' process.
+- Consult the [Internationalization Guide](/translating-astro-docs.md) to familiarize yourself with the translators' process.
 - If you see "LGTM" in a message within the PR, that means at least one other native speaker has approved the translation, and the PR can be immediately merged! 🥳
 - If you speak the language natively, check the content for accuracy. Note: some languages have created their own glossaries and/or language guides located in their language folder within `/src/i18n/`.
 - If you do not speak the language natively, and the PR has not had any recent activity, you can use online translation tools (e.g. Google Translate) and scan the results for anything that looks wildly out of place. Also, visit the page in the PR’s Netlify deploy preview to verify that nothing is visually out of place. While we always prefer to have a review from a native speaker of the language, having translated docs with some errors is usually better than having no docs at all.
@@ -137,15 +137,23 @@ Maintainers who submit PRs are expected to **merge their own PRs**, but only **a
 
 Typically, this will be an approval from another maintainer, often the Docs Lead or Docs Infrastructure Lead. But, in the case of minor PRs (e.g. typo fixes, broken links, etc.), any second LGTM is acceptable.
 
-Lastly, we have a "DocsBot" that posts congratulation messages in the #docs Discord channel. **Our bot also acknowledges co-authors!** During "Squash and Merge," if you would like to acknowledge any reviewer, please type in the exact phrase `Co-authored-by:` and include any missing reviewers or contributors whom you'd like to acknowledge!
+### `Co-authored-by:` credit
 
-### Getting `Co-Authored-by` Commit Message Name and Email
+We have a "DocsBot" that posts congratulation messages in the #docs Discord channel. **Our bot also acknowledges co-authors!** During "Squash and Merge," if you would like to acknowledge any reviewer, please type in the exact phrase `Co-authored-by:` and include any missing reviewers or contributors whom you'd like to acknowledge! For example:
 
-For the bot to work properly, you must use the exact co-author's name and email associated with their GitHub account. 
+```
+Co-authored-by: Sarah Rainsberger <sarah@rainsberger.ca>
+Co-authored-by: Chris Swithinbank <swithinbank@gmail.com>
+Co-authored-by: Yan Thomas <61414485+Yan-Thomas@users.noreply.github.com>
+Co-authored-by: Hippo <6137925+hippotastic@users.noreply.github.com>
+Co-authored-by: Kevin Zuniga Cuellar <46791833+kevinzunigacuellar@users.noreply.github.com>
+Co-authored-by: ElianCodes <hello@elian.codes>
+Co-authored-by: Reuben Tier <64310361+TheOtterlord@users.noreply.github.com>
+```
 
-You can look up that information using a GitHub commit they have made from any PR, even one from another repository! Please don't hesitate to take the extra step and include others!
+You must use the exact co-author's name and email associated with their GitHub account. You can look up that information using a GitHub commit they have made from any PR, even one from another repository! Please don't hesitate to take the extra step and include others!
 
-From an individual's commit, say `https://github.com/withastro/docs/commit/de11f2f2abf7ef54c874ebe0c85301d9bad36094`, add `.patch` to the end of the URL.
+From an individual's commit, e.g. `https://github.com/withastro/docs/commit/de11f2f2abf7ef54c874ebe0c85301d9bad36094`, add `.patch` to the end of the URL.
 
 This will bring up a "patchfile" containing all of the information about the commit, including the author's name and email address associated with the commit. You'll find this information in a field labelled `From:`.
 
