@@ -3,7 +3,7 @@
 Astroドキュメントの日本語翻訳に興味を持っていただき、ありがとうございます！
 Astroの日本語翻訳にはAstroユーザーであり、ネイティブレベルの日本語能力があれば誰でも参加できます。
 
-参加するには[🌐 i18n Guide](https://github.com/withastro/docs/blob/main/TRANSLATING.md)にも目を通しておいてください。
+参加するには[🌐 i18n Guide](https://github.com/withastro/docs/blob/main/contributor-guides/translating-astro-docs.md)にも目を通しておいてください。
 また、[Discordの#docs-i18n内スレッドi18n-gang-ja](https://discord.com/channels/830184174198718474/972429103821111326)では日本語でチャットできます。翻訳が被ったりすることを避けるためにもぜひご参加ください。
 
 ## このガイドの目的
@@ -38,6 +38,7 @@ Astroの日本語翻訳にはAstroユーザーであり、ネイティブレベ�
 | render | レンダリング（する） |
 | route | ルーティング | routeとrootを区別するため、訳文ではrouteを基本的に「ルーティング」と訳します
 | Markdown | Markdown | Markdownはマークダウンとカタカナ表記にしません
+| Issue | Issue | GitHubにおけるIssueについてはカタカナ表記にしません
 
 ## このガイドへの追加や変更
 

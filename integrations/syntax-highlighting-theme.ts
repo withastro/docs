@@ -10,7 +10,10 @@ const grey = { 0: '#d8dee9', 1: '#c7c5d3', 2: '#aba8bd', 9: '#312749' };
 const foregroundPrimary = grey[0];
 const backgroundPrimary = grey[9];
 
-export const theme: ShikiConfig['theme'] = {
+type ExcludeStringAndUndefined<T> = T extends string | undefined ? never : T;
+type IShikiTheme = ExcludeStringAndUndefined<ShikiConfig['theme']>;
+
+export const theme: IShikiTheme = {
 	name: 'Star Gazer',
 	type: 'dark',
 	fg: foregroundPrimary,
