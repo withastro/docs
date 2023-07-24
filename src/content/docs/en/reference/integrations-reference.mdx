@@ -44,7 +44,7 @@ interface AstroIntegration {
       target: 'client' | 'server';
     }) => void | Promise<void>;
     'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
-    'astro:build:ssr'?: (options: { manifest: SerializedSSRManifest }) => void | Promise<void>;
+    'astro:build:ssr'?: (options: { manifest: SerializedSSRManifestm, entryPoints: Map<RouteData, URL> }) => void | Promise<void>;
     'astro:build:done'?: (options: { dir: URL; routes: RouteData[] }) => void | Promise<void>;
   };
 }
@@ -162,9 +162,7 @@ addClientDirective({
 })
 ```
 
-__astro-click-directive/click.js__
-
-```js
+```js title="astro-click-directive/click.js"
 /**
  * Hydrate on first click on the window
  * @type {import('astro').ClientDirective}
@@ -179,9 +177,7 @@ export default (load, opts, el) => {
 
 You can also add types for the directives in your library's type definition file:
 
-__astro-click-directive/index.d.ts__
-
-```ts
+```ts title="astro-click-directive/index.d.ts"
 declare module 'astro' {
   interface AstroClientDirectives {
     'client:click'?: boolean
@@ -200,12 +196,24 @@ A callback function to inject routes into an Astro project. Injected routes can 
 - `pattern` - where the route should be output in the browser, for example `/foo/bar`. A `pattern` can use Astro's filepath syntax for denoting dynamic routes, for example `/foo/[bar]` or `/foo/[...bar]`. Note that a file extension is **not** needed in the `pattern`.
 - `entryPoint` - a bare module specifier pointing towards the `.astro` page or `.js`/`.ts` route handler that handles the route denoted in the `pattern`.
 
-Example usage:
+##### Example usage
 
 ```js
 injectRoute({
-  pattern: '/foo/[dynamic]',
-  entryPoint: 'foo/dynamic-page.astro'
+  // Use Astro’s pattern syntax for dynamic routes.
+  pattern: '/subfolder/[dynamic]',
+  // Use relative path syntax for a local route.
+  entryPoint: './src/dynamic-page.astro'
+});
+```
+
+For an integration designed to be installed in other projects, use its package name to refer to the route entrypoint.
+The following example shows a package published to npm as `@fancy/dashboard` injecting a dashboard route:
+
+```js
+injectRoute({
+  pattern: '/fancy-dashboard',
+  entryPoint: '@fancy/dashboard/dashboard.astro'
 });
 ```
 
@@ -365,10 +373,16 @@ The address, family and port number supplied by the [NodeJS Net module](https://
 
 **When:** After a production SSR build has completed.
 
-**Why:** To get access to the SSR manifest, this is useful when creating custom SSR builds in plugins or integrations.
+**Why:** To access the SSR manifest and map of the emitted entry points. This is useful when creating custom SSR builds in plugins or integrations.
+- `entryPoints` maps a page route to the physical file emitted after the build;
+- `middlewareEntryPoint` is the file system path of the middleware file;
 
 ```js
-'astro:build:ssr'?: (options: { manifest: SerializedSSRManifest }) => void | Promise<void>;
+'astro:build:ssr'?: (options: {
+    manifest: SerializedSSRManifest,
+    entryPoints: Map<RouteData, URL>,
+    middlewareEntryPoint: URL
+}) => void | Promise<void>;
 ```
 
 ### `astro:build:done`
