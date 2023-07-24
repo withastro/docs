@@ -59,7 +59,7 @@ Si prefieres instalar el adaptador manualmente, completa los siguientes dos paso
 
 ### Funciones Edge
 
-Netlify tiene dos plataformas serverless, Funciones Netlify y [Funciones Edge experimentales de Netlify](https://docs.netlify.com/netlify-labs/experimental-features/edge-functions/#app). Con Funciones Edge tu código se distribuye más cerca de tus usuarios, reduciendo la latencia.
+Netlify tiene dos plataformas serverless, [Funciones Netlify](https://docs.netlify.com/functions/overview/) y [Funciones Edge de Netlify](https://docs.netlify.com/edge-functions/overview/). Con Funciones Edge tu código se distribuye más cerca de tus usuarios, reduciendo la latencia.
 
 Para desplegar con Funciones Edge, usa `netlify/edge-functions` en el archivo de configuración de Astro en lugar de `netlify/functions`.
 
@@ -73,6 +73,57 @@ export default defineConfig({
   adapter: netlify(),
 });
 ```
+
+### Ejecutar middleware en Funciones Edge
+
+Al desplegar en Netlify Functions, puedes elegir utilizar una Función Edge para ejecutar tu middleware Astro.
+
+Para activarlo, establece la opción de configuración de Astro `build.excludeMiddleware` en `true`:
+
+```js ins={9}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify/functions';
+
+export default defineConfig({
+  output: 'server',
+  adapter: netlify(),
+  build: {
+    excludeMiddleware: true,
+  },
+});
+```
+
+#### Pasa edge context a tu sitio
+
+Las Funciones Netlify Edge proporcionan un [objeto de contexto](https://docs.netlify.com/edge-functions/api/#netlify-specific-context-object) que incluye metadatos sobre la solicitud, como la IP del usuario, datos de geolocalización y cookies.
+
+Para exponer valores de este contexto a tu sitio, crea un archivo `netlify-edge-middleware.ts` (o `.js`) en el [directorio fuente](/es/reference/configuration-reference/#srcdir) de tu proyecto. Este archivo debe exportar una función que devuelva los datos a añadir al [objeto `locals` de Astro](/es/guides/middleware/#locals), que está disponible en las rutas middleware y Astro.
+
+En este ejemplo, `visitorCountry` y `hasEdgeMiddleware` se añadirían al objeto `locals` de Astro:
+
+```ts
+// src/netlify-edge-middleware.ts
+import type { Context } from 'https://edge.netlify.com';
+
+export default function ({ request, context }: { request: Request; context: Context }) {
+  // Devuelve datos serializables para añadir a Astro.locals
+  return {
+    visitorCountry: context.geo.country.name,
+    hasEdgeMiddleware: true,
+  };
+}
+```
+
+:::note
+Las Funciones Netlify Edge se ejecutan en [un entorno Deno](https://docs.netlify.com/edge-functions/api/#runtime-environment), por lo que las declaraciones de importación en este archivo deben utilizar la sintaxis URL de Deno.
+:::
+
+`netlify-edge-middleware.ts` debe proporcionar una función como su exportación por defecto. Esta función:
+
+*   debe devolver un objeto serializable JSON, que no puede incluir tipos como `Map`, `function`, `Set`, etc.
+*   siempre se ejecutará primero, antes que cualquier otro middleware y rutas.
+*   no puede devolver una respuesta o redirigir.
 
 ### Funciones por página
 
@@ -94,7 +145,7 @@ export default defineConfig({
 
 ### Sitios estáticos
 
-Para sitios estáticos, generalmente no necesitas un adaptador. Sin embargo, si utilizas la configuración de `redirects` (experimental) en tu archivo de configuración de Astro, puedes utilizar el adaptador de Netlify para traducirlo al formato adecuado de `_redirects`.
+Para sitios estáticos, generalmente no necesitas un adaptador. Sin embargo, si utilizas la configuración de `redirects` en tu archivo de configuración de Astro, puedes utilizar el adaptador de Netlify para traducirlo al formato adecuado de `_redirects`.
 
 ```js
 import { defineConfig } from 'astro/config';
@@ -103,10 +154,7 @@ export default defineConfig({
   adapter: netlify(),
   redirects: {
     '/blog/old-post': '/blog/new-post',
-  },
-  experimental: {
-    redirects: true,
-  },
+  }
 });
 ```
 
