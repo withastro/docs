@@ -27,7 +27,7 @@ export default [
 		key: 'core-concepts/astro-components',
 	},
 	{ text: 'Páginas', slug: 'core-concepts/astro-pages', key: 'core-concepts/astro-pages' },
-	{ text: 'Layouts', slug: 'core-concepts/layouts', key: 'core-concepts/layouts' },
+	{ text: 'Plantillas', slug: 'core-concepts/layouts', key: 'core-concepts/layouts' },
 
 	{ text: 'Recetas', header: true, type: 'learn', key: 'examples' },
 	{ text: 'Migrar a Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
@@ -78,6 +78,11 @@ export default [
 	{ text: 'Fetching de Datos', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
 	{ text: 'Middleware', slug: 'guides/middleware', key: 'guides/middleware' },
 	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
+	{
+		text: 'View Transitions (Experimental)',
+		slug: 'guides/view-transitions',
+		key: 'guides/view-transitions',
+	},
 	{ text: 'Solución de Problemas', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
 
 	{ text: 'Configuración', header: true, type: 'learn', key: 'configuration' },
