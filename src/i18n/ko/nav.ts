@@ -15,4 +15,5 @@ export default NavDictionary({
 	'core-concepts/astro-pages': '페이지',
 	'core-concepts/layouts': '레이아웃',
 	'core-concepts/framework-components': 'UI 프레임워크',
+	'guides/environment-variables': '환경 변수',
 });
