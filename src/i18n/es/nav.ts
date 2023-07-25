@@ -27,7 +27,7 @@ export default [
 		key: 'core-concepts/astro-components',
 	},
 	{ text: 'Páginas', slug: 'core-concepts/astro-pages', key: 'core-concepts/astro-pages' },
-	{ text: 'Layouts', slug: 'core-concepts/layouts', key: 'core-concepts/layouts' },
+	{ text: 'Plantillas', slug: 'core-concepts/layouts', key: 'core-concepts/layouts' },
 
 	{ text: 'Recetas', header: true, type: 'learn', key: 'examples' },
 	{ text: 'Migrar a Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
@@ -48,7 +48,7 @@ export default [
 		key: 'core-concepts/astro-syntax',
 	},
 	{
-		text: 'Frameworks de Interfaz de Usuario',
+		text: 'Frameworks UI',
 		slug: 'core-concepts/framework-components',
 		key: 'core-concepts/framework-components',
 	},
@@ -64,7 +64,7 @@ export default [
 		slug: 'guides/client-side-scripts',
 		key: 'guides/client-side-scripts',
 	},
-	{ text: 'CSS y Estilos', slug: 'guides/styling', key: 'guides/styling' },
+	{ text: 'Estilos y CSS', slug: 'guides/styling', key: 'guides/styling' },
 	{ text: 'Assets (Experimental)', slug: 'guides/assets', key: 'guides/assets' },
 	{ text: 'Imágenes', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Fuentes', slug: 'guides/fonts', key: 'guides/fonts' },
@@ -75,9 +75,14 @@ export default [
 		key: 'guides/server-side-rendering',
 	},
 	{ text: 'Endpoints', slug: 'core-concepts/endpoints', key: 'core-concepts/endpoints' },
-	{ text: 'Obtención de Datos', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
+	{ text: 'Fetching de Datos', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
 	{ text: 'Middleware', slug: 'guides/middleware', key: 'guides/middleware' },
-	{ text: 'Pruebas', slug: 'guides/testing', key: 'guides/testing' },
+	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
+	{
+		text: 'View Transitions (Experimental)',
+		slug: 'guides/view-transitions',
+		key: 'guides/view-transitions',
+	},
 	{ text: 'Solución de Problemas', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
 
 	{ text: 'Configuración', header: true, type: 'learn', key: 'configuration' },
