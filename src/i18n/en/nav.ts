@@ -81,8 +81,13 @@ export default [
 	},
 	{ text: 'Endpoints', slug: 'core-concepts/endpoints', key: 'core-concepts/endpoints' },
 	{ text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
-	{ text: 'Middleware (experimental)', slug: 'guides/middleware', key: 'guides/middleware' },
+	{ text: 'Middleware', slug: 'guides/middleware', key: 'guides/middleware' },
 	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
+	{
+		text: 'View Transitions (Experimental)',
+		slug: 'guides/view-transitions',
+		key: 'guides/view-transitions',
+	},
 	{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
 
 	{ text: 'Configuration', header: true, type: 'learn', key: 'configuration' },
