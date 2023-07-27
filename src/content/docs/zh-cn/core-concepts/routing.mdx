@@ -3,6 +3,7 @@ title: 路由
 description: 关于 Astro 路由的介绍。
 ---
 import FileTree from '~/components/FileTree.astro'
+import Since from '~/components/Since.astro'
 
 Astro 使用**基于文件的路由**，它根据项目 `src/pages` 目录中的文件结构来生成你的构建链接。
 
@@ -216,6 +217,75 @@ const { title, text } = page;
   <h1>{title}</h1>
   <p>{text}</p>
 </body>
+</html>
+```
+
+## 重定向
+
+有时你需要为你的读者重定向到一个新的页面，可能由于你的网站结构发生了永久性的变动，又或者是作为响应动作（比如从登录到身份验证的过程）。
+
+你可以在你的 Astro 配置中定义规则来将用户 [永久重定向到已移动的页面](#配置重定向)。或者，根据用户的使用情况，[动态地将用户重定向](#动态重定向)。
+
+### 配置重定向
+
+<Since v="2.9.0" />
+
+在你的 Astro 配置中，你可以使用 `redirects` 值来指定永久重定向的映射关系。对于大多数重定向而言，通常是将旧路由映射到新路由：
+
+```js title="astro.config.mjs" {5, 7-9}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  redirects: {
+    '/old-page': '/new-page'
+  }
+});
+```
+
+这些重定向遵循与基于文件路由相同的规则。只要新旧路由都包含相同的参数，就可以使用动态路由，例如：
+
+```js
+{
+  "/blog/[...slug]": "/articles/[...slug]"
+}
+```
+
+使用 SSR（服务器端渲染）或者静态适配器，你还可以将对象作为值提供，除了新的 `destination` 端点指向之外，还可以指定 `status` 状态码：
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  redirects: {
+    '/old-page': {
+      status: 302,
+      destination: '/new-page'
+    }
+  }
+});
+```
+
+在运行 `astro build` 时，默认情况下，Astro 将输出带有 [meta refresh](https://developer.mozilla.org/zh-CN/docs/Web/HTML/Element/meta#examples) 标签的 HTML 文件。支持的适配器将会使用托管服务器的配置文件写入重定向信息。
+
+状态码默认为 `301`。如果构建为 HTML 文件，则服务器不会使用状态码。
+
+### 动态重定向
+
+在全局的 `Astro` 对象上，`Astro.redirect` 方法允许你动态地重定向到另一个页面。例如，你可以在检查用户是否已登录（通过从 Cookie 中获取其会话）之后执行此操作。
+
+```astro title="src/pages/account.astro" {8}
+---
+import { isLoggedIn } from '../utils';
+
+const cookie = Astro.request.headers.get('cookie');
+
+// 如果用户未登录，将其重定向到登录页面。
+if (!isLoggedIn(cookie)) {
+  return Astro.redirect('/login');
+}
+---
+<html>
+  <!-- Page here... -->
 </html>
 ```
 
