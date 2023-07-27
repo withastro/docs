@@ -9,13 +9,13 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
 这也允许你通过修改在所有 Astro 组件和 API 端点中可用的 locals 对象，设置和共享跨端点和页面的请求特定信息。
 
-在 Astro 项目中 SSG 和 SSR 都可以使用中间件。
+在 Astro 项目中，无论是 SSG 还是 SSR，都可以使用中间件。
 
 ## 基本用法
 
 1. 创建 `src/middleware.js|ts`（或者，你也可以创建 `src/middleware/index.js|ts`）
 
-2. 在这个文件中，导出一个 [`onRequest()`](#onrequest) 函数。注意这不能是默认导出。
+2. 在这个文件中，导出一个 [`onRequest()`](#onrequest) 函数。注意这里不能是默认导出。
 
     ```js title="src/middleware.js"
     export function onRequest ({ locals, request }, next) {
@@ -40,32 +40,31 @@ const data = Astro.locals;
 
 ### 中间件类型
 
-你可以导入然后使用实用函数 `defineMiddleware() `来使用类型保护：
+你可以导入并使用 `defineMiddleware()` 实用函数，以利用类型安全性：
 
 ```ts
 // src/middleware.ts
 import { defineMiddleware } from "astro/middleware";
 
-// `context`和`next`自动类型定义
+// `context` 和 `next` 已自动进行类型定义
 export const onRequest = defineMiddleware((context, next) => {
 
 });
 ```
-或者，如果你正在使用 JsDoc 来使用类型安全，你可以使用 `MiddlewareRequestHandler `：
+相反，如果你正在使用 JsDoc 来利用类型安全性，你可以使用 `MiddlewareRequestHandler `：
 
 ```js
 // src/middleware.js
 /**
  * @type {import("astro").MiddlewareResponseHandler}
  */
-// `context`和`next`自动类型定义
+// `context` 和 `next` 已自动进行类型定义
 export const onRequest = (context, next) => {
 
 };
 ```
 
-To type the information inside `Astro.locals`, which gives you autocompletion inside `.astro` files and middleware code, declare a global namespace in the `env.d.ts` file:
-要类型定义 `Astro.locals` 中的信息，这在 `.astro` 文件和中间件代码中为你提供自动完成，声明一个全局命名空间在env.d.ts文件中：
+为了对 `Astro.locals` 中的信息进行类型定义，这将在 `.astro` 文件和中间件代码中为你提供自动完成功能，你需要在 `env.d.ts` 文件中声明一个全局命名空间：
 
 ```ts title="src/env.d.ts"
 /// <reference types="astro/client" />
@@ -176,45 +175,43 @@ export const onRequest = sequence(validation, auth, greeting);
 ## API 参考
 
 ### `onRequest()`
-
-A required exported function from `src/middleware.js` that will be called before rendering every page or API route. It accepts two optional arguments: [context](#context) and [next()](#next). `onRequest()` must return a `Response`: either directly, or by calling `next()`.
+这是从 `src/middleware.js` 导出的必需函数，在渲染每个页面或 API 路由之前都会调用。它接受两个可选参数：[context](#context) 和 [next()](#next)。 `onRequest()` 必须返回一个 `Response` ：可以直接返回，或者通过调用 `next()` 返回。
 
 ### `context`
+这是一个包含了要在渲染过程中提供给其他中间件，API路由和`.astro` 路由的信息的对象。
 
-An object that includes information to be made available to other middleware, API routes and `.astro` routes during the rendering process.
+这是传递给 `onRequest()` 的可选参数，可能包含 [`locals`](#locals)  对象以及在渲染期间要共享的任何其他属性。例如， `context` 对象可能包含用于认证的cookies。
 
-This is an optional argument passed to `onRequest()` that may contain the [`locals`](#locals) object as well as any additional properties to be shared during rendering. For example, the `context` object may include cookies used in authentication.
-
-This is the same [`context`](/en/reference/api-reference/#endpoint-context) object that is passed to API routes.
+这是传递给 API 路由的相同的 [`context`](/zh-cn/reference/api-reference/#endpoint-context)  对象。
 
 ### `next()`
 
-A function that intercepts (reads and modifies) the `Response` of a `Request` or calls the "next" middleware in the chain and returns a `Response`. For example, this function could modify the HTML body of a response.
+这是一个拦截（读取和修改）`Request`的 `Response` 或调用链中的"下一个"中间件并返回一个 `Response` 的函数。例如，这个函数可以修改响应的HTML正文。
 
-This is an optional argument of `onRequest()`, and may provide the required `Response` returned by the middleware.
+这是 `onRequest()` 的可选参数，并且可能提供由中间件返回的必需的 `Response`。
 
 ### `locals`
-An object containing data from a `Response` that can be manipulated inside middleware. 
+这是一个包含在 `Response` 中的数据，可以在中间件内部操作的对象。
 
-This `locals` object is forwarded across the request handling process and is available as a property to [`APIContext`](/en/reference/api-reference/#endpoint-context) and `AstroGlobal`. This allows data to be shared between middlewares, API routes, and `.astro` pages. This is useful for storing request-specific data, such as user data, across the rendering step.
+此 `locals` 对象在请求处理过程中被传递，并作为 [`APIContext`](/zh-cn/reference/api-reference/#endpoint-context) 和 `AstroGlobal` 的属性可用。这允许在中间件，API路由，和 `.astro` 页面之间共享数据。这对于在渲染步骤中存储请求特定的数据（例如用户数据）很有用。
 
-`locals` is an object that lives and dies within a single Astro route; when your route page is rendered, `locals` won't exist anymore and a new one will be created. Information that needs to persist across multiple page requests must be stored elsewhere.
+`locals` 是一个在单个 Astro 路由中创建和销毁的对象；当你的路由页面被渲染时，`locals` 将不再存在，将会创建一个新的。需要在多个页面请求之间保持的信息必须存储在其他地方。
 
-:::note
-The value of `locals` cannot be overridden at run time. Doing so would risk wiping out all the information stored by the user.  In `dev` mode, Astro performs checks and will throw an error if `locals` are overridden.
+:::提示
+`locals` 的值不能在运行时被覆盖。这样做将会冒着清除用户存储的所有信息的风险。在 `dev` 模式下，Astro 会进行检查，如果 `locals` 被覆盖，将会抛出错误。
 :::
 
 ### `sequence()`
 
-A function that accepts middleware functions as arguments, and will execute them in the order in which they are passed.
+这是一个接受中间件函数作为参数，并按照传递的顺序执行它们的函数。
 
 
 ### `createContext`
 
-A low-level API to create an [`APIContext`](/en/reference/api-reference/#endpoint-context), that can be used by the Astro middleware.
+一个用于创建 [`APIContext`](/zh-cn/reference/api-reference/#endpoint-context) 的底层 API，Astro 中间件可以使用它。
 
-This function can be used by integrations/adapters to programmatically execute the Astro middleware.
+此函数可被集成/适配器用来以编程方式执行 Astro 中间件。
 
 ### `trySerializeLocals`
 
-A low-level API that takes in any value and tries to return a serialized version (a string) of it. If the value cannot be serialized, the function will throw a runtime error.
+一个接受任何值并尝试返回其序列化版本（字符串）的底层API。如果该值不能被序列化，该函数将抛出运行时错误。
