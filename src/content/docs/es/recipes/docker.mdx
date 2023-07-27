@@ -1,0 +1,137 @@
+---
+title: Construye tu sitio de Astro con Docker
+description: Aprende cómo construir tu sitio de Astro utilizando Docker.
+type: recipe
+i18nReady: true
+---
+
+[Docker](https://docker.com) es una herramienta para construir, desplegar y ejecutar aplicaciones utilizando contenedores.
+
+Las imágenes y contenedores de Docker se pueden implementar en muchas plataformas diferentes, como AWS, Azure y [Google Cloud](/es/guides/deploy/google-cloud/#cloud-run-ssr-y-estático). Esta guía no cubrirá cómo implementar tu sitio en una plataforma específica, pero te mostrará cómo configurar Docker para tu proyecto.
+
+## Prerrequesitos
+
+- Docker está instalado en tu máquina local. Puedes encontrar las [instrucciones de instalación para tu sistema operativo aquí](https://docs.docker.com/get-docker/).
+- Un archivo Dockerfile en tu proyecto. Puedes [obtener más información sobre Dockerfiles aquí](https://docs.docker.com/engine/reference/builder/) y utilizar los Dockerfiles de la siguiente sección como punto de partida.
+
+## Creando un Dockerfile
+
+Crea un archivo llamado `Dockerfile` en el directorio raíz de tu proyecto. Este archivo contiene las instrucciones para construir tu sitio, las cuales variarán según tus necesidades. Esta guía no puede mostrar todas las opciones posibles, pero te proporcionará puntos de partida para los modos SSR y estático.
+
+### SSR
+
+Este Dockerfile construirá tu sitio y lo servirá utilizando Node.js en el puerto `3000`, por lo tanto, requiere tener instalado el [adaptador de Node](/es/guides/integrations-guide/node/) en tu proyecto de Astro.
+
+```docker title="Dockerfile"
+FROM node:lts AS runtime
+WORKDIR /app
+
+COPY . .
+
+RUN npm install
+RUN npm run build
+
+ENV HOST=0.0.0.0
+ENV PORT=3000
+EXPOSE 3000
+CMD node ./dist/server/entry.mjs
+```
+
+:::tip[Tenlo en cuenta]
+Estos son solo ejemplos de Dockerfiles. Puedes personalizarlos según tus necesidades. Por ejemplo, podrías utilizar otra imagen, como `node:lts-alpine`:
+
+```docker title="Dockerfile" del={1} add={2}
+FROM node:lts as runtime
+FROM node:lts-alpine as runtime
+```
+:::
+
+### Estático
+
+#### Apache (httpd)
+
+El siguiente Dockerfile construirá tu sitio y lo servirá utilizando Apache htppd en el puerto `80` con la configuración predeterminada.
+
+```docker title="Dockerfile"
+FROM node:lts AS build
+WORKDIR /app
+COPY . .
+RUN npm i
+RUN npm run build
+
+FROM httpd:2.4 AS runtime
+COPY --from=build /app/dist /usr/local/apache2/htdocs/
+EXPOSE 80
+```
+
+:::caution[Recomendación]
+Utiliza este enfoque para sitios web simples que no necesiten ninguna configuración especial. Para sitios web más complejos, se recomienda utilizar una configuración personalizada, ya sea en Apache o NGINX.
+:::
+
+#### NGINX
+
+```docker title="Dockerfile"
+FROM node:lts AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build -- --mode custom
+
+FROM nginx:alpine AS runtime
+COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 8080
+```
+
+Para construir el Dockerfile anterior, también necesitarás crear un archivo de configuración para NGINX. Crea una carpeta llamada `nginx` en el directorio raíz de tu proyecto y dentro de ella crea un archivo llamado `nginx.conf`.
+
+```nginx title="nginx.conf"
+worker_processes  1;
+
+events {
+  worker_connections  1024;
+}
+
+http {
+  server {
+    listen 8080;
+    server_name   _;
+
+    root   /usr/share/nginx/html;
+    index  index.html index.htm;
+    include /etc/nginx/mime.types;
+
+    gzip on;
+    gzip_min_length 1000;
+    gzip_proxied expired no-cache no-store private auth;
+    gzip_types text/plain text/css application/json application/javascript application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+
+    location / {
+      try_files $uri $uri/index.html $uri.html;
+    }
+  }
+}
+```
+
+## Receta
+
+1. Para construir tu contenedor, ejecuta el siguiente comando en el directorio raíz de tu proyecto. Utiliza cualquier nombre para `<tu-nombre-de-imagen-de-astro>`:
+
+```bash
+docker build -t <tu-nombre-de-imagen-de-astro> .
+```
+
+Esto generará una imagen que podrás ejecutar localmente o implementar en una plataforma de tu elección.
+
+2. Para ejecutar tu imagen como un contenedor local, utiliza el siguiente comando. 
+
+Reemplaza `<puerto-local>` con un puerto abierto en tu máquina. Reemplaza `<puerto-de-contenedor>` con el puerto expuesto por tu contenedor Docker (`3000`, `80` o `8080` en los ejemplos anteriores).
+
+```bash
+docker run -p <puerto-local>:<puerto-de-contenedor> <tu-nombre-de-imagen-de-astro>
+```
+
+Deberías poder acceder a tu sitio en `http://localhost:<puerto-local>`.
+
+3. Ahora que tu sitio web se ha construido y empaquetado correctamente en un contenedor, puedes implementarlo en un proveedor de servicios en la nube. Consulta la guía de implementación en [Google Cloud](https://cloud.google.com) para obtener un ejemplo y la página [Deploy your app](https://docs.docker.com/language/nodejs/deploy/) en la documentación de Docker.
