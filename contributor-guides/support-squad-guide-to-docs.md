@@ -10,7 +10,7 @@ When community members encounter Astro bugs, or have other feedback, we often do
 
 If their problem could have been helped with better documentation, please encourage them to file Docs Repo Issues too!
 
-You can point users to CONTRIBUTING.md to learn about our process, about when to file an Issue vs. a PR, what kind of PRs are helpful and likely to be accepted, as well how to fork the repository and make pull requests. Even if *you* are not contributing to the docs, you may find it helpful to review this page so that you can help facilitate contributions from others.
+You can point users to [the Main Contributing Guide](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md) to learn about our process, about when to file an Issue vs. a PR, what kind of PRs are helpful and likely to be accepted, as well how to fork the repository and make pull requests. Even if *you* are not contributing to the docs, you may find it helpful to review this page so that you can help facilitate contributions from others.
 
 In summary:
 - Generally, Issues are preferred unless for obvious typo fixes, broken links, etc. Not *everything* belongs in Docs, so this avoids PRs that sit while we first figure out what to do about them. 
@@ -27,8 +27,6 @@ As a more regular, established member of the community, (and a busier one, perha
 - The #docs channel on Discord, to alert us of something in general we should be aware of, such as "I've seen a lot of people having trouble with Markdown lately..." 
 
 - pinging `@team-docs` in a support thread with a specific comment or question about to the existing documentation that relates to the support thread.
-
-- The ["Docs Stack" GitHub project board](https://github.com/orgs/withastro/projects/8/views/1), so you can see what core Docs maintainers are working on.
 
 - Discord events such as Docs Triage in #live-chat where you are welcome to join and provide feedback as we tackle existing Issues and PRs.
 

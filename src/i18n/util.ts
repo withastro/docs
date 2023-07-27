@@ -21,7 +21,9 @@ function mapDefaultExports<T>(modules: Record<string, { default: T }>) {
 	return exportMap;
 }
 
-const translations = mapDefaultExports<UIDict>(import.meta.glob('./*/ui.ts', { eager: true }));
+export const translations = mapDefaultExports<UIDict>(
+	import.meta.glob('./*/ui.ts', { eager: true })
+);
 const docsearchTranslations = mapDefaultExports<DocSearchTranslation>(
 	import.meta.glob('./*/docsearch.ts', { eager: true })
 );
