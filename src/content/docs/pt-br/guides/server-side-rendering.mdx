@@ -103,7 +103,7 @@ O Astro continuará sendo um gerador de sites estáticos por padrão. Porém, qu
 
 <Since v="2.0.0" />
 
-Para habilitar a **renderização híbrida**, qualquer [página](/pt-br/core-concepts/astro-pages/) ou [endpoint do servidor](/pt-br/core-concepts/endpoints/#endpoints-do-servidor-rotas-de-api) que suporta a exportação de variáveis (`.astro`, `.mdx`, `.ts`, or `.js`) pode optar pela pré-renderização. Esses arquivos serão estaticamente renderizados em tempo de build, similiar ao modo de [`output`](/pt-br/reference/configuration-reference/#output) estático padrão.
+Qualquer [página](/pt-br/core-concepts/astro-pages/) ou [endpoint do servidor](/pt-br/core-concepts/endpoints/#endpoints-do-servidor-rotas-de-api) individual que suporta a exportação de variáveis (`.astro`, `.mdx`, `.ts`, or `.js`) pode optar pela pré-renderização quando seu projeto com Astro está configurado para usar SSR com `output: server`. Esses arquivos serão estaticamente renderizados em tempo de build, similiar ao modo de [`output: static`](/pt-br/reference/configuration-reference/#output) estático padrão.
 
 Simplesmente adicione `export const prerender = true`:
 
@@ -131,6 +131,38 @@ export const prerender = true;
 export async function get() {
   return {
     body: JSON.stringify({ message: `Este é meu endpoint` }),
+  };
+}
+```
+
+#### Pré-renderização estática por padrão
+
+<Since v="2.5.0" />
+
+Você pode ter um site que é *majoritariamente* estático e pode se beneficiar da pré-renderização, mas somente algumas de duas páginas ou endpoints precisam ser renderizadas pelo servidor. O SSR no Astro por padrão renderiza no servidor e requer que você designe individualmente quais páginas devem ser estáticas.
+
+Para evitar declarar a maioria das suas páginas como pré-renderizadas, altere o `output` de `'server'` para `'hybrid'` e aproveite-se do SSR com pré-renderização estática por padrão:
+
+```js
+export { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  output: 'hybrid',
+  experimental: {
+    hybridOutput: true,
+  },
+});
+```
+
+Com essa configuração, todas as suas páginas e endpoints de API vão ser pré-renderizadas, mesmo que seu projeto esteja configurado com um adaptador para usar SSR. Você pode então *recursar* a pré-renderização de qualquer arquivo individual ou rota adicionando `export const prerender = false` a qualquer arquivo que deve ser renderizado pelo servidor.
+
+```js title="src/pages/numeroaleatorio.js" {1}
+export const prerender = false;
+
+export async function get() {
+  let numero = Math.random();
+  return {
+    body: JSON.stringify({ numero, mensagem: `Aqui está um número aleatório: ${numero}` }),
   };
 }
 ```
