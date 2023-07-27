@@ -40,10 +40,12 @@ const FOOTER = ``;
  * source file directly.  It uses the default parser configuration.
  */
 export async function run() {
+	const sourceBranch = process.env.SOURCE_BRANCH || 'main';
+	const sourceRepo = process.env.SOURCE_REPO || 'withastro/astro';
 	const inputBuffer =
 		STUB ||
 		(await fetch(
-			'https://raw.githubusercontent.com/withastro/astro/main/packages/astro/src/%40types/astro.ts'
+			`https://raw.githubusercontent.com/${sourceRepo}/${sourceBranch}/packages/astro/src/%40types/astro.ts`
 		).then((r) => r.text()));
 
 	// Get all `@docs` JSDoc comments in the file.

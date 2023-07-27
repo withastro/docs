@@ -46,9 +46,9 @@ Currently we are aiming to translate the Astro documentation into the following 
 - French
 - German
 - Japanese
-- Spanish
 - Korean
 - Polish
+- Spanish
 
 ### Why can Astro only support a few languages?
 
@@ -61,7 +61,7 @@ Supporting a language means that Astro takes responsibility for maintaining that
 
 ### What about unsupported languages?
 
-The official docs will only contain supported languages for now, but we will be looking to add more officially supported languages as we grow.  If you would like to host translated docs yourself in another language, please let us know! We are happy to help you set this up and coordinate with future changes to the docs.
+The official docs will only contain supported languages for now, but we will be looking to add more officially supported languages as we grow. If you would like to host translated docs yourself in another language, please let us know! We are happy to help you set this up and coordinate with future changes to the docs.
 
 ## Translation Structure
 
@@ -150,7 +150,7 @@ Feel free to keep your commit messages simple, like "Fix broken link" or "Update
 
 We love our reviewers! Reviewing PRs is an important task — it's thanks to the efforts of our reviewers that we can guarantee consistent, high-quality translations. Many projects track PRs that you submit, but we also celebrate review stats, visible on your very own [Astro Badge](https://astro.badg.es)! Visit our Discord and you'll see that we shout out every PR merged with a list contributors who helped with review comments.
 
-We even have an entire section in our Maintainer's Guide about [how to manually add reviewer's names to commit messages](https://github.com/withastro/docs/blob/main/MAINTAINERS.md#getting-co-authored-by-commit-message-name-and-email) before merging in case they are not automatically included!
+We even have an entire section in our Maintainer's Guide about [how to manually add reviewer's names to commit messages](https://github.com/withastro/docs/blob/main/contributor-guides/astro-maintainers-guide-to-docs.md#getting-co-authored-by-commit-message-name-and-email) before merging in case they are not automatically included!
 
 So, if you're interested in helping review translation PRs, thank you! We really appreciate the effort, and we put an effort into showing it!
 
@@ -240,7 +240,7 @@ i18nReady: true
 
 We have lots of code samples throughout our docs, and although we **recommend translating comments**, as they give a contextual clue of what's happening in the code, each language is **free to decide** whether or not they want to translate titles, variables, string values, function names, etc.
 
-Be aware that if code samples are being translated, you may need to update some of the code sample's highlighted lines. Read the [Code Samples section](https://github.com/withastro/docs/blob/main/WRITING.md#code-samples) in our Writing Guide to know more about our syntax.
+Be aware that if code samples are being translated, you may need to update some of the code sample's highlighted lines. Read the [Code Samples section](https://github.com/withastro/docs/blob/main/contributor-guides/writing-and-style-guide.md#custom-components) in our Writing Guide to know more about our syntax.
 
 ### Asides
 
