@@ -7,7 +7,7 @@ import Since from '~/components/Since.astro';
 
 **Renderização no lado do Servidor**, também conhecido como SSR, pode ser habilitado no Astro. Quando você habilita o SSR você pode:
 - Implementar sessões para um estado de login no seu app.
-- Renderizar dados de uma API chamada dinamicamente com `fetch`.
+- Renderizar dados de uma API chamada dinamicamente com `fetch`.@version 2.0.0
 - Fazer deploy do seu site em uma hospedagem utilizando um **adaptador**. 
 
 ## Habilitando o SSR em seu Projeto
@@ -233,3 +233,104 @@ if (!produto) {
 ### Endpoints do Servidor
 
 Um endpoint do servidor, também conhecido como **rota de API**, é um arquivo `.js` ou `.ts` dentro da pasta `src/pages` que recebe um [Request](https://developer.mozilla.org/pt-BR/docs/Web/API/Request) e retorna uma [Response](https://developer.mozilla.org/pt-BR/docs/Web/API/Response). Sendo uma poderosa funcionalidade de SSR, rotas de API são capazes de executar código no lado do servidor de forma segura. Para aprender mais, veja nosso [Guia de Endpoints](/pt-br/core-concepts/endpoints/#endpoints-do-servidor-rotas-de-api).
+
+### Streaming
+
+Os navegadores nativamente suportando streaming HTTP, onde um documento é quebrando em pedaços, enviado para a rede em ordem, e renderizado na página naquela ordem.
+
+Durante esse processo, os navegadores consomem o HTML incrementalmente: analisando, renderizando para o DOM e desenhando. Isso acontece você tendo feito stream do seu HTML intencionalmente ou não. As condições da rede podem causar que documentos grandes sejam baixados lentamente, e esperar por requisições de dados pode bloquear a renderização da página.
+
+
+### Usando streaming para melhorar o desempenho da página
+
+A página a seguir espera por alguns dados no seu frontmatter usando `await`. O Astro vai esperar até que todas as chamadas `fetch` tenham resolvido antes de enviar qualquer HTML para o navegador.
+
+```astro title="src/pages/index.astro"
+---
+const respostaPessoa = await fetch('https://randomuser.me/api/');
+const dadosPessoa = await respostaPessoa.json();
+const pessoaAleatoria = dadosPessoa.results[0];
+const respostaFato = await fetch('https://catfact.ninja/fact');
+const dadosFato = await respostaFato.json();
+---
+<html>
+  <head>
+    <title>Um nome e um fato</title>
+  </head>
+  <body>
+    <h2>Um nome</h2>
+    <p>{pessoaAleatoria.name.first}</p>
+    <h2>Um fato</h2>
+    <p>{dadosFato.fact}</p>
+  </body>
+</html>
+```
+
+Mover as chamadas com `await` para componentes menores permite que você tome vantagem do streaming do Astro. Usando os seguintes componentes para executar as requisições de dados, o Astro pode renderizar um pouco de HTML primeiro, como o título, e então os parágrafos quando os dados estiverem prontos.
+
+```astro title="src/components/NomeAleatorio.astro"
+---
+const respostaPessoa = await fetch('https://randomuser.me/api/');
+const dadosPessoa = await respostaPessoa.json();
+const pessoaAleatoria = dadosPessoa.results[0];
+---
+<p>{pessoaAleatoria.name.first}</p>
+```
+
+```astro title="src/components/FatoAleatorio.astro"
+---
+const respostaFato = await fetch('https://catfact.ninja/fact');
+const dadosFato = await respostaFato.json();
+---
+<p>{dadosFato.fact}</p>
+```
+
+
+A página do Astro abaixo usando esses componentes pode renderizar parte da página mais cedo. As tags `<head>`, `<body>` e `<h1>` não são mais bloqueadas pelas requisições de dados. O servidor vai requisitar dados para `NomeAleatorio` e `FatoAleatorio` em paralelo e fazer stream do HTML resultante para o navegador.
+
+```astro title="src/pages/index.astro"
+---
+import NomeAleatorio from '../components/NomeAleatorio.astro'
+import FatoAleatorio from '../components/FatoAleatorio.astro'
+---
+<html>
+  <head>
+    <title>Um nome e um fato</title>
+  </head>
+  <body>
+    <h2>Um nome</h2>
+    <NomeAleatorio />
+    <h2>Um fato</h2>
+    <FatoAleatorio />
+  </body>
+</html>
+```
+
+#### Incluindo Promises diretamente
+
+Você também pode incluir promises diretamente no template. Ao invés de bloquear um componente inteiro, isso vai resolver a promise em paralelo e só bloquear a marcação que vier depois disso.
+
+```astro title="src/pages/index.astro"
+---
+const pessoaPromise = fetch('https://randomuser.me/api/')
+  .then(resposta => resposta.json())
+  .then(arr => arr[0].name.first);
+const fatoPromise = fetch('https://catfact.ninja/fact')
+  .then(resposta => resposta.json())
+  .then(dadosFato => dadosFato.fact);
+---
+<html>
+  <head>
+    <title>Um nome e um fato</title>
+  </head>
+  <body>
+    <h2>Um nome</h2>
+    <p>{pessoaPromise}</p>
+    <h2>Um fato</h2>
+    <p>{fatoPromise}</p>
+  </body>
+</html>
+```
+
+Nesse exemplo, `Um nome` vai renderizar enquanto `pessoaPromise` e `fatoPromise` estão carregando.
+Quando `pessoaPromise` tiver resolvido, `Um fato` irá aparecer e `fatoPromise` vai renderizar quando tiver terminado de carregar.
