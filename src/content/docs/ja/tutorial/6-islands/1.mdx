@@ -1,0 +1,210 @@
+---
+type: tutorial
+title: 初めてのAstroアイランドを作成する
+description: |-
+  「初めてのAstroブログ」チュートリアル -
+  Preactコンポーネントを使用して、ランダムに選択されたメッセージによりサイト訪問者に挨拶する
+i18nReady: true
+---
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import Spoiler from '~/components/Spoiler.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+
+
+Preactコンポーネントを使い、ランダムに選択されたメッセージでサイト訪問者に挨拶しましょう！
+
+<PreCheck>
+  - AstroプロジェクトにPreactを追加する
+  - ホームページにAstroアイランド（Preactの`.jsx`コンポーネント）を追加する
+  - アイランドをインタラクティブにするために`client:`ディレクティブを使用する
+</PreCheck>
+
+## AstroプロジェクトにPreactを追加する
+
+1. 動作中であれば開発サーバーを停止し、ターミナルを使用できるようにします（キーボードショートカットは<kbd>Ctrl + C</kbd>です）。
+
+2. 以下のコマンドを実行して、AstroプロジェクトでPreactコンポーネントを使用できるようにします。
+
+    ```shell
+    npx astro add preact
+    ```
+
+2. コマンドラインの指示に従って、プロジェクトにPreactを追加します。
+
+
+## Preactの挨拶用バナーを追加する
+
+このコンポーネントは、挨拶用メッセージの配列をpropとして受け取り、その中からランダムに1つを選んでウェルカムメッセージとして表示します。ユーザーはボタンをクリックして新しいメッセージをランダムに受け取れます。
+
+1. `src/components/`に`Greeting.jsx`という名前の新しいファイルを作成します。
+
+    `.jsx`というファイル拡張子が使われていることに注意してください。このファイルはAstroではなくPreactで書きます。
+
+2. 以下のコードを`Greeting.jsx`に追加します。
+
+    ```jsx title="src/components/Greeting.jsx"
+    import { h } from 'preact';
+    import { useState } from 'preact/hooks';
+
+    export default function Greeting({messages}) {
+
+      const randomMessage = () => messages[(Math.floor(Math.random() * messages.length))];
+      
+      const [greeting, setGreeting] = useState(messages[0]);
+
+      return (
+        <div> 
+          <h3>{greeting}！ 訪問いただきありがとうございます！</h3>
+          <button onClick={() => setGreeting(randomMessage())}>
+            新しい挨拶
+          </button>
+        </div>
+      );
+    }
+    ```
+
+3. ホームページの`index.astro`でこのコンポーネントをインポートして使用します。
+
+    ```astro title="src/pages/index.astro" ins={3,8}
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    import Greeting from '../components/Greeting.jsx';
+    const pageTitle = "Home Page";
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <h2>私の素晴らしいブログのサブタイトル</h2>
+      <Greeting messages={["どうも", "こんにちは", "初めまして", "ようこそ"]} />
+    </BaseLayout>
+    ```
+
+    ブラウザのプレビューを確認すると、ランダムな挨拶が表示されますが、ボタンは機能していないはずです。
+
+
+4. `client:load`ディレクティブを使用して、2つ目の`<Greeting />`コンポーネントを追加します。
+
+    ```astro title="src/pages/index.astro" ins={9} "client:load"
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    import Greeting from '../components/Greeting';
+    const pageTitle = "Home Page";
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <h2>私の素晴らしいブログのサブタイトル</h2>
+      <Greeting messages={["どうも", "こんにちは", "初めまして", "ようこそ"]} />
+      <Greeting client:load messages={["Hej", "Hallo", "Hola", "Habari"]} />
+    </BaseLayout>
+    ```
+
+  5. ページを再度確認し、2つのコンポーネントを比較します。2番目のボタンが機能しているのは、`client:load`ディレクティブによって、ページがロードされたときにJavaScriptをクライアントに送信して再実行するようAstroに指示しているためです。これにより、コンポーネントはインタラクティブになります。これを **ハイドレートされた（hydrated）** コンポーネントと呼びます。
+  
+  6. 違いがわかったら、ハイドレートされていないGreetingコンポーネントを削除します。
+
+
+      ```astro title="src/pages/index.astro" del={8} "client:load"
+      ---
+      import BaseLayout from '../layouts/BaseLayout.astro';
+      import Greeting from '../components/Greeting';
+      const pageTitle = "Home Page";
+      ---
+      <BaseLayout pageTitle={pageTitle}>
+        <h2>私の素晴らしいブログのサブタイトル</h2>
+        <Greeting messages={["どうも", "こんにちは", "初めまして", "ようこそ"]} />
+        <Greeting client:load messages={["Hej", "Hallo", "Hola", "Habari"]} />
+      </BaseLayout>
+      ```
+
+<Box icon="question-mark">
+
+### パターンを分析する
+
+`client:`ディレクティブは他にもあり、それぞれが異なるタイミングでJavaScriptをクライアントに送信します。たとえば`client:visible`は、コンポーネントがページ上に表示されたタイミングで対応するJavaScriptを送信します。
+
+次のようなコードをもつAstroコンポーネントについて考えてみましょう。
+
+```astro
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AstroBanner from '../components/AstroBanner.astro';
+import PreactBanner from '../components/PreactBanner';
+import SvelteCounter from '../components/SvelteCounter.svelte';
+---
+<BaseLayout>
+  <AstroBanner />
+  <PreactBanner />
+  <PreactBanner client:load />
+  <SvelteCounter />
+  <SvelteCounter client:visible />
+</BaseLayout>
+```
+
+1. 5つのコンポーネントのうち、JavaScriptをクライアントに送信し、**ハイドレートされる**アイランドになるのはどれですか？
+
+    <p>
+      <Spoiler>`<PreactBanner client:load />`と`<SvelteCounter client:visible />`がハイドレートされるアイランドとなる。</Spoiler>
+    </p>
+
+2. 2つの`<PreactBanner />`コンポーネントで共通している点はどこですか？逆に異なる点はどこでしょうか？
+
+    <p>
+      <Spoiler>どちらも同じHTML要素を表示し、最初は同じように見える点が共通している。一方、`client:load`ディレクティブをもつコンポーネントは、ページがロードされた後に再レンダリングされ、インタラクティブな要素が機能するようになる。</Spoiler>
+    </p>
+
+3. `SvelteCounter`コンポーネントは数値を表示し、それを増やすためのボタンをもっているとします。ウェブサイトのソースコードを見ることはできず、公開されたページのみ確認できるとき、`client:visible`を使用しているのは2つの`<SvelteCounter />`コンポーネントのうちどちらか、どのように判断すればよいでしょうか？
+
+    <p>
+      <Spoiler>ボタンをクリックしてみて、どちらがインタラクティブになるか確認する。ボタンが反応すれば、`client:`ディレクティブが指定されているはず。</Spoiler>
+    </p>
+</Box>
+
+
+
+<Box icon="question-mark">
+
+### 確認テスト
+
+以下のコンポーネントのそれぞれについて、ブラウザに送信される内容を選択してください。
+
+1. `<ReactCounter client:load/>`
+
+    <MultipleChoice>
+      <Option>
+        HTMLとCSSのみ
+      </Option>
+      <Option isCorrect>
+        HTML、CSS、JavaScript
+      </Option>
+    </MultipleChoice>
+
+2. `<SvelteCard />`
+
+    <MultipleChoice>
+      <Option  isCorrect>
+        HTMLとCSSのみ
+      </Option>
+      <Option>
+        HTML、CSS、JavaScript
+      </Option>
+    </MultipleChoice>
+</Box>
+
+<Box icon="check-list">
+
+## チェックリスト
+
+<Checklist>
+- [ ] Astroインテグレーションをインストールできる。
+- [ ] UIフレームワークのコンポーネントをそれぞれの構文を用いて書ける。
+- [ ] UIフレームワークのコンポーネントに対して`client:`ディレクティブを使用してハイドレートできる。
+</Checklist>
+</Box>
+
+### 参考
+
+- [Astroインテグレーションガイド](/ja/guides/integrations-guide/)
+
+- [AstroでUIフレームワークコンポーネントを使う](/ja/core-concepts/framework-components/#フレームワークコンポーネントを利用)
+
+- [Astro clientディレクティブのリファレンス](/ja/reference/directives-reference/#client-directives)
