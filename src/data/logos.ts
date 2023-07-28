@@ -76,6 +76,7 @@ export const logos = LogoCheck({
 	statamic: { file: 'statamic.svg', padding: '.2em' },
 	xata: { file: 'xata.svg', padding: '0.234em 0.234em 0.1875em' },
 	strapi: { file: 'strapi.svg', padding: '.25em' },
+	microcms: { file: 'microcms.svg', padding: '.2em' },
 	preprcms: { file: 'preprcms.svg', padding: '0' },
 });
 
