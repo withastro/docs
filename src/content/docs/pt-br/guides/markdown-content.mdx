@@ -5,9 +5,10 @@ i18nReady: true
 ---
 import Since from '~/components/Since.astro';
 import FileTree from '~/components/FileTree.astro';
+import RecipeLinks from "~/components/RecipeLinks.astro";
 
 
-[Markdown](https://daringfireball.net/projects/markdown/) é comumente usado para criar conteúdo com muito texto, como postagens de blog e documentação. Astro inclui suporte nativo para arquivos Markdown padrão (`.md`). 
+[Markdown](https://daringfireball.net/projects/markdown/) é comumente usado para criar conteúdo com muito texto, como postagens de blog e documentação. Astro inclui suporte nativo para arquivos Markdown padrão que também incluem o [frontmatter YAML](https://dev.to/paulasantamaria/introduction-to-yaml-125f) para definir metadados customizados como um título, descrição e etiquetas. 
 
 Com a [integração `@astrojs/mdx`](/pt-br/guides/integrations-guide/mdx/) instalada, Astro também suporta arquivos [MDX](https://mdxjs.com/) (`.mdx`) que trazem alguns recursos adicionais como suporte para expressões JavaScript e componentes direto do seu conteúdo Markdown.
 
@@ -85,7 +86,7 @@ Para fazer a build e publicar esta postagem:
 Porém, esta página _será_ retornada por quaisquer requisições `Astro.glob()` correspondentes.
 ```
 
-Para excluir postagens de rascunho de serem inclusas no arquivo de postagens, ou listar as postagens mais recentes, você pode filtrar os resultados retornados pelo seu `Astro.glob()`.
+Para excluir postagens de rascunho de serem inclusas no arquivo de postagens, ou listar as postagens mais recentes, você pode filtrar os resultados retornados pelo `Astro.glob()`:
 
 ```js
 const postagens = await Astro.glob('../pages/postagens/*.md');
@@ -96,8 +97,9 @@ const postagensSemRascunhos = postagens.filter((postagem) => !postagem.frontmatt
 
 Para habilitar a build de páginas de rascunho por padrão, atualize `astro.config.mjs` adicionando `drafts: true` em `markdown` ou na integração `mdx`:
 
-```js ins={4, 7}
-// astro.config.mjs
+```js title="astro.config.mjs" ins={5, 8}
+import { defineConfig } from 'astro/config';
+
 export default defineConfig({
   markdown: {
     drafts: true,
@@ -217,7 +219,7 @@ Não se esqueça de adicionar uma `client:diretiva` em seus componentes de frame
 
 Veja mais exemplos da utilização de declarações de importação e exportação na [documentação do MDX](https://mdxjs.com/docs/what-is-mdx/#esm).
 
-```astro title="src/pages/sobre.mdx" {5-6} /<.+\/>/
+```mdx title="src/pages/sobre.mdx" {5-6} /<.+\/>/
 ---
 layout: ../layouts/LayoutBase.astro
 titulo: Sobre mim
@@ -277,7 +279,7 @@ Quando você importa arquivos Markdown e MDX em um componente Astro, você receb
 
 ```md title="/src/pages/postagens/otima-postagem.md"
 ---
-titulo: 'A melhor postagem que já escrevi'
+titulo: 'A melhor postagem de todos os tempos'
 author: 'Ben'
 ---
 
@@ -304,7 +306,7 @@ Em arquivos MDX, você pode acessar propriedades tanto do frontmatter quanto de 
 
 ```mdx title="/src/pages/posts/postagem-mdx.mdx"
 ---
-titulo: 'A melhor postagem que eu já escrevi'
+titulo: 'A melhor postagem de todos os tempos'
 autor: 'Ben'
 ---
 export const descricao = 'Fique confortável! Esta será uma ótima leitura.'
@@ -356,6 +358,7 @@ As propriedades a seguir são disponibilizadas a um componente `.astro` ao utili
 - **(Apenas Markdown) `compiledContent()`** - Uma função que retorna o documento Markdown compilado como uma string de HTML. Note que isso não inclui layouts configurados no seu frontmatter! Apenas o documento Markdown em si será retornado como HTML.
 - **(Apenas MDX)** - Arquivos MDX também pode exportar dados com uma declaração de `export`.
 
+
 #### O Componente `Content`
 
 Importe `Content` para renderizar um componente que retorna todo o conteúdo renderizado de um arquivo Markdown ou MDX:
@@ -389,12 +392,14 @@ export async function getStaticPaths() {
     },
   }))
 }
+
 const { Content } = Astro.props.postagem
 ---
 <article>
   <Content/>
 </article>
 ```
+
 
 ### Exportações únicas do MDX
 
@@ -455,13 +460,16 @@ import { defineConfig } from 'astro/config';
 import remarkToc from 'remark-toc';
 import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis';
 
-export default {
+export default defineConfig({
   markdown: {
     // Aplicado para arquivos .md e .mdx
-    remarkPlugins: [remarkToc, rehypeAccessibleEmojis],
+    remarkPlugins: [remarkToc],
+    rehypePlugins: [rehypeAccessibleEmojis],
   },
-}
+});
 ```
+
+Note que por padrão, `remarkToc` exige um [título](https://github.com/remarkjs/remark-toc#optionsheading) "ToC" ou "Table of Contents" (não diferencia maiúsculas de minúsculas) na página para mostrar a tabela de conteúdo.
 
 #### IDs de Títulos e plugins
 
@@ -471,16 +479,36 @@ Você pode customizar os IDs dos títulos adicionando um plugin do rehype que in
 
 Por padrão, Astro injeta atributos `id` depois que seus plugins do rehype foram executados. Se um dos seus plugins customizados do rehype precisam acessar os IDs injetados pelo Astro, você pode importar e utilizar o plugin `rehypeHeadingIds` do Astro diretamente. Certifique-se de adicionar `rehypeHeadingIds` antes de quaisquer plugins que podem depender dele:
 
-```js {2,7}
-// astro.config.mjs
+```js title="astro.config.mjs" ins={2,8}
+import { defineConfig } from 'astro/config';
 import { rehypeHeadingIds } from '@astrojs/markdown-remark';
+import { outroPluginQueDependeDoHeadingIDs } from 'alguma/fonte/de/plugin';
 
-export default {
+export default defineConfig({
   markdown: {
     rehypePlugins: [
       rehypeHeadingIds,
       outroPluginQueDependeDoHeadingIDs,
     ],
+  },
+});
+```
+
+#### Customizando um plugin
+
+Para customizar um plugin, adicione um objeto de opções depois dele envolvidos em um array.
+
+O exmeplo abaixo adiciona a [opção do título ao plugin `remarkToc`](https://github.com/remarkjs/remark-toc#optionsheading) para alterar onde a tabela de conteúdo é colocada e a [opção `behavior` ao plugin `rehype-autolink-headings`](https://github.com/rehypejs/rehype-autolink-headings#optionsbehavior) para adicionar a tag de link após o texto do título.
+
+```js title="astro.config.mjs"
+import remarkToc from 'remark-toc';
+import rehypeSlug from 'rehype-slug';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+
+export default {
+  markdown: {
+    remarkPlugins: [ [remarkToc, { heading: "contents"} ] ],
+    rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, { behavior: 'append' }]],
   },
 }
 ```
@@ -509,86 +537,34 @@ Você pode adicionar propriedades de frontmatter a todos os seus arquivos Markdo
 2. Aplique o plugin a configuração do `markdown` ou da integração `mdx`:
 
     ```js title="astro.config.mjs" "import { pluginExemploRemark } from './plugin-exemplo-remark.mjs';" "remarkPlugins: [pluginExemploRemark],"
+    import { defineConfig } from 'astro/config';
     import { pluginExemploRemark } from './plugin-exemplo-remark.mjs';
 
-    export default {
+    export default defineConfig({
       markdown: {
-        remarkPlugins: [pluginExemploRemark],
-        extendDefaultPlugins: true,
+        remarkPlugins: [pluginExemploRemark]
       },
-    };
+    });
 
     ```
     ou
 
     ```js title="astro.config.mjs" "import { pluginExemploRemark } from './plugin-exemplo-remark.mjs';" "remarkPlugins: [pluginExemploRemark],"
+    import { defineConfig } from 'astro/config';
     import { pluginExemploRemark } from './plugin-exemplo-remark.mjs';
 
-    export default {
+    export default defineConfig({
       integrations: [
         mdx({
           remarkPlugins: [pluginExemploRemark],
         }),
       ],
-    }
+    });
     ```
 
 Agora, todo arquivo Markdown ou MDX terá a `propriedadeCustomizada` em seu frontmatter, a fazendo disponibilizando quando [importar seu Markdown](#importando-markdown) e a partir da [propriedade `Astro.props.frontmatter` em seus layouts](#frontmatter-layout).
 
-
-#### Exemplo: calculando tempo de leitura
-
-Você pode usar um [plugin do remark](https://github.com/remarkjs/remark) para adicionar o tempo de leitura ao seu frontmatter. Nós recomendados dois pacotes utilitários:
-- [`reading-time`](https://www.npmjs.com/package/reading-time) para calcular minutos lidos
-- [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string) para extrair todo o texto do seu Markdown
-
-```shell
-npm install reading-time mdast-util-to-string
-```
-
-Podemos aplicar esses pacotes a um plugin do remark assim:
-
-```js title="remark-tempo-leitura.mjs"
-import getReadingTime from 'reading-time';
-import { toString } from 'mdast-util-to-string';
-
-export function remarkTempoLeitura() {
-	return function (tree, { data }) {
-    const textoNaPagina = toString(tree);
-		const tempoLeitura = getReadingTime(textoNaPagina);
-    // tempoLeitura.text irá nos dar os minutos de leitura em uma string amigável,
-    // como "3 min read"
-		data.astro.frontmatter.minutosLeitura = tempoLeitura.text;
-	};
-}
-```
-
-Assim que você aplicar esse plugin na sua configuração:
-
-```js title="astro.config.mjs" "import { remarkTempoLeitura } from './remark-tempo-leitura.mjs';" "remarkPlugins: [remarkTempoLeitura],"
-import { remarkTempoLeitura } from './remark-tempo-leitura.mjs';
-
-export default {
-  markdown: {
-    remarkPlugins: [remarkTempoLeitura],
-  },
-};
-```
-
-...todos os documentos Markdown vão ter `minutosLeitura` calculados. Você pode usar isso para incluir um banner de "x minutos lidos" em um [layout Markdown](#páginas-markdown-e-mdx), por exemplo:
-
-```astro title="src/layouts/LayoutBlog.astro" "const { minutosLeitura } = Astro.props.frontmatter;" "<p>{minutosLeitura}</p>"
----
-const { minutosLeitura } = Astro.props.frontmatter;
----
-<html>
-  <head>...</head>
-  <body>
-    <p>{minutosLeitura}</p>
-    <slot />
-  </body>
-</html>
-```
+<RecipeLinks slugs={["pt-br/recipes/reading-time"]} />
 
 ### Estendendo a configuração do Markdown a partir do MDX
 
@@ -596,8 +572,7 @@ A integração MDX do Astro irá estender [a configuração Markdown existente d
 
 O exemplo abaixo desabilita o Markdown estilo GitHub e aplica um diferente conjunto de plugins do remark para arquivos MDX:
 
-```ts
-// astro.config.mjs
+```ts title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 
@@ -623,8 +598,7 @@ export default defineConfig({
 
 Para evitar estender sua configuração do Markdown a partir do MDX, defina [a opção `extendMarkdownConfig`](/pt-br/guides/integrations-guide/mdx/#extendmarkdownconfig) (habilitado por padrão) para `false`:
 
-```ts
-// astro.config.mjs
+```ts title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 
@@ -647,7 +621,8 @@ export default defineConfig({
 Astro vem com suporte nativo para [Shiki](https://shiki.matsu.io/) e [Prism](https://prismjs.com/). Isso fornece syntax highlighting para:
 
 - todas as code fences (\`\`\`) usadas em um arquivo Markdown ou MDX.
-- conteúdo dentro do [componente `<Code />` nativo](/pt-br/reference/api-reference/#code-) (oferecido por Shiki) ou o [componente `<Prism />`](/pt-br/reference/api-reference/#prism-) (oferecido por Prism).
+- conteúdo dentro do [componente `<Code />` nativo](/pt-br/reference/api-reference/#code-) (oferecido por Shiki).
+- conteúdo dentro do [componente `<Prism />`](/pt-br/reference/api-reference/#prism-) (oferecido por Prism).
 
 Shiki é ativado por padrão, pré-configurado com o tema `github-dark`. A saída compilada será limitada a `style`s inline sem classes CSS de fora, folhas de estilo ou JS no lado do cliente.
 
@@ -655,9 +630,10 @@ Shiki é ativado por padrão, pré-configurado com o tema `github-dark`. A saíd
 
 Shiki é o nosso syntax highlighter padrão. Você pode configurar todas as opções no objeto `shikiConfig` assim:
 
-```js
-// astro.config.mjs
-export default {
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
   markdown: {
     shikiConfig: {
       // Escolha entre os temas integrados do Shiki (ou adicione o seu)
@@ -671,7 +647,7 @@ export default {
       wrap: true,
     },
   },
-};
+});
 ```
 
 #### Adicionando o seu próprio tema
@@ -691,19 +667,19 @@ export default defineConfig({
 
 Nós também sugerimos ler [a documentação de temas do próprio Shiki](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme) para explorar mais sobre temas, alternância entre tema claro e escuro ou estilização por meio de variáveis CSS.
 
-
 #### Mude o Modo de Syntax Highlighting Padrão
 
 Se você quiser mudar para o `'prism'` por padrão, ou desabilitar syntax highlighting por inteiro, você pode usar o objeto de configuração `markdown.syntaxHighlighting`:
 
-```js ins={5}
-// astro.config.mjs
-export default {
+```js title="astro.config.mjs" ins={6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
   markdown: {
     // Pode ser 'shiki' (padrão), 'prism' ou false para desabilitar o highlighting
     syntaxHighlight: 'prism',
   },
-};
+});
 ```
 
 #### Configuração do Prism
