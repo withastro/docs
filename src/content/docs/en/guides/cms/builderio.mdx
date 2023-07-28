@@ -192,7 +192,6 @@ The `posts` array returned from the fetch displays a list of blog post titles on
 If you are using a JavaScript framework (e.g. Svelte, Vue, or React) in your Astro project you can use one of Builder's integrations as an alternative to making raw fetch calls through the REST API.
 :::
 
-
 Go to your index route and you should be able to see a list of links each with the title of a blog post!
 
 If you encounter any errors, you can always fall back to [Builder's API explorer](https://builder.io/api-explorer).
@@ -213,106 +212,15 @@ Create the page `src/pages/posts/[slug].astro` that will [dynamically generate a
 - package.json
 </FileTree>
 
-Then the following `getStaticPaths()` function to fetch information from Builder and create a static route for each blog post, based on the `slug` data field:
-
-```astro title="src/pages/posts/[slug].astro"
----
-export async function getStaticPaths() {
-  const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
-  const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
-
-  const { results: posts } = await fetch(
-    `https://cdn.builder.io/api/v3/content/${builderModel}?${new URLSearchParams(
-      {
-        apiKey: builderAPIpublicKey,
-        fields: ["data.slug", "data.title"].join(","),
-        cachebust: "true",
-      }
-    ).toString()}`
-  )
-    .then((res) => res.json())
-    .catch
-    // ...catch some errors...);
-    ();
-
-  return [
-    ...posts.map(({ data: { slug, title } }) => [
-      {
-        params: { slug },
-        props: { title },
-      },
-    ]),
-  ];
-}
----
-```
-
-
-Next, add the following content:
-
-```astro title="src/pages/posts/[slug].astro" ins={30-49}
----
-export async function getStaticPaths() {
-  const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
-  const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
-
-  const { results: posts } = await fetch(
-    `https://cdn.builder.io/api/v3/content/${builderModel}?${new URLSearchParams(
-      {
-        apiKey: builderAPIpublicKey,
-        fields: ["data.slug", "data.title"].join(","),
-        cachebust: "true",
-      }
-    ).toString()}`
-  )
-    .then((res) => res.json())
-    .catch
-    // ...catch some errors...);
-    ();
-
-  return [
-    ...posts.map(({ data: { slug, title } }) => [
-      {
-        params: { slug },
-        props: { title },
-      },
-    ]),
-  ];
-}
-
-const { slug } = Astro.params;
-const { title } = Astro.props;
-
-const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
-const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
-// Builder's API requires this field but for this use case the URL doesn't seem to matter - the API returns the same HTML
-const encodedUrl = encodeURIComponent("moot");
-
-const { html: postHTML } = await fetch(
-  `https://cdn.builder.io/api/v1/qwik/${builderModel}?${new URLSearchParams({
-    apiKey: builderAPIpublicKey,
-    url: encodedUrl,
-    "query.data.slug": slug,
-    cachebust: "true",
-  }).toString()}`
-)
-  .then((res) => res.json())
-  .catch();
----
-```
-
-The `slug` returned from `getStaticPaths` is used to fetch the corresponding post. The HTML that Builder sends back is made of the blocks you put on the page in Builder's editor.
-
-:::caution
-This code relies on the fact that each content entry in the `blogpost` model has non-empty fields called `slug` and `title`. If you didn't create a fresh model for this guide, make sure that all content entries have these fields filled, including those that you started with.
-:::
+This file must contain:
+- A [`getStaticPAths()`](/en/reference/api-reference/#getstaticpaths) function to fetch `slug` information from Builder and create a static route for each blog post.
+- A fetch call to the Builder API using the `slug` to return individual post content and metadata (e.g. `title`).
+- A `<Fragment />` in the template to render your content as HTML.
 
 :::note
-The variables `builderModel` and `builderAPIpublicKey` need to be created twice, since [`getStaticPaths` runs in its own isolated scope](/en/reference/api-reference/#getstaticpaths).
+The variables `builderModel` and `builderAPIpublicKey` need to be created twice, since `getStaticPaths()` runs in its own isolated scope.
 :::
 
-
-Finally, render the HTML:
 
 ```astro title="src/pages/posts/[slug].astro" ins={52-99}
 ---
