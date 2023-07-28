@@ -2,6 +2,7 @@ import path from 'node:path';
 import type { TutorialEntry } from '~/content/config';
 import { stripLangFromSlug } from '~/util';
 import { groupPagesByLang } from './groupPagesByLang';
+import type { CollectionEntry } from 'astro:content';
 
 /** Get a full list of pages for the tutorial in the current language, falling back to English if not available. */
 export function getTutorialPages(allPages: TutorialEntry[], lang: string) {
@@ -12,7 +13,7 @@ export function getTutorialPages(allPages: TutorialEntry[], lang: string) {
 			const enSlug = stripLangFromSlug(englishPage.slug);
 			const langPage = pagesByLang[lang]?.find((page) => stripLangFromSlug(page.slug) === enSlug);
 			return {
-				...(langPage || englishPage),
+				...((langPage as CollectionEntry<'docs'>) || (englishPage as CollectionEntry<'docs'>)),
 				isFallback: !langPage,
 			};
 		})
