@@ -1,0 +1,206 @@
+---
+title: 在 Astro 页面中构建 HTML 表单
+description: 了解如何在 Astro 页面中构建 HTML 表单并在你的 frontmatter 中处理提交请求
+i18nReady: true
+type: recipe
+---
+
+在 SSR 模式下，Astro 页面既可以显示又可以处理表单。在本节示例中，你可以使用标准的 HTML 表单将数据提交到服务器。你的 frontmatter 脚本将在服务器端处理数据，而不向客户端发送任何 JavaScript。
+
+## 前期准备
+
+- 一个开启了 [SSR 服务端渲染模式](/zh-cn/guides/server-side-rendering/) （`output: 'server'`） 模式的项目
+
+## 操作步骤
+
+1. 创建一个包含表单和处理代码的 `.astro` 页面。例如，你可以添加一个注册页面（registration page）:
+
+
+    ```astro title="src/pages/register.astro"
+    ---
+    ---
+    <h1>Register</h1>
+    ```
+
+2. 在页面中添加一个 `<form>` 标签，并给它添加一些 `input` 标签内容。每个 `input` 标签都应该有一个 `name` 属性，用于描述该输入字段的值。
+
+    请确保在表单中包含了 `<button>` 或 `<input type="submit">` 元素以提交表单
+
+    ```astro title="src/pages/register.astro"
+    ---
+    ---
+    <h1>Register</h1>
+    <form>
+      <label>
+        Username:
+        <input type="text" name="username" />
+      </label>
+      <label>
+        Email:
+        <input type="email" name="email" />
+      </label>
+      <label>
+        Password:
+        <input type="password" name="password" />
+      </label>
+      <button>Submit</button>
+    </form>
+    ```
+
+3. 使用[校验属性](https://developer.mozilla.org/zh-CN/docs/Learn/Forms/Form_validation#using_built-in_form_validation)提供基本的客户端校验功能，即使 JavaScript 被禁用这也能正常工作。
+
+    在这个例子中，
+    -	`required` 属性可以阻止在字段为空时提交表单；
+    -	`minlength` 属性可以设置输入文本的最小要求长度；
+    -	`type="email"` 属性还引入了校验功能，只接受符合有效电子邮件格式的输入。
+
+    ```astro title="src/pages/register.astro"
+    ---
+    ---
+    <h1>Register</h1>
+    <form>
+      <label>
+        Username:
+        <input type="text" name="username" required />
+      </label>
+      <label>
+        Email:
+        <input type="email" name="email" required />
+      </label>
+      <label>
+        Password:
+        <input type="password" name="password" required minlength="6" />
+      </label>
+      <button>Submit</button>
+    </form>
+    ```
+    
+    :::tip
+    你可以通过使用 `<script>` 标签和 [Constraint Validation API](https://developer.mozilla.org/zh-CN/docs/Web/HTML/Constraint_validation#complex_constraints_using_the_constraint_validation_api) 来添加涉及多个字段的自定义验证逻辑。
+
+    为了更容易编写复杂的验证逻辑，你也可以使用 [框架组件](/zh-cn/core-concepts/framework-components/) 来构建表单，并选择一个类似 [React Hook Form](https://react-hook-form.com/) 或 [Felte](https://felte.dev/) 的表单库。
+    :::
+
+4. 提交表单将导致浏览器重新请求页面。把表单的数据传输属性 `method` 改为 `POST`，表单数据将作为 `Request` body 的一部分发送，而不是作为 URL 参数发送。
+
+    ```astro title="src/pages/register.astro" 'method="POST"'
+    ---
+    ---
+    <h1>Register</h1>
+    <form method="POST">
+      <label>
+        Username:
+        <input type="text" name="username" required />
+      </label>
+      <label>
+        Email:
+        <input type="email" name="email" required />
+      </label>
+      <label>
+        Password:
+        <input type="password" name="password" required minlength="6" />
+      </label>
+      <button>Submit</button>
+    </form>
+    ```
+
+5. 在 frontmatter 中检查 `POST` 方法，并使用 `Astro.request.formData()` 访问表单数据。将其包裹在 `try ... catch` 块中，以处理未通过表单发送的 `POST` 请求和 `formData` 无效的情况。
+
+    ```astro title="src/pages/register.astro" ins={2-14} "Astro.request.formData()"
+    ---
+    if (Astro.request.method === "POST") {
+      try {
+        const data = await Astro.request.formData();
+        const name = data.get("username");
+        const email = data.get("email");
+        const password = data.get("password");
+        // Do something with the data
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error(error.message);
+        }
+      }
+    }
+    ---
+    <h1>Register</h1>
+    <form method="POST">
+      <label>
+        Username:
+        <input type="text" name="username" required />
+      </label>
+      <label>
+        Email:
+        <input type="email" name="email" required />
+      </label>
+      <label>
+        Password:
+        <input type="password" name="password" required minlength="6" />
+      </label>
+      <button>Submit</button>
+    </form>
+    ```
+
+6. 在服务器端验证表单数据。这应包括和客户端上的相同的验证方式，以防止你的端点被恶意提交，或者支持少数的不具备表单验证功能的早期旧版浏览器。
+
+    此外，还可以进行一些客户端无法完成的验证。例如，该示例检查电子邮件是否已存在于数据库中。
+    
+    也可以通过将错误信息存储在一个 `errors` 对象中，并在模板中访问该对象，将错误消息发送回客户端。
+
+    ```astro title="src/pages/register.astro" ins={5, 12-22, 41, 46, 51}
+    ---
+    import { isRegistered, registerUser } from "../../data/users"
+    import { isValidEmail } from "../../utils/isValidEmail";
+
+    const errors = { username: "", email: "", password: "" };
+    if (Astro.request.method === "POST") {
+      try {
+        const data = await Astro.request.formData();
+        const name = data.get("username");
+        const email = data.get("email");
+        const password = data.get("password");
+        if (typeof name !== "string" || name.length < 1) {
+          errors.username += "Please enter a username. ";
+        }
+        if (typeof email !== "string" || !isValidEmail(email)) {
+          errors.email += "Email is not valid. ";
+        } else if (await isRegistered(email)) {
+          errors.email += "Email is already registered. ";
+        }
+        if (typeof password !== "string" || password.length < 6) {
+          errors.password += "Password must be at least 6 characters. ";
+        }
+        const hasErrors = Object.values(errors).some(msg => msg)
+        if (!hasErrors) {
+          await registerUser({name, email, password});
+          return Astro.redirect("/login");
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error(error.message);
+        }
+      }
+    }
+    ---
+    <h1>Register</h1>
+    <form method="POST">
+      <label>
+        Username:
+        <input type="text" name="username" />
+      </label>
+      {errors.username && <p>{errors.username}</p>}
+      <label>
+        Email:
+        <input type="email" name="email" required />
+      </label>
+      {errors.email && <p>{errors.email}</p>}
+      <label>
+        Password:
+        <input type="password" name="password" required minlength="6" />
+      </label>
+      {errors.password && <p>{errors.password}</p>}
+      <button>Register</button>
+    </form>
+
+    ```
+
+
