@@ -12,7 +12,7 @@ export function getTutorialPages(allPages: TutorialEntry[], lang: string) {
 			const enSlug = stripLangFromSlug(englishPage.slug);
 			const langPage = pagesByLang[lang]?.find((page) => stripLangFromSlug(page.slug) === enSlug);
 			return {
-				...(langPage || englishPage),
+				...((langPage as TutorialEntry) || (englishPage as TutorialEntry)),
 				isFallback: !langPage,
 			};
 		})
