@@ -203,6 +203,62 @@ import { ViewTransitions } from 'astro:transitions';
 The `morph` animation cannot be simulated in traditional CSS. So any element using this animation will not be animated.
 :::
 
+## Script behavior during page navigation
+
+When navigating between pages with the `<ViewTransitions />` component, scripts are run in sequential order to match browser behavior. 
+
+If you have code that sets up global state, this state will need to take into account that the script might execute more than once. Check for the global state in your `<script>` tag, and conditionally execute your code where possible:
+
+```astro
+<script is:inline>
+  if(!window.SomeGlobal) {
+    window.SomeGlobal = {} // ....
+  }
+</script>
+```
+
+Module scripts are only ever executed once because the browser keeps track of which modules are already loaded. For these scripts, you do not need to worry about re-execution.
+
+#### `astro:load`
+
+An event that fires at the end of page navigation, after the new page is visible to the user and blocking styles and scripts are loaded. You can listen to this event on the `document`.
+
+The `<ViewTransitions />` component fires this event both on initial page navigation (MPA) and any subsequent navigation, either forwards or backwards.
+
+You can use this event to run code on every page navigation, or only once ever:
+
+```astro "{ once: true }"
+<script>
+  document.addEventListener('astro:load', () => {
+    // This only runs once.
+    setupStuff();
+  }, { once: true });
+</script>
+```
+
+#### `astro:beforeload`
+
+An event that fires immediately after the new page replaces the old page. You can listen to this event on the `document`.
+
+This event is useful to restore any state on the DOM that needs to transfer over to the new page.
+
+For example, if you are implementing dark mode support, this event can be used to restore state across page loads:
+
+```astro
+<script>
+	const setDarkMode = () => {
+		if (localStorage.darkMode) {
+			document.documentElement.dataset.dark = '';
+		}
+	};
+
+  // Runs on initial navigation
+	setDarkMode();
+  // Runs on view transitions navigation
+	document.addEventListener('astro:beforeload', setDarkMode);
+</script>
+```
+
 ## `prefers-reduced-motion`
 
 Astro's `<ViewTransitions />` component includes a CSS media query that disables *all* view transition animations, including fallback animation, whenever the [`prefer-reduced-motion`](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion) setting is detected. Instead, the browser will simply swap the DOM elements without an animation.
