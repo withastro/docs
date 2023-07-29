@@ -1,4 +1,5 @@
 import { CollectionEntry, defineCollection, z } from 'astro:content';
+import { docsSchema } from '@astrojs/starlight/schema';
 
 export const baseSchema = z
 	.object({
@@ -113,8 +114,4 @@ export function createIsLangEntry(lang: string) {
 
 export const isEnglishEntry = createIsLangEntry('en');
 
-const docs = defineCollection({
-	schema: docsCollectionSchema,
-});
-
-export const collections = { docs };
+export const collections = { docs: defineCollection({ schema: docsSchema() }) };
