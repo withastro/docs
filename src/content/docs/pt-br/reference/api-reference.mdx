@@ -809,6 +809,37 @@ Isso significa que coleções **não podem** armazenar uma mistura de conteúdos
 
 [Veja o guia de `Coleções de Conteúdo`](/pt-br/guides/content-collections/#defining-a-collection-schema) para exemplos de uso.
 
+### `reference()`
+
+**Tipo:** `(collection: string) => ZodEffects<ZodString, { collection, id: string } | { collection, slug: string }>`
+
+A função `reference()` é usada na configuração de conteúdo para definir uma relação, ou "referência", de uma coleção com a outra. Ela aceita um nome de coleção e valida o(s) identificador(es) de entrada especificados no frontmatter do seu conteúdo ou arquivo de dados.
+
+Esse exemplo define referências de um autor de blog para a coleção `autores` e um array de postagens relacionadas na mesma coleção `blog`:
+
+```ts
+import { defineCollection, reference, z } from 'astro:content';
+
+const blog = defineCollection({
+  type: 'content',
+  schema: z.object({
+    // Referencia um único autor da coleção `autores` pelo `id`
+    autor: reference('autores'),
+    // Referencia um array de postagens relacionadas da coleção `blog` pelo `slug`
+    postagensRelacionadas: z.array(reference('blog')),
+  })
+});
+
+const autores = defineCollection({
+  type: 'data',
+  schema: z.object({ /* ... */ })
+});
+
+export const collections = { blog, autores };
+```
+
+[Veja o guia `Coleções de Conteúdo`](/pt-br/guides/content-collections/#defining-collection-references) para um exemplo de uso.
+
 ### `getCollection()`
 
 **Tipo:** `(collection: string, filter?: (entry: CollectionEntry<collection>) => boolean) => CollectionEntry<collection>[]`
@@ -831,9 +862,68 @@ const postagensRascunhoBlog = await getCollection('blog', ({ data }) => {
 
 [Veja a seção guia de `getCollection()`](/pt-br/guides/content-collections/#querying-collections) para exemplos completos de uso.
 
+### `getEntry()`
+
+<p>
+  <Since v="2.5.0" />
+</p>
+
+**Tipos:**
+
+- `(collection: string, contentSlugOrDataId: string) => CollectionEntry<collection>`
+- `({ collection: string, id: string }) => CollectionEntry<collection>`
+- `({ collection: string, slug: string }) => CollectionEntry<collection>`
+
+`getEntry()` é uma função que recupera uma única entrada de coleção pelo nome da coleção e tanto pelo `id` da entrada (para coleções `type: 'data'`) ou pelo `slug` da entrada (para coleções `type: 'content'`). `getEntry()` também pode ser usada para obter entradas referenciadas para acessar as propriedades `data`, `body` ou `render()`:
+
+```astro
+---
+import { getEntry } from 'astro:content';
+
+// Obtém `src/content/blog/empreendimento.md`
+const empreendimentoPostagem = await getEntry('blog', 'empreendimento');
+
+// Obtém `src/content/capitaes/picard.yaml`
+const picardPerfil = await getEntry('capitaes', 'picard');
+
+// Obtém o erfil referenciado por `data.capitao`
+const empreendimentoCapitaoPerfil = await getEntry(empreendimento.data.capitao);
+---
+```
+
+Veja o guia `Coleções de Conteúdo` para exemplos de  [consultando entradas de coleção](/pt-br/guides/content-collections/#querying-collections).
+
+### `getEntries()`
+
+<p>
+  <Since v="2.5" />
+</p>
+
+**Tipos:**
+
+- `(Array<{ collection: string, id: string }>) => CollectionEntry<collection>`
+- `(Array<{ collection: string, slug: string }>) => CollectionEntry<collection>`
+
+`getEntries()` é uma função que recupera múltiplas entradas de uma mesma coleção. Isso é útil para [retornar um array de entradas referenciadas](/pt-br/guides/content-collections/#defining-collection-references) para acessar as propriedades `data`, `body` e `render()` associadas a elas.
+
+```astro
+---
+import { getEntries } from 'astro:content';
+
+const empreendimentoPostagem = await getEntry('blog', 'empreendimento');
+
+// Obtém postagens relacionadas referenciadas por `data.postagensRelacionadas`
+const capitaoPerfil = await getEntries(empreendimento.data.postagensRelacionadas);
+---
+```
+
 ### `getEntryBySlug()`
 
 **Tipo:** `(collection: string, slug: string) => CollectionEntry<collection>`
+
+:::caution[Descontinuado]
+Use a [função `getEntry()`](#getentry) para consultar entradas de conteúdo. Ela aceita os mesmos argumentos que `getEntryBySlug()`, e suporta consultar pelo `id` para coleções JSON ou YAML.
+:::
 
 `getEntry()` é uma função que devolve uma única entrada de coleção por nome de coleção e `slug` da entrada.
 
@@ -847,7 +937,7 @@ const enterprise = await getEntryBySlug('blog', 'enterprise');
 
 ### Tipo da Entrada da Coleção
 
-As funções [`getCollection()`](#getcollection) e [`getEntryBySlug()`](#getentrybyslug) retornam entradas com o tipo `CollectionEntry`. Esse tipo está disponível como um utilitário de `astro:content`:
+As funções de consulta [`getCollection()`](#getcollection), [`getEntry()`](#getentry) e [`getEntries()`](#getentries) retornam entradas com o tipo `CollectionEntry`. Esse tipo está disponível como um utilitário de `astro:content`:
 
 ```ts
 import type { CollectionEntry } from 'astro:content';
@@ -859,30 +949,44 @@ Um `CollectionEntry<TCollectionName>` é um objeto com os seguintes valores:
 
 #### `id`
 
-**Tipo de Exemplo:** `'entrada-1.md' | 'entrada-2.md' | ...`
+**Disponível para:** coleções `type: 'content'` e `type: 'data'`
+**Tipos de Exemplo:**
+  - coleções de conteúdo: `'entrada-1.md' | 'entrada-2.md' | ...`
+  - coleções de dados: `'autor-1' | 'autor-2' | ...`
 
-Um ID único utilizando o caminho de arquivo relativo a `src/content/[coleção]`. Enumera todos os valores de string possíveis com base nos caminhos de arquivo da entrada de coleção.
+Um ID único utilizando o caminho de arquivo relativo a `src/content/[coleção]`. Enumera todos os valores de string possíveis com base nos caminhos de arquivo da entrada de coleção. Note que coleções [definidas como `type: 'content'`](#type) incluem a extensão do arquivo em seus ID, enquanto coleções definidas como `type: 'data'` nao incluem.
 
-#### `slug`
+#### `collection`
 
-**Tipo de Exemplo:** `'entrada-1' | 'entrada-2' | ...`
+**Disponível para:** coleções `type: 'content'` e `type: 'data'`  
+**Tipo de Exemplo:** `'blog' | 'autores' | ...`
 
-Uma slug pronta para URLs. Por padrão é o `id` sem a extensão de arquivo, mas pode ser sobreescrita ao definir [a propriedade `slug`](/pt-br/guides/content-collections/#defining-custom-slugs) no frontmatter de um arquivo.
+O nome de uma pasta de nível superior dentro de `src/content/` onde as entradas são localizadas. Este é o nome usado para referencias a coleção no seu esquema e em funções de consulta.
 
 #### `data`
 
+**Disponível para:** coleções `type: 'content'` e `type: 'data'`
 **Tipo:** `CollectionSchema<TCollectionName>`
 
 Um objeto de propriedades frontmatter inferidas do schema da sua coleção ([veja a referência de `defineCollection()`](#definecollection)). Por padrão é `any` se nenhum schema é configurado.
 
+#### `slug`
+
+**Disponível para:** apenas coleções `type: 'content'`
+**Tipo de Exemplo:** `'entrada-1' | 'entrada-2' | ...`
+
+Uma slug pronta para URLs para documentos Markdown ou MDX. Por padrão é o `id` sem a extensão de arquivo, mas pode ser sobreescrita ao definir [a propriedade `slug`](/pt-br/guides/content-collections/#defining-custom-slugs) no frontmatter de um arquivo.
+
 #### `body`
 
+**Disponível para:** apenas coleções `type: 'content'`
 **Tipo:** `string`
 
 Uma string contendo o body bruto e não-compilado do documento Markdown ou MDX.
 
 #### `render()`
 
+**Disponível para:** apenas coleções `type: 'content'`
 **Tipo:** `() => Promise<RenderedEntry>`
 
 Uma função para compilar dado documento Markdown ou MDX document para renderização. Ela retorna as seguintes propriedades:
