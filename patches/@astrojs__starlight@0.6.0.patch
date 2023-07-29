@@ -1,0 +1,30 @@
+diff --git a/schema.ts b/schema.ts
+index b005f955a9b2f78a2dc8ce8d242f23f0ef413229..465510c44390dfb608158dc222bc43b16c76cb52 100644
+--- a/schema.ts
++++ b/schema.ts
+@@ -25,9 +25,15 @@ type ImageFunction = () => z.ZodObject<{
+ 	>;
+ }>;
+ 
+-export function docsSchema() {
+-	return ({ image }: { image: ImageFunction }) =>
+-		z.object({
++type AnyZodObject =
++	| z.AnyZodObject
++	| z.ZodUnion<[z.AnyZodObject, ...z.AnyZodObject[]]>
++	| z.ZodDiscriminatedUnion<string, z.AnyZodObject[]>
++	| z.ZodIntersection<z.AnyZodObject, z.AnyZodObject>;
++
++export function docsSchema<S extends AnyZodObject>({ extend }: { extend?: S } = {}) {
++	return ({ image }: { image: ImageFunction }) => {
++		const schema = z.object({
+ 			/** The title of the current page. Required. */
+ 			title: z.string(),
+ 
+@@ -145,4 +151,6 @@ export function docsSchema() {
+ 				})
+ 				.default({}),
+ 		});
++		return schema.and(extend || z.object({}));
++	};
+ }
