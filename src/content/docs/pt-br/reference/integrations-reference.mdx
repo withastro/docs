@@ -2,6 +2,8 @@
 title: API de Integrações Astro
 i18nReady: true
 ---
+import Badge from '~/components/Badge.astro';
+import Since from '~/components/Since.astro'
 
 **Integrações Astro** adicionam novas funcionalidades e comportamentos ao seu projeto com apenas algumas linhas de código.
 
@@ -28,6 +30,7 @@ interface AstroIntegration {
             updateConfig: (newConfig: Record<string, any>) => void;
             addRenderer: (renderer: AstroRenderer) => void;
             addWatchFile: (path: URL | string) => void;
+            addClientDirective: (directive: ClientDirectiveConfig) => void;
             injectScript: (stage: InjectedScriptStage, content: string) => void;
             injectRoute: ({ pattern: string, entryPoint: string }) => void;
         }) => void;
@@ -65,6 +68,7 @@ interface AstroIntegration {
     isRestart: boolean;
     updateConfig: (newConfig: Record<string, any>) => void;
     addRenderer: (renderer: AstroRenderer) => void;
+    addClientDirective: (directive: ClientDirectiveConfig) => void;
     addWatchFile: (path: URL | string) => void;
     injectScript: (stage: InjectedScriptStage, content: string) => void;
     injectRoute: ({ pattern: string, entryPoint: string }) => void;
@@ -139,6 +143,53 @@ addWatchFile('/home/usuario/.../minha-configuracao.json');
 addWatchFile(new URL('./tailwind.config.js', config.root));
 ```
 
+#### Opção `addClientDirective`
+
+<Since v="2.5.0" />
+<Badge variant="accent">Experimental</Badge>
+
+**Tipo:** `(directive:` [`ClientDirectiveConfig`](https://github.com/withastro/astro/blob/00327c213f74627ac9ca1dec774efa5bf71e9375/packages/astro/src/%40types/astro.ts#L1872-L1875) `) => void;`
+
+Adiciona uma [diretiva customizada do cliente](/pt-br/reference/directives-reference/#diretivas-customizadas-do-cliente) para ser usada em arquivos do Astro. Como isso é uma funcionalidade experimental, você também precisa habilitar a [opção de configuração `experimental.customClientDirectives`](/pt-br/reference/configuration-reference/#experimentalcustomclientdirectives) para usar essa API.
+
+Note que entrupoitns de diretivas são agrupados somente através do esbuild e devem ser mantidos pequenos para que não deixem a hidratação de componentes mais lenta.
+
+Exemplo de uso:
+
+```js
+// Crie uma diretiva `client:clique`
+addClientDirective({
+  name: 'clique',
+  entrypoint: 'astro-clique-directive/clique.js' 
+})
+```
+
+__astro-diretiva-clique/clique.js__
+
+```js
+/**
+ * Hidrata no primeiro clique da janela
+ * @type {import('astro').ClientDirective}
+ */
+export default (load, opts, el) => {
+  window.addEventListener('click', async () => {
+    const hidrate = await load()
+    await hidrate()
+  }, { once: true })
+}
+```
+
+Você também pode adicionar tipos para as diretivas no seu arquivo de definição de tipos da sua biblioteca:
+
+__astro-diretiva-clique/index.d.ts__
+
+```ts
+declare module 'astro' {
+  interface AstroClientDirectives {
+    'client:clique'?: boolean
+  }
+}
+```
 
 #### Opção `injectRoute`
 
