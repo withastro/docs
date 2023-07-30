@@ -21,10 +21,19 @@ export default defineConfig({
 		preact({ compat: true }),
 		astroDocsExpressiveCode(),
 		starlight({
-			title: 'Astro Docs',
+			title: 'Docs',
+			logo: {
+				light: './src/assets/astro-logo-light.svg',
+				dark: './src/assets/astro-logo-dark.svg',
+				alt: 'Astro',
+			},
 			defaultLocale: 'en',
 			locales: makeLocalesConfig(),
 			sidebar: makeSidebar(),
+			social: {
+				github: 'https://github.com/withastro/astro',
+				discord: 'https://astro.build/chat',
+			},
 		}),
 	],
 	markdown: {
