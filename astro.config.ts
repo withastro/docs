@@ -4,12 +4,10 @@ import { defineConfig } from 'astro/config';
 import { makeLocalesConfig } from './config/locales';
 import { makeSidebar } from './config/sidebar';
 
-import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeSlug from 'rehype-slug';
 import remarkSmartypants from 'remark-smartypants';
 
 import { astroDocsExpressiveCode } from './integrations/expressive-code';
-import { rehypei18nAutolinkHeadings } from './plugins/rehype-i18n-autolink-headings';
 import { rehypeOptimizeStatic } from './plugins/rehype-optimize-static';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
@@ -46,12 +44,8 @@ export default defineConfig({
 		],
 		rehypePlugins: [
 			rehypeSlug,
-			// This adds links to headings
-			// [rehypeAutolinkHeadings, autolinkConfig],
 			// Tweak GFM task list syntax
 			rehypeTasklistEnhancer(),
-			// Translates the autolink headings anchors
-			rehypei18nAutolinkHeadings(),
 			// Collapse static parts of the hast to html
 			rehypeOptimizeStatic,
 		],
