@@ -1,6 +1,7 @@
 ---
 title: 样式 & CSS
-description: 了解如何使用 Astro 组件样式。
+description: >-
+  学习如何在Astro中使用作用域样式、外部CSS以及类似Sass和PostCSS的工具来为组件添加样式。
 ---
 import Since from '~/components/Since.astro';
 
@@ -10,7 +11,7 @@ Astro 的设计为了使设计和编写 CSS 变得轻而易举。直接在 Astro
 
 为 Astro 组件设计样式，就像在你的组件或页面模板上添加 `<style>` 标签一样容易。当你在 Astro 组件内置了 `<style>` 标签时，Astro 就会自动检测 CSS 并开始为你处理样式。
 
-```astro
+```astro title="src/components/MyComponent.astro"
 <style>
   h1 { color: red; }
 </style>
@@ -107,7 +108,7 @@ const { isRed } = Astro.props;
 
 <Since v="0.21.0" />
 
-Astro `<style>` 可以引用页面上任何可用的 CSS 变量。你也可以使用 `define:vars` 指令直接通过组件传递 CSS 变量。
+Astro `<style>` 可以引用页面上任何可用的 CSS 变量。你也可以在组件的 frontmatter 中直接使用 `define:vars` 指令来传递 CSS 变量。
 
 ```astro title="src/components/DefineVars.astro" /define:vars={{.*}}/ /var\\(.*\\)/
 ---
@@ -207,7 +208,7 @@ import 'package-name/styles.css';
 
 如果你所用的包**不建议使用文件扩展名**（即 `包名/样式`），那么你就需要先更新 Astro 配置 
 
-假设你从 `package-name` 导入名为 `normalize` 的 CSS 文件（省略文件扩展名）。为了确保我们能正确地预渲染你的页面，需要把`package-name` 添加到 [`vite.ssr.noExternal` 数组](https://vitejs.dev/config/#ssr-noexternal)中。
+假设你从 `package-name` 导入名为 `normalize` 的 CSS 文件（省略文件扩展名）。为了确保我们能正确地预渲染你的页面，需要把`package-name` 添加到 [`vite.ssr.noExternal` 数组](https://vitejs.dev/config/ssr-options.html#ssr-noexternal)中。
 
 ```js ins={7}
 // astro.config.mjs
@@ -422,7 +423,20 @@ import "../components/make-it-purple.css"
 
 ## CSS 集成
 
-Astro 支持在项目中添加流行的 CSS 库、工具和框架，如 [Tailwind][tailwind] 和其他库!
+Astro 支持在项目中添加流行的 CSS 库、工具和框架，如 [Tailwind](https://tailwindcss.com) 和其他库!
+
+### Tailwind
+
+要在项目中使用Tailwind，请使用包管理器的`astro add` 命令安装官方的[Astro Tailwind集成][tailwind]：
+
+```sh
+# 使用NPM
+npx astro add tailwind
+# 使用Yarn
+yarn astro add tailwind
+# 使用PNPM
+pnpm astro add tailwind
+```
 
 📚 参见[集成指南](/zh-cn/guides/integrations-guide/)，了解安装、导入和配置这些集成的说明。
 
@@ -432,7 +446,7 @@ Astro 支持通过 [Vite][vite-preprocessors] 使用 CSS 预处理器，如 [Sas
 
 ### Sass 和 SCSS
 
- ```
+ ```shell
  npm install sass
  ```
 
@@ -440,7 +454,7 @@ Astro 支持通过 [Vite][vite-preprocessors] 使用 CSS 预处理器，如 [Sas
 
 ### Stylus
 
-```
+```shell
 npm install stylus
 ```
 
@@ -448,7 +462,7 @@ npm install stylus
 
 ### Less
 
-```
+```shell
 npm install less
 ```
 
@@ -464,7 +478,7 @@ npm install less
 
 ## PostCSS
 
-Astro 内置了 PostCSS，作为 [Vite](https://vitejs.dev/guide/features.html#postcss) 的一部分。要为你的项目配置 PostCSS，在项目根部创建 `postcss.config.js` 文件。然后你就你可以在安装插件后使用 `require()` 导入插件（例如 `npm i autoprefixer`）。
+Astro 内置了 PostCSS，作为 [Vite](https://cn.vitejs.dev/guide/features.html#postcss) 的一部分。要为你的项目配置 PostCSS，在项目根部创建 `postcss.config.js` 文件。然后你就可以在安装插件后使用 `require()` 导入插件（例如 `npm install autoprefixer`）。
 
 ```js title="postcss.config.cjs" ins={3-4}
 module.exports = {
@@ -483,7 +497,7 @@ module.exports = {
 
 `.jsx` 文件同时支持全局 CSS 和 CSS 模块。要启用后者，请使用 `.module.css` 扩展名（如果使用 Sass 则是 `.module.scss`/`.module.sass` ）。
 
-```js
+```js title="src/components/MyReactComponent.jsx" /[a-z]+(\\.module\\.css)/
 import './global.css'; //包括全局CSS
 import Styles from './styles.module.css'; // 使用 CSS 模块（必须以 `.module.css`、`.module.scss` 或 `.module.sass` 结尾！)
 ```
@@ -507,10 +521,34 @@ Astro 中的 Svelte 也完全按照预期工作。[Svelte Styling Docs][svelte-s
 
 如果你使用 Tailwind，[typography 插件](https://tailwindcss.com/docs/typography-plugin) 可以用于样式化 Markdown。
 
+## 生产
+
+### 打包控制
+
+当 Astro 构建您的网站以进行生产部署时，它会将您的 CSS 样式组合成块。您网站上的每个页面都是一个独立的块，此外，多个页面共享的 CSS 样式会被进一步拆分为自己的块，以便重复使用。
+
+在每个 HTML 文件中，都会添加 `<link rel="stylesheet">` 标签，而每个页面所需要的块也会对应一个该标签。
+
+具有大量页面和许多不同共享样式的网站可能会导致许多样式表请求，从而影响网站的性能。你可以通过配置 `inlineStylesheets` 选项，将（最小化的）样式表放入 `<style>` 标记中，而不是从外部请求它们，从而减少样式表请求的数量。
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  build: {
+    inlineStylesheets: 'auto'
+  }
+});
+```
+
+`'auto'` 选项只会将小于 `vite.build.assetsInlineLimit` 阈值的样式表内联，以减少对较小样式表的请求次数。。而较大的样式表，比如被所有页面用到的全局样式表，仍然会从外部获取并缓存。该选项可在加载的样式表数量和在页面中缓存的样式之间取得平衡。
+
+你也可以将该选项设置为 `'always'` ，这样就可以内联所有的样式表了。
+
 ## 高级
 
 :::caution
-绕过 Astro 内置的 CSS 捆绑时要小心！样式不会自动包含在内置的输出中。样式不会自动包含在构建的输出中，你有责任确保引用的文件被正确地包含在最终的页面输出中。
+绕过 Astro 内置的 CSS 捆绑时要小心！样式不会自动包含在构建的输出中，你有责任确保引用的文件被正确地包含在最终的页面输出中。
 :::
 
 ### 导入 `?raw` CSS
@@ -527,7 +565,7 @@ import rawStylesCSS from '../styles/main.css?raw';
 <style is:inline set:html={rawStylesCSS}></style>
 ```
 
-完整的细节见[Vite的文档](https://vitejs.dev/guide/assets.html#importing-asset-as-url)。
+完整的细节见[Vite的文档](https://cn.vitejs.dev/guide/assets.html#importing-asset-as-string)。
 
 ### 导入 `?url` CSS
 
@@ -555,7 +593,7 @@ import stylesUrl from '../styles/main.css?url';
 [sass]: https://sass-lang.com/
 [stylus]: https://stylus-lang.com/
 [svelte-style]: https://svelte.dev/docs#component-format-style
-[tailwind]: https://github.com/withastro/astro/tree/main/packages/integrations/tailwind
+[tailwind]: /zh-cn/guides/integrations-guide/tailwind/
 [vite-preprocessors]: https://cn.vitejs.dev/guide/features.html#css-pre-processors
 [vue-css-modules]: https://vue-loader.vuejs.org/guide/css-modules.html
 [vue-scoped]: https://vue-loader.vuejs.org/guide/scoped-css.html
