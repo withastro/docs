@@ -1,0 +1,180 @@
+---
+title: Astro 语法
+description: 关于 .astro 组件语法的介绍
+i18nReady: true
+---
+
+**如果你了解 HTML，那么你就已经知道如何编写你的第一个 Astro 组件。**
+
+Astro 组件的语法是 HTML 的超集。设计这个语法的目的是让有编写 HTML 或 JSX 经验的人感到熟悉，同时还添加了支持包含组件和 JavaScript 表达式的功能。
+
+## 类似 JSX 的表达式
+
+你可以在 Astro 组件的 frontmatter 组件脚本中的两个代码块（`---`）之间定义本地的 JavaScript 变量。然后，你可以使用类似 JSX 的表达式将这些变量注入到组件的 HTML 模板中！
+
+:::note[动态式 vs 响应式]
+使用这种方法，你可以在 frontmatter 中包含计算的 **动态** 值。但一旦被包含，这些值就不会是 **响应式** 的，并且永远不会改变。Astro 组件是一次性运行的模板，仅在渲染步骤中运行一次。
+
+请参阅下面关于 [Astro 和 JSX 之间的差异](#astro-和-jsx-之间的差异) 的更多示例。
+:::
+
+### 变量
+
+局部变量能够通过花括号语法添加到 HTML 中：
+
+```astro title="src/components/Variables.astro" "{name}"
+---
+const name = "Astro";
+---
+<div>
+  <h1>Hello {name}!</h1>  <!-- Outputs <h1>Hello Astro!</h1> -->
+</div>
+```
+
+### 动态属性
+
+局部变量不仅能用在花括号之中，同时也能作为属性值传递到 HTML 元素和组件中：
+
+```astro title="src/components/DynamicAttributes.astro" "{name}" "${name}"
+---
+const name = "Astro";
+---
+<h1 class={name}>Attribute expressions are supported</h1>
+
+<MyComponent templateLiteralNameAttribute={`MyNameIs${name}`} />
+```
+
+:::caution
+HTML 属性将被转换为字符串，因此无法将函数和对象传递给 HTML 元素。
+
+例如，在 Astro 组件中无法为 HTML 元素分配事件处理器：
+
+```astro
+---
+// dont-do-this.astro
+function handleClick () {
+    console.log("button clicked!");
+}
+---
+<!-- ❌ 这行不通！ ❌ -->
+<button onClick={handleClick}>Nothing will happen when you click me!</button>
+```
+
+相反，你可以像在原生 JavaScript 中一样，使用客户端脚本来添加事件处理器：
+
+```astro
+---
+// do-this-instead.astro
+---
+<button id="button">Click Me</button>
+<script>
+  function handleClick () {
+    console.log("button clicked!");
+  }
+  document.getElementById("button").addEventListener("click", handleClick);
+</script>
+```
+:::
+
+### 动态 HTML
+
+Local variables can be used in JSX-like functions to produce dynamically-generated HTML elements:
+
+局部变量能被用在类似 JSX 语法的函数中以动态生成 HTML 元素。
+
+```astro title="src/components/DynamicHtml.astro" "{item}"
+---
+const items = ["Dog", "Cat", "Platypus"];
+---
+<ul>
+  {items.map((item) => (
+    <li>{item}</li>
+  ))}
+</ul>
+```
+
+Astro 可以使用 JSX 逻辑运算符和三元表达式来有条件地显示 HTML。
+
+```astro title="src/components/ConditionalHtml.astro" "visible"
+---
+const visible = true;
+---
+{visible && <p>Show me!</p>}
+
+{visible ? <p>Show me!</p> : <p>Else show me!</p>}
+```
+
+### 动态标签
+
+你还可以通过将变量设置为 HTML 标签名或导入组件来使用动态标签：
+
+```astro title="src/components/DynamicTags.astro" /Element|(?<!My)Component/
+---
+import MyComponent from "./MyComponent.astro";
+const Element = 'div'
+const Component = MyComponent;
+---
+<Element>Hello!</Element> <!-- 将渲染成 <div>Hello!</div> -->
+<Component /> <!-- 将渲染成 <MyComponent /> -->
+```
+
+在使用动态标签时：
+
+- **变量名必须大写。** 例如，使用 `Element` 而不是 `element`。否则，Astro 将尝试将你的变量名作为字面 HTML 标签进行渲染。
+
+-  **不支持水合指令（hydration directives）**。当使用 [`client:*` 水合指令](/zh-cn/core-concepts/framework-components/#激活组件) 时，Astro 需要知道哪些组件要打包到生产环境中，而动态标签模式会阻止此功能的正常工作。
+
+### 片段
+
+Astro 支持使用 `<Fragment> </Fragment>` 或简写形式 `<> </>`。
+
+在添加 [`set:*` 指令](/zh-cn/reference/directives-reference/#sethtml) 时，Fragment 可以避免使用包装元素，如下例所示：
+
+```astro title="src/components/SetHtml.astro" "Fragment"
+---
+const htmlString = '<p>Raw HTML content</p>';
+---
+<Fragment set:html={htmlString} />
+```
+
+### Astro 和 JSX 之间的差异
+
+Astro 组件语法是 HTML 的超集。尽管它被设计成让有 HTML 或 JSX 经验的任何人来说感到熟悉，但是 `.astro` 文件与 JSX 之间有一些关键的区别。
+
+#### 属性
+
+在 Astro 中，你使用标准的 `kebab-case` 格式（短横线命名）来表示所有 HTML 属性，而不是 JSX 中使用的 `camelCase`（小驼峰命名），甚至对于 React 不支持的 `class` 属性也适用这种格式。
+
+```jsx del={1} ins={2} title="example.astro"
+<div className="box" dataValue="3" />
+<div class="box" data-value="3" />
+```
+
+#### 多重元素
+
+在 Astro 组件模板中，可以渲染多个元素，无需将所有内容包裹在单个 `<div>` 或 `<>` 中，这是与 JavaScript 或 JSX 不同的地方。
+
+```astro title="src/components/RootElements.astro"
+---
+// 多重元素模板
+---
+<p>No need to wrap elements in a single containing element.</p>
+<p>Astro supports multiple root elements in a template.</p>
+```
+
+#### 注释
+
+在 Astro 中，你可以使用标准 HTML 注释或 JavaScript 风格注释。
+
+```astro title="example.astro"
+---
+---
+<!-- 在 .astro 文件中 HTML 注释语法是有效的 -->
+{/* JS 注释语法也同样有效 */}
+```
+
+:::caution
+HTML 样式的注释将包含在浏览器的 DOM 中，而 JavaScript 样式的注释将被跳过。如果要留下 TODO 消息或其他仅用于开发的说明，建议使用 JavaScript 样式的注释。
+:::
+
+
