@@ -116,4 +116,5 @@ export default {
 	'expressiveCode.copyButtonCopied': 'Copied!',
 	// Backend Guides vocabulary
 	'backend.navTitle': 'More backend service guides',
+	'stub.title': 'Expand this stub!',
 };
