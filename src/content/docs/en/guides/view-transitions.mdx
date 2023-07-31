@@ -5,6 +5,8 @@ description: >-
 i18nReady: true
 ---
 
+import Since from '~/components/Since.astro'
+
 Support for **opt-in, per-page, view transitions** in Astro projects can be enabled behind an experimental flag. View transitions update your page content without the browser's normal, full-page navigation refresh and provide seamless animations between pages. 
 
 Astro provides a `<ViewTransitions />` routing component that can be added to a single page's `<head>` to control page transitions as you navigate away to another page, an effect traditionally only possible with client-side routing. Add this component to a reusable `.astro` component, such as a common head or layout, for animated page transitions across your entire site (SPA mode).
@@ -219,7 +221,7 @@ If you have code that sets up global state, this state will need to take into ac
 
 Module scripts are only ever executed once because the browser keeps track of which modules are already loaded. For these scripts, you do not need to worry about re-execution.
 
-#### `astro:load`
+### `astro:load`
 
 An event that fires at the end of page navigation, after the new page is visible to the user and blocking styles and scripts are loaded. You can listen to this event on the `document`.
 
@@ -236,7 +238,7 @@ You can use this event to run code on every page navigation, or only once ever:
 </script>
 ```
 
-#### `astro:beforeload`
+### `astro:beforeload`
 
 An event that fires immediately after the new page replaces the old page. You can listen to this event on the `document`.
 
@@ -262,3 +264,35 @@ For example, if you are implementing dark mode support, this event can be used t
 ## `prefers-reduced-motion`
 
 Astro's `<ViewTransitions />` component includes a CSS media query that disables *all* view transition animations, including fallback animation, whenever the [`prefer-reduced-motion`](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion) setting is detected. Instead, the browser will simply swap the DOM elements without an animation.
+
+## Maintaining state
+
+<Since v="2.10.0" />
+
+With a page transition occurs the old page is completely replaced by the old page. When using the `<ViewTransitions />` router you can persist components and HTML elements using the `transition:persist` directive. For example, if you have a `<video>` that the user might be playing, you likely want to persist it.
+
+```astro title="components/Video.astro"
+<video controls="" autoplay="" transition:persist>
+	<source src="https://ia804502.us.archive.org/33/items/GoldenGa1939_3/GoldenGa1939_3_512kb.mp4" type="video/mp4">
+</video>
+```
+
+Now when the user navigates to another page the video will continue playing, both for forwards and backwards navigation.
+
+You can also place the directive on any client component (a component with a `client:` directive). If that component exists on the next page the island from the old page is swapped in.
+
+```astro title="components/Header.astro"
+<Counter client:load transition:persist count={5} />
+```
+
+Astro identifies persistence islands and elements using the same auto-naming algorithm it uses for `transition:animate`. If the island/element is in a different component between the two pages the naming won't match; you can provide a value to `transition:persist` to give it a unique name, like so:
+
+```astro title="pages/index.astro"
+<video controls="" autoplay="" transition:persist="media-player">
+```
+
+If the island/element already has a `transition:name`, that name will be used for persistence as well and does not need to be repeated:
+
+```astro title="pages/index.astro"
+<video controls="" autoplay="" transition:name="media-player" transition:persist>
+```
