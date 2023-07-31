@@ -17,26 +17,28 @@ export const astroDocsExpressiveCode = () =>
 	astroExpressiveCode({
 		theme: new ExpressiveCodeTheme(theme),
 		styleOverrides: {
-			codeBackground: 'var(--theme-code-bg)',
-			borderColor: 'hsl(269deg 22% 25%)',
+			codeBackground: 'var(--astro-code-color-background)',
+			borderColor: 'var(--sl-color-gray-5)',
+			borderWidth: '1px',
+			borderRadius: 'none',
 			scrollbarThumbColor: 'hsl(269deg 20% 90% / 0.25)',
 			scrollbarThumbHoverColor: 'hsl(269deg 20% 90% / 0.5)',
 		},
 		frames: {
 			styleOverrides: {
-				editorTabBarBackground: 'var(--theme-code-tabs)',
-				editorActiveTabBackground: 'hsl(269deg 40% 65% / 0.15)',
-				editorActiveTabBorderBottom: 'hsl(269deg 35% 55%)',
-				editorTabBarBorderBottom: 'var(--theme-code-tabs)',
+				frameBoxShadowCssValue: 'none',
+				editorTabBarBackground: 'var(--sl-color-accent-low)',
+				editorActiveTabForeground: 'var(--sl-color-text)',
+				editorActiveTabBackground: 'var(--astro-code-color-background)',
+				editorActiveTabBorderTop: 'var(--sl-color-accent)',
+				editorTabBarBorderBottom: 'var(--sl-color-gray-5)',
 
-				terminalTitlebarBackground: 'var(--theme-code-tabs)',
+				terminalTitlebarForeground: 'var(--sl-color-text)',
+				terminalTitlebarBackground: 'var(--sl-color-accent-low)',
+				// Expressive Code’s approach doesn’t support CSS variables here yet.
+				terminalTitlebarDotsForeground: '#3D4EF5',
 				terminalTitlebarBorderBottom: 'transparent',
-				terminalBackground: 'var(--theme-code-bg)',
-			},
-		},
-		textMarkers: {
-			styleOverrides: {
-				defaultChroma: '55',
+				terminalBackground: 'var(--astro-code-color-background)',
 			},
 		},
 		getBlockLocale: ({ file }) => {
