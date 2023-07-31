@@ -115,4 +115,5 @@ export default UIDictionary({
 	'expressiveCode.copyButtonCopied': '复制成功！',
 	// Backend Guides vocabulary
 	'backend.navTitle': '更多后端服务指南',
+	'stub.title': '此页面尚未完成！',
 });
