@@ -1,0 +1,150 @@
+---
+title: Kontent.ai & Astro
+description: Add content to your Astro project using Kontent.ai as a CMS
+type: cms
+service: Kontent.ai
+i18nReady: true
+---
+import FileTree from '~/components/FileTree.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+
+
+[Kontent.ai](https://www.kontent.ai/) is the headless CMS that allows you to manage content in a structured and modular way, comes with AI capabilities, and delivers content to any platform you choose.
+
+## Integrating with Astro
+
+In this section, we'll use the [Kontent.ai TypeScript SDK](https://github.com/kontent-ai/delivery-sdk-js) to connect your Kontent.ai project to Astro.
+
+### Prerequisites
+
+To get started, you will need to have the following:
+
+1. **An Astro project** - If you don't have an Astro project yet, our [Installation guide](/en/install/auto/) will get you up and running in no time.
+
+2. **Kontent.ai project** - If you don't have a Kontent.ai account yet, [sign up for free](https://app.kontent.ai/sign-up) and create a new project.
+
+3. **Delivery API keys** - You will need the Environment ID for published content and the Preview API key for fetching drafts (optional). Find them both in **Environment Settings -> API keys** tab in Kontent.ai.
+
+### Setting up credentials
+
+To add your Kontent.ai project credentials to Astro, create a `.env` file in the root of your project with the following variables:
+
+```ini title=".env"
+KONTENT_ENVIRONMENT_ID=YOUR_ENVIRONMENT_ID
+KONTENT_PREVIEW_API_KEY=YOUR_PREVIEW_API_KEY
+```
+
+Now, you can use these environment variables in your project.
+
+### Installing dependencies
+
+To connect Astro with your Kontent.ai project, install the [Kontent.ai TypeScript SDK](https://github.com/kontent-ai/delivery-sdk-js):
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @kontent-ai/delivery-sdk --save
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Next, create a new file called `kontent.ts` in the `src/lib/` directory of your project.
+
+```ts title="src/lib/kontent.ts"
+import { createDeliveryClient } from "@kontent-ai/delivery-sdk";
+
+export const deliveryClient = createDeliveryClient({
+    environmentId: import.meta.env.KONTENT_ENVIRONMENT_ID,
+    previewApiKey: import.meta.env.KONTENT_PREVIEW_API_KEY,
+});
+```
+
+This implementation creates a new DeliveryClient using credentials from the `.env` file.
+
+*Note: The `previewApiKey` is optional. When used, you can configure each query to the Delivery API endpoint to return the latest versions of content items regardless of their state in workflow. Otherwise, only published items are returned.*
+
+Finally, your root directory should now include these new files:
+
+<FileTree title="Project Structure">
+- src/
+  - env.d.ts
+  - lib/
+    - **kontent.ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Fetching data
+
+The `DeliveryClient` is now available to all components. To fetch content, use the `DeliveryClient` and fluent API syntax to define your desired items. This example shows a basic fetch of blog posts and renders their titles in a list:
+
+```astro
+---
+import { deliveryClient } from "../lib/kontent";
+
+const blogPosts = await deliveryClient
+    .items()
+    .type("blogPost")
+    .toPromise()
+---
+<ul>
+  {blogPosts.data.items.map(blogPost => (
+    <li>{blogPost.elements.title.value}</li>
+  ))}
+</ul>
+```
+
+You can find more querying options in the [Kontent.ai documentation](https://kontent.ai/learn/develop/hello-world/get-content/javascript).
+
+## Making a blog with Astro and Contentful
+
+With the setup above, you are now able to create a blog that uses Kontent.ai as the source of content.
+
+### Prerequisites
+
+1. **Kontent.ai project** - For this tutorial, we recommend using a blank project. If you already have some content types in your content model, you may use them, but you will need to modify the code snippets to match your content model.
+2. **Astro project configured for content fetching from Kontent.ai** - see above for more details on how to set up an Astro project with Kontent.ai
+
+### Setting up content model
+
+In Kontent.ai, navigate to **Content model** and create a new content type with the following fields and values:
+
+* **Name:** Blog Post
+* Elements:
+	* Text field
+		* **Name:** Title
+		* **Element Required:** yes
+	* Rich text field
+		* **Name:** Teaser
+		* **Element Required:** yes
+		* **Allowed in this element:** only check Text
+	* Rich text field
+		* **Name:** Content
+		* **Element Required:** yes
+	* Date & time field
+		* **Name:** Date
+	* URL slug field
+		* **Name:** URL slug
+		* **Element Required:** yes
+		* **Auto-generate from:** select "Title"
+
+Then, click on **Save Changes**.
+
+### Creating content
+
+Now, navigate to **Content & assets** tab and create a new content item of type **Blog Post**. Fill the fields using these values:
+
+* **Content item name:** Astro is amazing
+* **Title:** Astro is amazing
+* **Teaser:** Astro is an all-in-one framework for building fast websites faster.
+* **Content:** You can use JavaScript to implement the website functionality, but no client bundle is necessary.
+* **Date & time:** select today
+* **URL slug:** astro-is-amazing
+
+When you're finished, publish the blog post using the **Publish** button at the top.
+
+*Note: Feel free to create as many blog posts as you like before moving to the next step.* 
+
+### Generating content model in TypeScript
