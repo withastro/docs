@@ -1,0 +1,226 @@
+---
+title: Payload CMS 与 Astro
+description: 使用 Payload CMS 作为 CMS 将內容添加到你的 Astro 项目
+type: cms
+stub: true
+service: Payload CMS
+i18nReady: true
+---
+
+[PayloadCMS](https://payloadcms.com/) 是一个开源的 headless CMS（Content Management System，内容管理系统），可以用来为你的 Astro 项目提供内容。
+
+## 与 Astro 集成
+
+### 前置准备
+
+在开始使用之前，你需要：
+
+1. **一个 Astro 项目** - 如果还没有 Astro 项目, 我们的 [安装指南](/zh-cn/install/auto/) 将在短时间内帮助你启动并运行。
+2. **一个 MongoDB 数据库** - 在创建新项目时，PayloadCMS 会要求你提供一个 MongoDB 连接字符串。你可以在本地部署一个，也可以使用 [MongoDBAtlas](https://www.mongodb.com/zh-cn/atlas/database) 在 Web 上免费托管数据库。
+3. **一个 PayloadCMS REST API** - 创建一个 [PayloadCMS](https://payloadcms.com/docs/getting-started/installation) 项目，并在安装过程中将其连接到你的 MongoDB 数据库。
+
+:::note[选择模版]
+在 PayloadCMS 安装过程中，系统会询问你是否要使用模板。
+
+在此步骤中选择任何可用的模板（如 'blog'）都会自动为你生成附加的集合（collections）供你使用。否则，你需要手动创建 PayloadCMS 集合。
+:::
+
+### 为你的 PayloadCMS 集合配置 Astro
+
+你的 Payload 项目模板的 `src/collections/` 路径下将包含一个名为 `Posts.ts` 的文件。如果你在安装过程中没有选择创建内容集合的模板，你可以通过手动添加此配置文件来创建一个新的 Payload CMS 集合。下面的示例展示了一个名为 `posts` 的内容集合，其中包含 `title`、`content` 和 `slug` 字段：
+
+
+```astro title="src/collections/Posts.ts"
+import { CollectionConfig } from "payload/types";
+
+const Posts: CollectionConfig = {
+  slug: "posts",
+  admin: {
+    useAsTitle: "title",
+  },
+  access: {
+    read: () => true,
+  },
+
+  fields: [
+    {
+      name: "title",
+      type: "text",
+      required: true,
+    },
+    {
+      name: "content",
+      type: "text",
+      required: true,
+    },
+    {
+      name: "slug",
+      type: "text",
+      required: true,
+    },
+  ],
+};
+
+export default Posts;
+```
+
+1. 将 `Users`（所有 PayloadCMS 项目中都可用）和任何其他集合（例如 `Posts`）导入并添加到 `payload.config.ts` 文件中的可用集合（collections）中。
+
+```astro title="src/payload.config.ts" ins={4, 5, 12}
+import { buildConfig } from "payload/config";
+import path from "path";
+
+import Users from "./collections/Users";
+import Posts from "./collections/Posts";
+
+export default buildConfig({
+  serverURL: "http://localhost:3000",
+  admin: {
+    user: Users.slug,
+  },
+  collections: [Users, Posts],
+  typescript: {
+    outputFile: path.resolve(__dirname, "payload-types.ts"),
+  },
+  graphQL: {
+    schemaOutputFile: path.resolve(__dirname, "generated-schema.graphql"),
+  },
+});
+```
+
+这将使一个名为 “Posts” 的新集合出现在你的 PayloadCMS 仪表板中 “Users” 集合的旁边。
+
+
+2. 进入 “Posts” 集合并创建一篇新文章。在保存后，你会注意到 API URL 出现在右下角。
+
+3. 在本地 PayloadCMS 服务运行的情况下，在浏览器中打开 `http://localhost:3000/api/posts` 。你应该看到一个包含你创建的文章作为对象的 JSON 文件。
+
+```json
+{
+   "docs":[
+      {
+         "id":"64098b16483b0f06a7e20ed4",
+         "title":"Astro & PayloadCMS Title 🚀",
+         "content":"Astro & PayloadCMS Content",
+         "slug":"astro-payloadcms-slug",
+         "createdAt":"2023-03-09T07:30:30.837Z",
+         "updatedAt":"2023-03-09T07:30:30.837Z"
+      }
+   ],
+   "totalDocs":1,
+   "limit":10,
+   "totalPages":1,
+   "page":1,
+   "pagingCounter":1,
+   "hasPrevPage":false,
+   "hasNextPage":false,
+   "prevPage":null,
+   "nextPage":null
+}
+```
+
+:::tip[提示]
+默认情况下，Astro 和 PayloadCMS 都会使用 3000 端口。你可能想要在 `src/server.ts` 文件中更改 PayloadCMS 的端口，别忘了也同时更新 `src/payload.config.ts` 中的 `serverURL` 。
+:::
+
+### 获取数据
+
+通过你网站的唯一 REST API URL 和内容的路由来获取你的 PayloadCMS 数据。（默认情况下，PayloadCMS 将通过 `/api` 挂载所有路由。）然后，你可以使用 Astro 的 `set:html=""` 指令来渲染你的数据属性。
+
+与你的帖子一起，PayloadCMS 将返回一些顶级元数据。实际的文章数据嵌套在 `docs` 数组中。
+
+例如，显示文章标题和内容列表：
+
+```astro title="src/pages/index.astro"
+---
+import HomeLayout from "../layouts/HomeLayout.astro";
+
+const res = await fetch("https://localhost:5000/api/posts") // https://localhost:3000/api/posts 默认端口
+const posts = await res.json()
+---
+
+<HomeLayout title='Astro Blog'>
+	{
+    posts.docs.map((post) => (
+        <h2 set:html={post.title} />
+        <p set:html={post.content} />
+    ))
+	}
+</HomeLayout>
+```
+
+## 使用 PayloadCMS 和 Astro 创建博客
+
+创建一个博客索引页面 `src/pages/index.astro`，列出每篇文章并链接到其单独的页面。
+
+通过 API 获取的返回结果是一个对象（posts）的数组，其中包括以下属性：
+
+- `title` - 文章的标题
+- `content` - 文章的内容
+- `slug` - 文章的slug
+
+```astro title="src/pages/index.astro"
+---
+import HomeLayout from "../layouts/HomeLayout.astro";
+
+const res = await fetch("http://localhost:5000/api/posts") // https://localhost:3000/api/posts 默认端口
+const posts = await res.json()
+---
+
+<HomeLayout title='Astro Blog'>
+	<h1>Astro + PayloadCMS 🚀</h1>
+	<h2>博客文章列表：</h2>
+	<ul>
+		{
+			posts.docs.map((post) =>(
+				<li>
+					<a href={`posts/${post.slug}`} set:html={post.title} />
+				</li>
+			))
+		}
+	</ul>
+</HomeLayout>
+```
+
+### 使用 PayloadCMS API 生成页面
+
+创建一个页面 `src/pages/post/[slug].astro` 为每一篇文章[动态生成一个页面](/zh-cn/core-concepts/routing/#动态路由)。
+
+```astro title="src/pages/posts/[slug].astro"
+---
+import PostLayout from "../../layouts/PostLayout.astro"
+
+const {title, content} = Astro.props
+
+// 对于静态 Astro 站点，需要 getStaticPaths()。
+// 如果使用 SSR，你将不需要此函数。
+export async function getStaticPaths() {
+    let data = await fetch("http://localhost:5000/api/posts")
+    let posts = await data.json()
+
+    return posts.docs.map((post) => {
+        return {
+            params: {slug: post.slug},
+            props: {title: post.title, content: post.content},
+        };
+    });
+} 
+---
+<PostLayout title={title}>
+    <article>
+        <h1 set:html={title} />
+        <p set:html={content} />
+    </article>
+</PostLayout>
+```
+
+### 发布你的网站
+
+要部署你的网站，请访问我们的[部署指南](/zh-cn/guides/deploy/)，并按照你更喜欢的托管服务提供商的部署说明进行操作。
+
+
+## 社区资源
+
+- 尝试这个 [Payload CMS & Astro 模版](https://github.com/Lambdo-Labs/payloadcms-astro-template)。
+- 查看 [Astroad](https://github.com/mooxl/astroad) ，使用 Docker 进行 Payload CMS & Astro 开发和 VPS 部署。
+
