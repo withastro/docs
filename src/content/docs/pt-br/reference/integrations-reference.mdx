@@ -2,6 +2,7 @@
 title: API de Integrações Astro
 i18nReady: true
 ---
+import Since from '~/components/Since.astro'
 
 **Integrações Astro** adicionam novas funcionalidades e comportamentos ao seu projeto com apenas algumas linhas de código.
 
@@ -24,8 +25,11 @@ interface AstroIntegration {
         'astro:config:setup'?: (options: {
             config: AstroConfig;
             command: 'dev' | 'build';
+            isRestart: boolean;
             updateConfig: (newConfig: Record<string, any>) => void;
             addRenderer: (renderer: AstroRenderer) => void;
+            addWatchFile: (path: URL | string) => void;
+            addClientDirective: (directive: ClientDirectiveConfig) => void;
             injectScript: (stage: InjectedScriptStage, content: string) => void;
             injectRoute: ({ pattern: string, entryPoint: string }) => void;
         }) => void;
@@ -33,14 +37,14 @@ interface AstroIntegration {
         'astro:server:setup'?: (options: { server: vite.ViteDevServer }) => void | Promise<void>;
         'astro:server:start'?: (options: { address: AddressInfo }) => void | Promise<void>;
         'astro:server:done'?: () => void | Promise<void>;
-        'astro:build:start'?: (options: { buildConfig: BuildConfig }) => void | Promise<void>;
+        'astro:build:start'?: () => void | Promise<void>;
         'astro:build:setup'?: (options: {
           vite: ViteConfigWithSSR;
           pages: Map<string, PageBuildData>;
           target: 'client' | 'server';
         }) => void | Promise<void>;
         'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
-        'astro:build:ssr'?: (options: { manifest: SerializedSSRManifest }) => void | Promise<void>;
+        'astro:build:ssr'?: (options: { manifest: SerializedSSRManifestm, entryPoints: Map<RouteData, URL> }) => void | Promise<void>;
         'astro:build:done'?: (options: { dir: URL; routes: RouteData[] }) => void | Promise<void>;
     };
 }
@@ -63,6 +67,7 @@ interface AstroIntegration {
     isRestart: boolean;
     updateConfig: (newConfig: Record<string, any>) => void;
     addRenderer: (renderer: AstroRenderer) => void;
+    addClientDirective: (directive: ClientDirectiveConfig) => void;
     addWatchFile: (path: URL | string) => void;
     injectScript: (stage: InjectedScriptStage, content: string) => void;
     injectRoute: ({ pattern: string, entryPoint: string }) => void;
@@ -121,7 +126,7 @@ export default {
 Uma função de callback para adicionar um renderizador de um framework de componentes (ex. React, Vue, Svelte, etc). Você pode explorar os exemplos e definições de tipagem acima para opções mais avançadas, mas aqui estão as duas principais opções que você precisa estar ciente sobre:
 
 - `clientEntrypoint` - caminho para um arquivo que é executado no cliente sempre que seu componente é utilizado. Esta é principalmente utilizado para renderizar ou hidratar seu componente com JS.
-- `serverEntrypoint` - caminho para um arquivo que é executado durante requisições no lado do servidor ou builds estáticas sempre que seu componente é utilizado. Esta deve renderizar componentes para uma marcação estática, com hooks para hidratação aonde aplicável. [o callback `renderToString` do React](https://pt-br.reactjs.org/docs/react-dom-server.html#rendertostring) é um exemplo clássico.
+- `serverEntrypoint` - caminho para um arquivo que é executado durante requisições no lado do servidor ou builds estáticas sempre que seu componente é utilizado. Esta deve renderizar componentes para uma marcação estática, com hooks para hidratação aonde aplicável. [o callback `renderToString` do React](https://pt-br.react.dev/reference/react-dom/server/renderToString) é um exemplo clássico.
 
 #### Opção `addWatchFile`
 
@@ -137,6 +142,48 @@ addWatchFile('/home/usuario/.../minha-configuracao.json');
 addWatchFile(new URL('./tailwind.config.js', config.root));
 ```
 
+#### Opção `addClientDirective`
+
+<Since v="2.6.0" />
+
+**Tipo:** `(directive:` [`ClientDirectiveConfig`](https://github.com/withastro/astro/blob/00327c213f74627ac9ca1dec774efa5bf71e9375/packages/astro/src/%40types/astro.ts#L1872-L1875) `) => void;`
+
+Adiciona uma [diretiva de cliente customizada](/pt-br/reference/directives-reference/#diretivas-de-cliente-customizadas) para ser usada em arquivos `.astro`.
+
+Note que entrypoints de diretivas são agrupados somente através do esbuild e devem ser mantidos pequenos para que não deixem a hidratação de componentes mais lenta.
+
+Exemplo de uso:
+
+```js
+// Crie uma diretiva `client:clique`
+addClientDirective({
+  name: 'clique',
+  entrypoint: 'astro-clique-directive/clique.js' 
+})
+```
+
+```js title="astro-diretiva-clique/clique.js"
+/**
+ * Hidrata no primeiro clique da janela
+ * @type {import('astro').ClientDirective}
+ */
+export default (load, opts, el) => {
+  window.addEventListener('click', async () => {
+    const hidrate = await load()
+    await hidrate()
+  }, { once: true })
+}
+```
+
+Você também pode adicionar tipos para as diretivas no seu arquivo de definição de tipos da sua biblioteca:
+
+```ts title="astro-diretiva-clique/index.d.ts"
+declare module 'astro' {
+  interface AstroClientDirectives {
+    'client:clique'?: boolean
+  }
+}
+```
 
 #### Opção `injectRoute`
 
@@ -149,12 +196,24 @@ Uma função de callback para injetar rotas em um projeto Astro. Rotas injetadas
 - `pattern` - aonde a rota deve ser inserida no navegador, por exemplo `/foo/bar`. Um `pattern` pode utilizar a sintaxe de caminho de arquivos do Astro para indicar rotas dinâmicas, por exemplo `/foo/[bar]` ou `/foo/[...bar]`. Note que uma extensão de arquivo **não** é necessária no `pattern`.
 - `entryPoint` - apenas um especificador de módulo apontando para a página `.astro` ou handler de rota `.js`/`.ts` que manipula a rota indicada no `pattern`.
 
-Exemplo de uso:
+##### Exemplo de uso
 
 ```js
 injectRoute({
-  pattern: '/foo/[dinamico]',
-  entryPoint: 'foo/pagina-dinamica.astro'
+  // Usa o padrão de sintaxe do Astro para rotas dinâmicas.
+  pattern: '/subpasta/[dinamico]',
+  // Usa a sintaxe de caminho relativo para uma rota local.
+  entryPoint: './src/pagina-dinamica.astro'
+});
+```
+
+Para uma integração projetada para ser instalada em outros projetos, utilize o nome do seu pacote para referenciar o entrypoint da rota.
+O seguinte exemplo mostra um pacote publicado para o npm como `@chique/painel` injetando uma rota de painel:
+
+```js
+injectRoute({
+  pattern: '/painel-chique',
+  entryPoint: '@chique/painel/painel.astro'
 });
 ```
 
@@ -180,7 +239,7 @@ O **`stage`** indica como este script (o `content`) deve ser inserido. Alguns st
 
 **Hook anterior:** [`astro:config:setup`](#astroconfigsetup)
 
-**Próximo hook:** [`astro:server:setup`](#astroserversetup) quando estiver sendo executado no modo "dev" ou "preview", ou [astro:build:start](#astrobuildstart) durante builds em produção
+**Próximo hook:** [`astro:server:setup`](#astroserversetup) quando estiver sendo executado no modo "dev", ou [astro:build:start](#astrobuildstart) durante builds em produção
 
 **Quando:** Após a configuração do Astro ter sido resolvida e outras integrações tiverem executado seus hooks `astro:config:setup`.
 
@@ -202,7 +261,7 @@ Uma cópia de somente leitura da [configuração Astro](/pt-br/reference/configu
 
 **Próximo hook:** [`astro:server:start`](#astroserverstart)
 
-**Quando:** Logo após o servidor do Vite ser criado no modo "dev" ou "preview", porém antes do evento `listen()` ser disparado. [Veja a API createServer do Vite](https://vitejs.dev/guide/api-javascript.html#createserver) para saber mais.
+**Quando:** Logo após o servidor do Vite ser criado no modo "dev", porém antes do evento `listen()` ser disparado. [Veja a API createServer do Vite](https://vitejs.dev/guide/api-javascript.html#createserver) para saber mais.
 
 **Por que:** Para atualizar as configurações do servidor Vite e middleware.
 
@@ -214,7 +273,7 @@ Uma cópia de somente leitura da [configuração Astro](/pt-br/reference/configu
 
 **Tipo:** [`ViteDevServer`](https://vitejs.dev/guide/api-javascript.html#vitedevserver)
 
-Uma instância mutável do servidor Vite usado no modo "dev" ou "preview". Por exemplo, esta é [utilizada pela nossa integração Partytown](/pt-br/guides/integrations-guide/partytown/) para injetar o servidor Partytown como um middleware:
+Uma instância mutável do servidor Vite usado no modo "dev". Por exemplo, esta é [utilizada pela nossa integração Partytown](/pt-br/guides/integrations-guide/partytown/) para injetar o servidor Partytown como um middleware:
 
 ```js
 export default {
@@ -274,7 +333,7 @@ O endereço, família e número de porta suprido pelo [módulo Net do NodeJS](ht
 **Por que:** Para definir quaisquer objetos globais ou clientes necessários durante a build para produção. Esta também pode estender as opções de configuração de build na [API de adaptadores](/pt-br/reference/adapter-reference/).
 
 ```js
-'astro:build:start'?: (options: { buildConfig: BuildConfig }) => void | Promise<void>;
+'astro:build:start'?: () => void | Promise<void>;
 ```
 
 ### `astro:build:setup`
@@ -314,10 +373,16 @@ O endereço, família e número de porta suprido pelo [módulo Net do NodeJS](ht
 
 **Quando:** Após uma build SSR para produção tiver sido completada.
 
-**Por que:** Para conseguir acesso ao manifesto de SSR, isso é útil quando se for criar builds SSR customizadas em plugins ou integrações.
+**Por que:** Para conseguir acesso ao manifesto de SSR e mapa dos pontos de entrada emitidos. Isso é útil quando se for criar builds SSR customizadas em plugins ou integrações.
+- `entryPoints` mapeia uma rota de página para o arquivo físico emitido após a build.
+- `middlewareEntryPoint` é o caminho de arquivo no sistema do arquivo do middleware;
 
 ```js
-'astro:build:ssr'?: (options: { manifest: SerializedSSRManifest }) => void | Promise<void>;
+'astro:build:ssr'?: (options: {
+    manifest: SerializedSSRManifest,
+    entryPoints: Map<RouteData, URL>,
+    middlewareEntryPoint: URL
+}) => void | Promise<void>;
 ```
 
 ### `astro:build:done`
@@ -329,7 +394,7 @@ O endereço, família e número de porta suprido pelo [módulo Net do NodeJS](ht
 **Por que:** Para acessar rotas geradas e assets para extensão (ex. copiar conteúdo do diretório gerado `/assets`). Se você planeja transformar assets gerados, nós recomendados explorar a [API de Plugins Vite](https://vitejs.dev/guide/api-plugin.html) e [configurá-la via `astro:config:setup`](#opção-updateconfig) no lugar.
 
 ```js
-'astro:build:done'?: (options: { dir: URL; routes: RouteData[] }) => void | Promise<void>;
+'astro:build:done'?: (options: { dir: URL; routes: RouteData[], pages: { pathname: string }[] }) => void | Promise<void>;
 ```
 
 #### Opção `dir`
@@ -341,6 +406,7 @@ Um caminho de URL para o diretório final da build. Note que se você precisa de
 ```js
 import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+
 export default function minhaIntegracao() {
   return {
     hooks: {
@@ -359,7 +425,7 @@ export default function minhaIntegracao() {
 
 **Tipo:** [`RouteData[]`](#referência-do-tipo-routedata)
 
-Uma lista de todas as rotas geradas junto de seus metadados associados. **Isso estará vazio quando estiver utilizando um adaptador de SSR!**
+Uma lista de todas as rotas geradas junto de seus metadados associados.
 
 Você pode ver a referência completa do tipo `RouteData` abaixo, mas as propriedades mais comuns são:
 
@@ -404,6 +470,14 @@ interface RouteData {
 }
 ```
 
+#### Opção `pages`
+
+**Tipo:** `{ pathname: string }[]`
+
+Uma lista de todas as páginas geradas. É um objeto com uma propriedade.
+
+- `pathname` - o caminho finalizado da página.
+
 ## Permitindo instalação via `astro add`
 
 [O comando `astro add`](/pt-br/reference/cli-reference/#astro-add) permite que usuários facilmente adicionem integrações e adaptadores em seus projetos. Se você quiser que _sua_ integração seja instalável com essa ferramenta, **adicione `astro-integration` no campo `keywords` do seu `package.json`**:
@@ -421,6 +495,7 @@ Assim que você [publicar sua integração no npm](https://docs.npmjs.com/cli/v8
 // astro.config.mjs
 import { defineConfig } from 'astro/config';
 + import exemplo from 'exemplo';
+
 export default defineConfig({
 +  integrations: [exemplo()],
 })
