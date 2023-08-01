@@ -200,6 +200,62 @@ import { ViewTransitions } from 'astro:transitions';
 La animación `morph` no puede ser simulada en CSS tradicional. Por lo tanto, cualquier elemento que utilice esta animación no será animado.
 :::
 
+## Comportamiento del script durante la navegación de la página
+
+Cuando navegas entre páginas con el componente `<ViewTransitions />`, los scripts se ejecutan en orden secuencial para coincidir con el comportamiento del navegador. 
+
+Si tienes código que configura el estado global, este estado deberá tener en cuenta que el script puede ejecutarse más de una vez. Comprueba el estado global en tu etiqueta `<script>`, y ejecuta condicionalmente tu código cuando sea posible:
+
+```astro
+<script is:inline>
+  if(!window.SomeGlobal) {
+    window.SomeGlobal = {} // ....
+  }
+</script>
+```
+
+Los scripts de módulo solo se ejecutan una vez porque el navegador realiza un seguimiento de qué módulos ya están cargados. Para estos scripts, no necesitas preocuparte por la reejecución.
+
+#### `astro:load`
+
+Un evento que se dispara al final de la navegación de la página, después de que la nueva página sea visible para el usuario y se carguen los estilos y scripts de bloqueo. Puedes escuchar este evento en el `document`.
+
+El componente `<ViewTransitions />` dispara este evento tanto en la navegación inicial de la página (MPA) como en cualquier navegación posterior, ya sea hacia adelante o hacia atrás.
+
+Puedes usar este evento para ejecutar código en cada navegación de página, o solo una vez:
+
+```astro "{ once: true }"
+<script>
+  document.addEventListener('astro:load', () => {
+    // Solo se ejecuta una vez.
+    setupStuff();
+  }, { once: true });
+</script>
+```
+
+#### `astro:beforeload`
+
+Un evento que se dispara inmediatamente después de que la nueva página reemplace la página antigua. Puedes escuchar este evento en el `document`.
+
+Este evento es útil para restaurar cualquier estado en el DOM que necesite transferirse a la nueva página.
+
+Por ejemplo, si estás implementando el soporte de modo oscuro, este evento se puede usar para restaurar el estado en las cargas de página:
+
+```astro
+<script>
+	const setDarkMode = () => {
+		if (localStorage.darkMode) {
+			document.documentElement.dataset.dark = '';
+		}
+	};
+
+  // Se ejecuta en la navegación inicial
+	setDarkMode();
+  // Se ejecuta en la navegación de transiciones de vista
+	document.addEventListener('astro:beforeload', setDarkMode);
+</script>
+```
+
 ## `prefers-reduced-motion`
 
 El componente `<ViewTransitions />` de Astro incluye una media query de CSS que deshabilita *todas* las animaciones de transición de vista, incluida la animación de respaldo, siempre que se detecte la configuración [`prefer-reduced-motion`](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion). En su lugar, el navegador simplemente intercambiará los elementos DOM sin una animación. 
