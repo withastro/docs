@@ -117,7 +117,7 @@ import ReactDOM from 'react-dom';
 
 Astro te permite importar paquetes npm directamente en el navegador. Incluso si un paquete se publicó utilizando un formato heredado, Astro convertirá el paquete a ESM antes de servirlo en el navegador.
 
-Cuando inicies tu servidor de desarrollo o ejecutes una nueva compilación, es posible que veas un mensaje de que Snowpack está "instalando dependencias". Esto significa que Snowpack está convirtiendo sus dependencias para que se ejecuten en el navegador. Esto debe ejecutarse solo una vez, o hasta que cambies tu árbol de dependencias agregando o quitando dependencias.
+Cuando inicies tu servidor de desarrollo o ejecutes una nueva compilación, es posible que vea un mensaje de que Snowpack está "instalando dependencias". Esto significa que Snowpack está convirtiendo sus dependencias para que se ejecuten en el navegador. Esto debe ejecutarse solo una vez, o hasta que cambie su árbol de dependencias agregando o quitando dependencias.
 
 ## Incluidos en Node
 
