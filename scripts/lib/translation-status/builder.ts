@@ -97,6 +97,9 @@ export class TranslationStatusBuilder {
 		// Determine translation status by source page
 		const statusByPage = this.getTranslationStatusByPage(pages);
 
+    // Append translation status by UI source page
+    statusByPage.unshift(...await this.getUITranslationsIndex())
+
 		// Fetch all pull requests
 		const pullRequests = await this.getPullRequests();
 
@@ -111,6 +114,58 @@ export class TranslationStatusBuilder {
 		output.debug('*** Success!');
 		output.debug('');
 	}
+
+  /**
+   * Get status of UI translations
+   */
+  async getUITranslationsIndex(): Promise<PageTranslationStatus[]> {
+    const getPageUrl = ({ lang, page, type = 'blob', refName = 'main', query = '' }: { lang: string, page: string, query?: string, type?: string, refName?: string }) => {
+      return (
+        `https://github.com/${this.githubRepo}/${type}/${refName}` +
+        `/src/i18n/${lang}/${page}.ts${query}`
+      );
+    };
+
+    return Promise.all(['docsearch', 'nav', 'ui'].map(async (page): Promise<PageTranslationStatus> => {
+      const subpath = `src/i18n/en/${page}.ts`
+      const en = await this.getGitHistory(subpath)
+      const translations: PageTranslationStatus['translations'] = {}
+
+      for (const lang of this.targetLanguages) {
+        const subpath = `src/i18n/${lang}/${page}.ts`
+        const data = await this.getGitHistory(subpath)
+        translations[lang] = {
+          githubUrl: getPageUrl({ lang, page }),
+          isMissing: !data,
+          isOutdated: data && data.lastCommitDate < en.lastCommitDate,
+          page: {
+            lastChange: data.lastCommitDate,
+            lastCommitMsg: data.lastCommitMessage,
+            lastMajorChange: data.lastMajorCommitDate,
+            lastMajorCommitMsg: data.lastMajorCommitMessage
+          },
+          sourceHistoryUrl: getPageUrl({
+						lang: 'en',
+						page,
+						type: 'commits',
+						query: data ? `?since=${data.lastMajorCommitDate}` : '',
+					}),
+        }
+      }
+
+      return {
+        githubUrl: getPageUrl({ lang: 'en', page }),
+        subpath: `${page}.ts`,
+        sourcePage: {
+          lastChange: en.lastCommitDate,
+          lastCommitMsg: en.lastCommitMessage,
+          lastMajorChange: en.lastMajorCommitDate,
+          lastMajorCommitMsg: en.lastMajorCommitMessage
+        },
+        translations
+      }
+    }))
+  }
 
 	/** Get all pull requests with the `i18n` tag */
 	async getPullRequests() {
