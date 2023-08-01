@@ -148,3 +148,338 @@ When you're finished, publish the blog post using the **Publish** button at the 
 *Note: Feel free to create as many blog posts as you like before moving to the next step.* 
 
 ### Generating content model in TypeScript
+
+Next, we'll generate TypeScript types out of your content model.
+
+*Note: This step is optional but provides a much better developer experience and allows you to discover potential problems at build time rather than at runtime.*
+
+First, install the [Kontent.ai JS model generator](https://github.com/kontent-ai/model-generator-js), [ts-node](https://github.com/TypeStrong/ts-node), and [dotenv](https://github.com/motdotla/dotenv):
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @kontent-ai/model-generator ts-node dotenv --save
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Then, add the following script to package.json:
+
+```json title="package.json"
+{
+    ...
+    "scripts": {
+        ...
+        "regenerate:models": "ts-node --esm ./generate-models.ts"
+    },
+}
+```
+
+Because the types require structural information about your project that is not available in the public API, you also need to add a Content Management API key to the `.env` file. You can generate the key under **Environment settings -> API keys -> Management API**.
+
+```ini title=".env" ins={3}
+KONTENT_ENVIRONMENT_ID=YOUR_ENVIRONMENT_ID
+KONTENT_PREVIEW_API_KEY=YOUR_PREVIEW_API_KEY
+KONTENT_MANAGEMENT_API_KEY=YOUR_MANAGEMENT_API_KEY
+```
+
+And finally, add the script generate-models.ts that configures the model generator to generate the models:
+
+```ts title="generate-models.ts"
+import { generateModelsAsync, textHelper } from '@kontent-ai/model-generator'
+import { rmSync, mkdirSync } from 'fs'
+
+import * as dotenv from 'dotenv'
+dotenv.config()
+
+const runAsync = async () => {
+	rmSync('./src/models', { force: true, recursive: true })
+	mkdirSync('./src/models')
+
+	// change working directory to models
+	process.chdir('./src/models')
+
+	await generateModelsAsync({
+		sdkType: 'delivery',
+		apiKey: process.env.KONTENT_MANAGEMENT_API_KEY ?? '',
+		environmentId: process.env.KONTENT_ENVIRONMENT_ID ?? '',
+		addTimestamp: false,
+		isEnterpriseSubscription: false,
+	})
+}
+
+// Self-invocation async function
+;(async () => {
+	await runAsync()
+})().catch(err => {
+	console.error(err)
+	throw err
+})
+```
+
+And execute it:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm run regenerate:models
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Displaying a list of blog posts
+
+Now we're ready to fetch some content. Go to the Astro page where you want to display a list of all blog posts, for example, the homepage `index.astro` in `src/pages`.
+
+Fetch all blog posts in the first section of the Astro page:
+
+```astro title="src/pages/index.astro"
+---
+import { deliveryClient } from '../lib/kontent';
+import type { BlogPost } from '../models';
+import { contentTypes } from '../models/project/contentTypes';
+
+const blogPosts = await deliveryClient
+    .items<BlogPost>
+    .type(contentTypes.blog_post.codename)
+    .toPromise()
+---
+```
+
+If you skipped the model generation, you can also use an untyped object and string literal to define the type:
+
+```ts
+const blogPosts = await deliveryClient
+    .items()
+    .type("blogPost")
+    .toPromise()
+```
+
+The fetch call will return a `response` object which contains a list of all blog posts in `data.items`. In the HTML section of the Astro page, you can use the `map()` function to list the blog posts:
+
+```astro title="src/pages/index.astro" ins={6-9,11-29}
+---
+import { deliveryClient } from '../lib/kontent';
+import type { BlogPost } from '../models';
+import { contentTypes } from '../models/project/contentTypes';
+
+const blogPosts = await deliveryClient
+    .items<BlogPost>
+    .type(contentTypes.blogPost.codename)
+    .toPromise()
+---
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Astro</title>
+    </head>
+    <body>
+        <h1>Blog posts</h1>
+        <ul>
+            {blogPosts.data.items.map(blogPost => (
+                <li>
+                    <a href={`/blog/${blogPost.elements.url_slug.value}/`} title={blogPost.elements.title.value}>
+                        {blogPost.elements.title.value}
+                    </a>
+                </li>
+            ))}
+        </ul>
+    </body>
+</html>
+```
+
+### Generating individual blog posts
+
+The last step of the tutorial is to generate detailed blog post pages.
+
+#### Static site generation
+
+In this section, we'll use the [Static (SSG) Mode](https://docs.astro.build/en/core-concepts/routing/#static-ssg-mode) with Astro.
+
+First, let's create a file `[slug].astro` in `/src/pages/blog/` which needs to export a function `getStaticPaths` that collects all data from the CMS:
+
+```astro title="src/pages/blog/[slug].astro"
+---
+import { deliveryClient } from '../../lib/kontent';
+import type { BlogPost } from '../../models';
+import { contentTypes } from '../../models/project/contentTypes';
+
+export async function getStaticPaths() {
+    const blogPosts = await deliveryClient
+        .items<BlogPost>()
+        .type(contentTypes.blog_post.codename)
+        .toPromise()
+---
+```
+
+So far, the function fetches all blog posts from Kontent.ai. The code snippet is exactly the same as what we used on the home page.
+
+Next, the function must export paths and data for each blog post. We named the file `[slug].astro`, so the param which represents the URL slug is called `slug`:
+
+```astro title="src/pages/blog/[slug].astro" ins={12-15}
+---
+import { deliveryClient } from '../../lib/kontent';
+import type { BlogPost } from '../../models';
+import { contentTypes } from '../../models/project/contentTypes';
+
+export async function getStaticPaths() {
+    const blogPosts = await deliveryClient
+        .items<BlogPost>()
+        .type(contentTypes.blog_post.codename)
+        .toPromise()
+
+    return blogPosts.data.items.map(blogPost => ({
+        params: { slug: blogPost.elements.url_slug.value },
+        props: { blogPost }
+    }))
+}
+---
+```
+
+The last part is to provide the HTML template and display each blog post:
+
+```astro title="src/pages/blog/[slug].astro" ins={18-33}
+---
+import { deliveryClient } from '../../lib/kontent';
+import type { BlogPost } from '../../models';
+import { contentTypes } from '../../models/project/contentTypes';
+
+export async function getStaticPaths() {
+    const blogPosts = await deliveryClient
+        .items<BlogPost>()
+        .type(contentTypes.blog_post.codename)
+        .toPromise()
+
+    return blogPosts.data.items.map(blogPost => ({
+        params: { slug: blogPost.elements.url_slug.value },
+        props: { blogPost }
+    }))
+}
+
+const blogPost: BlogPost = Astro.props.blogPost
+---
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>{blogPost.elements.title.value}</title>
+    </head>
+    <body>
+        <article>
+            <h1>{blogPost.elements.title.value}</h1>
+            <Fragment set:html={blogPost.elements.teaser.value} />
+            <Fragment set:html={blogPost.elements.content.value} />
+            <time>{new Date(blogPost.elements.date.value ?? "")}</time>
+    </body>
+</html>
+```
+
+Navigate to [http://localhost:3000/blog/astro-is-amazing](http://localhost:3000/blog/astro-is-amazing) to see the rendered blog post.
+
+#### Server-side rendering
+
+If you've opted into SSR mode, you will use dynamic routes to fetch the page data from Kontent.ai.
+
+Create a new file `[slug].astro` in `/src/pages/blog/` and add the following code. The data fetching is very similar to previous use cases but adds an `equalsFilter` that lets us find the right blog post based on the used URL:
+
+```astro title="src/pages/blog/[slug].astro"
+---
+import { deliveryClient } from '../../lib/kontent';
+import type { BlogPost } from '../../models';
+import { contentTypes } from '../../models/project/contentTypes';
+
+const { slug } = Astro.params
+let blogPost: BlogPost;
+try {
+    const data = await deliveryClient
+        .items<BlogPost>()
+        .equalsFilter(contentTypes.blog_post.elements.url_slug.codename, slug ?? '')
+        .type(contentTypes.blog_post.codename)
+        .limitParameter(1)
+        .toPromise()
+    blogPost = data.data.items[0]
+} catch (error) {
+    return Astro.redirect('/404')
+}
+---
+```
+
+*Note: If you're not using generated types, you can use string literals to define the content item type and the filtered element codename:*
+
+```ts
+const data = await deliveryClient
+        .items()
+        .equalsFilter("url_slug", slug ?? '')
+        .type("blog_post")
+        .limitParameter(1)
+        .toPromise()
+```
+
+Lastly, we'll add the HTML code to render the blog post. This part is the same as with the static generation:
+
+```astro title="src/pages/blog/[slug].astro" ins={21-33}
+---
+import { deliveryClient } from '../../lib/kontent';
+import type { BlogPost } from '../../models';
+import { contentTypes } from '../../models/project/contentTypes';
+
+const { slug } = Astro.params
+let blogPost: BlogPost;
+try {
+    const data = await deliveryClient
+        .items<BlogPost>()
+        .equalsFilter(contentTypes.blog_post.elements.url_slug.codename, slug ?? '')
+        .type(contentTypes.blog_post.codename)
+        .limitParameter(1)
+        .toPromise()
+    blogPost = data.data.items[0]
+} catch (error) {
+    return Astro.redirect('/404')
+}
+---
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>{blogPost.elements.title.value}</title>
+    </head>
+    <body>
+        <article>
+            <h1>{blogPost.elements.title.value}</h1>
+            <Fragment set:html={blogPost.elements.teaser.value} />
+            <Fragment set:html={blogPost.elements.content.value} />
+            <time>{new Date(blogPost.elements.date.value ?? '')}</time>
+    </body>
+</html>
+```
+
+### Publishing your site
+
+To deploy your website, visit our [deployment guides](https://docs.astro.build/en/guides/deploy/) and follow the instructions for your preferred hosting provider.
+
+#### Rebuild on Kontent.ai changes
+
+If your project is using Astro's default static mode, you will need to set up a webhook to trigger a new build when your content changes. If you are using Netlify or Vercel as your hosting provider, you can use its webhook feature to trigger a new build from Kontent.ai events.
+
+##### Netlify
+
+To set up a webhook in Netlify:
+
+1. Go to your site dashboard and click on **Build & deploy**.
+2. Under the **Continuous Deployment** tab, find the **Build hooks** section and click on **Add build hook**.
+3. Provide a name for your webhook and select the branch you want to trigger the build on. Click on **Save** and copy the generated URL.
+
+##### Vercel
+
+To set up a webhook in Vercel:
+
+1. Go to your project dashboard and click on **Settings**.
+2. Under the **Git** tab, find the **Deploy Hooks** section.
+3. Provide a name for your webhook and the branch you want to trigger the build on. Click **Add** and copy the generated URL.
+
+Adding a webhook to Kontent.ai
+
+In the Kontent.ai app, go to **Environment settings -> Webhooks**. Click on **Create new webhook** and provide a name for your new webhook. Paste in the URL you copied from Netlify or Vercel and select which events should trigger the webhook. By default, for rebuilding your site when published content changes, you only need **Publish** and **Unpublish** events under **Delivery API triggers**. When you're finished, click on Save.
+
+Now, whenever you publish a new blog post in Kontent.ai, a new build will be triggered and your blog will be updated.
