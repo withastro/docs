@@ -1,0 +1,248 @@
+---
+type: tutorial
+title: Создать архив записей блога
+description: |-
+  Руководство: Создайте свой первый блог в Astro —
+  Используйте Astro.glob(), чтобы получить доступ к данным из файлов в вашем проекте
+i18nReady: true
+---
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+
+
+
+Теперь, когда у вас есть несколько блогов для ссылок, давайте настроим страницу блога для автоматического создания списка из них!
+
+<PreCheck>
+  - Получить доступ к данным из всех ваших записей сразу, используя `Astro.glob()`
+  - Отобразить динамически генерируемый список записей на странице вашего блога
+  - Рефакторинг с использованием компонента `<BlogPost />` для каждого элемента списка
+</PreCheck>
+
+## Динамическое отображение списка сообщений
+
+1. Добавьте следующий код в `blog.astro` для возврата информации обо всех ваших файлах Markdown. `Astro.glob()` вернет массив объектов, один для каждого поста блога.
+
+  ```astro title="src/pages/blog.astro" ins={3}
+  ---
+  import BaseLayout from '../layouts/BaseLayout.astro'
+  const allPosts = await Astro.glob('../pages/posts/*.md');
+  const pageTitle = "Мой учебный блог по Astro";
+  ---
+  <BaseLayout pageTitle={pageTitle}>
+    <p>Здесь я буду писать о моем путешествии обучения Astro.</p>
+    <ul>
+      <li><a href="/posts/post-1/">Пост 1</a></li>
+      <li><a href="/posts/post-2/">Пост 2</a></li>
+      <li><a href="/posts/post-3/">Пост 3</a></li>
+    </ul>
+  </BaseLayout>
+    ```
+
+
+2. Чтобы генерировать весь список сообщений динамически, используя заголовки и URL-ы сообщений, замените свои отдельные теги `<li>` следующим кодом Astro:
+
+    ```astro title="src/pages/blog.astro" del={9,10,11} ins={13}
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro'
+    const allPosts = await Astro.glob('../pages/posts/*.md');
+    const pageTitle = "Мой учебный блог по Astro";
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <p>Здесь я буду писать о моем путешествии обучения Astro.</p>
+      <ul>
+        <li><a href="/posts/post-1/">Пост 1</a></li>
+        <li><a href="/posts/post-2/">Пост 2</a></li>
+        <li><a href="/posts/post-3/">Пост 3</a></li>
+
+        {allPosts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+      </ul>
+    </BaseLayout>
+    ```
+
+    Теперь весь ваш список блогов генерируется динамически, путем отображение массива, возвращаемого `Astro.glob()`.
+
+3. Добавьте новую запись в блог, создав новый файл `post-4.md` в `src/pages/posts/` и добавив немного контента Markdown. Обязательно включите по крайней мере свойства frontmatter, использованные ниже.
+
+  ```markdown
+  ---
+  layout: ../../layouts/MarkdownPostLayout.astro
+  title: Мой четвертый блог-пост
+  author: Ученик Astro
+  description: "Этот пост появится сам по себе!"
+  image:
+    url: "https://docs.astro.build/default-og-image.png"
+    alt: "Слово «astro» на фоне иллюстрации планет и звезд."
+  pubDate: 2022-08-08
+  tags: ["astro", "успехи"]
+  ---
+  Этот пост должен появиться с моими другими блог-постами, потому что `Astro.glob()` возвращает список всех моих постов, чтобы создать мой список.
+  ```
+
+4. Посетите страницу вашего блога в предварительном просмотре браузера по адресу `localhost:3000/blog` и поищите обновленный список из четырех элементов, включая ваш новый блог-пост!
+
+<Box icon="puzzle-piece">
+
+## Задача: Создать компонент BlogPost
+
+Попробуйте самостоятельно внести все необходимые изменения в проект Astro, чтобы вы могли использовать следующий код для генерации списка блог-постов:
+
+```astro title="src/pages/blog.astro" del={2} ins={3}
+<ul>
+  {allPosts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+  {allPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title} />)}
+</ul>
+```
+
+<details>
+<summary>Развернуть, чтобы увидеть шаги</summary>
+
+1. Создайте новый компонент в `src/components/`.
+
+    <details>
+    <summary>Показать имя файла</summary>
+    ```
+    BlogPost.astro
+    ```
+    </details>
+
+2. Напишите строку кода в вашем компоненте, чтобы он мог принимать `title` и `url` в качестве `Astro.props`.
+
+    <details>
+    <summary>Показать код</summary>
+    ```astro
+    ---
+    // src/components/BlogPost.astro
+    const { title, url } = Astro.props;
+    ---
+    ```
+    </details>
+
+3. Добавьте шаблонизацию, используемую для создания каждого элемента в списке вашего блога.
+
+    <details>
+    <summary>Показать код</summary>
+    ```astro
+    <!-- src/components/BlogPost.astro -->
+    <li><a href={url}>{title}</a></li>
+    ```
+    </details>
+
+4. Импортируйте новый компонент на вашу страницу блога.
+
+    <details>
+    <summary>Показать код</summary>
+    ```astro title="src/pages/blog.astro" ins={3}
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    import BlogPost from '../components/BlogPost.astro';
+    const allPosts = await Astro.glob('../pages/posts/*.md');
+    const pageTitle = "Мой учебный блог по Astro";
+    ---
+    ```
+    </details>
+
+5. Проверьте себя: посмотрите окончательный код компонента.
+
+    <details>
+    <summary>Показать код</summary>
+    ```astro title="src/components/BlogPost.astro"
+    ---
+    const { title, url } = Astro.props
+    ---
+    <li><a href={url}>{title}</a></li>
+    ```
+    ```astro title="src/pages/blog.astro" ins={3,10}
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    import BlogPost from '../components/BlogPost.astro';
+    const allPosts = await Astro.glob('../pages/posts/*.md');
+    const pageTitle = "Мой учебный блог по Astro"
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <p>Здесь я буду писать о моем путешествии обучения Astro.</p>
+      <ul>
+        {allPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title} />)}
+      </ul>
+    </BaseLayout>
+    ```
+    </details>
+</details>
+</Box>
+
+
+
+<Box icon="question-mark">
+
+### Проверьте свои знания
+
+Если ваш компонент Astro содержит следующую строку кода:
+
+```astro
+---
+const myPosts = await Astro.glob('../pages/posts/*.md');
+---
+```
+
+Выберите синтаксис, который вы могли бы написать для представления:
+
+1. Заголовка вашего третьего блог-поста.
+
+    <MultipleChoice>
+      <Option>
+        `myPosts.map((post) => <LastUpdated date={post.frontmatter.pubDate} />)`
+      </Option>
+      <Option isCorrect>
+        `myPosts[2].frontmatter.title`
+      </Option>
+      <Option>
+        `<a href={myPosts[0].url}>Первый пост!!</a>`
+      </Option>
+    </MultipleChoice>
+
+2. Ссылки на URL вашего первого блог-поста.
+
+    <MultipleChoice>
+      <Option>
+        `myPosts.map((post) => <LastUpdated date={post.frontmatter.pubDate} />)`
+      </Option>
+      <Option>
+        `myPosts[2].frontmatter.title`
+      </Option>
+      <Option isCorrect>
+        `<a href={myPosts[0].url}>Первый пост!!</a>`
+      </Option>
+    </MultipleChoice>
+
+3. Компонент для каждого поста, отображающий дату его последнего обновления.
+
+    <MultipleChoice>
+      <Option isCorrect>
+        `myPosts.map((post) => <LastUpdated date={post.frontmatter.pubDate} />)`
+      </Option>
+      <Option>
+        `myPosts[2].frontmatter.title`
+      </Option>
+      <Option>
+        `<a href={myPosts[0].url}>Первый пост!!</a>`
+      </Option>
+    </MultipleChoice>
+
+</Box>
+
+## Чек-лист
+
+<Box icon="check-list">
+
+<Checklist>
+- [ ] Я могу запрашивать данные из моих локальных файлов.
+- [ ] Я могу отображать список всех моих блог-постов.
+</Checklist>
+</Box>
+
+### Ресурсы
+
+- [Документация API `Astro.glob()`](/ru/reference/api-reference/#astroglob)
