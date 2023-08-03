@@ -1,0 +1,288 @@
+---
+title: Ghost & Astro
+description: 使用 Ghost 作为 CMS 将內容添加到你的 Astro 项目
+type: cms
+stub: false
+service: Ghost
+i18nReady: true
+---
+
+import FileTree from '~/components/FileTree.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+[Ghost](https://github.com/TryGhost/Ghost) 是一个基于 Node.js 构建的开源无头 CMS（Content Management System，内容管理系统）。
+
+## 与 Astro 集成
+在本节中，我们将使用 [Ghost content API](https://ghost.org/docs/content-api/) 将数据连接到你的 Astro 项目中。
+
+### 前置准备
+在开始使用之前，你需要： 
+
+1. **一个 Astro 项目** - 如果没有 Astro 项目, 我们的 [安装指南](/zh-cn/install/auto/) 将在短时间内帮助你启动并运行。
+
+2. **一个 Ghost 站点** - 假定你已经配置了一个使用 Ghost 的站点。如果没有，可以根据 [Ghost 本地配置](https://ghost.org/docs/install/local/)在本地环境配置一个。
+
+3. **内容 API 密钥（Content API Key）** - 你可以在 GHOST 站点的 `Settings > Integrations` 找到你的 `Content API key`。
+
+
+### 配置
+
+在你的项目的根目录中创建或编辑一个 `.env` 文件，并添加以下变量以将你的 Ghost 站点连接到 Astro：
+
+```ini title=".env"
+CONTENT_API_KEY=YOUR_API_KEY
+```
+
+现在，你应该能够在你的项目中使用这个环境变量了。
+
+如果你希望让你的环境变量拥有智能提示（IntelliSense），你可以在 `src/` 目录下创建一个 `env.d.ts` 文件，并像这样配置 `ImportMetaEnv`：
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly CONTENT_API_KEY: string;
+}
+```
+:::tip[提示]
+了解更多关于[使用环境变量](/zh-cn/guides/environment-variables/)和 Astro 中的 `.env` 文件的信息。
+:::
+
+你的根目录现在应该包含以下新文件：
+
+<FileTree title="Project Structure">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### 安装依赖项
+
+选择你喜欢的包管理器运行以下命令安装 Ghost 官方的内容 API 容器 [`@tryghost/content-api`](https://www.npmjs.com/package/@tryghost/content-api) 连接 Ghost:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @tryghost/content-api
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install @tryghost/content-api
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @tryghost/content-api
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## 使用 Astro 和 Ghost 创建博客
+
+通过上面的设置，你现在可以创建一个使用 Ghost 作为 CMS 的博客。
+
+### 前置准备
+
+1. 一个 Ghost 博客 
+2. 一个与 [Ghost content API](https://www.npmjs.com/package/@tryghost/content-api) 集成的 Astro 项目 - 请参见 [与 Astro 集成](/zh-cn/guides/cms/ghost/#与-astro-集成) 了解如何将 Astro 项目与 Ghost 集成的更多详细信息。
+
+这个例子将创建一个索引页面，并列出所有文章，通过帖子的链接指向到动态生成的单个文章页面。
+
+### 获取数据
+
+你可以使用 Ghost content API 包获取你的站点数据。
+
+首先，在 `lib` 目录下创建一个 `ghost.ts` 文件。
+
+<FileTree title="Project Structure">
+- src/
+  - lib/
+    - **ghost.ts**
+  - pages/
+    - index.astro
+- astro.config.mjs
+- package.json
+</FileTree>
+
+使用 Ghost 仪表盘的集成页面上的 API 密钥，通过 Ghost API 初始化一个 API 实例。
+
+```ts title="src/lib/ghost.ts"
+
+import GhostContentAPI from '@tryghost/content-api';
+
+// 使用站点凭证创建 API 实例
+export const ghostClient = new GhostContentAPI({
+    url: 'http://127.0.0.1:2368', // 这是 Ghost 站点运行在本地环境中的默认 URL
+    key: import.meta.env.CONTENT_API_KEY,
+    version: 'v5.0',
+});
+
+```
+
+
+### 显示文章列表
+
+此页面 `src/pages/index.astro` 将显示一个文章列表，每个文章都包含一个描述和指向其文章页面链接。
+
+<FileTree title="Project Structure">
+- src/
+ - lib/
+    - ghost.ts
+  - pages/
+    - **index.astro**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+在 Astro 的 frontmatter 中导入 `ghostClient()`，使用 `posts.browse()` 方法访问 Ghost 的博客文章。设置 `limit: all` 以检索所有文章。
+```astro title="src/pages/index.astro"
+---
+import { ghostClient } from '../lib/ghost';
+const posts = await ghostClient.posts
+    .browse({
+        limit: 'all',
+    })
+    .catch((err) => {
+        console.error(err);
+    });
+---
+```
+
+通过 content API 获取的数据将会返回一个对象数组，其中包含[每篇文章的属性](https://ghost.org/docs/content-api/#posts)，例如：
+- `title` - 文章的标题
+- `html` - 文章内容的 HTML 渲染
+- `feature_image` - 文章图片的 URL
+- `slug` - 文章的 slug
+
+使用返回的 `posts` 对象数组即可以在索引页上显示所有博客文章列表。
+
+```astro title="src/pages/index.astro"
+---
+import { ghostClient } from '../lib/ghost';
+const posts = await ghostClient.posts
+    .browse({
+        limit: 'all',
+    })
+    .catch((err) => {
+        console.error(err);
+    });
+---
+
+<html lang="en">
+    <head>
+        <title>Astro + Ghost 👻</title>
+    </head>
+    <body>
+
+        {
+            posts.map((post) => (
+                <a href={`/post/${post.slug}`}>
+                    <h1> {post.title} </h1>
+                </a>
+            ))
+        }
+    </body>
+</html>
+```
+
+### 生成页面
+
+此页面 `src/pages/post/[slug].astro` 将为每一篇文章[动态生成一个页面](/zh-cn/core-concepts/routing/#动态路由)。
+
+<FileTree title="Project Structure">
+- src/
+ - lib/
+    -  ghost.ts
+  - pages/
+    - index.astro
+    - post/
+      - **[slug].astro**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+导入 `ghostClient()` 以使用 `posts.browse()` 访问博客文章，并将一篇文章作为 props 返回给你的每个动态路由。
+
+```astro title="src/pages/post/[slug].astro"
+---
+import { ghostClient } from '../../lib/ghost';
+
+export async function getStaticPaths() {
+    const posts = await ghostClient.posts
+        .browse({
+            limit: 'all',
+        })
+        .catch((err) => {
+            console.error(err);
+        });
+
+    return posts.map((post) => {
+        return {
+            params: {
+                slug: post.slug,
+            },
+            props: {
+                post: post,
+            },
+        };
+    });
+}
+
+const { post } = Astro.props;
+---
+```
+
+通过创建模版以使用每个 `post` 对象的属性动态生成每篇文章的页面。
+
+```astro title="src/pages/post/[slug].astro" ins={24-37}
+---
+import { ghostClient } from '../../lib/ghost';
+export async function getStaticPaths() {
+    const posts = await ghostClient.posts
+        .browse({
+            limit: 'all',
+        })
+        .catch((err) => {
+            console.error(err);
+        });
+    return posts.map((post) => {
+        return {
+            params: {
+                slug: post.slug,
+            },
+            props: {
+                post: post,
+            },
+        };
+    });
+}
+const { post } = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>{post.title}</title>
+    </head>
+    <body>
+        <img src={post.feature_image} alt={post.title} />
+
+        <h1>{post.title}</h1>
+        <p>{post.reading_time} min read</p>
+
+        <Fragment set:html={post.html} />
+    </body>
+</html>
+```
+:::note[注意]
+`<Fragment />` 是一个内置的 Astro 组件，它可以让你避免不必要的容器元素的影响。 这在从CMS（例如Ghost或[WordPress](/zh-cn/guides/cms/wordpress/)）获取 HTML 时特别有用。
+:::
+
+### 发布你的网站
+要部署你的网站，请访问我们的[部署指南](/zh-cn/guides/deploy/)，并按照你更喜欢的托管服务提供商的部署说明进行操作。
+## 社区资源 
+
+- 你也可以从这个 [Astro Ghost 启动器](https://github.com/PhilDL/astro-starter-ghost) 开始集成你的 Ghost 与 Astro。
+- Andre Carrera 写了[一篇博客文章](https://andr.ec/posts/astro-ghost-blog/)，展示了如何使用 Ghost 的 SDK 以在你的 Astro 项目中嵌入文章和预览。
+
+
