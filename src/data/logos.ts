@@ -79,6 +79,7 @@ export const logos = LogoCheck({
 	strapi: { file: 'strapi.svg', padding: '.25em' },
 	microcms: { file: 'microcms.svg', padding: '.2em' },
 	preprcms: { file: 'preprcms.svg', padding: '0' },
+	'kontent-ai': { file: 'kontent-ai.svg', padding: '.15em' },
 });
 
 export type LogoKey = keyof typeof logos;
