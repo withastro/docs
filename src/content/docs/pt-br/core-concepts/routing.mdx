@@ -7,9 +7,7 @@ import FileTree from '~/components/FileTree.astro'
 import RecipeLinks from "~/components/RecipeLinks.astro"
 import Since from '~/components/Since.astro'
 
-
 Astro utiliza **roteamento baseado em arquivos** para gerar as URLs da sua build com base na disposição dos arquivos do diretório `src/pages/` de seu projeto.
-
 
 ## Navegando entre páginas
 
@@ -75,6 +73,7 @@ export function getStaticPaths() {
     {params: {lingua: 'fr', versao: 'v2'}},
   ];
 }
+
 const { lingua, versao } = Astro.params;
 ---
 ...
@@ -101,6 +100,7 @@ export function getStaticPaths() {
     {params: {caminho: undefined }}
   ]
 }
+
 const { caminho } = Astro.params;
 ---
 ...
@@ -113,7 +113,6 @@ Parâmetros rest podem ser utilizados com **outros parâmetros nomeados**. Por e
 ```
 /[org]/[repo]/tree/[branch]/[...arquivo]
 ```
-
 Nesse exemplo, uma requisição a `/withastro/astro/tree/main/docs/public/favicon.svg` seria dividida nos seguintes parâmetros nomeados:
 
 ```js
@@ -156,6 +155,7 @@ export async function getStaticPaths() {
     };
   });
 }
+
 const { titulo, texto } = Astro.props;
 ---
 <html>
@@ -170,7 +170,6 @@ const { titulo, texto } = Astro.props;
 ```
 
 ### Modo Servidor (SSR)
-
 No [modo SSR](/pt-br/guides/server-side-rendering/), rotas dinâmicas são definidas da mesma forma: inclua colchetes `[param]` ou `[...path]` no nome de seus sarquivos para corresponder a strings ou caminhos arbritários. Porém, já que as rotas não são mais contruídas com antecedência, a página será servida para qualquer rota correspondente. Já que essas não são rotas "estáticas", `getStaticPaths` não deve ser utilizado.
 
 ```astro title="src/pages/recursos/[recurso]/[id].astro"
@@ -225,20 +224,17 @@ const { titulo, texto } = pagina;
 
 As vezes você irá precisar redirecionar seus leitores para uma nova página, seja permanentemente pois a estrutura do seu site mudou ou em resposta a uma ação como logar em uma rota autenticada.
 
-Você pode definir regras para [redirecionar usuários para páginas permanentemente movidas](#redirecionamentos-configurados-experimental) na sua configuração do Astro. Ou, [redirecionar usuários dinamicamente](#redirecionamentos-dinâmicos) enquanto eles utilizam seu site.
+Você pode definir regras para [redirecionar usuários para páginas permanentemente movidas](#redirecionamentos-configurados) na sua configuração do Astro. Ou, [redirecionar usuários dinamicamente](#redirecionamentos-dinâmicos) enquanto eles utilizam seu site.
 
-### Redirecionamentos Configurados (experimental)
-<Since v="2.6.0" />
+### Redirecionamentos Configurados
+<Since v="2.9.0" />
 
-Depois de habilitar a flag experimental `redirects: true`, você pode especificar um mapeamento de redirecionamentos permanentes na sua configuração do Astro. Para a maioria dos redirecionamentos, isto é um mapeamento de uma rota antiga para uma nova rota:
+Você pode especificar um mapeamento de redirecionamentos permanentes na sua configuração do Astro com o valor de `redirects`. Para a maioria dos redirecionamentos, isto é um mapeamento de uma rota antiga para uma nova rota:
 
-```js title="astro.config.mjs" {5, 7-9}
+```js title="astro.config.mjs" {4-6}
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  experimental: {
-    redirects: true
-  },
   redirects: {
     '/pagina-antiga': '/nova-pagina'
   }
@@ -255,13 +251,10 @@ Estes redirecionamentos seguem as mesmas regras que rotas baseadas em arquivos. 
 
 Usando um adaptador de SSR ou estático, você também pode providenciar um objeto como o valor, te permitindo especificar o código de `status` em adição ao novo destino (`destination`):
 
-```js
+```js title="astro.config.mjs" {5-8}
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  experimental: {
-    redirects: true
-  },
   redirects: {
     '/pagina-antiga': {
       status: 302,
@@ -282,7 +275,9 @@ Na global `Astro`, o método `Astro.redirect` te permite redirecionar para outra
 ```astro title="src/pages/conta.astro" {8}
 ---
 import { isLoggedIn } from '../utils';
+
 const cookie = Astro.request.headers.get('cookie');
+
 // Se o usuário não estiver logado, o redireciona para a página de login
 if (!isLoggedIn(cookie)) {
   return Astro.redirect('/login');
@@ -320,6 +315,8 @@ Com base no exemplo acima, aqui estão alguns exemplos de como as regras irão c
 - `pages/postagens/[pid].astro` - irá construir `/postagens/1`, `/postagens/abc`, etc. Mas não `/postagens/criar`
 - `pages/postagens/[...slug].astro` - irã construir `/postagens/1/2`, `/postagens/a/b/c`, etc. Mas não `/postagens/criar`, `/postagens/1`, `/postagens/abc`
 
+Redirecionamentos também seguem as mesmas regras, mas são priorizados *por último*; se existe uma rota baseada em arquivo e um redirecionamento com o mesmo número de prioridade da rota, a rota baseada em arquivo é escolhida.
+
 ## Paginação
 
 Astro suporta paginação de forma integrada para grandes coleções de dados que precisam ser dividos em múltiplas páginas. Astro irá gerar propriedades comuns de paginação, como URLs de anterior/próxima página, número total de páginas, e mais.
@@ -355,13 +352,13 @@ const { page } = Astro.props;
   {page.data.map(({ astronauta }) => <li>{astronauta}</li>)}
 </ul>
 ```
+
 Isso gera as seguintes páginas, com 2 itens por página:
 - `/astronautas/1` - Página 1: Mostra "Neil Armstrong" e "Buzz Aldrin"
 - `/astronautas/2` - Página 2: Mostra "Sally Ride" e "John Glenn"
 
-### A prop `page`
 
-Quando você utiliza a função `paginate()`, cada página na coleção passará seus dados através da prop `page`. A prop `page` tem diversas propriedades úteis, mas a mais importante é `page.data`. Esse é o array contendo os pedaços de dados da página que você passou para a função `paginate()`.
+### A prop `page`
 
 Quando você utiliza a função `paginate()`, cada página terá seus dados passados através da prop `page`. A prop `page` tem diversas propriedades úteis, mas aqui estão as mais importantes:
 - **page.data** - array contendo um pedaço dos dados da página que você passou para a função `paginate()`
@@ -452,7 +449,7 @@ const params = Astro.params;
 
 ## Excluindo páginas
 
-Você pode excluir páginas ou até mesmo diretórios inteiros da build ao prefixar seus nomes com um subtraço (`_`). Arquivos com o prefixo `_` não serão reconhecidas pelo roteador e não serão adicionadas ao diretório `dist/`.
+Você pode excluir páginas ou diretórios inteiros da build ao prefixar seus nomes com um subtraço (`_`). Arquivos com o prefixo `_` não serão reconhecidas pelo roteador e não serão adicionadas ao diretório `dist/`.
 
 Você pode utilizar isto para temporariamente desabilitar páginas, e para também adicionar testes, utilitários e componentes na mesma pasta que suas páginas relacionadas.
 

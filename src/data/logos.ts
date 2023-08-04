@@ -42,12 +42,14 @@ export const logos = LogoCheck({
 	buttercms: { file: 'buttercms.svg', padding: '.1875em' },
 	builderio: { file: 'builderio.svg', padding: '.25em' },
 	contentful: { file: 'contentful.svg', padding: '.05em' },
+	hygraph: { file: 'hygraph.svg', padding: '.1em .125em .1em .1em' },
 	directus: { file: 'directus.svg', padding: '0 .1em' },
 	ghost: { file: 'ghost.png', padding: '.125em' },
 	'decap-cms': { file: 'decap-cms.svg', padding: '0 .225em 0 .26em' },
 	'tina-cms': { file: 'tina-cms.svg', padding: '.15em' },
 	payload: { file: 'payload.svg', padding: '.3em .25em .3em .3em' },
 	prismic: { file: 'prismic.svg', padding: '.25em' },
+	caisy: { file: 'caisy.svg', padding: '.05em' },
 	sanity: { file: 'sanity.svg', padding: '0 .1em' },
 	storyblok: { file: 'storyblok.svg', padding: '.3em .25em .25em' },
 	spinal: { file: 'spinal.svg', padding: '.15em .15em' },
@@ -76,6 +78,8 @@ export const logos = LogoCheck({
 	statamic: { file: 'statamic.svg', padding: '.2em' },
 	xata: { file: 'xata.svg', padding: '0.234em 0.234em 0.1875em' },
 	strapi: { file: 'strapi.svg', padding: '.25em' },
+	microcms: { file: 'microcms.svg', padding: '.2em' },
+	preprcms: { file: 'preprcms.svg', padding: '0' },
 });
 
 export type LogoKey = keyof typeof logos;
