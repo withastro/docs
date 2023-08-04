@@ -14,6 +14,12 @@ import type {
 	PageTranslationStatus,
 } from '../../lib/translation-status/types';
 import { toUtcString, tryGetFrontMatterBlock } from '../../lib/translation-status/utils.js';
+import docsearchTranslations from '../../../src/i18n/en/docsearch'
+import navTranslations from '../../../src/i18n/en/nav'
+import uiTranslations from '../../../src/i18n/en/ui'
+import type { DocSearchTranslation, UIDict } from '~/i18n/translation-checkers';
+
+type NestedRecord = { [k: string]: string | NestedRecord }
 
 export const COMMIT_IGNORE = /(en-only|typo|broken link|i18nReady|i18nIgnore)/i;
 
@@ -116,6 +122,25 @@ export class TranslationStatusBuilder {
 	}
 
   /**
+   * Check two objects for key equality
+   */
+  equalKeys(obj1: NestedRecord, obj2: NestedRecord) {
+    function inner(obj: NestedRecord) {
+      const result: string[] = []
+        function rec(obj: NestedRecord, c: string) {
+        Object.keys(obj).forEach(function(e) {
+          if (typeof obj[e] == 'object') rec(obj[e] as NestedRecord, c + e)
+          result.push(c + e)
+        })
+      }
+      rec(obj, '')
+      return result
+    }
+    const keys1 = inner(obj1), keys2 = inner(obj2)
+    return keys1.every(e => keys2.includes(e) && keys1.length == keys2.length)
+  }
+
+  /**
    * Get status of UI translations
    */
   async getUITranslationsIndex(): Promise<PageTranslationStatus[]> {
@@ -126,18 +151,33 @@ export class TranslationStatusBuilder {
       );
     };
 
-    return Promise.all(['docsearch', 'nav', 'ui'].map(async (page): Promise<PageTranslationStatus> => {
+    const pages: [string, DocSearchTranslation | typeof navTranslations | UIDict][] = [
+      ['docsearch', docsearchTranslations],
+      ['nav', navTranslations],
+      ['ui', uiTranslations],
+    ]
+
+    return Promise.all(pages.map(async ([page, enTranslation]): Promise<PageTranslationStatus> => {
       const subpath = `src/i18n/en/${page}.ts`
       const en = await this.getGitHistory(subpath)
       const translations: PageTranslationStatus['translations'] = {}
 
       for (const lang of this.targetLanguages) {
         const subpath = `src/i18n/${lang}/${page}.ts`
+        const module = (await import(`../../../${subpath}`)).default
+
+        // @ts-expect-error enTranslation.length is defined in one case
+        const isOutdated = enTranslation.length ?
+          module.filter((k: {isFallback: boolean}) => !k.isFallback).length !== (enTranslation as typeof navTranslations).length :
+          !this.equalKeys(module, enTranslation as NestedRecord)
+
+        console.log(subpath, isOutdated)
+
         const data = await this.getGitHistory(subpath)
         translations[lang] = {
           githubUrl: getPageUrl({ lang, page }),
           isMissing: !data,
-          isOutdated: data && data.lastCommitDate < en.lastCommitDate,
+          isOutdated: isOutdated || (data && data.lastCommitDate < en.lastCommitDate),
           page: {
             lastChange: data.lastCommitDate,
             lastCommitMsg: data.lastCommitMessage,

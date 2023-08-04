@@ -27,7 +27,7 @@ export const NavDictionary = (dict: Partial<Record<NavDictionaryKeys, string>>) 
 	const orderedDictionary: NavDict = [];
 	for (const enEntry of enNav) {
 		const text = dict[enEntry.key] || enEntry.text;
-		orderedDictionary.push({ ...enEntry, text });
+		orderedDictionary.push({ ...enEntry, text, isFallback: !dict[enEntry.key] });
 	}
 	return orderedDictionary;
 };
