@@ -54,11 +54,10 @@ export async function run() {
 			comment.see = comment.see[0].split('\n');
 		}
 
-
 		// The error's title. Fallback to the error's name if we don't have one
 		const errorTitle = sanitizeString(
 			// the name has string like "export.UnknownError", and we remove the "export." bit to get the name of the error
-			astroErrorData.errors[comment.meta.code.name.slice("exports.".length)].title ?? comment.name
+			astroErrorData.errors[comment.meta.code.name.slice('exports.'.length)].title ?? comment.name
 		);
 		const completeReferenceEntry = [
 			// Errors can be deprecated, as such we add a little "deprecated" caution to errors that needs it
