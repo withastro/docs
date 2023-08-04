@@ -36,10 +36,24 @@ type Props = {
 	sharedStore?: string;
 };
 
+const tabOrdering = {
+	npm: 0,
+	pnpm: 1,
+	yarn: 2,
+	bun: 3,
+};
+
 export default function Tabs({ sharedStore, ...slots }: Props) {
 	const tabId = genTabId();
-	const tabs = Object.entries(slots).filter(isTabSlotEntry);
-	const panels = Object.entries(slots).filter(isPanelSlotEntry);
+	// npm then pnpm then yarn then bun
+	const sortedSlots = Object.entries(slots).sort(([a], [b]) => {
+		const aName = a.split('.')[1];
+		const bName = b.split('.')[1];
+		return tabOrdering[aName] - tabOrdering[bName];
+	});
+
+	const tabs = sortedSlots.filter(isTabSlotEntry);
+	const panels = sortedSlots.filter(isPanelSlotEntry);
 	/** Used to focus next and previous tab on arrow key press */
 	const tabButtonRefs = useRef<Record<TabSlot, HTMLButtonElement | null>>({});
 	const scrollToTabRef = useRef<HTMLButtonElement | null>(null);
