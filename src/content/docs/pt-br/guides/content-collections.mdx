@@ -237,46 +237,46 @@ export const collections = {
 
 O Astro usa [Zod](https://github.com/colinhacks/zod) para alimentar sues esquemas de conteúdo. Com Zod, o Astro é capaz de validar cada frontmatter dos arquivos dentro de uma coleção *e* fornecer tipos do TypeScript automaticamente quando você vai consultar conteúdo de dentro do seu projeto.
 
-To use Zod in Astro, import the `z` utility from `"astro:content"`. This is a re-export of the Zod library, and it supports all of the features of Zod. See [Zod’s README](https://github.com/colinhacks/zod) for complete documentation on how Zod works and what features are available.
+Para usar Zod no Astro, importe o utilitário `z` do `"astro:content"`. Esse é uma reexportação da biblioteca Zod, e ele suporta todas as funcionalidades do Zod. Veja o [README do Zod](https://github.com/colinhacks/zod) para a documentação completa de como o Zod funciona e quais funcionalidades estão disponíveis.
 
 
 ```ts
-// Example: A cheatsheet of many common Zod datatypes
+// Exemplo: Uma cheatsheet de muitos tipos de dados comuns com Zod
 import { z, defineCollection } from 'astro:content';
 
 defineCollection({
   schema: z.object({
-    isDraft: z.boolean(),
-    title: z.string(),
-    sortOrder: z.number(),
-    image: z.object({
+    isRascunho: z.boolean(),
+    titulo: z.string(),
+    ordenacao: z.number(),
+    imagem: z.object({
       src: z.string(),
       alt: z.string(),
     }),
-    author: z.string().default('Anonymous'),
-    language: z.enum(['en', 'es']),
+    autor: z.string().default('Anonymous'),
+    idioma: z.enum(['en', 'es']),
     tags: z.array(z.string()),
-    // An optional frontmatter property. Very common!
-    footnote: z.string().optional(),
-    // In frontmatter, dates written without quotes around them are interpreted as Date objects
-    publishDate: z.date(),
-    // You can also transform a date string (e.g. "2022-07-08") to a Date object
-    // publishDate: z.string().transform((str) => new Date(str)),
-    // Advanced: Validate that the string is also an email
-    authorContact: z.string().email(),
-    // Advanced: Validate that the string is also a URL
-    canonicalURL: z.string().url(),
+    // Uma propriedade opcional do frontmatter. Muito comum!
+    notaRodape: z.string().optional(),
+    // No frontmatter, datas escritas sem aspas envolta delas são interpretadas como objetos Date
+    dataPublicacao: z.date(),
+    // Você também pode transformar uma string de data (e.x. "2022-07-08") para um objeto Date
+    // dataPublicacao: z.string().transform((str) => new Date(str)),
+    // Avançado: Validar que a string também é um email
+    contatoAutor: z.string().email(),
+    // Avançado: Validar que a string também é uma URL
+    URLCanonica: z.string().url(),
   })
 })
 ```
 
 ### Definindo referências de coleção
 
-Collection entries can also "reference" other related entries. 
+Entradas de coleções também podem "referenciar" outras entradas relacionadas.
 
-With the `reference()` function from the Collections API, you can define a property in a collection schema as an entry from another collection. For example, you can require that every `space-shuttle` entry includes a `pilot` property which uses the `pilot` collection's own schema for type checking, autocomplete, and validation.
+Com a função `reference()` da API de Coleções, você pode definir uma propriedade de um esquema de coleção como uma entrada de outra coleção. Por exemplo, você pode exigir que todas as entradas `nave-espacial` incluam uma propriedade `piloto` que usa o esquema da coleção `piloto` para checagem de tipo, conclusão automática e validação.
 
-A common example is a blog post that references reusable author profiles stored as JSON, or related post URLs stored in the same collection:
+Um exemplo comum é uma postagem de blog que referencia perfis de autor reutilizáveis armazenados como JSON, ou URLs de postagens relacionadas armazenadas na mesma coleção:
 
 ```ts
 import { defineCollection, reference, z } from 'astro:content';
@@ -284,71 +284,73 @@ import { defineCollection, reference, z } from 'astro:content';
 const blog = defineCollection({
   type: 'content',
   schema: z.object({
-    title: z.string(),
-    // Reference a single author from the `authors` collection by `id`
-    author: reference('authors'),
-    // Reference an array of related posts from the `blog` collection by `slug`
-    relatedPosts: z.array(reference('blog')),
+    titulo: z.string(),
+    // Referencia um único autor da coleção `autores` pelo `id`
+    autor: reference('autores'),
+    // Referencia um array de postagens relacionadas da coleção `blog` pelo `slug`
+    postagensRelacionadas: z.array(reference('blog')),
   })
 });
 
-const authors = defineCollection({
+const autores = defineCollection({
   type: 'data',
   schema: z.object({
-    name: z.string(),
+    nome: z.string(),
     portfolio: z.string().url(),
   })
 });
 
-export const collections = { blog, authors };
+export const collections = { blog, autores };
 ```
 
+Este exemplo de postagem de blog especifica os `slug`s de postagens relacionadas e o `id` do autor da postagem:
 This example blog post specifies the `slug`s of related posts and the `id` of the post author:
 
-```yaml title="src/content/blog/welcome.md"
+```yaml title="src/content/blog/bem-vindo.md"
 ---
-title: "Welcome to my blog"
-author: ben-holmes # references `src/content/authors/ben-holmes.json`
-relatedPosts:
-- about-me # references `src/content/blog/about-me.md`
-- my-year-in-review # references `src/content/blog/my-year-in-review.md`
+titulo: "Bem-vindo ao meu blog"
+autor: ben-holmes # referencia `src/content/autores/ben-holmes.json`
+postagensRelacionadas:
+- sobre-mim # referencia `src/content/blog/some-mim.md`
+- minha-retrospectiva # references `src/content/blog/minha-retrospectiva.md`
 ---
 ```
 
 ### Definindo slugs customizados
 
-When using `type: 'content'`, every content entry generates a URL-friendly `slug` property from its [file `id`](/pt-br/reference/api-reference/#id). The slug is used to query the entry directly from your collection. It is also useful when creating new pages and URLs from your content.
+Ao usar `type: 'content'`, toda entrada de conteúdo gera uma propriedade `slug` amigável para URL a partir do seu [`id` do arquivo](/pt-br/reference/api-reference/#id). O slug é usado para consultar a entrada diretamente da sua coleção. Ela também é útil ao criar novas páginas e URLs do seu conteúdo.
 
-You can override an entry's generated slug by adding your own `slug` property to the file frontmatter. This is similar to the "permalink" feature of other web frameworks. `"slug"` is a special, reserved property name that is not allowed in your custom collection `schema` and will not appear in your entry's `data` property. 
+Você pode sobrescrever a slug gerada para a entrada ao adicionar seu própria propriedade `slug` ao frontmatter do arquivo. Isso é similar à funcionalidade `permalink` de outros frameworks web. `"slug` é um nome de propriedade especial e reservada que não é permitida no seu `schema` customizado da coleção e não vai aparecer na propriedade `data` da sua entrada.
 
 ```md {3}
 ---
-title: My Blog Post
-slug: my-custom-slug/supports/slashes
+title: Minha Postagem de Blog
+slug: minha-slug-customizada/suporta/barras
 ---
-Your blog post content here.
+Seu conteúdo da postagem do blog vem aqui.
 ```
 
 ## Consultando Coleções
 
-Astro provides two functions to query a collection and return one (or more) content entries: [`getCollection()`](/pt-br/reference/api-reference/#getcollection) and [`getEntry()`](/pt-br/reference/api-reference/#getentry).
+O Astro fornece duas funções para consultar uma coleção e retornar um (ou mais) entradas de conteúdo: [`getCollection()`](/pt-br/reference/api-reference/#getcollection) e [`getEntry()`](/pt-br/reference/api-reference/#getentry).
 
 ```js
 import { getCollection, getEntry } from 'astro:content';
 
-// Get all entries from a collection.
-// Requires the name of the collection as an argument.
-// Example: retrieve `src/content/blog/**`
-const allBlogPosts = await getCollection('blog');
+// Obtém todas as entradas de uma coleção.
+// Requer o nome da coleção como um argumento.
+// Exemplo: recuperar `src/content/blog/**`
+const todasPostagensDoBlog = await getCollection('blog');
 
-// Get a single entry from a collection.
+// Obtém uma única entrada de uma coleção.
 // Requires the name of the collection and either
-// the entry `slug` (content collections) or `id` (data collections)
-// Example: retrieve `src/content/authors/grace-hopper.json`
-const graceHopperProfile = await getEntry('authors', 'grace-hopper');
+// Requer o nome da coleção e ou o `slug` da
+// entrada (coleções de conteúdo) ou o `id` (coleções de dados)
+// Exemplo: recuperar `src/content/autores/grace-hopper.json`
+const graceHopperPerfil = await getEntry('autores', 'grace-hopper');
 ```
 
-Both functions return content entries as defined by the [`CollectionEntry`](/pt-br/reference/api-reference/#tipo-da-entrada-da-coleção) type.
+Ambas as funções retornam entradas de conteúdo definidas pelo tipo [`CollectionEntry`](/pt-br/reference/api-reference/#tipo-da-entrada-da-coleção).
 
 ### Acessando dados referenciados
 
