@@ -1,0 +1,123 @@
+---
+title: Hygraph 与 Astro
+description: 使用 Hygraph 作为 CMS 将內容添加到你的 Astro 项目
+type: cms
+service: Hygraph
+i18nReady: true
+---
+import FileTree from '~/components/FileTree.astro'
+
+[Hygraph](https://hygraph.com/) 是一个无头的 CMS（Content Management System，内容管理系统）。它提供了一个用于 Astro 获取内容的 GraphQL 端点。
+
+## 与 Astro 集成
+
+在本节中，你将创建一个 [Hygraph](https://hygraph.com/) GraphQL 端点以供 Astro 使用。
+
+### 前置准备
+
+在开始使用之前，你需要：
+
+1. **一个 Hygraph 账号和项目** - 如果你还没有账号，你可以 [免费注册](https://app.hygraph.com/signup) 并创建一个项目。
+
+2. **Hygraph 访问权限** - 在 `Project Settings > API Access` 中，配置 Public Content API 权限以允许无需身份验证的内容读取请求。如果你还没有设置任何权限，你可以点击 **Yes, initialize defaults** 来添加使用 "High Performance Content API" 所需的权限。
+
+### 配置端点
+
+在你的项目的根目录中创建或编辑一个 `.env` 文件，并添加以下变量以将你的 Hygraph 端点连接到 Astro：
+
+```ini title=".env"
+HYGRAPH_ENDPOINT=YOUR_HIGH_PERFORMANCE_API
+```
+
+现在，你应该能够在你的项目中使用这个环境变量了。
+
+如果你希望让你的环境变量拥有智能提示（IntelliSense），你可以在 `src/` 目录下创建或编辑 `env.d.ts` 文件，并像这样配置 `ImportMetaEnv`：
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly HYGRAPH_ENDPOINT: string;
+}
+```
+
+:::tip[提示]
+了解更多关于[使用环境变量](/zh-cn/guides/environment-variables/)和 Astro 中的 `.env` 文件的信息。
+:::
+
+你的根目录现在应该包含以下新文件：
+
+<FileTree title="Project Structure">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### 获取数据
+
+使用 `HYGRAPH_ENDPOINT` 从你的 Hygraph 项目中获取数据。
+
+例如，要获取具有字符串字段 `title` 的 `blogPosts` 内容类型的条目，请创建一个 GraphQL 查询来获取该内容。然后，定义内容的类型，并将其设置为响应的类型。
+
+```astro title="src/pages/index.astro"
+---
+interface Post {
+	title: string;
+}
+
+const query = {
+	method: "POST",
+	headers: { "Content-Type": "application/json" },
+	body: JSON.stringify({
+		query: `
+      {
+        blogPosts {
+          title
+        }
+      }`,
+	}),
+};
+
+const response = await fetch(import.meta.env.HYGRAPH_ENDPOINT, query);
+const json = await response.json();
+const posts: Post[] = json.data.blogPosts;
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Astro</title>
+	</head>
+	<body>
+		<h1>Astro</h1>
+		{
+			posts.map((post) => (
+				<div>
+					<h2>{post.title}</h2>
+				</div>
+			))
+		}
+	</body>
+</html>
+```
+
+## 部署
+
+### 配置 Netlify Webhook
+
+在 Netlify 中设置 Webhook：
+
+1. 使用 [部署指南](/zh-cn/guides/deploy/netlify/) 将你的网站部署到 Netlify。并记得将你的 `HYGRAPH_ENDPOINT` 添加到环境变量中。
+
+2. 然后转到你的 Hygraph 项目 dashboard 并单击 **Apps**。
+
+3. 点击 <kbd>Go to Marketplace</kbd> 跳转到应用市场，搜索并选择 Netlify 并按照提供的说明进行后续操作。
+
+4. 如果一切顺利，现在你只要在 Hygraph 界面中点击一下就能部署你的网站了。
+
+## 社区资源
+
+- [使用 `marked` 进行 markdown 解析的 Hygraph + Astro 示例](https://github.com/camunoz2/example-astrowithhygraph)。

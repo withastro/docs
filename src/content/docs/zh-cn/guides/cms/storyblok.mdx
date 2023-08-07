@@ -1,0 +1,535 @@
+---
+title: Storyblok 与 Astro
+description: 将 Storyblok 作为 CMS 并为你的 Astro 项目添加内容
+type: cms
+service: Storyblok
+stub: false
+i18nReady: true
+---
+import FileTree from '~/components/FileTree.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+
+[Storyblok](https://www.storyblok.com/) 是一个基于组件的无头（headless） CMS，允许你使用可重用的组件（称为 Bloks）管理内容。
+
+## 与 Astro 集成
+
+在本小节中，你将使用 [Storyblok 集成](https://github.com/storyblok/storyblok-astro) 来将 Storyblok 连接到 Astro。
+
+### 前期准备
+
+开始前，你需要具备以下条件：
+
+1. **Astro 项目** - 如果你还没有 Astro 项目，我们的[安装指南](/zh-cn/install/auto/)将帮助你快速启动；
+2. **Storyblok 帐号和空间** - 如果你还没有帐号，可以[免费注册](https://app.storyblok.com/#/signup)并创建一个新的空间；
+3. **Storyblok 预览令牌** - 这个令牌将用于获取你的草稿内容和已发布版本。你可以在 Storyblok 空间设置的访问令牌选项卡中找到并生成你的 API 令牌。
+
+### 配置凭据
+
+为了将你的 Storyblok 凭据添加到 Astro，你可以在项目的根目录中创建一个名为 `.env` 的文件，并添加以下的变量：
+
+```ini title=".env"
+STORYBLOK_TOKEN=YOUR_PREVIEW_TOKEN
+```
+
+现在，你应该可以在项目中使用该环境变量了。
+
+并且，你的根目录现在应该包含这一新文件：
+
+<FileTree title="Project Structure">
+- src/
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### 安装依赖
+
+为了将 Astro 连接到你的 Storyblok 空间，使用以下命令安装官方的 [Storyblok 集成](https://github.com/storyblok/storyblok-astro)，可以用你偏好的包管理器执行相应命令：
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @storyblok/astro vite
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install @storyblok/astro vite
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @storyblok/astro vite
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### 配置 Storyblok
+
+修改 Astro 配置文件以包含 Storyblok 集成：
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import storyblok from '@storyblok/astro';
+import { loadEnv } from 'vite';
+
+const env = loadEnv("", process.cwd(), 'STORYBLOK');
+
+export default defineConfig({
+  integrations: [
+    storyblok({
+      accessToken: env.STORYBLOK_TOKEN,
+      components: {
+        // 在此处添加你的组件
+      },
+      apiOptions: {
+        // 选择你的 Storyblock 空间区域
+        region: 'us', // 可选项，默认为 'eu'
+      },
+    })
+  ],
+});
+```
+
+Storyblok 集成需要一个包含以下属性的对象：
+
+1. `accessToken` - 这是引用你在上一步中添加的 Storyblok API 令牌；
+
+    :::tip
+    由于 Astro 配置文件通常不支持环境变量，可以使用 Vite 的 `loadEnv` 函数来加载它们。
+    :::
+
+2. `components` - 一个将 Storyblok 组件名称映射到本地组件路径的对象。这是必需的，为了能在 Astro 中渲染你的 Storyblok Bloks；
+
+    :::note
+    组件路径是相对于 `src` 目录的。例如，如果你的组件位于 `src/storyblok/MyComponent.astro`，路径将是 `storyblok/MyComponent`（不包括 `.astro` 扩展名）。
+    :::
+
+3. `apiOptions` - 一个包含 [Storyblok API 选项](https://github.com/storyblok/storyblok-astro#options) 的对象。
+
+    :::caution
+    默认情况下，区域是 `eu`。如果你的 Storyblok 空间创建在美国区域，你需要将区域设置为 `us`。
+    :::
+
+### 将 Bloks 连接到 Astro 组件
+
+要将你的 Bloks 连接到 Astro，请在 `src` 目录下创建一个名为 `storyblok` 的新文件夹。该文件夹将包含与你的 Storyblok Blok 库中的 Bloks 所匹配的所有 Astro 组件。
+
+在这个例子中，假设你的 Storyblok Blok 库中有一个名为 `blogPost` 的 Blok 内容类型，其具有以下字段：
+
+-  `title` - 一个文本字段
+-  `description` - 一个文本字段
+-  `content` - 一个富文本字段
+
+我们的目标是创建一个同等的 Astro 组件，使用这些字段来渲染其内容。为此，在 `src/storyblok` 中创建一个名为 `BlogPost.astro` 的新文件，并添加以下内容：
+
+```astro title="src/storyblok/BlogPost.astro"
+---
+import { storyblokEditable, renderRichText } from '@storyblok/astro'
+
+const { blok } = Astro.props
+const content = renderRichText(blok.content)
+---
+
+<article {...storyblokEditable(blok)}>
+  <h1>{blok.title}</h1>
+  <p>{blok.description}</p>
+  <Fragment set:html={content} />
+</article>
+```
+
+`blok` 属性包含你从 Storyblok 中接收到的数据。它还包含在 Storyblok 的 `blogPost` 内容类型 Blok 中定义的字段。
+
+为了渲染我们的内容，该集成提供了一些实用函数，例如：
+
+-  `storyblokEditable` - 它会为元素添加必要的属性，以便你可以在 Storyblok 中进行编辑；
+-  `renderRichText` - 它将富文本字段转换为 HTML。
+
+现在你的根目录应该包括这个新文件：
+
+<FileTree title="Project Structure">
+- src/
+  - storyblok/
+    - **BlogPost.astro**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+最后，要将 `blogPost` Blok 连接到 `BlogPost` 组件，在你的 Astro 配置文件的组件对象中添加一个新属性。
+
+-  键是 Storyblok 中的 Blok 名称。在这种情况下，它是 `blogPost`。
+-  值是组件的路径。在这里，它是 `storyblok/BlogPost`。
+
+:::caution
+  `key` 必须与 Storyblok 中的 Blok 名称完全匹配，以便正确引用。如果它们不匹配，或者你尝试引用 Storyblok 中不存在的组件，将会出现错误提示。
+:::
+
+```js title="astro.config.mjs" ins={12}
+import { defineConfig } from 'astro/config';
+import storyblok from '@storyblok/astro';
+import { loadEnv } from 'vite';
+
+const env = loadEnv("", process.cwd(), 'STORYBLOK');
+
+export default defineConfig({
+  integrations: [
+    storyblok({
+      accessToken: env.STORYBLOK_TOKEN,
+      components: {
+        blogPost: 'storyblok/BlogPost',
+      },
+      apiOptions: { 
+        region: 'us',
+      },
+    })
+  ],
+});
+```
+
+### 获取数据
+
+为了测试设置，你可以在 Storyblok 中创建一个使用 `blogPost` 内容类型命名为 `test-post` 的新故事。
+
+在 Astro 中，在 `src/pages/` 目录下创建一个名为 `test-post.astro` 的新页面，并使用以下内容：
+
+```astro title="src/pages/test-post.astro"
+---
+import { useStoryblokApi } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+
+const storyblokApi = useStoryblokApi()
+
+const { data } = await storyblokApi.get("cdn/stories/test-post", {
+  version: import.meta.env.DEV ? "draft" : "published",
+});
+
+const content = data.story.content;
+---
+<StoryblokComponent blok={content} />
+```
+
+要查询你的数据，使用 `useStoryblokApi` 钩子函数。这将使用你的集成配置初始化一个新的客户端实例。
+
+为了渲染你的内容，请将 Story 的 `content` 属性作为 `blok` 属性传递给 `StoryblokComponent`。该组件将渲染在 `content` 属性中定义的 Bloks。在这种情况下，它将会渲染 `BlogPost` 组件。
+
+## 使用 Astro 和 Storyblok 创建博客
+
+通过设置集成，你现在可以使用 Astro 和 Storyblok 创建博客。
+
+### 前期准备
+
+1. **Storyblok 空间** - 对于本教程，我们建议使用一个新的空间。如果你已经有一个包含 Blok 的空间，可以使用它们，但你需要修改代码以匹配 Blok 的名称和内容类型。
+
+2. **集成了 Storyblok 的 Astro 项目** - 参考[与 Astro 集成](#与-astro-集成)中的说明来设置集成。
+
+### 创建 Blok 库
+
+要创建 Blok，请转到 Storyblok 应用程序，然后点击 **Block Library** 选项卡。点击 <kbd>+ New blok</kbd> 按钮，然后创建以下 Bloks：
+
+1. `blogPost` - 包含以下字段的内容类型 Blok：
+   - `title` - 文本字段
+   - `description` - 文本字段
+   - `content` - 富文本字段
+
+2. `blogPostList` - 空的可嵌套 Blok
+
+3. `page` - 包含以下字段的内容类型 Blok：
+   - `body` - 可嵌套 Blok
+
+### 创建内容
+
+要添加新的内容，请点击 **Content** 选项卡，进入内容部分。请使用在上一步中创建的 Blok 库创建以下故事：
+
+1. `home` - 使用 `page` Blok 的内容类型故事。在 `body` 字段中添加一个 `blogPostList` Blok。
+
+2. `blog/no-javascript` - 位于博客文件夹中，使用 `blogPost` 内容类型的故事。
+   ```yaml
+   title: 再见吧！JavaScript
+   description: 一个博客文章样例
+   content: 嗨！这是一个没有使用 JavaScript 的博客文章
+   ```
+
+3. `blog/astro-is-amazing` - 位于博客文件夹中，使用 `blogPost` 内容类型的故事。
+   ```yaml
+   title: 令人惊奇的 Astro
+   description: 我们热爱 Astro
+   content: 嗨！这是一个基于 Astro 而打造的博客文章
+   ```
+
+现在准备好了你的内容，然后返回到 Astro 项目中，开始构建你的博客。
+
+### 将 Bloks 连接到组件
+
+为了将你新创建的 Bloks 连接到 Astro 组件，创建一个名为 `storyblok` 的新文件夹，放置到你的 `src` 目录中，并添加以下文件：
+
+`Page.astro` 是一个可嵌套的 Block 类型组件，它会递归地渲染 `page` Blok 的 `body` 属性中的所有 Blok。它还会给父元素添加 `storyblokEditable` 属性，这样我们就可以在 Storyblok 中编辑页面。
+
+```astro title="src/storyblok/Page.astro"
+---
+import { storyblokEditable } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+const { blok } = Astro.props
+---
+
+<main {...storyblokEditable(blok)}>
+  {
+    blok.body?.map((blok) => {
+      return <StoryblokComponent blok={blok} />
+    })
+  }
+</main>
+```
+
+`BlogPost.astro` 将渲染 `blogPost` Blok 的 `title`、`description` 和 `content` 属性。
+
+要将 `content` 属性从富文本字段转换为 HTML，您可以使用 `renderRichText` 辅助函数。
+
+```astro title="src/storyblok/BlogPost.astro"
+---
+import { storyblokEditable, renderRichText } from '@storyblok/astro'
+const { blok } = Astro.props
+const content = renderRichText(blok.content)
+---
+<article {...storyblokEditable(blok)}>
+  <h1>{blok.title}</h1>
+  <p>{blok.description}</p>
+  <Fragment set:html={content} />
+</article>
+```
+
+`BlogPostList.astro` 是一个可嵌套的 Blok 类型组件，用于渲染博客文章预览列表。
+
+它使用 `useStoryblokApi` 钩子函数来获取所有内容类型为 `blogPost` 的文章。在开发模式下，它使用 `version` 查询参数来获取文章的草稿版本，在生产环境构建时则获取已发布的版本。
+
+`Astro.props` 用于在 Storyblok 中设置编辑器，还可以在此处根据需要传递其他属性给该组件。
+
+```astro title="src/storyblok/BlogPostList.astro"
+---
+import { storyblokEditable } from '@storyblok/astro'
+import { useStoryblokApi } from '@storyblok/astro'
+
+const storyblokApi = useStoryblokApi();
+
+const { data } = await storyblokApi.get('cdn/stories', {
+  version: import.meta.env.DEV ? "draft" : "published",
+  content_type: 'blogPost',
+})
+
+const posts = data.stories.map(story => {
+  return {
+    title: story.content.title,
+    date: new Date(story.published_at).toLocaleDateString("en-US", {dateStyle: "full"}),
+    description: story.content.description,
+    slug: story.full_slug,
+  }
+})
+
+const { blok } = Astro.props
+---
+
+<ul {...storyblokEditable(blok)}>
+  {posts.map(post => (
+    <li>
+      <time>{post.date}</time>
+      <a href={post.slug}>{post.title}</a>
+      <p>{post.description}</p>
+    </li>
+  ))}
+</ul>
+```
+
+最后，在 `astro.config.mjs` 的 `storyblok` 配置对象的 `components` 属性中，将你的组件添加进去。键是 Storyblok 中 Blok 的名称，值是相对于 `src` 的组件路径。
+
+```js title="astro.config.mjs" ins={12-14}
+import { defineConfig } from 'astro/config';
+import storyblok from '@storyblok/astro';
+import { loadEnv } from 'vite';
+
+const env = loadEnv("", process.cwd(), 'STORYBLOK');
+
+export default defineConfig({
+  integrations: [
+    storyblok({
+      accessToken: env.STORYBLOK_TOKEN,
+      components: {
+        blogPost: 'storyblok/BlogPost',
+        blogPostList: 'storyblok/BlogPostList',
+        page: 'storyblok/Page',
+      },
+      apiOptions: { 
+        region: 'us',
+      },
+    })
+  ],
+});
+```
+
+### 生成页面
+
+要为特定的 `page` 创建一个路由，你可以直接从 Storyblok API 获取它的内容，并将其传递给 `StoryblokComponent` 组件。请确保在你的 `astro.config.mjs` 中添加了 `Page` 组件。
+
+现在在 `src/pages/` 目录下创建一个 `index.astro` 文件，用于渲染 `home` 页面：
+
+```astro title="src/pages/index.astro" {3,7,8,9,17} 
+---
+import { useStoryblokApi } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+import BaseLayout from '../layouts/BaseLayout.astro'
+
+const storyblokApi = useStoryblokApi();
+const { data } = await storyblokApi.get('cdn/stories/home', {
+  version: import.meta.env.DEV ? "draft" : "published",
+});
+const content = data.story.content;
+---
+<html lang="en">
+  <head>
+    <title>Storyblok & Astro</title>
+  </head>
+  <body>
+    <StoryblokComponent blok={content} />
+  </body>
+</html>
+```
+
+为了给你的所有博客文章生成页面，你可以创建一个 `.astro` 页面来创建动态路由。不过取决于你使用的是**静态站点生成**（默认情况）还是**服务器端渲染**，这种方法会有所不同。
+
+#### 静态站点生成
+
+如果你正在使用 Astro 的默认静态站点生成功能，你将使用[动态路由](/zh-cn/core-concepts/routing/#动态路由)和 `getStaticPaths` 函数来生成你的项目页面。
+
+创建一个名为 `src/pages/blog/` 的新目录，并添加一个名为 `[...slug].astro` 的新文件，其中包含以下代码：
+
+```astro title="src/pages/blog/[...slug].astro"
+---
+import { useStoryblokApi } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+
+export async function getStaticPaths() {
+  const sbApi = useStoryblokApi();
+
+  const { data } = await sbApi.get("cdn/stories", {
+    content_type: "blogPost",
+    version: import.meta.env.DEV ? "draft" : "published",
+  });
+
+  const stories = Object.values(data.stories);
+
+  return stories.map((story) => {
+    return {
+      params: { slug: story.slug },
+    };
+  });
+}
+
+const sbApi = useStoryblokApi();
+const { slug } = Astro.params;
+const { data } = await sbApi.get(`cdn/stories/${slug}`, {
+  version: import.meta.env.DEV ? "draft" : "published",
+});
+
+const story = data.story;
+---
+
+<html lang="en">
+  <head>
+    <title>Storyblok & Astro</title>
+  </head>
+  <body>
+    <StoryblokComponent blok={story.content} />
+  </body>
+</html>
+```
+
+这个文件将为每个故事生成一个页面，页面的 slug 和内容都从 Storyblok API 中获取。
+
+#### 服务器端渲染
+
+如果你已经[启用了 SSR 模式](/zh-cn/guides/server-side-rendering/#启用-ssr)，你将使用动态路由从 Storyblok 获取页面数据。
+
+在 `src/pages/blog/` 目录下创建一个名为 `[...slug].astro` 的新文件，并添加以下代码：
+
+```astro title="src/pages/blog/[...slug].astro"
+---
+import { useStoryblokApi } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+const storyblokApi = useStoryblokApi()
+const slug = Astro.params.slug;
+let content;
+try {
+  const { data } = await storyblokApi.get(`cdn/stories/${slug}`, {
+    version: import.meta.env.DEV ? "draft" : "published",
+  });
+  content = data.story.content
+} catch (error) {
+  return Astro.redirect('/404')
+}
+---
+<html lang="en">
+  <head>
+    <title>Storyblok & Astro</title>
+  </head>
+  <body>
+    <StoryblokComponent blok={content} />
+  </body>
+</html>
+```
+
+这个文件将从 Storyblok 获取并渲染与动态 `slug` 参数匹配的页面数据。
+
+由于你要使用重定向到 `/404`，请在 `src/pages` 目录下创建一个 404 页面：
+
+```astro title="src/pages/404.astro"
+<html lang="en">
+  <head>
+    <title>Not found</title>
+  </head>
+  <body>
+    <p>Sorry, this page does not exist.</p>
+  </body>
+</html>
+```
+
+如果找不到故事，请求将被重定向到 404 页面。
+
+### 发布你的网站
+
+要部署你的网站，请访问我们的[部署指南](/zh-cn/guides/deploy/)，并按照你所偏好的托管提供商的步骤说明进行操作。
+
+#### 当 Storyblok 发生更改时重新构建
+
+如果你的项目使用 Astro 的默认静态模式，你需要设置一个 Webhook，在内容更改时触发新的构建。如果你的托管提供商是 Netlify 或 Vercel，则可以使用其 Webhook 功能来根据 Storyblok 事件触发新的构建。
+
+##### Netlify
+
+在 Netlify 中设置 Webhook 的步骤如下：
+
+1. 进入你的站点仪表板，点击 **Build & deploy**；
+2. 在 **Continuous Deployment** 选项卡下，找到 **Build hooks** 部分，点击 **Add build hook**；
+3. 为你的 Webhook 提供一个名称，并选择要触发构建的分支。点击 **Save** 并复制生成的 URL。
+
+##### Vercel
+
+在 Vercel 中设置 Webhook 的步骤如下：
+
+1. 进入你的项目仪表板，点击 **Settings**；
+2. 在 **Git** 选项卡下，找到 **Deploy Hooks** 部分；
+3. 为你的 Webhook 提供一个名称和要触发构建的分支。点击 **Add** 并复制生成的 URL。
+
+##### 将 Webhook 添加到 Storyblok
+
+在 Storyblok 空间的 **Settings** 中，点击 **Webhooks** 选项卡，将你复制的 Webhook URL 粘贴到 **Story published & unpublished** 字段中，然后点击 <kbd>Save</kbd> 创建 Webhook。
+
+现在，每当你发布一个新的文章，都将触发一个新的构建，并更新你的博客。
+
+## 官方资源
+
+-  Storyblok 提供了一个 [Astro 集成](https://www.storyblok.com/mp/announcing-storyblok-astro)，可以将 Storyblok 添加到你的项目中。
+
+## 社区资源
+
+-  Sandra Rodgers 的文章：[为 Storyblok + Astro 使用可视化编辑器](https://dev.to/sandrarodgers/getting-the-visual-editor-to-work-for-storyblok-astro-2gja)
+-  Jonas Gierer 的文章：[Astro + Storyblok：SSR 预览实现即时可视化编辑](https://dev.to/jgierer12/astro-storyblok-ssr-preview-for-instant-visual-editing-3g9m)
+-  Sandra Rodgers 的文章：[使用 Netlify 的分支部署功能预览带有 Astro-Storyblok 的站点](https://dev.to/sandrarodgers/astro-storyblok-previews-site-with-netlifys-branch-deploys-feature-44dh)
