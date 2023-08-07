@@ -1,4 +1,5 @@
 ---
+import pRetry from 'p-retry';
 import { cachedFetch } from '../util-server';
 
 export interface Props {
@@ -7,9 +8,26 @@ export interface Props {
 
 const { pkgName } = Astro.props as Props;
 
-const packageInfo = await cachedFetch(`https://registry.npmjs.org/${pkgName}/latest`).then((res) =>
-	res.json()
+const url = `https://registry.npmjs.org/${pkgName}/latest`;
+
+const packageInfo = await pRetry(
+	async () => {
+		const response = await cachedFetch(url);
+		const json = await response.json();
+
+		if (!response.ok) {
+			throw new Error(
+				`npm API call failed: GET "${url}" returned status ${response.status}: ${JSON.stringify(
+					json
+				)}`
+			);
+		}
+
+		return json;
+	},
+	{ retries: 10 }
 );
+
 const { version } = packageInfo;
 ---
 
