@@ -168,7 +168,7 @@ export class TranslationStatusBuilder {
 
         // @ts-expect-error enTranslation.length is defined in one case
         const isOutdated = enTranslation.length ?
-          module.filter((k: {isFallback: boolean}) => !k.isFallback).length !== (enTranslation as typeof navTranslations).length :
+          module.filter((k: {labelIsTranslated: boolean}) => k.labelIsTranslated).length !== (enTranslation as typeof navTranslations).length :
           !this.equalKeys(module, enTranslation as NestedRecord)
 
         console.log(subpath, isOutdated)
