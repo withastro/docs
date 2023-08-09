@@ -1,0 +1,195 @@
+---
+title: Contentful & Astro
+description: Add content to your Astro project using Contentful as a CMS
+type: cms
+service: Contentful
+i18nReady: true
+---
+import FileTree from '~/components/FileTree.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+
+[Contentful](https://www.contentful.com/) 是一个 headless CMS（内容管理系统），允许你管理内容、与其他服务集成，并发布到多个平台。
+
+## Contentful 与 Astro 集成
+
+在本节中，我们将使用 [Contentful SDK](https://github.com/contentful/contentful.js) 将你的 Contentful 空间与 Astro 连接，实现零客户端 JavaScript 的集成。
+
+### 前提条件
+
+要开始，请确保你具备以下内容：
+
+1. **Astro 项目** - 如果你尚未拥有 Astro 项目，可以通过我们的 [安装指南](/zh-cn/install/auto/) 快速上手。
+
+2. **Contentful 帐户和 Contentful 空间**。如果你还没有帐户，可以[注册](https://www.contentful.com/sign-up/)一个免费帐户并创建新的 Contentful 空间。如果已有空间，也可以使用现有的空间。
+
+3. **Contentful 凭证** - 你可以在 Contentful 仪表板的 **设置 > API 密钥** 中找到以下凭证。如果你还没有任何 API 密钥，请选择 **添加 API 密钥** 来创建一个。
+
+    - **Contentful 空间 ID** - 你的 Contentful 空间的 ID。
+    - **Contentful 发布访问令牌** - 用于从你的 Contentful 空间中消耗 _已发布_ 内容的访问令牌。
+    - **Contentful 预览访问令牌** - 用于从你的 Contentful 空间中消耗 _未发布_ 内容的访问令牌。
+
+### 配置凭证
+
+要将你的 Contentful 空间凭证添加到 Astro 中，请在项目的根目录中创建一个名为 `.env` 的文件，并添加以下变量：
+
+```ini title=".env"
+CONTENTFUL_SPACE_ID=YOUR_SPACE_ID
+CONTENTFUL_DELIVERY_TOKEN=YOUR_DELIVERY_TOKEN
+CONTENTFUL_PREVIEW_TOKEN=YOUR_PREVIEW_TOKEN
+```
+### 配置凭证
+
+要将你的 Contentful 空间凭证添加到 Astro 中，请在项目的根目录中创建一个名为 `.env` 的文件，并添加以下变量：
+
+```ini title=".env"
+CONTENTFUL_SPACE_ID=YOUR_SPACE_ID
+CONTENTFUL_DELIVERY_TOKEN=YOUR_DELIVERY_TOKEN
+CONTENTFUL_PREVIEW_TOKEN=YOUR_PREVIEW_TOKEN
+```
+
+### 安装依赖项
+
+要连接到你的 Contentful 空间，请使用以下命令同时安装以下两个包，你可以根据首选的包管理器使用以下单个命令：
+
+- [`contentful.js`](https://github.com/contentful/contentful.js)，官方的 JavaScript Contentful SDK
+- [`rich-text-html-renderer`](https://github.com/contentful/rich-text/tree/master/packages/rich-text-html-renderer)，用于将 Contentful 的富文本字段渲染为 HTML 的包。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install contentful @contentful/rich-text-html-renderer
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install contentful @contentful/rich-text-html-renderer
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add contentful @contentful/rich-text-html-renderer
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+接下来，在你的项目中的 `src/lib/` 目录中创建一个名为 `contentful.ts` 的新文件。
+
+```ts title="src/lib/contentful.ts"
+import contentful from "contentful";
+
+export const contentfulClient = contentful.createClient({
+  space: import.meta.env.CONTENTFUL_SPACE_ID,
+  accessToken: import.meta.env.DEV
+    ? import.meta.env.CONTENTFUL_PREVIEW_TOKEN
+    : import.meta.env.CONTENTFUL_DELIVERY_TOKEN,
+  host: import.meta.env.DEV ? "preview.contentful.com" : "cdn.contentful.com",
+});
+```
+
+上述代码段创建一个新的 Contentful 客户端，传递 `.env` 文件中的凭证。
+
+:::caution
+在开发模式下，你的内容将从 **Contentful 预览 API** 获取。这意味着你将能够在 Contentful 网站上看到未发布的内容。
+
+在构建时，你的内容将从 **Contentful 发布 API** 获取。这意味着在构建时只有已发布的内容可用。
+:::
+
+最后，你的根目录现在应包含以下新文件：
+
+<FileTree title="项目结构">
+- src/
+  - env.d.ts
+  - lib/
+    - **contentful.ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### 获取数据
+
+Astro 组件可以通过使用 `contentfulClient` 并指定 `content_type` 从你的 Contentful 帐户获取数据。
+
+例如，如果你有一个名为 "blogPost" 的内容类型，其中包含一个用于标题的文本字段和一个用于内容的富文本字段，你的组件可能如下所示：
+
+```astro
+---
+import { contentfulClient } from "../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { EntryFieldTypes } from "contentful";
+
+interface BlogPost {
+  contentTypeId: "blogPost",
+  fields: {
+    title: EntryFieldTypes.Text
+    content: EntryFieldTypes.RichText,
+  }
+}
+
+const entries = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+});
+---
+<body>
+  {entries.items.map((item) => (
+    <section>
+      <h2>{item.fields.title}</h2>
+      <article set:html={documentToHtmlString(item.fields.content)}></article>
+    </section>
+  ))}
+</body>
+```
+
+:::tip
+如果你有一个空的 Contentful 空间，请查看 [设置 Contentful 模型](#设置-contentful-模型)，以了解如何为你的内容创建基本的博客模型。
+:::
+
+你可以在 [Contentful 文档](https://contentful.github.io/contentful.js/) 中找到更多的查询选项。
+
+## 使用 Astro 和 Contentful 创建博客
+
+通过上述设置，你现在可以创建一个使用 Contentful 作为 CMS 的博客。
+
+### 先决条件
+
+1. **Contentful 空间** - 在本教程中，我们建议从一个空的空间开始。如果你已经拥有内容模型，请随意使用它，但你需要修改我们的代码片段以匹配你的内容模型。
+2. **已集成 [Contentful SDK](https://github.com/contentful/contentful.js) 的 Astro 项目** - 有关如何设置带有 Contentful 的 Astro 项目的详细信息，请参见 [与 Astro 集成](#与-astro-集成)。
+
+### 设置 Contentful 模型
+
+在你的 Contentful 空间内，在**内容模型**部分，创建一个新的内容模型，具有以下字段和值：
+
+- **名称：** Blog Post
+- **API 标识符：** `blogPost`
+- **描述：** 此内容类型用于博客文章
+
+在你新创建的内容类型中，使用 **添加字段** 按钮添加 5 个新字段，具有以下参数：
+
+1. 文本字段
+    - **名称：** title
+    - **API 标识符：** `title`
+    （将其他参数保留为默认值）
+2. 日期和时间字段
+    - **名称：** date
+    - **API 标识符：** `date`
+3. 文本字段
+    - **名称：** slug
+    - **API 标识符：** `slug`
+    （将其他参数保留为默认值）
+4. 文本字段
+    - **名称：** description
+    - **API 标识符：** `description`
+5. 富文本字段
+    - **名称：** content
+    - **API 标识符：** `content`
+
+点击 **保存** 以保存你的更改。
+
+在你的 Contentful 空间的 **内容** 部分，通过点击 **添加条目** 按钮创建一个新的条目。然后填写字段：
+
+- **标题：** `Astro is amazing!`
+- **Slug：** `astro-is-amazing`
+- **描述：** `Astro is a new static site generator that is blazing fast and easy to use.`
+- **日期：** `2022-10-05`
+- **
