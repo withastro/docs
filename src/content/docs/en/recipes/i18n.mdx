@@ -12,6 +12,8 @@ In this recipe, you'll learn how to use content collections and dynamic routing 
 
 This example serves each language at its own subpath, e.g. `example.com/en/blog` for English and `example.com/fr/blog` for French.
 
+If you want serve the default language at top-level, [click here](/en/recipes/i18n/#set-up-default-language-at-top-level).
+
 ## Recipe
 
 ### Set up pages for each language
@@ -320,6 +322,91 @@ Create links to the different languages you support so users can choose the lang
             </footer>
         </body>
     </html>
+    ```
+
+### Set up default language at top-level
+
+1. Create a directory only for each language that is not the default language that you want to support. For example, `en/` and `fr/` if you support English as the default language and French:
+
+    <FileTree>
+    - src/
+      - pages/
+        - about.astro
+        - index.astro
+        - **fr/**
+          - about.astro
+          - index.astro
+        - index.astro
+    </FileTree>
+
+2. Add a line to the `src/i18n/ui.ts` file to possibly toggle the feature:
+
+    ```ts
+    // src/i18n/ui.ts
+    
+    // whether the defaultLang should show up in the url just as other locales.
+    export const showDefaultLang = true;
+    ```
+
+
+3. Create a helper function to translate paths based on the current user interface language in `src/i18n/utils.ts`:
+
+   ```js
+    // src/i18n/utils.ts
+    import { ui, defaultLang, showDefaultLang } from './ui';
+
+    export function useTranslatedPath(lang: keyof typeof ui) {
+      return function translatePath(path: string, l: string = lang) {
+        return showDefaultLang && l === defaultLang ? path : `/${l}${path}`
+      }
+    }
+    ```
+
+4. Import the helpers where needed and use them to translate paths to the current language. For example, a nav component might look like:
+
+    ```astro 
+    ---
+    // src/components/Nav.astro
+    import { getLangFromUrl, useTranslations } from '../i18n/utils';
+    
+    const lang = getLangFromUrl(Astro.url);
+    const t = useTranslations(lang);
+    const translatePath = useTranslatedPath(lang);
+    ---
+    <ul>
+        <li>
+            <a href={translatePath('/home/')}>
+              {t('nav.home')}
+            </a>
+        </li>
+        <li>
+            <a href={translatePath('/about/')}>
+              {t('nav.about')}
+            </a>
+        </li>
+        <li>
+            <a href="https://twitter.com/astrodotbuild">
+              {t('nav.twitter')}
+            </a>
+        </li>
+    </ul>
+    ```
+
+5. Let users switch between languages
+
+    ```astro
+    ---
+    // src/components/LanguagePicker.astro
+    import { languages } from '../i18n/ui';
+    ---
+
+    <ul>
+      {Object.entries(languages).map(([lang, label]) => (
+        <li>
+          <a href={translatePath('/', lang)}>{label}</a>
+        </li>
+      ))}
+    </ul>
     ```
 
 ## Resources
