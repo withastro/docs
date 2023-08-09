@@ -58,6 +58,17 @@ export default function Tabs({ sharedStore, ...slots }: Props) {
 		setCurr(getBaseKeyFromTab(tabSlot));
 	}
 
+	function isPanelEmpty(key: TabSlot): boolean {
+		const panel = panels.find(
+			([panelKey]) => panelKey === `${panelSlotKey}${getBaseKeyFromTab(key)}`
+		);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+		if (!panel || panel[1]?.props.value === '') {
+			return true;
+		}
+		return false;
+	}
+
 	useEffect(() => {
 		if (scrollToTabRef.current) {
 			scrollToTabRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -118,6 +129,7 @@ export default function Tabs({ sharedStore, ...slots }: Props) {
 							className={styles.tab}
 							id={`${tabId}-${key}`}
 							key={key}
+							hidden={isPanelEmpty(key)}
 						>
 							{content}
 						</button>
