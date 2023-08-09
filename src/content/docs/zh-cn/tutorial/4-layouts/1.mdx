@@ -1,0 +1,209 @@
+---
+type: tutorial
+title: 编写你的第一个布局
+description: |-
+  教程：搭建你的 Astro 博客 -
+  将常见元素重构为可复用的页面布局
+---
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+
+<PreCheck>
+  - 将常见元素重构为页面布局
+  - 使用 Astro 的 `<slot />` 元素将页面内容放置在布局中
+  - 将页面特定的值作为 props 传递给布局
+</PreCheck>
+
+你现在仍然在每个页面上重复渲染一些 Astro 组件。让我们再次重构，创建一个共享的页面布局！
+
+## 编写你的第一个布局组件
+
+1. 创建一个新文件：`src/layouts/BaseLayout.astro`（你需要首先创建一个 `layouts` 文件夹）。
+
+2. 将 `index.astro` 的**全部内容**复制到你的新文件 `BaseLayout.astro` 中。
+
+    ```astro title="src/layouts/BaseLayout.astro"
+    ---
+    import Header from '../components/Header.astro';
+    import Footer from '../components/Footer.astro';
+    import '../styles/global.css';
+    const pageTitle = "首页";
+    ---
+    <html lang="zh-cn">
+      <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+        <title>{pageTitle}</title>
+      </head>
+      <body>
+        <Header />
+        <h1>{pageTitle}</h1>
+        <Footer />
+        <script>
+          import "../scripts/menu.js";
+        </script>
+      </body>
+    </html>
+    ```
+
+## 在页面上使用你的布局
+
+3. 使用以下代码替换 `src/pages/index.astro` 中的代码：
+
+    ```astro title="src/pages/index.astro"
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    const pageTitle = "首页";
+    ---
+    <BaseLayout>
+      <h2>My awesome blog subtitle</h2>
+    </BaseLayout>
+    ```
+ 
+4. 再次查看浏览器预览，注意到发生了什么变化（或者直接剧透：没有变化！）。
+
+5. 在 `src/layouts/BaseLayout.astro` 的页脚组件上方添加一个 `<slot />` 元素，然后查看你的首页在浏览器的预览中真正发生了什么变化！
+
+    ```astro title="src/layouts/BaseLayout.astro" ins={18}
+    ---
+    import Header from '../components/Header.astro';
+    import Footer from '../components/Footer.astro';
+    import '../styles/global.css';
+    const pageTitle = "首页";
+    ---
+    <html lang="zh-cn">
+      <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+        <title>{pageTitle}</title>
+      </head>
+      <body>
+        <Header />
+        <h1>{pageTitle}</h1>
+        <slot />
+        <Footer />
+        <script>
+          import "../scripts/menu.js";
+        </script>
+      </body>
+    </html>
+    ```
+
+ `<slot />` 允许你将写在开放和闭合 `<Component></Component>` 标签之间的**子内容**注入（或者说是「插入」）到任何 `Component.astro` 文件中。
+
+## 通过 props 传递页面特定的值
+
+1. 使用组件属性将页面标题从 `index.astro` 传递给你的布局组件：
+
+    ```astro title="src/pages/index.astro" 'pageTitle={pageTitle}'
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    const pageTitle = "首页";
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <h2>My awesome blog subtitle</h2>
+    </BaseLayout>
+    ```
+
+2. 将 `BaseLayout.astro` 布局组件的脚本更改为通过 `Astro.props` 接收页面标题，而不是将其定义为常量。
+
+    ```astro title="src/layouts/BaseLayout.astro" del={5} ins={6}
+    ---
+    import Header from '../components/Header.astro';
+    import Footer from '../components/Footer.astro';
+    import '../styles/global.css';
+    const pageTitle = "首页";
+    const { pageTitle } = Astro.props;
+    ---
+    ```
+
+3. 检查你的浏览器预览，验证你的页面标题没有改变。它具有相同的值，但现在是动态渲染的。现在，每个独立的页面都可以指定自己的标题给布局。
+
+<Box icon="puzzle-piece">
+
+## 试一试 - 在任何地方使用你的布局
+
+**重构**你的其他页面（`blog.astro` 和 `about.astro`），使它们使用你的新的 `<BaseLayout>` 组件来渲染共同的页面元素。
+不要忘记：
+
+- 通过组件属性将页面标题作为 props 传递。
+- 让布局负责渲染任何共同的 HTML。
+- 删除每个页面中不再负责渲染的任何内容，因为布局会来处理它，包括：
+
+  - HTML 元素
+  - 组件及其导入语句
+  - `<style>` 标签中的 CSS 样式（例如，你的 About 页面中的 `<h1>`）
+  - `<script>` 标签
+</Box>
+
+<Box icon="question-mark">
+
+### 检验你的知识
+
+1. Astro 组件（`.astro` 文件）可以用作：
+
+    <MultipleChoice>
+      <Option>页面</Option>
+      <Option>UI 组件</Option>
+      <Option>布局</Option>
+      <Option>图片</Option>
+      <Option isCorrect>以上全部，因为 Astro 组件非常实用！🏗️</Option>
+    </MultipleChoice>
+
+2. 要在页面上显示页面，你可以
+
+    <MultipleChoice>
+      <Option>
+        在页面上使用带有静态文本的标准 HTML 元素（例如 `<h1>首页</h1>`）
+      </Option>
+      <Option>
+        在页面上使用标准 HTML 元素，引用在组件的前置脚本中定义的变量（例如 `<h1>{pageTitle}</h1>`）
+      </Option>
+      <Option>
+        在页面上使用布局组件，通过组件属性传递标题（例如 `<BaseLayout title="首页" />` 或 `<BaseLayout title={pageTitle} />`）
+      </Option>
+      <Option isCorrect>
+        以上全部，因为 Astro 可以让你使用普通的 HTML 或加强它的功能，使用一些脚本和组件！💪
+      </Option>
+    </MultipleChoice>
+
+3. 可以通过以下什么方式将信息从一个组件传递到另一个组件：
+
+    <MultipleChoice>
+      <Option>
+        导入一个 UI 组件，并在另一个组件的模板中渲染它
+      </Option>
+      <Option>
+        通过组件属性将 props 传递给渲染它的组件
+      </Option>
+      <Option>
+        使用 `<slot />` 占位符，将要在另一个组件中呈现的 HTML 内容发送过去
+      </Option>
+      <Option isCorrect>
+        以上全部，因为 Astro 构建时就考虑了组件化设计！🧩
+      </Option>
+    </MultipleChoice>
+
+</Box>
+
+<Box icon="check-list">
+
+## 任务清单
+
+<Checklist>
+- [ ] 我可以创建带有 `<slot />` 的 Astro 布局组件。
+- [ ] 我可以向布局传递页面特定的属性。
+</Checklist>
+</Box>
+
+### 相关资源
+
+- [Astro 布局组件](/zh-cn/core-concepts/layouts/)
+- [Astro `<slot />`](/zh-cn/core-concepts/astro-components/)
