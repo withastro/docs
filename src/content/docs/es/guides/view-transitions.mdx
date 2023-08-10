@@ -4,6 +4,7 @@ description: >-
   Cómo habilitar el soporte experimental para las view transitions en tu sitio de Astro
 i18nReady: true
 ---
+import Since from '~/components/Since.astro'
 
 El soporte para **transiciones de vista opcionales por página** en proyectos Astro puede habilitarse utilizando una bandera experimental. Las transiciones de vista actualizan el contenido de tu página sin recargar la navegación completa normal del navegador, lo que proporciona animaciones fluidas entre páginas.
 
@@ -63,25 +64,68 @@ import { ViewTransitions } from 'astro:transitions';
 
 ## Directivas de transición
 
+Astro asignará automáticamente a los elementos encontrados tanto en la página antigua como en la nueva un `view-transition-name` compartido y único. Esta pareja de elementos coincidentes es inferida por el tipo de elemento y su ubicación en el DOM.
+
 Utiliza las directivas opcionales `transition:*` en los elementos de la página dentro de tus componentes `.astro` para un control más fino sobre la animación de transición de la página durante la navegación.
 
 - `transition:name`: Te permite anular la coincidencia de elementos predeterminada de Astro para la animación del contenido antiguo/nuevo y [especificar un nombre de transición](#nombrando-una-transición) para asociar un par de elementos DOM.
-- `transition:animate`: Te permite anular la animación predeterminada de Astro especificando un tipo de animación. Utiliza las [directivas de animación integradas de Astro](#directivas-de-animación-integradas) o [crea animaciones de transición personalizadas](#personalizando-animaciones).
+- `transition:animate`: Te permite modificar la animación predeterminada de Astro mientras reemplaza el elemento antiguo por el nuevo especificando un tipo de animación. Utiliza las [directivas de animación integradas](#directivas-de-animación-integradas) de Astro o [crea animaciones de transición personalizadas](#personalizando-animaciones).
+- `transition: persist`: Te permite anular el reemplazo predeterminado de los elementos antiguos por los nuevos de Astro y, en su lugar, [persistir los componentes y elementos HTML](#mantener-el-estado) al navegar a otra página.
 
 
-### Nombrando una transición
+## Nombrando una transición
 
-Astro asignará automáticamente a los elementos encontrados tanto en la página antigua como en la nueva un `view-transition-name` compartido y único. Esta pareja de elementos coincidentes es inferida por el tipo de elemento y su ubicación en el DOM.
+En algunos casos, es posible que desees o necesites identificar los elementos de transición de vista correspondientes tú mismo. Puedes especificar un nombre para un par de elementos utilizando la directiva `transition:name`.
 
-En algunos casos, es posible que desees o necesites identificar estos elementos tú mismo. Puedes especificar un nombre para un par de elementos utilizando la directiva `transition:name`.
-
-```astro
+```astro title="old-page.astro"
 <aside transition:name="hero">
 ```
 
-Ten en cuenta que el `transition:name` debe ser distinto por elemento. Establece esto manualmente solo cuando Astro no pueda inferir un nombre adecuado por sí mismo, o para un control más fino sobre los elementos coincidentes.
+```astro title="new-page.astro"
+<aside transition:name="hero">
+```
 
-### Directivas de animación integradas
+Ten en cuenta que el `transition:name` solo se puede utilizar una vez en cada página. Establece esto manualmente solo cuando Astro no pueda inferir un nombre adecuado por sí mismo, o para un control más fino sobre los elementos coincidentes.
+
+## Mantener el estado
+
+<Since v="2.10.0" />
+
+Puedes persistir componentes y elementos HTML (en lugar de reemplazarlos) a través de las navegaciones de página utilizando la directiva `transition:persist`.
+
+Por ejemplo, el siguiente `<video>` continuará reproduciéndose a medida que navegas a otra página que contiene el mismo elemento de video. Esto funciona tanto para la navegación hacia adelante como hacia atrás.
+
+```astro title="components/Video.astro" "transition:persist"
+<video controls="" autoplay="" transition:persist>
+	<source src="https://ia804502.us.archive.org/33/items/GoldenGa1939_3/GoldenGa1939_3_512kb.mp4" type="video/mp4">
+</video>
+```
+
+También puedes colocar la directiva en una [isla de Astro](/es/concepts/islands/) (un componente de framework UI con una directiva [`client:`](/es/reference/directives-reference/#directivas-del-cliente)). Si ese componente existe en la siguiente página, la isla de la página antigua **con su estado actual** continuará mostrándose, en lugar de reemplazarla con la isla de la nueva página.
+
+En el ejemplo de abajo, el `count` no se restablecerá al navegar hacia adelante y hacia atrás a través de páginas que contengan el componente `<Counter />` con el atributo `transition:persist`.
+
+```astro title="components/Header.astro" "transition:persist"
+<Counter client:load transition:persist count={5} />
+```
+
+También puedes [identificar manualmente los elementos correspondientes](#nombrando-una-transición) si la isla/elemento está en un componente diferente entre las dos páginas.
+
+```astro title="pages/old-page.astro" "Video" 'transition:name="media-player"'
+<Video controls="" autoplay="" transition:name="media-player" transition:persist />
+```
+
+```astro title="pages/new-page.astro" "MyVideo" 'transition:name="media-player"'
+<MyVideo controls="" autoplay="" transition:name="media-player" transition:persist />
+```
+
+Una alternativa práctica, `transition:persist` puede tomar un nombre de transición como valor.
+
+```astro title="pages/index.astro" '="media-player"'
+<video controls="" autoplay="" transition:persist="media-player">
+```
+
+## Directivas de animación integradas
 
 Astro viene con algunas animaciones incorporadas para anular la transción `morph` predeterminada. Agrega la `transición:animate` para probar la animación `slide` o `fade` de Astro.
 
@@ -199,6 +243,62 @@ import { ViewTransitions } from 'astro:transitions';
 :::note[limitaciones conocidas]
 La animación `morph` no puede ser simulada en CSS tradicional. Por lo tanto, cualquier elemento que utilice esta animación no será animado.
 :::
+
+## Comportamiento del script durante la navegación de la página
+
+Cuando navegas entre páginas con el componente `<ViewTransitions />`, los scripts se ejecutan en orden secuencial para coincidir con el comportamiento del navegador. 
+
+Si tienes código que configura el estado global, este estado deberá tener en cuenta que el script puede ejecutarse más de una vez. Comprueba el estado global en tu etiqueta `<script>`, y ejecuta condicionalmente tu código cuando sea posible:
+
+```astro
+<script is:inline>
+  if(!window.SomeGlobal) {
+    window.SomeGlobal = {} // ....
+  }
+</script>
+```
+
+Los scripts de módulo solo se ejecutan una vez porque el navegador realiza un seguimiento de qué módulos ya están cargados. Para estos scripts, no necesitas preocuparte por la reejecución.
+
+### `astro:load`
+
+Un evento que se dispara al final de la navegación de la página, después de que la nueva página sea visible para el usuario y se carguen los estilos y scripts de bloqueo. Puedes escuchar este evento en el `document`.
+
+El componente `<ViewTransitions />` dispara este evento tanto en la navegación inicial de la página (MPA) como en cualquier navegación posterior, ya sea hacia adelante o hacia atrás.
+
+Puedes usar este evento para ejecutar código en cada navegación de página, o solo una vez:
+
+```astro "{ once: true }"
+<script>
+  document.addEventListener('astro:load', () => {
+    // Solo se ejecuta una vez.
+    setupStuff();
+  }, { once: true });
+</script>
+```
+
+### `astro:beforeload`
+
+Un evento que se dispara inmediatamente después de que la nueva página reemplace la página antigua. Puedes escuchar este evento en el `document`.
+
+Este evento es útil para restaurar cualquier estado en el DOM que necesite transferirse a la nueva página.
+
+Por ejemplo, si estás implementando el soporte de modo oscuro, este evento se puede usar para restaurar el estado en las cargas de página:
+
+```astro
+<script>
+	const setDarkMode = () => {
+		if (localStorage.darkMode) {
+			document.documentElement.dataset.dark = '';
+		}
+	};
+
+  // Se ejecuta en la navegación inicial
+	setDarkMode();
+  // Se ejecuta en la navegación de transiciones de vista
+	document.addEventListener('astro:beforeload', setDarkMode);
+</script>
+```
 
 ## `prefers-reduced-motion`
 

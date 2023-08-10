@@ -1,0 +1,205 @@
+---
+title: DatoCMS 与 Astro
+description: 使用 DatoCMS 作为 CMS 向你的 Astro 项目添加内容
+type: cms
+stub: false
+service: DatoCMS
+i18nReady: true
+---
+import FileTree from '~/components/FileTree.astro'
+
+[DatoCMS](https://datocms.com/) 是一个基于 Web 的 headless CMS，用于管理你站点和应用程序的数字内容。
+
+## 与 Astro 集成
+
+在本指南中，你将从 DatoCMS 中获取内容数据，并在 Astro 项目中显示它。
+
+## 前提条件
+
+要开始，你需要准备以下内容：
+
+- **Astro 项目** - 如果你还没有 Astro 项目，请按照我们的[安装指南](/zh-cn/install/auto/)中的说明进行设置。
+- **DatoCMS 账户和项目** - 如果你还没有账户，请[注册一个免费帐户](https://dashboard.datocms.com/signup)。
+- **DatoCMS 项目的只读 API 密钥** - 你可以在项目的管理面板中找到它，在“设置”>“API令牌”下。
+
+## 设置凭证
+
+在 Astro 项目的根目录下创建一个名为 `.env` 的新文件（如果还不存在）。在该文件中添加一个新的环境变量，使用在 DatoCMS 管理面板中找到的 API 密钥：
+
+```ini title=".env"
+DATOCMS_API_KEY=YOUR_API_KEY
+```
+
+对于 TypeScript 支持，请在 `src/` 文件夹中的 `env.d.ts` 文件中声明此环境变量的类型。如果该文件不存在，你可以创建它并添加以下内容：
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly DATOCMS_API_KEY: string;
+}
+```
+
+
+你的根目录现在应包含以下文件：
+
+<FileTree title="Project Structure">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## 在 DatoCMS 中创建模型
+
+在你的 DatoCMS 项目管理面板中，导航到“设置”>“模型”，创建一个名为“Home”的新模型，并选择“Single Instance”开关。这将为你的项目创建一个主页。在该模型中，添加一个新的文本字段用于页面标题。
+
+在你的项目中导航到“内容”选项卡，然后单击你新创建的主页。你现在可以添加一个标题。保存页面并继续。
+
+## 获取数据
+
+在你的 Astro 项目中，导航到将获取和显示 CMS 内容的页面。添加以下查询以使用 DatoCMS GraphQL API 获取 `home` 页面的内容。
+
+以下示例在 `src/pages/index.astro` 中显示来自 DatoCMS 的页面标题：
+
+```astro title="src/pages/index.astro"
+---
+const response = await fetch('https://graphql.datocms.com/', {
+	method: 'POST',
+	headers: {
+		'Content-Type': 'application/json',
+		Accept: 'application/json',
+		Authorization: `Bearer ${import.meta.env.DATOCMS_API_KEY}`,
+	},
+	body: JSON.stringify({
+		query: `query Homepage {
+          home {
+            title
+          }
+        }
+      `,
+	}),
+});
+
+const json = await response.json();
+const data = json.data.home;
+---
+
+<h1>{data.title}</h1>
+
+```
+
+该 GraphQL 查询将从 DatoCMS 项目中获取 `home` 页面中的 `title` 字段。刷新浏览器后，你应该在页面上看到标题。
+
+## 添加动态模块化内容块
+
+如果你的 DatosCMS 项目包含[模块化内容](https://www.datocms.com/docs/content-modelling/modular-content)，那么你需要为每个内容块（例如文本段、视频、引用块等）构建相应的 `.astro` 组件，以便与项目中的模块字段兼容。
+
+以下示例是用于显示来自 DatoCMS 的"多段文本"块的 `<Text />` Astro 组件：
+
+```astro title="src/components/Text.astro"
+---
+export interface TextProps {
+	text: string
+}
+
+export interface Props {
+	item: TextProps
+}
+
+const { item } = Astro.props;
+---
+
+<div set:html={item.text} />
+
+```
+要获取这些块，请编辑你的 GraphQL 查询，以包含你在 DatoCMS 中创建的模块化内容块。
+
+在此示例中，DatoCMS 中的模块化内容块被命名为 **content**。此查询还包括每个项目的唯一 `_modelApiKey`，以检查模块字段中的数据，根据内容作者在 DatoCMS 编辑器中选择的内容来动态渲染。在 Astro 模板中使用 switch 语句，根据从查询中接收到的数据进行动态渲染。
+
+以下示例表示了 DatoCMS 模块化内容块，允许作者在主页上选择在文本字段（`<Text />`）和图像（`<Image />`）之间切换：
+
+```astro title="src/pages/index.astro" ins={2,3, 16-27, 39-50}
+---
+import Image from '../components/Image.astro';
+import Text from '../components/Text.astro';
+
+const response = await fetch('https://graphql.datocms.com/', {
+	method: 'POST',
+	headers: {
+		'Content-Type': 'application/json',
+		Accept: 'application/json',
+		Authorization: `Bearer ${import.meta.env.DATOCMS_API_KEY}`,
+	},
+	body: JSON.stringify({
+		query: `query Homepage {
+          home {
+            title
+            content {
+              ... on ImageRecord {
+                _modelApiKey
+               image{
+                url
+               }
+              }
+              ... on TextRecord {
+                _modelApiKey
+                text(markdown: true)
+              }
+            }
+          }
+        }
+      `,
+	}),
+});
+
+const json = await response.json();
+const data = json.data.home;
+---
+
+<h1>{data.title}</h1>
+{
+  data.content.map((item: any) => {
+    switch (item._modelApiKey) {
+      case 'image':
+        return <Image item={item} />;
+      case 'text':
+        return <Text item={item} />;
+      default:
+        return null;
+    }
+  })
+}
+
+```
+
+
+## 发布你的网站
+
+要部署你的网站，请访问我们的 [部署指南](/zh-cn/guides/deploy/) 并按照适用于你首选的托管提供商的说明进行操作。
+
+## 发布 DatoCMS 内容更改
+
+如果你的项目使用 Astro 的默认静态模式，则需要设置 Webhook 以在内容更改时触发新构建。如果你的托管提供商是 Netlify 或 Vercel，你可以使用其 Webhook 功能在 DatoCMS 中更改内容时触发新构建。
+
+### Netlify
+
+在 Netlify 中设置 Webhook：
+
+1. 进入你的站点仪表板，点击 **Build & deploy**。
+2. 在 **Continuous Deployment** 选项卡下，找到 **Build hooks** 部分，然后点击 **Add build hook**。
+3. 为 Webhook 提供一个名称，选择要触发构建的分支。点击 **Save** 并复制生成的 URL。
+
+### Vercel
+
+在 Vercel 中设置 Webhook：
+
+1. 进入你的项目仪表板，点击 **Settings**。
+2. 在 **Git** 选项卡下，找到 **Deploy Hooks** 部分。
+3. 为 Webhook 提供一个名称，选择要触发构建的分支。点击 **Add** 并复制生成的 URL。
+
+### 添加 Webhook 到 DatoCMS
+
+在你的 DatoCMS 项目管理面板中，导航到 **Settings** 选项卡，然后点击 **Webhooks**。点击加号图标创建一个新的 Webhook，并为其命名。在 URL 字段中，粘贴你所选择的托管服务生成的 URL。作为 Trigger，根据你的需要选择适当的选项（例如：每当新记录被发布时构建）。
+
+## 起始项目
+你还可以在 DatoCMS 市场上查看 [Astro 博客模板](https://www.datocms.com/marketplace/starters/astro-template-blog)，了解如何使用 Astro 和 DatoCMS 创建博客。
