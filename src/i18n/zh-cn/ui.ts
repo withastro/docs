@@ -117,7 +117,8 @@ export default UIDictionary({
 	'backend.navTitle': '更多后端服务指南',
 	'stub.title': '完善本篇！',
 	'stub.subtitle': '此页面尚未完成。',
-	'stub.description.migration': '想为这个指南做贡献吗？有关于从这项技术迁移到 Astro 的博客、视频或其他资源？',
+	'stub.description.migration':
+		'想为这个指南做贡献吗？有关于从这项技术迁移到 Astro 的博客、视频或其他资源？',
 	'stub.description.cms': '了解更多在 Astro 使用此 CMS 的信息？',
 	'stub.description.backend': '了解更多在 Astro 使用此后端服务的信息？',
 });
