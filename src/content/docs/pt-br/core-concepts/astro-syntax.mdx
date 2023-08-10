@@ -1,0 +1,178 @@
+---
+title: Sintaxe do Astro
+description: Uma introdução à sintaxe de componente .astro .
+i18nReady: true
+---
+
+**Se você conhece HTML, você já sabe o suficiente para escrever seu primeiro componente Astro.**
+
+A sintaxe de componente Astro é uma extensão do HTML. A sintaxe foi [projetada para soar familiar a qualquer um com experiência em escrever HTML ou JSX](#diferenças-entre-astro-e-jsx) e adiciona suporte para incluir componentes e expressões do JavaScript.
+
+
+## Expressões parecidas com JSX
+
+Você pode definir variáveis locais do JavaScript dentro do script do frontmatter do componente entre as duas cercas de código (`---`) de um componente Astro. Você pode então injetar essas variáveis no template HTML do componente usando expressões parecidas com JSX!
+
+:::note[dinâmico vs reativo]
+Usando essa abordagem, você pode incluir valores **dinâmicos** que são calculados no frontmatter. Mas uma vez incluídos, esses valores não são **reativos** e nunca mudarão. Os componentes Astro são templates que só executam uma vez, durante a etapa de renderização.
+
+Veja abaixo mais exemplos de [diferenças entre Astro e JSX](#diferenças-entre-astro-e-jsx).
+:::
+
+### Variáveis
+
+Variáveis locais podem ser adicionadas ao HTML usando a sintaxe de chaves:
+
+```astro title="src/components/Variaveis.astro" "{nome}"
+---
+const nome = "Astro";
+---
+<div>
+  <h1>Olá {nome}!</h1>  <!-- Produz <h1>Olá Astro!</h1> -->
+</div>
+```
+
+### Atributos Dinâmicos
+
+Variáveis locais podem ser usadas entre chaves para passar valores de atributos tanto para elementos HTML como para componentes:
+
+```astro title="src/components/AtributosDinamicos.astro" "{nome}" "${nome}"
+---
+const nome = "Astro";
+---
+<h1 class={nome}>Expressões de atributo são suportadas</h1>
+
+<MeuComponente atributoTemplateLiteralNome={`MeuNomeE${nome}`} />
+```
+
+:::caution
+Atributos HTML vão ser convertidos para strings, portanto não é possível passar funções e objetos para elementos HTML.
+Por exemplo, você não pode atribuir um manipulador de eventos a um elemento HTML em um componente Astro:
+
+```astro
+---
+// nao-faca-isso.astro
+function tratarClique () {
+    console.log("botão clicado!");
+}
+---
+<!-- ❌ Isso não funciona! ❌ -->
+<button onClick={tratarClique}>Nada vai acontecer quando você me clicar!</button>
+```
+
+Ao invés disso, use um script do lado do cliente para adicionar o manipulador de evento, como você faria no JavaScript vanilla:
+
+```astro
+---
+// faca-isso-em-vez-disso.astro
+---
+<button id="botao">Clique em Mim</button>
+<script>
+  function tratarClique () {
+    console.log("botão clicado!");
+  }
+  document.getElementById("botao").addEventListener("click", tratarClique);
+</script>
+```
+:::
+
+### HTML Dinâmico
+
+Variáveis locais podem ser usadas em funções parecidas com JSX para produzir elementos HTML gerados dinamicamente:
+
+```astro title="src/components/HtmlDinamico.astro" "{item}"
+---
+const itens = ["Cachorro", "Gato", "Ornitorrinco"];
+---
+<ul>
+  {itens.map((item) => (
+    <li>{item}</li>
+  ))}
+</ul>
+```
+
+O Astro pode condicionalmente exibir HTML usando operadores lógicos do JSX e expressões ternárias.
+
+```astro title="src/components/HtmlCondicional.astro" "visivel"
+---
+const visivel = true;
+---
+{visivel && <p>Mostre-me!</p>}
+
+{visivel ? <p>Mostre-me!</p> : <p>Ou mostre-me!</p>}
+```
+
+### Tags Dinâmicas
+
+Você também pode usar tags dinâmicas ao atribuir a uma variável o nome de uma tag HTML ou um componente importado:
+
+```astro title="src/components/TagsDinamicas.astro" /Elemento|(?<!Meu)Componente/
+---
+import MeuComponente from "./MeuComponente.astro";
+const Elemento = 'div'
+const Componente = MeuComponente;
+---
+<Elemento>Olá!</Elemento> <!-- renderiza como <div>Olá!</div> -->
+<Componente /> <!-- renderiza como <MeuComponente /> -->
+```
+
+Ao usar tags dinâmicas:
+
+- **Os nomes de variáveis precisam ser capitalizados.** Por exemplo, use `Elemento`, não `elemento`. Caso contrário, o Astro vai tentar renderizar o nome da sua variável como uma tag HTML literal.
+
+- **Diretivas de hidratação não são suportadas.** Ao usar as [diretivas de hidratação `client:*`](/pt-br/core-concepts/framework-components/#hidratando-componentes-interativos), o Astro precisa saber quais componentes devem fazer parte do bundle para produção, e o padrão de tags dinâmicas impede que isso funcione.
+
+### Fragmentos
+
+O Astro suporta usar tanto `<Fragment></Fragment>` como a abreviação `<></>`.
+
+Fragmentos podem ser úteis para evitar ter que colocar um elemento em volta ao adicionar [diretivas `set:*`](/pt-br/reference/directives-reference/#sethtml), como no exemplo a seguir:
+
+```astro title="src/components/SetHtml.astro" "Fragment"
+---
+const stringHtml = '<p>Conteúdo HTML bruto</p>';
+---
+<Fragment set:html={stringHtml} />
+```
+
+### Diferenças entre Astro e JSX
+
+A sintaxe de componente Astro é um superconjunto do HTML. Ela foi projetada para soar familiar a qualquer um com experiência com HTML ou JSX, mas existem algumas diferenças importantes entre arquivos `.astro` e o JSX.
+
+#### Atributos
+
+No Astro, você usa o formato padrão `kebab-case` para todos os atributos HTML em vez do `camelCase` usado no JSX. Isso funciona até para o `class`, que não é suportado pelo React.
+
+```jsx del={1} ins={2} title="exemplo.astro"
+<div className="caixa" dataValue="3" />
+<div class="caixa" data-value="3" />
+```
+
+#### Múltiplos elementos
+
+O template de um componente do Astro pode renderizar vários elementos sem a necessidade de envolver tudo em uma única `<div>` ou `<>`, diferente do JavaScript ou JSX.
+
+```astro title="src/components/ElementosRaiz.astro"
+---
+// Template com múltiplos elementos
+---
+<p>Não precisa envolver elementos em um único elemento.</p>
+<p>O Astro suporta múltiplos elementos raiz em um template.</p>
+```
+
+#### Comentários
+
+No Astro, você pode usar comentários HTML padrão ou comentários no estilo JavaScript.
+
+```astro title="exemplo.astro"
+---
+---
+<!-- A sintaxe de comentários do HTML é válida em arquivos .astro -->
+{/* A sintaxe de comentários do JS também é válida */}
+```
+
+:::caution
+Os comentários no estilo do HTML serão incluídos no DOM do navegador, enquanto os do JS serão ignorados. Para deixar mensagens TODO ou outras explicações somente para desenvolvimento, você pode querer usar comentários no estilo JavaScript ao invés disso.
+:::
+
+
