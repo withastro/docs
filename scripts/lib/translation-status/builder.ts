@@ -167,7 +167,7 @@ export class TranslationStatusBuilder {
         const module = (await import(`../../../${subpath}`)).default
 
         // @ts-expect-error enTranslation.length is defined in one case
-        const isOutdated = enTranslation.length ?
+        const isIncomplete = enTranslation.length ?
           module.filter((k: {labelIsTranslated: boolean}) => k.labelIsTranslated).length !== (enTranslation as typeof navTranslations).length :
           !this.equalKeys(module, enTranslation as NestedRecord)
 
@@ -175,14 +175,14 @@ export class TranslationStatusBuilder {
         translations[lang] = {
           githubUrl: getPageUrl({ lang, page }),
           isMissing: !data,
-          isOutdated: isOutdated || (data && data.lastCommitDate < en.lastCommitDate),
+          isOutdated: isIncomplete || (data && data.lastMajorCommitDate < en.lastMajorCommitDate),
           page: {
             lastChange: data.lastCommitDate,
             lastCommitMsg: data.lastCommitMessage,
             lastMajorChange: data.lastMajorCommitDate,
             lastMajorCommitMsg: data.lastMajorCommitMessage
           },
-          sourceHistoryUrl: getPageUrl({
+          sourceHistoryUrl: isIncomplete ? undefined : getPageUrl({
 						lang: 'en',
 						page,
 						type: 'commits',
@@ -419,13 +419,13 @@ export class TranslationStatusBuilder {
 						(content) =>
 							`<li>` +
 							`${this.renderLink(content.githubUrl, content.subpath)} ` +
-							`(${this.renderLink(
+							(content.translations[lang].sourceHistoryUrl ? `(${this.renderLink(
 								content.translations[lang].githubUrl,
 								'outdated translation'
 							)}, ${this.renderLink(
-								content.translations[lang].sourceHistoryUrl,
+								content.translations[lang].sourceHistoryUrl!,
 								'source change history'
-							)})` +
+							)})` : `(${this.renderLink(content.translations[lang].githubUrl, 'incomplete translation')})`) +
 							`</li>`
 					)
 				);
