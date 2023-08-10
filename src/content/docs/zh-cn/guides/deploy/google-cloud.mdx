@@ -1,0 +1,83 @@
+---
+title: 将你的 Astro 网站部署至 Google Cloud
+description: 了解如何将你的 Astro 网页部署到 Google Cloud。
+type: deploy
+i18nReady: true
+---
+
+[Google Cloud](https://cloud.google.com/) 是一个完整的 Web 应用托管平台，可以用于部署 Astro 网站。
+
+## 如何部署？
+
+### Cloud Storage（仅静态网站）
+
+1. [创建一个新的 GCP 项目](https://console.cloud.google.com/projectcreate)，或选择你已有的项目。
+
+2. 在 [Cloud Storage](https://cloud.google.com/storage) 中创建一个新的存储桶。
+
+3. 为存储桶设定名称和其他必需的设置。
+
+4. 将你的 `dist` 文件夹上传到存储桶中，或使用 [Cloud Build](https://cloud.google.com/build) 进行上传。
+
+5. 开放公共访问权限，通过为 `allUsers` 添加一个名为 `Storage Object Viewer` 的新权限。
+
+6. 编辑网站配置，将 `index.html` 设置为入口点，将 `404.html` 设置为错误页面。
+
+### Cloud Run（SSR 和静态网站）
+
+Cloud Run 是一个无服务器平台，可以让你在不必管理任何基础设施的情况下运行容器。它可以用于部署静态网站和 SSR（服务器端渲染）网站。
+
+#### 服务准备
+
+1. [创建一个新的 GCP 项目](https://console.cloud.google.com/projectcreate)，或选择你已有的项目。
+
+2. 确保已启用 [Cloud Run API](https://console.cloud.google.com/apis/library/run.googleapis.com)。
+
+3. 创建一个新的服务。
+
+
+#### 创建 Dockerfile 并构建容器
+
+在将 Astro 网站部署到 Cloud Run 之前，你需要创建一个 Dockerfile，用于构建容器。在我们的方案部分可以找到有关如何[用 Docker 来构建你的 Astro 网站](/zh-cn/recipes/docker/#创建-dockerfile)更多信息。
+
+创建 Dockerfile 后，将其构建成一个镜像，并将镜像推送到 Google Cloud 中。你有几种方式可以完成这个过程：
+
+**使用 Docker 本地环境构建**：
+ 
+使用 `docker build` 命令构建镜像，然后使用 `docker tag` 命令为镜像添加标签，接着使用 `docker push` 命令将镜像推送到镜像 Registry。对于 Google Cloud，[`Google Cloud Registry`](https://cloud.google.com/container-registry/docs/pushing-and-pulling#add-registry) 是最简单的选择，但你也可以使用 [Docker Hub](https://hub.docker.com/) 等其他选项。
+
+```bash
+# 构建你的容器
+docker build .
+
+docker tag SOURCE_IMAGE HOSTNAME/PROJECT-ID/TARGET-IMAGE:TAG
+
+# 将你的镜像推送至 Registry
+docker push HOSTNAME/PROJECT-ID/IMAGE:TAG
+```
+
+请修改上述命令中的以下值来适用于你的项目：
+
+-  `SOURCE_IMAGE`：本地镜像名称或镜像 ID。
+-  `HOSTNAME`：镜像 Registry 的主机名（`gcr.io`、`eu.gcr.io`、`asia.gcr.io`、`us.gcr.io`等）。
+-  `PROJECT`：你的 Google Cloud 项目 ID。
+-  `TARGET-IMAGE`：存储在镜像 Registry 中的镜像名称。
+-  `TAG`：与镜像关联的标签。
+
+你可以在 [Google Cloud 文档](https://cloud.google.com/container-registry/docs/pushing-and-pulling) 中了解更多信息。
+
+**使用其他工具**：
+
+你可以使用支持 Docker 的 CI/CD 工具，例如 [GitHub Actions](https://github.com/marketplace/actions/push-to-gcr-github-action)。
+
+**使用 [Cloud Build](https://cloud.google.com/build)** 进行构建：
+
+不同于在本地构建 Dockerfile，你可以让 Google Cloud 在远程进行构建。参见 [Google Cloud Build 文档](https://cloud.google.com/build/docs/building/build-containers)。
+
+#### 部署容器
+
+部署可以在你的终端上手动处理，使用 `gcloud` 命令进行部署（参见 [Google Cloud 文档](https://cloud.google.com/run/docs/deploying#service)），或者使用 [Cloud Build](https://cloud.google.com/build)，亦或者其他任何 CI/CD 系统进行自动化部署。
+
+:::note[需要公共访问权限？]
+不要忘记在 Cloud Run 权限设置中为 `allUsers` 组添加 `Cloud Run Invoker` 权限！
+:::

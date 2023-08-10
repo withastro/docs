@@ -1,0 +1,163 @@
+---
+type: integration
+title: '@astrojs/lit'
+description: 学习如何使用 @astrojs/lit 框架集成来扩展 Astro 项目中的组件支持。
+githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/lit/'
+hasREADME: true
+category: renderer
+i18nReady: true
+---
+
+这个 **[Astro 集成][astro-integration]** 为你的 [Lit](https://lit.dev/) 自定义元素提供了服务端渲染和客户端水合。
+
+## 安装
+
+有两种方法可以将集成添加到你的项目中。让我们首先尝试最方便的选项！
+
+### `astro add` 命令
+
+Astro 包含一个用于添加第一方集成的 CLI 工具：`astro add`。这个命令将：
+
+1.  (可选) 安装所有必要的依赖和同行依赖
+2.  (同样可选) 更新你的 `astro.config.*` 文件来应用这个集成
+
+要安装 `@astrojs/lit`，请从项目目录运行以下命令并按照提示操作：
+
+```sh
+# 使用 NPM
+npx astro add lit
+# 使用 Yarn
+yarn astro add lit
+# 使用 PNPM
+pnpm astro add lit
+```
+
+如果你遇到任何问题，[请随时在 GitHub 上向我们报告](https://github.com/withastro/astro/issues) 并尝试下面的手动安装步骤。
+
+### 手动安装依赖
+
+首先，像这样安装 `@astrojs/lit` 集成：
+
+```sh
+npm install @astrojs/lit
+```
+
+大多数包管理器也会安装相关的同行依赖。不过，如果你在启动 Astro 时看到“Cannot find package 'lit'”（或类似）的警告，你需要安装 `lit` 和 `@webcomponents/template-shadowroot`：
+
+```sh
+npm install lit @webcomponents/template-shadowroot
+```
+
+现在，使用 `integrations` 属性将这个集成应用到你的 `astro.config.*` 文件中：
+
+```js ins={3} "lit()"
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import lit from '@astrojs/lit';
+
+export default defineConfig({
+  // ...
+  integrations: [lit()],
+});
+```
+
+## 入门
+
+要在 Astro 中使用你的第一个 Lit 组件，你可以移步我们的 [UI 框架文档][astro-ui-frameworks]。你将会了解到：
+
+*   📦 如何加载框架组件
+*   💧 客户端水合选项
+*   🤝 混合和嵌套框架的机会
+
+在 Astro 中编写和导入 Lit 组件的代码如下：
+
+```js
+// src/components/my-element.js
+import { LitElement, html } from 'lit';
+
+export class MyElement extends LitElement {
+  render() {
+    return html` <p>Hello world! From my-element</p> `;
+  }
+}
+
+customElements.define('my-element', MyElement);
+```
+
+现在，该组件已经准备好通过 Astro frontmatter 导入：
+
+```astro title="src/pages/index.astro"
+---
+import { MyElement } from '../components/my-element.js';
+---
+
+<MyElement />
+```
+
+> 请注意，Lit 需要浏览器全局变量，例如 `HTMLElement` 和 `customElements`。因此，Lit 渲染器使用这些全局变量来模拟服务器，以便 Lit 可以运行。因此，你可能会遇到由于此原因而无法正常工作的库。
+
+### Polyfills 与水合
+
+渲染器会自动处理为不支持 Declarative Shadow DOM 的浏览器添加适当的 polyfill。polyfill 大约为 *1.5kB*。如果浏览器支持 Declarative Shadow DOM，则加载的字节数少于 250 字节（用于检测支持）。
+
+水合也是自动处理的。你可以使用与 Astro 支持的其他库相同的水合指令，例如 `client:load`、`client:idle` 和 `client:visible`。
+
+```astro
+---
+import { MyElement } from '../components/my-element.js';
+---
+
+<MyElement client:visible />
+```
+
+上面的代码将只在用户滚动到视图中时加载元素的 JavaScript。由于它是服务器渲染的，用户将看不到任何卡顿；它将透明地加载和水合。
+
+## 故障排除
+
+如需帮助，请查看 [Discord](https://astro.build/chat) 上的 `#support` 频道。我们友好的支持小组成员将在此处提供帮助！
+
+你也可以查看我们的 [Astro 集成文档][astro-integration] 了解更多信息。
+
+常见问题如下：
+
+### 浏览器全局变量
+
+Lit 集成的 SSR 通过向全局环境添加一些浏览器全局属性来工作。它添加的一些属性包括 `window`、`document` 和 `location`。
+
+这些全局变量 *可能* 会干扰其他可能使用这些变量的库，以检测它们是否在浏览器中运行，而实际上它们是在服务器中运行的。这可能会导致这些库出现错误。
+
+因此，Lit 集成可能与这些类型的库不兼容。可以帮助的一件事是在 Lit 干扰其他集成时更改集成的顺序：
+
+```js  del={7} ins={8}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import vue from '@astrojs/vue';
+import lit from '@astrojs/lit';
+
+export default defineConfig({
+  integrations: [vue(), lit()]
+  integrations: [lit(), vue()]
+});
+```
+
+正确的顺序可能因问题的根本原因而有所不同。但是，这并不能保证解决每个问题，而且由于这个原因，一些库不能在使用 Lit 集成时使用。
+
+### 严格的包管理器
+
+当使用像 `pnpm` 这样的 [严格的包管理器](https://pnpm.io/pnpm-vs-npm#npms-flat-tree) 时，你可能会遇到错误，例如 `ReferenceError: module is not defined`。要解决这个问题，请使用 `.npmrc` 文件提升 Lit 依赖项：
+
+```ini title=".npmrc"
+public-hoist-pattern[]=*lit*
+```
+
+### 限制
+
+Lit 集成由 `@lit-labs/ssr` 提供支持，该集成有一些限制。请查看他们的 [限制文档](https://www.npmjs.com/package/@lit-labs/ssr#user-content-notes-and-limitations) 了解更多信息。
+
+## 贡献
+
+该软件包由 Astro 核心团队维护。欢迎提交 issue 或 PR！
+
+[astro-integration]: /zh-cn/guides/integrations-guide/
+
+[astro-ui-frameworks]: /zh-cn/core-concepts/framework-components/#使用框架组件
