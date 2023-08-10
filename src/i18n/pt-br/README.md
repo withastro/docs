@@ -4,8 +4,6 @@ Este guia foi feito pelo core maintainer [@Yan-Thomas](https://github.com/Yan-Th
 
 ## Princípios da tradução
 
-Alguns princípios levados em consideração na tradução, sugeridos por [@Yan-Thomas](https://github.com/Yan-Thomas), 
-
 - **Manter a intenção do escritor original:** Ao máximo possível, adaptar frases de forma com que o seu tom e direcionamento se alinhem com o que foi escrito na versão inglesa. Na documentação do Astro temos vários exemplos de frases com uma tonalidade amigável e divertida para tornar a leitura um pouco mais “humana”, e trazer isso à versão brasileira é algo importante.
 
 - **Priorizar a fácil compreensão:** Em contrapartida ao primeiro princípio, adaptar um texto para outra língua não é fácil, e muitas vezes precisamos negociar entre uma tradução fiel e uma que seja facilmente compreensível. Portanto, às vezes se torna necessário omitir algum termo e substituí-lo por sua explicação, por exemplo. Também há uma preocupação no vocabulário utilizado, que deve manter-se o mais simples e conciso possível, mantendo distância de uma “verborragia não ortodoxa”. Tradução, assim como a produção de filmes baseados em livros, é um processo de adaptação e é nada mais do que esperado que mudanças ocorram ao texto original quando necessário.
