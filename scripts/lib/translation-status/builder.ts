@@ -171,8 +171,6 @@ export class TranslationStatusBuilder {
           module.filter((k: {labelIsTranslated: boolean}) => k.labelIsTranslated).length !== (enTranslation as typeof navTranslations).length :
           !this.equalKeys(module, enTranslation as NestedRecord)
 
-        console.log(subpath, isOutdated)
-
         const data = await this.getGitHistory(subpath)
         translations[lang] = {
           githubUrl: getPageUrl({ lang, page }),
