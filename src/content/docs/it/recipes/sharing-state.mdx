@@ -1,0 +1,89 @@
+---
+title: Condividere lo stato tra diversi componenti Astro
+description: Come condividere lo stato tra diversi componenti Astro con Nano Stores.
+i18nReady: true
+type: recipe
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+:::tip
+Utilizzi componenti di un framework JS? Scopri [come condividere lo stato tra Isole](/it/core-concepts/sharing-state/)!
+:::
+
+Quando sviluppi un sito con Astro, potresti aver bisogno di condividere lo stato tra diversi componenti.
+Astro raccomanda l'utilizzo di [Nano Stores](https://github.com/nanostores/nanostores) per salvare lo stato condiviso lato client.
+
+## Soluzione
+
+1. Installa Nano Stores:
+
+  <PackageManagerTabs>
+    <Fragment slot="npm">
+    ```shell
+    npm install nanostores
+    ```
+    </Fragment>
+    <Fragment slot="pnpm">
+    ```shell
+    pnpm install nanostores
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```shell
+    yarn add nanostores
+    ```
+    </Fragment>
+  </PackageManagerTabs>
+
+2. Crea uno *store*. In questo esempio, lo *store* tiene traccia dello stato della finestra di dialogo (aperta o meno):
+
+  ```ts title="src/store.js"
+  import { atom } from 'nanostores';
+
+  export const isOpen = atom(false);
+  ```
+
+3. Importa e utilizza lo *store* in un tag `<script>` nel componente che condividerà lo stato.
+
+I componenti `Button` e `Dialog` qui di seguito condividono entrambi lo stato `isOpen` per controllare se uno specifico `<div>` è nascosto o meno:
+
+  ```astro title="src/components/Button.astro"
+  <button id="openDialog">Open</button>
+
+  <script>
+    import { isOpen } from '../store.js';
+    
+    // Imposta lo store - isOpen - a true quando si clicca sul pulsante
+    function openDialog() {
+      isOpen.set(true);
+    }
+
+    // Aggiunge un event listener al pulsante
+    document.getElementById('openDialog').addEventListener('click', openDialog);
+  </script>
+  ```
+
+  ```astro title="src/components/Dialog.astro"
+  <div id="dialog" style="display: hidden">Hello world!</div>
+
+  <script>
+    import { isOpen } from '../store.js';
+
+    // Si mette in ascolto di modifiche allo store, e mostra/nasconde la finestra di dialogo di conseguenza
+    isOpen.subscribe(open => {
+      if (open) {
+        document.getElementById('dialog').style.display = 'block';
+      } else {
+        document.getElementById('dialog').style.display = 'none';
+      }
+    })
+
+    document.getElementById('openDialog').addEventListener('click', openDialog);
+  </script>
+  ```
+
+## Risorse aggiuntive
+
+- [Nano Stores su NPM](https://www.npmjs.com/package/nanostores)
+- [Documentazione di Nano Stores per Vanilla JS](https://github.com/nanostores/nanostores#vanilla-js)
