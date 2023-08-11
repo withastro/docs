@@ -80,7 +80,7 @@ Tabela com a versão original e tradução (se houver) para diversos termos enco
 
 | Original                            | Tradução                                |
 | ----------------------------------- | --------------------------------------- |
-| build/build time/build process      | build/processo de build/tempo de build” |
+| build/build time/build process      | build/processo de build/tempo de build |
 | client side script                  | script no lado do cliente               |
 | server side rendering (SSR)         | renderização no lado do servidor (SSR)  |
 | client side rendering               | renderização no lado do cliente         |
@@ -97,7 +97,7 @@ Tabela com a versão original e tradução (se houver) para diversos termos enco
 | Intellisense                        | \-                                      |
 | UI frameworks                       | frameworks de UI                        |
 | Integrations                        | Integrações                             |
-| built-in                             | Integrado                               |
+| built-in                            | Integrado                               |
 | assets                              | \-                                      |
 | static                              | estático                                |
 | dynamic                             | dinâmico                                |
