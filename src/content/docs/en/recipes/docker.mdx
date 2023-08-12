@@ -25,13 +25,26 @@ If you're using another package manager than npm, you'll need to adjust the comm
 This Dockerfile will build your site and serve it using Node.js on port `3000` and therefore requires the [Node adapter](/en/guides/integrations-guide/node/) installed in your Astro project.
 
 ```docker title="Dockerfile"
-FROM node:lts AS runtime
+FROM node:lts AS base
 WORKDIR /app
 
-COPY . .
+# copy only the package.json and package-lock.json to avoid re-installing dependencies when only the source code changes
+COPY package.json pacakge-lock.json ./
 
-RUN npm install
+FROM base AS prod-deps
+RUN npm install --production
+
+FROM base AS build-deps
+RUN npm install --production=false
+
+FROM build-deps AS build
+# by copying the app's whole source code here, the `-deps` steps will be skipped if only the source code changes
+COPY . .
 RUN npm run build
+
+FROM base AS runtime
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
 
 ENV HOST=0.0.0.0
 ENV PORT=3000
