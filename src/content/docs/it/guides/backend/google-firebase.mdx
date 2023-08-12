@@ -616,3 +616,300 @@ export const post: APIRoute = async ({ request, redirect }) => {
 :::note
 Questa è un'implementazione di base dell'endpoint `friends`. Puoi aggiungere ulteriore logica questo endpoint per adattarle alle tue esigenze.
 :::
+
+`[id].ts` conterrà il codice per aggiornare ed eliminare un documento nella collection friends:
+
+```ts title="src/pages/api/friends/[id].ts"
+import type { APIRoute } from "astro";
+import { app } from "../../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+
+const db = getFirestore(app);
+const friendsRef = db.collection("friends");
+
+export const post: APIRoute = async ({ params, redirect, request }) => {
+  const formData = await request.formData();
+  const name = formData.get("name")?.toString();
+  const age = formData.get("age")?.toString();
+  const isBestFriend = formData.get("isBestFriend") === "on";
+
+  if (!name || !age) {
+    return new Response("Missing required fields", {
+      status: 400,
+    });
+  }
+
+  if (!params.id) {
+    return new Response("Cannot find friend", {
+      status: 404,
+    });
+  }
+
+  try {
+    await friendsRef.doc(params.id).update({
+      name,
+      age: parseInt(age),
+      isBestFriend,
+    });
+  } catch (error) {
+    return new Response("Something went wrong", {
+      status: 500,
+    });
+  }
+  return redirect("/dashboard");
+};
+
+export const del: APIRoute = async ({ params, redirect }) => {
+  if (!params.id) {
+    return new Response("Cannot find friend", {
+      status: 404,
+    });
+  }
+
+  try {
+    await friendsRef.doc(params.id).delete();
+  } catch (error) {
+    return new Response("Something went wrong", {
+      status: 500,
+    });
+  }
+  return redirect("/dashboard");
+};
+```
+
+:::note
+Questa è un'implementazione di base dell'endpoint `friends/:id`. Puoi aggiungere ulteriore logica a questo endpoint per adattarlo alle tue esigenze.
+:::
+
+Dopo aver creato gli endpoint server per Firestore, la cartella del tuo progetto dovrebbe ora includere questi nuovi file:
+
+<FileTree title="Struttura del progetto">
+- src
+  - env.d.ts
+  - firebase
+    - client.ts
+    - server.ts
+  - pages
+    - api
+      - friends
+        - **index.ts**
+        - **[id].ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Creazione delle pagine
+
+Crea le pagine che utilizzeranno gli endpoint di Firestore:
+
+- `src/pages/add.astro` - conterrà un form per aggiungere un nuovo amico.
+- `src/pages/edit/[id].ts` - conterrà un form per modificare un amico e un pulsante per eliminare un amico.
+- `src/pages/friend/[id].ts` - conterrà i dettagli di un amico.
+- `src/pages/dashboard.astro` - mostrerà un elenco con tutti gli amici.
+
+#### Aggiungi un nuovo record
+
+L'esempio di `src/pages/add.astro` qui sotto include un form che invierà una richiesta `POST` all'endpoint `/api/friends`. Questo endpoint creerà un nuovo amico utilizzando i dati dal form e quindi reindirizzerà l'utente alla pagina `/dashboard`.
+
+```astro title="src/pages/add.astro"
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Aggiungi un nuovo amico">
+  <h1>Aggiungi un nuovo amico</h1>
+  <form method="post" action="/api/friends">
+    <label for="name">Nome</label>
+    <input type="text" id="name" name="name" />
+    <label for="age">Età</label>
+    <input type="number" id="age" name="age" />
+    <label for="isBestFriend">Migliore amico?</label>
+    <input type="checkbox" id="isBestFriend" name="isBestFriend" />
+    <button type="submit">Aggiungi amico</button>
+  </form>
+</Layout>
+```
+
+#### Modifica o Elimina un record
+
+`src/pages/edit/[id].astro` conterrà un form per modificare i dati di un amico e un pulsante per eliminarlo. All'invio, questa pagina invierà una richiesta `POST` all'endpoint `/api/friends/:id` per aggiornare i dati di un amico.
+
+Se l'utente clicca il pulsante per eliminare un amico, questa pagina invierà una richiesta `DELETE` all'endpoint `/api/friends/:id` per eliminare un amico.
+
+```astro title="src/pages/edit/[id].astro"
+---
+import Layout from "../../layouts/Layout.astro";
+import { app } from "../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+
+interface Friend {
+  name: string;
+  age: number;
+  isBestFriend: boolean;
+}
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect("/404");
+}
+
+const db = getFirestore(app);
+const friendsRef = db.collection("friends");
+const friendSnapshot = await friendsRef.doc(id).get();
+
+if (!friendSnapshot.exists) {
+  return Astro.redirect("/404");
+}
+
+const friend = friendSnapshot.data() as Friend;
+---
+
+<Layout title="Modifica {friend.name}">
+  <h1>Modifica {friend.name}</h1>
+  <p>Qui puoi modificare o eliminare i dati del tuo amico.</p>
+  <form method="post" action={`/api/friends/${id}`}>
+    <label for="name">Nome</label>
+    <input type="text" id="name" name="name" value={friend.name} />
+    <label for="age">Età</label>
+    <input type="number" id="age" name="age" value={friend.age} />
+    <label for="isBestFriend">Migliore amico?</label>
+    <input
+      type="checkbox"
+      id="isBestFriend"
+      name="isBestFriend"
+      checked={friend.isBestFriend}
+    />
+    <button type="submit">Modifica amico</button>
+  </form>
+  <button type="button" id="delete-document">Elimina</button>
+</Layout>
+<script>
+  const deleteButton = document.getElementById(
+    "delete-document"
+  ) as HTMLButtonElement;
+  const url = document.querySelector("form")?.getAttribute("action") as string;
+  deleteButton.addEventListener("click", async () => {
+    const response = await fetch(url, {
+      method: "DELETE",
+    });
+    if (response.redirected) {
+      window.location.assign(response.url);
+    }
+  });
+</script>
+```
+
+#### Visualizza un singolo record
+
+`src/pages/friend/[id].astro` visualizzerà i dettagli di un solo amico.
+
+```astro title="src/pages/friend/[id].astro"
+---
+import Layout from "../../layouts/Layout.astro";
+import { app } from "../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+
+interface Friend {
+  name: string;
+  age: number;
+  isBestFriend: boolean;
+}
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect("/404");
+}
+
+const db = getFirestore(app);
+const friendsRef = db.collection("friends");
+const friendSnapshot = await friendsRef.doc(id).get();
+
+if (!friendSnapshot.exists) {
+  return Astro.redirect("/404");
+}
+
+const friend = friendSnapshot.data() as Friend;
+---
+
+<Layout title={friend.name}>
+  <h1>{friend.name}</h1>
+  <p>Età: {friend.age}</p>
+  <p>Migliore amico: {friend.isBestFriend ? "Sì" : "No"}</p>
+</Layout>
+```
+
+#### Mostra una lista di record con un bottone per modificarli
+
+Infine, `src/pages/dashboard.astro` mostrerà una lista degli amici. Ogni amic avrà un link alla loro pagina e un bottone che li manderà sulla pagina per modificare l'amico.
+
+```astro title="src/pages/dashboard.astro"
+---
+import { app } from "../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+import Layout from "../layouts/Layout.astro";
+
+interface Friend {
+  id: string;
+  name: string;
+  age: number;
+  isBestFriend: boolean;
+}
+
+const db = getFirestore(app);
+const friendsRef = db.collection("friends");
+const friendsSnapshot = await friendsRef.get();
+const friends = friendsSnapshot.docs.map((doc) => ({
+  id: doc.id,
+  ...doc.data(),
+})) as Friend[];
+---
+
+<Layout title="My friends">
+  <h1>Friends</h1>
+  <ul>
+    {
+      friends.map((friend) => (
+        <li>
+          <a href={`/friend/${friend.id}`}>{friend.name}</a>
+          <span>({friend.age})</span>
+          <strong>{friend.isBestFriend ? "Bestie" : "Friend"}</strong>
+          <a href={`/edit/${friend.id}`}>Edit</a>
+        </li>
+      ))
+    }
+  </ul>
+</Layout>
+
+```
+
+Dopo aver creato tutti i file il tuo progetto dovrebbe avere una struttura come questa:
+
+<FileTree title="Project Structure">
+- src
+  - env.d.ts
+  - firebase
+    - client.ts
+    - server.ts
+  - pages
+    - dashboard.astro
+    - add.astro
+    - edit
+      - [id].astro
+    - friend
+      - [id].astro
+    - api
+      - friends
+        - index.ts
+        - [id].ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+
+## Community Resources
+
+- [Astro e Firebase SSR app example](https://github.com/kevinzunigacuellar/astro-firebase)
