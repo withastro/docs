@@ -16,4 +16,5 @@ export default NavDictionary({
 	'core-concepts/layouts': '레이아웃',
 	'core-concepts/framework-components': 'UI 프레임워크',
 	'guides/environment-variables': '환경 변수',
+	'guides/fonts': '폰트',
 });
