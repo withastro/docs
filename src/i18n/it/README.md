@@ -1,6 +1,6 @@
 # 📖 Glossario
 
-Il glossario è una raccolta di vocaboli, modi di dire e pratiche comuni per la traduzione italiana della docmentazione di Astro.
+Il glossario è una raccolta di vocaboli, modi di dire e pratiche comuni per la traduzione italiana della documentazione di Astro.
 
 Alcune parole legate ad Astro e allo sviluppo web non vanno tradotte in quanto sono parte integrante del suo ambiante e non hanno una traduzione immediata nell'Italiano.
 
