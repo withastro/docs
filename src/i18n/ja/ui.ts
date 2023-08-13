@@ -56,7 +56,10 @@ export default UIDictionary({
 	'migration.navTitle': 'その他のマイグレーションガイド',
 	// Recipes vocabulary
 	'recipes.navTitle': 'その他のレシピ',
-	// `<ContributorList>` fallback text
+	// `<RecipeLinks>` vocabulary
+	'recipesLink.singular': '関連レシピ:',
+	'recipesLink.plural': '関連レシピ',
+	// `<ContributorList>` fallback texta
 	'contributors.seeAll': 'すべてのコントリビューターを見る',
 	// Fallback content notice shown when a page is not yet translated
 	'fallbackContent.notice':
