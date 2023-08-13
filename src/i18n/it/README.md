@@ -27,7 +27,7 @@ Alcuni vocaboli hanno una correlazione diretta o quasi con l'Italiano e vanno us
 | SSR / Server-side rendering  | SSR / Rendering lato server                        |
 | Client-side                  | Lato browser / Lato client                         |
 | Template                     | Template / Modello                                 |
-| CLI / Command line interface | CLI / Interfacia da riga di comando                |
+| CLI / Command line interface | CLI / Interfaccia da riga di comando                |
 | Routing                      | Indirizzamento                                     |
 | UI components                | Componenti dell'interfaccia utente / Componenti UI |
 | Code fences (`---`)          | Delimitatori di codice (`---`) / Tripli trattini   |
