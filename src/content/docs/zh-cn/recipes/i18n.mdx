@@ -13,6 +13,8 @@ import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro'
 
 假设示例拥有不同语言的子路径，例如面向英语的 `example.com/en/blog` 和面向法语的 `example.com/fr/blog`。
 
+如果你希望默认语言不像其他语言那样在 URL 中可见，后续会有 [关于隐藏默认语言的介绍](/zh-cn/recipes/i18n/#在-url-中隐藏默认语言)。
+
 ## 操作步骤
 
 ### 为页面设置多语言
@@ -207,7 +209,7 @@ import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro'
     ```
 
     :::note[你注意到了吗？]
-    在第一步操作中，`nav.twitter` 字符串并未翻译成法语。可能你不想每个词都翻译，例如某些合适的叫法或行业内的常见词。而 `useTranslations` 辅助函数可以帮助你再没有找到对应条目的情况下，返回默认语言的值。所以在这个例子中，法语用户依旧会看到 “Twitter” 出现在导航栏中。
+    在第一步操作中，`nav.twitter` 字符串并未翻译成法语。可能你不想每个词都翻译，例如某些合适的叫法或行业内的常见词。而 `useTranslations` 辅助函数可以帮助你再没有找到对应条目的情况下，返回默认语言的值。所以在这个例子中，法语用户依旧会看到“Twitter”出现在导航栏中。
     :::
     
 3. 在需要的地方导入辅助函数并使用它们来选择当前语言环境下的 UI 标签。例如，导航组件可能会像下面这样：
@@ -319,6 +321,178 @@ import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro'
             </footer>
         </body>
     </html>
+    ```
+
+### 在 URL 中隐藏默认语言
+
+1. 除默认语言外，为每种语言创建一个目录。例如，将默认语言的页面直接放在 `pages/` 中，而将翻译的页面放在 `fr/` 中：
+
+    <FileTree>
+    - src/
+      - pages/
+        - about.astro
+        - index.astro
+        - **fr/**
+          - about.astro
+          - index.astro
+    </FileTree>
+
+2. 添加一行代码到 `src/i18n/ui.ts` 文件中开启隐藏默认语言功能：
+
+    ```ts
+    // src/i18n/ui.ts
+    export const showDefaultLang = false;
+    ```
+
+
+3. 在 `src/i18n/utils.ts` 中添加一个辅助函数以根据当前语言对路径翻译：
+
+   ```js
+    // src/i18n/utils.ts
+    import { ui, defaultLang, showDefaultLang } from './ui';
+
+    export function useTranslatedPath(lang: keyof typeof ui) {
+      return function translatePath(path: string, l: string = lang) {
+        return !showDefaultLang && l === defaultLang ? path : `/${l}${path}`
+      }
+    }
+    ```
+
+4. 在需要的地方导入这个辅助函数。例如，一个 `nav` 组件可能如下所示：
+
+    ```astro 
+    ---
+    // src/components/Nav.astro
+    import { getLangFromUrl, useTranslations } from '../i18n/utils';
+    
+    const lang = getLangFromUrl(Astro.url);
+    const t = useTranslations(lang);
+    const translatePath = useTranslatedPath(lang);
+    ---
+    <ul>
+        <li>
+            <a href={translatePath('/home/')}>
+              {t('nav.home')}
+            </a>
+        </li>
+        <li>
+            <a href={translatePath('/about/')}>
+              {t('nav.about')}
+            </a>
+        </li>
+        <li>
+            <a href="https://twitter.com/astrodotbuild">
+              {t('nav.twitter')}
+            </a>
+        </li>
+    </ul>
+    ```
+
+5. 这个辅助函数也可以用于为特定语言翻译路径。例如，当用户在不同语言之间切换时：
+
+    ```astro
+    ---
+    // src/components/LanguagePicker.astro
+    import { languages } from '../i18n/ui';
+    ---
+
+    <ul>
+      {Object.entries(languages).map(([lang, label]) => (
+        <li>
+          <a href={translatePath('/', lang)}>{label}</a>
+        </li>
+      ))}
+    </ul>
+    ```
+
+### 翻译路由
+
+将你页面中的路由翻译成不同语言。
+
+1. 在 `src/i18n/ui.ts` 中添加路由映射。
+
+ ```ts
+ // src/i18n/ui.ts
+ export const routes = {
+   de: {
+    'services': 'leistungen',
+   },
+   fr: {
+    'services': 'prestations-de-service',
+   },
+  }
+    ```
+
+2. Update the `useTranslatedPath` helper function in `src/i18n/utils.ts` to add router translation logic.
+2. 在 `src/i18n/utils.ts` 中更新 `useTranslatedPath` 辅助函数以添加路由翻译逻辑：
+
+  ```js
+  // src/i18n/utils.ts
+  import { ui, defaultLang, showDefaultLang, routes } from './ui';
+
+  export function useTranslatedPath(lang: keyof typeof ui) {
+    return function translatePath(path: string, l: string = lang) {
+      const pathName = path.replaceAll('/', '')
+      const hasTranslation = defaultLang !== l && routes[l] !== undefined && routes[l][pathName] !== undefined
+      const translatedPath = hasTranslation ? '/' + routes[l][pathName] : path
+  
+      return !showDefaultLang && l === defaultLang ? translatedPath : `/${l}${translatedPath}`
+    }
+  }
+  ```
+
+3. `src/i18n/utils.ts` 中创建一个辅助函数来获取对应路由，如果该路由存在于当前 URL 的话：
+
+  ```js
+  // src/i18n/utils.ts
+  import { ui, defaultLang, showDefaultLang, routes } from './ui';
+  
+  export function getRouteFromUrl(url: URL): string | undefined {
+    const pathname = new URL(url).pathname
+    const parts = pathname?.split('/')
+    const path = parts.pop() || parts.pop()
+  
+    if (path === undefined) {
+      return undefined
+    }
+    
+    const currentLang = getLangFromUrl(url);
+  
+    if (defaultLang === currentLang) {
+      const route = Object.values(routes)[0];
+      return route[path] !== undefined ? route[path] : undefined
+    }
+    
+    const getKeyByValue = (obj: Record<string, string>, value: string): string | undefined  => {
+        return Object.keys(obj).find((key) => obj[key] === value)
+    }
+  
+    const reversedKey = getKeyByValue(routes[currentLang], path)
+  
+    if (reversedKey !== undefined) {
+      return reversedKey
+    }
+  
+    return undefined
+  }
+  ```
+
+4. 这个辅助函数可以用来获取翻译后的路由。例如，当没有定义翻译后的路由时，用户将被重定向到首页：
+
+ ```astro
+    ---
+    // src/components/LanguagePicker.astro
+    import { languages } from '../i18n/ui';
+    const route = getRouteFromUrl(Astro.url);
+    ---
+
+    <ul>
+      {Object.entries(languages).map(([lang, label]) => (
+        <li>
+          <a href={translatePath(`/${route ? route : ''}`, lang)}>{label}</a>
+        </li>
+      ))}
+    </ul>
     ```
 
 ## 参考
