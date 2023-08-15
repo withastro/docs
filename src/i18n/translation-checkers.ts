@@ -15,7 +15,7 @@ export type NavDict = Array<
 	{
 		text: string;
 		key: NavDictionaryKeys;
-    labelIsTranslated: boolean;
+		labelIsTranslated: boolean;
 		isFallback?: boolean;
 	} & ({ slug: string } | { header: true; type: 'learn' | 'api' })
 >;
