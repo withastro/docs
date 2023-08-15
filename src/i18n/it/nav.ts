@@ -3,7 +3,7 @@ export default [
 	{ text: 'Per Iniziare', slug: 'getting-started', key: 'getting-started' },
 	{ text: 'Installazione', slug: 'install/auto', key: 'install' },
 	{ text: 'Setup dell’Editor', slug: 'editor-setup', key: 'editor-setup' },
-	{ text: 'Aggiorna a v2', slug: 'guides/upgrade-to/v2', key: 'guides/upgrade-to/v2' },
+	{ text: 'Aggiorna a v3', slug: 'guides/upgrade-to/v3', key: 'guides/upgrade-to/v3' },
 
 	{ text: 'Concetti Chiave', header: true, type: 'learn', key: 'coreConcepts' },
 	{ text: 'Perché Astro', slug: 'concepts/why-astro', key: 'concepts/why-astro' },
