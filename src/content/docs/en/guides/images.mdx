@@ -501,3 +501,149 @@ export default defineConfig({
 
 There are several third-party [community image integrations](https://astro.build/integrations?search=images) for optimizing and working with images in your Astro project.
 
+## v3 update guide stuff
+
+Assets may cause some breaking changes when you upgrade your Astro project to v3.
+- `image.src` now require for `<img>` tag
+- can no longer use `<img>` tag in `.md` files
+
+
+### Remove `experimental.assets` flag if it exists
+
+Remove the experimental flag if you previously had it:
+
+```js title="astro.config.mjs" del={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+   assets: true
+  }
+});
+```
+
+If necessary, also update your `src/env.d.ts` file to replace the `astro/client-image` reference with `astro/client`:
+
+```ts title="src/env.d.ts" del={1} ins={2}
+/// <reference types="astro/client-image" />
+/// <reference types="astro/client" />
+```
+
+### Decide where to store your images
+
+See the Images guide to help you decide [where to store your images](/en/guides/images/#where-to-store-images), including whether you want to create and use the new, reserved `/assets/` folder.
+
+### Update existing `<img>` tags
+
+Previously, importing an image would return a simple `string` with the path of the image. Now, imported image assets now match the following signature:
+
+```ts
+interface ImageMetadata {
+  src: string;
+  width: number;
+  height: number;
+  format: string;
+}
+```
+
+You must update the `src` attribute of any existing `<img>` tags, and you may also update other attributes that are now available to you from the imported image.
+
+```astro title="src/components/MyComponent.astro" ".src" ".width" ".height" del={4} ins={6}
+---
+import rocket from '../images/rocket.svg';
+---
+<img src={rocket} width="250" height="250" alt="A rocketship in space." />
+
+<img src={rocket.src} width={rocket.width} height={rocket.height} alt="A rocketship in space." />
+```
+
+### Update your Markdown, MDX, and Markdoc files
+
+Relative images from your project `src/` can now be referenced in Markdown, MDX, and Markdoc using standard Markdown `![alt](src)` syntax.
+
+This allows you the option to move your images from the `public/` directory to your project `src/` where they will now be processed and optimized. Your existing images in `public/` and remote images are still valid but are not optimized by Astro's build process.
+
+Additionally, the HTML `<img>` is no longer supported in `.md` files. Replace these with standard Markdown syntax.
+
+```md title="src/pages/posts/post-1.md" "/_astro" ".hash" "../../assets/" del={7} ins={4}
+# My Markdown Page
+
+<!-- Local images now possible! -->
+![A starry night sky.](~/assets/stars.png)
+
+<!-- HTML image tag no longer supported -->
+<img src="/images/stars.png" alt="A starry night sky.">
+```
+
+If you require more control over your image attributes, we recommend using the `.mdx` file format, which allows you to include Astro's `<Image />` component or a JSX `<img />` tag in addition to the Markdown syntax. Use the [MDX integration](/en/guides/integrations-guide/mdx/) to add support for MDX to Astro.
+
+### Remove `@astrojs/image`
+
+**Built-in asset support is incompatible with the `@astrojs/image` integration.**
+
+:::note[cropping images]
+The Assets API does not support image cropping. The current behaviour is to resize images to fit.
+
+Use the [`object-fit` CSS property](https://developer.mozilla.org/en-US/docs/Web/CSS/object-fit) to achieve a similar result. 
+:::
+
+To avoid errors in your project, complete the following steps:
+
+1. Remove the `@astrojs/image` integration.
+
+    You must [remove the integration](/en/guides/integrations-guide/#removing-an-integration) by uninstalling and then removing it from your `astro.config.mjs` file.
+
+2. Migrate any existing `<Image />` components.
+
+    Change all `import` statements from `@astrojs/image/components` to `astro:assets` to use the new built-in `<Image />` component.
+
+    Remove any component attributes that are not [currently supported image asset properties](/en/guides/images/#properties).
+
+    For example `aspectRatio` is no longer supported, as it is now automatically inferred from the `width` and `height` attributes.
+
+      ```astro title="src/components/MyComponent.astro" del= {2,11} ins={3}
+      ---
+      import { Image } from '@astrojs/image/components';
+      import { Image } from 'astro:assets'
+      import localImage from "../assets/logo.png";
+      const localAlt = "The Astro Logo";
+      ---
+
+      <Image
+        src={localImage}
+        width={300}
+        aspectRatio="16:9"
+        alt={localAlt}
+      />
+      ```
+
+3. Remove any existing `<Picture />` components
+
+    Currently, the built-in assets feature does not include a `<Picture />` component.
+
+    Instead, you can use the HTML image attributes `srcset` and `sizes` or the `<picture>` tag [for art direction or to create responsive images](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#art_direction).
+
+4. Uninstall Sharp
+
+    [Sharp](https://github.com/lovell/sharp) is now the default image service used for astro:assets. You no longer need to install the dependency locally in your project.
+
+    Uninstall Sharp using your package manager, or by removing manually from your `package.json`.
+
+
+    If you would prefer to continue to use [Squoosh](https://github.com/GoogleChromeLabs/squoosh) to transform your images, update your config with the following:
+
+    ```js title="astro.config.mjs" ins={4-6}
+    import { defineConfig, squooshImageService } from 'astro/config';
+
+    export default defineConfig({
+      image: {
+        service: squooshImageService(),
+      },
+    });
+    ```
+
+### Update Content Collections schemas
+
+You can now declare an associated image for a content collections entry, such as a blog post's cover image, in your frontmatter using its path relative to the current folder.
+
+The new `image` helper for content collections lets you validate the image metadata using Zod. Learn more about [how to use images in content collections](/en/guides/images/#images-in-content-collections)
