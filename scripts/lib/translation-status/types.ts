@@ -22,7 +22,7 @@ export type PageTranslationStatus = {
 			isMissing: boolean;
 			isOutdated: boolean;
 			githubUrl: string;
-			sourceHistoryUrl: string;
+			sourceHistoryUrl?: string;
 		};
 	};
 };

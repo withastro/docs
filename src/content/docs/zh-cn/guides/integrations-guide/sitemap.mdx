@@ -1,0 +1,362 @@
+---
+type: integration
+title: '@astrojs/sitemap'
+description: 了解如何在你的 Astro 项目中使用 @astrojs/sitemap 集成。
+githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/sitemap/'
+hasREADME: true
+category: other
+i18nReady: true
+---
+
+import Video from '~/components/Video.astro';
+import DontEditWarning from '~/components/DontEditWarning.astro';
+
+此 **[Astro 集成][astro-integration]** 在构建你的 Astro 项目时，会根据你的页面生成一个 网站地图（Sitemap）。
+
+## 为什么使用 Astro Sitemap
+
+网站地图是一个 XML 文件，它列出了你的网站上的所有页面、视频和文件等资源。包括 Google 等在内的搜索引擎会读取这个文件以便他们更高效地抓取你的网站。[查看 Google 关于网站地图的建议](https://developers.google.com/search/docs/advanced/sitemaps/overview) 获取更多信息。
+
+对于大型多页面网站，建议使用网站地图。如果不使用网站地图，大多数搜索引擎仍然能够列出你网站的页面，但是使用网站地图可以确保你的网站尽可能友好于搜索引擎。
+
+通过 Astro Sitemap，你无需担心自己创建这个 XML 文件：Astro Sitemap 集成将遍历你静态生成的路由并创建网站地图文件，包括 `getStaticPaths()` 生成的 [动态路由](/zh-cn/core-concepts/routing/#动态路由)，如 `[...slug]` 或 `src/pages/[lang]/[version]/info.astro`。
+
+这个集成无法为 [SSR 模式](/zh-cn/guides/server-side-rendering/) 的动态路由生成网站地图条目。
+
+## 安装
+
+### 快速安装
+
+`astro add` 命令行工具会自动化安装过程。在新的终端窗口中运行以下命令之一（如果不确定使用哪个包管理器，请运行第一个命令）。然后按照提示，在终端中输入 "y"（表示 "yes"）确认每个提示。
+
+```sh
+# 使用 NPM
+npx astro add sitemap
+# 使用 Yarn
+yarn astro add sitemap
+# 使用 PNPM
+pnpm astro add sitemap
+```
+
+如果遇到任何问题，[请随时向我们报告](https://github.com/withastro/astro/issues)，并尝试下面的手动安装步骤。
+
+### 手动安装
+
+首先，使用你喜欢的包管理器安装 `@astrojs/sitemap` 包。如果你使用 npm 或不确定，可以在终端中运行：
+
+```sh
+npm install @astrojs/sitemap
+```
+
+然后，使用 `integrations` 属性将这个集成应用到你的 `astro.config.*` 文件中：
+
+```js ins={3} "sitemap()"
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  // ...
+  integrations: [sitemap()],
+});
+```
+
+## 使用
+
+`@astrojs/sitemap` 需要一个部署 / 站点 URL 用于生成。在 `astro.config.*` 中使用 `site` 属性添加你的网站 URL。这个 URL 必须以 `http:` 或 `https:` 开头。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  // ...
+  site: 'https://stargazers.club',
+  integrations: [sitemap()],
+});
+```
+
+请注意，与其他配置选项不同，`site` 是在根 `defineConfig` 对象中设置的，而不是在 `sitemap()` 调用内部。
+
+现在，通过 `astro build` 命令[构建你的生产网站](/zh-cn/reference/cli-reference/#astro-build)。你会在 `dist/` 目录下找到两个文件：`sitemap-index.xml` 和 `sitemap-0.xml`！
+
+:::caution
+如果忘记添加 `site`，在构建时会收到友好的警告，并且不会生成 `sitemap-index.xml` 文件。
+:::
+
+验证网站地图已经生成后，你可以将它们添加到网站的 `<head>` 和爬虫读取的 `robots.txt` 文件中。
+
+```html ins={3}
+<!-- src/layouts/Layout.astro -->
+<head>
+  <link rel="sitemap" href="/sitemap-index.xml" />
+</head>
+```
+
+```diff ins={4} title="public/robots.txt"
+User-agent: *
+Allow: /
+
+Sitemap: https://<YOUR SITE>/sitemap-index.xml
+```
+
+### 一个包含两个页面的网站生成文件的示例
+
+```xml title="sitemap-index.xml"
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>https://stargazers.club/sitemap-0.xml</loc>
+  </sitemap>
+</sitemapindex>
+```
+
+```xml title="sitemap-0.xml"
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  <url>
+    <loc>https://stargazers.club/</loc>
+  </url>
+  <url>
+    <loc>https://stargazers.club/second-page/</loc>
+  </url>
+</urlset>
+```
+
+## 配置
+
+要配置这个集成，请给 `astro.config.mjs` 中的 `sitemap()` 传入一个对象。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  integrations: [
+    sitemap({
+      // 配置项
+    }),
+  ],
+});
+```
+
+### 筛选
+
+在默认情况下，所有的页面都会被加入站点地图。你可以通过 `filter` 选项来配置哪些页面加入站点地图。
+
+```js
+// astro.config.mjs
+// ...
+sitemap({
+  filter: (page) => page !== 'https://stargazers.club/secret-vip-lounge',
+});
+```
+
+站点上的每一个页面都会被筛选。对于每一个页面，`page` 参数代表它的完整 URL（包括 `site` 域名）。若想使该页面被加入站点地图，让此函数返回 `true` 值。否则返回 `false` 值。
+
+可以通过增加参数的方式来同时应用多个筛选器。
+
+```js
+// astro.config.mjs
+// ...
+sitemap({
+  filter: (page) =>
+    page !== 'https://stargazers.club/secret-vip-lounge-1' &&
+    page !== 'https://stargazers.club/secret-vip-lounge-2' &&
+    page !== 'https://stargazers.club/secret-vip-lounge-3' &&
+    page !== 'https://stargazers.club/secret-vip-lounge-4',
+});
+```
+
+### 自定义页面
+
+在某些情况下，某个页面可能是你的部署站点的一部分，但它不是 Astro 项目的一部分。可以通过如下方式来向网站地图加入一些 *不是* Astro 创建的页面。
+
+```js
+// astro.config.mjs
+// ...
+sitemap({
+  customPages: ['https://stargazers.club/external-page', 'https://stargazers.club/external-page2'],
+});
+```
+
+### 条目数限制
+
+可以通过此选项来限制存在于每个站点地图文件中最大的条目数。默认值是 45000。如果条目数超过该值，那么将会生成若干个站点地图文件以及它们的索引文件。具体可以参见 [使用站点地图索引文件管理站点地图](https://developers.google.com/search/docs/advanced/sitemaps/large-sitemaps)。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  site: 'https://stargazers.club',
+  integrations: [
+    sitemap({
+      entryLimit: 10000,
+    }),
+  ],
+});
+```
+
+
+### changefreq、lastmod 以及 priority
+
+这三个选项对应着 [Sitemap XML specification](https://www.sitemaps.org/protocol.html) 中的 `<changefreq>`、`<lastmod>` 以及 `<priority>` 标签。
+
+注意，Google 会忽略 `changefreq` 和 `priority`。
+
+:::note
+由于 Astro 的 [集成 API](/zh-cn/reference/integrations-reference/) 的限制，这个集成不能分析某个给定页面的源代码。该选项可以在 *全站* 范围内设置 `changefreq`、`lastmod` 和 `priority`。要为每一页设置这些值，请参见下一小节。
+:::
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  site: 'https://stargazers.club',
+  integrations: [
+    sitemap({
+      changefreq: 'weekly',
+      priority: 0.7,
+      lastmod: new Date('2022-02-24'),
+    }),
+  ],
+});
+```
+
+### serialize
+
+这个函数是在将网站地图条目写入磁盘之前，为每个网站地图条目调用的函数。这个函数可以是异步的。
+
+它的参数是一个 `SitemapItem` 对象，该对象具有以下属性：
+
+*   `url`（绝对页面 URL）。这是唯一保证存在于 `SitemapItem` 上的属性。
+*   `changefreq`
+*   `lastmod`（ISO 格式日期，`String` 类型）
+*   `priority`
+*   `links`.
+
+这个 `links` 属性包含了一个包含父页面的备选页面列表 `LinkItem`。
+
+`LinkItem` 类型有两个字段：`url`（指定语言版本页面的完全限定 URL）和 `lang`（此版本页面所针对的支持语言代码）。
+
+`serialize` 函数应返回已经更改或未更改的 `SitemapItem`。
+
+下面的示例展示了如何单独添加特定于网站地图的属性。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  site: 'https://stargazers.club',
+  integrations: [
+    sitemap({
+      serialize(item) {
+        if (/exclude-from-sitemap/.test(item.url)) {
+          return undefined;
+        }
+        if (/your-special-page/.test(item.url)) {
+          item.changefreq = 'daily';
+          item.lastmod = new Date();
+          item.priority = 0.9;
+        }
+        return item;
+      },
+    }),
+  ],
+});
+```
+
+### 本地化(i18n)
+
+要本地化网站地图，请将一个对象传递给 `i18n` 选项。
+
+这个对象有两个必需的属性：
+
+*   `defaultLocale`：`String`。它的值必须存在于 `locales` 键中之一。
+*   `locales`：`Record<String, String>`，键/值对。键用于查找页面路径中的语言部分。值是一个语言属性，只允许使用英文字母和连字符。
+
+[了解更多关于语言属性的信息](https://developer.mozilla.org/zh-CN/docs/Web/HTML/Global_attributes/lang)。
+
+[了解更多关于本地化的信息](https://developers.google.com/search/docs/advanced/crawling/localized-versions#all-method-guidelines)。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  site: 'https://stargazers.club',
+  integrations: [
+    sitemap({
+      i18n: {
+        defaultLocale: 'en', // 所有不包含 `es` 或 `fr` 的链接都将被视为默认语言环境，即 `en`
+        locales: {
+          en: 'en-US', // `defaultLocale` 的值必须在 `locales` 键中存在
+          es: 'es-ES',
+          fr: 'fr-CA',
+        },
+      },
+    }),
+  ],
+});
+```
+
+生成的网站地图如下所示：
+
+```xml
+...
+  <url>
+    <loc>https://stargazers.club/</loc>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://stargazers.club/"/>
+    <xhtml:link rel="alternate" hreflang="es-ES" href="https://stargazers.club/es/"/>
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://stargazers.club/fr/"/>
+  </url>
+  <url>
+    <loc>https://stargazers.club/es/</loc>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://stargazers.club/"/>
+    <xhtml:link rel="alternate" hreflang="es-ES" href="https://stargazers.club/es/"/>
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://stargazers.club/fr/"/>
+  </url>
+  <url>
+    <loc>https://stargazers.club/fr/</loc>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://stargazers.club/"/>
+    <xhtml:link rel="alternate" hreflang="es-ES" href="https://stargazers.club/es/"/>
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://stargazers.club/fr/"/>
+  </url>
+  <url>
+    <loc>https://stargazers.club/es/second-page/</loc>
+    <xhtml:link rel="alternate" hreflang="es-ES" href="https://stargazers.club/es/second-page/"/>
+    <xhtml:link rel="alternate" hreflang="fr-CA" href= "https://stargazers.club/fr/second-page/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://stargazers.club/second-page/"/>
+  </url>
+...
+```
+
+## 示例
+
+*   官方 Astro 网站使用 Astro Sitemap 生成了 [其网站地图](https://astro.build/sitemap-index.xml)。
+*   在 GitHub 上 [浏览使用 Astro Sitemap 的项目](https://github.com/search?q=%22%40astrojs%2Fsitemap%22+path%3Apackage.json\&type=Code)。
+
+## 故障排除
+
+如果需要帮助，请查看 [Discord](https://astro.build/chat) 上的 `#support` 频道。我们友好的支持小组成员将在那里提供帮助！
+
+你还可以查看我们的 [Astro 集成文档][astro-integration] 以了解更多关于集成的信息。
+
+## 贡献
+
+此软件包由 Astro 核心团队维护。欢迎提交 issue 或 PR！
+
+## 更新日志
+
+有关此集成的历史更改记录，请参阅 [CHANGELOG.md](https://github.com/withastro/astro/tree/main/packages/integrations/sitemap/CHANGELOG.md)。
+
+[astro-integration]: /zh-cn/guides/integrations-guide/

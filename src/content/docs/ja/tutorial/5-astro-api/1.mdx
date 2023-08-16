@@ -1,0 +1,248 @@
+---
+type: tutorial
+title: ブログ記事一覧を作成する
+description: |-
+  「初めてのAstroブログ」チュートリアル -
+  Astro.glob()を使用してプロジェクト内にあるファイルのデータにアクセスする
+i18nReady: true
+---
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+
+
+
+リンクしたいブログ記事がいくつかできたので、そのリストを自動的に作成するようブログページを設定しましょう！
+
+<PreCheck>
+  - `Astro.glob()`を使ってすべての投稿のデータに一度にアクセスする
+  - 動的に生成された記事のリストをブログページに表示する
+  - リストの各項目に`<BlogPost />`コンポーネントを使用するようリファクタリングする
+</PreCheck>
+
+## 記事のリストを動的に表示する
+
+1. 以下のコードを`blog.astro`に追加して、すべてのMarkdownファイルに関する情報を取得します。`Astro.glob()`は、各ブログ記事に対応するオブジェクトの配列を返します。
+
+  ```astro title="src/pages/blog.astro" ins={3}
+  ---
+  import BaseLayout from '../layouts/BaseLayout.astro'
+  const allPosts = await Astro.glob('../pages/posts/*.md');
+  const pageTitle = "私のAstro学習ブログ";
+  ---
+  <BaseLayout pageTitle={pageTitle}>
+    <p>ここには、私がAstroを学んでいく旅の様子を投稿します。</p>
+    <ul>
+      <li><a href="/posts/post-1/">Post 1</a></li>
+      <li><a href="/posts/post-2/">Post 2</a></li>
+      <li><a href="/posts/post-3/">Post 3</a></li>
+    </ul>
+  </BaseLayout>
+    ```
+
+
+2. 記事のタイトルとURLを使用して記事のリストを動的に生成するには、個々の`<li>`タグを次のAstroコードに置き換えます。
+
+    ```astro title="src/pages/blog.astro" del={9,10,11} ins={13}
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro'
+    const allPosts = await Astro.glob('../pages/posts/*.md');
+    const pageTitle = "私のAstro学習ブログ";
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <p>ここには、私がAstroを学んでいく旅の様子を投稿します。</p>
+      <ul>
+        <li><a href="/posts/post-1/">Post 1</a></li>
+        <li><a href="/posts/post-2/">Post 2</a></li>
+        <li><a href="/posts/post-3/">Post 3</a></li>
+
+        {allPosts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+      </ul>
+    </BaseLayout>
+    ```
+
+    `Astro.glob()`によって返される配列をマップすることで、ブログ記事のリスト全体が動的に生成されるようになりました。
+
+3. `src/pages/posts/`に新しく`post-4.md`ファイルを作成し、Markdownコンテンツを追加して新しいブログ記事を追加します。以下で使用されているフロントマターのプロパティを少なくとも含めるようにしてください。
+
+  ```markdown
+  ---
+  layout: ../../layouts/MarkdownPostLayout.astro
+  title: 私の4番目のブログ記事
+  author: Astro学習者
+  description: "この記事単独で表示されます！"
+  image: 
+    url: "https://docs.astro.build/default-og-image.png"
+    alt: "惑星と星のイラストの中に「astro」という単語があります。"
+  pubDate: 2022-08-08
+  tags: ["astro", "成功"]
+  ---
+  記事のリストを作成するために`Astro.glob()`がすべての記事データのリストを返しているので、この記事は他のブログ記事と一緒に表示されるはずです。
+  ```
+
+4. ブラウザのプレビューで`localhost:3000/blog`のブログページに再度アクセスし、新しいブログ記事を含む4つの項目のリストへと更新されているのを確認してください。
+
+<Box icon="puzzle-piece">
+
+## チャレンジ: ブログポストコンポーネントを作成する
+
+以下のコードによりブログ記事のリストが生成されるよう、必要な変更をAstroプロジェクトに加えてみましょう。
+
+```astro title="src/pages/blog.astro" del={2} ins={3}
+<ul>
+  {allPosts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+  {allPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title} />)}
+</ul>
+```
+
+<details>
+<summary>手順を表示</summary>
+
+1. `src/components/`に新しいコンポーネントを作成します。
+
+    <details>
+    <summary>ファイル名を表示</summary>
+    ```
+    BlogPost.astro
+    ```
+    </details>
+
+2. `Astro.props`として`title`と`url`を受け取ることができるよう、コンポーネントにコードを記述します。
+
+    <details>
+    <summary>コードを表示</summary>
+    ```astro
+    ---
+    // src/components/BlogPost.astro
+    const { title, url } = Astro.props;
+    ---
+    ```
+    </details>
+
+3. ブログ記事のリストの各項目を作成するために必要なテンプレートを追加します。
+
+    <details>
+    <summary>コードを表示</summary>
+    ```astro
+    <!-- src/components/BlogPost.astro -->
+    <li><a href={url}>{title}</a></li>
+    ```
+    </details>
+
+4. ブログページに新しいコンポーネントをインポートします。
+
+    <details>
+    <summary>コードを表示</summary>
+    ```astro title="src/pages/blog.astro" ins={3}
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    import BlogPost from '../components/BlogPost.astro';
+    const allPosts = await Astro.glob('../pages/posts/*.md');
+    const pageTitle = "私のAstro学習ブログ";
+    ---
+    ```
+    </details>
+
+5. 完成したコンポーネントのコードを確認します。
+
+    <details>
+    <summary>コードを表示</summary>
+    ```astro title="src/components/BlogPost.astro"
+    ---
+    const { title, url } = Astro.props
+    ---
+    <li><a href={url}>{title}</a></li>
+    ```
+    ```astro title="src/pages/blog.astro" ins={3,10}
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    import BlogPost from '../components/BlogPost.astro';
+    const allPosts = await Astro.glob('../pages/posts/*.md');
+    const pageTitle = "私のAstro学習ブログ"
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <p>ここには、私がAstroを学んでいく旅の様子を投稿します。</p>
+      <ul>
+        {allPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title} />)}
+      </ul>
+    </BaseLayout>
+    ```
+    </details>
+</details>
+</Box>
+
+
+
+<Box icon="question-mark">
+
+### 確認テスト
+
+Astroコンポーネントに以下のコードが含まれているとします。
+
+```astro
+---
+const myPosts = await Astro.glob('../pages/posts/*.md');
+---
+```
+
+以下の選択肢の中から、指定された要素を表わすコードを選択してください。
+
+1. 3番目のブログ記事のタイトル。
+
+    <MultipleChoice>
+      <Option>
+        `myPosts.map((post) => <LastUpdated date={post.frontmatter.pubDate} />)`
+      </Option>
+      <Option isCorrect>
+        `myPosts[2].frontmatter.title`
+      </Option>
+      <Option>
+        `<a href={myPosts[0].url}>初めての投稿！！</a>`
+      </Option>
+    </MultipleChoice>
+
+2. 最初のブログ記事のURLへのリンク。
+
+    <MultipleChoice>
+      <Option>
+        `myPosts.map((post) => <LastUpdated date={post.frontmatter.pubDate} />)`
+      </Option>
+      <Option>
+        `myPosts[2].frontmatter.title`
+      </Option>
+      <Option isCorrect>
+        `<a href={myPosts[0].url}>初めての投稿！！</a>`
+      </Option>
+    </MultipleChoice>
+
+3. 各記事の最終更新日を表示するコンポーネント。
+
+    <MultipleChoice>
+      <Option isCorrect>
+        `myPosts.map((post) => <LastUpdated date={post.frontmatter.pubDate} />)`
+      </Option>
+      <Option>
+        `myPosts[2].frontmatter.title`
+      </Option>
+      <Option>
+        `<a href={myPosts[0].url}>初めての投稿！！</a>`
+      </Option>
+    </MultipleChoice>
+
+</Box>
+
+## チェックリスト
+
+<Box icon="check-list">
+
+<Checklist>
+- [ ] ローカルファイルのデータを取得できる。
+- [ ] ブログ記事のリストを表示できる。
+</Checklist>
+</Box>
+
+### 参考
+
+- [`Astro.glob()` APIドキュメント](/ja/reference/api-reference/#astroglob)

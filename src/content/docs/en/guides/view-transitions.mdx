@@ -1,0 +1,308 @@
+---
+title: View Transitions (Experimental)
+description: >-
+  How to enable experimental support for view transitions in your Astro site.
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+Support for **opt-in, per-page, view transitions** in Astro projects can be enabled behind an experimental flag. View transitions update your page content without the browser's normal, full-page navigation refresh and provide seamless animations between pages. 
+
+Astro provides a `<ViewTransitions />` routing component that can be added to a single page's `<head>` to control page transitions as you navigate away to another page, an effect traditionally only possible with client-side routing. Add this component to a reusable `.astro` component, such as a common head or layout, for animated page transitions across your entire site (SPA mode).
+
+Astro's view transitions support is powered by the new [View Transitions](https://developer.chrome.com/docs/web-platform/view-transitions/) browser API and also includes:
+
+- A few [built-in animations](#built-in-animation-directives), such as `slide` and `fade`.
+- Support for both forwards and backwards navigation animations.
+- The ability to fully [customize all aspects of transition animation](#customizing-animations), and build your own animations.
+- [Control over fallback behavior](#fallback-control) for browsers that do not yet support the View Transition APIs.
+
+:::caution
+View transitions is an experimental feature enabled in Astro 2.9. The API is subject to change before it is marked as stable.
+:::
+
+## Enabling View Transitions in your Project
+
+You can enable support for animated page transitions through the experimental `viewTransitions` flag in your Astro config:
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+   viewTransitions: true
+  }
+});
+```
+
+:::note
+Enabling view transitions support does not automatically convert your entire site into a SPA (Single-page App). By default, every page will still use regular, full-page, browser navigation.
+
+Add page transitions in Astro with the `<ViewTransitions />` routing component on a per-page basis, or site-wide.
+:::
+
+## Full site view transitions (SPA mode)
+
+Import and add the `<ViewTransitions />` component to your common `<head>` or shared layout component. Astro will create default page animations based on the similiarities between the old and new page, and will also provide fallback behavior for unsupported browsers.
+
+The example below shows adding view transitions site-wide by importing and adding this component to a `<CommonHead />` Astro component:
+
+```astro title="components/CommonHead.astro" ins={2,12}
+---
+import { ViewTransitions } from 'astro:transitions';
+---
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<meta name="generator" content={Astro.generator} />
+
+<!-- Primary Meta Tags -->
+<title>{title}</title>
+<meta name="title" content={title} />
+<meta name="description" content={description} />
+
+<ViewTransitions />
+```
+
+You can also add view transitions on a per-page basis. Import the `<ViewTransitions />` component and place it directly inside of a page's `<head>`.
+
+## Transition Directives
+
+Astro will automatically assign corresponding elements found in both the old page and the new page a shared, unique `view-transition-name`. This pair of matching elements is inferred by both the type of element and its location in the DOM.
+
+Use optional `transition:*` directives on page elements in your `.astro` components for finer control over the page transition behaviour during navigation.
+
+- `transition:name`: Allows you to override Astro's default element matching for old/new content animation and [specify a transition name](#naming-a-transition) to associate a pair of DOM elements.
+- `transition:animate`: Allows you to override Astro's default animation while replacing the old element with the new one by specifying an animation type. Use Astro's [built-in animation directives](#built-in-animation-directives) or [create custom transition animations](#customizing-animations).
+- `transition:persist`: Allows you to override Astro's default replacing old elements for new ones and instead [persist components and HTML elements](#maintaining-state) when navigating to another page.
+
+
+## Naming a transition
+
+In some cases, you may want or need to identify the corresponding view transition elements yourself. You can specify a name for a pair of elements using the `transition:name` directive.
+
+```astro title="old-page.astro"
+<aside transition:name="hero">
+```
+
+```astro title="new-page.astro"
+<aside transition:name="hero">
+```
+
+Note that the `transition:name` can only be used once on each page. Set this manually when Astro can't infer a proper name itself, or for more fine control over matching elements.
+
+## Maintaining State
+
+<Since v="2.10.0" />
+
+You can persist components and HTML elements (instead of replacing them) across page navigations using the `transition:persist` directive. 
+
+For example, the following `<video>` will continue to play as you navigate to another page that contains the same video element. This works for both forwards and backwards navigation.
+
+```astro title="components/Video.astro" "transition:persist"
+<video controls="" autoplay="" transition:persist>
+	<source src="https://ia804502.us.archive.org/33/items/GoldenGa1939_3/GoldenGa1939_3_512kb.mp4" type="video/mp4">
+</video>
+```
+
+You can also place the directive on an [Astro island](/en/concepts/islands/) (a UI framework component with a [`client:` directive](/en/reference/directives-reference/#client-directives)). If that component exists on the next page, the island from the old page **with its current state** will continue to be displayed, instead of replacing it with the island from the new page.
+
+In the example below, the `count` will not be reset when navigating back and forth across pages that contain the `<Counter />` component with the `transition:persist` attribute.
+
+```astro title="components/Header.astro" "transition:persist"
+<Counter client:load transition:persist count={5} />
+```
+
+You can also [manually identify corresponding elements](#naming-a-transition) if the island/element is in a different component between the two pages.
+
+```astro title="pages/old-page.astro" "Video" 'transition:name="media-player"'
+<Video controls="" autoplay="" transition:name="media-player" transition:persist />
+```
+
+```astro title="pages/new-page.astro" "MyVideo" 'transition:name="media-player"'
+<MyVideo controls="" autoplay="" transition:name="media-player" transition:persist />
+```
+
+As a convenient shorthand, `transition:persist` can alternatively take a transition name as a value.
+
+```astro title="pages/index.astro" '="media-player"'
+<video controls="" autoplay="" transition:persist="media-player">
+```
+
+## Built-in Animation Directives
+
+Astro comes with a few built-in animations to override the default `morph` transition. Add the `transition:animate` directive to try Astro's `slide` or `fade` transitions.
+
+- `morph` (default): The browser determines the best way to animate the element depending on how similar the pages are. For example, if the element is positionally different between pages, it will appear to float to its new position. If the element is in the exact same position, it will appear to not move at all.
+- `slide`: An animation where the old content slides out to the left and new content slides in from the right. On backwards navigation, the animations are the opposite.
+- `fade`: A cross-fade where the old content fades out and the new content fades in.
+
+The example below produces a slide animation for the body content while keeping a positionally-identical header in place:
+
+```astro
+---
+import { CommonHead } from '../components/CommonHead.astro';
+---
+<html>
+  <head>
+    <CommonHead />
+  </head>
+  <body>
+    <header> // defaults to transition:animate="morph"
+      ...
+    </header>
+    <main transition:animate="slide">
+      ...
+    </main>
+  </body>
+</html>
+```
+
+## Customizing Animations
+
+You can customize all aspects of a transition with any CSS animation properties.
+
+To customize a built-in animation, first import the animation from `astro:transitions`, and then pass in customization options. 
+
+The example below customizes the duration of the built-in `fade` animation:
+
+```astro
+---
+import { fade } from 'astro:transitions';
+---
+
+<header transition:animate={fade({ duration: '0.4s' })}>
+```
+
+You can also define your own animations for use with `transition:animate` by defining both the forwards and backwards behavior, as well as new and old pages, according to the following types:
+
+```ts
+export interface TransitionAnimation {
+  name: string; // The name of the keyframe
+  delay?: number | string;
+  duration?: number | string;
+  easing?: string;
+	fillMode?: string;
+	direction?: string;
+}
+
+export interface TransitionAnimationPair {
+	old: TransitionAnimation | TransitionAnimation[];
+	new: TransitionAnimation | TransitionAnimation[];
+}
+
+export interface TransitionDirectionalAnimations {
+	forwards: TransitionAnimationPair;
+	backwards: TransitionAnimationPair;
+}
+```
+
+The following example shows all the necessary properties to define a custom `fade` animation:
+
+```astro
+---
+const anim = {
+  old: {
+    name: 'fadeIn',
+    duration: '0.2s',
+    easing: 'linear',
+    fillMode: 'forwards',
+  },
+  new: {
+    name: 'fadeOut',
+    duration: '0.3s',
+    easing: 'linear',
+    fillMode: 'backwards',
+  }
+};
+
+const myFade = {
+	forwards: anim,
+	backwards: anim,
+};
+---
+
+<header transition:animate={myFade}> ... </header>
+```
+
+## Fallback control
+
+The `<ViewTransitions />` router works best in browsers that support View Transitions (i.e. Chromium browsers), but also includes default fallback support for other browsers. Even if the browser does not support the View Transitions API, Astro will still provide in-browser navigation using one of the fallback options for a comparable experience.
+
+You can override Astro's default fallback support by adding a `fallback` property on the `<ViewTransitions />` component and setting it to `swap` or `none`:
+
+- `animate` (default, recommended) - Astro will simulate view transitions using custom attributes before updating page content.
+- `swap` - Astro will not attempt to animate the page. Instead, the old page will be immediately replaced by the new one.
+- `none` - Astro will not do any animated page transitions at all. Instead, you will get full page navigation in non-supporting browsers.
+
+```astro
+---
+import { ViewTransitions } from 'astro:transitions';
+---
+<title>My site</title>
+
+<ViewTransitions fallback="swap">
+```
+
+:::note[known limitations]
+The `morph` animation cannot be simulated in traditional CSS. So any element using this animation will not be animated.
+:::
+
+## Script behavior during page navigation
+
+When navigating between pages with the `<ViewTransitions />` component, scripts are run in sequential order to match browser behavior. 
+
+If you have code that sets up global state, this state will need to take into account that the script might execute more than once. Check for the global state in your `<script>` tag, and conditionally execute your code where possible:
+
+```astro
+<script is:inline>
+  if(!window.SomeGlobal) {
+    window.SomeGlobal = {} // ....
+  }
+</script>
+```
+
+Module scripts are only ever executed once because the browser keeps track of which modules are already loaded. For these scripts, you do not need to worry about re-execution.
+
+### `astro:load`
+
+An event that fires at the end of page navigation, after the new page is visible to the user and blocking styles and scripts are loaded. You can listen to this event on the `document`.
+
+The `<ViewTransitions />` component fires this event both on initial page navigation (MPA) and any subsequent navigation, either forwards or backwards.
+
+You can use this event to run code on every page navigation, or only once ever:
+
+```astro "{ once: true }"
+<script>
+  document.addEventListener('astro:load', () => {
+    // This only runs once.
+    setupStuff();
+  }, { once: true });
+</script>
+```
+
+### `astro:beforeload`
+
+An event that fires immediately after the new page replaces the old page. You can listen to this event on the `document`.
+
+This event is useful to restore any state on the DOM that needs to transfer over to the new page.
+
+For example, if you are implementing dark mode support, this event can be used to restore state across page loads:
+
+```astro
+<script>
+	const setDarkMode = () => {
+		if (localStorage.darkMode) {
+			document.documentElement.dataset.dark = '';
+		}
+	};
+
+  // Runs on initial navigation
+	setDarkMode();
+  // Runs on view transitions navigation
+	document.addEventListener('astro:beforeload', setDarkMode);
+</script>
+```
+
+## `prefers-reduced-motion`
+
+Astro's `<ViewTransitions />` component includes a CSS media query that disables *all* view transition animations, including fallback animation, whenever the [`prefer-reduced-motion`](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion) setting is detected. Instead, the browser will simply swap the DOM elements without an animation.
