@@ -23,6 +23,12 @@ Incremental static regeneration is different from **incremental builds**, which 
 - Your website offers logged-in experiences. If each user needs to be sent a slightly different HTML from others, caching the page may not be possible.
 - The structure of your site (layouts, and styling) changes frequently. Changes to the structure require a full rebuild.
 
+## About Cache-Control Headers
+You will see `Cache-Control` headers being used for many of the platforms below. It is worth reviewing the basics of how they work.
+ - `Cache-Control: s-maxage=60` tells the caching server to cache the response for 60 seconds. You probably want to use this for most cases.
+ - `Cache-Control: max-age=60` tells both browsers and servers to cache the response for 60 seconds. You may use this when your content is unlikely to be edited. If a page with `max-age` updates after it has been visited by a user, their browser will show them the cached version until the age of the content is past `max-age`.
+ - `Cache-Control: private, max-age=60` tells the browser to cache the response for 60 seconds, but not to cache it on any server. This is useful to provide quick navigation, and the content includes details specific to the visitor.
+
 ## Implementing ISR for Your Project
 
 ISR involves saving the response such that it can be reused for future requests. The exact implementation depends on where you are deploying. If you aren't already using an adapter already, you are going to need to add one. See the [integrations guide](/en/guides/integrations-guide/) for specific instructions. In your config, make sure that the "output" is either "server" or "hybrid". If it is "hybrid", the pages you want generated, cached, and invalidated will need to be opted-out of prerendering. See the [server side rendering guide](/en/guides/server-side-rendering/#opting-out-of-pre-rendering) to see how.
@@ -99,12 +105,7 @@ export const onRequest = async ({ request }, next) => {
 ```
 
 ### Deno Deploy
-Deno Deploy does not provide a way to persist data. However, you may be able to use a third-party database to manually cache responses. While this avoids calls to your CMS, you may still experience significant latencies due to the network round-trip time between the Deno Deploy instance and your database.
-
-### Nginx, Traeffik, other reverse proxies that offer caching
-:::note
-TODO
-:::
+Deno Deploy does not provide a way to persist data. However, you may be able to use a third-party caching database to manually cache responses. While this avoids calls to your CMS, you may still experience significant latencies due to the network round-trip time between the Deno Deploy instance and your database.
 
 ### Vercel
 Vercel provides a built-in caching layer that automatically saves cacheable responses. Make sure your server-rendered page or endpoint sets a `Cache-Control` header.
@@ -125,13 +126,13 @@ export async function get({ params, request }) {
 }
 ```
 Vercel only supports `s-maxage` and `stale-while-revalidate` in the Cache-Control header. See [vercel documentation](https://vercel.com/docs/concepts/edge-network/caching) for current information.
-:::note
-The presence of `s-maxage=60` in your `Cache-Control` header tells the caching server to cache the response for 60 seconds, whereas `max-age=60` tells the same to your visitors' browsers as well. Use `max-age` when your content is unlikely to be edited. If a page with `max-age` updates after it has been visited by a user, their browser will show them the cached version until the expiration time.
-:::
 
 ### Netlify
-Netlify supports caching responses via its [On-demand builders](https://docs.netlify.com/configure-builds/on-demand-builders/) feature. You can leverage it by enabling `builders` in your config file.
+Netlify supports caching via two methods: `Cache-Control` headers, which works with edge and serverless functions; and, On-demand Builders, a type of function dedicated for optimized caching.
 
+#### On-demand Builders
+On-demand Builders are serverless functions used to generate web content as needed that’s automatically cached on Netlify’s Edge CDN. They enable you to build 
+To enable them, set the `builders` option to `true` in your config file.
 ```ts title="stro.config.js" ins={6}
 import { defineConfig } from 'astro/config'
 import netlify from '@astrojs/netlify/functions'
@@ -141,10 +142,30 @@ export default defineConfig({
   adapter: netlify({ builders: true })
 })
 ```
-This approach does not allow control over the duration that the pages stay cached.
-:::note
-Platform Team: Netlify adapter should be updated to take advantage of `ttl` in the handler's return value, and expose it to the end-developer.
-:::
+By default, pages for your site will be built when a user visits them for the first time and then cached at the edge for subsequent visits. To set a revalidation time, call the `runtime.setBuildersTtl(ttl)` local with the duration (in seconds). For example, to set a revalidation time of 60 seconds:
+```ts title="src/pages/index.astro"
+---
+Astro.locals.runtime.setBuildersTtl(60)
+---
+<h1>Welcome to Astro</h1>
+```
+TODO: middleware equivalent
+When you set a revalidation time, Netlify will rerender the page in the background at regular intervals so that visitors never have to wait for a page to be rendered.
+It is important to note that On-demand Builders ignore query params when checking for cached pages. For example, if `example.com/?x=y` is cached, it will be served for `example.com/?a=b` (different query params) and `example.com/` (no query params) as well.
+See Netlify's [documentation](https://docs.netlify.com/configure-builds/on-demand-builders) to learn more about On-demand Builders.
+
+#### Edge and serverless functions
+Netlify supports caching via `Cache-Control` headers. Make sure your server-rendered page or endpoint sets a `Cache-Control` header.
+
+```astro title="src/pages/index.astro"
+---
+Astro.response.headers.set('Cache-Control', 's-maxage=60')
+---
+<h1>Welcome to Astro</h1>
+```
+
+See [Netlify's documentation](https://docs.netlify.com/edge-functions/optional-configuration/#supported-headers) on edge functions to learn about what headers, and values are supported.
+
 
 ### Cloudflare Pages/Workers
 Cloudflare Workers implements the Web Cache API. You can use a combination of a caching middleware, and `Cache-Control` headers.
@@ -193,5 +214,5 @@ export const onRequest =
 ```
 
 :::note
-Cloudflare may remove the cached response from their server before the time is up. They may do this if the page was not receving visitors, or if the server is approaching capacity. If it is important to you that your visitors don't wait for the page to render afresh, you may be able to take advantage of Cloudflare's Cache Reserve feature, which stores cache on their object storage offering, R2.
+Cloudflare may remove the cached response from their server before the duration you set has elapsed. This may happen if the page was not receving visitors, or if the server is approaching capacity. If it is important to you that your visitors don't wait for the page to render afresh, you may be able to take advantage of Cloudflare's Cache Reserve feature, which stores cache on their object storage offering, R2.
 :::
