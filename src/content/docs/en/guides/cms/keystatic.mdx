@@ -75,7 +75,7 @@ You will also need two Keystatic packages:
 
 Keystatic needs a config file. This is where you can connect a project with a specific GitHub repository and define a content schema.
 
-Create a file called `keystatic.config.ts` in the root of the project:
+Create a file called `keystatic.config.ts` in the root of the project and add the following code to define both your storage type (`local`) and a single content collection (`posts`):
 
 ```ts {8-25}
 // keystatic.config.ts
@@ -85,6 +85,7 @@ export default config({
   storage: {
     kind: 'local',
   },
+
   collections: {
     posts: collection({
       label: 'Posts',
@@ -106,14 +107,8 @@ export default config({
 });
 ```
 
-You've exported a config object wrapped in the `config` function imported from `@keystatic/core`.
-
-For now, the `storage` strategy is set to `local`, and there is a single “posts” `collection`.
-
-:::note
-The schema of your Keystatic collections should match the collections you've defined in Astro's [content collections](/en/guides/content-collections/#defining-collections).
-
-We're working on a way to automatically sync Keystatic collections with Astro's content collections... Stay tuned! 🤗
+:::note[already using content collections?]
+If you are already using [content collections](/en/guides/content-collections/#defining-collections) in your Astro project, then update the schema above to exactly match the collection(s) defined in your existing schema.
 :::
 
 This is all Keystatic needs to start managing content, configuration-wise.
@@ -122,7 +117,9 @@ Now, you need to display the Keystatic Admin UI on our site!
 
 ## Setting up the Keystatic Admin UI dashboard
 
-The Keystatic Admin UI is a React app that runs in your Astro project. The following steps will set it up to live in your `/pages/` folder, and provide a dashboard for managing your content.
+The Keystatic Admin UI is a React app that runs in your Astro project. 
+
+The following steps will create a dashboard that lives in `src/pages/keystatic/` for managing your site content.
 
 1. Create a `keystatic.page.ts` in the project root, alongside your Keystatic config file.
 
@@ -170,48 +167,38 @@ The Keystatic Admin UI is a React app that runs in your Astro project. The follo
 
 ## Creating a new post
 
-Try and visit the `/keystatic` page in the browser one more time, and click on the “Posts” collection.
+1. In the Keystatic Admin UI dashboard, click on the “Posts” collection.
 
-Go ahead, and create a new post.
+ 2. Use the button to create a new post. Add the title "My First Post" and some content, then save the post.
+ 
+ 3. This post should now be visible from your "Posts" collection. You can view and edit your individual posts from this dashboard page.
+ 
+ 4. Return to view your Astro project files. You will now find a new `.mdoc` file inside the `src/content/posts` directory for this new post:
 
-:::note
-In our Keystatic config file, you've set the `path` property for our `posts` collection to `src/content/posts/*`.
+		<FileTree title="Project Structure">
+		- src/
+		  - content/
+		    - posts/
+		      - **my-first-post.mdoc**
+		</FileTree>
 
-As a result, creating a new post from the Keystatic Admin UI should create a new `content` directory in the `src` directory, with the new post `.mdoc` file inside.
-:::
+5. Navigate to that file in your code editor and verify that you can see the Markdown content you entered. For example: 
 
-If everything worked correctly, you'll find your new post inside the `src/content/posts` directory:
-
-<FileTree title="Project Structure">
-- src/
-  - content/
-    - posts/
-      - **my-first-post.mdoc**
-</FileTree>
-
-That Markdoc file should look something like this:
-
-```markdown
----
-title: My First Post
----
-
-This is my very first post. I am **super** excited.
-```
-
-Niiiice ✨
-
-Time to display that post on the frontend now.
+		```markdown
+		---
+		title: My First Post
+		---
+		
+		This is my very first post. I am **super** excited!
+		```
 
 ## Rendering Keystatic content
 
-:::tip
-While Keystatic provides its own [Reader and Renderer APIs](https://keystatic.com/docs/reader-api) to pull data for your frontend, it also works great with Astro's [content collections](/en/guides/content-collections/)!
-:::
+Use Astro's Content Collections API to [query and display your posts and collections](en/guides/content-collections/#querying-collections), just as you would in any Astro project.
 
 ### Displaying a collection list
 
-Since you instructed Keystatic to manage `posts` in `src/content/posts`, they'll be available as Astro's content collections as the `posts` collection slug:
+The following example displays a list of each post title, with a link to an individual post page.
 
 ```tsx {4}
 ---
@@ -219,36 +206,18 @@ import { getCollection } from 'astro:content'
 
 const posts = await getCollection('posts')
 ---
-
-<main>
-  <pre>{JSON.stringify(posts, null, 2)}</pre>
-</main>
-
+<ul>
+  {posts.map(post => (
+    <li>
+      <a href={`/posts/${post.slug}`}>{post.data.title}</a>
+    </li>
+  ))}
+</ul>
 ```
 
-### Displaying a single collection entry
+### Displaying a single entry
 
-You can also get a single collection entry by its slug:
-
-```tsx {4}
----
-import { getEntry } from 'astro:content'
-
-const post = await getEntry('posts', 'my-first-post')
----
-
-<main>
-  <pre>{JSON.stringify(post, null, 2)}</pre>
-</main>
-```
-
-### Rendering document field content
-
-If you examine the output from our `post` entry above, you will notice that the `body` field — which represents the `content` of our post — is displaying raw Markdown.
-
-But you probably want to render HTML instead on your page.
-
-Well, good news: Astro provides a `<Content />` component that can do the heavy lifting of converting rich text data into properly formatted markup:
+To display content from an individual post, you can import and use the `<Content />` component to [render your content to HTML)(/en/guides/content-collections/#rendering-content-to-html):
 
 ```tsx {4-5}
 ---
@@ -265,6 +234,7 @@ const { Content } = await post.render()
 
 ```
 
+For more information on querying, filtering, displaying your collections content and more, see the full content [collections documentation](/en/guides/content-collections/).
 ## Deploying Keystatic + Astro
 
 To deploy your website, visit our [deployment guides](/en/guides/deploy/) and follow the instructions for your preferred hosting provider.
