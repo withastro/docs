@@ -6,6 +6,10 @@ import os from 'os';
 import path from 'path';
 import simpleGit from 'simple-git';
 import { fileURLToPath } from 'url';
+import type { DocSearchTranslation, UIDict } from '~/i18n/translation-checkers';
+import docsearchTranslations from '../../../src/i18n/en/docsearch';
+import navTranslations from '../../../src/i18n/en/nav';
+import uiTranslations from '../../../src/i18n/en/ui';
 import { githubGet } from '../../lib/github-get.mjs';
 import output from '../../lib/output.mjs';
 import type {
@@ -14,6 +18,8 @@ import type {
 	PageTranslationStatus,
 } from '../../lib/translation-status/types';
 import { toUtcString, tryGetFrontMatterBlock } from '../../lib/translation-status/utils.js';
+
+type NestedRecord = { [k: string]: string | NestedRecord };
 
 export const COMMIT_IGNORE = /(en-only|typo|broken link|i18nReady|i18nIgnore)/i;
 
@@ -97,6 +103,9 @@ export class TranslationStatusBuilder {
 		// Determine translation status by source page
 		const statusByPage = this.getTranslationStatusByPage(pages);
 
+		// Append translation status by UI source page
+		statusByPage.unshift(...(await this.getUITranslationsIndex()));
+
 		// Fetch all pull requests
 		const pullRequests = await this.getPullRequests();
 
@@ -110,6 +119,108 @@ export class TranslationStatusBuilder {
 		output.debug('');
 		output.debug('*** Success!');
 		output.debug('');
+	}
+
+	/**
+	 * Check two objects for key equality
+	 */
+	equalKeys(obj1: NestedRecord, obj2: NestedRecord) {
+		function inner(obj: NestedRecord) {
+			const result: string[] = [];
+			function rec(obj: NestedRecord, c: string) {
+				Object.keys(obj).forEach(function (e) {
+					if (typeof obj[e] == 'object') rec(obj[e] as NestedRecord, c + e);
+					result.push(c + e);
+				});
+			}
+			rec(obj, '');
+			return result;
+		}
+		const keys1 = inner(obj1),
+			keys2 = inner(obj2);
+		return keys1.every((e) => keys2.includes(e) && keys1.length == keys2.length);
+	}
+
+	/**
+	 * Get status of UI translations
+	 */
+	async getUITranslationsIndex(): Promise<PageTranslationStatus[]> {
+		const getPageUrl = ({
+			lang,
+			page,
+			type = 'blob',
+			refName = 'main',
+			query = '',
+		}: {
+			lang: string;
+			page: string;
+			query?: string;
+			type?: string;
+			refName?: string;
+		}) => {
+			return (
+				`https://github.com/${this.githubRepo}/${type}/${refName}` +
+				`/src/i18n/${lang}/${page}.ts${query}`
+			);
+		};
+
+		const pages: [string, DocSearchTranslation | typeof navTranslations | UIDict][] = [
+			['docsearch', docsearchTranslations],
+			['nav', navTranslations],
+			['ui', uiTranslations],
+		];
+
+		return Promise.all(
+			pages.map(async ([page, enTranslation]): Promise<PageTranslationStatus> => {
+				const subpath = `src/i18n/en/${page}.ts`;
+				const en = await this.getGitHistory(subpath);
+				const translations: PageTranslationStatus['translations'] = {};
+
+				for (const lang of this.targetLanguages) {
+					const subpath = `src/i18n/${lang}/${page}.ts`;
+					const module = (await import(`../../../${subpath}`)).default;
+
+					// @ts-expect-error enTranslation.length is defined in one case
+					const isIncomplete = enTranslation.length
+						? module.filter((k: { labelIsTranslated: boolean }) => k.labelIsTranslated).length !==
+						  (enTranslation as typeof navTranslations).length
+						: !this.equalKeys(module, enTranslation as NestedRecord);
+
+					const data = await this.getGitHistory(subpath);
+					translations[lang] = {
+						githubUrl: getPageUrl({ lang, page }),
+						isMissing: !data,
+						isOutdated: isIncomplete || (data && data.lastMajorCommitDate < en.lastMajorCommitDate),
+						page: {
+							lastChange: data.lastCommitDate,
+							lastCommitMsg: data.lastCommitMessage,
+							lastMajorChange: data.lastMajorCommitDate,
+							lastMajorCommitMsg: data.lastMajorCommitMessage,
+						},
+						sourceHistoryUrl: isIncomplete
+							? undefined
+							: getPageUrl({
+									lang: 'en',
+									page,
+									type: 'commits',
+									query: data ? `?since=${data.lastMajorCommitDate}` : '',
+							  }),
+					};
+				}
+
+				return {
+					githubUrl: getPageUrl({ lang: 'en', page }),
+					subpath: `${page}.ts`,
+					sourcePage: {
+						lastChange: en.lastCommitDate,
+						lastCommitMsg: en.lastCommitMessage,
+						lastMajorChange: en.lastMajorCommitDate,
+						lastMajorCommitMsg: en.lastMajorCommitMessage,
+					},
+					translations,
+				};
+			})
+		);
 	}
 
 	/** Get all pull requests with the `i18n` tag */
@@ -326,13 +437,18 @@ export class TranslationStatusBuilder {
 						(content) =>
 							`<li>` +
 							`${this.renderLink(content.githubUrl, content.subpath)} ` +
-							`(${this.renderLink(
-								content.translations[lang].githubUrl,
-								'outdated translation'
-							)}, ${this.renderLink(
-								content.translations[lang].sourceHistoryUrl,
-								'source change history'
-							)})` +
+							(content.translations[lang].sourceHistoryUrl
+								? `(${this.renderLink(
+										content.translations[lang].githubUrl,
+										'outdated translation'
+								  )}, ${this.renderLink(
+										content.translations[lang].sourceHistoryUrl!,
+										'source change history'
+								  )})`
+								: `(${this.renderLink(
+										content.translations[lang].githubUrl,
+										'incomplete translation'
+								  )})`) +
 							`</li>`
 					)
 				);
