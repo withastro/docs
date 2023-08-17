@@ -518,16 +518,19 @@ export default defineConfig({
 
 There are several third-party [community image integrations](https://astro.build/integrations?search=images) for optimizing and working with images in your Astro project.
 
-## v3 update guide stuff
+## Upgrade to v3.0 from v2.x
 
-Assets may cause some breaking changes when you upgrade your Astro project to v3.
-- `image.src` now require for `<img>` tag
-- can no longer use `<img>` tag in `.md` files
+`astro:assets` is no longer experimental in Astro v3.0 and `<Image />` is now a built-in component and the previous `@astrojs/image` integration has been removed. These and other accompanying changes in using images in Astro may cause some breaking changes when you upgrade your Astro project from an earlier version.
 
+Please follow the instructions below as appropriate to upgrade an Astro v2.x project to v3.0. 
 
-### Remove `experimental.assets` flag if it exists
+### Upgrade from `experimental.assets`
 
-Remove the experimental flag if you previously had it:
+If you had previously enabled the experimental flag for `astro:assets`, you will need to update your project for Astro v3.0 which now includes assets features by default.
+
+#### Remove `experimental.assets` flag
+
+Remove the experimental flag:
 
 ```js title="astro.config.mjs" del={4-6}
 import { defineConfig } from 'astro/config';
@@ -546,9 +549,20 @@ If necessary, also update your `src/env.d.ts` file to replace the `astro/client-
 /// <reference types="astro/client" />
 ```
 
+#### Remove the `~/assets` import alias
+
+This import alias is no longer included by default with `astro:assets`. If you were using this alias with experimental assets, you must convert them to relative file paths, or [create your own import aliases](/en/guides/aliases/).
+
+```astro title="src/pages/posts/post-1.astro" del={2} ins={3}
+---
+import rocket from '~/assets/rocket.png'
+import rocket from '../../assets/rocket.png';
+---
+```
+
 ### Decide where to store your images
 
-See the Images guide to help you decide [where to store your images](/en/guides/images/#where-to-store-images)..
+See the Images guide to help you decide [where to store your images](/en/guides/images/#where-to-store-images). You may wish to take advantage of new options for storing your images with the added flexibility `astro:assets` brings. For example, relative images from your project `src/` can now be referenced in Markdown, MDX, and Markdoc using standard Markdown ![alt](src) syntax.
 
 ### Update existing `<img>` tags
 
@@ -563,7 +577,7 @@ interface ImageMetadata {
 }
 ```
 
-You must update the `src` attribute of any existing `<img>` tags, and you may also update other attributes that are now available to you from the imported image.
+You must update the `src` attribute of any existing `<img>` tags (including any [images in UI framework components](#images-in-ui-framework-components)) and you may also update other attributes that are now available to you from the imported image.
 
 ```astro title="src/components/MyComponent.astro" ".src" ".width" ".height" del={4} ins={6}
 ---
@@ -582,11 +596,14 @@ This allows you the option to move your images from the `public/` directory to y
 
 Additionally, the HTML `<img>` is no longer supported in `.md` files. Replace these with standard Markdown syntax.
 
-```md title="src/pages/posts/post-1.md" "/_astro" ".hash" "../../assets/" del={7} ins={4}
+```md title="src/pages/posts/post-1.md" "/_astro" ".hash" "../../assets/" del={10}
 # My Markdown Page
 
 <!-- Local images now possible! -->
-![A starry night sky.](../../assets/stars.png)
+![A starry night sky.](../../images/stars.png)
+
+<!-- Keep your images next to your content! -->
+![A starry night sky.](./stars.png)
 
 <!-- HTML image tag no longer supported -->
 <img src="/images/stars.png" alt="A starry night sky.">
@@ -596,15 +613,8 @@ If you require more control over your image attributes, we recommend using the `
 
 ### Remove `@astrojs/image`
 
-**Built-in asset support is incompatible with the `@astrojs/image` integration.**
 
-:::note[cropping images]
-The Assets API does not support image cropping. The current behaviour is to resize images to fit.
-
-Use the [`object-fit` CSS property](https://developer.mozilla.org/en-US/docs/Web/CSS/object-fit) to achieve a similar result. 
-:::
-
-To avoid errors in your project, complete the following steps:
+If you were using the image integration in Astro v2.x, complete the following steps:
 
 1. Remove the `@astrojs/image` integration.
 
@@ -612,7 +622,7 @@ To avoid errors in your project, complete the following steps:
 
 2. Migrate any existing `<Image />` components.
 
-    Change all `import` statements from `@astrojs/image/components` to `astro:assets` to use the new built-in `<Image />` component.
+    Change all `import` statements from `@astrojs/image/components` to `astro:assets` in order to use the new built-in `<Image />` component.
 
     Remove any component attributes that are not [currently supported image asset properties](/en/guides/images/#properties).
 
@@ -642,12 +652,12 @@ To avoid errors in your project, complete the following steps:
 
 4. Uninstall Sharp
 
-    [Sharp](https://github.com/lovell/sharp) is now the default image service used for astro:assets. You no longer need to install the dependency locally in your project.
+    [Sharp](https://github.com/lovell/sharp) is now the default image service used for `astro:assets`. You no longer need to install the dependency locally in your project.
 
     Uninstall Sharp using your package manager, or by removing manually from your `package.json`.
 
 
-    If you would prefer to continue to use [Squoosh](https://github.com/GoogleChromeLabs/squoosh) to transform your images, update your config with the following:
+    If you would prefer to use [Squoosh](https://github.com/GoogleChromeLabs/squoosh) to transform your images, update your config with the following `image.service` option:
 
     ```js title="astro.config.mjs" ins={4-6}
     import { defineConfig, squooshImageService } from 'astro/config';
