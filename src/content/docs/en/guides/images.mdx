@@ -32,7 +32,7 @@ Astro can fetch your data remotely using APIs or display images from their full 
 
 In `.astro` files, local images must be imported into the file in order to be used. Remote and `public/` images do not require importing.
 
-Import and use Astro's built-in `<Image />` component for optimized images. Alternatively, Astro syntax supports writing an HTML `<img>` tag directly.
+Import and use Astro's built-in `<Image />` component for optimized images using `astro:assets`. Alternatively, Astro syntax supports writing an HTML `<img>` tag directly, which skips image processing. 
 
 ```astro title="src/pages/blog/MyImages.astro"
 ---
@@ -54,10 +54,10 @@ Use the built-in `<Image />` Astro component to display optimized versions of yo
 
 Images in the `public/` folder, as well as remote images not specifically configured in your project can also be used with the Image component, but will not be processed.
 
-`<Image />` can transform a local or authorized remote image's dimensions, file type, and quality to produce an optimized `<img>` tag to avoid **Cumulative Layout Shift (CLS)**.
+`<Image />` can transform a local or authorized remote image's dimensions, file type, and quality for control over your displayed image. The resulting `<img>` tag includes `alt`, `loading` and `decoding` attributes and infers image dimensions to avoid **Cumulative Layout Shift (CLS)**.
 
 :::tip[What is Cumulative Layout Shift?]
-[Cumulative Layout Shift (CLS)](https://web.dev/cls/) is a Core Web Vital metric for measuring how much content shifted on your page during loading. The `<Image />` component optimizes for CLS by automatically selecting the correct `width` and `height` for your local images.
+[Cumulative Layout Shift (CLS)](https://web.dev/cls/) is a Core Web Vital metric for measuring how much content shifted on your page during loading. The `<Image />` component optimizes for CLS by automatically setting the correct `width` and `height` for your local images.
 :::
 
 ```astro title="src/components/MyComponent.astro"
@@ -86,7 +86,7 @@ import myImage from "../assets/my_image.png"; // Image is 1600x900
 
 Currently, the built-in assets feature does not include a `<Picture />` component.
 
-Instead, you can use the HTML image attributes `srcset` and `sizes` or the `<picture>` tag [for art direction or to create responsive images](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#art_direction).
+Instead, you can [generate images or custom components using `getImage()`](/en/guides/images/#generating-images-with-getimage) that use the HTML image attributes `srcset` and `sizes` or the `<picture>` tag [for art direction or to create responsive images](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#art_direction).
 
 #### Properties
 
@@ -156,7 +156,6 @@ By default, the `<Image />` component will produce a `webp` file.
 - a preset (`low`, `mid`, `high`, `max`) that is automatically normalized between formats.
 - a number from `0` to `100` (interpreted differently between formats).
 
-We don't know what they mean, either.
 
 ##### Additional properties
 
@@ -211,7 +210,7 @@ const {src, ...attrs} = Astro.props;
 
 ### `<img>`
 
-The [Astro template syntax](/en/core-concepts/astro-syntax/) also supports writing an `<img>` tag directly, with full control over its final output. Local images will be optimized.
+The [Astro template syntax](/en/core-concepts/astro-syntax/) also supports writing an `<img>` tag directly, with full control over its final output. These images will not be processed and optimized.
 
 It accepts all HTML `<img>` tag properties, and the only required property is `src`.
 
@@ -219,13 +218,15 @@ It accepts all HTML `<img>` tag properties, and the only required property is `s
 
 Local images must be **imported from the relative path** from the existing `.astro` file, or configure and use an [import alias](/en/guides/aliases/). Then, you can access the image's `src` and other properties to use in the `<img>` tag.
 
+For example, use the image's own `height` and `width` properties by default to avoid CLS and improve Core Web Vitals.
+
 ```astro "myDog.src"
 ---
 // import local images
 import myDog from `../../images/pets/local-dog.jpg`
 ---
 // access the image properties
-<img src={myDog.src} alt="A barking dog." />
+<img src={myDog.src} width={myDog.width} height={myDog.height} alt="A barking dog." />
 ```
 
 Imported image assets match the following signature:
@@ -259,7 +260,7 @@ For remote images, use the image's **full URL** as the `src` value:
 The `<Image />` component optimizes your image and infers width and height (of local images) based on the original aspect ratio to avoid CLS. But, it only works with certain formats and does not provide a `<picture>` element, nor does it support `srcset`.
 
 Use the HTML `<img>` element when you cannot use the `<Image />` component, for example:
-  - for unsupported image formats, like `.svg`
+  - for unsupported image formats
   - when you do not want your image optimized by Astro
   - to access and change the `src` attribute dynamically client-side
 
@@ -371,7 +372,7 @@ coverAlt: "A photograph of a sunset behind a mountain range."
 This is a blog post
 ```
 
-The `image` helper for content collections lets you validate the image metadata using Zod.
+The `image` helper for the content collections schema lets you validate the image metadata using Zod.
 
 ```ts title="src/content/config.ts"
 import { defineCollection, z } from "astro:content";
