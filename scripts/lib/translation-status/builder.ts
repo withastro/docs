@@ -350,7 +350,7 @@ export class TranslationStatusBuilder {
 
 		const trackerDirectiveMatch = entry.body.match(TRACKER_DIRECTIVE);
 
-		if (trackerDirective) {
+		if (trackerDirectiveMatch) {
 			const filePaths = trackerDirectiveMatch[0].replace('@tracker-major:', '').split(';');
 			return filePaths.includes(filePath);
 		}
