@@ -348,11 +348,11 @@ export class TranslationStatusBuilder {
 	isValidMajor(entry: DefaultLogFields & ListLogLine, filePath: string) {
 		if (entry.message.match(COMMIT_IGNORE)) return false;
 
-		const trackerDirective = entry.body.match(TRACKER_DIRECTIVE);
+		const trackerDirectiveMatch = entry.body.match(TRACKER_DIRECTIVE);
 
 		if (trackerDirective) {
-			const filePaths = trackerDirective[0].replace('@tracker-major:', '').split(';');
-			return filePaths.indexOf(filePath) > -1;
+			const filePaths = trackerDirectiveMatch[0].replace('@tracker-major:', '').split(';');
+			return filePaths.includes(filePath);
 		}
 
 		return true;
