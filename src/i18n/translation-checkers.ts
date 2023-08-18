@@ -15,6 +15,7 @@ export type NavDict = Array<
 	{
 		text: string;
 		key: NavDictionaryKeys;
+		labelIsTranslated: boolean;
 		isFallback?: boolean;
 	} & ({ slug: string } | { header: true; type: 'learn' | 'api' })
 >;
@@ -27,7 +28,7 @@ export const NavDictionary = (dict: Partial<Record<NavDictionaryKeys, string>>) 
 	const orderedDictionary: NavDict = [];
 	for (const enEntry of enNav) {
 		const text = dict[enEntry.key] || enEntry.text;
-		orderedDictionary.push({ ...enEntry, text });
+		orderedDictionary.push({ ...enEntry, text, labelIsTranslated: !!dict[enEntry.key] });
 	}
 	return orderedDictionary;
 };
