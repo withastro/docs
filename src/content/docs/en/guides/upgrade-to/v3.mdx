@@ -366,7 +366,7 @@ const myValue = "red"
 
 In Astro v2.x, the default value of `scopedStyleStrategy` was `"where"`.
 
-Astro v3.0, the default value is `"attribute"`. By default, styles are now applied using data-* attributes.
+Astro v3.0, the default value is `"attribute"`. By default, styles are now applied using `data-*` attributes.
 
 #### What should I do?
 
@@ -431,6 +431,146 @@ export default defineConfig({
 		}),
   ]
 });
+```
+
+### Removed: `@astrojs/image`
+In Astro v2.x, this package existed
+
+Astro v3.0, it does not anymore, replaced by `astro:assets`
+
+#### What should I do?
+
+Migrate to `astro:assets`. In `.astro` files this is really just a replace `@astrojs/image` by `astro:assets` in most cases, however if you used the Picture component, you'll need at this time to recreate it using the `getImage` APIs.
+
+### Removed: kebab-case transform for camelCase CSS variables
+
+In Astro v2.x, camelCase CSS variables passed to the `style` attribute were rendered as camelCase (original) and kebab-case (incorrect by kept for backwards compatibility).
+
+Astro v3.0 removes the kebab-case transform, and only the original camelCase CSS variable is rendered.
+
+ ```astro
+ ---
+ const myValue = "red"
+ ---
+ <!-- input -->
+ <div style={{ "--myValue": myValue }}></div>
+ <!-- output (before) -->
+ <div style="--my-value:var(--myValue);--myValue:red"></div>
+ <!-- output (after) -->
+ <div style="--myValue:red"></div>
+ ```
+
+#### What should I do?
+
+If you were relying on the kebab-case transform in your styles, make sure to use the camelCase version to prevent missing styles. For example:
+
+ ```diff
+ <style>
+   div {
+ -   color: var(--my-value);
+ +   color: var(--myValue);
+   }
+ </style>
+ ```
+DUPE TO BE COMBINED
+
+ Remove backwards-compatible kebab-case transform for camelCase CSS variable names passed to the `style` attribute. If you were relying on the kebab-case transform in your styles, make sure to use the camelCase version to prevent missing styles. For example:
+
+```astro
+---
+const myValue = "red"
+---
+<!-- input -->
+<div style={{ "--myValue": myValue }}></div>
+<!-- output (before) -->
+<div style="--my-value:var(--myValue);--myValue:red"></div>
+<!-- output (after) -->
+<div style="--myValue:red"></div>
+```
+
+```diff
+<style>
+  div {
+-   color: var(--my-value);
++   color: var(--myValue);
+  }
+</style>
+```
+
+### Changed entrypoint export paths
+
+In Astro v2.x, you can import internal Astro APIs from `astro/internal/star` and `astro/runtime/server/star`.
+
+Astro v3.0 removes the two entrypoints in favour of the existing `astro/runtime/star` entrypoint.
+
+#### What should I do?
+
+These are entrypoints for Astro's internal API and should not affect your project, but if you do use these entrypoints, you can migrate like below:
+
+ ```diff
+ - import 'astro/internal/index.js';
+ + import 'astro/runtime/server/index.js';
+
+ - import 'astro/server/index.js';
+ + import 'astro/runtime/server/index.js';
+ ```
+
+### Small stylesheets now get inlined by default
+In Astro v2.x, all project stylesheets were sent  lnd u could opt-in to inlining them by using the `build.inlineStylesheets` configuration.
+
+were sent as link tags by default  and you could opt  in to inlining them
+
+Astro v3.0 defaults `inlineStylesheets` to "auto", which means stylesheets smaller than 4kB get included in the initial response.
+
+#### What should I do?
+Nothing, this change does not require any migration. To go back to the old behavior, configure `inlineStylesheets` to "never"
+
+```diff
+export default defineConfig({
+    build: {
++       inlineStylesheets: "never"
+    }
+})
+```
+
+### Changed implementation of `class:list` directive
+In Astro v2.x, `class:list` used a custom implementation inspired by [`clsx`](https://github.com/lukeed/clsx) with a few extra features like deduplication and `Set` support.
+
+In Astro v3.0, `class:list` uses [`clsx`](https://github.com/lukeed/clsx) directly, which does not support deduplication or `Set` values.
+
+#### What should I do?
+
+Replace any `Set` elements passed to the `class:list` directive with a plain `Array`.
+
+```diff
+ <Component class:list={[
+    'a',
+    'b',
+-   new Set(['c', 'd'])
++   ['c', 'd'] 
+  ]} />
+```
+
+### Changed behavior of `class:list` directive for components
+
+In Astro v2.x, `class:list` values were sent to components via `Astro.props['class:list']`.
+
+In Astro v3.0, `class:list` values are normalized into a string before being sent to components via `Astro.props['class']`
+
+#### What should I do?
+
+Remove any code that expects to receive the `class:list` prop.
+
+```diff
+---
+- import { clsx } from 'clsx';
+- const { class: className, 'class:list': classList } = Astro.props;
++ const { class: className } = Astro.props;
+---
+<div
+-  class:list={[className, classList]}
++  class={className}
+/>
 ```
 
 ## Known Issues
