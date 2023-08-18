@@ -1,4 +1,3 @@
-/* eslint-disable no-mixed-spaces-and-tabs */
 import dedent from 'dedent-js';
 import glob from 'fast-glob';
 import fs from 'fs';
