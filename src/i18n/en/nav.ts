@@ -70,7 +70,6 @@ export default [
 		key: 'guides/client-side-scripts',
 	},
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
-	{ text: 'Assets (Experimental)', slug: 'guides/assets', key: 'guides/assets' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 	{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
