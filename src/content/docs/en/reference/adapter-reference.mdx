@@ -2,6 +2,8 @@
 title: Astro Adapter API
 i18nReady: true
 ---
+import Since from '~/components/Since.astro';
+
 
 Astro is designed to make it easy to deploy to any cloud provider for SSR (server-side rendering). This ability is provided by __adapters__, which are [integrations](/en/reference/integrations-reference/). See the [SSR guide](/en/guides/server-side-rendering/#adding-an-adapter) to learn how to use an existing adapter.
 
@@ -26,7 +28,10 @@ export default function createIntegration() {
       'astro:config:done': ({ setAdapter }) => {
         setAdapter({
           name: '@matthewp/my-adapter',
-          serverEntrypoint: '@matthewp/my-adapter/server.js'
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          supportedAstroFeatures: {
+              staticOutput: 'stable'
+          }  
         });
       },
     },
@@ -41,6 +46,40 @@ interface AstroAdapter {
 	name: string;
 	serverEntrypoint?: string;
 	exports?: string[];
+  supportedAstroFeatures: AstroFeatureMap;
+}
+
+export type SupportsKind = 'unsupported' | 'stable' | 'experimental' | 'deprecated';
+
+export type AstroFeatureMap = {
+	/**
+	 * The adapter is able to serve static pages
+	 */
+	staticOutput?: SupportsKind;
+	/**
+	 * The adapter is able to serve pages that are static or rendered via server
+	 */
+	hybridOutput?: SupportsKind;
+	/**
+	 * The adapter is able to serve SSR pages
+	 */
+	serverOutput?: SupportsKind;
+	/**
+	 * The adapter can emit static assets
+	 */
+	assets?: AstroAssetsFeature;
+};
+
+export interface AstroAssetsFeature {
+	supportKind?: SupportsKind;
+	/**
+	 * Whether or not this adapter deploys files in an environment that is compatible with the library `sharp`
+	 */
+	isSharpCompatible?: boolean;
+	/**
+	 * Whether or not this adapter deploys files in an environment that is compatible with the library `squoosh`
+	 */
+	isSquooshCompatible?: boolean;
 }
 ```
 
@@ -49,6 +88,7 @@ The properties are:
 * __name__: A unique name for your adapter, used for logging.
 * __serverEntrypoint__: The entrypoint for server-side rendering.
 * __exports__: An array of named exports when used in conjunction with `createExports` (explained below).
+* __supportedAstroFeatures__: A map of Astro built-in features. This allows Astro to determine which features an adapter is unable or unwilling to support so appropriate error messages can be provided.
 
 ### Server Entrypoint
 
@@ -188,3 +228,53 @@ You can usually call `app.render(request)` without using `.match` because Astro 
 ```
 
 Once you [publish your adapter to npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), running `astro add example` will install your package with any peer dependencies specified in your `package.json`. We will also instruct users to update their project config manually.
+
+
+## Astro features
+
+<Since v="3.0.0" />
+
+Astro features are a way for an adapter to tell Astro whether they are able to support a feature, and also the adapter's level of support.  
+
+When using these properties, Astro will:
+- run specific validation; 
+- emit contextual to the logs;
+
+These operations are run based on the features supported or not supported, their level of support, and the configuration that the user uses.
+
+The following configuration tells Astro that this adapter has experimental support for assets, but the adapter is not compatible with the built-in services Sharp and Squoosh:
+
+```js title="my-adapter.mjs" ins={9-15}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          supportedAstroFeatures: {
+            assets: {
+              supportKind: "experimental",
+	            isSharpCompatible: false,
+	            isSquooshCompatible: false
+            }
+          }  
+        });
+      },
+    },
+  };
+}
+```
+
+Astro will log a **warning** to the terminal:
+
+```
+[@matthewp/my-adapter] The feature is experimental and subject to issues or changes.
+```
+
+and an error if the service used for assets is not compatible with the adapter:
+
+```
+[@matthewp/my-adapter] The currently selected adapter `@matthewp/my-adapter` is not compatible with the service "Sharp". Your project will NOT be able to build.
+```
