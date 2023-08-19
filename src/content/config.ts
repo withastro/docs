@@ -9,8 +9,7 @@ export const baseSchema = z
 		i18nReady: z.boolean().default(false),
 		githubURL: z.string().url().optional(),
 		hasREADME: z.boolean().optional(),
-	})
-	.strict();
+	});
 
 export const deploySchema = baseSchema.extend({
 	type: z.literal('deploy'),
