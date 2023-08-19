@@ -45,6 +45,31 @@ Update your project's version of Astro to the latest version using your package 
   </Fragment>
 </PackageManagerTabs>
 
+## Astro v3.0 Experimental Flags Removed
+
+Remove the following experimental flags from `astro.config.mjs`:
+
+```js del={5-8}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    assets: true,
+    viewTransitions: true,
+  },
+})
+```
+
+These features are now available by default:
+
+- [View Transitions](/en/guides/view-transitions/) for animated page transitions and persistent islands.
+- [A new image services API `astro:assets`](/en/guides/images/) for optimizing and transforming images through the new `<Image />` component and `getImage()` function. Also unlocks [relative images in Markdown, MDX and Markdoc](/en/guides/images/#update-your-markdown-mdx-and-markdoc-files) using standard `![]()` syntax.
+
+Read more about these two exciting features and more in the 3.0 Blog post!
+
+
+
 ## Astro v3.0 Breaking Changes
 
 Astro v3.0 includes some breaking changes, as well as the removal of some previously deprecated features. If your project doesn't work as expected after upgrading to v3.0, check this guide for an overview of all breaking changes and instructions on how to update your codebase.
@@ -74,13 +99,27 @@ Astro v3.0 drops Node 16 support entirely, so that all Astro users can take adva
 
     You can specify Node `18.14.1` for your Astro project either in a dashboard configuration setting, or a `.nvmrc` file.
 
-### Reserved: `src/assets/`
+### Removed: `@astrojs/image`
+In Astro v2.x, this package existed
 
-Astro v3.0 now includes the new image services API for optimizing your image assets. This API reserves `src/assets/` as a special folder, with a built-in import alias: `~/assets` for referencing assets located here.
+Astro v3.0, it does not anymore, replaced by `astro:assets`
 
 #### What should I do?
 
-No change is required, and there will be no conflicts with an existing `src/assets/` folder. However, you will now have access to the built-in import alias and can choose to rename your asset imports within your files. This folder is not required, and your assets may continued to be located anywhere.
+Migrate to `astro:assets`. In `.astro` files this is really just a replace `@astrojs/image` by `astro:assets` in most cases, however if you used the Picture component, you'll need at this time to recreate it using the `getImage` APIs.
+
+Please see the full [v3 Image Upgrade Guide](/en/guides/images/#upgrade-to-v30-from-v2x) for details!
+
+
+### Removed: `<Markdown />` component
+
+In Astro v2.x, Astro deprecated the `<Markdown />` component and moved it to an external package.
+
+Astro v3.0 comletely removes the package `@astrojs/markdown-component`, so Astro's `<Markdown />` component will no longer work in your project.
+
+#### What should I do?
+
+Uninstall the `@astrojs/markdown-component` package. To continue using a similar `<Markdown />` component in your code, consider using [community integrations](https://astro.build/integrations/) that provide a similar component like https://github.com/natemoo-re/astro-remote, and be sure to update your component imports and attributes as necessary according to the integration's own documentation. Otherwise, delete all references to importing Astro's `<Markdown />` component and the component itself in your `.astro` files. You will need to rewrite your content as HTML directly or [import Markdown](/en/guides/markdown-content/#importing-markdown) from an `.md` file.
 
 ### Changed: automatic flattening of `getStaticPaths()`'s return value
 
@@ -321,16 +360,6 @@ Astro V3 still displays the error log, but now you can build the project.
 When using an adapter that supports neither Squoosh or Sharp, Astro will now automatically use an image service that does not support processing, but still provides the other benefits of `astro:assets` such as enforcing `alt`, no CLS etc to users. Should be noted that it does no transformations or processing, but you still get all the other benefits (no CLS, alt enforced, etc). All of those benefits are part of the image service, if you make your own, you lose those benefits unless you make it yourself
 
 
-### Removed: `<Markdown />` component
-
-In Astro v2.x, Astro deprecated the `<Markdown />` component and moved it to an external package.
-
-Astro v3.0 comletely removes the package `@astrojs/markdown-component`, so Astro's `<Markdown />` component will no longer work in your project.
-
-#### What should I do?
-
-Uninstall the `@astrojs/markdown-component` package. To continue using a similar `<Markdown />` component in your code, consider using [community integrations](https://astro.build/integrations/) that provide a similar component like https://github.com/natemoo-re/astro-remote, and be sure to update your component imports and attributes as necessary according to the integration's own documentation. Otherwise, delete all references to importing Astro's `<Markdown />` component and the component itself in your `.astro` files. You will need to rewrite your content as HTML directly or [import Markdown](/en/guides/markdown-content/#importing-markdown) from an `.md` file.
-
 ### Removed: camelCase transformations
 
 In Astro 2.x, Astro automatically transformed camelCase CSS variable names passed to the `style` attribute of an HTML element.
@@ -360,6 +389,209 @@ const myValue = "red"
 +   color: var(--myValue);
   }
 </style>
+```
+
+### Changed: default `scopedStyleStrategy`
+
+In Astro v2.x, the default value of `scopedStyleStrategy` was `"where"`.
+
+Astro v3.0, the default value is `"attribute"`. By default, styles are now applied using `data-*` attributes.
+
+#### What should I do?
+
+To retain your project's current style scoping, update the configuration file to the previous default value: 
+
+```diff
+export default defineConfig({
++	scopedStyleStrategy: "where"
+})
+```
+
+### Changed: import.meta.env.BASE_URL default `trailingSlash` behaviour
+
+In Astro v2.x, `import.meta.env.BASE_URL`, which derives from `base` config, is always appended a trailingSlash by default or when `trailingSlash: "ignore"` is set.
+
+Astro v3.0 `import.meta.env.BASE_URL` is not appended with a trailingSlash by default or when `trailingSlash: "ignore"` is set. The existing behavior of `base` in combination with `trailingSlash: "always"` or `trailingSlash: "never"` is unchanged.
+
+#### What should I do?
+
+If your `base` already has a trailing slash, no change is needed.
+
+ If your `base` does not have a trailing slash, add one to preserve the previous behaviour:
+
+ ```diff
+ // astro.config.mjs
+ - base: 'my-base',
+ + base: 'my-base/',
+```
+
+### Changed: Multiple JSX framework configuration
+
+In Astro v2.x, you could use multiple JSX framework integrations (React, Solid, Preact) in the same project and Astro without having to identify which files belonged to which framework. Astro automatically scanned your components to determine which framework-specific transformations should be used, but at a performance cost.
+
+Astro v3.0 determines which framework to use with `include` and `exclude` integration config options where you can specify files and folders on a per-framework basis. This allows Astro to better support single-framework usage, as well as advanced features like Fast Refresh.
+
+#### What should I do?
+
+If you are using multiple JSX frameworks in the same project, use the `include` and/or `exclude` configuration options to specify which files belong to which framework. Provide an array of files and/or folders. Wildcards may be used to include multiple file paths.
+
+We recommend placing common framework components in the same folder (e.g. `/components/react/` and `/components/solid/`) to make specifying your includes easier, but this is not required:
+
+```js
+import { defineConfig } from 'astro/config';
+import preact from '@astrojs/preact';
+import react from '@astrojs/react';
+import svelte from '@astrojs/svelte';
+import vue from '@astrojs/vue';
+import solid from '@astrojs/solid-js';
+
+export default defineConfig({
+  // Enable many frameworks to support all different kinds of components.
+  // No `include` is needed if you are only using a single framework!
+  integrations: [
+		preact({
+			include: ['**/preact/*']
+		}),
+		react({
+			include: ['**/react/*']
+		}),
+		solid({
+			include: ['**/solid/*'],
+		}),
+  ]
+});
+```
+
+
+### Removed: kebab-case transform for camelCase CSS variables
+
+In Astro v2.x, camelCase CSS variables passed to the `style` attribute were rendered as camelCase (original) and kebab-case (incorrect by kept for backwards compatibility).
+
+Astro v3.0 removes the kebab-case transform, and only the original camelCase CSS variable is rendered.
+
+ ```astro
+ ---
+ const myValue = "red"
+ ---
+ <!-- input -->
+ <div style={{ "--myValue": myValue }}></div>
+ <!-- output (before) -->
+ <div style="--my-value:var(--myValue);--myValue:red"></div>
+ <!-- output (after) -->
+ <div style="--myValue:red"></div>
+ ```
+
+#### What should I do?
+
+If you were relying on the kebab-case transform in your styles, make sure to use the camelCase version to prevent missing styles. For example:
+
+ ```diff
+ <style>
+   div {
+ -   color: var(--my-value);
+ +   color: var(--myValue);
+   }
+ </style>
+ ```
+DUPE TO BE COMBINED
+
+ Remove backwards-compatible kebab-case transform for camelCase CSS variable names passed to the `style` attribute. If you were relying on the kebab-case transform in your styles, make sure to use the camelCase version to prevent missing styles. For example:
+
+```astro
+---
+const myValue = "red"
+---
+<!-- input -->
+<div style={{ "--myValue": myValue }}></div>
+<!-- output (before) -->
+<div style="--my-value:var(--myValue);--myValue:red"></div>
+<!-- output (after) -->
+<div style="--myValue:red"></div>
+```
+
+```diff
+<style>
+  div {
+-   color: var(--my-value);
++   color: var(--myValue);
+  }
+</style>
+```
+
+### Changed entrypoint export paths
+
+In Astro v2.x, you can import internal Astro APIs from `astro/internal/star` and `astro/runtime/server/star`.
+
+Astro v3.0 removes the two entrypoints in favour of the existing `astro/runtime/star` entrypoint.
+
+#### What should I do?
+
+These are entrypoints for Astro's internal API and should not affect your project, but if you do use these entrypoints, you can migrate like below:
+
+ ```diff
+ - import 'astro/internal/index.js';
+ + import 'astro/runtime/server/index.js';
+
+ - import 'astro/server/index.js';
+ + import 'astro/runtime/server/index.js';
+ ```
+
+### Small stylesheets now get inlined by default
+In Astro v2.x, all project stylesheets were sent  lnd u could opt-in to inlining them by using the `build.inlineStylesheets` configuration.
+
+were sent as link tags by default  and you could opt  in to inlining them
+
+Astro v3.0 defaults `inlineStylesheets` to "auto", which means stylesheets smaller than 4kB get included in the initial response.
+
+#### What should I do?
+Nothing, this change does not require any migration. To go back to the old behavior, configure `inlineStylesheets` to "never"
+
+```diff
+export default defineConfig({
+    build: {
++       inlineStylesheets: "never"
+    }
+})
+```
+
+### Changed implementation of `class:list` directive
+In Astro v2.x, `class:list` used a custom implementation inspired by [`clsx`](https://github.com/lukeed/clsx) with a few extra features like deduplication and `Set` support.
+
+In Astro v3.0, `class:list` uses [`clsx`](https://github.com/lukeed/clsx) directly, which does not support deduplication or `Set` values.
+
+#### What should I do?
+
+Replace any `Set` elements passed to the `class:list` directive with a plain `Array`.
+
+```diff
+ <Component class:list={[
+    'a',
+    'b',
+-   new Set(['c', 'd'])
++   ['c', 'd'] 
+  ]} />
+```
+
+### Changed behavior of `class:list` directive for components
+
+In Astro v2.x, `class:list` values were sent to components via `Astro.props['class:list']`.
+
+In Astro v3.0, `class:list` values are normalized into a string before being sent to components via `Astro.props['class']`
+
+#### What should I do?
+
+Remove any code that expects to receive the `class:list` prop.
+
+```diff
+---
+- import { clsx } from 'clsx';
+- const { class: className, 'class:list': classList } = Astro.props;
++ const { class: className } = Astro.props;
+---
+<div
+-  class:list={[className, classList]}
++  class={className}
+/>
 ```
 
 ## Known Issues
