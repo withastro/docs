@@ -51,7 +51,7 @@ export default NavDictionary({
 	'guides/content-collections': 'Коллекции контента',
 	'guides/migrate-to-astro': 'Перейти на Astro',
 	'guides/testing': 'Тестирование',
-	'guides/upgrade-to/v2': 'Обновление до v2',
+	'guides/upgrade-to/v3': 'Обновление до v3',
 	'reference/error-reference': 'Справочник по ошибкам',
 	tutorials: 'Обучение',
 	examples: 'Рецепты',
