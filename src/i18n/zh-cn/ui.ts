@@ -39,6 +39,7 @@ export default UIDictionary({
 	// Used in `<Since>`: Added in: v0.24.0 [NEW]
 	'since.addedIn': '添加于：',
 	'since.new': '新',
+	'since.beta': 'Beta',
 	// Installation Guide
 	'install.autoTab': '自动化命令行',
 	'install.manualTab': '手动设置',
