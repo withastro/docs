@@ -33,7 +33,7 @@ export default NavDictionary({
 	'guides/backend': 'バックエンドサービスの追加',
 	'guides/integrations-guide': 'インテグレーションの追加',
 	'guides/deploy': 'サイトのデプロイ',
-	'guides/recipes': 'すべてのレシピ',
+	'guides/recipes': 'その他のレシピ',
 
 	// Guides
 	features: 'ガイド',
