@@ -123,7 +123,7 @@ export default UIDictionary({
 	'stub.title': '¡Amplía este borrador!',
 	'stub.subtitle': 'Esta guía es un borrador.',
 	'stub.description.migration':
-		'¿Quieres contribuir a esta guía? ¿Tienes una publicación en un blog, un video u otro recurso para compartir sobre la migración desde esta tecnología a Astro?',
+		'¿Quieres contribuir a esta guía? ¿Tienes alguna publicación en un blog, un video u otro recurso para compartir sobre la migración desde esta tecnología a Astro?',
 	'stub.description.cms': '¿Quieres saber más sobre cómo usar este CMS con Astro?',
 	'stub.description.backend': '¿Quieres saber más sobre cómo usar este servicio backend con Astro?',
 });
