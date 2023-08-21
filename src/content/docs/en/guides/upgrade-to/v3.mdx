@@ -45,6 +45,31 @@ Update your project's version of Astro to the latest version using your package 
   </Fragment>
 </PackageManagerTabs>
 
+## Astro v3.0 Experimental Flags Removed
+
+Remove the following experimental flags from `astro.config.mjs`:
+
+```js del={5-8}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    assets: true,
+    viewTransitions: true,
+  },
+})
+```
+
+These features are now available by default:
+
+- [View Transitions](/en/guides/view-transitions/) for animated page transitions and persistent islands.
+- A new image services API `astro:assets` for [using images in Astro](/en/guides/images/), including a new `<Image />` component and `getImage()` function.
+
+Read more about these two exciting features and more in the 3.0 Blog post!
+
+
+
 ## Astro v3.0 Breaking Changes
 
 Astro v3.0 includes some breaking changes, as well as the removal of some previously deprecated features. If your project doesn't work as expected after upgrading to v3.0, check this guide for an overview of all breaking changes and instructions on how to update your codebase.
@@ -74,43 +99,77 @@ Astro v3.0 drops Node 16 support entirely, so that all Astro users can take adva
 
     You can specify Node `18.14.1` for your Astro project either in a dashboard configuration setting, or a `.nvmrc` file.
 
-### Reserved: `src/assets/`
+### Removed: Support for TypeScript 4
 
-Astro v3.0 now includes the new image services API for optimizing your image assets. This API reserves `src/assets/` as a special folder, with a built-in import alias: `~/assets` for referencing assets located here.
+In Astro v2.x, the `tsconfig.json` presets include support for both TypeScript 4.x and 5.x.
 
-#### What should I do?
-
-No change is required, and there will be no conflicts with an existing `src/assets/` folder. However, you will now have access to the built-in import alias and can choose to rename your asset imports within your files. This folder is not required, and your assets may continued to be located anywhere.
-
-### Changed: automatic flattening of `getStaticPaths()`'s return value
-
-:::note[Example needed]
-Find an example of returning an array of an array
-:::
-
-In Astro v2.x, we would magically flatten the result of `getStaticPaths()` automatically for the user, so if you returned an array of array, it would still work
-
-Astro v3.0 we changed this in favour of the user doing it themselves when they need to, in line with how we typically prefer for users to do explicit things.
-
-Removed automatic flattening of getStaticPaths result. .flatMap and .flat should now be used to ensure that you’re returning a flat array.
+Astro v3.0 updates the `tsconfig.json` presets to only support TypeScript 5.x. Astro now assumes that you use TypeScript 5.0 (March 2023), or that your editor includes it (e.g. VS Code 1.77).
 
 #### What should I do?
 
-If you're returning an array of arrays instead of an array of object (as you should), please flatten it using .flat(), or if you're using a .map(), use .flatMap() instead
+If you have installed TypeScript locally, update to at least v5.0.
 
-A [error message indicating that `getStaticPath()`'s return value must be an array of objects](/en/reference/errors/invalid-get-static-paths-entry/#what-went-wrong) will be provided if you need to update your code.
+```bash
+npm install typescript@latest --save-dev
+```
 
-### Changed: `build.excludeMiddleware` and `build.split` options have been moved to adapter config
+### Removed: `@astrojs/image`
 
-In Astro v2.x, `build.excludeMiddleware` and `build.split` could be used to change how specific files were emitted.
+In Astro v2.x, Astro offered an official image integration that included Astro `<Image />` and `<Picture />` components.
 
-Astro v3.0, these build config options have been replaced with new adapter configuruation options.
+Astro v3.0 removes this integration from the codebase entirely. Astro's new solution for images is a built-in image services API: `astro:assets`.
 
 #### What should I do?
 
-Update the config file to use the option **in the adapter**.
+Remove the `@astrojs/image` integration from your project. You will need to not only uninstall the integration, but also update or remove any import statements and existing `<Image />` and `<Picture />` components. You might also need to configure a preferred default image processing service.
 
-```astro title="astro.config.mjs" del={5-7} ins={9}
+You will find [complete, step-by-step instructions for removing the old image integration](/en/guides/images/#remove-astrojsimage) in our Images guide.
+
+Migrating to `astro:assets` will also bring some new image options and features that you may now wish to use. Please see the full [v3.0 Image Upgrade Advice](/en/guides/images/#upgrade-to-v30-from-v2x) for full details!
+
+```js del={3,7}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import image from '@astrojs/image';
+
+export default defineConfig({
+  integrations: [
+    image(),
+  ]
+})
+```
+
+### Removed: `<Markdown />` component
+
+In Astro v2.x, Astro deprecated the `<Markdown />` component and moved it to an external package.
+
+Astro v3.0 completely removes the package `@astrojs/markdown-component`. Astro's `<Markdown />` component will no longer work in your project.
+
+#### What should I do?
+
+Remove all instances of the `@astrojs/markdown-component`.
+
+```astro del={2} title="src/components/MyAstroComponent.astro"
+---
+import Markdown from '@astrojs/markdown-component';
+---
+```
+
+To continue using a similar `<Markdown />` component in your code, consider using [community integrations](https://astro.build/integrations/) such as [`astro-remote`](https://github.com/natemoo-re/astro-remote). Be sure to update your `<Markdown />` component imports and attributes as necessary, according to the integration's own documentation. 
+
+Otherwise, delete all references to importing Astro's `<Markdown />` component and the component itself in your `.astro` files. You will need to rewrite your content as HTML directly or [import Markdown](/en/guides/markdown-content/#importing-markdown) from a `.md` file.
+
+### Removed: `build.excludeMiddleware` and `build.split`
+
+In Astro v2.x, `build.excludeMiddleware` and `build.split` could be used to change how specific files were emitted when using an adapter in SSR mode.
+
+Astro v3.0 replaces these build config options with new [SSR adapter configuration options](/en/guides/integrations-guide/#official-integrations) to perform the same tasks: `edgeMiddleware` and `functionPerRoute`.
+
+#### What should I do?
+
+Update the Astro config file to now use the new options **in the adapter configuration** directly.
+
+```js title="astro.config.mjs" del={5-7} ins={9}
 import { defineConfig } from "astro/config";
 import vercel from "@astrojs/vercel/serverless";
 
@@ -124,35 +183,7 @@ export default defineConfig({
 });
 ```
 
-```astro title="astro.config.mjs" del={5-7} ins={9}
-import { defineConfig } from "astro/config";
-import vercel from "@astrojs/vercel/serverless";
-
-export default defineConfig({
-     build: {
-        split: true
-     },
-     adapter: vercel({
-        functionPerRoute: true
-     }),
-});
-```
-
-```astro title="astro.config.mjs" del={5-7} ins={9}
-import { defineConfig } from "astro/config";
-import netlify from "@astrojs/netlify/functions";
-
-export default defineConfig({
-     build: {
-        excludeMiddleware: true
-     },
-     adapter: netlify({
-        edgeMiddleware: true
-     }),
-});
-```
-
-```astro title="astro.config.mjs" del={5-7} ins={9}
+```js title="astro.config.mjs" del={5-7} ins={9}
 import { defineConfig } from "astro/config";
 import netlify from "@astrojs/netlify/functions";
 
@@ -166,19 +197,207 @@ export default defineConfig({
 });
 ```
 
-### Changed: default image service to Sharp instead of Squoosh
+### Removed: `class:list` features
 
-In Astro v2.x, Squoosh was the default image service.
+In Astro v2.x, the [`class:list` directive](/en/reference/directives-reference/#classlist) used a custom implementation inspired by [`clsx`](https://github.com/lukeed/clsx) with a few extra features like deduplication and `Set` support.
 
-Astro v3.0, Sharp is now the default image service.
+Astro v3.0 now uses `clsx` directly for `class:list`, which does not support deduplication or `Set` values.
 
 #### What should I do?
 
-Sharp is now the default image service used for Astro.
+Replace any `Set` elements passed to the `class:list` directive with a plain `Array`.
 
-You no longer need to install the dependency locally in your project.
+```astro title="src/components/MyAstroComponent.astro" del={4} ins={5}
+<Component class:list={[
+  'a',
+  'b',
+  new Set(['c', 'd'])
+  ['c', 'd'] 
+]} />
+```
 
-Uninstall Sharp using your package manager, or by removing manually from your `package.json`.
+### Removed: passing `class:list` as a prop
+
+In Astro v2.x, [`class:list` values](/en/reference/directives-reference/#classlist) were sent to components via [`Astro.props['class:list']`](/en/reference/api-reference/#astroprops).
+
+Astro v3.0 normalizes `class:list` values into a string before being sent to components via `Astro.props['class']`
+
+#### What should I do?
+
+Remove any code that expects to receive the `class:list` prop.
+
+```astro title="src/components/MyAstroComponent.astro" del={2,3,7} ins={4,8} "classList" "'class:list': classList"
+---
+import { clsx } from 'clsx';
+const { class: className, 'class:list': classList } = Astro.props;
+const { class: className } = Astro.props;
+---
+<div
+  class:list={[className, classList]}
+  class:list={[className]}
+/>
+```
+
+### Removed: kebab-case transform for camelCase CSS variables
+
+In Astro v2.x, camelCase [CSS variables](/en/guides/styling/#css-variables) passed to the `style` attribute were rendered as both camelCase (as written) and kebab-case (kept for backwards compatibility).
+
+Astro 3.0 removes the kebab-case transform for these camelCase CSS variable names, and only the original camelCase CSS variable is rendered.
+
+```astro "my-value"
+---
+// src/components/MyAstroComponent.astro
+const myValue = "red"
+---
+<!-- input -->
+<div style={{ "--myValue": myValue }}></div>
+
+<!-- output (Astro 2.x) -->
+<div style="--my-value:var(--myValue);--myValue:red"></div>
+<!-- output (Astro 3.0) -->
+<div style="--myValue:red"></div>
+```
+
+#### What should I do?
+
+If you were relying on Astro to transform kebab-case in your styles, update your existing styles to camelCase to prevent missing styles. For example:
+
+```astro del={3} ins={4} title="src/components/MyAstroComponent.astro"
+<style>
+  div {
+   color: var(--my-value);
+   color: var(--myValue);
+  }
+</style>
+```
+
+### Removed: automatic flattening of `getStaticPaths()`'s return value
+
+:::note[Example maybe?]
+Do we want an example of returning an array of an array, requiring flattening?
+:::
+
+In Astro v2.x, the return value of [`getStaticPaths()`](/en/reference/api-reference/#getstaticpaths) was automatically flattened to allow you to return an array of array without errors.
+
+Astro v3.0 removes automatic flattening of `getStaticPaths()`'s result.
+
+#### What should I do?
+
+If you're returning an array of arrays instead of an array of _objects_ (as is expected), `.flatMap` and `.flat` should now be used to ensure that you are returning a flat array.
+
+An [error message indicating that `getStaticPath()`'s return value must be an array of objects](/en/reference/errors/invalid-get-static-paths-entry/#what-went-wrong) will be provided if you need to update your code.
+
+### Moved: `astro check` is now an external package
+
+In Astro v2.x, [`astro check`](/en/reference/cli-reference/#astro-check) was included in Astro by default and its dependencies were bundled in Astro. This meant a larger package whether or not you ever used `astro check`. This also prevented you from having control over the version of TypeScript and the Astro Language Server to use.
+
+
+Astro v3.0 moves the `astro check` command out of Astro core and now requires an external package `@astrojs/check`. Additionally, you must install `typescript` in your project to use the `astro check` command.
+
+#### What should I do?
+
+Run the `astro check` command after upgrading to Astro v3.0 and follow the prompts to install the required dependencies, or manually install `@astrojs/check` and `typescript` into your project.
+
+### Changed default: port `3000`
+
+In Astro v2.x, Astro ran on port `3000` by default.
+
+Astro v3.0 changes the [default port](/en/reference/cli-reference/#--port-number) to `4321`. 🚀
+
+#### What should I do?
+
+Update any existing references to `localhost:3000`, for example in tests or in your `README`, to reflect the new port `localhost:4321`.
+
+
+### Changed default: import.meta.env.BASE_URL `trailingSlash`
+
+In Astro v2.x, `import.meta.env.BASE_URL` appended your [`base`](/en/reference/configuration-reference/#base) setting with a [trailingSlash](/en/reference/configuration-reference/#trailingslash) by default. `trailingSlash: "ignore"`also appended a trailing slash.
+
+Astro v3.0 no longer appends `import.meta.env.BASE_URL` with a trailing slash by default, nor when `trailingSlash: "ignore"` is set. (The existing behavior of `base` in combination with `trailingSlash: "always"` or `trailingSlash: "never"` is unchanged.)
+
+#### What should I do?
+
+If your `base` already has a trailing slash, no change is needed.
+
+If your `base` does not have a trailing slash, add one if you wish to preserve the previous default (or `trailingSlash: "ignore"`) behaviour:
+
+```js title="astro.config.mjs" del={4} ins={5}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  base: 'my-base',
+  base: 'my-base/',
+});
+```
+
+### Changed default: `compressHTML`
+
+In Astro v2.x, Astro only compressed your emitted HTML when [`compressHTML`](/en/reference/configuration-reference/#compresshtml) was explicitly set to `true`. The default value was `false`.
+
+Astro v3.0 now compresses emitted HTML by default.
+
+#### What should I do?
+
+You can now remove `compressHTML: true` from your configuration as this is the new default behavior.
+
+```js title="astro.config.mjs" del={4}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+	compressHTML: true
+})
+```
+
+You must now set `compressHTML: false` to opt out of HTML compression.
+
+### Changed default: `scopedStyleStrategy`
+
+In Astro v2.x, the default value of [`scopedStyleStrategy`](/en/reference/configuration-reference/#scopedstylestrategy) was `"where"`.
+
+Astro v3.0 introduces a new, default value: `"attribute"`. By default, styles are now applied using `data-*` attributes.
+
+#### What should I do?
+
+To retain your project's current [style scoping](/en/guides/styling/#scoped-styles), update the configuration file to the previous default value: 
+
+
+```js title="astro.config.mjs" ins={4}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+	scopedStyleStrategy: "where"
+})
+```
+
+### Changed default: `inlineStyleSheets`
+
+In Astro v2.x, all project stylesheets were sent as link tags by default. You could opt in to `"always"` inlining them into `<style>` tags, or to `"auto"`matically inlining only stylesheets below a certain size by setting the [`build.inlineStylesheets`](/en/reference/configuration-reference/#buildinlinestylesheets) configuration. The default setting was `"never"`.
+
+Astro v3.0 changes the default value of `inlineStylesheets` to `"auto"`. Stylesheets smaller than `ViteConfig.build.assetsInlineLimit` (default: 4kb) are inlined by default. Otherwise, project styles are sent in external stylesheets.
+
+#### What should I do?
+If you want to keep your project's current behavior, set `build.inlineStylesheets` to the previous default, `"never"`:
+
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+	 build: {
+    inlineStylesheets: "never"
+  }
+})
+```
+
+### Changed default: image service
+
+In Astro v2.x, Squoosh was the [default image processing service](/en/guides/images/#default-image-service).
+
+Astro v3.0 now includes Sharp as the default image processing service, and instead provides a configuration option to use Squoosh.
+
+#### What should I do?
+
+If you had previously installed Sharp, uninstall the dependency using your package manager, or by removing manually from your `package.json`. It is now included in Astro.
 
 If you would prefer to continue to use Squoosh to transform your images, update your config with the following: 
 
@@ -192,15 +411,15 @@ export default defineConfig({
 })
 ```
 
-### Changed: casing in function endpoints 
+### Changed: HTTP request methods case
 
-In Astro v2.x, endpoints were defined using lowercase function names: `get`, `post`, `put`, `all`, and `del`.
+In Astro v2.x, [HTTP request methods](/en/core-concepts/endpoints/#http-methods) were written using lowercase function names: `get`, `post`, `put`, `all`, and `del`.
 
-Astro v3.0, uses uppercase function names.
+Astro v3.0 uses uppercase function names, including `DELETE` instead of `del`.
 
 #### What should I do?
 
-Rename functions to uppercase equivalent:
+Rename all functions to their uppercase equivalent:
 
 - `get` to `GET`
 - `post` to `POST`
@@ -208,159 +427,101 @@ Rename functions to uppercase equivalent:
 - `all` to `ALL`
 - `del` to `DELETE`
 
-```ts title="endpoint.ts" del={1} ins={2}
+```js title="endpoint.ts" del={1} ins={2}
 export function get() {
 export function GET() {
     return new Response(JSON.stringify({ "title": "Bob's blog" }));
 }
 ```
 
-### Changed: Behaviour when `Astro.cookies.get(key)` doesn't exist
+### Changed: Multiple JSX framework configuration
 
-In Astro v2.x, `Astro.cookies.get(key)` would always return a `AstroCookie` object, even if the cookie did not exist. To check for the existence you needed to use `Astro.cookies.has(key)`.
+In Astro v2.x, you could use [multiple JSX framework integrations](/en/guides/integrations-guide/#official-integrations) (React, Solid, Preact) in the same project without needing to identify which files belonged to which framework.
 
-Astro v3.0 `Astro.cookies.get(key)` will return `undefined` if the cookie does not exist.
+Astro v3.0 now requires you to specify which framework to use for your files with new `include` and `exclude` integration config options when you have multiple JSX framework integrations installed. This allows Astro to better support single-framework usage, as well as advanced features like React Fast Refresh.
 
 #### What should I do?
 
-This change will not break existing code that checks for the existance of the `Astro.cookie` object before using `Astro.cookies.get(key)`, but is now no longer required. You can safely remove this code.
+If you are using multiple JSX frameworks in the same project, set `include` (and optionally `exclude`) to an array of files and/or folders. Wildcards may be used to include multiple file paths.
 
-You can safely skip `has()` and check if the value is `undefined`:
+We recommend placing common framework components in the same folder (e.g. `/components/react/` and `/components/solid/`) to make specifying your includes easier, but this is not required:
 
-```ts
-// before:
+```js
+import { defineConfig } from 'astro/config';
+import preact from '@astrojs/preact';
+import react from '@astrojs/react';
+import svelte from '@astrojs/svelte';
+import vue from '@astrojs/vue';
+import solid from '@astrojs/solid-js';
+
+export default defineConfig({
+  // Enable many frameworks to support all different kinds of components.
+  // No `include` is needed if you are only using a single framework!
+  integrations: [
+		preact({
+			include: ['**/preact/*']
+		}),
+		react({
+			include: ['**/react/*']
+		}),
+		solid({
+			include: ['**/solid/*'],
+		}),
+  ]
+});
+```
+
+### Changed: `Astro.cookies.get(key)` can return `undefined`
+
+In Astro v2.x, [`Astro.cookies.get(key)`](/en/reference/api-reference/#astrocookies) would always return an [`AstroCookie` object](/en/reference/api-reference/#astrocookie), even if the cookie did not exist. To check for its existence, you needed to use `Astro.cookies.has(key)`.
+
+Astro v3.0 returns `undefined` for `Astro.cookies.get(key)` if the cookie does not exist.
+
+#### What should I do?
+
+This change will not break existing code that checks for the existance of the `Astro.cookie` object before using `Astro.cookies.get(key)`, but is now no longer required.
+
+You can safely remove any code that uses `has()` to check if the value of `Astro.cookies` is `undefined`:
+
+```js del={1-3} ins={5-7}
 if (Astro.cookies.has(id)) {
   const id = Astro.cookies.get(id)!;
 }
 
-//after:
 const id = Astro.cookies.get(id);
 if (id) {
-  // TypeScript knows id is an AstroCookie
 }
 ```
 
-### Changed: the default value of `compressHTML`
+### Changed: internal Astro API entry point export paths
 
-In Astro v2.x, Astro only compressed the emitted HTML by explicitly setting the configuration to `true`.
+In Astro v2.x, you could import internal Astro APIs from `astro/internal/*` and `astro/runtime/server/*`.
 
-Astro v3.0 now compresses emitted HTML by default.
+Astro v3.0 removes the two entry points in favour of the existing `astro/runtime/*` entrypoint. Additionally, a new `astro/compiler-runtime` export has been added for compiler-specific runtime code.
 
 #### What should I do?
 
-You can now remove `compressHTML: true` from your configuration as this is now the default behavior.
+These are entry points for Astro's internal API and should not affect your project. But if you do use these entrypoints, update as shown below:
 
-```ts title="astro.config.mjs" del={4}
-import { defineConfig } from "astro/config";
+ ```js del={1,4,10} ins={2,5,11}
+ import 'astro/internal/index.js';
+ import 'astro/runtime/server/index.js';
 
-export default defineConfig({
-	compressHTML: true
-})
+ import 'astro/server/index.js';
+ import 'astro/runtime/server/index.js';
 ```
 
-You must now set `compressHTML: false` to opt out of HTML compression.
+ ```js ins={5} del={4}
+import { transform } from '@astrojs/compiler';
 
-### Changed: default port used
-
-In Astro v2.x, Astro ran on port `3000` by default.
-
-Astro v3.0 changes the default port to `4321`.
-
-#### What should I do?
-
-Update any existing references to `localhost:3000`, for example in tests or in your `README` to reflect the new port `localhost:4321`.
-
-### Changed: TypeScript minimum version
-
-In Astro v2.x, the `tsconfig.json` presets include support for both TypeScript 4.x and 5.x.
-
-Astro v3.0 updates the `tsconfig.json` presets to only support TypeScript 5.x. Astro now assumes that you use TypeScript 5.0 (March 2023), or that your editor includes it (e.g. VS Code 1.77)
-
-#### What should I do?
-
-Update your TypeScript version to at least v5.0.
-
-```bash
-npm install typescript@latest --save-dev
-```
-
-### Changed `astro check` is now an external package
-
-In Astro v2.x, `astro check` was included in Astro by default and its dependencies were bundled in Astro. This meant a larger package whether or not you ever used `astro check` and also prevented you from having control over the version of TypeScript and the Astro Language Server to use. 
-
-
-Astro v3.0 moves the `astro check` command out of Astro core and now requires an external package `@astrojs/check`. Additionally, you must install `typescript` in your project.
-
-#### What should I do?
-
-Run the `astro check` command after upgrading to Astro v3.0 and follow the prompts to install the required dependencies, or manually install `@astrojs/check` and `typescript` into your project.
-
-### Added: simple asset support for Cloudflare, Deno, Vercel Edge and Netlify Edge
- In Astro v2.x, using the assets feature in Cloudflare, Deno, Vercel Edge and Netlify Edge errors in runtime as the environments do not support Astro's builtin Squoosh and Sharp image optimization.
-
- Astro v3.0 allows these environments to work without errors, but does not perform any image transformation and processing. However, you would still get benefits, e.g. no Cumulative Layout Shift (CLS), enforced alt attribute, etc.
-
- What should I do?
- If you previously avoided the assets feature due these constraints, you can now use them without issues. You can also use the no-op image service to explicitly opt-in to this behaviour:
-
- ```
- // astro.config.mjs
- export default {
-   image: {
-     service: {
-       entrypoint: 'astro/assets/services/noop'
-     }
-   }
- }
+const result = await transform(source, {
+internalURL: 'astro/runtime/server/index.js',
+internalURL: 'astro/compiler-runtime',
+  // ...
+});
  ```
 
-In Astro v2.x, you would get an error log in development. When building a project, the build would fail.
 
-Astro V3 still displays the error log, but now you can build the project.
-
-When using an adapter that supports neither Squoosh or Sharp, Astro will now automatically use an image service that does not support processing, but still provides the other benefits of `astro:assets` such as enforcing `alt`, no CLS etc to users. Should be noted that it does no transformations or processing, but you still get all the other benefits (no CLS, alt enforced, etc). All of those benefits are part of the image service, if you make your own, you lose those benefits unless you make it yourself
-
-
-### Removed: `<Markdown />` component
-
-In Astro v2.x, Astro deprecated the `<Markdown />` component and moved it to an external package.
-
-Astro v3.0 comletely removes the package `@astrojs/markdown-component`, so Astro's `<Markdown />` component will no longer work in your project.
-
-#### What should I do?
-
-Uninstall the `@astrojs/markdown-component` package. To continue using a similar `<Markdown />` component in your code, consider using [community integrations](https://astro.build/integrations/) that provide a similar component like https://github.com/natemoo-re/astro-remote, and be sure to update your component imports and attributes as necessary according to the integration's own documentation. Otherwise, delete all references to importing Astro's `<Markdown />` component and the component itself in your `.astro` files. You will need to rewrite your content as HTML directly or [import Markdown](/en/guides/markdown-content/#importing-markdown) from an `.md` file.
-
-### Removed: camelCase transformations
-
-In Astro 2.x, Astro automatically transformed camelCase CSS variable names passed to the `style` attribute of an HTML element.
-
-Astro 3.0 removes backwards-compatible kebab-case transform for these camelCase CSS variable names. 
-
-#### What should I do?
-
-If you were relying on Astro to transform kebab-case in your styles, update your existing styles to use the camelCase version to prevent missing styles. For example:
-
-```astro
----
-const myValue = "red"
----
-<!-- input -->
-<div style={{ "--myValue": myValue }}></div>
-<!-- output (before) -->
-<div style="--my-value:var(--myValue);--myValue:red"></div>
-<!-- output (after) -->
-<div style="--myValue:red"></div>
-```
-
-```diff
-<style>
-  div {
--   color: var(--my-value);
-+   color: var(--myValue);
-  }
-</style>
-```
 
 ## Known Issues
 
