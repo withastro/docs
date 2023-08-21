@@ -6,7 +6,7 @@ export default NavDictionary({
 	'getting-started': 'はじめに',
 	install: 'インストール',
 	'editor-setup': 'エディタのセットアップ',
-	'guides/upgrade-to/v2': 'v2へのアップグレード',
+	'guides/upgrade-to/v3': 'v3へのアップグレード',
 
 	// Core Concepts
 	coreConcepts: 'コアコンセプト',
