@@ -1,6 +1,6 @@
 import starlight from '@astrojs/starlight';
 import preact from '@astrojs/preact';
-import { defineConfig } from 'astro/config';
+import { defineConfig, sharpImageService } from 'astro/config';
 import { makeLocalesConfig } from './config/locales';
 import { makeSidebar } from './config/sidebar';
 
@@ -62,4 +62,8 @@ export default defineConfig({
 			rehypeOptimizeStatic,
 		],
 	},
+  image: {
+    domains: ['avatars.githubusercontent.com'],
+    service: sharpImageService()
+  }
 });
