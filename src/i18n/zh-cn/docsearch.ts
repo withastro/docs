@@ -25,7 +25,7 @@ export default DocSearchDictionary({
 		},
 		errorScreen: {
 			titleText: '出现未知错误！',
-			helpText: '请检查您的互联网连接是否有误',
+			helpText: '请检查你的互联网连接是否有误',
 		},
 		footer: {
 			selectText: '进入条目',
@@ -34,7 +34,7 @@ export default DocSearchDictionary({
 			navigateUpKeyAriaLabel: '上方向键',
 			navigateDownKeyAriaLabel: '下方向键',
 			closeText: '关闭搜索',
-			closeKeyAriaLabel: 'Esc键',
+			closeKeyAriaLabel: 'Esc 键',
 			searchByText: '搜索来自',
 		},
 		noResultsScreen: {
