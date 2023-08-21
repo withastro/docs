@@ -12,7 +12,7 @@ import { rehypeOptimizeStatic } from './plugins/rehype-optimize-static';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
 
-const site = 'https://docs.astro.build/'
+const site = 'https://docs.astro.build/';
 
 // https://astro.build/config
 export default defineConfig({
@@ -27,8 +27,8 @@ export default defineConfig({
 				dark: './src/assets/astro-logo-dark.svg',
 				alt: 'Astro',
 			},
-      head: [
-        {
+			head: [
+				{
 					tag: 'meta',
 					attrs: { property: 'og:image', content: site + 'default-og-image.png?v=1' },
 				},
@@ -36,7 +36,7 @@ export default defineConfig({
 					tag: 'meta',
 					attrs: { property: 'twitter:image', content: site + 'default-og-image.png?v=1' },
 				},
-      ],
+			],
 			defaultLocale: 'en',
 			locales: makeLocalesConfig(),
 			sidebar: makeSidebar(),
@@ -62,8 +62,8 @@ export default defineConfig({
 			rehypeOptimizeStatic,
 		],
 	},
-  image: {
-    domains: ['avatars.githubusercontent.com'],
-    service: sharpImageService()
-  }
+	image: {
+		domains: ['avatars.githubusercontent.com'],
+		service: sharpImageService(),
+	},
 });
