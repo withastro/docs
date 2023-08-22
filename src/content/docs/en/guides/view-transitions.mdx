@@ -247,6 +247,30 @@ import { ViewTransitions } from 'astro:transitions';
 The `morph` animation cannot be simulated in traditional CSS. So any element using this animation will not be animated.
 :::
 
+## Navigation steps
+
+When using the `<ViewTransitions />` router, the following steps are performed as part of navigation:
+
+1. The user triggers navigation by either:
+    - Click a `<a>` to another page in your site.
+    - Clicking the back button.
+    - Clicking the forward button.
+2. The router starts fetching the next page.
+3. The router adds the `data-astro-transition` attribute to the HTML element with a value of `'forward'` or `'back'` depending on whether it is back navigation or not.
+4. The router calls `document.startViewTransition`. This triggers the browsers own [view transition process](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API#the_view_transition_process). Importantly the browser screenshots the current state of the page.
+5. Inside the `startViewTransition` callback, the router performs a __swap__.
+    1. The contents of the `<head>` are swapped out.
+        - Stylesheet DOM nodes are left in if they exist on the new page, to prevent FOUC.
+        - Scripts are left in if they exist on the new page.
+        - Any other head elements with `transition:persist` are left in if there is a corresponding element in the new page.
+    2. The `<body>` is completely replaced with the new page's body.
+    3. Elements marked `transition:persist` are moved over to the new DOM if they exist on the new page.
+    4. Scroll position is restored if necessary.
+    5. The `astro:after-swap` event is triggered on the `document`. This is the end of the __swap__ process.
+6. The router waits for any new stylesheets to load before resolving the transition.
+7. The router executes any new scripts added to the page.
+8. The `astro:page-load` event fires. This is the end of the navigation process.
+
 ## Script behavior during page navigation
 
 When navigating between pages with the `<ViewTransitions />` component, scripts are run in sequential order to match browser behavior. 
@@ -263,7 +287,7 @@ If you have code that sets up global state, this state will need to take into ac
 
 Module scripts are only ever executed once because the browser keeps track of which modules are already loaded. For these scripts, you do not need to worry about re-execution.
 
-### `astro:load`
+### `astro:page-load`
 
 An event that fires at the end of page navigation, after the new page is visible to the user and blocking styles and scripts are loaded. You can listen to this event on the `document`.
 
@@ -273,14 +297,14 @@ You can use this event to run code on every page navigation, or only once ever:
 
 ```astro "{ once: true }"
 <script>
-  document.addEventListener('astro:load', () => {
+  document.addEventListener('astro:page-load', () => {
     // This only runs once.
     setupStuff();
   }, { once: true });
 </script>
 ```
 
-### `astro:beforeload`
+### `astro:after-swap`
 
 An event that fires immediately after the new page replaces the old page. You can listen to this event on the `document`.
 
@@ -299,7 +323,7 @@ For example, if you are implementing dark mode support, this event can be used t
   // Runs on initial navigation
 	setDarkMode();
   // Runs on view transitions navigation
-	document.addEventListener('astro:beforeload', setDarkMode);
+	document.addEventListener('astro:after-swap', setDarkMode);
 </script>
 ```
 
