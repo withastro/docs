@@ -63,7 +63,7 @@ export default UIDictionary({
 	// Checklist component
 	'checklist.or': 'ou',
 	// Multiple Choice component
-	'multipleChoice.defaultCorrect': 'Correcte !',
+	'multipleChoice.defaultCorrect': 'Correct !',
 	'multipleChoice.defaultIncorrect': 'Essaie encore !',
 	'multipleChoice.submitLabel': 'Soumettre',
 	// Tutorial Progress
