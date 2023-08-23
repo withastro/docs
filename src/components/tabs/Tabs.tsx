@@ -1,4 +1,4 @@
-import type { ComponentChildren } from 'preact';
+import type { ComponentChildren, VNode } from 'preact';
 import { useEffect, useLayoutEffect, useRef } from 'preact/hooks';
 import '../TabGroup/TabGroup.css';
 import { genTabId } from './store';
@@ -38,8 +38,17 @@ type Props = {
 
 export default function Tabs({ sharedStore, ...slots }: Props) {
 	const tabId = genTabId();
-	const tabs = Object.entries(slots).filter(isTabSlotEntry);
-	const panels = Object.entries(slots).filter(isPanelSlotEntry);
+	const panels = Object.entries(slots)
+		.filter(isPanelSlotEntry)
+		.filter((panel) => !isPanelEmpty(panel));
+	const tabs = Object.entries(slots)
+		.filter(isTabSlotEntry)
+		.filter(
+			([key]) =>
+				!isPanelEmpty(
+					panels.find(([panelKey]) => panelKey === `${panelSlotKey}${getBaseKeyFromTab(key)}`)!
+				)
+		);
 	/** Used to focus next and previous tab on arrow key press */
 	const tabButtonRefs = useRef<Record<TabSlot, HTMLButtonElement | null>>({});
 	const scrollToTabRef = useRef<HTMLButtonElement | null>(null);
@@ -56,6 +65,18 @@ export default function Tabs({ sharedStore, ...slots }: Props) {
 			scrollToTabRef.current = el;
 		}
 		setCurr(getBaseKeyFromTab(tabSlot));
+	}
+
+	function isPanelEmpty(panel: [`panel.${string}`, ComponentChildren]): boolean {
+		if (
+			!panel ||
+			(typeof panel[1] !== 'object'
+				? panel[1]
+				: (panel[1] as VNode<Record<string, string>>).props.value.toString()) === ''
+		) {
+			return true;
+		}
+		return false;
 	}
 
 	useEffect(() => {
