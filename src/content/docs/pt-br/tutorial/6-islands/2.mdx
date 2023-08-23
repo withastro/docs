@@ -1,0 +1,227 @@
+---
+type: tutorial
+title: 'De volta à terra firme. Leve seu blog do dia para noite, sem precisar de ilhas!'
+description: |-
+  Tutorial: Construa seu primeiro blog Astro —
+  Construa um toggle de tema claro/escuro usando apenas JavaScript e CSS
+i18nReady: true
+---
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+
+
+Agora que você pode construir ilhas Astro para elementos interativos, não se esqueça de que você pode ir bem longo com apenas JavaScript puro e CSS!
+
+Vamos construir um ícone clicável para permitir usuários alternarem entre um modo claro ou escuro utilizando outra tag `<script>` para interatividade... com nenhum framework JavaScript enviado ao navegador.
+
+<PreCheck>
+  - Construir um toggle de tema com apenas JavaScript e CSS
+  - Enviar a menor quantidade de JavaScript possível ao navegador!
+</PreCheck>
+
+## Adicione e estilize um ícone de toggle de tema
+
+1. Crie um novo arquivo em `src/components/IconeTema.astro` e cole o seguinte código nele:
+
+    ```astro title="src/components/IconeTema.astro"
+    ---
+    ---
+    <button id="toggleTema">
+      <svg width="30px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <path class="sol" fill-rule="evenodd" d="M12 17.5a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11zm0 1.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14zm12-7a.8.8 0 0 1-.8.8h-2.4a.8.8 0 0 1 0-1.6h2.4a.8.8 0 0 1 .8.8zM4 12a.8.8 0 0 1-.8.8H.8a.8.8 0 0 1 0-1.6h2.5a.8.8 0 0 1 .8.8zm16.5-8.5a.8.8 0 0 1 0 1l-1.8 1.8a.8.8 0 0 1-1-1l1.7-1.8a.8.8 0 0 1 1 0zM6.3 17.7a.8.8 0 0 1 0 1l-1.7 1.8a.8.8 0 1 1-1-1l1.7-1.8a.8.8 0 0 1 1 0zM12 0a.8.8 0 0 1 .8.8v2.5a.8.8 0 0 1-1.6 0V.8A.8.8 0 0 1 12 0zm0 20a.8.8 0 0 1 .8.8v2.4a.8.8 0 0 1-1.6 0v-2.4a.8.8 0 0 1 .8-.8zM3.5 3.5a.8.8 0 0 1 1 0l1.8 1.8a.8.8 0 1 1-1 1L3.5 4.6a.8.8 0 0 1 0-1zm14.2 14.2a.8.8 0 0 1 1 0l1.8 1.7a.8.8 0 0 1-1 1l-1.8-1.7a.8.8 0 0 1 0-1z"/>
+        <path class="lua" fill-rule="evenodd" d="M16.5 6A10.5 10.5 0 0 1 4.7 16.4 8.5 8.5 0 1 0 16.4 4.7l.1 1.3zm-1.7-2a9 9 0 0 1 .2 2 9 9 0 0 1-11 8.8 9.4 9.4 0 0 1-.8-.3c-.4 0-.8.3-.7.7a10 10 0 0 0 .3.8 10 10 0 0 0 9.2 6 10 10 0 0 0 4-19.2 9.7 9.7 0 0 0-.9-.3c-.3-.1-.7.3-.6.7a9 9 0 0 1 .3.8z"/>
+      </svg>
+    </button>
+
+    <style>
+      #toggleTema {
+        border: 0;
+        background: none;
+      }
+      .sol { fill: black; }
+      .lua { fill: transparent; }
+      
+
+      :global(.escuro) .sol { fill: transparent; }
+      :global(.escuro) .lua { fill: white; }
+    </style>
+    ```
+
+2. Adicione o ícone em `Cabecalho.astro` para que ele seja mostrado em todas as páginas. Não se esqueça de importar o componente.
+
+    ```astro title="src/components/Cabecalho.astro" ins={4,9}
+    ---
+    import Hamburguer from './Hamburguer.astro';
+    import Navegacao from './Navegacao.astro';
+    import IconeTema from './IconeTema.astro';
+    ---
+    <Cabecalho>
+      <nav>
+        <Hamburguer />
+        <IconeTema />
+        <Navegacao />
+      </nav>
+    </Cabecalho>
+    ```
+
+3. Visite a sua pré-visualização do navegador em `localhost:3000` para ver o ícone em todas as suas páginas agora. Você pode tentar clicá-lo, mas você ainda não escreveu um script para fazê-lo interativo.
+
+## Adicione estilos CSS para um tema escuro
+
+Adicione algumas cores alternativas para utilizar no modo escuro.
+
+1. Em `global.css`, defina alguns estilos escuros. Você pode escolher seus próprios, ou copiar e colar:
+
+    ```css title="src/styles/global.css"
+    html.escuro {
+      background-color: #0d0950;
+      color: #fff;
+    }
+
+    .escuro .links-nav a {
+      color: #fff;
+    }
+    ```
+
+## Adicione interatividade no lado do cliente
+
+Para adicionar interatividade para um componente Astro, você pode utilizar uma tag `<script>`. Esse script pode verificar e definir o tema atual de `localStorage` e alternar o tema quando o ícone é clicado. 
+
+1. Adicione a seguinte tag `<script>` em `src/components/IconeTema.astro` após sua tag `<style>`:
+
+    ```astro title="src/components/IconeTema.astro" ins={9-37}
+    <style>
+      .sol { fill: black; }
+      .lua { fill: transparent; }
+
+      :global(.escuro) .sol { fill: transparent; }
+      :global(.escuro) .lua { fill: white; }
+    </style>
+
+    <script is:inline>
+      const tema = (() => {
+        if (typeof localStorage !== 'undefined' && localStorage.getItem('tema')) {
+          return localStorage.getItem('tema');
+        }
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          return 'escuro';
+        }
+          return 'claro';
+      })();
+          
+      if (tema === 'claro') {
+        document.documentElement.classList.remove('escuro');
+      } else {
+        document.documentElement.classList.add('escuro');
+      }
+
+      window.localStorage.setItem('tema', tema);
+
+      const manipularCliqueToggle = () => {
+        const element = document.documentElement;
+        element.classList.toggle("escuro");
+        
+        const isEscuro = element.classList.contains("escuro");
+        localStorage.setItem("tema", isEscuro ? "escuro" : "claro");
+      }
+
+      document.getElementById("toggleTema").addEventListener("click", manipularCliqueToggle);
+    </script>
+    ```
+
+2. Verifique sua pré-visualização do navegador em `localhost:3000` e clique no ícone de tema. Verifique que você pode mudar entre os modos claro e escuro.
+
+
+
+<Box icon="question-mark">
+
+### Teste seu conhecimento
+
+Escolha se cada uma das afirmações a seguir descreve tags `<script>` do Astro, componentes de frameworks de UI, ou ambos.
+
+1. Eles te permitem incluir elementos de UI interativos no seu website.
+
+    <MultipleChoice>
+      <Option>
+        tags `<script>` do Astro
+      </Option>
+      <Option>
+        componentes de frameworks de UI
+      </Option>
+      <Option isCorrect>
+        ambos
+      </Option>
+    </MultipleChoice>
+
+2. Eles irão criar elementos estáticos no seu site a não ser que você inclua `client:` para enviar seu JavaScript para o cliente e executá-lo no navegador.
+
+    <MultipleChoice>
+      <Option>
+        tags `<script>` do Astro
+      </Option>
+      <Option isCorrect>
+        componentes de frameworks de UI
+      </Option>
+      <Option>
+        ambos
+      </Option>
+    </MultipleChoice>
+
+3. Eles te permitem "testar" um novo framework sem precisar iniciar um projeto completamente novo utilizando seu conjunto de tecnologias.
+
+    <MultipleChoice>
+      <Option>
+        tags `<script>` do Astro
+      </Option>
+      <Option isCorrect>
+        componentes de frameworks de UI
+      </Option>
+      <Option>
+        ambos
+      </Option>
+    </MultipleChoice>
+
+4. Eles te permitem reutilizar código que você escreveu em outros frameworks e você pode frequentemente só colocá-los diretamente no seu site.
+
+    <MultipleChoice>
+      <Option>
+        tags `<script>` do Astro
+      </Option>
+      <Option isCorrect>
+        componentes de frameworks de UI
+      </Option>
+      <Option>
+        ambos
+      </Option>
+    </MultipleChoice>
+
+5. Eles te permitem adicionar interatividade sem precisar conhecer ou aprender qualquer outro framework JavaScript.
+
+    <MultipleChoice>
+      <Option isCorrect>
+        tags `<script>` do Astro
+      </Option>
+      <Option>
+        componentes de frameworks de UI
+      </Option>
+      <Option>
+        ambos
+      </Option>
+    </MultipleChoice>
+</Box>
+
+<Box icon="check-list">
+
+## Checklist
+
+<Checklist>
+- [ ] Eu posso utilizar JavaScript para interatividade quando eu não quero adicionar um framework.
+</Checklist>
+</Box>
+
+### Recursos
+
+- [`<script>` no lado do cliente no Astro](/pt-br/guides/client-side-scripts/)
