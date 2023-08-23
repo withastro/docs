@@ -31,7 +31,7 @@ export default NavDictionary({
 	'guides/recipes': 'Más recetas',
 
 	features: 'Guías',
-	'core-concepts/astro-syntax': 'Sintaxis de Plantilla de Astro',
+	'core-concepts/astro-syntax': 'Sintaxis de Astro',
 	'core-concepts/framework-components': 'Frameworks UI',
 	'core-concepts/routing': 'Enrutamiento',
 	'guides/markdown-content': 'Markdown y MDX',
