@@ -37,7 +37,6 @@ export default NavDictionary({
 	'guides/content-collections': 'Coleções de Conteúdo',
 	'guides/client-side-scripts': 'Scripts & Manipulação de Eventos',
 	'guides/styling': 'Estilização e CSS',
-	'guides/assets': 'Assets (Experimental)',
 	'guides/images': 'Imagens',
 	'guides/fonts': 'Fontes',
 	'guides/imports': 'Importações',

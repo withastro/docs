@@ -44,7 +44,6 @@ export default NavDictionary({
 	'guides/content-collections': 'コンテンツコレクション',
 	'guides/client-side-scripts': 'スクリプトとイベントハンドリング',
 	'guides/styling': 'CSSとスタイル',
-	'guides/assets': 'アセット（実験的）',
 	'guides/images': '画像',
 	'guides/fonts': 'フォント',
 	'guides/imports': 'インポート',

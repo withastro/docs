@@ -57,6 +57,5 @@ export default NavDictionary({
 	examples: 'Рецепты',
 	'guides/recipes': 'Больше рецептов',
 	'guides/fonts': 'Шрифты',
-	'guides/assets': 'Ресурсы (эксперим.)',
 	'core-concepts/astro-syntax': 'Синтаксис Astro',
 });

@@ -38,7 +38,6 @@ export default NavDictionary({
 	'guides/server-side-rendering': '服务端渲染 (SSR)',
 	'guides/client-side-scripts': '处理脚本和事件',
 	'guides/styling': 'CSS 样式',
-	'guides/assets': '资源 (实验性)',
 	'guides/fonts': '字体',
 	'guides/images': '图像',
 	'guides/imports': '导入',
