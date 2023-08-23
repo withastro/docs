@@ -1,0 +1,548 @@
+---
+title: Kontent.ai 与 Astro
+description: 使用 Kontent.ai 作为 CMS 将內容添加到你的 Astro 项目
+type: cms
+service: Kontent.ai
+i18nReady: true
+---
+import FileTree from '~/components/FileTree.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+[Kontent.ai](https://www.kontent.ai/) 是一个无头 CMS，它允许你以结构化和模块化的方式管理内容，并得到人工智能功能的支持。
+
+## 与 Astro 集成
+
+在这个部分中，你将使用 [Kontent.ai TypeScript SDK](https://github.com/kontent-ai/delivery-sdk-js) 将你的 Kontent.ai 项目连接到 Astro 应用程序。
+
+### 前期准备
+
+在开始之前，你需要以下内容：
+
+1. **Kontent.ai 项目** - 如果你还没有 Kontent.ai 账户，可以 [免费注册](https://app.kontent.ai/sign-up) 并创建一个新项目。
+
+2. **Delivery API 密钥** - 你需要已发布内容的环境 ID 和用于获取草稿的预览 API 密钥（可选）。这两个密钥位于 Kontent.ai 的 **Settings -> API Keys** 选项卡中。
+
+### 设置凭据
+
+为了将你的 Kontent.ai 凭据添加到 Astro，你需要在项目的根目录下创建一个名为 `.env` 的文件，并添加以下变量：
+
+```ini title=".env"
+KONTENT_ENVIRONMENT_ID=YOUR_ENVIRONMENT_ID
+KONTENT_PREVIEW_API_KEY=YOUR_PREVIEW_API_KEY
+```
+
+这样，这些环境变量就可以在你的 Astro 项目中使用了。
+
+如果你想要获得[这些环境变量的 TypeScript IntelliSense](/zh-cn/guides/environment-variables/#typescript-智能提示)，你可以在 `src/` 目录下创建一个新的 `env.d.ts` 文件，并像下面这样配置 `ImportMetaEnv`：
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly KONTENT_ENVIRONMENT_ID: string;
+  readonly KONTENT_PREVIEW_API_KEY: string;
+}
+```
+
+现在，你的根目录应该包含这些新文件：
+
+<FileTree title="Project Structure">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+
+### 安装依赖
+
+要将 Astro 连接到你的 Kontent.ai 项目，请安装 [Kontent.ai TypeScript SDK](https://github.com/kontent-ai/delivery-sdk-js)：
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+    npm install @kontent-ai/delivery-sdk
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+    pnpm install @kontent-ai/delivery-sdk
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+    yarn add @kontent-ai/delivery-sdk
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+接下来，在 Astro 项目的 `src/lib/` 目录中创建一个名为 `kontent.ts` 的新文件。
+
+```ts title="src/lib/kontent.ts"
+import { createDeliveryClient } from "@kontent-ai/delivery-sdk";
+
+export const deliveryClient = createDeliveryClient({
+    environmentId: import.meta.env.KONTENT_ENVIRONMENT_ID,
+    previewApiKey: import.meta.env.KONTENT_PREVIEW_API_KEY,
+});
+```
+
+:::note[备注]
+请阅读更多有关 [在 Astro 中获取环境变量](/zh-cn/guides/environment-variables/#获取环境变量) 的内容。
+:::
+
+该实现将使用 `.env` 文件中的凭据创建一个新的 `DeliveryClient` 对象。
+
+:::note[预览]
+`previewApiKey` 是可选的。当它被使用时，你可以为 [配置每个查询](https://github.com/kontent-ai/delivery-sdk-js#enable-preview-mode-per-query) 所指向的 Delivery API 端点，以返回内容项的最新版本，而不考虑其在工作流中的状态。否则，只返回已发布的内容项。
+:::
+
+最后，你的 Astro 项目的根目录现在应该包含这些新文件：
+
+<FileTree title="Project Structure">
+- src/
+  - lib/
+    - **kontent.ts**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### 获取数据
+
+现在，`DeliveryClient` 对象对所有组件都可用了。要获取内容，请使用 `DeliveryClient` 和方法链来定义你想要的项。以下示例展示了获取博客文章，并将它们的标题渲染为列表的基础代码：
+
+```astro title="src/pages/index.astro" ins={2-7, 16-20}
+---
+import { deliveryClient } from "../lib/kontent";
+
+const blogPosts = await deliveryClient
+    .items()
+    .type("blogPost")
+    .toPromise()
+---
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width" />
+		<title>Astro</title>
+	</head>
+	<body>
+        <ul>
+        {blogPosts.data.items.map(blogPost => (
+            <li>{blogPost.elements.title.value}</li>
+        ))}
+        </ul>
+    </body>
+</html>
+```
+
+你可以在 [Kontent.ai 文档](https://kontent.ai/learn/develop/hello-world/get-content/javascript) 中找到更多的查询选项。
+
+## 使用 Astro 和 Kontent.ai 创建博客
+
+通过上述设置，你现在可以创建一个使用 Kontent.ai 作为内容源的博客。
+
+### 前期准备
+
+1. **Kontent.ai 项目** - 对于本教程，建议使用一个空白项目。如果你的内容模型中已经有一些内容类型，你可以使用它们，但需要修改代码片段以匹配你的内容模型。
+
+2. **已配置从 Kontent.ai 获取内容的 Astro 项目** - 有关如何设置使用 Kontent.ai 的 Astro 项目的详细信息，请参阅上文。
+
+### 设置内容模型
+
+在 Kontent.ai 中，转到 **Content model** 并创建一个新的内容类型，具有以下字段和值：
+
+* **Name:** Blog Post
+* Elements:
+	* Text field
+		* **Name:** Title
+		* **Element Required:** yes
+	* Rich text field
+		* **Name:** Teaser
+		* **Element Required:** yes
+		* **Allowed in this element:** only check Text
+	* Rich text field
+		* **Name:** Content
+		* **Element Required:** yes
+	* Date & time field
+		* **Name:** Date
+	* URL slug field
+		* **Name:** URL slug
+		* **Element Required:** yes
+		* **Auto-generate from:** select "Title"
+
+接着，点击 **Save Changes**。
+
+### 创建内容
+
+现在，转到 **Content & assets** 选项卡，并创建一个新的 **Blog Post** 类型的内容项。使用以下值填写字段：
+
+* **Content item name:** Astro
+* **Title:** Astro is amazing
+* **Teaser:** Astro is an all-in-one framework for building fast websites faster.
+* **Content:** You can use JavaScript to implement the website functionality, but no client bundle is necessary.
+* **Date & time:** select today
+* **URL slug:** astro-is-amazing
+
+完成后，使用顶部的 **Publish** 按钮发布博客文章。
+
+*注意：在进行下一步之前，你可以随意创建任意数量的博客文章。*
+
+### 在 TypeScript 中生成内容模型
+
+接下来，你将从你的内容模型中生成 TypeScript 类型。
+
+:::note[备注]
+这一步是可选的，但它可以提供更好的开发者体验，并允许你在构建时发现潜在问题，而不是在运行时。
+:::
+
+首先，安装 [Kontent.ai JS 模型生成器](https://github.com/kontent-ai/model-generator-js)、[ts-node](https://github.com/TypeStrong/ts-node) 和 [dotenv](https://github.com/motdotla/dotenv)：
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+    npm install @kontent-ai/model-generator ts-node dotenv
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+    pnpm install @kontent-ai/model-generator ts-node dotenv
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+    yarn add @kontent-ai/model-generator ts-node dotenv
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+接着，将如下脚本添加到 `package.json` 中：
+
+```json title="package.json"
+{
+    ...
+    "scripts": {
+        ...
+        "regenerate:models": "ts-node --esm ./generate-models.ts"
+    },
+}
+```
+
+由于类型需要关于你项目的结构信息，而这些信息在公共 API 中是不暴露的，因此你还需要将一个 Content Management API 密钥添加到 `.env` 文件中。你可以在 **Environment settings -> API keys -> Management API** 下生成该密钥。
+
+```ini title=".env" ins={3}
+KONTENT_ENVIRONMENT_ID=YOUR_ENVIRONMENT_ID
+KONTENT_PREVIEW_API_KEY=YOUR_PREVIEW_API_KEY
+KONTENT_MANAGEMENT_API_KEY=YOUR_MANAGEMENT_API_KEY
+```
+
+最后，添加配置用于生成模型的模型生成器脚本 `generate-models.ts`：
+
+```ts title="generate-models.ts"
+import { generateModelsAsync, textHelper } from '@kontent-ai/model-generator'
+import { rmSync, mkdirSync } from 'fs'
+
+import * as dotenv from 'dotenv'
+dotenv.config()
+
+const runAsync = async () => {
+	rmSync('./src/models', { force: true, recursive: true })
+	mkdirSync('./src/models')
+
+	// 修改对应模型的工作目录
+	process.chdir('./src/models')
+
+	await generateModelsAsync({
+		sdkType: 'delivery',
+		apiKey: process.env.KONTENT_MANAGEMENT_API_KEY ?? '',
+		environmentId: process.env.KONTENT_ENVIRONMENT_ID ?? '',
+		addTimestamp: false,
+		isEnterpriseSubscription: false,
+	})
+}
+
+// 自调用的异步函数
+;(async () => {
+	await runAsync()
+})().catch(err => {
+	console.error(err)
+	throw err
+})
+```
+
+现在，你可以执行命令了：
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+    npm run regenerate:models
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+    pnpm run regenerate:models
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+    yarn run regenerate:models
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### 展示博客文章列表
+
+现在你已经准备好获取一些内容了。进入你想要显示博客文章列表的 Astro 页面，例如 `src/pages` 目录下的首页 `index.astro`。
+
+在 Astro 页面的 frontmatter 中获取所有博客文章：
+
+```astro title="src/pages/index.astro"
+---
+import { deliveryClient } from '../lib/kontent';
+import type { BlogPost } from '../models';
+import { contentTypes } from '../models/project/contentTypes';
+
+const blogPosts = await deliveryClient
+    .items<BlogPost>
+    .type(contentTypes.blog_post.codename)
+    .toPromise()
+---
+```
+
+如果你跳过了模型生成，也可以使用未经类型定义的对象和字符串字面量来定义类型：
+
+```ts
+const blogPosts = await deliveryClient
+    .items()
+    .type("blogPost")
+    .toPromise()
+```
+
+fetch 调用将返回一个包含所有博客文章的列表的 `response` 对象，这些内容保存在 `data.items` 中。在 Astro 页面的 HTML 部分，你可以使用 `map()` 函数列出所有博客文章：
+
+```astro title="src/pages/index.astro" ins={11-29}
+---
+import { deliveryClient } from '../lib/kontent';
+import type { BlogPost } from '../models';
+import { contentTypes } from '../models/project/contentTypes';
+
+const blogPosts = await deliveryClient
+    .items<BlogPost>
+    .type(contentTypes.blogPost.codename)
+    .toPromise()
+---
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Astro</title>
+    </head>
+    <body>
+        <h1>Blog posts</h1>
+        <ul>
+            {blogPosts.data.items.map(blogPost => (
+                <li>
+                    <a href={`/blog/${blogPost.elements.url_slug.value}/`} title={blogPost.elements.title.value}>
+                        {blogPost.elements.title.value}
+                    </a>
+                </li>
+            ))}
+        </ul>
+    </body>
+</html>
+```
+
+### 生成单个博客文章页面
+
+教程的最后一步是生成详细的博客文章页面。
+
+#### 静态站点生成
+
+在本节中，你将使用 Astro 的 [静态 (SSG) 模式](/zh-cn/core-concepts/routing/#静态-ssg-模式)。
+
+首先，在 `/src/pages/blog/` 目录中创建一个名为 `[slug].astro` 的文件，该文件需要导出一个名为 `getStaticPaths` 的函数，该函数从 CMS 中收集所有数据：
+
+```astro title="src/pages/blog/[slug].astro"
+---
+import { deliveryClient } from '../../lib/kontent';
+import type { BlogPost } from '../../models';
+import { contentTypes } from '../../models/project/contentTypes';
+
+export async function getStaticPaths() {
+    const blogPosts = await deliveryClient
+        .items<BlogPost>()
+        .type(contentTypes.blog_post.codename)
+        .toPromise()
+---
+```
+
+到目前为止，该函数会从 Kontent.ai 获取所有博客文章。而这一代码片段与你在首页使用的代码完全相同。
+
+接下来，该函数必须为每个博客文章导出路径和数据。由于你将文件命名为 `[slug].astro`，因此表示 URL slug 的参数被称为 `slug`：
+
+```astro title="src/pages/blog/[slug].astro" ins={12-15}
+---
+import { deliveryClient } from '../../lib/kontent';
+import type { BlogPost } from '../../models';
+import { contentTypes } from '../../models/project/contentTypes';
+
+export async function getStaticPaths() {
+    const blogPosts = await deliveryClient
+        .items<BlogPost>()
+        .type(contentTypes.blog_post.codename)
+        .toPromise()
+
+    return blogPosts.data.items.map(blogPost => ({
+        params: { slug: blogPost.elements.url_slug.value },
+        props: { blogPost }
+    }))
+}
+---
+```
+
+最后一部分是提供 HTML 模板并显示每篇博客文章：
+
+```astro title="src/pages/blog/[slug].astro" ins={18-33}
+---
+import { deliveryClient } from '../../lib/kontent';
+import type { BlogPost } from '../../models';
+import { contentTypes } from '../../models/project/contentTypes';
+
+export async function getStaticPaths() {
+    const blogPosts = await deliveryClient
+        .items<BlogPost>()
+        .type(contentTypes.blog_post.codename)
+        .toPromise()
+
+    return blogPosts.data.items.map(blogPost => ({
+        params: { slug: blogPost.elements.url_slug.value },
+        props: { blogPost }
+    }))
+}
+
+const blogPost: BlogPost = Astro.props.blogPost
+---
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>{blogPost.elements.title.value}</title>
+    </head>
+    <body>
+        <article>
+            <h1>{blogPost.elements.title.value}</h1>
+            <Fragment set:html={blogPost.elements.teaser.value} />
+            <Fragment set:html={blogPost.elements.content.value} />
+            <time>{new Date(blogPost.elements.date.value ?? "")}</time>
+    </body>
+</html>
+```
+
+切换到 Astro 预览以查看渲染的博客文章。默认情况下是：http://localhost:3000/blog/astro-is-amazing/
+
+#### 服务端渲染
+
+如果你选择了 SSR 模式，你将使用动态路由从 Kontent.ai 获取页面数据。
+
+在 `/src/pages/blog/` 目录下创建一个名为 `[slug].astro` 的新文件，并添加以下代码。数据获取与之前的用例非常相似，但添加了一个 `equalsFilter`，以便根据使用的 URL 找到正确的博客文章：
+
+```astro title="src/pages/blog/[slug].astro"
+---
+import { deliveryClient } from '../../lib/kontent';
+import type { BlogPost } from '../../models';
+import { contentTypes } from '../../models/project/contentTypes';
+
+const { slug } = Astro.params
+let blogPost: BlogPost;
+try {
+    const data = await deliveryClient
+        .items<BlogPost>()
+        .equalsFilter(contentTypes.blog_post.elements.url_slug.codename, slug ?? '')
+        .type(contentTypes.blog_post.codename)
+        .limitParameter(1)
+        .toPromise()
+    blogPost = data.data.items[0]
+} catch (error) {
+    return Astro.redirect('/404')
+}
+---
+```
+
+如果你没有使用生成的类型，那么你也可以使用字符串字面量来定义内容项类型和过滤元素的代码名称：
+
+```ts
+const data = await deliveryClient
+        .items()
+        .equalsFilter("url_slug", slug ?? '')
+        .type("blog_post")
+        .limitParameter(1)
+        .toPromise()
+```
+
+最后，添加 HTML 代码来渲染博客文章。这部分与静态站点生成的内容相同：
+
+```astro title="src/pages/blog/[slug].astro" ins={20-33}
+---
+import { deliveryClient } from '../../lib/kontent';
+import type { BlogPost } from '../../models';
+import { contentTypes } from '../../models/project/contentTypes';
+
+const { slug } = Astro.params
+let blogPost: BlogPost;
+try {
+    const data = await deliveryClient
+        .items<BlogPost>()
+        .equalsFilter(contentTypes.blog_post.elements.url_slug.codename, slug ?? '')
+        .type(contentTypes.blog_post.codename)
+        .limitParameter(1)
+        .toPromise()
+    blogPost = data.data.items[0]
+} catch (error) {
+    return Astro.redirect('/404')
+}
+---
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>{blogPost.elements.title.value}</title>
+    </head>
+    <body>
+        <article>
+            <h1>{blogPost.elements.title.value}</h1>
+            <Fragment set:html={blogPost.elements.teaser.value} />
+            <Fragment set:html={blogPost.elements.content.value} />
+            <time>{new Date(blogPost.elements.date.value ?? '')}</time>
+    </body>
+</html>
+```
+
+### 发布网站
+
+要部署你的网站，请访问 [部署指南](/zh-cn/guides/deploy/) 并按照你偏好的托管提供商的说明进行操作。
+
+#### 在 Kontent.ai 更改时重新构建
+
+如果你的项目使用 Astro 的默认静态模式，你需要设置一个 Webhook 在你的内容发生更改时触发新的构建。如果你使用的是 Netlify 或 Vercel 作为托管提供商，你可以使用其 Webhook 功能从 Kontent.ai 事件中触发新的构建。
+
+##### Netlify
+
+在 Netlify 中设置 Webhook：
+
+1. 进入你的网站仪表板，点击 **Build & deploy**。
+2. 在 **Continuous Deployment** 选项卡下，找到 **Build hooks** 部分，点击 **Add build hook**。
+3. 为你的 Webhook 提供一个名称，选择要触发构建的分支，然后点击 **Save** 并复制生成的 URL。
+
+##### Vercel
+
+在 Vercel 中设置 Webhook：
+
+1. 进入你的项目仪表板，点击 **Settings**。
+2. 在 **Git** 选项卡下，找到 **Deploy Hooks** 部分。
+3. 为你的 Webhook 提供一个名称，选择要触发构建的分支。点击 **Add** 并复制生成的 URL。
+
+##### 添加 Webhook 到 Kontent.ai
+
+在 [Kontent.ai 应用程序](https://kontent.ai/learn/docs/webhooks/javascript) 中，转到 **Environment settings -> Webhooks**。点击 **Create new webhook** 并为你的新 Webhook 提供一个名称。接着，粘贴你从 Netlify 或 Vercel 复制的 URL，并选择哪些事件应触发 Webhook。默认情况下，为了在发布的内容发生更改时重新构建你的网站，你只需要在 **Delivery API triggers** 下选择 **Publish** 和 **Unpublish** 事件。完成后，点击保存。
+
+现在，每当你在 Kontent.ai 中发布一篇新博客文章时，就会触发新的构建，并更新你的博客。
