@@ -1,19 +1,22 @@
 ---
 title: Compartilhe Estado Entre Ilhas
-description: Aprenda como compartilhar estado entre componentes — e frameworks! — com Nano Stores.
+description: Aprenda como compartilhar estado de componentes de frameworks com Nano Stores.
 i18nReady: true
 type: recipe
 ---
+
 import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro';
 import LoopingVideo from '~/components/LoopingVideo.astro';
 import JavascriptFlavorTabs from '~/components/tabs/JavascriptFlavorTabs.astro';
-
+import RecipeLinks from "~/components/RecipeLinks.astro"
 
 Ao construir um website Astro com a [arquitetura em ilhas / hidratação parcial](/pt-br/concepts/islands/), você pode ter esse problema: **Eu quero compartilhar estado entre meus componentes.**
 
 Frameworks de UI como React ou Vue podem encorajar [provedores de "contexto"](https://react.dev/learn/passing-data-deeply-with-context) para outros componentes consumirem. Porém, ao [parcialmente hidratar componentes](/pt-br/core-concepts/framework-components/#hidratando-componentes-interativos) no Astro ou Markdown, você não pode utilizar esses invólucros de contexto.
 
 Astro recomenda uma solução diferente para armazenamento compartilhado no lado do cliente: [**Nano Stores**](https://github.com/nanostores/nanostores).
+
+<RecipeLinks slugs={["pt-br/recipes/sharing-state"]} />
 
 ## Por que Nano Stores?
 
@@ -89,7 +92,7 @@ Para começar, instale Nano Stores junto de seu pacote auxiliar para seu framewo
   npm install nanostores
   ```
   :::note
-  Nenhum pacote auxilar aqui! Nano Stores podem ser utilizadas como Svelte stores padrões.
+  Nenhum pacote auxiliar aqui! Nano Stores podem ser utilizadas como Svelte stores padrões.
   :::
   </Fragment>
   <Fragment slot="vue">
@@ -144,7 +147,7 @@ import FormAdicionarAoCarrinho from '../components/FormAdicionarAoCarrinho';
 
 ### Utilizando "atoms"
 
-Vamos começar por abrir `FlyoutCarrinho` sempre que `ToggleFlyoutCarrinho` é clicado. 
+Vamos começar por abrir `FlyoutCarrinho` sempre que `ToggleFlyoutCarrinho` é clicado.
 
 Primeiro, crie um novo arquivo JS ou TS para conter sua store. Nós iremos utilizar um ["atom"](https://github.com/nanostores/nanostores#atoms) para isso:
 
@@ -228,7 +231,7 @@ export default function BotaoCarrinho() {
 <script setup>
   import { isCarrinhoAberto } from '../storeCarrinho';
   import { useStore } from '@nanostores/vue';
-  
+
   // leia o valor da store com o hook `useStore`
   const $isCarrinhoAberto = useStore(isCarrinhoAberto);
 </script>
@@ -313,10 +316,9 @@ export default function FlyoutCarrinho() {
 **[Maps](https://github.com/nanostores/nanostores#maps) são uma ótima escolha para objetos que você escreve regularmente!** Ao lado dos helpers padrões `get()` e `set()` que um `atom` providencia, você também terá a função `.setKey()` para eficientemente atualizar chaves individuais de um objeto.
 :::
 
-Agora, vamos rastrear os itens dentro de seu carrinho. Para evitar duplicações e continuar raestrando a "quantidade," nós podemos armazenar seu carrinho como um bojeto com o ID do item como uma chave. Nós iremos utilizar um [Map](https://github.com/nanostores/nanostores#maps) para isso.
+Agora, vamos rastrear os itens dentro de seu carrinho. Para evitar duplicações e continuar rastreando a "quantidade," nós podemos armazenar seu carrinho como um objeto com o ID do item como uma chave. Nós iremos utilizar um [Map](https://github.com/nanostores/nanostores#maps) para isso.
 
 Vamos adicionar uma store `itensCarrinho` a nossa `storeCarrinho.js` de anteriormente. Você também pode trocar para um arquivo TypeScript para definir a forma se quiser.
-
 
 <JavascriptFlavorTabs>
   <Fragment slot="js">
@@ -327,12 +329,12 @@ Vamos adicionar uma store `itensCarrinho` a nossa `storeCarrinho.js` de anterior
   export const isCarrinhoAberto = atom(false);
 
   /**
-  * @typedef {Object} ItemCarrinho
-  * @property {string} id
-  * @property {string} nome
-  * @property {string} srcImagem
-  * @property {number} quantidade
-  */
+   * @typedef {Object} ItemCarrinho
+   * @property {string} id
+   * @property {string} nome
+   * @property {string} srcImagem
+   * @property {number} quantidade
+   */
 
   /** @type {import('nanostores').MapStore<Record<string, ItemCarrinho>>} */
   export const itensCarrinho = map({});
@@ -387,7 +389,7 @@ Agora, vamos exportar um helper `adicionarItemCarrinho` para nossos componentes 
   ```ts
   // src/storeCarrinho.ts
   ...
-  type InfoVisivelItem = Pick<CartItem, 'id' | 'nome' | 'srcImagem'>;
+  type InfoVisivelItem = Pick<ItemCarrinho, 'id' | 'nome' | 'srcImagem'>;
   export function adicionarItemCarrinho({ id, nome, srcImagem }: InfoVisivelItem) {
     const entradaExistente = itensCarrinho.get()[id];
     if (entradaExistente) {
@@ -411,7 +413,7 @@ Agora, vamos exportar um helper `adicionarItemCarrinho` para nossos componentes 
 
 <summary>**🙋 Por que utilizar `.get()` aqui ao invés do helper `useStore`?**</summary>
 
-Você deve ter notado que estamos chamando `itensCarrinho.get()` aqui ao invés de pegar o helper `useStore` de nossos exemplos em React / Preact / Solid / Vue. Isso é porque **useStore é feito para gatilhar re-renderizações de componente.** Em outras palavras, `useStore` deve ser utilizado sempre que o valor da store está sendo renderizado na UI. Já que estamos lendo o valor quando um **evento** é iniciado (`adicionarAoCarrinho` nesse caso) e nós não estamos tentando renderizar o valor, nós não precisamos de `useStore` aqui.
+Você deve ter notado que estamos chamando `itensCarrinho.get()` aqui ao invés de pegar o helper `useStore` de nossos exemplos em React / Preact / Solid / Vue. Isso é porque **useStore é feito para acionar re-renderizações de componente.** Em outras palavras, `useStore` deve ser utilizado sempre que o valor da store está sendo renderizado na UI. Já que estamos lendo o valor quando um **evento** é iniciado (`adicionarAoCarrinho` nesse caso) e nós não estamos tentando renderizar o valor, nós não precisamos de `useStore` aqui.
 </details>
 :::
 
