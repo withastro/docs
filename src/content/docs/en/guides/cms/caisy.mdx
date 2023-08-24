@@ -1,0 +1,62 @@
+---
+title: Caisy & Astro
+description: Add content to your Astro project using Caisy as a CMS
+type: cms
+service: Caisy
+i18nReady: false
+stub: true
+---
+
+[Caisy](https://caisy.io/) is a headless CMS that exposes a GraphQL API to access content.
+
+## Using Caisy CMS with Astro
+
+Use `graphql-request` and Caisy's rich text renderer for Astro to fetch your CMS data and display your content on an Astro page:
+
+```astro title="src/pages/blog/[...slug].astro"
+---
+import RichTextRenderer from '@caisy/rich-text-astro-renderer';
+import { gql, GraphQLClient } from 'graphql-request';
+
+const params = Astro.params;
+
+const client = new GraphQLClient(
+	`https://cloud.caisy.io/api/v3/e/${import.meta.env.CAISY_PROJECT_ID}/graphql`,
+	{
+		headers: {
+			'x-caisy-apikey': import.meta.env.CAISY_API_KEY
+		}
+	}
+);
+const gqlResponse = await client.request(
+	gql`
+		query allBlogArticle($slug: String) {
+			allBlogArticle(where: { slug: { eq: $slug } }) {
+				edges {
+					node {
+						text {
+							json
+						}
+						title
+						slug
+						id
+					}
+				}
+			}
+		}
+	`,
+	{ slug: params.slug }
+);
+
+const post = gqlResponse?.allBlogArticle?.edges?.[0]?.node;
+---
+<h1>{post.title}</h1>
+<RichTextRenderer node={post.text.json} />
+```
+
+## Official Resources
+
+- Check out the Caisy + Astro example on [GitHub](https://github.com/caisy-io/caisy-example-astro) or [Stackblitz](https://stackblitz.com/github/caisy-io/caisy-example-astro?file=src%2Fpages%2Fblog%2F%5B...slug%5D.astro)
+- Query your documents in [draft mode](https://caisy.io/developer/docs/external-api/localization-and-preview#preview-mode-15) and multiple [locales](https://caisy.io/developer/docs/external-api/localization-and-preview#localization-in-a-graphql-query-8).
+- Use [pagination](https://caisy.io/developer/docs/external-api/queries-pagination) to query large numbers of documents.
+- Use [filter](https://caisy.io/developer/docs/external-api/external-filter-and-sorting) in your queries and [order](https://caisy.io/developer/docs/external-api/external-filter-and-sorting#sorting-8) the results

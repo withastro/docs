@@ -12,6 +12,8 @@ En esta receta, aprenderás cómo utilizar colecciones de contenido y enrutamien
 
 Este ejemplo sirve para cada idioma en su propia subruta, p. ej. `example.com/en/blog` para inglés y `example.com/fr/blog` para francés.
 
+Si prefieres que el idioma predeterminado no sea visible en la URL, a diferencia de otros idiomas, hay [instrucciones para ocultar el idioma predeterminado](/es/recipes/i18n/#ocultar-el-idioma-predeterminado-en-la-url) a continuación.
+
 ## Receta
 
 ### Configura páginas para cada idioma
@@ -321,6 +323,175 @@ Crea enlaces a los diferentes idiomas que admites para que los usuarios puedan e
             </footer>
         </body>
     </html>
+    ```
+
+### Ocultar el idioma predeterminado en la URL
+
+1. Crea un directorio para cada idioma, excepto el idioma predeterminado. Por ejemplo, guarda las páginas en tu idioma predeterminado directamente en `pages/`, y las páginas traducidas en `fr/`:
+
+    <FileTree>
+    - src/
+      - pages/
+        - about.astro
+        - index.astro
+        - **fr/**
+          - about.astro
+          - index.astro
+    </FileTree>
+
+2. Añade otra línea al archivo `src/i18n/ui.ts` para activar o desactivar la función:
+
+    ```ts
+    // src/i18n/ui.ts
+    export const showDefaultLang = false;
+    ```
+
+
+3. Agrega una función auxiliar al archivo `src/i18n/utils.ts` para traducir rutas según el idioma actual:
+
+   ```js
+    // src/i18n/utils.ts
+    import { ui, defaultLang, showDefaultLang } from './ui';
+
+    export function useTranslatedPath(lang: keyof typeof ui) {
+      return function translatePath(path: string, l: string = lang) {
+        return !showDefaultLang && l === defaultLang ? path : `/${l}${path}`
+      }
+    }
+    ```
+
+4. Importa la función auxiliar donde sea necesario. Por ejemplo, un componente `nav` podría verse así:
+
+    ```astro 
+    ---
+    // src/components/Nav.astro
+    import { getLangFromUrl, useTranslations } from '../i18n/utils';
+    
+    const lang = getLangFromUrl(Astro.url);
+    const t = useTranslations(lang);
+    const translatePath = useTranslatedPath(lang);
+    ---
+    <ul>
+        <li>
+            <a href={translatePath('/home/')}>
+              {t('nav.home')}
+            </a>
+        </li>
+        <li>
+            <a href={translatePath('/about/')}>
+              {t('nav.about')}
+            </a>
+        </li>
+        <li>
+            <a href="https://twitter.com/astrodotbuild">
+              {t('nav.twitter')}
+            </a>
+        </li>
+    </ul>
+    ```
+
+5. La función auxiliar también puede utilizarse para traducir rutas para un idioma específico. Por ejemplo, cuando los usuarios cambian entre idiomas:
+
+    ```astro
+    ---
+    // src/components/LanguagePicker.astro
+    import { languages } from '../i18n/ui';
+    ---
+    <ul>
+      {Object.entries(languages).map(([lang, label]) => (
+        <li>
+          <a href={translatePath('/', lang)}>{label}</a>
+        </li>
+      ))}
+    </ul>
+    ```
+
+### Traducir Rutas
+
+Traduce las rutas de tus páginas para cada idioma.
+
+1. Añade mappings de rutas al archivo `src/i18n/ui.ts`:
+
+ ```ts
+ // src/i18n/ui.ts
+ export const routes = {
+   de: {
+    'services': 'leistungen',
+   },
+   fr: {
+    'services': 'prestations-de-service',
+   },
+  }
+    ```
+
+2. Actualiza la función auxiliar `useTranslatedPath` en el archivo `src/i18n/utils.ts` para agregar la lógica de traducción de enrutamiento.
+
+  ```js
+  // src/i18n/utils.ts
+  import { ui, defaultLang, showDefaultLang, routes } from './ui';
+
+  export function useTranslatedPath(lang: keyof typeof ui) {
+    return function translatePath(path: string, l: string = lang) {
+      const pathName = path.replaceAll('/', '')
+      const hasTranslation = defaultLang !== l && routes[l] !== undefined && routes[l][pathName] !== undefined
+      const translatedPath = hasTranslation ? '/' + routes[l][pathName] : path
+
+      return !showDefaultLang && l === defaultLang ? translatedPath : `/${l}${translatedPath}`
+    }
+  }
+  ```
+
+3. Crea una función auxiliar para obtener la ruta, si existe, basada en la URL actual en el archivo `src/i18n/utils.ts`:
+
+  ```js
+  // src/i18n/utils.ts
+  import { ui, defaultLang, showDefaultLang, routes } from './ui';
+
+  export function getRouteFromUrl(url: URL): string | undefined {
+    const pathname = new URL(url).pathname
+    const parts = pathname?.split('/')
+    const path = parts.pop() || parts.pop()
+
+    if (path === undefined) {
+      return undefined
+    }
+
+    const currentLang = getLangFromUrl(url);
+
+    if (defaultLang === currentLang) {
+      const route = Object.values(routes)[0];
+      return route[path] !== undefined ? route[path] : undefined
+    }
+
+    const getKeyByValue = (obj: Record<string, string>, value: string): string | undefined  => {
+        return Object.keys(obj).find((key) => obj[key] === value)
+    }
+
+    const reversedKey = getKeyByValue(routes[currentLang], path)
+
+    if (reversedKey !== undefined) {
+      return reversedKey
+    }
+
+    return undefined
+  }
+  ```
+
+4. La función auxiliar se puede utilizar para obtener una ruta traducida. Por ejemplo, cuando no se define una ruta traducida, el usuario será redirigido a la página de inicio:
+
+ ```astro
+    ---
+    // src/components/LanguagePicker.astro
+    import { languages } from '../i18n/ui';
+    const route = getRouteFromUrl(Astro.url);
+    ---
+    <ul>
+      {Object.entries(languages).map(([lang, label]) => (
+        <li>
+          <a href={translatePath(`/${route ? route : ''}`, lang)}>{label}</a>
+        </li>
+      ))}
+    </ul>
     ```
 
 ## Recursos

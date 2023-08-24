@@ -1,17 +1,16 @@
 ---
 title: 组件
 description: 关于 .astro 组件语法的介绍。
+i18nReady: true
 ---
 
-**Astro 组件**是 Astro 项目的基础构建块。它们是纯 HTML、无需客户端运行时的模板组件。
-
-**如果懂 HTML，你就已经有足够的知识来编写你的第一个 Astro 组件了**。
-
-Astro 组件的语法是 HTML 的超集。该语法[设计地让所有拥有编写 HTML 或 JSX 经验的人都感到熟悉](#astro-和-jsx-间的差异)，并增加包括对组件和 JavaScript 表达式的支持。你可以通过文件扩展名 `.astro` 来创建新的 Astro 组件。
+**Astro 组件**是 Astro 项目的基础构建块。它们是纯 HTML、无需客户端运行时的模板组件。你可以通过文件扩展名 `.astro` 来发现 Astro 组件。
 
 Astro 组件非常灵活的。通常情况下，Astro 组件会包含一些**可在页面中复用的 UI**，如 header 或简介卡。在其他时候，Astro 组件可能包含一个较小的 HTML 片段，像是常见的使 SEO 更好的 `<meta>` 标签集合。Astro 组件甚至可以包含整个页面布局。
 
-Astro 组件中最重要的一点是，它们在构建过程中会被**渲染成 HTML**。即使你在组件内运行 JavaScript 代码，它也会抢先一步运行从呈现给用户的最终页面中剥离出来。其最终使得网站变得更快，且默认不用任何 JavaScript。
+Astro 组件最重要的一点是它们**不会在客户端上渲染**。它们在构建时或使用 [服务器端渲染（SSR）](/zh-cn/guides/server-side-rendering/) 按需呈现为 HTML。您可以在组件前端包含 JavaScript 代码，所有这些代码都将从发送到用户浏览器的最终页面中删除。结果是一个更快的网站，默认情况下不用任何 JavaScript。
+
+当你的 Astro 组件确实需要客户端交互性时，你可以添加 [标准 HTML `<script>` 标签](/zh-cn/guides/client-side-scripts/) 或 [UI 框架组件](/zh-cn/core-concepts/framework-components/#激活组件)。
 
 ## 组件概述
 
@@ -24,22 +23,10 @@ Astro 组件是由两个主要部分所组成的——**组件 script** 和**组
 <!-- 组件模板（HTML + JS 表达式）-->
 ```
 
-你也可以在其他组件中使用组件以建立更多更先进的 UI。例如 `Button` 组件可以被用来创建 `ButtonGroup` 组件，像是这样。
-
-```astro title="src/components/ButtonGroup.astro"
----
-import Button from './Button.astro';
----
-<div>
-  <Button title="按钮 1" />
-  <Button title="按钮 2" />
-  <Button title="按钮 3" />
-</div>
-```
 
 ### 组件脚本
 
-Astro 使用代码栅栏（`---`）来识别 Astro 组件中的组件脚本。如果你以前写过 Markdown，你可能已经熟悉了叫做 *frontmatter* 类似概念。Astro 的组件脚本的想法直接受到了这个概念的启发。
+Astro 使用代码栅栏（`---`）来识别 Astro 组件中的组件脚本。如果你以前写过 Markdown，你可能已经熟悉了叫做 *frontmatter.* 的类似概念。Astro 的组件脚本的想法直接受到了这个概念的启发。
 
 你可以使用组件脚本来编写渲染模板所需 JavaScript 代码。这可以包括：
 
@@ -75,20 +62,24 @@ const data = await fetch ('SOME_SECRET_API_URL/users').then (r => r.json ());
 
 如果你在这里写普通的 HTML，你的组件将在任何 Astro 页面上呈现它被导入和使用的 HTML。
 
-然而，Astro 的组件模板语法也支持 **JavaScript 表达式**、**导入的组件**和<strong>[特殊的 Astro 指令](/zh-cn/reference/directives-reference/)</strong>。在组件脚本中定义的数据和值（在页面构建时）可以在组件模板中使用，以产生动态创建的 HTML。
+但是，[Astro 的组件模板语法](/zh-cn/core-concepts/astro-syntax/) 还支持 **JavaScript 表达式**、Astro [`<style>`](/zh-cn/guides/styling/#在-astro-进行设计) 和 [`<script>`](/zh-cn/guides/client-side-scripts/#在-astro-中使用-script) 标签、**导入的组件**和[**特殊的 Astro 指令**](/zh-cn/reference/directives-reference/)。组件脚本中定义的数据和值可以在组件模板中使用，以生成动态创建的 HTML。
 
 ```astro title="src/components/MyFavoritePokemon.astro"
 ---
 // 你的组件脚本在这！
+import Banner from '../components/Banner.astro';
 import ReactPokemonComponent from '../components/ReactPokemonComponent.jsx';
 const myFavoritePokemon = [/* ... */];
+const { title } = Astro.props;
 ---
 <!-- 支持 HTML 注释！ -->
+{/* JS注释语法也是有效的！ */}
 
+<Banner />
 <h1>你好，世界！</h1>
 
-<!-- 在组件脚本中使用参数或其他变量： -->
-<p>我最喜欢的宝可梦是：{Astro.props.title}</p>
+<!-- 使用组件脚本中的 props 和其他变量： -->
+<p>{title}</p>
 
 <!-- 包括其他带有 `client:` 指令的激活组件： -->
 <ReactPokemonComponent client:visible />
@@ -98,184 +89,31 @@ const myFavoritePokemon = [/* ... */];
   {myFavoritePokemon.map ((data) => <li>{data.name}</li>)}
 </ul>
 
-<!-- 使用模板指令并根据字符串或对象来生成 class 名： -->
+<!-- 使用模板指令从多个字符串甚至对象来构建类名！ -->
 <p class:list={["add", "dynamic", {classNames: true}]} />
 ```
 
-## JSX 表达式
+## 基于组件的设计
 
-你可以在 Astro 组件的 frontmatter 组件脚本内定义局部 JavaScript 变量。然后你就可以在组件的 HTML 模板中使用 JSX 表达式插入这些变量！
+组件被设计为**可重用**和**可组合**。您可以使用其他组件中的组件来构建越来越高级的 UI。例如，`Button` 组件可用于创建 `ButtonGroup` 组件：
 
-:::note[动态与响应]
-使用这种方法，你可以包括**动态值**，它们在 frontmatter 中计算的。 但一旦包括在内，这些值就不是**反应式**的，它们永远不会改变。Astro 组件是模板，只在构建时运行一次。
-
-更多关于 [Astro 和 JSX之间的差异](#astro-和-jsx-间的差异)的例子见下文。
-:::
-
-### 变量
-
-在 HTML 中可以通过大括号使用局部变量：
-
-```astro title="src/components/Variables.astro" "{name}"
+```astro title="src/components/ButtonGroup.astro"
 ---
-const name = "Astro";
+import Button from './Button.astro';
 ---
 <div>
- <h1>你好 {name}！</h1>  <!-- 输出`<h1>你好 Astro！</h1>` -->
+  <Button title="按钮 1" />
+  <Button title="按钮 2" />
+  <Button title="按钮 3" />
 </div>
 ```
 
-### 动态属性
-
-这些局部变量可以用大括号来传递属性值给 HTML 元素和组件。
-
-```astro title="src/components/DynamicAttributes.astro" "{name}" "${name}"
----
-const name = "Astro";
----
-<h1 class={name}>支持属性表达式</h1>
-
-<MyComponent templateLiteralNameAttribute={`MyNameIs${name}`} />
-```
-
-:::caution
-HTML属性将被转换为字符串，因此我们无法将函数或对象传递给 HTML 元素。例如，你无法将事件处理器分配给 Astro 组件中的 HTML 元素：
-
-```astro
----
-// dont-do-this.astro
-function handleClick () {
-    console.log("你点击了一个按钮！");
-}
----
-<!-- ❌ 无法正常工作！ ❌ -->
-<button onClick={handleClick}>点击这里什么都不会发生！</button>
-```
-
-你应该在客户端脚本中添加事件处理器，就像在 HTML 中使用 Vanilla JavaScript 中一样：
-
-```astro
----
-// do-this-instead.astro
----
-<button id="button">点击这里</button>
-<script>
-  function handleClick () {
-    console.log("你点击了一个按钮！");
-  }
-  document.getElementById("button").addEventListener("click", handleClick);
-</script>
-```
-:::
-
-### 动态 HTML
-
-局部变量可以在类似 JSX 的函数中使用，产生动态生成的 HTML 元素。
-
-```astro title="src/components/DynamicHtml.astro" "{item}"
----
-const items = ["Dog", "Cat", "Platypus"];
----
-<ul>
-  {items.map ((item) => (
-    <li>{item}</li>
-  ))}
-</ul>
-```
-
-Astro 可以使用 JSX 逻辑运算符和三元表达式有条件地显示 HTML。
-
-```astro title="src/components/ConditionalHtml.astro" "visible"
----
-const visible = true;
----
-{visible && <p>Show me!</p>}
-
-{visible ? <p>Show me!</p> : <p>Else show me!</p>}
-```
-
-### 动态标签
-
-你也可以通过将一个变量设置为HTML标签名称或组件导入来使用动态标签。
-
-```astro title="src/components/DynamicTags.astro" /Element|(?<!My)Component/
----
-import MyComponent from "./MyComponent.astro";
-const Element = 'div'
-const Component = MyComponent;
----
-<Element>Hello!</Element> <!-- 渲染为 <div>Hello!</div> -->
-<Component /> <!-- 渲染为 <MyComponent /> -->
-```
-
-:::note
-变量名称必须大写（`Element`，而不是`element`），这样才能发挥作用。否则，Astro会尝试将你的变量名渲染成一个字面的HTML标签。
-:::
-
-### 片段和多元素
-
-Astro 组件模板可以渲染多个元素，而无需像 JavaScript 或 JSX 将所有内容包装在单个 `<div>` 或 `<>` 中。
-
-```astro title="src/components/RootElements.astro"
----
-// 多元素模板
----
-<p>无需将元素包裹在一个元素中。</p>
-<p>Astro 支持在模板中使用多根元素。</p>
-```
-
-但是，当使用类似表达式动态创建多元素时，你应该像在 JavaScript 或 JSX 中那样将这些多个元素包装在一个**片段** 中。Astro 支持使用 `<Fragment> </Fragment>` 或 `<> </>` 速记。
-
-```astro
----
-const items = ["狗", "猫", "鸭嘴兽"];
----
-<ul>
-  {items.map ((item) => (
-    <>
-      <li>红色的{item}</li>
-      <li>蓝色的{item}</li>
-      <li>绿色的{item}</li>
-    </>
-  ))}
-</ul>
-```
-
-在使用 [`set:*` 指令](/zh-cn/reference/directives-reference/#sethtml)时，片段也用于避免使用包装元素，如下所示：
-
-```astro
----
-const htmlString = '<p>原始 HTML 内容</p>';
----
-<Fragment set:html={htmlString} />
-```
-
-### Astro 和 JSX 间的差异
-
-Astro 组件的语法是 HTML 的超集。它的设计使得任何有 HTML 或 JSX 经验的人都感到熟悉，但 `.astro` 文件和 JSX 之间有几个关键的区别。
-
-#### 属性
-
-在 Astro 中，所有 HTML 属性都使用标准的 `kebab-case` 格式，而不是 JSX 中使用的 `camelCase`。这甚至适用于 `class`，而 React 不支持。
-
-```jsx del={1} ins={2} title="example.astro"
-<div className="box" dataValue="3" />
-<div class="box" data-value="3" />
-```
-
-#### 注释
-
-在 Astro 中，你可以使用标准的 HTML 注释，而 JSX 会使用 JavaScript 风格的注释。
-
-```html title="example.astro"
-<!-- .astro 文件中可以使用 HTML 注释 -->
-```
 
 ## 组件参数
 
 Astro 组件可以定义和接受参数。 然后，这些参数可用于组件模板以呈现 HTML。 可以在 frontmatter script 中的 `Astro.props` 中使用。
 
-这是一个接收 `greeting` 参数和 `name` 参数的组件示例。请注意，要接收的参数是从全局 `Astro.props` 对象中解构的。
+这是一个接收 `greeting` 和 `name` 参数的组件示例。请注意，要接收的参数是从全局 `Astro.props` 对象中解构的。
 
 ```astro "Astro.props"
 ---
@@ -286,7 +124,7 @@ const { greeting, name } = Astro.props
 <h2>{greeting}，{name}!</h2>
 ```
 
-你还可以使用 TypeScript 导出 `Props` 类型接口来定义参数。Astro 将自动选择任何导出的 `props` 接口，并为你的项目提供类型警告/错误提示。当从 `Astro.props` 解构时，这些参数也可以被赋予默认值。
+当导入并在其他 Astro 组件、布局或页面中渲染时，可以将这些 props 作为属性传递：
 
 ```astro /(\w+)=\S+/
 ---
@@ -331,7 +169,7 @@ const { greeting = "你好", name = "宇航员" } = Astro.props;
 默认情况下，传递给组件的所有子元素都将呈现在 `<slot />` 中。
 
 :::note
-与传递给 Astro 组件的属性，可通过 `Astro.props ()` 在所有组件中使用的参数不同，*slots* 是在编写它们的地方渲染子 HTML 元素。
+_props_ 是传递给 Astro 组件的属性，可用于整个组件与 `Astro.props` 一起使用，而 _slots_ 在写入它们的位置呈现子 HTML 元素。
 :::
 
 ```astro "<slot />"
@@ -357,13 +195,13 @@ const { title } = Astro.props
 //src/pages/fred.astro
 import Wrapper from '../components/Wrapper.astro';
 ---
-<Wrapper title="Fred's Page">
-  <h2>All about Fred</h2>
-  <p>Here is some stuff about Fred.</p>
+<Wrapper title="Fred 的页面">
+  <h2>关于 Fred 的一切</h2>
+  <p>这里有一些关于 Fred 的东西。</p>
 </Wrapper>
 ```
 
-这种模式是 Astro 布局组件的基础：整个页面的 HTML 内容可以用 `<Layout></Layout>` 标签包裹并传递到 Layout 组件以在常见页面元素中呈现。
+这种模式是 [Astro 布局组件](/zh-cn/core-concepts/layouts/) 的基础：整个 HTML 内容的页面可以用 `<SomeLayoutComponent></SomeLayoutComponent>` 标签围起来并发送到组件，以在那里定义的公共页面元素中呈现。
 
 ### 命名插槽
 
@@ -389,6 +227,8 @@ const { title } = Astro.props
 </div>
 ```
 
+要将 HTML 内容注入特定槽，在任何子元素上使用 `slot` 属性来指定槽的名称。组件的所有其他子元素将被注入到 `default`（未命名）的 `<slot />` 中。
+
 ```astro /slot=".*?"/
 ---
 //src/pages/fred.astro
@@ -404,8 +244,10 @@ import Wrapper from '../components/Wrapper.astro';
 
 在要传递给组件相应的 `<slot name="my-slot"/>` 占位符的子元素上使用 `slot="my-slot"` 属性。
 
+请注意，命名插槽必须是组件的直接子级。不能通过嵌套元素传递命名槽。
+
 :::tip
-命名插槽页可以传递给 [UI 框架组件](/zh-cn/core-concepts/framework-components/)的信息。
+命名插槽页可以传递给 [UI 框架组件](/zh-cn/core-concepts/framework-components/) 的信息。
 :::
 
 ### 插槽回退内容
@@ -432,57 +274,58 @@ const { title } = Astro.props
 </div>
 ```
 
-## CSS 样式
+### 传递插槽
 
-组件模板内部也支持 CSS `<style>` 标签。
+插槽可以传递给其他组件。例如，在创建嵌套布局时：
 
-它们可用于设置组件样式，并且所有样式规则都自动仅限用于组件范围内，以防止大型应用程序中的 CSS 冲突。
-
-```astro title="src/components/StyledHeading.astro"
+```astro {11,14}
+// src/layouts/BaseLayout.astro
 ---
-// 你的组件脚本在这！
 ---
-<style>
-  /* 仅限该组件范围内，页面上的其他 H1 保持不变 */
-  h1 { color: red }
-</style>
 
-<h1>你好，世界！</h1>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+    <slot name="head"/>
+	</head>
+	<body>
+		<slot />
+	</body>
+</html>
 ```
 
-:::caution
-这里定义的样式只适用于组件模板中的内容。默认情况下，子组件和任何导入的组件的样式将**不会被修改**。
+```astro {7, 8}
+// src/layouts/HomeLayout.astro
+---
+import BaseLayout from "./BaseLayout.astro";
+---
+
+<BaseLayout>
+  <slot name="head" slot="head"/>
+  <slot />
+</BaseLayout>
+```
+
+:::note
+通过在 `<slot />` 标记上使用 `name` 和 `slot` 属性，可以将具名插槽传递给另一个组件。
 :::
 
-📚 有关应用样式的更多信息，请参阅我们的[样式指南](/zh-cn/guides/styling/)。
-
-## 客户端脚本
-
-Astro 组件支持使用标准的 HTML `<script>` 标签为客户端增加交互性。
-
-脚本可用于添加事件监听器、发送分析数据、播放动画以及 JavaScript 在浏览器上可以做的任何事。
+现在，传递给 `HomeLayout` 的默认插槽和 `head` 插槽也将会传递给父级的 `BaseLayout` 组件。
 
 ```astro
-<!-- src/components/ConfettiButton.astro -->
-<button data-confetti-button>恭喜你！🎉</button>
+// src/pages/index.astro
+---
+import HomeLayout from "../layouts/HomeLayout.astro";
+---
 
-<script>
-  // 导入 NPM 模块。
-  import confetti from 'canvas-confetti';
-
-  // 在页面上找到我们的组件 DOM。
-  const buttons = document.querySelectorAll('[data-confetti-button]');
-
-  // 添加事件监听器以在按钮时被点击时触发 `confetti` 函数。
-  buttons.forEach((button) => {
-    button.addEventListener('click', () => confetti());
-  });
-</script>
+<HomeLayout>
+	<title slot="head">Astro</title>
+	<h1>Astro</h1>
+</HomeLayout>
 ```
-
-默认情况下，Astro 会处理和打包 `<script>` 标签，并为其增加了对导入 NPM 模块、TypeScript 等功能的支持。
-
-📚 请参阅我们的[脚本指南](/zh-cn/guides/client-side-scripts/)以获取更多的细节。
 
 ## HTML 组件
 
@@ -500,6 +343,4 @@ HTML 组件内的 [`<slot />` 元素](#插槽)会像在 Astro 组件中那样工
 
 ## 下一步
 
-📚 阅读[Astro 的内置组件](/zh-cn/reference/api-reference/#内置组件)。
-
-📚 了解如何在你的 Astro 项目中使用 [JavaScript 框架组件](/zh-cn/core-concepts/framework-components/)。
+📚 了解如何在 Astro 项目中使用 [UI 框架组件](/zh-cn/core-concepts/framework-components/)。

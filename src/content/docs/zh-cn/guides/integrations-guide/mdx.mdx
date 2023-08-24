@@ -58,8 +58,10 @@ export default defineConfig({
 [VS Code](https://code.visualstudio.com/)默认支持 Markdown。然而，为了支持 MDX 编辑器，你可能希望在你的 VSCode 配置中添加以下设置，这可以确保编写 MDX 文件时提供类似 Markdown 的编辑体验。
 
 ```json title=".vscode/settings.json"
-"files.associations": {
+{
+  "files.associations": {
     "*.mdx": "markdown"
+  }
 }
 ```
 
@@ -82,6 +84,7 @@ Astro 的 MDX 集成为标准的 MDX 增加了额外的功能，包括 Markdown 
 *   [继承自 Markdown 配置的选项](#继承自-markdown-配置的选项)
 *   [`extendMarkdownConfig`](#extendmarkdownconfig)
 *   [`recmaPlugins`](#recmaplugins)
+*   [`优化`](#优化)
 
 ### 继承自 Markdown 配置的选项
 
@@ -107,9 +110,9 @@ export default defineConfig({
       rehypePlugins: [rehypeMinifyHtml],
       remarkRehype: { footnoteLabel: 'Footnotes' },
       gfm: false,
-    })
-  ]
-})
+    }),
+  ],
+});
 ```
 
 :::caution
@@ -147,8 +150,8 @@ export default defineConfig({
       remarkPlugins: [remarkPlugin2],
       // `gfm` 被重写为 `false`
       gfm: false,
-    })
-  ]
+    }),
+  ],
 });
 ```
 
@@ -168,8 +171,8 @@ export default defineConfig({
       // Markdown 配置现在被忽略了
       extendMarkdownConfig: false,
       // `remarkPlugins` 没有启用
-    })
-  ]
+    }),
+  ],
 });
 ```
 
@@ -178,6 +181,70 @@ export default defineConfig({
 这些是直接修改输出 [estree](https://github.com/estree/estree) 的插件。这对于在你的 MDX 文件中修改或注入 JavaScript 变量很有用。
 
 我们建议[使用 AST Explorer](https://astexplorer.net/)来处理 estree 的输出，并尝试 [`estree-util-visit`](https://unifiedjs.com/explore/package/estree-util-visit/) 来搜索整个 JavaScript 节点。
+
+### 优化
+
+*   **类型：** `boolean | { customComponentNames?: string[] }`
+
+这是一个可选的配置设置，用于优化 MDX 输出，以便通过内部 rehype 插件加快构建和渲染速度。如果你的 MDX 文件较多，并注意到构建速度较慢，这可能会很有用。不过，该选项可能会生成一些未转义的 HTML，因此请确保你网站的交互式部分在启用该选项后仍能正常工作。
+
+默认情况下是禁用的。要启用 MDX 优化，请在 MDX 集成配置中添加以下内容：
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  integrations: [
+    mdx({
+      optimize: true,
+    }),
+  ],
+});
+```
+
+#### customComponentNames
+
+*   **类型：** `string[]`
+
+`optimize` 的一个可选属性，用于防止 MDX 优化器处理[通过组件属性传递给导入的 MDX 内容的任何自定义组件](/zh-cn/guides/markdown-content/#使用导入的-mdx-的自定义组件)。
+
+你需要将这些组件从优化中排除，因为优化器会急切地将内容转换为静态字符串，这将破坏需要动态呈现的自定义组件。
+
+例如，以下内容的预期 MDX 输出应为 `<Heading>...</Heading>`，而不是每个 `"<h1>...</h1>"`：
+
+```astro
+---
+import { Content, components } from '../content.mdx';
+import Heading from '../Heading.astro';
+---
+
+<Content components={{ ...components, h1: Heading }} />
+```
+
+要使用 `customComponentNames` 属性配置此优化，指定应视为自定义组件的 HTML 元素名称数组：
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  integrations: [
+    mdx({
+      optimize: {
+        // 防止优化器处理 `h1` 元素
+        // 这些元素将被视为自定义组件
+        customComponentNames: ['h1'],
+      },
+    }),
+  ],
+});
+```
+
+请注意，如果你的 MDX 文件[使用 `export const components = {...}` 配置自定义组件](/zh-cn/guides/markdown-content/#将自定义组件分配给-html-元素)，则你无需手动配置此选项。优化器将自动检测它们。
+
 
 ## 例子
 

@@ -2,6 +2,8 @@
 title: Astro 集成 API
 ---
 
+import Since from '~/components/Since.astro'
+
 **Astro 集成**只需几行代码就能为你的项目添加新的功能和行为。
 
 这个参考页是为任何想要编写集成的人准备的。要学习如何在项目中使用集成，请查看我们的[使用集成](/zh-cn/guides/integrations-guide/)指南。
@@ -27,6 +29,7 @@ interface AstroIntegration {
       updateConfig: (newConfig: Record<string, any>) => void;
       addRenderer: (renderer: AstroRenderer) => void;
       addWatchFile: (path: URL | string) => void;
+      addClientDirective: (directive: ClientDirectiveConfig) => void;
       injectScript: (stage: InjectedScriptStage, content: string) => void;
       injectRoute: ({ pattern: string, entryPoint: string }) => void;
     }) => void;
@@ -41,8 +44,8 @@ interface AstroIntegration {
       target: 'client' | 'server';
     }) => void | Promise<void>;
     'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
-    'astro:build:ssr'?: (options: { manifest: SerializedSSRManifest }) => void | Promise<void>;
-    'astro:build:done'?: (options: { dir: URL; routes: RouteData[] }) => void | Promise<void>;
+    'astro:build:ssr'?: (options: { manifest: SerializedSSRManifestm, entryPoints: Map<RouteData, URL> }) => void | Promise<void>;
+    'astro:build:done'?: (options: { dir: URL; routes: RouteData[], pages: { pathname: string }[] }) => void | Promise<void>;
   };
 }
 ```
@@ -137,6 +140,71 @@ addWatchFile('/home/user/.../my-config.json');
 addWatchFile(new URL('./tailwind.config.js', config.root));
 ```
 
+#### `addClientDirective` 选项
+
+<Since v="2.6.0" />
+
+**类型:** `(directive:` [`ClientDirectiveConfig`](https://github.com/withastro/astro/blob/00327c213f74627ac9ca1dec774efa5bf71e9375/packages/astro/src/%40types/astro.ts#L1872-L1875) `) => void;`
+
+添加一个 [自定义客户端指令](/zh-cn/reference/directives-reference/#自定义客户端指令)，用于在 `.astro` 文件中使用。
+
+请注意，指令入口点仅通过 esbuild 进行打包，并且应保持较小，以避免减慢组件注水的速度。
+
+示例用法：
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import clickDirective from './astro-click-directive/register.js'
+
+// https://astro.build/config
+export default defineConfig({
+  integrations: [
+    clickDirective()
+  ],
+});
+```
+
+```js title="astro-click-directive/register.js"
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "client:click",
+  hooks: {
+    "astro:config:setup": ({ addClientDirective }) => {
+      addClientDirective({
+        name: "click",
+        entrypoint: "./astro-click-directive/click.js",
+      });
+    },
+  },
+});
+```
+
+```js title="astro-click-directive/click.js"
+/**
+ * Hydrate on first click on the window
+ * @type {import('astro').ClientDirective}
+ */
+export default (load, opts, el) => {
+  window.addEventListener('click', async () => {
+    const hydrate = await load()
+    await hydrate()
+  }, { once: true })
+}
+```
+
+你还可以在库的类型定义文件中为指令添加类型：
+
+```ts title="astro-click-directive/index.d.ts"
+import 'astro'
+declare module 'astro' {
+  interface AstroClientDirectives {
+    'client:click'?: boolean
+  }
+}
+```
+
 #### `injectRoute` 选项
 
 **类型**：`({ pattern: string, entryPoint: string }) => void;`
@@ -148,14 +216,28 @@ addWatchFile(new URL('./tailwind.config.js', config.root));
 - `pattern` - 应该在浏览器中使用的路由，例如 `/foo/bar`。`pattern` 可以使用 Astro 的文件路径语法来表示动态路由，例如 `/foo/[bar]` 或 `/foo/[...bar]`。请注意，在 `pattern` 中**无需**文件扩展名。
 - `entryPoint` — 裸模块指定器，指向 `.astro` 页面或 `.js`/`.ts` 路由处理程序，处理`pattern` 中指定路由。
 
-使用示例：
+##### 使用示例
 
 ```js
 injectRoute({
-  pattern: '/foo/[dynamic]',
-  entryPoint: 'foo/dynamic-page.astro'
+  // 使用 Astro 语法模式来匹配动态路由
+  pattern: '/subfolder/[dynamic]',
+  // 使用相对路径语法来匹配本地路由
+  entryPoint: './src/dynamic-page.astro'
 });
 ```
+
+对于设计用于安装在其他项目中的集成，使用其包名来引用路由的入口点。
+
+下面的示例展示了一个以 `@fancy/dashboard` 发布到 npm 上的包，在路由中注入一个仪表盘：
+
+```js
+injectRoute({
+  pattern: '/fancy-dashboard',
+  entryPoint: '@fancy/dashboard/dashboard.astro'
+});
+```
+
 
 #### `injectScript` 选项
 
@@ -316,8 +398,15 @@ export default {
 
 **原因**：获取 SSR manifest，这在插件或集成中创建自定义 SSR 构建时很有用。
 
+- `entryPoints` 将页面路由映射到构建后的物理文件；
+- `middlewareEntryPoint` 是中间件文件的文件系统路径。
+
 ```js
-'astro:build:ssr'?: (options: { manifest: SerializedSSRManifest }) => void | Promise<void>;
+'astro:build:ssr'?: (options: {
+    manifest: SerializedSSRManifest,
+    entryPoints: Map<RouteData, URL>,
+    middlewareEntryPoint: URL
+}) => void | Promise<void>;
 ```
 
 ### `astro:build:done`
@@ -360,7 +449,7 @@ export default function myIntegration() {
 
 **类型**：[`RouteData[]`](#routedata-类型参考)
 
-所有生成的路由及其相关元数据的列表。**使用SSR适配器时，这将是空的！**
+所有生成的路由及其相关元数据的列表。
 
 你可以参考下面完整的 `RouteData` 类型，但最常见的属性是。
 
@@ -404,6 +493,14 @@ interface RouteData {
   generate: (data?: any) => string;
 }
 ```
+
+#### `pages` 选项
+
+**类型:** `{ pathname: string }[]`
+
+生成的所有页面的列表是一个包含一个属性的对象。
+
+-  `pathname` - 页面的最终路径。
 
 ## 使用 `astro add` 安装
 

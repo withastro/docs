@@ -10,6 +10,7 @@ export const logos = LogoCheck({
 	cleavr: { file: 'cleavr.svg', padding: '0.125em 0.125em 0.1375em' },
 	cloudflare: { file: 'cloudflare-pages.svg', padding: '.1875em' },
 	crystallize: { file: 'crystallize.svg', padding: '.1875em' },
+	'create-react-app': { file: 'create-react-app.svg', padding: '.1875em' },
 	datocms: { file: 'datocms.svg', padding: '0.25em 0.25em 0.25em 0.3em' },
 	deno: { file: 'deno.svg', padding: '0' },
 	edgio: { file: 'edgio.svg', padding: '.1625em' },
@@ -48,6 +49,7 @@ export const logos = LogoCheck({
 	'tina-cms': { file: 'tina-cms.svg', padding: '.15em' },
 	payload: { file: 'payload.svg', padding: '.3em .25em .3em .3em' },
 	prismic: { file: 'prismic.svg', padding: '.25em' },
+	caisy: { file: 'caisy.svg', padding: '.05em' },
 	sanity: { file: 'sanity.svg', padding: '0 .1em' },
 	storyblok: { file: 'storyblok.svg', padding: '.3em .25em .25em' },
 	spinal: { file: 'spinal.svg', padding: '.15em .15em' },
@@ -76,7 +78,10 @@ export const logos = LogoCheck({
 	statamic: { file: 'statamic.svg', padding: '.2em' },
 	xata: { file: 'xata.svg', padding: '0.234em 0.234em 0.1875em' },
 	strapi: { file: 'strapi.svg', padding: '.25em' },
+	microcms: { file: 'microcms.svg', padding: '.2em' },
 	preprcms: { file: 'preprcms.svg', padding: '0' },
+	'kontent-ai': { file: 'kontent-ai.svg', padding: '.15em' },
+	keystatic: { file: 'keystatic.svg', padding: '0' },
 });
 
 export type LogoKey = keyof typeof logos;

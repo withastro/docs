@@ -9,6 +9,7 @@ export default NavDictionary({
 
 	coreConcepts: '核心理念',
 	'concepts/why-astro': '为什么选择Astro',
+	'concepts/mpa-vs-spa': 'MPA vs. SPA',
 	'concepts/islands': 'Astro群岛',
 
 	tutorials: '教程',
@@ -45,6 +46,7 @@ export default NavDictionary({
 	'guides/data-fetching': '数据获取',
 	'guides/middleware': '中间件',
 	'guides/testing': '测试',
+	'guides/view-transitions': '视图过渡动画（实验性）',
 	'guides/troubleshooting': '故障排除',
 
 	configuration: '配置',

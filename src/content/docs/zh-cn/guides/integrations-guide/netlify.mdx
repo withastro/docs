@@ -1,0 +1,294 @@
+---
+type: integration
+title: '@astrojs/netlify'
+description: 了解如何使用 @astrojs/netlify SSR 适配器来部署 Astro 项目。
+githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/netlify/'
+hasREADME: true
+category: adapter
+i18nReady: true
+---
+
+此适配器允许 Astro 部署 SSR 网站到 [Netlify](https://www.netlify.com/)。
+
+在我们的 [Netlify 部署指南](/zh-cn/guides/deploy/netlify/) 中学习如何部署你的 Astro 网站。
+
+## 为什么是 Astro Netlify
+
+如果你正在使用 Astro 作为静态站点生成器——也就是它的开箱即用的行为——你不需要一个适配器。
+
+如果你希望 [使用服务器端渲染（SSR）](/zh-cn/guides/server-side-rendering/)，Astro 需要一个与你的部署运行时相匹配的适配器。
+
+[Netlify](https://www.netlify.com/) 是一个部署平台，允许你通过直接连接 GitHub 仓库来托管您的网站。这个适配器增强了 Astro 的构建流程，为通过 Netlify 部署项目做好准备。
+
+## 安装
+
+添加 Netlify 适配器以在 Astro 项目中启用 SSR，使用以下 `astro add` 命令。这将在一步中安装适配器并对 `astro.config.mjs` 文件进行适当的更改。
+
+```sh
+# Using NPM
+npx astro add netlify
+# Using Yarn
+yarn astro add netlify
+# Using PNPM
+pnpm astro add netlify
+```
+
+如果你更喜欢手动安装适配器，请完成以下两个步骤：
+
+1.  安装 Netlify 适配器到你的项目依赖中，使用你喜欢的包管理器。如果你使用 npm 或者不确定，请在终端中运行：
+
+    ```bash
+      npm install @astrojs/netlify
+    ```
+
+2. 添加两行内容到你的 `astro.config.mjs` 项目配置文件中。
+
+    ```js ins={3, 6-7}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import netlify from '@astrojs/netlify/functions';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: netlify(),
+    });
+    ```
+
+### Edge Functions
+
+Netlify 有两个 serverless 平台，[Netlify Functions](https://docs.netlify.com/functions/overview/) 和 [Netlify Edge Functions](https://docs.netlify.com/edge-functions/overview/)。使用 Edge Functions，你的代码分布在更接近用户的地方，降低延迟。
+
+为了使用 Edge Functions 部署，使用 Astro 配置文件中的 `netlify/edge-functions` 而不是 `netlify/functions`。
+
+```js ins={3}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify/edge-functions';
+
+export default defineConfig({
+  output: 'server',
+  adapter: netlify(),
+});
+```
+
+### 在 Edge Functions 中使用中间件
+
+当部署到 Netlify Functions 时，您可以选择使用 Edge Function 来运行 Astro 中间件。
+
+为了启用这个功能，将 `build.excludeMiddleware` Astro 配置选项设置为 `true`：
+
+```js ins={9}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify/functions';
+
+export default defineConfig({
+  output: 'server',
+  adapter: netlify(),
+  build: {
+    excludeMiddleware: true,
+  },
+});
+```
+
+#### 传递 edge 上下文到你的站点
+
+Netlify 的 Edge Functions 提供了一个 [context 对象](https://docs.netlify.com/edge-functions/api/#netlify-specific-context-object)，其中包含有关请求的元数据，例如用户的 IP、地理位置数据和 cookie。
+
+为了将这个上下文中的值暴露给你的站点，在你项目的 [srcDir](/zh-cn/reference/configuration-reference/#srcdir) 中创建一个 `netlify-edge-middleware.ts`（或 `.js`）文件。这个文件必须导出一个函数，它返回要添加到 [Astro 的 `locals` 对象](/zh-cn/guides/middleware/#locals)中的数据，该对象在中间件和 Astro 路由中可用。
+
+在这个例子中，`visitorCountry` 和 `hasEdgeMiddleware` 都会被添加到 Astro 的 `locals` 对象中：
+
+```ts
+// src/netlify-edge-middleware.ts
+import type { Context } from 'https://edge.netlify.com';
+
+export default function ({ request, context }: { request: Request; context: Context }) {
+  // Return serializable data to add to Astro.locals
+  return {
+    visitorCountry: context.geo.country.name,
+    hasEdgeMiddleware: true,
+  };
+}
+```
+
+:::note
+Netlify Edge Functions 运行在 [Deno 环境](https://docs.netlify.com/edge-functions/api/#runtime-environment)中，所以这个文件中的导入语句必须使用 Deno 的 URL 语法。
+:::
+
+`netlify-edge-middleware.ts` 必须提供一个函数作为它的默认导出。这个函数：
+
+* 必须返回一个 JSON 可序列化的对象，不能包含像 `Map`、`function`、`Set` 等类型。
+* 总是先运行，然后再运行其他中间件和路由。
+* 无法返回响应或重定向。
+
+### 每个页面单独的 functions
+
+Netlify 适配器默认构建到一个函数。Astro 2.7 添加了对将构建拆分为每个页面的单独入口的支持。如果你使用这个配置，Netlify 适配器将为每个页面生成一个单独的函数。这可以帮助减少每个函数的大小，因此它们只绑定该页面上使用的代码。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify/functions';
+
+export default defineConfig({
+  output: 'server',
+  adapter: netlify(),
+  build: {
+    split: true,
+  },
+});
+```
+
+### 静态网站
+
+对于静态网站，你通常不需要一个适配器。但是，如果你在 Astro 配置中使用 `redirects` 配置，Netlify 适配器可以将其转换为正确的 `_redirects` 格式。
+
+```js
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify/static';
+
+export default defineConfig({
+  adapter: netlify(),
+
+  redirects: {
+    '/blog/old-post': '/blog/new-post',
+  },
+});
+```
+
+只有在你运行 `astro build` 之后，才会有一个 `dist/_redirects` 文件。Netlify 将使用它来正确地路由生产中的页面。
+
+:::note
+你依然可以在 `public/_redirects` 文件中手动添加重定向。你在重定向配置中指定的任何重定向都会被追加到你自己的重定向之后。
+:::
+
+### 按需构建器
+
+[Netlify 按需构建器](https://docs.netlify.com/configure-builds/on-demand-builders/) 是用于在 Netlify 的 Edge CDN 上构建和缓存页面内容的无服务器函数。你可以使用 [`builders` 选项](#构建器) 启用这些函数：
+
+默认情况下，所有页面在首次访问时会被渲染，并且渲染结果将在每次后续访问时复用，直到重新部署为止。如要设置重验证时间，请使用指定的持续时间（以秒为单位）调用 [`runtime.setBuildersTtl(ttl)` local](/zh-cn/guides/middleware/#locals)。
+
+下面的示例将重新验证时间设置为 45，这意味着 Netlify 将存储渲染的 HTML 内容 45 秒。
+
+```astro
+---
+import Layout from '../components/Layout.astro';
+if (import.meta.env.PROD) {
+  Astro.locals.runtime.setBuildersTtl(45);
+}
+---
+<Layout title="Astro on Netlify">
+  {new Date(Date.now())}
+</Layout>
+```
+
+重要的是要注意，按需构建器在检查缓存页面时会忽略查询参数。例如，如果 `example.com/?x=y` 被缓存，它将同时用于 `example.com/?a=b`（不同的查询参数）和 `example.com/`（没有查询参数）。
+
+## 用法
+
+[阅读完整的部署指南](/zh-cn/guides/deploy/netlify/)
+
+在 [执行构建](/zh-cn/guides/deploy/#在本地构建站点) 之后，`netlify/` 文件夹将包含 `netlify/functions/` 文件夹中的 [Netlify Functions](https://docs.netlify.com/functions/overview/)。
+
+现在你可以部署了。安装 [Netlify CLI](https://docs.netlify.com/cli/get-started/) 并运行：
+
+```sh
+netlify deploy --build
+```
+
+[Netlify 关于 Astro 的博客文章](https://www.netlify.com/blog/how-to-deploy-astro/) 和 [Netlify 文档](https://docs.netlify.com/integrations/frameworks/astro/) 提供了更多关于如何使用这个集成部署到 Netlify 的信息。
+
+## 配置
+
+为了配置这个适配器，在 `astro.config.mjs` 中的 `netlify()` 函数调用中传递一个对象——只有一个可能的配置选项：
+
+### dist 目录
+
+我们在你的项目根目录下的 `dist` 目录中构建。要更改这个目录，使用 `dist` 选项：
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify/functions';
+
+export default defineConfig({
+  output: 'server',
+  adapter: netlify({
+    dist: new URL('./dist/', import.meta.url),
+  }),
+});
+```
+
+并且在你的 `netlify.toml` 中指向 dist：
+
+```toml title="netlify.toml"
+[functions]
+directory = "dist/functions"
+```
+
+### 构建器
+
+你可以使用 `builders` 选项来启用按需构建器：
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify/functions';
+
+export default defineConfig({
+  output: 'server',
+  adapter: netlify({
+    builders: true,
+  }),
+});
+```
+
+按需构建器仅适用于 `@astrojs/netlify/functions` 适配器，并且与 Edge Functions 不兼容。
+
+### 二进制媒体类型
+
+> 这个选项只适用于 Functions 适配器，不适用于 Edge Functions。
+
+Netlify Functions 需要 `body` 中的二进制数据被 base64 编码。`@astrojs/netlify/functions` 适配器根据 `Content-Type` 头自动处理这个问题。
+我们检查音频、图像和视频文件的常见 mime 类型。要包含应该被视为二进制数据的特定 mime 类型，请使用 `binaryMediaTypes` 选项包含一个二进制 mime 类型列表。
+
+```js {12}
+// src/pages/image.jpg.ts
+
+import fs from 'node:fs';
+
+export function get() {
+  const buffer = fs.readFileSync('../image.jpg');
+
+  // Return the buffer directly, @astrojs/netlify will base64 encode the body
+  return new Response(buffer, {
+    status: 200,
+    headers: {
+      'content-type': 'image/jpeg',
+    },
+  });
+}
+```
+
+## 示例
+
+* [Astro Netlify Edge Starter](https://github.com/sarahetter/astro-netlify-edge-starter) 提供了一个示例以及 README 中的指南。
+
+* [浏览 GitHub 上的 Astro Netlify 项目](https://github.com/search?q=path%3A**%2Fastro.config.mjs+%40astrojs%2Fnetlify\&type=code) 查看更多示例！
+
+## 故障排除
+
+寻求帮助，请查看 [Discord](https://astro.build/chat) 上的 `#support` 频道。我们友好的支持小组成员在这里帮助你！
+
+你还可以查看我们的 [Astro 集成文档][astro-integration] 了解更多关于集成的信息。
+
+## 参与贡献
+
+这个项目由 Astro 核心团队维护。欢迎提交 issue 或 PR！
+
+## 更新日志
+
+查看 [CHANGELOG.md](https://github.com/withastro/astro/tree/main/packages/integrations/netlify/CHANGELOG.md)，了解本集成的更改历史。
+
+[astro-integration]: /zh-cn/guides/integrations-guide/

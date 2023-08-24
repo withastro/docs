@@ -1,0 +1,218 @@
+---
+type: tutorial
+title: 初めてのレイアウトを作成する
+description: |-
+  「初めてのAstroブログ」チュートリアル -
+  共通要素を再利用可能なページレイアウトにリファクタリングする
+i18nReady: true
+---
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+
+
+
+<PreCheck>
+  - 共通要素をページレイアウトにリファクタリングする
+  - Astroの`<slot />`要素を使用して、ページの内容をレイアウト内に配置する
+  - ページ固有の値をレイアウトにpropsとして渡す
+</PreCheck>
+
+まだいくつかのAstroコンポーネントが各ページで繰り返しレンダリングされています。さらにリファクタリングを進めて、共通のページレイアウトを作成しましょう！
+
+## 初めてのレイアウトコンポーネントを作成する
+
+1. `src/layouts/BaseLayout.astro`に新しいファイルを作成します。（まず新しい`layouts`フォルダを作成する必要があります。）
+
+2. `index.astro`の**すべてのコンテンツ**を新しいファイル`BaseLayout.astro`にコピーします。
+
+    ```astro title="src/layouts/BaseLayout.astro"
+    ---
+    import Header from '../components/Header.astro';
+    import Footer from '../components/Footer.astro';
+    import '../styles/global.css';
+    const pageTitle = "ホームページ";
+    ---
+    <html lang="ja">
+      <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+        <title>{pageTitle}</title>
+      </head>
+      <body>
+        <Header />
+        <h1>{pageTitle}</h1>
+        <Footer />
+        <script>
+          import "../scripts/menu.js";
+        </script>
+      </body>
+    </html>
+    ```
+
+## レイアウトをページで使用する
+
+3. `src/pages/index.astro`のコードを以下に置き換えます。
+
+    ```astro title="src/pages/index.astro"
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    const pageTitle = "Home Page";
+    ---
+    <BaseLayout>
+      <h2>私の素晴らしいブログのサブタイトル</h2>
+    </BaseLayout>
+    ```
+
+4. ブラウザのプレビューを再度開いて、何が変わったか（あるいは、ネタバレになりますが、何が変わっていないか）を確認します。
+    
+5. `src/layouts/BaseLayout.astro`のフッターコンポーネントの直前に`<slot />`要素を追加し、ブラウザのプレビューでホームページを開いて、今度はどこが変わったのかを確認します！
+
+    ```astro title="src/layouts/BaseLayout.astro" ins={18}
+    ---
+    import Header from '../components/Header.astro';
+    import Footer from '../components/Footer.astro';
+    import '../styles/global.css';
+    const pageTitle = "ホームページ";
+    ---
+    <html lang="ja">
+      <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+        <title>{pageTitle}</title>
+      </head>
+      <body>
+        <Header />
+        <h1>{pageTitle}</h1>
+        <slot />
+        <Footer />
+        <script>
+          import "../scripts/menu.js";
+        </script>
+      </body>
+    </html>
+    ```
+
+`<slot />`を使うと、`<Component></Component>`の開始タグと終了タグの間に書かれた**子コンテンツ**を、`Component.astro`ファイルに挿入（または「スロットイン、slot in」）できるのです。
+
+## ページ固有の値をpropsとして渡す
+
+1. `index.astro`で、コンポーネント属性を使ってレイアウトコンポーネントにページタイトルを渡します。
+
+    ```astro title="src/pages/index.astro" 'pageTitle={pageTitle}'
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    const pageTitle = "ホームページ";
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <h2>私の素晴らしいブログのサブタイトル</h2>
+    </BaseLayout>
+    ```
+
+2. `BaseLayout.astro`レイアウトコンポーネントのスクリプトを、ページタイトルを定数として定義するのではなく、`Astro.props`を介して受け取るように変更します。
+
+    ```astro title="src/layouts/BaseLayout.astro" del={5} ins={6}
+    ---
+    import Header from '../components/Header.astro';
+    import Footer from '../components/Footer.astro';
+    import '../styles/global.css';
+    const pageTitle = "ホームページ";
+    const { pageTitle } = Astro.props;
+    ---
+    ```
+
+3. ブラウザのプレビューを開き、ページタイトルが変わっていないことを確認します。値は同じですが、実際は動的にレンダリングされています。また、各ページは自身のタイトルをレイアウトに対して指定できるようになりました。
+
+
+<Box icon="puzzle-piece">
+
+## やってみよう - レイアウトをすべてのページで使用する
+
+他の`blog.astro`と`about.astro`ページを**リファクタリング**し、`<BaseLayout>`コンポーネントを使って共通のページ要素をレンダリングするようにしましょう。
+
+以下を忘れないでください。
+
+- コンポーネント属性を介してページタイトルをpropsとして渡します。
+
+- 共通要素のHTMLレンダリングをレイアウトに任せます。
+
+- 各ページから、レイアウトのおかげでそのページがレンダリングする必要がなくなったものを削除します。
+
+  - HTML要素
+  - コンポーネントとそのインポート文
+  - `<style>`タグ内のCSSルール、たとえば概要ページの`<h1>`など
+  - `<script>`タグ
+</Box>
+
+
+
+<Box icon="question-mark">
+
+### 確認テスト
+
+1. Astroコンポーネント（`.astro`ファイル）の機能は以下のうちどれですか？
+
+    <MultipleChoice>
+      <Option>ページ</Option>
+      <Option>UIコンポーネント</Option>
+      <Option>レイアウト</Option>
+      <Option isCorrect>Astroコンポーネントはとても高機能なので、上のすべてが当てはまる！ 🏗️</Option>
+    </MultipleChoice>
+
+2. ページタイトルをページに表示するにはどうすればいいですか？
+
+    <MultipleChoice>
+      <Option>
+        `<h1>ホームページ</h1>`のように、静的なテキストを指定した標準のHTML要素をページで使う。
+      </Option>
+      <Option>
+        `<h1>{pageTitle}</h1>`のように、コンポーネントのフロントマタースクリプトで定義された変数を参照して標準のHTML要素をページで使う。
+      </Option>
+      <Option>
+        `<BaseLayout title="ホームページ" />`や`<BaseLayout title={pageTitle} />`のように、レイアウトコンポーネントにコンポーネント属性としてタイトルを渡してページで使う。
+      </Option>
+      <Option isCorrect>
+        Astroは、プレーンなHTMLを使うことも、それをスクリプトやコンポーネントで機能強化することもできるので、上のすべてが当てはまる！ 💪
+      </Option>
+    </MultipleChoice>
+
+3. あるコンポーネントから別のコンポーネントに情報を渡すにはどうすればいいですか？
+
+    <MultipleChoice>
+      <Option>
+        インポートしたUIコンポーネントを別のコンポーネントのテンプレートでレンダリングする。
+      </Option>
+      <Option>
+        レンダリングしたいコンポーネントにコンポーネント属性を介してpropsを渡す。
+      </Option>
+      <Option>
+        `<slot />`プレースホルダーを使って、別のコンポーネント内でレンダリングするHTMLコンテンツを送る。
+      </Option>
+      <Option isCorrect>
+        Astroはコンポーネントベースの設計を駆使できるように作られているので、上のすべてが当てはまる！ 🧩
+      </Option>
+    </MultipleChoice>
+
+</Box>
+
+<Box icon="check-list">
+
+## チェックリスト
+
+<Checklist>
+- [ ] `<slot />`を使ったAstroレイアウトコンポーネントを作成できる。
+- [ ] ページ固有のプロパティをレイアウトに渡せる。
+</Checklist>
+</Box>
+
+### 参考
+
+- [Astroレイアウトコンポーネント](/ja/core-concepts/layouts/)
+
+- [Astro `<slot />`](/ja/core-concepts/astro-components/#スロット)
