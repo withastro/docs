@@ -114,6 +114,15 @@ export default UIDictionary({
 	'fileTree.directoryLabel': 'ディレクトリ',
 	// Code snippet vocabulary
 	'expressiveCode.terminalWindowFallbackTitle': 'ターミナルウィンドウ',
+	'expressiveCode.copyButtonTooltip': 'クリップボードにコピー',
+	'expressiveCode.copyButtonCopied': 'コピーしました!',
 	// Backend Guides vocabulary
 	'backend.navTitle': 'その他のバックエンドサービスガイド',
+	// Stubs vocabulary
+	'stub.title': 'このページに追記する！',
+	'stub.subtitle': 'このガイドは未完成です。',
+	'stub.description.migration':
+		'このガイドに貢献したいですか？この技術からAstroへの移行に関するブログ記事や動画、その他のリソースを共有したいですか？',
+	'stub.description.cms': 'このCMSをAstroで使う方法をご存知ですか？',
+	'stub.description.backend': 'このバックエンドサービスをAstroで使う方法をご存知ですか？',
 });

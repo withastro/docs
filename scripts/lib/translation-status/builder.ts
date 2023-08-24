@@ -1,11 +1,10 @@
-/* eslint-disable no-mixed-spaces-and-tabs */
 import dedent from 'dedent-js';
 import glob from 'fast-glob';
 import fs from 'fs';
 import { escape } from 'html-escaper';
 import os from 'os';
 import path from 'path';
-import simpleGit from 'simple-git';
+import simpleGit, { DefaultLogFields, ListLogLine } from 'simple-git';
 import { fileURLToPath } from 'url';
 import type { DocSearchTranslation, UIDict } from '~/i18n/translation-checkers';
 import docsearchTranslations from '../../../src/i18n/en/docsearch';
@@ -23,6 +22,7 @@ import { toUtcString, tryGetFrontMatterBlock } from '../../lib/translation-statu
 type NestedRecord = { [k: string]: string | NestedRecord };
 
 export const COMMIT_IGNORE = /(en-only|typo|broken link|i18nReady|i18nIgnore)/i;
+export const TRACKER_DIRECTIVE = /@tracker-major:.*/i;
 
 interface PullRequest {
 	html_url: string;
@@ -315,7 +315,7 @@ export class TranslationStatusBuilder {
 		// usually do not require translations to be updated
 		const lastMajorCommit =
 			gitLog.all.find((logEntry) => {
-				return !logEntry.message.match(COMMIT_IGNORE);
+				return this.isValidMajor(logEntry, filePath);
 			}) || lastCommit;
 
 		return {
@@ -324,6 +324,38 @@ export class TranslationStatusBuilder {
 			lastMajorCommitMessage: lastMajorCommit.message,
 			lastMajorCommitDate: toUtcString(lastMajorCommit.date),
 		};
+	}
+
+	/* 	
+		Determines if a commit is a valid major. Any commits that include one of the 
+		keywords from `COMMIT_IGNORE` have all their files marked as minor changes.
+		Meanwhile, the `@tracker-major` directive if used in a final squash commit's
+		description, selects specific files to be marked as major changes.
+
+		Example usage:
+		@tracker-major:./src/content/docs/en/concepts/mpa-vs-spa.mdx;./src/content/docs/en/concepts/why-astro.mdx
+
+		Pages changed:
+		`en/mpa-vs-spa.mdx`, `en/why-astro.mdx`, `pt-br/markdown-content.mdx`
+
+		Only `en/mpa-vs-spa.mdx` & `en/why-astro.mdx` are marked as major; translations 
+		to these pages all become outdated and other pages from the commit stay the same. 
+		Also works when there's no English pages! The translated files will be marked as 
+		updated, but the same pages from other languages won't be affected by it, keeping
+		their old state.
+		
+	*/
+	isValidMajor(entry: DefaultLogFields & ListLogLine, filePath: string) {
+		if (entry.message.match(COMMIT_IGNORE)) return false;
+
+		const trackerDirectiveMatch = entry.body.match(TRACKER_DIRECTIVE);
+
+		if (trackerDirectiveMatch) {
+			const filePaths = trackerDirectiveMatch[0].replace('@tracker-major:', '').split(';');
+			return filePaths.includes(filePath);
+		}
+
+		return true;
 	}
 
 	getTranslationStatusByPage(pages: PageIndex): PageTranslationStatus[] {
