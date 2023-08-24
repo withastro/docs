@@ -9,6 +9,7 @@ export default NavDictionary({
 
 	coreConcepts: '核心理念',
 	'concepts/why-astro': '为什么选择Astro',
+	'concepts/mpa-vs-spa': 'MPA vs. SPA',
 	'concepts/islands': 'Astro群岛',
 
 	tutorials: '教程',
