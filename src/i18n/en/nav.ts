@@ -83,7 +83,7 @@ export default [
 	{ text: 'Middleware', slug: 'guides/middleware', key: 'guides/middleware' },
 	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
 	{
-		text: 'View Transitions (Experimental)',
+		text: 'View Transitions',
 		slug: 'guides/view-transitions',
 		key: 'guides/view-transitions',
 	},
