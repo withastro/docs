@@ -100,6 +100,11 @@ Para começar, instale Nano Stores junto de seu pacote auxiliar para seu framewo
   npm install nanostores @nanostores/vue
   ```
   </Fragment>
+  <Fragment slot="lit">
+  ```shell
+  npm install nanostores @nanostores/lit
+  ```
+  </Fragment>
 </UIFrameworkTabs>
 
 Você pode dar uma olhada no [guia de uso do Nano Stores](https://github.com/nanostores/nanostores#guide) a partir daqui ou seguir com nosso exemplo abaixo!
@@ -237,6 +242,27 @@ export default function BotaoCarrinho() {
 </script>
 ```
 </Fragment>
+<Fragment slot="lit">
+```ts
+// src/components/ToggleFlyoutCarrinho.ts
+import { LitElement, html } from 'lit';
+import { isCarrinhoAberto } from '../storeCarrinho';
+
+export class ToggleFlyoutCarrinho extends LitElement {
+  tratarClique() {
+    isCarrinhoAberto.set(!isCarrinhoAberto.get());
+  }
+
+  render() {
+    return html`
+      <button @click="${this.tratarClique}">Cart</button>
+    `;
+  }
+}
+
+customElements.define('toggle-flyout-carrinho', ToggleFlyoutCarrinho);
+```
+</Fragment>
 </UIFrameworkTabs>
 
 Após, podemos ler `isCarrinhoAberto` de nosso componente `FlyoutCarrinho`:
@@ -306,6 +332,25 @@ export default function FlyoutCarrinho() {
 
   const $isCarrinhoAberto = useStore(isCarrinhoAberto);
 </script>
+```
+</Fragment>
+<Fragment slot="lit">
+```ts
+// src/components/FlyoutCarrinho.ts
+import { isCarrinhoAberto } from '../storeCarrinho';
+import { LitElement, html } from 'lit';
+import { StoreController } from '@nanostores/lit';
+
+export class FlyoutCarrinho extends LitElement {
+  private carrinhoAberto = new StoreController(this, isCarrinhoAberto);
+
+  render() {
+    return this.carrinhoAberto.value ? html`<aside>...</aside>` : null;
+  }
+}
+
+customElements.define('flyout-carrinho', FlyoutCarrinho);
+
 ```
 </Fragment>
 </UIFrameworkTabs>
@@ -552,6 +597,41 @@ export default function FormAdicionarAoCarrinho({ children }) {
 </script>
 ```
 </Fragment>
+<Fragment slot="lit">
+```ts
+// src/components/FormAdicionarAoCarrinho.ts
+import { LitElement, html } from 'lit';
+import { isCarrinhoAberto, adicionarItemCarrinho } from '../storeCarrinho';
+
+export class FormAdicionarAoCarrinho extends LitElement {
+  static get properties() {
+    return {
+      item: { type: Object },
+    };
+  }
+
+  constructor() {
+    super();
+    this.item = {};
+  }
+
+  adicionarAoCarrinho(e) {
+    e.preventDefault();
+    isCarrinhoAberto.set(true);
+    adicionarItemCarrinho(this.item);
+  }
+
+  render() {
+    return html`
+      <form @submit="${this.adicionarAoCarrinho}">
+        <slot></slot>
+      </form>
+    `;
+  }
+}
+customElements.define('form-adicionar-ao-carrinho', FormAdicionarAoCarrinho);
+```
+</Fragment>
 </UIFrameworkTabs>
 
 Finalmente, iremos renderizar esses itens do carrinho dentro do nosso `FlyoutCarrinho`:
@@ -688,6 +768,51 @@ export default function FlyoutCarrinho() {
   const $isCarrinhoAberto = useStore(isCarrinhoAberto);
   const $itensCarrinho = useStore(itensCarrinho);
 </script>
+```
+</Fragment>
+<Fragment slot="lit">
+```ts
+// src/components/FlyoutCarrinho.ts
+import { LitElement, html } from 'lit';
+import { isCarrinhoAberto, itensCarrinho } from '../storeCarrinho';
+import { StoreController } from '@nanostores/lit';
+
+export class FlyoutCarrinhoLit extends LitElement {
+  private carrinhoAberto = new StoreController(this, isCarrinhoAberto);
+  private obterItensCarrinho = new StoreController(this, itensCarrinho);
+
+  renderizarItemCarrinho(itemCarrinho) {
+    return html`
+      <li>
+        <img src="${itemCarrinho.srcImagem}" alt="${itemCarrinho.nome}" />
+        <h3>${itemCarrinho.nome}</h3>
+        <p>Quantidade: ${itemCarrinho.quantidade}</p>
+      </li>
+    `;
+  }
+
+  render() {
+    return this.carrinhoAberto.value
+      ? html`
+          <aside>
+            ${
+              Object.values(this.obterItensCarrinho.value).length
+                ? html`
+                  <ul>
+                    ${Object.values(this.obterItensCarrinho.value).map((itemCarrinho) =>
+                      this.renderizarItemCarrinho(itemCarrinho)
+                    )}
+                  </ul>
+                `
+                : html`<p>Seu carrinho está vazio!</p>`
+            }
+          </aside>
+        `
+      : null;
+  }
+}
+
+customElements.define('flyout-carrinho', FlyoutCarrinhoLit);
 ```
 </Fragment>
 </UIFrameworkTabs>
