@@ -128,6 +128,32 @@ http {
 }
 ```
 
+### 多层构建（使用 SSR）
+
+下面是一个更高级的 Dockerfile 示例，通过 Docker 的 [多层构建](https://docs.docker.com/build/building/multi-stage/) 功能，在源代码变化时仅重新安装 npm 依赖项，从而优化了站点的构建过程。这根据依赖项的大小从而节省几分钟甚至更多的构建时间。
+
+```docker title="Dockerfile"
+FROM node:lts AS base
+WORKDIR /app
+# 这里仅复制 package.json 和 package-lock.json，我们确保以下的 `-deps` 步骤与源代码无关。
+# 因此，如果只有源代码发生变化，将会跳过 `-deps` 步骤。
+COPY package.json package-lock.json ./
+FROM base AS prod-deps
+RUN npm install --production
+FROM base AS build-deps
+RUN npm install --production=false
+FROM build-deps AS build
+COPY . .
+RUN npm run build
+FROM base AS runtime
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
+ENV HOST=0.0.0.0
+ENV PORT=3000
+EXPOSE 3000
+CMD node ./dist/server/entry.mjs
+```
+
 ## 操作步骤
 
 1. 在项目的根目录中运行以下命令来构建容器。可将 `<your-astro-image-name>` 替换为任意名称：
