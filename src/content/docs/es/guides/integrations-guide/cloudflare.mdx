@@ -54,23 +54,36 @@ export default defineConfig({
 
 Por defecto `"advanced"`
 
-Cloudflare Pages tiene 2 modos diferentes para implementar funciones, el modo `advanced` que busca el archivo `_worker.js` en `dist`, o un modo `directory` donde las páginas compilarán el worker a partir de una carpeta de funciones en la raíz del proyecto.
+Cloudflare Pages tiene 2 modos diferentes para implementar funciones, el modo `advanced` que busca el archivo `_worker.js` en `dist`, o un modo `directory` donde las páginas compilarán el worker a partir de una carpeta de funciones en la raíz del proyecto. Para la mayoría de los proyectos, el valor predeterminado del adaptador `advanced` será suficiente; la carpeta `dist` contendrá tu proyecto compilado.
 
-Para la mayoría de los proyectos, la configuración predeterminada del adaptador de `advanced` será suficiente; la carpeta `dist` contendrá tu proyecto compilado. Cambiar al modo de directorio te permite usar [plugins de páginas](https://developers.cloudflare.com/pages/platform/functions/plugins/) como [Sentry](https://developers.cloudflare.com/pages/platform/functions/plugins/sentry/) o escribir código personalizado para habilitar el registro de actividades.
+#### `mode:directory`
 
-En modo directorio, el adaptador compilará la parte del lado del cliente de tu aplicación de la misma manera de forma predeterminada, pero mueve el script del worker a una carpeta `functions` en la raíz del proyecto. En este caso, el adaptador solo colocará un archivo `[[path]].js` en esa carpeta, lo que te permite agregar plugins adicionales y middleware de páginas que se pueden verificar en el control de versiones.
-
-Con la configuración de compilación `split: true`, el adaptador compila un paquete separado para cada página. Esta opción requiere un mantenimiento manual de la carpeta `functions`. Los archivos emitidos por Astro sobrescribirán los archivos `functions` existentes con nombres idénticos, por lo que debes elegir nombres de archivo únicos para cada archivo que agregues manualmente. Además, el adaptador nunca vaciará la carpeta `functions` de archivos obsoletos, por lo que debes limpiar la carpeta manualmente cuando elimines páginas.
-
-Toma en cuenta que el adaptador no admite el uso de [Cloudflare Pages Middleware](https://developers.cloudflare.com/pages/platform/functions/middleware/). Astro empaquetará el [middleware de Astro](/es/guides/middleware/) en cada página.
+Cambiar al modo de directorio te permite usar [plugins de páginas](https://developers.cloudflare.com/pages/platform/functions/plugins/) como [Sentry](https://developers.cloudflare.com/pages/platform/functions/plugins/sentry/) o escribir código personalizado para habilitar el registro.
 
 ```ts
-// modo directorio.
+// astro.config.mjs
 export default defineConfig({
   adapter: cloudflare({ mode: 'directory' }),
 });
-
 ```
+
+En el modo `directory`, el adaptador compilará la parte del lado del cliente de tu aplicación de la misma manera que en el modo `advanced` de forma predeterminada, pero moverá el script del worker a una carpeta `functions` en la raíz del proyecto. En este caso, el adaptador solo colocará un archivo `[[path]].js` en esa carpeta, lo que te permitirá agregar plugins adicionales y middleware de páginas que pueden ser incluidos en el control de versiones.
+
+Para en cambio compilar un paquete separado para cada página, establece la opción `functionPerPath` en la configuración de tu adaptador de Cloudflare. Esta opción requiere cierto mantenimiento manual de la carpeta `functions`. Los archivos emitidos por Astro sobrescribirán los archivos `functions` existentes con nombres idénticos, por lo que debes elegir nombres de archivo únicos para cada archivo que agregues manualmente. Además, el adaptador nunca vaciará la carpeta `functions` de archivos obsoletos, por lo que debes limpiar la carpeta manualmente cuando elimines páginas.
+
+```diff
+import {defineConfig} from "astro/config";
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+     adapter: cloudflare({
+        mode: 'directory',
++       functionPerRoute: true
+    })
+})
+```
+
+Ten en cuenta que este adaptador no admite el uso de [Middleware de Cloudflare Pages](https://developers.cloudflare.com/pages/platform/functions/middleware/). Astro incluirá el [middleware de Astro](/es/guides/middleware/) en cada página.
 
 ## Habilitando la Vista Previa
 
@@ -99,7 +112,7 @@ Mira la documentación de Cloudflare para [trabajar con variables de entorno](ht
 ```js
 // pages/[id].json.js
 
-export function get({ params }) {
+export function GET({ params }) {
   // Accede a las variables de entorno por solicitud dentro de una función.
   const serverUrl = import.meta.env.SERVER_URL;
   const result = await fetch(serverUrl + "/user/" + params.id);
