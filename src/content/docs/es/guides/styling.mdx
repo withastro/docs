@@ -39,10 +39,10 @@ Este CSS:
 Se compila en esto:
 ```astro
 <style>
-  h1:where(.astro-HHNQFKH6) {
+  h1[data-astro-cid-hhnqfkh6] {
      color: red;
   }
-  .text:where(.astro-HHNQFKH6) {
+  .text[data-astro-cid-hhnqfkh6] {
     color: blue;
   }
 </style>
@@ -154,7 +154,7 @@ import MyComponent from "../components/MyComponent.astro"
 <MyComponent class="red">¡Esto será rojo!</MyComponent>
 ```
 
-Este patrón te permite estilar componentes hijos directamente. Astro pasará el nombre de la clase local del padre (por ejemplo `astro-HHNQFKH6`) por la propiedad `class` automaticamente, incluyendo el hijo en ámbito del componente padre.
+Este patrón te permite estilar componentes hijos directamente. Astro pasará el nombre de la clase local del padre (por ejemplo `astro-hhnqfkh6`) por la propiedad `class` automaticamente, incluyendo el hijo en ámbito del componente padre.
 
 :::note[Clases globales de componentes padre]
 Debido a que la propiedad `class` incluye al hijo en el ámbito de su padre, es posible que los estilos caigan en cascada de padre a hijo. Para evitar que esto tenga efectos secundarios no deseados, asegúrese de usar nombres de clase únicos en el componente secundario.
@@ -526,22 +526,34 @@ Si usas Tailwind, el [plugin de tipografía](https://tailwindcss.com/docs/typogr
 
 ### Control de paquetes
 
-Cuando Astro genera tu sitio para desplegarlo en producción, combina tu CSS en fragmentos. Cada página de tu sitio es un fragmento separado, y además, el CSS que se comparte entre varias páginas se separa en fragmentos adicionales para su reutilización.
+Cuando Astro genera tu sitio para desplegarlo en producción, minifica y combina tu CSS en fragmentos. Cada página de tu sitio es un fragmento separado, y además, el CSS que se comparte entre varias páginas se separa en fragmentos adicionales para su reutilización.
 
-En cada uno de tus archivos HTML se agregarán etiquetas `<link rel="stylesheet">`, una por cada fragmento que necesite la página.
+Sin embargo, cuando varias páginas comparten estilos, algunos fragmentos compartidos pueden volverse muy pequeños. Si se enviaran todos por separado, se generarían muchas solicitudes de hojas de estilo y afectarían el rendimiento del sitio. Por lo tanto, de forma predeterminada, Astro solo vinculará aquellos en tu HTML que tengan un tamaño superior a 4 KB como etiquetas `<link rel="stylesheet">`, mientras que incluirá en línea los más pequeños en etiquetas `<style type="text/css">`. Este enfoque proporciona un equilibrio entre el número de solicitudes adicionales y el volumen de CSS que se puede almacenar en caché entre las páginas.
 
-Los sitios con un gran número de páginas y diferentes estilos compartidos pueden generar muchas solicitudes de hojas de estilo y afectar el rendimiento del sitio. Puedes configurar la opción `inlineStylesheets` para reducir la cantidad de estas solicitudes al colocar las hojas de estilo (minimizadas) dentro de una etiqueta `<style>` en lugar de solicitarlas externamente.
+Puedes configurar el tamaño en el que las hojas de estilo se vincularán externamente (en bytes) utilizando la opción de compilación `assetsInlineLimit` en Vite. Ten en cuenta que esta opción también afecta la inclusión en línea de scripts e imágenes.
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    build: {
+      assetsInlineLimit: 1024,
+    }
+  };
+});
+```
+
+Si prefieres que todos los estilos del proyecto sigan siendo externos, puedes configurar la opción de compilación `inlineStylesheets`.
 
 ```js
 import { defineConfig } from 'astro/config';
 export default defineConfig({
   build: {
-    inlineStylesheets: 'auto'
+    inlineStylesheets: 'never'
   }
 });
 ```
-
-La opción `'auto'` incrustará solo las hojas de estilo que estén por debajo del umbral establecido por `vite.build.assetsInlineLimit`, reduciendo la cantidad de solicitudes para hojas de estilo más pequeñas. Las hojas de estilo más grandes, como las utilizadas globalmente por todas las páginas, aún se obtendrán externamente y se almacenarán en caché. Esta opción proporciona un equilibrio entre la cantidad de hojas de estilo cargadas y los estilos que se pueden almacenar en caché entre las páginas.
 
 También puedes establecer esta opción en `'always'`, lo cual incrustará todas las hojas de estilo.
 
