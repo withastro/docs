@@ -1,0 +1,601 @@
+---
+title: Actualizar a Astro v3
+description: Cómo actualizar tu proyecto a la última versión de Astro (v3.0).
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import FileTree from '~/components/FileTree.astro'
+
+
+Esta guía te ayudará a migrar de Astro v2 a Astro v3.
+
+¿Necesitas actualizar un proyecto más antiguo a la versión v2? Consulta nuestra [guía de migración anterior](/es/guides/upgrade-to/v2/) para obtener más información.
+
+## Actualizar Astro
+
+Actualiza la versión de Astro en tu proyecto a la última versión utilizando tu administrador de paquetes. Si estás utilizando integraciones de Astro, por favor también actualiza esas integraciones a la última versión.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # Actualizar a Astro v3.x
+  npm install astro@latest
+  
+  # Ejemplo: actualizar las integraciones de React y Tailwind
+  npm install @astrojs/react@latest @astrojs/tailwind@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # Actualizar a Astro v3.x
+  pnpm install astro@latest
+
+  # Ejemplo: actualizar las integraciones de React y Tailwind
+  pnpm install @astrojs/react@latest @astrojs/tailwind@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # Actualizar a Astro v3.x
+  yarn add astro@latest
+  
+  # Ejemplo: actualizar las integraciones de React y Tailwind
+  yarn add @astrojs/react@latest @astrojs/tailwind@latest
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## Astro v3.0: Banderas Experimentales Eliminadas
+
+Elimina las siguientes banderas experimentales de `astro.config.mjs`:
+
+```js del={5-8}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    assets: true,
+    viewTransitions: true,
+  },
+})
+```
+
+Estas características ahora están disponibles por defecto:
+
+- View Transitions para transiciones de página animadas e islas persistentes. Consulta [cambios importantes en la API de View Transitions y consejos de actualización](/en/guides/view-transitions/#actualizar-a-la-v30-desde-la-v2x) si estabas utilizando esta bandera experimental.
+- Una nueva API de servicios de imagen `astro:assets` para usar imágenes en Astro, incluyendo un nuevo componente `<Image />` y la función `getImage()`. Por favor, lee los detallados [consejos de actualización de imágenes](/en/guides/images/#upgrade-to-v30-from-v2x) **sin importar si estabas usando esta bandera experimental** para ver cómo esto podría afectar tu proyecto.
+
+¡Lee más sobre estas dos emocionantes características y más en la publicación del blog sobre la versión 3.0!
+
+## Cambios importantes en Astro v3.0
+
+Astro v3.0 incluye algunos cambios importantes, así como la eliminación de algunas características previamente deprecadas. Si tu proyecto no funciona como se esperaba después de actualizar a v3.0, consulta esta guía para obtener una visión general de todos los cambios importantes e instrucciones sobre cómo actualizar tu código base.
+
+Consulta [el registro de cambios](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md) para obtener las notas completas de la versión.
+
+### Eliminado: Soporte para Node 16
+
+Node 16 tiene programado alcanzar su Fin de Vida en septiembre de 2023.
+
+Astro v3.0 elimina por completo el soporte para Node 16 para que todos los usuarios de Astro puedan aprovechar las características más modernas de Node.
+
+#### ¿Qué debo hacer?
+
+ Asegúrate de que tanto tu entorno de desarrollo como tu entorno de implementación estén utilizando **Node `18.14.1` o una versión superior**.
+
+1. Verifica tu versión local de Node utilizando:
+
+    ```sh
+    node -v
+    ```
+
+2. Revisa la documentación de tu [entorno de despliegue](/en/guides/deploy/) para verificar que admita Node 18.
+
+    Puedes especificar Node `18.14.1` para tu proyecto de Astro ya sea en una configuración en el panel de control o en un archivo `.nvmrc`.
+
+```bash title=".nvmrc"
+18.14.1
+```
+
+### Eliminado: Soporte para TypeScript 4
+
+En Astro v2.x, los ajustes preestablecidos de `tsconfig.json` incluyen soporte tanto para TypeScript 4.x como para 5.x.
+
+Astro v3.0 actualiza los ajustes preestablecidos de `tsconfig.json` para solo admitir TypeScript 5.x. Ahora Astro asume que estás utilizando TypeScript 5.0 (marzo de 2023) o que tu editor lo incluye (p. ej. VS Code 1.77).
+
+#### ¿Qué debo hacer?
+
+Si has instalado TypeScript localmente, actualiza al menos a la versión v5.0.
+
+```bash
+npm install typescript@latest --save-dev
+```
+
+### Eliminado: `@astrojs/image`
+
+En Astro v2.x, Astro ofrecía una integración oficial de imágenes que incluía los componentes `<Image />` y `<Picture />`.
+
+Astro v3.0 elimina por completo esta integración del código base. La nueva solución de Astro para imágenes es una API de servicios de imágenes integrada: `astro:assets`.
+
+#### ¿Qué debo hacer?
+
+Elimina la integración `@astrojs/image` de tu proyecto. Deberás no solo desinstalar la integración, sino también actualizar o eliminar cualquier declaración de importación y los componentes existentes `<Image />` y `<Picture />`. Es posible que también necesites configurar un servicio de procesamiento de imágenes preferido por defecto.
+
+Encontrarás [instrucciones completas y paso a paso para eliminar la antigua integración de imágenes](/en/guides/images/#remove-astrojsimage) en nuestra guía de Imágenes.
+
+Migrar a `astro:assets` también traerá algunas nuevas opciones y características de imágenes que es posible que desees utilizar. ¡Por favor, consulta el [Consejo de Actualización de Imágenes v3.0](/es/guías/imagenes/#actualización-a-la-versión-v30-desde-v2x) completo para obtener todos los detalles!
+
+```js del={3,7}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import image from '@astrojs/image';
+
+export default defineConfig({
+  integrations: [
+    image(),
+  ]
+})
+```
+
+### Eliminado: Componente `<Markdown />`
+
+En Astro v1.x, Astro marcó como obsoleto el componente `<Markdown />` y lo movió a un paquete externo.
+
+Astro v3.0 elimina por completo el paquete `@astrojs/markdown-component`. El componente `<Markdown />` de Astro ya no funcionará en tu proyecto.
+
+#### ¿Qué debo hacer?
+
+Elimina todas las instancias de `@astrojs/markdown-component`.
+
+```astro del={2} title="src/components/MyAstroComponent.astro"
+---
+import Markdown from '@astrojs/markdown-component';
+---
+```
+
+Para seguir utilizando un componente similar a `<Markdown />` en tu código, considera usar [integraciones de la comunidad](https://astro.build/integrations/) como [`astro-remote`](https://github.com/natemoo-re/astro-remote). Asegúrate de actualizar las importaciones y atributos de tu componente `<Markdown />` según sea necesario, de acuerdo con la documentación propia de la integración.
+
+De lo contrario, elimina todas las referencias a la importación del componente `<Markdown />` de Astro y el propio componente en tus archivos `.astro`. Tendrás que reescribir tu contenido directamente como HTML o [importar Markdown](/en/guides/markdown-content/#importing-markdown) desde un archivo `.md`.
+
+### Eliminado: APIs obsoletas de la versión 1.x
+
+En Astro v1.x, Astro marcó como obsoletas las opciones de configuración, así como los tipos de atributos `global` y `hoist` para script/estilos. Estos se mantuvieron para compatibilidad con versiones anteriores.
+
+Astro v3.0 elimina por completo estas API obsoletas. Ya no se pueden utilizar en tu proyecto de Astro.
+
+#### ¿Qué debo hacer?
+
+Si continúas utilizando las APIs de la versión v1.x, utiliza en su lugar las nuevas API para cada funcionalidad:
+
+- Opciones de configuración obsoletas: Consulta [la guía de migración 0.26](/en/guides/upgrade-to/v1/#new-configuration-api)
+- Tipos de atributos script/estilo obsoletos: Consulta [la guía de migración 0.26](/en/guides/upgrade-to/v1/#new-default-script-behavior)
+
+### Eliminado: `image` de `astro:content` en el esquema de colecciones de contenido
+
+En Astro 2.x, la API de colecciones de contenido marcó como obsoleta la exportación de `image` desde `astro:content` para su uso en los esquemas de colecciones de contenido.
+
+Astro 3.0 elimina por completo esta exportación.
+
+#### ¿Qué debo hacer?
+
+Si estás utilizando el `image()` obsoleto de `astro:content`, elimínalo ya que ya no existe. Valida las imágenes a través del [ayudante `image` del `esquema`](/en/guides/images/#update-content-collections-schemas) en su lugar:
+
+ ```ts title="astro.config.mjs" del={1} ins={2} "({ image })"
+import { defineCollection, z, image } from "astro:content";
+import { defineCollection, z } from "astro:content";
+ 
+ defineCollection({
+   schema: ({ image }) =>
+     z.object({
+       image: image(),
+    }),
+});
+```
+
+### Eliminado: Nombres de temas de Shiki pre-0.14
+
+En Astro v2.x, algunos nombres de temas de Shiki fueron cambiados, pero se mantuvieron los nombres originales para mantener la compatibilidad hacia atrás.
+
+Astro v3.0 elimina los nombres originales a favor de los nombres de temas renombrados.
+
+#### ¿Qué debo hacer?
+
+Si tu proyecto utiliza alguno de los temas a continuación, renómbralos con su nombre actualizado:
+
+- `material-darker` -> `material-theme-darker`
+- `material-default` -> `material-theme`
+- `material-lighter` -> `material-theme-lighter`
+- `material-ocean` -> `material-theme-ocean`
+- `material-palenight` -> `material-theme-palenight`
+
+### Eliminado: Características `class:list`
+
+En Astro v2.x, la directiva [`class:list`](/en/reference/directives-reference/#classlist) utilizaba una implementación personalizada inspirada en [`clsx`](https://github.com/lukeed/clsx), con algunas características adicionales como la eliminación de duplicados y el soporte para `Set`.
+
+Astro v3.0 ahora utiliza `clsx` directamente para `class:list`, lo cual no admite la eliminación de duplicados ni valores de tipo `Set`.
+
+#### ¿Qué debo hacer?
+
+Reemplaza cualquier elemento de tipo `Set` pasado a la directiva `class:list` con un simple `Array`.
+
+```astro title="src/components/MyAstroComponent.astro" del={4} ins={5}
+<Component class:list={[
+  'a',
+  'b',
+  new Set(['c', 'd'])
+  ['c', 'd'] 
+]} />
+```
+
+### Eliminado: pasando `class:list` como una propiedad
+
+En Astro v2.x, los [valores de `class:list`](/en/reference/directives-reference/#classlist) se enviaban a los componentes a través de [`Astro.props['class:list']`](/en/reference/api-reference/#astroprops).
+
+En Astro v3.0, los valores de `class:list` se normalizan a un string antes de ser enviados a los componentes a través de `Astro.props['class']`.
+
+#### ¿Qué debo hacer?
+
+Elimina cualquier código que espere recibir la propiedad `class:list`.
+
+```astro title="src/components/MyAstroComponent.astro" del={2,3,7} ins={4,8} "classList" "'class:list': classList"
+---
+import { clsx } from 'clsx';
+const { class: className, 'class:list': classList } = Astro.props;
+const { class: className } = Astro.props;
+---
+<div
+  class:list={[className, classList]}
+  class:list={[className]}
+/>
+```
+
+### Eliminado: Transformación de kebab-case para variables CSS en camelCase
+
+En Astro v2.x, las [variables CSS](/en/guides/styling/#css-variables) en formato camelCase pasadas al atributo `style` eran representadas tanto en camelCase (como se escribían originalmente) como en kebab-case (mantenidas para compatibilidad hacia atrás).
+
+Astro 3.0 elimina la transformación a kebab-case para estos nombres de variables CSS en formato camelCase, y solo se representa la variable CSS camelCase original.
+
+```astro "my-value"
+---
+// src/components/MyAstroComponent.astro
+const myValue = "red"
+---
+<!-- entrada -->
+<div style={{ "--myValue": myValue }}></div>
+
+<!-- salida (Astro 2.x) -->
+<div style="--my-value:var(--myValue);--myValue:red"></div>
+<!-- salida (Astro 3.0) -->
+<div style="--myValue:red"></div>
+```
+
+#### ¿Qué debo hacer?
+
+Si estabas confiando en Astro para transformar kebab-case en tus estilos, actualiza tus estilos existentes a camelCase para evitar estilos faltantes. Por ejemplo:
+
+```astro del={3} ins={4} title="src/components/MyAstroComponent.astro"
+<style>
+  div {
+   color: var(--my-value);
+   color: var(--myValue);
+  }
+</style>
+```
+
+### Eliminado: Aplanamiento automático del valor de retorno de `getStaticPaths()`
+
+En Astro v2.x, el valor de retorno de [`getStaticPaths()`](/en/reference/api-reference/#getstaticpaths) se aplanaba automáticamente para permitirte devolver un array de arrays sin errores.
+
+Astro v3.0 elimina el aplanamiento automático del resultado de `getStaticPaths()`.
+
+#### ¿Qué debo hacer?
+
+Si estás devolviendo un array de arrays en lugar de un array de _objetos_ (como se espera), ahora debes usar `.flatMap` y `.flat` para asegurarte de que estás devolviendo un array plano.
+
+Se proporcionará un [mensaje de error indicando que el valor de retorno de `getStaticPath()` debe ser un array de objetos](/en/reference/errors/invalid-get-static-paths-entry/#what-went-wrong) si necesitas actualizar tu código.
+
+### Movido: `astro check` ahora requiere un paquete externo
+
+En Astro v2.x, [`astro check`](/en/reference/cli-reference/#astro-check) estaba incluido en Astro por defecto, y sus dependencias estaban empaquetadas en Astro. Esto resultaba en un paquete más grande, independientemente de si usabas o no `astro check`. También evitaba que tuvieras control sobre la versión de TypeScript y el Servidor de Lenguaje de Astro que se utilizaba.
+
+Astro v3.0 mueve el comando `astro check` fuera del núcleo de Astro y ahora requiere un paquete externo `@astrojs/check`. Además, debes instalar `typescript` en tu proyecto para poder usar el comando `astro check`.
+
+#### ¿Qué debo hacer?
+
+Ejecuta el comando `astro check` después de actualizar a Astro v3.0 y sigue las indicaciones para instalar las dependencias requeridas, o bien, instala manualmente `@astrojs/check` y `typescript` en tu proyecto.
+
+### Obsoleto: `build.excludeMiddleware` y `build.split`
+
+En Astro v2.x, `build.excludeMiddleware` y `build.split` se utilizaban para cambiar la forma en que se emitían archivos específicos al usar un adaptador en modo SSR.
+
+Astro v3.0 reemplaza estas opciones de configuración de compilación con nuevas opciones de configuración [para adaptadores SSR](/en/guides/integrations-guide/#official-integrations) para realizar las mismas tareas: `edgeMiddleware` y `functionPerRoute`.
+
+#### ¿Qué debo hacer?
+
+Actualiza el archivo de configuración de Astro para usar las nuevas opciones **en la configuración del adaptador** directamente.
+
+```js title="astro.config.mjs" del={5-7} ins={9}
+import { defineConfig } from "astro/config";
+import vercel from "@astrojs/vercel/serverless";
+
+export default defineConfig({
+    build: {
+      excludeMiddleware: true
+    },
+    adapter: vercel({
+      edgeMiddleware: true
+    }),
+});
+```
+
+```js title="astro.config.mjs" del={5-7} ins={9}
+import { defineConfig } from "astro/config";
+import netlify from "@astrojs/netlify/functions";
+
+export default defineConfig({
+     build: {
+        split: true
+     },
+     adapter: netlify({
+        functionPerRoute: true
+     }),
+});
+```
+
+### Obsoleto: `markdown.drafts`
+
+En Astro v2.x, la configuración `markdown.drafts` permitía tener páginas en borrador disponibles cuando se ejecutaba el servidor de desarrollo, pero que no se construían en producción.
+
+Astro v3.0 desaconseja esta característica a favor del método de colecciones de contenido para manejar las páginas en borrador mediante filtrado manual, lo que proporciona un mayor control sobre la funcionalidad.
+
+#### ¿Qué debo hacer?
+
+Para seguir marcando algunas páginas en tu proyecto como borradores, [migra a las colecciones de contenido](/en/guides/content-collections/#migrating-from-file-based-routing) y [filtra manualmente las páginas](/en/guides/content-collections/#filtering-collection-queries) con la propiedad `draft: true` en el frontmatter en lugar de usar la configuración `markdown.drafts`.
+
+### Cambiado por defecto: Puerto `3000`
+
+En Astro v2.x, Astro se ejecutaba en el puerto `3000` por defecto.
+
+Astro v3.0 cambia el [puerto por defecto](/en/reference/cli-reference/#--port-number) a `4321`. 🚀
+
+#### ¿Qué debo hacer?
+
+Actualiza cualquier referencia existente a `localhost:3000`, por ejemplo en tests o en tu `README`, para reflejar el nuevo puerto `localhost:4321`.
+
+### Cambiado por defecto: import.meta.env.BASE_URL `trailingSlash`
+
+In Astro v2.x, `import.meta.env.BASE_URL` appended your [`base`](/en/reference/configuration-reference/#base) setting with a [trailingSlash](/en/reference/configuration-reference/#trailingslash) by default. `trailingSlash: "ignore"` also appended a trailing slash.
+
+Astro v3.0 no longer appends `import.meta.env.BASE_URL` with a trailing slash by default, nor when `trailingSlash: "ignore"` is set. (The existing behavior of `base` in combination with `trailingSlash: "always"` or `trailingSlash: "never"` is unchanged.)
+
+#### ¿Qué debo hacer?
+
+If your `base` already has a trailing slash, no change is needed.
+
+If your `base` does not have a trailing slash, add one if you wish to preserve the previous default (or `trailingSlash: "ignore"`) behavior:
+
+```js title="astro.config.mjs" del={4} ins={5}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  base: 'mi-base',
+  base: 'mi-base/',
+});
+```
+
+### Cambiado por defecto: `compressHTML`
+
+In Astro v2.x, Astro only compressed your emitted HTML when [`compressHTML`](/en/reference/configuration-reference/#compresshtml) was explicitly set to `true`. The default value was `false`.
+
+Astro v3.0 now compresses emitted HTML by default.
+
+#### ¿Qué debo hacer?
+
+You can now remove `compressHTML: true` from your configuration as this is the new default behavior.
+
+```js title="astro.config.mjs" del={4}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  compressHTML: true
+})
+```
+
+You must now set `compressHTML: false` to opt out of HTML compression.
+
+### Cambiado por defecto: `scopedStyleStrategy`
+
+In Astro v2.x, the default value of [`scopedStyleStrategy`](/en/reference/configuration-reference/#scopedstylestrategy) was `"where"`.
+
+Astro v3.0 introduces a new, default value: `"attribute"`. By default, styles are now applied using `data-*` attributes.
+
+#### ¿Qué debo hacer?
+
+To retain your project's current [style scoping](/en/guides/styling/#scoped-styles), update the configuration file to the previous default value: 
+
+
+```js title="astro.config.mjs" ins={4}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  scopedStyleStrategy: "where"
+})
+```
+
+### Cambiado por defecto: `inlineStyleSheets`
+
+In Astro v2.x, all project stylesheets were sent as link tags by default. You could opt in to inlining them into `<style>` tags every time with `"always"`, or to inlining only stylesheets below a certain size with `"auto"` by setting the [`build.inlineStylesheets`](/en/reference/configuration-reference/#buildinlinestylesheets) configuration. The default setting was `"never"`.
+
+Astro v3.0 changes the default value of `inlineStylesheets` to `"auto"`. Stylesheets smaller than `ViteConfig.build.assetsInlineLimit` (default: 4kb) are inlined by default. Otherwise, project styles are sent in external stylesheets.
+
+#### ¿Qué debo hacer?
+
+If you want to keep your project's current behavior, set `build.inlineStylesheets` to the previous default, `"never"`:
+
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+	 build: {
+    inlineStylesheets: "never"
+  }
+})
+```
+
+### Cambiado por defecto: Servicio image
+
+In Astro v2.x, Squoosh was the [default image processing service](/en/guides/images/#default-image-service).
+
+Astro v3.0 now includes Sharp as the default image processing service and instead provides a configuration option to use Squoosh.
+
+#### ¿Qué debo hacer?
+
+If you would prefer to continue to use Squoosh to transform your images, update your config with the following: 
+
+```ts title="astro.config.mjs" ins={4-6}
+import { defineConfig, squooshImageService } from "astro/config";
+
+export default defineConfig({
+  image: {
+    service: squooshImageService(),
+  }
+})
+```
+
+### Cambiado: HTTP request methods case
+
+In Astro v2.x, [HTTP request methods](/en/core-concepts/endpoints/#http-methods) were written using lowercase function names: `get`, `post`, `put`, `all`, and `del`.
+
+Astro v3.0 uses uppercase function names, including `DELETE` instead of `del`.
+
+#### ¿Qué debo hacer?
+
+Cambia el nombre de todas las funciones a su equivalente en mayúsculas:
+
+- `get` a `GET`
+- `post` a `POST`
+- `put` a `PUT`
+- `all` a `ALL`
+- `del` a `DELETE`
+
+```js title="endpoint.ts" del={1} ins={2}
+export function get() {
+export function GET() {
+    return new Response(JSON.stringify({ "title": "Blog de Bob" }));
+}
+```
+
+### Cambiado: Multiple JSX framework configuration
+
+In Astro v2.x, you could use [multiple JSX framework integrations](/en/guides/integrations-guide/#official-integrations) (React, Solid, Preact) in the same project without needing to identify which files belonged to which framework.
+
+Astro v3.0 now requires you to specify which framework to use for your files with new `include` and `exclude` integration config options when you have multiple JSX framework integrations installed. This allows Astro to better support single-framework usage, as well as advanced features like React Fast Refresh.
+
+#### ¿Qué debo hacer?
+
+If you are using multiple JSX frameworks in the same project, set `include` (and optionally `exclude`) to an array of files and/or folders. Wildcards may be used to include multiple file paths.
+
+We recommend placing common framework components in the same folder (e.g. `/components/react/` and `/components/solid/`) to make specifying your includes easier, but this is not required:
+
+```js ins={13,16,19}
+import { defineConfig } from 'astro/config';
+import preact from '@astrojs/preact';
+import react from '@astrojs/react';
+import svelte from '@astrojs/svelte';
+import vue from '@astrojs/vue';
+import solid from '@astrojs/solid-js';
+
+export default defineConfig({
+  // Enable many frameworks to support all different kinds of components.
+  // No `include` is needed if you are only using a single framework!
+  integrations: [
+    preact({
+      include: ['**/preact/*']
+    }),
+    react({
+      include: ['**/react/*']
+    }),
+    solid({
+      include: ['**/solid/*'],
+    }),
+  ]
+});
+```
+
+### Changed: `Astro.cookies.get(key)` can return `undefined`
+
+In Astro v2.x, [`Astro.cookies.get(key)`](/en/reference/api-reference/#astrocookies) would always return an [`AstroCookie` object](/en/reference/api-reference/#astrocookie), even if the cookie did not exist. To check for its existence, you needed to use `Astro.cookies.has(key)`.
+
+Astro v3.0 returns `undefined` for `Astro.cookies.get(key)` if the cookie does not exist.
+
+#### ¿Qué debo hacer?
+
+This change will not break any code that checks for the existence of the `Astro.cookie` object before using `Astro.cookies.get(key)`, but is now no longer required.
+
+You can safely remove any code that uses `has()` to check if the value of `Astro.cookies` is `undefined`:
+
+```js del={1-3} ins={5-7}
+if (Astro.cookies.has(id)) {
+  const id = Astro.cookies.get(id)!;
+}
+
+const id = Astro.cookies.get(id);
+if (id) {
+}
+```
+
+### Changed: running the Astro CLI programmatically
+
+In Astro v2.x, the `"astro"` package entrypoint exported and ran the Astro CLI directly. It is not recommended to run Astro this way in practice.
+
+Astro v3.0 removes the CLI from the entrypoint, and exports a new set of experimental JavaScript APIs, including `dev()`, `build()`, `preview()`, and `sync()`.
+
+#### ¿Qué debo hacer?
+
+To [run the Astro CLI programatically](/en/reference/cli-reference/#advanced-apis-experimental), use the new experimental JavaScript APIs:
+
+```js
+import { dev, build } from "astro";
+
+// Start the Astro dev server
+const devServer = await dev();
+await devServer.stop();
+
+// Build your Astro project
+await build();
+```
+
+
+### Changed: internal Astro API entry point export paths
+
+In Astro v2.x, you could import internal Astro APIs from `astro/internal/*` and `astro/runtime/server/*`.
+
+Astro v3.0 removes the two entry points in favor of the existing `astro/runtime/*` entrypoint. Additionally, a new `astro/compiler-runtime` export has been added for compiler-specific runtime code.
+
+#### ¿Qué debo hacer?
+
+These are entry points for Astro's internal API and should not affect your project. But if you do use these entrypoints, update as shown below:
+
+```js del={1,4,10} ins={2,5,11}
+import 'astro/internal/index.js';
+import 'astro/runtime/server/index.js';
+
+import 'astro/server/index.js';
+import 'astro/runtime/server/index.js';
+```
+
+```js ins={5} del={4}
+import { transform } from '@astrojs/compiler';
+
+const result = await transform(source, {
+  internalURL: 'astro/runtime/server/index.js',
+  internalURL: 'astro/compiler-runtime',
+  // ...
+});
+```
+
+## Problemas conocidos
+
+Actualmente no hay problemas conocidos.
