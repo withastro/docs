@@ -41,11 +41,11 @@ Este CSS:
 Compila para isto:
 ```astro
 <style>
-  h1:where(.astro-HHNQFKH6) {
+  h1[data-astro-cid-hhnqfkh6] {
      color: red;
   }
 
-  .text:where(.astro-HHNQFKH6) {
+  .text[data-astro-cid-hhnqfkh6] {
     color: blue;
   }
 </style>
@@ -159,7 +159,7 @@ import MeuComponente from "../components/MeuComponente.astro"
 <MeuComponente class="vermelho">Isso será vermelho!</MeuComponente>
 ```
 
-Esse padrão te permite estilizar componentes filhos diretamente. Astro irá passar o nome de classe com escopo do pai (e.x. `astro-HHNQFKH6`) através da prop `class` automaticamente, incluindo o filho no seu escopo de pai.
+Esse padrão te permite estilizar componentes filhos diretamente. Astro irá passar o nome de classe com escopo do pai (e.x. `astro-hhnqfkh6`) através da prop `class` automaticamente, incluindo o filho no seu escopo de pai.
 
 :::note[Classes com escopo de componentes pai]
 Por conta da prop `class` incluir o filho no escopo do seu pai, é possível que estilos cascatem do pai para o filho. Para evitar que isso tenha efeitos colaterais indesejados, certifique-se de utilizar nomes de classe únicos no componente filho.
@@ -529,25 +529,37 @@ Se você estiver utilizando Tailwind, o [plugin typography](https://tailwindcss.
 
 ## Produção
 
-### Controle de pacote
+### Controle de bundle
 
-Quando o Astro faz a build do seu site para lançamento em produção, ele combina seu CSS em pedaços. Cada página no seu site é seu próprio pedaço, e adicionalmente, o CSS que é compartilhado entre múltiplas páginas é dividido em seus próprios pedaços para reutilização.
+Quando o Astro faz a build do seu site para lançamento em produção, ele minifica e combina seu CSS em pedaços. Cada página no seu site ganha seu próprio pedaço, e adicionalmente, o CSS que é compartilhado entre múltiplas páginas é dividido em seus próprios pedaços para reutilização.
 
-Em cada um dos seus arquivos HTML vai ter tags `<link rel="stylesheet">` adicionadas, uma para cada pedaço que a página precisa.
+Contudo, quando você tem diversas páginas compartilhando estilos, alguns pedaços compartilhados podem se tornar realmente pequenos. Se todos eles fossem enviados separadamente, isso levaria a muitas requisições de folhas de estilo e afetaria a performance do site. Portanto, por padrão o Astro irá fazer link apenas daquelas no seu HTML acima de 4kB em tamanho como tags `<link rel="stylesheet">`, enquanto adiciona inline as menores como `<style type="text/css">`. Essa abordagem fornece um equilíbrio entre o número de requisições adicionais e o volume de CSS que pode ser cacheado entre páginas.
 
-Sites com um grande número de páginas e muitos estilos diferentes compartilhados podem ocasionar em várias requisições de folhas de estilo e afetar o desempenho do site. Você pode configurar a opção `inlineStylesheets` para reduzir o número dessas requisições colocando as folhas de estilo (minimizadas) em uma tag `<style>` ao invés de requisitar elas externamente.
+Você pode configurar o tamanho no qual folhas de estilo serão adicionadas com links externos (em bytes) utilizando a opção da build do vite `assetsInlineLimit`. Note que essa pção afeta a adição inline de scripts e imagens também.
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    build: {
+      assetsInlineLimit: 1024,
+    }
+  };
+});
+```
+
+Se você preferir que todos os estilos do projeto continuem externos, você pode configurar a opção da build `inlineStylesheets`.
 
 ```js
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   build: {
-    inlineStylesheets: 'auto'
+    inlineStylesheets: 'never'
   }
 });
 ```
-
-A opção `'auto'` vai colocar em linha apenas as folhas de estilo que estão abaixo do limite de `vite.build.assetsInlineLimit`, reduzindo o número de requisições por folhas menores. Grandes folhas de estilo, como as globais usadas por todas as páginas, ainda serão buscadas externamente e armazenadas em cache. Essa opção fornece um balanço entre o número de folhas de estilos carregadas e os estilos que podem ser armazenados em cache entre páginas.
 
 Você também pode definir essa opção como `'always'` que vai colocar em linha todas as folhas de estilo.
 
