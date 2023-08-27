@@ -52,7 +52,7 @@ export default NavDictionary({
 	'guides/data-fetching': 'データフェッチ',
 	'guides/middleware': 'ミドルウェア',
 	'guides/testing': 'テスト',
-	'guides/view-transitions': 'ビュートランジション',
+	'guides/view-transitions': 'ビュートランジション（実験的）',
 	'guides/troubleshooting': 'トラブルシューティング',
 
 	// Configuration
