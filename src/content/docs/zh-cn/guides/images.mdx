@@ -1,163 +1,701 @@
 ---
-title: 图片
-description: 学习如何在 Astro 项目中包含图片。
+title: 图像
+description: 了解如何在 Astro 中使用图像。
 i18nReady: true
 ---
 import Since from '~/components/Since.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
+Astro 为你提供了多种在网站上使用图像的方法，无论它们是本地存储在你的项目内，还是链接到外部 URL ，或者在 CMS 或 CDN 中管理的！
 
-在 Astro 项目中，有很多种在网站中使用图片的方式。无论是用存储在项目中的图片，还是链接外部图片，亦或从像 CMS（内容管理系统）或 CDN（内容分发网络）这样的地方加载图片，都没问题！
+## 在哪里存储图像
 
-:::note[`astro:assets` (Experimental - coming in v3.0)]
-实验性 `astro:assets` 模块将在 `astro@3.0` 中默认启用.
+### `src/` vs `public/`
 
-请按照 [资源（实验性）使用指南](/zh-cn/guides/assets/) 开始使用新的图片解决方案！
+我们建议尽可能将本地图像保存在 `src/` 中，以便 Astro 可以对其进行转换、优化和打包。`/public` 目录中的文件始终按原样服务或复制到构建文件夹中，不进行任何处理。
 
-**下面的一些建议可能与实验性标志不兼容。如果你正在使用 `astro:assets` 请参考资源页面。**
-:::
+你在 `src/` 中存储的本地图像可以被项目中的所有文件使用：`.astro`、`.md`、`.mdx`、`.mdoc` 和其他 UI 框架。图像可以存储在任何文件夹中，包括与你的内容一起。
 
-### 在 `.astro` 文件中
+只有当你想要避免任何处理时，才将图像存储在 `public/` 文件夹中。
 
-你可以在 `.astro` 文件中使用标准的 HTML `<img>` 或 `<img />` 元素来展示图片，同时也支持所有 HTML 图片属性。
+### 远程图像
 
-src 属性是必需的，其格式取决于图像的存储位置以及你是否启用了对资源的实验性支持：
+你还可以选择将图像远程存储在内容管理系统（CMS）或数字资产管理（DAM）平台中。
 
-```astro
+在处理外部来源时，为了提供额外的保护，只有在配置中指定的 [授权图像源](#授权远程图像) 才会被处理。但是，任何远程图像都可以显示。
+
+Astro 可以使用 API 远程获取数据，也可以显示来自其完整 URL 路径的图像。请参阅我们的 [CMS 指南](/zh-cn/guides/cms/)，了解集成常见服务的示例。
+
+## `.astro` 文件中的图像
+
+在 `.astro` 文件中，本地图像必须被导入到文件中才能使用。远程和 `public/` 图像不需要导入。
+
+使用 `astro:assets` 导入并使用 Astro 内置的 `<Image />` 组件来优化图像。或者，Astro 语法支持直接编写 HTML `<img>` 标签，这将跳过图像处理。
+
+```astro title="src/pages/blog/MyImages.astro"
 ---
-// src/pages/index.astro
-import rocket from '../images/rocket.svg';
+import { Image } from 'astro:assets';
+import localBirdImage from ''../../images/subfolder/localBirdImage.png';
 ---
-<!-- 位于其它服务器上的图片 -->
-<img src="https://docs.astro.build/assets/logomark-light.png" width="25" alt="Astro">
+<Image src={localBirdImage} alt="一只鸟坐在蛋窝上。"/>
+<Image src="/bird-public-folder.jpg" alt="A bird." width="50" height="50"/>
+<Image src="https://example.com/remote-bird.jpg" alt="A bird." width="50" height="50"/>
 
-<!-- 存储在 public/assets/stars.png 的本地图片 -->
-<img src="/assets/stars.png" alt="一片繁星闪烁的夜空。">
-
-<!-- 存储在 src/images/rocket.svg 的本地图片 -->
-<img src={rocket} alt="外空中的一架火箭。"/>
+<img src={localBirdImage.src} alt="一只鸟坐在蛋窝上。">
+<img src="/images/bird-in-public-folder.jpg" alt="A bird.">
+<img src="https://example.com/remote-bird.jpg" alt="A bird.">
 ```
 
-### 在 Markdown 文件中
+### `<Image />` (`astro:assets`)
 
-可以在 `.md` 文件中使用 Markdown 标准语法 `![]()`，或 HTML 标准语法 `<img>` 标签，来调用位于 `public/` 文件夹下或其它服务器上的图片。
+使用内置的 `<Image />` Astro 组件来显示本地图像和 [配置的远程图像](#授权远程图像) 的优化版本。
 
-如果你无法将图片保留在 `public/` 中，我们建议启用 [资源的实验性支持](/zh-cn/guides/assets/), 或使用 `.mdx` 文件格式，该格式允许你将导入的组件与类似 Markdown 的语法结合起来。使用 [MDX 集成](/zh-cn/guides/integrations-guide/mdx/) 向 Astro 添加对 MDX 的支持。
+`public/` 文件夹中的图像以及未在项目中特别配置的远程图像也可以与 Image 组件一起使用，但不会被处理。
+
+`<Image />` 可以转换本地或授权的远程图像的尺寸、文件类型和质量，以便控制显示的图像。生成的 `<img>` 标签包括 `alt`、`loading` 和 `decoding` 属性，并推断图像尺寸以避免 **累积布局偏移 Cumulative Layout Shift (CLS)**。
+
+:::tip[什么是累积布局偏移（Cumulative Layout Shift）？]
+[累积布局偏移 Cumulative Layout Shift (CLS)](https://web.dev/cls/) 是一种用于测量页面加载过程中内容移动量的核心 Web 指标。`<Image />` 组件通过自动为本地图像设置正确的 `width` 和 `height` 来优化 CLS。
+:::
+
+```astro title="src/components/MyComponent.astro"
+---
+// 导入 Image 组件和图像
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // Image is 1600x900
+---
+
+<!-- 在 Image 组件上 `alt` 是必须的  -->
+<Image src={myImage} alt="A description of my image." />
+```
+
+```html
+<!-- 输出 -->
+<!-- 优化图像，强制实施适当的属性 -->
+<img
+  src="/_astro/my_image.hash.webp"
+  width="1600"
+  height="900"
+  decoding="async"
+  loading="lazy"
+  alt="A description of my image."
+/>
+```
+
+目前，内置的 assets 功能不包括 `<Picture />` 组件。
+
+相反，你可以 [使用 `getImage()` 生成图像或自定义组件](/zh-cn/guides/images/#使用-getimage-生成图像)，这些组件使用 HTML 图像属性 `srcset` 和 `sizes` 或 `<picture>` 标签进行 [艺术指导或创建响应式图像](https://developer.mozilla.org/zh-CN/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#art_direction)。
+
+#### 属性
+
+##### src (必须)
+
+图像文件的 `src` 值的格式取决于图像文件的位置：
+
+- **`src/` 中的本地图像** - 你必须**同时导入图像**，使用相对文件路径或配置并使用 [导入别名](/zh-cn/guides/aliases/)。然后使用导入名称作为 `src` 值：
+
+  ```astro title="src/pages/index.astro" "myImportedImage" "{myImportedImage}"
+  ---
+  import { Image } from 'astro:assets';
+  import myImportedImage from `../assets/my-local-image.png`
+  ---
+  <Image src={myImportedImage}  alt="descriptive text" />
+  ```
+
+- **`public/` 文件夹中的图像** - 使用图像相对于 `public` 文件夹的**文件路径**作为属性值：
+
+  ```astro title="src/pages/index.astro" '"/images/my-public-image.png"'
+  ---
+  import { Image } from 'astro:assets';
+  ---
+  <Image 
+    src="/images/my-public-image.png"
+    alt="descriptive text"
+    width="200"
+    height="150" />
+  ```
+
+- **远程图像** - 使用图像的**完整 URL**作为属性值：
+
+  ```astro title="src/pages/index.astro" '"https://example.com/remote-image.jpg"'
+  ---
+  import { Image } from 'astro:assets';
+  ---
+  <Image 
+    src="https://example.com/remote-image.jpg"
+    alt="descriptive text"
+    width="200"
+    height="150" />
+  ```
+
+##### alt (必须)
+
+不是所有用户都能以相同的方式看到图像，因此在使用图像时，无障碍性尤为重要。使用 `alt` 属性为图像提供 [描述性的 alt 文本](https://www.w3.org/WAI/tutorials/images/)。
+
+如果图像仅仅是装饰性的（即不会对页面的理解有所贡献），请设置 `alt=""` 以便屏幕阅读器和其他辅助技术知道忽略该图像。
+
+##### width 和 height (对于 `public/` 和远程图像是必须的)
+
+这些属性定义了要用于图像的尺寸。
+
+当以原始宽高比使用本地图像时，`width` 和 `height` 可以从源文件中自动推断，并且它们是可选的。
+
+但是，对于远程图像和存储在 `public/` 文件夹中的图像，这两个属性是必需的，因为 Astro 无法分析这些文件。
+
+##### format
+
+你可以选择指定要使用的 [图像文件类型](https://developer.mozilla.org/zh-CN/docs/Web/Media/Formats/Image_types#common_image_file_types) 输出。
+
+默认情况下，`<Image />` 组件将生成 `.webp` 文件。
+
+##### quality
+
+`quality` 是一个可选属性，可以是：
+- 一个预设值（`low`、`mid`、`high`、`max`），可以在不同格式之间自动标准化。
+- 一个从 `0` 到 `100` 的数字（在格式之间有不同的解释）。
+
+##### 附加属性
+
+除了上面的属性之外，`<Image />` 组件还接受 HTML `<img>` 标签接受的所有属性。
+
+例如，你可以为最终的 `<img>` 元素提供一个 `class`。
+
+```astro title="src/pages/index.astro"
+---
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png";
+---
+
+<!-- 在 Image 组件上 `alt` 是必须的 -->
+<Image src={myImage} alt="" class="my-class" />
+```
+
+```astro
+<!-- 输出 -->
+<img
+  src="/_astro/my_image.hash.webp"
+  width="1600"
+  height="900"
+  decoding="async"
+  loading="lazy"
+  class="my-class"
+  alt=""
+/>
+```
+
+#### 设置默认值
+
+目前，没有办法为所有 `<Image />` 组件指定默认值。必需的属性应该在每个单独的组件上设置。
+
+作为替代方案，你可以在另一个 Astro 组件中封装这些组件以便重用。例如，你可以为博客文章图像创建一个组件：
+
+```astro title="src/components/BlogPostImage.astro"
+---
+import { Image } from 'astro:assets';
+
+const {src, ...attrs} = Astro.props;
+---
+<Image src={src} {...attrs} />
+
+<style>
+  img :global(img), svg {
+    margin-block: 2.5rem;
+    border-radius: 0.75rem;
+  }
+</style>
+```
+
+### `<img>`
+
+[Astro 模板语法](/zh-cn/core-concepts/astro-syntax/) 也支持直接编写 `<img>` 标签，完全控制其最终输出。这些图像不会被处理和优化。
+
+它接受所有 HTML `<img>` 标签属性，唯一必需的属性是 `src`。
+
+#### `src/` 中的本地图像
+
+本地图像必须从现有的 `.astro` 文件的相对路径**导入**，或者配置并使用 [导入别名](/zh-cn/guides/aliases/)。然后，你可以访问图像的 `src` 和其他属性，以在 `<img>` 标签中使用。
+
+例如，使用图像自己的 `height` 和 `width` 属性作为默认值，以避免布局位移累计 CLS 并改善核心 Web 性能指标。
+
+```astro "myDog.src"
+---
+// 导入本地图像
+import myDog from `../../images/pets/local-dog.jpg`
+---
+// 访问图像的属性
+<img src={myDog.src} width={myDog.width} height={myDog.height} alt="一只狂吠的狗。" />
+```
+
+导入的图像资源与以下签名相匹配：
+
+```ts
+interface ImageMetadata {
+  src: string;
+  width: number;
+  height: number;
+  format: string;
+}
+```
+
+#### `public/` 中的图像
+对于位于 `public/` 中的图像，请使用图像相对于 public 文件夹的**文件路径**作为 `src` 值：
+
+```astro '"/images/public-cat.jpg"'
+<img src="/images/public-cat.jpg" alt="一只睡觉的猫。">
+```
+
+#### 远程图像
+
+对于远程图像，请使用图像的**完整 URL**作为 `src` 值：
+
+```astro '"https://example.com/remote-cat.jpg"'
+<img src="https://example.com/remote-cat.jpg" alt="一只睡觉的猫。">
+```
+
+### 选择 `<Image />` 还是 `<img>`
+
+`<Image />` 组件会优化图像，并根据原始宽高比推断宽度和高度（对于本地图像），以避免 CLS。但是，它只适用于某些格式，并且不提供 `<picture>` 元素，也不支持 `srcset`。
+
+当你不能使用 `<Image />` 组件时，请使用 HTML `<img>` 元素，例如：
+  - 不支持的图像格式
+  - 当你不想让 Astro 优化你的图像时
+  - 为了在客户端动态访问和更改 `src` 属性
+
+### 授权远程图像
+
+你可以使用 [`image.domains`](/zh-cn/reference/configuration-reference/#imagedomains) 和 [`image.remotePatterns`](/zh-cn/reference/configuration-reference/#imageremotepatterns) 配置授权图像源 URL 域和模式列表，以进行图像优化。这个配置是一个额外的安全层，用于在显示来自外部源的图像时保护你的站点。
+
+来自其他来源的远程图像不会被优化，但是使用 `<Image />` 组件可以防止累积布局移位（CLS）。
+
+例如，以下配置将只允许来自 `astro.build` 的远程图像进行优化：
+
+```ts
+// astro.config.mjs
+export default defineConfig({
+  image: {
+    domains: ["astro.build"],
+  }
+});
+```
+
+以下配置将只允许来自 HTTPS 主机的远程图像：
+
+```ts
+// astro.config.mjs
+export default defineConfig({
+  image: {
+    remotePatterns: [{ protocol: "https" }],
+  }
+});
+```
+
+## 使用 CMS 或 CDN 中的图像
+
+图像 CDN 与所有 Astro 图像选项兼容。在 `<Image />` 组件、`<img>` 标签或 Markdown 表示法中，使用图像的完整 URL 作为 `src` 属性。对于远程图像的图像优化，还需要 [配置授权域或 URL 模式](#授权远程图像)。
+
+或者，如果 CDN 提供了 Node.js SDK，你可以在项目中使用它。例如，[Cloudinary 的 SDK](https://cloudinary.com/documentation/node_integration) 可以为你生成一个带有适当 `src` 的 `<img>` 标签。
+
+## Markdown 文件中的图像
+
+在 `.md` 文件中使用标准的 Markdown `![alt](src)` 语法。这个语法可以与 Astro 的 Image Services API 一起使用，来优化你的本地图像和授权的远程图像。
+
 ```md
 <!-- src/pages/post-1.md -->
 
 # 我的 Markdown 页面
 
-<!-- 存储在 public/assets/stars.png 的本地图片 -->
-![一片繁星闪烁的夜空。](/assets/stars.png)
-<img src="/assets/stars.png" alt="一片繁星闪烁的夜空。">
+<!-- 存储在 src/assets/ 中的本地图像 -->
+<!-- 使用相对路径或者导入别名 -->
+![A starry night sky.](../assets/stars.png)
 
-<!-- 位于其它服务器上的图片 -->
-![Astro](https://docs.astro.build/assets/logomark-light.png)
-<img src="https://docs.astro.build/assets/logomark-light.png" width="25" alt="Astro">
+<!-- 存储在 public/images/ 中的图像 -->
+<!-- 使用相对 public/ 的文件路径-->
+![A starry night sky.](/images/stars.png)
+
+<!-- 其它服务上的远程图像 -->
+<!-- 使用图像的完成 url -->
+![Astro](https://example.com/images/remote-image.png)
 ```
 
-### 在 MDX 文件中
+本地图像不支持 `<img>` 标签，也不支持 `<Image />` 组件。
 
-你可以在 .mdx 文件中使用标准 Markdown `![]()` 语法或 JSX  的 `<img />` 标签来显示 `public/ ` 文件夹或远程服务器中的图片。
+如果你需要对图像属性做更多的控制，我们建议使用 `.mdx` 文件格式，除了 Markdown 语法，你还可以使用 Astro 的 `<Image />` 组件或 JSX `<img />` 标签。使用 [MDX 集成](/zh-cn/guides/integrations-guide/mdx/) 为 Astro 添加对 MDX 的支持。
 
-此外，你也可以导入和使用位于项目 `src/` 目录中的图像，就像在 Astro 组件中一样。
+## MDX 文件中的图像
 
+你可以通过导入组件和图像在你的 `.mdx` 文件中使用 Astro 的 `<Image />` 组件 和 JSX `<img />` 标签。使用它们就像 [在 `.astro` 文件中使用](#astro-文件中的图像) 一样。
+
+此外，还支持 [标准的 Markdown `![alt](src)` 语法](#markdown-文件中的图像)，无需导入。
 
 ```mdx title="src/pages/post-1.mdx"
+---
+title: 我的页面标题
+---
+import { Image } from 'astro:assets';
+import rocket from '../assets/rocket.png';
 
-import rocket from '../images/rocket.svg';
+# 我的 MDX 页面
 
-# My MDX Page
+// 存储在 src/assets/ 中的本地图像
+<Image src={rocket} alt="A rocketship in space."/>
+<img src={rocket.src} alt="A rocketship in space." />
+![A rocketship in space](../assets/rocket.png)
 
-// 存放在项目中 src/images/rocket.svg 路径的图片
-<img src={rocket} alt="外空中的一架火箭。"/>
+// 存储在 public/images/ 中的图像
+<Image src="/images/stars.png" alt="A starry night sky." />
+<img src="/images/stars.png" alt="A starry night sky." />
+![A starry night sky.](/images/stars.png)
 
-// 存放在项目中 public/assets/stars.png 路径的图片
-![一片繁星闪烁的夜空。](/assets/stars.png)
-<img src="/assets/stars.png" alt="一片繁星闪烁的夜空。" />
 
-// 位于其它服务器上的图片
-![Astro](https://docs.astro.build/assets/logomark-light.png)
-<img src="https://docs.astro.build/assets/logomark-light.png" width="25" alt="Astro" />
+// 其它服务上的远程图像
+<Image src="https://example.com/images/remote-image.png" />
+<img src="https://example.com/images/remote-image.png" />
+![Astro](https://example.com/images/remote-image.png)
+
 ```
 
-### UI 框架中的组件
+## 内容集合中的图像
 
-当在 [UI 框架组件](/zh-cn/core-concepts/framework-components/)（例如 React、Svelte）中添加图像时，请使用适合该框架的图像语法。
+你可以在 frontmatter 中声明一个与内容集合条目相关联的图像，例如博客文章的封面图像，使用相对于当前文件夹的路径：
 
-
-
-## 存放图片的位置
-
-### `src/`
-
-存储在 `src/`中的图像可以由组件（`.astro`，`.mdx`和其他 UI 框架）使用，但不能在 Markdown 文档中使用。
-
-如果您必须使用 Markdown 文档，我们建议你将图像保存在 ['public/']（#public） 中或 [远程](#使用-cms-或-cdn-上的图片) 存储他们。
-
-从任何组件文档中的 **相对文档路径** 或 [导入别名](/zh-cn/guides/aliases/) 导入它们，然后像使用 `src`属性一样使用。
-
-```astro
+```md title="src/content/blog/my-post.md" {3}
 ---
-// src/pages/index.astro
-
-// Access images in `src/images/`
-import logo from '../images/logo.png';
+title: "我的第一篇博客文章"
+cover: "./firstpostcover.jpeg" # 将解析为 "src/content/blog/firstblogcover.jpeg"
+coverAlt: "一张山脉后面的日落照片。"
 ---
-<img src={logo} width="40" alt="Astro 的图标" />
+
+这是一篇博客文章。
 ```
 
-### `public/`
+内容集合 schema 中的 `image` 助手允许你使用 Zod 验证图像元数据。
 
-存储在 `public/` 中的图像可以被组件（`.astro`，`.mdx`和其他UI框架）和Markdown文档使用。
+```ts title="src/content/config.ts"
+import { defineCollection, z } from "astro:content";
 
-然而，位于 `/public` 目录中的文件始终按原样提供或复制，不进行任何处理。如果你在 Markdown 文件之外使用图像，我们建议尽可能将本地图像保存在 `src/` 中，以便 Astro 对其进行转换、优化和打包。
+const blogCollection = defineCollection({
+	schema: ({ image }) => z.object({
+		title: z.string(),
+		cover: image().refine((img) => img.width >= 1080, {
+			message: "封面图片必须至少1080像素宽!",
+		}),
+		coverAlt: z.string(),
+	}),
+});
 
-`src` 属性是 **相对于 public 文件夹的**。在 Markdown 中，你可以使用 `![]()` 表示。
-
-```astro
----
-// src/pages/index.astro
-
-// 存取放在 `public/images/` 里的图片
----
-<img src="/images/logo.png" />
+export const collections = {
+	blog: blogCollection,
+};
 ```
 
-### `src/assets/` （实验性）
+图像将被导入并转换为元数据，允许你将其作为 `src` 传递给 `<Image/>`、`<img>` 或 `getImage()`。
 
-请参阅 [资源（实验性）](/zh-cn/guides/assets/) 指南，了解如何启用 `/assets/` 文件夹的实验性用法。
+下面的示例显示了一个博客索引页面，该页面从上面的模式中呈现了每篇博客文章的封面照片和标题：
 
-这将需要你更新现有图片，删除当前的 Astro 图片集成，并且还需要额外的手动更改以利用其某些新功能。
+```astro title="src/pages/blog.astro" {10}
+---
+import { Image } from "astro:assets";
+import { getCollection } from "astro:content";
+const allBlogPosts = await getCollection("blog");
+---
 
-## Astro 的图片集成
+{
+	allBlogPosts.map((post) => (
+		<div>
+			<Image src={post.data.cover} alt={post.data.coverAlt} />
+			<h2>
+				<a href={"/blog/" + post.slug}>{post.data.title}</a>
+			</h2>
+		</div>
+	))
+}
+```
 
-:::note[将在 v3.0 中弃用]
-Astro v3 将不再主动支持 [`@astrojs/image`](https://github.com/withastro/astro/tree/main/packages/integrations/image) 集成
+## 框架组件中的图像
 
-我们建议你尽早删除它，并使用将内置在 `astro@3.0` 中的实验性 `astro:assets` 模块。
+在 UI 框架组件中添加图像时，请使用框架自己的图像语法来渲染图像（例如，在 JSX 中使用 `<img />`，在 Svelte 中使用 `<img>`）。
 
-请按照 [资源（实验性）使用指南](/zh-cn/guides/assets/) 开始使用新的图片解决方案！
+本地图像必须**先被导入**，才能访问它们的 [图像属性](#src-中的本地图像)，例如 `src`。
 
-**`astro:assets` 目前还不能完全替代 `@astrojs/image` ，但它正在被积极开发中。**
+```jsx title="src/components/ReactImage.jsx"
+import stars from "../assets/stars.png"
+
+export default function ReactImgage () {
+
+  return (
+    <img src={stars.src} alt="繁星点点的夜空。" />
+  )
+}
+```
+
+```svelte title="src/components/SvelteImage.svelte"
+<script>
+  import stars from '../assets/stars.png'
+</script>
+
+<img src={stars.src} alt="繁星点点的夜空。" />
+
+```
+
+#### 传递 Image 组件
+
+`<Image />` 组件，就像任何其他 Astro 组件一样，**对 UI 框架组件不可用**。
+
+但是，你可以将 `<Image />` 生成的静态内容作为子组件传递给 `.astro` 文件中的框架组件，或者使用 [命名的 `<slot/>`](/zh-cn/core-concepts/framework-components/#我可以在我的框架组件中使用-astro-组件吗)。
+
+
+```astro title="ImageWrapper.astro"
+---
+import ReactComponent from './ReactComponent.jsx';
+import { Image } from "astro:assets"
+import stars from "~/stars/docline.png";
+---
+
+<ReactComponent>
+  <Image src={stars} alt="繁星点点的夜空。" />
+</ReactComponent>
+```
+
+## 使用 `getImage()` 生成图像
+
+:::caution
+`getImage()` 依赖于仅在服务端可用的 API，当在客户端使用时会导致构建失败。
 :::
 
-有关在 Astro v2 中使用 `@astrojs/image` 的文档，请参阅 [`@astrojs/image` 文档](https://github.com/withastro/astro/blob/main/packages/integrations/image/README.md)
+`getImage()` 函数用于生成图像，这些图像将被用于除了直接在 HTML 中使用之外的其他地方，例如在 [API 路由](/zh-cn/core-concepts/endpoints/#服务器端点api-路由) 中。它还允许你创建自己的自定义 `<Image />` 组件。
 
-## 使用 CMS 或 CDN 上的图片
+`getImage()` 函数接受一个选项对象，其中包含与 [Image 组件](#属性) 相同的属性（除了 `alt`）。
 
-Image CDN 可与 Astro 配合使用，可将图片的完整网址作为 `<img>` 标签中的 `src` 属性或 Markdown 标记
+```astro
+---
+import { getImage } from "astro:assets";
+import myBackground from "../background.png"
 
-如果 CDN 提供了 Node.js SDK ，则可以在项目中使用它。例如，[Cloudinary 的 SDK](https://cloudinary.com/documentation/node_integration) 可以生成带有相应 `src` 属性 的 ` <img>` 标签。
+const optimizedBackground = await getImage({src: myBackground, format: 'avif'})
+---
 
-## Alt Text
+<div style={`background-image: url(${optimizedBackground.src});`}></div>
+```
 
-并非所有用户都能以相同的方式查看图片，因此在使用图片时可访问性是一个特别重要的问题。使用 `alt` 属性为图片提供 [描述性替代文本](https://www.w3.org/WAI/tutorials/images/)。
+它返回一个具有以下属性的对象：
 
-此属性对于映像集成的 `<Image />` 和 `<Picture/>` 组件是必需的，如果未提供替代文本，这些组件将引发错误。
+```js
+{
+  options: {...} // 传递的原始参数，
+  src: "https//..." // 生成图像的路径，
+  attributes: {...} // 渲染图像所需的附加 HTML 属性（宽度、高度、样式等）
+}
+```
 
-如果图像只是装饰性的（即无助于理解页面）请设置 `alt=""`，以便屏幕阅读器知道忽略该图像。
+## 替代文本
 
-## 社区开发的集成
+不是所有用户都能以相同的方式看到图像，因此在使用图像时，无障碍性尤为重要。使用 `alt` 属性为图像提供 [描述性的 alt 文本](https://www.w3.org/WAI/tutorials/images/)。
 
-除了官方的 [`@astrojs/image`](/zh-cn/guides/integrations-guide/image/) 集成外，社区还开发了[社区图片集成](https://astro.build/integrations?search=images)，用于处理和优化 Astro 项目中的图片。
+这个属性是 `<Image />` 组件必须的。如果没有提供 alt 文本，`<Image />` 将抛出一个错误。
+
+如果图像仅仅是装饰性的（即不会对页面的理解有所贡献），请设置 `alt=""` 以便屏幕阅读器和其他辅助技术知道忽略该图像。
+
+## 默认图像服务
+
+[Sharp](https://github.com/lovell/sharp) 是 `astro:assets` 的默认图像服务。
+
+如果你想使用 [Squoosh](https://github.com/GoogleChromeLabs/squoosh) 来转换你的图像，请使用以下配置更新你的配置：
+
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig, squooshImageService } from 'astro/config';
+
+export default defineConfig({
+  image: {
+    service: squooshImageService(),
+  },
+});
+```
+
+## 社区集成
+
+这里有几个第三方 [社区图像集成](https://astro.build/integrations?search=images)，用于优化和处理 Astro 项目中的图像。
+
+## 从 v2.x 升级到 v3.0
+
+`astro:assets` 不再是 Astro v3.0 中的实验性标志。
+
+`<Image />` 现在是内置组件，之前的 `@astrojs/image` 集成已被删除。
+
+当你从早期版本升级你的 Astro 项目时，这些和其他伴随的更改，可能会导致一些破坏性的变化。
+
+请根据需要按照以下说明将 Astro v2.x 项目升级到 v3.0。
+
+### 从 `experimental.assets` 升级
+
+如果你之前启用了 `astro:assets` 的实验性标志，你需要更新你的项目到 Astro v3.0，它现在默认包含了 assets 功能。
+
+#### 移除 `experimental.assets` 标志
+
+移除实验性标志：
+
+```js title="astro.config.mjs" del={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+   assets: true
+  }
+});
+```
+
+如果需要，还可以更新你的 `src/env.d.ts` 文件，将 `astro/client-image` 引用替换为 `astro/client`：
+
+```ts title="src/env.d.ts" del={1} ins={2}
+/// <reference types="astro/client-image" />
+/// <reference types="astro/client" />
+```
+
+#### 移除`~/assets` 导入别名
+
+这个导入别名不再默认包含在 `astro:assets` 中。如果你之前使用这个别名，你必须将它们转换为相对文件路径，或者 [创建你自己的导入别名](/zh-cn/guides/aliases/)。
+
+```astro title="src/pages/posts/post-1.astro" del={2} ins={3}
+---
+import rocket from '~/assets/rocket.png'
+import rocket from '../../assets/rocket.png';
+---
+```
+
+#### 为 Cloudflare, Deno, Vercel Edge 和 Netlify Edge 添加简单的资源支持
+
+  Astro v3.0 允许 `astro:assets` 在 Cloudflare、Deno、Vercel Edge 和 Netlify Edge 中无错误地工作，这些环境不支持 Astro 的内置 Squoosh 和 Sharp 图像优化。请注意，Astro 不会在这些环境中执行任何图像转换和处理。但是，你仍然可以享受使用 `astro:assets` 的其他好处，包括没有累积布局移位（CLS）、强制执行的 `alt` 属性和一致的创作体验。
+
+  如果你之前因为这些限制而避免使用 `astro:assets`，现在你可以在没有问题的情况下使用它们。你可以配置无操作图像服务来显式地选择这种行为：
+  
+ ```astro
+ // astro.config.mjs
+ export default {
+   image: {
+     service: {
+       entrypoint: 'astro/assets/services/noop'
+     }
+   }
+ }
+ ```
+
+### 决定在哪里存储你的图像
+
+请参阅 [图像指南](/zh-cn/guides/images/#在哪里存储图像) 来帮助你决定在哪里存储你的图像。你可能希望利用 `astro:assets` 带来的灵活性，来存储你的图像的新选项。例如，现在可以使用标准的 Markdown `![alt](src)` 语法，在 Markdown、MDX 和 Markdoc 中引用项目 `src/` 中的相对图像。
+
+### 更新现有的 `<img>` 标签
+
+以前，导入图像将返回一个简单的 `string`，其中包含图像的路径。现在，导入的图像资源与以下签名相匹配：
+
+```ts
+interface ImageMetadata {
+  src: string;
+  width: number;
+  height: number;
+  format: string;
+}
+```
+
+你必须更新任何现有 `<img>` 标签的 `src` 属性（包括任何 [UI 框架组件中的图像](#框架组件中的图像)），你也可以更新从导入的图像中获得的其他属性。
+
+```astro title="src/components/MyComponent.astro" ".src" ".width" ".height" del={4} ins={6}
+---
+import rocket from '../images/rocket.svg';
+---
+<img src={rocket} width="250" height="250" alt="太空中的火箭飞船。" />
+
+<img src={rocket.src} width={rocket.width} height={rocket.height} alt="太空中的火箭飞船。" />
+```
+
+### 更新你的 Markdown, MDX, 和 Markdoc 文件
+
+现在可以使用标准的 Markdown `![alt](src)` 语法，在 Markdown、MDX 和 Markdoc 中引用项目 `src/` 中的相对图像。
+
+这允许你将图像从 `public/` 目录移动到你的项目 `src/`，它们现在将被处理和优化。你现有的 `public/` 中的图像和远程图像仍然有效，但不会被 Astro 的构建过程优化。
+
+```md title="src/pages/posts/post-1.md" "/_astro" ".hash" "../../assets/"
+# 我的 Markdown 页面
+
+<!-- 现在可以使用本地图像 -->
+![A starry night sky.](../../images/stars.png)
+
+<!-- 将你的图像放在你的内容旁边！ -->
+![A starry night sky.](./stars.png)
+```
+
+如果你需要对图像属性做更多的控制，我们建议使用 `.mdx` 文件格式，除了 Markdown 语法，你还可以使用 Astro 的 `<Image />` 组件或 JSX `<img />` 标签。使用 [MDX 集成](/zh-cn/guides/integrations-guide/mdx/) 为 Astro 添加对 MDX 的支持。
+
+### 移除 `@astrojs/image`
+
+
+如果你在 Astro v2.x 中使用了图像集成，请完成以下步骤：
+
+1. 移除 `@astrojs/image` 集成。
+
+    你必须通过卸载并从你的 `astro.config.mjs` 文件中删除它，来 [移除集成](/zh-cn/guides/integrations-guide/#移除集成)。
+
+    ```js del={3,7}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import image from '@astrojs/image';
+
+    export default defineConfig({
+      integrations: [
+        image(),
+      ]
+    })
+    ```
+
+2. 迁移任何现有的 `<Image />` 组件。
+
+    将所有 `import` 语句从 `@astrojs/image/components` 更改为 `astro:assets`，以便使用新的内置 `<Image />` 组件。
+
+    移除任何当前不[支持的图像属性](/zh-cn/guides/images/#属性)。
+
+    例如，`aspectRatio` 不再支持，因为它现在可以从 `width` 和 `height` 属性中自动推断出来。
+
+      ```astro title="src/components/MyComponent.astro" del= {2,11} ins={3}
+      ---
+      import { Image } from '@astrojs/image/components';
+      import { Image } from 'astro:assets'
+      import localImage from "../assets/logo.png";
+      const localAlt = "The Astro Logo";
+      ---
+
+      <Image
+        src={localImage}
+        width={300}
+        aspectRatio="16:9"
+        alt={localAlt}
+      />
+      ```
+
+3. 移除任何现有的 `<Picture />` 组件
+
+    目前，内置的 assets 功能不包括 `<Picture />` 组件。
+
+    相反，你可以使用 HTML 图像属性 `srcset` 和 `sizes` 或 `<picture>` 标签进行艺术指导或创建响应式图像。
+
+4. 卸载 Sharp
+
+    [Sharp](https://github.com/lovell/sharp) 现在是 `astro:assets` 的默认图像服务。你不再需要在你的项目中本地安装这个依赖。
+
+    使用你的包管理器卸载 Sharp，或者从你的 `package.json` 文件中手动删除。
+
+    如果你想使用 [Squoosh](https://github.com/GoogleChromeLabs/squoosh) 来转换你的图像，请使用以下配置更新你的配置：
+
+    ```js title="astro.config.mjs" ins={4-6}
+    import { defineConfig, squooshImageService } from 'astro/config';
+
+    export default defineConfig({
+      image: {
+        service: squooshImageService(),
+      },
+    });
+    ```
+
+### 更新内容集合结构
+
+你现在可以在 frontmatter 中声明一个与内容集合条目相关联的图像，例如博客文章的封面图像，使用相对于当前文件夹的路径：
+
+内容集合中新的 `image` 助手可让你使用 Zod 验证图像元数据。了解更多关于 [如何在内容集合中使用图像](/zh-cn/guides/images/#内容集合中的图像) 的内容。
