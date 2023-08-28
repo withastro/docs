@@ -2,6 +2,7 @@
 title: API de Adaptadores do Astro
 i18nReady: true
 ---
+import Since from '~/components/Since.astro';
 
 Astro foi projetado para ser fácil realizar deploy em qualquer provedor da nuvem para SSR (renderização no lado do servidor). Essa habilidade é providenciada por __adaptadores__, que são [integrações](/pt-br/reference/integrations-reference/). Veja o [guia de SSR](/pt-br/guides/server-side-rendering/#adicionando-um-adaptador) para aprender como utilizar um adaptador existente.
 
@@ -25,8 +26,10 @@ export default function createIntegration() {
     hooks: {
       'astro:config:done': ({ setAdapter }) => {
         setAdapter({
-          name: '@matthewp/meu-adaptador',
-          serverEntrypoint: '@matthewp/meu-adaptador/server.js'
+          serverEntrypoint: '@matthewp/meu-adaptador/server.js',
+          supportedAstroFeatures: {
+              staticOutput: 'stable'
+          }  
         });
       },
     },
@@ -41,6 +44,52 @@ interface AstroAdapter {
 	name: string;
 	serverEntrypoint?: string;
 	exports?: string[];
+  adapterFeatures: AstroAdapterFeatures;
+  supportedAstroFeatures: AstroFeatureMap;
+}
+
+export interface AstroAdapterFeatures {
+	/**
+	 * Cria uma função na edge que irá se comunicar com o middleware do Astro.
+	 */
+	edgeMiddleware: boolean;
+	/**
+	 * SSR apenas. Cada rota se torna sua própria função/arquivo.
+	 */
+	functionPerRoute: boolean;
+}
+
+export type SupportsKind = 'unsupported' | 'stable' | 'experimental' | 'deprecated';
+
+export type AstroFeatureMap = {
+  /**
+   * O adaptador é capaz de servir páginas estáticas
+   */
+  staticOutput?: SupportsKind;
+  /**
+   * O adaptador é capaz de servir páginas que são estáticas ou renderizadas pelo servidor
+   */
+  hybridOutput?: SupportsKind;
+  /**
+   * O adaptador é capaz de servir páginas SSR
+   */
+  serverOutput?: SupportsKind;
+  /**
+   * O adaptador pode emitir assets estáticos
+   */
+  assets?: AstroAssetsFeature;
+};
+
+export interface AstroAssetsFeature {
+  supportKind?: SupportsKind;
+  /**
+   * Define se o adaptador faz deploy de arquivos em um ambiente que é compatível com a biblioteca`sharp`
+   */
+  isSharpCompatible?: boolean;
+  /**
+   * Define se o adaptador faz deploy de arquivos em um ambiente que é compatível com a biblioteca `squoosh`
+   */
+  isSquooshCompatible?: boolean;
 }
 ```
 
@@ -49,6 +98,9 @@ As propriedades são:
 * __name__: Um nome único para seu adaptador, usado em logs.
 * __serverEntrypoint__: O ponto de entrada para renderização no lado do servidor.
 * __exports__: Um array de exportações nomeadas quando utilizado em conjunto com `createExports` (explicado abaixo).
+* __adapterFeatures__: Um objeto que habilita funcionalidades específicas que devem ser suportadas pelo adaptador. 
+  Essas funcionalidades irão mudar o resultado da build, e o adaptador deve implementar a lógica adequada para lidar com esse resultado diferente. 
+* __supportedAstroFeatures__: Um map das funcionalidades integradas do Astro. Isso permite o Astro determinar quais funcionalidades um adaptador é incapaz ou não quer suportar para que as mensagens de erro apropriadas sejam fornecidas.
 
 ### Ponto de Entrada do Servidor
 
@@ -188,3 +240,172 @@ Você geralmente pode chamar `app.render(requisicao)` sem utilizar `.match` pois
 ```
 
 Assim que você [publicar seu adaptador no npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), executar `astro add exemplo` irá instalar seu pacote com quaisquer dependências de pares especificadas em seu `package.json`. Nós também iremos instruir usuários a atualizarem a configuração de seus projetos manualmente.
+
+## Funcionalidades do Astro
+
+<Since v="3.0.0" />
+
+Funcionalidades do Astro é uma forma para que adaptadores digam ao Astro se eles são ou não capazes de suportar uma funcionalidade, e também o nível de suporte do adaptador.  
+
+Ao utilizar essas propriedades, Astro irá:
+- executar validação específica; 
+- emitir contextos para os registros;
+
+Essas operações são executadas com base nas funcionalidades suportadas ou não, seu nível de suporte, e a configuração que o usuário utiliza.
+
+A configuração a seguir diz ao Astro que esse adaptador tem suporte experimental para assets, porém o adaptador não é compatível com os serviços Sharp e Squoosh integrados:
+
+```js title="meu-adaptador.mjs" ins={9-15}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/meu-adaptador',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/meu-adaptador',
+          serverEntrypoint: '@matthewp/meu-adaptador/server.js',
+          supportedAstroFeatures: {
+            assets: {
+              supportKind: "experimental",
+              isSharpCompatible: false,
+              isSquooshCompatible: false
+            }
+          }  
+        });
+      },
+    },
+  };
+}
+```
+
+Astro irá registar um **aviso** ao terminal:
+
+```
+[@matthewp/meu-adaptador] A funcionalidade é experimental e sujeita a problemas ou mudanças.
+```
+
+e um erro se o serviço usado para assets não é compatível com o adaptador:
+
+```
+[@matthewp/meu-adaptador] O adaptador atualmente selecionado `@matthewp/meu-adaptador` não é compatível com o serviço "Sharp". Seu projeto não será capaz de build.
+```
+
+## Funcionalides do Adaptador
+
+Um conjunto de funcionalidades que modificam o resultado dos arquivos emitidos. Quando um adaptador opta por essas funcionalidades, ele irá adquirir informação adicional dentro de hooks específicos.
+
+### `functionPerRoute`
+
+Essa é uma funcionalidade que é habilitada ao utilizar SSR apenas. Por padrão, Astro emite um único arquivo `entry.mjs`, que é responsável por emitir a página renderizada a cada requisição.
+
+Quando `functionPerRoute` é `true`, Astro irá ao invés disso criar um arquivo separado para cada rota definida no projeto. 
+Cada arquivo emitido irá apenas renderizar uma página. As páginas serão emitidas dentro do diretório `dist/pages/`, e os arquivos emitidos irão manter o mesmo caminho de arquivo que o diretório `src/pages/`.
+
+Habilite essa funcionalidade passando `true` ao adaptador.
+
+```js title="meu-adaptador.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/meu-adaptador',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/meu-adaptador',
+          serverEntrypoint: '@matthewp/meu-adaptador/server.js',
+          adapterFeatures: {
+              functionPerRoute: true
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+Então, consuma o hook [`astro:build:ssr`](/pt-br/reference/integrations-reference/#astrobuildssr), que irá te dar um objeto `entryPoints` que mapeia uma rota de página ao arquivo físico emitido após a build.
+
+```js title="meu-adaptador.mjs" ins={15-19}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/meu-adaptador',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/meu-adaptador',
+          serverEntrypoint: '@matthewp/meu-adaptador/server.js',
+          adapterFeatures: {
+              functionPerRoute: true
+          } 
+        });
+      },
+
+      'astro:build:ssr': ({ entryPoints }) => {
+          for (const [route, entryFile] of entryPoints) {
+              // faça algo com a route e entryFile
+          }
+      }  
+    },
+  };
+}
+```
+
+:::caution
+O `entryFile` é do tipo `URL` e representa o caminho físico do arquivo no sistema de arquivos. Isso significa que os caminhos mudam com base no SO onde o código é executado. 
+:::
+
+### `edgeMiddleware`
+
+Define se algum código de middleware SSR passará por bundle ao ser construído.
+
+Quando habilitado, isso previne código de middleware de passar por bundle e ser importado por todas as páginas durante a:
+
+```js title="meu-adaptador.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/meu-adaptador',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/meu-adaptador',
+          serverEntrypoint: '@matthewp/meu-adaptador/server.js',
+          adapterFeatures: {
+              edgeMiddleware: true
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+Então, consuma o hook [`astro:build:ssr`](/pt-br/reference/integrations-reference/#astrobuildssr), que irá te dar um `middlewareEntryPoint`, uma `URL` para o arquivo físico no sistema de arquivos.
+
+```js title="meu-adaptador.mjs" ins={15-19}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/meu-adaptador',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/meu-adaptador',
+          serverEntrypoint: '@matthewp/meu-adaptador/server.js',
+          adapterFeatures: {
+              edgeMiddleware: true
+          } 
+        });
+      },
+
+      'astro:build:ssr': ({ middlewareEntryPoint }) => {
+          // lembre-se de verificar se essa propriedade existe, ela será `undefined` se o adaptador não optar pela funcionalidade
+          if (middlewareEntryPoint) {
+             createEdgeMiddleware(middlewareEntryPoint)
+          }
+      }  
+    },
+  };
+}
+
+function createEdgeMiddleware(middlewareEntryPoint) {
+    // emite um novo arquivo físico utilizando seu bundler
+}
+```
