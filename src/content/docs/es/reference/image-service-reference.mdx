@@ -13,7 +13,7 @@ La API de Servicios de Imágenes es una característica experimental de Astro in
 
 Astro proporciona dos tipos de servicios de imágenes: locales y externos.
 
-- **Los servicios locales** se encargan de las transformaciones de imágenes directamente en la compilación para sitios estáticos, o en tiempo de ejecución tanto en el modo de desarrollo como en SSR. Estos son a menudo envoltorios alrededor de bibliotecas como Sharp, ImageMagick o Squoosh. En el modo de desarrollo y en SSR, los servicios locales utilizan un punto final de API para realizar la transformación.
+- **Los servicios locales** se encargan de las transformaciones de imágenes directamente en la compilación para sitios estáticos, o en tiempo de ejecución tanto en el modo de desarrollo como en SSR. Estos son a menudo envoltorios alrededor de bibliotecas como Sharp, ImageMagick o Squoosh. En el modo de desarrollo y en SSR, los servicios locales utilizan un endpoint de API para realizar la transformación.
 - **Los servicios externos** apuntan a URLs y pueden agregar soporte para servicios como Cloudinary, Vercel o cualquier servidor compatible con [RIAPI](https://github.com/riapi/riapi).
 
 ## Construyendo con la API de Servicios de Imágenes
@@ -31,10 +31,11 @@ Ambos tipos de serivicios pueden proporcionar `getHTMLAttributes()` para determi
 Un servicio externo apunta a una URL remota para ser usada como el atributo `src` de la etiqueta `<img>`. Esta URL remota es responsable de descargar, transformar y devolver la imagen.
 
 ```js
-import type { ExternalImageService } from "astro";
+import type { ExternalImageService, ImageTransform, AstroConfig } from "astro";
 
 const service: ExternalImageService = {
-  validateOptions(options: ImageTransform, serviceConfig: Record<string, any>) {
+  validateOptions(options: ImageTransform, imageConfig: AstroConfig['image']) {
+    const serviceConfig = imageConfig.service.config;
     // Aplica el ancho máximo establecido por el usuario.
     if (options.width > serviceConfig.maxWidth) {
       console.warn(`El ancho de la imagen ${options.width} excede el ancho máximo ${serviceConfig.maxWidth}. Se utilizará el ancho máximo como alternativa.`);
@@ -43,10 +44,10 @@ const service: ExternalImageService = {
 
     return options;
   },
-  getURL(options, serviceConfig) {
+  getURL(options, imageConfig) {
     return `https://mysupercdn.com/${options.src}?q=${options.quality}&w=${options.width}&h=${options.height}`;
   },
-  getHTMLAttributes(options, serviceConfig) {
+  getHTMLAttributes(options, imageConfig) {
     const { src, format, quality, ...attributes } = options;
 		return {
 			...attributes,
@@ -65,9 +66,10 @@ export default service;
 Para crear tu propio servicio local, puedes apuntar al [endpoint integrado](https://github.com/withastro/astro/blob/main/packages/astro/src/assets/image-endpoint.ts) (`/_image`) o puedes crear tu propio endpoint que pueda llamar a los métodos del servicio.
 
 ```js
-import type { LocalImageService } from "astro";
+import type { LocalImageService, AstroConfig } from "astro";
+
 const service: LocalImageService = {
-  getURL(options: ImageTransform, serviceConfig: Record<string, any>) {
+  getURL(options: ImageTransform, imageConfig: AstroConfig['image']) {
     const searchParams = new URLSearchParams();
 		searchParams.append('href', typeof options.src === "string" ? options.src : options.src.src);
 		options.width && searchParams.append('w', options.width.toString());
@@ -78,7 +80,7 @@ const service: LocalImageService = {
     // O usa el endpoint integrado, el cual llamará a tus funciones parseURL y transform:
     // return `/_image?${searchParams}`;
   },
-  parseURL(url: URL, serviceConfig) {
+  parseURL(url: URL, imageConfig) {
     return {
       src: params.get('href')!,
       width: params.has('w') ? parseInt(params.get('w')!) : undefined,
@@ -87,14 +89,14 @@ const service: LocalImageService = {
       quality: params.get('q'),
     };
   },
-  transform(buffer: Buffer, options: { src: string, [key: string]: any }, serviceConfig): { data: Buffer, format: OutputFormat } {
+  transform(buffer: Buffer, options: { src: string, [key: string]: any }, imageConfig): { data: Buffer, format: OutputFormat } {
     const { buffer } = mySuperLibraryThatEncodesImages(options);
     return {
       data: buffer,
       format: options.format,
     };
   },
-  getHTMLAttributes(options, serviceConfig) {
+  getHTMLAttributes(options, imageConfig) {
 		let targetWidth = options.width;
 		let targetHeight = options.height;
 		if (typeof options.src === "object") {
@@ -125,20 +127,22 @@ En el tiempo de compilación para sitios estáticos y rutas pre-renderizadas, ta
 
 En el modo de desarrollo y el modo SSR, Astro no sabe de antemano qué imágenes deben ser optimizadas. Astro usa un endpoint GET (por defecto, `/_image`) para procesar las imágenes en tiempo de ejecución. `<Image />` y `getImage()` pasan sus opciones a `getURL()`, que devolverá la URL del endpoint. Luego, el endpoint llama a `parseURL()` y pasa las propiedades resultantes a `transform()`.
 
-#### getConfiguredImageService y imageServiceConfig
+#### getConfiguredImageService & imageConfig
 
-Si implementas tu propio endpoint como un endpoint de Astro, puedes usar `getConfiguredImageService` y `imageServiceConfig` para llamar a los métodos `parseURL` y `transform` de tu servicio y proporcionar el objeto de configuración del servicio.
+Si implementas tu propio endpoint como un endpoint de Astro, puedes usar `getConfiguredImageService` y `imageConfg` para llamar a los métodos `parseURL` y `transform` de tu servicio y proporcionar la configuración de la imagen.
+
+Para acceder a la configuración del servicio de imágenes ([`image.service.config`](/es/reference/configuration-reference/#imageservice-experimental)), puedes usar `imageConfig.service.config`.
 
 ```ts title="src/api/my_custom_endpoint_that_transforms_images.ts"
 import type { APIRoute } from "astro";
-import { getConfiguredImageService, imageServiceConfig } from 'astro:assets';
+import { getConfiguredImageService, imageConfig } from 'astro:assets';
 
 export const get: APIRoute = async ({ request }) => {
   const imageService = await getConfiguredImageService();
 
-  const imageTransform = imageService.parseURL(new URL(request.url), imageServiceConfig);
+  const imageTransform = imageService.parseURL(new URL(request.url), imageConfig);
   // ... busca la imagen de imageTransform.src y guárdala en inputBuffer
-  const { data, format } = await imageService.transform(inputBuffer, imageTransform, imageServiceConfig);
+  const { data, format } = await imageService.transform(inputBuffer, imageTransform, imageConfig);  
   return new Response(data, {
 			status: 200,
 			headers: {
@@ -158,7 +162,7 @@ export const get: APIRoute = async ({ request }) => {
 
 **Requerido para servicios locales y externos**
 
-`getURL(options: ImageTransform, imageServiceConfig: Record<string, any>): string`
+`getURL(options: ImageTransform, imageConfig: AstroConfig['image']): string`
 
 Para servicios locales, este hook devuelve la URL del endpoint que genera tu imagen (en SSR y modo de desarrollo). No se usa durante la compilación. El endpoint local al que apunta `getURL()` puede llamar tanto a `parseURL()` como a `transform()`.
 
@@ -169,7 +173,7 @@ Para ambos tipos de servicios, `options` son las propiedades pasadas por el usua
 ```ts
 export type ImageTransform = {
     // Imágenes importadas ESM | rutas de imágenes remotas/públicas
-    src: ImageAsset | string;
+    src: ImageMetadata | string;
     width?: number;
     height?: number;
     quality?: ImageQuality;
@@ -184,7 +188,7 @@ export type ImageTransform = {
 
 **Requerido para servicios locales; no disponible para servicios externos**
 
-`parseURL(url: URL, imageServiceConfig: Record<string, any>): { src: string, [key: string]: any}`
+`parseURL(url: URL, imageConfig: AstroConfig['image']): { src: string, [key: string]: any}`
 
 Este hook analiza las URL generadas por `getURL()` en un objeto con las diferentes propiedades que se utilizarán en `transform` (en SSR y modo de desarrollo). No se usa durante la compilación.
 
@@ -192,7 +196,7 @@ Este hook analiza las URL generadas por `getURL()` en un objeto con las diferent
 
 **Requerido para servicios locales; no disponible para servicios externos**
 
-`transform(buffer: Buffer, options: { src: string, [key: string]: any }, imageServiceConfig: Record<string, any>): { data: Buffer, format: OutputFormat }`
+`transform(buffer: Buffer, options: { src: string, [key: string]: any }, imageConfig: AstroConfig['image']): { data: Buffer, format: OutputFormat }`
 
 Este hook transforma y devuelve la imagen y se llama durante la compilación para crear los archivos de activos finales.
 
@@ -202,7 +206,7 @@ Debes devolver un `format` para asegurarte de que se sirve el tipo MIME adecuado
 
 **Opcional para ambos servicios locales y externos**
 
-`getHTMLAttributes(options: ImageTransform, imageServiceConfig: Record<string, any>): Record<string, any>`
+`getHTMLAttributes(options: ImageTransform, imageConfig: AstroConfig['image']): Record<string, any>`
 
 Este hook devuelve todos los atributos adicionales utilizados para renderizar la imagen como HTML, basados en los parámetros pasados por el usuario (`options`).
 
@@ -210,7 +214,7 @@ Este hook devuelve todos los atributos adicionales utilizados para renderizar la
 
 **Opcional para ambos servicios locales y externos**
 
-`validateOptions(options: ImageTransform, imageServiceConfig: Record<string, any>): ImageTransform`
+`validateOptions(options: ImageTransform, imageConfig: AstroConfig['image']): ImageTransform`
 
 Este hook te permite validar y aumentar las opciones pasadas por el usuario. Esto es útil para establecer opciones predeterminadas, o para decirle al usuario que un parámetro es obligatorio.
 
