@@ -10,9 +10,10 @@ O Astro permite que você crie endpoints customizados para servir e processar to
 Em sites gerados de forma estática, seus endpoints customizados são chamados durante a fase de build para produzir arquivos estáticos. Já em sites usando o [modo SSR](/pt-br/guides/server-side-rendering/#habilitando-o-ssr-em-seu-projeto) seus endpoints customizados se tornarão endpoints reais executados a cada requisição. Endpoints estáticos e SSR são definidos de maneira similar, mas os endpoints SSR suportam funcionalidades adicionais.
 
 ## Endpoints de Arquivos Estáticos
+
 Para criar um endpoint customizado, adicione um arquivo `.js` ou `.ts` no diretório `/pages`. A extensão do arquivo será removida durante o processo de build, portanto o nome do arquivo deve conter a extensão que você deseja que os dados usem, por exemplo `src/pages/data.json.ts` se tornará a rota `/data.json`.
 
-Seus endpoints devem exportar uma função `get` (opcionalmente assíncrona) que recebe um [objeto de contexto](/pt-br/reference/api-reference/#contexto-de-endpoint) com propriedades similares a global `Astro`. Ele retorna um objeto com um `body`, que o Astro irá chamar durante a build e utilizar seu conteúdo para gerar o arquivo.
+Seus endpoints devem exportar uma função `GET` (opcionalmente assíncrona) que recebe um [objeto de contexto](/pt-br/reference/api-reference/#contexto-de-endpoint) com propriedades similares a global `Astro`. Aqui, ele retorna um objeto `Response` com um `name` e `url`, que o Astro irá chamar durante a build e utilizar seu conteúdo para gerar o arquivo.
 
 ```ts
 // Exemplo: src/pages/builtwith.json.ts
@@ -27,12 +28,22 @@ export async function GET({params, request}) {
 }
 ```
 
-O objeto retornado também pode conter a propriedade `encoding`. Ela deve ser uma string válida do tipo [`BufferEncoding`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/bdd02508ddb5eebcf701fdb8ffd6e84eabf47885/types/node/buffer.d.ts#L169) aceita pelo método `fs.writeFile` do Node.js. Por exemplo, para gerar uma imagem no formato png retornamos:
+O objeto `Response` retornado também pode ser um objeto `ResponseWithEncoding`. Ela deve ser uma string válida do tipo [`BufferEncoding`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/bdd02508ddb5eebcf701fdb8ffd6e84eabf47885/types/node/buffer.d.ts#L169) aceita pelo método `fs.writeFile` do Node.js. Por exemplo, para gerar uma imagem no formato png retornamos:
 
-```ts title="src/pages/builtwith.json.ts" {6}
+```ts title="src/pages/builtwith.json.ts" {3}
 export async function GET({ params, request }) {
   const response = await fetch("https://docs.astro.build/assets/full-logo-light.png");
   return new Response(await response.arrayBuffer());
+}
+```
+
+ou
+
+```ts title="src/pages/astro-logo.png.ts" {3}
+export async function GET({ params, request }) {
+  const response = await fetch("https://docs.astro.build/assets/full-logo-light.png");
+  return new ResponseWithEncoding(await response);
+}
 ```
 
 Também é possível adicionar validação de tipo à sua função com o tipo `APIRoute`:
@@ -50,7 +61,7 @@ Os endpoints suportam as mesmas funcionalidades de [roteamento dinâmico](/pt-br
 ```ts title="src/pages/api/[id].json.ts"
 import type { APIRoute } from 'astro';
 
-const usuarios = ["Sarah", "Chris", "Dan"]
+const usuarios = ["Sarah", "Chris", "Yan", "Elian"]
 
 export const GET: APIRoute = ({ params, request }) => {
   const id = params.id;
@@ -66,13 +77,15 @@ export function getStaticPaths() {
     { params: { id: "0"} },
     { params: { id: "1"} },
     { params: { id: "2"} },
+    { params: { id: "3"} }
   ]
 }
 ```
 
-Dessa forma serão gerados três endpoints JSON durante a build: `/api/0.json`, `/api/1.json` e `/api/2.json`. O roteamento dinâmico com endpoints funciona da mesma forma que nas páginas, porém, como um endpoint é uma função e não uma página, [props](/pt-br/reference/api-reference/#passagem-de-dados-com-props) não são suportadas.
+Isso irá gerar quatro endpoints JSON durante a build: `/api/0.json`, `/api/1.json`, `/api/2.json` e `/api/3.json`. O roteamento dinâmico com endpoints funciona da mesma forma que nas páginas, porém, como um endpoint é uma função e não uma página, [props](/pt-br/reference/api-reference/#passagem-de-dados-com-props) não são suportadas.
 
 ### `request`
+
 Todos os endpoints recebem uma propriedade `request`, porém no modo estático você só tem acesso a propriedade `request.url`. Ela retorna o URL completo do endpoint atual e funciona da mesma forma que [Astro.request.url](/pt-br/reference/api-reference/#astrorequest) funciona em páginas.
 
 ```ts title="src/pages/request-path.json.ts"
@@ -87,7 +100,8 @@ export const GET: APIRoute = ({ params, request }) => {
 ```
 
 ## Endpoints do Servidor (Rotas de API)
-Tudo descrito na seção de endpoints de arquivos estáticos também pode ser utilizado no modo SSR: arquivos podem exportar uma função `get` que recebe um [objeto de contexto](/pt-br/reference/api-reference/#contexto-de-endpoint) com propriedades similares a global `Astro`.
+
+Tudo descrito na seção de endpoints de arquivos estáticos também pode ser utilizado no modo SSR: arquivos podem exportar uma função `GET` que recebe um [objeto de contexto](/pt-br/reference/api-reference/#contexto-de-endpoint) com propriedades similares a global `Astro`.
 
 Porém, diferente do modo `static`, quando você configura o modo `server`, os endpoints serão construídos no momento em que são requisitados. Isso desbloqueia novas funcionalidades que estão indisponíveis durante a build e permite que você construa rotas de API que respondem requisições e seguramente executam código no servidor em runtime.
 
@@ -139,6 +153,7 @@ export async function GET({ params, request }) {
 ```
 
 ### Métodos HTTP
+
 Além da função `GET`, você pode exportar uma função com o nome de qualquer [método HTTP](https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Methods). Assim, quando uma requisição for recebida, o Astro irá checar o método e chamar a função correspondente.
 
 Também é possível exportar uma função `ALL` para corresponder a todos os métodos que já não tenham suas respectivas funções exportadas. Se houver uma requisição sem método correspondente, ela será redirecionada para a sua [página de 404](/pt-br/core-concepts/astro-pages/#página-customizada-de-erro-404).
@@ -176,6 +191,7 @@ export const ALL: APIRoute = ({ request }) => {
 <RecipeLinks slugs={["pt-br/recipes/captcha", "pt-br/recipes/build-forms-api" ]}/>
 
 ### `request`
+
 No modo SSR, a propriedade `request` retorna um objeto [`Request`](https://developer.mozilla.org/pt-BR/docs/Web/API/Request) completamente utilizável que se refere a requisição atual. Isso permite que você aceite dados e cheque cabeçalhos:
 
 ```ts title="src/pages/test-post.json.ts"
@@ -194,6 +210,7 @@ export const POST: APIRoute = async ({ request }) => {
 ```
 
 ### Redirecionamentos
+
 O contexto do endpoint exporta um utilitário `redirect()` similar ao `Astro.redirect`:
 
 ```js title="src/pages/links/[id].js" {14}
