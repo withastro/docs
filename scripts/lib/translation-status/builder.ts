@@ -354,6 +354,9 @@ export class TranslationStatusBuilder {
 		`en/astro-components.mdx`, `en/astro-pages.mdx`, `en/astro-syntax.mdx`
 
 		Will mark only `en/astro-components.mdx` & `en/astro-pages.mdx` as major changes.
+
+		See minimatch docs for examples on glob patterns:
+		https://github.com/isaacs/minimatch/blob/main/README.md
 		
 	*/
 	isValidMajor(entry: DefaultLogFields & ListLogLine, filePath: string) {
