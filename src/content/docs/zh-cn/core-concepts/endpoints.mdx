@@ -13,7 +13,7 @@ Astro 允许你创建自定义端点来提供任何类型的数据。你可以�
 
 要想要创建自定义端点，请将 `.js` 或 `.ts` 文件添加到 `/pages` 目录。`.js` 或 `.ts` 这样的扩展名将在构建过程中被删除，因此文件名中应包含你要创建的数据的扩展名。例如，文件 `src/pages/data.json.ts` 将被构建为 API 端点 `/data.json`。
 
-端点导出一个 `GET` 函数（可选的以 `async` 导出），该函数接收具有类似于 Astro 全局属性的上下文对象。它返回一个带有 `body` 的对象，Astro 将在构建时调用它并使用 `body` 中的内容来生成文件。
+端点导出一个 `GET` 函数（可选的以 `async` 导出），该函数接收具有类似于 `Astro` 全局属性的  [上下文对象](/zh-cn/reference/api-reference/#端点上下文)。在这里，它返回一个带有 `name` 和 `url` 的 Response 对象，Astro 将在构建时调用它并使用 `body` 中的内容来生成文件。
 
 ```js
 // 输出: /builtwith.json
@@ -27,9 +27,9 @@ export async function GET({params, request}) {
 }
 ```
 
-返回对象还可以具有 `encoding` 属性。它可以是任何可以被 Node.js 的 `fs.writeFile` 方法接收的 [`BufferEncoding`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/bdd02508ddb5eebcf701fdb8ffd6e84eabf47885/types/node/buffer.d.ts#L169)。例如，生成一个二进制png图像：
+从 Astro v3.0 开始，返回的 `Response` 对象不再需要包含 `encoding` 属性。例如，生成一个二进制 png 图像：
 
-```ts title="src/pages/astro-logo.png.ts" {6}
+```ts title="src/pages/astro-logo.png.ts" {3}
 export async function GET({ params, request }) {
   const response = await fetch("https://docs.astro.build/assets/full-logo-light.png");
   return new Response(await response.arrayBuffer());
@@ -46,7 +46,7 @@ export const GET: APIRoute = async ({ params, request }) => {...}
 
 ### `params` 和动态路由
 
-端点支持与页面相同的[动态路由](/zh-cn/core-concepts/routing/#动态路由)功能。使用中括号包裹参数作为文件名，并导出 [`getStaticPaths()` 函数](/zh-cn/reference/api-reference/#getstaticpaths)。然后，你可以使用传递给 API 端点函数的 `params` 属性访问参数：
+端点支持与页面相同的 [动态路由](/zh-cn/core-concepts/routing/#动态路由) 功能。使用中括号包裹参数作为文件名，并导出 [`getStaticPaths()` 函数](/zh-cn/reference/api-reference/#getstaticpaths)。然后，你可以使用传递给 API 端点函数的 `params` 属性访问参数：
 
 ```ts title="src/pages/api/[id].json.ts"
 import type { APIRoute } from 'astro';
@@ -91,14 +91,14 @@ export const GET: APIRoute = ({ params, request }) => {
 
 ## 服务器端点（API 路由）
 
-[静态文件的端点](#静态文件端点)部分中描述的所有内容均可以在 SSR 模式下使用：文件可以导出一个名为 `get` 的函数，该函数接收具有类似于 `Astro` 全局属性的上下文对象
+[静态文件的端点](#静态文件端点) 部分中描述的所有内容均可以在 SSR 模式下使用：文件可以导出一个名为 `get` 的函数，该函数接收具有类似于 `Astro` 全局属性的 [上下文对象](/zh-cn/reference/api-reference/#端点上下文)。
 
 但是，不同于静态模式，当你使用 `server` 模式时，端点将在请求时被构建。这解锁了在构建时不可用的新特性，并允许你构建 API 路由以监听请求，并在服务器上安全地执行代码。
 
 <RecipeLinks slugs={["zh-cn/recipes/call-endpoints" ]}/>
 
 :::note
-在尝试这些示例之前，请务必确认已经[启用了 SSR](/zh-cn/guides/server-side-rendering/#启用-ssr)。
+在尝试这些示例之前，请务必确认已经 [启用了 SSR](/zh-cn/guides/server-side-rendering/#启用-ssr)。
 :::
 
 服务器端点可以在不导出 `getStaticPaths` 的情况下访问 `params`。服务器端点可以返回一个 [`Response`](https://developer.mozilla.org/zh-CN/docs/Web/API/Response) 对象，其允许你为返回的数据设置 `status codes` 和 `headers`
@@ -144,15 +144,9 @@ export async function GET({ params, request }) {
 
 ### HTTP 方法
 
-除了 `GET` 函数，您还可以使用任何 [HTTP 方法](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Methods) 作为名称导出函数。当有请求进来时，Astro 会检查该方法并调用相应的函数。
+除了 `GET` 函数，你还可以使用任何 [HTTP 方法](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Methods) 作为名称导出函数。当有请求进来时，Astro 会检查该方法并调用相应的函数。
 
-你还可以导出 `all` 函数以匹配任何没有相应导出函数的方法。如果请求没有匹配的方法，它将重定向到您网站的 [404 页面](/zh-cn/core-concepts/astro-pages/#自定义-404-错误页面)。
-
-<RecipeLinks slugs={["zh-cn/recipes/captcha", "zh-cn/recipes/build-forms-api" ]}/>
-
-:::note
-由于 `delete` 是 JavaScript 中的保留关键字，请导出名为 `del` 的函数以匹配 DELETE 方法。
-:::
+你还可以导出 `ALL` 函数以匹配任何没有相应导出函数的方法。如果请求方法不匹配，它将重定向到你的网站的 [404 页面](/zh-cn/core-concepts/astro-pages/#自定义-404-错误页面)。
 
 ```ts title="src/pages/methods.json.ts"
 export const GET: APIRoute = ({ params, request }) => {
@@ -183,6 +177,8 @@ export const ALL: APIRoute = ({ request }) => {
   )
 }
 ```
+
+<RecipeLinks slugs={["zh-cn/recipes/captcha", "zh-cn/recipes/build-forms-api" ]}/>
 
 ### `request` 
 
