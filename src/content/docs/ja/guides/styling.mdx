@@ -41,10 +41,10 @@ Astroの`<style>`CSSルールは、**デフォルトで自動的にスコープ�
 
 ```astro
 <style>
-  h1:where(.astro-HHNQFKH6) {
-     color: red;
+  h1[data-astro-cid-hhnqfkh6] {
+    color: red;
   }
-  .text:where(.astro-HHNQFKH6) {
+  .text[data-astro-cid-hhnqfkh6] {
     color: blue;
   }
 </style>
@@ -157,7 +157,7 @@ import MyComponent from "../components/MyComponent.astro"
 <MyComponent class="red">This will be red!</MyComponent>
 ```
 
-このパターンでは、子コンポーネントに直接スタイルを設定できます。Astroは、親のスコープ付きクラス名（例：`astro-HHNQFKH6`）を`class`プロパティを通して自動的に渡し、その子を親のスコープに含めます。
+このパターンでは、子コンポーネントに直接スタイルを設定できます。Astroは、親のスコープ付きクラス名（例：`astro-hhnqfkh6`）を`class`プロパティを通して自動的に渡し、その子を親のスコープに含めます。
 
 :::note[親コンポーネントからスコープされたクラス]
 `class`プロパティは親のスコープに子を含むので、親から子へスタイルがカスケードされる可能性があります。このような意図しない副作用を避けるには、子コンポーネントでユニークなクラス名を使用するようにします。
@@ -531,23 +531,35 @@ Tailwindを使用している場合、Markdownのスタイリングには[typogr
 
 ### バンドルの調整
 
-Astroが本番環境向けにサイトをビルドする際、CSSはチャンクに結合されます。サイト上の各ページはそれぞれ独自のチャンクとなり、さらに複数のページ間で共有されるCSSは、再利用のために独自のチャンクに分割されます。
+Astroが本番環境向けにサイトをビルドする際、CSSはミニファイされチャンクへと結合されます。サイト上の各ページはそれぞれ独自のチャンクを取得し、さらに複数のページ間で共有されるCSSは、再利用のために独自のチャンクに分割されます。
 
-各HTMLファイルには、ページが必要とするチャンクごとに`<link rel="stylesheet">`タグが追加されます。
+しかし、複数のページでスタイルを共有している場合、共有される一部のチャンクが非常に小さくなる場合があります。それらがすべて別々に送信された場合、スタイルシートへのリクエストが増加し、サイトのパフォーマンスに影響を与える可能性があります。そのため、Astroはデフォルトでは、HTML内の4kB以上のスタイルシートのみを`<link rel="stylesheet">`タグとしてリンクし、それ以外のものは`<style type="text/css">`にインライン化します。このアプローチにより、追加のリクエストの数と、ページ間でキャッシュされるCSSの量のあいだのバランスをとることができます。
 
-多数のページと複数の異なる共有スタイルをもつサイトは、スタイルシートへのリクエスト数が増加し、サイトのパフォーマンスに影響を与える可能性があります。`inlineStylesheets`オプションを設定することで、外部にリクエストする代わりに（ミニファイされた）スタイルシートを`<style>`タグに入れ、リクエスト数を少なくできます。
+Viteの`assetsInlineLimit`ビルドオプションを使用して、スタイルシートが外部にリンクされるサイズをバイト単位で設定できます。このオプションは、スクリプトと画像のインライン化にも影響することに注意してください。
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    build: {
+      assetsInlineLimit: 1024,
+    }
+  };
+});
+```
+
+すべてのスタイルシートを外部リンクとしたい場合は、`inlineStylesheets`ビルドオプションを設定します。
 
 ```js
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   build: {
-    inlineStylesheets: 'auto'
+    inlineStylesheets: 'never'
   }
 });
 ```
-
-`'auto'`オプションは、`vite.build.assetsInlineLimit`のしきい値を下回る数のスタイルシートのみをインライン化し、小さなスタイルシートへのリクエスト数を減らします。すべてのページで使用されるグローバルなスタイルシートなど大きなものは、引き続き外部から取得され、キャッシュされます。このオプションにより、ロードされるスタイルシートの数と、キャッシュされるスタイルのバランスをページ間で調整できます。
 
 このオプションを`'always'`に設定すると、すべてのスタイルシートがインライン化されます。
 
