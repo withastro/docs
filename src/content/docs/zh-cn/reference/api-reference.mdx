@@ -1,0 +1,1139 @@
+---
+title: API 参考
+---
+import Since from '~/components/Since.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+
+## `Astro` global
+
+`Astro` global 在 `.astro` 文件的所有上下文中都可用。它具有以下功能：
+
+### `Astro.glob()`
+
+`Astro.glob()` 可以在静态网站 setup 中加载本地文件：
+
+```astro
+---
+// ./src/components/my-component.astro
+const posts = await Astro.glob('../pages/post/*.md'); // 返回位于 ./src/pages/post/*.md 的数组并存储在常量 posts 中
+---
+
+<div>
+{posts.slice(0, 3).map((post) => (
+  <article>
+    <h1>{post.frontmatter.title}</h1>
+    <p>{post.frontmatter.description}</p>
+    <a href={post.frontmatter.url}>Read more</a>
+  </article>
+))}
+</div>
+```
+
+`.glob()` 只需要一个参数：你想导入的本地文件相对 glob URL 。它是异步的并返回数组, 这个数组包含匹配文件的导出内容。
+
+`.glob()` 不接受使用变量或字符串进行插值，因为它们不是静态可分析的。(参见[故障排查](/zh-cn/guides/troubleshooting/#支持的值)以了解解决方法)。 这是因为 `Astro.glob()` 是 Vite 的 [`import.meta.glob()`](https://cn.vitejs.dev/guide/features.html#glob-import) 的包装器。
+
+:::note
+你也可以在你的 Astro 项目中使用 `import.meta.glob()`。你可能想在以下情况下这样做：
+
+- 你在一个不是 `.astro` 的文件中需要这个功能，比如一个 API 路由。`Astro.glob()` 只在 `.astro` 文件中可用，而 `import.meta.glob()` 在项目的任何地方都可用。
+- 你不希望立即加载每个文件。`import.meta.glob()` 可以返回导入文件内容的函数，而不是返回内容本身。请注意，此导入包括任何导入文件的所有样式和脚本。无论文件是否被实际使用，这些样式和脚本都将被捆绑并添加到页面中，因为这是由静态分析决定的，而不是在运行时决定的。
+- 你想访问每个文件的路径。`import.meta.glob()` 返回文件路径到其内容的映射，而 `Astro.glob()` 返回内容的列表。
+- 你想传递多种模式；例如，你想添加一个“负模式”，过滤掉某些文件。`import.meta.glob()` 可以选择接受 glob 字符串数组，而不是单个字符串。
+
+在 [Vite 文档](https://cn.vitejs.dev/guide/features.html#glob-import)中阅读更多内容。
+:::
+
+#### Markdown 文件
+
+Markdown 文件有以下接口：
+
+```ts
+export interface MarkdownInstance<T extends Record<string, any>> {
+  /* 在此文件的 YAML frontmatter 中指定的任何数据 */
+ frontmatter: T;
+  /* 该文件的文件路径 */
+ file: string;
+  /* 该文件的渲染路径 */
+ url: string | undefined;
+  /* 渲染此文件内容的 Astro 组件 */
+ Content: AstroComponent;
+  /* 返回该文件中 h1...h6 元素数组的函数 */
+ getHeadings(): Promise<{ depth: number; slug: string; text: string }[]>;
+}
+```
+
+你可以选择使用 TypeScript 泛型指定 `frontmatter` 变量类型：
+
+```astro
+---
+interface Frontmatter {
+  title: string;
+  description?: string;
+}
+const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
+---
+
+<ul>
+  {posts.map(post => <li>{post.frontmatter.title}</li>)}
+</ul>
+```
+
+#### Astro 文件
+
+Astro 文件具有以下接口：
+
+```ts
+export interface AstroInstance {
+  /* 此文件的文件路径 */
+  file: string;
+  /* 此文件的 URL（如果它在 pages 目录中）*/
+	url: string | undefined;
+	default: AstroComponent;
+}
+```
+
+#### 其它文件
+
+其他文件可能有各种不同的接口，但如果你不知道文件类型包含什么，那么 `Astro.glob()` 可以接受 TypeScript 泛型。
+
+```ts
+---
+interface CustomDataFile {
+  default: Record<string, any>;
+}
+const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
+---
+```
+
+### `Astro.props`
+
+`Astro.props` 是一个包含任何作为[组件属性](/zh-cn/core-concepts/astro-components/#组件参数)传递的值的对象。`.md` 和 `.mdx` 文件的布局组件接收作为参数的 frontmatter 值。
+
+```astro {3}
+---
+// ./src/components/Heading.astro
+const { title, date } = Astro.props;
+---
+<div>
+    <h1>{title}</h1>
+    <p>{date}</p>
+</div>
+```
+
+```astro /title=".+"/ /date=".+"/
+---
+// ./src/pages/index.astro
+import Heading from '../components/Heading.astro';
+---
+<Heading title="我的第一篇文章" date="09 Aug 2022" />
+```
+
+📚 进一步了解 [Markdown 和 MDX 布局](/zh-cn/guides/markdown-content/#frontmatter-layout)如何处理 props。
+
+📚 了解如何为你的 props 添加 [TypeScript 类型定义](/zh-cn/guides/typescript/#组件参数)。
+
+
+
+### `Astro.params`
+
+`Astro.params` 是一个包含与此请求匹配的动态路由段的值的对象。
+
+在静态构建中，这将是 `getStaticPaths()` 返回的`params`，用于预渲染[动态路由](/zh-cn/core-concepts/routing/#动态路由).。
+
+在 SSR 构建中，这可以是与动态路由模式中的路径段匹配的任何值。
+
+```astro title="src/pages/posts/[id].astro"
+---
+export function getStaticPaths() {
+  return [
+    { params: { id: '1' } },
+    { params: { id: '2' } },
+    { params: { id: '3' } }
+  ];
+}
+
+const { id } = Astro.params;
+---
+<h1>{id}</h1>
+```
+
+另见：[`params`](#params)
+
+### `Astro.request`
+
+`Astro.request` 是标准的 [Request](https://developer.mozilla.org/zh-CN/docs/Web/API/Request) 对象。它可以用来获取请求的 `url`、`headers`、`method`，甚至是 `body`。可以使用 `new URL(Astro.request.url)` 来获得链接对象。
+
+```astro
+<p>Received a {Astro.request.method} request to "{Astro.request.url}".</p>
+<p>Received request headers: <code>{JSON.stringify(Object.fromEntries(Astro.request.headers))}</code>
+```
+
+另见：[`Astro.url`](#astrourl)
+
+:::note
+默认的 `output: static` 选项中，`Astro.request.url` 不包含搜索参数，如 `?foo=bar`，因为在静态构建中不可能提前确定这些参数。但是在 `output: 'server'` 模式下，`Astro.request.url` 可以包含搜索参数，因为它可以从服务器请求中确定。
+:::
+
+### `Astro.response`
+
+`Astro.response` 是标准的 [ResponseInit](https://developer.mozilla.org/zh-CN/docs/Web/API/Response/Response#init) 对象，它具有以下结构：
+
+- `status`：响应的状态码，例如 `200`。
+- `statusText`：响应状态码与之相对应的状态信息，例如 `OK`。
+- `headers`：一个能让你为响应设置 HTTP 头部的 [`Headers`](https://developer.mozilla.org/zh-CN/docs/Web/API/Headers) 实例。
+
+所以 `Astro.response` 也用于设置页面响应的 `status`、`statusText` 和 `headers`。
+
+```astro
+---
+if(condition) {
+  Astro.response.status = 404;
+  Astro.response.statusText = 'Not found';
+}
+---
+```
+
+或者设置 header：
+
+```astro
+---
+Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
+---
+```
+
+### `Astro.cookies`
+
+<Since v="1.4.0" />
+
+`Astro.cookies` 包含用于在[服务端渲染](/zh-cn/guides/server-side-rendering/)模式下读取和操作 cookie 的工具方法。
+
+
+|名&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;称  | 类&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;型                                                         | 描&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;述                                                         |
+| :-------- | :----------------------------------------------------------- | :----------------------------------------------------------- |
+| `get`      | `(key: string) => AstroCookie`                               | 获取 [`AstroCookie`](#astrocookie) 对象形式的 cookie，该对象包含`value`和用于将 cookie 转换为非字符串类型的工具方法。 |
+| `has`     | `(key: string) => boolean`                                   | cookie 是否存在。如果这个 cookie 已经通过`Astro.cookies.set()`设置，这将返回 true，否则它将检查 `Astro.request` 中的 cookies。 |
+| `set`     | `(key: string, value: string \| number \| boolean \| object, options?: CookieOptions) => void` | 将 cookie `key` 设置为给定的值。这将试图把 cookie 的值转换为一个字符串。选项提供了设置 [cookie 功能](https://www.npmjs.com/package/cookie#options-1)的方法，例如 `maxAge` 或 `httpOnly。` |
+| `delete`  | `(key: string, options?: CookieDeleteOptions) => void`       | 将 Cookie 标记为已删除。将 Cookie 标记为已删除。一旦 cookie 被删除，`Astro.cookies.has()` 将返回 `false`，`Astro.cookies.get()` 将返回一个值为 `undefined` 的 [`AstroCookie`](#astrocookie)。选项允许设置要删除的 Cookie 的`domain`和`path`。 |
+| `headers` | `() => Iterator<string>`                                     | 获取将与响应一起发送的 `Set-Cookie` 的 header 的值。         |
+
+#### `AstroCookie`
+
+通过 `Astro.cookies.get()` 获取 cookie 返回一个 `AstroCookie` 类型。 它具有以下结构。
+
+| 名&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;称                |         类&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;型          | 描&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;述                                                                                                         |
+| :----------------  | :-------------------: | :----------------------------------------------------------------------------------------------------------- |
+| `value`            | `string \| undefined`                      | cookie 的原始字符串值          |
+| `json`             | `() => Record<string, any>`                       | 通过 `JSON.parse()` 解析 cookie 值，返回一个对象。如果 cookie 值不是有效的 JSON，则抛出异常。        |
+| `number`           | `() => number` | 将 cookie 值解析为数字。如果不是有效数字，则返回 NaN。  |
+| `boolean`          | `() => boolean` | 转换 cookie 的值为 boolean 类型。  |
+
+
+
+
+### `Astro.redirect()`
+
+`Astro.redirect()` 允许你重定向到另一个页面。
+
+页面（而不是子组件）必须 `return` `Astro.redirect()` 的结果，以便重定向发生。
+
+```astro title="src/pages/account.astro" {8}
+---
+import { isLoggedIn } from '../utils';
+
+const cookie = Astro.request.headers.get('cookie');
+
+// 如果用户未登录，则将其重定向到登录页面
+if (!isLoggedIn(cookie)) {
+  return Astro.redirect('/login');
+}
+---
+```
+
+### `Astro.canonicalURL`
+
+:::caution[废弃]
+使用 [`Astro.url`](#astrourl) 来构建你自己的标准链接。
+:::
+
+当前页面的[标准链接][canonical]。
+
+### `Astro.url`
+
+<Since v="1.0.0-rc" />
+
+[URL](https://developer.mozilla.org/zh-CN/docs/Web/API/URL )对象，由当前 `Astro.request.url` 的链接字符串值构成。对于与请求的链接的个别属性进行交互是有用的，如路径名和起源。
+
+相当于做 `new URL(Astro.request.url)`。
+
+```astro
+<h1>当前链接是：{Astro.url}</h1>
+<h1>当前链接路径名是：{Astro.url.pathname}</h1>
+<h1>当前链接源是：{Astro.url.origin}</h1>
+```
+
+你也可以使用 `Astro.url` 来创建新的链接，并把它作为参数传给 [`new URL()`](https://developer.mozilla.org/zh-CN/docs/Web/API/URL/URL)。
+
+```astro
+---
+// 示例：使用你的生产域名构建一个规范的URL
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+// 示例：使用你目前的域名构建一个用于 SEO meta 标签的URL
+const socialImageURL = new URL('/images/preview.png', Astro.url);
+---
+<link rel="canonical" href={canonicalURL} />
+<meta property="og:image" content={socialImageURL} />
+```
+
+### `Astro.clientAddress`
+
+<Since v="1.0.0-rc" />
+
+指定请求的 [IP 地址](https://en.wikipedia.org/wiki/IP_address)。这个属性只在为 SSR（服务器端渲染）构建时可用，不应该用于静态网站。
+
+```astro
+---
+const ip = Astro.clientAddress;
+---
+
+<div>你的 IP 地址是：<span class="address">{ ip }</span></div>
+```
+
+### `Astro.site`
+
+`Astro.site` 返回根据 Astro 配置中的 `site` 生成的 `URL`。如果未定义 Astro 配置中的 `site`，`Astro.site` 也不会被定义。
+
+### `Astro.generator`
+
+<Since v="1.0.0" />
+
+`Astro.generator` 是个便捷方法，它可以添加与你当前 Astro 版本一致的 [`<meta name="generator">`](https://html.spec.whatwg.org/multipage/semantics.html#meta-generator) 标签。它遵循的格式是 `"Astro v1.x.x"`。
+
+```astro mark="Astro.generator"
+<html>
+  <head>
+    <meta name="generator" content={Astro.generator} />
+  </head>
+  <body>
+    <footer>
+      <p>由 <a href="https://astro.build">{Astro.generator}</a> 构建</p>
+    </footer>
+  </body>
+</html>
+```
+
+### `Astro.slots`
+
+`Astro.slots` 包含修改 Astro 组件插槽的工具函数。
+
+#### `Astro.slots.has()`
+
+**类型：**`(slotName: string) => boolean`
+
+你可以使用 `Astro.slots.has()` 检查特定插槽名称的内容是否存在。当你想要包装插槽内容，但只想在使用插槽时呈现包装器元素时，这会很有用。
+
+```astro
+---
+---
+<slot />
+
+{Astro.slots.has('more') && (
+  <aside>
+    <h2>More</h2>
+    <slot name="more" />
+  </aside>
+)}
+```
+
+#### `Astro.slots.render()`
+
+**类型：**`(slotName: string, args?: any[]) => Promise<string>`
+
+你可以使用 `Astro.slots.render()` 将插槽的内容异步渲染为 HTML 字符串。
+
+```astro
+---
+const html = await Astro.slots.render('default');
+---
+<Fragment set:html={html} />
+```
+
+:::note
+这是针对高级用例的！ 在大多数情况下，使用 [`<slot />` 元素](/zh-cn/core-concepts/astro-components/#插槽)呈现插槽内容会更简单。
+:::
+
+`Astro.slots.render()` 还可以接受第二个参数：一个参数数组，该参数数组将被转发给任何函数子组件。 这对于自定义实用程序组件很有用。
+
+举个例子，这个 `<Shout />` 组件将它的 `message` 属性转换为大写，并将其传递给默认插槽：
+
+```astro title="src/components/Shout.astro" "await Astro.slots.render('default', [message])"
+---
+const message = Astro.props.message.toUpperCase();
+let html = '';
+if (Astro.slots.has('default')) {
+  html = await Astro.slots.render('default', [message]);
+}
+---
+<Fragment set:html={html} />
+```
+
+作为 `<Shout />` 的子级传递的回调函数将会接收到大写的 `message` 参数：
+
+```astro title="src/pages/index.astro"
+---
+import Shout from "../components/Shout.astro";
+---
+<Shout message="slots!">
+  {(message) => <div>{message}</div>}
+</Shout>
+
+<!-- 渲染成 <div>SLOTS!</div> -->
+```
+
+### `Astro.self`
+
+`Astro.self` 允许 Astro 组件被递归调用。这使得你可以通过在组件模板中使用 `<Astro.self>` 从自身内部渲染 Astro 组件。这对遍历大型数据存储和嵌套数据结构很有帮助。
+
+```astro
+---
+// NestedList.astro
+const { items } = Astro.props;
+---
+<ul class="nested-list">
+  {items.map((item) => (
+    <li>
+      <!-- 如果有嵌套的数据结构，将渲染 `<Astro.self>` -->
+      <!-- 并可以通过递归调用来传递参数 -->
+      {Array.isArray(item) ? (
+        <Astro.self items={item} />
+      ) : (
+        item
+      )}
+    </li>
+  ))}
+</ul>
+```
+
+然后，这个组件可以这样用：
+
+```astro
+---
+import NestedList from './NestedList.astro';
+---
+<NestedList items={['A', ['B', 'C'], 'D']} />
+```
+
+之后将会渲染这样的 HTML：
+
+```html
+<ul class="nested-list">
+  <li>A</li>
+  <li>
+    <ul class="nested-list">
+      <li>B</li>
+      <li>C</li>
+    </ul>
+  </li>
+  <li>D</li>
+</ul>
+```
+
+### `Astro.locals`
+
+`Astro.locals` 是一个对象，包含来自中间件的 [`context.locals`](#contextlocals)对象的任何值。使用该对象可访问中间件在您的 `.astro` 文件中返回的数据。
+
+```astro title="src/pages/Orders.astro"
+---
+const title = Astro.locals.welcomeTitle();
+const orders = Array.from(Astro.locals.orders.entries());
+---
+<h1>{title}</h1>
+<ul>
+    {orders.map(order => {
+        return <li>{ /* 每单都有收获 */ }</li>
+    })}
+</ul>
+```
+
+## 端点上下文
+
+[端点函数](/zh-cn/core-concepts/endpoints/)接收一个上下文对象作为第一个参数。它与许多 `Astro` 全局属性相似。
+
+```ts title="endpoint.json.ts"
+import type { APIContext } from 'astro';
+
+export function GET(context: APIContext) {
+  // ...
+}
+```
+
+### `context.params`
+
+`context.params` 是一个对象，其中包含与此请求匹配的动态路由段的值。
+
+在静态构建中，这将是用于预渲染[动态路由](/zh-cn/core-concepts/routing/#动态路由)的 `getStaticPaths()` 返回的 `params`。
+
+在 SSR 构建中，这可以是与动态路由模式中的路径段匹配的任何值。
+
+
+```ts title="src/pages/posts/[id].json.ts"
+import type { APIContext } from 'astro';
+
+export function getStaticPaths() {
+  return [
+    { params: { id: '1' } },
+    { params: { id: '2' } },
+    { params: { id: '3' } }
+  ];
+}
+
+export function GET({ params }: APIContext) {
+	return {
+		body: JSON.stringify({ id: params.id })
+	};
+}
+```
+
+另见: [`params`](#params)
+
+### `context.props`
+
+`context.props` 是一个对象，其中包含从 `getStaticPaths()` 传递的任何 `props`。由于在为 SSR 构建时不使用 `getStaticPaths()`，因此 `context.props` 仅在静态构建中可用。
+
+```ts title="src/pages/posts/[id].json.ts"
+import type { APIContext } from 'astro';
+
+export function getStaticPaths() {
+  return [
+    { params: { id: '1' }, props: { author: 'Blu' } },
+    { params: { id: '2' }, props: { author: 'Erika' } },
+    { params: { id: '3' }, props: { author: 'Matthew' } }
+  ];
+}
+
+export function GET({ props }: APIContext) {
+	return {
+		body: JSON.stringify({ author: props.author }),
+	};
+}
+```
+
+另见：[通过`props`传递数据](#通过-props-传递数据)
+
+### `context.request`
+
+一个标准的 [Request](https://developer.mozilla.org/zh-CN/docs/Web/API/Request) 对象。它可以用来获取请求的 `url`、`headers`、`method` 甚至是 `body`。
+
+```ts
+import type { APIContext } from 'astro';
+
+export function GET({ request }: APIContext) {
+  return {
+    body: `Hello ${request.url}`
+  }
+}
+```
+
+另见：[Astro.request](#astrorequest)
+
+### `context.cookies`
+
+`context.cookies` 包含用于读取和操作 cookie 的工具。
+
+另见：[Astro.cookies](#astrocookies)
+
+### `context.url`
+
+`context.url` 是一个 [URL](https://developer.mozilla.org/zh-CN/docs/Web/API/URL) 对象，它是从当前 `context.request.url` URL 字符串值构造的。
+
+另见：[Astro.url](#astrourl)
+
+### `context.clientAddress`
+
+指定请求的 [IP 地址](https://en.wikipedia.org/wiki/IP_address)。此属性仅在构建 SSR（服务器端渲染）时可用，不应用于静态站点。
+
+```ts
+import type { APIContext } from 'astro';
+
+export function GET({ clientAddress }: APIContext) {
+  return {
+    body: `Your IP address is: ${clientAddress}`
+  }
+}
+```
+
+另见：[Astro.clientAddress](#astroclientaddress)
+
+
+### `context.site`
+
+`context.site` 返回一个由 Astro 配置中的 `site` 生成的 `URL`。如果未定义，则将返回从 `localhost` 生成的 URL。
+
+另见：[Astro.site](#astrosite)
+
+### `context.generator`
+
+`context.generator` 是一个方便的方法，用于指示项目正在运行的 Astro 版本。它遵循 `"Astro v1.x.x"` 的格式。
+
+
+```ts title="src/pages/site-info.json.ts"
+import type { APIContext } from 'astro';
+
+export function GET({ generator, site }: APIContext) {
+  const body = JSON.stringify({ generator, site });
+  return new Response(body);
+}
+```
+
+另见：[Astro.generator](#astrogenerator)
+
+### `context.redirect()`
+
+`context.redirect()` 返回一个 [Response](https://developer.mozilla.org/zh-CN/docs/Web/API/Response) 对象，允许你重定向到另一个页面。此函数仅在构建 SSR（服务器端渲染）时可用，不应用于静态站点。
+
+```ts
+import type { APIContext } from 'astro';
+
+export function GET({ redirect }: APIContext) {
+  return redirect('/login', 302);
+}
+```
+
+另见：[`Astro.redirect()`](#astroredirect)
+
+### `context.locals`
+
+`context.locals` 是一个对象，用于在请求的生命周期内存储和访问任意信息。
+
+中间件函数可以读写`context.locals`的值：
+
+```ts title="src/middleware.ts"
+import type { MiddlewareResponseHandler } from 'astro';
+
+export const onRequest: MiddlewareResponseHandler = ({ locals }, next) => {
+  if (!locals.title) {
+    locals.title = "Default Title";
+  }
+  return next();
+}
+```
+
+API 端点只能从 `context.locals`中读取信息：
+
+```ts title="src/pages/hello.ts"
+import type { APIContext } from 'astro';
+
+export function get({ locals }: APIContext) {
+  return {
+    body: locals.title // "默认标题"
+  }
+}
+```
+
+另见: [`Astro.locals`](#astrolocals)
+
+## `getStaticPaths()`
+
+如果页面在文件名中使用动态参数，该组件将需要导出一个 `getStaticPaths()` 函数。
+
+必须要有该函数，因为 Astro 是静态站点生成器。这意味着整个网站是预构建的。如果 Astro 不知道在构建时生成什么页面，你的用户在访问你的网站时就看不到它。
+
+```astro
+---
+export async function getStaticPaths() {
+  return [
+    { params: { /* 必需 */ }, props: { /* 可选 */ } },
+    { params: { ... } },
+    { params: { ... } },
+    // ...
+  ];
+}
+---
+<!-- 你的 HTML 模板在这里 -->
+```
+
+`getStaticPaths()` 函数应该返回对象数组，以确定哪些路径会被 Astro 预渲染。
+
+:::caution
+`getStaticPaths()` 函数在会任何页面加载之前，在它自己的隔离范围内执行一次。因此，除了文件导入之外，你不能从它的父作用域中引用任何东西。如果你违反了这个要求，编译器会发出警告。
+:::
+
+### `params`
+
+每个返回对象的 `params` 键都会告诉 Astro 要构建什么路由。返回参数必须映射到你的组件文件路径中定义的动态参数和其余参数。
+
+`params` 被编码到链接中，所以只能由字符串作为值。每个 `params` 对象的值必须与页面名称中使用的参数一致。
+
+比如说有 `src/pages/posts/[id].astro` 页面。如果你从这个页面导出 `getStaticPaths` 并返回以下的路由：
+
+```astro
+---
+export async function getStaticPaths() {
+  return [
+    { params: { id: '1' } },
+    { params: { id: '2' } },
+    { params: { id: '3'  } }
+  ];
+}
+
+const { id } = Astro.params;
+---
+<h1>{id}</h1>
+```
+
+然后 Astro 会在构建时静态地生成 `posts/1`、`posts/2` 和 `posts/3`。
+
+### 通过 `props` 传递数据
+
+为了给每个生成的页面传递额外的数据，你也可以在每个返回的路径对象上设置 `props` 值。与 `params` 不同的是，`props` 没有被编码到链接中，所以并不局限于字符串。
+
+例如，假设你根据从远程 API 获取的数据来生成页面。你可以将完整的数据对象传递给 `getStaticPaths` 中的页面组件。
+
+```astro
+---
+export async function getStaticPaths() {
+  const data = await fetch('...').then(response => response.json());
+
+  return data.map((post) => {
+    return {
+      params: { id: post.id },
+      props: { post },
+    };
+  });
+}
+
+const { id } = Astro.params;
+const { post } = Astro.props;
+---
+<h1>{id}: {post.name}</h1>
+```
+
+你也可以传递普通数组，这在生成或缓存已知路径列表时可能会有帮助。
+
+```astro
+---
+export async function getStaticPaths() {
+  const posts = [
+    {id: '1', category: "astro", title: "API Reference"},
+    {id: '2', category: "react", title: "Creating a React Counter!"}
+  ];
+  return posts.map((post) => {
+    return {
+      params: { id: post.id },
+      props: { post }
+    };
+  });
+}
+const {id} = Astro.params;
+const {post} = Astro.props;
+---
+<body>
+  <h1>{id}: {post.title}</h1>
+  <h2>Category: {post.category}</h2>
+</body>
+```
+
+然后 Astro 将在构建时使用 `pages/posts/[id].astro` 中的页面组件静态地生成 `posts/1` 和 `posts/2`。页面可以使用 `Astro.props` 引用这些数据。
+
+### `paginate()`
+
+分页是 Astro 通过 `paginate()` 函数原生支持网站的常见用例。`paginate()` 将自动生成数组，从`getStaticPaths()`返回，为分页集合的每个页面创建一个URL。页面编号将作为参数传递，而页面数据将作为`page`道具传递。
+
+```js
+export async function getStaticPaths({ paginate }) {
+  // 用 fetch()、Astro.glob() 等加载你的数据
+  const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=150`);
+  const result = await response.json();
+  const allPokemon = result.results;
+
+  // 返回包含分页的所有帖子的路由集合
+  return paginate(allPokemon, { pageSize: 10 });
+}
+
+// 如果设置正确，现在页面已经具备了渲染单页所需的一切参数（见下一节）。
+const { page } = Astro.props;
+```
+
+`paginate()`：假定文件名为 `[page].astro` 或 `[...page].astro`。`page` 参数将是链接中的页数。
+
+- `/posts/[page].astro`：会产生 `/posts/1`、`/posts/2`、`/posts/3` 等链接。
+- `/posts/[...page].astro`：将产生 `/posts`、`/posts/2`
+`/posts/3` 等链接。
+
+#### `page` 分页参数
+
+分页会给每个渲染的页面传递 `page` 参数，代表分页集合中的单页数据。这包括你分页的数据（`page.data`）以及该页的元数据（`page.url`、`page.start`、`page.end`、`page.total` 等）。这些元数据对诸如“下一页”按钮或“显示 100 个中前十个”的信息很有用。
+
+| 名&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;称               |         类型          | 描述                                                                                                         |
+| :----------------- | :-------------------: | :----------------------------------------------------------------------------------------------------------- |
+| `page.data`        |        `Array`        | 从 `data()` 中返回当前页面数据数组                                                                           |
+| `page.start`       |       `number`        | 当前页第一个项目的索引，从 `0` 开始（例如，如果 `pageSize: 25`，第一页该值未 `0`，第二页为`25`，以此类推）。 |
+| `page.end`         |       `number`        | 当前页面最后一个项目的索引                                                                               |
+| `page.size`        |       `number`        | 每个页面有多少项目                                                                                        |
+| `page.total`       |       `number`        | 所有项目的总数量                                                                                    |
+| `page.currentPage` |       `number`        | 当前页码，从 `1` 开始                                                                                        |
+| `page.lastPage`    |       `number`        | 总页数                                                                                   |
+| `page.url.current` |       `string`        | 获取当前页面的链接（对规范链接很有用）。                                                  |
+| `page.url.prev`    | `string \| undefined` | 获取上一页链接（如果在首页，将是`undefined`）。                                         |
+| `page.url.next`    | `string \| undefined` | 获取下一页链接（如果没有更多的页面，将是`undefined`）                                         |
+
+
+## 内容集合
+
+<p>
+  <Since v="2.0.0" />
+</p>
+
+内容集合提供了 API 来配置和查询 `src/content/` 中的 Markdown 或 MDX 文档。有关功能和用法示例，请参考[内容集合指南](/zh-cn/guides/content-collections/)。
+
+### `defineCollection()`
+
+`defineCollection()` 是一个用于在 `src/content/config.*` 文件中配置集合的工具函数。
+
+```ts
+// src/content/config.ts
+import { z, defineCollection } from 'astro:content';
+const blog = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    permalink: z.string().optional(),
+  }),
+});
+
+// 将定义的集合公开给 Astro
+// 通过 `collections` 导出
+export const collections = { blog };
+```
+
+这个函数接受以下属性：
+#### `type`
+
+<Since v="2.5" />
+
+
+**类型：** `'content' | 'data'`  
+**默认：** `'content'`
+
+`type` 是一个字符串，用于定义存储在集合中的条目的类型：
+
+- `'content'` - 用于内容创作格式，如 Markdown (`.md`)、MDX (`.mdx`)或 Markdoc (`.mdoc`)
+- `'data'` - 用于 JSON (`.json`) 或 YAML (`.yaml`) 等纯数据格式
+
+:::tip
+这意味着集合**不能**存储内容和数据格式的混合。您必须按类型将这些条目分割成单独的集合。
+:::
+
+#### `schema`
+
+**类型：**`TSchema extends ZodType`
+
+`schema` 是一个可选的 Zod 对象，用于配置集合的文档 frontmatter 的类型和形状。每个值必须使用 [Zod 验证器](https://github.com/colinhacks/zod)
+
+有关示例请[参考 `内容集合`指南](/zh-cn/guides/content-collections/#定义集合模式) 
+
+### `reference()`
+
+**Type：** `(collection: string) => ZodEffects<ZodString, { collection, id: string } | { collection, slug: string }>`
+
+在内容配置中使用 `reference()` 函数来定义从一个集合到另一个集合的关系或 "引用"。该函数接受一个集合名称，并验证内容前置事项或数据文件中指定的条目标识符。
+
+此示例定义了从博客作者到 "作者 "集合的引用，以及到同一 "博客 "集合的相关文章数组的引用：
+
+```ts
+import { defineCollection, reference, z } from 'astro:content';
+
+const blog = defineCollection({
+  type: 'content',
+  schema: z.object({
+    // 通过 "id "从 "作者 "集合中引用单个作者
+    author: reference('authors'),
+    // 按 "slug "从 "blog "集合中引用相关帖子数组
+    relatedPosts: z.array(reference('blog')),
+  })
+});
+
+const authors = defineCollection({
+  type: 'data',
+  schema: z.object({ /* ... */ })
+});
+
+export const collections = { blog, authors };
+```
+
+有关示例请[参考 `内容集合`指南](/zh-cn/guides/content-collections/#定义集合引用).
+
+### `getCollection()`
+
+**类型：**`(collection: string, filter?: (entry: CollectionEntry<collection>) => boolean) => CollectionEntry<collection>[]`
+
+`getCollection()` 是一个函数，用于通过集合名称检索内容集合条目列表。
+
+默认情况下，它返回集合中的所有项目，并接受可选的 `filter` 函数来缩小条目属性。这允许您根据 `id`、`slug` 或 frontmatter 值（通过 `data` 对象）查询集合中的某些项目。
+
+```astro
+---
+import { getCollection } from 'astro:content';
+
+// 获取 `src/content/blog/` 中的所有条目
+const allBlogPosts = await getCollection('blog');
+
+// 仅返回 frontmatter 中 `draft: true` 的条目
+const draftBlogPosts = await getCollection('blog', ({ data }) => {
+  return data.draft === true;
+});
+---
+```
+
+有关示例请[参考 `内容集合`指南](/zh-cn/guides/content-collections/#查询集合) 以获取示例用法。
+
+### `getEntry()`
+
+<p>
+  <Since v="2.5.0" />
+</p>
+
+**Types：**
+
+- `(collection: string, contentSlugOrDataId: string) => CollectionEntry<collection>`
+- `({ collection: string, id: string }) => CollectionEntry<collection>`
+- `({ collection: string, slug: string }) => CollectionEntry<collection>`
+
+`getEntry()` 是一个函数，可通过集合名称和条目 `id` （对于 `type: 'data'` 集合）或条目 `slug` （对于 `type: 'content'` 集合）检索单个集合条目。`getEntry()`也可用于获取引用条目，以访问`data`、`body`或`render()`属性：
+
+```astro
+---
+import { getEntry } from 'astro:content';
+
+// 得到 `src/content/blog/enterprise.md`
+const enterprisePost = await getEntry('blog', 'enterprise');
+
+// 得到 `src/content/captains/picard.yaml`
+const picardProfile = await getEntry('captains', 'picard');
+
+// 得到 the profile referenced by `data.captain`
+const enterpriseCaptainProfile = await getEntry(enterprise.data.captain);
+---
+```
+
+有关`内容集合`的示例, 请参考 [查询集合条目](/zh-cn/guides/content-collections/#查询集合).
+
+### `getEntries()`
+
+<p>
+  <Since v="2.5" />
+</p>
+
+**Types：**
+
+- `(Array<{ collection: string, id: string }>) => CollectionEntry<collection>`
+- `(Array<{ collection: string, slug: string }>) => CollectionEntry<collection>`
+
+`getEntries()` 是一个从同一集合中检索多个集合条目的函数。这对于[返回引用条目的数组](/zh-cn/guides/content-collections/#定义集合引用)访问其关联的`data`、`body`和`render()`属性非常有用。
+
+```astro
+---
+import { getEntries } from 'astro:content';
+
+const enterprisePost = await getEntry('blog', 'enterprise');
+
+// 获取由 `data.relatedPosts` 引用的相关帖子
+const enterpriseRelatedPosts = await getEntries(enterprisePost.data.relatedPosts);
+---
+```
+
+
+### `getEntryBySlug()`
+
+**类型：**`(collection: string, slug: string) => CollectionEntry<collection>`
+:::caution[已停用]
+使用 [`getEntry()`函数](#getentry) 查询内容条目。该函数接受与 `getEntryBySlug()` 相同的参数，并支持通过 `id` 查询 JSON 或 YAML 集合。
+:::
+
+`getEntryBySlug()` 是一个函数，用于通过集合名称和条目 `slug` 检索单个集合条目。
+
+```astro
+---
+import { getEntryBySlug } from 'astro:content';
+
+const enterprise = await getEntryBySlug('blog', 'enterprise');
+---
+```
+有关示例请[参考 `内容集合`指南](/zh-cn/guides/content-collections/#查询集合) 以获取示例用法。
+
+### 集合条目类型
+
+[`getCollection()`](#getcollection)和 [`getEntryBySlug()`](#getentrybyslug) 函数都会返回 `CollectionEntry` 类型的条目。这个类型可以从 `astro:content` 中获取：
+
+```ts
+import type { CollectionEntry } from 'astro:content';
+```
+
+`CollectionEntry<TCollectionName>` 类型是一个对象，具有以下值。 `TCollectionName` 是您正在查询的集合的名称（例如 `CollectionEntry<'blog'>`）。
+
+#### `id`
+
+**适用于：** `type: 'content'` and `type: 'data'` 集合
+
+**示例类型：**
+  - content collections: `'entry-1.md' | 'entry-2.md' | ...`
+  - data collections: `'author-1' | 'author-2' | ...`
+
+一个使用相对于 `src/content/[collection]` 的文件路径的唯一 ID。根据集合条目文件路径枚举所有可能的字符串值。请注意，[`类型: 'content'`](#type) 的集合在其 ID 中包含文件扩展名，而定义为 `type: 'data'` 的集合则不包含。
+
+#### `collection`
+
+**适用于：** `type: 'content'` and `type: 'data'` 集合 
+
+**示例类型：** `'blog' | 'authors' | ...`
+
+src/content/` 下顶级文件夹的名称，条目位于该文件夹中。该名称用于在模式和查询函数中引用集合。
+
+
+#### `data`
+**适用于：** `type: 'content'` and `type: 'data'` 集合 
+
+**类型：**`CollectionSchema<TCollectionName>`
+
+一个从集合模式推断出的 frontmatter 属性对象（[参考 `defineCollection()`](#definecollection)）。如果没有配置模式，则默认为 `any`。
+
+#### `slug`
+
+**适用于：** 仅仅 `type: 'content'` 集合
+
+**示例类型：** `'entry-1' | 'entry-2' | ...`
+
+可用于 Markdown 或 MDX 文档的 URL 标头。默认为不含文件扩展名的 "id"，但可以通过在文件的 frontmatter 中设置[`slug`属性](/zh-cn/guides/content-collections/#定义自定义-slugs)来覆盖。
+
+#### `body`
+**适用于：** 仅 `type: 'content'` 集合
+
+**类型：**`string`
+
+一个包含 Markdown 或 MDX 文档原始未编译的 body 的字符串。
+
+#### `render()`
+
+**适用于：** 仅 `type: 'content'` 集合
+
+**类型：**`() => Promise<RenderedEntry>`
+
+一个用于编译给定的 Markdown 或 MDX 文档以进行渲染的函数。它返回以下属性：
+
+- `<Content />` - 用于在 Astro 文件中渲染文档内容的组件。
+- `headings` - 生成的标题列表，[与 Astro 的 `getHeadings()` 工具函数相同](/zh-cn/guides/markdown-content/#导出的属性) 在 Markdown 和 MDX 导入中。
+- `remarkPluginFrontmatter ` - 在应用 [remark 或 rehype 插件](/zh-cn/guides/markdown-content/#以编程方式修改-frontmatter)后修改后的 frontmatter 对象。设置为类型 `any`。
+
+```astro
+---
+import { getEntryBySlug } from 'astro:content';
+const entry = await getEntryBySlug('blog', 'entry-1');
+
+const { Content, headings, remarkPluginFrontmatter } = await entry.render();
+---
+```
+
+有关示例请[参考 `内容集合`指南](/zh-cn/guides/content-collections/#将内容渲染成-html) 以获取示例用法。
+
+## `import.meta`
+
+所有 ESM 模块都包含 `import.meta` 属性。Astro 基于 [Vite](https://cn.vitejs.dev/guide/env-and-mode.html) 增加了 `import.meta.env`。
+
+**`import.meta.env.SSR`** 可以用来了解服务器上渲染时长。有时你可能想要不同的逻辑，例如，某个组件应该只在客户端渲染:
+
+```jsx
+import { h } from 'preact';
+
+export default function () {
+  return import.meta.env.SSR ? <div class="spinner"></div> : <FancyComponent />;
+}
+```
+
+## 内置组件
+
+Astro 包括几个内置的组件供你在你的项目中使用。在 `.astro` 文件中可以通过 `import {} from 'astro:components';` 引用所有的内置组件。
+
+### `<Code />`
+
+```astro 'theme="dark-plus"' /wrap\b/ /(inline) \/>/
+---
+import { Code } from 'astro:components';
+---
+<!-- 使用语法凸显部分 JavaScript 代码-->
+<Code code={`const foo = 'bar';`} lang="js" />
+<!-- 可选：定制你的主题 -->
+<Code code={`const foo = 'bar';`} lang="js" theme="dark-plus" />
+<!-- 可选：启用文字包装 -->
+<Code code={`const foo = 'bar';`} lang="js" wrap />
+<!-- Optional: Output inline code. -->
+<p>
+  <Code code={`const foo = 'bar';`} lang="js" inline />
+  will be rendered inline.
+</p>
+```
+
+该组件在构建时为代码块提供语法高亮（不包括客户端 JavaScript）。该组件由 Shiki 驱动，它支持所有流行的[主题](https://github.com/shikijs/shiki/blob/main/docs/themes.md)和[语言](https://github.com/shikijs/shiki/blob/main/docs/languages.md)。另外，你可以通过给 `theme` 和 `lang` 传递自定义主题和语言分别添加它们。
+
+:::note
+当使用像 `pnpm` 这样的[严格包管理器](https://pnpm.io/pnpm-vs-npm#npms-flat-tree)时，您还可能需要安装 Shiki，以便在构建期间正常工作：
+
+```bash
+pnpm install shiki
+```
+:::
+
+### `<Prism />`
+
+
+要安装 `Prism` 高亮器组件, 需要**先安装** `@astrojs/prism` 包：
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm i @astrojs/prism
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm i @astrojs/prism
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/prism
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+
+```astro
+---
+import { Prism } from '@astrojs/prism';
+---
+<Prism lang="js" code={`const foo = 'bar';`} />
+```
+
+这个组件通过应用 Prism 的 CSS 类为代码块提供特定语言的语法高亮。注意，**你需要提供 Prism 的 CSS 样式表**（或用自己的），以启用语法高亮! 参见 [Prism 配置部分](/zh-cn/guides/markdown-content/#prism-配置)了解更多细节。
+
+参见 [Prism 支持的语言列表](https://prismjs.com/#supported-languages)，在那里你可以找到一种语言的对应别名。而且，你也可以用 `lang="astro"` 来展示 Astro 代码块!
+
+### `<Debug />`
+
+```astro
+---
+import { Debug } from 'astro:components';
+const serverObject = {
+  a: 0,
+  b: "string",
+  c: {
+    nested: "object"
+  }
+}
+---
+<Debug {serverObject} />
+```
+
+这个组件提供了无需 JavaScript 在客户端检查数值的方法。
+
+[canonical]: https://en.wikipedia.org/wiki/Canonical_link_element

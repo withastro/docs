@@ -1,0 +1,612 @@
+---
+title: 样式 & CSS
+description: >-
+  学习如何在Astro中使用作用域样式、外部CSS以及类似Sass和PostCSS的工具来为组件添加样式。
+---
+import Since from '~/components/Since.astro';
+
+Astro 的设计为了使设计和编写 CSS 变得轻而易举。直接在 Astro 组件中编写你自己的 CSS，或者导入你最喜欢的 CSS 库，如 [Tailwind][tailwind] 外。也支持高级样式设计语言，如 [Sass][sass] 和 [Less][less]。
+
+## 在 Astro 进行设计
+
+为 Astro 组件设计样式，就像在你的组件或页面模板上添加 `<style>` 标签一样容易。当你在 Astro 组件内置了 `<style>` 标签时，Astro 就会自动检测 CSS 并开始为你处理样式。
+
+```astro title="src/components/MyComponent.astro"
+<style>
+  h1 { color: red; }
+</style>
+```
+
+### 作用域样式
+
+Astro `<style>` 标签内的 CSS 规则**默认自动限定范围**。作用域样式在幕后编译，只适用于写在同一组件内的 HTML。你在 Astro 组件中编写的 CSS 会自动封装在该组件中。
+
+现有 CSS：
+```astro title="index.astro"
+<style>
+  h1 { 
+    color: red; 
+  }
+
+  .text { 
+    color: blue; 
+  }
+</style>
+```
+
+编译为：
+```astro
+<style>
+  h1[data-astro-cid-hhnqfkh6] {
+     color: red;
+  }
+
+  .text[data-astro-cid-hhnqfkh6] {
+    color: blue;
+  }
+</style>
+```
+
+作用域样式不会泄漏，也不会影响你网站的其他部分。在 Astro 中，可以使用像 `h1 {}` 或 `p {}` 这样的低特定性选择器，因为在最终输出中它们与作用域一起被编译。
+
+作用域样式也不适用于模板内的其他 Astro 组件。如果你需要修改子组件的样式，可以考虑将该组件包裹在 `<div>`（或其他元素）中，然后你就可以对其编写样式了。
+
+作用域样式的特定性被保留，允许它们与其他 CSS 文件或 CSS 库一起工作，同时仍然保留防止样式应用于组件之外的独特边界。
+
+### 全局样式
+
+虽然我们推荐大多数组件使用范围化的样式，但有时你可能有必要使用全局的、非限定范围的 CSS。你可以通过 `<style is:global>` 属性选择不自动限定 CSS 范围。
+
+```astro title="src/components/GlobalStyles.astro" "is:global"
+<style is:global>
+  /* 无作用域，直接传递给浏览器。
+     适用于网站上的所有 <h1> 标签。 */
+  h1 { color: red; }
+</style>
+```
+
+你也可以使用 `:global()` 选择器在同一个 `<style>` 标签中混合全局和作用域 CSS 规则。这可以将 CSS 样式应用于子组件。
+
+```astro title="src/components/MixedStyles.astro" ":global(h1)"
+<style>
+  /* 仅限于此组件。 */
+  h1 { color: red; }
+  /* 混合：仅限于子组件的 <h1> 标签。 */
+  article :global(h1) {
+    color: blue;
+  }
+</style>
+<h1>Title</h1>
+<article><slot /></article>
+```
+
+它适合用于像博客文章，或由 CMS 驱动的内容文档，这些内容在 Astro 之外的样式。但要注意会因为某个父级组件有无而导致样式不同会使得很难进行错误排查。
+
+应尽可能多的使用作用域样式，而仅在必要时使用全局样式。
+
+### 用 `class:list` 组合类名
+
+如果你需要在元素上动态组合类名，你可以在 `.astro` 文件中使用 `class:list` 工具属性。
+
+```astro title="src/components/ClassList.astro" /class:list={.*}/
+---
+const { isRed } = Astro.props;
+---
+<!-- 如果 `isRed` 是真值，class 将是 "box red"。 -->
+<!-- 如果 `isRed` 是假值，class 将是 "box"。 -->
+<div class:list={['box', { red: isRed }]}><slot /></div>
+
+<style>
+  .box { border: 1px solid blue; }
+  .red { border-color: red; }
+</style>
+```
+
+📚 参见[指令参考](/zh-cn/reference/directives-reference/#classlist)页面，了解更多关于 `class:list` 的信息。
+
+### CSS 变量
+
+<Since v="0.21.0" />
+
+Astro `<style>` 可以引用页面上任何可用的 CSS 变量。你也可以在组件的 frontmatter 中直接使用 `define:vars` 指令来传递 CSS 变量。
+
+```astro title="src/components/DefineVars.astro" /define:vars={{.*}}/ /var\\(.*\\)/
+---
+const foregroundColor = "rgb(221 243 228)";
+const backgroundColor = "rgb(24 121 78)";
+---
+<style define:vars={{ foregroundColor, backgroundColor }}>
+  h1 {
+    background-color: var(--backgroundColor);
+    color: var(--foregroundColor);
+  }
+</style>
+<h1>Hello</h1>
+```
+
+📚 参见[指令参考](/zh-cn/reference/directives-reference/#definevars)页面，了解更多关于 `define:vars` 的信息。
+
+### 传递 `class` 给子组件
+
+在 Astro 中，像 `class` 这样的 HTML 属性不会自动传递给子组件。
+
+相反，你需要在子组件中接受一个 `class` 属性，并将其应用到根元素上。在解构时，你必须重命名它，因为 `class` 是 JavaScript 中的[保留字](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Lexical_grammar#reserved_words)。
+
+```astro title="src/components/MyComponent.astro" {2,4}
+---
+const { class: className } = Astro.props;
+---
+<div class={className}>
+  <slot/>
+</div>
+```
+
+```astro title="src/pages/index.astro"
+---
+import MyComponent from "../components/MyComponent.astro"
+---
+<style>
+  .red {
+    color: red;
+  }
+</style>
+<MyComponent class="red">这将是红色！</MyComponent>
+```
+
+这种模式可以让你直接给子组件添加样式。Astro 会自动将父组件的作用域类名（例如 `astro-hhnqfkh6`）通过 `class` 属性传递给子组件，使得子组件也在父组件的作用域中。
+注意，这种模式仅在你的 [`scopedStyleStrategy` 选项](/zh-cn/reference/configuration-reference/#scopedstylestrategy) 为 `'where'` 或 `'class'` 时才有效。
+
+:::note[父组件的作用域类名]
+由于 `class` 属性包含了子组件在父组件的作用域中，因此父组件的样式可以传递到子组件中。为了避免这种情况，确保在子组件中使用唯一的类名。
+:::
+
+### 内联样式
+
+你可以使用 `style` 属性将 HTML 元素设置为内联样式。这可以是 CSS 字符串或 CSS 属性的对象：
+
+```astro title="src/pages/index.astro"
+// 这两种写法是等价的：
+<p style={{ color: "brown", textDecoration: "underline" }}>My text</p>
+<p style="color: brown; text-decoration: underline;">My text</p>
+```
+
+## 外部样式
+
+有两种使用外部全局样式表的方法：项目源文件中使用 ESM 导入；使用绝对链接引用 `public/` 目录中的文件或托管于别处的文件。
+
+📚 阅读更多关于使用位于 `public/` 或 `src/` 的[静态资源](/zh-cn/guides/imports/)。
+
+### 导入本地样式表
+
+:::caution[使用 npm 包？]
+想要导入 npm 包，你可能需要更新 `astro.config` 文件。参见下面的[“从 npm 包中导入样式表”部分](#从-npm-包中导入样式表)。
+:::
+
+你可以在 Astro 组件中使用 ESM 导入语法显式导入样式表。CSS 导入方式与 [Astro 组件中的其他 ESM 导入](/zh-cn/core-concepts/astro-components/#组件脚本)一样，它应该**基于组件**进行引用，并且与其他导入一样必须位于组件脚本**顶层**：
+
+```astro title="src/pages/index.astro" {4}
+---
+// Astro 会自动为你捆绑和优化这些CSS。
+// 这也适用于预处理器文件，如 .scss、.styl 等。
+import '../styles/utils.css';
+---
+<html><!-- 你的页面在这 --></html>
+```
+
+任何 JavaScript 文件都支持通过 ESM `import`导入  CSS，包括像 React 和 Preact 这样的 JSX 组件。这有助于为 React 组件编写细化的，具有针对性的样式
+
+### 从 npm 包中导入样式表
+
+你也可能需要从外部 npm 包中加载样式表。它常用于像导入 [Open Props](https://open-props.style/) 这样的工具类。如果你的包**建议使用文件扩展名**（即 `package-name/styles.css` 而不是 `package-name/styles`），那么它的行为应该与本地样式表一致：
+
+```astro {3}
+---
+// src/pages/random-page.astro
+import 'package-name/styles.css';
+---
+<html><!-- 你的页面在这 --></html>
+```
+
+如果你所用的包**不建议使用文件扩展名**（即 `包名/样式`），那么你就需要先更新 Astro 配置 
+
+假设你从 `package-name` 导入名为 `normalize` 的 CSS 文件（省略文件扩展名）。为了确保我们能正确地预渲染你的页面，需要把`package-name` 添加到 [`vite.ssr.noExternal` 数组](https://vitejs.dev/config/ssr-options.html#ssr-noexternal)中。
+
+```js ins={7}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    ssr: {
+      noExternal: ['package-name'],
+    }
+  }
+})
+```
+
+:::note
+这是[针对 Vite 的设置](https://cn.vitejs.dev/config/#ssr-noexternal) 与 [Astro SSR](/zh-cn/guides/server-side-rendering/) 无关。
+:::
+
+现在，你可以导入 `package-name/normalize` 了。Astro 将对其进行捆绑和优化，就像任何其他本地样式表一样。
+
+
+```astro {3}
+---
+// src/pages/random-page.astro
+import 'package-name/normalize';
+---
+<html><!-- 你的页面在这 --></html>
+```
+
+### 通过 `link` 标签加载静态样式表
+
+你也可以使用 `<link>` 元素在页面上加载样式表。它是应该位于 `/public` 目录下的 CSS 文件的绝对路径，或者是外部网站的链接。不支持使用相对路径的 `<link>` href 值。
+
+```astro title="src/pages/index.astro" {3,5}
+<head>
+  <!-- 本地：/public/styles/global.css -->
+  <link rel="stylesheet" href="/styles/global.css" />
+  <!-- 外部 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.24.1/themes/prism-tomorrow.css">
+</head>
+```
+
+因为这种方法使用 `public/` 目录，它跳过了 Astro 提供的 CSS 处理、捆绑和压缩。如果你需要这些转换，请使用上面的[导入样式表](#导入本地样式表)方法。
+
+## 级联顺序
+
+Astro 组件有时需要评估多个 CSS 源。例如，你的组件可能会导入 CSS 样式表，包含自己的 `<style>` 标签，*并且*被渲染在导入 CSS 的布局中。
+
+当冲突的 CSS 规则应用于同一元素时，浏览器首先使用 _特异性_ 和 _出现顺序_ 来确定要显示哪个值。
+
+如果一个规则比另一个规则更具 _特异性_ ，无论 CSS 规则出现在哪里，它的值都将具有优先权：
+
+```astro title="MyComponent.astro"
+<style>
+  h1 { color: red }
+  div > h1 {
+    color: purple
+  }
+</style>
+<div>
+  <h1>
+    这个 header 将会是紫色的！
+  </h1>
+</div>
+```
+
+如果两个规则具有相同的特异性，那么将评估 _出现顺序_，并且最后一个规则的值将具有优先权：
+
+```astro title="MyComponent.astro"
+<style>
+  h1 { color: purple }
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    这个 header 将会是红色的！
+  </h1>
+</div>
+```
+
+Astro CSS 规则的评估顺序如下：
+- **`<link>` 标签在 head 中**（最低优先级）
+- **导入的样式**
+- **scoped 样式**（最高优先级）
+
+### 作用域样式
+
+使用 [作用域样式](#作用域样式) 不会增加 CSS 的 _特异性_ ，但它们始终在 _出现顺序_ 中最后。因此，它们将优先于具有相同特异性的其他样式。例如，如果你导入了与 scoped 样式冲突的样式表，scoped 样式的值将被应用：
+
+```css title="make-it-purple.css"
+h1 {
+  color: purple;
+}
+```
+```astro title="MyComponent.astro"
+---
+import "./make-it-purple.css"
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    这个 header 将会是红色的！
+  </h1>
+</div>
+```
+
+如果你导入的样式更具 _特异性_ ，那么它将优先于 scoped 样式：
+
+```css title="make-it-purple.css"
+div > h1 {
+  color: purple;
+}
+```
+```astro title="MyComponent.astro"
+---
+import "./make-it-purple.css"
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    这个 header 将会是紫色的！
+  </h1>
+</div>
+```
+
+### 导入顺序
+
+当在 Astro 组件中导入多个样式表时，将按导入的顺序评估 CSS 规则。无论何时评估 CSS，特异性总是决定要显示哪些样式。但是，当冲突的样式具有相同的特异性时，_最后导入的_ 样式将获胜：
+
+```css title="make-it-purple.css"
+div > h1 {
+  color: purple;
+}
+```
+```css title="make-it-green.css"
+div > h1 {
+  color: green;
+}
+```
+```astro title="MyComponent.astro"
+---
+import "./make-it-green.css"
+import "./make-it-purple.css"
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    这个 header 将会是紫色的！
+  </h1>
+</div>
+```
+
+虽然 `<style>` 标签是作用域的，并且只适用于声明它们的组件，但 _导入的_ CSS 可以“泄漏”。导入组件会应用它导入的任何 CSS，即使该组件从未使用：
+
+```astro title="PurpleComponent.astro"
+---
+import "./make-it-purple.css"
+---
+<div>
+  <h1>我导入紫色的 CSS。</h1>
+</div>
+```
+```astro title="MyComponent.astro"
+---
+import "./make-it-green.css"
+import PurpleComponent from "./PurpleComponent.astro";
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    这个 header 将会是紫色的！
+  </h1>
+</div>
+```
+
+:::tip
+在 Astro 中，一个常见的模式是在 [Layout 组件](/zh-cn/core-concepts/layouts/) 中导入全局 CSS。请确保在其他导入之前导入 Layout 组件，以便它具有最低的优先级。
+:::
+
+### Link 标签
+通过 [link 标签](#通过-link-标签加载静态样式表) 加载的样式表按顺序评估，优先于 Astro 文件中的任何其他样式。因此，这些样式将具有低于导入样式表和作用域样式的优先级：
+
+```astro title="index.astro"
+---
+import "../components/make-it-purple.css"
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Astro</title>
+		<link rel="stylesheet" href="/styles/make-it-blue.css" />
+	</head>
+	<body>
+		<div>
+      <h1>这将是紫色的</h1>
+		</div>
+	</body>
+</html>
+```
+
+## CSS 集成
+
+Astro 支持在项目中添加流行的 CSS 库、工具和框架，如 [Tailwind](https://tailwindcss.com) 和其他库!
+
+### Tailwind
+
+要在项目中使用Tailwind，请使用包管理器的`astro add` 命令安装官方的[Astro Tailwind集成][tailwind]：
+
+```sh
+# 使用NPM
+npx astro add tailwind
+# 使用Yarn
+yarn astro add tailwind
+# 使用PNPM
+pnpm astro add tailwind
+```
+
+📚 参见[集成指南](/zh-cn/guides/integrations-guide/)，了解安装、导入和配置这些集成的说明。
+
+## CSS 预处理器
+
+Astro 支持通过 [Vite][vite-preprocessors] 使用 CSS 预处理器，如 [Sass][sass]、[Stylus][stylus] 和 [Less][less]。
+
+### Sass 和 SCSS
+
+ ```shell
+ npm install sass
+ ```
+
+在 `.astro` 文件中使用 `<style lang="scss">` 或 `<style lang="sass">`。
+
+### Stylus
+
+```shell
+npm install stylus
+```
+
+在 `.astro` 文件中使用 `<style lang="styl">` 或 `<style lang="stylus">`。
+
+### Less
+
+```shell
+npm install less
+```
+
+在`.astro` 文件中使用 `<style lang="less">`。
+
+### 在框架组件中
+
+你也可以在 JS 框架内使用上述所有的 CSS 预处理程序! 请务必遵循每个框架推荐的模式。
+
+- **React** / **Preact**: `import Styles from './styles.module.scss'`;
+- **Vue**: `<style lang="scss">`
+- **Svelte**: `<style lang="scss">`
+
+## PostCSS
+
+Astro 内置了 PostCSS，作为 [Vite](https://cn.vitejs.dev/guide/features.html#postcss) 的一部分。要为你的项目配置 PostCSS，在项目根部创建 `postcss.config.js` 文件。然后你就可以在安装插件后使用 `require()` 导入插件（例如 `npm install autoprefixer`）。
+
+```js title="postcss.config.cjs" ins={3-4}
+module.exports = {
+  plugins: [
+    require('autoprefixer'),
+    require('cssnano'),
+  ],
+};
+```
+
+---
+
+## 框架和库
+
+### 📘 React / Preact
+
+`.jsx` 文件同时支持全局 CSS 和 CSS 模块。要启用后者，请使用 `.module.css` 扩展名（如果使用 Sass 则是 `.module.scss`/`.module.sass` ）。
+
+```js title="src/components/MyReactComponent.jsx" /[a-z]+(\\.module\\.css)/
+import './global.css'; //包括全局CSS
+import Styles from './styles.module.css'; // 使用 CSS 模块（必须以 `.module.css`、`.module.scss` 或 `.module.sass` 结尾！)
+```
+
+### 📗 Vue
+
+Astro 中的 Vue 支持与 `vue-loader` 一样的方法。
+
+- [vue-loader - Scoped CSS][vue-scoped]
+- [vue-loader - CSS Modules][vue-css-modules]
+
+### 📕 Svelte
+
+Astro 中的 Svelte 也完全按照预期工作。[Svelte Styling Docs][svelte-style]。
+
+## Markdown 样式
+
+任何 Astro 样式方法都可以用于 [Markdown 布局组件](/zh-cn/core-concepts/layouts/#markdownmdx-布局)。
+
+你可以通过向包装页面内容的布局中添加 [`<style>` 标签](#全局样式) 和 [导入的样式表](#外部样式) 来将全局样式应用于 Markdown 内容。你还可以添加 [CSS 集成](#css-集成)，包括 [Tailwind](/zh-cn/guides/integrations-guide/tailwind/)。
+
+如果你使用 Tailwind，[typography 插件](https://tailwindcss.com/docs/typography-plugin) 可以用于样式化 Markdown。
+
+## 生产
+
+### 打包控制
+
+当 Astro 为你的网站构建生产部署时，它会将你的 CSS 压缩并合并到 chunks 中。你网站上的每个页面都有自己的 chunk，此外，多个页面之间共享的 CSS 还会被进一步拆分为自己的 chunk 以供重用。
+
+然而，当你有多个页面共享样式时，一些共享的 chunks 可能会变得非常小。如果它们都被单独发送，那么将会导致许多样式表请求，并影响网站的性能。因此，默认情况下，Astro 仅将 HTML 中大小超过 4kB 的样式表链接为 `<link rel="stylesheet">` 标签，而将较小的样式表内联到 `<style type="text/css">` 中。这种方法在额外请求的数量和可以在页面之间缓存的 CSS 量之间提供了一个平衡。
+
+你可以使用 `assetsInlineLimit` vite 构建选项来配置样式表在多大的情况下会被链接到外部（以字节为单位）。请注意，此选项也会影响内联的脚本和图像。
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    build: {
+      assetsInlineLimit: 1024,
+    }
+  };
+});
+```
+
+如果你希望所有项目样式都保持外部样式表，可以配置 `inlineStylesheets` 构建选项。
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  build: {
+    inlineStylesheets: 'never'
+  }
+});
+```
+
+你也可以将该选项设置为 `'always'` ，这样就可以内联所有的样式表了。
+
+## 高级
+
+:::caution
+绕过 Astro 内置的 CSS 捆绑时要小心！样式不会自动包含在构建的输出中，你有责任确保引用的文件被正确地包含在最终的页面输出中。
+:::
+
+### 导入 `?raw` CSS
+
+对于高级用例，CSS 可以直接从磁盘上读取，而 Astro 不进行捆绑或压缩。当你需要完全控制某些 CSS 片段，并需要绕过 Astro 的自动 CSS 处理时，这可能有用的。
+
+对于大多数用户来说，不建议这样做：
+
+```astro title="src/components/RawInlineStyles.astro" "?raw"
+---
+// 高级用例! 不建议大多数用户使用
+import rawStylesCSS from '../styles/main.css?raw';
+---
+<style is:inline set:html={rawStylesCSS}></style>
+```
+
+完整的细节见[Vite的文档](https://cn.vitejs.dev/guide/assets.html#importing-asset-as-string)。
+
+### 导入 `?url` CSS
+
+一个高级用例，你可以在你的项目 `src/` 目录中直接导入 CSS 文件链接。当你需要完全控制 CSS 文件在页面上的加载方式时可能有用。然而，这将阻止该 CSS 文件和你的页面上的其他 CSS 进行优化。
+
+对于大多数用户来说，不建议这样做。相反，将 CSS 文件放在 `public/` 内，你可以获得一致的链接。
+
+:::caution
+用 `?url` 导入较小的 CSS 文件，可能会在最终构建时将 CSS 文件的 base64 编码内容作为数据链接返回值。你可以编写代码以支持经编码的数据链接（`data:text/css;base64,...`），或者将 [`vite.build.assetsInlineLimit`](https://cn.vitejs.dev/config/#build-assetsinlinelimit) 配置选项设为 `0` 以禁用这一功能。
+:::
+
+```astro title="src/components/RawStylesUrl.astro" "?url"
+---
+// 高级用例! 不建议大多数用户使用
+import stylesUrl from '../styles/main.css?url';
+---
+<link rel="preload" href={stylesUrl} as="style">
+<link rel="stylesheet" href={stylesUrl}>
+```
+
+完整的细节见 [Vite 文档](https://vitejs.dev/guide/assets.html#importing-asset-as-url)。
+
+
+[less]: https://lesscss.org/
+[sass]: https://sass-lang.com/
+[stylus]: https://stylus-lang.com/
+[svelte-style]: https://svelte.dev/docs#component-format-style
+[tailwind]: /zh-cn/guides/integrations-guide/tailwind/
+[vite-preprocessors]: https://cn.vitejs.dev/guide/features.html#css-pre-processors
+[vue-css-modules]: https://vue-loader.vuejs.org/guide/css-modules.html
+[vue-scoped]: https://vue-loader.vuejs.org/guide/scoped-css.html

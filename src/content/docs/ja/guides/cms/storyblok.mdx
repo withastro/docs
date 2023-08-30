@@ -1,0 +1,487 @@
+---
+title: StoryblokとAstro
+description: StoryblokをCMSとして使ってコンテンツをAstroプロジェクトへ追加する
+type: cms
+service: Storyblok
+stub: false
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+
+
+[Storyblok](https://www.storyblok.com/)はブロックと呼ばれる再利用可能なコンポーネントを作成してコンテンツを管理するコンポーネントベースのヘッドレスCMSです。
+
+## Astroとの連携
+
+このセクションでは、[Storyblok integration](https://github.com/storyblok/storyblok-astro)を利用してStoryblokとAstroを接続します。
+
+### 必須要件
+
+始めるには、以下の手順を行っている必要があります。
+
+1. **Astroプロジェクト** - もしAstroプロジェクトをまだ持っていない場合は、[自動CLIでAstroをインストール](/ja/install/auto/)を見ると、すぐに使い始めることができます。
+
+2. **Storyblok**アカウントとスペース -  もしアカウントを持っていない場合は、[無料で登録](https://app.storyblok.com/#/signup)してスペースを作成します。
+
+3. **Storyblok APIトークン** - Storyblokスペースの設定内のアクセストークンタブからAPIトークンを生成できます。
+    - **Preview token** - これは開発中にドラフトもしくは未公開バージョンのコンテンツを取得するために使います。
+    - **Public token** - これは製品版でビルド時に公開済みのコンテンツを取得するために使います。
+
+### クレデンシャルをセットアップする
+
+AstroへStoryblokのクレデンシャルを追加するために、`.env`ファイルをプロジェクトのルートディレクトリに作成して環境変数に追加します。
+
+```ini title=".env"
+STORYBLOK_PREVIEW_TOKEN=YOUR_PREVIEW_TOKEN
+STORYBLOK_PUBLIC_TOKEN=YOUR_PUBLIC_TOKEN
+```
+
+これで、プロジェクトでこれらの環境変数を利用できます。
+
+ルートディレクトリは以下のように作成したファイル含まれているはずです。
+
+```ini title="Project Structure" ins={2}
+├── src/
+├── .env
+├── astro.config.mjs
+└── package.json
+```
+
+### 依存関係をインストールする
+
+AstroとStoryblokスペースを接続するために、次の中から好みのパッケージマネージャの1つのコマンドを実行して公式の[Storyblok integration](https://github.com/storyblok/storyblok-astro)をインストールします。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @storyblok/astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install @storyblok/astro
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @storyblok/astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Storyblokを設定する
+
+Astro設定ファイルにStoryblokとの接続が含まれるように以下のように修正します。
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import storyblok from '@storyblok/astro';
+import { loadEnv } from 'vite';
+
+const env = loadEnv(import.meta.env.MODE, process.cwd(), 'STORYBLOK');
+
+export default defineConfig({
+  integrations: [
+    storyblok({
+      accessToken:
+        import.meta.env.MODE === 'development'
+          ? env.STORYBLOK_PREVIEW_TOKEN
+          : env.STORYBLOK_PUBLIC_TOKEN,
+      components: {
+        // Add your components here
+      },
+      apiOptions: {
+        // Choose your Storyblok space region 
+        region: 'us',
+      },
+    })
+  ],
+});
+```
+
+Storyblokとの接続には以下のプロパティを持つオブジェクトを必要とします。
+
+1. `accessToken` - これは、前述で追加したStoryblok APIトークンへの参照です。この例では開発時はpreview tokenを使い、製品版ではpublic tokenを使います。
+
+    :::tip
+    Astro設定ファイルは環境変数をサポートしないため、環境変数をロードするためにViteの`loadEnv()`関数を使います。
+    :::
+
+2. `components` - Storyblokのコンポーネント名をローカルコンポーネントへのパスへマッピングするオブジェクトです。StoryblokコンポーネントをAstroへ描画するときに必須となります。
+
+    :::note
+    このコンポネントパスは`src`ディレクトリからの相対パスです。
+    :::
+
+3. `apiOptions` - [Storyblok API options](https://github.com/storyblok/storyblok-astro#options)を含むオブジェクトです。
+
+    :::caution
+    デフォルトのリージョンは`eu`です。もしStoryblokがUSリージョンで作成された場合は、`region:us`と設定する必要があります。
+    :::
+
+### ブロックをAstroコンポーネントに接続する
+
+ブロックをAstroへ接続するために、`src`ディレクトリに`storyblok`という名のフォルダーを作成します。このフォルダーには全てのStoryblokのブロックライブラリに対応するAstroコンポネントが含まれます。
+
+例えば、以下のフィールドを持つ`blogPost`というブロックコンテンツがブロックライブラリにある場合を解説します。
+
+- `title` - テキストフィールド
+- `description` - テキストフィールド
+- `content` - リッチテキストフィールド
+
+目標は、このフィールドを使ってコンテンツに描画するようなAstroコンポーネントを作成する事です。これを実現するために、以下のように`src/storyblok`ディレクトリに`BlogPost.astro`というファイルを作成します。
+
+```astro title="src/storyblok/BlogPost.astro"
+---
+import { storyblokEditable, renderRichText } from '@storyblok/astro'
+
+const { blok } = Astro.props
+const content = renderRichText(blok.content)
+---
+
+<article {...storyblokEditable(blok)}>
+  <h1>{blok.title}</h1>
+  <p>{blok.description}</p>
+  <Fragment set:html={content} />
+</article>
+```
+
+`blok`プロパティーにはStoryblokから受信するデータがが含まれます。Storyblokの`blogPost`ブロックで定義したフィールドの値が含まれます。
+
+コンテンツを描画するためには、インテグレーションは以下のようなユーティリティ関数を提供しています。
+
+- `storyblokEditable` - Stroyblokでこれらを編集可能にするために、必要に応じて要素へ属性を追加します。
+- `renderRichText` - リッチテキストフィールドをHTMLに変換します。
+
+ルートディレクトリは以下のように作成したファイル含まれているはずです。
+
+```ini title="Project Structure" ins={3}
+├── src/
+│   └── storyblok/
+│       └── BlogPost.astro
+├── .env
+├── astro.config.mjs
+└── package.json
+```
+
+最後に、`blogPost`ブロックを`BlogPost`コンポーネントへ接続するために、Astro設定ファイルのコンポーネントオブジェクトにプロパティを追加します。キーはブロック名で、値はコンポーネントへのパスです。
+
+```js title="astro.config.mjs" ins={15}
+import { defineConfig } from 'astro/config';
+import storyblok from '@storyblok/astro';
+import { loadEnv } from 'vite';
+
+const env = loadEnv(import.meta.env.MODE, process.cwd(), 'STORYBLOK');
+
+export default defineConfig({
+  integrations: [
+    storyblok({
+      accessToken:
+        import.meta.env.MODE === 'development'
+          ? env.STORYBLOK_PREVIEW_TOKEN
+          : env.STORYBLOK_PUBLIC_TOKEN,
+      components: {
+        blogPost: 'storyblok/BlogPost',
+      },
+      apiOptions: { 
+        region: 'us',
+      },
+    })
+  ],
+});
+```
+
+### データを取得する
+
+セットアップしたものをテストするために、`blogPost`コンテンツで`test-post`という名前のストーリーをStoryblokで作成します。
+
+Astroでは、以下のコンテンツの`test-post.astro`という名前のページを`src/pages`に作成します。
+
+```astro title="pages/test-post.astro"
+---
+import { useStoryblokApi } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+
+const storyblokApi = useStoryblokApi()
+
+const { data } = await storyblokApi.get("cdn/stories/test-post", {
+  version: import.meta.env.DEV ? "draft" : "published",
+});
+
+const content = data.story.content;
+---
+<StoryblokComponent blok={content} />
+```
+
+データ問い合わせをするために、`useStoryblokApi`フックを利用します。これは連携設定を利用して新しいクライアントインスタンスを初期化します。
+
+コンテンツを描画するために、ストーリーの`content`プロパティを`blok`として`StoryblokComponent`へ渡します。このコンポーネントは`content`プロパティ内で定義されたブロックを描画します。この例では、BlogPostコンポーネントを描画します。
+
+## ブログをAstroとStoryblokで作る
+
+連携のセットアップが終われば、AstroとStoryblokを使ったブログを作成できます。
+
+### 必須要件
+
+1. **Storyblokスペース** - 子のチュートリアルでは、新しいスペースを作ることをお勧めします。もしすでにブロックを含むスペースがある場合は、そのまま利用できますが、ブロック名とコンテンツタイプに合わせコードを修正する必要があります。
+
+2. **Storyblokと連携したAstroプロジェクト** - 連携するためのセットアップ方法を知るには[Astroとの連携](#astroとの連携)を参照ください。
+
+### ブロックライブラリを作成する
+
+Blokを作成するためには、Storyblokアプリの**ライブラリをブロック**をクリックします。<kbd>+ 新規ブロック</kbd>ボタンをクリックして以下のブロックを作成します。
+
+1. `blogPost` - 以下のフィールドを持つコンテンツタイプブロックです。
+    - `title` - テキストフィールド
+    - `description` - テキストフィールド
+    - `content` - リッチテキストフィールド
+
+2. `blogPostList` - 空のNestable Blokです。
+
+3. `page` - 以下のフィールドを持つコンテンツタイプブロックです。
+    - `body` - ネスト可能なBlokフィールド
+
+### コンテンツを作成する
+
+コンテンツを追加するために、**コンテンツ**タブをクリックしてコンテンツセクションへ移動します。前のステップで作成したブロックライブラリを使って以下のストーリーを追加します。
+
+1. `home` - `page`ブロックを使ったコンテンツタイプを持つストーリーです。`body`フィールド内には`blogPostList`ブロックを追加します。
+
+2. `blog/no-javascript` - ブログフォルダー内の`blogPost`コンテンツタイプを持つストーリーです。
+
+    ```yaml
+    title: No JavaScript
+    description: A sample blog post
+    content: Hi there! This blog post doesn't use JavaScript.
+    ```
+
+3. `blog/astro-is-amazing` - ブログフォルダー内の`blogPost`コンテンツタイプを持つストーリーです。
+
+    ```yaml
+    title: Astro is amazing
+    description: We love Astro
+    content: Hi there! This blog post was build with Astro.
+    ```
+
+これでコンテンツの準備は整いました。Astroプロジェクトに切り替えてブログの構築を始めましょう。
+
+### ブロックをコンポーネントへ接続する
+
+新しく作成したブロックをAstroコンポーネントへ接続するには、`src`ディレクトリに`storyblok`と呼ばれるフォルダを作成して以下のファイルを追加します。
+
+`Page.astro`は、`page`ブロックの`body`プロパティ内の全てのブロックを再帰的に描画するネスト可能なBlokコンテンツタイプのコンポーネントです。また、親要素に`storyblokEditable`を追加し、Storyblokでページを編集できるようにします。
+
+```astro title="src/storyblok/Page.astro"
+---
+import { storyblokEditable } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+const { blok } = Astro.props
+---
+
+<main {...storyblokEditable(blok)}>
+  {
+    blok.body?.map((blok) => {
+      return <StoryblokComponent blok={blok} />
+    })
+  }
+</main>
+```
+
+`BlogPost.astro`は`blogPost`ブロックの`title`と`description`と`content`プロパティを描画します。
+
+リッチテキストフィールドプロパティの`content`をHTMLに変換するために`renderRichText`関数を利用します。
+
+```astro title="src/storyblok/BlogPost.astro"
+---
+import { storyblokEditable, renderRichText } from '@storyblok/astro'
+const { blok } = Astro.props
+const content = renderRichText(blok.content)
+---
+<article {...storyblokEditable(blok)}>
+  <h1>{blok.title}</h1>
+  <p>{blok.description}</p>
+  <Fragment set:html={content} />
+</article>
+```
+
+`BlogPostList.astro`はブログ記事のリストプレビューを描画するNestable Blokコンテンツタイプです。
+
+これは`useStoryblokApi`フックを利用して`blogPost`のコンテンツタイプのストーリー全てを取得します。クエリパラメータの`version`を利用して、開発モードではストーリーのドラフトを、製品番ビルドの時は公開されたバージョンを取得します。
+
+```astro title="src/pages/blogPostList.astro"
+---
+import { useStoryblokApi } from '@storyblok/astro'
+
+const storyblokApi = useStoryblokApi();
+const { data } = await storyblokApi.get('cdn/stories', {
+  version: import.meta.env.DEV ? "draft" : "published",
+  content_type: 'blogPost',
+})
+const posts = data.stories.map(story => {
+  return {
+    title: story.content.title,
+    date: new Date(story.published_at).toLocaleDateString("en-US", {dateStyle: "full"}),
+    description: story.content.description,
+    slug: story.full_slug,
+  }
+})
+---
+<h1>My blog</h1>
+<ul>
+  {posts.map(post => (
+    <li>
+      <time>{post.date}</time>
+      <a href={post.slug}>{post.title}</a>
+      <p>{post.description}</p>
+    </li>
+  ))}
+</ul>
+```
+
+最後に、`astro.config.mjs`ファイルの`components`プロパティに作成したコンポーネントを追加します。各キーはStoryblok内のブロック名で、値は`src`からのコンポーネントの相対パスです。
+
+```js title="astro.config.mjs" ins={15-17}
+import { defineConfig } from 'astro/config';
+import storyblok from '@storyblok/astro';
+import { loadEnv } from 'vite';
+
+const env = loadEnv(import.meta.env.MODE, process.cwd(), 'STORYBLOK');
+
+export default defineConfig({
+  integrations: [
+    storyblok({
+      accessToken:
+        import.meta.env.MODE === 'development'
+          ? env.STORYBLOK_PREVIEW_TOKEN
+          : env.STORYBLOK_PUBLIC_TOKEN,
+      components: {
+        blogPost: 'storyblok/BlogPost',
+        blogPostList: 'storyblok/BlogPostList',
+        page: 'storyblok/Page',
+      },
+      apiOptions: { 
+        region: 'us',
+      },
+    })
+  ],
+});
+```
+
+### ページを生成する
+
+#### 静的サイトジェネレーター
+
+Astroのデフォルト静的モードを利用している場合、[動的ルーティング](/ja/core-concepts/routing/#動的ルーティング)と`getStaticPaths()`関数を使えます。この関数はビルド時に呼ばれて、ページとなるパスのリストをせいせいします。
+
+`src/pages`に`[…slug].astro`という以下のファイルを作成します。
+
+```astro title="src/pages/[...slug].astro"
+---
+import { useStoryblokApi } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+
+export async function getStaticPaths() {
+  const storyblokApi = useStoryblokApi()
+  const { data } = await storyblokApi.get("cdn/stories", {
+    version: import.meta.env.DEV ? "draft" : "published",
+  });
+  const pages = data.stories.map(story => {
+    return {
+      params: {
+        slug: story.full_slug === 'home' ? undefined : story.full_slug
+      },
+      props: {
+        content: story.content
+      }
+    }
+  })
+  return pages
+}
+const { content } = Astro.props
+---
+<html lang="en">
+  <head>
+    <title>Storyblok & Astro</title>
+  </head>
+  <body>
+    <StoryblokComponent blok={content} />
+  </body>
+</html>
+```
+
+これはStoryblok APIから取得したスラッグとコンテンツを含む各ストーリーのページを生成します。もしストーリーのスラッグが`home`だった場合、undefinedのスラッグを返し`/`ルーティングを生成します。
+
+#### サーバーサイドレンダリング
+
+[プロジェクトでSSRを有効にする](/ja/guides/server-side-rendering/#プロジェクトでssrを有効にする)場合、Storyblokデータを取得するために動的ルーティングで `slug` パラメータが利用されます。
+
+```astro title="src/pages/[...slug].astro"
+---
+import { useStoryblokApi } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+const storyblokApi = useStoryblokApi()
+const slug = Astro.params.slug === undefined ? "home" : Astro.params.slug
+let content;
+try {
+  const { data } = await storyblokApi.get(`cdn/stories/${slug}`, {
+    version: import.meta.env.DEV ? "draft" : "published",
+  });
+  content = data.story.content
+} catch (error) {
+  return Astro.redirect('/404')
+}
+---
+<html lang="en">
+  <head>
+    <title>Storyblok & Astro</title>
+  </head>
+  <body>
+    <StoryblokComponent blok={content} />
+  </body>
+</html>
+```
+
+このファイルは動的な`slug`パラメータと一致するページデータをStoryblokから取得して描画します。
+もし見つからない場合は、404ページへリダイレクトします。
+
+### サイトを公開する
+
+ウェブサイトをデプロイするために、[デプロイガイド](/ja/guides/deploy/)へアクセスして好みのホスティングプロバイダーにあわせた説明に従ってください。
+
+#### Storyblokの変更時に再ビルドする
+
+もしプロジェクトがAstroのデフォルトである静的モードを使っている場合、コンテンツを変更した時に新しいビルドを行うトリガーをするためのWebhookをセットアップする必要があります。もしNetlifyかVercelをホスティングプロバイダーとして使っている場合、コンテンツイベントから新しいビルドをトリガーするためにWebhook機能を使えます。
+
+##### Netlify
+
+NetlifyのWebhookをセットアップするためには以下の手順が必要です。
+
+1. ダッシュボードに行き、**Build & deploy**をクリックします。
+
+2. **Continuous Deployment**タブから、**Build hooks** セクションを探し**Add build hook**をクリックします。
+
+3. Webhookの名前を指定してビルド時にトリガーされるブランチを選択します。**Save**をクリックし生成されたURLをコピーします。
+
+##### Vercel
+
+VercelのWebhookをセットアップするためには以下の手順が必要です。
+
+1. ダッシュボードへ行き、**Settings**をクリックします。
+
+2. **Git**タブから、**Deploy Hooks**セクションを見つけます。
+
+3. Webhookの名前を指定してビルド時にトリガーされるブランチを選択します。**Add**をクリックして生成されたURLをコピーします。
+
+##### StoryblokにWebhookを追加する
+
+Storyblokスペースの**Settings**から、**Webhooks**タブをクリックします。**Story published & unpublished**ボックスにWebhook URLをペーストします。<kbd>保存</kbd>を押してWebhookを作成します。
+
+これで、新しいストーリーを公開しても、新しいビルドがトリガーされブログが更新されます。
+
+## 公式リソース
+
+- StoryblokはプロジェクトにStoryblokを追加する [Astro Integration](https://www.storyblok.com/mp/announcing-storyblok-astro)を提供しています。
+
+## コミュニティリソース
+
+- 追加してください！

@@ -1,0 +1,154 @@
+---
+title: Astroの設定
+i18nReady: true
+---
+
+プロジェクトに`astro.config.mjs`ファイルを追加することで、Astroの動作をカスタマイズできます。これはAstroプロジェクトではよく使われるファイルで、公式のサンプルテンプレートやテーマはすべて、デフォルトでこのファイルを含んでいます。
+
+📚 サポートされているすべてのオプションの概要については、Astroの[API設定リファレンス](/ja/reference/configuration-reference/)をお読みください。
+
+## Astroの設定ファイル
+
+有効なAstro設定ファイルは、`default`エクスポートを使用して、設定をエクスポートします。`defineConfig`ヘルパーを用いるのがおすすめです。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // オプションをここに書きます...
+  // https://docs.astro.build/ja/reference/configuration-reference/
+})
+```
+
+`defineConfig()`を使うと、IDEで自動的にタイプヒントを表示できるのでおすすめですが、これはオプションです。最低限必要で、有効な設定ファイルは次のようなものです。
+
+```js title="astro.config.mjs"
+// 例: 最低限必要な空の設定ファイル
+export default {}
+```
+
+## サポートされている設定ファイルの種類
+
+Astroは、JavaScriptの設定ファイルとして、`astro.config.js`、`astro.config.mjs`、`astro.config.cjs`、`astro.config.ts`という複数のファイル形式をサポートしています。多くの場合は`.mjs`を、設定ファイルをTypeScriptで記述する場合は`.ts`を使用することをおすすめします。
+
+TypeScriptの設定ファイルの読み込みは、[`tsm`](https://github.com/lukeed/tsm)を使って処理され、プロジェクトのtsconfigのオプションを尊重します。
+## 設定ファイルの指定
+
+Astroは、プロジェクトルート内にある`astro.config.mjs`という名前の設定ファイルを自動的に使用しようとします。プロジェクトルートに設定ファイルがない場合、Astroのデフォルトのオプションが使用されます。
+
+```bash
+# 例: ./astro.config.mjs から設定を読み込みます。 
+astro build
+```
+
+`--config`フラグを使用して、使用する設定ファイルを明示的に設定できます。このCLIフラグは、常に`astro`コマンドを実行した現在の作業ディレクトリから相対パスで指定されます。
+
+```bash
+# 例: このファイルから設定を読み込みます。
+astro build --config my-config-file.js
+```
+
+## 設定のインテリセンス
+
+Astroでは、設定ファイルに`defineConfig()`ヘルパーを使用することをおすすめします。`defineConfig()`はIDEに自動的にインテリセンスを提供します。VSCodeのようなエディタは、設定ファイルがTypeScriptで書かれていなくても、AstroのTypeScriptの型定義を読み込んで、自動的にjsdocの型ヒントを提供してくれます。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // オプションをここに書きます...
+  // https://docs.astro.build/ja/reference/configuration-reference/
+})
+```
+また、以下のJSDoc記法を用いてVSCodeに手動で型定義を提供できます。
+
+```js
+// astro.config.mjs
+export default /** @type {import('astro').AstroUserConfig} */ {
+  // オプションをここに書きます...
+  // https://docs.astro.build/ja/reference/configuration-reference/
+}
+```
+
+## 相対ファイルの参照
+
+`root`または`--root`フラグで相対パスを指定すると、`astro`コマンドを実行した現在の作業ディレクトリを起点として、指定した相対パスを解決します。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // 現在の作業ディレクトリにある "./foo"ディレクトリを指します。
+  root: 'foo'
+})
+```
+
+Astroは、他のすべての相対ファイルおよび相対ディレクトリを、プロジェクトルートからの相対パスとして解決します。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // 現在の作業ディレクトリにある "./foo"ディレクトリを指します。
+  root: 'foo',
+  // 現在の作業ディレクトリの "./foo/public" ディレクトリを指します。
+  publicDir: 'public',
+})
+```
+
+設定ファイルから相対的にファイルやディレクトリを参照するには、`import.meta.url`を使用します（common.jsの`astro.config.cjs`ファイルを記述する場合を除きます）。
+
+```js "import.meta.url"
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // この設定ファイルからの相対パスで、"./foo"ディレクトリを指します。
+  root: new URL("./foo", import.meta.url),
+  // この設定ファイルから相対パスで、"./public "ディレクトリを指します。
+  publicDir: new URL("./public", import.meta.url),
+})
+```
+
+:::note
+`import.meta.env`や`import.meta.glob`など、Vite固有の`import.meta`プロパティは設定ファイルからはアクセスできません。こうしたユースケースについては[dotenv](https://github.com/motdotla/dotenv)や[fast-glob](https://github.com/mrmlnc/fast-glob)などの代替手段をおすすめします。
+:::
+
+## 出力するファイル名のカスタマイズ
+
+インポートしたJavaScriptやCSSファイルなど、Astroが処理するコードについては、`astro.config.*`ファイルの`vite.build.rollupOptions`で[`entryFileNames`](https://rollupjs.org/guide/en/#outputentryfilenames)、[`chunkFileNames`](https://rollupjs.org/guide/en/#outputchunkfilenames)、[`assetFileNames`](https://rollupjs.org/guide/en/#outputassetfilenames)を用いて出力するファイル名をカスタマイズできます。
+
+```js ins={9-11}
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          entryFileNames: 'entry.[hash].js',
+          chunkFileNames: 'chunks/chunk.[hash].js',
+          assetFileNames: 'assets/asset.[hash][extname]',
+        },
+      },
+    },
+  },
+})
+```
+
+これは、広告ブロッカーの影響を受ける可能性のある名前のスクリプト（たとえば`ads.js`や`google-tag-manager.js`）がある場合に役に立ちます。
+
+## 環境変数
+
+Astroは他のファイルをロードする前に設定ファイルを評価します。そのため、`import.meta.env`は使えず、また`.env`ファイルによってセットされた環境変数の取得もできません。
+
+設定ファイルの中で`process.env`を使用して、[CLIによりセットされた](/ja/guides/environment-variables/#cliの利用)ものなど、その他の環境変数の取得は可能です。
+
+## 設定リファレンス
+
+📚 サポートされているすべての設定オプションの概要については、Astroの[API設定リファレンス](/ja/reference/configuration-reference/)を参照してください。

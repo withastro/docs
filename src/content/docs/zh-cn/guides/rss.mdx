@@ -1,0 +1,230 @@
+---
+title: 添加 RSS 摘要
+description: 通过向你的 Astro 网站添加 RSS 摘要让用户来订阅你的内容。
+i18nReady: true
+type: recipe
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import Since from '~/components/Since.astro'
+
+Astro 支持为博客和其他内容网站快速，自动的 RSS 提要生成。RSS 源为用户提供了一种订阅内容的简单方法。
+
+## 设置 `@astrojs/rss`
+
+[`@astrojs/rss` 包](https://github.com/withastro/astro/tree/main/packages/astro-rss) 提供了使用 [API 端点](/zh-cn/core-concepts/endpoints/#静态文件端点) 生成 RSS 摘要的帮助程序。这使得静态构建和使用 [SSR 适配器](/zh-cn/guides/server-side-rendering/#添加一个适配器) 时的按需生成都成为可能。
+
+1. 使用你喜欢的包管理器安装 `@astrojs/rss`：
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @astrojs/rss
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install @astrojs/rss
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/rss
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+:::tip
+确保已在项目的 `astro.config` 中[配置了 `site`](/zh-cn/reference/configuration-reference/#site)。这将用于生成指向你的 RSS 文章的链接。
+:::
+
+2. 在 `src/pages/` 中创建一个文件，其中包含你选择的名称和扩展名 `.xml.js`，以用作 Feed 的输出 URL。一些常见的 RSS 源 URL 名称是 `feed.xml` 或 `rss.xml`。
+
+下面的示例文件 `src/pages/rss.xml.js` 将在 `site/rss.xml` 上创建一个 RSS 提要。
+
+3. 将 `rss()` 帮助程序从 `@astrojs/rss` 包导入到你的 `.xml.js` 文件中，并导出一个使用以下参数返回它的函数：
+
+```js title="src/pages/rss.xml.js"
+import rss from '@astrojs/rss';
+
+export function GET(context) {
+  return rss({
+    // 输出的 xml 中的`<title>`字段
+    title: 'Buzz’s Blog',
+    // 输出的 xml 中的`<description>`字段
+    description: 'A humble Astronaut’s guide to the stars',
+    // 从端点上下文获取项目“site”
+    // https://docs.astro.build/zh-cn/reference/api-reference/#contextsite
+    site: context.site,
+    // 输出的 xml 中的`<item>`数组
+    // 有关使用内容集合和 glob 导入的示例，请参阅“生成`items`”部分
+    items: [],
+    // (可选) 注入自定义 xml
+    customData: `<language>en-us</language>`,
+  });
+}
+```
+
+## 生成 `items`
+
+`items` 字段接受 RSS 源对象列表，每个对象都有一个必需的 `link`、`title` 和 `pubDate`。还可以包含三个可选值 `description`（简短摘录）、`content`（帖子的完整内容）和一个 `customData` 字段，用于包含任何额外数据，例如博客文章中的其他 frontmatter 属性。
+
+你可以从内容集合架构生成此数组，也可以使用 [glob imports](/zh-cn/guides/imports/#astroglob) 为位于 `src/pages/` 中的博客文章生成此数组。
+
+### 使用内容集合
+
+要创建[内容集合](/zh-cn/guides/content-collections/)中管理的页面的 RSS 摘要，你可以使用 `getCollection()` 函数来检索项目列表。
+
+```js title="src/pages/rss.xml.js" "items:" "const blog = await getCollection('blog');"
+import rss from '@astrojs/rss';
+import { getCollection } from 'astro:content';
+
+export async function GET(context) {
+  const blog = await getCollection('blog');
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    items: blog.map((post) => ({
+      title: post.data.title,
+      pubDate: post.data.pubDate,
+      description: post.data.description,
+      customData: post.data.customData,
+      // 从 `slug` 属性计算出 RSS 链接
+      // 这个例子假设所有的文章都被渲染为 `/blog/[slug]` 路由
+      link: `/blog/${post.slug}/`,
+    })),
+  });
+}
+```
+
+可选：替换现有的博客集合架构以强制实施预期的 RSS 属性。
+
+若要确保每个博客条目生成有效的 RSS 源项，可以选择导入并应用 `rssSchema`，而不是定义架构的每个单独属性。
+
+```js title="src/content/config.ts" "rssSchema"
+import { defineCollection } from 'astro:content';
+import { rssSchema } from '@astrojs/rss';
+
+const blog = defineCollection({
+  schema: rssSchema,
+});
+
+export const collections = { blog };
+```
+
+## 使用 glob 导入
+
+<Since v="2.1.0" pkg="@astrojs/rss" />
+
+要从 `src/pages/` 中的文档创建 RSS 摘要，请使用 `pagesGlobToRssItems()` 帮助程序。它接受一个 [`import.meta.glob`](https://cn.vitejs.dev/guide/features.html#glob-import) 结果并输出一个有效 RSS 摘要项数组（请参阅[有关编写 glob 模式的更多信息](/zh-cn/guides/imports/#glob-模式) 以指定要包含哪些页面）。
+
+:::caution
+此函数假定但不验证每个文档的 frontmatter 中都存在所有必需的 feed 属性。如果遇到错误，请手动验证每个页面的 frontmatter。
+:::
+
+```js title="src/pages/rss.xml.js" "pagesGlobToRssItems" "await pagesGlobToRssItems("
+import rss, { pagesGlobToRssItems } from '@astrojs/rss';
+
+export async function GET(context) {
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    items: await pagesGlobToRssItems(
+      import.meta.glob('./blog/*.{md,mdx}'),
+    ),
+  });
+}
+```
+
+:::note[使用旧版本？]
+
+在 `@astrojs/rss` 的旧版本中，直接将 glob 结果传递给 `items`，而不是使用 `pagesGlobToRssItems()` 包装器：
+```js
+items: import.meta.glob('./blog/*.{md,mdx}'),
+```
+:::
+
+
+### 包含完整的文章内容
+
+<Since v="1.6.14" />
+
+`content` 键包含文章的完整内容作为 HTML。这允许你将整个文章内容提供给 RSS 订阅阅读器。
+
+:::tip
+无论何时在 XML 中使用 HTML 内容，我们建议使用像 [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) 这样的包，以确保你的内容被正确地清理、转义和编码。
+:::
+
+当使用内容集合时，使用标准的 Markdown 解析器如 [`markdown-it`](https://github.com/markdown-it/markdown-it) 渲染文章 `body` 并清理结果：
+
+```js title="src/pages/rss.xml.js" ins={3, 4, 5, 16}
+import rss from '@astrojs/rss';
+import { getCollection } from 'astro:content';
+import sanitizeHtml from 'sanitize-html';
+import MarkdownIt from 'markdown-it';
+const parser = new MarkdownIt();
+
+export async function GET(context) {
+  const blog = await getCollection('blog');
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    items: blog.map((post) => ({
+      link: `/blog/${post.slug}/`,
+      // 注意：这不会处理 MDX 文件中的组件或 JSX 表达式。
+      content: sanitizeHtml(parser.render(post.body)),
+      ...post.data,
+    })),
+  });
+}
+```
+
+当使用 glob 导入 Markdown 时，我们建议使用 `compiledContent()` 辅助函数来检索要进行清理的渲染 HTML。注意：此功能**不**支持 MDX 文件。
+
+```js title="src/pages/rss.xml.js" ins={2, 13}
+import rss from '@astrojs/rss';
+import sanitizeHtml from 'sanitize-html';
+
+export function GET(context) {
+  const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true }); 
+  const posts = Object.values(postImportResult);
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    items: posts.map((post) => ({
+      link: post.url,
+      content: sanitizeHtml(post.compiledContent()),
+      ...post.frontmatter,
+    })),
+  });
+}
+```
+
+## 添加样式表
+
+你可以为 RSS 摘要添加样式表，以便在浏览器中查看文件时获得更好的用户体验。
+
+使用 `rss` 函数的 `stylesheet` 选项指定到样式表的绝对路径。
+
+```js
+rss({
+  // 例如，使用 "public/rss/styles.xsl" 中的样式表
+  stylesheet: '/rss/styles.xsl',
+  // ...
+});
+```
+
+:::tip
+如果你还没有 RSS 样式表的想法，我们建议你使用 [Pretty Feed v3 默认样式表](https://github.com/genmon/aboutfeeds/blob/main/tools/pretty-feed-v3.xsl)，你可以从 GitHub 上下载并将其保存到项目的 `public/` 目录中。
+:::
+
+## 后续步骤
+
+在浏览器中的 `your-domain.com/rss.xml` 访问你的提要并确认你可以看到每个文章的数据后，你现在可以[在你的网站上推广你的提要](https://medium.com/samsung-internet-dev/add-rss-feeds-to-your-website-to-keep-your-core-readers-engaged-3179dca9c91e#：~：text=com/~deno%2Drss-，Advertising%20your%20RSS%20feed，-Now%20you%20have)。将标准 RSS 图标添加到你的网站可以让你的读者知道他们可以在自己的提要阅读器中订阅你的文章。
+
+## 资源
+
+- [RSS Feeds](https://aboutfeeds.com/)

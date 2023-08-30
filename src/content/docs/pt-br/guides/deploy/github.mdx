@@ -1,0 +1,113 @@
+---
+title: Faça o deploy do seu site Astro no GitHub Pages
+description: Como fazer o deploy do seu site Astro para a web no GitHub Pages.
+type: deploy
+i18nReady: true
+---
+
+Você pode usar o [GitHub Pages](https://pages.github.com/) para hospedar o seu site Astro diretamente do seu repositório no [GitHub.com](https://github.com/).
+
+## Como fazer o deploy
+
+Você pode fazer o deploy através de [GitHub Actions](https://github.com/features/actions) para automaticamente gerar o build e fazer o deploy do seu site. Para isso, o seu código-fonte precisa estar hospedado no GitHub.
+
+O Astro mantém oficialmente o `withastro/action` para fazer o deploy do seu projeto com pouquíssima configuração. Siga as instruções abaixo para realizar o deploy do seu site Astro no GitHub Pages, e leia o [README do pacote](https://github.com/withastro/action) se você precisa de mais informações.
+
+1. Defina as opções de [`site`](/pt-br/reference/configuration-reference/#site) e, se necessário, [`base`](/pt-br/reference/configuration-reference/#base) em `astro.config.mjs`.
+
+   ```js title="astro.config.mjs" ins={4-5}
+   import { defineConfig } from 'astro/config';
+
+   export default defineConfig({
+     site: 'https://astronaut.github.io',
+     base: '/meu-repositorio',
+   });
+   ```
+
+   - `site` deve ser `https://<SEU_NOME_DE_USUARIO>.github.io` ou `https://meu-dominio-personalizado.com`
+   - `base` deve ser o nome do seu repositório após uma barra para frente, por exemplo `/meu-repositorio`. Isso para que o Astro posso entender que a raiz do seu site está em `/meu-repositorio`, em vez do padrão `/`.
+
+   :::note
+   Não defina o parâmetro `base` se:
+
+   - Seu repositório for chamado `<SEU_NOME_DE_USUARIO>.github.io`.
+   - Você está usando um domínio personalizado. 
+   :::
+
+   :::caution
+   Se você não tinha determinado um valor de `base` anteriormente, e só está configurando esse valor para fazer o deploy pelo GitHub, você deve atualizar os links internos das páginas para incluir `base`.
+
+   ```astro
+   <a href="/meu-repositorio/sobre">Sobre</a>
+   ```
+   :::
+
+2. Crie um novo arquivo no seu projeto em `.github/workflows/deploy.yml` e cole o YAML abaixo.
+
+   ```yaml title="deploy.yml"
+   name: GitHub Pages Astro CI
+
+   on:
+     # Ativa o workflow toda vez que você fizer um push para a branch `main`
+     # Usando um nome de branch diferente? Modifique `main` para o nome da sua branch
+     push:
+       branches: [main]
+   # Permite que esse workflow seja executado manualmente da aba "Actions" no GitHub.
+     workflow_dispatch:
+
+   # Permite que este job clone o repositório e crie uma página de deploy
+   permissions:
+     contents: read
+     pages: write
+     id-token: write
+
+   jobs:
+     build:
+       runs-on: ubuntu-latest
+       steps:
+         - name: Checkout your repository using git
+           uses: actions/checkout@v3
+         - name: Install, build, and upload your site
+           uses: withastro/action@v0
+            # with:
+              # path: . # A localização da pasta raiz do seu projeto Astro dentro do seu repositório. (opcional)
+              # node-version: 16 # A versão específica do Node que deve ser utilizada para a build do seu site. A versão padrão é a 16. (opcional)
+              # package-manager: yarn # O gerenciador de pacotes usado para instalar as dependências e fazer a build do site. É automaticamente detectado a partir da sua lockfile. (opcional)
+
+     deploy:
+       needs: build
+       runs-on: ubuntu-latest
+       environment:
+         name: github-pages
+         url: ${{ steps.deployment.outputs.page_url }}
+       steps:
+         - name: Deploy to GitHub Pages
+           id: deployment
+           uses: actions/deploy-pages@v1
+   ```
+
+    :::note
+    A action do Astro aceita alguns parâmetros opcionais. Esses podem ser definidos removendo o comentário da linha que começa com `with:` e do parâmetro que você deseja usar.
+    :::
+
+   :::caution
+   A [action](https://github.com/withastro/action) oficial do Astro escaneia por uma lockfile para detectar o seu gerenciador de pacotes favorito (`npm`, `yarn` ou `pnpm`). Você deve realizar o commit do `package-lock.json`, `yarn.lock` ou `pnpm-lock.yaml` criado automaticamente pelo seu gerenciador de pacotes favorito no seu repositório.
+   :::
+
+3. No GitHub, vá para a aba **Settings** do seu repositório e encontre a seção **Pages** das configurações.
+
+4. Escolha **GitHub Actions** como a **Source** do seu site.
+
+5. Faça o commit do novo arquivo de workflow e faça push para o GitHub.
+
+O seu site deve estar publicado agora! Quando você fizer push de mudanças para o repositório do seu projeto Astro, a Action do GitHub irá fazer deploy delas automaticamente para você.
+
+:::tip[Configure um domínio personalizado]
+Você pode opcionalmente configurar um domínio personalizado adicionando o arquivo `./public/CNAME` a seguir no seu projeto:
+
+```js title="public/CNAME"
+meu.subdominio.com
+```
+
+Isso vai realizar o deploy do seu site no seu domínio personalizado ao invés de `usuario.github.io`. Não se esqueça de também [configurar o DNS no seu provedor de domínios](https://docs.github.com/pt/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-a-subdomain).
+:::

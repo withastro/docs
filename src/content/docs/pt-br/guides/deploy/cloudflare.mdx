@@ -1,0 +1,139 @@
+---
+title: Faça deploy do seu site Astro com Cloudflare Pages
+description: Como fazer o deploy do seu site Astro para web utilizando Cloudflare Pages.
+type: deploy
+i18nReady: true
+---
+
+Você pode fazer o deploy do seu projeto Astro na [Cloudflare Pages](https://pages.cloudflare.com/), uma plataforma para desenvolvedores frontend colaborarem e fazerem deploy de websites estáticos (JAMstack) e SSR.
+
+Este guia inclui:
+
+- [Como fazer o deploy através do painel de controle da Cloudflare Pages](#como-fazer-deploy-de-um-site-utilizando-git)
+- [Como fazer o deploy utilizando Wrangler, a CLI da Cloudflare](#como-fazer-deploy-de-um-site-utilizando-wrangler)
+- [Como fazer o deploy de um site SSR utilizando `@astrojs/cloudflare`](#como-fazer-deploy-de-um-site-ssr)
+
+## Pré-requisitos
+
+Para começar, você vai precisar de:
+
+- Uma conta da Cloudflare. Se você já não tem uma, você pode criar uma conta gratuita da Cloudflare durante o processo.
+- O código da sua aplicação em um repositório do [GitHub](https://github.com/) ou [GitLab](https://about.gitlab.com/).
+
+## Como fazer deploy de um site utilizando Git
+
+1. Configure um novo projeto na Cloudflare Pages.
+2. Faça push do seu código para seu repositório git (GitHub, GitLab).
+3. Inicie a sessão no painel de controle da Cloudflare e selecione sua conta em **Account Home** > **Pages**.
+4. Selecione **Create a new Project** e a opção **Connect Git**.
+5. Selecione o projeto git que você quer fazer deploy e clique **Begin setup**.
+6. Use as seguintes configurações de build:
+
+    - **Framework preset**: `Astro`
+    - **Build command:** `npm run build`
+    - **Build output directory:** `dist`
+
+7. Clique no botão **Save and Deploy**.
+
+## Como fazer deploy de um site utilizando Wrangler
+
+1. Instale a [CLI Wrangler](https://developers.cloudflare.com/workers/wrangler/get-started/).
+2. Autentique Wrangler com sua conta da Cloudflare utilizando `wrangler login`.
+3. Execute seu comando de build.
+4. Faça o deploy utilizando `npx wrangler pages publish dist`.
+
+```bash
+# Instale a CLI Wrangler
+npm install -g wrangler
+# Faça login com a conta da Cloudflare pela CLI
+wrangler login
+# Execute seu comando de build
+npm run build
+# Crie um novo deploy
+npx wrangler pages publish dist
+```
+
+Depois dos seus assets serem enviados, Wrangler irá te dar uma URL de pré-visualização para inspecionar seu site. Quando você entrar no painel de controle da Cloudflare Pages, você verá o seu novo projeto.
+
+### Habilitando Pré-visualização local com Wrangler
+
+Para a pré-visualização funcionar, você precisa instalar `wrangler`
+
+```bash
+pnpm install wrangler --save-dev
+```
+
+Após, é possível atualizar o script "preview" para executar `wrangler` ao invés do comando "preview" integrado do Astro:
+
+
+```json title="package.json"
+"preview": "wrangler pages dev ./dist"
+```
+
+## Como fazer deploy de um site SSR
+
+Você pode fazer build de um site Astro SSR para deploy na Cloudflare Pages utilizando o [adaptador `@astrojs/cloudflare`](/pt-br/guides/integrations-guide/cloudflare/).
+
+Siga os passos abaixo para configurar o adaptador. Você pode então fazer o deploy utilizando qualquer uma das abordagens documentadas acima.
+
+### Instalação Rápida
+
+Adicione o adaptador para Cloudflare para habilitar SSR no seu projeto Astro com o seguinte comando `astro add`. Ele irá instalar o adaptador e fazer as mudanças apropriadas ao seu arquivo `astro.config.mjs` em uma etapa.
+
+```bash
+npx astro add cloudflare
+```
+
+### Instalação Manual
+
+Se você prefere instalar o adaptador manualmente, complete as duas seguintes etapas:
+
+1. Adicione o adaptador `@astrojs/cloudflare` nas dependências do seu projeto utilizando seu gerenciador de pacotes de preferência. Se você estiver utilizando npm ou não tem certeza, execute isso no terminal:
+
+    ```bash
+    npm install @astrojs/cloudflare
+    ```
+
+2. Adicione o seguinte no seu arquivo `astro.config.mjs`:
+
+    ```js title="astro.config.mjs" ins={2, 5-6}
+    import { defineConfig } from 'astro/config';
+    import cloudflare from '@astrojs/cloudflare';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: cloudflare()
+    });
+    ```
+
+### Modos
+
+Há atualmente dois modos suportados ao utilizar Pages Functions com o adaptador [`@astrojs/cloudflare`](https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare#readme).
+
+1. Modo **Advanced**: Este modo é utilizado quando você quer executar sua função no modo `advanced` que pega o `_worker.js` em `dist`, ou um modo diretório onde as páginas irão compilar o worker para fora de um diretório functions na raiz do projeto.
+
+    Se nenhum modo for definido, o padrão é `"advanced"`.
+
+2. Modo **directory**: Este modo é utilizado quando você quer executar sua função no modo `directory`, que significa que o adaptador irá compilar a parte do cliente da sua aplicação da mesma forma, porém ele irá mover o script do worker para um diretório `functions` na raiz do projeto. O adaptador irá colocar apenas uma `[[path]].js` naquele diretório, te permitindo adicionar plugins e middleware de páginas que podem ser verificados em controle de versão.
+
+    ```ts title="astro.config.mjs" "directory"
+    export default defineConfig({
+      adapter: cloudflare({ mode: "directory" }),
+    });
+    ```
+
+### Utilizando Pages Functions
+
+[Pages Functions](https://developers.cloudflare.com/pages/platform/functions/) te permitem executar código server-side para habilitar funcionalidade dinâmica sem executar um servidor dedicado.
+
+Para começar, crie um diretório `/functions` na raiz do seu projeto. Escrevendo seus arquivos Functions nesse diretório automaticamente gera um Worker com funcionalidade customizada nas rotas pré-designadas. Para aprender mais sobre como escrever Functions, veja a [documentação de Pages Functions](https://developers.cloudflare.com/pages/platform/functions/).
+
+📚 Leia mais sobre [SSR no Astro](/pt-br/guides/server-side-rendering/).
+
+## Solução de Problemas
+
+Se você estiver encontrando erros, verifique novamente se a versão do `node` que você está utilizando localmente (`node -v`) é igual a versão que você está especificando na variável de ambiente.
+
+Cloudflare requer [Node v16.13](https://miniflare.dev/get-started/cli#installation), que é uma versão mais recente que o mínimo por padrão do Astro, então verifique novamente que você está utilizando pelo menos a v16.13.
+
+Hidratação no lado do cliente pode falhar como resultado da opção Auto Minify da Cloudflare. Se você ver `Hydration completed but contains mismatches` no console, certifique-se de desabilitar Auto Minify nas configurações da Cloudflare.

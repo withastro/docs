@@ -1,0 +1,224 @@
+---
+type: integration
+title: '@astrojs/node'
+description: 了解如何使用 @astrojs/node 来部署你的 Astro 项目。
+githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/node/'
+hasREADME: true
+category: adapter
+i18nReady: true
+---
+
+import Video from '~/components/Video.astro';
+
+此适配器允许 Astro 将你的 SSR 站点部署到 Node 目标。
+
+## 为什么 @astrojs/node
+
+如果你将 Astro 用作静态站点构建器（其开箱即用的行为），则不需要适配器。
+
+如果你希望[使用服务器端渲染 (SSR)](/zh-cn/guides/server-side-rendering/)，Astro 需要一个与你的部署运行时相匹配的适配器。
+
+[Node.js](https://nodejs.org/zh-cn) 是用于服务器端代码的 JavaScript 运行时。 @astrojs/node 可以在独立模式下使用，也可以作为其他 http 服务器（例如 [Express](https://expressjs.com/)）的中间件。
+
+## 安装
+
+使用以下 `astro add` 命令添加 node 适配器，以在 Astro 项目中启用 SSR。这个命令将安装适配器并一步对你的 `astro.config.mjs` 文件进行适当的更改。
+
+```sh
+# 使用 NPM
+npx astro add node
+# 使用 Yarn
+yarn astro add node
+# 使用 PNPM
+pnpm astro add node
+```
+
+### 手动添加依赖
+
+如果你更喜欢手动安装适配器，请完成以下两个步骤：
+1. 使用你喜欢的包管理器将 Node 适配器安装到项目的依赖项中。如果你正在使用 npm 或 不确定的包管理器，请在终端中运行：
+    
+    ```bash
+      npm install @astrojs/node
+    ```
+2. 在 `astro.config.mjs` 项目配置文件中添加两行。
+
+    ```js ins={3, 6-9}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import node from '@astrojs/node';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: node({
+        mode: 'standalone',
+      }),
+    });
+    ```
+
+## 配置
+
+@astrojs/node 可以通过将选项传递给适配器函数来配置。以下选项可用：
+
+### 模式
+
+控制适配器是构建为`中间件（middleware）`模式还是`独立（standalone）`模式。
+
+* `中间件`模式允许将构建的输出用作另一个 Node.js 服务器的中间件，例如 Express.js 或 Fastify。
+    ```js
+    import { defineConfig } from 'astro/config';
+    import node from '@astrojs/node';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: node({
+        mode: 'middleware',
+      }),
+    });
+    ```
+
+* `独立模式`构建到服务器，随着入口模块的运行会自动启动。这使你可以更轻松地部署到主机，而无需任何额外的代码。
+
+## 用法
+
+首先，[执行构建](/zh-cn/guides/deploy/#在本地构建站点)。根据选择的模式（见上文），执行以下相应的步骤：
+
+### 中间件
+
+服务器入口文件默认构建为 `./dist/server/entry.mjs`。该模块导出一个 `处理程序（handler）` 函数，可以与任何支持 Node `请求（request）` 和 `响应（response）` 对象的框架一起使用。
+
+例如，使用 Express：
+
+```js
+import express from 'express';
+import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+const app = express();
+// 根据 astro.config.mjs 中的 `base` 选项进行更改。
+// 它们应该匹配。默认值为"/"。
+const base = '/';
+app.use(base, express.static('dist/client/'));
+app.use(ssrHandler);
+
+app.listen(8080);
+```
+
+或者使用 Fastify (>4)：
+
+```js
+import Fastify from 'fastify';
+import fastifyMiddie from '@fastify/middie';
+import fastifyStatic from '@fastify/static';
+import { fileURLToPath } from 'node:url';
+import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+const app = Fastify({ logger: true });
+
+await app
+  .register(fastifyStatic, {
+    root: fileURLToPath(new URL('./dist/client', import.meta.url)),
+  })
+  .register(fastifyMiddie);
+app.use(ssrHandler);
+
+app.listen({ port: 8080 });
+```
+
+此外，你还可以传入一个对象，以便使用 `Astro.locals` 或 Astro 中间件访问该对象：
+
+```js
+import express from 'express';
+import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+const app = express();
+app.use(express.static('dist/client/'));
+app.use((req, res, next) => {
+  const locals = {
+    title: 'New title',
+  };
+
+  ssrHandler(req, res, next, locals);
+});
+
+app.listen(8080);
+```
+
+
+请注意，中间件模式不提供文件服务。你需要配置 HTTP 框架来完成这项工作。默认情况下，客户端资产写入 `./dist/client/`。
+
+### 独立
+
+在独立模式下，服务器在入口文件运行时启动。默认情况下，它被构建为 `./dist/server/entry.mjs`。你可以运行它：
+
+```shell
+node ./dist/server/entry.mjs
+```
+
+对于独立模式，服务器除了处理页面和 API 路由之外还处理文件服务。
+
+#### 自定义主机和端口
+
+你可以覆盖独立服务器运行的主机和端口，通过在运行时将它们作为环境变量进行传递：
+
+```shell
+HOST=0.0.0.0 PORT=4321 node ./dist/server/entry.mjs
+```
+
+#### HTTPS
+
+默认情况下，独立服务器使用 HTTP。如果前面有一个执行 HTTPS 的代理服务器，则能更好的工作。如果你需要独立服务器本身来运行 HTTPS，你需要提供 SSL 密钥和证书。
+
+你可以通过环境变量 `SERVER_CERT_PATH` 和 `SERVER_KEY_PATH` 传递密钥和证书的路径。这就是在 bash 中传递它们的方式：
+
+```bash
+SERVER_KEY_PATH=./private/key.pem SERVER_CERT_PATH=./private/cert.pem node ./dist/server/entry.mjs
+```
+
+#### 运行时环境变量
+
+如果在构建过程运行时存在包含环境变量的 `.env` 文件，这些值将会被硬编码到输出中，就像生成静态网站一样。
+
+在构建过程中，运行时变量必须不存在于 `.env` 文件中，并且您必须为 Astro 提供每个运行时期望的环境变量： `VARIABLE_1=placeholder astro build`。这会向 Astro 指示实际值将在构建的应用程序运行时可用。占位符值将被构建过程忽略，Astro 将在运行时使用提供的值。
+
+如果使用多个运行时变量，请将它们保存在与 `.env`不同的独立文件（如 `.env.runtime`）中。使用以下命令开始构建：
+
+```sh
+export $(cat .env.runtime) && astro build
+```
+
+## 故障排除
+
+### SyntaxError: Named export 'compile' not found
+
+如果入口脚本是使用 npm 或 Yarn 构建的，你可能会在运行入口脚本时看到这个问题。这是一个已知问题，可能会在未来版本中修复。可以将 `“path-to-regexp”` 添加到 `noExternal` 数组来解决这个问题：
+
+```js ins={9-13}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+import node from '@astrojs/node';
+
+export default defineConfig({
+  output: 'server',
+  adapter: node(),
+  vite: {
+    ssr: {
+      noExternal: ['path-to-regexp'],
+    },
+  },
+});
+```
+
+如需更多帮助，请查看 [Discord](https://astro.build/chat) 上的 `#support` 频道。我们友好的支持小队成员随时为你提供帮助！
+
+你还可以查看 [Astro 集成文档][astro-integration] 了解更多关于集成的信息。
+
+## 贡献
+
+这个包由 Astro 的核心团队维护。欢迎你提交问题或 PR！
+
+## 更改日志
+
+有关此集成的更改历史，请参阅 [CHANGELOG.md](https://github.com/withastro/astro/tree/main/packages/integrations/node/CHANGELOG.md)。
+
+[astro-integration]: /zh-cn/guides/integrations-guide/

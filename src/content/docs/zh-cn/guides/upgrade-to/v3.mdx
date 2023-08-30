@@ -1,0 +1,630 @@
+---
+title: 升级到 Astro v3
+description: 如何将你的项目升级到 Astro 的最新版本 (v3.0)。
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import FileTree from '~/components/FileTree.astro'
+
+
+本指南将帮助你从 Astro v2 迁移到 Astro v3。
+
+需要将旧项目升级到 v2 吗？请参阅我们的 [旧版本迁移指南](/zh-cn/guides/upgrade-to/v2/)。
+
+## 升级 Astro
+
+使用你的包管理器将项目的 Astro 版本更新到最新版本。如果你正在使用 Astro 集成，请同时将其更新到最新版本。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # 升级到 Astro v3.x
+  npm install astro@latest
+  
+  # 示例：升级 React 和 Tailwind 集成
+  npm install @astrojs/react@latest @astrojs/tailwind@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # 升级到 Astro v3.x
+  pnpm install astro@latest
+
+  # 示例：升级 React 和 Tailwind 集成
+  pnpm install @astrojs/react@latest @astrojs/tailwind@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # 升级到 Astro v3.x
+  yarn add astro@latest
+  
+  # 示例：升级 React 和 Tailwind 集成
+  yarn add @astrojs/react@latest @astrojs/tailwind@latest
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+:::note[需要继续吗？]
+升级 Astro 到最新版本后，你可能不需要对你的项目做任何更改！
+
+但是，如果你注意到错误或意外的行为，请检查下面的内容，看看有什么变化可能需要在你的项目中更新。
+:::
+
+## Astro v3.0 实验性标志已移除
+
+从 `astro.config.mjs` 中移除以下实验性标志：
+
+```js del={5-8}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    assets: true,
+    viewTransitions: true,
+  },
+})
+```
+
+这些特性现在默认可用：
+
+- 视图过渡动画用于动画页面过渡和持久化组件。如果你使用此实验性标志，请查看 [视图过渡动画 API 重大更改及升级建议](/zh-cn/guides/view-transitions/#从-v2x-升级到-v30)。
+- 新的图像服务 API `astro:assets` 用于在 Astro 中使用图像，包括新的 `<Image />` 组件和 `getImage()` 函数。**无论你是否使用此实验性标志**，请阅读详细的 [图像升级建议](/zh-cn/guides/images/#从-v2x-升级到-v30) ，以了解这可能如何影响你的项目。
+
+在 3.0 博客文章阅读更多关于这两个令人兴奋的功能和更多其他内容！
+
+## Astro v3.0 破坏性更改
+
+Astro v3.0 包含了一些破坏性更改，以及一些之前已经弃用的功能的移除。如果你的项目在升级到 v3.0 后无法正常工作，请查看本指南，了解所有破坏性更改的概述以及如何更新你的代码库的说明。
+
+请查看 [更新日志](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md) 以获取完整的发布说明。
+
+### 移除：对 Node 16 的支持
+
+Node 16 计划在 2023 年 9 月达到其生命周期终点。
+
+Astro v3.0 完全放弃对 Node 16 的支持，以便所有 Astro 用户都能利用 Node 的更现代化的功能。
+
+#### 我应该怎么做？
+
+ 检查你的开发环境和部署环境是否都使用**Node `18.14.1` 或更高版本**。
+
+1. 使用以下命令检查 Node 本地版本：
+
+    ```sh
+    node -v
+    ```
+
+2. 查看你的 [部署环境](/zh-cn/guides/deploy/) 的文档，以确认它们是否支持 Node 18。
+
+    你可以在仪表板配置设置或 `.nvmrc` 文件中为你的 Astro 项目指定 `Node 18.14.1`。
+
+```bash title=".nvmrc"
+18.14.1
+```
+### 移除：对 TypeScript 4 的支持
+
+在 Astro v2.x 中，`tsconfig.json` 预设包含对 TypeScript 4.x 和 5.x 的支持。
+
+Astro v3.0 更新了 `tsconfig.json` 预设，只支持 TypeScript 5.x。Astro 现在假设你使用 TypeScript 5.0（2023 年 3 月），或者你的编辑器包含它（例如 VS Code 1.77）。
+
+#### 我应该怎么做？
+
+如果你本地安装了 TypeScript，请更新到至少 v5.0。
+
+```bash
+npm install typescript@latest --save-dev
+```
+
+### 移除：`@astrojs/image`
+
+在 Astro v2.x 中，Astro 提供了一个官方的图像集成，其中包括 Astro `<Image />` 和 `<Picture />` 组件。
+
+Astro v3.0 完全从代码库中删除了这个集成。Astro 图像的新解决方案是内置的图像服务 API：`astro:assets`。
+
+#### 我应该怎么做？
+
+移除 `@astrojs/image` 集成。你不仅需要卸载集成，还需要更新或删除任何导入语句和现有的 `<Image />` 和 `<Picture />` 组件。你可能还需要配置一个首选的默认图像处理服务。
+
+你可以在我们的 [图像指南](/zh-cn/guides/images/#移除-astrojsimage) 中找到完整的、逐步的删除旧图像集成的说明。
+
+迁移 `astro:assets` 还将带来一些你现在可能希望使用的新的图像选项和功能。请参阅完整的 [v3.0 图像升级建议](/zh-cn/guides/images/#从-v2x-升级到-v30) 了解完整的详情！
+
+```js del={3,7}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import image from '@astrojs/image';
+
+export default defineConfig({
+  integrations: [
+    image(),
+  ]
+})
+```
+
+### 移除：`<Markdown />` 组件
+
+在 Astro v1.x 中，Astro 废弃了 `<Markdown />` 组件，并将其移动到了一个外部包中。
+
+Astro v3.0 完全删除了 `@astrojs/markdown-component` 包。Astro 的 `<Markdown />` 组件将不再在你的项目中工作。
+
+#### 我应该怎么做？
+
+移除所有的 `@astrojs/markdown-component` 实例。
+
+```astro del={2} title="src/components/MyAstroComponent.astro"
+---
+import Markdown from '@astrojs/markdown-component';
+---
+```
+
+要继续在你的代码中使用类似的 `<Markdown />` 组件，请考虑使用 [社区集成](https://astro.build/integrations/)，例如 [`astro-remote`](https://github.com/natemoo-re/astro-remote)。请根据集成的文档更新你的 `<Markdown />` 组件导入和属性。
+
+否则，请删除所有对导入 Astro 的 `<Markdown />` 组件及其本身的引用。你需要直接将你的内容重写为 HTML，或者从 `.md` 文件中[导入 Markdown](/zh-cn/guides/markdown-content/#导入-markdown)。
+
+### 移除：已废弃的 1.x API
+
+在 Astro v1.x 中，Astro 废弃了对最初的配置选项以及 `<style global>` 和 `<script hoist>` 的支持。但为了向后兼容，它们依旧可用。
+
+Astro v3.0 完全删除了这些已弃用的 API。你应该使用正式被支持的[配置选项](/zh-cn/reference/configuration-reference/)以及现代的 `<style is:global>` 和 `<script>`。
+
+#### 我应该怎么做？
+
+如果你正在继续使用 v1.x API，请改用每个功能的新 API：
+
+- 废弃的配置选项：请参阅 [0.26 迁移指南](/zh-cn/guides/upgrade-to/v1/#new-configuration-api)
+- 废弃的脚本/样式类型：请参阅 [0.26 迁移指南](/zh-cn/guides/upgrade-to/v1/#new-default-script-behavior)
+
+### 移除： 内容集合 schema 中来自 `astro:content` 的 `image`
+
+在 Astro v2.x 中，内容集合 API 废弃了来自 `astro:content` 的 `image` 导出，用于在你的内容集合 schema 中使用。
+
+Astro v3.0 完全删除了这个导出。
+
+#### 我应该怎么做？
+
+如果你正在使用 `astro:content` 中废弃的 `image()`，请删除它，因为它已经不存在了。请通过 [来自 `schema` 的 `image` 帮助程序](/zh-cn/guides/images/#更新内容集合结构) 来验证图像。
+
+ ```ts title="astro.config.mjs" del={1} ins={2} "({ image })"
+import { defineCollection, z, image } from "astro:content";
+import { defineCollection, z } from "astro:content";
+ 
+ defineCollection({
+   schema: ({ image }) =>
+     z.object({
+       image: image(),
+    }),
+});
+```
+
+### 移除：pre-0.14 Shiki 主题名称
+
+在 Astro v2.x 中，一些 Shiki 主题名称已被重命名，但原始名称仍保留了向后兼容性。
+
+Astro v3.0 删除了原始名称，而采用了重命名的主题名称。
+
+#### 我应该怎么做？
+
+如果你的 Astro 项目使用了以下任何主题，请将它们重命名为更新后的名称：
+
+- `material-darker` -> `material-theme-darker`
+- `material-default` -> `material-theme`
+- `material-lighter` -> `material-theme-lighter`
+- `material-ocean` -> `material-theme-ocean`
+- `material-palenight` -> `material-theme-palenight`
+
+### 移除：`class:list` 功能
+
+在 Astro v2.x 中，[`class:list` 指令](/zh-cn/reference/directives-reference/#classlist) 使用了一个受 [`clsx`](https://github.com/lukeed/clsx) 启发的自定义实现，其中包含一些额外的功能，如去重和 `Set` 支持。
+
+Astro v3.0 现在直接使用 `clsx` 来处理 `class:list`，它不支持去重和 `Set` 值。
+
+#### 我应该怎么做？
+
+将传递给 `class:list` 指令的任何 `Set` 元素替换为普通数组。
+```astro title="src/components/MyAstroComponent.astro" del={4} ins={5}
+<Component class:list={[
+  'a',
+  'b',
+  new Set(['c', 'd'])
+  ['c', 'd'] 
+]} />
+```
+
+### 移除：将 `class:list` 作为 prop 传递
+
+在 Astro v2.x 中，[`class:list` 的值](/zh-cn/reference/directives-reference/#classlist) 通过 [`Astro.props['class:list']`](/zh-cn/reference/api-reference/#astroprops) 传递给组件。
+
+Astro v3.0 将 `class:list` 的值标准化为字符串，然后通过 `Astro.props['class']` 发送给组件。
+
+#### 我应该怎么做？
+
+移除任何期望接收 `class:list` prop 的代码。
+
+```astro title="src/components/MyAstroComponent.astro" del={2,3,7} ins={4,8} "classList" "'class:list': classList"
+---
+import { clsx } from 'clsx';
+const { class: className, 'class:list': classList } = Astro.props;
+const { class: className } = Astro.props;
+---
+<div
+  class:list={[className, classList]}
+  class:list={[className]}
+/>
+```
+
+### 移除：对于 camelCase CSS 变量的 kebab-case 转换
+
+在 Astro v2.x 中，传递给 `style` 属性的 camelCase [CSS 变量](/zh-cn/guides/styling/#css-变量) 会被渲染为 camelCase（如写入的那样）和 kebab-case（保留向后兼容性）。
+
+Astro v3.0 移除了这些 camelCase CSS 变量名称的 kebab-case 转换，只有原始的 camelCase CSS 变量被渲染。
+
+```astro "my-value"
+---
+// src/components/MyAstroComponent.astro
+const myValue = "red"
+---
+<!-- 输入 -->
+<div style={{ "--myValue": myValue }}></div>
+
+<!-- 输出 (Astro 2.x) -->
+<div style="--my-value:var(--myValue);--myValue:red"></div>
+<!-- 输出 (Astro 3.0) -->
+<div style="--myValue:red"></div>
+```
+
+#### 我应该怎么做？
+
+如果你依靠 Astro 来转换你的样式中的 kebab-case，请更新你现有的样式为 camelCase，以防止丢失样式。例如：
+
+```astro del={3} ins={4} title="src/components/MyAstroComponent.astro"
+<style>
+  div {
+   color: var(--my-value);
+   color: var(--myValue);
+  }
+</style>
+```
+
+### 移除：自动展平 `getStaticPaths()` 的返回值
+
+在 Astro v2.x 中，`getStaticPaths()` 的返回值会自动展平，以允许返回一个二维数组而不会出错。
+
+Astro v3.0 移除了对 `getStaticPaths()` 返回值的自动展平。
+
+#### 我应该怎么做？
+
+如果你返回的是一个二维数组而不是一个（预期的）_一维对象数组_，则应该使用 `.flatMap` 和 `.flat` 来确保你返回的是展平的一维数组。
+
+如果你需要更新代码，Astro 将抛出一个错误消息，指出 `getStaticPath()` 的返回值必须是一个对象数组。
+
+### 移动：`astro check` 现在需要一个外部包
+
+在 Astro v2.x 中，默认情况下包含了 [`astro check`](/zh-cn/reference/cli-reference/#astro-check)，并且它的依赖项被打包在 Astro 中。这意味着无论你是否使用 `astro check`，都会有一个更大的包。这也阻止你对 TypeScript 和 Astro 语言服务器的版本进行控制。
+
+Astro v3.0 将 `astro check` 命令从 Astro 核心中移出，并且现在需要一个外部包 `@astrojs/check`。此外，你必须在你的项目中安装 `typescript` 来使用 `astro check` 命令。
+
+#### 我应该怎么做？
+
+在升级 Astro v3.0 后运行 `astro check` 命令，并按照提示安装所需的依赖项，或者手动将 `@astrojs/check` 和 `typescript` 安装到你的项目中。
+
+### 废弃：`build.excludeMiddleware` 和 `build.split`
+
+在 Astro v2.x 中，`build.excludeMiddleware` 和 `build.split` 用于在 SSR 模式下使用适配器时更改特定文件的产出方式。
+
+Astro v3.0 用新的 [SSR 适配器配置选项](/zh-cn/guides/integrations-guide/#官方集成) 替换了这些构建配置选项，以执行相同的任务：`edgeMiddleware` 和 `functionPerRoute`。
+
+#### 我应该怎么做？
+
+更新 Astro 配置文件，直接在适配器配置中使用新的选项。
+
+```js title="astro.config.mjs" del={5-7} ins={9}
+import { defineConfig } from "astro/config";
+import vercel from "@astrojs/vercel/serverless";
+
+export default defineConfig({
+    build: {
+      excludeMiddleware: true
+    },
+    adapter: vercel({
+      edgeMiddleware: true
+    }),
+});
+```
+
+```js title="astro.config.mjs" del={5-7} ins={9}
+import { defineConfig } from "astro/config";
+import netlify from "@astrojs/netlify/functions";
+
+export default defineConfig({
+     build: {
+        split: true
+     },
+     adapter: netlify({
+        functionPerRoute: true
+     }),
+});
+```
+
+### 废弃：`markdown.drafts`
+
+在 Astro v2.x 中，`markdown.drafts` 配置允许你在运行开发服务器时拥有草稿页面，但在生产环境中不会构建。
+
+Astro v3.0 废弃了这个功能，而是使用内容集合的方法来处理草稿页面，通过手动过滤来实现，这样可以更好地控制这个功能。
+
+#### 我应该怎么做？
+
+为了继续将你项目中的某些页面标记为草稿，请 [迁移到内容集合](/zh-cn/guides/content-collections/#从基于文件的路由迁移)，并使用 `draft: true` frontmatter 属性 [手动过滤页面](/zh-cn/guides/content-collections/#筛选集合查询)。
+
+### 废弃：在端点（endpoints）中返回简单对象
+
+在 Astro v2.x 中，端点（endpoints）可以返回一个简单的对象，它会被转换为一个 JSON 响应。
+
+Astro v3.0 废弃了这种行为，而是直接返回一个 `Response` 对象。
+
+#### 我应该怎么做？
+
+更新你的端点（endpoints），直接返回一个 `Response` 对象。
+
+```ts title="endpoint.json.ts" del={2} ins={3}
+export async function GET() {
+  return { body: { "title": "Bob's blog" }};
+  return new Response(JSON.stringify({ "title": "Bob's blog" }));
+}
+```
+
+如果你确实需要保留以前的格式，你可以使用 `ResponseWithEncoding` 对象，但它会在将来被弃用。
+
+```ts title="endpoint.json.ts" del={2} ins={3}
+export async function GET() {
+  return { body: { "title": "Bob's blog" } };
+  return new ResponseWithEncoding({ body: { "title": "Bob's blog" }});
+}
+```
+
+### 默认值改变：端口 `3000`
+
+在 Astro v2.x 中，默认情况下，Astro 运行在 `3000` 端口上。
+
+Astro v3.0 将 [默认端口](/zh-cn/reference/cli-reference/#--port-number) 更改为 `4321`。🚀
+
+#### 我应该怎么做？
+
+更新任何现有的引用 `localhost:3000`，例如在测试或在你的 `README` 中，以反映新的端口 `localhost:4321`。
+
+### 默认值改变：import.meta.env.BASE_URL `trailingSlash`
+
+在 Astro v2.x 中，除非 [`trailingSlash`](/zh-cn/reference/configuration-reference/#trailingslash) 被设置为 `never`，否则 `import.meta.env.BASE_URL` 总是被设置成以斜杠 `/` 结尾的 [`base`](/zh-cn/reference/configuration-reference/#base)。也就是说默认情况下如果 `base` 不是以斜杠结尾的，Astro 会帮你添加一个。
+
+Astro v3.0 中的 `import.meta.env.BASE_URL` 默认情况下不再给 `base` 添加斜杠，也不会在设置 `trailingSlash: "ignore"` 时添加斜杠。`trailingSlash: "always"` 和 `trailingSlash: "never"` 的行为保持不变。
+
+#### 我应该怎么做？
+
+如果你的 `base` 已经以斜杠结尾，或你的 `trailingSlash` 设置为 `always` 或 `never`，则不需要更改。
+
+如果你的 `base` 不以斜杠结尾 **并且** 你希望 `import.meta.env.BASE_URL` 与以前保持一致，请在 `base` 后添加一个斜杠。
+
+```js title="astro.config.mjs" del={4} ins={5}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  base: 'my-base',
+  base: 'my-base/',
+});
+```
+
+### 默认值改变：`compressHTML`
+
+在 Astro v2.x 中，只有当 [`compressHTML`](/zh-cn/reference/configuration-reference/#compresshtml) 明确设置为 `true` 时，Astro 才会压缩你发出的 HTML。默认值曾经是 `false`。
+
+Astro v3.0 现在默认压缩产出的 HTML。
+
+#### 我应该怎么做？
+
+你可以从你的配置中删除 `compressHTML: true`，因为这是新的默认行为。
+
+```js title="astro.config.mjs" del={4}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  compressHTML: true
+})
+```
+
+你现在必须设置 `compressHTML: false` 来禁用 HTML 压缩。
+
+### 默认值改变：`scopedStyleStrategy`
+
+在 Astro v2.x 中，[`scopedStyleStrategy`](/zh-cn/reference/configuration-reference/#scopedstylestrategy) 的默认值是 `"where"`。
+
+Astro v3.0 引入了一个新的默认值：`"attribute"`。现在默认情况下，样式使用 `data-*` 属性。
+
+#### 我应该怎么做？
+
+为了保留你项目的当前 [样式作用域](/zh-cn/guides/styling/#作用域样式)，请修改配置文件为以前的默认值：
+
+```js title="astro.config.mjs" ins={4}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  scopedStyleStrategy: "where"
+})
+```
+
+### 默认值改变：`inlineStyleSheets`
+
+在 Astro v2.x 中，默认情况下，所有项目样式表都作为 `link` 标签输出。你可以通过设置为 `"always"` 使它们总是内联到 `<style>` 标签中，或者设置为 `"auto"` 再通过 [`build.inlineStylesheets`](/zh-cn/reference/configuration-reference/#buildinlinestylesheets) 设置项来仅内联小于某个大小的样式表。默认设置曾经为 `"never"`。
+
+Astro v3.0 将 `inlineStylesheets` 的默认值更改为 `"auto"`。默认情况下小于 `ViteConfig.build.assetsInlineLimit`（默认值：4kb）的样式表被内联，其他项目样式将以外部样式表的形式输出。
+
+#### 我应该怎么做？
+如果你想保留你项目的当前行为，请将 `build.inlineStylesheets` 设置为以前的默认值 `"never"`：
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+	 build: {
+    inlineStylesheets: "never"
+  }
+})
+```
+
+### 默认值改变：图像服务
+
+在 Astro v2.x 中，Squoosh 是[默认的图像处理服务](/zh-cn/guides/images/#默认图像服务)。
+
+Astro v3.0 将 Sharp 作为默认的图像处理服务，并提供了一个配置选项来使用 Squoosh。
+
+#### 我应该怎么做？
+
+如果你希望继续使用 Squoosh 来转换你的图像，请使用以下配置更新你的配置：
+
+```ts title="astro.config.mjs" ins={4-6}
+import { defineConfig, squooshImageService } from "astro/config";
+
+export default defineConfig({
+  image: {
+    service: squooshImageService(),
+  }
+})
+```
+
+### 修改：HTTP 请求方法案例
+
+在 Astro v2.x 中，[HTTP 请求方法](/zh-cn/core-concepts/endpoints/#http-方法) 使用小写函数名称编写：`get`、`post`、`put`、`all` 和 `del`。
+
+Astro v3.0 使用大写函数名称，使用 `DELETE` 而不是 `del`。
+
+#### 我应该怎么做？
+
+重命名所有的函数名为它们的大写形式：
+
+- `get` 改为 `GET`
+- `post` 改为 `POST`
+- `put` 改为 `PUT`
+- `all` 改为 `ALL`
+- `del` 改为 `DELETE`
+
+```js title="endpoint.ts" del={1} ins={2}
+export function get() {
+export function GET() {
+    return new Response(JSON.stringify({ "title": "Bob's blog" }));
+}
+```
+
+### 修改：多个 JSX 框架配置
+
+在 Astro v2.x 中，你可以在同一个项目中使用多个 JSX 框架集成（React、Solid、Preact）而不需要指定哪些文件属于哪个框架。
+
+Astro v3.0 现在要求你在有多个 JSX 框架集成时，使用新的 `include` 和 `exclude` 集成配置选项来指定你的文件使用哪个框架。这使得 Astro 更好地支持单框架使用，以及 React Fast Refresh 等高级功能。
+
+#### 我应该怎么做？
+
+如果你在同一个项目中使用多个 JSX 框架集成，请将 `include`（和可选的 `exclude`）设置为文件或文件夹的路径数组。可用通配符来包含多个文件路径。
+
+我们建议将常见的框架组件放在同一个文件夹中（例如 `/components/react/` 和 `/components/solid/`），以便更容易地指定你的包含内容，但这不是必需的：
+
+```js ins={13,16,19}
+import { defineConfig } from 'astro/config';
+import preact from '@astrojs/preact';
+import react from '@astrojs/react';
+import svelte from '@astrojs/svelte';
+import vue from '@astrojs/vue';
+import solid from '@astrojs/solid-js';
+
+export default defineConfig({
+  // 启用多个框架来支持所有不同类型的组件。
+  // 如果你只使用一个 JSX 框架，则不需要 `include`！
+  integrations: [
+    preact({
+      include: ['**/preact/*'],
+    }),
+    react({
+      include: ['**/react/*'],
+    }),
+    solid({
+      include: ['**/solid/*'],
+    }),
+  ],
+});
+```
+
+### 修改：`Astro.cookies.get(key)` 可以返回 `undefined`
+
+在 Astro v2.x 中，[`Astro.cookies.get(key)`](/zh-cn/reference/api-reference/#astrocookies) 即使 cookie 不存在也会返回一个 [`AstroCookie` 对象](/zh-cn/reference/api-reference/#astrocookie)。要检查它是否存在，你需要使用 `Astro.cookies.has(key)`。
+
+Astro v3.0 中，如果 cookie 不存在，`Astro.cookies.get(key)` 会返回 `undefined`。
+
+#### 我应该怎么做？
+
+这个修改不会影响任何在调用 `Astro.cookies.get(key)` 之前用 `Astro.cookies.has(key)` 检查 cookie 是否存在的代码，但现在不再需要检查。
+
+你可以安全的删除任何使用 `has()` 来检查 cookie 是否存在的代码：
+
+```js del={1-3} ins={5-7}
+if (Astro.cookies.has(id)) {
+  const id = Astro.cookies.get(id)!;
+}
+
+const id = Astro.cookies.get(id);
+if (id) {
+}
+```
+
+### 修改：以编程方式运行 Astro CLI
+
+在 Astro v2.x 中，`"astro"` 包的入口点直接导出并运行 Astro CLI。在实践中不建议以这种方式运行 Astro。
+
+Astro v3.0 从入口点中删除了 CLI，并导出了一组新的实验性 JavaScript API，包括 `dev()`、`build()`、`preview()` 和 `sync()`。
+
+#### 我应该怎么做？
+
+要 [以编程方式运行 Astro CLI](/zh-cn/reference/cli-reference/#高级-api实验性)，请使用新的实验性 JavaScript API：
+
+```js
+import { dev, build } from "astro";
+
+// 启动 Astro 开发服务器
+const devServer = await dev();
+await devServer.stop();
+
+// 构建 Astro 项目
+await build();
+```
+
+
+### 修改：内部 Astro API 入口文件导出路径
+
+在 Astro v2.x 中，你可以从 `astro/internal/*` 和 `astro/runtime/server/*` 导入内部 Astro API。
+
+Astro v3.0 删除了这两个入口文件，而是使用现有的 `astro/runtime/*` 入口文件。此外，还为编译器的运行时代码导出了一个新的 `astro/compiler-runtime`。
+
+#### 我应该怎么做？
+
+这些是 Astro 内部 API 的入口文件，不应该影响你的项目。但如果你确实使用了这些入口文件，请按照下面的说明更新：
+
+```js del={1,4,10} ins={2,5,11}
+import 'astro/internal/index.js';
+import 'astro/runtime/server/index.js';
+
+import 'astro/server/index.js';
+import 'astro/runtime/server/index.js';
+```
+
+```js ins={5} del={4}
+import { transform } from '@astrojs/compiler';
+
+const result = await transform(source, {
+  internalURL: 'astro/runtime/server/index.js',
+  internalURL: 'astro/compiler-runtime',
+  // ...
+});
+```
+
+
+
+## 已知问题
+
+目前没有已知的问题。

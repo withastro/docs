@@ -1,0 +1,233 @@
+---
+title: 处理脚本和事件
+description: 如何使用浏览器 JavaScript API 将客户端交互界面添加到 Astro 组件
+---
+
+你可以[不使用一个 UI 框架](/zh-cn/core-concepts/framework-components/)（比如 React，Svelte，Vue），使用标准的 HTML `<script>` 标签为你的 Astro 组件添加交互性。这允许你发送 JavaScript 到浏览器，并且为 Astro 组件添加各种功能。
+
+## 客户端脚本
+
+脚本可以用来添加事件监听器，发送分析数据，播放动画，以及其他所有 JavaScript 可以在 Web 上做的事情。
+
+```astro
+<!-- src/components/ConfettiButton.astro -->
+<button data-confetti-button>Celebrate!</button>
+
+<script>
+  // 导入 npm 模块
+  import confetti from 'canvas-confetti';
+
+  // 找到页面上的组件 DOM。
+  const buttons = document.querySelectorAll('[data-confetti-button]');
+
+  // 当 button 被点击时，添加事件监听器来触发 confetti。
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => confetti());
+  });
+</script>
+```
+
+默认情况下，Astro 会处理并打包 `<script>` 标签，添加对导入 npm 模块、编写 TypeScript 等的支持。
+
+## 在 Astro 中使用 `<script>`
+
+在 `.astro` 文件中，你可以添加一个或多个 `<script>` 标签来添加客户端 JavaScript。
+
+在这个例子中，将 `<Hello />` 组件添加到一个页面会向你的浏览器控制台输出一条消息。
+
+```astro title="src/components/Hello.astro"
+<h1>你好，世界！</h1>
+
+<script>
+  console.log('你好，浏览器控制台！');
+</script>
+```
+
+### 脚本打包
+
+Astro 默认处理 `<script>` 标签。
+
+- 任何导入会被打包，这允许你导入本地文件或者 Node 模块。
+- 处理过的脚本会被注入到你的页面的 `<head>`，同时添加[`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules)。
+- 完全支持 TypeScript，包括导入 TypeScript 文件。
+- 如果你的组件在一个页面上被用到了多次，脚本只会有一个。
+
+```astro title="src/components/Example.astro"
+<script>
+  // 会处理！会打包！支持 TypeScript！
+  // 也可以导入本地脚本和 Node 模块。
+</script>
+```
+
+如果不想要打包脚本，你可以使用 `is:inline` 指令。
+
+```astro title="src/components/InlineScript.astro" "is:inline"
+<script is:inline>
+  // 将会被直接插入 HTML，不会有任何变化！
+  // 本地导入并不会被解析，也不会生效。
+  // 如果组件被多次使用，脚本会出现多次。
+</script>
+```
+
+:::note
+在某些情况下，Astro 的默认打包行为将被禁用。特别是，在 `<script>` 标签添加 `type="module"` 或者除 `src` 之外的任何属性，都会使 Astro 将该标签视为具有 `is:inline` 指令。当脚本以 JSX 表达式编写时，同样也是如此。
+:::
+
+📚 请参阅我们的[指令参考](/zh-cn/reference/directives-reference/#脚本和样式指令)页面以获取有关 `<script>` 标签上可用指令的更多信息。
+
+### 脚本加载
+
+你可能希望将脚本编写为单独的 `.js`/`.ts` 文件，或者需要引用另一台服务器上的外部脚本。 你可以通过在 `<script>` 标签的 `src` 属性中引用它们来做到这一点。
+
+#### 导入本地脚本
+
+**何时使用**：如果你的脚本位于 `src/`。
+
+Astro 将按照其[脚本打包规则](#脚本打包)为你构建、优化并将这些脚本添加到页面中。
+
+```astro title="src/components/LocalScripts.astro"
+<!-- `src/scripts/local.js` 脚本的相对路径 -->
+<script src="../scripts/local.js"></script>
+
+<!-- 也适用于本地 TypeScript 文件 -->
+<script src="./script-with-types.ts"></script>
+```
+
+#### 加载外部脚本
+
+**何时使用：** 如果你的 JavaScript 文件位于 `public/` 或 CDN 上。
+
+要加载在项目的 `src/` 文件夹之外的脚本，请使用 `is:inline` 指令。当你如上所述导入脚本时，此方法会跳过 Astro 提供的 JavaScript 处理、打包和优化。
+
+```astro title="src/components/ExternalScripts.astro" "is:inline"
+<!-- `public/my-script.js` 脚本的绝对路径 -->
+<script is:inline src="/my-script.js"></script>
+
+<!-- 远程服务器上脚本的完整 URL -->
+<script is:inline src="https://my-analytics.com/script.js"></script>
+```
+
+## 常见脚本模式
+
+### 处理 `onclick` 和其他事件
+
+一些 UI 框架使用自定义语法来处理事件，例如 `onClick={...}` (React/Preact) 或 `@click="..."` (Vue)。Astro 更严格地遵循标准 HTML，并且不对事件使用自定义语法。
+
+相反，你可以在 `<script>` 标签中使用 [`addEventListener`](https://developer.mozilla.org/zh-CN/docs/Web/API/EventTarget/addEventListener) 来处理用户交互。
+
+```astro title="src/components/AlertButton.astro"
+<button class="alert">Click me!</button>
+
+<script>
+  // 在页面上找到所有带有 `alert` 类的按钮。
+  const buttons = document.querySelectorAll('button.alert');
+
+  // 处理每个按钮上的点击事件。
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      alert('按钮被点击了！');
+    });
+  });
+</script>
+```
+
+:::note
+如果你在一个页面上有多个 `<AlertButton />` 组件，Astro 将不会多次运行该脚本。 脚本是打包在一起的，每页只包含一次。 使用 `querySelectorAll` 确保此脚本将事件侦听器附加到页面上找到的具有 `alert` 类的每个按钮。
+:::
+
+### 具有自定义元素的 Web 组件
+
+你可以使用 Web 组件标准创建具有自定义行为的 HTML 元素。在 `.astro` 组件中定义 [自定义元素](https://developer.mozilla.org/zh-CN/docs/Web/Web_Components/Using_custom_elements) 允许你构建交互式组件而无需 UI 框架库。
+
+在这个例子中，我们定义了一个新的 `<astro-heart>` HTML 元素，用于跟踪你点击喜欢按钮的次数并使用最新计数更新 `<span>`。
+
+```astro title="src/components/AstroHeart.astro"
+<!-- 将按钮包装在我们的自定义元素“astro-heart”中。 -->
+<astro-heart>
+  <button aria-label="Heart">💜</button> × <span>0</span>
+</astro-heart>
+
+<script>
+  // 为我们的新 HTML 自定义元素定义行为。
+  class AstroHeart extends HTMLElement {
+    constructor() {
+			super();
+      let count = 0;
+
+      const heartButton = this.querySelector('button');
+      const countSpan = this.querySelector('span');
+
+      // 每次单击按钮时，更新计数。
+			heartButton.addEventListener('click', () => {
+        count++;
+        countSpan.textContent = count;
+      });
+		}
+  }
+
+  // 告诉浏览器将我们的 AstroHeart 类用于 <astro-heart> 元素。
+  customElements.define('astro-heart', AstroHeart);
+</script>
+```
+
+在这里使用自定义元素有两个优点：
+
+1. 除了使用 `document.querySelector()` 搜索整个页面，你可以使用 `this.querySelector()` ，它只在当前自定义元素实例中搜索。这使得一次只处理一个组件实例的子实例变得更容易。
+
+2. 虽然 `<script>` 只运行一次，但浏览器每次在页面上找到 `<astro-heart>` 时都会运行我们自定义元素的 `constructor()` 方法。 这意味着你可以安全地一次为一个组件编写代码，即使你打算在一个页面上多次使用该组件。
+
+📚 你可以在[web.dev 的《可重用 Web 组件指南》](https://web.dev/custom-elements-v1/)和[MDN 对自定义元素的介绍](https://developer.mozilla.org/zh-CN/docs/Web/Web_Components/Using_custom_elements)中了解更多自定义元素。
+
+### 将 frontmatter 变量传递给脚本
+
+在 Astro 组件中，`---` 之间 [frontmatter](/zh-cn/core-concepts/astro-components/#组件脚本) 中的代码在服务器上运行，而不是在浏览器中。要将变量从服务器发送到客户端，我们需要一种方法来存储我们的变量，然后在浏览器中运行 JavaScript 时读取它们。
+
+一种方法是使用 [`data-*` 属性](https://developer.mozilla.org/zh-CN/docs/Learn/HTML/Howto/Use_data_attributes) 在 HTML 中存储变量值输出。 一旦你的 HTML 加载到浏览器中，脚本（包括自定义元素）就可以使用元素的“数据集”属性读取这些属性。
+
+在此示例组件中，一个 `message` 属性存储在 `data-message` 属性中，因此自定义元素可以读取 `this.dataset.message` 并在浏览器中获取该属性的值。
+
+```astro title="src/components/AstroGreet.astro" {2} /data-message={.+}/ "this.dataset.message"
+---
+const { message = '你好，世界！' } = Astro.props;
+---
+
+<!-- 将消息存储为数据属性。 -->
+<astro-greet data-message={message}>
+  <button>Say hi!</button>
+</astro-greet>
+
+<script>
+  class AstroGreet extends HTMLElement {
+    constructor() {
+			super();
+
+      // 从 data（数据）属性中读取消息。
+      const message = this.dataset.message;
+      const button = this.querySelector('button');
+      button.addEventListener('click', () => {
+        alert(message);
+      });
+		}
+  }
+
+  customElements.define('astro-greet', AstroGreet);
+</script>
+```
+现在我们可以多次使用我们的组件，并且每次都会收到不同的消息。
+
+```astro title="src/pages/example.astro"
+---
+import AstroGreet from '../components/AstroGreet.astro';
+---
+
+<!-- 使用默认消息：“你好，世界！” -->
+<AstroGreet />
+
+<!-- 使用作为 props 传递的自定义消息。 -->
+<AstroGreet message="构建组件的美好一天！" />
+<AstroGreet message="很高兴你做到了！👋" />
+```
+
+:::tip[你知道吗？]
+当你将 props 传递给使用 React 等 UI 框架编写的组件时，这实际上是 Astro 在幕后所做的！对于带有 `client:*` 指令的组件，Astro 创建了一个带有 `props` 属性的 `<astro-island>` 自定义元素，该属性将你的服务器端 props 存储在 HTML 输出中。
+:::

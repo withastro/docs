@@ -1,0 +1,192 @@
+---
+title: トラブルシューティング
+description: 助けが必要ですか？何か困ったことがありますか？私たちはあなたを支援します。
+i18nReady: true
+---
+
+Astroは、コードのトラブルシューティングとデバッグを支援するため、いくつかのツールを提供しています。
+
+## よくあるエラーメッセージ
+
+ターミナルで表示される一般的なエラーメッセージとその意味、および対処法を紹介します。
+
+### Cannot use import statement outside a module （モジュール外でimport文が使えません）
+
+Astroコンポーネントでは、`<script>`タグはデフォルトで[JavaScriptモジュール](https://developer.mozilla.org/ja/docs/Web/JavaScript/Guide/Modules)として巻き上げられロードされます。タグに[`is:inline`ディレクティブ](/ja/reference/directives-reference/#isinline)などの属性が含まれていると、このデフォルトの動作は解除されます。
+
+**解決方法**: もし、`<script>`タグに何らかの属性を追加している場合は、import文を使用できるように`type="module"`属性も追加する必要があります。
+
+**ステータス**: 期待されるAstroの動作、意図したとおりです。
+
+**自分だけの問題ではないと思うなら？**  
+[この問題](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Cannot+use+import+statement)を報告した人が他にいないか確認してください！
+
+### Unable to render component（コンポーネントをレンダリングできません）
+
+Astroテンプレートにインポートして使用しているコンポーネントにエラーがあることを示します。
+
+#### よくある原因
+
+レンダリング時、`window`または`document`オブジェクトにアクセスしようとした場合、発生する可能性があります。デフォルトでは、Astroはコンポーネントを[アイソモーフィック](https://en.wikipedia.org/wiki/Isomorphic_JavaScript)にレンダリングします。つまり、ブラウザのランタイムが利用できないサーバー上で実行されるということです。この事前レンダリングステップを無効にするには、[`client:only`ディレクティブ](/ja/reference/directives-reference/#clientonly)を使用します。
+
+**解決方法**: レンダリング後にそれらのオブジェクトにアクセスしてみてください（例: Reactの[`useEffect()`](https://react.dev/reference/react/useEffect)またはVueの[`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted)とSvelteの[`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount)）。
+
+**ステータス**: 期待されるAstroの動作、意図したとおりです。
+
+#### そうではない？
+
+**解決方法**: [Astroコンポーネント](/ja/core-concepts/astro-components/)または[UIフレームワークコンポーネント](/ja/core-concepts/framework-components/)の適切なドキュメントをチェックする。[Astro.new](https://astro.new)からAstroのスターターテンプレートを開き、最小限のAstroプロジェクトでコンポーネントのみのトラブルシューティングを検討してください。
+
+**自分だけの問題ではないと思うなら？**  
+[この問題](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Unable+to+render+Component)を報告した人が他にいないか確認してください！
+
+### Expected a default export（デフォルトのエクスポートを予想）
+
+このエラーは、無効なコンポーネントをインポートまたはレンダリングしようとしたとき、または正しく動作していないコンポーネントをインポートまたはレンダリングしようとしたときに表示されることがあります。(この特定のメッセージは、AstroでのUIコンポーネントのインポートが動作する方法によって発生します。)
+
+**解決方法**: インポートおよびレンダリングしているコンポーネントのエラーを探し、それが正しく動作していることを確認してください。[astro.new](https://astro.new)からAstroスターターテンプレートを開き、最小限のAstroプロジェクトであなたのコンポーネントだけをトラブルシューティングすることを検討してみてください。
+
+**ステータス**: 期待されるAstroの動作、意図したとおりです。
+
+
+## 共通の不具合
+
+### コンポーネントがレンダリングされない
+
+まず、[`.astro`コンポーネントスクリプト](/ja/core-concepts/astro-components/#コンポーネントスクリプト)または[`.mdx`ファイル](/ja/guides/markdown-content/#mdxでコンポーネントを使用)で**コンポーネントがインポート**しているかどうか確認します。
+
+それから、import文を確認してください。
+
+- インポートのリンク先が違っていませんか？（importパスを確認してください）
+- インポートしたコンポーネントと同じ名前になっていますか？(コンポーネント名と、[`.Astro`構文にしたがっていること](/ja/core-concepts/astro-syntax/#astroとjsxの違い)を確認してください。）
+- インポート時に拡張子が含まれていますか？（インポートしたファイルに拡張子が含まれているか確認してください。例: `.Astro`、`.md`、`.vue`、`.svelte`。 注: `.js(x)`と`.ts(x)`のファイルのみ、拡張子は必要ありません。）
+
+### コンポーネントがインタラクティブでない
+
+もし、コンポーネントがレンダリングされているのに（上記参照）、ユーザーの操作に反応しない場合、コンポーネントをハイドレートするための[`client:*` ディレクティブ](/ja/reference/directives-reference/#client-directives)が不足している可能性があります。
+
+デフォルトでは、[UIフレームワークコンポーネントはクライアントでハイドレーションされません](/ja/core-concepts/framework-components/#インタラクティブなコンポーネント)。もし`client:*`ディレクティブが提供されない場合、そのHTMLはJavaScriptなしでページにレンダリングされます。
+
+:::tip
+[Astroコンポーネント](/ja/core-concepts/astro-components/)は、HTMLだけのテンプレートコンポーネントで、クライアントサイドのランタイムはありません。しかし、Astroコンポーネントのテンプレートで`<script>`タグを使用すると、グローバルスコープで実行されるJavaScriptをブラウザに送信できます。
+:::
+
+### パッケージ'X'が見つかりません
+
+Astroの起動時に `"Cannot find package 'react'"`（または同様の）警告が表示された場合、そのパッケージをプロジェクトにインストールする必要があることを意味します。すべてのパッケージマネージャーが、peer dependenciesを自動的にインストールするわけではありません。Node v16+でnpmを使用している場合、このセクションを気にする必要はありません。
+
+たとえば、Reactは`@astrojs/react`インテグレーションのpeer dependenciesです。つまり、公式の`react`と`react-dom`パッケージを、インテグレーションと一緒にインストールする必要があります。そうすると、インテグレーションは自動的にこれらのパッケージから取得します。
+
+```shell ins="react react-dom"
+# 例: インテグレーションとフレームワークを一緒にインストールする
+npm install @astrojs/react react react-dom
+```
+
+フレームワークのレンダラーやCSSツールなどのパッケージをAstroに追加する方法は、[Astroのインテグレーションガイド](/ja/guides/integrations-guide/)を参照してください。
+
+### `Astro.glob()` - no matches found（一致するものはありません）
+
+`Astro.glob()`を使用してファイルをインポートする場合は、必要なファイルすべてにマッチする正しいglob構文を使用するようにしてください。
+
+#### ファイルパス
+
+たとえば、`src/pages/index.Astro` で `../components/**/*.js` を使用すると、次の両方のファイルをインポートできます。
+- `src/components/MyComponent.js`
+- `src/components/includes/MyOtherComponent.js`
+
+#### サポートされている値
+
+`Astro.glob()`は動的変数と文字列補間をサポートしていません。
+
+これはAstroのバグではありません。Viteの[`import.meta.glob()`関数](https://vitejs.dev/guide/features.html#glob-import)の制限によるもので、静的な文字列リテラルしかサポートしていません。
+
+これを回避するには、代わりに`Astro.glob()`を使って必要なファイルをすべて含む、より大きなファイル群をインポートし、フィルタリングしてください。
+
+```astro {6-7}
+---
+// src/components/featured.astro
+const { postSlug } = Astro.props;
+const pathToMyFeaturedPost = `src/pages/blog/${postSlug}.md`;
+
+const posts = await Astro.glob('../pages/blog/*.md');
+const myFeaturedPost = posts.find(post => post.file.includes(pathToMyFeaturedPost));
+---
+
+<p>
+  お気に入りの投稿をみてください！ <a href={myFeaturedPost.url}>{myFeaturedPost.frontmatter.title}</a>
+</p>
+```
+
+### Yarn 2+でAstroを使う（Berry）
+
+Yarn 2+、通称Berryは、Nodeモジュールの保存と管理に[Plug'n'Play (PnP)](https://yarnpkg.com/features/pnp)という技術を使用しているため、`create-astro`による新しいAstroプロジェクトの初期化やAstroでの作業中に[問題を引き起こす](https://github.com/withastro/astro/issues/3450)ことがあります。回避するには、`yarnrc.yml`の[`nodeLinker`プロパティ](https://yarnpkg.com/configuration/yarnrc#nodeLinker)を`node-modules`に設定します。
+
+```yaml
+nodeLinker: "node-modules"
+```
+
+## ヒントとコツ
+
+### `console.log()`を使ったデバッグ
+
+`console.log()`は、Astroのコードをデバッグするためのシンプルでありながら人気のある方法です。`console.log`ステートメントをどこに書くかによって、デバッグ出力がどこに出力されるかが決まります。
+
+#### Frontmatter
+
+AstroのFrontmatterの`console.log()`は、常にAstro CLIを実行している**ターミナル**に出力されます。これは、Astroがサーバー上で動作していて、ブラウザ上では動作しないためです。
+
+```astro {5}
+---
+const sum = (a, b) => a + b;
+
+// 例: CLIターミナルに "4 "を出力する。
+console.log(sum(2, 2));
+---
+```
+
+#### JSスクリプト
+
+Astroの`<script>`タグ内に記述またはインポートされたコードは、ブラウザ上で実行されます。`console.log()`ステートメントやその他のデバッグ出力は、ブラウザのコンソールに出力されます。
+
+### フレームワークコンポーネントのデバッグ
+
+[フレームワークコンポーネント](/ja/core-concepts/framework-components/)（ReactやSvelteなど）はユニークです。これらはデフォルトでサーバーサイドにレンダリングされ、`console.log()`のデバッグ出力がターミナルに表示されることを意味します。しかし、これらはブラウザ用にハイドレートすることもでき、それによってデバッグログがブラウザにも表示されるかもしれません。
+
+これはSSR出力とブラウザのハイドレートされたコンポーネントとの間の差異をデバッグするのに便利でしょう。
+
+### Astro `<Debug />` コンポーネント
+
+Astroコンポーネントのデバッグを支援するために、Astroは組み込みの[`<Debug />`](/ja/reference/api-reference/#debug-)コンポーネントを提供し、任意の値をコンポーネントHTMLテンプレートに直接レンダリングします。これは、ターミナルとブラウザの間を行ったり来たりすることなく、ブラウザ上で素早くデバッグするのに便利です。
+
+
+```astro {2,7}
+---
+import { Debug } from 'astro/components';
+const sum = (a, b) => a + b;
+---
+
+<!-- 例: {answer: 6}をブラウザに出力 -->
+<Debug answer={sum(2, 4)} />
+```
+
+Debugコンポーネントは、さらに柔軟で簡潔なデバッグを行うためのさまざまな構文オプションをサポートしています。
+
+```astro {2,7-9}
+---
+import { Debug } from 'astro/components';
+const sum = (a, b) => a + b;
+const answer = sum(2, 4);
+---
+<!-- 例: 3つの例はすべて等価である。 -->
+<Debug answer={sum(2, 4)} />
+<Debug {{answer: sum(2, 4)}} />
+<Debug {answer} />
+```
+
+## もっと知りたい？
+
+[Discord](https://astro.build/chat)の`#support`チャンネルで、問題を説明してください。私たちはいつでも喜んでお手伝いします！
+
+現在の[アストロの未解決問題](https://github.com/withastro/astro/issues/)にアクセスして、既知の問題に遭遇しているかどうかを確認したり、バグレポートを提出したりできます。
+
+また、[RFCディスカッション](https://github.com/withastro/rfcs/discussions/)では、Astroの既知の制限事項があるか確認し、あなたのユースケースに関連する提案があるか確認できます。

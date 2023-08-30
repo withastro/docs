@@ -1,0 +1,214 @@
+---
+type: integration
+title: '@astrojs/cloudflare'
+description: 了解如何使用 @astrojs/cloudflare SSR 适配器来部署你的 Astro 项目。
+githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare/'
+hasREADME: true
+category: adapter
+i18nReady: true
+---
+
+import Video from '~/components/Video.astro';
+import DontEditWarning from '~/components/DontEditWarning.astro';
+
+@astrojs/cloudflare 是一个与 Cloudflare Pages Functions 目标一起使用的 SSR 适配器。你可以使用 Astro/Javascript 编写代码，并将其部署到 Cloudflare Pages。
+
+## 安装
+
+通过以下 `astro add` 命令将 Cloudflare 适配器添加到你的 Astro 项目中，以启用 SSR。这将安装适配器，并在这一步之内对 `astro.config.mjs` 文件进行相应的更改。
+
+```sh
+# 使用 NPM
+npx astro add cloudflare
+# 使用 Yarn
+yarn astro add cloudflare
+# 使用 PNPM
+pnpm astro add cloudflare
+```
+
+如果你更喜欢手动安装适配器，请完成以下两个步骤：
+
+1. 使用你喜欢的包管理器安装 Cloudflare 适配器到项目的依赖项中。如果你使用 npm 或不确定，可以在终端中运行：
+
+```bash
+npm install @astrojs/cloudflare
+```
+
+2. 将以下内容添加到你的 `astro.config.mjs` 项目文件中：
+
+```js ins={3, 6-7}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+  output: 'server',
+  adapter: cloudflare(),
+});
+```
+
+## 选项
+
+### 模式
+
+`mode: "advanced" | "directory"`
+
+默认为 `"advanced"`
+
+Cloudflare Pages 有两种不同的部署模式，`advanced` 模式会在 `dist` 目录中寻找 `_worker.js` 文件，而 `directory` 模式会在项目根目录中的 functions 文件夹中编译 worker。对于大多数项目来说，适配器的默认值 `"advanced"` 就足够了，`dist` 文件夹将会包含已编译的项目。
+
+#### `mode:directory`
+
+切换到 `directory` 模式允许你使用 [pages plugins](https://developers.cloudflare.com/pages/platform/functions/plugins/)，例如 [Sentry](https://developers.cloudflare.com/pages/platform/functions/plugins/sentry/) 或编写自定义代码来启用日志记录。
+
+```ts
+// astro.config.mjs
+export default defineConfig({
+  adapter: cloudflare({ mode: 'directory' }),
+});
+```
+
+在 `directory` 模式下，适配器默认会以与 `advanced` 模式相同的方式编译应用程序的客户端部分，但是将 worker 脚本移动到项目根目录中的 `functions` 文件夹中。在这种情况下，适配器只会在该文件夹中放置一个 `[[path]].js`，允许你添加其他插件和页面中间件，这些插件和页面中间件可以检入版本控制。
+
+要为每个页面编译一个单独的 bundle，请在 Cloudflare 适配器配置中设置 `functionPerPath` 选项。该选项需要手动维护 `functions` 文件夹。Astro 发出的文件将覆盖具有相同名称的现有 `functions` 文件，因此你必须为手动添加的每个文件选择唯一的文件名。此外，适配器永远不会清空 `functions` 文件夹中的过时文件，因此当你删除页面时，必须手动清理该文件夹。
+
+```diff
+import {defineConfig} from "astro/config";
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+     adapter: cloudflare({
+        mode: 'directory',
++       functionPerRoute: true
+    })
+})
+```
+
+请注意，此适配器不支持使用 [Cloudflare 页面中间件](https://developers.cloudflare.com/pages/platform/functions/middleware/)。Astro 将会把 [Astro 中间件](/zh-cn/guides/middleware/) 打包到每个页面中。
+
+## 启用预览
+
+为了使预览功能正常工作，你需要安装 `wrangler`
+
+```sh
+pnpm install wrangler --save-dev
+```
+
+然后可以将 `package.json` 中的预览脚本更新为 `"preview": "wrangler pages dev ./dist"`。这样就可以使用 [Wrangler](https://github.com/cloudflare/wrangler2) 在本地运行整个应用程序了，它支持 secrets、环境变量、KV 命名空间、Durable Objects 和 [所有其他受支持的 Cloudflare 绑定](https://developers.cloudflare.com/pages/platform/functions/#adding-bindings)。
+
+## 访问 Cloudflare 运行时
+
+你可以通过 `Astro.locals` 在 Astro 组件和 API 路由中访问所有的 Cloudflare 绑定和环境变量。
+
+如果你是在 `.astro` 文件中，那么你可以直接通过 `Astro.locals` 全局变量访问运行时：
+
+```astro
+const env = Astro.locals.runtime.env;
+```
+
+或者，从一个端点中访问：
+
+```js
+// src/pages/api/someFile.js
+export function get(context) {
+  const runtime = context.locals.runtime;
+
+  return new Response('Some body');
+}
+```
+
+由于适配器的模式（advanced = worker，directory = pages）以及 Cloudflare API 的差异，运行时项目的外观会有所不同。
+
+
+如果你正在使用 `advanced` 运行时，那么你可以按以下方式声明 `runtime` 对象：
+
+```ts
+// src/env.d.ts
+/// <reference types="astro/client" />
+import type { AdvancedRuntime } from '@astrojs/cloudflare';
+
+declare namespace App {
+  interface Locals extends AdvancedRuntime {
+    user: {
+      name: string;
+      surname: string;
+    };
+  }
+}
+```
+
+如果你正在使用 `directory` 运行时，那么你可以按以下方式声明 `runtime` 对象：
+
+```ts
+// src/env.d.ts
+/// <reference types="astro/client" />
+import type { DirectoryRuntime } from '@astrojs/cloudflare';
+
+declare namespace App {
+  interface Locals extends DirectoryRuntime {
+    user: {
+      name: string;
+      surname: string;
+    };
+  }
+}
+```
+
+## 环境变量
+
+请参阅 Cloudflare 的文档了解 [如何使用环境变量](https://developers.cloudflare.com/pages/platform/functions/bindings/#environment-variables)。
+
+```js
+// pages/[id].json.js
+
+export function get({ params }) {
+  // 在函数内部每个请求都可以访问环境变量
+  const serverUrl = import.meta.env.SERVER_URL;
+  const result = await fetch(serverUrl + "/user/" + params.id);
+  return {
+    body: await result.text(),
+  };
+}
+```
+
+## 标头、重定向和函数调用路由
+
+Cloudflare 支持添加自定义 [标头](https://developers.cloudflare.com/pages/platform/headers/)、配置静态 [重定向](https://developers.cloudflare.com/pages/platform/redirects/) 和定义哪些路由应该 [调用函数](https://developers.cloudflare.com/pages/platform/functions/routing/#function-invocation-routes)。Cloudflare 在构建输出目录中查找 `_headers`、`_redirects` 和 `_routes.json` 文件来配置这些功能。这意味着它们应该放在 Astro 项目的 `public/` 目录中。
+
+### 自定义 `_routes.json`
+
+默认情况下，`@astrojs/cloudflare` 会基于你应用的动态和静态路由生成一个 `_routes.json` 文件，当中包含了 `include` 和 `exclude` 规则。
+
+
+这将使 Cloudflare 能够在没有函数调用的情况下提供文件和处理静态重定向。创建自定义的 `_routes.json` 将覆盖此自带的优化文件，并且如果没有手动配置，可能导致函数调用次数超过 Cloudflare 计划的请求数限制。
+
+参见 [Cloudflare 文档](https://developers.cloudflare.com/pages/platform/functions/routing/#create-a-_routesjson-file) 了解更多细节。
+
+## 故障排除
+
+寻求帮助，请查看 [Discord](https://astro.build/chat) 的 `#support` 频道。我们友好的支持团队成员会在这里提供帮助！
+
+你还可以查看我们的 [Astro 集成文档][astro-integration] 了解更多关于集成的信息。
+
+### 有意义的错误消息
+
+目前，在 Wrangler 中运行应用程序时由于代码被压缩，错误消息并不是很有用。为了更好地进行调试，你可以将 `vite.build.minify = false` 添加到你的 `astro.config.js` 文件中。
+
+```js
+export default defineConfig({
+  adapter: cloudflare(),
+  output: 'server',
+
+  vite: {
+    build: {
+      minify: false,
+    },
+  },
+});
+```
+
+## 贡献
+
+该软件包由 Astro 核心团队维护。欢迎提交 issue 或 PR！
+
+[astro-integration]: /zh-cn/guides/integrations-guide/

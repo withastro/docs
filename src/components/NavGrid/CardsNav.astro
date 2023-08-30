@@ -1,0 +1,70 @@
+---
+import type { LogoKey } from '~/data/logos';
+import Badge from '../Badge.astro';
+import Card from './Card.astro';
+import Grid from './Grid.astro';
+
+export interface Props {
+	minimal?: boolean;
+	links: {
+		title: string;
+		description?: string;
+		href: string;
+		logo?: LogoKey;
+		/** Map of tag IDs to translated tag display text, e.g. `{ static: 'Statisch' }`. */
+		tags?: Record<string, string>;
+		/** The language of the content if it differs from the main page language. */
+		lang?: string;
+	}[];
+	class?: string;
+}
+
+const { links, minimal = false, class: classes } = Astro.props as Props;
+
+const currentPage = new URL(Astro.request.url).pathname;
+---
+
+<section class:list={['cards-nav', classes]}>
+	<slot />
+	<Grid minimal={minimal}>
+		{
+			links.map(({ description, href, logo, title, tags, lang }) => (
+				<Card
+					{...{ minimal, logo, href, lang }}
+					current={currentPage.includes(href)}
+					class={Object.keys(tags || {}).join(' ')}
+				>
+					<Fragment slot="title" set:html={title} />
+					<Fragment slot="details">
+						{description && <p class="description">{description}</p>}
+						{tags && (
+							<div class="tags">
+								{Object.values(tags).map((tag) => (
+									<Badge>{tag}</Badge>
+								))}
+							</div>
+						)}
+					</Fragment>
+				</Card>
+			))
+		}
+	</Grid>
+</section>
+
+<style>
+	.cards-nav {
+		padding: 2rem 0;
+		accent-color: var(--theme-accent-secondary);
+	}
+
+	.description {
+		margin-top: 0.25rem;
+		color: var(--theme-text-lighter);
+		font-size: var(--theme-text-sm);
+	}
+
+	.tags {
+		display: flex;
+		gap: 0.5rem;
+	}
+</style>

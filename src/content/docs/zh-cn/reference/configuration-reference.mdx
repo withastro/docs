@@ -1,0 +1,910 @@
+---
+title: 配置参考
+i18nReady: true
+githubURL: >-
+  https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts
+---
+
+import Since from '~/components/Since.astro'
+
+下面的参考资料涵盖了 Astro 所有支持的配置选项。要了解更多关于配置 Astro 的信息，请阅读我们的[配置 Astro 指南](/zh-cn/guides/configuring-astro/)。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // 你的配置在这里...
+})
+```
+
+## 顶层选项
+
+### root
+
+<p>
+
+**类型**：`string`<br />
+**CLI**：`--root`<br />
+**默认值**：`"."` (current working directory)
+</p>
+
+只有当你在项目根目录以外的目录下运行 `astro` CLI 命令时，你才应该提供该选项。通常，这个选项是通过 CLI 而不是 [Astro 配置文件](/zh-cn/guides/configuring-astro/#受支持的配置文件类型)提供的，因为 Astro 需要知道项目根目录才能找到配置文件。
+
+如果提供相对路径（例如：`--root: './my-project'`），Astro 会根据你当前的工作目录进行解析。
+
+#### 示例
+
+```js
+{
+  root: './my-project-directory'
+}
+```
+
+```bash
+$ astro build --root ./my-project-directory
+```
+
+### srcDir
+
+<p>
+
+**类型**：`string`<br />
+**默认值**：`"./src"`
+</p>
+
+设置 Astro 将读取网站的目录。
+
+这个值可以是绝对路径，也可以是相对路径。
+
+```js
+{
+  srcDir: './www'
+}
+```
+
+### publicDir
+
+<p>
+
+**类型**：`string`<br />
+**默认值**：`"./public"`
+</p>
+
+设置静态资源目录。这个目录下的文件在开发过程中被提供给 `/`，在构建过程中被复制到构建目录。这些文件总是按原样提供或复制的，没有转换或捆绑。
+
+这个值可以是绝对路径，也可以是相对路径。
+
+```js
+{
+  publicDir: './my-custom-publicDir-directory'
+}
+```
+
+### outDir
+
+<p>
+
+**类型**：`string`<br />
+**默认值**：`"./dist"`
+</p>
+
+设置 `astro build` 将你的最终构建写入的目录。
+
+这个值可以是绝对路径，也可以是相对路径。
+
+```js
+{
+  outDir: './my-custom-build-directory'
+}
+```
+
+**另见**：
+- build.server
+
+### cacheDir
+
+<p>
+
+**类型：** `string`<br />
+**默认值：** `"./node_modules/.astro"`
+</p>
+
+设置用于缓存构建产物的目录。该目录中的文件将在后续构建中使用，以加快构建时间。
+
+这个值可以是绝对路径，也可以是相对路径。
+
+```js
+{
+  cacheDir: './my-custom-cache-directory'
+}
+```
+
+### redirects
+
+<p>
+
+**类型：** `Record.<string, RedirectConfig>`<br />
+**默认值：** `{}`<br />
+<Since v="2.9.0" />
+</p>
+
+指定重定向的映射关系。其中键为要匹配的路由，值为重定向的路径。
+
+你可以重定向静态和动态路由，但只能重定向到相同类型的路由。例如，你不能有一个 `'/article': '/blog/[...slug]'` 的重定向。
+
+
+```js
+{
+  redirects: {
+    '/old': '/new',
+    '/blog/[...slug]': '/articles/[...slug]',
+  }
+}
+```
+
+对于未安装适配器的静态生成站点，这将生成一个使用 [`<meta http-equiv="refresh">` 标签](https://developer.mozilla.org/zh-CN/docs/Web/HTML/Element/meta#http-equiv) 的客户端重定向，并且不支持状态码。
+
+而使用 SSR 或以 `output: static` 模式使用静态适配器时，则支持状态码。
+
+默认情况下，Astro 将以 `301` 的状态对重定向的 GET 请求进行处理，并对其他请求方法使用 `308` 的状态。
+
+你可以使用重定向配置中的对象自定义 [重定向状态码](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Status#redirection_messages)：
+
+
+```js
+{
+  redirects: {
+    '/other': {
+      status: 302,
+      destination: '/place',
+    },
+  }
+}
+```
+
+### site
+
+<p>
+
+**类型**：`string`
+</p>
+
+你最终部署的链接。Astro 会使用这个完整的链接来生成网站地图和最终构建的规范链接。强烈建议你设置这个配置项，以获得 Astro 最佳体验。
+
+```js
+{
+  site: 'https://www.my-site.dev'
+}
+```
+
+### compressHTML
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `true`
+</p>
+
+这是一个用于缩小 HTML 输出并减少 HTML 文件大小的选项。默认情况下，Astro 会从 `.astro` 组件中移除所有空格，包括换行符。这个优化会在开发模式和最终构建中生效。
+
+要禁用 HTML 压缩，请将 `compressHTML` 标志设置为 `false`。
+
+```js
+{
+  compressHTML: false
+}
+```
+
+### base
+
+<p>
+
+**类型**：`string`
+</p>
+
+你要部署到的基本路径。Astro 在开发过程中会匹配这个路径名，这样你的开发环境就会尽可能地与你的构建环境匹配。在下面的例子中，`astro dev` 会在 `/docs` 处启动你的服务器。
+
+```js
+{
+  base: '/docs'
+}
+```
+
+当使用这个选项时，你所有的静态资源导入和 URL 都需要添加 base 作为前缀。你可以通过 `import.meta.env.BASE_URL` 访问这个值。
+
+`import.meta.env.BASE_URL` 的值会遵从你的 `trailingSlash` 配置。如果你的 `base` 以斜杠结尾，或者设置了 `trailingSlash: "always"`，它将以斜杠结尾。如果设置了 `trailingSlash: "never"`，即使 `base` 是以斜杠结尾的 `BASE_URL` 也不会以斜杠结尾。
+
+### trailingSlash
+
+<p>
+
+**类型**：`'always' | 'never' | 'ignore'`<br />
+**默认值**：`'ignore'`
+</p>
+
+设置开发服务器的路由匹配行为。从以下选项中选择：
+
+- `'always'` - 只匹配包含尾部斜线的链接（例如：`/foo/`）。
+- `'never'` - 不匹配包含尾部斜线的链接（例如：`/foo`）。
+- `'ignore'`- 匹配链接，不管是否存在尾部的 `/`。
+
+如果你的生产主机对尾部斜杠的工作或不工作有严格的处理方式，请使用该配置选项。
+
+如果你希望自己更严格一些，那么你也可以设置这个选项，这样在开发过程中，无论是否有尾部斜杠的 URL 都不会工作。
+
+```js
+{
+  // 示例：在开发过程中要求有尾部斜线
+  trailingSlash: 'always'
+}
+```
+
+**另见**：
+
+- build.format
+
+### scopedStyleStrategy
+
+<p>
+
+**类型：** `'where' | 'class'` | 'attribute'`<br />
+**默认值：** `'attribute'`<br />
+<Since v="2.4" />
+</p>
+
+指定 Astro 组件内部样式作用范围。可选项包括：
+  - `'where'` - 使用 `:where` 选择器，不会增加特异性。
+  - `'class'` - 使用基于类的选择器，会增加 +1 的特异性。
+  - `'attribute'` - 使用 `data-` 属性，不会增加特异性。
+
+使用 `'class'` 可以确保 Astro 组件内的元素选择器覆盖全局样式默认值（例如来自全局样式表）。
+
+使用 `'where'` 可以更好地控制特异性，但需要使用更高特异性的选择器、层级和其他工具来控制应用的选择器。
+
+使用 `'attribute'` 在你操作元素的 `class` 属性时很有用，这样你就可以避免你自己的样式逻辑和 Astro 的样式应用之间的冲突。
+
+### adapter
+
+<p>
+
+**类型**：`AstroIntegration`
+</p>
+
+使用构建适配器将其部署到你最喜爱的服务器、无服务器或边缘主机。导入我们的第一方适配器 [Netlify](/zh-cn/guides/deploy/netlify/#ssredge-下的适配)、[Vercel](/zh-cn/guides/deploy/vercel/#ssr-适配器)，以及更多的适配器来使用 Astro SSR。
+
+[有关 SSR 的更多信息，请参见我们的服务器端渲染指南](/zh-cn/guides/server-side-rendering/)，以及[我们的部署指南](/zh-cn/guides/deploy/)以获得完整的主机列表。
+
+```js
+import netlify from '@astrojs/netlify/functions';
+{
+  // 示例：使用 Netlify 无服务器部署构建
+  adapter: netlify(),
+}
+```
+
+**另见**：
+
+- output
+
+### output
+
+<p>
+
+**类型**：`'static' | 'server' | 'hybrid'`<br />
+**默认值**：`'static'`
+</p>
+
+指定构建的输出目标。
+
+- `static`- 构建静态网站，部署到任何静态托管服务器上；
+- `server` - 构建应用，部署到支持 SSR（服务器端渲染）的托管服务器上；
+- `hybrid` - 构建包含少量服务端渲染页面的静态网站。
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  output: 'static'
+})
+```
+
+**另见**：
+
+- adapter
+
+## 构建选项
+
+### build.format
+
+<p>
+
+**类型**：`('file' | 'directory')`<br />
+**默认值**：`'directory'`
+</p>
+
+控制每个页面的输出文件格式：
+
+- 如果是'file'，Astro 将为每个页面生成一个 HTML 文件（例如："/foo.html"）。
+- 如果是'directory'，Astro 将为每个页面生成一个有嵌套的`index.html`文件的目录（例如："/foo/index.html"）。
+
+```js
+{
+  build: {
+    // 示例：在构建过程中生 成`page.html` 而不是 `page/index.html`。
+    format: 'file'
+  }
+}
+```
+
+#### 对 Astro.url 的影响
+
+设置 `build.format` 可以控制 `Astro.url` 在构建过程中被设置成什么。当它是：
+
+- `directory` - `Astro.url.pathname` 将包括一个尾部斜杠，以模仿文件夹行为；例如 `/foo/`。
+- `file` - `Astro.url.pathname` 将包括 `.html`，即`/foo.html`。
+
+这意味着当你使用 `new URL('./relative', Astro.url)` 创建相对的连接时，开发和构建会得到一致的行为。
+
+为了避免开发环境中尾部斜杠行为的不一致性，你可以根据构建格式将 [`trailingSlash` 选项](#trailingslash) 限制为 `'always'` 或 `'never'`：
+
+-  `directory` - 设置 `trailingSlash: 'always'`
+-  `file` - 设置 `trailingSlash: 'never'`
+
+### build.client
+
+<p>
+
+**类型**：`string`<br />
+**默认值**：`'./dist/client'`
+</p>
+
+仅当设置`output: 'server'` 或 `output: 'hybrid'`时，控制你的客户端 CSS 和 JavaScript 的输出文件夹。
+`outDir` 控制代码的构建位置。
+
+这个值是相对于 `outDir` 的。
+
+```js
+{
+  output: 'server', // 或者 'hybrid'
+  build: {
+    client: './client'
+  }
+}
+```
+
+
+### build.server
+
+<p>
+
+**类型**：`string`<br />
+**默认值**：`'./dist/server'`
+</p>
+
+当构建为 SSR 时控制服务器 JavaScript 的输出目录。
+
+这个值是相对于 `outDir` 的。
+
+```js
+{
+  build: {
+    server: './server'
+  }
+}
+```
+
+
+### build.assets
+
+<p>
+
+**类型**：`string`<br />
+**默认值**：`'_astro'`<br />
+<Since v="2.0.0" />
+</p>
+
+指定 Astro 生成的资源（例如打包的 JS 和 CSS）在构建输出中的目录。
+
+```js
+{
+  build: {
+    assets: '_custom'
+  }
+}
+```
+**另见**：
+- outDir
+
+### build.assetsPrefix
+
+<p>
+
+**类型：** `string`<br />
+**默认值：** `undefined`<br />
+<Since v="2.2.0" />
+</p>
+
+指定 Astro 生成的资源链接的前缀。如果资源与当前站点来自不同的域，则可以使用此选项。
+
+例如，如果设置为 `https://cdn.example.com`，则资源将从 `https://cdn.example.com/_astro/...` 获取（而不管 `base` 选项如何设置）。
+
+你需要将 `./dist/_astro/` 中的文件上传到 `https://cdn.example.com/_astro/` 以提供资源。该过程取决于第三方域是如何托管的。要重命名 `_astro` 路径，请在 `build.assets` 中指定一个新目录。
+
+```js
+{
+  build: {
+    assetsPrefix: 'https://cdn.example.com'
+  }
+}
+```
+
+### build.serverEntry
+
+<p>
+
+**类型**：`string`<br />
+**默认值**：`'entry.mjs'`
+</p>
+
+当构建到 SSR 时，指定服务器入口的文件名。此入口通常取决于你要部署到的主机，并将由你的适配器为你设置。
+
+注意，建议该文件以 `.mjs` 结尾，这样运行时就能检测到该文件是一个 JavaScript 模块。
+
+```js
+{
+  build: {
+    serverEntry: 'main.mjs'
+  }
+}
+```
+
+
+### build.redirects
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `true`<br />
+<Since v="2.6.0" />
+</p>
+
+指定是否在构建期间将重定向输出到 HTML 中。
+
+此选项仅适用于 `output: 'static'` 模式；在 SSR 中，重定向会被作为和其他响应一样对待。
+
+此选项主要适用于具有用于重定向的特殊配置文件且不需要（或不希望）基于 HTML 的重定向的适配器。
+
+```js
+{
+  build: {
+    redirects: false
+  }
+}
+```
+
+
+### build.inlineStylesheets
+
+<p>
+
+**类型：** `'always' | 'auto' | 'never'`<br />
+**默认值：** `auto`<br />
+<Since v="2.6.0" />
+</p>
+
+控制项目样式是否以单独的 CSS 文件发送到浏览器还是内联到 `<style>` 标签中。可以从以下选项中进行选择：
+
+-  `'always'` - 项目样式都内联到 `<style>` 标签中。
+-  `'auto'` - 只有小于 `ViteConfig.build.assetsInlineLimit`（默认为 4kb）的样式表才会被内联。否则，项目样式将以外部样式表的形式发送。
+-  `'never'` - 项目样式都以外部样式表的形式发送。
+
+```js
+{
+	build: {
+		inlineStylesheets: `never`,
+	},
+}
+```
+
+
+### build.split
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `false`
+</p>
+
+构建配置项 `build.split` 已被适配器配置项 [`functionPerRoute`](/zh-cn/reference/adapter-reference/#functionperroute) 替换。
+
+请查看你的 [SSR 适配器文档](/zh-cn/guides/integrations-guide/#官方集成) 以了解如何使用 `functionPerRoute` 来定义你的 SSR 代码如何打包。
+
+### build.excludeMiddleware
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `false`
+</p>
+
+构建配置项 `build.excludeMiddleware` 已被适配器配置项 [`edgeMiddleware`](/zh-cn/reference/adapter-reference/#edgemiddleware) 替换。
+
+请查看你的 [SSR 适配器文档](/zh-cn/guides/integrations-guide/#官方集成) 以了解如何使用 `functionPerRoute` 来定义你的 SSR 代码如何打包。
+
+
+## 服务器选项
+
+定制 Astro 开发服务器，适用于 `astro dev` 和 `astro preview`。
+
+```js
+{
+  server: { port: 1234, host: true}
+}
+```
+
+要根据运行的命令（`dev`、`preview`）设置不同的配置，也可以向这个配置选项传递函数。
+
+```js
+{
+  // 示例：使用函数语法，根据命令进行定制
+  server: ({ command }) => ({ port: command === 'dev' ? 4321 : 4000 })
+}
+```
+
+### server.host
+
+<p>
+
+**类型**：`string | boolean`<br />
+**默认值**：`false`<br />
+<Since v="0.24.0" />
+</p>
+
+设置服务器应该监听哪些网络 IP 地址（即非本地主机 IP）。
+
+- `false`- 不在网络 IP 地址上公开
+- `true`- 侦听所有地址，包括 LAN 和公开地址
+- `[custom-address]` - 在 `[custom-address]` 网络 IP 地址上公开（例如：`192.168.0.1`）。
+
+### server.port
+
+<p>
+
+**类型**：`number`<br />
+**默认值**：`4321`
+</p>
+
+设置服务器监听端口。
+
+如果给定的端口已经在使用，Astro 会自动尝试下一个可用的端口。
+
+```js
+{
+  server: { port: 8080 }
+}
+```
+
+### server.headers
+
+<p>
+
+**类型**：`OutgoingHttpHeaders`<br />
+**默认值**：`{}`<br />
+<Since v="1.7.0" />
+</p>
+
+设置要在 `astro dev` 和 `astro preview` 中发送的自定义 HTTP 响应标头。
+
+## Image 选项
+
+### image.service (实验性)
+
+<p>
+
+**类型：**`Object`<br />
+**默认值：**`{entrypoint: 'astro/assets/services/sharp', config?: {}}`<br />
+<Since v="2.1.0" />
+</p>
+
+设置用于 Astro 实验性资源支持的图像服务。
+
+该值应该是一个对象，其中包含图像服务应使用的入口点，并可选择地包含一个配置对象，用于传递给该服务。
+
+服务的入口点可以是涵盖的服务之一，也可以是第三方包。
+
+```js
+{
+  image: {
+    // 示例：启用基于 Sharp 的图像服务
+    service: { entrypoint: 'astro/assets/services/sharp' },
+  },
+}
+```
+
+### image.domains
+
+<p>
+
+**类型**： `Array.<string>`<br />
+**默认值**： `{domains: []}`<br />
+<Since v="2.10.10" />
+</p>
+
+定义了一个允许进行本地图像优化的图像源域名列表。Astro 不会对其他远程图像进行优化。
+
+该选项需要一个由域名字符串组成的数组，但不允许使用通配符。或者你也可以使用 [`image.remotePatterns`](#imageremotepatterns) 来定义一组允许的源 URL 模式。
+
+```js
+// astro.config.mjs
+{
+  image: {
+    // 示例：允许来自单个域名的远程图像优化。
+    domains: ['astro.build'],
+  },
+}
+```
+
+### image.remotePatterns
+
+<p>
+
+**类型**： `Array.<RemotePattern>`<br />
+**默认值**： `{remotePatterns: []}`<br />
+<Since v="2.10.10" />
+</p>
+
+定义了允许进行本地图像优化的图像源 URL 模式列表。
+
+`remotePatterns` 可以通过以下四个属性进行配置：
+
+1. `protocol`
+2. `hostname`
+3. `port`
+4. `pathname`
+
+```js
+{
+  image: {
+    // 示例：允许处理所有来自 aws s3 存储桶的图像
+    remotePatterns: [{
+      protocol: 'https',
+      hostname: '**.amazonaws.com',
+    }],
+  },
+}
+```
+
+你可以使用通配符来定义允许的 `hostname` 和 `pathname` 值，正如下所述一样。否则，只有提供的具体值将被配置：
+
+- `hostname`:
+  - 以 '**.' 开头允许所有子域名 ('endsWith')。
+  - 以 '*.' 开头只允许一级子域名。
+
+- `pathname`:
+  - 以 '/**' 结尾允许所有子路由 ('startsWith')。
+  - 以 '/*' 结尾只允许一级子路由。
+
+## Markdown 选项
+
+### markdown.drafts
+
+<p>
+
+**类型**：`boolean`<br />
+**默认值**：`false`
+</p>
+
+控制 markdown 草稿页是否应该被包含在构建中。
+
+如果 markdown 页面在 frontmatter 中包含 `draft: true`，那么它就被认为是草稿。在开发过程中会显示草稿页（`astro dev`），但在默认情况下，它们不会被包含在你的最终构建中。
+
+```js
+{
+  markdown: {
+    // 示例：在你的最终构建中包括所有的草稿
+    drafts: true,
+  }
+}
+```
+
+### markdown.shikiConfig
+
+<p>
+
+**类型**：`Partial<ShikiConfig>`
+</p>
+
+Shiki 配置选项。使用方法见 [markdown 配置文档](/zh-cn/guides/markdown-content/#shiki-配置)。
+
+### markdown.syntaxHighlight
+
+<p>
+
+**类型**：`'shiki' | 'prism' | false`<br />
+**默认值**：`shiki`
+</p>
+
+可供使用的语法高亮器：
+
+- `shiki` - 使用 [Shiki](https://github.com/shikijs/shiki) 高亮器
+- `prism` - 使用 [Prism](https://prismjs.com/) 高亮器
+- `false` - 不使用语法高亮。
+
+```js
+{
+  markdown: {
+    // 示例：在 Markdown 中使用 prism 进行语法高亮显示
+    syntaxHighlight: 'prism',
+  }
+}
+```
+
+### markdown.remarkPlugins
+
+<p>
+
+**类型**：`RemarkPlugins`
+</p>
+
+通过自定义 [Remark 插件](https://github.com/remarkjs/remark)来定制 Markdown 构建方式。你可以导入并应用插件函数（推荐），或传递一个值为插件名的字符串。
+
+```js
+import remarkToc from 'remark-toc';
+{
+  markdown: {
+    remarkPlugins: [remarkToc]
+  }
+}
+```
+
+### markdown.rehypePlugins
+
+<p>
+
+**类型**：`RehypePlugins`
+</p>
+
+通过自定义 [Rehype 插件](https://github.com/remarkjs/remark-rehype) 插件来定制对你的 Markdown 输出内容的处理方式。你可以导入并应用插件函数（推荐），或传递一个值为插件名的字符串。
+
+```js
+import rehypeMinifyHtml from 'rehype-minify';
+{
+  markdown: {
+    rehypePlugins: [rehypeMinifyHtml]
+  }
+}
+```
+
+### markdown.gfm
+
+<p>
+
+**类型**：`boolean`<br />
+**默认值**：`true`<br />
+<Since v="2.0.0" />
+</p>
+
+Astro 默认使用 [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm)。如果要禁用它，请将`gfm`标志设置为 `false`:
+
+```js
+{
+  markdown: {
+    gfm: false,
+  }
+}
+```
+
+
+### markdown.smartypants
+
+<p>
+
+**类型**：`boolean`<br />
+**默认值**：`true`<br />
+<Since v="2.0.0" />
+</p>
+
+Astro 默认使用 [SmartyPants formatter](https://daringfireball.net/projects/smartypants/)。如果要禁用它，请将`smartypants`标志设置为 `false`:
+
+```js
+{
+  markdown: {
+    smartypants: false,
+  }
+}
+```
+
+### markdown.remarkRehype
+
+<p>
+
+**类型**：`RemarkRehype`
+</p>
+
+向 [remark-rehype](https://github.com/remarkjs/remark-rehype#api) 传递选项。
+
+```js
+{
+  markdown: {
+    // 示例：将脚注文本翻译成另一种语言，这里是默认的英文内容
+    remarkRehype: { footnoteLabel: "Footnotes", footnoteBackLabel: "Back to content"},
+  },
+};
+```
+
+## 集成
+
+用自定义集成来扩展 Astro 功能。你可以用集成来添加框架支持（如 Solid.js）、新功能（如站点地图）和新库支持（如 Partytown）。
+
+请阅读我们的[集成指南](/zh-cn/guides/integrations-guide/)，以帮助开始使用 Astro 集成。
+
+```js
+import react from '@astrojs/react';
+import tailwind from '@astrojs/tailwind';
+{
+  // 示例：添加 React + Tailwind 支持
+  integrations: [react(), tailwind()]
+}
+```
+
+## Vite
+
+传递额外的配置选项给 Vite。适用于需要使用一些 Astro 不支持的高级配置。
+
+在 [vitejs.dev](https://vitejs.dev/config/) 上查看完整的 `vite` 配置对象文档。
+
+#### 示例
+
+```js
+{
+  vite: {
+    ssr: {
+      // 示例；如果需要的话，可以强制破坏性包跳过 SSR 处理
+      external: ['broken-npm-package'],
+    }
+  }
+}
+```
+
+```js
+{
+  vite: {
+    // 示例：直接在 Astro 项目中添加自定义 Vite 插件
+    plugins: [myPlugin()],
+  }
+}
+```
+
+## Legacy 标志
+
+为了帮助一些用户在 Astro 不同版本之间进行迁移，我们偶尔会引入 `legacy` 标志。
+这些标志允许你在最新的版本中选择使用 Astro 的一些废弃的或其他过时的行为，
+这样你就可以继续升级并使用新的 Astro 版本。
+
+## Experimental 标志
+
+Astro 提供了实验性标志，以便用户提前使用新功能。这些标志不保证稳定。
+
+### experimental.optimizeHoistedScript
+
+<p>
+
+**类型：** `布尔值`<br />
+**默认值：** `false`<br />
+<Since v="2.10.4" />
+</p>
+
+该项是防止未使用的组件脚本意外地出现在页面中。
+
+尽管 Astro 已经尽可能在优化时排除掉未使用的脚本，但还是有可能会遗漏。所以在发布之前，请务必再次检查生成的页面。
+
+想要启用提升脚本分析优化功能，可以添加如下实验性标志：
+
+```js
+{
+	experimental: {
+		optimizeHoistedScript: true,
+	},
+}
+```

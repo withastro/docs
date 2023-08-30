@@ -1,0 +1,57 @@
+---
+import { englishPages } from '~/content';
+import { isMigrationEntry } from '~/content/config';
+import { isLogoKey } from '~/data/logos';
+import { getLanguageFromURL } from '~/util';
+import CardsNav from './NavGrid/CardsNav.astro';
+
+const lang = getLanguageFromURL(Astro.url.pathname);
+
+const enPages = englishPages.filter(isMigrationEntry);
+
+/** Array of frameworks we have good content for and want to show first in the list. */
+const showFirst: string[] = [];
+// Reverse the array to make our logic simpler later.
+showFirst.reverse();
+
+const links = enPages
+	.sort((a, b) => {
+		// Sort frameworks in the `showFirst` array first.
+		const aPriority = showFirst.indexOf(a.data.framework);
+		const bPriority = showFirst.indexOf(b.data.framework);
+		if (aPriority !== -1 || bPriority !== -1) return aPriority > bPriority ? -1 : 1;
+		// Sort full guides before stubs.
+		if (a.data.stub && !b.data.stub) return 1;
+		if (!a.data.stub && b.data.stub) return -1;
+		// If they’re both stubs, or neither stubs, sort alphabetically.
+		return a.data.framework.toLowerCase() > b.data.framework.toLowerCase() ? 1 : -1;
+	})
+	.map((page) => {
+		const pageUrl = page.slug.replace('en/', `/${lang}/`) + '/';
+		const slug = page.slug.split('/').pop()?.replace('from-', '');
+		return { title: page.data.framework, href: pageUrl, logo: isLogoKey(slug) };
+	});
+---
+
+<section class="cms-nav">
+	<CardsNav minimal links={links} />
+</section>
+
+<style>
+	.cms-nav > :global(*) {
+		margin-top: -2rem;
+	}
+
+	.cms-nav > :global(* + *) {
+		margin-top: -3rem;
+	}
+
+	.cms-nav :global(.scope) {
+		font-weight: normal;
+		color: var(--theme-text-lighter);
+	}
+
+	h3 {
+		margin-bottom: 0;
+	}
+</style>

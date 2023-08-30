@@ -1,0 +1,290 @@
+---
+title: Ghost & Astro
+description: Add content to your Astro project using Ghost as a CMS
+type: cms
+stub: false
+service: Ghost
+i18nReady: true
+---
+
+import FileTree from '~/components/FileTree.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+[Ghost](https://github.com/TryGhost/Ghost) is an open-source, headless content management system built on Node.js.
+
+## Integrating with Astro
+In this section, we’ll use the [Ghost content API](https://ghost.org/docs/content-api/) to bring your data into your Astro project.
+
+### Prerequisites
+To get started you will need to have the following: 
+
+1. **An Astro project** - If you don't have an Astro project yet, our [Installation guide](/en/install/auto/) will get you up and running in no time.
+
+2. **A Ghost site** - It is assumed that you have a site set up with Ghost. If you don't you can set one up on a [local environment.](https://ghost.org/docs/install/local/)
+
+3. **Content API Key** - You can make an integration under your site's `Settings > Integrations`. From there you can find your `Content API key`
+
+
+### Setting up credentials
+
+To add your site's credentials to Astro, create an `.env` file in the root of your project with the following variable:
+
+```ini title=".env"
+CONTENT_API_KEY=YOUR_API_KEY
+```
+
+Now, you should be able to use this environment variable in your project.
+
+If you would like to have IntelliSense for your environment variable, you can create a `env.d.ts` file in the `src/` directory and configure `ImportMetaEnv` like this:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly CONTENT_API_KEY: string;
+}
+```
+:::tip
+Read more about [using environment variables](/en/guides/environment-variables/) and `.env` files in Astro.
+:::
+
+Your root directory should now include these new files:
+
+<FileTree title="Project Structure">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Installing dependencies
+
+To connect with Ghost, install the official content API wrapper [`@tryghost/content-api`](https://www.npmjs.com/package/@tryghost/content-api) using the command below for your preferred package manager:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @tryghost/content-api
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install @tryghost/content-api
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @tryghost/content-api
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## Making a blog with Astro and Ghost
+
+With the setup above, you are now able to create a blog that uses Ghost as the CMS.
+
+### Prerequisites
+
+1. A Ghost blog 
+2. An Astro project integrated with the [Ghost content API](https://www.npmjs.com/package/@tryghost/content-api) - See [integrating with Astro](/en/guides/cms/ghost/#integrating-with-astro) for more details on how to set up an Astro project with Ghost.
+
+This example will create an index page that lists posts with links to dynamically-generated individual post pages.
+
+### Fetching Data
+
+You can fetch your site's data with the Ghost content API package.
+
+First, create a `ghost.ts` file under a `lib` directory.
+
+<FileTree title="Project Structure">
+- src/
+  - lib/
+    - **ghost.ts**
+  - pages/
+    - index.astro
+- astro.config.mjs
+- package.json
+</FileTree>
+
+Initialize an API instance with the Ghost API using the API key from the Ghost dashboard's Integrations page.
+
+```ts title="src/lib/ghost.ts"
+
+import GhostContentAPI from '@tryghost/content-api';
+
+// Create API instance with site credentials
+export const ghostClient = new GhostContentAPI({
+    url: 'http://127.0.0.1:2368', // This is the default URL if your site is running on a local environment
+    key: import.meta.env.CONTENT_API_KEY,
+    version: 'v5.0',
+});
+
+```
+
+
+### Displaying a list of posts
+
+The page `src/pages/index.astro` will display a list of posts, each with a description and link to its own page.
+
+<FileTree title="Project Structure">
+- src/
+ - lib/
+    - ghost.ts
+  - pages/
+    - **index.astro**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+Import `ghostClient()` in the Astro frontmatter to use the `posts.browse()` method to access blog posts from Ghost. Set `limit: all` to retrieve all posts.
+
+```astro title="src/pages/index.astro"
+---
+import { ghostClient } from '../lib/ghost';
+const posts = await ghostClient.posts
+    .browse({
+        limit: 'all',
+    })
+    .catch((err) => {
+        console.error(err);
+    });
+---
+```
+
+Fetching via the content API returns an array of objects containing the [properties for each post](https://ghost.org/docs/content-api/#posts) such as:
+- `title` - the title of the post
+- `html` - the HTML rendering of the content of the post
+- `feature_image` - the source URL of the featured image of the post
+- `slug` - the slug of the post
+
+Use the `posts` array returned from the fetch to display a list of blog posts on the page.
+
+```astro title="src/pages/index.astro"
+---
+import { ghostClient } from '../lib/ghost';
+const posts = await ghostClient.posts
+    .browse({
+        limit: 'all',
+    })
+    .catch((err) => {
+        console.error(err);
+    });
+---
+
+<html lang="en">
+    <head>
+        <title>Astro + Ghost 👻</title>
+    </head>
+    <body>
+
+        {
+            posts.map((post) => (
+                <a href={`/post/${post.slug}`}>
+                    <h1> {post.title} </h1>
+                </a>
+            ))
+        }
+    </body>
+</html>
+```
+
+### Generating pages
+
+The page `src/pages/post/[slug].astro` [dynamically generates a page](/en/core-concepts/routing/#dynamic-routes) for each post.
+
+<FileTree title="Project Structure">
+- src/
+ - lib/
+    -  ghost.ts
+  - pages/
+    - index.astro
+    - post/
+      - **[slug].astro**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+Import `ghostClient()` to access blog posts using `posts.browse()` and return a post as props to each of your dynamic routes. 
+
+```astro title="src/pages/post/[slug].astro"
+---
+import { ghostClient } from '../../lib/ghost';
+
+export async function getStaticPaths() {
+    const posts = await ghostClient.posts
+        .browse({
+            limit: 'all',
+        })
+        .catch((err) => {
+            console.error(err);
+        });
+
+    return posts.map((post) => {
+        return {
+            params: {
+                slug: post.slug,
+            },
+            props: {
+                post: post,
+            },
+        };
+    });
+}
+
+const { post } = Astro.props;
+---
+```
+
+Create the template for each page using the properties of each `post` object.
+
+```astro title="src/pages/post/[slug].astro" ins={24-37}
+---
+import { ghostClient } from '../../lib/ghost';
+export async function getStaticPaths() {
+    const posts = await ghostClient.posts
+        .browse({
+            limit: 'all',
+        })
+        .catch((err) => {
+            console.error(err);
+        });
+    return posts.map((post) => {
+        return {
+            params: {
+                slug: post.slug,
+            },
+            props: {
+                post: post,
+            },
+        };
+    });
+}
+const { post } = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>{post.title}</title>
+    </head>
+    <body>
+        <img src={post.feature_image} alt={post.title} />
+
+        <h1>{post.title}</h1>
+        <p>{post.reading_time} min read</p>
+
+        <Fragment set:html={post.html} />
+    </body>
+</html>
+```
+:::note
+`<Fragment />` is a built-in Astro component which allows you to avoid an unnecessary wrapper element. This can be especially useful when fetching HTML from a CMS (e.g. Ghost or [WordPress](/en/guides/cms/wordpress/)).
+:::
+
+### Publishing your site
+To deploy your site visit our [deployment guide](/en/guides/deploy/) and follow the instructions for your preferred hosting provider.
+
+## Community Resources 
+
+- You can get started with this [Astro Ghost Starter](https://github.com/PhilDL/astro-starter-ghost).
+- Andre Carrera wrote [a blog post](https://andr.ec/posts/astro-ghost-blog/) showing how to use Ghost's SDK to embed posts and previews in your Astro project.
+
+

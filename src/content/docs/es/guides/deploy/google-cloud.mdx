@@ -1,0 +1,83 @@
+---
+title: Despliega tu proyecto de Astro en Google Cloud
+description: Cómo desplegar tu proyecto de Astro usando Google Cloud.
+type: deploy
+i18nReady: true
+---
+
+[Google Cloud](https://cloud.google.com/?hl=es-419) es una plataforma integral de alojamiento, que puede ser usada para desplegar un proyecto de Astro.
+
+## Cómo desplegar
+
+### Cloud Storage (solo estático)
+
+1. [Crea un nuevo proyecto GCP](https://console.cloud.google.com/projectcreate), o selecciona uno que ya tengas.
+
+2. Crea un nuevo bucket dentro de [Cloud Storage](https://cloud.google.com/storage?hl=es-419).
+
+3. Asígnale un nombre y completa otros ajustes requeridos.
+
+4. Sube tu directorio `dist` en él o súbelo usando [Cloud Build](https://cloud.google.com/build?hl=es-419).
+
+5. Habilita el acceso público añadiendo un nuevo permiso a `allUsers` llamado `Storage Object Viewer`.
+
+6. Edita la configuración de sitio y agrega el `ìndex.html` como punto de entrada y el `404.html` como página de error.
+
+### Cloud Run (SSR y estático)
+
+Cloud Run es una plataforma sin servidor que te permite ejecutar un contenedor sin tener que administrar ninguna infraestructura. Puede ser usada para desplegar sitios estáticos y SSR.
+
+#### Prepara el servicio
+
+1. [Crea un nuevo proyecto GCP](https://console.cloud.google.com/projectcreate), o selecciona uno que ya tengas.
+
+2. Asegúrate de que la [API de Cloud Run](https://console.cloud.google.com/apis/library/run.googleapis.com) esté habilitada.
+
+3. Crea un nuevo servicio.
+
+#### Crea un Dockerfile y Compila el Contenedor
+
+Antes de que puedas desplegar tu sitio de Astro en Cloud Run, necesitas crear un Dockerfile que se usará para construir el contenedor. Encuentra más información sobre [cómo usar Docker con Astro](/es/recipes/docker/#creando-un-dockerfile) en nuestra sección de recetas.
+
+Una vez que el Dockerfile está creado, compílalo en una imagen y súbelo a Google Cloud. Hay varias formas de lograrlo:
+
+**Compila localmente usando Docker**:
+
+Usa el comando `docker build` para compilar la imagen, `docker tag` para darle una etiqueta, y `docker push` para subirla a un registro. En el caso de Google Cloud, [`Google Cloud Registry`](https://cloud.google.com/container-registry/docs/pushing-and-pulling?hl=es-419#add-registry) es la opción más fácil, pero también puedes usar [Docker Hub](https://hub.docker.com/).
+
+```bash
+# compila tu contenedor
+docker build .
+
+docker tag SOURCE_IMAGE HOSTNAME/PROJECT-ID/TARGET-IMAGE:TAG
+
+# Empuja tu imagen a un registro
+docker push HOSTNAME/PROJECT-ID/IMAGE:TAG
+```
+
+Cambia los valores siguientes en los comandos anteriores para que coincidan con tu proyecto:
+
+- `SOURCE_IMAGE`: el nombre de la imagen local o el ID de la imagen.
+- `HOSTNAME`: el host del registro (`gcr.io`, `eu.grc.io`, `asia.gcr.io`, `us.gcr.io`).
+- `PROJECT`: el ID de tu proyecto de Google Cloud.
+- `TARGET-IMAGE`: el nombre para la imagen cuando se almacena en el registro.
+- `TAG` es la versión asociada con la imagen.
+
+
+[Lee más en la documentación de Google Cloud.](https://cloud.google.com/container-registry/docs/pushing-and-pulling?hl=es-419)
+
+**Usando otra herramienta**:
+
+Puedes usar una herramienta de CI/CD que soporte Docker, como [GitHub Actions](https://github.com/marketplace/actions/push-to-gcr-github-action).
+
+**Compilar usando [Cloud Build](https://cloud.google.com/build?hl=es-419)**:
+
+En vez de compilar el Dockerfile localmente, puedes instruir a Google Cloud a compilar la imagen de forma remota. Consulta la [documentación de Google Cloud Build aquí](https://cloud.google.com/build/docs/build-push-docker-image).
+
+#### Desplegando el contenedor
+
+El despliegue puede ser manejado manualmente en tu terminal [usando `gcloud`](https://cloud.google.com/run/docs/deploying#service) o automáticamente usando [Cloud Build](https://cloud.google.com/build) o cualquier otro sistema de CI/CD.
+
+:::note[¿Necesitas acceso público?]
+¡No olvides agregar el permiso `Cloud Run Invoker` al grupo `allUsers` en la configuración de permisos de Cloud Run!
+:::

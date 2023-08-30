@@ -1,0 +1,173 @@
+---
+title: Faça deploy do seu site Astro com Deno
+description: Como fazer o deploy do seu site Astro para web utilizando Deno.
+type: deploy
+i18nReady: true
+---
+
+Você pode fazer deploy de um site Astro renderizado no servidor para o [Deno Deploy](https://deno.com/deploy), um sistema distribuído que executa JavaScript, TypeScript e WebAssembly na edge globalmente.
+
+Este guia inclui instruções para fazer deploy para o Deno Deploy através de GitHub Actions ou da CLI do Deno Deploy.
+
+## Requisitos
+
+Este guia assume que você já tem [Deno](https://deno.land/) instalado.
+
+## Configuração do Projeto
+
+Seu projeto Astro pode ter deploy feito no [Deno Deploy](https://deno.com/deploy) como um site renderizado no lado do servidor (SSR). Deno Deploy não suporta sites estáticos.
+
+### Adaptador para SSR
+
+Para habilitar SSR no seu projeto Astro para fazer deploy no Deno Deploy:
+
+Adicione [o adaptador para Deno](/pt-br/guides/integrations-guide/deno/) para habilitar SSR no seu projeto Astro com o seguinte comando `astro add`. Ele irá instalar o adaptador e fazer as mudanças apropriadas para seu arquivo `astro.config.mjs` de uma vez.
+
+```bash
+npx astro add deno
+```
+
+Se você prefere instalar o adaptador manualmente, complete as duas etapas a seguir:
+
+ 1. Instale [o adaptador `@astrojs/deno`](https://github.com/withastro/astro/tree/main/packages/integrations/deno) nas dependências do seu projeto utilizando seu gerenciador de pacotes de preferência. Se você estiver utilizando npm ou não tiver certeza, execute isso no terminal:
+
+    ```bash
+      npm install @astrojs/deno
+    ```
+
+1. Atualize o arquivo de configuração do seu projeto `astro.config.mjs` com as mudanças abaixo.
+
+    ```js ins={3,6-7}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import deno from '@astrojs/deno';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: deno(),
+    });
+    ```
+
+    Em seguida, atualize seu script `preview` em `package.json` com as mudanças abaixo.
+
+    ```json del={8} ins={9}
+    // package.json
+    {
+      // ...
+      "scripts": {
+        "dev": "astro dev",
+        "start": "astro dev",
+        "build": "astro build",
+        "preview": "astro preview"
+        "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs"
+      }
+    }
+    ```
+    
+    Você agora pode utilizar esse comando para pré-visualizar seu site Astro em produção localmente com Deno.
+    
+    ```bash
+    npm run preview
+    ```
+
+## Como fazer o deploy
+
+Você pode fazer o deploy para o Deno Deploy através de GitHub Actions ou utilizando a CLI (interface de linha de comando) do Deno Deploy.
+
+### Deploy por GitHub Actions
+
+Se o seu projeto está armazenado no GitHub, o [website do Deno Deploy](https://dash.deno.com/) irá te guiar em como configurar o GitHub Actions para fazer deploy do seu site Astro.
+
+1. Faça push do seu código para um repositório público ou privado do GitHub.
+
+1. Inicie sua sessão no [Deno Deploy](https://dash.deno.com/) com sua conta do GitHub e clique em [New Project](https://dash.deno.com).
+
+1. Selecione seu repositório, a branch do qual você quer que o deploy e selecione o modo **GitHub Action**. (Seu site Astro requer uma etapa de build e portanto não pode utilizar o modo automático.)
+   
+1. No seu projeto Astro, crie um novo arquivo em `.github/workflows/deploy.yml` e copie o YAML abaixo. Isso é similar ao YAML dado pelo Deno Deploy, com as etapas adicionais necessárias para seu site Astro.
+
+    ```yaml
+    name: Deploy
+    on: [push]
+
+    jobs:
+      deploy:
+        name: Deploy
+        runs-on: ubuntu-latest
+        permissions:
+          id-token: write # Necessário para se autenticar com o Deno Deploy
+          contents: read # Necessário para clonar o repositório
+
+        steps:
+          - name: Clone repository
+            uses: actions/checkout@v3
+
+          # Não está utilizando npm? Mude `npm ci` para `yarn install` ou `pnpm i`
+          - name: Install dependencies
+            run: npm ci
+    
+          # Não está utilizando npm? Mude `npm run build` para `yarn build` ou `pnpm run build`
+          - name: Build Astro
+            run: npm run build
+
+          - name: Upload to Deno Deploy
+            uses: denoland/deployctl@v1
+            with:
+              project: my-deno-project # TODO: replace with Deno Deploy project name
+              entrypoint: server/entry.mjs
+              root: dist
+    ```
+
+1. Após fazer o commit deste arquivo YAML e fazer o push para o GitHub na sua branch configurada para deploy, o deploy deve começar automaticamente!
+
+   Você pode verificar o progresso utilizando a aba "Actions" na página do seu repositório do GitHub ou no [Deno Deploy](https://dash.deno.com).
+
+
+### Deploy pela CLI
+
+1. Instale a [CLI do Deno Deploy](https://deno.com/deploy/docs/deployctl).
+
+    ```bash
+    deno install --allow-read --allow-write --allow-env --allow-net --allow-run --no-check -r -f https://deno.land/x/deploy/deployctl.ts
+    ```
+
+1. Execute a etapa de build do Astro.
+
+    ```bash
+    npm run build
+    ```
+
+1. Execute `deployctl` para fazer o deploy!
+
+   No comando abaixo, substitua `<TOKEN-DE-ACESSO>` com seu [Personal Access Token](https://dash.deno.com/user/access-tokens) e `<MEU-PROJETO-DENO>` com o nome do seu projeto do Deno Deploy.
+
+    ```bash
+    DENO_DEPLOY_TOKEN=<TOKEN-DE-ACESSO> deployctl deploy --project=<MEU-PROJETO-DENO> --no-static --include=./dist ./dist/server/entry.mjs
+    ```
+    
+    Você pode ver todos os seus deploys em [Deno Deploy](https://dash.deno.com).
+
+1. (Opcional) Para simplificar a build e o deploy em um só comando, adicione um script `deploy-deno` em `package.json`.
+
+    ```json ins={9}
+    // package.json
+    {
+      // ...
+      "scripts": {
+        "dev": "astro dev",
+        "start": "astro dev",
+        "build": "astro build",
+        "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs",
+        "deno-deploy": "npm run build && deployctl deploy --project=<MY-DENO-PROJECT> --no-static --include=./dist ./dist/server/entry.mjs"
+      }
+    }
+    ```
+    
+    Então você poderá utilizar este comando para fazer a build e deploy do seu projeto Astro em uma etapa.
+    
+    ```bash
+    DENO_DEPLOY_TOKEN=<TOKEN-DE-ACESSO> npm run deno-deploy
+    ```
+
+
+📚 Leia mais sobre [SSR no Astro](/pt-br/guides/server-side-rendering/).

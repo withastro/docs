@@ -1,0 +1,99 @@
+---
+title: Headless Statamic & Astro
+description: Add content to your Astro project using Statamic as a CMS
+type: cms
+stub: false
+service: Statamic
+i18nReady: true
+---
+
+[Statamic](https://statamic.com/) is a modern, flat-file CMS. It allows developers to easily create dynamic websites and applications while offering content editors an intuitive and user-friendly interface for managing content.
+
+## Integrating with Astro
+
+Statamic comes with a built-in [REST API](https://statamic.dev/rest-api) and [GraphQL API](https://statamic.dev/graphql) to connect your data to Astro.
+
+### Prerequisites
+
+To get started, you will need to have the following:
+
+1. REST API and GraphQL API are only available in a pro version of Statamic. You can try the Pro version free on your [local machine](https://statamic.dev/tips/how-to-enable-statamic-pro#trial-mode).
+2. **An Astro project** - If you still need an Astro project, our [Installation guide](/en/install/auto/) will get you up and running quickly.
+3. **A Statamic site** - If you need a Statamic website, [this guide](https://statamic.dev/quick-start-guide) will help you get started.
+Remember to [enable REST API](https://statamic.dev/rest-api#enable-the-api) or [GraphQL API](https://statamic.dev/graphql#enable-graphql) by adding `STATAMIC_API_ENABLED=true` or `STATAMIC_GRAPHQL_ENABLED=true` in the `.env` file and enable required resources in the API configuration file.
+
+:::caution
+All the examples assume that your website has a collection called `posts`, that has a blueprint called `post`, and this blueprint has a title field (fieldtype text) and content (fieldtype markdown).
+:::
+
+### Fetching Data
+:::caution
+If you are using Statamic and Astro on your local machine remember to use `127.0.0.1` instead of `localhost` when fetching the API. 
+
+When requesting from the Astro server `localhost` doesn't resolve correctly like it does in the browser, and any fetch to either API will fail.
+:::
+
+#### REST API
+
+Fetch your Statamic data from your site's REST API URL. By default, it's `https://[YOUR-SITE]/api/`. Then, you can render your data properties using Astro's `set:html={}` directive. 
+
+For example, to display a list of titles and their content from a selected [collection](https://statamic.dev/collections):
+
+```astro title="src/pages/index.astro
+---
+const res = await fetch("https://[YOUR-SITE]/api/collections/posts/entries?sort=-date")
+const posts = await res.json()
+---
+<h1>Astro + Statamic 🚀</h1>
+{
+  posts.map((post) => (
+      <h2 set:html={post.title} />
+      <p set:html={post.content} />
+  ))
+}
+```
+
+#### GraphQL
+
+Fetch your Statamic data with your site's GraphQL API URL. By default, it's `https://[YOUR-SITE]/graphql/`. Then, you can render your data properties using Astro's `set:html={}` directive. 
+
+For example, to display a list of titles and their content from a selected [collection](https://statamic.dev/collections):
+
+```astro title="src/pages/index.astro
+---
+const res = await fetch("https://[YOUR-SITE]/graphql/",
+  {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      query: `
+        posts: entries(collection: "posts", sort: "date desc") {
+          data {
+            title
+            ... on Entry_Posts_Post {
+              content
+            }
+          }
+        }
+      `
+    }),
+  });
+const entries = await res.json()
+---
+<h1>Astro + Statamic 🚀</h1>
+{
+  entries.data.posts.data.map((post) => (
+      <h2 set:html={post.title} />
+      <p set:html={post.content} />
+  ))
+}
+```
+
+### Publishing your site
+
+To deploy your Astro site visit our [deployment guides](/en/guides/deploy/) and follow the instructions for your preferred hosting provider.
+
+## Community Resources 
+
+- [How to build a static site using Statamic as headless CMS](https://buddy.works/guides/statamic-rest-api)
+- [Implementing Astro live previews in headless Statamic](https://maciekpalmowski.dev/implementing-live-previews-in-headless-statamic-when-using-astro/)

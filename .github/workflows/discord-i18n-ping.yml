@@ -1,0 +1,31 @@
+name: Translation Tuesday
+
+on:
+  schedule:
+    - cron:  '0 10 * * TUE'
+  workflow_dispatch:
+
+jobs:
+  translation:
+    name: translation_tuesday
+    if: ${{ github.repository_owner == 'withastro' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install Tools & Dependencies
+        uses: ./.github/actions/install
+
+      - id: message
+        name: Format Discord message
+        run: pnpm tsm --require=./scripts/lib/filter-warnings.cjs ./scripts/tuesday-bot.ts
+      
+      - name: Send a Discord notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_I18N }}
+        uses: Ilshidur/action-discord@0.3.2
+        with:
+          args: "${{ steps.message.outputs.DISCORD_MESSAGE }}"

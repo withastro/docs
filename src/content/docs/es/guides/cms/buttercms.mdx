@@ -1,0 +1,130 @@
+---
+title: ButterCMS y Astro
+description: Agrega contenido a tu proyecto Astro usando ButterCMS
+type: cms
+service: ButterCMS
+stub: false
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+
+
+ButterCMS es un CMS headless y un motor de blogs que te permite publicar contenido estructurado para usarlo en tu proyecto.
+
+## Integrandolo con Astro
+:::note
+Para ver un ejemplo completo de un sitio de blog, revisa el [Proyecto de inicio de Astro + ButterCMS](https://buttercms.com/starters/astro-starter-project/).
+::: 
+En esta sección, usaremos el [SDK de ButterCMS](https://www.npmjs.com/package/buttercms) para traer tus datos a tu proyecto Astro.
+Para empezar, necesitarás lo siguiente:
+### Prerequisitos
+
+1. **Un proyecto Astro** - Si aún no tienes un proyecto Astro, nuestra [Guía de instalación](/es/install/auto/) te ayudará a comenzar en cuestión de minutos.
+
+2. **Una cuenta de ButterCMS**. Si aún no tienes una cuenta, puedes [registrarte](https://buttercms.com/join/) para una prueba gratuita.
+
+3. **Tu token de API de ButterCMS** - Puedes encontrar tu token de API en la página de [Configuración](https://buttercms.com/settings/).
+
+### Configuración
+
+1. Crea un archivo `.env` en la raíz de tu proyecto y agrega tu token de API como una variable de entorno:
+
+```ini title=".env"
+BUTTER_TOKEN=TU_TOKEN_DE_API_AQUI
+```
+
+:::tip
+Lee más sobre [usar variables de entorno](/es/guides/environment-variables/) y archivos `.env` en Astro.
+:::
+
+2. Instala el SDK de ButterCMS como una dependencia:
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install buttercms
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install buttercms
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add buttercms
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+3. Crea un archivo `buttercms.js` en un nuevo directorio `src/lib/` en tu proyecto:
+
+```js title="src/lib/buttercms.js"
+import Butter from "buttercms";
+
+export const butterClient = Butter(import.meta.env.BUTTER_TOKEN);
+```
+
+Esto autentica el SDK usando tu token de API y lo exporta para ser usado en todo tu proyecto.
+
+### Obteniendo datos
+Para obtener contenido, importa este cliente y usa una de sus funciones `retrieve`.
+
+En este ejemplo, [obtenemos una colección](https://buttercms.com/docs/api/#retrieve-a-collection) que tiene tres campos: un texto corto `name`, un número `price`, y un WYSIWYG `description`.
+
+```astro title="src/pages/ShopItem.astro"
+---
+import { butterClient } from "../lib/buttercms";
+const response = await butterClient.content.retrieve(["shopitem"]);
+
+interface ShopItem {
+	name: string,
+	price: number,
+	description: string,
+}
+
+const items = response.data.data.shopitem as ShopItem[];
+---
+<body>
+	{items.map(item => <div>
+		<h2>{item.name} - ${item.price}</h2>
+		<p set:html={item.description}></p>
+	</div>)}
+</body>
+```
+
+La interfaz refleja los tipos de campo. El campo WYSIWYG `description` se carga como una cadena de HTML y [`set:html`](/es/reference/directives-reference/#sethtml) te permite renderizarlo.
+
+Similarmente, puedes [obtener una página](https://buttercms.com/docs/api/#get-a-single-page) y mostrar sus campos:
+
+```astro title="src/pages/ShopItem.astro"
+---
+import { butterClient } from "../lib/buttercms";
+const response = await butterClient.page.retrieve("*", "simple-page");
+const pageData = response.data.data;
+
+interface Fields {
+  seo_title: string,
+  headline: string,
+  hero_image: string,
+}
+
+const fields = pageData.fields as Fields;
+---
+<html>
+  <title>{fields.seo_title}</title>
+  <body>
+    <h1>{fields.headline}</h1>
+    <img src={fields.hero_image} />
+  </body>
+</html>
+```
+
+## Recursos Oficiales
+
+- [Astro + Tutorial ButterCMS](https://buttercms.com/starters/astro-starter-project/)
+- La [documentación completa de la API de ButterCMS](https://buttercms.com/docs/api/)
+- La guía de [ButterCMS](https://buttercms.com/docs/api-client/javascript/)
+
+## Recursos de la comunidad
+- ¡Agrega el tuyo!

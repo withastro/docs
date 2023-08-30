@@ -1,0 +1,165 @@
+---
+import UIString from './UIString.astro';
+
+export interface Props {
+	key?: string;
+}
+
+const { key = 'default' } = Astro.props as Props;
+---
+
+<check-list data-key={key}>
+	<div class="checklist"><slot /></div>
+	{
+		Astro.slots.has('alternative') && (
+			<>
+				<p class="or">
+					<UIString key="checklist.or" />
+				</p>
+				<div class="checklist alternative">
+					<slot name="alternative" />
+				</div>
+			</>
+		)
+	}
+</check-list>
+
+<style>
+	check-list > * + * {
+		margin-top: 1rem;
+	}
+
+	.checklist > :global(ul) {
+		list-style: none;
+		padding-inline-start: 0;
+	}
+
+	check-list :global(label) {
+		display: block;
+		position: relative;
+		margin: 0 -1rem;
+		border-radius: 0.5rem;
+		padding-block: 0.5rem;
+		padding-inline: 4rem 0.5rem;
+		cursor: pointer;
+		/* Compensate for space between checkbox and text. */
+		text-indent: -0.4ch;
+	}
+
+	check-list :global(label:hover) {
+		background-color: var(--theme-bg-hover);
+		outline: 4px solid var(--theme-bg-hover);
+	}
+
+	check-list :global(input[type='checkbox']) {
+		-webkit-appearance: none;
+		appearance: none;
+	}
+
+	check-list :global(input[type='checkbox']:focus) {
+		outline: none;
+	}
+
+	check-list :global(input[type='checkbox']::after) {
+		content: '✔︎';
+		position: absolute;
+		inset-inline-start: 1rem;
+		top: 50%;
+		transform: translateY(-50%) translate(3px, -3px);
+		transform-origin: center;
+		text-align: center;
+		line-height: 2;
+		width: 2em;
+		height: 2em;
+		font-size: 1.25em;
+		border: 1px solid var(--theme-shade-subtle);
+		border-radius: 0.5rem;
+		color: var(--theme-shade-subtle);
+		box-shadow: -3px 3px var(--theme-shade-subtle);
+		cursor: pointer;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		check-list :global(input[type='checkbox']::after) {
+			transition-property: transform, box-shadow;
+			transition-timing-function: var(--theme-ease-bounce);
+			transition-duration: 0.15s;
+		}
+	}
+
+	check-list :global(input[type='checkbox']:focus::after) {
+		outline: 3px solid var(--theme-text);
+		outline-offset: 0.5rem;
+	}
+
+	check-list :global(input[type='checkbox']:not(:focus-visible)::after) {
+		outline: none;
+	}
+
+	check-list :global(input[type='checkbox']:checked::after) {
+		color: hsl(var(--color-base-white), 100%);
+		background-color: hsl(var(--color-green));
+		box-shadow: -1px 1px var(--theme-shade-subtle);
+		transform: translateY(-50%) translate(1px, -1px);
+	}
+
+	.or {
+		display: grid;
+		grid-template-columns: 1fr auto 1fr;
+		gap: 1em;
+		text-transform: uppercase;
+		font-weight: bold;
+		color: var(--theme-text-lighter);
+	}
+
+	.or::before,
+	.or::after {
+		--divider-width: 4px;
+		content: '';
+		background-image: linear-gradient(
+			to bottom,
+			transparent calc(50% - var(--divider-width) / 2),
+			var(--theme-divider) calc(50% - var(--divider-width) / 2) calc(50% + var(--divider-width) / 2),
+			transparent calc(50% + var(--divider-width) / 2) 100%
+		);
+	}
+</style>
+
+<script>
+	import { ProgressStore, SubListType } from './tutorial/ProgressStore';
+
+	class CheckList extends HTMLElement {
+		private readonly key: string;
+
+		constructor() {
+			super();
+			this.key = this.dataset['key']!;
+			ProgressStore.initialiseList(this.key);
+			this.upgradeSubList(this.querySelector('.checklist ul'), 'primary');
+			this.upgradeSubList(this.querySelector('.checklist.alternative ul'), 'secondary');
+		}
+
+		/** Upgrade the primary or secondary check lists. */
+		upgradeSubList(ul: Element | null, type: SubListType) {
+			if (!ul) return;
+			const items = Array.from(ul.children);
+			ProgressStore.initaliseSubList(this.key, type, items.length);
+			items.forEach((li, index) => this.upgradeTaskItem(li, type, index));
+		}
+
+		/** Upgrade an item in a GitHub-Flavoured Markdown task list. */
+		upgradeTaskItem(li: Element, type: SubListType, index: number) {
+			// Re-enable checkboxes, hydrate state & listen for changes.
+			const checkbox = li.querySelector('input[type="checkbox"]') as HTMLInputElement;
+			checkbox.removeAttribute('disabled');
+			checkbox.checked = ProgressStore.getSubListItem(this.key, type, index);
+			checkbox.addEventListener('change', (e) => {
+				const input = e.currentTarget as HTMLInputElement;
+				const { checked } = input;
+				ProgressStore.setSubListItem(this.key, type, index, checked);
+			});
+		}
+	}
+
+	customElements.define('check-list', CheckList);
+</script>

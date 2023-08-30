@@ -1,0 +1,146 @@
+---
+title: Déployez votre site Astro sur Netlify
+description: Comment déployer votre site Astro sur le web sur Netlify.
+type: deploy
+i18nReady: true
+---
+[Netlify](https://netlify.com) propose des services d'hébergement et de backend serverless pour les applications web et les sites web statiques. Tout site Astro peut être hébergé sur Netlify ! 
+
+Ce guide comprend des instructions pour le déploiement sur Netlify via l'interface utilisateur du site Web ou le CLI de Netlify.
+
+## Configuration du projet
+
+Votre projet Astro peut être déployé sur Netlify de trois manières différentes : en tant que site statique, site rendu côté serveur ou site edge-rendered (expérimental).
+
+### Site statique
+
+Votre projet Astro est un site statique par défaut. Vous n'avez pas besoin de configuration supplémentaire pour déployer un site Astro statique sur Netlify.
+
+### Adaptateur pour SSR/Edge
+
+Pour activer le SSR dans votre projet Astro et le déployer sur Netlify :
+
+Ajoutez [l'adaptateur Netlify](/fr/guides/integrations-guide/netlify/) pour activer le SSR dans votre projet Astro avec la commande `astro add` suivante. Cela installera l'adaptateur et fera les modifications appropriées à votre fichier `astro.config.mjs` en une seule étape.
+
+```bash
+npx astro add netlify
+```
+
+Si vous préférez installer l'adaptateur manuellement, suivez les deux étapes suivantes :
+
+1. Installez [l'adaptateur `@astrojs/netlify`](https://github.com/withastro/astro/tree/main/packages/integrations/netlify) dans les dépendances de votre projet en utilisant votre gestionnaire de paquets préféré. Si vous utilisez npm ou n'êtes pas sûr, exécutez ceci dans le terminal :
+
+    ```bash
+    npm install @astrojs/netlify
+    ```
+
+1. Ajoutez deux nouvelles lignes à votre fichier de configuration de projet `astro.config.mjs`.
+
+```js title="astro.config.mjs" ins={2, 5-6}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify/functions';
+
+export default defineConfig({
+    output: 'server',
+    adapter: netlify(),
+});
+```
+
+Pour faire le rendu de votre projet en utilisant les [fonctions Edge expérimentales de Netlify](https://docs.netlify.com/netlify-labs/experimental-features/edge-functions/#app) à la place, changez l'import `netlify/functions` dans le fichier de configuration Astro pour utiliser `netlify/edge-functions`.
+
+    ```js title="astro.config.mjs" ins={3} del={2}
+    import { defineConfig } from 'astro/config';
+    import netlify from '@astrojs/netlify/functions';
+    import netlify from '@astrojs/netlify/edge-functions';
+
+    export default defineConfig({
+    output: 'server',
+    adapter: netlify(),
+    });
+    ```
+
+## Comment déployer
+
+Vous pouvez déployer sur Netlify par l'intermédiaire de l'interface utilisateur du site Web ou en utilisant la CLI (interface de ligne de commande) de Netlify. Le processus est le même pour les sites statiques et les sites SSR Astro.
+
+### Déploiement via interface utilisateur du site web
+
+Si votre projet est stocké sur GitHub, GitLab, BitBucket, ou Azure DevOps, vous pouvez utiliser l'interface utilisateur du site Web de Netlify pour déployer votre site Astro.
+
+1. Cliquez sur <kbd>Add new site</kbd> sur votre [dashboard Netlify](https://app.netlify.com/)
+
+2. Choisissez <kbd>Import an existing project</kbd>
+
+   Lorsque vous importez votre dépôt Astro depuis votre fournisseur Git, Netlify devrait automatiquement détecter et pré-remplir les paramètres de configuration corrects pour vous.
+
+3. Assurez-vous que les paramètres suivants sont saisis, puis appuyez sur le bouton <kbd>Deploy</kbd> :
+
+    - **Build command :** `astro build` ou `npm run build`
+    - **Publish directory :** `dist`
+
+ Après le déploiement, vous serez redirigé vers la page de présentation du site. Vous pourrez y modifier les détails de votre site.
+
+ Toute modification future de votre dépôt source déclenchera des déploiements de prévisualisation et de production en fonction de votre configuration de déploiement.
+
+ #### Le fichier `netlify.toml`
+
+ Vous pouvez éventuellement créer un nouveau fichier `netlify.toml` à la racine de votre dépôt de projet pour configurer votre commande de build et votre répertoire de publication, ainsi que d'autres paramètres du projet, y compris les variables d'environnement et les redirections. Netlify lira ce fichier et configurera automatiquement votre déploiement.
+
+ Pour configurer les paramètres par défaut, créez un fichier `netlify.toml` avec le contenu suivant :
+    
+```toml
+[build]
+  command = "npm run build"
+  publish = "dist"
+```
+
+Vous utilisez [`pnpm` sur Netlify ?](https://answers.netlify.com/t/using-pnpm-and-pnpm-workspaces/2759) Utilisez plutôt les paramètres suivants :
+
+```toml
+[build.environment]
+  NPM_FLAGS = "--version" # Empêche l'exécution de npm install par Netlify
+[build]
+  command = 'npx pnpm i --store=node_modules/.pnpm-store && npm run build'
+  publish = 'dist'
+```
+
+📚 Plus d'informations sur ["Deploying an existing Astro Git repository"](https://www.netlify.com/blog/how-to-deploy-astro/#deploy-an-existing-git-repository-to-netlify) sur le blog de Netlify
+
+### Déploiement CLI
+
+Vous pouvez également créer un nouveau site sur Netlify et relier votre dépôt Git en installant et en utilisant le [CLI de Netlify](https://cli.netlify.com/).
+
+1. Installez le CLI de Netlify en global : 
+   
+    ```bash
+    npm install --global netlify-cli
+    ```
+2. Exécutez le CLI et suivez les instructions pour vous connecter et autoriser Netlify.
+3. Lancez `netlify init` et suivez les instructions
+4. Confirmez votre commande de build (`astro build`)
+
+    Le CLI détectera automatiquement les paramètres de build (`astro build`) et le répertoire de déploiement (`dist`), et proposera de générer automatiquement [un fichier `netlify.toml`](#le-fichier-netlifytoml) avec ces paramètres. 
+    
+5. Build et déployer en poussant vers Git
+   
+   Le CLI ajoutera une clé de déploiement au dépôt, ce qui signifie que votre site sera automatiquement reconstruit sur Netlify chaque fois que vous ferez `git push`.
+
+📚 Plus de détails de Netlify sur [Déployer un site Astro à l'aide de la CLI Netlify](https://www.netlify.com/blog/how-to-deploy-astro/#link-your-astro-project-and-deploy-using-the-netlify-cli)
+
+### Définir une version de Node.js
+
+Si vous utilisez une ancienne [image de build](https://docs.netlify.com/configure-builds/get-started/#build-image-selection) (Xenial) sur Netlify, assurez-vous que votre version de Node.js est définie. Astro requiert la version `v18.14.1` ou une version plus récente.
+
+Vous pouvez [spécifier votre version de Node.js dans Netlify](https://docs.netlify.com/configure-builds/manage-dependencies/#node-js-and-javascript) en utilisant :
+- un fichier [`.nvmrc`](https://github.com/nvm-sh/nvm#nvmrc) dans votre répertoire de base.
+- une variable d'environnement `NODE_VERSION` dans les paramètres de votre site en utilisant le tableau de bord du projet Netlify.
+
+## Utilisation des fonctions Netlify
+
+Aucune configuration particulière n'est nécessaire pour utiliser les fonctions Netlify avec Astro. Ajoutez un répertoire `netlify/functions` à la racine de votre projet et suivez [la documentation sur les fonctions Netlify](https://docs.netlify.com/functions/overview/) pour commencer !
+
+## Exemples
+
+- [Comment déployer un site Astro](https://www.netlify.com/blog/how-to-deploy-astro/) - Blog de Netlify
+- [Déploiement d'un site Astro avec des formulaires, des fonctions serverless et des redirections](https://www.netlify.com/blog/deploy-an-astro-site-with-forms-serverless-functions-and-redirects/) - Blog de Netlify
+- [Vidéo de présentation du déploiement](https://youtu.be/GrSLYq6ZTes) - Chaîne YouTube de Netlify

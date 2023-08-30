@@ -1,0 +1,401 @@
+---
+title: Build Forms With API Routes
+description: Learn how to use JavaScript to send form submissions to an API Route
+i18nReady: true
+type: recipe
+---
+import UIFrameworkTabs from "~/components/tabs/UIFrameworkTabs.astro";
+import PackageManagerTabs from "~/components/tabs/PackageManagerTabs.astro"
+
+An HTML form causes the browser to refresh the page or navigate to a new one. To send form data to an API endpoint instead, you must intercept the form submission using JavaScript. 
+
+This recipe shows you how to send form data to an API endpoint and handle that data.
+
+## Prerequisites
+- A project with [SSR](/en/guides/server-side-rendering/) (`output: 'server'`) enabled
+- A [UI Framework integration](/en/core-concepts/framework-components/) installed
+
+## Recipe
+
+1. Create a form component using your UI framework. Each input should have a `name` attribute that describes the value of that input.
+
+    Be sure to include a `<button>` or `<input type="submit">` element to submit the form.
+    <UIFrameworkTabs>
+      <Fragment slot="preact">
+        ```tsx title="src/components/FeedbackForm.tsx"
+        export default function Form() {
+          return (
+            <form>
+              <label>
+                Name
+                <input type="text" id="name" name="name" required />
+              </label>
+              <label>
+                Email
+                <input type="email" id="email" name="email" required />
+              </label>
+              <label>
+                Message
+                <textarea id="message" name="message" required />
+              </label>
+              <button>Send</button>
+            </form>
+          );
+        }
+        ```
+      </Fragment>
+      <Fragment slot="react">
+        ```tsx title="src/components/FeedbackForm.tsx"
+        export default function Form() {
+          return (
+            <form>
+              <label>
+                Name
+                <input type="text" id="name" name="name" required />
+              </label>
+              <label>
+                Email
+                <input type="email" id="email" name="email" required />
+              </label>
+              <label>
+                Message
+                <textarea id="message" name="message" required />
+              </label>
+              <button>Send</button>
+            </form>
+          );
+        }
+        ```
+      </Fragment>
+      <Fragment slot="solid">
+        ```tsx title="src/components/FeedbackForm.tsx"
+        export default function Form() {
+          return (
+            <form>
+              <label>
+                Name
+                <input type="text" id="name" name="name" required />
+              </label>
+              <label>
+                Email
+                <input type="email" id="email" name="email" required />
+              </label>
+              <label>
+                Message
+                <textarea id="message" name="message" required />
+              </label>
+              <button>Send</button>
+            </form>
+          );
+        }
+        ```
+      </Fragment>
+      <Fragment slot="svelte">
+        ```svelte title="src/components/FeedbackForm.svelte"
+        <form>
+          <label>
+            Name
+            <input type="text" id="name" name="name" required />
+          </label>
+          <label>
+            Email
+            <input type="email" id="email" name="email" required />
+          </label>
+          <label>
+            Message
+            <textarea id="message" name="message" required />
+          </label>
+          <button>Send</button>
+        </form>
+        ```
+      </Fragment>
+      <Fragment slot="vue">
+        ```vue title="src/components/FeedbackForm.vue"
+        <template>
+          <form>
+            <label>
+              Name
+              <input type="text" id="name" name="name" required />
+            </label>
+            <label>
+              Email
+              <input type="email" id="email" name="email" required />
+            </label>
+            <label>
+              Message
+              <textarea id="message" name="message" required />
+            </label>
+            <button>Send</button>
+          </form>
+        </template>
+        ```
+      </Fragment>
+
+    </UIFrameworkTabs>
+
+  2. Create the `POST` API endpoint that will receive the form data. Use `request.formData()` to process it. Be sure to validate the form values before you use them. 
+  
+        This example sends a JSON object with a message back to the client.
+
+      ```ts title="src/pages/api/feedback.ts" "request.formData()" "post"
+      import type { APIRoute } from "astro";
+
+      export const POST: APIRoute = async ({ request }) => {
+        const data = await request.formData();
+        const name = data.get("name");
+        const email = data.get("email");
+        const message = data.get("message");
+        // Validate the data - you'll probably want to do more than this
+        if (!name || !email || !message) {
+          return new Response(
+            JSON.stringify({
+              message: "Missing required fields",
+            }),
+            { status: 400 }
+          );
+        }
+        // Do something with the data, then return a success response
+        return new Response(
+          JSON.stringify({
+            message: "Success!"
+          }),
+          { status: 200 }
+        );
+      };
+      ```
+
+  3. Create a function that accepts a submit event, then pass it as a `submit` event handler to your form. In the function, call `preventDefault` on the event to override the browser's default submission process. 
+  
+      Then, create a `FormData` object and send it to your endpoint using `fetch`.
+
+        <UIFrameworkTabs>
+          <Fragment slot="preact">
+            ```tsx title="src/components/FeedbackForm.tsx"
+            import { useState } from "preact/hooks";
+
+            export default function Form() {
+              const [responseMessage, setResponseMessage] = useState("");
+
+              async function submit(e: SubmitEvent) {
+                e.preventDefault();
+                const formData = new FormData(e.target as HTMLFormElement);
+                const response = await fetch("/api/feedback", {
+                  method: "POST",
+                  body: formData,
+                });
+                const data = await response.json();
+                if (data.message) {
+                  setResponseMessage(data.message);
+                }
+              }
+
+              return (
+                <form onSubmit={submit}>
+                  <label>
+                    Name
+                    <input type="text" id="name" name="name" required />
+                  </label>
+                  <label>
+                    Email
+                    <input type="email" id="email" name="email" required />
+                  </label>
+                  <label>
+                    Message
+                    <textarea id="message" name="message" required />
+                  </label>
+                  <button>Send</button>
+                  {responseMessage && <p>{responseMessage}</p>}
+                </form>
+              );
+            }
+
+            ```
+          </Fragment>
+          <Fragment slot="react">
+            ```tsx title="src/components/FeedbackForm.tsx"
+            import { useState } from "react";
+
+            export default function Form() {
+              const [responseMessage, setResponseMessage] = useState("");
+
+              async function submit(e: SubmitEvent) {
+                e.preventDefault();
+                const formData = new FormData(e.target as HTMLFormElement);
+                const response = await fetch("/api/feedback", {
+                  method: "POST",
+                  body: formData,
+                });
+                const data = await response.json();
+                if (data.message) {
+                  setResponseMessage(data.message);
+                }
+              }
+
+              return (
+                <form onSubmit={submit}>
+                  <label>
+                    Name
+                    <input type="text" id="name" name="name" required />
+                  </label>
+                  <label>
+                    Email
+                    <input type="email" id="email" name="email" required />
+                  </label>
+                  <label>
+                    Message
+                    <textarea id="message" name="message" required />
+                  </label>
+                  <button>Send</button>
+                  {responseMessage && <p>{responseMessage}</p>}
+                </form>
+              );
+            }
+            ```
+          </Fragment>
+          <Fragment slot="solid">
+            ```tsx title="src/components/FeedbackForm.tsx"
+            import { createSignal, createResource, Suspense } from "solid-js";
+
+            async function postFormData(formData: FormData) {
+              const response = await fetch("/api/feedback", {
+                method: "POST",
+                body: formData,
+              });
+              const data = await response.json();
+              return data;
+            }
+
+            export default function Form() {
+              const [formData, setFormData] = createSignal<FormData>();
+              const [response] = createResource(formData, postFormData);
+
+              function submit(e: SubmitEvent) {
+                e.preventDefault();
+                setFormData(new FormData(e.target as HTMLFormElement));
+              }
+
+              return (
+                <form onSubmit={submit}>
+                  <label>
+                    Name
+                    <input type="text" id="name" name="name" required />
+                  </label>
+                  <label>
+                    Email
+                    <input type="email" id="email" name="email" required />
+                  </label>
+                  <label>
+                    Message
+                    <textarea id="message" name="message" required />
+                  </label>
+                  <button>Send</button>
+                  <Suspense>{response() && <p>{response().message}</p>}</Suspense>
+                </form>
+              );
+            }
+
+            ```
+          </Fragment>
+          <Fragment slot="svelte">
+            ```svelte title="src/components/FeedbackForm.svelte"
+            <script lang="ts">
+              let responseMessage: string;
+
+              async function submit(e: SubmitEvent) {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget as HTMLFormElement);
+                const response = await fetch("/api/feedback", {
+                  method: "POST",
+                  body: formData,
+                });
+                const data = await response.json();
+                responseMessage = data.message;
+              }
+            </script>
+
+            <form on:submit={submit}>
+              <label>
+                Name
+                <input type="text" id="name" name="name" required />
+              </label>
+              <label>
+                Email
+                <input type="email" id="email" name="email" required />
+              </label>
+              <label>
+                Message
+                <textarea id="message" name="message" required />
+              </label>
+              <button>Send</button>
+              {#if responseMessage}
+                <p>{responseMessage}</p>
+              {/if}
+            </form>
+                ```
+          </Fragment>
+          <Fragment slot="vue">
+            ```vue title="src/components/FeedbackForm.vue"
+            <script setup lang="ts">
+            import { ref } from "vue";
+
+            const responseMessage = ref<string>();
+
+            async function submit(e: Event) {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget as HTMLFormElement);
+              const response = await fetch("/api/feedback", {
+                method: "POST",
+                body: formData,
+              });
+              const data = await response.json();
+              responseMessage.value = data.message;
+            }
+            </script>
+            <template>
+              <form @submit="submit">
+                <label>
+                  Name
+                  <input type="text" id="name" name="name" required />
+                </label>
+                <label>
+                  Email
+                  <input type="email" id="email" name="email" required />
+                </label>
+                <label>
+                  Message
+                  <textarea id="message" name="message" required />
+                </label>
+                <button>Send</button>
+                <p v-if="responseMessage">{{ responseMessage }}</p>
+              </form>
+            </template>
+            ```
+          </Fragment>
+
+        </UIFrameworkTabs>
+
+{/* ## Extension: Use Zod to validate your form
+
+[Zod form data](https://www.npmjs.com/package/zod-form-data) builds on top of [Zod](https://github.com/colinhacks/zod) to validate your form using a schema. This simplifies your code, as it allows you to declare the fields and their requirements, and let Zod handle the validation.
+
+1. Install `zod` and `zod-form-data`.
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+        ```shell
+          npm i zod zod-form-data
+        ```
+      </Fragment>
+      <Fragment slot="pnpm">
+        ```shell
+          pnpm i zod zod-form-data
+        ```
+      </Fragment>
+      <Fragment slot="yarn">
+        ```shell
+          yarn add zod zod-form-data
+        ```
+      </Fragment>
+    </PackageManagerTabs>
+
+2. In your API Route file, declare your schema using `zfd.formData` and export it. */}

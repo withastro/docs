@@ -1,0 +1,192 @@
+---
+title: TypeScript
+description: Astro組み込みのTypeScriptサポートの使い方を学ぶ。
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+Astroには[TypeScript](https://www.typescriptlang.org/)のサポートが組み込まれています。Astroプロジェクトで`.ts`や`.tsx`ファイルをインポートしたり、[Astroコンポーネント](/ja/core-concepts/astro-components/#コンポーネントスクリプト)の中で直接TypeScriptコードを書いたり、お好みで[`astro.config.ts`](/ja/guides/configuring-astro/#astroの設定ファイル)ファイルを使うこともできます。
+
+TypeScriptにより、オブジェクトやコンポーネントの形状（shape）をコードで定義して実行時エラーを防ぐことができます。たとえば、TypeScriptで[コンポーネントのpropsに型を付ける](#コンポーネントprops)と、コンポーネントが受け付けないpropを設定した場合にエディタ内にエラーが発生します。
+
+AstroプロジェクトでTypeScriptコードを書かなくても、その恩恵を受けられます。Astroは常にコンポーネントのコードをTypeScriptとして扱い、[Astro VSCode拡張機能](/ja/editor-setup/)は自動補完やヒント、エラーをエディタ内で提供するためにできる限りの推論を行います。
+
+Astroの開発サーバーは型チェックを行いませんが、[スクリプトの追加](#型チェック)によりコマンドラインから型エラーをチェックできます。
+
+## 準備
+
+Astroのスタータープロジェクトには`tsconfig.json`ファイルが含まれています。TypeScriptコードを書かない場合でも、AstroやVS Codeなどのツールがプロジェクトを理解するために、このファイルは重要です。`tsconfig.json`ファイルがないと、npmパッケージのインポートなどの一部の機能がエディタで完全にサポートされません。Astroを手動でインストールする場合は、必ずこのファイルを自分で作成してください。
+
+Astroには、`base`、`strict`、`strictest`という3つの拡張可能な`tsconfig.json`のテンプレートが含まれています。`base`テンプレートは、JavaScriptのモダンな機能のサポートを可能とし、他のテンプレートの基礎としても使用されます。プロジェクトでTypeScriptを書く予定がある場合は、`strict`または`strictest`を使用することをお勧めします。[astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/)で3つのテンプレートの設定を確認・比較できます。
+
+いずれかのテンプレートを継承するには、[`extends`という設定項目](https://www.typescriptlang.org/tsconfig#extends)を使用します。
+
+```json title="tsconfig.json"
+{
+  "extends": "astro/tsconfigs/base"
+}
+```
+
+また、[Viteのクライアント型](https://vitejs.dev/guide/features.html#client-types)をプロジェクトで利用できるように、テンプレートには`src`フォルダ内に`env.d.ts`が含まれています。
+
+```typescript title="env.d.ts"
+/// <reference types="astro/client" />
+```
+
+### UIフレームワーク
+
+プロジェクトで[UIフレームワーク](/ja/core-concepts/framework-components/)を使用する場合は、フレームワークに応じた追加の設定が必要かもしれません。詳細については、フレームワークのTypeScriptドキュメントを参照してください。 ([Vue](https://vuejs.org/guide/typescript/overview.html#using-vue-with-typescript)、[React](https://react-typescript-cheatsheet.netlify.app/docs/basic/setup)、[Preact](https://preactjs.com/guide/v10/typescript)、[Solid](https://www.solidjs.com/guides/typescript))
+
+## 型のインポート
+
+可能な限り、明示的な型のインポートとエクスポートを使用しましょう。
+
+```js del={1} ins={2} ins="type"
+import { SomeType } from './script';
+import type { SomeType } from './script';
+```
+
+こうすることで、Astroのバンドラーがインポートした型をJavaScriptであるかのように誤ってバンドルするようなエッジケースを避けることができます。
+
+`.tsconfig`ファイルで、TypeScriptにこれを補助させることができます。[`importsNotUsedAsValues`](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues)を`error`にセットすることで、TypeScriptはインポートをチェックし、いつ`import type`を使うべきか教えてくれるのです。この設定は、`strict`と`strictest`テンプレートにデフォルトで含まれています。
+
+```json title="tsconfig.json" ins={3}
+{
+  "compilerOptions": {
+    "importsNotUsedAsValues": "error",
+  }
+}
+```
+
+## Importエイリアス
+
+Astroは、`tsconfig.json`と`jsconfig.json`の`paths`設定で定義する[importエイリアス](/ja/guides/aliases/)をサポートしています。詳しくは[ガイド](/ja/guides/aliases/)をご覧ください。
+
+
+```astro title="src/pages/about/nate.astro" "@components" "@layouts"
+---
+import HelloWorld from '@components/HelloWorld.astro';
+import Layout from '@layouts/Layout.astro';
+---
+```
+
+```json title="tsconfig.json" {5-6}
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@components/*": ["src/components/*"],
+      "@layouts/*": ["src/layouts/*"]
+    }
+  }
+}
+```
+
+## コンポーネントProps
+
+AstroはTypeScriptによるコンポーネントpropsの型付けをサポートしています。有効にするには、コンポーネントのfrontmatterにTypeScriptの`Props`インターフェースを追加します。`export`文を使用することもできますが、必須ではありません。[Astro VSCode拡張機能](/ja/editor-setup/)は、`Props`インターフェースを自動的に探し、そのコンポーネントを他のテンプレート内で使用するときに適切なTSサポートを提供します。
+
+```astro title="src/components/HelloProps.astro" ins={2-5}
+---
+interface Props {
+  name: string;
+  greeting?: string;
+}
+const { greeting = 'Hello', name } = Astro.props;
+---
+<h2>{greeting}, {name}!</h2>
+```
+
+### propsの型でよくあるパターン
+
+- コンポーネントがpropsやスロット経由のコンテンツを受け取らない場合は、`type Props = Record<string, unknown>`を使用できます。
+
+- コンポーネントがデフォルトスロットから子要素を受け取る必要がある場合は、`type Props = { children: any; };`によりこれを強制できます。
+
+## 型ユーティリティ
+
+<Since v="1.6.0" />
+
+Astroには、propsに型を付ける際によく出くわすパターン向けに、組み込みのユーティリティ型を提供しています。これらは`astro/types`エントリポイントから利用可能です。
+
+### 組み込みのHTML属性
+
+Astroは、マークアップが有効なHTML属性を使用していることを確認するために`HTMLAttributes`型を提供しています。この型により、コンポーネントのpropsを構成しやすくなります。
+
+たとえば`<Link>`コンポーネントを作成する場合、次のようにコンポーネントのprops型に`<a>`タグのデフォルトHTML属性を反映できます。
+
+```astro title="src/components/Link.astro" ins="HTMLAttributes" ins="HTMLAttributes<'a'>"
+---
+import { HTMLAttributes } from 'astro/types'
+// `type`を使う
+type Props = HTMLAttributes<'a'>;
+// または`interface`を拡張します
+interface Props extends HTMLAttributes<'a'> {
+  myProp?: boolean;
+}
+const { href, ...attrs } = Astro.props;
+---
+<a href={href} {...attrs}>
+  <slot />
+</a>
+```
+
+また、`.d.ts`ファイルで`astroHTML.JSX`名前空間を再宣言し、デフォルトのJSX定義を拡張して非標準の属性を追加することも可能です。
+
+```ts
+// src/custom-attributes.d.ts
+
+declare namespace astroHTML.JSX {
+  interface HTMLAttributes {
+    'data-count'?: number;
+    'data-label'?: string;
+  }
+}
+```
+
+:::note
+`astroHTML`は`.astro`コンポーネント内にグローバルに注入されます。TypeScriptファイルで使用するには、[triple-slashディレクティブ](https://www.typescriptlang.org/docs/handbook/triple-slash-directives.html)を使用します。
+
+```ts
+/// <reference types="astro/astro-jsx" />
+
+type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
+```
+:::
+
+## 型チェック
+
+エディタで型エラーを確認するには、[Astro VS Code拡張機能](/ja/editor-setup/)をインストールしてください。`astro start`と`astro build`コマンドは、esbuildでコードをトランスパイルしますが、型チェックは実行しないことに注意してください。TypeScriptのエラーが含まれている場合にビルドされないようにするには、`package.json`のbuildスクリプトを次のように変更します。
+
+```json title="package.json" del={2} ins={3} ins="astro check && tsc --noEmit && "
+  "scripts": {
+    "build": "astro build",
+    "build": "astro check && tsc --noEmit && astro build",
+  },
+```
+
+:::note
+`astro check`は`.astro`ファイル内の型のみをチェックし、`tsc --noEmit`は`.ts`および`.tsx`ファイル内の型のみをチェックします。SvelteとVueファイル内の型をチェックするには、それぞれ[`svelte-check`](https://www.npmjs.com/package/svelte-check)と[`vue-tsc`](https://www.npmjs.com/package/vue-tsc)パッケージを使用できます。
+:::
+
+📚 Astroにおける[`.ts`ファイルのインポート](/ja/guides/imports/#typescript)についてもっと読む。
+📚 [TypeScriptの設定](https://www.typescriptlang.org/tsconfig/)についてもっと読む。
+
+## トラブルシューティング
+
+### 同時に複数のJSXフレームワークを型付けしたときのエラー
+
+同じプロジェクトで複数のJSXフレームワークを使用する場合、フレームワークごとに`tsconfig.json`内の設定が異なり、互いにコンフリクトして問題が発生することがあります。
+
+**解決策**：最も使用するフレームワークに合わせて、[`jsxImportSource`設定](https://www.typescriptlang.org/tsconfig#jsxImportSource)を`react`（デフォルト）、`preact`または`solid-js`に設定します。次に、競合する異なるフレームワークのファイル内で[プラグマコメント](https://www.typescriptlang.org/docs/handbook/jsx.html#configuring-jsx)を使用します。
+
+デフォルト設定である`jsxImportSource: react`の場合は、次のように使用します。
+
+```jsx
+// Preact向け
+/** @jsxImportSource preact */
+
+// Solid向け
+/** @jsxImportSource solid-js */
+```

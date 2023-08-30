@@ -1,0 +1,660 @@
+---
+title: Markdown & MDX
+description: 在 Astro 中使用 Markdown
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+import FileTree from '~/components/FileTree.astro'
+import RecipeLinks from "~/components/RecipeLinks.astro";
+
+[Markdown](https://daringfireball.net/projects/markdown/) 通常用于创作文本繁重的内容，如博客文章和文档。Astro 包括对标准 Markdown 文件的内置支持，这些文件还可以包括 [frontmatter YAML](https://dev.to/paulasantamaria/introduction-to-yaml-125f) 来定义自定义元数据，例如标题、描述和标签。
+
+安装 [@astrojs/mdx 集成](/zh-cn/guides/integrations-guide/mdx/)后，Astro 还支持 [MDX](https://mdxjs.com/) (.mdx) 文件，这些文件带来了附加功能，例如支持 JavaScript 表达式和在 Markdown 中使用组件。
+
+使用一种或两种类型的文件来编写你的 Markdown 内容！
+
+## Markdown 和 MDX 页面
+
+### 内容集合
+
+你可以在 Astro 中的特殊的 `src/content/` 文件夹中管理你的 Markdown 和 MDX 文件。[内容集合](/zh-cn/guides/content-collections/) 可帮助你组织内容、验证你的 frontmatter，并在处理你的内容时提供自动 TypeScript 类型安全。
+
+<FileTree>
+- src/content/
+  - **newsletter/** 
+    - week-1.md
+    - week-2.md
+  - **authors/**
+    - grace-hopper.md
+    - alan-turing.md
+</FileTree>
+
+查看有关在 [Astro 中使用内容集合](/zh-cn/guides/content-collections/) 的更多信息。
+
+### 基于文件的路由
+
+Astro 将 `/src/pages` 目录中的任一 `.md`（或其他支持的扩展名）或者 `.mdx` 文件视为一个页面。
+
+将文件放在此目录或其的任何一个子目录中，则将用文件的路径名自动构建页面路由。
+
+```markdown
+---
+# Example: src/pages/page-1.md
+title: Hello, World
+---
+
+# Hi there!
+
+这个 Markdown 文件将在 `your-domain.com/page-1/` 创建一个页面
+
+它可能没有什么风格，但 Markdown 确实支持：
+- **粗体** and _斜体。_
+- 列表
+- [链接](https://astro.build)
+- 等等!
+```
+
+📚 阅读更多关于 Astro [基于文件的路由](/zh-cn/core-concepts/routing/)或创建[动态路由](/zh-cn/core-concepts/routing/#动态路由)的选项。
+
+## Markdown 功能
+
+Astro 在使用 Markdown 和 MDX 文件时提供了一些额外的内置 Markdown 功能。
+
+### Frontmatter `layout`
+
+Astro 为 Markdown 和 MDX 页面提供了一个特殊的 frontmatter 属性 `layout` 属性，可以指定 Astro [布局组件](/zh-cn/core-concepts/layouts/#markdownmdx-布局)的相对路径（或[别名](/zh-cn/guides/aliases/)）。
+
+```markdown {3}
+---
+# src/pages/posts/post-1.md
+layout: ../../layouts/BlogPostLayout.astro
+title: Astro 简介
+author: Himanshu
+description: 发现 Astro 的魅力所在！
+--- 
+这是一个使用 Markdown 编写的文章。
+```
+
+[特定的属性可以通过 `Astro.props` 传递给布局组件](/zh-cn/core-concepts/layouts/#markdown-布局的-props)。例如，你可以通过 `Astro.props.frontmatter` 访问 frontmatter 属性：
+
+
+```astro /frontmatter(?:.\w+)?/
+---
+// src/layouts/BlogPostLayout.astro
+const {frontmatter} = Astro.props;
+---
+<html>
+  <!-- ... -->
+  <h1>{frontmatter.title}</h1>
+  <h2>文章作者: {frontmatter.author}</h2>
+  <p>{frontmatter.description}</p>
+  <slot /> <!-- Markdown 内容被注入到这里 -->
+   <!-- ... -->
+</html>
+```
+
+你也可以在布局组件中[为你的 Markdown 设置样式](/zh-cn/guides/styling/#markdown-样式)。
+
+📚 阅读更多关于 [Markdown 布局](/zh-cn/core-concepts/layouts/#markdownmdx-布局)。
+
+### 标题 ID
+
+使用 Markdown 和 MDX 中的标题将自动为你提供锚点链接，以便你可以直接链接到页面的某些部分。
+
+```markdown title="src/pages/page-1.md"
+---
+title: My page of content
+---
+## 介绍
+
+我可以在编写 Markdown 时链接到同一页面上的[我的结论](#结论)。
+
+## 结论
+
+我可以使用 URL `https://my-domain.com/page-1/#介绍` 直接导航到页面上的介绍。
+
+```
+
+### 转义特殊字符
+
+某些字符在 Markdown 和 MDX 中具有特殊含义。 如果你想显示它们，你可能需要使用不同的语法。 要做到这一点，你可以使用这些字符的 [HTML 实体](https://developer.mozilla.org/zh-CN/docs/Glossary/Entity)。
+
+例如，要防止 `<` 被解释为 HTML 元素的开始，可以写 `&lt;`。 或者，要防止 `{` 被解释为 MDX 中 JavaScript 表达式的开始，可以写 `&lcub;`。
+
+## MDX 独有特性
+
+添加 Astro [MDX 集成](/zh-cn/guides/integrations-guide/mdx/)可以使用 JSX 变量、表达式和组件来增强你的 Markdown 编写体验。
+
+它还为标准 MDX 添加了额外的功能，包括对 [MDX 中的 Markdown 样式 frontmatter](https://mdxjs.com/guides/frontmatter/)的支持。 这允许你使用 Astro 的大多数内置 Markdown 功能，例如 [frontmatter `layout`](#frontmatter-layout) 属性。
+
+`.mdx` 文件必须使用 [MDX 语法](https://mdxjs.com/docs/what-is-mdx/#mdx-syntax)编写，而不是 Astro 的 HTML 语法。
+
+### 在 MDX 中使用导出的变量
+
+MDX 支持使用 `export` 语句将变量添加到你的 MDX 内容中。 这些变量既可以在模板本身中访问，也可以在[导入文件](#导入-markdown)时以命名属性的形式访问。
+
+例如，你可以从 MDX 页面或组件中导出一个 `title` 字段，以便使用 `{JSX expressions}` 作为标题：
+
+```mdx title="/src/pages/posts/post-1.mdx"
+export const title = '我的第一篇 MDX 文章'
+
+# {title}
+```
+### 在 MDX 中使用 Frontmatter 变量
+
+Astro MDX 集成默认支持在 MDX 中使用 frontmatter。 在 Markdown 文件中添加 frontmatter 属性，这些变量可在模板中、其 [`layout` 组件](#frontmatter-layout)中以及在 [导入文件](#导入-markdown)时以命名属性的形式访问。
+
+```mdx title="/src/pages/posts/post-1.mdx"
+---
+layout: '../../layouts/BlogPostLayout.astro'
+title: '我的第一篇 MDX 文章'
+---
+
+# {frontmatter.title}
+```
+
+### 在 MDX 中使用组件
+
+安装 MDX 集成后，你可以在 MDX (`.mdx`) 文件中导入并使用 [Astro 组件](/zh-cn/core-concepts/astro-components/#组件参数)和 [UI 框架组件](/zh-cn/core-concepts/framework-components/#使用框架组件)。就像在任何其他 Astro 组件中使用它们一样。
+
+不要忘记在你的 UI 框架组件上添加 `client:directive`，如果需要的话！
+
+在 [MDX 文档](https://mdxjs.com/docs/what-is-mdx/#esm)中查看有关使用导入和导出语句的更多示例。
+
+```mdx title="src/pages/about.mdx" {5-6} /<.+\/>/
+---
+layout: ../layouts/BaseLayout.astro
+title: 关于我
+---
+import Button from '../components/Button.astro';
+import ReactCounter from '../components/ReactCounter.jsx';
+
+我住在 **火星** 上，但是随时可以 <Button title="联系我" />。
+
+这是我的计数器组件，它在 MDX 中工作：
+
+<ReactCounter client:load />
+```
+
+#### 将自定义组件分配给 HTML 元素
+
+使用 MDX，你可以将 Markdown 语法映射到自定义组件，而不是它们的标准 HTML 元素。 这允许你以标准的 Markdown 语法编写，但是将特殊的组件样式应用于所选的元素。
+
+将自定义组件导入 `.mdx`文件，然后导出将标准 HTML 元素映射到自定义组件的`components`对象：
+
+```mdx title="src/pages/about.mdx"
+import Blockquote from '../components/Blockquote.astro';
+export const components = {blockquote: Blockquote}
+
+> 这个引用将是自定义引用块组件。
+```
+
+
+```astro title="src/components/Blockquote.astro"
+---
+const props = Astro.props;
+---
+<blockquote {...props} class="bg-blue-50 p-4">
+  <span class="text-4xl text-blue-600 mb-2">“</span>
+  <slot /> <!-- 请务必为子组件添加`<slot/>`！ -->
+</blockquote>
+```
+访问 [MDX 网站](https://mdxjs.com/table-of-components/)，了解可以覆盖为自定义组件的 HTML 元素的完整列表。
+
+## 导入 Markdown
+
+你可以直接将 Markdown 和 MDX 文件导入到你的 Astro 文件中。 这使你可以访问它们的 Markdown 内容，以及可以在 Astro 的类 JSX 表达式中使用的其他属性，例如 frontmatter 值。
+
+你可以使用 `import` 语句导入一个特定的页面，也可以使用 [`Astro.glob()`](/zh-cn/guides/imports/#astroglob) 导入多个页面。
+
+```astro title="src/pages/index.astro"
+---
+// 导入单个文件
+import * as myPost from '../pages/post/my-post.md';
+
+// 使用 Astro.glob 导入多个文件
+const posts = await Astro.glob('../pages/post/*.md');
+---
+```
+
+当你在 Astro 组件中导入 Markdown 和 MDX 文件时，你会得到一个包含它们 [导出属性](#导出的属性) 的对象。
+
+```md title="/src/pages/posts/great-post.md"
+---
+title: '有史以来最好的文章'
+author: 'Ben'
+---
+
+Here is my _great_ post!
+这是我的 _很棒_ 的文章！
+```
+
+```astro title="src/pages/my-posts.astro"
+---
+import * as greatPost from '../pages/post/great-post.md';
+
+const posts = await Astro.glob('../pages/post/*.md');
+---
+
+<p>{greatPost.frontmatter.title}</p>
+<p>作者：{greatPost.frontmatter.author}</p>
+
+<p>文章存档：</p>
+<ul>
+  {posts.map(post => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+</ul>
+```
+
+在 MDX 文件中，你可以访问来自 frontmatter 和 `export` 语句的属性：
+
+```mdx title="/src/pages/posts/mdx-post.mdx"
+---
+title: '有史以来最好的文章'
+author: 'Ben'
+---
+export const description = '请舒适一点！这将是一篇很棒的文章！'
+
+这是我 _很棒_ 的文章！
+```
+
+```astro title="src/pages/my-posts.astro"
+---
+import * as greatPost from '../pages/post/mdx-post.mdx';
+---
+
+<p>{greatPost.frontmatter.title}</p>
+<p>作者：{greatPost.frontmatter.author}</p>
+<p>{greatPost.description}</p>
+```
+
+你可以使用 TypeScript 泛型为 `frontmatter` 变量提供一个类型：
+
+```astro title="src/pages/index.astro" ins={2-5} ins="<Frontmatter>"
+---
+interface Frontmatter {
+  title: string;
+  description?: string;
+}
+const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
+---
+
+<ul>
+  {posts.map(post => <li>{post.frontmatter.title}</li>)}
+  <!-- post.frontmatter.title 会是 `string` 类型！ -->
+</ul>
+```
+
+### 导出的属性
+
+:::note[使用 Astro 布局？]
+请参阅 [导出到 Astro 布局组件的属性](/zh-cn/core-concepts/layouts/#markdown-布局的-props)，了解在使用 Astro 的特殊 [frontmatter 布局](#frontmatter-layout) 时导出的属性。
+:::
+
+以下属性可用于使用 `import` 语句或 `Astro.glob()` 时的 `.astro` 组件：
+
+- **`file`** - 绝对文件路径（例如 `/home/user/projects/.../file.md`）。
+- **`url`** - 如果是页面，则为页面的 URL（例如 `/zh-cn/guides/markdown-content`）。
+- **`frontmatter`** - 包含文件中指定的 YAML frontmatter 中的任何数据。
+- **`getHeadings`** - 一个异步函数，返回文件中所有标题（即 `h1 -> h6` 元素）的数组。 每个标题的 `slug` 对应于给定标题的生成的 ID，可用于锚链接。 此列表遵循类型：`{ depth: number; slug: string; text: string }[]`。
+- **`Content`** - 一个组件，返回文件的完整渲染内容。
+- **（仅 Markdown)`rawContent()`** - 一个函数，返回原始 Markdown 文档作为字符串。
+- **（仅 Markdown）`compiledContent()`** - 一个函数，返回将 Markdown 文档编译为 HTML 字符串。 请注意，这不包括 frontmatter 中配置的布局！ 只会将 Markdown 文档本身作为 HTML 返回。
+- **（仅 MDX）** - MDX 文件还可以使用 `export` 语句导出数据。
+
+
+
+### `Content` 组件
+
+使用 `Content` 组件导入一个组件，该组件返回 Markdown 或 MDX 文件的完整渲染内容：
+
+```astro title="src/pages/content.astro" "Content"
+---
+import {Content as PromoBanner} from '../components/promoBanner.md';
+---
+
+<h2>今日促销</h2>
+<PromoBanner />
+```
+
+#### 举例：动态页面路由
+
+与其将 Markdown/MDX 文件放在 'src/pages/' 目录中来创建页面路由，不如[动态路由](/zh-cn/core-concepts/routing/#动态路由)。
+
+要访问 Markdown 内容，请将 `<Content/>` 组件传递给 Astro 页面的 `props`。 然后，你可以从 `Astro.props` 中检索该组件并在页面模板中渲染它。
+
+```astro title="src/pages/[slug].astro" {9-11} "Content" "Astro.props.post"
+---
+export async function getStaticPaths() {
+  const posts = await Astro.glob('../posts/**/*.md')
+
+  return posts.map(post => ({
+    params: { 
+      slug: post.frontmatter.slug 
+    },
+    props: {
+      post
+    },
+  }))
+}
+
+const { Content } = Astro.props.post
+---
+<article>
+  <Content/>
+</article>
+```
+
+
+### MDX 独有的导出
+
+MDX 文件还可以使用 `export` 语句导出数据。
+
+例如，你可以从 MDX 页面或组件中导出 `title` 字段。
+
+```mdx title="/src/pages/posts/post-1.mdx"
+export const title = '我的第一个 MDX 文章'
+```
+
+这个 `title` 将可以从 `import` 和 [Astro.glob()](/zh-cn/reference/api-reference/#astroglob) 语句中访问：
+
+```astro
+---
+// src/pages/index.astro
+const posts = await Astro.glob('./*.mdx');
+---
+
+{posts.map(post => <p>{post.title}</p>)}
+```
+
+### 使用导入的 MDX 的自定义组件
+
+当渲染导入的 MDX 内容时，可以通过 `components` 属性传递 [自定义组件](#将自定义组件分配给-html-元素) 。
+
+```astro title="src/pages/page.astro" "components={{...components, h1: Heading }}"
+---
+import { Content, components } from '../content.mdx';
+import Heading from '../Heading.astro';
+---
+<!-- 为 # 语法创建自定义<h1>， _并且_ 在`content.mdx`中应用任何自定义组件 -->
+<Content components={{...components, h1: Heading }} />
+```
+
+:::note
+在 MDX 文件中定义并导出的自定义组件必须通过 `components` 属性导入并传递回 `<Content />` 组件。
+:::
+
+## 配置 Markdown
+
+Astro 中的 Markdown 支持由 [remark](https://remark.js.org/) 提供，remark 是一个强大的解析和处理工具，拥有一个活跃的生态系统。 目前不支持其他 Markdown 解析器，如 Pandoc 和 markdown-it。
+
+Astro 默认应用 [GitHub 风格的 Markdown](https://github.com/remarkjs/remark-gfm) 和 [SmartyPants](https://github.com/silvenon/remark-smartypants) 插件。 这带来了一些便利，例如从文本生成可点击的链接，并格式化 [引用和 em-dashes](https://daringfireball.net/projects/smartypants/)。
+
+你可以在 `astro.config.mjs` 中自定义 remark 解析 Markdown 的方式。 请参阅完整的 [Markdown 配置选项](/zh-cn/reference/configuration-reference/#markdown-选项)列表，。
+
+### Markdown 插件
+
+Astro 支持添加第三方 [remark](https://github.com/remarkjs/remark) 和 [rehype](https://github.com/rehypejs/rehype) 插件来解析 Markdown 和 MDX。 这些插件允许你扩展你的 Markdown，以获得新的功能，例如 [自动生成目录](https://github.com/remarkjs/remark-toc)，[应用可访问的表情符号标签](https://github.com/florianeckerstorfer/remark-a11y-emoji)，以及 [为你的 Markdown 添加样式](/zh-cn/guides/styling/#markdown-样式)。
+
+我们鼓励你浏览 [awesome-remark](https://github.com/remarkjs/awesome-remark) 和 [awesome-rehype](https://github.com/rehypejs/awesome-rehype) 来查看流行的插件！请参阅每个插件自己的 README 以获取特定的安装说明。
+
+这个例子将 [`remark-toc`](https://github.com/remarkjs/remark-toc) 和 [`rehype-accessible-emojis`](https://www.npmjs.com/package/rehype-accessible-emojis) 应用于 Markdown 和 MDX 文件：
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import remarkToc from 'remark-toc';
+import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis';
+
+export default defineConfig({
+  markdown: {
+    // 应用于 .md 和 .mdx 文件
+    remarkPlugins: [remarkToc],
+    rehypePlugins: [rehypeAccessibleEmojis],
+  },
+});
+```
+  
+请注意，默认情况下，`remarkToc`需要页面上的 “ToC” 或 “Table of Contents” [标题](https://github.com/remarkjs/remark-toc#optionsheading)（不区分大小写）才能显示目录。
+
+#### 标题 ID 和插件
+
+Astro 将 `id` 属性注入到 Markdown 和 MDX 文件中的所有标题元素（`<h1>` 到 `<h6>`），并提供 `getHeadings()` 实用程序，用于在 [Markdown 导出的属性](#导出的属性) 中检索这些 ID。
+
+你可以通过添加注入 `id` 属性的 rehype 插件（例如 `rehype-slug`）来自定义这些标题ID。你的自定义 ID（而不是 Astro 的默认值）将反映在 HTML 输出和 `getHeadings()` 返回的项目中。
+
+默认情况下，Astro 会在你的 rehype 插件运行后注入 `id` 属性。如果你的自定义 rehype 插件之一需要访问 Astro 注入的 ID，你可以直接导入和使用 Astro 的 `rehypeHeadingIds` 插件。确保在任何依赖它的插件之前添加 `rehypeHeadingIds`：
+
+```js title="astro.config.mjs" ins={2, 8}
+import { defineConfig } from 'astro/config';
+import { rehypeHeadingIds } from '@astrojs/markdown-remark';
+import { otherPluginThatReliesOnHeadingIDs } from 'some/plugin/source';
+
+export default defineConfig({
+  markdown: {
+    rehypePlugins: [
+      rehypeHeadingIds,
+      otherPluginThatReliesOnHeadingIDs,
+    ],
+  },
+});
+```
+
+#### 自定义插件
+
+为了自定义插件，请在嵌套数组中提供选项对象。
+
+下面的示例将 [标题选项添加到 `remarkToc` 插件](https://github.com/remarkjs/remark-toc#optionsheading) 以更改目录的放置位置，并将 [`behavior` 选项添加到 `rehype-autolink-headings` 插件](https://github.com/rehypejs/rehype-autolink-headings#optionsbehavior)以便在标题文本之后添加锚标记。
+
+```js title="astro.config.mjs"
+import remarkToc from 'remark-toc';
+import rehypeSlug from 'rehype-slug';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+
+export default {
+  markdown: {
+    remarkPlugins: [ [remarkToc, { heading: "contents"} ] ],
+    rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, { behavior: 'append' }]],
+  },
+}
+```
+
+### 以编程方式修改 frontmatter
+
+:::note
+如果你使用的是 [内容集合](/zh-cn/guides/content-collections/)，请参阅[“使用 Remark 修改 Frontmatter”](/zh-cn/guides/content-collections/#用-remark-修改-frontmatter)。
+:::
+
+你可以通过使用 [remark 或 rehype 插件](#markdown-插件) 为所有 Markdown 和 MDX 文件添加 frontmatter 属性。
+
+1. 从插件的 `file` 参数中将 `customProperty`  附加到 `data.astro.frontmatter` 属性：
+
+    ```js title="example-remark-plugin.mjs"
+    export function exampleRemarkPlugin() {
+      // 所有 remark 和 rehype 插件都返回一个单独的函数
+      return function (tree, file) {
+        file.data.astro.frontmatter.customProperty = 'Generated property';
+      }
+    }
+    ```
+
+    :::tip
+    <Since v="2.0.0" />
+
+    `data.astro.frontmatter` 包含给定 Markdown 或 MDX 文档的所有属性。 这允许你修改现有的 frontmatter 属性，或者从现有的 frontmatter 计算新属性。
+    :::  
+
+2. 将此插件应用于你的 `markdown` 或 `mdx` 集成配置：
+
+    ```js title="astro.config.mjs" "import { exampleRemarkPlugin } from './example-remark-plugin.mjs';" "remarkPlugins: [exampleRemarkPlugin],"
+    import { defineConfig } from 'astro/config';
+    import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
+
+    export default defineConfig({
+      markdown: {
+        remarkPlugins: [exampleRemarkPlugin]
+      },
+    });
+    ```
+
+    或者
+
+    ```js title="astro.config.mjs" "import { exampleRemarkPlugin } from './example-remark-plugin.mjs';" "remarkPlugins: [exampleRemarkPlugin],"
+    import { defineConfig } from 'astro/config';
+    import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
+
+    export default defineConfig({
+      integrations: [
+        mdx({
+          remarkPlugins: [exampleRemarkPlugin],
+        }),
+      ],
+    });
+    ```
+
+现在，每个 Markdown 或 MDX 文件都会在其 frontmatter 中有 `customProperty`，使其在 [导入你的 markdown](#导入-markdown) 时以及从 [布局中的 `Astro.props.frontmatter` 属性](#frontmatter-layout) 中可用。
+
+<RecipeLinks slugs={["zh-cn/recipes/reading-time"]} />
+
+### 从 MDX 扩展 Markdown 配置
+
+Astro 的 MDX 集成默认情况下会扩展 [你的项目的现有 Markdown 配置](/zh-cn/reference/configuration-reference/#markdown-选项)。 要覆盖单个选项，你可以在 MDX 配置中指定它们的等效项。
+
+下面的示例禁用了 GitHub-Flavored Markdown，并为 MDX 文件应用了不同的 remark 插件集：
+
+```ts title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  markdown: {
+    syntaxHighlight: 'prism',
+    remarkPlugins: [remarkPlugin1],
+    gfm: true,
+  },
+  integrations: [
+    mdx({
+      // `syntaxHighlight` 继承自 Markdown
+      // Markdown `remarkPlugins` 被忽略
+      // 仅应用 `remarkPlugin2`
+      remarkPlugins: [remarkPlugin2],
+      // `gfm` 覆盖为 `false`
+      gfm: false,
+    })
+  ]
+});
+```
+
+要避免从 MDX 扩展你的 Markdown 配置，请将 [`extendMarkdownConfig` 选项](/zh-cn/guides/integrations-guide/mdx/#extendmarkdownconfig) (默认开启)设置为 `false`:
+
+```ts title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  markdown: {
+    remarkPlugins: [remarkPlugin],
+  },
+  integrations: [
+    mdx({
+      // Markdown 配置现在被忽略
+      extendMarkdownConfig: false,
+      // 没有 `remarkPlugins` 应用
+    })
+  ]
+});
+```
+
+### 语法高亮
+
+Astro 内置支持 [Shiki](https://shiki.matsu.io/) 和 [Prism](https://prismjs.com/)。 这为：
+
+- Markdown 或 MDX 文件中的所有代码块（\`\`\`）。
+- [内置的 `<Code />` 组件](/zh-cn/reference/api-reference/#code-) 中的内容（由 Shiki 提供支持）。
+- [`<Prism />` 组件](/zh-cn/reference/api-reference/#prism-) 中的内容（由 Prism 提供支持）。
+
+Shiki 默认启用，预配置为 `github-dark` 主题。 编译输出将限于内联 `style`，而不会包含任何冗余的 CSS 类、样式表或客户端 JS。
+
+#### Shiki 配置
+
+Shiki 是我们的默认语法高亮器。 你可以通过 `shikiConfig` 对象配置所有选项，如下所示：
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: {
+      // 选择 Shiki 内置的主题（或添加你自己的主题）
+      // https://github.com/shikijs/shiki/blob/main/docs/themes.md
+      theme: 'dracula',
+      // 添加自定义语言
+      // 注意：Shiki 内置了无数语言，包括 .astro！
+      // https://github.com/shikijs/shiki/blob/main/docs/languages.md
+      langs: [],
+      // 启用自动换行，以防止水平滚动
+      wrap: true,
+    },
+  },
+});
+```
+
+#### 添加你自己的主题
+
+你可以从本地文件导入自定义主题，而不是使用 Shiki 的预定义主题之一。
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import customTheme from './my-shiki-theme.json';
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: { theme: customTheme },
+  },
+});
+```
+
+我们还建议阅读 [Shiki 的主题文档](https://github.com/shikijs/shiki/blob/main/docs/themes.md#loading-theme)，以了解更多关于主题、深色模式切换或通过 CSS 变量进行样式设置的内容。
+
+#### 改变默认语法高亮模式
+
+如果你想要切换到 `'prism'` 作为默认值，或者完全禁用语法高亮，你可以使用 `markdown.syntaxHighlighting` 配置对象：
+
+```js title="astro.config.mjs" ins={6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  markdown: {
+    // 可以是 'shiki' (默认值)、'prism' 或 false 来禁用语法高亮
+    syntaxHighlight: 'prism',
+  },
+});
+```
+
+#### Prism 配置
+
+如果你选择使用 Prism，Astro 将应用 Prism 的 CSS 类。 请注意，**你需要自己的 CSS 样式表**，以使语法高亮显示出来！
+
+1. 从可用的 [Prism 主题](https://github.com/PrismJS/prism-themes) 中选择一个预制的样式表。
+2. 将此样式表添加到 [你的项目的 `public/` 目录](/zh-cn/core-concepts/project-structure/#public)。
+3. 通过 `<link>` 标签在 [布局组件](/zh-cn/core-concepts/layouts/) 中的页面的 `<head>` 中加载此样式表。 (参见 [Prism basic usage](https://prismjs.com/#basic-usage).)
+
+你还可以访问 [Prism 支持的语言列表](https://prismjs.com/#supported-languages) 以获取选项和用法。
+
+## 请求远程 Markdown
+
+Astro 主要设计用于可以保存在项目目录中的本地 Markdown 文件。 但是，在某些情况下，你可能需要从远程源获取 Markdown。 例如，你可能需要在构建网站时（或在使用 [SSR](/zh-cn/guides/server-side-rendering/) 时，用户向网站发出请求时）从远程 API 获取并呈现 Markdown。
+
+**Astro 不包含对远程 Markdown 的内置支持！** 要获取远程 Markdown 并将其呈现为 HTML，你需要从 npm 安装并配置自己的 Markdown 解析器。 这将**不会**从你配置的 Astro 的内置 Markdown 和 MDX 设置中继承。 在将其添加到你的项目之前，请确保你了解这些限制。
+
+```astro title="src/pages/remote-example.astro"
+---
+// 示例：从远程 API 请求 Markdown
+// 并且在运行时渲染为 HTML
+// 使用 "marked" (https://github.com/markedjs/marked)
+import { marked } from 'marked';
+const response = await fetch('https://raw.githubusercontent.com/wiki/adam-p/markdown-here/Markdown-Cheatsheet.md');
+const markdown = await response.text();
+const content = marked.parse(markdown);
+---
+<article set:html={content} />
+```

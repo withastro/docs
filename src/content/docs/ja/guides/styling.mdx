@@ -1,0 +1,617 @@
+---
+title: CSSとスタイル
+description: >-
+  スコープ付きスタイル、外部CSS、SassやPostCSSなどのツールを使って、Astroのコンポーネントをスタイリングする方法をご紹介します。
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+
+
+AstroはスタイリングやCSSの記述を簡単にするために設計されました。Astroコンポーネントの内部に直接CSSを記述したり、[Tailwind][tailwind]などのお気に入りのCSSライブラリをインポートできます。[Sass][sass]や[Less][less]などの高度なスタイリング言語もサポートされています。
+
+
+## Astroでのスタイリング
+
+Astroコンポーネントのスタイリングは、コンポーネントまたはページテンプレートに`<style>`タグを追加するだけで簡単です。Astroコンポーネント内に`<style>`タグを設置すると、AstroがCSSを検出し、スタイルを自動で処理します。
+
+```astro title="src/components/MyComponent.astro"
+<style>
+  h1 { color: red; }
+</style>
+```
+
+### スコープされたスタイル
+
+Astroの`<style>`CSSルールは、**デフォルトで自動的にスコープされます**。スコープされたスタイルは、その同じコンポーネントの内部に書かれたHTMLにのみ適用されるように内部でコンパイルされます。Astroコンポーネント内に記述したCSSは、自動的にそのコンポーネントの中にカプセル化されます。
+
+このCSSは、
+
+```astro title="index.astro"
+<style>
+  h1 { 
+    color: red; 
+  }
+  .text { 
+    color: blue; 
+  }
+</style>
+```
+
+このようにコンパイルします。
+
+```astro
+<style>
+  h1[data-astro-cid-hhnqfkh6] {
+    color: red;
+  }
+  .text[data-astro-cid-hhnqfkh6] {
+    color: blue;
+  }
+</style>
+```
+
+スコープされたスタイルはリークしないので、サイトの他の部分に影響を与えることはありません。Astroでは、`h1 {}`や`p {}`のようなユニークではないセレクタを使用しても問題ありません。なぜなら、最終的な出力ではスコープされてコンパイルされるからです。
+
+また、スコープされたスタイルは、テンプレート内に含まれる他のAstroコンポーネントには適用されません。子コンポーネントにスタイルを設定する必要がある場合、そのコンポーネントを`<div>`(または他の要素)でラップしてからスタイルを付与するか検討してください。
+
+スコープされたスタイルの詳細度は維持され、他のCSSファイルやCSSライブラリと一緒に一貫して動作でき、スタイルがコンポーネント外に適用されるのを防ぐ境界は維持されます。
+
+### グローバルスタイル
+
+ほとんどのコンポーネントではスコープされたスタイルを使うことをおすすめしますが、いずれはグローバルでスコープされていないCSSを書くまっとうな理由が見つかるかもしれません。この場合、`<style is:global>`属性を使って、CSSの自動的なスコープを無効にできます。
+
+```astro title="src/components/GlobalStyles.astro" "is:global"
+<style is:global>
+  /* スコープされず、ブラウザにそのまま配信されます。
+    サイト内のすべての<h1>タグに適用されます。*/
+  h1 { color: red; }
+</style>
+```
+
+また、`:global()`セレクタを使用すると、同じ`<style>`タグ内にグローバルなスタイルとスコープ付きのスタイルを混在させられます。これは、コンポーネントの子要素にスタイルを適用するための強力なパターンになります。
+
+```astro title="src/components/MixedStyles.astro" ":global(h1)"
+<style>
+  /* スコープされ、このコンポーネントに対してのみ適用される。 */
+  h1 { color: red; }
+  /* グローバルが混在、子要素の`h1`にのみ適用されます。*/
+  article :global(h1) {
+    color: blue;
+  }
+</style>
+<h1>Title</h1>
+<article><slot /></article>
+```
+
+これは、ブログの投稿や、CMSを使用したドキュメントなど、コンテンツがAstroの外にあるものをスタイルするのに最適な方法です。ただし、特定の親コンポーネントを持つかどうかで外観が異なるコンポーネントは、トラブルシューティングが困難になる可能性があるので注意が必要です。
+
+できるだけスコープされたスタイルを使用してください。グローバルなスタイルは、必要なときだけ使うべきです。
+
+### `class:list`によるクラスの結合
+
+要素上のクラスを動的に組み合わせる必要がある場合、`.astro`ファイルの`class:list`ユーティリティ属性を使用できます。
+
+```astro title="src/components/ClassList.astro" /class:list={.*}/
+---
+const { isRed } = Astro.props;
+---
+<!-- `isRed`がtrueであればclassは"box red"になる -->
+<!-- `isRed`がfalseの場合classは"box"になる -->
+<div class:list={['box', { red: isRed }]}><slot /></div>
+<style>
+  .box { border: 1px solid blue; }
+  .red { border-color: red; }
+</style>
+```
+
+📚 `class:list`の詳細については、[ディレクティブのリファレンス](/ja/reference/directives-reference/#classlist)ページを参照してください。
+
+
+### CSS変数
+
+<Since v="0.21.0" />
+
+Astroの`<style>`は、ページ上で利用可能なあらゆるCSS変数を参照できます。また、`define:vars`ディレクティブを使用して、コンポーネントのfrontmatterから直接CSS変数を渡せます。
+
+```astro title="src/components/DefineVars.astro" /define:vars={{.*}}/ /var\\(.*\\)/
+---
+const foregroundColor = "rgb(221 243 228)";
+const backgroundColor = "rgb(24 121 78)";
+---
+<style define:vars={{ foregroundColor, backgroundColor }}>
+  h1 {
+    background-color: var(--backgroundColor);
+    color: var(--foregroundColor);
+  }
+</style>
+<h1>こんにちは</h1>
+```
+
+📚 `define:vars`については、[ディレクティブのリファレンス](/ja/reference/directives-reference/#definevars)のページをご覧ください。
+
+
+### 子コンポーネントへの`class`の受け渡し
+
+Astroでは、`class`のようなHTML属性は子コンポーネントには自動で伝わりません。
+
+その代わり、子コンポーネントで`class`プロパティを受け取り、それをルート要素に適用します。`class`はJavaScriptの[予約語](https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Lexical_grammar#reserved_words)なので、分割代入を利用して名前を変更する必要があります。
+
+```astro title="src/components/MyComponent.astro" {2,4}
+---
+const { class: className } = Astro.props;
+---
+<div class={className}>
+  <slot/>
+</div>
+```
+
+```astro title="src/pages/index.astro"
+---
+import MyComponent from "../components/MyComponent.astro"
+---
+<style>
+  .red {
+    color: red;
+  }
+</style>
+<MyComponent class="red">This will be red!</MyComponent>
+```
+
+このパターンでは、子コンポーネントに直接スタイルを設定できます。Astroは、親のスコープ付きクラス名（例：`astro-hhnqfkh6`）を`class`プロパティを通して自動的に渡し、その子を親のスコープに含めます。
+
+:::note[親コンポーネントからスコープされたクラス]
+`class`プロパティは親のスコープに子を含むので、親から子へスタイルがカスケードされる可能性があります。このような意図しない副作用を避けるには、子コンポーネントでユニークなクラス名を使用するようにします。
+:::
+
+### インラインスタイル
+
+HTML要素は、`style`属性を使ってインラインでスタイルを設定できます。これは、CSS文字列またはCSSプロパティのオブジェクトで指定できます。
+
+```astro title="src/pages/index.astro"
+// これらは同じです
+<p style={{ color: "brown", textDecoration: "underline" }}>テキスト</p>
+<p style="color: brown; text-decoration: underline;">テキスト</p>
+```
+
+
+## 外部スタイル
+
+外部のグローバルなスタイルシートを参照する方法は2つあります。プロジェクトのソース内にあるファイルの場合はESMのインポート、`public/` ディレクトリにあるファイルやプロジェクトの外部でホストされているファイルの場合は絶対URLリンクになります。
+
+📚 詳しくは`public/`や`src/`にある[静的アセット](/ja/guides/imports/)の使い方をご覧ください。
+
+### ローカルスタイルシートのインポート
+
+:::caution[npmパッケージを使用する場合]
+npmパッケージからインポートする場合、`astro.config`を更新する必要があるかもしれません。以下の[スタイルシートをnpmパッケージからインポートする](#npmパッケージからスタイルシートをインポートする)をご覧ください。
+:::
+
+ESMのインポート構文を使用して、Astroコンポーネントのfrontmatterでスタイルシートをインポートできます。CSSのインポートは、[Astroコンポーネント内の他のESMのインポート](/ja/core-concepts/astro-components/#コンポーネントスクリプト)のように動作し、**コンポーネントからの相対パス**を、ほかのimportと同様にコンポーネントスクリプトの**先頭**に記述しなければなりません。
+
+```astro title="src/pages/index.astro" {4}
+---
+// AstroはこのCSSを自動的にバンドルし、最適化します。
+// これは.scssや.stylなどのプリプロセッサーのファイルにも有効です。
+import '../styles/utils.css';
+---
+<html><!-- ページの内容 --></html>
+```
+
+ESMによるCSSの`import`は、ReactやPreactのようなJSXコンポーネントを含む、あらゆるJavaScriptファイル内でサポートされています。 これは、Reactコンポーネントに対して、コンポーネント単位できめ細かいスタイルを記述するのに便利です。
+
+### npmパッケージからスタイルシートをインポートする 
+
+また、外部のnpmパッケージからスタイルシートを読み込む必要がある場合もあります。これは特に[Open Props](https://open-props.style/)のようなユーティリティでよくあることです。パッケージが**ファイル拡張子の使用を推奨**している場合(例:`package-name/styles`の代わりに `package-name/styles.css` )、これは他のローカルスタイルシートと同様に動作するはずです。
+
+```astro
+---
+// src/pages/random-page.astro
+import 'package-name/styles.css';
+---
+<html><!-- ページの内容 --></html>
+```
+
+パッケージが**ファイル拡張子の使用を推奨していない**場合(例: `package-name/styles`)は、まずAstroの設定を更新する必要があります！
+
+`package-name`から`normalize`という名前のCSSファイルをインポートしているとします(ファイル拡張子は省略されています)。ページを正しくプリレンダリングするために、`package-name`を[`vite.ssr.noExternal`配列](https://vitejs.dev/config/#ssr-noexternal)に追加してください。
+
+```js ins={7}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    ssr: {
+      noExternal: ['package-name'],
+    }
+  }
+})
+```
+
+:::note
+これは[Vite固有の設定](https://vitejs.dev/config/#ssr-noexternal)であり、[Astro SSR](/ja/guides/server-side-rendering/)とは関係がありません。
+:::
+
+これで、`package-name/normalize`を自由にインポートできるようになりました。これは、他のローカルスタイルシートと同様に、Astroによってバンドルされ、最適化されます。
+
+```astro {3}
+---
+// src/pages/random-page.astro
+import 'package-name/normalize';
+---
+<html><!-- ページに内容 --></html>
+```
+
+### "link"タグで静的スタイルシートを読み込む
+
+また、`<link>`要素を使用して、ページにスタイルシートを読み込めます。これは、`/public`ディレクトリにあるCSSファイルへの絶対URLパスか、外部のウェブサイトへのURLである必要があります。`<link>`のhref値を相対パスで指定することはサポートされていません。
+
+```astro title="src/pages/index.astro" {3,5}
+<head>
+  <!--  ローカル: /public/styles/global.css -->
+  <link rel="stylesheet" href="/styles/global.css" />
+  <!-- 外部  -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.24.1/themes/prism-tomorrow.css">
+</head>
+```
+
+この方法では`public/`ディレクトリを使用するため、Astro が提供する通常のCSS処理、バンドル、最適化はスキップされます。これらの変換が必要な場合は、上記の[ローカルスタイルシートのインポート](#ローカルスタイルシートのインポート)の方法を使用してください。
+
+## カスケード順序
+
+Astroのコンポーネントは、複数のCSSのソースを評価しなければならないことがあります。たとえば、コンポーネントはCSSスタイルシートをインポートし、それ自身の`<style>`タグを含み、CSSをインポートするレイアウトの中でレンダリングされるかもしれません。
+
+同じ要素に相反するCSSルールが適用される場合、ブラウザはまず詳細度、次に出現順のルールにしたがって、どちらの値を使って表示するか決定します。
+
+あるルールが他のルールよりも詳細度が高い場合、CSSルールがどこに書かれていても、その値が優先されます。
+
+```astro title="MyComponent.astro"
+<style>
+  h1 { color: red }
+  div > h1 {
+    color: purple
+  }
+</style>
+<div>
+  <h1>
+    このヘッダーは紫（purple）になります！
+  </h1>
+</div>
+```
+
+2つのルールが同じ詳細度を持つ場合、出現順序が評価され、最後のルールの値が優先されます。
+
+```astro title="MyComponent.astro"
+<style>
+  h1 { color: purple }
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    このヘッダーは赤（red）になります！
+  </h1>
+</div>
+```
+
+Astro CSSのルールは、つぎの出現順で評価されます。
+
+- **head内の`<link>`タグ** (最も低い優先順位)
+- **インポートされたスタイル**
+- **scoped styles** (最優先)
+
+### スコープされたスタイル
+
+[スコープされたスタイル](#スコープされたスタイル)を使用しても、CSSの詳細度が高まるわけではありませんが、常に登場順が最後になります。したがって、同じ比重の他のスタイルよりも優先されます。たとえば、スコープされたスタイルと競合するスタイルシートをインポートした場合、スコープされたスタイルの値が適用されます。
+
+```css title="make-it-purple.css"
+h1 {
+  color: purple;
+}
+```
+
+```astro title="MyComponent.astro"
+---
+import "./make-it-purple.css"
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    このヘッダーは赤（red）になります！
+  </h1>
+</div>
+```
+
+インポートされたスタイルの詳細度をあげると、スコープされたスタイルより優先されます。
+
+```css title="make-it-purple.css"
+div > h1 {
+  color: purple;
+}
+```
+
+```astro title="MyComponent.astro"
+---
+import "./make-it-purple.css"
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    このヘッダーは紫（purple）になります！
+  </h1>
+</div>
+```
+
+### インポート順序
+
+Astroコンポーネントで複数のスタイルシートをインポートする場合、CSSルールはインポートされた順番に評価されます。CSSがいつ評価されるかにかかわらず、より高い詳細度によって、表示するスタイルが常に決定されます。しかし、競合するスタイルが同じ比重を持つ場合、最後にインポートされたものが優先されます。
+
+```css title="make-it-purple.css"
+div > h1 {
+  color: purple;
+}
+```
+```css title="make-it-green.css"
+div > h1 {
+  color: green;
+}
+```
+```astro title="MyComponent.astro"
+---
+import "./make-it-green.css"
+import "./make-it-purple.css"
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    このヘッダーは紫（purple）になります！
+  </h1>
+</div>
+```
+
+`<style>`タグはスコープされ、それを宣言したコンポーネントにのみ適用されますが、インポートしたCSSは「リークする」ことがあります。コンポーネントをインポートすると、そのコンポーネントが使用されない場合でも、インポートしたCSSがすべて適用されます。
+
+```astro title="PurpleComponent.astro"
+---
+import "./make-it-purple.css"
+---
+<div>
+  <h1>紫のCSSをインポートする</h1>
+</div>
+```
+
+```astro title="MyComponent.astro"
+---
+import "./make-it-green.css"
+import PurpleComponent from "./PurpleComponent.astro";
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    このヘッダーは紫（purple）になります！
+  </h1>
+</div>
+```
+
+:::tip
+Astroでよくあるパターンは、[Layoutコンポーネント](/ja/core-concepts/layouts/)の中にグローバルCSSをインポートすることです。Layoutコンポーネントは必ず他のインポートより先にインポートして、優先順位を一番低くしてください。
+:::
+
+### `link`タグ
+
+[linkタグ](#linkタグで静的スタイルシートを読み込む)で読み込まれたスタイルシートは、Astroファイル内の他のどのスタイルよりも先に、順番に評価されます。したがって、これらのスタイルは、インポートされたスタイルシートやスコープされたスタイルよりも優先順位が低くなります。
+
+```astro title="index.astro"
+---
+import "../components/make-it-purple.css"
+---
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Astro</title>
+		<link rel="stylesheet" href="/styles/make-it-blue.css" />
+	</head>
+	<body>
+		<div>
+			<h1>これは紫（purple）になります</h1>
+		</div>
+	</body>
+</html>
+```
+
+## CSSインテグレーション
+
+Astroには、[Tailwind](https://tailwindcss.com)など、人気のCSSライブラリやツール、フレームワークをプロジェクトに追加するための仕組みがあります！
+
+### Tailwind
+
+プロジェクトでTailwindを使用するには、公式の[Astro Tailwindインテグレーション][tailwind]を、パッケージマネージャーの`astro add`コマンドを使ってインストールします。
+
+```sh
+# NPMを使う
+npx astro add tailwind
+# Yarnを使う
+yarn astro add tailwind
+# PNPMを使う
+pnpm astro add tailwind
+```
+
+📚 Astroインテグレーションのインストール、インポート、設定の手順については、[インテグレーションガイド](/ja/guides/integrations-guide/)を参照してください。
+
+## CSSプリプロセッサ
+
+Astroは、[Vite][vite-preprocessors]を通じて、[Sass][sass]、[Stylus][stylus]、[Less][less]といったCSSプリプロセッサをサポートしています。
+
+### SassとSCSS
+
+ ```shell
+ npm install sass
+ ```
+
+`.astro`ファイルで`<style lang="scss">`または`<style lang="sass">`を使用します。
+
+### Stylus
+
+ ```shell
+npm install stylus
+```
+`.astro`ファイルで`<style lang="styl">`または`<style lang="stylus">`を使用します。
+
+### Less
+
+ ```shell
+npm install less
+```
+`.astro`ファイルで`<style lang="less">`を使用します。
+
+### フレームワークコンポーネントにおいて
+
+上記のCSSプリプロセッサは、JSフレームワークの中でも使用できます。ただし、各フレームワークが推奨するパターンに従ってください。
+
+- **React** / **Preact**: `import Styles from './styles.module.scss'`;
+- **Vue**: `<style lang="scss">`
+- **Svelte**: `<style lang="scss">`
+
+## PostCSS
+
+Astroには、[Vite](https://vitejs.dev/guide/features.html#postcss)の一部としてPostCSSが同梱されています。プロジェクトにPostCSSを設定するには、プロジェクトルートに`postcss.config.cjs`ファイルを作成します。プラグインは`require()`を使ってインポートできます。
+
+```js title="postcss.config.cjs" ins={3-4}
+module.exports = {
+  plugins: [
+    require('postcss-preset-env'),
+    require('autoprefixer'),
+  ],
+};
+```
+
+
+## フレームワークとライブラリ
+
+### 📘 React / Preact
+
+`.jsx`ファイルはグローバルCSSとCSS Modulesの両方をサポートしています。後者を有効にするには、`.module.css`拡張子を使用します。(Sassを使用している場合は`.module.scss`/`.module.sass`)。
+
+```js
+import './global.css'; // グローバルCSSを読み込む
+import Styles from './styles.module.css'; // CSS Modulesを使う (`.module.css`, `.module.scss`, または`.module.sass`にしなければなりません！)
+```
+
+### 📗 Vue
+
+Astro内のVueは、`vue-loader`と同じメソッドをサポートしています。
+
+- [vue-loader - Scoped CSS][vue-scoped]
+- [vue-loader - CSS Modules][vue-css-modules]
+
+### 📕 Svelte
+
+Astro内のSvelteも期待通りに動作します。[Svelte Styling Docs][svelte-style]
+
+
+## Markdownのスタイル
+
+Astroのスタイル方法は、[Markdownレイアウトコンポーネント](/ja/core-concepts/layouts/#markdownとmdxのレイアウト)で利用可能です。
+
+ページコンテンツを包むレイアウトに[`<style>`タグ](/ja/guides/styling/#グローバルスタイル)と[インポートしたスタイルシート](/ja/guides/styling/#外部スタイル)を追加することで、Markdownコンテンツにグローバルスタイルを適用できます。また、[Tailwind](/ja/guides/integrations-guide/tailwind/)を含む[CSSのインテグレーション](/ja/guides/styling/#cssインテグレーション)を追加もできます。
+
+Tailwindを使用している場合、Markdownのスタイリングには[typographyプラグイン](https://tailwindcss.com/docs/typography-plugin)が便利です。
+
+## 本番環境
+
+### バンドルの調整
+
+Astroが本番環境向けにサイトをビルドする際、CSSはミニファイされチャンクへと結合されます。サイト上の各ページはそれぞれ独自のチャンクを取得し、さらに複数のページ間で共有されるCSSは、再利用のために独自のチャンクに分割されます。
+
+しかし、複数のページでスタイルを共有している場合、共有される一部のチャンクが非常に小さくなる場合があります。それらがすべて別々に送信された場合、スタイルシートへのリクエストが増加し、サイトのパフォーマンスに影響を与える可能性があります。そのため、Astroはデフォルトでは、HTML内の4kB以上のスタイルシートのみを`<link rel="stylesheet">`タグとしてリンクし、それ以外のものは`<style type="text/css">`にインライン化します。このアプローチにより、追加のリクエストの数と、ページ間でキャッシュされるCSSの量のあいだのバランスをとることができます。
+
+Viteの`assetsInlineLimit`ビルドオプションを使用して、スタイルシートが外部にリンクされるサイズをバイト単位で設定できます。このオプションは、スクリプトと画像のインライン化にも影響することに注意してください。
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    build: {
+      assetsInlineLimit: 1024,
+    }
+  };
+});
+```
+
+すべてのスタイルシートを外部リンクとしたい場合は、`inlineStylesheets`ビルドオプションを設定します。
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  build: {
+    inlineStylesheets: 'never'
+  }
+});
+```
+
+このオプションを`'always'`に設定すると、すべてのスタイルシートがインライン化されます。
+
+## アドバンスド
+
+:::caution
+Astroの組み込みCSSバンドル機能をバイパスする場合は注意が必要です！スタイルはビルド後のアウトプットに自動的には含まれません。参照されたファイルが最終的なページ出力に、ちゃんと含まれることを確認しましょう。
+:::
+
+### `?raw` CSSインポート
+
+高度なユースケースでは、Astroによってバンドルまたは最適化されることなく、CSSを`src`ディレクトリ内から直接読み込めます。これは、CSSのスニペットを完全に制御する必要がある場合や、Astroの自動CSS処理をバイパスする必要がある場合に便利です。
+
+これはほとんどユーザーにおすすめされません。
+
+```astro
+---
+// 高度な例！ ほとんどのユーザーにおすすめされません。
+import rawStylesCSS from '../styles/main.css?raw';
+---
+<style is:inline set:html={rawStylesCSS}></style>
+```
+
+詳しくは[Viteのドキュメント](https://vitejs.dev/guide/assets.html#importing-asset-as-url)をご覧ください。
+
+### `?url` CSSインポート
+
+高度な使い方をする場合、プロジェクトの`src/`ディレクトリ内にあるCSSファイルを直接のURL参照でインポートできます。これは、CSSファイルがどのようにページに読み込まれるかを完全に制御する必要がある場合に便利です。しかし、この場合、そのCSSファイルをページの残りのCSSと一緒に最適化することはできません。
+
+これはほとんどのユーザーにはおすすめできません。代わりに、CSSファイルを`public/`内に配置し、一貫したURLの参照を得られるようにしましょう。
+
+:::caution
+`?url`を指定して小さいCSSファイルをインポートすると、Base64でエンコードされたCSSファイルの内容がデータURLとして返されることがありますが、これは最終的なビルドのときだけです。エンコードされたデータURL(`data:text/css;base64,...`)をサポートするようにコードを書くか、この機能を無効にするために[`vite.build.assetsInlineLimit`](https://vitejs.dev/config/#build-assetsinlinelimit)設定オプションを `0`にセットする必要があります。
+:::
+
+```astro
+---
+// 高度な例！ ほとんどのユーザーにおすすめされません。
+import stylesUrl from '../styles/main.css?url';
+---
+<link rel="preload" href={stylesUrl} as="style">
+<link rel="stylesheet" href={stylesUrl}>
+```
+
+詳しくは[Viteのドキュメント](https://vitejs.dev/guide/assets.html#importing-asset-as-url)をご覧ください。
+
+
+[less]: https://lesscss.org/
+[sass]: https://sass-lang.com/
+[stylus]: https://stylus-lang.com/
+[svelte-style]: https://svelte.dev/docs#component-format-style
+[tailwind]: /ja/guides/integrations-guide/tailwind/
+[vite-preprocessors]: https://vitejs.dev/guide/features.html#css-pre-processors
+[vue-css-modules]: https://vue-loader.vuejs.org/guide/css-modules.html
+[vue-scoped]: https://vue-loader.vuejs.org/guide/scoped-css.html

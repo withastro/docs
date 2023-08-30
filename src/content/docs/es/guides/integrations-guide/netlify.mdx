@@ -1,0 +1,279 @@
+---
+type: integration
+title: '@astrojs/netlify'
+description: Aprende como usar el adaptador SSR @astrojs/netlify para desplegar tu proyecto Astro.
+githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/netlify/'
+hasREADME: true
+category: adapter
+i18nReady: true
+---
+
+import Video from '~/components/Video.astro';
+
+
+Este adaptador permite a Astro desplegar tu sitio SSR en [Netlify](https://www.netlify.com/).
+
+Aprende como desplegar tu sitio Astro en nuestra [guía de despliegue en Netlify](/es/guides/deploy/netlify/).
+
+## ¿Por qué Astro Netlify?
+
+Si estás usando Astro como un generador de sitios estáticos—su comportamiento es fuera de serie—no necesitas un adaptador.
+
+Si deseas [usar renderizado del lado del servidor (SSR)](/es/guides/server-side-rendering/), Astro requiere un adaptador que coincida con tu entorno de despliegue.
+
+[Netlify](https://www.netlify.com/) es una plataforma de despliegue que te permite alojar tu sitio conectándolo directamente a tu repositorio de GitHub. Este adaptador mejora el proceso de construcción de Astro para preparar tu proyecto para el despliegue a través de Netlify.
+
+## Instalación
+
+Agrega el adaptador de Netlify para habilitar SSR en tu proyecto de Astro con el comando `astro add`. Esto instalará el adaptador y hará los cambios apropiados en tu archivo `astro.config.mjs` en un solo paso.
+
+```sh
+# Usando NPM
+npx astro add netlify
+# Usando Yarn
+yarn astro add netlify
+# Usando PNPM
+pnpm astro add netlify
+```
+
+### Añadir dependencias manualmente
+
+Si prefieres instalar el adaptador manualmente, completa los siguientes dos pasos:
+
+1.  Instala el adaptador de Netlify en las dependencias de tu proyecto usando tu gestor de paquetes preferido. Si estás usando npm o no estás seguro, ejecuta esto en la terminal:
+
+    ```bash
+      npm install @astrojs/netlify
+    ```
+
+2.  Agrega dos nuevas líneas a tu archivo de configuración `astro.config.mjs`:
+
+    ```js ins={3, 6-7}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import netlify from '@astrojs/netlify/functions';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: netlify(),
+    });
+    ```
+
+### Ejecutar middleware en Funciones Edge
+
+Al desplegar en Netlify Functions, puedes elegir utilizar una Función Edge para ejecutar tu middleware Astro.
+
+Para activarlo, establece la opción de configuración `edgeMiddleware` en `true`:
+
+```js ins={9}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify/functions';
+
+export default defineConfig({
+  output: 'server',
+  adapter: netlify({
+    edgeMiddleware: true,
+  }),
+});
+```
+
+#### Pasa edge context a tu sitio
+
+Las Funciones Netlify Edge proporcionan un [objeto de contexto](https://docs.netlify.com/edge-functions/api/#netlify-specific-context-object) que incluye metadatos sobre la solicitud, como la IP del usuario, datos de geolocalización y cookies.
+
+Para exponer valores de este contexto a tu sitio, crea un archivo `netlify-edge-middleware.ts` (o `.js`) en el [directorio fuente](/es/reference/configuration-reference/#srcdir) de tu proyecto. Este archivo debe exportar una función que devuelva los datos a añadir al [objeto `locals` de Astro](/es/guides/middleware/#locals), que está disponible en las rutas middleware y Astro.
+
+En este ejemplo, `visitorCountry` y `hasEdgeMiddleware` se añadirían al objeto `locals` de Astro:
+
+```ts
+// src/netlify-edge-middleware.ts
+import type { Context } from 'https://edge.netlify.com';
+
+export default function ({ request, context }: { request: Request; context: Context }) {
+  // Devuelve datos serializables para añadir a Astro.locals
+  return {
+    visitorCountry: context.geo.country.name,
+    hasEdgeMiddleware: true,
+  };
+}
+```
+
+:::note
+Las Funciones Netlify Edge se ejecutan en [un entorno Deno](https://docs.netlify.com/edge-functions/api/#runtime-environment), por lo que las declaraciones de importación en este archivo deben utilizar la sintaxis URL de Deno.
+:::
+
+`netlify-edge-middleware.ts` debe proporcionar una función como su exportación por defecto. Esta función:
+
+*   debe devolver un objeto serializable JSON, que no puede incluir tipos como `Map`, `function`, `Set`, etc.
+*   siempre se ejecutará primero, antes que cualquier otro middleware y rutas.
+*   no puede devolver una respuesta o redirigir.
+
+### Funciones por página
+
+El adaptador de Netlify se construye en una sola función de forma predeterminada. Astro 2.7 añadió soporte para dividir tu construcción en puntos de entrada separados por página. Si utilizas esta configuración, el adaptador de Netlify generará una función separada para cada página. Esto puede ayudar a reducir el tamaño de cada función para que sólo se empaquete el código utilizado en esa página.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify/functions';
+
+export default defineConfig({
+  output: 'server',
+  adapter: netlify({
+    functionPerRoute: true,
+  }),
+});
+```
+
+### Sitios estáticos
+
+Para sitios estáticos, generalmente no necesitas un adaptador. Sin embargo, si utilizas la configuración de `redirects` en tu archivo de configuración de Astro, puedes utilizar el adaptador de Netlify para traducirlo al formato adecuado de `_redirects`.
+
+```js
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify/static';
+export default defineConfig({
+  adapter: netlify(),
+  redirects: {
+    '/blog/old-post': '/blog/new-post',
+  }
+});
+```
+
+Una vez que ejecutes `astro build`, se generará un archivo `dist/_redirects`. Netlify utilizará ese archivo para enrutamiento adecuado de las páginas en producción.
+
+:::note
+Todavía puedes incluir un archivo `public/_redirects` para redirecciones manuales. Cualquier redirección que especifiques en la configuración de redirecciones se añadirá al final de las redirecciones que hayas definido tú mismo.
+:::
+
+### Constructores bajo demanda
+
+[Los constructores bajo demanda de Netlify](https://docs.netlify.com/configure-builds/on-demand-builders/) son funciones serverless usadas para generar contenido web según sea necesario que se almacena automáticamente en el CDN de Netlify. Puedes habilitar estas funciones usando la [configuración de `builders`](#builders).
+
+Por defecto, todas las páginas se renderizarán en la primera visita y el resultado renderizado se reutilizará para cada visita posterior hasta que vuelvas a desplegar. Para establecer un tiempo de revalidación, llama al [`runtime.setBuildersTtl(ttl)` local](/es/guides/middleware/#locals) con la duración (en segundos).
+
+El siguiente ejemplo establece un tiempo de revalidación de 45, lo que hace que Netlify almacene el HTML renderizado durante 45 segundos.
+
+```astro
+---
+import Layout from '../components/Layout.astro';
+if (import.meta.env.PROD) {
+  Astro.locals.runtime.setBuildersTtl(45);
+}
+---
+<Layout title="Astro en Netlify">
+  {new Date(Date.now())}
+</Layout>
+```
+
+Es importante tener en cuenta que los constructores bajo demanda ignoran los parámetros de consulta al comprobar las páginas en caché. Por ejemplo, si `example.com/?x=y` está en caché, se servirá para `example.com/?a=b` (parámetros de consulta diferentes) y `example.com/` (sin parámetros de consulta).
+
+## Uso
+
+[Lee la guía completa de despliegue aquí.](/es/guides/deploy/netlify/)
+
+Después de [realizar una construcción](/es/guides/deploy/#construyendo-tu-proyecto-localmente) la carpeta `netlify/` contendrá [Funciones Netlify](https://docs.netlify.com/functions/overview/) en la carpeta `netlify/functions/`.
+
+Ahora puedes desplegar. Instala la [CLI de Netlify](https://docs.netlify.com/cli/get-started/) y ejecuta:
+
+```sh
+netlify deploy --build
+```
+
+La [publicación del blog de Netlify sobre Astro](https://www.netlify.com/blog/how-to-deploy-astro/) y la [documentación de Netlify](https://docs.netlify.com/integrations/frameworks/astro/) proporcionan más información sobre cómo usar esta integración para desplegar en Netlify.
+
+## Configuración
+
+Para configurar este adaptador, pasa un objeto a la llamada de función `netlify()` en `astro.config.mjs` - solo hay una opción de configuración posible:
+
+### dist
+
+Construimos el directorio `dist` en la raíz de tu proyecto. Para cambiar esto, usa la opción `dist`:
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify/functions';
+
+export default defineConfig({
+  output: 'server',
+  adapter: netlify({
+    dist: new URL('./dist/', import.meta.url),
+  }),
+});
+```
+
+Y luego apunta a la carpeta dist en tu `netlify.toml`:
+
+```toml title="netlify.toml"
+[functions]
+directory = "dist/functions"
+```
+
+### builders
+
+[Los constructores bajo demanda de Netlify](https://docs.netlify.com/configure-builds/on-demand-builders/) son funciones serverless usadas para construir y cachear el contenido de la página en el CDN de Netlify. Puedes habilitar estas funciones con la opción `builders`:
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify/functions';
+
+export default defineConfig({
+  output: 'server',
+  adapter: netlify({
+    builders: true,
+  }),
+});
+```
+
+Los constructores bajo demanda solo están disponibles con el adaptador `@astrojs/netlify/functions` y no son compatibles con las Funciones Edge.
+
+### binaryMediaTypes
+
+> Esta opción solo es necesaria para el adaptador de Funciones y no es necesaria para las Funciones Edge.
+
+Las Funciones de Netlify requieren que los datos binarios en el `body` estén codificados en base64. El adaptador `@astrojs/netlify/functions` maneja esto automáticamente en función de la cabecera `Content-Type`.
+
+Verificamos los tipos mime comunes para archivos de audio, imagen y video. Para incluir tipos mime específicos que deben tratarse como datos binarios, incluye la opción `binaryMediaTypes` con una lista de tipos mime binarios.
+
+```js {12}
+// src/pages/image.jpg.ts
+
+import fs from 'node:fs';
+
+export function GET() {
+  const buffer = fs.readFileSync('../image.jpg');
+
+  // Regresa el buffer directamente, @astrojs/netlify codificará en base64 el cuerpo
+  return new Response(buffer, {
+    status: 200,
+    headers: {
+      'content-type': 'image/jpeg',
+    },
+  });
+}
+```
+
+## Ejemplos
+
+*   La [plantilla de inicio de Astro Netlify Edge](https://github.com/sarahetter/astro-netlify-edge-starter) proporciona un ejemplo y una guía en el archivo README.
+
+*   ¡[Explora proyectos de Astro Netlify en GitHub](https://github.com/search?q=path%3A**%2Fastro.config.mjs+%40astrojs%2Fnetlify\&type=code) para más ejemplos!
+
+## Solución de problemas
+
+Para obtener ayuda, revisa el canal `#support` en [Discord](https://astro.build/chat). ¡Nuestros amigables miembros del Escuadrón de Soporte están aquí para ayudarte!
+
+Puedes revisar nuestra [Documentación de Integración de Astro][astro-integration] para más información sobre integraciones.
+
+## Contribuyendo
+
+Este paquete es mantenido por el equipo central de Astro. ¡Estás invitado a enviar un problema o PR!
+
+## Changelog
+
+Consulta el [CHANGELOG.md](https://github.com/withastro/astro/tree/main/packages/integrations/netlify/CHANGELOG.md) para un historial de cambios en esta integración.
+
+[astro-integration]: /es/guides/integrations-guide/

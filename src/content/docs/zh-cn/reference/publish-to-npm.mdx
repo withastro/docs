@@ -1,0 +1,287 @@
+---
+title: 发布到 NPM
+description: 学习如何将 Astro 组件发布到 NPM
+---
+import FileTree from '~/components/FileTree.astro'
+
+创建了一个新的 Astro 组件？**发布到 [npm](https://npmjs.com/)**！
+
+发布 Astro 组件是个很好跨项目复用现有内容，并最大程度与 Astro 社群分享的方式。Astro 组件可以直接发布到 NPM 以及从中安装，和其他 JavaScript 包一样。
+
+正在寻找灵感？不妨看看一些受人喜欢的[主题](https://astro.build/themes/)和[组件](https://astro.build/integrations/)。你也可以[在 npm 中搜索](https://www.npmjs.com/search?q=keywords:astro-component)查看所有公开分类。
+
+:::tip[不想独自出发？]
+查看社群驱动、开箱即用的 [Astro 社区组件模板](https://github.com/astro-community/component-template)。
+:::
+
+## 快速开始
+
+你可以使用已经配置好的模板快速开始开发你的组件。
+
+```bash
+# 在新目录下初始化 Astro 组件模板
+npm create astro@latest my-new-component-directory -- --template component
+# yarn
+yarn create astro my-new-component-directory --template component
+# pnpm
+pnpm create astro@latest my-new-component-directory -- --template component
+```
+
+## 创建模块
+
+:::note[必要条件]
+在开始前，请先对以下内容有最基本的了解:
+
+- [Node 模块](https://docs.npmjs.com/creating-node-js-modules)
+- [模块 Manifest (`package.json`)](https://docs.npmjs.com/creating-a-package-json-file)
+- [工作区](https://docs.npmjs.com/cli/v7/configuring-npm/package-json#workspaces)
+:::
+
+请使用**工作区**来配置你的新模块开发环境。它使得你可以无需再复制 Astro 即可开发组件。
+
+<FileTree>
+- my-new-component-directory/
+  - demo/
+    - ... 测试和文档
+  - package.json
+  - packages/
+    - my-component/
+      - index.js
+      - package.json
+      - ... 其他模块所使用的文件
+</FileTree>
+
+在这个名叫 `my-project` 的示例中创建名为 `my-component` 的单一模块以及一个用于测试并展示组件的 `demo/` 目录。
+
+在你的项目根目录下的 `package.json` 配置以下内容：
+
+```json
+{
+  "name": "my-project",
+  "workspaces": ["demo", "packages/*"]
+}
+```
+
+在这个示例中，`packages` 目录下同时开发着多个模块。也可以在你安装 Astro 进行测试的 `demo` 目录中引用这些模块。
+
+```shell
+npm create astro@latest demo -- --template minimal
+# yarn
+yarn create astro my-new-component-directory --template minimal
+# pnpm
+pnpm create astro@latest my-new-component-directory -- --template minimal
+```
+
+这两个初始文件构成了你的个人模块：`package.json` 和 `index.js`。
+
+### `package.json`
+
+模块目录下的 `package.json` 包括了所有与你的模块相关的信息，如它的描述、依赖和其他模块的元数据。
+
+```json
+{
+  "name": "my-component",
+  "description": "Component description",
+  "version": "1.0.0",
+  "homepage": "https://github.com/owner/project#readme",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./astro": "./MyAstroComponent.astro",
+    "./react": "./MyReactComponent.jsx"
+  },
+  "files": ["index.js", "MyAstroComponent.astro", "MyReactComponent.jsx"],
+  "keywords": ["astro","astro-component", "...", "..."]
+}
+```
+
+#### `description`
+
+一个帮助其他人了解模块用途的简要描述。
+
+
+```json
+{
+  "description": "An Astro Element Generator"
+}
+```
+
+#### `type`
+
+Node.js 和 Astro 用来解析 `index.js` 文件所用模块格式。
+
+```json
+{
+  "type": "module"
+}
+```
+
+使用 `"type": "module"` 以便你的 `index.js` 可以用作 `import` 和 `export` 的入口。
+
+#### `homepage`
+
+项目主页链接。
+
+```json
+{
+  "homepage": "https://github.com/owner/project#readme"
+}
+```
+
+它可以很好地将用户引向项目的在线示例、文档或是主页。
+
+#### `exports`
+
+当使用模块名称导入时的入口文件。
+
+```json
+{
+  "exports": {
+    ".": "./index.js",
+    "./astro": "./MyAstroComponent.astro",
+    "./react": "./MyReactComponent.jsx"
+  }
+}
+```
+
+在这个示例中，导入 `my-component` 会使用 `index.js`。而当导入 `my-component/astro` 或 `my-component/react` 则会分别使用 `MyAstroComponent.astro` 和 `MyReactComponent.jsx`。
+
+#### `files`
+
+一个可选的优化项，它可以在通过分发给 npm 运给用户的模块中排除不必要的文件。请注意，**只有在此列出的文件才会打包到在你的模块中**，所以如果你增加或改变了模块运行所需的文件，你必须相应地更新这个列表。
+
+```json
+{
+  "files": ["index.js", "MyAstroComponent.astro", "MyReactComponent.jsx"]
+}
+```
+
+#### `keywords`
+
+一些与组件相关的关键词，用来帮助别人[在 npm 上](https://www.npmjs.com/search?q=keywords:astro-component,withastro)和任何其他检索目录上找到你的组件。
+
+添加特殊关键词 `astro-component` 或 `withastro`，以最大限度地提高它在 Astro 生态系统中的可发现性。
+
+```json
+{
+  "keywords": ["astro-component", "withastro", "... etc", "... etc"]
+}
+```
+
+:::tip
+关键词也会在 [集成库](https://astro.build/integrations/) 中使用！[查看关于所有我们使用的关键词](#集成库)
+:::
+
+---
+
+### `index.js`
+
+每当你使用包时的主要**入口函数**
+
+```js
+export { default as MyAstroComponent } from './MyAstroComponent.astro';
+
+export { default as MyReactComponent } from './MyReactComponent.jsx';
+```
+
+这使得你可以将多个组件打包到一个接口中。
+
+#### 示例：使用命名导入
+
+```astro
+---
+import { MyAstroComponent } from 'my-component';
+import { MyReactComponent } from 'my-component';
+---
+<MyAstroComponent />
+<MyReactComponent />
+```
+
+#### 示例：使用命名空间导入
+
+```astro
+---
+import * as Example from 'example-astro-component';
+---
+<Example.MyAstroComponent />
+<Example.MyReactComponent />
+```
+
+#### 示例：使用独立导入
+
+```astro
+---
+import MyAstroComponent from 'example-astro-component/astro';
+import MyReactComponent from 'example-astro-component/react';
+---
+<MyAstroComponent />
+<MyReactComponent />
+```
+
+---
+
+## 开发模块
+
+Astro 没有专门针对开发的模块模式。作为替代的是，你可以在项目中使用示例项目来开发和测试模块。它可以是一个用于开发的私有站点或是一个公开的示例/文档站点。
+
+如果你是从一个现有的项目中提取出的组件，你甚至可以继续使用该项目来开发提取出的组件。
+
+## 测试组件
+
+目前 Astro 并未提供测试运行器。**（如果你有兴趣帮忙，[欢迎加入我们的 Discord！](https://astro.build/chat)）**。
+
+同时，我们目前对测试的建议有：
+
+1. 在 `demo/src/pages` 目录下添加用于测试的 `fixtures` 目录。
+2. 为你想运行的每个测试添加一个新的页面。
+3. 每个页面应该包括组件需要测试的不同用法。
+4. 运行 `astro build` 进行构建，然后比较 `dist/__fixtures__/` 目录的输出与预期间的差异。
+
+<FileTree>
+- my-project/demo/src/pages/\_\_fixtures\_\_/
+  - test-name-01.astro
+  - test-name-02.astro
+  - test-name-03.astro
+</FileTree>
+
+## 发布组件
+
+当模块准备就绪后，你可以使用 `npm publish` 命令将其发布到 npm。如果发布失败，请确保你已经使用 `npm login` 登录了 npm 账号 ，并 `package.json` 文件没有问题。如果发布成功，那就好了！
+
+注意 Astro 模块没有 `build` 步骤。Astro 本身支持的任何类型文件（例如 `.astro`、`.ts`、`.jsx` 和 `.css`）都可以直接发布，无需构建步骤。
+
+如果你需要使用 Astro 本身不支持的文件类型，请在模块中增加一个构建步骤。
+
+## 集成库
+
+欢迎通过[集成库](https://astro.build/integrations/)分享你的辛勤工作。
+
+### `package.json` 数据
+
+该库每晚自动更新，拉入每一个使用 `astro-component` 或者 `withastro` 关键字发布到 NPM 的模块。
+
+它会从模块的 `package.json` 文件中读取 `name`、`description`、`repository` 和 `homepage` 数据。
+
+添加头像是凸显品牌的好方法。在你的的模块发布后，你可以[在 GitHub 提交一个 issue](https://github.com/withastro/astro.build/issues/new/choose)并附上你的头像，我们会把它添加到列表中。
+
+:::tip
+需要覆盖从 NPM 读取的信息？没问题! [提交带有更新后信息的 issue](https://github.com/withastro/astro.build/issues/new/choose)。我们将使用自定义信息替代 `name`、`description` 或 `homepage`。
+:::
+
+### 集合
+
+除了必要的 `astro-component` 或 `withastro` 关键词外，我们也会使用特殊的关键词将模块进行分类。包括以下任一关键词都会将你的集成添加到相应的集合中。
+
+| 集合         | 关键词                                    |
+|------------ | ---------------------------------------- |
+| 无障碍辅助功能| `a11y`, `accessibility`                       |
+| 适配器      | `astro-adapter`                               |
+| 统计        | `analytics`                                   |
+| CSS + UI   | `css`, `ui`, `icon`, `icons`, `renderer`      |
+| 框架        | `renderer`                                    |
+| 性能 + SEO  | `performance`, `perf`, `seo`, `optimization`  |
+
+
+## 分享
+
+我们鼓励你分享创造，我们真的很喜欢看到有才华的 Astronauts 创作。来吧，在我们的 [Discord 服务器](https://astro.build/chat)中与我们分享你的创作，或者在 Twitter 中提及[@astrodotbuild](https://twitter.com/astrodotbuild)!

@@ -1,0 +1,44 @@
+---
+import { englishPages } from '~/content';
+import { isCmsEntry } from '~/content/config';
+import { isLogoKey } from '~/data/logos';
+import { getLanguageFromURL } from '~/util';
+import CardsNav from './NavGrid/CardsNav.astro';
+
+const lang = getLanguageFromURL(Astro.url.pathname);
+const enPages = englishPages.filter(isCmsEntry);
+
+/** Array of services we have good content for and want to show first in the list. */
+const showFirst = ['Storyblok', 'Contentful', 'ButterCMS'];
+// Reverse the array to make our logic simpler later.
+showFirst.reverse();
+
+const links = enPages
+	.sort((a, b) => {
+		// Sort services in the `showFirst` array first.
+		const aPriority = showFirst.indexOf(a.data.service);
+		const bPriority = showFirst.indexOf(b.data.service);
+		if (aPriority !== -1 || bPriority !== -1) return aPriority > bPriority ? -1 : 1;
+		// Sort full guides before stubs.
+		if (a.data.stub && !b.data.stub) return 1;
+		if (!a.data.stub && b.data.stub) return -1;
+		// If they’re both stubs, or neither stubs, sort alphabetically.
+		return a.data.service.toLowerCase() > b.data.service.toLowerCase() ? 1 : -1;
+	})
+	.map((page) => {
+		const { service } = page.data;
+		const pageUrl = '/' + page.slug.replace('en/', `${lang}/`) + '/';
+		const logo = isLogoKey(page.slug.split('/').pop());
+		return { title: service, href: pageUrl, logo };
+	});
+---
+
+<section class="cms-nav">
+	<CardsNav minimal links={links} />
+</section>
+
+<style>
+	.cms-nav > :global(*) {
+		margin-top: -2rem;
+	}
+</style>

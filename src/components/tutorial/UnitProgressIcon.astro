@@ -1,0 +1,145 @@
+---
+import { useTranslations } from '../../i18n/util';
+import { SectorPath } from './geometry';
+
+export interface Props {
+	/** Number of this unit in the tutorial. */
+	unitNumber: number;
+	/**
+	 * Array of paths for each lesson in this unit, e.g.
+	 * `['/en/tutorial/0-introduction/', '/en/tutorial/0-introduction/1/']`.
+	 */
+	paths: string[];
+}
+const { unitNumber, paths } = Astro.props as Props;
+const numberOfLessons = paths.length;
+
+let segments = [];
+const segmentLength = 360 / numberOfLessons;
+const gap = 35;
+for (let i = 0; i < numberOfLessons; i++) {
+	segments.push({
+		d: SectorPath({
+			cx: 50,
+			cy: 50,
+			r: 40,
+			startAngle: -90 + segmentLength * i + gap / 2,
+			endAngle: -90 + segmentLength * i + segmentLength - gap / 2,
+			arc: true,
+		}),
+	});
+}
+
+const size = 32;
+const t = useTranslations(Astro);
+---
+
+<unit-progress-icon data-paths={JSON.stringify(paths)}>
+	<span class="sr-only">
+		{t('tutorial.unit')}
+		{unitNumber}
+		(<span class="sr-done-count">0</span>/{numberOfLessons}
+		{t('progress.done')})
+	</span>
+	<svg viewBox="0 0 100 100" width={size} height={size} aria-hidden="true">
+		{segments.map(({ d }) => <path d={d} class="segment" />)}
+		<text x="50" y="54">{unitNumber}</text>
+	</svg>
+</unit-progress-icon>
+
+<script>
+	import { ProgressStore } from './ProgressStore';
+
+	class UnitProgressIcon extends HTMLElement {
+		private readonly loaded: boolean;
+		private readonly paths: string[];
+		private readonly doneCount: HTMLSpanElement;
+		// eslint-disable-next-line no-undef
+		private readonly segments: NodeListOf<SVGPathElement>;
+
+		constructor() {
+			super();
+			this.paths = JSON.parse(this.dataset.paths || '[]');
+			this.doneCount = this.querySelector('.sr-done-count')!;
+			this.segments = this.querySelectorAll('.segment');
+			this.paths.forEach((path) => ProgressStore.subscribePageDone(path, () => this.updateDone()));
+			this.loaded = true;
+		}
+
+		private updateDone(): void {
+			const done = this.getDoneCount();
+			this.doneCount.textContent = String(done);
+			this.segments.forEach((segment, index) => {
+				const isDone = index < done;
+				const wasNotDone = this.loaded && !segment.classList.contains('done');
+
+				if (isDone) {
+					segment.classList.add('done');
+					if (wasNotDone) this.animateDone(segment);
+				} else {
+					segment.classList.remove('done');
+				}
+			});
+		}
+
+		private animateDone(segment: SVGPathElement): void {
+			if (!matchMedia('(prefers-reduced-motion: no-preference').matches) return;
+			segment.animate([{ transform: 'scale(1.1)' }], {
+				duration: 200,
+				easing: 'ease-in-out',
+			});
+		}
+
+		private getDoneCount(): number {
+			return this.paths.map(ProgressStore.getPageDone).filter((bool) => bool).length;
+		}
+	}
+
+	customElements.define('unit-progress-icon', UnitProgressIcon);
+</script>
+
+<style>
+	unit-progress-icon {
+		display: block;
+		padding: 0.5em 0.25em 0.2em;
+		fill: var(--theme-text-lighter);
+	}
+
+	text {
+		dominant-baseline: middle;
+		text-anchor: middle;
+		font-size: 40px;
+	}
+
+	/*
+	1. Highlight the initial link before the component hydrates & applies `role="tab"`.
+	2. Highlight the selected link after the component hydrates.
+	*/
+	:global([data-initial]:not([role='tab'])) unit-progress-icon, /* 1 */
+	:global([aria-selected='true']) unit-progress-icon /* 2 */ {
+		font-weight: bold;
+		fill: var(--theme-text);
+		background-color: var(--theme-bg-offset);
+	}
+
+	:global([aria-selected='true']) .segment:not(.done) {
+		stroke: hsl(var(--color-gray-95));
+	}
+
+	:global(.theme-dark [aria-selected='true']) .segment:not(.done) {
+		stroke: hsl(var(--color-gray-20));
+	}
+
+	.segment {
+		fill: none;
+		stroke: var(--theme-bg-offset);
+		stroke-width: 8;
+		stroke-linecap: round;
+		transform-origin: center;
+		transition: stroke 100ms ease-in-out;
+	}
+
+	.done {
+		stroke: hsl(var(--color-green));
+	}
+</style>

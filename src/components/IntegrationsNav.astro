@@ -1,0 +1,67 @@
+---
+import { englishPages } from '~/content';
+import { IntegrationCategory, IntegrationEntry, isIntegrationEntry } from '~/content/config';
+import { isLogoKey } from '~/data/logos';
+import { useTranslations } from '~/i18n/util';
+import { getLanguageFromURL } from '~/util';
+import CardsNav from './NavGrid/CardsNav.astro';
+
+const lang = getLanguageFromURL(Astro.url.pathname);
+
+function categoryLinksFromPages(pages: IntegrationEntry[], category: IntegrationCategory) {
+	return pages
+		.filter((page) => page.data.category === category)
+		.map((page) => {
+			const [scope, name] = page.data.title.split(' ').shift()!.split('/');
+			const pageUrl = page.slug.replace('en/', `/${lang}/`) + '/';
+			return {
+				title:
+					'<span class="scope">' +
+					scope +
+					'/</span><wbr>' +
+					name.replaceAll('-', '&#8288;-&#8288;'),
+				href: pageUrl,
+				logo: isLogoKey(name),
+			};
+		});
+}
+
+const t = useTranslations(Astro);
+
+const enPages = englishPages.filter(isIntegrationEntry);
+
+const categories = [
+	{ title: t('integrations.renderers'), links: categoryLinksFromPages(enPages, 'renderer') },
+	{ title: t('integrations.adapters'), links: categoryLinksFromPages(enPages, 'adapter') },
+	{ title: t('integrations.others'), links: categoryLinksFromPages(enPages, 'other') },
+];
+---
+
+<section class="integrations-nav">
+	{
+		categories.map((category) => (
+			<CardsNav minimal links={category.links}>
+				<h3>{category.title}</h3>
+			</CardsNav>
+		))
+	}
+</section>
+
+<style>
+	.integrations-nav > :global(*) {
+		margin-top: -2rem;
+	}
+
+	.integrations-nav > :global(* + *) {
+		margin-top: -3rem;
+	}
+
+	.integrations-nav :global(.scope) {
+		font-weight: normal;
+		color: var(--theme-text-lighter);
+	}
+
+	h3 {
+		margin-bottom: 0;
+	}
+</style>

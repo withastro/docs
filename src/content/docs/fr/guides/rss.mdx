@@ -1,0 +1,208 @@
+---
+title: Flux RSS
+description: Une introduction aux flux RSS avec Astro.
+type: recipe
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import Since from '~/components/Since.astro'
+
+
+Astro prend en charge la génération rapide et automatique de flux RSS pour les blogs et autres contenus. Pour plus d'informations sur les flux RSS en général, voir [aboutfeeds.com](https://aboutfeeds.com/).
+
+## Mise en place d'`@astrojs/rss`
+
+Le [package `@astrojs/rss`](https://github.com/withastro/astro/tree/main/packages/astro-rss) fournit des fonctions d'aide pour la génération de flux RSS en utilisant des ["API endpoints" (ou points d'arrêt API)](/fr/core-concepts/endpoints/#points-de-terminaison-statiques). Cela permet de débloquer à la fois les builds statiques _et_ la génération à la demande lors de l'utilisation d'un [adaptateur SSR](/fr/guides/server-side-rendering/#activation-du-mode-ssr-dans-votre-projet).
+
+Pour commencer, installez `@astrojs/rss` en utilisant votre gestionnaire de Package préféré :
+
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```shell
+    npm install @astrojs/rss
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```shell
+    pnpm install @astrojs/rss
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    yarn add @astrojs/rss
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+Ensuite, assurez-vous que vous avez [configuré la valeur `site`](/fr/reference/configuration-reference/#site) dans le fichier `astro.config` de votre projet. Vous l'utiliserez pour générer des liens vers vos articles RSS.
+
+Maintenant que tout est prêt, générons notre premier flux RSS ! Créez un fichier `rss.xml.js` dans votre répertoire `src/pages/`. `rss.xml` sera l'URL de sortie, donc n'hésitez pas à le renommer si vous préférez.
+
+Ensuite, importez l'Helper `rss` du Package `@astrojs/rss` et appelez-le avec les paramètres suivants :
+
+```js title="src/pages/rss.xml.js"
+import rss from '@astrojs/rss';
+
+export function get(context) {
+  return rss({
+    // la valeur `<title>` de votre XML de sortie
+    title: 'Buzz’s Blog',
+    // la valeur `<description>` de votre XML de sortie
+    description: 'A humble Astronaut’s guide to the stars',
+    // Insérez la valeur "site" de votre projet dans le contexte de l'endpoint.
+    // https://docs.astro.build/fr/reference/api-reference/#contextsite
+    site: context.site,
+    // Un tableau d'`<item>`s dans votre XML de sortie
+    // Voir la section "Génération des items" pour des exemples d'utilisation des collections de contenu et des importations glob.
+    items: [],
+    // (optionnel) injecter des valeurs XML personnalisés
+    customData: `<language>en-us</language>`,
+  });
+}
+```
+
+## Génération des `items`
+
+Le champ `items` accepte un tableau d'objets de flux RSS, chacun avec un `link`, `title`, `pubDate`, et des champs optionnels `description`, `content`, et `customData`. Vous pouvez générer ce tableau à partir d'une collection de contenu ou en utilisant des importations globales.
+
+### Utilisation des collections de contenu
+
+Pour créer un flux RSS des pages gérées dans les [collections de contenus](/fr/guides/content-collections/), vous utilisez la fonction `getCollection()` pour récupérer le tableau de vos items.
+
+
+```js title="src/pages/rss.xml.js" "items:" "const blog = await getCollection('blog');"
+import rss from '@astrojs/rss';
+import { getCollection } from 'astro:content';
+
+export async function get(context) {
+  const blog = await getCollection('blog');
+  return rss({
+    title: 'Blog de Buzz',
+    description: "Le guide pour atteindre les étoiles d'un humble astronaute",
+    site: context.site,
+    items: blog.map((post) => ({
+      title: post.data.title,
+      pubDate: post.data.pubDate,
+      description: post.data.description,
+      customData: post.data.customData,
+      // Calculer le lien RSS à partir du post `slug`
+      // Cet exemple suppose que tous les posts soient rendus avec la route `/blog/[slug]`
+      link: `/blog/${post.slug}/`,
+    })),
+  });
+}
+```
+
+Vous pouvez configurer votre schéma de collection pour appliquer ces propriétés RSS attendues. Importez et appliquez `rssSchema` pour vous assurer que chaque entrée de la collection produit un item de flux RSS valide.
+
+```js title="src/content/config.ts" "rssSchema"
+import { rssSchema } from '@astrojs/rss';
+
+const blog = defineCollection({
+  schema: rssSchema,
+});
+
+export const collections = { blog };
+```
+
+### Utilisation des importations globales
+
+<Since v="2.1.0" pkg="@astrojs/rss" />
+
+Pour créer un flux RSS depuis les documents dans `/src/pages`, utilisez l'Helper `pagesGlobToRssItems()`. Elle accepte un résultat [`import.meta.glob`](https://vitejs.dev/guide/features.html#glob-import) et produit un tableau d'items de flux RSS valides (en savoir plus [à propos de l'écriture des patterns globaux](/fr/guides/imports/#patterns-globaux) pour spécifier les pages à inclure).
+
+Cette fonction suppose, mais ne vérifie pas, que toutes les propriétés de flux requises sont présentes dans le frontmatter de chaque document. Si vous rencontrez des erreurs, vérifiez le frontmatter de chaque page manuellement.
+
+```js title="src/pages/rss.xml.js" "pagesGlobToRssItems" "await pagesGlobToRssItems("
+import rss, { pagesGlobToRssItems } from '@astrojs/rss';
+
+export async function get(context) {
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    items: await pagesGlobToRssItems(
+      import.meta.glob('./blog/*.{md,mdx}'),
+    ),
+  });
+}
+```
+
+:::note[Vous utilisez une ancienne version ?]
+Dans les versions de `@astrojs/rss` antérieures à la v2.1.0, passez votre résultat global directement à `items` sans l'enveloppe `pagesGlobToRssItems()` :
+```js
+items: import.meta.glob('./blog/*.{md,mdx}'),
+```
+:::
+
+### Incluant le contenu complet de la publication
+
+<Since v="1.6.14" />
+
+La clé `content` contient le contenu complet du post au format HTML. Cela vous permet de mettre l'intégralité du contenu de votre post à la disposition des lecteurs du flux RSS.
+
+:::tip
+Lorsque vous utilisez du contenu HTML dans le XML, nous vous suggérons d'utiliser un Package comme [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) afin de vous assurer que votre contenu est correctement nettoyé, échappé et encodé.
+:::
+
+Quand vous utilisez des collections de contenu, rendez le post `body` en utilisant un parser Markdown standard comme [`markdown-it`](https://github.com/markdown-it/markdown-it) et nettoyez le résultat :
+
+```js title="src/pages/rss.xml.js" ins={2, 3, 4, 15}
+import rss from '@astrojs/rss';
+import sanitizeHtml from 'sanitize-html';
+import MarkdownIt from 'markdown-it';
+const parser = new MarkdownIt();
+
+export async function get(context) {
+  const blog = await getCollection('blog');
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    items: blog.map((post) => ({
+      link: `/blog/${post.slug}/`,
+      // Note : cela ne traitera pas les composants ou les expressions JSX dans les fichiers MDX.
+      content: sanitizeHtml(parser.render(post.body)),
+      ...post.data,
+    })),
+  });
+}
+```
+
+Quand vous utilisez les imports globaux avec Markdown, nous vous suggérons d'utiliser l'Helper `compiledContent()` pour récupérer le HTML rendu afin de le nettoyer. Note : cette fonctionnalité **n'est pas** supportée pour les fichiers MDX.
+
+```js title="src/pages/rss.xml.js" ins={2, 13}
+import rss from '@astrojs/rss';
+import sanitizeHtml from 'sanitize-html';
+
+export function get(context) {
+  const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true }); 
+  const posts = Object.values(postImportResult);
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    items: posts.map((post) => ({
+      link: post.url,
+      content: sanitizeHtml(post.compiledContent()),
+      ...post.frontmatter,
+    })),
+  });
+}
+```
+
+## Ajout d'une feuille de style
+
+Vous pouvez styliser votre flux RSS pour une expérience utilisateur plus agréable lors de la visualisation du fichier dans votre navigateur.
+
+Utilisez l'option `stylesheet` de la fonction `rss` pour spécifier un chemin absolu vers votre feuille de style.
+
+```js
+rss({
+  // Exemple : Utilisez votre feuille de style depuis "public/rss/styles.xsl"
+  stylesheet: '/rss/styles.xsl',
+  // ...
+});
+```
+
+Si vous n'avez pas de feuille de style RSS en tête, nous recommandons la [feuille de style par défaut Pretty Feed v3](https://github.com/genmon/aboutfeeds/blob/main/tools/pretty-feed-v3.xsl), que vous pouvez télécharger depuis GitHub et sauvegarder dans le répertoire `public/` de votre projet.

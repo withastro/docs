@@ -1,0 +1,123 @@
+---
+title: Usando variáveis de ambiente
+description: Aprenda como utilizar variáveis de ambiente em um projeto Astro.
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+Astro utiliza o suporte integrado do Vite para variáveis de ambiente e o deixa [utilizar quaisquer de seus métodos](https://vitejs.dev/guide/env-and-mode.html) para trabalhar com elas.
+
+Note que enquanto _todas_ as variáveis de ambiente estão disponíveis em código no lado do servidor, apenas variáveis de ambiente com o prefixo `PUBLIC_` estão disponíveis em código no lado do cliente por segurança.
+
+```ini title=".env"
+SENHA_SECRETA=senha123
+PUBLIC_TODOS=aqui
+```
+
+Nesse exemplo, `PUBLIC_TODOS` (acessível via `import.meta.env.PUBLIC_TODOS`) estará disponível no código do cliente e do servidor, enquanto `SENHA_SECRETA` (acessível via `import.meta.env.SENHA_SECRETA`) estará apenas no lado do servidor.
+
+:::caution
+Arquivos `.env` não são carregados dentro de [arquivos de configuração](/pt-br/guides/configuring-astro/#variáveis-de-ambiente). 
+:::
+
+## Variáveis de ambiente padrões
+
+Astro inclui algumas variáveis de ambiente por padrão:
+
+- `import.meta.env.MODE`: O modo no qual o seu site está sendo executado. Seu valor é `development` quando estiver executando `astro dev` e será `production` quando estiver executando `astro build`.
+- `import.meta.env.PROD`: `true` se o seu site está sendo executado em produção; `false` caso contrário.
+- `import.meta.env.DEV`: `true` se o seu site está sendo executado em desenvolvimento; `false` caso contrário. Sempre o oposto de `import.meta.env.PROD`.
+- `import.meta.env.BASE_URL`: A URL base na qual o seu site está sendo servido de. Isso é determinado pela [opção `base` da configuração](/pt-br/reference/configuration-reference/#base).
+- `import.meta.env.SITE`: É definida para [a opção `site`](/pt-br/reference/configuration-reference/#site) especificada no `astro.config` do seu projeto.
+- `import.meta.env.ASSETS_PREFIX`: O prefixo para links de assets gerados pelo Astro se a [opção de configuração `build.assetsPrefix`](/pt-br/reference/configuration-reference/#buildassetsprefix) for definida. Isso pode ser usado para criar links de assets não tratados pelo Astro.
+
+Use elas como qualquer outra variável de ambiente.
+
+```ts utils.ts
+const isProd = import.meta.env.PROD;
+const isDev = import.meta.env.DEV;
+```
+
+## Definindo variáveis de ambiente
+
+### Arquivos `.env`
+Variáveis de ambiente podem ser carregadas de arquivos `.env` no diretório do seu projeto.
+
+Você também pode adicionar um modo (entre `production` ou `development`) ao nome do arquivo, como `.env.production` ou `env.development`, que faz com que a variável de ambiente apenas funcione nesse modo.
+
+Simplesmente crie um arquivo `.env` no diretório do seu projeto e adicione algumas variáveis a ele.
+
+```ini title=".env"
+# Isso só estará disponível enquanto executado no servidor!
+SENHA_BD="foobar"
+# Isso estará disponível em todo lugar!
+PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
+```
+
+Para mais sobre arquivos `.env`, [veja a documentação do Vite](https://vitejs.dev/guide/env-and-mode.html#env-files).
+
+### Usando a CLI
+Você também pode adicionar variáveis de ambiente enquanto você executa seu projeto:
+
+<PackageManagerTabs>
+ <Fragment slot="yarn">
+    ```shell
+    POKEAPI=https://pokeapi.co/api/v2 yarn run dev
+    ```
+ </Fragment>
+ <Fragment slot="npm">
+    ```shell
+    POKEAPI=https://pokeapi.co/api/v2 npm run dev
+    ```
+ </Fragment>
+ <Fragment slot="pnpm">
+    ```shell
+    POKEAPI=https://pokeapi.co/api/v2 pnpm run dev
+    ```
+ </Fragment>
+</PackageManagerTabs>
+
+:::caution
+Variáveis definidas dessa forma estarão disponíveis em todo lugar no seu projeto, inclusive no cliente.
+:::
+
+## Obtendo variáveis de ambiente
+
+Ao invés de utilizar `process.env` com o Vite, você pode utilizar `import.meta.env`, que usa a funcionalidade `import.meta` adicionado no ES2020.
+
+Por exemplo, utilize `import.meta.env.PUBLIC_POKEAPI` para obter a variável de ambiente `PUBLIC_POKEAPI`.
+
+```js /(?<!//.*)import.meta.env.[A-Z_]+/
+// Quando import.meta.env.SSR === true
+const dados = await db(import.meta.env.SENHA_BD);
+
+// Quando import.meta.env.SSR === false
+const dados = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
+```
+
+:::caution
+Como o Vite estaticamente substitui `import.meta.env`, você não pode acessá-lo com chaves dinâmicas como `import.meta.env[chave]`.
+:::
+
+Ao usar SSR, variáveis de ambiente podem ser acessadas em runtime com base no adaptador de SSR sendo usado. Com a maioria dos adaptadores você pode acessar variáveis de ambiente com `process.env`, para o adaptador do Deno você tem que usar `Deno.env.get()`. Cloudflare possui sua [própria forma](/pt-br/guides/integrations-guide/cloudflare/#environment-variables) de tratar variáveis de ambiente.
+O Astro vai checar o ambiente do servidor por variáveis, se elas não existirem, o Astro vai procurar elas em arquivos .env.
+
+## IntelliSense para TypeScript
+
+Por padrão, Astro fornece definições de tipo para `import.meta.env` em `astro/client.d.ts`. 
+
+Embora você possa definir mais variáveis customizadas em arquivos `.env.[modo]`, você pode querer IntelliSense para TypeScript para variáveis de ambiente definidas por usuários que são prefixadas com `PUBLIC_`.
+
+Para realizar isso, você pode criar um `env.d.ts` em `src/` e configurar `ImportMetaEnv` assim:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly SENHA_BD: string;
+  readonly PUBLIC_POKEAPI: string;
+  // mais variáveis de ambiente...
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```

@@ -1,0 +1,246 @@
+---
+title: Componentes de Frameworks
+description: 'Aprenda como utilizar React, Svelte, etc.'
+i18nReady: true
+---
+Construa seu website Astro sem sacrificar o seu framework de componentes favorito.
+
+Astro suporta uma variedade de frameworks populares incluindo [React](https://react.dev/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), [AlpineJS](https://alpinejs.dev/) e [Lit](https://lit.dev/).
+
+## Instalando Integrações
+
+Astro vem com [integrações opcionais](/pt-br/guides/integrations-guide/) para React, Preact, Svelte, Vue, SolidJS, AlpineJS e Lit. Uma ou várias destas integrações Astro podem ser instaladas e configuradas em seu projeto.
+
+⚙️ Veja o [Guia de Integrações](/pt-br/guides/integrations-guide/) para mais detalhes em como instalar e configurar integrações Astro.
+
+⚙️ Quer ver um exemplo do framework de sua escolha? Visite [astro.new](https://astro.new) e selecione um dos templates de frameworks.
+
+## Usando Componentes de Frameworks
+
+Utilize os componentes de frameworks JavaScript em suas páginas, layouts e componentes Astro assim como você utilizaria componentes Astro! Todos os seus componentes podem estar juntos em `/src/components`, ou podem ser organizados da forma que você preferir.
+
+Para usar um componente de framework, importe-o de seu caminho relativo no script do componente Astro. Então, use o componente ao lado de outros componentes, como elementos HTML e expressões estilo JSX no template do componente.
+
+```astro title="src/pages/componentes-estaticos.astro" ins={2,7}
+---
+import MeuComponenteReact from '../components/MeuComponenteReact.jsx';
+---
+<html>
+  <body>
+    <h1>Use componentes React diretamente no Astro!</h1>
+    <MeuComponenteReact />
+  </body>
+</html>
+```
+
+Por padrão, seus componentes de frameworks serão renderizados apenas no servidor, como HTML estático. Isso é útil para fazer o template de componentes que não são interativos e evita mandar qualquer JavaScript desnecessário ao cliente.
+
+## Hidratando Componentes Interativos
+
+Um componente de framework pode se tornar interativo (hidratado) utilizando uma [diretiva `client:*`](/pt-br/reference/directives-reference/#diretivas-de-cliente). Elas são atributos de componente que determinam quando o JavaScript do seu componente deve ser enviado ao navegador.
+
+Com todas as diretivas de cliente exceto `client:only`, seu componente será primeiro renderizado no servidor para gerar HTML estático. JavaScript do componente será enviado ao navegador de acordo com a diretiva que você escolheu. O componente será então hidratado e se tornará interativo.
+
+```astro title="src/pages/componentes-interativos.astro" /client:\S+/
+---
+// Exemplo: hidratando componentes de frameworks no navegador.
+import BotaoInterativo from '../components/BotaoInterativo.jsx';
+import ContadorInterativo from '../components/ContadorInterativo.jsx';
+import ModalInterativo from "../components/InteractiveModal.svelte"
+---
+<!-- O JS desse componente começará a ser importado quando a página carregar -->
+<BotaoInterativo client:load />
+
+<!-- O JS desse componente não será enviado ao cliente até que o usuário role a tela até o componente estar visível na página -->
+<ContadorInterativo client:visible />
+
+<!-- Este componente não será renderizado no servidor, mas será renderizado no cliente quando a página carregar -->
+<ModalInterativo client:only="svelte" />
+```
+
+O framework JavaScript (React, Svelte, etc) necessário para renderizar o componente será enviado ao navegador junto do JavaScript do próprio componente. Se dois ou mais componentes em uma página usam o mesmo framework, o framework será enviado apenas uma vez.
+
+:::note[Acessibilidade]
+A maioria dos padrões de acessibilidade específicos de frameworks devem funcionar da mesma forma ao serem utilizados no Astro. Certifique-se de utilizar uma diretiva de cliente que irá garantir que qualquer JavaScript relacionado à acessibilidade seja propriamente carregado e executado na hora certa!
+:::
+
+### Diretivas de Hidratação Disponível
+
+Há diversas diretivas de hidratação disponíveis para componentes de frameworks de UI: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` e `client:only={FRAMEWORK}`.
+
+📚 Veja nossa página de [referência de diretivas](/pt-br/reference/directives-reference/#diretivas-de-cliente) para uma descrição completa destas diretivas de hidratação e seus usos.
+
+## Misturando Frameworks
+
+Você pode importar e renderizar componentes de múltiplos frameworks em um mesmo componente Astro.
+
+```astro title="src/pages/misturando-frameworks.astro"
+---
+// Exemplo: Misturando múltiplos componentes de frameworks na mesma página.
+import MeuComponenteReact from '../components/MeuComponenteReact.jsx';
+import MeuComponenteSvelte from '../components/MeuComponenteSvelte.svelte';
+import MeuComponenteVue from '../components/MeuComponenteVue.vue';
+---
+<div>
+  <MeuComponenteSvelte />
+  <MeuComponenteReact />
+  <MeuComponenteVue />
+</div>
+```
+
+:::caution
+Apenas componentes **Astro** (`.astro`) podem conter componentes de múltiplos frameworks.
+:::
+
+## Passando Props Para Componentes de Frameworks
+
+Você pode passar props de componentes Astro para componentes de frameworks:
+
+```astro title="src/pages/props-frameworks.astro"
+---
+import ListaDeFazeres from '../components/ListaDeFazeres.jsx';
+import Contador from '../components/Contador.svelte';
+---
+<div>
+  <ListaDeFazeres fazeresIniciais={["aprender Astro", "revisar PRs"]} />
+  <Contador contagemInicial={1} />
+</div>
+```
+
+:::caution[passando funções como props]
+Você pode passar uma função como prop para um componente de framework, mas ela apenas funciona durante renderização no servidor. Se você tentar utilizar a função em um componente hidratado (por exemplo, como um event handler), um erro irá ocorrer.
+
+Isso acontece pois funções não podem ser _serializadas_ (transferidas do servidor para o cliente) pelo Astro.
+:::
+
+## Passando Filhos para Componentes de Frameworks
+
+Dentro de um componente Astro, você **pode** passar filhos para componentes de frameworks. Cada framework tem seus próprios padrões para como se referenciar a esses filhos: React, Preact, e Solid usam todos uma prop especial chamada `children`, enquanto Svelte e Vue usam o elemento `<slot />`.
+
+```astro title="src/pages/filhos-componentes.astro" {5}
+---
+import MinhaBarraLateralReact from '../components/MinhaBarraLateralReact.jsx';
+---
+<MinhaBarraLateralReact>
+  <p>Aqui está uma barra lateral com algum texto e um botão.</p>
+</MinhaBarraLateralReact>
+```
+
+Adicionalmente, você pode usar [Slots Nomeados](/pt-br/core-concepts/astro-components/#slots-nomeados) para agrupar filhos específicos juntos.
+
+Para React, Preact, e Solid esses slots serão convertidos em uma prop top-level. Nomes de slots usando`kebab-case` serão convertidos para `camelCase`.
+
+```astro title="src/pages/slots-nomeados.astro" /slot="(.*)"/
+---
+import MinhaBarraLateral from '../components/MinhaBarraLateral.jsx';
+---
+<MinhaBarraLateral>
+  <h2 slot="titulo">Menu</h2>
+  <p>Aqui está uma barra lateral com algum texto e um botão.</p>
+  <ul slot="social-links">
+    <li><a href="https://twitter.com/astrodotbuild">Twitter</a></li>
+    <li><a href="https://github.com/withastro">GitHub</a></li>
+  </ul>
+</MinhaBarraLateral>
+```
+
+```jsx /{props.(titulo|socialLinks)}/
+// src/components/MinhaBarraLateral.jsx
+export default function MinhaBarraLateral(props) {
+  return (
+    <aside>
+      <header>{props.titulo}</header>
+      <main>{props.children}</main>
+      <footer>{props.socialLinks}</footer>
+    </aside>
+  )
+}
+```
+
+Para Svelte e Vue esses slots podem ser referenciados utilizando um elemento `<slot>` com o atributo `name`. Nomes de slots usando `kebab-case` serão preservados.
+
+```jsx /slot name="(.*)"/
+// src/components/MinhaBarraLateral.svelte
+<aside>
+  <header><slot name="titulo" /></header>
+  <main><slot /></main>
+  <footer><slot name="social-links" /></footer>
+</aside>
+```
+
+## Aninhando Componentes de Frameworks
+
+Dentro de um arquivo Astro, filhos de componentes de frameworks também podem ser componentes hidratados. Isso significa que você pode recursivamente aninhar componentes de qualquer um desses frameworks.
+
+```astro title="src/pages/componentes-aninhados.astro" {10-11}
+---
+import MinhaBarraLateralReact from '../components/MinhaBarraLateralReact.jsx';
+import MeuBotaoReact from '../components/MeuBotaoReact.jsx';
+import MeuBotaoSvelte from '../components/MeuBotaoSvelte.svelte';
+---
+
+<MinhaBarraLateralReact>
+  <p>Aqui está uma barra lateral com algum texto e um botão.</p>
+  <div slot="acoes">
+    <MeuBotaoReact client:idle />
+    <MeuBotaoSvelte client:idle />
+  </div>
+</MinhaBarraLateralReact>
+```
+
+:::caution
+Lembre-se: os próprios arquivos dos componentes de frameworks (e.x. `.jsx`, `.svelte`) não podem misturar múltiplos frameworks.
+:::
+
+Isso te permite construir "aplicativos" inteiros com seu framework JavaScript favorito e o renderizar, via um componente parente, em uma página Astro.
+
+:::note
+Componentes Astro sempre são renderizados como HTML estático, até mesmo quando incluem componentes de frameworks que são hidratados. Isso significa que você só pode passar props que não renderizam nenhum HTML. Passar "render props" do React para componentes de frameworks a partir de um componente Astro não irá funcionar, pois componentes Astro não podem providenciar o comportamento em runtime do cliente que esse padrão precisa. No lugar, use slots nomeados.
+:::
+
+## Posso utilizar Componentes Astro dentro de meus Componentes de Frameworks?
+
+Qualquer componente de framework de UI se torna uma "ilha" daquele framework. Esses componentes precisam ser escritos inteiramente como código válido para aquele framework, usando apenas suas importações e pacotes. Você não pode importar componentes `.astro` em um componente de framework de UI (e.x. `.jsx` ou `.svelte`).
+
+Você pode, no entanto, utilizar o [padrão de `<slot />` do Astro](/pt-br/core-concepts/astro-components/#slots) para passar conteúdo gerado estaticamente por componentes Astro como filhos de seus componentes de frameworks **dentro de um componente `.astro`**.
+
+```astro title="src/pages/filhos-astro.astro" {6}
+---
+import MeuComponenteReact from '../components/MeuComponenteReact.jsx';
+import MeuComponenteAstro from '../components/MeuComponenteAstro.astro';
+---
+<MeuComponenteReact>
+  <MeuComponenteAstro slot="nome" />
+</MeuComponenteReact>
+```
+
+## Posso utilizar Componentes Astro dentro de meus Componentes de Framework?
+
+Qualquer componente de framework UI se torna uma "ilha" daquele framework. Esses componentes devem ser escritos inteiramente como código válido para o framework, usando apenas suas próprias importações e pacotes. Você não pode importar componentes `.astro` em um componente de framework UI (e.x. `.jsx` ou `.svelte`).
+
+Você pode, porém, utilizar [o padrão `<slot />` do Astro](/pt-br/core-concepts/astro-components/#slots) para passar conteúdo estático gerado por componentes Astro como filhos de seus componentes de framework **dentro de um componente `.astro`**.
+
+```astro title="src/pages/filhos-astro.astro" {6}
+---
+import MeuComponenteReact from '../components/MeuComponenteReact.jsx';
+import MeuComponenteAstro from '../components/MeuComponenteAstro.astro';
+---
+<MeuComponenteReact>
+  <MeuComponenteAstro slot="nome" />
+</MeuComponenteReact>
+```
+
+## Posso Hidratar Componentes Astro?
+
+Se você tentar hidratar um componente Astro com um modificador `client:`, você receberá um erro.
+
+[Componentes Astro](/pt-br/core-concepts/astro-components/) são componentes de template de apenas HTML que não possuem runtime no lado do cliente. Porém, você pode usar uma tag `<script>` no template do seu componente Astro para enviar JavaScript ao navegador que é executado no escopo global.
+
+📚 Aprenda mais sobre [`<scripts>` no lado do cliente em componentes Astro](/pt-br/guides/client-side-scripts/).
+
+
+[mdn-io]: https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
+[mdn-ric]: https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
+[mdn-mm]: https://developer.mozilla.org/en-US/docs/Web/API/Window/matchMedia
+
+

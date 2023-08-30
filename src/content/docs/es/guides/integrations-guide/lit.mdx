@@ -1,0 +1,165 @@
+---
+type: integration
+title: '@astrojs/lit'
+description: Aprende cómo utilizar la integración del framework @astrojs/lit para extender el soporte de componentes en tu proyecto Astro.
+githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/lit/'
+hasREADME: true
+category: renderer
+i18nReady: true
+---
+
+import Video from '~/components/Video.astro';
+
+Esta **[integración de Astro][astro-integration]** permite renderización en el servidor e hidratación en el cliente para tus elementos personalizados de [Lit](https://lit.dev/).
+
+## Instalación
+
+Hay dos formas de agregar integraciones a tu proyecto. ¡Intentemos primero la opción más conveniente!
+
+### Comando `astro add`
+
+Astro incluye una herramienta CLI para agregar integraciones: `astro add`. Este comando hará:
+
+1.  (Opcionalmente) Instalar todas las dependencias necesarias y dependencias pares asociadas
+2.  (También opcionalmente) Actualizar tu archivo `astro.config.*` para aplicar esta integración
+
+Para instalar `@astrojs/lit`,  ejecuta lo siguiente desde el directorio de tu proyecto y sigue las indicaciones:
+
+```sh
+# Usando NPM
+npx astro add lit
+# Usando Yarn
+yarn astro add lit
+# Usando PNPM
+pnpm astro add lit
+```
+
+Si tienes algún problema, [no dudes en informárnoslo en GitHub](https://github.com/withastro/astro/issues) y prueba los pasos de instalación manual a continuación.
+
+### Instalar dependencias manualmente
+
+Primero, instala la integración `@astrojs/lit` de la siguiente manera:
+
+```sh
+npm install @astrojs/lit
+```
+
+La mayoría de los gestores de paquetes también instalarán las dependencias de pares asociadas. Sin embargo, si ves una advertencia de "No se puede encontrar el paquete 'lit'" (o similar) cuando inicias Astro, necesitarás instalar `lit` y `@webcomponents/template-shadowroot` de la siguiente manera:
+
+```sh
+npm install lit @webcomponents/template-shadowroot
+```
+
+Ahora, aplica esta integración a tu archivo `astro.config.*` utilizando la propiedad `integrations`:
+
+```js ins={3} "lit()"
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import lit from '@astrojs/lit';
+
+export default defineConfig({
+  // ...
+  integrations: [lit()],
+});
+```
+
+## Empezando
+
+Para usar tu primer componente React en Astro, dirígete a nuestra [documentación de framework UI][astro-ui-frameworks]. Explorarás:
+
+*   📦 como se cargan los componentes de framework,
+*   💧 opciones de hidratación del lado del cliente, y
+*   🤝 oportunidades para mezclar y anidar frameworks juntos
+
+Escribir e importar un componente de Lit en Astro se ve así:
+
+```js
+// src/components/my-element.js
+import { LitElement, html } from 'lit';
+
+export class MyElement extends LitElement {
+  render() {
+    return html` <p>Hello world! From my-element</p> `;
+  }
+}
+
+customElements.define('my-element', MyElement);
+```
+
+Ahora, el componente está listo para ser importado a través del frontmatter de Astro:
+
+```astro
+---
+// src/pages/index.astro
+import { MyElement } from '../components/my-element.js';
+---
+
+<MyElement />
+```
+
+> Ten en cuenta que Lit requiere que los globales del navegador, como `HTMLElement` y `customElements`, estén presentes. Por esta razón, el renderizador de Lit simula estos globales en el servidor para que Lit pueda funcionar. Es posible que te encuentres con bibliotecas que funcionen incorrectamente debido a esto.
+
+### Polyfills y Hidratación
+
+El renderizador maneja automáticamente la adición de los polifills adecuados para brindar soporte en navegadores que no tienen Declarative Shadow DOM. El polifill tiene un tamaño aproximado de *1.5kB*. Si el navegador admite Declarative Shadow DOM, se cargan menos de 250 bytes (para detectar la compatibilidad con la función).
+
+La hidratación también se maneja automáticamente. Puedes usar las mismas directivas de hidratación, como `client:load`, `client:idle` y `client:visible`, como lo harías con otras bibliotecas compatibles con Astro.
+
+```astro
+---
+import { MyElement } from '../components/my-element.js';
+---
+
+<MyElement client:visible />
+```
+
+Lo anterior solo cargará el JavaScript del elemento cuando el usuario lo haya desplazado a la vista. Dado que se renderiza en el servidor, el usuario no verá ningún parpadeo; se cargará y se hidratará de manera transparente.
+
+## Solución de problemas
+
+Para obtener ayuda, consulta el canal `#support` en [Discord](https://astro.build/chat). ¡Nuestros amables miembros del Equipo de Soporte están aquí para ayudar!
+
+También puedes consultar nuestra [documentación de integración de Astro][astro-integration] para obtener más información sobre las integraciones.
+
+A continuación se enumeran algunos problemas comunes:
+
+### Globales del navegador
+
+La renderización del lado del servidor (SSR) de la integración de Lit funciona mediante la adición de algunas propiedades globales del navegador al entorno global. Algunas de las propiedades que se agregan incluyen `window`, `document` y `location`.
+
+Estos globales *pueden* interferir con otras bibliotecas que utilizan la existencia de estas variables para detectar que se están ejecutando en el navegador, cuando en realidad se están ejecutando en el servidor. Esto puede provocar errores en estas bibliotecas.
+
+Debido a esto, la integración de Lit puede no ser compatible con este tipo de bibliotecas. Una cosa que puede ayudar es cambiar el orden de las integraciones cuando Lit interfiere con otras integraciones:
+
+```diff
+import { defineConfig } from 'astro/config';
+import vue from '@astrojs/vue';
+import lit from '@astrojs/lit';
+
+export default defineConfig({
+-  integrations: [vue(), lit()]
++  integrations: [lit(), vue()]
+});
+```
+
+El orden correcto puede variar según la causa subyacente del problema. Sin embargo, no se garantiza que esto solucione todos los problemas, y algunas bibliotecas no se pueden utilizar si estás utilizando la integración de Lit debido a esto.
+
+### Gestores de paquetes estrictos
+
+Cuando utilizas un [gestor de paquetes estricto](https://pnpm.io/pnpm-vs-npm#npms-flat-tree) como `pnpm`, es posible que obtengas un error como `ReferenceError: module is not defined` al ejecutar tu sitio. Para solucionar esto, debes elevar las dependencias de Lit con un archivo `.npmrc`:
+
+```ini title=".npmrc"
+public-hoist-pattern[]=*lit*
+```
+
+### Limitaciones
+
+La integración de Lit está impulsada por `@lit-labs/ssr`que tiene algunas limitaciones. Consulta su [documentación de limitaciones](https://www.npmjs.com/package/@lit-labs/ssr#user-content-notes-and-limitations) para obtener más información al respecto.
+
+## Contribuyendo
+
+Este paquete es mantenido por el equipo central de Astro. ¡Estás invitado a enviar un problema o PR!
+
+[astro-integration]: /es/guides/integrations-guide/
+
+[astro-ui-frameworks]: /es/core-concepts/framework-components/#usando-componente-de-framework

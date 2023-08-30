@@ -1,0 +1,424 @@
+---
+title: Astro v2へのアップグレード
+description: プロジェクトをAstroの最新にアップグレードする方法
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import FileTree from '~/components/FileTree.astro'
+
+
+このガイドはAstro v1からAstro v2への移行へ役立ちます。
+
+古いプロジェクトからv1へのアップグレードが必要ですか? [古い移行ガイド](/ja/guides/upgrade-to/v1/)をご覧ください。
+
+## Astroをアップグレードする
+
+パッケージマネージャを使用して、プロジェクトのAstroのバージョンを最新版に更新してください。Astroインテグレーションを使用している場合は、それらも最新バージョンにアップデートしてください。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # Astro v2.xのアップグレード
+  npm install astro@latest
+  
+  # 例: ReactとTailwindのインテグレーションをアップグレードする
+  npm install @astrojs/react@latest @astrojs/tailwind@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # Astro v2.xのアップグレード
+  pnpm install astro@latest
+
+  # 例: ReactとTailwindのインテグレーションをアップグレードする
+  pnpm install @astrojs/react@latest @astrojs/tailwind@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # Astro v2.xのアップグレード
+  yarn add astro@latest
+  
+  # 例: ReactとTailwindのインテグレーションをアップグレードする
+  yarn add @astrojs/react@latest @astrojs/tailwind@latest
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## Astro v2.0の互換性のない変更点
+
+Astro v2.0では、いくつかの変更点があり、以前廃止された機能が削除されています。もしv2.0にアップグレードした後、プロジェクトが期待通りに動作しない場合、このガイドですべての変更点の概要とコードベースの更新方法を確認してください。
+
+リリースノートの全文は[変更履歴](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)をご覧ください。
+
+### 削除: Node 14のサポート
+
+Node 14は2023年の4月に終了する予定です。
+
+Astro v2.0では、Node 14のサポートを完全に停止し、すべてのAstroユーザーがNodeのよりモダンな機能を利用できるようにしました。
+
+#### どうすればいいの？
+
+ 開発環境とデプロイ環境の両方が**Node `16.12.0`以降**を使用していることを確認してください。
+
+1. Nodeのローカルバージョンを確認します:
+
+    ```sh
+    node -v
+ 
+    ```
+    ローカル環境のアップグレードが必要な場合は[Nodeをインストール](https://nodejs.org/ja/download/)してください。
+
+
+2. [デプロイ環境](/ja/guides/deploy/)自身のドキュメントを確認し、Node 16をサポートしているかどうかを確認します。
+
+    AstroプロジェクトにNode `16.12.0`を指定するには、ダッシュボードの設定、または`.nvmrc`ファイルのいずれかを使用します。
+
+
+### 予約: `src/content/`
+
+Astro v2.0では、MarkdownやMDXファイルを[コンテンツコレクション](/ja/guides/content-collections/)に整理するためのCollections APIが追加されました。このAPIは、`src/content/`を特別なフォルダとして予約します。
+
+#### どうすればいいの？
+
+`src/content/`フォルダの名前を変更し、競合を回避します。このフォルダが存在する場合は、[コンテンツコレクション](/ja/guides/content-collections/)にのみ使用することができるようになりました。
+
+### 変更: `Astro.site`末尾のスラッシュ
+
+v1.x では、astro.config.mjs で `site` として設定した URL に `Astro.site` でアクセスすると、常に末尾にスラッシュが付くようにしました。
+
+Astro v2.0では、`site`の値が変更されなくなりました。`Astro.site`は定義された正確な値を使用し、必要であれば末尾のスラッシュを指定する必要があります。
+
+#### どうすればいいの？
+
+ `astro.config.mjs`で、`site`に設定したURLの末尾にスラッシュを追加します。
+
+```js del={5} ins={6}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  site: 'https://example.com',
+  site: 'https://example.com/',
+});
+```
+
+### 変更: ビルドアセット用の`_astro/`フォルダー
+
+v1.xでは、アセットは`assets/`や`chunks/`、ビルド出力のルートなど、様々な場所にビルドされていました。
+
+Astro v2.0では、すべてのビルド出力アセットを新しい`_astro/`フォルダに移動し、場所を統一しています。
+
+<FileTree>
+- dist/
+  - _astro
+    - client.9218e799.js
+    - index.df3f880e0.css
+</FileTree>
+{/*  TODO: Set anchor link from #buildformat to #buildassets */}
+この場所は[新しい`build.assets`設定オプション](/ja/reference/configuration-reference/#buildformat)で制御できます。
+
+#### どうすればいいの？
+
+これらの資産の場所に依存している場合、開発プラットフォームの設定を更新します。
+
+### 変更: Markdownプラグインの設定
+
+#### 削除: `extendDefaultPlugins`
+
+ v1.xでは、Astroは独自のMarkdownプラグインを追加する時に、Astroのデフォルトプラグインを再有効化するために`markdown.extendDefaultPlugins`を使用しました。
+
+Astro v2.0ではこの動作がデフォルトとなったため、この設定オプションを完全に削除しています。
+
+Markdownの設定でremarkとrehypeのプラグインを適用しても、**Astroのデフォルトのプラグインを無効にしなくなりました。** GitHub-Flavored Markdown と Smartypants は、カスタムの `remarkPlugins` や `rehypePlugins` が設定されているかどうかにかかわらず適用されるようになりました。
+
+##### どうすればいいの？
+
+設定の`extendDefaultPlugins`を削除してください。これはv2.0のAstroのデフォルトの動作になったので、この行を削除しても差し支えはありません。
+
+```js del={6}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  markdown: {
+    extendDefaultPlugins,
+  }
+});
+```
+
+#### 追加: `gfm`と`smartypants`
+
+v1.xでは、 `markdown.extendDefaultPlugins: false`を設定することでAstroのデフォルトMarkdownプラグイン(GitHub-Flavored MarkdownとSmartyPants)の両方を無効化することができました。
+
+Astro v2.0では、`markdown.extendDefaultPlugins: false`を、Astroに内蔵されたデフォルトのMarkdownプラグインを個別に制御するブール値のオプションに置き換えました。これらはデフォルトで有効になっており、個別に `false` に設定できます。
+
+##### どうすればいいの？
+
+`extendDefaultPlugins: false`を削除し、その代わりに各プラグインを個別に無効化するフラグを追加しました。
+
+- `markdown.gfm: false` GitHub-Flavored Markdownを無効化する
+- `markdown.smartypants: false` SmartyPantsを無効化する
+
+```js del={6} ins={7-8}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  markdown: {
+    extendDefaultPlugins: false,
+    smartypants: false,
+    gfm: false,
+  }
+});
+```
+
+### 変更: MDXプラグイン設定
+
+#### 置き換え: `extendPlugins`が`extendMarkdownConfig`へ変更されました。
+
+v1.xでは、MDXインテグレーションの`extendPlugins`オプションで、MDXファイルがMarkdownの設定をどのように継承するかを管理しました。Markdownの全設定(`markdown`)、またはAstroのデフォルトプラグインのみ(`default`)です。
+
+Astro v2.0では、`mdx.extendPlugins`で制御される動作を、デフォルトで`true`になる3つの新しい独立した設定可能なオプションに置き換えています。
+
+- **[`mdx.extendMarkdownConfig`](/ja/guides/integrations-guide/mdx/#extendmarkdownconfig)** を使えば、Markdownの設定のすべてまたは一部を引き継げます。
+- **`mdx.gfm`** でMDXのGitHub-Flavored Markdownの有効・無効化を設定します。
+- **`mdx.smartypants`** MDXのSmartyPantsの有効・無効化を設定します。
+
+##### どうすればいいの？
+
+`extendPlugins: 'markdown'`を設定から削除してください。これで、デフォルトの動作になります。
+
+```js del={8}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  integrations: [
+    mdx({
+      extendPlugins: 'markdown',
+    }),
+  ],
+});
+```
+
+`extendPlugins: 'defaults'`を`extendMarkdownConfig: false`に置き換え、GitHub-Flavored MarkdownとSmartyPantsの個別のオプションを追加し、これらのデフォルトプラグインをMDXで個別に有効化します。
+
+```js del={8} ins={9-11}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  integrations: [
+    mdx({
+      extendPlugins: 'defaults',
+      extendMarkdownConfig: false,
+      smartypants: true,
+      gfm: true,
+    }),
+  ],
+});
+```
+
+#### 追加: Markdownに対応したMDX設定オプションの追加
+
+Astro v2.0では、MDXインテグレーション設定において、[利用可能なすべてのMarkdown設定オプション](/ja/reference/configuration-reference/#マークダウンのオプション)（`drafts`を除く）を個別に設定できるようになりました。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  markdown: {
+    remarkPlugins: [remarkPlugin1],
+    gfm: true,
+  },
+  integrations: [
+    mdx({
+      remarkPlugins: [remarkPlugin2],
+      gfm: false,
+    })
+  ]
+});
+```
+
+##### どうすればいいの？
+
+MarkdownとMDXの設定を再検討し、既存の設定と利用可能な新しいオプションを比較します。
+
+
+
+### 変更: フロントマターへのプラグインアクセス
+
+v1.xでは、remarkとrehypeプラグインはユーザーのフロントマターにアクセスすることができませんでした。Astro はプラグインのフロントマターをファイルのフロントマターにマージし、ファイルのフロントマターをプラグインに渡さないようにしました。
+
+Astro v2.0ではremarkとrehypeプラグインがフロントマターインジェクションを介してユーザーのフロントマターへのアクセスを提供します。これにより、プラグインの作者はユーザーの既存のフロントマターを変更したり、他のプロパティに基づいて新しいプロパティを計算したりすることができます。
+
+
+#### どうすればいいの？
+
+あなたが書いたremarkやrehypeプラグインの動作が変わったかどうか確認してください。`data.astro.frontmatter`は空のオブジェクトではなく、完全なMarkdownまたはMDXドキュメントのフロントマターになったことに注意してください。
+
+### 変更: RSSの構成
+
+v1.xでは、AstroのRSSパッケージは、`items: import.meta.glob(...)`を使って、RSSフィードアイテムのリストを生成することができました。この使い方は現在非推奨であり、いずれ削除される予定です。
+
+Astro v2.0では、`items`プロパティに`pagesGlobToRssItems()`が導入されました。
+
+#### どうすればいいの？
+
+`import.meta.glob()`を含む既存の関数を`pagesGlobToRssItems()`ヘルパーでラップしてください。
+
+```js ins={3, 8, 10}
+// src/pages/rss.xml.js
+import rss, {
+  pagesGlobToRssItems
+} from '@astrojs/rss';
+
+export async function get(context) {
+  return rss({
+    items: await pagesGlobToRssItems(
+      import.meta.glob('./blog/*.{md,mdx}'),
+    ),
+  });
+}
+```
+
+### 変更: Svelte IDEのサポート
+
+Astro v2.0では、[`@astrojs/svelte`インテグレーション](/ja/guides/integrations-guide/svelte/)を使用する場合、プロジェクトに`svelte.config.js`ファイルが必要です。これはIDEの自動補完を提供するために必要です。
+
+#### どうすればいいの？
+
+プロジェクトのルートに`svelte.config.js`ファイルを追加します。
+
+```js
+// svelte.config.js
+import { vitePreprocess } from '@astrojs/svelte';
+
+export default {
+  preprocess: vitePreprocess(),
+};
+```
+
+新規ユーザーの場合、`astro add svelte`を実行すると、このファイルが自動的に追加されます。
+
+### 削除: `legacy.astroFlavoredMarkdown`
+
+v1.0では、Astroは古いastroFlavored Markdown(Components in Markdownとしても知られている)をレガシ機能へ移行しました。
+
+Astro v2.0では、`legacy.astroFlavoredMarkdown` オプションは完全に削除されました。`.md`ファイル内のコンポーネントをインポートして使うことはできなくなります。
+
+#### どうすればいいの？
+
+このレガシーフラグを削除します。 Astroでは使用できなくなりました。
+
+```js del={3-5}
+// astro.config.mjs
+export default defineConfig({
+	legacy: {
+		astroFlavoredMarkdown: true,
+	},
+})
+
+```
+
+v1.x でこの機能を使用していた場合は、[MDXインテグレーション](/ja/guides/integrations-guide/mdx/)を使用することをお勧めします。これにより、コンポーネントとJSX式をMarkdown構文で組み合わせることができます。
+
+### 削除: `Astro.resolve()`
+
+v0.24では、Astroは、ブラウザーで参照する可能性があるアセットへの解決済みURLを取得するための `Astro.resolve()` を非推奨にしました。
+
+Astro v2.0では、このオプションが完全に削除されています。あなたのコードで`Astro.resolve()`を使用すると、エラーが発生します。
+
+#### どうすればいいの？
+
+アセットパスの解決は、代わりに`import`を使用します。例えば、次のようになります。
+
+```astro
+// src/pages/index.astro
+---
+import 'style.css';
+import imageUrl from './image.png';
+---
+
+<img src={imageUrl} />
+```
+
+### 削除: `Astro.fetchContent()`
+
+v0.26では、ローカルのMarkdownファイルからデータを取得するための`Astro.fetchContent()`を非推奨にしました。
+
+Astro v2.0では、このオプションは完全に削除されています。あなたのコードで`Astro.fetchContent()`を実行すると、エラーになります。
+
+#### どうすればいいの？
+
+{/*  TODO: Set anchor link from #その他のアセット to #astroglob */}
+[`Astro.glob()`](/ja/guides/imports/#その他のアセット)を使ってローカルのMarkdownファイルを取得したり、[コンテンツコレクション](/ja/guides/content-collections/)に変換したりできます。
+
+```astro
+// src/pages/index.astro
+---
+const allPosts = await Astro.glob('./posts/*.md');
+---
+```
+
+### 更新: `Astro.canonicalURL`
+
+v1.0 では、Astroは正規のURLを構築するための`Astro.canonicalURL`を非推奨にしました。
+
+Astro v2.0では、このオプションは完全に削除されています。あなたのコードで`Astro.canonicalURL`を実行すると、エラーになります。
+
+
+#### どうすればいいの？
+
+`Astro.url`を使用して、正規のURLを構築します。
+
+```astro
+// src/pages/index.astro
+---
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+---
+
+```
+
+### 更新: Vite 4
+
+Astro v2.0は、2022年12月にリリースされたVite 3から[Vite 4](https://vitejs.dev/)にアップグレードします。
+
+#### どうすればいいの？
+
+コードの変更は必要ありません。Astro内部でほとんどのアップグレードに対応しました。ただし、Viteの微妙な動作はバージョンによって変化することがあります。
+
+問題が発生した場合は、公式の[Vite移行ガイド](https://vitejs.dev/guide/migration.html)を参照してください。
+
+## Astro v2.0 実験用フラグを削除しました。
+
+`astro.config.mjs`から以下の実験的フラグを削除します。
+
+```js del={5-9}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    contentCollections: true,
+    prerender: true,
+    errorOverlay: true,
+  },
+})
+```
+
+これらの機能は、デフォルトで利用できるようになりました。
+
+- MarkdownやMDXのファイルを型安全で管理する方法として、[コンテンツコレクション](/ja/guides/content-collections/)があります。
+{/*  TODO: Set anchor link from #機能 to #configuring-individual-routes */}
+- SSR使用時に[個別ページ静的HTMLにプリレンダリング](/ja/guides/server-side-rendering/#機能)をし、高速化とキャッシュ性能の向上を図る。
+- エラーメッセージのオーバーレイのデザインを変更しました。
+
+## 既知の問題点
+
+現在、既知の問題はありません。

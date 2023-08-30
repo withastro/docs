@@ -1,0 +1,138 @@
+---
+title: 部署你的 Astro 站点至 Netlify
+description: 如何使用 网站部署到网络上。Netlify 将你的 Astro 网站部署到网络上。
+type: deploy
+i18nReady: true
+---
+[Netlify](https://netlify.com) 为网络应用程序和静态网站提供托管和无服务器后端服务。任何 Astro 网站都可以托管在 Netlify 上！
+
+本指南包括通过网站用户操作界面或 Netlify 的 CLI(命令行工具) 部署到 Netlify 的说明。
+
+## 项目配置
+
+你的 Astro 项目可以通过三种不同的方式部署到Netlify：作为一个静态网站，一个服务端渲染的网站，或一个（实验性的）边缘渲染的网站。
+
+### 静态网站
+
+你的 Astro 项目默认就是静态网站。你不需要任何额外的配置就可以将静态的 Astro 网站部署到 Netlify。
+
+### SSR/Edge 下的适配
+
+为你的 Astro 项目开启 SSR 并在 Netlity 上部署:
+
+通过以下的 `astro add` 命令，添加 [Netlify 适配器](/zh-cn/guides/integrations-guide/netlify/)，在你的 Astro 项目中启用 SSR。这一步将会安装适配器并且对你的 `astro.config.mjs` 文件进行适当的修改。
+
+```bash
+npx astro add netlify
+```
+
+如果你更倾向于手动安装适配器，那么请完成以下两个步骤：
+
+1. 使用你喜欢的包管理器将 [@astrojs/netlify 适配器](https://github.com/withastro/astro/tree/main/packages/integrations/netlify) 安装到你的项目依赖中。如果你正在使用 npm 或者不确定使用何种包管理器，可以在终端运行以下命令：
+
+    ```bash
+      npm install @astrojs/netlify
+    ```
+
+2. 在你的 `astro.config.mjs` 项目配置文件中添加两行新增内容：
+
+    ```js title="astro.config.mjs" ins={2, 5-6}
+    import { defineConfig } from 'astro/config';
+    import netlify from '@astrojs/netlify/functions';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: netlify(),
+    });
+    ```
+
+    要使用 [Netlify 的实验性 Edge Functions](https://docs.netlify.com/netlify-labs/experimental-features/edge-functions/#app) 来渲染你的项目，你需要更改 Astro 配置文件中 `netlify/functions` 的导入，使用 `netlify/edge-functions` 代替它。
+      ```js title="astro.config.mjs" ins={3} del={2}
+      import { defineConfig } from 'astro/config';
+      import netlify from '@astrojs/netlify/functions';
+      import netlify from '@astrojs/netlify/edge-functions';
+
+      export default defineConfig({
+        output: 'server',
+        adapter: netlify(),
+      });
+      ```
+
+## 如何部署
+
+你可以通过网站用户操作界面或使用 Netlify 的 CLI(命令行工具) 进行部署。无论是静态网站还是 SSR 的 Astro 网站，其过程都是相同的。
+
+### 网站用户操作界面部署方式
+
+如果你的项目存储在 GitHub、GitLab、BitBucket 或 Azure DevOps 中，你可以使用 Netlify 的网站用户操作界面来部署你的 Astro 网站。
+
+1. 在 [Netlify dashboard](https://app.netlify.com/) 页面上, 点击 <kbd>Add a new site</kbd>
+
+2. 选择 <kbd>Import an existing project</kbd>
+
+    当你从你的 Git 提供商中导入 Astro 仓库时，Netlify 应该会自动检测并预填充正确的配置设置。
+
+3. 确保已输入以下设置，然后按下 <kbd>Deploy</kbd> 按钮:
+
+    - **Build Command:** `astro build` or `npm run build`
+    - **Publish directory:** `dist`
+
+ 部署后，你将被重定向到站点概览页面。在那里，你可以编辑你站点的详细信息。
+
+根据你的部署配置，未来对源代码库的任何修改都将触发预览和生产部署。
+
+#### `netlify.toml` 文件
+
+你可以选择在项目仓库的顶层创建一个新的 `netlify.toml` 文件，用来配置你的构建命令和发布目录，以及其他项目设置，包括环境变量和重定向。Netlify 将读取此文件并自动配置你的部署。
+
+为了配置默认设置，创建一个 `netlify.toml` 文件，并填入以下内容：
+
+```toml
+[build]
+  command = "npm run build"
+  publish = "dist"
+```
+
+📚 更多信息可以在 Netlify 的博客文章 [“部署现有的 Astro Git 仓库”](https://www.netlify.com/blog/how-to-deploy-astro/#deploy-an-existing-git-repository-to-netlify) 中找到。
+
+
+
+### CLI 部署方式
+
+你也可以在 Netlify 上创建一个新的站点，并通过安装和使用 [Netlify CLI](https://cli.netlify.com/) 来关联你的 Git 仓库。
+
+1. 全局安装 Netlify CLI 工具
+
+    ```bash
+    npm install --global netlify-cli
+    ```
+
+2. 运行 `netlify login` 并按照指示进行登录并授权 Netlify。
+3. 运行 `netlify init` 并按照指示进行操作。
+4. 确认你的构建命令 (`astro build`)
+
+    CLI 将自动检测构建设置（`astro build`）和部署目录（`dist`），并将提供一个自动生成且有这些对应设置的 [`netlify.toml` 文件](#netlifytoml-文件)。
+
+5. 推送到 Git 来触发构建和部署
+
+    CLI 将向仓库添加一个部署密钥，这意味着每次你使用 `git push` 时，你的网站都会在 Netlify 上自动重新构建。
+
+📚 更多详情请参阅 Netlify 的文章: [使用 Netlify CLI 部署 Astro 网站](https://www.netlify.com/blog/how-to-deploy-astro/#link-your-astro-project-and-deploy-using-the-netlify-cli)。
+
+### 设置 Node.js 版本
+
+如果你在 Netlify 上使用的是旧版的 [构建镜像](https://docs.netlify.com/configure-builds/get-started/#build-image-selection)（Xenial），请确保你已经设置了 Node.js 的版本。Astro 需要 v18.14.1 或更高版本。
+
+你可以使用下面的方法在 [Netlify 中指定 Node.js 版本](https://docs.netlify.com/configure-builds/manage-dependencies/#node-js-and-javascript)：
+- 在你的项目根目录中存放一个 [`.nvmrc`](https://github.com/nvm-sh/nvm#nvmrc) 文件
+- 在你的网站设置中使用 Netlify 项目面板的 `NODE_VERSION` 环境变量。
+
+## 使用 Netlify Functions
+
+在 Astro 中使用 Netlify Functions 无需特殊配置。在你的项目根目录中添加一个 `netlify/functions` 目录，并按照 [Netlify Functions 文档](https://docs.netlify.com/functions/overview/) 的指引开始吧！
+
+## 示例
+
+- [如何部署 Astro 站点](https://www.netlify.com/blog/how-to-deploy-astro/) — Netlify 博客
+- [使用表单、无服务器功能和重定向功能部署 Astro 网站](https://www.netlify.com/blog/deploy-an-astro-site-with-forms-serverless-functions-and-redirects/) — Netlify 博客
+- [部署演示视频](https://youtu.be/GrSLYq6ZTes) — Netlify YouTube 频道

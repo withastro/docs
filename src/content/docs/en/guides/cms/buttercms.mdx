@@ -1,0 +1,130 @@
+---
+title: ButterCMS & Astro
+description: Add content to your Astro project using ButterCMS
+type: cms
+service: ButterCMS
+stub: false
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+
+
+ButterCMS is a headless CMS and blog engine that allows you to publish structured content to use in your project.
+
+## Integrating with Astro
+:::note
+For a full blog site example, see the [Astro + ButterCMS Starter Project](https://buttercms.com/starters/astro-starter-project/).
+:::
+In this section, we'll use the [ButterCMS SDK](https://www.npmjs.com/package/buttercms) to bring your data into your Astro project. 
+To get started, you will need to have the following:
+### Prerequisites
+
+1. **An Astro project** - If you don't have an Astro project yet, our [Installation guide](/en/install/auto/) will get you up and running in no time.
+
+2. **A ButterCMS account**. If you don't have an account, you can [sign up](https://buttercms.com/join/) for a free trial.
+
+3. **Your ButterCMS API Token** - You can find your API Token on the [Settings](https://buttercms.com/settings/) page.
+
+### Setup
+
+1. Create a `.env` file in the root of your project and add your API token as an environment variable:
+
+```ini title=".env"
+BUTTER_TOKEN=YOUR_API_TOKEN_HERE
+```
+
+:::tip
+Read more about [using environment variables](/en/guides/environment-variables/) and `.env` files in Astro.
+:::
+
+2. Install the ButterCMS SDK as a dependency:
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install buttercms
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install buttercms
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add buttercms
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+3. Create a `buttercms.js` file in a new `src/lib/` directory in your project:
+
+```js title="src/lib/buttercms.js"
+import Butter from "buttercms";
+
+export const butterClient = Butter(import.meta.env.BUTTER_TOKEN);
+```
+
+This authenticates the SDK using your API Token and exports it to be used across your project.
+
+### Fetching Data
+To fetch content, import this client and use one of its `retrieve` functions. 
+
+In this example, we [retrieve a collection](https://buttercms.com/docs/api/#retrieve-a-collection) that has three fields: a short text `name`, a number `price`, and a WYSIWYG `description`. 
+
+```astro title="src/pages/ShopItem.astro"
+---
+import { butterClient } from "../lib/buttercms";
+const response = await butterClient.content.retrieve(["shopitem"]);
+
+interface ShopItem {
+	name: string,
+	price: number,
+	description: string,
+}
+
+const items = response.data.data.shopitem as ShopItem[];
+---
+<body>
+	{items.map(item => <div>
+		<h2>{item.name} - ${item.price}</h2>
+		<p set:html={item.description}></p>
+	</div>)}
+</body>
+```
+
+The interface mirrors the field types. The WYSIWYG `description` field loads as a string of HTML, and [`set:html`](/en/reference/directives-reference/#sethtml) lets you render it.
+
+Similarly, you can [retrieve a page](https://buttercms.com/docs/api/#get-a-single-page) and display its fields:
+
+```astro title="src/pages/ShopItem.astro"
+---
+import { butterClient } from "../lib/buttercms";
+const response = await butterClient.page.retrieve("*", "simple-page");
+const pageData = response.data.data;
+
+interface Fields {
+  seo_title: string,
+  headline: string,
+  hero_image: string,
+}
+
+const fields = pageData.fields as Fields;
+---
+<html>
+  <title>{fields.seo_title}</title>
+  <body>
+    <h1>{fields.headline}</h1>
+    <img src={fields.hero_image} />
+  </body>
+</html>
+```
+
+## Official Resources
+
+- [Astro + ButterCMS Starter Project](https://buttercms.com/starters/astro-starter-project/)
+- The [full ButterCMS API documentation](https://buttercms.com/docs/api/)
+- ButterCMS's [JavaScript Guide](https://buttercms.com/docs/api-client/javascript/)
+
+## Community Resources 
+- Add yours!

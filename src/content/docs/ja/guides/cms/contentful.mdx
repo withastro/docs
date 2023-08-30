@@ -1,0 +1,564 @@
+---
+title: ContentfulとAstro
+description: ContentfulをCMSとして使ってコンテンツをAstroプロジェクトへ追加する
+type: cms
+service: Contentful
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+
+
+[Contentful](https://www.contentful.com/)はコンテンツの管理と他サービスとの連携、マルチプラットフォームへの公開が可能なヘッドレスCMSです。
+
+## Astroとの連携
+
+このセクションでは、[Contentful SDK](https://github.com/contentful/contentful.js)を使ってクライアントサイドJavaScriptを使わずにContentfulスペースとAstroを接続する方法を解説します。
+
+### 必須要件
+
+始めるには以下のものが必要です。
+
+1. **Astroプロジェクト** - もしAstroプロジェクトをまだ持っていない場合は、[自動CLIでAstroをインストール](/ja/install/auto/)を見ると、すぐに使い始めることができます。
+
+2. **ContentfulアカウントとContentfulスペース** - もしアカウントを持っていない場合は、フリーアカウントを[登録](https://www.contentful.com/sign-up/)できて、Contentfulスペースを作成できます。既に持っている場合は既存のスペースを利用できます。
+
+3. **Contentfulクレデンシャル** - Contentfulダッシュボードの**Settings > API keys**から以下のクレデンシャルを見つけることができます。もしAPIキーが無い場合は、**Add API Key** を選択して追加してください。
+
+    - **Contentful space ID** - ContentfulスペースのID
+    - **Contentful delivery access token** - Contentfulスペースからpublishedコンテンツを利用するためのアクセストークン
+    - **Contentful preview access token** - Contentfulスペースからunpublishedコンテンツを利用するためのアクセストークン
+
+### クレデンシャルを設定する
+
+ContentfulスペースのクレデンシャルをAstroに追加するために、`.env`ファイルをプロジェクトのルートディレクトリに作成して環境変数に追加します。
+
+```ini title=".env"
+CONTENTFUL_SPACE_ID=スペースID
+CONTENTFUL_DELIVERY_TOKEN=DELIVERY_TOKEN
+CONTENTFUL_PREVIEW_TOKEN=PREVIEW_TOKEN
+```
+
+これで、プロジェクトでこれらの環境変数を利用できます。
+
+もし、Contentfulの環境変数にインテリセンスをつけたい場合は、`src`ディレクトリに`env.d.ts`ファイルを作成して、`ImportMetaEnv`を以下のように設定します。
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly CONTENTFUL_SPACE_ID: string;
+  readonly CONTENTFUL_DELIVERY_TOKEN: string;
+  readonly CONTENTFUL_PREVIEW_TOKEN: string;
+}
+```
+:::tip
+[環境変数](/ja/guides/environment-variables/)のAstroの`.env`ファイルについてをご覧ください。
+:::
+
+ルートディレクトリは以下のように作成したファイル含まれているはずです。
+
+```ini title="Project Structure" ins={2-3}
+├── src/
+│   └── env.d.ts
+├── .env
+├── astro.config.mjs
+└── package.json
+```
+
+### 依存関係をインストールする
+
+Contentfulスペースと接続するために、次の中から好みのパッケージマネージャの1つのコマンドを利用して、以下の両方のパッケージをインストールします。
+- [`contentful.js`](https://github.com/contentful/contentful.js), Contentful公式のJavaScript用SDKです。
+- [`rich-text-html-renderer`](https://github.com/contentful/rich-text/tree/master/packages/rich-text-html-renderer), ContentfulのリッチテキストフィールドをHTMLに描画するためのパッケージです。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install contentful @contentful/rich-text-html-renderer
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install contentful @contentful/rich-text-html-renderer
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add contentful @contentful/rich-text-html-renderer
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+次に、プロジェクトの`src/lib`に`contentful.ts`というファイルを作成します。
+
+```ts title="src/lib/contentful.ts"
+import contentful from "contentful";
+
+export const contentfulClient = contentful.createClient({
+  space: import.meta.env.CONTENTFUL_SPACE_ID,
+  accessToken: import.meta.env.DEV
+    ? import.meta.env.CONTENTFUL_PREVIEW_TOKEN
+    : import.meta.env.CONTENTFUL_DELIVERY_TOKEN,
+  host: import.meta.env.DEV ? "preview.contentful.com" : "cdn.contentful.com",
+});
+
+```
+
+上記のコードスニペットはContentfulクライアントを作成し、`.env`ファイルからクレデンシャルを渡しています。
+
+:::caution
+開発中の間は、コンテンツは**Contentful preview API**から取得します。これはunpublishedのコンテンツをContentfulウェブアプリから閲覧できることを意味します。
+
+ビルド時には、コンテンツは**Contentful delivery API**から取得します。。これはビルド時にpublishedのコンテンツだけ取得することを意味します。
+:::
+
+最終的にルートディレクトリは作成したファイルが以下のように含まれています。
+
+```ini ins={3-4}
+├── src/
+│   └── env.d.ts
+│   └── lib/
+│       └── contentful.ts
+├── .env
+├── astro.config.mjs
+└── package.json
+```
+
+### 取得するデータ
+
+これで、Astroコンポーネントは`contentfulClient`を使ってデータを取得でき、Contentfulアカウントから受信する`content_type`を指定できます。
+
+例えば、もしタイトルのテキストフィールドとコンテンツのリッチテキストフィールドを持つ`blogPost`コンテンツタイプがある場合、コンポーネントは以下のようになります。
+
+```astro
+---
+import { contentfulClient } from "../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { Document } from "@contentful/rich-text-types";
+
+interface BlogPost {
+    title: string,
+    content: Document
+}
+
+const entries = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+});
+---
+<body>
+  {entries.items.map((item) => (
+    <section>
+      <h2>{item.fields.title}</h2>
+      <article set:html={documentToHtmlString(item.fields.content)}></article>
+    </section>
+  ))}
+</body>
+```
+
+:::tip
+もしContentfulスペースが空の場合、コンテンツの基本ブログ型の作成方法は [Contentfulモデルのセットアップ](#contentfulモデルのセットアップ)を確認してください。
+:::
+
+[Contentful documentation](https://contentful.github.io/contentful.js/contentful/9.1.34/ContentfulClientAPI.html)からより多くのクエリオプションを見つけることができます。
+
+## AstroとContentfulを利用してブログを作成する
+
+上記セットアップで、ContentfulをCMSとして利用するブログが作成できるようになりました。
+
+### 必須要件
+
+1. **Contentfulスペース** - 本チュートリアルは空のスペースから始めることをお勧めします。既にコンテンツモデルを持っている場合は、そのままコンテンツを使えますが、コードスニペットをコンテンツに合わせた修正が必要になります。
+2. **[Contentful SDK](https://github.com/contentful/contentful.js)と連携されたAstroプロジェクト** - より多くのAstroプロジェクトとContentfulのセットアップ方法を知りたい場合は、 [Astroとの連携](#astroとの連携)をご覧ください。
+
+### Contentfulモデルのセットアップ
+
+Contenfulスペースの内の**Content model**セクションで、以下のフィードと値を持つモデルを作成します。
+
+- **Name:** ブログ記事
+- **API identifier:** `blogPost`
+- **Description:** ブログ記事のコンテンツタイプです。
+
+コンテンツタイプを作成したら、**Add Field**ボタンを使い以下のパラメータを持つフィールドを5つ追加します。
+
+1. テキストフィールド(Text field)
+    - **Name:** タイトル
+    - **API identifier:** `title`
+    (leave the other parameters as their defaults)
+2. 日時フィールド(Date and time field)
+    - **Name:** 日時
+    - **API identifier:** `date`
+3. テキストフィールド(Text field)
+    - **Name:** スラッグ
+    - **API identifier:** `slug`
+    (他のパラメータはデフォルトのまま残しておきます)
+4. テキストフィールド(Text field)
+    - **Name:** 説明
+    - **API identifier:** `description`
+5. リッチテキストフィールド(Rich text field)
+    - **Name:** コンテンツ
+    - **API identifier:** `content`
+
+**Save**を押して変更を保存します。
+
+Contentfulスペースの**Content**セクションで、**Add Entry**ボタンを押して新しいエントリーを作成します。そして、以下のようにフィールドを埋めます。
+
+- **Title:** `Astro is amazing!`
+- **Slug:** `astro-is-amazing`
+- **Description:** `Astro is a new static site generator that is blazing fast and easy to use.`
+- **Date:** `2022-10-05`
+- **Content:** `This is my first blog post!`
+
+**Publish**
+**Publish**を押してエントリーを保存します。これではじめてのブログ記事ができました。
+
+より多くのブログ記事を書いてから、お気に入りのエディターに切り替えてAstroを使ってハッキングを始めましょう!
+
+### ブログ記事のリストを表示する
+
+`BlogPost`というインターフェイスを作成し`src/lib`に`contentful.ts`というファイルを追加してください。このインターフェイスはContentfulのブログ記事のコンテンツタイプと一致します。ブログエントリーのレスポンスと型を一致させるときに利用します。
+
+```ts title="src/lib/contentful.ts" ins={2,4-10}
+import contentful from "contentful";
+import type { Document } from "@contentful/rich-text-types";
+
+export interface BlogPost {
+  title: string;
+  date: string;
+  description: string;
+  content: Document;
+  slug: string;
+}
+
+export const contentfulClient = contentful.createClient({
+  space: import.meta.env.CONTENTFUL_SPACE_ID,
+  accessToken: import.meta.env.DEV
+    ? import.meta.env.CONTENTFUL_PREVIEW_TOKEN
+    : import.meta.env.CONTENTFUL_DELIVERY_TOKEN,
+  host: import.meta.env.DEV ? "preview.contentful.com" : "cdn.contentful.com",
+});
+
+```
+
+次に、Contentfulからデータを取得するAstroページを見てみましょう。`src/pages/`にある`index.astro`のサンプルをホームページとして使います。
+
+`BlogPost`インターフェイスと`src/lib/contentful.ts`から`contentfulClient`をインポートします。
+
+Contentfulからコンテンツタイプが`blogPost`のすべてのエントリーを取得して、レスポンスを作成するために`BlogPost`インターフェイスを渡します。
+
+```astro title="src/pages/index.astro"
+---
+import { contentfulClient } from "../lib/contentful";
+import type { BlogPost } from "../lib/contentful";
+
+const entries = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+});
+---
+```
+
+これで`entries.items`にブログ記事が配列として返ってきます。返ってきたデータのフォーマットを変えるために`map()`を使い新しい配列(`posts`)を作成します。
+
+以下の例は、コンテンツモデルから`items.fields`プロパティを返してブログ記事のプレビューを作成して、同時に日付を読みやすいフォーマットに整形しています。
+
+```astro title="src/pages/index.astro" ins={9-17}
+---
+import { contentfulClient } from "../lib/contentful";
+import type { BlogPost } from "../lib/contentful";
+
+const entries = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+});
+
+const posts = entries.items.map((item) => {
+  const { title, date, description, slug } = item.fields;
+  return {
+    title,
+    slug,
+    description,
+    date: new Date(date).toLocaleDateString()
+  };
+});
+---
+```
+
+最後に、それぞれのブログ記事のプレビューを表示するためにテンプレートに`posts`を利用します。
+
+```astro astro title="src/pages/index.astro" ins={19-37}
+---
+import { contentfulClient } from "../lib/contentful";
+import type { BlogPost } from "../lib/contentful";
+
+const entries = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+});
+
+const posts = entries.items.map((item) => {
+  const { title, date, description, slug } = item.fields;
+  return {
+    title,
+    slug,
+    description,
+    date: new Date(date).toLocaleDateString()
+  };
+});
+---
+<html lang="en">
+  <head>
+    <title>My Blog</title>
+  </head>
+  <body>
+    <h1>My Blog</h1>
+    <ul>
+      {posts.map((post) => (
+        <li>
+          <a href={`/posts/${post.slug}/`}>
+            <h2>{post.title}</h2>
+          </a>
+          <time>{post.date}</time>
+          <p>{post.description}</p>
+        </li>
+      ))}
+    </ul>
+  </body>
+</html>
+```
+
+### 個別にブログ記事を生成する
+
+上記のようにContentfulからデータを取得しますが、今回は書くブログ記事のためにユニークなページルーティングを作成します。
+
+#### 静的サイトジェネレーター
+
+Astroのデフォルト静的モードを利用している場合、[動的ルーティング](/ja/core-concepts/routing/#動的ルーティング)と`getStaticPaths()`関数を使えます。この関数はビルド時に呼ばれて、ページとなるパスのリストを生成します。
+
+`src/pages/posts`に`[slug].astro`というファイルを作成します。
+
+`index.astro`でやったように、`BlogPost`インターフェイスと`src/lib/contentful.ts`にある`contentClient`をインポートします。
+
+これで、`getStaticPaths()`関数内でデータを取得できます。
+
+```astro title="src/pages/posts/[slug].astro"
+---
+import { contentfulClient } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
+
+export async function getStaticPaths() {
+  const entries = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+  });
+}
+---
+```
+
+そして、各アイテムを`params`と`props`プロパティを持つオブジェクトへマッピングさせます。`params`プロパティはページURLを生成するために使用され、`props`プロパティはページコンポーネントへpropsとして渡されます。
+
+```astro title="src/pages/posts/[slug].astro" ins={3,11-19}
+---
+import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { BlogPost } from "../../lib/contentful";
+
+export async function getStaticPaths() {
+  const entries = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+  });
+
+  const pages = entries.items.map((item) => ({
+    params: { slug: item.fields.slug },
+    props: {
+      title: item.fields.title,
+      content: documentToHtmlString(item.fields.content),
+      date: new Date(item.fields.date).toLocaleDateString(),
+    },
+  }));
+  return pages;
+}
+---
+```
+
+`params`無いのプロパティは動的ルーティングの名前と一致させる必要があります。ファイル名が`[slug].astro`であるため、`slug`を利用します。
+
+このサンプルで、`props`オブジェクトはページに対して以下の3つのプロパティを渡しています。
+
+- title (文字列)
+- content (`documentToHtmlString`を使ってHTMLに変換されたリッチテキストドキュメント)
+- date (`Date`コンストラクタを使ってフォーマットされた日付)
+
+最後に、ブログ記事を表示するためにページの`props`を利用します。
+
+```astro title="src/pages/posts/[slug].astro" ins={21,23-32}
+---
+import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { BlogPost } from "../../lib/contentful";
+
+export async function getStaticPaths() {
+  const { items } = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+  });
+  const pages = items.map((item) => ({
+    params: { slug: item.fields.slug },
+    props: {
+      title: item.fields.title,
+      content: documentToHtmlString(item.fields.content),
+      date: new Date(item.fields.date).toLocaleDateString(),
+    },
+  }));
+  return pages;
+}
+
+const { content, title, date } = Astro.props;
+---
+<html lang="en">
+  <head>
+    <title>{title}</title>
+  </head>
+  <body>
+    <h1>{title}</h1>
+    <time>{date}</time>
+    <article set:html={content} />
+  </body>
+</html>
+```
+
+http://localhost:4321/posts/astro-is-amazing/にアクセスすると動的ルーティングが動作していることが分かります！
+
+#### サーバーサイドレンダリング
+
+[プロジェクトでSSRを有効にする](/ja/guides/server-side-rendering/#プロジェクトでssrを有効にする)場合、Contentfulデータを取得するために動的ルーティングで `slug` パラメータが利用されます。
+
+`src/pages/posts`に`[slug].astro`を作成します。URLからスラッグを取得するために[`Astro.params`](/ja/reference/api-reference/#astroparams)を使って、以下のように`getEntries`に渡してあげます。
+
+```astro title="src/pages/posts/[slug].astro"
+---
+import { contentfulClient } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
+
+const { slug } = Astro.params;
+
+const data = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+  "fields.slug": slug,
+});
+---
+```
+
+もしエントリーが見つからない場合は、 [`Astro.redirect`](/ja/guides/server-side-rendering/#astroredirect)を使ってユーザーを404ページにリダイレクトできます。
+
+```astro title="src/pages/posts/[slug].astro" ins={7, 12-13}
+---
+import { contentfulClient } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
+
+const { slug } = Astro.params;
+
+try {
+  const data = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+    "fields.slug": slug,
+  });
+} catch (error) {
+  return Astro.redirect("/404");
+}
+---
+```
+
+テンプレートセクションで記事データを渡すには、`try/catch`ブロックの外に`post`オブジェクトを作成します。
+
+ドキュメントの`content`をHTMLに変換するために`documentToHtmlString()`を使って、日付を成形するためにDateコンストラクターを利用します。`title`はそのままで大丈夫です。そしてこれらのプロパティを`post`オブジェクトに追加します。
+
+```astro title="src/pages/posts/[slug].astro" ins={7,14-19}
+---
+import Layout from "../../layouts/Layout.astro";
+import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { BlogPost } from "../../lib/contentful";
+
+let post;
+const { slug } = Astro.params;
+try {
+  const data = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+    "fields.slug": slug,
+  });
+  const { title, date, content } = data.items[0].fields;
+  post = {
+    title,
+    date: new Date(date).toLocaleDateString(),
+    content: documentToHtmlString(content),
+  };
+} catch (error) {
+  return Astro.redirect("/404");
+}
+---
+```
+
+最後にテンプレートセクションにブログ記事を表示するために`post`を参照します。
+
+```astro title="src/pages/posts/[slug].astro" ins={24-33}
+---
+import Layout from "../../layouts/Layout.astro";
+import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { BlogPost } from "../../lib/contentful";
+
+let post;
+const { slug } = Astro.params;
+try {
+  const data = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+    "fields.slug": slug,
+  });
+  const { title, date, content } = data.items[0].fields;
+  post = {
+    title,
+    date: new Date(date).toLocaleDateString(),
+    content: documentToHtmlString(content),
+  };
+} catch (error) {
+  return Astro.redirect("/404");
+}
+---
+<html lang="en">
+  <head>
+    <title>{post?.title}</title>
+  </head>
+  <body>
+    <h1>{post?.title}</h1>
+    <time>{post?.date}</time>
+    <article set:html={post?.content} />
+  </body>
+</html>
+```
+
+### サイトを公開する
+
+ウェブサイトをデプロイするために、[デプロイガイド](/ja/guides/deploy/)へアクセスして好みのホスティングプロバイダーにあわせた説明に従ってください。
+
+#### Contentfulの変更時に再ビルドする
+
+もしプロジェクトがAstroのデフォルトである静的モードを使っている場合、コンテンツを変更した時に新しいビルドを行うトリガーをするためのWebhookをセットアップする必要があります。もしNetlifyかVercelをホスティングプロバイダーとして使っている場合、コンテンツイベントから新しいビルドをトリガーするためにWebhook機能を使えます。
+
+##### Netlify
+
+NetlifyのWebhookをセットアップするためには以下の手順が必要です。
+
+1. ダッシュボードに行き、**Build & deploy**をクリックします。
+
+2. **Continuous Deployment**タブから、**Build hooks** セクションを探し**Add build hook**をクリックします。
+
+3. Webhookの名前を指定してビルド時にトリガーされるブランチを選択します。**Save**をクリックし生成されたURLをコピーします。
+
+##### Vercel
+
+VercelのWebhookをセットアップするためには以下の手順が必要です。
+
+1. ダッシュボードへ行き、**Settings**をクリックします。
+
+2. **Git**タブから、**Deploy Hooks**セクションを見つけます。
+
+3. Webhookの名前を指定してビルド時にトリガーされるブランチを選択します。**Add**をクリックして生成されたURLをコピーします。
+
+##### ContentfulにWebhookを追加する
+
+Contentfulスペースの**settings**で、**Webhooks**タブをクリックして**Add Webhook**ボタンをクリックしてWebhookを作成します。Webhookの名前を指定して、前のセクションでコピーしたWebhook URLをペーストします。最後に**Save**をクリックしてWebhookを作成します。
+
+これで、Contentfulでブログ記事を作成しても、新しいビルドがトリガーされブログが更新されます。

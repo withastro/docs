@@ -1,0 +1,129 @@
+---
+title: Тестирование
+description: Введение в тестирование в Astro.
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+
+Тестирование поможет вам писать и поддерживать работающий Astro код. Astro поддерживает множество популярных инструментов для юнит, компонентных и end-to-end тестов включая Jest, Mocha, Jasmine, Cypress и Playwright. Вы также можете установить библиотеки тестирования, специфичные для фреймворка, такие как React Testing Library, для тестирования ваших UI компонент.
+
+Фреймворки тестирования позволяют вам указывать **утверждения** или **ожидания** того, как ваш код должен вести себя в конкретных ситуациях, а затем сравнивать их с фактическим поведением вашего кода. 
+
+## Vitest
+
+Нативный Vite фреймворк для юнит тестирования с поддержкой ESM, TypeScript и JSX на базе esbuild.
+
+Посмотрите [стартовый шаблон Astro + Vitest](https://github.com/withastro/astro/tree/latest/examples/with-vitest) в GitHub.
+
+## Playwright
+
+Playwright - фреймворк для end-to-end тестирования веб приложений. Используйте Playwright API в JavaScript или TypeScript для тестирования вашего Astro кода на всех современных движках для рендеринга включая Chromium, WebKit, и Firefox.
+
+### Установка
+
+Вы можете начать и запускать ваши тесты, с помощью [VS Code расширения](https://playwright.dev/docs/getting-started-vscode).
+
+В качестве альтернативы, вы можете установить Playwright в свой Astro проект используя пакетный менеджер по вашему выбору. Следуйте инструкциям CLI, чтобы выбрать JavaScript/TypeScript, назвать свою папку с тестами, и добавить необязательный рабочий процесс в GitHub Actions.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm init playwright@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm dlx create-playwright
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn create playwright
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Создайте свой первый Playwright тест
+
+1. Выберите страницу для тестирования. В этом примере мы будет использовать страницу `index.astro`, приведенную ниже.
+
+```html title="src/pages/index.astro"
+---
+---
+<html lang="en">
+  <head>
+    <title>Astro is awesome!</title>
+    <meta name="description" content="Pull content from anywhere and serve it fast with Astro's next-gen island architecture." />
+  </head>
+  <body></body>
+</html>
+```
+
+2. Создайте новую папку и добавьте следующий тестовый файл в `src/test`. Скопируйте и вставьте следующий тест в файл, чтобы убедиться в правильности мета информации на странице. Обновите значение `<title>` на странице, чтобы оно соотвествовало странице, которую вы тестируете. 
+
+```jsx title="src/test/index.spec.ts" "Astro is awesome!"
+import { test, expect } from '@playwright/test';
+
+test('meta is correct', async ({ page }) => {
+  await page.goto("http://localhost:4321/");
+
+  await expect(page).toHaveTitle('Astro is awesome!');
+});
+```
+
+:::tip[Укажите baseurl]
+Вы можете указать [`"baseURL": "http://localhost:4321"`](https://playwright.dev/docs/api/class-testoptions#test-options-base-url) в конфигурационном файле `playwright.config.ts`, чтобы использовать `page.goto("/")` вместо `page.goto("http://localhost:4321/")` для более удобного URL.
+:::
+
+### Запуск ваших Playwright тестов
+
+Вы можете запустить один или несколько тестов одновременно, тестируя несколько браузеров. По умолчанию, результаты ваших тестов будут показаны в терминале. При желании вы можете открыть HTML Test Reporter чтобы увидеть полный отчет и отфильтровать результаты тестирования.
+
+1. Для запуска теста из нашего предыдущего примера используйте команду `test` в командной строке. Дополнительно, укажите название файла чтобы запустить только один тест:
+
+```sh
+npx playwright test index.spec.ts
+```
+
+2. Чтобы увидеть полный HTML Test Report, откройте его с помощью следующей команды:
+```sh
+npx playwright show-report
+```
+
+:::tip
+Запускайте тесты с вашим продакшн кодом, чтобы он был более похож на ваш актуальный, задеплоеный сайт. 
+:::
+
+#### Дополнительно: Запуск веб сервера разработки во время тестов
+
+Вы также можете запустить ваш сервер с помощью Playwright, при запуске вашего тестового скрипта используя опцию [`webServer`](https://playwright.dev/docs/test-advanced#launching-a-development-web-server-during-the-tests) в файле конфигурации Playwright. 
+
+Пример конфигурации и необходимых команд при использовании Yarn:
+
+1. Добавьте скрипт теста, такой как `"test:e2e": "playwright test"` в ваш `package.json` файл в корне проекта. 
+
+2. В файле `playwright.config.ts`, добавьте объект `webServer` и обновите значение команды на `yarn preview`. 
+
+```js title="playwright.config.ts" ins={3-8} "yarn preview"
+import type { PlaywrightTestConfig } from '@playwright/test';
+const config: PlaywrightTestConfig = {
+  webServer: {
+    command: 'yarn preview',
+    url: 'http://localhost:4321/app/',
+    timeout: 120 * 1000,
+    reuseExistingServer: !process.env.CI,
+  },
+  use: {
+    baseURL: 'http://localhost:4321/app/',
+  },
+};
+export default config;
+```
+
+3. Запустите `yarn build`, и затем `yarn test:e2e` чтобы запустить ваши Playwright тесты.
+
+Более подробную информацию о Playwright можно найти по ссылкам ниже:
+
+- [Начало работы с Playwright](https://playwright.dev/docs/intro)
+- [Использование сервера разработки](https://playwright.dev/docs/test-advanced#launching-a-development-web-server-during-the-tests)

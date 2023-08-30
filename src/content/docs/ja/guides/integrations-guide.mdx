@@ -1,0 +1,166 @@
+---
+title: インテグレーションを追加する
+i18nReady: true
+---
+import IntegrationsNav from '~/components/IntegrationsNav.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+
+
+**Astroインテグレーション**により、わずか数行のコードでプロジェクトに新しい機能や挙動を追加できます。自分でカスタムインテグレーションを書いたり、公式のインテグレーションを利用したり、コミュニティによって作られたインテグレーションを利用できます。
+
+インテグレーションにより…
+
+- React、Vue、Svelte、Solidなどの一般的なUIフレームワークを使用できます。
+- TailwindやPartytownのようなツールを数行のコードで組み込めます。
+- サイトマップの自動生成など、プロジェクトに新機能を追加できます。
+- ビルドプロセスや開発サーバーなどにフックするカスタムコードを書けます。
+
+## 公式インテグレーション
+
+<IntegrationsNav />
+
+## インテグレーションの自動セットアップ
+
+Astroには、インテグレーションのセットアップを自動化するための`astro add`コマンドが含まれています。
+
+好みのパッケージマネージャーを使用して`astro add`コマンドを実行すると、インテグレーション用の自動ウィザードが設定ファイルの更新と必要な依存関係のインストールを行います。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add react
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add react
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add react
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+複数のインテグレーションを同時に追加することも可能です。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add react tailwind partytown
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add react tailwind partytown
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add react tailwind partytown
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+:::note[Handling Integration Dependencies]
+インテグレーションの追加後に`Cannot find package '[package-name]'`のような警告が表示された場合、パッケージマネージャーが[peer dependencies](https://nodejs.org/en/blog/npm/peer-dependencies/)をインストールできていないかもしれません。こうした足りないパッケージをインストールするには、`npm install [package-name]`を実行してください。
+:::
+
+## インテグレーションを使う
+
+Astroインテグレーションは、常に`astro.config.mjs`ファイルの`integrations`プロパティを通じて追加します。
+
+Astroプロジェクトにインテグレーションをインポートするには、3つの主要な方法があります。
+1. npmパッケージのインテグレーションをインストールする。
+2. プロジェクト内のローカルファイルから独自のインテグレーションをインポートする。
+3. インテグレーションを設定ファイルに直接インラインで記述する。
+
+```js
+// astro.config.mjs
+import {defineConfig} from 'astro/config';
+import installedIntegration from '@astrojs/vue';
+import localIntegration from './my-integration.js';
+
+export default defineConfig({
+  integrations: [
+    // 1. インストール済みのnpmパッケージからインポート
+    installedIntegration(),
+    // 2. ローカルのJSファイルからインポート
+    localIntegration(),
+    // 3. インラインオブジェクト
+    {name: 'namespace:id', hooks: { /* ... */ }},
+  ]
+})
+```
+
+[インテグレーションAPI](/ja/reference/integrations-reference/)のリファレンスで、インテグレーションを書くための様々な方法について参照してください。
+
+### カスタムオプション
+
+インテグレーションは、ほとんどの場合は実際のインテグレーションオブジェクトを返すファクトリ関数として定義されます。これにより、ファクトリ関数に引数やオプションを渡して、プロジェクト用にインテグレーションをカスタマイズできます。
+
+```js
+integrations: [
+  // 関数の引数によりインテグレーションをカスタマイズする例
+  sitemap({filter: true})
+]
+```
+
+### インテグレーションの切り替え
+
+Falsyなインテグレーションは無視されるため、`undefined`や真偽値が設定されてしまうことを気にすることなく、インテグレーションのオンとオフを切り替えられます。
+
+```js
+integrations: [
+  // サイトマップのビルドをWindowsではスキップする例
+  process.platform !== 'win32' && sitemap()
+]
+```
+
+## インテグレーションを削除する
+
+インテグレーションを削除するには、まずプロジェクトからインテグレーションをアンインストールします。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm uninstall @astrojs/react
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm uninstall @astrojs/react
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn remove @astrojs/react
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+続いて、`astro.config.*`ファイルからインテグレーションを削除します。
+
+```js title="astro.config.mjs" del={3,7}
+import { defineConfig } from 'astro/config'
+
+import react from "@astrojs/react";
+
+export default defineConfig({
+  integrations: [
+    react()
+  ]
+})
+```
+
+## 他のインテグレーションを見つける
+
+[Astroインテグレーションのリスト](https://astro.build/integrations/)には、コミュニティによって開発された多くのインテグレーションが掲載されています。詳細な使い方や設定方法については、上のリンクをたどってみてください。
+
+## 独自のインテグレーションを作成する
+
+AstroのインテグレーションAPIはRollupとViteに影響を受けており、RollupやViteのプラグインを書いたことがある人なら誰でも親しみやすいように設計されています。
+
+[インテグレーションAPI](/ja/reference/integrations-reference/)リファレンスを確認し、インテグレーションができること、自分で作成する方法について学んでみてください。

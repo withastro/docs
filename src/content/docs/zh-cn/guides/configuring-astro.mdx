@@ -1,0 +1,162 @@
+---
+title: 配置 Astro
+---
+
+可以通过在您的项目中添加一个 `astro.config.mjs` 文件来自定义 Astro 的运行方式。它是 Astro 项目中的常见文件，所有官方的示例模板和主题都默认包含该文件。
+
+📚 阅读 Astro [API 的配置参考](/zh-cn/reference/configuration-reference/)以概览所有支持的配置项。
+
+## Astro 配置文件
+
+一个有效的 Astro 配置文件使用 `default` 导出其配置, 推荐使用 `defineConfig` 助手函数。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // 你的配置项都在这里
+  // https://docs.astro.build/zh-cn/reference/configuration-reference/
+})
+```
+
+推荐使用 `defineConfig()` 以便 IDE 可以提供自动类型提示，但这并非是必须的。一个最基本的有效配置文件应该是这样：
+
+```js title="astro.config.mjs"
+// 示例：最基础完全空白的配置文件
+export default {}
+```
+
+## 受支持的配置文件类型
+
+Astro 支持多种 JavaScript 配置文件格式，如：`astro.config.js`、`astro.config.mjs`、`astro.config.cjs` 和 `astro.config.ts`。我们推荐在大多数情况下使用 `.mjs`，如果您想在配置文件中编写TypeScript，则建议使用 `.ts`。
+
+TypeScript 配置文件使用 [`tsm`](https://github.com/lukeed/tsm) 解析并会遵循您项目中的 tsconfig 选项。
+
+## 配置文件解析
+
+Astro 将自动尝试解析项目根目录下名为 `astro.config.mjs` 的文件。如果没在根目录下找到配置文件，则会使用默认配置：
+
+```bash
+# 示例：从 ./astro.config.mjs 中读取配置
+astro build
+```
+
+你也可以用 `--config` CLI 标志明确指出要使用的配置文件。这个 CLI 标志将基于你运行 `astro` 命令的目录进行解析。
+
+```bash
+# 示例：从这个文件中读取配置
+astro build --config my-config-file.js
+```
+
+## 配置智能提示
+
+Astro 建议在配置文件中使用 `defineConfig()` 助手函数。IDE 将借助 `defineConfig()` 为你提供智能提示。像 VSCode 这样的编辑器就能够读取 Astro 的 TypeScript 类型定义并自动提供 jsdoc 类型提示，即使你的配置文件不是用 TypeScript 写的。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // 你的配置项都在这里
+  // https://docs.astro.build/zh-cn/reference/configuration-reference/
+})
+```
+
+你也可以使用 JSDoc 标注，手动向 VSCode 提供类型定义。
+
+```js
+// astro.config.mjs
+ export default /** @type {import('astro').AstroUserConfig} */ ({
+  // 你的配置项都在这里
+  // https://docs.astro.build/zh-cn/reference/configuration-reference/
+}
+```
+
+## 引用相对文件
+
+如果你提供了 `root` 相对路径或 `--root` CLI 标志，Astro 将基于你运行 `astro` 命令的目录来解析。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // 基于你当前的工作目录解析 "./foo" 目录
+  root: 'foo'
+})
+```
+
+Astro 将相对于项目根目录解析其他所有的相对文件和目录字符串：
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  //  基于你当前的工作目录解析 "./foo" 目录
+  root: 'foo',
+  //  基于你当前的工作目录解析 "./foo/public" 目录
+  publicDir: 'public',
+})
+```
+
+使用 `import.meta.url` 引用相对于配置文件的文件或目录（除非你正在编写 common.js 模块标准的 `astro.config.cjs` 文件）。
+
+```js "import.meta.url"
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+    // 基于配置文件解析 "./foo" 目录
+    root: new URL("./foo", import.meta.url).toString(),
+    // 基于配置文件解析 "./public" 目录
+    publicDir: new URL("./public", import.meta.url)..toString(),
+})
+```
+
+:::note
+Vite 特定的 `import.meta` 属性，如 `import.meta.env` 或 `import.meta.glob`，*无法*在你的配置文件中访问。我们推荐使用 [dotenv](https://github.com/motdotla/dotenv) 或 [fast-glob](https://github.com/mrmlnc/fast-glob) 作为替代方案。
+:::
+
+## 自定义输出文件名
+
+对于使用 Astro 进行处理的代码，如导入的 JavaScript 或 CSS 文件，你可以在 `astro.config.*` 文件中的 `vite.build.rollupOptions`条目使用 [`entryFileNames`](https://rollupjs.org/guide/en/#outputentryfilenames)、[`chunkFileNames`](https://rollupjs.org/guide/en/#outputchunkfilenames) 和 [`assetFileNames`](https://rollupjs.org/guide/en/#outputassetfilenames) 来定制输出文件名。
+
+```js ins={9-11}
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          entryFileNames: 'entry.[hash].js',
+          chunkFileNames: 'chunks/chunk.[hash].js',
+          assetFileNames: 'assets/asset.[hash][extname]',
+        },
+      },
+    },
+  },
+})
+```
+
+这适合用于当你的脚本名称可能受到广告拦截器的影响（如 `ads.js` 或 `google-tag-manager.js`）时。
+
+## 环境变量
+
+Astro 会在加载其他文件之前评估配置文件。因此，你不能使用 `import.meta.env` 访问在 `.env` 文件中设置的环境变量。
+
+你可以在配置文件中使用 `process.env` 访问其他环境变量，如 [CLI 设置的环境变量](/zh-cn/guides/environment-variables/#使用-cli)。
+
+你也可以使用 [Vite 的 `loadEnv` 助手函数](https://cn.vitejs.dev/config/#using-environment-variables-in-config)来手动加载 `.env` 文件。
+
+```js title="astro.config.mjs"
+import { loadEnv } from "vite";
+const { SECRET_PASSWORD } = loadEnv(process.env.NODE_ENV, process.cwd(), "");
+```
+
+## 配置参考
+
+📚 阅读 Astro [API 的配置参考](/zh-cn/reference/configuration-reference/)以概览所有支持的配置选项。

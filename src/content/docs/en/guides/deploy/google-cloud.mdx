@@ -1,0 +1,84 @@
+---
+title: Deploy your Astro Site to Google Cloud
+description: How to deploy your Astro site to the web using Google Cloud.
+type: deploy
+i18nReady: true
+---
+
+[Google Cloud](https://cloud.google.com/) is a full-featured web app hosting platform that can be used to deploy an Astro site.
+
+## How to deploy
+
+### Cloud Storage (static only)
+
+1. [Create a new GCP project](https://console.cloud.google.com/projectcreate), or select one you already have.
+
+2. Create a new bucket under [Cloud Storage](https://cloud.google.com/storage).
+
+3. Give it a name and the other required settings.
+
+4. Upload your `dist` folder into it or upload using [Cloud Build](https://cloud.google.com/build).
+
+5. Enable public access by adding a new permission to `allUsers` called `Storage Object Viewer`.
+
+6. Edit the website configuration and add `ìndex.html` as the entrypoint and `404.html` as the error page.
+
+### Cloud Run (SSR and static)
+
+Cloud Run is a serverless platform that allows you to run a container without having to manage any infrastructure. It can be used to deploy both static and SSR sites.
+
+#### Prepare the Service
+
+1. [Create a new GCP project](https://console.cloud.google.com/projectcreate), or select one you already have.
+
+2. Make sure the [Cloud Run API](https://console.cloud.google.com/apis/library/run.googleapis.com) is enabled.
+
+3. Create a new service.
+
+
+#### Create Dockerfile & Build the Container
+
+Before you can deploy your Astro site to Cloud Run, you need to create a Dockerfile that will be used to build the container. Find more information about [how to use Docker with Astro](/en/recipes/docker/#creating-a-dockerfile) in our recipe section.
+
+Once the Dockerfile is created, build it into an image and push it to Google Cloud. There are a few ways to accomplish this:
+
+**Build locally using Docker**:
+
+Use the `docker build` command to build the image, `docker tag` to give it a tag, then `docker push` to push it to a registry. In the case of Google Cloud, [`Google Cloud Registry`](https://cloud.google.com/container-registry/docs/pushing-and-pulling#add-registry) is the easiest option, but you can also use [Docker Hub](https://hub.docker.com/).
+
+```bash
+# build your container
+docker build .
+
+docker tag SOURCE_IMAGE HOSTNAME/PROJECT-ID/TARGET-IMAGE:TAG
+
+# Push your image to a registry
+docker push HOSTNAME/PROJECT-ID/IMAGE:TAG
+```
+
+Change the following values in the commands above to match your project:
+
+- `SOURCE_IMAGE`: the local image name or image ID.
+- `HOSTNAME`: the registry host (`gcr.io`, `eu.grc.io`, `asia.gcr.io`, `us.gcr.io`).
+- `PROJECT`: your Google Cloud project ID.
+- `TARGET-IMAGE`: the name for the image when it's stored in the registry.
+- `TAG` is the version associated with the image.
+
+
+[Read more in the Google Cloud docs.](https://cloud.google.com/container-registry/docs/pushing-and-pulling)
+
+**Using another tool**:
+
+You can use a CI/CD tool that supports Docker, like [GitHub Actions](https://github.com/marketplace/actions/push-to-gcr-github-action).
+
+**Build using [Cloud Build](https://cloud.google.com/build)**:
+
+Instead of building the Dockerfile locally, you can instruct Google Cloud to build the image remotely. See the [Google Cloud Build documentation here](https://cloud.google.com/build/docs/build-push-docker-image).
+
+#### Deploying the container
+
+Deployment can be handled manually in your terminal [using `gcloud`](https://cloud.google.com/run/docs/deploying#service) or automatically using [Cloud Build](https://cloud.google.com/build) or any other CI/CD system.
+
+:::note[Need public access?]
+Don't forget to add the permission `Cloud Run Invoker` to the `allUsers` group in the Cloud Run permissions settings!
+:::

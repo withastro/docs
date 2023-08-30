@@ -1,0 +1,246 @@
+---
+title: Importações
+description: Aprenda como importar diferentes tipos de conteúdo com Astro.
+i18nReady: true
+---
+import RecipeLinks from "~/components/RecipeLinks.astro";
+
+Astro suporta a maioria dos assets estáticos com zero configurações necessárias. Você pode usar a declaração `import` em qualquer lugar do seu projeto JavaScript (incluindo seu frontmatter Astro) e Astro irá incluir uma cópia otimizada do asset estático na build final do seu projeto. `@import` também é suportado dentro de CSS e tags `<style>`.
+
+## Tipos de Arquivos Suportados
+
+Os tipos de arquivos abaixo são suportados por padrão pelo Astro:
+
+- Componentes Astro (`.astro`)
+- Markdown (`.md`, `.markdown`, etc.)
+- JavaScript (`.js`, `.mjs`)
+- TypeScript (`.ts`, `.tsx`)
+- Pacotes NPM
+- JSON (`.json`)
+- JSX (`.jsx`, `.tsx`)
+- CSS (`.css`)
+- Módulos CSS (`.module.css`)
+- Imagens e Assets (`.svg`, `.jpg`, `.png`, etc.)
+
+Adicionalmente, você pode estender o Astro para adicionar suporte a diferentes [Frameworks de UI](/pt-br/core-concepts/framework-components/) como componentes React, Svelte e Vue. Você também pode instalar a [integração MDX do Astro](/pt-br/guides/integrations-guide/mdx/) e utilizar arquivos `.mdx` em seu projeto.
+
+Este guia detalha como os diferentes tipos de assets passam por build pelo Astro e como importá-los corretamente.
+
+### Arquivos em `public/`
+
+Você pode colocar qualquer asset estático no [diretório `public/`](/pt-br/core-concepts/project-structure/#public) do seu projeto, e o Astro irá copiá-lo diretamente em sua build final sem mudanças. Arquivos do diretório `public/` não passam por build ou bundle por Astro, o que significa que qualquer tipo de arquivo é suportado. Você pode referenciar um arquivo do diretório `public/` por um caminho de URL diretamente em seus templates HTML.
+
+## Declarações de importação
+
+Astro utiliza ESM, a mesma sintaxe de [`import`](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Statements/import#sintaxe) e [`export`](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Statements/export#sintaxe) suportada no navegador.
+
+### JavaScript
+
+```js
+import { getUsuario } from './usuario.js';
+```
+
+JavaScript pode ser importado usando a sintaxe de `import` e `export` normal do ESM.
+
+### TypeScript
+
+```js
+import { getUsuario } from './usuario';
+import type { TipoUsuario } from './usuario';
+```
+
+Astro inclui suporte por padrão para [TypeScript](https://www.typescriptlang.org/). Você pode importar arquivos `.ts` e `.tsx` diretamente em seu projeto Astro e até escrever código TypeScript dentro do seu [script do componente Astro](/pt-br/core-concepts/astro-components/#o-script-do-componente) e em quaisquer [tags script hoisted](/pt-br/guides/client-side-scripts/).
+
+**Astro não realiza checagem de tipos por si**. A checagem de tipos deve ser feita fora do Astro, seja em sua IDE ou através de scripts separados. Para checar tipos em arquivos Astro, o [comando `astro check`](/pt-br/reference/cli-reference/#astro-check) é providenciado.
+
+:::note[TypeScript e extensões de arquivo]
+Pelas [regras de resolução de módulo do TypeScript](https://www.typescriptlang.org/docs/handbook/module-resolution.html), as extensões de arquivo `.ts` e `.tsx` não devem ser usadas ao importar arquivos TypeScript. No lugar, ou utilize as extensões de arquivo `.js`/`.jsx` ou omita a extensão de arquivo.
+
+```ts
+import { getUsuario } from './usuario.js'; // usuario.ts
+import MeuComponente from "./MeuComponente"; // MeuComponente.tsx
+```
+
+:::
+
+📚 Leia mais sobre o [suporte para TypeScript no Astro](/pt-br/guides/typescript/).
+
+### JSX / TSX
+
+```js
+import { MeuComponente } from './MeuComponente.jsx';
+```
+
+Astro inclui suporte padrão para arquivos JSX (`*.jsx` e `*.tsx`) em seu projeto. A sintaxe JSX é automaticamente transpilada para JavaScript.
+
+Apesar do Astro entender a sintaxe JSX por padrão, você deverá incluir a integração de framework UI adequada para renderizar componentes React, Preact e Solid. Confira o nosso guia [Usando Integrações](/pt-br/guides/integrations-guide/) para saber mais.
+
+:::note
+**Astro não dá suporte à JSX em arquivos `.js`/`.ts`**. JSX será manipulado apenas dentro de arquivos que terminam com as extensões `.jsx` ou `.tsx`.
+:::
+
+### Pacotes do NPM
+
+Se você instalou um pacote do NPM, você pode importá-lo no Astro.
+
+```astro
+---
+import { Icon } from 'astro-icon';
+---
+```
+
+Se um pacote foi publicado em um formato antigo, Astro irá tentar converter o pacote para ESM para que então declarações de `import` funcionem. Em alguns casos, você pode precisar ajustar sua [configuração do `vite`](/pt-br/reference/configuration-reference/#vite) para que ele funcione.
+
+:::caution
+Alguns pacotes dependem de um ambiente de navegador. Componentes Astro são executados no servidor, então importar esses pacotes no frontmatter pode [levar a erros](/pt-br/guides/troubleshooting/#document-or-window-is-not-defined).
+:::
+
+### JSON
+
+```js
+// Carrega o objeto JSON pelo "export" padrão.
+import json from './dados.json';
+```
+
+Astro dá suporte para a importação de arquivos JSON diretamente em sua aplicação. Arquivos importados retornam o objeto JSON completo no `import` padrão.
+
+### CSS
+
+```js
+// Carrega e injeta o arquivo 'estilos.css' na página
+import './estilos.css';
+```
+
+Astro suporta a importação de arquivos CSS diretamente em sua aplicação. Estilos importados não proveem nenhum "export", mas importar um arquivo CSS irá automaticamente adicionar seus estilos à página. Isto funciona para todos os arquivos CSS por padrão e pode suportar também pré-processadores como Sass e Less via plugins.
+
+### Módulos CSS
+
+```jsx
+// 1. Converte os nomes das classes de `./estilos.module.css` para valores únicos e escopados.
+// 2. Retorna um objeto que mapeia os nomes das classes originais aos seus valores únicos e escopados.
+import estilos from './estilos.module.css';
+// Esse exemplo usa JSX, mas você pode usar Módulos CSS com qualquer framework.
+return <div className={estilos.erro}>Sua Mensagem de Erro</div>;
+```
+
+Astro suporta Módulos CSS usando a convenção de nome `[nome].module.css`. Como qualquer arquivo CSS, importá-lo vai automaticamente aplicar os estilos à página. Entretanto, Módulos CSS exportam um objeto padrão que mapeia os nomes originais de suas classes em identificadores únicos.
+
+Módulos CSS ajudam a reforçar o escopo e o isolamento de componentes no frontend com nomes de classes únicos gerados para suas folhas de estilos.
+
+### Outros Assets
+
+```jsx
+import referenciaImg from './imagem.png'; // referenciaImg === '/src/imagem.png'
+import referenciaSvg from './imagem.svg'; // referenciaSvg === '/src/imagem.svg'
+import referenciaTxt from './palavras.txt'; // referenciaTxt === '/src/palavras.txt'
+
+// Esse exemplo usa JSX, mas você pode importar as referências em qualquer framework.
+<img src={referenciaImg} alt="descrição da imagem" />;
+```
+
+Todos os outros assets que não foram explicitamente mencionados acima podem ser importados via `import` do ESM e irão retornar a URL de referência à build final do asset. Isto pode ser útil para referenciar assets que não são JavaScript pela URL, como por exemplo, criar um elemento `img` com o atributo `src` apontando para aquela imagem.
+
+Também pode ser útil colocar as imagens no diretório `public/` como explicado na [página de estrutura de projetos](/pt-br/core-concepts/project-structure/#public).
+
+:::note
+Adicionar **texto alternativo** a tags `<img>` é encorajado por acessibilidade! Não se esqueça de adicionar um atributo `alt="uma descrição útil"` para seus elementos de imagem. Você pode deixar o atributo vazio se a imagem for puramente decorativa.
+:::
+
+## `Astro.glob()`
+
+[`Astro.glob()`](/pt-br/reference/api-reference/#astroglob) é uma forma de importar vários arquivos de uma vez.
+
+`Astro.glob()` apenas recebe um parâmetro: um [padrão de glob relativo](/pt-br/guides/imports/#padrões-de-glob) correspondendo aos arquivos locais que você gostaria de importar. É assíncrono, e retorna um array com as exportações de cada arquivo correspondente.
+
+```astro title="src/components/meu-componente.astro"
+---
+// importa todos os arquivos que terminam com `.md` em `./src/pages/postagens/`
+const postagens = await Astro.glob('../pages/postagens/*.md'); 
+---
+<!-- Renderiza um <article> para as 5 primeiras postagens do blog -->
+<div>
+{postagens.slice(0, 4).map((postagem) => (
+  <article>
+    <h2>{postagem.frontmatter.titulo}</h2>
+    <p>{postagem.frontmatter.descricao}</p>
+    <a href={postagem.url}>Leia mais</a>
+  </article>
+))}
+</div>
+```
+
+Componentes Astro importados com `Astro.glob` são do tipo [`AstroInstance`](/pt-br/reference/api-reference/#arquivos-astro). Você pode renderizar cada instância de componente usando sua propriedade `default`:
+
+```astro title="src/pages/component-library.astro" {8}
+---
+// importa todos os arquivos que terminam com `.astro` em `./src/components/`
+const componentes = await Astro.glob('../components/*.astro');
+---
+<!-- Mostra todos os nossos componentes -->
+{componentes.map((componente) => (
+  <div>
+    <componente.default size={24} />
+  </div>
+))}
+```
+
+### Padrões de Glob
+
+Um padrão de glob é um caminho de arquivo que suporta caracteres curinga especiais. Eles são usados para referenciar múltiplos arquivos em seu projeto de uma vez.
+
+Por exemplo, o padrão de glob `./pages/**/*.{md,mdx}` começa no subdiretório "pages", vendo através de todos os seus subdiretórios (`/**`), e corresponde a qualquer nome de arquivo (`/*`) que termine em `.md` ou `.mdx` (`.{md,mdx}`).
+
+#### Padrões de Glob no Astro
+
+Para utilizar com `Astro.glob()`, o padrão de glob precisa ser uma string literal e não pode conter nenhuma variável. Veja [o guia de solução de problemas](/pt-br/guides/troubleshooting/#astroglob---no-matches-found) para uma solução alternativa.
+
+Adicionalmente, padrões de glob devem começar com um dos seguintes:
+- `./` (para começar no diretório atual)
+- `../` (para começar no diretório parente)
+- `/` (para começar na raiz do projeto)
+
+
+[Leia mais sobre a sintaxe de padrões de glob](https://github.com/mrmlnc/fast-glob#pattern-syntax).
+
+#### `Astro.glob()` vs `getCollection()`
+
+[Coleções de conteúdo](/pt-br/guides/content-collections/) fornece uma [API `getCollection()`](/pt-br/reference/api-reference/#getcollection) para carregamento de múltiplos arquivos ao invés de `Astro.glob()`. Se seus arquivos de conteúdo (ex. Markdown, MDX, Markdoc) estão localizados em coleções dentro do diretório `src/content/`, use `getCollection()` para [buscar uma coleção](/pt-br/guides/content-collections/#consultando-coleções) e retornar entradas de conteúdo.
+
+## WASM
+
+```js
+// Carrega e inicializa o arquivo WASM requisitado
+const wasm = await WebAssembly.instantiateStreaming(fetch('/exemplo.wasm'));
+```
+
+Astro suporta o carregamento de arquivos WASM (Web Assembly) diretamente na sua aplicação usando a API [`WebAssembly`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly) do navegador.
+
+
+## Módulos Integrados do Node
+
+Nós recomendamos aos usuários do Astro que evitem o uso de módulos integrados do Node.js (`fs`, `path` e etc) sempre que possível. Astro é compatível com múltiplos motores usando [adaptadores](/pt-br/guides/server-side-rendering/#adicionando-um-adaptador). Isto inclui o [Deno](/pt-br/guides/integrations-guide/deno/) e o [Cloudflare Workers](/pt-br/guides/integrations-guide/cloudflare/) que não possuem suporte aos módulos integrados do Node como o `fs`.
+
+Nossa missão é prover alternativas Astro para os módulos Node.js mais comuns. Entretanto, isto estas alternativas ainda não existem hoje. Então, se você _realmente_ precisa utilizar estes módulos, nós não queremos o impedir. Astro suporta os módulos Node.js usando o novo prefixo `node:` do Node. Se você precisa ler um arquivo, por exemplo, você pode fazer assim:
+
+```astro
+---
+// Exemplo: importa o módulo "fs/promises" do Node.js
+import fs from 'node:fs/promises';
+
+const url = new URL('../../package.json', import.meta.url);
+const json = await fs.readFile(url, 'utf-8');
+const dados = JSON.parse(json);
+---
+<span>Versão: {dados.version}</span>
+```
+
+## Estendendo suporte de tipos de arquivo
+
+Com plugins **Vite** e **Rollup** compatíveis, você pode importar tipos de arquivos que não são nativamente suportados pelo Astro. Para como encontrar os plugins que você precisa na seção [Finding Plugins](https://vitejs.dev/guide/using-plugins.html#finding-plugins) da documentação do Vite.
+
+
+ :::note[configuração de plugins]
+Use a documentação do seu plugin como referência para opções de configuração e como corretamente instalá-lo.
+:::
+
+<RecipeLinks slugs={["pt-br/recipes/add-yaml-support"]} />

@@ -1,0 +1,292 @@
+---
+title: コンポーネント
+description: Astroコンポーネント構文の紹介です。
+i18nReady: true
+---
+
+**Astroコンポーネント**は、あらゆるAstroプロジェクトの基本的な構成要素です。クライアントサイドのランタイムを持たない、HTMLのみのテンプレートコンポーネントです。Astroコンポーネントは、`.astro`という拡張子により判別できます。
+
+Astroコンポーネントは非常に柔軟です。多くの場合、Astroコンポーネントは、ヘッダーやプロフィールカードのような、ページ上で**再利用可能なUI**を含むことになります。また、Astroコンポーネントには、SEO対策を容易にする共通の`<meta>`タグのコレクションのような、小さなHTMLのスニペットが含まれることもあります。Astroコンポーネントは、ページ全体のレイアウトを含められます。
+
+Astroコンポーネントについて知っておくべきもっとも重要なことは、**クライアント上でレンダリングされない**ということです。コンポーネントはビルド時または[サーバーサイドレンダリング（SSR）](/ja/guides/server-side-rendering/)によりオンデマンドにレンダリングされます。コンポーネントのフロントマターの内部にJavaScriptコードを含められますが、それらはすべて、ユーザーのブラウザに送られる最終的なページからは取り除かれます。その結果、デフォルトではJavaScriptが含められることはなく、より高速なサイトが実現します。
+
+Astroコンポーネントがクライアントサイドでインタラクティビティを必要とする場合は、[標準のHTML`<script>`タグ](/ja/guides/client-side-scripts/)や[UIフレームワークのコンポーネント](/ja/core-concepts/framework-components/#インタラクティブなコンポーネント)を追加できます。
+
+## コンポーネント構造
+
+Astroコンポーネントは、**コンポーネントスクリプト**と**コンポーネントテンプレート**という2つの主要な部分で構成されています。それぞれのパーツは異なる役割を担いますが、この2つを組み合わせることで、使いやすさと、どんなものにも対応できる表現力を兼ね備えたフレームワークを提供しています。
+
+
+```astro title="src/components/EmptyComponent.astro"
+---
+// コンポーネントスクリプト (JavaScript)
+---
+<!-- コンポーネントテンプレート (HTML + JS Expressions) -->
+```
+
+### コンポーネントスクリプト
+
+Astroでは、Astroコンポーネント内のコンポーネントスクリプトを識別するためにコードフェンス（`---`）を使用します。Markdownを書いたことがある方なら、すでに*フロントマター*という同様の概念に馴染みがあるかもしれません。Astroのコンポーネントスクリプトの考え方は、この概念から直接着想を得ています。
+
+コンポーネントスクリプトを使用して、テンプレートをレンダリングするために必要なあらゆるJavaScriptコードを記述できます。
+
+- 他のAstroコンポーネントのインポート
+- 他のフレームワークコンポーネント（Reactなど）のインポート
+- データ（JSONファイルなど）のインポート
+- APIやデータベースからコンテンツを取得するコード
+- テンプレートで参照する変数の作成
+
+```astro title="src/components/MyComponent.astro"
+---
+import SomeAstroComponent from '../components/SomeAstroComponent.astro';
+import SomeReactComponent from '../components/SomeReactComponent.jsx';
+import someData from '../data/pokemon.json';
+
+// 渡されたコンポーネントのprops（`<X title="Hello, World" />`など）にアクセスする。
+const {title} = Astro.props;
+// 外部データを取得する（プライベートAPIやデータベースからでも可）
+const data = await fetch('SOME_SECRET_API_URL/users').then(r => r.json());
+---
+<!-- テンプレートはここに書きます -->
+```
+
+コードフェンスは、その中に書かれたJavaScriptを「囲い込む」ことを保証するために設計されています。コードがフロントエンドのアプリケーションに漏れたり、ユーザーの手に渡ったりしません。高コストなコードや機密性の高いコード（プライベートなデータベースの呼び出しなど）が、ユーザーのブラウザに届くことを心配せずに、安全にコードを書けます。
+
+:::tip
+コンポーネントスクリプトの中には、TypeScriptも書けます！
+:::
+
+### コンポーネントテンプレート
+
+コンポーネントテンプレートはコードフェンスの下に置かれ、コンポーネントの出力するHTMLを決定します。
+
+ここにプレーンなHTMLを書けば、そのコンポーネントはAstroのページでインポートされて使用される際にそのHTMLをレンダリングします。
+
+ただし、[Astroのコンポーネントテンプレート構文](/ja/core-concepts/astro-syntax/)は、**JavaScriptの式**、Astroの[`<style>`](/ja/guides/styling/#astroでのスタイリング)と[`<script>`](/ja/guides/client-side-scripts/#astroでscriptを使用する)タグ、**インポートしたコンポーネント**、[**特別なAstroディレクティブ**](/ja/reference/directives-reference/)もサポートしています。コンポーネントスクリプトで定義されたデータと値をコンポーネントテンプレートで使用することで、動的に作成されたHTMLを生成できます。
+
+```astro title="src/components/MyFavoritePokemon.astro"
+---
+// コンポーネントスクリプトはここに書きます
+import Banner from '../components/Banner.astro';
+import ReactPokemonComponent from '../components/ReactPokemonComponent.jsx';
+const myFavoritePokemon = [/* ... */];
+const { title } = Astro.props;
+---
+<!-- HTMLコメントに対応しています -->
+{/* JSコメント構文も可能です */}
+
+<Banner />
+<h1>Hello, world!</h1>
+
+<!-- propsやコンポーネントスクリプトの変数を使用します -->
+<p>{title}</p>
+
+<!-- `client:`ディレクティブの付いたUIフレームワークコンポーネントはハイドレートされます -->
+<ReactPokemonComponent client:visible />
+
+<!-- JSXと同じように、HTMLとJavaScriptの式を混ぜられます -->
+<ul>
+  {myFavoritePokemon.map((data) => <li>{data.name}</li>)}
+</ul>
+
+<!-- テンプレートディレクティブを使って、複数の文字列やオブジェクトからクラス名を作成できます -->
+<p class:list={["add", "dynamic", {classNames: true}]} />
+```
+
+
+## コンポーネントベースの設計
+
+コンポーネントは、**再利用可能**であり、他と**組み合わせられる**よう設計されます。コンポーネントの中に他のコンポーネントを使って、より高度なUIを構築できます。たとえば、`Button`コンポーネントを使って`ButtonGroup`コンポーネントを作成できます。
+
+```astro title="src/components/ButtonGroup.astro"
+---
+import Button from './Button.astro';
+---
+<div>
+  <Button title="ボタン1" />
+  <Button title="ボタン2" />
+  <Button title="ボタン3" />
+</div>
+```
+
+## コンポーネントのprops
+
+Astroコンポーネントは、propsを定義し、受け取れます。propsは、HTMLをレンダリングするためにコンポーネントテンプレートで利用できます。propsは、フロントマタースクリプトのグローバルな `Astro.props` で利用できます。
+
+以下は、`greeting`と`name`のpropsを受け取るコンポーネントの例です。受け取るpropsは、グローバルな `Astro.props` オブジェクトから分割代入されることに注意してください。
+
+```astro "Astro.props"
+---
+// src/components/GreetingHeadline.astro
+// 使い方: <GreetingHeadline greeting="Howdy" name="Partner" />
+const { greeting, name } = Astro.props;
+---
+<h2>{greeting}、{name}！</h2>
+```
+
+このコンポーネントをインポートして、他のAstroコンポーネント、レイアウト、ページでレンダリングする場合、属性としてこれらのpropsを渡せます。
+
+```astro /(\w+)=\S+/
+---
+// src/components/GreetingCard.astro
+import GreetingHeadline from './GreetingHeadline.astro';
+const name = "Astro"
+---
+<h1>グリーティングカード</h1>
+<GreetingHeadline greeting="やぁ" name={name} />
+<p>素敵な一日をお過ごしください！</p>
+```
+
+TypeScriptの`Props`型のインターフェイスでpropsを定義できます。Astroはフロントマター内の`Props`インターフェイスを自動的に検出し、型の警告やエラーを出します。propsは、`Astro.props`から分割代入する際に、デフォルト値を与えることもできます。
+
+```astro ins={3-6}
+---
+// src/components/GreetingHeadline.astro
+interface Props {
+  name: string;
+  greeting?: string;
+}
+
+const { greeting = "こんにちは", name } = Astro.props;
+---
+<h2>{greeting}, {name}!</h2>
+```
+
+コンポーネントのpropsは、何も提供されない場合に使用するデフォルト値を指定できます。
+
+```astro ins="= \"こんにちは\"" ins="= \"宇宙飛行士\""
+---
+// src/components/GreetingHeadline.astro
+const { greeting = "こんにちは", name = "宇宙飛行士" } = Astro.props;
+---
+<h2>{greeting}、{name}！</h2>
+```
+
+## スロット
+
+`<slot />`要素は外部HTMLコンテンツのプレースホルダーで、他のファイルからコンポーネントテンプレートに子要素を注入（はめ込む＝スロット）できます。
+
+デフォルトでは、コンポーネントに渡されたすべての子要素は、その`<slot />`内でレンダリングされます。
+
+:::note
+Astroコンポーネントに渡される属性であり、`Astro.props()`でコンポーネント全体から使用できるpropsとは異なり、slotは書かれた場所に子要素をレンダリングします。
+:::
+
+```astro "<slot />"
+---
+// src/components/Wrapper.astro
+import Header from './Header.astro';
+import Logo from './Logo.astro';
+import Footer from './Footer.astro';
+
+const { title } = Astro.props
+---
+<div id="content-wrapper">
+  <Header />
+  <Logo />
+  <h1>{title}</h1>
+  <slot />  <!-- 子要素はここに入ります -->
+  <Footer />
+</div>
+```
+
+```astro {6-7}
+---
+// src/pages/fred.astro
+import Wrapper from '../components/Wrapper.astro';
+---
+<Wrapper title="Fred's Page">
+  <h2>フレッドについて</h2>
+  <p>ここでは、フレッドについて紹介します。</p>
+</Wrapper>
+```
+
+このパターンは[Astroレイアウトコンポーネント](/ja/core-concepts/layouts/)の基本です。HTMLコンテンツのページ全体を`<Layout></Layout>`タグで囲んでレイアウトコンポーネントに送り、そこで定義された共通のページ要素の中にレンダリングさせられます。
+
+### 名前付きスロット
+
+Astroコンポーネントは、名前付きスロットも使えます。これを利用すると、対応するスロット名を持つHTML要素のみをスロットの場所に渡せます。
+
+スロットは`name`属性により名前を付けます。
+
+```astro /<slot .*?/>/
+---
+// src/components/Wrapper.astro
+import Header from './Header.astro';
+import Logo from './Logo.astro';
+import Footer from './Footer.astro';
+
+const { title } = Astro.props
+---
+<div id="content-wrapper">
+  <Header />
+  <slot name="after-header"/>  <!--  `slot="after-header"` 属性を持つ子要素はここに入ります。 -->
+  <Logo />
+  <h1>{title}</h1>
+  <slot />  <!--  `slot`属性をもたない子要素、`slot="default"`属性を持つ子要素はここに入ります。 -->
+  <Footer />
+  <slot name="after-footer"/>  <!--  `slot="after-footer"` 属性を持つ子要素はここに入ります。 -->
+</div>
+```
+
+特定のスロットにHTMLコンテンツを渡すには、任意の子要素の`slot`属性によりスロット名を指定します。コンポーネントの他のすべての子要素は、デフォルトの（名前のない）`<slot />`に渡されます。
+
+```astro /slot=".*?"/
+---
+// src/pages/fred.astro
+import Wrapper from '../components/Wrapper.astro';
+---
+<Wrapper title="フレッドのページ">
+  <img src="https://my.photo/fred.jpg" slot="after-header">
+  <h2>フレッドについて</h2>
+  <p>ここでは、フレッドについて紹介します。</p>
+  <p slot="after-footer">Copyright 2022</p>
+</Wrapper>
+```
+
+子要素の `slot="my-slot"` 属性を使用して、コンポーネント内の `<slot name="my-slot" />` にマッチするプレースホルダに渡します。
+
+:::tip
+名前付きスロットは、[UIフレームワークコンポーネント](/ja/core-concepts/framework-components/)に渡すこともできます！
+:::
+
+### スロットのフォールバックコンテンツ
+
+スロットは、**フォールバックコンテンツ**をレンダリングすることもできます。スロットに渡される子要素がない場合、 `<slot />` 要素はそれ自身のプレースホルダーの子要素をレンダリングします。
+
+```astro {14}
+---
+// src/components/Wrapper.astro
+import Header from './Header.astro';
+import Logo from './Logo.astro';
+import Footer from './Footer.astro';
+
+const { title } = Astro.props
+---
+<div id="content-wrapper">
+  <Header />
+  <Logo />
+  <h1>{title}</h1>
+  <slot>
+    <p>これは、スロットに渡された子要素がない場合の代替コンテンツです。</p>
+  </slot>
+  <Footer />
+</div>
+```
+
+## HTMLコンポーネント
+
+Astroは`.html`ファイルをコンポーネントとしてインポートして使用したり、これらのファイルをページとして`src/pages/`のサブディレクトリに設置することをサポートしています。フレームワークなしで構築された既存のサイトからコードを再利用したい場合や、コンポーネントに動的な機能が確実に入らないようにしたい場合はHTMLコンポーネントを利用するといいでしょう。
+
+HTMLコンポーネントは有効なHTMLしか含むことができず、そのためAstroコンポーネントの主要機能が制限されます。
+- フロントマターやサーバーサイドのインポート、動的な記法をサポートしません
+- すべての`<script>`タグはバンドルされずに残され、`is:inline`を持つ場合と同じように扱われます。
+- [`public/`フォルダにあるアセット](/ja/core-concepts/project-structure/#public)のみを参照できます。
+
+:::note
+HTMLコンポーネント内の[`<slot />`要素](/ja/core-concepts/astro-components/#スロット)はAstroコンポーネントと同様に機能します。[HTML Web ComponentのSlot](https://developer.mozilla.org/ja/docs/Web/HTML/Element/slot)要素を使うためには,  `<slot>`要素に`is:inline`を追加します。
+:::
+
+## 次のステップ
+
+📚 Astroプロジェクトでの[UIフレームワークコンポーネント](/ja/core-concepts/framework-components/)の使用方法について学びます。

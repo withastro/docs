@@ -1,0 +1,139 @@
+---
+import { getLanguageFromURL } from '~/util';
+import { useTranslations } from '~/i18n/util';
+import CardsNav from './NavGrid/CardsNav.astro';
+import type { LogoKey } from '~/data/logos';
+
+export interface Props {
+	minimal?: boolean;
+}
+
+const { minimal } = Astro.props as Props;
+
+const lang = getLanguageFromURL(Astro.url.pathname);
+const t = useTranslations(Astro);
+
+interface Service {
+	title: string;
+	slug: LogoKey;
+	supports: ['ssr', 'static'] | ['ssr'] | ['static'];
+}
+
+const services: Service[] = [
+	{ title: 'Netlify', slug: 'netlify', supports: ['ssr', 'static'] },
+	{ title: 'Vercel', slug: 'vercel', supports: ['ssr', 'static'] },
+	{ title: 'Deno Deploy', slug: 'deno', supports: ['ssr'] },
+	{ title: 'GitHub Pages', slug: 'github', supports: ['static'] },
+	{ title: 'GitLab Pages', slug: 'gitlab', supports: ['static'] },
+	{ title: 'Cloudflare Pages', slug: 'cloudflare', supports: ['ssr', 'static'] },
+	{ title: 'AWS', slug: 'aws', supports: ['static'] },
+	{ title: 'AWS via Flightcontrol', slug: 'flightcontrol', supports: ['ssr', 'static'] },
+	{ title: 'AWS via SST', slug: 'sst', supports: ['ssr', 'static'] },
+	{ title: 'Google Cloud', slug: 'google-cloud', supports: ['ssr', 'static'] },
+	{ title: 'Firebase Hosting', slug: 'google-firebase', supports: ['static'] },
+	{ title: 'Heroku', slug: 'heroku', supports: ['static'] },
+	{ title: 'Microsoft Azure', slug: 'microsoft-azure', supports: ['static'] },
+	{ title: 'Buddy', slug: 'buddy', supports: ['static'] },
+	{ title: 'Edgio', slug: 'edgio', supports: ['ssr', 'static'] },
+	{ title: 'Render', slug: 'render', supports: ['static'] },
+	{ title: 'Surge', slug: 'surge', supports: ['static'] },
+	{ title: 'Cleavr', slug: 'cleavr', supports: ['ssr', 'static'] },
+	{ title: 'Kinsta', slug: 'kinsta', supports: ['ssr', 'static'] },
+	{ title: 'Deta Space', slug: 'space', supports: ['ssr', 'static'] },
+];
+---
+
+<CardsNav
+	minimal={minimal}
+	class="deploy-guides-nav"
+	links={services.map(({ title, slug, supports }) => ({
+		title,
+		href: `/${lang}/guides/deploy/${slug}/`,
+		logo: slug,
+		tags: Object.fromEntries(supports.map((s) => [s, t(`deploy.${s}Tag`)!])),
+	}))}
+>
+	<h2>{minimal ? t('deploy.altSectionTitle') : t('deploy.sectionTitle')}</h2>
+	<span class="filter-text">{t('deploy.filterLabel')}</span>
+	<input type="checkbox" id="ssr-checkbox" class="sr-only" />
+	<label for="ssr-checkbox" class="filter-text">{t('deploy.ssrTag')}</label>
+	<input type="checkbox" id="static-checkbox" class="sr-only" />
+	<label for="static-checkbox" class="filter-text">{t('deploy.staticTag')}</label>
+</CardsNav>
+
+<style>
+	@media (min-width: 37.75em) {
+		:global(.deploy-guides-nav) {
+			text-align: end;
+		}
+	}
+
+	h2 {
+		text-align: start;
+	}
+
+	.minimal h2 {
+		border-top: 4px solid var(--theme-divider);
+		padding-top: 3rem;
+	}
+
+	label {
+		margin-inline-start: 0.5em;
+		border: 2px solid;
+		border-radius: 1.5em;
+		padding: 0.25em 0.75em;
+		color: var(--theme-text-lighter);
+		user-select: none;
+		font-weight: bold;
+		cursor: pointer;
+		unicode-bidi: plaintext;
+	}
+
+	.filter-text {
+		font-size: var(--theme-text-sm);
+		white-space: nowrap;
+	}
+
+	label::after {
+		content: ' +';
+	}
+
+	input[type='checkbox']:checked + label {
+		background-color: var(--theme-text);
+		border-color: var(--theme-text);
+		color: var(--theme-bg);
+	}
+
+	input[type='checkbox']:checked + label::after {
+		content: ' ✕';
+	}
+
+	label:hover,
+	input[type='checkbox']:focus-visible + label {
+		outline: 2px solid var(--theme-accent-secondary);
+		outline-offset: 2px;
+	}
+
+	#ssr-checkbox ~ :global(* .card) {
+		/* By default, hide cards and move them to the end of the flow order. */
+		visibility: hidden;
+		order: 1;
+	}
+
+	@media (max-width: 72em) {
+		/* On smaller screens, collapse space for hidden cards in maximal variant. */
+		#ssr-checkbox ~ :global(* .card--maximal) {
+			display: none;
+		}
+	}
+
+	#ssr-checkbox:checked ~ :global(* .ssr),
+	#static-checkbox:checked ~ :global(* .static),
+	#ssr-checkbox:not(:checked) ~ #static-checkbox:not(:checked) ~ :global(* .card) {
+		/* When a service supports a selected deploy type, show its card and restore its flow order position. */
+		visibility: visible;
+		order: unset;
+		/* Also restore display for maximal variant. */
+		display: grid;
+	}
+</style>

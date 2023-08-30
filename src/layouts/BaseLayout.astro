@@ -1,0 +1,139 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Footer from '../components/Footer/Footer.astro';
+import HeadCommon from '../components/HeadCommon.astro';
+import Header from '../components/Header/Header.astro';
+import HeadSEO from '../components/HeadSEO.astro';
+import LeftSidebar from '../components/LeftSidebar/LeftSidebar.astro';
+import { normalizeLangTag } from '../i18n/bcp-normalize';
+import { rtlLanguages } from '../i18n/languages';
+import { useTranslations } from '../i18n/util';
+import { getLanguageFromURL } from '../util';
+import { getPageCategory } from '../util/getPageCategory';
+
+export interface Props {
+	content: CollectionEntry<'docs'>['data'];
+}
+
+const { content } = Astro.props;
+const isFallback = !!Astro.params.fallback;
+const url = Astro.url;
+const lang = getLanguageFromURL(url.pathname);
+const direction = rtlLanguages.has(lang) ? 'rtl' : 'ltr';
+const bcpLang = normalizeLangTag(lang);
+const currentPage = url.pathname;
+const t = useTranslations(Astro);
+const formatTitle = (content: { title?: string }) =>
+	content.title ? `${content.title} 🚀 ${t('site.title')}` : t('site.title');
+// Ensures the canonicalURL always has a trailing slash.
+const canonicalURL = new URL(Astro.url.pathname.replace(/([^/])$/, '$1/'), Astro.site);
+if (isFallback) canonicalURL.pathname = canonicalURL.pathname.replace(`/${lang}/`, '/en/');
+---
+
+<html dir={direction} lang={bcpLang} class="initial">
+	<head>
+		<HeadCommon />
+		<HeadSEO content={content} canonicalURL={canonicalURL} />
+		<title set:html={formatTitle(content)} />
+		<style>
+			.sidebar {
+				position: fixed;
+				top: 0;
+				bottom: 0;
+				padding: 0;
+			}
+			#left-sidebar {
+				display: none;
+				background: var(--theme-bg-gradient);
+				z-index: 10;
+				inset-inline-start: 0;
+			}
+			#right-sidebar {
+				display: none;
+				top: var(--theme-navbar-height);
+				inset-inline-end: 0;
+				width: var(--theme-right-sidebar-width);
+			}
+			#main-content {
+				display: flex;
+				flex-direction: column;
+				height: 100%;
+				min-width: 0;
+			}
+
+			/* Allow showing left sidebar as an overlay, but only while viewport stays narrow */
+			@media not screen and (min-width: 50em) {
+				/* Make the left sidebar visible and fill the entire viewport below the navbar */
+				:global(.mobile-sidebar-toggle #left-sidebar) {
+					display: block;
+					top: var(--theme-navbar-height);
+					inset-inline-end: 0;
+				}
+				/*
+					Try to prevent the rest of the page from scrolling,
+					and the main content from being visible below the overlay.
+
+					Unfortunately, iOS Safari doesn't currently play well with this
+					and will sometimes still scroll the page even though it shouldn't.
+
+					Once overscroll-behavior is properly supported, this should be fixed.
+				*/
+				:global(.mobile-sidebar-toggle) {
+					overflow: hidden;
+				}
+				:global(.mobile-sidebar-toggle .main-column) {
+					visibility: hidden;
+				}
+				:global(.mobile-sidebar-toggle #left-sidebar ul) {
+					overscroll-behavior: contain;
+				}
+			}
+
+			@media (min-width: 50em) {
+				.main-column {
+					margin-inline-start: var(--theme-left-sidebar-width);
+				}
+				#left-sidebar {
+					display: flex;
+					padding-inline-start: var(--min-spacing-inline);
+					padding-inline-end: 1rem;
+					top: var(--theme-navbar-height);
+					width: var(--theme-left-sidebar-width);
+					background: transparent;
+				}
+			}
+
+			@media (min-width: 72em) {
+				.main-column {
+					margin-inline-end: var(--theme-right-sidebar-width);
+				}
+				#right-sidebar {
+					display: flex;
+				}
+			}
+		</style>
+	</head>
+
+	<body>
+		<Header currentPage={currentPage} />
+		<main class="layout">
+			<aside id="left-sidebar" class="sidebar">
+				<slot name="primary-sidebar">
+					<LeftSidebar currentPage={currentPage} />
+				</slot>
+			</aside>
+			<aside id="right-sidebar" class="sidebar">
+				<slot name="secondary-sidebar" />
+			</aside>
+			<div id="main-content" class="main-column">
+				<slot />
+				<span id="docsearch-lvl0" hidden>{getPageCategory(url)}</span>
+			</div>
+		</main>
+		<div class="main-column">
+			<slot name="footer">
+				<Footer />
+			</slot>
+		</div>
+	</body>
+</html>

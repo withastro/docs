@@ -1,0 +1,174 @@
+---
+type: integration
+title: '@astrojs/deno'
+description: 学习如何使用 @astrojs/deno SSR 适配器来部署你的 Astro 项目。
+githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/deno/'
+hasREADME: true
+category: adapter
+i18nReady: true
+---
+
+此适配器允许 Astro 将你的 SSR 站点部署到 Deno。
+
+在我们的 [Deno Deploy 部署指南](/zh-cn/guides/deploy/deno/) 中学习如何部署你的 Astro 站点。
+
+## 为什么是 Astro Deno
+
+如果你正在使用 Astro 作为静态站点生成器——也就是它的开箱即用的行为——你不需要一个适配器。
+
+如果你希望 [使用服务器端渲染（SSR）](/zh-cn/guides/server-side-rendering/)，Astro 需要一个与你的部署运行时相匹配的适配器。
+
+[Deno](https://deno.land/) 是一个类似于 Node 的运行时，但其 API 更类似于浏览器的 API。这个适配器提供了对 Deno API 的访问，并创建了一个脚本来在 Deno 服务器上运行你的项目。
+
+## 安装
+
+使用以下 `astro add` 命令将 Deno 适配器添加到你的 Astro 项目中，以启用 SSR。这将在一步中安装适配器并对你的 `astro.config.mjs` 文件进行适当的更改。
+
+```sh
+# 使用 NPM
+npx astro add deno
+# 使用 Yarn
+yarn astro add deno
+# 使用 PNPM
+pnpm astro add deno
+```
+
+如果你更喜欢手动安装适配器，请完成以下两个步骤：
+
+1.  使用你喜欢的包管理器将 Deno 适配器安装到你的项目依赖中。如果你使用的是 npm 或者不确定，请在终端中运行以下命令：
+
+    ```bash
+      npm install @astrojs/deno
+    ```
+
+2.  使用以下更改更新你的 `astro.config.mjs` 项目配置文件。
+
+    ```js ins={3,6-7}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import deno from '@astrojs/deno';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: deno(),
+    });
+    ```
+
+接下来，更新 `package.json` 中的 `preview` 脚本以运行 `deno`：
+
+```json ins={8}
+// package.json
+{
+  // ...
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs"
+  }
+}
+```
+
+现在，你可以使用这个命令在本地使用 Deno 预览你的 Astro 站点。
+```bash
+npm run preview
+```
+
+## 使用
+
+在 [执行构建](/zh-cn/guides/deploy/#在本地构建站点) 之后，将会有一个 `dist/server/entry.mjs` 模块。你可以通过在你的 Deno 应用中导入这个模块来启动一个服务器：
+
+```js
+import './dist/server/entry.mjs';
+```
+
+请参阅下面的 `start` 选项，了解如何更好地控制 Astro 服务器的启动。
+
+你也可以直接使用 deno 运行脚本：
+
+```sh
+deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs
+```
+
+## 配置
+
+要配置这个适配器，请在 `astro.config.mjs` 中的 `deno()` 函数调用中传递一个对象。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import deno from '@astrojs/deno';
+
+export default defineConfig({
+  output: 'server',
+  adapter: deno({
+    // 配置项在这里
+  }),
+});
+```
+
+### start
+
+这个适配器在导入时会自动启动一个服务器。你可以通过 `start` 选项关闭这个功能：
+
+```js
+import { defineConfig } from 'astro/config';
+import deno from '@astrojs/deno';
+
+export default defineConfig({
+  output: 'server',
+  adapter: deno({
+    start: false,
+  }),
+});
+```
+
+如果你关闭了这个功能，你需要自己编写 Deno Web 服务器。从生成的入口脚本中导入并调用 `handle` 来渲染请求：
+
+```ts
+import { serve } from 'https://deno.land/std@0.167.0/http/server.ts';
+import { handle } from './dist/server/entry.mjs';
+
+serve((req: Request) => {
+  // 检查请求，也许在这里做静态文件处理。
+
+  return handle(req);
+});
+```
+
+### port 和 hostname
+
+你可以设置端口（默认为 `8085`）和主机名（默认为 `0.0.0.0`），供 deno 服务器使用。如果 `start` 为 false，则此选项无效；你自己的服务器必须配置端口和主机名。
+
+```js
+import { defineConfig } from 'astro/config';
+import deno from '@astrojs/deno';
+
+export default defineConfig({
+  output: 'server',
+  adapter: deno({
+    port: 8081,
+    hostname: 'myhost',
+  }),
+});
+```
+
+## 示例
+
+[Astro Deno](https://github.com/withastro/astro/tree/main/examples/deno) 示例包含一个 `preview` 命令，该命令直接运行入口脚本。运行 `npm run build` 然后 `npm run preview` 来运行生产 deno 服务器。
+
+## 故障排除
+
+如果需要帮助，请查看 [Discord](https://astro.build/chat) 上的 `#support` 频道。我们友好的支持小组成员会在这里帮助你！
+
+你也可以查看我们的 [Astro 集成文档][astro-integration]，了解更多关于集成的内容。
+
+## 贡献
+
+这个包由 Astro 核心团队维护。欢迎提交 issue 或 PR！
+
+## 更新日志
+
+查看 [CHANGELOG.md](https://github.com/withastro/astro/tree/main/packages/integrations/deno/CHANGELOG.md)，了解本集成的变更历史。
+
+[astro-integration]: /zh-cn/guides/integrations-guide/

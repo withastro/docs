@@ -1,0 +1,426 @@
+---
+title: API de adaptadores de Astro
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+
+Astro está diseñado para que sea fácil de desplegar a cualquier proveedor de la nube que soporte SSR (server side rendering). Esta capacidad la proporcionan los __adaptadores__, que son [integraciones](/es/reference/integrations-reference/). Lee la [guía de SSR](/es/guides/server-side-rendering/#añadiendo-un-adaptador) para aprender cómo añadir un adaptador.
+
+## ¿Qué es un adaptador?
+
+Un adaptador es un tipo especial de [integración](/es/reference/integrations-reference/) que proporciona un punto de entrada para el renderizado en el servidor. Un adaptador hace dos cosas:
+
+- Implementa API específicas del host para manejar solicitudes.
+- Configura la compilación de acuerdo con las convenciones del host.
+
+## Construyendo un adaptador
+
+Un adaptador es una [integración](/es/reference/integrations-reference/) y puede hacer todo lo que puede hacer una integración.
+
+Un adaptador __debe__ llamar a la API `setAdapter` en el hook `astro:config:done` así:
+
+```js title="my-adapter.mjs" ins={9}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          supportedAstroFeatures: {
+            staticOutput: 'stable'
+          }
+        });
+      },
+    },
+  };
+}
+```
+
+El objeto pasado a `setAdapter` se define como:
+
+```ts
+interface AstroAdapter {
+  name: string;
+  serverEntrypoint?: string;
+  exports?: string[];
+  adapterFeatures: AstroAdapterFeatures;
+  supportedAstroFeatures: AstroFeatureMap;
+}
+
+export interface AstroAdapterFeatures {
+	/**
+	 * Crea una función edge que se comunicará con el middleware de Astro
+	 */
+	edgeMiddleware: boolean;
+	/**
+	 * Solo SSR. Cada ruta se convierte en su propia función/archivo
+	 */
+	functionPerRoute: boolean;
+}
+
+export type SupportsKind = 'unsupported' | 'stable' | 'experimental' | 'deprecated';
+
+export type AstroFeatureMap = {
+  /**
+   * El adaptador puede servir páginas estáticas
+   */
+  staticOutput?: SupportsKind;
+  /**
+   * El adaptador es capaz de servir páginas que son estáticas o renderizadas a través del servidor
+   */
+  hybridOutput?: SupportsKind;
+  /**
+   * El adaptador es capaz de servir páginas SSR
+   */
+  serverOutput?: SupportsKind;
+  /**
+   * El adaptador puede emitir assets estáticos
+   */
+  assets?: AstroAssetsFeature;
+};
+
+export interface AstroAssetsFeature {
+  supportKind?: SupportsKind;
+  /**
+   * Si este adaptador implementa archivos en un entorno compatible con la biblioteca `sharp`
+   */
+  isSharpCompatible?: boolean;
+  /**
+   * Si este adaptador implementa archivos en un entorno compatible con la biblioteca `squoosh`
+   */
+  isSquooshCompatible?: boolean;
+}
+```
+
+Las propiedades son:
+
+* __name__: Un nombre único para tu adaptador, usado para iniciar sesión.
+* __serverEntrypoint__: el punto de entrada para el renderizado en el servidor.
+* __exports__: un array de exportaciones con nombre cuando se usa junto con `createExports` (explicado a continuación).
+* __adapterFeatures__: Un objeto que habilita características específicas que deben ser compatibles con el adaptador. 
+  Estas características cambiarán la salida generada, y el adaptador debe implementar la lógica adecuada para manejar las diferentes salidas.
+* __supportedAstroFeatures__: Un mapa de las características integradas en Astro. Esto permite que Astro determine qué características un adaptador no puede o no está dispuesto a admitir, para que se puedan proporcionar mensajes de error adecuados.
+
+### Server Entrypoint
+
+La API del adaptador de Astro intenta funcionar con cualquier tipo de host y ofrece una forma flexible de ajustarse a las API del host.
+
+#### Exports
+
+Algunos hosts serverless esperan que exportes una función, como `handler`:
+
+```js
+export function handler(event, context) {
+  // ...
+}
+```
+
+Con la API del adaptador, logras esto implementando `createExports` en tu `serverEntrypoint`:
+
+```js
+import { App } from 'astro/app';
+
+export function createExports(manifest) {
+  const app = new App(manifest);
+
+  const handler = (event, context) => {
+    // ...
+  };
+
+  return { handler };
+}
+```
+
+Y luego en la integración, donde llamas a `setAdapter`, proporciona este nombre en `exports`:
+
+```js title="my-adapter.mjs" ins={9}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          exports: ['handler'],
+        });
+      },
+    },
+  };
+}
+```
+
+#### Start
+
+Algunos hosts esperan que ustedes mismos *inicien* el servidor, por ejemplo, escuchando un puerto. Para estos tipos de hosts, la API del adaptador te permite exportar una función `start` que se llamará cuando se ejecute el script del paquete.
+
+```js
+import { App } from 'astro/app';
+
+export function start(manifest) {
+  const app = new App(manifest);
+
+  addEventListener('fetch', event => {
+    // ...
+  });
+}
+```
+
+#### `astro/app`
+
+Este módulo se utiliza para renderizar páginas que se han compilado previamente a través de `astro build`. Astro usa los objetos estándar [Request](https://developer.mozilla.org/es/docs/Web/API/Request) y [Response](https://developer.mozilla.org/es/docs/Web/API/Response). Los hosts que tienen una API diferente para request/response deben convertirse a estos tipos en su adaptador.
+
+```js
+import { App } from 'astro/app';
+import http from 'http';
+
+export function start(manifest) {
+  const app = new App(manifest);
+
+  addEventListener('fetch', event => {
+    event.respondWith(
+      app.render(event.request)
+    );
+  });
+}
+```
+
+Se proporcionan los siguientes métodos:
+
+##### `app.render(request, routeData, locals)`
+
+Este método llama a la página de Astro que coincide con la solicitud, la renderiza y devuelve una Promise a un objeto [Response](https://developer.mozilla.org/es/docs/Web/API/Response). Esto también funciona para las rutas API que no procesan páginas.
+
+```js
+const response = await app.render(request);
+```
+
+El método acepta un argumento obligatorio `request` y otros dos opcionales: [`routeData`](/es/reference/integrations-reference/#referencia-del-tipo-routedata) y [`locals`](/es/guides/middleware/#locals).
+
+Proporciona un valor para `routeData` si ya conoces la ruta a renderizar. Al hacerlo, se omitirá la llamada interna a [`app.match`](#appmatchrequest) para determinar la ruta a renderizar.
+
+Cuando es usado, `locals` debe ser el tercer argumento pasado. Puedes pasar `undefined` para `routeData` si no estás apuntando a una ruta específica.
+
+El ejemplo de abajo lee un encabezado llamado `x-private-header`, intenta analizarlo como un objeto y pasarlo a `locals`, que luego se puede pasar a cualquier [función de middleware](/es/guides/middleware/).
+
+```js
+const privateHeader = request.headers.get("x-private-header");
+let locals = {};
+try {
+    if (privateHeader) {
+        locals = JSON.parse(privateHeader);
+    }
+} finally {
+    const response = await app.render(request, undefined, locals);
+}
+```
+
+
+##### `app.match(request)`
+
+Este método se usa para determinar si una solicitud coincide con las reglas de enrutamiento de la aplicación Astro.
+
+```js
+if(app.match(request)) {
+  const response = await app.render(request);
+}
+```
+
+Por lo general, puedes llamar a `app.render(request)` sin usar `.match` porque Astro maneja 404 si se proporciona un archivo `404.astro`. Usa `app.match(request)` si quieres manejar los 404 de una manera diferente.
+
+## Permitir la instalación vía `astro add`
+
+[El comando `astro add`](/es/reference/cli-reference/#astro-add) permite a los usuarios agregar integraciones y adaptadores a su proyecto fácilmente. Si quieres que _tu_ adaptador sea instalable mediante esta herramienta, **agrega `astro-adapter` al campo `keywords` en tu `package.json`**:
+
+```json
+{
+  "name": "example",
+  "keywords": ["astro-adapter"],
+}
+```
+
+Una vez que [publiques tu adaptador a npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), correr `astro add example` instalará tu paquete con cualquier otra dependencia peer especificada en tu `package.json`. También indicaremos a los usuarios a actualizar la configuración de su proyecto manualmente.
+
+## Características de Astro
+
+<Since v="3.0.0" />
+
+Las características de Astro son una forma en que un adaptador le indica a Astro si puede admitir una característica, así como el nivel de soporte del adaptador para esa característica.
+
+Cuando se utilizan estas propiedades, Astro realizará lo siguiente:
+- ejecutará validaciones específicas;
+- emitirá información contextual en los registros;
+
+Estas operaciones se ejecutan en función de las características admitidas o no admitidas, su nivel de soporte y la configuración que utiliza el usuario.
+
+La siguiente configuración le indica a Astro que este adaptador tiene soporte experimental para assets, pero el adaptador no es compatible con los servicios integrados Sharp y Squoosh:
+
+```js title="my-adapter.mjs" ins={9-15}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          supportedAstroFeatures: {
+            assets: {
+              supportKind: "experimental",
+              isSharpCompatible: false,
+              isSquooshCompatible: false
+            }
+          }  
+        });
+      },
+    },
+  };
+}
+```
+
+Astro registrará una **advertencia** en la terminal:
+
+```
+[@matthewp/my-adapter] The feature is experimental and subject to issues or changes.
+```
+
+y un error si el servicio utilizado para activos no es compatible con el adaptador:
+
+```
+[@matthewp/my-adapter] The currently selected adapter `@matthewp/my-adapter` is not compatible with the service "Sharp". Your project will NOT be able to build.
+```
+
+## Características del adaptador
+
+Un conjunto de características que cambian la salida de los archivos emitidos. Cuando un adaptador elige habilitar estas características, recibirá información adicional dentro de hooks específicos.
+
+### `functionPerRoute`
+
+Esta es una característica que se habilita al usar solo SSR. Por defecto, Astro emite un único archivo `entry.mjs`, que se encarga de emitir la página renderizada en cada solicitud.
+
+Cuando `functionPerRoute` está en `true`, Astro en su lugar creará un archivo separado para cada ruta definida en el proyecto. 
+Cada archivo emitido solo renderizará una página. 
+Las páginas se emitirán dentro de un directorio `dist/pages/`, y los archivos emitidos mantendrán las mismas rutas de archivo del directorio `src/pages/`.
+
+Habilita la característica pasando `true` al adaptador.
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          adapterFeatures: {
+              functionPerRoute: true
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+Luego, utiliza el hook [`astro:build:ssr`](/es/reference/integrations-reference/#astrobuildssr), que te proporcionará un objeto `entryPoints` que mapea una ruta de página al archivo físico emitido después de la compilación.
+
+```js title="my-adapter.mjs" ins={15-19}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          adapterFeatures: {
+              functionPerRoute: true
+          } 
+        });
+      },
+
+      'astro:build:ssr': ({ entryPoints }) => {
+          for (const [route, entryFile] of entryPoints) {
+              // haz algo con route y entryFile
+          }
+      }  
+    },
+  };
+}
+```
+
+:::caution
+`entryFile` es de tipo `URL` y representa la ruta física del archivo en el sistema de archivos. Esto significa que las rutas cambian según el sistema operativo en el que se ejecute el código.
+:::
+
+#### Entornos serverless
+
+Establecer `functionPerRoute: true` en un entorno serverless crea un archivo JavaScript (controlador) para cada ruta. El nombre de un controlador puede variar según la plataforma de alojamiento que estés utilizando: lambda, función, página, etc.
+
+Cada una de estas rutas está sujeta a un [arranque en frío](https://azure.microsoft.com/en-us/blog/understanding-serverless-cold-start/) cuando se ejecuta el controlador, lo que puede causar cierto retraso. Este retraso está influenciado por diferentes factores.
+
+Con `functionPerRoute: false`, solo hay un controlador único encargado de renderizar todas tus rutas. Cuando se activa este controlador por primera vez, estarás sujeto a un arranque en frío. Después de eso, todas las demás rutas deberían funcionar sin retraso. Sin embargo, perderás el beneficio de la división de código que proporciona `functionPerRoute: true`.
+
+:::note
+Es importante que comprendas tu plataforma de alojamiento y cómo funciona para elegir la configuración adecuada de `functionPerRoute` para tu proyecto.
+:::
+
+### `edgeMiddleware`
+
+Define si se incluirá el código de middleware SSR al realizar la compilación.
+
+Cuando está habilitado, esto evita que el código de middleware se empaquete e importe en todas las páginas durante la compilación:
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          adapterFeatures: {
+              edgeMiddleware: true
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+Luego, utiliza el hook [`astro:build:ssr`](/es/reference/integrations-reference/#astrobuildssr), que te proporcionará un `middlewareEntryPoint`, que es una `URL` que apunta al archivo físico en el sistema de archivos.
+
+```js title="my-adapter.mjs" ins={15-19}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          adapterFeatures: {
+              edgeMiddleware: true
+          } 
+        });
+      },
+
+      'astro:build:ssr': ({ middlewareEntryPoint }) => {
+          // recuerda verificar si esta propiedad existe, será `undefined` isi el adaptador no opta por habilitar la característica.
+          if (middlewareEntryPoint) {
+             createEdgeMiddleware(middlewareEntryPoint)
+          }
+      }  
+    },
+  };
+}
+
+function createEdgeMiddleware(middlewareEntryPoint) {
+    // emite un nuevo archivo físico utilizando tu sistema de empaquetado.
+}
+```
