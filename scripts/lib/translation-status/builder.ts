@@ -18,6 +18,7 @@ import type {
 	PageTranslationStatus,
 } from '../../lib/translation-status/types';
 import { toUtcString, tryGetFrontMatterBlock } from '../../lib/translation-status/utils.js';
+import { minimatch } from 'minimatch';
 
 type NestedRecord = { [k: string]: string | NestedRecord };
 
@@ -343,19 +344,30 @@ export class TranslationStatusBuilder {
 		Also works when there's no English pages! The translated files will be marked as 
 		updated, but the same pages from other languages won't be affected by it, keeping
 		their old state.
+
+		You can also use glob matching!
+
+		Example usage:
+		@tracker-major:./src/content/docs/en/core-concepts/+(astro-components|astro-pages).mdx
+
+		Pages changed:
+		`en/astro-components.mdx`, `en/astro-pages.mdx`, `en/astro-syntax.mdx`
+
+		Will mark only `en/astro-components.mdx` & `en/astro-pages.mdx` as major changes.
+
+		See minimatch docs for examples on glob patterns:
+		https://github.com/isaacs/minimatch/blob/main/README.md
 		
 	*/
 	isValidMajor(entry: DefaultLogFields & ListLogLine, filePath: string) {
-		if (entry.message.match(COMMIT_IGNORE)) return false;
-
 		const trackerDirectiveMatch = entry.body.match(TRACKER_DIRECTIVE);
 
-		if (trackerDirectiveMatch) {
-			const filePaths = trackerDirectiveMatch[0].replace('@tracker-major:', '').split(';');
-			return filePaths.includes(filePath);
-		}
+		if (entry.message.match(COMMIT_IGNORE)) return false;
+		if (!trackerDirectiveMatch) return true;
 
-		return true;
+		const globsOrPaths = trackerDirectiveMatch[0].replace('@tracker-major:', '').split(';');
+
+		return globsOrPaths.find(globOrPath => minimatch(filePath, globOrPath)) ? true : false;
 	}
 
 	getTranslationStatusByPage(pages: PageIndex): PageTranslationStatus[] {
