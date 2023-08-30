@@ -62,19 +62,13 @@ Si prefieres instalar el adaptador manualmente, completa los siguientes dos paso
 
 Puedes desplegar en diferentes objetivos:
 
-*   `edge`: SSR dentro de una [función Edge](https://vercel.com/docs/concepts/functions/edge-functions).
 *   `serverless`: SSR dentro de una [función Node.js](https://vercel.com/docs/concepts/functions/serverless-functions).
 *   `static`: genera un sitio estático siguiendo los formatos de salida, redirecciones, etc. de Vercel.
-
-:::note
-Desplegar en el Edge tiene [sus limitaciones](https://vercel.com/docs/concepts/functions/edge-functions#known-limitations). Una función edge no puede ser más grande de 1 MB y no admite API nativas de Node.js, entre otras.
-:::
 
 Puedes cambiar el destino modificando la importación:
 
 
 ```js
-import vercel from '@astrojs/vercel/edge';
 import vercel from '@astrojs/vercel/serverless';
 import vercel from '@astrojs/vercel/static';
 ```
@@ -97,7 +91,7 @@ Para configurar este adaptador, pasa un objeto a la invocación de función `ver
 ### analytics
 
 **Tipo:** `boolean`<br/>
-**Disponible para:** Serverless, Edge y Estático<br/>
+**Disponible para:** Serverless y Static<br/>
 **Agregado en:** `@astrojs/vercel@3.1.0`
 
 Puedes habilitar [Vercel Analytics](https://vercel.com/analytics) (incluyendo Web Vitals y Audiences) configurando `analytics: true`. Esto inyectará los scripts de seguimiento de Vercel en todas tus páginas.
@@ -118,7 +112,7 @@ export default defineConfig({
 ### imagesConfig
 
 **Tipo:** `VercelImageConfig`<br/>
-**Disponible para:** Edge, Serverless, Static
+**Disponible para:** Serverless, Static
 **Agregado en:** `@astrojs/vercel@3.3.0`
 
 Opciones de configuración para la [API de Optimización de Imágenes de Vercel](https://vercel.com/docs/concepts/image-optimization). Consulta la [documentación de configuración de imágenes de Vercel](https://vercel.com/docs/build-output-api/v3/configuration#images) para obtener una lista completa de los parámetros admitidos.
@@ -140,7 +134,7 @@ export default defineConfig({
 ### imageService
 
 **Tipo:** `boolean`<br/>
-**Disponible para:** Edge, Serverless, Static
+**Disponible para:** Serverless y Static
 **Agregado en:** `@astrojs/vercel@3.3.0`
 
 Cuando está habilitado, se configurará y utilizará automáticamente un [Servicio de Imágenes](/es/reference/image-service-reference/) impulsado por la API de Optimización de Imágenes de Vercel en producción. En desarrollo, se utilizará en su lugar un servicio incorporado basado en Squoosh.
@@ -178,7 +172,7 @@ import astroLogo from ''../assets/logo.png';
 ### includeFiles
 
 **Tipo:** `string[]`<br/>
-**Disponible para:** Edge, Serverless
+**Disponible para:** Serverless
 
 Usa esta propiedad para forzar a que los archivos se incluyan en el empaquetado de tu función. Esto es útil cuando notas que faltan archivos.
 
@@ -194,10 +188,6 @@ export default defineConfig({
   }),
 });
 ```
-
-:::note
-Cuando se construye para el Edge, todas las dependencias se empaquetan en un solo archivo para ahorrar espacio. **No se empaquetará ningún archivo adicional**. Por lo tanto, si *necesitas* algún archivo dentro de la función, debes especificarlo en `includeFiles`.
-:::
 
 ### excludeFiles
 
@@ -219,9 +209,11 @@ export default defineConfig({
 });
 ```
 
-### Funciones por página
+### Configuración de agrupación de funciones
 
-El adaptador de Vercel se construye en una sola función de forma predeterminada. Astro 2.7 agregó soporte para dividir tu compilación en puntos de entrada separados por página. Si usas esta configuración, el adaptador de Vercel generará una función separada para cada página. Esto puede ayudar a reducir el tamaño de cada función para que solo estén empaquetando el código utilizado en esa página.
+El adaptador de Vercel divide las compilaciones en una función separada por ruta de forma predeterminada. Esto ayuda a reducir el tamaño de cada función, ya que solo agrupa el código utilizado en esa página.
+
+Puedes desactivar esto y compilar en una única función configurando la opción de configuración `functionPerRoute` en `false`:
 
 ```js
 // astro.config.mjs
@@ -230,10 +222,9 @@ import vercel from '@astrojs/vercel/serverless';
 
 export default defineConfig({
   output: 'server',
-  adapter: vercel(),
-  build: {
-    split: true,
-  },
+  adapter: vercel({
+    functionPerRoute: false,
+  }),
 });
 ```
 
@@ -270,7 +261,7 @@ Puedes usar el middleware de Vercel Edge para interceptar una solicitud y rediri
 
 El adaptador `@astrojs/vercel/serverless` puede crear automáticamente el middleware de Vercel Edge a partir de un middleware de Astro en tu código base.
 
-Esto es una característica opcional, y la opción `build.excludeMiddleware` debe establecerse en `true`:
+Esto es una característica opcional, y la opción `edgeMiddleware` debe establecerse en `true`:
 
 ```js
 // astro.config.mjs
@@ -278,10 +269,9 @@ import { defineConfig } from 'astro/config';
 import vercel from '@astrojs/vercel';
 export default defineConfig({
   output: 'server',
-  adapter: vercel(),
-  build: {
-    excludeMiddleware: true,
-  },
+  adapter: vercel({
+    edgeMiddleware: true,
+  }),
 });
 ```
 

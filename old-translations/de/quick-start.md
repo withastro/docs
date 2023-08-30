@@ -41,7 +41,7 @@ In deinem Projektverzeichnis führe den folgenden Befehl in deinem Terminal aus:
 npm run dev
 ```
 
-Astro wird von nun an deine Anwendung unter [http://localhost:3000](http://localhost:3000) bereitstellen. Wenn du diese URL in deinem Browser öffnest, solltest du Astros "Hello, World" sehen.
+Astro wird von nun an deine Anwendung unter [http://localhost:4321](http://localhost:4321) bereitstellen. Wenn du diese URL in deinem Browser öffnest, solltest du Astros "Hello, World" sehen.
 
 Der Server wird nun auf alle Änderungen in deinem `src/`-Verzeichnisch lauschen, sodass du deine Anwendung nicht nach jeder Änderung neu starten musst.
 

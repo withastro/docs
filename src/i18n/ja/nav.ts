@@ -6,12 +6,11 @@ export default NavDictionary({
 	'getting-started': 'はじめに',
 	install: 'インストール',
 	'editor-setup': 'エディタのセットアップ',
-	'guides/upgrade-to/v2': 'v2へのアップグレード',
+	'guides/upgrade-to/v3': 'v3へのアップグレード',
 
 	// Core Concepts
 	coreConcepts: 'コアコンセプト',
 	'concepts/why-astro': 'Astroを選ぶ理由',
-	'concepts/mpa-vs-spa': 'MPA vs. SPA',
 	'concepts/islands': 'Astroアイランド',
 
 	// Tutorials
@@ -44,7 +43,6 @@ export default NavDictionary({
 	'guides/content-collections': 'コンテンツコレクション',
 	'guides/client-side-scripts': 'スクリプトとイベントハンドリング',
 	'guides/styling': 'CSSとスタイル',
-	'guides/assets': 'アセット（実験的）',
 	'guides/images': '画像',
 	'guides/fonts': 'フォント',
 	'guides/imports': 'インポート',
@@ -53,7 +51,7 @@ export default NavDictionary({
 	'guides/data-fetching': 'データフェッチ',
 	'guides/middleware': 'ミドルウェア',
 	'guides/testing': 'テスト',
-	'guides/view-transitions': 'ビュートランジション（実験的）',
+	'guides/view-transitions': 'ビュートランジション',
 	'guides/troubleshooting': 'トラブルシューティング',
 
 	// Configuration
