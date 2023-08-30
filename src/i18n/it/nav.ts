@@ -5,7 +5,7 @@ export default NavDictionary({
 	'getting-started': 'Per Iniziare',
 	install: 'Installazione',
 	'editor-setup': 'Setup dell’Editor',
-	'guides/upgrade-to/v2': 'Aggiorna a v2',
+	'guides/upgrade-to/v3': 'Aggiorna a v3',
 
 	coreConcepts: 'Concetti Chiave',
 	'concepts/why-astro': 'Perché Astro',
@@ -38,7 +38,6 @@ export default NavDictionary({
 	'guides/content-collections': 'Collezioni di Contenuti',
 	'guides/client-side-scripts': 'Script & Gestione degli Eventi',
 	'guides/styling': 'CSS & Stili',
-	'guides/assets': 'Asset (Sperimentale)',
 	'guides/images': 'Immagini',
 	'guides/fonts': 'Font',
 	'guides/imports': 'Import',
