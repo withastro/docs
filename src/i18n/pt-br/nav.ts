@@ -8,7 +8,6 @@ export default NavDictionary({
 	'guides/upgrade-to/v3': 'Atualize para a v3',
 	coreConcepts: 'Principais Conceitos',
 	'concepts/why-astro': 'Por que Astro?',
-	'concepts/mpa-vs-spa': 'MPA vs. SPA',
 	'concepts/islands': 'Ilhas Astro',
 
 	tutorials: 'Tutoriais',
