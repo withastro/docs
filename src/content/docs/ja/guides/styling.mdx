@@ -41,10 +41,10 @@ Astroの`<style>`CSSルールは、**デフォルトで自動的にスコープ�
 
 ```astro
 <style>
-  h1:where(.astro-HHNQFKH6) {
-     color: red;
+  h1[data-astro-cid-hhnqfkh6] {
+    color: red;
   }
-  .text:where(.astro-HHNQFKH6) {
+  .text[data-astro-cid-hhnqfkh6] {
     color: blue;
   }
 </style>
@@ -157,7 +157,7 @@ import MyComponent from "../components/MyComponent.astro"
 <MyComponent class="red">This will be red!</MyComponent>
 ```
 
-このパターンでは、子コンポーネントに直接スタイルを設定できます。Astroは、親のスコープ付きクラス名（例：`astro-HHNQFKH6`）を`class`プロパティを通して自動的に渡し、その子を親のスコープに含めます。
+このパターンでは、子コンポーネントに直接スタイルを設定できます。Astroは、親のスコープ付きクラス名（例：`astro-hhnqfkh6`）を`class`プロパティを通して自動的に渡し、その子を親のスコープに含めます。
 
 :::note[親コンポーネントからスコープされたクラス]
 `class`プロパティは親のスコープに子を含むので、親から子へスタイルがカスケードされる可能性があります。このような意図しない副作用を避けるには、子コンポーネントでユニークなクラス名を使用するようにします。
@@ -431,9 +431,22 @@ import "../components/make-it-purple.css"
 
 ## CSSインテグレーション
 
-Astroには、[Tailwind][tailwind]など、人気のCSSライブラリやツール、フレームワークをプロジェクトに追加するための仕組みがあります！
+Astroには、[Tailwind](https://tailwindcss.com)など、人気のCSSライブラリやツール、フレームワークをプロジェクトに追加するための仕組みがあります！
 
-📚 これらのインテグレーションのインストール、インポート、設定の手順については、[インテグレーションガイド](/ja/guides/integrations-guide/)を参照してください。
+### Tailwind
+
+プロジェクトでTailwindを使用するには、公式の[Astro Tailwindインテグレーション][tailwind]を、パッケージマネージャーの`astro add`コマンドを使ってインストールします。
+
+```sh
+# NPMを使う
+npx astro add tailwind
+# Yarnを使う
+yarn astro add tailwind
+# PNPMを使う
+pnpm astro add tailwind
+```
+
+📚 Astroインテグレーションのインストール、インポート、設定の手順については、[インテグレーションガイド](/ja/guides/integrations-guide/)を参照してください。
 
 ## CSSプリプロセッサ
 
@@ -514,6 +527,41 @@ Astroのスタイル方法は、[Markdownレイアウトコンポーネント](/
 
 Tailwindを使用している場合、Markdownのスタイリングには[typographyプラグイン](https://tailwindcss.com/docs/typography-plugin)が便利です。
 
+## 本番環境
+
+### バンドルの調整
+
+Astroが本番環境向けにサイトをビルドする際、CSSはミニファイされチャンクへと結合されます。サイト上の各ページはそれぞれ独自のチャンクを取得し、さらに複数のページ間で共有されるCSSは、再利用のために独自のチャンクに分割されます。
+
+しかし、複数のページでスタイルを共有している場合、共有される一部のチャンクが非常に小さくなる場合があります。それらがすべて別々に送信された場合、スタイルシートへのリクエストが増加し、サイトのパフォーマンスに影響を与える可能性があります。そのため、Astroはデフォルトでは、HTML内の4kB以上のスタイルシートのみを`<link rel="stylesheet">`タグとしてリンクし、それ以外のものは`<style type="text/css">`にインライン化します。このアプローチにより、追加のリクエストの数と、ページ間でキャッシュされるCSSの量のあいだのバランスをとることができます。
+
+Viteの`assetsInlineLimit`ビルドオプションを使用して、スタイルシートが外部にリンクされるサイズをバイト単位で設定できます。このオプションは、スクリプトと画像のインライン化にも影響することに注意してください。
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    build: {
+      assetsInlineLimit: 1024,
+    }
+  };
+});
+```
+
+すべてのスタイルシートを外部リンクとしたい場合は、`inlineStylesheets`ビルドオプションを設定します。
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  build: {
+    inlineStylesheets: 'never'
+  }
+});
+```
+
+このオプションを`'always'`に設定すると、すべてのスタイルシートがインライン化されます。
 
 ## アドバンスド
 
@@ -563,7 +611,7 @@ import stylesUrl from '../styles/main.css?url';
 [sass]: https://sass-lang.com/
 [stylus]: https://stylus-lang.com/
 [svelte-style]: https://svelte.dev/docs#component-format-style
-[tailwind]: https://github.com/withastro/astro/tree/main/packages/integrations/tailwind
+[tailwind]: /ja/guides/integrations-guide/tailwind/
 [vite-preprocessors]: https://vitejs.dev/guide/features.html#css-pre-processors
 [vue-css-modules]: https://vue-loader.vuejs.org/guide/css-modules.html
 [vue-scoped]: https://vue-loader.vuejs.org/guide/scoped-css.html
