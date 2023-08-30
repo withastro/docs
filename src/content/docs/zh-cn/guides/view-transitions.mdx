@@ -1,52 +1,56 @@
 ---
-title: 视图过渡动画 (实验性)
+title: 视图过渡动画
 description: >-
-  如何在你的 Astro 网站中开启实验性的视图过渡动画。
+  在 Astro 中通过视图过渡动画实现页面之间的无缝导航。
 i18nReady: true
 ---
 
 import Since from '~/components/Since.astro'
 
-Astro 项目中对于**可选择的、每个页面的视图过渡动画**的支持可以通过实验性标志启用。视图过渡动画在更新页面内容时不会触发浏览器的正常全页导航刷新，并且提供了页面之间无缝动画切换的效果。
+Astro 仅需几行代码就可以支持**可选择的，每个页面的视图过渡动画**。视图过渡动画可以在不刷新浏览器的情况下更新页面内容，并在页面之间提供无缝的动画效果。
 
-Astro 提供了一个 `<ViewTransitions />` 路由组件，可以添加到单个页面的 `<head>` 中，用于控制页面在导航到另一个页面时的过渡效果。这提供了一种轻量的客户端路由，能够拦截导航并让你去自定义页面之间的过渡动画。而将该组件添加到可复用的 `.astro` 组件中，比如常用的头部或布局组件，可以实现整个站点（SPA 模式）的动画页面过渡效果。
+Astro 提供了一个 `<ViewTransitions />` 路由组件，可以添加到单个页面的 `<head>` 中，以控制页面在导航到另一个页面时的过渡效果。它提供了一个轻量级的客户端路由器，[拦截导航](#客户端导航流程) 并允许你自定义页面之间的过渡效果。
 
-Astro 的视图过渡动画支持是基于新的 [视图过渡动画](https://developer.chrome.com/docs/web-platform/view-transitions/) 浏览器 API，并包括以下功能：
+将此组件添加到一个可复用的 `.astro` 组件中，例如公共头部或布局组件，以便 [在整个站点上实现动画页面过渡（SPA 模式）](#整站视图过渡动画spa-模式)。
 
--  几种 [内置动画](#内置的动画指令)，例如 `slide` 和 `fade`；
--  支持前进和后退导航动画；
--  可完全[自定义过渡动画](#自定义动画)的能力，可以构建自己的动画效果；
--  对于尚未支持视图过渡动画 API 的浏览器，可以[控制回退行为](#回退控制)。
+Astro 的视图过渡动画支持由新的 [View Transitions](https://developer.chrome.com/docs/web-platform/view-transitions/) 浏览器 API 提供，还包括：
 
-:::caution
-视图过渡动画是 Astro 2.9 中的实验性功能。在标记为稳定之前，API 可能会发生变化。
-:::
+- 一些 [内置的动画选项](#内置动画指令)，例如 `fade`、`slide` 和 `none`。
+- 支持前进和后退导航动画；
+- 可完全 [自定义过渡动画](#自定义动画) 的能力，可以构建自己的动画效果；
+- 用于 [阻止非页面链接的客户端导航](#阻止客户端导航) 的选项。
+- 对于尚未支持视图过渡动画 API 的浏览器，可以 [控制回退行为](#回退控制)。
+- 自动支持 [`prefers-reduced-motion`](#prefers-reduced-motion)。
 
-## 在项目中启用视图过渡动画
-
-你可以通过 Astro 配置中的实验性 `viewTransitions` 标志来启用对动画页面过渡效果的支持：
-
-```js title="astro.config.mjs" ins={4-6}
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  experimental: {
-   viewTransitions: true
-  }
-});
-```
 
 :::note
-启用视图过渡动画支持不会自动将整个站点转换为单页应用（SPA）。默认情况下，每个页面仍将使用常规的、全页的浏览器导航。
-
-在 Astro 中，通过在每个页面或整个站点上添加 `<ViewTransitions />` 路由组件来添加页面过渡效果。
+默认情况下，每个页面都将使用常规的、全页的浏览器导航。你必须选择视图过渡动画，并且可以在每个页面或整个站点上使用它们。
 :::
+
+## 向页面添加视图过渡动画
+
+通过在每个页面的 `<head>` 中导入和添加 `<ViewTransitions />` 路由组件，可以选择在单个页面上使用视图过渡动画。
+
+```astro title="src/pages/index.astro" ins={2,7}
+---
+import { ViewTransitions } from 'astro:transitions';
+---
+<html lang="en">
+  <head>
+    <title>我的主页</title>
+    <ViewTransitions />
+  </head>
+  <body>
+    <h1>欢迎来到我的网站！</h1>
+  </body>
+</html>
+```
 
 ## 整站视图过渡动画（SPA 模式）
 
-导入并将 `<ViewTransitions />` 组件添加到你的公共 `<head>` 或共享布局组件中。Astro 将根据旧页面和新页面之间的相似性创建默认的页面动画，并为不支持的浏览器提供回退行为。
+导入 `<ViewTransitions />` 组件并将其添加到公共 `<head>` 或共享布局组件中。Astro 将根据旧页面和新页面之间的相似之处创建默认的页面动画，并为不支持的浏览器提供回退行为。
 
-下面的示例展示了如何通过导入和添加此组件到 `<CommonHead />` Astro 组件来在整个站点上添加视图过渡效果：
+下面的示例显示了如何通过导入和添加此组件到 `<CommonHead />` Astro 组件中，为不支持的浏览器提供默认的页面导航动画，包括默认的回退控制选项，从而在整个站点上添加 Astro 的默认页面导航动画：
 
 ```astro title="components/CommonHead.astro" ins={2,12}
 ---
@@ -55,7 +59,7 @@ import { ViewTransitions } from 'astro:transitions';
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <meta name="generator" content={Astro.generator} />
 
-<!-- 主要的元数据标签 -->
+<!-- 主要 Meta 标签 -->
 <title>{title}</title>
 <meta name="title" content={title} />
 <meta name="description" content={description} />
@@ -63,7 +67,9 @@ import { ViewTransitions } from 'astro:transitions';
 <ViewTransitions />
 ```
 
-你还可以在每个页面的基础上添加视图过渡效果，即导入 `<ViewTransitions />` 组件，并直接将其放置在页面的 `<head>` 中。
+无需其他配置即可启用 Astro 的默认客户端导航！
+
+对于更精细的控制，可以在单个元素上使用 [过渡动画指令](#过渡动画指令) 或 [覆盖默认的客户端导航](#preventing-client-side-navigation)。
 
 ## 过渡动画指令
 
@@ -71,11 +77,11 @@ Astro 会自动为在旧页面和新页面中找到的相应元素并分配一�
 
 在你的 `.astro` 组件的页面元素上使用可选的 `transition:*` 指令，以更精确地控制导航期间的页面过渡行为。
 
--  `transition:name`：允许你覆盖 Astro 的默认元素匹配方式，为一对 DOM 元素[指定过渡动画名称](#命名过渡动画)。
--  `transition:animate`：在用新元素替换旧元素时，允许你通过指定动画类型来覆盖 Astro 的默认动画效果。可以使用 Astro 的 [内置动画指令](#内置的动画指令) 或 [创建自定义动画](#自定义动画)。
+- `transition:name`：允许你覆盖 Astro 的默认元素匹配方式，为一对 DOM 元素 [指定过渡动画名称](#命名过渡动画)。
+- `transition:animate`：在用新元素替换旧元素时，允许你通过指定动画类型来覆盖 Astro 的默认动画效果。可以使用 Astro 的 [内置动画指令](#内置的动画指令) 或 [创建自定义动画](#自定义动画)。
 - `transition:persist`: 允许你覆盖 Astro 的默认行为。不同于在导航到另一个页面时用将替换旧元素为新元素的方式，该行为则是在导航到另一个页面时 [保留组件和 HTML 元素的状态](#维持状态)。
 
-## 命名过渡动画
+### 命名过渡动画
 
 在某些情况下，你可能希望自己对相应的且包含视图过渡动画的元素进行标识，那么你可以使用 `transition:name` 指令为一对元素指定一个名称。
 
@@ -87,9 +93,9 @@ Astro 会自动为在旧页面和新页面中找到的相应元素并分配一�
 <aside transition:name="hero">
 ```
 
-注意，每个元素的 `transition:name` 在每个页面上只能使用一次。当 Astro 无法自动推断出合适的名称，或需要更精确地控制匹配元素时，请手动设置这个名称。
+注意，提供的 `transition:name` 的值在每个页面上只能使用一次。当 Astro 无法自动推断出合适的名称，或需要更精确地控制匹配元素时，请手动设置这个名称。
 
-## 维持状态
+### 维持状态
 
 <Since v="2.10.0" />
 
@@ -127,28 +133,33 @@ Astro 会自动为在旧页面和新页面中找到的相应元素并分配一�
 <video controls="" autoplay="" transition:persist="media-player">
 ```
 
-## 内置的动画指令
+### 内置动画指令
 
-Astro 提供了几种内置动画，用于覆盖默认的 `morph` 过渡效果。可以添加 `transition:animate` 指令来试用 Astro 的 `slide` 或 `fade` 过渡效果。
+Astro 提供了一些内置的动画选项，用于覆盖默认的 `fade` 过渡动画。在单个元素上添加 `transition:animate` 指令，以自定义特定过渡的行为。
 
--  `morph`（默认）：浏览器根据页面的相似程度来决定最佳的元素动画方式。例如，如果元素在页面之间的位置上有差异，它会呈现浮动到新位置的效果；如果元素在完全相同的位置上，它将呈现静止不动的效果；
--  `slide`：旧内容从左侧滑出，新内容从右侧滑入的动画效果；在后退导航时，动画效果则相反。
--  `fade`：旧内容淡出，新内容淡入的交叉淡化效果。
+- `fade` (默认)：一个基于 Astro 的淡入淡出动画。旧内容淡出，新内容淡入。
+- `initial`: 退出 Astro 的默认淡入淡出动画，并使用浏览器的默认样式。
+- `slide`: 旧内容向左滑出，新内容从右侧滑入的动画。在后退导航时，动画是相反的。
+- `none`: 禁用浏览器的默认动画。在页面的 `<html>` 元素上使用，以禁用页面上每个元素的默认淡入淡出动画。
 
-下面的示例为页面的主体内容产生了一个滑动动画效果，同时使位置相同的页眉保持不动：
+组合这些指令以完全控制页面动画。在 `<html>` 元素上设置页面默认值，并根据需要在任何单个元素上进行覆盖。
+
+下面的示例为页面内容产生了一个滑动动画，同时禁用了页面其余部分的浏览器默认淡入淡出动画：
 
 ```astro
 ---
 import { CommonHead } from '../components/CommonHead.astro';
 ---
-<html>
+
+<html transition:animate="none">
   <head>
     <CommonHead />
   </head>
   <body>
-    <header> // 默认是 transition:animate="morph"
+    <header>
       ...
     </header>
+    <!-- 覆盖单个元素上的页面默认值 -->
     <main transition:animate="slide">
       ...
     </main>
@@ -156,7 +167,7 @@ import { CommonHead } from '../components/CommonHead.astro';
 </html>
 ```
 
-## 自定义动画
+### 自定义动画
 
 你可以使用任何 CSS 动画属性来自定义过渡的各个方面。
 
@@ -223,6 +234,18 @@ const myFade = {
 <header transition:animate={myFade}> ... </header>
 ```
 
+## 阻止客户端导航
+
+一旦你在页面上添加了 `<ViewTransitions />` 组件，就可以通过客户端路由导航到页面上链接到站点上的另一个页面的每个锚点。有一些情况下，你可能不希望通过 CSR 导航。一个例子是，如果链接指向任何非页面，例如 `public/` 文件夹中的 PDF。或者是一个生成图像的 API 路由。
+
+在这些情况下，你可以使用 `data-astro-reload` 属性来选择性地阻止每个链接使用客户端路由，如下所示：
+
+```html
+<a href="/quarterly-earnings.pdf" data-astro-reload>
+```
+
+这些链接将被路由忽略，并将进行全页导航。
+
 ## 回退控制
 
 `<ViewTransitions />` 路由在支持视图过渡动画的浏览器（如 Chromium 浏览器）中表现最佳，但也包含了对其他浏览器的默认回退支持。即当浏览器不支持视图过渡动画 API 时，Astro 仍将提供基于浏览器的导航，使用其中一种回退选项来实现类似的效果。
@@ -243,10 +266,40 @@ import { ViewTransitions } from 'astro:transitions';
 ```
 
 :::note[已知限制]
-低版本 CSS 无法模拟 `morph` 动画。因此，使用此动画的任何元素将不会进行动画处理。
+Astro 不会模拟 `initial` 浏览器动画。因此，任何使用此动画的元素当前都不会被动画化。
 :::
 
-## 页面导航时的脚本行为
+## 客户端导航流程
+
+当 `<ViewTransitions />` 路由器被使用时，以下步骤将会产生 Astro 的客户端导航：
+
+1. 一个访问者通过以下任何操作触发导航：
+    - 点击链接到站点上另一个页面的 `<a>` 标签。
+    - 点击后退按钮。
+    - 点击前进按钮。
+2. 路由器开始获取下一个页面。
+3. 路由器将 `data-astro-transition` 属性添加到 HTML 元素中，并将其值设置为 `'forward'` 或 `'back'`。
+4. 路由器调用 `document.startViewTransition`。这将触发浏览器自己的 [视图过渡动画流程](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API#the_view_transition_process)。重要的是，浏览器会对页面的当前状态进行截图。
+5. 在 `startViewTransition` 回调中，路由器执行 __swap__，包括以下事件序列：
+    
+    - `<head>` 的内容被交换，其中一些元素被保留：
+        - 如果新页面上存在，则保留样式表 DOM 节点，以防止 FOUC。
+        - 如果新页面上存在，则保留脚本。
+        - 如果新页面上存在对应的元素，则保留任何其他带有 `transition:persist` 的 head 元素。
+    
+    - `<body>` 被新页面的 `<body>` 完全替换。
+    
+    - 任何带有 `transition:persist` 的元素（如果存在）都会被移动到新的 DOM 中。
+    
+    - 如果需要，将恢复滚动位置。
+    
+    - `astro:after-swap` 事件在 `document` 上触发。这是 __swap__ 过程的结束。
+
+6. 路由器等待任何新样式表加载完成，然后才会解析过渡动画。
+7. 路由器执行添加到页面的任何新脚本。
+8. `astro:page-load` 事件触发。这是导航流程的结束。
+
+### 页面导航时的脚本行为
 
 在使用 `<ViewTransitions />` 组件导航页面时，脚本将按顺序运行以匹配浏览器行为。
 
@@ -262,7 +315,7 @@ import { ViewTransitions } from 'astro:transitions';
 
 模块脚本只会执行一次，因为浏览器会跟踪已经加载的模块。所以对于这些脚本，你无需担心重新执行的问题。
 
-### `astro:load`
+### `astro:page-load`
 
 该事件在页面导航结束后触发，当新页面对用户可见时会阻塞式样并加载脚本。你可以在 `document` 上监听此事件。
 
@@ -272,14 +325,14 @@ import { ViewTransitions } from 'astro:transitions';
 
 ```astro "{ once: true }"
 <script>
-  document.addEventListener('astro:load', () => {
+  document.addEventListener('astro:page-load', () => {
     // 这只会运行一次
     setupStuff();
   }, { once: true });
 </script>
 ```
 
-### `astro:beforeload`
+### `astro:after-swap`
 
 这是一个在新页面替换旧页面后立即触发的事件。你可以在 `document` 上监听此事件。
 
@@ -298,10 +351,87 @@ import { ViewTransitions } from 'astro:transitions';
   // 在初始化导航时运行
 	setDarkMode();
   // 在视图过渡动画导航时运行
-	document.addEventListener('astro:beforeload', setDarkMode);
+	document.addEventListener('astro:after-swap', setDarkMode);
 </script>
 ```
 
 ## `prefers-reduced-motion`
 
 Astro 的 `<ViewTransitions />` 组件包含一个 CSS 媒体查询，当检测到 [`prefer-reduced-motion`](https://developer.mozilla.org/zh-CN/docs/Web/CSS/@media/prefers-reduced-motion) 设置时，禁用所有视图过渡动画，包括回退动画。相反，浏览器将不使用动画，简单直接的切换 DOM 元素。
+
+## 从 v2.x 升级到 v3.0
+
+在 Astro v3.0 中，视图过渡动画不再是实验性的。
+
+如果你 **没有** 在 Astro 2.x 中启用此实验性标志，则不会对你的项目造成任何破坏性的更改。新的视图过渡动画 API 不会影响你现有的代码。
+
+如果你之前使用了实验性的视图过渡动画，那么从早期版本升级你的 Astro 项目时可能会有一些破坏性的更改。
+
+请根据以下说明适当地升级 **使用 `experimental.viewTransitions: true` 配置的 Astro v2.x 项目** 到 v3.0。
+
+### 从 `experimental.viewTransitions` 升级
+
+如果你之前启用了视图过渡动画的实验性标志，那么你需要更新你的项目到 Astro v3.0，因为现在 Astro 默认支持视图过渡动画。
+
+#### 移除 `experimental.viewTransitions` 标志
+
+移除实验性标志：
+
+```js title="astro.config.mjs" del={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+   viewTransitions: true
+  }
+});
+```
+
+#### 更新 `transition:animate` 指令
+
+**改变：** `transition:animate` 的值 `morph` 已重命名为 `initial`。此外，这不再是默认的动画。如果没有指定 `transition:animate` 指令，则你的动画现在默认为 `fade`。
+
+1. 重命名任何 `morph` 动画为 `intial`。
+    ```astro title="src/components/MyComponent.astro" del="morph" ins="initial"
+    <div transition:name="name" transition:animate="morph initial" />
+    ```
+2. 为了保持任何以前默认使用 `morph` 的动画，显式添加 `transition:animate="initial"`。
+
+    ```astro title="src/components/MyComponent.astro" ins='transition:animate="initial"'
+    <div transition:name="name" transition:animate="initial" />
+    ```
+3. 你可以安全地删除任何显式设置为 `fade` 的动画。这是现在的默认行为：
+    ```astro title="src/components/MyComponent.astro" del="transition:animate=\"fade\""
+    <div transition:name="name" transition:animate="fade" />
+    ```
+
+**添加：** Astro 还支持一个新的 `transition:animate` 值，`none`。这个值可以在页面的 `<html>` 元素上使用，以禁用整个页面上的动画过渡。这只会覆盖页面元素上**默认的动画行为**，而不是动画指令。你仍然可以在单个元素上设置动画，这些特定的动画将会发生。
+
+4. 你现在可以在单个页面上禁用所有默认的过渡动画，只对显式使用 `transition:animate` 指令的元素进行动画：
+
+    ```astro ins="transition:animate=\"none\""
+    <html transition:animate="none">
+      <head></head>
+      <body>
+        <h1>Hello world!</h1>
+      </body>
+    </html>
+    ```
+
+#### 更新事件名称
+
+事件 `astro:load` 已重命名为 `astro:page-load`。在你的项目中重命名所有 `astro:load` 出现的地方。
+
+```astro title="src/components/MyComponent.astro" del="astro:load" ins="astro:page-load"
+<script>
+document.addEventListener('astro:load astro:page-load', runSetupLogic);
+</script>
+```
+
+事件 `astro:beforeload` 已重命名为 `astro:after-swap`。在你的项目中重命名所有 `astro:beforeload` 出现的地方。
+
+```astro title="src/components/MyComponent.astro" del="astro:beforeload" ins="astro:after-swap"
+<script>
+document.addEventListener('astro:beforeload astro:after-swap', setDarkMode);
+</script>
+```
