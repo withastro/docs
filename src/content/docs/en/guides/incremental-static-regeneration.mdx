@@ -3,8 +3,8 @@ title: Incremental Static Regeneration
 ---
 If your website fetches content from a CMS or a database that updates infrequently, you can use a technique called **Incremental Static Regeneration**, or ISR, to update your site without rebuilding the entire project. This is a great way to keep your site up-to-date while still enjoying the benefits of static hosting.
 
-:::note
-ISR is often presented as an alternative to SSG and SSR, but it's more helpful to think of it as SSR with caching.
+:::note[SSG vs SSR vs ISR]
+ISR is often presented as an alternative to Static Site Generation (SSG) and Server Side Rendering (SSR), but it is more helpful to think of it as SSR with caching.
 :::
 
 :::note
@@ -23,58 +23,126 @@ Incremental static regeneration is different from **incremental builds**, which 
 - Your website offers logged-in experiences. If each user needs to be sent a slightly different HTML from others, caching the page may not be possible.
 - The structure of your site (layouts, and styling) changes frequently. Changes to the structure require a full rebuild.
 
-## About Cache-Control Headers
+## Implementing ISR for Your Project
+
+ISR involves saving the response such that it can be reused for future requests. The exact implementation depends on where you are deploying.
+
+If you aren't using an adapter already, you are going to need to add one. See the [integrations guide](/en/guides/integrations-guide/) for specific instructions. In your config, make sure that the `output` is either `"server"` or `"hybrid"`. Note that when using "hybrid", the pages you want generated, cached, and invalidated will need to be opted-out of prerendering. Otherwise, they will only be rendered once during build. See the [server side rendering guide](/en/guides/server-side-rendering/#opting-out-of-pre-rendering) to see how.
+
+#### About Cache-Control Headers
 You will see `Cache-Control` headers being used for many of the platforms below. It is worth reviewing the basics of how they work.
  - `Cache-Control: s-maxage=60` tells the caching server to cache the response for 60 seconds. You probably want to use this for most cases.
  - `Cache-Control: max-age=60` tells both browsers and servers to cache the response for 60 seconds. You may use this when your content is unlikely to be edited. If a page with `max-age` updates after it has been visited by a user, their browser will show them the cached version until the age of the content is past `max-age`.
- - `Cache-Control: private, max-age=60` tells the browser to cache the response for 60 seconds, but not to cache it on any server. This is useful to provide quick navigation, and the content includes details specific to the visitor.
+ - `Cache-Control: private, max-age=60` tells the browser to cache the response for 60 seconds, but tells the servers to not cache it. This is useful when you want to provide quick navigation, and the content includes details specific to the visitor.
 
-## Implementing ISR for Your Project
-
-ISR involves saving the response such that it can be reused for future requests. The exact implementation depends on where you are deploying. If you aren't already using an adapter already, you are going to need to add one. See the [integrations guide](/en/guides/integrations-guide/) for specific instructions. In your config, make sure that the "output" is either "server" or "hybrid". If it is "hybrid", the pages you want generated, cached, and invalidated will need to be opted-out of prerendering. See the [server side rendering guide](/en/guides/server-side-rendering/#opting-out-of-pre-rendering) to see how.
+#### About the Web Cache API
+Deno and Cloudflare implement the Web Cache API, a way to store and retrieve `Response` objects using javascript.
+To use this API, call the `open` method on the globally available `caches` object with a name of your choosing.
+```ts
+const cache = await caches.open("astro")
+```
+You just opened a [`Cache`](https://developer.mozilla.org/en-US/docs/Web/API/Cache)! You can now call `await cache.put(request, response)` to save a response, and `await cache.match(request)` to retrieve it. See [web.dev's Cache API quick guide](https://web.dev/cache-api-quick-guide/) if you want to learn more.
 
 ### Self-hosted Node.js
-ISR can be implemented in Node.js by writing a caching middleware. The following middleware caches the response in memory for 60 seconds:
+ISR can be implemented in Node.js by writing a caching middleware. The following middleware caches every response in memory for 60 seconds:
 
 ```ts title="src/middleware.ts"
+import { defineMiddleware } from "astro:middleware"
 
-const cache = {}
+const cache = new Map
 
-export const onRequest = async ({ request }, next) => {
-    const cached = cache[request.url]
+export const onRequest = defineMiddleware(async ({ request }, next) => {
+    
+    let expiresIn = 60
+    
+    const cached = cache.get(request.url)
     
     if (cached) {
         if (cached.expires > Date.now()) {
-            // return cached response
             return cached.response.clone()
         }
         else {
-            // remove stale response
-            delete cache[request.url]
+            cache.delete(request.url)
         }
     }
     
     const response = await next()
-    cache[request.url] = {
-        expires: Date.now() + 60 * 1000,
+    
+    cache.set(request.url, {
+        expires: Date.now() + expiresIn * 1000,
         response: response.clone()
-    }
-    // return fresh response
+    })
+    
     return response
+})
+```
+:::tip
+It is a good idea to skip caching when the response code is 500 (Internal Server Error).
+:::
 
+#### Advanced: Per-page revalidation time
+You may want some pages to be always rendered fresh, while others to be kept saved for hours. Astro makes this possible with middleware locals.
+
+You can create a function that changes the `expiresIn` variable, and add it to locals. Now each astro page can decide how long it should be cached for!
+```ts title="src/middleware.ts" ins={9}
+import { defineMiddleware } from "astro:middleware"
+
+const cache = new Map
+
+export const onRequest = defineMiddleware(async ({ request }, next) => {
+    
+    let expiresIn = 60
+    
+    locals.revalidate = seconds => { expiresIn = seconds }
+    
+    const cached = cache.get(request.url)
+    
+    if (cached) {
+        if (cached.expires > Date.now()) {
+            return cached.response.clone()
+        }
+        else {
+            cache.delete(request.url)
+        }
+    }
+    
+    const response = await next()
+    
+    cache.set(request.url, {
+        expires: Date.now() + expiresIn * 1000,
+        response: response.clone()
+    })
+    
+    return response
+})
+```
+```ts title="src/env.d.ts"
+/// <reference types="astro/client" />
+
+namespace App {
+    interface Locals {
+        revalidate(seconds: number): void
+    }
+}
+```
+```astro title="src/pages/index.astro"
+---
+Astro.locals.revalidate(3600)
+---
+<h1>This page will saved and reused for 1 hour before being generated again.</h1>
+```
+```ts title="src/pages/endpoint.ts"
+export async function GET({ locals }) {
+    locals.revalidate(0)
+    return new Response("This response will be generated every time this endpoint is called.")
 }
 ```
 
-### Node.js on AWS Lambda
-Lambda instances are ephemeral, which means they might lose all state between invocation - on-disk and in-memory.
-:::note
-TODO: Investigate disk mounts
-:::
-
 ### Self-hosted Deno
-The middleware approach used for Node will work on Deno. However, Deno also implements the Web Cache API that can persist the cache across restarts. The following middleware uses the Web Cache API to cache responses for 60 seconds:
+The middleware approach used for Node works on Deno as well. Deno also implements the Web Cache API which has the added bonus of persisting the cache across server restarts. It is important to note that `Cache-Control` headers are not automatically processed - you would have to manually delete responses when they have expired. The following middleware uses the Web Cache API to cache responses. A custom header (`X-Expires`) is used to keep track of staleness:
 
 ```ts title="src/middleware.ts"
+import { defineMiddleware } from "astro:middleware"
 
 const cache = await caches.open('astro')
 
@@ -82,24 +150,24 @@ export const onRequest = async ({ request }, next) => {
     const cachedResponse = await cache.match(request)
     
     if (cachedResponse) {
-        const expires = Number(cachedResponse.headers.get('X-expires'))
+    
+        const expires = Number(cachedResponse.headers.get('X-Expires'))
+        
         if (expires > Date.now()) {
-            // return cached response
             return cachedResponse
         }
+        
         else {
-            // remove stale response
             await cache.delete(request)
         }
     }
     
     const response = await next()
     
-    // set expiry
-    response.headers.set('X-expires', String(Date.now() + 60 * 1000))
-
+    response.headers.set('X-Expires', String(Date.now() + 60 * 1000))
+    
     await cache.put(request.url, response.clone())
-    // return fresh response
+    
     return response
 }
 ```
@@ -109,32 +177,28 @@ Deno Deploy does not provide a way to persist data. However, you may be able to 
 
 ### Vercel
 Vercel provides a built-in caching layer that automatically saves cacheable responses. Make sure your server-rendered page or endpoint sets a `Cache-Control` header.
-
 ```astro title="src/pages/index.astro"
 ---
 Astro.response.headers.set('Cache-Control', 's-maxage=60')
 ---
-<h1>Welcome to Astro</h1>
+<h1>Vercel Edge CDN will save and reuse this page for about 60 seconds.</h1>
 ```
-
-```ts title="src/pages/api.ts"
-export async function get({ params, request }) {
-    ...
-    return new Response(content, {
+```ts title="src/pages/endpoint.ts"
+export async function GET({ request }) {
+    return new Response("Vercel Edge CDN will save and reuse this response for about 60 seconds.", {
         headers: { "Cache-Control": "s-maxage=60" }
     })
 }
 ```
-Vercel only supports `s-maxage` and `stale-while-revalidate` in the Cache-Control header. See [vercel documentation](https://vercel.com/docs/concepts/edge-network/caching) for current information.
+Vercel only supports `s-maxage` and `stale-while-revalidate` in the Cache-Control header. See [Vercel documentation](https://vercel.com/docs/concepts/edge-network/caching) for current information.
 
 ### Netlify
 Netlify supports caching via two methods: `Cache-Control` headers, which works with edge and serverless functions; and, On-demand Builders, a type of function dedicated for optimized caching.
 
 #### On-demand Builders
-On-demand Builders are serverless functions used to generate web content as needed that’s automatically cached on Netlify’s Edge CDN. They enable you to build 
+On-demand Builders are serverless functions used to generate web content as needed that’s automatically cached on Netlify’s Edge CDN.
 To enable them, set the `builders` option to `true` in your config file.
 ```ts title="astro.config.js" ins={6}
-
 import { defineConfig } from 'astro/config'
 import netlify from '@astrojs/netlify/functions'
 
@@ -145,16 +209,18 @@ export default defineConfig({
 ```
 By default, pages for your site will be built when a user visits them for the first time and then cached at the edge for subsequent visits. To set a revalidation time, call the `runtime.setBuildersTtl(ttl)` local with the duration (in seconds). For example, to set a revalidation time of 60 seconds:
 ```astro title="src/pages/index.astro"
-
 ---
 Astro.locals.runtime.setBuildersTtl(60)
 ---
-<h1>Welcome to Astro</h1>
+<h1>Netlify On-Demand Builders will save and reuse this page for about 60 seconds.</h1>
 ```
-TODO: middleware equivalent
 When you set a revalidation time, Netlify will rerender the page in the background at regular intervals so that visitors never have to wait for a page to be rendered.
-It is important to note that On-demand Builders ignore query params when checking for cached pages. For example, if `example.com/?x=y` is cached, it will be served for `example.com/?a=b` (different query params) and `example.com/` (no query params) as well.
-See Netlify's [documentation](https://docs.netlify.com/configure-builds/on-demand-builders) to learn more about On-demand Builders.
+:::caution
+On-demand Builders ignore query params when checking for cached pages.
+
+For example, if `example.com/?x=y` is cached, it will be served for `example.com/?a=b` (different query params) and `example.com/` (no query params) as well.
+:::
+See [Netlify documentation](https://docs.netlify.com/configure-builds/on-demand-builders) to learn more about On-demand Builders.
 
 #### Edge and serverless functions
 Netlify supports caching via `Cache-Control` headers. Make sure your server-rendered page or endpoint sets a `Cache-Control` header.
@@ -163,58 +229,48 @@ Netlify supports caching via `Cache-Control` headers. Make sure your server-rend
 ---
 Astro.response.headers.set('Cache-Control', 's-maxage=60')
 ---
-<h1>Welcome to Astro</h1>
+<h1>Netlify Edge CDN will save and reuse this page for about 60 seconds.</h1>
 ```
-
-See [Netlify's documentation](https://docs.netlify.com/edge-functions/optional-configuration/#supported-headers) on edge functions to learn about what headers, and values are supported.
-
+See [Netlify documentation](https://docs.netlify.com/edge-functions/optional-configuration/#supported-headers) to learn about the supported headers, and values.
 
 ### Cloudflare Pages/Workers
-Cloudflare Workers implements the Web Cache API. You can use a combination of a caching middleware, and `Cache-Control` headers.
-  
-```astro title="src/pages/index.astro"
----
-// this header says: the browser and the cdn can store and reuse this page for 1 hour
-Astro.response.headers.set('Cache-Control', 'max-age=3600')
----
-<h1>Welcome to Astro</h1>
-```
-  
+The example below shows how you would use a combination of middleware and `Cache-Control` headers. A check for existence of the default `Cache` is done to avoid running the middleware in the dev server, which does not have access to the Cache API.
 ```ts title="src/middleware.ts"
+import { defineMiddleware } from "astro:middleware"
 
-
-const cachingMiddleware = async ({ request }, next) => {
+const cachingMiddleware = defineMiddleware(async ({ request }, next) => {
     
-    // caches.default is only available on cloudflare workers
-    // other platforms implementing the Web Cache API require using the `open` method
-    // `const cache = await caches.open("default")`
     const cache = caches.default
 
     const cachedResponse = await cache.match(request)
     
-    // return the cached response if there was one
     if (cachedResponse) return cachedResponse
     
     else {
-        // render a fresh response
         const response = await next()
         
-        // add to cache
         await cache.put(request, response.clone())
         
-        // return fresh response
         return response
     }
-}
+})
 
 export const onRequest =
-    // avoid using caches when it is not available. for example, when testing locally with node
-    globalThis.caches instanceof globalThis.CacheStorage
+    globalThis.caches?.default
         ? cachingMiddleware
-        // a middleware that does nothing
         : (_, next) => next()
 ```
+```astro title="src/pages/index.astro"
+---
+Astro.response.headers.set('Cache-Control', 'max-age=3600')
+---
+<h1>Cloudflare Workers will save and reuse this response for upto 1 hour.</h1>
+```
+`caches.default` is a pre-opened `Caches` available only on Cloudflare's javascript runtime. It is worth noting that, unlike Deno and browsers, this runtime automatically deletes stale responses put inside a `Cache`. See [Cloudflare docs](https://developers.cloudflare.com/workers/runtime-apis/cache#headers) to learn more.
+:::caution
+Cloudflare may remove the cached response from their server before the duration you set has elapsed.
 
-:::note
-Cloudflare may remove the cached response from their server before the duration you set has elapsed. This may happen if the page was not receving visitors, or if the server is approaching capacity. If it is important to you that your visitors don't wait for the page to render afresh, you may be able to take advantage of Cloudflare's Cache Reserve feature, which stores cache on their object storage offering, R2.
+This may happen if the page was not receving visitors, or if the server is approaching capacity.
+
+If it is important to you that your visitors don't wait for the page to render afresh, you may be able to take advantage of Cloudflare's Cache Reserve feature, which stores cache on their object storage offering, R2.
 :::
