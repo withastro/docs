@@ -1,0 +1,308 @@
+---
+title: ビュートランジション（実験的）
+description: >-
+  Astroサイトでビュートランジションの実験的なサポートを有効にする方法。
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+Astroプロジェクトでの**オプトイン式ページ単位のビュートランジション**のサポートは、実験的なフラグにより有効化できます。ビュートランジションは、ブラウザがナビゲーション時に通常おこなうページ全体の更新なしでページコンテンツを更新し、ページ間のシームレスなアニメーションを提供します。
+
+Astroは、単一のページの`<head>`に追加可能な`<ViewTransitions />`ルーティングコンポーネントを提供しており、これにより別のページに移動する際のページ遷移を制御できます。このコンポーネントは軽量なクライアントサイドルーターを提供し、ナビゲーションをインターセプトしてページ間の遷移をカスタマイズできるようにします。このコンポーネントを共通のヘッドやレイアウトなど再利用可能な`.astro`コンポーネントに追加すると、サイト全体でのアニメーション付きのページ遷移（SPAモード）が可能になります。
+
+Astroのビュートランジションは新しい[View Transitions](https://developer.chrome.com/docs/web-platform/view-transitions/)ブラウザAPIによって提供されており、また以下の機能も含みます。
+
+- `slide`や`fade`など、いくつかの[組み込みのアニメーション](#組み込みのアニメーションディレクティブ)。
+- 戻る・進むの両ナビゲーションでのアニメーションのサポート。
+- [トランジションアニメーションのすべての要素を完全にカスタマイズ](#アニメーションをカスタマイズする)し、さらに独自のアニメーションを作成する機能。
+- まだView Transition APIをサポートしていないブラウザのための[フォールバック用動作の制御](#フォールバックの制御)。
+
+:::caution
+ビュートランジションはAstro 2.9で有効化された実験的な機能です。安定版として認められるまではAPIが変更される可能性があります。
+:::
+
+## プロジェクトでビュートランジションを有効にする
+
+Astroの設定で実験的な`viewTransitions`フラグを有効にすることで、アニメーション付きのページ遷移のサポートを有効化できます。
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    viewTransitions: true
+  }
+});
+```
+
+:::note
+ビュートランジションのサポートを有効にしても、サイト全体がSPA（シングルページアプリケーション）に自動的に変換されるわけではありません。デフォルトでは、すべてのページは通常のフルページのブラウザナビゲーションを維持します。
+
+Astroでは、`<ViewTransitions />`ルーティングコンポーネントをページ単位またはサイト全体で使用し、ページ間のトランジションを追加します。
+:::
+
+## サイト全体でのビュートランジション（SPAモード）
+
+`<ViewTransitions />`をインポートし、共通の`<head>`または共有のレイアウトコンポーネントに追加します。Astroは、旧ページと新ページの類似点に基づいてデフォルトのページアニメーションを作成し、サポートされていないブラウザに対するフォールバック動作も提供します。
+
+以下の例では、このコンポーネントをインポートし`<CommonHead />` Astroコンポーネントに追加することで、サイト全体にビュートランジションを追加しています。
+
+```astro title="components/CommonHead.astro" ins={2,12}
+---
+import { ViewTransitions } from 'astro:transitions';
+---
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<meta name="generator" content={Astro.generator} />
+
+<!-- 主要メタタグ -->
+<title>{title}</title>
+<meta name="title" content={title} />
+<meta name="description" content={description} />
+
+<ViewTransitions />
+```
+
+ページ単位でもビュートランジションを追加できます。その場合、`<ViewTransitions />`コンポーネントをインポートし、ページの`<head>`内に直接配置します。
+
+## トランジションディレクティブ
+
+Astroは、旧ページと新ページの両方に存在する対応する要素に、共通かつ一意の`view-transition-name`を自動的に割り当てます。マッチする要素のペアは、要素の種類とDOM内の位置の両方によって推測されます。
+
+`.astro`コンポーネント内のページ要素にオプションの`transition:*`ディレクティブを使用すると、ナビゲーション中のページ遷移の動作をより細かく制御できます。
+
+- `transition:name`: 新旧コンテンツのアニメーションに関するAstroデフォルトの要素のマッチング方式をオーバーライドし、DOM要素のペアを関連付ける[トランジション名を指定](#トランジションに名前を付ける)できます。
+- `transition:animate`: アニメーションの種類を指定することで、旧要素を新要素で置き換える際のAstroのデフォルトのアニメーションをオーバーライドできます。Astroの[組み込みのアニメーションディレクティブ](#組み込みのアニメーションディレクティブ)を使用するか、[独自のトランジションアニメーションを作成](#アニメーションをカスタマイズする)します。
+- `transition:persist`: 旧要素を新要素で置き換えるAstroのデフォルトの挙動をオーバーライドし、[別のページに移動した際にコンポーネントとHTML要素を保持](#状態を保持する)します。
+
+
+## トランジションに名前を付ける
+
+場合によっては、対応するビュートランジション要素を自分で特定したい、または特定する必要があるかもしれません。`transition:name`ディレクティブを使用して、要素のペアに名前を付けることができます。
+
+```astro title="old-page.astro"
+<aside transition:name="hero">
+```
+
+```astro title="new-page.astro"
+<aside transition:name="hero">
+```
+
+`transition:name`は、各ページにつき1回しか使用できないことに注意してください。Astroが適切な名前を自動的に推測できない場合や、要素のマッチングをより細かく制御したい場合に、手動で設定してください。
+
+## 状態を保持する
+
+<Since v="2.10.0" />
+
+`transition:persist`ディレクティブを使用すると、ページ間のナビゲーションでコンポーネントとHTML要素を（置き換えるのではなく）保持できます。
+
+たとえば以下の`<video>`は、同じvideo要素を含む別のページに移動しても再生され続けます。これは、進む・戻るの両方のナビゲーションで機能します。
+
+```astro title="components/Video.astro" "transition:persist"
+<video controls="" autoplay="" transition:persist>
+	<source src="https://ia804502.us.archive.org/33/items/GoldenGa1939_3/GoldenGa1939_3_512kb.mp4" type="video/mp4">
+</video>
+```
+
+[Astroアイランド](/ja/concepts/islands/)（[`client:`ディレクティブ](/ja/reference/directives-reference/#client-directives)をもつUIフレームワークコンポーネント）にもディレクティブを配置できます。そのコンポーネントが次のページに存在する場合、旧ページのアイランドは**現在の状態のまま**表示され、新しいページのアイランドに置き換えられることはありません。
+
+以下の例では、`transition:persist`属性をもつ`<Counter />`コンポーネントを含むページ間を行き来しても、`count`はリセットされません。
+
+```astro title="components/Header.astro" "transition:persist"
+<Counter client:load transition:persist count={5} />
+```
+
+また、アイランドあるいは要素が2つのページ間で異なるコンポーネントの中にある場合は、[対応する要素を手動で特定](#トランジションに名前を付ける)できます。
+
+```astro title="pages/old-page.astro" "Video" 'transition:name="media-player"'
+<Video controls="" autoplay="" transition:name="media-player" transition:persist />
+```
+
+```astro title="pages/new-page.astro" "MyVideo" 'transition:name="media-player"'
+<MyVideo controls="" autoplay="" transition:name="media-player" transition:persist />
+```
+
+便利な短縮記法として、`transition:persist`の値にトランジション名を指定できます。
+
+```astro title="pages/index.astro" '="media-player"'
+<video controls="" autoplay="" transition:persist="media-player">
+```
+
+## 組み込みのアニメーションディレクティブ
+
+Astroには、デフォルトの`morph`トランジションをオーバーライドするための組み込みのアニメーションがいくつか用意されています。`transition:animate`ディレクティブを追加して、Astroの`slide`や`fade`トランジションを試してみましょう。
+
+- `morph`（デフォルト）: ブラウザは、要素をアニメーションする最適な方法をページ間の類似度に応じて決定します。たとえば、要素の位置がページ間で異なる場合、新しい位置へと移動するように表示されます。要素がまったく同じ位置にある場合は、移動したように見えることはありません。
+- `slide`: 旧コンテンツが左にスライドアウトし、新コンテンツが右からスライドインするアニメーションです。戻る場合のナビゲーションでは、アニメーションは逆になります。
+- `fade`: 旧コンテンツがフェードアウトし、新コンテンツがフェードインするクロスフェードです。
+
+以下の例では、同じ位置にあるヘッダーはそのまま維持されますが、本文のコンテンツはスライドアニメーションが適用されます。
+
+```astro
+---
+import { CommonHead } from '../components/CommonHead.astro';
+---
+<html>
+  <head>
+    <CommonHead />
+  </head>
+  <body>
+    <header> // デフォルトのtransition:animate="morph"
+      ...
+    </header>
+    <main transition:animate="slide">
+      ...
+    </main>
+  </body>
+</html>
+```
+
+## アニメーションをカスタマイズする
+
+任意のCSSアニメーションプロパティを使用して、トランジションのすべての要素をカスタマイズできます。
+
+組み込みのアニメーションをカスタマイズするには、まず`astro:transitions`からアニメーションをインポートし、続いてカスタマイズ用オプションを渡します。
+
+以下の例では、組み込みの`fade`アニメーションの継続時間（duration）をカスタマイズしています。
+
+```astro
+---
+import { fade } from 'astro:transitions';
+---
+
+<header transition:animate={fade({ duration: '0.4s' })}>
+```
+
+また、`transition:animate`で独自のアニメーションも定義できます。進む・戻るの挙動と新旧のページについて、以下の型に従って定義します。
+
+```ts
+export interface TransitionAnimation {
+  name: string; // キーフレームの名前
+  delay?: number | string;
+  duration?: number | string;
+  easing?: string;
+	fillMode?: string;
+	direction?: string;
+}
+
+export interface TransitionAnimationPair {
+	old: TransitionAnimation | TransitionAnimation[];
+	new: TransitionAnimation | TransitionAnimation[];
+}
+
+export interface TransitionDirectionalAnimations {
+	forwards: TransitionAnimationPair;
+	backwards: TransitionAnimationPair;
+}
+```
+
+以下の例は、独自の`fade`アニメーションを定義するために必要なすべてのプロパティを示しています。
+
+```astro
+---
+const anim = {
+  old: {
+    name: 'fadeIn',
+    duration: '0.2s',
+    easing: 'linear',
+    fillMode: 'forwards',
+  },
+  new: {
+    name: 'fadeOut',
+    duration: '0.3s',
+    easing: 'linear',
+    fillMode: 'backwards',
+  }
+};
+
+const myFade = {
+	forwards: anim,
+	backwards: anim,
+};
+---
+
+<header transition:animate={myFade}> ... </header>
+```
+
+## フォールバックの制御
+
+`<ViewTransitions />`ルーターは、ビュートランジションをサポートするブラウザ（すなわちChromiumブラウザ）で最も有効に機能しますが、他のブラウザに対するデフォルトのフォールバックサポートも含んでいます。ブラウザがView Transitions APIをサポートしていなくても体験を損なわないように、Astroはフォールバックオプションのいずれかを使用してブラウザ内でのナビゲーションを提供します。
+
+`<ViewTransitions />`コンポーネントに`fallback`プロパティを追加し、`swap`または`none`に設定することで、Astroのデフォルトのフォールバックサポートをオーバーライドできます。
+
+- `animate` (デフォルト、推奨) - Astroは、ページコンテンツを更新する前に、カスタム属性を使用してビュートランジションをシミュレートします。
+- `swap` - Astroはページのアニメーションを試みません。代わりに、旧ページはすぐに新しいページに置き換えられます。
+- `none` - Astroはアニメーションによるページ遷移を一切おこないません。代わりに、サポート外のブラウザではフルページのナビゲーションがおこなわれます。
+
+```astro
+---
+import { ViewTransitions } from 'astro:transitions';
+---
+<title>私のサイト</title>
+
+<ViewTransitions fallback="swap">
+```
+
+:::note[既知の制限]
+`morph`アニメーションは、従来のCSSではシミュレートできません。そのため、このアニメーションを使用する要素はアニメーションされません。
+:::
+
+## ページナビゲーション中のスクリプトの動作
+
+`<ViewTransitions />`コンポーネントを使用してページ間をナビゲートする際、ブラウザの動作に合わせてスクリプトが順に実行されます。
+
+グローバルな状態を設定しているコードがある場合は、そのスクリプトが複数回実行される可能性があることを考慮する必要があります。`<script>`タグでグローバルな状態をチェックし、可能な限り条件付きでコードを実行してください。
+
+```astro
+<script is:inline>
+  if(!window.SomeGlobal) {
+    window.SomeGlobal = {} // ....
+  }
+</script>
+```
+
+モジュールスクリプトは、ブラウザがロード済みのモジュールを追跡しているため、常に1回だけ実行されます。これらのスクリプトでは再実行の心配は必要ありません。
+
+### `astro:load`
+
+新しいページがユーザーに表示され、ブロッキングスタイルとスクリプトがロードされたあとの、ページナビゲーションの最後に発生するイベントです。`document`でこのイベントをリッスンできます。
+
+`<ViewTransitions />`コンポーネントは、初回のページナビゲーション（MPA）と、その後の進む・戻るのナビゲーションの両方でこのイベントを発生させます。
+
+このイベントを使用すると、すべてのページナビゲーションでコードを実行したり、あるいは1度だけ実行したりできます。
+
+```astro "{ once: true }"
+<script>
+  document.addEventListener('astro:load', () => {
+    // これは1度だけ実行されます。
+    setupStuff();
+  }, { once: true });
+</script>
+```
+
+### `astro:beforeload`
+
+旧ページが新ページに置き換わった直後に発生するイベントです。`document`でこのイベントをリッスンできます。
+
+このイベントは、新しいページに引き継ぐ必要があるDOM上の状態を復元するのに役立ちます。
+
+たとえばダークモードのサポートを実装している場合、このイベントを使用してページロード間で状態を復元できます。
+
+```astro
+<script>
+	const setDarkMode = () => {
+		if (localStorage.darkMode) {
+			document.documentElement.dataset.dark = '';
+		}
+	};
+
+  // 初回のナビゲーションで実行される
+	setDarkMode();
+  // ビュートランジションのナビゲーションで実行される
+	document.addEventListener('astro:beforeload', setDarkMode);
+</script>
+```
+
+## `prefers-reduced-motion`
+
+Astroの`<ViewTransitions />`コンポーネントにはCSSメディアクエリが含まれており、[`prefer-reduced-motion`](https://developer.mozilla.org/ja/docs/Web/CSS/@media/prefers-reduced-motion)の設定が検出された場合、フォールバックアニメーションを含む*すべての*ビュートランジションアニメーションが無効になります。代わりに、ブラウザはアニメーションなしでDOM要素を単純に入れ替えます。
