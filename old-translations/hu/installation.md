@@ -99,7 +99,7 @@ Következő lépésben lecserélheted az ideiglenes "scripts" szekciót a `packa
 }
 ```
 
-A [`dev`](#start-astro) parancs elindítja az Astro Fejlesztői Szerverét a `http://localhost:3000` címen. Amikor a projekted elkészül a [`build`](#build-astro) parancs megépíti a projektedet a `dist/` mappába. [Az Astro kiépítéséről többet olvashatsz a Kiépítési útmutatónkban.](/en/guides/deploy)
+A [`dev`](#start-astro) parancs elindítja az Astro Fejlesztői Szerverét a `http://localhost:4321` címen. Amikor a projekted elkészül a [`build`](#build-astro) parancs megépíti a projektedet a `dist/` mappába. [Az Astro kiépítéséről többet olvashatsz a Kiépítési útmutatónkban.](/en/guides/deploy)
 
 ### Hozd létre az első oldalad
 
@@ -145,7 +145,7 @@ Létrehozhatsz több oldalt az `src/pages` mappában. Az Astro a fájlok nevét 
 npm run dev
 ```
 
-Az Astro mostantól a `http://localhost:3000` címen futtatja az alkalmazásodat. Ha megnyitod ezt a linket a böngésződben, látnod kell az Astro "Hello, World" mintaprogramját.
+Az Astro mostantól a `http://localhost:4321` címen futtatja az alkalmazásodat. Ha megnyitod ezt a linket a böngésződben, látnod kell az Astro "Hello, World" mintaprogramját.
 
 Ha meg kell osztanod a helyi hálózaton, hogy hogyan halad a fejlesztés, vagy megnéznéd a mobilodról, csak add hozzá a következő opciót az `astro.config.mjs` fájlhoz:
 
