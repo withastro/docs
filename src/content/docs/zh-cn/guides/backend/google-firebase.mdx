@@ -28,9 +28,9 @@ import FileTree from '~/components/FileTree.astro'
 要将 Firebase 凭据添加到 Astro，需要项目的根目录下创建一个名为 `.env` 的文件，并添加以下变量：
 
 ```ini title=".env"
-FIREBASE_PRIVATE_KEY_ID=YOUR_SPACE_ID
-FIREBASE_PRIVATE_KEY=YOUR_DELIVERY_TOKEN
-FIREBASE_PROJECT_ID=YOUR_PREVIEW_TOKEN
+FIREBASE_PRIVATE_KEY_ID=YOUR_PRIVATE_KEY_ID
+FIREBASE_PRIVATE_KEY=YOUR_PRIVATE_KEY
+FIREBASE_PROJECT_ID=YOUR_PROJECT_ID
 FIREBASE_CLIENT_EMAIL=YOUR_CLIENT_EMAIL
 FIREBASE_CLIENT_ID=YOUR_CLIENT_ID
 FIREBASE_AUTH_URI=YOUR_AUTH_URI
@@ -188,7 +188,7 @@ import type { APIRoute } from "astro";
 import { app } from "../../../firebase/server";
 import { getAuth } from "firebase-admin/auth";
 
-export const get: APIRoute = async ({ request, cookies, redirect }) => {
+export const GET: APIRoute = async ({ request, cookies, redirect }) => {
   const auth = getAuth(app);
 
   /* 从请求头中获取 令牌 */
@@ -233,7 +233,7 @@ export const get: APIRoute = async ({ request, cookies, redirect }) => {
 ```ts title="src/pages/api/auth/signout.ts"
 import type { APIRoute } from "astro";
 
-export const get: APIRoute = async ({ redirect, cookies }) => {
+export const GET: APIRoute = async ({ redirect, cookies }) => {
   cookies.delete("session", {
     path: "/",
   });
@@ -252,7 +252,7 @@ import type { APIRoute } from "astro";
 import { getAuth } from "firebase-admin/auth";
 import { app } from "../../../firebase/server";
 
-export const post: APIRoute = async ({ request, redirect }) => {
+export const POST: APIRoute = async ({ request, redirect }) => {
   const auth = getAuth(app);
 
   /* 获取表单数据 */
@@ -310,7 +310,7 @@ export const post: APIRoute = async ({ request, redirect }) => {
 
 ### 创建页面
 
-创建使用 Firebase 端点的页面:
+创建使用 Firebase 端点的页面：
 
 -  `src/pages/register.astro` - 包含用于注册用户的表单
 -  `src/pages/signin.astro` - 包含用于登录用户的表单
@@ -352,8 +352,8 @@ import Layout from "../layouts/Layout.astro";
 
 /* 校验用户是否已经通过身份验证 */
 const auth = getAuth(app);
-const sessionCookie = Astro.cookies.get("session").value;
-if (sessionCookie) {
+if (Astro.cookies.has("session")) {
+  const sessionCookie = Astro.cookies.get("session").value;
   const decodedCookie = await auth.verifySessionCookie(sessionCookie);
   if (decodedCookie) {
     return Astro.redirect("/dashboard");
@@ -429,11 +429,10 @@ import Layout from "../layouts/Layout.astro";
 const auth = getAuth(app);
 
 /* 检查当前会话 */
-const sessionCookie = Astro.cookies.get("session").value;
-
-if (!sessionCookie) {
+if (!Astro.cookies.has("session")) {
   return Astro.redirect("/signin");
 }
+const sessionCookie = Astro.cookies.get("session").value;
 const decodedCookie = await auth.verifySessionCookie(sessionCookie);
 const user = await auth.getUser(decodedCookie.uid);
 
@@ -471,8 +470,8 @@ import Layout from "../layouts/Layout.astro";
 
 /* 校验用户是否已经通过身份验证 */
 const auth = getAuth(app);
-const sessionCookie = Astro.cookies.get("session").value;
-if (sessionCookie) {
+if (Astro.cookies.has("session")) {
+  const sessionCookie = Astro.cookies.get("session").value;
   const decodedCookie = await auth.verifySessionCookie(sessionCookie);
   if (decodedCookie) {
     return Astro.redirect("/dashboard");
@@ -583,7 +582,7 @@ import type { APIRoute } from "astro";
 import { app } from "../../../firebase/server";
 import { getFirestore } from "firebase-admin/firestore";
 
-export const post: APIRoute = async ({ request, redirect }) => {
+export const POST: APIRoute = async ({ request, redirect }) => {
   const formData = await request.formData();
   const name = formData.get("name")?.toString();
   const age = formData.get("age")?.toString();
@@ -625,7 +624,7 @@ import { getFirestore } from "firebase-admin/firestore";
 const db = getFirestore(app);
 const friendsRef = db.collection("friends");
 
-export const post: APIRoute = async ({ params, redirect, request }) => {
+export const POST: APIRoute = async ({ params, redirect, request }) => {
   const formData = await request.formData();
   const name = formData.get("name")?.toString();
   const age = formData.get("age")?.toString();
@@ -657,7 +656,7 @@ export const post: APIRoute = async ({ params, redirect, request }) => {
   return redirect("/dashboard");
 };
 
-export const del: APIRoute = async ({ params, redirect }) => {
+export const DELETE: APIRoute = async ({ params, redirect }) => {
   if (!params.id) {
     return new Response("Cannot find friend", {
       status: 404,
@@ -702,8 +701,8 @@ export const del: APIRoute = async ({ params, redirect }) => {
 创建使用 Firestore 端点的页面：
 
 -   `src/pages/add.astro` – 包含一个表单，用于添加一个新朋友。
--   `src/pages/edit/[id].ts` – 包含一个表单用于编辑一个朋友和一个删除朋友的按钮。
--   `src/pages/friend/[id].ts` – 包含一个朋友的详细信息。
+-   `src/pages/edit/[id].astro` – 包含一个表单用于编辑一个朋友和一个删除朋友的按钮。
+-   `src/pages/friend/[id].astro` – 包含一个朋友的详细信息。
 -   `src/pages/dashboard.astro` – 显示朋友列表。
 
 #### 添加新记录

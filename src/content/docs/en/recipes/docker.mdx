@@ -22,7 +22,7 @@ If you're using another package manager than npm, you'll need to adjust the comm
 
 ### SSR
 
-This Dockerfile will build your site and serve it using Node.js on port `3000` and therefore requires the [Node adapter](/en/guides/integrations-guide/node/) installed in your Astro project.
+This Dockerfile will build your site and serve it using Node.js on port `4321` and therefore requires the [Node adapter](/en/guides/integrations-guide/node/) installed in your Astro project.
 
 ```docker title="Dockerfile"
 FROM node:lts AS runtime
@@ -34,8 +34,8 @@ RUN npm install
 RUN npm run build
 
 ENV HOST=0.0.0.0
-ENV PORT=3000
-EXPOSE 3000
+ENV PORT=4321
+EXPOSE 4321
 CMD node ./dist/server/entry.mjs
 ```
 
@@ -128,6 +128,38 @@ http {
 }
 ```
 
+### Multi-stage build (using SSR)
+
+Here's an example of a more advanced Dockerfile that, thanks to Docker's [multi-stage builds](https://docs.docker.com/build/building/multi-stage/), optimizes the build process for your site by only reinstalling the npm dependencies when the source code changes. This can reduce the build time even by minutes, depending on the size of your dependencies.
+
+```docker title="Dockerfile"
+FROM node:lts AS base
+WORKDIR /app
+
+# By copying only the package.json and package-lock.json here, we ensure that the following `-deps` steps are independent of the source code.
+# Therefore, the `-deps` steps will be skipped if only the source code changes.
+COPY package.json package-lock.json ./
+
+FROM base AS prod-deps
+RUN npm install --production
+
+FROM base AS build-deps
+RUN npm install --production=false
+
+FROM build-deps AS build
+COPY . .
+RUN npm run build
+
+FROM base AS runtime
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
+
+ENV HOST=0.0.0.0
+ENV PORT=4321
+EXPOSE 4321
+CMD node ./dist/server/entry.mjs
+```
+
 ## Recipe
 
 1. Build your container by running the following command in your project's root directory. Use any name for `<your-astro-image-name>`:
@@ -140,7 +172,7 @@ This will output an image, which you can run locally or deploy to a platform of 
 
 2. To run your image as a local container, use the following command. 
 
-Replace `<local-port>` with an open port on your machine. Replace `<container-port>` with the port exposed by your Docker container (`3000`, `80`, or `8080` in the above examples.)
+Replace `<local-port>` with an open port on your machine. Replace `<container-port>` with the port exposed by your Docker container (`4321`, `80`, or `8080` in the above examples.)
 
 ```bash
 docker run -p <local-port>:<container-port> <your-astro-image-name>

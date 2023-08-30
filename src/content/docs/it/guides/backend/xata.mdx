@@ -1,0 +1,105 @@
+---
+title: Xata & Astro
+description: Aggiungi un database serverless con ricerca full-text al tuo progetto con Xata
+type: backend
+service: Xata
+stub: false
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import FileTree from '~/components/FileTree.astro'
+
+[Xata](https://xata.io) è una **Piattaforma dati serverless** che combina le funzionalità di un database relazionale, un motore di ricerca e un motore di analisi, e li rende utilizzabili attraverso una singola REST API.
+
+## Aggiunta di un database con Xata
+
+### Prerequisiti
+
+- Un account [Xata](https://app.xata.io/signin) con un database. (Puoi utilizzare il database di esempio dall'interfaccia utente.)
+- Un Token di Accesso (`XATA_TOKEN_API`).
+- L'URL del tuo Database.
+
+Dopo aver aggiornato e inizializzato la [Xata CLI](https://xata.io/docs/getting-started/installation), avrai il tuo token per l'API nel file `.env` e l'URL del database.
+
+Alla fine della configurazione, dovresti avere:
+
+```ini title=".env"
+XATA_API_KEY=chiave_hash
+
+# Branch Xata che verrà utilizzato
+# se non esiste un branch xata con
+# lo stesso nome del tuo branch git
+XATA_FALLBACK_BRANCH=main
+```
+
+E l'URL del database:
+
+```ini title=".xatarc"
+{
+  "databaseUrl": "https://il-tuo-url-del-database"
+}
+```
+
+### Configurazione dell'ambiente
+
+Per avere IntelliSense e dei tipi per le tue variabili d'ambiente, modifica o crea il file `env.d.ts` nella tua cartella `src/`:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly XATA_API_KEY: string;
+  readonly XATA_FALLBACK_BRANCH?: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+:::tip
+Per ulteriori informazioni sulle [variabili d'ambiente](/it/guides/environment-variables/) e sui file `.env` in Astro, leggi questa guida.
+:::
+
+Utilizzando la Xata CLI per generare il codice di base e scegliendo l'opzione TypeScript, sarà generata un'istanza del SDK per te, con i tipi adattati allo schema del tuo database. Inoltre, `@xata.io/client` sarà aggiunto al tuo `package.json`.
+
+Le tue variabili d'ambiente Xata e l'URL del database sono stati automaticamente acquisiti dall'istanza del SDK, quindi non è necessario alcun altro lavoro di configurazione.
+
+Ora, il tuo progetto dovrebbe avere la seguente struttura:
+
+<FileTree title="Struttura del Progetto">
+- src/
+  - **xata.codegen.ts**
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+- **.xatarc**
+</FileTree>
+
+## Creazione delle tue query
+
+Per ottenere i tuoi post, importa e utilizza `getXataClient()` in un file `.astro`. L'esempio seguente prende i primi 50 post dal Sample Blog Database di Xata.
+
+```astro title="src/pages/blog/index.astro"
+---
+import { getXataClient } from "../xata.codegen";
+
+const xata = getXataClient();
+const { records } = await xata.db.Posts.getPaginated({
+  pagination: {
+    size: 50
+  }
+})
+---
+
+<ul>
+  {records.map(post) => (
+    <li>{post.title}</li>
+  )}
+</ul>
+```
+È importante notare che l'SDK deve essere rigenerato ogni volta che lo schema viene modificato. Pertanto, evita di apportare modifiche ai file generati/dalla Xata CLI, perché una volta che lo schema viene aggiornato, le tue modifiche saranno sovrascritte.
+
+## Risorse Ufficiali
+- [Xata Astro Starter](https://github.com/xataio/examples/tree/main/apps/starter-astro)
+- [Xata Docs: Quick Start Guide](https://xata.io/docs/getting-started/quickstart-astro)
