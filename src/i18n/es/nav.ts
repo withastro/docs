@@ -46,7 +46,7 @@ export default NavDictionary({
 	'guides/data-fetching': 'Fetching de Datos',
 	'guides/middleware': 'Middleware',
 	'guides/testing': 'Testing',
-	'guides/view-transitions': 'View Transitions (Experimental)',
+	'guides/view-transitions': 'View Transitions',
 	'guides/troubleshooting': 'Solución de Problemas',
 
 	configuration: 'Configuración',
