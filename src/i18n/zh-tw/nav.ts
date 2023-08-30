@@ -9,7 +9,6 @@ export default NavDictionary({
 	// Core Concepts
 	coreConcepts: '主要概念',
 	'concepts/why-astro': '為何選擇 Astro',
-	'concepts/mpa-vs-spa': 'MPA vs. SPA',
 	'concepts/islands': 'Astro Islands',
 
 	// Basics

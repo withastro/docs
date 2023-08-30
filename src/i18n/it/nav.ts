@@ -9,7 +9,6 @@ export default NavDictionary({
 
 	coreConcepts: 'Concetti Chiave',
 	'concepts/why-astro': 'Perché Astro',
-	'concepts/mpa-vs-spa': 'MPA vs. SPA',
 	'concepts/islands': 'Le Isole Astro',
 
 	tutorials: 'Tutorial',
