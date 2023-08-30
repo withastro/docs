@@ -2,6 +2,7 @@ import dedent from 'dedent-js';
 import glob from 'fast-glob';
 import fs from 'fs';
 import { escape } from 'html-escaper';
+import { minimatch } from 'minimatch';
 import os from 'os';
 import path from 'path';
 import simpleGit, { DefaultLogFields, ListLogLine } from 'simple-git';
@@ -18,7 +19,6 @@ import type {
 	PageTranslationStatus,
 } from '../../lib/translation-status/types';
 import { toUtcString, tryGetFrontMatterBlock } from '../../lib/translation-status/utils.js';
-import { minimatch } from 'minimatch';
 
 type NestedRecord = { [k: string]: string | NestedRecord };
 
@@ -367,7 +367,7 @@ export class TranslationStatusBuilder {
 
 		const globsOrPaths = trackerDirectiveMatch[0].replace('@tracker-major:', '').split(';');
 
-		return globsOrPaths.find(globOrPath => minimatch(filePath, globOrPath)) ? true : false;
+		return globsOrPaths.find((globOrPath) => minimatch(filePath, globOrPath)) ? true : false;
 	}
 
 	getTranslationStatusByPage(pages: PageIndex): PageTranslationStatus[] {
