@@ -1,52 +1,55 @@
 ---
-title: Transições de visualização (Experimental)
+title: Transições de Visualização
 description: >-
-  Como habilitar o suporte experimental para transições de visualização no seu site Astro.
+  Habilite navegação fluída entre páginas no Astro com transições de visualização.
 i18nReady: true
 ---
 
 import Since from '~/components/Since.astro'
 
-Suporte para **transições de visualização, opcionais, por página** em projetos Astro pode ser habilitado com uma flag experimental. Transições de visualização atualizam o conteúdo de sua página sem a atualização normal, atualizando a página inteira, do navegador e oferece animações suaves entre páginas.
+Astro suporta **transições de visualização, opcionais, por página** com apenas algumas linhas de código. Transições de visualização atualizam o conteúdo de sua página sem a atualização normal, atualizando a página inteira, do navegador e oferece animações suaves entre páginas.
 
-Astro oferece um componente de roteamento `<ViewTransitions />` que pode ser adicionado ao `<head>` de uma página para controlar as transições de página conforme você navega para outras páginas, um efeito tradicionalmente possível apenas com roteamento no lado do cliente. Adicione esse componente em um componente `.astro` reutilizável, como um cabeçalho ou layout em comum, para ter transições de página animadas através de todo o seu site (modo SPA).
+Astro oferece um componente de roteamento `<ViewTransitions />` que pode ser adicionado ao `<head>` de uma página para controlar as transições de página conforme você navega para outras páginas. Ele fornece um leve roteador no lado do cliente que [intercepta a navegação](#processo-de-navegação-no-lado-do-cliente) e permite você personalizar a transição entre páginas. 
+
+Adicione esse componente em um componente `.astro` reutilizável, como um cabeçalho ou layout em comum, para ter [transições de página animadas através de todo o seu site (modo SPA)](#transições-de-visualização-em-todo-o-site-modo-spa).
 
 O suporte para transições de visualização do Astro é possível graças à nova API de [Transições de Visualização](https://developer.chrome.com/docs/web-platform/view-transitions/) do navegador e também inclui:
 
-- Algumas [animações integradas](#diretivas-de-animação-integradas), como `slide` e `fade`.
+- Algumas [opções de animação integradas](#diretivas-de-animação-integradas), como `fade`, `slide` e `none`.
 - Suporte a animações de navegação tanto avançando quanto retornando.
 - A habilidade de [customizar completamente todos os aspectos da animação de transição](#customizando-animações), e construir suas próprias animações.
+- A opção de [impedir navegação no lado do cliente para links que não são páginas](#impedindo-navegação-no-lado-do-cliente).
 - [Controle sobre o comportamento de fallback](#controle-de-fallback) para navegadores que ainda não suportam as APIs de Transição de Visualização.
-
-:::caution
-Transicões de visualização é uma funcionalidade experimental habilitada no Astro 2.9. A API está sujeita a alterações enquanto não for marcada como estável.
-:::
-
-## Habilitando Transições de Visualização em seu Projeto
-
-Você pode habilitar o suporte para transições de página animadas através da flag experimental `viewTransitions` em sua configuração Astro:
-
-```js title="astro.config.mjs" ins={4-6}
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  experimental: {
-   viewTransitions: true
-  }
-});
-```
+- Suporte automático para [`prefers-reduced-motion`](#prefers-reduced-motion).
 
 :::note
-Habilitar o suporte à transições de visualização não converte automaticamente seu site inteiro em uma SPA (Aplicação de Página Única). Por padrão, todas as página ainda usarão a navegação normal do navegador, de página inteira.
-
-Adicione transição de página no Astro utilizando o componente de roteamente `<ViewTransitions />` individualmente por página, ou em todo o site.
+Por padrão, toda página irá utilizar a navegação regular, da página inteira, do navegador. Você deve optar pelas transições de visualização e pode utilizá-las seja por página ou no site inteiro.
 :::
+
+## Adicionando Transições de Visualização em uma Página
+
+Opte por utilizar transições de visualização em páginas individuais importando e adicionando o componente de roteamento `<ViewTransitions />` ao `<head>` de toda página desejada.
+
+```astro title="src/pages/index.astro" ins={2,7}
+---
+import { ViewTransitions } from 'astro:transitions';
+---
+<html lang="pt-BR">
+  <head>
+    <title>Minha página inicial</title>
+    <ViewTransitions />
+  </head>
+  <body>
+    <h1>Bem-vindo ao meu website!</h1>
+  </body>
+</html>
+```
 
 ## Transições de visualização em todo o site (modo SPA)
 
 Importe e adicione o componente `<ViewTransitions />` em seu `<head>` comum ou componente de layout. Astro criará animações padrões baseado nas similaridades entre a página antiga e a nova e também oferecerá um comportamento de fallback para navegadores sem suporte.
 
-O exemplo abaixo mostra como adicionar trasições de visualização em todo o site importando e adicionando esse componente em um componente Astro `<HeadComum />`:
+O exemplo abaixo mostra como adicionar as animações de navegação padrão do Astro em todo o site, incluindo a opção de controle de fallback padrão para navegadores sem suporte, ao importar e adicionar esse componente em um componente Astro `<HeadComum />`:
 
 ```astro title="components/HeadComum.astro" ins={2,12}
 ---
@@ -63,7 +66,9 @@ import { ViewTransitions } from 'astro:transitions';
 <ViewTransitions />
 ```
 
-Você pode também adicionar transições de visualização em páginas individualmente. Importe o componente `<ViewTransitions />` e coloque ele diretamente dentro do `<head>` da página.
+Nenhuma outra configuração é necessária para habilitar a navegação no lado do cliente padrão do Astro!
+
+Utilize [diretivas de transição](#diretivas-de-transição) ou [sobrescreva a navegação no lado do cliente padrão](#impedindo-navegação-no-lado-do-cliente) em elementos individuais para maior controle. 
 
 ## Diretivas de transição
 
@@ -75,7 +80,7 @@ Use diretivas `transition:*` opcionais em elementos da página em seus component
 - `transition:animate`: Permite que você sobrescreva a animação padrão do Astro ao substituir o elemento antigo pelo elemento novo especificando um tipo de animação. Use as [diretivas de animação integradas](#diretivas-de-animação-integradas) do Astro ou [crie animações de transição customizadas](#customizando-animações).
 - `transition:persist`: Permite que você sobrescreva o padrão do Astro de substituir elementos antigos por novos e [persista componentes e elementos HTML](#mantendo-estado) ao navegar para outra página.
 
-## Nomeando uma transição
+### Nomeando uma transição
 
 Em alguns casos, você pode querer ou precisar identificar os elementos correspondentes em uma transição por conta própria. Você pode especificar um nome para um par de elementos utilizando a diretiva `transition:name`.
 
@@ -87,9 +92,9 @@ Em alguns casos, você pode querer ou precisar identificar os elementos correspo
 <aside transition:name="hero">
 ```
 
-Note que o nome em `transition:name` só pode ser utilizado uma vez em cada página. Defina esse valor manualmente quando Astro não conseguir inferir um nome apropriado sozinho, or para ter um controle mais fino sobre os os elementos associados.
+Note que o valor de `transition:name` fornecido só pode ser utilizado uma vez em cada página. Defina esse valor manualmente quando Astro não conseguir inferir um nome apropriado sozinho, or para ter um controle maior sobre os os elementos associados.
 
-## Mantendo estado
+### Mantendo estado
 
 <Since v="2.10.0" />
 
@@ -127,28 +132,32 @@ Como um atalho para conveniência, `transition:persist` pode, de forma alternati
 <video controls="" autoplay="" transition:persist="media-player">
 ```
 
-## Diretivas de Animação Integradas
+### Diretivas de Animação Integradas
 
-Astro inclui algumas animações integradas para sobrescrever a transição padrão `morph`. Adicione a diretiva `transition:animate` para experimentar as transições `slide` ou `fade` do Astro.
+Astro inclui algumas animações integradas para sobrescrever a transição padrão `fade`. Adicione a diretiva `transition:animate` em elementos individuais para customizar o comportamento de certas transições.
 
-- `morph` (padrão): O navegador determina a melhor maneira de animar o elemento dependendo de quão similar as páginas são. Por exemplo, se o elemento está posicionado de forma diferente entre as páginas, ele vai parecer flutuar até a sua nova posição. Se o elemento está na exata mesma posição, ele vai parecer não se mover.
+- `fade` (padrão): Uma animação de esmaecimento cruzado (cross-fade) decidida pelo Astro. O conteúdo antigo se esmaece e o novo conteúdo aparece gradualmente.
+- `initial`: Opta por sair da animação de esmaecimento cruzado decidida pelo Astro e utiliza a estilização padrão do navegador.
 - `slide`: Uma animação em que o conteúdo antigo desliza para fora da tela à esquerda e o novo conteúdo entra deslizando pela direita. Ao navegar para trás, as animações são invertidas.
-- `fade`: Um esmaecimento cruzado (cross-fade) em que o conteúdo antigo desaparece o conteúdo novo aparece gradualmente.
+- `none`: Desabilita as animações padrão do navegador. Utilize no elemento `<html>` de uma página para desabilitar o esmaecimento padrão para todo elemento na página.
 
-O exemplo abaixo produz uma animação de deslizar para o conteúdo do corpo enquanto mantém o cabeçalho posicionado de forma idêntica no lugar:
+Combine diretivas para ter o controle total sobre a animação da sua página. Defina um padrão da página no elemento `<html>`, e sobrescreva quaisquer elementos individuais como desejado.
+
+O exemplo abaixo produz uma animação de deslizar para o conteúdo do corpo enquanto desabilita a animação de esmaecimento padrão para o resto da página:
 
 ```astro
 ---
 import { HeadComum } from '../components/HeadComum.astro';
 ---
 <html>
-  <head>
+  <head transition:animate="none">
     <HeadComum />
   </head>
   <body>
-    <header> // utiliza transition:animate="morph" por padrão
+    <header>
       ...
     </header>
+    <!-- Sobrescrva o padrão da sua página em um único elemento -->
     <main transition:animate="slide">
       ...
     </main>
@@ -156,7 +165,7 @@ import { HeadComum } from '../components/HeadComum.astro';
 </html>
 ```
 
-## Customizando Animações
+### Customizando Animações
 
 Você pode customizar todos os aspectos de uma transição utilizando qualquer propriedade de animação do CSS.
 
@@ -223,6 +232,18 @@ const meuFade = {
 <header transition:animate={meuFade}> ... </header>
 ```
 
+## Impedindo navegação no lado do cliente
+
+Assim que você habilitou roteamento no lado do cliente em uma página adicionando o componente `<ViewTransitions />`, toda âncora na página que faz link para outra página no seu site será navegada por roteamento no lado do cliente. Há alguns casos em que você pode não querer navegar via CSR. Um exemplo é se o link não é para uma página, assim como um PDF em sua pasta `public/`. Ou uma rota de API que produz uma imagem.
+
+Nesses casos, você pode optar por sair da navegação no lado do cliente por link utilizando o atributo `data-astro-reload` assim:
+
+```html
+<a href="/ganhos-trimestrais.pdf" data-astro-reload>
+```
+
+Esses links serão ignorados pelo roteador e uma navegação completa da página irá ocorrer.
+
 ## Controle de fallback
 
 O roteamento de `<ViewTransitions />` funciona melhor em navegadores que suportam Transições de Animação (ex.: Navegadores baseado no Chromium), mas também inclui um fallback padrão para suportar outros navegadores. Mesmo se o navegador não suportar a API de Transições de Visualização, Astro ainda proverá navegação dentro do navegador utilizando uma das opções de fallback para uma experiência comparável.
@@ -243,8 +264,39 @@ import { ViewTransitions } from 'astro:transitions';
 ```
 
 :::note[limitações conhecidas]
-A animação `morph` não pode ser simulada com CSS tradicional. Portanto qualquer elemento utilizando essa animação não será animada.
+A animação `initial` do navegador não é simulada pelo Astro. Portanto qualquer elemento atualmente utilizando essa animação não será animado.
 :::
+
+
+## Processo de navegação no lado do cliente
+
+Ao utilizar o roteador `<ViewTransitions />`, as seguintes etapas irão ocorrer para produzir a navegação no lado do cliente do Astro:
+
+1. Um visitante do seu site inicia a navegação por qualquer uma dessas ações:
+    - Clicando uma tag `<a>` fazendo link internamente para outra página no seu site.
+    - Clicando no botão de voltar.
+    - Clicando no botão de ir para próxima.
+2. O roteador começa a buscar a próxima página.
+3. O roteador adiciona o atributo `data-astro-transition` ao elemento HTML com o valor de `'forward'` ou `'back'` como apropriado.
+4. O roteador chama `document.startViewTransition`. Isso inicia o [processo de transição de visualização](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API#the_view_transition_process) do próprio navegador. Importantemente, o navegador faz uma captura do estado atual da página.
+5. Dentro do callback `startViewTransition`, o roteador performa uma __troca__, que consiste da seguinte sequência de eventos:
+
+    - Os conteúdos de `<head>` são substituídos, com alguns elementos mantidos:
+        - Nós de folhas de estilo no DOM são mantidos se eles existem na nova página, para prevenir FOUC.
+        - Scripts são mantidos se eles existem na nova página.
+        - Quaisquer outros elementos de head com `transition:persist` são mantidos se houver um elemento correspondente na nova página.
+
+    - O `<body>` é completamente substituído com o body da nova página.
+
+    - Elementos marcados com `transition:persist` são movidos para o novo DOM se eles existem na nova página.
+
+    - A posição de rolagem é restaurada se necessário.
+
+    - O evento `astro:after-swap` é iniciado em `document`. Esse é o fim do processo de __troca__.
+
+6. O roteador espera por quaisquer novas folhas de estilo carregarem antes de resolver a transição.
+7. O roteador executa quaisquer novos scripts adicionados à página.
+8. O evento `astro:page-load` é iniciado. Esse é o fim do processo de navegação.
 
 ## Comportamento de scripts durante a navegação de páginas
 
@@ -262,7 +314,7 @@ Se você tem algum código que escreva um estado global, esse estado precisará 
 
 Scripts de módulos são executados uma única vez devido ao navegador manter um registro de quais módulos já foram carregados. Para esses scripts, você não precisa se preocupar com re-execução.
 
-### `astro:load`
+### `astro:page-load`
 
 Um evento disparado ao final de uma navegação de página, depois da página nova estar visível para o usuário e estilos e scripts bloqueantes forem carregados. Você pode ouvir esse evento no `document`.
 
@@ -272,14 +324,14 @@ Você pode utilizar esse evento para executar código em cada navegação de pá
 
 ```astro "{ once: true }"
 <script>
-  document.addEventListener('astro:load', () => {
+  document.addEventListener('astro:page-load', () => {
     // Isso é executado uma única vez
     setupStuff();
   }, { once: true });
 </script>
 ```
 
-### `astro:beforeload`
+### `astro:after-swap`
 
 Um evento disparado imediatamente após a nova página substituir a página antiga. Você pode ouvir esse evento no `document`.
 
@@ -298,10 +350,88 @@ Por exemplo, se você estiver implementando suporte a modo escuro, esse evento p
   // Executa na navegação inicial
 	definirModoEscuro();
   // Executa em cada transição de navegação
-	document.addEventListener('astro:beforeload', definirModoEscuro);
+	document.addEventListener('astro:after-swap', definirModoEscuro);
 </script>
 ```
 
 ## `prefers-reduced-motion`
 
 O componente `<ViewTransitions />` do Astro inclui uma media query do CSS que desabilita *todas* as animações de transição de visualização, incluindo animação de fallback, sempre que a configuração [`prefer-reduced-motion`](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion) for detectada. Ao invés disso, o navegador simplesmente substituirá os elementos do DOM sem qualquer animação.
+
+## Atualize para v3.0 da v2.x
+
+Transições de visualização não estão mais atrás de uma flag experimental no Astro v3.0.
+
+Se você **não** tinha habilitado essa flag experimental no Astro 2.x, isso não irá causar nenhuma mudança radical ao seu projeto. A nova API de Transições de Visualização não tem efeito em seu código existente.
+
+Se você esteve anteriormente utilizando transições de visualização experimentais, pode existir algumas mudanças radicais quando você atualizar seu projeto Astro de uma versão anterior.
+
+Por favor siga as instruções abaixo como apropriado para atualizar **um projeto Astro v2.x configurado com `experimental.viewTransitions: true`**  para v3.0.
+
+### Atualize de `experimental.viewTransitions`
+
+Se você tinha previamente habilitado essa flag experimental para transições de visualização, você irá precisar atualizar seu projeto para o Astro v3.0 que agora permite transições de visualização por padrão.
+
+#### Remova a flag `experimental.viewTransitions`
+
+Remova a flag experimental:
+
+```js title="astro.config.mjs" del={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+   viewTransitions: true
+  }
+});
+```
+
+#### Atualize as diretivas `transition:animate`
+
+**Modificado:** O valor de `transition:animate`, `morph`, foi renomeado para `initial`. E também não é mais a animação padrão. Se nenhuma diretiva `transition:animate` é especificada, suas animações agora irão por padrão ser `fade`.
+
+1. Renomeie quaisquer animações `morph` para `intial`.
+    ```astro title="src/components/MeuComponente.astro" del="morph" ins="initial"
+    <div transition:name="nome" transition:animate="morph initial" />
+    ```
+2. Para manter quaisquer animações que estavam anteriormente utilizando `morph` por padrão, explicitamente adicione `transition:animate="initial"`
+
+    ```astro title="src/components/MeuComponente.astro" ins='transition:animate="initial"'
+    <div transition:name="nome" transition:animate="initial" />
+    ```
+3. Você pode com segurança remover quaisquer animações explicitamente definidas como `fade`. Esse é o novo comportamento padrão:
+
+    ```astro title="src/components/MeuComponente.astro" del="transition:animate=\"fade\""
+    <div transition:name="nome" transition:animate="fade" />
+    ```
+
+**Adicionado:** Astro também suporta um novo valor de `transition:animate`, `none`. Esse valor pode ser utilizado no elemento `<html>` de uma página para desabilitar transições completas de página animadas em uma página inteira. Isso irá apenas sobrescrever o **comportamento de animação padrão** em elementos da página sem uma diretiva de animação. Você ainda pode definir animações em elementos individuais, e essas animações específicas irão ocorrer.
+
+4. Você agora pode desabilitar todas as transições padrões em uma página individual, animando apenas elementos que explicitamente usam uma diretiva `transition:animate`: 
+
+    ```astro ins="transition:animate=\"none\""
+    <html transition:animate="none">
+      <head></head>
+      <body>
+        <h1>Olá mundo!</h1>
+      </body>
+    </html>
+    ```
+
+#### Atualize nomes de eventos
+
+O evento `astro:load` foi renomeado para `astro:page-load`. Renomeie todas as ocorrências em seu projeto.
+
+```astro title="src/components/MeuComponente.astro" del="astro:load" ins="astro:page-load"
+<script>
+document.addEventListener('astro:load astro:page-load', executarLogicaScript);
+</script>
+```
+
+O evento `astro:beforeload` foi renomeado para `astro:after-swap`. Renomeie todas as ocorrências no seu projeto.
+
+```astro title="src/components/MeuComponente.astro" del="astro:beforeload" ins="astro:after-swap"
+<script>
+document.addEventListener('astro:beforeload astro:after-swap', definirModoEscuro);
+</script>
+```
