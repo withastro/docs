@@ -2,7 +2,6 @@ import { NavDictionary } from '../translation-checkers';
 
 export default NavDictionary({
 	'concepts/islands': 'Острова',
-	'concepts/mpa-vs-spa': 'MPA против SPA',
 	'concepts/why-astro': 'Почему Astro',
 	'core-concepts/astro-components': 'Astro компоненты',
 	'core-concepts/astro-pages': 'Astro страницы',

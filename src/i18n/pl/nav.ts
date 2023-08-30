@@ -13,7 +13,6 @@ export default NavDictionary({
 	coreConcepts: 'Podstawowe pojęcia',
 	'concepts/why-astro': 'Dlaczego Astro?',
 	'concepts/islands': 'Wyspy Astro',
-	'concepts/mpa-vs-spa': 'MPA vs. SPA',
 	basics: 'Podstawy',
 	'core-concepts/project-structure': 'Struktura projektu',
 	'core-concepts/astro-components': 'Komponenty Astro',
