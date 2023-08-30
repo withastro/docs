@@ -33,19 +33,24 @@ interface AstroIntegration {
       injectScript: (stage: InjectedScriptStage, content: string) => void;
       injectRoute: ({ pattern: string, entryPoint: string }) => void;
     }) => void;
-    'astro:config:done'?: (options: { config: AstroConfig }) => void | Promise<void>;
-    'astro:server:setup'?: (options: { server: vite.ViteDevServer }) => void | Promise<void>;
-    'astro:server:start'?: (options: { address: AddressInfo }) => void | Promise<void>;
-    'astro:server:done'?: () => void | Promise<void>;
-    'astro:build:start'?: () => void | Promise<void>;
+    'astro:config:done'?: (options: { config: AstroConfig; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:server:setup'?: (options: { server: vite.ViteDevServer; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:server:start'?: (options: { address: AddressInfo; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:server:done'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:build:start'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:build:setup'?: (options: {
       vite: ViteConfigWithSSR;
       pages: Map<string, PageBuildData>;
       target: 'client' | 'server';
+      logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
-    'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
-    'astro:build:ssr'?: (options: { manifest: SerializedSSRManifestm, entryPoints: Map<RouteData, URL> }) => void | Promise<void>;
-    'astro:build:done'?: (options: { dir: URL; routes: RouteData[] }) => void | Promise<void>;
+    'astro:build:generated'?: (options: { dir: URL; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:build:ssr'?: (options: { 
+        manifest: SerializedSSRManifestm; 
+        entryPoints: Map<RouteData, URL>;
+        logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:build:done'?: (options: { dir: URL; routes: RouteData[]; logger: AstroIntegrationLogger; }) => void | Promise<void>;
   };
 }
 ```
@@ -71,6 +76,7 @@ interface AstroIntegration {
   addWatchFile: (path: URL | string) => void;
   injectScript: (stage: InjectedScriptStage, content: string) => void;
   injectRoute: ({ pattern: string, entryPoint: string }) => void;
+  logger: AstroIntegrationLogger;
 }) => void;
 ```
 
@@ -526,6 +532,69 @@ export default defineConfig({
 :::caution
 Isso assume que a definição da sua integração é 1) uma exportação `default` e 2) uma função. Garanta de que isso é verdade antes de adicionar a palavra-chave `astro-integration`!
 :::
+
+## `AstroIntegrationLogger`
+
+Uma instância do Astro logger, útil para escrever logs. Esse logger usa o mesmo [nível de log](/pt-br/reference/cli-reference/#--verbose)
+configurado pelo CLI.
+
+**Métodos disponíveis** para escrever no terminal:
+- `logger.info("Mensagem")`;
+- `logger.warn("Mensagem")`;
+- `logger.error("Mensagem")`;
+- `logger.debug("Mensagem")`;
+
+Todas as mensagens são precedidas com um rótulo que possui o mesmo valor da integração.
+
+```ts title="integracao.ts" {8}
+import type { AstroIntegration } from "astro";
+export function integraocaoFormat(): AstroIntegration {
+    return {
+        name: "astro-format",
+        hooks: {
+            "astro:build:done": (options, { logger }) => {
+                // faz algo
+                logger.info("Integração pronta.");
+            }
+        }
+    }
+}
+```
+
+O exemplo acima registrará uma mensagem que inclui a mensagem `info` fornecida:
+
+```shell
+[astro-format] Integração pronta.
+```
+
+Para registrar algumas mensagens com um rótulo diferente, use o método `.fork` para especificar uma alternativa ao `name` padrão:
+
+```ts title="integracao.ts" ".fork"
+import type { AstroIntegration } from "astro";
+export function integracaoFormat(): AstroIntegration {
+    return {
+        name: "astro-format",
+        hooks: {
+            "astro:config:done": ({ logger }) => {
+                // faz algo
+                logger.info("Integração pronta.");
+            },
+            "astro:build:done": ({ logger }) => {
+                const buildLogger = logger.fork("astro-format/build");
+                // faz algo
+                buildLogger.info("Build terminado.")
+            }
+        }
+    }
+}
+```
+
+O exemplo acima produzirá logs com `[astro-format]` por padrão e `[astro-format/build]` quando especificado:
+
+```shell
+[astro-format] Integração pronta.
+[astro-format/build] Build terminado.
+```
 
 ## Ordenação de Integrações
 
