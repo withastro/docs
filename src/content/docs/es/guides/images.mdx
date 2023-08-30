@@ -4,152 +4,696 @@ description: Aprende cómo usar imágenes en Astro.
 i18nReady: true
 ---
 import Since from '~/components/Since.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+¡Astro ofrece varias formas para que uses imágenes en tu sitio, ya sea que estén almacenadas localmente dentro de tu proyecto, enlazadas desde una URL externa o gestionadas en un CMS o CDN!
+
+## Dónde guardar las imágenes
+
+### `src/` vs. `public/`
+
+Recomendamos que las imágenes locales se mantengan en `src/` cuando sea posible, para que Astro pueda transformar, optimizar y empaquetarlas. Los archivos en el directorio `/public` siempre se sirven o copian tal como están en la carpeta de construcción, sin ningún procesamiento.
+
+Tus imágenes locales almacenadas en `src/` pueden ser utilizadas por todos los archivos en tu proyecto: `.astro`, `.md`, `.mdx`, `.mdoc` y otros frameworks UI. Las imágenes pueden almacenarse en cualquier carpeta, incluida junto a tu contenido.
+
+Almacena tus imágenes en la carpeta `public/` si deseas evitar cualquier tipo de procesamiento o para tener un enlace público directo a ellas.
+
+### Imágenes remotas
+
+También puedes optar por almacenar tus imágenes de forma remota, en un sistema de gestión de contenido (CMS) o en una plataforma de gestión de assets digitales (DAM).
+
+Para una protección adicional al tratar con fuentes externas, las imágenes remotas solo se procesarán desde [fuentes de imágenes autorizadas](#autorizando-imágenes-remotas) especificadas en tu configuración. Sin embargo, cualquier imagen remota puede ser mostrada.
+
+Astro puede obtener tus datos de forma remota utilizando APIs o mostrar imágenes desde su ruta completa de URL. Consulta nuestras [guías de CMS](/es/guides/cms/) para ejemplos de integración con servicios comunes.
 
 
+## Imágenes en archivos `.astro`
 
-¡Astro proporciona varias formas de usar imágenes en tu proyecto, tanto si están almacenadas localmente, enlazadas remotamente o almacenadas en un CMS o una CDN!
+En archivos `.astro`, las imágenes locales deben ser importadas al archivo para poder ser utilizadas. Las imágenes remotas y las imágenes en `public/` no requieren ser importadas.
 
-:::note[`astro:assets` (Experimental - en camino para la versión v3.0)]
-El modulo experimental `astro:assets` estará habilitado por defecto en `astro@3.0`.
+Importa y utiliza el componente incorporado `<Image />` de Astro para imágenes optimizadas usando `astro:assets`. Alternativamente, la sintaxis de Astro admite escribir directamente una etiqueta HTML `<img>`, lo que omite el procesamiento de imágenes.
 
-¡Sigue la [Guía de Assets (Experimental)](/es/guides/images/) para comenzar a usar la nueva solución de imágenes de Astro hoy mismo!
+```astro title="src/pages/blog/MyImages.astro"
+---
+import { Image } from 'astro:assets';
+import localBirdImage from '../../images/subfolder/localBirdImage.png';
+---
+<Image src={localBirdImage} alt="Un pájaro sentado sobre un nido de huevos."/>
+<Image src="/images/bird-in-public-folder.jpg" alt="Un pájaro." width="50" height="50"/>
+<Image src="https://example.com/remote-bird.jpg" alt="Un pájaro." width="50" height="50"/>
 
-**Algunos de los consejos a continuación son incompatibles con la bandera experimental. Consulta la página de Assets si estás usando `astro:assets`.**
+<img src={localBirdImage.src} alt="Un pájaro sentado sobre un nido de huevos.">
+<img src="/images/bird-in-public-folder.jpg" alt="Un pájaro.">
+<img src="https://example.com/remote-bird.jpg" alt="Un pájaro.">
+```
+
+### `<Image />` (`astro:assets`)
+
+Utiliza el componente integrado `<Image />` de Astro para mostrar versiones optimizadas de tus imágenes locales y [imágenes remotas configuradas](#autorizando-imágenes-remotas).
+
+Las imágenes en la carpeta `public/`, así como las imágenes remotas no configuradas específicamente en tu proyecto, también se pueden usar con el componente Image, pero no se procesarán.
+
+`<Image />` puede transformar las dimensiones, el tipo de archivo y la calidad de una imagen local o remota autorizada para un control sobre la imagen que se muestra. La etiqueta resultante `<img>` incluye atributos `alt`, `loading` y `decoding`, e infiere las dimensiones de la imagen para evitar el **Desplazamiento Acumulativo de Diseño (CLS)**.
+
+:::tip[¿Qué es el Desplazamiento Acumulativo de Diseño?]
+[Desplazamiento Acumulativo de Diseño (CLS)](https://web.dev/cls/) es una métrica de Core Web Vital para medir cuánto se ha desplazado el contenido de tu página durante la carga. El componente `<Image />` optimiza para el CLS al establecer automáticamente el `ancho` y el `alto` correctos para tus imágenes locales.
 :::
 
-### En archivos `.astro`
+```astro title="src/components/MyComponent.astro"
+---
+// Importa el componente Image y la imagen 
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // La imagen es 1600x900
+---
 
-Astro utiliza elementos HTML `<img>` para mostrar imágenes, y todos los atributos de imagen HTML son compatibles.
+<!-- `alt` es obligatorio en el componente Imagen -->
+<Image src={myImage} alt="Una descripción de mi imagen." />
+```
 
-Se requiere el atributo `src` y su formato dependerá de dónde se almacenen las imágenes:
+```html
+<!-- Salida -->
+<!-- La imagen está optimizada, se aplican los atributos adecuados-->
+<img
+  src="/_astro/my_image.hash.webp"
+  width="1600"
+  height="900"
+  decoding="async"
+  loading="lazy"
+  alt="Una descripción de mi imagen."
+/>
+```
+
+Actualmente, la característica integrada de assets no incluye un componente `<Picture />`.
+
+En su lugar, puedes [generar imágenes o componentes personalizados usando `getImage()`](#generando-imágenes-con-getImage) que utilicen los atributos HTML de imagen `srcset` y `sizes` o la etiqueta `<picture>` [para la dirección de arte o para crear imágenes responsivas](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#art_direction).
+
+#### Propiedades
+
+##### src (requerido)
+
+El formato del valor `src` de tu archivo de imagen depende de dónde esté ubicado tu archivo de imagen:
+
+- **Imágenes locales en `src/`** - también debes **importar la imagen** utilizando una ruta de archivo relativa o configurar y usar un [alias de importación](/es/guides/aliases/). Luego usa el nombre de importación como valor de `src`:
+
+  ```astro title="src/pages/index.astro" "myImportedImage" "{myImportedImage}"
+  ---
+  import { Image } from 'astro:assets';
+  import myImportedImage from `../assets/my-local-image.png`
+  ---
+  <Image src={myImportedImage} alt="texto descriptivo" />
+  ```
+
+- **Imágenes en la carpeta `public/`** - utiliza la **ruta de archivo de la imagen relativa a la carpeta public**:
+
+  ```astro title="src/pages/index.astro" '"/images/my-public-image.png"'
+  ---
+  import { Image } from 'astro:assets';
+  ---
+  <Image 
+    src="/images/my-public-image.png"
+    alt="texto descriptivo"
+    width="200"
+    height="150"
+  />
+  ```
+
+- **Imágenes remotas** - utiliza la **URL completa** de la imagen como valor de la propiedad:
+
+  ```astro title="src/pages/index.astro" '"https://example.com/remote-image.jpg"'
+  ---
+  import { Image } from 'astro:assets';
+  ---
+  <Image 
+    src="https://example.com/remote-image.jpg"
+    alt="texto descriptivo"
+    width="200"
+    height="150" />
+  ```
+
+##### alt (requerido)
+
+Utiliza el atributo `alt` requerido para proporcionar un [texto alternativo descriptivo](https://www.w3.org/WAI/tutorials/images/) para las imágenes.
+
+Si una imagen es meramente decorativa (es decir, no contribuye a la comprensión de la página), establece `alt=""` para que los lectores de pantalla y otras tecnologías de asistencia sepan que deben ignorar la imagen.
+
+##### width y height (requerido para imágenes `public/` y remotas)
+
+Estas propiedades definen las dimensiones a utilizar para la imagen.
+
+Cuando se utilizan imágenes locales en su relación de aspecto original, el `width` y `height` pueden inferirse automáticamente a partir del archivo fuente y son opcionales.
+
+Sin embargo, ambas de estas propiedades son necesarias para imágenes remotas e imágenes almacenadas en tu carpeta `public/`, ya que Astro no puede analizar estos archivos.
+
+##### format
+
+Puedes opcionalmente indicar el [tipo de archivo de imagen](https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types#common_image_file_types) de salida que se va a utilizar.
+
+Por defecto, el componente `<Image />` producirá un archivo `.webp`.
+
+##### quality
+
+`quality` es una propiedad opcional que puede ser:
+- un preajuste (`low`, `mid`, `high`, `max`) que se normaliza automáticamente entre los formatos.
+- un número del `0` al `100` (interpretado de manera diferente entre los formatos).
+
+##### Propiedades adicionales
+
+Además de las propiedades mencionadas anteriormente, el componente `<Image />` acepta todas las propiedades aceptadas por la etiqueta HTML `<img>`.
+
+Por ejemplo, puedes proporcionar una propiedad `class` al elemento `<img>` final.
 
 ```astro title="src/pages/index.astro"
 ---
-import rocket from '../images/rocket.svg';
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png";
 ---
-<!-- Imagen remota en otro servidor -->
-<img src="https://docs.astro.build/assets/logomark-light.png" width="25" alt="Astro">
 
-<!-- Imagen local almacenada en public/assets/stars.png -->
-<img src="/assets/stars.png" alt="Un cielo nocturno estrellado.">
-
-<!-- Imagen local almacenada en src/images/rocket.svg -->
-<img src={rocket} alt="Un cohete en el espacio." />
+<!-- `alt` es obligatorio en el componente Imagen -->
+<Image src={myImage} alt="" class="mi-clase" />
 ```
 
-### En archivos Markdown
+```html
+<!-- Salida -->
+<img
+  src="/_astro/my_image.hash.webp"
+  width="1600"
+  height="900"
+  decoding="async"
+  loading="lazy"
+  class="mi-clase"
+  alt=""
+/>
+```
 
-Puedes usar la sintaxis estándar de Markdown `![]()` o las etiquetas estándar de HTML `<img>` en tus archivos `.md` para mostrar imágenes locales en tu carpeta `public/` o imágenes remotas en otro servidor.
+#### Estableciendo valores por defecto
 
-Si no puedes almacenar tus imágenes en `public/`, te recomendamos usar el formato de archivo `.mdx` , que te permite combinar componentes importados con sintaxis de Markdown. Usa la [integración de MDX](/es/guides/integrations-guide/mdx/) para agregar soporte para MDX en Astro.
+Actualmente, no hay forma de especificar valores predeterminados para todos los componentes `<Image />`. Los atributos requeridos deben establecerse en cada componente individual.
+
+Como alternativa, puedes envolver estos componentes en otro componente de Astro para reutilizarlos. Por ejemplo, podrías crear un componente para las imágenes de tus entradas de blog:
+
+```astro title="src/components/BlogPostImage.astro"
+---
+import { Image } from 'astro:assets';
+
+const {src, ...attrs} = Astro.props;
+---
+<Image src={src} {...attrs} />
+
+<style>
+  img :global(img), svg {
+    margin-block: 2.5rem;
+    border-radius: 0.75rem;
+  }
+</style>
+```
+
+### `<img>`
+
+La [sintaxis de Astro](/es/core-concepts/astro-syntax/) también admite escribir directamente una etiqueta `<img>`, con control total sobre su salida final. Estas imágenes no se procesarán ni optimizarán.
+
+Esta acepta todas las propiedades de la etiqueta HTML `<img>`, y la única propiedad requerida es `src`.
+
+#### Imágenes locales en `src/`
+
+Las imágenes locales deben ser **importadas desde la ruta relativa** al archivo `.astro` existente, o configurar y usar un [alias de importación](/es/guides/aliases/). Luego, puedes acceder a la propiedad `src` de la imagen y otras propiedades para usar en la etiqueta `<img>`.
+
+Por ejemplo, utiliza las propiedades `height` y `width` propias de la imagen para evitar CLS y mejorar los Core Web Vitals.
+
+```astro "myDog.width" "myDog.height"
+---
+// importar imágenes locales
+import myDog from `../../images/pets/local-dog.jpg`
+---
+// acceder a las propiedades de la imagen
+<img src={myDog.src} width={myDog.width} height={myDog.height} alt="Un perro ladrando." />
+```
+
+Los activos de imagen importados coinciden con la siguiente firma:
+
+```ts
+interface ImageMetadata {
+  src: string;
+  width: number;
+  height: number;
+  format: string;
+}
+```
+
+#### Imágenes en `public/`
+
+Para las imágenes ubicadas dentro de `public/`, utiliza la **ruta de archivo relativa a la carpeta public** de la imagen como valor de `src`:
+
+```astro '"/images/public-cat.jpg"'
+<img src="/images/public-cat.jpg" alt="Un gato dormiendo.">
+```
+
+#### Imágenes remotas
+
+Para las imágenes remotas, utiliza la **URL completa** de la imagen como valor de `src`:
+
+```astro '"https://example.com/remote-cat.jpg"'
+<img src="https://example.com/remote-cat.jpg" alt="Un gato dormiendo.">
+```
+
+### Eligiendo `<Image />` vs `<img>`
+
+El componente `<Image />` optimiza tu imagen e infiere el ancho y el alto (en imágenes locales) en función de la relación de aspecto original para evitar CLS. Sin embargo, solo funciona con ciertos formatos y no proporciona un elemento `<picture>`, ni admite `srcset`.
+
+Utiliza el elemento HTML `<img>` cuando no puedas usar el componente `<Image />`, por ejemplo:
+  - para formatos de imagen no admitidos
+  - cuando no deseas que tu imagen se optimice mediante Astro
+  - para acceder y cambiar el atributo `src` dinámicamente en el lado del cliente
+
+### Autorizando imágenes remotas
+
+Puedes configurar listas de dominios y patrones de URL de origen de imágenes autorizados para la optimización de imágenes utilizando [`image.domains`](/es/reference/configuration-reference/#imagedomains) y [`image.remotePatterns`](/es/reference/configuration-reference/#imageremotepatterns). Esta configuración es una capa adicional de seguridad para proteger tu sitio al mostrar imágenes desde una fuente externa.
+
+Remote images from other sources will not be optimized, but using the `<Image />` component for these images will prevent Cumulative Layout Shift (CLS).
+
+For example, the following configuration will only allow remote images from `astro.build` to be optimized:
+
+```ts
+// astro.config.mjs
+export default defineConfig({
+  image: {
+    domains: ["astro.build"],
+  }
+});
+```
+
+La siguiente configuración solo permitirá que las imágenes remotas provengan de hosts HTTPS:
+
+```ts
+// astro.config.mjs
+export default defineConfig({
+  image: {
+    remotePatterns: [{ protocol: "https" }],
+  }
+});
+```
+
+## Utilizando imágenes de un CMS o CDN
+
+Los CDNs de imágenes funcionan con todas las opciones de imágenes de Astro. Utiliza la URL completa de la imagen como atributo `src` en el componente `<Image />`, una etiqueta `<img>` o en la notación Markdown. Para la optimización de imágenes con imágenes remotas, también [configura tus dominios autorizados o patrones de URL](#autorizando-imágenes-remotas).
+
+Alternativamente, si el CDN proporciona un SDK de Node.js, puedes utilizarlo en tu proyecto. Por ejemplo, el SDK de [Cloudinary](https://cloudinary.com/documentation/node_integration) puede generar una etiqueta `<img>` con el `src` adecuado por ti.
+
+## Imágenes en archivos Markdown
+
+Utiliza la sintaxis estándar de Markdown `![alt](src)` en tus archivos `.md`. Esta sintaxis funciona con la [API de servicio de imagenes](/es/reference/image-service-reference/) de Astro para optimizar tus imágenes locales y las imágenes remotas autorizadas.
 
 ```md
 <!-- src/pages/post-1.md -->
 
 # Mi página Markdown
 
-<!-- Imagen local almacenada en public/assets/stars.png -->
-![Un cielo nocturno estrellado.](/assets/stars.png)
-<img src="/assets/stars.png" alt="Un cielo nocturno estrellado.">
+<!-- Imagen local almacenada en src/assets/ -->
+<!-- Utiliza una ruta de archivo relativa o un alias de importación -->
+![Un cielo estrellado.](../assets/stars.png)
+
+<!-- Imagen almacenada en public/images/ -->
+<!-- Utiliza la ruta de archivo relativa a public/ -->
+![Un cielo estrellado.](/images/stars.png)
 
 <!-- Imagen remota en otro servidor -->
-![Astro](https://docs.astro.build/assets/logomark-light.png)
-<img src="https://docs.astro.build/assets/logomark-light.png" width="25" alt="Astro">
+<!-- Utiliza la URL completa de la imagen -->
+![Astro](https://example.com/images/remote-image.png)
 ```
 
-### En archivos MDX
+La etiqueta `<img>` no es compatible para imágenes locales y el componente `<Image />` no está disponible en archivos `.md`.
 
-Puedes usar la sintaxis estándar de Markdown `![]()` o las etiquetas JSX `<img />` en tus archivos `.mdx`. Al igual que los archivos Markdown, los archivos MDX pueden mostrar imágenes desde tu carpeta `public/` o un servidor remoto.
+Si necesitas más control sobre los atributos de tus imágenes, te recomendamos utilizar el formato de archivo `.mdx`, que te permite incluir el componente `<Image />` de Astro o una etiqueta JSX `<img />` además de la sintaxis Markdown. Utiliza la [integración MDX](/es/guides/integrations-guide/mdx/) para agregar soporte para MDX en Astro.
 
-Además, puedes importar y usar imágenes ubicadas en el directorio `src/` de tu proyecto, como lo harías en los componentes de Astro.
+## Imágenes en archivos MDX
 
-```mdx
-// src/pages/post-1.mdx
+Puedes utilizar el componente `<Image />` de Astro y las etiquetas JSX `<img />` en tus archivos `.mdx` importando tanto el componente como tu imagen. Úsalos tal como se [utilizan en archivos `.astro`](#imágenes-en-archivos-astro).
 
-import rocket from '../images/rocket.svg';
+Además, hay soporte para la [sintaxis estándar de Markdown `![alt](src)`](#imágenes-en-archivos-markdown) sin necesidad de importación.
 
-# Mi página MDX
+```mdx title="src/pages/post-1.mdx"
+---
+title: Título de mi página
+---
+import { Image } from 'astro:assets';
+import rocket from '../assets/rocket.png';
 
-// Imagen local almacenada en src/images/rocket.svg
-<img src={rocket} alt="Un cohete en el espacio." />
+# Mi Página MDX
 
-// Imagen local almacenada en public/assets/stars.png
-![Un cielo nocturno estrellado.](/assets/stars.png)
-<img src="/assets/stars.png" alt="Un cielo nocturno estrellado." />
+// Imagen local almacenada en src/assets/
+<Image src={rocket} alt="Un cohete en el espacio."/>
+<img src={rocket.src} alt="Un cohete en el espacio." />
+![A rocketship in space](../assets/rocket.png)
+
+// Imagen almacenada en public/images/
+<Image src="/images/stars.png" alt="Un cielo estrellado." />
+<img src="/images/stars.png" alt="Un cielo estrellado." />
+![Un cielo estrellado.](/images/stars.png)
 
 // Imagen remota en otro servidor
-![Astro](https://docs.astro.build/assets/logomark-light.png)
-<img src="https://docs.astro.build/assets/logomark-light.png" width="25" alt="Astro" />
+<Image src="https://example.com/images/remote-image.png" />
+<img src="https://example.com/images/remote-image.png" />
+![Astro](https://example.com/images/remote-image.png)
+
 ```
 
-### En componentes de un framework de UI
+## Imágenes en Colecciones de Contenido
 
-Cuando agregues imágenes en un [componente de un framework de UI](/es/core-concepts/framework-components/) (ej. React, Svelte), usa la sintaxis de imágenes apropiada para ese framework en particular.
+Puedes declarar una imagen asociada para una entrada de colecciones de contenido, como la imagen de portada de una entrada de blog, en tu metadatos utilizando su ruta relativa a la carpeta actual:
 
-## Dónde almacenar imágenes
+```md title="src/content/blog/my-post.md" {3}
+---
+title: "Mi primera entrada en el blog"
+cover: "./firstpostcover.jpeg" # se resolverá como "src/content/blog/firstblogcover.jpeg"
+coverAlt: "Una fotografía de una puesta de sol detrás de una cordillera."
+---
 
-### `src/`
+Esta es una entrada de blog
+```
 
-Tus imágenes almacenadas en `src/` pueden ser usadas por otros componentes (`.astro`, `.mdx` y otros frameworks), pero no en archivos de Markdown.
+El helper `image` para el esquema de colecciones de contenido te permite validar los metadatos de la imagen utilizando Zod.
 
-Nostros recomendamos que mantengas tus imágenes en [`public/`](#public) o almacenarlas [remotamente](#usar-imágenes-de-un-cms-o-una-cdn) si tu necesitas usar archivos de Markdown.
+```ts title="src/content/config.ts"
+import { defineCollection, z } from "astro:content";
 
-Impórtalas desde una **ruta relativa** o un [alias de importación](/es/guides/aliases/) en cualquier archivo de componente y después usa la importación como un atributo `src` de imagen.
+const blogCollection = defineCollection({
+	schema: ({ image }) => z.object({
+		title: z.string(),
+		cover: image().refine((img) => img.width >= 1080, {
+			message: "¡La imagen de portada debe tener al menos 1080 píxeles de ancho!",
+		}),
+		coverAlt: z.string(),
+	}),
+});
+
+export const collections = {
+	blog: blogCollection,
+};
+```
+
+La imagen se importará y transformará en metadatos, lo que te permitirá pasarlo como `src` a `<Image/>`, `<img>` o `getImage()`.
+
+El siguiente ejemplo muestra una página de índice de un blog que muestra la foto de portada y el título de cada entrada del blog a partir del esquema anterior:
+
+```astro title="src/pages/blog.astro" {10}
+---
+import { Image } from "astro:assets";
+import { getCollection } from "astro:content";
+const allBlogPosts = await getCollection("blog");
+---
+
+{
+	allBlogPosts.map((post) => (
+		<div>
+			<Image src={post.data.cover} alt={post.data.coverAlt} />
+			<h2>
+				<a href={"/blog/" + post.slug}>{post.data.title}</a>
+			</h2>
+		</div>
+	))
+}
+```
+
+## Imágenes en componentes de frameworks UI
+
+Cuando añadas imágenes en un componente de un framework UI, utiliza la sintaxis de imagen propia del framework para renderizar una imagen (p. ej. `<img/>` en JSX, `<img>` en Svelte).
+
+Las imágenes locales deben **ser importadas primero** para acceder a sus [propiedades de imagen](#imágenes-locales-en-src) como `src`.
+
+```jsx title="src/components/ReactImage.jsx"
+import stars from "../assets/stars.png"
+
+export default function ReactImage () {
+  return (
+    <img src={stars.src} alt="Un cielo estrellado." />
+  )
+}
+```
+
+```svelte title="src/components/SvelteImage.svelte"
+<script>
+  import stars from '../assets/stars.png'
+</script>
+
+<img src={stars.src} alt="Un cielo estrellado." />
+
+```
+
+#### Pasando el componente Image
+
+El componente `<Image />`, al igual que cualquier otro componente de Astro, **no está disponible para los componentes de frameworks UI**.
+
+Sin embargo, puedes pasar el contenido estático generado por `<Image />` a un componente de framework dentro de un archivo `.astro` como hijos o utilizando un [`<slot/>` nombrado](/es/core-concepts/framework-components/#puedo-usar-componentes-de-astro-dentro-de-mis-componentes-de-framework):
+
+
+```astro title="ImageWrapper.astro"
+---
+import ReactComponent from './ReactComponent.jsx';
+import { Image } from "astro:assets"
+import stars from "~/stars/docline.png";
+---
+
+<ReactComponent>
+  <Image src={stars} alt="Un cielo estrellado." />
+</ReactComponent>
+```
+
+## Generando imágenes con `getImage()`
+
+:::caution
+`getImage()` se basa en APIs solo para el servidor y provoca errores en la compilación cuando se utiliza en el lado del cliente.
+:::
+
+La función `getImage()` está destinada a generar imágenes que se utilizarán en otro lugar que no sea directamente en HTML, por ejemplo, en una [Ruta API](/es/core-concepts/endpoints/#endpoints-del-servidor-rutas-de-api). También te permite crear tu propio componente `<Image />` personalizado.
+
+`getImage()` recibe un objeto de opciones con las [mismas propiedades que el componente Image](#propiedades) (excepto `alt`).
 
 ```astro
 ---
-// src/pages/index.astro
+import { getImage } from "astro:assets";
+import myBackground from "../background.png"
 
-// Acceso a imágenes en `src/images/`
-import logo from '../images/logo.png';
+const optimizedBackground = await getImage({src: myBackground, format: 'avif'})
 ---
-<img src={logo} width="40" alt="Astro" />
+
+<div style={`background-image: url(${optimizedBackground.src});`}></div>
 ```
 
-### `public/`
+Devuelve un objeto con las siguientes propiedades:
 
-Tus imágenes pueden ser almacenadas en `src/` y pueden ser usadas por otros componentes (`.astro`, `.mdx` y otros frameworks UI), pero no en archivos de Markdown.
-
-Sin embargo, los archivos en el directorio `/public` son siempre servidos o copiados sin modificaciones. Si estás usando imágenes fuera de los archivos de Markdown, te recomendamos que las imágenes locales sean guardadas en `/src` cuando sea posible para que Astro pueda transformarlas, optimizarlas y empaquetarlas.
-
-El atributo `src` es **relativo a la carpeta public**. En Markdown, también puedes usar la notación `![]()`.
-
-```astro title="src/pages/index.astro"
----
-
-// Acceso a imágenes en `public/images/`
----
-<img src="/images/logo.png" />
+```js
+{
+  options: {...} // Parámetros originales pasados
+  src: "https//..." // Ruta a la imagen generada
+  attributes: {...} // Atributos HTML adicionales necesarios para representar la imagen (width, height, style, etc..)
+}
 ```
 
-## Integración Image de Astro
+## Texto Alt
 
-:::note[para ser archivada en la versión v3.0] 
-La integración [`@astrojs/image`](https://github.com/withastro/astro/tree/main/packages/integrations/image) ya no será compatible activamente en la versión de Astro v3.0.
+No todos los usuarios pueden ver las imágenes de la misma manera, por lo que la accesibilidad es una preocupación especialmente importante al utilizar imágenes. Utiliza el atributo `alt` para proporcionar [texto alternativo descriptivo](https://www.w3.org/WAI/tutorials/images/) para las imágenes.
 
-Te sugerimos que la elimines lo antes posible y que uses el módulo experimental `astro:assets` que se integrará en `astro@3.0`.
+Este atributo es obligatorio para el componente `<Image />`. `<Image />` lanzará un error si no se proporciona texto alternativo.
 
-¡Sigue la [Guía de Assets (experimental)](/es/guides/images/) para empezar a usar la nueva solución de imágenes de Astro hoy mismo!
+Si la imagen es meramente decorativa (es decir, no contribuye a la comprensión de la página), establece `alt=""` para que los lectores de pantalla sepan que deben ignorar la imagen.
 
-**`astro:assets` no es un reemplazo completo de `@astrojs/image` en este momento, pero está en desarrollo activo.**
-:::
+## Servicio de imágenes por defecto
 
-Para encontrar la documentación de como usar `@astrojs/image` en Astro v2, por favor ve a la [documentación del paquete `@astrojs/image`](https://github.com/withastro/astro/blob/main/packages/integrations/image/README.md)
+[Sharp](https://github.com/lovell/sharp) es el servicio de imágenes por defecto utilizado para `astro:assets`.
 
-## Usar imágenes de un CMS o una CDN
+Si prefieres utilizar [Squoosh](https://github.com/GoogleChromeLabs/squoosh) para transformar tus imágenes, actualiza tu configuración con lo siguiente:
 
-Las CDNs de imágenes funcionan con Astro. Utiliza la URL completa de una imagen como atributo `src` en una etiqueta `<img>` o notación de Markdown.
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig, squooshImageService } from 'astro/config';
 
-Alternativamente, si la CDN proporciona un SDK para Node.js, puedes usarlo en tu proyecto. Por ejemplo, el [SDK de Cloudinary](https://cloudinary.com/documentation/node_integration) puede generar la etiqueta `<img>` con el `src` apropiado para ti.
+export default defineConfig({
+  image: {
+    service: squooshImageService(),
+  },
+});
+```
 
-## Alt Text
+## Integraciones comunitarias
 
-No todos los usuarios pueden ver imágenes de la misma forma, así que la accesibilidad es una preocupación especialmente importante cuando se utilizan imágenes. Usa el atributo `alt` para proveer [texto alt descriptivo](https://www.w3.org/WAI/tutorials/images/) para las imágenes.
+Existen varias [integraciones de imágenes de la comunidad](https://astro.build/integrations?search=images) de terceros para optimizar y trabajar con imágenes en tu proyecto de Astro.
 
-Este atributo es requerido para los componentes de integración de imagen `<Image />` y `<Picture />`. Estos componentes arrojarán un error si no se provee un texto alt.
+## Actualizar a v3.0 desde v2.x
 
-Si la imagen es meramente decorativa (p. ej. no contribuye al entendimiento de la página), establece `alt=""` para que la imagen sea entendida adecuadamente e ignorada por los lectores de pantalla.
+`astro:assets` ya no está detrás de una bandera experimental en Astro v3.0.
 
-## Integraciones de la comunidad
+`<Image />` es ahora un componente integrado y se ha eliminado la integración anterior `@astrojs/image`.
 
-Además de la integración oficial [`@astrojs/image`](/es/guides/integrations-guide/image/), existen varias [integraciones de imágenes de la comunidad](https://astro.build/integrations?search=images) para optimizar y trabajar con imágenes en tu proyecto.
+Estos y otros cambios relacionados con el uso de imágenes en Astro pueden causar algunos cambios disruptivos al actualizar tu proyecto de Astro de una versión anterior.
+
+Sigue las instrucciones a continuación según corresponda para actualizar un proyecto de Astro v2.x a v3.0.
+
+### Actualizar desde `experimental.assets`
+
+Si habías habilitado previamente la bandera experimental para `astro:assets`, deberás actualizar tu proyecto para Astro v3.0, que ahora incluye las características de assets de forma predeterminada.
+
+#### Eliminar la bandera `experimental.assets`
+
+Elimina la bandera experimental:
+
+```js title="astro.config.mjs" del={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    assets: true
+  }
+});
+```
+
+Si es necesario, también actualiza tu archivo `src/env.d.ts` para reemplazar la referencia `astro/client-image` por `astro/client`:
+
+```ts title="src/env.d.ts" del={1} ins={2}
+/// <reference types="astro/client-image" />
+/// <reference types="astro/client" />
+```
+
+#### Eliminar el alias de importación `~/assets`
+
+Este alias de importación ya no se incluye por defecto con `astro:assets`. Si estabas usando este alias con assets experimentales, debes convertirlos a rutas de archivo relativas o [crear tus propios alias de importación](/es/guides/aliases/).
+
+```astro title="src/pages/posts/post-1.astro" del={2} ins={3}
+---
+import rocket from '~/assets/rocket.png'
+import rocket from '../../assets/rocket.png';
+---
+```
+
+#### Agrega soporte sencillo para assets en Cloudflare, Deno, Vercel Edge y Netlify Edge
+
+ Astro v3.0 permite que `astro:assets` funcione sin errores en Cloudflare, Deno, Vercel Edge y Netlify Edge, que no admiten la optimización de imágenes integrada de Astro con Squoosh y Sharp. Ten en cuenta que Astro no realiza ninguna transformación ni procesamiento de imágenes en estos entornos. Sin embargo, aún puedes disfrutar de otros beneficios de usar `astro:assets`, como la ausencia de Desplazamiento Acumulativo de Diseño (CLS), el atributo `alt` obligatorio y una experiencia de autoría coherente.
+ 
+ Si antes evitaste usar `astro:assets` debido a estas limitaciones, ahora puedes usarlo sin problemas. Puedes configurar el servicio de imágenes sin acción para optar explícitamente por este comportamiento:
+
+```js title="astro.config.mjs" ins={4-8}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  image: {
+    service: {
+      entrypoint: 'astro/assets/services/noop'
+    }
+  }
+});
+```
+
+### Decide dónde almacenar tus imágenes
+
+Consulta la guía de Imágenes para ayudarte a decidir [dónde almacenar tus imágenes](#dónde-guardar-las-imágenes). Es posible que desees aprovechar las nuevas opciones para almacenar tus imágenes con la flexibilidad adicional que `astro:assets` ofrece. Por ejemplo, las imágenes relativas desde la carpeta `src/` de tu proyecto ahora pueden ser referenciadas en Markdown, MDX y Markdoc utilizando la sintaxis estándar de Markdown `![alt](src)`.
+
+### Actualiza las etiquetas existentes `<img>`
+
+Anteriormente, importar una imagen devolvía un `string` con la ruta de la imagen. Los assets de imagen importados coinciden con la siguiente firma:
+
+```ts
+interface ImageMetadata {
+  src: string;
+  width: number;
+  height: number;
+  format: string;
+}
+```
+
+Debes actualizar el atributo `src` de cualquier etiqueta `<img>` existente (incluyendo cualquier [imagen en componentes de frameworks UI](#imágenes-en-componentes-de-frameworks-ui)) y también puedes actualizar otros atributos que ahora están disponibles para ti a partir de la imagen importada.
+
+```astro title="src/components/MyComponent.astro" ".src" ".width" ".height" del={4} ins={6}
+---
+import rocket from '../images/rocket.svg';
+---
+<img src={rocket} width="250" height="250" alt="Un cohete en el espacio." />
+
+<img src={rocket.src} width={rocket.width} height={rocket.height} alt="Un cohete en el espacio." />
+```
+
+### Actualiza tus archivos Markdown, MDX y Markdoc
+
+Las imágenes relativas desde la carpeta `src/` de tu proyecto ahora pueden ser referenciadas en Markdown, MDX y Markdoc utilizando la sintaxis estándar de Markdown `![alt](src)`.
+
+Esto te permite mover tus imágenes desde el directorio `public/` a la carpeta `src/` de tu proyecto, donde ahora serán procesadas y optimizadas. Tus imágenes existentes en `public/` y las imágenes remotas siguen siendo válidas, pero no son optimizadas por el proceso de compilación de Astro.
+
+```md title="src/pages/posts/post-1.md" "/_astro" ".hash" "../../assets/"
+# Mi página Markdown
+
+<!-- ¡Imágenes locales ahora posibles! -->
+![Un cielo estrellado](../../images/stars.png)
+
+<!-- ¡Mantén tus imágenes junto a tu contenido! -->
+![Un cielo estrellado](./stars.png)
+```
+
+Si necesitas más control sobre los atributos de tu imagen, te recomendamos usar el formato de archivo `.mdx`, que te permite incluir el componente `<Image />` de Astro o una etiqueta JSX `<img />` además de la sintaxis Markdown. Utiliza la [integración de MDX](/es/guides/integrations-guide/mdx/) para agregar soporte para MDX a Astro.
+
+### Elimina `@astrojs/image`
+
+Si estabas utilizando la integración de imágenes en Astro v2.x, completa los siguientes pasos:
+
+1. Elimina la integración `@astrojs/image`.
+
+    Debes [eliminar la integración](/es/guides/integrations-guide/#eliminando-una-integración) desinstalándola y luego eliminándola de tu archivo `astro.config.mjs`.
+
+    ```js del={3,7}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import image from '@astrojs/image';
+
+    export default defineConfig({
+      integrations: [
+        image(),
+      ]
+    })
+    ```
+
+2. Migra cualquier componente `<Image />` existente.
+
+    Cambia todas las declaraciones de `import` de `@astrojs/image/components` a `astro:assets` para poder usar el nuevo componente integrado `<Image />`.
+
+    Elimina cualquier atributo del componente que no sean [propiedades de assets de imagen actualmente admitidas](/es/guides/images/#propiedades).
+
+    Por ejemplo, `aspectRatio` ya no es compatible, ya que ahora se infiere automáticamente a partir de los atributos `width` y `height`.
+
+      ```astro title="src/components/MyComponent.astro" del= {2,11} ins={3}
+      ---
+      import { Image } from '@astrojs/image/components';
+      import { Image } from 'astro:assets'
+      import localImage from "../assets/logo.png";
+      const localAlt = "El logo de Astro";
+      ---
+
+      <Image
+        src={localImage}
+        width={300}
+        aspectRatio="16:9"
+        alt={localAlt}
+      />
+      ```
+
+3. Elimina cualquier componente `<Picture />` existente.
+
+    Actualmente, la función de assets integrada no incluye un componente `<Picture />`.
+
+    En su lugar, puedes utilizar los atributos de imagen HTML `srcset` y `sizes`, o la etiqueta `<picture>` [para dirección de arte o para crear imágenes responsivas](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#art_direction).
+
+4. Elige un servicio de imágenes predeterminado.
+
+   [Sharp](https://github.com/lovell/sharp) es ahora el servicio de imágenes predeterminado utilizado para `astro:assets`. Si deseas utilizar Sharp, no se requiere ninguna configuración.
+
+    Si prefieres utilizar [Squoosh](https://github.com/GoogleChromeLabs/squoosh) para transformar tus imágenes, actualiza tu configuración con la siguiente opción `image.service`:
+
+    ```js title="astro.config.mjs" ins={4-6}
+    import { defineConfig, squooshImageService } from 'astro/config';
+
+    export default defineConfig({
+      image: {
+        service: squooshImageService(),
+      },
+    });
+    ```
+
+### Actualiza los esquemas de Colecciones de Contenido
+
+Ahora puedes declarar una imagen asociada para una entrada de colecciones de contenido, como la imagen de portada de una entrada de blog, en tu metadatos usando su ruta relativa a la carpeta actual.
+
+El nuevo helper `image` para colecciones de contenido te permite validar los metadatos de la imagen utilizando Zod. Aprende más sobre [cómo usar imágenes en colecciones de contenido](/es/guides/images/#imágenes-en-colecciones-de-contenido)
