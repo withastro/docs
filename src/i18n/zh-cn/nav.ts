@@ -45,7 +45,7 @@ export default NavDictionary({
 	'guides/data-fetching': '数据获取',
 	'guides/middleware': '中间件',
 	'guides/testing': '测试',
-	'guides/view-transitions': '视图过渡动画（实验性）',
+	'guides/view-transitions': '视图过渡动画',
 	'guides/troubleshooting': '故障排除',
 
 	configuration: '配置',

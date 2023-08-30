@@ -33,19 +33,24 @@ interface AstroIntegration {
       injectScript: (stage: InjectedScriptStage, content: string) => void;
       injectRoute: ({ pattern: string, entryPoint: string }) => void;
     }) => void;
-    'astro:config:done'?: (options: { config: AstroConfig }) => void | Promise<void>;
-    'astro:server:setup'?: (options: { server: vite.ViteDevServer }) => void | Promise<void>;
-    'astro:server:start'?: (options: { address: AddressInfo }) => void | Promise<void>;
-    'astro:server:done'?: () => void | Promise<void>;
-    'astro:build:start'?: () => void | Promise<void>;
+    'astro:config:done'?: (options: { config: AstroConfig; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:server:setup'?: (options: { server: vite.ViteDevServer; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:server:start'?: (options: { address: AddressInfo; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:server:done'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:build:start'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:build:setup'?: (options: {
       vite: ViteConfigWithSSR;
       pages: Map<string, PageBuildData>;
       target: 'client' | 'server';
+      logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
-    'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
-    'astro:build:ssr'?: (options: { manifest: SerializedSSRManifestm, entryPoints: Map<RouteData, URL> }) => void | Promise<void>;
-    'astro:build:done'?: (options: { dir: URL; routes: RouteData[], pages: { pathname: string }[] }) => void | Promise<void>;
+    'astro:build:generated'?: (options: { dir: URL; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:build:ssr'?: (options: { 
+        manifest: SerializedSSRManifestm; 
+        entryPoints: Map<RouteData, URL>;
+        logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:build:done'?: (options: { dir: URL; routes: RouteData[]; logger: AstroIntegrationLogger; }) => void | Promise<void>;
   };
 }
 ```
@@ -70,6 +75,7 @@ interface AstroIntegration {
   addWatchFile: (path: URL | string) => void;
   injectScript: (stage: InjectedScriptStage, content: string) => void;
   injectRoute: ({ pattern: string, entryPoint: string }) => void;
+  logger: AstroIntegrationLogger;
 }) => void;
 ```
 
@@ -528,6 +534,68 @@ export default defineConfig({
 :::caution
 这假定你的集成定义是：1）`default` 导出；2）函数。在添加 `astro-integration` 关键字前，请确保符合要求。
 :::
+
+## `AstroIntegrationLogger`
+
+Astro 日志记录器的实例，用于写日志。此日志记录器使用与 CLI 配置的相同的[日志级别](/zh-cn/reference/cli-reference/#--verbose)。
+
+用于写入终端的**可用方法**：
+- `logger.info("Message")`;
+- `logger.warn("Message")`;
+- `logger.error("Message")`;
+- `logger.debug("Message")`;
+
+所有消息都前面带有一个具有集成名字的标签。
+
+```ts title="integration.ts" {8}
+import type { AstroIntegration } from "astro";
+export function formatIntegration(): AstroIntegration {
+    return {
+        name: "astro-format",
+        hooks: {
+            "astro:build:done": (options, { logger }) => {
+                // do something
+                logger.info("Integration ready.");
+            }
+        }
+    }
+}
+```
+
+上面的示例将记录一个包含提供的 `info` 消息的日志：
+
+```shell
+[astro-format] Integration ready.
+```
+
+要使用不同的标签记录一些日志，请使用 `.fork` 方法指定一个新的 `name`：
+
+```ts title="integration.ts" ".fork"
+import type { AstroIntegration } from "astro";
+export function formatIntegration(): AstroIntegration {
+    return {
+        name: "astro-format",
+        hooks: {
+            "astro:config:done": ({ logger }) => {
+                // do something
+                logger.info("Integration ready.");
+            },
+            "astro:build:done": ({ logger }) => {
+                const buildLogger = logger.fork("astro-format/build");
+                // do something
+                buildLogger.info("Build finished.")
+            }
+        }
+    }
+}
+```
+
+上面的示例将默认生成带有 `[astro-format]` 的日志，并在指定名字时生成带有 `[astro-format/build]` 的日志：
+
+```shell
+[astro-format] Integration ready.
+[astro-format/build] Build finished.
+```
 
 ## 集成排序
 
