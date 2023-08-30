@@ -40,7 +40,7 @@ A projekted mappájában, írd be az alábbi parancsot a terminálba:
 npm run dev
 ```
 
-Mostantól az Astro alkalmazásod elérhető a [http://localhost:3000](http://localhost:3000) címen. Ha megnyitod ezt a címet a böngésződben, látnod kell az Astro saját "Hello, World"-jét.
+Mostantól az Astro alkalmazásod elérhető a [http://localhost:4321](http://localhost:4321) címen. Ha megnyitod ezt a címet a böngésződben, látnod kell az Astro saját "Hello, World"-jét.
 
 A szerver autómatikusan figyeli az `src/` mappában történő változásokat, így nem kell újraindítanod az alkalmazást ha bármit módosítasz.
 

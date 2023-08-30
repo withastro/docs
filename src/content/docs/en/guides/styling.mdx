@@ -41,11 +41,11 @@ This CSS:
 Compiles to this:
 ```astro
 <style>
-  h1:where(.astro-HHNQFKH6) {
+  h1[data-astro-cid-hhnqfkh6] {
      color: red;
   }
 
-  .text:where(.astro-HHNQFKH6) {
+  .text[data-astro-cid-hhnqfkh6] {
     color: blue;
   }
 </style>
@@ -159,8 +159,7 @@ import MyComponent from "../components/MyComponent.astro"
 <MyComponent class="red">This will be red!</MyComponent>
 ```
 
-This pattern lets you style child components directly. Astro will pass the parent’s scoped class name (e.g. `astro-HHNQFKH6`) through the `class` prop automatically, including the child in its parent’s scope.
-
+This pattern lets you style child components directly. Astro will pass the parent’s scoped class name (e.g. `astro-hhnqfkh6`) through the `class` prop automatically, including the child in its parent’s scope. Note this pattern only works when your [`scopedStyleStrategy` option](/en/reference/configuration-reference/#scopedstylestrategy) is either `'where'` or `'class'`.
 :::note[Scoped classes from parent components]
 Because the `class` prop includes the child in its parent’s scope, it is possible for styles to cascade from parent to child. To avoid this having unintended side effects, ensure you use unique class names in the child component.
 :::
@@ -531,23 +530,35 @@ You can also add [CSS integrations](#css-integrations) including [Tailwind](/en/
 
 ### Bundle control
 
-When Astro builds your site for production deployment it combines your CSS into chunks. Each page on your site is its own chunk, and additionally, CSS that is shared between multiple pages is further split off into their own chunks for reuse.
+When Astro builds your site for production deployment, it minifies and combines your CSS into chunks. Each page on your site gets its own chunk, and additionally, CSS that is shared between multiple pages is further split off into their own chunks for reuse.
 
-In each of your HTML files there will be `<link rel="stylesheet">` tags added, one for each of the chunks that the pages needs.
+However, when you have several pages sharing styles, some shared chunks can become really small. If all of them were sent separately, it would lead to many stylesheets requests and affect site performance. Therefore, by default Astro will link only those in your HTML above 4kB in size as `<link rel="stylesheet">` tags, while inlining smaller ones into `<style type="text/css">`. This approach provides a balance between the number of additional requests and the volume of CSS that can be cached between pages.
 
-Sites with a large number of pages and many different shared styles can lead to many stylesheet requests and affect site performance. You can configure the `inlineStylesheets` option to reduce the number of these requests by putting (minimized) stylesheets into a `<style>` tag rather than request them externally.
+You can configure the size at which stylesheets will be linked externally (in bytes) using the `assetsInlineLimit` vite build option. Note that this option affects script and image inlining as well.
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    build: {
+      assetsInlineLimit: 1024,
+    }
+  };
+});
+```
+
+If you would rather all project styles remain external, you can configure the `inlineStylesheets` build option.
 
 ```js
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   build: {
-    inlineStylesheets: 'auto'
+    inlineStylesheets: 'never'
   }
 });
 ```
-
-The `'auto'` option will inline only the stylesheets that are below the `vite.build.assetsInlineLimit` threshold, reducing the number of requests for smaller sheets. Larger stylesheets, such as global ones used by all pages, will still be fetched externally and cached. This option provides a balance between the number of stylesheets loaded and the styles that can be cached between pages.
 
 You can also set this option to `'always'` which will inline all stylesheets.
 
