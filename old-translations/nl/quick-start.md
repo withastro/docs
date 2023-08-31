@@ -38,7 +38,7 @@ Navigeer naar je project folder, en voer het volgende commando uit in je termina
 npm run dev
 ```
 
-Astro start nu je applicatie op, je kan deze vinden op [http://localhost:3000](http://localhost:3000). Als je deze URL opent zie je de Astro versie van "Hello, World".
+Astro start nu je applicatie op, je kan deze vinden op [http://localhost:4321](http://localhost:4321). Als je deze URL opent zie je de Astro versie van "Hello, World".
 
 De server luistert naar live wijzifgingen in je `src/` folder, dus je hoeft de applicatie niet handmatig te herstarten bij elke wijziging tijdens de ontwikkeling.
 
