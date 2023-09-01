@@ -35,7 +35,7 @@ npm run build
 npm run dev
 ```
 
-Astro 会开启预览服务器，地址为 [http://localhost:3000](http://localhost:3000)，
+Astro 会开启预览服务器，地址为 [http://localhost:4321](http://localhost:4321)，
 在浏览器打开这个网址，就会看到 Astro 的 HelloWorld 页面
 
 服务器会实时监听 'src/' 目录下的文件改动，所以在开发过程的支持热更新，修改程序后，无需重启。
