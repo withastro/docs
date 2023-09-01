@@ -72,7 +72,7 @@ export default defineConfig({
 - 视图过渡动画用于动画页面过渡和持久化组件。如果你使用此实验性标志，请查看 [视图过渡动画 API 重大更改及升级建议](/zh-cn/guides/view-transitions/#从-v2x-升级到-v30)。
 - 新的图像服务 API `astro:assets` 用于在 Astro 中使用图像，包括新的 `<Image />` 组件和 `getImage()` 函数。**无论你是否使用此实验性标志**，请阅读详细的 [图像升级建议](/zh-cn/guides/images/#从-v2x-升级到-v30) ，以了解这可能如何影响你的项目。
 
-在 3.0 博客文章阅读更多关于这两个令人兴奋的功能和更多其他内容！
+在 [3.0 博客文章](https://astro.build/blog/astro-3/) 阅读更多关于这两个令人兴奋的功能和更多其他内容！
 
 ## Astro v3.0 破坏性更改
 
@@ -165,9 +165,9 @@ import Markdown from '@astrojs/markdown-component';
 
 ### 移除：已废弃的 1.x API
 
-在 Astro v1.x 中，Astro 废弃了配置选项以及脚本/样式 `global` 和 `hoist` 属性类型。这些被保留是为了向后兼容。
+在 Astro v1.x 中，Astro 废弃了对最初的配置选项以及 `<style global>` 和 `<script hoist>` 的支持。但为了向后兼容，它们依旧可用。
 
-Astro v3.0 完全删除了这些已弃用的 API。它们不能再在你的 Astro 项目中使用。
+Astro v3.0 完全删除了这些已弃用的 API。你应该使用正式被支持的[配置选项](/zh-cn/reference/configuration-reference/)以及现代的 `<style is:global>` 和 `<script>`。
 
 #### 我应该怎么做？
 
@@ -176,7 +176,17 @@ Astro v3.0 完全删除了这些已弃用的 API。它们不能再在你的 Astr
 - 废弃的配置选项：请参阅 [0.26 迁移指南](/zh-cn/guides/upgrade-to/v1/#new-configuration-api)
 - 废弃的脚本/样式类型：请参阅 [0.26 迁移指南](/zh-cn/guides/upgrade-to/v1/#new-default-script-behavior)
 
-### 移除： 内容集合 schema 中来自 `astro:content` 的 `image`
+### 移除：服务器代码中 Web API 的不完整垫片（shim）
+
+在 Astro v2.x 中，Astro 在服务器渲染代码中提供了例如像 `document` 或 `localStorage` 这样的 Web APIs 的不完整垫片（shim，类似 polyfill）。这些垫片经常实现不完整并且不可靠。
+
+Astro v3.0 完全移除了这些不完整的垫片。Web APIs 不再在服务器渲染代码中可用。
+
+#### 我应该怎么做？
+
+如果你在服务器渲染的组件中使用 Web API，你需要把使用了的地方改成根据运行平台选择性调用或使用 [`client:only` 客户端指令](/zh-cn/reference/directives-reference/#clientonly).
+
+### 移除：内容集合 schema 中来自 `astro:content` 的 `image`
 
 在 Astro v2.x 中，内容集合 API 废弃了来自 `astro:content` 的 `image` 导出，用于在你的内容集合 schema 中使用。
 
@@ -383,6 +393,32 @@ export async function GET() {
 }
 ```
 
+### 默认值改变：tsconfig.json 预设里的 `verbatimModuleSyntax`
+
+在 Astro v2.x 中，[`verbatimModuleSyntax`](https://www.typescriptlang.org/tsconfig#verbatimModuleSyntax) 默认是关闭的，在 `strict` 预设中它的 TypeScript 4.x 等价设置项 `importsNotUsedAsValues` 是启用的。
+
+在 Astro v3.0 中，所有预设都启用了 `verbatimModuleSyntax`。
+
+#### 我应该怎么做？
+
+这个选项使得类型导入必须使用 `import type` 语法。
+
+```astro title="src/components/MyAstroComponent.astro" "type"
+---
+import { type CollectionEntry, getEntry } from "astro:content";
+---
+```
+
+虽然我们建议保持此设置项为启用状态并（像上面展示的那样）使用 `import type` 来导入类型，如果出现了任何问题，你可以通过在 `tsconfig.json` 中设置 `verbatimModuleSyntax: false` 来禁用它。
+
+```json title="tsconfig.json" "false"
+{
+  "compilerOptions": {
+    "verbatimModuleSyntax": false
+  }
+}
+```
+
 ### 默认值改变：端口 `3000`
 
 在 Astro v2.x 中，默认情况下，Astro 运行在 `3000` 端口上。
@@ -478,6 +514,14 @@ export default defineConfig({
 Astro v3.0 将 Sharp 作为默认的图像处理服务，并提供了一个配置选项来使用 Squoosh。
 
 #### 我应该怎么做？
+
+:::note
+当使用像 `pnpm` 这样的 [严格包管理器](https://pnpm.io/pnpm-vs-npm#npms-flat-tree) 时，即使 Sharp 已经是 Astro 的依赖项，你也可能需要手动安装 Sharp 到你的项目中：
+
+```bash
+pnpm install sharp
+```
+:::
 
 如果你希望继续使用 Squoosh 来转换你的图像，请使用以下配置更新你的配置：
 
@@ -623,7 +667,9 @@ const result = await transform(source, {
 });
 ```
 
+## 社区资源
 
+知道一个好的 Astro v3.0 资源？[编辑此页面](https://github.com/withastro/docs/edit/main/src/content/docs/zh-cn/guides/upgrade-to/v3.mdx) 并在下面添加链接！
 
 ## 已知问题
 
