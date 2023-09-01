@@ -18,9 +18,11 @@ Docker 镜像和容器可以部署到许多不同的平台，例如 AWS、Azure 
 
 在项目根目录中创建一个名为 `Dockerfile` 的文件，这个文件包含了构建你的网站的指令，具体指令会根据你的需求而有所不同。本指南无法展示所有可能的选项，但会为 SSR 和静态渲染模式提供一些起始的步骤。
 
+如果你使用的是除了 npm 之外的包管理工具，可能需要你相应地调整命令。
+
 ### 服务端渲染模式（SSR）
 
-以下是一个 Dockerfile 示例，它将使用 Node.js 构建你的网站，并在端口 `3000` 上进行服务。这要求在 Astro 项目中安装了 [Node 适配器](/zh-cn/guides/integrations-guide/node/)。
+以下是一个 Dockerfile 示例，它将使用 Node.js 构建你的网站，并在端口 `4321` 上进行服务。这要求在 Astro 项目中安装了 [Node 适配器](/zh-cn/guides/integrations-guide/node/)。
 
 ```docker title="Dockerfile"
 FROM node:lts AS runtime
@@ -32,8 +34,8 @@ RUN npm install
 RUN npm run build
 
 ENV HOST=0.0.0.0
-ENV PORT=3000
-EXPOSE 3000
+ENV PORT=4321
+EXPOSE 4321
 CMD node ./dist/server/entry.mjs
 ```
 
@@ -45,6 +47,18 @@ FROM node:lts as runtime
 FROM node:lts-alpine as runtime
 ```
 :::
+
+### 添加 `.dockerignore`
+
+将 `.dockerignore` 文件添加到你的项目中是一个最佳实践。这个文件非常类似于 `.gitignore`，用于描述在 Docker 的 `COPY` 或 `ADD` 命令中应该忽略哪些文件或文件夹，从而加快构建过程并减小最终镜像的大小。
+
+```docker title=".dockerignore"
+.DS_Store
+node_modules
+dist
+```
+
+这个文件应该放在与 `Dockerfile` 相同的目录下。可[阅读 `.dockerignore` 文档获取更多信息](https://docs.docker.com/engine/reference/builder/#dockerignore-file)。
 
 ### 静态渲染模式
 
@@ -76,7 +90,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-RUN npm run build -- --mode custom
+RUN npm run build
 
 FROM nginx:alpine AS runtime
 COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
@@ -107,11 +121,43 @@ http {
     gzip_proxied expired no-cache no-store private auth;
     gzip_types text/plain text/css application/json application/javascript application/x-javascript text/xml application/xml application/xml+rss text/javascript;
 
+    error_page 404 /404.html;
+    location = /404.html {
+            root /usr/share/nginx/html;
+            internal;
+    }
+
     location / {
-      try_files $uri $uri/index.html $uri.html;
+            try_files $uri $uri/index.html =404;
     }
   }
 }
+```
+
+### 多层构建（使用 SSR）
+
+下面是一个更高级的 Dockerfile 示例，通过 Docker 的 [多层构建](https://docs.docker.com/build/building/multi-stage/) 功能，仅在源代码变化时重新安装 npm 依赖项，从而优化了站点的构建过程。这根据依赖项的大小从而节省几分钟甚至更多的构建时间。
+
+```docker title="Dockerfile"
+FROM node:lts AS base
+WORKDIR /app
+# 这里仅复制 package.json 和 package-lock.json，我们确保以下的 `-deps` 步骤与源代码无关。
+# 因此，如果只有源代码发生变化，将会跳过 `-deps` 步骤。
+COPY package.json package-lock.json ./
+FROM base AS prod-deps
+RUN npm install --production
+FROM base AS build-deps
+RUN npm install --production=false
+FROM build-deps AS build
+COPY . .
+RUN npm run build
+FROM base AS runtime
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
+ENV HOST=0.0.0.0
+ENV PORT=4321
+EXPOSE 4321
+CMD node ./dist/server/entry.mjs
 ```
 
 ## 操作步骤
@@ -126,7 +172,7 @@ docker build -t <your-astro-image-name> .
 
 2. 要将镜像作为本地容器运行，请使用以下命令。
 
-将 `<local-port>` 替换为你本地机器上的空闲端口。将 `<container-port>` 替换为你的 Docker 容器暴露的端口号（如上面示例中的 `3000`、`80` 或 `8080`）。
+将 `<local-port>` 替换为你本地机器上的空闲端口。将 `<container-port>` 替换为你的 Docker 容器暴露的端口号（如上面示例中的 `4321`、`80` 或 `8080`）。
 
 ```bash
 docker run -p <local-port>:<container-port> <your-astro-image-name>

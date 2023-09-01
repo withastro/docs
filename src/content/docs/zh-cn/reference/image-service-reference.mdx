@@ -1,0 +1,236 @@
+---
+title: 图像服务 API
+i18nReady: true
+---
+
+`astro:assets` 旨在使任何图像优化服务都能轻松地在 Astro 上构建服务。
+
+## 什么是图像服务？
+
+Astro 提供两种类型的图像服务：本地和外部。
+
+- **本地服务**在构建静态站点时直接处理图像转换，或者在运行时同时处理开发模式和 SSR 中的图像转换。这些通常是围绕 Sharp、ImageMagick 或 Squoosh 等库的封装。在开发模式和 SSR 中，本地服务使用 API 端点进行转换。
+- **外部服务**指向 URL，可以添加对 Cloudinary、Vercel 或任何符合 [RIAPI](https://github.com/riapi/riapi) 的服务器等服务的支持。
+
+## 使用图像服务 API 构建
+
+服务定义采用导出默认对象的形式，具有各种必需的方法（“钩子”）。
+
+外部服务提供一个 `getURL()`，它指向输出 `＜img＞` 标记的 `src`。
+
+本地服务为开发模式和 SSR 提供 `transform()` 方法来对图像执行转换，并提供 `getURL()` 和 `parseURL()` 方法来使用端点。
+
+两种类型的服务都可以提供 `getHTMLAttributes()` 来确定输出 `<img>` 的其他属性，并提供 `validateOptions()` 来验证和增强传递的选项。
+
+### 外部服务
+
+外部服务指向一个远程 URL，用作最终 `<img>` 标记的 `src` 属性。该远程 URL 负责下载、转换和返回图像。
+
+```js
+import type { ExternalImageService, ImageTransform, AstroConfig } from "astro";
+
+const service: ExternalImageService = {
+  validateOptions(options: ImageTransform, imageConfig: AstroConfig['image']) {
+    const serviceConfig = imageConfig.service.config;
+    // 强制用户设置最大宽度。
+    if (options.width > serviceConfig.maxWidth) {
+      console.warn(`Image width ${options.width} exceeds max width ${serviceConfig.maxWidth}. Falling back to max width.`);
+      options.width = serviceConfig.maxWidth;
+    }
+
+    return options;
+  },
+  getURL(options, imageConfig) {
+    return `https://mysupercdn.com/${options.src}?q=${options.quality}&w=${options.width}&h=${options.height}`;
+  },
+  getHTMLAttributes(options, imageConfig) {
+    const { src, format, quality, ...attributes } = options;
+		return {
+			...attributes,
+			loading: options.loading ?? 'lazy',
+			decoding: options.decoding ?? 'async',
+		};
+	}
+};
+
+
+export default service;
+```
+
+### 本地服务
+
+要创建自己的本地服务，可以指向[内置端点](https://github.com/withastro/astro/blob/main/packages/astro/src/assets/image-endpoint.ts)（`/_image`），或者你还可以创建自己的端点来调用服务的方法。
+
+```js
+import type { LocalImageService, AstroConfig } from "astro";
+
+const service: LocalImageService = {
+  getURL(options: ImageTransform, imageConfig: AstroConfig['image']) {
+    const searchParams = new URLSearchParams();
+		searchParams.append('href', typeof options.src === "string" ? options.src : options.src.src);
+		options.width && searchParams.append('w', options.width.toString());
+		options.height && searchParams.append('h', options.height.toString());
+		options.quality && searchParams.append('q', options.quality.toString());
+		options.format && searchParams.append('f', options.format);
+    return `/my_custom_endpoint_that_transforms_images?${searchParams}`;
+    // 或者使用内置端点，它将调用你的 parseURL 和 transform 函数：
+    // return `/_image?${searchParams}`;
+  },
+  parseURL(url: URL, imageConfig) {
+    return {
+      src: params.get('href')!,
+      width: params.has('w') ? parseInt(params.get('w')!) : undefined,
+      height: params.has('h') ? parseInt(params.get('h')!) : undefined,
+			format: params.get('f'),
+      quality: params.get('q'),
+    };
+  },
+  transform(buffer: Buffer, options: { src: string, [key: string]: any }, imageConfig): { data: Buffer, format: OutputFormat } {
+    const { buffer } = mySuperLibraryThatEncodesImages(options);
+    return {
+      data: buffer,
+      format: options.format,
+    };
+  },
+  getHTMLAttributes(options, imageConfig) {
+		let targetWidth = options.width;
+		let targetHeight = options.height;
+		if (typeof options.src === "object") {
+			const aspectRatio = options.src.width / options.src.height;
+
+			if (targetHeight && !targetWidth) {
+				targetWidth = Math.round(targetHeight * aspectRatio);
+			} else if (targetWidth && !targetHeight) {
+				targetHeight = Math.round(targetWidth / aspectRatio);
+			}
+		}
+
+		const { src, width, height, format, quality, ...attributes } = options;
+
+		return {
+			...attributes,
+			width: targetWidth,
+			height: targetHeight,
+			loading: attributes.loading ?? 'lazy',
+			decoding: attributes.decoding ?? 'async',
+		};
+	}
+};
+export default service;
+```
+
+在构建静态站点和预渲染路由时，`<Image />` 和 `getImage(options)` 都会调用 `transform()` 函数。它们分别通过组件属性或 `options` 参数传递选项。转换后的图像将构建到 `dist/_astro` 文件夹中。
+
+在开发模式和 SSR 模式下，Astro 并不提前知道哪些图像需要优化。Astro 使用 GET 端点（默认情况下为 `/_image` ）在运行时处理图像。 `<Image />` 和 `getImage()` 将它们的选项传递给 `getURL()`，后者将返回端点 URL。然后，端点调用 `parseURL()` 并将结果属性传递给 `transform()`。
+
+#### getConfiguredImageService 和 imageServiceConfig
+
+如果你将自己的端点实现为 Astro 端点，则可以使用 `getConfiguredImageService` 和 `imageServiceConfig` 来调用服务的 `parseURL` 和 `transform` 方法并提供服务的配置对象。
+
+要访问图像服务配置（[`image.service.config`](/zh-cn/reference/configuration-reference/#imageservice-实验性)），你可以使用 `imageConfig.service.config`。
+
+```ts title="src/api/my_custom_endpoint_that_transforms_images.ts"
+import type { APIRoute } from "astro";
+import { getConfiguredImageService, imageConfig } from 'astro:assets';
+
+export const GET: APIRoute = async ({ request }) => {
+  const imageService = await getConfiguredImageService();
+
+  const imageTransform = imageService.parseURL(new URL(request.url), imageConfig);
+  // ... 从 imageTransform.src 获取图像并将其存储在 inputBuffer 中
+  const { data, format } = await imageService.transform(inputBuffer, imageTransform, imageConfig);
+  return new Response(data, {
+			status: 200,
+			headers: {
+				'Content-Type': mime.getType(format) || ''
+      }
+    }
+  );
+}
+```
+
+[请参阅内置端点](https://github.com/withastro/astro/blob/main/packages/astro/src/assets/image-endpoint.ts) 了解完整示例。
+
+
+## 钩子
+
+### `getURL()`
+
+**本地和外部服务所需**
+
+`getURL(options: ImageTransform, imageConfig: AstroConfig['image']): string`
+
+对于本地服务，该钩子返回生成图像的端点的 URL（在 SSR 和开发模式下）。在构建期间它不可用。 `getURL()` 指向的本地端点可以调用 `parseURL()` 和 `transform()`。
+
+对于外部服务，该钩子返回图像的最终 URL。
+
+对于这两种类型的服务，`options`是用户作为 `<Image />` 组件的属性或 `getImage()` 选项传递的属性。它们属于以下类型：
+
+```ts
+export type ImageTransform = {
+    // ESM 导入的图像 | 远程/公共图像路径
+    src: ImageMetadata | string;
+    width?: number;
+    height?: number;
+    quality?: ImageQuality;
+    format?: OutputFormat;
+    alt?: string;
+    [key: string]: any;
+};
+```
+
+
+### `parseURL()`
+
+**本地服务所需；外部服务不可用**
+
+`parseURL(url: URL, imageConfig: AstroConfig['image']): { src: string, [key: string]: any}`
+
+该钩子通过 `getURL()` 将生成的 URL 解析成一个对象，该对象具有可供 `transform` 使用的不同属性（在 SSR 和 dev 模式下）。在构建期间它不可用。
+
+### `transform()`
+
+**仅本地服务需要；外部服务不可用**
+
+`transform(buffer: Buffer, options: { src: string, [key: string]: any }, imageConfig: AstroConfig['image']): { data: Buffer, format: OutputFormat }`
+
+该钩子转换并返回图像，并在构建过程中被调用以创建最终的资源文件。
+
+你必须返回 `format` 以确保在 SSR 和开发模式下向用户提供正确的 MIME 类型。
+
+### `getHTMLAttributes()`
+
+**本地和外部服务可选**
+
+`getHTMLAttributes(options: ImageTransform, imageConfig: AstroConfig['image']): Record<string, any>`
+
+该钩子根据用户传递的参数 (`options`) 返回用于将图像呈现为 HTML 的所有附加属性。
+
+### `validateOptions()`
+
+**本地和外部服务可选**
+
+`validateOptions(options: ImageTransform, imageConfig: AstroConfig['image']): ImageTransform`
+
+该钩子允许你验证和增强用户传递的选项。对于设置默认选项或告诉用户参数必传来说，这非常有用。
+
+[查看 Astro 内置服务中如何使用 `validateOptions()`](https://github.com/withastro/astro/blob/af4bd5e79c0bd662d58aeb016a61950e176b0a26/packages/astro/src/assets/services/service.ts#L106) 。
+
+## 用户配置
+
+在 `astro.config.mjs` 中配置要使用的图像服务。配置采用以下形式：
+
+```js title="astro.config.mjs"
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  image: {
+    service: {
+      entrypoint: "your-entrypoint", // 'astro/assets/services/squoosh' | 'astro/assets/services/sharp' | string,
+      config: {
+        // 特定的服务配置，可选。
+      }
+    }
+  },
+});
+```

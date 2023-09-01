@@ -28,12 +28,12 @@ As regras de CSS em `<style>` no Astro são automaticamente adicionadas a **um e
 Este CSS:
 ```astro title="index.astro"
 <style>
-  h1 { 
-    color: red; 
+  h1 {
+    color: red;
   }
 
-  .text { 
-    color: blue; 
+  .text {
+    color: blue;
   }
 </style>
 ```
@@ -41,18 +41,18 @@ Este CSS:
 Compila para isto:
 ```astro
 <style>
-  h1:where(.astro-HHNQFKH6) {
+  h1[data-astro-cid-hhnqfkh6] {
      color: red;
   }
 
-  .text:where(.astro-HHNQFKH6) {
+  .text[data-astro-cid-hhnqfkh6] {
     color: blue;
   }
 </style>
 ```
 
 
-Estilos com escopo não conflitam e não irão impactar o restante do seu site. Em Astro, não é um problema utilizar seletores de baixa especificidade como `h1{}` ou `p{}` pois eles serão compilados com escopos no resultado final. 
+Estilos com escopo não conflitam e não irão impactar o restante do seu site. Em Astro, não é um problema utilizar seletores de baixa especificidade como `h1{}` ou `p{}` pois eles serão compilados com escopos no resultado final.
 
 Estilos com escopo também não serão aplicados em outros componentes astro contidos dentro de seu template.  Se você precisa estilizar um componente filho, considere envolver esse componente em uma `<div>` ( ou em outro elemento ) para que você possa então estilizá-lo.
 
@@ -159,7 +159,7 @@ import MeuComponente from "../components/MeuComponente.astro"
 <MeuComponente class="vermelho">Isso será vermelho!</MeuComponente>
 ```
 
-Esse padrão te permite estilizar componentes filhos diretamenta. Astro irá passar o nome de classe com escopo do pai (e.x. `astro-HHNQFKH6`) através da prop `class` automaticamente, incluindo o filho no seu escopo de pai.
+Esse padrão te permite estilizar componentes filhos diretamente. Astro irá passar o nome de classe com escopo do pai (e.x. `astro-hhnqfkh6`) através da prop `class` automaticamente, incluindo o filho no seu escopo de pai. Note que esse padrão funciona apenas quando sua [opção `scopedStyleStrategy`](/pt-br/reference/configuration-reference/#scopedstylestrategy) é `'where'` ou `'class'`.
 
 :::note[Classes com escopo de componentes pai]
 Por conta da prop `class` incluir o filho no escopo do seu pai, é possível que estilos cascatem do pai para o filho. Para evitar que isso tenha efeitos colaterais indesejados, certifique-se de utilizar nomes de classe únicos no componente filho.
@@ -252,7 +252,7 @@ Você pode também usar o elemento `<link>` para incluir uma folha de estilos na
 <head>
   <!-- Local: /public/estilos/global.css -->
   <link rel="stylesheet" href="/estilos/global.css" />
-  <!-- Externo  -->
+  <!-- Externo -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.24.1/themes/prism-tomorrow.css" />
 </head>
 ```
@@ -300,9 +300,9 @@ As regras de CSS do Astro são avaliadas nessa ordem de aparecimento:
 - **estilos importados**
 - **estilos com escopo** (maior precedência)
 
-### Estilos com Escopo 
+### Estilos com Escopo
 
-Utilizar [estilos com escopo](#estilos-com-escopo) não aumenta a _especificidade_ do seu CSS, porém eles sempre irão vir por último na _ordem de aparecimento_. Logo eles tomarão precedência sobre outros estilos de mesma especificidade. Por exemplo, se você importart uma folha de estilos que conflita com um estilo com escopo, o valor do estilo com escopo será aplicado:
+Utilizar [estilos com escopo](#estilos-com-escopo) não aumenta a _especificidade_ do seu CSS, porém eles sempre irão vir por último na _ordem de aparecimento_. Logo eles tomarão precedência sobre outros estilos de mesma especificidade. Por exemplo, se você importar uma folha de estilos que conflita com um estilo com escopo, o valor do estilo com escopo será aplicado:
 
 ```css title="o-faça-roxo.css"
 h1 {
@@ -501,7 +501,7 @@ module.exports = {
 
 ### 📘 React / Preact
 
-Arquivos `.jsx` suporta tanto CSS global quanto Módulos CSS. E para habilitar o segundo, use a extensão `.module.css` (ou `.module.scss` / `.module.sass` se você estiver usando Sass). 
+Arquivos `.jsx` suporta tanto CSS global quanto Módulos CSS. E para habilitar o segundo, use a extensão `.module.css` (ou `.module.scss` / `.module.sass` se você estiver usando Sass).
 
 ```jsx title="src/components/MeuComponenteReact.jsx" /[a-z]+(\\.module\\.css)/
 import './global.css'; // inclui CSS global
@@ -529,25 +529,37 @@ Se você estiver utilizando Tailwind, o [plugin typography](https://tailwindcss.
 
 ## Produção
 
-### Controle de pacote
+### Controle de bundle
 
-Quando o Astro faz a build do seu site para lançamento em produção, ele combina seu CSS em pedaços. Cada página no seu site é seu próprio pedaço, e adicionalmente, o CSS que é compartilhado entre múltiplas páginas é dividido em seus próprios pedaços para reutilização.
+Quando o Astro faz a build do seu site para lançamento em produção, ele minifica e combina seu CSS em pedaços. Cada página no seu site ganha seu próprio pedaço, e adicionalmente, o CSS que é compartilhado entre múltiplas páginas é dividido em seus próprios pedaços para reutilização.
 
-Em cada um dos seus arquivos HTML vai ter tags `<link rel="stylesheet">` adicionadas, uma para cada pedaço que a página precisa.
+Contudo, quando você tem diversas páginas compartilhando estilos, alguns pedaços compartilhados podem se tornar realmente pequenos. Se todos eles fossem enviados separadamente, isso levaria a muitas requisições de folhas de estilo e afetaria a performance do site. Portanto, por padrão o Astro irá fazer link apenas daquelas no seu HTML acima de 4kB em tamanho como tags `<link rel="stylesheet">`, enquanto adiciona inline as menores como `<style type="text/css">`. Essa abordagem fornece um equilíbrio entre o número de requisições adicionais e o volume de CSS que pode ser cacheado entre páginas.
 
-Sites com um grande número de páginas e muitos estilos diferentes compartilhados podem ocasionar em várias requisições de folhas de estilo e afetar o desempenho do site. Você pode configurar a opção `inlineStylesheets` para reduzir o número dessas requisições colocando as folhas de estilo (minimizadas) em uma tag `<style>` ao invés de requisitar elas externamente.
+Você pode configurar o tamanho no qual folhas de estilo serão adicionadas com links externos (em bytes) utilizando a opção da build do vite `assetsInlineLimit`. Note que essa pção afeta a adição inline de scripts e imagens também.
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    build: {
+      assetsInlineLimit: 1024,
+    }
+  };
+});
+```
+
+Se você preferir que todos os estilos do projeto continuem externos, você pode configurar a opção da build `inlineStylesheets`.
 
 ```js
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   build: {
-    inlineStylesheets: 'auto'
+    inlineStylesheets: 'never'
   }
 });
 ```
-
-A opção `'auto'` vai colocar em linha apenas as folhas de estilo que estão abaixo do limite de `vite.build.assetsInlineLimit`, reduzindo o número de requisições por folhas menores. Grandes folhas de estilo, como as globais usadas por todas as páginas, ainda serão buscadas externamente e armazenadas em cache. Essa opção fornece um balanço entre o número de folhas de estilos carregadas e os estilos que podem ser armazenados em cache entre páginas.
 
 Você também pode definir essa opção como `'always'` que vai colocar em linha todas as folhas de estilo.
 
@@ -576,10 +588,10 @@ Veja a [documentação do Vite](https://vitejs.dev/guide/assets.html#importing-a
 
 Para casos de uso avançado, você pode importar uma referência URL direta para um arquivo CSS dentro de seu projeto no diretório `src/`. Isto pode ser útil quando você necessita de controle completo sobre como um arquivo é incluído na página. Entretanto, isto vai prevenir a otimização desse arquivo CSS com o resto do CSS da sua página.
 
-Isto não é recomendável para a maioria dos usuários. Em vez disso, coloque os arquivos CSS dentro de `public/` para conseguir uma referência URL consistente. 
+Isto não é recomendável para a maioria dos usuários. Em vez disso, coloque os arquivos CSS dentro de `public/` para conseguir uma referência URL consistente.
 
 :::caution
-Importar um arquivo CSS menor com `?url` talvez retorne o conteúdo dos arquivos CSS codificado em base64 como uma URL de dados, mas somente em sua build final. Sendo assim, você pode escrever seu código com suporte para URLs codificadas  (`data:text/css;base64,...`) ou configurar a opção  [`vite.build.assetsInlineLimit`](https://vitejs.dev/config/#build-assetsinlinelimit) para `0` para desabilitar esta funcionalidade.
+Importar um arquivo CSS menor com `?url` talvez retorne o conteúdo dos arquivos CSS codificado em base64 como uma URL de dados, mas somente em sua build final. Sendo assim, você pode escrever seu código com suporte para URLs codificadas (`data:text/css;base64,...`) ou configurar a opção [`vite.build.assetsInlineLimit`](https://vitejs.dev/config/#build-assetsinlinelimit) para `0` para desabilitar esta funcionalidade.
 :::
 
 ```astro title="src/components/UrlEstilosBrutos.astro" "?url"

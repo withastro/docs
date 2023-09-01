@@ -3,19 +3,361 @@ title: Builder.io & Astro
 description: Add content to your Astro project using Builder.io’s visual CMS
 type: cms
 service: Builder.io
-stub: true
+stub: false
 i18nReady: false
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import FileTree from '~/components/FileTree.astro';
+
+[Builder.io](https://www.builder.io/) is a visual CMS that supports drag-and-drop content editing for building websites. 
+
+This recipe will show you how to connect your Builder space to Astro with zero client-side JavaScript.
 
 
+## Prerequisites
 
-[Builder.io](https://www.builder.io/) is a visual CMS that supports drag and drop content editing for building web sites.
+To get started, you will need to have the following:
 
-## Official Resources
+* **A Builder account and space** - If you don't have an account yet, [sign up for free](https://www.builder.io/) and create a new space. If you already have a space with Builder, feel free to use it, but you will need to modify the code to match the model name (`blogpost`) and custom data fields.
+* **A Builder API key** - This public key will be used to fetch your content from Builder. [Read Builder's guide on how to find your key](https://www.builder.io/c/docs/using-your-api-key#finding-your-public-api-key).
 
-- Check out [the official Builder.io starter project](https://github.com/BuilderIO/builder/tree/main/examples/astro-solidjs), which uses Astro and SolidJS
+## Setting up credentials
 
-## Community Resources
+To add your Builder API key and your Builder model name to Astro, create a `.env` file in the root of your project (if one does not already exist) and add the following variables:
 
-- Read [Connecting Builder.io's Visual CMS to Astro](https://www.hamatoyogi.dev/blog/astro-log/connecting-builderio-to-astro) by Yoav Ganbar
+```ini title=".env"
+BUILDER_API_PUBLIC_KEY=YOUR_API_KEY
+BUILDER_BLOGPOST_MODEL='blogpost'
+```
+
+Now, you should be able to use this API key in your project.
+
+:::note
+At the time of writing, [this key is public](https://www.builder.io/c/docs/using-your-api-key#prerequisites), so you don't have to worry about hiding or encrypting it.
+:::
+
+If you would like to have IntelliSense for your environment variables, you can create a `env.d.ts` file in the `src/` directory and configure `ImportMetaEnv` like this:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly BUILDER_API_PUBLIC_KEY: string;
+}
+```
+
+Your project should now include these files:
+
+<FileTree title="Project Structure">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+
+## Making a blog with Astro and Builder
+
+### Creating a model for a blog post
+
+The instructions below create an Astro blog using a Builder model (Type: "Section") called `blogpost` that contains two required text fields: `title` and `slug`.
+
+:::tip[For visual types]
+You can find videos showing this procedure in one of [Builder's official tutorials](https://www.builder.io/blog/creating-blog#creating-a-blog-article-model).
+:::
+
+In the Builder app create the model that will represent a blog post: go to the **Models** tab and click the **+ Create Model** button to create model with the following fields and values:
+
+- **Type:** Section
+- **Name:** "blogpost"
+- **Description:** "This model is for a blog post"
+
+In your new model use the **+ New Custom Field** button to create 2 new fields:
+
+1. Text field
+    - **Name:** "title"
+    - **Required:** Yes
+    - **Default value** "I forgot to give this a title"
+
+    (leave the other parameters as their defaults)
+
+2. Text field
+    - **Name:** "slug"
+    - **Required:** Yes
+    - **Default value** "some-slugs-take-their-time"
+
+    (leave the other parameters as their defaults)
+
+Then click the **Save** button in the upper right. 
+
+:::caution[slugs]
+There are some pitfalls with the `slug` field:
+
+* Make sure your slug is not just a number. This seems to break the fetch request to Builder's API. 
+
+* Make sure your slugs are unique, since your site's routing will depend on that.
+:::
+
+### Setting up the preview
+
+To use Builder's visual editor, create the page `src/pages/builder-preview.astro` that will render the special `<builder-component>`:
+
+<FileTree title="Project Structure">
+- src/
+  - pages/
+    - **builder-preview.astro**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+Then add the following content:
+
+```astro title="src/pages/builder-preview.astro"
+---
+const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
+const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
+---
+
+<html lang="en">
+  <head>
+    <title>Preview for builder.io</title>
+  </head>
+  <body>
+    <header>This is your header</header>
+
+    <builder-component model={builderModel} api-key={builderAPIpublicKey}
+    ></builder-component>
+    <script async src="https://cdn.builder.io/js/webcomponents"></script>
+
+    <footer>This is your footer</footer>
+  </body>
+</html>
+
+```
+
+In the above example, `<builder-component>` tells Builder where to insert the content from its CMS.
+
+#### Setting the new route as the preview URL
+
+1. Copy the full URL of your preview, including the protocol, to your clipboard (e.g. `https://{your host}/builder-preview`). 
+
+2. Go to the **Models** tab in your Builder space, pick the model you've created and paste the URL from step 1 into the **Preview URL** field. Make sure the URL is complete and includes the protocol, for example `https://`.
+
+3. Click the **Save** button in the upper right.
+
+:::tip
+When you deploy your site, change the preview URL to match your production URL, for example `https://myAwesomeAstroBlog.com/builder-preview`.
+:::
+
+#### Testing the preview URL setup
+
+1. Make sure your site is live (e.g. your dev server is running) and the `/builder-preview` route is working.
+
+2. In your Builder space under the **Content** tab, click on **New** to create a new content entry for your `blogpost` model.
+
+3. In the Builder editor that just opened, you should be able to see the `builder-preview.astro` page with a big **Add Block** in the middle.
+
+:::tip[Troubleshooting]
+
+Things can sometimes go wrong when setting up the preview. If something's not right, you can try one of these things:
+
+* Make sure the site is live - for example, your dev server is running.
+* Make sure that the URLs match exactly - the one in your Astro project and the one set in the Builder app.
+* Make sure it's the full URL including the protocol, for example `https://`.
+* If you're working in a virtual environment like [StackBlitz](https://stackblitz.com/) or [Gitpod](https://www.gitpod.io/), you might have to copy and paste the URL again when you restart your workspace, since this usually generates a new URL for your project.
+
+For more ideas, read [Builder's troubleshooting guide](https://www.builder.io/c/docs/guides/preview-url-working).
+:::
+
+### Creating a blog post
+
+1. In Builder's visual editor, create a new content entry with the following values:
+    - **title:** 'First post, woohoo!'
+    - **slug:** 'first-post-woohoo'
+2. Complete your post using the **Add Block** button and add a text field with some post content.
+3. In the text field above the editor, give your entry a name. This is how it will be listed in the Builder app.
+4. When you're ready click the **Publish** button in the upper right corner.
+5. Create as many posts as you like, ensuring that all content entries contain a `title` and a `slug` as well as some post content.
+
+### Displaying a list of blog posts
+
+Add the following content to `src/pages/index.astro` in order to fetch and display a list of all post titles, each linking to its own page:
+
+```astro title="src/pages/index.astro" {9}
+---
+
+const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
+const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
+
+const { results: posts } = await fetch(
+  `https://cdn.builder.io/api/v3/content/${builderModel}?${new URLSearchParams({
+    apiKey: builderAPIpublicKey,
+    fields: ["data.slug", "data.title"].join(","),
+    cachebust: "true",
+  }).toString()}`
+)
+  .then((res) => res.json())
+  .catch();
+---
+
+<html lang="en">
+  <head>
+    <title>Blog Index</title>
+  </head>
+  <body>
+    <ul>
+      {
+        posts.map(({ data: { slug, title } }) => (
+          <li>
+            <a href={`/posts/${slug}`}>{title}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </body>
+</html>
+
+```
+
+Fetching via the content API returns an array of objects containing data for each post. The `fields` query parameter tells Builder which data is included (see highlighted code). `slug` and `title` should match the names of the custom data fields you've added to your Builder model.
+
+The `posts` array returned from the fetch displays a list of blog post titles on the home page. The individual page routes will be created in the next step.
+
+:::tip[framework integrations]
+If you are using a JavaScript framework (e.g. Svelte, Vue, or React) in your Astro project you can use [one of Builder's integrations](https://www.builder.io/m/integrations) as an alternative to making raw fetch calls through the REST API.
+:::
+
+Go to your index route and you should be able to see a list of links each with the title of a blog post!
+
+
+### Displaying a single blog post
+
+Create the page `src/pages/posts/[slug].astro` that will [dynamically generate a page](/en/core-concepts/routing/#dynamic-routes) for each post.
+
+<FileTree title="Project Structure">
+- src/
+  - pages/
+    - index.astro
+    - posts/
+      - **[slug].astro**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+This file must contain:
+- A [`getStaticPaths()`](/en/reference/api-reference/#getstaticpaths) function to fetch `slug` information from Builder and create a static route for each blog post.
+- A `fetch()` to the Builder API using the `slug` identifier to return post content and metadata (e.g. a `title`).
+- A `<Fragment />` in the template to render the post content as HTML.
+
+Each of these is highlighted in the following code snippet.  
+
+```astro title="src/pages/posts/[slug].astro"  ins={2, 26, 33, 40, 51}
+---
+export async function getStaticPaths() {
+  const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
+  const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
+  const { results: posts } = await fetch(
+    `https://cdn.builder.io/api/v3/content/${builderModel}?${new URLSearchParams(
+      {
+        apiKey: builderAPIpublicKey,
+        fields: ["data.slug", "data.title"].join(","),
+        cachebust: "true",
+      }
+    ).toString()}`
+  )
+    .then((res) => res.json())
+    .catch
+    // ...catch some errors...);
+    ();
+  return [
+    ...posts.map(({ data: { slug, title } }) => [
+      {
+        params: { slug },
+        props: { title },
+      },
+    ]),
+  ];
+}
+const { slug } = Astro.params;
+const { title } = Astro.props;
+const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
+const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
+// Builder's API requires this field but for this use case the url doesn't seem to matter - the API returns the same HTML
+const encodedUrl = encodeURIComponent("moot");
+const { html: postHTML } = await fetch(
+  `https://cdn.builder.io/api/v1/qwik/${builderModel}?${new URLSearchParams({
+    apiKey: builderAPIpublicKey,
+    url: encodedUrl,
+    "query.data.slug": slug,
+    cachebust: "true",
+  }).toString()}`
+)
+  .then((res) => res.json())
+  .catch();
+---
+<html lang="en">
+  <head>
+    <title>{title}</title>
+  </head>
+  <body>
+    <header>This is your header</header>
+    <article>
+      <Fragment set:html={postHTML} />
+    </article>
+    <footer>The is your footer</footer>
+  </body>
+</html>
+```
+
+:::note
+The variables `builderModel` and `builderAPIpublicKey` need to be created twice, since [`getStaticPaths()` runs in its own isolated scope](/en/reference/api-reference/#getstaticpaths).
+:::
+
+Now when you click on a link on your index route, you will be taken to the individual blog post page.
+
+### Publishing your site
+
+To deploy your website, visit our [deployment guides](/en/guides/deploy/) and follow the instructions for your preferred hosting provider.
+
+#### Rebuild on Builder changes
+
+If your project is using Astro's default static mode, you will need to set up a webhook to trigger a new build when your content changes. If you are using Netlify or Vercel as your hosting provider, you can use its webhook feature to trigger a new build whenever you click **Publish** in the Builder editor.
+
+##### Netlify
+
+1. Go to your site dashboard, then **Site Settings** and click on **Build & deploy**.
+2. Under the **Continuous Deployment** tab, find the **Build hooks** section and click on **Add build hook**.
+3. Provide a name for your webhook and select the branch you want to trigger the build on. Click on **Save** and copy the generated URL.
+
+##### Vercel
+
+1. Go to your project dashboard and click on **Settings**.
+2. Under the **Git** tab, find the **Deploy Hooks** section.
+3. Provide a name for your webhook and the branch you want to trigger the build on. Click **Add** and copy the generated URL.
+
+##### Adding a webhook to Builder
+
+:::tip[Official resource]
+See [Builder's guide on adding webhooks](https://www.builder.io/c/docs/webhooks) for more information.
+:::
+
+1. In your Builder dashboard, go into your **`blogpost`** model. Under **Show More Options**, select **Edit Webhooks** at the bottom.
+2. Add a new webhook by clicking on **Webhook**. Paste the URL generated by your hosting provider into the **Url** field.
+3. Click on **Show Advanced** under the URL field and toggle the option to select **Disable Payload**. With the payload disabled, Builder sends a simpler POST request to your hosting provider, which can be helpful as your site grows. Click **Done** to save this selection.
+
+With this webhook in place, whenever you click the **Publish** button in the Builder editor, your hosting provider rebuilds your site - and Astro fetches the newly published data for you. Nothing to do but lean back and pump out that sweet sweet content!
+
+
+## Official resources
+
+- Check out [the official Builder.io starter project](https://github.com/BuilderIO/builder/tree/main/examples/astro-solidjs), which uses Astro and SolidJS.
+- The [official Builder quickstart guide](https://www.builder.io/c/docs/quickstart#step-1-add-builder-as-a-dependency) covers both the use of the REST API as well as data fetching through an integration with a JavaScript framework like Qwik, React or Vue.
+- [Builder's API explorer](https://builder.io/api-explorer) can help if you need to troubleshoot your API calls.
+
+## Community resources
+
+- Read [Connecting Builder.io's Visual CMS to Astro](https://www.hamatoyogi.dev/blog/astro-log/connecting-builderio-to-astro) by Yoav Ganbar.
+

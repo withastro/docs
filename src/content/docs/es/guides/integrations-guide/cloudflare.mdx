@@ -54,23 +54,36 @@ export default defineConfig({
 
 Por defecto `"advanced"`
 
-Cloudflare Pages tiene 2 modos diferentes para implementar funciones, el modo `advanced` que busca el archivo `_worker.js` en `dist`, o un modo `directory` donde las páginas compilarán el worker a partir de una carpeta de funciones en la raíz del proyecto.
+Cloudflare Pages tiene 2 modos diferentes para implementar funciones, el modo `advanced` que busca el archivo `_worker.js` en `dist`, o un modo `directory` donde las páginas compilarán el worker a partir de una carpeta de funciones en la raíz del proyecto. Para la mayoría de los proyectos, el valor predeterminado del adaptador `advanced` será suficiente; la carpeta `dist` contendrá tu proyecto compilado.
 
-Para la mayoría de los proyectos, la configuración predeterminada del adaptador de `advanced` será suficiente; la carpeta `dist` contendrá tu proyecto compilado. Cambiar al modo de directorio te permite usar [plugins de páginas](https://developers.cloudflare.com/pages/platform/functions/plugins/) como [Sentry](https://developers.cloudflare.com/pages/platform/functions/plugins/sentry/) o escribir código personalizado para habilitar el registro de actividades.
+#### `mode:directory`
 
-En modo directorio, el adaptador compilará la parte del lado del cliente de tu aplicación de la misma manera de forma predeterminada, pero mueve el script del worker a una carpeta `functions` en la raíz del proyecto. En este caso, el adaptador solo colocará un archivo `[[path]].js` en esa carpeta, lo que te permite agregar plugins adicionales y middleware de páginas que se pueden verificar en el control de versiones.
-
-Con la configuración de compilación `split: true`, el adaptador compila un paquete separado para cada página. Esta opción requiere un mantenimiento manual de la carpeta `functions`. Los archivos emitidos por Astro sobrescribirán los archivos `functions` existentes con nombres idénticos, por lo que debes elegir nombres de archivo únicos para cada archivo que agregues manualmente. Además, el adaptador nunca vaciará la carpeta `functions` de archivos obsoletos, por lo que debes limpiar la carpeta manualmente cuando elimines páginas.
-
-Toma en cuenta que el adaptador no admite el uso de [Cloudflare Pages Middleware](https://developers.cloudflare.com/pages/platform/functions/middleware/). Astro empaquetará el [middleware de Astro](/es/guides/middleware/) en cada página.
+Cambiar al modo de directorio te permite usar [plugins de páginas](https://developers.cloudflare.com/pages/platform/functions/plugins/) como [Sentry](https://developers.cloudflare.com/pages/platform/functions/plugins/sentry/) o escribir código personalizado para habilitar el registro.
 
 ```ts
-// modo directorio.
+// astro.config.mjs
 export default defineConfig({
   adapter: cloudflare({ mode: 'directory' }),
 });
-
 ```
+
+En el modo `directory`, el adaptador compilará la parte del lado del cliente de tu aplicación de la misma manera que en el modo `advanced` de forma predeterminada, pero moverá el script del worker a una carpeta `functions` en la raíz del proyecto. En este caso, el adaptador solo colocará un archivo `[[path]].js` en esa carpeta, lo que te permitirá agregar plugins adicionales y middleware de páginas que pueden ser incluidos en el control de versiones.
+
+Para en cambio compilar un paquete separado para cada página, establece la opción `functionPerPath` en la configuración de tu adaptador de Cloudflare. Esta opción requiere cierto mantenimiento manual de la carpeta `functions`. Los archivos emitidos por Astro sobrescribirán los archivos `functions` existentes con nombres idénticos, por lo que debes elegir nombres de archivo únicos para cada archivo que agregues manualmente. Además, el adaptador nunca vaciará la carpeta `functions` de archivos obsoletos, por lo que debes limpiar la carpeta manualmente cuando elimines páginas.
+
+```diff
+import {defineConfig} from "astro/config";
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+     adapter: cloudflare({
+        mode: 'directory',
++       functionPerRoute: true
+    })
+})
+```
+
+Ten en cuenta que este adaptador no admite el uso de [Middleware de Cloudflare Pages](https://developers.cloudflare.com/pages/platform/functions/middleware/). Astro incluirá el [middleware de Astro](/es/guides/middleware/) en cada página.
 
 ## Habilitando la Vista Previa
 
@@ -84,15 +97,60 @@ Después es posible actualizar el script de vista previa en tu `package.json` a 
 
 ## Acceso al runtime de Cloudflare
 
-Puedes acceder a todos los enlaces y variables de entorno de Cloudflare desde los componentes y rutas de la API de Astro a través de la API del adaptador.
+Puedes acceder a todos los enlaces y variables de entorno de Cloudflare desde los componentes y rutas de la API de Astro a través de `Astro.locals`.
+
+Si estás dentro de un archivo `.astro`, puedes acceder al runtime utilizando el global `Astro.locals`:
+
+```astro
+const env = Astro.locals.runtime.env;
+```
+
+Desde un endpoint:
 
 ```js
-import { getRuntime } from '@astrojs/cloudflare/runtime';
+// src/pages/api/someFile.js
+export function get(context) {
+  const runtime = context.locals.runtime;
 
-getRuntime(Astro.request);
+  return new Response('Algún cuerpo');
+}
 ```
 
 Dependiendo del modo de adaptador que estés utilizando (avanzado = worker, directorio = páginas), el objeto runtime tendrá una apariencia un poco diferente debido a las diferencias en la API de Cloudflare.
+
+Si estás usando el runtime `advanced`, puedes escribir el objeto `runtime` de la siguiente manera:
+
+```ts
+// src/env.d.ts
+/// <reference types="astro/client" />
+type AdvancedRuntime = import('@astrojs/cloudflare').AdvancedRuntime;
+
+declare namespace App {
+  interface Locals extends AdvancedRuntime {
+    user: {
+      name: string;
+      surname: string;
+    };
+  }
+}
+```
+
+Si estás usando el runtime `directory`, puedes escribir el objeto `runtime` de la siguiente manera:
+
+```ts
+// src/env.d.ts
+/// <reference types="astro/client" />
+type DirectoryRuntime = import('@astrojs/cloudflare').DirectoryRuntime;
+
+declare namespace App {
+  interface Locals extends DirectoryRuntime {
+    user: {
+      name: string;
+      surname: string;
+    };
+  }
+}
+```
 
 ## Variables de entorno
 
@@ -101,7 +159,7 @@ Mira la documentación de Cloudflare para [trabajar con variables de entorno](ht
 ```js
 // pages/[id].json.js
 
-export function get({ params }) {
+export function GET({ params }) {
   // Accede a las variables de entorno por solicitud dentro de una función.
   const serverUrl = import.meta.env.SERVER_URL;
   const result = await fetch(serverUrl + "/user/" + params.id);
@@ -117,7 +175,9 @@ Cloudflare ofrece soporte para agregar [encabezados personalizados](https://deve
 
 ### `_routes.json` personalizado
 
-Por defecto, `@astrojs/cloudflare` generará un archivo `_routes.json` que lista todos los archivos de tu carpeta `dist/` y los redirige desde el archivo `_redirects` en el array `exclude`. Esto permitirá que Cloudflare sirva archivos y procese redirecciones estáticas sin la invocación de una función. La creación de un archivo `_routes.json` personalizado anulará esta optimización automática y, si no se configura manualmente, causará invocaciones a funciónes que se descontarán de los límites de peticiones de tu plan de Cloudflare.
+Por defecto, `@astrojs/cloudflare` generará un archivo `_routes.json` con reglas de `include` y `exclude` basadas en las rutas dinámicas y estáticas de tu aplicación. Esto permitirá que Cloudflare sirva archivos y procese redireccionamientos estáticos sin necesidad de una invocación de función. Crear un archivo `_routes.json` personalizado anulará esta optimización automática y, si no se configura manualmente, provocará invocaciones de funciones que contarán en contra de los límites de solicitudes de tu plan de Cloudflare.
+
+Consulta la [documentación de Cloudflare](https://developers.cloudflare.com/pages/platform/functions/routing/#create-a-_routesjson-file) para obtener más detalles.
 
 ## Solución de problemas
 

@@ -92,12 +92,17 @@ Para começar, instale Nano Stores junto de seu pacote auxiliar para seu framewo
   npm install nanostores
   ```
   :::note
-  Nenhum pacote auxilar aqui! Nano Stores podem ser utilizadas como Svelte stores padrões.
+  Nenhum pacote auxiliar aqui! Nano Stores podem ser utilizadas como Svelte stores padrões.
   :::
   </Fragment>
   <Fragment slot="vue">
   ```shell
   npm install nanostores @nanostores/vue
+  ```
+  </Fragment>
+  <Fragment slot="lit">
+  ```shell
+  npm install nanostores @nanostores/lit
   ```
   </Fragment>
 </UIFrameworkTabs>
@@ -147,7 +152,7 @@ import FormAdicionarAoCarrinho from '../components/FormAdicionarAoCarrinho';
 
 ### Utilizando "atoms"
 
-Vamos começar por abrir `FlyoutCarrinho` sempre que `ToggleFlyoutCarrinho` é clicado. 
+Vamos começar por abrir `FlyoutCarrinho` sempre que `ToggleFlyoutCarrinho` é clicado.
 
 Primeiro, crie um novo arquivo JS ou TS para conter sua store. Nós iremos utilizar um ["atom"](https://github.com/nanostores/nanostores#atoms) para isso:
 
@@ -231,10 +236,31 @@ export default function BotaoCarrinho() {
 <script setup>
   import { isCarrinhoAberto } from '../storeCarrinho';
   import { useStore } from '@nanostores/vue';
-  
+
   // leia o valor da store com o hook `useStore`
   const $isCarrinhoAberto = useStore(isCarrinhoAberto);
 </script>
+```
+</Fragment>
+<Fragment slot="lit">
+```ts
+// src/components/ToggleFlyoutCarrinho.ts
+import { LitElement, html } from 'lit';
+import { isCarrinhoAberto } from '../storeCarrinho';
+
+export class ToggleFlyoutCarrinho extends LitElement {
+  tratarClique() {
+    isCarrinhoAberto.set(!isCarrinhoAberto.get());
+  }
+
+  render() {
+    return html`
+      <button @click="${this.tratarClique}">Cart</button>
+    `;
+  }
+}
+
+customElements.define('toggle-flyout-carrinho', ToggleFlyoutCarrinho);
 ```
 </Fragment>
 </UIFrameworkTabs>
@@ -308,6 +334,25 @@ export default function FlyoutCarrinho() {
 </script>
 ```
 </Fragment>
+<Fragment slot="lit">
+```ts
+// src/components/FlyoutCarrinho.ts
+import { isCarrinhoAberto } from '../storeCarrinho';
+import { LitElement, html } from 'lit';
+import { StoreController } from '@nanostores/lit';
+
+export class FlyoutCarrinho extends LitElement {
+  private carrinhoAberto = new StoreController(this, isCarrinhoAberto);
+
+  render() {
+    return this.carrinhoAberto.value ? html`<aside>...</aside>` : null;
+  }
+}
+
+customElements.define('flyout-carrinho', FlyoutCarrinho);
+
+```
+</Fragment>
 </UIFrameworkTabs>
 
 ### Utilizando "maps"
@@ -316,7 +361,7 @@ export default function FlyoutCarrinho() {
 **[Maps](https://github.com/nanostores/nanostores#maps) são uma ótima escolha para objetos que você escreve regularmente!** Ao lado dos helpers padrões `get()` e `set()` que um `atom` providencia, você também terá a função `.setKey()` para eficientemente atualizar chaves individuais de um objeto.
 :::
 
-Agora, vamos rastrear os itens dentro de seu carrinho. Para evitar duplicações e continuar raestrando a "quantidade," nós podemos armazenar seu carrinho como um bojeto com o ID do item como uma chave. Nós iremos utilizar um [Map](https://github.com/nanostores/nanostores#maps) para isso.
+Agora, vamos rastrear os itens dentro de seu carrinho. Para evitar duplicações e continuar rastreando a "quantidade," nós podemos armazenar seu carrinho como um objeto com o ID do item como uma chave. Nós iremos utilizar um [Map](https://github.com/nanostores/nanostores#maps) para isso.
 
 Vamos adicionar uma store `itensCarrinho` a nossa `storeCarrinho.js` de anteriormente. Você também pode trocar para um arquivo TypeScript para definir a forma se quiser.
 
@@ -413,7 +458,7 @@ Agora, vamos exportar um helper `adicionarItemCarrinho` para nossos componentes 
 
 <summary>**🙋 Por que utilizar `.get()` aqui ao invés do helper `useStore`?**</summary>
 
-Você deve ter notado que estamos chamando `itensCarrinho.get()` aqui ao invés de pegar o helper `useStore` de nossos exemplos em React / Preact / Solid / Vue. Isso é porque **useStore é feito para gatilhar re-renderizações de componente.** Em outras palavras, `useStore` deve ser utilizado sempre que o valor da store está sendo renderizado na UI. Já que estamos lendo o valor quando um **evento** é iniciado (`adicionarAoCarrinho` nesse caso) e nós não estamos tentando renderizar o valor, nós não precisamos de `useStore` aqui.
+Você deve ter notado que estamos chamando `itensCarrinho.get()` aqui ao invés de pegar o helper `useStore` de nossos exemplos em React / Preact / Solid / Vue. Isso é porque **useStore é feito para acionar re-renderizações de componente.** Em outras palavras, `useStore` deve ser utilizado sempre que o valor da store está sendo renderizado na UI. Já que estamos lendo o valor quando um **evento** é iniciado (`adicionarAoCarrinho` nesse caso) e nós não estamos tentando renderizar o valor, nós não precisamos de `useStore` aqui.
 </details>
 :::
 
@@ -552,6 +597,41 @@ export default function FormAdicionarAoCarrinho({ children }) {
 </script>
 ```
 </Fragment>
+<Fragment slot="lit">
+```ts
+// src/components/FormAdicionarAoCarrinho.ts
+import { LitElement, html } from 'lit';
+import { isCarrinhoAberto, adicionarItemCarrinho } from '../storeCarrinho';
+
+export class FormAdicionarAoCarrinho extends LitElement {
+  static get properties() {
+    return {
+      item: { type: Object },
+    };
+  }
+
+  constructor() {
+    super();
+    this.item = {};
+  }
+
+  adicionarAoCarrinho(e) {
+    e.preventDefault();
+    isCarrinhoAberto.set(true);
+    adicionarItemCarrinho(this.item);
+  }
+
+  render() {
+    return html`
+      <form @submit="${this.adicionarAoCarrinho}">
+        <slot></slot>
+      </form>
+    `;
+  }
+}
+customElements.define('form-adicionar-ao-carrinho', FormAdicionarAoCarrinho);
+```
+</Fragment>
 </UIFrameworkTabs>
 
 Finalmente, iremos renderizar esses itens do carrinho dentro do nosso `FlyoutCarrinho`:
@@ -688,6 +768,51 @@ export default function FlyoutCarrinho() {
   const $isCarrinhoAberto = useStore(isCarrinhoAberto);
   const $itensCarrinho = useStore(itensCarrinho);
 </script>
+```
+</Fragment>
+<Fragment slot="lit">
+```ts
+// src/components/FlyoutCarrinho.ts
+import { LitElement, html } from 'lit';
+import { isCarrinhoAberto, itensCarrinho } from '../storeCarrinho';
+import { StoreController } from '@nanostores/lit';
+
+export class FlyoutCarrinhoLit extends LitElement {
+  private carrinhoAberto = new StoreController(this, isCarrinhoAberto);
+  private obterItensCarrinho = new StoreController(this, itensCarrinho);
+
+  renderizarItemCarrinho(itemCarrinho) {
+    return html`
+      <li>
+        <img src="${itemCarrinho.srcImagem}" alt="${itemCarrinho.nome}" />
+        <h3>${itemCarrinho.nome}</h3>
+        <p>Quantidade: ${itemCarrinho.quantidade}</p>
+      </li>
+    `;
+  }
+
+  render() {
+    return this.carrinhoAberto.value
+      ? html`
+          <aside>
+            ${
+              Object.values(this.obterItensCarrinho.value).length
+                ? html`
+                  <ul>
+                    ${Object.values(this.obterItensCarrinho.value).map((itemCarrinho) =>
+                      this.renderizarItemCarrinho(itemCarrinho)
+                    )}
+                  </ul>
+                `
+                : html`<p>Seu carrinho está vazio!</p>`
+            }
+          </aside>
+        `
+      : null;
+  }
+}
+
+customElements.define('flyout-carrinho', FlyoutCarrinhoLit);
 ```
 </Fragment>
 </UIFrameworkTabs>

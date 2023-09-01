@@ -8,7 +8,7 @@ i18nReady: true
 import FileTree from '~/components/FileTree.astro'
 import Since from '~/components/Since.astro'
 import TypeScriptSettingTabs from '~/components/tabs/TypeScriptSettingTabs.astro'
-
+import RecipeLinks from "~/components/RecipeLinks.astro"
 
 
 <p>
@@ -379,7 +379,7 @@ const relatedPosts = await getEntries(blogPost.data.relatedPosts);
 
 ### Filtering collection queries
 
-`getCollection()` takes an optional "filter" callback that allows you to filter your query based on an entry's `id` or `data` (frontmatter) properties. For collections of `type: content`, you can also filter based on `slug`.
+`getCollection()` takes an optional "filter" callback that allows you to filter your query based on an entry's `id` or `data` (frontmatter) properties. For collections of `type: 'content'`, you can also filter based on `slug`.
 
 :::note
 The `slug` property is specific to content collections, and will not be available when filtering collections of JSON or YAML.
@@ -392,6 +392,16 @@ You can use this to filter by any content criteria you like. For example, you ca
 import { getCollection } from 'astro:content';
 const publishedBlogEntries = await getCollection('blog', ({ data }) => {
   return data.draft !== true;
+});
+```
+
+You can also create draft pages that are available when running the dev server, but not built in production:
+
+```js
+// Example: Filter out content entries with `draft: true` only when building for production
+import { getCollection } from 'astro:content';
+const blogEntries = await getCollection('blog', ({ data }) => {
+  return import.meta.env.PROD ? data.draft !== true : true;
 });
 ```
 
@@ -487,7 +497,7 @@ export async function getStaticPaths() {
     params: { slug: entry.slug }, props: { entry },
   }));
 }
-// 2. When it's time to render, you can get the entry directly from the prop
+// 2. For your template, you can get the entry directly from the prop
 const { entry } = Astro.props;
 const { Content } = await entry.render();
 ---
@@ -498,7 +508,7 @@ const { Content } = await entry.render();
 This will generate a new page for every entry in the `blog` collection. For example, an entry at `src/content/blog/hello-world.md` will have a slug of `hello-world`, and therefore its final URL will be `/posts/hello-world/`.
 
 :::note
-If your custom slugs contain the `/` character to produce URLs with multiple path segments, you must use a [rest parameter (`[...path]`)](/en/core-concepts/routing/#rest-parameters) in the `.astro` filename for this dynamic routing page.
+If your custom slugs contain the `/` character to produce URLs with multiple path segments, you must use a [rest parameter (`[...slug]`)](/en/core-concepts/routing/#rest-parameters) in the `.astro` filename for this dynamic routing page.
 :::
 
 ### Building for server output (SSR)
@@ -706,7 +716,7 @@ This guide shows you how to convert an existing Astro project with Markdown file
     import rss from "@astrojs/rss";
     import { getCollection } from "astro:content";
 
-    export async function get() {
+    export async function GET() {
       const posts = await getCollection('posts');
       return rss({
         title: 'Astro Learner | Blog',
@@ -740,13 +750,10 @@ import { getEntry } from 'astro:content';
 const blogPost = await getEntry('blog', 'post-1');
 const { remarkPluginFrontmatter } = await blogPost.render();
 ---
-<!-- 
-  This example assumes `readingTime` was injected by a remark plugin.
-  See our "reading time" example for more details:
-  https://docs.astro.build/en/guides/markdown-content/#example-calculate-reading-time
--->
 <p>{blogPost.data.title} — {remarkPluginFrontmatter.readingTime}</p>
 ```
+
+<RecipeLinks slugs={["en/recipes/reading-time" ]}/>
 
 The remark and rehype pipelines only run when your content is rendered, which explains why `remarkPluginFrontmatter` is only available after you call `render()` on your content entry. In contrast, `getCollection()` and `getEntry()` cannot return these values directly because they do not render your content.
 

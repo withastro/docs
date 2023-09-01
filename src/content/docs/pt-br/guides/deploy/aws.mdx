@@ -9,7 +9,7 @@ i18nReady: true
 
 Para fazer deploy do seu projeto na AWS será necessário a utilização do [AWS console](https://aws.amazon.com/console/). (A maioria dessas ações também pode ser feitas usando o [AWS CLI](https://aws.amazon.com/cli/)). Este guia irá lhe mostrar o passo-a-passo para fazer deploy do seu site na AWS, começando pelo método mais simples. Em seguida, demonstrará como adicionar serviços adicionais para melhorar a eficiência de custos e desempenho.
 
-## AWS Amplify 
+## AWS Amplify
 
 AWS Amplify é um conjunto de ferramentas e funcionalidades especialmente concebidas para que programadores front-end web e mobile construam aplicações completas na AWS de forma rápida e fácil.
 
@@ -37,7 +37,7 @@ AWS Amplify é um conjunto de ferramentas e funcionalidades especialmente conceb
           - node_modules/**/*
     ```
 
-Usar `pnpm` vai exigir configurações ligeiramente diferentes para armazenar em cache o diretário de armazenamento ao invés de `node_modules`. Abaixo está a configuração de build recomendada:
+Usar `pnpm` vai exigir configurações ligeiramente diferentes para armazenar em cache o diretório de armazenamento ao invés de `node_modules`. Abaixo está a configuração de build recomendada:
 
     ```yaml
     version: 1
@@ -151,10 +151,10 @@ Usaremos o CloudFront para empacotar nosso S3 bucket, servindo os arquivos de no
 1. Crie uma distribuição do CloudFront com os seguintes valores:
     * **Domínio de origem:** Seu S3 bucket
     * **Acesso ao S3 bucket:** "Sim, utilizar OAI (bucket pode restringir acesso apenas ao CloudFront)"
-    * **Identidade de acesso de origem:** Criar uma  nova identidade de acesso de origem
+    * **Identidade de acesso de origem:** Criar uma nova identidade de acesso de origem
     * **Espectador - Política do bucket:** "Não, eu irei atualizar a política do bucket"
     * **Política do protocolo do espectador:** "Redirecionar para HTTPS"
-    * **Objeto raíz padrão:** `index.html`
+    * **Objeto raiz padrão:** `index.html`
 
 Esta configuração bloqueará o acesso ao seu S3 bucket da internet pública e servirá seu site usando a rede global CDN. Você pode encontrar sua URL de distribuição do CloudFront em **Distribuições > Nome do domínio**.
 
@@ -168,16 +168,16 @@ Infelizmente, o CloudFront não suporta por padrão roteamento de várias págin
     function handler(event) {
       var request = event.request;
       var uri = request.uri;
-      
+
       // Verifica se está faltando um nome de arquivo na URI.
       if (uri.endsWith('/')) {
         request.uri += 'index.html';
       }
-      // Checa se está faltando uma extensãode arquivo na URI.
+      // Checa se está faltando uma extensão de arquivo na URI.
       else if (!uri.includes('.')) {
         request.uri += '/index.html';
       }
-      
+
       return request;
     }
     ```
@@ -201,6 +201,7 @@ Há muitas maneiras de configurar continuous deployment com a AWS. Uma possibili
               "Action": [
                   "s3:PutObject",
                   "s3:ListBucket",
+                  "s3:DeleteObject",
                   "cloudfront:CreateInvalidation"
               ],
               "Resource": [
@@ -219,7 +220,7 @@ Há muitas maneiras de configurar continuous deployment com a AWS. Uma possibili
 
 2. Crie um novo usuário IAM e anexe a política ao usuário. Isto disponibilizará seu `AWS_SECRET_ACCESS_KEY` e `AWS_ACCESS_KEY_ID`.
 
-3. Adicione este exemplo de fluxo de trabalho ao seu repositório em `.github/workflows/deploy.yml` e faça o _push_ no GitHub. Você precisará acrescentar `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `BUCKET_ID`, e `DISTRIBUTION_ID` como _“secrets”_ no seu repositório no GitHub em  **Settings** > **Secrets** > **Actions**. Clique em <kbd>New repository secret</kbd> para adicionar cada um deles.
+3. Adicione este exemplo de fluxo de trabalho ao seu repositório em `.github/workflows/deploy.yml` e faça o _push_ no GitHub. Você precisará acrescentar `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `BUCKET_ID`, e `DISTRIBUTION_ID` como _“secrets”_ no seu repositório no GitHub em **Settings** > **Secrets** > **Actions**. Clique em <kbd>New repository secret</kbd> para adicionar cada um deles.
 
     ```yaml
     name: Deploy Website
@@ -246,7 +247,7 @@ Há muitas maneiras de configurar continuous deployment com a AWS. Uma possibili
           - name: Build application
             run: npm run build
           - name: Deploy to S3
-            run: aws s3 sync ./dist/ s3://${{ secrets.BUCKET_ID }}
+            run: aws s3 sync --delete ./dist/ s3://${{ secrets.BUCKET_ID }}
           - name: Create CloudFront invalidation
             run: aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
     ```

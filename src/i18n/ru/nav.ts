@@ -2,7 +2,6 @@ import { NavDictionary } from '../translation-checkers';
 
 export default NavDictionary({
 	'concepts/islands': 'Острова',
-	'concepts/mpa-vs-spa': 'MPA против SPA',
 	'concepts/why-astro': 'Почему Astro',
 	'core-concepts/astro-components': 'Astro компоненты',
 	'core-concepts/astro-pages': 'Astro страницы',
@@ -51,12 +50,11 @@ export default NavDictionary({
 	'guides/content-collections': 'Коллекции контента',
 	'guides/migrate-to-astro': 'Перейти на Astro',
 	'guides/testing': 'Тестирование',
-	'guides/upgrade-to/v2': 'Обновление до v2',
+	'guides/upgrade-to/v3': 'Обновление до v3',
 	'reference/error-reference': 'Справочник по ошибкам',
 	tutorials: 'Обучение',
 	examples: 'Рецепты',
 	'guides/recipes': 'Больше рецептов',
 	'guides/fonts': 'Шрифты',
-	'guides/assets': 'Ресурсы (эксперим.)',
 	'core-concepts/astro-syntax': 'Синтаксис Astro',
 });

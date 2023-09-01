@@ -18,9 +18,11 @@ Las imágenes y contenedores de Docker se pueden implementar en muchas plataform
 
 Crea un archivo llamado `Dockerfile` en el directorio raíz de tu proyecto. Este archivo contiene las instrucciones para construir tu sitio, las cuales variarán según tus necesidades. Esta guía no puede mostrar todas las opciones posibles, pero te proporcionará puntos de partida para los modos SSR y estático.
 
+Si estás usando otro gestor de paquetes que no sea npm, deberás ajustar los comandos en consecuencia.
+
 ### SSR
 
-Este Dockerfile construirá tu sitio y lo servirá utilizando Node.js en el puerto `3000`, por lo tanto, requiere tener instalado el [adaptador de Node](/es/guides/integrations-guide/node/) en tu proyecto de Astro.
+Este Dockerfile construirá tu sitio y lo servirá utilizando Node.js en el puerto `4321`, por lo tanto, requiere tener instalado el [adaptador de Node](/es/guides/integrations-guide/node/) en tu proyecto de Astro.
 
 ```docker title="Dockerfile"
 FROM node:lts AS runtime
@@ -32,8 +34,8 @@ RUN npm install
 RUN npm run build
 
 ENV HOST=0.0.0.0
-ENV PORT=3000
-EXPOSE 3000
+ENV PORT=4321
+EXPOSE 4321
 CMD node ./dist/server/entry.mjs
 ```
 
@@ -45,6 +47,18 @@ FROM node:lts as runtime
 FROM node:lts-alpine as runtime
 ```
 :::
+
+### Agregar un .dockerignore
+
+Agregar un archivo `.dockerignore` a tu proyecto es una buena práctica. Este archivo describe qué archivos o carpetas deben ignorarse en los comandos `COPY` o `ADD` de Docker, muy similar a cómo funciona `.gitignore`. Esto acelera el proceso de construcción y reduce el tamaño de la imagen final.
+
+```docker title=".dockerignore"
+.DS_Store
+node_modules
+dist
+```
+
+Este archivo debe ir en el mismo directorio que el `Dockerfile` en sí. [Lee la documentación de `.dockerignore` para obtener información adicional](https://docs.docker.com/engine/reference/builder/#dockerignore-file).
 
 ### Estático
 
@@ -76,7 +90,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-RUN npm run build -- --mode custom
+RUN npm run build
 
 FROM nginx:alpine AS runtime
 COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
@@ -107,11 +121,43 @@ http {
     gzip_proxied expired no-cache no-store private auth;
     gzip_types text/plain text/css application/json application/javascript application/x-javascript text/xml application/xml application/xml+rss text/javascript;
 
+    error_page 404 /404.html;
+    location = /404.html {
+            root /usr/share/nginx/html;
+            internal;
+    }
+
     location / {
-      try_files $uri $uri/index.html $uri.html;
+            try_files $uri $uri/index.html =404;
     }
   }
 }
+```
+
+### Multi-stage build (using SSR)
+
+Aquí hay un ejemplo de un Dockerfile más avanzado que, gracias a las [construcciones de varias etapas](https://docs.docker.com/build/building/multi-stage/) de Docker, optimiza el proceso de compilación de tu sitio al reinstalar solo las dependencias de npm cuando cambia el código fuente. Esto puede reducir el tiempo de compilación incluso en minutos, dependiendo del tamaño de tus dependencias.
+
+```docker title="Dockerfile"
+FROM node:lts AS base
+WORKDIR /app
+# By copying only the package.json and package-lock.json here, we ensure that the following `-deps` steps are independent of the source code.
+# Therefore, the `-deps` steps will be skipped if only the source code changes.
+COPY package.json package-lock.json ./
+FROM base AS prod-deps
+RUN npm install --production
+FROM base AS build-deps
+RUN npm install --production=false
+FROM build-deps AS build
+COPY . .
+RUN npm run build
+FROM base AS runtime
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
+ENV HOST=0.0.0.0
+ENV PORT=4321
+EXPOSE 4321
+CMD node ./dist/server/entry.mjs
 ```
 
 ## Receta
@@ -126,7 +172,7 @@ Esto generará una imagen que podrás ejecutar localmente o implementar en una p
 
 2. Para ejecutar tu imagen como un contenedor local, utiliza el siguiente comando. 
 
-Reemplaza `<puerto-local>` con un puerto abierto en tu máquina. Reemplaza `<puerto-de-contenedor>` con el puerto expuesto por tu contenedor Docker (`3000`, `80` o `8080` en los ejemplos anteriores).
+Reemplaza `<puerto-local>` con un puerto abierto en tu máquina. Reemplaza `<puerto-de-contenedor>` con el puerto expuesto por tu contenedor Docker (`4321`, `80` o `8080` en los ejemplos anteriores).
 
 ```bash
 docker run -p <puerto-local>:<puerto-de-contenedor> <tu-nombre-de-imagen-de-astro>
