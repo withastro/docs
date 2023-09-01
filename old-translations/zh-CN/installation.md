@@ -102,7 +102,7 @@ npm install astro
 }
 ```
 
-[`dev`](#start-dev) 命令在 `http://localhost:3000` 上启动 Astro 开发服务器。一旦你的项目准备好了。
+[`dev`](#start-dev) 命令在 `http://localhost:4321` 上启动 Astro 开发服务器。一旦你的项目准备好了。
 
 [`build`](#build-astro)命令将你的项目输出到 `dist/` 目录。[在部署指南中阅读更多关于部署 Astro 的内容。](/guides/deploy)
 
@@ -149,7 +149,7 @@ console.log('See me in the Terminal')
 npm run dev
 ```
 
-Astro 会开启预览服务器，地址为 [http://localhost:3000](http://localhost:3000)，
+Astro 会开启预览服务器，地址为 [http://localhost:4321](http://localhost:4321)，
 在浏览器打开这个网址，就会看到 Astro 的 HelloWorld 页面
 
 服务器会实时监听 'src/' 目录下的文件改动，所以在开发过程的支持热更新，修改程序后，无需重启。

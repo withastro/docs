@@ -9,7 +9,9 @@ module.exports = {
     ecmaVersion: 'latest',
     sourceType: 'module',
   },
-  rules: {},
+  rules: {
+    'no-mixed-spaces-and-tabs': 'off',
+  },
   settings: {
     react: {
       pragma: 'h',

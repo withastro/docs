@@ -56,7 +56,10 @@ export default UIDictionary({
 	'migration.navTitle': 'その他のマイグレーションガイド',
 	// Recipes vocabulary
 	'recipes.navTitle': 'その他のレシピ',
-	// `<ContributorList>` fallback text
+	// `<RecipeLinks>` vocabulary
+	'recipesLink.singular': '関連レシピ:',
+	'recipesLink.plural': '関連レシピ',
+	// `<ContributorList>` fallback texta
 	'contributors.seeAll': 'すべてのコントリビューターを見る',
 	// Fallback content notice shown when a page is not yet translated
 	'fallbackContent.notice':
@@ -111,6 +114,15 @@ export default UIDictionary({
 	'fileTree.directoryLabel': 'ディレクトリ',
 	// Code snippet vocabulary
 	'expressiveCode.terminalWindowFallbackTitle': 'ターミナルウィンドウ',
+	'expressiveCode.copyButtonTooltip': 'クリップボードにコピー',
+	'expressiveCode.copyButtonCopied': 'コピーしました!',
 	// Backend Guides vocabulary
 	'backend.navTitle': 'その他のバックエンドサービスガイド',
+	// Stubs vocabulary
+	'stub.title': 'このページに追記する！',
+	'stub.subtitle': 'このガイドは未完成です。',
+	'stub.description.migration':
+		'このガイドに貢献したいですか？この技術からAstroへの移行に関するブログ記事や動画、その他のリソースを共有したいですか？',
+	'stub.description.cms': 'このCMSをAstroで使う方法をご存知ですか？',
+	'stub.description.backend': 'このバックエンドサービスをAstroで使う方法をご存知ですか？',
 });
