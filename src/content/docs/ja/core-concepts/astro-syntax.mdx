@@ -1,0 +1,176 @@
+---
+title: Astroの構文
+description: .astroコンポーネント構文の紹介。
+i18nReady: true
+---
+
+**HTMLを知っていれば、最初のAstroコンポーネントを書くには十分です。**
+
+Astroコンポーネントの構文はHTMLのスーパーセットです。この構文は[HTMLやJSXを書いたことのある人にとって親しみやすいように設計され](#astroとjsxの違い)、コンポーネントやJavaScriptの式がサポートされています。
+
+## JSXライクな式
+
+Astroコンポーネントのフロントマターのコードフェンス（`---`）の間に、JavaScriptのローカル変数を定義できます。そして、JSXライクな式を使って、変数をコンポーネントのHTMLテンプレートに注入できます。
+
+:::note[動的 vs リアクティブ]
+この方法により、フロントマターで計算された**動的**な値をテンプレートに含めることができます。しかし、一度含められたこれらの値は**リアクティブ**ではなく、変化することはありません。Astroコンポーネントは、レンダリングの際に一度だけ実行されるテンプレートです。
+
+以下で[AstroとJSXの違い](#astroとjsxの違い)に関する例をいくつか紹介します。
+:::
+
+### 変数
+
+ローカル変数は、波括弧の構文を使ってHTMLに追加できます。
+
+```astro title="src/components/Variables.astro" "{name}"
+---
+const name = "Astro";
+---
+<div>
+  <h1>Hello {name}!</h1>  <!-- <h1>Hello Astro!</h1> を出力 -->
+</div>
+```
+
+### 動的属性
+
+ローカル変数を波括弧で囲むことで、HTML要素とコンポーネントの両方に属性値を渡せます。
+
+```astro title="src/components/DynamicAttributes.astro" "{name}" "${name}"
+---
+const name = "Astro";
+---
+<h1 class={name}>属性を式で指定できます</h1>
+
+<MyComponent templateLiteralNameAttribute={`私の名前は${name}です`} />
+```
+
+:::caution
+HTML属性は文字列に変換されるため、関数やオブジェクトをHTML要素に渡すことはできません。たとえば、Astroコンポーネント内のHTML要素にイベントハンドラを割り当てることはできません。
+
+```astro
+---
+// dont-do-this.astro
+function handleClick () {
+    console.log("ボタンがクリックされました！");
+}
+---
+<!-- ❌ これは動作しません！ ❌ -->
+<button onClick={handleClick}>クリックしても何も起こりません！</button>
+```
+
+代わりに、通常のJavaScriptと同じように、クライアントサイドスクリプトを使用してイベントハンドラを追加します。
+
+```astro
+---
+// do-this-instead.astro
+---
+<button id="button">クリックしてください</button>
+<script>
+  function handleClick () {
+    console.log("ボタンがクリックされました！");
+  }
+  document.getElementById("button").addEventListener("click", handleClick);
+</script>
+```
+:::
+
+### 動的HTML
+
+ローカル変数をJSXのような関数で使用して、動的に生成されるHTML要素を作成できます。
+
+```astro title="src/components/DynamicHtml.astro" "{item}"
+---
+const items = ["犬", "猫", "カモノハシ"];
+---
+<ul>
+  {items.map((item) => (
+    <li>{item}</li>
+  ))}
+</ul>
+```
+
+Astroは、JSXと同様に論理演算子と三項演算子を使用して、HTMLを条件に応じて表示できます。
+
+```astro title="src/components/ConditionalHtml.astro" "visible"
+---
+const visible = true;
+---
+{visible && <p>表示！</p>}
+
+{visible ? <p>表示！</p> : <p>あるいはこちらを表示！</p>}
+```
+
+### 動的タグ
+
+HTMLタグ名またはインポートされたコンポーネントを変数に設定することで、動的タグも使用できます。
+
+```astro title="src/components/DynamicTags.astro" /Element|(?<!My)Component/
+---
+import MyComponent from "./MyComponent.astro";
+const Element = 'div'
+const Component = MyComponent;
+---
+<Element>Hello!</Element> <!-- <div>Hello!</div> としてレンダリングされます -->
+<Component /> <!-- <MyComponent /> としてレンダリングされます -->
+```
+
+動的タグを使用する場合は、以下の点に注意してください。
+
+- **変数名は大文字で始める必要があります。** たとえば、`element`ではなく`Element`を使用します。そうしないと、Astroは変数名をそのままHTMLタグとしてレンダリングしようとします。
+
+- **ハイドレーションディレクティブは使えません。**[`client:*`ハイドレーションディレクティブ](/ja/core-concepts/framework-components/#インタラクティブなコンポーネント)を使用する場合、Astroはバンドルする対象のコンポーネントを知る必要がありますが、動的タグパターンではこれが機能しなくなるためです。
+
+### フラグメント
+
+Astroでは、`<Fragment> </Fragment>`または短縮形の`<> </>`を使用できます。
+
+フラグメントは、次の例のように、[`set:*`ディレクティブ](/ja/reference/directives-reference/#sethtml)を使用する際にラッパー要素を避けるために役立ちます。
+
+```astro title="src/components/SetHtml.astro" "Fragment"
+---
+const htmlString = '<p>生のHTMLコンテンツ</p>';
+---
+<Fragment set:html={htmlString} />
+```
+
+### AstroとJSXの違い
+
+Astroコンポーネントの構文はHTMLのスーパーセットです。HTMLやJSXを書いたことのある人にとって親しみやすいように設計されてはいますが、`.astro`ファイルとJSXの間にはいくつかの重要な違いがあります。
+
+#### 属性
+
+Astroでは、JSXで使用されている`camelCase`ではなく、すべてのHTML属性に標準の`kebab-case`形式を使用します。これは、Reactではサポートされていない`class`でも同様です。
+
+```jsx del={1} ins={2} title="example.astro"
+<div className="box" dataValue="3" />
+<div class="box" data-value="3" />
+```
+
+#### 複数の要素
+
+Astroコンポーネントテンプレートは複数の要素をレンダリングできます。その際、JavaScriptやJSXとは異なり、全体を単一の`<div>`や`<>`で囲む必要はありません。
+
+```astro title="src/components/RootElements.astro"
+---
+// 複数の要素を含むテンプレート
+---
+<p>全体をコンテナ要素で囲む必要はありません。</p>
+<p>Astroではテンプレート内に複数のルート要素を置けます。</p>
+```
+
+#### コメント
+
+Astroでは、標準のHTMLコメントまたはJavaScriptスタイルのコメントを使用できます。
+
+```astro title="example.astro"
+---
+---
+<!-- .astroファイルでは、HTMLのコメント構文が使えます -->
+{/* JSのコメント構文も有効です */}
+```
+
+:::caution
+HTMLスタイルのコメントはブラウザのDOMに含まれますが、JSのコメントはスキップされます。TODOメッセージやその他の開発専用の説明を残したい場合は、JavaScriptスタイルのコメントを使用することをお勧めします。
+:::
+
+
