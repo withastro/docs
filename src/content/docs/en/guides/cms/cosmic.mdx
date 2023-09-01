@@ -1,0 +1,322 @@
+---
+title: Cosmic & Astro
+description: Add content to your Astro project using Cosmic as a CMS
+type: cms
+service: Cosmic
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+
+
+[Cosmic](https://www.cosmicjs.com/) is a [headless CMS](https://www.cosmicjs.com/headless-cms) that provides an admin dashboard to manage content and an API that can integrate with a diverse range of frontend tools.
+
+## Prerequisites
+
+1. **A new Astro project**- If you’d like to start with a fresh Astro project, read the [installation guide](https://docs.astro.build/en/install/auto/). You can also follow along with the template used in this guide by cloning the [Astro Headless CMS Theme](https://astro.build/themes/details/cosmic-cms-blog/). This uses [Tailwind CSS](https://tailwindcss.com/) for some basic styling.
+2. **A Cosmic account and Bucket** - [Create a free Cosmic account](https://app.cosmicjs.com/signup) if you don’t have one yet. After creating your account, you will be prompted to create a new empty project. You can also select the [Simple Astro Blog template](https://www.cosmicjs.com/marketplace/templates/simple-astro-blog) (this is the same template as the Astro Headless CMS Theme) to automatically import all of the content used in this guide.
+
+## Integrating Cosmic with Astro
+
+Let’s start by using the [Cosmic JavaScript SDK](https://github.com/cosmicjs/cosmic-sdk-js) to fetch data from our Cosmic Bucket.
+
+### Configuring API Keys
+
+API keys are your bridge between Cosmic and Astro project. In your Cosmic dashboard in the top navigation menu, navigate to **API keys** to retrieve both your **Bucket slug** and **Bucket read key**. Paste these into your **.env** file in your Astro project.
+
+```ini title=".env"
+PUBLIC_COSMIC_BUCKET_SLUG=YOUR_BUCKET_SLUG
+PUBLIC_COSMIC_READ_KEY=YOUR_READ_KEY
+```
+
+## Installing Necessary Dependencies
+
+Astro's ecosystem works with dependencies that enhance its capabilities. To seamlessly pull content from Cosmic, you'll need to add the [Cosmic JavaScript SDK](https://www.npmjs.com/package/@cosmicjs/sdk). Let’s also add three more packages we will use later, [date-fns](https://www.npmjs.com/package/date-fns) (to format the date), and [react-markdown](https://www.npmjs.com/package/react-markdown) (to render markdown content from Cosmic).
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @cosmicjs/sdk date-fns react-markdown
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @cosmicjs/sdk date-fns react-markdown
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @cosmicjs/sdk date-fns react-markdown
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Since we will be using [react-markdown](https://www.npmjs.com/package/react-markdown) to render the markdown content coming from Cosmic, we will need to add the [Astro React Integration](https://docs.astro.build/en/guides/integrations-guide/react/).
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add react
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add react
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add react
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Lastly, let’s add the [Astro Image Integration](https://docs.astro.build/en/guides/integrations-guide/image/) for optimized image rendering.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add image
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add image
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add image
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## Fetching Data from Cosmic
+
+Once you've installed the Cosmic JavaScript SDK and have the necessary API keys, initiate the Cosmic instance within your Astro project. Designing your queries to fetch specific content types or items will be instrumental. And as a quick test, why not create a simple Astro component to display the fetched data? It's a great way to ensure that everything's working seamlessly.
+
+We can place our functions to fetch Cosmic content in a file called **cosmic.js**. Place this file inside of the **src/lib** folder in your project. Place the following function inside of this file which we can then utilize in our Astro component.
+
+```js title = "src/lib/cosmic.js"
+import { createBucketClient } from '@cosmicjs/sdk'
+
+const cosmic = createBucketClient({
+  bucketSlug: import.meta.env.PUBLIC_COSMIC_BUCKET_SLUG,
+  readKey: import.meta.env.PUBLIC_COSMIC_READ_KEY
+})
+
+export async function getAllPosts() {
+  const data = await cosmic.objects
+    .find({
+      type: 'posts'
+    })
+    .props('title,slug,metadata,created_at')
+  return data.objects
+}
+```
+
+This function utilizes the chaining method `.find` from the Cosmic SDK. We use `.props` to fetch the desired metadata from our Object in Cosmic. You can read more about [queries in the Cosmic documentation](https://www.cosmicjs.com/docs/api/queries).
+
+We can fetch our Cosmic data directly from our Astro component and render the data as HTML. For example, listing a list of blog posts from Cosmic would look something like this:
+
+```jsx title="src/pages/index.astro"
+---
+import Card from '../components/Card.astro'
+import { getAllPosts } from '../lib/cosmic'
+
+const data = await getAllPosts()
+---
+
+<section>
+  <ul class="grid gap-8 md:grid-cols-2">
+    {
+      data.map((post) => (
+        <Card
+          title={post.title}
+          href={post.slug}
+          body={post.metadata.excerpt}
+          tags={post.metadata.tags.map((tag) => tag)}
+        />
+      ))
+    }
+  </ul>
+</section>
+```
+
+## Building a Blog with Astro and Cosmic
+
+Now that we’ve gone through the setup of Cosmic within an Astro project, we’re ready to create a blog to further our understanding of this integration.
+
+### Setting up content in Cosmic
+
+The content structure is the backbone of our blog. Within Cosmic, we will create a content model tailored for your blog posts, defining fields like title, excerpt, content, image, and more. Let’s start by creating a new **Object Type** in Cosmic called **posts**. To do this, look for Object Types in the sidebar navigation, and click the **plus icon**.
+
+Our posts Object Type will be set to “Multiple”, because we will have several of them. Add the singular name “post”, and click “Next” to move to the Content model settings.
+
+On the right hand side, there are several Metafields we can select from to build our Content model. Click and drag these 5 Metafields onto your Content model and name them accordingly:
+
+1. **Text input** - Author
+2. **Image** - Cover Image
+3. **Repeater** - Tags
+    - **Text input** - Title
+4. **Text area** - Excerpt
+5. **Markdown** - Content
+
+Once you’ve added these Metafields, click the “Next” button in the top right. We don’t need to add any additional settings, so you can click “Save” and we can move on to create our first Blog Post. Go ahead and populate each field with some content.
+
+### Displaying a List of Blog Posts in Astro
+
+With the blog data ready in Cosmic, the next step is showcasing it in Astro. By integrating the [data-fetching method](#fetching-data-from-cosmic) we set up earlier, we can render each blog post, creating a dynamic list of them for site visitors.
+
+```jsx title="src/pages/index.astro"
+---
+import Card from '../components/Card.astro'
+import { getAllPosts } from '../lib/cosmic'
+
+const data = await getAllPosts()
+---
+
+<section>
+  <ul class="grid gap-8 md:grid-cols-2">
+    {
+      data.map((post) => (
+        <Card
+          title={post.title}
+          href={post.slug}
+          body={post.metadata.excerpt}
+          tags={post.metadata.tags.map((tag) => tag)}
+        />
+      ))
+    }
+  </ul>
+</section>
+```
+
+### Generating Individual Blog Posts with Astro
+
+For a more detailed view, each blog post needs its dedicated page. We can implement routing within Astro to navigate to individual blog URLs. Through Astro's dynamic rendering capabilities, each blog URL will correspond to its respective Object **slug** from Cosmic.
+
+Now, we will fetch our Blog Posts using the same function `getAllPosts()` as we used before, however, this time we will execute the function inside of `getStaticPaths()` . This function is called at build time and generates and renders all of your Blog Posts at once.
+
+To access our data from Cosmic, we return each post inside of our `Astro.props` . This allows us to use that data within the HTML template portion of our component and render each page.
+
+```jsx title="src/pages/blog/[slug].astro"
+ ---
+import { getAllPosts } from '../../lib/cosmic'
+import PostBody from '../../components/PostBody'
+import { Image } from '@astrojs/image/components'
+import { parseISO, format } from 'date-fns'
+
+export async function getStaticPaths() {
+  const data = (await getAllPosts()) || []
+
+  return data.map((post) => {
+    return {
+      params: { slug: post.slug },
+      props: { post }
+    }
+  })
+}
+
+const { post } = Astro.props
+---
+
+<article class="mx-auto max-w-screen-md pt-20">
+  <section class="border-b pb-8">
+    <h1 class="text-4xl font-bold">{post.title}</h1>
+    <div class="my-8"></div>
+    <span class="flex items-center gap-x-4 font-semibold">
+      <span class="flex flex-col">
+        <span>{post.metadata.author?.title}</span>
+        <span>{format(parseISO(post.created_at), 'MM/dd/yyyy')}</span>
+      </span>
+    </span>
+  </section>
+  {
+    post.metadata.cover_image && (
+      <Image
+        src={post.metadata.cover_image.imgix_url}
+        format="webp"
+        width={1200}
+        height={675}
+        aspectRatio={16 / 9}
+        quality={50}
+        alt={`Cover image for the blog ${post.title}`}
+        class={'my-12 rounded-md shadow-lg'}
+      />
+    )
+  }
+  <PostBody content={post.metadata.content} />
+</article>
+```
+
+### Rendering markdown with react-markdown
+
+Astro allows us to be very declarative on what frameworks we integrate in our project as well as mitigate a lot if not most of the JavaScript we ship to the client, especially with a framework like React. Since we are implementing React into a single component, we avoid shipping the entire framework code.
+
+In this component, `PostBody` , react-markdown allow us to not only parse the markdown coming from Cosmic, but control the output of HTML that gets rendered by creating an object of HTML components and adding any styles or attributes to them. They are taken in as anonymous functions with the name of the actual HTML element, and we return the modified HTML we want to render.
+
+We pass the `components` object to our `ReactMarkdown` component along with the actual content passed through in the parent component handling our Blog Post HTML template.
+
+```jsx title="src/components/PostBody.astro"
+import React from 'react'
+import ReactMarkdown from 'react-markdown'
+
+const components = {
+  p: (p) => {
+    return <p className="my-6 text-lg">{p.children}</p>
+  },
+  a: (a) => {
+    return (
+      <a
+        href={a.href}
+        target="_blank"
+        className="border- border-b border-b-transparent text-blue-600 transition-colors hover:border-b-zinc-300">
+        {a.children}
+      </a>
+    )
+  },
+  h2: (h2) => {
+    return <h2 className="text-3xl">{h2.children}</h2>
+  },
+  h3: (h3) => {
+    return <h3 className="text-2xl">{h3.children}</h3>
+  },
+  img: (img) => {
+    return (
+      <img
+        src={`${img.src}?w=1200&auto=format&auto=compress`}
+        alt={img.alt}
+        loading="lazy"
+        decoding="async"
+        className="rounded-md shadow"
+      />
+    )
+  }
+}
+
+const PostBody: React.FC<{ content: string }> = ({ content }) => {
+  return (
+    <ReactMarkdown
+      components={components}
+      className="flex flex-col gap-y-4 py-12">
+      {content}
+    </ReactMarkdown>
+  )
+}
+export default PostBody
+```
+
+## Deployment Strategies with Astro and Cosmic
+
+### Deploy on Vercel
+
+Vercel provides an intuitive deployment platform for web applications. Start by pushing your Astro project to a Git repository and linking it to Vercel. During the Vercel deployment process, ensure that you set environment variables, such as the **Bucket slug** and **Bucket read key** from Cosmic. Visit our [Vercel deployment guide](/en/guides/deploy/vercel/) for more information on how to deploy your Astro site to Vercel.
+
+### Rebuilding Astro Site when Cosmic content updates
+
+Vercel can be configured to listen for content changes via Vercel's deploy hooks, and combined with Cosmic's [webhook capabilities](https://www.cosmicjs.com/docs/api/webhooks), content updates in Cosmic can automatically trigger a redeploy of your Astro site hosted on Vercel.
+
+To set up the deploy hook in Vercel, go to **settings** then to **git.** From here, name your deploy hook and select the branch which you would like to redeploy when the URL endpoint is hit. We will use this URL endpoint later in Cosmic to be on the receiving end of our webhook.
+
+To set up webhooks in Cosmic, navigate to **settings** in the top navigation bar, then to **webhooks** in the left sidebar navigation. Add the URL endpoint from Vercel to Cosmic, and select the Object Type you would like to trigger the webhook. Click “Add webhook” to save it. Now whenever you make content updates or new Objects to the Object Type selected, the deploy hook will trigger a redeploy of your website on Vercel.

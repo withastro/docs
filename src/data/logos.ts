@@ -42,6 +42,7 @@ export const logos = LogoCheck({
 	buttercms: { file: 'buttercms.svg', padding: '.1875em' },
 	builderio: { file: 'builderio.svg', padding: '.25em' },
 	contentful: { file: 'contentful.svg', padding: '.05em' },
+	cosmic: { file: 'cosmic.svg', padding: '.24em' },
 	hygraph: { file: 'hygraph.svg', padding: '.1em .125em .1em .1em' },
 	directus: { file: 'directus.svg', padding: '0 .1em' },
 	ghost: { file: 'ghost.png', padding: '.125em' },
