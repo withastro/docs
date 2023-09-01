@@ -37,7 +37,7 @@ Siirry takaisin komentoriville ja suorita tämä komento projektin hakemistossa:
 npm run dev
 ```
 
-Tämän jälkeen ohjelma on käynnissä osoitteessa [http://localhost:3000](http://localhost:3000). Avaa tämä URL selaimessa nähdäksesi viestin "Moi maailma!", jonka kopioimme edellisessä vaiheessa.
+Tämän jälkeen ohjelma on käynnissä osoitteessa [http://localhost:4321](http://localhost:4321). Avaa tämä URL selaimessa nähdäksesi viestin "Moi maailma!", jonka kopioimme edellisessä vaiheessa.
 
 Astro seuraa muutoksia `src/`-hakemiston sisällä, joten ohjelmaa ei tarvitse käynnistää uudelleen tehdessäsi muutoksia siihen koodatessasi.
 
