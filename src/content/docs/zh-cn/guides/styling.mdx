@@ -37,11 +37,11 @@ Astro `<style>` 标签内的 CSS 规则**默认自动限定范围**。作用域�
 编译为：
 ```astro
 <style>
-  h1:where(.astro-HHNQFKH6) {
+  h1[data-astro-cid-hhnqfkh6] {
      color: red;
   }
 
-  .text:where(.astro-HHNQFKH6) {
+  .text[data-astro-cid-hhnqfkh6] {
     color: blue;
   }
 </style>
@@ -153,7 +153,8 @@ import MyComponent from "../components/MyComponent.astro"
 <MyComponent class="red">这将是红色！</MyComponent>
 ```
 
-这种模式可以让你直接给子组件添加样式。Astro 会自动将父组件的作用域类名（例如 `astro-HHNQFKH6`）通过 `class` 属性传递给子组件，使得子组件也在父组件的作用域中。
+这种模式可以让你直接给子组件添加样式。Astro 会自动将父组件的作用域类名（例如 `astro-hhnqfkh6`）通过 `class` 属性传递给子组件，使得子组件也在父组件的作用域中。
+注意，这种模式仅在你的 [`scopedStyleStrategy` 选项](/zh-cn/reference/configuration-reference/#scopedstylestrategy) 为 `'where'` 或 `'class'` 时才有效。
 
 :::note[父组件的作用域类名]
 由于 `class` 属性包含了子组件在父组件的作用域中，因此父组件的样式可以传递到子组件中。为了避免这种情况，确保在子组件中使用唯一的类名。
@@ -525,23 +526,35 @@ Astro 中的 Svelte 也完全按照预期工作。[Svelte Styling Docs][svelte-s
 
 ### 打包控制
 
-当 Astro 构建您的网站以进行生产部署时，它会将您的 CSS 样式组合成块。您网站上的每个页面都是一个独立的块，此外，多个页面共享的 CSS 样式会被进一步拆分为自己的块，以便重复使用。
+当 Astro 为你的网站构建生产部署时，它会将你的 CSS 压缩并合并到 chunks 中。你网站上的每个页面都有自己的 chunk，此外，多个页面之间共享的 CSS 还会被进一步拆分为自己的 chunk 以供重用。
 
-在每个 HTML 文件中，都会添加 `<link rel="stylesheet">` 标签，而每个页面所需要的块也会对应一个该标签。
+然而，当你有多个页面共享样式时，一些共享的 chunks 可能会变得非常小。如果它们都被单独发送，那么将会导致许多样式表请求，并影响网站的性能。因此，默认情况下，Astro 仅将 HTML 中大小超过 4kB 的样式表链接为 `<link rel="stylesheet">` 标签，而将较小的样式表内联到 `<style type="text/css">` 中。这种方法在额外请求的数量和可以在页面之间缓存的 CSS 量之间提供了一个平衡。
 
-具有大量页面和许多不同共享样式的网站可能会导致许多样式表请求，从而影响网站的性能。你可以通过配置 `inlineStylesheets` 选项，将（最小化的）样式表放入 `<style>` 标记中，而不是从外部请求它们，从而减少样式表请求的数量。
+你可以使用 `assetsInlineLimit` vite 构建选项来配置样式表在多大的情况下会被链接到外部（以字节为单位）。请注意，此选项也会影响内联的脚本和图像。
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    build: {
+      assetsInlineLimit: 1024,
+    }
+  };
+});
+```
+
+如果你希望所有项目样式都保持外部样式表，可以配置 `inlineStylesheets` 构建选项。
 
 ```js
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   build: {
-    inlineStylesheets: 'auto'
+    inlineStylesheets: 'never'
   }
 });
 ```
-
-`'auto'` 选项只会将小于 `vite.build.assetsInlineLimit` 阈值的样式表内联，以减少对较小样式表的请求次数。。而较大的样式表，比如被所有页面用到的全局样式表，仍然会从外部获取并缓存。该选项可在加载的样式表数量和在页面中缓存的样式之间取得平衡。
 
 你也可以将该选项设置为 `'always'` ，这样就可以内联所有的样式表了。
 
