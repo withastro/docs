@@ -1,0 +1,564 @@
+---
+title: Contentful 与 Astro
+description: 使用 Contentful 作为 CMS 向你的 Astro 项目添加内容
+type: cms
+service: Contentful
+i18nReady: true
+---
+import FileTree from '~/components/FileTree.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+[Contentful](https://www.contentful.com/) 是一个无头（headless） CMS，允许你管理内容，集成其他服务并发布到多个平台。
+
+## 与 Astro 集成
+
+在本节中，我们将使用 [Contentful SDK](https://github.com/contentful/contentful.js) 来连接你的 Contentful 空间与 Astro，实现零客户端 JavaScript。
+
+### 前提条件
+
+首先，你需要以下内容：
+
+1. **一个 Astro 项目** - 如果你还没有 Astro 项目，我们的[安装指南](/zh-cn/install/auto/)会帮助你迅速上手。
+
+2. **Contentful 账号和 Contentful 空间**。如果你还没有账号，可以[注册](https://www.contentful.com/sign-up/)一个免费账号并创建一个新的 Contentful 空间。如果你已经有一个空间，也可以使用现有空间。
+
+3. **Contentful 凭证** - 你可以在 Contentful 仪表板中的**设置 > API 密钥**中找到以下凭证。如果你还没有 API 密钥，请选择**添加 API 密钥**。
+
+    - **Contentful space ID** - 你的Contentful 空间 的 ID。
+    - **Contentful delivery access token** - 用于从你的 Contentful 空间获取已发布内容的访问令牌。
+    - **Contentful preview access token** - 用于从你的 Contentful 空间获取未发布内容的访问令牌。
+
+### 设置凭证
+
+要将你的 Contentful 空间凭证添加到 Astro 中，在项目根目录中创建一个名为`.env`的文件，并添加以下变量：
+
+```ini title=".env"
+CONTENTFUL_SPACE_ID=YOUR_SPACE_ID
+CONTENTFUL_DELIVERY_TOKEN=YOUR_DELIVERY_TOKEN
+CONTENTFUL_PREVIEW_TOKEN=YOUR_PREVIEW_TOKEN
+```
+
+现在，你可以在项目中使用这些环境变量。
+
+如果你希望为 Contentful 环境变量启用智能感知，你可以在`src/`目录中创建一个名为`env.d.ts`的文件，并像这样配置`ImportMetaEnv`：
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly CONTENTFUL_SPACE_ID: string;
+  readonly CONTENTFUL_DELIVERY_TOKEN: string;
+  readonly CONTENTFUL_PREVIEW_TOKEN: string;
+}
+```
+:::tip
+了解更多关于[使用环境变量](/zh-cn/guides/environment-variables/)和 Astro 中的 `.env` 文件的信息。
+:::
+
+你的根目录现在应该包含这些新文件：
+
+<FileTree title="项目结构">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### 安装依赖项
+
+要连接到你的 Contentful 空间，请使用下面的命令使用你首选的包管理器同时安装以下两个包：
+- [`contentful.js`](https://github.com/contentful/contentful.js)，官方 Contentful JavaScript SDK
+- [`rich-text-html-renderer`](https://github.com/contentful/rich-text/tree/master/packages/rich-text-html-renderer)，用于将 Contentful 的富文本字段渲染为 HTML 的包。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install contentful @contentful/rich-text-html-renderer
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install contentful @contentful/rich-text-html-renderer
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add contentful @contentful/rich-text-html-renderer
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+接下来，在你的项目的 `src/lib/` 目录中创建一个名为 `contentful.ts` 的新文件。
+
+```ts title="src/lib/contentful.ts"
+import contentful from "contentful";
+
+export const contentfulClient = contentful.createClient({
+  space: import.meta.env.CONTENTFUL_SPACE_ID,
+  accessToken: import.meta.env.DEV
+    ? import.meta.env.CONTENTFUL_PREVIEW_TOKEN
+    : import.meta.env.CONTENTFUL_DELIVERY_TOKEN,
+  host: import.meta.env.DEV ? "preview.contentful.com" : "cdn.contentful.com",
+});
+
+```
+
+上面的代码片段创建了一个新的 Contentful 客户端，将`.env`文件中的凭证传递进去。
+
+:::caution
+在开发模式下，你的内容将从 **Contentful 预览 API**获取。这意味着你将能够从 Contentful Web 应用程序中查看未发布的内容。
+
+在构建时，你的内容将从 **Contentful 交付 API** 获取。这意味着在构建时只有已发布的内容可用。
+:::
+
+最后，你的根目录现在应该包含这些新文件：
+
+<FileTree title="项目结构">
+- src/
+  - env.d.ts
+  - lib/
+    - **contentful.ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### 从 Contentful 获取数据
+
+Astro 组件可以通过使用 `contentfulClient` 并指定 `content_type` 从你的 Contentful 帐户中获取数据。
+
+例如，如果你有一个名为 "blogPost" 的内容类型，其中包含一个用于标题的文本字段和一个用于内容的富文本字段，你的组件可能如下所示：
+
+```astro
+---
+import { contentfulClient } from "../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { EntryFieldTypes } from "contentful";
+
+interface BlogPost {
+  contentTypeId: "blogPost",
+  fields: {
+    title: EntryFieldTypes.Text
+    content: EntryFieldTypes.RichText,
+  }
+}
+
+const entries = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+});
+---
+<body>
+  {entries.items.map((item) => (
+    <section>
+      <h2>{item.fields.title}</h2>
+      <article set:html={documentToHtmlString(item.fields.content)}></article>
+    </section>
+  ))}
+</body>
+```
+
+:::tip
+如果你有一个空的 Contentful 空间，请查看 [设置 Contentful 模型](#设置-contentful-模型) 以了解如何为你的内容创建基本的博客模型。
+:::
+
+你可以在 [Contentful 文档](https://contentful.github.io/contentful.js/) 中找到更多的查询选项。
+
+## 使用 Astro 和 Contentful 制作博客
+
+通过上述设置，你现在可以创建一个使用 Contentful 作为 CMS 的博客。
+
+### 先决条件
+
+1. **一个 Contentful 空间** - 对于本教程，我们建议从一个空的空间开始。如果你已经有一个内容模型，请随意使用它，但你需要修改我们的代码片段以与你的内容模型匹配。
+2. **集成了 [Contentful SDK](https://github.com/contentful/contentful.js)** 的 Astro 项目 - 有关如何在 Astro 项目中设置 Contentful 的详细信息，请参阅 [与 Astro 集成](#与-astro-集成)。
+
+### 设置 Contentful 模型
+
+在你的 Contentful 空间中，在 **内容模型** 部分，创建一个新的内容模型，并设置以下字段和值：
+
+- **Name:** 博客文章
+- **API identifier:** `blogPost`
+- **Description:** 此内容类型用于博客文章
+
+
+在你新创建的内容类型中，使用**添加字段**按钮添加5个新字段，具体参数如下：
+
+1. 文本字段
+    - **Name:** title
+    - **API identifier:**  `title`
+    (将其他参数保持默认)
+2. 日期和时间字段
+    - **Name:** date
+    - **API identifier:** `date`
+3. 文本字段
+    - **Name:** slug
+    - **API identifier:** `slug`
+    (将其他参数保持默认)
+4. 文本字段
+    - **Name:** description
+    - **API identifier:** `description`
+5. 富文本字段
+    - **Name:** content
+    - **API identifier:** `content`
+
+单击**保存**以保存你的更改。
+
+在你的 Contentful 空间的**内容**部分，点击**添加条目**按钮创建一个新条目。然后，填写字段：
+
+- **Title：** `Astro 真是太棒了！`
+- **Slug：** `astro-is-amazing`
+- **Description：** `Astro 是一个全新的静态站点生成器，速度快，易于使用。`
+- **Date：** `2022-10-05`
+- **Content：** `这是我的第一篇博客文章！`
+
+点击**Publish**以保存你的条目。你刚刚创建了你的第一篇博客文章。
+
+随意添加你想要的博客文章，然后切换到你喜欢的代码编辑器，开始使用 Astro 进行开发！
+
+### 显示博客文章列表
+
+创建一个名为 `BlogPost` 的新接口，并将其添加到位于 `src/lib/` 下的 `contentful.ts` 文件中。此接口将与你在 Contentful 中的博客文章内容类型的字段相匹配。你将使用它来对博客文章条目的响应进行类型定义。
+
+```ts title="src/lib/contentful.ts" ins=", { EntryFieldTypes }" ins={3-12}
+import contentful, { EntryFieldTypes } from "contentful";
+
+export interface BlogPost {
+  contentTypeId: "blogPost",
+  fields: {
+    title: EntryFieldTypes.Text
+    content: EntryFieldTypes.RichText,
+    date: EntryFieldTypes.Date,
+    description: EntryFieldTypes.Text,
+    slug: EntryFieldTypes.Text
+  }
+}
+
+export const contentfulClient = contentful.createClient({
+  space: import.meta.env.CONTENTFUL_SPACE_ID,
+  accessToken: import.meta.env.DEV
+    ? import.meta.env.CONTENTFUL_PREVIEW_TOKEN
+    : import.meta.env.CONTENTFUL_DELIVERY_TOKEN,
+  host: import.meta.env.DEV ? "preview.contentful.com" : "cdn.contentful.com",
+});
+```
+
+接下来，转到你将从 Contentful 获取数据的 Astro 页面。在本示例中，我们将使用位于 `src/pages/` 下的主页 `index.astro`。
+
+从 `src/lib/contentful.ts` 中导入 `BlogPost` 接口和 `contentfulClient`。
+
+通过传递 `BlogPost` 接口来从 Contentful 获取所有带有内容类型为 `blogPost` 的条目。
+
+```astro title="src/pages/index.astro"
+---
+import { contentfulClient } from "../lib/contentful";
+import type { BlogPost } from "../lib/contentful";
+
+const entries = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+});
+---
+```
+
+此获取调用将在 `entries.items` 处返回一个博客文章数组。你可以使用 `map()` 创建一个新数组 (`posts`)，以格式化返回的数据。
+
+下面的示例从我们的内容模型中返回 `items.fields` 属性，以创建博客文章预览，并同时将日期重新格式化为更易读的格式。
+
+```astro title="src/pages/index.astro" ins={9-17}
+---
+import { contentfulClient } from "../lib/contentful";
+import type { BlogPost } from "../lib/contentful";
+
+const entries = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+});
+
+const posts = entries.items.map((item) => {
+  const { title, date, description, slug } = item.fields;
+  return {
+    title,
+    slug,
+    description,
+    date: new Date(date).toLocaleDateString()
+  };
+});
+---
+```
+
+最后，你可以在模板中使用 `posts` 来显示每篇博客文章的预览。
+
+```astro astro title="src/pages/index.astro" ins={19-37}
+---
+import { contentfulClient } from "../lib/contentful";
+import type { BlogPost } from "../lib/contentful";
+
+const entries = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+});
+
+const posts = entries.items.map((item) => {
+  const { title, date, description, slug } = item.fields;
+  return {
+    title,
+    slug,
+    description,
+    date: new Date(date).toLocaleDateString()
+  };
+});
+---
+<html lang="en">
+  <head>
+    <title>My Blog</title>
+  </head>
+  <body>
+    <h1>My Blog</h1>
+    <ul>
+      {posts.map((post) => (
+        <li>
+          <a href={`/posts/${post.slug}/`}>
+            <h2>{post.title}</h2>
+          </a>
+          <time>{post.date}</time>
+          <p>{post.description}</p>
+        </li>
+      ))}
+    </ul>
+  </body>
+</html>
+```
+
+#### 生成单独的博客文章页面
+
+使用与上述相同的方法从 Contentful 获取数据，但这次在将为每篇博客文章创建一个唯一的页面路由。
+
+#### 静态站点生成
+
+如果你使用的是 Astro 的默认静态模式，你将使用 [动态路由](/zh-cn/core-concepts/routing/#动态路由) 和 `getStaticPaths()` 函数。此函数将在构建时调用，以生成成为页面的路径列表。
+
+在 `src/pages/posts/` 中创建一个名为 `[slug].astro` 的新文件。
+
+与 `index.astro` 上所做的一样，从 `src/lib/contentful.ts` 导入 `BlogPost` 接口和 `contentfulClient`。
+
+这次，在 `getStaticPaths()` 函数中获取数据。
+
+```astro title="src/pages/posts/[slug].astro"
+---
+import { contentfulClient } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
+
+export async function getStaticPaths() {
+  const entries = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+  });
+}
+---
+```
+
+然后，将每个条目映射到一个带有 `params` 和 `props` 属性的对象。`params` 属性将用于生成页面的 URL，`props` 属性将作为属性传递给页面组件。
+
+```astro title="src/pages/posts/[slug].astro" ins={3,11-19}
+---
+import { contentfulClient } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
+
+export async function getStaticPaths() {
+  const entries = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+  });
+
+  const pages = entries.items.map((item) => ({
+    params: { slug: item.fields.slug },
+    props: {
+      title: item.fields.title,
+      content: documentToHtmlString(item.fields.content),
+      date: new Date(item.fields.date).toLocaleDateString(),
+    },
+  }));
+  return pages;
+}
+---
+```
+
+`params` 内的属性必须与动态路由的名称匹配。由于我们的文件名是 `[slug].astro`，因此我们使用了 `slug`。
+
+在我们的示例中，`props` 对象将三个属性传递给页面：
+- title（字符串）
+- content（将文档转换为 HTML 的富文本文档）
+- date（使用 `Date` 构造函数进行格式化）
+
+最后，你可以使用页面 `props` 来显示博客文章。
+
+```astro title="src/pages/posts/[slug].astro" ins={21,23-32}
+---
+import { contentfulClient } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
+
+export async function getStaticPaths() {
+  const entries = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+  });
+
+  const pages = entries.items.map((item) => ({
+    params: { slug: item.fields.slug },
+    props: {
+      title: item.fields.title,
+      content: documentToHtmlString(item.fields.content),
+      date: new Date(item.fields.date).toLocaleDateString(),
+    },
+  }));
+  return pages;
+}
+
+const { content, title, date } = Astro.props;
+---
+<html lang="en">
+  <head>
+    <title>{title}</title>
+  </head>
+  <body>
+    <h1>{title}</h1>
+    <time>{date}</time>
+    <article set:html={content} />
+  </body>
+</html>
+```
+
+在浏览器中导航到 http://localhost:3000/， 然后点击其中一篇文章，以确保你的动态路由正常工作！
+
+#### 服务器端渲染
+
+如果你已经 [选择使用 SSR 模式](/zh-cn/guides/server-side-rendering/#启用-ssr)，你将使用一个使用 `slug` 参数从 Contentful 获取数据的动态路由。
+
+在 `src/pages/posts` 中创建一个 `[slug].astro` 页面。使用 [`Astro.params`](/zh-cn/reference/api-reference/#astroparams) 来从 URL 中获取 slug，然后将其传递给 `getEntries`：
+
+```astro title="src/pages/posts/[slug].astro"
+---
+import { contentfulClient } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
+
+const { slug } = Astro.params;
+
+const data = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+  "fields.slug": slug,
+});
+---
+```
+
+如果找不到条目，你可以使用 [`Astro.redirect`](/zh-cn/core-concepts/routing/#动态重定向) 将用户重定向到 404 页面。
+
+```astro title="src/pages/posts/[slug].astro" ins={7, 12-13}
+---
+import { contentfulClient } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
+
+const { slug } = Astro.params;
+
+try {
+  const data = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+    "fields.slug": slug,
+  });
+} catch (error) {
+  return Astro.redirect("/404");
+}
+---
+```
+
+要将文章数据传递到模板部分，你可以在 `try/catch` 块外创建一个 `post` 对象。
+
+使用 `documentToHtmlString` 将 `content` 从文档转换为 HTML，并使用 Date 构造函数格式化日期。`title` 可以保持原样。然后，将这些属性添加到你的 `post` 对象中。
+
+```astro title="src/pages/posts/[slug].astro" ins={7,14-19}
+---
+import { contentfulClient } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
+
+let post;
+const { slug } = Astro.params;
+try {
+  const data = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+    "fields.slug": slug,
+  });
+  const { title, date, content } = data.items[0].fields;
+  post = {
+    title,
+    date: new Date(date).toLocaleDateString(),
+    content: documentToHtmlString(content),
+  };
+} catch (error) {
+  return Astro.redirect("/404");
+}
+---
+```
+
+最后，你可以在模板部分引用 `post` 来显示博客文章。
+
+```astro title="src/pages/posts/[slug].astro" ins={24-33}
+---
+import Layout from "../../layouts/Layout.astro";
+import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { BlogPost } from "../../lib/contentful";
+
+let post;
+const { slug } = Astro.params;
+try {
+  const data = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+    "fields.slug": slug,
+  });
+  const { title, date, content } = data.items[0].fields;
+  post = {
+    title,
+    date: new Date(date).toLocaleDateString(),
+    content: documentToHtmlString(content),
+  };
+} catch (error) {
+  return Astro.redirect("/404");
+}
+---
+<html lang="en">
+  <head>
+    <title>{post?.title}</title>
+  </head>
+  <body>
+    <h1>{post?.title}</h1>
+    <time>{post?.date}</time>
+    <article set:html={post?.content} />
+  </body>
+</html>
+```
+
+### 发布你的网站
+
+要部署你的网站，请访问我们的[部署指南](/zh-cn/guides/deploy/)，并按照你首选的托管提供商的说明操作。
+
+#### 在 Contentful 更改后重新构建
+
+如果你的项目使用的是 Astro 的默认静态模式，你需要设置一个 Webhook，在内容更改时触发新的构建。如果你的托管提供商是 Netlify 或 Vercel，你可以使用其 Webhook 功能从 Contentful 事件中触发新的构建。
+
+##### Netlify
+
+要在 Netlify 中设置 Webhook：
+
+1. 转到你的站点仪表板，点击 **Build & deploy**。
+
+2. 在 **Continuous Deployment** 选项卡下，找到 **Build hooks** 部分，然后点击 **Add build hook**。
+
+3. 为你的 Webhook 提供一个名称，选择要在其上触发构建的分支。点击 **Save**，然后复制生成的 URL。
+
+##### Vercel
+
+要在 Vercel 中设置 Webhook：
+
+1. 转到你的项目仪表板，点击 **Settings**。
+
+2. 在 **Git** 选项卡下，找到 **Deploy Hooks** 部分。
+
+3. 为你的 Webhook 提供一个名称，选择要在其上触发构建的分支。点击 **Add**，然后复制生成的 URL。
+
+##### 将 Webhook 添加到 Contentful
+
+在你的 Contentful 空间的**设置**中，点击 **Webhooks** 选项卡，然后通过点击 **Add Webhook** 按钮创建一个新的 Webhook。为你的 Webhook 提供一个名称，并粘贴你在上一节中复制的 Webhook URL。最后，点击 **Save** 创建 Webhook。
+
+现在，每当你在 Contentful 中发布新的博客文章时，都会触发新的构建，并更新你的博客。

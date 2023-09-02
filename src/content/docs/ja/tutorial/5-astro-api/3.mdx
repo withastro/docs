@@ -1,0 +1,434 @@
+---
+type: tutorial
+title: タグインデックスページを作成する
+description: |-
+  「初めてのAstroブログ」チュートリアル -
+  これまでに学んだことをすべて使って、タグインデックスページを作成する
+i18nReady: true
+---
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+
+
+
+各タグの個別ページができたので、それらへのリンクを作成しましょう。
+
+<PreCheck>
+  - `/pages/folder/index.astro`というルーティングパターンを使って新しいページを追加する
+  - ユニークなタグのリストを表示し、各タグページにリンクする
+  - 新しいタグページへのナビゲーションリンクを追加してサイトを更新する
+</PreCheck>
+
+## `/pages/folder/index.astro`ルーティングパターンを使う
+
+ウェブサイトにタグインデックスページを追加するには、`src/pages/tags.astro`に新しいファイルを作成すればできます。
+
+しかし、すでに`/tags/`ディレクトリがあるので、Astroの別のルーティングパターンを利用して、タグに関連するファイルをすべてまとめてみましょう。
+
+<Box icon="puzzle-piece">
+
+## やってみよう - タグインデックスページを作る
+
+1. `src/pages/tags/`ディレクトリに新しいファイル`index.astro`を作成します。
+
+2. `localhost:3000/tags`に移動して、サイトにこのURLのページが含まれていることを確認します。中身は空ですが、ページは存在します。
+
+3. `src/pages/tags/index.astro`に、レイアウトを使用して最小限のページを作成します。これは以前にもやりましたね！
+
+    <details>
+      <summary>手順を表示</summary>
+
+      1. `src/pages/tags/`に新しいページコンポーネントを作成します。
+
+          <details>
+          <summary>ファイル名を表示</summary>
+          ```
+          index.astro
+          ```
+          </details>
+
+      2. `<BaseLayout>`をインポートして使用します。
+
+          <details>
+          <summary>コードを表示</summary>
+          ```astro title=" src/pages/tags/index.astro"
+          ---
+          import BaseLayout from '../../layouts/BaseLayout.astro';
+          ---
+          <BaseLayout></BaseLayout>
+          ```
+          </details>
+
+      3. ページタイトルを定義し、コンポーネント属性としてレイアウトに渡します。
+
+          <details>
+          <summary>コードを表示</summary>
+          ```astro title="src/pages/tags/index.astro" ins={3} "pageTitle"
+          ---
+          import BaseLayout from '../../layouts/BaseLayout.astro';
+          const pageTitle = "タグインデックス";
+          ---
+          <BaseLayout pageTitle={pageTitle}></BaseLayout>
+          ```
+          </details>
+    </details>
+
+4. ブラウザのプレビューを再度確認すると、フォーマットされたページが表示されるはずです。これでコンテンツを追加する準備ができました！
+
+</Box>
+
+## タグの配列を作成する
+
+以前も`map()`を使って、配列からリストの項目を表示していました。すべてのタグの配列を定義し、このページにリストとして表示するにはどうすればよいでしょうか？
+
+<details>
+    <summary>コードを表示</summary>
+    
+    ```astro title="src/pages/tags/index.astro"
+    ---
+    import BaseLayout from '../../layouts/BaseLayout.astro';
+    const tags = ["astro", "成功", "コミュニティ", "後退", "公開学習"];
+    const pageTitle = "タグインデックス";
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <ul>
+        {tags.map((tag) => <li>{tag}</li>)}
+      </ul>
+    </BaseLayout>
+    ```
+</details>
+
+こうすることもできますが、将来ブログ記事で新しいタグを使用するたびに、このファイルに戻って配列を更新しなければいけません。
+
+幸いなことに、1行のコードですべてのMarkdownファイルからデータを取得し、すべてのタグのリストを返す方法をあなたはもう知っているはずです。
+
+
+1. `src/pages/tags/index.astro`のフロントマタースクリプトに、すべての`.md`ブログ記事ファイルのデータにページからアクセスできるようにするコードを追加します。
+
+    <details>
+    <summary>コードを表示</summary>
+    ```astro title = "src/pages/tags/index.astro" ins={3}
+    ---
+    import BaseLayout from '../../layouts/BaseLayout.astro';
+    const allPosts = await Astro.glob('../posts/*.md');
+    const pageTitle = "タグインデックス";
+    ---
+    ```
+    </details>
+
+2. 次に、以下のJavaScriptをページコンポーネントに追加します。これは、ユニークなタグのリストを返すために`src/pages/tags/[tag].astro`で使用したものと同じです。
+
+    ```astro title = "src/pages/tags/index.astro" ins={4}
+    ---
+    import BaseLayout from '../../layouts/BaseLayout.astro';
+    const allPosts = await Astro.glob('../posts/*.md');
+    const tags = [...new Set(allPosts.map((post) => post.frontmatter.tags).flat())];
+    const pageTitle = "タグインデックス";
+    ---
+    
+    ```
+
+## タグのリストを作成する
+
+今回は順序なしリストの項目を作成するのではなく、`<div>`の中に各項目の`<p>`を作成します。お馴染みのパターンですね！
+
+1. コンポーネントテンプレートに次のコードを追加します。
+
+    ```astro title="src/pages/tags/index.astro" ins={2}
+      <BaseLayout pageTitle={pageTitle}>
+        <div>{tags.map((tag) => <p>{tag}</p>)}</div>
+      </BaseLayout>
+    ```
+    ブラウザのプレビューで、タグがリスト表示されていることを確認します。
+
+2. 各タグをそれぞれのページにリンクさせるには、次の`<a>`リンクを各タグ名に追加します。
+
+    ```astro title="src/pages/tags/index.astro" '/tags/${tag}'
+    <BaseLayout pageTitle={pageTitle}>
+      <div>
+        {tags.map((tag) => (
+          <p><a href={`/tags/${tag}`}>{tag}</a></p>
+        ))}
+      </div>
+    </BaseLayout>
+    ```
+
+## タグリストにスタイルを追加する
+
+1. `<div>`と生成される各`<p>`にスタイルを追加するために、次のCSSクラスを記述します。Astroではクラス名を追加するためにHTML構文を使用することに注意してください！
+
+    ```astro title="src/pages/tags/index.astro" 'class="tags"' 'class="tag"'
+    <BaseLayout pageTitle={pageTitle}>
+    <div class="tags">
+      {tags.map((tag) => (
+        <p class="tag"><a href={`/tags/${tag}`}>{tag}</a></p>
+      ))}
+    </div>
+    </BaseLayout>
+    ```
+
+2. このページに次の`<style>`タグを追加して、新しいCSSクラスのスタイルを定義します。
+
+    ```astro title="src/pages/tags/index.astro"
+    <style>
+      a {
+        color: #00539F;
+      }
+
+      .tags {
+        display: flex; 
+        flex-wrap: wrap; 
+        margin: 0 auto;  
+      }
+
+      .tag {
+        margin: 0.25em;
+        border: dotted 1px #a1a1a1;
+        border-radius: .5em;
+        padding: .5em 1em;
+        font-size: 1.15em;
+        background-color: #F8FCFD;
+      }
+    </style>
+    ```
+
+3. ブラウザのプレビューで`localhost:3000/tags`を開き、新しいスタイルが適用されていること、ページの各タグがそれぞれのタグページへのリンクとして機能していることを確認します。
+
+### コードの確認
+
+新しいページのコードは以下のようになっているはずです。
+
+```astro title="src/pages/tags/index.astro"
+--- 
+import BaseLayout from '../../layouts/BaseLayout.astro';
+const allPosts = await Astro.glob('../posts/*.md');
+const tags = [...new Set(allPosts.map((post) => post.frontmatter.tags).flat())];
+const pageTitle = "Tag Index";
+---
+<BaseLayout pageTitle={pageTitle}>
+  <div class="tags">
+    {tags.map((tag) => (
+      <p class="tag"><a href={`/tags/${tag}`}>{tag}</a></p>
+    ))}
+  </div>
+</BaseLayout>
+<style>
+  a {
+    color: #00539F;
+  }
+
+  .tags {
+    display: flex; 
+    flex-wrap: wrap; 
+    margin: 0 auto;  
+  }
+
+  .tag {
+    margin: 0.25em;
+    border: dotted 1px #a1a1a1;
+    border-radius: .5em;
+    padding: .5em 1em;
+    font-size: 1.15em;
+    background-color: #F8FCFD;
+  }
+</style>
+```
+
+## このページをナビゲーションに追加する
+
+今の時点で、`localhost:3000/tags`に移動してこのページを表示できます。そしてこのページから、個々のタグページへのリンクをクリックできます。
+
+しかし、このページをウェブサイトの他のページから見つけられるようにする必要がまだあります。
+
+1. `Navigation.astro`コンポーネントに、この新しいタグインデックスページへのリンクを追加します。
+
+    <details>
+    <summary>コードを表示</summary>
+    ```astro title="src/components/Navigation.astro" ins={4}
+    <a href="/">ホーム</a>
+    <a href="/about/">概要</a>
+    <a href="/blog/">ブログ</a>
+    <a href="/tags/">タグ</a>
+    ```
+    </details>
+
+<Box icon="puzzle-piece">
+
+## チャレンジ: ブログ記事レイアウトにタグを含める
+
+これで、ブログの各記事にタグのリストを表示し、タグページにリンクするために必要なすべてのコードを書きましたが、これを再利用して既存のコードで使用してみましょう！
+
+以下の手順に沿って作業を進め、出来上がった自分のコードを[最終的なコードサンプル](#markdownpostlayoutのコードの確認)と比較して確認してください。
+
+1. `<div class="tags">...</div>`と`<style>...</style>`を`src/pages/tags/index.astro`からコピーして`MarkdownPostLayout.astro`内で再利用します。
+
+  ```astro title="src/layouts/MarkdownPostLayout.astro" ins={13-17, 21-40}
+  ---
+  import BaseLayout from './BaseLayout.astro';
+  const { frontmatter } = Astro.props;
+  --- 
+  <BaseLayout pageTitle={frontmatter.title}>
+    <p><em>{frontmatter.description}</em></p>
+    <p>{frontmatter.pubDate.slice(0,10)}</p>
+
+    <p>著者: {frontmatter.author}</p>
+
+    <img src={frontmatter.image.url} width="300" alt={frontmatter.image.alt} /> 
+
+    <div class="tags">
+      {tags.map((tag) => (
+        <p class="tag"><a href={`/tags/${tag}`}>{tag}</a></p>
+      ))}
+    </div>
+
+    <slot />
+  </BaseLayout>
+  <style>
+    a {
+      color: #00539F;
+    }
+
+    .tags {
+      display: flex; 
+      flex-wrap: wrap; 
+      margin: 0 auto;  
+    }
+
+    .tag {
+      margin: 0.25em;
+      border: dotted 1px #a1a1a1;
+      border-radius: .5em;
+      padding: .5em 1em;
+      font-size: 1.15em;
+      background-color: #F8FCFD;
+    }
+  </style>
+```
+
+このコードが機能するには、`MarkdownPostLayout.astro`に貼り付けたコードを**1箇所だけ編集**する必要があります。どこを編集すればいいかわかりますか？
+
+<details>
+<summary>ヒントが欲しい</summary>
+
+タイトルや著者など、他のpropsはレイアウトテンプレートでどのように書かれていますか？レイアウトは個々のブログ記事からどのようにpropsを受け取っているでしょうか？
+</details>
+
+<details>
+<summary>もっとヒントが欲しい</summary>
+
+`.md`ブログ記事から受け取ったタグなどのprops（渡された値）をレイアウトで使用するには、ある単語を値の前に付ける必要があります。
+
+<details>
+<summary>コードを表示</summary>
+
+```astro title="src/layouts/MarkdownPostLayout.astro" "frontmatter"
+    <div class="tags">
+      {frontmatter.tags.map((tag) => (
+        <p class="tag"><a href={`/tags/${tag}`}>{tag}</a></p>
+      ))}
+    </div>
+```
+</details>
+</details>
+
+</Box>
+
+### MarkdownPostLayoutのコードの確認
+
+ここまでの自分の作業内容を確認したい場合や、`MarkdownPostLayout.astro`にコピーするための完全で正しいコードが欲しい場合のために、現段階でのAstroコンポーネントを以下に示します。
+
+```astro title="src/layouts/MarkdownPostLayout.astro"
+---
+import BaseLayout from './BaseLayout.astro';
+const { frontmatter } = Astro.props;
+--- 
+<BaseLayout pageTitle={frontmatter.title}>
+  <p><em>{frontmatter.description}</em></p>
+  <p>{frontmatter.pubDate.slice(0,10)}</p>
+
+  <p>著者: {frontmatter.author}</p>
+
+  <img src={frontmatter.image.url} width="300" alt={frontmatter.image.alt} /> 
+
+  <div class="tags">
+    {frontmatter.tags.map((tag) => (
+      <p class="tag"><a href={`/tags/${tag}`}>{tag}</a></p>
+    ))}
+  </div>
+
+  <slot />
+</BaseLayout>
+<style>
+  a {
+    color: #00539F;
+  }
+
+  .tags {
+    display: flex; 
+    flex-wrap: wrap; 
+    margin: 0 auto;  
+  }
+
+  .tag {
+    margin: 0.25em;
+    border: dotted 1px #a1a1a1;
+    border-radius: .5em;
+    padding: .5em 1em;
+    font-size: 1.15em;
+    background-color: #F8FCFD;
+  }
+</style>
+```
+
+
+
+<Box icon="question-mark">
+
+### 確認テスト
+
+与えられたファイルパスと同じルートにページを作成する別のファイルパスを選択してください。
+
+1. `src/pages/categories.astro`
+
+    <MultipleChoice>
+      <Option>`src/pages/posts/post.astro`</Option>
+      <Option>`src/pages/posts/index.astro`</Option>
+      <Option>`src/components/shoes/Shoe.astro`</Option>
+      <Option isCorrect>`src/pages/categories/index.astro`</Option>
+    </MultipleChoice>
+
+2. `src/pages/posts.astro`
+
+    <MultipleChoice>
+      <Option>`src/pages/products/shoes.astro`</Option>
+      <Option>`src/pages/posts/post.astro`</Option>
+      <Option isCorrect>`src/pages/posts/index.astro`</Option>
+      <Option>`src/pages/categories/index.astro`</Option>
+    </MultipleChoice>
+
+3. `src/pages/products/shoes/index.astro`
+
+    <MultipleChoice>
+      <Option isCorrect>`src/pages/products/shoes.astro`</Option>
+      <Option>`src/pages/posts/post.astro`</Option>
+      <Option>`src/pages/posts/index.astro`</Option>
+      <Option>`src/components/shoes/Shoe.astro`</Option>
+    </MultipleChoice>
+
+</Box>
+
+<Box icon="check-list">
+
+## チェックリスト
+
+<Checklist>
+- [ ] Astroの`/pages/folder/index.astro`というルーティング方式を使えるようになった。
+</Checklist>
+</Box>
+
+### 参考
+
+- [Astroにおける静的ルーティング](/ja/core-concepts/routing/#静的ルーティング)

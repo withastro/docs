@@ -2,20 +2,20 @@
 title: Astro 适配器 API
 ---
 
-Astro 设计得易于部署到任何云提供商的 SSR（服务端渲染）服务，该功能由**适配器**[集成](/zh-cn/reference/integrations-reference/)提供。请参阅 [SSR 指南](/zh-cn/guides/server-side-rendering/#添加一个适配器) 了解如何使用现有的适配器。
+Astro 可以轻松部署到任何云托管平台，以实现服务端渲染（SSR）。该能力由**适配器**[集成](/zh-cn/reference/integrations-reference/)提供，请参阅 [SSR 指南](/zh-cn/guides/server-side-rendering/#添加一个适配器) 了解如何使用现有的适配器。
 
 ## 什么是适配器
 
-适配器是特殊的[集成](/zh-cn/reference/integrations-reference/)，它为服务器端渲染提供了入口。一个适配器做两件事。
+适配器是一种特殊类型的[集成](/zh-cn/reference/integrations-reference/)，它为服务器端渲染提供了入口。适配器包含两项主要功能：
 
-- 使用仅限于主机的 API 来处理请求。
-- 根据主机惯例配置构建
+- 实现托管平台的 API，以处理请求。
+- 根据托管平台的约定配置构建过程。
 
 ## 构建适配器
 
-适配器是[集成](/zh-cn/reference/integrations-reference/)的一种，它可以做任何集成可以做的事情。
+由于适配器是一种[集成](/zh-cn/reference/integrations-reference/)，因此它拥有集成提供的全部能力。
 
-适配器 __必须__ 在 `astro:config:done` 钩子中调用 `setAdapter` API，像这样：
+__必须__ 通过在 `astro:config:done` 钩子中调用 `setAdapter` API 来使用适配器，例如：
 
 ```js title="my-adapter.mjs"
 export default function createIntegration() {
@@ -33,7 +33,7 @@ export default function createIntegration() {
 }
 ```
 
-传入 `setAdapter` 的对象被定义为：
+`setAdapter` 的传入参数定义如下：
 
 ```ts
 interface AstroAdapter {
@@ -45,17 +45,17 @@ interface AstroAdapter {
 
 这些属性分别是：
 
-* __name__：适配器的唯一名称，用于日志输出。
-* __serverEntrypoint__：服务器端渲染入口。
-* __exports__：当与 `createExports` 一起使用时，未命名导出数组（解释如下）。
+* __name__：适配器的唯一名称，用于日志记录。
+* __serverEntrypoint__：服务端渲染的入口。
+* __exports__：导出数组，与 `createExports` 配套使用（在下文中说明）。
 
 ### 服务端入口
 
-Astro 的适配器 API 尝试与任何类型的主机一起工作，并有灵活的方式来配合主机 API。
+Astro 的适配器 API 尝试适配多种类型的托管方，并提供了灵活的配置方式。
 
-#### 导出
+#### Exports 
 
-一些无服务器主机希望你能导出一个函数，如 `handler`：
+一些无服务架构的托管方会希望你导出一个`handler`函数：
 
 ```js
 export function handler(event, context) {
@@ -63,7 +63,7 @@ export function handler(event, context) {
 }
 ```
 
-在适配器 API 中，你通过在 `serverEntrypoint` 中的 `createExports` 来实现这一目标：
+在适配器 API 中，你可以在 `serverEntrypoint` 中实现 `createExports` 方法：
 
 ```js
 import { App } from 'astro/app';
@@ -79,7 +79,7 @@ export function createExports(manifest) {
 }
 ```
 
-然后在集成中调用 `setAdapter` 的地方导出 `exports` 它。
+在此之后，你需要在 `setAdapter` 的 `exports` 属性中配置该 `handler`：
 
 ```js title="my-adapter.mjs" ins={9}
 export default function createIntegration() {
@@ -98,9 +98,9 @@ export default function createIntegration() {
 }
 ```
 
-#### 启动
+#### Start 
 
-有些主机希望你能自己**启动**服务器，例如通过监听一个端口。针对这些类型的主机，适配器 API 允许你导出 `start` 函数，它将在捆绑脚本运行时调用。
+有些托管方希望你自行管理服务的**启动**，例如通过监听一个端口的方式。对于这类托管方，可以导出一个 `start` 函数，该函数会在绑定脚本执行时被调用。
 
 ```js
 import { App } from 'astro/app';
@@ -116,7 +116,7 @@ export function start(manifest) {
 
 #### `astro/app`
 
-该模块用于渲染通过 `astro build` 预构建的页面。Astro 使用标准的[Request](https://developer.mozilla.org/zh-CN/docs/Web/API/Request) 和 [Response](https://developer.mozilla.org/zh-CN/docs/Web/API/Response) 对象。有着不同的请求/响应 API 的主机应该在其适配器中转换为这些类型。
+该模块用于渲染已通过 `astro build` 命令预构建的页面。Astro 使用标准的 [Request](https://developer.mozilla.org/zh-CN/docs/Web/API/Request) 和 [Response](https://developer.mozilla.org/zh-CN/docs/Web/API/Response) 对象。如果托管方使用不同格式的请求/响应 API ，需要在适配器中进行转换处理。
 
 ```js
 import { App } from 'astro/app';
@@ -133,19 +133,39 @@ export function start(manifest) {
 }
 ```
 
-有以下几种方法：
+该模块提供以下几个方法：
 
-##### `app.render(request)`
+##### `app.render(request, routeData, locals)`
 
-这个方法适合渲染匹配请求的 Astro 页面，并在 Promise 中返回 [Response](https://developer.mozilla.org/zh-CN/docs/Web/API/Response) 对象。这也适用于不渲染页面的 API 路由。
+此方法用于匹配符合请求的 Astro 页面，并返回一个 Promise 对象给 [Response](https://developer.mozilla.org/zh-CN/docs/Web/API/Response) 。该方法对于不渲染页面的 API 路由同样适用。
 
 ```js
 const response = await app.render(request);
 ```
 
+方法拥有一个必传参数 `request`，和两个可选参数 [`routeData`](/zh-cn/reference/integrations-reference/#routedata-类型参考) 以及 [`locals`](/zh-cn/guides/middleware/#locals)。
+
+如果你已经明确需要渲染的路由，可以通过传入 `routeData` 参数，跳过内部调用 [`app.match`](#appmatchrequest) 进行匹配的步骤。
+
+如需使用 `locals` 参数，必须将其作为第三个参数传入。如果不需要指定路由的话，可以将 `routeData` 参数设置为 `undefined`。
+
+下方示例尝试解析 `x-private-header` 请求头，并将其传入 `locals` 中。在此之后，它就可以作为参数被任意[中间件](/zh-cn/guides/middleware/)使用了。
+
+```js
+const privateHeader = request.headers.get("x-private-header");
+let locals = {};
+try {
+    if (privateHeader) {
+        locals = JSON.parse(privateHeader);
+    }
+} finally {
+    const response = await app.render(request, undefined, locals);
+}
+```
+
 ##### `app.match(request)`
 
-该方法用于确定请求是否适配 Astro 应用程序的路由规则。
+该方法用于判断请求是否匹配 Astro 应用的路由规则。
 
 ```js
 if(app.match(request)) {
@@ -153,11 +173,11 @@ if(app.match(request)) {
 }
 ```
 
-你通常可以调用 `app.render(request)` 而无需使用 `.match`，因为如果有 `404.astro` 文件，Astro 会自动处理 404 页面。如果你想以不同的方式处理 404，请使用 `app.match(request)`。
+通常可以在不使用 `.match` 的情况下调用 `app.render(request)`。因为当配置了 `404.astro` 文件后，Astro 就会自动处理 404 的情况。如果想要自定义处理规则，请使用 `app.match(request)`。
 
-## 使用 `astro add` 安装
+## 使用 `astro add` 安装适配器
 
-用户可以使用 [`astro add` 命令](/zh-cn/reference/cli-reference/#astro-add) 轻松地在他们的项目中添加集成和适配器。如果你想让别人可以使用这个工具安装你的集成，**在你的 `package.json` 中的 `keywords` 字段中添加 `astro-adapter`**：
+用户可以使用 [`astro add` 命令](/zh-cn/reference/cli-reference/#astro-add) 轻松地在他们的项目中添加集成和适配器。如果希望其他用户可以使用该命令安装 _你的_ 适配器，**请在 `package.json` 文件的 `keywords` 项中添加 `astro-adapter` 属性**：
 
 ```json
 {
@@ -166,4 +186,4 @@ if(app.match(request)) {
 }
 ```
 
-在你[将集成发布到 npm](https://docs.npmjs.com/cli/v8/commands/npm-publish) 后，即可运行 `astro add example` 安装包和 `package.json` 中指定的对等依赖。我们还将指导用户手动更新他们的项目配置。
+当[将适配器发布到 npm](https://docs.npmjs.com/cli/v8/commands/npm-publish) 后，执行 `astro add example` 命令，即可安装适配器以及在 `package.json` 文件中指定的对等依赖。我们将指导用户手动更新他们的项目配置。

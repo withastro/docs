@@ -56,7 +56,8 @@ export async function run() {
 
 		// The error's title. Fallback to the error's name if we don't have one
 		const errorTitle = sanitizeString(
-			astroErrorData.errors[comment.meta.code.name].title ?? comment.name
+			// the name has string like "export.UnknownError", and we remove the "export." bit to get the name of the error
+			astroErrorData.errors[comment.meta.code.name.slice('exports.'.length)].title ?? comment.name
 		);
 		const completeReferenceEntry = [
 			// Errors can be deprecated, as such we add a little "deprecated" caution to errors that needs it
@@ -167,7 +168,7 @@ async function getAstroErrorsData() {
 	const dataUri = 'data:text/javascript;charset=utf-8,' + encodedJs;
 
 	/**
-	 * @type {{AstroErrorData: Object.<string, {code: number, message: string, hint: string}>}
+	 * @type {{AstroErrorData: Object.<string, {code: number, message: string, hint: string, name: string}>}
 	 */
 	const data = await import(dataUri);
 
@@ -179,7 +180,7 @@ async function getAstroErrorsData() {
 		.filter((data) => data.tags && data.tags.some((tag) => tag.title === 'docs'));
 
 	return {
-		errors: data.AstroErrorData,
+		errors: data,
 		jsdoc: jsDocComments,
 	};
 }

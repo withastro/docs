@@ -1,0 +1,730 @@
+---
+type: integration
+title: '@astrojs/image'
+description: 了解如何在 Astro 项目中使用 @astrojs/image 集成。
+githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/image/'
+hasREADME: true
+category: other
+i18nReady: true
+---
+
+> ⚠️ 此集成将在 Astro v3.0 (2023年秋季)中被 `astro:assets` 模块取代。更多信息请查看 [资源文档](/zh-cn/guides/assets/)。
+
+这个 **[Astro 集成][astro-integration]** 可以优化你的 [Astro 项目](https://astro.build/) 中的图片。它仅在 Astro v2 中支持全部静态站点以及 [部分服务端渲染的托管平台](#安装).
+
+## 为什么是 `@astrojs/image`？
+
+图片在整体网站性能和可用性方面起着很大的作用。提供适当尺寸的图片可以起到巨大差异，但要自动完成这一点往往很棘手。
+
+此集成提供了 `<Image />` 和 `<Picture>` 组件以及一个基本的图片转换器，完全支持静态站点和服务端渲染。内置的图片转换器也是可替换的，这为与你最喜欢的托管图片服务集成打开了大门。
+
+## 安装
+
+除了我们的集成之外，我们还建议在适当的时候安装 [sharp](https://sharp.pixelplumbing.com/)。
+
+`@astrojs/image` 默认的图像转换器基于 [Squoosh](https://github.com/GoogleChromeLabs/squoosh)，使用 WebAssembly 库来支持大多数部署环境，包括那些不支持 sharp 的环境，例如 StackBlitz。
+
+为了更快的构建速度和更细粒度的图像转换控制，如果满足以下条件，请额外安装 sharp：
+
+* 你正在使用 Astro 构建静态站点。
+
+* 你正在使用支持 NodeJS 的 SSR 部署主机，比如 `@astrojs/netlify/functions`、`@astrojs/vercel/serverless` 或 `@astrojs/node`。
+
+注意 `@astrojs/image` 当前不支持：
+
+* Cloudflare SSR
+* `@astrojs/deno`
+* `@astrojs/netlify/edge-functions` 
+* `@astrojs/vercel/edge`
+
+### 快速安装
+
+`astro add` 命令行工具为你自动进行安装。在一个新的终端窗口中运行下列其中一条命令（如果你不确定你使用的是哪个包管理器，请运行第一个命令）。然后按照提示，在终端中输入“y”（意思是“是”），每一条都是如此。
+
+```sh
+# 使用 NPM
+npx astro add image
+# 使用 Yarn
+yarn astro add image
+# 使用 PNPM
+pnpm astro add image
+```
+
+如果你遇到任何问题，[请随时在 GitHub 上向我们报告](https://github.com/withastro/astro/issues) 并尝试下面的手动安装步骤。
+
+### 手动安装
+
+首先,使用包管理器安装 `@astrojs/image` 包。如果你使用 npm 或者不确定，在终端运行：
+
+```sh
+npm install @astrojs/image
+```
+
+然后在 `astro.config.*` 文件中通过 `integrations` 属性来应用这个集成：
+
+```js ins={3} "image()"
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import image from '@astrojs/image';
+
+export default defineConfig({
+  // ...
+  integrations: [image()]，
+});
+```
+
+### 安装 `sharp` (可选)
+
+首先,使用包管理器安装 `sharp` 包。如果你使用 npm 或不确定，在终端运行这个命令：
+
+```sh
+npm install sharp
+```
+
+然后在你的 `astro.config.*` 文件中更新 integration 配置，使用内置的 `sharp` 图片转换器。
+
+```js ins={8}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import image from '@astrojs/image';
+
+export default defineConfig({
+  // ...
+  integrations: [
+    image({
+      serviceEntryPoint: '@astrojs/image/sharp'，
+    })，
+  ]，
+});
+```
+
+### 更新 `env.d.ts`
+
+为了获得最佳的开发体验，可以把 integrations 的类型定义添加到项目的 `env.d.ts` 文件中。
+
+```typescript
+// 将 `astro/client` 替换成 `@astrojs/image/client`
+/// <reference types="@astrojs/image/client" />
+```
+
+或者，如果你的项目是通过 `tsconfig.json` 使用类型的，你可以这样做
+
+```json
+{
+  "compilerOptions": {
+    // 将 `astro/client` 替换成 `@astrojs/image/client`
+    "types": ["@astrojs/image/client"]
+  }
+}
+```
+
+## 使用
+
+```astro title="src/pages/index.astro"
+---
+import { Image， Picture } from '@astrojs/image/components';
+import heroImage from '../assets/hero.png';
+---
+
+// 优化图片，同时保持原始宽度、高度和图像格式
+<Image src={heroImage} alt="descriptive text" />
+
+// 为响应式图片或艺术指导指定多种尺寸
+<Picture
+  src={heroImage}
+  widths={[200， 400， 800]}
+  sizes="(max-width: 800px) 100vw， 800px"
+  alt="descriptive text"
+/>
+---
+```
+
+内置的图片转换器支持调整图片大小和编码到不同的图片格式。第三方图片服务也可以添加自定义转换的支持(例如：`blur`、`filter`、`rotate` 等)。
+
+Astro 的 `<Image />` 和 `<Picture />`  组件需要 `alt` 属性，用于为图片提供描述性文本。如果 alt 文本缺失会记录警告，未来的集成版本在没有 alt 文本的情况下会抛出错误。
+
+如果图片仅仅是装饰性的(即对理解页面内容没有贡献)，设置 `alt=""`，这样屏幕阅读器可以正确理解并忽略这个图片。
+
+### `<Image />`
+
+内置的 `<Image />` 组件用于为通过 URL 访问的远程图片和从项目的 `src/` 目录导入的本地图片创建优化的 `<img />`。
+
+除了组件特定的属性之外，`<Image />` 组件中包含的 `<img />`  的任何有效 HTML 属性也会包含在构建输出的 `<img />` 中。
+
+#### src
+
+<p>
+
+**类型：** `string` | `ImageMetadata` | `Promise<ImageMetadata>`<br/>
+**必填：** `true`
+
+</p>
+
+原始图像文件的来源。
+
+对于远程图片，提供完整的 URL。(例如 `src="https://astro.build/assets/blog/astro-1-release-update.avif"`)
+
+对于位于项目 `src/` 目录中的图片：使用相对于 `src/` 目录的文件路径。(例如 `src="../assets/source-pic.png"`)
+
+对于位于 `public/` 目录中的图片：使用相对于 `public/`  目录的 URL 路径。(例如 `src="/images/public-image.jpg"`)。这些图片的使用方式与远程图片相同。
+
+#### alt
+
+<p>
+
+**类型：** `string`<br/>
+**必填：** `true`
+
+</p>
+
+定义了图像的替代文本描述。
+
+如果图像不是内容的关键部分（例如装饰或跟踪像素），则设置为空字符串（`alt=""`）。
+
+#### format
+
+<p>
+
+**类型：** `'avif' | 'jpeg' | 'jpg' | 'png' | 'svg' | 'webp'`<br/>
+**默认：** `undefined`
+
+</p>
+
+要在优化后的图像中使用的输出格式。如果未提供 `format`，则将使用原始图像格式。
+
+当使用默认图像转换器 Squoosh 处理远程图像时，此属性对于远程图像是必需的，因为无法推断出原始格式。
+
+在 v0.15.0 中添加：在使用SVG图像时，可以使用 `<Image />` 组件，但是 `svg` 选项仅在原始图像是 `.svg` 文件时可用。其他图像格式（如 `.png` 或 `.jpg`）无法转换为矢量图像。`.svg` 图像本身不会被转换，但最终的 `<img />` 将通过集成进行适当优化。
+
+#### quality
+
+<p>
+
+**类型：** `number`<br/>
+**默认：** `undefined`
+
+</p>
+
+在优化过程中使用的压缩质量。如果未提供，图像服务将根据图像格式使用其自己的默认质量。
+
+#### width
+
+<p>
+
+**类型：** `number`<br/>
+**默认：** `undefined`
+
+</p>
+
+输出图像的期望宽度。与 `height` 结合使用，可以将图像裁剪为精确的尺寸，或者使用 `aspectRatio` 进行自动计算和裁剪高度。
+
+对于本地图像，尺寸是可选的，如果未提供尺寸，则将使用原始图像尺寸。
+
+对于远程图像，包括 `public/` 中的图像，集成需要能够计算优化图像的尺寸。可以通过提供 `width` 和 `height` 或者提供一个尺寸和一个 `aspectRatio` 来实现。
+
+#### height
+
+<p>
+
+**类型：** `number`<br/>
+**默认：** `undefined`
+
+</p>
+
+输出图像的期望高度。与 `width` 结合使用，可以将图像裁剪为精确的尺寸，或者使用 `aspectRatio` 进行自动计算和裁剪宽度。
+
+对于本地图像，尺寸是可选的，如果未提供尺寸，则将使用原始图像尺寸。
+
+对于远程图像，包括 `public/` 中的图像，集成需要能够计算优化图像的尺寸。可以通过提供 `width` 和 `height` 或者提供一个尺寸和一个 `aspectRatio` 来实现。
+
+#### aspectRatio
+
+<p>
+
+**类型：** `number` | `string`<br/>
+**默认：** `undefined`
+
+</p>
+
+输出图像的期望宽高比。与 `width` 或 `height` 中的任意一个结合使用，可以自动计算并裁剪另一个维度。
+
+可以提供一个字符串，格式为 `{宽度}:{高度}`，例如：`16:9` 或 `3:4`。
+
+也可以提供一个数字，当宽高比在构建时计算时很有用。可以是行内数字，例如 `1.777`，也可以作为 JSX 行内表达式，如 `aspectRatio={16/9}`。
+
+对于远程图像，包括 `public/` 中的图像，集成需要能够计算优化图像的尺寸。可以通过提供 `width` 和 `height` 或者提供一个尺寸和一个 `aspectRatio` 来实现。
+
+#### background
+
+<p>
+
+**类型：** `ColorDefinition`<br/>
+**默认：** `undefined`
+
+</p>
+
+> 这在默认的 Squoosh 服务中不受支持。有关使用 `sharp` 服务的详细信息，请参见 [安装部分](#安装-sharp-可选)。
+
+当在 `fit` 属性中使用 `contain` 时，背景颜色用于填充剩余的背景区域。
+
+背景颜色还用于使用 `sharp` 的 `flatten` 方法替换 alpha 通道。如果输出格式不支持透明度（例如 `jpeg`），建议包括一个背景颜色，否则将默认使用黑色替代透明像素。
+
+该参数接受一个字符串作为值。
+
+该参数可以是[命名的 HTML 颜色](https://www.w3schools.com/tags/ref_colornames.asp)，一个带有3或6个十六进制字符的十六进制颜色表示（形式为 `#123[abc]`），以及形式为 `rgb(100，100，100)` 的RGB定义，以及形式为 `rgba(100，100，100， 0.5)` 的 RGBA 定义。
+
+#### fit
+
+<p>
+
+**类型：** `'cover' | 'contain' | 'fill' | 'inside' | 'outside'` <br/>
+**默认：** `'cover'`
+
+</p>
+
+> 这在默认的 Squoosh 服务中不受支持。有关使用 `sharp` 服务的详细信息，请参见[安装部分](#安装-sharp-可选)。详细了解[如何使用 `sharp` 调整图像大小](https://sharp.pixelplumbing.com/api-resize)。
+
+图像应如何调整大小以适应 `height` 和 `width`。
+
+#### position
+
+<p>
+
+**类型：** `'top' | 'right top' | 'right' | 'right bottom' | 'bottom' | 'left bottom' | 'left' | 'left top' | 'north' | 'northeast' | 'east' | 'southeast' | 'south' | 'southwest' | 'west' | 'northwest' | 'center' | 'centre' | 'cover' | 'entropy' | 'attention'` <br/>
+**默认：** `'centre'`
+
+</p>
+
+> 这在默认的 Squoosh 服务中不受支持。有关使用 `sharp` 服务的详细信息，请参见[安装部分](#安装-sharp-可选)。详细了解[如何使用 `sharp` 调整图像大小](https://sharp.pixelplumbing.com/api-resize)。
+
+在 `fit` 属性为 `cover` 或 `contain` 时，裁剪的位置。
+
+### `<Picture />`
+
+内置的 `<Picture />` 组件用于创建一个优化的 `<picture />`，既可以用于通过URL访问的远程图像，也可以用于从项目的 `src/` 目录中导入的本地图像。
+
+除了组件特定的属性外，`<Picture />` 组件中包含的 `<img />` 的任何有效 HTML 属性也将包含在生成的 `<img />` 中。
+
+#### src
+
+<p>
+
+**类型：** `string` | `ImageMetadata` | `Promise<ImageMetadata>`<br/>
+**必填：** `true`
+
+</p>
+
+原始图像文件的来源。
+
+对于远程图像，请提供完整的URL。（例如：`src="https://astro.build/assets/blog/astro-1-release-update.avif"`）
+
+对于位于项目的 `src/` 目录中的图像：使用相对于 `src/` 目录的文件路径。（例如：`src="../assets/source-pic.png"`）
+
+对于位于 `public/` 目录中的图像：使用相对于 `public/` 目录的URL路径。（例如：`src="/images/public-image.jpg"`）。这些与远程图像一样使用。
+
+#### alt
+
+<p>
+
+**类型：** `string`<br/>
+**必填：** `true`
+
+</p>
+
+定义图像的替代文本描述。
+
+如果图像不是内容的关键部分（例如装饰或跟踪像素），则设置为空字符串（`alt=""`）。
+
+#### sizes
+
+<p>
+
+**类型：** `string`<br/>
+**必填：** `true`
+
+</p>
+
+HTMLImageElement 属性 `sizes` 允许你为一系列媒体条件指定图像的布局宽度。
+
+有关更多详细信息，请参见 [MDN](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/sizes)。
+
+#### widths
+
+<p>
+
+**类型：** `number[]`<br/>
+**必填：** `true`
+
+</p>
+
+这是响应式图像构建的尺寸列表。与 `aspectRatio` 结合使用，以计算每个构建图像的最终尺寸。
+
+```astro
+// 构建三个图像：400x400，800x800和1200x1200
+<Picture src={img} widths={[400， 800， 1200]} aspectRatio="1:1" alt="descriptive text" />
+```
+
+#### aspectRatio
+
+<p>
+
+**类型：** `number` | `string`<br/>
+**默认：** `undefined`
+
+</p>
+
+期望的输出图像宽高比。这与 `widths` 结合使用，以计算每个构建图像的最终尺寸。
+
+可以提供一个字符串，格式为`{宽度}:{高度}`，例如：`16:9`或`3:4`。
+
+也可以提供一个数字，在构建时计算宽高比时很有用。可以是行内数字，例如 `1.777`，也可以作为 JSX 行内表达式，如 `aspectRatio={16/9}`。
+
+对于远程图像，包括 `public/` 中的图像，在构建时需要 `aspectRatio` 来确保可以正确计算出 `height`。
+
+#### formats
+
+<p>
+
+**类型：** `Array<'avif' | 'jpeg' | 'png' | 'webp'>`<br/>
+**默认：** `undefined`
+
+</p>
+
+要在优化图像中使用的输出格式。如果未提供，除了使用原始图像格式外，还将使用 `webp` 和 `avif`。
+
+对于远程图像，包括 `public/` 中的图像，原始图像格式是未知的。如果未提供，将仅使用 `webp` 和 `avif`。
+
+#### background
+
+<p>
+
+**类型：** `ColorDefinition`<br/>
+**默认：** `undefined`
+
+</p>
+
+> 这在默认的 Squoosh 服务中不受支持。有关使用 `sharp` 服务的详细信息，请参见[安装部分](#安装-sharp-可选)。
+
+用于使用 `sharp` 的 `flatten` 方法替换 alpha 通道的背景颜色。如果输出格式不支持透明度（例如 `jpeg`），建议包括一个背景颜色，否则将默认使用黑色替代透明像素。
+
+该参数接受一个字符串作为值。
+
+该参数可以是[命名的 HTML 颜色](https://www.w3schools.com/tags/ref_colornames.asp)，一个带有3或6个十六进制字符的十六进制颜色表示（形式为 `#123[abc]`），以及形式为 `rgb(100，100，100)` 的 RGB 定义。
+
+#### fit
+
+<p>
+
+**类型：** `'cover' | 'contain' | 'fill' | 'inside' | 'outside'` <br/>
+**默认：** `'cover'`
+
+</p>
+
+> 这在默认的 Squoosh 服务中不受支持。有关使用 `sharp` 服务的详细信息，请参见[安装部分](#安装-sharp-可选)。详细了解[如何使用 `sharp` 调整图像大小](https://sharp.pixelplumbing.com/api-resize)。
+
+图像应如何调整大小以适应 `height` 和 `width`。
+
+#### position
+
+<p>
+
+**类型：** `'top' | 'right top' | 'right' | 'right bottom' | 'bottom' | 'left bottom' | 'left' | 'left top' |
+  'north' | 'northeast' | 'east' | 'southeast' | 'south' | 'southwest' | 'west' | 'northwest' |
+  'center' | 'centre' | 'cover' | 'entropy' | 'attention'` <br/>
+**默认：** `'centre'`
+
+</p>
+
+> 这在默认的 Squoosh 服务中不受支持。有关使用 `sharp` 服务的详细信息，请参见[安装部分](#安装-sharp-可选)。详细了解[如何使用 `sharp` 调整图像大小](https://sharp.pixelplumbing.com/api-resize)。
+
+在 `fit` 属性为 `cover` 或 `contain` 时，裁剪的位置。
+
+### `getImage`
+
+这是由 `<Image />` 组件用于构建经过转换的图像的 `<img />` 属性的辅助函数。这个辅助函数可以直接用于更复杂的用例，这些用例目前 `<Image />` 组件不支持。
+
+该辅助函数接受一个与 `<Image />` 组件具有相同属性的对象，并返回一个包含应包含在最终的 `<img />` 元素上的属性的对象。
+
+如果你需要向页面的 `<head>` 添加预加载链接，这可能会很有帮助。
+
+```astro
+---
+import { getImage } from '@astrojs/image';
+
+const { src } = await getImage({
+  src: import('../assets/hero.png')，
+  alt: 'My hero image'，
+});
+---
+
+<html>
+  <head>
+    <link rel="preload" as="image" href={src} alt="alt text" />
+  </head>
+</html>
+```
+
+### `getPicture`
+
+这是由 `<Picture />` 组件用于构建响应式图像的多个尺寸和格式的辅助函数。这个辅助函数可以直接用于更复杂的用例，这些用例目前 `<Picture />` 组件不支持。
+
+该辅助函数接受一个与 `<Picture />` 组件具有相同属性的对象，并返回一个包含应包含在最终的 `<img />` 元素上的属性的对象，**以及**一个应该用于渲染 `<picture>` 元素的所有 `<source>` 的源列表。
+
+## 配置
+
+集成可以配置为与不同的图像服务一起运行，可以是托管的图像服务，也可以是在构建或 SSR 部署中本地运行的完整图像转换器。
+
+> 在开发过程中，本地图像可能尚未发布，也不会对托管的图像服务可用。在使用 `astro dev` 时，本地图像将始终使用内置的图像服务。
+
+### config.serviceEntryPoint
+
+`serviceEntryPoint` 应该解析为从 NPM 安装的图像服务。默认的入口点是 `@astrojs/image/squoosh`，它会解析为从此集成的 `package.json` 导出的入口点。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import image from '@astrojs/image';
+
+export default defineConfig({
+  integrations: [
+    image({
+      // 示例：从 NPM 安装的第三方图像服务的入口点
+      serviceEntryPoint: 'my-image-service/astro.js'，
+    })，
+  ]，
+});
+```
+
+### config.logLevel
+
+`logLevel` 控制可用于在构建过程中由集成记录多少详细信息。这可能对于追踪需要很长时间才能构建的特定图像或转换非常有用。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import image from '@astrojs/image';
+
+export default defineConfig({
+  integrations: [
+    image({
+      // 支持的级别： 'debug' | 'info' | 'warn' | 'error' | 'silent'
+      // 默认：'info'
+      logLevel: 'debug'，
+    })，
+  ]，
+});
+```
+
+### config.cacheDir
+
+在静态构建期间，集成将缓存转换后的图像，以避免在每次构建中重新构建相同的图像。如果你正在使用允许你将构建资产缓存到未来部署的托管服务，这可能特别有帮助。
+
+本地图像将被缓存1年，并在原始图像文件更改时失效。远程图像将基于 `fetch()` 响应的缓存标头进行缓存，类似于 CDN 如何管理缓存。
+
+默认情况下，转换后的图像将被缓存到 `./node_modules/.astro/image`。这可以在集成的配置选项中进行配置。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import image from '@astrojs/image';
+
+export default defineConfig({
+  integrations: [
+    image({
+      // 如果你的托管提供商允许在持续集成（CI）构建之间进行缓存，这可能会很有用。
+      cacheDir: './.cache/image'，
+    })，
+  ]，
+});
+```
+
+也可以通过使用 `cacheDir: false` 来禁用缓存。
+
+## 示例
+
+### 本地图片
+
+项目的 `src/` 目录中的图像文件可以在正文中导入，并直接传递给 `<Image />` 组件作为 `src=` 属性的值。`alt` 也是必需的。
+
+所有其他属性都是可选的，如果未提供，将默认为原始图像文件的属性。
+
+```astro
+---
+import { Image } from '@astrojs/image/components';
+import heroImage from '../assets/hero.png';
+---
+
+// 优化后的图像，保持原始的宽度、高度和图像格式
+<Image src={heroImage} alt="descriptive text" />
+
+// 高度将被重新计算以匹配原始的宽高比
+<Image src={heroImage} width={300} alt="descriptive text" />
+
+// 裁剪为特定的宽度和高度
+<Image src={heroImage} width={300} height={600} alt="descriptive text" />
+
+// 裁剪到特定的宽高比并转换为 avif 格式
+<Image src={heroImage} width={300} aspectRatio="16:9" format="avif" alt="descriptive text" />
+
+// 图像导入还可以在行内
+<Image src={import('../assets/hero.png')} alt="descriptive text" />
+```
+
+#### 位于 `/public` 中的图片
+
+`<Image />` 组件也可以与存储在 `public/` 目录中的图像一起使用，`src=` 属性相对于公共文件夹。它将被视为远程图像，这要求提供 `width` 和 `height` 两个属性，或者一个维度和一个 `aspectRatio` 属性。
+
+你的原始图像将不经处理地复制到构建文件夹中，就像位于 public/ 中的所有文件一样，Astro 的图像集成也将返回图像的优化版本。
+
+例如，可以在静态构建或SSR构建中使用位于`public/social.png`的图像，如下所示：
+
+```astro title="src/pages/page.astro"
+---
+import { Image } from '@astrojs/image/components';
+import socialImage from '/social.png';
+---
+
+// 在静态构建中：图像将被构建和优化到 `/dist`
+// 在 SSR 构建中：当浏览器请求时，服务器将对图像进行优化
+<Image src={socialImage} width={1280} aspectRatio="16:9" alt="descriptive text" />
+```
+
+### 远程图像
+
+远程图像可以通过 `<Image />` 组件进行转换。`<Image />` 组件需要知道 `<img />` 元素的最终尺寸，以避免内容布局的变化。对于远程图像，这意味着你必须提供 `width` 和 `height`，或者其中一个尺寸加上必需的 `aspectRatio`。
+
+```astro
+---
+import { Image } from '@astrojs/image/components';
+
+const imageUrl = 'https://astro.build/assets/press/full-logo-dark.png';
+---
+
+// 裁剪为特定的宽度和高度
+<Image src={imageUrl} width={750} height={250} format="avif" alt="descriptive text" />
+
+// 高度将被重新计算以匹配宽高比
+<Image src={imageUrl} width={750} aspectRatio={16 / 9} format="avif" alt="descriptive text" />
+```
+
+### 响应式图片
+
+`<Picture />` 组件可用于自动构建具有多个尺寸和格式的 `<picture>` 。查看 [MDN](https://developer.mozilla.org/zh-CN/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#art_direction) 以深入了解响应式图片和美术方向。
+
+默认情况下，图片将包含 `avif` 和 `webp` 的格式。对于仅限于本地的图像，还将包括图像的原始格式。
+
+对于远程图像，需要提供 `aspectRatio` 以确保在构建时可以正确计算 `height`。
+
+```astro
+---
+import { Picture } from '@astrojs/image/components';
+import hero from '../assets/hero.png';
+
+const imageUrl =
+  'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png';
+---
+
+// 具有多个尺寸的本地图像
+<Picture
+  src={hero}
+  widths={[200， 400， 800]}
+  sizes="(max-width: 800px) 100vw， 800px"
+  alt="descriptive text"
+/>
+
+// 远程图像（需要提供宽高比）
+<Picture
+  src={imageUrl}
+  widths={[200， 400， 800]}
+  aspectRatio="4:3"
+  sizes="(max-width: 800px) 100vw， 800px"
+  alt="descriptive text"
+/>
+
+// 支持行内导入
+<Picture
+  src={import('../assets/hero.png')}
+  widths={[200， 400， 800]}
+  sizes="(max-width: 800px) 100vw， 800px"
+  alt="descriptive text"
+/>
+```
+
+### 设置默认值
+
+目前，没有办法为所有 `<Image />` 和 `<Picture />` 组件指定默认值。必需的属性应在每个单独的组件上设置。
+
+作为替代方案，你可以将这些组件包装在另一个 Astro 组件中以便复用。例如，你可以为博客文章图像创建一个组件：
+
+```astro title="src/components/BlogPostImage.astro"
+---
+import { Picture } from '@astrojs/image/components';
+
+const { src， ...attrs } = Astro.props;
+---
+
+<Picture src={src} widths={[400， 800， 1500]} sizes="(max-width: 767px) 100vw， 736px" {...attrs} />
+
+<style>
+  img，
+  picture :global(img)，
+  svg {
+    margin-block: 2.5rem;
+    border-radius: 0.75rem;
+  }
+</style>
+```
+
+### 使用 `<img>` 与图像集成。
+
+官方图像集成将更改图像导入，使其返回一个对象而不是源字符串。
+该对象具有以下属性，这些属性是从导入的文件中派生出来的：
+
+```ts
+{
+  src: string;
+  width: number;
+  height: number;
+  format: 'avif' | 'gif' | 'heic' | 'heif' | 'jpeg' | 'jpg' | 'png' | 'tiff' | 'webp';
+}
+```
+
+如果已安装图像集成，请在使用 `<img>` 时引用对象的 `src` 属性。
+
+```astro ".src"
+---
+import rocket from '../images/rocket.svg';
+---
+
+<img src={rocket.src} alt="A rocketship in space." />
+```
+
+或者，将 `?url` 添加到你的导入中，以告诉它们返回一个源字符串。
+
+```astro "?url"
+---
+import rocket from '../images/rocket.svg?url';
+---
+
+<img src={rocket} alt="A rocketship in space." />
+```
+
+## 故障排除
+
+*   如果你的安装似乎无法正常工作，请尝试重新启动开发服务器。
+*   如果你编辑并保存文件，但网站没有相应更新，请尝试刷新页面。
+*   如果刷新页面不会更新预览，或者新的安装似乎无法正常工作，请重新启动开发服务器。
+
+需要帮助,请查看 [Discord](https://astro.build/chat) 上的 `#support` 频道。我们友好的支持小组成员随时准备提供帮助!  
+
+你也可以查看我们的 [Astro 集成文档][astro-integration]，了解更多关于集成的信息。
+
+[astro-integration]: /zh-cn/guides/integrations-guide/
+
+## 贡献
+
+这个项目由 Astro 的核心团队维护，欢迎你提交 issue 或 PR！
+
+## 更改日志
+
+有关该集成的变化历史，请参阅 [CHANGELOG.md](https://github.com/withastro/astro/tree/main/packages/integrations/partytown/CHANGELOG.md)。

@@ -83,22 +83,22 @@ Relative images can now be referenced in Markdown, MDX, and Markdoc files. These
 
 This allows you to move your images from the `public/` directory to the new, reserved `src/assets/` directory or move them near your Markdown, MDX, or Markdoc files. (See the URL path of these built images in the example below.)
 
-Your existing images in `public/` and remote images are still valid but are not automatically optimized by Astro's build process.
+Your existing images in `public/` are still valid but are not automatically optimized by Astro's build process.
 
 ```md title="src/pages/posts/post-1.md" "/_astro" ".hash" "../../assets/"
 # My Markdown Page
 
 <!-- Local image stored at src/assets/stars.png -->
 ![A starry night sky.](../../assets/stars.png)
-<img src="/_astro/stars.hash.png" alt="A starry night sky.">
-
-<!-- Image stored at public/images/stars.png -->
-![A starry night sky.](/images/stars.png)
-<img src="/images/stars.png" alt="A starry night sky.">
+<img src="/_astro/stars.hash.webp" alt="A starry night sky.">
 
 <!-- Remote image on another server -->
 ![Astro logo](https://docs.astro.build/assets/logomark-light.png)
-<img src="https://docs.astro.build/assets/logomark-light.png" width="25" alt="Astro logo">
+<img src="/_astro/logomark-light.hash.webp" width="25" alt="Astro logo">
+
+<!-- Image stored at public/images/stars.png, will not be processed -->
+![A starry night sky.](/images/stars.png)
+<img src="/images/stars.png" alt="A starry night sky.">
 ```
 
 ### Convert from `@astrojs/image`
@@ -108,7 +108,7 @@ Your existing images in `public/` and remote images are still valid but are not 
 :::note[cropping images]
 The Assets API does not support image cropping. The current behaviour is to resize images to fit.
 
-Use the `@astrojs/image` integration if you need support for cropping images. Alternatively, you can use the [`object-fit` CSS property](https://developer.mozilla.org/en-US/docs/Web/CSS/object-fit) to achieve a similar result. 
+Use the `@astrojs/image` integration if you need support for cropping images. Alternatively, you can use the [`object-fit` CSS property](https://developer.mozilla.org/en-US/docs/Web/CSS/object-fit) to achieve a similar result.
 :::
 
 To avoid errors in your project, complete the following steps:
@@ -203,6 +203,36 @@ const allBlogPosts = await getCollection("blog");
 	))
 }
 ```
+
+### Allowed domains and remote patterns for remote images
+
+For security reasons, Astro will not process remote images from all domains by default. You can specify which domains to allow in your `astro.config.mjs` file.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  image: {
+    domains: ["astro.build"],
+  }
+});
+```
+
+Alternatively, you can specify a pattern to match against the `src` attribute of remote images to allow. This can be useful if you want to allow images from a CDN that uses a wildcard subdomain.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  image: {
+    remotePatterns: [{ hostname: "*.akamaihd.net" }],
+  }
+});
+```
+
+The protocol, hostname, pathname, and port of the image URL can be checked using this method. For instance, you could allow only images being served from HTTPs using `{ protocol: "https" }`.
+
+See [`image.domains`](/en/reference/configuration-reference/#imagedomains-experimental) and [`image.remotePatterns`](/en/reference/configuration-reference/#imageremotepatterns-experimental) for detailed configuration instructions.
 
 ## `astro:assets` module
 
@@ -336,9 +366,9 @@ It returns an object with the following properties:
 
 ## Using sharp
 
-By default, Astro uses [Squoosh](https://github.com/GoogleChromeLabs/squoosh) to transform your images. This supports all JavaScript environments.
+By default, Astro uses [Squoosh](https://github.com/GoogleChromeLabs/squoosh) to transform your images.
 
-If you're deploying to a Node environment, you may want to use [sharp](https://github.com/lovell/sharp), which offers faster performance but requires Node. To use sharp, first install it:
+If you're building a static site or deploying an SSR site to a Node environment, we recommend using [sharp](https://github.com/lovell/sharp), which offers faster performance but requires Node. To use sharp, first install it:
 
 <PackageManagerTabs>
   <Fragment slot="npm">

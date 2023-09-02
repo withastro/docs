@@ -60,6 +60,20 @@ export default UIDictionary({
 	'aside.tip': 'Astuce',
 	'aside.caution': 'Attention',
 	'aside.danger': 'Danger',
+	// Checklist component
+	'checklist.or': 'ou',
+	// Multiple Choice component
+	'multipleChoice.defaultCorrect': 'Correct !',
+	'multipleChoice.defaultIncorrect': 'Essaie encore !',
+	'multipleChoice.submitLabel': 'Soumettre',
+	// Tutorial Progress
+	'progress.todo': 'To-do',
+	'progress.done': 'Complété',
+	// Tutorial Navigation
+	'tutorial.trackerLabel': 'Suivi du tutoriel',
+	'tutorial.unit': 'Unité',
+	// Tutorial
+	'tutorial.getReady': 'Préparez-vous à...',
 	// Feedback Fish widget
 	'feedback.button': 'Laissez un commentaire',
 	'feedback.a11yLabel': 'Formulaire de commentaires',

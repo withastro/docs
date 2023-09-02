@@ -1,0 +1,62 @@
+---
+title: Caisy y Astro
+description: Agrega contenido a tu proyecto de Astro utilizando Caisy como CMS 
+type: cms
+service: Caisy
+i18nReady: true
+stub: true
+---
+
+[Caisy](https://caisy.io/) es un CMS headless que expone una API de GraphQL para acceder al contenido.
+
+## Utilizando Caisy con Astro
+
+Usa `graphql-request` y el renderizador de texto enriquecido de Caisy para Astro para obtener los datos de tu CMS y mostrar tu contenido en una página de Astro.
+
+```astro title="src/pages/blog/[...slug].astro"
+---
+import RichTextRenderer from '@caisy/rich-text-astro-renderer';
+import { gql, GraphQLClient } from 'graphql-request';
+
+const params = Astro.params;
+
+const client = new GraphQLClient(
+	`https://cloud.caisy.io/api/v3/e/${import.meta.env.CAISY_PROJECT_ID}/graphql`,
+	{
+		headers: {
+			'x-caisy-apikey': import.meta.env.CAISY_API_KEY
+		}
+	}
+);
+const gqlResponse = await client.request(
+	gql`
+		query allBlogArticle($slug: String) {
+			allBlogArticle(where: { slug: { eq: $slug } }) {
+				edges {
+					node {
+						text {
+							json
+						}
+						title
+						slug
+						id
+					}
+				}
+			}
+		}
+	`,
+	{ slug: params.slug }
+);
+
+const post = gqlResponse?.allBlogArticle?.edges?.[0]?.node;
+---
+<h1>{post.title}</h1>
+<RichTextRenderer node={post.text.json} />
+```
+
+## Recursos oficiales
+
+- Mira el ejemplo de Caisy + Astro en [GitHub](https://github.com/caisy-io/caisy-example-astro) o [Stackblitz](https://stackblitz.com/github/caisy-io/caisy-example-astro?file=src%2Fpages%2Fblog%2F%5B...slug%5D.astro)
+- Realiza consultas a tus documentos en [modo borrador](https://caisy.io/developer/docs/external-api/localization-and-preview#preview-mode-15) y múltiples [idiomas](https://caisy.io/developer/docs/external-api/localization-and-preview#localization-in-a-graphql-query-8).
+- Utiliza [paginación](https://caisy.io/developer/docs/external-api/queries-pagination) para consultar un gran número de documentos.
+- Emplea [filtros](https://caisy.io/developer/docs/external-api/external-filter-and-sorting) en tus consultas y [ordena](https://caisy.io/developer/docs/external-api/external-filter-and-sorting#sorting-8) los resultados.

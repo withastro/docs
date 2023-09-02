@@ -1,0 +1,259 @@
+---
+title: 将你的 Astro 网站部署到 AWS
+description: 如何将你的 Astro 网站通过 AWS 部署上线
+type: deploy
+i18nReady: true
+---
+
+[AWS](https://aws.amazon.com/) 是一个功能齐全的 Web 应用托管平台，可以用来部署 Astro 网站。
+
+将你的项目部署到 AWS 需要使用 [AWS 控制台](https://aws.amazon.com/console/)（大部分操作也可以使用 [AWS CLI](https://aws.amazon.com/cli/) 进行）。本指南将指导你按照最基本的方法将网站部署到 AWS 上，然后演示如何添加额外的服务以降本增效。
+
+## AWS Amplify
+
+AWS Amplify 是一套专为前端 Web 和移动开发人员设计的工具和功能，可以让你在 AWS 上快速轻松地构建全栈应用程序。
+
+1. 创建一个新的 Amplify Hosting 项目。
+2. 将你的仓库连接到 Amplify。
+3. 修改构建输出目录 `baseDirectory` 为 `/dist`。
+
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          # 如果不使用 npm，请将 `npm ci` 修改为 `yarn install` 或 `pnpm i`
+          commands:
+            - npm ci
+        build:
+          commands:
+            - npm run build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    ```
+
+如果使用 `pnpm`，则需要稍微不同的配置来缓存 pnpm 存储目录而不是 `node_modules`。以下是建议的构建配置：
+
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm i -g pnpm
+            - pnpm config set store-dir .pnpm-store
+            - pnpm i
+        build:
+          commands:
+            - pnpm run build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - .pnpm-store/**/*
+    ```
+
+之后 Amplify 将自动部署你的网站，并在你向仓库推送提交时进行更新。
+
+## S3 静态网站托管
+
+S3 是任何应用程序的起点，因为它是一个可以存储你项目文件和其他资源的地方。S3 按照文件存储和请求数量收费。你可以在 [AWS 文档](https://aws.amazon.com/s3/) 中找到有关 S3 的更多信息。
+
+1. 创建一个与你的项目名称相对应的 S3 存储桶。
+
+    :::tip
+    存储桶名称应该是全局唯一的，我们建议使用你的项目名称以及你的站点域名来组合。
+    :::
+
+2. 禁用 **“Block all public access”**。默认情况下，AWS 将所有存储桶设置为私有。要使其公开访问，你需要在存储桶的属性中取消选中 “Block public access” 复选框。
+
+3. 将你构建后的文件（位于 `dist` 目录）上传到 S3。你可以在控制台手动执行此操作，也可以使用 AWS CLI。如果使用 AWS CLI，请在 [使用 AWS 凭证进行身份验证](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) 后，使用以下命令：
+
+    ```
+    aws s3 cp dist/ s3://<BUCKET_NAME>/ --recursive
+    ```
+
+4. 更新你的存储桶策略以允许公共访问。你可以在存储桶的**权限 > 存储桶策略**中找到此设置。
+
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "PublicReadGetObject",
+          "Effect": "Allow",
+          "Principal": "*",
+          "Action": "s3:GetObject",
+          "Resource": "arn:aws:s3:::<BUCKET_NAME>/*"
+        }
+      ]
+    }
+    ```
+
+    :::caution
+    不要忘记将 `<BUCKET_NAME>` 替换为你的存储桶名称。
+    :::
+
+5. 为你的存储桶启用网站托管。你可以在存储桶的 **Settings > Static website hosting** 中找到此设置。将你的索引文档设置为 `index.html`，错误文档设置为 `404.html`。最后，在存储桶的 **Settings > Static website hosting** 中找到你的新网站 URL。
+
+    :::note
+    如果你正在部署单页面应用程序 (SPA)，请将错误文档设置为 `index.html`。
+    :::
+
+## S3 与 CloudFront
+
+CloudFront 是一个提供内容分发网络 (CDN) 功能的 Web 服务。它用于缓存 Web 服务器的内容并将其分发给用户。CloudFront 按照传输的数据量收费。将 CloudFront 添加到你的 S3 存储桶中可以更为经济的同时也提供更快的分发速度。
+
+我们将使用 CloudFront 来包装我们的 S3 存储桶，以使用亚马逊全球 CDN 网络为项目的文件提供服务。这样可以降低提供项目文件的成本，并提高站点的性能。
+
+### S3 设置
+
+1. 使用你的项目名称创建一个 S3 存储桶。
+
+    :::tip
+    存储桶名称应为全局唯一。我们建议使用你的项目名称和站点的域名来组合。
+    :::
+
+2. 将位于 `dist` 目录中的构建文件上传到 S3。你可以在控制台手动执行此操作，也可以使用 AWS CLI。如果使用 AWS CLI，可以在 [使用 AWS 凭证进行身份验证](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) 后使用以下命令：
+
+    ```
+    aws s3 cp dist/ s3://<BUCKET_NAME>/ --recursive
+    ```
+
+3. 更新存储桶策略以允许 **CloudFront 访问**。你可以在存储桶的 **Permissions > Bucket policy** 中找到此设置。
+
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [{
+        "Effect": "Allow",
+        "Principal": {
+          "AWS": "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity <CLOUDFRONT_OAI_ID>"
+        },
+        "Action": "s3:GetObject",
+        "Resource": "arn:aws:s3:::astro-aws/*"
+      }]
+    }
+    ```
+
+    :::caution
+    请确保将 `<CLOUDFRONT_OAI_ID>` 替换为你的 CloudFront Origin Access Identity ID 的名称。你可以在设置 CloudFront 后，在 **CloudFront > Origin access identities** 中找到 CloudFront Origin Access Identity ID。
+    :::
+
+### CloudFront 设置
+
+1. 创建一个 CloudFront 分发，并按如下值配置：
+    * **源域名**：你的 S3 存储桶
+    * **S3 存储桶访问**："Yes use OAI (bucket can restrict access to only CloudFront)"
+    * **源访问标识**：创建一个新的源访问标识
+    * **查看者 - 存储桶策略**："No, I will update the bucket policy"
+    * **查看者协议策略**："Redirect to HTTPS"
+    * **默认根对象**：`index.html`
+
+这样的配置将阻止公共互联网访问你的 S3 存储桶，并通过全球 CDN 网络提供你的网站。你可以在存储桶的 **Distributions > Domain name** 中找到你的 CloudFront 分发 URL。
+
+### CloudFront 函数设置
+
+不幸的是，默认情况下，CloudFront 不支持多页的 `sub-folder/index` 路由。为了配置它，我们将使用 CloudFront 函数将请求定向到 S3 中所需的对象上。
+
+1. 使用以下代码片段创建一个新的 CloudFront 函数。你可以在 **CloudFront > Functions** 中找到 CloudFront 函数。
+
+    ```js
+    function handler(event) {
+      var request = event.request;
+      var uri = request.uri;
+
+      // 检查 URI 是否缺少文件名。
+      if (uri.endsWith('/')) {
+        request.uri += 'index.html';
+      } 
+      // 检查 URI 是否缺少文件扩展名。
+      else if (!uri.includes('.')) {
+        request.uri += '/index.html';
+      }
+
+      return request;
+    }
+    ```
+
+2. 将函数附加到 CloudFront 分发中。你可以在 CloudFront 分发的 **Settings > Behaviors > Edit > Function** 关联中找到此选项。
+   - **查看者请求 - 函数类型：** CloudFront 函数。
+   - **查看者请求 - 函数 ARN：** 选择在前面创建的函数。
+
+## 使用GitHub Actions实现持续部署
+
+有许多方法可以为 AWS 设置持续部署。对于托管在 GitHub 上的代码，一种可能的方法是使用 [GitHub Actions](https://github.com/features/actions) 在每次提交时部署你的网站。
+
+1. 创建一个新的策略在你的 AWS 账户中使用 [IAM](https://aws.amazon.com/iam/) 并拥有以下权限。这个策略将允许你在提交时上传构建好的文件到你的 S3 存储桶，并且在提交时使 CloudFront 分布的文件失效。
+
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+          {
+              "Sid": "VisualEditor0",
+              "Effect": "Allow",
+              "Action": [
+                  "s3:PutObject",
+                  "s3:ListBucket",
+                  "cloudfront:CreateInvalidation"
+              ],
+              "Resource": [
+                  "<DISTRIBUTION_ARN>",
+                  "arn:aws:s3:::<BUCKET_NAME>/*",
+                  "arn:aws:s3:::<BUCKET_NAME>"
+              ]
+          }
+      ]
+    }
+    ```
+
+    :::caution
+    不要忘记替换 `<DISTRIBUTION_ARN>` 和 `<BUCKET_NAME>`。你可以在 **CloudFront > Distributions > Details** 中找到 ARN。
+    :::
+
+2. 创建一个新的 IAM 用户并将该策略附加到用户上。这将需要你提供 `AWS_SECRET_ACCESS_KEY` 和 `AWS_ACCESS_KEY_ID`。
+
+3. 将以下示例工作流添加到你的代码库中的 `.github/workflows/deploy.yml` 文件中，并将其推送到 GitHub。你需要将 `AWS_ACCESS_KEY_ID`、`AWS_SECRET_ACCESS_KEY`、`BUCKET_ID` 和 `DISTRIBUTION_ID` 作为 “secrets” 添加到 GitHub 代码库中的 **Settings** > **Secrets** > **Actions** 中。使用 <kbd>New repository secret</kbd> 按钮来添加每个秘钥。
+
+    ```yaml
+    name: Deploy Website
+
+    on:
+      push:
+        branches:
+          - main
+
+    jobs:
+      deploy:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v3
+          - name: Configure AWS Credentials
+            uses: aws-actions/configure-aws-credentials@v1
+            with:
+              aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+              aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+              aws-region: us-east-1
+          - name: Install modules
+            run: npm ci
+          - name: Build application
+            run: npm run build
+          - name: Deploy to S3
+            run: aws s3 sync ./dist/ s3://${{ secrets.BUCKET_ID }}
+          - name: Create CloudFront invalidation
+            run: aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+    ```
+
+    :::note
+    `BUCKET_ID` 是你的 S3 存储桶的名称。`DISTRIBUTION_ID` 是你的 CloudFront 分发 ID。你可以在 **CloudFront > Distributions > ID** 中找到你的 CloudFront 分发 ID。
+    :::
+    

@@ -367,8 +367,8 @@ Here are two examples of what our code snippets look like written in Markdown, j
 
 #### Example 2 
 - use the file name as a title (alt method)
-- apply "+ diff" styling (green backround) to any occurance of `<Button />`
-- highlight any occurance of `{props.title}` and `{props.social}`
+- apply "+ diff" styling (green backround) to any occurrence of `<Button />`
+- highlight any occurrence of `{props.title}` and `{props.social}`
 
 ``````markdown
 ```jsx /{props.(title|socialLinks)}/ ins="<Button />"

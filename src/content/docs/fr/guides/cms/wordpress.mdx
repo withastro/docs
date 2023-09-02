@@ -1,0 +1,186 @@
+---
+title: Headless WordPress et Astro
+description: Ajoutez du contenu à votre projet Astro en utilisant WordPress comme CMS
+type: cms
+stub: false
+service: WordPress
+i18nReady: true
+---
+import FileTree from '~/components/FileTree.astro'
+
+[WordPress](https://wordpress.org/) est un système de gestion de contenu qui comprend son propre frontend, mais qui peut également être utilisé comme un CMS sans tête pour fournir du contenu à votre projet Astro.
+
+## Intégration avec Astro
+
+WordPress est doté d'un système intégré de l'[API REST WordPress](https://developer.wordpress.org/rest-api/) pour connecter vos données WordPress à Astro. Vous pouvez éventuellement installer [WPGraphQL](https://wordpress.org/plugins/wp-graphql/) sur votre site afin d'utiliser GraphQL.
+
+### Pré-requis
+
+Pour commencer, vous devez disposer des éléments suivants :
+
+1. **Un projet Astro** - Si vous n'avez pas encore de projet Astro, notre [Guide d'installation](/fr/install/auto/) vous permettra d'être opérationnel en un rien de temps.
+2. **Un site WordPress** - L'API REST de votre site est `[VOTRE_SITE]/wp-json/wp/v2/` et est disponible par défaut avec tout site WordPress. Il est également possible de [configurer WordPress dans un environnement local](https://wordpress.org/support/article/installing-wordpress-on-your-own-computer/).
+
+### Mise en place des informations d'identification
+
+Par défaut, votre API WordPress REST est disponible pour des requêtes externes afin de récupérer des données sans authentification. Cela ne permet pas aux utilisateurs de modifier vos données ou les paramètres de votre site et vous permet d'utiliser vos données dans votre projet Astro sans aucune authentification.
+
+Vous pouvez choisir de [demander une authentification](https://developer.wordpress.org/rest-api/frequently-asked-questions/#require-authentication-for-all-requests) si nécessaire.
+
+### Récupération de données
+
+Récupérez vos données WordPress via l'URL unique de l'API REST de votre site et la route de votre contenu (pour un blog, il s'agira généralement de `posts`). Ensuite, vous pouvez rendre les propriétés de vos données en utilisant la directive `set:html={}` d'Astro.
+
+Par exemple, pour afficher une liste de titres d'articles et leur contenu :
+
+```astro title="src/pages/index.astro
+---
+const res = await fetch("https://[YOUR-SITE]/wp-json/wp/v2/posts")
+const posts = await res.json()
+---
+<h1>Astro + WordPress 🚀</h1>
+{
+  posts.map((post) => (
+      <h2 set:html={post.title.rendered} />
+      <p set:html={post.content.rendered} />
+  ))
+}
+```
+
+L'API REST de WordPress inclut des [paramètres globaux](https://developer.wordpress.org/rest-api/using-the-rest-api/global-parameters/) tels que `_fields` et `embed`.
+
+Une grande quantité de données est disponible via cette API, vous pouvez donc souhaiter ne récupérer que certains champs. Vous pouvez restreindre votre réponse en ajoutant le paramètre [`_fields`](https://developer.wordpress.org/rest-api/using-the-rest-api/global-parameters/#_fields) à l'URL de l'API, par exemple : `[VOTRE-SITE]/wp/v2/posts?_fields=author,id,excerpt,title,link`
+
+L'API peut également renvoyer du contenu lié à votre article, tel qu'un lien vers l'article parent ou vers les commentaires sur l'article. Vous pouvez ajouter le paramètre [`_embed`](https://developer.wordpress.org/rest-api/using-the-rest-api/global-parameters/#_embed) à l'URL de l'API (par exemple, `[VOTRE-SITE]/wp/v2/posts?_embed`) pour indiquer au serveur que la réponse doit inclure ces ressources intégrées.
+
+## Créer un blog avec WordPress et Astro
+
+Cet exemple récupère des données de l'API WordPress publique de [https://norian.studio/dinosaurs/](https://norian.studio/dinosaurs/). Ce site WordPress stocke des informations sur des dinosaures individuels sous la route `dinos`, de la même manière qu'un blog stockerait des articles individuels sous la route `posts`.
+
+Cet exemple montre comment reproduire cette structure de site dans Astro : une page d'index qui répertorie les dinosaures avec des liens vers des pages individuelles de dinosaures générées dynamiquement.
+
+:::note
+Pour utiliser les [Custom Post Types (CPT)](https://learn.wordpress.org/lesson-plan/custom-post-types/) dans votre API WordPress (pas seulement `post` et `page`), vous devrez [les configurer dans votre tableau de bord WordPress](https://stackoverflow.com/questions/48536646/how-can-i-get-data-from-custom-post-type-using-wp-rest-api) ou [ajouter le support de l'API REST pour les types de contenu personnalisés](https://developer.wordpress.org/rest-api/extending-the-rest-api/adding-rest-api-support-for-custom-content-types/) dans WordPress.
+
+Cet exemple récupère les données d'un site WordPress dont les types de contenu ont déjà été configurés et exposés à l'API REST.
+:::
+
+### Affichage d'une liste d'articles WordPress
+
+La page `src/pages/index.astro` répertorie chaque dinosaure, avec une description et un lien vers sa propre page.
+
+<FileTree title="Structure de Projet">
+- src/
+  - pages/
+    - **index.astro**
+    - dinos/
+      - [slug].astro
+- astro.config.mjs
+- package.json
+</FileTree>
+
+La récupération via l'API renvoie un objet qui comprend les propriétés suivantes :
+
+- `title.rendered` - Contient le rendu HTML du titre de l'article.
+- `content.rendered` - Contient le rendu HTML du contenu de l'article.
+- `slug` - Contient le nom de l'article. (Il s'agit du lien vers les pages individuelles de dinosaures générées dynamiquement).
+
+```astro title="/src/pages/index.astro"
+---
+import Layout from "../layouts/Layout.astro"
+
+let res = await fetch("https://norian.studio/wp-json/wp/v2/dinos")
+let posts = await res.json();
+---
+<Layout title="Dinos!">
+  <section>
+    <h1>Liste des Dinosaures</h1>
+    {
+      posts.map((post) => (
+        <article>
+          <h2>
+            <a href={`/dinos/${post.slug}/`} set:html={post.title.rendered} />
+          </h2>
+          <Fragment set:html={post.content.rendered} />
+        </article>
+      ))
+    }
+  </section>
+</Layout>
+```
+
+### Utiliser l'API de WordPress pour générer des pages
+
+La page `src/pages/dinos/[slug].astro` [génère dynamiquement une page](/fr/core-concepts/routing/#routes-dynamiques) pour chaque dinosaure.
+
+```astro title="/src/pages/dinos/[slug].astro"
+---
+import Layout from '../../layouts/Layout.astro';
+
+const { slug } = Astro.params;
+
+let res = await fetch(`https://norian.studio/wp-json/wp/v2/dinos?slug=${slug}`)
+let [post] = await res.json();
+
+// La fonction getStaticPaths() est nécessaire pour les sites Astro statiques.
+// Si vous utilisez SSR, vous n'aurez pas besoin de cette fonction.
+export async function getStaticPaths() {
+  let data = await fetch("https://norian.studio/wp-json/wp/v2/dinos")
+  let posts = await data.json();
+
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post: post },
+  }));
+}
+---
+<Layout title={post.title.rendered}>
+  <article>
+    <h1 set:html={post.title.rendered} />
+    <Fragment set:html={post.content.rendered} />
+  </article>
+</Layout>
+```
+
+### Retour des ressources intégrées
+
+Le paramètre de requête `_embed` demande au serveur de renvoyer des ressources connexes (intégrées).
+
+```astro title="src/pages/dinos/[slug].astro" /&_embed/
+---
+const { slug } = Astro.params;
+
+let res = await fetch(`https://norian.studio/wp-json/wp/v2/dinos?slug=${slug}&_embed`)
+let [post] = await res.json();
+---
+```
+
+La propriété `_embedded['wp:featuredmedia']['0'].media_details.sizes.medium.source_url` est renvoyée, et peut être utilisée pour afficher l'image vedette sur chaque page de dinosaures. (Remplacez `medium` par la taille d'image souhaitée).
+
+```astro title="/src/pages/dinos/[slug].astro" {3}
+<Layout title={post.title.rendered}>
+  <article>
+    <img src={post._embedded['wp:featuredmedia']['0'].media_details.sizes.medium.source_url} />
+    <h1 set:html={post.title.rendered} />
+    <Fragment set:html={post.content.rendered} />
+  </article>
+</Layout>
+```
+
+### Publier votre site web
+
+Pour déployer votre site web, consultez nos [guides de déploiement](/fr/guides/deploy/) et suivez les instructions de votre hébergeur préféré.
+
+## Ressources communautaires
+
+- [Construire un site Astro avec WordPress comme CMS sans tête](https://blog.openreplay.com/building-an-astro-website-with-wordpress-as-a-headless-cms/) par Chris Bongers.
+- [Construire avec Astro x WordPress](https://www.youtube.com/watch?v=Jstqgklvfnc) sur le flux de Ben Holmes.
+- [Construire un site WordPress sans tête avec Astro](https://developers.wpengine.com/blog/building-a-headless-wordpress-site-with-astro) par Jeff Everhart
+- [Astro et WordPress en tant qu'API](https://darko.io/posts/astrojs-and-wordpress-as-an-api/)
+
+## Sites web en production
+
+Les sites suivants utilisent Astro + WordPress en production :
+
+- [Soft Hard System](https://softhardsystem.com/) par Rafid Muhymin Wafi - [code source sur GitHub](https://github.com/RafidMuhymin/softhardsystem)
+- [Dinos !](https://wc-dinos.netlify.app/) par Anindo Neel Dutta - [code source sur GitHub](https://github.com/leen-neel/astro-wordpress)
