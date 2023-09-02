@@ -14,31 +14,27 @@ Astroでは、あらゆる種類のデータを提供するためのカスタム
 
 カスタムエンドポイントを作成するには、`.js`または`.ts`ファイルを`/pages`ディレクトリに追加してください。`.js`または`.ts`の拡張子はビルドプロセス中に削除されるので、ファイル名には作成したいデータの拡張子を含める必要があります。たとえば、`src/pages/data.json.ts`は、`/data.json`エンドポイントを構築します。
 
-エンドポイントは、`Astro`グローバルと同様のプロパティを持つ[コンテキストオブジェクト](/ja/reference/api-reference/#endpoint-context)を受け取る`get`関数（オプションで`async`）をエクスポートします。これは`body`を持つオブジェクトを返し、Astroはビルド時にこれを呼び出し、bodyの内容を使ってファイルを生成します。
+エンドポイントは、`Astro`グローバルと同様のプロパティを持つ[コンテキストオブジェクト](/ja/reference/api-reference/#endpoint-context)を受け取る`GET`関数（オプションで`async`）をエクスポートします。以下では、`name`と`url`を持つレスポンスオブジェクトを返し、Astroはビルド時にこれを呼び出し、bodyの内容を使ってファイルを生成します。
 
 ```ts
 // 例: src/pages/builtwith.json.ts
 // 出力: /builtwith.json
-export async function get({params, request}) {
-  return {
-    body: JSON.stringify({
+export async function GET({params, request}) {
+  return new Response(
+    JSON.stringify({
       name: 'Astro',
-      url: 'https://astro.build/',
-    }),
-  };
+      url: 'https://astro.build/'
+    })
+  )
 }
 ```
 
-戻り値のオブジェクトは、`encoding`プロパティを持つことができます。これは、Node.jsの`fs.writeFile`メソッドで受け入れられる有効な[`BufferEncoding`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/bdd02508ddb5eebcf701fdb8ffd6e84eabf47885/types/node/buffer.d.ts#L169)であれば何でもかまいません。たとえば、バイナリのpngイメージを生成する場合は次のようになります。
+Astro v3.0以降、返り値の`Response`オブジェクトが`encoding`プロパティを含む必要はなくなりました。たとえば、バイナリのpng画像を生成する場合は次のようになります。
 
-```ts title="src/pages/astro-logo.png.ts" {6}
-export async function get({ params, request }) {
+```ts title="src/pages/astro-logo.png.ts" {3}
+export async function GET({ params, request }) {
   const response = await fetch("https://docs.astro.build/assets/full-logo-light.png");
-  const buffer = Buffer.from(await response.arrayBuffer());
-  return {
-    body: buffer,
-    encoding: 'binary',
-  };
+  return new Response(await response.arrayBuffer());
 }
 ```
 
@@ -47,8 +43,7 @@ export async function get({ params, request }) {
 ```ts
 import type { APIRoute } from 'astro';
 
-export const get: APIRoute = async ({ params, request }) => {
-...
+export const GET: APIRoute = async ({ params, request }) => {...}
 ```
 
 ### `params`と動的ルーティング
@@ -59,27 +54,28 @@ export const get: APIRoute = async ({ params, request }) => {
 ```ts title="src/pages/api/[id].json.ts"
 import type { APIRoute } from 'astro';
 
-const usernames = ["Sarah", "Chris", "Dan"]
+const usernames = ["Sarah", "Chris", "Yan", "Elian"]
 
-export const get: APIRoute = ({ params, request }) => {
+export const GET: APIRoute = ({ params, request }) => {
   const id = params.id;
-  return {
-    body: JSON.stringify({
+  return new Response(
+    JSON.stringify({
       name: usernames[id]
     })
-  }
-};
+  )
+}
 
-export function getStaticPaths () {
+export function getStaticPaths() {
   return [ 
     { params: { id: "0"} },
     { params: { id: "1"} },
     { params: { id: "2"} },
+    { params: { id: "3"} }
   ]
 }
 ```
 
-これにより、ビルド時に`/api/0.json`、`/api/1.json`、`/api/2.json`という3つのJSONエンドポイントが生成されます。エンドポイントによる動的ルーティングはページと同じように動作しますが、エンドポイントはコンポーネントではなく関数であるため、[props](/ja/reference/api-reference/#data-passing-with-props)はサポートされていません。
+これにより、ビルド時に`/api/0.json`、`/api/1.json`、`/api/2.json`、`/api/3.json`という4つのJSONエンドポイントが生成されます。エンドポイントによる動的ルーティングはページと同じように動作しますが、エンドポイントはコンポーネントではなく関数であるため、[props](/ja/reference/api-reference/#data-passing-with-props)はサポートされていません。
 
 ### `request`
 
@@ -88,12 +84,11 @@ export function getStaticPaths () {
 ```ts title="src/pages/request-path.json.ts"
 import type { APIRoute } from 'astro';
 
-export const get: APIRoute = ({ params, request }) => {
-  return {
-    body: JSON.stringify({
+export const GET: APIRoute = ({ params, request }) => {
+  return new Response(JSON.stringify({
       path: new URL(request.url).pathname
     })
-  };
+  )
 }
 ```
 
@@ -116,7 +111,7 @@ export const get: APIRoute = ({ params, request }) => {
 ```js title="src/pages/[id].json.js"
 import { getProduct } from '../db';
 
-export async function get({ params }) {
+export async function GET({ params }) {
   const id = params.id;
   const product = await getProduct(id);
 
@@ -127,12 +122,14 @@ export async function get({ params }) {
     });
   }
 
-  return new Response(JSON.stringify(product), {
-    status: 200,
-    headers: {
-      "Content-Type": "application/json"
+  return new Response(
+    JSON.stringify(product), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json"
+      }
     }
-  });
+  );
 }
 ```
 
@@ -140,7 +137,7 @@ export async function get({ params }) {
 
 特定のプロバイダーは、SSRモードで画像を返すために`Content-Type`ヘッダーを要求します。この場合、`Response`オブジェクトを使用して`headers`プロパティを指定します。以下はバイナリの`.png`画像を返却する例です。
 ```ts title="src/pages/astro-logo.png.ts"
-export async function get({ params, request }) {
+export async function GET({ params, request }) {
   const response = await fetch("https://docs.astro.build/assets/full-logo-light.png");
   const buffer = Buffer.from(await response.arrayBuffer());
   return new Response(buffer, {
@@ -151,45 +148,37 @@ export async function get({ params, request }) {
 
 ### HTTPメソッド
 
-`get`関数に加え、任意の[HTTPメソッド](https://developer.mozilla.org/ja/docs/Web/HTTP/Methods)名を持つ関数をエクスポートできます。リクエストが来ると、Astroはそのメソッドをチェックして、対応する関数を呼び出します。
+`GET`関数に加えて、任意の[HTTPメソッド](https://developer.mozilla.org/ja/docs/Web/HTTP/Methods)の名前をもつ関数をエクスポートできます。リクエストが来た時、Astroはメソッドをチェックし、対応する関数を呼び出します。
 
-また、対応するエクスポートされた関数がないメソッドにマッチするように、`all`関数をエクスポートできます。一致するメソッドがないリクエストの場合、サイトの[404ページ](/ja/core-concepts/astro-pages/#%E3%82%AB%E3%82%B9%E3%82%BF%E3%83%A0404%E3%82%A8%E3%83%A9%E3%83%BC%E3%83%9A%E3%83%BC%E3%82%B8)にリダイレクトされます。
-
-:::note
-JavaScriptでは`delete`は予約語なので、代わりに`del`関数をエクスポートするとdeleteメソッドにマッチします。
-:::
+対応するエクスポートされた関数がないHTTPメソッドにマッチする`ALL`関数をエクスポートすることもできます。対応するメソッドがないリクエストが来た場合、サイトの[404ページ](/ja/core-concepts/astro-pages/#カスタム404エラーページ)にリダイレクトされます。
 
 ```ts title="src/pages/methods.json.ts"
-export const get: APIRoute = ({ params, request }) => {
-  return {
-    body: JSON.stringify({
+export const GET: APIRoute = ({ params, request }) => {
+  return new Response(JSON.stringify({
       message: "This was a GET!"
     })
-  }
-};
+  )
+}
 
-export const post: APIRoute = ({ request }) => {
-  return {
-    body: JSON.stringify({
+export const POST: APIRoute = ({ request }) => {
+  return new Response(JSON.stringify({
       message: "This was a POST!"
     })
-  }
+  )
 }
 
-export const del: APIRoute = ({ request }) => {
-  return {
-    body: JSON.stringify({
+export const DELETE: APIRoute = ({ request }) => {
+  return new Response(JSON.stringify({
       message: "This was a DELETE!"
     })
-  }
+  )
 }
 
-export const all: APIRoute = ({ request }) => {
-  return {
-    body: JSON.stringify({
+export const ALL: APIRoute = ({ request }) => {
+  return new Response(JSON.stringify({
       message: `This was a ${request.method}!`
     })
-  }
+  )
 }
 ```
 
@@ -200,7 +189,7 @@ export const all: APIRoute = ({ request }) => {
 SSRモードでは、`request`プロパティは、現在のリクエストを参照する完全に使用可能な[`Request`](https://developer.mozilla.org/ja/docs/Web/API/Request)オブジェクトを返します。これにより、データの受け入れやヘッダーのチェックができます。
 
 ```ts title="src/pages/test-post.json.ts"
-export const post: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request }) => {
   if (request.headers.get("Content-Type") === "application/json") {
     const body = await request.json();
     const name = body.name;
@@ -221,7 +210,7 @@ export const post: APIRoute = async ({ request }) => {
 ```js title="src/pages/links/[id].js" {14}
 import { getLinkUrl } from '../db';
 
-export async function get({ params, redirect }) {
+export async function GET({ params, redirect }) {
   const { id } = params;
   const link = await getLinkUrl(id);
 
