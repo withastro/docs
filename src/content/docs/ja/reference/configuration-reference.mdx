@@ -13,7 +13,7 @@ import Since from '~/components/Since.astro';
 import { defineConfig } from 'astro/config'
 
 export default defineConfig({
-  // 設定項目をこちらに記載
+  // 設定項目をここに追加します
 })
 ```
 ## トップレベルのオプション
@@ -293,9 +293,9 @@ import netlify from '@astrojs/netlify/functions';
 
 Specifies the output target for builds. ビルドの出力対象を指定します。
 
-- 'static' - 静的ホストにデプロイするための静的サイトをビルドします。
-- 'server' - SSR (サーバーサイドレンダリング) をサポートするホストにデプロイするためのアプリをビルドします。
-- 'hybrid' - サーバーサイドレンダリングするページを一部含んだ静的サイトをビルドします。
+- `'static'` - 静的ホストにデプロイするための静的サイトをビルドします。
+- `'server'` - SSR (サーバーサイドレンダリング) をサポートするホストにデプロイするためのアプリをビルドします。
+- `'hybrid'` - サーバーサイドレンダリングするページを一部含んだ静的サイトをビルドします。
 
 ```js
 import { defineConfig } from 'astro/config';
@@ -318,24 +318,224 @@ export default defineConfig({
 **デフォルト値:** `'directory'`
 </p>
 
-それぞれのページの出力ファイルの形式を取り扱います。
-  - 'file' が指定された場合、Astro はそれぞれのページで HTML ファイルを生成します。 (例: "/foo.html")
-  - 'directory' が指定された場合、Astro はそれぞれのページでネストされた `index.html` ファイル (例: "/foo/index.html") があるディレクトリを生成します。
+各ページの出力ファイルの形式を制御します。
+  - `'file'`が指定された場合、Astroは"/foo.html"のように、各ページに対応するHTMLファイルを生成します。
+  - `'directory'`が指定された場合、Astroは"/foo/index.html"のように、ディレクトリを生成しページに対応する`index.html`ファイルをネストします。
 
 ```js
 {
   build: {
-    // 例: ビルドの間に `page/index.html` のかわりに `page.html` を生成します。
+    // 例: ビルド時に`page/index.html`ではなく`page.html`を生成します。
     format: 'file'
   }
 }
 ```
 
+#### Astro.urlへの影響
+`build.format`の値によって、ビルド時に`Astro.url`に設定される値が変わります。
+- `directory`の場合 - `Astro.url.pathname`は、フォルダの挙動を模倣するために、`/foo/`のように末尾にスラッシュを含みます。
+- `file`の場合 - `Astro.url.pathname`は、`/foo.html`のように`.html`を含みます。
+
+これにより、`new URL('./relative', Astro.url)`を使用して相対URLを作成すると、開発時とビルド時で一貫した動作となります。
+
+開発時の末尾のスラッシュの挙動を一貫させるために、ビルドフォーマットに応じて[`trailingSlash`オプション](#trailingslash)を`'always'`または`'never'`に制限できます。
+- `directory`の場合 - `trailingSlash: 'always'`を設定する
+- `file`の場合 - `trailingSlash: 'never'`を設定する
+
+
+### build.client
+
+<p>
+
+**データ型:** `string`<br />
+**デフォルト値:** `'./dist/client'`
+</p>
+
+`output: 'server'`または`output: 'hybrid'`の場合にのみ、クライアントサイドのCSSとJavaScriptの出力ディレクトリを制御します。`outDir`はコードがビルドされる場所を制御します。
+
+`outDir`に対する相対パスを指定します。
+
+```js
+{
+  output: 'server', // または'hybrid'
+  build: {
+    client: './client'
+  }
+}
+```
+
+
+### build.server
+
+<p>
+
+**データ型:** `string`<br />
+**デフォルト値:** `'./dist/server'`
+</p>
+
+SSRのビルド時にサーバーJavaScriptの出力ディレクトリを制御します。
+
+`outDir`に対する相対パスを指定します。
+
+```js
+{
+  build: {
+    server: './server'
+  }
+}
+```
+
+
+### build.assets
+
+<p>
+
+**データ型:** `string`<br />
+**デフォルト値:** `'_astro'`<br />
+<Since v="2.0.0" />
+</p>
+
+バンドルされたJSやCSSなどのAstroが生成したアセットが、ビルド出力先のどのディレクトリに配置されるかを指定します。
+
+```js
+{
+  build: {
+    assets: '_custom'
+  }
+}
+```
+**こちらもご覧ください:**
+- outDir
+
+
+### build.assetsPrefix
+
+<p>
+
+**データ型:** `string`<br />
+**デフォルト値:** `undefined`<br />
+<Since v="2.2.0" />
+</p>
+
+Astroが生成したアセットへのリンクのプレフィックスを指定します。アセットが現在のサイトとは異なるドメインから提供されている場合に使用できます。
+
+たとえばこの値を`https://cdn.example.com`に設定すると、アセットは（`base`オプションに関係なく）`https://cdn.example.com/_astro/...`から取得されます。アセットを配信するには、`./dist/_astro/`のファイルを`https://cdn.example.com/_astro/`にアップロードする必要があります。この手順はサードパーティのドメインがどのようにホストされているかによって異なります。`_astro`パスの名前を変更するには、`build.assets`に新しいディレクトリを指定します。
+
+```js
+{
+  build: {
+    assetsPrefix: 'https://cdn.example.com'
+  }
+}
+```
+
+
+### build.serverEntry
+
+<p>
+
+**データ型:** `string`<br />
+**デフォルト値:** `'entry.mjs'`
+</p>
+
+SSRのビルド時のサーバーエントリーポイントのファイル名を指定します。このエントリーポイントは、デプロイ先のホストに通常依存し、アダプターが自動的に設定します。
+
+ランタイムがファイルをJavaScriptモジュールとして認識できるように、このファイルの拡張子は`.mjs`とすることをおすすめします。
+
+```js
+{
+  build: {
+    serverEntry: 'main.mjs'
+  }
+}
+```
+
+
+### build.redirects
+
+<p>
+
+**データ型:** `boolean`<br />
+**デフォルト値:** `true`<br />
+<Since v="2.6.0" />
+</p>
+
+リダイレクトがビルド時にHTMLに出力されるかどうかを指定します。このオプションは`output: 'static'`モードでのみ適用されます。SSRでは、リダイレクトは他のレスポンスと同じように扱われます。
+
+このオプションは、リダイレクト用の特別な設定ファイルをもち、HTMLベースのリダイレクトを必要としない・望まないアダプターによって使用されることを想定しています。
+
+```js
+{
+  build: {
+    redirects: false
+  }
+}
+```
+
+
+### build.inlineStylesheets
+
+<p>
+
+**データ型:** `'always' | 'auto' | 'never'`<br />
+**デフォルト値:** `auto`<br />
+<Since v="2.6.0" />
+</p>
+
+プロジェクトのスタイルがcssファイルとしてブラウザに送信されるか、`<style>`タグとしてインラインで送信されるかを制御します。次のオプションから選択します。
+ - `'always'` - プロジェクトのスタイルは`<style>`タグにインライン化されます。
+ - `'auto'` - `ViteConfig.build.assetsInlineLimit`（デフォルト: 4kb）より小さいスタイルシートのみがインライン化されます。それ以外の場合、プロジェクトのスタイルは外部のスタイルシートとして送信されます。
+ - `'never'` - プロジェクトのスタイルは外部のスタイルシートとして送信されます。
+
+```js
+{
+	build: {
+		inlineStylesheets: `never`,
+	},
+}
+```
+
+
+### build.split
+
+
+:::caution[非推奨]
+バージョン3.0で非推奨となりました。
+:::
+
+<p>
+
+**データ型:** `boolean`<br />
+**デフォルト値:** `false`
+</p>
+
+ビルドの設定オプション`build.split`は、アダプターの設定オプション[`functionPerRoute`](/ja/reference/adapter-reference/#functionperroute)に置き換えられました。
+
+使用している[SSRアダプターのドキュメント](/ja/guides/integrations-guide/#公式インテグレーション)を参照して、`functionPerRoute`によりSSRコードをどのようにバンドルするかを定義してください。
+
+
+### build.excludeMiddleware
+
+
+:::caution[非推奨]
+バージョン3.0で非推奨となりました。
+:::
+
+<p>
+
+**データ型:** `boolean`<br />
+**デフォルト値:** `false`
+</p>
+
+ビルドの設定オプション`build.excludeMiddleware`は、アダプターの設定オプション[`edgeMiddleware`](/ja/reference/adapter-reference/#edgemiddleware)に置き換えられました。
+
+使用している[SSRアダプターのドキュメント](/ja/guides/integrations-guide/#公式インテグレーション)を参照して、`edgeMiddleware`によりSSRのミドルウェアコードをビルド時にバンドルするかどうかを定義してください。
+
 
 ## サーバーのオプション
 
 
-`astro dev` と `astro preview` の両方で使用される、Astro の開発サーバーをカスタマイズします。
+`astro dev`と`astro preview`の両方で使用される、Astroの開発サーバーをカスタマイズします。
 
 ```js
 {
@@ -343,7 +543,7 @@ export default defineConfig({
 }
 ```
 
-実行するコマンド ("dev", "preview") に応じて異なる設定をするために、この設定項目に関数も渡すことができます。
+実行するコマンド（"dev"、"preview"）に応じて設定を変えるために、この設定項目に関数を渡すこともできます。
 
 ```js
 {
@@ -361,10 +561,10 @@ export default defineConfig({
 <Since v="0.24.0" />
 </p>
 
-どのネットワーク IP アドレスでサーバーがリッスンするか設定します。(例: localhost ではない IP)
-- `false` - ネットワーク IP アドレスを公開しない
-- `true` - LAN やパブリックなアドレスを含むすべてのアドレスでリッスンする
-- `[custom-address]` - `[custom-address]` (例: `192.168.0.1`) のネットワーク IP アドレスを公開する
+localhost以外のIPなど、サーバーがリッスンするネットワークIPアドレスを設定します。
+- `false` - ネットワークIPアドレスを公開しない
+- `true` - LANやパブリックなアドレスを含むすべてのアドレスでリッスンする
+- `[カスタムアドレス]` - `192.168.0.1`などの`[カスタムアドレス]`のネットワークIPアドレスを公開する
 
 ### server.port
 
@@ -374,15 +574,119 @@ export default defineConfig({
 **デフォルト値:** `4321`
 </p>
 
-ポートがリッスンするポートを設定する。
+サーバーがリッスンするポートを設定します。
 
-設定されたポートが使用されていた場合、Astro は自動的に次の利用可能なポート番号を試みます。
+設定したポートが使用されていた場合、Astroは自動的に利用可能な次のポート番号を使用しようと試みます。
 
 ```js
 {
   server: { port: 8080 }
 }
 ```
+
+
+### server.headers
+
+<p>
+
+**データ型:** `OutgoingHttpHeaders`<br />
+**デフォルト値:** `{}`<br />
+<Since v="1.7.0" />
+</p>
+
+Set custom HTTP response headers to be sent in `astro dev` and `astro preview`. `astro dev`と`astro preview`で送信されるカスタムHTTPレスポンスヘッダーを設定します。
+
+
+## 画像のオプション
+
+### TODO: image.service
+
+<p>
+
+**データ型:** `Object`<br />
+**デフォルト値:** `{entrypoint: 'astro/assets/services/sharp', config?: {}}`<br />
+<Since v="2.1.0" />
+</p>
+
+どの画像サービスをAstroの実験的なアセットサポートに使用するかを設定します。
+
+画像サービスが使用するエントリーポイントを含むオブジェクトを指定する必要があります。オプションで、サービスに渡す設定用オブジェクトを含めることもできます。
+
+サービスのエントリーポイントは、組み込みのサービスかサードパーティのパッケージのどちらかを指定できます。
+
+```js
+{
+  image: {
+    // 例: Sharpをベースとした画像サービスを有効にする
+    service: { entrypoint: 'astro/assets/services/sharp' },
+  },
+}
+```
+
+
+### TODO: image.domains
+
+<p>
+
+**データ型:** `Array.<string>`<br />
+**デフォルト値:** `{domains: []}`<br />
+<Since v="2.10.10" />
+</p>
+
+Defines a list of permitted image source domains for local image optimization. No other remote images will be optimized by Astro.
+
+This option requires an array of individual domain names as strings. Wildcards are not permitted. Instead, use [`image.remotePatterns`](#imageremotepatterns) to define a list of allowed source URL patterns.
+
+このオプションにはドメイン名の文字列の配列を指定します。ワイルドカードは許可されません。許可されたソースURLパターンのリストを定義するには[`image.remotePatterns`](#imageremotepatterns)を使用してください。
+
+```js
+// astro.config.mjs
+{
+  image: {
+    // 例: リモート画像の最適化を単一のドメインに対して許可する
+    domains: ['astro.build'],
+  },
+}
+```
+
+
+### TODO: image.remotePatterns
+
+<p>
+
+**データ型:** `Array.<RemotePattern>`<br />
+**デフォルト値:** `{remotePatterns: []}`<br />
+<Since v="2.10.10" />
+</p>
+
+Defines a list of permitted image source URL patterns for local image optimization.
+
+`remotePatterns` can be configured with four properties: `remotePatterns`は4つのプロパティで設定します。
+1. プロトコル（protocol）
+2. ホスト名（hostname）
+3. ポート（port）
+4. パス名（pathname）
+
+```js
+{
+  image: {
+    // 例: s3バケットのすべての画像に対して処理を許可する
+    remotePatterns: [{
+      protocol: 'https',
+      hostname: '**.amazonaws.com',
+    }],
+  },
+}
+```
+
+以下のように、許可された`hostname`と`pathname`の値を定義するためにワイルドカードを使用できます。それ以外の場合、指定された値のみがそのまま設定されます。
+`hostname`:
+  - すべてのサブドメインを許可するには、'**.'で始めます。
+  - 1つの階層のサブドメインのみを許可するには、'*.'で始めます。
+
+`pathname`:
+  - すべてのサブルートを許可するには、'/**'で終わります。
+  - 1つの階層のサブルートのみを許可するには、'/*'で終わります。
 
 
 ## マークダウンのオプション
