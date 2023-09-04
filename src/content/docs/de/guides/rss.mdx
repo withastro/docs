@@ -1,0 +1,230 @@
+---
+title: Füge einen RSS-Feed hinzu
+description: Füge einen RSS-Feed zu deiner Astro Website hinzu, so dass Benutzer deine Inhalte abonnieren können.
+i18nReady: true
+type: recipe
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import Since from '~/components/Since.astro'
+
+Astro unterstützt die schnelle, automatische Generierung von RSS-Feeds für Blogs und andere Content-Websites. RSS-Feeds machen es einfach für Benutzer deine Inhalte zu abbonieren.
+
+## Einrichten von `@astrojs/rss`
+
+Das `@astrojs/rss`-Paket bietet Hilfsfunktionen zur Erzeugung von RSS-Feeds mithilfe von [API-Endpunkten](/de/core-concepts/astro-pages/#nicht-html-seiten). Dies ermöglicht statische Feeds _und_ die On-Demand-Generierung bei Verwendung eines [SSR-Adapters](/de/guides/server-side-rendering/#ssr-in-deinem-projekt-aktivieren).
+
+1. Installiere `@astrojs/rss` mit deinem bevorzugten Paketmanager:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @astrojs/rss
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install @astrojs/rss
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/rss
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+:::tip
+Stelle sicher, dass du in deiner `astro.config` eine [`site` konfiguriert](/de/reference/configuration-reference/#site) hast. Diese wird zur Erzeugung von Links in deinem RSS-Feed genutzt.
+:::
+
+2. Erstelle eine Datei in `src/pages` mit einem Namen deiner Wahl und der Dateierweiterung `.xml.js` um die Ausgabe-URL für deinen Feed zu erzeugen. Einige übliche Namen für RSS-Feed URLs sind `feed.xml` oder `rss.xml`.
+
+Die untere Beispiels-Datei `src/pages/rss.xml.js` wird einen RSS-Feed unter `site/rss.xml` erstellen.
+
+3. Importiere die `rss()`-Hilfsfunktion aus dem `@astrojs/rss`-Paket in deine `.xml.js`  Datei und exportiere eine Funktion, die sie mit folgenden Parametern zurückgibt:
+
+```js title="src/pages/rss.xml.js"
+import rss from '@astrojs/rss';
+
+export function GET(context) {
+  return rss({
+    // `<title>`-Feld in der XML-Ausgabe
+    title: 'Buzz’s Blog',
+    // `<description>`-Feld in der XML-Ausgabe
+    description: 'Eines bescheidenen Astronauts Handbuch zu den Sternen',
+    // Ziehe die "site" deines Projektes von dem Endpunkt-Kontext ein
+    // https://docs.astro.build/de/reference/api-reference/#endpunkt-kontext
+    site: context.site,
+    // Liste von `<item>`-Elementen in der XML-Ausgabe
+    // Siehe Abschnitt "Generieren von 'items'" für Beispiele mit Inhalts-Sammlungen und Glob-Imports
+
+    items: [],
+    // (optional) Benutzerdefinierten XML-Code einfügen
+    customData: `<language>de</language>`,
+  });
+}
+```
+
+## Generieren von `items`
+
+Das `items`-Feld akzeptiert eine Liste von RSS-Feed-Objekten, jeweils mit den erforderlichen Werten `link`, `title` und `pubDate`. Drei optionale Werte können auch inbegriffen sein: `description` (ein kurzer Auszug), `content` (der gesamte Inhalt deines Beitrages), und das `customData`-Feld zum Einfügen zusätzlicher Daten, wie z. B. anderer Frontmatter-Eigenschaften aus deinen Blog-Beiträgen.
+
+Du kannst diese Liste aus einem Inhalts-Sammlungs-Schema erzeugen oder durch die Verwendung von [Glob-Imports](/de/guides/imports/#astroglob) für Blogbeiträge, die sich in `src/pages/` befinden.
+
+### Verwendung von Inhalts-Sammlungen
+
+Um einen RSS-Feed von Seiten zu erstellen, die durch [Inhalts-Sammlungen](/de/guides/content-collections/) verwaltet werden, verwende die Hilfsfunktion `getCollection()` um die Liste deiner Elemente abzurufen.
+
+```js title="src/pages/rss.xml.js" "items:" "const blog = await getCollection('blog');"
+import rss from '@astrojs/rss';
+import { getCollection } from 'astro:content';
+
+export async function GET(context) {
+  const blog = await getCollection('blog');
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'Eines bescheidenen Astronauts Handbuch zu den Sternen',
+    site: context.site,
+    items: blog.map((post) => ({
+      title: post.data.title,
+      pubDate: post.data.pubDate,
+      description: post.data.description,
+      customData: post.data.customData,
+      // Berechne den RSS link vom Beitrags-`slug`
+      // In diesem Beispiel wird davon ausgegangen, dass alle Beiträge als `/blog/[slug]`-Routen gerendert werden
+      link: `/blog/${post.slug}/`,
+    })),
+  });
+}
+```
+
+Optional: Ersetze dein vorhandenes Blog-Sammlungsschema, um die erwarteten RSS-Eigenschaften durchzusetzen.
+
+Um sicherzustellen, dass jeder Blogeintrag ein gültiges RSS-Feed-Element erzeugt, kannst du optional `rssSchema` importieren und anwenden, anstatt jede einzelne Eigenschaft deines Schemas zu definieren.
+
+```js title="src/content/config.ts" "rssSchema"
+import { defineCollection } from 'astro:content';
+import { rssSchema } from '@astrojs/rss';
+
+const blog = defineCollection({
+  schema: rssSchema,
+});
+
+export const collections = { blog };
+```
+
+### Verwendung von Glob-Imports
+
+<Since v="2.1.0" pkg="@astrojs/rss" />
+
+Um einen RSS-Feed aus Dokumenten in `src/pages/` zu erstellen, verwende die Hilfsfunktion `pagesGlobToRssItems()`. Diese akzeptiert ein [`import.meta.glob`](https://vitejs.dev/guide/features.html#glob-import)-Ergebnis und gibt eine Liste gültiger RSS-Feed-Elemente aus (siehe [mehr über das Schreiben von Glob-Patterns](/de/guides/imports/#glob-patterns) um eingeschlossene Seiten anzugeben).
+
+:::caution
+Diese Funktion setzt voraus, überprüft jedoch nicht, dass alle erforderlichen Feed-Eigenschaften in der Frontmatter jedes Dokuments vorhanden sind. Wenn du auf Fehler stößt, überprüfe die Frontmatter jeder Seite manuell.
+:::
+
+```js title="src/pages/rss.xml.js" "pagesGlobToRssItems" "await pagesGlobToRssItems("
+import rss, { pagesGlobToRssItems } from '@astrojs/rss';
+
+export async function GET(context) {
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'Eines bescheidenen Astronauts Handbuch zu den Sternen',
+    site: context.site,
+    items: await pagesGlobToRssItems(
+      import.meta.glob('./blog/*.{md,mdx}'),
+    ),
+  });
+}
+```
+
+:::note[Verwendest du eine ältere Version?]
+Übergebe in Versionen von `@astrojs/rss` vor v2.1.0 dein Glob-Ergebnis direkt an `items`, ohne den Wrapper `pagesGlobToRssItems()`:
+```js
+items: import.meta.glob('./blog/*.{md,mdx}'),
+```
+:::
+
+### Den Vollständigen Beitragsinhalt beifügen
+
+<Since v="1.6.14" />
+
+Der `content` Schlüssel enthält den gesamten Inhalt des Beitrages in HTML. Auf diese Weise kannst du den gesamten Inhalt deines Beitrages RSS-Feed-Readern zur Verfügung stellen.
+
+:::tip
+Ein Paket wie [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) stellt sicher, dass deine Inhalte ordnungsgemäß bereinigt, maskiert und codiert werden.
+:::
+
+
+Beim Verwenden von Inhalts-Sammlungen, rendere den `body` des Beitrages mit einem Standard-Markdown-Parser wie [`markdown-it`](https://github.com/markdown-it/markdown-it) und bereinige das Ergebnis:
+
+```js title="src/pages/rss.xml.js" ins={3, 4, 5, 16}
+import rss from '@astrojs/rss';
+import { getCollection } from 'astro:content';
+import sanitizeHtml from 'sanitize-html';
+import MarkdownIt from 'markdown-it';
+const parser = new MarkdownIt();
+
+export async function GET(context) {
+  const blog = await getCollection('blog');
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'Eines bescheidenen Astronauts Handbuch zu den Sternen',
+    site: context.site,
+    items: blog.map((post) => ({
+      link: `/blog/${post.slug}/`,
+      // Hinweis: Komponente oder JSX-Ausdrücke in MDX-Dateien werden hierdurch nicht verarbeitet.
+      content: sanitizeHtml(parser.render(post.body)),
+      ...post.data,
+    })),
+  });
+}
+```
+
+Beim Verwenden von Glob-Importen mit Markdown, kannst du die `compiledContent` Hilfsfunktion verwerden um den gerenderten HTML-Code zur Bereinigung abzurufen. Hinweis: Diese Funktion ist für MDX-Dateien **nicht** unterstützt.
+
+```js title="src/pages/rss.xml.js" ins={2, 13}
+import rss from '@astrojs/rss';
+import sanitizeHtml from 'sanitize-html';
+
+export function GET(context) {
+  const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true }); 
+  const posts = Object.values(postImportResult);
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'Eines bescheidenen Astronauts Handbuch zu den Sternen',
+    site: context.site,
+    items: posts.map((post) => ({
+      link: post.url,
+      content: sanitizeHtml(post.compiledContent()),
+      ...post.frontmatter,
+    })),
+  });
+}
+```
+
+## Ein Stylesheet hinzufügen
+
+Du kannst deinen RSS-Feed ansprechend gestalten, um die Nutzererfahrung bei der Betrachtung im Browser zu verbessern.
+
+Nutze die Option `stylesheet` der `rss`-Funktion, um einen absoluten Pfad zu deinem Stylesheet anzugeben.
+
+```js
+rss({
+  // Beispiel: Nutze dein Stylesheet aus "public/rss/styles.xsl"
+  stylesheet: '/rss/styles.xsl',
+  // ...
+});
+```
+
+:::tip
+Falls du lieber kein eigenes Stylesheet erstellen möchtest, kannst du ein vorgefertigtes Stylesheet wie das [Pretty Feed v3 Standard-Stylesheet](https://github.com/genmon/aboutfeeds/blob/main/tools/pretty-feed-v3.xsl) verwende. Lade das Stylesheet von GitHub herunter und speichere es im `public/`-Verzeichnis deines Projektes.
+:::
+
+
+## Nächste Schritte
+
+Nachdem du deinen Feed im Browser unter `deine-domain.com/rss.xml` aufgerufen hast und bestätigt hast, dass du die Daten für jeden Beitrag sehen kannst, kannst du nun [deinen Feed auf deiner Website bewerben](https://medium.com/samsung-internet-dev/add-rss-feeds-to-your-website-to-keep-your-core-readers-engaged-3179dca9c91e#:~:text=com/~deno%2Drss-,Advertising%20your%20RSS%20feed,-Now%20you%20have). Durch das Hinzufügen des Standard-RSS-Symbols kannst du deine Leser wissen lassen, dass sie deine Beiträge in ihrem eigenen Feed-Reader abonnieren können.
+
+## Ressourcen
+* [RSS-Feeds](https://aboutfeeds.com/)
