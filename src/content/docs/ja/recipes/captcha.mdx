@@ -1,0 +1,72 @@
+---
+title: Captcha（キャプチャ）の検証
+description: APIルートを作成し、クライアントから取得する方法を学びます。
+i18nReady: true
+type: recipe
+---
+
+[サーバーエンドポイント](/ja/core-concepts/endpoints/#サーバーエンドポイントapiルーティング)をREST APIのエンドポイントとして使用することで、機密データをクライアントに公開することなく、認証、データベースアクセス、検証などの機能を実行できます。
+
+このレシピでは、Google reCAPTCHA v3を検証するためにAPIルートを使用していますが、クライアントにシークレットが公開されることはありません。
+
+## 前提条件
+- [SSR](/ja/guides/server-side-rendering/)（`output: 'server'`）が有効化されたプロジェクト 
+
+## Recipe
+
+1. reCAPTCHAのデータを受け入れる`POST`メソッドを定義し、reCAPTCHAのAPIを使って検証を行います。ここで、秘密の値を安全に定義したり、環境変数を読み込んだりできます。
+
+    ```js title="src/pages/recaptcha.js"
+    export async function POST({ request }) {
+      const data = await request.json();
+
+      const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
+      const requestBody = {
+        secret: "YOUR_SITE_SECRET_KEY",   // 環境変数にできます
+        response: data.recaptcha          // クライアントから渡されたトークン
+      };
+
+      const response = await fetch(recaptchaURL, {
+        method: "POST",
+        body: JSON.stringify(requestBody)
+      });
+
+      const responseData = await response.json();
+
+      return new Response(JSON.stringify(responseData), { status: 200 });
+    }
+    ```
+
+2. クライアントスクリプトから`fetch`を使ってエンドポイントにアクセスします。
+
+    ```astro title="src/pages/index.astro"
+    <html>
+      <head>
+        <script src="https://www.google.com/recaptcha/api.js"></script>
+      </head>
+
+      <body>
+        <button class="g-recaptcha" 
+          data-sitekey="PUBLIC_SITE_KEY" 
+          data-callback="onSubmit" 
+          data-action="submit">CAPTCHA認証のためクリックしてください</button>
+
+        <script is:inline>
+          function onSubmit(token) {
+            fetch("/recaptcha", {
+              method: "POST",
+              body: JSON.stringify({ recaptcha: token })
+            })
+            .then((response) => response.json())
+            .then((gResponse) => {
+              if (gResponse.success) {
+                // CAPTCHA認証が成功
+              } else {
+                // CAPTCHA認証が失敗
+              }
+            })
+          }
+        </script>
+      </body>
+    </html>
+    ```
