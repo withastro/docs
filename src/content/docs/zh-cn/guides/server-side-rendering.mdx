@@ -3,7 +3,6 @@ title: 服务端渲染
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
-import FileTree from '~/components/FileTree.astro';
 
 服务器端渲染（SSR）是指按需在服务器上生成 HTML 页面并将其发送到客户端。
 
@@ -27,12 +26,14 @@ SSR 允许你：
 - __`output: 'server'`__：默认情况下服务器渲染。当大部分或全部网站应由服务器渲染时，请使用此选项。任何单个页面或端点都可以*选择加入*预渲染。
 - __`output: 'hybrid'`__：默认预渲染为 HTML。当网站的大部分内容应该是静态的时，请使用此选项。任何单个页面或端点都可以*选择退出*预渲染。
 
-```js ins={5}
+```js ins={6,7}
 // astro.config.mjs
 import { defineConfig } from 'astro/config';
+import nodejs from '@astrojs/node';
 
 export default defineConfig({
-  output: 'server'
+  output: 'server',
+  adapter: nodejs(),
 });
 ```
 
@@ -53,13 +54,15 @@ export const prerender = true;
 
 要将现有的静态 Astro 站点转换为允许混合渲染，请将 `output` 更改为 `hybrid` 并添加适配器：
 
-```diff
+```js title="astro.config.mjs" ins={2,5-8}
 import { defineConfig } from 'astro/config';
-+ import nodejs from '@astrojs/node';
+import nodejs from '@astrojs/node';
 
 export default defineConfig({
-+ adapter: nodejs(),  
-+ output: 'hybrid',
+  adapter: nodejs({
+   mode: 'middleware' // or 'standalone'
+  }),  
+  output: 'hybrid',
 });
 ```
 
@@ -77,22 +80,22 @@ export default defineConfig({
 
 #### 使用 `astro add` 安装
 
-你可以使用以下 `astro add` 命令添加任何官方适配器。这将安装一步适配器并对你的 `astro.config.mjs` 文件进行适当的更改。 例如，要安装 Netlify 适配器，请运行：
+你可以使用以下 `astro add` 命令添加任何官方适配器。这将安装一步适配器并对你的 `astro.config.mjs` 文件进行适当的更改。例如，要安装 Vercel 适配器，请运行：
 
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```shell
-  npx astro add netlify
+  npx astro add vercel
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  pnpm astro add netlify
+  pnpm astro add vercel
   ```
   </Fragment>
   <Fragment slot="yarn">
   ```shell
-  yarn astro add netlify
+  yarn astro add vercel
   ```
   </Fragment>
 </PackageManagerTabs>
@@ -226,7 +229,7 @@ console.log(Astro.request.method) // GET (在浏览器中导航到时)
 
 ### `Astro.cookies`
 
-这是一个用于读取和修改单个 cookie 的工具方法。 它允许你检查、设置、获取和删除 cookie。
+这是一个用于读取和修改单个 cookie 的工具方法。它允许你检查、设置、获取和删除 cookie。
 
 在 API 参考中查看有关 [`Astro.cookies` 和 `AstroCookie` 类型](/zh-cn/reference/api-reference/#astrocookies)的更多详细信息。
 
@@ -275,7 +278,7 @@ if(!product) {
 ### 服务器端点
 
 服务器端点，也称为 **API 路由**，是从 `src/pages/` 文件夹中的 `.js`或 `.ts` 文件导出的特殊函数。
-该函数接收一个[端点上下文对象](/zh-cn/reference/api-reference/#端点上下文)并返回一个 [Response](https://developer.mozilla.org/zh-CN/docs/Web/API/Response)。 这是 SSR 的一个强大功能，API 路由能够在服务器上安全地执行代码。 要了解更多信息，请参阅我们的[端点指南](/zh-cn/core-concepts/endpoints/#服务器端点api-路由)。
+该函数接收一个[端点上下文对象](/zh-cn/reference/api-reference/#端点上下文)并返回一个 [Response](https://developer.mozilla.org/zh-CN/docs/Web/API/Response)。这是 SSR 的一个强大功能，API 路由能够在服务器上安全地执行代码。要了解更多信息，请参阅我们的[端点指南](/zh-cn/core-concepts/endpoints/#服务器端点api-路由)。
 
 ### 流式处理
 
@@ -375,31 +378,3 @@ const factPromise = fetch('https://catfact.ninja/fact')
 
 在此示例中，`一个名称`将在加载 `personPromise` 和 `factPromise` 时渲染。
 一旦 `personPromise` 解决，`一个事实`就会出现，`factpromise` 将在加载完成后呈现。
-
-### 将 SSR 构建拆分为多个文件
-
-默认情况下，Astro 将所有页面构建到一个名为 `entry.mjs` 的单个文件中。你可以在构建选项中配置 [`split`](/zh-cn/reference/configuration-reference/#buildsplit)，改为为每个页面发出一个文件：
-
-```js title="astro.config.mjs" ins={6}
-// astro.config.mjs
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  build: {
-      split: true
-  }
-});
-```
-
-发出的页面文件将保存在为 [`outDir`](/zh-cn/reference/configuration-reference/#outdir) 指定的目录中，在新创建的 `pages/` 目录下。
-
-构建的 `pages/` 目录中的文件将镜像 `src/pages/` 中页面文件的目录结构，例如：
-
-<FileTree>
-    - dist/
-        - pages/
-            - blog/
-                - entry.\_slug\_.astro.mjs
-                - entry.about.astro.mjs
-            - entry.index.astro.mjs
-</FileTree>
