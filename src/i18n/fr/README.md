@@ -57,6 +57,6 @@ Certains mots dans la traduction ont un équivalent français utilisé uniformé
 | Partial Hydration            | Hydratation Partielle                     |
 | Scope / Scoped               | Limité / Délimité                         |
 | Astro Islands                | Îles Astro                                |
-| Recipies                     | Méthodes                                  |
+| Recipes                      | Méthodes                                  |
 
 > ⚠️ Ce glossaire est encore en travaux, merci de contribuer à la traduction française en lui apportant des suggestions !
