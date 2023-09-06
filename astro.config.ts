@@ -29,6 +29,7 @@ export default defineConfig({
 		astroDocsExpressiveCode(),
 		mdx(),
 	],
+	scopedStyleStrategy: 'where',
 	markdown: {
 		// Override with our own config
 		smartypants: false,
