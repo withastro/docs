@@ -4,7 +4,7 @@ export default DocSearchDictionary({
 	button: 'Rechercher',
 	placeholder: 'Rechercher dans la documentation',
 	shortcutLabel: 'Appuyez sur / pour rechercher',
-	resultsFooterLede: 'Vous cherchez un thème ou une intégration Astro ? Besoin d\'aide ?',
+	resultsFooterLede: "Vous cherchez un thème ou une intégration Astro ? Besoin d'aide ?",
 	resultsFooterIntegrations: 'Répertoire des intégrations Astro',
 	resultsFooterThemes: 'Présentation des thèmes Astro',
 	resultsFooterDiscord: 'Rejoignez-nous sur Discord',
@@ -43,5 +43,5 @@ export default DocSearchDictionary({
 			reportMissingResultsText: 'Vous pensez avoir trouvé une erreur ?',
 			reportMissingResultsLinkText: 'Faites-le nous savoir.',
 		},
-	}
+	},
 });
