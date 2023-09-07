@@ -1,7 +1,7 @@
+import type { Element } from 'hast';
 import { fromHtml } from 'hast-util-from-html';
 import { toString } from 'hast-util-to-string';
 import { h, type Child } from 'hastscript';
-import type { Element } from 'hast';
 import { rehype } from 'rehype';
 import { CONTINUE, SKIP, visit } from 'unist-util-visit';
 import { getIcon } from './file-tree-icons';
