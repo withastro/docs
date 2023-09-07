@@ -140,7 +140,7 @@ export class TranslationStatusBuilder {
 		}
 		const keys1 = inner(obj1),
 			keys2 = inner(obj2);
-		return keys2.every((e) => keys1.includes(e) && keys1.length >= keys2.length);
+		return keys2.every((e) => keys1.includes(e));
 	}
 
 	/**
