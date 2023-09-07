@@ -1,4 +1,4 @@
-import { LinkCheckerOptions, LinkCheckerState } from './lib/linkcheck/base/base';
+import { type LinkCheckerOptions, LinkCheckerState } from './lib/linkcheck/base/base';
 import { CanonicalUrl } from './lib/linkcheck/checks/canonical-url';
 import { GoodLabels } from './lib/linkcheck/checks/good-link-label';
 import { RelativeUrl } from './lib/linkcheck/checks/relative-url';
