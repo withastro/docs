@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { dedentMd } from '../../output.mjs';
 import type { LinkCheckerOptions } from '../base/base';
-import { AllPagesByPathname, HtmlPage } from '../base/page';
+import { type AllPagesByPathname, HtmlPage } from '../base/page';
 
 /**
  * Reads sitemaps from the build output and extracts all unique pathnames.

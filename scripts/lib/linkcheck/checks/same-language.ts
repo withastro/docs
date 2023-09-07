@@ -1,6 +1,6 @@
 import kleur from 'kleur';
 import { dedentMd } from '../../output.mjs';
-import { CheckBase, CheckHtmlPageContext } from '../base/check';
+import { CheckBase, type CheckHtmlPageContext } from '../base/check';
 import { IssueType } from '../base/issue';
 
 export interface SameLanguageOptions {
