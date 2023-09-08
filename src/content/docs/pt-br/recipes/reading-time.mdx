@@ -1,0 +1,119 @@
+---
+title: Adicione tempo de leitura
+description: Construa um plugin remark para adicionar tempo de leitura aos seus arquivos Markdown ou MDX.
+i18nReady: true
+type: recipe
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+Crie um [plugin remark](https://github.com/remarkjs/remark) que adiciona uma propriedade de tempo de leitura ao frontmatter dos seus arquivos Markdown ou MDX. Use essa propriedade para exibir o tempo de leitura de cada página.
+
+## Receita
+
+1. Instale pacotes auxiliares
+
+Instale esses dois pacotes helpers:
+
+   - [`reading-time`](https://www.npmjs.com/package/reading-time) para calcular o tempo de leitura
+   - [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string) para obter o texto do arquivo Markdown
+
+   ```shell
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+   npm install reading-time mdast-util-to-string
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+   pnpm install reading-time mdast-util-to-string
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+   yarn add reading-time mdast-util-to-string
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+2. Crie um plugin remark.
+
+   Esse plugin usa o pacote `mdast-util-to-string` para obter o texto do arquivo Markdown. Esse texto é então passado para o pacote `reading-time` para calcular o tempo de leitura em minutos.
+   
+   ```js title="remark-reading-time.mjs"
+   import getReadingTime from 'reading-time';
+   import { toString } from 'mdast-util-to-string';
+ 
+   export function remarkReadingTime() {
+     return function (tree, { data }) {
+       const textoPagina = toString(tree);
+       const tempoLeitura = getReadingTime(textoPagina);
+       //tempoLeitura.text nos dará minutos lidos como uma string amigável
+       // i.e. "3 min read"
+       data.astro.frontmatter.minutesRead = tempoLeitura.text;
+     };
+   }
+   ```
+
+3. Adicione o plugin à sua configuração:
+
+   ```js title="astro.config.mjs" "import { remarkReadingTime } from './remark-reading-time.mjs';" "remarkPlugins: [remarkReadingTime],"
+   import { defineConfig } from 'astro/config';
+   import { remarkReadingTime } from './remark-reading-time.mjs';
+ 
+   export default defineConfig({
+     markdown: {
+       remarkPlugins: [remarkReadingTime],
+     },
+   });
+   ```
+
+   Agora todos os documentos Markdown terão uma propriedade `minutesRead` calculada em seu frontmatter.
+
+4. Exiba o Tempo de Leitura
+
+   Se seus posts de blog estiverem armazenados em uma [coleção de conteúdo](/pt-br/guides/content-collections/), acesse o `remarkPluginFrontmatter` da função `entry.render()`. Em seguida, renderize `minutesRead` em seu template onde você gostaria que ele aparecesse.
+
+   ```astro title="src/pages/posts/[slug].astro" "const { Content, remarkPluginFrontmatter } = await entry.render();" "<p>{remarkPluginFrontmatter.minutesRead}</p>"
+   ---
+   import { CollectionEntry, getCollection } from 'astro:content';
+ 
+   export async function getStaticPaths() {
+     const blog = await getCollection('blog');
+     return blog.map(entry => ({
+       params: { slug: entry.slug },
+       props: { entry },
+     }));
+   }
+ 
+   const { entry } = Astro.props;
+   const { Content, remarkPluginFrontmatter } = await entry.render();
+   ---
+ 
+   <html>
+     <head>...</head>
+     <body>
+       ...
+       <p>{remarkPluginFrontmatter.minutesRead}</p>
+       ...
+     </body>
+   </html>
+   ```
+
+    Se você estiver usando um [layout Markdown](/pt-br/guides/markdown-content/#markdown-and-mdx-pages), use a propriedade `minutesRead` do frontmatter de `Astro.props` no layout de seu template.
+
+   ```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.frontmatter;" "<p>{minutesRead}</p>"
+   ---
+   const { minutesRead } = Astro.props.frontmatter;
+   ---
+ 
+   <html>
+     <head>...</head>
+     <body>
+       <p>{minutesRead}</p>
+       <slot />
+     </body>
+   </html>
+   ```
