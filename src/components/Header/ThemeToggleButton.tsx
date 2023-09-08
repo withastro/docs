@@ -51,7 +51,7 @@ const ThemeToggle = ({ labels, isInsideHeader }: Props) => {
 		const root = document.documentElement;
 		if (theme === 'light') {
 			root.classList.remove('theme-dark');
-		} else {
+		} else if (theme === 'dark') {
 			root.classList.add('theme-dark');
 		}
 	}, [theme]);
