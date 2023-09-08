@@ -9,7 +9,7 @@ interface Props {
 	isInsideHeader?: boolean;
 }
 
-const themes = ['light', 'dark'];
+const themes = ['light', 'dark'] as const;
 
 const icons = [
 	<svg
@@ -41,12 +41,11 @@ const icons = [
 ];
 
 const ThemeToggle = ({ labels, isInsideHeader }: Props) => {
-	const [theme, setTheme] = useState(() => {
-		if (import.meta.env.SSR) {
-			return undefined;
-		}
-		return document.documentElement.classList.contains('theme-dark') ? 'dark' : 'light';
-	});
+	const [theme, setTheme] = useState<'light' | 'dark'>();
+
+	useEffect(() => {
+		setTheme(document.documentElement.classList.contains('theme-dark') ? 'dark' : 'light');
+	}, []);
 
 	useEffect(() => {
 		const root = document.documentElement;
