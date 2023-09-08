@@ -41,7 +41,7 @@ const icons = [
 ];
 
 const ThemeToggle = ({ labels, isInsideHeader }: Props) => {
-	const [theme, setTheme] = useState<'light' | 'dark'>();
+	const [theme, setTheme] = useState<'light' | 'dark'>('light'); 
 
 	useEffect(() => {
 		setTheme(document.documentElement.classList.contains('theme-dark') ? 'dark' : 'light');
