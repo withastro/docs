@@ -5,7 +5,7 @@ import { escape } from 'html-escaper';
 import { minimatch } from 'minimatch';
 import os from 'os';
 import path from 'path';
-import simpleGit, { DefaultLogFields, ListLogLine } from 'simple-git';
+import simpleGit, { type DefaultLogFields, type ListLogLine } from 'simple-git';
 import { fileURLToPath } from 'url';
 import type { DocSearchTranslation, UIDict } from '~/i18n/translation-checkers';
 import docsearchTranslations from '../../../src/i18n/en/docsearch';
