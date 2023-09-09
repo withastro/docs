@@ -44,5 +44,4 @@ export default DocSearchDictionary({
 			reportMissingResultsLinkText: 'Lass es uns wissen.',
 		},
 	},
-	},
 });
