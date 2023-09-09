@@ -1,15 +1,15 @@
 ---
-title: Rendering: SSG & SSR
+title: "SSG & SSR Modes"
 i18nReady: false
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import Since from '~/components/Since.astro';
 
-Static site generation (SSG) refers to generating HTML pages during the build process, before they are requested by the client. The same page is sent to the browser for every visitor, and a full-site rebuild is required to update the contents of the page.
+**Static site generation (SSG)** refers to generating HTML pages during the build process, before they are requested by the client. The same page is sent to the browser for every visitor, and a full-site rebuild is required to update the contents of the page.
 
-Server-side rendering (SSR) refers to generating HTML pages on the server on-demand and sending them to the client. Since they are generated per visit, they pages can be customized for each viewer. For example, this page can show a logged in user their account information, or can display updated data without requiring a full-site rebuild.
+**Server-side rendering (SSR)** refers to generating HTML pages on the server on-demand just before sending them to the client. Since they are generated per visit, these pages can be customized for each viewer. For example, this page can show a logged in user their account information, or can display updated data without requiring a full-site rebuild.
 
-In both modes, the processing occurs on the server, which improves loading time and makes your site or app faster when viewed on older devices or on slower connections.
+In both modes, the processing occurs on the server, which improves loading time and makes your site or app faster than client-side rendering when viewed on older devices or on slower connections.
 
 ## SSG by default
 
@@ -17,7 +17,13 @@ All Astro projects are SSG by default to provide the most lightweight browser ex
 
 SSG sites can still take advantage of Astro islands for client-side interactivity, as well as middleware to intercept and transform response data from a request. This makes Astro SSG mode a powerful choice for sites that update infrequently, and display the same page to all visitors.
 
-## Opt-in to SSR
+## Opt in to SSR
+
+SSR brings the advantages of fresh page content and [several other features](#ssr-features) at a potential performance cost. Pages must be generated on demand and are not ready to be served immediately. If data is fetched from external sources, then their speed also becomes a factor in your page load time. And, even if no data has changed, the page must still be re-generated server-side before rendering and so a caching strategy may be required.
+
+Astro provides several optimized adapter integrations to perform these server actions. Despite the extra configuration and potential performance issues compared to SSG, SSR mode enables app-like behaviour that is more performant than traditional single-page JavaScript applications (SPA). Combined with Astro's [view transitions API](/en/guides/view-transitions/), SSR in Astro provides a true app-like experience without the JavaScript overhead of a traditional SPA.
+
+Astro provides [two server-rendered options]() to ensure that you can take still advantage of SSG performance by pre-rendering whenever possible in SSR mode: a mostly server-rendered app, and a mostly static site that needs SSR only for select routes. Both server modes require you to [add an adapter]() to carry out the server functions.
 
 Consider enabling server-side rendering in your Astro project if you need the following:
 
@@ -27,17 +33,21 @@ Consider enabling server-side rendering in your Astro project if you need the fo
 
 - **Frequently changing content**: Enabling SSR lets you generate individual pages without requiring a static rebuild of your site. This is useful when the content of a page updates frequently, for example displaying data from an API called dynamically with `fetch`.
 
-## Enabling SSR in Your Project
+### Choose an SSR mode
 
-To enable SSR features for production deployments, update your `output` configuration to `'server'` or `'hybrid'` (introduced in **v2.6.0**). Both of these modes control which [pages](/en/core-concepts/astro-pages/) or [server endpoints](/en/core-concepts/endpoints/#server-endpoints-api-routes) should be server-rendered. Each configuration option has a different default behavior, and allows individual routes to opt-out of the default accordingly:
+To enable SSR features for production deployments, update your `output` configuration to one of the two available SSR modes: `'server'` or `'hybrid'`. 
 
-- __`output: 'server'`__: Server-rendered by default. Use this when most or all of your site should be server-rendered. Any individual page or endpoint can *opt-in* to pre-rendering.
+Both of these modes control which [pages](/en/core-concepts/astro-pages/) or [server endpoints](/en/core-concepts/endpoints/#server-endpoints-api-routes) should be server-rendered. Each configuration option has a different default behavior, and allows individual routes to opt-out of the default accordingly:
+
+- __`output: 'server'`__: Server-rendered by default. Use this when most or all of your site or app should be server-rendered. Any individual page or endpoint can *opt-in* to pre-rendering.
 - __`output: 'hybrid'`__: Pre-rendered to HTML by default. Use this when most of your site should be static. Any individual page or endpoint can *opt-out* of pre-rendering.
+
+For example, to enable an SSR app, add `output: server` to your Astro config: 
 
 ```js ins={6,7}
 // astro.config.mjs
 import { defineConfig } from 'astro/config';
-import nodejs from '@astrojs/node';
+import nodejs from '@astrojs/nodejs';
 
 export default defineConfig({
   output: 'server',
@@ -56,23 +66,7 @@ export const prerender = true;
   <!-- Static, pre-rendered page here... -->
 </html>
 ```
-See more usage examples of [configuring individual routes](#configuring-individual-routes)
-
-### Converting a static site to hybrid rendering
-
-To convert an existing static Astro site to allow hybrid rendering, change the `output` to `'hybrid'` and add an adapter:
-
-```js ins={2,5-8} title="astro.config.mjs"
-import { defineConfig } from 'astro/config';
-import nodejs from '@astrojs/node';
-
-export default defineConfig({
-  adapter: nodejs({
-   mode: 'middleware' // or 'standalone'
-  }),  
-  output: 'hybrid',
-});
-```
+See more usage examples of [configuring individual routes](#configuring-individual-routes) for these two SSR options.
 
 ### Adding an Adapter
 
@@ -110,24 +104,24 @@ You can add any of the official adapters with the following `astro add` command.
 
 #### Manual Install
 
-You can also add an adapter manually by installing the package and updating `astro.config.mjs` yourself. (See the links above for adapter-specific instructions to complete the following two steps to enable SSR.) Using `my-adapter` as an example placeholder, the instructions will look something like:
+You can also add an adapter manually by installing the package and updating `astro.config.mjs` yourself. (See the links above for adapter-specific instructions to complete the following two steps to enable SSR.) For example, to install the Vercel adapter manually:
 
 1. Install the adapter to your project dependencies using your preferred package manager:
 
    <PackageManagerTabs>
      <Fragment slot="npm">
      ```shell
-     npm install @astrojs/my-adapter
+     npm install @astrojs/vercel
      ```
      </Fragment>
      <Fragment slot="pnpm">
      ```shell
-     pnpm install @astrojs/my-adapter
+     pnpm install @astrojs/vercel
      ```
      </Fragment>
      <Fragment slot="yarn">
      ```shell
-     yarn add @astrojs/my-adapter
+     yarn add @astrojs/vercel
      ```
      </Fragment>
    </PackageManagerTabs>
@@ -137,23 +131,23 @@ You can also add an adapter manually by installing the package and updating `ast
     ```js ins={3,6-7}
     // astro.config.mjs
     import { defineConfig } from 'astro/config';
-    import myAdapter from '@astrojs/my-adapter';
+    import vercel from '@astrojs/vercel';
 
     export default defineConfig({
       output: 'server',
-      adapter: myAdapter(),
+      adapter: vercel(),
     });
     ```
 
-## Features
+## SSR Features
 
-Astro will remain a static-site generator by default. But once you enable server-side rendering and add an adapter, a few new features become available to you.
+Astro is static-site generator by default. But once you enable server-side rendering and add an adapter, a few new features become available to you.
 
 ### Configuring individual routes
 
 Both `server` and `hybrid` modes allow for server-rendered pages and endpoints and will render all pages according to their default mode. However, both modes allow you to mark an individual page to opt-out of this default behavior.
 
-### Opting-out of server-rendering
+### Opting-out of server-rendering in `server` mode:
 
 For a mostly server-rendered app configured as `output: server`, add `export const prerender = true` to any page or route to pre-render a static page or endpoint:
 
@@ -189,7 +183,7 @@ export async function GET() {
 }
 ```
 
-### Opting out of pre-rendering
+### Opting out of pre-rendering in `static` mode:
 
 For a mostly static site configured as `output: hybrid`, add `export const prerender = false` to any files that should be server-rendered:
 
@@ -284,8 +278,11 @@ if (!product) {
 
 ### Server Endpoints
 
-A server endpoint, also known as an **API route**, is a special function exported from a `.js` or `.ts` file within the `src/pages/` folder. 
-The function takes an [endpoint context](/en/reference/api-reference/#endpoint-context) and returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response). A powerful feature of SSR, API routes are able to securely execute code on the server. To learn more, see our [Endpoints Guide](/en/core-concepts/endpoints/#server-endpoints-api-routes).
+A server endpoint, also known as an **API route**, is a special function exported from a `.js` or `.ts` file within the `src/pages/` folder. A powerful feature of SSR, API routes are able to securely execute code on the server.
+
+The function takes an [endpoint context](/en/reference/api-reference/#endpoint-context) and returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response). 
+
+To learn more, see our [Endpoints Guide](/en/core-concepts/endpoints/#server-endpoints-api-routes).
 
 ### Streaming
 
