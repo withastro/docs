@@ -5,23 +5,28 @@ i18nReady: false
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import Since from '~/components/Since.astro';
 
-**Static site generation (SSG)** refers to generating HTML pages during the build process, before they are requested by the client. The same page is sent to the browser for every visitor, and a full-site rebuild is required to update the contents of the page.
+**Static site generation (SSG)** refers to generating HTML pages during the build process, before they are requested by the client. The same HTML (and JavaScript, when client-side interactivity is needed) is sent to the browser for every visitor, and a full-site rebuild is required to update the contents of the page.
 
-**Server-side rendering (SSR)** refers to generating HTML pages on the server on-demand just before sending them to the client. Since they are generated per visit, these pages can be customized for each viewer. For example, this page can show a logged in user their account information, or can display updated data without requiring a full-site rebuild.
+**Server-side rendering (SSR)** refers to generating HTML pages on the server on-demand just before sending them to the client. Since they are generated per visit, these pages can be customized for each viewer. For example, this page can show a logged in user their account information or display freshly updated data without requiring a full-site rebuild.
 
-In both modes, the processing occurs on the server, which improves loading time and makes your site or app faster than client-side rendering when viewed on older devices or on slower connections.
+In both modes, most of the processing occurs on the server, which improves loading time and makes your site or app faster than client-side rendering when viewed on less-powerful devices or on slower internet connections. Server-rendered HTML is fast, SEO friendly, and accessible.
+
 
 ## SSG by default
 
 All Astro projects are SSG by default to provide the most lightweight browser experience. The client does not need to wait for any HTML to build because the server does not need to generate your pages. Your site is not dependent on the performance of a backend data source, and once built, will remain available to visitors as long as your server is functioning.
 
-SSG sites can still take advantage of Astro islands for client-side interactivity, as well as middleware to intercept and transform response data from a request. This makes Astro SSG mode a powerful choice for sites that update infrequently, and display the same page content to all visitors.
+SSG sites can include [Astro islands](/en/concepts/islands/) for interactive UI components (or even entire embedded client-side rendered apps!) written in the [UI framework of your choice](/en/core-concepts/framework-components/) in an otherwise static, server-rendered page.
+
+Also available in SSG mode are Astro's [View Transitions API](/en/guides/view-transitions/) for animation and state persistence across page navigation, as well as [middleware](/en/guides/middleware/) to intercept and transform response data from a request. This makes Astro SSG mode a powerful, modern-feeling choice for content-heavy sites that update infrequently, and display the same page content to all visitors.
 
 ## Opt in to SSR
 
 SSR brings the advantages of fresh page content and [several other features](#ssr-features), but at a potential performance cost compared to SSG. Pages must be generated on demand before they can be served to the client. If data is fetched from external sources, then their speed also becomes a factor in your page load time. And, even if no data has changed, a page must still be re-generated server-side before rendering and so a caching strategy may be required.
 
-Despite the extra configuration and potential performance issues compared to SSG, SSR mode enables app-like behaviour that is more performant than traditional single-page JavaScript applications (SPA). Combined with Astro's [view transitions API](/en/guides/view-transitions/) during navigation, SSR in Astro provides a true app experience without the JavaScript overhead of a traditional SPA.
+Despite the extra complexity and potential performance issues compared to SSG, SSR mode enables app-like behaviour that is more performant and more accessible than traditional single-page JavaScript applications (SPA). Astro's SSR mode still allows you to pre-render individual pages, achieving the performance benefits of SSG for the routes that do not need to be generated on-demand. 
+
+SSR apps can also include [Astro islands](/en/concepts/islands/) for interactivity (or even entire embedded client-side rendered apps!) in your choice of [UI frameworks](/en/core-concepts/framework-components/). With [middleware](/en/guides/middleware/) and Astro's [View Transitions API](/en/guides/view-transitions/) for animations and preserving state across route navigations, SSR in Astro provides a true app experience without the JavaScript overhead of a traditional SPA.
 
 Consider enabling server-side rendering in your Astro project if you need the following:
 
@@ -31,16 +36,16 @@ Consider enabling server-side rendering in your Astro project if you need the fo
 
 - **Frequently changing content**: Enabling SSR lets you generate individual pages without requiring a static rebuild of your site. This is useful when the content of a page updates frequently, for example displaying data from an API called dynamically with `fetch`.
 
-### Choose an SSR mode
+### Configure an SSR mode
 
-Astro provides [two server-rendered options](#choose-an-ssr-mode) to ensure that you can take still advantage of SSG performance by pre-rendering whenever possible in SSR mode: a mostly server-rendered app, and a mostly static site that needs SSR only for select routes. Both server modes require you to [add an adapter](#adding-an-adapter) to carry out the server functions.
+Astro provides two SSR modes to ensure that you can take still advantage of SSG performance by pre-rendering whenever possible, whether you have an entirely server-rendered app or a mostly static site that needs SSR only for select routes. Both server modes require you to [add an adapter](#adding-an-adapter) to carry out the server functions.
 
-To enable SSR features for production deployments, update your `output` configuration to one of the two available SSR modes: `'server'` or `'hybrid'`. 
-
-Both of these modes control which [pages](/en/core-concepts/astro-pages/) or [server endpoints](/en/core-concepts/endpoints/#server-endpoints-api-routes) should be server-rendered. Each configuration option has a different default behavior, and allows individual routes to opt-out of the default accordingly:
+Each mode has a different default setting: [pages](/en/core-concepts/astro-pages/) and [server endpoints](/en/core-concepts/endpoints/#server-endpoints-api-routes) can either be server-rendered or pre-rendered by default. Both modes allow individual routes to opt-out of the default accordingly:
 
 - __`output: 'server'`__: Server-rendered by default. Use this when most or all of your site or app should be server-rendered. Any individual page or endpoint can *opt-in* to pre-rendering.
 - __`output: 'hybrid'`__: Pre-rendered to HTML by default. Use this when most of your site should be static. Any individual page or endpoint can *opt-out* of pre-rendering.
+
+To enable SSR, update your `output` configuration to one of the two SSR modes. 
 
 For example, to enable an SSR app, add `output: server` to your Astro config: 
 
@@ -55,7 +60,7 @@ export default defineConfig({
 });
 ```
 
-You can then opt-out of the default rendering behavior with an export statement in any page or route:
+You can then override your SSR mode's default behavior for any page or route by exporting a value for `prerender`, either `true` or `false` as appropriate:
 
 ```astro title="src/pages/mypage.astro" {2}
 ---
@@ -66,7 +71,7 @@ export const prerender = true;
   <!-- Static, pre-rendered page here... -->
 </html>
 ```
-See more usage examples of [configuring individual routes](#configuring-individual-routes) for these two SSR options.
+See more examples of [specifying rendering behavior on a per-page basis](#per-page-prerendering) for these two SSR options.
 
 ### Adding an Adapter
 
@@ -143,11 +148,13 @@ You can also add an adapter manually by installing the package and updating `ast
 
 Astro is static-site generator by default. But once you enable server-side rendering and add an adapter, a few new features become available to you.
 
-### Configuring individual routes
+### Per-page prerendering
 
-Both `server` and `hybrid` modes allow for server-rendered pages and endpoints and will render all pages according to their default mode. However, both modes allow you to mark an individual page to opt-out of this default behavior.
+Both `server` and `hybrid` modes allow for a combination of pre-rendered and server-rendered pages and endpoints. Each mode will render all pages according to their own default setting. However, both modes allow you to mark an individual page to opt-out of this default behavior.
 
-### Opting-out of server-rendering in `server` mode:
+
+
+#### Opting-in to pre-rendering in `server` mode
 
 For a mostly server-rendered app configured as `output: server`, add `export const prerender = true` to any page or route to pre-render a static page or endpoint:
 
@@ -171,8 +178,6 @@ export const prerender = true;
 # This is my static, pre-rendered page
 ```
 
-And for an endpoint:
-
 ```js title="src/pages/myendpoint.js" {1}
 export const prerender = true;
 
@@ -183,7 +188,7 @@ export async function GET() {
 }
 ```
 
-### Opting out of pre-rendering in `static` mode:
+#### Opting out of pre-rendering in `static` mode
 
 For a mostly static site configured as `output: hybrid`, add `export const prerender = false` to any files that should be server-rendered:
 
@@ -225,7 +230,9 @@ console.log(Astro.request.method) // GET (when navigated to in the browser)
 :::caution
 The features below are only available at the page level. (You can't use them inside of components, including layout components.)
 
-This is because these features modify the [Response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header), which can't be modified after they're sent to the browser. In SSR mode, Astro uses HTML streaming to send each component to the browser as it renders them. This makes sure the user sees your HTML as fast as possible, but it also means that by the time Astro runs your component code, it has already sent the Response headers.
+This is because these features modify the [Response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header), which can't be modified after they're sent to the browser.
+
+In SSR mode, Astro uses HTML streaming to send each component to the browser as it renders them. This makes sure the user sees your HTML as fast as possible, but it also means that by the time Astro runs your component code, it has already sent the Response headers.
 :::
 
 ### `Astro.cookies`
@@ -291,7 +298,11 @@ Browsers natively support HTTP streaming, where a document is broken up into chu
 During this process, browsers consume HTML incrementally: parsing, rendering into the DOM, and painting. This happens whether or not you intentionally stream your HTML. Network conditions can cause large documents to be downloaded slowly, and waiting for data fetches can block page rendering.
 
 
-### Using streaming to improve page performance
+#### Using streaming to improve page performance
+
+Astro's SSR uses HTML streaming to send each component to the browser when available for faster page loading. To improve your page's performance even further, you can build your components strategically to optimize their loading by avoiding blocking data fetches.
+
+The following refactoring example demonstrates how to improve page performance by moving fetch calls to other components, moving them out of a component where they block page rendering.
 
 The following page `await`s some data in its frontmatter. Astro will wait for all of the `fetch` calls to resolve before sending any HTML to the browser.
 
