@@ -35,7 +35,7 @@ export default DocSearchDictionary({
 			navigateDownKeyAriaLabel: 'Pfeiltaste nach unten',
 			closeText: 'zum Schließen',
 			closeKeyAriaLabel: "Escapetaste",
-			searchByText: 'Suchen durch',
+			searchByText: 'Suche von',
 		},
 		noResultsScreen: {
 			noResultsText: 'Keine Ergebnisse gefunden für',
