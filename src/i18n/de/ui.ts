@@ -92,14 +92,14 @@ export default UIDictionary({
   	'tutorial.trackerLabel': 'Tutorial Tracker',
 	'tutorial.unit': 'Teil',
   	// Tutorial
-	'tutorial.getReady': 'Mach dich bereit,…',
+	'tutorial.getReady': 'Mach dich bereit, …',
 	// Feedback Fish widget
 	'feedback.button': 'Gib uns Feedback',
 	'feedback.a11yLabel': 'Feedback-Formular',
-	'feedback.formTitle': 'Wie kann ich helfen?',
+	'feedback.formTitle': 'Worum geht es?',
 	'feedback.categoryGroupLabel': 'Feedback-Typ wählen',
-	'feedback.issue': 'Problem',
-	'feedback.createIssue': 'Erstelle Github-Problem',
+	'feedback.issue': 'Issue',
+	'feedback.createIssue': 'Issue auf GitHub erstellen',
 	'feedback.idea': 'Idee',
 	'feedback.other': 'Sonstiges',
 	'feedback.messageA11yLabel': 'Nachricht',
@@ -118,7 +118,7 @@ export default UIDictionary({
   	// Stubs vocabulary
 	'stub.title': 'Erweitere diese Anleitung!',
 	'stub.subtitle': 'Diese Anleitung ist ein Entwurf.',
- 	'stub.description.migration': 'Möchtest Du zu dieser Anleitung beitragen? Hast Du einen Blogbeitrag, ein Video oder eine andere Informationsquelle über die Migration von dieser Technologie zu Astro, die Du teilen möchtest?',
-	'stub.description.cms': 'Weisst Du mehr darüber, wie man dieses CMS mit Astro verwenden kann?',
- 	'stub.description.backend': 'Weisst Du mehr darüber, wie man diesen Backend-Dienst mit Astro verwenden kann?',
+ 	'stub.description.migration': 'Möchtest du zu dieser Anleitung beitragen? Hast du einen Blogbeitrag, ein Video oder eine andere Informationsquelle über die Migration von dieser Technologie zu Astro, die du teilen möchtest?',
+	'stub.description.cms': 'Weißt du mehr darüber, wie man dieses CMS mit Astro verwenden kann?',
+ 	'stub.description.backend': 'Weißt du mehr darüber, wie man diesen Backend-Dienst mit Astro verwenden kann?',
 });
