@@ -98,7 +98,7 @@ export default UIDictionary({
 	'feedback.a11yLabel': 'Feedback-Formular',
 	'feedback.formTitle': 'Worum geht es?',
 	'feedback.categoryGroupLabel': 'Feedback-Typ wählen',
-	'feedback.issue': 'Issue',
+	'feedback.issue': 'Problem',
 	'feedback.createIssue': 'Issue auf GitHub erstellen',
 	'feedback.idea': 'Idee',
 	'feedback.other': 'Sonstiges',
