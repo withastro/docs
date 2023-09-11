@@ -22,6 +22,7 @@ Certains mots jugés comme "inhérents" à Astro n'auront pas de traduction, car
 | Build             | Dans le contexte d'un langage utilisant une étape de compilation, on parle de compilation / transpilation | Ce mot est à utiliser lorsqu'on parle de l'étape de compilation via la commande `astro build` servant à produire un résultat compatible pour les navigateurs et optimisé par Astro
 | Frontend          |
 | Backend           |
+| Middleware        |
 | Markdown, Astro, JavaScript, TypeScript, React, Vue, Svelte, Lit, Solid | Tous les noms de packages / langages prennent une majuscule, car considérés comme des noms propres à ces environnements | Utilisé partout sur la doc de façon universelle, doit toujours porter une majuscule |
 
 > Et non je ne parlerai pas du mot “Cadriciel”.
@@ -42,7 +43,7 @@ Certains mots dans la traduction ont un équivalent français utilisé uniformé
 | Imports                      | Imports / Importer / Inclure              |
 | Exports                      | Exports / Exporter                        |
 | Render / Rendering           | Rendu / Affichage / Sortie                |
-| Re-render                    | Rafraîchir / Effectuer à nouveau un rendu | 
+| Re-render                    | Rafraîchir / Effectuer à nouveau un rendu | 
 | Component Script             | Script du composant                       |
 | Component Template           | Template du composant                     |
 | Bundle / Bundled             | Regroupé / Groupé / Compacté              |
@@ -56,5 +57,6 @@ Certains mots dans la traduction ont un équivalent français utilisé uniformé
 | Partial Hydration            | Hydratation Partielle                     |
 | Scope / Scoped               | Limité / Délimité                         |
 | Astro Islands                | Îles Astro                                |
+| Recipes                      | Méthodes                                  |
 
 > ⚠️ Ce glossaire est encore en travaux, merci de contribuer à la traduction française en lui apportant des suggestions !

@@ -1,0 +1,754 @@
+---
+title: コンテンツコレクション
+description: >-
+  コンテンツコレクションは、Markdownを整理し、フロントマターをスキーマで型チェックするのに役立ちます。
+i18nReady: true
+---
+import FileTree from '~/components/FileTree.astro'
+import Since from '~/components/Since.astro'
+import TypeScriptSettingTabs from '~/components/tabs/TypeScriptSettingTabs.astro'
+import RecipeLinks from "~/components/RecipeLinks.astro"
+
+
+<p>
+  <Since v="2.0.0" />
+</p>
+
+**コンテンツコレクション**は、Astroプロジェクトでコンテンツを管理し、オーサリングするもっとも良い方法です。コレクションはドキュメントを整理し、フロントマターを検証、すべてのコンテンツに対して自動的にTypeScriptの型安全性を提供します。
+
+
+## コンテンツコレクションとは？
+
+予約されているプロジェクトディレクトリ`src/content`の中にあるトップレベルのディレクトリは、1つの**コンテンツコレクション**を表わします。たとえば`src/content/newsletter`や`src/content/authors`などになります。`src/content`ディレクトリの中に入れられるのは、コンテンツコレクションだけです。このディレクトリは他のものには使えません。
+
+**コレクションエントリー**は、コンテンツコレクションディレクトリ内に保存されたコンテンツのことです。エントリーには、Markdown（`.md`）やMDX （`.mdx` [MDXインテグレーション](/ja/guides/integrations-guide/mdx/)を使用）などのコンテンツオーサリングフォーマットや、YAML（`.yaml`）やJSON（`.json`）などのデータフォーマットを使用できます。コンテンツの検索と整理を容易にするため、ファイルには一貫性のある命名スキーム（小文字、スペースの代わりにダッシュ）の使用をおすすめしますが、これは必須ではありません。また、ファイル名の前にアンダースコア（_）を付けることで、[ビルド対象からエントリーを除外](/ja/core-concepts/routing/)できます。
+
+{/* TODO: ルーティングページが更新されたらビルド対象からエントリーを除外のリンク先を /ja/core-concepts/routing/#excluding-pages にする */}
+
+<FileTree>
+- src/content/
+  - **newsletter/** "newsletter"コレクション
+    - week-1.md コレクションエントリー
+    - week-2.md コレクションエントリー
+    - week-3.md コレクションエントリー
+</FileTree>
+
+コレクションができたら、Astroの組み込みコンテンツAPIを使って[コンテンツのクエリ](#コレクションのクエリ)を始められます。
+
+### ".astro"ディレクトリ
+
+Astroは、コンテンツコレクションの重要なメタデータを、プロジェクト内の`.astro`ディレクトリに保存します。このディレクトリを維持または更新するために、何かする必要はありません。プロジェクトでの作業中は、このディレクトリを完全に無視してください。
+
+`.astro`ディレクトリは、[`astro dev`](/ja/reference/cli-reference/#astro-dev)コマンドや[`astro build`](/ja/reference/cli-reference/#astro-build)コマンドを実行すると常に自動で更新されます。必要に応じて[`astro sync`](/ja/reference/cli-reference/)を実行し、手動で`.astro`ディレクトリを更新できます。
+
+{/* TODO: CLIリファレンスページが更新されたらastro syncのリンク先を /ja/reference/cli-reference/#astro-sync にする */}
+
+:::tip
+バージョン管理にGitを使っている場合は、`.gitignore`に `.astro`を追加して`.astro`ディレクトリを無視することをおすすめします。以下は、このディレクトリとその中のファイルを無視するようにGitに伝えます。
+
+```bash
+echo "\n.astro" >> .gitignore
+```
+:::
+
+### 複数のコレクションによる整理
+
+2つのファイルが異なる種類のコンテンツ（例えばブログの投稿と著者のプロフィール）を表す場合、それらは異なるコレクションに属する可能性が高いでしょう。多くの機能（フロントマターの検証、TypeScriptの自動型安全性）では、コレクション内のすべてのエントリーが同様の構造を共有する必要がありますので、これは重要です。
+
+さまざまなタイプのコンテンツを扱うことになったら、それぞれのタイプを表す複数のコレクションを作成する必要があります。プロジェクトには、いくつでも異なるコレクションを作成できます。
+
+<FileTree>
+- src/content/
+  - **newsletter/**
+    - week-1.md
+    - week-2.md
+  - **blog/**
+    - post-1.md
+    - post-2.md
+  - **authors/**
+    - grace-hopper.json
+    - alan-turing.json
+</FileTree>
+
+### サブディレクトリを使った整理
+
+コンテンツコレクションは、常に`src/content/`ディレクトリ内のトップレベルのフォルダです。コレクションを別のコレクションの中に入れ子にはできません。しかし、サブディレクトリを使ってコレクション内のコンテンツを整理できます。
+
+たとえば、1つの`docs`コレクション内で多言語の翻訳を整理するために、次のディレクトリ構造を使えます。このコレクションをクエリするとき、ファイルパスを使用して言語によって結果をフィルタできます。
+
+<FileTree>
+- src/content/
+  - docs/ このコレクションは、言語別に整理したサブディレクトリを使用
+    - **en/**
+    - **es/**
+    - **de/**
+</FileTree>
+
+
+## コレクションの定義
+
+:::note
+`src/content/config.ts`ファイルは省略できます。しかし、コレクションを定義しないと、フロントマターのスキーマ検証やTypeScriptの自動型付けなど、コレクションのいくつかの優れた機能が使えなくなります。
+:::
+
+コンテンツコレクションを最大限に活用するには、プロジェクト内に`src/content/config.ts`ファイルを作成してください（`.js`と`.mjs`の拡張子もサポートされています）。これは、Astroがコンテンツコレクションを設定するために自動的に読み込んで使用する特別なファイルです。
+
+```ts
+// src/content/config.ts
+// 1. `astro:content`からユーティリティをインポート
+import { defineCollection } from 'astro:content';
+// 2. コレクションを定義
+const blogCollection = defineCollection({ /* ... */ });
+// 3. コレクションを登録するために、単一の`collections`オブジェクトをエクスポート
+//    このキーは、"src/content"のコレクションのディレクトリ名と一致する必要があります。
+export const collections = {
+  'blog': blogCollection,
+};
+```
+
+### TypeScriptのセットアップ
+
+`tsconfig.json`ファイルでAstroのTypeScript設定を`strict`または`strictest`に設定して**いない**場合は、`tsconfig.json`を更新して`strictNullChecks`を有効にする必要があるかもしれません。
+
+```json title="tsconfig.json" ins={5}
+{
+  // 注意："astro/tsconfigs/strict"または"astro/tsconfigs/strictest"を使用する場合は変更する必要はありません。
+  "extends": "astro/tsconfigs/base",
+  "compilerOptions": {
+    "strictNullChecks": true
+  }
+}
+```
+
+Astroプロジェクトで`.js`または`.mjs`ファイルを使用する場合、`tsconfig.json`で`allowJs`を有効にすることで、インテリセンスとエディタでの型チェックを有効にできます。
+
+```json title="tsconfig.json" ins={6}
+{
+  // 注意："astro/tsconfigs/strict"または"astro/tsconfigs/strictest"を使用する場合は変更する必要はありません。
+  "extends": "astro/tsconfigs/base",
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "allowJs": true
+  }
+}
+```
+
+### コレクションスキーマの定義
+
+スキーマは、コレクション内の一貫したフロントマターまたはエントリーデータを強制します。スキーマは、このデータへの参照やクエリが必要なときに、それが予測可能な形で存在することを**保証**します。ファイルがコレクションスキーマに違反している場合、Astroは役にたつエラーを表示してお知らせします。
+
+スキーマはAstroのコンテンツに対する自動的なTypeScriptの型付けにも力を発揮します。コレクションにスキーマを定義すると、Astroは自動的にTypeScriptインターフェイスを生成して適用します。その結果、コレクションをクエリする際には、プロパティの自動補完や型チェックを含むTypeScriptが完全にサポートされます。
+
+最初のコレクションを定義するには、`src/content/config.ts`ファイルがまだ存在しなければ、このファイルを作成します（`.js`と `.mjs`の拡張子もサポートされています）。
+
+1. `astro:content`から**適切なユーティリティをインポートします**。
+2. **検証したい各コレクションを定義します**。これには、コレクションがMarkdownのようなコンテンツオーサリングフォーマット（`type: 'content'`）であるか、JSONやYAMLのようなデータフォーマット（`type: 'data'`）であるかを指定する`type`（Astro v2.5.0で導入）が含まれます。また、フロントマターやエントリーデータの形を定義する`schema`も含まれます。
+3. コレクションを登録するために、**単一の`collections`オブジェクトをエクスポートします**。
+
+```ts
+// src/content/config.ts
+// 1. ユーティリティを`astro:content`からインポート
+import { z, defineCollection } from 'astro:content';
+
+// 2. 各コレクションに`type`と`schema`を定義
+const blogCollection = defineCollection({
+  type: 'content', // v2.5.0以降
+  schema: z.object({
+    title: z.string(),
+    tags: z.array(z.string()),
+    image: z.string().optional(),
+  }),
+});
+
+// 3. コレクションを登録するために、単一の`collections`オブジェクトをエクスポート
+export const collections = {
+  'blog': blogCollection,
+};
+```
+
+### 複数のコレクションの定義
+
+`defineCollection()`は、複数のスキーマを作成するために何度でも使えます。 すべてのコレクションは、単一の`collections`オブジェクトの内部からエクスポートする必要があります。
+
+```ts
+// src/content/config.ts
+const blogCollection = defineCollection({
+  type: 'content',
+  schema: z.object({ /* ... */ })
+});
+const newsletter = defineCollection({
+  type: 'content',
+  schema: z.object({ /* ... */ })
+});
+const authors = defineCollection({
+  type: 'data',
+  schema: z.object({ /* ... */ })
+});
+
+export const collections = {
+  'blog': blogCollection,
+  'newsletter': newsletter,
+  'authors': authors,
+};
+```
+
+プロジェクトが成長するにつれて、コードベースを再編成し、`src/content/config.ts`ファイルからロジックを移動することも自由にできます。スキーマを別々に定義することは、複数のコレクションでスキーマを再利用したり、プロジェクトの他の部分とスキーマを共有したりするのに便利です。
+
+```ts
+// src/content/config.ts
+// 1. ユーティリティとスキーマのインポート
+import { defineCollection } from 'astro:content';
+import { blogSchema, authorSchema } from '../schemas';
+
+// 2. コレクションを定義
+const blogCollection = defineCollection({
+  type: 'content',
+  schema: blogSchema,
+});
+const authorCollection = defineCollection({
+  type: 'data',
+  schema: authorSchema,
+});
+
+// 3. 複数のコレクションをエクスポートして登録
+export const collections = {
+  'blog': blogCollection,
+  'authors': authorCollection,
+};
+```
+
+### サードパーティのコレクションスキーマの使用
+
+外部のnpmパッケージなど、どこからでもコレクションスキーマをインポートできます。これは、独自のコレクションスキーマを提供するテーマやライブラリを使用するときに便利です。
+
+```ts
+// src/content/config.ts
+import { blogSchema } from 'my-blog-theme';
+const blogCollection = defineCollection({ type: 'content', schema: blogSchema });
+
+// 'my-blog-theme'の外部スキーマを使用して、ブログコレクションをエクスポート
+export const collections = {
+  'blog': blogCollection,
+};
+```
+
+### Zodによるデータ型の定義
+
+Astroは[Zod](https://github.com/colinhacks/zod)を使ってコンテンツスキーマを動かしています。Zodを利用すると、Astroはコレクション内のすべてのファイルのフロントマターを検証し、プロジェクト内からコンテンツをクエリする際に自動的にTypeScriptの型を提供できます。
+
+AstroでZodを使うには、`"astro:content"`から`z`ユーティリティをインポートします。これはZodライブラリの再エクスポートで、Zodのすべての機能をサポートしています。Zodがどのように動作し、どのような機能が利用可能かについての完全なドキュメントは、[ZodのREADME](https://github.com/colinhacks/zod)を参照してください。
+
+```ts
+// 例：一般的なZodのデータ型のチートシート
+import { z, defineCollection } from 'astro:content';
+
+defineCollection({
+  schema: z.object({
+    isDraft: z.boolean(),
+    title: z.string(),
+    sortOrder: z.number(),
+    image: z.object({
+      src: z.string(),
+      alt: z.string(),
+    }),
+    author: z.string().default('Anonymous'),
+    language: z.enum(['en', 'es']),
+    tags: z.array(z.string()),
+    // オプションのフロントマター・プロパティ。非常に一般的です！
+    footnote: z.string().optional(),
+    // フロントマターでは、引用符で囲まずに書かれた日付はDateオブジェクトとして解釈されます。
+    publishDate: z.date(),
+    // 日付文字列（例えば "2022-07-08"）をDateオブジェクトに変換できます。
+    // publishDate: z.string().transform((str) => new Date(str)),
+    // アドバンスド：文字列が電子メールであることを検証する。
+    authorContact: z.string().email(),
+    // アドバンスド：文字列がURLであることを検証する。
+    canonicalURL: z.string().url(),
+  })
+})
+```
+
+### コレクション参照の定義
+
+コレクションエントリーは、他の関連するエントリーを「参照」することもできます。
+
+Collections APIの`reference()`関数を使うと、コレクションスキーマのプロパティを別のコレクションのエントリーとして定義できます。たとえば、すべての`space-shuttle`エントリーに、型チェック、オートコンプリート、バリデーションに`pilot`コレクションのスキーマを使用する`pilot`プロパティを含めるように要求できます。
+
+よくある例は、JSONとして保存された再利用可能な著者プロフィールや、同じコレクションに保存された関連投稿URLを参照するブログ投稿です。
+
+```ts
+import { defineCollection, reference, z } from 'astro:content';
+
+const blog = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    // `authors` コレクションから `id` で1人の著者を参照
+    author: reference('authors'),
+    // `blog`コレクションから`slug`による関連記事の配列を参照
+    relatedPosts: z.array(reference('blog')),
+  })
+});
+
+const authors = defineCollection({
+  type: 'data',
+  schema: z.object({
+    name: z.string(),
+    portfolio: z.string().url(),
+  })
+});
+
+export const collections = { blog, authors };
+```
+
+このブログ記事の例では、関連記事の`slug`と投稿者の`id`を指定しています。
+
+```yaml title="src/content/blog/welcome.md"
+---
+title: "私のブログへようこそ"
+author: ben-holmes # `src/content/authors/ben-holmes.json`を参照
+relatedPosts:
+- about-me # `src/content/blog/about-me.md`を参照
+- my-year-in-review # `src/content/blog/my-year-in-review.md`を参照
+---
+```
+
+### カスタムスラグの定義
+
+`type: 'content'`を使用している場合、すべてのコンテンツエントリーは[ファイル`id`](/ja/reference/api-reference/#id)からURLフレンドリーな`slug`プロパティを生成します。このスラグは、コレクションからエントリーを直接クエリするために使用されます。また、コンテンツから新しいページやURLを作成するときにも便利です。
+
+ファイルのフロントマターに独自の`slug`プロパティを追加すると、エントリーの生成されたスラグをオーバーライドできます。これは他のWebフレームワークの"permalink"機能に似ています。`"slug"`は特別な予約されたプロパティ名で、カスタムコレクション`schema`では許可されず、エントリーの`data`プロパティには表示されません。
+
+```md {3}
+---
+title: 私のブログ記事
+slug: my-custom-slug/supports/slashes
+---
+あなたのブログ記事の内容はこちら。
+```
+
+## コレクションのクエリ
+
+Astroには、コレクションにクエリを発行して1つ（または複数）のコンテンツエントリーを返す関数が2つあります。[`getCollection()`](/ja/reference/api-reference/#getcollection)と[`getEntry()`](/ja/reference/api-reference/#getentry)です。
+
+```js
+import { getCollection, getEntry } from 'astro:content';
+
+// コレクションからすべてのエントリーを取得します。
+// 引数としてコレクション名が必要です。
+// 例: `src/content/blog/**`を取得する。
+const allBlogPosts = await getCollection('blog');
+
+// コレクションから単一のエントリーを取得します。
+// コレクションの名前と、以下のいずれかが必要です。
+// エントリーの`slug`（コンテンツコレクション）または`id`（データコレクション）を指定する。
+// 例: `src/content/authors/grace-hopper.json`を取得する。
+const graceHopperProfile = await getEntry('authors', 'grace-hopper');
+```
+
+どちらの関数も、[`CollectionEntry`](/ja/reference/api-reference/#collection-entry-type)型で定義されたコンテンツエントリーを返します。
+
+### 参照データへのアクセス
+
+[スキーマで定義されている参照](#コレクション参照の定義)は、最初にコレクションエントリーをクエリした後で、個別にクエリする必要があります。`getEntry()`関数を再度使用するか、または`getEntries()`を使用して、返された`data`オブジェクトから参照されるエントリーを取得できます。
+
+```astro title="src/pages/blog/welcome.astro"
+---
+import { getEntry, getEntries } from 'astro:content';
+
+const blogPost = await getEntry('blog', 'welcome');
+
+// 単一参照の解決
+const author = await getEntry(blogPost.data.author);
+// 参照の配列を解決
+const relatedPosts = await getEntries(blogPost.data.relatedPosts);
+---
+
+<h1>{blogPost.data.title}</h1>
+<p>著者: {author.data.name}</p>
+
+<!-- ... -->
+
+<h2>次もおすすめ</h2> 
+{relatedPosts.map(p => (
+  <a href={p.slug}>{p.data.title}</a>
+))}
+```
+
+### コレクションクエリのフィルタリング
+
+`getCollection()`はオプションの"filter"コールバックを受け取り、エントリーの`id` や`data`（フロントマター）プロパティに基づいてクエリをフィルタリングします。`type: 'content'`のコレクションについては、`slug`に基づいてフィルタリングもできます。
+
+:::note
+`slug`プロパティはコンテンツコレクションに固有のもので、JSONやYAMLのコレクションをフィルタリングするときには利用できません。
+:::
+
+これを使用して、コンテンツを好きな基準でフィルタリングできます。たとえば、`draft`のようなプロパティでフィルタリングして、下書きのブログ記事がブログに公開されないようにできます。
+
+```js
+// 例: `draft: true`を含むエントリーを除外
+import { getCollection } from 'astro:content';
+const publishedBlogEntries = await getCollection('blog', ({ data }) => {
+  return data.draft !== true;
+});
+```
+
+開発サーバーの実行時にのみ閲覧可能で、本番用にはビルドされない下書き（draft）ページも作成できます。
+
+```js
+// 例: 本番用にビルドするときにのみ、`draft: true`を含むエントリーを除外
+import { getCollection } from 'astro:content';
+const blogEntries = await getCollection('blog', ({ data }) => {
+  return import.meta.env.PROD ? data.draft !== true : true;
+});
+```
+
+filterの引数は、コレクション内の入れ子ディレクトリによるフィルタリングもサポートします。`id`にはネストされた完全なパスが含まれるので、各`id`の先頭でフィルタリングして、特定のネストされたディレクトリからのアイテムだけを返せます。
+
+```js
+// 例: コレクション内のサブディレクトリによるエントリーのフィルタリング
+import { getCollection } from 'astro:content';
+const englishDocsEntries = await getCollection('docs', ({ id }) => {
+  return id.startsWith('en/');
+});
+```
+
+### Astroテンプレートでのコンテンツの使用
+
+コレクションエントリーをクエリすると、Astroコンポーネントテンプレートの内部で各エントリーに直接アクセスできます。これにより、コンテンツへのリンク（コンテンツ`slug`を使用）やコンテンツに関する情報（`data`プロパティを使用）などのHTMLをレンダリングできます。
+
+コンテンツをHTMLにレンダリングする方法については、下記の[コンテンツをHTMLにレンダリングする](#コンテンツをhtmlにレンダリングする)を参照してください。
+
+```astro
+---
+// src/pages/index.astro
+import { getCollection } from 'astro:content';
+const blogEntries = await getCollection('blog');
+---
+<ul>
+  {blogEntries.map(blogPostEntry => (
+    <li>
+      <a href={`/my-blog-url/${blogPostEntry.slug}`}>{blogPostEntry.data.title}</a>
+      <time datetime={blogPostEntry.data.publishedDate.toISOString()}>
+        {blogPostEntry.data.publishedDate.toDateString()}
+      </time>
+    </li>
+  ))}
+</ul>
+```
+
+### コンテンツをプロパティとして渡す
+
+コンポーネントは、コンテンツエントリー全体をプロパティとして渡すこともできます。
+
+この場合、[`CollectionEntry`](/ja/reference/api-reference/#collection-entry-type)ユーティリティを使用して、TypeScriptでコンポーネントのプロパティを適切に型付けできます。 このユーティリティは、コレクションスキーマの名前と一致する文字列引数を取り、そのコレクションのスキーマのすべてのプロパティを継承します。
+
+```astro /CollectionEntry(?:<.+>)?/
+---
+// src/components/BlogCard.astro
+import type { CollectionEntry } from 'astro:content';
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+// `post`は'blog'コレクションのスキーマタイプにマッチする。
+const { post } = Astro.props;
+---
+```
+
+### コンテンツをHTMLにレンダリングする
+
+クエリされたエントリーの`render()`関数プロパティを使用して、MarkdownおよびMDXエントリーをHTMLにレンダリングできます。この関数を呼び出すと、`<Content />`コンポーネントとレンダリングされたすべての見出しのリストを含む、レンダリングされたコンテンツとメタデータにアクセスできます。
+
+```astro {5}
+---
+// src/pages/render-example.astro
+import { getEntry } from 'astro:content';
+const entry = await getEntry('blog', 'post-1');
+const { Content, headings } = await entry.render();
+---
+<p>公開日: {entry.data.published.toDateString()}</p>
+<Content />
+```
+
+## コンテンツからルーティングを生成
+
+コンテンツコレクションは`src/pages/`ディレクトリの外に保存されます。つまり、デフォルトではコレクション項目に対してルーティングは生成されません。コレクション項目からHTMLページを生成するには、手動で新しい[動的ルーティング](/ja/core-concepts/routing/#動的ルーティング)を作成する必要があります。動的ルーティングは、リクエストのパラメーター (例:`src/pages/blog/[...slug].astro`の`Astro.params.slug`) をマッピングして、コレクション内の正しいエントリーを取得します。
+
+ルーティングを生成する正確な方法は、ビルドの[出力](/ja/reference/configuration-reference/#output)モードによって異なります。モードはstatic（デフォルト）またはserver（SSRの場合）です。
+
+### 静的出力のビルド（デフォルト）
+
+静的なウェブサイトを構築する場合（Astroのデフォルトの動作）、ビルド中に1つの`src/pages/`コンポーネントから複数のページを作成するには、[`getStaticPaths()`](/ja/reference/api-reference/#getstaticpaths)関数を使用します。
+
+`getStaticPaths()`内で[`getCollection()`](/ja/reference/api-reference/#getcollection) を呼び出し、コンテンツをクエリします。それから、各コンテンツエントリーの`slug`プロパティを使用して、新しいURLパスを作成します。
+
+```astro "{ slug: entry.slug }"
+---
+// src/pages/posts/[...slug].astro
+import { getCollection } from 'astro:content';
+// 1. コレクションエントリーごとに新しいパスを生成
+export async function getStaticPaths() {
+  const blogEntries = await getCollection('blog');
+  return blogEntries.map(entry => ({
+    params: { slug: entry.slug }, props: { entry },
+  }));
+}
+// 2. テンプレートでは、プロパティからエントリーを直接取得できる
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+---
+<h1>{entry.data.title}</h1>
+<Content />
+```
+
+これにより、`blog`コレクションの各エントリーに新しいページが生成されます。たとえば、`src/content/blog/hello-world.md`のエントリーは`hello-world`というスラグを持つので、最終的なURLは`/posts/hello-world/`となります。
+
+:::note
+カスタムスラグに`/`文字が含まれ、複数のパスセグメントを持つURLを生成する場合は、この動的ルーティングページの`.astro`ファイル名に[レストパラメータ（`[...slug]`）](/ja/core-concepts/routing/#レストパラメーター)を使用する必要があります。
+:::
+
+### サーバー出力のビルド（SSR）
+
+動的なウェブサイトを構築する場合（AstroのSSRサポートを使用する場合）、ビルド時にパスを生成する必要はありません。そのかわり、ページでは（`Astro.request`あるいは`Astro.params`を使って）リクエストを調べて`slug`を見つけ、[`getEntry()`](/ja/reference/api-reference/#getentry)を使って取得しなければなりません。
+
+
+```astro
+---
+// src/pages/posts/[...slug].astro
+import { getEntry } from "astro:content";
+// 1. 受信サーバーのリクエストからスラグを取得
+const { slug } = Astro.params;
+if (slug === undefined) {
+	throw new Error("Slug is required");
+}
+// 2. リクエストスラグを使ってエントリーを直接検索
+const entry = await getEntry("blog", slug);
+// 3. エントリーが存在しない場合はリダイレクト
+if (entry === undefined) {
+	return Astro.redirect("/404");
+}
+// 4. (オプション) テンプレート内でエントリーをHTMLにレンダリング
+const { Content } = await entry.render();
+---
+```
+
+
+## ファイルベースのルーティングからの移行
+
+このガイドでは、`src/pages/`フォルダにMarkdownファイルがある既存のAstroプロジェクトを、コンテンツコレクションに変換する方法を紹介します。[ブログを作るチュートリアルの完成したプロジェクト](https://github.com/withastro/blog-tutorial-demo)を例として使用しています。
+
+1. Astro v2.0以降に[アップグレード](/ja/guides/upgrade-to/v2/)し、すべてのインテグレーションを最新バージョンにアップグレードしてください。
+
+2. コンテンツコレクションに[TypeScriptを設定](#typescriptのセットアップ)します。
+
+3. 少なくとも1つのコレクション（`src/content/`内のフォルダ）を作成し、MarkdownページとMDXページを`src/pages/`から `src/content/`のこれらのサブディレクトリに移動します。コレクションは、同じコレクション内のすべてのファイルのフロントマタープロパティが似ている場合に、もっともうまく機能します。ですから、同じような種類のページを反映するように、新しいフォルダ構造を選択してください。
+
+    たとえば、[チュートリアルのブログ記事](/ja/tutorial/2-pages/2/)を移行するには、`src/pages/posts/`の内容を`src/content/posts/`に移動します。
+
+4. `src/content/config.ts`ファイルを作成し、各コンテンツタイプの[スキーマを定義](#コレクションスキーマの定義)します。ブログの場合、コンテンツタイプは`posts`だけです。
+
+    ```ts title="src/content/config.ts"
+    // ユーティリティを`astro:content`からインポート
+    import { z, defineCollection } from "astro:content";
+    // 各コレクションに`type`と`schema`を定義
+    const postsCollection = defineCollection({
+        type: 'content',
+        schema: z.object({
+          title: z.string(),
+          pubDate: z.date(),
+          description: z.string(),
+          author: z.string(),
+          image: z.object({
+            url: z.string(),
+            alt: z.string()
+          }),
+          tags: z.array(z.string())
+        })
+    });
+    // コレクションを登録するために、単一の`collections`オブジェクトをエクスポート
+    export const collections = {
+      posts: postsCollection,
+    };
+    ```
+
+    :::tip
+    エディターが`astro:content`を認識しない場合は、Astroが最新バージョンであることを確認し、開発サーバーを再起動してみてください。
+    :::
+
+5. [コレクションからルートを生成します](#コンテンツからルーティングを生成)。コレクション内では、MarkdownファイルやMDXファイルは、Astroの[ファイルベースルーティング](/ja/guides/markdown-content/#ファイルベースルーティング)を使用しても自動的にページにならないため、自分でページを生成する必要があります。
+    
+    このチュートリアルの場合は、`src/pages/posts/[...slug].astro`を作成します。このページは動的ルーティングを使用して、各コレクションのエントリーのページを生成します。
+
+    このページはまた、ページスラグを取得し、各ルーティングでページコンテンツを利用できるようにするために、[コレクションにクエリする](#コレクションのクエリ)必要があります。
+
+    投稿の`<Content />`を、MarkdownまたはMDXページのレイアウト内にレンダリングします。これにより、すべての投稿に共通のレイアウトを指定できます。
+
+    ```astro title="src/pages/posts/[...slug].astro"
+    ---
+    import { getCollection } from 'astro:content';
+    import MarkdownPostLayout from '../../layouts/MarkdownPostLayout.astro';
+
+    export async function getStaticPaths() {
+      const blogEntries = await getCollection('posts');
+      return blogEntries.map(entry => ({
+        params: { slug: entry.slug }, props: { entry },
+      }));
+    }
+
+    const { entry } = Astro.props;
+    const { Content } = await entry.render();
+    ---
+    <MarkdownPostLayout frontmatter={entry.data}>
+      <Content />
+    </MarkdownPostLayout>
+    ```
+
+6. 個々の投稿のフロントマター内の`layout`定義を削除します。レンダリング時にコンテンツがレイアウトに包まれるようになり、このプロパティは不要になりました。
+
+    ```md title="src/content/post-1.md" del={2}
+    ---
+    layout: ../../layouts/MarkdownPostLayout.astro
+    title: 'はじめてのブログ記事'
+    pubDate: 2022-07-01
+    ...
+    ---
+    ```
+
+7. `Astro.glob()`を[`getCollection()`](/ja/reference/api-reference/#getcollection)に置き換えて、Markdownファイルからコンテンツとメタデータを取得します。また、返された post オブジェクトへの参照も更新する必要があります。なぜなら、`data`プロパティにフロントマターの値が格納されるからです。
+    
+    チュートリアルのブログのインデックスページには、各記事のカードがリストアップされています。これは次のようになります。
+
+    ```astro title="src/pages/blog.astro" "post.data" "getCollection(\"posts\")" "'/posts/' + post.slug"
+    ---
+    import { getCollection } from "astro:content";
+    import BaseLayout from "../layouts/BaseLayout.astro";
+    import BlogPost from "../components/BlogPost.astro";
+
+    const pageTitle = "私のAstro学習ブログ";
+    const allPosts = await getCollection("posts");
+    ---
+
+    <BaseLayout pageTitle={pageTitle}>
+      <p>ここには、私がAstroを学んでいく旅の様子を投稿します。</p>
+      <ul>
+        {
+          allPosts.map((post) => (
+            <BlogPost url={'/posts/' + post.slug} title={post.data.title} />
+          ))
+        }
+      </ul>
+    </BaseLayout> 
+    ```
+
+    チュートリアルのブログのプロジェクトは、各タグのページも動的に生成します。このページは次のようになります。
+
+    ```astro title="src/pages/tags/[tag].astro" "post.data" "getCollection(\"posts\")" "post.data.title" "'/posts/' + post.slug"
+    ---
+    import { getCollection } from "astro:content";
+    import BaseLayout from "../../layouts/BaseLayout.astro";
+    import BlogPost from "../../components/BlogPost.astro";
+
+    export async function getStaticPaths() {
+      const allPosts = await getCollection("posts");
+      const uniqueTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
+
+      return uniqueTags.map((tag) => {
+        const filteredPosts = allPosts.filter((post) =>
+          post.data.tags.includes(tag)
+        );
+        return {
+          params: { tag },
+          props: { posts: filteredPosts },
+        };
+      });
+    }
+    
+    const { tag } = Astro.params;
+    const { posts } = Astro.props;
+    ---
+
+    <BaseLayout pageTitle={tag}>
+        <p>{tag}のタグが付いた記事</p>
+        <ul>
+            { posts.map((post) => <BlogPost url={'/posts/' + post.slug} title={post.data.title} />) }
+        </ul>
+    </BaseLayout>
+    ```
+
+    同じロジックがタグインデックスページにも現れています。次のようになります。
+    
+    ```astro title="src/pages/tags/index.astro" "post.data" "getCollection(\"posts\")"
+    ---
+    import { getCollection } from "astro:content";
+    import BaseLayout from "../../layouts/BaseLayout.astro";
+    const allPosts = await getCollection("posts");
+    const tags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
+    const pageTitle = "タグインデックス";
+    ---
+    ...
+    ```
+
+    :::note
+    個々のMarkdownやMDXファイルのインポートは、[`getEntry()`](/ja/reference/api-reference/#getentry)で置き換える必要があります。
+    :::
+    
+8. `layouts/MarkdownPostLayout.astro`ファイルの公開日を使用するコードを更新しました。
+
+    以前は、`pubDate`は文字列でした。投稿のフロントマターに型を導入した結果、`pubDate`は`Date`になりました。 日付をレンダリングするには、文字列に変換します。
+
+    ```astro title="src/layouts/MarkdownPostLayout.astro" "frontmatter.pubDate.toDateString()"
+    ...
+    <BaseLayout pageTitle={frontmatter.title}>
+      <p>{frontmatter.pubDate.toDateString()}</p>
+      <p><em>{frontmatter.description}</em></p>
+      <p>著者: {frontmatter.author}</p>
+      <img src={frontmatter.image.url} width="300" alt={frontmatter.image.alt} />
+    ...
+    ```
+    
+    最後に、チュートリアルのブログプロジェクトにはRSSフィードが含まれています。この関数も`getCollection`と`data`オブジェクトを使用し、非同期関数に変換する必要があります。
+
+    ```js title="src/pages/rss.xml.js" {4-5, 10-15} 
+    import rss from "@astrojs/rss";
+    import { getCollection } from "astro:content";
+
+    export async function GET() {
+      const posts = await getCollection('posts');
+      return rss({
+        title: 'Astro学習者 | ブログ',
+        description: 'Astroを学ぶ旅',
+        site: 'https://my-blog-site.netlify.app',
+        items: posts.map((post) => ({
+          title: post.data.title,
+          pubDate: post.data.pubDate,
+          description: post.data.description,
+          link: `/posts/${post.slug}/`,
+        })),
+        customData: `<language>ja-jp</language>`,
+      });
+    }
+    ```
+
+コンテンツコレクションを使用したブログチュートリアルの完全なサンプルについては、チュートリアルリポジトリの[コンテンツコレクションのブランチ](https://github.com/withastro/blog-tutorial-demo/tree/content-collections)を参照してください。
+
+## Remarkでフロントマターを修正
+
+:::caution
+**非推奨**。Remarkとrehypeプラグインは生のMarkdownまたはMDXドキュメントのフロントマターにアクセスします。これは`remarkPluginFrontmatter`のフロントマターがあなたの型セーフ`schema`とは別に扱われ、Astroを通して適用された変更やデフォルトは反映されません。使用は自己責任です！
+:::
+
+Astroは、[フロントマターを直接変更する](/ja/guides/markdown-content/#プログラムによるフロントマターの変更)remarkまたはrehypeプラグインをサポートしています。`render()`から返される`remarkPluginFrontmatter`プロパティを使うと、コンテンツエントリー内でこの変更されたフロントマターにアクセスできます。
+
+```astro "{ remarkPluginFrontmatter }"
+---
+import { getEntry } from 'astro:content';
+const blogPost = await getEntry('blog', 'post-1');
+const { remarkPluginFrontmatter } = await blogPost.render();
+---
+<p>{blogPost.data.title} — {remarkPluginFrontmatter.readingTime}</p>
+```
+
+<RecipeLinks slugs={["ja/recipes/reading-time" ]}/>
+
+remarkやrehypeのパイプラインは、コンテンツがレンダリングされたときにのみ実行されます。そのため、`render()`をコールした後に`remarkPluginFrontmatter`を使用できるようになります。対照的に、`getCollection()`や`getEntry()`はコンテンツをレンダリングしないので、これらの値を直接返すことはできません。

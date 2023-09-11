@@ -1,0 +1,278 @@
+---
+title: Endpunkte
+description: Erfahre, wie du Endpunkte erstellen kannst, die jegliche Form von Daten bereitstellen.
+---
+
+Mit Astro kannst du eigene projektspezifische Endpunkte erstellen, die jegliche Form von Daten bereitstellen können. Du kannst damit Bilder generieren, ein RSS-Dokument bereitstellen oder sie als API-Route verwenden, um eine komplette API für deine Seite zu erstellen.
+
+Auf statisch generierten Websites werden projektspezifische Endpunkte zum Erstellungszeitpunkt ausgeführt, um statische Dateien zu erzeugen. Wenn du hingegen den optionalen [SSR](/de/guides/server-side-rendering/)-Modus aktivierst, verwandeln projektspezifische Endpunkte sich in API-Endpunkte, die in Echtzeit zur Behandlung jeder eingehenden Anfrage ausgeführt werden. Statische und SSR-Endpunkte werden auf ähnliche Weise definiert, aber SSR-Endpunkte bieten mehr Optionen.
+
+## Endpunkte für statische Dateien
+
+Um einen Endpunkt zu erstellen, füge eine Datei mit der Endung `.js` oder `.ts` dem `/pages`-Verzeichnis hinzu. Da die Erweiterung `.js` oder `.ts` während des Erstellungsprozesses entfernt wird, sollte der Dateiname zusätzlich eine Dateiendung enthalten, die zum Format der ausgegebenen Daten passt. So erzeugt z.B. die Datei `src/pages/data.json.ts` den Endpunkt `/data.json`.
+
+Endpunkte exportieren eine `get`-Funktion (optional `async`), welche ein [Context-Objekt](/de/reference/api-reference/#endpunkt-kontext) als Parameter übergeben bekommt, dessen Inhalte ähnlich zur globalen `Astro`-Variable sind. Ihr Rückgabewert ist ein Objekt mit einer `body`-Eigenschaft. Astro ruft diese Funktion zum Erstellungszeitpunkt auf und verwendet den Inhalt der `body`-Eigenschaft, um die Ausgabedatei zu erzeugen.
+
+```ts
+// Beispiel: src/pages/builtwith.json.ts
+// Ausgabe: /builtwith.json
+export async function get({params, request}) {
+  return {
+    body: JSON.stringify({
+      name: 'Astro',
+      url: 'https://astro.build/',
+    }),
+  };
+}
+```
+
+Das Rückgabe-Objekt kann auch eine `encoding`-Eigenschaft enthalten. Sie kann jedes gültige [`BufferEncoding`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/bdd02508ddb5eebcf701fdb8ffd6e84eabf47885/types/node/buffer.d.ts#L169) enthalten, welches von der Node.js-Methode `fs.writeFile` unterstützt wird. Hier ein Beispiel, wie du ein binäres PNG-Bild erzeugen kannst:
+
+```ts title="src/pages/astro-logo.png.ts" {6}
+export async function get({ params, request }) {
+  const response = await fetch("https://astro.build/assets/press/full-logo-light.png");
+  const buffer = Buffer.from(await response.arrayBuffer());
+  return {
+    body: buffer,
+    encoding: 'binary',
+  };
+}
+```
+
+Du kannst deine Endpunkt-Funktion auch mit dem `APIRoute`-Type typisieren:
+
+```ts
+import type { APIRoute } from 'astro';
+
+export const get: APIRoute = async function get ({params, request}) {
+...
+```
+
+## `params` und dynamische Routen
+
+Endpunkte unterstützen das gleiche [dynamische Routing](/de/core-concepts/routing/#dynamische-routen) wie Seiten. Benenne dazu deine Datei mit einem Parameternamen, der in eckige Klammern eingeschlossen ist, und exportiere eine Funktion mit dem Namen [`getStaticPaths()`](/de/reference/api-reference/#getstaticpaths). Dann kannst du auf den Parameter mittels der `params`-Eigenschaft zugreifen, die die Funktion des Endpunkts entgegennimmt:
+
+```ts title="src/pages/[id].json.ts"
+import type { APIRoute } from 'astro';
+
+const usernames = ["Sarah", "Chris", "Dan"]
+
+export const get: APIRoute = ({ params, request }) => {
+  const id = params.id;
+  return {
+    body: JSON.stringify({
+      name: usernames[id]
+    })
+  }
+};
+
+export function getStaticPaths () {
+  return [ 
+    { params: { id: "0"} },
+    { params: { id: "1"} },
+    { params: { id: "2"} },
+  ]
+}
+```
+
+Dies generiert drei JSON-Endpunkte zum Erstellungszeitpunkt: `/api/1.json`, `/api/2.json`, `/api/3.json`. Dynamisches Routing funktioniert bei Endpunkten genau wie bei normalen Seiten, aber da der Endpunkt eine Funktion statt einer Komponente ist, werden [props](/de/reference/api-reference/#datenübergabe-mit-props) nicht unterstützt.
+
+### `request`
+
+Alle Endpunkte nehmen eine `request`-Eigenschaft entgegen, allerdings hast du im statischen Modus nur Zugriff auf `request.url`. Diese enthält die komplette URL des aktuellen Endpunkts und funktioniert genauso wie [Astro.request.url](/de/reference/api-reference/#astrorequest) bei Seiten.
+
+```ts title="src/pages/request-path.json.ts"
+import type { APIRoute } from 'astro';
+
+export const get: APIRoute = ({ params, request }) => {
+  return {
+    body: JSON.stringify({
+      path: new URL(request.url).pathname
+    })
+  };
+}
+```
+
+## Server-Endpunkte (API-Routen)
+
+Alles, was bei den Endpunkten für statische Dateien beschrieben wurde, kann auch im SSR-Modus verwendet werden: Dateien können eine `get`-Funktion exportieren, die ein [Context-Objekt](/de/reference/api-reference/#endpunkt-kontext) mit ähnlichen Eigenschaften wie die globale `Astro`-Variable entgegennimmt.
+
+Im Gegensatz zum `static`-Modus werden allerdings im `server`-Modus deine Endpunkte erst dann erzeugt, wenn eine Anfrage für sie empfangen wird. Dies ermöglicht den Zugriff auf neue Funktionen, die zum Erstellungszeitpunkt nicht verfügbar sind, und erlaubt es dir, API-Routen zu erstellen, die auf Anfragen warten und ihren Code zur Laufzeit in einer sicheren Server-Umgebung ausführen.
+
+:::note
+Stelle sicher, dass du [SSR aktivierst](/de/guides/server-side-rendering/#ssr-in-deinem-projekt-aktivieren), bevor du diese Beispiele ausprobierst.
+:::
+
+Server-Endpunkte können auf `params` zugreifen, ohne `getStaticPaths` zu exportieren, und sie können ein [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response)-Objekt zurückgeben, welches dir ermöglicht, Statuscodes und Header zu setzen:
+
+```js title="src/pages/[id].json.js"
+import { getProduct } from '../db';
+
+export async function get({ params }) {
+  const id = params.id;
+  const product = await getProduct(id);
+
+  if (!product) {
+    return new Response(null, {
+      status: 404,
+      statusText: 'Not found'
+    });
+  }
+
+  return new Response(JSON.stringify(product), {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json"
+    }
+  });
+}
+```
+
+Diese Funktion wird jede Anfrage beantworten, deren Adresse zur dynamischen Route passt. Wenn wir zum Beispiel zu `/helmet.json` navigieren, wird `params.id` den Wert `helmet` haben. Wenn in der Produktdatenbank `helmet` existiert, wird der Endpunkt ein `Response`-Objekt erzeugen, um mit JSON und einem erfolgreichen [HTTP-Statuscode](https://developer.mozilla.org/en-US/docs/Web/API/Response/status) zu antworten. Ansonsten wird ein anderes `Response`-Objekt erzeugt, um mit einem `404`-Fehler zu antworten.
+
+### HTTP-Methoden
+
+Zusätzlich zur `get`-Funktion kannst du Funktionen mit den Namen aller möglichen [HTTP-Methoden](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods) exportieren. Wenn eine Anfrage ankommt, wird Astro die Methode prüfen und die entsprechende Funktion aufrufen.
+
+Du kannst auch eine Funktion `all` exportieren, die alle Methoden abdeckt, die keine eigene Funktion haben. Falls eine Anfrage eintrifft, die zu keiner exportierten Methode passt, wird diese mit einer Weiterleitung zur [404-Seite](/de/core-concepts/astro-pages/#benutzerdefinierte-404-fehlerseite) beantwortet.
+
+:::note
+Da `delete` in JavaScript ein reserviertes Wort ist, exportiere eine `del`-Funktion, um die `delete`-Methode abzubilden.
+:::
+
+```ts title="src/pages/methods.json.ts"
+export const get: APIRoute = ({ params, request }) => {
+  return {
+    body: JSON.stringify({
+      message: "Das war ein GET!"
+    })
+  }
+};
+
+export const post: APIRoute = ({ request }) => {
+  return {
+    body: JSON.stringify({
+      message: "Das war ein POST!"
+    })
+  }
+}
+
+export const del: APIRoute = ({ request }) => {
+  return {
+    body: JSON.stringify({
+      message: "Das war ein DELETE!"
+    })
+  }
+}
+
+export const all: APIRoute = ({ request }) => {
+  return {
+    body: JSON.stringify({
+      message: `Das war ein ${request.method}!`
+    })
+  }
+}
+```
+
+### `request`
+
+Im `SSR`-Modus gibt die `request`-Eigenschaft ein vollwertiges [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request)-Objekt zurück, welches die aktuelle Anfrage enthält. Das erlaubt dir, Daten entgegenzunehmen und Header zu überprüfen.
+
+```ts title="src/pages/test-post.json.ts"
+export const post: APIRoute = async ({ request }) => {
+  if (request.headers.get("Content-Type") === "application/json") {
+    const body = await request.json();
+    const name = body.name;
+    return new Response(JSON.stringify({
+      message: "Dein Name war: " + name
+    }), {
+      status: 200
+    })
+  }
+  return new Response(null, { status: 400 });
+}
+```
+
+### Umleitungen
+
+Der Endpunkt-Kontext exportiert eine `redirect()`-Hilfsfunktion, ähnlich wie `Astro.redirect`:
+
+```js title="src/pages/links/[id].js" {14}
+import { getLinkUrl } from '../db';
+
+export async function get({ params, redirect }) {
+  const { id } = params;
+  const link = await getLinkUrl(id);
+
+  if (!link) {
+    return new Response(null, {
+      status: 404,
+      statusText: 'Not found'
+    });
+  }
+
+  return redirect(link, 307);
+}
+```
+
+### Beispiel: Ein Captcha verifizieren
+
+Server-Endpunkte können als REST-API-Endpunkte genutzt werden, um Funktionen wie Authentisierung, Datenbankzugriffe oder Verifizierungen durchzuführen, ohne sensible Informationen an den Client zu übermitteln.
+
+Im Beispiel unten wird eine API-Route genutzt, um ein Google reCAPTCHA v3 zu verifizieren, ohne das Kennwort an Clients herauszugeben.
+
+Auf dem Server implementieren wir eine POST-Methode, die die Daten von reCAPTCHA entgegennimmt. Hier können wir sicher geschützte Passwörter definieren oder Umgebungsvariablen auslesen.
+
+```js title="src/pages/recaptcha.js"
+export async function post({ request }) {
+  const data = await request.json();
+
+  const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
+  const requestBody = {
+    secret: "YOUR_SITE_SECRET_KEY",   // Dies kann eine Umgebungsvariable sein
+    response: data.recaptcha          // Dieses Token wird vom Client gesendet
+  };
+
+  const response = await fetch(recaptchaURL, {
+    method: "POST",
+    body: JSON.stringify(requestBody)
+  });
+
+  const responseData = await response.json();
+
+  return new Response(JSON.stringify(responseData), { status: 200 });
+}
+```
+
+Danach können wir unseren Endpunkt mittels `fetch` aus einem Client-Skript heraus aufrufen:
+
+```astro title="src/pages/index.astro"
+<html>
+  <head>
+    <script src="https://www.google.com/recaptcha/api.js"></script>
+  </head>
+
+  <body>
+    <button class="g-recaptcha" 
+      data-sitekey="PUBLIC_SITE_KEY" 
+      data-callback="onSubmit" 
+      data-action="submit"> Klick mich um das Capcha zu verifizieren.
+    <script is:inline>
+      function onSubmit(token) {
+        fetch("/recaptcha", {
+          method: "POST",
+          body: JSON.stringify({ recaptcha: token })
+        })
+        .then((response) => response.json())
+        .then((gResponse) => {
+          if (gResponse.success) {
+            // Captcha verification was a success
+          } else {
+            // Captcha verification failed
+          }
+        })
+      }
+    </script>
+  </body>
+</html>
+```

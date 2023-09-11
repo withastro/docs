@@ -2,9 +2,10 @@ import dedent from 'dedent-js';
 import glob from 'fast-glob';
 import fs from 'fs';
 import { escape } from 'html-escaper';
+import { minimatch } from 'minimatch';
 import os from 'os';
 import path from 'path';
-import simpleGit, { DefaultLogFields, ListLogLine } from 'simple-git';
+import simpleGit, { type DefaultLogFields, type ListLogLine } from 'simple-git';
 import { fileURLToPath } from 'url';
 import type { DocSearchTranslation, UIDict } from '~/i18n/translation-checkers';
 import docsearchTranslations from '../../../src/i18n/en/docsearch';
@@ -139,7 +140,7 @@ export class TranslationStatusBuilder {
 		}
 		const keys1 = inner(obj1),
 			keys2 = inner(obj2);
-		return keys1.every((e) => keys2.includes(e) && keys1.length == keys2.length);
+		return keys2.every((e) => keys1.includes(e));
 	}
 
 	/**
@@ -343,19 +344,30 @@ export class TranslationStatusBuilder {
 		Also works when there's no English pages! The translated files will be marked as 
 		updated, but the same pages from other languages won't be affected by it, keeping
 		their old state.
+
+		You can also use glob matching!
+
+		Example usage:
+		@tracker-major:./src/content/docs/en/core-concepts/+(astro-components|astro-pages).mdx
+
+		Pages changed:
+		`en/astro-components.mdx`, `en/astro-pages.mdx`, `en/astro-syntax.mdx`
+
+		Will mark only `en/astro-components.mdx` & `en/astro-pages.mdx` as major changes.
+
+		See minimatch docs for examples on glob patterns:
+		https://github.com/isaacs/minimatch/blob/main/README.md
 		
 	*/
 	isValidMajor(entry: DefaultLogFields & ListLogLine, filePath: string) {
-		if (entry.message.match(COMMIT_IGNORE)) return false;
-
 		const trackerDirectiveMatch = entry.body.match(TRACKER_DIRECTIVE);
 
-		if (trackerDirectiveMatch) {
-			const filePaths = trackerDirectiveMatch[0].replace('@tracker-major:', '').split(';');
-			return filePaths.includes(filePath);
-		}
+		if (entry.message.match(COMMIT_IGNORE)) return false;
+		if (!trackerDirectiveMatch) return true;
 
-		return true;
+		const globsOrPaths = trackerDirectiveMatch[0].replace('@tracker-major:', '').split(';');
+
+		return globsOrPaths.find((globOrPath) => minimatch(filePath, globOrPath)) ? true : false;
 	}
 
 	getTranslationStatusByPage(pages: PageIndex): PageTranslationStatus[] {
