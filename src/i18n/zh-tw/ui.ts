@@ -46,4 +46,8 @@ export default UIDictionary({
 	'404.title': '找不到',
 	'404.content': '這一頁不在我們的太陽系裡。',
 	'404.linkText': '帶我回去。',
+
+	// Tutorial Navigation
+	'tutorial.trackerLabel': '教學追蹤工具',
+	'tutorial.unit': '單元',
 });
