@@ -5,7 +5,7 @@ import { escape } from 'html-escaper';
 import { minimatch } from 'minimatch';
 import os from 'os';
 import path from 'path';
-import simpleGit, { DefaultLogFields, ListLogLine } from 'simple-git';
+import simpleGit, { type DefaultLogFields, type ListLogLine } from 'simple-git';
 import { fileURLToPath } from 'url';
 import type { DocSearchTranslation, UIDict } from '~/i18n/translation-checkers';
 import docsearchTranslations from '../../../src/i18n/en/docsearch';
@@ -140,7 +140,7 @@ export class TranslationStatusBuilder {
 		}
 		const keys1 = inner(obj1),
 			keys2 = inner(obj2);
-		return keys1.every((e) => keys2.includes(e) && keys1.length == keys2.length);
+		return keys2.every((e) => keys1.includes(e));
 	}
 
 	/**
