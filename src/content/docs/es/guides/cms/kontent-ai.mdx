@@ -1,0 +1,552 @@
+---
+title: Kontent.ai y Astro
+description: Agrega contenido a tu proyecto de Astro usando Kontent.ai como CMS
+type: cms
+service: Kontent.ai
+i18nReady: true
+---
+import FileTree from '~/components/FileTree.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+[Kontent.ai](https://www.kontent.ai/) es un CMS headless que te permite administrar el contenido de una manera estructurada y modular, con el apoyo de capacidades de IA.
+
+## Integración con Astro
+
+En esta sección, usarás el [Kit de desarrollo de software (SDK) de Kontent.ai de TypeScript](https://github.com/kontent-ai/delivery-sdk-js) para conectar tu proyecto de Kontent.ai con tu aplicación de Astro.
+
+### Prerrequisitos
+
+Para empezar, necesitarás lo siguiente:
+
+1. **Un proyecto de Kontent.ai** - Si aún no tienes una cuenta de Kontent.ai, [regístrate gratis](https://app.kontent.ai/sign-up) y crea un nuevo proyecto.
+
+2. **Claves de API de entrega** - Necesitarás el ID de entorno para el contenido publicado y la clave de API de vista previa para obtener borradores (opcional). Ambas claves se encuentran en la pestaña **Environment Settings -> API keys** en Kontent.ai.
+
+### Configuración de credenciales
+
+Para agregar tus credenciales de Kontent.ai a Astro, crea un archivo `.env` en la raíz de tu proyecto con las siguientes variables:
+
+```ini title=".env"
+KONTENT_ENVIRONMENT_ID=TU_ID_DE_ENTORNO
+KONTENT_PREVIEW_API_KEY=TU_CLAVE_DE_API_DE_VISTA_PREVIA
+```
+
+Ahora, estas variables de entorno se pueden usar en tu proyecto de Astro.
+
+Si deseas obtener [IntelliSense de TypeScript para estas variables de entorno](/es/guides/environment-variables/#intellisense-para-typescript), puedes crear un nuevo archivo `env.d.ts` en el directorio `src/` y configurar `ImportMetaEnv` de esta manera:
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly KONTENT_ENVIRONMENT_ID: string;
+  readonly KONTENT_PREVIEW_API_KEY: string;
+}
+```
+
+Tu directorio raíz ahora debería incluir estos nuevos archivos:
+
+<FileTree title="Estructura del proyecto">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+
+### Instalación de dependencias
+
+Para conectar Astro con tu proyecto de Kontent.ai, instala el [Kit de desarrollo de software (SDK) de Kontent.ai de TypeScript](https://github.com/kontent-ai/delivery-sdk-js):
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+    npm install @kontent-ai/delivery-sdk
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+    pnpm install @kontent-ai/delivery-sdk
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+    yarn add @kontent-ai/delivery-sdk
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Después, crea un nuevo archivo llamado `kontent.ts` en el directorio `src/lib/` de tu proyecto de Astro.
+
+```ts title="src/lib/kontent.ts"
+import { createDeliveryClient } from "@kontent-ai/delivery-sdk";
+
+export const deliveryClient = createDeliveryClient({
+    environmentId: import.meta.env.KONTENT_ENVIRONMENT_ID,
+    previewApiKey: import.meta.env.KONTENT_PREVIEW_API_KEY,
+});
+```
+
+:::note[Nota]
+Lee más sobre [cómo obtener variables de entorno en Astro](/es/guides/environment-variables/#obteniendo-variables-de-entorno).
+:::
+
+Esta implementación crea un nuevo objeto `DeliveryClient` usando credenciales del archivo `.env`.
+
+:::note[previsualizaciones]
+La `previewApiKey` es opcional. Cuando se usa, puedes [configurar cada consulta](https://github.com/kontent-ai/delivery-sdk-js#enable-preview-mode-per-query) al endpoint de la API de entrega para devolver las últimas versiones de los elementos de contenido independientemente de su estado en el flujo de trabajo. De lo contrario, solo se devuelven los elementos publicados.
+:::
+
+Finalmente, el directorio raíz de tu proyecto de Astro ahora debería incluir estos nuevos archivos:
+
+<FileTree title="Estructura del proyecto">
+- src/
+  - lib/
+    - **kontent.ts**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Obteniendo datos
+
+El `DeliveryClient` ahora está disponible para todos los componentes. Para obtener contenido, usa el `DeliveryClient` y el encadenamiento de métodos para definir los elementos deseados. Este ejemplo muestra una búsqueda básica de entradas de blog y renderiza sus títulos en una lista:
+
+```astro title="src/pages/index.astro" ins={2-7, 16-20}
+---
+import { deliveryClient } from "../lib/kontent";
+
+const blogPosts = await deliveryClient
+    .items()
+    .type("blogPost")
+    .toPromise()
+---
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width" />
+		<title>Astro</title>
+	</head>
+	<body>
+        <ul>
+        {blogPosts.data.items.map(blogPost => (
+            <li>{blogPost.elements.title.value}</li>
+        ))}
+        </ul>
+    </body>
+</html>
+```
+
+Puedes encontrar más opciones de consulta en la [documentación de Kontent.ai](https://kontent.ai/learn/develop/hello-world/get-content/javascript).
+
+## Creando un blog con Astro y Kontent.ai
+
+Con la configuración anterior, ahora puedes crear un blog que use Kontent.ai como fuente de contenido.
+
+### Prerrequisitos
+
+1. **Un proyecto de Kontent.ai** - Para este tutorial, se recomienda usar un proyecto en blanco. Si ya tienes algunos tipos de contenido en tu modelo de contenido, puedes usarlos, pero deberás modificar los fragmentos de código para que coincidan con tu modelo de contenido.
+
+2. **Un proyecto de Astro configurado para obtener contenido de Kontent.ai** - consulta arriba para obtener más detalles sobre cómo configurar un proyecto de Astro con Kontent.ai
+
+### Configurando el modelo de contenido
+
+En Kontent.ai, navega a **Content model** y crea un nuevo tipo de contenido con los siguientes campos y valores:
+
+* **Name:** Blog Post
+* Elements:
+	* Text field
+		* **Name:** Title
+		* **Element Required:** yes
+	* Rich text field
+		* **Name:** Teaser
+		* **Element Required:** yes
+		* **Allowed in this element:** only check Text
+	* Rich text field
+		* **Name:** Content
+		* **Element Required:** yes
+	* Date & time field
+		* **Name:** Date
+	* URL slug field
+		* **Name:** URL slug
+		* **Element Required:** yes
+		* **Auto-generate from:** select "Title"
+
+Luego, haz clic en **Save Changes**.
+
+### Creando contenido
+
+Ahora, navega a la pestaña **Content & assets** y crea un nuevo elemento de contenido de tipo **Blog Post**. Rellena los campos usando estos valores:
+
+* **Content item name:** Astro
+* **Title:** Astro es increíble
+* **Teaser:** Astro es un framework todo en uno para construir sitios web rápidos más rápido.
+* **Content:** Puedes usar JavaScript para implementar la funcionalidad del sitio web, pero no es necesario un paquete de cliente.
+* **Date & time:** selecciona hoy
+* **URL slug:** astro-es-increíble
+
+Cuando hayas terminado, publica la entrada del blog usando el botón **Publish** en la parte superior.
+
+*Nota: Siéntete libre de crear tantos posts de blog como quieras antes de pasar al siguiente paso.* 
+
+### Generando el modelo de contenido en TypeScript
+
+A continuación, generarás tipos de TypeScript a partir de tu modelo de contenido.
+
+:::note[Nota]
+Este paso es opcional pero proporciona una experiencia de desarrollador mucho mejor y te permite descubrir posibles problemas en tiempo de compilación en lugar de en tiempo de ejecución.
+:::
+
+Primero, instala el [generador de modelos de Kontent.ai JS](https://github.com/kontent-ai/model-generator-js), [ts-node](https://github.com/TypeStrong/ts-node), y [dotenv](https://github.com/motdotla/dotenv):
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+    npm install @kontent-ai/model-generator ts-node dotenv
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+    pnpm install @kontent-ai/model-generator ts-node dotenv
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+    yarn add @kontent-ai/model-generator ts-node dotenv
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Luego, agrega el siguiente script al package.json:
+
+```json title="package.json"
+{
+    ...
+    "scripts": {
+        ...
+        "regenerate:models": "ts-node --esm ./generate-models.ts"
+    },
+}
+```
+
+Porque los tipos requieren información estructural sobre tu proyecto que no está disponible en la API pública, también debes agregar una clave de API de administración al archivo `.env`. Puedes generar la clave en **Environment settings -> API keys -> Management API**.
+
+
+```ini title=".env" ins={3}
+KONTENT_ENVIRONMENT_ID=TU_ID_DE_ENTORNO
+KONTENT_PREVIEW_API_KEY=TU_CLAVE_DE_API_DE_VISTA_PREVIA
+KONTENT_MANAGEMENT_API_KEY=TU_CLAVE_DE_ADMINISTRACIÓN_DE_API
+```
+
+Finalmente, agrega el script `generate-models.ts` que configura el generador de modelos para generar los modelos:
+
+```ts title="generate-models.ts"
+import { generateModelsAsync, textHelper } from '@kontent-ai/model-generator'
+import { rmSync, mkdirSync } from 'fs'
+
+import * as dotenv from 'dotenv'
+dotenv.config()
+
+const runAsync = async () => {
+	rmSync('./src/models', { force: true, recursive: true })
+	mkdirSync('./src/models')
+
+  // cambia el directorio de trabajo a models
+	process.chdir('./src/models')
+
+	await generateModelsAsync({
+		sdkType: 'delivery',
+		apiKey: process.env.KONTENT_MANAGEMENT_API_KEY ?? '',
+		environmentId: process.env.KONTENT_ENVIRONMENT_ID ?? '',
+		addTimestamp: false,
+		isEnterpriseSubscription: false,
+	})
+}
+
+// auto invocación de función asíncrona
+;(async () => {
+	await runAsync()
+})().catch(err => {
+	console.error(err)
+	throw err
+})
+```
+
+Ahora, ejecútalo:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+    npm run regenerate:models
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+    pnpm run regenerate:models
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+    yarn run regenerate:models
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Mostrando una lista de entradas de blog
+
+Ahora estás listo para obtener contenido. Ve a la página de Astro donde deseas mostrar una lista de todas las entradas de blog, por ejemplo, la página de inicio `index.astro` en `src/pages`.
+
+Obtén todas las entradas de blog en el frontmatter de la página de Astro:
+
+```astro title="src/pages/index.astro"
+---
+import { deliveryClient } from '../lib/kontent';
+import type { BlogPost } from '../models';
+import { contentTypes } from '../models/project/contentTypes';
+
+const blogPosts = await deliveryClient
+    .items<BlogPost>
+    .type(contentTypes.blog_post.codename)
+    .toPromise()
+---
+```
+
+Si omitiste la generación del modelo, también puedes usar un objeto sin tipo y un literal de cadena para definir el tipo:
+
+```ts
+const blogPosts = await deliveryClient
+    .items()
+    .type("blogPost")
+    .toPromise()
+```
+
+La llamada de recuperación devolverá un objeto `response` que contiene una lista de todas las entradas de blog en `data.items`. En la sección HTML de la página de Astro, puedes usar la función `map()` para enumerar las entradas de blog:
+
+```astro title="src/pages/index.astro" ins={11-29}
+
+```astro title="src/pages/index.astro" ins={11-29}
+---
+import { deliveryClient } from '../lib/kontent';
+import type { BlogPost } from '../models';
+import { contentTypes } from '../models/project/contentTypes';
+
+const blogPosts = await deliveryClient
+    .items<BlogPost>
+    .type(contentTypes.blogPost.codename)
+    .toPromise()
+---
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Astro</title>
+    </head>
+    <body>
+        <h1>Artículos de Blog</h1>
+        <ul>
+            {blogPosts.data.items.map(blogPost => (
+                <li>
+                    <a href={`/blog/${blogPost.elements.url_slug.value}/`} title={blogPost.elements.title.value}>
+                        {blogPost.elements.title.value}
+                    </a>
+                </li>
+            ))}
+        </ul>
+    </body>
+</html>
+```
+
+### Generando entradas de blog individuales
+
+El último paso del tutorial es generar páginas detalladas de entradas de blog.
+
+#### Generación de sitios estáticos
+
+En esta sección, usarás el [modo estático (SSG)](/es/core-concepts/routing/#modo-estático-ssg) con Astro.
+
+Primero, crea un archivo `[slug].astro` en `/src/pages/blog/` que necesita exportar una función `getStaticPaths` que recopila todos los datos del CMS:
+
+```astro title="src/pages/blog/[slug].astro"
+---
+import { deliveryClient } from '../../lib/kontent';
+import type { BlogPost } from '../../models';
+import { contentTypes } from '../../models/project/contentTypes';
+
+export async function getStaticPaths() {
+    const blogPosts = await deliveryClient
+        .items<BlogPost>()
+        .type(contentTypes.blog_post.codename)
+        .toPromise()
+---
+```
+
+Hasta ahora, la función obtiene todas las entradas de blog de Kontent.ai. El fragmento de código es exactamente el mismo que el que usaste en la página de inicio.
+
+A continuación, la función debe exportar rutas y datos para cada entrada de blog. Nombraste el archivo `[slug].astro`, por lo que el parámetro que representa el slug de URL se llama `slug`:
+
+```astro title="src/pages/blog/[slug].astro" ins={12-15}
+---
+import { deliveryClient } from '../../lib/kontent';
+import type { BlogPost } from '../../models';
+import { contentTypes } from '../../models/project/contentTypes';
+
+export async function getStaticPaths() {
+    const blogPosts = await deliveryClient
+        .items<BlogPost>()
+        .type(contentTypes.blog_post.codename)
+        .toPromise()
+
+    return blogPosts.data.items.map(blogPost => ({
+        params: { slug: blogPost.elements.url_slug.value },
+        props: { blogPost }
+    }))
+}
+---
+```
+
+La última parte es proporcionar la plantilla HTML y mostrar cada entrada de blog:
+
+```astro title="src/pages/blog/[slug].astro" ins={18-33}
+---
+import { deliveryClient } from '../../lib/kontent';
+import type { BlogPost } from '../../models';
+import { contentTypes } from '../../models/project/contentTypes';
+
+export async function getStaticPaths() {
+    const blogPosts = await deliveryClient
+        .items<BlogPost>()
+        .type(contentTypes.blog_post.codename)
+        .toPromise()
+
+    return blogPosts.data.items.map(blogPost => ({
+        params: { slug: blogPost.elements.url_slug.value },
+        props: { blogPost }
+    }))
+}
+
+const blogPost: BlogPost = Astro.props.blogPost
+---
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>{blogPost.elements.title.value}</title>
+    </head>
+    <body>
+        <article>
+            <h1>{blogPost.elements.title.value}</h1>
+            <Fragment set:html={blogPost.elements.teaser.value} />
+            <Fragment set:html={blogPost.elements.content.value} />
+            <time>{new Date(blogPost.elements.date.value ?? "")}</time>
+    </body>
+</html>
+```
+
+Navega a tu vista previa de Astro (http://localhost:4321/blog/astro-is-amazing/ de forma predeterminada) para ver la entrada de blog renderizada.
+
+#### Renderizado del lado del servidor
+
+Si has optado por el modo SSR, usarás rutas dinámicas para obtener los datos de la página de Kontent.ai.
+
+Crea un nuevo archivo `[slug].astro` en `/src/pages/blog/` y agrega el siguiente código. La recuperación de datos es muy similar a los casos de uso anteriores, pero agrega un `equalsFilter` que nos permite encontrar la entrada de blog correcta en función de la URL utilizada:
+
+```astro title="src/pages/blog/[slug].astro"
+---
+import { deliveryClient } from '../../lib/kontent';
+import type { BlogPost } from '../../models';
+import { contentTypes } from '../../models/project/contentTypes';
+
+const { slug } = Astro.params
+let blogPost: BlogPost;
+try {
+    const data = await deliveryClient
+        .items<BlogPost>()
+        .equalsFilter(contentTypes.blog_post.elements.url_slug.codename, slug ?? '')
+        .type(contentTypes.blog_post.codename)
+        .limitParameter(1)
+        .toPromise()
+    blogPost = data.data.items[0]
+} catch (error) {
+    return Astro.redirect('/404')
+}
+---
+```
+
+Si no estás usando tipos generados, puedes usar literales de string para definir el tipo de elemento de contenido y el codename del elemento filtrado:
+
+```ts
+const data = await deliveryClient
+        .items()
+        .equalsFilter("url_slug", slug ?? '')
+        .type("blog_post")
+        .limitParameter(1)
+        .toPromise()
+```
+
+Por último, agrega el código HTML para renderizar la entrada de blog. Esta parte es la misma que con la generación estática:
+
+```astro title="src/pages/blog/[slug].astro" ins={20-33}
+---
+import { deliveryClient } from '../../lib/kontent';
+import type { BlogPost } from '../../models';
+import { contentTypes } from '../../models/project/contentTypes';
+
+const { slug } = Astro.params
+let blogPost: BlogPost;
+try {
+    const data = await deliveryClient
+        .items<BlogPost>()
+        .equalsFilter(contentTypes.blog_post.elements.url_slug.codename, slug ?? '')
+        .type(contentTypes.blog_post.codename)
+        .limitParameter(1)
+        .toPromise()
+    blogPost = data.data.items[0]
+} catch (error) {
+    return Astro.redirect('/404')
+}
+---
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>{blogPost.elements.title.value}</title>
+    </head>
+    <body>
+        <article>
+            <h1>{blogPost.elements.title.value}</h1>
+            <Fragment set:html={blogPost.elements.teaser.value} />
+            <Fragment set:html={blogPost.elements.content.value} />
+            <time>{new Date(blogPost.elements.date.value ?? '')}</time>
+    </body>
+</html>
+```
+
+### Publicando tu sitio
+
+Para desplegar tu sitio web, visita las [guías de despliegue](/es/guides/deploy/) y sigue las instrucciones para tu proveedor de alojamiento preferido.
+
+#### Recompila cuando cambie Kontent.ai
+
+Si tu proyecto está usando el modo estático predeterminado de Astro, deberás configurar un webhook para iniciar una nueva compilación cuando cambie tu contenido. Si estás usando Netlify o Vercel como proveedor de alojamiento, puedes usar su función de webhook para iniciar una nueva compilación a partir de eventos de Kontent.ai.
+
+##### Netlify
+
+Para configurar un webhook en Netlify:
+
+1. Ve al panel de control de tu sitio y haz clic en **Build & deploy**.
+2. En la pestaña **Continuous Deployment**, encuentra la sección **Build hooks** y haz clic en **Add build hook**.
+3. Proporciona un nombre para tu webhook y selecciona la rama en la que deseas iniciar la compilación. Haz clic en **Save** y copia la URL generada.
+
+##### Vercel
+
+Para configurar un webhook en Vercel:
+
+1. Ve al panel de control de tu proyecto y haz clic en **Settings**.
+2. En la pestaña **Git**, encuentra la sección **Deploy Hooks**.
+3. Proporciona un nombre para tu webhook y la rama en la que deseas iniciar la compilación. Haz clic en **Add** y copia la URL generada.
+
+Agregando un webhook a Kontent.ai
+
+En la aplicación [Kontent.ai](https://kontent.ai/learn/docs/webhooks/javascript), ve a **Environment settings -> Webhooks**. Haz clic en **Create new webhook** y proporciona un nombre para tu nuevo webhook. Pega la URL que copiaste de Netlify o Vercel y selecciona qué eventos deben activar el webhook. De forma predeterminada, para reconstruir tu sitio cuando cambie el contenido publicado, solo necesitas los eventos **Publish** y **Unpublish** en **Delivery API triggers**. Cuando hayas terminado, haz clic en Save.
+
+Ahora, cada vez que publiques una nueva entrada de blog en Kontent.ai, se iniciará una nueva compilación y se actualizará tu blog.
+

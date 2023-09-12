@@ -1,0 +1,761 @@
+---
+title: Colecciones de Contenido
+description: >-
+  Las colecciones de contenido ayudan a organizar tu Markdown y a comprobar el tipo 
+  de sus datos de entrada.
+i18nReady: true
+---
+import FileTree from '~/components/FileTree.astro'
+import Since from '~/components/Since.astro'
+import TypeScriptSettingTabs from '~/components/tabs/TypeScriptSettingTabs.astro'
+import RecipeLinks from "~/components/RecipeLinks.astro"
+
+
+<p>
+  <Since v="2.0.0" />
+</p>
+
+**Las Colecciones de contenido** son la mejor manera de administrar y crear contenido en cualquier proyecto de Astro. Las colecciones ayudan a organizar tus documentos, validar tu frontmatter y proporcionar una seguridad de tipo automática de TypeScript para todo tu contenido.
+
+
+## ¿Qué son las Colecciones de Contenido?
+
+Una **colección de contenido** es cualquier directorio de nivel superior dentro del directorio reservado `src/content` del proyecto, como `src/content/newsletter` y `src/content/authors`. Solo se permiten colecciones de contenido dentro del directorio `src/content`. Este directorio no se puede utilizar para nada más.
+
+Una **entrada de colección** es cualquier pieza de contenido dentro de tu directorio de colecciones de contenido. Las entradas pueden usar formatos de autoría de contenido que incluyen Markdown (`.md`) y MDX (`.mdx` usando la [integración MDX](/es/guides/integrations-guide/mdx/)) o como formatos de datos que incluyen YAML (`.yaml`) y JSON (`.json`). Recomendamos usar un esquema de nomenclatura consistente (minúsculas, guiones en lugar de espacios) para tus archivos para facilitar la búsqueda y organización de tu contenido, pero esto no es obligatorio. También puedes [excluir las entradas de ser construidas](/es/core-concepts/routing/#excluyendo-páginas) prefijando el nombre de archivo con un guión bajo (_).
+
+<FileTree>
+- src/content/
+  - **newsletter/** la colección "newsletter"
+    - week-1.md una entradad de contenido
+    - week-2.md una entradad de contenido
+    - week-3.md una entradad de contenido
+</FileTree>
+
+Una vez que tengas una colección, puedes comenzar a [consultar tu contenido](#consultando-colecciones) utilizando las APIs de contenido integradas de Astro.
+
+### El directorio ".astro"
+
+Astro guarda metadatos importantes para las colecciones de contenido en un directorio `.astro` en tu proyecto. No es necesario que realices ninguna acción para mantener o actualizar este directorio. Se te recomienda que lo ignores por completo mientras trabajas en tu proyecto.
+
+El directorio `.astro` se actualizará automáticamente cada vez que ejecutes los comandos [`astro dev`](/es/reference/cli-reference/#astro-dev), [`astro build`](/es/reference/cli-reference/#astro-build). Puedes ejecutar [`astro sync`](/es/reference/cli-reference/#astro-sync) en cualquier momento para actualizar el directorio `.astro` manualmente.
+
+:::tip
+Si estás utilizando Git para el control de versiones, te recomendamos que ignores el directorio `.astro` añadiendo `.astro` a tu `.gitignore`. Esto le dice a Git que ignore este directorio y cualquier archivo dentro de él.
+
+```bash
+echo "\n.astro" >> .gitignore
+```
+:::
+
+
+
+### Organizando con múltiples colecciones
+
+Si dos archivos representan diferentes tipos de contenido (por ejemplo, una publicación de blog y un perfil de autor), probablemente pertenezcan a diferentes colecciones. Esto es importante porque muchas características (validación de frontmatter, seguridad de tipo automático de TypeScript) requieren que todas las entradas de una colección compartan una estructura similar.
+
+Si puedes trabajar con diferentes tipos de contenido, debes crear múltiples colecciones para representar cada tipo. Puedes crear tantas colecciones diferentes en tu proyecto como desees.
+
+<FileTree>
+- src/content/
+  - **newsletter/** 
+    - week-1.md
+    - week-2.md
+  - **blog/**
+    - post-1.md
+    - post-2.md
+  - **authors/**
+    - grace-hopper.json
+    - alan-turing.json
+</FileTree>
+
+
+### Organizando con subdirectorios
+
+Una colección de contenido siempre es una carpeta de nivel superior dentro del directorio `src/content/`. No puedes anidar una colección dentro de otra. Sin embargo, puedes usar subdirectorios para organizar tu contenido dentro de una colección.
+
+Por ejemplo, puedes usar la siguiente estructura de directorios para organizar las traducciones de i18n dentro de una sola colección `docs`. Cuando consultes esta colección, podrás filtrar el resultado por idioma utilizando la ruta del archivo.
+
+<FileTree>
+- src/content/
+  - docs/ esta colleción usa subdirectorios para organizar por idioma
+    - **en/**
+    - **es/**
+    - **de/**
+</FileTree>
+
+## Definiendo Colecciones
+
+:::note
+El archivo `src/content/config.ts` es opcional. Sin embargo, si eliges no definir tus colecciones, deshabilitarás algunas de sus mejores características como la validación del esquema del frontmatter o la generación automática de tipos de datos en TypeScript.
+:::
+
+Para aprovechar al máximo tus colecciones de contenido, crea un archivo `src/content/config.ts` en tu proyecto (también se admiten las extensiones `.js` y `.mjs`). Este es un archivo especial que Astro cargará y utilizará automáticamente para configurar tus colecciones de contenido.
+
+
+```ts
+// src/content/config.ts
+// 1. Importa las utilidades de `astro:content`
+import { defineCollection } from 'astro:content';
+// 2. Define tu colección(es)
+const blogCollection = defineCollection({ /* ... */ });
+// 3. Exporta un único objeto `collections` para registrar tu(s) colección(es)
+//    Esta clave debe coincidir con el nombre de tu directorio de colección en "src/content"
+export const collections = {
+  'blog': blogCollection,
+};
+```
+
+
+### Configurando TypeScript
+
+Si **no** extiendes las configuraciones recomendadas de TypeScript `strict` o `strictest` de Astro en tu archivo `tsconfig.json`, es posible que debas actualizar tu `tsconfig.json` para habilitar `strictNullChecks`.
+
+```json title="tsconfig.json" ins={5}
+{
+  // Nota: No se necesita ningún cambio si usas "astro/tsconfigs/strict" o "astro/tsconfigs/strictest"
+  "extends": "astro/tsconfigs/base",
+  "compilerOptions": {
+    "strictNullChecks": true
+  }
+}
+```
+
+Si usas archivos `.js` o `.mjs` en un proyecto de Astro, puedes habilitar IntelliSense y la comprobación de tipos en tu editor habilitando `allowJs` en tu `tsconfig.json`:
+```json title="tsconfig.json" ins={6}
+{
+  // Nota: No se necesita ningún cambio si usas "astro/tsconfigs/strict" o "astro/tsconfigs/strictest"
+  "extends": "astro/tsconfigs/base",
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "allowJs": true
+  }
+}
+```
+
+### Definiendo un esquema de colección
+
+Los esquemas garantizan un frontmatter o datos de entrada consistentes dentro de una colección. Un esquema **garantiza** que estos datos existen en una forma predecible cuando necesitas hacer referencia o consultarlos. Si algún archivo viola su esquema de colección, Astro proporcionará un error útil para informarte. 
+
+Los esquemas también potencian las generación automática de tipos de TypeScript para tu contenido en Astro. Cuando defines un esquema para tu colección, Astro generará y aplicará automáticamente una interfaz de TypeScript. El resultado es un soporte completo de TypeScript cuando consultas tu colección, incluyendo el autocompletado de propiedades y la comprobación de tipos.
+
+Para definir tu primera colección, crea un archivo `src/content/config.ts` si no existe (las extensiones `.js` y `.mjs` también son compatibles). Este archivo debe:
+
+1. **Importar las utilidades adecuadas** de `astro:content`.
+2. **Definir cada colección que deseas validar.** Esto incluye un `type` (introducido en Astro v2.5.0) que especifica si la colección contiene formatos de autoría de contenido como Markdown (`type: 'content'`) o formatos de datos como JSON o YAML (`type: 'data'`). También incluye un `schema` que define la forma de tu frontmatter o datos de entrada.
+3. **Exportar un único objeto `collections`** para registrar tus colecciones. 
+
+```ts
+// src/content/config.ts
+// 1. Importar las utilidades de `astro:content`
+import { z, defineCollection } from 'astro:content';
+
+// 2. Definir un `type` y `schema` para cada colección
+const blogCollection = defineCollection({
+  type: 'content', // v2.5.0 y posteriores
+  schema: z.object({
+    title: z.string(),
+    tags: z.array(z.string()),
+    image: z.string().optional(),
+  }),
+});
+
+// 3. Exportar un único objeto `collections` para registrar tu(s) colección(es)
+export const collections = {
+  'blog': blogCollection,
+};
+```
+
+### Definiendo múltiples colecciones
+
+Puedes usar `defineCollection()` tantas veces como desees para crear múltiples esquemas. Todas las colecciones deben ser exportadas desde dentro del único objeto `collections`.
+
+```ts
+// src/content/config.ts
+const blogCollection = defineCollection({
+  type: 'content',
+  schema: z.object({ /* ... */ })
+});
+const newsletter = defineCollection({
+  type: 'content',
+  schema: z.object({ /* ... */ })
+});
+const authors = defineCollection({
+  type: 'data',
+  schema: z.object({ /* ... */ })
+});
+
+export const collections = {
+  'blog': blogCollection,
+  'newsletter': newsletter,
+  'authors': authors,
+};
+```
+
+A medida que tu proyecto crece, también eres libre de reorganizar tu base de código y mover la lógica fuera del archivo `src/content/config.ts`. Definir tus esquemas por separado puede ser útil para reutilizar esquemas en múltiples colecciones y compartir esquemas con otras partes de tu proyecto.
+
+```ts
+// src/content/config.ts
+// 1. Importar tus utilidades y esquemas
+import { defineCollection } from 'astro:content';
+import { blogSchema, authorSchema } from '../schemas';
+
+// 2. Definir tus colecciones
+const blogCollection = defineCollection({
+  type: 'content',
+  schema: blogSchema,
+});
+const authorCollection = defineCollection({
+  type: 'data',
+  schema: authorSchema,
+});
+
+// 3. Exportar múltiples colecciones para registrarlas
+export const collections = {
+  'blog': blogCollection,
+  'authors': authorCollection,
+};
+```
+
+### Usando esquemas de colección de terceros
+
+Puedes importar esquemas de colección desde cualquier lugar, incluyendo paquetes npm externos. Esto puede ser útil cuando trabajas con temas y bibliotecas que proporcionan sus propios esquemas de colección para que los uses.
+
+
+```ts
+// src/content/config.ts
+import { blogSchema } from 'my-blog-theme';
+const blogCollection = defineCollection({ type: 'content', schema: blogSchema });
+
+// Exportar la colección de blog, usando un esquema externo de 'my-blog-theme'
+export const collections = {
+  'blog': blogCollection,
+};
+```
+
+
+### Definiendo tipos de datos con Zod
+
+Astro usa [Zod](https://github.com/colinhacks/zod) para potenciar sus esquemas de contenido. Con Zod, Astro puede validar el frontmatter de cada archivo dentro de una colección *y* proporcionar tipos automáticos de TypeScript cuando consultas el contenido desde dentro de tu proyecto.
+
+Para usar Zod en Astro, importa la utilidad `z` de `"astro:content"`. Esta es una re-exportación de la biblioteca Zod, y admite todas las funciones de Zod. Consulta el [README de Zod](https://github.com/colinhacks/zod) para obtener documentación completa sobre cómo funciona Zod y qué funciones están disponibles.
+
+
+```ts
+// Ejemplo: Una hoja de trucos de muchos tipos de datos Zod comunes
+import { z, defineCollection } from 'astro:content';
+
+defineCollection({
+  schema: z.object({
+    isDraft: z.boolean(),
+    title: z.string(),
+    sortOrder: z.number(),
+    image: z.object({
+      src: z.string(),
+      alt: z.string(),
+    }),
+    author: z.string().default('Anonymous'),
+    language: z.enum(['en', 'es']),
+    tags: z.array(z.string()),
+    // Una propiedad opcional del frontmatter. ¡Muy común!
+    footnote: z.string().optional(),
+    // En el frontmatter, las fechas escritas sin comillas se interpretan como objetos Date
+    publishDate: z.date(),
+    // También puedes transformar un string de fecha (por ejemplo, "2022-07-08") a un objeto Date
+    // publishDate: z.string().transform((str) => new Date(str)),
+    // Avanzado: Valida que el string también sea un correo electrónico
+    authorContact: z.string().email(),
+    // Avanzado: Valida que el string también sea una URL
+    canonicalURL: z.string().url(),
+  })
+})
+```
+
+### Definiendo referencias de colección
+
+Las entradas de una colección pueden "referenciar" otras entradas relacionadas.
+
+Con la función `reference()` de la API de Colecciones, puedes definir una propiedad en un esquema de colección como una entrada de otra colección. Por ejemplo, puedes requerir que cada entrada `space-shuttle` incluya una propiedad `pilot` que utilice el propio esquema de la colección `pilot` para la comprobación de tipos, el autocompletado y la validación.
+
+Un ejemplo común es una publicación de blog que hace referencia a perfiles de autor reutilizables almacenados como JSON, o a URL de publicaciones relacionadas almacenadas en la misma colección:
+
+```ts
+import { defineCollection, reference, z } from 'astro:content';
+
+const blog = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    // Referencia a un único autor de la colección `authors` por `id`
+    author: reference('authors'),
+    // Referencia a un arreglo de publicaciones relacionadas de la colección `blog` por `slug`
+    relatedPosts: z.array(reference('blog')),
+  })
+});
+
+const authors = defineCollection({
+  type: 'data',
+  schema: z.object({
+    name: z.string(),
+    portfolio: z.string().url(),
+  })
+});
+
+export const collections = { blog, authors };
+```
+
+Este ejemplo de publicación de blog especifica los `slug` de las publicaciones relacionadas y el `id` del autor de la publicación:
+
+```yaml title="src/content/blog/welcome.md"
+---
+title: "Bienvenido a mi Blog"
+author: ben-holmes # referencia `src/content/authors/ben-holmes.json`
+relatedPosts:
+- about-me # referencia `src/content/blog/about-me.md`
+- my-year-in-review # referencia `src/content/blog/my-year-in-review.md`
+---
+```
+
+### Definiendo slugs personalizados
+
+Cuando usas `type: 'content'`, cada entrada de contenido genera una propiedad `slug` compatible con URL a partir de su [`id` de archivo](/es/reference/api-reference/#id). El slug se utiliza para consultar la entrada directamente desde tu colección. También es útil cuando creas nuevas páginas y URL a partir de tu contenido.
+
+Puedes anular el slug generado de una entrada añadiendo tu propia propiedad `slug` al frontmatter del archivo. Esto es similar a la función "permalink" de otros frameworks web. `"slug"` es un nombre de propiedad especial y reservado que no está permitido en tu `schema` de colección personalizado y no aparecerá en la propiedad `data` de tu entrada.
+
+```md {3}
+---
+title: Mi Publicación de Blog
+slug: my-custom-slug/supports/slashes
+---
+El contenido de tu publicación de blog aquí.
+```
+
+## Consultando Colecciones
+
+Astro proporciona dos funciones para consultar una colección y devolver una (o más) entradas de contenido: [`getCollection()`](/es/reference/api-reference/#getcollection) y [`getEntry()`](/es/reference/api-reference/#getentry).
+
+```js
+import { getCollection, getEntry } from 'astro:content';
+
+// Obtén todas las entradas de una colección.
+// Requiere el nombre de la colección como argumento.
+// Ejemplo: recupera `src/content/blog/**`
+const allBlogPosts = await getCollection('blog');
+
+// Obtén una única entrada de colleción.
+// Requiere el nombre de la colección y también
+// el `slug` de la entrada (colecciones de contenido) o `id` (colecciones de datos) 
+// Ejemplo: recupera `src/content/authors/grace-hopper.json`
+const graceHopperProfile = await getEntry('authors', 'grace-hopper');
+```
+
+Ambas funciones devuelven entradas de contenido tal como se definen en el tipo [`CollectionEntry`](/es/reference/api-reference/#colección-de-tipo-entrada).
+
+### Accediendo a los datos referenciados
+
+Cualquier [referencia definida en tu esquema](#definiendo-referencias-de-colección) debe consultarse por separado después de consultar por primera vez la entrada de tu colección. Puedes usar la función `getEntry()` de nuevo, o `getEntries()`, para recuperar la entrada referenciada del objeto `data` devuelto.
+
+```astro title="src/pages/blog/welcome.astro"
+---
+import { getEntry, getEntries } from 'astro:content';
+
+const blogPost = await getEntry('blog', 'welcome');
+
+// Resuelve una referencia singular
+const author = await getEntry(blogPost.data.author);
+// Resuelve un arreglo de referencias
+const relatedPosts = await getEntries(blogPost.data.relatedPosts);
+---
+
+<h1>{blogPost.data.title}</h1>
+<p>Autor: {author.data.name}</p>
+
+<!-- ... -->
+
+<h2>También te puede gustar:</h2>
+{relatedPosts.map(p => (
+  <a href={p.slug}>{p.data.title}</a>
+))}
+```
+
+### Filtrando consultas de colección
+
+`getCollection()` toma un callback opcional "filter" que te permite filtrar tu consulta en función de las propiedades `id` o `data` (frontmatter) de una entrada. Para las colecciones de `type: 'content'`, también puedes filtrar en función de `slug`.
+
+:::note
+La propiedad `slug` es específica de las colecciones de contenido y no estará disponible al filtrar colecciones de JSON o YAML.
+:::
+
+Puedes usar esto para filtrar por cualquier criterio de contenido que desees. Por ejemplo, puedes filtrar por propiedades como `draft` para evitar que se publiquen publicaciones de blog en borrador en tu blog:
+
+```js
+// Ejemplo: Filtra las entradas de contenido con `draft: true`
+import { getCollection } from 'astro:content';
+const publishedBlogEntries = await getCollection('blog', ({ data }) => {
+  return data.draft !== true;
+});
+```
+
+También puedes crear páginas en borrador que estarán disponibles cuando ejecutes el servidor de desarrollo, pero que no se construirán en producción:
+
+```js
+// Ejemplo: Filtrar las entradas de contenido con `draft: true` solo al construir para producción
+import { getCollection } from 'astro:content';
+const blogEntries = await getCollection('blog', ({ data }) => {
+  return import.meta.env.PROD ? data.draft !== true : true;
+});
+```
+
+Para filtrar argumentos también admite el filtrado por directorios anidados dentro de una colección. Dado que el `id` incluye la ruta anidada completa, puedes filtrar por el inicio de cada `id` para devolver solo los elementos de un directorio anidado específico:
+
+```js
+// Ejemplo: Filtra las entradas por subdirectorio en la colección
+import { getCollection } from 'astro:content';
+const englishDocsEntries = await getCollection('docs', ({ id }) => {
+  return id.startsWith('en/');
+});
+```
+
+### Usando contenido en plantillas de Astro
+
+Una vez que hayas consultado tus entradas de colección, puedes acceder a cada entrada directamente dentro de la plantilla de tu componente de Astro. Esto te permite renderizar HTML para cosas como enlaces a tu contenido (usando el `slug` de contenido) o información sobre tu contenido (usando la propiedad `data`).
+
+Para obtener información sobre cómo renderizar tu contenido a HTML, consulta [Renderizando contenido a HTML](/es/guides/content-collections/#renderizando-contenido-a-html) a continuación.
+
+```astro
+---
+// src/pages/index.astro
+import { getCollection } from 'astro:content';
+const blogEntries = await getCollection('blog');
+---
+<ul>
+  {blogEntries.map(blogPostEntry => (
+    <li>
+      <a href={`/my-blog-url/${blogPostEntry.slug}`}>{blogPostEntry.data.title}</a>
+      <time datetime={blogPostEntry.data.publishedDate.toISOString()}>
+        {blogPostEntry.data.publishedDate.toDateString()}
+      </time>
+    </li>
+  ))}
+</ul>
+```
+
+### Pasando contenido como props
+
+Un componente también puede pasar un contenido completo como una prop.
+
+Si haces esto, puedes usar la utilidad [`CollectionEntry`](/es/reference/api-reference/#colección-de-tipo-entrada) para tipar correctamente las props de tu componente usando TypeScript. Esta utilidad toma un argumento de tipo string que coincide con el nombre del esquema de tu colección y heredará todas las propiedades de ese esquema de colección.
+
+```astro /CollectionEntry(?:<.+>)?/
+---
+// src/components/BlogCard.astro
+import type { CollectionEntry } from 'astro:content';
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+// `post` coincidirá con el tipo de esquema de tu colección 'blog'
+const { post } = Astro.props;
+---
+```
+
+### Renderizando contenido a HTML
+
+Una vez consultado, puedes renderizar las entradas de Markdown y MDX a HTML usando la propiedad de función `render()` de la entrada. Llamar a esta función te da acceso al contenido y metadatos renderizados, incluyendo tanto un componente `<Content />` como una lista de todos los encabezados renderizados.
+
+```astro {5}
+---
+// src/pages/render-example.astro
+import { getEntry } from 'astro:content';
+const entry = await getEntry('blog', 'post-1');
+const { Content, headings } = await entry.render();
+---
+<p>Publicado el: {entry.data.published.toDateString()}</p>
+<Content />
+```
+
+
+## Generando Rutas desde el Contenido
+
+Las Colecciones de contenido se almacenan fuera del directorio `src/pages/`. Esto significa que no se generan rutas para los elementos de tu colección de forma predeterminada. Deberás crear manualmente una nueva [ruta dinámica](/es/core-concepts/routing/#rutas-dinámicas) para generar páginas HTML a partir de las entradas de tu colección. Tu ruta dinámica asignará el parámetro de solicitud entrante (por ejemplo, `Astro.params.slug` en `src/pages/blog/[...slug].astro`) para recuperar la entrada correcta dentro de una colección.
+
+El método exacto para generar rutas dependerá del modo de salida de tu compilación [`output`](/es/reference/configuration-reference/#output): 'static' (el valor predeterminado) o 'server' (para SSR).
+
+### Construyendo para salida estática (predeterminado)
+
+Si estás construyendo un sitio web estático (el comportamiento predeterminado de Astro), debes usar la función [`getStaticPaths()`](/es/reference/api-reference/#getstaticpaths) para crear múltiples páginas a partir de un solo componente `src/pages/` durante tu compilación.
+
+Llama a [`getCollection()`](/es/reference/api-reference/#getcollection) dentro de `getStaticPaths()` para consultar tu contenido. Luego, crea tus nuevas rutas URL utilizando la propiedad `slug` de cada entrada de contenido.
+
+```astro "{ slug: entry.slug }"
+---
+// src/pages/posts/[...slug].astro
+import { getCollection } from 'astro:content';
+// 1. Genera una nueva ruta para cada entrada de colección
+export async function getStaticPaths() {
+  const blogEntries = await getCollection('blog');
+  return blogEntries.map(entry => ({
+    params: { slug: entry.slug }, props: { entry },
+  }));
+}
+// 2. Para tu plantilla, puedes obtener la entrada directamente de la prop
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+---
+<h1>{entry.data.title}</h1>
+<Content />
+```
+
+Esto generará una nueva página para cada entrada en la colección `blog`. Por ejemplo, una entrada en `src/content/blog/hello-world.md` tendrá un slug de `hello-world`, y por lo tanto su URL final será `/posts/hello-world/`.
+
+:::note
+Si tus slugs personalizados contienen el carácter `/` para producir URLs con múltiples segmentos de ruta, debes usar un [parámetro rest (`[...slug]`)](/es/core-concepts/routing/#parámetros-rest) en el nombre de archivo `.astro` para esta página de enrutamiento dinámico.
+:::
+
+### Construyendo para salida del servidor (SSR)
+
+Si estás construyendo un sitio web dinámico (usando el soporte SSR de Astro), no se espera que generes ninguna ruta de antemano durante la compilación. En su lugar, tu página debe examinar la solicitud (usando `Astro.request` o `Astro.params`) para encontrar el `slug` bajo demanda, y luego recuperarlo usando [`getEntry()`](/es/reference/api-reference/#getentry).
+
+
+```astro
+---
+// src/pages/posts/[...slug].astro
+import { getEntry } from "astro:content";
+// 1. Obtén el slug de la solicitud entrante del servidor
+const { slug } = Astro.params;
+if (slug === undefined) {
+	throw new Error("Slug es requerido");
+}
+// 2. Consulta la entrada directamente usando el slug de la solicitud
+const entry = await getEntry("blog", slug);
+// 3. Redirige si la entrada no existe
+if (entry === undefined) {
+	return Astro.redirect("/404");
+}
+// 4. (Opcional) Renderiza la entrada a HTML en la plantilla
+const { Content } = await entry.render();
+---
+```
+
+## Migrando desde el enrutamiento basado en archivos
+Esta guía te muestra cómo convertir un proyecto Astro existente con archivos Markdown en la carpeta `src/pages/` a colecciones de contenido. Utiliza el proyecto terminado del [tutorial de construcción de un blog](https://github.com/withastro/blog-tutorial-demo) como ejemplo.
+
+1. [Actualiza](/es/guides/upgrade-to/v2/) a Astro v2.0 o posterior, y actualiza todas las integraciones a sus últimas versiones.
+
+2. [Configura TypeScript](/es/guides/content-collections/#configurando-typescript) para las colecciones de contenido.
+3. Crea al menos una colección (carpeta en `src/content/`) y mueve tus páginas Markdown y MDX de `src/pages/` a estos subdirectorios de `src/content/`. Las colecciones funcionan mejor cuando todos los archivos de la misma colección tienen propiedades de frontmatter similares. Por lo tanto, elige tu nueva estructura de carpetas para reflejar tipos similares de páginas.
+
+    Por ejemplo, para migrar las [publicaciones de blog en el tutorial](/es/tutorial/2-pages/2/), mueve el contenido de `src/pages/posts/` a `src/content/posts/`.
+
+4. Crea un archivo `src/content/config.ts` y [define un esquema](/es/guides/content-collections/#definiendo-un-esquema-de-colección) para cada tipo de contenido. Para el blog, solo tenemos un tipo de contenido, `posts`:
+
+    ```ts title="src/content/config.ts"
+    // Importa las utilidades de `astro:content`
+    import { z, defineCollection } from "astro:content";
+    // Define un `type` y `schema` para cada colección
+    const postsCollection = defineCollection({
+        type: 'content',
+        schema: z.object({
+          title: z.string(),
+          pubDate: z.date(),
+          description: z.string(),
+          author: z.string(),
+          image: z.object({
+            url: z.string(),
+            alt: z.string()
+          }),
+          tags: z.array(z.string())
+        })
+    });
+    // Exporta un único objeto `collections` para registrar tu(s) colección(es)
+    export const collections = {
+      posts: postsCollection,
+    };
+    ```
+
+    :::tip
+    Si tu editor no reconoce `astro:content`, asegúrate de que estás en la última versión de Astro y prueba a reiniciar el servidor de desarrollo.
+    :::
+
+
+5. [Genera las rutas desde tus colecciones](/es/guides/content-collections/#generando-rutas-desde-el-contenido). Dentro de una colección, los archivos Markdown y MDX ya no se convierten automáticamente en páginas utilizando el [enrutamiento basado en archivos](/es/guides/markdown-content/#enrutamiento-basado-en-archivos) de Astro, por lo que debes generar las páginas tú mismo.
+
+    Para el tutorial, crea un `src/pages/posts/[...slug].astro`. Esta página utilizará [enrutamiento dinámico](/es/core-concepts/routing/#rutas-dinámicas) para generar una página para cada entrada de colección.
+
+    Esta página también deberá [consultar tu colección](#consultando-colecciones) para recuperar los slugs de página y hacer que el contenido de la página esté disponible para cada ruta.
+
+    Renderiza tu `<Content />` de publicación dentro del diseño para tus páginas Markdown o MDX. Esto te permite especificar un diseño común para todas tus publicaciones.
+
+    ```astro title="src/pages/posts/[...slug].astro"
+    ---
+    import { getCollection } from 'astro:content';
+    import MarkdownPostLayout from '../../layouts/MarkdownPostLayout.astro';
+
+    export async function getStaticPaths() {
+      const blogEntries = await getCollection('posts');
+      return blogEntries.map(entry => ({
+        params: { slug: entry.slug }, props: { entry },
+      }));
+    }
+
+    const { entry } = Astro.props;
+    const { Content } = await entry.render();
+    ---
+    <MarkdownPostLayout frontmatter={entry.data}>
+      <Content />
+    </MarkdownPostLayout>
+    ```
+
+6. Elimina la definición de `layout` en el frontmatter de cada publicación individual. Tu contenido ahora está envuelto en un diseño cuando se renderiza, y esta propiedad ya no es necesaria.
+
+    ```md title="src/content/post-1.md" del={2}
+    ---
+    layout: ../../layouts/MarkdownPostLayout.astro
+    title: 'Mi Primer Publicación de Blog'
+    pubDate: 2022-07-01
+    ...
+    ---
+    ```
+
+7. Reemplaza `Astro.glob()` con [`getCollection()`](/es/reference/api-reference/#getcollection) para obtener contenido y metadatos de tus archivos Markdown. También deberás actualizar las referencias al objeto de publicación devuelto, ya que ahora encontrarás tus valores de frontmatter en la propiedad `data`.
+
+
+    El índice del blog en el tutorial enumera una tarjeta para cada publicación. Esto se convierte en:
+
+    ```astro title="src/pages/blog.astro" "post.data" "getCollection(\"posts\")" "'/posts/' + post.slug"
+    ---
+    import { getCollection } from "astro:content";
+    import BaseLayout from "../layouts/BaseLayout.astro";
+    import BlogPost from "../components/BlogPost.astro";
+
+    const pageTitle = "Mi blog de aprendizaje de Astro";
+    const allPosts = await getCollection("posts");
+    ---
+
+    <BaseLayout pageTitle={pageTitle}>
+      <p>Aquí es donde publicaré sobre mi viaje aprendiendo Astro.</p>
+      <ul>
+        {
+          allPosts.map((post) => (
+            <BlogPost url={'/posts/' + post.slug} title={post.data.title} />
+          ))
+        }
+      </ul>
+    </BaseLayout> 
+    ```
+
+    El tutorial del proyecto de blog también genera dinámicamente una página para cada etiqueta. Esta página ahora se convierte en:
+
+    ```astro title="src/pages/tags/[tag].astro" "post.data" "getCollection(\"posts\")" "post.data.title" "'/posts/' + post.slug"
+    ---
+    import { getCollection } from "astro:content";
+    import BaseLayout from "../../layouts/BaseLayout.astro";
+    import BlogPost from "../../components/BlogPost.astro";
+
+    export async function getStaticPaths() {
+      const allPosts = await getCollection("posts");
+      const uniqueTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
+
+      return uniqueTags.map((tag) => {
+        const filteredPosts = allPosts.filter((post) =>
+          post.data.tags.includes(tag)
+        );
+        return {
+          params: { tag },
+          props: { posts: filteredPosts },
+        };
+      });
+    }
+    
+    const { tag } = Astro.params;
+    const { posts } = Astro.props;
+    ---
+
+    <BaseLayout pageTitle={tag}>
+        <p>Publicaciones etiquetadas con {tag}</p>
+        <ul>
+            { posts.map((post) => <BlogPost url={'/posts/' + post.slug} title={post.data.title} />) }
+        </ul>
+    </BaseLayout>
+    ```
+
+    La misma lógica aparece en la página de índice de etiquetas, que se convierte en:
+    
+    ```astro title="src/pages/tags/index.astro" "post.data" "getCollection(\"posts\")"
+    ---
+    import { getCollection } from "astro:content";
+    import BaseLayout from "../../layouts/BaseLayout.astro";
+    const allPosts = await getCollection("posts");
+    const tags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
+    const pageTitle = "Tag Index";
+    ---
+    ...
+    ```
+
+    :::note
+    Cualquier archivo individual Markdown o MDX importado debe ser reemplazado por [`getEntry()`](/es/reference/api-reference/#getentry).
+    :::
+    
+8. Actualiza el código que usa la fecha de publicación en el archivo `layouts/MarkdownPostLayout.astro`.
+
+    Previamente, `pubDate` era un string. Ahora, después de introducir tipos para el frontmatter de tus publicaciones, `pubDate` es un `Date`.
+    Para renderizar la fecha, conviértela en un string:
+
+    ```astro title="src/layouts/MarkdownPostLayout.astro" "frontmatter.pubDate.toDateString()"
+    ...
+    <BaseLayout pageTitle={frontmatter.title}>
+      <p>{frontmatter.pubDate.toDateString()}</p>
+      <p><em>{frontmatter.description}</em></p>
+      <p>Escrito por: {frontmatter.author}</p>
+      <img src={frontmatter.image.url} width="300" alt={frontmatter.image.alt} />
+    ...
+    ```
+    
+
+    Por último, el tutorial de proyecto de blog incluye un feed RSS. Esta función también debe usar `getCollection` y el objeto `data`, y convertirse en una función asíncrona para hacerlo:
+
+    ```js title="src/pages/rss.xml.js" {4-5, 10-15} 
+    import rss from "@astrojs/rss";
+    import { getCollection } from "astro:content";
+
+    export async function get() {
+      const posts = await getCollection('posts');
+      return rss({
+        title: 'Estudiante de Astro | Blog',
+        description: 'Mi viaje aprendiendo Astro',
+        site: 'https://my-blog-site.netlify.app',
+        items: posts.map((post) => ({
+          title: post.data.title,
+          pubDate: post.data.pubDate,
+          description: post.data.description,
+          link: `/posts/${post.slug}/`,
+        })),
+        customData: `<language>en-us</language>`,
+      });
+    }
+    ```
+
+Para ver el ejemplo completo del tutorial de blog usando colecciones de contenido, consulta la [rama de Colecciones de Contenido](https://github.com/withastro/blog-tutorial-demo/tree/content-collections) del repositorio del tutorial.
+
+
+## Modificando el Frontmatter con Remark
+
+:::caution
+**No es recomendado.** Los plugins de remark y rehype acceden al frontmatter _raw_ del documento Markdown o MDX. Esto significa que el frontmatter `remarkPluginFrontmatter` se maneja por separado de tu `schema` de tipo seguro, y no reflejará ningún cambio o valor predeterminado aplicado a través de Astro. ¡Úsalo bajo tu propio riesgo!
+:::
+
+Astro admite los plugins remark o rehype que [modifican tu frontmatter directamente](/es/guides/markdown-content/#modificación-programática-del-frontmatter). Puedes acceder a este frontmatter modificado dentro de una entrada de contenido usando la propiedad `remarkPluginFrontmatter` devuelta de `render()`:
+
+```astro "{ remarkPluginFrontmatter }"
+---
+import { getEntry } from 'astro:content';
+const blogPost = await getEntry('blog', 'post-1');
+const { remarkPluginFrontmatter } = await blogPost.render();
+---
+<p>{blogPost.data.title} — {remarkPluginFrontmatter.readingTime}</p>
+```
+
+<RecipeLinks slugs={["es/recipes/reading-time" ]}/>
+
+Los pipelines de remark y rehype solo se ejecutan cuando se renderiza tu contenido, lo que explica por qué `remarkPluginFrontmatter` solo está disponible después de llamar a `render()` en tu entrada de contenido. En contraste, `getCollection()` y `getEntry()` no pueden devolver estos valores directamente porque no renderizan tu contenido.
+

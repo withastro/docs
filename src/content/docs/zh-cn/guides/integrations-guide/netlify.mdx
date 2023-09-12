@@ -10,7 +10,7 @@ i18nReady: true
 
 此适配器允许 Astro 部署 SSR 网站到 [Netlify](https://www.netlify.com/)。
 
-在我们的 [Netlify 部署指南](/zh-cn/guides/deploy/netlify/) 中学习如何部署你的 Astro 网站.
+在我们的 [Netlify 部署指南](/zh-cn/guides/deploy/netlify/) 中学习如何部署你的 Astro 网站。
 
 ## 为什么是 Astro Netlify
 
@@ -33,6 +33,8 @@ yarn astro add netlify
 pnpm astro add netlify
 ```
 
+### 手动添加依赖
+
 如果你更喜欢手动安装适配器，请完成以下两个步骤：
 
 1.  安装 Netlify 适配器到你的项目依赖中，使用你喜欢的包管理器。如果你使用 npm 或者不确定，请在终端中运行：
@@ -54,28 +56,11 @@ pnpm astro add netlify
     });
     ```
 
-### Edge Functions
-
-Netlify 有两个 serverless 平台，[Netlify Functions](https://docs.netlify.com/functions/overview/) 和 [Netlify Edge Functions](https://docs.netlify.com/edge-functions/overview/)。使用 Edge Functions，你的代码分布在更接近用户的地方，降低延迟。
-
-为了使用 Edge Functions 部署，使用 Astro 配置文件中的 `netlify/edge-functions` 而不是 `netlify/functions`。
-
-```js ins={3}
-// astro.config.mjs
-import { defineConfig } from 'astro/config';
-import netlify from '@astrojs/netlify/edge-functions';
-
-export default defineConfig({
-  output: 'server',
-  adapter: netlify(),
-});
-```
-
 ### 在 Edge Functions 中使用中间件
 
 当部署到 Netlify Functions 时，您可以选择使用 Edge Function 来运行 Astro 中间件。
 
-为了启用这个功能，将 `build.excludeMiddleware` Astro 配置选项设置为 `true`：
+为了启用这个功能，将 `edgeMiddleware` Astro 配置选项设置为 `true`：
 
 ```js ins={9}
 // astro.config.mjs
@@ -84,10 +69,9 @@ import netlify from '@astrojs/netlify/functions';
 
 export default defineConfig({
   output: 'server',
-  adapter: netlify(),
-  build: {
-    excludeMiddleware: true,
-  },
+  adapter: netlify({
+    edgeMiddleware: true,
+  }),
 });
 ```
 
@@ -133,10 +117,9 @@ import netlify from '@astrojs/netlify/functions';
 
 export default defineConfig({
   output: 'server',
-  adapter: netlify(),
-  build: {
-    split: true,
-  },
+  adapter: netlify({
+    functionPerRoute: true,
+  }),
 });
 ```
 
@@ -162,6 +145,28 @@ export default defineConfig({
 :::note
 你依然可以在 `public/_redirects` 文件中手动添加重定向。你在重定向配置中指定的任何重定向都会被追加到你自己的重定向之后。
 :::
+
+### 按需构建器
+
+[Netlify 按需构建器](https://docs.netlify.com/configure-builds/on-demand-builders/) 是用于在 Netlify 的 Edge CDN 上构建和缓存页面内容的无服务器函数。你可以使用 [`builders` 选项](#构建器) 启用这些函数：
+
+默认情况下，所有页面在首次访问时会被渲染，并且渲染结果将在每次后续访问时复用，直到重新部署为止。如要设置重验证时间，请使用指定的持续时间（以秒为单位）调用 [`runtime.setBuildersTtl(ttl)` local](/zh-cn/guides/middleware/#locals)。
+
+下面的示例将重新验证时间设置为 45，这意味着 Netlify 将存储渲染的 HTML 内容 45 秒。
+
+```astro
+---
+import Layout from '../components/Layout.astro';
+if (import.meta.env.PROD) {
+  Astro.locals.runtime.setBuildersTtl(45);
+}
+---
+<Layout title="Astro on Netlify">
+  {new Date(Date.now())}
+</Layout>
+```
+
+重要的是要注意，按需构建器在检查缓存页面时会忽略查询参数。例如，如果 `example.com/?x=y` 被缓存，它将同时用于 `example.com/?a=b`（不同的查询参数）和 `example.com/`（没有查询参数）。
 
 ## 用法
 
@@ -207,7 +212,7 @@ directory = "dist/functions"
 
 ### 构建器
 
-[Netlify 按需构建器](https://docs.netlify.com/configure-builds/on-demand-builders/) 是用于在 Netlify 的 Edge CDN 上构建和缓存页面内容的无服务器函数。你可以使用 `builders` 选项启用这些函数：
+你可以使用 `builders` 选项来启用按需构建器：
 
 ```js
 // astro.config.mjs
@@ -236,7 +241,7 @@ Netlify Functions 需要 `body` 中的二进制数据被 base64 编码。`@astro
 
 import fs from 'node:fs';
 
-export function get() {
+export function GET() {
   const buffer = fs.readFileSync('../image.jpg');
 
   // Return the buffer directly, @astrojs/netlify will base64 encode the body
@@ -253,7 +258,7 @@ export function get() {
 
 * [Astro Netlify Edge Starter](https://github.com/sarahetter/astro-netlify-edge-starter) 提供了一个示例以及 README 中的指南。
 
-* [浏览 GitHub 上的 Astro Netlify 项目](https://github.com/search?q=path%3A**%2Fastro.config.mjs+%40astrojs%2Fnetlify\&type=code) 查看更多示例!
+* [浏览 GitHub 上的 Astro Netlify 项目](https://github.com/search?q=path%3A**%2Fastro.config.mjs+%40astrojs%2Fnetlify\&type=code) 查看更多示例！
 
 ## 故障排除
 

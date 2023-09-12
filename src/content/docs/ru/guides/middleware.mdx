@@ -1,0 +1,219 @@
+---
+title: Middleware (Промежуточная обработка)
+description: Узнайте как использовать middleware в Astro.
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+**Middleware** позволяют добавлять обработку для запроса и ответа и динамически внедрять дополнительное поведение при каждом обращении к странице или эндпоинту.
+
+В том числе, с помощью этого подхода можно устанавливать и использовать специфичную для запроса информацию (контекст) между различными эндпоинтами и страницами, мутируя `locals` объект, который доступен во всех Astro компонентах и API эндпоинтах.
+
+В Astro middleware доступны как в SSG, так и в SSR подходе.
+
+## Использование
+
+1. Создайте `src/middleware.js|ts` (или `src/middleware/index.js|ts`).
+
+2. Внутри этого модуля необходимо экспортировать [`onRequest()`](#onrequest) функцию. Это не должен быть экспорт по умолчанию.
+
+    ```js title="src/middleware.js"
+    export function onRequest ({ locals, request }, next) {
+        // доп. обработка ответа
+        // опционально, изменить ответ, модифицируя `locals`
+        locals.title = "Заголовок";
+
+        // возвращает ответ или результат возможных следующих middleware в цепочке
+        return next();
+    };
+    ```
+
+3. Внутри `.astro` компонентов, можно получить доступ к данным через `Astro.locals`.
+
+```astro title="src/components/Component.astro"
+---
+const data = Astro.locals;
+---
+<h1>{data.title}</h1>
+<p>Данные из middleware - {data.property}.</p>
+```
+
+### Типы middleware
+
+Вы можете импортировать и использовать утилитную функцию `defineMiddleware()` для того, чтобы получить проверку типов:
+
+```ts
+// src/middleware.ts
+import { defineMiddleware } from "astro/middleware";
+
+// `context` и `next` уже типизированы
+export const onRequest = defineMiddleware((context, next) => {
+
+});
+```
+
+Или, если вы используете JsDoc для проверки типов, вы можете использовать `MiddlewareRequestHandler`:
+
+```js
+// src/middleware.js
+/**
+ * @type {import("astro").MiddlewareResponseHandler}
+ */
+// `context` и `next` уже типизированы
+export const onRequest = (context, next) => {
+
+};
+```
+
+Для того чтобы типизировать данные внутри `Astro.locals` (это позволит использовать автодополнение IDE в `.astro` файлах и внутри middleware), определите глобальную область имён в `env.d.ts` файле:
+
+```ts title="src/env.d.ts"
+/// <reference types="astro/client" />
+declare namespace App {
+    interface Locals {
+        user: {
+            name: string
+        },
+        welcomeTitle: () => string,
+        orders: Map<string, object>
+    }
+}
+```
+
+Затем, внутри middleware файла, активируются инструменты автодополнения и проверки типов.
+
+Вы можете хранить любые типы данных внутри `Astro.locals`: строки, числа и даже сложные структуры данных, такие как функции и Maps.
+
+```js title="src/middleware.js"
+export function onRequest ({ locals, request }, next) {
+    // доп. обработка ответа
+    // опционально, изменить ответ, модифицируя `locals`
+    locals.user.name = "John Wick";
+    locals.welcomeTitle = () => {
+        return "Добро пожаловать,  " + locals.user.name;
+    };
+
+    // возвращает ответ или результат возможных следующих middleware в цепочке
+    return next();
+};
+```
+
+После этого вы можете использовать эту информацию внутри любых `.astro` файлов.
+
+```astro title="src/pages/orders.astro"
+---
+const title = Astro.locals.welcomeTitle();
+const orders = Array.from(Astro.locals.orders.entries());
+---
+<h1>{title}</h1>
+<ul>
+    {orders.map(order => {
+        return <li>{/* любые действия с объектом `order` */}</li>;
+    })}
+</ul>
+```
+
+### Пример: цензурирование персональных данных
+
+Пример ниже использует middleware для того, чтобы заменить персональные данные на странице ("ПД") словосочетанием "Совершенно секретно":
+
+
+```js title="src/middleware.js"
+export const onRequest = async (context, next) => {
+    const response = await next();
+    const html = await response.text();
+    const redactedHtml = html.replaceAll("ПД", "Совершенно секретно");
+    
+    return new Response(redactedHtml, {
+        status: 200,
+        headers: response.headers
+    });
+};
+```
+
+### Цепочки middleware
+
+Несколько middleware могут быть объединены в указанном порядке с помощью функции [`sequence()`](#sequence):
+
+```js title="src/middleware.js"
+import { sequence } from "astro/middleware";
+
+async function validation(_, next) {
+    console.log("validation request");
+    const response = await next();
+    console.log("validation response");
+    return response;
+}
+
+async function auth(_, next) {
+    console.log("auth request");
+    const response = await next();
+    console.log("auth response");
+    return response;
+}
+
+async function greeting(_, next) {
+    console.log("greeting request");
+    const response = await next();
+    console.log("greeting response");
+    return response;
+}
+
+export const onRequest = sequence(validation, auth, greeting);
+```
+
+Это приведет к такому порядку в консоли:
+
+```sh
+validation request
+auth request
+greeting request
+greeting response
+auth response
+validation response
+```
+
+## Описание API
+
+### `onRequest()`
+
+Обязательный экспорт функции из `src/middleware.js|ts`, который будет вызван перед обработкой любой страницы или API роута. Эта функции принимает 2 необязательных аргумента: [context](#context) и [next()](#next). `onRequest()` обязан вернуть объект типа `Response`: явно, или используя вызов `next()`.
+
+### `context`
+
+Объект, который включает всю информацию, которая доступна другим middleware, API роутам или компонентам `.astro` в процессе обработки запроса.
+
+Это необязательный аргумент функции `onRequest()`, который может так же содержать объект [`locals`](#locals) как дополнительные атрибуты для общего доступа в процессе отрисовки. Например, объект `context` может содержать cookies, используемые для аутентификации. 
+
+Это тот же самый объект [`context`](/ru/reference/api-reference/#endpoint-context), который используется в API роутах.
+
+### `next()`
+
+Это функция, которая добавляет обработку (чтение и запись) `Response` или вызывает `next` цепочки middleware и возвращает `Response`. Например, в ней может модифицироваться body HTML документа в ответе.
+
+Это необязательный аргумент функции `onRequest()`, и может содержать обязательный `Response`, возвращаемый из middleware.
+
+### `locals`
+Объект, который содержит данные из `Response`. Ими можно манипулировать в middleware. 
+
+`locals` объект передаётся через процесс обработки запроса и доступен через свойства объектов [`APIContext`](/ru/reference/api-reference/#endpoint-context) и `AstroGlobal`. Это позволяет иметь общий доступ к данным как внутри middleware, так и в API роутах или `.astro` страницах. Это удобно, когда нужно сохранить специфичные для текущего запроса данные, например, инфо о пользователе.
+
+`locals` - это объект, который живет в контексте запроса, т.е. когда страница отрисовалась, `locals` перестаёт существовать. Для последующего запроса будет создан новый `locals`. Данные, которые должны сохраняться между разными страницами и запросами должны быть сохранены в другом месте.
+
+:::note
+Значение объекта `locals` не может быть перезаписано в рантайме. Используя такой подход, есть риск стереть всю информацию, которая была сохранена пользователем. В `dev` режиме, `Astro` выполняет проверки и может выбросить исключение, если `locals` перезаписывается.
+:::
+
+### `sequence()`
+
+Функция, которая принимает набор middleware реализаций в качестве аргументов. В рантайме она будет выполнять их в порядке регистрации.
+
+### `createContext`
+
+Низкоуровненый API для создания [`APIContext`](/ru/reference/api-reference/#endpoint-context), который может использоваться внутри middleware Astro.
+
+Эта функция может использоваться для интеграций/адаптеров для явного программного вызова middleware.
+
+### `trySerializeLocals`
+
+Низкоуровневый API который принимает любое значение и пытается сериализовать его в строку. Если значение не может быть сериализовано, то функция выбросил исключение в рантайме.
