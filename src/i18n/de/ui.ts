@@ -27,8 +27,8 @@ export default UIDictionary({
 	'rightSidebar.editPage': 'Bearbeite diese Seite',
 	'rightSidebar.translatePage': 'Übersetze diese Seite',
 	'rightSidebar.github': 'Astro Docs auf GitHub',
-	  // Footer
- 	'footer.privacyPolicy': 'Datenschutzerklärung',
+	// Footer
+	'footer.privacyPolicy': 'Datenschutzerklärung',
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': 'Nutze das helle Theme',
 	'themeToggle.useDark': 'Nutze das dunkle Theme',
@@ -49,13 +49,13 @@ export default UIDictionary({
 	'deploy.staticTag': 'Statisch',
 	// CMS Guides vocabulary
 	'cms.navTitle': 'Weitere CMS-Anleitungen',
-  	// Migration Guides vocabulary
-  	'migration.navTitle': 'Weitere Migrations-Anleitungen',
-  	// Recipes vocabulary
- 	'recipes.navTitle': 'Weitere Anleitungen',
-  	// `<RecipeLinks>` vocabulary
+	// Migration Guides vocabulary
+	'migration.navTitle': 'Weitere Migrations-Anleitungen',
+	// Recipes vocabulary
+	'recipes.navTitle': 'Weitere Anleitungen',
+	// `<RecipeLinks>` vocabulary
 	'recipesLink.singular': 'Verwandte Anleitung:',
-  	'recipesLink.plural': 'Verwandte Anleitungen',
+	'recipesLink.plural': 'Verwandte Anleitungen',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'Alle Mitwirkenden ansehen',
 	// Fallback content notice shown when a page is not yet translated
@@ -73,25 +73,25 @@ export default UIDictionary({
 	'aside.danger': 'Gefahr',
 	// `<LanguageSelect>` vocabulary
 	'languageSelect.label': 'Sprache auswählen',
-  	// Integrations vocabulary
+	// Integrations vocabulary
 	'integrations.changelog': 'Changelog',
 	'integrations.footerTitle': 'Weitere Integrationen',
 	'integrations.renderers': 'UI-Frameworks',
 	'integrations.adapters': 'SSR-Adapter',
 	'integrations.others': 'Sonstiges',
-  	// Checklist component
+	// Checklist component
 	'checklist.or': 'oder',
-  	// Multiple Choice component
+	// Multiple Choice component
 	'multipleChoice.defaultCorrect': 'Korrekt!',
-  	'multipleChoice.defaultIncorrect': "Versuch's nochmal!",
-  	'multipleChoice.submitLabel': 'Absenden',
-  	// Tutorial Progress
+	'multipleChoice.defaultIncorrect': "Versuch's nochmal!",
+	'multipleChoice.submitLabel': 'Absenden',
+	// Tutorial Progress
 	'progress.todo': 'To-do',
-  	'progress.done': 'Erledigt',
-  	// Tutorial Navigation
-  	'tutorial.trackerLabel': 'Tutorial Tracker',
+	'progress.done': 'Erledigt',
+	// Tutorial Navigation
+	'tutorial.trackerLabel': 'Tutorial Tracker',
 	'tutorial.unit': 'Teil',
-  	// Tutorial
+	// Tutorial
 	'tutorial.getReady': 'Mach dich bereit, …',
 	// Feedback Fish widget
 	'feedback.button': 'Gib uns Feedback',
@@ -107,18 +107,20 @@ export default UIDictionary({
 	'feedback.submit': 'Feedback abschicken',
 	'feedback.close': 'Feedback-Formular schließen',
 	'feedback.success': 'Danke! Wir haben dein Feedback bekommen.',
-  	// `<FileTree>` component
-  	'fileTree.directoryLabel': 'Verzeichnis',
-  	// Code snippet vocabulary
-  	'expressiveCode.terminalWindowFallbackTitle': 'Terminal-Fenster',
-  	'expressiveCode.copyButtonTooltip': 'In Zwischenablage kopieren',
-  	'expressiveCode.copyButtonCopied': 'Kopiert!',
-  	// Backend Guides vocabulary
-  	'backend.navTitle': 'Weitere Backend-Anleitungen',
-  	// Stubs vocabulary
+	// `<FileTree>` component
+	'fileTree.directoryLabel': 'Verzeichnis',
+	// Code snippet vocabulary
+	'expressiveCode.terminalWindowFallbackTitle': 'Terminal-Fenster',
+	'expressiveCode.copyButtonTooltip': 'In Zwischenablage kopieren',
+	'expressiveCode.copyButtonCopied': 'Kopiert!',
+	// Backend Guides vocabulary
+	'backend.navTitle': 'Weitere Backend-Anleitungen',
+	// Stubs vocabulary
 	'stub.title': 'Erweitere diese Anleitung!',
 	'stub.subtitle': 'Diese Anleitung ist ein Entwurf.',
- 	'stub.description.migration': 'Möchtest du zu dieser Anleitung beitragen? Hast du einen Blogbeitrag, ein Video oder eine andere Informationsquelle über die Migration von dieser Technologie zu Astro, die du teilen möchtest?',
+	'stub.description.migration':
+		'Möchtest du zu dieser Anleitung beitragen? Hast du einen Blogbeitrag, ein Video oder eine andere Informationsquelle über die Migration von dieser Technologie zu Astro, die du teilen möchtest?',
 	'stub.description.cms': 'Weißt du mehr darüber, wie man dieses CMS mit Astro verwenden kann?',
- 	'stub.description.backend': 'Weißt du mehr darüber, wie man diesen Backend-Dienst mit Astro verwenden kann?',
+	'stub.description.backend':
+		'Weißt du mehr darüber, wie man diesen Backend-Dienst mit Astro verwenden kann?',
 });
