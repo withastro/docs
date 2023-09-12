@@ -1,0 +1,226 @@
+---
+title: Middleware
+description: Aprende cómo usar un middleware en Astro.
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+Un **Middleware** te permite interceptar las solicitudes y respuestas e inyectar comportamientos dinámicamente cada vez que una página o endpoint está a punto de ser renderizado.
+
+Esto también te permite establecer y compartir información específica de la solicitud en todos los endpoints y páginas mediante la mutación de un objeto `locals` que está disponible en todos los componentes de Astro y endpoints de API.
+
+El middleware está disponible tanto en proyectos de Astro SSG como en proyectos de Astro SSR.
+
+## Uso básico
+
+1. Crea `src/middleware.js|ts` (Alternativamente, puedes crear `src/middleware/index.js|ts`.)
+
+2. Dentro de este archivo, exporta una función [`onRequest()`](#onrequest). Esta no debe ser una exportación por defecto.
+
+    ```js title="src/middleware.js"
+    export function onRequest ({ locals, request }, next) {
+        // interceptar los datos de respuesta de una solicitud.
+        // opcionalmente, puedes transformar la respuesta modificando `locals`.
+        locals.title = "Nuevo título";
+
+        // devuelve una respuesta o el resultado de llamar a `next()`.
+        return next();
+    };
+    ```
+
+3. Dentro de cualquier archivo `.astro`, puedes acceder a los datos de respuesta utilizando `Astro.locals`. 
+
+```astro title="src/components/Component.astro"
+---
+const data = Astro.locals;
+---
+<h1>{data.title}</h1>
+<p>Este {data.property} proviene de un middleware.</p>
+
+```
+
+### Tipos de Middleware
+
+Puedes importar y usar la función de utilidad `defineMiddleware()` para aprovechar la seguridad de tipos:
+
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from "astro:middleware";
+
+// `context` y `next` son tipados automáticamente.
+export const onRequest = defineMiddleware((context, next) => {
+
+});
+```
+
+En cambio, si estás utilizando JsDoc para aprovechar la seguridad de tipos, puedes usar `MiddlewareRequestHandler`:
+
+```js title="src/middleware.js"
+// src/middleware.js
+/**
+ * @type {import("astro").MiddlewareResponseHandler}
+ */
+// `context` y `next` son tipados automáticamente.
+export const onRequest = (context, next) => {
+
+};
+
+```
+
+Para tipar la información dentro de `Astro.locals`, que proporciona autocompletado dentro de los archivos `.astro` y el código de middleware, declara un espacio de nombres global en el archivo `env.d.ts`:
+
+```ts title="src/env.d.ts"
+/// <reference types="astro/client" />
+declare namespace App {
+    interface Locals {
+        user: {
+            name: string
+        },
+        welcomeTitle: () => string,
+        orders: Map<string, object>
+    }
+}
+```
+
+Luego, dentro del archivo de middleware, podemos aprovechar el autocompletado y la seguridad de tipos.
+
+Puedes almacenar cualquier tipo de datos dentro de `Astro.locals`: cadenas de texto, números e incluso tipos de datos complejos como funciones y maps.
+
+
+```js title="src/middleware.js"
+export function onRequest ({ locals, request }, next) {
+    // interceptar los datos de respuesta de una solicitud
+    // opcionalmente, transforma la respuesta modificando `locals`.
+    locals.user.name = "John Wick";
+    locals.welcomeTitle = () => {
+        return "Bienvenido de nuevo  " + locals.user.name;
+    };
+
+  // devuelve una respuesta o el resultado de llamar a `next()`.
+  return next();
+};
+```
+Luego puedes utilizar esta información dentro de cualquier archivo `.astro`.
+
+```astro title="src/pages/orders.astro"
+---
+const title = Astro.locals.welcomeTitle();
+const orders = Array.from(Astro.locals.orders.entries());
+---
+<h1>{title}</h1>
+<p>Este {data.property} proviene de un middleware.</p>
+<ul>
+    {orders.map(order => {
+        return <li>{/* haz algo con cada orden */}</li>
+    })}
+</ul>
+```
+
+
+### Ejemplo: Redactando información sensible
+
+El ejemplo a continuación utiliza un middleware para reemplazar "PRIVATE INFO" con la palabra "REDACTED" y así permitirte mostrar HTML modificado en tu página:
+
+```js title="src/middleware.js"
+export const onRequest = async (context, next) => {
+    const response = await next();
+    const html = await response.text();
+    const redactedHtml = html.replaceAll("PRIVATE INFO", "REDACTED");
+    
+    return new Response(redactedHtml, {
+        status: 200,
+        headers: response.headers
+    });
+};
+```
+
+### Encadenamiento de middleware
+
+Múltiples middlewares pueden ser unidos en un orden específico utilizando [`sequence()`](#sequence):
+
+```js title="src/middleware.js"
+import { sequence } from "astro:middleware";
+
+async function validation(_, next) {
+    console.log("solicitud de validación");
+    const response = await next();
+    console.log("respuesta de validación");
+    return response;
+}
+
+async function auth(_, next) {
+  console.log("solicitud de autenticación");
+  const response = await next();
+  console.log("respuesta de autenticación");
+  return response;
+
+}
+
+async function greeting(_, next) {
+  console.log("solicitud de saludo");
+  const response = await next();
+  console.log("respuesta de saludo");
+  return response;
+
+}
+
+export const onRequest = sequence(validation, auth, greeting);
+```
+
+Esto resultará en el siguiente orden en la consola:
+
+```sh
+solicitud de validación
+solicitud de autenticación
+solicitud de saludo
+respuesta de saludo
+respuesta de autenticación
+respuesta de validación
+```
+
+## Referencia de la API
+
+### `onRequest()`
+
+Una función exportada requerida desde `src/middleware.js` que será llamada antes de renderizar cada página o ruta de la API. Acepta dos argumentos opcionales: [context](#context) y [next()](#next). `onRequest()` debe devolver una `Response`: ya sea directamente o llamando a `next()`.
+
+### `context`
+
+Un objeto que incluye información que estará disponible para otros middlewares, rutas de la API y rutas `.astro` durante el proceso de renderizado.
+
+Este es un argumento opcional pasado a `onRequest()` que puede contener el objeto [`locals`](#locals), así como cualquier propiedad adicional que se comparta durante el renderizado. Por ejemplo, el objeto `context` puede incluir cookies utilizadas en la autenticación.
+
+Este es el mismo objeto [`context`](/es/reference/api-reference/#contexto-del-endpoint) que se pasa a las rutas de la API.
+
+### `next()`
+
+Una función que intercepta (lee y modifica) la `Response` de una `Request` o llama al siguiente middleware en la cadena y devuelve una `Response`. Por ejemplo, esta función podría modificar el cuerpo HTML de una respuesta.
+
+Este es un argumento opcional de `onRequest()` y puede proporcionar la `Response` requerida que devuelve el middleware.
+
+### `locals`
+
+Un objeto que contiene datos de una `Response` y que se puede manipular dentro del middleware.
+
+Este objeto `locals` se reenvía a lo largo del proceso de manejo de la solicitud y está disponible como una propiedad de [`APIContext`](/es/reference/api-reference/#contexto-del-endpoint) y `AstroGlobal`. Esto permite compartir datos entre middlewares, rutas de la API y páginas `.astro`. Esto es útil para almacenar datos específicos de la solicitud, como datos de usuario, durante el paso de renderizado.
+
+`locals` es un objeto que existe y se destruye dentro de una sola ruta de Astro; cuando se renderiza la página de la ruta, `locals` dejará de existir y se creará uno nuevo. La información que necesita persistir a través de múltiples solicitudes de página debe almacenarse en otro lugar.
+
+:::note
+El valor de `locals` no se puede sobrescribir en tiempo de ejecución. Hacerlo podría eliminar toda la información almacenada por el usuario. En el modo `dev`, Astro realiza comprobaciones y lanzará un error si se intenta sobrescribir `locals`.
+:::
+
+### `sequence()`
+
+Una función que acepta funciones de middleware como argumentos y las ejecutará en el orden en que se pasan.
+
+
+### `createContext`
+
+Una API de bajo nivel para crear un [`APIContext`](/es/reference/api-reference/#contexto-del-endpoint), que puede ser utilizado por el middleware de Astro.
+
+Esta función puede ser utilizada por las integraciones/adaptadores para ejecutar programáticamente el middleware de Astro.
+
+### `trySerializeLocals`
+
+Una API de bajo nivel que toma cualquier valor y trata de devolver una versión serializada (un string) de él. Si el valor no se puede serializar, la función lanzará un error en el runtime.

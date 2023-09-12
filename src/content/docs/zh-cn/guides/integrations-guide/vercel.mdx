@@ -1,0 +1,351 @@
+---
+type: integration
+title: '@astrojs/vercel'
+description: 学习如何使用 @astrojs/vercel 服务端渲染适配器来部署你的 Astro 项目。
+githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/vercel/'
+hasREADME: true
+category: adapter
+i18nReady: true
+---
+
+import Video from '~/components/Video.astro';
+import DontEditWarning from '~/components/DontEditWarning.astro';
+
+
+这个适配器允许 Astro 将你的 SSR 站点部署到 [Vercel](https://www.vercel.com/) 。
+
+在我们的 [Vercel 部署指南](/zh-cn/guides/deploy/vercel/) 中学习和部署你的 Astro 站点。
+
+## 为什么选择 Astro Vercel
+
+如果你正在使用 Astro 作为静态站点构建工具，那么它的默认行为下你无需使用适配器。
+
+但如果你希望使用 [服务端渲染](/zh-cn/guides/server-side-rendering/)，Astro 就需要一个与你的部署运行时相匹配的适配器。
+
+[Vercel](https://www.vercel.com/) 是一个部署平台，它允许你通过直接连接到 GitHub 仓库来托管你的站点。这个适配器增强了 Astro 的构建过程，为通过 Vercel 进行部署做好了准备。
+
+## 安装
+
+通过以下 `astro add` 命令，将 Vercel 适配器添加到你的 Astro 项目中以启用 SSR。这将在一个步骤中安装适配器并对你的 `astro.config.mjs` 文件进行适当的更改。
+
+```sh
+# 使用 NPM
+npx astro add vercel
+# 使用 Yarn
+yarn astro add vercel
+# 使用 PNPM
+pnpm astro add vercel
+```
+
+### 手动添加依赖
+
+如果你更喜欢手动安装适配器，请按照以下两个步骤进行：
+
+1.  使用你偏爱的包管理器将 Vercel 适配器添加到项目的依赖项中。如果你使用 npm 或者不确定使用什么，可以在终端中运行以下命令：
+
+    ```bash
+      npm install @astrojs/vercel
+    ```
+
+2.  在你的 `astro.config.mjs` 项目配置文件中添加两行代码。
+
+    ```js ins={3, 6-7}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import vercel from '@astrojs/vercel/serverless';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: vercel(),
+    });
+    ```
+
+### 目标
+
+你可以部署到不同的目标：
+
+*   `serverless`：在 [Node.js 函数](https://vercel.com/docs/concepts/functions/serverless-functions)内进行服务端渲染。
+*   `static`：生成一个遵循 Vercel 输出格式、重定向等的静态网站。
+
+你可以通过改变导入来切换目标：
+
+```js
+import vercel from '@astrojs/vercel/serverless';
+import vercel from '@astrojs/vercel/static';
+```
+
+## 用法
+
+📚 **[在这里阅读完整的部署指南。](/zh-cn/guides/deploy/vercel/)**
+
+你可以通过 CLI ( `vercel deploy` ) 或者通过 [Vercel 控制台](https://vercel.com/) 连接到你的新仓库进行部署。或者，你可以在本地创建生产版本构建：
+
+```sh
+astro build
+vercel deploy --prebuilt
+```
+
+## 配置
+
+要配置这个适配器，将一个对象传递给 `astro.config.mjs` 中的 `vercel()` 函数调用：
+
+### Analytics
+
+**类型：** `boolean`<br/>
+**适用于：** Serverless, Static<br/>
+**添加于：** `@astrojs/vercel@3.1.0`
+
+你可以通过设置 `analytics: true` 来启用 [Vercel Analytics](https://vercel.com/analytics) (包括 Web Vitals 和 Audiences) 。这将在所有页面中注入 Vercel 的跟踪脚本。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/serverless';
+
+export default defineConfig({
+  output: 'server',
+  adapter: vercel({
+    analytics: true,
+  }),
+});
+```
+
+### imagesConfig
+
+**类型：** `VercelImageConfig`<br/>
+**适用于：** Serverless, Static<br/>
+**添加于：** `@astrojs/vercel@3.3.0`
+
+[Vercel 的图片优化 API](https://vercel.com/docs/concepts/image-optimization) 选项。查看 [Vercel 的图片优化配置文档](https://vercel.com/docs/build-output-api/v3/configuration#images)以获取支持的参数的完整列表。
+
+`domains` 和 `remotePatterns` 属性将自动使用 [Astro 对应的 `image` 设置](/zh-cn/reference/configuration-reference/#image-选项) 来填充。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/static';
+
+export default defineConfig({
+  output: 'server',
+  adapter: vercel({
+    imagesConfig: {
+      sizes: [320, 640, 1280],
+    },
+  }),
+});
+```
+
+### imageService
+
+**类型：** `boolean`<br/>
+**适用于：** Serverless, Static<br/>
+**添加于：** `@astrojs/vercel@3.3.0`
+
+启用后，在生产中会自动配置并使用由 Vercel Image Optimization API 提供支持的[图像服务](/zh-cn/reference/image-service-reference/) 。在开发中，将使用内置的 Squoosh-based 服务。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/static';
+
+export default defineConfig({
+  output: 'server',
+  adapter: vercel({
+    imageService: true,
+  }),
+});
+```
+
+```astro
+---
+import { Image } from 'astro:assets';
+import astroLogo from '../assets/logo.png';
+---
+
+<!-- 这里的组件 -->
+<Image src={astroLogo} alt="My super logo!" />
+
+<!-- 将会被编译成如下 HTML -->
+<img
+  src="/_vercel/image?url=_astro/logo.hash.png&w=...&q=..."
+  alt="My super logo!"
+  loading="lazy"
+  decoding="async"
+  width="..."
+  height="..."
+/>
+```
+
+### includeFiles
+
+**类型：** `string[]`<br/>
+**适用于：** Serverless
+
+使用此属性来强制将文件与你的函数打包在一起。当你发现缺失文件时，这很有帮助。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/serverless';
+
+export default defineConfig({
+  output: 'server',
+  adapter: vercel({
+    includeFiles: ['./my-data.json'],
+  }),
+});
+```
+
+### excludeFiles
+
+**类型：** `string[]`<br/>
+**适用于：** Serverless
+
+使用此属性来从打包过程中排除任何会被包含的文件。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/serverless';
+
+export default defineConfig({
+  output: 'server',
+  adapter: vercel({
+    excludeFiles: ['./src/some_big_file.jpg'],
+  }),
+});
+```
+
+### Per-page functions
+
+Vercel 适配器默认构建为单个函数。Astro 2.7 添加了支持，可以将构建拆分成每个页面的单独入口点。如果你使用了这个配置，Vercel 适配器将为每个页面生成一个单独的函数。这可以帮助减小每个函数的大小，因此它们只捆绑了在该页面上使用的代码。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/serverless';
+
+export default defineConfig({
+  output: 'server',
+  adapter: vercel({
+    functionPerRoute: true,
+  }),
+});
+```
+
+### Vercel Edge 中间件
+
+你可以使用 Vercel Edge 中间件在发送响应之前拦截请求并重定向。Vercel 中间件可以用于 Edge、SSR 和静态部署。你可能不需要安装此软件包来使用中间件。`@vercel/edge` 仅在使用某些中间件功能（例如地理位置）时需要。更多信息请参阅 [Vercel 的中间件文档](https://vercel.com/docs/concepts/functions/edge-middleware).
+
+1.  在你的项目根目录添加一个 `middleware.js` 文件：
+
+    ```js
+    // middleware.js
+    export const config = {
+      // 仅在 admin 路由上运行中间件
+      matcher: '/admin',
+    };
+
+    export default function middleware(request) {
+      const url = new URL(request.url);
+      // 可以在这里获取 IP 位置或 cookie。
+      if (url.pathname === '/admin') {
+        url.pathname = '/';
+      }
+      return Response.redirect(url);
+    }
+    ```
+
+2.  在本地开发时，你可以运行 `vercel dev` 来运行中间件。在生产中，Vercel 会自动处理这个。
+
+
+
+:::caution
+**尝试重写？** 目前，使用中间件重写请求仅适用于静态文件。
+:::
+
+### 通过 Astro 中间件创建 Vercel Edge 中间件
+
+`@astrojs/vercel/serverless` 适配器可以根据你代码库中的 Astro 中间件自动创建 Vercel Edge 中间件。
+
+这是一个选择性功能，需要将 `edgeMiddleware` 选项设置为 `true` ：
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel';
+export default defineConfig({
+  output: 'server',
+  adapter: vercel({
+    edgeMiddleware: true,
+  }),
+});
+```
+
+可选的，你可以在 [`src文件夹`](/zh-cn/reference/configuration-reference/#srcdir) 中创建一个被适配器识别的文件，名为 `vercel-edge-middleware.(js|ts)` ，以创建 [`Astro.locals`](/zh-cn/reference/api-reference/#astrolocals) 。
+
+Typings 需要 [`@vercel/edge`](https://www.npmjs.com/package/@vercel/edge) 包。
+
+```js
+// src/vercel-edge-middleware.js
+/**
+ *
+ * @param options.request {Request}
+ * @param options.context {import("@vercel/edge").RequestContext}
+ * @returns {object}
+ */
+export default function ({ request, context }) {
+  // 在这里处理 request 和 context
+  return {
+    title: "Spider-man's blog",
+  };
+}
+```
+
+如果你使用 TypeScript，可以将函数类型化如下：
+
+```ts
+// src/vercel-edge-middleware.ts
+import type { RequestContext } from '@vercel/edge';
+
+export default function ({ request, context }: { request: Request; context: RequestContext }) {
+  // 在这里处理 request 和 context
+  return {
+    title: "Spider-man's blog",
+  };
+}
+```
+
+这个函数返回的数据将传递给 Astro 中间件。
+
+函数：
+
+*   必须导出一个 **default** 函数；
+*   必须 **return** 一个 `object` ；
+*   接受一个具有 `request` 和 `context` 属性的对象；
+*   `request` 的类型为 [`Request`](https://developer.mozilla.org/zh-CN/docs/Web/API/Request);
+*   `context` 的类型为 [`RequestContext`](https://vercel.com/docs/concepts/functions/edge-functions/vercel-edge-package#requestcontext);
+
+#### 限制和约束
+
+当你选择此功能时，需要注意一些限制：
+
+*   Vercel Edge 中间件将始终是**第一个**接收 `Request` 的函数，并且是接收 `Response` 的最后一个函数。这是一种遵循 [Vercel 设定的边界](https://vercel.com/docs/concepts/functions/edge-middleware)的结构性约束。
+*   仅使用 `request` 和 `context` 来生成一个 `Astro.locals` 对象。像重定向等操作应该委托给 Astro 中间件。
+*   `Astro.locals` **必须是可序列化的**。不这样做将导致 **运行时错误**. 这意味着你 **不能** 存储复杂类型比如 `Map`、 `function`、 `Set` 等
+
+## 故障排除
+
+**一些已知的复杂软件包（例如： [puppeteer](https://github.com/puppeteer/puppeteer)) 不支持打包，因此在此适配器下可能无法正常工作。** 默认情况下，Vercel 不会包含项目的 `./node_modules` 文件夹中安装的文件和包。为了解决这个问题， `@astrojs/vercel` 适配器会使用 `esbuild` 自动打包你的最终构建输出。
+
+如果需要帮助，请访问 [Discord](https://astro.build/chat) 上的 `#support` 频道。我们友好的支持团队成员将在那里帮助你！
+
+## 贡献
+
+这个软件包由 Astro 的核心团队维护。欢迎提交问题或 PR！
+
+## 更新日志
+
+查看 [CHANGELOG.md](https://github.com/withastro/astro/tree/main/packages/integrations/vercel/CHANGELOG.md) 了解此集成的更改历史。
+
+[astro-integration]: /zh-cn/guides/integrations-guide/

@@ -40,7 +40,7 @@ CONTENTFUL_DELIVERY_TOKEN=TU_TOKEN_DE_ENTREGA
 CONTENTFUL_PREVIEW_TOKEN=TU_TOKEN_DE_PREVISUALIZACION
 ```
 
-Ahora, deberías poder usar estas variables de entorno en tu proyecto.
+Ahora, puedes usar estas variables de entorno en tu proyecto.
 
 Si deseas tener IntelliSense para tus variables de entorno de Contentful, puedes crear un archivo `env.d.ts` en el directorio `src/` y configurar `ImportMetaEnv` de la siguiente manera:
 
@@ -126,7 +126,7 @@ Finalmente, tu directorio raíz ahora debería incluir estos nuevos archivos:
 
 ### Obteniendo datos
 
-Ahora, los componentes de Astro pueden obtener datos de tu cuenta de Contentful usando el `contentfulClient` y especificando el `content_type`.
+Los componentes de Astro pueden obtener datos de tu cuenta de Contentful usando el `contentfulClient` y especificando el `content_type`.
 
 Por ejemplo, si tienes un tipo de contenido "blogPost" que tiene un campo de texto para un título y un campo de texto enriquecido para el contenido, tu componente podría verse así:
 
@@ -134,11 +134,14 @@ Por ejemplo, si tienes un tipo de contenido "blogPost" que tiene un campo de tex
 ---
 import { contentfulClient } from "../lib/contentful";
 import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
-import type { Document } from "@contentful/rich-text-types";
+import type { EntryFieldTypes } from "contentful";
 
 interface BlogPost {
-    title: string,
-    content: Document
+  contentTypeId: "blogPost",
+  fields: {
+    title: EntryFieldTypes.Text
+    content: EntryFieldTypes.RichText,
+  }
 }
 
 const entries = await contentfulClient.getEntries<BlogPost>({
@@ -159,7 +162,7 @@ const entries = await contentfulClient.getEntries<BlogPost>({
 Si tienes un espacio de Contentful vacío, consulta [configurar un modelo de Contentful](#configurando-un-modelo-de-contentful) para aprender cómo crear un modelo básico de blog para tu contenido.
 :::
 
-Puedes encontrar más opciones de consulta en la [documentación de Contentful](https://contentful.github.io/contentful.js/contentful/9.1.34/ContentfulClientAPI.html).
+Puedes encontrar más opciones de consulta en la [documentación de Contentful](https://contentful.github.io/contentful.js/).
 
 ## Creando un blog con Astro y Contentful
  
@@ -216,16 +219,18 @@ Presiona **Publish** para guardar la entrada. Acabas de crear tu primer post.
 
 Crea una nueva interfaz llamada `BlogPost` y agrégala a tu archivo `contentful.ts` en `src/lib/`. Esta interfaz coincidirá con los campos de tu tipo de contenido de publicación de blog en Contentful. Lo usarás para tipar tu respuesta de entradas de publicaciones de blog.
 
-```ts title="src/lib/contentful.ts" ins={2,4-10}
-import contentful from "contentful";
-import type { Document } from "@contentful/rich-text-types";
+```ts title="src/lib/contentful.ts" ins=", { EntryFieldTypes }" ins={3-12}
+import contentful, { EntryFieldTypes } from "contentful";
 
 export interface BlogPost {
-  title: string;
-  date: string;
-  description: string;
-  content: Document;
-  slug: string;
+  contentTypeId: "blogPost",
+  fields: {
+    title: EntryFieldTypes.Text
+    content: EntryFieldTypes.RichText,
+    date: EntryFieldTypes.Date,
+    description: EntryFieldTypes.Text,
+    slug: EntryFieldTypes.Text
+  }
 }
 
 export const contentfulClient = contentful.createClient({
@@ -285,9 +290,9 @@ Finalmente, puedes usar `posts` en tu plantilla para mostrar una vista previa de
 ```astro astro title="src/pages/index.astro" ins={19-37}
 ---
 import { contentfulClient } from "../lib/contentful";
-import type { blogPost } from "../lib/contentful";
+import type { BlogPost } from "../lib/contentful";
 
-const entries = await contentfulClient.getEntries<blogPost>({
+const entries = await contentfulClient.getEntries<BlogPost>({
   content_type: "blogPost",
 });
 
@@ -390,10 +395,10 @@ Finalmente, puedes usar las propiedades de la página para mostrar tu publicaci�
 ---
 import { contentfulClient } from "../../lib/contentful";
 import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
-import type { blogPost } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
 
 export async function getStaticPaths() {
-  const { items } = await contentfulClient.getEntries<blogPost>({
+  const { items } = await contentfulClient.getEntries<BlogPost>({
     content_type: "blogPost",
   });
   const pages = items.map((item) => ({
@@ -421,11 +426,11 @@ const { content, title, date } = Astro.props;
 </html>
 ```
 
-Navega a http://localhost:3000/posts/astro-is-amazing/ para asegurarte de que tu ruta dinámica esté funcionando.
+Navega a http://localhost:4321/ y haz clic en uno de tus artículos para asegurarte de que tu ruta dinámica esté funcionando.
 
 #### Renderizado del lado del servidor
 
-Si has [optado por el modo SSR](/es/guides/server-side-rendering/#habilitando-ssr-en-su-proyecto), usarás una ruta dinámica que usa un parámetro `slug` para obtener los datos de Contentful.
+Si has [optado por el modo SSR](/es/guides/server-side-rendering/#habilitando-ssr-en-tu-proyecto), usarás una ruta dinámica que usa un parámetro `slug` para obtener los datos de Contentful.
 
 Crea un archivo nuevo llamado `[slug].astro` en `src/pages/posts/`. Usa [`Astro.params`](/es/reference/api-reference/#astroparams) para obtener el slug de la URL, luego pásalo a `getEntries`:
 
@@ -443,7 +448,7 @@ const data = await contentfulClient.getEntries<BlogPost>({
 ---
 ```
 
-Si la entrada no fue encontrada, puedes redirigir al usuario a la página 404 usando [`Astro.redirect`](/es/guides/server-side-rendering/#astroredirect).
+Si la entrada no fue encontrada, puedes redirigir al usuario a la página 404 usando [`Astro.redirect`](/es/core-concepts/routing/#redirecciones-dinámicas).
 
 ```astro title="src/pages/posts/[slug].astro" ins={7, 12-13}
 ---
@@ -471,12 +476,12 @@ Usa `documentToHtmlString` para convertir `content` de un documento a HTML, y us
 import Layout from "../../layouts/Layout.astro";
 import { contentfulClient } from "../../lib/contentful";
 import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
-import type { blogPost } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
 
 let post;
 const { slug } = Astro.params;
 try {
-  const data = await contentfulClient.getEntries<blogPost>({
+  const data = await contentfulClient.getEntries<BlogPost>({
     content_type: "blogPost",
     "fields.slug": slug,
   });
@@ -499,12 +504,12 @@ Finalmente, puedes usar `post` para mostrar tu publicación en la sección de pl
 import Layout from "../../layouts/Layout.astro";
 import { contentfulClient } from "../../lib/contentful";
 import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
-import type { blogPost } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
 
 let post;
 const { slug } = Astro.params;
 try {
-  const data = await contentfulClient.getEntries<blogPost>({
+  const data = await contentfulClient.getEntries<BlogPost>({
     content_type: "blogPost",
     "fields.slug": slug,
   });

@@ -1,0 +1,322 @@
+---
+type: tutorial
+title: Создание страниц тегов
+description: |-
+  Руководство: Создайте свой первый блог в Astro —
+  Используйте getStaticPaths() для создания нескольких страниц (маршрутов) сразу
+i18nReady: true
+---
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+
+<PreCheck>
+  - Создайть страницу для генерации нескольких страниц
+  - Указать, какие маршруты страниц следует построить, и передать каждой странице свои собственные свойства
+</PreCheck>
+
+## Динамическая маршрутизация страниц
+
+Вы можете динамически создавать целые наборы страниц с помощью файлов `.astro`, которые экспортируют функцию `getStaticPaths()`.
+
+## Создание страниц динамически
+
+1. Создайте новый файл по адресу `src/pages/tags/[tag].astro`. (Вам придется создать новую папку.) Обратите внимание, что имя файла (`[tag].astro`) использует квадратные скобки. Вставьте следующий код в файл:
+
+    ```astro title="src/pages/tags/[tag].astro"
+    ---
+    import BaseLayout from '../../layouts/BaseLayout.astro';
+
+    export async function getStaticPaths() {
+      return [
+        { params: { tag: "astro" } },
+        { params: { tag: "successes" } },
+        { params: { tag: "community" } },
+        { params: { tag: "blogging" } },
+        { params: { tag: "setbacks" } },
+        { params: { tag: "learning in public" } },
+      ];
+    }
+
+    const { tag } = Astro.params;
+    ---
+    <BaseLayout pageTitle={tag}>
+      <p>Посты с тегом {tag}</p>
+    </BaseLayout>
+    ```
+
+    Функция `getStaticPaths` возвращает массив маршрутов страниц, и все страницы по этим маршрутам будут использовать один и тот же шаблон, определенный в файле.
+
+2. Если вы настроили свои блог-посты, замените отдельные значения тегов (например, "astro", "successes", "community" и т.д.) на теги, используемые в ваших собственных постах.
+
+3. Убедитесь, что каждый блог-пост содержит хотя бы один тег, написанный в виде массива, например, `tags: ["blogging"]`.
+
+4. Перейдите по адресу `http://localhost:4321/tags/astro` в предварительном просмотре вашего браузера, и вы должны увидеть страницу, созданную динамически из `[tag].astro`. Проверьте, созданы ли у вас страницы для каждого из ваших тегов по адресам `/tags/successes`, `/tags/community` и `/tags/learning%20in%20public` и т.д., или для каждого из ваших пользовательских тегов. Возможно, вам придется сначала выйти и перезапустить сервер разработки, чтобы увидеть эти новые страницы.
+
+
+## Использование props в динамических маршрутах
+
+1. Добавьте следующие props в вашу функцию `getStaticPaths()`, чтобы сделать данные из всех ваших блог-постов доступными для каждого маршрута страницы.
+
+    Обязательно предоставьте каждому маршруту в вашем массиве новые props, а затем сделайте эти props доступными для вашего шаблона компонента за пределами вашей функции.
+
+    ```astro title="src/pages/tags/[tag].astro" ins={5,18} "props: {posts: allPosts}"
+    ---
+    import BaseLayout from '../../layouts/BaseLayout.astro';
+
+    export async function getStaticPaths() {
+      const allPosts = await Astro.glob('../posts/*.md');
+
+      return [
+        {params: {tag: "astro"}, props: {posts: allPosts}},
+        {params: {tag: "successes"}, props: {posts: allPosts}},
+        {params: {tag: "community"}, props: {posts: allPosts}},
+        {params: {tag: "blogging"}, props: {posts: allPosts}},
+        {params: {tag: "setbacks"}, props: {posts: allPosts}},
+        {params: {tag: "learning in public"}, props: {posts: allPosts}}
+      ]
+    }
+
+    const { tag } = Astro.params;
+    const { posts } = Astro.props;
+    ---
+    ```
+
+2. Отфильтруйте ваш список постов, чтобы включить только те посты, которые содержат собственный тег страницы.
+
+    ```astro title="/src/pages/tags/[tag].astro" ins={4}
+    ---
+    const { tag } = Astro.params;
+    const { posts } = Astro.props;
+    const filteredPosts = posts.filter((post) => post.frontmatter.tags.includes(tag));
+    ---
+    ```
+
+3. Теперь вы можете обновить ваш HTML-шаблон, чтобы показать список каждого блог-поста, содержащего собственный тег страницы. Добавьте следующий код в `[tag].astro`:
+
+    ```astro title="src/pages/tags/[tag].astro" ins={3-5}
+    <BaseLayout pageTitle={tag}>
+      <p>Посты с тегом {tag}</p>
+      <ul>
+        {filteredPosts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+      </ul>
+    </BaseLayout>
+    ```
+
+4. Вы даже можете рефакторить этот код, чтобы использовать ваш компонент `<BlogPost />` вместо этого! (Не забудьте импортировать этот компонент в начале файла `[tag].astro`.)
+
+    ```astro title="src/pages/tags/[tag].astro" del={4} ins={5}
+    <BaseLayout pageTitle={tag}>
+      <p>Посты с тегом {tag}</p>
+      <ul>
+        {filteredPosts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+        {filteredPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+      </ul>
+    </BaseLayout>
+    ```
+
+5. Проверьте предварительный просмотр в вашем браузере для ваших отдельных страниц с тегами, и теперь вы должны увидеть список всех ваших блог-постов, содержащих этот конкретный тег.
+
+<Box icon="question-mark">
+
+### Анализируйте шаблон
+
+Для каждого из следующих укажите, написан ли код **внутри** функции `getStaticPath()`, или **вне** её.
+
+1. Вызов `Astro.glob()` для получения информации обо всех ваших файлах `.md`, которую нужно передать каждому маршруту страницы.
+
+    <MultipleChoice>
+    <Option isCorrect>внутри `getStaticPaths`</Option>
+    <Option>вне `getStaticPaths`</Option>
+    </MultipleChoice>
+
+2. Список маршрутов, которые должны быть сгенерированы (возвращены) `getStaticPaths()`
+
+    <MultipleChoice>
+    <Option isCorrect>внутри `getStaticPaths`</Option>
+    <Option>вне `getStaticPaths`</Option>
+    </MultipleChoice>
+
+3. Полученные значения `props` и `params`, которые будут использоваться в HTML-шаблоне.
+
+    <MultipleChoice>
+    <Option>внутри `getStaticPaths`</Option>
+    <Option isCorrect>вне `getStaticPaths`</Option>
+    </MultipleChoice>
+</Box>
+
+:::note[Вывод]
+Если вам нужна информация для создания маршрутов страниц, напишите её **внутри** `getStaticPaths()`.
+
+Чтобы получить информацию в HTML-шаблоне маршрута страницы, напишите её **вне** `getStaticPaths()`.
+:::
+
+
+## Продвинутый JavaScript: Генерация страниц из существующих тегов
+
+Теперь ваши страницы с тегами статически определены в `[tag].astro`. Если вы добавите новый тег к сообщению в блоге, вам также придется вернуться на эту страницу и обновить маршруты страниц.
+
+Следующий пример показывает, как заменить код на этой странице кодом, который будет автоматически искать и генерировать страницы для каждого тега, используемого на ваших страницах блога.
+
+:::note
+Даже если это выглядит сложно, вы можете попробовать следовать инструкциям и самостоятельно построить эту функцию! Если вы не хотите сейчас разбираться с необходимым JavaScript, вы можете перейти к [готовому примеру кода](#пример-окончательного-кода) и использовать его напрямую в своем проекте, заменяя существующий контент.
+:::
+
+### 1. Убедитесь, что все ваши блог-посты содержат теги
+
+Пересмотрите каждую из ваших существующих страниц Markdown и убедитесь, что каждый пост содержит массив `tags` в его frontmatter. Даже если у вас только один тег, он все равно должен быть записан как массив, например, `tags: ["blogging"]`.
+
+### 2. Создайте массив со всеми вашими существующими тегами
+
+Добавьте следующий код, чтобы получить список каждого тега, используемого в ваших блог-постах.
+
+  ```astro title="src/pages/tags/[tag].astro" ins={7}
+  ---
+  import BaseLayout from '../../layouts/BaseLayout.astro';
+
+  export async function getStaticPaths() {
+    const allPosts = await Astro.glob('../posts/*.md');
+
+    const uniqueTags = [...new Set(allPosts.map((post) => post.frontmatter.tags).flat())];
+  ```
+
+    <details>
+    <summary>Расскажите мне подробнее, что делает эта строчка кода!</summary>
+
+    Все в порядке, если это не то, что вы бы сами написали!
+
+    Он проходит через каждый пост в Markdown, по одному, и объединяет каждый массив тегов в один большой массив. Затем он создает новый `Set` из всех найденных индивидуальных тегов (чтобы игнорировать повторяющиеся значения). Наконец, он преобразует этот набор в массив (без дублирования), который вы можете использовать для отображения списка тегов на вашей странице.
+    </details>
+
+Теперь у вас есть массив `uniqueTags` с элементами `"astro"`, `"successes"`, `"community"`, `"blogging"`, `"setbacks"`, `"learning in public"`
+
+### 3. Замените значение `return` функции `getStaticPaths`
+
+```js title="src/pages/tags/[tag].astro" del={1-8} ins={10-16}
+  return [
+        {params: {tag: "astro"}, props: {posts: allPosts}},
+        {params: {tag: "successes"}, props: {posts: allPosts}},
+        {params: {tag: "community"}, props: {posts: allPosts}},
+        {params: {tag: "blogging"}, props: {posts: allPosts}},
+        {params: {tag: "setbacks"}, props: {posts: allPosts}},
+        {params: {tag: "learning in public"}, props: {posts: allPosts}}
+      ]
+
+  return uniqueTags.map((tag) => {
+    const filteredPosts = allPosts.filter((post) => post.frontmatter.tags.includes(tag));
+    return {
+      params: { tag },
+      props: { posts: filteredPosts },
+    };
+  });
+```
+Функция `getStaticPaths` всегда должна возвращать список объектов, содержащих `params` (как называть каждый маршрут страницы) и, возможно, любые `props` (данные, которые вы хотите передать на эти страницы). Ранее вы определили каждое имя тега, которое использовалось в вашем блоге, и передали весь список постов как свойства на каждую страницу.
+
+Теперь вы генерируете этот список объектов автоматически, используя ваш массив `uniqueTags` для определения каждого параметра.
+
+И теперь список всех блог-постов фильтруется **до** его отправки на каждую страницу в качестве свойств. Обязательно удалите предыдущую строку кода, фильтрующую посты, и обновите ваш HTML-шаблон, чтобы использовать `posts` вместо `filteredPosts`.
+
+``` astro title="src/pages/tags/[tag].astro" del={3,7} ins={8}
+const { tag } = Astro.params;
+const { posts } = Astro.props;
+const filteredPosts = posts.filter((post) => post.frontmatter.tags.includes(tag));
+---
+<!-- -->
+<ul>
+    {filteredPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+    {posts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+</ul>
+```
+
+### Пример окончательного кода
+
+Чтобы проверить свою работу, или если вы просто хотите скопировать полный, правильный код в `[tag].astro`, то вот как должен выглядеть ваш компонент Astro:
+
+```astro title="src/pages/tags/[tag].astro"
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BlogPost from '../../components/BlogPost.astro'
+
+export async function getStaticPaths() {
+  const allPosts = await Astro.glob('../posts/*.md');
+
+  const uniqueTags = [...new Set(allPosts.map((post) => post.frontmatter.tags).flat())];
+
+  return uniqueTags.map((tag) => {
+    const filteredPosts = allPosts.filter((post) => post.frontmatter.tags.includes(tag));
+    return {
+      params: { tag },
+      props: { posts: filteredPosts },
+    };
+  });
+}
+
+const { tag } = Astro.params;
+const { posts } = Astro.props;
+---
+<BaseLayout pageTitle={tag}>
+  <p>Posts tagged with {tag}</p>
+  <ul>
+    {posts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+  </ul>
+</BaseLayout>
+```
+
+Теперь вы должны быть в состоянии посетить любую из ваших страниц с тегами в предварительном просмотре браузера.
+
+Перейдите к `http://localhost:4321/tags/community` и вы должны увидеть список только ваших блог-постов с тегом `community`. Аналогично `http://localhost:4321/tags/learning%20in%20public` должен отображать список блог-постов с тегом `learning in public`.
+
+В следующем разделе вы создадите навигационные ссылки на эти страницы.
+
+<Box icon="question-mark">
+
+### Проверьте свои знания
+
+Выберите термин, который соответствует описанию.
+
+1. Функция, которая возвращает массив маршрутов страниц.
+
+    <MultipleChoice>
+      <Option>params</Option>
+      <Option>динамическая маршрутизация</Option>
+      <Option isCorrect>`getStaticPaths()`</Option>
+      <Option>props</Option>
+    </MultipleChoice>
+
+2. Процесс создания нескольких маршрутов страниц из одного файла в Astro.
+
+    <MultipleChoice>
+      <Option>params</Option>
+      <Option isCorrect>динамическая маршрутизация</Option>
+      <Option>`getStaticPaths()`</Option>
+      <Option>props</Option>
+    </MultipleChoice>
+
+4. Значение, которое определяет имя маршрута страницы, генерируемого динамически.
+
+    <MultipleChoice>
+      <Option isCorrect>params</Option>
+      <Option>динамическая маршрутизация</Option>
+      <Option>`getStaticPaths()`</Option>
+      <Option>props</Option>
+    </MultipleChoice>
+
+</Box>
+
+<Box icon="check-list">
+
+## Чек-лист
+
+<Checklist>
+- [ ] Я могу генерировать страницы динамически.
+- [ ] Я могу передавать `props` каждому маршруту страницы.
+</Checklist>
+</Box>
+
+### Ресурсы
+
+- [Динамическая маршрутизация страниц в Astro](/ru/core-concepts/routing/#динамические-переадресации)
+
+- [Документация API `getStaticPaths()`](/ru/reference/api-reference/#getstaticpaths)

@@ -6,8 +6,9 @@ i18nReady: true
 
 import Since from '~/components/Since.astro'
 import FileTree from '~/components/FileTree.astro'
+import RecipeLinks from "~/components/RecipeLinks.astro";
 
-[Markdown](https://daringfireball.net/projects/markdown/) is commonly used to author text-heavy content like blog posts and documentation. Astro includes built-in support for standard Markdown files. 
+[Markdown](https://daringfireball.net/projects/markdown/) is commonly used to author text-heavy content like blog posts and documentation. Astro includes built-in support for standard Markdown files that can also include [frontmatter YAML](https://dev.to/paulasantamaria/introduction-to-yaml-125f) to define custom metadata such as a title, description, and tags.
 
 With the [@astrojs/mdx integration](/en/guides/integrations-guide/mdx/) installed, Astro also supports [MDX](https://mdxjs.com/) (`.mdx`) files which bring added features like support for JavaScript expressions and components in your Markdown content. 
 
@@ -59,60 +60,6 @@ It probably isn't styled much, but Markdown does support:
 
 📚 Read more about Astro's [file-based routing](/en/core-concepts/routing/) or options for creating [dynamic routes](/en/core-concepts/routing/#dynamic-routes).
 
-### Draft Pages
-
-`draft: true` is an optional frontmatter value that will mark an individual Markdown or MDX page or post as "unpublished." By default, this page will be:
--  excluded from the site build (**no page will be built**)
-- returned by [`Astro.glob()`](/en/reference/api-reference/#astroglob) (**visible in lists of posts**)
-
-```markdown {5}
----
-# src/pages/post/blog-post.md
-layout: ../../layouts/BaseLayout.astro
-title: My Blog Post
-draft: true
----
-
-This is my in-progress blog post.
-
-No page will be built for this post.
-
-To build and publish this post:
-
-- update the frontmatter to `draft: false` or
-- remove the `draft` property entirely.
-
-But, this page _will_ be returned by any matching `Astro.glob()` request.
-```
-
-To exclude draft posts from being included in a post archive, or list of most recent posts, you can filter the results returned by `Astro.glob()`:
-
-```js
-const posts = await Astro.glob('../pages/post/*.md');
-const nonDraftPosts = posts.filter((post) => !post.frontmatter.draft);
-```
-
-#### Enable building draft pages
-
-To enable building draft pages by default, update `astro.config.mjs` by adding `drafts: true` to `markdown` or to the `mdx` integration:
-
-```js title="astro.config.mjs" ins={5, 8}
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  markdown: {
-    drafts: true,
-  },
-  integrations: [mdx({
-    drafts: true,
-  })],
-});
-```
-
-:::tip
-You can also pass the `--drafts` flag when running `astro build` to build draft pages!
-:::
-
 ## Markdown Features
 
 Astro provides some extra, built-in Markdown features available when using Markdown and MDX files.
@@ -121,10 +68,9 @@ Astro provides some extra, built-in Markdown features available when using Markd
 
 Astro provides Markdown and MDX pages with a special frontmatter `layout` property that can specify a relative path (or [alias](/en/guides/aliases/)) to an Astro [layout component](/en/core-concepts/layouts/#markdownmdx-layouts).
 
-**`src/pages/posts/post-1.md`**
-
-```markdown {2}
+```markdown {3}
 ---
+# src/pages/posts/post-1.md
 layout: ../../layouts/BlogPostLayout.astro
 title: Astro in brief
 author: Himanshu
@@ -135,10 +81,9 @@ This is a post written in Markdown.
 
 [Specific properties are then available to the layout component](/en/core-concepts/layouts/#markdown-layout-props)  through `Astro.props`. For example, you can access frontmatter properties through `Astro.props.frontmatter`:
 
-**`src/layouts/BlogPostLayout.astro`**
-
 ```astro /frontmatter(?:.\w+)?/
 ---
+// src/layouts/BlogPostLayout.astro
 const {frontmatter} = Astro.props;
 ---
 <html>
@@ -184,7 +129,7 @@ For example, to prevent `<` being interpreted as the beginning of an HTML elemen
 
 Adding the Astro [MDX integration](/en/guides/integrations-guide/mdx/) enhances your Markdown authoring with JSX variables, expressions and components. 
 
-It also adds extra features to standard MDX, including support for [Markdown-style frontmatter in MDX](https://mdxjs.com/guides/frontmatter/). This allows you to use most of Astro's built-in Markdown features like a [frontmatter `layout`](#frontmatter-layout) property and a setting for [draft pages](#draft-pages).
+It also adds extra features to standard MDX, including support for [Markdown-style frontmatter in MDX](https://mdxjs.com/guides/frontmatter/). This allows you to use most of Astro's built-in Markdown features like a [frontmatter `layout`](#frontmatter-layout) property.
 
 `.mdx` files must be written in [MDX syntax](https://mdxjs.com/docs/what-is-mdx/#mdx-syntax) rather than Astro’s HTML-like syntax.
 
@@ -503,7 +448,6 @@ The example below adds the [heading option to the `remarkToc` plugin](https://gi
 
 ```js title="astro.config.mjs"
 import remarkToc from 'remark-toc';
-import { rehypeHeadingIds } from '@astrojs/markdown-remark';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 
@@ -516,6 +460,10 @@ export default {
 ```
 
 ### Modifying frontmatter programmatically
+
+:::note
+If you are using [content collections](/en/guides/content-collections/), please see ["Modifying Frontmatter with Remark"](/en/guides/content-collections/#modifying-frontmatter-with-remark).
+:::
 
 You can add frontmatter properties to all of your Markdown and MDX files by using a [remark or rehype plugin](#markdown-plugins).
 
@@ -566,61 +514,7 @@ You can add frontmatter properties to all of your Markdown and MDX files by usin
 
 Now, every Markdown or MDX file will have `customProperty` in its frontmatter, making it available when [importing your markdown](#importing-markdown) and from [the `Astro.props.frontmatter` property in your layouts](#frontmatter-layout).
 
-#### Example: calculate reading time
-
-You can use a [remark plugin](https://github.com/remarkjs/remark) to add a reading time to your frontmatter. We recommend two helper packages:
-- [`reading-time`](https://www.npmjs.com/package/reading-time) to calculate minutes read
-- [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string) to extract all text from your markdown
-
-```shell
-npm install reading-time mdast-util-to-string
-```
-
-We can apply these packages to a remark plugin like so:
-
-```js title="remark-reading-time.mjs"
-import getReadingTime from 'reading-time';
-import { toString } from 'mdast-util-to-string';
-
-export function remarkReadingTime() {
-  return function (tree, { data }) {
-    const textOnPage = toString(tree);
-    const readingTime = getReadingTime(textOnPage);
-    // readingTime.text will give us minutes read as a friendly string,
-    // i.e. "3 min read"
-    data.astro.frontmatter.minutesRead = readingTime.text;
-  };
-}
-```
-
-Once you apply this plugin to your config:
-
-```js title="astro.config.mjs" "import { remarkReadingTime } from './remark-reading-time.mjs';" "remarkPlugins: [remarkReadingTime],"
-import { defineConfig } from 'astro/config';
-import { remarkReadingTime } from './remark-reading-time.mjs';
-
-export default defineConfig({
-  markdown: {
-    remarkPlugins: [remarkReadingTime]
-  },
-});
-```
-
-...all Markdown documents will have a calculated `minutesRead`. You can use this to include an "X min read" banner in a [markdown layout](#markdown-and-mdx-pages), for instance:
-
-```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.frontmatter;" "<p>{minutesRead}</p>"
----
-const { minutesRead } = Astro.props.frontmatter;
----
-
-<html>
-  <head>...</head>
-  <body>
-    <p>{minutesRead}</p>
-    <slot />
-  </body>
-</html>
-```
+<RecipeLinks slugs={["en/recipes/reading-time"]} />
 
 ### Extending Markdown config from MDX
 

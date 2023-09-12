@@ -1,0 +1,242 @@
+---
+type: tutorial
+title: 创建文章存档页
+description: |-
+  教程：搭建你的 Astro 博客 -
+  使用 Astro.glob() 从项目中访问文件数据
+---
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+
+既然你有一些要展示的博客文章了，让我们搭建博客页面，自动创建一个存档列表来展示它们吧！
+
+<PreCheck>
+  - 使用 `Astro.glob()` 一次性访问所有文章的数据
+  - 在博客页面上显示动态生成的文章列表
+  - 重构以使用 `<BlogPost />` 组件来显示每个列表项
+</PreCheck>
+
+## 动态展示文章列表
+
+1. 将以下代码添加到 `blog.astro` 中，以返回关于所有 Markdown 文件的信息。`Astro.glob()` 将返回一个对象数组，每个博客文章对应一个对象。
+
+  ```astro title="src/pages/blog.astro" ins={3}
+  ---
+  import BaseLayout from '../layouts/BaseLayout.astro'
+  const allPosts = await Astro.glob('../pages/posts/*.md');
+  const pageTitle = "我的 Astro 学习博客";
+  ---
+  <BaseLayout pageTitle={pageTitle}>
+    <p>在这里，我将分享我的学习 Astro 的之旅。</p>
+    <ul>
+      <li><a href="/posts/post-1/">第一篇文章</a></li>
+      <li><a href="/posts/post-2/">第二篇文章</a></li>
+      <li><a href="/posts/post-3/">第三篇文章</a></li>
+    </ul>
+  </BaseLayout>
+    ```
+
+2. 为了动态生成整个文章列表，展示文章的标题和链接，将个别的 `<li>` 标签替换为以下 Astro 代码：
+
+    ```astro title="src/pages/blog.astro" del={9,10,11} ins={13}
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro'
+    const allPosts = await Astro.glob('../pages/posts/*.md');
+    const pageTitle = "我的 Astro 学习博客";
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <p>在这里，我将分享我的学习 Astro 的之旅。</p>
+      <ul>
+        <li><a href="/posts/post-1/">Post 1</a></li>
+        <li><a href="/posts/post-2/">Post 2</a></li>
+        <li><a href="/posts/post-3/">Post 3</a></li>
+
+        {allPosts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+      </ul>
+    </BaseLayout>
+    ```
+
+    通过对 `Astro.glob()` 返回的数组进行映射，你的整个博客文章列表现在是动态生成的。
+
+3. 通过在 `src/pages/posts/` 中创建一个新的 `post-4.md` 文件并添加一些 Markdown 内容来添加一个新的博客文章。请确保至少包含下面使用的 frontmatter
+
+  ```markdown
+  ---
+  layout: ../../layouts/MarkdownPostLayout.astro
+  title: '我的第四篇博客文章'
+  author: 'Astro 学习者'
+  description: "这篇文章会自己出现在列表中！"
+  image: 
+    url: "https://docs.astro.build/default-og-image.png"
+    alt: "The word “astro” against an illustration of planets and stars."
+  pubDate: 2022-08-08
+  tags: ["astro", "successes"]
+  ---
+  这篇文章应该会与其他的博客文章一起显示，因为 `Astro.glob()` 会返回一个包含所有文章的列表，以创建这个文章列表。
+  ```
+
+4. 在浏览器预览中重新访问博客页面 `http://localhost:4321/blog`，并查看更新后的包含四篇文章的列表，其中包括你的新博客文章！
+
+<Box icon="puzzle-piece">
+
+## 挑战：创建 BlogPost 组件
+
+尝试自己对 Astro 项目进行所有必要的更改，以便你可以使用以下代码来生成博客文章列表：
+
+```astro title="src/pages/blog.astro" del={2} ins={3}
+<ul>
+  {allPosts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+  {allPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title} />)}
+</ul>
+```
+
+<details>
+<summary>展开以查看步骤</summary>
+
+1. 在 `src/components/` 中创建一个新的组件。
+
+    <details>
+    <summary>显示文件名</summary>
+    ```
+    BlogPost.astro
+    ```
+    </details>
+
+2. 编写组件中的代码行，以便它能够接收 `title` 和 `url` 作为 `Astro.props`。
+
+    <details>
+    <summary>显示代码</summary>
+    ```astro
+    ---
+    // src/components/BlogPost.astro
+    const { title, url } = Astro.props;
+    ---
+    ```
+    </details>
+
+3. 添加用于创建博客文章列表中的每个项目的模板。
+
+    <details>
+    <summary>显示代码</summary>
+    ```astro
+    <!-- src/components/BlogPost.astro -->
+    <li><a href={url}>{title}</a></li>
+    ```
+    </details>
+
+4. 将新组件导入到博客页面中。
+
+    <details>
+    <summary>显示代码</summary>
+    ```astro title="src/pages/blog.astro" ins={3}
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    import BlogPost from '../components/BlogPost.astro';
+    const allPosts = await Astro.glob('../pages/posts/*.md');
+    const pageTitle = "我的 Astro 学习博客";
+    ---
+    ```
+    </details>
+
+5. 自己检查：查看已完成的组件代码。
+
+    <details>
+    <summary>显示代码</summary>
+    ```astro title="src/components/BlogPost.astro"
+    ---
+    const { title, url } = Astro.props
+    ---
+    <li><a href={url}>{title}</a></li>
+    ```
+    ```astro title="src/pages/blog.astro" ins={3,10}
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    import BlogPost from '../components/BlogPost.astro';
+    const allPosts = await Astro.glob('../pages/posts/*.md');
+    const pageTitle = "我的 Astro 学习博客"
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <p>在这里，我将分享我的学习 Astro 的之旅。</p>
+      <ul>
+        {allPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title} />)}
+      </ul>
+    </BaseLayout>
+    ```
+    </details>
+</details>
+</Box>
+
+<Box icon="question-mark">
+
+### 检验你的知识
+
+如果你的 Astro 组件包含以下代码行：
+
+```astro
+---
+const myPosts = await Astro.glob('../pages/posts/*.md');
+---
+```
+
+选出你可以用以下哪种语法来表示：
+
+1. 你的第三篇博客文章的标题。 
+
+    <MultipleChoice>
+      <Option>
+        `myPosts.map((post) => <LastUpdated date={post.frontmatter.pubDate} />)`
+      </Option>
+      <Option isCorrect>
+        `myPosts[2].frontmatter.title`
+      </Option>
+      <Option>
+        `<a href={myPosts[0].url}>First Post!!</a>`
+      </Option>
+    </MultipleChoice>
+
+2. 指向你的第一篇博客文章的 URL 的链接。
+
+    <MultipleChoice>
+      <Option>
+        `myPosts.map((post) => <LastUpdated date={post.frontmatter.pubDate} />)`
+      </Option>
+      <Option>
+        `myPosts[2].frontmatter.title`
+      </Option>
+      <Option isCorrect>
+        `<a href={myPosts[0].url}>First Post!!</a>`
+      </Option>
+    </MultipleChoice>
+
+3. 每篇文章的上次更新的日期的组件。
+
+    <MultipleChoice>
+      <Option isCorrect>
+        `myPosts.map((post) => <LastUpdated date={post.frontmatter.pubDate} />)`
+      </Option>
+      <Option>
+        `myPosts[2].frontmatter.title`
+      </Option>
+      <Option>
+        `<a href={myPosts[0].url}>First Post!!</a>`
+      </Option>
+    </MultipleChoice>
+
+</Box>
+
+## 任务清单
+
+<Box icon="check-list">
+
+<Checklist>
+- [ ] 我可以从本地文件中查询数据。
+- [ ] 我可以显示所有博客文章的列表。
+</Checklist>
+</Box>
+
+### 相关资源
+
+- [`Astro.glob()` API 文档](/zh-cn/reference/api-reference/#astroglob)

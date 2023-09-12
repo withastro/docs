@@ -1,0 +1,205 @@
+---
+title: DatoCMS & Astro
+description: Add content to your Astro project using DatoCMS
+type: cms
+stub: false
+service: DatoCMS
+i18nReady: true
+---
+import FileTree from '~/components/FileTree.astro'
+
+[DatoCMS](https://datocms.com/) is a web-based, headless CMS to manage digital content for your sites and apps.
+
+## Integrating with Astro
+
+In this guide, you will fetch content data from DatoCMS in your Astro project, then display it on a page.
+
+## Prerequisites
+
+To get started, you will need to have the following:
+
+- **An Astro project** - If you don’t have an Astro project yet, you can follow the instructions in our [Installation guide](/en/install/auto/).
+- **A DatoCMS account and project** - If you don't have an account, you can [sign up for a free account](https://dashboard.datocms.com/signup).
+- **The read-only API Key for your DatoCMS project** - You can find it in the admin dashboard of your project, under "Settings" > "API Tokens".
+
+## Setting up the credentials
+
+Create a new file (if one does not already exist) named `.env` in the root of your Astro project. Add a new environment variable as follows, using the API key found in your DatoCMS admin dashboard: 
+
+```ini title=".env"
+DATOCMS_API_KEY=YOUR_API_KEY
+```
+
+For TypeScript support, declare the typing of this environment variable in the `env.d.ts` file in the `src/` folder. If this file does not exist, you can create it and add the following:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly DATOCMS_API_KEY: string;
+}
+```
+
+
+Your root directory should now include these files:
+
+<FileTree title="Project Structure">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## Create a Model in DatoCMS
+
+In the DatoCMS admin dashboard of your project, navigate to "Settings" > "Models" and create a new Model called "Home" with the "Single Instance" toggle selected. This will create a home page for your project. In this model, add a new text field for the page title.
+
+Navigate to the "Content" tab in your project and click on your newly-created home page. You can now add a title. Save the page, and continue.
+
+## Fetching data
+
+In your Astro project, navigate to the page that will fetch and display your CMS content. Add the following query to fetch the content for `home` using the DatoCMS GraphQL API.
+
+This example displays the page title from DatoCMS on `src/pages/index.astro`:
+
+```astro title="src/pages/index.astro"
+---
+const response = await fetch('https://graphql.datocms.com/', {
+	method: 'POST',
+	headers: {
+		'Content-Type': 'application/json',
+		Accept: 'application/json',
+		Authorization: `Bearer ${import.meta.env.DATOCMS_API_KEY}`,
+	},
+	body: JSON.stringify({
+		query: `query Homepage {
+          home {
+            title
+          }
+        }
+      `,
+	}),
+});
+
+const json = await response.json();
+const data = json.data.home;
+---
+
+<h1>{data.title}</h1>
+
+```
+
+This GraphQL query will fetch the `title` field in the `home` page from your DatoCMS Project. When you refresh your browser, you should see the title on your page.
+
+## Adding Dynamic modular content blocks
+
+If your DatosCMS project includes [modular content](https://www.datocms.com/docs/content-modelling/modular-content), then you will need to build a corresponding `.astro` component for each block of content (e.g. a text section, a video, a quotation block, etc.) that the modular field allows in your project.
+
+The example below is a `<Text />` Astro component for displaying a "Multiple-paragraph text" block from DatoCMS. 
+
+```astro title="src/components/Text.astro"
+---
+export interface TextProps {
+	text: string
+}
+
+export interface Props {
+	item: TextProps
+}
+
+const { item } = Astro.props;
+---
+
+<div set:html={item.text} />
+
+```
+To fetch these blocks, edit your GraphQL query to include the modular content block you created in DatoCMS. 
+
+In this example, the modular content block is named **content** in DatoCMS. This query also includes the unique `_modelApiKey` of each item to check which block should be displayed in the modular field, based on which block was chosen by the content author in the DatoCMS editor. Use a switch statement in the Astro template to allow for dynamic rendering based on the data received from the query.
+
+The following example represents a DatoCMS modular content block that allows an author to choose between a text field (`<Text />`) and an image (`<Image />`) rendered on the home page:
+
+```astro title="src/pages/index.astro" ins={2,3, 16-27, 39-50}
+---
+import Image from '../components/Image.astro';
+import Text from '../components/Text.astro';
+
+const response = await fetch('https://graphql.datocms.com/', {
+	method: 'POST',
+	headers: {
+		'Content-Type': 'application/json',
+		Accept: 'application/json',
+		Authorization: `Bearer ${import.meta.env.DATOCMS_API_KEY}`,
+	},
+	body: JSON.stringify({
+		query: `query Homepage {
+          home {
+            title
+            content {
+              ... on ImageRecord {
+                _modelApiKey
+               image{
+                url
+               }
+              }
+              ... on TextRecord {
+                _modelApiKey
+                text(markdown: true)
+              }
+            }
+          }
+        }
+      `,
+	}),
+});
+
+const json = await response.json();
+const data = json.data.home;
+---
+
+<h1>{data.title}</h1>
+{
+  data.content.map((item: any) => {
+    switch (item._modelApiKey) {
+      case 'image':
+        return <Image item={item} />;
+      case 'text':
+        return <Text item={item} />;
+      default:
+        return null;
+    }
+  })
+}
+
+```
+
+
+## Publishing your site
+
+To deploy your website, visit our [deployment guides](/en/guides/deploy/) and follow the instructions for your preferred hosting provider.
+
+## Publish on DatoCMS content changes
+
+If your project is using Astro’s default static mode, you will need to set up a webhook to trigger a new build when your content changes. If you are using Netlify or Vercel as your hosting provider, you can use its webhook feature to trigger a new build when you change content in DatoCMS.
+
+### Netlify
+
+To set up a webhook in Netlify:
+
+1. Go to your site dashboard and click on **Build & deploy**.
+2. Under the **Continuous Deployment** tab, find the **Build hooks** section and click on **Add build hook**.
+3. Provide a name for your webhook and select the branch you want to trigger the build on. Click on **Save** and copy the generated URL.
+
+### Vercel
+
+To set up a webhook in Vercel:
+
+1. Go to your project dashboard and click on **Settings**.
+2. Under the **Git** tab, find the **Deploy Hooks** section.
+3. Provide a name for your webhook and the branch you want to trigger the build on. Click **Add** and copy the generated URL.
+
+### Adding a webhook to DatoCMS
+
+In your DatoCMS project admin dashboard, navigate to the **Settings** tab and click **Webhooks**. Click the plus icon to create a new webhook and give it a name. In the URL field, paste the URL generated by your preferred hosting service. As Trigger, select whichever option suits your needs. (For example: build every time a new record is published.)
+
+## Starter project
+You can also check out the [Astro blog template](https://www.datocms.com/marketplace/starters/astro-template-blog) on the DatoCMS marketplace to learn how to create a blog with Astro and DatoCMS.

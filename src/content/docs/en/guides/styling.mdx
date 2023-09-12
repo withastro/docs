@@ -6,6 +6,7 @@ description: >-
 i18nReady: true
 ---
 import Since from '~/components/Since.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
 
 
@@ -41,11 +42,11 @@ This CSS:
 Compiles to this:
 ```astro
 <style>
-  h1:where(.astro-HHNQFKH6) {
+  h1[data-astro-cid-hhnqfkh6] {
      color: red;
   }
 
-  .text:where(.astro-HHNQFKH6) {
+  .text[data-astro-cid-hhnqfkh6] {
     color: blue;
   }
 </style>
@@ -159,8 +160,7 @@ import MyComponent from "../components/MyComponent.astro"
 <MyComponent class="red">This will be red!</MyComponent>
 ```
 
-This pattern lets you style child components directly. Astro will pass the parent’s scoped class name (e.g. `astro-HHNQFKH6`) through the `class` prop automatically, including the child in its parent’s scope.
-
+This pattern lets you style child components directly. Astro will pass the parent’s scoped class name (e.g. `astro-hhnqfkh6`) through the `class` prop automatically, including the child in its parent’s scope. Note this pattern only works when your [`scopedStyleStrategy` option](/en/reference/configuration-reference/#scopedstylestrategy) is either `'where'` or `'class'`.
 :::note[Scoped classes from parent components]
 Because the `class` prop includes the child in its parent’s scope, it is possible for styles to cascade from parent to child. To avoid this having unintended side effects, ensure you use unique class names in the child component.
 :::
@@ -429,9 +429,31 @@ import "../components/make-it-purple.css"
 
 ## CSS Integrations
 
-Astro comes with support for adding popular CSS libraries, tools and frameworks to your project like [Tailwind][tailwind] and more!
+Astro comes with support for adding popular CSS libraries, tools, and frameworks to your project like [Tailwind](https://tailwindcss.com) and more!
 
-📚 See the [Integrations Guide](/en/guides/integrations-guide/) for instructions on installing, importing and configuring these integrations.
+### Tailwind
+
+To use Tailwind in your project, install the official [Astro Tailwind integration][tailwind] using the `astro add` command for your package manager:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```shell
+    npx astro add tailwind
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```shell
+    pnpm astro add tailwind
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    yarn astro add tailwind
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+📚 See the [Integrations Guide](/en/guides/integrations-guide/) for instructions on installing, importing and configuring Astro integrations.
 
 
 ## CSS Preprocessors
@@ -444,7 +466,7 @@ Astro supports CSS preprocessors such as [Sass][sass], [Stylus][stylus], and [Le
  npm install sass
  ```
 
-Use  `<style lang="scss">` or `<style lang="sass">` in `.astro` files
+Use `<style lang="scss">` or `<style lang="sass">` in `.astro` files.
 
 ### Stylus
 
@@ -452,7 +474,7 @@ Use  `<style lang="scss">` or `<style lang="sass">` in `.astro` files
 npm install stylus
 ```
 
-Use `<style lang="styl">` or `<style lang="stylus">` in `.astro` files
+Use `<style lang="styl">` or `<style lang="stylus">` in `.astro` files.
 
 ### Less
 
@@ -508,11 +530,47 @@ Svelte in Astro also works exactly as expected: [Svelte Styling Docs][svelte-sty
 
 ## Markdown Styling
 
-Any Astro styling methods are available to a [Markdown layout component](/en/core-concepts/layouts/#markdownmdx-layouts).
+Any Astro styling methods are available to a [Markdown layout component](/en/core-concepts/layouts/#markdownmdx-layouts), but different methods will have different styling effects on your page.
 
-You can apply global styles to your Markdown content by adding [`<style>` tags](#global-styles) and [imported stylesheets](#external-styles) to the layout that wraps your page content. You can also add [CSS integrations](#css-integrations) including [Tailwind](/en/guides/integrations-guide/tailwind/).
+You can apply global styles to your Markdown content by adding [imported stylesheets](#external-styles) to the layout that wraps your page content. It is also possible to style your Markdown with [`<style is:global>` tags](#global-styles) in the layout component.  Note that any styles added are subject to [Astro's cascading order](#cascading-order), and you should check your rendered page carefully to ensure your styles are being applied as intended.
 
-If you are using Tailwind, the [typography plugin](https://tailwindcss.com/docs/typography-plugin) can be useful for styling Markdown.
+You can also add [CSS integrations](#css-integrations) including [Tailwind](/en/guides/integrations-guide/tailwind/). If you are using Tailwind, the [typography plugin](https://tailwindcss.com/docs/typography-plugin) can be useful for styling Markdown.
+
+## Production
+
+### Bundle control
+
+When Astro builds your site for production deployment, it minifies and combines your CSS into chunks. Each page on your site gets its own chunk, and additionally, CSS that is shared between multiple pages is further split off into their own chunks for reuse.
+
+However, when you have several pages sharing styles, some shared chunks can become really small. If all of them were sent separately, it would lead to many stylesheets requests and affect site performance. Therefore, by default Astro will link only those in your HTML above 4kB in size as `<link rel="stylesheet">` tags, while inlining smaller ones into `<style type="text/css">`. This approach provides a balance between the number of additional requests and the volume of CSS that can be cached between pages.
+
+You can configure the size at which stylesheets will be linked externally (in bytes) using the `assetsInlineLimit` vite build option. Note that this option affects script and image inlining as well.
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    build: {
+      assetsInlineLimit: 1024,
+    }
+  };
+});
+```
+
+If you would rather all project styles remain external, you can configure the `inlineStylesheets` build option.
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  build: {
+    inlineStylesheets: 'never'
+  }
+});
+```
+
+You can also set this option to `'always'` which will inline all stylesheets.
 
 ## Advanced
 
@@ -561,7 +619,7 @@ See [Vite's docs](https://vitejs.dev/guide/assets.html#importing-asset-as-url) f
 [sass]: https://sass-lang.com/
 [stylus]: https://stylus-lang.com/
 [svelte-style]: https://svelte.dev/docs#component-format-style
-[tailwind]: https://github.com/withastro/astro/tree/main/packages/integrations/tailwind
+[tailwind]: /en/guides/integrations-guide/tailwind/
 [vite-preprocessors]: https://vitejs.dev/guide/features.html#css-pre-processors
 [vue-css-modules]: https://vue-loader.vuejs.org/guide/css-modules.html
 [vue-scoped]: https://vue-loader.vuejs.org/guide/scoped-css.html

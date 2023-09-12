@@ -5,6 +5,7 @@ i18nReady: true
 ---
 import FileTree from '~/components/FileTree.astro'
 import RecipeLinks from "~/components/RecipeLinks.astro"
+import Since from '~/components/Since.astro'
 
 Astro uses **file-based routing** to generate your build URLs based on the file layout of your project `src/pages/` directory.
 
@@ -219,6 +220,73 @@ const { title, text } = page;
 </html>
 ```
 
+## Redirects
+
+Sometimes you will need to redirect your readers to a new page, either permanently because your site structure has changed or in response to an action such as logging in to an authenticated route.
+
+You can define rules to [redirect users to permanently-moved pages](#configured-redirects) in your Astro config. Or, [redirect users dynamically](#dynamic-redirects) as they use your site.
+
+### Configured Redirects
+<Since v="2.9.0" />
+
+You can specify a mapping of permanent redirects in your Astro config with the `redirects` value. For most redirects, this is a mapping of an old route to the new route:
+
+```js title="astro.config.mjs" {4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  redirects: {
+    '/old-page': '/new-page'
+  }
+});
+```
+
+These redirects follow the same rules as file-based routes. Dynamic routes are allowed as long as both the new and old routes contain the same parameters, for example:
+
+```js
+{
+  "/blog/[...slug]": "/articles/[...slug]"
+}
+```
+
+Using SSR or a static adapter, you can also provide an object as the value, allowing you to specify the `status` code in addition to the new `destination`:
+
+```js title="astro.config.mjs" {5-8}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  redirects: {
+    '/old-page': {
+      status: 302,
+      destination: '/new-page'
+    }
+  }
+});
+```
+
+When running `astro build`, Astro will output HTML files with the [meta refresh](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#examples) tag by default. Supported adapters will instead write out the host's configuration file with the redirects.
+
+The status code is `301` by default. If building to HTML files the status code is not used by the server.
+
+### Dynamic redirects
+
+On the `Astro` global, the `Astro.redirect` method allows you to redirect to another page dynamically. You might do this after checking if the user is logged in by getting their session from a cookie.
+
+```astro title="src/pages/account.astro" {8}
+---
+import { isLoggedIn } from '../utils';
+
+const cookie = Astro.request.headers.get('cookie');
+
+// If the user is not logged in, redirect them to the login page
+if (!isLoggedIn(cookie)) {
+  return Astro.redirect('/login');
+}
+---
+<html>
+  <!-- Page here... -->
+</html>
+```
 
 ## Route Priority Order
 
@@ -236,7 +304,9 @@ Astro needs to know which route should be used to build the page. To do so, it s
 
 - Static routes without path parameters will take precedence over all other routes
 - Dynamic routes using named parameters take precedence over rest parameters
+- Pre-rendered dynamic routes take precedence over server dynamic routes
 - Rest parameters have the lowest priority
+- Endpoints always take precedence over pages
 - Ties are resolved alphabetically
 
 Given the example above, here are a few examples of how the rules will match a requested URL to the route used to build the HTML:
@@ -244,6 +314,8 @@ Given the example above, here are a few examples of how the rules will match a r
 - `pages/posts/create.astro` - Will build `/posts/create`
 - `pages/posts/[pid].astro` - Will build `/posts/1`, `/posts/abc`, etc. But not `/posts/create`
 - `pages/posts/[...slug].astro` - Will build `/posts/1/2`, `/posts/a/b/c`, etc. But not `/posts/create`, `/posts/1`, `/posts/abc`
+
+Redirects also follow the same rules, but are prioritized *last*; if there is a file-based route and a redirect with the same route priority level, the file-based route is chosen.
 
 ## Pagination
 
@@ -363,7 +435,7 @@ export async function getStaticPaths({ paginate }) {
   // For every tag, return a paginate() result.
   // Make sure that you pass `{params: {tag}}` to `paginate()`
   // so that Astro knows which tag grouping the result is for.
-  return allTags.map((tag) => {
+  return allTags.flatMap((tag) => {
     const filteredPosts = allPosts.filter((post) => post.frontmatter.tag === tag);
     return paginate(filteredPosts, {
       params: { tag },

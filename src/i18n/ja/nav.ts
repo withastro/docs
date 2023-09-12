@@ -6,13 +6,11 @@ export default NavDictionary({
 	'getting-started': 'はじめに',
 	install: 'インストール',
 	'editor-setup': 'エディタのセットアップ',
-	'reference/cli-reference': 'Astro CLI',
-	'guides/upgrade-to/v2': 'v2へのアップグレード',
+	'guides/upgrade-to/v3': 'v3へのアップグレード',
 
 	// Core Concepts
 	coreConcepts: 'コアコンセプト',
 	'concepts/why-astro': 'Astroを選ぶ理由',
-	'concepts/mpa-vs-spa': 'MPA vs. SPA',
 	'concepts/islands': 'Astroアイランド',
 
 	// Tutorials
@@ -26,36 +24,35 @@ export default NavDictionary({
 	'core-concepts/astro-components': 'コンポーネント',
 	'core-concepts/astro-pages': 'ページ',
 	'core-concepts/layouts': 'レイアウト',
-	'guides/markdown-content': 'MarkdownとMDX',
-	'core-concepts/routing': 'ルーティング',
 
 	// Recipes
 	examples: 'レシピ',
 	'guides/migrate-to-astro': 'Astroへの移行',
 	'guides/cms': 'CMSとの接続',
+	'guides/backend': 'バックエンドサービスの追加',
 	'guides/integrations-guide': 'インテグレーションの追加',
 	'guides/deploy': 'サイトのデプロイ',
-	'guides/recipes': 'すべてのレシピ',
+	'guides/recipes': 'その他のレシピ',
 
 	// Guides
 	features: 'ガイド',
-	'core-concepts/astro-syntax': 'Astroコンポーネントの構文',
+	'core-concepts/astro-syntax': 'Astroテンプレートの構文',
 	'core-concepts/framework-components': 'UIフレームワーク',
+	'core-concepts/routing': 'ルーティング',
+	'guides/markdown-content': 'MarkdownとMDX',
 	'guides/content-collections': 'コンテンツコレクション',
-	'guides/server-side-rendering': 'サーバーサイドレンダリング（SSR）',
 	'guides/client-side-scripts': 'スクリプトとイベントハンドリング',
 	'guides/styling': 'CSSとスタイル',
 	'guides/images': '画像',
+	'guides/fonts': 'フォント',
 	'guides/imports': 'インポート',
+	'guides/server-side-rendering': 'サーバーサイドレンダリング（SSR）',
 	'core-concepts/endpoints': 'エンドポイント',
 	'guides/data-fetching': 'データフェッチ',
+	'guides/middleware': 'ミドルウェア',
 	'guides/testing': 'テスト',
+	'guides/view-transitions': 'ビュートランジション',
 	'guides/troubleshooting': 'トラブルシューティング',
-
-	// 'guides/content': 'コンテンツの執筆',
-	// 'guides/fonts': 'フォント',
-	// 'core-concepts/sharing-state': '状態の共有',
-	// 'guides/rss': 'RSS',
 
 	// Configuration
 	configuration: '設定',
@@ -70,7 +67,9 @@ export default NavDictionary({
 	'reference/api-reference': 'ランタイムAPI',
 	'reference/integrations-reference': 'インテグレーションAPI',
 	'reference/adapter-reference': 'アダプターAPI',
+	'reference/image-service-reference': '画像サービスAPI',
 	'reference/directives-reference': 'テンプレートディレクティブ',
+	'reference/cli-reference': 'Astro CLI',
 	'reference/error-reference': 'エラーリファレンス',
 	'guides/publish-to-npm': 'NPMパッケージの形式',
 });

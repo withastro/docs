@@ -1,0 +1,573 @@
+---
+title: Migrando desde Next.js
+description: Consejos para migrar un proyecto existente de Next.js a Astro
+type: migration
+stub: false
+framework: Next.js
+i18nReady: true
+---
+import AstroJSXTabs from '~/components/tabs/AstroJSXTabs.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+Aquí hay algunos conceptos clave y estrategias de migración para ayudarte a empezar. Utiliza el resto de nuestra documentación y nuestra [comunidad de Discord](https://astro.build/chat) para seguir adelante.
+
+## Principales similitudes entre Next.js y Astro
+
+Next.js y Astro comparten algunas similitudes que te ayudarán a migrar tu proyecto:
+
+- La [sintaxis de los archivos `.astro` es similar a la de JSX](/es/core-concepts/astro-syntax/#diferencias-entre-astro-y-jsx). Escribir en Astro debería resultarte familiar.
+- Los proyectos de Astro también pueden ser SSG o [SSR con prerenderización a nivel de página](/es/guides/server-side-rendering/#configuración-de-rutas-individuales).
+- Astro utiliza  el enrutamiento basado en archivos, y [permite que las páginas con nombre especiales creen rutas dinámicas](/es/core-concepts/routing/#rutas-dinámicas).
+- Astro está [basado en componentes](/es/core-concepts/astro-components/), y la estructura de tu marcado será similar antes y después de la migración.
+- Astro tiene [integraciones oficiales para React, Preact, y Solid](/es/guides/integrations-guide/react/) por lo que puedes utilizar tus componentes JSX existentes. Ten en cuenta que en Astro, estos archivos **deben** tener una extensión `.jsx` o `.tsx`.
+- Astro cuenta con soporte para [instalar paquetes NPM](/es/guides/imports/#paquetes-npm), incluyendo bibliotecas de React. Muchas de tus dependencias existentes funcionarán en Astro.
+
+## Principales diferencias entre Next.js y Astro
+
+Cuando reconstruyas tu sitio de Next.js a Astro, notarás algunas diferencias importantes:
+
+- Next.js es una aplicación de página única de React, y utiliza `index.js` como raíz de tu proyecto. Astro es un sitio multipágina, y `index.astro` es tu página de inicio.
+
+- [Los Componentes `.astro`](/es/core-concepts/astro-components/) no se escriben como funciones exportadas que devuelven plantillas de página. En su lugar, dividirás tu código en "bloques de código" para tu JavaScript y un cuerpo exclusivamente para el HTML que generes.
+
+- [Contenido primero](/es/concepts/why-astro/): Astro fue diseñado para mostrar tu contenido y permitirte optar por la interactividad solo cuando sea necesario. Una aplicación existente de Next.js puede estar construida para una alta interactividad del lado del cliente y puede requerir técnicas avanzadas de Astro para incluir elementos que son más difíciles de replicar utilizando componentes `.astro`, como los paneles de control.
+
+## Migrar tu proyecto de Next.js
+
+Cada migración será diferente, pero hay algunas acciones comunes que realizarás al migrar de Next.js a Astro.
+
+### Crear un nuevo proyecto de Astro
+Utiliza el comando `create astro` en tu gestor de paquetes para lanzar el asistente de línea de comandos de Astro, o elige un tema de la comunidad desde el [catálogo de temas de Astro](https://astro.build/themes).
+
+Puedes pasar el argumento `--template` al comando `create astro` para iniciar un nuevo proyecto de Astro con una de nuestras plantillas oficiales (p. ej. `docs`, `blog`, `portafolio`). O, puedes [iniciar un nuevo proyecto a partir de cualquier repositorio de Astro existente en GitHub.](/es/install/auto/#plantillas-de-inicio).
+
+  <PackageManagerTabs>
+    <Fragment slot="npm">
+    ```shell
+    # Lanzar el Asistente de línea de comandos de Astro
+    npm create astro@latest
+
+    # Crear un nuevo proyecto con un ejemplo oficial.
+    npm create astro@latest -- --template <example-name>
+    ```
+    </Fragment>
+    <Fragment slot="pnpm">
+    ```shell
+    # Lanzar el Asistente de línea de comandos de Astro
+    pnpm create astro@latest
+
+    # Crear un nuevo proyecto con un ejemplo oficial.
+    pnpm create astro@latest --template <example-name>
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```shell
+    # Lanzar el Asistente de línea de comandos de Astro
+    yarn create astro@latest
+
+    # Crear un nuevo proyecto con un ejemplo oficial.
+    yarn create astro@latest --template <example-name>
+    ```
+    </Fragment>
+  </PackageManagerTabs>
+
+Luego, copia los archivos de tu proyecto Next existente a tu nuevo proyecto Astro en una carpeta separada fuera de `src`.
+
+:::tip
+Visita https://astro.new para ver la lista completa de plantillas de inicio oficiales, así como los enlaces para abrir un nuevo proyecto en StackBlitz, CodeSandbox o Gitpod.
+:::
+
+### Instalar integraciones (opcional)
+
+Puede resultarte útil instalar algunas de las [integraciones opcionales de Astro](/es/guides/integrations-guide/) para usar mientras migras tu proyecto de Next a Astro:
+
+- **@astrojs/react**: Para reutilizar algunos de los componentes UI de React existentes en tu nuevo sitio de Astro, o seguir escribiendo con componentes de React.
+
+- **@astrojs/mdx**: Para traer archivos MDX existentes de tu proyecto Next, o para usar MDX en tu nuevo sitio Astro.
+
+### Coloca tu código fuente en `src`
+
+Siguiendo la [estructura de proyecto de Astro](/es/core-concepts/project-structure/):
+
+1. **Mantén** intacta la carpeta `public/` de Next. 
+   
+    Astro utiliza el directorio `public/` para almacenar activos estáticos, de la misma manera que lo hace Next. No es necesario realizar ningún cambio en esta carpeta, ni en su contenido.
+
+2. **Copia o mueve** los otros archivos de Next (p. ej. `pages`, `styles` etc.) en la carpeta `src/` de Astro mientras reconstruyes tu sitio, siguiendo la [estructura de proyecto de Astro](/es/core-concepts/project-structure/).
+
+   Al igual que en Next, la carpeta `src/pages/`de Astro es una carpeta especial que se utiliza para el enrutamiento basado en archivos. Todas las demás carpetas son opcionales y puedes organizar el contenido de tu carpeta `src/` de la manera que desees. Otras carpetas comunes en proyectos de Astro incluyen `src/layouts/`, `src/components`, `src/styles` y `src/scripts`.
+
+
+### El archivo de configuración de Astro
+
+Astro tiene un archivo de configuración en la raíz de tu proyecto llamado [`astro.config.mjs`](/es/guides/configuring-astro/). Esto se utiliza solo para configurar tu proyecto de Astro y cualquier integración instalada, incluidos los [adaptadores SSR](/es/guides/deploy/).
+
+### Consejos: Convertir archivos JSX a archivos `.astro`
+
+Aquí hay algunos consejos para convertir un componente `.js` de Next en un componente `.astro`:
+
+1. Usa el JSX devuelto por la función del componente existente de Next.js como base para tu plantilla HTML.
+
+2. Cambia cualquier [sintaxis de Next o JSX a Astro](#referencia-cómo-convertir-la-sintaxis-de-nextjs-a-astro) o a los estándares web HTML. Esto incluye `<Link>`, `<Script>`, `{children}`, y `className`, por ejemplo.
+
+3. Mueve cualquier JavaScript necesario, incluyendo las declaraciones de importación, a un ["bloque de código" (`---`)](/es/core-concepts/astro-components/#script-de-un-componente). Nota: JavaScript para [renderizar contenido de forma condicional](/es/core-concepts/astro-syntax/#html-dinamico) se escribe a menudo directamente dentro de la plantilla HTML en Astro.
+
+4. Usa [`Astro.props`](/es/reference/api-reference/#astroprops) para acceder a cualquier prop adicional que se haya pasado previamente a tu función de Next.
+
+5. Decide si también es necesario convertir a Astro cualquier componente importado. Con la integración oficial instalada, puedes [usar componentes de React existentes en tu archivo Astro](/es/core-concepts/framework-components/). Pero es posible que desees convertirlos a componentes  `.astro`,  ¡especialmente si no necesitan ser interactivos!
+
+6. Reemplaza `getStaticProps()` con declaraciones de importación o [`Astro.glob()`](/es/reference/api-reference/#astroglob) para consultar tus archivos locales. Usa `fetch()` para obtener datos externos.
+
+Mira [un ejemplo de un archivo Next `.js` convertido paso a paso](#ejemplo-guiado-cómo-migrar-la-obtención-de-datos-en-next-a-astro).
+
+#### Comparación: JSX vs Astro
+
+Compara el siguiente componente de Next y su equivalente en Astro:
+
+<AstroJSXTabs>
+  <Fragment slot="jsx">
+    ```jsx title="StarCount.jsx"
+    import Header from "./header";
+    import Footer from './footer';
+    import "./layout.css";
+
+    export async function getStaticProps() {
+        const res = await fetch('https://api.github.com/repos/withastro/astro')
+        const json = await res.json()
+        return {
+            props: { message: json.message, stars: json.stargazers_count || 0 },
+        }
+    }
+
+    const Component = ({ stars, message }) => {
+        
+        return (
+            <>
+                <Header />
+                <p style={{
+                    backgroundColor: `#f4f4f4`,
+                    padding: `1em 1.5em`,
+                    textAlign: `center`,
+                    marginBottom: `1em`
+                }}>Astro has {stars} 🧑‍🚀</p>
+                <Footer />
+            </>
+        )
+    }
+
+    export default Component;
+    ```
+  </Fragment>
+  <Fragment slot="astro">
+    ```astro title="StarCount.astro"
+    ---
+    import Header from "./header";
+    import Footer from "./footer";
+    import "./layout.css";
+
+    const res = await fetch('https://api.github.com/repos/withastro/astro')
+    const json = await res.json()
+    const message = json.message;
+    const stars = json.stargazers_count || 0;
+    ---
+    <Header />
+    <p class="banner">Astro has {stars} 🧑‍🚀</p>
+    <Footer />
+
+    <style>
+      .banner {
+        background-color: #f4f4f4; 
+        padding: 1em 1.5em;
+        text-align: center;
+        margin-bottom: 1em;
+      }
+    <style>
+    ```
+  </Fragment>
+</AstroJSXTabs>
+
+### Migrando archivos de diseño
+
+Puede resultarte útil comenzar convirtiendo tus diseños y plantillas de Next.js en [componentes de diseño de Astro](/es/core-concepts/layouts/).
+
+Next tiene dos métodos diferentes para crear archivos de diseño, cada uno de los cuales maneja los diseños de manera diferente a Astro:
+
+- El directorio `pages`
+
+- [El directorio `/app` (en beta)](https://beta.nextjs.org/docs/routing/pages-and-layouts#layouts)
+
+Cada página de Astro requiere explícitamente que se incluyan las etiquetas `<html>`, `<head>`, y `<body>`, por lo que es común reutilizar un archivo de diseño en varias páginas. Astro utiliza [`<slot />`](/es/core-concepts/astro-components/#slots) para el contenido de la página, sin necesidad de importar ninguna declaración. Observa la estructura estándar de templating de HTML y el acceso directo al elemento `<head>`:  
+
+```astro title="src/layouts/Layout.astro"
+---
+---
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Astro</title>
+	</head>
+	<body>
+    <!-- Envuelve el elemento slot con tu plantilla de diseño existente-->
+		<slot />
+	</body>
+</html>
+```
+
+#### Migrando desde el directorio `pages` de Next.js
+
+Tu proyecto de Next puede tener un archivo `pages/_document.jsx` que importa componentes de React, para personalizar el elemento `<head>` de tu aplicacion:
+
+```jsx title="pages/_document.jsx"
+import Document, { Html, Head, Main, NextScript } from "next/document";
+
+export default class MyDocument extends Document {
+  render() {
+    return (
+      <Html lang="en">
+        <Head>
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
+        <body>
+          <Main />
+          <NextScript />
+        </body>
+      </Html>
+    );
+  }
+}
+```
+
+1. Crea un nuevo archivo de diseño de Astro usando únicamente el JSX retornado.
+
+2. Reemplaza cualquier componente de React con las etiquetas estándar de HTML como  `<html>`, `<head>`, `<slot>`, y otras etiquetas HTML estándar
+
+
+```astro title="src/layouts/Document.astro"
+<html lang="en">
+	<head>
+	    <link rel="icon" href="/favicon.ico" />
+	</head>
+	<body>
+		<slot/>
+	</body>
+</html>
+```
+
+#### Migrando desde el directorio `/app` de Next.js
+
+Los archivos de diseño del directorio `app/` de Next.js se crean con dos archivos: un archivo `layout.jsx` para personalizar el contenido de los elementos `<html>` y `<body>`, y un archivo `head.jsx` para personalizar el contenido del elemento`<head>`.
+
+```jsx title="app/layout.jsx"
+export default function Layout({ children }) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+```jsx title="app/head.jsx"
+export default function Head() {
+  return (
+    <>
+      <title>My Page</title>
+    </>
+  );
+}
+```
+
+1. Crea un nuevo archivo de diseño de Astro usando únicamente el JSX retornado.
+
+2. Reemplaza ambos archivos por un solo archivo de diseño de Astro que contenga una estructura básica de la página (`<html>`, `<head>`, y `<body>`) y un elemento `<slot/>`  en lugar de la propiedad `{children}` de React:
+
+```astro title="src/layouts/Layout.astro"
+<html lang="en">
+	<head>
+	    <title>My Page</title>
+	</head>
+	<body>
+		<slot/>
+	</body>
+</html>
+```
+
+### Migrando páginas y publicaciones
+
+En Next.js, tus publicaciones pueden encontrarse en `/pages` o en `/app/routeName/page.jsx`.
+
+En Astro, **todo el contenido de tus páginas debe encontrarse dentro de `src/`**, ya sea en `src/pages` o en `src/content`.
+
+#### Páginas de React
+
+Tus páginas JSX existentes (`.js`) de Next deberán [convertirse de archivos JSX a páginas `.astro`](#consejos-convertir-archivos-jsx-a-archivos-astro). No puedes usar un archivo de página JSX existente en Astro
+
+Estas [páginas `.astro`](/es/core-concepts/astro-pages/) deben estar ubicadas dentro de `src/pages/`  sus rutas de página se generarán automáticamente en función de su ruta de archivo.
+
+#### Páginas de Markdown y MDX
+
+Astro tiene soporte incorporado para Markdown y una integración opcional para archivos MDX. Puedes reutilizar cualquier archivo [Markdown y MDX](/es/guides/markdown-content/) existente, pero pueden requerir algunos ajustes en su frontmatter, como agregar [la propiedad especial de frontmatter `layout`de Astro](/es/core-concepts/layouts/#plantillas-de-markdownmdx). Ya no necesitarás crear manualmente páginas para cada ruta generada por Markdown. Estos archivos se pueden colocar dentro de`src/pages/` para aprovechar el enrutamiento automático basado en archivos.
+
+Alternativamente, puedes usar [colecciones de contenido](/es/guides/content-collections/) en Astro para almacenar y administrar tu contenido. Cuando forman parte de una colección, los archivos Markdown y MDX vivirán en carpetas dentro de `src/content/`. Deberás recuperar el contenido tú mismo y [generar esas páginas dinámicamente](/es/guides/content-collections/#generando-rutas-desde-el-contenido).
+
+### Migrando Tests
+
+Como Astro produce HTML sin procesar, es posible escribir tests end-to-end utilizando la salida del paso de compilación. Cualquier test end-to-end escrito anteriormente podría funcionar sin problemas si has podido coincidir con el marcado de tu sitio de Next. Bibliotecas de testing como Jest y React Testing Library pueden ser importadas y utilizadas en Astro para poner a prueba tus componentes de React.
+
+Consulta la [guía de testing](/es/guides/testing/) de Astro para obtener más información.
+
+## Referencia: Cómo convertir la sintaxis de Next.js a Astro
+
+### Migrando los enlaces de Next a Astro
+
+Convierte cualquier componente de Next `<Link to="">`, `<NavLink>` etc. a etiquetas HTML `<a href="">`. 
+
+```astro del={1} ins={2}
+<Link to="/blog">Blog</Link>
+<a href="/blog">Blog</a>
+```
+
+Astro no utiliza ningún componente especial para los enlaces, aunque puedes crear tu propio componente `<Link>`. Luego puedes importar y usar este `<Link>` como lo harías con cualquier otro componente.
+
+```astro title="src/components/Link.astro"
+---
+const { to } = Astro.props
+---
+<a href={to}><slot /></a>
+```
+
+### Migrando las importaciones de Next a Astro
+
+Actualiza cualquier [importación de archivos](/es/guides/imports/) para referencias rutas de archivo relativas de manera exacta. Esto puede hacerse utilizando un [alias de importación](/es/guides/typescript/#alias-de-importación), o escribiendo la ruta relativa completa. 
+
+Ten encuenta que `.astro` y varios otros tipos de archivos deben ser importados con su extensión de archivo completa.
+
+```astro title="src/pages/authors/Fred.astro"
+---
+import Card from `../../components/Card.astro`
+---
+<Card />
+```
+
+### Migrando las propiedades Children de Next a Astro
+
+Convierte cualquier instancia de `{children}` a un elemento `<slot />` de Astro. Astro no necesita recibir `{children}` como una función prop y automáticamente renderizará `<slot />`.
+
+```astro title="src/components/MyComponent" del={3-9} ins={11-13}
+---
+---
+export default function MyComponent(props) { 
+    return (
+      <div>
+        {props.children}
+      </div>
+    );  
+}
+
+<div>
+  <slot />
+</div>
+```
+
+Los componentes de React que pasan múltiples conjuntos de hijos se pueden migrar a un un componente de Astro usando [slots con nombre](/es/core-concepts/astro-components/#slots-con-nombre).
+
+Ver más acerca del [uso especifico de `<slot />` en Astro](/es/core-concepts/astro-components/#slots).
+
+### Migrando la obtención de datos de Next a Astro
+
+Convierte cualquier instancia de `getStaticProps()` a `Astro.glob()` o `getCollection()`/`getEntryBySlug()` para acceder a los datos de otros archivos en la raíz de tu proyecto. Para [obtener datos remotos](/es/guides/data-fetching/), usa `fetch()`.
+
+Estas solicitudes de datos se realizan en el frontmatter del componente de Astro y utilizan el operador await a nivel superior.
+
+```astro title="src/pages/index.astro"
+---
+import { getCollection } from 'astro:content';
+
+// Obtener todas las entradas `src/content/blog/`
+const allBlogPosts = await getCollection('blog');
+
+// Obtener todas las entradas `src/pages/posts/`
+const allPosts = await Astro.glob('../pages/posts/*.md');
+
+const response = await fetch('https://randomuser.me/api/');
+const data = await response.json();
+const randomUser = data.results[0];
+---
+```
+
+Ver más acerca de [importaciones de archivos locales con `Astro.glob()`](/es/guides/imports/#astroglob), [consultas usando la API de colecciones](/es/guides/content-collections/#consultando-colecciones) o [obtención de datos remotos](/es/guides/data-fetching/).
+
+### Migrando el sistema de estilos de Next a Astro
+
+Es posible que debas reemplazar cualquier [biblioteca de CSS-in-JS](https://github.com/withastro/astro/issues/4432) (p. ej. styled-components) con otras opciones de CSS disponibles en Astro.
+
+Si es necesario, convierte cualquier objeto de estilo en línea (`style={{ fontWeight: "bold" }}`) a atributos de estilo HTML en línea (`style="font-weight:bold;"`). O, usa una [etiqueta `<style>` de Astro](/es/guides/styling/#estilando-en-astro) para estilos CSS con ámbito limitado.
+
+```astro title="src/components/Card.astro" del={1} ins={2}
+<div style={{backgroundColor: `#f4f4f4`, padding: `1em`}}>{message}</div>
+<div style="background-color: #f4f4f4; padding: 1em;">{message}</div>
+```
+
+Tailwind es compatible después de instalar la [integración de Tailwind](/es/guides/integrations-guide/tailwind/). ¡No se requieren cambios en tu código de Tailwind existente!
+
+Ver más acerca de [Estilos en Astro](/es/guides/styling/).
+
+### Plugin de Imagen de Next a Astro
+
+Convierte cualquier componente `<Image />` de Next a [el componente de imagen propio de Astro](/es/guides/images/#image--astroassets) en archivos `.astro` o `.mdx`, o a una etiqueta [estándar de HTML `<img>` / JSX `<img />`](/es/guides/images/#imágenes-en-componentes-de-frameworks-ui) según corresponda en tus componentes de React.
+
+El componente `<Image />` de Astro funciona solo en archivos `.astro` y `.mdx`. Consulta una [lista completa de sus atributos de componente](/es/guides/images/#propiedades) y ten en cuenta que varios serán diferentes de los atributos de Next.
+
+```astro title="src/pages/index.astro"
+---
+import { Image } from 'astro:assets';
+import rocket from '../assets/rocket.png';
+---
+<Image src={rocket} alt="Un cohete en el espacio." />
+<img src={rocket.src} alt="Un cohete en el espacio.">
+```
+
+En los componentes de React (`.jsx`), utiliza la sintaxis estándar de imagen (`<img />`). Astro no optimizará estas imágenes, pero puedes instalar y usar paquetes de NPM  para obtener más flexibilidad.
+
+Puedes aprender más sobre [cómo usar imágenes en Astro](/es/guides/images/) en la Guía de Imágenes.
+
+
+
+## Ejemplo guiado: Cómo migrar la obtención de datos en Next a Astro
+
+Aquí tienes un ejemplo de cómo obtener datos de una Pokédex en Next.js y cómo convertirlo a Astro.
+    
+`pages/index.js` obtiene y muestra una lista de los primeros 151 Pokémon utilizando [la REST PokéAPI](https://pokeapi.co/).
+
+Aquí te mostramos cómo recrear eso en `src/pages/index.astro`, remplazando `getStaticProps()` con `fetch()`.
+
+1. Identifica el JSX de return().
+
+```jsx title="pages/index.js" {6-18}
+import Link from 'next/link'
+import styles from '../styles/poke-list.module.css';
+
+export default function Home({ pokemons }) {
+    return (
+        <>
+            <ul className={`plain-list ${styles.pokeList}`}>
+                {pokemons.map((pokemon) => (
+                    <li className={styles.pokemonListItem} key={pokemon.name}>
+                        <Link className={styles.pokemonContainer} as={`/pokemon/${pokemon.name}`} href="/pokemon/[name]">
+                            <p className={styles.pokemonId}>No. {pokemon.id}</p>
+                            <img className={styles.pokemonImage} src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}></img>
+                            <h2 className={styles.pokemonName}>{pokemon.name}</h2>
+                        </Link>
+                    </li>
+                ))}
+            </ul>
+        </>
+    )
+}
+
+export const getStaticProps = async () => {
+    const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151")
+    const resJson = await res.json();
+    const pokemons = resJson.results.map(pokemon => {
+        const name = pokemon.name;
+        // https://pokeapi.co/api/v2/pokemon/1/
+        const url = pokemon.url;
+        const id = url.split("/")[url.split("/").length - 2];
+        return {
+            name,
+            url,
+            id
+        }
+    });
+    return {
+        props: {
+            pokemons,
+        },
+    }
+}
+```
+
+2. Crea `src/pages/index.astro`
+
+Utiliza el valor de retorno de la función Next. Convierte cualquier sintaxis de Next o React a Astro, incluyendo el cambio de mayúsculas y minúsculas de cualquier [atributo global de HTML](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes).
+
+Nota que:
+
+- `.map` ¡simplemente funciona!
+
+- `className` se convierte en `class`.
+
+- `<Link>` se convierte en `<a>`.
+
+- El fragmento `<> </>` no es necesario en la plantilla de Astro.
+
+```astro title="src/pages/index.astro" "class" "</a>" "<a"
+---
+---
+<ul class="plain-list pokeList">
+    {pokemons.map((pokemon) => (
+        <li class="pokemonListItem" key={pokemon.name}>
+            <a class="pokemonContainer" href={`/pokemon/${pokemon.name}`}>
+                <p class="pokemonId">No. {pokemon.id}</p>
+                <img class="pokemonImage" src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}/>
+                <h2 class="pokemonName">{pokemon.name}</h2>
+            </a>
+        </li>
+    ))}
+</ul>
+```
+
+3. Agrega cualquier importación, propiedad y JavaScript necesario.
+
+Nota que:
+
+- La función `getStaticProps` ya no es necesaria. Los datos de la API se obtienen directamente en el bloque de código.
+- Se importa un componente `<Layout>` y envuelve la plantilla de la página.
+
+```astro ins={2,4-16,19,31} title="src/pages/index.astro"
+---
+import Layout from '../layouts/layout.astro';
+
+const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151");
+const resJson = await res.json();
+const pokemons = resJson.results.map(pokemon => {
+    const name = pokemon.name;
+    // https://pokeapi.co/api/v2/pokemon/1/
+    const url = pokemon.url;
+    const id = url.split("/")[url.split("/").length - 2];
+    return {
+        name,
+        url,
+        id
+    }
+});
+---
+
+<Layout>
+  <ul class="plain-list pokeList">
+      {pokemons.map((pokemon) => (
+          <li class="pokemonListItem" key={pokemon.name}>
+              <a class="pokemonContainer" href={`/pokemon/${pokemon.name}`}>
+                  <p class="pokemonId">No. {pokemon.id}</p>
+                  <img class="pokemonImage" src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}/>
+                  <h2 class="pokemonName">{pokemon.name}</h2>
+              </a>
+          </li>
+      ))}
+  </ul>
+</Layout>
+```
+
+## Recursos de la comunidad
+
+- Video: [De NextJS a Astro: más control = sitios más rápidos](https://www.youtube.com/watch?v=PSzCtdM20Fc).
+
+- Video: [Cómo Astro hizo que mi sitio sea 100 veces más rápido](https://www.youtube.com/watch?v=cOxA3kMYtkM).
+
+- Artículo de blog: [Migrando de Next.js a Astro](https://johnzanussi.com/posts/nextjs-to-astro-migration).
+
+- Artículo de blog: [Desde NextJS a Astro](https://vanntile.com/blog/next-to-astro).
+- Artículo de blog: [Convirtiendo Next.js a Astro](https://ericclemmons.com/blog/converting-nextjs-to-astro).

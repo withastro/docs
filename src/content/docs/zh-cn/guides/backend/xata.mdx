@@ -1,0 +1,109 @@
+---
+title: Xata 与 Astro
+description: 通过 Xata 为你的项目添加一个 Serverless 全文搜索数据库
+type: backend
+service: Xata
+stub: false
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import FileTree from '~/components/FileTree.astro'
+
+[Xata](https://xata.io) 是一个 **Serverless 数据平台**，它通过公开单一的连续性 REST API 来结合了关系数据库、搜索引擎和分析引擎等功能。
+
+## 通过 Xata 添加一个数据库
+
+### 前期准备
+
+- 一个 [Xata](https://app.xata.io/signin) 账户，并且通过该账户创建了一个数据库（你可以使用来自于 Web 界面的样例数据）；
+- 一个可访问的令牌（`XATA_TOKEN_API`）；
+- 你的数据库连接。
+
+在你更新并初始化 [Xata 命令行](https://xata.io/docs/getting-started/installation) 之后，你将在 `.env` 文件中拥有自己的 API 令牌以及数据库 URL。
+
+一切设置妥当之后，你应该拥有以下内容：
+
+```ini title=".env"
+XATA_API_KEY=hash_key
+
+# 如果在你的 git 分支中不存在同名的 xata 分支情况下，该 xata 分支会被使用
+XATA_BRANCH=main
+```
+
+以及创建好的 `databaseURL`：
+
+```ini title=".xatarc"
+{
+  "databaseUrl": "https://your-database-url"
+}
+```
+
+### 环境配置
+
+为了让你的环境变量开启 IntelliSense 以及拥有类型安全，请在你的 `src/` 目录下编辑或创建一个 `env.d.ts` 文件
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly XATA_API_KEY: string;
+  readonly XATA_BRANCH?: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+:::tip
+了解更多在 Astro 有关于 [环境变量](/zh-cn/guides/environment-variables/) 和 `.env` 文件的内容。
+:::
+
+使用 Xata 命令行工具的代码生成功能，然后选择 TypeScripts 选项并创建一个 SDK 实例，当中的类型与会与你的数据库模式相匹配。除此之外，`@xata.io/client` 也会添加到你的 `package.json` 文件中。
+
+你的 Xata 环境变量和数据库链接会自动被 SDK 实例拉取，所以就再也不需要其他额外的设置操作。
+
+现在，你的项目应该具有以下结构：
+
+<FileTree title="Project Structure">
+- src/
+  - **xata.ts**
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+- **.xatarc**
+</FileTree>
+
+## 创建你的查询
+
+为了查询你的博文，请在一个 `.astro` 文件中导入并使用 `XataClient` 类。以下例子将从 Xata 的样例博客数据库中请求前 50 篇文章。
+
+```astro title="src/pages/blog/index.astro"
+---
+import { XataClient } from '../../xata';
+ 
+const xata = new XataClient({
+  apiKey: import.meta.env.XATA_API_KEY,
+  branch: import.meta.env.XATA_BRANCH
+});
+
+const { records } = await xata.db.Posts.getPaginated({
+  pagination: {
+    size: 50
+  }
+})
+---
+
+<ul>
+  {records.map(post) => (
+    <li>{post.title}</li>
+  )}
+</ul>
+```
+
+需要注意的是，每当你的模式发生变化时，需要重新生成 SDK。因此，请避免对 Xata 命令行工具所创建的生成文件进行更改，因为一旦模式更新，你的更改将被覆盖。
+
+
+## 官方资源
+
+- [Xata Astro Starter](https://github.com/xataio/examples/tree/main/apps/starter-astro)
+- [Xata Docs: Quick Start Guide](https://xata.io/docs/getting-started/quickstart-astro)

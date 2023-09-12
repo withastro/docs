@@ -1,7 +1,9 @@
 ---
 title: 导入
 description: 学习如何在 Astro 中导入不同类型的内容。
+i18nReady: true
 ---
+import RecipeLinks from "~/components/RecipeLinks.astro";
 
 Astro 无需配置即支持大多数静态资源。你可以在项目的任何地方使用 `import` 语句（包括 Astro frontmatter 脚本），Astro 将在最终构建中内置优化后的静态资源副本。在 CSS 和 `<style>` 标签中也可以使用 `@import`。
 
@@ -45,7 +47,7 @@ import { getUser } from './user';
 import type { UserType } from './user';
 ```
 
-Astro 内置对 [TypeScript](https://www.typescriptlang.org/) 的支持。你可以在 Astro 项目中直接导入 `.ts` 和 `.tsx` 文件，甚至可以直接在 [Astro 组件脚本](/zh-cn/core-concepts/astro-components/#组件脚本)和任意 [hoisted script 标签](/zh-cn/core-concepts/astro-components/#客户端脚本) 中编写 TypeScript 代码。
+Astro 内置对 [TypeScript](https://www.typescriptlang.org/) 的支持。你可以在 Astro 项目中直接导入 `.ts` 和 `.tsx` 文件，甚至可以直接在 [Astro 组件脚本](/zh-cn/core-concepts/astro-components/#组件脚本)和任意 [hoisted script 标签](/zh-cn/guides/client-side-scripts/) 中编写 TypeScript 代码。
 
 **Astro 本身不进行任何类型检查**。类型检查应该在 Astro 之外进行或由 IDE 或通过一个单独的脚本来处理。[Astro VSCode 扩展](/zh-cn/editor-setup/) 会自动为打开的文件中提供 TypeScript 提示和错误警告。或使用 [`astro check` 命令](/zh-cn/reference/cli-reference/#astro-check) 检查 Astro 文件的类型。
 
@@ -108,8 +110,6 @@ import './style.css';
 
 Astro 支持直接在应用程序中导入 CSS 文件。导入的样式没有暴露出口，但导入样式会自动将这些样式添加到页面中。它默认支持所有 CSS 文件，并且可以通过插件支持 CSS 编译语言，如 Sass & Less。
 
-如果你不喜欢写 CSS，Astro 也支持所有流行的 CSS-in-JS 库（如 styled-components）的样式。
-
 ### CSS 模块
 
 ```jsx
@@ -133,12 +133,16 @@ import svgReference from './image.svg'; // svg === '/src/image.svg'
 import txtReference from './words.txt'; // txt === '/src/words.txt'
 
 // 这个例子使用 JSX，但你可以在任何框架下使用导入引用。
-<img src={imgReference} />;
+<img src={imgReference.src} alt="image description" />;
 ```
 
 所有其他没有明确提到的资源可以通过 ESM 的 `import` 语句导入，并将返回最终构建中的资源引用连接。这对使用链接引用非 JS 资源很有用，比如创建一个带有 `src` 属性的图片元素指向该图片。
 
 将图片放在 `public/` 文件夹中也很有用，这在[项目结构页面](/zh-cn/core-concepts/project-structure/#public)中有所解释。
+
+:::note
+鼓励将**替代文本**添加到 `<img>` 标记以提高可访问性！不要忘记向图像元素添加 `alt="一段有用的描述"` 属性。如果图像纯粹是装饰性的，则可以将该属性留空。
+:::
 
 ## `Astro.glob()`
 
@@ -163,7 +167,7 @@ const posts = await Astro.glob('../pages/post/*.md');
 </div>
 ```
 
-使用 `Astro.glob` 导入的 Astro 组件的类型为 [`AstroInstance`](/zh-cn/reference/api-reference/#astro-files)。你可以使用其 `default` 属性渲染每个组件实例：
+使用 `Astro.glob` 导入的 Astro 组件的类型为 [`AstroInstance`](/zh-cn/reference/api-reference/#astro-文件)。你可以使用其 `default` 属性渲染每个组件实例：
 
 ```astro title="src/pages/component-library.astro" {8}
 ---
@@ -181,7 +185,7 @@ const components = await Astro.glob('../components/*.astro');
 
 ### Glob 模式
 
-glob 模式是一个文件路径，它支持特殊的通配符字符。这用于一次引用项目中的多个文件。
+glob 模式是一个支持特殊通配符的文件路径。用于一次引用项目中的多个文件。
 
 例如，glob 模式 `./pages/**/*.{md,mdx}` 从 pages 子目录开始，查找其所有子目录（`/**`），并匹配以 `.md` 或 `.mdx` 结尾的任何文件名（`.{md,mdx}`）。
 
@@ -195,6 +199,14 @@ glob 模式是一个文件路径，它支持特殊的通配符字符。这用于
 - `/`（从项目根目录开始）
  
 [阅读更多关于 glob 模式语法](https://github.com/mrmlnc/fast-glob#pattern-syntax)
+
+
+#### `Astro.glob()` vs `getCollection()`
+
+[内容集合](/zh-cn/guides/content-collections/) 提供用于加载多个文件的 [`getCollection()` API](/zh-cn/reference/api-reference/#getcollection) 代替 `Astro.glob()`。如果你的内容文件 (例如 Markdown, MDX, Markdoc) 位于`src/content/` 目录内的集合中，使用 `getCollection()` [查询集合](/zh-cn/guides/content-collections/#查询集合)并返回内容条目。
+
+
+
 ## WASM
 
 ```js
@@ -208,7 +220,7 @@ Astro 支持使用浏览器的 [`WebAssembly`](https://developer.mozilla.org/en-
 
 我们鼓励 Astro 用户尽可能避免使用 Node.js 内置模块（`fs`、`path` 等）。Astro 兼容多个运行时使用 [适配器](/zh-cn/guides/server-side-rendering/#添加一个适配器)。这包括 [Deno](/zh-cn/guides/integrations-guide/deno/) 和 [Cloudflare Workers](/zh-cn/guides/integrations-guide/cloudflare/)，它们不支持 Node 内置模块，例如 `fs`。
 
-我们目标为常用的 Node.js 内置模块提供 Astro 化替代品。然而现在还没有这样的替代品。因此，如果**真的**需要，我们不会阻止你使用这些内置模块。Astro 支持使用较新 `node:` 前缀的 Node.js 内置模块。例如，如果你想读取一个文件，你可以这样做。
+我们致力于为常用的 Node.js 内置模块提供 Astro 化的替代品，不过现在还没有实现。因此，如果你**真的**需要，我们不会阻止你使用这些内置模块。Astro 支持使用较新 `node:` 前缀来支持 Node.js 内置模块。例如，如果你想读取一个文件，你可以这样做：
 
 ```astro
 ---
@@ -231,4 +243,5 @@ const data = JSON.parse(json);
 :::note[插件配置]
 请参阅插件的文档以了解配置选项以及如何正确安装它。
 :::
-**相关教程：** [添加对导入 YAML 数据的支持](/zh-cn/recipes/add-yaml-support/)。
+
+<RecipeLinks slugs={["zh-cn/recipes/add-yaml-support"]} />

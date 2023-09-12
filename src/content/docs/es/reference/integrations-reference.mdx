@@ -2,6 +2,7 @@
 title: APIs de integraciones de Astro
 i18nReady: true
 ---
+import Since from '~/components/Since.astro'
 
 Las **integraciones de Astro** agregan nuevas funcionalidades y comportamientos para tu proyecto con unas pocas líneas de código.
 
@@ -24,24 +25,33 @@ interface AstroIntegration {
     'astro:config:setup'?: (options: {
       config: AstroConfig;
       command: 'dev' | 'build';
+      isRestart: boolean;
       updateConfig: (newConfig: Record<string, any>) => void;
       addRenderer: (renderer: AstroRenderer) => void;
+      addWatchFile: (path: URL | string) => void;
+      addClientDirective: (directive: ClientDirectiveConfig) => void;
       injectScript: (stage: InjectedScriptStage, content: string) => void;
       injectRoute: ({ pattern: string, entryPoint: string }) => void;
+      logger: AstroIntegrationLogger;
     }) => void;
-    'astro:config:done'?: (options: { config: AstroConfig }) => void | Promise<void>;
-    'astro:server:setup'?: (options: { server: vite.ViteDevServer }) => void | Promise<void>;
-    'astro:server:start'?: (options: { address: AddressInfo }) => void | Promise<void>;
-    'astro:server:done'?: () => void | Promise<void>;
-    'astro:build:start'?: (options: { buildConfig: BuildConfig }) => void | Promise<void>;
+    'astro:config:done'?: (options: { config: AstroConfig; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:server:setup'?: (options: { server: vite.ViteDevServer; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:server:start'?: (options: { address: AddressInfo; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:server:done'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:build:start'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:build:setup'?: (options: {
       vite: ViteConfigWithSSR;
       pages: Map<string, PageBuildData>;
       target: 'client' | 'server';
+      logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
-    'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
-    'astro:build:ssr'?: (options: { manifest: SerializedSSRManifest }) => void | Promise<void>;
-    'astro:build:done'?: (options: { dir: URL; routes: RouteData[] }) => void | Promise<void>;
+    'astro:build:generated'?: (options: { dir: URL; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:build:ssr'?: (options: { 
+        manifest: SerializedSSRManifestm; 
+        entryPoints: Map<RouteData, URL>;
+        logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:build:done'?: (options: { dir: URL; routes: RouteData[]; logger: AstroIntegrationLogger; }) => void | Promise<void>;
   };
 }
 ```
@@ -64,8 +74,10 @@ interface AstroIntegration {
   updateConfig: (newConfig: Record<string, any>) => void;
   addRenderer: (renderer: AstroRenderer) => void;
   addWatchFile: (path: URL | string) => void;
+  addClientDirective: (directive: ClientDirectiveConfig) => void;
   injectScript: (stage: InjectedScriptStage, content: string) => void;
   injectRoute: ({ pattern: string, entryPoint: string }) => void;
+  logger: AstroIntegrationLogger;
 }) => void;
 ```
 
@@ -137,6 +149,71 @@ addWatchFile('/home/user/.../my-config.json');
 addWatchFile(new URL('./tailwind.config.js', config.root));
 ```
 
+#### Opción `addClientDirective`
+
+<Since v="2.6.0" />
+
+**Tipo:** `(directive:` [`ClientDirectiveConfig`](https://github.com/withastro/astro/blob/00327c213f74627ac9ca1dec774efa5bf71e9375/packages/astro/src/%40types/astro.ts#L1872-L1875) `) => void;`
+
+Añade una [directiva de cliente personalizada](/es/reference/directives-reference/#directivas-de-cliente-personalizadas) para utilizarla en los archivos `.astro`.
+
+Ten en cuenta que los puntos de entrada de las directivas solo se incluyen en el paquete a través de esbuild y se deben mantener pequeños para no ralentizar la hidratación del componente.
+
+Ejemplo de uso:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import clickDirective from './astro-click-directive/register.js'
+
+// https://astro.build/config
+export default defineConfig({
+  integrations: [
+    clickDirective()
+  ],
+});
+```
+
+```js title="astro-click-directive/register.js"
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "client:click",
+  hooks: {
+    "astro:config:setup": ({ addClientDirective }) => {
+      addClientDirective({
+        name: "click",
+        entrypoint: "./astro-click-directive/click.js",
+      });
+    },
+  },
+});
+```
+
+```js title="directiva-clic-de-astro/clic.js"
+/**
+ * Hidratar al hacer el primer click en la ventana
+ * @type {import('astro').ClientDirective}
+ */
+export default (load, opts, el) => {
+  window.addEventListener('click', async () => {
+    const hydrate = await load()
+    await hydrate()
+  }, { once: true })
+}
+```
+
+También puedes añadir tipos para las directivas en el archivo de definición de tipos de tu biblioteca:
+
+```ts title="directiva-clic-de-astro/index.d.ts"
+declare module 'astro' {
+  interface AstroClientDirectives {
+    'client:click'?: boolean
+  }
+}
+```
+
+
 #### Opción `injectRoute`
 
 **Tipo:** `({ pattern: string, entryPoint: string }) => void;`
@@ -148,12 +225,24 @@ Una función callback para inyectar rutas a un proyecto de Astro. Las rutas inye
 - `pattern` - es la ruta en el navegador, por ejemplo `/foo/bar`. Un `pattern` puede usar la sintaxis de ruta de archivo de Astro para indicar rutas dinámicas, por ejemplo `/foo/[bar]` o `/foo/[...bar]`. Tenga en cuenta que **no** se necesita una extensión de archivo en el `patrón`.
 - `entryPoint` - un especificador de módulo simple que apunta hacia la página `.astro` o el controlador de ruta `.js`/`.ts` que maneja la ruta indicada en el `pattern`.
 
-Ejemplo de uso:
+##### Ejemplo de uso
 
 ```js
 injectRoute({
-  pattern: '/foo/[dynamic]',
-  entryPoint: 'foo/dynamic-page.astro'
+  // Utiliza la sintaxis de patrón de Astro para rutas dinámicas.
+  pattern: '/subfolder/[dynamic]',
+  // Utiliza la sintaxis de ruta relativa para una ruta local.
+  entryPoint: './src/dynamic-page.astro'
+});
+```
+
+Para una integración diseñada para ser instalada en otros proyectos, utiliza su nombre de paquete para referirse al punto de entrada de la ruta.
+El siguiente ejemplo muestra un paquete publicado en npm como `@fancy/dashboard` inyectando una ruta de panel:
+
+```js
+injectRoute({
+  pattern: '/fancy-dashboard',
+  entryPoint: '@fancy/dashboard/dashboard.astro'
 });
 ```
 
@@ -179,7 +268,7 @@ El **`stage`** indica cómo debe insertarse este script (el `content`). Algunas 
 
 **Hook anterior:** [`astro:config:setup`](#astroconfigsetup)
 
-**Siguiente hook:** [`astro:server:setup`](#astroserversetup) cuando se ejecuta en modo "dev" o "vista previa", y [`astro:build:start`](#astrobuildstart) durante las compilaciones de producción
+**Siguiente hook:** [`astro:server:setup`](#astroserversetup) cuando se ejecuta en modo "dev", y [`astro:build:start`](#astrobuildstart) durante las compilaciones de producción
 
 **Cuándo:** Después que la configuración de Astro se haya resuelto y otras integraciones hayan ejecutado sus hooks `astro:config:setup`.
 
@@ -201,7 +290,7 @@ Una copia de solo lectura de [Astro config](/es/reference/configuration-referenc
 
 **Siguiente hook:** [`astro:server:start`](#astroserverstart)
 
-**Cuándo:** Justo después de que se crea el servidor Vite en modo "dev" o "vista previa", pero antes de que se dispare el evento `listen()`. [Consulta la API createServer de Vite](https://vitejs.dev/guide/api-javascript.html#createserver) para obtener más información.
+**Cuándo:** Justo después de que se crea el servidor Vite en modo "dev", pero antes de que se dispare el evento `listen()`. [Consulta la API createServer de Vite](https://vitejs.dev/guide/api-javascript.html#createserver) para obtener más información.
 
 **Por qué:** Para actualizar las opciones del servidor de Vite y el middleware.
 
@@ -213,7 +302,7 @@ Una copia de solo lectura de [Astro config](/es/reference/configuration-referenc
 
 **Tipo:** [`ViteDevServer`](https://vitejs.dev/guide/api-javascript.html#vitedevserver)
 
-Una instancia mutable del servidor de Vite utilizada en modo "dev" y "vista previa". Por ejemplo, esto es [utilizado por nuestra integración Partytown](/es/guides/integrations-guide/partytown/) para inyectar el servidor Partytown como middleware:
+Una instancia mutable del servidor de Vite utilizada en modo "dev". Por ejemplo, esto es [utilizado por nuestra integración Partytown](/es/guides/integrations-guide/partytown/) para inyectar el servidor Partytown como middleware:
 
 ```js
 export default {
@@ -313,10 +402,17 @@ La dirección, familia y número de puerto proporcionados por el [módulo NodeJS
 
 **Cuándo:** después que se completa la compilación de producción SSR.
 
-**Por qué:** Para obtener acceso al manifiesto de SSR, esto es útil al crear compilaciones de SSR personalizadas en plugins o integraciones.
+**Por qué:** Para acceder al manifiesto SSR y al mapeo de los puntos de entrada emitidos. Esto es útil al crear compilaciones SSR personalizadas en plugins o integraciones.
+
+- `entryPoints` mapea una ruta de página al archivo físico emitido después de la compilación;
+- `middlewareEntryPoint` es la ruta del sistema de archivos del archivo de middleware;
 
 ```js
-'astro:build:ssr'?: (options: { manifest: SerializedSSRManifest }) => void | Promise<void>;
+'astro:build:ssr'?: (options: {
+    manifest: SerializedSSRManifest,
+    entryPoints: Map<RouteData, URL>,
+    middlewareEntryPoint: URL
+}) => void | Promise<void>;
 ```
 
 ### `astro:build:done`
@@ -328,7 +424,7 @@ La dirección, familia y número de puerto proporcionados por el [módulo NodeJS
 **Por qué:** Para acceder a rutas y recursos generados para extensión (por ejemplo, copiar contenido en la carpeta `/assets` generado). Si planeas transformar los recursos generados, te recomendamos explorar la [API de plugin de Vite](https://vitejs.dev/guide/api-plugin.html) y [la configuración a través de `astro:config:setup`](#opción-updateconfig) en su lugar.
 
 ```js
-'astro:build:done'?: (options: { dir: URL; routes: RouteData[] }) => void | Promise<void>;
+'astro:build:done'?: (options: { dir: URL; routes: RouteData[], pages: { pathname: string }[] }) => void | Promise<void>;
 ```
 
 #### Opción `dir`
@@ -359,7 +455,7 @@ export default function myIntegration() {
 
 **Tipo:** [`RouteData[]`](#referencia-del-tipo-routedata)
 
-Una lista de todas las rutas generadas junto con sus metadatos asociados. **¡Estará vacío cuando uses un adaptador SSR!**
+Una lista de todas las rutas generadas junto con sus metadatos asociados.
 
 Puedes consultar la referencia completa del tipo `RouteData` a continuación, pero las propiedades más comunes son:
 
@@ -404,6 +500,15 @@ interface RouteData {
 }
 ```
 
+#### Opción `pages`
+
+**Tipo:** `{ pathname: string }[]`
+
+Una lista de todas las páginas generadas. Es un objeto con una propiedad.
+
+- `pathname` - la ruta final de la página.
+
+
 ## Permitir la instalación con `astro add`
 
 [El comando `astro add`](/es/reference/cli-reference/#astro-add) permite a los usuarios agregar fácilmente integraciones y adaptadores a su proyecto. Si deseas que _tu_ integración se pueda instalar con esta herramienta, **agrega `astro-integration` al campo `keywords` en el `package.json` de la integración**:
@@ -430,6 +535,69 @@ export default defineConfig({
 :::caution
 Esto supone que la definición de la integración es 1) una exportación `default` y 2) una función. ¡Asegúrate de que esto sea cierto antes de agregar la palabra clave `astro-integration`!
 :::
+
+## `AstroIntegrationLogger`
+
+Una instancia del logger de Astro, útil para escribir registros. Este logger utiliza el mismo [nivel de registro](/es/reference/cli-reference/#--verbose)
+configurado a través de la CLI.
+
+**Métodos disponibles** para escribir en la terminal:
+- `logger.info("Mensaje")`;
+- `logger.warn("Mensaje")`;
+- `logger.error("Mensaje")`;
+- `logger.debug("Mensaje")`;
+
+Todos los mensajes son precedidos por una etiqueta que tiene el mismo valor de la integración.
+
+```ts title="integration.ts" {8}
+import type { AstroIntegration } from "astro";
+export function formatIntegration(): AstroIntegration {
+    return {
+        name: "astro-format",
+        hooks: {
+            "astro:build:done": (options, { logger }) => {
+                // hacer algo
+                logger.info("Integration ready.");
+            }
+        }
+    }
+}
+```
+
+El ejemplo anterior registrará un mensaje que incluye el mensaje `info` proporcionado:
+
+```shell
+[astro-format] Integration ready.
+```
+
+Para registrar algunos mensajes con una etiqueta diferente, utiliza el método `.fork` para especificar una alternativa al `nombre` predeterminado:
+
+```ts title="integration.ts" ".fork"
+import type { AstroIntegration } from "astro";
+export function formatIntegration(): AstroIntegration {
+    return {
+        name: "astro-format",
+        hooks: {
+            "astro:config:done": ({ logger }) => {
+                // hacer algo
+                logger.info("Integration ready.");
+            },
+            "astro:build:done": ({ logger }) => {
+                const buildLogger = logger.fork("astro-format/build");
+                // hacer algo
+                buildLogger.info("Build finished.")
+            }
+        }
+    }
+}
+```
+
+El ejemplo anterior generará registros con `[astro-format]` de forma predeterminada, y con `[astro-format/build]` cuando se especifique:
+
+```shell
+[astro-format] Integration ready.
+[astro-format/build] Build finished.
+```
 
 ## Orden de integración
 

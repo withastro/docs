@@ -67,6 +67,7 @@ Commands
             check  Check your project for errors.
               dev  Start the development server.
              docs  Open documentation in your web browser.
+             info  List info about your current Astro setup.
           preview  Preview your build locally.
              sync  Generate content collection types.
         telemetry  Configure telemetry settings.
@@ -102,7 +103,7 @@ When you follow the instructions to [install Astro manually](/en/install/manual/
 }
 ```
 
-You will often use these `astro` commands, or the scripts that run them, without any flags. Add flags to the command when you want to customize the command's behavior. For example, you may wish to start the development server on a different port, or build your site including draft pages. 
+You will often use these `astro` commands, or the scripts that run them, without any flags. Add flags to the command when you want to customize the command's behavior. For example, you may wish to start the development server on a different port, or build your site with verbose logs for debugging. 
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -110,8 +111,8 @@ You will often use these `astro` commands, or the scripts that run them, without
   # run the dev server on port 8080 using the `start` script in `package.json`
   npm run start -- --port 8080
 
-  # build your site including draft pages using the `build` script in `package.json`
-  npm run build -- --drafts
+  # build your site with verbose logs using the `build` script in `package.json`
+  npm run build -- --verbose
   ```
   (The extra `--` before the `--port` flag is necessary for `npm` to pass your flags to the `astro` command.)
   </Fragment>
@@ -120,8 +121,8 @@ You will often use these `astro` commands, or the scripts that run them, without
   # run the dev server on port 8080 using the `start` script in `package.json`
   pnpm start --port 8080
 
-  # build your site including draft pages using the `build` script in `package.json`
-  pnpm build --drafts
+  # build your site with verbose logs using the `build` script in `package.json`
+  pnpm build --verbose
   ```
   </Fragment>
   <Fragment slot="yarn">
@@ -129,8 +130,8 @@ You will often use these `astro` commands, or the scripts that run them, without
   # run the dev server on port 8080 using the `start` script in `package.json`
   yarn start --port 8080
 
-  # build your site including draft pages using the `build` script in `package.json`
-  yarn build --drafts
+  # build your site with verbose logs using the `build` script in `package.json`
+  yarn build --verbose
   ```
   </Fragment>
 </PackageManagerTabs>
@@ -199,7 +200,7 @@ Use these flags to customize the behavior of the Astro dev server. For flags sha
 
 #### `--port <number>`
 
-Specifies which port to run on. Defaults to `3000`.
+Specifies which port to run on. Defaults to `4321`.
 
 #### `--host [optional host address]`
 
@@ -219,10 +220,6 @@ Builds your site for deployment. By default, this will generate static files and
 <h3>Flags</h3>
 
 Use these flags to customize your build. For flags shared with other Astro commands, see [common flags](#common-flags) below.
-
-#### `--drafts`
-
-Includes [Markdown draft pages](/en/guides/markdown-content/#draft-pages) in the build.
 
 ## `astro preview`
 
@@ -273,6 +270,25 @@ Adds an integration to your configuration. Read more in [the integrations guide]
 ## `astro docs`
 
 Launches the Astro Docs website directly from the terminal.
+
+## `astro info`
+
+Reports useful information about your current Astro environment. Useful for providing information when opening an issue.
+
+```shell
+astro info
+```
+
+Example output:
+
+```
+Astro version            v2.6.6
+Package manager          pnpm
+Platform                 darwin
+Architecture             arm64
+Adapter                  @astrojs/vercel/serverless
+Integrations             None or couldn't determine.
+```
 
 ## `astro telemetry`
 
@@ -353,3 +369,129 @@ Automatically opens the app in the browser on server start.
 ### `--help`
 
 Prints the help message and exits.
+
+## Advanced APIs (Experimental)
+
+If you need more control when running Astro, the `"astro"` package also exports APIs to programmatically run the CLI commands. 
+
+These APIs are experimental and their API signature may change. Any updates will be mentioned in the [Astro changelog](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md) and the information below will always show the current, up-to-date information.
+
+### `AstroInlineConfig`
+
+The `AstroInlineConfig` type is used by all of the command APIs below. It extends from the user [Astro config](/en/reference/configuration-reference/) type:
+
+```ts
+interface AstroInlineConfig extends AstroUserConfig {
+	configFile?: string | false;
+	mode?: "development" | "production";
+	logLevel?: "debug" | "info" | "warn" | "error" | "silent";
+}
+```
+
+#### `configFile`
+
+<p>
+
+**Type:** `string | false`<br />
+**Default:** `undefined`
+</p>
+
+A custom path to the Astro config file. 
+
+If this value is undefined (default) or unset, Astro will search for an `astro.config.(js,mjs,ts)` file relative to the `root` and load the config file if found.
+
+If a relative path is set, it will resolve based on the current working directory.
+
+Set to `false` to disable loading any config files.
+
+The inline config passed in this object will take highest priority when merging with the loaded user config.
+
+#### `mode`
+
+<p>
+
+**Type:** `"development" | "production"`<br />
+**Default:** `"development"` when running `astro dev`, `"production"` when running `astro build`
+</p>
+
+The mode used when building your site to generate either "development" or "production" code.
+
+#### `logLevel`
+
+<p>
+
+**Type:** `"debug" | "info" | "warn" | "error" | "silent"`<br />
+**Default:** `"info"`
+</p>
+
+The logging level to filter messages logged by Astro.
+
+- `"debug"`: Log everything, including noisy debugging diagnostics.
+- `"info"`: Log informational messages, warnings, and errors.
+- `"warn"`: Log warnings and errors.
+- `"error"`: Log errors only.
+- `"silent"`: No logging.
+
+### `dev()`
+
+**Type:** `(inlineConfig: AstroInlineConfig) => AstroDevServer`
+
+Similar to [`astro dev`](#astro-dev), it runs Astro's development server.
+
+```js
+import { dev } from "astro";
+
+const devServer = await dev({
+  root: "./my-project",
+});
+
+// Stop the server if needed
+await devServer.stop();
+```
+
+### `build()`
+
+**Type:** `(inlineConfig: AstroInlineConfig) => void`
+
+Similar to [`astro build`](#astro-build), it builds your site for deployment.
+
+```js
+import { build } from "astro";
+
+await build({
+  root: "./my-project",
+});
+```
+
+### `preview()`
+
+**Type:** `(inlineConfig: AstroInlineConfig) => AstroPreviewServer`
+
+Similar to [`astro preview`](#astro-preview), it starts a local server to serve your static `dist/` directory.
+
+```js
+import { preview } from "astro";
+
+const previewServer = await preview({
+  root: "./my-project",
+});
+
+// Stop the server if needed
+await previewServer.stop();
+```
+
+### `sync()`
+
+**Type:** `(inlineConfig: AstroInlineConfig) => number`
+
+Similar to [`astro sync`](#astro-sync), it generates TypeScript types for all Astro modules
+
+```js
+import { sync } from "astro";
+
+const exitCode = await sync({
+  root: "./my-project",
+});
+
+process.exit(exitCode)
+```

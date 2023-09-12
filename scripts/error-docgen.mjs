@@ -3,8 +3,10 @@ import jsdoc from 'jsdoc-api';
 import fetch from 'node-fetch';
 import ts from 'typescript';
 
-const errorURL =
-	'https://raw.githubusercontent.com/withastro/astro/main/packages/astro/src/core/errors/errors-data.ts';
+const sourceBranch = process.env.SOURCE_BRANCH || 'main';
+const sourceRepo = process.env.SOURCE_REPO || 'withastro/astro';
+
+const errorURL = `https://raw.githubusercontent.com/${sourceRepo}/${sourceBranch}/packages/astro/src/core/errors/errors-data.ts`;
 
 // Fill this in to test a response locally, with fetching.
 const STUB = undefined; // fs.readFileSync('../astro/packages/astro/src/core/errors/errors-data.ts', {encoding: 'utf-8',});
@@ -54,9 +56,9 @@ export async function run() {
 
 		// The error's title. Fallback to the error's name if we don't have one
 		const errorTitle = sanitizeString(
-			astroErrorData.errors[comment.meta.code.name].title ?? comment.name
+			// the name has string like "export.UnknownError", and we remove the "export." bit to get the name of the error
+			astroErrorData.errors[comment.meta.code.name.slice('exports.'.length)].title ?? comment.name
 		);
-		const errorCode = astroErrorData.errors[comment.name].code;
 		const completeReferenceEntry = [
 			// Errors can be deprecated, as such we add a little "deprecated" caution to errors that needs it
 			getDeprecatedText(comment.deprecated),
@@ -64,7 +66,6 @@ export async function run() {
 			// Get the error message and print it in a blockquote
 			getMessage(
 				comment.name,
-				errorCode,
 				astroErrorData.errors[comment.name].message,
 				comment.tags.find((tag) => tag.title === 'message')?.value
 			),
@@ -90,9 +91,7 @@ export async function run() {
 
 		// Build string for error reference list
 		astroResult += [
-			`- [**${comment.name}**](/en/reference/errors/${fileName}/) (E${padCode(
-				errorCode
-			)})<br/>${errorTitle}\n`,
+			`- [**${comment.name}**](/en/reference/errors/${fileName}/)<br/>${errorTitle}\n`,
 		]
 			.filter((l) => l !== undefined)
 			.join('\n');
@@ -106,12 +105,11 @@ export async function run() {
 
 	/**
 	 * @param {string} errorName
-	 * @param {number} errorCode
 	 * @param {string} message
 	 * @param {string} cleanMessage
 	 * @returns {(string | undefined)} Formatted message for the error or `undefined`
 	 */
-	function getMessage(errorName, errorCode, message, cleanMessage) {
+	function getMessage(errorName, message, cleanMessage) {
 		let resultMessage = undefined;
 
 		if (cleanMessage) {
@@ -127,8 +125,7 @@ export async function run() {
 		}
 
 		if (resultMessage) {
-			resultMessage += ` (E${padCode(errorCode)})\n`;
-			return resultMessage;
+			return resultMessage + '\n';
 		}
 
 		return undefined;
@@ -171,7 +168,7 @@ async function getAstroErrorsData() {
 	const dataUri = 'data:text/javascript;charset=utf-8,' + encodedJs;
 
 	/**
-	 * @type {{AstroErrorData: Object.<string, {code: number, message: string, hint: string}>}
+	 * @type {{AstroErrorData: Object.<string, {code: number, message: string, hint: string, name: string}>}
 	 */
 	const data = await import(dataUri);
 
@@ -183,7 +180,7 @@ async function getAstroErrorsData() {
 		.filter((data) => data.tags && data.tags.some((tag) => tag.title === 'docs'));
 
 	return {
-		errors: data.AstroErrorData,
+		errors: data,
 		jsdoc: jsDocComments,
 	};
 }

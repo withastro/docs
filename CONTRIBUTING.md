@@ -8,8 +8,11 @@ We welcome contributions of any size and contributors of any skill level. As an 
 
 **See also**:
 
-- [Astro Maintainers](MAINTAINERS.md) manual
-- [Support Squad members](SUPPORTSQUAD.md) manual
+- [Writing Guide](https://github.com/withastro/docs/blob/main/contributor-guides/writing-and-style-guide.md)
+- [Translating Guide](https://github.com/withastro/docs/blob/main/contributor-guides/translating-astro-docs.md)
+- [Recipe Guide](https://github.com/withastro/docs/blob/main/contributor-guides/submitting-a-recipe.md)
+- [Astro Maintainers](https://github.com/withastro/docs/blob/main/contributor-guides/astro-maintainers-guide-to-docs.md) manual
+- [Support Squad members](https://github.com/withastro/docs/blob/main/contributor-guides/support-squad-guide-to-docs.md) manual
 
 
 This document is an active work in progress! But, we hope you'll find some useful information here to get started.
@@ -156,7 +159,7 @@ pnpm install
 pnpm start
 ```
 
-If you’re copying these instructions, remember to [configure this project as a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/configuring-a-remote-for-a-fork).
+If you’re copying these instructions, remember to [configure this project as a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/configuring-a-remote-repository-for-a-fork).
 
 ```shell
 git remote add upstream git@github.com:withastro/docs.git

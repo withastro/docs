@@ -1,7 +1,7 @@
-import { unescape } from 'html-escaper';
 import type { ComponentChildren, JSX } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import type { TocItem } from '../../util/generateToc';
+import { unescape } from '../../util/html-entities';
 import './TableOfContents.css';
 
 interface Props {

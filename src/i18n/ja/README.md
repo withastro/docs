@@ -3,7 +3,7 @@
 Astroドキュメントの日本語翻訳に興味を持っていただき、ありがとうございます！
 Astroの日本語翻訳にはAstroユーザーであり、ネイティブレベルの日本語能力があれば誰でも参加できます。
 
-参加するには[🌐 i18n Guide](https://github.com/withastro/docs/blob/main/TRANSLATING.md)にも目を通しておいてください。
+参加するには[🌐 i18n Guide](https://github.com/withastro/docs/blob/main/contributor-guides/translating-astro-docs.md)にも目を通しておいてください。
 また、[Discordの#docs-i18n内スレッドi18n-gang-ja](https://discord.com/channels/830184174198718474/972429103821111326)では日本語でチャットできます。翻訳が被ったりすることを避けるためにもぜひご参加ください。
 
 ## このガイドの目的
@@ -19,13 +19,17 @@ Astroの日本語翻訳にはAstroユーザーであり、ネイティブレベ�
 - 冗長表現はさけてください
   - することができます → できます
   - 使うことができます → 使えます
+- メニュー項目など表示領域が限られている箇所（たとえばsrc/i18n/ja/ui.tsのRight Sidebar）では、たとえば「このページを編集」などのように、可能であれば文末の「する」を省略します（「このページを編集する」とは訳さないでください）
+  - ただし、「貢献する」のように目的語などがなく「名詞+する」だけの場合は「する」を省略しません
 
 ## 用語集
 
 | 元の用語 | 翻訳 | 備考
 |:----|:----|:----
+| adapter | アダプター |
 | build | ビルドする | Astroが生成する工程のことを指す場合は構築などにしません
 | content collections | コンテンツコレクション |
+| contributor | コントリビューター | ただし、動詞としてのcontributeは「貢献する」などの通常の日本語にします
 | dependency | 依存関係 |
 | frontmatter | フロントマター | フロントマターの概念を指す場合。プロパティを示す場合はfrontmatterのまま訳しません
 | integration | インテグレーション | Astroの機能を指す場合はインテグレーションにします
@@ -35,6 +39,7 @@ Astroの日本語翻訳にはAstroユーザーであり、ネイティブレベ�
 | render | レンダリング（する） |
 | route | ルーティング | routeとrootを区別するため、訳文ではrouteを基本的に「ルーティング」と訳します
 | Markdown | Markdown | Markdownはマークダウンとカタカナ表記にしません
+| Issue | Issue | GitHubにおけるIssueについてはカタカナ表記にしません
 
 ## このガイドへの追加や変更
 

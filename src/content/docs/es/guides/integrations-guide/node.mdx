@@ -1,0 +1,226 @@
+---
+type: integration
+title: '@astrojs/node'
+description: Aprende como usar el adaptador SSR @astrojs/node para desplegar tu proyecto de Astro.
+githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/node/'
+hasREADME: true
+category: adapter
+i18nReady: true
+---
+
+import Video from '~/components/Video.astro';
+
+Este adaptador permite a Astro desplegar tu sitio SSR a objetivos de Node.
+
+## ¿Por qué @astrojs/node?
+
+Si estás usando Astro como un generador de sitios estáticos—su comportamiento es fuera de serie—no necesitas un adaptador.
+
+Si deseas [usar renderizado del lado del servidor (SSR)](/es/guides/server-side-rendering/), Astro requiere un adaptador que coincida con tu tiempo de ejecución de implementación.
+
+[Node.js](https://nodejs.org/en/) es un tiempo de ejecución de JavaScript para código del lado del servidor. @astrojs/node puede ser usado en modo independiente o como middleware para otros servidores http, como [Express](https://expressjs.com/).
+
+## Instalación
+
+Agrega el adaptador de Node para habilitar SSR en tu proyecto de Astro con el siguiente comando `astro add`. Esto instalará el adaptador y hará los cambios apropiados a tu archivo `astro.config.mjs` en un solo paso.
+
+```sh
+# Usando NPM
+npx astro add node
+# Usando Yarn
+yarn astro add node
+# Usando PNPM
+pnpm astro add node
+```
+
+### Añadir dependencias manualmente
+
+Si prefieres instalar el adaptador manualmente, completa los siguientes dos pasos:
+
+1.  Instala el adaptador de Node a las dependencias de tu proyecto usando tu gestor de paquetes preferido. Si estás usando npm o no estás seguro, ejecuta esto en la terminal:
+
+    ```bash
+      npm install @astrojs/node
+    ```
+
+2.  Agrega dos lineas nuevas a tu archivo de configuración `astro.config.mjs` del proyecto.
+
+    ```js ins={3, 6-9}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import node from '@astrojs/node';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: node({
+        mode: 'standalone',
+      }),
+    });
+    ```
+
+## Configuración
+
+@astrojs/node puede ser configurado pasando opciones al adaptador. Las siguientes opciones están disponibles:
+
+### Modo
+
+Controla si el adaptador construye en modo `middleware` o `standalone`.
+
+*   El modo `middleware` permite que la salida generada se utilice como middleware para otro servidor de Node.js, como Express.js o Fastify.
+
+    ```js
+    import { defineConfig } from 'astro/config';
+    import node from '@astrojs/node';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: node({
+        mode: 'middleware',
+      }),
+    });
+    ```
+
+*   El modo `standalone` permite construir un servidor se que inicia automáticamente cuando el módulo de entrada se ejecuta. Esto te permite desplegar tu construcción a un host sin ningún código adicional.
+
+## Uso
+
+Primero, [realiza una construcción](/es/guides/deploy/#construyendo-tu-proyecto-localmente). Dependiendo del `mode` seleccionado (ver arriba) sigue los pasos apropiados a continuación:
+
+### Middleware
+
+La entrada del servidor se construye a `./dist/server/entry.mjs` de forma predeterminada. Este módulo exporta una función `handler` que puede ser usada con cualquier framework que soporte los objetos `request` y `response` de Node.
+
+Por ejemplo, con Express:
+
+```js
+import express from 'express';
+import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+const app = express();
+// Modifica esto en función de la opción `base` de tu archivo astro.config.mjs.
+// Deben coincidir. El valor predeterminado es "/".
+const base = '/'
+app.use(base, express.static('dist/client/'));
+app.use(ssrHandler);
+
+app.listen(8080);
+```
+
+O, con Fastify (>4):
+
+```js
+import Fastify from 'fastify';
+import fastifyMiddie from '@fastify/middie';
+import fastifyStatic from '@fastify/static';
+import { fileURLToPath } from 'node:url';
+import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+const app = Fastify({ logger: true });
+
+await app
+  .register(fastifyStatic, {
+    root: fileURLToPath(new URL('./dist/client', import.meta.url)),
+  })
+  .register(fastifyMiddie);
+app.use(ssrHandler);
+
+app.listen({ port: 8080 });
+```
+
+Además, también puedes pasar un objeto para acceder a través de `Astro.locals` o en el middleware de Astro:
+```js
+import express from 'express';
+import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+const app = express();
+app.use(express.static('dist/client/'));
+app.use((req, res, next) => {
+  const locals = {
+    title: 'Nuevo título',
+  };
+
+  ssrHandler(req, res, next, locals);
+});
+
+app.listen(8080);
+```
+
+Ten en cuenta que el modo middleware no sirve de archivos. Necesitarás configurar tu framework HTTP para que lo haga por ti. De forma predeterminada, los activos del cliente se escriben en `./dist/client/`.
+
+### Standalone
+
+En el modo standalone, un servidor se inicia cuando el punto de entrada del servidor se ejecuta. De forma predeterminada se construye a `./dist/server/entry.mjs`. Puedes ejecutarlo con:
+
+```shell
+node ./dist/server/entry.mjs
+```
+
+Para el modo standalone, el servidor maneja el servidor de archivos además de las rutas de página y API.
+
+#### Host y puerto personalizados
+
+Puedes anular el host y el puerto en los que se ejecuta el servidor independiente pasándolos como variables de entorno en tiempo de ejecución:
+
+```shell
+HOST=0.0.0.0 PORT=4321 node ./dist/server/entry.mjs
+```
+
+#### HTTPS
+
+Por defecto el servidor standalone usa HTTP. Esto funciona bien si tienes un servidor proxy delante de él que hace HTTPS. Si necesitas que el servidor standalone ejecute HTTPS por sí mismo, necesitas proveer tu llave SSL y certificado.
+
+Puedes pasar la ruta a tu llave y certificado a través de las variables de entorno `SERVER_CERT_PATH` y `SERVER_KEY_PATH`. Así es como podrías pasarlas en bash:
+
+```bash
+SERVER_KEY_PATH=./private/key.pem SERVER_CERT_PATH=./private/cert.pem node ./dist/server/entry.mjs
+```
+
+#### Variables de entorno en tiempo de ejecución
+
+Si existe un archivo `.env` que contiene variables de entorno está presente cuando se ejecuta el proceso de construcción, estos valores se codificarán en la salida, al igual que al generar un sitio web estático.
+
+Durante la compilación, las variables de tiempo de ejecución deben estar ausentes del archivo `.env`, y debes proporcionar a Astro todas las variables de entorno que esperas en tiempo de ejecución: `VARIABLE_1=placeholder astro build`. Esto le indica a Astro que el valor real estará disponible cuando se ejecute la aplicación construida. El valor de marcador de posición será ignorado por el proceso de construcción, y Astro usará el valor proporcionado en tiempo de ejecución.
+
+En este caso de múltiples variables de tiempo de ejecución, almacénalas en un archivo separado (por ejemplo, `.env.runtime`) de `.env`. Inicia la construcción con el siguiente comando:
+
+```sh
+export $(cat .env.runtime) && astro build
+```
+
+## Solución de problemas
+
+### SyntaxError: Export nombrado 'compile' no encontrado
+
+Puedes ver esto cuando ejecutas el script de entrada si fue construido con npm o Yarn. Este es un problema conocido que será arreglado en una versión futura. Como solución alternativa, agrega `"path-to-regexp"` al array `noExternal`:
+
+```js ins={9-13}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+import node from '@astrojs/node';
+
+export default defineConfig({
+  output: "server",
+  adapter: node(),
+  vite: {
+    ssr: {
+      noExternal: ['path-to-regexp'],
+    },
+  },
+});
+```
+
+Para obtener más ayuda, revisa el canal `#support` en [Discord](https://astro.build/chat). ¡Nuestros amigables miembros del Escuadrón de Soporte están aquí para ayudarte!
+
+También puedes revisar nuestra [Documentación de Integraciones de Astro][astro-integration] para más información sobre integraciones.
+
+
+## Contribuyendo
+
+Este paquete es mantenido por el equipo central de Astro. ¡Eres bienvenido a enviar un issue o PR!
+
+## Changelog
+
+Consulta el [CHANGELOG.md](https://github.com/withastro/astro/tree/main/packages/integrations/node/CHANGELOG.md) para ver el historial de cambios de esta integración.
+
+[astro-integration]: /es/guides/integrations-guide/

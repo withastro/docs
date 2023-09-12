@@ -110,6 +110,72 @@ The value can be either an absolute file system path or a path relative to the p
 - build.server
 
 
+### cacheDir
+
+<p>
+
+**Type:** `string`<br />
+**Default:** `"./node_modules/.astro"`
+</p>
+
+Set the directory for caching build artifacts. Files in this directory will be used in subsequent builds to speed up the build time.
+
+The value can be either an absolute file system path or a path relative to the project root.
+
+```js
+{
+  cacheDir: './my-custom-cache-directory'
+}
+```
+
+
+### redirects
+
+<p>
+
+**Type:** `Record.<string, RedirectConfig>`<br />
+**Default:** `{}`<br />
+<Since v="2.9.0" />
+</p>
+
+Specify a mapping of redirects where the key is the route to match
+and the value is the path to redirect to.
+
+You can redirect both static and dynamic routes, but only to the same kind of route.
+For example you cannot have a `'/article': '/blog/[...slug]'` redirect.
+
+
+```js
+{
+  redirects: {
+    '/old': '/new',
+    '/blog/[...slug]': '/articles/[...slug]',
+  }
+}
+```
+
+
+For statically-generated sites with no adapter installed, this will produce a client redirect using a [`<meta http-equiv="refresh">` tag](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#http-equiv) and does not support status codes.
+
+When using SSR or with a static adapter in `output: static`
+mode, status codes are supported.
+Astro will serve redirected GET requests with a status of `301`
+and use a status of `308` for any other request method.
+
+You can customize the [redirection status code](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages) using an object in the redirect config:
+
+```js
+{
+  redirects: {
+    '/other': {
+      status: 302,
+      destination: '/place',
+    },
+  }
+}
+```
+
+
 ### site
 
 <p>
@@ -122,6 +188,24 @@ Your final, deployed URL. Astro uses this full URL to generate your sitemap and 
 ```js
 {
   site: 'https://www.my-site.dev'
+}
+```
+
+
+### compressHTML
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `true`
+</p>
+
+This is an option to minify your HTML output and reduce the size of your HTML files. By default, Astro removes all whitespace from your HTML, including line breaks, from `.astro` components. This occurs both in development mode and in the final build.
+To disable HTML compression, set the `compressHTML` flag to `false`.
+
+```js
+{
+  compressHTML: false
 }
 ```
 
@@ -145,10 +229,7 @@ In the example below, `astro dev` will start your server at `/docs`.
 
 When using this option, all of your static asset imports and URLs should add the base as a prefix. You can access this value via `import.meta.env.BASE_URL`.
 
-```astro
-<a href="/docs/about/">About</a>
-<img src=`${import.meta.env.BASE_URL}/image.png`>
-```
+The value of `import.meta.env.BASE_URL` respects your `trailingSlash` config and will include a trailing slash if you explicitly include one or if `trailingSlash: "always"` is set. If `trailingSlash: "never"` is set, `BASE_URL` will not include a trailing slash, even if `base` includes one.
 
 
 ### trailingSlash
@@ -178,6 +259,25 @@ You can also set this if you prefer to be more strict yourself, so that URLs wit
 - build.format
 
 
+### scopedStyleStrategy
+
+<p>
+
+**Type:** `'where' | 'class' | 'attribute'`<br />
+**Default:** `'attribute'`<br />
+<Since v="2.4" />
+</p>
+
+Specify the strategy used for scoping styles within Astro components. Choose from:
+  - `'where'` 		- Use `:where` selectors, causing no specifity increase.
+  - `'class'` 		- Use class-based selectors, causing a +1 specifity increase.
+  - `'attribute'` 	- Use `data-` attributes, causing no specifity increase.
+
+Using `'class'` is helpful when you want to ensure that element selectors within an Astro component override global style defaults (e.g. from a global stylesheet).
+Using `'where'` gives you more control over specifity, but requires that you use higher-specifity selectors, layers, and other tools to control which selectors are applied.
+Using `'attribute'` is useful when you are manipulating the `class` attribute of elements and need to avoid conflicts between your own styling logic and Astro's application of styles.
+
+
 ### adapter
 
 <p>
@@ -193,7 +293,7 @@ Deploy to your favorite server, serverless, or edge host with build adapters. Im
 import netlify from '@astrojs/netlify/functions';
 {
   // Example: Build for Netlify serverless deployment
-	 adapter: netlify(),
+  adapter: netlify(),
 }
 ```
 **See Also:**
@@ -204,14 +304,15 @@ import netlify from '@astrojs/netlify/functions';
 
 <p>
 
-**Type:** `'static' | 'server'`<br />
+**Type:** `'static' | 'server' | 'hybrid'`<br />
 **Default:** `'static'`
 </p>
 
 Specifies the output target for builds.
 
-- 'static' - Building a static site to be deploy to any static host.
-- 'server' - Building an app to be deployed to a host supporting SSR (server-side rendering).
+- `'static'` - Building a static site to be deploy to any static host.
+- `'server'` - Building an app to be deployed to a host supporting SSR (server-side rendering).
+- `'hybrid'` - Building a static site with a few server-side rendered pages.
 
 ```js
 import { defineConfig } from 'astro/config';
@@ -235,8 +336,8 @@ export default defineConfig({
 </p>
 
 Control the output file format of each page.
-  - If 'file', Astro will generate an HTML file (ex: "/foo.html") for each page.
-  - If 'directory', Astro will generate a directory with a nested `index.html` file (ex: "/foo/index.html") for each page.
+  - If `'file'`, Astro will generate an HTML file (ex: "/foo.html") for each page.
+  - If `'directory'`, Astro will generate a directory with a nested `index.html` file (ex: "/foo/index.html") for each page.
 
 ```js
 {
@@ -254,6 +355,10 @@ Setting `build.format` controls what `Astro.url` is set to during the build. Whe
 
 This means that when you create relative URLs using `new URL('./relative', Astro.url)`, you will get consistent behavior between dev and build.
 
+To prevent inconsistencies with trailing slash behaviour in dev, you can restrict the [`trailingSlash` option](#trailingslash) to `'always'` or `'never'` depending on your build format:
+- `directory` - Set `trailingSlash: 'always'`
+- `file` - Set `trailingSlash: 'never'`
+
 
 ### build.client
 
@@ -263,14 +368,14 @@ This means that when you create relative URLs using `new URL('./relative', Astro
 **Default:** `'./dist/client'`
 </p>
 
-Controls the output directory of your client-side CSS and JavaScript when `output: 'server'` only.
+Controls the output directory of your client-side CSS and JavaScript when `output: 'server'` or `output: 'hybrid'` only.
 `outDir` controls where the code is built to.
 
 This value is relative to the `outDir`.
 
 ```js
 {
-  output: 'server',
+  output: 'server', // or 'hybrid'
   build: {
     client: './client'
   }
@@ -370,6 +475,90 @@ detects that the file is a JavaScript module.
 ```
 
 
+### build.redirects
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `true`<br />
+<Since v="2.6.0" />
+</p>
+
+Specifies whether redirects will be output to HTML during the build.
+This option only applies to `output: 'static'` mode; in SSR redirects
+are treated the same as all responses.
+
+This option is mostly meant to be used by adapters that have special
+configuration files for redirects and do not need/want HTML based redirects.
+
+```js
+{
+  build: {
+    redirects: false
+  }
+}
+```
+
+
+### build.inlineStylesheets
+
+<p>
+
+**Type:** `'always' | 'auto' | 'never'`<br />
+**Default:** `auto`<br />
+<Since v="2.6.0" />
+</p>
+
+Control whether project styles are sent to the browser in a separate css file or inlined into `<style>` tags. Choose from the following options:
+ - `'always'` - project styles are inlined into `<style>` tags
+ - `'auto'` - only stylesheets smaller than `ViteConfig.build.assetsInlineLimit` (default: 4kb) are inlined. Otherwise, project styles are sent in external stylesheets.
+ - `'never'` - project styles are sent in external stylesheets
+
+```js
+{
+	build: {
+		inlineStylesheets: `never`,
+	},
+}
+```
+
+
+### build.split
+
+
+:::caution[Deprecated]
+Deprecated since version 3.0.
+:::
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `false`
+</p>
+
+The build config option `build.split` has been replaced by the adapter configuration option [`functionPerRoute`](/en/reference/adapter-reference/#functionperroute).
+
+Please see your [SSR adapter's documentation](/en/guides/integrations-guide/#official-integrations) for using `functionPerRoute` to define how your SSR code is bundled.
+
+
+### build.excludeMiddleware
+
+
+:::caution[Deprecated]
+Deprecated since version 3.0.
+:::
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `false`
+</p>
+
+The build config option `build.excludeMiddleware` has been replaced by the adapter configuration option [`edgeMiddleware`](/en/reference/adapter-reference/#edgemiddleware).
+
+Please see your [SSR adapter's documentation](/en/guides/integrations-guide/#official-integrations) for using `edgeMiddleware` to define whether or not any SSR middleware code will be bundled when built.
+
+
 ## Server Options
 
 Customize the Astro dev server, used by both `astro dev` and `astro preview`.
@@ -385,7 +574,7 @@ To set different configuration based on the command run ("dev", "preview") a fun
 ```js
 {
   // Example: Use the function syntax to customize based on command
-  server: (command) => ({ port: command === 'dev' ? 3000 : 4000 })
+  server: ({ command }) => ({ port: command === 'dev' ? 4321 : 4000 })
 }
 ```
 
@@ -409,7 +598,7 @@ Set which network IP addresses the server should listen on (i.e. non-localhost I
 <p>
 
 **Type:** `number`<br />
-**Default:** `3000`
+**Default:** `4321`
 </p>
 
 Set which port the server should listen on.
@@ -435,18 +624,18 @@ If the given port is already in use, Astro will automatically try the next avail
 Set custom HTTP response headers to be sent in `astro dev` and `astro preview`.
 
 
-## Image options
+## Image Options
 
-### image.service (Experimental)
+### image.service
 
 <p>
 
 **Type:** `Object`<br />
-**Default:** `{entrypoint: 'astro/assets/services/squoosh', config?: {}}`<br />
+**Default:** `{entrypoint: 'astro/assets/services/sharp', config?: {}}`<br />
 <Since v="2.1.0" />
 </p>
 
-Set which image service is used for Astro’s experimental assets support.
+Set which image service is used for Astro’s assets support.
 
 The value should be an object with an entrypoint for the image service to use and optionally, a config object to pass to the service.
 
@@ -462,9 +651,77 @@ The service entrypoint can be either one of the included services, or a third-pa
 ```
 
 
+### image.domains
+
+<p>
+
+**Type:** `Array.<string>`<br />
+**Default:** `{domains: []}`<br />
+<Since v="2.10.10" />
+</p>
+
+Defines a list of permitted image source domains for remote image optimization. No other remote images will be optimized by Astro.
+
+This option requires an array of individual domain names as strings. Wildcards are not permitted. Instead, use [`image.remotePatterns`](#imageremotepatterns) to define a list of allowed source URL patterns.
+
+```js
+// astro.config.mjs
+{
+  image: {
+    // Example: Allow remote image optimization from a single domain
+    domains: ['astro.build'],
+  },
+}
+```
+
+
+### image.remotePatterns
+
+<p>
+
+**Type:** `Array.<RemotePattern>`<br />
+**Default:** `{remotePatterns: []}`<br />
+<Since v="2.10.10" />
+</p>
+
+Defines a list of permitted image source URL patterns for remote image optimization.
+
+`remotePatterns` can be configured with four properties:
+1. protocol
+2. hostname
+3. port
+4. pathname
+
+```js
+{
+  image: {
+    // Example: allow processing all images from your aws s3 bucket
+    remotePatterns: [{
+      protocol: 'https',
+      hostname: '**.amazonaws.com',
+    }],
+  },
+}
+```
+
+You can use wildcards to define the permitted `hostname` and `pathname` values as described below. Otherwise, only the exact values provided will be configured:
+`hostname`:
+  - Start with '**.' to allow all subdomains ('endsWith').
+  - Start with '*.' to allow only one level of subdomain.
+
+`pathname`:
+  - End with '/**' to allow all sub-routes ('startsWith').
+  - End with '/*' to allow only one level of sub-route.
+
+
 ## Markdown Options
 
 ### markdown.drafts
+
+
+:::caution[Deprecated]
+Deprecated since version 3.0. Use content collections instead.
+:::
 
 <p>
 
@@ -618,7 +875,7 @@ Pass options to [remark-rehype](https://github.com/remarkjs/remark-rehype#api).
 
 ## Integrations
 
-Extend Astro with custom integrations. Integrations are your one-stop-shop for adding framework support (like Solid.js), new features (like sitemaps), and new libraries (like Partytown and Turbolinks).
+Extend Astro with custom integrations. Integrations are your one-stop-shop for adding framework support (like Solid.js), new features (like sitemaps), and new libraries (like Partytown).
 
 Read our [Integrations Guide](/en/guides/integrations-guide/) for help getting started with Astro Integrations.
 
@@ -670,24 +927,26 @@ in the latest version, so that you can continue to upgrade and take advantage of
 Astro offers experimental flags to give users early access to new features.
 These flags are not guaranteed to be stable.
 
-### experimental.assets
+### experimental.optimizeHoistedScript
 
 <p>
 
 **Type:** `boolean`<br />
 **Default:** `false`<br />
-<Since v="2.1.0" />
+<Since v="2.10.4" />
 </p>
 
-Enable experimental support for optimizing and resizing images. With this enabled, a new `astro:assets` module will be exposed.
-
-To enable this feature, set `experimental.assets` to `true` in your Astro config:
+Prevents unused components' scripts from being included in a page unexpectedly.
+The optimization is best-effort and may inversely miss including the used scripts. Make sure to double-check your built pages
+before publishing.
+Enable hoisted script analysis optimization by adding the experimental flag:
 
 ```js
 {
 	experimental: {
-		assets: true,
+		optimizeHoistedScript: true,
 	},
 }
+```
 
 

@@ -35,7 +35,29 @@ AWS Amplify is a set of purpose-built tools and features that lets frontend web 
       cache:
         paths:
           - node_modules/**/*
+    ```
 
+Using `pnpm` will require slightly different settings in order to cache the pnpm store directory instead of `node_modules`. Below is the recommended build config:
+
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm i -g pnpm
+            - pnpm config set store-dir .pnpm-store
+            - pnpm i
+        build:
+          commands:
+            - pnpm run build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - .pnpm-store/**/*
     ```
 
 Amplify will automatically deploy your website and update it when you push a commit to your repository.
@@ -179,6 +201,7 @@ There are many ways to set up continuous deployment for AWS. One possibility for
               "Action": [
                   "s3:PutObject",
                   "s3:ListBucket",
+                  "s3:DeleteObject",
                   "cloudfront:CreateInvalidation"
               ],
               "Resource": [
@@ -224,7 +247,7 @@ There are many ways to set up continuous deployment for AWS. One possibility for
           - name: Build application
             run: npm run build
           - name: Deploy to S3
-            run: aws s3 sync ./dist/ s3://${{ secrets.BUCKET_ID }}
+            run: aws s3 sync --delete ./dist/ s3://${{ secrets.BUCKET_ID }}
           - name: Create CloudFront invalidation
             run: aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
     ```

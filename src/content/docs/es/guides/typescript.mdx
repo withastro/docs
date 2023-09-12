@@ -4,6 +4,7 @@ description: Aprende a usar TypeScript incorporado en Astro.
 i18nReady: true
 ---
 import Since from '~/components/Since.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
 
 
@@ -25,7 +26,7 @@ Para heredar una de las plantillas, usa [la opción `extends`](https://www.types
 
 ```json title="tsconfg.json"
 {
-  "extends": "astro/tsconfig/base"
+  "extends": "astro/tsconfigs/base"
 }
 ```
 
@@ -34,6 +35,40 @@ Adicionalmente, nuestras plantillas incluyen un archivo `env.d.ts` dentro de la 
 ```typescript title="env.d.ts"
 /// <reference types="astro/client" />
 ```
+
+Si no estás utilizando VSCode, puedes instalar el [plugin de Astro TypeScript](https://www.npmjs.com/package/@astrojs/ts-plugin) para admitir la importación de archivos `.astro` desde archivos `.ts`  (lo cual puede ser útil para volver a exportar).
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @astrojs/ts-plugin
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install @astrojs/ts-plugin
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/ts-plugin
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Luego, agrega lo siguiente a tu archivo `tsconfig.json`:
+
+```json title="tsconfig.json"
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "@astrojs/ts-plugin"
+      },
+    ],
+  }
+```
+
+Para comprobar que el plugin está funcionando, crea un archivo `.ts` e importa un componente de Astro en él. No deberías tener mensajes de advertencia de tu editor.
 
 ### Componentes de Frameworks
 
@@ -49,15 +84,14 @@ import type { SomeType } from './script';
 ```
 Esto te ayudará a evitar casos extremos en los que el empaquetador de Astro intente empaquetar incorrectamente sus tipos importados como si fueran JavaScript.
 
-En tu archivo `.tsconfig`, puedes indicarle a TypeScript para que te ayude con esto. La [configuración `importsNotUsedAsValues`](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues) puede establecerse a `error`. Si lo haces, TypeScript va a chequear tus importaciones e indicarte cuándo debes utilizar `import type`.
+Puedes configurar TypeScript para que obligue a realizar importaciones de tipos en tu archivo `.tsconfig`. Configura [`verbatimModuleSyntax`](https://www.typescriptlang.org/tsconfig#verbatimModuleSyntax) a `true`. TypeScript verificará tus importaciones y te dirá cuando debes usar `import type`. Esta configuración está habilitada por defecto en todos nuestros presets.
 
 ```json title="tsconfig.json" ins={3}
-// tsconfig.json
-{
-  "compilerOptions": {
-    "importsNotUsedAsValues": "error",
+  {
+    "compilerOptions": {
+      "verbatimModuleSyntax": true
+    }
   }
-}
 ```
 
 ## Alias de importación
@@ -117,7 +151,7 @@ interface Props {
   name: string;
   greeting?: string;
 }
-const { greeting = 'Hello', name } = Astro.props;
+const { greeting = 'Hola', name } = Astro.props;
 ---
 <h2>{greeting}, {name}!</h2>
 ```
@@ -176,6 +210,55 @@ declare namespace astroHTML.JSX {
 type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
 ```
 :::
+
+### Tipo polimórfico
+
+<Since v="2.5.0" />
+
+Astro incluye un helper para facilitar la construcción de componentes que pueden renderizarse como diferentes elementos HTML con total seguridad de tipos. Esto es útil para componentes como `<Link>` que pueden renderizarse como `<a>` o `<button>` dependiendo de las props que se le pasen.
+
+El ejemplo a continuación implementa un componente completamente tipado y polimórfico que puede representarse como cualquier elemento HTML. El tipo [`HTMLTag`](#atributos-html-integrados) se utiliza para garantizar que la propiedad `as` sea un elemento HTML válido.
+
+```astro
+---
+import { HTMLTag, Polymorphic } from 'astro/types';
+type Props<Tag extends HTMLTag> = Polymorphic<{ as: Tag }>;
+const { as: Tag, ...props } = Astro.props;
+---
+<Tag {...props} />
+```
+
+### Inferir los tipos de `getStaticPaths()`
+
+<Since v="2.1.0" />
+
+Astro incluye ayudantes para trabajar con los tipos devueltos por tu función [`getStaticPaths()`](/es/reference/api-reference/#getstaticpaths) para rutas dinámicas.
+
+Puedes obtener el tipo de [`Astro.params`](/es/reference/api-reference/#astroparams) con `InferGetStaticParamsType` y el tipo de [`Astro.props`](/es/reference/api-reference/#astroprops) con `InferGetStaticPropsType`:
+
+```astro title="src/pages/posts/[...slug].astro" {2,14-15}
+---
+import { InferGetStaticParamsType, InferGetStaticPropsType, GetStaticPaths  } from 'astro';
+
+export const getStaticPaths = (async () => {
+  const posts = await getCollection('blog');
+  return posts.map((post) => {
+    return {
+      params: { slug: post.slug },
+      props: { draft: post.data.draft, title: post.data.title },
+    };
+  });
+}) satisfies GetStaticPaths;
+
+type Params = InferGetStaticParamsType<typeof getStaticPaths>;
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { slug } = Astro.params as Params;
+//               			 ^? { slug: string; }
+const { title } = Astro.props;
+//                			^? { draft: boolean; title: string; }
+---
+```
 
 ## Verificación de tipos
 

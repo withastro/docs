@@ -36,7 +36,7 @@ Astro 中包含三个可扩展的 `tsconfig.json` 模板：`base`、`strict` 和
 /// <reference types="astro/client" />
 ```
 
-如果你不使用 VSCode，那可以安装 [Astro TypeScript plugin](https://www.npmjs.com/package/@astrojs/ts-plugin) 插件来支持从 .ts 文件导入 .astro 文件 (这对于别名导出非常有用)。
+如果你不使用 VSCode，那可以安装 [Astro TypeScript plugin](https://www.npmjs.com/package/@astrojs/ts-plugin) 插件来支持从 `.ts` 文件导入 `.astro` 文件。 (这对于别名导出非常有用)。
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -72,7 +72,7 @@ Astro 中包含三个可扩展的 `tsconfig.json` 模板：`base`、`strict` 和
 
 ### UI 框架
 
-如果你的项目使用了 [UI 框架](/zh-cn/core-concepts/framework-components/)，则可能需要根据框架的不同进行额外的设置。请参阅你使用的框架的文档中关于 TypeScript 的相关文档以获取更多信息。（[Vue](https://vuejs.org/guide/typescript/overview.html#using-vue-with-typescript)、[React](https://react-typescript-cheatsheet.netlify.app/docs/basic/setup)、[Preact](https://preactjs.com/guide/v10/typescript)、[Solid](https://www.solidjs.com/guides/typescript)）
+如果你的项目使用了 [UI 框架](/zh-cn/core-concepts/framework-components/)，则可能需要根据框架的不同进行额外的设置。请参阅你使用的框架的文档中关于 TypeScript 的相关文档以获取更多信息。（[Vue](https://cn.vuejs.org/guide/typescript/overview.html)、[React](https://react-typescript-cheatsheet.netlify.app/docs/basic/setup)、[Preact](https://preactjs.com/guide/v10/typescript)、[Solid](https://www.solidjs.com/guides/typescript)）
 
 ## 类型导入
 
@@ -85,34 +85,15 @@ import type { SomeType } from './script';
 
 通过这种方式，你可以避免让 Astro 的打包程序将导入的类型误以为是 JavaScript，从而错误地被打包。
 
-在你的 `.tsconfig` 文件中，你可以指示 TypeScript 来帮助解决这个问题。
+你可以在 `.tsconfig` 文件配置 TypeScript 强制执行类型导入。设置 [`verbatimModuleSyntax`](https://www.typescriptlang.org/tsconfig#verbatimModuleSyntax) 为 `true`。TypeScript 会检查你的导入并告诉你什么时候应该使用 `import type`。这个设置在我们所有的预设里都是默认启用的。
 
-<Tabs client:visible sharedStore="typescript-version">
-	<Fragment slot="tab.4.9">TypeScript ≤4.9</Fragment>
-	<Fragment slot="tab.5.0">TypeScript ≥5.0</Fragment>
-
-	<Fragment slot="panel.4.9">
-		通过将[设置项 `importsNotUsedAsValues`](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues) 设置为 `error`。TypeScript 会检查你的导入并告诉你什么时候应该使用 `import type`。此设置默认包含在我们的 `strict` 和 `strictest` 模板中。
-
-    ```json title="tsconfig.json" ins={3}
-    {
-      "compilerOptions": {
-        "importsNotUsedAsValues": "error",
-      }
+```json title="tsconfig.json" ins={3}
+  {
+    "compilerOptions": {
+      "verbatimModuleSyntax": true
     }
-    ```
-	</Fragment>
-	<Fragment slot="panel.5.0">
-		通过将 [设置项 `verbatimModuleSyntax`](https://www.typescriptlang.org/tsconfig#verbatimModuleSyntax) 设置为 `true`。 TypeScript 会检查你的导入并告诉你什么时候应该使用 `import type`。
-    ```json title="tsconfig.json" ins={3}
-    {
-      "compilerOptions": {
-        "verbatimModuleSyntax": true,
-      }
-    }
-    ```
-	</Fragment>
-</Tabs>
+  }
+```
 
 ## 导入别名
 
@@ -150,11 +131,11 @@ declare global {
 export {};
 ```
 
-这将为 `globalThis.myString` 和 `globalThis.myFunction` 以及 `window.myString` 和 `window.myFunction`提供类型。
+这将为 `globalThis.myString` 和 `globalThis.myFunction` 以及 `window.myString` 和 `window.myFunction` 提供类型。
 
 注意， `window` 只能在客户端代码中访问。 `globalThis` 在服务器端和客户端上都可用，但服务器端值不会共享给客户端。
 
-如果你只想为 `window` 对象中的一个属性提供类型注释，可以提供一个 `window` 接口来实现：
+如果你只想为 `window` 对象中的一个属性提供类型注释，可以提供一个 `Window` 接口来实现：
 
 ```ts title="env.d.ts"
 interface Window {
@@ -234,13 +215,32 @@ type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
 ```
 :::
 
+### 多态类型
+
+<Since v="2.5.0" />
+
+Astro 包含一个辅助工具，使得构建能够以完全类型安全的方式渲染不同 HTML 元素的组件更加容易。这对于像 `<Link>` 这样的组件非常有用，它可以根据传递给它的 props 渲染为 `<a>` 标签或 `<button>` 标签。
+
+下面的示例实现了一个完全类型化的多态组件，可以渲染为任何 HTML 元素。使用 [`HTMLTag`](#内置的属性类型) 类型来确保 `as` 属性是一个有效的 HTML 元素。
+
+```astro
+---
+import { HTMLTag, Polymorphic } from 'astro/types';
+
+type Props<Tag extends HTMLTag> = Polymorphic<{ as: Tag }>;
+
+const { as: Tag, ...props } = Astro.props;
+---
+
+<Tag {...props} />
+```
+
 ### 推断 `getStaticPaths()` 的类型
 <Since v="2.1.0" />
 
 Astro 中有帮助你处理动态路由 [`getStaticPaths()`](/zh-cn/reference/api-reference/#getstaticpaths) 函数返回类型的类型。
 
 你可以使用 `InferGetStaticParamsType` 和 `InferGetStaticPropsType` 来获取 [`Astro.params`](/zh-cn/reference/api-reference/#astroparams) 和 [`Astro.props`](/zh-cn/reference/api-reference/#astroprops) 的类型。
-
 
 ```astro title="src/pages/posts/[...slug].astro" {2,14-15}
 ---

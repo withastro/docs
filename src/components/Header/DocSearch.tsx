@@ -53,6 +53,7 @@ export default function Search({ lang = 'en', labels }: Props) {
 			appId="7AFBU8EPJU"
 			apiKey="4440670147c44d744fd8da35ff652518"
 			searchParameters={{ facetFilters: [[`lang:${lang}`]] }}
+			insights
 			getMissingResultsUrl={({ query }: { query: string }) =>
 				`https://github.com/withastro/docs/issues/new?title=Missing+results+for+query+%22${encodeURIComponent(
 					query

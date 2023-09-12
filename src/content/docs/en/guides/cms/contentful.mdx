@@ -40,7 +40,7 @@ CONTENTFUL_DELIVERY_TOKEN=YOUR_DELIVERY_TOKEN
 CONTENTFUL_PREVIEW_TOKEN=YOUR_PREVIEW_TOKEN
 ```
 
-Now, you should be able to use these environment variables in your project. 
+Now, you can use these environment variables in your project. 
 
 If you would like to have IntelliSense for your Contentful environment variables, you can create a `env.d.ts` file in the `src/` directory and configure `ImportMetaEnv` like this:
 
@@ -126,7 +126,7 @@ Finally, your root directory should now include these new files:
 
 ### Fetching data
 
-Now, Astro components can fetch data from your Contentful account by using the `contentfulClient` and specifying the `content_type`. 
+Astro components can fetch data from your Contentful account by using the `contentfulClient` and specifying the `content_type`. 
 
 For example, if you have a "blogPost" content type that has a text field for a title and a rich text field for content, your component might look like this:
 
@@ -134,11 +134,14 @@ For example, if you have a "blogPost" content type that has a text field for a t
 ---
 import { contentfulClient } from "../lib/contentful";
 import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
-import type { Document } from "@contentful/rich-text-types";
+import type { EntryFieldTypes } from "contentful";
 
 interface BlogPost {
-    title: string,
-    content: Document
+  contentTypeId: "blogPost",
+  fields: {
+    title: EntryFieldTypes.Text
+    content: EntryFieldTypes.RichText,
+  }
 }
 
 const entries = await contentfulClient.getEntries<BlogPost>({
@@ -159,7 +162,7 @@ const entries = await contentfulClient.getEntries<BlogPost>({
 If you have an empty Contentful space, check out [setting up a Contentful model](#setting-up-a-contentful-model) to learn how to create a basic blog model for your content.
 :::
 
-You can find more querying options in the [Contentful documentation](https://contentful.github.io/contentful.js/contentful/9.1.34/ContentfulClientAPI.html).
+You can find more querying options in the [Contentful documentation](https://contentful.github.io/contentful.js/).
 
 ## Making a blog with Astro and Contentful
 
@@ -216,16 +219,18 @@ Feel free to add as many blog posts as you want, then switch to your favorite co
 
 Create a new interface called `BlogPost` and add it to your `contentful.ts` file in `src/lib/`. This interface will match the fields of your blog post content type in Contentful. You will use it to type your blog post entries response.
 
-```ts title="src/lib/contentful.ts" ins={2,4-10}
-import contentful from "contentful";
-import type { Document } from "@contentful/rich-text-types";
+```ts title="src/lib/contentful.ts" ins=", { EntryFieldTypes }" ins={3-12}
+import contentful, { EntryFieldTypes } from "contentful";
 
 export interface BlogPost {
-  title: string;
-  date: string;
-  description: string;
-  content: Document;
-  slug: string;
+  contentTypeId: "blogPost",
+  fields: {
+    title: EntryFieldTypes.Text
+    content: EntryFieldTypes.RichText,
+    date: EntryFieldTypes.Date,
+    description: EntryFieldTypes.Text,
+    slug: EntryFieldTypes.Text
+  }
 }
 
 export const contentfulClient = contentful.createClient({
@@ -235,7 +240,6 @@ export const contentfulClient = contentful.createClient({
     : import.meta.env.CONTENTFUL_DELIVERY_TOKEN,
   host: import.meta.env.DEV ? "preview.contentful.com" : "cdn.contentful.com",
 });
-
 ```
 
 Next, go to the Astro page where you will fetch data from Contentful. We will use the home page `index.astro` in `src/pages/` in this example.
@@ -257,7 +261,7 @@ const entries = await contentfulClient.getEntries<BlogPost>({
 
 This fetch call will return an array of your blog posts at `entries.items`. You can use `map()` to create a new array (`posts`)  that formats your returned data.
 
-The example below returns the `items.fields` properites from our Content model to create a blog post preview, and at the same time, reformats the date to a more readable format.
+The example below returns the `items.fields` properties from our Content model to create a blog post preview, and at the same time, reformats the date to a more readable format.
 
 ```astro title="src/pages/index.astro" ins={9-17}
 ---
@@ -285,9 +289,9 @@ Finally, you can use `posts` in your template to show a preview of each blog pos
 ```astro astro title="src/pages/index.astro" ins={19-37}
 ---
 import { contentfulClient } from "../lib/contentful";
-import type { blogPost } from "../lib/contentful";
+import type { BlogPost } from "../lib/contentful";
 
-const entries = await contentfulClient.getEntries<blogPost>({
+const entries = await contentfulClient.getEntries<BlogPost>({
   content_type: "blogPost",
 });
 
@@ -389,10 +393,10 @@ Finally, you can use the page `props` to display your blog post.
 ---
 import { contentfulClient } from "../../lib/contentful";
 import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
-import type { blogPost } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
 
 export async function getStaticPaths() {
-  const { items } = await contentfulClient.getEntries<blogPost>({
+  const { items } = await contentfulClient.getEntries<BlogPost>({
     content_type: "blogPost",
   });
   const pages = items.map((item) => ({
@@ -420,7 +424,7 @@ const { content, title, date } = Astro.props;
 </html>
 ```
 
-Navigate to http://localhost:3000/posts/astro-is-amazing/ to make sure your dynamic route is working!
+Navigate to http://localhost:4321/ and click on one of your posts to make sure your dynamic route is working!
 
 #### Server side rendering
 
@@ -442,7 +446,7 @@ const data = await contentfulClient.getEntries<BlogPost>({
 ---
 ```
 
-If the entry is not found, you can redirect the user to the 404 page using [`Astro.redirect`](/en/guides/server-side-rendering/#astroredirect).
+If the entry is not found, you can redirect the user to the 404 page using [`Astro.redirect`](/en/core-concepts/routing/#dynamic-redirects).
 
 ```astro title="src/pages/posts/[slug].astro" ins={7, 12-13}
 ---
@@ -470,12 +474,12 @@ Use `documentToHtmlString` to convert `content` from a Document to HTML, and use
 import Layout from "../../layouts/Layout.astro";
 import { contentfulClient } from "../../lib/contentful";
 import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
-import type { blogPost } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
 
 let post;
 const { slug } = Astro.params;
 try {
-  const data = await contentfulClient.getEntries<blogPost>({
+  const data = await contentfulClient.getEntries<BlogPost>({
     content_type: "blogPost",
     "fields.slug": slug,
   });
@@ -498,12 +502,12 @@ Finally, you can reference `post` to display your blog post in the template sect
 import Layout from "../../layouts/Layout.astro";
 import { contentfulClient } from "../../lib/contentful";
 import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
-import type { blogPost } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
 
 let post;
 const { slug } = Astro.params;
 try {
-  const data = await contentfulClient.getEntries<blogPost>({
+  const data = await contentfulClient.getEntries<BlogPost>({
     content_type: "blogPost",
     "fields.slug": slug,
   });

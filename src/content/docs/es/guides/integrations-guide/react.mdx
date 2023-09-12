@@ -1,7 +1,7 @@
 ---
 type: integration
 title: '@astrojs/react'
-description: Learn how to use the @astrojs/react framework integration to extend component support in your Astro project.
+description: Aprende cómo utilizar la integración del framework @astrojs/react para ampliar el soporte de componentes en tu proyecto Astro.
 githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/react/'
 hasREADME: true
 category: renderer
@@ -54,9 +54,8 @@ npm install react react-dom
 
 Ahora, aplica esta integración a tu archivo `astro.config.*` usando la propiedad `integrations`:
 
-**`astro.config.mjs`**
-
-```js ins={2} "react()"
+```js ins={3} "react()"
+// astro.config.mjs
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 
@@ -73,6 +72,78 @@ Para usar tu primer componente React en Astro, dirígete a nuestra [documentaci�
 *   📦 como se cargan los componentes de framework,
 *   💧 opciones de hidratación del lado del cliente, y
 *   🤝 oportunidades para mezclar y anidar frameworks juntos
+
+## Opciones
+
+### Combinando múltiples frameworks JSX
+
+Cuando estás utilizando múltiples frameworks JSX (React, Preact, Solid) en el mismo proyecto, Astro necesita determinar qué transformaciones específicas del framework JSX deben usarse para cada uno de tus componentes. Si solo has agregado una integración de framework JSX a tu proyecto, no se necesita configuración adicional.
+
+Utiliza las opciones de configuración `include` (obligatoria) y `exclude` (opcional) para especificar qué archivos pertenecen a qué framework. Proporciona un array de archivos y/o carpetas en `include` para cada framework que estés utilizando. Puedes utilizar comodines para incluir múltiples rutas de archivo.
+
+Recomendamos colocar los componentes comunes de los frameworks en la misma carpeta (p. ej. `/components/react/` y `/components/solid/`) para facilitar la especificación de tus inclusiones, pero esto no es obligatorio:
+
+```js
+import { defineConfig } from 'astro/config';
+import preact from '@astrojs/preact';
+import react from '@astrojs/react';
+import svelte from '@astrojs/svelte';
+import vue from '@astrojs/vue';
+import solid from '@astrojs/solid-js';
+
+export default defineConfig({
+  // Habilita varios frameworks para admitir todo tipo de componentes diferentes.
+  // ¡No se necesita `include` si solo estás utilizando un solo framework JSX!
+  integrations: [
+    preact({
+      include: ['**/preact/*'],
+    }),
+    react({
+      include: ['**/react/*'],
+    }),
+    solid({
+      include: ['**/solid/*'],
+    }),
+  ],
+});
+```
+
+### Análisis de los hijos
+
+Los hijos pasados a un componente de React desde un componente de Astro se analizan como strings simples, no como nodos de React.
+
+Por ejemplo, el `<ReactComponent />` a continuación solo recibirá un único elemento hijo:
+
+```astro
+---
+import ReactComponent from './ReactComponent';
+---
+<ReactComponent>
+  <div>uno</div>
+  <div>dos</div>
+</ReactComponent>
+```
+
+Si estás utilizando una biblioteca que *espera* que se pasen más de un elemento hijo, por ejemplo, para que pueda colocar ciertos elementos en diferentes lugares, es posible que encuentres esto como un bloqueador.
+
+Puedes establecer la bandera experimental `experimentalReactChildren` para indicarle a Astro que siempre pase los hijos a React como vnodes de React. Esto tiene un costo de tiempo de ejecución, pero puede ayudar con la compatibilidad.
+
+Puedes habilitar esta opción en la configuración para la integración de React:
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+
+export default defineConfig({
+  // ...
+  integrations: [
+    react({
+      experimentalReactChildren: true,
+    }),
+  ],
+});
+```
 
 ## Solución de problemas
 

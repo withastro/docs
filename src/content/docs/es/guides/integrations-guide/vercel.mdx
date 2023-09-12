@@ -35,6 +35,8 @@ yarn astro add vercel
 pnpm astro add vercel
 ```
 
+### Añadir dependencias manualmente
+
 Si prefieres instalar el adaptador manualmente, completa los siguientes dos pasos:
 
 1. Instala el adaptador Vercel en las dependencias de tu proyecto usando tu administrador de paquetes preferido. Si estás usando npm o no estás seguro, ejecuta esto en la terminal:
@@ -60,19 +62,13 @@ Si prefieres instalar el adaptador manualmente, completa los siguientes dos paso
 
 Puedes desplegar en diferentes objetivos:
 
-*   `edge`: SSR dentro de una [función Edge](https://vercel.com/docs/concepts/functions/edge-functions).
 *   `serverless`: SSR dentro de una [función Node.js](https://vercel.com/docs/concepts/functions/serverless-functions).
 *   `static`: genera un sitio estático siguiendo los formatos de salida, redirecciones, etc. de Vercel.
-
-:::note
-Desplegar en el Edge tiene [sus limitaciones](https://vercel.com/docs/concepts/functions/edge-functions#known-limitations). Una función edge no puede ser más grande de 1 MB y no admite API nativas de Node.js, entre otras.
-:::
 
 Puedes cambiar el destino modificando la importación:
 
 
 ```js
-import vercel from '@astrojs/vercel/edge';
 import vercel from '@astrojs/vercel/serverless';
 import vercel from '@astrojs/vercel/static';
 ```
@@ -95,7 +91,7 @@ Para configurar este adaptador, pasa un objeto a la invocación de función `ver
 ### analytics
 
 **Tipo:** `boolean`<br/>
-**Disponible para:** Serverless, Edge y Estático<br/>
+**Disponible para:** Serverless y Static<br/>
 **Agregado en:** `@astrojs/vercel@3.1.0`
 
 Puedes habilitar [Vercel Analytics](https://vercel.com/analytics) (incluyendo Web Vitals y Audiences) configurando `analytics: true`. Esto inyectará los scripts de seguimiento de Vercel en todas tus páginas.
@@ -108,15 +104,77 @@ import vercel from '@astrojs/vercel/serverless';
 export default defineConfig({
   output: 'server',
   adapter: vercel({
-    analytics: true
-  })
+    analytics: true,
+  }),
 });
+```
+
+### imagesConfig
+
+**Tipo:** `VercelImageConfig`<br/>
+**Disponible para:** Serverless, Static
+**Agregado en:** `@astrojs/vercel@3.3.0`
+
+Opciones de configuración para la [API de Optimización de Imágenes de Vercel](https://vercel.com/docs/concepts/image-optimization). Consulta la [documentación de configuración de imágenes de Vercel](https://vercel.com/docs/build-output-api/v3/configuration#images) para obtener una lista completa de los parámetros admitidos.
+
+Las propiedades `domains` y `remotePatterns` se llenarán automáticamente utilizando [la configuración correspondiente de `image` en Astro](/es/reference/configuration-reference/#opciones-de-imagen).
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/static';
+export default defineConfig({
+  output: 'server',
+  adapter: vercel({
+    imagesConfig: {
+      sizes: [320, 640, 1280],
+    },
+  }),
+});
+```
+
+### imageService
+
+**Tipo:** `boolean`<br/>
+**Disponible para:** Serverless y Static
+**Agregado en:** `@astrojs/vercel@3.3.0`
+
+Cuando está habilitado, se configurará y utilizará automáticamente un [Servicio de Imágenes](/es/reference/image-service-reference/) impulsado por la API de Optimización de Imágenes de Vercel en producción. En desarrollo, se utilizará en su lugar un servicio incorporado basado en Squoosh.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/static';
+export default defineConfig({
+  output: 'server',
+  adapter: vercel({
+    imageService: true,
+  }),
+});
+```
+
+```astro
+---
+import { Image } from 'astro:assets';
+import astroLogo from ''../assets/logo.png';
+---
+<!-- Este componente -->
+<Image src={astroLogo} alt="My super logo!" />
+<!-- se convertirá en el siguiente elemento de HTML -->
+<img
+  src="/_vercel/image?url=_astro/logo.hash.png&w=...&q=..."
+  alt="Mi super logo!"
+  loading="lazy"
+  decoding="async"
+  width="..."
+  height="..."
+/>
 ```
 
 ### includeFiles
 
 **Tipo:** `string[]`<br/>
-**Disponible para:** Edge, Serverless
+**Disponible para:** Serverless
 
 Usa esta propiedad para forzar a que los archivos se incluyan en el empaquetado de tu función. Esto es útil cuando notas que faltan archivos.
 
@@ -128,14 +186,10 @@ import vercel from '@astrojs/vercel/serverless';
 export default defineConfig({
   output: 'server',
   adapter: vercel({
-    includeFiles: ['./my-data.json']
-  })
+    includeFiles: ['./my-data.json'],
+  }),
 });
 ```
-
-:::note
-Cuando se construye para el Edge, todas las dependencias se empaquetan en un solo archivo para ahorrar espacio. **No se empaquetará ningún archivo adicional**. Por lo tanto, si *necesitas* algún archivo dentro de la función, debes especificarlo en `includeFiles`.
-:::
 
 ### excludeFiles
 
@@ -152,14 +206,33 @@ import vercel from '@astrojs/vercel/serverless';
 export default defineConfig({
   output: 'server',
   adapter: vercel({
-    excludeFiles: ['./src/some_big_file.jpg']
-  })
+    excludeFiles: ['./src/some_big_file.jpg'],
+  }),
 });
 ```
 
-### Middleware de Vercel
+### Configuración de agrupación de funciones
 
-Puedes usar el middleware de Vercel para interceptar una solicitud y redirigirla antes de enviar una respuesta. El middleware de Vercel puede ejecutarse en implementaciones de Edge, SSR y estáticas. No necesitas instalar `@vercel/edge` para escribir middleware, pero sí necesitas instalarlo para usar características como la geolocalización. Para obtener más información, consulta la [documentación de middleware de Vercel](https://vercel.com/docs/concepts/functions/edge-middleware).
+El adaptador de Vercel divide las compilaciones en una función separada por ruta de forma predeterminada. Esto ayuda a reducir el tamaño de cada función, ya que solo agrupa el código utilizado en esa página.
+
+Puedes desactivar esto y compilar en una única función configurando la opción de configuración `functionPerRoute` en `false`:
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/serverless';
+
+export default defineConfig({
+  output: 'server',
+  adapter: vercel({
+    functionPerRoute: false,
+  }),
+});
+```
+
+### Middleware de Vercel Edge
+
+Puedes usar el middleware de Vercel Edge para interceptar una solicitud y redirigirla antes de enviar una respuesta. El middleware de Vercel puede ejecutarse en implementaciones de Edge, SSR y estáticas. Es posible que no necesites instalar este paquete para tu middleware. `@vercel/edge` es solo necesario para usar algunas usar algunas características de middleware como la geolocalización. Para obtener más información, consulta la [documentación de middleware de Vercel](https://vercel.com/docs/concepts/functions/edge-middleware).
 
 1.  Agrega un archivo `middleware.js` en la raíz de tu proyecto:
 
@@ -173,17 +246,88 @@ Puedes usar el middleware de Vercel para interceptar una solicitud y redirigirla
     export default function middleware(request) {
       const url = new URL(request.url);
       // Puedes recuperar la ubicación IP o las cookies aquí.
-      if (url.pathname === "/admin") {
-        url.pathname = "/"
+      if (url.pathname === '/admin') {
+        url.pathname = '/'
       }
       return Response.redirect(url);
     }
     ```
+
 2.  Mientras desarrollas localmente, puedes ejecutar `vercel dev` para ejecutar el middleware. En producción, Vercel lo manejará por ti.
 
 :::caution
 **¿Intentando reescribir?** Actualmente, reescribir una solicitud con middleware solo funciona para archivos estáticos.
 :::
+
+### Middleware de Vercel Edge con middleware de Astro
+
+El adaptador `@astrojs/vercel/serverless` puede crear automáticamente el middleware de Vercel Edge a partir de un middleware de Astro en tu código base.
+
+Esto es una característica opcional, y la opción `edgeMiddleware` debe establecerse en `true`:
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel';
+export default defineConfig({
+  output: 'server',
+  adapter: vercel({
+    edgeMiddleware: true,
+  }),
+});
+```
+
+Opcionalmente, puedes crear un archivo reconocido por el adaptador llamado `vercel-edge-middleware.(js|ts)` en la carpeta [`srcDir`](/es/reference/configuration-reference/#srcdir) para crear [`Astro.locals`](/es/reference/api-reference/#astrolocals).
+
+Escribir requiere el paquete [`@vercel/edge`](https://www.npmjs.com/package/@vercel/edge)
+
+```js
+// src/vercel-edge-middleware.js
+/**
+ *
+ * @param options.request {Request}
+ * @param options.context {import("@vercel/edge").RequestContext}
+ * @returns {object}
+ */
+export default function ({ request, context }) {
+  // haz algo con la solicitud y el contexto
+  return {
+    title: "Blog de Spiderman",
+  };
+}
+```
+
+Si usas TypeScript, puedes escribir la función de la siguiente manera:
+
+```ts
+// src/vercel-edge-middleware.ts
+import type { RequestContext } from '@vercel/edge';
+
+export default function ({ request, context }: { request: Request; context: RequestContext }) {
+  // haz algo con la solicitud y el contexto
+  return {
+    title: "Blog de Spiderman",
+  };
+}
+```
+
+La información devuelta por esta función se pasará al middleware de Astro.
+
+La función:
+
+*   debe exportar una función **predeterminada**;
+*   debe **regresar** un `object`;
+*   acepta un objeto con una `request` y `context` como propiedades;
+*   `request` es tipada como [`Request`](https://developer.mozilla.org/es/docs/Web/API/Request);
+*   `context` es tipado como [`RequestContext`](https://vercel.com/docs/concepts/functions/edge-functions/vercel-edge-package#requestcontext);
+
+#### Limitaciones y restricciones
+
+Cuando optes por esta característica, hay algunas restricciones a tener en cuenta:
+
+*   El middleware de Vercel Edge será siempre la **primera** función en recibir la `Request` y la última función en recibir la `Response`. Esta es una restricción arquitectónica que sigue los [límites establecidos por Vercel](https://vercel.com/docs/concepts/functions/edge-middleware).
+*   Solo `request` y `context` se pueden usar para producir un objeto `Astro.locals`. Las operaciones como redireccionamientos, etc. deben delegarse al middleware de Astro.
+*   `Astro.locals` **debe ser serializable**. Si no lo haces, se producirá un **error de runtime**. Esto significa que **no puedes** almacenar tipos complejos como `Map`, `function`, `Set`, etc.
 
 ## Solución de problemas
 

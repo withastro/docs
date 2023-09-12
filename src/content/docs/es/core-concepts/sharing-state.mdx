@@ -1,6 +1,6 @@
 ---
 title: Compartiendo Estado
-description: Learn how to share state across components — and frameworks! — with Nano Stores.
+description: Aprende a compartir estado entre componentes de framework con Nano Stores.
 i18nReady: true
 type: recipe
 ---
@@ -8,12 +8,15 @@ type: recipe
 import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
 import LoopingVideo from '~/components/LoopingVideo.astro'
 import JavascriptFlavorTabs from '~/components/tabs/JavascriptFlavorTabs.astro'
+import RecipeLinks from "~/components/RecipeLinks.astro"
 
 Al construir tu proyecto usando la [arquitectura de islas / hidratación parcial](/es/concepts/islands/), puede que te hayas topado con este problema: **Quiero compartir estado entre mis componentes.**
 
 Frameworks tales como React o Vue pueden alentar a usar [proveedores de "contexto"](https://react.dev/learn/passing-data-deeply-with-context) ("context" providers) para que sea consumido por otros componentes. Pero al [hidratar componentes parcialmente](/es/core-concepts/framework-components/#hidratando-componentes-interactivos) dentro de Astro o en Markdown, no puedes usar esos contextos envolventes.
 
 Astro recomienda una solución diferente para el almacenamiento compartido en el lado del cliente: [**Nano Stores**](https://github.com/nanostores/nanostores).
+
+<RecipeLinks slugs={["es/recipes/sharing-state"]} />
 
 ## ¿Por qué Nano Stores?
 
@@ -95,6 +98,11 @@ Para empezar, instala Nano Stores junto al paquete helper para tu framework favo
   <Fragment slot="vue">
   ```shell
   npm install nanostores @nanostores/vue
+  ```
+  </Fragment>
+  <Fragment slot="lit">
+  ```shell
+  npm install nanostores @nanostores/lit
   ```
   </Fragment>
 </UIFrameworkTabs>
@@ -234,6 +242,27 @@ export default function CartButton() {
 </script>
 ```
 </Fragment>
+<Fragment slot="lit">
+```ts
+// src/components/CartFlyoutToggle.ts
+import { LitElement, html } from 'lit';
+import { isCartOpen } from '../cartStore';
+
+export class CartFlyoutToggle extends LitElement {
+  handleClick() {
+    isCartOpen.set(!isCartOpen.get());
+  }
+
+  render() {
+    return html`
+      <button @click="${this.handleClick}">Cart</button>
+    `;
+  }
+}
+
+customElements.define('cart-flyout-toggle', CartFlyoutToggle);
+```
+</Fragment>
 </UIFrameworkTabs>
 
 Luego, podemos leer el valor de `isCartOpen` en nuestro componente `CartFlyout`:
@@ -303,6 +332,25 @@ export default function CartFlyout() {
 
   const $isCartOpen = useStore(isCartOpen);
 </script>
+```
+</Fragment>
+<Fragment slot="lit">
+```ts
+// src/components/CartFlyout.ts
+import { isCartOpen } from '../cartStore';
+import { LitElement, html } from 'lit';
+import { StoreController } from '@nanostores/lit';
+
+export class CartFlyout extends LitElement {
+  private cartOpen = new StoreController(this, isCartOpen);
+
+  render() {
+    return this.cartOpen.value ? html`<aside>...</aside>` : null;
+  }
+}
+
+customElements.define('cart-flyout', CartFlyout);
+
 ```
 </Fragment>
 </UIFrameworkTabs>
@@ -549,6 +597,41 @@ export default function AddToCartForm({ children }) {
 </script>
 ```
 </Fragment>
+<Fragment slot="lit">
+```ts
+// src/components/AddToCartForm.ts
+import { LitElement, html } from 'lit';
+import { isCartOpen, addCartItem } from '../cartStore';
+
+export class AddToCartForm extends LitElement {
+  static get properties() {
+    return {
+      item: { type: Object },
+    };
+  }
+
+  constructor() {
+    super();
+    this.item = {};
+  }
+
+  addToCart(e) {
+    e.preventDefault();
+    isCartOpen.set(true);
+    addCartItem(this.item);
+  }
+
+  render() {
+    return html`
+      <form @submit="${this.addToCart}">
+        <slot></slot>
+      </form>
+    `;
+  }
+}
+customElements.define('add-to-cart-form', AddToCartForm);
+```
+</Fragment>
 </UIFrameworkTabs>
 
 Finalmente, renderizamos los ítems dentro del carrito en nuestro componente `CartFlyout`:
@@ -685,6 +768,51 @@ export default function CartFlyout() {
   const $isCartOpen = useStore(isCartOpen);
   const $cartItems = useStore(cartItems);
 </script>
+```
+</Fragment>
+<Fragment slot="lit">
+```ts
+// src/components/CartFlyout.ts
+import { LitElement, html } from 'lit';
+import { isCartOpen, cartItems } from '../cartStore';
+import { StoreController } from '@nanostores/lit';
+
+export class CartFlyoutLit extends LitElement {
+  private cartOpen = new StoreController(this, isCartOpen);
+  private getCartItems = new StoreController(this, cartItems);
+
+  renderCartItem(cartItem) {
+    return html`
+      <li>
+        <img src="${cartItem.imageSrc}" alt="${cartItem.name}" />
+        <h3>${cartItem.name}</h3>
+        <p>Cantidad: ${cartItem.quantity}</p>
+      </li>
+    `;
+  }
+
+  render() {
+    return this.cartOpen.value
+      ? html`
+          <aside>
+            ${
+              Object.values(this.getCartItems.value).length
+                ? html`
+                  <ul>
+                    ${Object.values(this.getCartItems.value).map((cartItem) =>
+                      this.renderCartItem(cartItem)
+                    )}
+                  </ul>
+                `
+                : html`<p>¡Su carro está vacío!</p>`
+            }
+          </aside>
+        `
+      : null;
+  }
+}
+
+customElements.define('cart-flyout', CartFlyoutLit);
 ```
 </Fragment>
 </UIFrameworkTabs>

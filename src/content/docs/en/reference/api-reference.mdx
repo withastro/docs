@@ -39,7 +39,7 @@ const posts = await Astro.glob('../pages/post/*.md'); // returns an array of pos
 :::note
 You can also use `import.meta.glob()` itself in your Astro project. You may want to do this when:
 - You need this feature in a file that isn't `.astro`, like an API route. `Astro.glob()` is only available in `.astro` files, while `import.meta.glob()` is available anywhere in the project.
-- You don't want to load each file immediately. `import.meta.glob()` can return functions that import the file content, rather than returning the content itself.
+- You don't want to load each file immediately. `import.meta.glob()` can return functions that import the file content, rather than returning the content itself. Note that this import includes all styles and scripts for any imported files. These will be bundled and added to the page whether or not a file is actually used, as this is decided by static analysis, not at runtime.
 - You want access to each file's path. `import.meta.glob()` returns a map of a file's path to its content, while `Astro.glob()` returns a list of content.
 - You want to pass multiple patterns; for example, you want to add a "negative pattern" that filters out certain files. `import.meta.glob()` can optionally take an array of glob strings, rather than a single string.
 
@@ -176,7 +176,15 @@ With the default `output: 'static'` option, `Astro.request.url` does not contain
 
 ### `Astro.response`
 
-`Astro.response` is a standard [ResponseInit](https://developer.mozilla.org/en-US/docs/Web/API/Response/Response#init) object. It is used to set the `status`, `statusText`, and `headers` for a page's response.
+
+`Astro.response` is a standard `ResponseInit` object. It has the following structure. 
+
+ - `status`: The numeric status code of the response, e.g., `200`.
+ - `statusText`: The status message associated with the status code, e.g., `'OK'`.
+ - `headers`: A [`Headers`](https://developer.mozilla.org/en-US/docs/Web/API/Headers) instance that you can use to set the HTTP headers of the response.
+
+`Astro.response` is used to set the `status`, `statusText`, and `headers` for a page's response.
+
 
 ```astro
 ---
@@ -216,13 +224,13 @@ Getting a cookie via `Astro.cookies.get()` returns a `AstroCookie` type. It has 
 
 | Name           | Type                                              | Description                                        |
 | :------------- | :------------------------------------------------ | :------------------------------------------------- |
-| `value`          | `string`                       | The raw string value of the cookie.          |
+| `value`          | `string \| undefined`                       | The raw string value of the cookie.          |
 | `json`          | `() => Record<string, any>`                       | Parses the cookie value via `JSON.parse()`, returning an object. Throws if the cookie value is not valid JSON.         |
 | `number`       | `() => number` | Parses the cookie value as a Number. Returns NaN if not a valid number.   |
 | `boolean`       | `() => boolean` | Converts the cookie value to a boolean.   |
 
 ### `Astro.redirect()`
-In [server-side rendering](/en/guides/server-side-rendering/) mode, `Astro.redirect()` allows you to redirect to another page. 
+`Astro.redirect()` allows you to redirect to another page. 
 A page (and not a child component) must `return` the result of `Astro.redirect()` for the redirect to occur.
 
 ```astro title="src/pages/account.astro" {8}
@@ -426,6 +434,24 @@ And would render HTML like this:
 </ul>
 ```
 
+
+### `Astro.locals`
+
+`Astro.locals` is an object containing any values from the [`context.locals`](#contextlocals) object from a middleware. Use this to access data returned by middleware in your `.astro` files.
+
+```astro title="src/pages/Orders.astro"
+---
+const title = Astro.locals.welcomeTitle();
+const orders = Array.from(Astro.locals.orders.entries());
+---
+<h1>{title}</h1>
+<ul>
+    {orders.map(order => {
+        return <li>{/* do something with each order */}</li>
+    })}
+</ul>
+```
+
 ## Endpoint Context
 
 [Endpoint functions](/en/core-concepts/endpoints/) receive a context object as the first parameter. It mirrors many of the `Astro` global properties.
@@ -433,7 +459,7 @@ And would render HTML like this:
 ```ts title="endpoint.json.ts"
 import type { APIContext } from 'astro';
 
-export function get(context: APIContext) {
+export function GET(context: APIContext) {
   // ...
 }
 ```
@@ -457,7 +483,7 @@ export function getStaticPaths() {
   ];
 }
 
-export function get({ params }: APIContext) {
+export function GET({ params }: APIContext) {
 	return {
 		body: JSON.stringify({ id: params.id })
 	};
@@ -481,7 +507,7 @@ export function getStaticPaths() {
   ];
 }
 
-export function get({ props }: APIContext) {
+export function GET({ props }: APIContext) {
 	return {
 		body: JSON.stringify({ author: props.author }),
 	};
@@ -497,7 +523,7 @@ A standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) o
 ```ts
 import type { APIContext } from 'astro';
 
-export function get({ request }: APIContext) {
+export function GET({ request }: APIContext) {
   return {
     body: `Hello ${request.url}`
   }
@@ -525,7 +551,7 @@ Specifies the [IP address](https://en.wikipedia.org/wiki/IP_address) of the requ
 ```ts
 import type { APIContext } from 'astro';
 
-export function get({ clientAddress }: APIContext) {
+export function GET({ clientAddress }: APIContext) {
   return {
     body: `Your IP address is: ${clientAddress}`
   }
@@ -548,7 +574,7 @@ See also: [Astro.site](#astrosite)
 ```ts title="src/pages/site-info.json.ts"
 import type { APIContext } from 'astro';
 
-export function get({ generator, site }: APIContext) {
+export function GET{ generator, site }: APIContext) {
   const body = JSON.stringify({ generator, site });
   return new Response(body);
 }
@@ -563,12 +589,43 @@ See also: [Astro.generator](#astrogenerator)
 ```ts
 import type { APIContext } from 'astro';
 
-export function get({ redirect }: APIContext) {
+export function GET({ redirect }: APIContext) {
   return redirect('/login', 302);
 }
 ```
 
 See also: [`Astro.redirect()`](#astroredirect)
+
+### `context.locals`
+
+`context.locals` is an object used to store and access arbitrary information during the lifecycle of a request.
+
+Middleware functions can read and write the values of `context.locals`:
+
+```ts title="src/middleware.ts"
+import type { MiddlewareResponseHandler } from 'astro';
+
+export const onRequest: MiddlewareResponseHandler = ({ locals }, next) => {
+  if (!locals.title) {
+    locals.title = "Default Title";
+  }
+  return next();
+}
+```
+
+API endpoints can only read information from `context.locals`:
+
+```ts title="src/pages/hello.ts"
+import type { APIContext } from 'astro';
+
+export function GET({ locals }: APIContext) {
+  return {
+    body: locals.title // "Default Title"
+  }
+}
+```
+
+See also: [`Astro.locals`](#astrolocals)
 
 ## `getStaticPaths()`
 
@@ -733,6 +790,7 @@ Content collections offer APIs to configure and query your Markdown or MDX docum
 // src/content/config.ts
 import { z, defineCollection } from 'astro:content';
 const blog = defineCollection({
+  type: 'content',
   schema: z.object({
     title: z.string(),
     permalink: z.string().optional(),
@@ -746,6 +804,22 @@ export const collections = { blog };
 
 This function accepts the following properties:
 
+#### `type`
+
+<Since v="2.5" />
+
+**Type:** `'content' | 'data'`  
+**Default:** `'content'`
+
+`type` is a string that defines the type of entries stored within a collection:
+
+- `'content'` - for content-authoring formats like Markdown (`.md`), MDX (`.mdx`), or Markdoc (`.mdoc`)
+- `'data'` - for data-only formats like JSON (`.json`) or YAML (`.yaml`)
+
+:::tip
+This means collections **cannot** store a mix of content and data formats. You must split these entries into separate collections by type.
+:::
+
 #### `schema`
 
 **Type:** `TSchema extends ZodType`
@@ -753,6 +827,37 @@ This function accepts the following properties:
 `schema` is an optional Zod object to configure the type and shape of document frontmatter for a collection. Each value must use [a Zod validator](https://github.com/colinhacks/zod).
 
 [See the `Content Collection` guide](/en/guides/content-collections/#defining-a-collection-schema) for example usage.
+
+### `reference()`
+
+**Type:** `(collection: string) => ZodEffects<ZodString, { collection, id: string } | { collection, slug: string }>`
+
+The `reference()` function is used in the content config to define a relationship, or "reference," from one collection to another. This accepts a collection name and validates the entry identifier(s) specified in your content frontmatter or data file.
+
+This example defines references from a blog author to the `authors` collection and an array of related posts to the same `blog` collection:
+
+```ts
+import { defineCollection, reference, z } from 'astro:content';
+
+const blog = defineCollection({
+  type: 'content',
+  schema: z.object({
+    // Reference a single author from the `authors` collection by `id`
+    author: reference('authors'),
+    // Reference an array of related posts from the `blog` collection by `slug`
+    relatedPosts: z.array(reference('blog')),
+  })
+});
+
+const authors = defineCollection({
+  type: 'data',
+  schema: z.object({ /* ... */ })
+});
+
+export const collections = { blog, authors };
+```
+
+[See the `Content Collection` guide](/en/guides/content-collections/#defining-collection-references) for example usage.
 
 ### `getCollection()`
 
@@ -778,9 +883,68 @@ const draftBlogPosts = await getCollection('blog', ({ data }) => {
 
 [See the `Content Collection` guide](/en/guides/content-collections/#querying-collections) for example usage.
 
+### `getEntry()`
+
+<p>
+  <Since v="2.5.0" />
+</p>
+
+**Types:**
+
+- `(collection: string, contentSlugOrDataId: string) => CollectionEntry<collection>`
+- `({ collection: string, id: string }) => CollectionEntry<collection>`
+- `({ collection: string, slug: string }) => CollectionEntry<collection>`
+
+`getEntry()` is a function that retrieves a single collection entry by collection name and either the entry `id` (for `type: 'data'` collections) or entry `slug` (for `type: 'content'` collections). `getEntry()` can also be used to get referenced entries to access the `data`, `body`, or `render()` properties:
+
+```astro
+---
+import { getEntry } from 'astro:content';
+
+// Get `src/content/blog/enterprise.md`
+const enterprisePost = await getEntry('blog', 'enterprise');
+
+// Get `src/content/captains/picard.yaml`
+const picardProfile = await getEntry('captains', 'picard');
+
+// Get the profile referenced by `data.captain`
+const enterpriseCaptainProfile = await getEntry(enterprise.data.captain);
+---
+```
+
+See the `Content Collections` guide for examples of [querying collection entries](/en/guides/content-collections/#querying-collections).
+
+### `getEntries()`
+
+<p>
+  <Since v="2.5" />
+</p>
+
+**Types:**
+
+- `(Array<{ collection: string, id: string }>) => CollectionEntry<collection>`
+- `(Array<{ collection: string, slug: string }>) => CollectionEntry<collection>`
+
+`getEntries()` is a function that retrieves multiple collection entries from the same collection. This is useful for [returning an array of referenced entries](/en/guides/content-collections/#defining-collection-references) to access their associated `data`, `body`, and `render()` properties.
+
+```astro
+---
+import { getEntries } from 'astro:content';
+
+const enterprisePost = await getEntry('blog', 'enterprise');
+
+// Get related posts referenced by `data.relatedPosts`
+const enterpriseRelatedPosts = await getEntries(enterprisePost.data.relatedPosts);
+---
+```
+
 ### `getEntryBySlug()`
 
 **Type:** `(collection: string, slug: string) => CollectionEntry<collection>`
+
+:::caution[Deprecated]
+Use the [`getEntry()` function](#getentry) to query content entries. This accepts the same arguments as `getEntryBySlug()`, and supports querying by `id` for JSON or YAML collections.
+:::
 
 `getEntryBySlug()` is a function that retrieves a single collection entry by collection name and entry `slug`.
 
@@ -797,7 +961,7 @@ const enterprise = await getEntryBySlug('blog', 'enterprise');
 
 ### Collection Entry Type
 
-The [`getCollection()`](#getcollection) and [`getEntryBySlug()`](#getentrybyslug) functions each return entries with the `CollectionEntry` type. This type is available as a utility from `astro:content`:
+Query functions including [`getCollection()`](#getcollection), [`getEntry()`](#getentry), and [`getEntries()`](#getentries) each return entries with the `CollectionEntry` type. This type is available as a utility from `astro:content`:
 
 ```ts
 import type { CollectionEntry } from 'astro:content';
@@ -807,30 +971,44 @@ The `CollectionEntry<TCollectionName>` type is an object with the following valu
 
 #### `id`
 
-**Example Type:** `'entry-1.md' | 'entry-2.md' | ...`
+**Available for:** `type: 'content'` and `type: 'data'` collections  
+**Example Types:**
+  - content collections: `'entry-1.md' | 'entry-2.md' | ...`
+  - data collections: `'author-1' | 'author-2' | ...`
 
-A unique ID using the file path relative to `src/content/[collection]`. Enumerates all possible string values based on the collection entry file paths.
+A unique ID using the file path relative to `src/content/[collection]`. Enumerates all possible string values based on the collection entry file paths. Note that collections [defined as `type: 'content'`](#type) include the file extension in their ID, while collections defined as `type: 'data'` do not.
 
-#### `slug`
+#### `collection`
 
-**Example Type:** `'entry-1' | 'entry-2' | ...`
+**Available for:** `type: 'content'` and `type: 'data'` collections  
+**Example Type:** `'blog' | 'authors' | ...`
 
-A URL-ready slug. Defaults to the `id` without the file extension, but can be overridden by setting [the `slug` property](/en/guides/content-collections/#defining-custom-slugs) in a file's frontmatter.
+The name of a top-level folder under `src/content/` in which entries are located. This is the name used to reference the collection in your schema, and in querying functions.
 
 #### `data`
 
+**Available for:** `type: 'content'` and `type: 'data'` collections  
 **Type:** `CollectionSchema<TCollectionName>`
 
 An object of frontmatter properties inferred from your collection schema ([see `defineCollection()` reference](#definecollection)). Defaults to `any` if no schema is configured.
 
+#### `slug`
+
+**Available for:** `type: 'content'` collections only  
+**Example Type:** `'entry-1' | 'entry-2' | ...`
+
+A URL-ready slug for Markdown or MDX documents. Defaults to the `id` without the file extension, but can be overridden by setting [the `slug` property](/en/guides/content-collections/#defining-custom-slugs) in a file's frontmatter.
+
 #### `body`
 
+**Available for:** `type: 'content'` collections only  
 **Type:** `string`
 
 A string containing the raw, uncompiled body of the Markdown or MDX document.
 
 #### `render()`
 
+**Available for:** `type: 'content'` collections only  
 **Type:** `() => Promise<RenderedEntry>`
 
 A function to compile a given Markdown or MDX document for rendering. This returns the following properties:
@@ -866,24 +1044,25 @@ export default function () {
 
 ## Built-in Components
 
-Astro includes several built-in components for you to use in your projects. All built-in components are available in `.astro` files via `import {} from 'astro/components';`.
-
-### `<Markdown />`
-
-The Markdown component is no longer built into Astro. See how to [import Markdown into your Astro files](/en/guides/markdown-content/#importing-markdown) on our Markdown page.
+Astro includes several built-in components for you to use in your projects. All built-in components are available in `.astro` files via `import {} from 'astro:components';`.
 
 ### `<Code />`
 
-```astro
+```astro 'theme="dark-plus"' /wrap\b/ /(inline) \/>/
 ---
-import { Code } from 'astro/components';
+import { Code } from 'astro:components';
 ---
 <!-- Syntax highlight some JavaScript code. -->
 <Code code={`const foo = 'bar';`} lang="js" />
-<!-- Optional: customize your theme. -->
+<!-- Optional: Customize your theme. -->
 <Code code={`const foo = 'bar';`} lang="js" theme="dark-plus" />
 <!-- Optional: Enable word wrapping. -->
 <Code code={`const foo = 'bar';`} lang="js" wrap />
+<!-- Optional: Output inline code. -->
+<p>
+  <Code code={`const foo = 'bar';`} lang="js" inline />
+  will be rendered inline.
+</p>
 ```
 
 This component provides syntax highlighting for code blocks at build time (no client-side JavaScript included). The component is powered internally by Shiki and it supports all popular [themes](https://github.com/shikijs/shiki/blob/main/docs/themes.md) and [languages](https://github.com/shikijs/shiki/blob/main/docs/languages.md). Plus, you can add your custom themes and languages by passing them to `theme` and `lang` respectively.
@@ -933,7 +1112,7 @@ See the [list of languages supported by Prism](https://prismjs.com/#supported-la
 
 ```astro
 ---
-import { Debug } from 'astro/components';
+import { Debug } from 'astro:components';
 const serverObject = {
   a: 0,
   b: "string",

@@ -1,0 +1,131 @@
+---
+title: ButterCMS & Astro
+description: 使用 ButterCMS 向你的 Astro 项目添加内容
+type: cms
+service: ButterCMS
+stub: false
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+
+ButterCMS 是一种允许你在项目中发布结构化内容的 headless CMS和博客引擎。
+
+## 与 Astro 集成
+:::note
+要查看完整的博客网站示例，请参阅 [Astro + ButterCMS 入门项目](https://buttercms.com/starters/astro-starter-project/)。
+:::
+在本节中，我们将使用 [ButterCMS SDK](https://www.npmjs.com/package/buttercms) 将数据引入你的 Astro 项目中。
+要开始使用，你将需要以下内容：
+### 前置准备
+
+1. **Astro 项目** -如果你还没有 Astro 项目，我们的[安装指南](/zh-cn/install/auto/)将帮助你快速创建并运行一个项目。
+
+2. **ButterCMS帐户**. 如果你还没有ButterCMS帐户，你可以通过[注册](https://buttercms.com/join/) 免费试用来创建一个。
+
+3. **你的 ButterCMS API TOKEN** - 你可以在[设置](https://buttercms.com/settings/) 页面找到你的API TOKEN。
+
+### 配置
+
+1. 在你的项目根目录中创建一个名为 `.env` 的文件，并将你的 API TOKEN 作为环境变量添加进去：
+
+```ini title=".env"
+BUTTER_TOKEN=YOUR_API_TOKEN_HERE
+```
+
+:::tip
+了解更多关于[使用环境变量](/zh-cn/guides/environment-variables/)和Astro中的 .env 文件的信息。
+:::
+
+2. 将 ButterCMS SDK 安装为依赖项：
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install buttercms
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install buttercms
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add buttercms
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+3. 在你的项目中创建一个新的 `src/lib/` 目录，并在其中创建一个名为 `buttercms.js` 的文件
+
+```js title="src/lib/buttercms.js"
+import Butter from "buttercms";
+
+export const butterClient = Butter(import.meta.env.BUTTER_TOKEN);
+```
+
+这将使用你的 API TOKEN 对 SDK 进行身份验证，并将其导出供整个项目使用。
+
+### 获取数据
+要获取内容，导入这个客户端并使用其中的一个 `retrieve` 函数。
+
+在这个例子中，我们将会[检索一个集合](https://buttercms.com/docs/api/#retrieve-a-collection)，
+该集合有三个字段：一个短文本字段 `name`，一个数字字段 `price` 和一个 WYSIWYG 的富文本字段 `description`。
+
+```astro title="src/pages/ShopItem.astro"
+---
+import { butterClient } from "../lib/buttercms";
+const response = await butterClient.content.retrieve(["shopitem"]);
+
+interface ShopItem {
+	name: string,
+	price: number,
+	description: string,
+}
+
+const items = response.data.data.shopitem as ShopItem[];
+---
+<body>
+	{items.map(item => <div>
+		<h2>{item.name} - ${item.price}</h2>
+		<p set:html={item.description}></p>
+	</div>)}
+</body>
+```
+
+
+这个接口反映了字段的类型。WYSIWYG 富文本字段 `description` 加载为 HTML 字符串，而 [`set:html`](/zh-cn/reference/directives-reference/#sethtml) 指令将 HTML 字符串注入元素中进行渲染。
+
+类似地，你可以[获取单个页面](https://buttercms.com/docs/api/#get-a-single-page)并显示它的字段：
+
+```astro title="src/pages/ShopItem.astro"
+---
+import { butterClient } from "../lib/buttercms";
+const response = await butterClient.page.retrieve("*", "simple-page");
+const pageData = response.data.data;
+
+interface Fields {
+  seo_title: string,
+  headline: string,
+  hero_image: string,
+}
+
+const fields = pageData.fields as Fields;
+---
+<html>
+  <title>{fields.seo_title}</title>
+  <body>
+    <h1>{fields.headline}</h1>
+    <img src={fields.hero_image} />
+  </body>
+</html>
+```
+
+## 官方资源
+
+- [Astro + ButterCMS 入门项目](https://buttercms.com/starters/astro-starter-project/)
+- [ButterCMS API 文档](https://buttercms.com/docs/api/)
+- ButterCMS 的 [JavaScript 指南](https://buttercms.com/docs/api-client/javascript/)
+
+## 社区资源
+- 欢迎添加你的资源！

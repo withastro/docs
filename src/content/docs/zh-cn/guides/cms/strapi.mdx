@@ -1,0 +1,422 @@
+---
+title: Strapi 与 Astro
+description: 使用 Strapi 无头 CMS 为你的 Astro 项目添加内容
+type: cms
+service: Strapi
+stub: false
+i18nReady: true
+---
+
+import FileTree from '~/components/FileTree.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+[Strapi](https://strapi.io/) 是一个开源的、可定制化的无头 CMS。
+
+## 与 Astro 集成
+
+这个指南将构建一个包装函数，用于连接 Strapi 和 Astro。
+
+### 前期准备
+
+在开始之前，你需要准备以下内容：
+
+1. **Astro 项目** - 如果你还没有 Astro 项目，我们的[安装指南](/zh-cn/install/auto/)将帮助你快速入门；
+2. **Strapi CMS 服务器** - 你可以在本地环境中[设置 Strapi 服务器](https://docs.strapi.io/dev-docs/quick-start)。
+
+### 在 `.env` 文件中添加 Strapi URL
+
+为了将 Strapi URL 添加到 Astro 中，你可以在项目的根目录中创建一个 `.env` 文件（如果还没有的话），并添加以下变量：
+
+```ini title=".env"
+STRAPI_URL="http://127.0.0.1:1337" // 或者使用你的 IP 地址
+```
+
+现在，你可以在你的 Astro 项目中使用这个环境变量了。
+
+如果你希望为环境变量使用 IntelliSense，可以在 `src/` 目录下创建一个 `env.d.ts` 文件，并像这样配置 `ImportMetaEnv`：
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly STRAPI_URL: string;
+}
+```
+
+你的根目录现在应该包含了新的文件：
+
+<FileTree title="Project Structure">
+  - src/
+    - **env.d.ts**
+  - **.env**
+  - astro.config.mjs
+  - package.json
+</FileTree>
+
+### 创建 API 包装器
+
+在 `lib/strapi.ts` 中创建一个新文件，并添加以下包装函数来与 Strapi API 进行交互：
+
+```ts title="lib/strapi.ts"
+interface Props {
+  endpoint: string;
+  query?: Record<string, string>;
+  wrappedByKey?: string;
+  wrappedByList?: boolean;
+}
+
+/**
+ * Fetches data from the Strapi API
+ * @param endpoint - The endpoint to fetch from
+ * @param query - The query parameters to add to the url
+ * @param wrappedByKey - The key to unwrap the response from
+ * @param wrappedByList - If the response is a list, unwrap it
+ * @returns
+ */
+export default async function fetchApi<T>({
+  endpoint,
+  query,
+  wrappedByKey,
+  wrappedByList,
+}: Props): Promise<T> {
+  if (endpoint.startsWith('/')) {
+    endpoint = endpoint.slice(1);
+  }
+
+  const url = new URL(`${import.meta.env.STRAPI_URL}/api/${endpoint}`);
+
+  if (query) {
+    Object.entries(query).forEach(([key, value]) => {
+      url.searchParams.append(key, value);
+    });
+  }
+  const res = await fetch(url.toString());
+  let data = await res.json();
+
+  if (wrappedByKey) {
+    data = data[wrappedByKey];
+  }
+
+  if (wrappedByList) {
+    data = data[0];
+  }
+
+  return data as T;
+}
+```
+
+该函数需要一个具有以下属性的对象：
+
+1. `endpoint` - 要获取的端点；
+2. `query` - 要添加到 URL 末尾的查询参数；
+3. `wrappedByKey` - 用于包装你 `Response` 对象中的 `data` 键；
+4. `wrappedByList` - 一个参数，用于“解封” Strapi 返回的列表，并只返回第一项。
+
+### 可选：创建 Article 接口
+
+如果你使用 TypeScript，可以基于以下 Article 接口来创建 `src/interfaces/article.ts`，用于响应 Strapi 的内容类型：
+
+```ts title="src/interfaces/article.ts"
+export default interface Article {
+  id: number;
+  attributes: {
+    title: string;
+    description: string;
+    content: string;
+    slug: string;
+    createdAt: string;
+    updatedAt: string;
+    publishedAt: string;
+  };
+}
+```
+
+:::note
+你可以修改这个接口，或者创建多个接口，以适应你自己的项目数据。
+:::
+
+<FileTree title="Project Structure">
+  - src/
+    - interfaces/
+      - **article.ts**
+    - lib/
+      - strapi.ts
+    - env.d.ts
+  - .env
+  - astro.config.mjs
+  - package.json
+</FileTree>
+
+### 展示文章列表
+
+1. 更新你的首页 `src/pages/index.astro`，用以展示一个博客文章列表，当中的每篇文章都有描述和链接到自己页面。
+
+2. 导入包装函数和接口。添加以下 API 调用来获取你的文章并返回一个列表：
+
+  ```astro title="src/pages/index.astro"
+  ---
+  import fetchApi from '../lib/strapi';
+  import type Article from '../interfaces/article';
+
+  const articles = await fetchApi<Article[]>({
+    endpoint: 'articles', // 需要获取的内容类型
+    wrappedByKey: 'data', // 在响应中被拆封的键
+  });
+  ---
+  ```
+
+  该 API 调用请求会从 `http://localhost:1337/api/articles` 获取数据，并返回 `articles`，这是一个表示数据的 JSON 对象数组：
+
+  ```
+  [
+    {
+      id: 1,
+      attributes: {
+        title: "What's inside a Black Hole",
+        description: 'Maybe the answer is in this article, or not...',
+        content: "Well, we don't know yet...",
+        slug: 'what-s-inside-a-black-hole',
+        createdAt: '2023-05-28T13:19:46.421Z',
+        updatedAt: '2023-05-28T13:19:46.421Z',
+        publishedAt: '2023-05-28T13:19:45.826Z'
+      }
+    },
+    // ...
+  ]
+  ```
+
+3. 使用 API 返回的 `articles` 数组中的数据，并在列表中展示你的 Strapi 博客文章。这些文章将链接到它们各自的页面，在下一步中你将创建这些页面。
+
+  ```astro title="src/pages/index.astro"
+  ---
+  import fetchApi from '../lib/strapi';
+  import type Article from '../interfaces/article';
+
+  const articles = await fetchApi<Article[]>({
+    endpoint: 'articles?populate=image',
+    wrappedByKey: 'data',
+  });
+  ---
+
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <title>Strapi & Astro</title>
+    </head>
+
+    <body>
+      <main>
+        <ul>
+          {
+            articles.map((article) => (
+              <a href={`/blog/${article.attributes.slug}/`}>
+                {article.attributes.title}
+              </a>
+            ))
+          }
+        </ul>
+      </main>
+    </body>
+  </html>
+  ```
+
+### 生成文章页面
+
+创建文件 `src/pages/blog/[slug].astro` 来[为每篇文章动态生成页面](/zh-cn/core-concepts/routing/#动态路由)。
+
+<FileTree title="Project Structure">
+  - src/
+    - interfaces/
+      - article.ts
+    - lib/
+      - strapi.ts
+    - pages/
+      - index.astro
+      - blog/
+        - **[slug].astro**
+    - env.d.ts
+  - .env
+  - astro.config.mjs
+  - package.json
+</FileTree>
+
+#### 静态网站生成
+
+在 Astro 的默认静态模式（SSG）中，使用 [`getStaticPaths()`](/zh-cn/reference/api-reference/#getstaticpaths) 从 Strapi 获取文章列表。
+
+```astro title="src/pages/blog/[slug].astro
+---
+import fetchApi from '../../lib/strapi';
+import type Article from '../../interfaces/article';
+
+export async function getStaticPaths() {
+  const articles = await fetchApi<Article[]>({
+    endpoint: 'articles',
+    wrappedByKey: 'data',
+  });
+
+  return articles.map((article) => ({
+    params: { slug: article.attributes.slug },
+    props: article,
+  }));
+}
+type Props = Article;
+
+const article = Astro.props;
+---
+```
+
+接着，使用每个文章对象的属性来创建每个页面的模板。
+
+
+```astro title="src/pages/blog/[slug].astro ins={21-43}
+---
+import fetchApi from '../../lib/strapi';
+import type Article from '../../interfaces/article';
+
+export async function getStaticPaths() {
+  const articles = await fetchApi<Article[]>({
+    endpoint: 'articles',
+    wrappedByKey: 'data',
+  });
+
+  return articles.map((article) => ({
+    params: { slug: article.attributes.slug },
+    props: article,
+  }));
+}
+type Props = Article;
+
+const article = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>{article.attributes.title}</title>
+  </head>
+
+  <body>
+    <main>
+      <img src={import.meta.env.STRAPI_URL + article.attributes.image.data.attributes.url} />
+
+      <h1>{article.attributes.title}</h1>
+
+      <!-- 渲染纯文本 -->
+      <p>{article.attributes.content}</p>
+      <!-- 渲染 Markdown -->
+      <MyMardownComponent>
+        {article.attributes.content}
+      </MyMardownComponent>
+      <!-- 渲染 HTML -->
+      <Fragment set:html={article.attributes.content} />
+    </main>
+  </body>
+</html>
+```
+
+:::tip
+请确保选择适合你内容的正确渲染方式。对于 markdown，请查看我们的[markdown 指南](/zh-cn/guides/markdown-content/)。如果你要渲染 html，请参考[这个指南](/zh-cn/reference/directives-reference/#sethtml)以确保安全。
+:::
+
+#### 服务器端渲染
+
+如果你选择了 [SSR 模式](/zh-cn/guides/server-side-rendering/#启用-ssr) 并设置了 `output: server` 或 `output: hybrid`，那么可以使用以下代码来生成你的[动态路由](/zh-cn/core-concepts/routing/#服务器ssr模式)。
+
+创建 `src/pages/blog/[slug].astro` 文件：
+
+```astro title="src/pages/blog/[slug].astro"
+---
+import fetchApi from '../../../lib/strapi';
+import type Article from '../../../interfaces/article';
+
+const { slug } = Astro.params;
+
+let article: Article;
+
+try {
+  article = await fetchApi<Article>({
+    endpoint: 'articles',
+    wrappedByKey: 'data',
+    wrappedByList: true,
+    query: {
+      'filters[slug][$eq]': slug || '',
+    },
+  });
+} catch (error) {
+  return Astro.redirect('/404');
+}
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>{article.attributes.title}</title>
+  </head>
+
+  <body>
+    <main>
+      <img src={import.meta.env.STRAPI_URL + article.attributes.image.data.attributes.url} />
+
+      <h1>{article.attributes.title}</h1>
+
+      <!-- 渲染纯文本 -->
+      <p>{article.attributes.content}</p>
+      <!-- 渲染 Markdown -->
+      <MyMardownComponent>
+        {article.attributes.content}
+      </MyMardownComponent>
+      <!-- 渲染 HTML -->
+      <Fragment set:html={article.attributes.content} />
+    </main>
+  </body>
+</html>
+```
+
+这个文件将从 Strapi 获取并呈现与动态的 `slug` 参数相匹配的页面数据。
+
+由于你在将重定向到 `/404`，请在 `src/pages` 中创建一个 404 页面：
+
+```astro title="src/pages/404.astro"
+<html lang="en">
+  <head>
+    <title>Not found</title>
+  </head>
+  <body>
+    <p>Sorry, this page does not exist.</p>
+    <img src="https://http.cat/404" />
+  </body>
+</html>
+```
+
+如果找不到文章，用户将被重定向到这个 404 页面，并会收到来自一只可爱猫猫的问候。
+
+### 发布你的网站
+
+要部署你的网站，请访问我们的[部署指南](/zh-cn/guides/deploy/)，并按照你偏好的托管提供商的说明操作。
+
+#### 当内容发生变化时重新构建
+
+如果你的项目使用 Astro 的默认静态模式，你需要设置一个 Webhook，在内容发生变化时触发新的构建。如果你使用 Netlify 或 Vercel 作为托管提供商，你可以使用其 Webhook 功能从 Strapi 触发新的构建。
+
+##### Netlify
+
+在 Netlify 中设置 Webhook：
+
+1. 进入你的网站控制面板，点击 **Build & deploy**；
+2. 在 **Continuous Deployment** 标签下，找到 **Build hooks** 部分，点击 **Add build hook**；
+3. 为你的 Webhook 提供一个名称，并选择要触发构建的分支。点击 **Save** 并复制生成的 URL。
+
+##### Vercel
+
+在 Vercel 中设置 Webhook：
+
+1. 进入你的项目控制面板，点击 **Settings**；
+2. 在 **Git** 标签下，找到 **Deploy Hooks** 部分；
+3. 为你的 Webhook 提供一个名称和要触发构建的分支。点击 **Add** 并复制生成的 URL。
+
+##### 在 Strapi 中添加 Webhook
+
+按照[Strapi Webhook 指南](https://strapi.io/blog/webhooks)在 Strapi 管理面板中创建一个 Webhook。
+
+## 官方资源
+
+-  Strapi 提供的[用于 React 的博客指南](https://strapi.io/blog/build-a-blog-with-next-react-js-strapi)

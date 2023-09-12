@@ -1,0 +1,183 @@
+---
+title: 用 Docker 来构建你的 Astro 网站
+description: 了解如何使用 Docker 来构建你的 Astro 网站。
+type: recipe
+i18nReady: true
+---
+
+[Docker](https://docker.com) 是一个使用容器构建、部署和运行应用程序的工具。
+
+Docker 镜像和容器可以部署到许多不同的平台，例如 AWS、Azure 和 [Google Cloud](/zh-cn/guides/deploy/google-cloud/)。本节示例不聚焦于如何将网站部署到特定平台，而是会展示如何将你的项目与 Docker 整合。
+
+## 前期准备
+
+- 在你的本地机器上安装 Docker。你可以在此处找到适用于你的操作系统的[安装指南](https://docs.docker.com/get-docker/)。
+- 在你的项目中创建一个 Dockerfile。你可以在此处了解有关 [Dockerfile](https://docs.docker.com/engine/reference/builder/) 的更多信息，并使用下面的示例作为开始来编写 Dockerfile。
+
+## 创建 Dockerfile
+
+在项目根目录中创建一个名为 `Dockerfile` 的文件，这个文件包含了构建你的网站的指令，具体指令会根据你的需求而有所不同。本指南无法展示所有可能的选项，但会为 SSR 和静态渲染模式提供一些起始的步骤。
+
+如果你使用的是除了 npm 之外的包管理工具，可能需要你相应地调整命令。
+
+### 服务端渲染模式（SSR）
+
+以下是一个 Dockerfile 示例，它将使用 Node.js 构建你的网站，并在端口 `4321` 上进行服务。这要求在 Astro 项目中安装了 [Node 适配器](/zh-cn/guides/integrations-guide/node/)。
+
+```docker title="Dockerfile"
+FROM node:lts AS runtime
+WORKDIR /app
+
+COPY . .
+
+RUN npm install
+RUN npm run build
+
+ENV HOST=0.0.0.0
+ENV PORT=4321
+EXPOSE 4321
+CMD node ./dist/server/entry.mjs
+```
+
+:::tip[温馨提示]
+这些简单的 Dockerfile 示例，你可以也根据自己的需求进行自定义。例如，你可以使用其他镜像，比如 `node:lts-alpine`：
+
+```docker title="Dockerfile" del={1} add={2}
+FROM node:lts as runtime
+FROM node:lts-alpine as runtime
+```
+:::
+
+### 添加 `.dockerignore`
+
+将 `.dockerignore` 文件添加到你的项目中是一个最佳实践。这个文件非常类似于 `.gitignore`，用于描述在 Docker 的 `COPY` 或 `ADD` 命令中应该忽略哪些文件或文件夹，从而加快构建过程并减小最终镜像的大小。
+
+```docker title=".dockerignore"
+.DS_Store
+node_modules
+dist
+```
+
+这个文件应该放在与 `Dockerfile` 相同的目录下。可[阅读 `.dockerignore` 文档获取更多信息](https://docs.docker.com/engine/reference/builder/#dockerignore-file)。
+
+### 静态渲染模式
+
+#### Apache (httpd)
+
+以下是一个 Dockerfile 示例，它将构建你的网站，并使用 Apache httpd 默认配置的 `80` 端口提供服务。
+
+```docker title="Dockerfile"
+FROM node:lts AS build
+WORKDIR /app
+COPY . .
+RUN npm i
+RUN npm run build
+
+FROM httpd:2.4 AS runtime
+COPY --from=build /app/dist /usr/local/apache2/htdocs/
+EXPOSE 80
+```
+
+:::caution[建议]
+对于不需要特殊配置的简单网站，可以使用这种方法。对于更复杂的网站，不论是 Apache 或 NGINX 都建议使用自定义配置。
+:::
+
+#### NGINX
+
+```docker title="Dockerfile"
+FROM node:lts AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine AS runtime
+COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 8080
+```
+
+为了构建上面的 Dockerfile，你还需要为 NGINX 创建一个配置文件。在项目的根目录下创建一个名为 `nginx` 的文件夹，并在其中创建一个名为 `nginx.conf` 的文件。
+
+```nginx title="nginx.conf"
+worker_processes  1;
+
+events {
+  worker_connections  1024;
+}
+
+http {
+  server {
+    listen 8080;
+    server_name   _;
+
+    root   /usr/share/nginx/html;
+    index  index.html index.htm;
+    include /etc/nginx/mime.types;
+
+    gzip on;
+    gzip_min_length 1000;
+    gzip_proxied expired no-cache no-store private auth;
+    gzip_types text/plain text/css application/json application/javascript application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+
+    error_page 404 /404.html;
+    location = /404.html {
+            root /usr/share/nginx/html;
+            internal;
+    }
+
+    location / {
+            try_files $uri $uri/index.html =404;
+    }
+  }
+}
+```
+
+### 多层构建（使用 SSR）
+
+下面是一个更高级的 Dockerfile 示例，通过 Docker 的 [多层构建](https://docs.docker.com/build/building/multi-stage/) 功能，仅在源代码变化时也不会重新安装 npm 依赖项，从而优化了站点的构建过程。这根据依赖项的大小从而节省几分钟甚至更多的构建时间。
+
+```docker title="Dockerfile"
+FROM node:lts AS base
+WORKDIR /app
+# 这里仅复制 package.json 和 package-lock.json，我们确保以下的 `-deps` 步骤与源代码无关。
+# 因此，如果只有源代码发生变化，将会跳过 `-deps` 步骤。
+COPY package.json package-lock.json ./
+FROM base AS prod-deps
+RUN npm install --production
+FROM base AS build-deps
+RUN npm install --production=false
+FROM build-deps AS build
+COPY . .
+RUN npm run build
+FROM base AS runtime
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
+ENV HOST=0.0.0.0
+ENV PORT=4321
+EXPOSE 4321
+CMD node ./dist/server/entry.mjs
+```
+
+## 操作步骤
+
+1. 在项目的根目录中运行以下命令来构建容器。可将 `<your-astro-image-name>` 替换为任意名称：
+
+```bash
+docker build -t <your-astro-image-name> .
+```
+
+这将生成一个镜像，你可以在本地运行它或部署到你偏好的平台上。
+
+2. 要将镜像作为本地容器运行，请使用以下命令。
+
+将 `<local-port>` 替换为你本地机器上的空闲端口。将 `<container-port>` 替换为你的 Docker 容器暴露的端口号（如上面示例中的 `4321`、`80` 或 `8080`）。
+
+```bash
+docker run -p <local-port>:<container-port> <your-astro-image-name>
+```
+
+接着你应该能够通过 `http://localhost:<local-port>` 访问你的网站。
+
+3. 现在，你的网站已经成功构建并打包在一个容器中，你可以将其部署到云服务提供商。例如，查看 [Google Cloud](/zh-cn/guides/deploy/google-cloud/#cloud-runssr-和静态网站) 部署指南和 Docker 文档中的 [部署你的应用](https://docs.docker.com/language/nodejs/deploy/) 页面。

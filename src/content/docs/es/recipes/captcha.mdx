@@ -1,0 +1,72 @@
+---
+title: Verificar un Captcha
+description: Aprende como crear una ruta de API y consultarla desde el cliente.
+i18nReady: true
+type: recipe
+---
+
+Los [endpoints del servidor](/es/core-concepts/endpoints/#endpoints-del-servidor-rutas-de-api) se pueden utilizar como endpoints de API REST para ejecutar funciones como autenticaciones, acceso a bases de datos y verificaciones sin exponer datos sensibles al cliente.
+
+En esta receta, se utiliza una ruta de API para verificar Google reCAPTCHA v3 sin exponer el secreto a los clientes.
+
+## Prerrequesitos
+- Un proyecto con [SSR](/es/guides/server-side-rendering/) habilitado, con la opción `output: 'server'`.
+
+## Receta
+
+1. Crea un endpoint `POST` que acepte datos de reCAPTCHA y luego los verifique con la API de reCAPTCHA. Aquí puedes definir de manera segura valores secretos o leer variables de entorno.
+
+    ```js title="src/pages/recaptcha.js"
+    export async function POST({ request }) {
+      const data = await request.json();
+
+      const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
+      const requestBody = {
+        secret: "TU_CLAVE_SECRETA_DEL_SITIO",   // Esto puede ser una variable de entorno
+        response: data.recaptcha          // El token pasado desde el cliente
+      };
+
+      const response = await fetch(recaptchaURL, {
+        method: "POST",
+        body: JSON.stringify(requestBody)
+      });
+
+      const responseData = await response.json();
+
+      return new Response(JSON.stringify(responseData), { status: 200 });
+    }
+    ```
+
+2. Accede a tu endpoint utilizando `fetch` desde un script de cliente:
+
+    ```astro title="src/pages/index.astro"
+    <html>
+      <head>
+        <script src="https://www.google.com/recaptcha/api.js"></script>
+      </head>
+
+      <body>
+        <button class="g-recaptcha" 
+          data-sitekey="PUBLIC_SITE_KEY" 
+          data-callback="onSubmit" 
+          data-action="submit"> Click me to verify the captcha challenge! </button>
+
+        <script is:inline>
+          function onSubmit(token) {
+            fetch("/recaptcha", {
+              method: "POST",
+              body: JSON.stringify({ recaptcha: token })
+            })
+            .then((response) => response.json())
+            .then((gResponse) => {
+              if (gResponse.success) {
+                // Verificación del Captcha fue un éxito
+              } else {
+                // Falló la verificación del Captcha
+              }
+            })
+          }
+        </script>
+      </body>
+    </html>
+    ```

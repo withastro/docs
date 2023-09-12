@@ -1,0 +1,911 @@
+---
+title: Firebase 与 Astro
+description: 为你的项目集成 Firebase 后端
+type: backend
+service: Firebase
+stub: false
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import FileTree from '~/components/FileTree.astro'
+
+[Firebase](https://firebase.google.com/) 是一个应用开发平台，它提供了 NoSQL 数据库、身份验证、实时订阅、云函数和存储等功能。
+
+如有必要的话请移步我们专门的指南，了解[如何部署到 Firebase 托管](/zh-cn/guides/deploy/google-firebase/)
+
+## 在 Astro 中初始化 Firebase
+
+### 前期准备
+
+- 一个已配置了网页应用的 Firebase 项目；
+- 一个开启了 [服务端渲染模式（SSR）](/zh-cn/guides/server-side-rendering/#启用-ssr) 的 Astro 项目；
+- Firebase 凭据：你需要准备两组凭据来将 Astro 连接到 Firebase：
+  - 网页应用凭据：这些凭据将用于你的应用的客户端部分。你可以在 Firebase 控制台的「项目设置 > 通用」下找到它们。向下滚动到「您的应用」部分，然后并点击「网页应用」图标；
+  - 项目凭据：这些凭据将用于你的应用的服务器端部分。你可以在 Firebase 控制台的「项目设置 > 服务帐号 > Firebase Admin SDK > 生成新的私钥」下生成它们。
+
+### 添加 Firebase 凭据
+
+要将 Firebase 凭据添加到 Astro，需要项目的根目录下创建一个名为 `.env` 的文件，并添加以下变量：
+
+```ini title=".env"
+FIREBASE_PRIVATE_KEY_ID=YOUR_PRIVATE_KEY_ID
+FIREBASE_PRIVATE_KEY=YOUR_PRIVATE_KEY
+FIREBASE_PROJECT_ID=YOUR_PROJECT_ID
+FIREBASE_CLIENT_EMAIL=YOUR_CLIENT_EMAIL
+FIREBASE_CLIENT_ID=YOUR_CLIENT_ID
+FIREBASE_AUTH_URI=YOUR_AUTH_URI
+FIREBASE_TOKEN_URI=YOUR_TOKEN_URI
+FIREBASE_AUTH_CERT_URL=YOUR_AUTH_CERT_URL
+FIREBASE_CLIENT_CERT_URL=YOUR_CLIENT_CERT_URL
+```
+
+现在你已经可以在项目中使用这些变量。
+
+如果你希望为 Firebase 环境变量启用 IntelliSense 功能，那么可以在 `src/` 目录中编辑或创建 `env.d.ts` 文件，并配置你的自定义类型：
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly FIREBASE_PRIVATE_KEY_ID: string;
+  readonly FIREBASE_PRIVATE_KEY: string;
+  readonly FIREBASE_PROJECT_ID: string;
+  readonly FIREBASE_CLIENT_EMAIL: string;
+  readonly FIREBASE_CLIENT_ID: string;
+  readonly FIREBASE_AUTH_URI: string;
+  readonly FIREBASE_TOKEN_URI: string;
+  readonly FIREBASE_AUTH_CERT_URL: string
+  readonly FIREBASE_CLIENT_CERT_URL: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+:::tip
+了解更多在 Astro 有关于 [环境变量](/zh-cn/guides/environment-variables/) 以及 `.env` 文件的内容。
+:::
+
+现在你的项目应该包括以下几个新文件：
+
+<FileTree title="Project Structure">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+
+### 安装依赖
+
+要将 Astro 连接到 Firebas 需要使用以下单行命令，可以使用你喜欢的包管理工具来安装以下包：
+	•	`firebase` - 用于客户端的 Firebase SDK
+	•	`firebase-admin` - 用于服务器端的 Firebase Admin SDK
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install firebase firebase-admin
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install firebase firebase-admin
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add firebase firebase-admin
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+接下来，在 `src/` 目录下创建一个名为 `firebase` 的文件夹，并在其中添加两个新文件：`client.ts` 和 `server.ts`。
+
+在 `client.ts`文件中，请添加以下代码来使用你的网页应用凭据和 `firebase` 包并初始化客户端中的 Firebase：
+
+```ts title="src/firebase/client.ts"
+import { initializeApp } from "firebase/app";
+
+const firebaseConfig = {
+  apiKey: "my-public-api-key",
+  authDomain: "my-auth-domain",
+  projectId: "my-project-id",
+  storageBucket: "my-storage-bucket",
+  messagingSenderId: "my-sender-id",
+  appId: "my-app-id",
+};
+
+export const app = initializeApp(firebaseConfig);
+```
+
+:::note
+请记得使用你自己的网页应用凭据替换 `firebaseConfig` 对象中的内容。
+:::
+
+在 `server.ts` 文件中，请添加以下代码来使用你的项目凭据和 `firebase-admin` 包并初始化服务器端的 Firebase：
+
+```ts title="src/firebase/server.ts"
+import type { ServiceAccount } from "firebase-admin";
+import { initializeApp, cert } from "firebase-admin/app";
+
+const serviceAccount = {
+  type: "service_account",
+  project_id: import.meta.env.FIREBASE_PROJECT_ID,
+  private_key_id: import.meta.env.FIREBASE_PRIVATE_KEY_ID,
+  private_key: import.meta.env.FIREBASE_PRIVATE_KEY,
+  client_email: import.meta.env.FIREBASE_CLIENT_EMAIL,
+  client_id: import.meta.env.FIREBASE_CLIENT_ID,
+  auth_uri: import.meta.env.FIREBASE_AUTH_URI,
+  token_uri: import.meta.env.FIREBASE_TOKEN_URI,
+  auth_provider_x509_cert_url: import.meta.env.FIREBASE_AUTH_CERT_URL,
+  client_x509_cert_url: import.meta.env.FIREBASE_CLIENT_CERT_URL,
+};
+
+export const app = initializeApp({
+  credential: cert(serviceAccount as ServiceAccount),
+});
+```
+
+:::note
+请记得使用你自己的项目凭据替换 `serviceAccount` 对象中的内容。
+:::
+
+最后，你现在的项目中应该包含如下几个新文件：
+
+<FileTree title="Project Structure">
+- src
+  - env.d.ts
+  - firebase
+    - **client.ts**
+    - **server.ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## 使用 Firebase 添加身份验证
+
+### 前期准备
+
+- 一个已经初始化 Firebase 的 Astro 项目；
+- 一个启用了电子邮件（或密码身份）验证的 Firebase 项目，你可以在 Firebase 控制台中的「身份验证（Authentication） > 登录方式（Sign-in method）」中启用。
+
+### 创建身份验证的服务器端点
+
+Astro 中的 Firebase 身份验证需要以下三个 [Astro 服务器端点](/zh-cn/core-concepts/endpoints/)：
+
+-  `GET /api/auth/signin` - 用于用户登录
+-  `GET /api/auth/signout` - 用于用户退出
+-  `POST /api/auth/register` - 用于用户注册
+
+在新建目录 `src/pages/api/auth/` 下，创建与身份验证相关的三个端点：`signin.ts`、`signout.ts` 和 `register.ts`。
+
+`signin.ts` 文件中包含使用 Firebase 执行用户登录的代码：
+
+```ts title="src/pages/api/auth/signin.ts"
+import type { APIRoute } from "astro";
+import { app } from "../../../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+
+export const GET: APIRoute = async ({ request, cookies, redirect }) => {
+  const auth = getAuth(app);
+
+  /* 从请求头中获取 令牌 */
+  const idToken = request.headers.get("Authorization")?.split("Bearer ")[1];
+  if (!idToken) {
+    return new Response(
+      "No token found",
+      { status: 401 }
+    );
+  }
+
+  /* 校验 ID 令牌 */
+  try {
+    await auth.verifyIdToken(idToken);
+  } catch (error) {
+    return new Response(
+      "Invalid token",
+      { status: 401 }
+    );
+  }
+
+  /* 创建并设置会话 Cookie */
+  const fiveDays = 60 * 60 * 24 * 5 * 1000;
+  const sessionCookie = await auth.createSessionCookie(idToken, {
+    expiresIn: fiveDays,
+  });
+
+  cookies.set("session", sessionCookie, {
+    path: "/",
+  });
+
+  return redirect("/dashboard");
+};
+```
+
+:::note
+这是仅是一个基本的登录端点实现，你可以根据需要为该端点添加更多逻辑。
+:::
+
+`signout.ts` 文件包含通过删除会话 cookie 来登出用户的代码逻辑：
+
+```ts title="src/pages/api/auth/signout.ts"
+import type { APIRoute } from "astro";
+
+export const GET: APIRoute = async ({ redirect, cookies }) => {
+  cookies.delete("session", {
+    path: "/",
+  });
+  return redirect("/signin");
+};
+```
+
+:::note
+这是仅是一个基本的注销端点实现，你可以根据需要为该端点添加更多逻辑。
+:::
+
+`register.ts` 文件包含使用 Firebase 注册用户的代码逻辑：
+
+```ts title="src/pages/api/auth/register.ts"
+import type { APIRoute } from "astro";
+import { getAuth } from "firebase-admin/auth";
+import { app } from "../../../firebase/server";
+
+export const POST: APIRoute = async ({ request, redirect }) => {
+  const auth = getAuth(app);
+
+  /* 获取表单数据 */
+  const formData = await request.formData();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+  const name = formData.get("name")?.toString();
+
+  if (!email || !password || !name) {
+    return new Response(
+      "Missing form data",
+      { status: 400 }
+    );
+  }
+
+  /* 创建用户 */
+  try {
+    await auth.createUser({
+      email,
+      password,
+      displayName: name,
+    });
+  } catch (error: any) {
+    return new Response(
+      "Something went wrong",
+      { status: 400 }
+    );
+  }
+  return redirect("/signin");
+};
+```
+
+:::note
+这是仅是一个基本的注册端点实现，你可以根据需要为该端点添加更多逻辑。
+:::
+
+在创建了身份验证的服务器端点之后，你的项目目录现在应该包含这些新文件：
+
+<FileTree title="Project Structure">
+- src
+  - env.d.ts
+  - firebase
+    - client.ts
+    - server.ts
+  - pages
+    - api
+      - auth
+        - **login.ts**
+        - **logout.ts**
+        - **register.ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### 创建页面
+
+创建使用 Firebase 端点的页面：
+
+-  `src/pages/register.astro` - 包含用于注册用户的表单
+-  `src/pages/signin.astro` - 包含用于登录用户的表单
+-  `src/pages/dashboard.astro` - 包含只能由经过身份验证的用户访问的仪表板
+
+下面是 `src/pages/register.astro` 的一个示例，其中包含一个表单，该表单将向 `/api/auth/register` 端点发送 `POST` 请求。这个端点会使用表单中的数据创建一个新用户，然后将用户重定向到 `/signin` 页面。
+
+```astro title="src/pages/register.astro"
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Register">
+  <h1>Register</h1>
+  <p>Already have an account? <a href="/signin">Sign in</a></p>
+  <form action="/api/auth/register" method="post">
+    <label for="name">Name</label>
+    <input type="text" name="name" id="name" />
+    <label for="email" for="email">Email</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+  </form>
+</Layout>
+```
+
+`src/pages/signin.astro` 使用 Firebase 服务器应用程序来验证用户的会话 cookie。如果用户已经通过身份验证，页面将重定向用户到 `/dashboard` 页面。
+
+以下示例页面包含一个表单，该表单将使用 Firebase 客户端应用程序生成的 ID 令牌发送 `POST` 请求到 `/api/auth/signin` 端点。
+
+端点将验证 ID 令牌，并为用户创建一个新的会话 cookie。然后，端点将重定向用户到 `/dashboard` 页面。
+
+```astro title="src/pages/signin.astro"
+---
+import { app } from "../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+import Layout from "../layouts/Layout.astro";
+
+/* 校验用户是否已经通过身份验证 */
+const auth = getAuth(app);
+if (Astro.cookies.has("session")) {
+  const sessionCookie = Astro.cookies.get("session").value;
+  const decodedCookie = await auth.verifySessionCookie(sessionCookie);
+  if (decodedCookie) {
+    return Astro.redirect("/dashboard");
+  }
+}
+---
+
+<Layout title="Sign in">
+  <h1>Sign in</h1>
+  <p>New here? <a href="/register">Create an account</a></p>
+  <form action="/api/auth/signin" method="post">
+    <label for="email" for="email">Email</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+  </form>
+</Layout>
+<script>
+  import {
+    getAuth,
+    inMemoryPersistence,
+    signInWithEmailAndPassword,
+  } from "firebase/auth";
+  import { app } from "../firebase/client";
+
+  const auth = getAuth(app);
+  // 这样将阻止浏览器存储会话数据。
+  auth.setPersistence(inMemoryPersistence);
+
+  const form = document.querySelector("form") as HTMLFormElement;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const email = formData.get("email")?.toString();
+    const password = formData.get("password")?.toString();
+
+    if (!email || !password) {
+      return;
+    }
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    const idToken = await userCredential.user.getIdToken();
+    const response = await fetch("/api/auth/signin", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+
+    if (response.redirected) {
+      window.location.assign(response.url);
+    }
+  });
+</script>
+```
+
+`src/pages/dashboard.astro` 将使用 Firebase 服务器应用程序来验证用户的会话 cookie。如果用户未经身份验证，页面将重定向用户到 `/signin` 页面。
+
+以下示例页面显示用户的名称和一个用于注销的按钮。点击该按钮将发送一个 `GET` 请求到 `/api/auth/signout` 端点。
+
+端点将删除用户的会话 cookie 并重定向用户到 `/signin` 页面。
+
+```astro title="src/pages/dashboard.astro"
+---
+import { app } from "../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+import Layout from "../layouts/Layout.astro";
+
+const auth = getAuth(app);
+
+/* 检查当前会话 */
+if (!Astro.cookies.has("session")) {
+  return Astro.redirect("/signin");
+}
+const sessionCookie = Astro.cookies.get("session").value;
+const decodedCookie = await auth.verifySessionCookie(sessionCookie);
+const user = await auth.getUser(decodedCookie.uid);
+
+if (!user) {
+  return Astro.redirect("/signin");
+}
+---
+
+<Layout title="dashboard">
+  <h1>Welcome {user.displayName}</h1>
+  <p>We are happy to see you here</p>
+  <form action="/api/auth/signout">
+    <button type="submit">Sign out</button>
+  </form>
+</Layout>
+```
+
+### 添加 OAuth 提供商
+
+要想为你的应用程序添加 OAuth 提供商，你需要在 Firebase 控制台中启用它们。
+
+在 Firebase 控制台中，转到 **身份验证（Authentication）** 部分，然后点击 **登录方式（Sign-in method）** 选项卡。接着，点击 **添加新的提供商（Add a new provider）** 按钮，并启用你想要使用的提供商。
+
+以下是使用 **Google** 提供商的示例。
+
+编辑 `signin.astro` 页面并添加：
+-  在现有表单下方添加一个与 Google 登录的按钮；
+-  在现有的 `<script>` 中，为按钮添加事件侦听器，以处理登录过程。
+
+```astro title="src/pages/signin.astro" ins={27, 34, 35, 69-83}
+---
+import { app } from "../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+import Layout from "../layouts/Layout.astro";
+
+/* 校验用户是否已经通过身份验证 */
+const auth = getAuth(app);
+if (Astro.cookies.has("session")) {
+  const sessionCookie = Astro.cookies.get("session").value;
+  const decodedCookie = await auth.verifySessionCookie(sessionCookie);
+  if (decodedCookie) {
+    return Astro.redirect("/dashboard");
+  }
+}
+---
+
+<Layout title="Sign in">
+  <h1>Sign in</h1>
+  <p>New here? <a href="/register">Create an account</a></p>
+  <form action="/api/auth/signin" method="post">
+    <label for="email" for="email">Email</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+  </form>
+  <button id="google">Sign in with Google</button>
+</Layout>
+<script>
+  import {
+    getAuth,
+    inMemoryPersistence,
+    signInWithEmailAndPassword,
+    GoogleAuthProvider,
+    signInWithPopup,
+  } from "firebase/auth";
+  import { app } from "../firebase/client";
+
+  const auth = getAuth(app);
+  auth.setPersistence(inMemoryPersistence);
+
+  const form = document.querySelector("form") as HTMLFormElement;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const email = formData.get("email")?.toString();
+    const password = formData.get("password")?.toString();
+
+    if (!email || !password) {
+      return;
+    }
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    const idToken = await userCredential.user.getIdToken();
+    const response = await fetch("/api/auth/signin", {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+
+    if (response.redirected) {
+      window.location.assign(response.url);
+    }
+  });
+
+  const googleSignin = document.querySelector("#google") as HTMLButtonElement;
+  googleSignin.addEventListener("click", async () => {
+    const provider = new GoogleAuthProvider();
+    const userCredential = await signInWithPopup(auth, provider);
+    const idToken = await userCredential.user.getIdToken();
+    const res = await fetch("/api/auth/signin", {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+
+    if (res.redirected) {
+      window.location.assign(res.url);
+    }
+  });
+</script>
+```
+
+当点击 Google 登录按钮时，将会打开一个弹出窗口以进行 Google 登录。用户登录后，将使用 OAuth 提供商生成的 ID 令牌，并发送一个 `POST` 请求到 `/api/auth/signin` 端点。
+
+端点将验证 ID 令牌，并为用户创建一个新的会话 cookie。然后，端点将重定向用户到 `/dashboard` 页面。
+
+## 连接到 Firebase 数据库
+
+### 前期准备
+
+- 一个如 [在 Astro 中初始化 Firebase](#在-astro-中初始化-firebase) 部分所述初始化了 Firebase 的 Astro 项目。
+-  一个拥有 Firestore 数据库的 Firebase 项目。你可以按照 [Firebase 文档](https://firebase.google.com/docs/firestore/quickstart) 创建新项目并设置 Firestore 数据库进行操作。
+
+在本示例中，Firestore 的集合将被命名为 **friends**，其中包含具有以下字段的文档：
+
+-  `id`：由 Firestore 自动生成
+-  `name`：一个字符串字段
+-  `age`：一个数字字段
+-  `isBestFriend`：一个布尔字段
+
+### 创建服务器端点
+
+在新的 `src/pages/api/friends/` 目录下创建两个文件：`index.ts` 和 `[id].ts`。这两个文件将创建两个服务器端点，以如下方式与 Firestore 数据库交互：
+
+-  `POST /api/friends`：用于在 friends 集合中创建新文档。
+-  `POST /api/friends/:id`：用于更新 friends 集合中的文档。
+-  `DELETE /api/friends/:id`：用于删除 friends 集合中的文档。
+
+`index.ts` 文件将包含在 friends 集合中创建新文档的代码：
+
+```ts title="src/pages/api/friends/index.ts"
+import type { APIRoute } from "astro";
+import { app } from "../../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+
+export const POST: APIRoute = async ({ request, redirect }) => {
+  const formData = await request.formData();
+  const name = formData.get("name")?.toString();
+  const age = formData.get("age")?.toString();
+  const isBestFriend = formData.get("isBestFriend") === "on";
+
+  if (!name || !age) {
+    return new Response("Missing required fields", {
+      status: 400,
+    });
+  }
+  try {
+    const db = getFirestore(app);
+    const friendsRef = db.collection("friends");
+    await friendsRef.add({
+      name,
+      age: parseInt(age),
+      isBestFriend,
+    });
+  } catch (error) {
+    return new Response("Something went wrong", {
+      status: 500,
+    });
+  }
+  return redirect("/dashboard");
+};
+```
+
+:::note
+这是 `friends` 端点的基本实现。你可以根据需要为该端点添加更多逻辑。
+:::
+
+`[id].ts` 文件将包含用于更新和删除 friends 集合中文档的代码逻辑：
+
+```ts title="src/pages/api/friends/[id].ts"
+import type { APIRoute } from "astro";
+import { app } from "../../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+
+const db = getFirestore(app);
+const friendsRef = db.collection("friends");
+
+export const POST: APIRoute = async ({ params, redirect, request }) => {
+  const formData = await request.formData();
+  const name = formData.get("name")?.toString();
+  const age = formData.get("age")?.toString();
+  const isBestFriend = formData.get("isBestFriend") === "on";
+
+  if (!name || !age) {
+    return new Response("Missing required fields", {
+      status: 400,
+    });
+  }
+
+  if (!params.id) {
+    return new Response("Cannot find friend", {
+      status: 404,
+    });
+  }
+
+  try {
+    await friendsRef.doc(params.id).update({
+      name,
+      age: parseInt(age),
+      isBestFriend,
+    });
+  } catch (error) {
+    return new Response("Something went wrong", {
+      status: 500,
+    });
+  }
+  return redirect("/dashboard");
+};
+
+export const DELETE: APIRoute = async ({ params, redirect }) => {
+  if (!params.id) {
+    return new Response("Cannot find friend", {
+      status: 404,
+    });
+  }
+
+  try {
+    await friendsRef.doc(params.id).delete();
+  } catch (error) {
+    return new Response("Something went wrong", {
+      status: 500,
+    });
+  }
+  return redirect("/dashboard");
+};
+```
+
+:::note
+这是 `friends/:id` 端点的基本实现。你可以根据需要为该端点添加更多逻辑。
+:::
+
+在为 Firestore 创建服务器端点之后，你的项目目录现在应该包含这些新文件：
+
+<FileTree title="Project Structure">
+- src
+  - env.d.ts
+  - firebase
+    - client.ts
+    - server.ts
+  - pages
+    - api
+      - friends
+        - **index.ts**
+        - **[id].ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### 创建页面
+
+创建使用 Firestore 端点的页面：
+
+-   `src/pages/add.astro` – 包含一个表单，用于添加一个新朋友。
+-   `src/pages/edit/[id].astro` – 包含一个表单用于编辑一个朋友和一个删除朋友的按钮。
+-   `src/pages/friend/[id].astro` – 包含一个朋友的详细信息。
+-   `src/pages/dashboard.astro` – 显示朋友列表。
+
+#### 添加新记录
+
+下面是一个 `src/pages/add.astro` 的示例文件，其中包含一个表单，该表单将向 `/api/friends` 端点发送 `POST` 请求。该端点将使用表单中的数据创建一个新朋友，然后将用户重定向到 `/dashboard` 页面。
+
+```astro title="src/pages/add.astro"
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Add a new friend">
+  <h1>Add a new friend</h1>
+  <form method="post" action="/api/friends">
+    <label for="name">Name</label>
+    <input type="text" id="name" name="name" />
+    <label for="age">Age</label>
+    <input type="number" id="age" name="age" />
+    <label for="isBestFriend">Is best friend?</label>
+    <input type="checkbox" id="isBestFriend" name="isBestFriend" />
+    <button type="submit">Add friend</button>
+  </form>
+</Layout>
+```
+
+#### 编辑或删除一条记录
+
+`src/pages/edit/[id].astro` 将包含一个表单，用于编辑朋友的数据，并包含一个删除朋友的按钮。在提交时，该页面将向 `/api/friends/:id` 端点发送 `POST` 请求来更新朋友的数据。
+
+如果用户点击删除按钮，该页面将向 `/api/friends/:id` 端点发送 `DELETE` 请求来删除朋友。
+
+```astro title="src/pages/edit/[id].astro"
+---
+import Layout from "../../layouts/Layout.astro";
+import { app } from "../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+
+interface Friend {
+  name: string;
+  age: number;
+  isBestFriend: boolean;
+}
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect("/404");
+}
+
+const db = getFirestore(app);
+const friendsRef = db.collection("friends");
+const friendSnapshot = await friendsRef.doc(id).get();
+
+if (!friendSnapshot.exists) {
+  return Astro.redirect("/404");
+}
+
+const friend = friendSnapshot.data() as Friend;
+---
+
+<Layout title="Edit {friend.name}">
+  <h1>Edit {friend.name}</h1>
+  <p>Here you can edit or delete your friend's data.</p>
+  <form method="post" action={`/api/friends/${id}`}>
+    <label for="name">Name</label>
+    <input type="text" id="name" name="name" value={friend.name} />
+    <label for="age">Age</label>
+    <input type="number" id="age" name="age" value={friend.age} />
+    <label for="isBestFriend">Is best friend?</label>
+    <input
+      type="checkbox"
+      id="isBestFriend"
+      name="isBestFriend"
+      checked={friend.isBestFriend}
+    />
+    <button type="submit">Edit friend</button>
+  </form>
+  <button type="button" id="delete-document">Delete</button>
+</Layout>
+<script>
+  const deleteButton = document.getElementById(
+    "delete-document"
+  ) as HTMLButtonElement;
+  const url = document.querySelector("form")?.getAttribute("action") as string;
+  deleteButton.addEventListener("click", async () => {
+    const response = await fetch(url, {
+      method: "DELETE",
+    });
+    if (response.redirected) {
+      window.location.assign(response.url);
+    }
+  });
+</script>
+```
+
+#### 展示单独的记录
+
+`src/pages/friend/[id].astro` 将显示一个朋友的详细信息。
+
+```astro title="src/pages/friend/[id].astro"
+---
+import Layout from "../../layouts/Layout.astro";
+import { app } from "../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+
+interface Friend {
+  name: string;
+  age: number;
+  isBestFriend: boolean;
+}
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect("/404");
+}
+
+const db = getFirestore(app);
+const friendsRef = db.collection("friends");
+const friendSnapshot = await friendsRef.doc(id).get();
+
+if (!friendSnapshot.exists) {
+  return Astro.redirect("/404");
+}
+
+const friend = friendSnapshot.data() as Friend;
+---
+
+<Layout title={friend.name}>
+  <h1>{friend.name}</h1>
+  <p>Age: {friend.age}</p>
+  <p>Is best friend: {friend.isBestFriend ? "Yes" : "No"}</p>
+</Layout>
+```
+
+#### 通过编辑按钮来展示多条记录
+
+最后，`src/pages/dashboard.astro` 将显示一个朋友列表。每个朋友都会有指向他们详细信息页面的链接和一个编辑按钮，点击编辑按钮将重定向用户到编辑页面。
+
+```astro title="src/pages/dashboard.astro"
+---
+import { app } from "../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+import Layout from "../layouts/Layout.astro";
+
+interface Friend {
+  id: string;
+  name: string;
+  age: number;
+  isBestFriend: boolean;
+}
+
+const db = getFirestore(app);
+const friendsRef = db.collection("friends");
+const friendsSnapshot = await friendsRef.get();
+const friends = friendsSnapshot.docs.map((doc) => ({
+  id: doc.id,
+  ...doc.data(),
+})) as Friend[];
+---
+
+<Layout title="My friends">
+  <h1>Friends</h1>
+  <ul>
+    {
+      friends.map((friend) => (
+        <li>
+          <a href={`/friend/${friend.id}`}>{friend.name}</a>
+          <span>({friend.age})</span>
+          <strong>{friend.isBestFriend ? "Bestie" : "Friend"}</strong>
+          <a href={`/edit/${friend.id}`}>Edit</a>
+        </li>
+      ))
+    }
+  </ul>
+</Layout>
+
+```
+
+创建完所有页面后，此时你的项目应该具有以下文件结构：
+
+<FileTree title="Project Structure">
+- src
+  - env.d.ts
+  - firebase
+    - client.ts
+    - server.ts
+  - pages
+    - dashboard.astro
+    - add.astro
+    - edit
+      - [id].astro
+    - friend
+      - [id].astro
+    - api
+      - friends
+        - index.ts
+        - [id].ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## 社区资源
+
+- [Astro and Firebase SSR app example](https://github.com/kevinzunigacuellar/astro-firebase)

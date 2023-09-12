@@ -54,6 +54,9 @@ export default {
 	'migration.navTitle': 'More migration guides',
 	// Recipes vocabulary
 	'recipes.navTitle': 'More recipes',
+	// `<RecipeLinks>` vocabulary
+	'recipesLink.singular': 'Related recipe:',
+	'recipesLink.plural': 'Related recipes',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'See all contributors',
 	// Fallback content notice shown when a page is not yet translated
@@ -69,8 +72,6 @@ export default {
 	'aside.tip': 'Tip',
 	'aside.caution': 'Caution',
 	'aside.danger': 'Danger',
-	// `<CodeSnippet>` vocabulary
-	'codeSnippet.terminalCaption': 'Terminal window',
 	// `<LanguageSelect>` vocabulary
 	'languageSelect.label': 'Select language',
 	// Integrations vocabulary
@@ -109,6 +110,17 @@ export default {
 	'feedback.success': 'Thanks! We received your feedback.',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': 'Directory',
+	// Code snippet vocabulary
+	'expressiveCode.terminalWindowFallbackTitle': 'Terminal window',
+	'expressiveCode.copyButtonTooltip': 'Copy to clipboard',
+	'expressiveCode.copyButtonCopied': 'Copied!',
 	// Backend Guides vocabulary
 	'backend.navTitle': 'More backend service guides',
+	// Stubs vocabulary
+	'stub.title': 'Expand this stub!',
+	'stub.subtitle': 'This guide is a stub.',
+	'stub.description.migration':
+		'Want to contribute to this guide? Have a blog post, video, or another resource to share about migrating from this technology to Astro?',
+	'stub.description.cms': 'Know more about how to use this CMS with Astro?',
+	'stub.description.backend': 'Know more about how to use this backend service with Astro?',
 };

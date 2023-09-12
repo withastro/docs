@@ -1,6 +1,9 @@
 ---
 title: Referência da Configuração
+i18nReady: true
+githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts
 ---
+
 import Since from '~/components/Since.astro';
 
 
@@ -50,7 +53,7 @@ $ astro build --root ./diretorio-do-meu-projeto
 **Padrão:** `"./src"`
 </p>
 
-Define o diretório em que Astro irá ler o seu site. 
+Define o diretório em que Astro irá ler o seu site.
 
 O valor pode ser tanto um caminho absoluto do sistema ou um caminho relativo a raiz do projeto.
 
@@ -100,6 +103,73 @@ O valor pode ser tanto um caminho absoluto do sistema ou um caminho relativo a r
 **Veja Também:**
 - build.server
 
+
+### cacheDir
+
+<p>
+
+**Tipo:** `string`<br />
+**Padrão:** `"./node_modules/.astro"`
+</p>
+
+Define a pasta para deixar em cache artefatos da build. Arquivos nessa pasta vão ser usados em subsequentes builds para acelerar o tempo de build.
+
+O valor pode ser tanto um caminho absoluto no sistema de arquivos ou um caminho relativo a raiz do projeto.
+
+```js
+{
+  cacheDir: './minha-pasta-de-cache-personalizada'
+}
+```
+
+
+### redirects
+
+<p>
+
+**Tipo:** `Record.<string, RedirectConfig>`<br />
+**Padrão:** `{}`<br />
+<Since v="2.9.0" />
+</p>
+
+Especifica um mapeamento de redirecionamentos onde a chave é a rota a corresponder
+e o valor é o caminho pra onde será redirecionado.
+
+Você pode redirecionar tanto rotas estáticas como dinâmicas, mas somente o mesmo tipo de rota.
+Por exemplo, você não pode ter um redirecionamento `'/artigo': '/blog/[...slug]'`.
+
+
+```js
+{
+  redirects: {
+    '/antigo': '/novo',
+    '/blog/[...slug]': '/artigos/[...slug]',
+  }
+}
+```
+
+
+Para sites estaticamente gerados sem nenhum adaptador instalado, isso vai produzir um redirecionamento no cliente usando uma [tag `<meta http-equiv="refresh">`](https://developer.mozilla.org/pt-BR/docs/Web/HTML/Element/meta#http-equiv) e não suporta códigos de status.
+
+Quando estiver usando SSR ou um adaptador estático no modo `output: static`,
+códigos de status não são suportados.
+O Astro irá servir requisições GET redirecionadas com um status de `301`
+e usar um status de `308` para qualquer outro método de requisição.
+
+Você pode customizar o [código de status de redirecionamento](https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status#mensagens_de_redirecionamento) usando um objeto na configuração de redirecionamento:
+
+```js
+{
+  redirects: {
+    '/outro': {
+      status: 302,
+      destination: '/lugar',
+    },
+  }
+}
+```
+
+
 ### site
 
 <p>
@@ -112,6 +182,24 @@ Sua URL final no deploy. Astro utiliza esta URL completa para gerar seu sitemap 
 ```js
 {
   site: 'https://www.meu-site.dev'
+}
+```
+
+
+### compressHTML
+
+<p>
+
+**Tipo:** `boolean`<br />
+**Padrão:** `true`
+</p>
+
+Esta é uma opção para minificar seu HTML final e reduzir o tamanho dos seus arquivos HTML. Por padrão, o Astro remove todos os espaços em branco do seu HTML, incluindo quebras de linha, de componentes `.astro`. Isso ocorre tanto em modo de desenvolvimento e na build final.
+Para desabilitar a compressão de HTML, defina a flag `compressHTML` como `false`.
+
+```js
+{
+  compressHTML: false
 }
 ```
 
@@ -135,10 +223,7 @@ No exemplo abaixo, `astro dev` irá iniciar seu servidor em `/docs`.
 
 Au utilizar esta opção, todas as importações de assets e URLs devem adicionar a base como prefixo. Você pode acessar esse valor com `import.meta.env.BASE_URL`.
 
-```astro
-<a href="/docs/sobre/">Sobre</a>
-<img src=`${import.meta.env.BASE_URL}/imagem.png`>
-```
+O valor de `import.meta.env.BASE_URL` respeita sua configuração de `trailingSlash` e irá incluir uma barra final se você explicitamente incluiu uma ou se `trailingSlash: "always"` foi definido. Se `trailingSlash: "never"` está definido, `BASE_URL` não irá incluir uma barra final, mesmo se `base` inclui uma.
 
 
 ### trailingSlash
@@ -167,6 +252,25 @@ Você também pode definir isto se você preferir ser mais estrito consigo mesmo
 **Veja Também:**
 - build.format
 
+
+### scopedStyleStrategy
+
+<p>
+
+**Tipo:** `'where' | 'class'` | `'attribute'`<br />
+**Padrão:** `'attribute'`<br />
+<Since v="2.4" />
+</p>
+
+Especifica a estratégia usada para definir o escopo de estilos dentro de componentes do Astro. Escolha entre:
+  - `'where'` 		- Usa seletores `:where`, causando nenhum aumento de especificidade.
+  - `'class'` 		- Usa seletores baseados em classe, causando um aumento de +1 de especificidade.
+  - `'attribute'` 	- Usa atributos `data-`, causando nenhum aumento de especificidade.
+
+Usar `'class'` é útil quando você quer garantir que os seletores de elementos em componentes Astro sobrescrevam os padrões de estilo globais (e.x. de uma folha de estilo global).
+Usar `'where'` dá a você mais controle sobre a especificidade, mas requer que você use seletores de especificidade mais alta, camadas e outras ferramentas para controlar quais seletores são aplicados.
+Usar `'attribute'` é útil quando você está manipulando o atributo `class` de elementos e precisa evitar conflitos entre sua própria lógica de estilização e a aplicação de estilos do Astro.
+
 ### adapter
 
 <p>
@@ -193,7 +297,7 @@ import netlify from '@astrojs/netlify/functions';
 
 <p>
 
-**Tipo:** `'static' | 'server'`<br />
+**Tipo:** `'static' | 'server' | 'hybrid`<br />
 **Padrão:** `'static'`
 </p>
 
@@ -201,9 +305,11 @@ Especifica o alvo de saída para builds.
 
 - 'static' - Fazendo build de um site estático para fazer deploy em qualquer hospedagem estática.
 - 'server' - Fazendo build de um app para fazer deploy em uma hospedagem que suporta SSR (renderização no lado do servidor).
+- 'hybrid' - Fazendo build de um site estático com algumas páginas renderizadas no lado do servidor.
 
 ```js
 import { defineConfig } from 'astro/config';
+
 export default defineConfig({
   output: 'static'
 })
@@ -236,12 +342,16 @@ Controla o formato final do arquivo de cada página.
 ```
 
 #### Efeito no Astro.url
-
-Definir `build.format` controla o que `Astro.url` é durante a build. Quandl ele for:
+Definir `build.format` controla o que `Astro.url` é durante a build. Quando ele for:
 - `directory` - O `Astro.url.pathname` irá incluir uma barra final para imitar o comportamento da pasta; ou seja, `/foo/`.
 - `file` - O `Astro.url.pathname` irá incluir `.html`; ou seja, `/foo.html`.
 
 Isso significa que quando você criar URLs relativas usando `new URL('./relativo', Astro.url)`, você terá um comportamento consistente entre dev e build.
+
+Para evitar inconsistências com o comportamento da barra final durante desenvolvimento, você pode restringir a [opção `trailingSlash`](#trailingslash) para `'always'` ou `'never'` dependendo do seu formato de build:
+- `directory` - Defina `trailingSlash: 'always'`
+- `file` - Defina `trailingSlash: 'never'`
+
 
 ### build.client
 
@@ -251,14 +361,14 @@ Isso significa que quando você criar URLs relativas usando `new URL('./relativo
 **Padrão:** `'./dist/client'`
 </p>
 
-Controla o diretório de saída do seu CSS e JavaScript do lado do cliente apenas quando `output: 'server'`.
+Controla o diretório de saída do seu CSS e JavaScript do lado do cliente apenas quando `output: 'server'` ou `output: 'hybrid'`.
 `outDir` controla onde o código é construído.
 
 Esse valor é relativo ao `outDir`.
 
 ```js
 {
-  output: 'server',
+  output: 'server', // ou 'hybrid'
   build: {
     client: './client'
   }
@@ -286,6 +396,7 @@ Esse valor é relativo ao `outDir`.
 }
 ```
 
+
 ### build.assets
 
 <p>
@@ -307,6 +418,7 @@ Especifica o diretório na saída da build onde assets gerados pelo Astro (JS e 
 **Veja Também:**
 - outDir
 
+
 ### build.assetsPrefix
 
 <p>
@@ -320,7 +432,7 @@ Especifica o prefixo para links de assets gerados pelo Astro. Isto pode ser util
 
 Por exemplo, se ele é definido como `https://cdn.exemplo.com`, assets serão buscados de `https://cdn.exemplo.com/_astro/...` (independente da opção `base`).
 Você precisaria fazer upload desses arquivos em `./dist/_astro/` para `https://cdn.exemplo.com/_astro/` para providenciar os assets.
-O processo varia dependendo em como o domínio de terceiros é hospeado.
+O processo varia dependendo em como o domínio de terceiros é hospedado.
 Para renomear o caminho `_astro`, especifique um novo diretório em `build.assets`.
 
 ```js
@@ -330,6 +442,7 @@ Para renomear o caminho `_astro`, especifique um novo diretório em `build.asset
   }
 }
 ```
+
 
 ### build.serverEntry
 
@@ -354,6 +467,97 @@ detecta que o arquivo é um módulo JavaScript.
 }
 ```
 
+
+### build.redirects
+
+<p>
+
+**Tipo:** `boolean`<br />
+**Padrão:** `true`<br />
+<Since v="2.6.0" />
+</p>
+
+Especifica se os redirecionamentos são enviados como HTML durante a build.
+Essa opção só se aplica para o modo `output: 'static'`; em SSR os redirecionamentos
+são tratados da mesma forma que todas as respostas.
+
+Essa opção é principalmente para ser usada por adaptadores que possuem arquivos
+de configuração especiais para redirecionamentos e não precisam/querem redirecionamentos baseados em HTML.
+
+```js
+{
+  build: {
+    redirects: false
+  }
+}
+```
+
+
+### build.inlineStylesheets
+
+<p>
+
+**Tipo:** `'always' | 'auto' | 'never'`<br />
+**Padrão:** `auto`<br />
+<Since v="2.6.0" />
+</p>
+
+Controla se os estilos do projeto são enviados para o navegador em um arquivo CSS separado ou em linha em tags `<style>`. Escolha entre as seguintes opções:
+ - `'always'` - estilos do projeto são embutidos em tags `<style>`
+ - `'auto'` - apenas folhas de estilo menores que `ViteConfig.build.assetsInlineLimit` (padrão: 4kb) são embutidas. Caso contrário, estilos do projeto são enviados em folhas de estilo externas.
+ - `'never'` - estilos do projeto são enviados em folhas de estilo externas
+
+```js
+{
+	build: {
+		inlineStylesheets: `never`,
+	},
+}
+```
+
+
+### build.split
+
+<p>
+
+**Tipo:** `boolean`<br />
+**Padrão:** `false`
+</p>
+
+A opção de configuração da build `build.split` foi substituída pela opção de configuração do adaptador [`functionPerRoute`](/pt-br/reference/adapter-reference/#functionperroute).
+
+Por favor veja a [documentação do seu adaptador SSR](/pt-br/guides/integrations-guide/#integrações-oficiais) para utilizar `functionPerRoute` para definir como seu código SSR deve passar por bundle.
+
+```js
+{
+  build: {
+    split: true
+  }
+}
+```
+
+
+### build.excludeMiddleware
+
+<p>
+
+**Tipo:** `boolean`<br />
+**Padrão:** `false`
+</p>
+
+A opção de configuração da build `build.excludeMiddleware` foi substituída pela opção de configuração do adaptador [`edgeMiddleware`](/pt-br/reference/adapter-reference/#edgemiddleware).
+
+Por favor veja a [documentação do seu adaptador SSR](/pt-br/guides/integrations-guide/#integrações-oficiais) para utilizar `edgeMiddleware` para definir se algum ou nenhum código de middleware SSR irá passar por bundle durante a build.
+
+```js
+{
+  build: {
+    excludeMiddleware: true
+  }
+}
+```
+
+
 ## Opções do Servidor
 
 Customize o servidor de desenvolvimento do Astro, usado por `astro dev` e `astro preview`.
@@ -369,7 +573,7 @@ Para definir uma configuração diferente baseada no comando run ("dev", "previe
 ```js
 {
   // Exemplo: Use a sintaxe de função para customizar com base no comando
-  server: (command) => ({ port: command === 'dev' ? 3000 : 4000 })
+  server: ({ command }) => ({ port: command === 'dev' ? 4321 : 4000 })
 }
 ```
 
@@ -387,12 +591,13 @@ Define em quais endereços de IP da rede o servidor deve ser escutado em (ou sej
 - `true` - escutado em todos os endereços, incluindo endereços LAN e públicos
 - `[endereço-customizado]` - o expõe ao endereço de IP da rede em `[endereço-customizado]` (ex: `192.168.0.1`)
 
+
 ### server.port
 
 <p>
 
 **Tipo:** `number`<br />
-**Padrão:** `3000`
+**Padrão:** `4321`
 </p>
 
 Define em qual porta o servidor deve ser escutado.
@@ -417,6 +622,7 @@ Se a porta indicada já estiver em uso, Astro irá automaticamente tentar a pró
 
 Define headers de resposta HTTP customizados a serem enviados em `astro dev` e `astro preview`.
 
+
 ## Opções de Imagem
 
 ### image.service (Experimental)
@@ -424,7 +630,7 @@ Define headers de resposta HTTP customizados a serem enviados em `astro dev` e `
 <p>
 
 **Tipo:** `Object`<br />
-**Padrão:** `{entrypoint: 'astro/assets/services/squoosh', config?: {}}`<br />
+**Padrão:** `{entrypoint: 'astro/assets/services/sharp', config?: {}}`<br />
 <Since v="2.1.0" />
 </p>
 
@@ -442,6 +648,70 @@ O entrypoint do serviço pode ser tanto um dos serviços inclusos ou um pacote d
   },
 }
 ```
+
+
+### image.domains
+
+<p>
+
+**Tipo:** `Array.<string>`<br />
+**Padrão:** `{domains: []}`<br />
+<Since v="2.10.10" />
+</p>
+
+Define uma lista de domínios de fonte de imagem permitidos para otimização de imagem local. Nenhuma outra imagem remota vai ser otimizada pelo Astro.
+
+Essa opção requer uma matriz de nomes de domínio individuais como strings. Coringas não são permitidos. Ao invés disso, use [`image.remotePatterns`](#imageremotepatterns) para definir uma lista de padrões de URL de origens permitidos.
+
+```js
+// astro.config.mjs
+{
+  image: {
+    // Exemplo: Permitir otimização de imagem remota de um único domínio
+    domains: ['astro.build'],
+  },
+}
+```
+
+
+### image.remotePatterns
+
+<p>
+
+**Tipo:** `Array.<RemotePattern>`<br />
+**Padrão:** `{remotePatterns: []}`<br />
+<Since v="2.10.10" />
+</p>
+
+Define uma lista de padrões de URL de origem de imagem permitidos para otimização de imagem local.
+
+`remotePatterns` pode ser configurado com quatro propriedades:
+1. protocol
+2. hostname
+3. port
+4. pathname
+
+```js
+{
+  image: {
+    // Exemplo: permitir processamento de todas as imagens do seu bucket do aws s3
+    remotePatterns: [{
+      protocol: 'https',
+      hostname: '**.amazonaws.com',
+    }],
+  },
+}
+```
+
+Você pode usar coringas para definir os valores permitidos de `hostname` e `pathname` como descrito abaixo. Caso contrário, apenas os valores exatos fornecidos serão configurados:
+`hostname`:
+  - Comece com '**.' para permitir todos os subdomínios ('termina com').
+  - Comece com '*.' para permitir apenas um nível de subdomínio.
+
+`pathname`:
+  - Termine com '/**' para permitir todas as sub-rotas ('começa com').
+  - Termine com '/*' para permitir apenas um nível de sub-rota.
+
 
 ## Opções de Markdown
 
@@ -466,6 +736,7 @@ Uma página Markdown é considerada um rascunho se ela inclui `draft: true` em s
 }
 ```
 
+
 ### markdown.shikiConfig
 
 <p>
@@ -484,7 +755,7 @@ Opções da configuração do Shiki. Veja [a documentação da configuração de
 **Padrão:** `shiki`
 </p>
 
-Qual syntax highlighter deve ser utilizado, caso utilize. 
+Qual syntax highlighter deve ser utilizado, caso utilize.
 - `shiki` - utiliza o highlighter do [Shiki](https://github.com/shikijs/shiki)
 - `prism` - utiliza o highlighter do [Prism](https://prismjs.com/)
 - `false` - não aplica syntax highlighting.
@@ -556,6 +827,7 @@ Astro usa [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) por
 }
 ```
 
+
 ### markdown.smartypants
 
 <p>
@@ -594,23 +866,10 @@ Passe opções para o [remark-rehype](https://github.com/remarkjs/remark-rehype#
 };
 ```
 
-## Adaptador
-
-Faça deploy em seu servidor de hospedagem, serverless ou edge favorita com adaptadores de build. Importe um de nossos adaptadores oficiais para [Netlify](/pt-br/guides/deploy/netlify/#adaptador-para-ssredge), [Vercel](/pt-br/guides/deploy/vercel/#adaptador-para-ssr) e mais para possibilitar o SSR do Astro.
-
-[Veja nosso guia de Renderização no lado do Servidor](/pt-br/guides/server-side-rendering/) para saber mais sobre SSR, e [nossos guias de deploy](/pt-br/guides/deploy/) para uma lista completa de hospedagens.
-
-```js
-import netlify from '@astrojs/netlify/functions';
-{
-  // Exemplo: Faça build para fazer deploy no serverless da Netlify
-  adapter: netlify(),
-}
-```
 
 ## Integrações
 
-Estenda Astro com integrações customizadas. Integrações são sua via de mão única para adicionar suporte a frameworks (como Solid.js), novas funcionalidades (como sitemaps) e novas bibliotecas (como Partytown e Turbolinks).
+Estenda Astro com integrações customizadas. Integrações são sua via de mão única para adicionar suporte a frameworks (como Solid.js), novas funcionalidades (como sitemaps) e novas bibliotecas (como Partytown).
 
 Leia nosso [Guia de Integrações](/pt-br/guides/integrations-guide/) para mais ajuda em como começar a utilizar Integrações Astro.
 
@@ -653,29 +912,35 @@ Veja a documentação completa do objeto de configuração `vite` em [vitejs.dev
 
 ## Flags Legado
 
-Para ajudar usuários a migrarem entre versões do Astro, nós ocasionalmente introduzimos flags `legacy`. Estas flags te permitem optar por um descontinuado ou antigo comportamento do Astro na versão mais recente, para que então você possa continuar atualizando e se aproveitando de novas versões do Astro.
+Para ajudar usuários a migrarem entre versões do Astro, nós ocasionalmente introduzimos flags `legacy`.
+Estas flags te permitem optar por um descontinuado ou antigo comportamento do Astro
+na versão mais recente, para que então você possa continuar atualizando e se aproveitando de novas versões do Astro.
 
 ## Flags Experimentais
 
 Astro oferece flags experimentais para dar aos usuários acesso antecipado a novas funcionalidades.
 Não há garantia que essas flags são estáveis.
 
-### experimental.assets
+
+### experimental.optimizeHoistedScript
 
 <p>
 
 **Tipo:** `boolean`<br />
 **Padrão:** `false`<br />
-<Since v="2.1.0" />
+<Since v="2.10.4" />
 </p>
 
-Habilite suporte experimental para otimizar e redimensionar imagens. Com isso habilitado, um novo módulo `astro:assets` será exposto.
-
-Para habilitar esta funcionalidade, defina `experimental.assets` como `true` na sua configuração do Astro:
+Previne que scripts de componentes não utilizados sejam incluídos em uma página de forma inesperada.
+A otimização é feita com base na melhor estimativa e pode inversamente deixar de incluir scripts utilizados. Tenha certeza de que checou as páginas da sua build antes de publicar.
+Habilite a otimização por análise de scripts hoisted adicionando a flag experimental:
 
 ```js
 {
 	experimental: {
-		assets: true,
+		optimizeHoistedScript: true,
 	},
 }
+```
+
+

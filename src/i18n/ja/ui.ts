@@ -2,6 +2,7 @@ import { UIDictionary } from '../translation-checkers';
 
 export default UIDictionary({
 	'a11y.skipLink': 'コンテンツにスキップ',
+	'a11y.sectionLink': 'セクションタイトル: ',
 	'navbar.a11yTitle': 'トップナビゲーション',
 	// Site settings
 	'site.title': 'Astroドキュメント',
@@ -20,11 +21,12 @@ export default UIDictionary({
 	'rightSidebar.onThisPage': '目次',
 	'rightSidebar.overview': '概要',
 	'rightSidebar.community': 'コミュニティ',
-	'rightSidebar.joinDiscord': 'Discordに参加する',
+	'rightSidebar.joinDiscord': 'Discordに参加',
 	'rightSidebar.readBlog': 'ブログを読む',
-	'rightSidebar.openCollective': 'Open Collectiveで支援する',
+	'rightSidebar.openCollective': 'Open Collectiveで支援',
 	'rightSidebar.contribute': '貢献する',
-	'rightSidebar.editPage': 'このページを編集する',
+	'rightSidebar.contributorGuides': 'コントリビューターガイド',
+	'rightSidebar.editPage': 'このページを編集',
 	'rightSidebar.translatePage': 'このページを翻訳',
 	'rightSidebar.github': 'GitHubリポジトリ',
 	// Footer
@@ -38,6 +40,7 @@ export default UIDictionary({
 	// Used in `<Since>`: Added in: v0.24.0 [NEW]
 	'since.addedIn': '追加:',
 	'since.new': 'New',
+	'since.beta': 'ベータ',
 	// Installation Guide
 	'install.autoTab': '自動CLI',
 	'install.manualTab': '手動セットアップ',
@@ -48,9 +51,16 @@ export default UIDictionary({
 	'deploy.ssrTag': 'SSR',
 	'deploy.staticTag': 'Static',
 	// CMS Guides vocabulary
-	'cms.navTitle': 'より多くのCMSガイド',
-	// `<ContributorList>` fallback text
-	'contributors.seeAll': 'すべての協力者を見る',
+	'cms.navTitle': 'その他のCMSガイド',
+	// Migration Guides vocabulary
+	'migration.navTitle': 'その他のマイグレーションガイド',
+	// Recipes vocabulary
+	'recipes.navTitle': 'その他のレシピ',
+	// `<RecipeLinks>` vocabulary
+	'recipesLink.singular': '関連レシピ:',
+	'recipesLink.plural': '関連レシピ',
+	// `<ContributorList>` fallback texta
+	'contributors.seeAll': 'すべてのコントリビューターを見る',
 	// Fallback content notice shown when a page is not yet translated
 	'fallbackContent.notice':
 		'このページはまだ日本語版が用意されていないため、英語版を表示しています。興味があればこのページの翻訳に協力できます！',
@@ -64,6 +74,8 @@ export default UIDictionary({
 	'aside.tip': 'ヒント',
 	'aside.caution': '注意',
 	'aside.danger': '危険',
+	// `<LanguageSelect>` vocabulary
+	'languageSelect.label': '言語の選択',
 	// Integrations vocabulary
 	'integrations.changelog': 'チェンジログ',
 	'integrations.footerTitle': '他のインテグレーション',
@@ -86,14 +98,31 @@ export default UIDictionary({
 	'tutorial.getReady': 'ここで学ぶことは…',
 	// Feedback Fish widget
 	'feedback.button': 'フィードバックする',
-	// 'feedback.a11yLabel': 'Feedback form',
+	'feedback.a11yLabel': 'フィードバックフォーム',
 	'feedback.formTitle': 'どんなことを？',
-	// 'feedback.categoryGroupLabel': 'Choose feedback category',
+	'feedback.categoryGroupLabel': 'フィードバックカテゴリを選択',
 	'feedback.issue': '問題',
+	'feedback.createIssue': 'GitHub Issueを作成',
 	'feedback.idea': 'アイデア',
 	'feedback.other': 'その他',
-	// 'feedback.messageA11yLabel': 'Message',
+	'feedback.messageA11yLabel': 'メッセージ',
 	'feedback.placeholder': 'なにをお知らせしますか？',
 	'feedback.submit': 'フィードバックを送る',
-	// 'feedback.close': 'Close feedback form',
+	'feedback.close': 'フィードバックフォームを閉じる',
+	'feedback.success': 'ありがとうございますｌフィードバックを受け取りました。',
+	// `<FileTree>` component
+	'fileTree.directoryLabel': 'ディレクトリ',
+	// Code snippet vocabulary
+	'expressiveCode.terminalWindowFallbackTitle': 'ターミナルウィンドウ',
+	'expressiveCode.copyButtonTooltip': 'クリップボードにコピー',
+	'expressiveCode.copyButtonCopied': 'コピーしました!',
+	// Backend Guides vocabulary
+	'backend.navTitle': 'その他のバックエンドサービスガイド',
+	// Stubs vocabulary
+	'stub.title': 'このページに追記する！',
+	'stub.subtitle': 'このガイドは未完成です。',
+	'stub.description.migration':
+		'このガイドに貢献したいですか？この技術からAstroへの移行に関するブログ記事や動画、その他のリソースを共有したいですか？',
+	'stub.description.cms': 'このCMSをAstroで使う方法をご存知ですか？',
+	'stub.description.backend': 'このバックエンドサービスをAstroで使う方法をご存知ですか？',
 });

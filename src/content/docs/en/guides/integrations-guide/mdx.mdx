@@ -54,9 +54,8 @@ npm install @astrojs/mdx
 
 Then, apply this integration to your `astro.config.*` file using the `integrations` property:
 
-**`astro.config.mjs`**
-
-```js ins={2} "mdx()"
+```js ins={3} "mdx()"
+// astro.config.mjs
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 
@@ -71,8 +70,10 @@ export default defineConfig({
 [VS Code](https://code.visualstudio.com/) supports Markdown by default. However, for MDX editor support, you may wish to add the following setting in your VSCode config. This ensures authoring MDX files provides a Markdown-like editor experience.
 
 ```json title=".vscode/settings.json"
-"files.associations": {
+{
+  "files.associations": {
     "*.mdx": "markdown"
+  }
 }
 ```
 
@@ -80,7 +81,7 @@ export default defineConfig({
 
 With the Astro MDX integration, you can [add MDX pages to your project](/en/guides/markdown-content/#markdown-and-mdx-pages) by adding `.mdx` files within your `src/pages/` directory. You can also [import `.mdx` files](/en/guides/markdown-content/#importing-markdown) into `.astro` files.
 
-Astro's MDX integration adds extra features to standard MDX, including Markdown-style frontmatter. This allows you to use most of Astro's built-in Markdown features like a [special frontmatter `layout` property](/en/guides/markdown-content/#frontmatter-layout) and a [property for marking a page as a draft](/en/guides/markdown-content/#draft-pages).
+Astro's MDX integration adds extra features to standard MDX, including Markdown-style frontmatter. This allows you to use most of Astro's built-in Markdown features like a [special frontmatter `layout` property](/en/guides/markdown-content/#frontmatter-layout).
 
 See how MDX works in Astro with examples in our [Markdown & MDX guide](/en/guides/markdown-content/).
 
@@ -95,6 +96,7 @@ You can configure how your MDX is rendered with the following options:
 *   [Options inherited from Markdown config](#options-inherited-from-markdown-config)
 *   [`extendMarkdownConfig`](#extendmarkdownconfig)
 *   [`recmaPlugins`](#recmaplugins)
+*   [`optimize`](#optimize)
 
 ### Options inherited from Markdown config
 
@@ -104,9 +106,8 @@ All [`markdown` configuration options](/en/reference/configuration-reference/#ma
 There is no separate MDX configuration for [including pages marked as draft in the build](/en/reference/configuration-reference/#markdowndrafts). This Markdown setting will be respected by both Markdown and MDX files and cannot be overridden for MDX files specifically.
 :::
 
-**`astro.config.mjs`**
-
 ```js
+// astro.config.mjs
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import remarkToc from 'remark-toc';
@@ -121,9 +122,9 @@ export default defineConfig({
       rehypePlugins: [rehypeMinifyHtml],
       remarkRehype: { footnoteLabel: 'Footnotes' },
       gfm: false,
-    })
-  ]
-})
+    }),
+  ],
+});
 ```
 
 :::caution
@@ -141,9 +142,8 @@ MDX will extend [your project's existing Markdown configuration](/en/reference/c
 
 For example, say you need to disable GitHub-Flavored Markdown and apply a different set of remark plugins for MDX files. You can apply these options like so, with `extendMarkdownConfig` enabled by default:
 
-**`astro.config.mjs`**
-
 ```js
+// astro.config.mjs
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 
@@ -162,16 +162,15 @@ export default defineConfig({
       remarkPlugins: [remarkPlugin2],
       // `gfm` overridden to `false`
       gfm: false,
-    })
-  ]
+    }),
+  ],
 });
 ```
 
 You may also need to disable `markdown` config extension in MDX. For this, set `extendMarkdownConfig` to `false`:
 
-**`astro.config.mjs`**
-
 ```js
+// astro.config.mjs
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 
@@ -184,8 +183,8 @@ export default defineConfig({
       // Markdown config now ignored
       extendMarkdownConfig: false,
       // No `remarkPlugins` applied
-    })
-  ]
+    }),
+  ],
 });
 ```
 
@@ -194,6 +193,69 @@ export default defineConfig({
 These are plugins that modify the output [estree](https://github.com/estree/estree) directly. This is useful for modifying or injecting JavaScript variables in your MDX files.
 
 We suggest [using AST Explorer](https://astexplorer.net/) to play with estree outputs, and trying [`estree-util-visit`](https://unifiedjs.com/explore/package/estree-util-visit/) for searching across JavaScript nodes.
+
+### `optimize`
+
+*   **Type:** `boolean | { customComponentNames?: string[] }`
+
+This is an optional configuration setting to optimize the MDX output for faster builds and rendering via an internal rehype plugin. This may be useful if you have many MDX files and notice slow builds. However, this option may generate some unescaped HTML, so make sure your site's interactive parts still work correctly after enabling it.
+
+This is disabled by default. To enable MDX optimization, add the following to your MDX integration configuration:
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  integrations: [
+    mdx({
+      optimize: true,
+    }),
+  ],
+});
+```
+
+#### `customComponentNames`
+
+*   **Type:** `string[]`
+
+An optional property of `optimize` to prevent the MDX optimizer from handling any [custom components passed to imported MDX content via the components prop](/en/guides/markdown-content/#custom-components-with-imported-mdx).
+
+You will need to exclude these components from optimization as the optimizer eagerly converts content into a static string, which will break custom components that needs to be dynamically rendered.
+
+For example, the intended MDX output of the following is `<Heading>...</Heading>` in place of every `"<h1>...</h1>"`:
+
+```astro
+---
+import { Content, components } from '../content.mdx';
+import Heading from '../Heading.astro';
+---
+
+<Content components={{ ...components, h1: Heading }} />
+```
+
+To configure optimization for this using the `customComponentNames` property, specify an array of HTML element names that should be treated as custom components:
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  integrations: [
+    mdx({
+      optimize: {
+        // Prevent the optimizer from handling `h1` elements
+        // These will be treated as custom components
+        customComponentNames: ['h1'],
+      },
+    }),
+  ],
+});
+```
+
+Note that if your MDX file [configures custom components using `export const components = { ... }`](/en/guides/markdown-content/#assigning-custom-components-to-html-elements), then you do not need to manually configure this option. The optimizer will automatically detect them.
 
 ## Examples
 

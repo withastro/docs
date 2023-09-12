@@ -1,0 +1,326 @@
+---
+type: tutorial
+title: タグページを生成する
+description: |-
+  「初めてのAstroブログ」チュートリアル -
+  getStaticPaths()を使って複数のページ（ルート）を一度に作成する
+i18nReady: true
+---
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+
+
+
+<PreCheck>
+  - 複数のページを生成するためのページを作成する
+  - どのページルートをビルドするかを指定し、各ページに個別のプロパティを渡す
+</PreCheck>
+
+## 動的なページルーティング
+
+`getStaticPaths()`関数をエクスポートする`.astro`ファイルを使用して、ページの集まりを動的に作成できます。
+
+## 動的にページを作成する
+
+1. `src/pages/tags/[tag].astro`に新しいファイルを作成します。（まず新しいフォルダを作成する必要があります。）ファイル名（`[tag].astro`）に角括弧が含まれていることに注意してください。以下のコードをファイルに貼り付けます。
+
+    ```astro title="src/pages/tags/[tag].astro"
+    ---
+    import BaseLayout from '../../layouts/BaseLayout.astro';
+
+    export async function getStaticPaths() {
+      return [
+        { params: { tag: "astro" } },
+        { params: { tag: "成功" } },
+        { params: { tag: "コミュニティ" } },
+        { params: { tag: "ブログ" } },
+        { params: { tag: "後退" } },
+        { params: { tag: "公開学習" } },
+      ];
+    }
+
+    const { tag } = Astro.params;
+    ---
+    <BaseLayout pageTitle={tag}>
+      <p>{tag}のタグが付いた記事</p>
+    </BaseLayout>
+    ```
+
+    `getStaticPaths`関数はページのルートの配列を返します。各ルートに対応するページは、このファイルで定義されたものと同じテンプレートを使用します。
+
+2. ブログ記事をカスタマイズしている場合は、個々のタグの値（たとえば「astro」、「成功」、「コミュニティ」など）を、記事で使用されているタグに置き換えます。
+
+3. すべてのブログ記事が少なくとも1つのタグを含んでいることを確認します。`tags: ["ブログ"]`のように、配列として書く必要があります。
+
+4. ブラウザのプレビューで`http://localhost:4321/tags/astro`にアクセスすると、`[tag].astro`から動的に生成されたページが表示されるはずです。`/tags/成功`、`/tags/コミュニティ`、`/tags/公開学習`など、その他の各カスタムタグについてページが作成されていることも確認してください。これらの新しいページを表示するには、まず開発サーバーを終了して再起動する必要があるかもしれません。
+
+
+## 動的ルートでpropsを使用する
+
+1. 以下のpropsを`getStaticPaths()`関数に追加して、すべてのブログ記事のデータを各ページルートで利用できるようにします。
+
+    配列内の各ルートに新しいpropsを定義し、そのpropsを関数の外側のコンポーネントテンプレートで利用できるようにしてください。
+
+    ```astro title="src/pages/tags/[tag].astro" ins={5,18} "props: {posts: allPosts}"
+    ---
+    import BaseLayout from '../../layouts/BaseLayout.astro';
+
+    export async function getStaticPaths() {
+      const allPosts = await Astro.glob('../posts/*.md');
+
+      return [
+        {params: {tag: "astro"}, props: {posts: allPosts}},
+        {params: {tag: "成功"}, props: {posts: allPosts}},
+        {params: {tag: "コミュニティ"}, props: {posts: allPosts}},
+        {params: {tag: "ブログ"}, props: {posts: allPosts}},
+        {params: {tag: "後退"}, props: {posts: allPosts}},
+        {params: {tag: "公開学習"}, props: {posts: allPosts}}
+      ]
+    }
+
+    const { tag } = Astro.params;
+    const { posts } = Astro.props;
+    ---
+    ```
+
+2. 記事のリストを、ページのタグを含む記事のみへとフィルタリングします。
+
+    ```astro title="/src/pages/tags/[tag].astro" ins={4}
+    ---
+    const { tag } = Astro.params;
+    const { posts } = Astro.props;
+    const filteredPosts = posts.filter((post) => post.frontmatter.tags?.includes(tag));
+    ---
+    ```
+
+3. 以上により、HTMLテンプレートを更新して、ページのタグを含むブログ記事のリストを表示できるようになりました。以下のコードを`[tag].astro`に追加します。
+
+    ```astro title="src/pages/tags/[tag].astro" ins={3-5}
+    <BaseLayout pageTitle={tag}>
+      <p>{tag}のタグが付いた記事</p>
+      <ul>
+        {filteredPosts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+      </ul>
+    </BaseLayout>
+    ```
+
+4. `<BlogPost />`コンポーネントを使用するよう、さらにリファクタリングしてみましょう！（`[tag].astro`の先頭でこのコンポーネントをインポートするのを忘れないでください。）
+
+    ```astro title="src/pages/tags/[tag].astro" del={4} ins={5}
+    <BaseLayout pageTitle={tag}>
+      <p>{tag}のタグが付いた記事</p>
+      <ul>
+        {filteredPosts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+        {filteredPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+      </ul>
+    </BaseLayout>
+    ```
+
+5. ブラウザのプレビューで各タグページを確認すると、特定のタグを含むブログ記事のリストが表示されるはずです。
+
+<Box icon="question-mark">
+
+### パターンを分析する
+
+以下の各項目について、コードが`getStaticPath()`関数の**内側**に書かれるか、それとも**外側**に書かれるか選択してください。
+
+1. `.md`ファイルに関する情報を受け取り、各ページルートに渡すための`Astro.glob()`の呼び出し。
+
+    <MultipleChoice>
+    <Option isCorrect>`getStaticPaths`の内側</Option>
+    <Option>`getStaticPaths`の外側</Option>
+    </MultipleChoice>
+
+2. `getStaticPaths()`によって生成（返却、return）されるルートのリスト。
+
+    <MultipleChoice>
+    <Option isCorrect>`getStaticPaths`の内側</Option>
+    <Option>`getStaticPaths`の外側</Option>
+    </MultipleChoice>
+
+3. HTMLテンプレートで使用する、`props`と`params`を受け取るための値。
+
+    <MultipleChoice>
+    <Option>`getStaticPaths`の内側</Option>
+    <Option isCorrect>`getStaticPaths`の外側</Option>
+    </MultipleChoice>
+</Box>
+
+:::note[要点]
+ページルートを構成するための情報が必要な場合は、`getStaticPaths()`の**内側**に書きます。
+
+ページルートのHTMLテンプレートで情報を受け取るには、`getStaticPaths()`の**外側**に書きます。
+:::
+
+
+## 高度なJavaScript: 既存のタグからページを生成する
+
+これで、各タグページは`[tag].astro`において静的に定義されました。ブログ記事に新しいタグを追加する場合は、このページを再度開きページルートを更新する必要があります。
+
+以下では、このページのコードを、ブログページで使用されている各タグを取得してページを自動的に生成するコードへと置き換える例を示します。
+
+:::note
+難しく見えるかもしれませんが、この関数を完成させるための各ステップを自分で追ってみましょう！必要となるJavaScriptについての説明を今読みたくない場合は、[完成版のコード](#最終的なコードのサンプル)まで進み、既存のコンテンツを置き換えてプロジェクトで直接使用しても構いません。
+:::
+
+### 1. すべてのブログ記事にタグが含まれていることを確認する
+
+既存のMarkdownページをそれぞれ再度開き、すべての記事のフロントマターに`tags`配列が含まれていることを確認します。1つのタグしかない場合でも、`tags: ["blogging"]`のように配列として書く必要があります。
+
+### 2. すべての既存タグの配列を作成する
+
+以下のコードを追加して、ブログ記事で使用されているすべてのタグのリストを取得します。
+
+  ```astro title="src/pages/tags/[tag].astro" ins={7}
+  ---
+  import BaseLayout from '../../layouts/BaseLayout.astro';
+
+  export async function getStaticPaths() {
+    const allPosts = await Astro.glob('../posts/*.md');
+
+    const uniqueTags = [...new Set(allPosts.map((post) => post.frontmatter.tags).flat())];
+  ```
+
+    <details>
+    <summary>このコードに関する詳細を表示</summary>
+
+    こうしたコードを今まで自分で書いたことがなくても大丈夫です！
+
+    ここではまず1つずつMarkdownの投稿を処理し、タグの配列を1つの大きな配列へと結合しています。次に、（繰り返される値を無視するために）見つかったすべてのタグから新しい`Set`を作成します。最後に、その集合（Set）を配列に変換します（この段階で重複はなくなっています）。これで、ページにタグのリストを表示するために使用するための配列ができました。
+    </details>
+
+以上により、`"astro"`、`"成功"`、`"コミュニティ"`、`"ブログ"`、`"後退"`、`"公開学習"`という要素をもつ配列`uniqueTags`ができました。
+
+### 3. `getStaticPaths`関数の`return`値を置き換える
+
+```js title="src/pages/tags/[tag].astro" del={1-8} ins={10-16}
+  return [
+        {params: {tag: "astro"}, props: {posts: allPosts}},
+        {params: {tag: "成功"}, props: {posts: allPosts}},
+        {params: {tag: "コミュニティ"}, props: {posts: allPosts}},
+        {params: {tag: "ブログ"}, props: {posts: allPosts}},
+        {params: {tag: "後退"}, props: {posts: allPosts}},
+        {params: {tag: "公開学習"}, props: {posts: allPosts}}
+      ]
+
+  return uniqueTags.map((tag) => {
+    const filteredPosts = allPosts.filter((post) => post.frontmatter.tags.includes(tag));
+    return {
+      params: { tag },
+      props: { posts: filteredPosts },
+    };
+  });
+```
+`getStaticPaths`関数は、`params`（各ページルートの名前）を含むオブジェクトのリストを常に返す必要があります。また、任意で`props`（各ページに渡したいデータ）を含めることもできます。先ほどまでは、ブログで使用されている各タグ名を自分で指定し、各ページにすべての記事データを`props`として渡していました。
+
+ここでは、`uniqueTags`配列を使用して各パラメータを定義し、このオブジェクトのリストを自動的に生成しています。
+
+さらに、ブログ記事のリストは、各ページに`props`として渡される**前に**フィルタリングされるようになりました。記事のフィルタリングをおこなっていた以前のコードを削除し、`filteredPosts`ではなく`posts`を使用するようにHTMLテンプレートを更新してください。
+
+``` astro title="src/pages/tags/[tag].astro" del={3,7} ins={8}
+const { tag } = Astro.params;
+const { posts } = Astro.props;
+const filteredPosts = posts.filter((post) => post.frontmatter.tags.includes(tag));
+---
+<!-- -->
+<ul>
+    {filteredPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+    {posts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+</ul>
+```
+
+### 最終的なコードのサンプル
+
+ここまでの自分の作業内容を確認したい場合や、`[tag].astro`にコピーするための完全で正しいコードが欲しい場合のために、現段階でのAstroコンポーネントを以下に示します。
+
+```astro title="src/pages/tags/[tag].astro"
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BlogPost from '../../components/BlogPost.astro';
+
+export async function getStaticPaths() {
+  const allPosts = await Astro.glob('../posts/*.md');
+
+  const uniqueTags = [...new Set(allPosts.map((post) => post.frontmatter.tags).flat())];
+
+  return uniqueTags.map((tag) => {
+    const filteredPosts = allPosts.filter((post) => post.frontmatter.tags.includes(tag));
+    return {
+      params: { tag },
+      props: { posts: filteredPosts },
+    };
+  });
+}
+
+const { tag } = Astro.params;
+const { posts } = Astro.props;
+---
+<BaseLayout pageTitle={tag}>
+  <p>{tag}のタグが付いた記事</p>
+  <ul>
+    {posts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+  </ul>
+</BaseLayout>
+```
+
+これで、ブラウザのプレビューで任意のタグページを表示できるようになりました。
+
+`http://localhost:4321/tags/コミュニティ`に移動すると、`コミュニティ`というタグが付いたブログ記事のリストが表示されるはずです。同様に、`http://localhost:4321/tags/公開学習`では、`公開学習`というタグが付いたブログ記事のリストが表示されます。
+
+次のセクションでは、これらのページへのナビゲーションリンクを作成します。
+
+
+
+<Box icon="question-mark">
+
+### 確認テスト
+
+説明文に合う用語を選択してください。
+
+1. ページルートの配列を返す関数。
+
+    <MultipleChoice>
+      <Option>params</Option>
+      <Option>動的ルーティング</Option>
+      <Option isCorrect>`getStaticPaths()`</Option>
+      <Option>props</Option>
+    </MultipleChoice>
+
+2. Astroで1つのファイルから複数のページルートを作成するためのプロセス。
+
+    <MultipleChoice>
+      <Option>params</Option>
+      <Option isCorrect>動的ルーティング</Option>
+      <Option>`getStaticPaths()`</Option>
+      <Option>props</Option>
+    </MultipleChoice>
+
+4. 動的に生成されるページルートの名前を定義する値。
+
+    <MultipleChoice>
+      <Option isCorrect>params</Option>
+      <Option>動的ルーティング</Option>
+      <Option>`getStaticPaths()`</Option>
+      <Option>props</Option>
+    </MultipleChoice>
+
+</Box>
+
+<Box icon="check-list">
+
+## チェックリスト
+
+<Checklist>
+- [ ] 動的にページを生成できる。
+- [ ] 各ページルートに`props`を渡せる。
+</Checklist>
+</Box>
+
+### 参考
+
+- [Astroにおける動的なページルーティング](/ja/core-concepts/routing/#動的ルーティング)
+
+- [`getStaticPaths()` APIドキュメント](/ja/reference/api-reference/#getstaticpaths)
