@@ -39,7 +39,7 @@ export default DocSearchDictionary({
 		},
 		noResultsScreen: {
 			noResultsText: '没有合适的结果...',
-			suggestedQueryText: '请尝试搜索：',
+			suggestedQueryText: '请尝试搜索',
 			reportMissingResultsText: '仍然认为应该有搜索结果？',
 			reportMissingResultsLinkText: '请通知我们。',
 		},
