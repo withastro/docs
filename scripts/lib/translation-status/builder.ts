@@ -14,9 +14,9 @@ import uiTranslations from '../../../src/i18n/en/ui';
 import { githubGet } from '../../lib/github-get.mjs';
 import output from '../../lib/output.mjs';
 import type {
+	OldTranslationIndex,
 	PageData,
 	PageIndex,
-	OldTranslationIndex,
 	PageTranslationStatus,
 } from '../../lib/translation-status/types';
 import { toUtcString, tryGetFrontMatterBlock } from '../../lib/translation-status/utils.js';
@@ -406,7 +406,10 @@ export class TranslationStatusBuilder {
 		return globsOrPaths.find((globOrPath) => minimatch(filePath, globOrPath)) ? true : false;
 	}
 
-	getTranslationStatusByPage(pages: PageIndex, oldTranslations: OldTranslationIndex): PageTranslationStatus[] {
+	getTranslationStatusByPage(
+		pages: PageIndex,
+		oldTranslations: OldTranslationIndex
+	): PageTranslationStatus[] {
 		const sourcePages = pages[this.sourceLanguage];
 		const arrContent: PageTranslationStatus[] = [];
 
@@ -543,13 +546,14 @@ export class TranslationStatusBuilder {
 					...missing.map(
 						(content) =>
 							`<li>` +
-							`${this.renderLink(
-								content.githubUrl,
-								content.subpath
-							)} &nbsp; ` +
-							(content.translations[lang].hasOldTranslation ?
-								`${this.renderLink(`https://github.com/${this.githubRepo}/blob/main/old-translations/${lang}/${content.subpath}`, `View\xa0old\xa0translation`, 'create-button')} &nbsp; ` :
-								'') +
+							`${this.renderLink(content.githubUrl, content.subpath)} &nbsp; ` +
+							(content.translations[lang].hasOldTranslation
+								? `${this.renderLink(
+										`https://github.com/${this.githubRepo}/blob/main/old-translations/${lang}/${content.subpath}`,
+										`View\xa0old\xa0translation`,
+										'create-button'
+								  )} &nbsp; `
+								: '') +
 							this.renderCreatePageButton(lang, content.subpath) +
 							`</li>`
 					)
