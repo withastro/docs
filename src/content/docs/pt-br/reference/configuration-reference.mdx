@@ -191,15 +191,15 @@ Sua URL final no deploy. Astro utiliza esta URL completa para gerar seu sitemap 
 <p>
 
 **Tipo:** `boolean`<br />
-**Padrão:** `false`
+**Padrão:** `true`
 </p>
 
-Esta é uma opção para minificar seu HTML final e reduzir o tamanho dos seus arquivos HTML. Quando habilitado, o Astro remove todos os espaços em branco do seu HTML, incluindo quebras de linha, de componentes `.astro`. Isso ocorre tanto em modo de desenvolvimento e na build final.
-Para habilitar isso, defina a flag `compressHTML` para `true`.
+Esta é uma opção para minificar seu HTML final e reduzir o tamanho dos seus arquivos HTML. Por padrão, o Astro remove todos os espaços em branco do seu HTML, incluindo quebras de linha, de componentes `.astro`. Isso ocorre tanto em modo de desenvolvimento e na build final.
+Para desabilitar a compressão de HTML, defina a flag `compressHTML` como `false`.
 
 ```js
 {
-  compressHTML: true
+  compressHTML: false
 }
 ```
 
@@ -223,12 +223,7 @@ No exemplo abaixo, `astro dev` irá iniciar seu servidor em `/docs`.
 
 Au utilizar esta opção, todas as importações de assets e URLs devem adicionar a base como prefixo. Você pode acessar esse valor com `import.meta.env.BASE_URL`.
 
-Por padrão, o valor do `import.meta.env.BASE_URL` inclui uma barra final. Se você tem a opção [`trailingSlash`](/pt-br/reference/configuration-reference/#trailingslash) definida como `'never'`, você vai precisar adicionar a barra manualmente nas suas importações e URLs de assets estáticos.
-
-```astro
-<a href="/docs/sobre/">Sobre</a>
-<img src=`${import.meta.env.BASE_URL}/imagem.png`>
-```
+O valor de `import.meta.env.BASE_URL` respeita sua configuração de `trailingSlash` e irá incluir uma barra final se você explicitamente incluiu uma ou se `trailingSlash: "always"` foi definido. Se `trailingSlash: "never"` está definido, `BASE_URL` não irá incluir uma barra final, mesmo se `base` inclui uma.
 
 
 ### trailingSlash
@@ -262,18 +257,19 @@ Você também pode definir isto se você preferir ser mais estrito consigo mesmo
 
 <p>
 
-**Tipo:** `'where' | 'class'`<br />
-**Padrão:** `'where'`<br />
+**Tipo:** `'where' | 'class'` | `'attribute'`<br />
+**Padrão:** `'attribute'`<br />
 <Since v="2.4" />
 </p>
 
 Especifica a estratégia usada para definir o escopo de estilos dentro de componentes do Astro. Escolha entre:
-  - `'where'` - Usa seletores `:where`, não causando nenhum aumento de especificidade.
-  - `'class'` - Usa seletores baseados em classe, causando um aumento de +1 de especificidade.
+  - `'where'` 		- Usa seletores `:where`, causando nenhum aumento de especificidade.
+  - `'class'` 		- Usa seletores baseados em classe, causando um aumento de +1 de especificidade.
+  - `'attribute'` 	- Usa atributos `data-`, causando nenhum aumento de especificidade.
 
 Usar `'class'` é útil quando você quer garantir que os seletores de elementos em componentes Astro sobrescrevam os padrões de estilo globais (e.x. de uma folha de estilo global).
 Usar `'where'` dá a você mais controle sobre a especificidade, mas requer que você use seletores de especificidade mais alta, camadas e outras ferramentas para controlar quais seletores são aplicados.
-
+Usar `'attribute'` é útil quando você está manipulando o atributo `class` de elementos e precisa evitar conflitos entre sua própria lógica de estilização e a aplicação de estilos do Astro.
 
 ### adapter
 
@@ -351,6 +347,10 @@ Definir `build.format` controla o que `Astro.url` é durante a build. Quando ele
 - `file` - O `Astro.url.pathname` irá incluir `.html`; ou seja, `/foo.html`.
 
 Isso significa que quando você criar URLs relativas usando `new URL('./relativo', Astro.url)`, você terá um comportamento consistente entre dev e build.
+
+Para evitar inconsistências com o comportamento da barra final durante desenvolvimento, você pode restringir a [opção `trailingSlash`](#trailingslash) para `'always'` ou `'never'` dependendo do seu formato de build:
+- `directory` - Defina `trailingSlash: 'always'`
+- `file` - Defina `trailingSlash: 'never'`
 
 
 ### build.client
@@ -498,19 +498,19 @@ de configuração especiais para redirecionamentos e não precisam/querem redire
 <p>
 
 **Tipo:** `'always' | 'auto' | 'never'`<br />
-**Padrão:** `never`<br />
+**Padrão:** `auto`<br />
 <Since v="2.6.0" />
 </p>
 
-Controla se os estilos são enviados para o navegador em um arquivo CSS separado ou em linha em tags `<style>`. Escolha entre as seguintes opções:
- - `'always'` - todos os estilos são embutidos em tags `<style>`
- - `'auto'` - apenas folhas de estilo menores que `ViteConfig.build.assetsInlineLimit` (padrão: 4kb) são embutidas. Caso contrário, estilos são enviados em folhas de estilo externas.
- - `'never'` - todos os estilos são enviados em folhas de estilo externas
+Controla se os estilos do projeto são enviados para o navegador em um arquivo CSS separado ou em linha em tags `<style>`. Escolha entre as seguintes opções:
+ - `'always'` - estilos do projeto são embutidos em tags `<style>`
+ - `'auto'` - apenas folhas de estilo menores que `ViteConfig.build.assetsInlineLimit` (padrão: 4kb) são embutidas. Caso contrário, estilos do projeto são enviados em folhas de estilo externas.
+ - `'never'` - estilos do projeto são enviados em folhas de estilo externas
 
 ```js
 {
 	build: {
-		inlineStylesheets: `auto`,
+		inlineStylesheets: `never`,
 	},
 }
 ```
@@ -521,16 +521,12 @@ Controla se os estilos são enviados para o navegador em um arquivo CSS separado
 <p>
 
 **Tipo:** `boolean`<br />
-**Padrão:** `false`<br />
-<Since v="2.7.0" />
+**Padrão:** `false`
 </p>
 
-Define como o código SSR deve ser empacotado quando feito build.
+A opção de configuração da build `build.split` foi substituída pela opção de configuração do adaptador [`functionPerRoute`](/pt-br/reference/adapter-reference/#functionperroute).
 
-Quando `split` é `true`, o Astro vai emitir um arquivo para cada página.
-Cada arquivo emitido vai renderizar apenas uma página. As páginas serão emitidas
-dentro de uma pasta `dist/pages/`, e os arquivos emitidos vão manter o mesmo caminho de arquivos
-da pasta `src/pages`.
+Por favor veja a [documentação do seu adaptador SSR](/pt-br/guides/integrations-guide/#integrações-oficiais) para utilizar `functionPerRoute` para definir como seu código SSR deve passar por bundle.
 
 ```js
 {
@@ -546,13 +542,12 @@ da pasta `src/pages`.
 <p>
 
 **Tipo:** `boolean`<br />
-**Padrão:** `false`<br />
-<Since v="2.8.0" />
+**Padrão:** `false`
 </p>
 
-Define se algum código de middleware SSR vai ser empacotado ou não quando a build for feita.
+A opção de configuração da build `build.excludeMiddleware` foi substituída pela opção de configuração do adaptador [`edgeMiddleware`](/pt-br/reference/adapter-reference/#edgemiddleware).
 
-Quando habilitado, código de middleware não é empacotado e importado por todas as páginas durante a build. Para ao invés disso, executar e importar códigos de middleware manualmente, defina `build.excludeMiddleware: true`:
+Por favor veja a [documentação do seu adaptador SSR](/pt-br/guides/integrations-guide/#integrações-oficiais) para utilizar `edgeMiddleware` para definir se algum ou nenhum código de middleware SSR irá passar por bundle durante a build.
 
 ```js
 {
@@ -578,7 +573,7 @@ Para definir uma configuração diferente baseada no comando run ("dev", "previe
 ```js
 {
   // Exemplo: Use a sintaxe de função para customizar com base no comando
-  server: ({ command }) => ({ port: command === 'dev' ? 3000 : 4000 })
+  server: ({ command }) => ({ port: command === 'dev' ? 4321 : 4000 })
 }
 ```
 
@@ -602,7 +597,7 @@ Define em quais endereços de IP da rede o servidor deve ser escutado em (ou sej
 <p>
 
 **Tipo:** `number`<br />
-**Padrão:** `3000`
+**Padrão:** `4321`
 </p>
 
 Define em qual porta o servidor deve ser escutado.
@@ -635,7 +630,7 @@ Define headers de resposta HTTP customizados a serem enviados em `astro dev` e `
 <p>
 
 **Tipo:** `Object`<br />
-**Padrão:** `{entrypoint: 'astro/assets/services/squoosh', config?: {}}`<br />
+**Padrão:** `{entrypoint: 'astro/assets/services/sharp', config?: {}}`<br />
 <Since v="2.1.0" />
 </p>
 
@@ -653,6 +648,69 @@ O entrypoint do serviço pode ser tanto um dos serviços inclusos ou um pacote d
   },
 }
 ```
+
+
+### image.domains
+
+<p>
+
+**Tipo:** `Array.<string>`<br />
+**Padrão:** `{domains: []}`<br />
+<Since v="2.10.10" />
+</p>
+
+Define uma lista de domínios de fonte de imagem permitidos para otimização de imagem local. Nenhuma outra imagem remota vai ser otimizada pelo Astro.
+
+Essa opção requer uma matriz de nomes de domínio individuais como strings. Coringas não são permitidos. Ao invés disso, use [`image.remotePatterns`](#imageremotepatterns) para definir uma lista de padrões de URL de origens permitidos.
+
+```js
+// astro.config.mjs
+{
+  image: {
+    // Exemplo: Permitir otimização de imagem remota de um único domínio
+    domains: ['astro.build'],
+  },
+}
+```
+
+
+### image.remotePatterns
+
+<p>
+
+**Tipo:** `Array.<RemotePattern>`<br />
+**Padrão:** `{remotePatterns: []}`<br />
+<Since v="2.10.10" />
+</p>
+
+Define uma lista de padrões de URL de origem de imagem permitidos para otimização de imagem local.
+
+`remotePatterns` pode ser configurado com quatro propriedades:
+1. protocol
+2. hostname
+3. port
+4. pathname
+
+```js
+{
+  image: {
+    // Exemplo: permitir processamento de todas as imagens do seu bucket do aws s3
+    remotePatterns: [{
+      protocol: 'https',
+      hostname: '**.amazonaws.com',
+    }],
+  },
+}
+```
+
+Você pode usar coringas para definir os valores permitidos de `hostname` e `pathname` como descrito abaixo. Caso contrário, apenas os valores exatos fornecidos serão configurados:
+`hostname`:
+  - Comece com '**.' para permitir todos os subdomínios ('termina com').
+  - Comece com '*.' para permitir apenas um nível de subdomínio.
+
+`pathname`:
+  - Termine com '/**' para permitir todas as sub-rotas ('começa com').
+  - Termine com '/*' para permitir apenas um nível de sub-rota.
 
 
 ## Opções de Markdown
@@ -811,7 +869,7 @@ Passe opções para o [remark-rehype](https://github.com/remarkjs/remark-rehype#
 
 ## Integrações
 
-Estenda Astro com integrações customizadas. Integrações são sua via de mão única para adicionar suporte a frameworks (como Solid.js), novas funcionalidades (como sitemaps) e novas bibliotecas (como Partytown e Turbolinks).
+Estenda Astro com integrações customizadas. Integrações são sua via de mão única para adicionar suporte a frameworks (como Solid.js), novas funcionalidades (como sitemaps) e novas bibliotecas (como Partytown).
 
 Leia nosso [Guia de Integrações](/pt-br/guides/integrations-guide/) para mais ajuda em como começar a utilizar Integrações Astro.
 
@@ -862,49 +920,6 @@ na versão mais recente, para que então você possa continuar atualizando e se 
 
 Astro oferece flags experimentais para dar aos usuários acesso antecipado a novas funcionalidades.
 Não há garantia que essas flags são estáveis.
-
-### experimental.assets
-
-<p>
-
-**Tipo:** `boolean`<br />
-**Padrão:** `false`<br />
-<Since v="2.1.0" />
-</p>
-
-Habilite suporte experimental para otimizar e redimensionar imagens. Com isso habilitado, um novo módulo `astro:assets` será exposto.
-
-Para habilitar esta funcionalidade, defina `experimental.assets` como `true` na sua configuração do Astro:
-
-```js
-{
-	experimental: {
-		assets: true,
-	},
-}
-```
-
-
-### experimental.viewTransitions
-
-<p>
-
-**Tipo:** `boolean`<br />
-**Padrão:** `false`<br />
-<Since v="2.9.0" />
-</p>
-
-Habilita o suporte experimental para o componente `<ViewTransitions / >`. Com isso habilitado
-você pode optar por utilizar [transições de visualização](/pt-br/guides/view-transitions/) por página usando esse componente
-e habilitar animações com a diretiva `transition:animate`.
-
-```js
-{
-	experimental: {
-		viewTransitions: true,
-	},
-}
-```
 
 
 ### experimental.optimizeHoistedScript
