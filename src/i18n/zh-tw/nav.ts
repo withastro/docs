@@ -5,7 +5,7 @@ export default NavDictionary({
 	'getting-started': '新手上路',
 	install: '安裝',
 	'editor-setup': '編輯器設定',
-	'guides/upgrade-to/v2': '升级到 v2',
+	'guides/upgrade-to/v3': '升级到 v3',
 
 	coreConcepts: '主要概念',
 	'concepts/why-astro': '為何選擇 Astro',
