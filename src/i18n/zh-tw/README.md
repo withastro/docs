@@ -74,7 +74,7 @@
 > 部分參考[《W3C 中文排版需求》](https://w3c.github.io/clreq/#chinese_and_western_mixed_text_composition)
 - 中文和英文單字之間**應**插入一個**半形空格**。如：`你好 Hello 世界`
 - 全形標點與英文之間**不須**插入空格。如：`你好世界（Hello World）`
-- 注意使用 Markdown 標記（如*斜體*、**粗體**或[超連結]()等）時，應保證空格出現在欲分隔字詞的**外部**。如：
+- 注意使用 Markdown 標記（如*斜體*、**粗體**或[超連結](#)等）時，應保證空格出現在欲分隔字詞的**外部**。如：
 ```md
 遵守 **JavaScript 代碼規範**非常重要
 遵守 [JavaScript 代碼規範](#foo)非常重要
