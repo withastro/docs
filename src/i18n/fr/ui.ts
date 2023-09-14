@@ -24,6 +24,7 @@ export default UIDictionary({
 	'rightSidebar.readBlog': 'Lire nos articles',
 	'rightSidebar.openCollective': 'Notre lien Open Collective',
 	'rightSidebar.contribute': 'Contribuer',
+	'rightSidebar.contributorGuides': 'Guides des contributeurs',
 	'rightSidebar.editPage': 'Modifier cette page',
 	'rightSidebar.translatePage': 'Traduire cette page',
 	'rightSidebar.github': "La doc d'Astro sur GitHub",
@@ -45,6 +46,15 @@ export default UIDictionary({
 	'deploy.filterLabel': 'Filtrer par type de déploiement',
 	'deploy.ssrTag': 'SSR',
 	'deploy.staticTag': 'Statique',
+	// CMS Guides vocabulary
+	'cms.navTitle': 'Plus de guides sur les CMS',
+	// Migration Guides vocabulary
+	'migration.navTitle': 'Plus de guides sur les migrations',
+	// Recipes vocabulary
+	'recipes.navTitle': 'Plus de méthodes',
+	// `<RecipeLinks>` vocabulary
+	'recipesLink.singular': 'Méthode associée :',
+	'recipesLink.plural': 'Méthodes associées',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'Voir tous les contributeurs',
 	// Fallback content notice shown when a page is not yet translated
@@ -66,10 +76,27 @@ export default UIDictionary({
 	'feedback.formTitle': 'Comment pouvons-nous vous aider ?',
 	'feedback.categoryGroupLabel': 'Choisissez le type de commentaire',
 	'feedback.issue': 'Problème',
+	'feedback.createIssue': 'Créer une issue GitHub',
 	'feedback.idea': 'Idée',
 	'feedback.other': 'Autres',
 	'feedback.messageA11yLabel': 'Message',
 	'feedback.placeholder': 'Que faut-il savoir ?',
 	'feedback.submit': 'Envoyez des commentaires',
 	'feedback.close': 'Fermer le formulaire de commentaires',
+	'feedback.success': 'Merci ! Nous avons reçu vos commentaires.',
+	// `<FileTree>` component
+	'fileTree.directoryLabel': 'Répertoire',
+	// Code snippet vocabulary
+	'expressiveCode.terminalWindowFallbackTitle': 'Fenêtre du terminal',
+	'expressiveCode.copyButtonTooltip': 'Copier dans le presse-papiers',
+	'expressiveCode.copyButtonCopied': 'Copié!',
+	// Backend Guides vocabulary
+	'backend.navTitle': 'Plus de guides sur les services backend',
+	// Stubs vocabulary
+	'stub.title': 'Développez cette ébauche !',
+	'stub.subtitle': 'Ce guide est une ébauche.',
+	'stub.description.migration':
+		'Vous souhaitez contribuer à ce guide ? Vous avez un article de blog, une vidéo ou une autre ressource à partager sur la migration de cette technologie vers Astro ?',
+	'stub.description.cms': "En savoir plus sur l'utilisation de ce CMS avec Astro ?",
+	'stub.description.backend': "En savoir plus sur l'utilisation de ce service backend avec Astro ?",
 });

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import kleur from 'kleur';
 import { dedentMd, formatCount } from '../../output.mjs';
-import { LinkCheckerOptions, LinkCheckerState, replaceHrefs } from '../base/base';
+import { LinkCheckerState, replaceHrefs, type LinkCheckerOptions } from '../base/base';
 import type { LinkIssue } from '../base/issue';
 
 /**
