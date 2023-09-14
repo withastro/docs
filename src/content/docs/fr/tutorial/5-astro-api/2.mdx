@@ -1,0 +1,329 @@
+---
+type: tutorial
+title: Générer des pages de balises
+description: |-
+  Tutoriel : Construisez votre premier blog Astro —
+  Utilisez getStaticPaths() pour créer plusieurs pages (routes) en une seule fois
+i18nReady: true
+---
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+
+
+<PreCheck>
+  - Créez une page pour générer plusieurs pages
+  - Spécifiez les routes de page à construire et transmettez à chaque page ses propres valeurs
+</PreCheck>
+
+## Routage dynamique des pages
+
+Vous pouvez créer des ensembles entiers de pages dynamiquement en utilisant des fichiers `.astro` qui exportent une fonction `getStaticPaths()`.
+
+## Créez des pages dynamiquement
+
+1. Créez un nouveau fichier à l'emplacement `src/pages/tags/[tag].astro` (vous devrez créer un nouveau dossier). Remarquez que le nom du fichier (`[tag].astro`) utilise des crochets. Collez le code suivant dans le fichier :
+
+    ```astro title="src/pages/tags/[tag].astro"
+    ---
+    import BaseLayout from '../../layouts/BaseLayout.astro';
+
+    export async function getStaticPaths() {
+      return [
+        { params: { tag: "astro" } },
+        { params: { tag: "successes" } },
+        { params: { tag: "community" } },
+        { params: { tag: "blogging" } },
+        { params: { tag: "setbacks" } },
+        { params: { tag: "learning in public" } },
+      ];
+    }
+
+    const { tag } = Astro.params;
+    ---
+    <BaseLayout pageTitle={tag}>
+      <p>Articles marqués avec {tag}</p>
+    </BaseLayout>
+    ```
+
+    La fonction `getStaticPaths` retourne un tableau de routes de page, et toutes les pages à ces routes utiliseront le même modèle défini dans le fichier.
+
+2. Si vous avez personnalisé vos billets de blog, remplacez les valeurs individuelles des balises (par exemple, "astro", "successes", "community", etc.) par les balises utilisées dans vos propres billets.
+
+3. Assurez-vous que chaque billet de blog contient au moins une balise, écrite sous forme de tableau, par exemple `tags: ["blogging"]`.
+
+4. Visitez `http://localhost:4321/tags/astro` dans votre aperçu de navigateur, et vous devriez voir une page générée dynamiquement à partir de `[tag].astro`. Assurez-vous également que des pages sont créées pour chacune de vos balises à `/tags/successes`, `/tags/community`, et `/tags/learning%20in%20public`, etc., ou pour chacune de vos balises personnalisées. Vous devrez peut-être d'abord quitter et redémarrer le serveur de développement pour voir ces nouvelles pages.
+
+
+## Utilisation des props dans les routes dynamiques
+
+1. Ajoutez les props suivantes à votre fonction `getStaticPaths()` pour rendre les données de tous vos billets de blog disponibles à chaque route de page.
+
+    Assurez-vous d'attribuer les nouvelles props à chaque route de votre tableau, puis rendez ces props disponibles dans le modèle de composant en dehors de votre fonction.
+
+    ```astro title="src/pages/tags/[tag].astro" ins={5,18} "props: {posts: allPosts}" 
+    ---
+    import BaseLayout from '../../layouts/BaseLayout.astro';
+
+    export async function getStaticPaths() {
+      const allPosts = await Astro.glob('../posts/*.md');
+
+      return [
+        {params: {tag: "astro"}, props: {posts: allPosts}},
+        {params: {tag: "successes"}, props: {posts: allPosts}},
+        {params: {tag: "community"}, props: {posts: allPosts}},
+        {params: {tag: "blogging"}, props: {posts: allPosts}},
+        {params: {tag: "setbacks"}, props: {posts: allPosts}},
+        {params: {tag: "learning in public"}, props: {posts: allPosts}}
+      ]
+    }
+    
+    const { tag } = Astro.params;
+    const { posts } = Astro.props;
+    ---
+    ```
+
+2. Filtrez votre liste de billets pour inclure uniquement les billets contenant la propre balise de la page.
+
+    ```astro title="/src/pages/tags/[tag].astro" ins={4}
+    ---
+    const { tag } = Astro.params;
+    const { posts } = Astro.props;
+    const filteredPosts = posts.filter((post) => post.frontmatter.tags?.includes(tag));
+    ---
+    ```
+
+3. Vous pouvez maintenant mettre à jour votre modèle HTML pour afficher une liste de chaque billet de blog contenant la balise de la page. Ajoutez le code suivant à `[tag].astro` :
+
+    ```astro title="src/pages/tags/[tag].astro" ins={3-5}
+    <BaseLayout pageTitle={tag}>   
+      <p>Articles marqués avec {tag}</p>
+      <ul>
+        {filteredPosts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+      </ul>
+    </BaseLayout>
+    ```
+
+4. Vous pouvez même refactoriser cela pour utiliser votre composant `<BlogPost />` ! (N'oubliez pas d'importer ce composant en haut de `[tag].astro`.)
+
+    ```astro title="src/pages/tags/[tag].astro" del={4} ins={5}
+    <BaseLayout pageTitle={tag}>
+      <p>Articles marqués avec {tag}</p>
+      <ul>
+        {filteredPosts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+        {filteredPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+      </ul>
+    </BaseLayout>
+    ```
+
+5. Vérifiez votre aperçu de navigateur pour vos pages de balises individuelles, et vous devriez maintenant voir une liste de tous vos billets de blog contenant cette balise particulière.
+
+<Box icon="question-mark">
+
+### Analysez le modèle
+
+Pour chacun des éléments suivants, indiquez si le code est écrit **à l'intérieur** de la fonction `getStaticPaths()` ou **à l'extérieur** de celle-ci.
+
+1. L'appel `Astro
+
+.glob()` pour recevoir des informations sur tous vos fichiers `.md` à transmettre à chaque route de page.
+
+    <MultipleChoice>
+    <Option isCorrect>à l'intérieur de `getStaticPaths`</Option>
+    <Option>à l'extérieur de `getStaticPaths`</Option>
+    </MultipleChoice>
+
+2. La liste des routes à générer (retournée) par `getStaticPaths()`
+
+    <MultipleChoice>
+    <Option isCorrect>à l'intérieur de `getStaticPaths`</Option>
+    <Option>à l'extérieur de `getStaticPaths`</Option>
+    </MultipleChoice>
+
+3. Les valeurs reçues de `props` et de `params` à utiliser dans le modèle HTML.
+
+    <MultipleChoice>
+    <Option>à l'intérieur de `getStaticPaths`</Option>
+    <Option isCorrect>à l'extérieur de `getStaticPaths`</Option>
+    </MultipleChoice>
+</Box>
+
+:::note[À retenir]
+Si vous avez besoin d'informations pour construire les routes de page, écrivez-les **à l'intérieur** de la fonction `getStaticPaths`.
+
+Pour recevoir des informations dans le modèle HTML d'une route de page, écrivez-les **à l'extérieur** de `getStaticPaths`.
+:::
+
+
+## JavaScript avancé : Générer des pages à partir de balises existantes
+
+Vos pages de balises sont désormais définies statiquement dans `[tag].astro`. Si vous ajoutez une nouvelle balise à un billet de blog, vous devrez également revenir sur cette page et mettre à jour vos routes de page.
+
+L'exemple suivant montre comment remplacer votre code sur cette page par du code qui recherchera automatiquement et générera des pages pour chaque balise utilisée dans vos billets de blog.
+
+:::note
+Même si cela semble difficile, vous pouvez essayer de suivre les étapes pour construire vous-même cette fonction ! Si vous ne souhaitez pas suivre le code JavaScript requis pour le moment, vous pouvez passer à la [version finale du code](#code-final) et l'utiliser directement dans votre projet, en remplaçant le contenu existant.
+:::
+
+### 1. Vérifiez que tous vos billets de blog contiennent des balises
+
+Revisitez chacune de vos pages Markdown existantes et assurez-vous que chaque billet contient un tableau `tags` dans son frontmatter. Même si vous n'avez qu'une seule balise, elle doit toujours être écrite sous forme de tableau, par exemple `tags: ["blogging"]`. 
+
+### 2. Créez un tableau de toutes vos balises existantes
+
+Ajoutez le code suivant pour obtenir une liste de toutes les balises utilisées dans vos billets de blog.
+
+  ```astro title="src/pages/tags/[tag].astro" ins={7}
+  ---
+  import BaseLayout from '../../layouts/BaseLayout.astro';
+
+  export async function getStaticPaths() {
+    const allPosts = await Astro.glob('../posts/*.md');
+
+    const uniqueTags = [...new Set(allPosts.map((post) => post.frontmatter.tags).flat())];
+  ```
+
+    <details>
+    <summary>Expliquez-moi en détail ce que fait cette ligne de code !</summary>
+
+    Il est normal que cela ne soit pas quelque chose que vous auriez écrit vous-même pour le moment !
+
+    Elle parcourt chaque billet Markdown, un par un, et combine chaque tableau de balises en un seul tableau plus grand. Ensuite, elle crée un nouvel ensemble (`Set`) à partir de toutes les balises individuelles trouvées (pour ignorer les valeurs répétées). Enfin, elle transforme cet ensemble en un tableau (sans duplications) que vous pouvez utiliser pour afficher une liste de balises sur votre page.
+    </details>
+
+Vous avez maintenant un tableau `uniqueTags` avec les éléments `"astro"`, `"successes"`, `"community"`, `"blogging"`, `"setbacks"`, `"learning in public"`.
+
+### 3. Remplacez la valeur de retour de la fonction `getStaticPaths`
+
+```js title="src/pages/tags/[tag].astro" del={1-8} ins={10-16}
+  return [
+        {params: {tag: "astro"}, props: {posts: allPosts}},
+        {params: {tag: "successes"}, props: {posts: allPosts}},
+        {params: {tag: "community"}, props: {posts: allPosts}},
+        {params: {tag: "blogging"}, props: {posts: allPosts}},
+        {params: {tag: "setbacks"}, props: {posts: allPosts}},
+        {params: {tag: "learning in public"}, props: {posts: allPosts}}
+      ]
+
+  return uniqueTags.map((tag) => {
+    const filteredPosts = allPosts.filter((post) => post.frontmatter.tags.includes(tag));
+    return {
+      params: { tag },
+      props: { posts: filteredPosts },
+    };
+  });
+```
+Une fonction `getStaticPaths` doit toujours renvoyer une liste d'objets contenant `params` (comment appeler chaque route de page) et éventuellement des `props` (données que vous souhaitez transmettre à ces pages). Plus tôt, vous avez défini chaque nom de balise que vous saviez être utilisé dans votre blog et avez transmis la liste complète des billets comme props à chaque page.
+
+Maintenant, vous générez cette liste d'objets automatiquement en utilisant votre tableau `uniqueTags` pour définir chaque paramètre.
+
+Et maintenant, la liste de tous les billets de blog est filtrée **avant** d'être envoyée à chaque page comme props. Assurez-vous de supprimer la ligne de code précédente filtrant les billets, et mettez à jour votre modèle HTML pour utiliser `posts` au lieu de `filteredPosts`.
+
+```astro title="src/pages/tags/[tag].astro" del={3,7} ins={8}
+const { tag } = Astro.params;
+const { posts } = Astro.props;
+const filteredPosts = posts.filter((post) => post.frontmatter.tags.includes(tag));
+---
+<!-- -->
+<ul>
+    {filteredPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+    {posts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+</ul>
+```
+
+### Code final
+
+Pour vérifier votre travail, ou si vous souhaitez simplement disposer d'un code complet et correct à copier dans `[tag].astro`, voici à quoi doit ressembler votre composant Astro :
+
+```astro title="src/pages/tags/[tag].astro"
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BlogPost from '../../components/BlogPost.astro';
+
+export async function getStaticPaths() {
+  const allPosts = await Astro.glob('../posts/*.md');
+  
+  const uniqueTags = [...new Set(allPosts.map((post) =>
+
+ post.frontmatter.tags).flat())];
+
+  return uniqueTags.map((tag) => {
+    const filteredPosts = allPosts.filter((post) => post.frontmatter.tags.includes(tag));
+    return {
+      params: { tag },
+      props: { posts: filteredPosts },
+    };
+  });
+}
+
+const { tag } = Astro.params;
+const { posts } = Astro.props;
+---
+<BaseLayout pageTitle={tag}>
+  <p>Articles marqués avec {tag}</p>
+  <ul>
+    {posts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+  </ul>
+</BaseLayout>
+```
+
+Maintenant, vous devriez être en mesure de visiter n'importe laquelle de vos pages de balises dans votre aperçu de navigateur.
+
+Accédez à `http://localhost:4321/tags/community` et vous devriez voir une liste uniquement de vos billets de blog avec la balise `community`. De même, `http://localhost:4321/tags/learning%20in%20public` devrait afficher une liste des billets de blog marqués `learning in public`.
+
+Dans la prochaine section, vous créerez des liens de navigation vers ces pages.
+
+
+
+<Box icon="question-mark">
+
+### Testez vos connaissances
+
+Choisissez le terme qui correspond à la description.
+
+1. Une fonction qui renvoie un tableau de routes de page.
+
+    <MultipleChoice>
+      <Option>params</Option>
+      <Option>routage dynamique</Option>
+      <Option isCorrect>`getStaticPaths()`</Option>
+      <Option>props</Option>
+    </MultipleChoice>
+
+2. Le processus de création de plusieurs routes de page à partir d'un seul fichier dans Astro.
+
+    <MultipleChoice>
+      <Option>params</Option>
+      <Option isCorrect>routage dynamique</Option>
+      <Option>`getStaticPaths()`</Option>
+      <Option>props</Option>
+    </MultipleChoice>
+
+4. Une valeur qui définit le nom d'une route de page générée dynamiquement.
+
+    <MultipleChoice>
+      <Option isCorrect>params</Option>
+      <Option>routage dynamique</Option>
+      <Option>`getStaticPaths()`</Option>
+      <Option>props</Option>
+    </MultipleChoice>
+
+</Box>
+
+<Box icon="check-list">
+
+## Liste de contrôle
+
+<Checklist>
+- [ ] Je peux générer des pages dynamiquement.
+- [ ] Je peux transmettre des `props` à chaque route de page.
+</Checklist>
+</Box>
+
+### Ressources
+
+- [Routage dynamique des pages dans Astro](/en/core-concepts/routing/#dynamic-routes)
+
+- [Documentation de l'API `getStaticPaths()`](/en/reference/api-reference/#getstaticpaths)
