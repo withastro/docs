@@ -12,11 +12,10 @@ export default [
 	{ text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },
 	{ text: 'Installation', slug: 'install/auto', key: 'install' },
 	{ text: 'Editor Setup', slug: 'editor-setup', key: 'editor-setup' },
-	{ text: 'Upgrade to v2', slug: 'guides/upgrade-to/v2', key: 'guides/upgrade-to/v2' },
+	{ text: 'Upgrade to v3', slug: 'guides/upgrade-to/v3', key: 'guides/upgrade-to/v3' },
 
 	{ text: 'Core Concepts', header: true, type: 'learn', key: 'coreConcepts' },
 	{ text: 'Why Astro', slug: 'concepts/why-astro', key: 'concepts/why-astro' },
-	{ text: 'MPA vs. SPA', slug: 'concepts/mpa-vs-spa', key: 'concepts/mpa-vs-spa' },
 	{ text: 'Astro Islands', slug: 'concepts/islands', key: 'concepts/islands' },
 
 	{ text: 'Tutorials', header: true, type: 'learn', key: 'tutorials' },
@@ -70,7 +69,6 @@ export default [
 		key: 'guides/client-side-scripts',
 	},
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
-	{ text: 'Assets (Experimental)', slug: 'guides/assets', key: 'guides/assets' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 	{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
@@ -84,7 +82,7 @@ export default [
 	{ text: 'Middleware', slug: 'guides/middleware', key: 'guides/middleware' },
 	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
 	{
-		text: 'View Transitions (Experimental)',
+		text: 'View Transitions',
 		slug: 'guides/view-transitions',
 		key: 'guides/view-transitions',
 	},
