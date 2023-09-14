@@ -54,6 +54,11 @@ export default UIDictionary({
 	'cms.navTitle': 'Mais guias de CMS',
 	// Migration Guides vocabulary
 	'migration.navTitle': 'Mais guias de migração',
+	// Recipes vocabulary
+	'recipes.navTitle': 'Mais receitas',
+	// `<RecipeLinks>` vocabulary
+	'recipesLink.singular': 'Receita relacionada:',
+	'recipesLink.plural': 'Receitas relacionadas',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'Veja todos os contribuidores',
 	// Fallback content notice shown when a page is not yet translated
@@ -69,6 +74,8 @@ export default UIDictionary({
 	'aside.tip': 'Dica',
 	'aside.caution': 'Cuidado',
 	'aside.danger': 'Perigo',
+	// `<LanguageSelect>` vocabulary
+	'languageSelect.label': 'Selecione a língua',
 	// Integrations vocabulary
 	'integrations.changelog': 'Registro de alterações',
 	'integrations.footerTitle': 'Mais Integrações',
@@ -95,6 +102,7 @@ export default UIDictionary({
 	'feedback.formTitle': 'O que passa em sua cabeça?',
 	'feedback.categoryGroupLabel': 'Escolha a categoria do feedback',
 	'feedback.issue': 'Problema',
+	'feedback.createIssue': 'Criar um problema no GitHub',
 	'feedback.idea': 'Ideia',
 	'feedback.other': 'Outro',
 	'feedback.messageA11yLabel': 'Mensagem',
@@ -104,7 +112,17 @@ export default UIDictionary({
 	'feedback.success': 'Obrigado! Nós recebemos seu feedback.',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': 'Diretório',
-	// `<RecipeLinks>` vocabulary
-	'recipesLink.singular': 'Receita relacionada:',
-	'recipesLink.plural': 'Receitas relacionadas',
+	// Code snippet vocabulary
+	'expressiveCode.terminalWindowFallbackTitle': 'Janela do terminal',
+	'expressiveCode.copyButtonTooltip': 'Copiar para área de transferência',
+	'expressiveCode.copyButtonCopied': 'Copiado!',
+	// Backend Guides vocabulary
+	'backend.navTitle': 'Mais guias de serviço de back-end',
+	// Stubs vocabulary
+	'stub.title': 'Expanda este esboço!',
+	'stub.subtitle': 'Este guia é um esboço.',
+	'stub.description.migration':
+		'Quer contribuir para este guia? Tem uma postagem de blog, vídeo ou outro recurso para compartilhar sobre a migração desta tecnologia para o Astro?',
+	'stub.description.cms': 'Sabe mais sobre como usar este CMS com Astro?',
+	'stub.description.backend': 'Sabe mais sobre como usar este serviço de back-end com o Astro?',
 });
