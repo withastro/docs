@@ -59,8 +59,8 @@
 
 ### 2.1 標點符號
 > 參考[《重訂標點符號手冊》](https://language.moe.gov.tw/001/upload/files/site_content/m0001/hau/c2.htm)及[《W3C 中文排版需求》](https://w3c.github.io/clreq/#line_composition_rules_for_punctuation_marks)
-- 所有標點符號應為**全形字元**
-- 分隔號應為 `／`
+- 除特殊情況外，所有中文標點符號應為**全形字元**
+- 考慮到 `／` 在不同字體下渲染差異較大，分隔號應為前後包含空格的 `/`，如：`你好 / 世界`
 
 
 ### 2.2 代碼內聯與關鍵字
