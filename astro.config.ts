@@ -1,6 +1,6 @@
 import starlight from '@astrojs/starlight';
 import preact from '@astrojs/preact';
-import { defineConfig } from 'astro/config';
+import { defineConfig, sharpImageService } from 'astro/config';
 import { makeLocalesConfig } from './config/locales';
 import { makeSidebar } from './config/sidebar';
 
@@ -12,9 +12,11 @@ import { rehypeOptimizeStatic } from './plugins/rehype-optimize-static';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
 
+const site = 'https://docs.astro.build/';
+
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://docs.astro.build/',
+	site,
 	integrations: [
 		preact({ compat: true }),
 		astroDocsExpressiveCode(),
@@ -25,6 +27,16 @@ export default defineConfig({
 				dark: './src/assets/astro-logo-dark.svg',
 				alt: 'Astro',
 			},
+			head: [
+				{
+					tag: 'meta',
+					attrs: { property: 'og:image', content: site + 'default-og-image.png?v=1' },
+				},
+				{
+					tag: 'meta',
+					attrs: { property: 'twitter:image', content: site + 'default-og-image.png?v=1' },
+				},
+			],
 			defaultLocale: 'en',
 			locales: makeLocalesConfig(),
 			sidebar: makeSidebar(),
@@ -49,5 +61,9 @@ export default defineConfig({
 			// Collapse static parts of the hast to html
 			rehypeOptimizeStatic,
 		],
+	},
+	image: {
+		domains: ['avatars.githubusercontent.com'],
+		service: sharpImageService(),
 	},
 });

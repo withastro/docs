@@ -1,16 +1,14 @@
-import { CollectionEntry, defineCollection, z } from 'astro:content';
+import { type CollectionEntry, defineCollection, z } from 'astro:content';
 import { docsSchema } from '@astrojs/starlight/schema';
 
-export const baseSchema = z
-	.object({
-		type: z.literal('base').optional().default('base'),
-		title: z.string(),
-		description: z.string().optional(),
-		i18nReady: z.boolean().default(false),
-		githubURL: z.string().url().optional(),
-		hasREADME: z.boolean().optional(),
-	})
-	.strict();
+export const baseSchema = z.object({
+	type: z.literal('base').optional().default('base'),
+	title: z.string(),
+	description: z.string().optional(),
+	i18nReady: z.boolean().default(false),
+	githubURL: z.string().url().optional(),
+	hasREADME: z.boolean().optional(),
+});
 
 export const deploySchema = baseSchema.extend({
 	type: z.literal('deploy'),
