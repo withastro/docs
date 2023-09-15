@@ -36,6 +36,7 @@ export default NavDictionary({
 	'guides/content-collections': '内容集',
 	'guides/client-side-scripts': '腳本與事件處理',
 	'guides/styling': 'CSS 與樣式',
+	'guides/assets': '資源（實驗性）',
 	'guides/images': '圖片',
 	'guides/fonts': '字體',
 	'guides/imports': '引入',
