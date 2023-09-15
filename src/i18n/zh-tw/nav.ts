@@ -36,7 +36,6 @@ export default NavDictionary({
 	'guides/content-collections': '内容集',
 	'guides/client-side-scripts': '腳本與事件處理',
 	'guides/styling': 'CSS 與樣式',
-	'guides/assets': '資源（實驗性）',
 	'guides/images': '圖片',
 	'guides/fonts': '字體',
 	'guides/imports': '引入',
@@ -45,7 +44,7 @@ export default NavDictionary({
 	'guides/data-fetching': '資料獲取',
 	'guides/middleware': '中介層',
 	'guides/testing': '測試',
-	'guides/view-transitions': '轉場過渡動畫（實驗性）',
+	'guides/view-transitions': '轉場過渡動畫',
 	'guides/troubleshooting': '疑難排解',
 
 	configuration: '設定',
