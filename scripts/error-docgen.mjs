@@ -216,30 +216,31 @@ import DontEditWarning from '~/components/DontEditWarning.astro'
 function extractStringFromFunction(func) {
 	const arrowIndex = func.indexOf('=>') + '=>'.length;
 
-	return escapeHtml(func.slice(arrowIndex).trim().slice(1, -1));
+	return expressionToText(func.slice(arrowIndex).trim().slice(1, -1));
 
-	function escapeHtml(unsafe) {
+	// Turn the following syntax: `{componentName}` into this result: `COMPONENT_NAME`
+	function expressionToText(text) {
 		return sanitizeString(
-			unsafe
-				.replaceAll(
-					/\${([^}]+)}/gm,
-					(str, match1) =>
-						`${match1
-							.split(/\.?(?=[A-Z])/)
-							.join('_')
-							.toUpperCase()}`
-				)
-				.replaceAll('\\`', '`')
+			text.replaceAll(
+				/\${([^}]+)}/gm,
+				(_, match1) =>
+					`${match1
+						.split(/\.?(?=[A-Z])/)
+						.join('_')
+						.toUpperCase()}`
+			)
 		);
 	}
 }
 
 /**
- * MDX doesn't like some characters, so we need to sanitize the messages regarding the usage of client directives and HTML tags
+ * MDX doesn't like some characters, so we need to sanitize the messages regarding the usage of client directives and HTML tags.
+ * Also remove unnecessary backslashes for inline code and replace newlines with `<br/>`
  * @param {string} message
  */
 function sanitizeString(message) {
 	return message
+		.replaceAll(/\\`/gm, '`')
 		.replaceAll(/`?(client:[\w]+(="\(.+\)")?)`?/g, '`$1`')
 		.replaceAll(/([^`\\])</gm, `$1\\<`)
 		.replaceAll(/>([^`\\])/gm, '\\$1>')
