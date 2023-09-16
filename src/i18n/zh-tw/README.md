@@ -32,6 +32,7 @@
 |docs                  |文檔                 |                       |
 |project               |專案                 |                       |
 |configuration         |配置                 |                       |
+|community             |社群                 |                       |
 |hydration             |水合                 |                       |
 |islands               |群島                 |特指 Astro Islands      |
 |escape                |跳脫                 |特指 Escape Character   |
