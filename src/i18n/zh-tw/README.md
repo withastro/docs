@@ -30,6 +30,7 @@
 |migration             |遷移                 |                       |
 |asset                 |資產                 |                       |
 |docs                  |文檔                 |                       |
+|project               |專案                 |                       |
 |configuration         |配置                 |                       |
 |hydration             |水合                 |                       |
 |islands               |群島                 |特指 Astro Islands      |
