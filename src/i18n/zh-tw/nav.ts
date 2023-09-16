@@ -9,7 +9,7 @@ export default NavDictionary({
 
 	coreConcepts: '主要概念',
 	'concepts/why-astro': '為何選擇 Astro',
-	'concepts/islands': 'Astro Islands',
+	'concepts/islands': 'Astro 群島',
 
 	tutorials: '教學',
 	'blog-tutorial': '建立部落格',
