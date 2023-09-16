@@ -25,7 +25,7 @@
 |terminal              |終端機               |                      |
 |package               |套件                 |                      |
 |library               |庫                  |                       |
-|islands               |*不翻譯*             |特指 Astro Islands     |
+|islands               |群島                 |特指 Astro Islands     |
 |routing               |路由                 |                       |
 |recipe                |操作指南             |                       |
 |experimental          |實驗性               |                       |
@@ -40,6 +40,7 @@
 |reactive              |反應式               |                       |
 |responsive            |響應式               |                       |
 |docs                  |文檔                 |                       |
+|configuration         |配置                 |                       |
 
 
 ### 1.2 中文用詞
