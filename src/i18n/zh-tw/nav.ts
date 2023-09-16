@@ -7,7 +7,7 @@ export default NavDictionary({
 	'editor-setup': '編輯器設定',
 	'guides/upgrade-to/v3': '升级到 v3',
 
-	coreConcepts: '主要概念',
+	coreConcepts: '核心理念',
 	'concepts/why-astro': '為何選擇 Astro',
 	'concepts/islands': 'Astro 群島',
 
@@ -47,7 +47,7 @@ export default NavDictionary({
 	'guides/view-transitions': '轉場過渡動畫',
 	'guides/troubleshooting': '疑難排解',
 
-	configuration: '設定',
+	configuration: '配置',
 	'guides/configuring-astro': 'Astro 配置文件',
 	'guides/typescript': 'TypeScript',
 	'guides/aliases': '引入路徑別名',
