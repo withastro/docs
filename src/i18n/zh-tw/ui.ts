@@ -41,7 +41,7 @@ export default UIDictionary({
 	'since.new': '新',
 	'since.beta': 'Beta',
 	// Installation Guide
-	'install.autoTab': '自動化終端機',
+	'install.autoTab': '自動化命令列',
 	'install.manualTab': '手動設定',
 	// `<DeployGuidesNav>` vocabulary
 	'deploy.sectionTitle': '部署指南',
