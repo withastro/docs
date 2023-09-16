@@ -41,6 +41,8 @@
 |responsive            |響應式               |                       |
 |docs                  |文檔                 |                       |
 |configuration         |配置                 |                       |
+|changelog             |變更日誌              |                       |
+|hydration             |水合                 |                       |
 
 
 ### 1.2 中文用詞
