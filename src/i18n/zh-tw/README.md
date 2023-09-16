@@ -15,22 +15,13 @@
 ### 1.1 術語表
 > 部分參考[《重編國語辭典修訂本》](https://dict.revised.moe.edu.tw/index.jsp)
 
-|原文                   |推薦翻譯             |備註                   |
-|----------------------|--------------------|----------------------|
-|Server-side Rendering |伺服器端渲染          |                      |
-|integration           |整合                 |                      |
-|import                |引入                 |                      |
-|middleware            |中介層               |                       |
-|adapter               |配接器               |                       |
-|CLI                   |命令列               |                      |
-|terminal              |終端機               |                      |
-|package               |套件                 |                      |
-|library               |庫                  |                       |
-|islands               |群島                 |特指 Astro Islands     |
+|原文                   |推薦翻譯              |備註                    |
+|----------------------|---------------------|-----------------------|
+|library               |庫                   |                       |
+|integration           |整合                 |                       |
+|import                |引入                 |                       |
+|package               |套件                 |                       |
 |routing               |路由                 |                       |
-|recipe                |操作指南             |                       |
-|experimental          |實驗性               |                       |
-|escape                |跳脫                 |特指 Escape Character   |
 |architecture          |架構                 |                       |
 |framework             |框架                 |                       |
 |reference             |參考                 |                       |
@@ -38,12 +29,22 @@
 |component             |組件                 |                       |
 |migration             |遷移                 |                       |
 |asset                 |資產                 |                       |
-|reactive              |反應式               |                       |
-|responsive            |響應式               |                       |
 |docs                  |文檔                 |                       |
 |configuration         |配置                 |                       |
-|changelog             |變更日誌              |                       |
 |hydration             |水合                 |                       |
+|islands               |群島                 |特指 Astro Islands      |
+|escape                |跳脫                 |特指 Escape Character   |
+|reactive              |反應式               |                       |
+|responsive            |響應式               |                       |
+|repository            |儲存庫               |                       |
+|experimental          |實驗性               |                       |
+|middleware            |中介層               |                       |
+|adapter               |配接器               |                       |
+|CLI                   |命令列               |                       |
+|terminal              |終端機               |                       |
+|changelog             |變更日誌             |                       |
+|recipe                |操作指南             |                       |
+|Server-side Rendering |伺服器端渲染          |                       |
 
 
 ### 1.2 中文用詞
