@@ -22,6 +22,7 @@
 |import                |引入                 |                      |
 |middleware            |中介層               |                       |
 |adapter               |配接器               |                       |
+|CLI                   |命令列               |                      |
 |terminal              |終端機               |                      |
 |package               |套件                 |                      |
 |library               |庫                  |                       |
