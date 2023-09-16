@@ -75,7 +75,7 @@ export default UIDictionary({
 	// `<LanguageSelect>` vocabulary
 	'languageSelect.label': '選擇語言',
 	// Integrations vocabulary
-	'integrations.changelog': '更新日誌',
+	'integrations.changelog': '變更日誌',
 	'integrations.footerTitle': '更多整合',
 	'integrations.renderers': 'UI 框架',
 	'integrations.adapters': 'SSR 配接器',
