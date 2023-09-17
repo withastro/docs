@@ -8,7 +8,7 @@ const sourceRepo = process.env.SOURCE_REPO || 'withastro/astro';
 
 const errorURL = `https://raw.githubusercontent.com/${sourceRepo}/${sourceBranch}/packages/astro/src/core/errors/errors-data.ts`;
 
-// Fill this in to test a response locally, with fetching.
+// Fill this in to test a response locally, without fetching.
 const STUB = undefined; // fs.readFileSync('../astro/packages/astro/src/core/errors/errors-data.ts', {encoding: 'utf-8',});
 
 const HEADER = `---
@@ -116,7 +116,7 @@ export async function run() {
 			resultMessage = `> ${cleanMessage}`;
 		} else if (message) {
 			if (typeof message === 'string') {
-				resultMessage = `> **${errorName}**: ${message}`;
+				resultMessage = `> **${errorName}**: ${sanitizeString(message)}`;
 			} else {
 				resultMessage = `> **${errorName}**: ${String.raw({
 					raw: extractStringFromFunction(message.toString()),
@@ -216,39 +216,35 @@ import DontEditWarning from '~/components/DontEditWarning.astro'
 function extractStringFromFunction(func) {
 	const arrowIndex = func.indexOf('=>') + '=>'.length;
 
-	return escapeHtml(func.slice(arrowIndex).trim().slice(1, -1));
+	return expressionToText(func.slice(arrowIndex).trim().slice(1, -1));
 
-	function escapeHtml(unsafe) {
-		return unsafe
-			.replaceAll(
+	// Turn the following syntax: `{componentName}` into this result: `COMPONENT_NAME`
+	function expressionToText(text) {
+		return sanitizeString(
+			text.replaceAll(
 				/\${([^}]+)}/gm,
-				(str, match1) =>
+				(_, match1) =>
 					`${match1
 						.split(/\.?(?=[A-Z])/)
 						.join('_')
 						.toUpperCase()}`
 			)
-			.replaceAll('\\`', '`')
-			.replaceAll(/`?(client:[\w]+(="\(.+\)")?)`?/g, '`$1`')
-			.replaceAll(/&/g, '&amp;')
-			.replaceAll(/</g, '&lt;')
-			.replaceAll(/>/g, '&gt;');
+		);
 	}
 }
 
 /**
- * Make sure client directives are wrapped in backticks to avoid a docs bug
+ * MDX doesn't like some characters, so we need to sanitize the messages regarding the usage of client directives and HTML tags.
+ * Also remove unnecessary backslashes for inline code and replace newlines with `<br/>`
  * @param {string} message
  */
 function sanitizeString(message) {
-	return message.replaceAll(/`?(client:[\w]+(="\(.+\)")?)`?/g, '`$1`');
-}
-
-/**
- * @param {number} code
- */
-function padCode(code) {
-	return code.toString().padStart(5, '0');
+	return message
+		.replaceAll(/\\`/gm, '`')
+		.replaceAll(/`?(client:[\w]+(="\(.+\)")?)`?/g, '`$1`')
+		.replaceAll(/([^`\\])</gm, `$1\\<`)
+		.replaceAll(/>([^`\\])/gm, '\\$1>')
+		.replaceAll('\\n', '<br/>');
 }
 
 run();
