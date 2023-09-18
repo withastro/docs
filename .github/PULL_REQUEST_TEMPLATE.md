@@ -11,15 +11,19 @@
 
 #### Description
 
-- Closes # <!-- Add an issue number if this PR will close it. -->
 - What does this PR change? Give us a brief description.
 - Did you change something visual? A before/after screenshot can be helpful.
+
+#### Related Issue / Implementation PR
+
+- Closes Issue # <!-- Add an issue number if this PR will close it. -->
 
 <!-- Are these docs for an upcoming Astro release? -->
 <!-- Uncomment the line below and fill in the future Astro version and link the relevant `withastro/astro` PR.  -->
 <!-- #### For Astro version: `version`. See [Astro PR #](url). -->
 
-<!--
+<!-- Next Steps
+
 Here’s what will happen next:
 
 1. Our GitHub bots will run to check your changes.
