@@ -29,8 +29,8 @@ export default NavDictionary({
 	'guides/migrate-to-astro': 'Zu Astro migrieren',
 	'guides/cms': 'Ein CMS verbinden',
 	'guides/backend': 'Backend-Dienste hinzufügen',
-	'guides/integrations-guide': 'Integrationen',
-	'guides/deploy': 'Veröffentlichung',
+	'guides/integrations-guide': 'Integrationen hinzufügen',
+	'guides/deploy': 'Website veröffentlichen',
 	'guides/recipes': 'Mehr Anleitungen',
 		
 	// Features
@@ -38,10 +38,10 @@ export default NavDictionary({
 	'core-concepts/astro-syntax': 'Astro-Syntax',
 	'core-concepts/framework-components': 'UI-Frameworks',
 	'core-concepts/routing': 'Routing',
-	'guides/markdown-content': 'Markdown',
+	'guides/markdown-content': 'Markdown & MDX',
 	'guides/content-collections': 'Content-Sammlungen',
 	'guides/client-side-scripts': 'Skripte & Ereignisbehandlung',
-	'guides/styling': 'Styling & CSS',
+	'guides/styling': 'CSS & Styling',
 	'guides/images': 'Bilder',
 	'guides/fonts': 'Schriftarten',
 	'guides/imports': 'Importe',
@@ -55,7 +55,7 @@ export default NavDictionary({
 	// 'guides/rss': 'RSS',
 
 	configuration: 'Konfiguration',
-	'guides/configuring-astro': 'Astro konfigurieren',
+	'guides/configuring-astro': 'Die Astro-Konfigurationsdatei',
 	'guides/typescript': 'TypeScript',
 	'guides/aliases': 'Import-Aliasnamen',
 	'guides/environment-variables': 'Umgebungsvariablen',
