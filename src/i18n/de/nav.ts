@@ -23,7 +23,7 @@ export default NavDictionary({
 	'core-concepts/astro-components': 'Komponenten',
 	'core-concepts/astro-pages': 'Seiten',
 	'core-concepts/layouts': 'Layouts',
-	
+
 	// Recipes
 	examples: 'Anleitungen',
 	'guides/migrate-to-astro': 'Zu Astro migrieren',
@@ -32,7 +32,7 @@ export default NavDictionary({
 	'guides/integrations-guide': 'Integrationen hinzufügen',
 	'guides/deploy': 'Website veröffentlichen',
 	'guides/recipes': 'Mehr Anleitungen',
-		
+
 	// Features
 	features: 'Themenbereiche',
 	'core-concepts/astro-syntax': 'Astro-Syntax',
@@ -71,5 +71,4 @@ export default NavDictionary({
 	'reference/cli-reference': 'Befehlszeilen&shy;schnittstelle (CLI)',
 	'reference/error-reference': 'Fehler-Referenz',
 	'guides/publish-to-npm': 'NPM-Paketformat',
-
 });
