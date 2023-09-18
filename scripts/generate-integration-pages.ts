@@ -38,12 +38,21 @@ class IntegrationPagesBuilder {
 	readonly #sourceBranch: string;
 	readonly #sourceRepo: string;
 	readonly #deprecatedIntegrations = new Set(['turbolinks']);
+	readonly #nonCoreIntegrations: Map<string, { packageName: string; repo: string; }> = new Map();
 	readonly #i18nNotReadyIntegrations = new Set<string>([]);
 
 	constructor(opts: { githubToken?: string; sourceBranch: string; sourceRepo: string }) {
 		this.#githubToken = opts.githubToken;
 		this.#sourceBranch = opts.sourceBranch;
 		this.#sourceRepo = opts.sourceRepo;
+		this.#nonCoreIntegrations.set('netlify', {
+			packageName: '@astrojs/netlify',
+			repo: 'withastro/netlify-adapter'
+		});
+		this.#nonCoreIntegrations.set('deno', {
+			packageName: '@astrojs/deno',
+			repo: 'denoland/deno-astro-adapter'
+		});
 
 		if (!this.#githubToken) {
 			if (output.isCi) {
@@ -62,10 +71,25 @@ class IntegrationPagesBuilder {
 		}
 	}
 
+	async #getSingleIntegrationData({ packageName, pkgJsonURL, readmeURL }: { packageName: string; pkgJsonURL: string; readmeURL: string }): Promise<IntegrationData> {
+		const { name, keywords } = await githubGet({
+			url: pkgJsonURL,
+			githubToken: this.#githubToken,
+		});
+		const category = keywords.includes('renderer')
+			? 'renderer'
+			: keywords.includes('astro-adapter')
+			? 'adapter'
+			: 'other';
+		const i18nReady = (!this.#i18nNotReadyIntegrations.has(packageName)).toString();
+		const readme = await (await fetch(readmeURL)).text();
+		return { name, category, readme, srcdir: packageName, i18nReady };
+	}
+
 	/**
 	 * Collect data for each official Astro integration.
 	 */
-	async #getIntegrationData(): Promise<IntegrationData[]> {
+	async #getCoreIntegrationData(): Promise<IntegrationData[]> {
 		// Read all the packages in Astro’s integrations directory.
 		const url = `https://api.github.com/repos/${
 			this.#sourceRepo
@@ -75,27 +99,41 @@ class IntegrationPagesBuilder {
 		return await Promise.all(
 			packages
 				.filter((pkg) => !this.#deprecatedIntegrations.has(pkg.name))
-				.map(async (pkg) => {
+				.filter((pkg) => !this.#nonCoreIntegrations.has(pkg.name))
+
+				.map(async(pkg) => {
 					const pkgJsonURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${
 						this.#sourceBranch
 					}/packages/integrations/${pkg.name}/package.json`;
 					const readmeURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${
 						this.#sourceBranch
 					}/packages/integrations/${pkg.name}/README.md`;
-					const { name, keywords } = await githubGet({
-						url: pkgJsonURL,
-						githubToken: this.#githubToken,
+
+					return this.#getSingleIntegrationData({
+						packageName: pkg.name,
+						pkgJsonURL,
+						readmeURL
 					});
-					const category = keywords.includes('renderer')
-						? 'renderer'
-						: keywords.includes('astro-adapter')
-						? 'adapter'
-						: 'other';
-					const i18nReady = (!this.#i18nNotReadyIntegrations.has(pkg.name)).toString();
-					const readme = await (await fetch(readmeURL)).text();
-					return { name, category, readme, srcdir: pkg.name, i18nReady };
 				})
 		);
+	}
+
+	async #getIntegrationData(): Promise<IntegrationData[]> {
+		const coreDataPromise = this.#getCoreIntegrationData();
+		const nonCoreDataPromise = Array.from(this.#nonCoreIntegrations).map(([, val]) => {
+			return this.#getSingleIntegrationData({
+				packageName: val.packageName,
+				pkgJsonURL: `https://raw.githubusercontent.com/${val.repo}/main/package.json`,
+				readmeURL: `https://raw.githubusercontent.com/${val.repo}/main/README.md`,
+			})
+		});
+
+		const [ coreData, ...nonCoreData ] = await Promise.all([
+			coreDataPromise,
+			...nonCoreDataPromise
+		]);
+
+		return coreData.concat(nonCoreData);
 	}
 
 	/**
