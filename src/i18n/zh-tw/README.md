@@ -44,6 +44,7 @@
 |adapter               |配接器               |                       |
 |CLI                   |命令列               |                       |
 |terminal              |終端機               |                       |
+|codebase              |代碼庫               |                       |
 |changelog             |變更日誌             |                       |
 |recipe                |操作指南             |                       |
 |Server-side Rendering |伺服器端渲染          |                       |
