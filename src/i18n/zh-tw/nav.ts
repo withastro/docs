@@ -7,9 +7,9 @@ export default NavDictionary({
 	'editor-setup': '編輯器設定',
 	'guides/upgrade-to/v3': '升级到 v3',
 
-	coreConcepts: '主要概念',
+	coreConcepts: '核心理念',
 	'concepts/why-astro': '為何選擇 Astro',
-	'concepts/islands': 'Astro Islands',
+	'concepts/islands': 'Astro 群島',
 
 	tutorials: '教學',
 	'blog-tutorial': '建立部落格',
@@ -36,7 +36,6 @@ export default NavDictionary({
 	'guides/content-collections': '内容集',
 	'guides/client-side-scripts': '腳本與事件處理',
 	'guides/styling': 'CSS 與樣式',
-	'guides/assets': '資源（實驗性）',
 	'guides/images': '圖片',
 	'guides/fonts': '字體',
 	'guides/imports': '引入',
@@ -45,10 +44,10 @@ export default NavDictionary({
 	'guides/data-fetching': '資料獲取',
 	'guides/middleware': '中介層',
 	'guides/testing': '測試',
-	'guides/view-transitions': '轉場過渡動畫（實驗性）',
+	'guides/view-transitions': '轉場過渡動畫',
 	'guides/troubleshooting': '疑難排解',
 
-	configuration: '設定',
+	configuration: '配置',
 	'guides/configuring-astro': 'Astro 配置文件',
 	'guides/typescript': 'TypeScript',
 	'guides/aliases': '引入路徑別名',
