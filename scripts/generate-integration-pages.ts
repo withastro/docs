@@ -37,7 +37,7 @@ class IntegrationPagesBuilder {
 	readonly #githubToken?: string;
 	readonly #sourceBranch: string;
 	readonly #sourceRepo: string;
-	readonly #deprecatedIntegrations = new Set(['turbolinks']);
+	readonly #deprecatedIntegrations = new Set(['turbolinks', 'deno']);
 	readonly #nonCoreIntegrations: Map<string, { packageName: string; repo: string; }> = new Map();
 	readonly #i18nNotReadyIntegrations = new Set<string>([]);
 
@@ -48,10 +48,6 @@ class IntegrationPagesBuilder {
 		this.#nonCoreIntegrations.set('netlify', {
 			packageName: '@astrojs/netlify',
 			repo: 'withastro/netlify-adapter'
-		});
-		this.#nonCoreIntegrations.set('deno', {
-			packageName: '@astrojs/deno',
-			repo: 'denoland/deno-astro-adapter'
 		});
 
 		if (!this.#githubToken) {
