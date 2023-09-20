@@ -1,11 +1,19 @@
 ---
-import type { CollectionEntry } from 'astro:content';
+import { getEntry, type CollectionEntry } from 'astro:content';
 import { OPEN_GRAPH } from '../config';
 import { normalizeLangTag } from '../i18n/bcp-normalize';
-import languages from '../i18n/languages';
 import { useTranslations } from '../i18n/util';
 import { getLanguageFromURL } from '../util';
 import { getOgImageUrl } from '../util/getOgImageUrl';
+import languages from '~/i18n/languages';
+
+async function hasTranslations(slug: string): Promise<string[]> {
+  const langs = []
+  for (const lang of Object.keys(languages)) {
+    if (await getEntry('docs', `${lang}/${slug}`)) langs.push(lang)
+  }
+  return langs
+}
 
 export interface Props {
 	content: CollectionEntry<'docs'>['data'];
@@ -20,6 +28,7 @@ const imageSrc = ogImageUrl ?? t('site.og.imageSrc');
 const canonicalImageSrc = new URL(imageSrc, Astro.site);
 const imageAlt = imageSrc === ogImageUrl ? '' : t('site.og.imageAlt');
 const lang = getLanguageFromURL(canonicalURL?.pathname || '/');
+const translations = await hasTranslations(Astro.params.slug!)
 const bcpLang = normalizeLangTag(lang);
 const ogLocale = bcpLang.replace(/-/g, '_');
 ---
@@ -31,7 +40,7 @@ const ogLocale = bcpLang.replace(/-/g, '_');
 	/* Language alternates. See https://developers.google.com/search/docs/advanced/crawling/localized-versions#html */
 }
 {
-	isFallback ? '' : Object.keys(languages).map((altLang) => (
+	isFallback ? '' : translations.map((altLang) => (
 		<link
 			rel="alternate"
 			href={canonicalURL.href.replace(lang, altLang) || '/'}
