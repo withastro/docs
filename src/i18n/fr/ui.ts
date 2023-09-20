@@ -2,6 +2,7 @@ import { UIDictionary } from '../translation-checkers';
 
 export default UIDictionary({
 	'a11y.skipLink': 'Aller au contenu principal',
+	'a11y.sectionLink': 'Titre de la section',
 	'navbar.a11yTitle': 'Navigation principale',
 	// Site settings
 	'site.title': 'Documentation Astro',
@@ -15,6 +16,7 @@ export default UIDictionary({
 	'leftSidebar.learnTab': 'Apprendre',
 	'leftSidebar.referenceTab': 'Référence',
 	'leftSidebar.viewInEnglish': 'Voir en anglais',
+	'leftSidebar.sponsoredBy': 'Sponsorisé par',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': 'Table des matières',
 	'rightSidebar.onThisPage': 'Sur cette page',
@@ -28,6 +30,8 @@ export default UIDictionary({
 	'rightSidebar.editPage': 'Modifier cette page',
 	'rightSidebar.translatePage': 'Traduire cette page',
 	'rightSidebar.github': "La doc d'Astro sur GitHub",
+	// Footer
+	'footer.privacyPolicy': 'Politique de Confidentialité',
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': 'Changer vers le thème clair',
 	'themeToggle.useDark': 'Changer vers le thème sombre',
@@ -37,6 +41,7 @@ export default UIDictionary({
 	// Used in `<Since>`: Added in: v0.24.0 [NEW]
 	'since.addedIn': 'Ajouté à la version :',
 	'since.new': 'Nouveau',
+	'since.beta': 'Bêta',
 	// Installation Guide
 	'install.autoTab': "Automatiquement via l'ILC",
 	'install.manualTab': 'Configuration manuelle',
@@ -70,6 +75,28 @@ export default UIDictionary({
 	'aside.tip': 'Astuce',
 	'aside.caution': 'Attention',
 	'aside.danger': 'Danger',
+	// `<LanguageSelect>` vocabulary
+	'languageSelect.label': 'Sélectionner la langue',
+	// Integrations vocabulary
+	'integrations.changelog': 'Journal des modifications',
+	'integrations.footerTitle': "Plus d'intégrations",
+	'integrations.renderers': "Framework d'interface utilisateur",
+	'integrations.adapters': 'Adaptateurs SSR',
+	'integrations.others': 'Autres',
+	// Checklist component
+	'checklist.or': 'ou',
+	// Multiple Choice component
+	'multipleChoice.defaultCorrect': 'Correct !',
+	'multipleChoice.defaultIncorrect': 'Réessayer !',
+	'multipleChoice.submitLabel': 'Envoyer',
+	// Tutorial Progress
+	'progress.todo': 'À faire',
+	'progress.done': 'Terminer',
+	// Tutorial Navigation
+	'tutorial.trackerLabel': 'Suivi du tutoriel',
+	'tutorial.unit': 'Unité',
+	// Tutorial
+	'tutorial.getReady': 'Préparez-vous à…',
 	// Feedback Fish widget
 	'feedback.button': 'Laissez un commentaire',
 	'feedback.a11yLabel': 'Formulaire de commentaires',
