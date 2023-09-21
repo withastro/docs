@@ -33,19 +33,24 @@ interface AstroIntegration {
       injectScript: (stage: InjectedScriptStage, content: string) => void;
       injectRoute: ({ pattern: string, entryPoint: string }) => void;
     }) => void;
-    'astro:config:done'?: (options: { config: AstroConfig }) => void | Promise<void>;
-    'astro:server:setup'?: (options: { server: vite.ViteDevServer }) => void | Promise<void>;
-    'astro:server:start'?: (options: { address: AddressInfo }) => void | Promise<void>;
-    'astro:server:done'?: () => void | Promise<void>;
-    'astro:build:start'?: () => void | Promise<void>;
+    'astro:config:done'?: (options: { config: AstroConfig; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:server:setup'?: (options: { server: vite.ViteDevServer; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:server:start'?: (options: { address: AddressInfo; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:server:done'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:build:start'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:build:setup'?: (options: {
       vite: ViteConfigWithSSR;
       pages: Map<string, PageBuildData>;
       target: 'client' | 'server';
+      logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
-    'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
-    'astro:build:ssr'?: (options: { manifest: SerializedSSRManifestm, entryPoints: Map<RouteData, URL> }) => void | Promise<void>;
-    'astro:build:done'?: (options: { dir: URL; routes: RouteData[], pages: { pathname: string }[] }) => void | Promise<void>;
+    'astro:build:generated'?: (options: { dir: URL; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:build:ssr'?: (options: {
+        manifest: SerializedSSRManifestm;
+        entryPoints: Map<RouteData, URL>;
+        logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:build:done'?: (options: { dir: URL; routes: RouteData[]; logger: AstroIntegrationLogger; }) => void | Promise<void>;
   };
 }
 ```
@@ -70,6 +75,7 @@ interface AstroIntegration {
   addWatchFile: (path: URL | string) => void;
   injectScript: (stage: InjectedScriptStage, content: string) => void;
   injectRoute: ({ pattern: string, entryPoint: string }) => void;
+  logger: AstroIntegrationLogger;
 }) => void;
 ```
 
@@ -96,7 +102,7 @@ interface AstroIntegration {
 
 **类型**：`(newConfig: Record<string, any>) => void;`
 
-用来更新用户提供的[Astro 配置](/zh-cn/reference/configuration-reference/)的回调函数。你提供的任何配置**将与用户配置+其他集成配置的更新合并**，所以你可以随意省略键名!
+用来更新用户提供的[Astro 配置](/zh-cn/reference/configuration-reference/)的回调函数。你提供的任何配置**将与用户配置 + 其他集成配置的更新合并**，所以你可以随意省略键名！
 
 例如，假设你需要在项目使用 [Vite](https://vitejs.dev/) 插件：
 
@@ -144,7 +150,7 @@ addWatchFile(new URL('./tailwind.config.js', config.root));
 
 <Since v="2.6.0" />
 
-**类型:** `(directive:` [`ClientDirectiveConfig`](https://github.com/withastro/astro/blob/00327c213f74627ac9ca1dec774efa5bf71e9375/packages/astro/src/%40types/astro.ts#L1872-L1875) `) => void;`
+**类型：** `(directive:` [`ClientDirectiveConfig`](https://github.com/withastro/astro/blob/00327c213f74627ac9ca1dec774efa5bf71e9375/packages/astro/src/%40types/astro.ts#L1872-L1875) `) => void;`
 
 添加一个 [自定义客户端指令](/zh-cn/reference/directives-reference/#自定义客户端指令)，用于在 `.astro` 文件中使用。
 
@@ -152,12 +158,33 @@ addWatchFile(new URL('./tailwind.config.js', config.root));
 
 示例用法：
 
-```js
-// 创建一个 `client:click` 指令
-addClientDirective({
-  name: 'click',
-  entrypoint: 'astro-click-directive/click.js' 
-})
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import clickDirective from './astro-click-directive/register.js'
+
+// https://astro.build/config
+export default defineConfig({
+  integrations: [
+    clickDirective()
+  ],
+});
+```
+
+```js title="astro-click-directive/register.js"
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "client:click",
+  hooks: {
+    "astro:config:setup": ({ addClientDirective }) => {
+      addClientDirective({
+        name: "click",
+        entrypoint: "./astro-click-directive/click.js",
+      });
+    },
+  },
+});
 ```
 
 ```js title="astro-click-directive/click.js"
@@ -176,6 +203,7 @@ export default (load, opts, el) => {
 你还可以在库的类型定义文件中为指令添加类型：
 
 ```ts title="astro-click-directive/index.d.ts"
+import 'astro'
 declare module 'astro' {
   interface AstroClientDirectives {
     'client:click'?: boolean
@@ -226,7 +254,7 @@ injectRoute({
 **`stage`** 表示这个脚本（`content`）应该如何插入。有些阶段允许不加修改地插入脚本，而有些阶段允许在 [Vite 的捆绑步骤](https://vitejs.dev/guide/build.html)中进行压缩：
 
 - `head-inline`：注入每个页面的 `<head>` 中的脚本标签。**不**由 Vite 压缩或解析。
-- `before-hydration`：在激活脚本运行之前导入客户端。由Vite优化和解决。
+- `before-hydration`：在激活脚本运行之前导入客户端。由 Vite 优化和解决。
 - `page`：与 `head-inline` 类似，只是注入片段由 Vite 进行处理，并与页面上 Astro 组件内定义的其他 `<script>` 标签捆绑在一起。该脚本将在最终的页面输出中以 `<script type="module">` 的形式加载，并由 Vite 压缩和解析。
 - `page-ssr`：在每个 Astro 页面组件的 frontmatter 中作为单独的模块被导入。因为这个阶段导入你的脚本，无法使用全局 `Astro`，脚本只会在 `import` 第一次 evaluate 时运行一次。
 
@@ -432,7 +460,7 @@ export default function myIntegration() {
 你可以参考下面完整的 `RouteData` 类型，但最常见的属性是。
 
 - `component` - 相对于项目根的输入文件路径
-- `pathname` - 输出文件的URL（对于使用 `[dynamic]` 和 `[...spread]` 参数的路由未定义）。
+- `pathname` - 输出文件的 URL（对于使用 `[dynamic]` 和 `[...spread]` 参数的路由未定义）。
 
 ##### `RouteData` 类型参考
 
@@ -447,7 +475,7 @@ interface RouteData {
    * 注意：[dynamic] 和 [...spread] 路由将为 undefined
    */
   pathname?: string;
-  /** 
+  /**
    * 用于匹配输入链接和请求的路由的正则表达式
    * 如 `[fruit]/about.astro` 将生成 /^\/([^/]+?)\/about\/?$/ 匹配模式
    * pattern.test("banana/about") 为 `true`
@@ -464,7 +492,7 @@ interface RouteData {
    * [[ { content: 'lang', dynamic: true, spread: false } ]]
    */
   segments: { content: string; dynamic: boolean; spread: boolean; }[][];
-  /** 
+  /**
    * 根据输入数据中就地渲染组件的函数。
    * 这通常仅在内部使用，所以请谨慎调用！
    */
@@ -474,7 +502,7 @@ interface RouteData {
 
 #### `pages` 选项
 
-**类型:** `{ pathname: string }[]`
+**类型：** `{ pathname: string }[]`
 
 生成的所有页面的列表是一个包含一个属性的对象。
 
@@ -506,6 +534,68 @@ export default defineConfig({
 :::caution
 这假定你的集成定义是：1）`default` 导出；2）函数。在添加 `astro-integration` 关键字前，请确保符合要求。
 :::
+
+## `AstroIntegrationLogger`
+
+Astro 日志记录器的实例，用于写日志。此日志记录器使用与 CLI 配置的相同的[日志级别](/zh-cn/reference/cli-reference/#--verbose)。
+
+用于写入终端的**可用方法**：
+- `logger.info("Message")`;
+- `logger.warn("Message")`;
+- `logger.error("Message")`;
+- `logger.debug("Message")`;
+
+所有消息都前面带有一个具有集成名字的标签。
+
+```ts title="integration.ts" {8}
+import type { AstroIntegration } from "astro";
+export function formatIntegration(): AstroIntegration {
+    return {
+        name: "astro-format",
+        hooks: {
+            "astro:build:done": ({ logger }) => {
+                // do something
+                logger.info("Integration ready.");
+            }
+        }
+    }
+}
+```
+
+上面的示例将记录一个包含提供的 `info` 消息的日志：
+
+```shell
+[astro-format] Integration ready.
+```
+
+要使用不同的标签记录一些日志，请使用 `.fork` 方法指定一个新的 `name`：
+
+```ts title="integration.ts" ".fork"
+import type { AstroIntegration } from "astro";
+export function formatIntegration(): AstroIntegration {
+    return {
+        name: "astro-format",
+        hooks: {
+            "astro:config:done": ({ logger }) => {
+                // do something
+                logger.info("Integration ready.");
+            },
+            "astro:build:done": ({ logger }) => {
+                const buildLogger = logger.fork("astro-format/build");
+                // do something
+                buildLogger.info("Build finished.")
+            }
+        }
+    }
+}
+```
+
+上面的示例将默认生成带有 `[astro-format]` 的日志，并在指定名字时生成带有 `[astro-format/build]` 的日志：
+
+```shell
+[astro-format] Integration ready.
+[astro-format/build] Build finished.
+```
 
 ## 集成排序
 

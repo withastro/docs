@@ -116,4 +116,11 @@ export default {
 	'expressiveCode.copyButtonCopied': 'Copied!',
 	// Backend Guides vocabulary
 	'backend.navTitle': 'More backend service guides',
+	// Stubs vocabulary
+	'stub.title': 'Expand this stub!',
+	'stub.subtitle': 'This guide is a stub.',
+	'stub.description.migration':
+		'Want to contribute to this guide? Have a blog post, video, or another resource to share about migrating from this technology to Astro?',
+	'stub.description.cms': 'Know more about how to use this CMS with Astro?',
+	'stub.description.backend': 'Know more about how to use this backend service with Astro?',
 };
