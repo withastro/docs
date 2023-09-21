@@ -5,7 +5,7 @@ export default UIDictionary({
 	'a11y.sectionLink': '標題為',
 	'navbar.a11yTitle': '頂部導覽',
 	// Site settings
-	'site.title': 'Astro 文件',
+	'site.title': 'Astro 文檔',
 	'site.description': '用更少的用戶端 JavaScript 打造更快速的網站。',
 	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.og.imageAlt': 'Astro 的標誌在充滿星辰的太空中，右邊前景飄浮著土星似的紫色星球',
@@ -19,15 +19,15 @@ export default UIDictionary({
 	'rightSidebar.a11yTitle': '目錄',
 	'rightSidebar.onThisPage': '本頁內容',
 	'rightSidebar.overview': '概要',
-	'rightSidebar.editPage': '編輯此頁',
-	'rightSidebar.translatePage': '翻譯此頁',
 	'rightSidebar.community': 'Community',
 	'rightSidebar.joinDiscord': '加入我們的 Discord',
 	'rightSidebar.readBlog': '瀏覽我們的部落格',
 	'rightSidebar.openCollective': '我們的 Open Collective',
 	'rightSidebar.contribute': 'Contribute',
-	'rightSidebar.github': 'Astro 文件的 GitHub',
 	'rightSidebar.contributorGuides': '貢獻者指南',
+	'rightSidebar.editPage': '編輯此頁',
+	'rightSidebar.translatePage': '翻譯此頁',
+	'rightSidebar.github': 'GitHub 上的 Astro 文檔',
 	// Footer
 	'footer.privacyPolicy': '隱私權政策',
 	// `<ThemeToggleButton>` acessibility labels
@@ -41,7 +41,7 @@ export default UIDictionary({
 	'since.new': '新',
 	'since.beta': 'Beta',
 	// Installation Guide
-	'install.autoTab': '自動化終端機',
+	'install.autoTab': '自動化命令列',
 	'install.manualTab': '手動設定',
 	// `<DeployGuidesNav>` vocabulary
 	'deploy.sectionTitle': '部署指南',
@@ -75,7 +75,7 @@ export default UIDictionary({
 	// `<LanguageSelect>` vocabulary
 	'languageSelect.label': '選擇語言',
 	// Integrations vocabulary
-	'integrations.changelog': '更新日誌',
+	'integrations.changelog': '變更日誌',
 	'integrations.footerTitle': '更多整合',
 	'integrations.renderers': 'UI 框架',
 	'integrations.adapters': 'SSR 配接器',
@@ -95,7 +95,7 @@ export default UIDictionary({
 	// Tutorial
 	'tutorial.getReady': '準備好……',
 	// Feedback Fish widget
-	'feedback.button': '反饋給我們',
+	'feedback.button': '給予我們反饋',
 	'feedback.a11yLabel': '反饋表單',
 	'feedback.formTitle': '你有哪些想法？',
 	'feedback.categoryGroupLabel': '選擇反饋類型',
@@ -120,7 +120,7 @@ export default UIDictionary({
 	'stub.title': '完善本頁！',
 	'stub.subtitle': '此指南尚未完成。',
 	'stub.description.migration':
-		'想為這個指南貢獻嗎？有關於從此技術遷移至 Astro 的部落格、影片或其他資源？',
+		'想為這個指南貢獻嗎？是否有介紹從這種技術遷移至 Astro 的部落格文章、影片或其他資源可以分享？',
 	'stub.description.cms': '知道更多在 Astro 使用此 CMS 的資訊？',
 	'stub.description.backend': '知道更多在 Astro 使用此後端服務的資訊？',
 });
