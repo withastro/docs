@@ -110,7 +110,7 @@ const env = Astro.locals.runtime.env;
 
 ```js
 // src/pages/api/someFile.js
-export function get(context) {
+export function GET(context) {
   const runtime = context.locals.runtime;
 
   return new Response('Some body');
@@ -125,10 +125,14 @@ export function get(context) {
 ```ts
 // src/env.d.ts
 /// <reference types="astro/client" />
-type AdvancedRuntime = import('@astrojs/cloudflare').AdvancedRuntime;
+import type { AdvancedRuntime } from '@astrojs/cloudflare';
+
+type ENV = {
+  SERVER_URL: string;
+};
 
 declare namespace App {
-  interface Locals extends AdvancedRuntime {
+  interface Locals extends AdvancedRuntime<ENV> {
     user: {
       name: string;
       surname: string;
@@ -142,10 +146,14 @@ declare namespace App {
 ```ts
 // src/env.d.ts
 /// <reference types="astro/client" />
-type DirectoryRuntime = import('@astrojs/cloudflare').DirectoryRuntime;
+import type { DirectoryRuntime } from '@astrojs/cloudflare';
+
+type ENV = {
+  SERVER_URL: string;
+};
 
 declare namespace App {
-  interface Locals extends DirectoryRuntime {
+  interface Locals extends DirectoryRuntime<ENV> {
     user: {
       name: string;
       surname: string;
@@ -154,14 +162,14 @@ declare namespace App {
 }
 ```
 
-## 环境变量
+### 环境变量
 
 请参阅 Cloudflare 的文档了解 [如何使用环境变量](https://developers.cloudflare.com/pages/platform/functions/bindings/#environment-variables)。
 
 ```js
 // pages/[id].json.js
 
-export function get({ params }) {
+export function GET({ params }) {
   // 在函数内部每个请求都可以访问环境变量
   const serverUrl = import.meta.env.SERVER_URL;
   const result = await fetch(serverUrl + "/user/" + params.id);
@@ -169,6 +177,31 @@ export function get({ params }) {
     body: await result.text(),
   };
 }
+```
+
+### `cloudflare.runtime`
+
+`runtime: "off" | "local" | "remote"`
+默认值：`"off"`
+
+该可选标志使得 Astro 开发服务器能够填充环境变量和 Cloudflare 请求对象，从而避免使用 Wrangler。
+
+*   `local`：环境变量可用，但请求对象由静态占位符的值填充。
+*   `remote`：环境变量和实时获取的请求对象可用。
+*   `off`：Astro 开发服务器将不会填充环境变量和请求对象。而是使用 Wrangler 来访问 Cloudflare 绑定和环境变量。
+
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+  output: 'server',
+  adapter: cloudflare({
+    runtime: 'off' | 'local' | 'remote',
+  }),
+});
 ```
 
 ## 标头、重定向和函数调用路由
@@ -183,6 +216,33 @@ Cloudflare 支持添加自定义 [标头](https://developers.cloudflare.com/page
 这将使 Cloudflare 能够在没有函数调用的情况下提供文件和处理静态重定向。创建自定义的 `_routes.json` 将覆盖此自带的优化文件，并且如果没有手动配置，可能导致函数调用次数超过 Cloudflare 计划的请求数限制。
 
 参见 [Cloudflare 文档](https://developers.cloudflare.com/pages/platform/functions/routing/#create-a-_routesjson-file) 了解更多细节。
+
+## Node.js 兼容性
+
+Astro 的 Cloudflare 适配器允许你使用任何 Cloudflare 支持的 Node.js 运行时 API，例如：
+
+*   assert
+*   AsyncLocalStorage
+*   Buffer
+*   Diagnostics Channel
+*   EventEmitter
+*   path
+*   process
+*   Streams
+*   StringDecoder
+*   util
+
+如果要使用这些 API，你的页面或端点必须是服务器渲染的（而不是预渲染的），并使用 `import {} from 'node:*'` 导入语法。
+
+```js
+// pages/api/endpoint.js
+export const prerender = false;
+import { Buffer } from 'node:buffer';
+```
+
+另外，你需要在 Cloudflare 中启用兼容性标志。该标志的配置方法取决于你部署 Astro 站点的方式。
+
+详细指南请参阅 [Cloudflare 文档](https://developers.cloudflare.com/workers/runtime-apis/nodejs)。
 
 ## 故障排除
 
