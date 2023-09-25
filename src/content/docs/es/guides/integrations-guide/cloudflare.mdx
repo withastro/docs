@@ -109,7 +109,7 @@ Desde un endpoint:
 
 ```js
 // src/pages/api/someFile.js
-export function get(context) {
+export function GET(context) {
   const runtime = context.locals.runtime;
 
   return new Response('Algún cuerpo');
@@ -123,10 +123,14 @@ Si estás usando el runtime `advanced`, puedes escribir el objeto `runtime` de l
 ```ts
 // src/env.d.ts
 /// <reference types="astro/client" />
-type AdvancedRuntime = import('@astrojs/cloudflare').AdvancedRuntime;
+import type { AdvancedRuntime } from '@astrojs/cloudflare';
+
+type ENV = {
+  SERVER_URL: string;
+};
 
 declare namespace App {
-  interface Locals extends AdvancedRuntime {
+  interface Locals extends AdvancedRuntime<ENV> {
     user: {
       name: string;
       surname: string;
@@ -140,10 +144,14 @@ Si estás usando el runtime `directory`, puedes escribir el objeto `runtime` de 
 ```ts
 // src/env.d.ts
 /// <reference types="astro/client" />
-type DirectoryRuntime = import('@astrojs/cloudflare').DirectoryRuntime;
+import type { DirectoryRuntime } from '@astrojs/cloudflare';
+
+type ENV = {
+  SERVER_URL: string;
+};
 
 declare namespace App {
-  interface Locals extends DirectoryRuntime {
+  interface Locals extends DirectoryRuntime<ENV> {
     user: {
       name: string;
       surname: string;
@@ -152,7 +160,7 @@ declare namespace App {
 }
 ```
 
-## Variables de entorno
+### Variables de entorno
 
 Mira la documentación de Cloudflare para [trabajar con variables de entorno](https://developers.cloudflare.com/pages/platform/functions/bindings/#environment-variables).
 
@@ -169,6 +177,30 @@ export function GET({ params }) {
 }
 ```
 
+### `cloudflare.runtime`
+
+`runtime: "off" | "local" | "remote"`
+Por defecto: `"off"`
+
+Esta bandera opcional permite que el servidor de desarrollo de Astro llene las variables de entorno y el objeto de solicitud de Cloudflare, evitando la necesidad de Wrangler.
+
+*   `local`: las variables de entorno están disponibles, pero el objeto de solicitud se rellena con un valor de placeholder estático. 
+*   `remote`: las variables de entorno y el objeto de solicitud en vivo recuperado están disponibles.
+*   `off`: el servidor de desarrollo de Astro no rellenará las variables de entorno ni el objeto de solicitud. Usa Wrangler para acceder a las vinculaciones y variables de entorno de Cloudflare.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+  output: 'server',
+  adapter: cloudflare({
+    runtime: 'off' | 'local' | 'remote',
+  }),
+});
+```
+
 ## Encabezados, redireccionamientos y rutas de invocación de funciones.
 
 Cloudflare ofrece soporte para agregar [encabezados personalizados](https://developers.cloudflare.com/pages/platform/headers/), configurar [redirecciones estáticas ](https://developers.cloudflare.com/pages/platform/redirects/) y definir qué rutas deben [invocar funciones](https://developers.cloudflare.com/pages/platform/functions/routing/#function-invocation-routes). Cloudflare busca archivos `_headers`, `_redirects`, y `_routes.json` en el directorio de salida de tu compilación para configurar estas características. Esto significa que deben ser colocados en el directorio `public/` de tu proyecto Astro.
@@ -178,6 +210,33 @@ Cloudflare ofrece soporte para agregar [encabezados personalizados](https://deve
 Por defecto, `@astrojs/cloudflare` generará un archivo `_routes.json` con reglas de `include` y `exclude` basadas en las rutas dinámicas y estáticas de tu aplicación. Esto permitirá que Cloudflare sirva archivos y procese redireccionamientos estáticos sin necesidad de una invocación de función. Crear un archivo `_routes.json` personalizado anulará esta optimización automática y, si no se configura manualmente, provocará invocaciones de funciones que contarán en contra de los límites de solicitudes de tu plan de Cloudflare.
 
 Consulta la [documentación de Cloudflare](https://developers.cloudflare.com/pages/platform/functions/routing/#create-a-_routesjson-file) para obtener más detalles.
+
+## Compatibilidad con Node.js.
+
+El adaptador de Cloudflare de Astro te permite utilizar cualquier API de tiempo de ejecución Node.js soportada por Cloudflare.
+
+*   assert
+*   AsyncLocalStorage
+*   Buffer
+*   Diagnostics Channel
+*   EventEmitter
+*   path
+*   process
+*   Streams
+*   StringDecoder
+*   util
+
+Para usar estas APIs, la página o el endpoint debe ser renderizado en el lado del servidor (no pre-renderizado) y debe utilizar la sintaxis de importación `import {} from 'node:*'`.
+
+```js
+// pages/api/endpoint.js
+export const prerender = false;
+import { Buffer } from 'node:buffer';
+```
+
+Además, deberás habilitar la Bandera de Compatibilidad en Cloudflare. La configuración de esta bandera puede variar según donde implementes tu sitio de Astro.
+
+Para obtener una guía detallada, por favor consulta la [documentación de Cloudflare](https://developers.cloudflare.com/workers/runtime-apis/nodejs).
 
 ## Solución de problemas
 
