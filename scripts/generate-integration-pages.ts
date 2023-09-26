@@ -37,18 +37,15 @@ class IntegrationPagesBuilder {
 	readonly #githubToken?: string;
 	readonly #sourceBranch: string;
 	readonly #sourceRepo: string;
+	readonly #sourcePath: string;
 	readonly #deprecatedIntegrations = new Set(['turbolinks', 'deno']);
-	readonly #nonCoreIntegrations: Map<string, { packageName: string; repo: string; }> = new Map();
 	readonly #i18nNotReadyIntegrations = new Set<string>([]);
 
-	constructor(opts: { githubToken?: string; sourceBranch: string; sourceRepo: string }) {
+	constructor(opts: { githubToken?: string; sourceBranch: string; sourceRepo: string; sourcePath: string }) {
 		this.#githubToken = opts.githubToken;
 		this.#sourceBranch = opts.sourceBranch;
 		this.#sourceRepo = opts.sourceRepo;
-		this.#nonCoreIntegrations.set('netlify', {
-			packageName: '@astrojs/netlify',
-			repo: 'withastro/netlify-adapter'
-		});
+		this.#sourcePath = opts.sourcePath;
 
 		if (!this.#githubToken) {
 			if (output.isCi) {
@@ -85,25 +82,24 @@ class IntegrationPagesBuilder {
 	/**
 	 * Collect data for each official Astro integration.
 	 */
-	async #getCoreIntegrationData(): Promise<IntegrationData[]> {
+	async #getIntegrationData(): Promise<IntegrationData[]> {
 		// Read all the packages in Astro’s integrations directory.
 		const url = `https://api.github.com/repos/${
 			this.#sourceRepo
-		}/contents/packages/integrations?ref=${this.#sourceBranch}`;
+		}/contents/${this.#sourcePath}?ref=${this.#sourceBranch}`;
 		const packages: { name: string }[] = await githubGet({ url, githubToken: this.#githubToken });
 
 		return await Promise.all(
 			packages
 				.filter((pkg) => !this.#deprecatedIntegrations.has(pkg.name))
-				.filter((pkg) => !this.#nonCoreIntegrations.has(pkg.name))
 
 				.map(async(pkg) => {
 					const pkgJsonURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${
 						this.#sourceBranch
-					}/packages/integrations/${pkg.name}/package.json`;
+					}/${this.#sourcePath}/${pkg.name}/package.json`;
 					const readmeURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${
 						this.#sourceBranch
-					}/packages/integrations/${pkg.name}/README.md`;
+					}/${this.#sourcePath}/${pkg.name}/README.md`;
 
 					return this.#getSingleIntegrationData({
 						packageName: pkg.name,
@@ -112,24 +108,6 @@ class IntegrationPagesBuilder {
 					});
 				})
 		);
-	}
-
-	async #getIntegrationData(): Promise<IntegrationData[]> {
-		const coreDataPromise = this.#getCoreIntegrationData();
-		const nonCoreDataPromise = Array.from(this.#nonCoreIntegrations).map(([, val]) => {
-			return this.#getSingleIntegrationData({
-				packageName: val.packageName,
-				pkgJsonURL: `https://raw.githubusercontent.com/${val.repo}/main/package.json`,
-				readmeURL: `https://raw.githubusercontent.com/${val.repo}/main/README.md`,
-			})
-		});
-
-		const [ coreData, ...nonCoreData ] = await Promise.all([
-			coreDataPromise,
-			...nonCoreDataPromise
-		]);
-
-		return coreData.concat(nonCoreData);
 	}
 
 	/**
@@ -214,12 +192,21 @@ import DontEditWarning from '~/components/DontEditWarning.astro';
 	}
 }
 
-const builder = new IntegrationPagesBuilder({
+let builder = new IntegrationPagesBuilder({
 	sourceBranch: process.env.SOURCE_BRANCH || 'main',
 	sourceRepo: process.env.SOURCE_REPO || 'withastro/astro',
+	sourcePath: 'packages/integrations',
 	githubToken: process.env.GITHUB_TOKEN,
 });
-builder.run();
+await builder.run();
+
+builder = new IntegrationPagesBuilder({
+	sourceBranch: process.env.SOURCE_BRANCH || 'main',
+	sourceRepo: process.env.SOURCE_REPO || 'withastro/adapters',
+	sourcePath: 'packages',
+	githubToken: process.env.GITHUB_TOKEN,
+});
+await builder.run();
 
 /** Remark plugin to prepend an absolute path in front of link hrefs. */
 function absoluteLinks({ base }: { base: string }) {
