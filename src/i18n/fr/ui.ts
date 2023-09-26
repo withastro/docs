@@ -2,6 +2,7 @@ import { UIDictionary } from '../translation-checkers';
 
 export default UIDictionary({
 	'a11y.skipLink': 'Aller au contenu principal',
+	'a11y.sectionLink': 'Titre de la section',
 	'navbar.a11yTitle': 'Navigation principale',
 	// Site settings
 	'site.title': 'Documentation Astro',
@@ -15,6 +16,7 @@ export default UIDictionary({
 	'leftSidebar.learnTab': 'Apprendre',
 	'leftSidebar.referenceTab': 'Référence',
 	'leftSidebar.viewInEnglish': 'Voir en anglais',
+	'leftSidebar.sponsoredBy': 'Sponsorisé par',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': 'Table des matières',
 	'rightSidebar.onThisPage': 'Sur cette page',
@@ -24,9 +26,12 @@ export default UIDictionary({
 	'rightSidebar.readBlog': 'Lire nos articles',
 	'rightSidebar.openCollective': 'Notre lien Open Collective',
 	'rightSidebar.contribute': 'Contribuer',
+	'rightSidebar.contributorGuides': 'Guides des contributeurs',
 	'rightSidebar.editPage': 'Modifier cette page',
 	'rightSidebar.translatePage': 'Traduire cette page',
 	'rightSidebar.github': "La doc d'Astro sur GitHub",
+	// Footer
+	'footer.privacyPolicy': 'Politique de Confidentialité',
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': 'Changer vers le thème clair',
 	'themeToggle.useDark': 'Changer vers le thème sombre',
@@ -36,6 +41,7 @@ export default UIDictionary({
 	// Used in `<Since>`: Added in: v0.24.0 [NEW]
 	'since.addedIn': 'Ajouté à la version :',
 	'since.new': 'Nouveau',
+	'since.beta': 'Bêta',
 	// Installation Guide
 	'install.autoTab': "Automatiquement via l'ILC",
 	'install.manualTab': 'Configuration manuelle',
@@ -45,6 +51,15 @@ export default UIDictionary({
 	'deploy.filterLabel': 'Filtrer par type de déploiement',
 	'deploy.ssrTag': 'SSR',
 	'deploy.staticTag': 'Statique',
+	// CMS Guides vocabulary
+	'cms.navTitle': 'Plus de guides sur les CMS',
+	// Migration Guides vocabulary
+	'migration.navTitle': 'Plus de guides sur les migrations',
+	// Recipes vocabulary
+	'recipes.navTitle': 'Plus de méthodes',
+	// `<RecipeLinks>` vocabulary
+	'recipesLink.singular': 'Méthode associée :',
+	'recipesLink.plural': 'Méthodes associées',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': 'Voir tous les contributeurs',
 	// Fallback content notice shown when a page is not yet translated
@@ -60,16 +75,55 @@ export default UIDictionary({
 	'aside.tip': 'Astuce',
 	'aside.caution': 'Attention',
 	'aside.danger': 'Danger',
+	// `<LanguageSelect>` vocabulary
+	'languageSelect.label': 'Sélectionner la langue',
+	// Integrations vocabulary
+	'integrations.changelog': 'Journal des modifications',
+	'integrations.footerTitle': "Plus d'intégrations",
+	'integrations.renderers': "Framework d'interface utilisateur",
+	'integrations.adapters': 'Adaptateurs SSR',
+	'integrations.others': 'Autres',
+	// Checklist component
+	'checklist.or': 'ou',
+	// Multiple Choice component
+	'multipleChoice.defaultCorrect': 'Correct !',
+	'multipleChoice.defaultIncorrect': 'Réessayer !',
+	'multipleChoice.submitLabel': 'Envoyer',
+	// Tutorial Progress
+	'progress.todo': 'À faire',
+	'progress.done': 'Terminer',
+	// Tutorial Navigation
+	'tutorial.trackerLabel': 'Suivi du tutoriel',
+	'tutorial.unit': 'Unité',
+	// Tutorial
+	'tutorial.getReady': 'Préparez-vous à…',
 	// Feedback Fish widget
 	'feedback.button': 'Laissez un commentaire',
 	'feedback.a11yLabel': 'Formulaire de commentaires',
 	'feedback.formTitle': 'Comment pouvons-nous vous aider ?',
 	'feedback.categoryGroupLabel': 'Choisissez le type de commentaire',
 	'feedback.issue': 'Problème',
+	'feedback.createIssue': 'Créer une issue GitHub',
 	'feedback.idea': 'Idée',
 	'feedback.other': 'Autres',
 	'feedback.messageA11yLabel': 'Message',
 	'feedback.placeholder': 'Que faut-il savoir ?',
 	'feedback.submit': 'Envoyez des commentaires',
 	'feedback.close': 'Fermer le formulaire de commentaires',
+	'feedback.success': 'Merci ! Nous avons reçu vos commentaires.',
+	// `<FileTree>` component
+	'fileTree.directoryLabel': 'Répertoire',
+	// Code snippet vocabulary
+	'expressiveCode.terminalWindowFallbackTitle': 'Fenêtre du terminal',
+	'expressiveCode.copyButtonTooltip': 'Copier dans le presse-papiers',
+	'expressiveCode.copyButtonCopied': 'Copié!',
+	// Backend Guides vocabulary
+	'backend.navTitle': 'Plus de guides sur les services backend',
+	// Stubs vocabulary
+	'stub.title': 'Développez cette ébauche !',
+	'stub.subtitle': 'Ce guide est une ébauche.',
+	'stub.description.migration':
+		'Vous souhaitez contribuer à ce guide ? Vous avez un article de blog, une vidéo ou une autre ressource à partager sur la migration de cette technologie vers Astro ?',
+	'stub.description.cms': "En savoir plus sur l'utilisation de ce CMS avec Astro ?",
+	'stub.description.backend': "En savoir plus sur l'utilisation de ce service backend avec Astro ?",
 });
