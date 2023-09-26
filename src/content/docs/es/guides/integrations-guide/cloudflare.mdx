@@ -85,6 +85,92 @@ export default defineConfig({
 
 Ten en cuenta que este adaptador no admite el uso de [Middleware de Cloudflare Pages](https://developers.cloudflare.com/pages/platform/functions/middleware/). Astro incluirá el [middleware de Astro](/es/guides/middleware/) en cada página.
 
+### routes.strategy
+
+`routes.strategy: "auto" | "include" | "exclude"`
+
+por defecto `"auto"`
+
+Determina como `routes.json` será generado si no se provee un [_routes.json](#custom-_routesjson) personalizado.
+
+Hay tres opciones disponibles:
+
+*   **`"auto"` (por defecto):** Seleccionará automáticamente la estrategia que genere la menor cantidad de entradas. Esto debería ser casi siempre suficiente, así que elige esta opción a menos que tengas una razón específica para no hacerlo.
+
+*   **`include`:** Las páginas y endpoints que no sean pre-renderizados se enumeran como entradas `include`, indicando a Cloudflare que invoque estas rutas como funciones. Las entradas `exclude` solo se utilizan para resolver conflictos. Por lo general, la mejor estrategia cuando tu sitio web tiene principalmente páginas estáticas y solo algunas páginas o endpoints dinámicos.
+
+    Ejemplo: Para `src/pages/index.astro` (estático), `src/pages/company.astro` (estático), `src/pages/users/faq.astro` (estático) y `src/pages/users/[id].astro` (SSR) esto producirá el siguiente `_routes.json`:
+
+    ```json
+    {
+      "version": 1,
+      "include": [
+        "/_image", // Endpoint de imagen de Astro
+        "/users/*" // Ruta dinámica
+      ],
+      "exclude": [
+        // Las rutas estáticas que deben estar exentas de la ruta dinámica de comodín anterior
+        "/users/faq/",
+        "/users/faq/index.html"
+      ]
+    }
+    ```
+
+    **`exclude`:** Las páginas pre-renderizadas se enumeran como entradas `exclude` (indicando a Cloudflare que maneje estas rutas como activos estáticos). Por lo general, la mejor estrategia cuando tu sitio web tiene principalmente páginas o endpoints dinámicos y solo algunas páginas estáticas.
+
+    Ejemplo: Para las mismas páginas que en el ejemplo anterior, esto producirá el siguiente `_routes.json`:
+
+    ```json
+    {
+      "version": 1,
+      "include": [
+        "/*" // Toma todo como función excepto las rutas a continuación
+      ],
+      "exclude": [
+        // Todos los archivos estáticos
+        "/",
+        "/company/",
+        "/index.html",
+        "/users/faq/",
+        "/favicon.png",
+        "/company/index.html",
+        "/users/faq/index.html"
+      ]
+    }
+    ```
+
+### routes.include
+
+`routes.include: string[]`
+
+por defecto `[]`
+
+Si quieres usar la generación automática de `_routes.json`, pero quieres incluir rutas adicionales (por ejemplo, cuando tienes funciones personalizadas en la carpeta `functions`), puedes usar la opción `routes.include` para agregar rutas adicionales al array `include`.
+
+### routes.exclude
+
+`routes.exclude: string[]`
+
+por defecto `[]`
+
+Si quieres usar la generación automática de `_routes.json`, pero quieres excluir rutas adicionales, puedes usar la opción `routes.exclude` para agregar rutas adicionales al array `exclude`.
+
+El siguiente ejemplo automáticamente genera `_routes.json` mientras incluye y excluye rutas adicionales. Ten en cuenta que esto solo es necesario si tienes funciones personalizadas en la carpeta `functions` que no son manejadas por Astro.
+
+```diff
+// astro.config.mjs
+export default defineConfig({
+    adapter: cloudflare({
+        mode: 'directory',
++       routes: {
++           strategy: 'include',
++           include: ['/users/*'], // handled by custom function: functions/users/[id].js
++           exclude: ['/users/faq'], // handled by static page: pages/users/faq.astro
++       },
+    }),
+});
+```
+
 ## Habilitando la Vista Previa
 
 Para que la vista previa funcione, debes instalar `wrangler`
@@ -200,6 +286,49 @@ export default defineConfig({
   }),
 });
 ```
+
+## Importaciones de módulos Wasm
+
+`wasmModuleImports: boolean`
+
+por defecto: `false`
+
+Si importar o no los archivos `.wasm` [directamente como módulos ES](https://github.com/WebAssembly/esm-integration/tree/main/proposals/esm-integration).
+
+Agrega `wasmModuleImports: true` a `astro.config.mjs` para habilitar tanto en la compilación de Cloudflare como en el servidor de desarrollo de Astro.
+
+```diff
+// astro.config.mjs
+import {defineConfig} from "astro/config";
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+    adapter: cloudflare({
++       wasmModuleImports: true
+    }),
+	  output: 'server'
+})
+```
+
+Una vez habilitado, puedes importar un módulo de ensamblaje web en Astro con una importación `.wasm?module`.
+
+El siguiente es un ejemplo de importación de un módulo Wasm que luego responde a las solicitudes sumando los parámetros numéricos de la solicitud.
+
+```javascript
+// pages/add/[a]/[b].js
+import mod from '../util/add.wasm?module';
+
+// crea una instancia de antes para compartir el módulo
+const addModule: any = new WebAssembly.Instance(mod);
+
+export async function GET(context) {
+  const a = Number.parseInt(context.params.a);
+  const b = Number.parseInt(context.params.b);
+  return new Response(`${addModule.exports.add(a, b)}`);
+}
+```
+
+Mientras que este ejemplo es trivial, Wasm puede ser utilizado para acelerar operaciones computacionalmente intensivas que no involucran operaciones I/O significativas, como incrustar una biblioteca de procesamiento de imágenes.
 
 ## Encabezados, redireccionamientos y rutas de invocación de funciones.
 
