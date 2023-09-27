@@ -222,7 +222,7 @@ await builder.run();
 builder = new IntegrationPagesBuilder({
 	// If this is the adapters repo, use the CI env variable
 	// to use the PR branch. If it's a different repo, use main.
-	sourceBranch: ciSourceRepo === 'withastro/adapters' ? ciSourceBranch : 'main',
+	sourceBranch: ciSourceRepo?.endsWith('adapters') ? ciSourceBranch : 'main',
 	sourceRepo: ciSourceRepo?.endsWith('adapters') ? ciSourceRepo || 'withastro/adapters' : 'withastro/adapters',
 	sourcePath: 'packages',
 	githubToken: process.env.GITHUB_TOKEN,
