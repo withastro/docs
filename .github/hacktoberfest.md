@@ -24,7 +24,7 @@ Learn more on how to contribute with a UI translation in [Starlight's contributi
 
 #### World Tour Comeback 
 
-A few languages of Astro Docs' are behind its colleagues - What are you waiting for?! Help Arabic, Korean, Traditional Chinese, and Polski docs come back into the fight!
+A few languages of Astro Docs' are behind its colleagues - What are you waiting for?! Help Arabic, Korean, Deustch, French, Russian, and Polski docs come back into the fight!
 
 Learn more on [Astro Docs' translation guide](https://github.com/withastro/docs/blob/main/contributor-guides/translating-astro-docs.md).
 
