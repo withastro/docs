@@ -41,7 +41,12 @@ class IntegrationPagesBuilder {
 	readonly #deprecatedIntegrations = new Set(['turbolinks', 'deno']);
 	readonly #i18nNotReadyIntegrations = new Set<string>([]);
 
-	constructor(opts: { githubToken?: string; sourceBranch: string; sourceRepo: string; sourcePath: string }) {
+	constructor(opts: {
+		githubToken?: string;
+		sourceBranch: string;
+		sourceRepo: string;
+		sourcePath: string;
+	}) {
 		this.#githubToken = opts.githubToken;
 		this.#sourceBranch = opts.sourceBranch;
 		this.#sourceRepo = opts.sourceRepo;
@@ -64,7 +69,15 @@ class IntegrationPagesBuilder {
 		}
 	}
 
-	async #getSingleIntegrationData({ packageName, pkgJsonURL, readmeURL }: { packageName: string; pkgJsonURL: string; readmeURL: string }): Promise<IntegrationData> {
+	async #getSingleIntegrationData({
+		packageName,
+		pkgJsonURL,
+		readmeURL,
+	}: {
+		packageName: string;
+		pkgJsonURL: string;
+		readmeURL: string;
+	}): Promise<IntegrationData> {
 		const { name, keywords } = await githubGet({
 			url: pkgJsonURL,
 			githubToken: this.#githubToken,
@@ -84,16 +97,16 @@ class IntegrationPagesBuilder {
 	 */
 	async #getIntegrationData(): Promise<IntegrationData[]> {
 		// Read all the packages in Astro’s integrations directory.
-		const url = `https://api.github.com/repos/${
-			this.#sourceRepo
-		}/contents/${this.#sourcePath}?ref=${this.#sourceBranch}`;
+		const url = `https://api.github.com/repos/${this.#sourceRepo}/contents/${
+			this.#sourcePath
+		}?ref=${this.#sourceBranch}`;
 		const packages: { name: string }[] = await githubGet({ url, githubToken: this.#githubToken });
 
 		return await Promise.all(
 			packages
 				.filter((pkg) => !this.#deprecatedIntegrations.has(pkg.name))
 
-				.map(async(pkg) => {
+				.map(async (pkg) => {
 					const pkgJsonURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${
 						this.#sourceBranch
 					}/${this.#sourcePath}/${pkg.name}/package.json`;
@@ -104,7 +117,7 @@ class IntegrationPagesBuilder {
 					return this.#getSingleIntegrationData({
 						packageName: pkg.name,
 						pkgJsonURL,
-						readmeURL
+						readmeURL,
 					});
 				})
 		);
@@ -126,9 +139,9 @@ class IntegrationPagesBuilder {
 	}: IntegrationData): Promise<string> {
 		// Remove title from body
 		readme = readme.replace(/^# (.+)/, '');
-		const githubLink = `https://github.com/${this.#sourceRepo}/tree/${
-			this.#sourceBranch
-		}/${this.#sourcePath}/${srcdir}/`;
+		const githubLink = `https://github.com/${this.#sourceRepo}/tree/${this.#sourceBranch}/${
+			this.#sourcePath
+		}/${srcdir}/`;
 
 		const createDescription = (name: string, category: string): string => {
 			return `Learn how to use the ${name} ${prettyCategoryDescription[category]}.`;
