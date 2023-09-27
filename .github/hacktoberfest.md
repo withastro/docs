@@ -26,7 +26,7 @@ Learn more on how to contribute with a UI translation in [Starlight's contributi
 
 Some languages in Astro’s Docs need a boost. What are you waiting for?! Help Arabic, Korean, Traditional Chinese, Deutsch, French, Russian, and Polski docs come back into the fight!
 
-Learn more on [Astro Docs' translation guide](https://github.com/withastro/docs/blob/main/contributor-guides/translating-astro-docs.md).
+Learn more in our [translation guide](https://github.com/withastro/docs/blob/main/contributor-guides/translating-astro-docs.md).
 
 #### Polyglot Astro 101 
 
@@ -34,17 +34,17 @@ Astro Docs features its own 32-part beginner tutorial in several languages. Let'
 
 Learn more on [Astro Docs' translation guide](https://github.com/withastro/docs/blob/main/contributor-guides/translating-astro-docs.md) and in [its own Tutorials section](https://github.com/withastro/docs/blob/main/contributor-guides/translating-astro-docs.md#tutorials).
 
-#### Here Comes a New Fighter!
+#### New Language on the Block!
 
-Astro Docs just added official support for Hindi translations. Let's show how strong its community is!
+Astro’s Docs just added official support for Hindi translations. Let's show how strong its community is!
 
-Learn more on [Astro Docs' translation guide](https://github.com/withastro/docs/blob/main/contributor-guides/translating-astro-docs.md).
+Learn more in our [translation guide](https://github.com/withastro/docs/blob/main/contributor-guides/translating-astro-docs.md).
 
 #### Global Level Reviews 
 
 No translation is approved without a careful double-check! Review a page and increase the document's [i18n reviews count](#i18n-reviews-count).
 
-Learn more on [Astro Docs' translation guidance for reviewers](https://github.com/withastro/docs/blob/main/contributor-guides/translating-astro-docs.md#reviewing-someone-elses-pr).
+Learn more in our [translation guidance for reviewers](https://github.com/withastro/docs/blob/main/contributor-guides/translating-astro-docs.md#reviewing-someone-elses-pr).
 
 ## i18n Reviews Count
 
