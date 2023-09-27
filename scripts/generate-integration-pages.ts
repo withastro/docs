@@ -128,7 +128,7 @@ class IntegrationPagesBuilder {
 		readme = readme.replace(/^# (.+)/, '');
 		const githubLink = `https://github.com/${this.#sourceRepo}/tree/${
 			this.#sourceBranch
-		}/packages/integrations/${srcdir}/`;
+		}/${this.#sourcePath}/${srcdir}/`;
 
 		const createDescription = (name: string, category: string): string => {
 			return `Learn how to use the ${name} ${prettyCategoryDescription[category]}.`;
