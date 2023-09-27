@@ -205,17 +205,25 @@ import DontEditWarning from '~/components/DontEditWarning.astro';
 	}
 }
 
+const ciSourceRepo = process.env.SOURCE_REPO;
+const ciSourceBranch = process.env.SOURCE_BRANCH || 'main';
+
+
 let builder = new IntegrationPagesBuilder({
-	sourceBranch: process.env.SOURCE_BRANCH || 'main',
-	sourceRepo: process.env.SOURCE_REPO || 'withastro/astro',
+	// If this is the astro repo, use the CI env variable
+	// to use the PR branch. If it's a different repo, use main.
+	sourceBranch: ciSourceRepo?.endsWith('astro') ? ciSourceBranch : 'main',
+	sourceRepo: ciSourceRepo?.endsWith('astro') ? ciSourceRepo || 'withastro/astro' : 'withastro/astro',
 	sourcePath: 'packages/integrations',
 	githubToken: process.env.GITHUB_TOKEN,
 });
 await builder.run();
 
 builder = new IntegrationPagesBuilder({
-	sourceBranch: process.env.SOURCE_BRANCH || 'main',
-	sourceRepo: process.env.SOURCE_REPO || 'withastro/adapters',
+	// If this is the adapters repo, use the CI env variable
+	// to use the PR branch. If it's a different repo, use main.
+	sourceBranch: ciSourceRepo === 'withastro/adapters' ? ciSourceBranch : 'main',
+	sourceRepo: ciSourceRepo?.endsWith('adapters') ? ciSourceRepo || 'withastro/adapters' : 'withastro/adapters',
 	sourcePath: 'packages',
 	githubToken: process.env.GITHUB_TOKEN,
 });
