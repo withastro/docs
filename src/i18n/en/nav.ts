@@ -20,6 +20,8 @@ export default [
 
 	{ text: 'Tutorials', header: true, type: 'learn', key: 'tutorials' },
 	{ text: 'Build a Blog', slug: 'tutorial/0-introduction', key: 'blog-tutorial' },
+	{ text: 'Add Content Collections', slug: 'tutorial/add-content-collections', key: 'add-collections-tutorial' },
+	{ text: 'Add View Transitions', slug: 'tutorial/add-view-transitions', key: 'add-transitions-tutorial' },
 	// { text: 'Thinking with Islands', slug: 'tutorial/0-introduction', key: 'island-tutorial' },
 
 	{ text: 'Basics', header: true, type: 'learn', key: 'basics' },
