@@ -1,0 +1,105 @@
+---
+title: XataとAstro
+description: サーバーレスデータベースをプロジェクトに追加し、Xataで全文検索を行いましょう。
+type: backend
+service: Xata
+stub: false
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import FileTree from '~/components/FileTree.astro'
+
+[Xata](https://xata.io)は、リレーショナルデータベース、検索エンジン、分析エンジンの機能を組み合わせた**サーバーレスデータプラットフォーム**で、一貫したREST APIを公開します。
+
+## Xataを使ったデータベースの追加
+
+### 開発環境の準備
+
+- [Xata](https://app.xata.io/signin)のアカウントとデータベースの作成（Web UIからサンプルデータベースを使用できます）
+- アクセストークン（`XATA_TOKEN_API`）
+- データベースのURL
+
+[Xata CLI](https://xata.io/docs/getting-started/installation)を更新して初期化した後、`.env`ファイルにAPIトークンがあり、データベースのURLが定義されていることを確認します。
+
+上記確認後、以下のようなファイルがあるはずです。:
+
+```ini title=".env"
+XATA_API_KEY=hash_key
+
+# gitブランチと同じ名前の
+# Xataブランチがない場合に
+# 使用されるXataブランチ
+XATA_FALLBACK_BRANCH=main
+```
+
+`databaseURL`が定義されていることを確認します。:
+
+```ini title=".xatarc"
+{
+  "databaseUrl": "https://your-database-url"
+}
+```
+
+### 環境設定
+
+環境変数にインテリセンスと型安全性を持たせるには、`src/`ディレクトリの`env.d.ts`ファイルを編集、または作成します。:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly XATA_API_KEY: string;
+  readonly XATA_FALLBACK_BRANCH?: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+:::tip
+[環境変数](/ja/guides/environment-variables/)とAstroの`.env`ファイルについては、[こちら](/ja/guides/environment-variables/)をご覧ください。
+:::
+
+Xata CLIのcodegenerationを使用し、TypeScriptオプションを選択すると、データベーススキーマに合わせた型を持つSDKのインスタンスが生成されます。また、`@xata.io/client`が`package.json`に追加されます。
+
+Xataの環境変数とデータベースURLは、SDKインスタンスによって自動的に取得されるため、これ以上のセットアップ作業は必要ありません。
+
+ここまでで、プロジェクトの構造は以下のようになります。:
+
+<FileTree title="Project Structure">
+- src/
+  - **xata.codegen.ts**
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+- **.xatarc**
+</FileTree>
+
+## クエリ作成
+
+ブログ記事（Posts）をクエリするには、`.astro`ファイルで`getXataClient()`をインポートして使用します。以下の例では、Xataのサンプルブログデータベースから最初の50件の記事をクエリしています。
+
+```astro title="src/pages/blog/index.astro"
+---
+import { getXataClient } from "../xata.codegen";
+
+const xata = getXataClient();
+const { records } = await xata.db.Posts.getPaginated({
+  pagination: {
+    size: 50
+  }
+})
+---
+
+<ul>
+  {records.map(post) => (
+    <li>{post.title}</li>
+  )}
+</ul>
+```
+スキーマが変更されるたびにSDKを再生成する必要があります。Xata CLIが作成する生成ファイルを変更しないでください。スキーマが更新されると、変更内容が上書きされるためです。
+
+
+## 公式リソース
+- [Xata Astro Starter](https://github.com/xataio/examples/tree/main/apps/starter-astro)
+- [Xata Docs: Quick Start Guide](https://xata.io/docs/getting-started/quickstart-astro)
