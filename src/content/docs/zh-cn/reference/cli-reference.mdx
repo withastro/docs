@@ -59,7 +59,7 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 ```bash
 astro [command] [...flags]
 
-Commands 
+Commands
               add  Add an integration.
             build  Build your project and write it to disk.
             check  Check your project for errors.
@@ -70,7 +70,7 @@ Commands
              sync  Generate content collection types.
         telemetry  Configure telemetry settings.
 
-Global Flags 
+Global Flags
   --config <path>  Specify your config file.
     --root <path>  Specify your project root folder.
      --site <url>  Specify your project site.
@@ -81,6 +81,10 @@ Global Flags
            --open  Open the app in the browser on server start.
            --help  Show this help message.
 ```
+
+:::note
+你需要在标志前添加 `--` 才能让 `npm` 把这些标志传递给 `astro` 命令。
+:::
 
 ### `package.json` 脚本
 
@@ -101,7 +105,7 @@ Global Flags
 }
 ```
 
-你经常会使用这些 `astro` 命令，或者运行它们的脚本，而不带任何标志。 当你想要自定义命令的行为时，可以向命令添加标志。 例如，你可能希望在不同的端口上启动开发服务器，或者构建包含草稿页面的网站。
+你经常会使用这些 `astro` 命令，或者运行它们的脚本，而不带任何标志。 当你想要自定义命令的行为时，可以向命令添加标志。 例如，你可能希望在不同的端口上启动开发服务器，或者使用详细日志构建站点以进行调试。
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -109,18 +113,17 @@ Global Flags
   # 使用 `package.json` 中的 `start` 脚本，以端口 8080 启动开发服务器
   npm run start -- --port 8080
 
-  # 使用 `package.json` 中的 `build` 脚本，构建包含草稿页面的网站
-  npm run build -- --drafts
+  # 使用 `package.json` 中的 `build` 脚本，构建带有详细日志的网站
+  npm run build -- --verbose
   ```
-  （额外的`--` 在 `--port` 标志之前是必须的，因为 `npm` 需要将你的标志传递给 `astro` 命令。）
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
   # 使用 `package.json` 中的 `start` 脚本，以端口 8080 启动开发服务器
   pnpm start --port 8080
 
-  # 使用 `package.json` 中的 `build` 脚本，构建包含草稿页面的网站
-  pnpm build --drafts
+  # 使用 `package.json` 中的 `build` 脚本，构建带有详细日志的网站
+  pnpm build --verbose
   ```
   </Fragment>
   <Fragment slot="yarn">
@@ -128,8 +131,8 @@ Global Flags
   # 使用 `package.json` 中的 `start` 脚本，以端口 8080 启动开发服务器
   yarn start --port 8080
 
-  # 使用 `package.json` 中的 `build` 脚本，构建包含草稿页面的网站
-  yarn build --drafts
+  # 使用 `package.json` 中的 `build` 脚本，构建带有详细日志的网站
+  yarn build --verbose
   ```
   </Fragment>
 </PackageManagerTabs>
@@ -143,7 +146,7 @@ Global Flags
 
 #### `--port <number>`
 
-指定运行在哪个端口。默认为 `3000`。
+指定运行在哪个端口。默认为 `4321`。
 
 #### `--host [可选主机地址]`
 
@@ -163,10 +166,6 @@ Global Flags
 <h3>标志</h3>
 
 使用这些标志来自定义构建。 对于与其他 Astro 命令共享的标志，请参阅下面的[通用标志](#通用标志)。
-
-#### `--drafts`
-
-在构建中包含 [Markdown 草稿页面](/zh-cn/guides/markdown-content/#草稿页面)。
 
 ## `astro preview`
 
@@ -234,7 +233,7 @@ Package manager          pnpm
 Platform                 darwin
 Architecture             arm64
 Adapter                  @astrojs/vercel/serverless
-Integrations             None or couldn't determine.
+Integrations             none
 ```
 
 ## `astro telemetry`
@@ -316,3 +315,130 @@ astro --config config/astro.config.mjs dev
 ### `--help`
 
 打印帮助信息并退出。
+
+
+## 高级 API（实验性）
+
+如果你需要在运行 Astro 时获得更多的控制权，`"astro"` 包也导出了 API 来以编程方式运行 CLI 命令。
+
+这些 API 是实验性的，它们的 API 签名可能会改变。任何更新都将在 [Astro 更新日志](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md) 中提到，下面的信息将始终显示当前的、最新的信息。
+
+### `AstroInlineConfig`
+
+`AstroInlineConfig` 类型由下面所有的命令 API 使用。它继承了用户的 [Astro 配置](/zh-cn/reference/configuration-reference/) 类型：
+
+```ts
+interface AstroInlineConfig extends AstroUserConfig {
+	configFile?: string | false;
+	mode?: "development" | "production";
+	logLevel?: "debug" | "info" | "warn" | "error" | "silent";
+}
+```
+
+#### `configFile`
+
+<p>
+
+**类型：** `string | false`<br />
+**默认值：** `undefined`
+</p>
+
+一个自定义的 Astro 配置文件路径。
+
+如果这个值是 undefined 的（默认）或未设置的，Astro 将在 `root` 目录下搜索 `astro.config.(js,mjs,ts)` 文件，并在找到时加载配置文件。
+
+如果设置了相对路径，它将基于当前工作目录解析。
+
+设置为 `false` 以禁用加载任何配置文件。
+
+当与加载的用户配置合并时，传递给此对象的内联配置将具有最高优先级。
+
+#### `mode`
+
+<p>
+
+**类型：** `"development" | "production"`<br />
+**默认值：** 当运行 `astro dev` 时为 `"development"` , 当运行 `astro build` 时为 `"production"`
+</p>
+
+构建你的网站以生成 “development” 或 “production” 代码时使用的模式。
+
+#### `logLevel`
+
+<p>
+
+**类型：** `"debug" | "info" | "warn" | "error" | "silent"`<br />
+**默认值：** `"info"`
+</p>
+
+Astro 记录的消息的日志级别。
+
+- `"debug"`: 记录所有内容，包括干扰调试诊断。
+- `"info"`: 记录信息类型的消息，警告，和错误等日志。
+- `"warn"`: 记录警告和错误日志。
+- `"error"`: 只记录错误日志。
+- `"silent"`: 不开启日志。
+
+### `dev()`
+
+**类型：** `(inlineConfig: AstroInlineConfig) => AstroDevServer`
+
+和 [`astro dev`](#astro-dev) 类似，使用它来运行 Astro 的开发服务器。
+
+```js
+import { dev } from "astro";
+
+const devServer = await dev({
+  root: "./my-project",
+});
+
+// 在需要时停止服务器
+await devServer.stop();
+```
+
+### `build()`
+
+**类型：** `(inlineConfig: AstroInlineConfig) => void`
+
+和 [`astro build`](#astro-build) 类似，使用它来构建你的网站以进行部署。
+
+```js
+import { build } from "astro";
+
+await build({
+  root: "./my-project",
+});
+```
+
+### `preview()`
+
+**类型：** `(inlineConfig: AstroInlineConfig) => AstroPreviewServer`
+
+和 [`astro preview`](#astro-preview) 类似，它启动一个本地服务器为静态的 `dist/` 目录提供预览服务。
+
+```js
+import { preview } from "astro";
+
+const previewServer = await preview({
+  root: "./my-project",
+});
+
+// 在需要时停止服务器
+await previewServer.stop();
+```
+
+### `sync()`
+
+**类型：** `(inlineConfig: AstroInlineConfig) => number`
+
+和 [`astro sync`](#astro-sync) 类似，它为所有 Astro 模块生成 TypeScript 类型。
+
+```js
+import { sync } from "astro";
+
+const exitCode = await sync({
+  root: "./my-project",
+});
+
+process.exit(exitCode)
+```
