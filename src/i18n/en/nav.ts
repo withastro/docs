@@ -18,7 +18,7 @@ export default [
 	{ text: 'Why Astro', slug: 'concepts/why-astro', key: 'concepts/why-astro' },
 	{ text: 'Astro Islands', slug: 'concepts/islands', key: 'concepts/islands' },
 
-	{ text: 'Tutorial', header: true, type: 'learn', key: 'tutorials' },
+	{ text: 'Tutorials', header: true, type: 'learn', key: 'tutorials' },
 	{ text: 'Build a Blog', slug: 'tutorial/0-introduction', key: 'blog-tutorial' },
 	{ text: 'Extend with Content Collections', slug: 'tutorial/add-content-collections', key: 'add-collections-tutorial' },
 	{ text: 'Extend with View Transitions', slug: 'tutorial/add-view-transitions', key: 'add-transitions-tutorial' },
