@@ -233,18 +233,82 @@ const myFade = {
 
 <header transition:animate={myFade}> ... </header>
 ```
+## 路由控制
 
-## 阻止客户端导航
+`<ViewTransitions />` 路由通过监听以下事件来处理导航：
 
-一旦你在页面上添加了 `<ViewTransitions />` 组件，就可以通过客户端路由导航到页面上链接到站点上的另一个页面的每个锚点。有一些情况下，你可能不希望通过 CSR 导航。一个例子是，如果链接指向任何非页面，例如 `public/` 文件夹中的 PDF。或者是一个生成图像的 API 路由。
+- 点击 `<a>` 元素。
+- 后退和前进导航事件。
 
-在这些情况下，你可以使用 `data-astro-reload` 属性来选择性地阻止每个链接使用客户端路由，如下所示：
+如下选项允许你进一步控制在路由中发生的导航事件：
 
-```html
-<a href="/quarterly-earnings.pdf" data-astro-reload>
+-  `astro-data-reload`：一个 `<a>` 标签属性，用于 [进行强制全页面导航](#阻止客户端导航)。
+-  `astro-data-history="auto | push | replace"`：一个 `<a>` 标签属性，用于 [控制浏览器的历史记录](#replace-entries-in-the-browser-history)。
+-  `navigate(href, options)`：任何客户端脚本或客户端组件可用的方法，用于[触发导航](#trigger-navigation)。
+
+### 阻止客户端导航
+
+由于关联的两个页面须使用 `<ViewTransitions />` 路由以防止重新加载全页面，因此在某些情况下你无法通过 CSR 进行导航。你可能也不希望在每次导航更改时都使用客户端路由，而是更希望在特定路由上进行传统的页面导航。
+
+你可以通过将 `data-astro-reload` 属性添加到任何 `<a>` 标签中，按链接的方式选择退出客户端路由。此属性将覆盖任何现有的 `<ViewTransitions />` 组件，而是在导航期间触发浏览器刷新。
+
+以下示例显示了仅从主页导航到文章时如何阻止客户端路由。这样，当从文章列表页面导航到同一页面时，仍然可以对共享元素（例如英雄图像）进行动画处理：
+
+```astro title="src/pages/index.astro"
+<a href="/articles/emperor-penguins" data-astro-reload>
 ```
 
-这些链接将被路由忽略，并将进行全页导航。
+```astro title="src/pages/articles.astro"
+<a href="/articles/emperor-penguins">
+```
+
+具有 `data-astro-reload` 属性的链接将会被路由忽略，并且进行全页面导航。
+
+### 触发导航
+
+你还可以使用 `navigate` 方法，借助通常不被 `<ViewTransitions />` 路由监听的事件触发客户端导航。该方法来自于 `astro:transitions/client` 模块，可以在任何客户端脚本或客户端组件中使用。
+
+以下示例展示了使用站点访客选择的选项来触发导航：
+
+```js title="form.js" "navigate(href)"
+import { navigate } from 'astro:transitions/client';
+
+// 自动导航到所选选项
+document.querySelector('select').onchange = (ev) => {
+  let href = ev.target.value;
+  navigate(href);
+};
+```
+
+`navigate` 方法接受以下参数：
+
+-  `href`（必需项）- 要导航到的新页面。
+-  `options` - 一个可选的对象，具有以下属性：
+	- `history`: `'push'` | `'replace'` | `'auto'`
+		- `'push'`: 路由将使用 `history.pushState` 在浏览器历史中创建一个新条目。
+		- `'replace'`: 路由将使用 `history.replaceState` 更新 URL，而不向导航添加新条目。
+		- `'auto'`（默认）: 路由将尝试使用 `history.pushState`，但如果无法转换到指定的 URL，则当前 URL 将保持不变，浏览器历史不会发生变化。
+
+### 替换浏览器历史条目
+
+通常情况下，你每次导航时都会在浏览器的历史记录中写入一个新条目。这样可以使用浏览器的 `back` 和 `forward` 按钮在页面之间导航。
+
+`<ViewTransitions />` 路由器允许你通过向任何单独的 `<a>` 标签添加 `data-astro-history` 属性来覆盖历史记录条目。
+
+`data-astro-history` 属性可以设置为与 [`navigate()` 函数的 `history` 选项](#触发导航) 相同的三个值：
+
+`data-astro-history`: `'push'` | `'replace'` | `'auto'`
+-  `'push'`：路由将使用 `history.pushState` 在浏览器历史记录中创建一个新条目。
+-  `'replace'`：路由将使用 `history.replaceState` 更新 URL 而不添加新的导航条目。
+-  `'auto'`（默认值）：路由将尝试使用 `history.pushState`，但是如果 URL 不能进行过渡，则当前 URL 将保持不变，并且浏览器历史记录也不会发生任何变更。
+
+以下示例导航到 `/main` 页面，但不向浏览历史记录中添加新条目。相反，它重用历史记录中的当前条目（`/confirmation`）并进行覆盖。
+
+```astro title="/confirmation.astro"
+<a href="/main" data-astro-history="replace">
+```
+
+这样做的效果是，如果你从 `/main` 页面返回，则浏览器不会显示 `/confirmation` 页面，而是显示该页面之前的页面。
 
 ## 回退控制
 
@@ -273,7 +337,7 @@ Astro 不会模拟 `initial` 浏览器动画。因此，任何使用此动画的
 
 当 `<ViewTransitions />` 路由器被使用时，以下步骤将会产生 Astro 的客户端导航：
 
-1. 一个访问者通过以下任何操作触发导航：
+1. 一个访客通过以下任何操作触发导航：
     - 点击链接到站点上另一个页面的 `<a>` 标签。
     - 点击后退按钮。
     - 点击前进按钮。
@@ -366,7 +430,7 @@ Astro 不会模拟 `initial` 浏览器动画。因此，任何使用此动画的
 
 `<ViewTransitions />` 组件包含一个用于在客户端路由间进行页面导航的路由声明器。你无需配置或操作即可启用此功能。
 
-辅助技术通过在导航后声明新页面标题来告知访问者页面已被更改。在使用传统的全页面浏览器刷新服务端路由时，则会默认在新页面加载后执行此操作。而在客户端路由中，则由 `<ViewTransitions />` 组件执行此操作。
+辅助技术通过在导航后声明新页面标题来告知访客页面已被更改。在使用传统的全页面浏览器刷新服务端路由时，则会默认在新页面加载后执行此操作。而在客户端路由中，则由 `<ViewTransitions />` 组件执行此操作。
 
 为在客户端路由中添加路由声明，该组件会向新页面添加一个带有 `aria-live` 属性设置为 `assertive` 的元素。这告诉 AT（assistive technology，辅助技术）立即声明。该组件还按照优先顺序检查以下内容来确定声明的文本：
 
