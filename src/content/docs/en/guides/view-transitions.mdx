@@ -235,17 +235,83 @@ const myFade = {
 <header transition:animate={myFade}> ... </header>
 ```
 
-## Preventing client-side navigation
+## Router control
 
-Once you have enabled client-side routing on a page by adding the `<ViewTransitions />` component, every anchor on the page that links to another page on your site will be navigated via client-side routing. There are some cases where you might want to not navigate via CSR. One example is if the link is to any non-page, such as a PDF within your `public/` folder. Or an API route that produces an image.
+The `<ViewTransitions />` router handles navigation by listening to:
 
-In these cases, you can opt out of client-side routing on a per-link basis using the `data-astro-reload` attribute like so:
+- Clicks on `<a>` elements.
+- Backwards and forwards navigation events.
 
-```html
-<a href="/quarterly-earnings.pdf" data-astro-reload>
+The following options allow you to further control when navigation occurs within the router:
+
+- `astro-data-reload`: an `<a>` tag attribute to [force a full-page navigation](#preventing-client-side-navigation)
+- `astro-data-history="auto | push | replace"`: an `<a>` tag attribute to [control the browser's history](#replace-entries-in-the-browser-history)
+- `navigate(href, options)`: a method available to any client script or client component to [trigger navigation](#trigger-navigation)
+
+### Preventing client-side navigation
+
+There are some cases where you cannot navigate via client-side routing since both pages involved must use the `<ViewTransitions />` router to prevent a full-page reload. You may also not want client-side routing on every navigation change and would prefer a traditional page navigation on select routes instead.
+
+You can opt out of client-side routing on a per-link basis by adding the `data-astro-reload` attribute to any `<a>` tag. This attribute will override any existing `<ViewTransitions />` component and instead trigger a browser refresh during navigation.
+
+The following example shows preventing client-side routing when navigating to an article from the home page only. This still allows you to have animation on shared elements, such as a hero image, when navigating to the same page from an article listing page:
+
+```astro title="src/pages/index.astro"
+<a href="/articles/emperor-penguins" data-astro-reload>
 ```
 
-These links will be ignored by the router and a full page navigation will occur.
+```astro title="src/pages/articles.astro"
+<a href="/articles/emperor-penguins">
+```
+
+Links with the `data-astro-reload` attribute will be ignored by the router and a full-page navigation will occur.
+
+### Trigger navigation
+
+You can also trigger client-side navigation via events not normally listened to by the `<ViewTransitions />` router using `navigate`. This method from the `astro:transitions/client` module is available in any client script or client component.
+
+The following example shows using an option selected by a site visitor to trigger navigation: 
+
+```js title="form.js" "navigate(href)"
+import { navigate } from 'astro:transitions/client';
+
+// Navigate to the selected option automatically.
+document.querySelector('select').onchange = (ev) => {
+  let href = ev.target.value;
+  navigate(href);
+};
+```
+
+The `navigate` method takes these arguments:
+
+- `href` (required) - The new page to navigate to.
+- `options` - An optional object with the following properties:
+	- `history`: `'push'` | `'replace'` | `'auto'`
+		- `'push'`: the router will use `history.pushState` to create a new entry in the browser history. 
+		- `'replace'`: the router will use `history.replaceState` to update the URL without adding a new entry into navigation.
+		- `'auto'` (default): the router will attempt `history.pushState`, but if the URL is not one that can be transitioned to, the current URL will remain with no changes to the browser history.
+
+### Replace entries in the browser history
+
+Normally, each time you navigate, a new entry is written to the browser's history. This allows navigation between pages using the browser's `back` and `forward` buttons. 
+
+The `<ViewTransitions />` router allows you to overwrite history entries by adding the `data-astro-history` attribute to any individual `<a>` tag.
+
+The `data-astro-history` attribute can be set to the same three values as the [`history` option of the `navigate()` function](#trigger-navigation): 
+
+`data-astro-history`: `'push'` | `'replace'` | `'auto'`
+- `'push'`: the router will use `history.pushState` to create a new entry in the browser history. 
+- `'replace'`: the router will use `history.replaceState` to update the URL without adding a new entry into navigation.
+- `'auto'` (default): the router will attempt `history.pushState`, but if the URL is not one that can be transitioned to, the current URL will remain with no changes to the browser history.
+
+The following example navigates to the `/main` page but does not add a new entry to the browsing history. Instead, it reuses the current entry in the history (`/confirmation`) and overwrites it.
+
+```astro title="/confirmation.astro"
+<a href="/main" data-astro-history="replace">
+```
+
+This has the effect that if you go back from the `/main` page, the browser will not display the `/confirmation` page, but the page before it.
+
 
 ## Fallback control
 
@@ -356,7 +422,27 @@ For example, if you are implementing dark mode support, this event can be used t
 </script>
 ```
 
-## `prefers-reduced-motion`
+## Accessibility
+
+Enabling client-side routing and animating page transitions both come with accessibility challenges, and Astro aims to make sites opting in to View Transitions as accessible-by-default as possible.
+
+### Route announcement
+
+<Since v="3.2.0" />
+
+The `<ViewTransitions />` component includes a route announcer for page navigation during client-side routing. No configuration or action is needed to enable this.
+
+Assistive technologies let visitors know that the page has changed by announcing the new page title after navigation. When using server-side routing with traditional full-page browser refreshes, this happens by default after the new page loads. In client-side routing, the `<ViewTransitions />` component performs this action.
+
+To add route announcement to client-side routing, the component adds an element to the new page with the `aria-live` attribute set to `assertive`. This tells AT (assistive technology) to announce immediately. The component also checks for the following, in priority order, to determine the announcement text:
+
+- The `<title>`, if it exists.
+- The first `<h1>` it finds.
+- The `pathname` of the page.
+
+We strongly recommend you always include a `<title>` in each page for accessibility.
+
+### `prefers-reduced-motion`
 
 Astro's `<ViewTransitions />` component includes a CSS media query that disables *all* view transition animations, including fallback animation, whenever the [`prefer-reduced-motion`](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion) setting is detected. Instead, the browser will simply swap the DOM elements without an animation.
 
