@@ -14,6 +14,9 @@
 - What does this PR change? Give us a brief description.
 - Did you change something visual? A before/after screenshot can be helpful.
 
+<!-- TAKING PART IN HACKTOBERFEST? LET US KNOW! -->
+<!-- See .github/hacktoberfest.md in this repo for more details. -->
+
 #### Related Issue / Implementation PR
 
 - Closes Issue # <!-- Add an issue number if this PR will close it. -->
