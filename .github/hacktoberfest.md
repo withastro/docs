@@ -28,11 +28,6 @@ Some languages in Astro’s Docs need a boost. What are you waiting for?! Help A
 
 Learn more in our [translation guide](https://github.com/withastro/docs/blob/main/contributor-guides/translating-astro-docs.md).
 
-#### Polyglot Astro 101 
-
-Astro Docs features its own 32-part beginner tutorial in several languages. Let's help other newcomers learn Astro around the world today! 
-
-Learn more on [Astro Docs' translation guide](https://github.com/withastro/docs/blob/main/contributor-guides/translating-astro-docs.md) and in [its own Tutorials section](https://github.com/withastro/docs/blob/main/contributor-guides/translating-astro-docs.md#tutorials).
 
 #### New Language on the Block!
 
