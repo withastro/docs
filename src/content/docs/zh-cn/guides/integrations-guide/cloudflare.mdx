@@ -8,9 +8,6 @@ category: adapter
 i18nReady: true
 ---
 
-import Video from '~/components/Video.astro';
-import DontEditWarning from '~/components/DontEditWarning.astro';
-
 @astrojs/cloudflare 是一个与 Cloudflare Pages Functions 目标一起使用的 SSR 适配器。你可以使用 Astro/Javascript 编写代码，并将其部署到 Cloudflare Pages。
 
 ## 安装
@@ -36,15 +33,15 @@ npm install @astrojs/cloudflare
 
 2. 将以下内容添加到你的 `astro.config.mjs` 项目文件中：
 
-```js ins={3, 6-7}
-// astro.config.mjs
-import { defineConfig } from 'astro/config';
-import cloudflare from '@astrojs/cloudflare';
+```diff lang="ts"
+  // astro.config.mjs
+  import { defineConfig } from 'astro/config';
++ import cloudflare from '@astrojs/cloudflare';
 
-export default defineConfig({
-  output: 'server',
-  adapter: cloudflare(),
-});
+  export default defineConfig({
++   output: 'server',
++   adapter: cloudflare(),
+  });
 ```
 
 ## 选项
@@ -72,19 +69,106 @@ export default defineConfig({
 
 要为每个页面编译一个单独的 bundle，请在 Cloudflare 适配器配置中设置 `functionPerPath` 选项。该选项需要手动维护 `functions` 文件夹。Astro 发出的文件将覆盖具有相同名称的现有 `functions` 文件，因此你必须为手动添加的每个文件选择唯一的文件名。此外，适配器永远不会清空 `functions` 文件夹中的过时文件，因此当你删除页面时，必须手动清理该文件夹。
 
-```diff
-import {defineConfig} from "astro/config";
-import cloudflare from '@astrojs/cloudflare';
+```diff lang="ts"
+  // astro.config.mjs
+  import {defineConfig} from "astro/config";
+  import cloudflare from '@astrojs/cloudflare';
 
-export default defineConfig({
-     adapter: cloudflare({
-        mode: 'directory',
-+       functionPerRoute: true
+  export default defineConfig({
+    adapter: cloudflare({
+      mode: 'directory',
++     functionPerRoute: true
     })
-})
+  })
 ```
 
 请注意，此适配器不支持使用 [Cloudflare 页面中间件](https://developers.cloudflare.com/pages/platform/functions/middleware/)。Astro 将会把 [Astro 中间件](/zh-cn/guides/middleware/) 打包到每个页面中。
+
+### `routes.strategy`
+
+`routes.strategy: "auto" | "include" | "exclude"`
+
+默认值：`"auto"`
+
+在没有提供自定义 `_routes.json` 的情况下决定 `routes.json` 该如何被生成。
+
+这有三个选项可供选择：
+
+*   **`"auto"`（默认）**：自动选择生成最少条目的策略。这通常应该够用了，除非你有某些理由要选择其他选项。
+*   **`include`**：不会被预渲染的页面和端点将会被列为 `include` 条目，并告诉 Cloudflare 将这些路由作为函数调用。而 `exclude` 条目仅用于解决冲突。通常情况下，如果你的网站大多数是静态页面，只有少数动态页面或端点时，这将是最好的策略。
+
+
+    示例：对于 `src/pages/index.astro`（静态），`src/pages/company.astro`（静态），`src/pages/users/faq.astro`（静态），以及 `/src/pages/users/[id].astro` （SSR），将产生以下 `_routes.json`:
+
+    ```json
+    {
+      "version": 1,
+      "include": [
+        "/_image", // Astro 的图片端点
+        "/users/*" // 动态路由
+      ],
+      "exclude": [
+        // 排除上述动态通配符路由中后的静态路由
+        "/users/faq/",
+        "/users/faq/index.html"
+      ]
+    }
+    ```
+
+*   **`exclude`：** 预渲染的页面将被列为 `exclude` 条目（即告诉 Cloudflare 将这些路由作为静态资源处理）。通常情况下，如果你的网站大多数是动态页面或端点，只有少数静态页面时，这将是最好的策略。
+
+    示例：对于前面示例中相同的页面，这将产生以下 `_routes.json`:
+
+    ```json
+    {
+      "version": 1,
+      "include": [
+        "/*" // 除了后面的路由外，所有路由都会被作为函数处理
+      ],
+      "exclude": [
+        // 所有静态资源
+        "/",
+        "/company/",
+        "/index.html",
+        "/users/faq/",
+        "/favicon.png",
+        "/company/index.html",
+        "/users/faq/index.html"
+      ]
+    }
+    ```
+
+### `routes.include`
+
+`routes.include: string[]`
+
+默认值：`[]`
+
+如果你想使用自动生成的 `_routes.json`，但又想要包含额外的路由（例如，当你在 `functions` 文件夹中有自定义函数时），那么你可以使用 `routes.include` 选项将额外的路由添加到 `include` 数组中。
+
+### `routes.exclude`
+
+`routes.exclude: string[]`
+
+默认值：`[]`
+
+如果你想要使用自动生成的 `_routes.json`，但又想要排除其他的路由，那么你可以使用 `routes.exclude` 选项将额外的路由到添加 `exclude` 数组中。
+
+以下示例自动生成了 `_routes.json`，同时包含和排除额外的路由。请注意，如果你在 `functions` 文件夹中有自定义函数，那么这些函数将不会被 Astro 处理。
+
+```diff lang="ts"
+  // astro.config.mjs
+  export default defineConfig({
+    adapter: cloudflare({
+      mode: 'directory',
++     routes: {
++       strategy: 'include',
++       include: ['/users/*'], // 由自定义函数处理：functions/users/[id].js
++       exclude: ['/users/faq'], // 由静态页面处理：pages/users/faq.astro
++     },
+    }),
+  });
+```
 
 ## 启用预览
 
@@ -203,6 +287,50 @@ export default defineConfig({
   }),
 });
 ```
+
+## Wasm 模块导入
+
+`wasmModuleImports: boolean`
+
+默认值：`false`
+
+是否将 `.wasm` 文件[直接作为 ES 模块](https://github.com/WebAssembly/esm-integration/tree/main/proposals/esm-integration)导入。
+
+将 `wasmModuleImports: true` 添加到 `astro.config.mjs` 以在 Cloudflare 构建和 Astro 开发服务器中启用该功能。
+
+```js ins={7}
+// astro.config.mjs
+import {defineConfig} from "astro/config";
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+    adapter: cloudflare({
+      wasmModuleImports: true
+    }),
+	  output: 'server'
+})
+```
+
+启用之后，你可以在 Astro 中通过 `.wasm?module` 语法来导入一个 WebAssembly。
+
+以下是导入一个 Wasm 模块的示例，该模块返回了请求的数字参数的和：
+
+```javascript
+// pages/add/[a]/[b].js
+import mod from '../util/add.wasm?module';
+
+// 预先初始化以共享同一个模块
+const addModule: any = new WebAssembly.Instance(mod);
+
+export async function GET(context) {
+  const a = Number.parseInt(context.params.a);
+  const b = Number.parseInt(context.params.b);
+  return new Response(`${addModule.exports.add(a, b)}`);
+}
+```
+
+虽然这个例子很简单，但是 Wasm 可以用来加速在不涉及大量 I/O 的情况下的计算密集型操作，比如嵌入图像处理库。
+
 
 ## 标头、重定向和函数调用路由
 
