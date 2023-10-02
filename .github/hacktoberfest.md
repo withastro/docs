@@ -43,6 +43,13 @@ Learn more in our [translation guidance for reviewers](https://github.com/withas
 
 ## i18n Reviews Count
 
-Reviewed a PR? Create a PR increasing the count below to have your contribution considered!
+Reviewed a translation PR? We want you to get credit, too! **Create a PR following the exact instructions below and you can receive Hacktoberfest credit!**
 
-During Hacktoberfest 2023, we've received 0 PR reviews from helpful contributors. Thank you!
+1. Create your own PR to update **this page**.
+2. In the PR title, include the PR number of the translation you reviewed. We will need to check this.
+3. In the PR description, link to your review comment in the translation PR.
+4. As the **only** change to this page, update the statement at the bottom of this file to **increase the count by 1** to have your contribution considered!
+
+If you have any questions, just ask, and thank you for helping to translate the Astro Docs!
+
+During Hacktoberfest 2023, we've received 0 translation PR reviews from helpful contributors. Thank you!
