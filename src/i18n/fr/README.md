@@ -58,5 +58,6 @@ Certains mots dans la traduction ont un équivalent français utilisé uniformé
 | Scope / Scoped               | Limité / Délimité                         |
 | Astro Islands                | Îles Astro                                |
 | Recipes                      | Méthodes                                  |
+| Upgrade                      | Mise à niveau                             |
 
 > ⚠️ Ce glossaire est encore en travaux, merci de contribuer à la traduction française en lui apportant des suggestions !
