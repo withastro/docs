@@ -380,7 +380,7 @@ Here are two examples of what our code snippets look like written in Markdown, j
 - highlight any occurrence of `{props.title}` and `{props.social}`
 
 ``````markdown
-```jsx /{props.(title|socialLinks)}/ ins="<Button />"
+```jsx /({props.(title|social)})/ ins="<Button />"
 // src/components/MySidebar.jsx
 ``````
 
@@ -425,7 +425,13 @@ Regular expressions are supported within slashes `/ /`. See a handy [tool for co
 
 - ins="Astro.props" - All instances of "Astro.props" have a green background color
 
-- /{frontmatter.(title|description)}/ - Highlight all instances of `{frontmatter.title}` and `{frontmatter.description}`
+- /({frontmatter.(title|description)})/ - Highlight all instances of `{frontmatter.title}` and `{frontmatter.description}`
+
+You can combine all of these:
+
+``````markdown
+```jsx /({frontmatter.(title|description)})/ "{item}" del="My blog title" ins="Astro.props"
+``````
 
 > ***Note***
 >
