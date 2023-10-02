@@ -102,6 +102,13 @@ This can be easier to follow (and perhaps more reassuring!) than a statement tha
 **After: add necessary context to the instruction, followed by opinionated usage**
 > Add the `LanguagePicker` component to your site in a component that is shown on every page. The example below adds this to the page footer:
 
+### Third-Party Instructions
+If a step in your guide involves a tool other than Astro (e.g. a CMS provider), keep the instructions functional and simple. Think of writing in a way that's still helpful even if the layout of the particular tool changes.  
+
+In that spirit, leave out details about another site's navigation and don't bother with screenshots.  
+
+If you want your reader to do something complex, consider linking to the relevant docs, like an official guide. 
+
 <!-- 
 
 -->
