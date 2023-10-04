@@ -139,7 +139,7 @@ Typically, this will be an approval from another maintainer, often the Docs Lead
 
 ### `Co-authored-by:` credit
 
-**NEW!** Use [Kevin's Co-author Generator](https://co-author-generator.netlify.app/) to automatically get a list of all contributors to a PR to copy and paste in the "Squash and Merge" message. To add any individual manually, follow the instructions below.
+**NEW!** Use [Kevin's Co-author Generator](https://coauthor.kevinzunigacuellar.com/) to automatically get a list of all contributors to a PR to copy and paste in the "Squash and Merge" message. To add any individual manually, follow the instructions below.
 
 We have a "DocsBot" that posts congratulation messages in the #docs Discord channel. **Our bot also acknowledges co-authors!** During "Squash and Merge," if you would like to acknowledge any reviewer, please type in the exact phrase `Co-authored-by:` and include any missing reviewers or contributors whom you'd like to acknowledge! For example:
 
