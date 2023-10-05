@@ -2,7 +2,7 @@
 
 Thanks for your interest in helping us translate [docs.astro.build](https://docs.astro.build/)! This can be a great way to get involved with open-source development without having to code.
 
-**Participating in Hacktoberfest?** See how you can get recognized for your translation PRs and PR reviews in our [Hacktoberfest guide](.github/hacktoberfest.md).
+**Participating in Hacktoberfest?** See how you can get recognized for your translation PRs and PR reviews in our [Hacktoberfest guide](../.github/hacktoberfest.md).
 
 Currently, we are aiming to translate the Astro documentation into the following languages:
 
