@@ -7,6 +7,7 @@ export default UIDictionary({
 	// Site settings
 	'site.title': 'Astro-Dokumentation',
 	'site.description': 'Erstelle schnellere Websites mit weniger ausgeliefertem JavaScript.',
+	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.og.imageAlt':
 		'Astro-Logo im Weltraum mit Sternen und einem violetten, Saturn-ähnlichen Planeten rechts im Vordergrund',
 	// Left Sidebar
@@ -14,6 +15,7 @@ export default UIDictionary({
 	'leftSidebar.learnTab': 'Lernen',
 	'leftSidebar.referenceTab': 'Referenz',
 	'leftSidebar.viewInEnglish': 'Auf Englisch ansehen',
+	'leftSidebar.sponsoredBy': 'Gesponsert von',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': 'Sekundär',
 	'rightSidebar.onThisPage': 'Auf dieser Seite',
@@ -38,6 +40,7 @@ export default UIDictionary({
 	// Used in `<Since>`: Added in: v0.24.0 [NEW]
 	'since.addedIn': 'Hinzugefügt in:',
 	'since.new': 'Neu',
+	'since.beta': 'Beta',
 	// Installation Guide
 	'install.autoTab': 'Automatische Installation',
 	'install.manualTab': 'Manuelle Installation',
