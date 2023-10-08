@@ -14,7 +14,7 @@ All readers can benefit from clear, straightforward writing, but this can be par
 - have cognitive, learning or attention difficulties.
 - come from a non-traditional development background.
 
-We aim for **clear** and **helpful** documentation that serves the reader above all else! 
+We aim for **clear** and **helpful** documentation that serves the reader above all else!
 
 Usually this means choosing:
 
@@ -59,7 +59,7 @@ Whenever possible, give the reader a direct instruction:
 
 e.g. Type the command...
 
-Do not use _"Let's..."_ or _"Next, we will..."_. You are not sitting there with your reader! (This also means you will never need the words _we_, _us_, and _our_. If you see them, rephrase!)
+Do not use *"Let's..."* or *"Next, we will..."*. You are not sitting there with your reader! (This also means you will never need the words *we*, *us*, and *our*. If you see them, rephrase!)
 
 If you must address the reader, it is OK to use "you" and "your". Especially for emphasis in very important steps where something could go wrong:
 
@@ -85,12 +85,11 @@ Here is an example edit we made to one of our own recipes to illustrate the diff
 > 1.
 > 2. ...
 
-
 ### Opinionated Instructions
 
-Sometimes you will need to give an instruction where the reader has options. You want to illustrate the example with the specific choice you made, but you also want to make it clear that other decisions are acceptable. 
+Sometimes you will need to give an instruction where the reader has options. You want to illustrate the example with the specific choice you made, but you also want to make it clear that other decisions are acceptable.
 
-In this case, try to separate the instruction from the opinion. First, give the action to take with a more general description. Then state the opinionated choice that your example uses. Your reader will be able to first process what you are doing and then will see the choice you have made. They can still follow your instruction, making a choice that works for their own project. 
+In this case, try to separate the instruction from the opinion. First, give the action to take with a more general description. Then state the opinionated choice that your example uses. Your reader will be able to first process what you are doing and then will see the choice you have made. They can still follow your instruction, making a choice that works for their own project.
 
 This can be easier to follow (and perhaps more reassuring!) than a statement that gives multiple options. This is also usually easier to write since you do not have to remind the reader that this file is from *your* example, and may not appear in their project.
 
@@ -104,7 +103,6 @@ This can be easier to follow (and perhaps more reassuring!) than a statement tha
 > Add the `LanguagePicker` component to your site in a component that is shown on every page. The example below adds this to the page footer:
 
 <!-- 
-
 
 -->
 
@@ -161,7 +159,7 @@ By default, the badge uses a muted colour scheme to blend in. It also has an acc
 
 ### Since Component
 
-As features are added to Astro, it can be helpful to document _when_ they were added. This allows users to easily see if the version of Astro (or other packages) they are running supports a specific feature as described in the docs.
+As features are added to Astro, it can be helpful to document *when* they were added. This allows users to easily see if the version of Astro (or other packages) they are running supports a specific feature as described in the docs.
 
 You can use the `<Since />` component to display this information in a standardized way.
 
@@ -277,9 +275,10 @@ Inside `MyCustomTabs.jsx`, import the Tabs component and create one `<Tabs>` com
 ---
 import Tabs from './Tabs';
 ---
-<Tabs client:visible sharedStore="my-shared-store">
+<Tabs client:idle sharedStore="my-shared-store">
 </Tabs>
 ```
+
 To create your custom tab component, follow the pattern below using a `<Fragment>` with a named slot for each tab and panel to be created. Note that you must define your tab names here (e.g. Preact, React, Solid, Svelte, Vue), but the content for each panel will be written when your custom component is imported and used in a Markdown page, as in the previous `<PackageManagerTabs>` example.
 
 ```jsx
@@ -287,18 +286,18 @@ To create your custom tab component, follow the pattern below using a `<Fragment
 import Tabs from './Tabs';
 ---
 
-<Tabs client:visible sharedStore="ui-frameworks">
-	<Fragment slot="tab.preact">Preact</Fragment>
-	<Fragment slot="tab.react">React</Fragment>
-	<Fragment slot="tab.solid">Solid</Fragment>
-	<Fragment slot="tab.svelte">Svelte</Fragment>
-	<Fragment slot="tab.vue">Vue</Fragment>
+<Tabs client:idle sharedStore="ui-frameworks">
+ <Fragment slot="tab.preact">Preact</Fragment>
+ <Fragment slot="tab.react">React</Fragment>
+ <Fragment slot="tab.solid">Solid</Fragment>
+ <Fragment slot="tab.svelte">Svelte</Fragment>
+ <Fragment slot="tab.vue">Vue</Fragment>
 
-	<Fragment slot="panel.preact"><slot name="preact" /></Fragment>
-	<Fragment slot="panel.react"><slot name="react" /></Fragment>
-	<Fragment slot="panel.solid"><slot name="solid" /></Fragment>
-	<Fragment slot="panel.svelte"><slot name="svelte" /></Fragment>
-	<Fragment slot="panel.vue"><slot name="vue" /></Fragment>
+ <Fragment slot="panel.preact"><slot name="preact" /></Fragment>
+ <Fragment slot="panel.react"><slot name="react" /></Fragment>
+ <Fragment slot="panel.solid"><slot name="solid" /></Fragment>
+ <Fragment slot="panel.svelte"><slot name="svelte" /></Fragment>
+ <Fragment slot="panel.vue"><slot name="vue" /></Fragment>
 </Tabs>
 ```
 
@@ -318,7 +317,7 @@ import RecipeLinks from "~/components/RecipeLinks.astro";
 
 ## Lists vs. Headings
 
-Both lists and headings are used in our docs for readability. We will often start by using `<ul>` to list related items. 
+Both lists and headings are used in our docs for readability. We will often start by using `<ul>` to list related items.
 
 But, when individual line items become large, span multiple paragraphs, or contain too many `<code>` terms affecting readability, then we will change to section headings.
 
@@ -339,33 +338,36 @@ Do use headings to break up text into organized sections! Many readers prefer to
 ## Examples (e.g. examples)
 
 Current practice is to use the words "for example" in full within the text of a sentence, but (e.g. Netlify, Vercel) inside a parenthetical so as to not take the reader out of the flow the sentence.
- 
-> For example, when passing props . . . 
 
-> If you store your Astro project in an online Git provider (e.g. GitHub, GitLab), you can . . . 
+> For example, when passing props . . .
+
+> If you store your Astro project in an online Git provider (e.g. GitHub, GitLab), you can . . .
 
 ## Code Samples
 
-We take great pride in our code samples, but they require a little extra work to write! 
+We take great pride in our code samples, but they require a little extra work to write!
 
 Don't worry! We'll help you out in a PR if your code authoring needs some adjustment before merging. But, you can make use of all our features below and preview them locally to make sure your code looks the way you want.
 
 If you are **editing existing code samples**, then please make sure to preview your updated code sample! Update any necessary syntax such as line highlighting or title (file name).
 
-If you are **adding new code samples**, you have the option of adding a file name (usually recommended!) to be displayed as a title. You can also highlight individual words, phrases, or entire lines in regular or "diff" (red/green) style. 
+If you are **adding new code samples**, you have the option of adding a file name (usually recommended!) to be displayed as a title. You can also highlight individual words, phrases, or entire lines in regular or "diff" (red/green) style.
 
 **All extra code styling is written on the opening line of the code block, immediately after the language.**
 
 Here are two examples of what our code snippets look like written in Markdown, just so you can see what it looks like in action. Syntax explanations follow.
 
-#### Example 1 
+#### Example 1
+
 - Use the file name as a title
 - highlight rows 9 and 10
+
 ``````markdown
 ```astro title="src/pages/nested-components.astro" {9-10}
 ``````
 
-#### Example 2 
+#### Example 2
+
 - use the file name as a title (alt method)
 - apply "+ diff" styling (green backround) to any occurrence of `<Button />`
 - highlight any occurrence of `{props.title}` and `{props.social}`
@@ -379,9 +381,10 @@ Here are two examples of what our code snippets look like written in Markdown, j
 
 Most code should include a sample file name so that we give the reader not only copy-pastable code, but also provide the file into which that code should be pasted.
 
-`title="src/pages/index.astro"` 
+`title="src/pages/index.astro"`
 
 Alternatively, write the file name as a code comment in a separate line. Write the file name of `.astro` files immediately after the opening `---`
+
 ``````markdown
  ```astro
  ---
@@ -403,7 +406,6 @@ Use Curly braces to highlight (default), or show "diff" style (+/-) "inserted" o
 - del={2} - Shows "diff" style (-) at line 2
 - ins={7-9} - Shows "diff" style (+) lines 7-9
 
-
 ### Text Highlighting
 
 Use quotation marks to highlight (default), or assign red/green "diff" style background colors for individual words and phrases.
@@ -419,14 +421,12 @@ Regular expressions are supported within slashes `/ /`. See a handy [tool for co
 - /{frontmatter.(title|description)}/ - Highlight all instances of `{frontmatter.title}` and `{frontmatter.description}`
 
 > ***Note***
+>
 > - del="<p class=\"hi\">" - Use `\` to escape quotation marks and other special characters in the search string
 >
 >- del='\<p class="hi">' - Use single quotes to make it easier to match double quotes
 
-
-
-
-### Don't destructure props 
+### Don't destructure props
 
 The following prop syntax is relevant to all component frameworks we support:
 

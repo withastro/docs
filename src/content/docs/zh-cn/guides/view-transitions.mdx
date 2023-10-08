@@ -233,22 +233,88 @@ const myFade = {
 
 <header transition:animate={myFade}> ... </header>
 ```
+## 路由器控制
 
-## 阻止客户端导航
+`<ViewTransitions />` 路由器通过监听以下事件来处理导航：
 
-一旦你在页面上添加了 `<ViewTransitions />` 组件，就可以通过客户端路由导航到页面上链接到站点上的另一个页面的每个锚点。有一些情况下，你可能不希望通过 CSR 导航。一个例子是，如果链接指向任何非页面，例如 `public/` 文件夹中的 PDF。或者是一个生成图像的 API 路由。
+- 点击 `<a>` 元素。
+- 后退和前进导航事件。
 
-在这些情况下，你可以使用 `data-astro-reload` 属性来选择性地阻止每个链接使用客户端路由，如下所示：
+如下选项允许你进一步控制在路由器中发生的导航事件：
 
-```html
-<a href="/quarterly-earnings.pdf" data-astro-reload>
+-  `astro-data-reload`：一个 `<a>` 标签属性，用于[进行强制全页面导航](#阻止客户端导航)。
+-  `astro-data-history="auto | push | replace"`：一个 `<a>` 标签属性，用于[控制浏览器的历史记录](#替换浏览器历史条目)。
+-  `navigate(href, options)`：任何客户端脚本或客户端组件可用的方法，用于[触发导航](#阻止客户端导航)。
+
+### 阻止客户端导航
+
+只有关联的两个页面都使用了 `<ViewTransitions />` 路由器才能通过客户端路由进行导航，防止重新加载全页面。你可能也不希望在每次导航更改时都使用客户端路由，而是更希望在特定路由上进行传统的页面导航。
+
+你可以通过将 `data-astro-reload` 属性添加到任何 `<a>` 标签中，为单个链接选择不使用客户端路由器。此属性将覆盖任何现有的 `<ViewTransitions />` 组件，而是在导航期间触发浏览器刷新。
+
+以下示例显示了仅从主页导航到文章时如何阻止客户端路由器。这样，当从文章列表页面导航到同一页面时，仍然可以对共享元素（例如主视觉图）进行动画处理：
+
+```astro title="src/pages/index.astro"
+<a href="/articles/emperor-penguins" data-astro-reload>
 ```
 
-这些链接将被路由忽略，并将进行全页导航。
+```astro title="src/pages/articles.astro"
+<a href="/articles/emperor-penguins">
+```
+
+具有 `data-astro-reload` 属性的链接将会被路由器忽略，并且进行全页面导航。
+
+### 触发导航
+
+你还可以使用 `navigate` 方法在通常不被 `<ViewTransitions />` 路由器监听的事件里触发客户端导航。该方法来自于 `astro:transitions/client` 模块，可以在任何客户端脚本或客户端组件中使用。
+
+以下示例展示了使用站点访客选择的选项来触发导航：
+
+```js title="form.js" "navigate(href)"
+import { navigate } from 'astro:transitions/client';
+
+// 自动导航到所选选项
+document.querySelector('select').onchange = (ev) => {
+  let href = ev.target.value;
+  navigate(href);
+};
+```
+
+`navigate` 方法接受以下参数：
+
+-  `href`（必需项）- 要导航到的新页面。
+-  `options` - 一个可选的对象，具有以下属性：
+	- `history`: `'push'` | `'replace'` | `'auto'`
+		- `'push'`: 路由器将使用 `history.pushState` 在浏览器历史中创建一个新条目。
+		- `'replace'`: 路由器将使用 `history.replaceState` 更新 URL，而不向导航添加新条目。
+		- `'auto'`（默认）: 路由器将尝试使用 `history.pushState`，但如果无法转换到指定的 URL，则当前 URL 将保持不变，浏览器历史不会发生变化。
+
+要想通过浏览器的历史记录进行后退和前进导航，你可以将 `navigate()` 与浏览器内置的 `history.back()`、`history.forward()` 和 `history.go()` 等函数结合使用。
+
+### 替换浏览器历史条目
+
+通常情况下，你每次导航时都会在浏览器的历史记录中写入一个新条目。这样可以使用浏览器的 `back` 和 `forward` 按钮在页面之间导航。
+
+`<ViewTransitions />` 路由器器允许你通过向任何单独的 `<a>` 标签添加 `data-astro-history` 属性来覆盖历史记录条目。
+
+`data-astro-history` 属性可以设置为与 [`navigate()` 函数的 `history` 选项](#触发导航) 相同的三个值：
+
+`data-astro-history`: `'push'` | `'replace'` | `'auto'`
+-  `'push'`：路由器将使用 `history.pushState` 在浏览器历史记录中创建一个新条目。
+-  `'replace'`：路由器将使用 `history.replaceState` 更新 URL 而不添加新的导航条目。
+-  `'auto'`（默认值）：路由器将尝试使用 `history.pushState`，但是如果 URL 不能进行过渡，则当前 URL 将保持不变，并且浏览器历史记录也不会发生任何变更。
+
+以下示例导航到 `/main` 页面，但不向浏览历史记录中添加新条目，而是重用历史记录中的当前条目（`/confirmation`）并进行覆盖。
+
+```astro title="/confirmation.astro"
+<a href="/main" data-astro-history="replace">
+```
+
+这样做的效果是，如果你从 `/main` 页面返回，则浏览器不会显示 `/confirmation` 页面，而是显示该页面之前的页面。
 
 ## 回退控制
 
-`<ViewTransitions />` 路由在支持视图过渡动画的浏览器（如 Chromium 浏览器）中表现最佳，但也包含了对其他浏览器的默认回退支持。即当浏览器不支持视图过渡动画 API 时，Astro 仍将提供基于浏览器的导航，使用其中一种回退选项来实现类似的效果。
+`<ViewTransitions />` 路由器在支持视图过渡动画的浏览器（如 Chromium 浏览器）中表现最佳，但也包含了对其他浏览器的默认回退支持。即当浏览器不支持视图过渡动画 API 时，Astro 仍将提供基于浏览器的导航，使用其中一种回退选项来实现类似的效果。
 
 你可以通过在 `<ViewTransitions />` 组件上添加一个名为 `fallback` 的属性，并将其设置为 `swap` 或 `none`，来覆盖 Astro 的默认回退支持：
 
@@ -273,7 +339,7 @@ Astro 不会模拟 `initial` 浏览器动画。因此，任何使用此动画的
 
 当 `<ViewTransitions />` 路由器被使用时，以下步骤将会产生 Astro 的客户端导航：
 
-1. 一个访问者通过以下任何操作触发导航：
+1. 一个访客通过以下任何操作触发导航：
     - 点击链接到站点上另一个页面的 `<a>` 标签。
     - 点击后退按钮。
     - 点击前进按钮。
@@ -355,7 +421,28 @@ Astro 不会模拟 `initial` 浏览器动画。因此，任何使用此动画的
 </script>
 ```
 
-## `prefers-reduced-motion`
+
+## 无障碍特性
+
+启用客户端路由和动画页面过渡都会面临着无障碍挑战，而 Astro 旨在使启用了视图过渡动画的网站尽可能地具备默认的无障碍特性。
+
+### 路由读出
+
+<Since v="3.2.0" />
+
+`<ViewTransitions />` 组件包含一个用于在客户端路由间进行页面导航的路由读出器。你无需配置或操作即可启用此功能。
+
+辅助技术通过在导航后读出新页面标题来告知访客页面已被更改。在使用传统的全页面浏览器刷新服务端路由时，则会默认在新页面加载后执行此操作。而在客户端路由中，则由 `<ViewTransitions />` 组件执行此操作。
+
+为在客户端路由中添加路由读出，该组件会向新页面添加一个带有 `aria-live` 属性设置为 `assertive` 的元素。这告诉 AT（assistive technology，辅助技术）立即读出。该组件还按照优先顺序检查以下内容来确定读出的文本：
+
+-  如果存在 `<title>` 标签，则使用该标签。
+-  使用第一个找到的 `<h1>` 标签。
+-  使用页面的 `pathname`。
+
+我们强烈建议你始终在每个页面中包含 `<title>` 标签以更好地支持无障碍。
+
+### `prefers-reduced-motion`
 
 Astro 的 `<ViewTransitions />` 组件包含一个 CSS 媒体查询，当检测到 [`prefer-reduced-motion`](https://developer.mozilla.org/zh-CN/docs/Web/CSS/@media/prefers-reduced-motion) 设置时，禁用所有视图过渡动画，包括回退动画。相反，浏览器将不使用动画，简单直接的切换 DOM 元素。
 
@@ -385,6 +472,25 @@ export default defineConfig({
    viewTransitions: true
   }
 });
+```
+
+#### 更新导入来源
+
+`<ViewTransitions />` 组件被从 `astro:components` 移动到了 `astro:transitions`。请在你的项目中更新导入来源。
+
+```astro title="src/layouts/BaseLayout.astro" del="astro:components" ins="astro:transitions"
+---
+import { ViewTransitions } from "astro:components astro:transitions"
+---
+<html lang="en">
+  <head>
+    <title>My Homepage</title>
+    <ViewTransitions />
+  </head>
+  <body>
+    <h1>Welcome to my website!</h1>
+  </body>
+</html>
 ```
 
 #### 更新 `transition:animate` 指令

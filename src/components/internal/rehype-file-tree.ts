@@ -1,7 +1,7 @@
+import type { Element } from 'hast';
 import { fromHtml } from 'hast-util-from-html';
 import { toString } from 'hast-util-to-string';
-import { h } from 'hastscript';
-import type { Element, HChild } from 'hastscript/lib/core';
+import { h, type Child } from 'hastscript';
 import { rehype } from 'rehype';
 import { CONTINUE, SKIP, visit } from 'unist-util-visit';
 import { getIcon } from './file-tree-icons';
@@ -50,7 +50,7 @@ export const fileTreeProcessor = rehype().use(() => (tree, file) => {
 
 		const [firstChild, ...otherChildren] = node.children;
 
-		const comment: HChild[] = [];
+		const comment: Child[] = [];
 		if (firstChild?.type === 'text') {
 			const [filename, ...fragments] = firstChild.value.split(' ');
 			firstChild.value = filename || '';

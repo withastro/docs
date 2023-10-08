@@ -269,7 +269,7 @@ interface ImageMetadata {
 
 ### リモート画像の許可
 
-`image.domains`と`image.remotePatterns`を使用して、画像の最適化に使用する、許可された画像ソースのURLドメインとパターンのリストを設定できます。この設定は、外部ソースから画像を表示する際にサイトを保護するために追加の安全性を提供します。
+[`image.domains`](/ja/reference/configuration-reference/#imagedomains)と[`image.remotePatterns`](/ja/reference/configuration-reference/#imageremotepatterns)を使用して、画像の最適化に使用する、許可された画像ソースのURLドメインとパターンのリストを設定できます。この設定は、外部ソースから画像を表示する際にサイトを保護するために追加の安全性を提供します。
 
 他のソースからのリモート画像は最適化されませんが、これらの画像に`<Image />`コンポーネントを使用すると、Cumulative Layout Shift（CLS）を防ぐことができます。
 
@@ -515,6 +515,14 @@ export default defineConfig({
 });
 ```
 
+:::note
+`pnpm`のような[厳格なパッケージマネージャー](https://pnpm.io/pnpm-vs-npm#npms-flat-tree)を使用している場合は、Astroの依存関係であるにもかかわらず、プロジェクトにSharpを手動でインストールする必要があるかもしれません。
+
+```bash
+pnpm install sharp
+```
+:::
+
 ## コミュニティインテグレーション
 
 Astroプロジェクトで画像を最適化したり、画像を扱ったりするための、サードパーティの[コミュニティインテグレーション](https://astro.build/integrations?search=images)があります。
@@ -650,7 +658,27 @@ Astro v2.xで画像インテグレーションを使用していた場合は、�
     })
     ```
 
-2. 既存の`<Image />`コンポーネントを移行します。
+2. （必要に応じて）型を更新します。
+
+    `src/env.d.ts`に`@astrojs/image`のための特別な型を設定していた場合、v3へのアップグレードでこのステップが完了していなければ、デフォルトのAstroの型に戻す必要があるかもしれません。
+
+		```ts title="src/env.d.ts" del={1} ins={2}
+		 /// <reference types="@astrojs/image/client" />
+		 /// <reference types="astro/client" />
+		```
+
+		同様に、必要に応じて`tsconfig.json`を更新します。
+
+		```json title="tsconfig.json" del={3} ins={4}
+		{
+			"compilerOptions": {
+			  "types": ["@astrojs/image/client"]
+			  "types": ["astro/client"]
+			}
+		}
+		```
+
+3. 既存の`<Image />`コンポーネントを移行します。
 
     新しい組み込みの`<Image />`コンポーネントを使用するために、`@astrojs/image/components`からの`import`文をすべて`astro:assets`に変更します。
 
@@ -674,13 +702,13 @@ Astro v2.xで画像インテグレーションを使用していた場合は、�
       />
       ```
 
-3. 既存の`<Picture />`コンポーネントを削除します。
+4. 既存の`<Picture />`コンポーネントを削除します。
 
     現在、組み込みのアセット機能には`<Picture />`コンポーネントは含まれていません。
 
     代わりに、HTMLの画像属性`srcset`と`sizes`、または`<picture>`タグを使用して、[アートディレクションやレスポンシブ画像を作成](https://developer.mozilla.org/ja/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#アートディレクション)できます。
 
-4. デフォルトの画像サービスを選択します。
+5. デフォルトの画像サービスを選択します。
 
     [Sharp](https://github.com/lovell/sharp)は、`astro:assets`で使用されるデフォルトの画像サービスとなりました。Sharpを使用する場合は、特に設定は必要ありません。
 
@@ -701,3 +729,22 @@ Astro v2.xで画像インテグレーションを使用していた場合は、�
 ブログ記事のカバー画像など、コンテンツコレクションのエントリに関連付けられた画像を、現在のフォルダからの相対パスによりフロントマターに宣言できるようになりました。
 
 コンテンツコレクションの新しい`image`ヘルパーにより、Zodを使用して画像のメタデータを検証できるようになりました。コンテンツコレクションで画像を使用する方法について、詳しくは[こちら](#コンテンツコレクションと画像)を参照してください。
+
+### Astro v3.0での画像インポートの扱い
+
+Astro v3.0で、以前の画像をインポートした際の挙動を維持しなければならず、画像URLの文字列が必要な場合は、以下のように画像パスの末尾に`?url`を追加してください。
+
+```astro title="src/pages/blog/MyImages.astro"
+---
+import Sprite from '../assets/logo.svg?url';
+---
+  <svg>
+    <use xlink:href={Sprite + '#cart'} />
+  </svg>
+```
+
+この方法により、URLの文字列を取得できます。なお、Astroは開発中に`src/`パスを使用しますが、ビルド時には`/_astro/cat.a6737dd3.png`のようなハッシュ化されたパスを生成することに注意してください。 
+
+画像オブジェクト自体を直接扱いたい場合は、`.src`プロパティにアクセスできます。この方法は、Core Web Vitalsメトリクスのための画像サイズの調整や、CLSの防止などのタスクに最適です。
+
+新しいインポートの挙動に移行する場合は、`?url`と`.src`の両方を組み合わせることが、シームレスに画像を扱うための正しい方法かもしれません。

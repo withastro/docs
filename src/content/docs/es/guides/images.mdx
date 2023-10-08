@@ -31,7 +31,7 @@ Astro puede obtener tus datos de forma remota utilizando APIs o mostrar imágene
 
 En archivos `.astro`, las imágenes locales deben ser importadas al archivo para poder ser utilizadas. Las imágenes remotas y las imágenes en `public/` no requieren ser importadas.
 
-Importa y utiliza el componente incorporado `<Image />` de Astro para imágenes optimizadas usando `astro:assets`. Alternativamente, la sintaxis de Astro admite escribir directamente una etiqueta HTML `<img>`, lo que omite el procesamiento de imágenes.
+Importa y utiliza el componente incorporado `<Image />` de Astro para imágenes optimizadas usando `astro:assets`. Alternativamente, la sintaxis de Astro admite escribir directamente una etiqueta HTML `<img>`, lo que omite el procesamiento de imágenes
 
 ```astro title="src/pages/blog/MyImages.astro"
 ---
@@ -109,7 +109,7 @@ El formato del valor `src` de tu archivo de imagen depende de dónde esté ubica
   ---
   import { Image } from 'astro:assets';
   ---
-  <Image 
+  <Image
     src="/images/my-public-image.png"
     alt="texto descriptivo"
     width="200"
@@ -123,7 +123,7 @@ El formato del valor `src` de tu archivo de imagen depende de dónde esté ubica
   ---
   import { Image } from 'astro:assets';
   ---
-  <Image 
+  <Image
     src="https://example.com/remote-image.jpg"
     alt="texto descriptivo"
     width="200"
@@ -512,6 +512,14 @@ export default defineConfig({
 });
 ```
 
+:::note
+Cuando se utiliza un [administrador de paquetes estricto](https://pnpm.io/pnpm-vs-npm#npms-flat-tree) como `pnpm`, es posible que debas instalar manualmente Sharp en tu proyecto, aunque sea una dependencia de Astro:
+
+```bash
+pnpm install sharp
+```
+:::
+
 ## Integraciones comunitarias
 
 Existen varias [integraciones de imágenes de la comunidad](https://astro.build/integrations?search=images) de terceros para optimizar y trabajar con imágenes en tu proyecto de Astro.
@@ -646,7 +654,27 @@ Si estabas utilizando la integración de imágenes en Astro v2.x, completa los s
     })
     ```
 
-2. Migra cualquier componente `<Image />` existente.
+2. Actualiza los tipos (si es necesario).
+
+		Si tenías tipos especiales configurados para `@astrojs/image` en `src/env.d.ts`, es posible que necesites cambiarlos de nuevo a los tipos predeterminados de Astro si la actualización a la versión 3 no completó este paso por ti.
+
+		```ts title="src/env.d.ts" del={1} ins={2}
+		 /// <reference types="@astrojs/image/client" />
+		 /// <reference types="astro/client" />
+		```
+
+		Del mismo modo, actualiza `tsconfig.json` si es necesario:
+
+		```json title="tsconfig.json" del={3} ins={4}
+		{
+			"compilerOptions": {
+			  "types": ["@astrojs/image/client"]
+			  "types": ["astro/client"]
+			}
+		}
+		```
+
+3. Migra cualquier componente `<Imagen />` existente.
 
     Cambia todas las declaraciones de `import` de `@astrojs/image/components` a `astro:assets` para poder usar el nuevo componente integrado `<Image />`.
 
@@ -670,13 +698,13 @@ Si estabas utilizando la integración de imágenes en Astro v2.x, completa los s
       />
       ```
 
-3. Elimina cualquier componente `<Picture />` existente.
+4. Elimina cualquier componente `<Picture />` existente.
 
     Actualmente, la función de assets integrada no incluye un componente `<Picture />`.
 
     En su lugar, puedes utilizar los atributos de imagen HTML `srcset` y `sizes`, o la etiqueta `<picture>` [para dirección de arte o para crear imágenes responsivas](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#art_direction).
 
-4. Elige un servicio de imágenes predeterminado.
+5. Elige un servicio de imágenes predeterminado.
 
    [Sharp](https://github.com/lovell/sharp) es ahora el servicio de imágenes predeterminado utilizado para `astro:assets`. Si deseas utilizar Sharp, no se requiere ninguna configuración.
 
@@ -697,3 +725,22 @@ Si estabas utilizando la integración de imágenes en Astro v2.x, completa los s
 Ahora puedes declarar una imagen asociada para una entrada de colecciones de contenido, como la imagen de portada de una entrada de blog, en tu metadatos usando su ruta relativa a la carpeta actual.
 
 El nuevo helper `image` para colecciones de contenido te permite validar los metadatos de la imagen utilizando Zod. Aprende más sobre [cómo usar imágenes en colecciones de contenido](/es/guides/images/#imágenes-en-colecciones-de-contenido)
+
+### Navegando por las importaciones de imágenes en Astro v3.0
+
+En Astro v3.0, si tienes que conservar el antiguo comportamiento de importación para las imágenes y requieres una representación de tipo string de la URL de la imagen, añade `?url` al final de la ruta de la imagen al importarla. Por ejemplo:
+
+```astro title="src/pages/blog/MyImages.astro"
+---
+import Sprite from '../assets/logo.svg?url';
+---
+  <svg>
+    <use xlink:href={Sprite + '#cart'} />
+  </svg>
+```
+
+Este enfoque garantiza que obtengas el string URL. Ten en cuenta que durante el desarrollo, Astro utiliza una ruta `src/`, pero al compilar, genera rutas hash como `/_astro/cat.a6737dd3.png`.
+
+Si prefieres trabajar directamente con el objeto de imagen, puedes acceder a la propiedad `.src`. Este enfoque es el mejor para tareas como la gestión de las dimensiones de la imagen para las métricas de Core Web Vitals y la prevención de CLS.
+
+Si estás en transición al nuevo comportamiento de importación, combinar `?url` y `.src` puede ser el método adecuado para el manejo de imágenes sin problemas.

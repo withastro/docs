@@ -89,6 +89,7 @@ export async function run() {
 		result += [
 			`### ${comment.longname}`,
 			``,
+			getDeprecatedAside(comment.deprecated),
 			`<p>`,
 			``,
 			[
@@ -119,6 +120,17 @@ export async function run() {
 		HEADER + result + FOOTER,
 		'utf8'
 	);
+}
+
+function getDeprecatedAside(tag) {
+	if (!tag) return undefined;
+	return [
+		'',
+		':::caution[Deprecated]',
+		typeof tag === 'string' ? tag : 'This option is deprecated.',
+		':::',
+		'',
+	].join('\n');
 }
 
 run();

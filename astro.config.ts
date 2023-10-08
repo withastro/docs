@@ -46,6 +46,8 @@ export default defineConfig({
 			},
 		}),
 	],
+	scopedStyleStrategy: 'where',
+	compressHTML: false,
 	markdown: {
 		// Override with our own config
 		smartypants: false,
