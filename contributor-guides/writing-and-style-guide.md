@@ -275,7 +275,7 @@ Inside `MyCustomTabs.jsx`, import the Tabs component and create one `<Tabs>` com
 ---
 import Tabs from './Tabs';
 ---
-<Tabs client:idle sharedStore="my-shared-store">
+<Tabs sharedStore="my-shared-store">
 </Tabs>
 ```
 
@@ -286,7 +286,7 @@ To create your custom tab component, follow the pattern below using a `<Fragment
 import Tabs from './Tabs';
 ---
 
-<Tabs client:idle sharedStore="ui-frameworks">
+<Tabs sharedStore="ui-frameworks">
  <Fragment slot="tab.preact">Preact</Fragment>
  <Fragment slot="tab.react">React</Fragment>
  <Fragment slot="tab.solid">Solid</Fragment>
