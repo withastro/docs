@@ -5,7 +5,7 @@ export default {
 	// Site settings
 	'site.title': 'Documentazione di Astro',
 	'site.description': 'Costruisci siti web veloci con meno JavaScript sul client.',
-	'site.og.imageSrc': '/default-og-image.png?v=1',
+	'site.og.imageSrc': '/default-og-image.webp?v=1',
 	'site.og.imageAlt':
 		'Logo di Astro su una distesa di stelle, con un pianeta viola simile a Saturno che fluttua in primo piano a destra',
 	// Left Sidebar

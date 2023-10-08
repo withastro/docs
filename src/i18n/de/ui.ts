@@ -7,7 +7,7 @@ export default UIDictionary({
 	// Site settings
 	'site.title': 'Astro-Dokumentation',
 	'site.description': 'Erstelle schnellere Websites mit weniger ausgeliefertem JavaScript.',
-	'site.og.imageSrc': '/default-og-image.png?v=1',
+	'site.og.imageSrc': '/default-og-image.webp?v=1',
 	'site.og.imageAlt':
 		'Astro-Logo im Weltraum mit Sternen und einem violetten, Saturn-ähnlichen Planeten rechts im Vordergrund',
 	// Left Sidebar

@@ -7,7 +7,7 @@ export default UIDictionary({
 	// Site settings >>>> REVIEW: 리뷰 필요
 	'site.title': 'Astro 문서',
 	'site.description': '클라이언트 사이드 자바스크립트를 줄이고, 더 빠른 웹 사이트를 구축하기.',
-	'site.og.imageSrc': '/default-og-image.png?v=1',
+	'site.og.imageSrc': '/default-og-image.webp?v=1',
 	'site.og.imageAlt':
 		'별이 쏟아지는 광활한 우주에 Astro 로고가 있고 오른쪽 전경에 보라색 토성 모양의 행성이 떠 있습니다.',
 	// Left Sidebar

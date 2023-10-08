@@ -7,7 +7,7 @@ export default UIDictionary({
 	// Site settings
 	'site.title': 'Astro 文档',
 	'site.description': '用更少的客户端 JavaScript 构建更快的站点。',
-	'site.og.imageSrc': '/default-og-image.png?v=1',
+	'site.og.imageSrc': '/default-og-image.webp?v=1',
 	'site.og.imageAlt': '星辰浩瀚的太空中的 astro 标志，右侧前景中漂浮着一颗紫色的土星状行星。',
 	// Left Sidebar
 	'leftSidebar.a11yTitle': '站点导航',

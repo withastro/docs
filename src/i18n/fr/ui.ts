@@ -8,7 +8,7 @@ export default UIDictionary({
 	'site.title': 'Documentation Astro',
 	'site.description':
 		'Compilez des sites plus rapidement avec moins de JavaScript pour vos utilisateurs.',
-	'site.og.imageSrc': '/default-og-image.png?v=1',
+	'site.og.imageSrc': '/default-og-image.webp?v=1',
 	'site.og.imageAlt':
 		"Logo d'Astro dans l'espace, avec une planète violette dans le style de saturne flottant à droite de l'image.",
 	// Left Sidebar

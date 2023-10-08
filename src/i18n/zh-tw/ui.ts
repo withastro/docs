@@ -7,7 +7,7 @@ export default UIDictionary({
 	// Site settings
 	'site.title': 'Astro 文檔',
 	'site.description': '用更少的用戶端 JavaScript 打造更快速的網站。',
-	'site.og.imageSrc': '/default-og-image.png?v=1',
+	'site.og.imageSrc': '/default-og-image.webp?v=1',
 	'site.og.imageAlt': 'Astro 的標誌在充滿星辰的太空中，右邊前景飄浮著土星似的紫色星球',
 	// Left Sidebar
 	'leftSidebar.a11yTitle': '網站導覽',

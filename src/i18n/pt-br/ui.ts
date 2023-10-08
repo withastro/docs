@@ -7,7 +7,7 @@ export default UIDictionary({
 	// Site settings
 	'site.title': 'Documentação do Astro',
 	'site.description': 'Construa websites mais rápidos com menos JavaScript no lado do cliente.',
-	'site.og.imageSrc': '/default-og-image.png?v=1',
+	'site.og.imageSrc': '/default-og-image.webp?v=1',
 	'site.og.imageAlt':
 		'a logo do astro em um estrelado pedaço do espaço, com um planeta roxo parecido com Saturno flutuando à direita',
 	// Left Sidebar

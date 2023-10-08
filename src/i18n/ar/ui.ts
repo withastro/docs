@@ -7,7 +7,7 @@ export default UIDictionary({
 	// Site settings
 	'site.title': 'مستندات أسترو',
 	'site.description': 'انشئ مواقع ويب أسرع باستخدام ',
-	'site.og.imageSrc': '/default-og-image.png?v=1',
+	'site.og.imageSrc': '/default-og-image.webp?v=1',
 	'site.og.imageAlt':
 		'شعار أسترو على فضاء مليئ بالنجوم، مع كوكب أرجواني يشبه زحل يطفو في المقدمة اليمنى',
 	// Left Sidebar
