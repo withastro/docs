@@ -37,6 +37,10 @@ export default defineConfig({
 					attrs: { property: 'twitter:image', content: site + 'default-og-image.png?v=1' },
 				},
 			],
+      components: {
+        PageSidebar: './src/components/starlight/PageSidebar.astro',
+        SiteTitle: './src/components/starlight/SiteTitle.astro'
+      },
 			defaultLocale: 'en',
 			locales: makeLocalesConfig(),
 			sidebar: makeSidebar(),

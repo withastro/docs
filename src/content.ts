@@ -1,12 +1,10 @@
 import { getCollection } from 'astro:content';
 import {
-	createIsLangEntry,
 	isEnglishEntry,
+  isKoreanEntry,
 	isRecipeEntry,
 	isTutorialEntry,
 } from './content/config';
-
-const isKoreanEntry = createIsLangEntry('ko');
 
 export const allPages = await getCollection('docs', (entry) => {
 	if (import.meta.env.PUBLIC_TWO_LANG) {

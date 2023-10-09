@@ -111,6 +111,7 @@ export function createIsLangEntry(lang: string) {
 }
 
 export const isEnglishEntry = createIsLangEntry('en');
+export const isKoreanEntry  = createIsLangEntry('ko');
 
 export const collections = {
 	docs: defineCollection({ schema: docsSchema({ extend: docsCollectionSchema }) }),
