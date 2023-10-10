@@ -39,7 +39,8 @@ export default defineConfig({
 			],
       components: {
         PageSidebar: './src/components/starlight/PageSidebar.astro',
-        SiteTitle: './src/components/starlight/SiteTitle.astro'
+        SiteTitle: './src/components/starlight/SiteTitle.astro',
+        Search: './src/components/starlight/Search.astro',
       },
 			defaultLocale: 'en',
 			locales: makeLocalesConfig(),
