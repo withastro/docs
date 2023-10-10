@@ -266,18 +266,69 @@ Los enlaces con el atributo `data-astro-reload` serán ignorados por el enrutado
 
 ### Desencadenar la navegación
 
-También puedes desencadenar la navegación del lado del cliente a través de eventos que normalmente no son escuchados por el enrutador `<ViewTransitions />` utilizando `navigate`. Este método del módulo `astro:transitions/client` está disponible en cualquier script cliente o componente cliente.
+También puedes desencadenar la navegación del lado del cliente a través de eventos que normalmente no son escuchados por el enrutador `<ViewTransitions />` utilizando `navigate`. Esta función del módulo `astro:transitions/client` se puede utilizar en scripts y en componentes del framework que se hidratan con una [directiva de cliente](/es/reference/directives-reference/#client-directives).
 
-El siguiente ejemplo muestra cómo utilizar una opción seleccionada por un visitante del sitio para desencadenar la navegación:
+El siguiente ejemplo muestra un componente de Astro que lleva al visitante a otra página que selecciona desde un menú:
+```astro title="src/components/form.astro"
+<script>
+    import { navigate } from 'astro:transitions/client';
+    // Navigate to the selected option automatically.
+    document.querySelector('select').onchange = (ev) => {
+        let href = ev.target.value;
+        navigate(href);
+    };
+</script>
+<select>
+    <option value="/play">Play</option>
+    <option value="/blog">Blog</option>
+    <option value="/about">About</option>
+    <option value="/contact">Contact</option>
+</select>
+```
+```astro title="src/pages/index.astro"
+---
+import Form from "../components/form.astro"
+import { ViewTransitions } from "astro:transitions";
+---
+<html>
+	<head>
+		<ViewTransitions />
+	</head>
+	<body>
+		<Form />
+	</body>
+</html>
+```
+El siguiente ejemplo implementa lo mismo usando `navigate()` en un componente `<Form />` de React:
 
-```js title="form.js" "navigate(href)"
+```js title="src/components/form.jsx"
+import React from 'react';
 import { navigate } from 'astro:transitions/client';
 
-// Navegar a la opción seleccionada automáticamente.
-document.querySelector('select').onchange = (ev) => {
-  let href = ev.target.value;
-  navigate(href);
-};
+export default function ClickToNavigate({ to }) {
+  return <select onChange={(ev) => navigate(e.target.value)}>
+    <option value="/play">Play</option>
+    <option value="/blog">Blog</option>
+    <option value="/about">About</option>
+    <option value="/contact">Contact</option>
+  </select>;
+}
+```
+El componente `<Form />` puede ser renderizado en una página de Astro que utiliza el enrutador `<ViewTransitions />`, con una directiva del cliente:
+
+```astro title="src/pages/index.astro"
+---
+import Form from "../components/form.jsx"
+import { ViewTransitions } from "astro:transitions";
+---
+<html>
+	<head>
+		<ViewTransitions />
+	</head>
+	<body>
+		<Form client:load />
+	</body>
+</html>
 ```
 
 El método `navigate` toma los siguientes argumentos:
@@ -289,7 +340,7 @@ El método `navigate` toma los siguientes argumentos:
 		- `'replace'`: el enrutador utilizará `history.replaceState` para actualizar la URL sin agregar una nueva entrada en la navegación.
 		- `'auto'` (por defecto): el enrutador intentará utilizar `history.pushState`, pero si la URL no es una que se pueda transicionar, la URL actual permanecerá sin cambios en el historial del navegador.
 
-Para navegar hacia atrás y hacia delante por el historial del navegador, puedes combinar `navigate()` con las funciones integradas `history.back()`, `history.forward()` e `history.go()` del navegador.
+Para navegar hacia atrás y hacia delante por el historial del navegador, puedes combinar `navigate()` con las funciones integradas `history.back()`, `history.forward()` e `history.go()` del navegador. Si `navigate()` es llamado durante la renderización del lado del servidor de tu componente, no tendrá efecto alguno.
 
 ### Reemplazar entradas en el historial del navegador
 
