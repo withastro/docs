@@ -31,7 +31,7 @@ You can check your writing by pasting it into [Hemingway App](https://hemingwaya
 
 Please try to use the following language conventions when contributing to the docs:
 
-- When addressing the reader, do so in the present tense and do not include yourself. You can use *you*, but do not use *we*, *we'll*, *us*, *let's* etc. (You are not with the reader at this exact moment.) Instead, use phrases like, "You can now safely delete this line of code." Or simply, "Delete this line of code. It is no longer needed." Never use *I*. This guide is not about what you can do!  
+- When addressing the reader, do so in the present tense and do not include yourself. You can use *you*, but do not use *we*, *we'll*, *us*, *let's* etc. (You are not with the reader at this exact moment.) Instead, use phrases like, "You can now safely delete this line of code." Or simply, "Delete this line of code. It is no longer needed." Never use *I*. This guide is not about what you can do!
 
 - It's OK to use exclamation points every now and then, but please try to do so only when emphasizing something that is truly exciting, surprising, or encouraging/reassuring. If you are not sure, use a period instead. Exclamation points can send "positive vibes" to the reader. But, if a reader is frustrated, confused, or in a serious state of mind, then exclamation points can seem insensitive or juvenile. Do not use too many.
 
@@ -102,7 +102,7 @@ This can be easier to follow (and perhaps more reassuring!) than a statement tha
 **After: add necessary context to the instruction, followed by opinionated usage**
 > Add the `LanguagePicker` component to your site in a component that is shown on every page. The example below adds this to the page footer:
 
-<!-- 
+<!--
 
 -->
 
@@ -275,7 +275,7 @@ Inside `MyCustomTabs.jsx`, import the Tabs component and create one `<Tabs>` com
 ---
 import Tabs from './Tabs';
 ---
-<Tabs client:idle sharedStore="my-shared-store">
+<Tabs client:visible sharedStore="my-shared-store">
 </Tabs>
 ```
 
@@ -286,7 +286,7 @@ To create your custom tab component, follow the pattern below using a `<Fragment
 import Tabs from './Tabs';
 ---
 
-<Tabs client:idle sharedStore="ui-frameworks">
+<Tabs client:visible sharedStore="ui-frameworks">
  <Fragment slot="tab.preact">Preact</Fragment>
  <Fragment slot="tab.react">React</Fragment>
  <Fragment slot="tab.solid">Solid</Fragment>
