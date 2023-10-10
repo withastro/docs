@@ -17,4 +17,5 @@ export default NavDictionary({
 	'core-concepts/framework-components': 'UI 프레임워크',
 	'guides/environment-variables': '환경 변수',
 	'guides/fonts': '폰트',
+	'core-concepts/astro-syntax': 'Astro 구문',
 });
