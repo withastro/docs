@@ -1,0 +1,257 @@
+---
+title: Déployez votre site Astro sur AWS
+description: Comment déployer votre site Astro sur le web en utilisant AWS.
+type: deploy
+i18nReady: true
+---
+
+[AWS](https://aws.amazon.com/) est une plateforme d'hébergement d'applications web complète qui peut être utilisée pour déployer un site Astro.
+
+Pour déployer votre projet sur AWS, vous devez utiliser la [console AWS](https://aws.amazon.com/console/). (La plupart de ces actions peuvent également être effectuées à l'aide de [AWS CLI](https://aws.amazon.com/cli/)). Ce guide vous guidera à travers les étapes pour déployer votre site sur AWS en commençant par la méthode la plus basique. Ensuite, il vous montrera comment ajouter des services supplémentaires pour améliorer la rentabilité et les performances.
+
+## AWS Amplify
+
+AWS Amplify est un ensemble d'outils et de fonctionnalités spécialement conçus pour permettre aux développeurs web et mobiles de créer rapidement et facilement des applications complètes sur AWS.
+
+1. Créez un nouveau projet Amplify Hosting.
+2. Connectez votre dépôt à Amplify.
+3. Modifiez votre répertoire de sortie `baseDirectory` en `/dist`.
+
+ ```yaml
+ version: 1
+ frontend:
+   phases:
+     preBuild:
+       # Vous n'utilisez pas npm ? Remplacez `npm ci` par `yarn install` ou `pnpm i`
+       commands:
+         - npm ci
+     build:
+       commands:
+         - npm run build
+   artifacts:
+     baseDirectory: /dist
+     files:
+       - '**/*'
+   cache:
+     paths:
+       - node_modules/**/*
+    ```
+
+L'utilisation de `pnpm` nécessitera des réglages légèrement différents afin de mettre en cache le répertoire pnpm store au lieu de `node_modules`. Voici la configuration de compilation recommandée :
+
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm i -g pnpm
+            - pnpm config set store-dir .pnpm-store
+            - pnpm i
+        build:
+          commands:
+            - pnpm run build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - .pnpm-store/**/*
+    ```
+
+Amplify déploiera automatiquement votre site web et le mettra à jour lorsque vous pousserez un commit dans votre dépôt.
+
+## Hébergement de sites web statiques S3
+
+S3 est le point de départ de toute application. C'est là que sont stockés les fichiers de votre projet et d'autres ressources. S3 facture le stockage des fichiers et le nombre de requêtes. Vous trouverez plus d'informations sur S3 dans la [documentation AWS](https://aws.amazon.com/s3/).
+
+1. Créez un panier S3 avec le nom de votre projet.
+
+:::tip
+Le nom du bucket doit être globalement unique. Nous recommandons une combinaison du nom de votre projet et du nom de domaine de votre site.
+:::
+
+2. Désactivez **"Block all public access "**. Par défaut, AWS définit tous les buckets comme étant privés. Pour le rendre public, vous devez décocher la case "Bloquer l'accès public" dans les propriétés du bucket.
+
+3. Téléchargez vos fichiers construits situés dans `dist` sur S3. Vous pouvez le faire manuellement dans la console ou utiliser le CLI AWS. Si vous utilisez la CLI AWS, vous pouvez utiliser la commande suivante après [l'authentification avec vos identifiants AWS](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) :
+
+ ```
+ aws s3 cp dist/ s3://<BUCKET_NAME>/ --recursive
+    ```
+
+4. Mettez à jour la politique de votre bucket afin d'autoriser l'accès public. Vous trouverez ce paramètre dans **Permissions > Bucket policy**.
+
+ ```json
+ {
+   "Version": "2012-10-17",
+   "Statement": [
+     {
+       "Sid": "PublicReadGetObject",
+       "Effect": "Allow",
+       "Principal": "*",
+       "Action": "s3:GetObject",
+       "Resource": "arn:aws:s3:::<BUCKET_NAME>/*"
+     }
+   ]
+ }
+    ```
+
+:::caution
+N'oubliez pas de remplacer `<BUCKET_NAME>` par le nom de votre bucket.
+:::
+
+5. Activez l'hébergement de site web pour votre bucket. Vous pouvez trouver ce paramètre dans les **Settings > Static website hosting** du bucket. Définissez votre document d'index à `index.html` et votre document d'erreur à `404.html`. Enfin, vous pouvez trouver l'URL de votre nouveau site web dans **Settings > Static website hosting** du bucket.
+
+:::note
+Si vous déployez une application à page unique (SPA), définissez votre document d'erreur à `index.html`.
+:::
+
+## S3 avec CloudFront
+
+CloudFront est un service web qui offre des capacités de réseau de diffusion de contenu (CDN). Il est utilisé pour mettre en cache le contenu d'un serveur web et le distribuer aux utilisateurs finaux. CloudFront facture la quantité de données transférées. L'ajout de CloudFront à votre bucket S3 est plus rentable et permet une diffusion plus rapide.
+
+Nous utiliserons CloudFront pour envelopper notre bucket S3 afin de servir les fichiers de notre projet en utilisant le réseau CDN mondial d'Amazon. Cela réduira le coût du service des fichiers de votre projet et augmentera les performances de votre site.
+
+### Configuration du S3
+
+1. Créez un bucket S3 portant le nom de votre projet.
+
+:::tip
+Le nom du bucket doit être unique au monde. Nous recommandons une combinaison du nom de votre projet et du nom de domaine de votre site.
+:::
+2. Téléchargez vos fichiers construits situés dans `dist` sur S3. Vous pouvez le faire manuellement dans la console ou utiliser le CLI AWS. Si vous utilisez la CLI AWS, vous pouvez utiliser la commande suivante après [l'authentification avec vos informations d'identification AWS](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) :
+
+ ```
+ aws s3 cp dist/ s3://<BUCKET_NAME>/ --recursive
+    ```
+
+3. Mettez à jour votre politique de bucket pour autoriser **l'accès à CloudFront**. Vous pouvez trouver ce paramètre dans les **Permissions > Bucket policy** du bucket.
+
+ ```json
+ {
+   "Version": "2012-10-17",
+   "Statement": [{
+     "Effect": "Allow",
+     "Principal": {
+       "AWS": "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity <CLOUDFRONT_OAI_ID>"
+     },
+     "Action": "s3:GetObject",
+     "Resource": "arn:aws:s3:::astro-aws/*"
+   }]
+ }
+    ```
+
+:::caution
+N'oubliez pas de remplacer `<CLOUDFRONT_OAI_ID>` par le nom de votre ID d'accès à l'origine de CloudFront. Vous pouvez trouver l'ID d'accès à l'origine de CloudFront dans **CloudFront > Origin access identities** après avoir configuré CloudFront.
+:::
+
+### Configuration de CloudFront
+
+1. Créez une répartition CloudFront avec les valeurs suivantes :
+ * **Origin domain:** Votre bucket S3
+ * **S3 bucket access:** "Yes use OAI (bucket can restrict access to only CloudFront)" (Oui, utiliser OAI (le bucket peut restreindre l'accès à CloudFront))
+ * **Origin access identity:** Créer une nouvelle identité d'accès à l'origine
+ * **Viewer - Bucket policy:** "Non, je vais mettre à jour la politique du bucket"
+ * **Viewer protocol policy:** "Rediriger vers HTTPS"
+ * **Default root object:** `index.html`
+
+Cette configuration bloquera l'accès à votre bucket S3 depuis l'Internet public et servira votre site web en utilisant le réseau CDN mondial. Vous pouvez trouver l'URL de votre distribution CloudFront dans **Distributions > Domain name** du bucket.
+
+### Configuration des fonctions CloudFront
+
+Malheureusement, CloudFront ne supporte pas le routage multi-pages `sous-dossier/index` par défaut. Pour le configurer, nous allons utiliser CloudFront Functions pour diriger la requête vers l'objet désiré dans S3.
+
+1. Créez une nouvelle fonction CloudFront avec l'extrait de code suivant. Vous pouvez trouver les fonctions CloudFront dans **CloudFront > Functions**.
+
+ ```js
+ function handler(event) {
+   var request = event.request;
+   var uri = request.uri;
+
+   // Vérifie s'il manque un nom de fichier à l'URI.
+   if (uri.endsWith('/')) {
+     request.uri += 'index.html';
+   } 
+   // Vérifie s'il manque une extension de fichier à l'URI.
+   else if (!uri.includes('.')) {
+     request.uri += '/index.html';
+   }
+
+   return request;
+ }
+    ```
+  2. Attachez votre fonction à la distribution CloudFront. Vous trouverez cette option dans les **Settings > Behaviors > Edit > Function** de votre distribution CloudFront.
+   * **Viewer request - Function type:** Fonction CloudFront.
+   * **Viewer request - Function ARN:** Sélectionnez la fonction que vous avez créée à l'étape précédente.
+
+## Déploiement continu avec GitHub Actions
+
+Il existe de nombreuses façons de mettre en place un déploiement continu pour AWS. Une possibilité pour le code hébergé sur GitHub est d'utiliser [GitHub Actions](https://github.com/features/actions) pour déployer votre site web à chaque fois que vous poussez un commit.
+
+1. Créez une nouvelle politique dans votre compte AWS en utilisant [IAM](https://aws.amazon.com/iam/) avec les permissions suivantes. Cette politique vous permettra de télécharger des fichiers construits dans votre bucket S3 et d'invalider les fichiers de distribution CloudFront lorsque vous poussez un commit.
+
+ ```json
+ {
+   "Version": "2012-10-17",
+   "Statement": [
+       {
+           "Sid": "VisualEditor0",
+           "Effect": "Allow",
+           "Action": [
+               "s3:PutObject",
+               "s3:ListBucket",
+               "s3:DeleteObject",
+               "cloudfront:CreateInvalidation"
+           ],
+           "Resource": [
+               "<DISTRIBUTION_ARN>",
+               "arn:aws:s3:::<BUCKET_NAME>/*",
+               "arn:aws:s3:::<BUCKET_NAME>"
+           ]
+       }
+   ]
+ }
+    ```
+
+:::caution
+N'oubliez pas de remplacer `<DISTRIBUTION_ARN>` et `<BUCKET_NAME>`. Vous pouvez trouver l'ARN dans **CloudFront > Distributions > Details**.
+:::
+
+2. Créez un nouvel utilisateur IAM et attachez la politique à l'utilisateur. Ceci fournira votre `AWS_SECRET_ACCESS_KEY` et `AWS_ACCESS_KEY_ID`.
+
+3. Add this sample workflow to your repository at `.github/workflows/deploy.yml` and push it to GitHub. You will need to add `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `BUCKET_ID`, and `DISTRIBUTION_ID` as “secrets” to your repository on GitHub under **Settings** > **Secrets** > **Actions**. Click <kbd>New repository secret</kbd> to add each one.
+
+ ```yaml
+ name: Déployer le site web
+
+ on:
+   push:
+     branches:
+       - main
+
+ jobs:
+   deploy:
+     runs-on: ubuntu-latest
+     steps:
+       - name: Checkout
+         uses: actions/checkout@v3
+       - name: Configure AWS Credentials
+         uses: aws-actions/configure-aws-credentials@v1
+         with:
+           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+           aws-region: us-east-1
+       - name: Install modules
+         run: npm ci
+       - name: Build application
+         run: npm run build
+       - name: Deploy to S3
+         run: aws s3 sync --delete ./dist/ s3://${{ secrets.BUCKET_ID }}
+       - name: Create CloudFront invalidation
+         run: aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+    ```
+
+:::note
+Votre `BUCKET_ID` est le nom de votre bucket S3. Votre `DISTRIBUTION_ID` est l'ID de votre distribution CloudFront. Vous pouvez trouver votre ID de distribution CloudFront dans **CloudFront > Distributions > ID**
+:::
