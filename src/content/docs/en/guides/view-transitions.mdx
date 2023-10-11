@@ -268,18 +268,71 @@ Links with the `data-astro-reload` attribute will be ignored by the router and a
 
 ### Trigger navigation
 
-You can also trigger client-side navigation via events not normally listened to by the `<ViewTransitions />` router using `navigate`. This method from the `astro:transitions/client` module is available in any client script or client component.
+You can also trigger client-side navigation via events not normally listened to by the `<ViewTransitions />` router using `navigate`. This function from the `astro:transitions/client` module can be used in scripts, and in framework components that are hydrated with a [client directive](/en/reference/directives-reference/#client-directives).
 
-The following example shows using an option selected by a site visitor to trigger navigation: 
+The following example shows an Astro component that navigates a visitor to another page they select from a menu:
+```astro title="src/components/form.astro"
+<script>
+    import { navigate } from 'astro:transitions/client';
 
-```js title="form.js" "navigate(href)"
+    // Navigate to the selected option automatically.
+    document.querySelector('select').onchange = (ev) => {
+        let href = ev.target.value;
+        navigate(href);
+    };
+</script>
+<select>
+    <option value="/play">Play</option>
+    <option value="/blog">Blog</option>
+    <option value="/about">About</option>
+    <option value="/contact">Contact</option>
+</select>
+```
+```astro title="src/pages/index.astro"
+---
+import Form from "../components/form.astro"
+import { ViewTransitions } from "astro:transitions";
+---
+<html>
+	<head>
+		<ViewTransitions />
+	</head>
+	<body>
+		<Form />
+	</body>
+</html>
+```
+
+The following example implements the same using `navigate()` in a React `<Form />` component:
+
+```js title="src/components/form.jsx"
+import React from 'react';
 import { navigate } from 'astro:transitions/client';
 
-// Navigate to the selected option automatically.
-document.querySelector('select').onchange = (ev) => {
-  let href = ev.target.value;
-  navigate(href);
-};
+export default function ClickToNavigate({ to }) {
+  return <select onChange={(ev) => navigate(e.target.value)}>
+    <option value="/play">Play</option>
+    <option value="/blog">Blog</option>
+    <option value="/about">About</option>
+    <option value="/contact">Contact</option>
+  </select>;
+}
+```
+The `<Form />` component can then be rendered on an Astro page that uses the `<ViewTransitions />` router, with a client directive:
+
+```astro title="src/pages/index.astro"
+---
+import Form from "../components/form.jsx"
+import { ViewTransitions } from "astro:transitions";
+---
+<html>
+	<head>
+		<ViewTransitions />
+	</head>
+	<body>
+		<Form client:load />
+	</body>
+</html>
 ```
 
 The `navigate` method takes these arguments:
@@ -291,7 +344,7 @@ The `navigate` method takes these arguments:
 		- `'replace'`: the router will use `history.replaceState` to update the URL without adding a new entry into navigation.
 		- `'auto'` (default): the router will attempt `history.pushState`, but if the URL is not one that can be transitioned to, the current URL will remain with no changes to the browser history.
 
-For backward and forward navigation through the browser history, you can combine `navigate()` with the built-in `history.back()`, `history.forward()` and `history.go()` functions of the browser.
+For backward and forward navigation through the browser history, you can combine `navigate()` with the built-in `history.back()`, `history.forward()` and `history.go()` functions of the browser. If `navigate()` is called during the server-side render of your component, it has no effect.
 
 ### Replace entries in the browser history
 
