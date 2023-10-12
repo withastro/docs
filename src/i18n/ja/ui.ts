@@ -15,7 +15,7 @@ export default UIDictionary({
 	'leftSidebar.learnTab': '学習',
 	'leftSidebar.referenceTab': 'リファレンス',
 	'leftSidebar.viewInEnglish': '英語版で見る',
-	'leftSidebar.sponsoredBy': 'スポンサー：',
+	'leftSidebar.sponsoredBy': 'スポンサー',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': '目次',
 	'rightSidebar.onThisPage': '目次',
