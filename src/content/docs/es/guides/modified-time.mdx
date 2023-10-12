@@ -1,0 +1,144 @@
+---
+title: Agrega la hora de última modificación
+description: Crea un plugin de remark para agregar la hora de última modificación a tu Markdown y MDX
+i18nReady: true
+type: recipe
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+Aprende cómo construir un [plugin de remark](https://github.com/remarkjs/remark) que añade la hora de última modificación al frontmatter de tus archivos Markdown y MDX. Utiliza esta propiedad para mostrar la hora de modificación en tus páginas.
+
+## Receta
+
+1. Instala los paquetes auxiliares
+
+   Instala [`Day.js`](https://www.npmjs.com/package/dayjs) para modificar y formatear tiempos:
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+       ```shell
+       npm install dayjs
+       ```
+     </Fragment>
+     <Fragment slot="pnpm">
+       ```shell
+       pnpm install dayjs
+       ```
+     </Fragment>
+     <Fragment slot="yarn">
+       ```shell
+       yarn add dayjs
+       ```
+     </Fragment>
+   </PackageManagerTabs>
+
+2. Crea un Plugin de Remark
+
+   Este plugin utiliza `execSync` para ejecutar un comando de Git que devuelve la marca de tiempo del último commit en formato ISO 8601. Luego, esta marca de tiempo se agrega al frontmatter del archivo.
+
+     ```js title="remark-modified-time.mjs"
+     import { execSync } from "child_process";
+
+     export function remarkModifiedTime() {
+       return function (tree, file) {
+         const filepath = file.history[0];
+         const result = execSync(`git log -1 --pretty="format:%cI" ${filepath}`);
+         file.data.astro.frontmatter.lastModified = result.toString();
+       };
+     }
+     ```
+		<details>
+		<summary>Utilizando el sistema de archivos en lugar de Git</summary>
+
+        Aunque se recomienda utilizar Git para obtener la marca de tiempo de última modificación de un archivo, es posible utilizar el tiempo de modificación del sistema de archivos.
+     Este complemento utiliza `statSync` para obtener el `mtime` (tiempo de modificación) del archivo en formato ISO 8601. Luego, esta marca de tiempo se agrega al frontmatter del archivo.
+     
+     ```js title="remark-modified-time.mjs"
+     import { statSync } from "fs";
+
+     export function remarkModifiedTime() {
+       return function (tree, file) {
+         const filepath = file.history[0];
+         const result = statSync(filepath);
+         file.data.astro.frontmatter.lastModified = result.mtime.toISOString();
+       };
+     }
+     ```
+		</details>
+
+3. Añade el plugin a tu config
+
+   ```js title="astro.config.mjs"
+   import { defineConfig } from 'astro/config';
+   import { remarkModifiedTime } from './remark-modified-time.mjs';
+
+   export default defineConfig({
+     markdown: {
+       remarkPlugins: [remarkModifiedTime],
+     },
+   });
+   ```
+
+   Ahora, todos los documentos Markdown tendrán una propiedad `lastModified` en su frontmatter.
+
+4. Muestra la hora de última modificación
+
+   Si tu contenido está almacenado en una [colección de contenido](/es/guides/content-collections/), accede a `remarkPluginFrontmatter` desde la función `entry.render()`. Luego, renderiza `lastModified` en tu plantilla donde desees que aparezca.
+
+   ```astro title="src/pages/posts/[slug].astro" {3-4,6,17,19-21,28}
+   ---
+   import { CollectionEntry, getCollection } from 'astro:content';
+   import dayjs from "dayjs";
+   import utc from "dayjs/plugin/utc";
+
+   dayjs.extend(utc);
+
+   export async function getStaticPaths() {
+     const blog = await getCollection('blog');
+     return blog.map(entry => ({
+       params: { slug: entry.slug },
+       props: { entry },
+     }));
+   }
+
+   const { entry } = Astro.props;
+   const { Content, remarkPluginFrontmatter } = await entry.render();
+
+   const lastModified = dayjs(remarkPluginFrontmatter.lastModified)
+     .utc()
+     .format("HH:mm:ss DD MMMM YYYY UTC");
+   ---
+
+   <html>
+     <head>...</head>
+     <body>
+       ...
+       <p>Última modificación: {lastModified}</p>
+       ...
+     </body>
+   </html>
+   ```
+
+   Si estás utilizando un [diseño de Markdown](/es/guides/markdown-content/#páginas-de-markdown-y-mdx), utiliza la propiedad `lastModified` del frontmatter desde `Astro.props` en tu plantilla de diseño.
+
+   ```astro title="src/layouts/BlogLayout.astro" {2-3,5,7-9,15}
+   ---
+   import dayjs from "dayjs";
+   import utc from "dayjs/plugin/utc";
+
+   dayjs.extend(utc);
+
+   const lastModified = dayjs()
+     .utc(Astro.props.frontmatter.lastModified)
+     .format("HH:mm:ss DD MMMM YYYY UTC");
+   ---
+
+   <html>
+     <head>...</head>
+     <body>
+       <p>{lastModified}</p>
+       <slot />
+     </body>
+   </html>
+   ```
