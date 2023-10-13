@@ -1,0 +1,305 @@
+---
+title: TypeScript
+description: Astro에 내장된 TypeScript 지원을 사용하는 방법을 알아보세요.
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+Astro는 [TypeScript](https://www.typescriptlang.org/)에 대한 기본 지원을 제공합니다. Astro 프로젝트에 `.ts` 및 `.tsx` 파일을 가져올 수 있으며, [Astro 컴포넌트](/ko/core-concepts/astro-components/#컴포넌트-스크립트)에서 직접 TypeScript 코드를 작성할 수도 있습니다. 원한다면 [`astro.config.ts`](/ko/guides/configuring-astro/#the-astro-config-file) 파일을 사용해 구성 파일을 TypeScript로 작성할 수도 있습니다.
+
+TypeScript를 사용해 객체와 컴포넌트의 형태를 정의하여 런타임 오류를 방지할 수 있습니다. 예를 들어 TypeScript로 [컴포넌트 속성의 타입을 정의](#컴포넌트-속성)하면 컴포넌트가 허용하지 않는 속성을 전달했을 때 편집기에서 오류가 발생합니다.
+
+해당 기능을 사용하기 위해 Astro 프로젝트에서 TypeScript 코드를 작성할 필요는 없습니다. Astro는 항상 컴포넌트 코드를 TypeScript로 처리하며 [Astro VSCode 확장](/ko/editor-setup/)은 편집기에서 자동 완성, 힌트 및 오류를 제공하기 위해 최대한 많이 추론합니다.
+
+Astro 개발 서버는 타입 검사를 수행하지 않지만 명령줄에서 타입 오류를 검사하기 위해 [별도의 스크립트](#타입-검사)를 사용할 수 있습니다.
+
+## 설정
+
+Astro 시작 템플릿에는 `tsconfig.json` 파일이 포함되어 있습니다. 이 파일은 Astro 및 VS Code와 같은 도구가 프로젝트를 이해하는 방법을 제공하기 때문에 TypeScript 코드를 작성하지 않더라도 중요합니다. `tsconfig.json` 파일이 없으면 일부 기능(예: npm 패키지 가져오기)이 편집기에서 완전히 지원되지 않습니다. Astro를 수동으로 설치하면 이 파일을 직접 생성해야 합니다.
+
+Astro에는 확장 가능한 세 가지의 `tsconfig.json` 템플릿(`base`, `strict` 및 `strictest`)이 포함되어 있습니다. `base` 템플릿은 최신 JavaScript 기능을 지원하며 다른 템플릿의 기반으로도 사용됩니다. 프로젝트에 TypeScript를 작성하려는 경우 `strict` 또는 `strictest`를 사용하는 것이 좋습니다. [astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/)에서 세 가지 템플릿 구성을 보고 비교할 수 있습니다.
+
+템플릿 중 하나에서 상속하려면 [`extends` 설정](https://www.typescriptlang.org/tsconfig#extends)을 사용하세요.
+
+```json title="tsconfig.json"
+{
+  "extends": "astro/tsconfigs/base"
+}
+```
+
+또한, 시작 템플릿의 `src` 디렉터리에는 프로젝트에 [Vite 클라이언트 타입](https://ko.vitejs.dev/guide/features.html#client-types)을 제공하기 위한 `env.d.ts` 파일이 포함되어 있습니다.
+
+```typescript title="env.d.ts"
+/// <reference types="astro/client" />
+```
+
+VSCode를 사용하지 않는 경우 [Astro TypeScript 플러그인](https://www.npmjs.com/package/@astrojs/ts-plugin)을 설치하여 `.ts` 파일에서 `.astro` 파일을 가져올 수 있습니다. (다시 내보낼 때 유용할 수 있습니다.)
+
+
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @astrojs/ts-plugin
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm install @astrojs/ts-plugin
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/ts-plugin
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+그런 다음 `tsconfig.json`에 다음을 추가합니다.
+
+```json title="tsconfig.json"
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "@astrojs/ts-plugin"
+      },
+    ],
+  }
+```
+
+플러그인이 작동하는지 확인하려면 `.ts` 파일을 생성하고 Astro 컴포넌트를 해당 파일로 가져옵니다. 편집기에서 경고가 발생하지 않아야합니다.
+
+### UI 프레임워크
+
+프로젝트에서 [UI 프레임워크](/ko/core-concepts/framework-components/)를 사용하는 경우 사용하는 프레임워크에 따라 추가 설정이 필요할 수 있습니다. 자세한 내용은 프레임워크의 TypeScript 문서를 참조하세요. ([Vue](https://ko.vuejs.org/guide/typescript/overview.html#using-vue-with-typescript), [React](https://react-typescript-cheatsheet.netlify.app/docs/basic/setup), [Preact](https://preactjs.com/guide/v10/typescript/), [Solid](https://www.solidjs.com/guides/typescript))
+
+## 타입 가져오기
+
+가능하면 명시적인 타입 가져오기 및 내보내기를 사용하세요.
+
+```js del={1} ins={2} ins="type"
+import { SomeType } from './script';
+import type { SomeType } from './script';
+```
+
+이 방법을 통해 Astro 번들러가 타입을 JavaScript로 잘못 판단하여 번들링하는 극단적인 상황을 피할 수 있습니다.
+
+타입 가져오기를 강제하도록 TypeScript를 구성하기 위해 `tsconfig` 파일에서 [`verbatimModuleSyntax`](https://www.typescriptlang.org/tsconfig#verbatimModuleSyntax)를 `true`로 설정할 수 있습니다.
+
+TypeScript는 가져오기를 확인하고 `import type`을 사용해야 하는 시기를 알려줍니다. 이 설정은 기본적으로 활성화되어 있습니다.
+
+```json title="tsconfig.json" ins={3}
+{
+  "compilerOptions": {
+    "verbatimModuleSyntax": true
+  }
+}
+```
+
+## 가져오기 별칭
+
+Astro는 `tsconfig.json` 및 `jsconfig.json`의 `paths` 구성에서 설정할 수 있는 [가져오기 별칭](/ko/guides/aliases/)을 지원합니다. 자세한 내용은 [가이드](/ko/guides/aliases/)를 확인하세요.
+
+```astro title="src/pages/about/nate.astro" "@components" "@layouts"
+---
+import HelloWorld from '@components/HelloWorld.astro';
+import Layout from '@layouts/Layout.astro';
+---
+```
+
+```json title="tsconfig.json" {5-6}
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@components/*": ["src/components/*"],
+      "@layouts/*": ["src/layouts/*"]
+    }
+  }
+}
+```
+
+## `window` 및 `globalThis` 확장
+
+`env.d.ts` 파일에서 `declare` 키워드를 사용해 최상위 선언을 추가하여 전역 객체에 속성을 추가할 수 있습니다.
+
+```ts title="env.d.ts"
+declare const myString: string;
+declare function myFunction(): boolean;
+```
+
+그러면 `globalThis.myString` 및 `globalThis.myFunction`은 물론 `window.myString` 및 `window.myFunction`에 대한 타입이 제공됩니다.
+
+`window`는 클라이언트 측 코드에서만 사용할 수 있습니다. `globalThis`는 서버 측과 클라이언트 측 모두에서 사용할 수 있지만 해당 서버 측 값은 클라이언트와 공유되지 않습니다.
+
+`window` 객체의 속성에만 타입을 추가하려면 대신 `Window` 인터페이스를 사용하세요.
+
+```ts title="env.d.ts"
+interface Window {
+  myFunction(): boolean;
+}
+```
+
+## 컴포넌트 속성
+
+Astro는 TypeScript를 통해 컴포넌트 속성 타입을 지원합니다. 활성화하려면 컴포넌트 프론트매터에 TypeScript `Props` 인터페이스를 추가하세요. `export`를 사용할 수 있지만 반드시 필요한 것은 아닙니다. [Astro VSCode 확장](/ko/editor-setup/)은 템플릿에서 컴포넌트를 사용할 때 스스로 `Props` 인터페이스를 찾아 적절한 TypeScript 지원을 제공합니다.
+
+```astro title="src/components/HelloProps.astro" ins={2-5}
+---
+interface Props {
+  name: string;
+  greeting?: string;
+}
+const { greeting = 'Hello', name } = Astro.props;
+---
+<h2>{greeting}, {name}!</h2>
+```
+
+### 일반적인 속성 타입 패턴
+
+- 컴포넌트에 속성이나 슬롯 콘텐츠가 전달되지 않는 경우, `type Props = Record<string, never>`를 사용할 수 있습니다.
+
+- 컴포넌트의 기본 슬롯에 children이 전달되어야 하는 경우 `type Props = { children: any; };`를 사용하여 타입을 강제할 수 있습니다.
+
+## 타입 유틸리티
+
+<Since v="1.6.0" />
+
+Astro에는 일반적인 속성 타입 패턴을 위한 몇 가지 내장 유틸리티 타입이 함께 제공됩니다. 이는 `astro/types` 패키지에서 가져와 사용할 수 있습니다.
+
+### 내장 HTML 속성
+
+Astro는 마크업이 유효한 HTML 속성을 사용하고 있는지 확인하기 위한 `HTMLAttributes` 타입을 제공합니다. 이러한 타입을 사용하면 컴포넌트 속성을 만드는 데 도움이 될 수 있습니다.
+
+예를 들어 `<Link>` 컴포넌트를 만드는 경우, 다음을 수행하여 컴포넌트의 속성 타입에 `<a>` 태그의 기본 HTML 속성을 그대로 가져와 사용할 수 있습니다.
+
+```astro title="src/components/Link.astro" ins="HTMLAttributes" ins="HTMLAttributes<'a'>"
+---
+import type { HTMLAttributes } from 'astro/types'
+// `type`을 사용합니다.
+type Props = HTMLAttributes<'a'>;
+// 또는 `interface`를 사용해 상속합니다.
+interface Props extends HTMLAttributes<'a'> {
+  myProp?: boolean;
+}
+const { href, ...attrs } = Astro.props;
+---
+<a href={href} {...attrs}>
+  <slot />
+</a>
+```
+
+`.d.ts` 파일에서 `astroHTML.JSX` 네임스페이스를 재선언하여 비표준 속성을 추가하기 위해 기본 JSX 정의를 확장하는 것도 가능합니다.
+
+```ts
+// src/custom-attributes.d.ts
+
+declare namespace astroHTML.JSX {
+  interface HTMLAttributes {
+    'data-count'?: number;
+    'data-label'?: string;
+  }
+}
+```
+
+:::note
+`astroHTML`은 `.astro` 컴포넌트에 전역적으로 주입됩니다. TypeScript 파일에서 사용하려면 [삼중 슬래시 지시어](https://www.typescriptlang.org/docs/handbook/triple-slash-directives.html)를 사용하세요.
+
+```ts
+/// <reference types="astro/astro-jsx" />
+
+type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
+```
+
+:::
+
+### 다형성 타입
+
+<Since v="2.5.0" />
+
+Astro에는 다양한 HTML 요소로 렌더링될 수 있는 완전한 타입 안정성을 갖춘 컴포넌트를 보다 쉽게 ​​만들 수 있도록 도와주는 도우미가 포함되어 있습니다. 이는 전달된 속성에 따라 `<a>` 또는 `<button>`으로 렌더링될 수 있는 `<Link>`와 같은 컴포넌트에 유용합니다.
+
+아래 예시는 완전한 타입 안정성을 갖추었으며 모든 HTML 요소로 렌더링될 수 있는 컴포넌트를 구현합니다. [`HTMLTag`](#내장-html-속성) 타입은 `as` 속성이 유효한 HTML 요소인지 확인하는 데 사용됩니다.
+
+```astro
+---
+import { HTMLTag, Polymorphic } from 'astro/types';
+
+type Props<Tag extends HTMLTag> = Polymorphic<{ as: Tag }>;
+
+const { as: Tag, ...props } = Astro.props;
+---
+
+<Tag {...props} />
+```
+
+### `getStaticPaths()` 타입 추론
+
+<Since v="2.1.0" />
+
+Astro에는 동적 경로를 생성하기 위해 사용되는 [`getStaticPaths()`](/ko/reference/api-reference/#getstaticpaths) 함수에서 반환된 타입에 사용할 수 있는 도우미가 포함되어 있습니다.
+
+`InferGetStaticParamsType`를 사용하여 [`Astro.params`](/ko/reference/api-reference/#astroparams)의 타입을 얻을 수 있으며, `InferGetStaticPropsType`를 사용하여 [`Astro.props`](/ko/reference/api-reference/#astroprops)의 타입을 얻을 수 있습니다.
+
+```astro title="src/pages/posts/[...slug].astro" {2,14-15}
+---
+import { InferGetStaticParamsType, InferGetStaticPropsType, GetStaticPaths } from 'astro';
+
+export const getStaticPaths = (async () => {
+  const posts = await getCollection('blog');
+  return posts.map((post) => {
+    return {
+      params: { slug: post.slug },
+      props: { draft: post.data.draft, title: post.data.title },
+    };
+  });
+}) satisfies GetStaticPaths;
+
+type Params = InferGetStaticParamsType<typeof getStaticPaths>;
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { slug } = Astro.params as Params;
+//               			 ^? { slug: string; }
+const { title } = Astro.props;
+//                			^? { draft: boolean; title: string; }
+---
+```
+
+## 타입 검사
+
+편집기에서 타입 오류를 확인하려면 [Astro VS Code 확장](/ko/editor-setup/)이 설치되어 있는지 확인하세요. `astro start` 및 `astro build` 명령은 esbuild를 사용하여 코드를 트랜스파일하지만 타입 검사는 실행하지 않습니다. TypeScript 오류가 포함된 코드가 빌드되지 않도록 하려면 `package.json`의 `build` 스크립트를 다음과 같이 변경하세요.
+
+```json title="package.json" del={2} ins={3} ins="astro check &&"
+  "scripts": {
+    "build": "astro build",
+    "build": "astro check && astro build",
+  },
+```
+
+:::note
+`astro check`는 TypeScript 프로젝트에 포함된 모든 파일을 확인합니다. Svelte 및 Vue 파일의 타입을 검사하려면 [`svelte-check`](https://www.npmjs.com/package/svelte-check) 및 [`vue-tsc`](https://www.npmjs.com/package/vue-tsc) 패키지를 사용할 수 있습니다.
+:::
+
+📚 자세한 내용은 Astro에서 [`.ts` 파일 가져오기](/ko/guides/imports/#typescript)를 확인하세요.
+
+📚 자세한 내용은 [TypeScript 구성](https://www.typescriptlang.org/tsconfig/)을 확인하세요.
+
+## 문제 해결
+
+### 여러 JSX 프레임워크를 동시에 사용할 때 발생하는 타입 오류
+
+동일한 프로젝트에서 여러 JSX 프레임워크를 사용할 때 문제가 발생할 수 있습니다. 각 프레임워크는 가끔 충돌하는 서로 다른 `tsconfig.json` 설정이 필요하기 때문입니다.
+
+**해결**: 사용하는 프레임워크에 맞게 [`jsxImportSource` 설정](https://www.typescriptlang.org/tsconfig#jsxImportSource)을 `react`(기본값), `preact` 또는 `solid-js`로 설정합니다. 그리고 충돌하는 각각의 파일에 [pragma 주석](https://www.typescriptlang.org/docs/handbook/jsx.html#configuring-jsx)을 사용하세요.
+
+기본 설정인 `jsxImportSource: react`의 경우 다음과 같이 사용합니다.
+
+```jsx
+// Preact에 설정
+/** @jsxImportSource preact */
+
+// Solid에 설정
+/** @jsxImportSource solid-js */
+```
