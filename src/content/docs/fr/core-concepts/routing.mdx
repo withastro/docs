@@ -220,6 +220,73 @@ const { title, text } = page;
 </body>
 </html>
 ```
+## Redirections
+
+Parfois, vous devrez rediriger vos lecteurs vers une nouvelle page, soit de manière permanente parce que la structure de votre site a changé, soit en réponse à une action telle que la connexion à une route authentifiée.
+
+Vous pouvez définir des règles pour [rediriger les utilisateurs vers des pages déplacées de façon permanente](#redirections-configurées) dans votre configuration Astro. Ou [rediriger les utilisateurs dynamiquement](#redirections-dynamiques) au fur et à mesure qu'ils utilisent votre site.
+
+### Redirections configurées
+<Since v="2.9.0" />
+
+Vous pouvez spécifier une correspondance de redirections permanentes dans votre configuration Astro avec la valeur `redirects`. Pour la plupart des redirections, il s'agit d'une correspondance entre l'ancienne et la nouvelle route :
+
+```js title="astro.config.mjs" {4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  redirects: {
+    '/ancienne-page': '/nouvelle-page'
+  }
+});
+```
+
+Ces redirections suivent les mêmes règles que les routes basées sur des fichiers. Les routes dynamiques sont autorisées tant que les nouvelles et les anciennes routes contiennent les mêmes paramètres, par exemple :
+
+```js
+{
+  "/blog/[...slug]": "/articles/[...slug]"
+}
+```
+
+En utilisant SSR ou un adaptateur statique, vous pouvez également fournir un objet comme valeur, ce qui vous permet de spécifier le code `status` en plus de la nouvelle `destination` :
+
+```js title="astro.config.mjs" {5-8}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  redirects: {
+    '/ancienne-page': {
+      status: 302,
+      destination: '/nouvelle-page'
+    }
+  }
+});
+```
+
+Lors de l'exécution de `astro build`, Astro produira des fichiers HTML avec la balise [meta refresh](https://developer.mozilla.org/fr-FR/docs/Web/HTML/Element/meta#examples) par défaut. Les adaptateurs supportés écriront à la place le fichier de configuration de l'hôte avec les redirections.
+
+Le code de statut est `301` par défaut. Si l'on construit des fichiers HTML, le code de statut n'est pas utilisé par le serveur.
+
+### Redirections Dynamiques
+
+Globalement sur `Astro`, la méthode `Astro.redirect` vous permet de rediriger vers une autre page dynamiquement. Vous pouvez le faire après avoir vérifié que l'utilisateur est connecté en récupérant sa session à partir d'un cookie.
+
+```astro title="src/pages/account.astro" {8}
+---
+import { isLoggedIn } from '../utils';
+
+const cookie = Astro.request.headers.get('cookie');
+
+// Si l'utilisateur n'est pas connecté, le rediriger vers la page de connexion.
+if (!isLoggedIn(cookie)) {
+  return Astro.redirect('/login');
+}
+---
+<html>
+  <!-- Page ici... -->
+</html>
+```
 
 ## Ordre de Priorité des Routes
 
