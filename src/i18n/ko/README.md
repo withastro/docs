@@ -56,7 +56,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 잘못된 번역을 발견했거나 새로운 번역을 추가하고 싶다면 PR을 보내주세요!
 
-> `Markdown`, `Astro`, `TypeScript` 등 기술의 고유한 이름은 한글로 번역하지 않습니다.
+> `Markdown`, `Astro`, `TypeScript`, `React` 등 회사명, 제품명과 같은 고유한 이름은 한글로 번역하지 않습니다.
 
 | 원문                | 번역          | 비고 |
 | :------------------ | :------------ | :--- |
