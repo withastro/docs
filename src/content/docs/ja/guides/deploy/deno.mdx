@@ -1,0 +1,175 @@
+---
+title: AstroサイトをDenoにデプロイする
+description: Denoを使ってAstroサイトのウェブへのデプロイする方法。
+type: deploy
+i18nReady: true
+---
+
+サーバサイドでレンダリングしたAstroサイトを、JavaScript、TypeScript、WebAssemblyをエッジで実行する分散システムである[Deno Deploy](https://deno.com/deploy)に、世界中にデプロイすることができます。
+
+このガイドには、GitHub Actions または Deno Deploy の CLI を使用して Deno Deploy にデプロイする手順が含まれています。
+
+## 必要条件
+
+このガイドは、すでに[Deno](https://deno.land/)がインストールされていることを前提としています。
+
+## プロジェクト構成
+
+Astroプロジェクトは、サーバーサイドレンダリングサイト（SSR）として[Deno Deploy](https://deno.com/deploy)にデプロイすることができます。Deno Deployは静的サイトをサポートしていません。
+
+### SSR用アダプター
+
+AstroプロジェクトでSSRを有効にし、Deno Deployでデプロイします。
+
+以下の `astro add` コマンドで、AstroプロジェクトにSSRを有効にするための[Denoアダプター][Denoアダプター]を追加します。これでアダプターがインストールされ、`astro.config.mjs` ファイルに適切な変更が加えられます。
+
+```bash
+npx astro add deno
+```
+
+アダプターを手動でインストールする場合は、以下の2つのステップを実行してください。
+
+1. お好みのパッケージマネージャを使用して、[`@astrojs/deno`アダプター][Denoアダプター] をプロジェクトの依存関係にインストールします。npmを使用している、またはよくわからない場合は、ターミナルでこれを実行します。
+
+    ```bash
+      npm install @astrojs/deno
+    ```
+
+1. プロジェクトの設定ファイル `astro.config.mjs` を以下のように変更します。
+
+    ```js ins={3,6-7}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import deno from '@astrojs/deno';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: deno(),
+    });
+    ```
+
+    次に、`package.json` の `preview` スクリプトを以下のように変更します。
+
+    ```json del={8} ins={9}
+    // package.json
+    {
+      // ...
+      "scripts": {
+        "dev": "astro dev",
+        "start": "astro dev",
+        "build": "astro build",
+        "preview": "astro preview"
+        "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs"
+      }
+    }
+    ```
+
+    このコマンドを使用して、本番のAstroサイトをローカルでDenoを使ってプレビューすることができます。
+
+    ```bash
+    npm run preview
+    ```
+
+## デプロイ方法
+
+GitHubアクション、またはDeno DeployのCLI（コマンドラインインターフェイス）を使用して、Deno Deployにデプロイすることができます。
+
+### GitHub Actionsのデプロイメント
+
+プロジェクトがGitHubに保存されている場合は、[Deno Deploy website](https://dash.deno.com/)を参照して、GitHub Actionsを設定してAstroサイトをデプロイしてください。
+
+1. 公開または非公開のGitHubリポジトリにコードをプッシュする。
+
+1. GitHubアカウントで[Deno Deploy](https://dash.deno.com/)にサインインし、[New Project](https://dash.deno.com)をクリックします。
+
+1. リポジトリとデプロイ元のブランチを選択し、**GitHub Action**モードを選択します。(Astroサイトではビルドステップが必要なため、自動モードは使用できません)。
+
+1. Astro プロジェクトで、`.github/workflows/deploy.yml` に新しいファイルを作成し、以下の YAML を貼り付けます。これは Deno Deploy が提供する YAML と似ていますが、Astro サイトに必要なステップが追加されています。
+
+    ```yaml
+    name: Deploy
+    on: [push]
+
+    jobs:
+      deploy:
+        name: Deploy
+        runs-on: ubuntu-latest
+        permissions:
+          id-token: write # Deno Deploy での認証に必要です。
+          contents: read # リポジトリのクローンに必要です。
+
+        steps:
+          - name: Clone repository
+            uses: actions/checkout@v3
+
+          # npmを使用していない場合は、`npm ci` を `yarn install` または `pnpm i` に変更してください。
+          - name: Install dependencies
+            run: npm ci
+
+          # npmを使用していない場合は、`npm run build` を `yarn build` または `pnpm run build` に変更してください。
+          - name: Build Astro
+            run: npm run build
+
+          - name: Upload to Deno Deploy
+            uses: denoland/deployctl@v1
+            with:
+              project: my-deno-project # TODO: replace with Deno Deploy project name
+              entrypoint: server/entry.mjs
+              root: dist
+    ```
+
+1. このYAMLファイルをコミットし、設定したdeployブランチのGitHubにプッシュすると、自動的にdeployが始まるはずです！
+
+   GitHub リポジトリページの「Actions」タブ、または[Deno Deploy](https://dash.deno.com)で進捗を確認できます。
+
+
+### CLI デプロイメント
+
+1. [Deno Deploy CLI](https://deno.com/deploy/docs/deployctl)をインストールする。
+
+    ```bash
+    deno install --allow-read --allow-write --allow-env --allow-net --allow-run --no-check -r -f https://deno.land/x/deploy/deployctl.ts
+    ```
+
+1. Astroビルドステップを実行する。
+
+    ```bash
+    npm run build
+    ```
+
+1. deployctl`を実行してデプロイする！
+
+   以下のコマンドでは、`<ACCESS-TOKEN>` を [Personal Access Token](https://dash.deno.com/user/access-tokens) に、`<MY-DENO-PROJECT>` を Deno Deploy のプロジェクト名に置き換えてください。
+
+    ```bash
+    DENO_DEPLOY_TOKEN=<ACCESS-TOKEN> deployctl deploy --project=<MY-DENO-PROJECT> --no-static --include=./dist ./dist/server/entry.mjs
+    ```
+
+    [Deno Deploy](https://dash.deno.com)ですべてのデプロイを追跡できます。
+
+1.（オプション）ビルドとデプロイを1つのコマンドに簡素化するには、`package.json`に`deploy-deno`スクリプトを追加する。
+
+    ```json ins={9}
+    // package.json
+    {
+      // ...
+      "scripts": {
+        "dev": "astro dev",
+        "start": "astro dev",
+        "build": "astro build",
+        "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs",
+        "deno-deploy": "npm run build && deployctl deploy --project=<MY-DENO-PROJECT> --no-static --include=./dist ./dist/server/entry.mjs"
+      }
+    }
+    ```
+
+    その後、このコマンドを使用して、ワンステップでAstroサイトをビルドし、デプロイすることができます。
+
+    ```bash
+    DENO_DEPLOY_TOKEN=<ACCESS-TOKEN> npm run deno-deploy
+    ```
+
+
+📚 [SSR in Astro](/ja/guides/server-side-rendering/)についてもっと読む。
+
+[Denoアダプター]: https://github.com/denoland/deno-astro-adapter
