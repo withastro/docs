@@ -1,0 +1,258 @@
+---
+title: AstroサイトをAWSにデプロイする
+description: AWSを使ってアストロサイトをウェブにデプロイする方法。
+type: deploy
+i18nReady: true
+---
+
+[AWS](https://aws.amazon.com/)は、Astroサイトのデプロイに使用できる、機能豊富なウェブアプリホスティングプラットフォームです。
+
+プロジェクトをAWSにデプロイするには、[AWSコンソール](https://aws.amazon.com/console/)を使用する必要があります。(これらのアクションのほとんどは、[AWS CLI](https://aws.amazon.com/cli/) を使用しても実行できます)。このガイドでは、最も基本的な方法から始めて、AWS にサイトをデプロイする手順を説明します。その後、コスト効率とパフォーマンスを向上させるための追加サービスをデモンストレーションします。
+
+## AWS Amplify
+
+AWS Amplifyは、フロントエンドのWebおよびモバイル開発者がAWS上で迅速かつ容易にフルスタックアプリケーションを構築できるようにする、目的に応じたツールと機能のセットです。
+
+1. 新しいAmplify Hostingプロジェクトを作成します。
+2. リポジトリをAmplifyに接続します。
+3. ビルド出力ディレクトリ `baseDirectory` を `/dist` に変更します。
+
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          # npmを使用していない場合は、npm ci` を `yarn install` または `pnpm i` に変更してください。
+          commands:
+            - npm ci
+        build:
+          commands:
+            - npm run build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    ```
+
+`pnpm` を使用する場合は、`node_modules` の代わりに pnpm store ディレクトリをキャッシュするために、設定を変更する必要があります。以下は推奨のビルド設定です.
+
+
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm i -g pnpm
+            - pnpm config set store-dir .pnpm-store
+            - pnpm i
+        build:
+          commands:
+            - pnpm run build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - .pnpm-store/**/*
+    ```
+
+Amplifyは、あなたがリポジトリにコミットをプッシュすると、自動的にあなたのウェブサイトをデプロイし、更新します。
+
+## S3での静的ウェブサイトホスティング
+
+S3はあらゆるアプリケーションの出発点です。プロジェクトファイルやその他のアセットが保存されます。S3はファイルの保存とリクエスト数に対して課金されます。S3についての詳細は[AWS documentation](https://aws.amazon.com/s3/)を参照してください。
+
+1. プロジェクト名でS3バケットを作成する。
+
+    :::tip
+    バケット名はグローバルに一意でなければなりません。プロジェクト名とサイトのドメイン名の組み合わせをお勧めします。
+    :::
+
+2. **"すべてのパブリックアクセスをブロックする"**を無効にします。デフォルトでは、AWS はすべてのバケットを非公開に設定しています。公開するには、バケットのプロパティにある「Block public access」のチェックを外す必要があります。
+
+3. `dist`にあるビルドしたファイルをS3にアップロードします。これは、コンソールで手動で行うか、AWS CLIを使用して行うことができます。AWS CLIを使用する場合は、[AWS認証情報で認証](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html)の後に、以下のコマンドを使用できます。
+
+    ```
+    aws s3 cp dist/ s3://<BUCKET_NAME>/ --recursive
+    ```
+
+4. パブリックアクセスを許可するために、バケットポリシーを更新します。この設定は、バケットの**アクセス許可 > バケットポリシー**にあります。
+
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "PublicReadGetObject",
+          "Effect": "Allow",
+          "Principal": "*",
+          "Action": "s3:GetObject",
+          "Resource": "arn:aws:s3:::<BUCKET_NAME>/*"
+        }
+      ]
+    }
+    ```
+
+    :::caution
+    `<BUCKET_NAME>`を自分のバケット名に置き換えることを忘れないでください。
+    :::
+
+5. Bucketの Webサイトホスティングを有効にします。この設定は、バケットの**プロパティ > 静的ウェブサイトホスティング**にあります。インデックスドキュメントを `index.html` に、エラードキュメントを `404.html` に設定します。最後に、バケットの**プロパティ > 静的ウェブサイトホスティング**に、新しいウェブサイトの URL を設定します。
+
+    :::note
+    シングルページアプリケーション (SPA) をデプロイする場合は、エラードキュメントを `index.html` に設定してください。
+    :::
+
+## S3とCloudFront
+
+CloudFrontは、コンテンツ・デリバリー・ネットワーク（CDN）機能を提供するウェブサービスです。ウェブサーバーのコンテンツをキャッシュし、エンドユーザーに配信するために使用されます。CloudFrontは転送されたデータ量に応じて課金されます。CloudFrontをS3バケットに追加することで、より費用対効果が高く、より高速な配信が可能になります。
+
+CloudFrontを使用してS3バケットをラップし、AmazonグローバルCDNネットワークを使用してプロジェクトのファイルを提供します。これにより、プロジェクトのファイルを提供するコストが削減され、サイトのパフォーマンスが向上します。
+
+### S3のセットアップ
+
+1. プロジェクト名でS3バケットを作成します。
+
+    :::tip
+    バケット名はグローバルに一意でなければなりません。プロジェクト名とサイトのドメイン名の組み合わせをお勧めします。
+    :::
+2. `dist` にあるビルドしたファイルをS3にアップロードします。これは、コンソールで手動で行うか、AWS CLIを使用して行うことができます。AWS CLIを使用する場合は、[AWS認証情報で認証](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html)した後に、以下のコマンドを使用します。
+
+    ```
+    aws s3 cp dist/ s3://<BUCKET_NAME>/ --recursive
+    ```
+
+3. バケットポリシーを更新し、**CloudFront Access**を許可します。この設定は、バケットの**Permissions > Bucket policy**にあります。
+
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [{
+        "Effect": "Allow",
+        "Principal": {
+          "AWS": "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity <CLOUDFRONT_OAI_ID>"
+        },
+        "Action": "s3:GetObject",
+        "Resource": "arn:aws:s3:::astro-aws/*"
+      }]
+    }
+    ```
+
+    :::caution
+    `<CLOUDFRONT_OAI_ID>` をCloudFront Origin Access Identity IDの名前に置き換えることを忘れないでください。CloudFrontのオリジンアクセスアイデンティティIDは、CloudFrontの設定後に**CloudFront > Origin access identities**で確認できます。
+    :::
+
+### CloudFrontのセットアップ
+
+1. 以下の値でCloudFrontディストリビューションを作成します：
+    * **オリジンドメイン：** 作成したS3バケット
+    * **S3バケットへのアクセス：** "OAIを使用する（バケットはCloudFrontのみにアクセスを制限できる）"
+    * **オリジンアクセスアイデンティティ：** 新しいOAIを作成
+    * **ビューワーバケットポリシー：** "いいえ、バケット・ポリシーを更新します。"
+    * **ビューワープロトコルポリシー：** "Redirect to HTTPS"
+    * **デフォルトルートオブジェクト：** `index.html`
+
+この設定は、パブリックインターネットからのS3バケットへのアクセスをブロックし、グローバルCDNネットワークを使用してサイトを提供します。CloudFrontの配信URLは、バケットの**Distributions > Domain name**で確認できます。
+
+### CloudFront Functions setup
+
+残念ながら、CloudFrontはデフォルトでは複数ページの `sub-folder/index` ルーティングをサポートしていません。これを設定するには、CloudFront Functionsを使ってリクエストをS3の目的のオブジェクトに向ける必要があります。
+
+1. 以下のコードスニペットで新しいCloudFront関数を作成します。CloudFront関数は**CloudFront > 関数**にあります。
+
+    ```js
+    function handler(event) {
+      var request = event.request;
+      var uri = request.uri;
+
+      // URIにファイル名がないかチェックする。
+      if (uri.endsWith('/')) {
+        request.uri += 'index.html';
+      }
+      // URIにファイル拡張子がないかチェックする。
+      else if (!uri.includes('.')) {
+        request.uri += '/index.html';
+      }
+
+      return request;
+    }
+    ```
+2. CloudFrontディストリビューションに関数をアタッチします。このオプションは、CloudFrontディストリビューションの**設定 > ビヘイビア > 編集 > 関数**関連で見つけることができます。
+    * **ビューワーリクエスト - 関数タイプ：** CloudFrontの関数。
+    * **ビューワーリクエスト - 関数 ARN：** 前のステップで作成した機能を選択します。
+
+## GitHubアクションによる継続的デプロイメント
+
+AWSの継続的デプロイを設定する方法はたくさんある。GitHub 上でホストされているコードの場合、[GitHub Actions](https://github.com/features/actions) を使ってコミットをプッシュするたびにウェブサイトをデプロイする方法があります。
+
+1. AWSアカウントで[IAM](https://aws.amazon.com/iam/)を使って、以下の権限で新しいポリシーを作成します。このポリシーによって、ビルドしたファイルをS3バケットにアップロードしたり、コミットをプッシュしたときにCloudFrontの配布ファイルを無効にしたりできるようになります。
+
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+          {
+              "Sid": "VisualEditor0",
+              "Effect": "Allow",
+              "Action": [
+                  "s3:PutObject",
+                  "s3:ListBucket",
+                  "s3:DeleteObject",
+                  "cloudfront:CreateInvalidation"
+              ],
+              "Resource": [
+                  "<DISTRIBUTION_ARN>",
+                  "arn:aws:s3:::<BUCKET_NAME>/*",
+                  "arn:aws:s3:::<BUCKET_NAME>"
+              ]
+          }
+      ]
+    }
+    ```
+
+    :::caution
+    `<DISTRIBUTION_ARN>` と `<BUCKET_NAME>` を忘れずに置き換えてください。ARN は**CloudFront > ディストリビューション > 詳細**で確認できます。
+    :::
+
+2. 新しい IAM ユーザーを作成し、そのユーザーにポリシーをアタッチします。これにより、`AWS_SECRET_ACCESS_KEY` と `AWS_ACCESS_KEY_ID` が提供されます。
+
+3. このサンプルワークフローをあなたのリポジトリの `.github/workflows/deploy.yml` に追加し、GitHubにプッシュしてください。`AWS_ACCESS_KEY_ID`、`AWS_SECRET_ACCESS_KEY`、`BUCKET_ID`、および `DISTRIBUTION_ID` を、GitHubリポジトリの Settings（設定） > Secrets（シークレット） > Actions（アクション） の下に"secrets"として追加する必要があります。<kbd>New repository secret</kbd> をクリックして、それぞれを追加します。
+
+    ```yaml
+    name: Deploy Website
+
+    on:
+      push:
+        branches:
+          - main
+
+    jobs:
+      deploy:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v3
+          - name: Configure AWS Credentials
+            uses: aws-actions/configure-aws-credentials@v1
+            with:
+              aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+              aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+              aws-region: us-east-1
+          - name: Install modules
+            run: npm ci
+          - name: Build application
+            run: npm run build
+          - name: Deploy to S3
+            run: aws s3 sync --delete ./dist/ s3://${{ secrets.BUCKET_ID }}
+          - name: Create CloudFront invalidation
+            run: aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+    ```
+
+    :::note
+    `BUCKET_ID` は S3 バケットの名前です。`DISTRIBUTION_ID` はCloudFrontのディストリビューションIDです。CloudFrontのディストリビューションIDは**CloudFront > ディストリビューション > ID**で確認できます。
+    :::
