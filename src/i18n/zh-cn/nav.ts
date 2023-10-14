@@ -8,8 +8,8 @@ export default NavDictionary({
 	'guides/upgrade-to/v3': '升级到 v3',
 
 	coreConcepts: '核心理念',
-	'concepts/why-astro': '为什么选择Astro',
-	'concepts/islands': 'Astro群岛',
+	'concepts/why-astro': '为什么选择 Astro',
+	'concepts/islands': 'Astro 群岛',
 
 	tutorials: '教程',
 	'blog-tutorial': '搭建博客',
