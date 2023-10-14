@@ -3,25 +3,67 @@ title: サーバーサイドレンダリング
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import Since from '~/components/Since.astro';
 
+サーバーサイドレンダリング（SSR）は、サーバー上でHTMLページをオンデマンドで生成し、クライアントに送信することを意味します。
 
-
-Astroでは**サーバーサイドレンダリング**（別名：SSR）が利用できます。SSRを有効にすると、次のようなことができます。
-
+SSRを利用すると、次のようなことが可能です。
 - アプリのログイン状態のためにセッションを実装する。
-- `fetch`を使って動的にAPIを呼び出しデータを表示する。
+- `fetch`を使って動的にAPIを呼び出しデータをレンダリングする。
 - *アダプター*を利用してサイトをホストにデプロイする。
+
+以下が必要な場合は、Astroプロジェクトでサーバーサイドレンダリングを有効にすることを検討してください。
+
+- **APIエンドポイント**: SSRにより、クライアントから機密データを隠したまま、データベースへのアクセス、認証、認可などのタスクをおこなうAPIエンドポイントとして機能する特定のページを作成できます。
+
+- **ページの保護**: ユーザーの権限に基づいてページへのアクセスを制限する必要がある場合は、SSRを有効にしてサーバーでユーザーアクセスを制御できます。
+
+- **頻繁に変更されるコンテンツ**: SSRを有効にすると、サイトを静的に再ビルドすることなく個々のページを生成できます。これはページのコンテンツが頻繁に更新される場合に有効です。
 
 ## プロジェクトでSSRを有効にする
 
-まずは設定オプション`output: server`を使って開発モードでのSSRを有効にします。
+本番環境でSSRを有効にするには、`output`の設定を`'server'`または（**v2.6.0**で導入された）`'hybrid'`に更新します。これらのモードは、どの[ページ](/ja/core-concepts/astro-pages/)または[サーバーエンドポイント](/ja/core-concepts/endpoints/#サーバーエンドポイントapiルーティング)をサーバーでレンダリングするかを制御します。これらの設定オプションはデフォルトの動作が異なり、各ルーティングでデフォルトからオプトアウトすることが可能となっています。
 
-```js ins={5}
+- __`output: 'server'`__: デフォルトでサーバーレンダリングされます。サイトの大部分またはすべてをサーバーレンダリングする場合に使用します。個別のページやエンドポイントで、事前レンダリングに*オプトイン*できます。
+- __`output: 'hybrid'`__: デフォルトでHTMLに事前レンダリングされます。サイトの大部分を静的にする場合に使用します。個別のページやエンドポイントで、事前レンダリングを*オプトアウト*できます。
+
+```js ins={6,7}
 // astro.config.mjs
 import { defineConfig } from 'astro/config';
+import nodejs from '@astrojs/node';
 
 export default defineConfig({
-  output: 'server'
+  output: 'server',
+  adapter: nodejs(),
+});
+```
+
+エクスポート文により、ページやルートをデフォルトのレンダリング動作からオプトアウトできます。
+
+```astro title="src/pages/mypage.astro" {2}
+---
+export const prerender = true;
+// ...
+---
+<html>
+  <!-- 静的な、事前レンダリングされたページ... -->
+</html>
+```
+その他の[個別のルートの設定](#個別のルートの設定)例も確認してください。
+
+### 静的サイトをハイブリッドレンダリングに変換する
+
+既存の静的なAstroサイトをハイブリッドレンダリングに変換するには、`output`を`'hybrid'`に変更し、アダプターを追加します。
+
+```js ins={2,5-8} title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import nodejs from '@astrojs/node';
+
+export default defineConfig({
+  adapter: nodejs({
+    mode: 'middleware' // または'standalone'
+  }),  
+  output: 'hybrid',
 });
 ```
 
@@ -29,17 +71,11 @@ export default defineConfig({
 
 SSRを有効にしたプロジェクトをデプロイするには、アダプターを追加する必要があります。SSRはサーバーサイドのコードを実行する環境であるサーバーランタイムが必要なためです。各アダプターによって、Astroは特定のランタイムでプロジェクトを実行するスクリプトを出力できます。
 
-現在、次に示すアダプターが利用でき、今後追加されていきます。
-
-- [Cloudflare](/ja/guides/integrations-guide/cloudflare/)
-- [Deno](/ja/guides/integrations-guide/deno/)
-- [Netlify](/ja/guides/integrations-guide/netlify/)
-- [Node.js](/ja/guides/integrations-guide/node/)
-- [Vercel](/ja/guides/integrations-guide/vercel/)
+[公式版とコミュニティ版のSSRアダプターを、インテグレーションディレクトリ](https://astro.build/integrations/?search=&categories%5B%5D=adapters)で確認できます。
 
 #### `astro add`を使ったインストール
 
-公式のアダプターは`astro add`コマンドを使って追加できます。アダプターのインストールと`astro.config.mjs`ファイルへの適切な変更が一度に行われます。例えば、Vercelアダプターをインストールするには次のコマンドを実行します。
+[Astro公式のアダプターインテグレーション](/ja/guides/integrations-guide/)は、`astro add`コマンドを使って追加できます。これにより、アダプターのインストールと、`astro.config.mjs`ファイルへの適切な変更が一度に行われます。例えば、Vercelアダプターをインストールするには次のコマンドを実行します。
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -61,7 +97,7 @@ SSRを有効にしたプロジェクトをデプロイするには、アダプ�
 
 #### 手動でインストール
 
-パッケージをインストールし、`astro.config.mjs`を更新して手動でアダプターを追加することもできます。（SSRを有効にするために必要な2つの手順については上記のリンクをご覧ください）`my-adapter`をプレースホルダーの例として、次のような手順になります。
+パッケージをインストールし、`astro.config.mjs`を更新して手動でアダプターを追加することもできます。（以下の2つの手順を完了させSSRを有効にするための各アダプター固有の手順については、上記のリンクをご覧ください。）`my-adapter`を何らかのアダプターの例とすると、次のような手順になります。
 
 1. 好みのパッケージマネージャーを利用してプロジェクトの依存関係にアダプターをインストールします。
 
@@ -98,11 +134,66 @@ SSRを有効にしたプロジェクトをデプロイするには、アダプ�
 
 ## 機能
 
-Astroのデフォルトは静的サイトジェネレーターのままです。しかし、サーバーサイドレンダリングのアダプターを有効にすると、**pagesディレクトリのすべてのルートがサーバーでレンダリングされるルートになり**、いくつかの新機能が利用できるようになります。
+Astroがデフォルトで静的サイトジェネレーターであることは変わりません。しかし、サーバーサイドレンダリングを有効にしてアダプターを追加すると、いくつかの機能を新しく利用できるようになります。
+
+### 個別のルートの設定
+
+`server`と`hybrid`モードの両方で、サーバーレンダリングされたページとエンドポイントを使用でき、すべてのページはデフォルトの動作に従ってレンダリングされます。しかし、どちらのモードでも、個別のページをデフォルトの動作からオプトアウトできます。
+
+### サーバーレンダリングのオプトアウト
+
+`output: server`を設定し大部分がサーバーレンダリングされるアプリでは、ページまたはルートに`export const prerender = true`を追加することで、静的ページまたはエンドポイントを事前レンダリングできます。
+
+```astro title="src/pages/mypage.astro" {2}
+---
+export const prerender = true;
+// ...
+---
+<html>
+  <!-- 静的な、事前レンダリングされたページ... -->
+</html>
+```
+
+```mdx title="src/pages/mypage.mdx" {5}
+---
+layout: '../layouts/markdown.astro'
+title: '私のページ'
+---
+export const prerender = true;
+
+# これは静的な、事前レンダリングされたページです
+```
+
+エンドポイントの場合は次のようになります。
+
+```js title="src/pages/myendpoint.js" {1}
+export const prerender = true;
+
+export async function GET() {
+  return {
+    body: JSON.stringify({ message: `これは静的エンドポイントです` }),
+  };
+}
+```
+
+### 事前レンダリングのオプトアウト
+
+`output: hybrid`を設定した大部分が静的なサイトでは、`export const prerender = false`をサーバーレンダリングさせたいファイルに追加します。
+
+```js title="src/pages/randomnumber.js" {1}
+export const prerender = false;
+
+export async function GET() {
+  let number = Math.random();
+  return {
+    body: JSON.stringify({ number, message: `ランダムな数: ${number}` }),
+  };
+}
+```
 
 ### `Astro.request.headers`
 
-リクエストのヘッダーは、`Astro.request.headers`で取得できます。これは[Headers](https://developer.mozilla.org/ja/docs/Web/API/Headers)オブジェクトといい、Mapのようなオブジェクトで、Cookieなどのヘッダーを取得することができます。
+リクエストのヘッダーは、`Astro.request.headers`で取得できます。ブラウザの[`Request.headers`](https://developer.mozilla.org/ja/docs/Web/API/Request/headers)と同様に動作します。これは[Headers](https://developer.mozilla.org/ja/docs/Web/API/Headers)オブジェクトという、Cookieなどのヘッダーを取得できるMapのようなオブジェクトです。
 
 ```astro title="src/pages/index.astro" {2}
 ---
@@ -110,39 +201,53 @@ const cookie = Astro.request.headers.get('cookie');
 // ...
 ---
 <html>
-  <!-- Page here... -->
+  <!-- ページの内容... -->
 </html>
+```
+
+### `Astro.request.method`
+
+リクエストに使用されたHTTPメソッドは、`Astro.request.method`で取得できます。これはブラウザの[`Request.method`](https://developer.mozilla.org/ja/docs/Web/API/Request/method)と同様に動作します。リクエストで使用されたHTTPメソッドを文字列として返します。
+
+```astro title="src/pages/index.astro"
+---
+console.log(Astro.request.method) // GET (ブラウザで遷移したとき)
+---
 ```
 
 :::caution
 以下の機能はページレベルでのみ利用できます。（レイアウトコンポーネントを含むコンポーネントの内部では使用できません。）
 
-これらの機能がブラウザに送信された後に変更することができない[レスポンスヘッダー](https://developer.mozilla.org/ja/docs/Glossary/Response_header)を変更することが理由です。SSRモードでは、AstroはHTMLストリーミングを使用して、各コンポーネントをレンダリングする際にブラウザに送信します。これによってユーザーはできるだけ早くHTMLを見ることができますが、Astroがコンポーネントのコードを実行する頃には、すでにレスポンスヘッダーが送信されていることになります。
+ブラウザに送信された後に変更することができない[レスポンスヘッダー](https://developer.mozilla.org/ja/docs/Glossary/Response_header)を、以下の機能が変更することが理由です。SSRモードでは、AstroはHTMLストリーミングを使用して、各コンポーネントをレンダリングする際にブラウザに送信します。これによりユーザーにできるだけ早くHTMLを表示できますが、その結果、Astroがコンポーネントのコードを実行する時点で、すでにレスポンスヘッダーが送信されてしまっているのです。
 :::
 
-### `Astro.redirect`
+### `Astro.cookies`
 
-`Astro`グローバルでは、このメソッドで他のページにリダイレクトすることができます。クッキーからセクションを取得して、ユーザーがログインしているかチェックした後にこれを実行します。
+単一のCookieを読み取り、変更するためのユーティリティです。Cookieのチェック、設定、取得、削除ができます。
 
-```astro title="src/pages/account.astro" {8}
+[`Astro.cookies`と`AstroCookie`型](/ja/reference/api-reference/#astrocookies)について詳しくは、APIリファレンスを確認してください。
+
+以下の例では、ページビューカウンターのCookieの値を更新しています。
+
+```astro title="src/pages/index.astro" {4,5,9}
 ---
-import { isLoggedIn } from '../utils';
+let counter = 0
 
-const cookie = Astro.request.headers.get('cookie');
-
-// ユーザーがログインしていない場合、ログインページにリダイレクトします
-if (!isLoggedIn(cookie)) {
-  return Astro.redirect('/login');
+if (Astro.cookies.has("counter")) {
+  const cookie = Astro.cookies.get("counter")
+	counter = cookie.number() + 1
 }
+
+Astro.cookies.set("counter", counter)
 ---
 <html>
-  <!-- Page here... -->
+  <h1>Counter = {counter}</h1>
 </html>
 ```
 
 ### `Response`
 
-どのページからでも[Response](https://developer.mozilla.org/ja/docs/Web/API/Response)を返すこともできます。データベースでidを検索した後、動的ページで404を返す際に利用することがあります。
+ページから[Response](https://developer.mozilla.org/ja/docs/Web/API/Response)を返すこともできます。たとえばデータベースでidを検索した後、動的に404を返す際に利用できます。
 
 ```astro title="src/pages/[id].astro" {8-11}
 ---
@@ -159,11 +264,110 @@ if (!product) {
 }
 ---
 <html>
-  <!-- Page here... -->
+  <!-- ページの内容... -->
 </html>
 ```
 
 ### サーバーエンドポイント
 
-**API route**とも知られているサーバーエンドポイントは、`src/pages`フォルダの中にある`.js`, `.ts`ファイルで[Request](https://developer.mozilla.org/ja/docs/Web/API/Request)を受け取って[Response](https://developer.mozilla.org/ja/docs/Web/API/Response)を返します。
-SSRの強力な機能であるAPI routeはサーバーサイドでセキュアにコードを実行できます。詳しくは[エンドポイントガイド](/ja/core-concepts/endpoints/#サーバーエンドポイントapiルーティング)をご覧ください。
+**APIルート**とも呼ばれるサーバーエンドポイントは、`src/pages`フォルダの中の`.js`, `.ts`ファイルからエクスポートされる特別な関数で、[Request](https://developer.mozilla.org/ja/docs/Web/API/Request)を受け取って[Response](https://developer.mozilla.org/ja/docs/Web/API/Response)を返します。SSRの強力な機能であるAPIルートは、サーバーサイドで安全にコードを実行できます。詳しくは[エンドポイントガイド](/ja/core-concepts/endpoints/#サーバーエンドポイントapiルーティング)を確認してください。
+
+### ストリーミング
+
+ブラウザはHTTPストリーミングをネイティブにサポートしています。ドキュメントはチャンクに分割され、順番にネットワークを介して送信され、その順番でページにレンダリングされます。
+
+この過程でブラウザは、パース、DOMへのレンダリング、描画をおこないながら段階的にHTMLを処理します。このことは意図的にHTMLをストリーミングしているかどうかに関わらず起こります。ネットワークの状況によっては大きなドキュメントのダウンロードが遅れたり、データの取得を待つことでページのレンダリングがブロックされることがあります。
+
+
+### ストリーミングによるページパフォーマンスの改善
+
+以下のページはフロントマターでデータを`await`しています。Astroは、HTMLをブラウザに送信する前に、すべての`fetch`の呼び出しが解決するのを待ちます。
+
+```astro title="src/pages/index.astro"
+---
+const personResponse = await fetch('https://randomuser.me/api/');
+const personData = await personResponse.json();
+const randomPerson = personData.results[0];
+const factResponse = await fetch('https://catfact.ninja/fact');
+const factData = await factResponse.json();
+---
+<html>
+  <head>
+    <title>名前と事実</title>
+  </head>
+  <body>
+    <h2>名前</h2>
+    <p>{randomPerson.name.first}</p>
+    <h2>事実</h2>
+    <p>{factData.fact}</p>
+  </body>
+</html>
+```
+
+`await`の呼び出しを小さなコンポーネントに移動することで、Astroのストリーミングを活用できます。以下のコンポーネントを使用してデータを取得すると、AstroはまずタイトルなどのHTMLをレンダリングし、そしてデータの準備できたら段落要素をレンダリングします。
+
+```astro title="src/components/RandomName.astro"
+---
+const personResponse = await fetch('https://randomuser.me/api/');
+const personData = await personResponse.json();
+const randomPerson = personData.results[0];
+---
+<p>{randomPerson.name.first}</p>
+```
+
+```astro title="src/components/RandomFact.astro"
+---
+const factResponse = await fetch('https://catfact.ninja/fact');
+const factData = await factResponse.json();
+---
+<p>{factData.fact}</p>
+```
+
+
+これらのコンポーネントを使用している以下のAstroページは、ページの一部を先にレンダリングできます。`<head>`、`<body>`、`<h1>`タグは、データの取得によってブロックされなくなりました。サーバーは`RandomName`と`RandomFact`のデータを並列で取得し、その結果となるHTMLをブラウザにストリーミングします。
+
+```astro title="src/pages/index.astro"
+---
+import RandomName from '../components/RandomName.astro'
+import RandomFact from '../components/RandomFact.astro'
+---
+<html>
+  <head>
+    <title>A name and a fact</title>
+  </head>
+  <body>
+    <h2>A name</h2>
+    <RandomName />
+    <h2>A fact</h2>
+    <RandomFact />
+  </body>
+</html>
+```
+
+#### Promiseを直接含める
+
+テンプレートに直接Promiseを含めることもできます。こうすると、コンポーネント全体のブロックは起こらず、Promiseを並列で解決してそれに続くマークアップだけがブロックされます。
+
+```astro title="src/pages/index.astro"
+---
+const personPromise = fetch('https://randomuser.me/api/')
+  .then(response => response.json())
+  .then(arr => arr[0].name.first);
+const factPromise = fetch('https://catfact.ninja/fact')
+  .then(response => response.json())
+  .then(factData => factData.fact);
+---
+<html>
+  <head>
+    <title>名前と事実</title>
+  </head>
+  <body>
+    <h2>名前</h2>
+    <p>{personPromise}</p>
+    <h2>事実</h2>
+    <p>{factPromise}</p>
+  </body>
+</html>
+```
+
+この例では、`名前`は`personPromise`と`factPromise`がロードされている間にレンダリングされます。`personPromise`が解決されると`事実`が表示され、ロードが完了すると`factPromise`もレンダリングされます。
