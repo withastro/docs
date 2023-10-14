@@ -67,7 +67,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 | dependencies        | 종속성        |
 | directory           | 디렉터리      |
 | footer              | 바닥글        |
-| frontmatter         | 프론트매터    |
+| frontmatter         | 프런트매터    |
 | header              | 머리글        |
 | island              | 아일랜드      |
 | integration         | 통합          |
