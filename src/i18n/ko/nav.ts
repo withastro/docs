@@ -29,7 +29,7 @@ export default NavDictionary({
 	'guides/deploy': '사이트 배포',
 	'guides/recipes': '더 많은 레시피',
 
-	features: 'Guias',
+	features: '안내서',
 	'core-concepts/astro-syntax': 'Astro 템플릿 구문',
 	'core-concepts/framework-components': 'UI 프레임워크',
 	'core-concepts/routing': '라우팅',
