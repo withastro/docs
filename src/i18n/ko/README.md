@@ -44,12 +44,12 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 <MySiteLayout>
   <p>레이아웃에 포함된 페이지 콘텐츠</p>
 </MySiteLayout>
-
 ```
 
 ### 기타
 
 - `~에 방문` 대신 `~를 방문`을 사용합니다.
+- 독자를 지칭해야 하는 경우 `당신`, `귀하`라는 표현 대신 `여러분` 이라는 표현을 사용하는 것을 권장합니다.
 - `인라인 코드`가 디렉터리 또는 파일의 경로를 나타내는 경우 디렉터리 또는 파일임을 명시하세요. 예: (`/src/pages` 디렉터리, `/src/pages/index.astro` 파일)
 
 ## 용어집
@@ -75,4 +75,3 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 | release             | 릴리스        |
 | server-side         | 서버 측       |
 | troubleshooting     | 문제 해결     |
-| you                 | 여러분        |
