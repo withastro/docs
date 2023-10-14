@@ -60,8 +60,8 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 > `Markdown`, `Astro`, `TypeScript`, `React` 등 회사명, 제품명과 같은 고유한 이름은 한글로 번역하지 않습니다.
 
-| 원문                | 번역          | 비고 |
-| :------------------ | :------------ | :--- |
+| 원문                | 번역          | 출처 | 비고 |
+| :------------------ | :------------ | :--- | ---- |
 | changelog           | 변경 로그     |
 | client-side         | 클라이언트 측 |
 | configuration       | 구성          |
