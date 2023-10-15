@@ -1,0 +1,138 @@
+---
+title: AstroサイトをCloudflare Pagesにデプロイする
+description: Cloudflare Pagesを使用してAstroサイトをデプロイする方法。
+type: deploy
+i18nReady: true
+---
+
+[Cloudflare Pages](https://pages.cloudflare.com/)は、フロントエンド開発者が静的ウェブサイト(JAMstack)やSSRウェブサイトを共同でデプロイするためのプラットフォームです。
+
+このガイドには以下の内容が含まれています。
+
+- [Cloudflare Pages ダッシュボードからデプロイする方法](#gitを使ったサイトのデプロイ方法)
+- [CloudflareのCLIであるWranglerを使ったデプロイ方法](#wranglerを使ったサイトのデプロイ方法)
+- [SSRサイトを `@astrojs/cloudflare` を使ってデプロイする方法](#ssrサイトのデプロイ方法)
+
+## 前提条件
+
+始めるには、以下のものが必要です。
+
+- Cloudflareアカウント。まだお持ちでない場合は、無料のCloudflareアカウントを作成できます。
+- アプリのコードが[GitHub](https://github.com/)または[GitLab](https://about.gitlab.com/)リポジトリにプッシュされていること。
+
+## Gitを使ったサイトのデプロイ方法
+
+1. Cloudflare Pagesで新しいプロジェクトを立ち上げます。
+2. コードをgitリポジトリ（GitHub、GitLab）にプッシュする。
+3. Cloudflare ダッシュボードにログインし、**Account Home** > **Pages**でアカウントを選択します。
+4. **Gitに接続**オプションを選択します。
+5. デプロイしたいgitプロジェクトを選択し、**セットアップの開始**をクリックします。
+6. 以下のビルド設定を使用します。
+
+    - **フレームワーク・プリセット：** `Astro`
+    - **ビルドコマンド：** `npm run build`
+    - **ビルド出力ディレクトリ：** `dist`
+
+7. **保存してデプロイする**ボタンをクリックします。
+
+## Wranglerを使ったサイトのデプロイ方法
+
+1. [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/get-started/)をインストールする。
+2. `wrangler login`を使ってCloudflareアカウントでWranglerを認証する。
+3. ビルドコマンドを実行する。
+4. npx wrangler pages deploy dist` を使ってデプロイする。
+
+```bash
+# Wrangler CLI をインストールする
+npm install -g wrangler
+# CLIからCloudflareアカウントにログインする
+wrangler login
+# ビルドコマンドを実行する
+npm run build
+# 新しいデプロイメントを作成する
+npx wrangler pages deploy dist
+```
+
+アセットがアップロードされると、Wranglerはサイトを確認するためのプレビューURLを提供します。Cloudflare Pagesダッシュボードにログインすると、新しいプロジェクトが表示されます。
+
+### Wranglerでローカルにプレビューを有効にする
+
+プレビューを機能させるには、`wrangler` をインストールする必要がある。
+
+```bash
+pnpm install wrangler --save-dev
+```
+
+プレビュースクリプトを更新して、Astroの内蔵プレビューコマンドの代わりに `wrangler` を実行することができます。
+
+
+```json title="package.json"
+"preview": "wrangler pages dev ./dist"
+```
+
+## SSRサイトのデプロイ方法
+
+[`astrojs/cloudflare`アダプター](/ja/guides/integrations-guide/cloudflare/)を使用して、Cloudflare PagesにデプロイするためのAstro SSRサイトを構築することができます。
+
+以下の手順に従って、アダプタをセットアップしてください。その後、上記のいずれかの方法でデプロイできます。
+
+### クイックインストール
+
+以下の `astro add` コマンドを使用して、AstroプロジェクトにSSRを有効にするCloudflareアダプタを追加します。これにより、アダプタがインストールされ、`astro.config.mjs` ファイルに適切な変更が加えられます。
+
+```bash
+npx astro add cloudflare
+```
+
+### 手動インストール
+
+アダプターを手動でインストールする場合は、以下の2つのステップを実行してください。
+
+1. お好みのパッケージマネージャを使用して、`@astrojs/cloudflare` アダプタをプロジェクトの依存関係に追加します。npmを使用しているか、よくわからない場合は、ターミナルでこれを実行します。
+
+    ```bash
+    npm install @astrojs/cloudflare
+    ```
+
+2. `astro.config.mjs` ファイルに以下を追加します。
+
+    ```js title="astro.config.mjs" ins={2, 5-6}
+    import { defineConfig } from 'astro/config';
+    import cloudflare from '@astrojs/cloudflare';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: cloudflare()
+    });
+    ```
+
+### 2つのモード
+
+現在、[`@astrojs/cloudflare`](https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare#readme)アダプターでPages Functionsを使用する場合、2つのモードがサポートされています。
+
+1. **アドバンス**モード： このモードは `dist` 内の `_worker.js` をピックアップする `advanced` モードや、プロジェクトルートにあるfunctionsフォルダからWorkerをコンパイルするディレクトリモードで関数を実行したい場合に使用します。
+
+    モードが設定されていない場合、デフォルトは `"advanced"` です。
+
+2. **ディレクトリ**モード： つまり、アダプタはアプリのクライアントサイド部分を同じようにコンパイルしますが、ワーカースクリプトをプロジェクトルートの `functions` フォルダに移動します。アダプタはそのフォルダに `[[path]].js` を置くだけなので、プラグインやページのミドルウェアを追加して、バージョン管理でチェックすることができます。
+
+    ```ts title="astro.config.mjs" "directory"
+    export default defineConfig({
+      adapter: cloudflare({ mode: "directory" }),
+    });
+    ```
+### ページ関数の使用
+
+[ページ・ファンクション](https://developers.cloudflare.com/pages/platform/functions/)は、サーバーサイドのコードを実行することで、専用のサーバーを実行することなく動的な機能を実現します。
+
+始めるには、プロジェクトのルートに `/functions` ディレクトリを作成します。このディレクトリにFunctionsファイルを書くと、あらかじめ指定されたルートにカスタム機能を持ったWorkerが自動的に生成されます。Functionsの書き方については、[Pages Functions documentation](https://developers.cloudflare.com/pages/platform/functions/)を参照してください。
+
+📚 [SSR in Astro](/ja/guides/server-side-rendering/)についてもっと読む。
+
+## トラブルシューティング
+
+エラーが発生する場合は、ローカルで使用している `node` のバージョン（`node -v`）が環境変数で指定しているバージョンと一致していることを再確認してください。
+
+Cloudflareは[Node v16.13](https://miniflare.dev/get-started/cli#installation)を必要とします。このバージョンはAstroのアウトオブボックス最小値よりも新しいので、少なくともv16.13を使用していることを再確認してください。
+
+CloudflareのAuto Minify設定の結果、クライアントサイドのハイドレーションが失敗することがあります。コンソールに `Hydration completed but contains mismatches` と表示されたら、Cloudflare settingsのAuto Minifyを無効にしてください。
