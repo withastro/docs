@@ -234,17 +234,138 @@ const meuFade = {
 <header transition:animate={meuFade}> ... </header>
 ```
 
-## Impedindo navegação no lado do cliente
+## Controle de Roteamento
 
-Assim que você habilitou roteamento no lado do cliente em uma página adicionando o componente `<ViewTransitions />`, toda âncora na página que faz link para outra página no seu site será navegada por roteamento no lado do cliente. Há alguns casos em que você pode não querer navegar via CSR. Um exemplo é se o link não é para uma página, assim como um PDF em sua pasta `public/`. Ou uma rota de API que produz uma imagem.
+O roteador `<ViewTransitions />` lida com a navegação ao ouvir:
 
-Nesses casos, você pode optar por sair da navegação no lado do cliente por link utilizando o atributo `data-astro-reload` assim:
+- Cliques em elementos `<a>`.
+- Eventos de navegação para trás e para frente da página atual.
 
-```html
-<a href="/ganhos-trimestrais.pdf" data-astro-reload>
+As seguintes opções permitem controlar ainda mais quando a navegação ocorre dentro do roteador:
+
+- `astro-data-reload`: um atributo de tag `<a>` para [forçar uma navegação de página inteira](#prevençao-de-navegaçao-do-lado-do-cliente)
+- `astro-data-history="auto | push | replace"`: um atributo de tag `<a>` para [controlar o histórico do navegador](#substituir entradas-no-historico-do-navegador)
+- `navigate(href, options)`: um método disponível para qualquer script cliente ou componente cliente para [acionar a navegação](#acionar-navegaçao)
+
+### Prevenção de navegação do lado do cliente
+
+Existem casos em que você não pode navegar via roteamento do lado do cliente, pois ambas as páginas envolvidas devem usar o roteador `<ViewTransitions />` para evitar uma recarga de página inteira. Você também pode não querer a rotação do lado do cliente em todas as mudanças de navegação e preferir uma navegação de página tradicional em rotas selecionadas.
+
+Você pode desativar a rotação do lado do cliente em uma base de link por link, adicionando o atributo `data-astro-reload` a qualquer tag `<a>`. Este atributo substituirá qualquer componente `<ViewTransitions />` existente e, em vez disso, acionará uma atualização do navegador durante a navegação.
+
+O exemplo a seguir mostra a prevenção da rotação do lado do cliente ao navegar para um artigo apenas a partir da página inicial. Isso ainda permite que você tenha animações em elementos compartilhados, como uma imagem de destaque, ao navegar para a mesma página a partir de uma página de listagem de artigos:
+
+```astro title="src/pages/index.astro"
+<a href="/artigos/penguins-imperadores" data-astro-reload>
 ```
 
-Esses links serão ignorados pelo roteador e uma navegação completa da página irá ocorrer.
+```astro title="src/pages/artigos.astro"
+<a href="/artigos/penguins-imperadores">
+```
+
+Links com o atributo `data-astro-reload` serão ignorados pelo roteador, e ocorrerá uma navegação de página inteira.
+
+### Acionar navegação
+
+Você também pode acionar a navegação do lado do cliente por meio de eventos que normalmente não são ouvidos pelo roteador `<ViewTransitions />` usando `navigate`. Essa função do módulo `astro:transitions/client` pode ser usada em scripts e em componentes de framework que são hidratados com uma [diretiva de cliente](/pt/reference/directives-reference/#diretivas-do-cliente).
+
+O exemplo a seguir mostra um componente Astro que navega um visitante para outra página que eles selecionam em um menu:
+```astro title="src/components/formulario.astro"
+<script>
+    import { navigate } from 'astro:transitions/client';
+
+    // Navega para opção selecionada automaticamente
+    document.querySelector('select').onchange = (ev) => {
+        let href = ev.target.value;
+        navigate(href);
+    };
+</script>
+<select>
+    <option value="/tocar">Tocar</option>
+    <option value="/blog">Blog</option>
+    <option value="/sobre">Sobre</option>
+    <option value="/contato">Contato</option>
+</select>
+```
+```astro title="src/pages/index.astro"
+---
+import Formulario from "../components/formulario.astro"
+import { ViewTransitions } from "astro:transitions";
+---
+<html>
+	<head>
+		<ViewTransitions />
+	</head>
+	<body>
+		<Formulario />
+	</body>
+</html>
+```
+
+O exemplo a seguir implementa o mesmo usando `navigate()` em um componente React `<Formulario />`:
+
+```js title="src/components/form.jsx"
+import React from 'react';
+import { navigate } from 'astro:transitions/client';
+
+export default function ClickToNavigate({ to }) {
+  return <select onChange={(ev) => navigate(e.target.value)}>
+    <option value="/tocar">Tocar</option>
+    <option value="/blog">Blog</option>
+    <option value="/sobre">Sobre</option>
+    <option value="/contato">Contato</option>
+  </select>;
+}
+```
+O componente `<Formulario />` pode então ser rendenizado em um página Astro que usa um roteador `<ViewTransitions />`, com a seguinte diretiva:
+
+```astro title="src/pages/index.astro"
+---
+import Formulario from "../components/formulario.jsx"
+import { ViewTransitions } from "astro:transitions";
+---
+<html>
+	<head>
+		<ViewTransitions />
+	</head>
+	<body>
+		<Formulario client:load />
+	</body>
+</html>
+```
+
+O método `navigate` aceita esses argumentos:
+
+- `href` (obrigatório) - A nova página para navegar.
+- `options` - Um objeto opcional com as seguintes propriedades:
+	- `history`: `'push'` | `'replace'` | `'auto'`
+		- `'push'`: o roteador usará `history.pushState` para criar uma nova entrada no histórico do navegador. 
+		- `'replace'`: o roteador usará `history.replaceState` para atualizar a URL sem adicionar uma nova entrada na navegação.
+		- `'auto'` (padrão): o roteador tentará `history.pushState`, mas se a URL não puder ser transitada, a URL atual permanecerá sem alterações no histórico do navegador.
+
+Para navegação para trás e para frente através do histórico do navegador, você pode combinar `navigate()` com as funções incorporadas do navegador `history.back()`, `history.forward()` e `history.go()`. Se o `navigate()` é chamado durante a rendenização no servidor ele não terá efeito.
+
+### Substituir entradas no histórico do navegador
+
+Normalmente, cada vez que você navega, uma nova entrada é gravada no histórico do navegador. Isso permite a navegação entre páginas usando os botões `voltar` e `avançar` do navegador.
+
+O roteador `<ViewTransitions />` permite que você substitua as entradas de histórico adicionando o atributo `data-astro-history` a qualquer tag `<a>` individual.
+
+O atributo `data-astro-history` pode ser definido com os mesmos três valores da [opção `history` da função `navigate()`](#acionar-navegaçao): 
+
+`data-astro-history`: `'push'` | `'replace'` | `'auto'`
+- `'push'`: o roteador usará `history.pushState` para criar uma nova entrada no histórico do navegador. 
+- `'replace'`: o roteador usará `history.replaceState` para atualizar a URL sem adicionar uma nova entrada na navegação.
+- `'auto'` (padrão): o roteador tentará `history.pushState`, mas se a URL não puder ser transitada, a URL atual permanecerá sem alterações no histórico do navegador.
+
+O exemplo a seguir navega para a página `/principal`, mas não adiciona uma nova entrada ao histórico de navegação. Em vez disso, ele reutiliza a entrada atual no histórico (`/confirmacao`) e a substitui.
+
+```astro title="/confirmacao.astro"
+<a href="/principal" data-astro-history="replace">
+```
+
+Isso faz com que, ao retroceder da página `/principal`, o navegador não exiba a página `/confirmacao`, mas a página anterior a ela.
+
 
 ## Controle de fallback
 
@@ -356,7 +477,27 @@ Por exemplo, se você estiver implementando suporte a modo escuro, esse evento p
 </script>
 ```
 
-## `prefers-reduced-motion`
+## Acessibilidade
+
+Habilitar a rotação do lado do cliente e animar transições de página traz desafios de acessibilidade, e o Astro tem como objetivo tornar os sites que optam por Transições de Visualização tão acessíveis por padrão quanto possível.
+
+### Anúncio de rota
+
+<Since v="3.2.0" />
+
+O componente `<ViewTransitions />` inclui um anunciador de rota para navegação de página durante a rotação do lado do cliente. Nenhuma configuração ou ação é necessária para habilitar isso.
+
+Tecnologias assistivas informam aos visitantes que a página foi alterada ao anunciar o novo título da página após a navegação. Ao usar a rotação do lado do servidor com atualizações tradicionais de página inteira no navegador, isso acontece por padrão após o carregamento da nova página. Na rotação do lado do cliente, o componente `<ViewTransitions />` realiza essa ação.
+
+Para adicionar um anúncio de rota à rotação do lado do cliente, o componente adiciona um elemento à nova página com o atributo `aria-live` definido como `assertive`. Isso informa à tecnologia assistiva para anunciar imediatamente. O componente também verifica o seguinte, na ordem de prioridade, para determinar o texto do anúncio:
+
+- O `<title>`, se existir.
+- O primeiro `<h1>` que encontrar.
+- O `pathname` da página.
+
+Recomendamos fortemente que você sempre inclua um `<title>` em cada página para acessibilidade.
+
+### `prefers-reduced-motion`
 
 O componente `<ViewTransitions />` do Astro inclui uma media query do CSS que desabilita *todas* as animações de transição de visualização, incluindo animação de fallback, sempre que a configuração [`prefer-reduced-motion`](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion) for detectada. Ao invés disso, o navegador simplesmente substituirá os elementos do DOM sem qualquer animação.
 
