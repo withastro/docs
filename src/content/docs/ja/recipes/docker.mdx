@@ -1,0 +1,190 @@
+---
+title: DockerでAstroサイトを構築する
+description: Dockerを使ってAstroサイトを構築する方法を紹介します。
+type: recipe
+i18nReady: true
+---
+
+[Docker](https://docker.com)は、コンテナを使ってアプリケーションをビルド、デプロイ、実行するためのツールです。
+
+Dockerイメージとコンテナは、AWS、Azure、[Google Cloud](/ja/guides/deploy/google-cloud/#cloud-run-ssr-and-static)のような多くの異なるプラットフォームにデプロイできます。このレシピでは、サイトを特定のプラットフォームにデプロイする方法はカバーしませんが、プロジェクト用にDockerをセットアップする方法を紹介します。
+
+## 前提条件
+
+- ローカルマシンにDockerがインストールされていること。[お使いのオペレーティング・システムのインストール手順はこちら](https://docs.docker.com/get-docker/)を参照してください。
+- プロジェクト内にDockerfileが存在すること。[Dockerfileについて詳しくはこちら](https://docs.docker.com/engine/reference/builder/)を参照し、以下のセクションのDockerfileを出発点として使うことができます。
+
+## Dockerfileを作成する
+
+プロジェクトのルートディレクトリに `Dockerfile` というファイルを作成します。このファイルにはあなたのニーズに応じて異なるサイトを構築するための指示が含まれています。このガイドではすべての可能なオプションを紹介することはできませんが、SSRと静的モードのスタートポイントを提供します。
+
+npm以外のパッケージ・マネージャーを使っている場合は、それに応じてコマンドを調整する必要があります。
+
+### SSR
+
+このDockerfileはNode.jsを使用してサイトを構築し、ポート `4321` でサービスを提供します。そのため、Astroプロジェクトに[Nodeアダプタ](/ja/guides/integrations-guide/node/)がインストールされている必要があります。
+
+```docker title="Dockerfile"
+FROM node:lts AS runtime
+WORKDIR /app
+
+COPY . .
+
+RUN npm install
+RUN npm run build
+
+ENV HOST=0.0.0.0
+ENV PORT=4321
+EXPOSE 4321
+CMD node ./dist/server/entry.mjs
+```
+
+:::tip[覚えておいてください]
+これらはDockerfileの一例です。ニーズに合わせてカスタマイズすることができます。例えば、`node:lts-alpine`のように別のイメージを使うこともできます。
+
+```docker title="Dockerfile" del={1} add={2}
+FROM node:lts as runtime
+FROM node:lts-alpine as runtime
+```
+:::
+
+### .dockerignoreを追加する
+
+プロジェクトに `.dockerignore` ファイルを追加するのがベストプラクティスです。このファイルには、Dockerの `COPY` コマンドや `ADD` コマンドで無視するファイルやフォルダを記述します。これはビルドプロセスを高速化し、最終的なイメージのサイズを小さくします。
+
+```docker title=".dockerignore"
+.DS_Store
+node_modules
+dist
+```
+
+このファイルは `Dockerfile` 自体と同じディレクトリに置く必要があります。[詳しくは `.dockerignore` ドキュメントを読んでください](https://docs.docker.com/engine/reference/builder/#dockerignore-file)
+
+### Static
+
+#### Apache (httpd)
+
+以下のDockerfileはあなたのサイトを構築し、デフォルトの設定でポート `80` のApache htppdを使ってサービスを提供します。
+
+```docker title="Dockerfile"
+FROM node:lts AS build
+WORKDIR /app
+COPY . .
+RUN npm i
+RUN npm run build
+
+FROM httpd:2.4 AS runtime
+COPY --from=build /app/dist /usr/local/apache2/htdocs/
+EXPOSE 80
+```
+
+:::caution[Recommendation]
+特別な設定を必要としない単純なウェブサイトには、この方法を使用してください。より複雑なウェブサイトの場合は、ApacheまたはNGINXでカスタム設定を使用することをお勧めします。
+:::
+
+#### NGINX
+
+```docker title="Dockerfile"
+FROM node:lts AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine AS runtime
+COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 8080
+```
+
+上記のDockerfileをビルドするには、NGINX用の設定ファイルも作成する必要があります。プロジェクトのルートディレクトリに `nginx` というフォルダを作成し、その中に `nginx.conf` というファイルを作成します。
+
+```nginx title="nginx.conf"
+worker_processes  1;
+
+events {
+  worker_connections  1024;
+}
+
+http {
+  server {
+    listen 8080;
+    server_name   _;
+
+    root   /usr/share/nginx/html;
+    index  index.html index.htm;
+    include /etc/nginx/mime.types;
+
+    gzip on;
+    gzip_min_length 1000;
+    gzip_proxied expired no-cache no-store private auth;
+    gzip_types text/plain text/css application/json application/javascript application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+
+    error_page 404 /404.html;
+    location = /404.html {
+            root /usr/share/nginx/html;
+            internal;
+    }
+
+    location / {
+            try_files $uri $uri/index.html =404;
+    }
+  }
+}
+```
+
+### マルチステージビルド（SSRを使用）
+
+Dockerの[マルチステージビルド](https://docs.docker.com/build/building/multi-stage/)のおかげで、ソースコードのみが変更された場合にnpmの依存関係を再インストールしないことで、あなたのサイトのビルドプロセスを最適化する、より高度なDockerfileの例です。これにより、依存関係のサイズにもよりますが、ビルド時間を数分でも短縮することができます。
+
+```docker title="Dockerfile"
+FROM node:lts AS base
+WORKDIR /app
+
+# package.jsonとpackage-lock.jsonのみをここにコピーすることで、以下の `-deps` ステップがソースコードから独立していることを保証する。
+# したがって、ソースコードが変更されただけであれば、 `-deps` ステップはスキップされる。
+COPY package.json package-lock.json ./
+
+FROM base AS prod-deps
+RUN npm install --production
+
+FROM base AS build-deps
+RUN npm install --production=false
+
+FROM build-deps AS build
+COPY . .
+RUN npm run build
+
+FROM base AS runtime
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
+
+ENV HOST=0.0.0.0
+ENV PORT=4321
+EXPOSE 4321
+CMD node ./dist/server/entry.mjs
+```
+
+## レシピ
+
+1. プロジェクトのルート・ディレクトリで以下のコマンドを実行してコンテナをビルドします。`<your-astro-image-name>` には任意の名前を使用してください。
+
+```bash
+docker build -t <your-astro-image-name> .
+```
+
+これでイメージが出力され、ローカルで実行することも、好きなプラットフォームにデプロイすることもできます。
+
+2. イメージをローカル・コンテナとして実行するには、以下のコマンドを使用します。
+
+`<local-port>` を自分のマシンで開いているポートに置き換えてください。また `<container-port>`をDockerコンテナが公開しているポートに置き換えてください(上記の例では`4321`、`80`、`8080`)。
+
+```bash
+docker run -p <local-port>:<container-port> <your-astro-image-name>
+```
+
+`http://localhost:<local-port>` でアクセスできるはずです。
+
+3. これでウェブサイトが正常にビルドされ、コンテナにパッケージ化されたので、クラウドプロバイダにデプロイすることができます。[Google Cloud](/ja/guides/deploy/google-cloud/#cloud-run-ssr-and-static)のデプロイガイドを参照し、Dockerドキュメントの[Deploy your app](https://docs.docker.com/language/nodejs/deploy/)ページを参照してください。
+
