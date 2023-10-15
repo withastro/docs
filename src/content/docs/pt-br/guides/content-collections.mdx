@@ -7,8 +7,7 @@ i18nReady: true
 import FileTree from '~/components/FileTree.astro'
 import Since from '~/components/Since.astro'
 import TypeScriptSettingTabs from '~/components/tabs/TypeScriptSettingTabs.astro'
-
-
+import RecipeLinks from "~/components/RecipeLinks.astro"
 
 <p>
   <Since v="2.0.0" />
@@ -538,203 +537,10 @@ const { Content } = await entrada.render();
 ```
 
 ## Migrando do Roteamento Baseado em Arquivos
-Esse guia mostra como converter um projeto com Astro existente com arquivos Markdown na pasta `src/pages/` para coleções de conteúdo. Ele usa o [projeto final do tutorial Construa um Blog](https://github.com/withastro/blog-tutorial-demo) como exemplo.
 
-1. [Atualize](/pt-br/guides/upgrade-to/v2/) para o Astro v2.0 ou posterior, e atualize todas as integrações para suas versões mais recentes.
+Se você tiver um projeto Astro existente, como um blog, que utiliza arquivos Markdown ou MDX em subpastas dentro de `src/pages/`, considere migrar conteúdo relacionado ou arquivos de dados para coleções de conteúdo.
 
-2. [Configure o TypeScript](/pt-br/guides/content-collections/#configurando-o-typescript) para coleções de conteúdo.
-3. Crie pelo menos uma coleção (pasta em `src/content/`) e mova suas páginas em Markdown e MDX da `src/pages/` para essas subpastas do `src/content/`. Coleções funcionam melhor quando todos os arquivos na mesma coleção possuem propriedades do frontmatter similares. Então, escolha sua nova estrutura de pastas para refletir tipos de páginas similares.
-
-    Por exemplo, para migrar a [postagem de blog no tutorial](/pt-br/tutorial/2-pages/2/), mova o conteúdo de `src/pages/posts/` para `src/content/postagens/`.
-
-4. Crie um arquivo `src/content/config.ts` e [defina ume esquema](/pt-br/guides/content-collections/#definindo-um-esquema-de-coleção) para cada tipo de conteúdo. Para o blog, nós temos um tipo de conteúdo, `postagens`:
-
-    ```ts title="src/content/config.ts"
-    // Importe utilitários do `astro:content`
-    import { z, defineCollection } from "astro:content";
-    // Defina um `type` e `schema` para cada coleção
-    const colecaoPostagens = defineCollection({
-        type: 'content',
-        schema: z.object({
-          titulo: z.string(),
-          dataPublicacao: z.date(),
-          descricao: z.string(),
-          autor: z.string(),
-          imagem: z.object({
-            url: z.string(),
-            alt: z.string()
-          }),
-          tags: z.array(z.string())
-        })
-    });
-    // Exporte um único objeto `collections` para registrar sua(s) coleção(ões)
-    export const collections = {
-      postagens: colecaoPostagens,
-    };
-    ```
-
-    :::tip
-    Se seu editor não reconhece o `astro:content`, tenha certeza que você está usando a última versão do Astro e tente reiniciar o servidor de desenvolvimento.
-    :::
-
-
-5. [Gere rotas para suas coleções](/pt-br/guides/content-collections/#gerando-rotas-a-partir-do-conteúdo). Dentro de uma coleção, arquivos Markdown e MDX não se tornam mais páginas automaticamente usando o [roteamento baseado em arquivos](/pt-br/guides/markdown-content/#roteamento-baseado-em-arquivos) do Astro, então você deve gerar as páginas por conta própria.
-
-    Para o tutorial, crie um `src/pages/postagens/[...slug].astro`. Essa página vai usar [rotas dinâmicas](/pt-br/core-concepts/routing/#rotas-dinâmicas) para gerar uma página para cada entrada da coleção.
-
-    Essa página também vai precisar [consultar sua coleção](#consultando-coleções) para buscar as slugs das páginas e fazer o conteúdo das páginas estar disponível para cada rota.
-
-    Renderize o `<Content />` da sua postagem dentro do layout para suas páginas Markdown e MDX. Isso permite você especificar um layout comum para todas as suas postagens.
-
-    ```astro title="src/pages/postagens/[...slug].astro"
-    ---
-    import { getCollection } from 'astro:content';
-    import LayoutPostagemMarkdown from '../../layouts/LayoutPostagemMarkdown.astro';
-
-    export async function getStaticPaths() {
-      const entradasBlog = await getCollection('postagens');
-      return entradasBlog.map(entrada => ({
-        params: { slug: entrada.slug }, props: { entrada },
-      }));
-    }
-
-    const { entrada } = Astro.props;
-    const { Content } = await entrada.render();
-    ---
-    <LayoutPostagemMarkdown frontmatter={entrada.data}>
-      <Content />
-    </LayoutPostagemMarkdown>
-    ```
-
-6. Remova a definição `layout` em cada frontmatter individual das postagens. Seu conteúdo agora é envolvido em um layout ao ser renderizado, e essa propriedade não é mais necessária.
-
-    ```md title="src/content/post-1.md" del={2}
-    ---
-    layout: ../../layouts/LayoutPostagemMarkdown.astro
-    title: 'Minha Primeira Postagem de Blog'
-    dataPublicacao: 2022-07-01
-    ...
-    ---
-    ```
-
-7. Substitua `Astro.glob()` com [`getCollection()`](/pt-br/reference/api-reference/#getcollection) para buscar conteúdo e metadados dos seus arquivos Markdown. Você também vai precisar atualizar referências ao objeto da postagem retornado, já que agora você encontrará seus valores de frontmatter na propriedade `data`.
-
-    A página index do blog no tutorial lista um cartão para cada postagem. Isso se torna:
-
-    ```astro title="src/pages/blog.astro" "postagem.data" "getCollection(\"postagens\")" "'/postagens/' + postagem.slug"
-    ---
-    import { getCollection } from "astro:content";
-    import LayoutBase from "../layouts/LayoutBase.astro";
-    import PostagemBlog from "../components/PostagemBlog.astro";
-
-    const tituloPagina = "My Astro Learning Blog";
-    const todasPostagens = await getCollection("postagens");
-    ---
-
-    <LayoutBase tituloPagina={tituloPagina}>
-      <p>Aqui é onde eu vou postar minha jornada aprendendo o Astro.</p>
-      <ul>
-        {
-          todasPostagens.map((postagem) => (
-            <PostagemBlog url={'/postagens/' + postagem.slug} titulo={postagem.data.titulo} />
-          ))
-        }
-      </ul>
-    </LayoutBase> 
-    ```
-
-    O projeto de blog do tutorial também gera dinamicamente uma página para cada tag. Essa página agora se torna:
-
-    ```astro title="src/pages/tags/[tag].astro" "postagem.data" "getCollection(\"postagens\")" "postagem.data.titulo" "'/postagens/' + postagem.slug"
-    ---
-    import { getCollection } from "astro:content";
-    import LayoutBase from "../../layouts/LayoutBase.astro";
-    import PostagemBlog from "../../components/PostagemBlog.astro";
-
-    export async function getStaticPaths() {
-      const todasPostagens = await getCollection("postagens");
-      const tagsUnicas = [...new Set(todasPostagens.map((postagem) => postagem.data.tags).flat())];
-
-      return tagsUnicas.map((tag) => {
-        const postagensFiltradas = todasPostagens.filter((postagem) =>
-          postagem.data.tags.includes(tag)
-        );
-        return {
-          params: { tag },
-          props: { postagens: postagensFiltradas },
-        };
-      });
-    }
-    
-    const { tag } = Astro.params;
-    const { postagens } = Astro.props;
-    ---
-
-    <LayoutBase tituloPagina={tag}>
-        <p>Postagens com a tag {tag}</p>
-        <ul>
-            { postagens.map((post) => <PostagemBlog url={'/postagens/' + post.slug} titulo={post.data.titulo} />) }
-        </ul>
-    </LayoutBase>
-    ```
-
-    A mesma lógica aparece na página index de tags, que se torna:
-    
-    ```astro title="src/pages/tags/index.astro" "postagem.data" "getCollection(\"postagens\")"
-    ---
-    import { getCollection } from "astro:content";
-    import LayoutBase from "../../layouts/LayoutBase.astro";
-    const todasPostagens = await getCollection("postagens");
-    const tags = [...new Set(todasPostagens.map((postagem) => postagem.data.tags).flat())];
-    const tituloPagina = "Tag Index";
-    ---
-    ...
-    ```
-
-    :::note
-    Qualquer importação individual de arquivo Markdown ou MDX deve ser substituída por [`getEntry()`](/pt-br/reference/api-reference/#getentry).
-    :::
-    
-8. Atualize o código que usa a data de publicação no arquivo `layouts/LayoutPostagemMarkdown`.
-
-    Previamente, `dataPublicacao` era uma string. Agora, após introduzir os tipos do frontmatter das suas postagens, `dataPublicacao` é um `Date`.
-    Para renderizar a data, converta ela para uma string:
-
-    ```astro title="src/layouts/LayoutPostagemMarkdown.astro" "frontmatter.dataPublicacao.toDateString()"
-    ...
-    <LayoutBase tituloPagina={frontmatter.titulo}>
-      <p>{frontmatter.dataPublicacao.toDateString()}</p>
-      <p><em>{frontmatter.descricao}</em></p>
-      <p>Escrito por: {frontmatter.autor}</p>
-      <img src={frontmatter.imagem.url} width="300" alt={frontmatter.imagem.alt} />
-    ...
-    ```
-    
-
-    Por último, o projeto de blog do tutorial inclui um feed RSS. Essa função também precisa usar `getCollection` e o objeto `data` e ser convertida para uma função assíncrona para fazer isso:
-
-    ```js title="src/pages/rss.xml.js" {4-5, 10-15} 
-    import rss from "@astrojs/rss";
-    import { getCollection } from "astro:content";
-
-    export async function GET() {
-      const postagens = await getCollection('postagens');
-      return rss({
-        title: 'Astro Learner | Blog',
-        description: 'My journey learning Astro',
-        site: 'https://my-blog-site.netlify.app',
-        items: postagens.map((post) => ({
-          titulo: post.data.titulo,
-          dataPublicacao: post.data.dataPublicacao,
-          descricao: post.data.descricao,
-          link: `/postagens/${post.slug}/`,
-        })),
-        customData: `<language>pt-BR</language>`,
-      });
-    }
-    ```
-
-Para o exemplo completo do tutorial de blog usando coleções de conteúdo, veja a [branch Content Collections](https://github.com/withastro/blog-tutorial-demo/tree/content-collections) do repositório do tutorial.
+Veja como converter um exemplo básico de blog de `src/pages/posts/` para `src/content/posts` em nosso [tutorial passo a passo](https://docs.astro.build/pt-br/tutorials/add-content-collections) que utiliza o código-fonte do projeto final do [tutorial Construa um Blog](https://github.com/withastro/blog-tutorial-demo).
 
 
 ## Modificando o Frontmatter com Remark
@@ -758,6 +564,8 @@ const { remarkPluginFrontmatter } = await postagemBlog.render();
 -->
 <p>{postagemBlog.data.titulo} — {remarkPluginFrontmatter.tempoLeitura}</p>
 ```
+
+<RecipeLinks slugs={["pt-br/recipes/reading-time/" ]}/>
 
 Os pipelines do remark e rehype executam quando seu conteúdo é renderizado, que explica o porquê de o `remarkPluginFrontmatter` só estar disponível depois de você chamar `render()` na sua entrada de conteúdo. Em contrate, `getCollection()` e `getEntry()` não pode retornar esses valores diretamente porque eles não renderizam seu conteúdo.
 
