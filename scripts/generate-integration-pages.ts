@@ -123,7 +123,7 @@ class IntegrationPagesBuilder {
 				})
 		);
 
-		return integrationData.filter(package => package.isPrivate === false)
+		return integrationData.filter(pkg => pkg.isPrivate === false)
 	}
 
 	/**
