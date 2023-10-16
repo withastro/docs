@@ -927,8 +927,8 @@ See the `Content Collections` guide for examples of [querying collection entries
 
 **Types:**
 
-- `(Array<{ collection: string, id: string }>) => CollectionEntry<collection>`
-- `(Array<{ collection: string, slug: string }>) => CollectionEntry<collection>`
+- `(Array<{ collection: string, id: string }>) => Array<CollectionEntry<collection>>`
+- `(Array<{ collection: string, slug: string }>) => Array<CollectionEntry<collection>>`
 
 `getEntries()` is a function that retrieves multiple collection entries from the same collection. This is useful for [returning an array of referenced entries](/en/guides/content-collections/#defining-collection-references) to access their associated `data`, `body`, and `render()` properties.
 
@@ -1033,6 +1033,57 @@ const { Content, headings, remarkPluginFrontmatter } = await entry.render();
 
 [See the `Content Collection` guide](/en/guides/content-collections/#rendering-content-to-html) for example usage.
 
+### Other Content Collection Types
+
+The `astro:content` module also exports the following types for use in your Astro project:
+
+#### `CollectionKey`
+
+A string union of all collection names defined in your `src/content/config.*` file. This type can be useful when defining a generic function that accepts any collection name.
+
+```ts
+import type { CollectionKey, getCollection } from 'astro:content';
+
+async function getCollection(collection: CollectionKey) {
+  return getCollection(collection);
+}
+```
+
+#### `ContentCollectionKey`
+
+A string union of all the names of `type: 'content'` collections defined in your `src/content/config.*` file.
+
+#### `DataCollectionKey`
+
+A string union of all the names of `type: 'data'` collection defined in your `src/content/config.*` file.
+
+#### `SchemaContext`
+
+The `context` object that `defineCollection` uses for the function shape of `schema`. This type can be useful when building reusable schemas for multiple collections.
+
+This includes the following property:
+
+- `image` - The `image()` schema helper that allows you [to use local images in Content Collections](/en/guides/images/#images-in-content-collections)
+
+```ts
+import type { SchemaContext } from 'astro:content';
+
+export const imageSchema = ({ image }: SchemaContext) =>
+    z.object({
+        image: image(),
+        description: z.string().optional(),
+    });
+
+const blog = defineCollection({
+  type: 'content',
+  schema: ({ image }) => z.object({
+    title: z.string(),
+    permalink: z.string().optional(),
+    image: imageSchema({ image })
+  }),
+});
+```
+
 ## `import.meta`
 
 All ESM modules include a `import.meta` property. Astro adds `import.meta.env` through [Vite](https://vitejs.dev/guide/env-and-mode.html).
@@ -1040,8 +1091,6 @@ All ESM modules include a `import.meta` property. Astro adds `import.meta.env` t
 **`import.meta.env.SSR`** can be used to know when rendering on the server. Sometimes you might want different logic, for example a component that should only be rendered in the client:
 
 ```jsx
-import { h } from 'preact';
-
 export default function () {
   return import.meta.env.SSR ? <div class="spinner"></div> : <FancyComponent />;
 }
@@ -1071,14 +1120,6 @@ import { Code } from 'astro:components';
 ```
 
 This component provides syntax highlighting for code blocks at build time (no client-side JavaScript included). The component is powered internally by Shiki and it supports all popular [themes](https://github.com/shikijs/shiki/blob/main/docs/themes.md) and [languages](https://github.com/shikijs/shiki/blob/main/docs/languages.md). Plus, you can add your custom themes and languages by passing them to `theme` and `lang` respectively.
-
-:::note
-When using a [strict package manager](https://pnpm.io/pnpm-vs-npm#npms-flat-tree) like `pnpm`, you may also need to install Shiki so it works during build:
-
-```bash
-pnpm install shiki
-```
-:::
 
 ### `<Prism />`
 

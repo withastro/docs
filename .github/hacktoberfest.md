@@ -1,40 +1,55 @@
 # Hacktoberfest
 
-During October 2022, Astro’s docs repo will accept your PRs for [Hacktoberfest](https://hacktoberfest.com/)! Here’s how to take part:
+During October 2023, Astro’s Docs & Starlight repos will accept your PRs for [Hacktoberfest](https://hacktoberfest.com/)! Here’s how to take part:
 
 1. Make sure you’ve [registered with the Hacktoberfest organizers](https://hacktoberfest.com/).
 
-2. Open PRs to this repo between October 1 and October 31. (The earlier the better!)
+2. Open PRs to [Astro Docs](https://github.com/withastro/docs/) or [Starlight](https://github.com/withastro/starlight/) between October 1 and October 31. (The earlier the better!)
 
-3. Let us know you’re taking part by requesting for your PR to be labelled as `hacktoberfest-accepted`.
+3. Let us know you’re taking part by requesting for your PR to be labeled as `hacktoberfest-accepted`.
 
-Remember, we need to accept your PR by 31 October 2022 for it to count towards Hacktoberfest. Have your PR ready as early as possible, so that you can address comments and have it approved before the deadline.
+Remember, we need to accept your PR by 31 October 2023 for it to count towards Hacktoberfest. Have your PR ready as early as possible, so that you can address comments and have it approved before the deadline.
 
-## Recognizing i18n PR reviewers
+## How can I contribute?
 
-2022 is the first year Hacktoberfest is [encouraging translation and other “no code” contributions](https://hacktoberfest.com/about/#low-or-non-code). As part of this, we’d like to recognize the vital role our PR reviewers play in maintaining our multilingual docs site.
+Hacktoberfest [encourages translations and other low or no-code contributions](https://hacktoberfest.com/participation/#low-or-non-code), and for that reason, our event is primarily focused on internationalization contributions. To help you, the Astro Team has chosen a few "themes" to inspire your contributions this month! We also highly recommend [joining us on our Discord community](https://astro.build/chat/), there we can help you get started and avoid having any duplicate efforts. 
 
-To have your review of a translation PR recognized for Hacktoberfest, open a PR to this file adding to the end of the reviewer log below. We’ll add the `hacktoberfest-accepted` label to make sure it’s recognized.
+### Themes
 
-## i18n PR reviewer log
+#### Stars Around the Globe
 
-These awesome people reviewed i18n PRs for us. Thank you! 💜
+Astro's official docs framework Starlight welcomes UI translations for any language! 
 
-- @agustinmulet reviewed #1609
-- @moustaphadev reviewed #1668
-- @moustaphadev reviewed #1654
-- @AbrahamX3 reviewed #1713
-- @AbrahamX3 reviewed #1747
-- @AbrahamX3 reviewed #1711
-- @AbrahamX3 reviewed #1712
-- @AbrahamX3 reviewed #1706
-- @AbrahamX3 reviewed #1710
-- @AbrahamX3 reviewed #1705
-- @breadadams reviewed #1767
-- @breadadams reviewed #1930
-- @moustaphadev reviewed #1656
-- @moustaphadev reviewed #1890
-- @moustaphadev reviewed #1900
-- @moustaphadev reviewed #1902
-- @moustaphadev reviewed #1909
-- @moustaphadev reviewed #1917
+Learn more on how to contribute with a UI translation in [Starlight's contribution guide](https://github.com/withastro/starlight/blob/main/CONTRIBUTING.md#translating-starlights-ui).
+
+#### World Tour Comeback 
+
+Some languages in Astro’s Docs need a boost. What are you waiting for?! Help Arabic, Korean, Traditional Chinese, Deutsch, French, Russian, and Polski docs come back into the fight!
+
+Learn more in our [translation guide](https://github.com/withastro/docs/blob/main/contributor-guides/translating-astro-docs.md).
+
+
+#### New Language on the Block!
+
+Astro’s Docs just added official support for Hindi translations. Let's show how strong its community is!
+
+Learn more in our [translation guide](https://github.com/withastro/docs/blob/main/contributor-guides/translating-astro-docs.md).
+
+#### Global Level Reviews 
+
+No translation is approved without a careful double-check! Review a page and increase the document's [i18n reviews count](#i18n-reviews-count).
+
+Learn more in our [translation guidance for reviewers](https://github.com/withastro/docs/blob/main/contributor-guides/translating-astro-docs.md#reviewing-someone-elses-pr).
+
+## i18n Reviews Count
+
+Reviewed a translation PR? We want you to get credit, too! **Create a PR following the exact instructions below and you can receive Hacktoberfest credit!**
+
+1. Create your own PR to update **this page**.
+2. In the PR title, include the PR number of the translation you reviewed. We will need to check this.
+3. In the PR description, link to your review comment in the translation PR.
+4. As the **only** change to this page, update the statement at the bottom of this file to **increase the count by 1** to have your contribution considered!
+
+If you have any questions, just ask, and thank you for helping to translate the Astro Docs!
+
+During Hacktoberfest 2023, we've received 2 translation PR reviews from helpful contributors. Thank you!
