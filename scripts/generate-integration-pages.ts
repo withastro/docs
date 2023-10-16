@@ -79,7 +79,11 @@ class IntegrationPagesBuilder {
 		pkgJsonURL: string;
 		readmeURL: string;
 	}): Promise<IntegrationData> {
-		const { name, keywords, private: isPrivate = false } = await githubGet({
+		const {
+			name,
+			keywords,
+			private: isPrivate = false,
+		} = await githubGet({
 			url: pkgJsonURL,
 			githubToken: this.#githubToken,
 		});
@@ -123,7 +127,7 @@ class IntegrationPagesBuilder {
 				})
 		);
 
-		return integrationData.filter(pkg => pkg.isPrivate === false)
+		return integrationData.filter((pkg) => pkg.isPrivate === false);
 	}
 
 	/**
