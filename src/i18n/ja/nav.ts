@@ -16,7 +16,8 @@ export default NavDictionary({
 	// Tutorials
 	tutorials: 'チュートリアル',
 	'blog-tutorial': 'ブログを作る',
-	// 'island-tutorial': 'Thinking with Islands',
+	'add-collections-tutorial': 'コレクションを拡張する',
+  'add-transitions-tutorial': 'ビュートランジションを拡張する',
 
 	// Basics
 	basics: '基本',
