@@ -14,6 +14,8 @@ export default NavDictionary({
 
 	tutorials: '튜토리얼',
 	'blog-tutorial': '블로그 만들기',
+	'add-collections-tutorial': '콘텐츠 컬렉션 사용하기',
+	'add-transitions-tutorial': 'View Transitions 사용하기',
 
 	basics: '기본',
 	'core-concepts/project-structure': '프로젝트 구조',
