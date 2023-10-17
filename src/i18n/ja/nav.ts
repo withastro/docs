@@ -17,7 +17,7 @@ export default NavDictionary({
 	tutorials: 'チュートリアル',
 	'blog-tutorial': 'ブログを作る',
 	'add-collections-tutorial': 'コンテンツコレクションで拡張する',
-  'add-transitions-tutorial': 'ビュートランジションで拡張する',
+	'add-transitions-tutorial': 'ビュートランジションで拡張する',
 
 	// Basics
 	basics: '基本',
