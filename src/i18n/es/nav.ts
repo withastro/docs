@@ -7,14 +7,16 @@ export default NavDictionary({
 	'editor-setup': 'Configuración del Editor',
 	'guides/upgrade-to/v3': 'Actualizar a v3',
 
-	coreConcepts: 'Conceptos Básicos',
+	coreConcepts: 'Conceptos Principales',
 	'concepts/why-astro': 'Por qué Astro',
 	'concepts/islands': 'Islas de Astro',
 
 	tutorials: 'Tutoriales',
 	'blog-tutorial': 'Crear un blog',
+	'add-collections-tutorial': 'Ampliar con Colecciones de Contenido',
+	'add-transitions-tutorial': 'Ampliar con View Transitions',
 
-	basics: 'Conceptos básicos',
+	basics: 'Conceptos Básicos',
 
 	'core-concepts/project-structure': 'Estructura del proyecto',
 	'core-concepts/astro-components': 'Componentes',
