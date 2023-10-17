@@ -5,6 +5,7 @@ i18nReady: true
 ---
 import Since from '~/components/Since.astro';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import Badge from '~/components/Badge.astro';
 
 Astro 为你提供了多种在网站上使用图像的方法，无论它们是本地存储在你的项目内，还是链接到外部 URL，或者在 CMS 或 CDN 中管理的！
 
@@ -82,10 +83,6 @@ import myImage from "../assets/my_image.png"; // Image is 1600x900
 />
 ```
 
-目前，内置的 assets 功能不包括 `<Picture />` 组件。
-
-相反，你可以 [使用 `getImage()` 生成图像或自定义组件](#使用-getimage-生成图像)，这些组件使用 HTML 图像属性 `srcset` 和 `sizes` 或 `<picture>` 标签进行 [艺术指导或创建响应式图像](https://developer.mozilla.org/zh-CN/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#art_direction)。
-
 #### 属性
 
 ##### src (必须)
@@ -142,6 +139,77 @@ import myImage from "../assets/my_image.png"; // Image is 1600x900
 当以原始宽高比使用本地图像时，`width` 和 `height` 可以从源文件中自动推断，并且它们是可选的。
 
 但是，对于远程图像和存储在 `public/` 文件夹中的图像，这两个属性是必需的，因为 Astro 无法分析这些文件。
+
+##### densities
+
+<Since v="3.3.0" /> <Badge>实验性</Badge>
+
+为图像生成的像素密度列表。
+
+如果提供了该值，将会在 `<img>` 标签上生成一个 `srcset` 属性。在使用此值时，请不要提供 `widths` 的值。
+
+与原始图像相同或大于原始图像宽度的像素密度会被忽略，以避免放大图像。
+
+```astro
+---
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png";
+---
+<Image src={myImage} width={myImage.width / 2} densities={[1.5, 2]} alt="我的图片描述" />
+```
+
+```html
+<img
+  src="/_astro/my_image.hash.webp"
+  srcset="
+    /_astro/my_image.hash.webp 1.5x
+    /_astro/my_image.hash.webp 2x
+  "
+  alt="我的图片描述"
+  width="800"
+  height="450"
+  loading="lazy"
+  decoding="async"
+/>
+```
+
+
+##### widths
+
+<Since v="3.3.0" /> <Badge>实验性</Badge>
+
+为图像生成的宽度列表。
+
+如果提供了该值，将会在 `<img>` 标签上生成一个 `srcset` 属性。但还需提供一个 [`sizes` 属性](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/sizes)。
+
+在使用该值时，请不要提供 `densities` 的值。这两个值只能选择一个来生成 `srcset` 属性。
+
+将忽略大于原始图像宽度的宽度值，以避免对图像进行放大。
+
+```astro
+---
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // Image is 1600x900
+---
+<Image src={myImage} widths={[240, 540, 720, myImage.width]} alt="我的图片描述" />
+```
+
+```html
+<img
+  src="/_astro/my_image.hash.webp"
+  srcset="
+    /_astro/my_image.hash.webp 240w,
+    /_astro/my_image.hash.webp 540w,
+    /_astro/my_image.hash.webp 720w,
+		/_astro/my_image.hash.webp 1600w
+  "
+  alt="我的图片描述"
+  width="1600"
+  height="900"
+  loading="lazy"
+  decoding="async"
+/>
+```
 
 ##### format
 
@@ -206,6 +274,79 @@ const {src, ...attrs} = Astro.props;
 </style>
 ```
 
+### `<Picture />`
+
+<Since v="3.3.0" /> <Badge>实验性</Badge>
+
+使用内置的 `<Picture />` Astro 组件来显示具有多种格式和/或尺寸的响应式图像。
+
+```astro title="src/pages/index.astro"
+---
+import { Picture } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // 图像分辨率为 1600x900
+---
+<!-- `alt` 属性在 `Picture` 组件中是必需的 -->
+<Picture src={myImage} formats={['avif', 'webp']} alt="我的图片描述" />
+```
+
+```html
+<!-- 输出 -->
+<picture>
+  <source srcset="/_astro/my_image.hash.avif" type="image/avif" />
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.png"
+    width="1600"
+    height="900"
+    decoding="async"
+    loading="lazy"
+    alt="我的图片描述"
+  />
+</picture>
+```
+
+#### 属性
+
+`<Picture />` 支持 `<Image />` 组件的所有属性，以及以下属性：
+
+##### `formats`
+
+用于 `<source>` 标签的图像格式数组。条目将按照它们在数组中的顺序作为 `<source>` 元素添加到标签中，这个顺序决定了显示的格式。为了最佳性能，请将最新的格式放在首位（例如 `webp` 或 `avif`）。默认情况下，设置为 `['webp']`。
+
+##### `fallbackFormat`
+
+用作 `<img>` 标签的回退格式值。
+
+静态图像默认为 `.png`，动画图像默认为 `.gif`，SVG 文件默认为 `.svg`。
+
+##### `pictureAttributes`
+
+一个要添加到 `<picture>` 标签的属性对象。
+
+使用此属性将属性应用于外部的 `<picture>` 元素本身。直接应用于 `<Picture />` 组件的属性，除了那些图像转换属性，将应用于内部的 `<img>` 元素。
+
+```astro
+---
+import { Picture } from "astro:assets";
+import myImage from "../my_image.png"; // 图像分辨率为 1600x900
+---
+<Picture src={myImage} alt="我的图片描述" pictureAttributes={{style: "background-color: red;"}} />
+```
+
+```html
+<picture style="background-color: red;">
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.png"
+    alt="我的图片描述"
+    width="1600"
+    height="900"
+    loading="lazy"
+    decoding="async"
+  />
+</picture>
+```
+
 ### `<img>`
 
 [Astro 模板语法](/zh-cn/core-concepts/astro-syntax/) 也支持直接编写 `<img>` 标签，完全控制其最终输出。这些图像不会被处理和优化。
@@ -255,7 +396,7 @@ interface ImageMetadata {
 
 ### 选择 `<Image />` 还是 `<img>`
 
-`<Image />` 组件会优化图像，并根据原始宽高比推断宽度和高度（对于本地图像），以避免 CLS。但是，它只适用于某些格式，并且不提供 `<picture>` 元素，也不支持 `srcset`。
+`<Image />` 组件会优化图像，并根据原始宽高比推断宽度和高度（对于本地图像），以避免 CLS。
 
 当你不能使用 `<Image />` 组件时，请使用 HTML `<img>` 元素，例如：
   - 不支持的图像格式
@@ -480,8 +621,13 @@ const optimizedBackground = await getImage({src: myBackground, format: 'avif'})
 
 ```js
 {
-  options: {...} // 传递的原始参数
-  src: "https//..." // 生成图像的路径
+  rawOptions: {...}, // 传递的原始参数
+  options: {...}, // 经过验证的参数
+  src: "..."， // 生成图像的路径
+  srcSet: {
+    values: [...], // srcset 的生成值，每个条目包含一个 URL 和一个尺寸描述符
+    attribute: "", // 从生成的值生成的 srcset 属性
+  },
   attributes: {...} // 渲染图像所需的附加 HTML 属性（宽度、高度、样式等）
 }
 ```
@@ -697,13 +843,7 @@ import rocket from '../images/rocket.svg';
       />
       ```
 
-4. 移除任何现有的 `<Picture />` 组件。
-
-    目前，内置的 assets 功能不包括 `<Picture />` 组件。
-
-    相反，你可以使用 HTML 图像属性 `srcset` 和 `sizes` 或 `<picture>` 标签进行艺术指导或创建响应式图像。
-
-5. 选择一个默认图像服务。
+4. 选择一个默认图像服务。
 
     [Sharp](https://github.com/lovell/sharp) 现在是 `astro:assets` 的默认图像服务。如果你想使用 Sharp，无需任何配置。
 
