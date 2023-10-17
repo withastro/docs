@@ -13,6 +13,8 @@ export default NavDictionary({
 
 	tutorials: 'Tutoriales',
 	'blog-tutorial': 'Crear un blog',
+	'add-collections-tutorial': 'Ampliar con Colecciones de Contenido',
+	'add-transitions-tutorial': 'Ampliar con View Transitions',
 
 	basics: 'Conceptos Básicos',
 
