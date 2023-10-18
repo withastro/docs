@@ -96,7 +96,6 @@ export default [
 		slug: 'guides/view-transitions',
 		key: 'guides/view-transitions',
 	},
-	{ text: 'Partials', slug: 'guides/partials', key: 'guides/partials' },
 	{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
 
 	{ text: 'Configuration', header: true, type: 'learn', key: 'configuration' },
