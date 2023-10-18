@@ -13,6 +13,8 @@ export default NavDictionary({
 
 	tutorials: '教程',
 	'blog-tutorial': '搭建博客',
+	'add-collections-tutorial':'添加内容集合',
+	'add-transitions-tutorial':'在项目中使用视图过渡动画',
 
 	basics: '基础内容',
 	'core-concepts/project-structure': '项目结构',
