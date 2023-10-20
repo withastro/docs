@@ -446,30 +446,92 @@ Aquí te mostramos cómo recrear eso en `src/pages/index.astro`, remplazando `ge
 
 1. Identifica el JSX de return().
 
-```jsx title="pages/index.js" {6-18}
-import Link from 'next/link'
-import styles from '../styles/poke-list.module.css';
+    ```jsx title="pages/index.js" {6-18}
+    import Link from 'next/link'
+    import styles from '../styles/poke-list.module.css';
 
-export default function Home({ pokemons }) {
-    return (
-        <>
-            <ul className={`plain-list ${styles.pokeList}`}>
-                {pokemons.map((pokemon) => (
-                    <li className={styles.pokemonListItem} key={pokemon.name}>
-                        <Link className={styles.pokemonContainer} as={`/pokemon/${pokemon.name}`} href="/pokemon/[name]">
-                            <p className={styles.pokemonId}>No. {pokemon.id}</p>
-                            <img className={styles.pokemonImage} src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}></img>
-                            <h2 className={styles.pokemonName}>{pokemon.name}</h2>
-                        </Link>
-                    </li>
-                ))}
-            </ul>
-        </>
-    )
-}
+    export default function Home({ pokemons }) {
+        return (
+            <>
+                <ul className={`plain-list ${styles.pokeList}`}>
+                    {pokemons.map((pokemon) => (
+                        <li className={styles.pokemonListItem} key={pokemon.name}>
+                            <Link className={styles.pokemonContainer} as={`/pokemon/${pokemon.name}`} href="/pokemon/[name]">
+                                <p className={styles.pokemonId}>No. {pokemon.id}</p>
+                                <img className={styles.pokemonImage} src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}></img>
+                                <h2 className={styles.pokemonName}>{pokemon.name}</h2>
+                            </Link>
+                        </li>
+                    ))}
+                </ul>
+            </>
+        )
+    }
 
-export const getStaticProps = async () => {
-    const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151")
+    export const getStaticProps = async () => {
+        const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151")
+        const resJson = await res.json();
+        const pokemons = resJson.results.map(pokemon => {
+            const name = pokemon.name;
+            // https://pokeapi.co/api/v2/pokemon/1/
+            const url = pokemon.url;
+            const id = url.split("/")[url.split("/").length - 2];
+            return {
+                name,
+                url,
+                id
+            }
+        });
+        return {
+            props: {
+                pokemons,
+            },
+        }
+    }
+    ```
+
+2. Crea `src/pages/index.astro`
+
+    Utiliza el valor de retorno de la función Next. Convierte cualquier sintaxis de Next o React a Astro, incluyendo el cambio de mayúsculas y minúsculas de cualquier [atributo global de HTML](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes).
+
+    Nota que:
+
+    - `.map` ¡simplemente funciona!
+
+    - `className` se convierte en `class`.
+
+    - `<Link>` se convierte en `<a>`.
+
+    - El fragmento `<> </>` no es necesario en la plantilla de Astro.
+
+    ```astro title="src/pages/index.astro" "class" "</a>" "<a"
+    ---
+    ---
+    <ul class="plain-list pokeList">
+        {pokemons.map((pokemon) => (
+            <li class="pokemonListItem" key={pokemon.name}>
+                <a class="pokemonContainer" href={`/pokemon/${pokemon.name}`}>
+                    <p class="pokemonId">No. {pokemon.id}</p>
+                    <img class="pokemonImage" src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}/>
+                    <h2 class="pokemonName">{pokemon.name}</h2>
+                </a>
+            </li>
+        ))}
+    </ul>
+    ```
+
+3. Agrega cualquier importación, propiedad y JavaScript necesario.
+
+    Nota que:
+
+    - La función `getStaticProps` ya no es necesaria. Los datos de la API se obtienen directamente en el bloque de código.
+    - Se importa un componente `<Layout>` y envuelve la plantilla de la página.
+
+    ```astro ins={2,4-16,19,31} title="src/pages/index.astro"
+    ---
+    import Layout from '../layouts/layout.astro';
+
+    const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151");
     const resJson = await res.json();
     const pokemons = resJson.results.map(pokemon => {
         const name = pokemon.name;
@@ -482,84 +544,22 @@ export const getStaticProps = async () => {
             id
         }
     });
-    return {
-        props: {
-            pokemons,
-        },
-    }
-}
-```
+    ---
 
-2. Crea `src/pages/index.astro`
-
-Utiliza el valor de retorno de la función Next. Convierte cualquier sintaxis de Next o React a Astro, incluyendo el cambio de mayúsculas y minúsculas de cualquier [atributo global de HTML](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes).
-
-Nota que:
-
-- `.map` ¡simplemente funciona!
-
-- `className` se convierte en `class`.
-
-- `<Link>` se convierte en `<a>`.
-
-- El fragmento `<> </>` no es necesario en la plantilla de Astro.
-
-```astro title="src/pages/index.astro" "class" "</a>" "<a"
----
----
-<ul class="plain-list pokeList">
-    {pokemons.map((pokemon) => (
-        <li class="pokemonListItem" key={pokemon.name}>
-            <a class="pokemonContainer" href={`/pokemon/${pokemon.name}`}>
-                <p class="pokemonId">No. {pokemon.id}</p>
-                <img class="pokemonImage" src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}/>
-                <h2 class="pokemonName">{pokemon.name}</h2>
-            </a>
-        </li>
-    ))}
-</ul>
-```
-
-3. Agrega cualquier importación, propiedad y JavaScript necesario.
-
-Nota que:
-
-- La función `getStaticProps` ya no es necesaria. Los datos de la API se obtienen directamente en el bloque de código.
-- Se importa un componente `<Layout>` y envuelve la plantilla de la página.
-
-```astro ins={2,4-16,19,31} title="src/pages/index.astro"
----
-import Layout from '../layouts/layout.astro';
-
-const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151");
-const resJson = await res.json();
-const pokemons = resJson.results.map(pokemon => {
-    const name = pokemon.name;
-    // https://pokeapi.co/api/v2/pokemon/1/
-    const url = pokemon.url;
-    const id = url.split("/")[url.split("/").length - 2];
-    return {
-        name,
-        url,
-        id
-    }
-});
----
-
-<Layout>
-  <ul class="plain-list pokeList">
-      {pokemons.map((pokemon) => (
-          <li class="pokemonListItem" key={pokemon.name}>
-              <a class="pokemonContainer" href={`/pokemon/${pokemon.name}`}>
-                  <p class="pokemonId">No. {pokemon.id}</p>
-                  <img class="pokemonImage" src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}/>
-                  <h2 class="pokemonName">{pokemon.name}</h2>
-              </a>
-          </li>
-      ))}
-  </ul>
-</Layout>
-```
+    <Layout>
+      <ul class="plain-list pokeList">
+          {pokemons.map((pokemon) => (
+              <li class="pokemonListItem" key={pokemon.name}>
+                  <a class="pokemonContainer" href={`/pokemon/${pokemon.name}`}>
+                      <p class="pokemonId">No. {pokemon.id}</p>
+                      <img class="pokemonImage" src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}/>
+                      <h2 class="pokemonName">{pokemon.name}</h2>
+                  </a>
+              </li>
+          ))}
+      </ul>
+    </Layout>
+    ```
 
 ## Recursos de la comunidad
 
