@@ -1,0 +1,433 @@
+---
+title: Tutorial - Ampliar con View Transitions
+description: >-
+  Añade View Transitions al código del tutorial Crear un Blog
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import Box from '~/components/tutorial/Box.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import Spoiler from '~/components/Spoiler.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+
+Las **View transitions** son una forma de controlar lo que sucede cuando los visitantes navegan entre páginas en tu sitio. La API de View Transitions de Astro te permite agregar funciones opcionales de navegación, como transiciones suaves entre páginas y animaciones, controlar la pila de historial del navegador de las páginas visitadas, y evitar actualizaciones completas de la página para persistir algunos elementos y el estado de la página mientras se actualiza el contenido mostrado.
+
+<PreCheck>
+  - Importar y añadir el enrutador `<ViewTransitions />` a un elemento `head` común
+  - Agregar listeners de eventos durante el proceso de navegación para activar `<script>` según sea necesario
+  - Añadir animaciones de transición de página utilizando directivas de transición
+  - Excluir la navegación del lado del cliente para un enlace de página individual
+</PreCheck>
+
+## Prerrequisitos
+
+Necesitarás **un proyecto de Astro existente con una plantilla de base común o un componente `<Head />`**.
+
+Este tutorial utiliza el [proyecto terminado del tutorial Crear un Blog](https://github.com/withastro/blog-tutorial-demo) para demostrar cómo agregar view transitions (navegación del lado del cliente) a un proyecto de Astro existente. Puedes hacer un fork y usar esa base de código localmente, o completar el tutorial en el navegador [editando el código del tutorial del blog en StackBlitz](https://stackblitz.com/github/withastro/blog-tutorial-demo/tree/complete?file=src%2Fpages%2Findex.astro).
+
+En su lugar, puedes seguir estos pasos con tu propio proyecto de Astro, pero deberás ajustar las instrucciones para tu base de código.
+
+We recommend using our sample project to complete this short tutorial first. Then, you can use what you have learned to create content collections in your own project.
+
+## Código del Tutorial Crear un Blog
+
+En el [tutorial introductorio Crear un Blog](/es/tutorial/0-introduction/), aprendiste sobre la [navegación incorporada basada en archivos](/es/core-concepts/routing/#rutas-estáticas) de Astro: cualquier archivo `.astro`, `.md` o `.mdx` en cualquier lugar dentro de la carpeta `src/pages/` se convertía automáticamente en una nueva página en tu sitio.
+
+Para navegar entre estas páginas, utilizaste el elemento HTML estándar `<a>`. Por ejemplo, para crear un enlace a tu página "Acerca de", agregaste `<a href="/about/">Acerca de</a>` en la cabecera de tu página. Cuando un visitante de tu sitio hacía clic en ese enlace, el navegador se actualizaba y cargaba una nueva página con contenido completamente nuevo.
+
+## Navegación de página completa vs. enrutamiento del lado del cliente (modo SPA)
+
+Cuando un navegador se actualiza y carga una nueva página, no hay continuidad entre la página antigua y la nueva. Durante el enrutamiento del lado del cliente, se muestra una nueva página sin una actualización completa del navegador.
+
+El enrutamiento del lado del cliente es una característica de los sitios de aplicaciones de una sola página (SPA), donde todo el sitio o aplicación es "una página" de JavaScript cuyo contenido se actualiza en función de la interacción del visitante.
+
+Debido a que cada nueva página no requiere una actualización completa del navegador, el enrutamiento del lado del cliente te permite controlar las transiciones de página de varias maneras. Los **elementos persistentes**, como un encabezado común de la página, no tienen que ser completamente vuelto a renderizar en la pantalla. La transición de una página a otra puede parecer mucho más fluida. Además, el estado puede conservarse, ¡lo que te permite transferir valores de una página a la siguiente o incluso mantener un video reproduciéndose mientras tus visitantes navegan por las páginas!
+ 
+Hay momentos en los que querrás o necesitarás una actualización completa del navegador. Por ejemplo, cuando un enlace lleva a un visitante a un documento `.pdf`, necesitarás que el navegador cargue esa nueva página desde el servidor. Incluso con las view transitions habilitadas en tu proyecto de Astro, podrás especificar cómo debería navegar el navegador tanto de forma predeterminada como de forma específica para cada enlace, incluso eligiendo no utilizar enrutamiento del lado del cliente en absoluto.
+
+Lee más sobre las [view transitions de Astro](/es/guides/view-transitions/) en nuestra guía, o comienza con las instrucciones a continuación para convertir un blog básico de `src/pages/posts/` a `src/content/posts/`.
+
+<Box icon="question-mark">
+### Pon a prueba tus conocimientos
+
+1. Añadiendo view transitions a mi sitio de Astro...
+
+    <MultipleChoice>
+      <Option>
+        Requiere más de 2 líneas de código para implementarse en todo el sitio de forma predeterminada
+      </Option>
+      <Option isCorrect>
+        Cambia el tipo predeterminado de navegación de página en una página que contiene el enrutador `<ViewTransitions />` en su `<head>`
+      </Option>
+      <Option>
+        No agrega de vuelta las características de accesibilidad normalmente proporcionadas por el navegador, como el anuncio de ruta y el respeto a `prefers-reduced-motion`
+      </Option>
+    </MultipleChoice>
+
+2. ¿Cuál **no** es un beneficio de las view transitions de Astro?
+
+    <MultipleChoice>
+      <Option isCorrect>
+         Enviar un poco de JavaScript adicional al navegador para el enrutamiento del lado del cliente
+      </Option>
+      <Option>
+        La opción de persistir elementos y componentes individuales mientras un visitante accede a una nueva página
+      </Option>
+      <Option>
+        Controlar qué tipo de navegación utilizar de manera específica para cada enlace
+      </Option>
+    </MultipleChoice>
+
+3. El enrutador de las view transitions...
+    <MultipleChoice>
+      <Option>
+        Requiere que utilice un framework UI como React
+      </Option>
+      <Option>
+        No está listo para sitios de producción
+      </Option>
+      <Option isCorrect>
+        Incluye un comportamiento de respaldo para navegadores que aún no admiten completamente las view transitions
+      </Option>
+    </MultipleChoice>
+
+</Box>
+
+## Extending the blog tutorial with view transitions
+
+The steps below show you how to extend the final product of the Build a Blog tutorial by adding client-side routing to enhance page transitions.
+
+### Upgrade dependencies
+
+1. Upgrade to the latest version of Astro, and upgrade all integrations to their latest versions by running the following commands in your terminal:
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      # Upgrade to Astro v3.x
+      npm install astro@latest
+
+      # Example: upgrade the blog tutorial Preact integration
+      npm install @astrojs/preact@latest
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      # Upgrade to Astro v3.x
+      pnpm install astro@latest
+
+     # Example: upgrade the blog tutorial Preact integration
+      pnpm install @astrojs/preact@latest
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      # Upgrade to Astro v3.x
+      yarn add astro@latest
+
+      # Example: upgrade the blog tutorial Preact integration
+      yarn add @astrojs/preact@latest
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+    :::tip
+    If you are using your own project, then be sure to update any dependencies you have installed. The example blog tutorial codebase only uses the Preact integration.
+    :::
+
+### Add the `<ViewTransitions />` router
+
+2. Import and add the `<ViewTransitions />` component to the `<head>` of your page layout. 
+
+    In the Blog tutorial example, the `<head>` element is found in `src/layouts/BaseLayout.astro`. The `ViewTransitions` router must be first imported into the component's frontmatter. Then, add the routing component inside the `<head>` element.
+
+    ```astro title="src/layouts/BaseLayout.astro" ins={2,15}
+    ---
+    import { ViewTransitions } from 'astro:transitions';
+    import Header from "../components/Header.astro";
+    import Footer from "../components/Footer.astro";
+    import "../styles/global.css";
+    const { pageTitle } = Astro.props;
+    ---
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+        <title>{pageTitle}</title>
+        <ViewTransitions />
+      </head>
+      <body>
+        <Header />
+        <h1>{pageTitle}</h1>
+        <slot />
+        <Footer />
+        <script>
+          import "../scripts/menu.js";
+        </script>
+      </body>
+    </html>
+    ```
+
+    No other configuration is necessary to enable Astro's default client-side navigation! Astro will create default page animations based on the similarities between the old and new page, and will also provide fallback behavior for unsupported browsers.
+
+3. Navigate between pages in your site preview
+
+    View your site preview **at a large screen size, such as desktop mode**. As you move between pages on your site, notice that the old page content appears to fade out as the new page content fades in. Use the [view transitions guide](/en/guides/view-transitions/) to add custom behavior if you are not satisfied with the defaults.
+    
+    View your site preview **at a smaller screen size**, and try to use the hamburger menu to navigate between pages. Notice that your menu will no longer work after the first page load.
+
+### Update scripts
+
+With view transitions, some scripts may no longer re-run after page navigation like they do with full-page browser refreshes. There are two events during client-side routing that you can listen for, and fire events when they occur: [`astro:page-load`](/en/guides/view-transitions/#astropage-load) and [`astro:after-swap`](/en/guides/view-transitions/#astroafter-swap).
+
+4. Make the script controling the `<Hamburger />` mobile menu component available after navigating to a new page.
+
+     To make your mobile menu interactive after navigating to a new page, add the following code that listens for the `astro:page-load` event which runs at the end of page navigation, and in response, runs the existing script to make the hamburger menu function when clicked:
+
+    ```js title="src/scripts/menu.js" ins={1,5}
+    document.addEventListener('astro:page-load', () => {
+      document.querySelector('.hamburger').addEventListener('click', () => {
+        document.querySelector('.nav-links').classList.toggle('expanded');
+      });
+    });
+    ```
+
+5. Make the script controlling the theme toggle available after page navigation.
+
+    The `<script>` that controls the light/dark theme toggle is located in the `<ThemeIcon />` component. For the theme toggle to continue to function on every page, remove the `is:inline` attribute from the script and add the same event listener as in the previous example so that `astro:page-load` event can trigger your existing function.
+    
+    Update the existing script tag so that your function runs in response to the `astro:page-load` event, making your theme toggle interactive after the new page is fully loaded and visible to the user:
+
+    ```astro title="src/components/ThemeIcon.astro" ins={8,38} del="is:inline"
+    ---
+    ---
+    <button id="themeToggle"> /* ... */ </button>
+
+    <style> /* ... */ </style>
+
+    <script is:inline>
+      document.addEventListener('astro:page-load', () => {
+        const theme = (() => {
+          if (typeof localStorage !== "undefined" && localStorage.getItem("theme")) {
+            return localStorage.getItem("theme");
+          }
+          if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+            return "dark";
+          }
+          return "light";
+        })();
+
+        if (theme === "light") {
+          document.documentElement.classList.remove("dark");
+        } else {
+          document.documentElement.classList.add("dark");
+        }
+
+        window.localStorage.setItem("theme", theme);
+
+        const handleToggleClick = () => {
+          const element = document.documentElement;
+          element.classList.toggle("dark");
+
+          const isDark = element.classList.contains("dark");
+          localStorage.setItem("theme", isDark ? "dark" : "light");
+        };
+
+        document
+          .getElementById("themeToggle")
+          .addEventListener("click", handleToggleClick);
+      });
+    </script>
+    ```
+    Now, the theme toggle is interactive on every page when using the `<ViewTransitions />` router, after the page has finished loading.
+
+6. Check for theme earlier to prevent flashing in dark mode.
+
+    The theme toggle works on every page, but its script is loaded at the end of the navigation process, **after the new page has fully loaded in the browser**. There may be a flash of the light theme version of the site before this theme toggle script runs and checks which theme it should use on the page.
+
+    To check for, and if necessary set, dark mode earlier in the navigation process, create a function that will run in response to the `astro:after-swap` event. The following function to check the browser's `localStorage` for dark theme will run **immediately after the new page has replaced the old page**, before the DOM elements are painted to the screen.
+
+    Add this new script to the `<ThemeIcon />` component, in addition to the script that controls the theme toggle.
+
+    ```astro title="src/components/ThemeIcon.astro" ins={3-9}
+    <script> ... <script>
+
+    <script>
+      document.addEventListener('astro:after-swap', () => {
+        localStorage.theme === 'dark' 
+        ? document.documentElement.classList.add("dark")
+        : document.documentElement.classList.add("light");
+      }); 
+    </script>
+    ```
+
+    Now, every page change **that uses the `<ViewTransitions />` router for client-side navigation** (and therefore access to the `astro:after-swap` event) will be able to detect `theme: dark` from the browser's `localStorage` and update the current page accordingly before the page is rendered for the viewer.
+
+    <Box icon="question-mark">
+      ### Test your knowledge
+
+      Which is the correct order of events after a visitor clicks a link to go to a new page during client-side navigation?
+
+          <MultipleChoice>
+            <Option>
+              1. `astro:after-swap`
+              2. `astro:page-load`
+              3. the new page is visible
+            </Option>
+            <Option isCorrect>
+              1. `astro:after-swap`
+              2. the new page is visible
+              3. `astro:page-load`
+            </Option>
+            <Option>
+              1. `astro:page-load`
+              2. the new page is visible
+              3. `astro:after-swap`
+            </Option>
+          </MultipleChoice>
+
+
+      </Box>
+
+### Customize Transition animations
+
+7. Change the default `fade` animation to a `slide` for the page title.
+
+    With view transitions enabled, you currently have a small fade in and out set for all page transition animations. Astro also provides a built-in `slide` animation. To change the type of animation for a single element, add the `transition:animation=""` directive.
+
+    For example, to make the page titles slide in instead of fade in, add `transition:animate="slide"` to the `<h1>` element in the BaseLayout:
+
+    ```astro title="src/layouts/BaseLayout.astro" ins='transition:animate="slide"'
+    ---
+    import Header from "../components/Header.astro";
+    import Footer from "../components/Footer.astro";
+    import "../styles/global.css";
+    import { ViewTransitions } from 'astro:transitions';
+    const { pageTitle } = Astro.props;
+    ---
+
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+        <title>{pageTitle}</title>
+        <ViewTransitions />
+      </head>
+      <body>
+        <Header />
+        <h1 transition:animate="slide">{pageTitle}</h1>
+        <slot />
+        <Footer />
+        <script>
+          import "../scripts/menu.js";
+        </script>
+      </body>
+    </html>
+    ```
+
+    In your browser preview, you will now see the page titles slide on to the screen, while other elements such as the body text continues to fade in and out. 
+
+    <Box icon="puzzle-piece">
+      ### Try it yourself - Make the navigation links slide in
+
+      Add an animation directive to make the `<div>` in `Navigation.astro` containing all the header links slide in on page navigation, following the [same steps as above](#customize-transition-animations).
+
+      <details>
+      <summary>Show me the code.</summary>
+      ```astro title="src/components/Navigation.astro" ins='transition:animate="slide"'
+      ---
+      ---
+      <div transition:animate="slide" class="nav-links">
+        <a href="/">Home</a>
+        <a href="/about/">About</a>
+        <a href="/blog/">Blog</a>
+        <a href="/tags/" >Tags</a>
+      </div>
+      ```
+      </details>
+    </Box>
+
+    Check your browser preview and now both the page title and the header links will slide in on every page navigation.
+
+8. Add a longer fade-in on your blog post descriptions.
+
+    You can also customize Astro's built-in animations by importing them, then providing any CSS animation properties.
+
+    For example, to make the description fade in slowly when you navigate to a blog post, import the `fade` animation in your layout for Markdown blog posts. Then, add the transition directive for Astro's `fade` with a duration of `2s`:
+
+    ```astro title="src/layouts/MarkdownPostLayout.astro" ins={3} ins="transition:animate={fade({ duration: '2s' })}"
+    ---
+    import BaseLayout from "./BaseLayout.astro";
+    import { fade } from 'astro:transitions';
+    const { frontmatter } = Astro.props;
+    ---
+
+    <BaseLayout pageTitle={frontmatter.title}>
+      <p>{frontmatter.pubDate.slice(0, 10)}</p>
+      <p transition:animate={fade({ duration: '2s' })} ><em>{frontmatter.description}</em></p>
+      <p>Written by: {frontmatter.author}</p>
+      <img src={frontmatter.image.url} width="300" alt={frontmatter.image.alt} />
+      <slot />
+    </BaseLayout>
+    ```
+    Navigate to any blog post in your browser preview, and you will see the description fade in slower than the rest of the text.
+
+    📚 Read more about the different [transition directives](/en/guides/view-transitions/#transition-directives) and [customizing animations](/en/guides/view-transitions/#customizing-animations).
+
+### Force a full browser reload for some links
+
+9. Prevent client-side routing and instead require the browser to reload when navigating to your About page.
+
+    Sometimes you will want a full browser reload when visitors click a certain link. For example, you may be linking to a page that does not also use the `<ViewTransitions />` router, or to a file directly such as a `.pdf`. 
+
+    To make it so that your browser refreshes every time you click the navigation link to go to your About page, add the `data-astro-reload` attribute to the `<a>` tag in your `<Navigation/>` component. This will override the `<ViewTransitions />` router entirely, and any of the view transition animations, for this one link.
+
+     ```astro title="src/components/Navigation.astro" ins='data-astro-reload'
+      ---
+      ---
+      <div transition:animate="slide" class="nav-links">
+        <a href="/">Home</a>
+        <a href="/about/" data-astro-reload >About</a>
+        <a href="/blog/">Blog</a>
+        <a href="/tags/">Tags</a>
+      </div>
+      ```
+    
+    Now, when you click the navigation link to your About page, no animations will occur. The page links and title will not slide in, and the page content will not fade in when you navigate to your About page **using this link**.
+
+10. Add a link to your About page from your author name in your Markdown layout for blog posts   
+
+    `data-astro-reload` only triggers a full browser refresh when going to a new page **from the link it is added to**. It does not control all instances of navigating to your About page.
+
+    In your `<MarkdownPostLayout />` component, add a link to your About page on your author name:
+
+    ```astro title="src/layouts/MarkdownPostLayout.astro" ins='<a href="/about/">' ins="</a>"
+    ---
+    import BaseLayout from "./BaseLayout.astro";
+    import { fade } from 'astro:transitions';
+    const { frontmatter } = Astro.props;
+    ---
+
+    <BaseLayout pageTitle={frontmatter.title}>
+      <p>{frontmatter.pubDate.slice(0, 10)}</p>
+      <p transition:animate={fade({ duration: '2s' })} ><em>{frontmatter.description}</em></p>
+      <p>Written by: <a href="/about/">{frontmatter.author}</a></p>
+      <img src={frontmatter.image.url} width="300" alt={frontmatter.image.alt} />
+      <slot />
+    </BaseLayout>
+    ```
+
+    If you visit any blog post in your browser preview, and then click on the linked author name to be taken to the About page, what does the page navigation look like?
+
+    <p>
+      When a visitor clicks a link to the About page from an individual blog post, the page title and header navigation links <Spoiler>slide in across the screen</Spoiler> because <Spoiler>the `data-astro-reload` attribute is not set on these links</Spoiler>
+    </p>
+
+There is still so much more to explore! See our [full View Transitions Guide](/en/guides/view-transitions/) for more things you can do with view transitions.
+
+For the full example of the blog tutorial using view transitions, see the [View Transitions branch](https://github.com/withastro/blog-tutorial-demo/tree/view-transitions) of the tutorial repo.
