@@ -1,0 +1,126 @@
+---
+title: 构建自定义图像组件 
+description: 了解如何使用 getImage 函数构建支持媒体查询的自定义图像组件
+i18nReady: true
+type: recipe
+---
+
+Astro 提供了两个内置组件，可用于显示和优化图像。`<Picture>` 组件允许你显示响应式图像，并处理不同的格式和尺寸；而`<Image>` 组件则会优化你的图像，并允许你传入不同的格式和质量属性。
+
+当你需要使用一些 `<Picture>` 和 `<Image>` 组件目前不支持的选项时，你可以使用 `getImage()` 函数来创建自定义组件。
+
+在本示例中，你将使用 [`getImage()` 函数](/zh-cn/guides/images/#使用-getimage-生成图像) 来创建自己的自定义图像组件，该组件基于媒体查询显示不同的源图像。
+
+## 操作步骤
+
+1. 创建一个新的 Astro 组件，并导入 `getImage()` 函数
+
+    ```astro title="src/components/MyCustomImageComponent.astro" 
+    ---
+     import { getImage } from "astro:assets";
+    ---
+
+    ```
+
+2. 创建一个新的组件来处理自定义图片。`MyCustomComponent.astro` 将会从 `Astro.props` 中接收到三个 `props`。`mobileImgUrl` 和 `desktopImgUrl` 属性用于在不同的视口尺寸下创建图片，而 `alt` 属性用于设置图片的替代（alt）文本。这些属性将会在你渲染自定义图片组件的任何地方被传递。添加以下导入语句并定义你在组件中将使用的属性，你也可以使用 TypeScript 为属性添加类型定义。
+
+   ```astro title="src/components/MyCustomImageComponent.astro" ins={3, 11}
+    ---
+    import type { ImageMetadata } from "astro";
+    import { getImage } from "astro:assets";
+
+    interface Props {
+        mobileImgUrl: string | ImageMetadata;
+        desktopImgUrl: string | ImageMetadata;
+        alt: string;
+    }
+
+    const { mobileImgUrl, desktopImgUrl, alt } = Astro.props;
+    ---
+
+    ```
+
+3. 结合你需要的属性并调用 `getImage()` 函数来定义每个响应式图片。
+
+    ```astro title="src/components/MyCustomImageComponent.astro" ins={13-18, 20-25}
+    ---
+    import type { ImageMetadata } from "astro";
+    import { getImage } from "astro:assets";
+
+    interface Props {
+        mobileImgUrl: string | ImageMetadata;
+        desktopImgUrl: string | ImageMetadata;
+        alt: string;
+    }
+
+    const { mobileImgUrl, desktopImgUrl, alt } = Astro.props;
+
+    const mobileImg = await getImage({
+        src: mobileImgUrl,
+        format: "webp",
+        width: 200,
+        height: 200,
+    });
+
+    const desktopImg = await getImage({
+        src: desktopImgUrl,
+        format: "webp",
+        width: 800,
+        height: 200,
+    });
+    ---
+
+    ```
+
+4. 创建一个 `<picture>` 元素，它根据你期望的媒体查询生成包含不同图片的 `srcset`。
+
+   ```astro title="src/components/MyCustomImageComponent.astro" ins={28-32}
+    ---
+    import type { ImageMetadata } from "astro";
+    import { getImage } from "astro:assets";
+
+    interface Props {
+        mobileImgUrl: string | ImageMetadata;
+        desktopImgUrl: string | ImageMetadata;
+        alt: string;
+    }
+
+    const { mobileImgUrl, desktopImgUrl, alt } = Astro.props;
+
+    const mobileImg = await getImage({
+        src: mobileImgUrl,
+        format: "webp",
+        width: 200,
+        height: 200,
+    });
+
+    const desktopImg = await getImage({
+        src: desktopImgUrl,
+        format: "webp",
+        width: 800,
+        height: 200,
+    });
+    ---
+
+    <picture>
+        <source media="(max-width: 799px)" srcset={mobileImg.src} />
+        <source media="(min-width: 800px)" srcset={desktopImg.src} />
+        <img src={desktopImg.src} alt={alt} />
+    </picture>
+
+    ```
+
+5. 在任意 `.astro` 文件中导入并使用 `<MyCustomImageComponent />` 组件。确保传递了在不同视口大小下生成两个不同图片所需的属性：
+
+    ```astro title="src/pages/index.astro" 
+    ---
+    import MyCustomImageComponent from "../components/MyCustomImageComponent.astro";
+    ---
+
+    <MyCustomImageComponent
+        mobileImgUrl="/images/mobile-profile-image.jpg"
+        desktopImgUrl="/images/desktop-profile-image.jpg"
+        alt="user profile picture"
+    />
+
+    ```
