@@ -514,29 +514,121 @@ Here's how to recreate that in `src/pages/index.astro`, replacing `asyncData()` 
 
 1. Identify the `<template>` and `<style>` in the Vue SFC.
 
-```jsx title="pages/index.vue" {2-13,47-55}
-<template>
-  <ul class="plain-list pokeList">
-            <li v-for="pokemon of pokemons" class="pokemonListItem" :key="pokemon.name">
-                <NuxtLink class="pokemonContainer" :to="`/pokemon/${pokemon.name}`">
-                    <p class="pokemonId">No. {{pokemon.id}}</p>
-                    <img
-                      class="pokemonImage"
-                      :src="`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`" 
-                      :alt="`${pokemon.name} picture`"/>
-                    <h2 class="pokemonName">{{pokemon.name}}</h2>
-                </NuxtLink>
-            </li>
-    </ul>
-</template>
+    ```jsx title="pages/index.vue" {2-13,47-55}
+    <template>
+      <ul class="plain-list pokeList">
+                <li v-for="pokemon of pokemons" class="pokemonListItem" :key="pokemon.name">
+                    <NuxtLink class="pokemonContainer" :to="`/pokemon/${pokemon.name}`">
+                        <p class="pokemonId">No. {{pokemon.id}}</p>
+                        <img
+                          class="pokemonImage"
+                          :src="`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`" 
+                          :alt="`${pokemon.name} picture`"/>
+                        <h2 class="pokemonName">{{pokemon.name}}</h2>
+                    </NuxtLink>
+                </li>
+        </ul>
+    </template>
 
-<script>
-import Vue from 'vue'
-export default Vue.extend({
-  name: 'IndexPage',
-  layout: 'default',
-  async asyncData() {
-    const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151")
+    <script>
+    import Vue from 'vue'
+    export default Vue.extend({
+      name: 'IndexPage',
+      layout: 'default',
+      async asyncData() {
+        const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151")
+        const resJson = await res.json();
+        const pokemons = resJson.results.map(pokemon => {
+            const name = pokemon.name;
+            // https://pokeapi.co/api/v2/pokemon/1/
+            const url = pokemon.url;
+            const id = url.split("/")[url.split("/").length - 2];
+            return {
+                name,
+                url,
+                id
+            }
+        });
+        return {
+          pokemons,
+        }
+      },
+      head() {
+        return {
+          title: "Pokedex: Generation 1"
+        }
+      }
+    });
+    </script>
+
+    <style scoped>
+    .pokeList {
+      display: grid;
+      grid-template-columns: repeat( auto-fit, minmax(250px, 1fr) );
+      gap: 1rem;
+    }
+
+    /* ... */
+    </style>
+    ```
+
+2. Create `src/pages/index.astro`
+
+    Use the `<template>` and `<style>` tags of the Nuxt SFC. Convert any Nuxt or Vue syntax to Astro.
+
+    Note that:
+
+    - `<template>` is removed
+
+    - `<style>` has its `scoped` attribute removed
+
+    - `v-for` becomes `.map`.
+
+    - `:attr="val"` becomes `attr={val}`
+
+    - `<NuxtLink>` becomes `<a>`.
+
+    - The `<> </>` fragment is not required in Astro templating.
+
+    ```astro title="src/pages/index.astro" ".map" "</a>" "<a" "key={" "}>" "href={" " {pokemon.id}" "} alt={" "src={" "}/>" ">{pokemon.name}<"
+    ---
+    ---
+    <ul class="plain-list pokeList">
+        {pokemons.map((pokemon) => (
+            <li class="pokemonListItem" key={pokemon.name}>
+                <a class="pokemonContainer" href={`/pokemon/${pokemon.name}`}>
+                    <p class="pokemonId">No. {pokemon.id}</p>
+                    <img class="pokemonImage" src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}/>
+                    <h2 class="pokemonName">{pokemon.name}</h2>
+                </a>
+            </li>
+        ))}
+    </ul>
+
+    <style>
+    .pokeList {
+      display: grid;
+      grid-template-columns: repeat( auto-fit, minmax(250px, 1fr) );
+      gap: 1rem;
+    }
+
+    /* ... */
+    </style>
+    ```
+
+3. Add any needed imports, props and JavaScript
+
+    Note that:
+
+    - The `asyncData` function is no longer needed. Data from the API is fetched directly in the code fence.
+    - A `<Layout>` component is imported, and wraps the page templating.
+      - Our `head()` Nuxt method is passed to the `<Layout>` component, which is passed to the `<title>` element as a property.
+
+    ```astro ins={2,4-16,19,31} title="src/pages/index.astro"
+    ---
+    import Layout from '../layouts/layout.astro';
+
+    const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151");
     const resJson = await res.json();
     const pokemons = resJson.results.map(pokemon => {
         const name = pokemon.name;
@@ -549,124 +641,32 @@ export default Vue.extend({
             id
         }
     });
-    return {
-      pokemons,
+    ---
+
+    <Layout title="Pokedex: Generation 1">
+      <ul class="plain-list pokeList">
+          {pokemons.map((pokemon) => (
+              <li class="pokemonListItem" key={pokemon.name}>
+                  <a class="pokemonContainer" href={`/pokemon/${pokemon.name}`}>
+                      <p class="pokemonId">No. {pokemon.id}</p>
+                      <img class="pokemonImage" src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}/>
+                      <h2 class="pokemonName">{pokemon.name}</h2>
+                  </a>
+              </li>
+          ))}
+      </ul>
+    </Layout>
+
+    <style>
+    .pokeList {
+      display: grid;
+      grid-template-columns: repeat( auto-fit, minmax(250px, 1fr) );
+      gap: 1rem;
     }
-  },
-  head() {
-    return {
-      title: "Pokedex: Generation 1"
-    }
-  }
-});
-</script>
 
-<style scoped>
-.pokeList {
-  display: grid;
-  grid-template-columns: repeat( auto-fit, minmax(250px, 1fr) );
-  gap: 1rem;
-}
-
-/* ... */
-</style>
-```
-
-2. Create `src/pages/index.astro`
-
-Use the `<template>` and `<style>` tags of the Nuxt SFC. Convert any Nuxt or Vue syntax to Astro.
-
-Note that:
-
-- `<template>` is removed
-
-- `<style>` has its `scoped` attribute removed
-
-- `v-for` becomes `.map`.
-
-- `:attr="val"` becomes `attr={val}`
-
-- `<NuxtLink>` becomes `<a>`.
-
-- The `<> </>` fragment is not required in Astro templating.
-
-```astro title="src/pages/index.astro" ".map" "</a>" "<a" "key={" "}>" "href={" " {pokemon.id}" "} alt={" "src={" "}/>" ">{pokemon.name}<"
----
----
-<ul class="plain-list pokeList">
-    {pokemons.map((pokemon) => (
-        <li class="pokemonListItem" key={pokemon.name}>
-            <a class="pokemonContainer" href={`/pokemon/${pokemon.name}`}>
-                <p class="pokemonId">No. {pokemon.id}</p>
-                <img class="pokemonImage" src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}/>
-                <h2 class="pokemonName">{pokemon.name}</h2>
-            </a>
-        </li>
-    ))}
-</ul>
-
-<style>
-.pokeList {
-  display: grid;
-  grid-template-columns: repeat( auto-fit, minmax(250px, 1fr) );
-  gap: 1rem;
-}
-
-/* ... */
-</style>
-```
-
-3. Add any needed imports, props and JavaScript
-
-Note that:
-
-- The `asyncData` function is no longer needed. Data from the API is fetched directly in the code fence.
-- A `<Layout>` component is imported, and wraps the page templating.
-  - Our `head()` Nuxt method is passed to the `<Layout>` component, which is passed to the `<title>` element as a property.
-
-```astro ins={2,4-16,19,31} title="src/pages/index.astro"
----
-import Layout from '../layouts/layout.astro';
-
-const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151");
-const resJson = await res.json();
-const pokemons = resJson.results.map(pokemon => {
-    const name = pokemon.name;
-    // https://pokeapi.co/api/v2/pokemon/1/
-    const url = pokemon.url;
-    const id = url.split("/")[url.split("/").length - 2];
-    return {
-        name,
-        url,
-        id
-    }
-});
----
-
-<Layout title="Pokedex: Generation 1">
-  <ul class="plain-list pokeList">
-      {pokemons.map((pokemon) => (
-          <li class="pokemonListItem" key={pokemon.name}>
-              <a class="pokemonContainer" href={`/pokemon/${pokemon.name}`}>
-                  <p class="pokemonId">No. {pokemon.id}</p>
-                  <img class="pokemonImage" src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}/>
-                  <h2 class="pokemonName">{pokemon.name}</h2>
-              </a>
-          </li>
-      ))}
-  </ul>
-</Layout>
-
-<style>
-.pokeList {
-  display: grid;
-  grid-template-columns: repeat( auto-fit, minmax(250px, 1fr) );
-  gap: 1rem;
-}
-
-/* ... */
-</style>
-```
+    /* ... */
+    </style>
+    ```
 
 ## Community Resources 
 
