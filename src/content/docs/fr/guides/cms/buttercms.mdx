@@ -1,0 +1,129 @@
+---
+title: ButterCMS & Astro
+description: Ajouter du contenu à votre projet Astro en utilisant ButterCMS
+type: cms
+service: ButterCMS
+stub: false
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+
+ButterCMS est un CMS headless et un moteur de blog qui vous permet de publier du contenu structuré à utiliser dans votre projet.
+
+## Intégrer avec Astro
+:::note
+Pour un exemple de site de blog complet, voir le [Projet de démarrage Astro + ButterCMS](https://buttercms.com/starters/astro-starter-project/).
+:::
+Dans cet section, nous allons utiliser le [SDK ButterCMS](https://www.npmjs.com/package/buttercms) pour intégrer vos données dans votre projet Astro.
+Pour démarrer, vous aurez besoin de ce qui suit :
+### Prérequis
+
+1. **Un projet Astro** - Si vous n'avez pas encore de projet Astro, notre [guide d'installation](/fr/install/auto/) vous permettra de démarrer en un rien de temps.
+
+2. **Un compte ButterCMS** - Si vous n'avez pas de compte, vous pouvez [vous inscrire](https://buttercms.com/join/) pour un essai gratuit.
+
+3. **Votre jeton d'API ButterCMS** - Vous pouvez trouver votre jeton d'API sur la page [Paramètres](https://buttercms.com/settings/).
+
+### Configuration
+
+1. Créez un fichier `.env` dans le dossier racine de votre projet, et ajoutez votre jeton d'API en tant que variable d'environnement :
+
+ ```ini title=".env"
+ BUTTER_TOKEN=VOTRE_JETON_API_ICI
+ ```
+
+:::tip
+En savoir plus sur [l'utilisation des variables d'environnement](/fr/guides/environment-variables/) et les fichiers `.env` dans Astro.
+:::
+
+2. Installer le SDK ButterCMS en tant que dépendance :
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```shell
+    npm install buttercms
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```shell
+    pnpm install buttercms
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    yarn add buttercms
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+3. Créez un fichier `buttercms.js` dans un nouveau répertoire `src/lib/` de votre projet :
+
+ ```js title="src/lib/buttercms.js"
+ import Butter from "buttercms";
+
+ export const butterClient = Butter(import.meta.env.BUTTER_TOKEN);
+ ```
+
+**Cela authentifie le SDK en utilisant votre jeton d'API et l'exporte pour être utilisé dans tout votre projet.**
+
+### Récupération de données
+Pour récupérer du contenu, importez ce client et utilisez l'une de ses fonctions `retrieve`.
+
+Dans cet exemple, nous [récupérons une collection](https://buttercms.com/docs/api/#retrieve-a-collection) qui a trois champs : un texte court `name`, un nombre `price`, et une WYSIWYG `description`.
+
+```astro title="src/pages/ShopItem.astro"
+---
+import { butterClient } from "../lib/buttercms";
+const response = await butterClient.content.retrieve(["shopitem"]);
+
+interface ShopItem {
+	name: string,
+	price: number,
+	description: string,
+}
+
+const items = response.data.data.shopitem as ShopItem[];
+---
+<body>
+	{items.map(item => <div>
+		<h2>{item.name} - ${item.price}</h2>
+		<p set:html={item.description}></p>
+	</div>)}
+</body>
+```
+
+L'interface reflète les types de champs. Le champ WYSIWYG `description` se charge comme une chaîne HTML, et [`set:html`](/fr/reference/directives-reference/#sethtml) vous permet de l'afficher. 
+
+De même, vous pouvez [récupérer une page](https://buttercms.com/docs/api/#get-a-single-page) et afficher ses champs :
+
+```astro title="src/pages/ShopItem.astro"
+---
+import { butterClient } from "../lib/buttercms";
+const response = await butterClient.page.retrieve("*", "simple-page");
+const pageData = response.data.data;
+
+interface Fields {
+  seo_title: string,
+  headline: string,
+  hero_image: string,
+}
+
+const fields = pageData.fields as Fields;
+---
+<html>
+  <title>{fields.seo_title}</title>
+  <body>
+    <h1>{fields.headline}</h1>
+    <img src={fields.hero_image} />
+  </body>
+</html>
+```
+
+## Ressources officielles
+
+- [Projet de démarrage Astro + ButterCMS](https://buttercms.com/starters/astro-starter-project/)
+- La [documentation complète de l'API ButterCMS](https://buttercms.com/docs/api/)
+- Le [guide JavaScript](https://buttercms.com/docs/api-client/javascript/) de ButterCMS
+
+## Ressources communautaires
+- Ajoutez la vôtre !
