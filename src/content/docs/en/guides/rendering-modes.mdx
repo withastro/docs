@@ -3,6 +3,7 @@ title: "Rendering Modes"
 i18nReady: false
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import RecipeLinks from '~/components/RecipeLinks.astro';
 
 Your Astro project code must be **rendered** to HTML in order to be displayed on the web. 
 
@@ -87,7 +88,55 @@ export const prerender = true;
   <!-- Static, pre-rendered page here... -->
 </html>
 ```
-See more examples of [specifying rendering behavior on a per-page basis](#combining-rendering-modes) for these two `output` modes.
+
+### Opting-in to pre-rendering in `server` mode
+
+For a mostly server-rendered app configured as `output: server`, add `export const prerender = true` to any page or route to pre-render a static page or endpoint:
+
+```astro title="src/pages/mypage.astro" {2}
+---
+export const prerender = true;
+// ...
+---
+<html>
+  <!-- Static, pre-rendered page here... -->
+</html>
+```
+
+```mdx title="src/pages/mypage.mdx" {5}
+---
+layout: '../layouts/markdown.astro'
+title: 'My page'
+---
+export const prerender = true;
+
+# This is my static, pre-rendered page
+```
+
+```js title="src/pages/myendpoint.js" {1}
+export const prerender = true;
+
+export async function GET() {
+  return {
+    body: JSON.stringify({ message: `This is my static endpoint` }),
+  };
+}
+```
+
+### Opting out of pre-rendering in `hybrid` mode
+
+For a mostly static site configured as `output: hybrid`, add `export const prerender = false` to any files that should be server-rendered on demand:
+
+```js title="src/pages/randomnumber.js" {1}
+export const prerender = false;
+
+export async function GET() {
+  let number = Math.random();
+  return {
+    body: JSON.stringify({ number, message: `Here's a random number: ${number}` }),
+  };
+}
+```
 
 ### Add an Adapter
 
@@ -158,63 +207,85 @@ For example, to install the Vercel adapter manually:
     });
     ```
 
+## Streaming
+
+Browsers natively support HTTP streaming, where a document is broken up into chunks, sent over the network in order, and rendered on the page in that order.
+
+During this process, browsers consume HTML incrementally: parsing, rendering into the DOM, and painting. This happens whether or not you intentionally stream your HTML. Network conditions can cause large documents to be downloaded slowly, and waiting for data fetches can block page rendering.
+
+In an [on-demand rendering mode](#on-demand-rendered), Astro uses HTML streaming to send each component to the browser as it renders them. This makes sure your visitor sees your HTML as fast as possible, but it also means that by the time Astro runs your component code, it has already sent the Response headers and they cannot be modified.
+
+<RecipeLinks slugs={["en/recipes/streaming-improve-page-performance"]}/>
+
 ## On-demand rendering features
 
-Astro pre-renders a static site by default. But once you enable `server` or `hybrid` mode and add an adapter, a few new features become available to you.
+:::caution
+The features below are only available at the page level. (You can't use them inside of components, including layout components.)
 
-### Combining rendering modes
+This is because these features modify the [Response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header), which can't be modified after they're sent to the browser.
+:::
 
-Both `server` and `hybrid` modes allow for a combination of pre-rendered and on-demand pages and endpoints. Each mode has a different default rendering strategy and you can opt in or out pre-rendering as needed on a per-page basis.
+### Cookies
 
+In `server` and `hybrid` modes, a page or API endpoint can check, set, get, and delete cookies.
 
-#### Opting-in to pre-rendering in `server` mode
+The example below updates the value of a cookie for a page view counter:
 
-For a mostly server-rendered app configured as `output: server`, add `export const prerender = true` to any page or route to pre-render a static page or endpoint:
-
-```astro title="src/pages/mypage.astro" {2}
+```astro title="src/pages/index.astro" {4,5,9}
 ---
-export const prerender = true;
-// ...
+let counter = 0
+
+if (Astro.cookies.has("counter")) {
+  const cookie = Astro.cookies.get("counter")
+	counter = cookie.number() + 1
+}
+
+Astro.cookies.set("counter",counter)
 ---
 <html>
-  <!-- Static, pre-rendered page here... -->
+  <h1>Counter = {counter}</h1>
 </html>
 ```
 
-```mdx title="src/pages/mypage.mdx" {5}
+See more details about [`Astro.cookies` and the `AstroCookie` type](/en/reference/api-reference/#astrocookies) in the API reference.
+
+### `Response`
+
+You can also return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) from any page using on-demand rendering. 
+
+The example below returns a 404 on a dynamic page after looking up an id in the database:
+
+```astro title="src/pages/[id].astro" {8-11}
 ---
-layout: '../layouts/markdown.astro'
-title: 'My page'
+import { getProduct } from '../api';
+
+const product = await getProduct(Astro.params.id);
+
+// No product found
+if (!product) {
+  return new Response(null, {
+    status: 404,
+    statusText: 'Not found'
+  });
+}
 ---
-export const prerender = true;
-
-# This is my static, pre-rendered page
+<html>
+  <!-- Page here... -->
+</html>
 ```
 
-```js title="src/pages/myendpoint.js" {1}
-export const prerender = true;
+### Server Endpoints
 
-export async function GET() {
-  return {
-    body: JSON.stringify({ message: `This is my static endpoint` }),
-  };
-}
-```
+A server endpoint, also known as an **API route**, is a special function exported from a `.js` or `.ts` file within the `src/pages/` folder. A powerful feature of server-side rendering on demand, API routes are able to securely execute code on the server.
 
-#### Opting out of pre-rendering in `hybrid` mode
+The function takes an [endpoint context](/en/reference/api-reference/#endpoint-context) and returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response). 
 
-For a mostly static site configured as `output: hybrid`, add `export const prerender = false` to any files that should be server-rendered on demand:
+To learn more, see our [Endpoints Guide](/en/core-concepts/endpoints/#server-endpoints-api-routes).
 
-```js title="src/pages/randomnumber.js" {1}
-export const prerender = false;
 
-export async function GET() {
-  let number = Math.random();
-  return {
-    body: JSON.stringify({ number, message: `Here's a random number: ${number}` }),
-  };
-}
-```
+
+{/* ACCORDING TO API REFERENCE, THESE ARE NOT EXCLUSIVELY FOR SSR MODE, SO THINKING THEY SHOULD NOT BE HERE
+
 
 ### `Astro.request.headers`
 
@@ -238,172 +309,7 @@ The HTTP method used in the request is available as `Astro.request.method`. This
 ---
 console.log(Astro.request.method) // GET (when navigated to in the browser)
 ---
-```
-
-:::caution
-The features below are only available at the page level. (You can't use them inside of components, including layout components.)
-
-This is because these features modify the [Response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header), which can't be modified after they're sent to the browser.
-
-In SSR mode, Astro uses HTML streaming to send each component to the browser as it renders them. This makes sure the user sees your HTML as fast as possible, but it also means that by the time Astro runs your component code, it has already sent the Response headers.
-:::
-
-### `Astro.cookies`
-
-This is a utility to read and modify a single cookie. It allows you to check, set, get and delete a cookie.
-
-See more details about [`Astro.cookies` and the `AstroCookie` type](/en/reference/api-reference/#astrocookies) in the API reference.
-
-The example below updates the value of a cookie for a page view counter.
-
-```astro title="src/pages/index.astro" {4,5,9}
----
-let counter = 0
-
-if (Astro.cookies.has("counter")) {
-  const cookie = Astro.cookies.get("counter")
-	counter = cookie.number() + 1
-}
-
-Astro.cookies.set("counter",counter)
----
-<html>
-  <h1>Counter = {counter}</h1>
-</html>
-```
-
-### `Response`
-
-You can also return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) from any page. You might do this to return a 404 on a dynamic page after looking up an id in the database.
-
-```astro title="src/pages/[id].astro" {8-11}
----
-import { getProduct } from '../api';
-
-const product = await getProduct(Astro.params.id);
-
-// No product found
-if (!product) {
-  return new Response(null, {
-    status: 404,
-    statusText: 'Not found'
-  });
-}
----
-<html>
-  <!-- Page here... -->
-</html>
-```
-
-### Server Endpoints
-
-A server endpoint, also known as an **API route**, is a special function exported from a `.js` or `.ts` file within the `src/pages/` folder. A powerful feature of SSR, API routes are able to securely execute code on the server.
-
-The function takes an [endpoint context](/en/reference/api-reference/#endpoint-context) and returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response). 
-
-To learn more, see our [Endpoints Guide](/en/core-concepts/endpoints/#server-endpoints-api-routes).
-{/* 
-### Streaming
-
-Browsers natively support HTTP streaming, where a document is broken up into chunks, sent over the network in order, and rendered on the page in that order.
-
-During this process, browsers consume HTML incrementally: parsing, rendering into the DOM, and painting. This happens whether or not you intentionally stream your HTML. Network conditions can cause large documents to be downloaded slowly, and waiting for data fetches can block page rendering.
+``` 
 
 
-#### Using streaming to improve page performance
-
-Astro's SSR uses HTML streaming to send each component to the browser when available for faster page loading. To improve your page's performance even further, you can build your components strategically to optimize their loading by avoiding blocking data fetches.
-
-The following refactoring example demonstrates how to improve page performance by moving fetch calls to other components, moving them out of a component where they block page rendering.
-
-The following page `await`s some data in its frontmatter. Astro will wait for all of the `fetch` calls to resolve before sending any HTML to the browser.
-
-```astro title="src/pages/index.astro"
----
-const personResponse = await fetch('https://randomuser.me/api/');
-const personData = await personResponse.json();
-const randomPerson = personData.results[0];
-const factResponse = await fetch('https://catfact.ninja/fact');
-const factData = await factResponse.json();
----
-<html>
-  <head>
-    <title>A name and a fact</title>
-  </head>
-  <body>
-    <h2>A name</h2>
-    <p>{randomPerson.name.first}</p>
-    <h2>A fact</h2>
-    <p>{factData.fact}</p>
-  </body>
-</html>
-```
-
-Moving the `await` calls into smaller components allows you to take advantage of Astro's streaming. Using the following components to perform the data fetches, Astro can render some HTML first, such as the title, and then the paragraphs when the data is ready.
-
-```astro title="src/components/RandomName.astro"
----
-const personResponse = await fetch('https://randomuser.me/api/');
-const personData = await personResponse.json();
-const randomPerson = personData.results[0];
----
-<p>{randomPerson.name.first}</p>
-```
-
-```astro title="src/components/RandomFact.astro"
----
-const factResponse = await fetch('https://catfact.ninja/fact');
-const factData = await factResponse.json();
----
-<p>{factData.fact}</p>
-```
-
-
-The Astro page below using these components can render parts of the page sooner. The `<head>`, `<body>`, and `<h1>` tags are no longer blocked by data fetches. The server will then fetch data for `RandomName` and `RandomFact` in parallel and stream the resulting HTML to the browser.
-
-```astro title="src/pages/index.astro"
----
-import RandomName from '../components/RandomName.astro'
-import RandomFact from '../components/RandomFact.astro'
----
-<html>
-  <head>
-    <title>A name and a fact</title>
-  </head>
-  <body>
-    <h2>A name</h2>
-    <RandomName />
-    <h2>A fact</h2>
-    <RandomFact />
-  </body>
-</html>
-```
-
-#### Including Promises directly
-
-You can also include promises directly in the template. Instead of blocking the entire component, it will resolve the promise in parallel and only block the markup that comes after it.
-
-```astro title="src/pages/index.astro"
----
-const personPromise = fetch('https://randomuser.me/api/')
-  .then(response => response.json())
-  .then(arr => arr[0].name.first);
-const factPromise = fetch('https://catfact.ninja/fact')
-  .then(response => response.json())
-  .then(factData => factData.fact);
----
-<html>
-  <head>
-    <title>A name and a fact</title>
-  </head>
-  <body>
-    <h2>A name</h2>
-    <p>{personPromise}</p>
-    <h2>A fact</h2>
-    <p>{factPromise}</p>
-  </body>
-</html>
-```
-
-In this example, `A name` will render while `personPromise` and `factPromise` are loading.
-Once `personPromise` has resolved, `A fact` will appear and `factPromise` will render when it's finished loading. */}
+ */}
