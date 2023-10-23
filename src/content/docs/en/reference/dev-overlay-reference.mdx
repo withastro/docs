@@ -1,0 +1,260 @@
+---
+title: Dev Overlay Plugin API
+i18nReady: false
+---
+
+The Astro Dev Overlay Plugin API allows you to create plugins that can be used to extend the Astro Dev Overlay with new functionalities and integrations with third-party services.
+
+:::note
+This API is currently **experimental**. It is subject to change in future releases with no prior notice.
+:::
+
+## Adding plugins
+
+[Astro Integrations](/en/reference/configuration-reference/#integrations) can add plugins in [the `astro:config:setup` hook](/en/reference/integrations-reference/#astroconfigsetup) using the `addDevOverlayPlugin` method.
+
+```ts title="integrations.js"
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "my-integration",
+  hooks: {
+    "astro:config:setup": ({ addDevOverlayPlugin }) => {
+      addDevOverlayPlugin("./my-plugin.js");
+    },
+  },
+});
+```
+
+## Structure of a plugin
+
+A plugin is a file that default exports an object with the following properties:
+
+### `id: string`
+
+A unique identifier for the plugin. This will be used to uniquely identify the plugin in hooks and events.
+
+```ts title="src/my-plugin.js" {2}
+export default {
+  id: 'my-plugin',
+  // ...
+}
+```
+
+### `name: string`
+
+The name of the plugin. This will be shown to users whenever the plugin needs to be referenced using a human-readable name.
+
+```ts title="src/my-plugin.js" {2}
+export default {
+  name: 'My Plugin',
+  // ...
+}
+```
+
+### `icon: string`
+
+A SVG icon of the plugin. This will be used to display the plugin in the UI. This should be a string containing the SVG markup of the icon.
+
+```ts title="src/my-plugin.js" {2}
+export default {
+  // ...
+  icon: '<svg>...</svg>',
+}
+```
+
+### `init: (canvas: ShadowRoot, eventTarget: EventTarget) => void`
+
+This is the core part of the plugin. This function will be called when the plugin is loaded, which will either be when the browser is idle or when the user clicks on the plugin in the UI.
+
+The function receives two arguments:
+
+#### `canvas`
+
+A ShadowRoot that the plugin can use to render its UI. Every plugin receive its own dedicated ShadowRoot for rendering its UI. Additionally, the parent element is positioned using `position: absolute;` and as such, the plugin UI automatically won't affect the layout of the page.
+
+```ts
+export default {
+	id: 'super-plugin',
+	name: 'My Super Plugin',
+	icon: '<svg>...</svg>',
+	init(canvas) {
+    canvas.appendChild(document.createTextNode('Hello World!'))
+  }
+}
+```
+
+#### `eventTarget`
+
+An [`EventTarget`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget) that can be used to send and receive events from the dev overlay.
+
+## Client-side Events
+
+Using the `eventTarget` argument on the `init` hook, plugins can send and receive events from the dev overlay. The following events are available:
+
+### `plugin-toggle`
+
+This event is fired when the user clicks on the plugin icon in the UI. The new state of the plugin is included in the event in the `detail` property.
+
+```ts title="src/my-plugin.js" {3-6}
+  export default {
+    // ...
+    init(canvas, eventTarget) {
+      eventTarget.addEventListener('plugin-toggle', (event) => {
+        if (event.detail.state === true) {
+          console.log("The plugin is now enabled!")
+        }
+      })
+    }
+  }
+```
+
+### `plugin-notification`
+
+This event can be sent to inform the user that the plugin requires attention.
+
+```ts title="src/my-plugin.js" {3-6}
+  export default {
+    // ...
+    init(canvas, eventTarget) {
+      eventTarget.dispatchEvent(
+          new CustomEvent('plugin-notification', {
+            detail: {
+              state: true,
+            },
+          })
+        );
+    }
+  }
+```
+
+`state` can be either `true` or `false`. When `true`, the plugin icon will be highlighted using a red dot. Conversely, when `false`, the highlight will be removed.
+
+## Client-Server Communication
+
+Using [Vite's methods for client-server communication](https://vitejs.dev/guide/api-plugin.html#client-server-communication), dev overlay plugins can communicate with the server.
+
+In addition to being able to send and receive arbritary messages, the dev overlay also sends the following messages, where `PLUGIN_ID` is the ID of a plugin:
+
+### `astro-dev-overlay:PLUGIN_ID:init`
+
+This message is sent when the plugin is initialized. The data for this message is empty.
+
+```ts title="integration.ts"
+
+```
+
+### `astro-dev-overlay:PLUGIN_ID:toggle`
+
+This message is sent when the user clicks on the plugin icon in the UI. The data for this message is a boolean indicating whether the plugin is enabled or not.
+
+:::note
+The built-in `connection` event from Vite fire *before* dev overlay plugins are initialized. As such, trying to receive events from this event will not work inside plugins. Instead, use the `astro-dev-overlay:PLUGIN_ID:init` event.
+:::
+
+## UI Toolkit
+
+The dev overlay includes a set of webcomponents that can be used to build plugins with a consistent look and feel.
+
+### `astro-dev-overlay-window`
+
+Shows a window with optionally a title and an icon. `windowIcon` can either be a string of a SVG file or an icon from [the icon list](/en/reference/dev-overlay-plugin-api/#icons).
+
+The slot of the component will be used as the content of the window.
+
+```html
+<astro-dev-overlay-window windowTitle="MyWindows" windowIcon="astro:logo">
+  <p>My content</p>
+</astro-dev-overlay-window>
+```
+
+### `astro-dev-overlay-card`
+
+Shows a card with a icon. Optionally, if `link` is passed, the card will be clickable and will open the link in a new tab.
+
+```html
+<astro-overlay-card icon="astro:logo" link="https://github.com/withastro/astro/issues/new/choose">Report an issue</astro-overlay-card>
+```
+
+### `astro-dev-overlay-highlight`
+
+Can be used to highlight an element on the page. In most cases, you'll want to position and resize this element using the `top`, `left`, `width` and `height` CSS properties to match the element you want to highlight. An icon can also be specified using the `icon` attribute and will be shown in the top right corner of the highlight.
+
+```html
+<!-- Highlight the entire page -->
+<astro-dev-overlay-highlight style="top: 0; left: 0; width: 100%; height: 100%;"></astro-dev-overlay-highlight>
+```
+
+```ts
+const elementToHighlight = document.querySelector('h1');
+const rect = elementToHighlight.getBoundingClientRect();
+
+const highlight = document.createElement('astro-overlay-highlight');
+
+highlight.style.top = `${Math.max(rect.top + window.scrollY - 10, 0)}px`;
+highlight.style.left = `${Math.max(rect.left + window.scrollX - 10, 0)}px`;
+highlight.style.width = `${rect.width + 15}px`;
+highlight.style.height = `${rect.height + 15}px`;
+highlight.icon = 'astro:logo';
+```
+
+### `astro-dev-overlay-tooltip`
+
+Shows a tooltip with different sections. This component is set to `display: none;` by default and can be made visible using a `data-show="true"` attribute.
+
+Sections are defined using the `sections` property. This property is an array of objects with the following shadpw:
+
+```ts
+{
+	title?: string; // Title of the section
+	inlineTitle?: string; // Title of the section, shown inline next to the title
+	icon?: Icon; // Icon of the section
+	content?: string; // Content of the section
+	clickAction?: () => void; // Action to perform when clicking on the section
+	clickDescription?: string; // Description of the action to perform when clicking on the section
+}
+```
+
+```ts
+const tooltip = document.createElement('astro-dev-overlay-tooltip');
+
+tooltip.sections = [{
+  title: 'My section',
+  icon: 'astro:logo',
+  content: 'My content',
+  clickAction: () => {
+    console.log('Clicked!')
+  },
+  clickDescription: 'Click me!'
+}]
+```
+
+This component is often combined with the `astro-dev-overlay-highlight` component to show a tooltip when hovering a highlighted element:
+
+```ts
+const highlight = document.createElement('astro-overlay-highlight');
+
+// Position the highlight...
+
+const tooltip = document.createElement('astro-dev-overlay-tooltip');
+
+// Add sections to the tooltip...
+
+highlight.addEventListener('mouseover', () => {
+  tooltip.dataset.show = 'true';
+});
+
+highlight.addEventListener('mouseout', () => {
+  tooltip.dataset.show = 'false';
+});
+```
+
+### Icons
+
+Currently, the following icons are available and can be used in any component that accepts an icon:
+
+- `astro:logo`
+- `warning`
+
+Alternatively to those icons, you can also pass a string containing the SVG markup of the icon you want to use.
