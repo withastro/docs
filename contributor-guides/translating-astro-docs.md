@@ -30,7 +30,7 @@ Unfortunately, we cannot support all languages at this time, and must prioritize
 
 We receive several translation PRs to our repository daily, meaning one of the most helpful and impactful ways to contribute is through **reviews** so that all of these wonderful translations can be properly checked before being published. Keep reading to find out how to contribute on GitHub!
 
-If you're a beginner when it comes to reviewing GitHub PRs and translations, we got you covered in our [Reviewer Process section](#reviewer).
+If you're a beginner when it comes to reviewing GitHub PRs and translations, we got you covered in our [Reviewer Process section](#review-process).
 
 > **Note**
 > Did you know that reviews and translations count towards your Astro Badge? [Astro Badges](https://astro.badg.es/) is a community initiative made to award contributions to Astro through achievements you can showcase in your GitHub profile!
