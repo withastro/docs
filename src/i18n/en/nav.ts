@@ -121,6 +121,11 @@ export default [
 		key: 'reference/image-service-reference',
 	},
 	{
+		text: 'Dev Overlay Plugin API',
+		slug: 'reference/dev-overlay-reference',
+		key: 'reference/dev-overlay-reference',
+	},
+	{
 		text: 'Template Directives',
 		slug: 'reference/directives-reference',
 		key: 'reference/directives-reference',
