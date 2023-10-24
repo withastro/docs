@@ -1,14 +1,21 @@
 ---
-title: i18n routing (experimental)
+title: internationalization routing (experimental)
 description: Learn how to use i18n routing in Astro.
 i18nReady: false
 ---
 
 import FileTree from '~/components/FileTree.astro'
 
-Astro internationalization routing provides a set functionalities to help building localised websites. 
+Astro internationalization (i18n) routing provides a set functionalities to help building localised websites. 
 
 By default, internationalization routing functionalities are all turned off and the user needs to manually opt in them.
+
+## Glossary
+
+The current page will use some specific terminology related to internationalization:
+- Locale: a code that represents a language.
+- Localized folder: a folder/directory that is named after a locale.
+
 
 
 ## Basic Usage
@@ -26,7 +33,7 @@ By default, internationalization routing functionalities are all turned off and 
         }
    })
    ```
-2. Create the folders that will contain the translated pages
+2. Create the folders and pages will contain the translated pages
     <FileTree>
     - src/
       - pages/
@@ -37,13 +44,18 @@ By default, internationalization routing functionalities are all turned off and 
         - fr/
           - index.astro
     </FileTree>
-3. Use the virtual module `astro:i18n` to use utilities that will help you to URLs with the locales:
+
+    :::note
+    The localised folder doesn't need to be at the root of the `pages/` folder.
+    :::
+
+3. Use the virtual module [`astro:i18n`](#virtual-module-astroi18n) that will help you compute the correct localised URLs:
 
     ```astro title="src/pages/es/index.astro"
     ---
     import { getRelativeLocaleUrl } from "astro:i18n";
     
-    const gettingStartedUrl = getRelativeLocaleUrl("es", { path: "getting-started" });
+    const gettingStartedUrl = getRelativeLocaleUrl("es", { path: "getting-started" }); // /es/getting-started
     ---
   
     
@@ -52,9 +64,101 @@ By default, internationalization routing functionalities are all turned off and 
 
 ## Virtual module `astro:i18n`
 
-This module provides functions that can help you to create URLs using the locales. These functions take into account the following options:
+This module provides functions that can help you to create URLs using the locales:
+
+All the functions below take into account the following options, so the returned paths will change based on their values:
+
 - [`base`](http://localhost:4321/en/reference/configuration-reference/#base)
 - [`trailingSlash`](http://localhost:4321/en/reference/configuration-reference/#trailingslash)
 - [`build.format`](http://localhost:4321/en/reference/configuration-reference/#buildformat)
-- [`site`](http://localhost:4321/en/reference/configuration-reference/#site)
+- [`site`]
 
+### `getRelativeLocaleUrl()`
+
+
+`getRelativeLocaleUrl(locale: string, options?: GetLocaleOptions): string`
+
+Use this function to retrieve a relative path for a locale. If the locale doesn't exist, Astro throws an error. 
+
+```astro title="src/pages/en/index.astro"
+---
+import {getRelativeLocaleUrl} from "astro:i18n";
+
+getRelativeLocaleUrl("en"); // returns /en
+
+getRelativeLocaleUrl("en", {
+  path: "getting-started"
+}); // returns /en/getting-started
+
+getRelativeLocaleUrl("en", {
+  path: "getting-started",
+  prependWith: "blog"
+}); // returns /blog/en/getting-started
+
+getRelativeLocaleUrl("en_US", {
+  path: "getting-started",
+  prependWith: "blog",
+  normalizeLocale: true
+}); // returns /blog/en-us/getting-started
+
+---
+```
+
+### `getAbsoluteLocaleUrl()` 
+
+`getAbsoluteLocaleUrl(locale: string, options?: GetLocaleOptions): string`
+
+
+Use this function to retrieve an absolute path for a locale _if [`site`] has a value_. If [`site`] isn't, the function returns a relative URL. If the locale doesn't exist, Astro throws an error.
+
+
+```astro title="src/pages/en/index.astro"
+---
+import {getAbsoluteLocaleUrl} from "astro:i18n";
+
+// If `site` is set to be `https://example.com`
+
+getAbsoluteLocaleUrl("en"); // returns https://example.com/en
+
+getAbsoluteLocaleUrl("en", {
+  path: "getting-started"
+}); // returns https://example.com/en/getting-started
+
+getAbsoluteLocaleUrl("en", {
+  path: "getting-started",
+  prependWith: "blog"
+}); // returns https://example.com/blog/en/getting-started
+
+getAbsoluteLocaleUrl("en_US", {
+  path: "getting-started",
+  prependWith: "blog",
+  normalizeLocale: true
+}); // returns https://example.com/blog/en-us/getting-started
+
+---
+```
+
+### `getRelativeLocaleUrlList()`
+
+It works like [`getRelativeLocaleUrl`](#getrelativelocaleurl), so it returns a list of relative paths for all the locales.
+
+
+`getRelativeLocaleUrlList(locale: string, options?: GetLocaleOptions): string[]`
+
+### `getAbsoluteLocaleUrlList()`
+
+`getAbsoluteLocaleUrlList(locale: string, options?: GetLocaleOptions): string[]`
+
+
+It works like [`getAbsoluteLocaleUrl`](#getabsolutelocaleurl), so it returns a list of relative paths for all the locales.
+
+
+
+
+
+
+
+
+
+[`site`]: http://localhost:4321/en/reference/configuration-reference/#site
+[`i18n.locales`]: http://localhost:4321/en/reference/configuration-reference/#experimentali18nlocales
