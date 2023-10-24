@@ -3,7 +3,7 @@ title: Dev Overlay Plugin API
 i18nReady: false
 ---
 
-The Astro Dev Overlay Plugin API allows you to create plugins that can be used to extend the Astro Dev Overlay with new functionalities and integrations with third-party services.
+The Astro Dev Overlay Plugin API allows you to create plugins that can be used to extend the Astro Dev Overlay. This allows you to add new features and integrations with third-party services.
 
 :::note
 This API is currently **experimental**. It is subject to change in future releases with no prior notice.
@@ -29,7 +29,24 @@ export default () => ({
 
 ## Structure of a plugin
 
-A plugin is a file that default exports an object with the following properties:
+A plugin is a `.js` or `.ts` file that default exports an object with the following required properties:
+
+```ts title="src/my-plugin.js"
+export default {
+	id: 'super-plugin',
+	name: 'My Super Plugin',
+	icon: '<svg>...</svg>',
+	init(canvas, eventTarget) {
+      eventTarget.dispatchEvent(
+          new CustomEvent('plugin-notification', {
+            detail: {
+              state: true,
+            },
+          })
+        );
+    }
+}
+
 
 ### `id: string`
 
@@ -91,11 +108,11 @@ An [`EventTarget`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget)
 
 ## Client-side Events
 
-Using the `eventTarget` argument on the `init` hook, plugins can send and receive events from the dev overlay. The following events are available:
+Using the [`eventTarget`](#eventtarget) argument on the [`init`](#init-canvas-shadowroot-eventtarget-eventtarget--void) hook, plugins can send and receive events from the dev overlay. The following events are available:
 
 ### `plugin-toggle`
 
-This event is fired when the user clicks on the plugin icon in the UI. The new state of the plugin is included in the event in the `detail` property.
+This event is fired when the user clicks on the plugin icon in the UI. The new [`state`](#state-boolean) of the plugin is included in the event in the `detail` property.
 
 ```ts title="src/my-plugin.js" {3-6}
   export default {
@@ -129,13 +146,15 @@ This event can be sent to inform the user that the plugin requires attention.
   }
 ```
 
-`state` can be either `true` or `false`. When `true`, the plugin icon will be highlighted using a red dot. Conversely, when `false`, the highlight will be removed.
+#### `state: boolean` 
+
+Indicates whether or not the the plugin is enabled. When `true`, the plugin icon will be highlighted using a red dot. Conversely, when `false`, the highlight will be removed.
 
 ## Client-Server Communication
 
 Using [Vite's methods for client-server communication](https://vitejs.dev/guide/api-plugin.html#client-server-communication), dev overlay plugins can communicate with the server.
 
-In addition to being able to send and receive arbritary messages, the dev overlay also sends the following messages, where `PLUGIN_ID` is the ID of a plugin:
+In addition to being able to send and receive custom messages, the dev overlay also sends the following messages, where `PLUGIN_ID` is the [plugin's ID](#id-string):
 
 ### `astro-dev-overlay:PLUGIN_ID:init`
 
@@ -155,11 +174,13 @@ The built-in `connection` event from Vite fire *before* dev overlay plugins are 
 
 ## UI Toolkit
 
-The dev overlay includes a set of webcomponents that can be used to build plugins with a consistent look and feel.
+The dev overlay includes a set of web components that can be used to build plugins with a consistent look and feel.
 
 ### `astro-dev-overlay-window`
 
-Shows a window with optionally a title and an icon. `windowIcon` can either be a string of a SVG file or an icon from [the icon list](/en/reference/dev-overlay-plugin-api/#icons).
+Shows a window with optionally a title and an icon.
+
+`windowTitle` is a string that will be shown at the top of the overlay window. `windowIcon` can either be a string of a SVG file or an icon from [the icon list](#icons).
 
 The slot of the component will be used as the content of the window.
 
@@ -171,7 +192,7 @@ The slot of the component will be used as the content of the window.
 
 ### `astro-dev-overlay-card`
 
-Shows a card with a icon. Optionally, if `link` is passed, the card will be clickable and will open the link in a new tab.
+Shows a card with an [`icon`](#icons). Optionally, if a `link` is passed, the card will be clickable and will open the link in a new tab.
 
 ```html
 <astro-overlay-card icon="astro:logo" link="https://github.com/withastro/astro/issues/new/choose">Report an issue</astro-overlay-card>
@@ -179,7 +200,7 @@ Shows a card with a icon. Optionally, if `link` is passed, the card will be clic
 
 ### `astro-dev-overlay-highlight`
 
-Can be used to highlight an element on the page. In most cases, you'll want to position and resize this element using the `top`, `left`, `width` and `height` CSS properties to match the element you want to highlight. An icon can also be specified using the `icon` attribute and will be shown in the top right corner of the highlight.
+Can be used to highlight an element on the page. In most cases, you'll want to position and resize this element using the `top`, `left`, `width` and `height` CSS properties to match the element you want to highlight. An [icon](#icons) can also be specified using the `icon` attribute and will be shown in the top right corner of the highlight.
 
 ```html
 <!-- Highlight the entire page -->
@@ -203,7 +224,7 @@ highlight.icon = 'astro:logo';
 
 Shows a tooltip with different sections. This component is set to `display: none;` by default and can be made visible using a `data-show="true"` attribute.
 
-Sections are defined using the `sections` property. This property is an array of objects with the following shadpw:
+Sections are defined using the `sections` property. This property is an array of objects with the following shape:
 
 ```ts
 {
@@ -257,4 +278,8 @@ Currently, the following icons are available and can be used in any component th
 - `astro:logo`
 - `warning`
 
-Alternatively to those icons, you can also pass a string containing the SVG markup of the icon you want to use.
+In addition to these included icons, you can also pass a string containing the SVG markup of the icon you want to use.
+
+```html
+<astro-overlay-card icon="<svg>...</svg>" link="https://docs.astro.build">Read more in the Astro Docs!</astro-overlay-card>
+```
