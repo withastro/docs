@@ -37,15 +37,16 @@ export default {
 	name: 'My Super Plugin',
 	icon: '<svg>...</svg>',
 	init(canvas, eventTarget) {
-      eventTarget.dispatchEvent(
-          new CustomEvent('plugin-notification', {
-            detail: {
-              state: true,
-            },
-          })
-        );
-    }
+    eventTarget.dispatchEvent(
+      new CustomEvent('plugin-notification', {
+        detail: {
+          state: true,
+        },
+      })
+    );
+  }
 }
+```
 
 
 ### `id: string`
@@ -65,6 +66,7 @@ The name of the plugin. This will be shown to users whenever the plugin needs to
 
 ```ts title="src/my-plugin.js" {2}
 export default {
+  // ...
   name: 'My Plugin',
   // ...
 }
@@ -112,7 +114,7 @@ Using the [`eventTarget`](#eventtarget) argument on the [`init`](#init-canvas-sh
 
 ### `plugin-toggle`
 
-This event is fired when the user clicks on the plugin icon in the UI. The new [`state`](#state-boolean) of the plugin is included in the event in the `detail` property.
+This event is fired when the user clicks on the plugin icon in the dev overlay bar.
 
 ```ts title="src/my-plugin.js" {3-6}
   export default {
@@ -126,6 +128,10 @@ This event is fired when the user clicks on the plugin icon in the UI. The new [
     }
   }
 ```
+
+#### `state: boolean`
+
+Indicates whether or not the plugin is enabled after the user's click.
 
 ### `plugin-notification`
 
@@ -146,9 +152,9 @@ This event can be sent to inform the user that the plugin requires attention.
   }
 ```
 
-#### `state: boolean` 
+#### `state: boolean`
 
-Indicates whether or not the the plugin is enabled. When `true`, the plugin icon will be highlighted using a red dot. Conversely, when `false`, the highlight will be removed.
+Indicates whether or not the plugin has a notification for the user. When `true`, the plugin icon will be highlighted using a red dot. Conversely, when `false`, the highlight will be removed. If this property is not specified, `true` will be assumed.
 
 ## Client-Server Communication
 
@@ -161,12 +167,32 @@ In addition to being able to send and receive custom messages, the dev overlay a
 This message is sent when the plugin is initialized. The data for this message is empty.
 
 ```ts title="integration.ts"
-
+{
+  // ...
+  "astro:server:setup": ({ server }) => {
+    server.ws.on("astro-dev-overlay:super-plugin:init", () => {
+      console.log("My plugin was initialized!");
+    });
+  },
+  // ...
+}
 ```
 
 ### `astro-dev-overlay:PLUGIN_ID:toggle`
 
 This message is sent when the user clicks on the plugin icon in the UI. The data for this message is a boolean indicating whether the plugin is enabled or not.
+
+```ts title="integration.ts"
+{
+  // ...
+  "astro:server:setup": ({ server }) => {
+    server.ws.on("astro-dev-overlay:super-plugin:toggle", (data) => {
+      console.log(`My plugin is now ${data.state ? "enabled" : "disabled"}!`);
+    });
+  },
+  // ...
+}
+```
 
 :::note
 The built-in `connection` event from Vite fire *before* dev overlay plugins are initialized. As such, trying to receive events from this event will not work inside plugins. Instead, use the `astro-dev-overlay:PLUGIN_ID:init` event.
@@ -180,19 +206,21 @@ The dev overlay includes a set of web components that can be used to build plugi
 
 Shows a window with optionally a title and an icon.
 
-`windowTitle` is a string that will be shown at the top of the overlay window. `windowIcon` can either be a string of a SVG file or an icon from [the icon list](#icons).
+`window-title` is a string that will be shown at the top of the overlay window. `window-icon` can either be a string of a SVG file or an icon from [the icon list](#icons).
 
 The slot of the component will be used as the content of the window.
 
 ```html
-<astro-dev-overlay-window windowTitle="MyWindows" windowIcon="astro:logo">
+<astro-dev-overlay-window window-title="MyWindows" window-icon="astro:logo">
   <p>My content</p>
 </astro-dev-overlay-window>
 ```
 
 ### `astro-dev-overlay-card`
 
-Shows a card with an [`icon`](#icons). Optionally, if a `link` is passed, the card will be clickable and will open the link in a new tab.
+Shows a card with optionally an [`icon`](#icons). Optionally, if a `link` is passed, the card will be clickable and will open the link in a new tab.
+
+The slot of the component will be used as the content of the card.
 
 ```html
 <astro-overlay-card icon="astro:logo" link="https://github.com/withastro/astro/issues/new/choose">Report an issue</astro-overlay-card>
@@ -232,7 +260,7 @@ Sections are defined using the `sections` property. This property is an array of
 	inlineTitle?: string; // Title of the section, shown inline next to the title
 	icon?: Icon; // Icon of the section
 	content?: string; // Content of the section
-	clickAction?: () => void; // Action to perform when clicking on the section
+	clickAction?: () => void | Promise<void>; // Action to perform when clicking on the section
 	clickDescription?: string; // Description of the action to perform when clicking on the section
 }
 ```

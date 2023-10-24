@@ -122,8 +122,8 @@ export default [
 	},
 	{
 		text: 'Dev Overlay Plugin API',
-		slug: 'reference/dev-overlay-reference',
-		key: 'reference/dev-overlay-reference',
+		slug: 'reference/dev-overlay-plugin-reference',
+		key: 'reference/dev-overlay-plugin-reference',
 	},
 	{
 		text: 'Template Directives',
