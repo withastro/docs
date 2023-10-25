@@ -77,3 +77,10 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 | release             | 릴리스        |
 | server-side         | 서버 측       |
 | troubleshooting     | 문제 해결     |
+
+출처의 일부는 다음에서 찾을 수 있습니다.
+
+- 외래어 표기법: 국립국어원의 [외래어 표기법](https://kornorms.korean.go.kr/example/exampleList.do)에서 검색할 수 있습니다.
+
+- Microsoft: [Microsoft Terminology Search](https://msit.powerbi.com/view?r=eyJrIjoiODJmYjU4Y2YtM2M0ZC00YzYxLWE1YTktNzFjYmYxNTAxNjQ0IiwidCI6IjcyZjk4OGJmLTg2ZjEtNDFhZi05MWFiLTJkN2NkMDExZGI0NyIsImMiOjV9)에서 검색할 수 있습니다.
+
