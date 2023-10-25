@@ -64,19 +64,28 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 | :------------------ | :------------ | :--- | ---- |
 | changelog           | 변경 로그     |||
 | client-side         | 클라이언트 측 |||
+| component | 컴포넌트 |외래어 표기법||
 | configuration       | 구성          |[정보통신용어사전](https://terms.tta.or.kr/dictionary/dictionaryView.do?word_seq=039507-1)||
 | content collections | 콘텐츠 컬렉션 |외래어 표기법||
 | dependencies        | 종속성        |||
 | directory           | 디렉터리      |[우리말샘](https://opendict.korean.go.kr/dictionary/view?sense_no=136968)||
+| element | 요소 |[정보통신용어사전](https://terms.tta.or.kr/dictionary/dictionaryView.do?word_seq=095809-1)||
 | footer              | 바닥글        |Microsoft||
+| fragment | 프래그먼트 |||
 | frontmatter         | 프런트매터    |||
 | header              | 머리글        |Microsoft||
 | island              | 아일랜드      |외래어 표기법||
 | integration         | 통합          |||
 | production          | 프로덕션      |외래어 표기법||
 | release             | 릴리스        |마이크로소프트||
+| rendering | 렌더링 |[정보통신용어사전](https://terms.tta.or.kr/dictionary/dictionaryView.do?word_seq=054262-2)||
+| script | 스크립트 |[정보통신용어사전](https://terms.tta.or.kr/dictionary/dictionaryView.do?word_seq=054948-1)||
 | server-side         | 서버 측       |||
+| syntax | 구문 |[정보통신용어사전](https://terms.tta.or.kr/dictionary/dictionaryView.do?word_seq=057320-1)||
+| tag | 태그 |외래어 표기법||
+| template | 템플릿 |[정보통신용어사전](https://terms.tta.or.kr/dictionary/dictionaryView.do?word_seq=057749-1)||
 | troubleshooting     | 문제 해결     |Microsoft||
+| variable | 변수 |[정보통신용어사전](https://terms.tta.or.kr/dictionary/dictionaryView.do?word_seq=059344-1)||
 
 출처의 일부는 다음에서 찾을 수 있습니다.
 
