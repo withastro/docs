@@ -37,7 +37,6 @@ export default [
 	{ text: 'Components', slug: 'core-concepts/astro-components', key: 'core-concepts/astro-components'},
 	{ text: 'Pages', slug: 'core-concepts/astro-pages', key: 'core-concepts/astro-pages' },
 	{ text: 'Layouts', slug: 'core-concepts/layouts', key: 'core-concepts/layouts' },
-	{ text: 'Rendering Modes', slug: 'guides/rendering-modes', key: 'guides/rendering-modes',},
 
 	{ text: 'Recipes', header: true, type: 'learn', key: 'examples' },
 	{ text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
@@ -59,6 +58,7 @@ export default [
 		key: 'core-concepts/framework-components',
 	},
 	{ text: 'Routing', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
+	{ text: 'Rendering Modes', slug: 'guides/rendering-modes', key: 'guides/rendering-modes',},
 	{ text: 'Markdown & MDX', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 	{
 		text: 'Content Collections',
@@ -74,11 +74,6 @@ export default [
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 	{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
-	{
-		text: 'Server-side Rendering (SSR)',
-		slug: 'guides/server-side-rendering',
-		key: 'guides/server-side-rendering',
-	},
 	{ text: 'Endpoints', slug: 'core-concepts/endpoints', key: 'core-concepts/endpoints' },
 	{ text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
 	{ text: 'Middleware', slug: 'guides/middleware', key: 'guides/middleware' },
