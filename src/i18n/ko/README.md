@@ -74,8 +74,8 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 | fragment | 프래그먼트 |||
 | frontmatter         | 프런트매터    |||
 | header              | 머리글        |Microsoft||
-| island              | 아일랜드      |외래어 표기법||
 | integration         | 통합          |||
+| island              | 아일랜드      |외래어 표기법||
 | production          | 프로덕션      |외래어 표기법||
 | release             | 릴리스        |마이크로소프트||
 | rendering | 렌더링 |[정보통신용어사전](https://terms.tta.or.kr/dictionary/dictionaryView.do?word_seq=054262-2)||
