@@ -62,21 +62,21 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 | 원문                | 번역          | 출처 | 비고 |
 | :------------------ | :------------ | :--- | ---- |
-| changelog           | 변경 로그     |
-| client-side         | 클라이언트 측 |
-| configuration       | 구성          |
-| content collections | 콘텐츠 컬렉션 |
-| dependencies        | 종속성        |
-| directory           | 디렉터리      |
-| footer              | 바닥글        |
-| frontmatter         | 프런트매터    |
-| header              | 머리글        |
-| island              | 아일랜드      |
-| integration         | 통합          |
-| production          | 프로덕션      |
-| release             | 릴리스        |
-| server-side         | 서버 측       |
-| troubleshooting     | 문제 해결     |
+| changelog           | 변경 로그     |||
+| client-side         | 클라이언트 측 |||
+| configuration       | 구성          |[정보통신용어사전](https://terms.tta.or.kr/dictionary/dictionaryView.do?word_seq=039507-1)||
+| content collections | 콘텐츠 컬렉션 |외래어 표기법||
+| dependencies        | 종속성        |||
+| directory           | 디렉터리      |[우리말샘](https://opendict.korean.go.kr/dictionary/view?sense_no=136968)||
+| footer              | 바닥글        |Microsoft||
+| frontmatter         | 프런트매터    |||
+| header              | 머리글        |Microsoft||
+| island              | 아일랜드      |외래어 표기법||
+| integration         | 통합          |||
+| production          | 프로덕션      |외래어 표기법||
+| release             | 릴리스        |마이크로소프트||
+| server-side         | 서버 측       |||
+| troubleshooting     | 문제 해결     |Microsoft||
 
 출처의 일부는 다음에서 찾을 수 있습니다.
 
