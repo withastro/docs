@@ -266,18 +266,70 @@ const myFade = {
 
 ### 触发导航
 
-你还可以使用 `navigate` 方法在通常不被 `<ViewTransitions />` 路由器监听的事件里触发客户端导航。该方法来自于 `astro:transitions/client` 模块，可以在任何客户端脚本或客户端组件中使用。
+你还可以使用 `navigate` 方法在通常不被 `<ViewTransitions />` 路由器监听的事件里触发客户端导航。该函数来自于 `astro:transitions/client` 模块，可以在任何客户端脚本和通过[客户端指令](/zh-cn/reference/directives-reference/#客户端指令)激活了的客户端组件中使用。
 
-以下示例展示了使用站点访客选择的选项来触发导航：
+下面的示例展示了一个当访客选择菜单中的选项时导航到另一个页面的 Astro 组件：
+```astro title="src/components/form.astro"
+<script>
+    import { navigate } from 'astro:transitions/client';
+    // 自动导航到所选选项
+    document.querySelector('select').onchange = (ev) => {
+        let href = ev.target.value;
+        navigate(href);
+    };
+</script>
+<select>
+    <option value="/play">Play</option>
+    <option value="/blog">Blog</option>
+    <option value="/about">About</option>
+    <option value="/contact">Contact</option>
+</select>
+```
+```astro title="src/pages/index.astro"
+---
+import Form from "../components/form.astro"
+import { ViewTransitions } from "astro:transitions";
+---
+<html>
+	<head>
+		<ViewTransitions />
+	</head>
+	<body>
+		<Form />
+	</body>
+</html>
+```
 
-```js title="form.js" "navigate(href)"
+下面的示例在一个 React 的 `<Form />` 组件中使用 `navigate()` 实现了相同的功能：
+
+```js title="src/components/form.jsx"
+import React from 'react';
 import { navigate } from 'astro:transitions/client';
 
-// 自动导航到所选选项
-document.querySelector('select').onchange = (ev) => {
-  let href = ev.target.value;
-  navigate(href);
-};
+export default function ClickToNavigate({ to }) {
+  return <select onChange={(ev) => navigate(e.target.value)}>
+    <option value="/play">Play</option>
+    <option value="/blog">Blog</option>
+    <option value="/about">About</option>
+    <option value="/contact">Contact</option>
+  </select>;
+}
+```
+这个 `<Form />` 组件可以在使用 `<ViewTransitions />` 路由器的 Astro 页面上带着客户端指令渲染：
+
+```astro title="src/pages/index.astro"
+---
+import Form from "../components/form.jsx"
+import { ViewTransitions } from "astro:transitions";
+---
+<html>
+	<head>
+		<ViewTransitions />
+	</head>
+	<body>
+		<Form client:load />
+	</body>
+</html>
 ```
 
 `navigate` 方法接受以下参数：
@@ -289,7 +341,7 @@ document.querySelector('select').onchange = (ev) => {
 		- `'replace'`: 路由器将使用 `history.replaceState` 更新 URL，而不向导航添加新条目。
 		- `'auto'`（默认）: 路由器将尝试使用 `history.pushState`，但如果无法转换到指定的 URL，则当前 URL 将保持不变，浏览器历史不会发生变化。
 
-要想通过浏览器的历史记录进行后退和前进导航，你可以将 `navigate()` 与浏览器内置的 `history.back()`、`history.forward()` 和 `history.go()` 等函数结合使用。
+要想通过浏览器的历史记录进行后退和前进导航，你可以将 `navigate()` 与浏览器内置的 `history.back()`、`history.forward()` 和 `history.go()` 等函数结合使用。如果 `navigate()` 在服务器渲染时被调用，它不会有任何效果。
 
 ### 替换浏览器历史条目
 
@@ -400,9 +452,9 @@ Astro 不会模拟 `initial` 浏览器动画。因此，任何使用此动画的
 
 ### `astro:after-swap`
 
-这是一个在新页面替换旧页面后立即触发的事件。你可以在 `document` 上监听此事件。
+这是一个在新页面替换旧页面后立即触发的事件。你可以在 `document` 上监听此事件并触发在新页面的 DOM 元素渲染和脚本运行之前发生的操作。
 
-此事件非常适用于恢复需要在 DOM 中传递到新页面的任何状态。
+当在**离开的页面**上监听该事件时，它非常适用于传递和恢复需要转移到新页面的 DOM 上的任何状态。
 
 例如，如果你正在实现深色模式支持，可以使用此事件在页面加载时恢复状态：
 
