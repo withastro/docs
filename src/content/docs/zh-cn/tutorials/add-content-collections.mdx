@@ -1,0 +1,384 @@
+---
+title: 教程 - 在项目中使用内容集合
+description: >-
+  将构建博客教程代码从基于文件的路由转换为内容集合(Content Collections)
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import Box from '~/components/tutorial/Box.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+import Option from '~/components/tutorial/Option.astro';
+
+**内容集合** 是一种管理相似内容(如博客文章)的有效方法。内容集合帮助管理你的文档，校验 frontmatter，并为所有内容提供自动 TypeScript 类型安全（即使你没有编写任何 TypeScript）。
+
+<PreCheck>
+  - 将包含博客文章的文件夹移入 `src/content/`
+  - 创建一个模式来定义你的博客文章的 frontmatter
+  - 使用 `getCollection()` 获取博客文章内容和元数据
+</PreCheck>
+
+## Prerequisites
+
+你需要准备一个现成的 Astro 项目，里面存在包含 Markdown 或者 MDX 类型文件的 `src/pages/` 文件夹.
+
+本教程使用先前[搭建博客教程完成后的项目代码](https://github.com/withastro/blog-tutorial-demo)来演示如何将博客转化为内容集合。你可以在本地克隆并使用该代码库，或者通过于 [StackBlitz 上编辑教程的代码](https://stackblitz.com/github/withastro/blog-tutorial-demo/tree/complete?file=src%2Fpages%2Findex.astro)在浏览器中完成该教程。
+
+你也可以在自己的项目中复现这些步骤，但是需要根据自己的代码库调整操作步骤。
+
+我们推荐你使用我们的示例项目来完成这个简短的教程。然后，你就可以使用在这篇教程中所学的知识来给你自己的项目添加内容集合。
+
+## 教程的示例代码
+
+在[搭建博客教程](/zh-cn/tutorial/0-introduction/)中，你了解到 Astro 的基于文件的路由会将任何放在 `src/pages/` 文件夹中的 `.astro`、`.md` 或 `.mdx` 文件自动变成你网站上的一个新页面。
+
+为了在 `https://example.com/posts/post-1/` 创建第一篇博客文章, 你创建了 `/posts/` 文件夹并添加了 `post-1.md` 文件。然后，每当你想要添加新的博客文章到网站时，都要向该文件夹添加一个新的 Markdown 文件。
+
+
+## 页面（Pages） vs 集合（Collections）
+
+即使使用内容集合, 你仍然可以使用 `src/pages/` 文件夹来存放独立的页面, 比如关于页面。但是, 将你的博客文章迁移到 `src/content/` 文件夹将允许你使用更强大和性能更好的 API 来生成你的博客文章索引和展示你的个人博客文章。 
+
+同时, 你将在代码编辑器中获得更好的引导和自动完成功能，因为你将会有一个**[模式](/zh-cn/guides/content-collections/#定义集合模式)** 来为每篇文章定义一个通用的结构，Astro将帮助你执行该结构。 In your schema, you can specify when frontmatter properties are required, such as a description or an author, and which data type each property must be, such as a string or an array. This leads to catching many mistakes sooner, with descriptive error messages telling you exactly what the problem is.
+
+在我们的指南中阅读更多关于 [Astro 的内容集合](/zh-cn/guides/content-collections/) 的信息，或者按照下面的说明将基础博客从 `src/pages/posts/` 转换为 `src/content/posts/` 来开始操作。
+
+<Box icon="question-mark">
+### 小测试
+
+1. 你可能会在 `src/pages/` 中保留哪种类型的页面?
+
+    <MultipleChoice>
+      <Option>
+        包含相同基本结构和元数据的博客文章
+      </Option>
+      <Option>
+        电商网站中的产品页面
+      </Option>
+      <Option isCorrect>
+        联系人页面, 因为你没有多个类似这种类型的页面。
+      </Option>
+    </MultipleChoice>
+
+2. 将博客文章迁移到内容集合的好处 **不包含** 什么？
+
+    <MultipleChoice>
+      <Option isCorrect>
+         为每个文件自动创建页面
+      </Option>
+      <Option>
+        更好的错误消息，因为 Astro 对每个文件更加了解
+      </Option>
+      <Option>
+        更高性能的函数带来的更好的数据获取能力
+      </Option>
+    </MultipleChoice>
+
+3. 内容集合使用 TypeScript...
+    <MultipleChoice>
+      <Option>
+        让我难受
+      </Option>
+      <Option isCorrect>
+        能够理解我的项目，即使我不写任何 TypeScript
+      </Option>
+      <Option>
+        只有当我设置了 `strict` or `strictest` 配置时
+      </Option>
+    </MultipleChoice>
+
+</Box>
+
+## 在示例博客代码中使用内容集合
+
+通过下列步骤你将了解：如何通过为博客文章创建内容集合，用以扩展实例博客。
+
+### 更新依赖
+
+1. 在终端中运行以下命令，将 Astro 升级到最新版本，并将所有集成升级到它们的最新版本：
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      # 升级到 Astro v3.x
+      npm install astro@latest
+
+      # 例: 升级博客教程中的 Preact 集成
+      npm install @astrojs/preact@latest
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      # 升级到 Astro v3.x
+      pnpm install astro@latest
+
+    # 例：升级博客教程中的 Preact 集成
+      pnpm install @astrojs/preact@latest
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      # 升级到 Astro v3.x
+      yarn add astro@latest
+
+    # 例：升级博客教程中的 Preact 集成
+      yarn add @astrojs/preact@latest
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+    :::tip
+    如果你正在使用自己的项目，请确保你已更新所有已安装的依赖项。搭建博客教程的示例代码库仅使用了 Preact 集成。
+    :::
+
+2. 博客教程使用 `base` （最不严格的） TypeScript 设置。为了使用内容集合, 你必须 [设置 TypeScript](/zh-cn/guides/content-collections/#设置-typescript) 使用 `strict` 或 `strictest` 的设置, **或者** 在 `tsconfig.json` 添加两个选项。
+
+    为了在博客教程示例的其余部分使用内容集合而不编写 TypeScript，请在配置文件中添加以下两个 TypeScript 配置选项：
+
+    ```json title="tsconfig.json" ins={5,6}
+    {
+      // 注意: 如果你使用 "astro/tsconfigs/strict" 或 "astro/tsconfigs/strictest"，则不需要更改
+      "extends": "astro/tsconfigs/base",
+      "compilerOptions": {
+        "strictNullChecks": true,
+        "allowJs": true
+      }
+    }
+    ```
+
+### 为你的博客文章创建一个集合
+
+3. 创建一个名为 `src/content/posts/` 的新 **集合** （文件夹）。
+
+4. 将现有的所有博客文章 (`.md` 文件) 从 `src/pages/posts/` 移到这个新集合中。
+
+5. 创建一个 `src/content/config.ts` 文件用来为 `postsCollection` [定义模式](/zh-cn/guides/content-collections/#定义集合模式)。对于现有的博客教程代码，请将以下内容添加到文件中，以定义其博客文章中使用的所有frontmatter属性:
+
+    ```ts title="src/content/config.ts"
+    // Import utilities from `astro:content`
+    import { z, defineCollection } from "astro:content";
+    // Define a `type` and `schema` for each collection
+    const postsCollection = defineCollection({
+        type: 'content',
+        schema: z.object({
+          title: z.string(),
+          pubDate: z.date(),
+          description: z.string(),
+          author: z.string(),
+          image: z.object({
+            url: z.string(),
+            alt: z.string()
+          }),
+          tags: z.array(z.string())
+        })
+    });
+    // Export a single `collections` object to register your collection(s)
+    export const collections = {
+      posts: postsCollection,
+    };
+    ```
+
+### 从集合中生成页面
+
+6. 创建一个名为 `src/pages/posts/[...slug].astro` 的页面文件。 当Markdown和MDX文件位于集合中时，它们不再使用Astro基于文件的路由自动成为页面，因此必须创建一个用来生成每个独立的博客文章的页面。
+
+7. 添加以下代码到 [查询集合](/zh-cn/guides/content-collections/#查询集合) 中，以使每篇博客文章的 slug 和页面内容在生成的每个页面中都可用：
+
+    ```astro title="src/pages/posts/[...slug].astro"
+    ---
+    import { getCollection } from 'astro:content';
+    import MarkdownPostLayout from '../../layouts/MarkdownPostLayout.astro';
+
+    export async function getStaticPaths() {
+      const blogEntries = await getCollection('posts');
+      return blogEntries.map(entry => ({
+        params: { slug: entry.slug }, props: { entry },
+      }));
+    }
+
+    const { entry } = Astro.props;
+    const { Content } = await entry.render();
+    ---
+    ```
+
+8. 在Markdown页面的布局中渲染你的文章 `<Content />`。这使你能够为所有文章指定一个通用布局。
+
+    ```astro title="src/pages/posts/[...slug].astro" ins={15-17}
+    ---
+    import { getCollection } from 'astro:content';
+    import MarkdownPostLayout from '../../layouts/MarkdownPostLayout.astro';
+
+    export async function getStaticPaths() {
+      const blogEntries = await getCollection('posts');
+      return blogEntries.map(entry => ({
+        params: { slug: entry.slug }, props: { entry },
+      }));
+    }
+
+    const { entry } = Astro.props;
+    const { Content } = await entry.render();
+    ---
+    <MarkdownPostLayout frontmatter={entry.data}>
+      <Content />
+    </MarkdownPostLayout>
+    ```
+
+9. 删除每篇博客在 frontmatter 中定义的 `layout`。现在，你的内容在渲染后被包装在布局中，不再需要此属性。
+
+    ```md title="src/content/posts/post-1.md" del={2}
+    ---
+    layout: ../../layouts/MarkdownPostLayout.astro
+    title: 'My First Blog Post'
+    pubDate: 2022-07-01
+    ...
+    ---
+    ```
+
+### 使用 `getCollection()` 替换 `Astro.glob()`
+
+10. 任何有博客文章列表的地方，比如教程的 Blog 页面 (`src/pages/blog.astro/`)，都需要使用 [`getCollection()`](/zh-cn/reference/api-reference/#getcollection) 替换 `Astro.glob()` ，作为从 Markdown 文件中获取内容和元数据的方法。
+
+    ```astro title="src/pages/blog.astro" "post.data" "getCollection(\"posts\")" "/posts/${post.slug}/" del={7} ins={2,8}
+    ---
+    import { getCollection } from "astro:content";
+    import BaseLayout from "../layouts/BaseLayout.astro";
+    import BlogPost from "../components/BlogPost.astro";
+
+    const pageTitle = "My Astro Learning Blog";
+    const allPosts = await Astro.glob("../pages/posts/*.md");
+    const allPosts = await getCollection("posts");
+    ---
+    ```
+
+11. 你还需要更新对每个 `post` 返回值的引用。现在，你能够在每个对象的 `data` 属性中获得 frontmatter 值。此外，当使用集合时，每个 `post` 对象将有一个 `slug` 页面，而不是完整的 URL.
+
+    ```astro title="src/pages/blog.astro" "data" "/posts/$\{post.slug\}/" del={14} ins={15}
+    ---
+    import { getCollection } from "astro:content";
+    import BaseLayout from "../layouts/BaseLayout.astro";
+    import BlogPost from "../components/BlogPost.astro";
+
+    const pageTitle = "My Astro Learning Blog";
+    const allPosts = await getCollection("posts");
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <p>This is where I will post about my journey learning Astro.</p>
+      <ul>
+        {
+          allPosts.map((post) => (
+            <BlogPost url={post.url} title={post.frontmatter.title} />)}
+            <BlogPost url={`/posts/${post.slug}/`} title={post.data.title} />
+          ))
+        }
+      </ul>
+    </BaseLayout> 
+    ```
+
+12. 教程博客项目还使用 `src/pages/tags/[tag].astro` 为每个标签动态地生成一个页面，并在 `src/pages/tags/index.astro` 中显示标签列表。
+   
+          对这两个文件应用与上述相同的更改：
+      
+          - 使用 `getCollection("posts")` 代替 `Astro.glob()` 来获取所有博客文章的数据
+          - 使用 `data` 代替 `frontmatter` 来获取所有博客文章的数据
+          - 通过将文章的 `slug` 添加到 `/posts/` 路径来创建页面URL
+        
+        生成单个标签页的页面现在变为：
+
+        ```astro title="src/pages/tags/[tag].astro" "post.data.tags" "getCollection(\"posts\")" "post.data.title" ins={2} "/posts/${post.slug}/"
+        ---
+        import { getCollection } from "astro:content";
+        import BaseLayout from "../../layouts/BaseLayout.astro";
+        import BlogPost from "../../components/BlogPost.astro";
+
+        export async function getStaticPaths() {
+          const allPosts = await getCollection("posts");
+          const uniqueTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
+
+          return uniqueTags.map((tag) => {
+            const filteredPosts = allPosts.filter((post) =>
+              post.data.tags.includes(tag)
+            );
+            return {
+              params: { tag },
+              props: { posts: filteredPosts },
+            };
+          });
+        }
+        
+        const { tag } = Astro.params;
+        const { posts } = Astro.props;
+        ---
+
+        <BaseLayout pageTitle={tag}>
+            <p>Posts tagged with {tag}</p>
+            <ul>
+                { posts.map((post) => <BlogPost url={`/posts/${post.slug}/`} title={post.data.title} />) }
+            </ul>
+        </BaseLayout>
+        ```
+
+        <Box icon="puzzle-piece">
+          ### 小试牛刀 - 更新标记索引页中的查询
+
+          按照[上述相同的步骤](#使用-getcollection-替换-astroglob)导入并使用 `getCollection` 来获取在博客文章中使用过的标签以展示在 `src/pages/tags/index.astro` 页面。
+
+          <details>
+          <summary>Show me the code.</summary>
+          ```astro title="src/pages/tags/index.astro" "post.data" "getCollection(\"posts\")" ins={2}
+          ---
+          import { getCollection } from "astro:content";
+          import BaseLayout from "../../layouts/BaseLayout.astro";     
+          const allPosts = await getCollection("posts");
+          const tags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
+          const pageTitle = "Tag Index";
+          ---
+          ...
+          ```
+          </details>
+      </Box>
+
+### 更新所有 frontmatter 值以匹配模式
+
+13. 如有必要，请在整个项目（例如布局中）更新与集合模式不匹配的任何 frontmatter 值。
+
+    在博客教程示例中，`pubDate` 是一个字符串。 现在，根据模式中为文章 frontmatter 定义的类型， `pubDate` 将是一个 `Date` 对象。
+    
+    要在博客文章布局中渲染日期，请将其转换为字符串：
+
+    ```astro title="src/layouts/MarkdownPostLayout.astro" ins="toString()"
+    ...
+    <BaseLayout pageTitle={frontmatter.title}>
+      <p>{frontmatter.pubDate.toString().slice(0,10)}</p>
+      <p><em>{frontmatter.description}</em></p>
+      <p>Written by: {frontmatter.author}</p>
+      <img src={frontmatter.image.url} width="300" alt={frontmatter.image.alt} />
+    ...
+    ```
+
+### 更新 RSS 函数
+
+14. 最后，教程博客项目包括一个 RSS 提要。该函数必须使用 `getCollection()` 来返回博客文章中的信息。然后，你可以使用返回的 `data` 对象生成 RSS 项。
+
+    ```js title="src/pages/rss.xml.js" del={2,11} ins={3,6,12-17}
+    import rss from '@astrojs/rss';
+    import { pagesGlobToRssItems } from '@astrojs/rss';
+    import { getCollection } from 'astro:content';
+
+    export async function GET(context) {
+      const posts = await getCollection("posts");
+      return rss({
+        title: 'Astro Learner | Blog',
+        description: 'My journey learning Astro',
+        site: context.site,
+        items: await pagesGlobToRssItems(import.meta.glob('./**/*.md')),
+        items: posts.map((post) => ({
+          title: post.data.title,
+          pubDate: post.data.pubDate,
+          description: post.data.description,
+          link: `/posts/${post.slug}/`,
+        })),
+        customData: `<language>en-us</language>`,
+      })
+    }
+    ```
+
+要查看使用内容集合的博客教程的完整示例，请访问教程存储库的 [Content Collections 分支](https://github.com/withastro/blog-tutorial-demo/tree/content-collections)。
