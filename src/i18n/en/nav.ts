@@ -52,7 +52,7 @@ export default [
 		key: 'core-concepts/astro-syntax',
 	},
 
-	{ text: 'Built-ins', header: true, type: 'learn', key: 'examples' },
+	{ text: 'Built-ins', header: true, type: 'learn', key: 'builtins' },
 	{
 		text: 'Content Collections',
 		slug: 'guides/content-collections',
@@ -64,7 +64,7 @@ export default [
 		key: 'guides/view-transitions',
 	},
 
-	{ text: 'Add-ons', header: true, type: 'learn', key: 'examples' },
+	{ text: 'Add-ons', header: true, type: 'learn', key: 'addons' },
 	{ text: 'Add integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
 	{
 		text: 'UI Frameworks',
