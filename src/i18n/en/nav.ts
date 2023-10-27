@@ -71,7 +71,7 @@ export default [
 		slug: 'core-concepts/framework-components',
 		key: 'core-concepts/framework-components',
 	},
-	{ text: 'Server-side Rendering', slug: 'guides/server-side-rendering', key: 'guides/server-side-rendering' },
+	{ text: 'SSR Adapters', slug: 'guides/server-side-rendering', key: 'guides/server-side-rendering' },
 
 	{ text: 'Recipes', header: true, type: 'learn', key: 'examples' },
 	{ text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
