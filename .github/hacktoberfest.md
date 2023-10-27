@@ -52,4 +52,4 @@ Reviewed a translation PR? We want you to get credit, too! **Create a PR followi
 
 If you have any questions, just ask, and thank you for helping to translate the Astro Docs!
 
-During Hacktoberfest 2023, we've received 3 translation PR reviews from helpful contributors. Thank you!
+During Hacktoberfest 2023, we've received 4 translation PR reviews from helpful contributors. Thank you!
