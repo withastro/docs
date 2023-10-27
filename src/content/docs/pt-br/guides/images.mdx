@@ -5,7 +5,8 @@ i18nReady: true
 ---
 import Since from '~/components/Since.astro';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
-
+import Badge from '~/components/Badge.astro';
+import RecipeLinks from "~/components/RecipeLinks.astro";
 
 Astro fornece diversas formas de utilizar imagens no seu site, sejam elas armazenadas localmente dentro do seu projeto, vinculadas de uma URL externa, ou gerenciadas em um CMS ou CDN!
 
@@ -84,10 +85,6 @@ import minhaImagem from "../assets/minha_imagem.png"; // Imagem é 1600x900
 />
 ```
 
-Atualmente, a funcionalidade de assets integrado não inclui um componente `<Picture />`.
-
-No lugar, você pode [gerar imagens ou componentes customizados utilizando `getImage()`](#gerando-imagens-com-getimage) que utiliza os atributos de imagem do HTML `srcset` e `sizes` ou a tag `<picture>` [para direção de arte ou para criar imagens responsivas](https://developer.mozilla.org/pt-BR/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images).
-
 #### Propriedades
 
 ##### src (obrigatório)
@@ -145,6 +142,76 @@ Ao utilizar imagens em sua proporção de tela original, o `width` e `height` po
 
 Porém, ambas essas propriedades são obrigatórias para imagens remotas e imagens armazenadas em sua pasta `public/` já que o Astro é incapaz de analisar esses arquivos.
 
+##### densities
+
+<Since v="3.3.0" /> <Badge>Experimental</Badge>
+
+Uma lista de densidades de pixels para gerar a imagem
+
+Se atribuído, o valor é usado para gerar o atributo `srcset`na tag `<img>`. Você não deve prover um valor para `widths` quando tiver usando esse atributo.
+
+As densidades que são iguais a larguras maiores do que a imagem original serão ignoradas para evitar o aumento da escala da imagem.
+
+```astro
+---
+import { Image } from 'astro:assets';
+import minhaImagem from "../assets/minha_imagem.png";
+---
+<Image src={minhaImagem} width={minhaImagem.width / 2} densities={[1.5, 2]} alt="Uma descrição para imagem." />
+```
+
+```html
+<img
+  src="/_astro/minha_imagem.hash.webp"
+  srcset="
+    /_astro/minha_imagem.hash.webp 1.5x
+    /_astro/minha_imagem.hash.webp 2x
+  "
+  alt="Uma descrição para imagem."
+  width="800"
+  height="450"
+  loading="lazy"
+  decoding="async"
+/>
+```
+
+##### widths
+
+<Since v="3.3.0" /> <Badge>Experimental</Badge>
+
+Uma lista de larguras a serem geradas para a imagem.
+
+Se fornecido, esse valor será usado para gerar um atributo `srcset` na tag `<img>` Uma [propriedade sizes](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/sizes) também deve ser fornecida.
+
+Não forneça um valor para `densities` ao usar este valor. Apenas um destes dois valores pode ser usado para gerar um srcset.
+
+Larguras que forem maiores do que a imagem original serão ignoradas para evitar o redimensionamento da imagem.
+
+```astro
+---
+import { Image } from 'astro:assets';
+import minhaImagem from "../assets/minha_imagem.png"; // Image is 1600x900
+---
+<Image src={minhaImagem} widths={[240, 540, 720, minhaImagem.width]} alt="Uma descrição para minha imagem." />
+```
+
+```html
+<img
+  src="/_astro/minha_imagem.hash.webp"
+  srcset="
+    /_astro/minha_imagem.hash.webp 240w,
+    /_astro/minha_imagem.hash.webp 540w,
+    /_astro/minha_imagem.hash.webp 720w,
+		/_astro/minha_imagem.hash.webp 1600w
+  "
+  alt="Uma descrição para minha imagem."
+  width="1600"
+  height="900"
+  loading="lazy"
+  decoding="async"
+/>
+```
+ 
 ##### format
 
 Você pode opcionalmente definir um [tipo de arquivo de imagem](https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types#common_image_file_types) final para ser utilizado.
@@ -209,6 +276,82 @@ const {src, ...attrs} = Astro.props;
 </style>
 ```
 
+
+### `<Picture />`
+
+<Since v="3.3.0" /> <Badge>Experimental</Badge>
+
+Utilize o componente `<Picture />` integrado do Astro para exibir uma imagem responsiva com vários formatos e/ou tamanhos.
+
+```astro title="src/pages/index.astro"
+---
+import { Picture } from 'astro:assets';
+import minhaImagem from "../assets/minha_imagem.png"; // Image is 1600x900
+---
+
+<!-- `alt` é obrigatório no componente Picture -->
+<Picture src={minhaImagem} formats={['avif', 'webp']} alt="Uma descrição para a minha imagem." />
+```
+
+```html
+<!-- Output -->
+<picture>
+  <source srcset="/_astro/minha_imagem.hash.avif" type="image/avif" />
+  <source srcset="/_astro/minha_imagem.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/minha_imagem.hash.png"
+    width="1600"
+    height="900"
+    decoding="async"
+    loading="lazy"
+    alt="Uma descrição para a minha imagem."
+  />
+</picture>
+```
+
+#### Propriedades
+
+`<Picture />` aceita todas as propriedades do componente `<Image />`, juntamente com:
+
+##### `formats`
+
+Um array de formatos de imagem a serem usados para as tags `<source>`. As entradas serão adicionadas como elementos `<source>` na ordem em que estão listadas, e essa ordem determina qual formato é exibido. Para obter o melhor desempenho, liste o formato mais moderno primeiro (por exemplo, `webp` ou `avif`). Por padrão, isso é configurado como `['webp']`.
+
+##### `fallbackFormat`
+
+Formato a ser usado como um valor de fallback para a tag `<img>`.
+
+Por padrão, é configurado como `.png` para imagens estáticas, `.gif` para imagens animadas e `.svg` para arquivos SVG.
+
+##### `pictureAttributes`
+
+Um objeto de atributos a serem adicionados à tag `<picture>`.
+
+Use essa propriedade para aplicar atributos ao elemento externo `<picture>`. Atributos aplicados diretamente ao componente `<Picture />` serão aplicados internamente ao elemento `<img>`, exceto aqueles usados para a transformação da imagem.
+
+```astro
+---
+import { Picture } from "astro:assets";
+import minhaImagem from "../minha_imagem.png"; // Image is 1600x900
+---
+
+<Picture src={minhaImagem} alt="Uma descrição para a minha imagem." pictureAttributes={{style: "background-color: red;"}} />
+```
+
+```html
+<picture style="background-color: red;">
+  <source srcset="/_astro/minha_imagem.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/minha_imagem.hash.png"
+    alt="Uma descrição para a minha imagem."
+    width="1600"
+    height="900"
+    loading="lazy"
+    decoding="async"
+  />
+</picture>
+```
+
 ### `<img>`
 
 A [sintaxe de templates do Astro](/pt-br/core-concepts/astro-syntax/) também suporta escrever uma tag `<img>` diretamente, com controle total sobre seu resultado final. Essas imagens não serão processadas e otimizadas.
@@ -258,7 +401,7 @@ Para imagens remotas, utilize a **URL completa** da imagem como o valor de `src`
 
 ### Escolhendo `<Image />` vs `<img>`
 
-O componente `<Image />` otimiza sua imagem e infere a largura e altura (de imagens locais) com base na proporção de tela original para evitar CLS. Porém, ele apenas funciona com certos formatos e não fornece um elemento `<picture>`, nem suporta `srcset`.
+O componente `<Image />` otimiza sua imagem e infere a largura e altura (de imagens locais) com base na proporção de tela original para evitar CLS.
 
 Utilize o elemento `<img>` do HTML quando você não pode utilizar o componente `<Image />`, por exemplo:
   - para formatos de imagem não suportados
@@ -467,6 +610,8 @@ import estrelas from "~/estrelas/docline.png";
 
 A função `getImage()` foi planejada para gerar imagens destinadas a serem em outro lugar do que diretamente no HTML, por exemplo em uma [Rota de API](/pt-br/core-concepts/endpoints/#endpoints-do-servidor-rotas-de-api). Ela te permite criar seu próprio componente `<Image />` customizado.
 
+<RecipeLinks slugs={["pt-br/recipes/build-custom-img-component" ]}/>
+
 `getImage()` recebe um objeto de opções com as [mesmas propriedades que o componente Image](#propriedades) (exceto `alt`).
 
 ```astro
@@ -484,8 +629,13 @@ Retorna um objeto com as seguintes propriedades:
 
 ```js
 {
-  options: {...} // Parâmetros originais passados
+  rawOptions: {...} // Parâmetros originais passados
+  options: {...}, // Parametros validados passados
   src: "https//..." // Caminho para a imagem gerada
+  srcSet: {
+    values: [...], // Valores gerados para srcset, cada entrada tem uma url e uma descrição de tamanho
+    attribute: "", // Atributo srcset gerado a partir dos valores
+  }
   attributes: {...} // Atributos HTML adicionais necessários para renderizar a imagem (width, height, style, etc..)
 }
 ```
@@ -656,8 +806,28 @@ Se você estava utilizando a integração de imagem em Astro v2.x, complete as s
       ]
     })
     ```
+2. Atualize tipos (se necessário).
 
-2. Migre quaisquer componentes `<Image />`.
+		Se você tinha tipos especiais configurados para `@astrojs/image` em `src/env.d.ts`, pode ser necessário alterá-los de volta para os tipos padrão do Astro se a atualização para a versão 3 não concluiu esta etapa automaticamente para você.
+		
+
+		```ts title="src/env.d.ts" del={1} ins={2}
+		 /// <reference types="@astrojs/image/client" />
+		 /// <reference types="astro/client" />
+		```
+
+    Uma atualização similar se necessária deve ser aplicada no `tsconfig.json`:
+
+		```json title="tsconfig.json" del={3} ins={4}
+		{
+			"compilerOptions": {
+			  "types": ["@astrojs/image/client"]
+			  "types": ["astro/client"]
+			}
+		}
+		```
+
+3. Migre quaisquer componentes `<Image />`.
 
     Modifique todas as declarações `import` de `@astrojs/image/components` para `astro:assets` para utilizar o novo componente `<Image />` integrado.
 
@@ -680,12 +850,6 @@ Se você estava utilizando a integração de imagem em Astro v2.x, complete as s
         alt={altLocal}
       />
       ```
-
-3. Remova quaisquer componentes `<Picture />`.
-
-    Atualmente, a funcionalidade de assets integrada não inclui um componente `<Picture />`.
-
-    No lugar, você pode utilizar os atributos de imagem HTML `srcset` e `sizes` ou a tag `<picture>` [para direção de imagem ou para criar imagens responsivas](https://developer.mozilla.org/pt-BR/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#art_direction).
 
 4. Escolha o serviço de imagem padrão.
 
