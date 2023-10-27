@@ -71,7 +71,11 @@ export default [
 		slug: 'core-concepts/framework-components',
 		key: 'core-concepts/framework-components',
 	},
-	{ text: 'SSR Adapters', slug: 'guides/server-side-rendering', key: 'guides/server-side-rendering' },
+	{
+		text: 'SSR Adapters',
+		slug: 'guides/server-side-rendering',
+		key: 'guides/server-side-rendering',
+	},
 
 	{ text: 'Recipes', header: true, type: 'learn', key: 'examples' },
 	{ text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
@@ -83,7 +87,11 @@ export default [
 	{ text: 'Guides', header: true, type: 'learn', key: 'features' },
 	{ text: 'Routing', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
 	{ text: 'Markdown', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
-	{ text: 'Scripts & Event Handling', slug: 'guides/client-side-scripts', key: 'guides/client-side-scripts'},
+	{
+		text: 'Scripts & Event Handling',
+		slug: 'guides/client-side-scripts',
+		key: 'guides/client-side-scripts',
+	},
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
