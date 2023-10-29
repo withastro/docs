@@ -374,7 +374,7 @@ Here are two examples of what our code snippets look like written in Markdown, j
 #### Example 2
 
 - use the file name as a title (alt method)
-- apply "+ diff" styling (green backround) to any occurrence of `<Button />`
+- apply "+ diff" styling (green background) to any occurrence of `<Button />`
 - highlight any occurrence of `{props.title}` and `{props.social}`
 
 ``````markdown

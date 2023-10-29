@@ -6,16 +6,40 @@ description: >-
 i18nReady: true
 ---
 
-Vous pouvez ajouter de l'interactivité à vos composants Astro sans [utiliser un framework UI](/fr/core-concepts/framework-components/) comme React, Svelte, Vue, etc. en utilisant la balise HTML `<script>`. Cela vous permet d'exécuter votre JavaScript dans le navigateur et ajouter des fonctionnalités à vos composants Astro.
+Vous pouvez ajouter de l'interactivité à vos composants Astro sans [utiliser un framework UI](/fr/core-concepts/framework-components/) comme React, Svelte, Vue, etc, en utilisant les balises HTML `<script>` standard. Cela vous permet d'exécuter du JavaScript dans le navigateur et d'ajouter des fonctionnalités à vos composants Astro.
 
-## Utilisation du `<script>` en Astro.
+## Script côté client
+
+Les scripts peuvent être utilisés pour écouter des événements envoyer des données analytiques, jouer des animations et tout ce que JavaScript permet de faire sur le web.
+
+```astro
+<!-- src/components/ConfettiButton.astro -->
+<button data-confetti-button>Celebrate!</button>
+
+<script>
+  // Import le module NPM.
+  import confetti from 'canvas-confetti';
+
+  // Trouver le composant DOM dans la page.
+  const buttons = document.querySelectorAll('[data-confetti-button]');
+
+  // Ajouter l'écouteur d'événement pour déclencher des confettis lorsqu'un bouton est cliqué.
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => confetti());
+  });
+</script>
+```
+
+Par défaut, Astro traite et regroupe les balises `<script>`, ce qui permet d'importer des modules npm, d'écrire du TypeScript, etc.
+
+## Utilisation du `<script>` dans Astro.
 
 Dans les fichiers `.astro`, vous pouvez ajouter du JavaScript côté client en ajoutant une (ou plusieurs) balises `<script>`.
 
 Dans cet example, l'ajout du composant `<Hello />` à un page enregistrera un message dans la console du navigateur.
 
 ```astro title="src/compnonents/Hello.astro"
-<h1>Bienvenue, monde !</h1>
+<h1>Bienvenue, le monde !</h1>
 
 <script>
   console.log('Bienvenue, console du navigateur !');
@@ -28,14 +52,14 @@ Par défaut, les balises `<script>` sont optimisées par Astro.
 
 - Toutes les importations seront regroupées, ce qui vous permettra d'importer des fichiers locaux ou des modules Node.
 - Le script optimisé sera injecté dans le `<head>` de votre page HTML avec [`type="module"`](https://developer.mozilla.org/fr/docs/Web/JavaScript/Guide/Modules).
-- TypeScript est entièrement supporté, y compris l'importation de fichiers TypeScript.
+- TypeScript est entièrement supporté, y compris l'import de fichiers TypeScript.
 - Si votre composant est utilisé plusieurs fois sur un page, le script ne sera inclus qu'une seule fois.
 
 ```astro title="src/components/Example.astro"
 <script>
   // Optimisé ! Regroupé ! TypeScript supporté !
   // L'importation de fichiers locaux et de modules Node est supportée.
-<script>
+</script>
 ```
 
 Pour éviter le regroupement de script, vous pouvez utiliser la directive `is:inline`.
@@ -43,26 +67,26 @@ Pour éviter le regroupement de script, vous pouvez utiliser la directive `is:in
 ```astro title:"src/components/InlineScript.astro" "is:inline"
 <script is:inline>
   // Sera rendu dans le HTML exactement comme écrit.
-  // Les importations locales ne sont pas résolues et ne fonctionneront pas.
+  // Les imports locaux ne seront pas résolus et ne fonctionneront pas.
   // S'il se trouve dans un composant, il se répète chaque fois que le composant est utilisé.
 </script>
 ```
 
 :::note
-L'ajout de `type="module"` ou de tout autre attribut que `src` à une balise `<script>` désactivera le comportement de regroupement par défaut d'Astro, en traitant la balise comme si elle avait une directive `is:inline`.
+Le comportement de regroupement par défaut d'Astro sera désactivé dans certaines situations. En particulier, l'ajout de `type="module"` ou de tout autre attribut que `src` à une balise `<script>` amènera Astro à traiter la balise comme si elle avait une directive `is:inline`. Il en va de même lorsque le script est écrit dans une expression JSX.
 :::
 
 📚 Consultez notre page [référence des directives](/fr/reference/directives-reference/#directives-de-script-et-de-style) pour plus d'informations sur les directives disponibles des balises `<script>`.
 
 ### Chargement de script
 
-Vous voudriez écrire vos scripts dans un fichier séparé `.js`/`.ts` ou avoir besoin de référencer un script externe sur un autre serveur. Vous pouvez le faire en les référençant dans l'attribut `src` d'une balise `<script>`.
+Vous pouvez vouloir écrire vos scripts comme des fichiers `.js`/`.ts` séparés ou avoir besoin de référencer un script externe sur un autre serveur. Vous pouvez le faire en les référençant dans l'attribut src' d'une balise `<script>`.
 
 ### Importer des scripts locaux
 
-**Quand l'utiliser :** Si vos script est dedans `src/`
+**Quand l'utiliser :** Si votre script se trouve dans `src/`.
 
-Astro va compiler, optimiser et ajouter ces scripts à la page pour vous, en suivant ses [règles de regroupement de script](#regroupement-de-script)
+Astro construira, optimisera et ajoutera ces scripts à la page pour vous, en suivant ses [règles de regroupement des scripts](#regroupement-de-script)
 
 ```astro title="src/components/LocalScripts.astro"
 <!-- chemin relatif du script dans `src/scripts/local.js` -->
@@ -71,6 +95,7 @@ Astro va compiler, optimiser et ajouter ces scripts à la page pour vous, en sui
 <!-- fonctionne également pour les fichiers TypeScript locaux -->
 <script src="./script-with-types.ts"></script>
 ```
+
 #### Charger des scripts externes
 
 **Quand l'utiliser :** Si votre fichier JavaScript se trouve à l'intérieur du dossier `public/` ou sur un CDN.
@@ -89,9 +114,9 @@ Pour charger des scripts en dehors du dossier `src/` de votre projet, incluez la
 
 ### Gérer le `onclick` et d'autres évènements
 
-Certains frameworks d'interface utilisent une syntaxe personnalisée pour la gestion d'événements comme `onClick={...}` (React/Preact) ou `@click="..."` (Vue). Astro suit le HTML standard de plus près et n’utilise pas de syntaxe personnalisée pour les évènements.
+Certains frameworks d'interface utilisateur utilisent une syntaxe personnalisée pour la gestion des événements comme `onClick={...}` (React/Preact) ou `@click="..."` (Vue). Astro suit au plus près le HTML standard et n’utilise pas de syntaxe personnalisée pour les évènements.
 
-Au lieu de cela, vous pouvez utiliser [`addEventListener`](https://developer.mozilla.org/fr/docs/Web/API/EventTarget/addEventListener) dans une balise `<script>` pour gérer les interactions utilisateur.
+Au lieu de cela, vous pouvez utiliser [`addEventListener`](https://developer.mozilla.org/fr/docs/Web/API/EventTarget/addEventListener) dans une balise `<script>` pour gérer les interactions avec l'utilisateur.
 
 ```astro title="src/components/AlertButton.astro"
 <button class="alert">Cliquez-moi !</button>
@@ -110,14 +135,14 @@ Au lieu de cela, vous pouvez utiliser [`addEventListener`](https://developer.moz
 ```
 
 :::note
-Si vous avez plusieurs composants `<AlertButton />` sur une page, Astro n'exécutera pas le script plusieurs fois. Les scripts sont groupés et inclus seulement une fois par page. L'utilisation de `querySelectorAll` garantit que ce script attache l'écouteur d'évènement à chaque bouton ayant la classe `alert` trouvé sur la page.
+Si vous avez plusieurs composants `<AlertButton />` sur une page, Astro n'exécutera pas le script plusieurs fois. Les scripts sont regroupés et ne sont inclus qu'une seul fois par page. L'utilisation de `querySelectorAll` garantit que ce script attache l'écouteur d'évènement à chaque bouton de la classe `alert` présent sur la page.
 :::
 
 ### Composants Web avec des éléments personnalisés
 
-Vous pouvez créer vos propres éléments HTML ayant un comportement personnalisé en utilisant les composants web standards. Définir un [élément personnalisé](https://developer.mozilla.org/fr/docs/Web/Web_Components/Using_custom_elements) dans un composant `.astro` vous permet de créer des composants interactifs sans avoir besoin d'une bibliothèque de cadres d'interface utilisateur.
+Vous pouvez créer vos propres éléments HTML avec un comportement personnalisé en utilisant le standard Web Components. La définition d'un [élément personnalisé](https://developer.mozilla.org/fr/docs/Web/API/Web_components/Using_custom_elements) dans un composant `.astro` vous permet de créer des composants interactifs sans avoir besoin d'une bibliothèque de Framwork utilisateur.
 
-Dans cet exemple, nous définissons un nouvel élément HTML `<astro-heart>` qui suit le nombre de fois que vous cliquez sur le bouton cœur et met à jour le `<span>` avec le dernier compte.
+Dans cet exemple, nous définissons un nouvel élément HTML `<astro-heart>` qui enregistre le nombre de fois que vous cliquez sur le bouton "cœur" et met à jour l'élément `<span>` avec le dernier décompte.
 
 ```astro title="src/components/AstroHeart.astro"
 <!-- Enveloppez les éléments du composant dans notre élément personnalisé "astro-heart" -->
@@ -148,25 +173,25 @@ Dans cet exemple, nous définissons un nouvel élément HTML `<astro-heart>` qui
 </script>
 ```
 
-Il y a deux avantages à utiliser un élément personnalisé ici:
+L'utilisation d'un élément personnalisé présente deux avantages :
 
 1. Au lieu de chercher dans toute la page en utilisant `document.querySelector()`, vous pouvez utiliser `this.querySelector()`, qui ne recherche que dans l'instance courante de l'élément personnalisé. Cela permet de travailler plus facilement avec les enfants d'une seule instance de composant à la fois.
 
-2. Bien qu'un `<script>` ne s'exécute qu'une seule fois, le navigateur exécutera la méthode `constructor()` de notre élément personnalisé chaque fois qu'il trouvera `<astro-heart>` sur la page. Cela signifie que vous pouvez écrire du code en toute sécurité pour un composant à la fois, même si vous avez l'intention d'utiliser ce composant plusieurs fois sur une page.
+2. Bien qu'un `<script>` ne s'exécute qu'une seule fois, le navigateur exécutera la méthode `constructor()` de notre élément personnalisé chaque fois qu'il trouvera `<astro-heart>` sur la page.  Cela signifie que vous pouvez écrire en toute sécurité du code pour un seul composant à la fois, même si vous avez l'intention d'utiliser ce composant plusieurs fois sur une page.
 
-Vous pouvez en savoir plus sur les éléments personnalisés dans le [guide des composants Web réutilisables de web.dev](https://web.dev/custom-elements-v1/) et dans l'[introduction aux composants personnalisés de MDN](https://developer.mozilla.org/fr/docs/Web/Web_Components/Using_custom_elements).
+📚 Pour en savoir plus sur les éléments personnalisés, consultez [le guide des composants Web réutilisables de web.dev (EN)](https://web.dev/custom-elements-v1/) et [l'introduction aux éléments personnalisés de MDN](https://developer.mozilla.org/fr/docs/Web/API/Web_components/Using_custom_elements).
 
 ### Passer les variables frontmatter aux scripts
 
-Dans les composants Astro, le code dans [le frontmatter](/fr/core-concepts/astro-components/#le-script-du-composant) entre les clôtures “---” s'exécute sur le serveur et n'est pas disponible dans le navigateur. Pour envoyer des variables du serveur au client, nous avons besoin d'un moyen de stocker nos variables et de les lire lorsque le JavaScript s'exécute dans le navigateur.
+Dans les composants Astro, le code dans [le frontmatter](/fr/core-concepts/astro-components/#le-script-du-composant) entre les codes barres “---” s'exécute sur le serveur et n'est pas disponible dans le navigateur. Pour envoyer des variables du serveur au client, nous avons besoin d'un moyen de stocker nos variables et de les lire lorsque le JavaScript s'exécute dans le navigateur.
 
-Une façon de le faire est d'utiliser les [attributs `data-*`](https://developer.mozilla.org/fr/docs/Learn/HTML/Howto/Use_data_attributes) pour stocker la valeur des variables dans votre sortie HTML. Les scripts, y compris les éléments personnalisés, peuvent alors lire ces attributs en utilisant la propriété `dataset` d'un élément une fois que votre HTML se charge dans le navigateur.
+Une façon d'y parvenir est d'utiliser les attributs [`data-*`](https://developer.mozilla.org/fr/docs/Learn/HTML/Howto/Use_data_attributes) pour stocker la valeur des variables dans votre sortie HTML. Les scripts, y compris les éléments personnalisés, peuvent alors lire ces attributs en utilisant la propriété `dataset` d'un élément une fois que votre HTML se charge dans le navigateur.
 
-Dans cet exemple de composant, une propriété `message` est stockée dans un attribut `data-message`, de sorte que l'élément personnalisé puisse lire `this.dataset.message` et obtenir la valeur de la propriété dans le navigateur.
+Dans cet exemple de composant, une variable `message` est stockée dans un attribut `data-message`, de sorte que l'élément personnalisé puisse lire `this.dataset.message` et obtenir la valeur de la variable dans le navigateur.
 
 ```astro title="src/components/AstroGreet.astro" {2} /data-message={.+}/ "this.dataset.message"
 ---
-const { message = 'Welcome, world!' } = Astro.props;
+const { message = 'Bienvenue, le monde!' } = Astro.props;
 ---
 
 <!-- Stocker la propriété de message comme attribut de données. -->
@@ -192,7 +217,7 @@ const { message = 'Welcome, world!' } = Astro.props;
 </script>
 ```
 
-Maintenant, nous pouvons utiliser notre composant plusieurs fois et être accueillis par un message différent pour chacun.
+Nous pouvons maintenant utiliser notre composant plusieurs fois et être accueillis par un message différent à chaque fois.
 
 ```astro title="src/pages/example.astro"
 ---
@@ -208,5 +233,5 @@ import AstroGreet from '../components/AstroGreet.astro';
 ```
 
 :::tip[Le saviez-vous?]
-C'est en fait ce que fait Astro dans les coulisses lorsque vous passez des propriétés à un composant écrit en utilisant un framework d'interface utilisateur comme React ! Pour les composants avec une directive `client:*`, Astro crée un élément personnalisé `<astro-island>` avec un attribut `props` qui stocke vos props côté serveur dans la sortie HTML.
+C'est en fait ce qu'Astro fait dans les coulisses lorsque vous passez des props à un composant écrit avec un framework UI comme React ! Pour les composants avec une directive `client:*`, Astro crée un élément personnalisé `<astro-island>` avec un attribut `props` qui stocke vos props côté serveur dans la sortie HTML.
 :::
