@@ -1,0 +1,144 @@
+---
+title: 添加最后修改时间
+description: 编写一个在你的 Markdown 和 MDX 文件里添加最后修改时间的 remark 插件。
+i18nReady: true
+type: recipe
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+学习如何编写一个在你的 Markdown 或 MDX 文件的 frontmatter 中添加最后修改时间的 [remark 插件](https://github.com/remarkjs/remark)。使用这个属性在你的页面中显示最后修改时间。
+
+## 操作步骤
+
+1. 安装辅助包
+
+   安装用于修改和格式化时间的 [`Day.js`](https://www.npmjs.com/package/dayjs)：
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+       ```shell
+       npm install dayjs
+       ```
+     </Fragment>
+     <Fragment slot="pnpm">
+       ```shell
+       pnpm install dayjs
+       ```
+     </Fragment>
+     <Fragment slot="yarn">
+       ```shell
+       yarn add dayjs
+       ```
+     </Fragment>
+   </PackageManagerTabs>
+
+2. 创建一个 remark 插件
+
+   这个插件使用 `execSync` 运行一个 Git 命令获取最后一次提交的 ISO 8601 时间戳，然后将时间戳添加到文件的 frontmatter 中。
+
+     ```js title="remark-modified-time.mjs"
+     import { execSync } from "child_process";
+
+     export function remarkModifiedTime() {
+       return function (tree, file) {
+         const filepath = file.history[0];
+         const result = execSync(`git log -1 --pretty="format:%cI" ${filepath}`);
+         file.data.astro.frontmatter.lastModified = result.toString();
+       };
+     }
+     ```
+    <details>
+    <summary>使用文件系统而不是 Git</summary>
+
+     虽然使用 Git 是获取文件的最后修改时间的推荐方式，但使用文件系统的修改时间也是可能的。
+     这个插件使用 `statSync` 获取文件的 ISO 8601 格式的 `mtime` (修改时间)，然后将时间戳添加到文件的 frontmatter 中。
+
+     ```js title="remark-modified-time.mjs"
+     import { statSync } from "fs";
+
+     export function remarkModifiedTime() {
+       return function (tree, file) {
+         const filepath = file.history[0];
+         const result = statSync(filepath);
+         file.data.astro.frontmatter.lastModified = result.mtime.toISOString();
+       };
+     }
+     ```
+    </details>
+
+3. 将插件添加到你的配置中
+
+   ```js title="astro.config.mjs"
+   import { defineConfig } from 'astro/config';
+   import { remarkModifiedTime } from './remark-modified-time.mjs';
+
+   export default defineConfig({
+     markdown: {
+       remarkPlugins: [remarkModifiedTime],
+     },
+   });
+   ```
+
+   现在所有的 Markdown 文档的 frontmatter 中都会有一个 `lastModified` 属性。
+
+4. 显示最后修改时间
+
+   如果你的博客文章存储在[内容集合](/zh-cn/guides/content-collections/)中，通过 `entry.render()` 函数获取 `remarkPluginFrontmatter`，然后在模板中你喜欢的位置渲染 `lastModified`。
+
+   ```astro title="src/pages/posts/[slug].astro" {3-4,6,17,19-21,28}
+   ---
+   import { CollectionEntry, getCollection } from 'astro:content';
+   import dayjs from "dayjs";
+   import utc from "dayjs/plugin/utc";
+
+   dayjs.extend(utc);
+
+   export async function getStaticPaths() {
+     const blog = await getCollection('blog');
+     return blog.map(entry => ({
+       params: { slug: entry.slug },
+       props: { entry },
+     }));
+   }
+
+   const { entry } = Astro.props;
+   const { Content, remarkPluginFrontmatter } = await entry.render();
+
+   const lastModified = dayjs(remarkPluginFrontmatter.lastModified)
+     .utc()
+     .format("HH:mm:ss DD MMMM YYYY UTC");
+   ---
+
+   <html>
+     <head>...</head>
+     <body>
+       ...
+       <p>Last Modified: {lastModified}</p>
+       ...
+     </body>
+   </html>
+   ```
+
+   如果你使用的是 [Markdown 布局](/zh-cn/guides/markdown-content/#markdown-和-mdx-页面)，在布局模板中通过 `Astro.props` 来获取 frontmatter 中的 `lastModified` 属性。
+
+   ```astro title="src/layouts/BlogLayout.astro" {2-3,5,7-9,15}
+   ---
+   import dayjs from "dayjs";
+   import utc from "dayjs/plugin/utc";
+
+   dayjs.extend(utc);
+
+   const lastModified = dayjs()
+     .utc(Astro.props.frontmatter.lastModified)
+     .format("HH:mm:ss DD MMMM YYYY UTC");
+   ---
+
+   <html>
+     <head>...</head>
+     <body>
+       <p>{lastModified}</p>
+       <slot />
+     </body>
+   </html>
+   ```
