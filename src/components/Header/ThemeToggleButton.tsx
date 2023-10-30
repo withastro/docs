@@ -43,17 +43,31 @@ const icons = [
 const ThemeToggle = ({ labels, isInsideHeader }: Props) => {
 	const [theme, setTheme] = useState<'light' | 'dark'>();
 
-	useEffect(() => {
-		setTheme(document.documentElement.classList.contains('theme-dark') ? 'dark' : 'light');
-	}, []);
+	const getTheme = () => {
+		if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+			return localStorage.getItem('theme')!;
+		}
+		if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+			return 'dark';
+		}
+		return 'light';
+	};
 
 	useEffect(() => {
-		const root = document.documentElement;
-		if (theme === 'light') {
-			root.classList.remove('theme-dark');
-		} else if (theme === 'dark') {
-			root.classList.add('theme-dark');
-		}
+		const refreshTheme = () => {
+			const root = document.documentElement;
+			const currTheme = getTheme();
+			if (currTheme === 'light') {
+				root.classList.remove('theme-dark');
+			} else {
+				root.classList.add('theme-dark');
+			}
+
+			localStorage.setItem('theme', currTheme);
+			setTheme(currTheme as 'light' | 'dark');
+		};
+		refreshTheme();
+		document.addEventListener('astro:page-load', () => refreshTheme());
 	}, [theme]);
 
 	return (
@@ -72,14 +86,7 @@ const ThemeToggle = ({ labels, isInsideHeader }: Props) => {
 							value={t}
 							aria-label={themeLabel}
 							onChange={() => {
-								const matchesDarkTheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-								if ((matchesDarkTheme && t === 'dark') || (!matchesDarkTheme && t === 'light')) {
-									localStorage.removeItem('theme');
-								} else {
-									localStorage.setItem('theme', t);
-								}
-
+								localStorage.setItem('theme', t);
 								setTheme(t);
 							}}
 						/>
