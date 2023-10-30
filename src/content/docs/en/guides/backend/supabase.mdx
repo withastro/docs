@@ -3,81 +3,43 @@ title: Supabase & Astro
 description: Add a backend to your project with Supabase
 type: backend
 service: Supabase
-stub: false
 ---
-import FileTree from '~/components/FileTree.astro'
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import FileTree from '~/components/FileTree.astro'
 
 [Supabase](https://supabase.com/) is an open source Firebase alternative. It provides a Postgres database, authentication, edge functions, realtime subscriptions, and storage.
 
-## Getting Started
+## Initializing Supabase in Astro
 
 ### Prerequisites
 
-- [Supabase CLI](https://supabase.com/docs/guides/cli/getting-started) for local development.
+- A Supabase project. If you don't have one, you can sign up for free at [supabase.com](https://supabase.com/) and create a new project.
 - An Astro project with [server-side rendering (SSR)](/en/guides/server-side-rendering/#enabling-ssr-in-your-project) enabled.
+- Supabase credentials for your project. You can find these in the **Settings > API** tab of your Supabase project.
+  - `SUPABASE_URL`: The URL of your Supabase project.
+  - `SUPABASE_ANON_KEY`: The anonymous key for your Supabase project.
 
-### Initialize Supabase
+### Adding Supabase credentials
 
-Run `supabase init` in the root of the Astro project, it should create this folder:
-<FileTree title="Project Structure">
-- ...
-- supabase/
-  - config.toml
-  - functions/
-  - migrations/
-  - seed.sql
-- ...
-</FileTree>
+To add your Supabase credentials to your Astro project, add the following to your `.env` file:
 
-### Start Supabase
-
-Run `supabase start` to start Supabase stack. It should return this:
-
-```ini title="Terminal"
-Started supabase local development setup.
-
-         API URL: http://localhost:54321
-     GraphQL URL: http://localhost:54321/graphql/v1
-          DB URL: postgresql://postgres:postgres@localhost:54322/postgres
-      Studio URL: http://localhost:54323
-    Inbucket URL: http://localhost:54324
-      JWT secret: super-secret-jwt-token-with-at-least-32-characters-long
-        anon key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
-service_role key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+```ini title=".env"
+SUPABASE_URL=YOUR_SUPABASE_URL
+SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 ```
 
-To add Supabase credentials to Astro, create an `.env` file in the root of the project with the following:
+Now, these environment variables are available in your project.
 
-```ini
-# .env
-SUPABASE_URL=SUPABASE_URL
-SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
-SUPABASE_JWT_SECRET=SUPABASE_JWT_SECRET
-```
-
-The Project structure should now include this file:
-
-<FileTree title="Project Structure">
-- ...
-- supabase/
-- .env
-- ...
-</FileTree>
-
-Now, these environment variables are available for use in the project.
-
-To have IntelliSense for the Supabase environment variables, edit or create the file `env.d.ts` in `src/` directory and configure the types:
+If you would like to have IntelliSense for your environment variables, edit or create the `env.d.ts` in your `src/` directory and add the following:
 
 ```ts title="src/env.d.ts"
 interface ImportMetaEnv {
-  readonly SUPABASE_URL: string;
-  readonly SUPABASE_ANON_KEY: string;
-  readonly SUPABASE_JWT_SECRET: string;
+  readonly SUPABASE_URL: string
+  readonly SUPABASE_ANON_KEY: string
 }
 
 interface ImportMeta {
-  readonly env: ImportMetaEnv;
+  readonly env: ImportMetaEnv
 }
 ```
 
@@ -85,724 +47,443 @@ interface ImportMeta {
 Read more about [environment variables](/en/guides/environment-variables/) and `.env` files in Astro.
 :::
 
-The project structure should include these files:
+Your project should now include these new files:
+
 <FileTree title="Project Structure">
-- ...
-- supabase/
 - src/
-  - env.d.ts
-- .env
-- ...
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
 </FileTree>
 
-### Install Dependencies
+### Installing dependencies
 
-To connect Astro with Supabase, install the following package using the command below:
-
-- `@supabase/supabase-js`
+To connect to Supabase, you will need to install `@supabase/supabase-js` in your project.
 
 <PackageManagerTabs>
   <Fragment slot="npm">
-    ```shell
-    npm install @supabase/supabase-js
-    ```
+  ```shell
+  npm install @supabase/supabase-js
+  ```
   </Fragment>
   <Fragment slot="pnpm">
-    ```shell
-    pnpm install @supabase/supabase-js
-    ```
+  ```shell
+  pnpm install @supabase/supabase-js
+  ```
   </Fragment>
   <Fragment slot="yarn">
-    ```shell
-    yarn add @supabase/supabase-js
-    ```
+  ```shell
+  yarn add @supabase/supabase-js
+  ```
   </Fragment>
 </PackageManagerTabs>
 
-### Create Profile Table
+Next, create a folder named `lib` in your `src/` directory. This is where you will add your Supabase client.
 
-1. Go to [Studio URL](http://localhost:54323)
-2. Click on SQL Editor on the left sidebar
-3. Choose `User Management Starter` from `Quick start` in the bottom of the page
-4. Click `RUN`
+In `supabase.ts`, add the following to initialize your Supabase client:
 
-### Create Supabase Client
-
-1. Create a directory named `lib` in the `src/` directory.
-2. Create a file named `supabaseClient.ts` in the `src/lib/` directory.
-
-In `supabaseClient.ts` add the following code to create the supabase client.
-
-```ts title="src/lib/supabaseClient.ts"
-import { createClient } from '@supabase/supabase-js'
+```ts title="src/lib/supabase.ts"
+import { createClient } from "@supabase/supabase-js";
 
 export const supabase = createClient(
-  `${import.meta.env.SUPABASE_URL}`,
-  `${import.meta.env.SUPABASE_ANON_KEY}`,
-  {         
-    auth: {
-      persistSession: false,
-    }
-  }
-)
+  import.meta.env.SUPABASE_URL,
+  import.meta.env.SUPABASE_ANON_KEY,
+);
 ```
 
-The project structure should include these new files:
+Finally, your project should include these new files:
 
 <FileTree title="Project Structure">
-- ...
 - src/
   - lib/
-    - supabaseClient.ts
+    - **supabase.ts**
   - env.d.ts
 - .env
 - astro.config.mjs
 - package.json
-- ...
 </FileTree>
 
-### Prepare Authentication Functions
+## Adding authentication with Supabase
 
-- Create a file named `auth.ts` in the `src/lib/` directory.
+Supabase provides authentication out of the box. It supports email/password authentication and OAuth authentication with many providers including GitHub, Google, and several others.
 
-In `auth.ts` add the following code to create the authentication functions:
+### Prerequisites
 
-```ts title="src/lib/auth.ts"
-import { supabase } from "./supabaseClient";
+- An Astro project [initialized with Supabase](#initializing-supabase-in-astro).
+- A Supabase project with email/password authentication enabled. You can enable this in the **Authentication > Providers** tab of your Supabase project.
 
-export async function signUp(email: string, password: string) {
-    return await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: 'http://localhost:3000/profile'
-        }
-    })
-}
+### Creating auth server endpoints
 
-export async function signIn(email: string, password: string) {
-    return await supabase.auth.signInWithPassword({
-        email,
-        password
-    })
-}
+To add authentication to your project, you will need to create a few server endpoints. These endpoints will be used to register, sign in, and sign out users.
 
-export async function signInWithGithub() {
-    return await supabase.auth.signInWithOAuth({
-        provider: 'github',
-        options: {
-          redirectTo: 'http://localhost:3000/profile'
-        }
-    });
-}
+- `POST /api/auth/register`: to register a new user.
+- `POST /api/auth/signin`: to sign in a user.
+- `GET /api/auth/signout`: to sign out a user.
 
-export async function getSessionData() {
-    return await supabase.auth.getSession();
-}
-
-export async function setSessionData(access_token: string, refresh_token: string) {
-    return await supabase.auth.setSession({
-        access_token,
-        refresh_token,
-    })
-}
-
-export function AuthState() {
-    return supabase.auth.onAuthStateChange((event, session) => {
-        console.log(event, session);
-    })
-}
-
-export async function signOut() {
-    return await supabase.auth.signOut()
-}
-```
-
-:::tip
-Check [Supabase User Management](https://supabase.com/docs/reference/javascript/auth-api) to learn more about these functions.
-:::
-
-The project structure should include these new files:
+Create these endpoints in the `src/pages/api/auth` directory of your project. Your project should now include these new files:
 
 <FileTree title="Project Structure">
-- ...
 - src/
   - lib/
-    - auth.ts
-    - supabaseClient.ts
-  - env.d.ts
-- .env
-- astro.config.mjs
-- package.json
-- ...
-</FileTree>
-
-### Sign Up
-
-1. Go to `src/pages`
-2. Create a new file named `signup.astro`
-3. Add the following code to `signup.astro`:
-
-```astro title="src/pages/signup.astro"
----
-import Layout from "../layouts/Layout.astro";
-import { getSessionData, setSessionData } from "../lib/auth"
-
-let accessToken = Astro.cookies.get("sb-access-token").value
-let refreshToken = Astro.cookies.get("sb-refresh-token").value
-
-if (accessToken && refreshToken) {
-    await setSessionData(accessToken, refreshToken)
-    return Astro.redirect("/profile")
-}
-
-console.log(await getSessionData())
----
-
-<Layout title="Sign Up">
-    <div class="flex justify-center items-center">
-        <div class="col-6 form-widget" aria-live="polite">
-            <h1 class="text-3xl text-gray-800">Sign Up</h1>
-            <form
-                class="flex flex-col space-y-4 mt-8"
-                aria-live="polite"
-            >
-                <input
-                    class="border rounded px-3 py-2"
-                    aria-live="polite"
-                    name="email"
-                    type="email"
-                    placeholder="Email"
-                />
-                <input
-                    class="border rounded px-3 py-2"
-                    aria-live="polite"
-                    name="password"
-                    type="password"
-                    placeholder="Password"
-                />
-                <input
-                    class="border rounded px-3 py-2"
-                    aria-live="polite"
-                    name="confirm-password"
-                    type="password"
-                    placeholder="Confirm Password"
-                />
-                <button
-                    class="block px-3 py-2 w-full text-white bg-gray-800 border rounded hover:border-2"
-                    aria-live="polite"
-                    type="submit"
-                >
-                    Sign Up
-                </button>
-                <p class="text-center text-gray-800">Already have an account? <a href="/signin">Sign In</a></p>
-            </form>
-        </div>
-    </div>        
-</Layout>
-
-<script>
-    import { signUp } from "../lib/auth";
-
-    const form = document.querySelector("form")
-
-    form?.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        console.log("submitted")
-        const formData = new FormData(e.target as HTMLFormElement);
-        const creds = {
-            email: formData.get("email") as string,
-            password: formData.get("password") as string,
-            confirmPassword: formData.get("confirm-password") as string,
-        };
-        
-        if (creds.password !== creds.confirmPassword) {
-            console.log("Passwords do not match");
-            alert("Passwords do not match");
-            return;
-        } else {
-            try {
-                await signUp(creds.email, creds.password);
-            } catch (error) {
-                console.log(error);
-            }
-        }
-    });
-</script>
-```
-
-:::note
-After signing up a user, Check [Inbucket URL](http://localhost:54324) to confirm email.
-:::
-
-### Sign In
-
-#### Sign In with Email
-
-1. Go to `src/pages`
-2. Create a new file named `signin.astro`
-3. Add the following code to `signin.astro`:
-
-```astro
----
-// src/pages/signin.astro
-import Layout from "../layouts/Layout.astro"
-import { getSessionData, setSessionData } from "../lib/auth"
-
-let accessToken = Astro.cookies.get("sb-access-token").value
-let refreshToken = Astro.cookies.get("sb-refresh-token").value
-
-if (accessToken && refreshToken) {
-    await setSessionData(accessToken, refreshToken)
-    return Astro.redirect("/profile")
-}
-
-console.log(await getSessionData())
----
-
-<Layout title="Sign In">
-    <div class="flex justify-center items-center">
-        <div class="col-6 form-widget" aria-live="polite">
-            <h1 class="text-3xl text-gray-800">Sign In</h1>
-            <form
-                class="flex flex-col space-y-4 mt-8"
-                aria-live="polite"
-            >
-                <input
-                    class="border rounded px-3 py-2"
-                    aria-live="polite"
-                    name="email"
-                    type="email"
-                    placeholder="Email"
-                />
-                <input
-                    class="border rounded px-3 py-2"
-                    aria-live="polite"
-                    name="password"
-                    type="password"
-                    placeholder="Password"
-                />
-                <button
-                    class="block px-3 py-2 w-full text-white bg-gray-800 border rounded hover:border-2"
-                    aria-live="polite"
-                    type="submit"
-                >
-                    Sign In
-                </button>
-                <p class="text-center text-gray-800">Need an account? <a href="/signup">Sign Up</a></p>
-            </form>
-        </div>
-    </div>        
-</Layout>
-
-<script>
-    import { signIn, getSessionData } from "../lib/auth";
-
-    const form = document.querySelector("form");
-
-    form?.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target as HTMLFormElement);
-        const creds = {
-            email: formData.get("email") as string,
-            password: formData.get("password") as string,
-        };
-
-        const signin = await signIn(creds.email, creds.password);
-        if (signin.error !== null) {
-            console.log(signin.error);
-            alert(signin.error.message);
-            window.location.href = "/signin";
-        } else {
-            const session = await getSessionData();
-
-            console.log(session);
-
-            const maxAge = 15 * 24 * 60 * 60;
-            if(session) {
-                document.cookie = `sb-access-token=${session.data.session?.access_token}; path=/; expires=${session.data.session?.expires_at}; max-age=${maxAge}; SameSite=Lax; secure`;
-                document.cookie = `sb-refresh-token=${session.data.session?.refresh_token}; path=/; expires=${session.data.session?.expires_at}; max-age=${maxAge}; SameSite=Lax; secure`;
-                window.location.href = "/profile";
-            }
-        }        
-    })
-</script>
-```
-
-#### Sign In with OAuth
-
-##### Prerequisites
-
-Create a Github Oauth App:
-- Go to [github.com](https://github.com/)
-- Sign In to your github account
-- Click your profile photo at the top right
-- Click Settings near the bottom of the menu
-- In the left sidebar, click `Developer settings`
-- In the left sidebar, click `OAuth Apps`
-- Create the OAuth app
-
-:::note
-In Local Development, your callback URL is `http://localhost:54321/auth/v1/callback`
-:::
-:::tip
-Learn more about [Github OAuth Applications](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app).
-:::
-
-Enabling Github OAuth:
-
-Use this command to stop supabase:
-```shell
-supabase stop
-```
-
-Add this the file `config.toml` in the `supabase` directory:
-
-```toml title="supabase/config.toml"
-[auth.external.github]
-enabled = true
-client_id = "YOUR_CLIENT_ID"
-# DO NOT commit your OAuth provider secret to git. Use environment variable substitution instead:
-secret = "env(SUPABASE_EXTERNAL_GITHUB_SECRET)"
-# Overrides the default auth redirectUrl.
-redirect_uri = "http://localhost:54321/auth/v1/callback"
-# Overrides the default auth provider URL. Used to support self-hosted gitlab, single-tenant Azure,
-# or any other third-party OIDC providers.
-url = ""
-```
-
-Add this line to `.env` in the root of your project:
-
-```ini title=".env"
-SUPABASE_URL=SUPABASE_URL
-SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
-SUPABASE_JWT_SECRET=SUPABASE_JWT_SECRET
-SUPABASE_EXTERNAL_GITHUB_SECRET=YOUR_GITHUB_SECRET
-```
-
-Restart supabase with this command:
-
-```shell
-supabase start
-```
-
-1. Go to `src/pages`
-2. Edit `signin.astro` as follows:
-
-```astro title="src/pages/signin.astro" ins={47-50, 57, 88-92}
----
-import Layout from "../layouts/Layout.astro"
-import { getSessionData, setSessionData } from "../lib/auth"
-
-let accessToken = Astro.cookies.get("sb-access-token").value
-let refreshToken = Astro.cookies.get("sb-refresh-token").value
-
-if (accessToken && refreshToken) {
-    await setSessionData(accessToken, refreshToken)
-    return Astro.redirect("/profile")
-}
-
-console.log(await getSessionData())
----
-
-<Layout title="Sign In">
-    <div class="flex justify-center items-center">
-        <div class="col-6 form-widget" aria-live="polite">
-            <h1 class="text-3xl text-gray-800">Sign In</h1>
-            <form
-                class="flex flex-col space-y-4 mt-8"
-                aria-live="polite"
-            >
-                <input
-                    class="border rounded px-3 py-2"
-                    aria-live="polite"
-                    name="email"
-                    type="email"
-                    placeholder="Email"
-                />
-                <input
-                    class="border rounded px-3 py-2"
-                    aria-live="polite"
-                    name="password"
-                    type="password"
-                    placeholder="Password"
-                />
-                <button
-                    class="block px-3 py-2 w-full text-white bg-gray-800 border rounded hover:border-2"
-                    aria-live="polite"
-                    type="submit"
-                >
-                    Sign In
-                </button>
-                <p class="text-center text-gray-800">Need an account? <a href="/signup">Sign Up</a></p>
-                
-                <p class="text-center text-gray-800">Or Sign In with</p>
-                <div class="flex justify-center space-x-4">
-                    <button id="github" class="bg-gray-800 text-white px-3 py-2 rounded github">Github</button>
-                </div>
-            </form>
-        </div>
-    </div>        
-</Layout>
-
-<script>
-    import { signIn, getSessionData, signInWithGithub } from "../lib/auth";
-
-    const form = document.querySelector("form");
-
-    form?.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target as HTMLFormElement);
-        const creds = {
-            email: formData.get("email") as string,
-            password: formData.get("password") as string,
-        };
-
-        const signin = await signIn(creds.email, creds.password);
-        if (signin.error !== null) {
-            console.log(signin.error);
-            alert(signin.error.message);
-            window.location.href = "/signin";
-        } else {
-            const session = await getSessionData();
-
-            console.log(session);
-
-            const maxAge = 15 * 24 * 60 * 60;
-            if(session) {
-                document.cookie = `sb-access-token=${session.data.session?.access_token}; path=/; expires=${session.data.session?.expires_at}; max-age=${maxAge}; SameSite=Lax; secure`;
-                document.cookie = `sb-refresh-token=${session.data.session?.refresh_token}; path=/; expires=${session.data.session?.expires_at}; max-age=${maxAge}; SameSite=Lax; secure`;
-                window.location.href = "/profile";
-            }
-        }
-    })
-
-    const github = document.getElementById("github");
-    github?.addEventListener("click", async (e) => {
-        e.preventDefault();
-        await signInWithGithub();
-    })
-</script>
-```
-
-3. Edit `signup.astro` as follows:
-
-```astro title="src/pages/signup.astro" ins={54-57, 64, 91-95}
----
-import Layout from "../layouts/Layout.astro";
-import { getSessionData, setSessionData } from "../lib/auth"
-
-let accessToken = Astro.cookies.get("sb-access-token").value
-let refreshToken = Astro.cookies.get("sb-refresh-token").value
-
-if (accessToken && refreshToken) {
-    await setSessionData(accessToken, refreshToken)
-    return Astro.redirect("/profile")
-}
-
-console.log(await getSessionData())
----
-
-<Layout title="Sign Up">
-    <div class="flex justify-center items-center">
-        <div class="col-6 form-widget" aria-live="polite">
-            <h1 class="text-3xl text-gray-800">Sign Up</h1>
-            <form
-                class="flex flex-col space-y-4 mt-8"
-                aria-live="polite"
-            >
-                <input
-                    class="border rounded px-3 py-2"
-                    aria-live="polite"
-                    name="email"
-                    type="email"
-                    placeholder="Email"
-                />
-                <input
-                    class="border rounded px-3 py-2"
-                    aria-live="polite"
-                    name="password"
-                    type="password"
-                    placeholder="Password"
-                />
-                <input
-                    class="border rounded px-3 py-2"
-                    aria-live="polite"
-                    name="confirm-password"
-                    type="password"
-                    placeholder="Confirm Password"
-                />
-                <button
-                    class="block px-3 py-2 w-full text-white bg-gray-800 border rounded hover:border-2"
-                    aria-live="polite"
-                    type="submit"
-                >
-                    Sign Up
-                </button>
-                <p class="text-center text-gray-800">Already have an account? <a href="/signin">Sign In</a></p>
-
-                <p class="text-center text-gray-800">Or Sign In with</p>
-                <div class="flex justify-center space-x-4">
-                    <button id="github" class="bg-gray-800 text-white px-3 py-2 rounded github">Github</button>
-                </div>
-            </form>
-        </div>
-    </div>        
-</Layout>
-
-<script>
-    import { signUp, signInWithGithub } from "../lib/auth";
-
-    const form = document.querySelector("form")
-
-    form?.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        console.log("submitted")
-        const formData = new FormData(e.target as HTMLFormElement);
-        const creds = {
-            email: formData.get("email") as string,
-            password: formData.get("password") as string,
-            confirmPassword: formData.get("confirm-password") as string,
-        };
-        
-        if (creds.password !== creds.confirmPassword) {
-            console.log("Passwords do not match");
-            alert("Passwords do not match");
-            return;
-        } else {
-            try {
-                await signUp(creds.email, creds.password);
-            } catch (error) {
-                console.log(error);
-            }
-        }
-    });
-
-    const github = document.getElementById("github");
-    github?.addEventListener("click", async (e) => {
-        e.preventDefault();
-        await signInWithGithub();
-    })
-</script>
-```
-
-### Profile
-
-1. Go to `src/pages`
-2. Create a new file named `profile.astro`
-3. Add the following code to `profile.astro`:
-
-```astro
----
-// src/pages/profile.astro
-import Layout from "../layouts/Layout.astro";
-import { getSessionData, setSessionData, AuthState} from "../lib/auth";
-
-let accessToken = Astro.cookies.get("sb-access-token").value
-let refreshToken = Astro.cookies.get("sb-refresh-token").value
-
-console.log("accessToken", accessToken);
-console.log("refreshToken", refreshToken);
-const session = await setSessionData(accessToken, refreshToken);
-
-console.log("session", session);
-
-if (session.data.session === null || (accessToken === undefined && refreshToken === undefined)) {
-	return Astro.redirect("/signin");
-}
-
-console.log("Auth State", AuthState())
----
-
-<Layout title="Profile">
-	<div class="flex flex-col items-center justify-center">
-		<h1 class="text-2xl font-bold text-gray-800">User Data</h1>
-		<p class="text-gray-800">{JSON.stringify(session)}</p>
-    </div>
-	<button
-		class="block px-3 py-2 w-full text-white bg-gray-800 border rounded hover:border-2"
-		type="button"
-        id="sign-out-button"
-	>
-		Sign Out
-	</button>
-</Layout>
-
-<script>
-    const signOutButton = document.getElementById("sign-out-button");
-    signOutButton.addEventListener("click", async () => {
-		const response = await fetch("/api/signout")
-
-		const data = await response.json();
-
-		console.log(data);
-
-		if (data.message === "success") {
-			window.location.href = "/signin";
-		}
-    });
-</script>
-```
-
-### Sign Out Endpoint
-
-1. Go to `src/pages/`
-2. Create a new directory named `api/`
-3. Create a new file named `signout.ts`
-
-Add the following code to `signout.ts`:
-
-```ts
-// src/pages/api/signout.ts
-import type { APIRoute } from "astro";
-import { signOut } from "../../lib/auth";
-
-export const get: APIRoute = async ({ cookies }) => {
-    cookies.delete("sb-access-token", { path: "/" });
-    cookies.delete("sb-refresh-token", { path: "/" });
-    try {
-        const { error } = await signOut()
-
-        if (error) {
-            console.log("error", error.message);
-        } else {
-            return new Response(
-                JSON.stringify({ message: "success" }),
-                { status: 200 }
-            )
-        }
-    } catch (error) {
-        console.log("error", error);
-        return new Response(
-            JSON.stringify({ error: error.message }),
-            { status: 500 }
-        )
-    }
-}
-```
-
-Finally, the project structure will look like this:
-
-<FileTree title="Project Structure">
-- ...
-- supabase/
-  - config.toml
-  - functions/
-  - migrations/
-  - seed.sql
-- src/
+    - supabase.ts
   - pages/
     - api/
-      - signout.ts
-    - signup.astro
-    - signin.astro
-    - profile.astro
-  - lib/
-    - auth.ts
-    - supabaseClient.ts
+      - auth/
+        - **signin.ts**
+        - **signout.ts**
+        - **register.ts**
   - env.d.ts
 - .env
 - astro.config.mjs
 - package.json
-- ...
 </FileTree>
+
+`register.ts` creates a new user in Supabase. It accepts a `POST` request with the an email and password. It then uses the Supabase SDK to create a new user.
+
+```ts title="src/pages/api/auth/register.ts"
+import type { APIRoute } from "astro";
+import { supabase } from "../../../lib/supabase";
+
+export const POST: APIRoute = async ({ request, redirect }) => {
+  const formData = await request.formData();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+
+  if (!email || !password) {
+    return new Response("Email and password are required", { status: 400 });
+  }
+
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+  });
+
+  if (error) {
+    return new Response(error.message, { status: 500 });
+  }
+
+  return redirect("/signin");
+};
+```
+
+`signin.ts` signs in a user. It accepts a `POST` request with the an email and password. It then uses the Supabase SDK to sign in the user.
+
+```ts title="src/pages/api/auth/signin.ts"
+import type { APIRoute } from "astro";
+import { supabase } from "../../../lib/supabase";
+
+export const POST: APIRoute = async ({ request, cookies, redirect }) => {
+  const formData = await request.formData();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+
+  if (!email || !password) {
+    return new Response("Email and password are required", { status: 400 });
+  }
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    return new Response(error.message, { status: 500 });
+  }
+
+  const { access_token, refresh_token } = data.session;
+  cookies.set("sb-access-token", access_token, {
+    path: "/",
+  });
+  cookies.set("sb-refresh-token", refresh_token, {
+    path: "/",
+  });
+  return redirect("/dashboard");
+};
+```
+
+`signout.ts` signs out a user. It accepts a `GET` request and removes the user's access and refresh tokens.
+
+```ts title="src/pages/api/auth/signout.ts"
+import type { APIRoute } from "astro";
+
+export const GET: APIRoute = async ({ cookies, redirect }) => {
+  cookies.delete("sb-access-token", { path: "/" });
+  cookies.delete("sb-refresh-token", { path: "/" });
+  return redirect("/signin");
+};
+```
+
+### Creating auth pages
+
+Now that you have created your server endpoints, create the pages that will them.
+
+- `src/pages/register`: contains a form to register a new user.
+- `src/pages/signin`: contains a form to sign in a user.
+- `src/pages/dashboard`: contains a page that is only accessible to authenticated users.
+
+Create these pages in the `src/pages` directory. Your project should now include these new files:
+
+<FileTree title="Project Structure">
+- src/
+  - lib/
+    - supabase.ts
+  - pages/
+    - api/
+      - auth/
+        - signin.ts
+        - signout.ts
+        - register.ts
+    - **register.astro**
+    - **signin.astro**
+    - **dashboard.astro**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+`register.astro` contains a form to register a new user. It accepts an email and password and sends a `POST` request to `/api/auth/register`.
+
+```astro title="src/pages/register.astro"
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Register">
+  <h1>Register</h1>
+  <p>Already have an account? <a href="/signin">Sign in</a></p>
+  <form action="/api/auth/register" method="post">
+    <label for="email" for="email">Email</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+  </form>
+</Layout>
+```
+
+`signin.astro` contains a form to sign in a user. It accepts an email and password and sends a `POST` request to `/api/auth/signin`. It also checks for the presence of the access and refresh tokens. If they are present, it redirects to the dashboard.
+
+```astro title="src/pages/signin.astro"
+---
+import Layout from "../layouts/Layout.astro";
+
+const accessToken = cookies.get("sb-access-token");
+const refreshToken = cookies.get("sb-refresh-token");
+
+if (accessToken && refreshToken) {
+  return redirect("/dashboard");
+}
+---
+
+<Layout title="Sign in">
+  <h1>Sign in</h1>
+  <p>New here? <a href="/register">Create an account</a></p>
+  <form action="/api/auth/signin" method="post">
+    <label for="email" for="email">Email</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+  </form>
+</Layout>
+```
+
+`dashboard.astro` contains a page that is only accessible to authenticated users. It checks for the presence of the access and refresh tokens. If they are not present, it redirects to the sign in page.
+
+```astro title="src/pages/dashboard.astro"
+---
+const accessToken = cookies.get("sb-access-token");
+const refreshToken = cookies.get("sb-refresh-token");
+
+if (!accessToken || !refreshToken) {
+  return redirect("/signin");
+}
+
+const { data, error } = await supabase.auth.setSession({
+  refresh_token: refreshToken.value,
+  access_token: accessToken.value,
+});
+
+if (error) {
+  cookies.delete("sb-access-token", {
+    path: "/",
+  });
+  cookies.delete("sb-refresh-token", {
+    path: "/",
+  });
+
+  return redirect("/signin");
+}
+
+const email = data?.user?.email;
+---
+<Layout title="dashboard">
+  <h1>Welcome {email}</h1>
+  <p>We are happy to see you here</p>
+  <form action="/api/auth/signout">
+    <button type="submit">Sign out</button>
+  </form>
+</Layout>
+```
+
+### Adding OAuth authentication
+
+To add OAuth authentication to your project, you will need to edit your Supabase client to enable authentication flow with `"pkce"`. You can read more about authentication flows in the [Supabase documentation](https://supabase.com/docs/guides/auth/server-side-rendering#understanding-the-authentication-flow).
+
+```ts title="src/lib/supabase.ts" ins={6-10}
+import { createClient } from "@supabase/supabase-js";
+
+export const supabase = createClient(
+  import.meta.env.SUPABASE_URL,
+  import.meta.env.SUPABASE_ANON_KEY,
+  {
+    auth: {
+      flowType: "pkce",
+    },
+  },
+);
+```
+
+Next, in the Supabase dashboard, enable the OAuth provider you would like to use. You can find the list of supported providers in the **Authentication > Providers** tab of your Supabase project.
+
+The following example uses GitHub as the OAuth provider. To connect your project to GitHub, follow the steps in the [Supabase documentation](https://supabase.com/docs/guides/auth/social-login/auth-github).
+
+Then, create a new server endpoint to handle the OAuth callback. This endpoint will be used to exchange the OAuth code for an access and refresh token.
+
+```ts title="src/pages/api/auth/callback.ts"
+import type { APIRoute } from "astro";
+import { supabase } from "../../../lib/supabase";
+
+export const GET: APIRoute = async ({ url, cookies, redirect }) => {
+  const authCode = url.searchParams.get("code");
+
+  if (!authCode) {
+    return new Response("No code provided", { status: 400 });
+  }
+
+  const { data, error } = await supabase.auth.exchangeCodeForSession(authCode);
+
+  if (error) {
+    return new Response(error.message, { status: 500 });
+  }
+
+  const { access_token, refresh_token } = data.session;
+
+  cookies.set("sb-access-token", access_token, {
+    path: "/",
+  });
+  cookies.set("sb-refresh-token", refresh_token, {
+    path: "/",
+  });
+
+  return redirect("/dashboard");
+};
+```
+
+Next, edit the sign in page to include a new button to sign in with the OAuth provider. This button should send a `POST` request to `/api/auth/signin` with the `provider` set to the name of the OAuth provider.
+
+```astro title="src/pages/signin.astro" ins={21}
+---
+import Layout from "../layouts/Layout.astro";
+
+const accessToken = cookies.get("sb-access-token");
+const refreshToken = cookies.get("sb-refresh-token");
+
+if (accessToken && refreshToken) {
+  return redirect("/dashboard");
+}
+---
+
+<Layout title="Sign in">
+  <h1>Sign in</h1>
+  <p>New here? <a href="/register">Create an account</a></p>
+  <form action="/api/auth/signin" method="post">
+    <label for="email" for="email">Email</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+    <button value="github" name="provider" type="submit">Sign in with GitHub</button>
+  </form>
+</Layout>
+```
+
+Finally, edit the sign in server endpoint to handle the OAuth provider. If the `provider` is present, it will redirect to the OAuth provider. Otherwise, it will sign in the user with the email and password.
+
+```ts title="src/pages/api/auth/signin.ts" ins={10-23}
+import type { APIRoute } from "astro";
+import { supabase } from "../../../lib/supabase";
+
+export const POST: APIRoute = async ({ request, cookies, redirect }) => {
+  const formData = await request.formData();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+  const provider = formData.get("provider")?.toString();
+
+  if (provider) {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: "http://localhost:4321/api/auth/callback"
+      },
+    });
+
+    if (error) {
+      return new Response(error.message, { status: 500 });
+    }
+
+    return redirect(data.url);
+  }
+
+  if (!email || !password) {
+    return new Response("Email and password are required", { status: 400 });
+  }
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    return new Response(error.message, { status: 500 });
+  }
+
+  const { access_token, refresh_token } = data.session;
+  cookies.set("sb-access-token", access_token, {
+    path: "/",
+  });
+  cookies.set("sb-refresh-token", refresh_token, {
+    path: "/",
+  });
+  return redirect("/dashboard");
+};
+```
+
+After creating the OAuth callback endpoint and editing the sign in page and server endpoint, your project should have the following file structure:
+
+<FileTree title="Project Structure">
+- src/
+  - lib/
+    - supabase.ts
+  - pages/
+    - api/
+      - auth/
+        - signin.ts
+        - signout.ts
+        - register.ts
+        - callback.ts
+    - register.astro
+    - signin.astro
+    - dashboard.astro
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## Community Resources
+
+- [Getting into the holiday spirit with Astro, React, and Supabase](https://www.aleksandra.codes/astro-supabase)
+- [Astro and Supabase auth demo](https://github.com/kevinzunigacuellar/astro-supabase)
