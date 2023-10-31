@@ -18,7 +18,7 @@ Aquí hay algunos conceptos clave y estragias de migración para ayudarte a come
 
 Nuxt y Astro comparten algunas similitudes que te ayudarán a migrar tu proyecto:
 
-- Los proyectos de Astro también pueden ser SSG o [SSR con prerenderizado a nivel de página](/es/guides/server-side-rendering/#configuración-de-rutas-individuales).
+- Los proyectos de Astro también pueden ser SSG o [SSR con prerenderizado a nivel de página](/es/guides/server-side-rendering/).
 - Astro usa un enrutamiento basado en archivos y [permite que las páginas con nombres creen rutas dinámicas](/es/core-concepts/routing/#rutas-dinámicas)
 - Astro es [basado en componentes](/es/core-concepts/astro-components/) y la estructura de tu marcado será similar antes y después de tu migración.
 - Astro tiene [una integración oficial para usar componentes de Vue](/es/guides/integrations-guide/vue/).
@@ -40,27 +40,6 @@ Cada migración de proyecto se verá diferente, pero hay algunas acciones comune
 
 ### Crea un nuevo proyecto Astro
 Utiliza el comando `create astro` en tu gestor de paquetes para lanzar el asistente de linea de comandos de Astro o elige un tema de la comunidad del [catálogo de temas de Astro](https://astro.build/themes).
-
-  <PackageManagerTabs>
-    <Fragment slot="npm">
-    ```shell
-    # lanzar el Asistente de línea de comandos de Astro
-    npm create astro@latest
-    ```
-    </Fragment>
-    <Fragment slot="pnpm">
-    ```shell
-    # lanzar el Asistente de línea de comandos de Astro
-    pnpm create astro@latest
-    ```
-    </Fragment>
-    <Fragment slot="yarn">
-    ```shell
-    # lanzar el Asistente de línea de comandos de Astro
-    yarn create astro@latest
-    ```
-    </Fragment>
-  </PackageManagerTabs>
 
 Puedes pasar un argumento `--template` al comando `create astro` para iniciar un nuevo proyecto Astro con uno de nuestros ejemplos oficiales (por ejemplo, `docs`, `blog`, `portfolio`). O, puedes [iniciar un nuevo proyecto desde cualquier repositorio Astro existente en GitHub](/es/install/auto/#plantillas-de-inicio).
 
@@ -341,8 +320,6 @@ const { to } = Astro.props
 
 Si es necesario, actualiza cualquier [importación de archivo](/es/guides/imports/) para hacer referencia exacta a las rutas de archivo relativas. Esto se puede hacer usando [alias de importación](/es/guides/typescript/#alias-de-importación) o escribiendo una ruta relativa completa.
 
-```astro title="src/components/Component.astro" del={1} ins={2}
-
 Ten en cuenta que `.astro` y varios otros tipos de archivo deben importarse con su extensión de archivo completa.
 
 ```astro title="src/pages/authors/Fred.astro" ".astro"
@@ -539,29 +516,121 @@ Aquí está cómo recrearlo en `src/pages/index.astro`, reemplazando `asyncData(
 
 1. Identifica las etiquetas `<template>` y `<style>` en el SFC de Vue.
 
-```jsx title="pages/index.vue" {2-13,47-55}
-<template>
-  <ul class="plain-list pokeList">
-            <li v-for="pokemon of pokemons" class="pokemonListItem" :key="pokemon.name">
-                <NuxtLink class="pokemonContainer" :to="`/pokemon/${pokemon.name}`">
-                    <p class="pokemonId">No. {{pokemon.id}}</p>
-                    <img
-                      class="pokemonImage"
-                      :src="`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`" 
-                      :alt="`${pokemon.name} picture`"/>
-                    <h2 class="pokemonName">{{pokemon.name}}</h2>
-                </NuxtLink>
-            </li>
-    </ul>
-</template>
+    ```jsx title="pages/index.vue" {2-13,47-55}
+    <template>
+      <ul class="plain-list pokeList">
+                <li v-for="pokemon of pokemons" class="pokemonListItem" :key="pokemon.name">
+                    <NuxtLink class="pokemonContainer" :to="`/pokemon/${pokemon.name}`">
+                        <p class="pokemonId">No. {{pokemon.id}}</p>
+                        <img
+                          class="pokemonImage"
+                          :src="`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`" 
+                          :alt="`Foto de ${pokemon.name}`"/>
+                        <h2 class="pokemonName">{{pokemon.name}}</h2>
+                    </NuxtLink>
+                </li>
+        </ul>
+    </template>
 
-<script>
-import Vue from 'vue'
-export default Vue.extend({
-  name: 'IndexPage',
-  layout: 'default',
-  async asyncData() {
-    const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151")
+    <script>
+    import Vue from 'vue'
+    export default Vue.extend({
+      name: 'IndexPage',
+      layout: 'default',
+      async asyncData() {
+        const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151")
+        const resJson = await res.json();
+        const pokemons = resJson.results.map(pokemon => {
+            const name = pokemon.name;
+            // https://pokeapi.co/api/v2/pokemon/1/
+            const url = pokemon.url;
+            const id = url.split("/")[url.split("/").length - 2];
+            return {
+                name,
+                url,
+                id
+            }
+        });
+        return {
+          pokemons,
+        }
+      },
+      head() {
+        return {
+          title: "Pokedex: Generation 1"
+        }
+      }
+    });
+    </script>
+
+    <style scoped>
+    .pokeList {
+      display: grid;
+      grid-template-columns: repeat( auto-fit, minmax(250px, 1fr) );
+      gap: 1rem;
+    }
+
+    /* ... */
+    </style>
+    ```
+
+2. Crea `src/pages/index.astro`
+
+    Usa las etiquetas `<template>` y `<style>` del SFC de Nuxt. Convierte cualquier sintaxis de Nuxt o Vue a Astro.
+
+    Ten en cuenta que:
+
+    - la etiqueta `<template>` es eliminada
+
+    - la etiqueta `<style>` tiene su atributo `scoped` eliminado
+
+    - `v-for` se convierte en `.map`.
+
+    - `:attr="val"` se convierte en `attr={val}`
+
+    - la etiqueta `<NuxtLink>` se convierte en `<a>`.
+
+    - El fragmento `<> </>` no es requerido en la plantilla de Astro.
+
+    ```astro title="src/pages/index.astro" ".map" "</a>" "<a" "key={" "}>" "href={" " {pokemon.id}" "} alt={" "src={" "}/>" ">{pokemon.name}<"
+    ---
+    ---
+    <ul class="plain-list pokeList">
+        {pokemons.map((pokemon) => (
+            <li class="pokemonListItem" key={pokemon.name}>
+                <a class="pokemonContainer" href={`/pokemon/${pokemon.name}`}>
+                    <p class="pokemonId">No. {pokemon.id}</p>
+                    <img class="pokemonImage" src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`Foto de ${pokemon.name}`}/>
+                    <h2 class="pokemonName">{pokemon.name}</h2>
+                </a>
+            </li>
+        ))}
+    </ul>
+
+    <style>
+    .pokeList {
+      display: grid;
+      grid-template-columns: repeat( auto-fit, minmax(250px, 1fr) );
+      gap: 1rem;
+    }
+
+    /* ... */
+    </style>
+    ```
+
+3. Agrega cualquier importación, propiedad y JavaScript necesario
+
+    Ten en cuenta que:
+
+    - La función `asyncData` no es necesaria. Los datos de la API se obtienen directamente en la valla de código.
+    - Un componente `<Layout>` es importado y envuelve la plantilla de la página.
+      - Nuestro método `head()` de Nuxt se pasa al componente `<Layout>`, que se pasa al elemento `<title>` como propiedad.
+
+    ```astro ins={2,4-16,19,31} title="src/pages/index.astro"
+    ---
+    import Layout from '../layouts/layout.astro';
+
+    const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151");
     const resJson = await res.json();
     const pokemons = resJson.results.map(pokemon => {
         const name = pokemon.name;
@@ -574,124 +643,32 @@ export default Vue.extend({
             id
         }
     });
-    return {
-      pokemons,
+    ---
+
+    <Layout title="Pokedex: Generation 1">
+      <ul class="plain-list pokeList">
+          {pokemons.map((pokemon) => (
+              <li class="pokemonListItem" key={pokemon.name}>
+                  <a class="pokemonContainer" href={`/pokemon/${pokemon.name}`}>
+                      <p class="pokemonId">No. {pokemon.id}</p>
+                      <img class="pokemonImage" src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`Foto de ${pokemon.name}`}/>
+                      <h2 class="pokemonName">{pokemon.name}</h2>
+                  </a>
+              </li>
+          ))}
+      </ul>
+    </Layout>
+
+    <style>
+    .pokeList {
+      display: grid;
+      grid-template-columns: repeat( auto-fit, minmax(250px, 1fr) );
+      gap: 1rem;
     }
-  },
-  head() {
-    return {
-      title: "Pokedex: Generation 1"
-    }
-  }
-});
-</script>
 
-<style scoped>
-.pokeList {
-  display: grid;
-  grid-template-columns: repeat( auto-fit, minmax(250px, 1fr) );
-  gap: 1rem;
-}
-
-/* ... */
-</style>
-```
-
-2. Crea `src/pages/index.astro`
-
-Usa las etiquetas `<template>` y `<style>` del SFC de Nuxt. Convierte cualquier sintaxis de Nuxt o Vue a Astro.
-
-Ten en cuenta que:
-
-- la etiqueta `<template>` es eliminada
-
-- la etiqueta `<style>` tiene su atributo `scoped` eliminado
-
-- `v-for` se convierte en `.map`.
-
-- `:attr="val"` se convierte en `attr={val}`
-
-- la etiqueta `<NuxtLink>` se convierte en `<a>`.
-
-- El fragmento `<> </>` no es requerido en la plantilla de Astro.
-
-```astro title="src/pages/index.astro" ".map" "</a>" "<a" "key={" "}>" "href={" " {pokemon.id}" "} alt={" "src={" "}/>" ">{pokemon.name}<"
----
----
-<ul class="plain-list pokeList">
-    {pokemons.map((pokemon) => (
-        <li class="pokemonListItem" key={pokemon.name}>
-            <a class="pokemonContainer" href={`/pokemon/${pokemon.name}`}>
-                <p class="pokemonId">No. {pokemon.id}</p>
-                <img class="pokemonImage" src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}/>
-                <h2 class="pokemonName">{pokemon.name}</h2>
-            </a>
-        </li>
-    ))}
-</ul>
-
-<style>
-.pokeList {
-  display: grid;
-  grid-template-columns: repeat( auto-fit, minmax(250px, 1fr) );
-  gap: 1rem;
-}
-
-/* ... */
-</style>
-```
-
-3. Agrega cualquier importación, propiedad y JavaScript necesario
-
-Ten en cuenta que:
-
-- La función `asyncData` no es necesaria. Los datos de la API se obtienen directamente en la valla de código.
-- Un componente `<Layout>` es importado y envuelve la plantilla de la página.
-  - Nuestro método `head()` de Nuxt se pasa al componente `<Layout>`, que se pasa al elemento `<title>` como propiedad.
-
-```astro ins={2,4-16,19,31} title="src/pages/index.astro"
----
-import Layout from '../layouts/layout.astro';
-
-const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151");
-const resJson = await res.json();
-const pokemons = resJson.results.map(pokemon => {
-    const name = pokemon.name;
-    // https://pokeapi.co/api/v2/pokemon/1/
-    const url = pokemon.url;
-    const id = url.split("/")[url.split("/").length - 2];
-    return {
-        name,
-        url,
-        id
-    }
-});
----
-
-<Layout title="Pokedex: Generation 1">
-  <ul class="plain-list pokeList">
-      {pokemons.map((pokemon) => (
-          <li class="pokemonListItem" key={pokemon.name}>
-              <a class="pokemonContainer" href={`/pokemon/${pokemon.name}`}>
-                  <p class="pokemonId">No. {pokemon.id}</p>
-                  <img class="pokemonImage" src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}/>
-                  <h2 class="pokemonName">{pokemon.name}</h2>
-              </a>
-          </li>
-      ))}
-  </ul>
-</Layout>
-
-<style>
-.pokeList {
-  display: grid;
-  grid-template-columns: repeat( auto-fit, minmax(250px, 1fr) );
-  gap: 1rem;
-}
-
-/* ... */
-</style>
-```
+    /* ... */
+    </style>
+    ```
 
 ## Recursos de la comunidad
 

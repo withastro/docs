@@ -5,6 +5,8 @@ i18nReady: true
 ---
 import Since from '~/components/Since.astro';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import Badge from '~/components/Badge.astro';
+import RecipeLinks from "~/components/RecipeLinks.astro";
 
 
 Astro provides several ways for you to use images on your site, whether they are stored locally inside your project, linked to from an external URL, or managed in a CMS or CDN!
@@ -84,10 +86,6 @@ import myImage from "../assets/my_image.png"; // Image is 1600x900
 />
 ```
 
-Currently, the built-in assets feature does not include a `<Picture />` component.
-
-Instead, you can [generate images or custom components using `getImage()`](#generating-images-with-getimage) that use the HTML image attributes `srcset` and `sizes` or the `<picture>` tag [for art direction or to create responsive images](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#art_direction).
-
 #### Properties
 
 ##### src (required)
@@ -144,6 +142,76 @@ These properties define the dimensions to use for the image.
 When using local images in their original aspect ratio, the `width` and `height` can be automatically inferred from the source file and are optional.
 
 However, both of these properties are required for remote images and images stored in your `public/` folder as Astro is unable to analyze these files.
+
+##### densities
+
+<Since v="3.3.0" /> <Badge>Experimental</Badge>
+
+A list of pixel densities to generate for the image.
+
+If provided, this value will be used to generate a `srcset` attribute on the `<img>` tag. Do not provide a value for `widths` when using this value.
+
+Densities that are equal to widths larger than the original image will be ignored to avoid upscaling the image.
+
+```astro
+---
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png";
+---
+<Image src={myImage} width={myImage.width / 2} densities={[1.5, 2]} alt="A description of my image." />
+```
+
+```html
+<img
+  src="/_astro/my_image.hash.webp"
+  srcset="
+    /_astro/my_image.hash.webp 1.5x
+    /_astro/my_image.hash.webp 2x
+  "
+  alt="A description of my image."
+  width="800"
+  height="450"
+  loading="lazy"
+  decoding="async"
+/>
+```
+
+##### widths
+
+<Since v="3.3.0" /> <Badge>Experimental</Badge>
+
+A list of widths to generate for the image.
+
+If provided, this value will be used to generate a `srcset` attribute on the `<img>` tag. A [`sizes` property](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/sizes) must also be provided.
+
+Do not provide a value for `densities` when using this value. Only one of these two values can be used to generate a `srcset`.
+
+Widths that are larger than the original image will be ignored to avoid upscaling the image.
+
+```astro
+---
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // Image is 1600x900
+---
+<Image src={myImage} widths={[240, 540, 720, myImage.width]} alt="A description of my image." />
+```
+
+```html
+<img
+  src="/_astro/my_image.hash.webp"
+  srcset="
+    /_astro/my_image.hash.webp 240w,
+    /_astro/my_image.hash.webp 540w,
+    /_astro/my_image.hash.webp 720w,
+		/_astro/my_image.hash.webp 1600w
+  "
+  alt="A description of my image."
+  width="1600"
+  height="900"
+  loading="lazy"
+  decoding="async"
+/>
+```
 
 ##### format
 
@@ -209,6 +277,81 @@ const {src, ...attrs} = Astro.props;
 </style>
 ```
 
+### `<Picture />`
+
+<Since v="3.3.0" /> <Badge>Experimental</Badge>
+
+Use the built-in `<Picture />` Astro component to display a responsive image with multiple formats and/or sizes.
+
+```astro title="src/pages/index.astro"
+---
+import { Picture } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // Image is 1600x900
+---
+
+<!-- `alt` is mandatory on the Picture component -->
+<Picture src={myImage} formats={['avif', 'webp']} alt="A description of my image." />
+```
+
+```html
+<!-- Output -->
+<picture>
+  <source srcset="/_astro/my_image.hash.avif" type="image/avif" />
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.png"
+    width="1600"
+    height="900"
+    decoding="async"
+    loading="lazy"
+    alt="A description of my image."
+  />
+</picture>
+```
+
+#### Properties
+
+`<Picture />` accepts all the properties of the `<Image />` component, plus the following:
+
+##### `formats`
+
+An array of image formats to use for the `<source>` tags. Entries will be added as `<source>` elements in the order they are listed, and this order determines which format is displayed. For the best performance, list the most modern format first (e.g. `webp` or `avif`). By default, this is set to `['webp']`.
+
+##### `fallbackFormat`
+
+Format to use as a fallback value for the `<img>` tag.
+
+Defaults to `.png` for static images, `.gif` for animated images, and `.svg` for SVG files.
+
+##### `pictureAttributes`
+
+An object of attributes to be added to the `<picture>` tag. 
+
+Use this property to apply attributes to the outer `<picture>` element itself. Attributes applied to the `<Picture />` component directly will apply to the inner `<img>` element, except for those used for image transformation.
+
+```astro
+---
+import { Picture } from "astro:assets";
+import myImage from "../my_image.png"; // Image is 1600x900
+---
+
+<Picture src={myImage} alt="A description of my image." pictureAttributes={{style: "background-color: red;"}} />
+```
+
+```html
+<picture style="background-color: red;">
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.png"
+    alt="A description of my image."
+    width="1600"
+    height="900"
+    loading="lazy"
+    decoding="async"
+  />
+</picture>
+```
+
 ### `<img>`
 
 The [Astro template syntax](/en/core-concepts/astro-syntax/) also supports writing an `<img>` tag directly, with full control over its final output. These images will not be processed and optimized.
@@ -258,7 +401,7 @@ For remote images, use the image's **full URL** as the `src` value:
 
 ### Choosing `<Image />` vs `<img>`
 
-The `<Image />` component optimizes your image and infers width and height (of local images) based on the original aspect ratio to avoid CLS. But, it only works with certain formats and does not provide a `<picture>` element, nor does it support `srcset`.
+The `<Image />` component optimizes your image and infers width and height (of local images) based on the original aspect ratio to avoid CLS.
 
 Use the HTML `<img>` element when you cannot use the `<Image />` component, for example:
   - for unsupported image formats
@@ -467,6 +610,8 @@ import stars from "~/stars/docline.png";
 
 The `getImage()` function is intended for generating images destined to be used somewhere else than directly in HTML, for example in an [API Route](/en/core-concepts/endpoints/#server-endpoints-api-routes). It also allows you to create your own custom `<Image />` component.
 
+<RecipeLinks slugs={["en/recipes/build-custom-img-component" ]}/>
+
 `getImage()` takes an options object with the [same properties as the Image component](#properties) (except `alt`).
 
 ```astro
@@ -484,8 +629,13 @@ It returns an object with the following properties:
 
 ```js
 {
-  options: {...} // Original parameters passed
-  src: "https//..." // Path to the generated image
+  rawOptions: {...}, // Original parameters passed
+  options: {...}, // Validated parameters passed
+  src: "...", // Path to the generated image
+  srcSet: {
+    values: [...], // Generated values for srcset, every entry has a url and a size descriptor
+    attribute: "", // Generated srcset attribute from the values
+  }
   attributes: {...} // Additional HTML attributes needed to render the image (width, height, style, etc..)
 }
 ```
@@ -502,6 +652,16 @@ If the image is merely decorative (i.e. doesn’t contribute to the understandin
 
 [Sharp](https://github.com/lovell/sharp) is the default image service used for `astro:assets`.
 
+:::note
+When using a [strict package manager](https://pnpm.io/pnpm-vs-npm#npms-flat-tree) like `pnpm`, you may need to manually install Sharp into your project even though it is an Astro dependency:
+
+```bash
+pnpm install sharp
+```
+:::
+
+### Configure Squoosh
+
 If you would prefer to use [Squoosh](https://github.com/GoogleChromeLabs/squoosh) to transform your images, update your config with the following:
 
 ```js title="astro.config.mjs" ins={4-6}
@@ -514,13 +674,21 @@ export default defineConfig({
 });
 ```
 
-:::note
-When using a [strict package manager](https://pnpm.io/pnpm-vs-npm#npms-flat-tree) like `pnpm`, you may need to manually install Sharp into your project even though it is an Astro dependency:
+### Configure no-op passthrough service
 
-```bash
-pnpm install sharp
+If your [adapter for `server` or `hybrid` mode](https://astro.build/integrations/?search=&categories%5B%5D=adapters) does not support Astro's built-in Squoosh and Sharp image optimization (e.g. Deno, Cloudflare), you can configure a no-op image service to allow you to use the `<Image />` and `<Picture />` components. Note that Astro does not perform any image transformation and processing in these environments. However, you can still enjoy the other benefits of using `astro:assets`, including no Cumulative Layout Shift (CLS), the enforced `alt` attribute, and a consistent authoring experience.
+
+Configure the `passthroughImageService()` to avoid both Squoosh and Sharp image processing:
+
+```js title="astro.config.mjs" ins={4-6} "passthroughImageService"
+import { defineConfig, passthroughImageService } from 'astro/config';
+
+export default defineConfig({
+  image: {
+    service: passthroughImageService()
+  }
+});
 ```
-:::
 
 ## Community Integrations
 
@@ -657,7 +825,27 @@ If you were using the image integration in Astro v2.x, complete the following st
     })
     ```
 
-2. Migrate any existing `<Image />` components.
+2. Update types (if required).
+
+		If you had special types configured for `@astrojs/image` in `src/env.d.ts`, you may need to change them back to the default Astro types if your upgrade to v3 did not complete this step for you.
+
+		```ts title="src/env.d.ts" del={1} ins={2}
+		 /// <reference types="@astrojs/image/client" />
+		 /// <reference types="astro/client" />
+		```
+
+		Similarly, update `tsconfig.json` if necessary:
+
+		```json title="tsconfig.json" del={3} ins={4}
+		{
+			"compilerOptions": {
+			  "types": ["@astrojs/image/client"]
+			  "types": ["astro/client"]
+			}
+		}
+		```
+
+3. Migrate any existing `<Image />` components.
 
     Change all `import` statements from `@astrojs/image/components` to `astro:assets` in order to use the new built-in `<Image />` component.
 
@@ -680,12 +868,6 @@ If you were using the image integration in Astro v2.x, complete the following st
         alt={localAlt}
       />
       ```
-
-3. Remove any existing `<Picture />` components.
-
-    Currently, the built-in assets feature does not include a `<Picture />` component.
-
-    Instead, you can use the HTML image attributes `srcset` and `sizes` or the `<picture>` tag [for art direction or to create responsive images](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#art_direction).
 
 4. Choose a default image service.
 
@@ -711,7 +893,7 @@ The new `image` helper for content collections lets you validate the image metad
 
 ### Navigating Image Imports in Astro v3.0
 
-In Astro v3.0, if you have to preserve the old import behavior for images and require a string representation of the image's URL, append `?url` to the end of your image path when importing it. For example: 
+In Astro v3.0, if you have to preserve the old import behavior for images and require a string representation of the image's URL, append `?url` to the end of your image path when importing it. For example:
 
 ```astro title="src/pages/blog/MyImages.astro"
 ---
@@ -724,8 +906,8 @@ import Sprite from '../assets/logo.svg?url';
 
 ```
 
-This approach ensures you obtain the URL string. Keep in mind that during development, Astro uses a `src/` path, but upon building, it generates hashed paths like `/_astro/cat.a6737dd3.png`. 
+This approach ensures you obtain the URL string. Keep in mind that during development, Astro uses a `src/` path, but upon building, it generates hashed paths like `/_astro/cat.a6737dd3.png`.
 
-If you prefer to work directly with the image object itself, you can access the `.src` property. This approach is best for tasks like managing image dimensions for Core Web Vitals metrics and preventing CLS. 
+If you prefer to work directly with the image object itself, you can access the `.src` property. This approach is best for tasks like managing image dimensions for Core Web Vitals metrics and preventing CLS.
 
 If you are transitioning into the new import behavior, combining `?url` and `.src` methods might be the right method for seamless image handling.
