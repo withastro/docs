@@ -68,6 +68,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 | configuration       | 구성          | [정보통신용어사전](https://terms.tta.or.kr/dictionary/dictionaryView.do?word_seq=039507-1) |      |
 | content collections | 콘텐츠 컬렉션 | 외래어 표기법                                                |      |
 | dependencies        | 종속성        |                                                              |      |
+| directive           | 지시어        |                                                              | 문장이 연상되는 지시문 대신 키워드 또는 예약어가 연상되는 지시어 사용 |
 | directory           | 디렉터리      | [우리말샘](https://opendict.korean.go.kr/dictionary/view?sense_no=136968) |      |
 | element             | 요소          | [정보통신용어사전](https://terms.tta.or.kr/dictionary/dictionaryView.do?word_seq=095809-1) |      |
 | footer              | 바닥글        | Microsoft                                                    |      |
