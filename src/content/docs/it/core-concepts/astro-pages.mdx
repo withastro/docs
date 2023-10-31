@@ -3,6 +3,8 @@ title: Pagine
 description: Un'introduzione alle pagine Astro
 ---
 
+import Since from '~/components/Since.astro'
+
 Le **pagine** sono file che risiedono nella sottodirectory `src/pages/` del tuo progetto Astro. Sono responsabili della gestione del routing, del caricamento dei dati e del layout generale della pagina per ogni pagina del tuo sito web.
 
 ## File di pagina supportati
@@ -26,6 +28,12 @@ Un singolo file può anche generare più pagine utilizzando il [routing dinamico
 
 Scrivi l´elemento standard HTML [`<a>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a) nelle tue pagine Astro per collegarti ad altre pagine del tuo sito.
 
+Ad esempio, per collegarsi a `https://example.com/authors/sonali/` da qualsiasi altra pagina su "example.com":
+
+```astro title="src/pages/index.astro"
+Ulteriori informazioni <a href="/authors/sonali/">su Sonali</a>.
+```
+
 ## Pagine Astro
 
 Le pagine Astro utilizzano l'estensione del file `.astro` e supportano le stesse funzionalità di [Componenti Astro](/it/core-concepts/astro-components/).
@@ -43,6 +51,8 @@ Le pagine Astro utilizzano l'estensione del file `.astro` e supportano le stesse
   </body>
 </html>
 ```
+
+Una pagina deve produrre un documento HTML completo. Se non incluso esplicitamente, Astro aggiungerà la dichiarazione `<!DOCTYPE html>` necessaria e il contenuto `<head>` a qualsiasi componente `.astro` situato all'interno di `src/pages/` per impostazione predefinita. Puoi disattivare questo comportamento in base al componente contrassegnandolo come pagina [parziale](#page-partials).
 
 Per evitare di ripetere gli stessi elementi HTML su ogni pagina, puoi spostare gli elementi comuni `<head>` e `<body>` nei tuoi [componenti di layout](/it/core-concepts/layouts/). Puoi utilizzare tutti i componenti di layout che desideri.
 
@@ -88,3 +98,77 @@ I file con estensione `.html` possono essere inseriti in `src/pages/` e utilizza
 Per una pagina di errore 404 personalizzata, puoi creare un file `404.astro` o `404.md` in `/src/pages`.
 
 Questo creerà una pagina `404.html`. La maggior parte dei [fornitori di servizi di hosting](/it/guides/deploy/) la troveranno e la utilizzeranno.
+
+## Parziali della pagina
+
+<Since v="3.4.0" />
+
+:::caution
+I parziali di pagina sono pensati per essere utilizzati insieme a una libreria front-end, come [htmx](https://htmx.org/) o [Unpoly](https://unpoly.com/). Puoi anche usarli se hai dimestichezza con la scrittura di JavaScript front-end di basso livello. Per questo motivo sono una funzionalità avanzata.
+
+Inoltre, i parziali non dovrebbero essere utilizzati se il componente contiene stili o script specifici per la pagine, poiché questi elementi verranno rimossi dall'output HTML. Se hai bisogno di stili specifici per la pagina, è meglio utilizzare pagine regolari e non parziali insieme a una libreria frontend che sappia come unire i contenuti nell'intestazione.
+:::
+
+I parziali sono componenti di pagina situati all'interno di `src/pages/` che non sono destinati a essere visualizzati come pagine complete.
+
+Come i componenti situati all'esterno di questa cartella, questi file non includono automaticamente la dichiarazione `<!DOCTYPE html>`, né alcun contenuto `<head>` come stili e script specifici per la pagina.
+
+Tuttavia, poiché si trovano nella directory speciale `src/pages/`, l'HTML generato è disponibile in un URL corrispondente al percorso del file. Ciò consente a una libreria di rendering (ad esempio htmx, Stimulus, jQuery) di accedervi sul client e caricare sezioni di HTML dinamicamente su una pagina senza aggiornamento del browser o navigazione della pagina.
+
+I parziali, se combinati con una libreria di rendering, forniscono un'alternativa alle [isole Astro](/it/concepts/islands/) e ai [tag`<script>`](/it/guides/client-side-scripts/) per la creazione di contenuto dinamico in Astro.
+
+I file di pagina che possono esportare un valore (ad esempio `.astro`, `.mdx`) possono essere contrassegnati come parziali.
+
+Configura un file all'interno della directory `src/pages/` come parziale aggiungendo la seguente esportazione:
+
+```astro title="src/pages/partial.astro" ins={2}
+---
+export const partial = true;
+---
+
+<li>Sono un parziale!</li>
+```
+
+L'`export const partial` deve essere identificabile staticamente. Può avere il valore di:
+
+- Il valore booleano __`true`__.
+- Una variabile di ambiente che utilizza import.meta.env come `import.meta.env.USE_PARTIALS`.
+
+### Utilizzo con una libreria
+
+  I partial vengono utilizzati per aggiornare dinamicamente una sezione di una pagina utilizzando una libreria come [htmx](https://htmx.org/).
+
+  L'esempio seguente mostra un attributo `hx-post` impostato sull'URL di un parziale. Il contenuto della pagina parziale verrà utilizzato per aggiornare l'elemento HTML di destinazione su questa pagina.
+
+```astro title="src/pages/index.astro" 'hx-post="/partials/clicked/"'
+<html>
+  <head>
+    <title>My page</title>
+    <script src="https://unpkg.com/htmx.org@1.9.6"
+      integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni"
+      crossorigin="anonymous"></script>
+  </head>
+</html>
+<section>
+  <div id="parent-div">Destinazione qui</div>
+
+  <button hx-post="/partials/clicked/"
+    hx-trigger="click"
+    hx-target="#parent-div"
+    hx-swap="innerHTML"
+  >
+      Cliccami!
+  </button>
+</section>
+```
+
+Il parziale `.astro` deve esistere nel percorso del file corrispondente e includere un'esportazione che definisce la pagina come parziale:
+
+```astro title="src/pages/partials/clicked.astro" {2}
+---
+export const partial = true;
+---
+<div>Mi hanno cliccato!</div>
+```
+
+Consulta la [documentazione htmx](https://htmx.org/docs/) per ulteriori dettagli sull'utilizzo di htmx.
