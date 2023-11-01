@@ -124,5 +124,6 @@ export default UIDictionary({
 	'stub.description.migration':
 		'해당 기술에서 Astro로 전환하는 데 도움이 되는 글, 비디오 등 다양한 자료를 공유하고 싶으신가요?',
 	'stub.description.cms': 'Astro에서 이 CMS를 사용하는 방법에 대해 잘 알고 계신가요?',
-	'stub.description.backend': 'Astro에서 이 백엔드 서비스를 사용하는 방법에 대해 더 잘 알고 계신가요?',
+	'stub.description.backend':
+		'Astro에서 이 백엔드 서비스를 사용하는 방법에 대해 더 잘 알고 계신가요?',
 });
