@@ -112,7 +112,7 @@ An [`EventTarget`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget)
 
 Using the [`eventTarget`](#eventtarget) argument on the [`init`](#init-canvas-shadowroot-eventtarget-eventtarget--void) hook, plugins can send and receive events from the dev overlay. The following events are available:
 
-### `plugin-toggle`
+### `plugin-toggled`
 
 This event is fired when the user clicks on the plugin icon in the dev overlay bar.
 
@@ -120,7 +120,7 @@ This event is fired when the user clicks on the plugin icon in the dev overlay b
   export default {
     // ...
     init(canvas, eventTarget) {
-      eventTarget.addEventListener('plugin-toggle', (event) => {
+      eventTarget.addEventListener('plugin-toggled', (event) => {
         if (event.detail.state === true) {
           console.log("The plugin is now enabled!")
         }
@@ -133,7 +133,7 @@ This event is fired when the user clicks on the plugin icon in the dev overlay b
 
 Indicates whether or not the plugin is enabled after the user's click.
 
-### `plugin-notification`
+### `toggle-notification`
 
 This event can be sent to inform the user that the plugin requires attention.
 
@@ -142,7 +142,7 @@ This event can be sent to inform the user that the plugin requires attention.
     // ...
     init(canvas, eventTarget) {
       eventTarget.dispatchEvent(
-          new CustomEvent('plugin-notification', {
+          new CustomEvent('toggle-notification', {
             detail: {
               state: true,
             },
@@ -156,13 +156,36 @@ This event can be sent to inform the user that the plugin requires attention.
 
 Indicates whether or not the plugin has a notification for the user. When `true`, the plugin icon will be highlighted using a red dot. Conversely, when `false`, the highlight will be removed. If this property is not specified, `true` will be assumed.
 
+### `toggle-plugin`
+
+This event can be sent from your plugin to change the state of your plugin. This can be useful, for instance, to implement a "Close" button in your plugin's UI.
+
+```ts title="src/my-plugin.js" {3-6}
+  export default {
+    // ...
+    init(canvas, eventTarget) {
+      eventTarget.dispatchEvent(
+          new CustomEvent('toggle-plugin', {
+            detail: {
+              state: false,
+            },
+          })
+        );
+    }
+  }
+```
+
+#### `state: boolean`
+
+Indicates whether or not the plugin should be enabled. When `true`, the plugin will be enabled. Conversely, when `false`, the plugin will be disabled. If this property is not specified, `true` will be assumed.
+
 ## Client-Server Communication
 
 Using [Vite's methods for client-server communication](https://vitejs.dev/guide/api-plugin.html#client-server-communication), dev overlay plugins can communicate with the server.
 
 In addition to being able to send and receive custom messages, the dev overlay also sends the following messages, where `PLUGIN_ID` is the [plugin's ID](#id-string):
 
-### `astro-dev-overlay:PLUGIN_ID:init`
+### `astro-dev-overlay:PLUGIN_ID:initialized`
 
 This message is sent when the plugin is initialized. The data for this message is empty.
 
@@ -170,7 +193,7 @@ This message is sent when the plugin is initialized. The data for this message i
 {
   // ...
   "astro:server:setup": ({ server }) => {
-    server.ws.on("astro-dev-overlay:super-plugin:init", () => {
+    server.ws.on("astro-dev-overlay:super-plugin:initialized", () => {
       console.log("My plugin was initialized!");
     });
   },
@@ -178,7 +201,7 @@ This message is sent when the plugin is initialized. The data for this message i
 }
 ```
 
-### `astro-dev-overlay:PLUGIN_ID:toggle`
+### `astro-dev-overlay:PLUGIN_ID:toggled`
 
 This message is sent when the user clicks on the plugin icon in the UI. The data for this message is a boolean indicating whether the plugin is enabled or not.
 
@@ -186,7 +209,7 @@ This message is sent when the user clicks on the plugin icon in the UI. The data
 {
   // ...
   "astro:server:setup": ({ server }) => {
-    server.ws.on("astro-dev-overlay:super-plugin:toggle", (data) => {
+    server.ws.on("astro-dev-overlay:super-plugin:toggled", (data) => {
       console.log(`My plugin is now ${data.state ? "enabled" : "disabled"}!`);
     });
   },
