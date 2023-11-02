@@ -46,6 +46,9 @@ export default defineConfig({
         Search: './src/components/starlight/Search.astro',
         Sidebar: './src/components/starlight/Sidebar.astro'
       },
+      editLink: {
+        baseUrl: 'https://github.com/withastro/docs/edit/main'
+      },
 			defaultLocale: 'en',
 			locales: makeLocalesConfig(),
 			sidebar: makeSidebar(),
