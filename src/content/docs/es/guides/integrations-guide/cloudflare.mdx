@@ -2,7 +2,7 @@
 type: integration
 title: '@astrojs/cloudflare'
 description: Aprende cómo utilizar el adaptador SSR @astrojs/cloudflare para implementar tu proyecto de Astro.
-githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare/'
+githubURL: 'https://github.com/withastro/adapters/tree/main/packages/integrations/cloudflare/'
 hasREADME: true
 category: adapter
 i18nReady: true
@@ -35,32 +35,34 @@ npm install @astrojs/cloudflare
 
 2.  Agrega lo siguiente a tu archivo `astro.config.mjs`:
 
-```js ins={3, 6-7}
-// astro.config.mjs
-import { defineConfig } from 'astro/config';
-import cloudflare from '@astrojs/cloudflare';
+```diff lang="js"
+  // astro.config.mjs
+  import { defineConfig } from 'astro/config';
++ import cloudflare from '@astrojs/cloudflare';
 
-export default defineConfig({
-  output: 'server',
-  adapter: cloudflare(),
-});
+  export default defineConfig({
++   output: 'server',
++   adapter: cloudflare(),
+  });
 ```
 
 ## Opciones
 
-### Modo
+### `modo`
 
 `mode: "advanced" | "directory"`
 
 Por defecto `"advanced"`
 
-Cloudflare Pages tiene 2 modos diferentes para implementar funciones, el modo `advanced` que busca el archivo `_worker.js` en `dist`, o un modo `directory` donde las páginas compilarán el worker a partir de una carpeta de funciones en la raíz del proyecto. Para la mayoría de los proyectos, el valor predeterminado del adaptador `advanced` será suficiente; la carpeta `dist` contendrá tu proyecto compilado.
+Esta opción de configuración define cómo se despliega tu proyecto de Astro en Cloudflare Pages.
 
 #### `mode:directory`
+* El modo `advanced` recoge el archivo `_worker.js` de la carpeta `dist`
+* El modo `directory` recoge los ficheros de la carpeta `functions`, por defecto sólo se genera un fichero `[[path]].js`.
 
-Cambiar al modo de directorio te permite usar [plugins de páginas](https://developers.cloudflare.com/pages/platform/functions/plugins/) como [Sentry](https://developers.cloudflare.com/pages/platform/functions/plugins/sentry/) o escribir código personalizado para habilitar el registro.
+Cambiar al modo de directorio te permite añadir manualmente archivos adicionales como [plugins de Cloudflare Pages](https://developers.cloudflare.com/pages/platform/functions/plugins/), [Cloudflare Pages Middleware](https://developers.cloudflare.com/pages/platform/functions/middleware/) o funciones personalizadas utilizando [enrutamiento de funciones de Cloudflare Pages](https://developers.cloudflare.com/pages/platform/functions/routing/).
 
-```ts
+```js
 // astro.config.mjs
 export default defineConfig({
   adapter: cloudflare({ mode: 'directory' }),
@@ -69,29 +71,30 @@ export default defineConfig({
 
 En el modo `directory`, el adaptador compilará la parte del lado del cliente de tu aplicación de la misma manera que en el modo `advanced` de forma predeterminada, pero moverá el script del worker a una carpeta `functions` en la raíz del proyecto. En este caso, el adaptador solo colocará un archivo `[[path]].js` en esa carpeta, lo que te permitirá agregar plugins adicionales y middleware de páginas que pueden ser incluidos en el control de versiones.
 
-Para en cambio compilar un paquete separado para cada página, establece la opción `functionPerPath` en la configuración de tu adaptador de Cloudflare. Esta opción requiere cierto mantenimiento manual de la carpeta `functions`. Los archivos emitidos por Astro sobrescribirán los archivos `functions` existentes con nombres idénticos, por lo que debes elegir nombres de archivo únicos para cada archivo que agregues manualmente. Además, el adaptador nunca vaciará la carpeta `functions` de archivos obsoletos, por lo que debes limpiar la carpeta manualmente cuando elimines páginas.
+Para compilar un paquete separado para cada página, establece la opción `functionPerRoute` en la configuración de tu adaptador de Cloudflare. Esta opción requiere un mantenimiento manual de la carpeta `functions`. Los archivos emitidos por Astro sobrescribirán los archivos existentes con nombres idénticos en la carpeta `functions`, por lo que debes elegir nombres de archivo únicos para cada archivo que añadas manualmente. Además, el adaptador nunca vaciará la carpeta `functions` de archivos obsoletos, por lo que deberás limpiar la carpeta manualmente cuando elimines páginas.
 
-```diff
-import {defineConfig} from "astro/config";
-import cloudflare from '@astrojs/cloudflare';
+```diff lang="js"
+  // astro.config.mjs
+  import {defineConfig} from "astro/config";
+  import cloudflare from '@astrojs/cloudflare';
 
-export default defineConfig({
-     adapter: cloudflare({
-        mode: 'directory',
-+       functionPerRoute: true
+  export default defineConfig({
+    adapter: cloudflare({
+      mode: 'directory',
++     functionPerRoute: true
     })
 })
 ```
 
-Ten en cuenta que este adaptador no admite el uso de [Middleware de Cloudflare Pages](https://developers.cloudflare.com/pages/platform/functions/middleware/). Astro incluirá el [middleware de Astro](/es/guides/middleware/) en cada página.
+Este adaptador no admite el uso de [`edgeMiddleware`](/es/reference/adapter-reference/#edgemiddleware).
 
-### routes.strategy
+### `routes.strategy`
 
 `routes.strategy: "auto" | "include" | "exclude"`
 
 por defecto `"auto"`
 
-Determina como `routes.json` será generado si no se provee un [_routes.json](#_routesjson-personalizado) personalizado.
+Determina como `routes.json` será generado si no se provee un [_routes.json](#rutas-personalizadas-_routesjson) personalizado.
 
 Hay tres opciones disponibles:
 
@@ -139,7 +142,7 @@ Hay tres opciones disponibles:
     }
     ```
 
-### routes.include
+### `routes.include`
 
 `routes.include: string[]`
 
@@ -147,7 +150,7 @@ por defecto `[]`
 
 Si quieres usar la generación automática de `_routes.json`, pero quieres incluir rutas adicionales (por ejemplo, cuando tienes funciones personalizadas en la carpeta `functions`), puedes usar la opción `routes.include` para agregar rutas adicionales al array `include`.
 
-### routes.exclude
+### `routes.exclude`
 
 `routes.exclude: string[]`
 
@@ -157,41 +160,100 @@ Si quieres usar la generación automática de `_routes.json`, pero quieres exclu
 
 El siguiente ejemplo automáticamente genera `_routes.json` mientras incluye y excluye rutas adicionales. Ten en cuenta que esto solo es necesario si tienes funciones personalizadas en la carpeta `functions` que no son manejadas por Astro.
 
-```diff
+```diff lang="js"
+  // astro.config.mjs
+  export default defineConfig({
+    adapter: cloudflare({
+      mode: 'directory',
++     routes: {
++       strategy: 'include',
++       include: ['/users/*'], // // manejado por una función personalizada: functions/users/[id].js
++       exclude: ['/users/faq'], // manejado por una página estática: pages/users/faq.astro
++     },
+    }),
+  });
+```
+
+### `wasmModuleImports`
+
+`wasmModuleImports: boolean`
+
+por defecto: `false`
+
+Importar o no archivos `.wasm` [directamente como módulos ES](https://github.com/WebAssembly/esm-integration/tree/main/proposals/esm-integration) usando la sintaxis de importación `.wasm?module`.
+
+Añade `wasmModuleImports: true` a `astro.config.mjs` para habilitar esta funcionalidad tanto en la compilación de Cloudflare como en el servidor de desarrollo de Astro. Lee más sobre [el uso de módulos Wasm](#usar-módulos-wasm)
+
+```diff lang="js"
 // astro.config.mjs
+import {defineConfig} from "astro/config";
+import cloudflare from '@astrojs/cloudflare';
+
 export default defineConfig({
     adapter: cloudflare({
-        mode: 'directory',
-+       routes: {
-+           strategy: 'include',
-+           include: ['/users/*'], // manejado por una función personalizada: functions/users/[id].js
-+           exclude: ['/users/faq'], // manejado por una página estática: pages/users/faq.astro
-+       },
++      wasmModuleImports: true
     }),
+    output: 'server'
+})
+```
+
+### `runtime`
+
+`runtime: { mode: "off" | "local", persistTo: string }`
+
+por defecto: `{ mode: 'off', persistTo: '' }`
+
+Determina si y como el Runtime de Cloudflare es añadido a `astro dev`.
+
+El Runtime de Cloudflare incluye [Cloudflare Bindings](https://developers.cloudflare.com/pages/platform/functions/bindings), [variables de entorno](https://developers.cloudflare.com/pages/platform/functions/bindings/#environment-variables), y el [objeto cf](https://developers.cloudflare.com/workers/runtime-apis/request/#incomingrequestcfproperties). Obtén más información sobre [cómo acceder al Runtime de Cloudflare](#runtime-de-cloudflare).
+
+La propiedad `mode` define como el runtime es agregado a `astro dev`:
+
+* `local`: utiliza simulaciones de bindings y placeholders estáticos locales.
+* `off`: no tiene acceso al runtime de Cloudflare usando `astro dev`. Alternativamente, puedes usar [Vista previa con Wrangler](#vista-previa-con-wrangler).
+
+La propiedad `persistTo` define donde el runtime local es persistido cuando se usa `mode: local`. Este valor es un directorio relativo a la ruta de ejecución de `astro dev`.
+
+El valor predeterminado se establece en `.wrangler/state/v3` para que coincida con la ruta predeterminada que utiliza Wrangler. Esto significa que ambas herramientas pueden acceder y utilizar el estado local.
+
+Cualquier directorio que se establezca en `persistTo`, `.wrangler` o tu valor personalizado, debe añadirse a `.gitignore`.
+
+```diff lang="js"
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+  output: 'server',
+  adapter: cloudflare({
++   runtime: 'local',
+  }),
 });
 ```
 
-## Habilitando la Vista Previa
+## Runtime de Cloudflare
 
-Para que la vista previa funcione, debes instalar `wrangler`
+Te proporciona acceso a las [variables de entorno](https://developers.cloudflare.com/pages/platform/functions/bindings/#environment-variables) y [bindings de Cloudflare](https://developers.cloudflare.com/pages/platform/functions/bindings).
 
-```sh
-pnpm install wrangler --save-dev
-```
+Los bindings actualmente admitidos son:
 
-Después es posible actualizar el script de vista previa en tu `package.json` a `"preview": "wrangler pages dev ./dist"`. Esto te permitirá ejecutar toda tu aplicación localmente con [Wrangler](https://github.com/cloudflare/wrangler2), que admite secretos, variables de entorno, espacios de nombres KV, objetos duraderos y [todas las otras vinculaciones admitidas por Cloudflare](https://developers.cloudflare.com/pages/platform/functions/#adding-bindings).
+*   [Cloudflare D1](https://developers.cloudflare.com/d1/)
+*   [Cloudflare R2](https://developers.cloudflare.com/r2/)
+*   [Cloudflare Workers KV](https://developers.cloudflare.com/kv/)
+*   [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/)
 
-## Acceso al runtime de Cloudflare
+Puedes acceder al runtime desde los componentes de Astro a través de `Astro.locals` dentro de cualquier archivo `.astro`.
 
-Puedes acceder a todos los enlaces y variables de entorno de Cloudflare desde los componentes y rutas de la API de Astro a través de `Astro.locals`.
-
-Si estás dentro de un archivo `.astro`, puedes acceder al runtime utilizando el global `Astro.locals`:
 
 ```astro
-const env = Astro.locals.runtime.env;
+---
+// src/pages/index.astro
+const runtime = Astro.locals.runtime;
+---
+<pre>{JSON.stringify(runtime.env)}</pre>
 ```
 
-Desde un endpoint:
+Puedes acceder al runtime desde los endpoints de la API a través de `context.locals`:
 
 ```js
 // src/pages/api/someFile.js
@@ -202,21 +264,24 @@ export function GET(context) {
 }
 ```
 
-Dependiendo del modo de adaptador que estés utilizando (avanzado = worker, directorio = páginas), el objeto runtime tendrá una apariencia un poco diferente debido a las diferencias en la API de Cloudflare.
+### Tipado
 
-Si estás usando el runtime `advanced`, puedes escribir el objeto `runtime` de la siguiente manera:
+Si has configurado `mode: advanced`, puedes escribir el objeto `runtime` usando `AdvancedRuntime`:
 
 ```ts
 // src/env.d.ts
 /// <reference types="astro/client" />
-import type { AdvancedRuntime } from '@astrojs/cloudflare';
 
+type KVNamespace = import('@cloudflare/workers-types/experimental').KVNamespace;
 type ENV = {
   SERVER_URL: string;
+  KV_BINDING: KVNamespace;
 };
 
+type Runtime = import('@astrojs/cloudflare').AdvancedRuntime<ENV>;
+
 declare namespace App {
-  interface Locals extends AdvancedRuntime<ENV> {
+  interface Locals extends Runtime {
     user: {
       name: string;
       surname: string;
@@ -225,19 +290,22 @@ declare namespace App {
 }
 ```
 
-Si estás usando el runtime `directory`, puedes escribir el objeto `runtime` de la siguiente manera:
+Si has configurado `mode: directory`, puedes escribir el objeto `runtime` usando `DirectoryRuntime`:
 
 ```ts
 // src/env.d.ts
 /// <reference types="astro/client" />
-import type { DirectoryRuntime } from '@astrojs/cloudflare';
 
+type KVNamespace = import('@cloudflare/workers-types/experimental').KVNamespace;
 type ENV = {
   SERVER_URL: string;
+  KV_BINDING: KVNamespace;
 };
 
+type Runtime = import('@astrojs/cloudflare').DirectoryRuntime<ENV>;
+
 declare namespace App {
-  interface Locals extends DirectoryRuntime<ENV> {
+  interface Locals extends Runtime {
     user: {
       name: string;
       surname: string;
@@ -246,75 +314,31 @@ declare namespace App {
 }
 ```
 
-### Variables de entorno
+## Plataforma
+### Cabeceras
 
-Mira la documentación de Cloudflare para [trabajar con variables de entorno](https://developers.cloudflare.com/pages/platform/functions/bindings/#environment-variables).
+Puedes adjuntar [cabeceras personalizadas](https://developers.cloudflare.com/pages/platform/headers/) a tus respuestas añadiendo un archivo `_headers` en la carpeta `public/` de tu proyecto de Astro. Este archivo se copiará al directorio de salida de tu compilación.
 
-```js
-// pages/[id].json.js
+### Redirecciones
 
-export function GET({ params }) {
-  // Accede a las variables de entorno por solicitud dentro de una función.
-  const serverUrl = import.meta.env.SERVER_URL;
-  const result = await fetch(serverUrl + "/user/" + params.id);
-  return {
-    body: await result.text(),
-  };
-}
-```
+Puedes declarar [redirecciones personalizadas](https://developers.cloudflare.com/pages/platform/redirects/) utilizando Cloudflare Pages. Esto te permite redirigir las peticiones a una URL diferente. Puedes añadir un archivo `_redirects` en la carpeta `public/` de tu proyecto de Astro. Este archivo se copiará en el directorio de salida de tu compilación.
 
-### `cloudflare.runtime`
-
-`runtime: "off" | "local" | "remote"`
-Por defecto: `"off"`
-
-Esta bandera opcional permite que el servidor de desarrollo de Astro llene las variables de entorno y el objeto de solicitud de Cloudflare, evitando la necesidad de Wrangler.
-
-*   `local`: las variables de entorno están disponibles, pero el objeto de solicitud se rellena con un valor de placeholder estático. 
-*   `remote`: las variables de entorno y el objeto de solicitud en vivo recuperado están disponibles.
-*   `off`: el servidor de desarrollo de Astro no rellenará las variables de entorno ni el objeto de solicitud. Usa Wrangler para acceder a las vinculaciones y variables de entorno de Cloudflare.
-
-```js
-// astro.config.mjs
-import { defineConfig } from 'astro/config';
-import cloudflare from '@astrojs/cloudflare';
-
-export default defineConfig({
-  output: 'server',
-  adapter: cloudflare({
-    runtime: 'off' | 'local' | 'remote',
-  }),
-});
-```
+## Rutas
 
 ## Importaciones de módulos Wasm
 
-`wasmModuleImports: boolean`
+Puedes definir qué rutas invocan funciones y cuáles son assets estáticos, utilizando el [enrutamiento de Cloudflare](https://developers.cloudflare.com/pages/platform/functions/routing/#functions-invocation-routes) a través de un archivo `_routes.json`. Este archivo es generado automáticamente por Astro.
 
-por defecto: `false`
+#### Rutas personalizadas `_routes.json`
 
-Si importar o no los archivos `.wasm` [directamente como módulos ES](https://github.com/WebAssembly/esm-integration/tree/main/proposals/esm-integration).
+Por defecto, `@astrojs/cloudflare` generará un archivo `_routes.json` con reglas `include` y `exclude` basadas en las rutas dinámicas y estáticas de tu aplicación.
+Esto permitirá a Cloudflare servir archivos y procesar redirecciones estáticas sin invocar una función. La creación de un `_routes.json` personalizado anulará esta optimización automática. Consulta [la documentación de Cloudflare sobre la creación de un `routes.json` personalizado](https://developers.cloudflare.com/pages/platform/functions/routing/#create-a-_routesjson-file) para más detalles.
 
-Agrega `wasmModuleImports: true` a `astro.config.mjs` para habilitar tanto en la compilación de Cloudflare como en el servidor de desarrollo de Astro.
-
-```diff
-// astro.config.mjs
-import {defineConfig} from "astro/config";
-import cloudflare from '@astrojs/cloudflare';
-
-export default defineConfig({
-    adapter: cloudflare({
-+       wasmModuleImports: true
-    }),
-	  output: 'server'
-})
-```
-
-Una vez habilitado, puedes importar un módulo de web assembly en Astro con una importación `.wasm?module`.
+## Usar módulos Wasm
 
 El siguiente es un ejemplo de importación de un módulo Wasm que luego responde a las solicitudes sumando los parámetros numéricos de la solicitud.
 
-```javascript
+```js
 // pages/add/[a]/[b].js
 import mod from '../util/add.wasm?module';
 
@@ -330,16 +354,6 @@ export async function GET(context) {
 
 Mientras que este ejemplo es trivial, Wasm puede ser utilizado para acelerar operaciones computacionalmente intensivas que no involucran operaciones I/O significativas, como incrustar una biblioteca de procesamiento de imágenes.
 
-## Encabezados, redireccionamientos y rutas de invocación de funciones.
-
-Cloudflare ofrece soporte para agregar [encabezados personalizados](https://developers.cloudflare.com/pages/platform/headers/), configurar [redirecciones estáticas ](https://developers.cloudflare.com/pages/platform/redirects/) y definir qué rutas deben [invocar funciones](https://developers.cloudflare.com/pages/platform/functions/routing/#function-invocation-routes). Cloudflare busca archivos `_headers`, `_redirects`, y `_routes.json` en el directorio de salida de tu compilación para configurar estas características. Esto significa que deben ser colocados en el directorio `public/` de tu proyecto Astro.
-
-### `_routes.json` personalizado
-
-Por defecto, `@astrojs/cloudflare` generará un archivo `_routes.json` con reglas de `include` y `exclude` basadas en las rutas dinámicas y estáticas de tu aplicación. Esto permitirá que Cloudflare sirva archivos y procese redireccionamientos estáticos sin necesidad de una invocación de función. Crear un archivo `_routes.json` personalizado anulará esta optimización automática y, si no se configura manualmente, provocará invocaciones de funciones que contarán en contra de los límites de solicitudes de tu plan de Cloudflare.
-
-Consulta la [documentación de Cloudflare](https://developers.cloudflare.com/pages/platform/functions/routing/#create-a-_routesjson-file) para obtener más detalles.
-
 ## Compatibilidad con Node.js.
 
 El adaptador de Cloudflare de Astro te permite utilizar cualquier API de tiempo de ejecución Node.js soportada por Cloudflare.
@@ -347,6 +361,7 @@ El adaptador de Cloudflare de Astro te permite utilizar cualquier API de tiempo 
 *   assert
 *   AsyncLocalStorage
 *   Buffer
+*   Crypto
 *   Diagnostics Channel
 *   EventEmitter
 *   path
@@ -363,32 +378,46 @@ export const prerender = false;
 import { Buffer } from 'node:buffer';
 ```
 
-Además, deberás habilitar la Bandera de Compatibilidad en Cloudflare. La configuración de esta bandera puede variar según donde implementes tu sitio de Astro.
+Además, deberás habilitar la Bandera de Compatibilidad en Cloudflare. La configuración de esta bandera puede variar según donde implementes tu sitio de Astro. Para obtener orientación detallada, consulta la [documentación de Cloudflare sobre cómo habilitar la compatibilidad con Node.js](https://developers.cloudflare.com/workers/runtime-apis/nodejs).
 
-Para obtener una guía detallada, por favor consulta la [documentación de Cloudflare](https://developers.cloudflare.com/workers/runtime-apis/nodejs).
+## Soporte de módulos de Cloudflare
 
-## Solución de problemas
+Todos los paquetes de Cloudflare del espacio de nombres (por ejemplo, `cloudflare:sockets`) están permitidos para su uso. Ten en cuenta que el paquete `cloudflare:sockets` no funciona localmente sin utilizar el modo de desarrollo de Wrangler.
 
-Para obtener ayuda, consulta el canal `#support` en [Discord](https://astro.build/chat). ¡Nuestros amables miembros del Equipo de Soporte están aquí para ayudar!
+## Vista previa con Wrangler
 
-También puedes consultar nuestra [documentación de integraciones de Astro][astro-integration] para obtener más información sobre las integraciones.
+Para utilizar [`wrangler`](https://developers.cloudflare.com/workers/wrangler/) y ejecutar tu aplicación localmente, actualiza el script de vista previa:
+
+```json
+//package.json
+"preview": "wrangler pages dev ./dist"
+```
+
+[`wrangler`](https://developers.cloudflare.com/workers/wrangler/) te proporciona acceso a [Cloudflare Bindings](https://developers.cloudflare.com/pages/platform/functions/bindings), [variables de entorno](https://developers.cloudflare.com/pages/platform/functions/bindings/#environment-variables), y al [objeto cf](https://developers.cloudflare.com/workers/runtime-apis/request/#incomingrequestcfproperties). Conseguir que la recarga en caliente o el servidor astro dev funcionen con Wrangler puede requerir una configuración personalizada. Consulta los [ejemplos de la comunidad](https://github.com/withastro/roadmap/discussions/590).
 
 ### Mensajes de error significativos
 
-Actualmente, los errores que surjan durante la ejecución de tu aplicación en Wrangler no son muy útiles debido a la minificación de tu código. Para una mejor depuración, puedes agregar la configuración `vite.build.minify = false` a tu archivo `astro.config.js`
+Actualmente, los errores que surjan durante la ejecución de tu aplicación en Wrangler no son muy útiles debido a la minificación de tu código. Para una mejor depuración, puedes agregar la configuración `vite.build.minify = false` a tu archivo `astro.config.mjs`.
 
-```js
-export default defineConfig({
-  adapter: cloudflare(),
-  output: 'server',
+```diff lang="js"
+  // astro.config.mjs
+  export default defineConfig({
+    adapter: cloudflare(),
+    output: 'server',
 
-  vite: {
-    build: {
-      minify: false,
-    },
-  },
-});
++   vite: {
++     build: {
++       minify: false,
++     },
++   },
+  });
 ```
+
+## Resolución de problemas
+
+Para obtener ayuda, visita el canal `#support` en [Discord](https://astro.build/chat). ¡Nuestros amables miembros del equipo de soporte están aquí para ayudarte!
+
+También puedes consultar nuestra [Documentación sobre la integración de Astro][astro-integration] para obtener más información sobre las integraciones.
 
 ## Contribuyendo
 
