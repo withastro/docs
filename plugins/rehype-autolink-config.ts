@@ -14,7 +14,7 @@ const AnchorLinkIcon = h(
 			height: 16,
 			version: 1.1,
 			viewBox: '0 0 16 16',
-			xlmns: 'http://www.w3.org/2000/svg',
+			xmlns: 'http://www.w3.org/2000/svg',
 		},
 		h('path', {
 			fillRule: 'evenodd',
