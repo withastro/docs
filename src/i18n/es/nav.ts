@@ -3,7 +3,7 @@ import { NavDictionary } from '../translation-checkers';
 export default NavDictionary({
 	startHere: 'Empezar Aquí',
 	'getting-started': 'Cómo Empezar',
-	'install': 'Instalación',
+	install: 'Instalación',
 	'editor-setup': 'Configuración del Editor',
 	'guides/upgrade-to/v3': 'Actualizar a v3',
 
@@ -31,7 +31,6 @@ export default NavDictionary({
 	'guides/integrations-guide': 'Agregar integraciones',
 	'core-concepts/framework-components': 'Frameworks UI',
 	'guides/server-side-rendering': 'Renderizado en el lado del servidor (SSR)',
-
 
 	examples: 'Recetas',
 	'guides/migrate-to-astro': 'Migrar a Astro',
