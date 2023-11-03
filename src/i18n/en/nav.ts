@@ -30,6 +30,11 @@ export default [
 		slug: 'tutorials/add-view-transitions',
 		key: 'add-transitions-tutorial',
 	},
+	{
+		text: 'Pattern: Embedded SPA',
+		slug: 'tutorials/embedded-spa',
+		key: 'embedded-spa',
+	},
 	// { text: 'Thinking with Islands', slug: 'tutorial/0-introduction', key: 'island-tutorial' },
 
 	{ text: 'Basics', header: true, type: 'learn', key: 'basics' },
