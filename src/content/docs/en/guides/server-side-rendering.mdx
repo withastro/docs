@@ -5,26 +5,26 @@ i18nReady: true
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import RecipeLinks from '~/components/RecipeLinks.astro';
 
-Server-side rendering (SSR) refers to generating HTML pages on the server on-demand and sending them to the client.
+Astro allows you to choose **on-demand rendering** for some, or all of your pages and endpoints. This is also known as **server-side rendering (SSR)**: generating HTML pages on the server when requested and sending them to the client. An **adapter** is used to run your project on the server and handle these requests.
 
-SSR allows you to:
+This on-demand rendering allows you to:
 - Implement sessions for login state in your app.
-- Render data from an API called dynamically with `fetch`.
+- Render data from an API called dynamically with `fetch()`.
 - Deploy your site to a host using an *adapter*.
 
-Consider enabling server-side rendering in your Astro project if you need the following:
+Consider enabling on-demand server rendering in your Astro project if you need the following:
 
-- **API endpoints**: SSR enables you to create specific pages that function as API endpoints for tasks like database access, authentication, and authorization while keeping sensitive data hidden from the client.
+- **API endpoints**: Create specific pages that function as API endpoints for tasks like database access, authentication, and authorization while keeping sensitive data hidden from the client.
 
-- **Protected pages**: If you need to restrict access to a page based on user privileges, you can enable SSR to handle user access on the server.
+- **Protected pages**: Handle user access on the server for restrict access to a page based on user privileges.
 
-- **Frequently changing content**: Enabling SSR lets you generate individual pages without requiring a static rebuild of your site. This is useful when the content of a page updates frequently.
+- **Frequently changing content**: Generate individual pages without requiring a static rebuild of your site. This is useful when the content of a page updates frequently.
 
 ## Enable on-demand server rendering
 
-Both `server` and `hybrid` mode allow you to take advantage of static site performance by pre-rendering whenever possible, whether you have an entirely dynamic app or a mostly static site that needs on-demand rendering only for select routes.
+Both of Astro's on-demand rendering output modes (`server` and `hybrid`) allow you to take advantage of static site performance by pre-rendering individual routes whenever possible, whether you have an entirely dynamic app or a mostly static site that needs on-demand rendering only for select routes.
 
-Choose the `output` option that represents how **most** of your pages and routes will be rendered:
+To decide which one to use in your project, choose the `output` option that represents how **most** of your pages and routes will be rendered:
 
 - __`output: 'server'`__: On-demand rendered by default. Use this when most or all of your site or app should be server-rendered on request. Any individual page or endpoint can *opt-in* to pre-rendering.
 - __`output: 'hybrid'`__: Pre-rendered to HTML by default. Use this when most of your site should be static. Any individual page or endpoint can *opt-out* of pre-rendering.
@@ -35,7 +35,7 @@ Because the server will need to generate at least some pages on demand, both of 
 
 To enable on-demand rendering, first update your `output` configuration to one of the two server-rendered modes.
 
-For example, for a highly dynamic app where every page is rendered on demand, add `output: 'server'` to your Astro config: 
+For example, to configure a highly dynamic app where every page is rendered on demand by default, add `output: 'server'` to your Astro config: 
 
 ```js ins={5} title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
@@ -46,7 +46,7 @@ export default defineConfig({
 });
 ```
 
-You can then override the default on-demand rendering of `server` mode on any page or route by exporting `const prerender = true`:
+You can then choose to override the default on-demand rendering of `server` mode on any page or route by exporting `const prerender = true`:
 
 ```astro title="src/pages/my-static-page.astro" ins={2}
 ---
@@ -176,15 +176,21 @@ For example, to install the Vercel adapter manually:
     });
     ```
 
+    Note that different adapters may also have different configuration settings. Read each adapter's documentation, and apply any necessary config options to your chosen adapter in `astro.config.mjs`
+
 ## On-demand rendering features
 
-:::caution[HTML streaming]
-Features that modify the [Response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header) are only available at the **page level**. (You can't use them inside of components, including layout components.)
+### HTML streaming
 
-In an [on-demand rendering mode](/en/core-concepts/rendering-modes/#on-demand-rendered), Astro uses HTML streaming to send each component to the browser as it renders them. This makes sure your visitor sees your HTML as fast as possible, but it also means that by the time Astro runs your component code, it has already sent the Response headers and they cannot be modified.
-:::
+With HTML streaming, a document is broken up into chunks, sent over the network in order, and rendered on the page in that order. In `server` or `hybrid` mode, Astro uses HTML streaming to send each component to the browser as it renders them. This makes sure the user sees your HTML as fast as possible, although network conditions can cause large documents to be downloaded slowly, and waiting for data fetches can block page rendering.
 
 <RecipeLinks slugs={["en/recipes/streaming-improve-page-performance"]}/>
+
+:::caution[HTML streaming]
+Features that modify the [Response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header) are only available at the **page level** when HTML streaming is enabled. (You can't use them inside of components, including layout components.) By the time Astro runs your component code, it has already sent the Response headers and they cannot be modified.
+
+Check your adapter's documentation to see whether HTML streaming is used. It may be the default setting, and may or may not be a configurable option.
+:::
 
 ### Cookies
 
@@ -237,11 +243,13 @@ if (!product) {
 
 ### `Request`
 
-`Astro.request` is a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request. In both `server` and `hybrid` mode, you can access additional information from this object for pages that are not statically-generated.
+`Astro.request` is a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request.
+
+In both `server` and `hybrid` mode, you can access additional information from this object for pages that are not statically-generated.
 
 #### `Astro.request.headers`
 
-The headers for the request are available on `Astro.request.headers`. This works like the browser's [`Request.headers`](https://developer.mozilla.org/en-US/docs/Web/API/Request/headers). It is a [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers) object, a Map-like object where you can retrieve headers such as the cookie.
+The headers for the request are available on `Astro.request.headers`. This works like the browser's [`Request.headers`](https://developer.mozilla.org/en-US/docs/Web/API/Request/headers). It is a [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers) object where you can retrieve headers such as the cookie.
 
 ```astro title="src/pages/index.astro" {2}
 ---
