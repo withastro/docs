@@ -1,0 +1,240 @@
+---
+title: Cosmic y Astro
+description: Agrega contenido a tu proyecto Astro usando Cosmic como CMS
+type: cms
+service: Cosmic
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+
+[Cosmic](https://www.cosmicjs.com/) es un [CMS headless](https://www.cosmicjs.com/headless-cms) que ofrece un panel de administración para gestionar contenido y una API que puede integrarse con una variedad de herramientas frontend.
+
+## Prerrequisitos
+
+1. **Un proyecto de Astro**- Si deseas comenzar con un proyecto de Astro nuevo, lee la [guía de instalación](/es/install/auto/). Esta guía sigue una versión simplificada del [Tema de Astro Headless CMS](https://astro.build/themes/details/cosmic-cms-blog/) con [Tailwind CSS](https://tailwindcss.com/) para estilizar.
+2. **Una cuenta y un Bucket en Cosmic** - [Crea una cuenta gratuita en Cosmic](https://app.cosmicjs.com/signup) si no tienes una. Después de crear tu cuenta, se te pedirá que crees un nuevo proyecto vacío. También hay disponible una [plantilla Simple de Blog para Astro](https://www.cosmicjs.com/marketplace/templates/simple-astro-blog) (es la misma plantilla que el Tema Astro Headless CMS) para importar automáticamente todo el contenido utilizado en esta guía.
+3. **Tus claves de API de Cosmic** - Desde tu panel de Cosmic, necesitarás encontrar tanto el **slug del Bucket** como la **clave de lectura del Bucket** para conectarte a Cosmic.
+
+## Integrando Cosmic con Astro
+
+
+### Instalando las Dependencias Necesarias
+
+Agrega el [SDK de Cosmic para JavaScript](https://www.npmjs.com/package/@cosmicjs/sdk) para obtener datos de tu Bucket en Cosmic.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @cosmicjs/sdk
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @cosmicjs/sdk
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @cosmicjs/sdk
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Configurando Claves de API
+
+Crea un archivo `.env` en la raíz de tu proyecto de Astro (si aún no existe). Agrega tanto el **slug del Bucket** como la **clave de lectura del Bucket** disponibles en tu panel de control de Cosmic como variables de entorno públicas.
+
+```ini title=".env"
+PUBLIC_COSMIC_BUCKET_SLUG=EL_SLUG_DE_TU_BUCKET
+PUBLIC_COSMIC_READ_KEY=TU_CLAVE_DE_LECTURA
+```
+
+## Obteniendo Datos de Cosmic
+
+1. Crea un nuevo archivo llamado `cosmic.js`. Coloca este archivo dentro de la carpeta `src/lib` en tu proyecto.
+2. Agrega el siguiente código para obtener datos de Cosmic usando el SDK y tus variables de entorno.
+
+    El siguiente ejemplo crea una función llamada `getAllPosts()` para obtener metadatos de objetos `posts` de Cosmic:
+
+    ```js
+    // src/lib/cosmic.js
+    import { createBucketClient } from '@cosmicjs/sdk'
+
+    const cosmic = createBucketClient({
+      bucketSlug: import.meta.env.PUBLIC_COSMIC_BUCKET_SLUG,
+      readKey: import.meta.env.PUBLIC_COSMIC_READ_KEY
+    })
+
+    export async function getAllPosts() {
+      const data = await cosmic.objects
+        .find({
+          type: 'posts'
+        })
+        .props('title,slug,metadata,created_at')
+      return data.objects
+    }
+    ```
+
+    Lee más sobre [consultas en la documentación de Cosmic](https://www.cosmicjs.com/docs/api/queries).
+
+3. Importa tu función de consulta en un componente `.astro`. Después de obtener los datos, los resultados de la consulta pueden utilizarse en tu plantilla de Astro.
+
+    El siguiente ejemplo muestra cómo obtener metadatos de los `posts` de Cosmic y pasar estos valores como props a un componente `<Card />` para crear una lista de publicaciones de blog:
+
+    ```astro
+    ---
+    // src/pages/index.astro
+    import Card from '../components/Card.astro'
+    import { getAllPosts } from '../lib/cosmic'
+
+    const data = await getAllPosts()
+    ---
+
+    <section>
+      <ul class="grid gap-8 md:grid-cols-2">
+        {
+          data.map((post) => (
+            <Card
+              title={post.title}
+              href={post.slug}
+              body={post.metadata.excerpt}
+              tags={post.metadata.tags.map((tag) => tag)}
+            />
+          ))
+        }
+      </ul>
+    </section>
+    ```
+
+    [Mira el código fuente del componente Card](https://github.com/cosmicjs/simple-astro-blog/blob/main/src/components/Card.astro)
+
+## Construyendo un Blog con Astro y Cosmic
+
+Puedes gestionar el contenido de tu blog de Astro mediante Cosmic y crear webhooks para volver a implementar automáticamente tu sitio web cuando actualizas o agregas nuevo contenido.
+
+### Objetos de Contenido de Cosmic
+
+Las siguientes instrucciones asumen que tienes un **Tipo de Objeto** en Cosmic llamado **posts**. Cada publicación individual de blog es un `post` que se define en el panel de control de Cosmic con los siguientes Metafields:
+
+1. **Text input** - Autor
+2. **Image** - Imagen de portada
+3. **Repeater** - Etiquetas
+    - **Text input** - Título
+4. **Text area** - Extracto  
+5. **Rich Text** - Contenido
+
+### Mostrando una lista de publicaciones de blog en Astro
+
+Utilizando el mismo [método de obtención de datos](#obteniendo-datos-de-cosmic) que se muestra anteriormente, importa la consulta `getAllPosts()` desde tu archivo de script y espera a que se obtengan los datos. Esta función proporciona metadatos sobre cada `post` que se pueden mostrar dinámicamente.
+
+El ejemplo a continuación pasa estos valores a un componente `<Card />` para mostrar una lista formateada de publicaciones de blog:
+
+```astro
+---
+// src/pages/index.astro
+import Card from '../components/Card.astro'
+import { getAllPosts } from '../lib/cosmic'
+
+const data = await getAllPosts()
+---
+
+<section>
+  <ul class="grid gap-8 md:grid-cols-2">
+    {
+      data.map((post) => (
+        <Card
+          title={post.title}
+          href={post.slug}
+          body={post.metadata.excerpt}
+          tags={post.metadata.tags.map((tag) => tag)}
+        />
+      ))
+    }
+  </ul>
+</section>
+```
+
+### Generando publicaciones individuales de blog con Astro
+
+Para generar una página individual con contenido completo para cada publicación de blog, crea una [página de enrutamiento dinámico](/es/core-concepts/routing/#rutas-dinámicas) en `src/pages/blog/[slug].astro`.
+
+Esta página exportará una función `getStaticPaths()` para generar una ruta de página en el `slug` devuelto por cada objeto `post`. Esta función se llama en tiempo de compilación y genera y renderiza todas tus publicaciones de blog de una vez.
+
+Para acceder a tus datos desde Cosmic:
+
+- Realiza una consulta a Cosmic dentro de `getStaticPaths()` para obtener datos sobre cada publicación y proporcionarlos a la función.
+- Utiliza cada `post.slug` como un parámetro de ruta, creando las URLs para cada publicación de blog.
+- Devuelve cada `post` dentro de `Astro.props`, haciendo que los datos de la publicación estén disponibles en la parte de la plantilla HTML del componente de la página para su renderización.
+
+El marcado HTML a continuación utiliza varios datos de Cosmic, como el título de la publicación, la imagen de portada y el **contenido en texto enriquecido** (contenido completo de la publicación de blog). Utiliza [set&colon;html](/es/reference/directives-reference/#sethtml) en el elemento que muestra el contenido en texto enriquecido de Cosmic para renderizar elementos HTML en la página exactamente como se obtienen de Cosmic.
+
+```astro
+---
+// src/pages/blog/[slug].astro
+import { getAllPosts } from '../../lib/cosmic'
+import { Image } from 'astro:assets'
+
+export async function getStaticPaths() {
+  const data = (await getAllPosts()) || []
+
+  return data.map((post) => {
+    return {
+      params: { slug: post.slug },
+      props: { post }
+    }
+  })
+}
+
+const { post } = Astro.props
+---
+
+<article class="mx-auto max-w-screen-md pt-20">
+  <section class="border-b pb-8">
+    <h1 class="text-4xl font-bold">{post.title}</h1>
+    <div class="my-4"></div>
+    <span class="text-sm font-semibold">{post.metadata.author?.title}</span>
+  </section>
+  {
+    post.metadata.cover_image && (
+      <Image
+        src={post.metadata.cover_image.imgix_url}
+        format="webp"
+        width={1200}
+        height={675}
+        aspectRatio={16 / 9}
+        quality={50}
+        alt={`Imagen de portada del blog ${post.title}`}
+        class={'my-12 rounded-md shadow-lg'}
+      />
+    )
+  }
+  <div set:html={post.metadata.content} />
+</article>
+```
+
+### Publicando tu sitio
+
+Para desplegar tu sitio web, visita las [guías de despliegue](/es/guides/deploy) y sigue las instrucciones para tu proveedor de alojamiento preferido.
+
+#### Reconstruir en actualizaciones de contenido en Cosmic
+
+Puedes configurar un webhook directamente en Cosmic para desencadenar una nueva implementación de tu sitio en tu plataforma de alojamiento (p. ej. Vercel) cada vez que actualices o añadas objetos de contenido.
+
+En "Settings" > "webhooks", agrega el endpoint de URL de Vercel y selecciona el Tipo de Objeto que deseas usar para activar el webhook. Haz clic en "Add webhook" para guardarlo.
+
+##### Netlify
+
+Para configurar un webhook en Netlify:
+
+1. Ve a tu panel de control del sitio y haz clic en **Build & deploy**.
+2. En la pestaña de **Continuous Deployment**, busca la sección de **Build hooks** y haz clic en **Add build hook**.
+3. Proporciona un nombre para tu webhook y selecciona la rama en la que deseas activar la compilación. Haz clic en **Save** y copia la URL generada.
+
+##### Vercel
+
+Para configurar un webhook en Vercel:
+
+1. Ve a tu panel de control del proyecto y haz clic en **Settings**.
+2. En la pestaña de **Git**, busca la sección de **Deploy Hooks**.
+3. Proporciona un nombre para tu webhook y la rama en la que deseas activar la compilación. Haz clic en **Add** y copia la URL generada.
