@@ -3,6 +3,8 @@ title: 页面
 description: Astro 页面简介
 ---
 
+import Since from '~/components/Since.astro'
+
 **页面**是位于 Astro 项目的 `src/pages/` 子目录中的文件。它们负责处理路由、数据加载以及网站中每个页面的整体页面布局。
 
 ## 支持的页面文件
@@ -50,6 +52,8 @@ Astro 页面使用 `.astro` 文件扩展名，并支持与 [Astro 组件](/zh-cn
 </html>
 ```
 
+一个页面必须生成完整的 HTML 文档。如果没有显式包含，Astro 将会自动为位于 `src/pages/` 目录下的任何 `.astro` 组件默认添加必要的 `<!DOCTYPE html>` 声明和 `<head>` 内容。你可以通过将组件标记为[局部](#局部页面)页面来为每个组件避免这种行为。
+
 为了避免在每个页面上重复相同的 HTML 元素，你可以将常见的 `<head>` 和 `<body>` 元素移动到自己的 [布局组件](/zh-cn/core-concepts/layouts/) 中。你可以使用任意多的布局组件。
 
 ```astro {3} /</?MySiteLayout>/
@@ -94,3 +98,74 @@ title: '我的 Markdown 页面'
 想要自定义 404 错误页面，你可以在 `/src/pages` 中创建 `404.astro` 或 `404.md` 文件。
 
 它将生成 `404.html` 页面。大多数[部署服务](/zh-cn/guides/deploy/)都自动找到并使用它。
+
+## 局部页面
+<Since v="3.4.0" />
+
+:::caution
+局部页面是用于与前端库（如 [htmx](https://htmx.org/) 或 [Unpoly](https://unpoly.com/)）搭配使用的。如果你习惯编写原生的前端 JavaScript，也可以使用它。这是一项高级功能。
+
+如果组件包含有作用域的样式或脚本，那么不应该使用局部页面，因为这些元素将从 HTML 输出中剥离；如果需要有作用域的样式，最好使用常规的非局部的页面，并配合一个知道如何将内容合并到 head 标签中的前端库。
+:::
+
+局部页面是位于 `src/pages/` 目录中的页面组件，但不会作为完整页面进行渲染。
+
+与位于此文件夹之外的组件一样，这些文件不会自动包含 `<!DOCTYPE html>` 声明，也不会包含任何作用域样式和脚本的 `<head>` 内容。
+
+不过，由于它们位于特殊的 `src/pages/` 目录中，所以生成的 HTML 可以通过与文件路径相对应的 URL 来访问。这允许渲染库（如 htmx、Stimulus、jQuery 等）在客户端访问它，并在页面上动态加载 HTML 的部分，而无需刷新浏览器或进行页面导航。
+
+局部页面与渲染库结合时，局部页面提供了一种可以代替 [Astro 岛屿](/zh-cn/concepts/islands/)和 [`<script>` 标签](/zh-cn/guides/client-side-scripts/)方式用于在 Astro 中构建动态内容的方法。
+
+可以导出值（例如`.astro`，`.mdx`）的页面文件将被标记为局部页面。
+
+通过添加以下导出项来将 `src/pages/` 目录中的文件配置为局部页面：
+
+```astro title="src/pages/partial.astro" ins={2}
+---
+export const partial = true;
+---
+<li>我是一个局部页面！</li>
+```
+
+`export const partial` 必须是静态标识。它可以是以下值之一：
+
+-  布尔值 __`true`__。
+-  使用 `import.meta.env` 的环境变量，如 `import.meta.env.USE_PARTIALS`。
+
+### 和库搭配使用
+
+ 局部页面用于使用诸如 [htmx](https://htmx.org/) 的库动态更新页面的某个部分。
+
+ 下面的示例展示了将 `hx-post` 属性设置为局部页面的 URL。局部页面的内容将用于更新此页面上目标 HTML 元素的内容。
+
+```astro title="src/pages/index.astro" 'hx-post="/partials/clicked/"'
+<html>
+  <head>
+    <title>我的页面</title>
+    <script src="https://unpkg.com/htmx.org@1.9.6"
+      integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni"
+      crossorigin="anonymous"></script>
+  </head>
+</html>
+<section>
+  <div id="parent-div">目标在这</div>
+  <button hx-post="/partials/clicked/"
+    hx-trigger="click"
+    hx-target="#parent-div"
+    hx-swap="innerHTML"
+  >
+      点我！
+  </button>
+</section>
+```
+
+`.astro` 局部页面必须在相应的文件路径中存在，并且包含一个导出定义将页面定义为局部页面：
+
+```astro title="src/pages/partials/clicked.astro" {2}
+---
+export const partial = true;
+---
+<div>我被点击了！</div>
+```
+
+参见 [htmx 文档](https://htmx.org/docs/)以了解更多关于使用 htmx 的细节。
