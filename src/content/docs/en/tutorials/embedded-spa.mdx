@@ -13,24 +13,30 @@ import PreCheck from '~/components/tutorial/PreCheck.astro';
 import FileTree from '~/components/FileTree.astro'
 
 
-A **Single Page Application (SPA)** is ....
+This tutorial describes embedding an existing Create-React-App (CRA) app into a new Astro project.
 
-## Prerequisites
+## Embedded SPA
 
-You will need **an existing Create-React-App project**. This tutorial uses the [Remix Run basic React Router Example](https://github.com/remix-run/react-router/tree/dev/examples). You can instead follow these steps with your own CRA project, but you will need to adjust the instructions for your codebase.
+A **single-page application (SPA)** adds an entire JavaScript app to `index.html`, turning that single page into an app whose content is refreshed client-side depending on the "page" the visitor selects.
 
-We recommend using this sample project to complete this short tutorial first. Then, you can use what you have learned to create view transitions in your own project.
+Similarly, `index.astro` can render an **embedded SPA** from any UI framework as an [Astro island](/en/concepts/islands/) allowing your existing app to run entirely at the root of an Astro project in just a few lines of code. 
 
+```astro title="src/pages/index.astro"
+---
+// Import your root App component
+import App from '../cra-project/App.jsx'
+---
+<!-- Use a client directive to load your app -->
+<App client:load />
+```
 
-## React Router Example Code
+And as a **multi-page application**, Astro can also generate additional pages and API routes in Astro for more traditional page content at other routes... or even more embedded SPAs! This powerful embedded SPA pattern allows you to use one Astro project to house:
 
-In the [Remix Run basic React Router Example](https://github.com/remix-run/react-router/tree/dev/examples), a single HTML file runs a script to render a React app to the page.
+- An app alongside your blog, or portfolio.
+- An eCommerce shop for a collection of apps, each with their own documentation and working demo.
+- Any combination of traditional web site/app pages and interactive framework components or full-fledged running apps!
 
-The Astro `index` page, located at `src/pages/index.astro` can perform the same function. However, Astro can render React components directly in their tempating, including an `<App />` component. You will slightly modify the React Router example code to use Astro's component-based design and embed an entire React app directly in an Astro project.
-
-## MPA vs SPA
-
-Maybe write stuff here about how Astro itself is an MPA, and index is just one of them. In Astro, it's possible to have an app "on one page", but also have entirely other pages. The whole thing doesn't have to be taken up by the app. The App is just an Island.
+Over time, you may find that instead of simply embedding, you want to migrate a SPA [(e.g. Create-React-App)](/en/guides/migrate-to-astro/from-create-react-app/) by rewriting some or all of it as an Astro app. The embedded SPA pattern allows you to update incrementally, first getting your app running in your Astro project, and then refactoring to leverage the benefits of working in Astro.
 
 <Box icon="question-mark">
 ### Test your knowledge
@@ -39,7 +45,7 @@ What is an "embedded SPA"?
 
     <MultipleChoice>
       <Option>
-         A pattern that lets you move an existing project to Astro.
+         A pattern that lets you insert an existing project into Astro.
       </Option>
       <Option>
         An "island" of interactivity on an otherwise static page.
@@ -53,6 +59,25 @@ What is an "embedded SPA"?
     </MultipleChoice>
 
 </Box>
+
+## Prerequisites
+
+1. **An existing Create-React-App project:** This tutorial uses the [Remix Run basic React Router Example](https://github.com/remix-run/react-router/tree/dev/examples). Download or copy this codebase for use. (Note: you do not need to run or build this app locally.)
+
+    You can instead follow these steps with your own CRA project, or with an existing Astro project, but you will need to adjust the instructions for your codebase.
+
+    **We recommend using this sample project** to complete this short tutorial **in a new Astro project first.** Then, you can use what you have learned to embed your own SPA in a new or existing Astro existing project.
+
+
+## React Router Example Code
+
+In the [Remix Run basic React Router Example](https://github.com/remix-run/react-router/tree/dev/examples), a single HTML file runs a script at `main.tsx` to render a React app to the page.
+
+The Astro page located at `src/pages/index.astro` renders `index.html` for any Astro site. 
+
+Instead of using a script to run your app, Astro can render React components directly to the page (e.g `<Main />`).
+
+You will slightly modify the example SPA code to create a component and embed an entire React app directly in an Astro project.
 
 
 ## 1. Create a new Astro project
@@ -123,7 +148,7 @@ Additionally, the Remix Run starter with React Router requires `react-router-dom
 </PackageManagerTabs>
 
 
-## 3. Copy your App files into Astro
+## 3. Copy app files into Astro
 
 The basic structure of the [Remix Run basic React Router Example](https://github.com/remix-run/react-router/tree/dev/examples) is some source files and an `index.html` as an entry page.
 
@@ -141,18 +166,18 @@ The basic structure of the [Remix Run basic React Router Example](https://github
 - vite.config.ts
 </FileTree>
 
-Rename the `src` directory to `cra`. These files are the only ones needed to run your embedded SPA. Copy this directory into the `src/` folder of your Astro project. It is safe to delete `vite-env.d.ts`.
+Rename the `src` directory to `cra` and copy this directory into the `src/` folder of your Astro project. These files are the only ones needed to run your embedded SPA. It is safe to delete `vite-env.d.ts`.
 
-Your Astro project should now have the following files and folders:
+The empty **basics** Astro project you created will now have the following files and folders:
 
 <FileTree>
 - public/
   - favicon.svg
 - src/
-  - cra/
-    - App.jsx
-    - index.css
-    - main.tsx
+  - **cra/**
+    - **App.jsx**
+    - **index.css**
+    - **main.tsx**
   - pages/
     - index.astro
   - env.d.ts
@@ -166,9 +191,11 @@ Your Astro project should now have the following files and folders:
 
 In the React Router project, `index.html` ran `main.tsx` as a `<script>` to render the App.
 
-Astro can render React components directly, so instead of running `main.tsx` as a script, convert it to a default exported function and render`<Main />` directly in your Astro template.
+Astro can render React components directly. Instead of running `main.tsx` as a script, convert it to a default exported function.
 
-```js title="src/cra/main.tsx" ins={7,8,16,17}
+Make the adjustments below to export your `<App />` component wrapped in the routing component as a function. Remove any unnecessary imports and the code to render your app in a DOM element. This is no longer necessary when embedding your app in Astro.
+
+```js title="src/cra/main.tsx" ins={7,8,16,17} del={1,2,9,10,14,15}
 // import * as React from "react";
 // import * as ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
@@ -188,7 +215,7 @@ export default function Main(){
 }
 ```
 
-Now, import and render `<Main />` as a component in `src/pages/index.astro`.
+Now, import and render `<Main />` as a component in `src/pages/index.astro`. Use the `client:only="react"` [client directive](/en/reference/directives-reference/#client-directives) to allow the app to run entirely in the client.
 
 ```astro title="src/pages/index.astro" ins={2,15}
 ---
@@ -210,4 +237,4 @@ import Main from "../cra/main.tsx"
 </html>
 ```
 
-And that's it!
+Now, when you navigate to the root of your Astro project in the browser, you will see a fully-functional embedded SPA using React Router to control its own routing.
