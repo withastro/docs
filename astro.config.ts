@@ -22,6 +22,7 @@ export default defineConfig({
 		astroDocsExpressiveCode(),
 		starlight({
 			title: 'Docs',
+      customCss: ['./src/styles/custom.css'],
 			logo: {
 				light: './src/assets/astro-logo-light.svg',
 				dark: './src/assets/astro-logo-dark.svg',
