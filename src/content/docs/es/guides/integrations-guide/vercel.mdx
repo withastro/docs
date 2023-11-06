@@ -47,15 +47,15 @@ Si prefieres instalar el adaptador manualmente, completa los siguientes dos paso
 
 2.  Agrega dos nuevas líneas a tu archivo de configuración de proyecto `astro.config.mjs`.
 
-    ```js ins={3, 6-7}
-    // astro.config.mjs
-    import { defineConfig } from 'astro/config';
-    import vercel from '@astrojs/vercel/serverless';
+    ```diff lang="js"
+      // astro.config.mjs
+      import { defineConfig } from 'astro/config';
+    + import vercel from '@astrojs/vercel/serverless';
 
-    export default defineConfig({
-      output: 'server',
-      adapter: vercel(),
-    });
+      export default defineConfig({
+    +   output: 'server',
+    +   adapter: vercel(),
+      });
     ```
 
 ### Objetivos
@@ -88,13 +88,13 @@ vercel deploy --prebuilt
 
 Para configurar este adaptador, pasa un objeto a la invocación de función `vercel()` en `astro.config.mjs`:
 
-### analytics
+### Análisis Web
 
-**Tipo:** `boolean`<br/>
-**Disponible para:** Serverless y Static<br/>
-**Agregado en:** `@astrojs/vercel@3.1.0`
+**Tipo:** `VercelWebAnalyticsConfig`<br/>
+**Disponible para:** Serverless, Edge, Static<br/>
+**Agregado en:** `@astrojs/vercel@3.8.0`
 
-Puedes habilitar [Vercel Analytics](https://vercel.com/analytics) (incluyendo Web Vitals y Audiences) configurando `analytics: true`. Esto inyectará los scripts de seguimiento de Vercel en todas tus páginas.
+Puedes habilitar [Vercel Analytics](https://vercel.com/analytics) (incluyendo Web Vitals y Audiences) configurando `webAnalytics: { enabled: true }`. Esto inyectará los scripts de seguimiento de Vercel en todas tus páginas.
 
 ```js
 // astro.config.mjs
@@ -104,7 +104,32 @@ import vercel from '@astrojs/vercel/serverless';
 export default defineConfig({
   output: 'server',
   adapter: vercel({
+    webAnalytics: {
+      enabled: true,
+    },
+  }),
+});
+```
+
+### Información de Velocidad
+
+Puedes habilitar [Información de Velocidad de Vercel](https://vercel.com/docs/concepts/speed-insights) configurando `speedInsights: { enabled: true }`. Esto recopilará y enviará datos de Web Vital a Vercel.
+
+**Tipo:** `VercelSpeedInsightsConfig`<br/>
+**Disponible para:** Serverless, Edge, Static<br/>
+**Agregado en:** `@astrojs/vercel@3.8.0`
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/serverless';
+export default defineConfig({
+  output: 'server',
+  adapter: vercel({
     analytics: true,
+    speedInsights: {
+      enabled: true,
+    },
   }),
 });
 ```
@@ -116,6 +141,8 @@ export default defineConfig({
 **Agregado en:** `@astrojs/vercel@3.3.0`
 
 Opciones de configuración para la [API de Optimización de Imágenes de Vercel](https://vercel.com/docs/concepts/image-optimization). Consulta la [documentación de configuración de imágenes de Vercel](https://vercel.com/docs/build-output-api/v3/configuration#images) para obtener una lista completa de los parámetros admitidos.
+
+Las propiedades `domains` y `remotePatterns` se llenarán automáticamente utilizando [la configuración correspondiente de `image` en Astro](/es/reference/configuration-reference/#opciones-de-imagen).
 
 ```js
 // astro.config.mjs
@@ -137,7 +164,7 @@ export default defineConfig({
 **Disponible para:** Serverless y Static
 **Agregado en:** `@astrojs/vercel@3.3.0`
 
-Cuando está habilitado, se configurará y utilizará automáticamente un [Servicio de Imágenes](/es/reference/image-service-reference/) impulsado por la API de Optimización de Imágenes de Vercel en producción. En desarrollo, se utilizará en su lugar un servicio incorporado basado en Squoosh.
+Cuando está habilitado, se configurará y utilizará automáticamente un [Servicio de Imágenes](/es/reference/image-service-reference/) impulsado por la API de Optimización de Imágenes de Vercel en producción. En desarrollo, el servicio de imágenes especificado por [`devImageService`](#devimageservice) se utilizará en su lugar.
 
 ```js
 // astro.config.mjs
@@ -167,6 +194,30 @@ import astroLogo from ''../assets/logo.png';
   width="..."
   height="..."
 />
+```
+
+### devImageService
+
+**Tipo:** `'sharp' | 'squoosh' | string`<br/>
+**Disponible para:** Serverless, Static
+**Agregado en:** `@astrojs/vercel@3.3.0`
+**Por defecto**: 'sharp'
+
+Te permite configurar qué servicio de imágenes usar en desarrollo cuando [imageService](#imageservice) está habilitado. Esto puede ser útil si no puedes instalar las dependencias de Sharp en tu máquina de desarrollo, pero usar otro servicio de imágenes como Squoosh te permitiría previsualizar imágenes en tu entorno de desarrollo. La compilación no se ve afectada y siempre usará la Optimización de Imágenes de Vercel.
+
+También puede establecerse en cualquier valor arbitrario para usar un servicio de imágenes personalizado en lugar de los integrados en Astro.
+
+```js
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/serverless';
+
+export default defineConfig({
+  output: 'server',
+  adapter: vercel({
+    imageService: true,
+    devImageService: 'squoosh',
+  }),
+});
 ```
 
 ### includeFiles
@@ -209,11 +260,33 @@ export default defineConfig({
 });
 ```
 
+### maxDuration
+
+**Tipo:** `number`<br/>
+**Disponible para:** Serverless
+
+Usa esta propiedad para extender o limitar la duración máxima (en segundos) que pueden ejecutarse las funciones sin servidor antes de agotar el tiempo de espera. Consulta la [documentación de Vercel](https://vercel.com/docs/functions/serverless-functions/runtimes#maxduration) para conocer el límite predeterminado y máximo para el plan de tu cuenta.
+
+```diff lang="js"
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/serverless';
+
+export default defineConfig({
+    output: "server",
+    adapter: vercel({
++       maxDuration: 60
+    }),
+});
+```
+
 ### Configuración de agrupación de funciones
 
-El adaptador de Vercel divide las compilaciones en una función separada por ruta de forma predeterminada. Esto ayuda a reducir el tamaño de cada función, ya que solo agrupa el código utilizado en esa página.
+El adaptador de Vercel combina todas tus rutas en una única función por defecto.
 
-Puedes desactivar esto y compilar en una única función configurando la opción de configuración `functionPerRoute` en `false`:
+También tienes la opción de dividir las compilaciones en una función separada para cada ruta usando la opción `functionPerRoute`. Esto reduce el tamaño de cada función, lo que significa que es menos probable que excedas el límite de tamaño para una función individual. Además, el código se inicia más rápido.
+
+Verifica que tu plan de Vercel incluya un número adecuado de funciones antes de habilitar `functionPerRoute`. Por ejemplo, el nivel gratuito de Vercel limita cada despliegue a no más de 12 funciones. Si tu plan de Vercel es insuficiente para el número de rutas en tu proyecto, recibirás un mensaje de error durante el despliegue.
 
 ```js
 // astro.config.mjs
@@ -223,7 +296,7 @@ import vercel from '@astrojs/vercel/serverless';
 export default defineConfig({
   output: 'server',
   adapter: vercel({
-    functionPerRoute: false,
+    functionPerRoute: true,
   }),
 });
 ```
@@ -266,7 +339,7 @@ Esto es una característica opcional, y la opción `edgeMiddleware` debe estable
 ```js
 // astro.config.mjs
 import { defineConfig } from 'astro/config';
-import vercel from '@astrojs/vercel';
+import vercel from '@astrojs/vercel/serverless';
 export default defineConfig({
   output: 'server',
   adapter: vercel({

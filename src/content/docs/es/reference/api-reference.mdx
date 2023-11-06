@@ -2,9 +2,9 @@
 title: Referencia de la API
 i18nReady: true
 ---
-
 import Since from '~/components/Since.astro';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import Badge from '~/components/Badge.astro';
 
 ## `Astro` global
 
@@ -746,6 +746,11 @@ const { page } = Astro.props;
 - `/posts/[page].astro` generaría las URL `/posts/1`, `/posts/2`, `/posts/3`, etc.
 - `/posts/[...page].astro` generaría las URL `/posts`, `/posts/2`, `/posts/3`, etc.
 
+`paginate()` tiene los siguientes argumentos:
+- `pageSize` - El numero de artículos mostrados por página
+- `params` - Envía parámetros adicionales para la creación rutas dinámicas
+- `props` - Envía props adicionales para que estén disponibles en cada página
+
 #### La prop de paginación `page`
 
 La paginación pasará una prop `page` a cada página renderizada que represente una sola página de datos en la colección paginada. Esto incluye los datos que ha paginado (`page.data`), así como los metadatos de la página (`page.url`, `page.start`, `page.end`, `page.total`, etc.). Estos metadatos son útiles para cosas como un botón "Página siguiente" o un mensaje "Mostrando 1-10 de 100".
@@ -763,7 +768,50 @@ La paginación pasará una prop `page` a cada página renderizada que represente
 | `page.url.prev`    | `string \| undefined` | La URL de la página anterior (será `undefined` si está en la página 1).                                                                                  |
 | `page.url.next`    | `string \| undefined` | La URL de la siguiente página (será `undefined` si no hay más páginas).                                                                                  |
 
-## Colecciones de Contenido
+## `import.meta`
+
+Todos los módulos ESM incluyen una propiedad `import.meta`. Astro agrega `import.meta.env` a través de [Vite](https://vitejs.dev/guide/env-and-mode.html).
+
+**`import.meta.env.SSR`** se puede usar para saber cuándo se renderiza en el servidor. A veces, es posible que desees una lógica diferente, por ejemplo, un componente que solo debe representarse en el cliente:
+
+```jsx
+export default function () {
+  return import.meta.env.SSR ? <div class="spinner"></div> : <FancyComponent />;
+}
+```
+
+##  Imágenes (`astro:assets`)
+
+### getImage()
+
+:::caution
+`getImage()` depende de APIs exclusivas del servidor y provoca errores en la compilación cuando se utiliza en el cliente.
+:::
+
+La función `getImage()` está diseñada para generar imágenes destinadas a ser utilizadas en algún lugar que no sea directamente en HTML, por ejemplo, en una [Ruta de API](/es/core-concepts/endpoints/#endpoints-del-servidor-rutas-de-api). También te permite crear tu propio componente `<Image />` personalizado.
+
+`getImage()` recibe un objeto de opciones con las [mismas propiedades que el componente Image](#propiedades) (excepto `alt`).
+
+```astro
+---
+import { getImage } from "astro:assets";
+import myBackground from "../background.png"
+const optimizedBackground = await getImage({src: myBackground, format: 'avif'})
+---
+<div style={`background-image: url(${optimizedBackground.src});`}></div>
+```
+
+Devuelve un objeto con las siguientes propiedades:
+
+```js
+{
+  options: {...} // Parámetros originales pasados
+  src: "https//..." // Ruta de la imagen generada
+  attributes: {...} // Atributos HTML adicionales necesarios para renderizar la imagen (width, height, style, etc..)
+}
+```
+
+## Colecciones de Contenido (`astro:content`)
 
 <p>
   <Since v="2.0.0" />
@@ -902,8 +950,8 @@ Consulta la guía de "Colecciones de Contenido" para ver ejemplos de [consulta d
 
 **Tipos:**
 
-- `(Array<{ collection: string, id: string }>) => CollectionEntry<collection>`
-- `(Array<{ collection: string, slug: string }>) => CollectionEntry<collection>`
+- `(Array<{ collection: string, id: string }>) => Array<CollectionEntry<collection>>`
+- `(Array<{ collection: string, slug: string }>) => Array<CollectionEntry<collection>>`
 
 `getEntries()` es una función que recupera múltiples entradas de una misma colección. Esto es útil para [devolver un arreglo de entradas referenciadas](/es/guides/content-collections/#definiendo-referencias-de-colección) para acceder a sus propiedades asociadas `data`, `body` y `render()`.
 
@@ -935,7 +983,7 @@ const enterprise = await getEntryBySlug('blog', 'enterprise');
 ```
 [Consulta la guía `Content Collection`](/es/guides/content-collections/#consultando-colecciones) para ver un ejemplo de uso.
 
-### Colección de Tipo Entrada
+### Tipo de Entrada de la Colección
 
 Las funciones de consulta, incluyendo [`getCollection()`](#getcollection), [`getEntry()`](#getentry) y [`getEntries()`](#getentries), devuelven entradas con el tipo `CollectionEntry`. Este tipo está disponible como una utilidad desde `astro:content`:
 
@@ -1006,18 +1054,55 @@ const {Content, headings, remarkPluginFrontmatter} = await entry.render();
 
 Ver [la guía de renderizado de contenido de entrada](/es/guides/content-collections/) para ejemplos de uso completo.
 
-## `import.meta`
+### Otros tipos de colecciones de contenido
 
-Todos los módulos ESM incluyen una propiedad `import.meta`. Astro agrega `import.meta.env` a través de [Vite](https://vitejs.dev/guide/env-and-mode.html).
+El módulo `astro:content` también exporta los siguientes tipos para su uso en tu proyecto Astro:
 
-**`import.meta.env.SSR`** se puede usar para saber cuándo se renderiza en el servidor. A veces, es posible que desees una lógica diferente, por ejemplo, un componente que solo debe representarse en el cliente:
+#### `CollectionKey`
 
-```jsx
-import { h } from 'preact';
+Una unión de strings de todos los nombres de colecciones definidos en tu archivo `src/content/config.*`. Este tipo puede ser útil al definir una función genérica que acepta cualquier nombre de colección.
 
-export default function () {
-  return import.meta.env.SSR ? <div class="spinner"></div> : <FancyComponent />;
+```ts
+import type { CollectionKey, getCollection } from 'astro:content';
+
+async function getCollection(collection: CollectionKey) {
+  return getCollection(collection);
 }
+```
+
+#### `ContentCollectionKey`
+
+Una unión de strings de todos los nombres de colecciones con `type: 'content'` definidos en tu archivo `src/content/config.*`.
+
+#### `DataCollectionKey`
+
+Una unión de strings de todos los nombres de colecciones con `type: 'data'` definidos en tu archivo `src/content/config.*`.
+
+#### `SchemaContext`
+
+El objeto `context` que `defineCollection` utiliza para dar forma a la función de `schema`. Este tipo puede ser útil al construir esquemas reutilizables para múltiples colecciones.
+
+Incluye la siguiente propiedad:
+
+- `image` - El helper de esquema `image()` que te permite [utilizar imágenes locales en colecciones de contenido](/es/guides/images/#imágenes-en-colecciones-de-contenido).
+
+```ts
+import type { SchemaContext } from 'astro:content';
+
+export const imageSchema = ({ image }: SchemaContext) =>
+    z.object({
+        image: image(),
+        description: z.string().optional(),
+    });
+
+const blog = defineCollection({
+  type: 'content',
+  schema: ({ image }) => z.object({
+    title: z.string(),
+    permalink: z.string().optional(),
+    image: imageSchema({ image })
+  }),
+});
 ```
 
 ## Componentes incorporados
@@ -1045,13 +1130,18 @@ import { Code } from 'astro:components';
 
 Este componente proporciona resaltado de sintaxis para bloques de código en el momento de la compilación (no incluye JavaScript del lado del cliente). El componente funciona internamente con Shiki y es compatible con todos los [temas populares](https://github.com/shikijs/shiki/blob/main/docs/themes.md) y [lenguajes de programación](https://github.com/shikijs/shiki/blob/main/docs/languages.md). Además, puedes agregar temas y lenguajes de programación personalizados modificando `theme` y `lang` respectivamente.
 
-:::note
-Cuando uses un [gestor de paquetes estricto](https://pnpm.io/pnpm-vs-npm#npms-flat-tree) como `pnpm`, también es posible que necesites instalar Shiki para que funcione durante la compilación:
+### `<Fragment />`
 
-```bash
-pnpm install shiki
+Un componente utilizado con las [directivas `set:*`](/es/reference/directives-reference/#sethtml) para representar contenido HTML sin elementos de envoltura adicionales:
+
+```astro title="src/components/SetHtml.astro" "Fragment"
+---
+const htmlString = '<p>Contenido HTML en bruto</p>';
+---
+<Fragment set:html={htmlString} />
 ```
-:::
+
+Consulta más información sobre [el uso de fragmentos](/es/core-concepts/astro-syntax/#fragmentos) en la sintaxis de Astro.
 
 ### `<Prism />`
 
@@ -1085,6 +1175,130 @@ import { Prism } from '@astrojs/prism';
 Este componente proporciona resaltado de sintaxis específico con el lenguaje de programación para bloques de código al aplicar las clases CSS de Prism. Ten en cuenta que **debes proporcionar una hoja de estilo Prism CSS** (o traer la tuya propia) para que aparezca el resaltado de sintaxis. Consulta la [sección de configuración de Prism](/es/guides/markdown-content/#configuración-de-prism) para obtener más detalles.
 
 Consulta la [lista de idiomas admitidos por Prism](https://prismjs.com/#supported-languages) donde puedes encontrar el alias correspondiente de un idioma. ¡Y también puedes mostrar tus bloques de código Astro con `lang="astro"`!
+
+### `<Image />`
+
+```astro title="src/components/MyComponent.astro"
+---
+// Importa el componente Image y la imagen
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // La imagen es 1600x900
+---
+<!-- `alt` es obligatorio en el componente Image -->
+<Image src={myImage} alt="Una descripción de mi imagen." />
+```
+
+```html
+<!-- Salida -->
+<!-- La imagen está optimizada y se aplican atributos adecuados -->
+<img
+  src="/_astro/my_image.hash.webp"
+  width="1600"
+  height="900"
+  decoding="async"
+  loading="lazy"
+  alt="Una descripción de mi imagen."
+/>
+```
+#### Propiedades
+
+- src (requerido)
+- alt (requerido)
+- width y height (requerido para imágenes `public/` y remotas)
+- format
+- quality
+- densities
+- widths
+
+Además de las propiedades mencionadas anteriormente, el componente `<Image />` acepta todas las propiedades aceptadas por la etiqueta HTML `<img>`.
+
+Mira más en la [guía de imágenes](/es/guides/images/#image--astroassets).
+
+### `<Picture />`
+
+<Since v="3.3.0" /> <Badge>Experimental</Badge>
+
+Utiliza el componente integrado `<Picture />` de Astro para mostrar una imagen responsiva con varios formatos y/o tamaños.
+
+```astro title="src/pages/index.astro"
+---
+import { Picture } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // La imagen es 1600x900
+---
+<!-- `alt` es obligatorio en el componente Image -->
+<Picture src={myImage} formats={['avif', 'webp']} alt="Una descripción de mi imagen." />
+```
+
+```html
+<!-- Salida -->
+<picture>
+  <source srcset="/_astro/my_image.hash.avif" type="image/avif" />
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.png"
+    width="1600"
+    height="900"
+    decoding="async"
+    loading="lazy"
+    alt="Una descripción de mi imagen."
+  />
+</picture>
+```
+
+Mira más en la [guía de imágenes](/es/guides/images/#picture-).
+
+#### Propiedades
+
+`<Picture />` acepta todas las propiedades del componente `<Image />`, además de las siguientes:
+
+##### `formats`
+
+Un array de formatos de imagen para usar en las etiquetas `<source>`. De forma predeterminada, esto está configurado como `['webp']`.
+
+##### `fallbackFormat`
+
+Formato que se utilizará como valor de respaldo para la etiqueta `<img>`. De forma predeterminada, se establece en `.png` para imágenes estáticas, `.gif` para imágenes animadas y `.svg` para archivos SVG.
+
+##### `pictureAttributes`
+
+Un objeto de atributos que se agregarán a la etiqueta `<picture>`. Utiliza esta propiedad para aplicar atributos al propio elemento `<picture>`. Los atributos aplicados directamente al componente `<Picture />` se aplicarán al elemento `<img>` interno, excepto aquellos utilizados para la transformación de la imagen.
+
+### `<Content />`
+
+Un componente genérico utilizado para representar el contenido de una [entrada de colección de contenido](/es/guides/content-collections/#qué-son-las-colecciones-de-contenido).
+
+Primero, consulta una o varias entradas utilizando `getCollection()` o `getEntry()`. Entonces, la función `entry.render()` puede devolver el componente `<Content />` para utilizarlo en una plantilla de archivo `.astro`.
+
+```astro title="src/pages/render-example.astro" {4, 7}
+---
+import { getEntry } from 'astro:content';
+const entry = await getEntry('blog', 'post-1');
+const { Content } = await entry.render();
+---
+<p>Publicado el: {entry.data.published.toDateString()}</p>
+<Content />
+```
+
+### `<ViewTransitions />`
+
+Opta por utilizar view transitions en páginas individuales importando y agregando el componente de enrutamiento `<ViewTransitions />` en la etiqueta `<head>` de cada página deseada.
+
+```astro title="src/pages/index.astro" ins={2,7}
+---
+import { ViewTransitions } from 'astro:transitions';
+---
+<html lang="es">
+  <head>
+    <title>Mi página de inicio</title>
+    <ViewTransitions />
+  </head>
+  <body>
+    <h1>¡Bienvenido a mi página web!</h1>
+  </body>
+</html>
+```
+
+Mira más acerca de cómo [controlar el enrutador](/es/guides/view-transitions/#controlar-el-enrutador) y [añadir directivas de transición](/es/guides/view-transitions/#directivas-de-transición) a elementos de página y componentes.
 
 ### `<Debug />`
 

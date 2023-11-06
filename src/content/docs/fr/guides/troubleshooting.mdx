@@ -1,23 +1,68 @@
 ---
 title: Dépannage
 description: Besoin d'aide ? Bloqué sur quelque chose ? Ce guide est fait pour vous.
+i18nReady: true
 ---
 
 Astro fournit plusieurs outils différents pour vous aider à dépanner et à déboguer votre code.
 
+## Trucs et astuces
+
+### Débogage avec `console.log()`
+
+`console.log()` est un moyen simple mais populaire de déboguer votre code Astro. Lorsque vous écrivez votre appel à `console.log`, il déterminera où votre sortie de débogage sera affichée.
+
+```astro
+---
+console.log('Salut! Je suis le serveur. Ceci est affiché dans le terminal où Astro est exécuté.');
+---
+
+<script>
+console.log('Salut! Je suis le client. Ceci est affiché dans la console de développement du navigateur.');
+</script>
+```
+
+Un appel à `console.log()` dans le Frontmatter d'Astro sera toujours sorti dans le **terminal** qui exécute le processus d'Astro. Car Astro s'exécute sur le serveur, et jamais dans le navigateur.
+
+Le code qui est écrit ou importé dans un `<script>` d'Astro sera exécuté dans le navigateur. Toutes les sorties de débogage ou autres appels à `console.log()` seront affichés dans votre navigateur.
+
+### Débogage des composants de Framework
+
+[Les composants de Framework](/fr/core-concepts/framework-components/) (comme React et Svelte) sont uniques : ils sont rendus sur le serveur par défaut, ce qui signifie que les sorties de débogage seront visibles dans le terminal. Cependant, ils peuvent également être hydratés pour le navigateur, ce qui peut aussi entraîner que vos logs de débogage apparaissent également dans le navigateur.
+
+Cela peut être utile pour déboguer les différences entre la sortie SSR et les composants hydratés dans le navigateur.
+
+### Le composant `<Debug />` d'Astro
+
+Pour vous aider à déboguer vos composants Astro, Astro propose un composant [`<Debug />`](/fr/reference/api-reference/#debug-) qui affiche directement une valeur dans votre template HTML de composant. Cela est utile pour un débogage rapide dans le navigateur sans avoir à faire des allers-retours entre votre terminal et votre navigateur.
+
+```astro {2,7}
+---
+import { Debug } from 'astro/components';
+const sum = (a, b) => a + b;
+---
+
+<!-- Exemple : Affiche {answer: 6} dans le navigateur -->
+<Debug answer={sum(2, 4)} />
+```
+
+Le composant Debug prend en charge une variété d'options syntaxiques pour un débogage encore plus souple et concis :
+
+```astro {2,7-9}
+---
+import { Debug } from 'astro/components';
+const sum = (a, b) => a + b;
+const answer = sum(2, 4);
+---
+<!-- Exemple : Les trois exemples sont équivalents. -->
+<Debug answer={sum(2, 4)} />
+<Debug {{answer: sum(2, 4)}} />
+<Debug {answer} />
+```
+
 ## Erreurs courantes
 
 Voici une liste de quelques messages d'erreurs courants que vous pourriez rencontrer dans votre terminal, ce qu'ils signifient et ce que vous pouvez faire pour les corriger.
-
-### Transform failed with X error
-
-Ce message apparaît souvent à cause d'une limitation actuelle dans Astro qui exige que vos appels `import` et `export` soient au début de votre fichier `.astro`.
-
-**Solution**: Écrivez vos imports et exports au début de votre Script de composant.
-
-**Statut**: Limitation actuelle; Un correctif est en cours de développement.
-
-💡 Vous n'êtes pas certain que cela va résoudre votre problème ? Vérifiez si quelqu'un d'autre a déjà [signalé ce type d'erreur](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Transform+failed+with+*+error) !
 
 ### Cannot use import statement outside a module
 
@@ -27,25 +72,24 @@ Dans les composants Astro, les balises `<script>` sont hoistées et chargées co
 
 **Statut**: Comportement attendu par Astro, comme prévu.
 
-💡 Vous n'êtes pas certain que cela va résoudre votre problème ? Vérifiez si quelqu'un d'autre a déjà [signalé ce type d'erreur](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Cannot+use+import+statement) !
+**Vous n'êtes pas sûr qu'il s'agisse de votre problème ?**
+Vérifiez si quelqu'un d'autre a déjà [signalé ce type d'erreur](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Cannot+use+import+statement) !
 
-### Unable to render component
+### `document` (or `window`) is not defined
 
-Cette erreur indique une erreur dans un composant que vous avez importé et utilisé dans votre Template de composant Astro.
+Cette erreur se produit lorsqu'on essaie d'accéder à `document` ou `window` sur le serveur.
 
-#### Cas classiques
+Les composants Astro fonctionnent sur le serveur, vous ne pouvez donc pas accéder à ces objets spécifiques au navigateur dans le frontmatter.
 
-Ceci peut être causé par l'accès à l'objet `window` ou `document` au moment de la génération du composant. Par défaut, Astro génère votre composant [isomorphiquement](https://fr.wikipedia.org/wiki/Isomorphisme), c'est-à-dire qu'il est exécuté sur le serveur où l'environnement du navigateur n'est pas disponible. Vous pouvez désactiver cette étape de pré-génération en utilisant [la directive `client:only`](/fr/reference/directives-reference/#clientonly).
+Les composants des Frameworks s'exécutent par défaut sur le serveur, et cette erreur peut donc se produire lors de l'accès à `document` ou `window` pendant le rendu. 
 
-**Solution**: Essayez d'accéder à ces objets après la génération du composant (ex: [`useEffect()`](https://fr.reactjs.org/docs/hooks-reference.html#useeffect) dans React ou [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) dans Vue et Svelte)
+**Solution** : Déterminez le code qui appelle `document` ou `window`. Si vous n'utilisez pas directement `document` ou `window` et que vous obtenez toujours cette erreur, vérifiez si les packages que vous importez sont destinés à fonctionner sur le client. 
+
+- Si le code se trouve dans un composant Astro, déplacez-le dans une balise `<script>` à l'extérieur du frontmatter. Cela indique à Astro d'exécuter ce code sur le client, où `document` et `window` sont disponibles.
+
+- Si le code est dans un composant du framework, essayez d'accéder à ces objets après le rendu en utilisant des méthodes de cycle de vie (par exemple [`useEffect()`](https://react.dev/reference/react/useEffect) dans React, [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) dans Vue, et [`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount) dans Svelte). Indiquez au composant du framework de s'hydrater côté client en utilisant une directive [client :](/fr/reference/directives-reference/#directives-client), comme `client:load`, pour exécuter ces méthodes de cycle de vie. Vous pouvez également empêcher le composant d'effectuer un rendu sur le serveur en ajoutant la directive [`client:only`](/fr/reference/directives-reference/#clientonly).
 
 **Statut**: Comportement attendu par Astro, comme prévu.
-
-#### Ce n'est pas ça ?
-
-**Solution**: Vérifiez la documentation appropriée pour votre composant [Astro](/fr/core-concepts/astro-components/) ou de [Framework UI](/fr/core-concepts/framework-components/). Vous pouvez aussi ouvrir un Template de démarrage Astro [astro.new](https://astro.new/) et déboguer votre composant dans un projet Astro minimal.
-
-💡 Vous n'êtes pas certain que cela va résoudre votre problème ? Vérifiez si quelqu'un d'autre a déjà [signalé ce type d'erreur](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Unable+to+render+Component) !
 
 ### Expected a default export
 
@@ -55,19 +99,29 @@ Cette erreur peut être levée lorsque vous essayez d'importer ou de rendre un c
 
 **Statut**: Comportement attendu par Astro, comme prévu.
 
-## Pièges courants
+### Refused to execute inline script
+
+Il se peut que l'erreur suivante apparaisse dans la console du navigateur :
+
+> Refused to execute inline script because it violates the following Content Security Policy directive: …
+
+Cela signifie que la [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) (CSP) de votre site interdit l'exécution des balises `<script>`, qu'Astro produit par défaut.
+
+**Solution:** Mettez à jour votre CSP pour inclure `script-src : 'unsafe-inline'` afin d'autoriser l'exécution des scripts inline.
+
+## Problèmes courants
 
 ### Mon composant ne s'affiche pas
 
-En premier lieu, vérifiez que vous avez **importé le composant** dans votre [Script de composant `.astro`](/fr/core-concepts/astro-components/#le-script-du-composant) ou dans [le Frontmatter `.md`](/fr/guides/markdown-content/#utilisation-des-composants-en-mdx).
+En premier lieu, vérifiez que vous avez **importé le composant** dans votre [Script de composant `.astro`](/fr/core-concepts/astro-components/#le-script-du-composant) ou dans votre [fichier `.mdx`](/fr/guides/markdown-content/#utilisation-des-composants-en-mdx).
 
 Ensuite, vérifiez votre appel `import` :
 
 - Votre importation dirige-t-elle vers le bon endroit ? (Vérifiez votre chemin d'import.)
 
-- Est-ce que votre importation a le même nom que le composant importé ? (Vérifiez le nom de votre composant et que cela suit la syntaxe `.astro`.)
+- Votre import a-t-il le même nom que le composant importé ? (Vérifiez le nom de votre composant et qu'il [respecte la syntaxe `.astro`](/fr/core-concepts/astro-syntax/#diff%C3%A9rences-entre-astro-et-jsx).)
 
-- Avez-vous inclu l'extension dans l'importation ? (Vérifiez que le fichier importé contient une extension. Ex: `.astro`, `.md`, `.jsx`, `.vue`)
+- Avez-vous inclus l'extension dans l'importation ? (Vérifiez que votre fichier importé contient une extension, par exemple `.astro`, `.md`, `.vue`, `.svelte`. Note : Les extensions de fichiers sont **optionnelles** pour les fichiers `.js(x)` et `.ts(x)`).
 
 ### Mon composant n'est pas interactif
 
@@ -75,13 +129,21 @@ Si votre composant est rendu (voir la précédente section) mais ne répond pas 
 
 Par défaut, un [composants UI de Framework n'est pas hydraté sur le navigateur](/fr/core-concepts/framework-components/#hydratation-des-composants-interactifs). Si aucune directive `client:*` n'est fournie, son HTML est rendu sur la page sans JavaScript.
 
-Note : Les [composants Astro](/fr/core-concepts/astro-components/) sont des composants HTML sans exécution sur le navigateur. Mais, vous pouvez utiliser une balise `<script>` dans votre Template de composant Astro pour envoyer du JavaScript au navigateur qui s'exécute globalement sur toute la page.
+:::tip
+Les [composants Astro](/fr/core-concepts/astro-components/) sont des composants HTML sans exécution sur le navigateur. Mais, vous pouvez utiliser une balise `<script>` dans votre Template de composant Astro pour envoyer du JavaScript au navigateur qui s'exécute globalement sur toute la page.
+:::
 
 ### Cannot find package 'X'
 
-Allez jeter un oeil au [guide pour les intégrations Astro](/fr/guides/integrations-guide/) pour les instructions sur l'ajout de Framework, des outils CSS et d'autres Packages vers Astro.
+Si vous voyez un avertissement du type `"Cannot find package 'react'"` (ou similaire) lorsque vous démarrez Astro, cela signifie que vous devez installer ce package dans votre projet.  Tous les gestionnaires de packages n'installent pas automatiquement les dépendances pour vous. Si vous êtes sur Node v16+ et que vous utilisez npm, vous ne devriez pas avoir à vous soucier de cette section.
 
-Vous pourriez aussi avoir besoin d'installer des _"peer dependencies"_ pour certaines intégrations. Si vous voyez un message « missing peer dependencies », vous pouvez suivre les instructions afin de [gérer les dépendances](/fr/guides/integrations-guide/#gérer-les-dépendances-dintégration).
+React, par exemple, est une dépendance peer de l'intégration `@astrojs/react`. Cela signifie que vous devez installer les packages officiels `react` et `react-dom` avec votre intégration. L'intégration s'appuiera alors automatiquement sur ces packages.
+
+```shell ins="react react-dom"
+# Exemple : Installer les intégrations et les frameworks ensemble
+npm install @astrojs/react react-dom
+```
+Voir [le guide d'intégration d'Astro](/fr/guides/integrations-guide/) pour des instructions sur l'ajout de moteurs de rendu de frameworks, d'outils CSS et d'autres packages à Astro.
 
 ### `Astro.glob()` - no matches found
 
@@ -90,7 +152,6 @@ Quant vous utilisez `Astro.glob()` pour importer des fichiers, assurez-vous d'ut
 #### Chemins d'accès
 
 Par exemple, utilisez `../components/**/*.js` dans `src/pages/index.astro` pour importer les deux fichiers suivants :
-
 - `src/components/MyComponent.js`
 - `src/components/includes/MyOtherComponent.js`
 
@@ -102,7 +163,7 @@ Ce n'est pas un bug d'Astro. C'est dû à une limitation de la fonctionnalité [
 
 L'alternative la plus courante est d'importer un ensemble plus grand de fichiers qui inclut tous les fichiers dont vous avez besoin en utilisant `Astro.glob()`, puis de les filtrer :
 
-```astro
+```astro {6-7}
 ---
 // src/components/featured.astro
 const { postSlug } = Astro.props
@@ -125,62 +186,64 @@ Dans Yarn version 2 ou plus (a.k.a. Berry), utilise une technique appelée ["Plu
 nodeLinker: "node-modules"
 ```
 
-## Trucs et astuces
+### Ajouter des dépendances à Astro dans une monorepo
 
-### Débogage avec `console.log()`
+Lorsque vous travaillez avec Astro dans une configuration monorepo, les dépendances du projet doivent être ajoutées dans le fichier `package.json` de chaque projet.
 
-`console.log()` est un moyen simple mais populaire de déboguer votre code Astro. Lorsque vous écrivez votre appel à `console.log`, il déterminera où votre sortie de débogage sera affichée.
+Cependant, vous pouvez aussi vouloir utiliser Astro à la racine de la monorepo (par exemple, [les projets Nx recommandent d'installer les dépendances à la racine](https://github.com/nrwl/nx/issues/3023#issuecomment-630558318)). Dans ce cas, ajoutez manuellement les dépendances liées à Astro (par exemple `@astrojs/vue`, `astro-component-lib`) à la partie `vite.ssr.noExternal` de la configuration d'Astro pour vous assurer que ces dépendances sont correctement installées et regroupées :
 
-#### Frontmatter
-
-Un appel à `console.log()` dans le Frontmatter d'Astro sera toujours sorti dans le **terminal** qui exécute le processus d'Astro. Car Astro s'exécute sur le serveur, et jamais dans le navigateur.
-
-```astro
----
-const sum = (a, b) => a + b;
-
-// Exemple : Affiche "4" dans le terminal
-console.log(sum(2, 2));
----
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+export default defineConfig({
+  vite: {
+    ssr: {
+      noExternal: [
+        '@astrojs/vue',
+        'astro-component-lib',
+      ]
+    }
+  }
+})
 ```
 
-#### Scripts JS
+### Utilisation de `<head>` dans un composant
 
-Le code qui est écrit ou importé dans un `<script>` d'Astro sera exécuté dans le navigateur. Toutes les sorties de débogage ou autres appels à `console.log()` seront affichés dans votre navigateur.
+Dans Astro, l'utilisation d'une balise `<head>` fonctionne comme n'importe quelle autre balise HTML : elle n'est pas déplacée en haut de la page ou fusionnée avec la balise `<head>` existante. Pour cette raison, vous ne voulez généralement inclure qu'une seule balise `<head>` dans une page. Nous recommandons d'écrire cet unique `<head>` et son contenu dans un [composant de mise en page](/fr/core-concepts/layouts/).
 
-### Débogage des composants de Framework
+### Un `<script>` ou `<style>` inattendu est inclus
 
-[Les composants de Framework](/fr/core-concepts/framework-components/) (comme React et Svelte) sont uniques : ils sont rendus sur le serveur par défaut, ce qui signifie que les sorties de débogage seront visibles dans le terminal. Cependant, ils peuvent également être hydratés pour le navigateur, ce qui peut aussi entraîner que vos logs de débogage apparaissent également dans le navigateur.
+Vous pouvez remarquer que les balises `<script>` ou `<style>` d'un composant importé sont incluses dans votre source HTML même si ce composant n'apparaît pas dans la sortie finale. Par exemple, cela se produira avec les composants [rendus conditionnellement](/fr/core-concepts/astro-syntax/#html-dynamique) qui ne sont pas affichés. 
 
-Cela peut être utile pour déboguer les différences entre la sortie SSR et les composants hydratés dans le navigateur.
+Le processus de Build d'Astro fonctionne sur le graphe des modules : une fois qu'un composant est inclus dans le modèle, ses balises `<script>` et `<style>` sont traitées, optimisées et regroupées, qu'il apparaisse ou non dans la sortie finale. Ceci ne s'applique pas aux scripts lorsque la directive `is:inline` est appliquée.
 
-### Le composant `<Debug />` d'Astro
+## Créer des reproductions minimales
 
-Pour vous aider à déboguer vos composants Astro, Astro propose un composant [`<Debug />`](/fr/reference/api-reference/#debug-) qui affiche directement une valeur dans votre template HTML de composant. Cela est utile pour un débogage rapide dans le navigateur sans avoir à faire les aller-retour entre votre terminal et votre navigateur.
+Lorsque vous dépannez votre code, il peut être utile de créer une **reproduction minimale** du problème que vous pouvez partager. Il s'agit d'un projet Astro plus petit et simplifié qui démontre votre problème. Le fait d'avoir une reproduction fonctionnelle dans un nouveau projet permet de confirmer qu'il s'agit d'un problème reproductible et qu'il n'est pas dû à quelque chose d'autre dans votre environnement personnel ou dans un projet existant.
 
-```astro
----
-import { Debug } from 'astro/components';
-const sum = (a, b) => a + b;
----
+Le partage d'une reproduction minimale est utile lorsque vous demandez de l'aide dans nos fils d'assistance et est souvent nécessaire lorsque vous déposez un rapport de bogue auprès d'Astro.
 
-<!-- Exemple : Affiche {answer: 6} dans le navigateur -->
-<Debug answer={sum(2, 4)} />
-```
+### Créer un StackBlitz via [astro.new](https://astro.new)
 
-Le composant `<Debug />` d'Astro supporte une variété d'options de syntaxe pour un débogage plus flexible et concis :
+Vous pouvez utiliser [astro.new](https://astro.new) pour créer un nouveau projet Astro en un seul clic. Pour des reproductions minimales, nous recommandons fortement de partir de l'exemple minimal (vide) exécuté dans [StackBlitz](https://stackblitz.com), avec le moins de code supplémentaire possible.
 
-```astro
----
-import { Debug } from 'astro/components';
-const sum = (a, b) => a + b;
-const answer = sum(2, 4);
----
-<!-- Exemple : Les trois exemples sont équivalents. -->
-<Debug answer={sum(2, 4)} />
-<Debug {{answer: sum(2, 4)}} />
-<Debug {answer} />
-```
+StackBlitz exécutera ce projet Astro dans le navigateur, en dehors de votre environnement local. Il vous fournira également un lien partageable afin que n'importe quel mainteneur Astro ou membre de l'équipe de support puisse voir votre reproduction minimale en dehors de leur propre environnement local. Cela signifie que tout le monde voit exactement le même projet, avec la même configuration et les mêmes dépendances. Il est ainsi plus facile pour quelqu'un d'autre d'aider à dépanner votre code. Si le problème est reproductible, cela vous permet de vérifier que le problème se trouve dans le code Astro lui-même et vous pouvez soumettre un rapport de bogue en toute confiance.
+
+Notez que tous les problèmes ne sont pas reproductibles dans StackBlitz. Par exemple, votre problème peut dépendre d'un environnement spécifique ou d'un gestionnaire de packages, ou il peut impliquer le streaming HTML, qui n'est pas supporté par StackBlitz. Dans ce cas, créez un nouveau projet Astro minimal (vide) en utilisant le CLI, reproduisez le problème et téléchargez-le sur un dépôt GitHub. Au lieu de partager une URL StackBlitz, fournissez un lien vers le dépôt GitHub de votre reproduction minimale.
+
+### Code minimal
+
+Une fois que votre projet vide est mis en place, passez par les étapes pour reproduire le problème. Cela peut inclure l'ajout de packages, la modification de la configuration et l'écriture de code.
+
+Vous ne devez ajouter que le minimum de code nécessaire pour reproduire le problème. Ne reproduisez pas d'autres éléments de votre projet existant et supprimez tout le code qui n'est pas directement lié au problème.
+
+### Créer une Issue
+
+Si votre problème peut être reproduit, il est temps de créer une issue et de déposer un rapport de bug !
+
+Allez sur le dépôt Astro approprié sur GitHub et ouvrez une nouvelle issue. La plupart des dépôts ont un template d'issue qui pose des questions ou demande des informations pour le soumettre. Il est important que vous suiviez ces templates car si vous ne fournissez pas les informations dont nous avons besoin, nous devrons vous les demander... et personne ne travaillera sur votre problème !
+
+Incluez le lien vers votre reproduction minimale sur StackBlitz (ou le dépôt GitHub, si nécessaire). Commencez par une description du comportement attendu par rapport au comportement réel pour fournir le contexte du problème. Ensuite, incluez des instructions claires, étape par étape, sur la façon de reproduire le problème dans un projet Astro.
 
 ## Besoin de plus ?
 

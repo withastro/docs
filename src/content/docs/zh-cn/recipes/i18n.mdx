@@ -363,7 +363,7 @@ import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro'
     ```astro 
     ---
     // src/components/Nav.astro
-    import { getLangFromUrl, useTranslations } from '../i18n/utils';
+    import { getLangFromUrl, useTranslations, useTranslatedPath } from '../i18n/utils';
     
     const lang = getLangFromUrl(Astro.url);
     const t = useTranslations(lang);
@@ -411,75 +411,74 @@ import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro'
 
 1. 在 `src/i18n/ui.ts` 中添加路由映射。
 
- ```ts
- // src/i18n/ui.ts
- export const routes = {
-   de: {
-    'services': 'leistungen',
-   },
-   fr: {
-    'services': 'prestations-de-service',
-   },
-  }
+    ```ts
+    // src/i18n/ui.ts
+    export const routes = {
+      de: {
+      'services': 'leistungen',
+      },
+      fr: {
+      'services': 'prestations-de-service',
+      },
+    }
     ```
 
-2. Update the `useTranslatedPath` helper function in `src/i18n/utils.ts` to add router translation logic.
 2. 在 `src/i18n/utils.ts` 中更新 `useTranslatedPath` 辅助函数以添加路由翻译逻辑：
 
-  ```js
-  // src/i18n/utils.ts
-  import { ui, defaultLang, showDefaultLang, routes } from './ui';
+    ```js
+    // src/i18n/utils.ts
+    import { ui, defaultLang, showDefaultLang, routes } from './ui';
 
-  export function useTranslatedPath(lang: keyof typeof ui) {
-    return function translatePath(path: string, l: string = lang) {
-      const pathName = path.replaceAll('/', '')
-      const hasTranslation = defaultLang !== l && routes[l] !== undefined && routes[l][pathName] !== undefined
-      const translatedPath = hasTranslation ? '/' + routes[l][pathName] : path
-  
-      return !showDefaultLang && l === defaultLang ? translatedPath : `/${l}${translatedPath}`
+    export function useTranslatedPath(lang: keyof typeof ui) {
+      return function translatePath(path: string, l: string = lang) {
+        const pathName = path.replaceAll('/', '')
+        const hasTranslation = defaultLang !== l && routes[l] !== undefined && routes[l][pathName] !== undefined
+        const translatedPath = hasTranslation ? '/' + routes[l][pathName] : path
+    
+        return !showDefaultLang && l === defaultLang ? translatedPath : `/${l}${translatedPath}`
+      }
     }
-  }
-  ```
+    ```
 
 3. `src/i18n/utils.ts` 中创建一个辅助函数来获取对应路由，如果该路由存在于当前 URL 的话：
 
-  ```js
-  // src/i18n/utils.ts
-  import { ui, defaultLang, showDefaultLang, routes } from './ui';
-  
-  export function getRouteFromUrl(url: URL): string | undefined {
-    const pathname = new URL(url).pathname
-    const parts = pathname?.split('/')
-    const path = parts.pop() || parts.pop()
-  
-    if (path === undefined) {
+    ```js
+    // src/i18n/utils.ts
+    import { ui, defaultLang, showDefaultLang, routes } from './ui';
+    
+    export function getRouteFromUrl(url: URL): string | undefined {
+      const pathname = new URL(url).pathname
+      const parts = pathname?.split('/')
+      const path = parts.pop() || parts.pop()
+    
+      if (path === undefined) {
+        return undefined
+      }
+      
+      const currentLang = getLangFromUrl(url);
+    
+      if (defaultLang === currentLang) {
+        const route = Object.values(routes)[0];
+        return route[path] !== undefined ? route[path] : undefined
+      }
+      
+      const getKeyByValue = (obj: Record<string, string>, value: string): string | undefined  => {
+          return Object.keys(obj).find((key) => obj[key] === value)
+      }
+    
+      const reversedKey = getKeyByValue(routes[currentLang], path)
+    
+      if (reversedKey !== undefined) {
+        return reversedKey
+      }
+    
       return undefined
     }
-    
-    const currentLang = getLangFromUrl(url);
-  
-    if (defaultLang === currentLang) {
-      const route = Object.values(routes)[0];
-      return route[path] !== undefined ? route[path] : undefined
-    }
-    
-    const getKeyByValue = (obj: Record<string, string>, value: string): string | undefined  => {
-        return Object.keys(obj).find((key) => obj[key] === value)
-    }
-  
-    const reversedKey = getKeyByValue(routes[currentLang], path)
-  
-    if (reversedKey !== undefined) {
-      return reversedKey
-    }
-  
-    return undefined
-  }
-  ```
+    ```
 
 4. 这个辅助函数可以用来获取翻译后的路由。例如，当没有定义翻译后的路由时，用户将被重定向到首页：
 
- ```astro
+    ```astro
     ---
     // src/components/LanguagePicker.astro
     import { languages } from '../i18n/ui';

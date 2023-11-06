@@ -1,4 +1,4 @@
-import { CollectionEntry, defineCollection, z } from 'astro:content';
+import { type CollectionEntry, defineCollection, z } from 'astro:content';
 import { docsSchema } from '@astrojs/starlight/schema';
 
 export const baseSchema = z

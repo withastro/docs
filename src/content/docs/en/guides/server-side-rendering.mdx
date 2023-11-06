@@ -3,7 +3,6 @@ title: Server-side Rendering
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
-import FileTree from '~/components/FileTree.astro';
 import Since from '~/components/Since.astro';
 
 Server-side rendering (SSR) refers to generating HTML pages on the server on-demand and sending them to the client.
@@ -26,16 +25,20 @@ Consider enabling server-side rendering in your Astro project if you need the fo
 To enable SSR features for production deployments, update your `output` configuration to `'server'` or `'hybrid'` (introduced in **v2.6.0**). Both of these modes control which [pages](/en/core-concepts/astro-pages/) or [server endpoints](/en/core-concepts/endpoints/#server-endpoints-api-routes) should be server-rendered. Each configuration option has a different default behavior, and allows individual routes to opt-out of the default accordingly:
 
 - __`output: 'server'`__: Server-rendered by default. Use this when most or all of your site should be server-rendered. Any individual page or endpoint can *opt-in* to pre-rendering.
+
+  ```js ins={3,6,7}
+  // astro.config.mjs
+  import { defineConfig } from 'astro/config';
+  import nodejs from '@astrojs/node';
+
+  export default defineConfig({
+    output: 'server',
+    adapter: nodejs(),
+  });
+  ```
+
 - __`output: 'hybrid'`__: Pre-rendered to HTML by default. Use this when most of your site should be static. Any individual page or endpoint can *opt-out* of pre-rendering.
 
-```js ins={5}
-// astro.config.mjs
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  output: 'server'
-});
-```
 
 You can then opt-out of the default rendering behavior with an export statement in any page or route:
 
@@ -54,13 +57,15 @@ See more usage examples of [configuring individual routes](#configuring-individu
 
 To convert an existing static Astro site to allow hybrid rendering, change the `output` to `'hybrid'` and add an adapter:
 
-```diff
+```js ins={2,5-8} title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-+ import nodejs from '@astrojs/node';
+import nodejs from '@astrojs/node';
 
 export default defineConfig({
-+ adapter: nodejs(),  
-+ output: 'hybrid',
+  adapter: nodejs({
+    mode: 'middleware' // or 'standalone'
+  }),  
+  output: 'hybrid',
 });
 ```
 
@@ -68,32 +73,26 @@ export default defineConfig({
 
 When it's time to deploy an SSR project, you also need to add an adapter. This is because SSR requires a server _runtime_: the environment that runs your server-side code. Each adapter allows Astro to output a script that runs your project on a specific runtime.
 
-The following adapters are available today with more to come in the future:
-
-- [Cloudflare](/en/guides/integrations-guide/cloudflare/)
-- [Deno](/en/guides/integrations-guide/deno/)
-- [Netlify](/en/guides/integrations-guide/netlify/)
-- [Node.js](/en/guides/integrations-guide/node/)
-- [Vercel](/en/guides/integrations-guide/vercel/)
+You can find both [official and community SSR adapters in our integrations directory](https://astro.build/integrations/?search=&categories%5B%5D=adapters).
 
 #### `astro add` Install
 
-You can add any of the official adapters with the following `astro add` command. This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step. For example, to install the Netlify adapter, run:
+You can add any of the [official Astro adapter integrations](/en/guides/integrations-guide/) with the following `astro add` command. This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step. For example, to install the Vercel adapter, run:
 
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```shell
-  npx astro add netlify
+  npx astro add vercel
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  pnpm astro add netlify
+  pnpm astro add vercel
   ```
   </Fragment>
   <Fragment slot="yarn">
   ```shell
-  yarn astro add netlify
+  yarn astro add vercel
   ```
   </Fragment>
 </PackageManagerTabs>
@@ -112,7 +111,7 @@ You can also add an adapter manually by installing the package and updating `ast
      </Fragment>
      <Fragment slot="pnpm">
      ```shell
-     pnpm install @astrojs/my-adapter
+     pnpm add @astrojs/my-adapter
      ```
      </Fragment>
      <Fragment slot="yarn">
@@ -141,7 +140,7 @@ Astro will remain a static-site generator by default. But once you enable server
 
 ### Configuring individual routes
 
-Both `server` and `hybrid` modes allow for server-rendered pages and endpoints and will render all pages according to their default mode. However, both modes allow you to mark an individual page to opt-out of this default behavior.
+Both `server` and `hybrid` modes allow for server-rendered pages and endpoints and will render all pages according to their default behavior. However, both modes allow you to mark an individual page to opt-out of this default behavior.
 
 ### Opting-out of server-rendering
 
@@ -236,13 +235,12 @@ The example below updates the value of a cookie for a page view counter.
 ---
 let counter = 0
 
-if(Astro.cookies.has("counter")){
+if (Astro.cookies.has("counter")) {
   const cookie = Astro.cookies.get("counter")
 	counter = cookie.number() + 1
 }
 
-Astro.cookies.set("counter",counter)
-
+Astro.cookies.set("counter", counter)
 ---
 <html>
   <h1>Counter = {counter}</h1>
@@ -377,31 +375,3 @@ const factPromise = fetch('https://catfact.ninja/fact')
 
 In this example, `A name` will render while `personPromise` and `factPromise` are loading.
 Once `personPromise` has resolved, `A fact` will appear and `factPromise` will render when it's finished loading.
-
-### Split the SSR build into multiple files
-
-By default, Astro builds all pages into one single file called `entry.mjs`. You can configure [`split`](/en/reference/configuration-reference/#buildsplit) in your build options to instead emit a single file for each page:
-
-```js title="astro.config.mjs" ins={6}
-// astro.config.mjs
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  build: {
-      split: true
-  }
-});
-```
-
-The emitted page files will be saved in the directory specified for [`outDir`](/en/reference/configuration-reference/#outdir), under a newly created `pages/` directory.
-
-The files inside the `pages/` directory of the build will mirror the directory structure of your page files in `src/pages/`, for example:
-
-<FileTree>
-- dist/
-    - pages/
-        - blog/
-            - entry.\_slug\_.astro.mjs
-            - entry.about.astro.mjs
-        - entry.index.astro.mjs
-</FileTree>

@@ -3,7 +3,6 @@ title: Renderizado en el servidor
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
-import FileTree from '~/components/FileTree.astro';
 import Since from '~/components/Since.astro';
 
 
@@ -30,14 +29,16 @@ Para hablitar las características SSR para despliegues en producción, actualiz
 - __`output: 'hybrid'`__: Pre-renderizado a HTML por defecto. Utiliza esto cuando la mayoría de tu sitio debe ser estático. Cualquier página o endpoint individual puede *optar* por no pre-renderizar.
 
 
-```js ins={5}
-// astro.config.mjs
-import { defineConfig } from 'astro/config';
+  ```js ins={6,7}
+  // astro.config.mjs
+  import { defineConfig } from 'astro/config';
+  import nodejs from '@astrojs/node';
 
-export default defineConfig({
-  output: 'server'
-});
-```
+  export default defineConfig({
+    output: 'server',
+    adapter: nodejs(),
+  });
+  ```
 
 Puedes optar por no utilizar el comportamiento de renderizado por defecto con una declaración de exportación en cualquier página o ruta:
 
@@ -57,12 +58,15 @@ Ver más ejemplos de uso de [configuración de rutas individuales](#configuraci�
 
 Para convertir un sitio Astro estático existente para permitir el renderizado híbrido, cambia la opción `output` a `'hybrid'` y añade un adaptador:
 
-```diff
+```js ins={2,5-8} title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-+ import nodejs from '@astrojs/node';
+import nodejs from '@astrojs/node';
+
 export default defineConfig({
-+ adapter: nodejs(),  
-+ output: 'hybrid',
+  adapter: nodejs({
+  mode: 'middleware' // or 'standalone'
+  }),  
+  output: 'hybrid',
 });
 ```
 
@@ -70,32 +74,26 @@ export default defineConfig({
 
 Cuando sea el momento de desplegar un proyecto SSR, vas a necesitar añadir un adaptador. Esto es porque SSR requiere un servidor _en tiempo de ejecución_: el ambiente que ejecuta tu código en el lado del servidor. Cada adaptador le permite a Astro entregar un script que ejecuta tu proyecto en un ambiente específico.
 
-Los siguientes adaptadores están disponibles hoy y habrá muchos más en el futuro:
-
-- [Cloudflare](/es/guides/integrations-guide/cloudflare/)
-- [Deno](/es/guides/integrations-guide/deno/)
-- [Netlify](/es/guides/integrations-guide/netlify/)
-- [Node.js](/es/guides/integrations-guide/node/)
-- [Vercel](/es/guides/integrations-guide/vercel/)
+Puedes encontrar tanto [adaptadores SSR oficiales como de la comunidad en nuestro directorio de integraciones](https://astro.build/integrations/?search=&categories%5B%5D=adapters).
 
 #### Instalación usando `astro add`
 
-Puedes añadir cualquiera de los adaptadores oficiales con el comando `astro add`. Esto instalará el adaptador y hará los cambios apropiados a tu archivo `astro.config.mjs` en un solo paso. Por ejemplo, para instalar el adaptador de Netlify, ejecuta:
+Puedes añadir cualquiera de los [integraciones oficiales del adaptador de Astro](/es/guides/integrations-guide/) con el comando `astro add`. Esto instalará el adaptador y hará los cambios apropiados a tu archivo `astro.config.mjs` en un solo paso. Por ejemplo, para instalar el adaptador de Vercel, ejecuta:
 
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```shell
-  npx astro add netlify
+  npx astro add vercel
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  pnpm astro add netlify
+  pnpm astro add vercel
   ```
   </Fragment>
   <Fragment slot="yarn">
   ```shell
-  yarn astro add netlify
+  yarn astro add vercel
   ```
   </Fragment>
 </PackageManagerTabs>
@@ -143,7 +141,7 @@ Astro seguirá siendo un generador de sitios estáticos por defecto. Pero una ve
 
 ### Configuración de rutas individuales
 
-Ambos modos `server` e `hybrid` permiten páginas y endpoints renderizados en el servidor y renderizarán todas las páginas de acuerdo a su modo por defecto. Sin embargo, ambos modos permiten marcar una página individual para optar por no utilizar este comportamiento por defecto.
+Ambos modos `server` e `hybrid` permiten páginas y endpoints renderizados en el servidor y renderizarán todas las páginas de acuerdo a su comportamiento por defecto. Sin embargo, ambos modos permiten marcar una página individual para optar por no utilizar este comportamiento por defecto.
 
 ### Optar por no renderizar en el servidor
 
@@ -234,34 +232,16 @@ El ejemplo a continuación actualiza el valor de una cookie para un contador de 
 ```astro title="src/pages/index.astro" {4,5,9}
 ---
 let counter = 0
-if(Astro.cookies.has("counter")){
+
+if (Astro.cookies.has("counter")) {
   const cookie = Astro.cookies.get("counter")
 	counter = cookie.number() + 1
 }
+
 Astro.cookies.set("counter",counter)
 ---
 <html>
   <h1>Contador = {counter}</h1>
-</html>
-```
-
-### `Astro.redirect`
-
-En el objeto global `Astro`, este método te permite redirigir a otra página. Puedes hacer esto después de verificar si el usuario ha iniciado sesión obteniendo la sesión desde una cookie.
-
-```astro title="src/pages/account.astro" {8}
----
-import { isLoggedIn } from '../utils';
-
-const cookie = Astro.request.headers.get('cookie');
-
-// Si el usuario no ha iniciado sesión, redirígelo a la página de inicio de sesión.
-if (!isLoggedIn(cookie)) {
-  return Astro.redirect('/login');
-}
----
-<html>
-  <!-- Maquetado aquí... -->
 </html>
 ```
 
@@ -392,31 +372,3 @@ const factPromise = fetch('https://catfact.ninja/fact')
 En este ejemplo, `Un nombre` se renderizará mientras se cargan `personPromise` y `factPromise`.
 
 Una vez que `personPromise` se haya resuelto, aparecerá `Un hecho` y `factPromise` se mostrará cuando haya terminado de cargarse.
-
-### Dividir la compilación SSR en varios archivos
-
-Por defecto, Astro compila todas las páginas en un solo archivo llamado `entry.mjs`. Puedes configurar [`split`](/es/reference/configuration-reference/#buildsplit) en tus opciones de compilación para que en su lugar emita un solo archivo para cada página:
-
-```js title="astro.config.mjs" ins={6}
-// astro.config.mjs
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  build: {
-      split: true
-  }
-});
-```
-
-Los archivos de página emitidos se guardarán en el directorio especificado para [`outDir`](/es/reference/configuration-reference/#outdir), en un directorio `pages/` recién creado.
-
-Los archivos dentro del directorio `pages/` de la compilación reflejarán la estructura de directorios de tus archivos de página en `src/pages/`, por ejemplo:
-
-<FileTree>
-- dist/
-    - pages/
-        - blog/
-            - entry.\_slug\_.astro.mjs
-            - entry.about.astro.mjs
-        - entry.index.astro.mjs
-</FileTree>
