@@ -1,0 +1,43 @@
+diff --git a/components/SiteTitle.astro b/components/SiteTitle.astro
+index afb09c804f7c3a14cfc5fc880665377f9ac1b7c4..15bdee3ec5013b3bc767ee85436c887a379f0552 100644
+--- a/components/SiteTitle.astro
++++ b/components/SiteTitle.astro
+@@ -4,7 +4,7 @@ import config from 'virtual:starlight/user-config';
+ import { pathWithBase } from '../utils/base';
+ import type { Props } from '../props';
+ 
+-const href = pathWithBase(Astro.props.locale || '/');
++const href = pathWithBase((Astro.props.locale || '/') + '/getting-started/');
+ ---
+ 
+ <a {href} class="site-title sl-flex">
+diff --git a/schema.ts b/schema.ts
+index cece5949488c65823101d548a398e4b6e0e1e6db..2b2c87dacd475a03f12fd2b5024530efd1b9ceaa 100644
+--- a/schema.ts
++++ b/schema.ts
+@@ -8,9 +8,15 @@ import { HeroSchema } from './schemas/hero';
+ import { SidebarLinkItemHTMLAttributesSchema } from './schemas/sidebar';
+ export { i18nSchema } from './schemas/i18n';
+ 
+-export function docsSchema() {
+-	return (context: SchemaContext) =>
+-		z.object({
++type AnyZodObject =
++	| z.AnyZodObject
++	| z.ZodUnion<[z.AnyZodObject, ...z.AnyZodObject[]]>
++	| z.ZodDiscriminatedUnion<string, z.AnyZodObject[]>
++	| z.ZodIntersection<z.AnyZodObject, z.AnyZodObject>;
++
++export function docsSchema<S extends AnyZodObject>({ extend = z.object({}) }: { extend?: S } = {}) {
++	return (context: SchemaContext) => {
++		const schema = z.object({
+ 			/** The title of the current page. Required. */
+ 			title: z.string(),
+ 
+@@ -104,4 +110,6 @@ export function docsSchema() {
+ 			/** Pagefind indexing for this page - set to false to disable. */
+ 			pagefind: z.boolean().default(true),
+ 		});
++		return schema.and(extend);
++	};
+ }
