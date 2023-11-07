@@ -57,7 +57,7 @@ const aboutUrl = getLocaleRelativeUrl("pt_Br", "about");
 <p>Learn more <a href={aboutURL}>About</a> this site!</p>
 ```
 
-Enabling i18n routing also provides two new properties for browser language detection: `Astro.preferredLocale` and `Astro.preferredLocaleList`. These combine the browser's `Accept-Langauge` header, and your site's list of supported languages and can be used to automatically respect your visitor's preferred languages.
+Enabling i18n routing also provides 
 
 
 ## Glossary
@@ -195,59 +195,38 @@ With this option, all routes will have their locale code (prefix) in their URL.
 
 ### Browser language detection
 
-When i18n routing is enabled, two new properties are available via [`Astro` global object](/en/reference/api-reference/#astro-global). These values are **only available in SSR**.
+Astro's i18n routing combined with one of Astro's  [on-demand server rendering modes](/en/guides/server-side-rendering/) (`output:'server'` or `output:'hybrid'`) allow you to access two properties for browser language detection: `Astro.preferredLocale` and `Astro.preferredLocaleList`.
 
-The values are calculated by deducing the languages supported by the browser - via the [`Accept-Language`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language) header -  and the locales supported by the website using [`i18n.locales`].
+These combine the browser's `Accept-Langauge` header, and your `locales` to automatically respect your visitor's preferred languages.
 
-- `Astro.preferredLocale`: it's the locale requested by the browser and supported by the website. The value is `undefined` if:
-  - The browser/user didn't set any preference.
-  - The languages of the browser aren't part of [`i18n.locales`].
+- `Astro.preferredLocale`:  Astro can compute a **preferred locale** for your visitor if their browser's preferred locale is included in your `locales` array. This value is undefined if no such match exists.
 
 
-- `Astro.preferredLocaleList`: it's the locales requested by the browser and supported by the website. The value is `[]` if the languages of the browser aren't part of [`i18n.locales`]. The value is [`i18n.locales`] if the browser/user didn't specify any preference.
+- `Astro.preferredLocaleList`: An array of all locales that are both requested by the browser and supported by your website. This produces a list of all compatible languages between your site and your visitor. The value is `[]` if none of the browser's requested languages are found in your `locales` array. If the browser does not specify any preferred languages, then this value will be [`i18n.locales`].
   
 
 ### Fallback
 
-The fallback is a feature that allows to redirect a user from one locale to another. This is useful when pages of a locale miss, but you want to still provide some content to the user.
+Astro's i18n routing allows you to configure a **fallback routing strategy**. When a page in one language doesn't exist (e.g. a page that is not yet translated), instead of displaying a 404 page, you can redirect a user from one locale to another on a per-language basis. This is useful when you do not yet have a page for every route, but you want to still provide some content to your visitors.
 
-For example, we can tell Astro that when a route of the `pt` locale is missing, to redirect to the same route under the `es` locale, when you run the command `astro build`, Astro will create all the missing pages from `src/pages/pt/` that are in `src/pagess/es/`, and those pages will direct to the relative `es` locale.
+For example, the configuration below sets `es` as the fallback locale for any missing `fr` routes. This means that a user visiting `example.com/fr/my-page/` will be redirected to and shown the content for `example.com/es/my-page/` instead of being taken to a 404 page when `src/pages/fr/my-page.astro` does not exist.
 
-```js title="astro.config.mjs" ins={6,7-9} ins=", \"pt\""
+```js title="astro.config.mjs" ins={6,7-9} 
 import { defineConfig } from "astro/config"
 export default defineConfig({
   experimental: {
     i18n: {
       defaultLocale: "en",
-      locales: ["es", "en", "fr", "pt"],
+      locales: ["es", "en", "fr"],
       fallback: {
-        pt: "es"  
+        fr: "es"  
       }
     }
   }
 })
 ```
 
-If you have two pages in the `es/` folder, `index.astro` and `guide.astro`, and only one page in the `pt/` folder, `index.astro`; you run the command `astro build`, and in the `dist/pt/` folder you will have two pages: `index.html` with the contents of `index.astro`, and `guide.html`, which will redirect to `es/guide.html`:
-
-<FileTree>
-- dist
-    - es
-        - index.html
-        - guide
-            - index.html
-    - pt
-        - index.html
-        - guide
-            - index.html
-  - pages
-    - es
-      - index.astro
-      - guide.astro
-    - pt
-      - index.astro
-</FileTree>
-
+Astro will ensure that a page is built in `src/pages/fr` for every page that exists in `src/pages/es/`. If the page does not already exist, then a page with a redirect to the corresponding `es` route will be be created.
 
 ## Virtual module `astro:i18n`
 
