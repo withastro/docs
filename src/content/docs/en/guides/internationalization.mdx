@@ -14,7 +14,7 @@ Astro's internationalization (i18n) features allow you to adapt your project for
 
 <Since v="3.5.0" />
 
-Astro's experimental i18n routing allows you to add your multilingual content with support for configuring a default language and URL path convention, computing relative page URLs, and accepting preferred languages provided by your visitor's browser.
+Astro's experimental i18n routing allows you to add your multilingual content with support for configuring a default language, computing relative page URLs, and accepting preferred languages provided by your visitor's browser. You can also specify fallback languages on a per-language basis so that your visitors can always be directed to existing content on your site.
 
 This routing API helps you generate, use, and verify the URLs that your multi-language site produces. Check back and update regularly for the latest changes as this API continues to develop!
 
@@ -35,10 +35,29 @@ This routing API helps you generate, use, and verify the URLs that your multi-la
    })
    ```
   
-    You can also specify a [`routingStrategy`](#routing-strategy) to customize the URLs for your default language.
+2. Choose and configure a [`routingStrategy`](#routingstrategy) based on the desired URL path for your `defaultLocale`:
 
+  - `"prefix-other-locales"` (default): URLs in your default language will **not** have a `/[locale]/` prefix. All other locales will.
 
-2. Organize your content folders with localized content by language. Your folder names must match the items in `locales` exactly, and your folder organization must match the URL paths chosen for your [`routingStrategy`](#routing-strategy). Include a localized folder for your `defaultLocale` only if you configure `prefix-always` to show a localized URL path.
+  - `"prefix-always"`: All URLs, including your default language, will have a `/[locale]/` prefix.
+
+    ```js title="astro.config.mjs" ins={7}
+    import { defineConfig } from "astro/config"
+    export default defineConfig({
+      experimental: {
+        i18n: {
+          defaultLocale: "en",
+          locales: ["es", "en", "fr"],
+          routingStrategy: "prefix-always"
+        }
+      }
+    })
+    ```
+
+3. Organize your content folders with localized content by language. Your folder names must match the items in `locales` exactly, and your folder organization must match the URL paths chosen for your [`routingStrategy`](#routing-strategy).
+
+    Include a localized folder for your `defaultLocale` only if you configure `prefix-always` to show a localized URL path.
+
     <FileTree>
     - src
       - pages
@@ -56,38 +75,26 @@ This routing API helps you generate, use, and verify the URLs that your multi-la
     The localized folders do not need to be at the root of the `/pages/` folder.
     
     Create individual `/[locale]/` folders anywhere within `src/pages/` and Astro's [file-based routing](/en/core-concepts/routing/) will create your pages at corresponding URL paths. 
-    
-    ```
-    src/pages/blog/[locale]/about.astro -> example.com/blog/es/about/
-    ```
     :::
-
-3. When writing links to pages on your site, use a URL corresponding to your chosen routing strategy. You can write this URL directly, or compute it using the [`getRelativeLocaleURL()`](#getrelativelocaleurl) helper available from the [`astro:i18n` module](#virtual-module-astroi18n). This will always provide the correct, localized route and can help you correctly use, or check, URLs on your site.
+  
+4. With i18n routing configured, you can now compute links to pages within your site using the [`getRelativeLocaleURL()`](#getrelativelocaleurl) helper available from the [`astro:i18n` module](#virtual-module-astroi18n). This will always provide the correct, localized route and can help you correctly use, or check, URLs on your site. You can also still write the links manually.
 
     ```astro title="src/pages/es/index.astro"
     ---
     import { getRelativeLocaleUrl } from 'astro:i18n';
+
+    // defaultLocale is "es"
     const aboutURL=getRelativeLocaleUrl("es", "about");
     ---
 
-    <a href="/es/get-started/">¡Vamos!</a>
+    <a href="/get-started/">¡Vamos!</a>
     <a href={getRelativeLocaleUrl('es', 'blog')}>Blog</a>
     <a href={aboutURL}>Acerca</a> 
     ```
 
-### `defaultLocale` and `locales`
+### `routingStrategy`
 
-Both a default language ([`defaultLocale`](en/reference/configuration-reference/#experimentali18ndefaultlocale)) and a list of all supported languages ([`locales`](en/reference/configuration-reference/#experimentali18nlocales)) must be specified in your `i18n` routing configuration.
-
-Each language must be a string (e.g. `"fr"`, `"pt-br"`), but no particular language format or syntax is enforced while this feature is still experimental and under development. This may be subject to change in future versions.
-
-Your `/[locale]/` folder names must match exactly the `locales` in the list, and every supported language must have its own localized folder. 
-
-Depending on your deploy host, you may discover transformations in URL paths, so check your deployed site to determine the best syntax for your project.
-
-### Routing strategy 
-
-You can choose whether or not pages in your `defaultLocale` should be prefixed with their `/lang/` in their URL path. Every other supported locale will automatically be prefixed.
+Astro's built-in file-based routing automatically creates URL routes for you based on your file structure within `src/pages/`. When you configure i18n routing, the `routingStrategy` value now allows you to specify your file structure (and corresponding URL paths generated) in order to use helper functions to generate, use and verify the routes in your project.
 
 #### `'prefix-other-locales'`
 
@@ -104,9 +111,7 @@ export default defineConfig({
 })
 ```
 
-This is the **default** value. With this option, URLs in your default language will **not** have a `/[locale]/` prefix.
-
-For example, if `i18n.defaultLocale: "en"` is configured:
+This is the **default** value. Set this option when URLs in your default language will **not** have a `/[locale]/` prefix, and files in your default language exist at the root of `src/pages/`.
 
 - `src/pages/blog.astro` will produce the route `example.com/blog/` 
 - `src/pages/fr/blog.astro` will produce the route `example.com/fr/blog/` 
@@ -128,7 +133,7 @@ export default defineConfig({
 })
 ```
 
-With this option, all routes will have their locale code (prefix) in their URL. All page content files, including those for your `defaultLocale`, must exist in a localized folder to match the URL structure of the chosen strategy.
+Set this option when all routes will have their `/locale/` prefix in their URL and when all page content files, including those for your `defaultLocale`, exist in a localized folder:
 
     <FileTree>
     - src
@@ -145,13 +150,21 @@ With this option, all routes will have their locale code (prefix) in their URL. 
           - index.astro
     </FileTree>
 
-- `src/pages/[locale]/blog.astro` will all produce routes of the form `example.com/[locale]/blog/`.
 - URLs without a local prefix, (e.g `example.com/blog/`) will return a 404 (not found) status code.
 
+### `defaultLocale` and `locales`
+
+Both a default language ([`defaultLocale`](en/reference/configuration-reference/#experimentali18ndefaultlocale)) and a list of all supported languages ([`locales`](en/reference/configuration-reference/#experimentali18nlocales)) must be specified in your `i18n` routing configuration.
+
+Each language must be a string (e.g. `"fr"`, `"pt-br"`), but no particular language format or syntax is enforced while this feature is still experimental and under development. This may be subject to change in future versions.
+
+Your `/[locale]/` folder names must match exactly the `locales` in the list, and your [routing strategy](#routingstrategy) must correspond to whether or not you have a localized folder for your default language. Every other supported language must have its own localized folder.
+
+Depending on your deploy host, you may discover transformations in URL paths, so check your deployed site to determine the best syntax for your project.
 
 ### Browser language detection
 
-Astro's i18n routing combined with one of Astro's  [on-demand server rendering modes](/en/guides/server-side-rendering/) (`output:'server'` or `output:'hybrid'`) allow you to access two properties for browser language detection: `Astro.preferredLocale` and `Astro.preferredLocaleList`.
+Astro's i18n routing combined with one of Astro's  [on-demand server rendering modes (`output:'server'` or `output:'hybrid'`)](/en/guides/server-side-rendering/) allow you to access two properties for browser language detection: `Astro.preferredLocale` and `Astro.preferredLocaleList`.
 
 These combine the browser's `Accept-Langauge` header, and your `locales` to automatically respect your visitor's preferred languages.
 
@@ -186,7 +199,7 @@ Astro will ensure that a page is built in `src/pages/fr` for every page that exi
 
 ## Virtual module `astro:i18n`
 
-This module provides functions that can help you to create URLs using locales.
+This module provides functions that can help you create URLs using your project's configured locales.
 
 Creating routes for your project with the i18n router will depend on certain configuration values you have set that affect your page routes. When creating routes with these functions, be sure to take into account your individual settings for:
 
@@ -272,10 +285,6 @@ Use this like [`getRelativeLocaleUrl`](#getrelativelocaleurl) to return a list o
 
 
 Use this like [`getAbsoluteLocaleUrl`](#getabsolutelocaleurl) to return a list of absolute paths for all the locales.
-
-
-
-
 
 [`site`]: /en/reference/configuration-reference/#site
 [`i18n.locales`]: /en/reference/configuration-reference/#experimentali18nlocales
