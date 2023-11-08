@@ -58,26 +58,26 @@ export const { getStaticPaths, GET } = OGImageRoute({
 				},
 			},
 			fonts: [
-				'https://github.com/withastro/docs/raw/temp-fonts-cdn/src/pages/open-graph/_fonts/work-sans/latin-400-normal.ttf',
-				'https://github.com/withastro/docs/raw/temp-fonts-cdn/src/pages/open-graph/_fonts/work-sans/latin-800-normal.ttf',
+				'./src/pages/open-graph/_fonts/work-sans/latin-400-normal.ttf',
+				'./src/pages/open-graph/_fonts/work-sans/latin-800-normal.ttf',
 
-				'https://github.com/withastro/docs/raw/temp-fonts-cdn/src/pages/open-graph/_fonts/noto-sans/cyrillic-400-normal.ttf',
-				'https://github.com/withastro/docs/raw/temp-fonts-cdn/src/pages/open-graph/_fonts/noto-sans/cyrillic-900-normal.ttf',
+				'./src/pages/open-graph/_fonts/noto-sans/cyrillic-400-normal.ttf',
+				'./src/pages/open-graph/_fonts/noto-sans/cyrillic-900-normal.ttf',
 
-				'https://github.com/withastro/docs/raw/temp-fonts-cdn/src/pages/open-graph/_fonts/noto-sans/chinese-simplified-400-normal.otf',
-				'https://github.com/withastro/docs/raw/temp-fonts-cdn/src/pages/open-graph/_fonts/noto-sans/chinese-simplified-900-normal.otf',
+				'./src/pages/open-graph/_fonts/noto-sans/chinese-simplified-400-normal.otf',
+				'./src/pages/open-graph/_fonts/noto-sans/chinese-simplified-900-normal.otf',
 
-				'https://github.com/withastro/docs/raw/temp-fonts-cdn/src/pages/open-graph/_fonts/noto-sans/chinese-traditional-400-normal.otf',
-				'https://github.com/withastro/docs/raw/temp-fonts-cdn/src/pages/open-graph/_fonts/noto-sans/chinese-traditional-900-normal.otf',
+				'./src/pages/open-graph/_fonts/noto-sans/chinese-traditional-400-normal.otf',
+				'./src/pages/open-graph/_fonts/noto-sans/chinese-traditional-900-normal.otf',
 
-				'https://github.com/withastro/docs/raw/temp-fonts-cdn/src/pages/open-graph/_fonts/noto-sans/japanese-400-normal.ttf',
-				'https://github.com/withastro/docs/raw/temp-fonts-cdn/src/pages/open-graph/_fonts/noto-sans/japanese-900-normal.ttf',
+				'./src/pages/open-graph/_fonts/noto-sans/japanese-400-normal.ttf',
+				'./src/pages/open-graph/_fonts/noto-sans/japanese-900-normal.ttf',
 
-				'https://github.com/withastro/docs/raw/temp-fonts-cdn/src/pages/open-graph/_fonts/noto-sans/arabic-400-normal.ttf',
-				'https://github.com/withastro/docs/raw/temp-fonts-cdn/src/pages/open-graph/_fonts/noto-sans/arabic-800-normal.ttf',
+				'./src/pages/open-graph/_fonts/noto-sans/arabic-400-normal.ttf',
+				'./src/pages/open-graph/_fonts/noto-sans/arabic-800-normal.ttf',
 
-				'https://github.com/withastro/docs/raw/temp-fonts-cdn/src/pages/open-graph/_fonts/noto-sans/korean-400-normal.otf',
-				'https://github.com/withastro/docs/raw/temp-fonts-cdn/src/pages/open-graph/_fonts/noto-sans/korean-900-normal.otf',
+				'./src/pages/open-graph/_fonts/noto-sans/korean-400-normal.otf',
+				'./src/pages/open-graph/_fonts/noto-sans/korean-900-normal.otf',
 			],
 		};
 	},
