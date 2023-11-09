@@ -3,6 +3,7 @@ title: Páginas
 description: Introducción a páginas de Astro
 i18nReady: true
 ---
+import Since from '~/components/Since.astro'
 
 Las **páginas** son [componentes de Astro](/es/core-concepts/astro-components/) que se encuentran en la subcarpeta `src/pages/`. Ellas son las responsables de manejar el enrutamiento, la carga de datos y el diseño general de cada página HTML de tu proyecto.
 
@@ -52,6 +53,8 @@ Las páginas de Astro utilizan la extensión `.astro` y tienen las mismas funcio
 </html>
 ```
 
+Una página debe producir un documento HTML completo. Si no se incluye explícitamente, Astro agregará la declaración `<!DOCTYPE html>` necesaria y el contenido de `<head>` a cualquier componente `.astro` ubicado dentro de `src/pages/` de forma predeterminada. Puedes optar por no participar en este comportamiento en una base por componente marcándolo como una [página parcial](#páginas-parciales).
+
 Para evitar repetir los mismos elementos HTML en cada página, puedes mover los elementos comunes `<head>` y `<body>` a sus propios [componentes de plantilla](/es/core-concepts/layouts/). Puedes usar tantos o tan pocos componentes de plantilla como desees.
 
 ```astro title="src/pages/index.astro" {2} /</?MySiteLayout>/
@@ -95,3 +98,75 @@ Los archivos `.html` pueden ser colocados en `src/pages/` y usados directamente 
 Para crear una página de error 404 personalizada, puedes crear un archivo `404.astro` o `404.md` en `/src/pages`.
 
 Esto generará una página `404.html` que la mayoría de los [servicios de despliegue](/es/guides/deploy/) encontrarán y usarán.
+
+## Páginas Parciales
+
+<Since v="3.4.0" />
+
+:::caution
+Las páginas parciales están destinadas para ser usadas en conjunto con una biblioteca de front-end, como [htmx](https://htmx.org/) o [Unpoly](https://unpoly.com/). También puedes usarlas si te sientes cómodo escribiendo JavaScript de front-end de bajo nivel. Por esta razón, son una característica avanzada.
+
+Adicionalmente, las páginas parciales no deben ser usadas si el componente contiene estilos o scripts con alcance, ya que estos elementos serán eliminados de la salida HTML. Si necesitas estilos con alcance, es mejor usar páginas regulares, no parciales, junto con una biblioteca de front-end que sepa cómo fusionar el contenido en la cabecera.
+:::
+
+Las páginas parciales son componentes de página ubicados dentro de `src/pages/` que no están destinados a renderizar como páginas completas.
+
+Como componentes localizados fuera de esta carpeta, estos archivos no incluyen automáticamente la declaración `<!DOCTYPE html>`, ni ningún contenido de `<head>` como estilos y scripts con alcance.
+
+Sin embargo, debido a que se encuentran en el directorio especial `src/pages/`, el HTML generado está disponible en una URL correspondiente a su ruta de archivo. Esto permite que una biblioteca de renderizado (por ejemplo, htmx, Stimulus, jQuery) la acceda en el cliente y cargue secciones de HTML dinámicamente en una página sin una actualización del navegador o navegación de página.
+
+Las páginas parciales, cuando se combinan con una biblioteca de renderizado, proporcionan una alternativa a las [islas de Astro](/es/concepts/islands/) y [etiquetas `<script>`](/es/guides/client-side-scripts/) para construir contenido dinámico en Astro.
+
+Los archivos de página que pueden exportar un valor (por ejemplo, `.astro`, `.mdx`) pueden ser marcados como parciales.
+
+Configura un archivo dentro del directorio `src/pages/` para que sea una página parcial agregando la siguiente exportación:
+
+```astro title="src/pages/partial.astro" ins={2}
+---
+export const partial = true;
+---
+<li>¡Soy una página parcial!</li>
+```
+
+El `export const partial` debe ser identificable estáticamente. Puede tener el valor de:
+
+- El boolean __`true`__.
+- Una variable de entorno usando import.meta.env como `import.meta.env.USE_PARTIALS`.
+
+### Uso con una biblioteca
+
+ Las páginas parciales son usadas para actualizar dinámicamente una sección de una página usando una biblioteca como [htmx](https://htmx.org/).
+
+ El siguiente ejemplo muestra un atributo `hx-post` establecido en la URL de una página parcial. El contenido de la página parcial se usará para actualizar el elemento HTML objetivo en esta página.
+
+```astro title="src/pages/index.astro" 'hx-post="/partials/clicked/"'
+<html>
+  <head>
+    <title>Mi página</title>
+    <script src="https://unpkg.com/htmx.org@1.9.6"
+      integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni"
+      crossorigin="anonymous"></script>
+  </head>
+</html>
+<section>
+  <div id="parent-div">Objetivo aquí</div>
+  <button hx-post="/partials/clicked/"
+    hx-trigger="click"
+    hx-target="#parent-div"
+    hx-swap="innerHTML"
+  >
+      ¡Haz clic en mí!
+  </button>
+</section>
+```
+
+La página parcial `.astro` debe existir en la ruta de archivo correspondiente e incluir una exportación que defina la página como parcial:
+
+```astro title="src/pages/partials/clicked.astro" {2}
+---
+export const partial = true;
+---
+<div>¡Fui cliqueado!</div>
+```
+
+Consulta la [documentación de htmx](https://htmx.org/docs/) para más detalles sobre el uso de htmx.
