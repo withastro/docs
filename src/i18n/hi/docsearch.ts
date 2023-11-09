@@ -10,7 +10,7 @@ export default DocSearchDictionary({
 	resultsFooterDiscord: 'डिस्कोर्ड पर हमसे जुड़ें',
     modal: {
 		searchBox: {
-			resetButtonTitle: 'स्पष्ट खोज',
+			resetButtonTitle: 'खोज साफ़ करें',
 			resetButtonAriaLabel: 'खोज साफ़ करें',
 			cancelButtonText: 'रद्द करे',
 			cancelButtonAriaLabel: 'रद्द करे',
