@@ -30,7 +30,7 @@ export default DocSearchDictionary({
 		footer: {
 			selectText: 'चयन के लिए',
 			selectKeyAriaLabel: 'कुंजी दबाएँ',
-			navigateText: 'नेविगेट करने के लिए',
+			navigateText: 'नेविगेट के लिए',
 			navigateUpKeyAriaLabel: 'शीर्ष तीर',
 			navigateDownKeyAriaLabel: 'नीचे तीर',
 			closeText: 'बंद करना',
