@@ -1,48 +1,54 @@
 ---
-title: Server-side Rendering
+title: On-demand Rendering Adapters
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
-import Since from '~/components/Since.astro';
+import RecipeLinks from '~/components/RecipeLinks.astro';
 
-Server-side rendering (SSR) refers to generating HTML pages on the server on-demand and sending them to the client.
+Astro allows you to choose **on-demand rendering** for some, or all of your pages and endpoints. This is also known as **server-side rendering (SSR)**: generating HTML pages on the server when requested and sending them to the client. An **adapter** is used to run your project on the server and handle these requests.
 
-SSR allows you to:
+This on-demand rendering allows you to:
 - Implement sessions for login state in your app.
-- Render data from an API called dynamically with `fetch`.
+- Render data from an API called dynamically with `fetch()`.
 - Deploy your site to a host using an *adapter*.
 
-Consider enabling server-side rendering in your Astro project if you need the following:
+Consider enabling on-demand server rendering in your Astro project if you need the following:
 
-- **API endpoints**: SSR enables you to create specific pages that function as API endpoints for tasks like database access, authentication, and authorization while keeping sensitive data hidden from the client.
+- **API endpoints**: Create specific pages that function as API endpoints for tasks like database access, authentication, and authorization while keeping sensitive data hidden from the client.
 
-- **Protected pages**: If you need to restrict access to a page based on user privileges, you can enable SSR to handle user access on the server.
+- **Protected pages**: Restrict access to a page based on user privileges, by handling user access on the server.
 
-- **Frequently changing content**: Enabling SSR lets you generate individual pages without requiring a static rebuild of your site. This is useful when the content of a page updates frequently.
+- **Frequently changing content**: Generate individual pages without requiring a static rebuild of your site. This is useful when the content of a page updates frequently.
 
-## Enabling SSR in Your Project
+## Enable on-demand server rendering
 
-To enable SSR features for production deployments, update your `output` configuration to `'server'` or `'hybrid'` (introduced in **v2.6.0**). Both of these modes control which [pages](/en/core-concepts/astro-pages/) or [server endpoints](/en/core-concepts/endpoints/#server-endpoints-api-routes) should be server-rendered. Each configuration option has a different default behavior, and allows individual routes to opt-out of the default accordingly:
+Both of Astro's on-demand rendering output modes (`server` and `hybrid`) allow you to take advantage of static site performance by pre-rendering individual routes whenever possible, whether you have an entirely dynamic app or a mostly static site that needs on-demand rendering only for select routes.
 
-- __`output: 'server'`__: Server-rendered by default. Use this when most or all of your site should be server-rendered. Any individual page or endpoint can *opt-in* to pre-rendering.
+To decide which one to use in your project, choose the `output` option that represents how **most** of your pages and routes will be rendered:
 
-  ```js ins={3,6,7}
-  // astro.config.mjs
-  import { defineConfig } from 'astro/config';
-  import nodejs from '@astrojs/node';
-
-  export default defineConfig({
-    output: 'server',
-    adapter: nodejs(),
-  });
-  ```
-
+- __`output: 'server'`__: On-demand rendered by default. Use this when most or all of your site or app should be server-rendered on request. Any individual page or endpoint can *opt-in* to pre-rendering.
 - __`output: 'hybrid'`__: Pre-rendered to HTML by default. Use this when most of your site should be static. Any individual page or endpoint can *opt-out* of pre-rendering.
+ 
+Because the server will need to generate at least some pages on demand, both of these modes require you to [add an adapter](#add-an-adapter) to carry out the server functions.
 
+### Configure `server` or `hybrid`
 
-You can then opt-out of the default rendering behavior with an export statement in any page or route:
+To enable on-demand rendering, first update your `output` configuration to one of the two server-rendered modes.
 
-```astro title="src/pages/mypage.astro" {2}
+For example, to configure a highly dynamic app where every page is rendered on demand by default, add `output: 'server'` to your Astro config: 
+
+```js ins={5} title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import nodejs from '@astrojs/nodejs';
+
+export default defineConfig({
+  output: 'server',
+});
+```
+
+You can then choose to override the default on-demand rendering of `server` mode on any page or route by exporting `const prerender = true`:
+
+```astro title="src/pages/my-static-page.astro" ins={2}
 ---
 export const prerender = true;
 // ...
@@ -51,98 +57,8 @@ export const prerender = true;
   <!-- Static, pre-rendered page here... -->
 </html>
 ```
-See more usage examples of [configuring individual routes](#configuring-individual-routes)
 
-### Converting a static site to hybrid rendering
-
-To convert an existing static Astro site to allow hybrid rendering, change the `output` to `'hybrid'` and add an adapter:
-
-```js ins={2,5-8} title="astro.config.mjs"
-import { defineConfig } from 'astro/config';
-import nodejs from '@astrojs/node';
-
-export default defineConfig({
-  adapter: nodejs({
-    mode: 'middleware' // or 'standalone'
-  }),  
-  output: 'hybrid',
-});
-```
-
-### Adding an Adapter
-
-When it's time to deploy an SSR project, you also need to add an adapter. This is because SSR requires a server _runtime_: the environment that runs your server-side code. Each adapter allows Astro to output a script that runs your project on a specific runtime.
-
-You can find both [official and community SSR adapters in our integrations directory](https://astro.build/integrations/?search=&categories%5B%5D=adapters).
-
-#### `astro add` Install
-
-You can add any of the [official Astro adapter integrations](/en/guides/integrations-guide/) with the following `astro add` command. This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step. For example, to install the Vercel adapter, run:
-
-<PackageManagerTabs>
-  <Fragment slot="npm">
-  ```shell
-  npx astro add vercel
-  ```
-  </Fragment>
-  <Fragment slot="pnpm">
-  ```shell
-  pnpm astro add vercel
-  ```
-  </Fragment>
-  <Fragment slot="yarn">
-  ```shell
-  yarn astro add vercel
-  ```
-  </Fragment>
-</PackageManagerTabs>
-
-#### Manual Install
-
-You can also add an adapter manually by installing the package and updating `astro.config.mjs` yourself. (See the links above for adapter-specific instructions to complete the following two steps to enable SSR.) Using `my-adapter` as an example placeholder, the instructions will look something like:
-
-1. Install the adapter to your project dependencies using your preferred package manager:
-
-   <PackageManagerTabs>
-     <Fragment slot="npm">
-     ```shell
-     npm install @astrojs/my-adapter
-     ```
-     </Fragment>
-     <Fragment slot="pnpm">
-     ```shell
-     pnpm add @astrojs/my-adapter
-     ```
-     </Fragment>
-     <Fragment slot="yarn">
-     ```shell
-     yarn add @astrojs/my-adapter
-     ```
-     </Fragment>
-   </PackageManagerTabs>
-
-2. [Add the adapter](/en/reference/configuration-reference/#adapter) to your `astro.config.mjs` file's import and default export:
-
-    ```js ins={3,6-7}
-    // astro.config.mjs
-    import { defineConfig } from 'astro/config';
-    import myAdapter from '@astrojs/my-adapter';
-
-    export default defineConfig({
-      output: 'server',
-      adapter: myAdapter(),
-    });
-    ```
-
-## Features
-
-Astro will remain a static-site generator by default. But once you enable server-side rendering and add an adapter, a few new features become available to you.
-
-### Configuring individual routes
-
-Both `server` and `hybrid` modes allow for server-rendered pages and endpoints and will render all pages according to their default behavior. However, both modes allow you to mark an individual page to opt-out of this default behavior.
-
-### Opting-out of server-rendering
+### Opting-in to pre-rendering in `server` mode
 
 For a mostly server-rendered app configured as `output: server`, add `export const prerender = true` to any page or route to pre-render a static page or endpoint:
 
@@ -166,8 +82,6 @@ export const prerender = true;
 # This is my static, pre-rendered page
 ```
 
-And for an endpoint:
-
 ```js title="src/pages/myendpoint.js" {1}
 export const prerender = true;
 
@@ -178,9 +92,9 @@ export async function GET() {
 }
 ```
 
-### Opting out of pre-rendering
+### Opting out of pre-rendering in `hybrid` mode
 
-For a mostly static site configured as `output: hybrid`, add `export const prerender = false` to any files that should be server-rendered:
+For a mostly static site configured as `output: hybrid`, add `export const prerender = false` to any files that should be server-rendered on demand:
 
 ```js title="src/pages/randomnumber.js" {1}
 export const prerender = false;
@@ -193,43 +107,95 @@ export async function GET() {
 }
 ```
 
-### `Astro.request.headers`
+### Add an Adapter
 
-The headers for the request are available on `Astro.request.headers`. This works like the browser's [`Request.headers`](https://developer.mozilla.org/en-US/docs/Web/API/Request/headers). It is a [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers) object, a Map-like object where you can retrieve headers such as the cookie.
+To deploy a project in `server` or `hybrid` mode, you also need to add an **adapter**. This is because both of these modes require a server _runtime_: the environment that runs code on the server to generate pages when they are requested. Each adapter allows Astro to output a script that runs your project on a specific runtime, such as Vercel, Netlify or Cloudflare.
 
-```astro title="src/pages/index.astro" {2}
----
-const cookie = Astro.request.headers.get('cookie');
-// ...
----
-<html>
-  <!-- Page here... -->
-</html>
-```
+You can find both [official and community adapters in our integrations directory](https://astro.build/integrations/?search=&categories%5B%5D=adapters). Choose the one that corresponds to your [deployment environment](/en/guides/deploy/).
 
-### `Astro.request.method`
+#### `astro add` install
 
-The HTTP method used in the request is available as `Astro.request.method`. This works like the browser's [`Request.method`](https://developer.mozilla.org/en-US/docs/Web/API/Request/method). It returns the string representation of the HTTP method used in the request.
+You can add any of the [official adapters maintained by Astro](/en/guides/integrations-guide/#official-integrations) with the following `astro add` command. This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step. 
 
-```astro title="src/pages/index.astro"
----
-console.log(Astro.request.method) // GET (when navigated to in the browser)
----
-```
+For example, to install the Vercel adapter, run:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add vercel
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add vercel
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add vercel
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+#### Manual Install
+
+You can also add an adapter manually by installing the package and updating `astro.config.mjs` yourself.
+
+For example, to install the Vercel adapter manually:
+
+1. Install the adapter to your project dependencies using your preferred package manager:
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm install @astrojs/vercel
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm install @astrojs/vercel
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn add @astrojs/vercel
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+2. [Add the adapter](/en/reference/configuration-reference/#adapter) to your `astro.config.mjs` file's import and default export, along with your desired `output` mode:
+
+    ```js ins={3,7} {6}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import vercel from '@astrojs/vercel';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: vercel(),
+    });
+    ```
+
+    Note that different adapters may also have different configuration settings. Read each adapter's documentation, and apply any necessary config options to your chosen adapter in `astro.config.mjs`
+
+## On-demand rendering features
+
+### HTML streaming
+
+With HTML streaming, a document is broken up into chunks, sent over the network in order, and rendered on the page in that order. In `server` or `hybrid` mode, Astro uses HTML streaming to send each component to the browser as it renders them. This makes sure the user sees your HTML as fast as possible, although network conditions can cause large documents to be downloaded slowly, and waiting for data fetches can block page rendering.
+
+<RecipeLinks slugs={["en/recipes/streaming-improve-page-performance"]}/>
 
 :::caution
-The features below are only available at the page level. (You can't use them inside of components, including layout components.)
+Features that modify the [Response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header) are only available at the **page level**. (You can't use them inside of components, including layout components.) By the time Astro runs your component code, it has already sent the Response headers and they cannot be modified.
 
-This is because these features modify the [Response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header), which can't be modified after they're sent to the browser. In SSR mode, Astro uses HTML streaming to send each component to the browser as it renders them. This makes sure the user sees your HTML as fast as possible, but it also means that by the time Astro runs your component code, it has already sent the Response headers.
 :::
 
-### `Astro.cookies`
+### Cookies
 
-This is a utility to read and modify a single cookie. It allows you to check, set, get and delete a cookie.
+In `server` and `hybrid` modes, a page or API endpoint can check, set, get, and delete cookies.
 
-See more details about [`Astro.cookies` and the `AstroCookie` type](/en/reference/api-reference/#astrocookies) in the API reference.
-
-The example below updates the value of a cookie for a page view counter.
+The example below updates the value of a cookie for a page view counter:
 
 ```astro title="src/pages/index.astro" {4,5,9}
 ---
@@ -240,16 +206,20 @@ if (Astro.cookies.has("counter")) {
 	counter = cookie.number() + 1
 }
 
-Astro.cookies.set("counter", counter)
+Astro.cookies.set("counter",counter)
 ---
 <html>
   <h1>Counter = {counter}</h1>
 </html>
 ```
 
+See more details about [`Astro.cookies` and the `AstroCookie` type](/en/reference/api-reference/#astrocookies) in the API reference.
+
 ### `Response`
 
-You can also return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) from any page. You might do this to return a 404 on a dynamic page after looking up an id in the database.
+You can also return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) from any page using on-demand rendering. 
+
+The example below returns a 404 on a dynamic page after looking up an id in the database:
 
 ```astro title="src/pages/[id].astro" {8-11}
 ---
@@ -270,108 +240,44 @@ if (!product) {
 </html>
 ```
 
+### `Request`
+
+`Astro.request` is a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request.
+
+In both `server` and `hybrid` mode, you can access additional information from this object for pages that are not statically-generated.
+
+#### `Astro.request.headers`
+
+The headers for the request are available on `Astro.request.headers`. This works like the browser's [`Request.headers`](https://developer.mozilla.org/en-US/docs/Web/API/Request/headers). It is a [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers) object where you can retrieve headers such as the cookie.
+
+```astro title="src/pages/index.astro" {2}
+---
+const cookie = Astro.request.headers.get('cookie');
+// ...
+---
+<html>
+  <!-- Page here... -->
+</html>
+```
+
+#### `Astro.request.method`
+
+The HTTP method used in the request is available as `Astro.request.method`. This works like the browser's [`Request.method`](https://developer.mozilla.org/en-US/docs/Web/API/Request/method). It returns the string representation of the HTTP method used in the request.
+
+```astro title="src/pages/index.astro"
+---
+console.log(Astro.request.method) // GET (when navigated to in the browser)
+---
+```
+
+See more details about [`Astro.request`](/en/reference/api-reference/#astrorequest) in the API reference.
+
 ### Server Endpoints
 
-A server endpoint, also known as an **API route**, is a special function exported from a `.js` or `.ts` file within the `src/pages/` folder. 
-The function takes an [endpoint context](/en/reference/api-reference/#endpoint-context) and returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response). A powerful feature of SSR, API routes are able to securely execute code on the server. To learn more, see our [Endpoints Guide](/en/core-concepts/endpoints/#server-endpoints-api-routes).
+A server endpoint, also known as an **API route**, is a special function exported from a `.js` or `.ts` file within the `src/pages/` folder. A powerful feature of server-side rendering on demand, API routes are able to securely execute code on the server.
 
-### Streaming
+The function takes an [endpoint context](/en/reference/api-reference/#endpoint-context) and returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response). 
 
-Browsers natively support HTTP streaming, where a document is broken up into chunks, sent over the network in order, and rendered on the page in that order.
-
-During this process, browsers consume HTML incrementally: parsing, rendering into the DOM, and painting. This happens whether or not you intentionally stream your HTML. Network conditions can cause large documents to be downloaded slowly, and waiting for data fetches can block page rendering.
+To learn more, see our [Endpoints Guide](/en/core-concepts/endpoints/#server-endpoints-api-routes).
 
 
-### Using streaming to improve page performance
-
-The following page `await`s some data in its frontmatter. Astro will wait for all of the `fetch` calls to resolve before sending any HTML to the browser.
-
-```astro title="src/pages/index.astro"
----
-const personResponse = await fetch('https://randomuser.me/api/');
-const personData = await personResponse.json();
-const randomPerson = personData.results[0];
-const factResponse = await fetch('https://catfact.ninja/fact');
-const factData = await factResponse.json();
----
-<html>
-  <head>
-    <title>A name and a fact</title>
-  </head>
-  <body>
-    <h2>A name</h2>
-    <p>{randomPerson.name.first}</p>
-    <h2>A fact</h2>
-    <p>{factData.fact}</p>
-  </body>
-</html>
-```
-
-Moving the `await` calls into smaller components allows you to take advantage of Astro's streaming. Using the following components to perform the data fetches, Astro can render some HTML first, such as the title, and then the paragraphs when the data is ready.
-
-```astro title="src/components/RandomName.astro"
----
-const personResponse = await fetch('https://randomuser.me/api/');
-const personData = await personResponse.json();
-const randomPerson = personData.results[0];
----
-<p>{randomPerson.name.first}</p>
-```
-
-```astro title="src/components/RandomFact.astro"
----
-const factResponse = await fetch('https://catfact.ninja/fact');
-const factData = await factResponse.json();
----
-<p>{factData.fact}</p>
-```
-
-
-The Astro page below using these components can render parts of the page sooner. The `<head>`, `<body>`, and `<h1>` tags are no longer blocked by data fetches. The server will then fetch data for `RandomName` and `RandomFact` in parallel and stream the resulting HTML to the browser.
-
-```astro title="src/pages/index.astro"
----
-import RandomName from '../components/RandomName.astro'
-import RandomFact from '../components/RandomFact.astro'
----
-<html>
-  <head>
-    <title>A name and a fact</title>
-  </head>
-  <body>
-    <h2>A name</h2>
-    <RandomName />
-    <h2>A fact</h2>
-    <RandomFact />
-  </body>
-</html>
-```
-
-#### Including Promises directly
-
-You can also include promises directly in the template. Instead of blocking the entire component, it will resolve the promise in parallel and only block the markup that comes after it.
-
-```astro title="src/pages/index.astro"
----
-const personPromise = fetch('https://randomuser.me/api/')
-  .then(response => response.json())
-  .then(arr => arr[0].name.first);
-const factPromise = fetch('https://catfact.ninja/fact')
-  .then(response => response.json())
-  .then(factData => factData.fact);
----
-<html>
-  <head>
-    <title>A name and a fact</title>
-  </head>
-  <body>
-    <h2>A name</h2>
-    <p>{personPromise}</p>
-    <h2>A fact</h2>
-    <p>{factPromise}</p>
-  </body>
-</html>
-```
-
-In this example, `A name` will render while `personPromise` and `factPromise` are loading.
-Once `personPromise` has resolved, `A fact` will appear and `factPromise` will render when it's finished loading.
