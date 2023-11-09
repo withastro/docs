@@ -46,33 +46,52 @@ export default [
 	},
 	{ text: 'Pages', slug: 'core-concepts/astro-pages', key: 'core-concepts/astro-pages' },
 	{ text: 'Layouts', slug: 'core-concepts/layouts', key: 'core-concepts/layouts' },
-
-	{ text: 'Recipes', header: true, type: 'learn', key: 'examples' },
-	{ text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
-	{ text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
-	{ text: 'Add backend services', slug: 'guides/backend', key: 'guides/backend' },
-	{ text: 'Add integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
-	{ text: 'Deploy your site', slug: 'guides/deploy', key: 'guides/deploy' },
-	{ text: 'More recipes', slug: 'recipes', key: 'guides/recipes' },
-
-	{ text: 'Guides', header: true, type: 'learn', key: 'features' },
 	{
 		text: 'Astro Template Syntax',
 		slug: 'core-concepts/astro-syntax',
 		key: 'core-concepts/astro-syntax',
 	},
-	{
-		text: 'UI Frameworks',
-		slug: 'core-concepts/framework-components',
-		key: 'core-concepts/framework-components',
-	},
-	{ text: 'Routing', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
-	{ text: 'Markdown & MDX', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
+
+	{ text: 'Built-ins', header: true, type: 'learn', key: 'builtins' },
 	{
 		text: 'Content Collections',
 		slug: 'guides/content-collections',
 		key: 'guides/content-collections',
 	},
+	{
+		text: 'View Transitions',
+		slug: 'guides/view-transitions',
+		key: 'guides/view-transitions',
+	},
+	{
+		text: 'Prefetch',
+		slug: 'guides/prefetch',
+		key: 'guides/prefetch',
+	},
+
+	{ text: 'Add-ons', header: true, type: 'learn', key: 'addons' },
+	{ text: 'Add integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
+	{
+		text: 'UI Frameworks',
+		slug: 'core-concepts/framework-components',
+		key: 'core-concepts/framework-components',
+	},
+	{
+		text: 'SSR Adapters',
+		slug: 'guides/server-side-rendering',
+		key: 'guides/server-side-rendering',
+	},
+
+	{ text: 'Recipes', header: true, type: 'learn', key: 'examples' },
+	{ text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
+	{ text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
+	{ text: 'Add backend services', slug: 'guides/backend', key: 'guides/backend' },
+	{ text: 'Deploy your site', slug: 'guides/deploy', key: 'guides/deploy' },
+	{ text: 'More recipes', slug: 'recipes', key: 'guides/recipes' },
+
+	{ text: 'Guides', header: true, type: 'learn', key: 'features' },
+	{ text: 'Routing', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
+	{ text: 'Markdown', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 	{
 		text: 'Scripts & Event Handling',
 		slug: 'guides/client-side-scripts',
@@ -82,20 +101,10 @@ export default [
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 	{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
-	{
-		text: 'Server-side Rendering (SSR)',
-		slug: 'guides/server-side-rendering',
-		key: 'guides/server-side-rendering',
-	},
 	{ text: 'Endpoints', slug: 'core-concepts/endpoints', key: 'core-concepts/endpoints' },
 	{ text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
 	{ text: 'Middleware', slug: 'guides/middleware', key: 'guides/middleware' },
 	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
-	{
-		text: 'View Transitions',
-		slug: 'guides/view-transitions',
-		key: 'guides/view-transitions',
-	},
 	{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
 
 	{ text: 'Configuration', header: true, type: 'learn', key: 'configuration' },
@@ -129,6 +138,11 @@ export default [
 		text: 'Image Service API',
 		slug: 'reference/image-service-reference',
 		key: 'reference/image-service-reference',
+	},
+	{
+		text: 'Dev Overlay Plugin API',
+		slug: 'reference/dev-overlay-plugin-reference',
+		key: 'reference/dev-overlay-plugin-reference',
 	},
 	{
 		text: 'Template Directives',
