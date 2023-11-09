@@ -34,7 +34,7 @@ export default DocSearchDictionary({
 			navigateUpKeyAriaLabel: 'शीर्ष तीर',
 			navigateDownKeyAriaLabel: 'नीचे तीर',
 			closeText: 'बंद करना',
-			closeKeyAriaLabel: "भागने की कुंजी",
+			closeKeyAriaLabel: "बंद करने की कुंजी",
 			searchByText: 'के माध्यम से खोजें',
 		},
 		noResultsScreen: {
