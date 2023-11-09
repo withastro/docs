@@ -19,6 +19,7 @@ import { remarkFallbackLang } from './plugins/remark-fallback-lang';
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://docs.astro.build/',
+	experimental: { contentCollectionCache: true },
 	integrations: [
 		AutoImport({
 			imports: [asideAutoImport],
