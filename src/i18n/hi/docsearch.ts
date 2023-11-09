@@ -8,7 +8,7 @@ export default DocSearchDictionary({
 	resultsFooterIntegrations: 'Astro एकीकरण निर्देशिका',
 	resultsFooterThemes: 'Astro थीम का प्रदर्शन',
 	resultsFooterDiscord: 'डिस्कोर्ड पर हमसे जुड़ें',
-    modal: {
+	modal: {
 		searchBox: {
 			resetButtonTitle: 'खोज साफ़ करें',
 			resetButtonAriaLabel: 'खोज साफ़ करें',
@@ -19,13 +19,13 @@ export default DocSearchDictionary({
 			recentSearchesTitle: 'हाल की खोजें',
 			noRecentSearchesText: 'कोई हालिया खोज नहीं',
 			saveRecentSearchButtonTitle: 'इस खोज को सहेजें',
-			removeRecentSearchButtonTitle: "इस खोज को इतिहास से हटाएँ",
+			removeRecentSearchButtonTitle: 'इस खोज को इतिहास से हटाएँ',
 			favoriteSearchesTitle: 'पसंदीदा',
 			removeFavoriteSearchButtonTitle: 'इस खोज को पसंदीदा से निकालें',
 		},
 		errorScreen: {
 			titleText: 'परिणाम पुनर्प्राप्त करने में त्रुटि',
-			helpText: "आपको अपने इंटरनेट कनेक्शन की स्थिति की जांच करनी चाहिए।",
+			helpText: 'आपको अपने इंटरनेट कनेक्शन की स्थिति की जांच करनी चाहिए।',
 		},
 		footer: {
 			selectText: 'चयन के लिए',
@@ -34,7 +34,7 @@ export default DocSearchDictionary({
 			navigateUpKeyAriaLabel: 'शीर्ष तीर',
 			navigateDownKeyAriaLabel: 'नीचे तीर',
 			closeText: 'बंद करना',
-			closeKeyAriaLabel: "बंद करने की कुंजी",
+			closeKeyAriaLabel: 'बंद करने की कुंजी',
 			searchByText: 'के माध्यम से खोजें',
 		},
 		noResultsScreen: {
