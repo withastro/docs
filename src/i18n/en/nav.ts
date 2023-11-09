@@ -51,6 +51,7 @@ export default [
 		slug: 'core-concepts/astro-syntax',
 		key: 'core-concepts/astro-syntax',
 	},
+	{ text: 'Rendering Modes', slug: 'core-concepts/rendering-modes', key: 'core-concepts/rendering-modes',},
 
 	{ text: 'Built-ins', header: true, type: 'learn', key: 'builtins' },
 	{
