@@ -4,7 +4,7 @@ i18nReady: true
 ---
 import Since from '~/components/Since.astro'
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
-
+import Badge from '~/components/Badge.astro';
 
 
 ## `Astro` global
@@ -757,6 +757,11 @@ const { page } = Astro.props;
 - `/posts/[page].astro` would generate the URLs `/posts/1`, `/posts/2`, `/posts/3`, etc.
 - `/posts/[...page].astro` would generate the URLs `/posts`, `/posts/2`, `/posts/3`, etc.
 
+`paginate()` has the following arguments:
+- `pageSize` - The number of items shown per page
+- `params` - Send additional parameters for creating dynamic routes
+- `props` - Send additional props to be available on each page
+
 #### The pagination `page` prop
 
 Pagination will pass a `page` prop to every rendered page that represents a single page of data in the paginated collection. This includes the data that you've paginated (`page.data`) as well as metadata for the page (`page.url`, `page.start`, `page.end`, `page.total`, etc). This metadata is useful for things like a "Next Page" button or a "Showing 1-10 of 100" message.
@@ -774,7 +779,56 @@ Pagination will pass a `page` prop to every rendered page that represents a sing
 | `page.url.prev`    | `string \| undefined` | Get the URL of the previous page (will be `undefined` if on page 1).                                                              |
 | `page.url.next`    | `string \| undefined` | Get the URL of the next page (will be `undefined` if no more pages).                                                              |
 
-## Content Collections
+
+
+
+
+## `import.meta`
+
+All ESM modules include a `import.meta` property. Astro adds `import.meta.env` through [Vite](https://vitejs.dev/guide/env-and-mode.html).
+
+**`import.meta.env.SSR`** can be used to know when rendering on the server. Sometimes you might want different logic, like a component that should only be rendered in the client:
+
+```jsx
+export default function () {
+  return import.meta.env.SSR ? <div class="spinner"></div> : <FancyComponent />;
+}
+```
+
+##  Images (`astro:assets`)
+
+### getImage()
+
+:::caution
+`getImage()` relies on server-only APIs and breaks the build when used on the client.
+:::
+
+The `getImage()` function is intended for generating images destined to be used somewhere else than directly in HTML, for example in an [API Route](/en/core-concepts/endpoints/#server-endpoints-api-routes). It also allows you to create your own custom `<Image />` component.
+
+`getImage()` takes an options object with the [same properties as the Image component](#properties) (except `alt`).
+
+```astro
+---
+import { getImage } from "astro:assets";
+import myBackground from "../background.png"
+
+const optimizedBackground = await getImage({src: myBackground, format: 'avif'})
+---
+
+<div style={`background-image: url(${optimizedBackground.src});`}></div>
+```
+
+It returns an object with the following properties:
+
+```js
+{
+  options: {...} // Original parameters passed
+  src: "https//..." // Path to the generated image
+  attributes: {...} // Additional HTML attributes needed to render the image (width, height, style, etc..)
+}
+```
+
+## Content Collections (`astro:content`)
 
 <p>
   <Since v="2.0.0" />
@@ -922,8 +976,8 @@ See the `Content Collections` guide for examples of [querying collection entries
 
 **Types:**
 
-- `(Array<{ collection: string, id: string }>) => CollectionEntry<collection>`
-- `(Array<{ collection: string, slug: string }>) => CollectionEntry<collection>`
+- `(Array<{ collection: string, id: string }>) => Array<CollectionEntry<collection>>`
+- `(Array<{ collection: string, slug: string }>) => Array<CollectionEntry<collection>>`
 
 `getEntries()` is a function that retrieves multiple collection entries from the same collection. This is useful for [returning an array of referenced entries](/en/guides/content-collections/#defining-collection-references) to access their associated `data`, `body`, and `render()` properties.
 
@@ -1079,20 +1133,6 @@ const blog = defineCollection({
 });
 ```
 
-## `import.meta`
-
-All ESM modules include a `import.meta` property. Astro adds `import.meta.env` through [Vite](https://vitejs.dev/guide/env-and-mode.html).
-
-**`import.meta.env.SSR`** can be used to know when rendering on the server. Sometimes you might want different logic, for example a component that should only be rendered in the client:
-
-```jsx
-import { h } from 'preact';
-
-export default function () {
-  return import.meta.env.SSR ? <div class="spinner"></div> : <FancyComponent />;
-}
-```
-
 ## Built-in Components
 
 Astro includes several built-in components for you to use in your projects. All built-in components are available in `.astro` files via `import {} from 'astro:components';`.
@@ -1118,13 +1158,18 @@ import { Code } from 'astro:components';
 
 This component provides syntax highlighting for code blocks at build time (no client-side JavaScript included). The component is powered internally by Shiki and it supports all popular [themes](https://github.com/shikijs/shiki/blob/main/docs/themes.md) and [languages](https://github.com/shikijs/shiki/blob/main/docs/languages.md). Plus, you can add your custom themes and languages by passing them to `theme` and `lang` respectively.
 
-:::note
-When using a [strict package manager](https://pnpm.io/pnpm-vs-npm#npms-flat-tree) like `pnpm`, you may also need to install Shiki so it works during build:
+### `<Fragment />`
 
-```bash
-pnpm install shiki
+A component used with [`set:*` directives](/en/reference/directives-reference/#sethtml) to render HTML content without any additional wrapping elements:
+
+```astro title="src/components/SetHtml.astro" "Fragment"
+---
+const htmlString = '<p>Raw HTML content</p>';
+---
+<Fragment set:html={htmlString} />
 ```
-:::
+
+See more about [using fragments](/en/core-concepts/astro-syntax/#fragments) in Astro syntax.
 
 ### `<Prism />`
 
@@ -1138,7 +1183,7 @@ To use the `Prism` highlighter component, first **install** the `@astrojs/prism`
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  pnpm install @astrojs/prism
+  pnpm add @astrojs/prism
   ```
   </Fragment>
   <Fragment slot="yarn">
@@ -1158,6 +1203,133 @@ import { Prism } from '@astrojs/prism';
 This component provides language-specific syntax highlighting for code blocks by applying Prism's CSS classes. Note that **you need to provide a Prism CSS stylesheet** (or bring your own) for syntax highlighting to appear! See the [Prism configuration section](/en/guides/markdown-content/#prism-configuration) for more details.
 
 See the [list of languages supported by Prism](https://prismjs.com/#supported-languages) where you can find a language’s corresponding alias. And, you can also display your Astro code blocks with `lang="astro"`!
+
+### `<Image />`
+
+```astro title="src/components/MyComponent.astro"
+---
+// import the Image component and the image
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // Image is 1600x900
+---
+
+<!-- `alt` is mandatory on the Image component -->
+<Image src={myImage} alt="A description of my image." />
+```
+
+```html
+<!-- Output -->
+<!-- Image is optimized, proper attributes are enforced -->
+<img
+  src="/_astro/my_image.hash.webp"
+  width="1600"
+  height="900"
+  decoding="async"
+  loading="lazy"
+  alt="A description of my image."
+/>
+```
+#### Properties
+
+- src (required)
+- alt (required)
+- width and height (required for `public/` and remote images)
+- format
+- quality
+- densities
+- widths
+
+In addition to the properties above, the `<Image />` component accepts all properties accepted by the HTML `<img>` tag.
+
+See more in the [Images Guide](/en/guides/images/#image--astroassets).
+
+### `<Picture />`
+
+<Since v="3.3.0" /> <Badge>Experimental</Badge>
+
+Use the built-in `<Picture />` Astro component to display a responsive image with multiple formats and/or sizes.
+
+```astro title="src/pages/index.astro"
+---
+import { Picture } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // Image is 1600x900
+---
+
+<!-- `alt` is mandatory on the Picture component -->
+<Picture src={myImage} formats={['avif', 'webp']} alt="A description of my image." />
+```
+
+```html
+<!-- Output -->
+<picture>
+  <source srcset="/_astro/my_image.hash.avif" type="image/avif" />
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.png"
+    width="1600"
+    height="900"
+    decoding="async"
+    loading="lazy"
+    alt="A description of my image."
+  />
+</picture>
+```
+
+See more in the [Images Guide](/en/guides/images/#picture-).
+
+#### Properties
+
+`<Picture />` accepts all the properties of the `<Image />` component, plus the following:
+
+##### `formats`
+
+An array of image formats to use for the `<source>` tags. By default, this is set to `['webp']`.
+
+##### `fallbackFormat`
+
+Format to use as a fallback value for the `<img>` tag. Defaults to `.png` for static images, `.gif` for animated images, and `.svg` for SVG files.
+
+##### `pictureAttributes`
+
+An object of attributes to be added to the `<picture>` tag. Use this property to apply attributes to the outer `<picture>` element itself. Attributes applied to the `<Picture />` component directly will apply to the inner `<img>` element, except for those used for image transformation.
+
+
+### `<Content />`
+
+A generic component used to render the content of a [content collection entry](/en/guides/content-collections/#what-are-content-collections).
+
+First, query one or more entries using `getCollection()` or `getEntry()`. Then, the `entry.render()` function can return the `<Content />` component for use in a `.astro` file template.
+
+```astro title="src/pages/render-example.astro" {4, 7}
+---
+import { getEntry } from 'astro:content';
+const entry = await getEntry('blog', 'post-1');
+const { Content } = await entry.render();
+---
+<p>Published on: {entry.data.published.toDateString()}</p>
+<Content />
+```
+
+### `<ViewTransitions />`
+
+Opt in to using view transitions on individual pages by importing and adding the `<ViewTransitions />` routing component to `<head>` on every desired page.
+
+```astro title="src/pages/index.astro" ins={2,7}
+---
+import { ViewTransitions } from 'astro:transitions';
+---
+<html lang="en">
+  <head>
+    <title>My Homepage</title>
+    <ViewTransitions />
+  </head>
+  <body>
+    <h1>Welcome to my website!</h1>
+  </body>
+</html>
+```
+
+See more about how to [control the router](/en/guides/view-transitions/#router-control) and [add transition directives](/en/guides/view-transitions/#transition-directives) to page elements and components.
 
 ### `<Debug />`
 
