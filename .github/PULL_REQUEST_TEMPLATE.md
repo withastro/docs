@@ -1,10 +1,8 @@
 <!-- Thank you for opening a PR! We really appreciate you taking the time to help out 🙌 -->
 
 #### Description (required)
-<!-- Please describe the change you are proposing, and why -->
 
-<!-- TAKING PART IN HACKTOBERFEST? LET US KNOW! -->
-<!-- See .github/hacktoberfest.md in this repo for more details. -->
+<!-- Please describe the change you are proposing, and why -->
 
 #### Related issues & labels (optional)
 

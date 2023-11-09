@@ -63,6 +63,11 @@ export default [
 		slug: 'guides/view-transitions',
 		key: 'guides/view-transitions',
 	},
+	{
+		text: 'Prefetch',
+		slug: 'guides/prefetch',
+		key: 'guides/prefetch',
+	},
 
 	{ text: 'Add-ons', header: true, type: 'learn', key: 'addons' },
 	{ text: 'Add integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
