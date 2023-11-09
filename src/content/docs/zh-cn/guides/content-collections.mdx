@@ -540,200 +540,9 @@ const { Content } = await entry.render();
 
 ## 从基于文件的路由迁移
 
-本指南展示了如何使用 `src/pages/` 文件夹中的 Markdown 文件将现有的 Astro 项目转换为内容集合。它使用了[构建博客教程的完整项目](https://github.com/withastro/Blog-tutorial-demo)作为例子。
+如果你已经有了一个现成的 Astro 项目，比如一个博客，它使用 Markdown 或 MDX 文件在 `src/pages/` 内部的子文件夹中，可以考虑将相关内容或数据文件迁移到内容集合中。
 
-1. [更新](/zh-cn/guides/upgrade-to/v2/)到 Astro v2.0 或更高版本，并将所有集成升级到最新版本。
-
-2. 为内容集合[设置 TypeScript ](#设置-typescript)。
-
-3. 创建至少一个集合 (`src/content/` 的文件夹中)，并将 Markdown 和 MDX 页面从 `src/pages/` 移动到 `src/content/` 的这些子目录中。当同一集合中的所有文件具有相似的 frontmatter 属性时，集合的工作效果最好。因此，请选择新的文件夹结构以反映类似类型的页面。
-    
-    例如，要迁移[教程中的博客文章](/zh-cn/tutorial/2-pages/2/) ，请将 `src/pages/post/` 的内容移动到 `src/content/posts/`。
-
-4. 创建一个 `src/content/config.ts` 文件，并为每种内容类型[定义一个模式](#定义集合模式)。对于博客，我们只有一种内容类型 `posts`:
-
-    ```ts title="src/content/config.ts"
-    // 从 `astro:content` 中导入实用工具
-    import { z, defineCollection } from "astro:content";
-    // 为要验证的每个集合定义模式。
-    const postsCollection = defineCollection({
-        schema: z.object({
-          title: z.string(),
-          pubDate: z.date(),
-          description: z.string(),
-          author: z.string(),
-          image: z.object({
-            url: z.string(),
-            alt: z.string()
-          }),
-          tags: z.array(z.string())
-        })
-    });
-    // 导出一个 `collections` 对象来注册集合
-    export const collections = {
-      posts: postsCollection,
-    };
-    ```
-
-    :::tip
-    如果你的编辑器不能识别 `Astro:content`，请确保使用的是最新版本的 Astro，并尝试重新启动开发服务器。
-    :::
-
-5. [从集合中生成路由](#从内容生成路由)。在集合中，Markdown 和 MDX 文件不再使用 Astro 的[基于文件的路由](/zh-cn/guides/markdown-content/#基于文件的路由)自动成为页面，因此必须自己生成页面。
-
-    对于本教程，创建一个 `src/pages/post/[...slug].astro`。这个页面将使用[动态路由](/zh-cn/core-concepts/routing/#动态路由)并为每个集合条目生成一个页面。
-
-    这个页面还需要[查询你的集合](#查询集合)来获取页面 slug，并使每个路由都可以使用页面内容。
-
-    在 Markdown 或 MDX 页面的布局中渲染文章 `<Content/>` 。这允许你为所有的文章指定一个公共布局。
-
-    ```astro title="src/pages/posts/[...slug].astro"
-    ---
-    import { getCollection } from 'astro:content';
-    import MarkdownPostLayout from '../../layouts/MarkdownPostLayout.astro';
-
-    export async function getStaticPaths() {
-      const blogEntries = await getCollection('posts');
-      return blogEntries.map(entry => ({
-        params: { slug: entry.slug }, props: { entry },
-      }));
-    }
-
-    const { entry } = Astro.props;
-    const { Content } = await entry.render();
-    ---
-    <MarkdownPostLayout frontmatter={entry.data}>
-      <Content />
-    </MarkdownPostLayout>
-    ```
-
-6. 在个人文章的 frontmatter 中删除前面的 `layout` 定义。当渲染时，内容呈现在布局中，不再需要此属性。
-
-    ```md title="src/content/post-1.md" del={2}
-    ---
-    layout: ../../layouts/MarkdownPostLayout.astro
-    title: 'My First Blog Post'
-    pubDate: 2022-07-01
-    ...
-    ---
-    ```
-
-7. 将 `Astro.glob()` 替换为 [`getCollection()`](/zh-cn/reference/api-reference/#getcollection) 以从 Markdown 文件中获取内容和元数据。还需要更新对返回的 post 对象的引用，因为你现在可以在 `data` 属性上找到 frontmatter 值。
-
-    教程中的博客索引页面为每篇文章列出了一张卡片，如下所示：
-
-    ```astro title="src/pages/blog.astro" "post.data" "getCollection(\"posts\")"
-    ---
-    import { getCollection } from "astro:content";
-    import BaseLayout from "../layouts/BaseLayout.astro";
-    import BlogPost from "../components/BlogPost.astro";
-
-    const pageTitle = "My Astro Learning Blog";
-    const allPosts = await getCollection("posts");
-    ---
-
-    <BaseLayout pageTitle={pageTitle}>
-      <p>This is where I will post about my journey learning Astro.</p>
-      <ul>
-        {
-          allPosts.map((post) => (
-            <BlogPost url={"/posts/" + post.slug} title={post.data.title} />
-          ))
-        }
-      </ul>
-    </BaseLayout> 
-    ```
-
-    教程博客项目还为每个 tag 动态生成一个页面。该页面现在变成：
-
-    ```astro title="src/pages/tags/[tag].astro" "post.data" "getCollection(\"posts\")" "post.data.title" "'/posts/' + post.slug"
-    ---
-    import { getCollection } from "astro:content";
-    import BaseLayout from "../../layouts/BaseLayout.astro";
-    import BlogPost from "../../components/BlogPost.astro";
-
-    export async function getStaticPaths() {
-      const allPosts = await getCollection("posts");
-      const uniqueTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
-
-      return uniqueTags.map((tag) => {
-        const filteredPosts = allPosts.filter((post) =>
-          post.data.tags.includes(tag)
-        );
-        return {
-          params: { tag },
-          props: { posts: filteredPosts },
-        };
-      });
-    }
-    
-    const { tag } = Astro.params;
-    const { posts } = Astro.props;
-    ---
-
-    <BaseLayout pageTitle={tag}>
-        <p>Posts tagged with {tag}</p>
-        <ul>
-            { posts.map((post) => <BlogPost url={'/posts/' + post.slug} title={post.data.title} />) }
-        </ul>
-    </BaseLayout>
-    ```
-
-    同样的逻辑出现在标签索引页中，变成：
-    
-    ```astro title="src/pages/tags/index.astro" "post.data" "getCollection(\"posts\")"
-    ---
-    import { getCollection } from "astro:content";
-    import BaseLayout from "../../layouts/BaseLayout.astro";
-    const allPosts = await getCollection("posts");
-    const tags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
-    const pageTitle = "Tag Index";
-    ---
-    ...
-    ```
-
-    :::note
-    任何单独的 Markdown 或 MDX 文件导入都应该由[`getEntry()`](/zh-cn/reference/api-reference/#getentry)替换。
-    :::
-8. 更新使用 `layouts/MarkdownPostLayout.astro` 文件中发布日期的代码。
-
-    以前，`pubDate` 是一个字符串。现在，在为文章的 frontmatter 引入类型之后，`pubDate` 是一个 `Date`。
-    要呈现日期，请将其转换为字符串：
-
-    ```astro title="src/layouts/MarkdownPostLayout.astro" "frontmatter.pubDate.toDateString()"
-    ...
-    <BaseLayout pageTitle={frontmatter.title}>
-      <p>{frontmatter.pubDate.toDateString()}</p>
-      <p><em>{frontmatter.description}</em></p>
-      <p>Written by: {frontmatter.author}</p>
-      <img src={frontmatter.image.url} width="300" alt={frontmatter.image.alt} />
-    ...
-    ```
-    
-    最后，教程博客项目包括一个 RSS 源。这个函数还必须使用 `getCollection` 和 `data` 对象，并转换为异步函数：
-
-    ```js title="src/pages/rss.xml.js" {4-5, 10-15} 
-    import rss from "@astrojs/rss";
-    import { getCollection } from "astro:content";
-
-    export async function GET() {
-      const posts = await getCollection('posts');
-      return rss({
-        title: 'Astro Learner | Blog',
-        description: 'My journey learning Astro',
-        site: 'https://my-blog-site.netlify.app',
-        items: posts.map((post) => ({
-          title: post.data.title,
-          pubDate: post.data.pubDate,
-          description: post.data.description,
-          link: `/posts/${post.slug}/`,
-        })),
-        customData: `<language>en-us</language>`,
-      });
-    }
-    ```
-
-有关使用内容集合的博客教程的完整示例，请参见教程 repo 的[内容集合分支](https://github.com/withastro/blog-tutorial-demo/tree/content-collections)。
+请参考我们的[手把手教程](/zh-cn/tutorials/add-content-collections/)中的示例，了解如何将位于 `src/pages/posts/` 的基本博客示例转换为 `src/content/posts` 目录下的示例。该教程使用了[构建博客教程的完整项目](https://github.com/withastro/blog-tutorial-demo)的代码库。
 
 ## 用 Remark 修改 Frontmatter
 
@@ -757,3 +566,35 @@ const { remarkPluginFrontmatter } = await blogPost.render();
 
 remark 和 rehype 管道只在渲染内容时运行，这就解释了为什么只有在对内容条目调用 `render()` 之后才可以使用 `remarkPluginFrontmatter`。相比之下，`getCollection()` 和 `getEntry()` 不能直接返回这些值，因为它们不会渲染内容。
 
+## 在 frontmatter 中处理日期
+
+内容集合中可以使用多种日期格式，但你的集合模式必须匹配你在 Markdown 或 MDX YAML 中 frontmatter 所使用的格式。
+
+YAML 使用 [ISO-8601](https://www.iso.org/iso-8601-date-and-time-format.html) 标准来表示日期，其以 `yyyy-mm-dd` 格式（例如 `2021-07-28`）表示并配合 `z.date()` 的模式类型来使用：
+
+```markdown title="src/pages/posts/example-post.md"
+---
+title: 我的博客文章
+pubDate: 2021-07-08
+---
+```
+
+如果没有提供时区，日期格式将指定为 UTC 格式。如果你需要指定一个时区，你可以使用 [ISO 8601](https://zh.wikipedia.org/wiki/ISO_8601) 格式。
+
+```markdown title="src/pages/posts/example-post.md"
+---
+title: 我的博客文章
+pubDate: 2021-07-08T12:00:00-04:00
+---
+```
+
+想要仅渲染完整 UTC 时间戳中的 `YYYY-MM-DD`，可以使用 JavaScript 的 `slice` 方法来移除时间戳：
+
+```astro title="src/layouts/ExampleLayout.astro"
+---
+const { frontmatter } = Astro.props;
+---
+<h1>{frontmatter.title}</h1>
+<p>{frontmatter.pubDate.slice(0,10)}</p>
+```
+要查看使用 `toLocaleDateString` 格式化日期、月份和年份的例子，请查看官方 Astro 博客模板中的 [`<FormattedDate />` 组件](https://github.com/withastro/astro/blob/latest/examples/blog/src/components/FormattedDate.astro)。
