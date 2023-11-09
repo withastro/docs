@@ -28,7 +28,7 @@ export default DocSearchDictionary({
 			helpText: "आपको अपने इंटरनेट कनेक्शन की स्थिति की जांच करनी चाहिए।",
 		},
 		footer: {
-			selectText: 'चयन करने के लिए',
+			selectText: 'चयन के लिए',
 			selectKeyAriaLabel: 'कुंजी दबाएँ',
 			navigateText: 'नेविगेट करने के लिए',
 			navigateUpKeyAriaLabel: 'शीर्ष तीर',
