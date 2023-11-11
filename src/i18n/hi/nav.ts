@@ -8,7 +8,7 @@ export default NavDictionary({
 	'guides/upgrade-to/v3': 'v3 में अपग्रेड करें',
 
 	coreConcepts: 'मूल अवधारणाएँ',
-	'concepts/why-astro': 'Astro क्यों',
+	'concepts/why-astro': 'क्यों Astro',
 	'concepts/islands': 'Astro द्वीप',
 
 	tutorials: 'शिक्षण सत्र',
