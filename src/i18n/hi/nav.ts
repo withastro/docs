@@ -4,7 +4,7 @@ export default NavDictionary({
 	startHere: 'यहाँ से शुरू करे',
 	'getting-started': 'पहले कदम',
 	install: 'स्थापित करें',
-	'editor-setup': 'संपादक सेटअप',
+	'editor-setup': 'एडिटर सेटअप',
 	'guides/upgrade-to/v3': 'v3 में अपग्रेड करें',
 
 	coreConcepts: 'मूल अवधारणाएँ',
