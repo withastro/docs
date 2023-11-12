@@ -3,7 +3,7 @@ import { NavDictionary } from '../translation-checkers';
 export default NavDictionary({
 	startHere: 'यहाँ से शुरू करे',
 	'getting-started': 'पहले कदम',
-	
+
 	install: 'स्थापित करें',
 	'editor-setup': 'एडिटर सेटअप',
 	'guides/upgrade-to/v3': 'v3 में अपग्रेड करें',
@@ -58,7 +58,6 @@ export default NavDictionary({
 	'guides/troubleshooting': 'समस्या समाधान',
 
 	configuration: 'कॉन्फ़िगरेशन',
-	'guides/typescript': 'Typescript',
 	'guides/typescript': 'Typescript',
 	'guides/aliases': 'आयात उपनाम',
 	'guides/environment-variables': 'पर्यावरण चर',
