@@ -35,7 +35,7 @@ export default NavDictionary({
 
 	examples: 'उदाहरण',
 	'guides/migrate-to-astro': 'Astro में माइग्रेट करें',
-	'guides/cms': 'एक CMS से कनेक्ट करें',
+	'guides/cms': 'एक CMS से जुड़े',
 	'guides/backend': 'बैकएंड सेवाओं को जोड़ें',
 	'guides/deploy': 'अपनी साइट को डिप्लॉय करें',
 	'guides/recipes': 'अधिक रेसिपी',
