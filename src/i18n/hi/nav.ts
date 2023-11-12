@@ -18,10 +18,11 @@ export default NavDictionary({
 
 	basics: 'मौलिक अवधारणाएँ',
 	'core-concepts/project-structure': 'परियोजना संरचना',
-	'core-concepts/astro-components': 'घटक',
+	'core-concepts/astro-components': 'अवयव',
 	'core-concepts/astro-pages': 'पृष्ठ',
 	'core-concepts/layouts': 'नक़्शे',
 	'core-concepts/astro-syntax': 'Astro की सिंटैक्स',
+	'core-concepts/rendering-modes': 'अनुवाद मध्यम'
 
 	builtins: 'सामग्री स्थापित',
 	'guides/content-collections': 'सामग्री संग्रह',
