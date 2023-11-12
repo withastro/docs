@@ -14,7 +14,7 @@ export default NavDictionary({
 	tutorials: 'शिक्षण सत्र',
 	'blog-tutorial': 'ब्लॉग बनाएं',
 	'add-collections-tutorial': 'सामग्री संग्रह बढ़ाएं',
-	'add-transitions-tutorial': 'दृश्य परिसर बढ़ाएं',
+	'add-transitions-tutorial': 'व्यू-ट्रांज़िशन्स बढ़ाएं',
 
 	basics: 'मौलिक अवधारणाएँ',
 	'core-concepts/project-structure': 'परियोजना संरचना',
@@ -58,7 +58,7 @@ export default NavDictionary({
 
 	configuration: 'कॉन्फ़िगरेशन',
 	'guides/configuring-astro': 'Astro कॉन्फ़िगरेशन फ़ाइल',
-	'guides/typescript': 'टाइपस्क्रिप्ट',
+	'guides/typescript': 'Typescript',
 	'guides/aliases': 'आयात उपनाम',
 	'guides/environment-variables': 'पर्यावरण चर',
 
