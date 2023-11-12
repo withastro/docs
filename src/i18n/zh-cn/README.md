@@ -164,21 +164,21 @@ Astro 简单**好用**，值得*推荐*。
 
 1. 调整语序为中文习惯，例如：
 
-> So far we've only been binding to simple property keys in our templates. But Vue.js actually supports the full power of JavaScript expressions inside all data bindings.
+    > So far we've only been binding to simple property keys in our templates. But Vue.js actually supports the full power of JavaScript expressions inside all data bindings.
 
-可以译为“目前我们都是只通过模板语法绑定简单的 property 键值，但实际上，Vue.js 完全支持在所有的数据绑定中使用 JavaScript 表达式”。
+    可以译为“目前我们都是只通过模板语法绑定简单的 property 键值，但实际上，Vue.js 完全支持在所有的数据绑定中使用 JavaScript 表达式”。
 
 1. 省略部分在外语中仅用于完成句式的词语，例如：
 
-> When Vue is updating a list of elements rendered with v-for, by default it uses an "in-place patch" strategy. If the order of the data items has changed, instead of moving the DOM elements to match the order of the items, Vue will patch each element in-place and make sure it reflects what should be rendered at that particular index.
+    > When Vue is updating a list of elements rendered with v-for, by default it uses an "in-place patch" strategy. If the order of the data items has changed, instead of moving the DOM elements to match the order of the items, Vue will patch each element in-place and make sure it reflects what should be rendered at that particular index.
 
-像 `to match the order of the items` 这样的短语可以在保证语义不变的条件下简化，译为“Vue 默认按照“就地更新”的策略来更新通过 v-for 渲染的元素列表。当数据项的顺序改变时，Vue 不会随之移动 DOM 元素的顺序，而是就地更新每个元素，确保它们在原本指定的索引位置上渲染”。
+    像 `to match the order of the items` 这样的短语可以在保证语义不变的条件下简化，译为“Vue 默认按照“就地更新”的策略来更新通过 v-for 渲染的元素列表。当数据项的顺序改变时，Vue 不会随之移动 DOM 元素的顺序，而是就地更新每个元素，确保它们在原本指定的索引位置上渲染”。
 
 1. 在句子之间补充类似“然而”、“并且”、“即使…也…”这样的关联词，使句子更加连贯，例如：
 
-> The mustache tag will be replaced with the value of the msg property from the corresponding component instance. It will also be updated whenever the msg property changes.
+    > The mustache tag will be replaced with the value of the msg property from the corresponding component instance. It will also be updated whenever the msg property changes.
 
-后半句可以译为“只要绑定的组件实例上 msg property 发生改变，插值处的内容就会随之更新”。
+    后半句可以译为“只要绑定的组件实例上 msg property 发生改变，插值处的内容就会随之更新”。
 
 1. 在尽可能地尊重原版内容的前提下，使读者理解起来更加容易。即，在修缮的同时，要保证译文所传达的内容（而非句式、语法等）是准确可靠的。
 
