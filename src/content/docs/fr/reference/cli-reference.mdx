@@ -67,6 +67,7 @@ Commandes
             check  Vérifier votre projet pour les erreurs.
               dev  Démarrer le serveur de développement.
              docs  Ouvrir la documentation dans votre navigateur Web.
+             info  Liste d'informations sur votre configuration actuelle d'Astro.
           preview  Prévisualiser votre Build localement.
              sync  Générer les types de collection de contenu.
         telemetry  Configurer les paramètres de télémétrie.
@@ -79,8 +80,13 @@ Options globales
         --verbose  Activer l'enregistrement détaillé.
          --silent  Désactiver tous les journaux.
         --version  Afficher le numéro de version et quitter.
+           --open  Ouvrir l'application dans le navigateur au démarrage du serveur.
            --help  Afficher ce message d'aide.
 ```
+
+:::note
+Le `--` supplémentaire avant chaque option est nécessaire pour que `npm` transmette options à la commande `astro`.
+:::
 
 ### Scripts `package.json`
 
@@ -112,7 +118,6 @@ Vous utiliserez souvent ces commandes `astro`, ou les scripts qui les exécutent
   # Build votre site en incluant les pages de brouillon en utilisant le script `build` dans `package.json`
   npm run build -- --drafts
   ```
-  (Le `--` supplémentaire avant l'option `--port` est nécessaire pour que `npm` transmette vos options à la commande `astro`.)
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
@@ -170,7 +175,6 @@ Si vous avez démarré votre projet en utilisant [l'assistant `create astro`](/f
   # démarre le serveur de développement sur le port 8080 en utilisant le script `start` dans `package.json`
   npm run start -- --port 8080
   ```
-  (Le `--` supplémentaire avant l'option `--port` est nécessaire pour que `npm` transmette vos options à la commande `astro`.)
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
@@ -215,13 +219,7 @@ N'utilisez pas l'option `--host` pour exposer le serveur de développement à un
 
 Compile votre site pour le déploiement. Par défaut, cela générera des fichiers statiques et les placera dans un répertoire `dist/`. Si le [SSR est activé](/fr/guides/server-side-rendering/), cela générera les fichiers serveur nécessaires à votre site.
 
-<h3>Options</h3>
-
-Utilisez ces options pour personnaliser votre Build. Pour les options partagées avec les autres commandes Astro, voir les [options courantes](#options-courantes) ci-dessous.
-
-#### `--drafts`
-
-Inclut les [pages de brouillon Markdown](/fr/guides/markdown-content/#pages-brouillons) dans le Build.
+Peut être combiné avec les [options courantes](#options-courantes) documentées ci-dessous.
 
 ## `astro preview`
 
@@ -247,10 +245,6 @@ Utilisez ces options pour personnaliser le comportement d'une commande.
 
 La commande surveillera toute modification apportée aux fichiers `.astro` et signalera toute erreur.
 
-:::note
-Cette commande ne vérifie les types que dans les fichiers `.astro`.
-:::
-
 📚 En savoir plus sur le [support de TypeScript dans Astro](/fr/guides/typescript/).
 
 ## `astro sync`
@@ -272,6 +266,26 @@ Ajoute une intégration à votre configuration. En savoir plus dans [le guide de
 ## `astro docs`
 
 Lance directement le site web Astro Docs depuis le terminal.
+
+## `astro info`
+
+Rapporte des informations utiles sur votre environnement Astro actuel. Utile pour fournir des informations lors de l'ouverture d'un problème.
+
+```shell
+astro info
+```
+
+Exemple de sortie:
+
+```
+Astro                    v3.0.12
+Node                     v20.5.1
+System                   macOS (arm64)
+Package Manager          pnpm
+Output                   server
+Adapter                  @astrojs/vercel/serverless
+Integrations             none
+```
 
 ## `astro telemetry`
 
@@ -319,6 +333,12 @@ Spécifie le chemin du fichier de configuration par rapport à la racine du proj
 astro --config config/astro.config.mjs dev
 ```
 
+### `--outDir <chemin>`
+
+<Since v="3.3.0" />
+
+Configure le [`outDir`](/fr/reference/configuration-reference/#outdir) pour votre projet. Passer cette option remplacera la valeur de `outDir` dans votre fichier `astro.config.mjs`, s'il en existe un.
+
 ### `--site <url>`
 
 Configure le [`site`](/fr/reference/configuration-reference/#site) pour votre projet. Utiliser cette option remplacera, si elle existe, la valeur `site` de votre fichier `astro.config.mjs`.
@@ -345,6 +365,136 @@ Utilisez ces options pour obtenir des informations à propos du CLI `astro`.
 
 Affiche le numéro de version d'Astro et quitte.
 
+### `--open`
+
+Ouvre automatiquement l'application dans le navigateur au démarrage du serveur.
+
 ### `--help`
 
 Affiche le message d'aide et quitte.
+
+## API avancées (expérimentales)
+
+Si vous avez besoin de plus de contrôle lors de l'exécution d'Astro, le paquet `"astro"` exporte également des API pour exécuter par programme les commandes CLI.
+
+Ces API sont expérimentales et leur signature peut changer. Toute mise à jour sera mentionnée dans le [Astro changelog](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md) et les informations ci-dessous montreront toujours les informations actuelles et à jour.
+
+### `AstroInlineConfig`
+
+Le type `AstroInlineConfig` est utilisé par toutes les API de commande ci-dessous. Il s'étend à partir du type utilisateur [Astro config](/fr/reference/configuration-reference/) :
+
+```ts
+interface AstroInlineConfig extends AstroUserConfig {
+	configFile?: string | false;
+	mode?: "development" | "production";
+	logLevel?: "debug" | "info" | "warn" | "error" | "silent";
+}
+```
+
+#### `configFile`
+
+<p>
+
+**Type:** `string | false`<br />
+**Défaut:** `undefined`
+</p>
+
+Un chemin personnalisé vers le fichier de configuration d'Astro.
+
+Si cette valeur est indéfinie (par défaut) ou non définie, Astro recherchera un fichier `astro.config.(js,mjs,ts)` relatif à la `root` et chargera le fichier de configuration s'il est trouvé.
+
+Si un chemin relatif est défini, il sera résolu en fonction du répertoire de travail courant.
+
+Mettre `false` pour désactiver le chargement de tout fichier de configuration.
+
+La configuration en ligne passée dans cet objet sera prioritaire lors de la fusion avec la configuration utilisateur chargée.
+
+#### `mode`
+
+<p>
+
+**Type:** `"development" | "production"`<br />
+**Défaut:** `"development"` lors de l'exécution de `astro dev`, `"production"` lors de l'exécution de `astro build`
+</p>
+
+Le mode utilisé lors de la construction de votre site pour générer du code "developpement" ou "production".
+
+#### `logLevel`
+
+<p>
+
+**Type:** `"debug" | "info" | "warn" | "error" | "silent"`<br />
+**Défaut:** `"info"`
+</p>
+
+Le niveau de journalisation pour filtrer les messages enregistrés par Astro.
+
+- `"debug"`: Enregistre tout, y compris les diagnostics de débogage.
+- `"info"`: Enregistre les messages d'information, les avertissements et les erreurs.
+- `"warn"`: Enregistre les avertissements et les erreurs.
+- `"error"`: Ne consigne que les erreurs.
+- `"silent"`: Pas de journalisation.
+
+### `dev()`
+
+**Type:** `(inlineConfig: AstroInlineConfig) => AstroDevServer`
+
+Similaire à [`astro dev`](#astro-dev), il fait tourner le serveur de développement d'Astro.
+
+```js
+import { dev } from "astro";
+
+const devServer = await dev({
+  root: "./my-project",
+});
+
+// Arrêter le serveur si nécessaire
+await devServer.stop();
+```
+
+### `build()`
+
+**Type:** `(inlineConfig: AstroInlineConfig) => void`
+
+Similaire à [`astro build`](#astro-build), il construit votre site pour le déployer.
+
+```js
+import { build } from "astro";
+
+await build({
+  root: "./my-project",
+});
+```
+
+### `preview()`
+
+**Type:** `(inlineConfig: AstroInlineConfig) => AstroPreviewServer`
+
+Similaire à [`astro preview`](#astro-preview), il démarre un serveur local pour servir votre répertoire statique `dist/`.
+
+```js
+import { preview } from "astro";
+
+const previewServer = await preview({
+  root: "./my-project",
+});
+
+// Stop le serveur si besoin
+await previewServer.stop();
+```
+
+### `sync()`
+
+**Type:** `(inlineConfig: AstroInlineConfig) => number`
+
+Similaire à [`astro sync`](#astro-sync), il génère des types TypeScript pour tous les modules Astro.
+
+```js
+import { sync } from "astro";
+
+const exitCode = await sync({
+  root: "./my-project",
+});
+
+process.exit(exitCode)
+```
