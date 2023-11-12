@@ -22,7 +22,7 @@ export default NavDictionary({
 	'core-concepts/astro-pages': 'पृष्ठ',
 	'core-concepts/layouts': 'नक़्शे',
 	'core-concepts/astro-syntax': 'Astro की सिंटैक्स',
-	'core-concepts/rendering-modes': 'अनुवाद मध्यम'
+	'core-concepts/rendering-modes': 'अनुवाद मध्यम',
 
 	builtins: 'बिल्ट-इंस ',
 	'guides/content-collections': 'सामग्री संग्रह',
