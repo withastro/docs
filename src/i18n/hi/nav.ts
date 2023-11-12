@@ -42,7 +42,7 @@ export default NavDictionary({
 
 	features: 'गाइड्स',
 	'core-concepts/routing': 'रूटिंग',
-	'guides/markdown-content': 'मार्कडाउन और MDX',
+	'guides/markdown-content': 'Markdown और MDX',
 	'guides/client-side-scripts': 'स्क्रिप्ट और घटना संचालन',
 	'guides/styling': 'स्टाइल और CSS',
 	'guides/images': 'छवियाँ',
@@ -52,7 +52,7 @@ export default NavDictionary({
 	'guides/data-fetching': 'डेटा फ़ेचिंग',
 	'guides/internationalization': 'अंतर्राष्ट्रीयकरण',
 	'guides/middleware': 'मिडलवेयर',
-	'guides/testing': 'टेस्टिंग',
+	'guides/testing': 'परिक्षण',
 	'guides/troubleshooting': 'समस्या समाधान',
 
 	configuration: 'कॉन्फ़िगरेशन',
