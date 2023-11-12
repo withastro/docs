@@ -21,6 +21,7 @@ export default NavDictionary({
 	'core-concepts/astro-components': '组件',
 	'core-concepts/astro-pages': '页面',
 	'core-concepts/layouts': '布局',
+	'core-concepts/rendering-modes': '渲染模式',
 
 	examples: '操作指南',
 	'guides/migrate-to-astro': '迁移到 Astro',
@@ -48,6 +49,8 @@ export default NavDictionary({
 	'guides/testing': '测试',
 	'guides/view-transitions': '视图过渡动画',
 	'guides/troubleshooting': '故障排除',
+	'guides/prefetch': '预获取',
+	'guides/internationalization': '国际化',
 
 	configuration: '配置',
 	'guides/configuring-astro': 'Astro 配置文件',
