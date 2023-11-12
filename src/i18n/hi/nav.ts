@@ -24,9 +24,10 @@ export default NavDictionary({
 	'core-concepts/astro-syntax': 'Astro की सिंटैक्स',
 	'core-concepts/rendering-modes': 'अनुवाद मध्यम'
 
-	builtins: 'सामग्री स्थापित',
+	builtins: 'बिल्ट-इंस ',
 	'guides/content-collections': 'सामग्री संग्रह',
-	'guides/view-transitions': 'view transitions',
+	'guides/view-transitions': 'व्यू-ट्रांज़िशन्स ',
+	'guides/prefetch': 'प्रीफ़ेच',
 
 	addons: 'एड-ऑन्स',
 	'guides/integrations-guide': 'एकीकरण जानकारी',
