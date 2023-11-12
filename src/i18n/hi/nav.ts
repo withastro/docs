@@ -58,7 +58,7 @@ export default NavDictionary({
 	'guides/troubleshooting': 'समस्या समाधान',
 
 	configuration: 'कॉन्फ़िगरेशन',
-	'guides/configuring-astro': 'Astro कॉन्फ़िगरेशन फ़ाइल',
+	'guides/typescript': 'Typescript',
 	'guides/typescript': 'Typescript',
 	'guides/aliases': 'आयात उपनाम',
 	'guides/environment-variables': 'पर्यावरण चर',
