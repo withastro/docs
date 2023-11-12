@@ -49,6 +49,8 @@ export default NavDictionary({
 	'guides/testing': '测试',
 	'guides/view-transitions': '视图过渡动画',
 	'guides/troubleshooting': '故障排除',
+	'guides/prefetch': '预获取',
+	'guides/internationalization': '国际化',
 
 	configuration: '配置',
 	'guides/configuring-astro': 'Astro 配置文件',
