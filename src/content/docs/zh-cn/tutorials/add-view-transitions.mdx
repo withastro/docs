@@ -1,0 +1,434 @@
+---
+title: 教程 - 在项目中使用视图过渡动画
+description: >-
+  向范例项目代码中添加视图过渡动画 (View Transitions)
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import Box from '~/components/tutorial/Box.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import Spoiler from '~/components/Spoiler.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+
+
+
+**视图过渡动画**是一种用来控制访问者在网站页面之间导航时页面内容变化方式的方法。Astro 的 View Transitions API 允许开发者添加可选的导航特性。有了这个特性，你可以方便地为你的网站实现平滑页面切换和页面切换动画；控制浏览器访问页面的历史记录；或者阻止浏览器重新加载整个页面，以使部分元素在切换页面时保持原有状态而不是完全刷新。
+
+<PreCheck>
+  - 向全局 `head` 导入并添加 `<ViewTransitions />` 路由组件
+  - 在导航过程中添加事件监听器以在需要时触发 `<script>`
+  - 使用 transition 指令添加页面过渡动画
+  - 对于单个页面的链接，可以选择不使用客户端路由
+</PreCheck>
+
+## 先决条件
+
+你需要准备一个现成的 Astro 项目，里面存在通用的基础布局或者 `<Head />` 组件。
+
+本教程使用先前[搭建博客教程完成后的项目代码](https://github.com/withastro/blog-tutorial-demo)来演示如何在现有的 Astro 项目中添加视图过渡（客户端路由）。你可以在本地克隆并使用该代码库，或者通过于 [StackBlitz 上编辑教程的代码](https://stackblitz.com/github/withastro/blog-tutorial-demo/tree/complete?file=src%2Fpages%2Findex.astro)在浏览器中完成该教程。
+
+你也可以在自己的项目中复现这些步骤，但是需要根据自己的代码库调整操作步骤。
+
+我们推荐你使用我们的示例项目来完成这个简短的教程。然后，你就可以使用在这篇教程中所学的知识来给你自己的项目添加视图过渡动画。
+
+## 教程的示例代码
+
+在[搭建博客教程](/zh-cn/tutorial/0-introduction/)中，你了解到 Astro 的基于文件的路由会将任何放在 `src/pages/` 文件夹中的 `.astro`、`.md` 或 `.mdx` 文件自动变成你网站上的一个新页面。
+
+为了在这些页面之间导航，你使用了 HTML 的标准元素 `<a>`。例如：要创建一个指向你的 `About` 页面的链接，你会在页面头部添加 `<a href="/about/">About</a>`。当网站的访问者点击这个链接时，浏览器会刷新并加载这个新页面。
+
+## 全页面导航 vs 客户端路由（SPA 模式）
+
+使用全页面导航时，浏览器刷新并加载新页面，旧页面和新页面之间没有连贯性。而使用客户端路由时，新页面的加载是通过 JavaScript 将页面的元素挨个替换，并不会重新加载整个页面。
+
+客户端路由是单页应用（SPA）网站的一个特性。换句话说，你的整个网站（或者说应用）在浏览器看来仅仅是一个带有 JavaScript 的单页面，其内容根据访问者的交互进行更新。
+
+由于加载新页面中的元素并不需要浏览器重新加载整个页面，所以客户端路由允许你以几种方式控制页面过渡。你可以选择元素使其**维持状态**，比如通用的页眉元素，不必在屏幕上完全重新渲染，这样从一个页面到另一个页面的过渡可以显得更连贯。更令人兴奋的是，这个特性可以使你在不同页面之间轻松传值，甚至在访问者切换页面时继续播放视频！
+
+然而并不是所有地方都会需要客户端路由，有时候你会需要进行完整的浏览器刷新。例如，你有一个链接是指向一个 `.pdf` 文档时，你需要浏览器从服务器重新加载这个页面而不是通过 JavaScript 来修改页面元素。我们 Astro 的开发者也想到了这个问题。所以即使在 Astro 项目中启用了视图过渡，你也可以单独指定特定链接的导航方式，使其可以完全不使用客户端路由。
+
+在我们的指南中阅读更多关于 [Astro 的视图过渡](/zh-cn/guides/view-transitions/) 的信息，或者按照下面的说明将基础博客从 `src/pages/posts/` 转换为 `src/content/posts/` 来开始操作。
+
+<Box icon="question-mark">
+### 小测试
+
+1. 向我的 Astro 站点添加视图过渡……
+
+    <MultipleChoice>
+        <Option>
+            默认情况下在整个中网站实现需要超过 2 行代码
+        </Option>
+        <Option isCorrect>
+            可以通过修改页面 `<head>` 中 `<ViewTransitions />` 路由的参数改变默认页面导航的类型
+        </Option>
+        <Option>
+            不会重新添加浏览器提供的辅助功能，例如路由通知与遵循 `prefers-reduced-motion` 的设置
+        </Option>
+    </MultipleChoice>
+
+2. 哪一个**不是** Astro 的视图过渡带来的好处？
+
+    <MultipleChoice>
+      <Option isCorrect>
+         向浏览器发送一些额外的 JavaScript 以进行客户端路由
+      </Option>
+      <Option>
+        可以在访问者访问新页面时保留特定元素或组件
+      </Option>
+      <Option>
+        控制每个链接使用不同的导航方式
+      </Option>
+    </MultipleChoice>
+
+3. 视图过渡……
+    <MultipleChoice>
+      <Option>
+        要求我使用任意前端框架，例如 React
+      </Option>
+      <Option>
+        并不适合生产环境
+      </Option>
+      <Option isCorrect>
+        包含对尚未完全支持视图过渡的浏览器的 fallback 支持
+      </Option>
+    </MultipleChoice>
+
+</Box>
+
+## 在示例博客代码中增加视图过渡
+
+通过下列步骤你将了解：如何通过添加客户端路由来增强页面转换的效果，用以扩展之前简陋的示例博客。
+
+### 更新依赖
+
+1. 在终端中运行以下命令，将 Astro 升级到最新版本，并将所有集成升级到它们的最新版本：
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      # 升级到 Astro v3.x
+      npm install astro@latest
+
+      # 例：升级博客教程中的 Preact 集成
+      npm install @astrojs/preact@latest
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      # 升级到 Astro v3.x
+      pnpm add astro@latest
+
+      # 例：升级博客教程中的 Preact 集成
+      pnpm add @astrojs/preact@latest
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      # 升级到 Astro v3.x
+      yarn add astro@latest
+
+      # 例：升级博客教程中的 Preact 集成
+      yarn add @astrojs/preact@latest
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+    :::tip
+    如果你正在使用自己的项目，请确保你已更新所有已安装的依赖项。搭建博客教程的示例代码库仅使用了 Preact 集成。
+    :::
+
+    ### 添加 `<ViewTransitions />` 路由
+
+    2. 导入并添加 `<ViewTransitions />` 元素到你的页面布局中的 `<head>` 中。
+
+        在博客教程示例中，`<head>` 元素位于 `src/layouts/BaseLayout.astro` 文件中。必须首先在组件的 frontmatter 中导入 `ViewTransitions` 路由。然后，在 `<head>` 元素内部添加路由组件。
+
+    ```astro title="src/layouts/BaseLayout.astro" ins={2,15}
+    ---
+    import { ViewTransitions } from 'astro:transitions';
+    import Header from "../components/Header.astro";
+    import Footer from "../components/Footer.astro";
+    import "../styles/global.css";
+    const { pageTitle } = Astro.props;
+    ---
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+        <title>{pageTitle}</title>
+        <ViewTransitions />
+      </head>
+      <body>
+        <Header />
+        <h1>{pageTitle}</h1>
+        <slot />
+        <Footer />
+        <script>
+          import "../scripts/menu.js";
+        </script>
+      </body>
+    </html>
+    ```
+
+    恭喜！到这一步无需其他配置，你就已经启用了 Astro 默认的客户端导航。Astro 将根据旧页面和新页面之间的相似之处创建默认的页面动画，并为不受支持的浏览器提供回退行为。
+
+3. 在站点预览中导航到不同的页面
+
+    **建议在较大的屏幕尺寸上，例如桌面模式**中查看站点预览。当你在站点的不同页面之间切换时，你会发现旧页面的内容会淡出，同时新页面的内容淡入。如果你对默认效果不满意，可以使用[视图过渡指南](/zh-cn/guides/view-transitions/)来自定义视图过渡动画。
+
+    在**较小的屏幕尺寸**上查看站点预览，并尝试使用汉堡菜单在页面之间进行导航。请注意，在第一次页面加载后，菜单将不再起作用。
+
+### 更新你的脚本
+
+使用视图过渡后，部分脚本可能在页面导航后不再像在完整页面浏览器刷新时那样重新运行。在客户端路由期间，有 [`astro:page-load`](/zh-cn/guides/view-transitions/#astropage-load) 和 [`astro:after-swap`](/zh-cn/guides/view-transitions/#astroafter-swap) 两个事件可以监听，并在发生时触发对应事件。
+
+4. 使控制 `<Hamburger />` 移动设备菜单组件的脚本在导航到新页面后仍然可用。
+
+    为了在导航到新页面后使移动菜单具有交互性，请添加以下代码，该代码监听`astro:page-load`事件，该事件在页面导航结束时运行，并在响应时运行现有脚本，使汉堡菜单在点击时能够正常工作：
+
+    ```js title="src/scripts/menu.js" ins={1,5}
+    document.addEventListener('astro:page-load', () => {
+      document.querySelector('.hamburger').addEventListener('click', () => {
+        document.querySelector('.nav-links').classList.toggle('expanded');
+      });
+    });
+    ```
+
+5. 使控制主题切换的脚本在页面导航后仍然可用。
+
+    控制浅色/深色主题的脚本位于 `<ThemeIcon />` 组件中。为了确保主题切换器在每个页面上能够正常工作，请从脚本中移除 `is:inline` 属性，并添加与前面示例中相同的事件监听器，以便 `astro:page-load` 事件可以触发你现有的函数。
+
+    更新现有的 `<script>` 标签，使你的函数在 `astro:page-load` 事件发生时运行，确保在新页面完全加载并对用户可见后主题切换器可用：
+
+    ```astro title="src/components/ThemeIcon.astro" ins={8,38} del="is:inline"
+    ---
+    ---
+    <button id="themeToggle"> /* ... */ </button>
+
+    <style> /* ... */ </style>
+
+    <script is:inline>
+      document.addEventListener('astro:page-load', () => {
+        const theme = (() => {
+          if (typeof localStorage !== "undefined" && localStorage.getItem("theme")) {
+            return localStorage.getItem("theme");
+          }
+          if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+            return "dark";
+          }
+          return "light";
+        })();
+
+        if (theme === "light") {
+          document.documentElement.classList.remove("dark");
+        } else {
+          document.documentElement.classList.add("dark");
+        }
+
+        window.localStorage.setItem("theme", theme);
+
+        const handleToggleClick = () => {
+          const element = document.documentElement;
+          element.classList.toggle("dark");
+
+          const isDark = element.classList.contains("dark");
+          localStorage.setItem("theme", isDark ? "dark" : "light");
+        };
+
+        document
+          .getElementById("themeToggle")
+          .addEventListener("click", handleToggleClick);
+      });
+    </script>
+    ```
+    现在，在使用 `<ViewTransitions />` 路由时，当页面加载完成后，主题切换在每个页面上都具有交互性。
+
+6. 提前检查主题以防止在深色模式刷新。
+
+    虽然主题切换器在每个页面上正常工作，但它的脚本是在导航过程的最后加载的，**新页面在浏览器中完全加载之后**。主题切换器运行并检查页面应该使用哪个主题之前，网站可能会在瞬间闪过其浅色主题。
+
+    为了在导航过程的早期检查并在必要时设置深色模式，请创建一个函数，该函数将在 `astro:after-swap` 事件发生时运行。下面的函数将会在**新页面替代旧页面之后立即运行**，在 DOM 元素被绘制到屏幕上之前。该函数将检查浏览器的 `localStorage` 以确定是否使用深色主题。
+
+    将这个新的脚本添加到`<ThemeIcon />`组件中，作为控制主题切换的脚本的补充。
+
+    ```astro title="src/components/ThemeIcon.astro" ins={3-9}
+    <script> ... <script>
+
+    <script>
+      document.addEventListener('astro:after-swap', () => {
+        localStorage.theme === 'dark' 
+        ? document.documentElement.classList.add("dark")
+        : document.documentElement.classList.add("light");
+      }); 
+    </script>
+    ```
+
+    这样，每次页面切换都会**使用 `<ViewTransitions />` 路由进行客户端导航**（因此可以访问 `astro:after-swap` 事件），这就让主题切换器能够从浏览器的 `localStorage` 中检测到 `theme: dark`，并在 DOM 绘制之前相应地更新当前页面的主题属性。
+
+    <Box icon="question-mark">
+      ### 小测试
+
+      在使用客户端导航期间，当访问者点击链接转到新页面时，事件发生的正确顺序是什么？
+
+          <MultipleChoice>
+            <Option>
+              1. `astro:after-swap`
+              2. `astro:page-load`
+              3. 新页面已经可见
+            </Option>
+            <Option isCorrect>
+              1. `astro:after-swap`
+              2. 新页面已经可见
+              3. `astro:page-load`
+            </Option>
+            <Option>
+              1. `astro:page-load`
+              2. 新页面已经可见
+              3. `astro:after-swap`
+            </Option>
+          </MultipleChoice>
+
+
+      </Box>
+
+### 自定义过渡动画
+
+7. 将页面标题的默认淡入淡出动画改为滑动动画。
+
+    启用视图过渡后，Astro 默认对所有页面过渡动画设置了一个小的淡入淡出效果。不过，Astro 还内置了 `slide` 动画。要更改单个元素的动画类型，请向其标签添加 `transition:animation=""` 指令。
+
+    例如，要使页面标题滑入而不是淡入，你需要将 `transition:animate="slide"` 添加到 BaseLayout 中的 `<h1>` 元素中：
+
+    ```astro title="src/layouts/BaseLayout.astro" ins='transition:animate="slide"'
+    ---
+    import Header from "../components/Header.astro";
+    import Footer from "../components/Footer.astro";
+    import "../styles/global.css";
+    import { ViewTransitions } from 'astro:transitions';
+    const { pageTitle } = Astro.props;
+    ---
+
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+        <title>{pageTitle}</title>
+        <ViewTransitions />
+      </head>
+      <body>
+        <Header />
+        <h1 transition:animate="slide">{pageTitle}</h1>
+        <slot />
+        <Footer />
+        <script>
+          import "../scripts/menu.js";
+        </script>
+      </body>
+    </html>
+    ```
+
+    在浏览器预览中，你将看到页面标题滑入屏幕，而其他元素如正文文本，仍然保持淡入淡出的动画。
+
+    <Box icon="puzzle-piece">
+      ### 小试牛刀 - 淡入导航链接
+
+      按照[上述相同的步骤](#自定义过渡动画)，添加一个动画指令，使包含所有网页页眉链接的 `Navigation.astro` 中的 `<div>` 在页面导航时播放滑动动画。
+
+      <details>
+      <summary>给我看看代码！</summary>
+      ```astro title="src/components/Navigation.astro" ins='transition:animate="slide"'
+      ---
+      ---
+      <div transition:animate="slide" class="nav-links">
+        <a href="/">Home</a>
+        <a href="/about/">About</a>
+        <a href="/blog/">Blog</a>
+        <a href="/tags/" >Tags</a>
+      </div>
+      ```
+      </details>
+    </Box>
+
+    在浏览器中预览，你会发现在每次页面导航时，页面标题和页眉链接都会被应用滑动效果。
+
+8. 为你的博客文章描述添加一个时间更长的淡入效果。
+
+    还可以通过导入它们来提供任何 CSS3 动画属性，来个性化 Astro 的过渡动画。
+
+    例如，当在导航到博客文章时，如果要使描述缓慢淡入，可以在 Markdown 博客文章的布局中导入 `fade` 动画。然后，为 Astro 的 `fade` 添加过渡指令，并设置持续时间为 `2s`：
+
+    ```astro title="src/layouts/MarkdownPostLayout.astro" ins={3} ins="transition:animate={fade({ duration: '2s' })}"
+    ---
+    import BaseLayout from "./BaseLayout.astro";
+    import { fade } from 'astro:transitions';
+    const { frontmatter } = Astro.props;
+    ---
+
+    <BaseLayout pageTitle={frontmatter.title}>
+      <p>{frontmatter.pubDate.slice(0, 10)}</p>
+      <p transition:animate={fade({ duration: '2s' })} ><em>{frontmatter.description}</em></p>
+      <p>Written by: {frontmatter.author}</p>
+      <img src={frontmatter.image.url} width="300" alt={frontmatter.image.alt} />
+      <slot />
+    </BaseLayout>
+    ```
+    在浏览器预览中导航到任何博客文章，你会发现描述淡入的速度比其他文本慢。
+
+    📚了解更多关于不同的[过渡指令](/zh-cn/guides/view-transitions/#过渡动画指令)和[自定义动画](/zh-cn/guides/view-transitions/#自定义动画)的信息。
+
+### 为某些链接设置强制浏览器重新加载页面
+
+9. 阻止客户端路由，让浏览器在导航到关于页面时重新加载。
+
+    有时，当访客点击特定链接时，你可能希望浏览器进行完整的刷新。例如，访客可能点击了一个不使用 `<ViewTransitions />` 路由的页面，或者要下载一个 `.pdf` 文件。
+
+    为了确保每次点击页眉导航链接转到关于页面时浏览器都会刷新，请在 `<Navigation/>` 组件中的 `<a>` 标签上添加 `data-astro-reload` 属性。这将完全覆盖 `<ViewTransitions />` 路由器，同时今后对于这个链接，任何视图过渡动画都将被忽略。
+
+     ```astro title="src/components/Navigation.astro" ins='data-astro-reload'
+      ---
+      ---
+      <div transition:animate="slide" class="nav-links">
+        <a href="/">Home</a>
+        <a href="/about/" data-astro-reload >About</a>
+        <a href="/blog/">Blog</a>
+        <a href="/tags/">Tags</a>
+      </div>
+      ```
+
+      现在，当访客点击导航链接到关于页面时，将不会播放任何过渡动画。页面链接和标题也不会滑入，当访客使用**此链接**导航到关于页面时，页面内容也不会淡入。
+
+10. 在 Markdown 博客文章的布局中，通过作者名称添加一个指向关于页面的链接
+
+    `data-astro-reload` 只会在从添加了该属性的链接**转到新页面时**触发完整的浏览器刷新。它不会覆盖所有导航到关于页面的链接的设置。
+    
+    在 `<MarkdownPostLayout />` 组件中，向作者名称添加一个指向关于页面的链接：
+
+    ```astro title="src/layouts/MarkdownPostLayout.astro" ins='<a href="/about/">' ins="</a>"
+    ---
+    import BaseLayout from "./BaseLayout.astro";
+    import { fade } from 'astro:transitions';
+    const { frontmatter } = Astro.props;
+    ---
+
+    <BaseLayout pageTitle={frontmatter.title}>
+      <p>{frontmatter.pubDate.slice(0, 10)}</p>
+      <p transition:animate={fade({ duration: '2s' })} ><em>{frontmatter.description}</em></p>
+      <p>Written by: <a href="/about/">{frontmatter.author}</a></p>
+      <img src={frontmatter.image.url} width="300" alt={frontmatter.image.alt} />
+      <slot />
+    </BaseLayout>
+    ```
+
+    如果在你的浏览器预览中访问任意博客文章，然后点击链接的作者名称转到关于页面，页面导航会是什么样子？
+
+    <p>
+      当访客从单独的博客文章点击链接转到关于页面时，页面标题和页眉导航链接会<Spoiler>从屏幕两侧滑入</Spoiler>，因为<Spoiler>这些链接没有设置 `data-astro-reload` 属性</Spoiler>。
+    </p>
+
+教程到此结束，但还有很多内容等待你的探索！如果你感兴趣，可以查看我们的[完整视图过渡指南](/zh-cn/guides/view-transitions/)，了解更多关于视图过渡的用法。
+
+要查看使用视图过渡的博客教程的完整示例，请访问教程存储库的 [View Transitions 分支](https://github.com/withastro/blog-tutorial-demo/tree/view-transitions)。
