@@ -1,0 +1,116 @@
+---
+title: Ajout du temps de lecture
+description: Construire un plugin remark pour ajouter le temps de lecture à vos fichiers Markdown ou MDX.
+i18nReady: true
+type: recipe
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+Créez un [remark plugin](https://github.com/remarkjs/remark) qui ajoute une propriété de temps de lecture au frontmatter de vos fichiers Markdown ou MDX. Utilisez cette propriété pour afficher le temps de lecture de chaque page.
+
+## Recette
+
+1. Installer les paquets d'aide
+
+   Installez ces deux paquets d'aide :
+   - [`reading-time`](https://www.npmjs.com/package/reading-time) pour calculer les minutes de lecture
+   - [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string) pour extraire tout le texte de votre markdown
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+   npm install reading-time mdast-util-to-string
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+   pnpm add reading-time mdast-util-to-string
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+   yarn add reading-time mdast-util-to-string
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+2. Créer un plugin remark.
+
+   Ce plugin utilise le paquet `mdast-util-to-string` pour obtenir le texte du fichier Markdown. Ce texte est ensuite transmis au paquet `reading-time` pour calculer le temps de lecture en minutes. . 
+
+   ```js title="remark-reading-time.mjs"
+   import getReadingTime from 'reading-time';
+   import { toString } from 'mdast-util-to-string';
+ 
+   export function remarkReadingTime() {
+     return function (tree, { data }) {
+       const textOnPage = toString(tree);
+       const readingTime = getReadingTime(textOnPage);
+       // readingTime.text nous donnera les minutes lues sous la forme d'une chaîne de caractères conviviale,
+       // Ex: "3 min read"
+       data.astro.frontmatter.minutesRead = readingTime.text;
+     };
+   }
+   ```
+
+3. Ajoutez le plugin à votre configuration :
+
+   ```js title="astro.config.mjs" "import { remarkReadingTime } from './remark-reading-time.mjs';" "remarkPlugins: [remarkReadingTime],"
+   import { defineConfig } from 'astro/config';
+   import { remarkReadingTime } from './remark-reading-time.mjs';
+ 
+   export default defineConfig({
+     markdown: {
+       remarkPlugins: [remarkReadingTime],
+     },
+   });
+   ```
+
+   Désormais, tous les documents Markdown auront une propriété `minutesRead` calculée dans leur frontmatter.  
+
+4. Afficher le temps de lecture
+
+   Si vos articles de blog sont stockés dans une [collection de contenu](/fr/guides/content-collections/), accédez au `remarkPluginFrontmatter` à partir de la fonction `entry.render()`. Ensuite, insérer `minutesRead` dans votre template à l'endroit où vous voulez qu'il apparaisse.
+
+   ```astro title="src/pages/posts/[slug].astro" "const { Content, remarkPluginFrontmatter } = await entry.render();" "<p>{remarkPluginFrontmatter.minutesRead}</p>"
+   ---
+   import { CollectionEntry, getCollection } from 'astro:content';
+ 
+   export async function getStaticPaths() {
+     const blog = await getCollection('blog');
+     return blog.map(entry => ({
+       params: { slug: entry.slug },
+       props: { entry },
+     }));
+   }
+ 
+   const { entry } = Astro.props;
+   const { Content, remarkPluginFrontmatter } = await entry.render();
+   ---
+ 
+   <html>
+     <head>...</head>
+     <body>
+       ...
+       <p>{remarkPluginFrontmatter.minutesRead}</p>
+       ...
+     </body>
+   </html>
+   ```
+
+  Si vous utilisez une [mise en page Markdown](/fr/guides/markdown-content/#pages-markdown-et-mdx), utilisez la propriété `minutesRead` du frontmatter de `Astro.props` dans votre template.
+
+   ```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.frontmatter;" "<p>{minutesRead}</p>"
+   ---
+   const { minutesRead } = Astro.props.frontmatter;
+   ---
+ 
+   <html>
+     <head>...</head>
+     <body>
+       <p>{minutesRead}</p>
+       <slot />
+     </body>
+   </html>
+   ```
