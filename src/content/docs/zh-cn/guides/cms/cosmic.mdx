@@ -1,0 +1,239 @@
+---
+title: Cosmic 与 Astro
+description: 使用 Cosmic 作为 CMS 向你的 Astro 项目添加内容
+type: cms
+service: Cosmic
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+[Cosmic](https://www.cosmicjs.com/) 是一个 [无头 CMS](https://www.cosmicjs.com/headless-cms) ，它提供了一个管理员仪表板来管理内容，以及一个可以与各种前端工具集成的 API。
+
+## 前期准备
+
+1. **一个 Astro 项目** - 如果你想从一个全新的 Astro 项目开始，请阅读 [安装指南](/zh-cn/install/auto/)。而本指南基于一个简化版本的 [Astro 无头 CMS 主题](https://astro.build/themes/details/cosmic-cms-blog/)，使用 [Tailwind CSS](https://tailwindcss.com/) 进行样式设计。
+2. **一个 Cosmic 账户和 Bucket** - 如果你还没有，那么可以[创建一个免费的 Cosmic 账户](https://app.cosmicjs.com/signup)。创建账户后，你将被提示创建一个新的空项目；还有一个 [简单的 Astro 博客模板](https://www.cosmicjs.com/marketplace/templates/simple-astro-blog) 可用（这是与 Astro 无头 CMS 主题相同的模板），可以自动导入本指南中使用的所有内容。
+3. **你的 Cosmic API 密钥** - 在你的 Cosmic 仪表板中，你需要找到 **Bucket slug** 和 **Bucket read key**，以便连接到 Cosmic。
+
+## 为 Astro 集成 Cosmic
+
+### 安装必要的依赖
+
+添加 Cosmic JavaScript SDK 以从你的 Cosmic Bucket 中获取数据。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @cosmicjs/sdk
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @cosmicjs/sdk
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @cosmicjs/sdk
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### 配置 API 密钥
+
+在你的 Astro 项目根目录下创建一个 `.env` 文件（如果还不存在的话），然后将你在 Cosmic 仪表板上可用的 **Bucket slug** 和 **Bucket read key** 添加为公共的环境变量。
+
+```ini title=".env"
+PUBLIC_COSMIC_BUCKET_SLUG=YOUR_BUCKET_SLUG
+PUBLIC_COSMIC_READ_KEY=YOUR_READ_KEY
+```
+
+## 从 Cosmic 获取数据
+
+1. 创建一个名为 `cosmic.js` 的新文件。将此文件放在你项目的 `src/lib` 文件夹中。
+
+2. 添加以下代码，然后使用 SDK 和你的环境变量从 Cosmic 获取数据。
+
+    以下示例创建了一个名为 `getAllPosts()` 的函数，用于从 Cosmic 的 `posts` 对象中获取元数据：
+
+    ```js
+    // src/lib/cosmic.js
+    import { createBucketClient } from '@cosmicjs/sdk'
+
+    const cosmic = createBucketClient({
+      bucketSlug: import.meta.env.PUBLIC_COSMIC_BUCKET_SLUG,
+      readKey: import.meta.env.PUBLIC_COSMIC_READ_KEY
+    })
+
+    export async function getAllPosts() {
+      const data = await cosmic.objects
+        .find({
+          type: 'posts'
+        })
+        .props('title,slug,metadata,created_at')
+      return data.objects
+    }
+    ```
+
+    阅读更多关于 [Cosmic 文档中的查询](https://www.cosmicjs.com/docs/api/queries) 的内容。
+
+3. 在 `.astro` 组件中导入你的查询函数。获取数据后，查询结果便可以在你的 Astro 模板中使用。
+
+    以下示例展示了从 Cosmic `posts` 中获取元数据，并将这些值作为属性传递给 `<Card />` 组件以创建博客文章列表的过程：
+
+    ```astro
+    ---
+    // src/pages/index.astro
+    import Card from '../components/Card.astro'
+    import { getAllPosts } from '../lib/cosmic'
+
+    const data = await getAllPosts()
+    ---
+
+    <section>
+      <ul class="grid gap-8 md:grid-cols-2">
+        {
+          data.map((post) => (
+            <Card
+              title={post.title}
+              href={post.slug}
+              body={post.metadata.excerpt}
+              tags={post.metadata.tags.map((tag) => tag)}
+            />
+          ))
+        }
+      </ul>
+    </section>
+    ```
+
+    [查看 Card 组件的源代码](https://github.com/cosmicjs/simple-astro-blog/blob/main/src/components/Card.astro)
+
+## 使用 Astro 和 Cosmic 构建博客
+
+你可以使用 Cosmic 管理你的 Astro 博客的内容。同时，也可以创建 webhooks，以在你更新或添加新内容时自动重新部署你的网站。
+
+### Cosmic 内容对象
+
+以下说明假设你在 Cosmic 中有一个名为 **posts** 的 **Object 类型**。每个单独的博客文章都是一个 `post`，在 Cosmic 仪表板中定义，具有以下 Metafields：
+
+1. **Text input** - Author
+2. **Image** - Cover Image
+3. **Repeater** - Tags
+    - **Text input** - Title
+4. **Text area** - Excerpt  
+5. **Rich Text** - Content
+
+### 在 Astro 中显示博客文章列表
+
+使用与上面相同的[数据获取方法](#从-cosmic-获取数据)，从你的脚本文件中导入 `getAllPosts()` 查询并等待数据响应。此函数提供了关于每个 `post` 的元数据，并可以动态显示。
+
+以下示例将这些值传递给 `<Card />` 组件，显示格式化的博客文章列表：
+
+```astro
+---
+// src/pages/index.astro
+import Card from '../components/Card.astro'
+import { getAllPosts } from '../lib/cosmic'
+
+const data = await getAllPosts()
+---
+
+<section>
+  <ul class="grid gap-8 md:grid-cols-2">
+    {
+      data.map((post) => (
+        <Card
+          title={post.title}
+          href={post.slug}
+          body={post.metadata.excerpt}
+          tags={post.metadata.tags.map((tag) => tag)}
+        />
+      ))
+    }
+  </ul>
+</section>
+```
+
+### 使用 Astro 生成单个博客文章
+
+为了给每个博客文章生成一个含有完整内容的单独页面，需要创建一个位于 `src/pages/blog/[slug].astro` 的 [动态路由页面](/zh-cn/core-concepts/routing/#动态路由)。
+
+此页面将导出一个 `getStaticPaths()` 函数，以生成在每个 `post` 对象返回的 `slug` 处的页面路由。此函数在构建时被调用，并一次生成和渲染所有的博客文章。
+
+要从 Cosmic 访问你的数据：
+
+- 在 `getStaticPaths()` 内部查询 Cosmic，获取每个文章的数据，并提供给函数。
+- 使用每个 `post.slug` 作为路由参数来创建每个博客文章的 URL。
+- 在 `Astro.props` 内部返回每个 `post`，使文章数据可以用于页面组件的 HTML 模板并进行渲染。
+
+以下的 HTML 标记使用了从 Cosmic 获取的各种数据，如文章标题、封面图片和**富文本内容**（即完整的博客文章内容）。在显示从 Cosmic 获取的富文本内容的元素上使用 [set&colon;html](/zh-cn/reference/directives-reference/#sethtml)，以在页面上精确地渲染 HTML 元素。
+
+```astro
+---
+// src/pages/blog/[slug].astro
+import { getAllPosts } from '../../lib/cosmic'
+import { Image } from 'astro:assets'
+
+export async function getStaticPaths() {
+  const data = (await getAllPosts()) || []
+
+  return data.map((post) => {
+    return {
+      params: { slug: post.slug },
+      props: { post }
+    }
+  })
+}
+
+const { post } = Astro.props
+---
+
+<article class="mx-auto max-w-screen-md pt-20">
+  <section class="border-b pb-8">
+    <h1 class="text-4xl font-bold">{post.title}</h1>
+    <div class="my-4"></div>
+    <span class="text-sm font-semibold">{post.metadata.author?.title}</span>
+  </section>
+  {
+    post.metadata.cover_image && (
+      <Image
+        src={post.metadata.cover_image.imgix_url}
+        format="webp"
+        width={1200}
+        height={675}
+        aspectRatio={16 / 9}
+        quality={50}
+        alt={`Cover image for the blog ${post.title}`}
+        class={'my-12 rounded-md shadow-lg'}
+      />
+    )
+  }
+  <div set:html={post.metadata.content} />
+</article>
+```
+
+### 发布你的网站
+
+要部署你的网站，访问 [部署指南](/zh-cn/guides/deploy/) 并按照你偏好的托管提供商的说明进行操作。
+
+#### 在 Cosmic 内容更新时重建
+
+你可以直接在 Cosmic 中设置一个 webhook，当你更新或添加内容对象时，以在你的托管平台（例如 Vercel）上触发重新部署网站。
+
+在 "Settings" > "webhooks" 下，添加来自 Vercel 的 URL 端点，并选择你想触发 webhook 的 Object 类型，然后点击“Add webhook”保存。
+
+##### Netlify
+
+在 Netlify 中设置 webhook：
+
+1. 转到你的网站仪表板，点击 **Build & deploy**。
+2. 在 **Continuous Deployment** 标签下，找到 **Build hooks** 部分，点击 **Add build hook**。
+3. 为你的 webhook 提供一个名称，并选择你想触发构建的分支。点击 **Save** 并复制生成的 URL。
+
+##### Vercel
+
+在 Vercel 中设置 webhook：
+
+1. 转到你的项目仪表板，点击 **Settings**。
+2. 在 **Git** 标签下，找到 **Deploy Hooks** 部分。
+3. 为你的 webhook 提供一个名称，以及你想触发构建的分支。点击 **Add** 并复制生成的 URL。
