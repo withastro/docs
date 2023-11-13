@@ -1,0 +1,185 @@
+---
+title: 预获取
+description: 预获取链接以在页面间实现更快的导航。
+i18nReady: true
+---
+
+页面加载时间在网站的可用性和整体体验中扮演着重要角色。当你的访问者与网站进行交互时，Astro 的**可选预获取**功能能在你的多页面应用（MPA）中带来几乎瞬时的页面导航的好处。
+
+## 启用预获取
+
+你可以使用 `prefetch` 配置来启用预获取：
+
+```js title="astro.config.js" ins={4}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  prefetch: true
+})
+```
+
+一个预获取脚本将被添加到你网站的所有页面。然后你可以在你网站的任何 `<a />` 链接上添加 `data-astro-prefetch` 属性来选择预获取。当你将鼠标悬停在链接上时，脚本将在后台获取页面。
+
+```html
+<a href="/about" data-astro-prefetch>
+```
+
+注意，预获取只适用于你的网站内的链接，不适用于外部链接。
+
+## 预获取配置
+
+`prefetch` 配置也接受一个选项对象，以进一步自定义预获取。
+
+### 预获取策略
+
+Astro 支持 3 种预获取策略，以适应各种用例：
+
+- `hover`（默认）：当你将鼠标悬停在链接上或聚焦在链接上时预获取。
+- `tap`：在你点击链接之前预获取。
+- `viewport`：当链接进入视口时预获取。
+
+你可以通过将其传递给 `data-astro-prefetch` 属性来为单个链接指定策略：
+
+```html
+<a href="/about" data-astro-prefetch="tap">About</a>
+```
+
+每种策略都经过了微调，只有在需要时才预获取，以节省用户的带宽。例如：
+
+- 如果访问者使用[流量节省模式](https://developer.mozilla.org/zh-CN/docs/Web/API/NetworkInformation/saveData)或者有[慢速连接](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/effectiveType)，则预获取将被关闭。
+- 快速悬停或滚动链接不会预获取它们。
+- 使用 `viewport` 策略的链接会以较低的优先级预获取，以避免堵塞网络。
+
+### 默认预获取策略
+
+添加 `data-astro-prefetch` 属性时的默认预获取策略是 `hover`。要更改它，你可以在你的 `astro.config.js` 文件中配置 [`prefetch.defaultStrategy`](/zh-cn/reference/configuration-reference/#prefetchdefaultstrategy)：
+
+```js title="astro.config.js" ins={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  prefetch: {
+    defaultStrategy: 'viewport'
+  }
+})
+```
+
+### 默认预获取所有链接
+
+如果你想预获取所有链接，包括那些没有 `data-astro-prefetch` 属性的链接，你可以将 [`prefetch.prefetchAll`](/zh-cn/reference/configuration-reference/#prefetchprefetchall) 设置为 `true`：
+
+```js title="astro.config.js" ins={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  prefetch: {
+    prefetchAll: true
+  }
+})
+```
+
+然后你可以通过设置 `data-astro-prefetch="false"` 来为单个链接选择不进行预获取：
+
+```html
+<a href="/about" data-astro-prefetch="false">About</a>
+```
+
+所有链接的默认预获取策略可以通过 `prefetch.defaultStrategy` 更改，如 [默认预获取策略部分](#默认预获取策略) 所示。
+
+## 可编程的预获取
+
+由于一些导航可能不总是以 `<a />` 链接的形式出现，你也可以使用 `astro:prefetch` 模块中的 `prefetch()` API 进行程序化预获取：
+
+```astro
+<button id="btn">Click me</button>
+
+<script>
+  import { prefetch } from 'astro:prefetch';
+
+  const btn = document.getElementById('btn');
+  btn.addEventListener('click', () => {
+    prefetch('/about');
+  });
+</script>
+```
+
+你还可以通过传递 `with` 选项来配置预获取的优先级：
+
+```js
+// 使用 `fetch()` 预获取，它具有更高的优先级。
+prefetch('/about', { with: 'fetch' });
+
+// 使用 `<link rel="prefetch">` 预获取，它具有较低的优先级
+// 并由浏览器手动调度。（默认）
+prefetch('/about', { with: 'link' });
+```
+
+`prefetch()` API 包括相同的[流量节省模式](https://developer.mozilla.org/zh-CN/docs/Web/API/NetworkInformation/saveData)和[慢速连接](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/effectiveType)检测，因此只有在需要时才预获取。
+
+确保只在客户端脚本中导入 `prefetch()`，因为它依赖于浏览器 API。
+
+## 与视图过渡动画一起使用
+
+当你在页面上使用 [视图过渡动画](/zh-cn/guides/view-transitions/) 时，预获取也将默认启用。它设置了一个默认配置 `{ prefetchAll: true }`，在页面上启用 [所有链接的预获取](#默认预获取所有链接)。
+
+你可以在 `astro.config.js` 中自定义预获取配置以覆盖默认设置。例如：
+  
+```js title="astro.config.js"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  // 完全禁用预获取
+  prefetch: false
+})
+```
+
+```js title="astro.config.js"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  // 保留预获取，但只对带有 `data-astro-prefetch` 的链接进行预获取
+  prefetch: {
+    prefetchAll: false
+  }
+})
+```
+
+## 从 `@astrojs/prefetch` 迁移
+
+`@astrojs/prefetch` 集成在 v3.5.0 中被弃用，最终将被完全移除。使用以下说明将 `@astrojs/prefetch` 迁移到 Astro 的内置预获取，这将替代这个集成。
+
+1. 删除 `@astrojs/prefetch` 集成，并在 `astro.config.js` 中启用 `prefetch` 配置：
+
+    ```js title="astro.config.js" ins={6} del={2,5}
+    import { defineConfig } from 'astro/config';
+    import prefetch from '@astrojs/prefetch';
+
+    export default defineConfig({
+      integrations: [prefetch()],
+      prefetch: true
+    })
+    ```
+
+2. 从 `@astrojs/prefetch` 的配置选项转换：
+
+    - 已弃用的集成使用 `selector` 配置选项来指定哪些链接应在进入视口时被预获取。
+    
+      而现在，你需要在这些单独的链接上添加 `data-astro-prefetch="viewport"`。
+
+      ```html
+      <a href="/about" data-astro-prefetch="viewport">
+      ```
+
+    - 已弃用的集成使用 `intentSelector` 配置选项来指定哪些链接在被悬停或聚焦时应被预获取。
+    
+      现在，你需要在这些单独的链接上添加 `data-astro-prefetch` 或 `data-astro-prefetch="hover"`：
+
+      ```html
+      <!-- 如果 `defaultStrategy` 设置为 `hover`（默认），你可以省略值 -->
+      <a href="/about" data-astro-prefetch>
+
+      <!-- 否则，你可以明确定义预获取策略 -->
+      <a href="/about" data-astro-prefetch="hover">
+      ```
+
+    - `@astrojs/prefetch` 的 `throttles` 选项不再需要，因为新的预获取特性将自动调度和优化预获取。
