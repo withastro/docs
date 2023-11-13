@@ -11,7 +11,7 @@ import Since from '~/components/Since.astro';
 
 Astro provides two types of image services: Local and External.
 
-- **Local services** handle image transformations directly at build for static sites, or at runtime both in development mode and SSR. These are often wrappers around libraries like Sharp, ImageMagick, or Squoosh. In dev mode and in SSR, local services use an API endpoint to do the transformation.
+- **Local services** handle image transformations directly at build for static sites, or at runtime both in development mode and for on-demand rendering. These are often wrappers around libraries like Sharp, ImageMagick, or Squoosh. In dev mode and and during on-demand rendering, local services use an API endpoint to do the transformation.
 - **External services** point to URLs and can add support for services such as Cloudinary, Vercel, or any [RIAPI](https://github.com/riapi/riapi)-compliant server.
 
 ## Building using the Image Services API
@@ -20,7 +20,7 @@ Service definitions take the shape of an exported default object with various re
 
 External services provide a `getURL()` that points to the `src` of the output `<img>` tag.
 
-Local services provide a `transform()` method to perform transformations on your image, and  `getURL()` and `parseURL()` methods to use an endpoint for dev mode and SSR.
+Local services provide a `transform()` method to perform transformations on your image, and  `getURL()` and `parseURL()` methods to use an endpoint for dev mode and during on-demand rendering.
 
 Both types of services can provide `getHTMLAttributes()` to determine the other attributes of the output `<img>` and `validateOptions()` to validate and augment the passed options.
 
@@ -124,7 +124,7 @@ export default service;
 
 At build time for static sites and pre-rendered routes, both `<Image />` and `getImage(options)` call the `transform()` function. They pass options either through component attributes or an `options` argument, respectively. The transformed images will be built to a `dist/_astro` folder.
 
-In dev mode and SSR mode, Astro doesn't know ahead of time which images need to be optimized. Astro uses a GET endpoint (by default, `/_image`) to process the images at runtime. `<Image />` and `getImage()` pass their options to `getURL()`, which will return the endpoint URL. Then, the endpoint calls `parseURL()` and passes the resulting properties to `transform()`.
+In dev mode and for on-demand rendering, Astro doesn't know ahead of time which images need to be optimized. Astro uses a GET endpoint (by default, `/_image`) to process the images at runtime. `<Image />` and `getImage()` pass their options to `getURL()`, which will return the endpoint URL. Then, the endpoint calls `parseURL()` and passes the resulting properties to `transform()`.
 
 #### getConfiguredImageService & imageConfig
 
@@ -163,7 +163,7 @@ export const GET: APIRoute = async ({ request }) => {
 
 `getURL(options: ImageTransform, imageConfig: AstroConfig['image']): string`
 
-For local services, this hook returns the URL of the endpoint that generates your image (in SSR and dev mode). It is unused during build. The local endpoint that `getURL()` points to may call both `parseURL()` and `transform()`.
+For local services, this hook returns the URL of the endpoint that generates your image (on-demand rendering and dev mode). It is unused during build. The local endpoint that `getURL()` points to may call both `parseURL()` and `transform()`.
 
 For external services, this hook returns the final URL of the image.
 
@@ -191,7 +191,7 @@ export type ImageTransform = {
 
 `parseURL(url: URL, imageConfig: AstroConfig['image']): { src: string, [key: string]: any}`
 
-This hook parses the generated URLs by `getURL()` back into an object with the different properties to be used by `transform` (in SSR and dev mode). It is unused during build.
+This hook parses the generated URLs by `getURL()` back into an object with the different properties to be used by `transform` (in on-demand rendering and dev mode). It is unused during build.
 
 ### `transform()`
 
@@ -201,7 +201,7 @@ This hook parses the generated URLs by `getURL()` back into an object with the d
 
 This hook transforms and returns the image and is called during the build to create the final asset files.
 
-You must return a `format` to ensure that the proper MIME type is served to users in SSR and development mode.
+You must return a `format` to ensure that the proper MIME type is served to users in on-demand rendering and development mode.
 
 ### `getHTMLAttributes()`
 
