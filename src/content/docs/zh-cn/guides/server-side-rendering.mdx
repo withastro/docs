@@ -1,44 +1,68 @@
 ---
-title: 服务端渲染
+title: 按需渲染适配器
 i18nReady: true
 ---
-import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import RecipeLinks from '~/components/RecipeLinks.astro';
 
-服务器端渲染（SSR）是指按需在服务器上生成 HTML 页面并将其发送到客户端。
+Astro 允许你为部分或所有页面和端点选择**按需渲染**。这也被称为**服务器端渲染 (SSR)**：在服务器上根据请求生成 HTML 页面，并将其发送给客户端。一个**适配器**被用来在服务器上运行你的项目并处理这些请求。
 
-SSR 允许你：
+这种按需渲染允许你：
 
 - 在应用中实现登录状态的会话。
-- 从使用 `fetch` 动态调用的 API 呈现数据。
+- 从使用 `fetch()` 动态调用的 API 呈现数据。
 - 使用 *适配器* 将站点部署到主机。
 
-如果需要，请考虑在 Astro 项目中启用服务器端渲染：
+如果你需要以下功能，可以考虑在你的 Astro 项目中启用按需服务器渲染：
 
-- **API 端点**：SSR 使你能够创建特定页面，这些页面充当数据库访问、身份验证和授权等任务的 API 端点，同时对客户端隐藏敏感数据。
-- **受保护的页面**：如果需要根据用户权限限制对页面的访问，可以启用 SSR 来处理服务器上的用户访问。
-- **频繁更改的内容**：启用 SSR 可让你生成单个页面，而无需静态重建站点。当页面内容频繁更新时，这很有用。
+- **API 端点**：创建作为 API 端点的特定页面，用于数据库访问、身份验证和授权等任务，同时将敏感数据隐藏在服务端。
 
-## 启用 SSR
+- **受保护的页面**：通过在服务器上处理用户访问，以限制对页面的访问。
 
-首先，在开发模式使用`output: server`配置选项来启用 SSR 功能：
-要为生产部署启用 SSR 功能，请将 `输出` 配置更新为 `服务器` 或 `混合`（在 **v2.6.0** 中引入）。这两种模式都控制哪些[页面](/zh-cn/core-concepts/astro-pages/)或[服务器端点](/zh-cn/core-concepts/endpoints/#服务器端点api-路由)应该呈现服务器。每个配置选项都有不同的默认行为，并允许各个路由相应地选择退出默认值：
+- **频繁更改的内容**：生成单个页面时无需静态重建你的网站。当页面的内容频繁更新时，这是非常有用的，例如动态调用 `fetch()` 从 API 获取的数据。
 
-- __`output: 'server'`__：默认情况下服务器渲染。当大部分或全部网站应由服务器渲染时，请使用此选项。任何单个页面或端点都可以*选择加入*预渲染。
+## 启用按需服务器渲染
 
-  ```js ins={6,7}
-  // astro.config.mjs
-  import { defineConfig } from 'astro/config';
-  import nodejs from '@astrojs/node';
+Astro 的两种按需渲染输出模式（`server` 和 `hybrid`）都允许你通过尽可能预渲染单个路由来利用静态站点的性能优势，不论你是拥有一个完全动态的应用，还是大部分都是静态的网站，只需要为选定的路由进行按需渲染。
 
-  export default defineConfig({
-    output: 'server',
-    adapter: nodejs(),
-  });
-  ```
+为了决定在你的项目中使用哪一个，清选择一个 `output` 选项，这个选项代表了你的**大部分**页面和路由将如何被渲染：
 
-- __`output: 'hybrid'`__：默认预渲染为 HTML。当网站的大部分内容应该是静态的时，请使用此选项。任何单个页面或端点都可以*选择退出*预渲染。
+- __`output: 'server'`__：默认按需渲染。当你的网站或应用的大部分或全部应该在请求时进行服务器渲染时使用这个选项。任何单独的页面或端点都可以*选择加入*预渲染。
+- __`output: 'hybrid'`__：默认预渲染为 HTML。在你的网站大部分应该是静态的时候使用这个选项。任何单独的页面或端点都可以*选择退出*预渲染。
+ 
+因为服务器需要按需生成至少一些页面，所以这两种模式都需要你[添加一个适配器](#添加一个适配器)来执行服务器功能。
 
-然后，你可以在任何页面或路由中使用 export 语句选择退出默认渲染行为：
+
+### 配置 `sever` 或 `hybrid` 模式
+
+要启用按需渲染，首先更新你的 `output` 配置为两种服务器渲染模式之一。
+
+例如，要配置一个高度动态的应用，其中每个页面默认都由服务器按需渲染，将 `output: 'server'` 添加到你的 Astro 配置中：
+
+```js ins={5} title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import nodejs from '@astrojs/nodejs';
+
+export default defineConfig({
+  output: 'server',
+});
+```
+
+然后，你也可以选择在任何页面或路由上通过导出 `const prerender = true` 来覆盖 `server` 模式的默认按需渲染：
+
+```astro title="src/pages/my-static-page.astro" ins={2}
+---
+export const prerender = true;
+// ...
+---
+<html>
+  <!-- 这里是静态的、预渲染的页面... -->
+</html>
+```
+
+### 在 `server` 模式中选择加入预渲染
+
+对于大部分以 `output: server` 配置的服务器渲染应用，添加 `export const prerender = true` 到任何页面或路由，以预渲染一个静态页面或端点：
 
 ```astro title="src/pages/mypage.astro" {2}
 ---
@@ -46,36 +70,54 @@ export const prerender = true;
 // ...
 ---
 <html>
-  <!-- 静态的，预渲染的页面在这里... -->
+  <!-- 这里是静态的、预渲染的页面... -->
 </html>
 ```
-查看更多[配置单个路由](#配置单个路由)的使用示例。
 
-### 将静态网站转换为混合渲染
+```mdx title="src/pages/mypage.mdx" {5}
+---
+layout: '../layouts/markdown.astro'
+title: 'My page'
+---
+export const prerender = true;
 
-要将现有的静态 Astro 站点转换为允许混合渲染，请将 `output` 更改为 `hybrid` 并添加适配器：
+# 这是我的静态的、预渲染的页面
+```
 
-```js title="astro.config.mjs" ins={2,5-8}
-import { defineConfig } from 'astro/config';
-import nodejs from '@astrojs/node';
+```js title="src/pages/myendpoint.js" {1}
+export const prerender = true;
 
-export default defineConfig({
-  adapter: nodejs({
-    mode: 'middleware' // or 'standalone'
-  }),  
-  output: 'hybrid',
-});
+export async function GET() {
+  return {
+    body: JSON.stringify({ message: `这是我的静态端点` }),
+  };
+}
+```
+
+### 在 `hybrid` 模式中选择退出预渲染
+
+对于大部分以 `output: hybrid` 配置的静态网站，添加 `export const prerender = false` 到任何应该按需服务器渲染的文件：
+
+```js title="src/pages/randomnumber.js" {1}
+export const prerender = false;
+
+export async function GET() {
+  let number = Math.random();
+  return {
+    body: JSON.stringify({ number, message: `这是一个随机数：${number}` }),
+  };
+}
 ```
 
 ### 添加一个适配器
 
-当需要部署 SSR 项目时，你还需要添加一个适配器。这是因为 SSR 需要一个服务器 _运行时_：运行服务器端代码的环境。每个适配器都允许 Astro 输出在特定运行时运行项目的脚本。
+要在 `server` 或 `hybrid` 模式下部署项目，你还需要添加一个**适配器**。这是因为这两种模式都需要一个服务器 _运行时_：在服务器上运行代码以在请求时生成页面的环境。每个适配器都允许 Astro 输出一个在特定运行时（如 Vercel、Netlify 或 Cloudflare）上运行你的项目的脚本。
 
-你可以在我们的 [集成目录](https://astro.build/integrations/?search=&categories%5B%5D=adapters) 中找到官方和社区 SSR 适配器。
+你可以在我们的 [集成目录](https://astro.build/integrations/?search=&categories%5B%5D=adapters) 中找到官方和社区的适配器。然后选择与你的 [部署环境](/zh-cn/guides/deploy/) 相对应的适配器。
 
 #### 使用 `astro add` 安装
 
-你可以使用以下 `astro add` 命令添加任何 [官方 Astro 适配器集成](/zh-cn/guides/integrations-guide/)。这将安装一步适配器并对你的 `astro.config.mjs` 文件进行适当的更改。例如，要安装 Vercel 适配器，请运行：
+你可以使用以下 `astro add` 命令添加任何 [由 Astro 维护的官方适配器](/zh-cn/guides/integrations-guide/)。这将安装一步适配器并对你的 `astro.config.mjs` 文件进行适当的更改。例如，要安装 Vercel 适配器，请运行：
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -97,136 +139,58 @@ export default defineConfig({
 
 #### 手动安装
 
-你还可以通过自己手动安装软件包和更新 `astro.config.mjs` 来手动添加一个适配器。（请参阅上面的链接以获取特定于适配器的说明，以完成以下两个步骤以启用 SSR。）使用 `my-adapter` 作为示例占位符，说明将类似于：
+你也可以通过手动安装包并更新 `astro.config.mjs` 自己添加适配器。例如，要手动安装 Vercel 适配器：
 
 1. 使用你首选的包管理器将适配器安装到你的项目依赖项：
 
    <PackageManagerTabs>
      <Fragment slot="npm">
      ```shell
-     npm install @astrojs/my-adapter
+     npm install @astrojs/vercel
      ```
      </Fragment>
      <Fragment slot="pnpm">
      ```shell
-     pnpm install @astrojs/my-adapter
+     pnpm install @astrojs/vercel
      ```
      </Fragment>
      <Fragment slot="yarn">
      ```shell
-     yarn add @astrojs/my-adapter
+     yarn add @astrojs/vercel
      ```
      </Fragment>
    </PackageManagerTabs>
 
-2. [添加一个适配器](/zh-cn/reference/configuration-reference/#adapter)到你的 `astro.config.mjs` 文件的导入和默认导出：
+2. [添加一个适配器](/zh-cn/reference/configuration-reference/#adapter)到你的 `astro.config.mjs` 文件的导入和默认导出，以及你想要的 `output` 模式：
 
-    ```js ins={3,6-7}
+    ```js ins={3,7} {6}
     // astro.config.mjs
     import { defineConfig } from 'astro/config';
-    import myAdapter from '@astrojs/my-adapter';
+    import vercel from '@astrojs/vercel';
 
     export default defineConfig({
       output: 'server',
-      adapter: myAdapter(),
+      adapter: vercel(),
     });
     ```
+    注意，不同的适配器可能也有不同的配置设置。请阅读每个适配器的文档，并将任何必要的配置选项应用到 `astro.config.mjs` 中你选择的适配器。
 
-## 特性
+## 按需渲染功能特性
 
-Astro 在默认情况下仍是静态网站生成器。但是一旦你启用了服务器端渲染适配器，**你的页面目录中的每条路由都会成为服务器渲染的路由**，一些新的功能就可以为你所用。
+### HTML 流式处理
 
-### 配置单个路由
+在 HTML 流式传输中，一个文档会被分割成多个块，然后按顺序通过网络发送，并按该顺序在页面上渲染。在 `server` 或 `hybrid` 模式下，Astro 使用 HTML 流式传输将每个组件在渲染时发送到浏览器。尽管网络条件可能导致大文档下载缓慢，等待数据获取可能会阻塞页面渲染，但这确保用户能尽快地看到你的 HTML。
 
-`server` 和 `hybrid` 模式都允许服务器渲染的页面和端点，并将根据其默认行为渲染。但是，这两种模式都允许你将单个页面标记为 opt-out 此默认行为。
-
-### 选择退出服务端渲染
-
-对于配置为 `output: server` 的服务器渲染的应用，请将 `export const prerender = true` 添加到任何页面或路由以预渲染静态页面或端点：
-    
-```astro title="src/pages/mypage.astro" {2}
----
-export const prerender = true;
-// ...
----
-<html>
-  <!-- 静态的，预渲染的页面在这里... -->
-</html>
-```
-
-```mdx title="src/pages/mypage.mdx" {5}
----
-layout: '../layouts/markdown.astro'
-title: 'My page'
----
-export const prerender = true;
-
-# 这是我的静态预渲染页面
-```
-
-对于端点：
-
-```js title="src/pages/myendpoint.js" {1}
-export const prerender = true;
-
-export async function GET() {
-  return {
-    body: JSON.stringify({ message: `这是我的静态端点` }),
-  };
-}
-```
-
-### 选择退出预渲染
-
-对于配置为 `output: hybrid` 的静态站点，将 `export const prerender = false` 添加到应由服务器渲染的任何文件中：
-
-```js title="src/pages/randomnumber.js" {1}
-export const prerender = false;
-
-export async function GET() {
-  let number = Math.random();
-  return {
-    body: JSON.stringify({ number, message: `这是一个随机数： ${number}` }),
-  };
-}
-```
-
-### `Astro.request.headers`
-
-请求的标头可在 `Astro.request.headers` 上找到。这就像浏览器的 [`Request.headers`](https://developer.mozilla.org/zh-CN/docs/Web/API/Request/headers)。它是一个 [Headers](https://developer.mozilla.org/zh-CN/docs/Web/API/Headers) 对象，一个类似 Map 的对象，你可以在其中检索标头，例如 cookie。
-
-```astro title="src/pages/index.astro" {2}
----
-const cookie = Astro.request.headers.get('cookie');
-// ...
----
-<html>
-  <!-- 你的页面 -->
-</html>
-```
-
-### `Astro.request.method`
-
-The HTTP method used in the request is available as `Astro.request.method`. This works like the browser's [`Request.method`](https://developer.mozilla.org/en-US/docs/Web/API/Request/method). It returns the string representation of the HTTP method used in the request.
-请求中使用的 HTTP 方法可用作 `Astro.request.method`。这就像浏览器的 [`Request.method`](https://developer.mozilla.org/zh-CN/docs/Web/API/Request/method) 一样。它返回请求中使用的 HTTP 方法的字符串表示形式。
-
-```astro title="src/pages/index.astro"
----
-console.log(Astro.request.method) // GET (在浏览器中导航到时)
----
-```
+<RecipeLinks slugs={["zh-cn/recipes/streaming-improve-page-performance"]} />
 
 :::caution
-以下功能仅在页面级别可用。（不能在组件（包括布局组件）中使用它们。
+修改 [响应头](https://developer.mozilla.org/zh-CN/docs/Glossary/Response_header) 的功能只在**页面级别**可用。（你不能在组件内部使用它们，包括布局组件。）当 Astro 运行你的组件代码时，它已经发送了响应头，无法进行修改。
 
-这是因为这些功能会修改 [响应标头](https://developer.mozilla.org/zh-CN/docs/Glossary/Response_header)，这些功能在发送到浏览器后无法修改。在 SSR 模式下，Astro 使用 HTML 流将每个组件发送到浏览器，因为它渲染它们。这确保了用户尽可能快地看到你的 HTML，但这也意味着当 Astro 运行你的组件代码时，它已经发送了响应标头。
 :::
 
-### `Astro.cookies`
+### Cookies
 
 这是一个用于读取和修改单个 cookie 的工具方法。它允许你检查、设置、获取和删除 cookie。
-
-在 API 参考中查看有关 [`Astro.cookies` 和 `AstroCookie` 类型](/zh-cn/reference/api-reference/#astrocookies)的更多详细信息。
 
 下面的示例更新了页面显示的计数器的 cookie 值。
 
@@ -246,9 +210,13 @@ Astro.cookies.set("counter",counter)
 </html>
 ```
 
+在 API 参考中查看有关 [`Astro.cookies` 和 `AstroCookie` 类型](/zh-cn/reference/api-reference/#astrocookies) 的更多详细信息。
+
 ### `Response`
 
-任何页面都可以返回 [Response](https://developer.mozilla.org/zh-CN/docs/Web/API/Response)。可以在数据库中查找 ID 后，再动态返回 404 页面。
+你也可以从使用按需渲染的任何页面返回一个 [响应](https://developer.mozilla.org/zh-CN/docs/Web/API/Response)。
+
+下面的例子在数据库中查找 id 后在动态页面上返回 404：
 
 ```astro title="src/pages/[id].astro" {8-11}
 ---
@@ -269,106 +237,44 @@ if(!product) {
 </html>
 ```
 
+### `Request`
+
+`Astro.request` 是一个标准的 [请求](https://developer.mozilla.org/zh-CN/docs/Web/API/Request) 对象。它可以用来获取请求的 `url`、`headers`、`method`，甚至是请求的主体。
+
+在 `server` 和 `hybrid` 模式下，对于非静态生成的页面，你可以从这个对象中获取更多信息。
+
+
+### `Astro.request.headers`
+
+请求的标头可在 `Astro.request.headers` 上找到。这就像浏览器的 [`Request.headers`](https://developer.mozilla.org/zh-CN/docs/Web/API/Request/headers)。它是一个 [标头](https://developer.mozilla.org/zh-CN/docs/Web/API/Headers) 对象，你可以在其中检索标头，例如 cookie。
+
+```astro title="src/pages/index.astro" {2}
+---
+const cookie = Astro.request.headers.get('cookie');
+// ...
+---
+<html>
+  <!-- 你的页面 -->
+</html>
+```
+
+### `Astro.request.method`
+
+请求中使用的 HTTP 方法可用作 `Astro.request.method`。这就像浏览器的 [`Request.method`](https://developer.mozilla.org/zh-CN/docs/Web/API/Request/method) 一样。它返回请求中使用的 HTTP 方法的字符串表示形式。
+
+```astro title="src/pages/index.astro"
+---
+console.log(Astro.request.method) // GET (在浏览器中导航到时)
+---
+```
+
+在 API 参考中查看有关 [`Astro.request`](/zh-cn/reference/api-reference/#astrorequest) 的更多详细信息。
+
 ### 服务器端点
 
-服务器端点，也称为 **API 路由**，是从 `src/pages/` 文件夹中的 `.js`或 `.ts` 文件导出的特殊函数。
-该函数接收一个[端点上下文对象](/zh-cn/reference/api-reference/#端点上下文)并返回一个 [Response](https://developer.mozilla.org/zh-CN/docs/Web/API/Response)。这是 SSR 的一个强大功能，API 路由能够在服务器上安全地执行代码。要了解更多信息，请参阅我们的[端点指南](/zh-cn/core-concepts/endpoints/#服务器端点api-路由)。
+服务器端点，也称为 **API 路由**，是从 `src/pages/` 文件夹中的 `.js`或 `.ts` 文件导出的特殊函数。按需服务器端渲染的一个强大特性是，API 路由能够在服务器上安全地执行代码。
 
-### 流式处理
 
-浏览器本身支持 HTTP 流，其中文档被分解为块，按顺序通过网络发送，并按该顺序呈现在页面上。
+该函数接收一个[端点上下文对象](/zh-cn/reference/api-reference/#端点上下文)并返回一个 [Response](https://developer.mozilla.org/zh-CN/docs/Web/API/Response)。
 
-在此过程中，浏览器以增量方式使用 HTML：解析、呈现到 DOM 中和绘制。无论你是否有意流式传输 HTML，都会发生这种情况。网络状况可能会导致大型文档下载缓慢，等待数据获取可能会阻止页面呈现。
-
-### 使用流式处理提高页面性能
-
-下面 `await` 其 frontmatter 中的一些数据。Astro 将等待所有 `fetch` 调用解析，然后再将任何 HTML 发送到浏览器。
-
-```astro title="src/pages/index.astro"
----
-const personResponse = await fetch('https://randomuser.me/api/');
-const personData = await personResponse.json();
-const randomPerson = personData.results[0];
-const factResponse = await fetch('https://catfact.ninja/fact');
-const factData = await factResponse.json();
----
-<html>
-  <head>
-    <title>一个名字和一个事实</title>
-  </head>
-  <body>
-    <h2>一个名字</h2>
-    <p>{randomPerson.name.first}</p>
-    <h2>一个事实</h2>
-    <p>{factData.fact}</p>
-  </body>
-</html>
-```
-
-将 `await` 调用移动到较小的组件中，你可以利用 Astro 的流式传输。使用以下组件执行数据获取，Astro 可以先渲染一些 HTML，例如标题，然后在数据准备就绪时呈现段落。
-
-```astro title="src/components/RandomName.astro"
----
-const personResponse = await fetch('https://randomuser.me/api/');
-const personData = await personResponse.json();
-const randomPerson = personData.results[0];
----
-<p>{randomPerson.name.first}</p>
-```
-
-```astro title="src/components/RandomFact.astro"
----
-const factResponse = await fetch('https://catfact.ninja/fact');
-const factData = await factResponse.json();
----
-<p>{factData.fact}</p>
-```
-
-下面使用这些组件的 Astro 页面可以更快地呈现页面的某些部分。数据提取不再阻止 `<head>`、`<body>` 和 `<h1>` 标记。然后，服务器将并行获取 `RandomName` 和 `RandomFact` 的数据，并将生成的 HTML 流式传输到浏览器。
-
-```astro title="src/pages/index.astro"
----
-import RandomName from '../components/RandomName.astro'
-import RandomFact from '../components/RandomFact.astro'
----
-<html>
-  <head>
-    <title>一个名字和一个事实</title>
-  </head>
-  <body>
-    <h2>一个名字</h2>
-    <RandomName />
-    <h2>一个事实</h2>
-    <RandomFact />
-  </body>
-</html>
-```
-
-#### 直接包括 Promises
-
-你还可以直接在模板中包含 promises。它不会阻止整个组件，而是并行解析 promise，并且只阻止它后面的标记。
-
-```astro title="src/pages/index.astro"
----
-const personPromise = fetch('https://randomuser.me/api/')
-  .then(response => response.json())
-  .then(arr => arr[0].name.first);
-const factPromise = fetch('https://catfact.ninja/fact')
-  .then(response => response.json())
-  .then(factData => factData.fact);
----
-<html>
-  <head>
-    <title>一个名字和一个事实</title>
-  </head>
-  <body>
-    <h2>一个名字</h2>
-    <p>{personPromise}</p>
-    <h2>一个事实</h2>
-    <p>{factPromise}</p>
-  </body>
-</html>
-```
-
-在此示例中，`一个名称`将在加载 `personPromise` 和 `factPromise` 时渲染。
-一旦 `personPromise` 解决，`一个事实`就会出现，`factpromise` 将在加载完成后呈现。
+要了解更多信息，请参阅我们的[端点指南](/zh-cn/core-concepts/endpoints/#服务器端点api-路由)。

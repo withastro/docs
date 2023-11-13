@@ -7,8 +7,8 @@ i18nReady: true
 ---
 import FileTree from '~/components/FileTree.astro'
 import Since from '~/components/Since.astro'
-import TypeScriptSettingTabs from '~/components/tabs/TypeScriptSettingTabs.astro'
 import RecipeLinks from "~/components/RecipeLinks.astro"
+import Badge from "~/components/Badge.astro"
 
 
 <p>
@@ -542,6 +542,21 @@ If you have an existing Astro project, such as a blog, that uses Markdown or MDX
  
 See how to convert a basic blog example from `src/pages/posts/` to `src/content/posts` in our [step-by-step tutorial](/en/tutorials/add-content-collections/) that uses the codebase from [the Build a Blog tutorial's finished project](https://github.com/withastro/blog-tutorial-demo).
 
+## Enabling Build Caching
+
+<p><Since v="3.5.0" /><Badge>Experimental</Badge></p>
+
+If you are working with large collections, you may wish to enable cached builds with the [`experimental.contentCollectionCache`](/en/reference/configuration-reference/#experimentalcontentcollectioncache) flag. This experimental feature optimizes Astro's build process, enabling unchanged collections to be stored and reused between builds.
+
+In many cases, this can lead to significant build performance improvements.
+
+While this feature stabilizes, you may run into issues with the stored cache. You can always reset your build cache by running the following command:
+
+```
+npm run astro build -- --force
+```
+
+
 ## Modifying Frontmatter with Remark
 
 :::caution
@@ -562,3 +577,39 @@ const { remarkPluginFrontmatter } = await blogPost.render();
 <RecipeLinks slugs={["en/recipes/reading-time" ]}/>
 
 The remark and rehype pipelines only run when your content is rendered, which explains why `remarkPluginFrontmatter` is only available after you call `render()` on your content entry. In contrast, `getCollection()` and `getEntry()` cannot return these values directly because they do not render your content.
+
+## Working with dates in the frontmatter
+
+Several date formats are possible in content collections, but your collection's schema must match the format used in your Markdown or MDX YAML frontmatter.
+
+YAML uses the [ISO-8601](https://www.iso.org/iso-8601-date-and-time-format.html) standard to express dates. Use the format `yyyy-mm-dd` (e.g. `2021-07-28`) along with a schema type of `z.date()`:
+
+```markdown title="src/pages/posts/example-post.md"
+---
+title: My Blog Post
+pubDate: 2021-07-08
+---
+```
+
+The date format will be specified in UTC if a timezone is not provided. If you need to specify a timezone, you can use the [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format. 
+
+```markdown title="src/pages/posts/example-post.md"
+---
+title: My Blog Post
+pubDate: 2021-07-08T12:00:00-04:00
+---
+```
+
+To render only the `YYYY-MM-DD` from the full UTC timestamp, use the JavaScript `slice` method to remove the timestamp:
+
+```astro title="src/layouts/ExampleLayout.astro"
+---
+const { frontmatter } = Astro.props;
+---
+<h1>{frontmatter.title}</h1>
+<p>{frontmatter.pubDate.slice(0,10)}</p>
+```
+To see an example of using `toLocaleDateString` to format the day, month, and year instead, see the [`<FormattedDate />` component](https://github.com/withastro/astro/blob/latest/examples/blog/src/components/FormattedDate.astro) in the official Astro blog template. 
+
+
+
