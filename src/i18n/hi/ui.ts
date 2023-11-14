@@ -2,7 +2,7 @@ import { UIDictionary } from '../translation-checkers';
 
 export default UIDictionary({
 	'a11y.skipLink': 'इसे छोड़कर कंटेंट पर जाएं', // "Skip to Content"
-	'a11y.sectionLink': 'शीर्षक:', // "Section titled"
+	'a11y.sectionLink': 'शीर्षक', // "Section titled"
 	'navbar.a11yTitle': 'शीर्ष', // "Top"
 	// Site settings
 	'site.title': 'Astro दस्तावेज़ीकरण', // "Astro Documentation"
@@ -28,7 +28,7 @@ export default UIDictionary({
 	'rightSidebar.contributorGuides': 'योगदानकर्ता मार्गदर्शिकाएँ', // "Contributor Guides"
 	'rightSidebar.editPage': 'इस पृष्ठ को संपादित करें', // "Edit this page"
 	'rightSidebar.translatePage': 'इस पृष्ठ को अनुवाद करें', // "Translate this page"
-	'rightSidebar.github': 'एस्ट्रो डॉक्स GitHub पर', // "Astro Docs on GitHub"
+	'rightSidebar.github': 'Astro Docs देखे GitHub पर', // "Astro Docs on GitHub"
 	// Footer
 	'footer.privacyPolicy': 'गोपनीयता नीति', // "Privacy Policy"
 	// `<ThemeToggleButton>` accessibility labels
