@@ -22,6 +22,7 @@ export default NavDictionary({
 	'core-concepts/astro-pages': 'Páginas',
 	'core-concepts/layouts': 'Plantillas',
 	'core-concepts/astro-syntax': 'Sintaxis de Astro',
+	'core-concepts/rendering-modes': 'Modos de Renderizado',
 
 	builtins: 'Funciones Integradas',
 	'guides/content-collections': 'Colecciones de Contenido',
@@ -51,6 +52,8 @@ export default NavDictionary({
 	'guides/data-fetching': 'Fetching de Datos',
 	'guides/middleware': 'Middleware',
 	'guides/testing': 'Testing',
+	'guides/prefetch': 'Precargar',
+	'guides/internationalization': 'Internacionalización',
 	'guides/troubleshooting': 'Solución de Problemas',
 
 	configuration: 'Configuración',
