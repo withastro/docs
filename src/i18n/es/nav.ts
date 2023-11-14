@@ -53,7 +53,7 @@ export default NavDictionary({
 	'guides/middleware': 'Middleware',
 	'guides/testing': 'Testing',
 	'guides/prefetch': 'Precargar',
-	'guides/internationalization': 'internacionalización',
+	'guides/internationalization': 'Internacionalización',
 	'guides/troubleshooting': 'Solución de Problemas',
 
 	configuration: 'Configuración',
