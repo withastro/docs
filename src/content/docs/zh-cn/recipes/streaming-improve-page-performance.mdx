@@ -1,0 +1,100 @@
+---
+title: "使用流式处理来提升页面性能"
+description: "了解如何使用流式处理来提升页面性能"
+type: recipe
+i18nReady: true
+---
+
+Astro 的 SSR 使用 HTML 流式处理来在组件可用时将其发送到浏览器，以便更快地加载页面。为了进一步提升你的页面性能，你可以策略性地构建你的组件，即通过避免阻塞的数据获取来优化它们的加载速度。
+
+如下的重构示例演示了如何通过将获取调用移动到其他组件，并将它们从阻塞页面渲染的组件中迁移出来，以提高页面性能。
+
+以下页面在 frontmatter 中会 `await` 一些数据。而 Astro 会等待所有的 fetch 调用解决后，再将 HTML 发送到浏览器。
+
+```astro title="src/pages/index.astro"
+---
+const personResponse = await fetch('https://randomuser.me/api/');
+const personData = await personResponse.json();
+const randomPerson = personData.results[0];
+const factResponse = await fetch('https://catfact.ninja/fact');
+const factData = await factResponse.json();
+---
+<html>
+  <head>
+    <title>A name and a fact</title>
+  </head>
+  <body>
+    <h2>A name</h2>
+    <p>{randomPerson.name.first}</p>
+    <h2>A fact</h2>
+    <p>{factData.fact}</p>
+  </body>
+</html>
+```
+
+现在可将 `await` 调用移入粒度较小的组件可以让你充分利用 Astro 的流式处理。使用以下组件来执行数据获取，Astro 可以先渲染一些 HTML，例如标题，然后在数据准备好时渲染段落。
+
+```astro title="src/components/RandomName.astro"
+---
+const personResponse = await fetch('https://randomuser.me/api/');
+const personData = await personResponse.json();
+const randomPerson = personData.results[0];
+---
+<p>{randomPerson.name.first}</p>
+```
+
+```astro title="src/components/RandomFact.astro"
+---
+const factResponse = await fetch('https://catfact.ninja/fact');
+const factData = await factResponse.json();
+---
+<p>{factData.fact}</p>
+```
+
+下面的 Astro 页面使用这些组件可以更早地渲染页面的部分内容。`<head>`、`<body>` 和 `<h1>` 标签则不再被数据获取所阻塞。接着，服务器将并行获取 `RandomName` 和 `RandomFact` 的数据，并将生成的 HTML 流式传输到浏览器上。
+
+```astro title="src/pages/index.astro"
+---
+import RandomName from '../components/RandomName.astro'
+import RandomFact from '../components/RandomFact.astro'
+---
+<html>
+  <head>
+    <title>A name and a fact</title>
+  </head>
+  <body>
+    <h2>A name</h2>
+    <RandomName />
+    <h2>A fact</h2>
+    <RandomFact />
+  </body>
+</html>
+```
+
+#### 直接包含 Promises
+
+你也可以直接在模板中包含 promises。它不会阻塞整个组件，而是会并行地解决 promise，并只阻塞其后的标记。
+
+```astro title="src/pages/index.astro"
+---
+const personPromise = fetch('https://randomuser.me/api/')
+  .then(response => response.json())
+  .then(arr => arr[0].name.first);
+const factPromise = fetch('https://catfact.ninja/fact')
+  .then(response => response.json())
+  .then(factData => factData.fact);
+---
+<html>
+  <head>
+    <title>A name and a fact</title>
+  </head>
+  <body>
+    <h2>A name</h2>
+    <p>{personPromise}</p>
+    <h2>A fact</h2>
+    <p>{factPromise}</p>
+  </body>
+</html>
+```
+
+在这个例子中，`A name` 会在 `personPromise` 和 `factPromise` 加载时渲染。一旦 `personPromise` 解决了，`A fact` 就会出现，`factPromise` 也将在完成加载时渲染。

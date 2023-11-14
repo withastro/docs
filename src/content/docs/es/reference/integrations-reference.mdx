@@ -30,6 +30,7 @@ interface AstroIntegration {
       addRenderer: (renderer: AstroRenderer) => void;
       addWatchFile: (path: URL | string) => void;
       addClientDirective: (directive: ClientDirectiveConfig) => void;
+      addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
       addDevOverlayPlugin: (pluginEntrypoint: string) => void;
       injectScript: (stage: InjectedScriptStage, content: string) => void;
       injectRoute: ({ pattern: string, entryPoint: string }) => void;
@@ -75,6 +76,7 @@ interface AstroIntegration {
   updateConfig: (newConfig: Record<string, any>) => void;
   addRenderer: (renderer: AstroRenderer) => void;
   addClientDirective: (directive: ClientDirectiveConfig) => void;
+  addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
   addDevOverlayPlugin: (pluginEntrypoint: string) => void;
   addWatchFile: (path: URL | string) => void;
   injectScript: (stage: InjectedScriptStage, content: string) => void;
@@ -264,6 +266,45 @@ export default {
     console.log("¡Soy un plugin de superposición de desarrollo!")
   },
 };
+```
+
+#### Opción `addMiddleware`
+
+<Since v="3.5.0" />
+
+**Tipo:** `(middleware:` [`AstroIntegrationMiddleware`](https://github.com/withastro/astro/blob/852ac0f75dfca1b2602e9cdbfa0447d9998e2449/packages/astro/src/%40types/astro.ts#L2124-L2127) `) => void;`
+
+Agrega un [middleware](/es/guides/middleware/) para ejecutar en cada solicitud. Toma el módulo `entrypoint` que contiene el middleware, y un `order` para especificar si debe ejecutarse antes (`pre`) de otro middleware o después (`post`).
+
+```js title="@my-package/integration.js"
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "my-middleware-package",
+  hooks: {
+    "astro:config:setup": ({ addMiddleware }) => {
+        addMiddleware({
+          entrypoint: '@my-package/middleware',
+          order: 'pre'
+        });
+    },
+  },
+});
+```
+
+Un middleware es definido en un paquete con una función `onRequest`, como con el middleware definido por el usuario.
+
+```js title="@my-package/middleware.js"
+import { defineMiddleware } from 'astro:middleware';
+
+export const onRequest = defineMiddleware(async (context, request) => {
+  if(context.url.pathname === '/some-test-path') {
+    return Response.json({
+      ok: true
+    });
+  }
+});
 ```
 
 #### Opción `injectRoute`
