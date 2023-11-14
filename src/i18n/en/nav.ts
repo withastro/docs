@@ -15,8 +15,9 @@ export default [
 	{ text: 'Upgrade to v3', slug: 'guides/upgrade-to/v3', key: 'guides/upgrade-to/v3' },
 
 	{ text: 'Core Concepts', header: true, type: 'learn', key: 'coreConcepts' },
-	{ text: 'Why Astro', slug: 'concepts/why-astro', key: 'concepts/why-astro' },
-	{ text: 'Astro Islands', slug: 'concepts/islands', key: 'concepts/islands' },
+	{ text: 'Why Astro?', slug: 'concepts/why-astro', key: 'concepts/why-astro' },
+	{ text: 'Islands', slug: 'concepts/islands', key: 'concepts/islands' },
+	{ text: 'Embedded SPAs', slug: 'concepts/embedded-web-apps', key: 'concepts/embedded-web-apps' },
 
 	{ text: 'Tutorials', header: true, type: 'learn', key: 'tutorials' },
 	{ text: 'Build a Blog', slug: 'tutorial/0-introduction', key: 'blog-tutorial' },
