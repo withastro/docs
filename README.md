@@ -10,8 +10,6 @@ This repo contains all the source code we use to build our docs site.
 [![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/github/withastro/docs)
 [![Open in Codeflow](https://developer.stackblitz.com/img/open_in_codeflow.svg)](https://pr.new/github.com/withastro/docs)
 
-🎃 **Participating in Hacktoberfest?** [See our Hacktoberfest guide](https://github.com/withastro/docs/blob/main/.github/hacktoberfest.md)! 🎃
-
 ## We are Astro
 
 Astro is an all-in-one web framework for building fast, content-focused websites.
