@@ -1,0 +1,185 @@
+---
+title: Precargar
+description: Precargar enlaces para una navegación más rápida entre páginas.
+i18nReady: true
+---
+
+Los tiempos de carga de las páginas juegan un papel importante en la usabilidad y el disfrute general de un sitio. La **precarga opcional** de Astro aporta los beneficios de las navegaciones de páginas casi instantáneas a su aplicación multipágina (MPA) a medida que sus visitantes interactúan con el sitio.
+
+## Habilitar la precarga
+
+Puedes habilitar la precarga con la configuración `prefetch`:
+
+```js title="astro.config.js" ins={4}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  prefetch: true
+})
+```
+
+Un script de precarga se agregará a todas las páginas de tu sitio. Luego puedes agregar el atributo `data-astro-prefetch` a cualquier enlace `<a />` en tu sitio para optar por la precarga. Cuando pasa el cursor sobre el enlace, el script buscará la página en segundo plano.
+
+```html
+<a href="/about" data-astro-prefetch>
+```
+
+Toma en cuenta que la precarga solo funciona para los enlaces dentro de tu sitio, y no para los enlaces externos.
+
+## Configuración de precarga
+
+La configuración `prefetch` también acepta un objeto de opciones para personalizar aún más la precarga.
+
+### Estrategias de precarga
+
+Astro admite 3 estrategias de precarga para varios casos de uso:
+
+- `hover` (por defecto): Precarga cuando pasas el cursor o te enfocas en el enlace.
+- `tap`: Precarga justo antes de hacer clic en el enlace.
+- `viewport`: Precarga cuando los enlaces entran en el viewport.
+
+Puedes especificar una estrategia para un enlace individual pasándola al atributo `data-astro-prefetch`:
+
+```html
+<a href="/about" data-astro-prefetch="tap">Acerca</a>
+```
+
+Cada estrategia está ajustada para precargar solo cuando sea necesario y ahorrar el ancho de banda de tus usuarios. Por ejemplo:
+
+- Si un visitante está usando el [modo ahorro de datos](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/saveData) o tiene una [conexión lenta](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/effectiveType), la precarga se desactivará.
+- Desplazarse rápidamente sobre los enlaces no los precargará.
+- Los enlaces que usan la estrategia `viewport` se precargan con una prioridad más baja para evitar obstruir la red.
+
+### Estrategia de precarga predeterminada
+
+La estrategia de precarga predeterminada al agregar el atributo `data-astro-prefetch` es `hover`. Para cambiarlo, puedes configurar [`prefetch.defaultStrategy`](/es/reference/configuration-reference/#prefetchdefaultstrategy) en tu archivo `astro.config.js`:
+
+```js title="astro.config.js" ins={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  prefetch: {
+    defaultStrategy: 'viewport'
+  }
+})
+```
+
+### Precargar todos los enlaces de forma predeterminada
+
+Si quieres precargar todos los enlaces, incluidos los que no tienen el atributo `data-astro-prefetch`, puedes establecer [`prefetch.prefetchAll`](/es/reference/configuration-reference/#prefetchprefetchall) en `true`:
+
+```js title="astro.config.js" ins={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  prefetch: {
+    prefetchAll: true
+  }
+})
+```
+
+Puedes optar por no precargar los enlaces individuales estableciendo `data-astro-prefetch="false"`:
+
+```html
+<a href="/about" data-astro-prefetch="false">Acerca</a>
+```
+
+La estrategia de precarga predeterminada para todos los enlaces se puede cambiar con `prefetch.defaultStrategy` como se muestra en la sección [Estrategia de precarga predeterminada](#estrategia-de-precarga-predeterminada).
+
+## Precarga programática
+
+Como algunas navegaciones no siempre aparecen como enlaces `<a />`, también puedes precargar programáticamente con la API `prefetch()` del módulo `astro:prefetch`:
+
+```astro
+<button id="btn">Click me</button>
+
+<script>
+  import { prefetch } from 'astro:prefetch';
+
+  const btn = document.getElementById('btn');
+  btn.addEventListener('click', () => {
+    prefetch('/about');
+  });
+</script>
+```
+
+Puedes configurar adicionalmente la prioridad de la precarga pasando la opción `with`:
+
+```js
+// Precarga con `fetch()`, que tiene una prioridad más alta.
+prefetch('/about', { with: 'fetch' });
+
+// Precarga con `<link rel="prefetch">`, que tiene una prioridad más baja
+// y programado manualmente por el navegador. (predeterminado)
+prefetch('/about', { with: 'link' });
+```
+
+La API `prefetch()` incluye el mismo [modo de ahorro de datos](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/saveData) y [conexión lenta](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/effectiveType), por lo que solo precarga cuando sea necesario.
+
+Asegúrate de importar `prefetch()` solo en scripts del lado del cliente, ya que depende de las API del navegador.
+
+## Usar con View Transitions
+
+Cuando uses [View Transitions](/es/guides/view-transitions/) en una página, la precarga también estará habilitada de forma predeterminada. Establece una configuración predeterminada de `{ prefetchAll: true }` que habilita [la precarga para todos los enlaces](#precargar-todos-los-enlaces-de-forma-predeterminada) en la página.
+
+Puedes personalizar la configuración de precarga en `astro.config.js` para anular la predeterminada. Por ejemplo:
+  
+```js title="astro.config.js"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  // Desactiva la precarga por completo
+  prefetch: false
+})
+```
+
+```js title="astro.config.js"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  // Mantén la precarga, pero solo precarga para los enlaces con `data-astro-prefetch`
+  prefetch: {
+    prefetchAll: false
+  }
+})
+```
+
+## Migrando desde `@astrojs/prefetch`
+
+La integración `@astrojs/prefetch` se ha eliminado en v3.5.0 y se eliminará por completo en el futuro. Utiliza las siguientes instrucciones para migrar a la precarga incorporada de Astro, que reemplaza esta integración.
+
+1. Elimina la integración `@astrojs/prefetch` y habilita la configuración `prefetch` en `astro.config.js`:
+
+    ```js title="astro.config.js" ins={6} del={2,5}
+    import { defineConfig } from 'astro/config';
+    import prefetch from '@astrojs/prefetch';
+
+    export default defineConfig({
+      integrations: [prefetch()],
+      prefetch: true
+    })
+    ```
+
+2. Convierte las opciones de configuración de `@astrojs/prefetch`:
+
+    - La integración obsoleta usaba la opción de configuración `selector` para especificar qué enlaces se deben precargar al ingresar al viewport.
+    
+      Agrega `data-astro-prefetch="viewport"` a estos enlaces individuales en su lugar:
+
+      ```html
+      <a href="/about" data-astro-prefetch="viewport">
+      ```
+
+    - La integración obsoleta usaba la opción de configuración `intentSelector` para especificar qué enlaces se deben precargar al pasar el mouse o enfocarse en ellos.
+    
+      Agrega `data-astro-prefetch` o `data-astro-prefetch="hover"` a estos enlaces individuales en su lugar:
+
+      ```html
+      <!-- Puedes omitir el valor si `defaultStrategy` está establecido en `hover` (predeterminado) -->
+      <a href="/about" data-astro-prefetch>
+
+      <!-- De otra manera, puedes definir explícitamente la estrategia de precarga -->
+      <a href="/about" data-astro-prefetch="hover">
+      ```
+
+    - La opción `throttles` de `@astrojs/prefetch` ya no es necesaria, ya que la nueva función de precarga programática programará y precargará automáticamente de forma óptima.
