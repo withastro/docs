@@ -17,7 +17,7 @@ export default [
 	{ text: 'Core Concepts', header: true, type: 'learn', key: 'coreConcepts' },
 	{ text: 'Why Astro?', slug: 'concepts/why-astro', key: 'concepts/why-astro' },
 	{ text: 'Islands', slug: 'concepts/islands', key: 'concepts/islands' },
-	{ text: 'Embedded SPAs', slug: 'concepts/embedded-web-apps', key: 'concepts/embedded-web-apps' },
+	{ text: 'SSR vs. SSG', slug: 'concepts/ssr-vs-ssg', key: 'concepts/ssr-vs-ssg' },
 
 	{ text: 'Tutorials', header: true, type: 'learn', key: 'tutorials' },
 	{ text: 'Build a Blog', slug: 'tutorial/0-introduction', key: 'blog-tutorial' },
@@ -51,11 +51,6 @@ export default [
 		text: 'Astro Template Syntax',
 		slug: 'core-concepts/astro-syntax',
 		key: 'core-concepts/astro-syntax',
-	},
-	{
-		text: 'Rendering Modes',
-		slug: 'core-concepts/rendering-modes',
-		key: 'core-concepts/rendering-modes',
 	},
 
 	{ text: 'Built-ins', header: true, type: 'learn', key: 'builtins' },
@@ -114,6 +109,7 @@ export default [
 		slug: 'guides/internationalization',
 		key: 'guides/internationalization',
 	},
+	{ text: 'Embedded SPAs', slug: 'concepts/embedded-web-apps', key: 'concepts/embedded-web-apps' },
 	{ text: 'Middleware', slug: 'guides/middleware', key: 'guides/middleware' },
 	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
 	{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
