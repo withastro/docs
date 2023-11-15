@@ -465,6 +465,92 @@ If you have code that sets up global state, this state will need to take into ac
 
 Module scripts are only ever executed once because the browser keeps track of which modules are already loaded. For these scripts, you do not need to worry about re-execution.
 
+## Lifecycle events
+
+The `<ViewTransition />` router fires a number events on the `document` during navigation. These events provide hooks into the lifecycle of navigation, allowing to do things like showing indicators that a new page is loading, override default behavior, and restore state as navigation is completing.
+
+### `astro:before-preparation`
+
+<Since v="3.6.0" />
+
+An event that fires at the beginning of the preparation phase, after navigation has started (for example, after the user has clicked a link), but before content is loaded.
+
+This event is useful for a few use-cases:
+
+- To do something before loading has started, such as showing an a loading spinner.
+- To alter loading, such as loading content you've defined in a template rather than from the external URL.
+- To change the `direction` of the navigation (which is usually either `forward` or `backward`) in order to do custom animation.
+
+Here's an example of using the `astro:before-preparation` event to load a spinner before the content is loaded.
+
+```js
+<script is:inline>
+  document.addEventListener('astro:before-preparation', ev => {
+    const originalLoader = ev.loader;
+    ev.loader = async function() {
+      const { startSpinner } = await import('./spinner.js');
+      const stop = startSpinner();
+      await originalLoader();
+      stop();
+    };
+  });
+</script>
+```
+
+### `astro:after-preparation`
+
+<Since v="3.6.0" />
+
+An event that fires at the end of the preparation phase, after the new page's content has been loaded and parsed into the `newDocument` property. You can use this event to manipulate the state of the document before it is swapped with the existing document.
+
+Here's how you might ensure that a user's site theme (light and dark mode) preference carries over to the new page, when it is implemented as a localStorage feature:
+
+```astro
+<script is:inline>
+  function setDarkMode(document) {
+    let theme = localStorage.darkMode ? 'dark' : 'light';
+    document.documentElement.dataset.theme = theme;
+  }
+
+  setDarkMode(document);
+
+  document.addEventListener('astro:after-preparation', ev => {
+    // Pass the incoming document to set the theme on it
+    setDarkMode(ev.newDocument);
+  });
+</script>
+```
+
+### `astro:before-swap`
+
+<Since v="3.6.0" />
+
+An event that fires befores the new document, populated during the preparation phase, replaces the current document. This event occurs inside of the view transition, where the user is seeing a snapshot of the old page.
+
+This event can be used to change the implementation of the swap. The default swap implementation diffs head content, moves __persistent__ elements from the old document to the `newDocument`, and then replaces the entire `body` with the body of the new document.
+
+If you wanted your own swap implementation, to for example diff the entire contents of the existing document (which some other routers do), this would be the event to do so.
+
+```astro
+<script is:inline>
+  document.addEventListener('astro:before-swap', ev => {
+    ev.swap = () => {
+      diff(document, ev.newDocument);
+    };
+  });
+</script>
+```
+
+### `astro:after-swap`
+
+An event that fires immediately after the new page replaces the old page. You can listen to this event on the `document` and trigger actions that will occur before the new page's DOM elements render and scripts run. 
+
+This event, when listened to on the **outgoing page**, is useful to pass along and restore any state on the DOM that needs to transfer over to the new page.
+
+Previously this event was used to implement dark mode. You could listen to the event and then add the dark mode class name to, for example: `<html class="dark-mode">`. This is still a valid way to do it, but it might be better to do so in an earlier event, like `astro:after-preparation` which occurs before the swap and before the view transition occurs.
+
+As the `astro:after-swap` event occurs immediately before the view transition ends, it's a good time to stop any loading indicators that might be running.
+
 ### `astro:page-load`
 
 An event that fires at the end of page navigation, after the new page is visible to the user and blocking styles and scripts are loaded. You can listen to this event on the `document`.
@@ -479,29 +565,6 @@ You can use this event to run code on every page navigation, or only once ever:
     // This only runs once.
     setupStuff();
   }, { once: true });
-</script>
-```
-
-### `astro:after-swap`
-
-An event that fires immediately after the new page replaces the old page. You can listen to this event on the `document` and trigger actions that will occur before the new page's DOM elements render and scripts run. 
-
-This event, when listened to on the **outgoing page**, is useful to pass along and restore any state on the DOM that needs to transfer over to the new page.
-
-For example, if you are implementing dark mode support, this event can be used to restore state across page loads:
-
-```astro
-<script>
-	const setDarkMode = () => {
-		if (localStorage.darkMode) {
-			document.documentElement.dataset.dark = '';
-		}
-	};
-
-  // Runs on initial navigation
-	setDarkMode();
-  // Runs on view transitions navigation
-	document.addEventListener('astro:after-swap', setDarkMode);
 </script>
 ```
 
