@@ -1,3 +1,5 @@
+import v8 from 'node:v8';
+
 import mdx from '@astrojs/mdx';
 import preact from '@astrojs/preact';
 import { defineConfig } from 'astro/config';
@@ -15,6 +17,12 @@ import { rehypei18nAutolinkHeadings } from './plugins/rehype-i18n-autolink-headi
 import { rehypeOptimizeStatic } from './plugins/rehype-optimize-static';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
+
+console.log(
+	'Heap size:',
+	Math.round(v8.getHeapStatistics().total_available_size / 1024 / 1024),
+	'MiB'
+);
 
 // https://astro.build/config
 export default defineConfig({
