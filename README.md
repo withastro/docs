@@ -69,4 +69,3 @@ Check out the dedicated [i18n guide](https://github.com/withastro/docs/blob/main
 - [Raise an issue](https://github.com/withastro/docs/issues/new)
 - [Participate in a discussion](https://github.com/withastro/docs/discussions)
 - [Join the #docs channel on Discord](https://discord.gg/cZDZU3hJHc)
-
