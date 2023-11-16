@@ -1,4 +1,4 @@
-const allLanguages = {
+export const allLanguages = {
 	en: 'English',
 	de: 'Deutsch',
 	'pt-br': 'Português do Brasil',
