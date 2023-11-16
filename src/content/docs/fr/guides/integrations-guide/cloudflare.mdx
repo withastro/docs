@@ -2,7 +2,7 @@
 type: integration
 title: '@astrojs/cloudflare'
 description:  Apprendre à utiliser l'adaptateur SSR @astrojs/cloudflare pour déployer votre projet Astro.
-githubURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare/'
+githubURL: 'https://github.com/withastro/adapters/tree/main/packages/cloudflare/'
 hasREADME: true
 category: adapter
 i18nReady: true
@@ -10,8 +10,6 @@ i18nReady: true
 
 import Video from '~/components/Video.astro';
 import DontEditWarning from '~/components/DontEditWarning.astro';
-
-<DontEditWarning/>
 
 Un adaptateur SSR pour utiliser les fonctionnalités de Cloudflare Pages. Écrivez votre code en Astro/Javascript et déployez-le sur Cloudflare Pages.
 
@@ -183,7 +181,7 @@ Par défaut: `false`
 
 Importer ou non les fichiers `.wasm` directement en tant que [modules ES](https://github.com/WebAssembly/esm-integration/tree/main/proposals/esm-integration).
 
-Ajouter `wasmModuleImports: true` à `astro.config.mjs` pour l'activer à la fois dans la version Cloudflare et dans le serveur de développement Astro. En savoir plus sur l'[utilisation des modules Wasm](#utilisation-des-modules-wasm)
+Ajouter `wasmModuleImports: true` à `astro.config.mjs` pour l'activer à la fois dans la version Cloudflare et dans le serveur de développement Astro. En savoir plus sur l'[utilisation des modules Wasm](#utilisation-des-modules-wasm).
 
 ```diff lang="ts"
   // astro.config.mjs
@@ -200,14 +198,24 @@ Ajouter `wasmModuleImports: true` à `astro.config.mjs` pour l'activer à la foi
 
 ### `runtime`
 
-`runtime: "off" | "local"`
+`runtime: { mode: "off" | "local", persistTo: string }`
 
-Par défaut `"off"`
+Par défaut `{ mode: 'off', persistTo: '' }`
 
 Détermine si et comment le Cloudflare Runtime est ajouté à `astro dev`.
 
+Le moteur d'exécution Cloudflare comprend les [liaisons Cloudflare](https://developers.cloudflare.com/pages/platform/functions/bindings), les [variables d'environment](https://developers.cloudflare.com/pages/platform/functions/bindings/#environment-variables), et l'[objet cf](https://developers.cloudflare.com/workers/runtime-apis/request/#incomingrequestcfproperties). En savoir plus sur [l'accès au moteur d'exécution Cloudflare](#cloudflare-runtime).
+
+La propriété `mode` définit comment le moteur d'exécution est ajouté à `astro dev` :
+
 *   `local`: utilise des bindings mocking et des placeholders statiques localement.
 *   `off`: pas d'accès au runtime Cloudflare en utilisant `astro dev`. Vous pouvez également utiliser [Prévisualisation avec Wrangler](#prévisualisation-avec-wrangler)
+
+La propriété `persistTo` définit l'endroit où le moteur d'exécution local est installé lors de l'utilisation de `mode : local`. Cette valeur est un répertoire relatif à votre chemin d'exécution `astro dev`.
+
+La valeur par défaut est `.wrangler/state/v3` pour correspondre au chemin par défaut utilisé par Wrangler. Cela signifie que les deux outils sont capables d'accéder et d'utiliser l'état local.
+
+Quel que soit le répertoire défini dans `persistTo`, `.wrangler` ou votre valeur personnalisée, il doit être ajouté à `.gitignore`.
 
 ```js
 // astro.config.mjs
@@ -217,7 +225,7 @@ import cloudflare from '@astrojs/cloudflare';
 export default defineConfig({
   output: 'server',
   adapter: cloudflare({
-    runtime: 'local',
++   runtime: { mode: 'local' },
   }),
 });
 ```
@@ -351,6 +359,7 @@ L'adaptateur Cloudflare d'Astro vous permet d'utiliser n'importe quelle API d'ex
 *   assert
 *   AsyncLocalStorage
 *   Buffer
+*   Crypto
 *   Diagnostics Channel
 *   EventEmitter
 *   path
@@ -368,6 +377,10 @@ import { Buffer } from 'node:buffer';
 ```
 
 En plus, vous devez activer l'option de compatibilité (Compatibility Flag) dans Cloudflare. La configuration de cette option peut varier en fonction de l'endroit où vous déployez votre site Astro. Pour des conseils détaillés, consulter la [documentation Cloudflare (EN)](https://developers.cloudflare.com/workers/runtime-apis/nodejs).
+
+## Support des modules Cloudflare
+
+Tous les paquets Cloudflare (par exemple `cloudflare:sockets`) sont autorisés à être utilisés. Notez que le paquet `cloudflare:sockets` ne fonctionne pas localement sans utiliser le mode dev de Wrangler.
 
 ## Prévisualisation avec Wrangler
 
