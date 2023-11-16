@@ -106,11 +106,7 @@ export default [
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: "Polices d'écritures", slug: 'guides/fonts', key: 'guides/fonts' },
 	{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
-	{
-		text: 'Points de terminaison',
-		slug: 'core-concepts/endpoints',
-		key: 'core-concepts/endpoints',
-	},
+	{ text: 'Points de terminaison', slug: 'core-concepts/endpoints', key: 'core-concepts/endpoints' },
 	{ text: 'Récupération de Données', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
 	{
 		text: 'Internationalisation',
@@ -147,11 +143,7 @@ export default [
 		slug: 'reference/integrations-reference',
 		key: 'reference/integrations-reference',
 	},
-	{
-		text: 'API des adaptateurs',
-		slug: 'reference/adapter-reference',
-		key: 'reference/adapter-reference',
-	},
+	{ text: 'Adapteur API', slug: 'reference/adapter-reference', key: 'reference/adapter-reference' },
 	{
 		text: "API du Service d'Images",
 		slug: 'reference/image-service-reference',
