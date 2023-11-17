@@ -8,25 +8,28 @@ export default NavDictionary({
 	'guides/upgrade-to/v3': '升级到 v3',
 
 	coreConcepts: '核心理念',
-	'concepts/why-astro': '为什么选择Astro',
-	'concepts/islands': 'Astro群岛',
+	'concepts/why-astro': '为什么选择 Astro',
+	'concepts/islands': 'Astro 群岛',
 
 	tutorials: '教程',
 	'blog-tutorial': '搭建博客',
+	'add-collections-tutorial': '使用内容集合',
+	'add-transitions-tutorial': '使用视图过渡动画',
 
 	basics: '基础内容',
 	'core-concepts/project-structure': '项目结构',
 	'core-concepts/astro-components': '组件',
 	'core-concepts/astro-pages': '页面',
 	'core-concepts/layouts': '布局',
+	'core-concepts/rendering-modes': '渲染模式',
 
-	examples: '方案',
+	examples: '操作指南',
 	'guides/migrate-to-astro': '迁移到 Astro',
 	'guides/cms': '连接到 CMS',
 	'guides/integrations-guide': '添加集成',
 	'guides/backend': '添加后端服务',
 	'guides/deploy': '部署你的站点',
-	'guides/recipes': '更多方案',
+	'guides/recipes': '更多操作指南',
 
 	features: '使用指南',
 	'core-concepts/astro-syntax': 'Astro 模板语法',
@@ -46,6 +49,8 @@ export default NavDictionary({
 	'guides/testing': '测试',
 	'guides/view-transitions': '视图过渡动画',
 	'guides/troubleshooting': '故障排除',
+	'guides/prefetch': '预获取',
+	'guides/internationalization': '国际化',
 
 	configuration: '配置',
 	'guides/configuring-astro': 'Astro 配置文件',

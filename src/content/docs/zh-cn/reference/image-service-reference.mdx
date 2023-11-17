@@ -2,6 +2,8 @@
 title: 图像服务 API
 i18nReady: true
 ---
+import Badge from '~/components/Badge.astro';
+import Since from '~/components/Since.astro';
 
 `astro:assets` 旨在使任何图像优化服务都能轻松地在 Astro 上构建服务。
 
@@ -85,7 +87,7 @@ const service: LocalImageService = {
       quality: params.get('q'),
     };
   },
-  transform(buffer: Buffer, options: { src: string, [key: string]: any }, imageConfig): { data: Buffer, format: OutputFormat } {
+  transform(buffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig): { data: Uint8Array, format: OutputFormat } {
     const { buffer } = mySuperLibraryThatEncodesImages(options);
     return {
       data: buffer,
@@ -172,6 +174,8 @@ export type ImageTransform = {
     src: ImageMetadata | string;
     width?: number;
     height?: number;
+    widths?: number[] | undefined;
+	    densities?: (number | `${number}x`)[] | undefined;
     quality?: ImageQuality;
     format?: OutputFormat;
     alt?: string;
@@ -192,7 +196,7 @@ export type ImageTransform = {
 
 **仅本地服务需要；外部服务不可用**
 
-`transform(buffer: Buffer, options: { src: string, [key: string]: any }, imageConfig: AstroConfig['image']): { data: Buffer, format: OutputFormat }`
+`transform(buffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig: AstroConfig['image']): { data: Uint8Array, format: OutputFormat }`
 
 该钩子转换并返回图像，并在构建过程中被调用以创建最终的资源文件。
 
@@ -206,6 +210,25 @@ export type ImageTransform = {
 
 该钩子根据用户传递的参数 (`options`) 返回用于将图像呈现为 HTML 的所有附加属性。
 
+### `getSrcSet()`
+<Since v="3.3.0" /> <Badge>实验性</Badge>
+
+**对于本地和外部服务而言是可选的。**
+
+`getSrcSet?: (options: ImageTransform, imageConfig: AstroConfig['image']): SrcSetValue[] | Promise<SrcSetValue[]>;`
+
+这个钩子函数会生成指定图像的多个变体，例如，在 `<img>` 或 `<picture>` 的 `source` 上生成 `srcset` 属性。
+
+该钩子函数返回一个包含以下属性的对象数组：
+
+```ts
+export type SrcSetValue = {
+	transform: ImageTransform;
+	descriptor?: string;
+	attributes?: Record<string, any>;
+};
+```
+
 ### `validateOptions()`
 
 **本地和外部服务可选**
@@ -214,7 +237,7 @@ export type ImageTransform = {
 
 该钩子允许你验证和增强用户传递的选项。对于设置默认选项或告诉用户参数必传来说，这非常有用。
 
-[查看 Astro 内置服务中如何使用 `validateOptions()`](https://github.com/withastro/astro/blob/af4bd5e79c0bd662d58aeb016a61950e176b0a26/packages/astro/src/assets/services/service.ts#L106) 。
+[查看 Astro 的内置服务中是如何使用 `validateOptions()` 的](https://github.com/withastro/astro/blob/0ab6bad7dffd413c975ab00e545f8bc150f6a92f/packages/astro/src/assets/services/service.ts#L124) 。
 
 ## 用户配置
 
