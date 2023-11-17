@@ -1,0 +1,189 @@
+---
+title: Construisez votre site Astro avec Docker
+description: Apprendre à construire votre site Astro en utilisant Docker.
+type: recipe
+i18nReady: true
+---
+
+[Docker](https://docker.com) est un outil permettant de créer, de déployer et d'exécuter des applications à l'aide de conteneurs.
+
+Les images et les conteneurs Docker peuvent être déployés sur de nombreuses plateformes différentes, comme AWS, Azure et [Google Cloud](/fr/guides/deploy/google-cloud/#cloud-run-ssr-et-statique). Cette recette ne couvre pas le déploiement de votre site sur une plateforme spécifique, mais vous montre comment configurer Docker pour votre projet.
+
+## Prérequis
+
+- Docker installé sur votre machine locale. Vous pouvez trouver les instructions d'installation pour votre système d'exploitation [ici](https://docs.docker.com/get-docker/).
+- Un fichier Docker dans votre projet. Vous pouvez en savoir plus sur les Dockerfiles [ici](https://docs.docker.com/engine/reference/builder/) et utiliser les Dockerfiles de la section suivante comme point de départ.
+
+## Création d'un Dockerfile
+
+Créez un fichier appelé `Dockerfile` dans le répertoire racine de votre projet. Ce fichier contient les instructions pour construire votre site, qui varieront en fonction de vos besoins. Ce guide ne peut pas montrer toutes les options possibles mais vous donnera des points de départ pour SSR et le mode statique.
+
+Si vous utilisez un autre gestionnaire de paquets que npm, vous devrez ajuster les commandes en conséquence.
+
+### SSR
+
+Ce fichier Docker va construire votre site et le servir en utilisant Node.js sur le port `4321` et nécessite donc l'[adaptateur Node](/fr/guides/integrations-guide/node/) installé dans votre projet Astro.
+
+```docker title="Dockerfile"
+FROM node:lts AS runtime
+WORKDIR /app
+
+COPY . .
+
+RUN npm install
+RUN npm run build
+
+ENV HOST=0.0.0.0
+ENV PORT=4321
+EXPOSE 4321
+CMD node ./dist/server/entry.mjs
+```
+
+:::tip[Keep this in mind]
+Il ne s'agit que d'exemples de Dockerfiles. Vous pouvez les adapter à vos besoins. Par exemple, vous pouvez utiliser une autre image, comme `node:lts-alpine` :
+
+```docker title="Dockerfile" del={1} add={2}
+FROM node:lts as runtime
+FROM node:lts-alpine as runtime
+```
+:::
+
+### Ajouter un fichier .dockerignore
+
+Ajouter un fichier `.dockerignore` à votre projet est une bonne pratique. Ce fichier décrit quels fichiers ou dossiers doivent être ignorés dans les commandes `COPY` ou `ADD` de Docker, de manière très similaire à la façon dont `.gitignore` fonctionne. Cela accélère le processus de construction et réduit la taille de l'image finale.
+
+```docker title=".dockerignore"
+.DS_Store
+node_modules
+dist
+```
+
+Ce fichier doit être placé dans le même répertoire que le `Dockerfile` lui-même. [Lisez la documentation `.dockerignore` pour plus d'informations](https://docs.docker.com/engine/reference/builder/#dockerignore-file)
+
+### Statique
+
+#### Apache (httpd)
+
+Le fichier Docker suivant construira votre site et le servira en utilisant Apache htppd sur le port `80` avec la configuration par défaut.
+
+```docker title="Dockerfile"
+FROM node:lts AS build
+WORKDIR /app
+COPY . .
+RUN npm i
+RUN npm run build
+
+FROM httpd:2.4 AS runtime
+COPY --from=build /app/dist /usr/local/apache2/htdocs/
+EXPOSE 80
+```
+
+:::caution[Recommandation]
+Utilisez cette approche pour les sites web simples qui ne nécessitent pas de configuration particulière. Pour les sites plus complexes, il est recommandé d'utiliser une configuration personnalisée, soit dans Apache, soit dans NGINX.
+:::
+
+#### NGINX
+
+```docker title="Dockerfile"
+FROM node:lts AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine AS runtime
+COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 8080
+```
+
+Afin de construire le fichier Docker ci-dessus, vous aurez également besoin de créer un fichier de configuration pour NGINX. Créez un dossier appelé `nginx` dans le répertoire racine de votre projet et créez un fichier appelé `nginx.conf` à l'intérieur.
+
+```nginx title="nginx.conf"
+worker_processes  1;
+
+events {
+  worker_connections  1024;
+}
+
+http {
+  server {
+    listen 8080;
+    server_name   _;
+
+    root   /usr/share/nginx/html;
+    index  index.html index.htm;
+    include /etc/nginx/mime.types;
+
+    gzip on;
+    gzip_min_length 1000;
+    gzip_proxied expired no-cache no-store private auth;
+    gzip_types text/plain text/css application/json application/javascript application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+
+    error_page 404 /404.html;
+    location = /404.html {
+            root /usr/share/nginx/html;
+            internal;
+    }
+
+    location / {
+            try_files $uri $uri/index.html =404;
+    }
+  }
+}
+```
+
+### Construction en plusieurs étapes (à l'aide de SSR)
+
+Voici un exemple de fichier Docker plus avancé qui, grâce à [multi-stage builds](https://docs.docker.com/build/building/multi-stage/) de Docker, optimise le processus de construction de votre site en ne réinstallant pas les dépendances npm lorsque seul le code source change. Cela peut réduire le temps de construction de quelques minutes, en fonction de la taille de vos dépendances.
+
+```docker title="Dockerfile"
+FROM node:lts AS base
+WORKDIR /app
+
+# En copiant seulement le package.json et le package-lock.json ici, nous nous assurons que les étapes `-deps` suivantes sont indépendantes du code source.
+# Par conséquent, les étapes `-deps` seront sautées si seul le code source change.
+COPY package.json package-lock.json ./
+
+FROM base AS prod-deps
+RUN npm install --production
+
+FROM base AS build-deps
+RUN npm install --production=false
+
+FROM build-deps AS build
+COPY . .
+RUN npm run build
+
+FROM base AS runtime
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
+
+ENV HOST=0.0.0.0
+ENV PORT=4321
+EXPOSE 4321
+CMD node ./dist/server/entry.mjs
+```
+
+## Recette
+
+1. Construisez votre conteneur en exécutant la commande suivante dans le répertoire racine de votre projet. Utilisez n'importe quel nom pour `<votre-image-astro-name>` :
+
+```bash
+docker build -t <your-astro-image-name> .
+```
+
+Vous obtiendrez ainsi une image que vous pourrez exécuter localement ou déployer sur la plateforme de votre choix.
+
+2. Pour exécuter votre image en tant que conteneur local, utilisez la commande suivante.
+
+Remplacez `<local-port>` par un port ouvert sur votre machine. Remplacez `<container-port>` par le port exposé par votre conteneur Docker (`4321`, `80`, ou `8080` dans les exemples ci-dessus).
+
+```bash
+docker run -p <local-port>:<container-port> <your-astro-image-name>
+```
+
+Vous devriez pouvoir accéder à votre site à `http://localhost:<port local>`.
+
+3. Maintenant que votre site web est construit et empaqueté avec succès dans un conteneur, vous pouvez le déployer vers un fournisseur de cloud. Voir le guide de déploiement [Google Cloud](/fr/guides/deploy/google-cloud/#cloud-run-ssr-et-statique) pour un exemple, et la page [Deployer votre app](https://docs.docker.com/language/nodejs/deploy/) dans la documentation Docker.
