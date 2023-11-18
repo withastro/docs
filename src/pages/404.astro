@@ -1,5 +1,77 @@
 ---
-import FourOhFourComponent from './[lang]/404.astro';
+import languages from '~/i18n/languages';
+import type { UILanguageKeys } from '~/i18n/translation-checkers';
+import { useTranslationsForLang } from '~/i18n/util';
+import SplashLayout from '~/layouts/SplashLayout.astro';
+
+const defaultLang = 'en';
+const t = useTranslationsForLang(defaultLang);
+
+/**
+ * Dictionary of translated content for the 404 page.
+ * Creates an object like:
+ * ```js
+ * {
+ *   en: { p: 'This page isn’t in our solar system.', a: 'Take me home.' },
+ *   // other languages
+ * }
+ * ```
+ * `p` targets the paragraph content, `a` targets the link text.
+ */
+const dictionary = Object.fromEntries(
+	Object.keys(languages).map((_lang) => {
+		const lang = _lang as UILanguageKeys;
+		const t = useTranslationsForLang(lang);
+		return [lang, { p: t('404.content'), a: t('404.linkText') }];
+	})
+);
 ---
 
-<FourOhFourComponent />
+<SplashLayout title={t('404.title')}>
+	<four-oh-four data-dictionary={JSON.stringify(dictionary)}>
+		<h1>404</h1>
+		<p>{t('404.content')}</p>
+		<a href={`/${defaultLang}/`}>{t('404.linkText')}</a>
+	</four-oh-four>
+</SplashLayout>
+
+<script>
+	window.addEventListener('load', () => (window as any).fathom.trackGoal('4KN9VI2W', 0));
+</script>
+
+<script is:inline>
+	/**
+	 * Custom element that updates its content to match the requested URL’s language.
+	 * Script is inlined to avoid a visible flash of the English fallback content.
+	 */
+	class FourOhFour extends HTMLElement {
+		constructor() {
+			super();
+			try {
+				if (!this.dataset.dictionary) return;
+				const dictionary = JSON.parse(this.dataset.dictionary);
+
+				// Get current language from the URL path.
+				const langCodeMatch = location.pathname.match(/\/([a-z]{2}-?[a-z]{0,2})\//);
+				const lang = langCodeMatch ? langCodeMatch[1] : 'en';
+
+				// Update homepage link to use current language.
+				const a = this.querySelector('a');
+				a.pathname = `/${lang}/`;
+
+				// Update text to use current language’s strings.
+				const translations = dictionary[lang];
+				for (const key in translations) {
+					this.querySelector(key).innerText = translations[key];
+				}
+
+				// Set the `lang` attribute to match the updated content.
+				const bcp47 = lang.slice(0, 3) + lang.slice(3, 5).toUpperCase();
+				this.setAttribute('lang', bcp47);
+			} catch {
+				// Falls back to static rendered text on errors, which should be fine.
+			}
+		}
+	}
+	customElements.define('four-oh-four', FourOhFour);
+</script>
