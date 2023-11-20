@@ -9,6 +9,14 @@ import Since from '~/components/Since.astro'
 
 Astro utilise un **routage basé sur les fichiers** pour générer vos URLs de construction en fonctionde la disposition des fichiers dans le répertoire `src/pages/` de votre projet. Lorsqu'un fichier est ajouté au répertoire `src/pages` de votre projet, il est automatiquement disponible en tant que route basée sur son nom de fichier.
 
+## Naviguer entre les pages
+
+Astro utilise des éléments HTML standard [`<a>` elements](https://developer.mozilla.org/fr-FR/docs/Web/HTML/Element/a) pour naviguer entre les itinéraires. Il n'y a pas de composant `<Link>` spécifique au cadre de travail.
+
+```astro title="src/pages/index.astro"
+<p>En savoir plus <a href="/about/">a propos</a> d'Astro!</p>
+```
+
 ## Routes Statiques
 
 Les composants Astro (`.astro`) et les fichiers Markdown (`.md`) dans le répertoire `src/pages` **deviendront automatiquement des pages de votre site web**. La route de chaque page correspond à son chemin et à son nom de fichier dans le répertoire `src/pages`.
@@ -25,14 +33,6 @@ src/pages/posts/1.md         -> mysite.com/posts/1
 :::tip
 Il n'y a pas de "configuration de routage" séparée à maintenir dans un projet Astro ! Lorsque vous ajoutez un fichier au répertoire `/src/pages`, une nouvelle route est automatiquement créée pour vous. Dans les constructions statiques, vous pouvez personnaliser le format de sortie du fichier en utilisant l'option de configuration [`build.format`](/fr/reference/configuration-reference/#buildformat).
 :::
-
-## Navigation entre les pages
-
-Astro utilise des éléments HTML [`<a>`](https://developer.mozilla.org/fr-FR/docs/Web/HTML/Element/a) standards pour naviguer entre les routes. Il n'y a pas de composant `<Link>` spécifique au framework fourni.
-
-```astro title="src/pages/index.astro"
-<p>Lire d'avantage <a href="/about/">a propos</a> d'Astro!</p>
-```
 
 ## Routes Dynamiques
 
@@ -85,6 +85,8 @@ Les paramètres peuvent être inclus dans des parties séparées du chemin, ains
 
 📚 En savoir plus sur [`getStaticPaths()`](/fr/reference/api-reference/#getstaticpaths).
 
+<RecipeLinks slugs={["fr/recipes/i18n"]} />
+
 ### Paramètres REST
 
 Si vous avez besoin de plus de flexibilité dans le routage de vos URL, vous pouvez utiliser un [paramètre REST](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Functions/rest_parameters) (`[...path]`) dans votre nom de fichier `.astro` pour correspondre à des chemins de fichiers de n'importe quelle profondeur :
@@ -107,7 +109,6 @@ const { path } = Astro.params;
 Cela générera `/sequences/one/two/three`, `/sequences/four`, et `/sequences`. (Définir le paramètre REST à `undefined` lui permet de correspondre à la page de premier niveau).
 
 Les paramètres REST peuvent être utilisés avec **d'autres paramètres nommés**. Par exemple, nous pourrions représenter la visionneuse de fichiers de GitHub avec une route dynamique comme celle-ci :
-
 
 ```
 /[org]/[repo]/tree/[branch]/[...file]
@@ -169,7 +170,6 @@ const { title, text } = Astro.props;
 ```
 
 ### Mode serveur (SSR)
-
 En [mode SSR](/fr/guides/server-side-rendering/), les routes dynamiques sont définies de la même manière : incluez des crochets `[param]` ou `[...path]` dans vos noms de fichiers pour faire correspondre des chaînes ou des chemins arbitraires. Mais comme les routes ne sont plus construites à l'avance, la page sera servie à toute route correspondante. Comme il ne s'agit pas de routes "statiques", `getStaticPaths` ne doit pas être utilisé.
 
 ```astro title="src/pages/resources/[resource]/[id].astro"
@@ -304,14 +304,18 @@ Astro a besoin de savoir quelle route doit être utilisée pour construire la pa
 
 - Les routes statiques sans paramètres de chemin sont prioritaires sur toutes les autres routes.
 - Les routes dynamiques utilisant des paramètres nommés sont prioritaires par rapport aux paramètres REST.
-- Les paramètres REST ont la priorité la plus basse
-- Les égalités sont résolues par ordre alphabétique
+- Les routes dynamiques pré-rendues sont prioritaires sur les routes dynamiques du serveur.
+- Les paramètres REST ont la priorité la plus basse.
+- Les points de terminaison ont toujours la priorité sur les pages.
+- Les égalités sont résolues par ordre alphabétique.
 
 Dans l'exemple ci-dessus, voici quelques exemples de la manière dont les règles feront correspondre une URL demandée à la route utilisée pour construire le code HTML ::
 
 - `pages/post/create.astro` - Correspondra au chemin `/post/create`
 - `pages/post/[pid].astro` - Correspondra au chemin `/post/1`, `/post/abc`, etc. Mais pas à `/post/create`
 - `pages/post/[...slug].astro` - Correspondra au chemin `/post/1/2`, `/post/a/b/c`, etc. Mais pas à `/post/create`, `/post/1`, `/post/abc`
+
+Les redirections suivent également les mêmes règles, mais sont prioritaires *en dernier* ; s'il existe une route basée sur les fichiers et une redirection avec le même niveau de priorité de route, la route basée sur les fichiers est choisie.
 
 ## Pagination
 
@@ -323,16 +327,12 @@ Vous pouvez utiliser la fonction `paginate()` pour générer ces pages pour un t
 
 ```astro /{ (paginate) }/ /paginate\\(.*\\)/ /(?<=const.*)(page)/ /page\\.[a-zA-Z]+/
 ---
-// Exemple: /src/pages/astronauts/[page].astro
+// src/pages/astronauts/[page].astro
 export async function getStaticPaths({ paginate }) {
   const astronautPages = [{
     astronaut: 'Neil Armstrong',
   }, {
     astronaut: 'Buzz Aldrin',
-  }, {
-    astronaut: 'Sally Ride',
-  }, {
-    astronaut: 'John Glenn',
   }, {
     astronaut: 'Jean-Loup Chrétien',
   }, {
@@ -344,6 +344,7 @@ export async function getStaticPaths({ paginate }) {
 // Toutes les données paginées sont passées dans la propriété "page"
 const { page } = Astro.props;
 ---
+
 <!-- Affiche le numéro de la page actuelle. Astro.params.page peut aussi être utilisé ! -->
 <h1>Page {page.currentPage}</h1>
 <ul>
@@ -353,22 +354,20 @@ const { page } = Astro.props;
 ```
 
 Cela génère les pages suivantes, avec deux éléments par page :
-
 - `/astronauts/1` - Page 1: Affiche "Neil Armstrong" et "Buzz Aldrin"
-- `/astronauts/2` - Page 2: Affiche "Sally Ride" et "John Glenn"
-- `/astronauts/3` - Page 3: Affiche "Jean-Loup Chrétien" et "Thomas Pesquet"
+- `/astronauts/2` - Page 2: Affiche "Jean-Loup Chrétien" et "Thomas Pesquet"
+
 
 ### La Propriété (props) `page`
 
 Lorsque vous utilisez la fonction `paginate()`, chaque page reçoit ses données via une propriété `page`. La propriété `page` a beaucoup de propriétés utiles, mais voici les principales :
-
 - **`page.data`** - Tableau contenant la portion de données de page que vous avez passé dans la fonction `paginate()`
 - **`page.url.next`** - Lien vers la page suivante dans la collection
 - **`page.url.prev`** - Lien vers la page précédente dans la collection
 
 ```astro /(?<=const.*)(page)/ /page\\.[a-zA-Z]+(?:\\.(?:prev|next))?/
 ---
-// Exemple: /src/pages/astronauts/[page].astro
+// src/pages/astronauts/[page].astro
 // Paginons la même liste d'objets { astronaut } que l'exemple précédent
 export async function getStaticPaths({ paginate }) { /* ... */ }
 const { page } = Astro.props;
@@ -380,6 +379,7 @@ const { page } = Astro.props;
 {page.url.prev ? <a href={page.url.prev}>Précédent</a> : null}
 {page.url.next ? <a href={page.url.next}>Suivant</a> : null}
 ```
+
 
 #### Référence Complète de l'API
 
@@ -428,7 +428,7 @@ Dans l'exemple suivant, nous allons implémenter la pagination imbriquée pour c
 
 ```astro /(?:[(]|=== )(tag)/ "params: { tag }" /const [{ ]*(page|params)/
 ---
-// Exemple: /src/pages/[tag]/[page].astro
+// src/pages/[tag]/[page].astro
 export function getStaticPaths({paginate}) {
   const allTags = ['red', 'blue', 'green'];
   const allPosts = await Astro.glob('../../posts/*.md');
