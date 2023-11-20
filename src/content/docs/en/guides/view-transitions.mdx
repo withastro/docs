@@ -512,22 +512,17 @@ Here is an example of using the `astro:before-preparation` event to load a spinn
 
 <Since v="3.6.0" />
 
-An event that fires at the end of the preparation phase, after the new page's content has been loaded and parsed into the `newDocument` property. This event occurs before the view transitions phase. You can use this event to manipulate the state of the document before it is swapped with the existing document.
+An event that fires at the end of the preparation phase, after the new page's content has been loaded and parsed into a document. This event occurs before the view transitions phase.
 
-Here is an example of ensuring the browser's light or dark mode preference in `localStorage` is carried over to the new page:
+This example uses the `astro:before-preparation` event to start a loading indicator and the `astro:after-preparation` event to stop it:
 
 ```astro
 <script is:inline>
-  function setDarkMode(document) {
-    let theme = localStorage.darkMode ? 'dark' : 'light';
-    document.documentElement.dataset.theme = theme;
-  }
-
-  setDarkMode(document);
-
-  document.addEventListener('astro:after-preparation', ev => {
-    // Pass the incoming document to set the theme on it
-    setDarkMode(ev.newDocument);
+  document.addEventListener('astro:before-preparation', () => {
+    document.querySelector('#loading').classList.add('show');
+  });
+  document.addEventListener('astro:after-preparation', () => {
+    document.querySelector('#loading').classList.remove('show');
   });
 </script>
 ```
@@ -538,7 +533,27 @@ Here is an example of ensuring the browser's light or dark mode preference in `l
 
 An event that fires befores the new document, populated during the preparation phase, replaces the current document. This event occurs inside of the view transition, where the user is still seeing a snapshot of the old page.
 
-This event can be used to change the implementation of the swap. The default swap implementation diffs head content, moves __persistent__ elements from the old document to the `newDocument`, and then replaces the entire `body` with the body of the new document.
+This event can be used to make changes before the swap occurs. The `newDocument` property on the event represents the incoming document. Here is an example of ensuring the browser's light or dark mode preference in `localStorage` is carried over to the new page:
+
+```astro
+<script is:inline>
+  function setDarkMode(document) {
+    let theme = localStorage.darkMode ? 'dark' : 'light';
+    document.documentElement.dataset.theme = theme;
+  }
+
+  setDarkMode(document);
+
+  document.addEventListener('astro:before-swap', ev => {
+    // Pass the incoming document to set the theme on it
+    setDarkMode(ev.newDocument);
+  });
+</script>
+```
+
+
+
+The `astro:before-swap` event can also be used to change the *implementation* of the swap. The default swap implementation diffs head content, moves __persistent__ elements from the old document to the `newDocument`, and then replaces the entire `body` with the body of the new document.
 
 At this point of the lifecycle, you could choose to define your own swap implementation, for example to diff the entire contents of the existing document (which some other routers do):
 
