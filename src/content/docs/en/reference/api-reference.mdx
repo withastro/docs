@@ -1143,15 +1143,16 @@ Middleware allows you to intercept requests and responses and inject behaviors d
 
 ### `onRequest()`
 
-A required exported function from `src/middleware.js` that will be called before rendering every page or API route. It accepts two optional arguments: [context](#context) and [next()](#next). `onRequest()` must return a `Response`: either directly, or by calling `next()`.
+A required exported function from `src/middleware.js` that will be called before rendering every page or API route. It accepts two optional arguments: [context](#localscontext) and [next()](#next). `onRequest()` must return a `Response`: either directly, or by calling `next()`.
 
-### `context`
-
-An object that includes information to be made available to other middleware, API routes and `.astro` routes during the rendering process.
-
-This is an optional argument passed to `onRequest()` that may contain the [`locals`](#locals) object as well as any additional properties to be shared during rendering. For example, the `context` object may include cookies used in authentication.
-
-This is the same [`context`](#endpoint-context) object that is passed to API routes.
+    ```js title="src/middleware.js"
+    export function onRequest (context, next) {
+        // intercept response data from a request
+        // optionally, transform the response
+        // return a Response directly, or the result of calling `next()`
+        return next();
+    };
+    ```
 
 ### `next()`
 
@@ -1159,29 +1160,22 @@ A function that intercepts (reads and modifies) the `Response` of a `Request` or
 
 This is an optional argument of `onRequest()`, and may provide the required `Response` returned by the middleware.
 
-### `locals`
-An object containing data from a `Response` that can be manipulated inside middleware. 
-
-This `locals` object is forwarded across the request handling process and is available as a property to [`APIContext`](#endpoint-context) and `AstroGlobal`. This allows data to be shared between middlewares, API routes, and `.astro` pages. This is useful for storing request-specific data, such as user data, across the rendering step.
-
-`locals` is an object that lives and dies within a single Astro route; when your route page is rendered, `locals` won't exist anymore and a new one will be created. Information that needs to persist across multiple page requests must be stored elsewhere.
-
-:::note
-The value of `locals` cannot be overridden at run time. Doing so would risk wiping out all the information stored by the user.  In `dev` mode, Astro performs checks and will throw an error if `locals` are overridden.
-:::
 
 ### `sequence()`
 
-A function that accepts middleware functions as arguments, and will execute them in the order in which they are passed.
+A function that accepts middleware functions as arguments, and will execute them in the order in which they are passed. 
 
+```js
+export const onRequest = sequence(validation, auth, greeting);
+```
 
-### `createContext`
+### `createContext()`
 
-A low-level API to create an [`APIContext`](#endpoint-context), that can be used by the Astro middleware.
+A low-level API to create an [`APIContext`](#endpoint-context)to be passed to an Astro middleware `onRequest()` function.
 
 This function can be used by integrations/adapters to programmatically execute the Astro middleware.
 
-### `trySerializeLocals`
+### `trySerializeLocals()`
 
 A low-level API that takes in any value and tries to return a serialized version (a string) of it. If the value cannot be serialized, the function will throw a runtime error.
 
