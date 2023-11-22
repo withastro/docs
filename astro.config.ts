@@ -7,7 +7,6 @@ import { makeSidebar } from './config/sidebar';
 import rehypeSlug from 'rehype-slug';
 import remarkSmartypants from 'remark-smartypants';
 
-import { astroDocsExpressiveCode } from './integrations/expressive-code';
 import { rehypeOptimizeStatic } from './plugins/rehype-optimize-static';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
@@ -19,7 +18,6 @@ export default defineConfig({
 	site,
 	integrations: [
 		preact({ compat: true }),
-		astroDocsExpressiveCode(),
 		starlight({
 			title: 'Docs',
       customCss: ['./src/styles/custom.css'],
