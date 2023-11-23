@@ -37,9 +37,11 @@ This routing API helps you generate, use, and verify the URLs that your multi-la
   
 2. Choose and configure a [`routingStrategy`](#routingstrategy) based on the desired URL path for your `defaultLocale`:
 
-  - `"prefix-other-locales"` (default): URLs in your default language will **not** have a `/[locale]/` prefix. All other locales will.
+  - [`"prefix-other-locales"`](#prefix-other-locales) (default): URLs in your default language will **not** have a `/[locale]/` prefix. All other locales will.
 
-  - `"prefix-always"`: All URLs, including your default language, will have a `/[locale]/` prefix.
+  - [`"prefix-always"`](#prefix-always): All URLs, including your default language, will have a `/[locale]/` prefix.
+
+  - [`"domain"`](#domain): URLs can be configured to support multiple domains (or sub-domains) instead of using a `/[locale]/` prefix.
 
     ```js title="astro.config.mjs" ins={7}
     import { defineConfig } from "astro/config"
@@ -154,8 +156,11 @@ Set this option when all routes will have their `/locale/` prefix in their URL a
 
 #### `'domain'`
 
-**SSR only**, use this strategy when you need to support multiple domains. 
+Use this strategy when you need to support multiple domains (e.g. `fr.example.com/blog`, `example.es/blog`). 
 
+This routing strategy is available only for pages that are [rendered on-demand](/en/core-concepts/rendering-modes/#on-demand-rendered).
+
+You must also specify the URL domain pattern to use in a `domains` configuration object. For any `locales` not configured in `domains`, the fallback URLs created will follow [`prefix-other-locales`](#prefix-other-locales), and create a `/[locale]/` path for all non-default languages.
 
 ```js title="astro.config.mjs" ins={7}
 import { defineConfig } from "astro/config"
@@ -163,7 +168,7 @@ export default defineConfig({
   experimental: {
     i18n: {
       defaultLocale: "en",
-      locales: ["es", "en", "fr"],
+      locales: ["es", "en", "fr", "ja"],
       routingStrategy: "domain",
       domains: {
           fr: "https://fr.example.com",
@@ -174,7 +179,7 @@ export default defineConfig({
 })
 ```
 
-The `/locale/` folders **must** be placed under the `pages/` folder.
+All page content files, including those for your `defaultLocale`, must exist in a localized folder within `src/pages/`
 
     <FileTree>
     - src
@@ -189,20 +194,24 @@ The `/locale/` folders **must** be placed under the `pages/` folder.
         - fr
           - about.astro
           - index.astro
+        - ja
+          - about.astro
+          - index.astro
     </FileTree>
 
-When this routing strategy is enabled and you run `astro build` command, the URLs emitted by `getAbsoluteLocaleUrl` and `getAbsoluteLocaleUrlList` will be different:
+For the above configuration:
 
-- `/fr/about` will become `https://fr.example.com/about`;
-- `/es/about` will become `https://example.es/about`;
-- `/en/about` will **stay** as is because we haven't configured any domain;
+- The file `/fr/about.astro` will create the URL `https://fr.example.com/about`.
+- The file `/es/about.astro` will create the URL `https://example.es/about`.
+- The file `/ja/about/astro` will create the URL `https://example.com/ja/about`.
+- The file `/en/about.astro` will create the URL `https://example.com/about`.
+
 
 Astro relies on the following headers in order to support the feature:
 - [`X-Forwarded-Host`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host) and [`Host`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Host). Astro will use the former, and if not present will try the latter.
 - [`X-Forwarded-Proto`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto) and [`URL#protocol`](https://developer.mozilla.org/en-US/docs/Web/API/URL/protocol) of the server request.
 
-So make sure that your server/hosting platform is able to provide such information. Failing to retrieve these headers will result in a 404 (status code) page.
-
+Make sure that your server/hosting platform is able to provide such information. Failing to retrieve these headers will result in a 404 (status code) page.
 
 ### `defaultLocale` and `locales`
 
