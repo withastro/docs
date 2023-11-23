@@ -60,6 +60,7 @@ export default defineConfig({
 		}),
     sitemap()
 	],
+  trailingSlash: 'always',
 	scopedStyleStrategy: 'where',
 	compressHTML: false,
 	markdown: {
