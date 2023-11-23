@@ -10,6 +10,7 @@ import remarkSmartypants from 'remark-smartypants';
 import { rehypeOptimizeStatic } from './plugins/rehype-optimize-static';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
+import { sitemap } from './integrations/sitemap';
 
 const site = 'https://docs.astro.build/';
 
@@ -57,6 +58,7 @@ export default defineConfig({
 				discord: 'https://astro.build/chat',
 			},
 		}),
+    sitemap()
 	],
 	scopedStyleStrategy: 'where',
 	compressHTML: false,
