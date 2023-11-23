@@ -30,7 +30,7 @@ export default UIDictionary({
 	'rightSidebar.translatePage': 'ترجم هذه الصفحة',
 	'rightSidebar.github': 'مستندات أسترو على GitHub',
 	// Footer
-	'footer.privacyPolicy': 'Privacy Policy',
+	'footer.privacyPolicy': 'سياسة الخصوصية',
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': 'استخدم الوضع النهاري',
 	'themeToggle.useDark': 'استخدم الوضع الليلي',
@@ -44,37 +44,31 @@ export default UIDictionary({
 	// Installation Guide
 	'install.autoTab': 'CLI أوتوماتيكي',
 	'install.manualTab': 'التثبيت اليدوي',
-	/* `<DeployGuidesNav>` vocabulary
-	 * TODO: Translate along deploy.mdx
-	 */
-	'deploy.sectionTitle': 'Deployment Guides',
-	'deploy.altSectionTitle': 'More Deployment Guides',
-	'deploy.filterLabel': 'Filter by deploy type',
-	'deploy.ssrTag': 'SSR',
-	'deploy.staticTag': 'Static',
-	/* CMS Guides vocabulary
-	 * TODO: Translate along cms.mdx
-	 */
-	'cms.navTitle': 'More CMS guides',
-	/* Migration Guides vocabulary
-	 * TODO: Translate along migrate-to-astro.mdx
-	 */
-	'migration.navTitle': 'More migration guides',
+	// `<DeployGuidesNav>` vocabulary
+	'deploy.sectionTitle': 'دليل النشر',
+	'deploy.altSectionTitle': 'المزيد من أدلة النشر',
+	'deploy.filterLabel': 'تصفية حسب نوع النشر',
+	'deploy.ssrTag': 'SSR التصيير على الخادم',
+	'deploy.staticTag': 'ثابت',
+	// CMS Guides vocabulary
+	'cms.navTitle': 'المزيد من أدلة أنظمة إدارة المحتوى',
+	// Migration Guides vocabulary
+	'migration.navTitle': 'المزيد من أدلة التحويل',
 	// Recipes vocabulary
-	'recipes.navTitle': 'المزيد من الوصفات',
+	'recipes.navTitle': 'المزيد من الأمثلة',
 	// `<RecipeLinks>` vocabulary
-	'recipesLink.singular': 'وصفة ذات صلة:',
-	'recipesLink.plural': 'الوصفات ذات الصلة',
+	'recipesLink.singular': 'مثال ذو صلة:',
+	'recipesLink.plural': 'أمثلة ذات صلة',
 	// `<ContributorList>` fallback text
-	'contributors.seeAll': 'رؤية كل المساهمين',
+	'contributors.seeAll': 'اعرض كل المساهمين',
 	// Fallback content notice shown when a page is not yet translated
 	'fallbackContent.notice':
-		'هذه الصفحة غير متوفرة باالغة العربية، لذا سنعرضها بالإنجليزية. يمكنك المساهمة عن طريق ترجمتها بنفسك!',
+		'هذه الصفحة غير متوفرة باللغة العربية، لذا سنعرضها بالإنجليزية. يمكنك المساهمة عن طريق ترجمتها بنفسك!',
 	'fallbackContent.linkText': 'تعرف على المزيد حول كيفية المساهمة',
 	// 404 Page
-	'404.title': 'لم يتم العثور',
-	'404.content': 'الصفحة التي تبحث عنها غير موجودة في نظامنا الشمسي.',
-	'404.linkText': 'العودة إلى الصفحة الرئيسية',
+	'404.title': 'صفحة غير موجودة',
+	'404.content': 'الصفحة التي تبحث عنها غير موجودة في مجموعتنا الشمسية.',
+	'404.linkText': 'خذني إلى الصفحة الرئيسية',
 	// Aside component default labels
 	'aside.note': 'ملحوظة',
 	'aside.tip': 'نصيحة',
@@ -85,8 +79,8 @@ export default UIDictionary({
 	// Integrations vocabulary
 	'integrations.changelog': 'سجل التغييرات',
 	'integrations.footerTitle': 'المزيد من الإضافات',
-	'integrations.renderers': 'أطر الواجهات',
-	'integrations.adapters': 'محولات SSR',
+	'integrations.renderers': 'أطر عمل الواجهات',
+	'integrations.adapters': 'محولات تصيير على الخادم SSR',
 	'integrations.others': 'أخرى',
 	// Checklist component
 	'checklist.or': 'أو',
@@ -98,15 +92,15 @@ export default UIDictionary({
 	'progress.todo': 'قيد الإنجاز',
 	'progress.done': 'مكتمل',
 	// Tutorial Navigation
-	'tutorial.trackerLabel': 'Tutorial Tracker',
-	'tutorial.unit': 'Unit',
+	'tutorial.trackerLabel': 'متتبع البرنامج التعليمي',
+	'tutorial.unit': 'وحدة',
 	// Tutorial
-	'tutorial.getReady': 'Get ready to…',
+	'tutorial.getReady': 'استعد لـ…',
 	// Feedback Fish widget
 	'feedback.button': 'أرسل لنا ملاحظاتك',
 	'feedback.a11yLabel': 'نموذج الملاحظات',
 	'feedback.formTitle': 'بماذا تفكّر؟',
-	'feedback.categoryGroupLabel': 'اختر الفئة المناسبة',
+	'feedback.categoryGroupLabel': 'اختر فئة الملاحظة المناسبة',
 	'feedback.issue': 'مشكلة',
 	'feedback.createIssue': 'انشئ مشكلة على GitHub',
 	'feedback.idea': 'فكرة',
@@ -122,8 +116,12 @@ export default UIDictionary({
 	'expressiveCode.terminalWindowFallbackTitle': 'نافذة طرفيّة',
 	'expressiveCode.copyButtonTooltip': 'نسخ إلى الحافظة',
 	'expressiveCode.copyButtonCopied': 'تم النسخ!',
-	/* Backend Guides vocabulary
-	 * TODO: Translate along backend.mdx
-	 */
-	'backend.navTitle': 'More backend service guides',
+	// Backend Guides vocabulary
+	'backend.navTitle': 'المزيد من أدلة الخدمات القفويّة',
+	'stub.title': 'قم بتحرير هذه المسودة',
+	'stub.subtitle': 'هذه المسودة تحتاج إلى مساعدتكم!',
+	'stub.description.migration':
+		'هل تريد المساهمة في هذا الدليل؟ هل لديك منشور في المدونة أو فيديو أو مصدر آخر لمشاركته حول التحويل من هذه التقنية إلى Astro؟',
+	'stub.description.cms': 'هل تعلم المزيد عن كيفية استخدام نظام إدارة المحتوى هذا مع Astro؟',
+	'stub.description.backend': 'هل تعلم المزيد عن كيفية استخدام هذه الخدمة القفويّة مع Astro؟',
 });

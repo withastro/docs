@@ -21,14 +21,15 @@ export default NavDictionary({
 	'core-concepts/astro-components': '组件',
 	'core-concepts/astro-pages': '页面',
 	'core-concepts/layouts': '布局',
+	'core-concepts/rendering-modes': '渲染模式',
 
-	examples: '方案',
+	examples: '操作指南',
 	'guides/migrate-to-astro': '迁移到 Astro',
 	'guides/cms': '连接到 CMS',
 	'guides/integrations-guide': '添加集成',
 	'guides/backend': '添加后端服务',
 	'guides/deploy': '部署你的站点',
-	'guides/recipes': '更多方案',
+	'guides/recipes': '更多操作指南',
 
 	features: '使用指南',
 	'core-concepts/astro-syntax': 'Astro 模板语法',
@@ -48,6 +49,8 @@ export default NavDictionary({
 	'guides/testing': '测试',
 	'guides/view-transitions': '视图过渡动画',
 	'guides/troubleshooting': '故障排除',
+	'guides/prefetch': '预获取',
+	'guides/internationalization': '国际化',
 
 	configuration: '配置',
 	'guides/configuring-astro': 'Astro 配置文件',

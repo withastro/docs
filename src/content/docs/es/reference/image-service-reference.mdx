@@ -2,6 +2,8 @@
 title: API de Servicio de Imágenes
 i18nReady: true
 ---
+import Badge from '~/components/Badge.astro';
+import Since from '~/components/Since.astro';
 
 `astro:assets` fue diseñado para facilitar que cualquier servicio de optimización de imágenes construya un servicio sobre Astro.
 
@@ -85,7 +87,7 @@ const service: LocalImageService = {
       quality: params.get('q'),
     };
   },
-  transform(buffer: Buffer, options: { src: string, [key: string]: any }, imageConfig): { data: Buffer, format: OutputFormat } {
+  transform(buffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig): { data: Uint8Array, format: OutputFormat } {
     const { buffer } = mySuperLibraryThatEncodesImages(options);
     return {
       data: buffer,
@@ -138,7 +140,7 @@ export const GET: APIRoute = async ({ request }) => {
 
   const imageTransform = imageService.parseURL(new URL(request.url), imageConfig);
   // ... busca la imagen de imageTransform.src y guárdala en inputBuffer
-  const { data, format } = await imageService.transform(inputBuffer, imageTransform, imageConfig);  
+  const { data, format } = await imageService.transform(inputBuffer, imageTransform, imageConfig);
   return new Response(data, {
 			status: 200,
 			headers: {
@@ -172,6 +174,8 @@ export type ImageTransform = {
     src: ImageMetadata | string;
     width?: number;
     height?: number;
+    widths?: number[] | undefined;
+	  densities?: (number | `${number}x`)[] | undefined;
     quality?: ImageQuality;
     format?: OutputFormat;
     alt?: string;
@@ -192,7 +196,7 @@ Este hook analiza las URL generadas por `getURL()` en un objeto con las diferent
 
 **Requerido para servicios locales; no disponible para servicios externos**
 
-`transform(buffer: Buffer, options: { src: string, [key: string]: any }, imageConfig: AstroConfig['image']): { data: Buffer, format: OutputFormat }`
+`transform(buffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig: AstroConfig['image']): { data: Uint8Array, format: OutputFormat }`
 
 Este hook transforma y devuelve la imagen y se llama durante la compilación para crear los archivos de activos finales.
 
@@ -206,6 +210,23 @@ Debes devolver un `format` para asegurarte de que se sirve el tipo MIME adecuado
 
 Este hook devuelve todos los atributos adicionales utilizados para renderizar la imagen como HTML, basados en los parámetros pasados por el usuario (`options`).
 
+### `getSrcSet()`
+<Since v="3.3.0" /> <Badge>Experimental</Badge>
+
+**Opcional tanto para servicios locales como externos.**
+
+`getSrcSet?: (options: ImageTransform, imageConfig: AstroConfig['image']): SrcSetValue[] | Promise<SrcSetValue[]>;`
+
+Este hook genera múltiples variantes de la imagen especificada, por ejemplo, para crear un atributo `srcset` en un elemento `<img>` o el `source` de un `<picture>`.
+Este hook devuelve un array de objetos con las siguientes propiedades:
+```ts
+export type SrcSetValue = {
+	transform: ImageTransform;
+	descriptor?: string;
+	attributes?: Record<string, any>;
+};
+```
+
 ### `validateOptions()`
 
 **Opcional para ambos servicios locales y externos**
@@ -214,7 +235,7 @@ Este hook devuelve todos los atributos adicionales utilizados para renderizar la
 
 Este hook te permite validar y aumentar las opciones pasadas por el usuario. Esto es útil para establecer opciones predeterminadas, o para decirle al usuario que un parámetro es obligatorio.
 
-[Mira como `validateOptions()` se usa en los servicios integrados de Astro](https://github.com/withastro/astro/blob/af4bd5e79c0bd662d58aeb016a61950e176b0a26/packages/astro/src/assets/services/service.ts#L106).
+[Mira como `validateOptions()` se usa en los servicios integrados de Astro](https://github.com/withastro/astro/blob/0ab6bad7dffd413c975ab00e545f8bc150f6a92f/packages/astro/src/assets/services/service.ts#L124).
 
 ## Configuración de usuario
 
