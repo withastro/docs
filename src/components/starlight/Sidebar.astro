@@ -2,10 +2,26 @@
 import type { Props } from '@astrojs/starlight/props'
 import SidebarSublist from '@astrojs/starlight/components/SidebarSublist.astro'
 import { MobileMenuFooter } from 'virtual:starlight/components'
+import type { SidebarEntry } from 'node_modules/@astrojs/starlight/utils/navigation'
 
 import Sponsors from '../LeftSidebar/Sponsors.astro'
+import { stripLangFromSlug } from '~/util'
+import { isSubPage } from '~/util/isSubPage'
 
-const { sidebar } = Astro.props
+let { sidebar, slug } = Astro.props
+
+function remap(i: SidebarEntry) {
+  if (i.type === 'group') {
+    i.entries = i.entries.map(remap)
+    return i
+  }
+
+  // @ts-expect-error i.href is not defined as a page slug, even though we know it is
+  i.isCurrent = isSubPage(slug, stripLangFromSlug(i.href.slice(1)))
+  return i
+}
+
+sidebar = sidebar.map(remap)
 ---
 
 <SidebarSublist sublist={sidebar} />
