@@ -102,6 +102,11 @@ This can be easier to follow (and perhaps more reassuring!) than a statement tha
 **After: add necessary context to the instruction, followed by opinionated usage**
 > Add the `LanguagePicker` component to your site in a component that is shown on every page. The example below adds this to the page footer:
 
+### Third-Party Instructions
+When documenting how to use Astro with third-party tools and services, focus on actions that are necessary to integrate with Astro. Do not document usage of products that we do not maintain. For example, do not explain how to set up a new project in a CMS. If you want your reader to do something complex, consider making the entire action a prerequisite. You might also include links to relevant documentation, like an official guide.
+
+Do not include details about another site's navigation. Your instructions should still be helpful even if the layout of the particular tool changes. However, do use the other site's vocabulary for features and settings so that your readers can search the site's own documentation for help if they need it. 
+
 <!-- 
 
 -->
@@ -369,11 +374,11 @@ Here are two examples of what our code snippets look like written in Markdown, j
 #### Example 2
 
 - use the file name as a title (alt method)
-- apply "+ diff" styling (green backround) to any occurrence of `<Button />`
+- apply "+ diff" styling (green background) to any occurrence of `<Button />`
 - highlight any occurrence of `{props.title}` and `{props.social}`
 
 ``````markdown
-```jsx /{props.(title|socialLinks)}/ ins="<Button />"
+```jsx /({props.(title|social)})/ ins="<Button />"
 // src/components/MySidebar.jsx
 ``````
 
@@ -418,7 +423,13 @@ Regular expressions are supported within slashes `/ /`. See a handy [tool for co
 
 - ins="Astro.props" - All instances of "Astro.props" have a green background color
 
-- /{frontmatter.(title|description)}/ - Highlight all instances of `{frontmatter.title}` and `{frontmatter.description}`
+- /({frontmatter.(title|description)})/ - Highlight all instances of `{frontmatter.title}` and `{frontmatter.description}`
+
+You can combine all of these:
+
+``````markdown
+```jsx /({frontmatter.(title|description)})/ "{item}" del="My blog title" ins="Astro.props"
+``````
 
 > ***Note***
 >

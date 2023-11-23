@@ -25,6 +25,7 @@ interface IntegrationData {
 	readme: string;
 	srcdir: string;
 	i18nReady: string;
+	isPrivate: boolean;
 }
 
 const prettyCategoryDescription: Record<string, unknown> = {
@@ -78,7 +79,11 @@ class IntegrationPagesBuilder {
 		pkgJsonURL: string;
 		readmeURL: string;
 	}): Promise<IntegrationData> {
-		const { name, keywords } = await githubGet({
+		const {
+			name,
+			keywords,
+			private: isPrivate = false,
+		} = await githubGet({
 			url: pkgJsonURL,
 			githubToken: this.#githubToken,
 		});
@@ -89,7 +94,7 @@ class IntegrationPagesBuilder {
 			: 'other';
 		const i18nReady = (!this.#i18nNotReadyIntegrations.has(packageName)).toString();
 		const readme = await (await fetch(readmeURL)).text();
-		return { name, category, readme, srcdir: packageName, i18nReady };
+		return { name, category, readme, srcdir: packageName, i18nReady, isPrivate };
 	}
 
 	/**
@@ -102,7 +107,7 @@ class IntegrationPagesBuilder {
 		}?ref=${this.#sourceBranch}`;
 		const packages: { name: string }[] = await githubGet({ url, githubToken: this.#githubToken });
 
-		return await Promise.all(
+		const integrationData = await Promise.all(
 			packages
 				.filter((pkg) => !this.#deprecatedIntegrations.has(pkg.name))
 
@@ -121,6 +126,8 @@ class IntegrationPagesBuilder {
 					});
 				})
 		);
+
+		return integrationData.filter((pkg) => pkg.isPrivate === false);
 	}
 
 	/**

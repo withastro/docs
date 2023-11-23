@@ -2,6 +2,8 @@
 title: Image Service API
 i18nReady: true
 ---
+import Badge from '~/components/Badge.astro';
+import Since from '~/components/Since.astro';
 
 `astro:assets` was designed to make it easy for any image optimization service to build a service on top of Astro.
 
@@ -60,7 +62,7 @@ export default service;
 
 ### Local Services
 
-To create your own local service, you can point to the [built-in endpoint](https://github.com/withastro/astro/blob/main/packages/astro/src/assets/image-endpoint.ts) (`/_image`), or you can additionally create your own endpoint that can call the service's methods.
+To create your own local service, you can point to the [built-in endpoint](https://github.com/withastro/astro/blob/main/packages/astro/src/assets/endpoint/generic.ts) (`/_image`), or you can additionally create your own endpoint that can call the service's methods.
 
 ```js
 import type { LocalImageService, AstroConfig } from "astro";
@@ -86,7 +88,7 @@ const service: LocalImageService = {
       quality: params.get('q'),
     };
   },
-  transform(buffer: Buffer, options: { src: string, [key: string]: any }, imageConfig): { data: Buffer, format: OutputFormat } {
+  transform(buffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig): { data: Uint8Array, format: OutputFormat } {
     const { buffer } = mySuperLibraryThatEncodesImages(options);
     return {
       data: buffer,
@@ -173,6 +175,8 @@ export type ImageTransform = {
     src: ImageMetadata | string;
     width?: number;
     height?: number;
+    widths?: number[] | undefined;
+	  densities?: (number | `${number}x`)[] | undefined;
     quality?: ImageQuality;
     format?: OutputFormat;
     alt?: string;
@@ -193,7 +197,7 @@ This hook parses the generated URLs by `getURL()` back into an object with the d
 
 **Required for local services only; unavailable for external services**
 
-`transform(buffer: Buffer, options: { src: string, [key: string]: any }, imageConfig: AstroConfig['image']): { data: Buffer, format: OutputFormat }`
+`transform(buffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig: AstroConfig['image']): { data: Uint8Array, format: OutputFormat }`
 
 This hook transforms and returns the image and is called during the build to create the final asset files.
 
@@ -207,6 +211,25 @@ You must return a `format` to ensure that the proper MIME type is served to user
 
 This hook returns all additional attributes used to render the image as HTML, based on the parameters passed by the user (`options`).
 
+### `getSrcSet()`
+<Since v="3.3.0" /> <Badge>Experimental</Badge>
+
+**Optional for both local and external services.**
+
+`getSrcSet?: (options: ImageTransform, imageConfig: AstroConfig['image']): SrcSetValue[] | Promise<SrcSetValue[]>;`
+
+This hook generates multiple variants of the specified image, for example, to generate a `srcset` attribute on an `<img>` or `<picture>`'s `source`.
+
+This hook returns an array of objects with the following properties:
+
+```ts
+export type SrcSetValue = {
+	transform: ImageTransform;
+	descriptor?: string;
+	attributes?: Record<string, any>;
+};
+```
+
 ### `validateOptions()`
 
 **Optional for both local and external services**
@@ -215,7 +238,7 @@ This hook returns all additional attributes used to render the image as HTML, ba
 
 This hook allows you to validate and augment the options passed by the user. This is useful for setting default options, or telling the user that a parameter is required.
 
-[See how `validateOptions()` is used in Astro built-in services](https://github.com/withastro/astro/blob/af4bd5e79c0bd662d58aeb016a61950e176b0a26/packages/astro/src/assets/services/service.ts#L106).
+[See how `validateOptions()` is used in Astro built-in services](https://github.com/withastro/astro/blob/0ab6bad7dffd413c975ab00e545f8bc150f6a92f/packages/astro/src/assets/services/service.ts#L124).
 
 ## User configuration
 
