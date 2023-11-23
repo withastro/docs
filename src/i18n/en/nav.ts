@@ -51,6 +51,11 @@ export default [
 		slug: 'core-concepts/astro-syntax',
 		key: 'core-concepts/astro-syntax',
 	},
+	{
+		text: 'Rendering Modes',
+		slug: 'core-concepts/rendering-modes',
+		key: 'core-concepts/rendering-modes',
+	},
 
 	{ text: 'Built-ins', header: true, type: 'learn', key: 'builtins' },
 	{
@@ -62,6 +67,11 @@ export default [
 		text: 'View Transitions',
 		slug: 'guides/view-transitions',
 		key: 'guides/view-transitions',
+	},
+	{
+		text: 'Prefetch',
+		slug: 'guides/prefetch',
+		key: 'guides/prefetch',
 	},
 
 	{ text: 'Add-ons', header: true, type: 'learn', key: 'addons' },
@@ -98,6 +108,11 @@ export default [
 	{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
 	{ text: 'Endpoints', slug: 'core-concepts/endpoints', key: 'core-concepts/endpoints' },
 	{ text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
+	{
+		text: 'Internationalization',
+		slug: 'guides/internationalization',
+		key: 'guides/internationalization',
+	},
 	{ text: 'Middleware', slug: 'guides/middleware', key: 'guides/middleware' },
 	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
 	{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },

@@ -30,6 +30,8 @@ interface AstroIntegration {
       addRenderer: (renderer: AstroRenderer) => void;
       addWatchFile: (path: URL | string) => void;
       addClientDirective: (directive: ClientDirectiveConfig) => void;
+      addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
+      addDevOverlayPlugin: (pluginEntrypoint: string) => void;
       injectScript: (stage: InjectedScriptStage, content: string) => void;
       injectRoute: ({ pattern: string, entryPoint: string }) => void;
     }) => void;
@@ -72,6 +74,9 @@ interface AstroIntegration {
   isRestart: boolean;
   updateConfig: (newConfig: Record<string, any>) => void;
   addRenderer: (renderer: AstroRenderer) => void;
+  addClientDirective: (directive: ClientDirectiveConfig) => void;
+  addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
+  addDevOverlayPlugin: (pluginEntrypoint: string) => void;
   addWatchFile: (path: URL | string) => void;
   injectScript: (stage: InjectedScriptStage, content: string) => void;
   injectRoute: ({ pattern: string, entryPoint: string }) => void;
@@ -209,6 +214,96 @@ declare module 'astro' {
     'client:click'?: boolean
   }
 }
+```
+
+#### `addDevOverlayPlugin` 选项
+
+<Since v="3.4.0" />
+
+**类型：** `(pluginEntrypoint: string) => void;`
+
+添加一个[自定义的开发模式浮动面板插件](/zh-cn/reference/dev-overlay-plugin-reference/)。
+
+使用示例：
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import devOverlayIntegration from './astro-dev-overlay-plugin/integration.js'
+
+// https://astro.build/config
+export default defineConfig({
+  integrations: [
+    devOverlayIntegration()
+  ],
+});
+```
+
+```js title="astro-dev-overlay-plugin/integration.js"
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "dev-overlay-plugin",
+  hooks: {
+    "astro:config:setup": ({ addDevOverlayPlugin }) => {
+      addDevOverlayPlugin("./astro-dev-overlay-plugin/plugin.js");
+    },
+  },
+});
+```
+
+```js title="astro-dev-overlay-plugin/plugin.js"
+
+/**
+ * @type {import('astro').DevOverlayPlugin}
+ */
+export default {
+  id: "my-plugin",
+  name: "My Plugin",
+  icon: "<svg>...</svg>",
+  init() {
+    console.log("I'm a dev overlay plugin!")
+  },
+};
+```
+
+#### `addMiddleware` 选项
+
+<Since v="3.5.0" />
+
+**类型：** `(middleware:` [`AstroIntegrationMiddleware`](https://github.com/withastro/astro/blob/852ac0f75dfca1b2602e9cdbfa0447d9998e2449/packages/astro/src/%40types/astro.ts#L2124-L2127) `) => void;`
+
+添加[中间件](/zh-cn/guides/middleware/)以在每个请求上运行。接受包含中间件的 `entrypoint` 模块，以及一个 `order` 参数来指定它应该在其他中间件之前（`pre`）运行还是之后（`post`）运行。
+
+```js title="@my-package/integration.js"
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "my-middleware-package",
+  hooks: {
+    "astro:config:setup": ({ addMiddleware }) => {
+        addMiddleware({
+          entrypoint: '@my-package/middleware',
+          order: 'pre'
+        });
+    },
+  },
+});
+```
+
+中间件在一个包中定义，它有一个对应的 `onRequest` 函数，就像用户定义的中间件一样。
+
+```js title="@my-package/middleware.js"
+import { defineMiddleware } from 'astro:middleware';
+
+export const onRequest = defineMiddleware(async (context, request) => {
+  if(context.url.pathname === '/some-test-path') {
+    return Response.json({
+      ok: true
+    });
+  }
+});
 ```
 
 #### `injectRoute` 选项
@@ -613,3 +708,8 @@ integrations: [
   examplePreset()
 ]
 ```
+
+
+## 社区资源
+
+[构建你自己的 Astro 集成](https://www.freecodecamp.org/news/how-to-use-the-astro-ui-framework/#chapter-8-build-your-own-astro-integrations-1) - 由 FreeCodeCamp 的 Emmanuel Ohans 撰写
