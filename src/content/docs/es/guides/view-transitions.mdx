@@ -461,20 +461,108 @@ Si tienes código que configura el estado global, este estado deberá tener en c
 
 Los scripts de módulo solo se ejecutan una vez porque el navegador realiza un seguimiento de qué módulos ya están cargados. Para estos scripts, no necesitas preocuparte por la reejecución.
 
-### `astro:page-load`
+## Eventos del ciclo de vida
 
-Un evento que se dispara al final de la navegación de la página, después de que la nueva página sea visible para el usuario y se carguen los estilos y scripts de bloqueo. Puedes escuchar este evento en el `document`.
+El enrutador `<ViewTransition />` varios eventos en el `document` durante la navegación. Estos eventos proporcionan hooks en el ciclo de vida de la navegación, permitiéndote realizar acciones como mostrar indicadores de que la nueva página está cargado, sobrescribe el comportamiento predeterminado y restablece el estado mientras se completa la navegación.
 
-El componente `<ViewTransitions />` dispara este evento tanto en la navegación inicial de la página (MPA) como en cualquier navegación posterior, ya sea hacia adelante o hacia atrás.
+El proceso de navegación implica una fase de **preparación**, cuando el nuevo contenido es cargado; una fase de **intercambio de DOM**, donde el contenido de la página antigua se sustituye por el de la nueva; y una fase de **finalización** donde los scripts son ejecutados, la carga se informa como completada y se realiza un trabajo de limpieza.
 
-Puedes usar este evento para ejecutar código en cada navegación de página, o solo una vez:
+Los eventos del ciclo de vida de la API de View Transitions de Astro, en orden, son:
+- [`astro:before-preparation`](#astrobefore-preparation)
+- [`astro:after-preparation`](#astroafter-preparation)
+- [`astro:before-swap`](#astrobefore-swap)
+- [`astro:after-swap`](#astroafter-swap)
+- [`astro:page-load`](#astropage-load)
 
-```astro "{ once: true }"
-<script>
-  document.addEventListener('astro:page-load', () => {
-    // Solo se ejecuta una vez.
-    setupStuff();
-  }, { once: true });
+:::tip
+El evento `before-` te permite influir y modificar acciones que están a punto de producirse y los `after-` son notificaciones de que se ha completado una fase.
+:::
+
+Mientras algunas acciones pueden ser disparadas durante cualquier evento, algunas tareas solo pueden realizarse durante un evento especifico para mejores resultados, como mostrar un spinner de carga antes de la preparación o sobrescribir pares de animaciones antes de intercambiar el contenido.
+
+### `astro:before-preparation`
+
+<Since v="3.6.0" />
+
+Un evento que es disparado al inicio de la fase de preparación, después de que la navegación ha comenzado (p. ej. después de que el usuario haya clicado un enlace), pero antes de que el contenido es cargado.
+
+Este evento es usado:
+
+- Para hacer algo antes de que la carga haya comenzado, como mostrar un spinner de carga.
+- Para modificar la carga, como cargar el contenido que has definido en una plantilla en lugar de una URL externa.
+- Para cambiar la `dirección` de la navegación (que suele ser `adelante` o `atrás`) para realizar una animación personalizada.
+
+Aquí hay un ejemplo usando el evento `astro:before-preparation` para cargar un spinner antes de que se cargue el contenido y pararlo inmediatamente depués la carga.
+Ten en cuenta que el uso del callback del loader de esta manera permite la ejecución asíncrona del código.
+
+```js
+<script is:inline>
+  document.addEventListener('astro:before-preparation', ev => {
+    const originalLoader = ev.loader;
+    ev.loader = async function() {
+      const { startSpinner } = await import('./spinner.js');
+      const stop = startSpinner();
+      await originalLoader();
+      stop();
+    };
+  });
+</script>
+```
+
+### `astro:after-preparation`
+
+<Since v="3.6.0" />
+
+Un evento que es diparado al final de la fase de preparación, después de que el contenido de la nueva página haya sido cargado y analizado en un documento. Este evento ocurre antes de la fase de view transitions.
+
+Este ejemplo usa el evento `astro:before-preparation` para comenzar un indicador de carga y el evento `astro:after-preparation` para pararlo:
+
+```astro
+<script is:inline>
+  document.addEventListener('astro:before-preparation', () => {
+    document.querySelector('#loading').classList.add('show');
+  });
+  document.addEventListener('astro:after-preparation', () => {
+    document.querySelector('#loading').classList.remove('show');
+  });
+</script>
+```
+
+Esta es una versión más sencilla de un spinner de carga que el ejemplo mostrado anteriormente: si todo el código de los listener's puede ejecutarse de forma síncrona, no es necesario conectarse al callback del loader.
+
+### `astro:before-swap`
+
+<Since v="3.6.0" />
+
+Un evento que es disparado antes de que el nuevo documento (que se completa durante la fase de preparación) reemplace el documento actual. Este evento ocurre dentro de una view transition, donde el usuario sigue viendo una instantánea de la página anterior.
+
+Este evento puede ser usado para realizar cambios antes de que el intercambio ocurra. La propiedad `newDocument` en el evento representa el documento entrante. Aquí hay un ejempl para asegurar que la preferencia del modo claro u oscuro del navegador en `localStorage` se traslada a la nueva página:
+
+```astro
+<script is:inline>
+  function setDarkMode(document) {
+    let theme = localStorage.darkMode ? 'dark' : 'light';
+    document.documentElement.dataset.theme = theme;
+  }
+  setDarkMode(document);
+  document.addEventListener('astro:before-swap', ev => {
+    // Pasa el documento entrante para establecer el tema en él
+    setDarkMode(ev.newDocument);
+  });
+</script>
+```
+
+El evento `astro:before-swap` también puede ser usado para cambiar la **implementación** del intercambio. La implementación del intercambio por defecto compara el contenido principal, mueve elementos __persistentes__ del antiguo documento al `newDocument`, y luego reemplaza todo el `body` con el body del nuevo documento. 
+
+En este punto del ciclo de vida, podrías optar por definir tu propia implementación de intercambio, por ejemplo, para comparar todo el contenido del documento existente (como hacen algunos otros enrutadores):
+
+```astro
+<script is:inline>
+  document.addEventListener('astro:before-swap', ev => {
+    ev.swap = () => {
+      diff(document, ev.newDocument);
+    };
+  });
 </script>
 ```
 
@@ -484,20 +572,29 @@ Un evento que se dispara inmediatamente después de que la nueva página reempla
 
 Este evento, cuando se escucha en la **página saliente**, es útil para pasar y restaurar cualquier estado en el DOM que necesite transferirse a la nueva página.
 
-Por ejemplo, si estás implementando el soporte de modo oscuro, este evento se puede usar para restaurar el estado en las cargas de página:
+Este es el último punto en el ciclo de vida donde sigue siendo seguro para, por ejemplo, añadir un nombre de clase para el modo oscuro (`<html class="dark-mode">`), aunque podrías hacerlo en un evento anterior.
 
-```astro
+El evento `astro:after-swap` ocurre inmediatamente después de que el historial del navegador haya sido actualizado y la posición del scroll haya sido establecida. Por lo tanto, un uso de este evento es sobreescribir la restauración predeterminada para la navegación en el historial. El siguiente ejemplo restablece la posición del scroll horizontal y vertical en la esquina superior izquierda de la página para cada navegación.
+
+```js
+document.addEventListener('astro:after-swap', 
+  () => window.scrollTo({ left: 0, top: 0, behavior: 'instant' }))
+```
+
+### `astro:page-load`
+
+Un evento que se dispara al final de la navegación de la página, después de que la nueva página es visible para el usuario y se han cargado los estilos y scripts bloqueantes. Puedes escuchar este evento en el `document`.
+
+El componente `<ViewTransitions />` dispara este evento se dispara tanto en la navegación inicial de la página para una página pre-renderizada como en cualquier navegación posterior, ya sea hacia delante o hacia atrás.
+
+Puedes usar este evento para ejecutar código en cada navegación de página, o sólo una vez:
+
+```astro "{ once: true }"
 <script>
-	const setDarkMode = () => {
-		if (localStorage.darkMode) {
-			document.documentElement.dataset.dark = '';
-		}
-	};
-
-  // Se ejecuta en la navegación inicial
-	setDarkMode();
-  // Se ejecuta en la navegación de view transitions
-	document.addEventListener('astro:after-swap', setDarkMode);
+  document.addEventListener('astro:page-load', () => {
+    // Esto solo se ejecuta una vez.
+    setupStuff();
+  }, { once: true });
 </script>
 ```
 
