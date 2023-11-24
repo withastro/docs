@@ -35,7 +35,7 @@ npm run build
 npm run dev
 ```
 
-現在，Astro 就會開啟應用程式的伺服器，位置是 [http://localhost:3000](http://localhost:3000)。在瀏覽器打開這網址，就會看到 Astro 的 「Hello, World」。
+現在，Astro 就會開啟應用程式的伺服器，位置是 [http://localhost:4321](http://localhost:4321)。在瀏覽器打開這網址，就會看到 Astro 的 「Hello, World」。
 
 伺服器會即時監聽 `src/` 資料夾的檔案異動，所以在開發過程的更新毋需重新啟動應用程式。
 

@@ -37,7 +37,7 @@ npm run build
 npm run dev
 ```
 
-これで Astro は、 [http://localhost:3000](http://localhost:3000)で、アプリケーションの提供を開始します。この URL をブラウザで開くと、Astro の「Hello, World」が表示されるはずです。
+これで Astro は、 [http://localhost:4321](http://localhost:4321)で、アプリケーションの提供を開始します。この URL をブラウザで開くと、Astro の「Hello, World」が表示されるはずです。
 
 サーバーは、あなたの`src/`ディレクトリにあるファイルの変更を常に監視しているので、開発中に変更してもアプリケーションを再起動する必要はありません。
 

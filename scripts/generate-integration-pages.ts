@@ -25,6 +25,7 @@ interface IntegrationData {
 	readme: string;
 	srcdir: string;
 	i18nReady: string;
+	isPrivate: boolean;
 }
 
 const prettyCategoryDescription: Record<string, unknown> = {
@@ -37,13 +38,20 @@ class IntegrationPagesBuilder {
 	readonly #githubToken?: string;
 	readonly #sourceBranch: string;
 	readonly #sourceRepo: string;
-	readonly #deprecatedIntegrations = new Set(['turbolinks']);
+	readonly #sourcePath: string;
+	readonly #deprecatedIntegrations = new Set(['turbolinks', 'deno']);
 	readonly #i18nNotReadyIntegrations = new Set<string>([]);
 
-	constructor(opts: { githubToken?: string; sourceBranch: string; sourceRepo: string }) {
+	constructor(opts: {
+		githubToken?: string;
+		sourceBranch: string;
+		sourceRepo: string;
+		sourcePath: string;
+	}) {
 		this.#githubToken = opts.githubToken;
 		this.#sourceBranch = opts.sourceBranch;
 		this.#sourceRepo = opts.sourceRepo;
+		this.#sourcePath = opts.sourcePath;
 
 		if (!this.#githubToken) {
 			if (output.isCi) {
@@ -62,40 +70,64 @@ class IntegrationPagesBuilder {
 		}
 	}
 
+	async #getSingleIntegrationData({
+		packageName,
+		pkgJsonURL,
+		readmeURL,
+	}: {
+		packageName: string;
+		pkgJsonURL: string;
+		readmeURL: string;
+	}): Promise<IntegrationData> {
+		const {
+			name,
+			keywords,
+			private: isPrivate = false,
+		} = await githubGet({
+			url: pkgJsonURL,
+			githubToken: this.#githubToken,
+		});
+		const category = keywords.includes('renderer')
+			? 'renderer'
+			: keywords.includes('astro-adapter')
+			? 'adapter'
+			: 'other';
+		const i18nReady = (!this.#i18nNotReadyIntegrations.has(packageName)).toString();
+		const readme = await (await fetch(readmeURL)).text();
+		return { name, category, readme, srcdir: packageName, i18nReady, isPrivate };
+	}
+
 	/**
 	 * Collect data for each official Astro integration.
 	 */
 	async #getIntegrationData(): Promise<IntegrationData[]> {
 		// Read all the packages in Astro’s integrations directory.
-		const url = `https://api.github.com/repos/${
-			this.#sourceRepo
-		}/contents/packages/integrations?ref=${this.#sourceBranch}`;
+		const url = `https://api.github.com/repos/${this.#sourceRepo}/contents/${
+			this.#sourcePath
+		}?ref=${this.#sourceBranch}`;
 		const packages: { name: string }[] = await githubGet({ url, githubToken: this.#githubToken });
 
-		return await Promise.all(
+		const integrationData = await Promise.all(
 			packages
 				.filter((pkg) => !this.#deprecatedIntegrations.has(pkg.name))
+
 				.map(async (pkg) => {
 					const pkgJsonURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${
 						this.#sourceBranch
-					}/packages/integrations/${pkg.name}/package.json`;
+					}/${this.#sourcePath}/${pkg.name}/package.json`;
 					const readmeURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${
 						this.#sourceBranch
-					}/packages/integrations/${pkg.name}/README.md`;
-					const { name, keywords } = await githubGet({
-						url: pkgJsonURL,
-						githubToken: this.#githubToken,
+					}/${this.#sourcePath}/${pkg.name}/README.md`;
+
+					return this.#getSingleIntegrationData({
+						packageName: pkg.name,
+						pkgJsonURL,
+						readmeURL,
 					});
-					const category = keywords.includes('renderer')
-						? 'renderer'
-						: keywords.includes('astro-adapter')
-						? 'adapter'
-						: 'other';
-					const i18nReady = (!this.#i18nNotReadyIntegrations.has(pkg.name)).toString();
-					const readme = await (await fetch(readmeURL)).text();
-					return { name, category, readme, srcdir: pkg.name, i18nReady };
 				})
 		);
+
+		return integrationData.filter((pkg) => pkg.isPrivate === false);
 	}
 
 	/**
@@ -114,9 +146,9 @@ class IntegrationPagesBuilder {
 	}: IntegrationData): Promise<string> {
 		// Remove title from body
 		readme = readme.replace(/^# (.+)/, '');
-		const githubLink = `https://github.com/${this.#sourceRepo}/tree/${
-			this.#sourceBranch
-		}/packages/integrations/${srcdir}/`;
+		const githubLink = `https://github.com/${this.#sourceRepo}/tree/${this.#sourceBranch}/${
+			this.#sourcePath
+		}/${srcdir}/`;
 
 		const createDescription = (name: string, category: string): string => {
 			return `Learn how to use the ${name} ${prettyCategoryDescription[category]}.`;
@@ -180,12 +212,32 @@ import DontEditWarning from '~/components/DontEditWarning.astro';
 	}
 }
 
-const builder = new IntegrationPagesBuilder({
-	sourceBranch: process.env.SOURCE_BRANCH || 'main',
-	sourceRepo: process.env.SOURCE_REPO || 'withastro/astro',
+const ciSourceRepo = process.env.SOURCE_REPO;
+const ciSourceBranch = process.env.SOURCE_BRANCH || 'main';
+
+let builder = new IntegrationPagesBuilder({
+	// If this is the astro repo, use the CI env variable
+	// to use the PR branch. If it's a different repo, use main.
+	sourceBranch: ciSourceRepo?.endsWith('astro') ? ciSourceBranch : 'main',
+	sourceRepo: ciSourceRepo?.endsWith('astro')
+		? ciSourceRepo || 'withastro/astro'
+		: 'withastro/astro',
+	sourcePath: 'packages/integrations',
 	githubToken: process.env.GITHUB_TOKEN,
 });
-builder.run();
+await builder.run();
+
+builder = new IntegrationPagesBuilder({
+	// If this is the adapters repo, use the CI env variable
+	// to use the PR branch. If it's a different repo, use main.
+	sourceBranch: ciSourceRepo?.endsWith('adapters') ? ciSourceBranch : 'main',
+	sourceRepo: ciSourceRepo?.endsWith('adapters')
+		? ciSourceRepo || 'withastro/adapters'
+		: 'withastro/adapters',
+	sourcePath: 'packages',
+	githubToken: process.env.GITHUB_TOKEN,
+});
+await builder.run();
 
 /** Remark plugin to prepend an absolute path in front of link hrefs. */
 function absoluteLinks({ base }: { base: string }) {

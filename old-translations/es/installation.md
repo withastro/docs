@@ -98,7 +98,7 @@ Ahora, puedes reemplazar la sección de "scripts" del archivo `package.json` que
 }
 ```
 
-El comando [`dev`](#start-astro) inicia el servidor de desarrollo de Astro en `http://localhost:3000`. Una vez que tu proyecto esté listo, el comando [`build`](#build-astro) genera tu proyecto en el directorio `dist/`. [Lee más sobre cómo desplegar Astro en la guía de despliegue](/es/guides/deploy).
+El comando [`dev`](#start-astro) inicia el servidor de desarrollo de Astro en `http://localhost:4321`. Una vez que tu proyecto esté listo, el comando [`build`](#build-astro) genera tu proyecto en el directorio `dist/`. [Lee más sobre cómo desplegar Astro en la guía de despliegue](/es/guides/deploy).
 
 ### Crear tu primera página
 
@@ -144,7 +144,7 @@ Puedes crear más páginas en el directorio `src/pages` y Astro utilizará los a
 npm run dev
 ```
 
-Ahora Astro estará corriendo tu aplicación en `http://localhost:3000`. Al abrir esta URL en tu navegador, deberías ver el “¡Hola, Mundo!” de Astro.
+Ahora Astro estará corriendo tu aplicación en `http://localhost:4321`. Al abrir esta URL en tu navegador, deberías ver el “¡Hola, Mundo!” de Astro.
 
 Si necesitas compartir tu progreso de desarrollo en la red local o revisar la aplicación desde un teléfono, sólo agrega la siguiente opción en `astro.config.mjs`:
 

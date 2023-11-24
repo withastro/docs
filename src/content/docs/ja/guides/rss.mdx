@@ -1,19 +1,20 @@
 ---
-title: RSS
-description: AstroのRSS入門
+title: RSSフィードの追加
+description: AstroサイトにRSSフィードを追加して、ユーザーがコンテンツを購読できるようにします。
 i18nReady: true
 type: recipe
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import Since from '~/components/Since.astro'
 
 
-Astroはブログやその他のコンテンツウェブサイト向けに、RSSフィードの高速な自動生成をサポートしています。一般的なRSSフィードに関する情報は[aboutfeeds.com](https://aboutfeeds.com/)をご覧ください。
+Astroはブログやその他のコンテンツウェブサイト向けに、RSSフィードの高速な自動生成をサポートしています。RSSフィードにより、ユーザーはコンテンツを簡単に購読できます。
 
 ## `@astrojs/rss`の準備
 
-`@astrojs/rss`パッケージは、[APIエンドポイント](/ja/core-concepts/endpoints/#静的ファイルのエンドポイント)を利用したRSS生成のヘルパーを提供します。静的ビルドと[SSRアダプター](/ja/guides/server-side-rendering/#アダプターの追加)を利用したオンデマンド生成の両方に対応しています。
+`@astrojs/rss`パッケージは、[APIエンドポイント](/ja/core-concepts/endpoints/#静的ファイルのエンドポイント)を利用したRSS生成のヘルパーを提供します。静的ビルドと[SSRアダプター](/ja/guides/server-side-rendering/)を利用したオンデマンド生成の両方に対応しています。
 
-はじめに、お好きなパッケージマネージャーで`@astrojs/rss`をインストールします。
+1. お好きなパッケージマネージャーで`@astrojs/rss`をインストールします。
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -33,91 +34,179 @@ Astroはブログやその他のコンテンツウェブサイト向けに、RSS
   </Fragment>
 </PackageManagerTabs>
 
-次に、プロジェクトの`astro.config`に[`site`を設定](/ja/reference/configuration-reference/#site)していることを確認します。これを利用して、[`SITE`環境変数経由](/ja/guides/environment-variables/#デフォルト環境変数)でRSSフィード内のリンクを生成することになります。
-
-:::note[Astro v1が必要です]
-`SITE`環境変数はAstro v1ベータ版でのみ利用できます。Astroの最新バージョン（`astro@latest`）にアップグレードするか、不可能な場合、手動で`site`を書いてください。（次の例を参照してください）
+:::tip
+プロジェクトの`astro.config`に[`site`を設定](/ja/reference/configuration-reference/#site)していることを確認してください。これはRSSフィード内のリンクを生成するために利用されます。
 :::
 
-それでは、はじめてのRSSフィードを生成しましょう。`src/pages`ディレクトリに`rss.xml.js`を作ります。`rss.xml`は出力されるURLになりますので、必要であれば名前を変更しても構いません。
+2. 任意の名前で`src/pages/`に`.xml.js`拡張子のファイルを作成します。これはフィードの出力URLとして利用されます。一般的なRSSフィードのURL名は`feed.xml`や`rss.xml`です。
 
-次に、`@astrojs/rss`パッケージから`rss`ヘルパーをインポートし、次のパラメーターで呼び出します。
+以下の`src/pages/rss.xml.js`ファイルの例では、`site/rss.xml`にRSSフィードを生成します。
 
-```js
-// src/pages/rss.xml.js
+3. `@astrojs/rss`パッケージから`rss()`ヘルパーを`.xml.js`ファイルにインポートし、以下のパラメーターで`rss()`を呼び出した結果を返す関数をエクスポートします。
+
+```js title="src/pages/rss.xml.js"
 import rss from '@astrojs/rss';
 
-export const get = () => rss({
-  // 出力されるXMLの`<title>`フィールド
-  title: 'Buzz’s Blog',
-  // 出力されるXMLの`<description>`フィールド
-  description: 'A humble Astronaut’s guide to the stars',
-  // RSS内<item>リンクのベースURL
-  // SITEはプロジェクトのastro.configにあるsiteの値が使用されます。
-  site: import.meta.env.SITE,
-  // 出力されるXMLの<item>のリスト
-  // 簡単な例: src/pagesにあるマークダウンファイルからそれぞれitemsを生成する
-  // 必要なfrontmatterや複雑なユースケースに関しては「`items`の生成」セクションをご覧ください。
-  items: import.meta.glob('./**/*.md'),
-  // (任意) カスタムxmlを利用する
-  customData: `<language>en-us</language>`,
-});
+export function GET(context) {
+  return rss({
+    // 出力されるXMLの`<title>`フィールド
+    title: 'Buzz’s Blog',
+    // 出力されるXMLの`<description>`フィールド
+    description: 'A humble Astronaut’s guide to the stars',
+    // エンドポイントのコンテキストからプロジェクトの"site"を取得
+    // https://docs.astro.build/ja/reference/api-reference/#contextsite
+    site: context.site,
+    // 出力されるXMLの<item>の
+    // コンテンツコレクションやglobインポートを利用した例については「`items`の生成」セクションをご覧ください
+    items: [],
+    // (任意) カスタムXMLを挿入
+    customData: `<language>en-us</language>`,
+  });
+}
 ```
 
 ## `items`の生成
 
-`items`フィールドはこのどちらかを受け付けます。
-1. [`import.meta.glob(...)`の結果](#1-importmetaglobの結果) **（`src/pages`ディレクトリに含まれる`.md`ファイルのみ利用します）**
-2. [RSSフィードオブジェクトのリスト](#2-rssフィードオブジェクトのリスト)。各オブジェクトは`link`, `title`, `pubDate`、オプションで`description`, `customData`フィールドを持ちます。
+`items`フィールドは、RSSフィードのオブジェクトのリストを受け入れます。各オブジェクトには、`link`、`title`、`pubDate`の3つの必須フィールドがあります。`description`（短い抜粋）、`content`（記事の全文）、ブログ記事の他のフロントマタープロパティなど追加のデータのための`customData`フィールド、という3つの値も任意で含められます。
 
-### 1. `import.meta.glob`の結果
+コンテンツコレクションのスキーマからや、`src/pages/`内のブログ記事に対して[globインポート](/ja/guides/imports/#astroglob)を利用することで、この配列を生成できます。
 
-`src/pages`にある`.md`ファイルの便利な簡易記法としておすすめの選択肢です。各投稿のfrontmatterに`title`と`pubDate`、任意で`description`と`customData`フィールドを持たせてください。これが不可能な場合やコードでfrontmatterを生成したい場合は[2の選択肢](#2-rssフィードオブジェクトのリスト)をご覧ください。
 
-ブログ投稿を`src/pages/blog`ディレクトリに保存しているとしましょう。次のようにRSSフィードを生成できます。
+### コンテンツコレクションの使用
 
-```js
-// src/pages/rss.xml.js
+[コンテンツコレクション](/ja/guides/content-collections/)で管理されているページのRSSフィードを作成するには、`getCollection()`関数を利用してアイテムのリストを取得します。
+
+
+```js title="src/pages/rss.xml.js" "items:" "const blog = await getCollection('blog');"
 import rss from '@astrojs/rss';
+import { getCollection } from 'astro:content';
 
-export const get = () => rss({
-  title: 'Buzz’s Blog',
-  description: 'A humble Astronaut’s guide to the stars',
-  site: import.meta.env.SITE,
-  items: import.meta.glob('./blog/**/*.md'),
-});
+export async function GET(context) {
+  const blog = await getCollection('blog');
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    items: blog.map((post) => ({
+      title: post.data.title,
+      pubDate: post.data.pubDate,
+      description: post.data.description,
+      customData: post.data.customData,
+      // 記事の`slug`からRSSリンクを生成
+      // この例では、すべての記事が`/blog/[slug]`ルートでレンダリングされていると仮定しています
+      link: `/blog/${post.slug}/`,
+    })),
+  });
+}
 ```
 
-このインポートの構文は[Viteのglob importのドキュメント](https://vitejs.dev/guide/features.html#glob-import)を参照してください。
+ オプション：期待されるRSSプロパティを強制するために、既存のブログコレクションスキーマを置き換えます。
 
-### 2. RSSフィードオブジェクトのリスト
+すべてのブログエントリが有効なRSSフィードアイテムを生成することを保証するために、スキーマの個別のプロパティを定義する代わりに、`rssSchema`をインポートして適用できます。
 
-`pages`ディレクトリの外にある`.md`ファイルにおすすめな選択肢です。[`getStaticPaths`で](/ja/reference/api-reference/#getstaticpaths)ルーティングを生成する場合によく使います。
+```js title="src/content/config.ts" "rssSchema"
+import { defineCollection } from 'astro:content';
+import { rssSchema } from '@astrojs/rss';
 
-たとえば`src/posts`ディレクトリに`.md`投稿を保存しているとします。各投稿は`title`, `pubDate`と`slug`をfrontmatterに持ち、`slug`はサイト上の出力されるURLに対応しています。[Viteの`import.meta.glob`ヘルパー](https://vitejs.dev/guide/features.html#glob-import)を使って、次のようにRSSフィードを生成できます。
-
-```js
-// src/pages/rss.xml.js
-import rss from '@astrojs/rss';
-
-const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true });
-const posts = Object.values(postImportResult);
-
-export const get = () => rss({
-  title: 'Buzz’s Blog',
-  description: 'A humble Astronaut’s guide to the stars',
-  site: import.meta.env.SITE,
-  items: posts.map((post) => ({
-    link: post.url,
-    title: post.frontmatter.title,
-    pubDate: post.frontmatter.pubDate,
-  }))
+const blog = defineCollection({
+  schema: rssSchema,
 });
+
+export const collections = { blog };
+```
+
+### globインポートの使用
+
+<Since v="2.1.0" pkg="@astrojs/rss" />
+
+`src/pages/`内のドキュメントからRSSフィードを作成するには、`pagesGlobToRssItems()`ヘルパーを利用します。これは[`import.meta.glob`](https://vitejs.dev/guide/features.html#glob-import)の結果を入力とし、有効なRSSフィードアイテムの配列を出力します（含めるページを指定するためには、[globパターンの書き方について](/ja/guides/imports/#globパターン)を確認してください）。
+
+:::caution
+この関数は、必要なフィードプロパティが各ドキュメントのフロントマターに存在することを前提としていますが、その検証はおこないません。エラーが発生した場合は、各ページのフロントマターを手動で確認してください。
+:::
+
+```js title="src/pages/rss.xml.js" "pagesGlobToRssItems" "await pagesGlobToRssItems("
+import rss, { pagesGlobToRssItems } from '@astrojs/rss';
+
+export async function GET(context) {
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    items: await pagesGlobToRssItems(
+      import.meta.glob('./blog/*.{md,mdx}'),
+    ),
+  });
+}
+```
+
+:::note[古いバージョンを利用していますか？]
+v2.1.0より前のバージョンの`@astrojs/rss`では、`pagesGlobToRssItems()`ラッパーなしでglob結果を`items`にそのまま渡します。
+```js
+items: import.meta.glob('./blog/*.{md,mdx}'),
+```
+:::
+
+### 記事の全文を含める
+
+<Since v="1.6.14" />
+
+`content`キーには、記事の全文をHTMLとして含めます。これにより、RSSフィードリーダーは記事全文を利用できるようになります。
+
+:::tip
+[`sanitize-html`](https://www.npmjs.com/package/sanitize-html)などのパッケージを利用すると、コンテンツが適切にサニタイズ、エスケープ、エンコードされることを保証できます。
+:::
+
+コンテンツコレクションを利用する場合は、[`markdown-it`](https://github.com/markdown-it/markdown-it)などの標準的なMarkdownパーサーを利用して記事の`body`をレンダリングし、その結果をサニタイズします。
+
+```js title="src/pages/rss.xml.js" ins={3, 4, 5, 16}
+import rss from '@astrojs/rss';
+import { getCollection } from 'astro:content';
+import sanitizeHtml from 'sanitize-html';
+import MarkdownIt from 'markdown-it';
+const parser = new MarkdownIt();
+
+export async function GET(context) {
+  const blog = await getCollection('blog');
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    items: blog.map((post) => ({
+      link: `/blog/${post.slug}/`,
+      // 注: MDXファイルのコンポーネントやJSX式は処理されません。
+      content: sanitizeHtml(parser.render(post.body)),
+      ...post.data,
+    })),
+  });
+}
+```
+
+Markdownでglobインポートを利用する場合は、`compiledContent()`ヘルパーを利用してレンダリングされたHTMLを取得しサニタイズできます。この機能はMDXファイルでは**サポートされていない**ことに注意してください。
+
+```js title="src/pages/rss.xml.js" ins={2, 13}
+import rss from '@astrojs/rss';
+import sanitizeHtml from 'sanitize-html';
+
+export function GET(context) {
+  const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true }); 
+  const posts = Object.values(postImportResult);
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    items: posts.map((post) => ({
+      link: post.url,
+      content: sanitizeHtml(post.compiledContent()),
+      ...post.frontmatter,
+    })),
+  });
+}
 ```
 
 ## スタイルシートの追加
 
-ブラウザでファイルを見たときのユーザー体験をよくするために、RSSフィードにスタイルを加えられます。
+ブラウザでファイルを見たときのユーザー体験をよくするために、RSSフィードにスタイルを追加しましょう。
 
 `rss`関数の`stylesheet`オプションにスタイルシートの絶対パスを指定してください。
 
@@ -129,4 +218,15 @@ rss({
 });
 ```
 
-RSSのスタイルシートを特に気にしない場合、[Pretty Feed v3 default stylesheet](https://github.com/genmon/aboutfeeds/blob/main/tools/pretty-feed-v3.xsl)がおすすめです。これはGitHubからダウンロードでき、プロジェクトの`public`ディレクトリに保存します。
+:::tip
+スタイルシートを自分で作成したくない場合は、[Pretty Feed v3のデフォルトスタイルシート](https://github.com/genmon/aboutfeeds/blob/main/tools/pretty-feed-v3.xsl)などの既製のスタイルシートも利用できます。GitHubからスタイルシートをダウンロードし、プロジェクトの`public/`ディレクトリに保存してください。
+:::
+
+## 次のステップ
+
+ブラウザにより`your-domain.com/rss.xml`のフィードにアクセスし、各記事のデータが表示されることを確認できたら、[サイトでフィードを宣伝](https://medium.com/samsung-internet-dev/add-rss-feeds-to-your-website-to-keep-your-core-readers-engaged-3179dca9c91e#:~:text=com/~deno%2Drss-,Advertising%20your%20RSS%20feed,-Now%20you%20have)してみましょう。サイトに標準のRSSアイコンを追加すると、読者は自分のフィードリーダーであなたの記事を購読できることに気付けます。
+
+
+## 参考
+
+- [RSSフィードについて](https://aboutfeeds.com/)

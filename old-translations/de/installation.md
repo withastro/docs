@@ -99,7 +99,7 @@ Jetzt kannst du den Platzhalter im Abschnitt "scripts" deiner `package.json`-Dat
 }
 ```
 
-Der Befehl [`dev`](#start-astro) startet den Astro Entwicklungsserver auf `http://localhost:3000`. Sobald dein Projekt fertig ist, gibt der Befehl [`build`](#build-astro) dein Projekt in das Verzeichnis `dist/` aus. [Lese mehr über das Veröffentlichen von Astro-Builds](/guides/deploy).
+Der Befehl [`dev`](#start-astro) startet den Astro Entwicklungsserver auf `http://localhost:4321`. Sobald dein Projekt fertig ist, gibt der Befehl [`build`](#build-astro) dein Projekt in das Verzeichnis `dist/` aus. [Lese mehr über das Veröffentlichen von Astro-Builds](/guides/deploy).
 
 ### Erstelle deine erste Seite
 
@@ -145,7 +145,7 @@ Du kannst weitere Seiten im Verzeichnis `src/pages` erstellen - Astro verwendet 
 npm run dev
 ```
 
-Astro wird von nun an deine Anwendung unter `http://localhost:3000` bereitstellen. Wenn du diese URL in deinem Browser öffnest, solltest du Astros "Hello, World" sehen.
+Astro wird von nun an deine Anwendung unter `http://localhost:4321` bereitstellen. Wenn du diese URL in deinem Browser öffnest, solltest du Astros "Hello, World" sehen.
 
 Falls du deinen Entwicklungsfortschritt im lokalen Netzwerk teilen oder die Anwendung von einem Telefon aus testen möchtest, füge einfach die folgende Option in `astro.config.mjs` hinzu:
 

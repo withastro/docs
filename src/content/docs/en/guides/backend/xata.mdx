@@ -30,7 +30,7 @@ XATA_API_KEY=hash_key
 # Xata branch that will be used
 # if there's not a xata branch with
 # the same name as your git branch
-XATA_FALLBACK_BRANCH=main
+XATA_BRANCH=main
 ```
 
 And the `databaseURL` defined:
@@ -48,7 +48,7 @@ To have IntelliSense and type safety for your environment variables, edit or cre
 ```ts title="src/env.d.ts"
 interface ImportMetaEnv {
   readonly XATA_API_KEY: string;
-  readonly XATA_FALLBACK_BRANCH?: string;
+  readonly XATA_BRANCH?: string;
 }
 
 interface ImportMeta {
@@ -68,7 +68,7 @@ Now, your project should have the following structure:
 
 <FileTree title="Project Structure">
 - src/
-  - **xata.codegen.ts**
+  - **xata.ts**
   - **env.d.ts**
 - **.env**
 - astro.config.mjs
@@ -78,13 +78,17 @@ Now, your project should have the following structure:
 
 ## Create your queries
 
-To query your posts, import and use `getXataClient()` in a `.astro` file. The example below queries the first 50 posts from Xata's Sample Blog Database.
+To query your posts, import and use `XataClient` class in a `.astro` file. The example below queries the first 50 posts from Xata's Sample Blog Database.
 
 ```astro title="src/pages/blog/index.astro"
 ---
-import { getXataClient } from "../xata.codegen";
+import { XataClient } from '../../xata';
+ 
+const xata = new XataClient({
+  apiKey: import.meta.env.XATA_API_KEY,
+  branch: import.meta.env.XATA_BRANCH
+});
 
-const xata = getXataClient();
 const { records } = await xata.db.Posts.getPaginated({
   pagination: {
     size: 50
@@ -93,9 +97,9 @@ const { records } = await xata.db.Posts.getPaginated({
 ---
 
 <ul>
-  {records.map(post) => (
+  {records.map((post) => (
     <li>{post.title}</li>
-  )}
+  ))}
 </ul>
 ```
 It's important to note the SDK needs to be regenerated everytime your schema changes. So, avoid making changes to the generated files the Xata CLI creates because once schema updates, your changes will be overwritten.

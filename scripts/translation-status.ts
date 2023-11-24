@@ -3,6 +3,7 @@ import { TranslationStatusBuilder } from './lib/translation-status/builder';
 
 const translationStatusBuilder = new TranslationStatusBuilder({
 	pageSourceDir: './src/content/docs',
+	oldTranslationDir: './old-translations',
 	htmlOutputFilePath: './dist/translation-status/index.html',
 	sourceLanguage: 'en',
 	targetLanguages: Object.keys(languages)

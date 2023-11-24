@@ -12,6 +12,10 @@ export type PageData = {
 	lastMajorCommitMsg: string;
 };
 
+export type OldTranslationIndex = {
+	[language: string]: string[];
+};
+
 export type PageTranslationStatus = {
 	subpath: string;
 	sourcePage: PageData;
@@ -21,6 +25,7 @@ export type PageTranslationStatus = {
 			page: PageData;
 			isMissing: boolean;
 			isOutdated: boolean;
+			hasOldTranslation: boolean;
 			githubUrl: string;
 			sourceHistoryUrl?: string;
 		};

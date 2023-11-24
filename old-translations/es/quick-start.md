@@ -39,7 +39,7 @@ Dentro del directorio de tu proyecto, ingresa el siguiente comando en la termina
 npm run dev
 ```
 
-Astro comenzará a correr en el servidor de desarrollo en [http://localhost:3000](http://localhost:3000). Abre esta ubicación en tu navegador, deberías ver la página de "¡Hola Mundo!" de Astro.
+Astro comenzará a correr en el servidor de desarrollo en [http://localhost:4321](http://localhost:4321). Abre esta ubicación en tu navegador, deberías ver la página de "¡Hola Mundo!" de Astro.
 
 El servidor escuchará los cambios en vivo de los archivos en tu carpeta `src/`, así que, no necesitarás reiniciar la aplicación cuando hagas cambios durante el desarrollo.
 

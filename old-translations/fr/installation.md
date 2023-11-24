@@ -96,7 +96,7 @@ Vous pouvez aussi remplacer la section "scripts" du fichier `package.json` avec 
 }
 ```
 
-La commande [`dev`](#start-astro) démarre le serveur de développement Astro à l'adresse `http://localhost:3000`. Une fois votre projet terminé, la commande [`build`](#build-astro) produit votre site dans le dossier `dist/`. [En savoir plus sur le déploiement d'un site développé avec Astro.](/guides/deploy)
+La commande [`dev`](#start-astro) démarre le serveur de développement Astro à l'adresse `http://localhost:4321`. Une fois votre projet terminé, la commande [`build`](#build-astro) produit votre site dans le dossier `dist/`. [En savoir plus sur le déploiement d'un site développé avec Astro.](/guides/deploy)
 
 ### Créer une première page
 
@@ -133,7 +133,7 @@ console.log('Coucou dans le terminal')
 
 Vous venez de lire un exemple de syntaxe des composants Astro, inspirée par le HTML et le JSX.
 
-Vous pouvez continuer à ajouter des fichiers dans le dossier `src/pages`, et Astro se servira du nom du fichier pour ajouter des pages à votre site. Par exemple, si vous ajoutez une page `src/pages/a-propos.astro` (par exemple en reprenant le code ci-dessus), Astro va générer une nouvelle page à l'adresse `http://localhost:3000/a-propos`.
+Vous pouvez continuer à ajouter des fichiers dans le dossier `src/pages`, et Astro se servira du nom du fichier pour ajouter des pages à votre site. Par exemple, si vous ajoutez une page `src/pages/a-propos.astro` (par exemple en reprenant le code ci-dessus), Astro va générer une nouvelle page à l'adresse `http://localhost:4321/a-propos`.
 
 ## [Démarrer Astro](#démarrer-astro)
 
@@ -141,7 +141,7 @@ Vous pouvez continuer à ajouter des fichiers dans le dossier `src/pages`, et As
 npm run dev
 ```
 
-Astro va démarrer votre site à l'adresse `http://localhost:3000`. En ouvrant cette URL dans votre navigateur, vous devriez voir s'afficher "Hello, World", ou bien la page créée précédemment.
+Astro va démarrer votre site à l'adresse `http://localhost:4321`. En ouvrant cette URL dans votre navigateur, vous devriez voir s'afficher "Hello, World", ou bien la page créée précédemment.
 
 ## [Compiler avec Astro](#compiler-avec-astro)
 

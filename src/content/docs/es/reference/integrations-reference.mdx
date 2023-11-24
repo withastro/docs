@@ -30,22 +30,30 @@ interface AstroIntegration {
       addRenderer: (renderer: AstroRenderer) => void;
       addWatchFile: (path: URL | string) => void;
       addClientDirective: (directive: ClientDirectiveConfig) => void;
+      addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
+      addDevOverlayPlugin: (pluginEntrypoint: string) => void;
       injectScript: (stage: InjectedScriptStage, content: string) => void;
       injectRoute: ({ pattern: string, entryPoint: string }) => void;
+      logger: AstroIntegrationLogger;
     }) => void;
-    'astro:config:done'?: (options: { config: AstroConfig }) => void | Promise<void>;
-    'astro:server:setup'?: (options: { server: vite.ViteDevServer }) => void | Promise<void>;
-    'astro:server:start'?: (options: { address: AddressInfo }) => void | Promise<void>;
-    'astro:server:done'?: () => void | Promise<void>;
-    'astro:build:start'?: (options: { buildConfig: BuildConfig }) => void | Promise<void>;
+    'astro:config:done'?: (options: { config: AstroConfig; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:server:setup'?: (options: { server: vite.ViteDevServer; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:server:start'?: (options: { address: AddressInfo; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:server:done'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:build:start'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:build:setup'?: (options: {
       vite: ViteConfigWithSSR;
       pages: Map<string, PageBuildData>;
       target: 'client' | 'server';
+      logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
-    'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
-    'astro:build:ssr'?: (options: { manifest: SerializedSSRManifestm, entryPoints: Map<RouteData, URL> }) => void | Promise<void>;
-    'astro:build:done'?: (options: { dir: URL; routes: RouteData[] }) => void | Promise<void>;
+    'astro:build:generated'?: (options: { dir: URL; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:build:ssr'?: (options: {
+        manifest: SerializedSSRManifestm;
+        entryPoints: Map<RouteData, URL>;
+        logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:build:done'?: (options: { dir: URL; routes: RouteData[]; logger: AstroIntegrationLogger; }) => void | Promise<void>;
   };
 }
 ```
@@ -67,10 +75,13 @@ interface AstroIntegration {
   isRestart: boolean;
   updateConfig: (newConfig: Record<string, any>) => void;
   addRenderer: (renderer: AstroRenderer) => void;
-  addWatchFile: (path: URL | string) => void;
   addClientDirective: (directive: ClientDirectiveConfig) => void;
+  addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
+  addDevOverlayPlugin: (pluginEntrypoint: string) => void;
+  addWatchFile: (path: URL | string) => void;
   injectScript: (stage: InjectedScriptStage, content: string) => void;
   injectRoute: ({ pattern: string, entryPoint: string }) => void;
+  logger: AstroIntegrationLogger;
 }) => void;
 ```
 
@@ -206,6 +217,95 @@ declare module 'astro' {
 }
 ```
 
+#### Opción `addDevOverlayPlugin`
+
+<Since v="3.4.0" />
+
+**Tipo:** `(pluginEntrypoint: string) => void;`
+
+Agrega un [plugin de superposición de desarrollo personalizado](/es/reference/dev-overlay-plugin-reference/).
+
+Ejemplo de uso:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import devOverlayIntegration from './astro-dev-overlay-plugin/integration.js'
+
+// https://astro.build/config
+export default defineConfig({
+  integrations: [
+    devOverlayIntegration()
+  ],
+});
+```
+
+```js title="astro-dev-overlay-plugin/integration.js"
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "dev-overlay-plugin",
+  hooks: {
+    "astro:config:setup": ({ addDevOverlayPlugin }) => {
+      addDevOverlayPlugin("./astro-dev-overlay-plugin/plugin.js");
+    },
+  },
+});
+```
+
+```js title="astro-dev-overlay-plugin/plugin.js"
+
+/**
+ * @type {import('astro').DevOverlayPlugin}
+ */
+export default {
+  id: "my-plugin",
+  name: "My Plugin",
+  icon: "<svg>...</svg>",
+  init() {
+    console.log("¡Soy un plugin de superposición de desarrollo!")
+  },
+};
+```
+
+#### Opción `addMiddleware`
+
+<Since v="3.5.0" />
+
+**Tipo:** `(middleware:` [`AstroIntegrationMiddleware`](https://github.com/withastro/astro/blob/852ac0f75dfca1b2602e9cdbfa0447d9998e2449/packages/astro/src/%40types/astro.ts#L2124-L2127) `) => void;`
+
+Agrega un [middleware](/es/guides/middleware/) para ejecutar en cada solicitud. Toma el módulo `entrypoint` que contiene el middleware, y un `order` para especificar si debe ejecutarse antes (`pre`) de otro middleware o después (`post`).
+
+```js title="@my-package/integration.js"
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "my-middleware-package",
+  hooks: {
+    "astro:config:setup": ({ addMiddleware }) => {
+        addMiddleware({
+          entrypoint: '@my-package/middleware',
+          order: 'pre'
+        });
+    },
+  },
+});
+```
+
+Un middleware es definido en un paquete con una función `onRequest`, como con el middleware definido por el usuario.
+
+```js title="@my-package/middleware.js"
+import { defineMiddleware } from 'astro:middleware';
+
+export const onRequest = defineMiddleware(async (context, request) => {
+  if(context.url.pathname === '/some-test-path') {
+    return Response.json({
+      ok: true
+    });
+  }
+});
+```
 
 #### Opción `injectRoute`
 
@@ -528,6 +628,69 @@ export default defineConfig({
 :::caution
 Esto supone que la definición de la integración es 1) una exportación `default` y 2) una función. ¡Asegúrate de que esto sea cierto antes de agregar la palabra clave `astro-integration`!
 :::
+
+## `AstroIntegrationLogger`
+
+Una instancia del logger de Astro, útil para escribir registros. Este logger utiliza el mismo [nivel de registro](/es/reference/cli-reference/#--verbose)
+configurado a través de la CLI.
+
+**Métodos disponibles** para escribir en la terminal:
+- `logger.info("Mensaje")`;
+- `logger.warn("Mensaje")`;
+- `logger.error("Mensaje")`;
+- `logger.debug("Mensaje")`;
+
+Todos los mensajes son precedidos por una etiqueta que tiene el mismo valor de la integración.
+
+```ts title="integration.ts" {8}
+import type { AstroIntegration } from "astro";
+export function formatIntegration(): AstroIntegration {
+    return {
+        name: "astro-format",
+        hooks: {
+            "astro:build:done": ({ logger }) => {
+                // hacer algo
+                logger.info("Integration ready.");
+            }
+        }
+    }
+}
+```
+
+El ejemplo anterior registrará un mensaje que incluye el mensaje `info` proporcionado:
+
+```shell
+[astro-format] Integration ready.
+```
+
+Para registrar algunos mensajes con una etiqueta diferente, utiliza el método `.fork` para especificar una alternativa al `nombre` predeterminado:
+
+```ts title="integration.ts" ".fork"
+import type { AstroIntegration } from "astro";
+export function formatIntegration(): AstroIntegration {
+    return {
+        name: "astro-format",
+        hooks: {
+            "astro:config:done": ({ logger }) => {
+                // hacer algo
+                logger.info("Integration ready.");
+            },
+            "astro:build:done": ({ logger }) => {
+                const buildLogger = logger.fork("astro-format/build");
+                // hacer algo
+                buildLogger.info("Build finished.")
+            }
+        }
+    }
+}
+```
+
+El ejemplo anterior generará registros con `[astro-format]` de forma predeterminada, y con `[astro-format/build]` cuando se especifique:
+
+```shell
+[astro-format] Integration ready.
+[astro-format/build] Build finished.
+```
 
 ## Orden de integración
 

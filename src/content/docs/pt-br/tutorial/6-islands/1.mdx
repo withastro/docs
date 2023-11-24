@@ -1,0 +1,209 @@
+---
+type: tutorial
+title: Construa sua primeira ilha Astro
+description: |-
+  Tutorial: Construa seu primeiro blog Astro —
+  Utilize um componente Preact para saudar seus visitantes com uma mensagem randomicamente selecionada
+i18nReady: true
+---
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import Spoiler from '~/components/Spoiler.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+
+Utilize um componente Preact para saudar seus visitantes com uma mensagem randomicamente selecionada!
+
+<PreCheck>
+  - Adicionar Preact ao seu projeto Astro
+  - Incluir ilhas Astro (componentes Preact `.jsx`) em sua página inicial
+  - Utilizar diretivas `client:` para fazer ilhas interativas
+</PreCheck>
+
+## Adicione Preact ao seu projeto Astro
+
+1. Se ele estiver executando, feche o servidor de desenvolvimento para ter acesso ao terminal (atalho de teclado: <kbd>Ctrl + C</kbd>).
+
+2. Adicione a habilidade de utilizar componentes Preact em seu projeto Astro com um único comando:
+
+    ```shell
+    npx astro add preact
+    ```
+
+2. Siga as instruções da linha de comando para confirmar a adição do Preact ao seu projeto.
+ 
+
+## Inclua um banner de saudação com Preact
+
+Esse componente irá receber um array de mensagens de saudação como uma prop e randomicamente selecionar uma delas para mostrar uma mensagem de boas-vindas. O usuário pode clicar em um botão para conseguir uma nova mensagem randômica.
+
+1. Crie um novo arquivo em `src/components/` chamado `Saudacao.jsx`
+
+    Note a extensão de arquivo `.jsx`. Este arquivo será escrito em Preact, não Astro.
+
+2. Adicione o seguinte código para `Saudacao.jsx`:
+
+    ```jsx title="src/components/Saudacao.jsx"
+    import { h } from 'preact';
+    import { useState } from 'preact/hooks';
+
+    export default function Saudacao({mensagens}) {
+
+      const mensagemAleatoria = () => mensagens[(Math.floor(Math.random() * mensagens.length))];
+      
+      const [saudacao, setSaudacao] = useState(mensagens[0]);
+
+      return (
+        <div> 
+          <h3>{saudacao}! Obrigado por visitar!</h3>
+          <button onClick={() => setSaudacao(mensagemAleatoria())}>
+            Nova Saudação
+          </button>
+        </div>
+      );
+    }
+    ```
+
+3. Importe e utilize esse componente em sua página inicial `index.astro`.
+
+    ```astro title="src/pages/index.astro" ins={3,8}
+    ---
+    import LayoutBase from '../layouts/LayoutBase.astro';
+    import Saudacao from '../components/Saudacao.jsx';
+    const tituloPagina = "Página Inicial";
+    ---
+    <LayoutBase tituloPagina={tituloPagina}>
+      <h2>O subtítulo incrível do meu blog</h2>
+      <Saudacao mensagens={["Oi", "Olá", "Coé", "E aí"]} />
+    </LayoutBase>
+    ```
+
+    Verifique a pré-visualização no seu navegador: você deve ver uma saudação aleatória, mas o botão não irá funcionar!
+
+
+4. Adicione um segundo componente `<Saudacao />` com a diretiva `client:load`.
+
+    ```astro title="src/pages/index.astro" ins={9} "client:load"
+    ---
+    import LayoutBase from '../layouts/LayoutBase.astro';
+    import Saudacao from '../components/Saudacao';
+    const tituloPagina = "Página Inicial";
+    ---
+    <LayoutBase tituloPagina={tituloPagina}>
+      <h2>O subtítulo incrível do meu blog</h2>
+      <Saudacao mensagens={["Oi", "Olá", "Coé", "E aí"]} />
+      <Saudacao client:load mensagens={["Hej", "Hallo", "Hola", "Habari"]} />
+    </LayoutBase>
+    ```
+
+  5. Revisite sua página e compare os dois componentes. O segundo botão funciona pois a diretiva `client:load` diz ao Astro para enviar e executar novamente o JavaScript para o _cliente_ quando a página _carrega_, fazendo o componente interativo. Nós chamamos isso de componente **hidratado**.
+  
+  6. Quando a diferença ficar clara, remova o componente Saudação não-hidratado.
+
+
+      ```astro title="src/pages/index.astro" del={8} "client:load"
+      ---
+      import LayoutBase from '../layouts/LayoutBase.astro';
+      import Saudacao from '../components/Saudacao';
+      const tituloPagina = "Página Inicial";
+      ---
+      <LayoutBase tituloPagina={tituloPagina}>
+        <h2>O subtítulo incrível do meu blog</h2>
+        <Saudacao mensagens={["Oi", "Olá", "Coé", "E aí"]} />
+        <Saudacao client:load mensagens={["Hej", "Hallo", "Hola", "Habari"]} />
+      </LayoutBase>
+      ```
+
+<Box icon="question-mark">
+
+### Analise o Padrão
+
+Há outras diretivas `client:` para explorar. Cada uma envia JavaScript ao cliente em momentos diferentes. `client:visible`, por exemplo, irá apenas enviar o JavaScript do componente quando ele é visível na página.
+
+Considere um componente Astro com o seguinte código:
+
+```astro
+---
+import LayoutBase from '../layouts/LayoutBase.astro';
+import BannerAstro from '../components/BannerAstro.astro';
+import BannerPreact from '../components/BannerPreact';
+import ContadorSvelte from '../components/ContadorSvelte.svelte';
+---
+<LayoutBase>
+  <BannerAstro />
+  <BannerPreact />
+  <BannerPreact client:load />
+  <ContadorSvelte />
+  <ContadorSvelte client:visible />
+</LayoutBase>
+```
+
+1. Quais dos cinco componentes serão ilhas **hidratadas**, enviando JavaScript ao cliente?
+
+    <p>
+      <Spoiler>`<BannerPreact client:load />` e `<ContadorSvelte client:visible />` serão ilhas hidratadas.</Spoiler>
+    </p>
+
+2. De que forma(s) os dois componentes `<BannerPreact />` serão o mesmo? De que forma(s) eles serão diferentes? 
+
+    <p>
+      <Spoiler>**Igual**: Ambos mostram os mesmos elementos HTML e parecem o mesmo inicialmente. **Diferente**: O componente com a diretiva `client:load` será executado novamente após a página ser carregada, e quaisquer elementos interativos que ele tem irão funcionar.</Spoiler>
+    </p>
+
+3. Assuma que o componente `ContadorSvelte` mostra um número e tem um botão para aumentá-lo. Se você não pudesse ver o código do seu website, apenas a página publicada ao vivo, como você diria qual dos dois componentes `<ContadorSvelte />` usaram `client:visible`? 
+
+    <p>
+      <Spoiler>Tente clicar no botão, e veja qual é interativo. Se ele responde a sua interação, ele deve ter uma diretiva `client:`.</Spoiler>
+    </p>
+</Box>
+
+
+
+<Box icon="question-mark">
+
+### Teste seu conhecimento
+
+Para cada um dos seguintes componentes, identifique o que será enviado ao navegador:
+
+1. `<ContadorReact client:load/>`
+
+    <MultipleChoice>
+      <Option>
+        Apenas HTML e CSS 
+      </Option>
+      <Option isCorrect>
+        HTML, CSS e JavaScript
+      </Option>
+    </MultipleChoice>
+
+2. `<CartaoSvelte />`
+
+    <MultipleChoice>
+      <Option  isCorrect>
+        Apenas HTML e CSS
+      </Option>
+      <Option>
+        HTML, CSS e JavaScript
+      </Option>
+    </MultipleChoice>
+</Box>
+
+<Box icon="check-list">
+
+## Checklist
+
+<Checklist>
+- [ ] Eu posso instalar uma integração Astro.
+- [ ] Eu posso escrever componentes de frameworks de UI em sua própria linguagem.
+- [ ] Eu posso utilizar uma diretiva `client:` para hidratar meu componente de framework de UI.
+</Checklist>
+</Box>
+
+### Recursos
+
+- [Guia de Integrações Astro](/pt-br/guides/integrations-guide/)
+
+- [Utilizando Componentes de Frameworks de UI no Astro](/pt-br/core-concepts/framework-components/#usando-componentes-de-frameworks)
+
+- [Referência de diretivas de cliente do Astro](/pt-br/reference/directives-reference/#diretivas-de-cliente)

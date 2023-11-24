@@ -10,6 +10,7 @@ await setDiscordMessage();
 async function setDiscordMessage() {
 	const builder = new TranslationStatusBuilder({
 		pageSourceDir: './src/content/docs',
+		oldTranslationDir: './old-translations',
 		htmlOutputFilePath: './dist/translation-status/index.html',
 		sourceLanguage: 'en',
 		targetLanguages: Object.keys(languages)
@@ -20,7 +21,8 @@ async function setDiscordMessage() {
 	});
 
 	const pages = await builder.createPageIndex();
-	const statusByPage = builder.getTranslationStatusByPage(pages);
+	const oldTranslations = await builder.createOldTranslationIndex();
+	const statusByPage = builder.getTranslationStatusByPage(pages, oldTranslations);
 	const toTranslate = statusByPage.filter(
 		(s) => new Date(s.sourcePage.lastMajorChange) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
 	);

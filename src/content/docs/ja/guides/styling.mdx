@@ -5,6 +5,7 @@ description: >-
 i18nReady: true
 ---
 import Since from '~/components/Since.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
 
 AstroはスタイリングやCSSの記述を簡単にするために設計されました。Astroコンポーネントの内部に直接CSSを記述したり、[Tailwind][tailwind]などのお気に入りのCSSライブラリをインポートできます。[Sass][sass]や[Less][less]などの高度なスタイリング言語もサポートされています。
@@ -41,10 +42,10 @@ Astroの`<style>`CSSルールは、**デフォルトで自動的にスコープ�
 
 ```astro
 <style>
-  h1:where(.astro-HHNQFKH6) {
-     color: red;
+  h1[data-astro-cid-hhnqfkh6] {
+    color: red;
   }
-  .text:where(.astro-HHNQFKH6) {
+  .text[data-astro-cid-hhnqfkh6] {
     color: blue;
   }
 </style>
@@ -157,7 +158,7 @@ import MyComponent from "../components/MyComponent.astro"
 <MyComponent class="red">This will be red!</MyComponent>
 ```
 
-このパターンでは、子コンポーネントに直接スタイルを設定できます。Astroは、親のスコープ付きクラス名（例：`astro-HHNQFKH6`）を`class`プロパティを通して自動的に渡し、その子を親のスコープに含めます。
+このパターンでは、子コンポーネントに直接スタイルを設定できます。Astroは、親のスコープ付きクラス名（例：`astro-hhnqfkh6`）を`class`プロパティを通して自動的に渡し、その子を親のスコープに含めます。
 
 :::note[親コンポーネントからスコープされたクラス]
 `class`プロパティは親のスコープに子を含むので、親から子へスタイルがカスケードされる可能性があります。このような意図しない副作用を避けるには、子コンポーネントでユニークなクラス名を使用するようにします。
@@ -431,9 +432,31 @@ import "../components/make-it-purple.css"
 
 ## CSSインテグレーション
 
-Astroには、[Tailwind][tailwind]など、人気のCSSライブラリやツール、フレームワークをプロジェクトに追加するための仕組みがあります！
+Astroには、[Tailwind](https://tailwindcss.com)など、人気のCSSライブラリやツール、フレームワークをプロジェクトに追加するための仕組みがあります！
 
-📚 これらのインテグレーションのインストール、インポート、設定の手順については、[インテグレーションガイド](/ja/guides/integrations-guide/)を参照してください。
+### Tailwind
+
+プロジェクトでTailwindを使用するには、公式の[Astro Tailwindインテグレーション][tailwind]を、パッケージマネージャーの`astro add`コマンドを使ってインストールします。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```shell
+    npx astro add tailwind
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```shell
+    pnpm astro add tailwind
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    yarn astro add tailwind
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+📚 Astroインテグレーションのインストール、インポート、設定の手順については、[インテグレーションガイド](/ja/guides/integrations-guide/)を参照してください。
 
 ## CSSプリプロセッサ
 
@@ -508,12 +531,50 @@ Astro内のSvelteも期待通りに動作します。[Svelte Styling Docs][svelt
 
 ## Markdownのスタイル
 
-Astroのスタイル方法は、[Markdownレイアウトコンポーネント](/ja/core-concepts/layouts/#markdownとmdxのレイアウト)で利用可能です。
+Astroのスタイル方法は、[Markdownレイアウトコンポーネント](/ja/core-concepts/layouts/#markdownとmdxのレイアウト)で利用可能ですが、それぞれの方法には異なったスタイリングへの影響があります。
 
-ページコンテンツを包むレイアウトに[`<style>`タグ](/ja/guides/styling/#グローバルスタイル)と[インポートしたスタイルシート](/ja/guides/styling/#外部スタイル)を追加することで、Markdownコンテンツにグローバルスタイルを適用できます。また、[Tailwind](/ja/guides/integrations-guide/tailwind/)を含む[CSSのインテグレーション](/ja/guides/styling/#cssインテグレーション)を追加もできます。
+ページコンテンツを包むレイアウトに[インポートしたスタイルシート](/ja/guides/styling/#外部スタイル)を追加することで、Markdownコンテンツにグローバルスタイルを適用できます。
+また、レイアウトコンポーネントに、[`<style is:global>`タグ](/ja/guides/styling/#グローバルスタイル)がついたMarkdownでスタイルを追加することも可能です。追加されたスタイルは、[アストロのカスケード順序
+](/ja/guides/styling/#カスケード順序)に沿っていることを確認し、スタイルが意図した通りに適用されているか慎重にチェックしてください。
 
+加えて、[Tailwind](/ja/guides/integrations-guide/tailwind/)を含む[CSSのインテグレーション](/ja/guides/styling/#cssインテグレーション)の追加もできます。
 Tailwindを使用している場合、Markdownのスタイリングには[typographyプラグイン](https://tailwindcss.com/docs/typography-plugin)が便利です。
 
+## 本番環境
+
+### バンドルの調整
+
+Astroが本番環境向けにサイトをビルドする際、CSSはミニファイされチャンクへと結合されます。サイト上の各ページはそれぞれ独自のチャンクを取得し、さらに複数のページ間で共有されるCSSは、再利用のために独自のチャンクに分割されます。
+
+しかし、複数のページでスタイルを共有している場合、共有される一部のチャンクが非常に小さくなる場合があります。それらがすべて別々に送信された場合、スタイルシートへのリクエストが増加し、サイトのパフォーマンスに影響を与える可能性があります。そのため、Astroはデフォルトでは、HTML内の4kB以上のスタイルシートのみを`<link rel="stylesheet">`タグとしてリンクし、それ以外のものは`<style type="text/css">`にインライン化します。このアプローチにより、追加のリクエストの数と、ページ間でキャッシュされるCSSの量のあいだのバランスをとることができます。
+
+Viteの`assetsInlineLimit`ビルドオプションを使用して、スタイルシートが外部にリンクされるサイズをバイト単位で設定できます。このオプションは、スクリプトと画像のインライン化にも影響することに注意してください。
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    build: {
+      assetsInlineLimit: 1024,
+    }
+  };
+});
+```
+
+すべてのスタイルシートを外部リンクとしたい場合は、`inlineStylesheets`ビルドオプションを設定します。
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  build: {
+    inlineStylesheets: 'never'
+  }
+});
+```
+
+このオプションを`'always'`に設定すると、すべてのスタイルシートがインライン化されます。
 
 ## アドバンスド
 
@@ -563,7 +624,7 @@ import stylesUrl from '../styles/main.css?url';
 [sass]: https://sass-lang.com/
 [stylus]: https://stylus-lang.com/
 [svelte-style]: https://svelte.dev/docs#component-format-style
-[tailwind]: https://github.com/withastro/astro/tree/main/packages/integrations/tailwind
+[tailwind]: /ja/guides/integrations-guide/tailwind/
 [vite-preprocessors]: https://vitejs.dev/guide/features.html#css-pre-processors
 [vue-css-modules]: https://vue-loader.vuejs.org/guide/css-modules.html
 [vue-scoped]: https://vue-loader.vuejs.org/guide/scoped-css.html

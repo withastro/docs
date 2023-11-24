@@ -6,9 +6,61 @@ i18nReady: true
 
 Astro provee muchas herramientas diferentes para ayudar a solucionar y debuggear los problemas en tu código.
 
+## Consejos y trucos
+
+### Depuración con `console.log()`
+
+`console.log()` es un método sencillo pero popular para depurar tu código de Astro. Donde escribas tu declaración `console.log()` determinará dónde se imprimirá la salida de depuración:
+
+```astro
+---
+console.log('¡Hola! Soy el servidor. Esto se registra en la terminal donde se está ejecutando Astro.');
+---
+<script>
+console.log('¡Hola! Soy el cliente. Esto se registra en la consola de desarrollo del navegador.');
+</script>
+```
+
+Una declaración `console.log()` en el frontmatter de Astro siempre enviará su salida a la **terminal** en la que se está ejecutando la CLI de Astro. Esto se debe a que Astro se ejecuta en el servidor y nunca en el navegador.
+
+El código que se escribe o importa dentro de una etiqueta `<script>` de Astro se ejecuta en el navegador. Cualquier declaración `console.log()` u otra salida de depuración se imprimirá en la **consola de tu navegador**.
+
+### Depurando componentes de frameworks
+
+[Componentes de framework](/es/core-concepts/framework-components/) (como React y Svelte) son únicos: se renderizan en el lado del servidor de forma predeterminada, lo que significa que la salida de depuración de `console.log()` será visible en la terminal. Sin embargo, también pueden ser hidratados para el navegador, lo que puede hacer que tus registros de depuración también aparezcan en el navegador.
+
+Esto puede ser útil para depurar las diferencias entre la salida del SSR y los componentes hidratados en el navegador.
+
+### Componente `<Debug />` de Astro
+
+Para ayudarte a depurar tus componentes de Astro, Astro proporciona un componente incorporado [`<Debug />`](/es/reference/api-reference/#debug-) que renderiza cualquier valor directamente en la plantilla HTML de tu componente. Esto es útil para depuración rápida en el navegador sin tener que alternar entre tu terminal y tu navegador.
+
+```astro {2,7}
+---
+import { Debug } from 'astro:components';
+const sum = (a, b) => a + b;
+---
+<!-- Ejemplo: Muestra {answer: 6} en el navegador -->
+<Debug answer={sum(2, 4)} />
+```
+
+El componente Debug admite una variedad de opciones de sintaxis para una depuración aún más flexible y concisa:
+
+```astro {2,7-9}
+---
+import { Debug } from 'astro:components';
+const sum = (a, b) => a + b;
+const answer = sum(2, 4);
+---
+<!-- Ejemplo: Los tres ejemplos son equivalentes. -->
+<Debug answer={sum(2, 4)} />
+<Debug {{answer: sum(2, 4)}} />
+<Debug {answer} />
+```
+
 ## Mensajes de error comunes
 
-Aquí veremos algunos mensajes de error comunes con los que te puedes llegar a cruzar en la terminal, su significado y qué hacer para solucionarlos.
+Aquí veremos algunos mensajes de error comunes con los que te puedes llegar a cruzar en la terminal, su significado y qué hacer para solucionarlos. Consulta nuestra [guía de referencia de errores completa](/es/reference/error-reference/) para obtener una lista completa de los errores de Astro que puedes encontrar.
 
 ### Cannot use import statement outside a module
 
@@ -25,7 +77,7 @@ En componentes de Astro, las etiquetas `<script>` son elevadas (hoisted) y carga
 
 Este error ocurre cuando se intenta acceder a `document` o `window` en el lado del servidor.
 
-#### Causa común
+#### Causas comunes
 
 Los componentes de Astro se ejecutan en el servidor, por lo que no puedes acceder a estos objetos específicos del navegador dentro del frontmatter.
 
@@ -57,7 +109,7 @@ Esto significa que la [política de seguridad de contenido](https://developer.mo
 
 **Solución:** Actualiza tu CSP para incluir `script-src: 'unsafe-inline'` para permitir que los scripts en línea se ejecuten.
 
-## Gotchas comunes
+## Problemas comunes
 
 ### Mi componente no se renderiza
 
@@ -135,6 +187,27 @@ Yarn 2+, también conocido como Berry, utiliza una técnica llamada [Plug'n'Play
 nodeLinker: "node-modules"
 ```
 
+### Agregar dependencias a Astro en un monorepo
+
+Cuando trabajas con Astro en una configuración de monorepo, las dependencias del proyecto deben agregarse en el archivo `package.json` de cada proyecto por separado.
+
+Sin embargo, es posible que también desees utilizar Astro en la raíz del monorepo (p. ej. [los proyectos Nx recomiendan instalar las dependencias en la raíz](https://github.com/nrwl/nx/issues/3023#issuecomment-630558318)). En este caso, agrega manualmente las dependencias relacionadas con Astro (p. ej. `@astrojs/vue`, `astro-component-lib`) a la sección `vite.ssr.noExternal` de la configuración de Astro para asegurarte de que estas dependencias se instalen y se incluyan correctamente:
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+export default defineConfig({
+  vite: {
+    ssr: {
+      noExternal: [
+        '@astrojs/vue',
+        'astro-component-lib',
+      ]
+    }
+  }
+})
+```
+
 ### Usando `<head>` en un componente
 
 En Astro, usar una etiqueta `<head>` funciona de igual manera que cualquier otra etiqueta HTML: no es movida a la parte superior de la página ni se fusiona con la etiqueta `<head>` existente. Por este motivo es que seguramente desees incluir una sola etiqueta `<head>` por página. Recomendamos escribir esta única etiqueta `<head>` y su contenido en un [componente de plantilla](/es/core-concepts/layouts/).
@@ -145,62 +218,39 @@ Quizás observes que se importan las etiquetas `<script>` o `<style>` de un comp
 
 El proceso de construcción de Astro funciona en el gráfico de módulos: una vez que un componente se incluye en la plantilla, se procesan, optimizan y empaquetan sus etiquetas `<script>` y `<style>`, ya sea que aparezcan en el resultado final o no. Esto no se aplica a los scripts cuando se aplica la directiva `is:inline`.
 
-## Consejos y trucos
+## Creando reproducciones mínimas
 
-### Debugging usando `console.log()`
+Cuando estés resolviendo problemas en tu código, puede ser útil crear una **reproducción mínima** del problema que puedas compartir. Se trata de un proyecto de Astro más pequeño y simplificado que demuestra el problema que estás experimentando. Contar con una reproducción funcional en un nuevo proyecto ayuda a confirmar que se trata de un problema repetible y no causado por algo más en tu entorno personal o proyecto existente.
 
-Usar `console.log()` es un método simple pero muy popular para debuggear tu código de Astro. Donde declares tu `console.log` determinará dónde se imprimirá lo que quieras debuggear.
+Compartir una reproducción mínima es útil cuando solicitas ayuda en nuestros hilos de soporte y a menudo es necesario al presentar un informe de error a Astro.
 
-#### Frontmatter
+### Crea un StackBlitz a través de [astro.new](https://astro.new).
 
-Utilizar `console.log()` en el frontmatter de Astro siempre se imprimirá en la **terminal** donde se esté ejecutando el servidor de Astro. Esto es porque Astro corre en el servidor, y nunca en el navegador.
+Puedes utilizar [astro.new](https://astro.new) para crear un nuevo proyecto de Astro con un solo clic. Para reproducciones mínimas, recomendamos encarecidamente comenzar desde el ejemplo mínimo (vacío) que se ejecuta en [StackBlitz](https://stackblitz.com), con la menor cantidad de código adicional posible.
 
-```astro {5}
----
-const sum = (a, b) => a + b;
+StackBlitz ejecutará este proyecto de Astro en el navegador, fuera de tu entorno local. También te proporcionará un enlace compartible para que cualquier mantenedor de Astro o miembro del equipo de soporte pueda ver tu reproducción mínima fuera de su propio entorno local. Esto significa que todos están viendo el mismo proyecto, con la misma configuración y dependencias. Esto facilita que otra persona te ayude a solucionar problemas en tu código. Si el problema es reproducible, te permite verificar que el problema reside en el propio código de Astro y puedes sentirte seguro al enviar un informe de error.
 
-// Ejemplo: Imprime "4" en la línea de comandos.
-console.log(sum(2, 2));
----
-```
+Ten en cuenta que no todos los problemas se pueden reproducir en StackBlitz. Por ejemplo, tu problema podría depender de un entorno o administrador de paquetes específicos, o podría involucrar la transmisión de HTML, que no está admitida en StackBlitz. En este caso, crea un nuevo proyecto de Astro mínimo (vacío) utilizando la CLI, reproduce el problema y cárgalo en un repositorio de GitHub. En lugar de compartir una URL de StackBlitz, proporciona un enlace al repositorio de GitHub de tu reproducción mínima.
 
-#### Scripts de JS
+### Código mínimo
 
-El código que es escrito o importado dentro de una etiqueta `<script>` de Astro es ejecutado en el navegador. Cualquier `console.log()` u otros mecanismos de debug que usemos ahí van a ser impresos en la consola de tu navegador.
+Una vez que tu proyecto vacío esté configurado, sigue los pasos para reproducir el problema.
 
-### Debuggeando componentes de framework
+Esto puede incluir la adición de paquetes, cambios en la configuración y la escritura de código.
 
-Los [componentes de framework](/es/core-concepts/framework-components/) (como React y Svelte) son únicos: se renderizan del lado del servidor por defecto, lo que significa que la salida del `console.log()` va a ser visible en la terminal. Sin embargo, también pueden ser hidratados en el navegador, lo que puede causar que tus logs de debug también sean visibles en el navegador.
+Solo debes agregar la cantidad mínima de código necesaria para reproducir el problema. No reproduzcas otros elementos de tu proyecto existente y elimina todo el código que no esté directamente relacionado con el problema.
 
-Esto puede ser útil para debuggear diferencias entre los datos de salida de SSR y los componentes hidratados en el navegador.
+### Crea un issue
 
-### Componente `<Debug />` de Astro
+Si puedes reproducir el problema, ¡entonces es el momento de crear un issue y presentar un informe de error!
 
-Para ayudarte a debuggear tus componentes de Astro, Astro provee un componente [`<Debug />`](/es/reference/api-reference/#debug-) incorporado que renderiza cualquier valor directamente en el maquetado HTML del componente. Esto es útil para debuggear rápidamente en el navegador mismo sin estar alternando entre la terminal y la consola del navegador.
+Ve al repositorio de Astro correspondiente en GitHub y abre un nuevo issue.
 
-```astro {2,7}
----
-import { Debug } from 'astro/components';
-const sum = (a, b) => a + b;
----
+La mayoría de los repositorios tienen una plantilla de issues que hará preguntas o requerirá información para poder presentar el informe. Es importante que sigas estas plantillas, ya que si no proporcionas la información que necesitamos, tendremos que pedírtela... ¡y nadie estará trabajando en tu issue!
 
-<!-- Ejemplo: Imprime {respuesta: 6} en el navegador. -->
-<Debug respuesta={sum(2, 4)} />
-```
+Incluye el enlace a tu reproducción mínima en StackBlitz (o al repositorio de GitHub, si es necesario).
 
-El componente Debug soporta una gran variedad de opciones de sintaxis para un debug más flexible y conciso:
-
-```astro {2,7-9}
----
-import { Debug } from 'astro/components';
-const sum = (a, b) => a + b;
-const respuesta = sum(2, 4);
----
-<!-- Ejemplo: Los tres casos son equivalentes. -->
-<Debug respuesta={sum(2, 4)} />
-<Debug {{respuesta: sum(2, 4)}} />
-<Debug {respuesta} />
-```
+Comienza con una descripción del comportamiento esperado en comparación con el comportamiento actual para proporcionar contexto sobre el problema. Luego, incluye instrucciones claras y paso a paso sobre cómo replicar el problema en un proyecto de Astro.
 
 ## ¿Necesitas más ayuda?
 

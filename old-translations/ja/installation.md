@@ -100,7 +100,7 @@ npm install astro
 }
 ```
 
-[`dev`](#astro-の開始)コマンドは、Astro Dev Server（`http://localhost:3000`）を起動します。プロジェクトの準備ができたら、[`build`](#astro-のビルド)コマンドで、プロジェクトを`dist/`ディレクトリに出力します。Astro のデプロイについては、[デプロイガイド](/guides/deploy)をご覧ください。
+[`dev`](#astro-の開始)コマンドは、Astro Dev Server（`http://localhost:4321`）を起動します。プロジェクトの準備ができたら、[`build`](#astro-のビルド)コマンドで、プロジェクトを`dist/`ディレクトリに出力します。Astro のデプロイについては、[デプロイガイド](/guides/deploy)をご覧ください。
 
 ### 最初のページを作る
 
@@ -146,7 +146,7 @@ console.log('これはターミナルに表示されます')
 npm run dev
 ```
 
-これで Astro は、`http://localhost:3000`でアプリケーションのサービスを開始します。この URL をブラウザで開くと、Astro の「Hello, World」が表示されるはずです。
+これで Astro は、`http://localhost:4321`でアプリケーションのサービスを開始します。この URL をブラウザで開くと、Astro の「Hello, World」が表示されるはずです。
 
 開発の進捗状況をローカルネットワーク上で共有したり、スマートフォンからアプリを確認したければ、以下の オプションを`astro.config.mjs`に追加してください。
 

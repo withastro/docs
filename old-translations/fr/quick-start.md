@@ -35,7 +35,7 @@ Depuis un terminal ouvert dans votre projet, entrez la commande suivante :
 npm run dev
 ```
 
-Astro va lancer un serveur local sur [http://localhost:3000](http://localhost:3000). Ouvrez cette adresse dans votre navigateur, et vous devriez voir le "Hello, World" d'Astro.
+Astro va lancer un serveur local sur [http://localhost:4321](http://localhost:4321). Ouvrez cette adresse dans votre navigateur, et vous devriez voir le "Hello, World" d'Astro.
 
 Vous n'avez jamais besoin de redémarrer Astro : à chaque modification dans le dossier `src/`, le serveur recompile votre site.
 
