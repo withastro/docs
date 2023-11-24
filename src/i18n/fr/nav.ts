@@ -20,7 +20,17 @@ export default [
 
 	{ text: 'Tutoriels', header: true, type: 'learn', key: 'tutorials' },
 	{ text: 'Construire un Blog', slug: 'tutorial/0-introduction', key: 'blog-tutorial' },
-	// { text: 'Thinking with Islands', slug: 'tutorial/0-introduction', key: 'island-tutorial' },
+	{
+		text: 'Extension avec les collections de contenu',
+		slug: 'tutorials/add-content-collections',
+		key: 'add-collections-tutorial',
+	},
+	{
+		text: 'Extension avec les transitions de vue',
+		slug: 'tutorials/add-view-transitions',
+		key: 'add-transitions-tutorial',
+	},
+	// { text: 'Penser avec les îles', slug: 'tutorial/0-introduction', key: 'island-tutorial' },
 
 	{ text: 'Les Bases', header: true, type: 'learn', key: 'basics' },
 
@@ -36,33 +46,57 @@ export default [
 	},
 	{ text: 'Pages', slug: 'core-concepts/astro-pages', key: 'core-concepts/astro-pages' },
 	{ text: 'Layouts', slug: 'core-concepts/layouts', key: 'core-concepts/layouts' },
-
-	{ text: 'Méthodes', header: true, type: 'learn', key: 'examples' },
-	{ text: 'Migrer vers Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
-	{ text: 'Connecter un CMS', slug: 'guides/cms', key: 'guides/cms' },
-	{ text: 'Ajouter des services Backend', slug: 'guides/backend', key: 'guides/backend' },
-	{ text: 'Intégrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
-	{ text: 'Déployez votre site', slug: 'guides/deploy', key: 'guides/deploy' },
-	{ text: 'Plus de méthodes', slug: 'recipes', key: 'guides/recipes' },
-
-	{ text: 'Guides', header: true, type: 'learn', key: 'features' },
 	{
 		text: 'Syntaxe de Template Astro',
 		slug: 'core-concepts/astro-syntax',
 		key: 'core-concepts/astro-syntax',
 	},
 	{
-		text: "Framework d'interface",
-		slug: 'core-concepts/framework-components',
-		key: 'core-concepts/framework-components',
+		text: 'Les modes de rendu',
+		slug: 'core-concepts/rendering-modes',
+		key: 'core-concepts/rendering-modes',
 	},
-	{ text: 'Routage', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
-	{ text: 'Markdown & MDX', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
+
+	{ text: 'Éléments encastrés', header: true, type: 'learn', key: 'builtins' },
 	{
 		text: 'Collections de Contenu',
 		slug: 'guides/content-collections',
 		key: 'guides/content-collections',
 	},
+	{
+		text: 'Voir les Transitions',
+		slug: 'guides/view-transitions',
+		key: 'guides/view-transitions',
+	},
+	{
+		text: 'Prefetch',
+		slug: 'guides/prefetch',
+		key: 'guides/prefetch',
+	},
+
+	{ text: 'Add-ons', header: true, type: 'learn', key: 'addons' },
+	{ text: 'Intégrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
+	{
+		text: "Framework d'interface",
+		slug: 'core-concepts/framework-components',
+		key: 'core-concepts/framework-components',
+	},
+	{
+		text: 'Rendu Côté Serveur (SSR)',
+		slug: 'guides/server-side-rendering',
+		key: 'guides/server-side-rendering',
+	},
+
+	{ text: 'Méthodes', header: true, type: 'learn', key: 'examples' },
+	{ text: 'Migrer vers Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
+	{ text: 'Connecter un CMS', slug: 'guides/cms', key: 'guides/cms' },
+	{ text: 'Ajouter des services Backend', slug: 'guides/backend', key: 'guides/backend' },
+	{ text: 'Déployez votre site', slug: 'guides/deploy', key: 'guides/deploy' },
+	{ text: 'Plus de méthodes', slug: 'recipes', key: 'guides/recipes' },
+
+	{ text: 'Guides', header: true, type: 'learn', key: 'features' },
+	{ text: 'Routage', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
+	{ text: 'Markdown', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 	{
 		text: "Scripts & gestion d'évènements",
 		slug: 'guides/client-side-scripts',
@@ -73,23 +107,18 @@ export default [
 	{ text: "Polices d'écritures", slug: 'guides/fonts', key: 'guides/fonts' },
 	{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
 	{
-		text: 'Rendu Côté Serveur (SSR)',
-		slug: 'guides/server-side-rendering',
-		key: 'guides/server-side-rendering',
-	},
-	{
 		text: 'Points de terminaison',
 		slug: 'core-concepts/endpoints',
 		key: 'core-concepts/endpoints',
 	},
 	{ text: 'Récupération de Données', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
+	{
+		text: 'Internationalisation',
+		slug: 'guides/internationalization',
+		key: 'guides/internationalization',
+	},
 	{ text: 'Middleware', slug: 'guides/middleware', key: 'guides/middleware' },
 	{ text: 'Test', slug: 'guides/testing', key: 'guides/testing' },
-	{
-		text: 'Voir les Transitions',
-		slug: 'guides/view-transitions',
-		key: 'guides/view-transitions',
-	},
 	{ text: 'Dépannage', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
 
 	{ text: 'Configuration', header: true, type: 'learn', key: 'configuration' },
@@ -118,15 +147,16 @@ export default [
 		slug: 'reference/integrations-reference',
 		key: 'reference/integrations-reference',
 	},
-	{
-		text: 'API des adaptateurs',
-		slug: 'reference/adapter-reference',
-		key: 'reference/adapter-reference',
-	},
+	{ text: 'Adapteur API', slug: 'reference/adapter-reference', key: 'reference/adapter-reference' },
 	{
 		text: "API du Service d'Images",
 		slug: 'reference/image-service-reference',
 		key: 'reference/image-service-reference',
+	},
+	{
+		text: 'API du plugin Overlay Dev',
+		slug: 'reference/dev-overlay-plugin-reference',
+		key: 'reference/dev-overlay-plugin-reference',
 	},
 	{
 		text: 'Utilisation des Directives',

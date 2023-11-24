@@ -20,7 +20,7 @@ async function markFallbackNavEntries(lang: string, nav: NavDict) {
 	const slugs = slugsByLang[lang];
 	for (const entry of nav) {
 		if ('header' in entry) continue;
-		if (!(slugs.has(entry.slug) || slugs.has(entry.slug + '/index'))) {
+		if (!(slugs?.has(entry.slug) || slugs?.has(entry.slug + '/index'))) {
 			entry.isFallback = true;
 		}
 	}

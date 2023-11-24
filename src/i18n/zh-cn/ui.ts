@@ -2,8 +2,8 @@ import { UIDictionary } from '../translation-checkers';
 
 export default UIDictionary({
 	'a11y.skipLink': '跳转到内容',
-	'a11y.sectionLink': '标题部分',
-	'navbar.a11yTitle': '导航顶部',
+	'a11y.sectionLink': '段落标题',
+	'navbar.a11yTitle': '顶部导航',
 	// Site settings
 	'site.title': 'Astro 文档',
 	'site.description': '用更少的客户端 JavaScript 构建更快的站点。',
@@ -14,10 +14,10 @@ export default UIDictionary({
 	'leftSidebar.learnTab': '学习',
 	'leftSidebar.referenceTab': '参考',
 	'leftSidebar.viewInEnglish': '查看英文版本',
-	'leftSidebar.sponsoredBy': '赞助商：',
+	'leftSidebar.sponsoredBy': '赞助商',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': '目录',
-	'rightSidebar.onThisPage': '在本页内',
+	'rightSidebar.onThisPage': '本页内容',
 	'rightSidebar.overview': '概述',
 	'rightSidebar.editPage': '编辑本页内容',
 	'rightSidebar.translatePage': '翻译本页内容',
@@ -46,7 +46,7 @@ export default UIDictionary({
 	// `<DeployGuidesNav>` 词汇
 	'deploy.sectionTitle': '部署指南',
 	'deploy.altSectionTitle': '更多部署指南',
-	'deploy.filterLabel': '根据类型筛选',
+	'deploy.filterLabel': '根据部署类型筛选',
 	'deploy.ssrTag': 'SSR',
 	'deploy.staticTag': '静态',
 	// CMS Guides vocabulary
@@ -54,10 +54,10 @@ export default UIDictionary({
 	// Migration Guides vocabulary
 	'migration.navTitle': '更多迁移指南',
 	// Recipes vocabulary
-	'recipes.navTitle': '更多方案',
+	'recipes.navTitle': '更多操作指南',
 	// `<RecipeLinks>` vocabulary
-	'recipesLink.singular': '相关方案：',
-	'recipesLink.plural': '相关方案',
+	'recipesLink.singular': '相关操作指南：',
+	'recipesLink.plural': '相关操作指南',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': '查看所有贡献者',
 	// Fallback content notice shown when a page is not yet translated
@@ -83,8 +83,8 @@ export default UIDictionary({
 	// Checklist component
 	'checklist.or': '或',
 	// Multiple Choice component
-	'multipleChoice.defaultCorrect': '正确!',
-	'multipleChoice.defaultIncorrect': '再试一次!',
+	'multipleChoice.defaultCorrect': '正确！',
+	'multipleChoice.defaultIncorrect': '再试一次！',
 	'multipleChoice.submitLabel': '提交',
 	// Tutorial Progress
 	'progress.todo': '待办',
@@ -116,10 +116,11 @@ export default UIDictionary({
 	'expressiveCode.copyButtonCopied': '复制成功！',
 	// Backend Guides vocabulary
 	'backend.navTitle': '更多后端服务指南',
-	'stub.title': '完善本篇！',
-	'stub.subtitle': '此页面尚未完成。',
+	// Stubs vocabulary
+	'stub.title': '完善本指南！',
+	'stub.subtitle': '此指南尚未完成。',
 	'stub.description.migration':
-		'想为这个指南做贡献吗？有关于从这项技术迁移到 Astro 的博客、视频或其他资源？',
-	'stub.description.cms': '了解更多在 Astro 使用此 CMS 的信息？',
-	'stub.description.backend': '了解更多在 Astro 使用此后端服务的信息？',
+		'想为这个指南做贡献吗？有关于从这项技术迁移到 Astro 的文章、视频或其他资源？',
+	'stub.description.cms': '知道更多在 Astro 使用此 CMS 的信息？',
+	'stub.description.backend': '知道更多在 Astro 使用此后端服务的信息？',
 });

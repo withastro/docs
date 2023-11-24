@@ -6,8 +6,9 @@ i18nReady: true
 
 import Since from '~/components/Since.astro'
 import FileTree from '~/components/FileTree.astro'
+import RecipeLinks from "~/components/RecipeLinks.astro";
 
-[Markdown](https://daringfireball.net/projects/markdown/)は、ブログ投稿やドキュメントのようなテキストを多用するコンテンツのオーサリングによく使います。Astroは標準的なMarkdownファイルをビルトインでサポートしています。
+[Markdown](https://daringfireball.net/projects/markdown/)は、ブログ投稿やドキュメントのようなテキストを多用するコンテンツのオーサリングによく使います。Astroは標準的なMarkdownファイルをビルトインでサポートしており、タイトルや説明文、タグなどのカスタムメタデータを定義するための[フロントマターYAML](https://dev.to/paulasantamaria/introduction-to-yaml-125f)も使用できます。
 
 [@astrojs/mdxインテグレーション](/ja/guides/integrations-guide/mdx/)をインストールすると、[MDX](https://mdxjs.com/)（`.mdx`）ファイルにも対応し、MarkdownコンテンツでのJavaScript式やコンポーネントのサポートなどの追加機能を提供します。
 
@@ -55,60 +56,6 @@ title: Hello, World
 ```
 
 📚 Astroの[ファイルベースルーティング](/ja/core-concepts/routing/)や、[動的ルーティング](/ja/core-concepts/routing/#動的ルーティング)を作成するオプションについてもっと読む。
-
-### 下書きページ
-
-`draft: true`はオプションのフロントマターの値で、個々のMarkdownまたはMDXページや投稿を「非公開」としてマークできます。デフォルトでは、マークされたページは次の動作になります。
-- サイトのビルド対象から外す（**ページはビルドされない**）
-- [`Astro.glob()`](/ja/reference/api-reference/#astroglob)によって返される (**投稿の一覧で表示されます**)
-
-```markdown {5}
----
-# src/pages/post/blog-post.md
-layout: ../../layouts/BaseLayout.astro
-title: ブログ記事
-draft: true
----
-
-これは、作成中のブログ記事です。
-
-この記事のためにページは作成されません。
-
-この記事をビルドして公開するには
-
-- フロントマターを`draft: false`に更新する。
-- または、`draft`プロパティ全体を削除してください。
-
-しかし、このページは `Astro.glob()` にマッチするすべてのリクエストで返されます。
-```
-
-下書きの投稿を、投稿アーカイブや最新投稿のリストに含めないようにするには、`Astro.glob()`が返す結果をフィルタリングしてください。
-
-```js
-const posts = await Astro.glob('../pages/post/*.md');
-const nonDraftPosts = posts.filter((post) => !post.frontmatter.draft);
-```
-
-#### 下書きページのビルドを有効にする
-
-デフォルトで下書きページもビルドするには、`markdown`または`mdx`インテグレーションに`drafts: true`を追加して`astro.config.mjs`を更新します。
-
-```js title="astro.config.mjs" ins={5, 8}
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  markdown: {
-    drafts: true,
-  },
-  integrations: [mdx({
-    drafts: true,
-  })],
-});
-```
-
-:::tip
-`astro build`を実行する際に`--drafts`フラグを渡すことでも、下書きページをビルドできます！
-:::
 
 ## Markdownの機能
 
@@ -178,7 +125,7 @@ URL`https://my-domain.com/page-1/#イントロダクション`を使って、ペ
 
 Astroの[MDXインテグレーション](/ja/guides/integrations-guide/mdx/)を追加すると、JSX変数、式、コンポーネントによってMarkdownオーサリングを強化できます。
 
-また、[MDXにおけるMarkdownスタイルのフロントマター](https://mdxjs.com/guides/frontmatter/)のサポートなど、標準的なMDXにさらに機能を追加しています。これにより、[フロントマター `layout`](#フロントマター-layout)プロパティや[下書きページ](#下書きページ)の設定など、Astroの組み込みMarkdown機能のほとんどを使用できます。
+また、[MDXにおけるMarkdownスタイルのフロントマター](https://mdxjs.com/guides/frontmatter/)のサポートなど、標準的なMDXにさらに機能を追加しています。これにより、[フロントマター `layout`](#フロントマター-layout)プロパティなど、Astroの組み込みMarkdown機能のほとんどを使用できます。
 
 `.mdx`ファイルは、AstroのHTMLライクな構文ではなく、[MDX構文](https://mdxjs.com/docs/what-is-mdx/#mdx-syntax)で記述する必要があります。
 
@@ -457,7 +404,8 @@ import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis';
 export default {
   markdown: {
     // .md と .mdx ファイルに適用
-    remarkPlugins: [remarkToc, rehypeAccessibleEmojis],
+    remarkPlugins: [remarkToc],
+    rehypePlugins: [rehypeAccessibleEmojis],
   },
 }
 ```
@@ -508,6 +456,10 @@ export default {
 
 ### プログラムによるフロントマターの変更
 
+:::note
+[コンテンツコレクション](/ja/guides/content-collections/)を使用している場合は、[「Remarkでフロントマターを修正」](/ja/guides/content-collections/#remarkでフロントマターを修正)を参照してください。
+:::
+
 [remarkやrehypeのプラグイン](#markdownプラグイン)を使用することで、すべてのMarkdownファイルやMDXファイルにfrontmatterプロパティを追加できます。
 
 1. プラグインの`file`引数の`data.astro.frontmatter`プロパティに`customProperty`を追加してください。
@@ -557,61 +509,7 @@ export default {
 
 これで、すべてのMarkdownまたはMDXファイルは、フロントマターに`customProperty`を持ち、[Markdownのインポート](#markdownのインポート)時や[レイアウトの`Astro.props.frontmatter`プロパティ](#フロントマター-layout)から利用できるようになります。
 
-#### 例：読書時間の計算
-
- [remark plugin](https://github.com/remarkjs/remark)プラグインを使用すると、frontmatterに読了時刻を追加できます。次の2つのヘルパーがおすすめです。
-- [`reading-time`](https://www.npmjs.com/package/reading-time)で読書時間（分）を計算します。
-- [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string)はMarkdownからすべてのテキストを抽出します。
-
-```shell
-npm install reading-time mdast-util-to-string
-```
-
-これらのパッケージをremarkプラグインに適用すると、以下のようになります。
-
-```js title="remark-reading-time.mjs"
-import getReadingTime from 'reading-time';
-import { toString } from 'mdast-util-to-string';
-
-export function remarkReadingTime() {
-  return function (tree, { data }) {
-    const textOnPage = toString(tree);
-    const readingTime = getReadingTime(textOnPage);
-    // readingTime.textは、読書時間（分）をフレンドリーな文字列として出力します。
-    // たとえば、"3 min read"
-    data.astro.frontmatter.minutesRead = readingTime.text;
-  };
-}
-```
-
-このプラグインを設定ファイルに適用します。
-
-```js title="astro.config.mjs" "import { remarkReadingTime } from './remark-reading-time.mjs';" "remarkPlugins: [remarkReadingTime],"
-import { remarkReadingTime } from './remark-reading-time.mjs';
-
-export default {
-  markdown: {
-    remarkPlugins: [remarkReadingTime]
-  },
-};
-
-```
-
-これにより、すべてのMarkdownドキュメントは計算された`minutesRead`を持つようになります。これを使用して、たとえば[Markdownレイアウト](#markdownページとmdxページ)に読書時間を表示するバナーを含められます。
-
-```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.frontmatter;" "<p>{minutesRead}</p>"
----
-const { minutesRead } = Astro.props.frontmatter;
----
-
-<html>
-  <head>...</head>
-  <body>
-    <p>{minutesRead}</p>
-    <slot />
-  </body>
-</html>
-```
+<RecipeLinks slugs={["ja/recipes/reading-time"]} />
 
 ### MDXからMarkdown設定を継承
 
