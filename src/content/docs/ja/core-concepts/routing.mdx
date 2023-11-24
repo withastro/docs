@@ -3,16 +3,26 @@ title: ルーティング
 description: Astroのルーティングの紹介
 i18nReady: true
 ---
+import FileTree from '~/components/FileTree.astro'
+import RecipeLinks from "~/components/RecipeLinks.astro"
+import Since from '~/components/Since.astro'
 
-Astroは**ファイルベースルーティング**を採用しているため、プロジェクトの`src/pages/`ディレクトリのファイルレイアウトを元にビルドURLを生成します。プロジェクトの `src/pages` ディレクトリにファイルが追加されると、そのファイル名に基づいて自動的にルーティングされます。
+Astroは**ファイルベースルーティング**を使用して、プロジェクトの`src/pages/`ディレクトリのファイルレイアウトを元にビルドURLを生成します。
 
+## ページ間の移動
+
+Astroでは、ルート間の移動に標準的なHTMLの[`<a>`要素](https://developer.mozilla.org/ja/docs/Web/HTML/Element/a)を使用します。フレームワーク固有の`<Link>`コンポーネントは提供されていません。
+
+```astro title="src/pages/index.astro"
+<p>Astroの<a href="/about/">概要</a>についてもっと読む！</p>
+```
 
 ## 静的ルーティング
 
-`src/pages`ディレクトリにある、Astroコンポーネント（`.astro`）とMarkdownファイル（`.md`）は**自動的にウェブサイトのページとなります**。各ページのルーティングは、`src/pages`ディレクトリ内のパスとファイル名に対応しています。
+`src/pages/`ディレクトリにある`.astro`[ページコンポーネント](/ja/core-concepts/astro-pages/)、MarkdownとMDXファイル（`.md`、`.mdx`）は、**自動的にウェブサイトのページとなります**。各ページのルートは、`src/pages/`ディレクトリ内における自身のパスとファイル名に対応します。
 
-```bash
-# 例: 静的ルーティング
+```diff
+# 静的ルーティングの例
 src/pages/index.astro        -> mysite.com/
 src/pages/about.astro        -> mysite.com/about
 src/pages/about/index.astro  -> mysite.com/about
@@ -21,109 +31,91 @@ src/pages/posts/1.md         -> mysite.com/posts/1
 ```
 
 :::tip
-Astroのプロジェクトでは、別途「ルーティング設定」を管理する必要はありません。静的ページは、`/src/pages/` ディレクトリにファイルを配置することで作成されます。
+Astroのプロジェクトでは、別途「ルーティング設定」を管理する必要はありません。`src/pages/`ディレクトリにファイルを配置すると、新しいルートが自動的に作成されます。静的ビルドでは、[`build.format`](/ja/reference/configuration-reference/#buildformat)設定オプションを使用してファイルの出力形式をカスタマイズできます。
 :::
 
 
 ## 動的ルーティング
 
-1つのAstroページコンポーネントは、ファイル名に動的ルーティングパラメーターを指定して、指定した条件に合致する複数のルーティングを生成することもできます。著者ページやブログタグごとのページなど、複数の関連ページを一度に作成できます。名前付きパラメーターでは、これらのルーティングパスの「名前付き」レベルの値を指定でき、レストパラメーターでは、より柔軟な「キャッチオール」ルーティングを指定できます。
+Astroページファイルのファイル名に動的ルートパラメータを指定すると、ファイルにマッチするページを複数生成できます。たとえば`src/pages/authors/[author].astro`は、ブログの各著者に対してプロフィールページを生成します。`author`は、ページ内からアクセス可能な*パラメーター*となります。
 
-:::note
-動的に作成されたページやルーティングも、ビルド時に生成されます。
-:::
+Astroのデフォルトの静的出力モードでは、これらのページはビルド時に生成されるため、`author`と対応するファイルを取得する場合、それらのリストを事前に決めておく必要があります。SSRモードでは、ルートにマッチしたリクエストに応じてページが生成されます。
 
-動的ルーティングを作成するAstroページは、以下のようにしなければなりません。
+### 静的（SSG）モード
 
-1. `[ブラケット]`記法を用いて、動的なパラメーターを識別する。
+すべてのルートをビルド時に決める必要があるため、動的ルートは`getStaticPaths()`をエクスポートし、そこで`params`プロパティをもつオブジェクトの配列を返す必要があります。各オブジェクトは対応するルートを生成します。
 
-2. `getStaticPaths()`関数をエクスポートして、Astroでプリレンダリングされるパスを正確に指定します。
+`[dog].astro`はファイル名に動的な`dog`パラメーターが定義されているため、`getStaticPaths()`から返されるオブジェクトの`params`には`dog`を含める必要があります。`Astro.params`を使用してページからこのパラメーターにアクセスできます。
 
-### 名前付きパラメーター
-
-以下のように `getStaticPaths()` 関数に使用する値を指定することで、`[名前付き]`パラメーターを持つルーティングを生成できます。
-
-```astro
+```astro title="src/pages/dogs/[dog].astro"
 ---
-// src/pages/dogs/[dog].astro
-
 export function getStaticPaths() {
   return [
-    // 生成対象: /dogs/clifford
     {params: {dog: 'clifford'}},
-    // 生成対象: /dogs/rover
     {params: {dog: 'rover'}},
-    // 生成対象: /dogs/spot
     {params: {dog: 'spot'}},
   ];
 }
+
+const { dog } = Astro.params;
 ---
+<div>いい子だ、{dog}！</div>
 ```
 
-📚 [`getStaticPaths()`](/ja/reference/api-reference/#getstaticpaths) についてはこちらを参照してください。
+上のコードにより、`/dogs/clifford`、`/dogs/rover`、`/dogs/spot`という3つのページが生成され、各ページでは対応する犬の名前が表示されます。
 
-ルーティングは、ファイルパスのどのレベルでも、複数の名前付きパラメーターから生成できます。
+ファイル名には複数のパラメーターを含められますが、これらをすべて`getStaticPaths()`の`params`オブジェクトに含める必要があります。
 
-- `pages/blog/[slug].astro` → （`/blog/hello-world`、`/blog/post-2`など）
-- `pages/[username]/settings.astro` → （`/fred/settings`、`/drew/settings`など）
-- `pages/[lang]-[version]/info.astro` → （`/en-v1/info`、`/fr-v2/info`など）
-
-#### `Astro.params` オブジェクト
-
-動的にルーティングを生成するAstroコンポーネントは、各ルーティングに対して `Astro.params` オブジェクトを利用できます。これにより、コンポーネントスクリプトやテンプレートの中で、URLのこれらの生成された部分を使用できます。
-
-```astro
+```astro title="src/pages/[lang]-[version]/info.astro"
 ---
-// 例: src/pages/posts/[id].astro
-const { id } = Astro.params;
+export function getStaticPaths () {
+ return [
+    {params: {lang: 'en', version: 'v1'}},
+    {params: {lang: 'fr', version: 'v2'}},
+  ];
+}
+
+const { lang, version } = Astro.params;
 ---
-<p>投稿: { id }</p>
-
-
-// ルーティング `/post/abc` に渡されるAstro.paramsオブジェクト
-{ "id": "abc" }
+...
 ```
 
-複数の動的ルーティングセグメントを組み合わせて、同じように動作させることができます。
+上のコードは`/en-v1/info`と`/fr-v2/info`を生成します。
 
-```astro
----
-// 例: src/pages/post/[id]/[comment].astro
-const { id, comment } = Astro.params;
----
+パラメーターはパス内の異なる部分に設定できます。たとえば、上と同じ`getStaticPaths()`をもつ`src/pages/[lang]/[version]/info.astro`ファイルは、`/en/v1/info`と`/fr/v2/info`のルートを生成します。
 
-// ルーティング `/post/abc/a-comment` に渡されるAstro.paramsオブジェクト
-{ "id": "abc", "comment": "a-comment" }
+📚 [`getStaticPaths()`](/ja/reference/api-reference/#getstaticpaths)についてもっと学ぶ。
+
+<RecipeLinks slugs={["ja/recipes/i18n"]} />
+
+#### レストパラメーター
+
+より柔軟なURLルーティングが必要な場合は、`.astro`ファイル名に[レストパラメーター](https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Functions/rest_parameters)（`[...path]`）を使用することで、任意の深さのファイルパスにマッチさせられます。
+
+```astro title="src/pages/sequences/[...path].astro"
+---
+export function getStaticPaths() {
+  return [
+    {params: {path: 'one/two/three'}},
+    {params: {path: 'four'}},
+    {params: {path: undefined }}
+  ]
+}
+
+const { path } = Astro.params;
+---
+...
 ```
 
-### レストパラメーター
+上のコードは`/sequences/one/two/three`、`/sequences/four`、`/sequences`を生成します。（レストパラメーターを`undefined`に設定することで、トップレベルのページにマッチさせられます。）
 
-URLルーティングに柔軟性が必要な場合は、`.Astro`ファイル名にレストパラメーターを使用します。これは、ブラケット内に3つのドット（`...`）を追加して、深さに関係なく、ファイルパスをすべて受け取れます。
-
-たとえば、以下のようになります。
-
-- `pages/post/[...slug].astro` → (`/post/a`, `/post/a/b`, `/post/a/b/c`, etc.)
-
-マッチしたパラメーターは、クエリーパラメーター（例では `slug`）としてページに渡されます。
-
-```json
-// ルーティング `/post/a/b/c` に渡されるAstro.paramsオブジェクト
-{ "slug": "a/b/c" }
-```
-
-:::tip
-レストパラメーターはデフォルトではオプションなので、`pages/post/[...slug].astro` は `/post/` にもマッチする可能性があります。
-:::
-
-#### 例：レストパラメーター
-
-実際の例として、GitHubのファイルビューアーを以下の名前付きパラメーターとレストパラメーターで実装してみましょう。
+レストパラメーターは**他の名前付きパラメーター**と組み合わせて使用できます。たとえば、GitHubのファイルビューアは以下の動的ルートで表現できます。
 
 ```
 /[org]/[repo]/tree/[branch]/[...file]
 ```
 
-この例では、 `/withastro/astro/tree/main/docs/public/favicon.svg` をリクエストすると、以下のパラメーターがページで利用できるようになります。
+この例では、`/withastro/astro/tree/main/docs/public/favicon.svg`へのリクエストは、以下の名前付きパラメーターへと分割されます。
 
 ```js
 {
@@ -134,42 +126,210 @@ URLルーティングに柔軟性が必要な場合は、`.Astro`ファイル名
 }
 ```
 
+#### 複数レベルの動的ページの例
+
+以下の例は、レストパラメーター（`[...slug]`）と`getStaticPaths()`の[`props`](/ja/reference/api-reference/#data-passing-with-props)機能を使用して、異なる深さのスラグに対してページを生成します。
+
+```astro title="src/pages/[...slug].astro"
+---
+export async function getStaticPaths() {
+  const pages = [
+    {
+      slug: undefined,
+      title: "Astroストア",
+      text: "Astroにようこそ！",
+    },
+    {
+      slug: "products",
+      title: "Astroグッズ",
+      text: "たくさんの商品があります",
+    },
+    {
+      slug: "products/astro-handbook",
+      title: "究極のAstroハンドブック",
+      text: "Astroについて学びたければ、この本を読む必要があります",
+    },
+  ];
+  return pages.map(({ slug, title, text }) => {
+    return {
+      params: { slug },
+      props: { title, text },
+    };
+  });
+}
+
+const { title, text } = Astro.props;
+---
+<html>
+  <head>
+    <title>{title}</title>
+  </head>
+  <body>
+    <h1>{title}</h1>
+    <p>{text}</p>
+  </body>
+</html>
+```
+
+### サーバー（SSR）モード
+
+[SSR](/ja/guides/server-side-rendering/)モードでも、動的ルートは同じように定義されます。つまり、任意の文字列やパスにマッチさせるために、ファイル名に`[param]`や`[...path]`などのブラケットを含められます。しかし、各ルートは事前にビルドされないため、マッチしたすべてのルートに対してページが提供されます。これらは「静的」ルートではないため、`getStaticPaths`は使用できません。
+
+```astro title="src/pages/resources/[resource]/[id].astro"
+---
+const { resource, id } = Astro.params;
+---
+<h1>{resource}: {id}</h1>
+```
+
+このページは、`resources/users/1`や`resources/colors/blue`など、任意の`resource`と`id`に対して提供されます。
+
+#### `[...slug]`の例をSSR用に変更する
+
+SSRページでは`getStaticPaths()`を使用できないため、propsを受け取れません。しかし、オブジェクト内の`slug`パラメーターの値を参照することで、[前の例](#複数レベルの動的ページの例)をSSRモードにも対応させられます。"/"に対応するルートの場合、スラグパラメーターは`undefined`になります。値がオブジェクトに存在しない場合は、404ページにリダイレクトします。
+
+```astro title="src/pages/[...slug].astro"
+---
+const pages = [
+  {
+    slug: undefined,
+    title: "Astroストア",
+    text: "Astroにようこそ！",
+  },
+  {
+    slug: "products",
+    title: "Astroグッズ",
+    text: "たくさんの商品があります",
+  },
+  {
+    slug: "products/astro-handbook",
+    title: "究極のAstroハンドブック",
+    text: "Astroについて学びたければ、この本を読む必要があります",
+  },
+];
+
+const { slug } = Astro.params;
+const page = pages.find((page) => page.slug === slug);
+if (!page) return Astro.redirect("/404");
+const { title, text } = page;
+---
+<html>
+<head>
+  <title>{title}</title>
+</head>
+<body>
+  <h1>{title}</h1>
+  <p>{text}</p>
+</body>
+</html>
+```
+
+## リダイレクト
+
+読者を新しいページにリダイレクトしなければならない場合があります。サイトの構造が変更されたために永久的にリダイレクトする必要がある場合や、認証されたルートにログインするといったアクションに応じておこなう場合などです。
+
+Astroの設定で、[永久的に移動したページにユーザーをリダイレクト](#リダイレクトの設定)するルールを定義できます。また、ユーザーがサイトを利用した際に[動的にリダイレクト](#動的リダイレクト)することもできます。
+
+### リダイレクトの設定
+<Since v="2.9.0" />
+
+`redirects`値を使用して、Astroの設定から永久的なリダイレクトのマッピングを指定できます。ほとんどのリダイレクトでは、これは古いルートから新しいルートへのマッピングとなります。
+
+```js title="astro.config.mjs" {4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  redirects: {
+    '/old-page': '/new-page'
+  }
+});
+```
+
+このリダイレクトは、ファイルベースルーティングと同じルールに従います。たとえば、新しいルートと古いルートの両方に同じパラメーターが含まれていれば、動的ルートも可能です。
+
+```js
+{
+  "/blog/[...slug]": "/articles/[...slug]"
+}
+```
+
+SSRまたは静的アダプターを使用するとオブジェクトを値として設定でき、そこで`status`コードや新しい`destination`を指定できます。
+
+```js title="astro.config.mjs" {5-8}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  redirects: {
+    '/old-page': {
+      status: 302,
+      destination: '/new-page'
+    }
+  }
+});
+```
+
+`astro build`の実行時に、Astroはデフォルトで[meta refresh](https://developer.mozilla.org/ja/docs/Web/HTML/Element/meta#examples)タグを含むHTMLファイルを出力します。サポートされているアダプターの場合は、代わりにホストの設定ファイルにリダイレクトを含めて出力します。
+
+ステータスコードはデフォルトで`301`です。HTMLファイルをビルドする場合、ステータスコードはサーバーによって使用されません。
+
+### 動的リダイレクト
+
+`Astro`グローバルの`Astro.redirect`メソッドを使用すると、別のページに動的にリダイレクトできます。たとえばクッキーからセッションを取得してユーザーのログイン状態を確認した後などにこれをおこないます。
+
+```astro title="src/pages/account.astro" {8}
+---
+import { isLoggedIn } from '../utils';
+
+const cookie = Astro.request.headers.get('cookie');
+
+// ユーザーがログインしていない場合は、ログインページにリダイレクトします
+if (!isLoggedIn(cookie)) {
+  return Astro.redirect('/login');
+}
+---
+<html>
+  <!-- ページの内容... -->
+</html>
+```
 
 ## ルーティングの優先順位
 
-複数のルーティングが同じURLのパスにマッチすることがあります。たとえば、以下の各ルーティングは `/posts/create` にマッチします。
+複数のルートが同じURLのパスにマッチすることがあります。たとえば、以下の各ルートは`/posts/create`にマッチします。
 
-```
-└── pages/
-│       ├── posts/
-│       │   ├── create.astro
-│       │   ├── [pid].astro
-│       │   └── [...slug].astro
+<FileTree>
+- src/pages/
+  - posts/
+    - create.astro
+    - [pid].astro
+    - [...slug].astro
+</FileTree>
 
-```
+Astroは、ページをビルドするためにどのルートを使用すべきかを知る必要があります。そのために、以下のルールにしたがってルートの順番を決定します。
 
-Astroは、ページを構築するためにどのルーティングを使用すべきかを知る必要があります。そのために、以下のルールにしたがってソートします。
-
-- パスパラメーターを持たない静的ルーティングは、他のすべてのルーティングよりも優先
-- 名前付きパラメーターを使用する動的ルーティングは、レストパラメーターよりも優先
-- レストパラメーターはもっとも低い優先度
+- パスパラメーターを持たない静的ルートは、他のすべてのルーティングよりも優先される
+- 名前付きパラメーターを使用する動的ルーティングは、レストパラメーターよりも優先される
+- 事前レンダリングされた動的ルートは、サーバーの動的ルートよりも優先される
+- レストパラメーターはもっとも低い優先度となる
+- エンドポイントは常にページよりも優先される
 - 同順位はアルファベット順に解決される
 
-上記の例で、要求されたURLとHTMLを構築するために使用されるルーティングがどのようにマッチングされるかの例をいくつか挙げてみましょう。
+上記のようにファイルが配置されている場合に、リクエストされたURLと、HTMLをビルドするために使用されるルートがどのようにマッチングされるかの例をいくつか見てみましょう。
 
-- `pages/posts/create.Astro` - `/posts/create`をビルドします。
-- `pages/posts/[pid].astro` - `/posts/1`, `/posts/abc` などをビルドします。しかし、`/posts/create`はビルドされません。
-- `pages/posts/[...slug].Astro` - `/posts/1/2`, `/posts/a/b/c` などをビルドする。しかし、 `/posts/create`, `/posts/1`, `/posts/abc` はビルドされません。
+- `pages/posts/create.Astro` - `/posts/create`をビルドします
+- `pages/posts/[pid].astro` - `/posts/1`, `/posts/abc`などをビルドします。しかし、`/posts/create`はビルドされません
+- `pages/posts/[...slug].Astro` - `/posts/1/2`, `/posts/a/b/c`などをビルドします。しかし、 `/posts/create`、`/posts/1`、`/posts/abc`はビルドされません
 
-## ページ分割
+リダイレクトも同じルールに従いますが、優先順位は*最後*になります。つまり、ファイルベースのルートとリダイレクトが同じルート優先順位である場合、ファイルベースのルートが選択されます。
 
-Astroは、複数のページに分割する必要がある大規模なデータコレクションのために、ビルトインのページ分割をサポートしています。Astroは、前ページ/次ページのURL、総ページ数など、一般的なページネーションプロパティを生成します。
+## ページネーション
 
-ページ分割されたルーティング名には、標準的な動的ルーティングと同じ `[ブラケット]` 構文を使用する必要があります。たとえば、ファイル名 `/astronauts/[page].astro` は `/astronauts/1`, `/astronauts/2` などのルーティングを生成し、 `[page]` は生成されるページ番号となります。
+Astroは、複数のページに分割する必要がある大規模なデータコレクションのために、ページネーションを組み込みでサポートしています。Astroは、前ページと次ページのURL、総ページ数など、一般的なページネーションプロパティを生成します。
 
-`paginate()` 関数を使用すると、次のように値の配列に対してこれらのページを生成できます。
+ページネーションされるルート名には、標準的な動的ルートと同じ`[ブラケット]`構文を使用する必要があります。たとえば、ファイル名 `/astronauts/[page].astro` は `/astronauts/1`, `/astronauts/2` などのルートを生成し、`[page]`は生成されるページ番号となります。
 
-```astro
+`paginate()`関数を使用すると、次のように値の配列に対してこれらのページを生成できます。
+
+```astro /{ (paginate) }/ /paginate\\(.*\\)/ /(?<=const.*)(page)/ /page\\.[a-zA-Z]+/
 ---
 // 例: /src/pages/astronauts/[page].astro
 export async function getStaticPaths({ paginate }) {
@@ -182,37 +342,37 @@ export async function getStaticPaths({ paginate }) {
   }, {
     astronaut: 'ジョン・グレン',
   }];
-  // 宇宙飛行士の配列から、1ページに2人づつ入るようにページを生成する
+  // 宇宙飛行士の配列から、1ページに2人づつ入るようにページを生成します
   return paginate(astronautPages, { pageSize: 2 });
 }
-// ページ分割されたデータは、すべて "page" プロパティとして渡される
+// ページネーションされたデータは、すべて"page"プロパティとして渡されます
 const { page } = Astro.props;
 ---
 
 <!--現在のページ番号を表示します。Astro.params.pageも使用可能です！-->
 <h1>{page.currentPage}ページ</h1>
 <ul>
-  <!--宇宙飛行士情報の配列を列挙する-->
+  <!--宇宙飛行士情報の配列を列挙します-->
   {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
 </ul>
 ```
 
-これで、1ページに2つのアイテムが配置された、以下のようなページが生成されます。
-- `/astronauts/1` - 1ページ目: "ニール・アームストロング" と "バズ・オルドリン" を表示
-- `/astronauts/2` - 2ページ目: "サリー・ライド" と "ジョン・グレン" を表示
+これで、1ページに2つのアイテムが配置された、以下のページが生成されます。
+- `/astronauts/1` - 1ページ目には「ニール・アームストロング」と「バズ・オルドリン」を表示します
+- `/astronauts/2` - 2ページ目には「サリー・ライド」と「ジョン・グレン」を表示します
 
 
 ### `page` プロパティ
 
-`paginate()` 関数を使用すると、各ページのデータは `page` プロパティで渡されます。page` プロパティは多くの便利なプロパティを持っていますが、ここではそのハイライトを紹介します。
-- **page.data** - `paginate()`関数に渡された、ページのスライスデータを含む配列です。
-- **page.url.next** - セット内の次のページへのリンクです。
-- **page.url.prev** - セット内の前のページへのリンクです。
+`paginate()`関数を使用すると、各ページのデータは`page`プロパティで渡されます。`page`プロパティは多くの便利なプロパティを持っていますが、ここではそのうち重要なものを紹介します。
+- **page.data** - `paginate()`関数に渡された、ページのスライスデータを含む配列です
+- **page.url.next** - セット内の次のページへのリンクです
+- **page.url.prev** - セット内の前のページへのリンクです
 
-```astro
+```astro /(?<=const.*)(page)/ /page\\.[a-zA-Z]+(?:\\.(?:prev|next))?/
 ---
 // 例: /src/pages/astronauts/[page].astro
-// 前の例と同じように、{ astronaut } オブジェクトのリストをページ分割します。
+// 前の例と同じように、{ astronaut } オブジェクトのリストをページネーションします
 export async function getStaticPaths({ paginate }) { /* ... */ }
 const { page } = Astro.props;
 ---
@@ -232,17 +392,17 @@ interface Page<T = any> {
 	/** 結果 */
 	data: T[];
 	/** メタデータ */
-	/** 0から始まるページ上の最初のアイテムのカウント */
+	/** 0から始まる、ページ上の最初のアイテムのインデックス */
 	start: number;
-	/** 0から始まるページ上の最後のアイテムの数 */
+	/** 0から始まる、ページ上の最後のアイテムのインデックス */
 	end: number;
 	/** 結果の総数 */
 	total: number;
-	/** 1から始まる現在のページ番号 */
+	/** 1から始まる、現在のページ番号 */
 	currentPage: number;
-	/** 1ページあたりのアイテム数（デフォルト：25） */
+	/** 1ページあたりのアイテム数（デフォルトは25） */
 	size: number;
-	/** 最終ページ数 */
+	/** 最終ページ番号 */
 	lastPage: number;
 	url: {
 		/** 現在のページのURL */
@@ -255,30 +415,30 @@ interface Page<T = any> {
 }
 ```
 
-## ネストされたページ分割
+### ネストされたページネーション
 
-ページ分割のより高度なユースケースは**ネストされたページ分割**です。これは、ページ分割を他の動的ルーティングパラメーターと組み合わせた場合です。ネストされたページ分割を使用すると、ページ分割されたコレクションを何らかのプロパティやタグでグループ化できます。
+ページネーションのより高度なユースケースは**ネストされたページネーション**です。これは、ページネーションを他の動的ルーティングパラメーターと組み合わせたものです。ネストされたページネーションを使用すると、ページネーションされたコレクションを何らかのプロパティやタグでグループ化できます。
 
-たとえば、ページ分割されたMarkdownの投稿を何らかのタグでグループ化したい場合、以下のURLにマッチする `/src/pages/[tag]/[page].Astro` ページを作成することでネストされたページングを使用することになります。
+たとえば、ページネーションされたMarkdownの投稿を何らかのタグでグループ化したい場合、以下のURLにマッチする`/src/pages/[tag]/[page].Astro`ページを作成してネストされたページネーションを使用します。
 
 - `/red/1` (tag=red)
 - `/red/2` (tag=red)
 - `/blue/1` (tag=blue)
 - `/green/1` (tag=green)
 
-ネストされたページ分割は、 `getStaticPaths()` から `paginate()` の結果を、グループ化ごとに配列として返すことで動作します。
+ネストされたページネーションは、`paginate()`の結果をグループごとに配列として`getStaticPaths()`から返すことで動作します。
 
-この例では、上記のURLを作成するために、ネストされたページ送りを実装します。
+以下の例では、上記のURLを作成するために、ネストされたページネーションを実装しています。
 
-```astro
+```astro /(?:[(]|=== )(tag)/ "params: { tag }" /const [{ ]*(page|params)/
 ---
 // 例: /src/pages/[tag]/[page].astro
 export function getStaticPaths({paginate}) {
   const allTags = ['red', 'blue', 'green'];
   const allPosts = await Astro.glob('../../posts/*.md');
-  // すべてのタグに対して、paginate() の結果を返す。
-  // 必ず、`{params: {tag}} を `paginate()` に渡してください。
-  // そうすれば、Astroは結果がどのタググループに対するものか分かります。
+  // すべてのタグに対して、paginate()の結果を返します。
+  // その結果がどのタググループに対するものかAstroに伝えるために、
+  // `{params: {tag}}`を必ず`paginate()`に渡してください。
   return allTags.map((tag) => {
     const filteredPosts = allPosts.filter((post) => post.frontmatter.tag === tag);
     return paginate(filteredPosts, {
@@ -290,3 +450,24 @@ export function getStaticPaths({paginate}) {
 const { page } = Astro.props;
 const params = Astro.params;
 ```
+
+## ページの除外
+
+アンダースコア（`_`）を接頭辞としてファイル名に付けることで、ページやディレクトリをビルドから除外できます。アンダースコアで始まるファイルはルーターによって認識されず、`dist/`ディレクトリにも配置されません。
+
+これを使用すると、一時的にページを無効にしたり、テストやユーティリティ、コンポーネントを関連するページと同じフォルダーに配置したりできます。
+
+以下の例では、`src/pages/index.astro`と`src/pages/posts/post1.md`のみがページルートとHTMLファイルとしてビルドされます。
+
+<FileTree>
+- src/pages/
+  - _hidden-directory/
+    - page1.md
+    - page2.md
+  - _hidden-page.astro
+  - **index.astro**
+  - posts/
+    - _SomeComponent.astro
+    - _utils.js
+    - **post1.md**
+</FileTree>
