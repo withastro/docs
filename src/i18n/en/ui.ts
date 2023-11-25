@@ -126,4 +126,7 @@ export default {
 		'Want to contribute to this guide? Have a blog post, video, or another resource to share about migrating from this technology to Astro?',
 	'stub.description.cms': 'Know more about how to use this CMS with Astro?',
 	'stub.description.backend': 'Know more about how to use this backend service with Astro?',
+  // Starlight banner
+  'starlight.title': 'Want to build your own Docs?',
+  'starlight.description': 'Grab this template to get started.'
 };
