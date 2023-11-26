@@ -86,11 +86,11 @@ export default [
 		slug: 'guides/server-side-rendering',
 		key: 'guides/server-side-rendering',
 	},
+	{ text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
+	{ text: 'Add backend services', slug: 'guides/backend', key: 'guides/backend' },
 
 	{ text: 'Recipes', header: true, type: 'learn', key: 'examples' },
 	{ text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
-	{ text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
-	{ text: 'Add backend services', slug: 'guides/backend', key: 'guides/backend' },
 	{ text: 'Deploy your site', slug: 'guides/deploy', key: 'guides/deploy' },
 	{ text: 'More recipes', slug: 'recipes', key: 'guides/recipes' },
 
