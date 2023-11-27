@@ -562,6 +562,65 @@ export default defineConfig({
 
 请查看你的 [SSR 适配器文档](/zh-cn/guides/integrations-guide/#官方集成) 以了解如何使用 `functionPerRoute` 来定义你的 SSR 代码如何打包。
 
+### prefetch
+
+<p>
+
+**类型：** `boolean | object`
+</p>
+
+在你的网站上为链接启用预获取，以提供更快的页面视图过渡效果。（在使用 `<ViewTransitions />` 路由器的页面上默认启用。设置 `prefetch: false` 可以选择退出此行为。）
+
+此配置自动将预获取脚本添加到项目中的每个页面上，让你可以访问 `data-astro-prefetch` 属性。将此属性添加到页面上的任何 `<a />` 链接，以启用该页面的预获取。
+
+```html
+<a href="/about" data-astro-prefetch>about</a>
+```
+
+使用 [`prefetch.defaultStrategy`](#prefetchdefaultstrategy) 和 [`prefetch.prefetchAll`](#prefetchprefetchall) 选项进一步自定义默认的预获取行为。
+
+查看 [预获取指南](/zh-cn/guides/prefetch/) 获取更多信息。
+
+### prefetch.prefetchAll
+
+<p>
+
+**类型：** `boolean`
+</p>
+
+为所有链接启用预获取，包括那些没有 `data-astro-prefetch` 属性的链接。当使用 `<ViewTransitions />` 路由器时，此值默认为 `true`。否则，默认值为 `false`。
+
+```js
+prefetch: {
+	prefetchAll: true
+}
+```
+
+当设置为 `true` 时，你可以通过在任何单独的链接上设置 `data-astro-prefetch="false"` 来单独禁用预获取。
+
+```html
+<a href="/about" data-astro-prefetch="false">About</a>
+```
+
+### prefetch.defaultStrategy
+
+<p>
+
+**类型：** `'tap' | 'hover' | 'viewport'`<br />
+**默认值：** `'hover'`
+</p>
+
+当链接上设置了 `data-astro-prefetch` 属性但没有值时，使用的默认预获取策略。
+
+- `'tap'`：在你点击链接之前进行预获取。
+- `'hover'`：当你悬停或聚焦在链接上时进行预获取。（默认）
+- `'viewport'`：当链接进入视口时进行预获取。
+
+你可以通过在属性上设置值来覆盖此默认值，并为任何单独的链接选择不同的策略。
+
+```html
+<a href="/about" data-astro-prefetch="viewport">About</a>
+```
 
 ## 服务器选项
 
@@ -851,7 +910,6 @@ Astro 默认使用 [GitHub-flavored Markdown](https://github.com/remarkjs/remark
 }
 ```
 
-
 ### markdown.smartypants
 
 <p>
@@ -980,6 +1038,110 @@ Astro 提供了实验性标志，以便用户提前使用新功能。这些标�
 {
 	experimental: {
 		devOverlay: true,
+	},
+}
+```
+
+### experimental.i18n
+
+<p>
+
+**类型：** `object`<br />
+<Since v="3.5.0" />
+</p>
+
+配置实验性的 i18n 路由，并允许你指定一些自定义选项。
+
+查看我们的指南以获取更多关于 [Astro 的国际化](/zh-cn/guides/internationalization/) 的信息。
+
+### experimental.i18n.defaultLocale
+
+<p>
+
+**类型：** `string`<br />
+<Since v="3.5.0" />
+</p>
+
+你的网站（或应用）的默认语言环境。这是一个必填字段。
+
+我们并未强制要求使用特定的语言格式或语法，但为了最大程度的兼容性，我们建议在需要的时候使用小写字母和连字符（例如 "es"、"pt-br"）。
+
+### experimental.i18n.locales
+
+<p>
+
+**类型：** `Array.<string>`<br />
+<Since v="3.5.0" />
+</p>
+
+网站支持的所有语言环境的列表（例如 `['en', 'es', 'pt-br']`）。这个列表也应该包含 `defaultLocale`。这是一个必填字段。
+
+没有强制执行特定的语言格式或语法，但你的文件夹结构必须与列表中的语言环境完全匹配。
+
+### experimental.i18n.fallback
+
+<p>
+
+**类型：** `Record.<string, string>`<br />
+<Since v="3.5.0" />
+</p>
+
+当导航到不存在的页面时（例如，尚未创建翻译页面）的回退策略。
+
+使用这个对象为你支持的每种语言声明一个回退的 `locale` 路由。如果没有指定回退，那么无法访问的页面将返回 404。
+
+#### 示例
+
+以下示例配置你的内容回退策略，将 `/pt-br/` 中无法访问的页面重定向到它们的 `es` 版本，将 `/fr/` 中无法访问的页面重定向到它们的 `en` 版本。无法访问的 `/es/` 页面将返回 404。
+
+```js
+export default defineConfig({
+	experimental: {
+		i18n: {
+			defaultLocale: "en",
+      locales: ["en", "fr", "pt-br", "es"],
+			fallback: {
+				pt: "es",
+			  fr: "en"
+			}
+		}
+	}
+})
+```
+
+### experimental.i18n.routingStrategy
+
+<p>
+
+**类型：** `'prefix-always' | 'prefix-other-locales'`<br />
+**默认值：** 'prefix-other-locales'<br />
+<Since v="3.5.0" />
+</p>
+
+控制路由策略以确定你的网站 URL。请根据你的默认语言的文件夹（或 URL）路径配置来进行设置：
+
+- `prefix-other-locales`（默认）：只有非默认语言会显示语言前缀。
+  `defaultLocale` 不会显示语言前缀，且内容文件不存在于本地化的文件夹中。
+  对于所有非默认语言，URL 的形式将为 `example.com/[lang]/content/`，但对于默认语言环境，URL 的形式将为 `example.com/content/`。
+- `prefix-always`：所有 URL 都会显示语言前缀。
+  对于每个路由，包括默认语言，URL 的形式将为 `example.com/[lang]/content/`。
+  每种语言，包括默认语言，都使用本地化文件夹。
+
+### experimental.contentCollectionCache
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `false`<br />
+<Since v="3.5.0" />
+</p>
+
+在静态模式下构建时，启用内容集合的持久性缓存。
+
+```js
+{
+	experimental: {
+		contentCollectionCache: true,
 	},
 }
 ```
