@@ -57,6 +57,7 @@ export default defineConfig({
 				github: 'https://github.com/withastro/astro',
 				discord: 'https://astro.build/chat',
 			},
+      pagefind: false
 		}),
     sitemap()
 	],
