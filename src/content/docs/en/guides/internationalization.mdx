@@ -282,8 +282,55 @@ Use this like [`getRelativeLocaleUrl`](#getrelativelocaleurl) to return a list o
 
 `getAbsoluteLocaleUrlList(locale: string, options?: GetLocaleOptions): string[]`
 
-
 Use this like [`getAbsoluteLocaleUrl`](#getabsolutelocaleurl) to return a list of absolute paths for all the locales.
+
+### `getPathByLocale(locale: string): string`
+
+A function that return the `path` associated to a locale (defined as code). It's particularly useful in case you use [refined locales](#refined-locales).
+
+
+### Refined locales
+
+Astro allows to map an arbitrary number of locales to a particular URL path. The `locales` array can accept an object, where the `path` key is what you'll see in the URL, and `codes` represents the languages mapped to this URL.
+
+This is useful if you support multiple variations of language, e.g. `"fr"`, `"fr-BR"`  and `"fr-CA"` and you want to have all these locales mapped under the same URL, `/french`:
+
+```js title="astro.config.mjs" del={6} ins={7-10}
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  experimental: {
+    i18n: {
+      defaultLocale: "en",
+      locales: ["es", "en", "fr"],
+      locales: ["es", "en", {
+          path: "french", // not slash needed
+          codes: ["fr", "fr-BR", "fr-CA"]
+      }],
+      routingStrategy: "prefix-always"
+    }
+  }
+})
+```
+
+If you rely on the [`astro:i18n` virtual module](#virtual-module-astroi18n), you'll have to use the `path` to compose the correct URL, for example:
+
+```astro title="src/pages/index.astro"
+---
+import { getPathByLocale, getRelativeLocaleUrl, getLocaleByPath } from "astro:i18n";
+
+getRelativeLocaleUrl("french", "blog"); // returns /french/blog
+
+// These functions are not particularly useful 
+getPathByLocale("fr"); // returns "french"
+getPathByLocale("fr-CA"); // returns "french"
+getPathByLocale("es"); // returns "es"
+getLocaleByPath("french"); // returns "fr" because that's the first code configured
+getLocaleByPath("es"); // returns "es"
+---
+```
+
+If you rely on [the browser language detection](#browser-language-detection), Astro will use the `codes` to determine the `Astro.preferredLocale` and `Astro.preferredLocaleList`. If so, it's advised to write the codes using the same pattern [used by the browser](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#syntax).
+
 
 [`site`]: /en/reference/configuration-reference/#site
 [`i18n.locales`]: /en/reference/configuration-reference/#experimentali18nlocales
