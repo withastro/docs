@@ -23,11 +23,11 @@ export const { getStaticPaths, GET } = OGImageRoute({
 				path: './src/docs-logo.png',
 				size: [300],
 			},
-			border: { color: [154, 82, 243], width: 32, side: 'inline-start' },
+			border: { color: [197, 94, 240], width: 32, side: 'inline-start' },
 			padding: 80,
 			bgGradient: [
-				[26, 27, 34],
-				[48, 40, 79],
+				[16, 17, 23],
+				[42, 33, 76],
 			],
 			font: {
 				title: {
