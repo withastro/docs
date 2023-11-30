@@ -14,37 +14,32 @@ Need to see the v3 docs? Visit this older version of the docs site (unmaintained
 
 ## Upgrade Astro
 
-Update your project's version of Astro to the latest version using your package manager. If you're using Astro integrations, please also update those to the latest version.
+Update your project's version of Astro and all official integrations to the latest versions using your package manager.
 
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```shell
-  # Upgrade to Astro v4.x
-  npm install astro@latest
-
-  # Example: upgrade React and Tailwind integrations
-  npm install @astrojs/react@latest @astrojs/tailwind@latest
+  # Upgrade Astro and official integrations together
+  npx @astrojs/upgrade
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  # Upgrade to Astro v4.x
-  pnpm add astro@latest
-
-  # Example: upgrade React and Tailwind integrations
-  pnpm add @astrojs/react@latest @astrojs/tailwind@latest
+  # Upgrade Astro and official integrations together
+  pnpm dlx @astrojs/upgrade
   ```
   </Fragment>
   <Fragment slot="yarn">
   ```shell
-  # Upgrade to Astro v4.x
-  yarn add astro@latest
-
-  # Example: upgrade React and Tailwind integrations
-  yarn add @astrojs/react@latest @astrojs/tailwind@latest
+  # Upgrade Astro and official integrations together
+  yarn dlx @astrojs/upgrade
   ```
   </Fragment>
 </PackageManagerTabs>
+
+
+You can also [upgrade your Astro integrations manually](/en/guides/integrations-guide/#manual-upgrading) if needed, and you may also need to upgrade other dependencies in your project.
+
 
 :::note[Need to continue?]
 After upgrading Astro to the latest version, you may not need to make any changes to your project at all!
@@ -110,6 +105,110 @@ Astro v4.0 renames this property to `entrypoint` to be consistent with other Ast
 #### What should I do?
 
 If you have integrations that use the `injectRoute` API, rename the `entryPoint` property to `entrypoint`. If you're a library author who wants to support both Astro 3 and 4, you can specify both `entryPoint` and `entrypoint`, in which case, a warning will not be logged.
+
+### Removed: Support for simple objects in endpoints
+
+In Astro v3.x, returning simple objects from endpoints was deprecated, but was still supported to maintain compatibility with Astro v2. A `ResponseWithEncoding` utility was also provided to ease the migration.
+
+Astro v4.0 removes support for simple objects and requires endpoints to always return a `Response`. The `ResponseWithEncoding` utility is also removed in favor of a proper `Response` type.
+
+#### What should I do?
+
+Update your endpoints to return a `Response` object directly.
+
+```diff lang="ts"
+  export async function GET() {
+-   return { body: { "title": "Bob's blog" }};
++   return new Response(JSON.stringify({ "title": "Bob's blog" }));
+  }
+```
+
+To remove usage of `ResponseWithEncoding`, refactor your code to use an `ArrayBuffer` instead:
+
+```diff lang="ts"
+  export async function GET() {
+    const file = await fs.readFile('./bob.png');
+-   return new ResponseWithEncoding(file.toString('binary'), undefined, 'binary');
++   return new Response(file.buffer);
+  }
+```
+
+### Removed: Shiki language `path` property support
+
+In Astro v3.x, a Shiki language passed to `markdown.shikiConfig.langs` will be automatically converted to a Shikiji-compatible language. Shikiji is the internal tooling used by Astro for syntax highlighting.
+
+Astro v4.0 removes partial compatibility support for the `path` property of a Shiki language. This `path` property used to resolve from `<root>/node_modules/astro` which can be confusing to configure, hence its support is removed.
+
+#### What should I do?
+
+The language JSON file should be imported and passed to the option instead.
+
+```diff lang="js"
+// astro.config.js
++ import customLang from './custom.tmLanguage.json'
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: {
+      langs: [
+-       { path: '../../custom.tmLanguage.json' },
++       customLang,
+      ],
+    },
+  },
+})
+```
+
+### Changed: `app.render` signature in Integrations API
+
+In Astro v3.0, the `app.render()` method accepted `routeData` and `locals` as separate optional arguments. 
+
+Astro v4.0 changes the `app.render()` signature. It's second argument is now a single optional object with two optional properties: `routeData` and `locals`.
+
+#### What should I do?
+
+If you are maintaining an adapter, the current signature will continue to work until the next major version. To migrate to the new signature, pass `routeData` and `locals` as properties of an object instead of as multiple independent arguments.
+
+```diff lang="js"
+- app.render(request, routeData, locals)
++ app.render(request, { routeData, locals })
+```
+
+### Added: `astro preferences` to the CLI
+
+Astro v4.0 adds the `astro preferences` command to manage user preferences. User preferences are specific to individual Astro users, unlike the `astro.config.mjs` file which changes behavior for everyone working on a project.
+
+#### What should I do?
+
+In order to disable the new [dev overlay](/en/reference/dev-overlay-plugin-reference/) for the current Astro project, run the following command:
+
+```shell
+astro preferences disable devOverlay
+```
+
+In order to disable the dev overlay for every project on your machine, run the following command:
+
+```shell
+astro preferences --global disable devOverlay
+```
+
+In order to re-enable the dev overlay, run the following command:
+
+```shell
+astro preferences enable devOverlay
+```
+
+### Changed: View Transitions will handle submit `events` by default
+
+In Astro v3.x, projects using the `<ViewTransitions />` component were required to opt-in to handling `submit` events for `form` elements. This was done by passing a `handleForms` prop.
+
+Astro v4.0 handles `submit` events for `form` elements by default when `<ViewTransitions />` are used. The `handleForms` prop has been deprecated and no longer has any effect.
+
+#### What should I do?
+
+Remove the `handleForms` property from your `ViewTransitions` component.
+
+To opt-out of `submit` event handling, add the `data-astro-reload` attribute to relevant `form` elements.
 
 ## Community Resources
 
