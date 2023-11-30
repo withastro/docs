@@ -27,17 +27,8 @@ export default defineConfig({
 				dark: './src/assets/astro-logo-dark.svg',
 				alt: 'Astro',
 			},
-			head: [
-				{
-					tag: 'meta',
-					attrs: { property: 'og:image', content: site + 'default-og-image.png?v=1' },
-				},
-				{
-					tag: 'meta',
-					attrs: { property: 'twitter:image', content: site + 'default-og-image.png?v=1' },
-				},
-			],
       components: {
+        Head: './src/components/starlight/Head.astro',
         MarkdownContent: './src/components/starlight/MarkdownContent.astro',
         MobileTableOfContents: './src/components/starlight/MobileTableOfContents.astro',
         TableOfContents: './src/components/starlight/TableOfContents.astro',
