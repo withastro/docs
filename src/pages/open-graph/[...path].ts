@@ -2,6 +2,7 @@ import { OGImageRoute } from 'astro-og-canvas';
 import { allPages } from '~/content';
 import { rtlLanguages } from '~/i18n/languages';
 import { getLangFromSlug } from '~/util';
+import { fetchBrandFont } from './_fetchFont';
 
 /** Paths for all of our Markdown content we want to generate OG images for. */
 const paths = process.env.SKIP_OG ? [] : allPages;
@@ -31,8 +32,10 @@ export const { getStaticPaths, GET } = OGImageRoute({
 			],
 			font: {
 				title: {
-					size: 78,
+					size: 72,
+					lineHeight: 1.2,
 					families: [
+						'Obviously',
 						'Inter',
 						'Noto Sans',
 						'Noto Sans Arabic',
@@ -41,7 +44,7 @@ export const { getStaticPaths, GET } = OGImageRoute({
 						'Noto Sans JP',
 						'Noto Sans KR',
 					],
-					weight: 'Normal',
+					weight: 'Medium',
 					color: [255, 255, 255],
 				},
 				description: {
@@ -61,13 +64,29 @@ export const { getStaticPaths, GET } = OGImageRoute({
 				},
 			},
 			fonts: [
+				await fetchBrandFont(),
+
 				'./src/pages/open-graph/_fonts/inter/inter-400-normal.ttf',
+				'./src/pages/open-graph/_fonts/inter/inter-500-normal.ttf',
+
+				'./src/pages/open-graph/_fonts/noto-sans/noto-400-normal.ttf',
+				'./src/pages/open-graph/_fonts/noto-sans/noto-500-normal.ttf',
+
 				'./src/pages/open-graph/_fonts/noto-sans/chinese-simplified-400-normal.otf',
+				'./src/pages/open-graph/_fonts/noto-sans/chinese-simplified-500-normal.ttf',
+
 				'./src/pages/open-graph/_fonts/noto-sans/chinese-traditional-400-normal.otf',
+				'./src/pages/open-graph/_fonts/noto-sans/chinese-traditional-500-normal.ttf',
+
 				'./src/pages/open-graph/_fonts/noto-sans/japanese-400-normal.ttf',
+				'./src/pages/open-graph/_fonts/noto-sans/japanese-500-normal.ttf',
+
 				'./src/pages/open-graph/_fonts/noto-sans/arabic-400-normal.ttf',
+				'./src/pages/open-graph/_fonts/noto-sans/arabic-500-normal.ttf',
+
 				'./src/pages/open-graph/_fonts/noto-sans/korean-400-normal.otf',
-			],
+				'./src/pages/open-graph/_fonts/noto-sans/korean-500-normal.ttf',
+			].filter((val): val is string => typeof val === 'string'),
 		};
 	},
 });
