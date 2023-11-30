@@ -3,8 +3,6 @@ import { docsSchema } from '@astrojs/starlight/schema';
 
 export const baseSchema = z.object({
 	type: z.literal('base').optional().default('base'),
-	title: z.string(),
-	description: z.string().optional(),
 	i18nReady: z.boolean().default(false),
 	githubURL: z.string().url().optional(),
 	hasREADME: z.boolean().optional(),
@@ -111,7 +109,7 @@ export function createIsLangEntry(lang: string) {
 }
 
 export const isEnglishEntry = createIsLangEntry('en');
-export const isKoreanEntry  = createIsLangEntry('ko');
+export const isKoreanEntry = createIsLangEntry('ko');
 
 export const collections = {
 	docs: defineCollection({ schema: docsSchema({ extend: docsCollectionSchema }) }),
