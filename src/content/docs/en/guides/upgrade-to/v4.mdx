@@ -69,11 +69,15 @@ These features are now available by default:
 
 Read more about these two exciting features and more in [the 4.0 Blog post](https://astro.build/blog/astro-4/)!
 
-## Astro v4.0 Breaking Changes
+## Breaking Changes
 
-Astro v4.0 includes some breaking changes, as well as the removal of some previously deprecated features. If your project doesn't work as expected after upgrading to v4.0, check this guide for an overview of all breaking changes and instructions on how to update your codebase.
+Astro v4.0 includes some potentially breaking changes, as well as the removal of some previously deprecated features. 
+
+If your project doesn't work as expected after upgrading to v4.0, check this guide for an overview of all breaking changes and instructions on how to update your codebase.
 
 See [the changelog](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md) for full release notes.
+
+## Upgrades/Updates
 
 ### Upgraded: Vite 5.0
 
@@ -93,8 +97,12 @@ Astro v4.0 upgrades [unified to v11](https://github.com/unifiedjs/unified/releas
 
 #### What should I do?
 
-If you used custom remark/rehype packages, update all of them to latest using your package manager to ensure they support unified v11. The packages you are using can be found in `astro.config.mjs`. There should not be any significant breaking changes if you use actively-updated packages, but some packages may not yet be compatible with unified v11.
+If you used custom remark/rehype packages, update all of them to latest using your package manager to ensure they support unified v11. The packages you are using can be found in `astro.config.mjs`.
+
+There should not be any significant breaking changes if you use actively-updated packages, but some packages may not yet be compatible with unified v11.
 Visually inspect your Markdown/MDX pages before deploying to ensure your site is functioning as intended.
+
+## Renamed/Changed
 
 ### Renamed: `entrypoint` (Integrations API)
 
@@ -106,7 +114,33 @@ Astro v4.0 renames this property to `entrypoint` to be consistent with other Ast
 
 If you have integrations that use the `injectRoute` API, rename the `entryPoint` property to `entrypoint`. If you're a library author who wants to support both Astro 3 and 4, you can specify both `entryPoint` and `entrypoint`, in which case, a warning will not be logged.
 
-### Removed: Support for simple objects in endpoints
+### Changed: `app.render` signature in Integrations API
+
+In Astro v3.0, the `app.render()` method accepted `routeData` and `locals` as separate, optional arguments. 
+
+Astro v4.0 changes the `app.render()` signature. These two properties are now available in a single object. Both the object and these two properties are still optional.
+
+#### What should I do?
+
+If you are maintaining an adapter, the current signature will continue to work until the next major version. To migrate to the new signature, pass `routeData` and `locals` as properties of an object instead of as multiple independent arguments.
+
+```diff lang="js"
+- app.render(request, routeData, locals)
++ app.render(request, { routeData, locals })
+```
+### Changed: adapters must now specify supported features
+
+In Astro v3.x, adapters were not required to specify the features they support.
+
+Astro 4.0 requires adapters to pass an `supportedAstroFeatures` property to specify a list of features they support.
+
+#### What should I do?
+
+Adapter authors need to pass the `supportedAstroFeatures` option to specify a list of features they support. If this was not set before, you can pass `supportedAstroFeatures: {}`.
+
+## Removed
+
+### Removed: returning simple objects from endpoints
 
 In Astro v3.x, returning simple objects from endpoints was deprecated, but was still supported to maintain compatibility with Astro v2. A `ResponseWithEncoding` utility was also provided to ease the migration.
 
@@ -133,11 +167,11 @@ To remove usage of `ResponseWithEncoding`, refactor your code to use an `ArrayBu
   }
 ```
 
-### Removed: Shiki language `path` property support
+### Removed: Shiki language `path` property
 
-In Astro v3.x, a Shiki language passed to `markdown.shikiConfig.langs` will be automatically converted to a Shikiji-compatible language. Shikiji is the internal tooling used by Astro for syntax highlighting.
+In Astro v3.x, a Shiki language passed to `markdown.shikiConfig.langs` was automatically converted to a Shikiji-compatible language. Shikiji is the internal tooling used by Astro for syntax highlighting.
 
-Astro v4.0 removes partial compatibility support for the `path` property of a Shiki language. This `path` property used to resolve from `<root>/node_modules/astro` which can be confusing to configure, hence its support is removed.
+Astro v4.0 removes support for the `path` property of a Shiki language, which was confusing to configure. It is replaced by an import which can be passed to `langs` directly.
 
 #### What should I do?
 
@@ -159,46 +193,56 @@ export default defineConfig({
 })
 ```
 
-### Changed: `app.render` signature in Integrations API
+### Removed: `build.split` and `build.excludeMiddleware`
 
-In Astro v3.0, the `app.render()` method accepted `routeData` and `locals` as separate optional arguments. 
+In Astro 3.0, `build.split` and `build.excludeMiddleware` were deprecated.
 
-Astro v4.0 changes the `app.render()` signature. It's second argument is now a single optional object with two optional properties: `routeData` and `locals`.
-
-#### What should I do?
-
-If you are maintaining an adapter, the current signature will continue to work until the next major version. To migrate to the new signature, pass `routeData` and `locals` as properties of an object instead of as multiple independent arguments.
-
-```diff lang="js"
-- app.render(request, routeData, locals)
-+ app.render(request, { routeData, locals })
-```
-
-### Added: `astro preferences` to the CLI
-
-Astro v4.0 adds the `astro preferences` command to manage user preferences. User preferences are specific to individual Astro users, unlike the `astro.config.mjs` file which changes behavior for everyone working on a project.
+Astro 4.0 removes these properties entirely.
 
 #### What should I do?
 
-In order to disable the new [dev overlay](/en/reference/dev-overlay-plugin-reference/) for the current Astro project, run the following command:
+If you are using the deprecated `build.split` or `build.excludeMiddleware`, you must now remove them as these no longer exist.
 
-```shell
-astro preferences disable devOverlay
-```
+Please see the v3 migration guide to [update these deprecated middleware properties](/en/guides/upgrade-to/v3/#deprecated-buildexcludemiddleware-and-buildsplit) with adapter configurations.
 
-In order to disable the dev overlay for every project on your machine, run the following command:
+### Removed: `markdown.drafts`
 
-```shell
-astro preferences --global disable devOverlay
-```
+In Astro 3.0, using `markdown.drafts` to control the building of draft posts was deprecated.
 
-In order to re-enable the dev overlay, run the following command:
+Astro 4.0 removes this option entirely.
 
-```shell
-astro preferences enable devOverlay
-```
+#### What should I do?
 
-### Changed: View Transitions will handle submit `events` by default
+If you are using the deprecated `markdown.drafts`, you must now remove it as it no longer exist.
+
+Please see the v3 migration guide to [upgrade to content collections to filter draft posts before building](en/guides/upgrade-to/v3/#deprecated-markdowndrafts).
+
+### Removed: `getHeaders()`
+
+In Astro 3.0, the `getHeaders()` Markdown export was deprecated and replaced with `getHeadings()`.
+
+Astro 4.0 removes this option entirely.
+
+#### What should I do?
+
+If you are using the deprecated `getHeaders()`, you must now remove it as it no longer exists. Replace any instances with `getHeadings()`.
+
+
+### Removed: lowercase HTTP method names
+
+In Astro 3.0, using lowercase HTTP request method names (`get`, `post`, `put`, `all`, `del`) was deprecated.
+
+Astro 4.0 removes support for lowercase names entirely. All HTTP request methods must now be written using uppercase.
+
+#### What should I do?
+
+If you are using the deprecated lowercase names, you must now replace them with their uppercase equivalents.
+
+Please see the v3 migration guide [for guidance using uppercase HTTP request methods](/en/guides/upgrade-to/v3/#changed-http-request-methods-case).
+
+## Deprecated
+
+### Deprecated: `handleForms` for View Transitions submit `events`
 
 In Astro v3.x, projects using the `<ViewTransitions />` component were required to opt-in to handling `submit` events for `form` elements. This was done by passing a `handleForms` prop.
 
@@ -209,6 +253,16 @@ Astro v4.0 handles `submit` events for `form` elements by default when `<ViewTra
 Remove the `handleForms` property from your `ViewTransitions` component.
 
 To opt-out of `submit` event handling, add the `data-astro-reload` attribute to relevant `form` elements.
+
+```astro title="src/components/Form.astro"
+<form action="/contact" data-astro-reload>
+  <!-- -->
+</form>
+```
+
+
+
+
 
 ## Community Resources
 
