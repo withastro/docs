@@ -1,4 +1,5 @@
 import { mkdir, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 
 /**
  * Download the Astro brand font for OpenGraph Image generation.
@@ -14,8 +15,8 @@ export async function fetchBrandFont() {
 
 		const fontPath = '_fonts/brand/';
 		const fontFileName = 'brand-500-normal.otf';
-		const fontDir = new URL(fontPath, import.meta.url);
-		const fontFile = new URL(fontFileName, fontDir);
+		const fontDir = path.resolve('./src/pages/open-graph/', fontPath);
+		const fontFile = path.resolve(fontDir, fontFileName);
 
 		const fontArrayBuffer = await fetch(
 			'https://fonts-cdn.astro.build/Obviously/Obviously Normal/Desktop/Obviously-Medium.otf',
@@ -24,7 +25,7 @@ export async function fetchBrandFont() {
 
 		await mkdir(fontDir, { recursive: true });
 		await writeFile(fontFile, Buffer.from(fontArrayBuffer));
-		return './src/pages/open-graph/' + fontPath + fontFileName;
+		return fontFile;
 	} catch (error) {
 		// When running locally, if anything goes wrong, we can safely return
 		// nothing and continue with the default local fonts.

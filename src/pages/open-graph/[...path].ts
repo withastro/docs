@@ -4,6 +4,8 @@ import { rtlLanguages } from '~/i18n/languages';
 import { getLangFromSlug } from '~/util';
 import { fetchBrandFont } from './_fetchFont';
 
+const brandFont = await fetchBrandFont();
+
 /** Paths for all of our Markdown content we want to generate OG images for. */
 const paths = process.env.SKIP_OG ? [] : allPages;
 
@@ -64,7 +66,7 @@ export const { getStaticPaths, GET } = OGImageRoute({
 				},
 			},
 			fonts: [
-				await fetchBrandFont(),
+				brandFont,
 
 				'./src/pages/open-graph/_fonts/inter/inter-400-normal.ttf',
 				'./src/pages/open-graph/_fonts/inter/inter-500-normal.ttf',
