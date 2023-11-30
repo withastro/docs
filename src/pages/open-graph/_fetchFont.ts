@@ -6,6 +6,12 @@ import { mkdir, writeFile } from 'node:fs/promises';
  */
 export async function fetchBrandFont() {
 	try {
+		if (!import.meta.env.FONT_CREDENTIALS) {
+			throw new Error(
+				'FONT_CREDENTIALS environment variable not defined. Please set it to download Astro’s brand font.'
+			);
+		}
+
 		const fontPath = '_fonts/brand/';
 		const fontFileName = 'brand-500-normal.otf';
 		const fontDir = new URL(fontPath, import.meta.url);
