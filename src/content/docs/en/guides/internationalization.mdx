@@ -286,14 +286,16 @@ Use this like [`getAbsoluteLocaleUrl`](#getabsolutelocaleurl) to return a list o
 
 ### `getPathByLocale(locale: string): string`
 
-A function that return the `path` associated to a locale (defined as code). It's particularly useful in case you use [refined locales](#refined-locales).
+A function that returns the `path` associated to one or more `codes` when [refined locales](#refined-locales) are configured.
 
 
-### Refined locales
+### Custom locale paths
 
-Astro allows to map an arbitrary number of locales to a particular URL path. The `locales` array can accept an object, where the `path` key is what you'll see in the URL, and `codes` represents the languages mapped to this URL.
+In addition to defining your site's supported `locales` as strings (e.g. "en", "pt-br") for a 1-to-1 correspondence between your folder structure and your URLs, Astro also allows you to map an arbitrary number of locales to a custom URL path. 
 
-This is useful if you support multiple variations of language, e.g. `"fr"`, `"fr-BR"`  and `"fr-CA"` and you want to have all these locales mapped under the same URL, `/french`:
+The `locales` array can also accept an object with a `path` key to define a custom URL prefix, and `codes` to indicate the languages mapped to this URL.
+
+This is useful if you support multiple variations of language (e.g. `"fr"`, `"fr-BR"`, and `"fr-CA"`) and you want to have all these locales mapped under the same URL `/fr/`, or even customize it entirely (e.g. `/french/`):
 
 ```js title="astro.config.mjs" del={6} ins={7-10}
 import { defineConfig } from "astro/config"
@@ -303,7 +305,7 @@ export default defineConfig({
       defaultLocale: "en",
       locales: ["es", "en", "fr"],
       locales: ["es", "en", {
-          path: "french", // not slash needed
+          path: "french", // no slashes included
           codes: ["fr", "fr-BR", "fr-CA"]
       }],
       routingStrategy: "prefix-always"
@@ -312,24 +314,29 @@ export default defineConfig({
 })
 ```
 
-If you rely on the [`astro:i18n` virtual module](#virtual-module-astroi18n), you'll have to use the `path` to compose the correct URL, for example:
+When using functions from the [`astro:i18n` virtual module](#virtual-module-astroi18n) to compute valid URL paths based on your configuration (e.g. `getRelativeLocaleUrl()`), use the `path` as value for `locale`.
 
-```astro title="src/pages/index.astro"
+For example, given the above configuration:
+
+```astro title="src/pages/index.ast'd ro"
 ---
 import { getPathByLocale, getRelativeLocaleUrl, getLocaleByPath } from "astro:i18n";
 
 getRelativeLocaleUrl("french", "blog"); // returns /french/blog
-
-// These functions are not particularly useful 
-getPathByLocale("fr"); // returns "french"
-getPathByLocale("fr-CA"); // returns "french"
-getPathByLocale("es"); // returns "es"
-getLocaleByPath("french"); // returns "fr" because that's the first code configured
-getLocaleByPath("es"); // returns "es"
 ---
 ```
 
-If you rely on [the browser language detection](#browser-language-detection), Astro will use the `codes` to determine the `Astro.preferredLocale` and `Astro.preferredLocaleList`. If so, it's advised to write the codes using the same pattern [used by the browser](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#syntax).
+Note that other `astro:i18n` functions will return the following results for the same configuration:
+ 
+```astro title="src/pages/index.astro"
+---
+getPathByLocale("fr"); // returns "french"
+getPathByLocale("fr-CA"); // returns "french"
+getLocaleByPath("french"); // returns "fr" because that's the first code configured
+---
+```
+
+Astro will use your configured `codes` and [the browser's language detection](#browser-language-detection) to determine `Astro.preferredLocale` and `Astro.preferredLocaleList`. In order to successfully match your visitors' preferences, provide your `codes` using the same pattern [used by the browser](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#syntax).
 
 
 [`site`]: /en/reference/configuration-reference/#site
