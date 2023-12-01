@@ -18,12 +18,15 @@ export async function fetchBrandFont() {
 		const fontDir = path.resolve('./src/pages/open-graph/', fontPath);
 		const fontFile = path.resolve(fontDir, fontFileName);
 
+		console.log('Downloading brand font');
 		const fontArrayBuffer = await fetch(
 			'https://fonts-cdn.astro.build/Obviously/Obviously Normal/Desktop/Obviously-Medium.otf',
 			JSON.parse(import.meta.env.FONT_CREDENTIALS)
 		).then((res) => res.arrayBuffer());
 
+		console.log('Creating directory', fontDir);
 		await mkdir(fontDir, { recursive: true });
+		console.log('Saving file', fontFile);
 		await writeFile(fontFile, Buffer.from(fontArrayBuffer));
 		return fontFile;
 	} catch (error) {
