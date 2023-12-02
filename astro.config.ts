@@ -11,6 +11,8 @@ import { rehypeOptimizeStatic } from './plugins/rehype-optimize-static';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
 
+import { astroDocsGlossary } from './src/components/glossary/plugin';
+
 /* https://vercel.com/docs/projects/environment-variables/system-environment-variables#system-environment-variables */
 const VERCEL_PREVIEW_SITE =
 	process.env.VERCEL_ENV !== 'production' &&
@@ -66,6 +68,7 @@ export default defineConfig({
 					},
 				},
 			],
+			plugins: [astroDocsGlossary()],
 		}),
 		sitemap(),
 	],

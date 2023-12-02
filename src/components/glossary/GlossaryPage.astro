@@ -1,0 +1,80 @@
+---
+import type { InferGetStaticPropsType } from 'astro';
+import VirtualPage, {
+	type VirtualPageProps,
+} from '@astrojs/starlight/components/VirtualPage.astro';
+import { paths } from './routing';
+
+export function getStaticPaths() {
+	return paths;
+	// Not sure why typescript complains about Object.entries(config.locales)
+	// so it gets casted to Record<string, any> for now.
+	// return Object.entries(config.locales as Record<string, any>).map(([lang, _]) => ({
+	// 	params: {
+	// 		// Generate the routes:
+	// 		//  - /[locale]/reference/glossary/
+	// 		lang,
+	// 	},
+	// 	props: {
+	// 		// Pass down the generated slug and the thing to the page
+	// 		lang,
+	// 		// thing,
+	// 	},
+	// }));
+}
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+const { terms, locale } = Astro.props;
+
+const titleMap = {
+	en: 'Glossary',
+	fr: 'Glossaire',
+	'zh-cn': '术语表',
+} as Record<string, string>;
+
+// Generates the props for the virtual page
+function getVirtualPageProps() {
+	return {
+		title: titleMap[locale.locale] || 'Glossary',
+		headings: terms.map((term) => ({
+			depth: 2,
+			slug: term.slug,
+			text: term.term || term.defaultTerm,
+		})),
+		slug: `/${locale.locale}/reference/glossary/`,
+		type: 'base',
+		template: 'doc',
+		hasSidebar: true,
+		lang: locale.lang || locale.locale,
+		dir: locale.dir,
+		i18nReady: true,
+		head: [],
+		pagefind: true,
+	} satisfies VirtualPageProps;
+}
+
+const rendered = await Promise.all(
+	terms.map(async (term) => {
+		const { Content } = await term.entry.render();
+		return { slug: term.slug, term: term.term, defaultTerm: term.defaultTerm, Content };
+	})
+);
+---
+
+<VirtualPage {...getVirtualPageProps()}>
+	<p>Welcome to the glossary!</p>
+	{
+		rendered.map(({ slug, term, defaultTerm, Content }) => (
+			<>
+				{term ? (
+					<h2 id={slug}>
+						{term}
+						<span style="font-size: .8em;">({defaultTerm})</span>
+					</h2>
+				) : (
+					<h2 id={slug}>{defaultTerm}</h2>
+				)}
+				<Content />
+			</>
+		))
+	}
+</VirtualPage>

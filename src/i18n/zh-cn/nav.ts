@@ -63,6 +63,7 @@ export default NavDictionary({
 	'guides/environment-variables': '环境变量',
 
 	reference: '参考',
+	'reference/glossary': '术语表',
 	'reference/configuration-reference': '配置',
 	'reference/api-reference': '运行时 API',
 	'reference/integrations-reference': '集成 API',

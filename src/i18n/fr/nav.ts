@@ -137,6 +137,11 @@ export default [
 
 	{ text: 'Référence', header: true, type: 'api', key: 'reference' },
 	{
+		text: 'Glossaire',
+		slug: 'reference/glossary',
+		key: 'reference/glossary'
+	},
+	{
 		text: 'Configuration',
 		slug: 'reference/configuration-reference',
 		key: 'reference/configuration-reference',

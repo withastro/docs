@@ -123,4 +123,5 @@ export const isKoreanEntry = createIsLangEntry('ko');
 
 export const collections = {
 	docs: defineCollection({ schema: docsSchema({ extend: docsCollectionSchema }) }),
+	glossary: defineCollection({ schema: z.object({ title: z.string() }) }),
 };
