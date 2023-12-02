@@ -574,7 +574,7 @@ See also: [Astro.site](#astrosite)
 ```ts title="src/pages/site-info.json.ts"
 import type { APIContext } from 'astro';
 
-export function GET{ generator, site }: APIContext) {
+export function GET({ generator, site }: APIContext) {
   const body = JSON.stringify({ generator, site });
   return new Response(body);
 }
@@ -1133,6 +1133,59 @@ const blog = defineCollection({
 });
 ```
 
+## Middleware (`astro:middleware`)
+
+<p>
+  <Since v="2.6.0" />
+</p>
+
+Middleware allows you to intercept requests and responses and inject behaviors dynamically every time a page or endpoint is about to be rendered. For features and usage examples, [see our middleware guide](/en/guides/middleware/).
+
+### `onRequest()`
+
+A required exported function from `src/middleware.js` that will be called before rendering every page or API route. It accepts two optional arguments: [context](#contextlocals) and [next()](#next). `onRequest()` must return a `Response`: either directly, or by calling `next()`.
+
+    ```js title="src/middleware.js"
+    export function onRequest (context, next) {
+        // intercept response data from a request
+        // optionally, transform the response
+        // return a Response directly, or the result of calling `next()`
+        return next();
+    };
+    ```
+
+### `next()`
+
+A function that intercepts (reads and modifies) the `Response` of a `Request` or calls the "next" middleware in the chain and returns a `Response`. For example, this function could modify the HTML body of a response.
+
+This is an optional argument of `onRequest()`, and may provide the required `Response` returned by the middleware.
+
+
+### `sequence()`
+
+A function that accepts middleware functions as arguments, and will execute them in the order in which they are passed. 
+
+```js title="src/middleware.js"
+import { sequence } from "astro:middleware";
+
+async function validation(_, next) {...}
+async function auth(_, next) {...}
+async function greeting(_, next) {...}
+
+export const onRequest = sequence(validation, auth, greeting);
+```
+
+### `createContext()`
+
+A low-level API to create an [`APIContext`](#endpoint-context)to be passed to an Astro middleware `onRequest()` function.
+
+This function can be used by integrations/adapters to programmatically execute the Astro middleware.
+
+### `trySerializeLocals()`
+
+A low-level API that takes in any value and tries to return a serialized version (a string) of it. If the value cannot be serialized, the function will throw a runtime error.
+
+
 ## Built-in Components
 
 Astro includes several built-in components for you to use in your projects. All built-in components are available in `.astro` files via `import {} from 'astro:components';`.
@@ -1245,7 +1298,7 @@ See more in the [Images Guide](/en/guides/images/#image--astroassets).
 
 ### `<Picture />`
 
-<Since v="3.3.0" /> <Badge>Experimental</Badge>
+<Since v="3.3.0" />
 
 Use the built-in `<Picture />` Astro component to display a responsive image with multiple formats and/or sizes.
 

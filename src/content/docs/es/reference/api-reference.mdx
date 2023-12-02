@@ -1105,6 +1105,59 @@ const blog = defineCollection({
 });
 ```
 
+## Middleware (`astro:middleware`)
+
+<p>
+  <Since v="2.6.0" />
+</p>
+
+El middleware te permite interceptar las peticiones y respuestas e inyectar comportamientos dinámicos cada vez que una página o un endpoint está a punto de ser renderizado. Para obtener características y ejemplos de uso, [consulta nuestra guía de middleware](/es/guides/middleware/).
+
+### `onRequest()`
+
+Una función exportada requerida de `src/middleware.js` que se llamará antes de renderizar cada página o ruta de API. Acepta dos argumentos opcionales: [context](#contextlocals) y [next()](#next). `onRequest()` debe devolver una `Response`: ya sea directamente, o llamando a `next()`.
+
+    ```js title="src/middleware.js"
+    export function onRequest (context, next) {
+        // intercepta los datos de respuesta de una petición
+        // opcionalmente, transforma la respuesta
+        // regresa una respuesta directamente o el resultado de llamar a `next()`
+        return next();
+    };
+    ```
+
+### `next()`
+
+Una función que intercepta (lee y modifica) la `Response` de una `Request` o llama al siguiente middleware en la cadena y devuelve una `Response`. Por ejemplo, esta función podría modificar el cuerpo HTML de una respuesta.
+
+Esto es un argumento opcional de `onRequest()`, y puede proporcionar la `Response` requerida devuelta por el middleware.
+
+
+### `sequence()`
+
+Una función que acepta funciones de middleware como argumentos y las ejecutará en el orden en que se pasan.
+
+```js title="src/middleware.js"
+import { sequence } from "astro:middleware";
+
+async function validation(_, next) {...}
+async function auth(_, next) {...}
+async function greeting(_, next) {...}
+
+export const onRequest = sequence(validation, auth, greeting);
+```
+
+### `createContext()`
+
+Una API de bajo nivel para crear un [`APIContext`](#contexto-del-endpoint) para ser pasado a una función `onRequest()` de middleware de Astro.
+
+Esta función puede ser utilizada por integraciones/adaptadores para ejecutar programáticamente el middleware de Astro.
+
+### `trySerializeLocals()`
+
+Una API de bajo nivel que toma cualquier valor y trata de devolver una versión serializada (un string) de él. Si el valor no se puede serializar, la función lanzará un error en tiempo de ejecución.
+
+
 ## Componentes incorporados
 
 Astro incluye varios componentes integrados que puedes usar en tus proyectos. Todos los componentes integrados están disponibles en archivos `.astro` a través de `import {} from 'astro:components';`.
@@ -1216,7 +1269,7 @@ Mira más en la [guía de imágenes](/es/guides/images/#image--astroassets).
 
 ### `<Picture />`
 
-<Since v="3.3.0" /> <Badge>Experimental</Badge>
+<Since v="3.3.0" />
 
 Utiliza el componente integrado `<Picture />` de Astro para mostrar una imagen responsiva con varios formatos y/o tamaños.
 
