@@ -1,0 +1,353 @@
+---
+title: Firebase et Astro
+description: Ajouter un backend à votre projet avec firebase
+type: backend
+service: Firebase
+stub: false
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import FileTree from '~/components/FileTree.astro'
+
+
+[Firebase](https://firebase.google.com/)est une plate-forme de développement d'applications qui fournit une base de données NoSQL, une authentification, des souscriptions en temps réel, des fonctions et un stockage.
+
+Consultez notre guide dédié au [déploiement sur Firebase hosting](/en/guides/deploy/google-firebase/).
+
+## Initialisation de Firebase dans Astro
+
+### Prérequis
+
+- Un [projet Firebase avec une application Web configurée](https://firebase.google.com/docs/web/setup).
+- Un projet astro avec [server-side rendering (SSR)](/en/guides/server-side-rendering/) activé.
+- Des identifiants Firebase : vous aurez besoin de deux ensembles d'identifiants pour connecter Astro à Firebase :
+  - Les identifiants de l'application Web : ces informations d'identification seront utilisées par le côté client de votre application. Vous pouvez les trouver dans la console Firebase sous *Paramètres du projet > Général*. Faites défiler jusqu'à la section **Vos applications** et cliquez sur l'icône **Application Web**.
+  - Les informations d'identification du projet : ces informations d'identification seront utilisées par le côté serveur de votre application. Vous pouvez les générer dans la console Firebase sous *Paramètres du projet > Comptes de service > Firebase Admin SDK > Générer une nouvelle clé privée*.
+
+### Ajouter les informations d'identification Firebase
+
+Pour ajouter vos informations d'identification Firebase à Astro, créez un fichier « .env » à la racine de votre projet avec les variables suivantes :
+
+```ini title=".env"
+FIREBASE_PRIVATE_KEY_ID=YOUR_PRIVATE_KEY_ID
+FIREBASE_PRIVATE_KEY=YOUR_PRIVATE_KEY
+FIREBASE_PROJECT_ID=YOUR_PROJECT_ID
+FIREBASE_CLIENT_EMAIL=YOUR_CLIENT_EMAIL
+FIREBASE_CLIENT_ID=YOUR_CLIENT_ID
+FIREBASE_AUTH_URI=YOUR_AUTH_URI
+FIREBASE_TOKEN_URI=YOUR_TOKEN_URI
+FIREBASE_AUTH_CERT_URL=YOUR_AUTH_CERT_URL
+FIREBASE_CLIENT_CERT_URL=YOUR_CLIENT_CERT_URL
+```
+
+Désormais, ces variables d'environnement sont disponibles pour être utilisées dans votre projet.
+
+Si vous souhaitez disposer d'IntelliSense pour vos variables d'environnement Firebase, modifiez ou créez le fichier « env.d.ts » dans votre répertoire « src/ » et configurez vos types :
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly FIREBASE_PRIVATE_KEY_ID: string;
+  readonly FIREBASE_PRIVATE_KEY: string;
+  readonly FIREBASE_PROJECT_ID: string;
+  readonly FIREBASE_CLIENT_EMAIL: string;
+  readonly FIREBASE_CLIENT_ID: string;
+  readonly FIREBASE_AUTH_URI: string;
+  readonly FIREBASE_TOKEN_URI: string;
+  readonly FIREBASE_AUTH_CERT_URL: string
+  readonly FIREBASE_CLIENT_CERT_URL: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+:::tip
+Apprenez-en plus sur les [variables d'environnement](/en/guides/environment-variables/) et les fichiers `.env` dans Astro.
+:::
+
+Votre projet devrait à présent inclure les fichiers suivants :
+
+<FileTree title="Project Structure">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+
+### Installer les dépendances
+
+Pour connecter Astro à Firebase, installez les packages suivants à l'aide de la commande ci-dessous dans votre gestionnaire de packages préféré :
+
+- `firebase` - le SDK Firebase pour le côté client
+- `firebase-admin` - le SDK Firebase Admin pour le côté serveur
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install firebase firebase-admin
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add firebase firebase-admin
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add firebase firebase-admin
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Ensuite, créez un dossier nommé « firebase » dans le répertoire « src/ » et ajoutez deux nouveaux fichiers à ce dossier : « client.ts » et « server.ts ».
+
+Dans « client.ts », ajoutez le code suivant pour initialiser Firebase côté client à l'aide des informations d'identification de votre application Web et du package « firebase » :
+
+```ts title="src/firebase/client.ts"
+import { initializeApp } from "firebase/app";
+
+const firebaseConfig = {
+  apiKey: "my-public-api-key",
+  authDomain: "my-auth-domain",
+  projectId: "my-project-id",
+  storageBucket: "my-storage-bucket",
+  messagingSenderId: "my-sender-id",
+  appId: "my-app-id",
+};
+
+export const app = initializeApp(firebaseConfig);
+```
+
+:::note
+N'oubliez pas de remplacer l'objet « firebaseConfig » par vos propres informations d'identification d'application Web.
+:::
+
+Dans `server.ts`, ajoutez le code suivant pour initialiser Firebase côté serveur à l'aide des informations d'identification de votre projet et du package `firebase-admin` :
+
+```ts title="src/firebase/server.ts"
+import type { ServiceAccount } from "firebase-admin";
+import { initializeApp, cert, getApps } from "firebase-admin/app";
+
+const activeApps = getApps();
+const serviceAccount = {
+  type: "service_account",
+  project_id: import.meta.env.FIREBASE_PROJECT_ID,
+  private_key_id: import.meta.env.FIREBASE_PRIVATE_KEY_ID,
+  private_key: import.meta.env.FIREBASE_PRIVATE_KEY,
+  client_email: import.meta.env.FIREBASE_CLIENT_EMAIL,
+  client_id: import.meta.env.FIREBASE_CLIENT_ID,
+  auth_uri: import.meta.env.FIREBASE_AUTH_URI,
+  token_uri: import.meta.env.FIREBASE_TOKEN_URI,
+  auth_provider_x509_cert_url: import.meta.env.FIREBASE_AUTH_CERT_URL,
+  client_x509_cert_url: import.meta.env.FIREBASE_CLIENT_CERT_URL,
+};
+
+export const app = activeApps.length === 0 ? initializeApp({
+  credential: cert(serviceAccount as ServiceAccount),
+}) : activeApps[0];
+```
+
+:::note
+N'oubliez pas de remplacer l'objet `serviceAccount` par vos propres informations d'identification de projet.
+:::
+
+À présent, votre projet devrait inclure les fichiers suivants :
+
+<FileTree title="Project Structure">
+- src
+  - env.d.ts
+  - firebase
+    - **client.ts**
+    - **server.ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## Ajouter l'authentification avec Firebase
+
+### Prérequis
+
+- Un projet Astro [initialisé avec Firebase](#initializing-firebase-in-astro).
+- Un projet Firebase avec l'authentification par e-mail/mot de passe activée dans la console Firebase sous la méthode *Authentification > Connexion*.
+
+### Créer les endpoints du serveur d'authentification
+
+L'authentification Firebase dans Astro nécessite les trois [endpoints du serveur Astro](/en/core-concepts/endpoints/) suivants :
+
+- `GET /api/auth/signin` - pour connecter un utilisateur
+- `GET /api/auth/signout` - pour déconnecter un utilisateur
+- `POST /api/auth/register` - pour enregistrer un utilisateur
+
+Créez trois endpoints liés à l'authentification dans un nouveau répertoire `src/pages/api/auth/` : `signin.ts`, `signout.ts` et `register.ts`.
+
+`signin.ts` contient le code nécessaire pour connecter un utilisateur via Firebase :
+
+```ts title="src/pages/api/auth/signin.ts"
+import type { APIRoute } from "astro";
+import { app } from "../../../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+
+export const GET: APIRoute = async ({ request, cookies, redirect }) => {
+  const auth = getAuth(app);
+
+  /* Récupération du token depuis les headers de la requête */
+  const idToken = request.headers.get("Authorization")?.split("Bearer ")[1];
+  if (!idToken) {
+    return new Response(
+      "No token found",
+      { status: 401 }
+    );
+  }
+
+  /* Vérification du token */
+  try {
+    await auth.verifyIdToken(idToken);
+  } catch (error) {
+    return new Response(
+      "Invalid token",
+      { status: 401 }
+    );
+  }
+
+  /* Création et configuration du cookie de la session */
+  const fiveDays = 60 * 60 * 24 * 5 * 1000;
+  const sessionCookie = await auth.createSessionCookie(idToken, {
+    expiresIn: fiveDays,
+  });
+
+  cookies.set("session", sessionCookie, {
+    path: "/",
+  });
+
+  return redirect("/dashboard");
+};
+```
+
+:::note
+Il s'agit d'une implémentation de base du endpoint de connexion. Vous pouvez ajouter plus de logique à ce endpoint en fonction de vos besoins.
+:::
+
+`signout.ts` contient le code nécessaire pour déconnecter un utilisateur en supprimant le cookie de session :
+
+```ts title="src/pages/api/auth/signout.ts"
+import type { APIRoute } from "astro";
+
+export const GET: APIRoute = async ({ redirect, cookies }) => {
+  cookies.delete("session", {
+    path: "/",
+  });
+  return redirect("/signin");
+};
+```
+
+:::note
+Il s'agit d'une implémentation de base du endpoint de déconnexion. Vous pouvez ajouter plus de logique à ce endpoint en fonction de vos besoins.
+:::
+
+`register.ts` contient le code nécessaire pour enregistrer un utilisateur via Firebase :
+
+```ts title="src/pages/api/auth/register.ts"
+import type { APIRoute } from "astro";
+import { getAuth } from "firebase-admin/auth";
+import { app } from "../../../firebase/server";
+
+export const POST: APIRoute = async ({ request, redirect }) => {
+  const auth = getAuth(app);
+
+  /* Récupération des données du formulaire */
+  const formData = await request.formData();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+  const name = formData.get("name")?.toString();
+
+  if (!email || !password || !name) {
+    return new Response(
+      "Missing form data",
+      { status: 400 }
+    );
+  }
+
+  /* Création de l'utilisateur */
+  try {
+    await auth.createUser({
+      email,
+      password,
+      displayName: name,
+    });
+  } catch (error: any) {
+    return new Response(
+      "Something went wrong",
+      { status: 400 }
+    );
+  }
+  return redirect("/signin");
+};
+```
+
+:::note
+Il s'agit d'une implémentation de base du endpoint d'enregistrement d'utilisateur. Vous pouvez ajouter plus de logique à ce endpoint en fonction de vos besoins.
+:::
+
+Après avoir créé les endpoints serveur concernant l'authentification, votre projet devrait inclure les fichiers suivants :
+
+<FileTree title="Project Structure">
+- src
+  - env.d.ts
+  - firebase
+    - client.ts
+    - server.ts
+  - pages
+    - api
+      - auth
+        - **signin.ts**
+        - **signout.ts**
+        - **register.ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Création des pages
+
+Création des pages qui utiliseront les endpoints Firebase :
+
+- `src/pages/register` - contiendra le formulaire d'enregistrement utilisateur
+- `src/pages/signin` - contiendra le formulaire de connexion utilisateur
+- `src/pages/dashboard` - contiendra un tableau de bord uniquement accessible à un utilisateur authentifié
+
+L'exemple `src/pages/register.astro` ci-dessous inclut un formulaire qui enverra une requête `POST` au endpoint `/api/auth/register`. Ce endpoint créera un nouvel utilisateur en utilisant les données du formulaire, puis redirigera l'utilisateur vers la page `/signin`.
+
+```astro title="src/pages/register.astro"
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Register">
+  <h1>Register</h1>
+  <p>Already have an account? <a href="/signin">Sign in</a></p>
+  <form action="/api/auth/register" method="post">
+    <label for="name">Name</label>
+    <input type="text" name="name" id="name" />
+    <label for="email" for="email">Email</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+  </form>
+</Layout>
+```
+
+
+
+
+
+
+
+
+
+
+
