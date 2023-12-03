@@ -6,6 +6,7 @@ i18nReady: true
 import Since from '~/components/Since.astro';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import Badge from '~/components/Badge.astro';
+import RecipeLinks from "~/components/RecipeLinks.astro";
 
 
 Astro provides several ways for you to use images on your site, whether they are stored locally inside your project, linked to from an external URL, or managed in a CMS or CDN!
@@ -31,7 +32,7 @@ Astro can fetch your data remotely using APIs or display images from their full 
 
 ## Images in `.astro` files
 
-In `.astro` files, local images must be imported into the file in order to be used. Remote and `public/` images do not require importing.
+In `.astro` files, **local images must be imported into the file in order to be used**. Remote and `public/` images do not require importing.
 
 Import and use Astro's built-in `<Image />` component for optimized images using `astro:assets`. Alternatively, Astro syntax supports writing an HTML `<img>` tag directly, which skips image processing.
 
@@ -48,6 +49,10 @@ import localBirdImage from '../../images/subfolder/localBirdImage.png';
 <img src="/images/bird-in-public-folder.jpg" alt="A bird.">
 <img src="https://example.com/remote-bird.jpg" alt="A bird.">
 ```
+
+To dynamically import images from the `src/` folder, see the following recipe:
+
+<RecipeLinks slugs={["en/recipes/dynamically-importing-images" ]}/>
 
 ### `<Image />` (`astro:assets`)
 
@@ -152,7 +157,7 @@ If provided, this value will be used to generate a `srcset` attribute on the `<i
 
 Densities that are equal to widths larger than the original image will be ignored to avoid upscaling the image.
 
-```astro
+```astro title="src/components/MyComponent.astro"
 ---
 import { Image } from 'astro:assets';
 import myImage from "../assets/my_image.png";
@@ -192,7 +197,12 @@ Widths that are larger than the original image will be ignored to avoid upscalin
 import { Image } from 'astro:assets';
 import myImage from "../assets/my_image.png"; // Image is 1600x900
 ---
-<Image src={myImage} widths={[240, 540, 720, myImage.width]} alt="A description of my image." />
+<Image
+  src={myImage}
+  widths={[240, 540, 720, myImage.width]}
+  sizes={`(max-width: 360px) 240px, (max-width: 720px) 540px, (max-width: 1600px) 720px, ${myImage.width}px`}
+  alt="A description of my image."
+/>
 ```
 
 ```html
@@ -203,6 +213,12 @@ import myImage from "../assets/my_image.png"; // Image is 1600x900
     /_astro/my_image.hash.webp 540w,
     /_astro/my_image.hash.webp 720w,
 		/_astro/my_image.hash.webp 1600w
+  "
+  sizes="
+    (max-width: 360px) 240px,
+    (max-width: 720px) 540px,
+    (max-width: 1600px) 720px,
+    1600px
   "
   alt="A description of my image."
   width="1600"
@@ -278,7 +294,7 @@ const {src, ...attrs} = Astro.props;
 
 ### `<Picture />`
 
-<Since v="3.3.0" /> <Badge>Experimental</Badge>
+<Since v="3.3.0" />
 
 Use the built-in `<Picture />` Astro component to display a responsive image with multiple formats and/or sizes.
 
@@ -328,7 +344,7 @@ An object of attributes to be added to the `<picture>` tag.
 
 Use this property to apply attributes to the outer `<picture>` element itself. Attributes applied to the `<Picture />` component directly will apply to the inner `<img>` element, except for those used for image transformation.
 
-```astro
+```astro title="src/components/MyComponent.astro"
 ---
 import { Picture } from "astro:assets";
 import myImage from "../my_image.png"; // Image is 1600x900
@@ -363,7 +379,7 @@ Local images must be **imported from the relative path** from the existing `.ast
 
 For example, use the image's own `height` and `width` properties to avoid CLS and improve Core Web Vitals.
 
-```astro "myDog.width" "myDog.height"
+```astro title="src/pages/posts/post-1.astro" "myDog.width" "myDog.height"
 ---
 // import local images
 import myDog from `../../images/pets/local-dog.jpg`
@@ -609,6 +625,8 @@ import stars from "~/stars/docline.png";
 
 The `getImage()` function is intended for generating images destined to be used somewhere else than directly in HTML, for example in an [API Route](/en/core-concepts/endpoints/#server-endpoints-api-routes). It also allows you to create your own custom `<Image />` component.
 
+<RecipeLinks slugs={["en/recipes/build-custom-img-component" ]}/>
+
 `getImage()` takes an options object with the [same properties as the Image component](#properties) (except `alt`).
 
 ```astro
@@ -649,6 +667,16 @@ If the image is merely decorative (i.e. doesn’t contribute to the understandin
 
 [Sharp](https://github.com/lovell/sharp) is the default image service used for `astro:assets`.
 
+:::note
+When using a [strict package manager](https://pnpm.io/pnpm-vs-npm#npms-flat-tree) like `pnpm`, you may need to manually install Sharp into your project even though it is an Astro dependency:
+
+```bash
+pnpm install sharp
+```
+:::
+
+### Configure Squoosh
+
 If you would prefer to use [Squoosh](https://github.com/GoogleChromeLabs/squoosh) to transform your images, update your config with the following:
 
 ```js title="astro.config.mjs" ins={4-6}
@@ -661,13 +689,21 @@ export default defineConfig({
 });
 ```
 
-:::note
-When using a [strict package manager](https://pnpm.io/pnpm-vs-npm#npms-flat-tree) like `pnpm`, you may need to manually install Sharp into your project even though it is an Astro dependency:
+### Configure no-op passthrough service
 
-```bash
-pnpm install sharp
+If your [adapter for `server` or `hybrid` mode](https://astro.build/integrations/?search=&categories%5B%5D=adapters) does not support Astro's built-in Squoosh and Sharp image optimization (e.g. Deno, Cloudflare), you can configure a no-op image service to allow you to use the `<Image />` and `<Picture />` components. Note that Astro does not perform any image transformation and processing in these environments. However, you can still enjoy the other benefits of using `astro:assets`, including no Cumulative Layout Shift (CLS), the enforced `alt` attribute, and a consistent authoring experience.
+
+Configure the `passthroughImageService()` to avoid both Squoosh and Sharp image processing:
+
+```js title="astro.config.mjs" ins={4-6} "passthroughImageService"
+import { defineConfig, passthroughImageService } from 'astro/config';
+
+export default defineConfig({
+  image: {
+    service: passthroughImageService()
+  }
+});
 ```
-:::
 
 ## Community Integrations
 

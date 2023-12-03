@@ -54,10 +54,10 @@ export default UIDictionary({
 	// Migration Guides vocabulary
 	'migration.navTitle': '更多迁移指南',
 	// Recipes vocabulary
-	'recipes.navTitle': '更多方案',
+	'recipes.navTitle': '更多操作指南',
 	// `<RecipeLinks>` vocabulary
-	'recipesLink.singular': '相关方案：',
-	'recipesLink.plural': '相关方案',
+	'recipesLink.singular': '相关操作指南：',
+	'recipesLink.plural': '相关操作指南',
 	// `<ContributorList>` fallback text
 	'contributors.seeAll': '查看所有贡献者',
 	// Fallback content notice shown when a page is not yet translated
