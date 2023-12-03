@@ -341,6 +341,583 @@ import Layout from "../layouts/Layout.astro";
 </Layout>
 ```
 
+`src/pages/signin.astro` utilise l'application serveur Firebase pour vérifier le cookie de session de l'utilisateur. Si l'utilisateur est authentifié, la page redirigera l'utilisateur vers la page `/dashboard`.
+
+La page d'exemple ci-dessous contient un formulaire qui enverra une requête « POST » au endpoint « /api/auth/signin » avec le token d'identification généré par l'application client Firebase.
+
+Le endpoint vérifiera le token d'identification et créera un nouveau cookie de session pour l'utilisateur. Ensuite, le endpoint redirigera l'utilisateur vers la page « /dashboard ».
+
+```astro title="src/pages/signin.astro"
+---
+import { app } from "../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+import Layout from "../layouts/Layout.astro";
+
+/* On vérifie si l'utilisateur est authentifié */
+const auth = getAuth(app);
+if (Astro.cookies.has("session")) {
+  const sessionCookie = Astro.cookies.get("session").value;
+  const decodedCookie = await auth.verifySessionCookie(sessionCookie);
+  if (decodedCookie) {
+    return Astro.redirect("/dashboard");
+  }
+}
+---
+
+<Layout title="Sign in">
+  <h1>Sign in</h1>
+  <p>New here? <a href="/register">Create an account</a></p>
+  <form action="/api/auth/signin" method="post">
+    <label for="email" for="email">Email</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+  </form>
+</Layout>
+<script>
+  import {
+    getAuth,
+    inMemoryPersistence,
+    signInWithEmailAndPassword,
+  } from "firebase/auth";
+  import { app } from "../firebase/client";
+
+  const auth = getAuth(app);
+  // Ceci empêchera le navigateur de stocker les données de session
+  auth.setPersistence(inMemoryPersistence);
+
+  const form = document.querySelector("form") as HTMLFormElement;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const email = formData.get("email")?.toString();
+    const password = formData.get("password")?.toString();
+
+    if (!email || !password) {
+      return;
+    }
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    const idToken = await userCredential.user.getIdToken();
+    const response = await fetch("/api/auth/signin", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+
+    if (response.redirected) {
+      window.location.assign(response.url);
+    }
+  });
+</script>
+```
+
+`src/pages/dashboard.astro` vérifiera le cookie de session de l'utilisateur à l'aide de l'application serveur Firebase. Si l'utilisateur n'est pas authentifié, la page redirigera l'utilisateur vers la page `/signin`.
+
+La page d'exemple ci-dessous affiche le nom de l'utilisateur et un bouton pour se déconnecter. Cliquer sur le bouton enverra une requête « GET » au endpoint « /api/auth/signout ».
+
+Le endpoint supprimera le cookie de session de l'utilisateur et redirigera l'utilisateur vers la page « /signin ».
+
+```astro title="src/pages/dashboard.astro"
+---
+import { app } from "../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+import Layout from "../layouts/Layout.astro";
+
+const auth = getAuth(app);
+
+/* Vérification de la session */
+if (!Astro.cookies.has("session")) {
+  return Astro.redirect("/signin");
+}
+const sessionCookie = Astro.cookies.get("session").value;
+const decodedCookie = await auth.verifySessionCookie(sessionCookie);
+const user = await auth.getUser(decodedCookie.uid);
+
+if (!user) {
+  return Astro.redirect("/signin");
+}
+---
+
+<Layout title="dashboard">
+  <h1>Welcome {user.displayName}</h1>
+  <p>We are happy to see you here</p>
+  <form action="/api/auth/signout">
+    <button type="submit">Sign out</button>
+  </form>
+</Layout>
+```
+
+### Ajout des fournisseurs OAuth
+
+Pour ajouter des fournisseurs OAuth à votre application, vous devez les activer dans la console Firebase.
+
+Dans la console Firebase, accédez à la section **Authentification** et cliquez sur l'onglet **Méthode de connexion**. Ensuite, cliquez sur le bouton **Ajouter un nouveau fournisseur** et activez les fournisseurs que vous souhaitez utiliser.
+
+L'exemple ci-dessous utilise le fournisseur **Google**.
+
+Modifiez la page `signin.astro` pour ajouter :
+- un bouton pour se connecter avec Google sous le formulaire existant
+- un écouteur d'événement sur le bouton pour gérer le processus de connexion dans le `<script>` existant.
+
+```astro title="src/pages/signin.astro" ins={27, 34, 35, 69-83}
+---
+import { app } from "../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+import Layout from "../layouts/Layout.astro";
+
+/* Vérification de l'authentification de l'utilisateur */
+const auth = getAuth(app);
+if (Astro.cookies.has("session")) {
+  const sessionCookie = Astro.cookies.get("session").value;
+  const decodedCookie = await auth.verifySessionCookie(sessionCookie);
+  if (decodedCookie) {
+    return Astro.redirect("/dashboard");
+  }
+}
+---
+
+<Layout title="Sign in">
+  <h1>Sign in</h1>
+  <p>New here? <a href="/register">Create an account</a></p>
+  <form action="/api/auth/signin" method="post">
+    <label for="email" for="email">Email</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+  </form>
+  <button id="google">Sign in with Google</button>
+</Layout>
+<script>
+  import {
+    getAuth,
+    inMemoryPersistence,
+    signInWithEmailAndPassword,
+    GoogleAuthProvider,
+    signInWithPopup,
+  } from "firebase/auth";
+  import { app } from "../firebase/client";
+
+  const auth = getAuth(app);
+  auth.setPersistence(inMemoryPersistence);
+
+  const form = document.querySelector("form") as HTMLFormElement;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const email = formData.get("email")?.toString();
+    const password = formData.get("password")?.toString();
+
+    if (!email || !password) {
+      return;
+    }
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    const idToken = await userCredential.user.getIdToken();
+    const response = await fetch("/api/auth/signin", {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+
+    if (response.redirected) {
+      window.location.assign(response.url);
+    }
+  });
+
+  const googleSignin = document.querySelector("#google") as HTMLButtonElement;
+  googleSignin.addEventListener("click", async () => {
+    const provider = new GoogleAuthProvider();
+    const userCredential = await signInWithPopup(auth, provider);
+    const idToken = await userCredential.user.getIdToken();
+    const res = await fetch("/api/auth/signin", {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+
+    if (res.redirected) {
+      window.location.assign(res.url);
+    }
+  });
+</script>
+```
+
+Lorsque vous cliquez dessus, le bouton de connexion Google ouvrira une fenêtre contextuelle (popup) pour vous connecter avec Google. Une fois que l'utilisateur s'est connecté, il enverra une requête « POST » au endpoint « /api/auth/signin » avec le token d'identification généré par le fournisseur OAuth.
+
+Le endpoint vérifiera le token d'identification et créera un nouveau cookie de session pour l'utilisateur. Ensuite, le endpoint redirigera l'utilisateur vers la page « /dashboard ».
+
+## Connexion à Firestore Database
+
+### Prérequis
+
+- Un projet Astro initialisé avec Firebase comme décrit dans la section [Initialisation de Firebase dans Astro](#initializing-firebase-in-astro).
+
+- Un projet Firebase avec une base de données Firestore. Vous pouvez suivre la [documentation Firebase pour créer un nouveau projet et configurer une base de données Firestore](https://firebase.google.com/docs/firestore/quickstart).
+
+Dans cette recette, la collection Firestore s'appellera **friends** et contiendra des documents avec les champs suivants :
+
+- `id` : généré automatiquement par Firestore
+- `name` : un champ de type string
+- `age` : un champ de type number
+- `isBestFriend` : un champ de type booléen
+
+### Création des endpoints serveur
+
+Créez deux nouveaux fichiers dans un nouveau répertoire `src/pages/api/friends/` : `index.ts` et `[id].ts`. Ceux-ci créeront deux endpoints de serveur pour interagir avec la base de données Firestore des manières suivantes :
+
+- `POST /api/friends` : pour créer un nouveau document dans la collection "friends".
+- `POST /api/friends/:id` : pour mettre à jour un document dans la collection "friends".
+- `DELETE /api/friends/:id` : pour supprimer un document dans la collection "friends".
+
+`index.ts` contiendra le code pour créer un nouveau document dans la collection "friends" :
+
+```ts title="src/pages/api/friends/index.ts"
+import type { APIRoute } from "astro";
+import { app } from "../../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+
+export const POST: APIRoute = async ({ request, redirect }) => {
+  const formData = await request.formData();
+  const name = formData.get("name")?.toString();
+  const age = formData.get("age")?.toString();
+  const isBestFriend = formData.get("isBestFriend") === "on";
+
+  if (!name || !age) {
+    return new Response("Missing required fields", {
+      status: 400,
+    });
+  }
+  try {
+    const db = getFirestore(app);
+    const friendsRef = db.collection("friends");
+    await friendsRef.add({
+      name,
+      age: parseInt(age),
+      isBestFriend,
+    });
+  } catch (error) {
+    return new Response("Something went wrong", {
+      status: 500,
+    });
+  }
+  return redirect("/dashboard");
+};
+```
+
+:::note
+Il s'agit d'une implémentation de base du endpoint « friends ». Vous pouvez ajouter plus de logique à ce endpoint en fonction de vos besoins.
+:::
+
+`[id].ts` contiendra le code pour mettre à jour et supprimer un document dans la collection "friends" :
+
+```ts title="src/pages/api/friends/[id].ts"
+import type { APIRoute } from "astro";
+import { app } from "../../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+
+const db = getFirestore(app);
+const friendsRef = db.collection("friends");
+
+export const POST: APIRoute = async ({ params, redirect, request }) => {
+  const formData = await request.formData();
+  const name = formData.get("name")?.toString();
+  const age = formData.get("age")?.toString();
+  const isBestFriend = formData.get("isBestFriend") === "on";
+
+  if (!name || !age) {
+    return new Response("Missing required fields", {
+      status: 400,
+    });
+  }
+
+  if (!params.id) {
+    return new Response("Cannot find friend", {
+      status: 404,
+    });
+  }
+
+  try {
+    await friendsRef.doc(params.id).update({
+      name,
+      age: parseInt(age),
+      isBestFriend,
+    });
+  } catch (error) {
+    return new Response("Something went wrong", {
+      status: 500,
+    });
+  }
+  return redirect("/dashboard");
+};
+
+export const DELETE: APIRoute = async ({ params, redirect }) => {
+  if (!params.id) {
+    return new Response("Cannot find friend", {
+      status: 404,
+    });
+  }
+
+  try {
+    await friendsRef.doc(params.id).delete();
+  } catch (error) {
+    return new Response("Something went wrong", {
+      status: 500,
+    });
+  }
+  return redirect("/dashboard");
+};
+```
+
+:::note
+Il s'agit d'une implémentation de endpoint de terminaison `friends/:id`. Vous pouvez ajouter plus de logique à ce endpoint en fonction de vos besoins.
+:::
+
+Après avoir créé les endpoints du serveur pour Firestore, votre répertoire de projet doit maintenant inclure ces nouveaux fichiers :
+
+<FileTree title="Project Structure">
+- src
+  - env.d.ts
+  - firebase
+    - client.ts
+    - server.ts
+  - pages
+    - api
+      - friends
+        - **index.ts**
+        - **[id].ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Création des pages
+
+Créez les pages qui utiliseront les endpoints Firestore:
+
+- `src/pages/add.astro` - contiendra un formulaire permettant d'ajouter un nouvel ami ("friend").
+- `src/pages/edit/[id].astro` - contiendra un formulaire permettant de modifier un ami et un bouton permettant de supprimer un ami.
+- `src/pages/friend/[id].astro` - contiendra les informations d'un ami.
+- `src/pages/dashboard.astro` - affichera une liste d'amis.
+
+#### Ajouter une nouvelle entrée
+
+L'exemple `src/pages/add.astro` ci-dessous inclut un formulaire qui enverra une requête `POST` au endpoint `/api/friends`. Ce endpoint créera un nouvel ami en utilisant les données du formulaire, puis redirigera l'utilisateur vers la page `/dashboard`.
+
+```astro title="src/pages/add.astro"
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Add a new friend">
+  <h1>Add a new friend</h1>
+  <form method="post" action="/api/friends">
+    <label for="name">Name</label>
+    <input type="text" id="name" name="name" />
+    <label for="age">Age</label>
+    <input type="number" id="age" name="age" />
+    <label for="isBestFriend">Is best friend?</label>
+    <input type="checkbox" id="isBestFriend" name="isBestFriend" />
+    <button type="submit">Add friend</button>
+  </form>
+</Layout>
+```
+
+#### Modifier ou supprimer une entrée
+
+`src/pages/edit/[id].astro` contiendra un formulaire pour modifier les données d'un ami et un bouton pour supprimer un ami. Lors de la soumission, cette page enverra une requête `POST` au endpoint `/api/friends/:id` pour mettre à jour les données d'un ami.
+
+Si l'utilisateur clique sur le bouton Supprimer, cette page enverra une requête « DELETE » au endpoint « /api/friends/:id » pour supprimer un ami.
+
+```astro title="src/pages/edit/[id].astro"
+---
+import Layout from "../../layouts/Layout.astro";
+import { app } from "../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+
+interface Friend {
+  name: string;
+  age: number;
+  isBestFriend: boolean;
+}
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect("/404");
+}
+
+const db = getFirestore(app);
+const friendsRef = db.collection("friends");
+const friendSnapshot = await friendsRef.doc(id).get();
+
+if (!friendSnapshot.exists) {
+  return Astro.redirect("/404");
+}
+
+const friend = friendSnapshot.data() as Friend;
+---
+
+<Layout title="Edit {friend.name}">
+  <h1>Edit {friend.name}</h1>
+  <p>Here you can edit or delete your friend's data.</p>
+  <form method="post" action={`/api/friends/${id}`}>
+    <label for="name">Name</label>
+    <input type="text" id="name" name="name" value={friend.name} />
+    <label for="age">Age</label>
+    <input type="number" id="age" name="age" value={friend.age} />
+    <label for="isBestFriend">Is best friend?</label>
+    <input
+      type="checkbox"
+      id="isBestFriend"
+      name="isBestFriend"
+      checked={friend.isBestFriend}
+    />
+    <button type="submit">Edit friend</button>
+  </form>
+  <button type="button" id="delete-document">Delete</button>
+</Layout>
+<script>
+  const deleteButton = document.getElementById(
+    "delete-document"
+  ) as HTMLButtonElement;
+  const url = document.querySelector("form")?.getAttribute("action") as string;
+  deleteButton.addEventListener("click", async () => {
+    const response = await fetch(url, {
+      method: "DELETE",
+    });
+    if (response.redirected) {
+      window.location.assign(response.url);
+    }
+  });
+</script>
+```
+
+#### Afficher une entrée individuelle
+
+`src/pages/friend/[id].astro` affichera les détails d'un ami.
+
+```astro title="src/pages/friend/[id].astro"
+---
+import Layout from "../../layouts/Layout.astro";
+import { app } from "../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+
+interface Friend {
+  name: string;
+  age: number;
+  isBestFriend: boolean;
+}
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect("/404");
+}
+
+const db = getFirestore(app);
+const friendsRef = db.collection("friends");
+const friendSnapshot = await friendsRef.doc(id).get();
+
+if (!friendSnapshot.exists) {
+  return Astro.redirect("/404");
+}
+
+const friend = friendSnapshot.data() as Friend;
+---
+
+<Layout title={friend.name}>
+  <h1>{friend.name}</h1>
+  <p>Age: {friend.age}</p>
+  <p>Is best friend: {friend.isBestFriend ? "Yes" : "No"}</p>
+</Layout>
+```
+
+#### Affiche une liste d'entrées avec un bouton d'édition
+
+Pour terminer, `src/pages/dashboard.astro` affichera une liste d'amis. Chaque ami aura un lien vers sa page de détails et un bouton d'édition qui redirigera l'utilisateur vers la page de modification.
+
+```astro title="src/pages/dashboard.astro"
+---
+import { app } from "../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+import Layout from "../layouts/Layout.astro";
+
+interface Friend {
+  id: string;
+  name: string;
+  age: number;
+  isBestFriend: boolean;
+}
+
+const db = getFirestore(app);
+const friendsRef = db.collection("friends");
+const friendsSnapshot = await friendsRef.get();
+const friends = friendsSnapshot.docs.map((doc) => ({
+  id: doc.id,
+  ...doc.data(),
+})) as Friend[];
+---
+
+<Layout title="My friends">
+  <h1>Friends</h1>
+  <ul>
+    {
+      friends.map((friend) => (
+        <li>
+          <a href={`/friend/${friend.id}`}>{friend.name}</a>
+          <span>({friend.age})</span>
+          <strong>{friend.isBestFriend ? "Bestie" : "Friend"}</strong>
+          <a href={`/edit/${friend.id}`}>Edit</a>
+        </li>
+      ))
+    }
+  </ul>
+</Layout>
+
+```
+
+Après avoir créé toutes les pages, vous devriez avoir la structure de fichiers suivante :
+
+<FileTree title="Project Structure">
+- src
+  - env.d.ts
+  - firebase
+    - client.ts
+    - server.ts
+  - pages
+    - dashboard.astro
+    - add.astro
+    - edit
+      - [id].astro
+    - friend
+      - [id].astro
+    - api
+      - friends
+        - index.ts
+        - [id].ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## Ressources communautaires
+
+- [Exemple d'application utilisant Astro et Firebase SSR](https://github.com/kevinzunigacuellar/astro-firebase)
+
+
+
+
+
 
 
 
