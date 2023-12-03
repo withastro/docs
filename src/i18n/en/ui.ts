@@ -101,9 +101,9 @@ export default {
 	'feedback.categoryGroupLabel': 'Choose feedback category',
 	'feedback.issue': 'Issue',
 	'feedback.createIssue': 'Create GitHub Issue',
-  'feedback.createIssue.description': 'Quickest way to alert our team of a problem.',
-  'feedback.sendFeedback': 'Send us feedback',
-  'feedback.sendFeedback.description': 'Send us a message directly.',
+	'feedback.createIssue.description': 'Quickest way to alert our team of a problem.',
+	'feedback.sendFeedback': 'Send us feedback',
+	'feedback.sendFeedback.description': 'Send us a message directly.',
 	'feedback.idea': 'Idea',
 	'feedback.other': 'Other',
 	'feedback.messageA11yLabel': 'Message',
@@ -126,7 +126,7 @@ export default {
 		'Want to contribute to this guide? Have a blog post, video, or another resource to share about migrating from this technology to Astro?',
 	'stub.description.cms': 'Know more about how to use this CMS with Astro?',
 	'stub.description.backend': 'Know more about how to use this backend service with Astro?',
-  // Starlight banner
-  'starlight.title': 'Want to build your own Docs?',
-  'starlight.description': 'Grab this template to get started.'
+	// Starlight banner
+	'starlight.title': 'Want to build your own Docs?',
+	'starlight.description': 'Grab this template to get started.',
 };

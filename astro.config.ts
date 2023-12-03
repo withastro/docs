@@ -27,26 +27,26 @@ export default defineConfig({
 		preact({ compat: true }),
 		starlight({
 			title: 'Docs',
-      customCss: ['./src/styles/custom.css'],
+			customCss: ['./src/styles/custom.css'],
 			logo: {
 				light: './src/assets/astro-logo-light.svg',
 				dark: './src/assets/astro-logo-dark.svg',
 				alt: 'Astro',
 			},
-      components: {
-        Head: './src/components/starlight/Head.astro',
-        MarkdownContent: './src/components/starlight/MarkdownContent.astro',
-        MobileTableOfContents: './src/components/starlight/MobileTableOfContents.astro',
-        TableOfContents: './src/components/starlight/TableOfContents.astro',
-        PageSidebar: './src/components/starlight/PageSidebar.astro',
-        Pagination: './src/components/starlight/Pagination.astro',
-        SiteTitle: './src/components/starlight/SiteTitle.astro',
-        Search: './src/components/starlight/Search.astro',
-        Sidebar: './src/components/starlight/Sidebar.astro'
-      },
-      editLink: {
-        baseUrl: 'https://github.com/withastro/docs/edit/main'
-      },
+			components: {
+				Head: './src/components/starlight/Head.astro',
+				MarkdownContent: './src/components/starlight/MarkdownContent.astro',
+				MobileTableOfContents: './src/components/starlight/MobileTableOfContents.astro',
+				TableOfContents: './src/components/starlight/TableOfContents.astro',
+				PageSidebar: './src/components/starlight/PageSidebar.astro',
+				Pagination: './src/components/starlight/Pagination.astro',
+				SiteTitle: './src/components/starlight/SiteTitle.astro',
+				Search: './src/components/starlight/Search.astro',
+				Sidebar: './src/components/starlight/Sidebar.astro',
+			},
+			editLink: {
+				baseUrl: 'https://github.com/withastro/docs/edit/main',
+			},
 			defaultLocale: 'en',
 			locales: makeLocalesConfig(),
 			sidebar: makeSidebar(),
@@ -54,11 +54,11 @@ export default defineConfig({
 				github: 'https://github.com/withastro/astro',
 				discord: 'https://astro.build/chat',
 			},
-      pagefind: false
+			pagefind: false,
 		}),
-    sitemap()
+		sitemap(),
 	],
-  trailingSlash: 'always',
+	trailingSlash: 'always',
 	scopedStyleStrategy: 'where',
 	compressHTML: false,
 	markdown: {
