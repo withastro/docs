@@ -119,7 +119,7 @@ Once you have committed your edits to your fork, follow the prompts to **create 
 
 Every pull request needs to be reviewed by our contributors and approved by a maintainer.
 
-You can find more information about submittin your pull requests in our [contributor guides](https://contribute.docs.astro.build)
+You can find more information about submitting your pull requests in our [contributor guides](https://contribute.docs.astro.build)
 
 ### Contribute PRs using an online code editor (e.g. StackBlitz, Codeflow, CodeSandbox, Gitpod)
 
