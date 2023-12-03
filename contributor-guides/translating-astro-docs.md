@@ -89,6 +89,172 @@ After you've found what you want to translate, check the [Translation Tracker](h
 > **Warning**
 > Not all of our pages are ready for translation, we roll out new pages for translation based on their stability, so do not translate any page that doesn't include a "Translate this page" button in the "Contribute" section of the right sidebar.
 
+### What to translate
+
+You're free to choose the pages *you* feel the most comfortable or excited about, but if you're asking yourself "What should I translate next?", this section is here to help you.
+
+We've separated pages into categories, mostly according to Astro Docs' sidebar organization. Each category is described with an approximate view count, maintenance cost, and page size stats, as well as a description explaining the rationale and other tips.
+
+#### Start Here
+
+- **View Count:** High
+- **Maintenance:** Low
+- **Size:** Medium
+
+The "Start Here" pages are some of the most visited pages in the whole documentation thanks to being the entry point for new Astro users. They're mostly small, averaging at 150 lines, contain little terminology, and rarely change.
+
+This means these pages are also a good entry point for new translators, especially for recently-added languages who need to build up their own glossary and attract new contributors to the language.
+
+An exception is the "Upgrade to vX" guides, which are bigger, contain more terminology than most pages, and have fewer visitors after the first months after a new major release. The content will not change, but these pages become less useful over time.
+
+#### Core Concepts
+
+- **View Count:** High
+- **Maintenance:** Low
+- **Size:** Small
+
+The "Core Concepts" pages explain the reasons to use Astro, its design principles and its architecture. These are among our most viewed pages and are smaller than average, having less than 100 lines each and also rarely changing. On the other hand, these pages introduce considerably more terminology than the "Start Here" pages, making them more complex to translate.
+
+#### Tutorials
+
+- **View Count:** High
+- **Maintenance:** Medium
+- **Size:** Medium
+
+The "Tutorials" pages include learning-oriented guides on Astro and its features. These pages are especially seen by beginner Astro developers, complex terminology is kept to a minimum, and what is there is well-explained for beginners in small to medium-sized pages.
+
+Even though these pages may be small, they are cummulative, demanding more of translators and reviewers to keep a consistent language across all pages. Translators may need to look at past or future pages to ensure that they are using a consistent vocuabulary and phrasing. Tutorials are also constantly updated based on user feedback, meaning changes are more frequent but generally lesson-specific.
+
+Reminder: You are welcome to update existing tutorial translations, but you must seek guidance before starting to translate a tutorial that does not yet exist.
+
+#### Basics
+
+- **View Count:** High
+- **Maintenance:** Low
+- **Size:** Medium
+
+The "Basics" pages document some of the main features of Astro. On average, these are bigger and more complex than the sections above. However they do not often change, and are highly viewed, making them very useful to have and easy to keep up to date.
+
+#### Built-ins
+
+- **View Count:** High
+- **Maintenance:** Medium
+- **Size:** Big
+
+The "Built-ins" pages include Astro features you can add to your project by opting into them, these are highly viewed while at the same time introducing several new terms in bigger pages that are frequently improved during minors, increasing its maintenance cost.
+
+#### Add-ons
+
+- **View Count:** High
+- **Maintenance:** Low
+- **Size:** Medium
+
+The "Add-ons" pages explain Astro features and support that you can add by installing integrations, also serving as a "portal" for specific integration pages. Overall, these have an average size and low maintenance cost, despite introducing some more complex terminology to translate.
+
+#### Integrations
+
+- **View Count:** Medium
+- **Maintenance:** Medium
+- **Size:** Medium
+
+The "Integrations" pages are sub-pages available at the root "Add integrations" page. These considerably vary in size, maintenance cost, and complexity. The "UI Frameworks" integrations are smaller and easier to maintain, while the others average bigger sizes and are more bound to go through changes.
+
+The most viewed pages by category, by a considerable margin, the `@astrojs/react`, `@astrojs/node`, and `@astrojs/tailwind` pages.
+
+Each integration page contains several specific terms about the integrated technology, increasing the translation complexity especially for those not familiar with it.
+
+#### Recipes
+
+- **View Count:** Medium
+- **Maintenance:** Super Low
+- **Size:** Extra Small
+
+The "Recipes" pages are portals to task-oriented, how-to guides from migrating to Astro from another technology to deploying to a specific platform.
+
+Since the content most users will look for is in the sub-pages, the root Recipe pages are one of the smallest and with less complexity of the whole documentation, being easy wins for any translators wanting to get some pages done quickly.
+
+#### Migrate to Astro
+
+- **View Count:** Low
+- **Maintenance:** Medium
+- **Size:** Big
+
+The "Migrate to Astro" pages explain how to move from another technology to Astro. Most of these are "stubs": smaller guides that link to related community resources, while others contain very detailed code samples and migration tips, being one of the biggest pages in our docs.
+
+If you're looking for quick wins, the stub pages should be straightforward to translate at a pleasant pace, while the complete ones are bigger and have more complexity, recommended for more experienced translators and users of said technology.
+
+#### CMS Guides
+
+- **View Count:** Low
+- **Maintenance:** Low
+- **Size:** Medium
+
+The "CMS Guides" pages explain how to use Astro alongside a specific content management system. Most are "stubs" that serve to link to outside resources generally from the CMS' official documentation, while others contain medium-sized guides.
+
+On average, CMS pages contain less and simpler terminology than other 3rd-party content guides. Any of the stub pages should be quick wins while the most complete ones have an average maintenance cost and size.
+
+#### Backend Services
+
+- **View Count:** Low
+- **Maintenance:** Low
+- **Size:** Medium
+
+The "Backend Services" pages explain how to use backend services alongside Astro, mostly database or auth-related.
+
+Most of them are small "stub" pages, with little to no maintenance cost, with higher complexity and size for our most viewed guides: Firebase and Supabase.
+
+#### Deploy Guides
+
+- **View Count:** Low
+- **Maintenance:** Low
+- **Size:** Small
+
+The "Deploy Guides" pages explain how to deploy Astro to specific hosting platforms, be it statically or with SSR.
+
+Deploying Astro to most hosting platforms is a straightforward task since many support zero-configuration deploys for Astro projects and contain official documentation on using Astro.
+
+As a whole, deploy guides are quick wins, not containing a lot of terminology and having small page sizes.
+
+#### More Recipes
+
+- **View Count:** Low
+- **Maintenance:** Low
+- **Size:** Medium
+
+The "More Recipes" guides include task-oriented guides based on several of Astro features and use cases, most pages are small, or rather, code-heavy, containing less complex terminology, making most of them quick wins for any translators, especially those not used to all of Astro's terminology yet thanks to the recipe's self-contained approach.
+
+#### Guides
+
+- **View Count:** Medium
+- **Maintenance:** Medium
+- **Size:** Medium
+
+The pages under "Guides" include information about some of Astro's most commonly used features, and are highly visited. These are average-sized, with a fairly complex sample of terminology for each feature. They regularly receive incremental changes at minor release time, especially for experimental features.
+
+#### Configuration
+
+- **View Count:** Medium
+- **Maintenance:** Low
+- **Size:** Small
+
+The "Configuration" guides teach you how to configure Astro and other features in your project. Most are small pages that rarely rarely change. Most of the terminology used on these pages is common across several projects, not just Astro, making it less complex to translate and with vocabulary that you can find on other translated web sites.
+
+#### Reference
+
+- **View Count:** High
+- **Maintenance:** High
+- **Size:** Big
+
+The "Reference" pages include API documentation for several parts of the Astro codebase, including the biggest pages in the whole documentation. Each page will contain plenty of terminology, and will change during minor and major releases. We recommend for more experienced translators to tackle these pages as they may require very specific Astro knowledge.
+
+#### Error Pages
+
+- **View Count:** Super Low
+- **Maintenance:** Super Low
+- **Size:** Extra Small
+
+The error pages are definitely the smallest, least complex, and rarely changed pages in the entire documentation. With currently more than 50+ different error pages, tackling them is a quick and impactful win in increasing a language's translation coverage. This is also one of the most helpful translations you can choose for your fellow language speakers so that they can better understand issues with their projects.
+
 ## Review Process
 
 The review process is a very important step in our internationalization work, enabling us maintainers to quickly and reliably merge new translations knowing the content has been both translated and reviewed for accuracy. Whether your work is being reviewed or you are reviewing someone else's translations, we have a few tips for you!
