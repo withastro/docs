@@ -3,19 +3,18 @@
 
 We welcome contributions of any size and contributors of any skill level. As an open source project, we believe in giving back to our contributors. We are happy to help with guidance on PRs, technical writing, and turning any feature idea into a reality.
 
+
+> **"[Astro Docs Docs"](https://contribute.docs.astro.build)** is the best place to learn how to make a helpful, successful contribution to Astro Docs.
+>
+> There, you'll find all the information below, and so much more!
+
+This document is has some basic information to get you started, but we encourage you to visit our [dedicated site for contributing to Astro docs](https://contribute.docs.astro.build) for all the information you need!
+
+There, you will find a writing and style guide, instructions on how to make changes and open PRs, guidance for translating the docs, and even information about how to help review Astro Docs PRs. 
+
+
 > **Tip for new contributors:**
 > Take a look at [GitHub's Docs](https://docs.github.com/en/get-started/quickstart/hello-world) for helpful information on working with GitHub.
-
-**See also**:
-
-- [Writing Guide](https://github.com/withastro/docs/blob/main/contributor-guides/writing-and-style-guide.md)
-- [Translating Guide](https://github.com/withastro/docs/blob/main/contributor-guides/translating-astro-docs.md)
-- [Recipe Guide](https://github.com/withastro/docs/blob/main/contributor-guides/submitting-a-recipe.md)
-- [Astro Maintainers](https://github.com/withastro/docs/blob/main/contributor-guides/astro-maintainers-guide-to-docs.md) manual
-- [Support Squad members](https://github.com/withastro/docs/blob/main/contributor-guides/support-squad-guide-to-docs.md) manual
-
-
-This document is an active work in progress! But, we hope you'll find some useful information here to get started.
 
 ## Types of Contributions
 
@@ -44,17 +43,6 @@ We provide new content and rework existing content _in response to GitHub Issues
 Submitting an Issue is usually the first step to making a change. After an Issue has been considered by the community, we often reach out to community members to encourage them to submit PRs based on existing Issues.
 
 Larger contributions to the docs are encouraged after participating in Issues and Discussions, as unsolicited material may not fit into our existing plans.
-
-> Tip: Existing PRs and Issues need reviewing, triaging, and feedback, too! You can make valuable contributions by commenting, suggesting, testing, researching, brainstorming and generally helping in all areas on GitHub!
-
-
-<!-- ### Examples of Helpful PR Contributions
-- typo fixes (to any language)
-- correcting broken links (in any language)
-- rewriting broken code samples (typos, or incorrect/incomplete code)
-- additions or corrections to a short section on a page
-    - adding a new or undocumented item in a list with a short description
-    - noting or removing a deprecated feature -->
 
 ### Examples of Helpful GitHub New Issues
 
@@ -111,7 +99,7 @@ Our Docs are translated into several languages and we rely on automation to noti
 
 **Pages generated from outside sources**
 
-Some of our English-language pages are generated from outside sources and maintained in another repo. Currently, these files are `configuration-reference.md` and all those under the `integrations-guides/` directory.
+Some of our English-language pages are generated from outside sources and maintained in another repo. Currently, these files are `configuration-reference.md` and all those under the `integrations-guides/` directory as well as our error messages.
 
 The page's **Edit this page** button should redirect you to the file that should be changed. Alternatively, you can get the correct URL from the file's `githubURL` frontmatter property.
 
@@ -131,7 +119,7 @@ Once you have committed your edits to your fork, follow the prompts to **create 
 
 Every pull request needs to be reviewed by our contributors and approved by a maintainer.
 
-You can also read an annotated blog post with screenshots [demonstrating the process of editing the docs this way](https://www.rainsberger.ca/posts/contribute-open-source-docs-edit-page-on-github/).
+You can find more information about submitting your pull requests in our [contributor guides](https://contribute.docs.astro.build)
 
 ### Contribute PRs using an online code editor (e.g. StackBlitz, Codeflow, CodeSandbox, Gitpod)
 
@@ -223,3 +211,4 @@ In the terminal on your computer:
 - [Fork the docs](https://github.com/withastro/docs/fork)
 - [Raise an issue](https://github.com/withastro/docs/issues/new)
 - [Discuss the docs](https://discord.gg/cZDZU3hJHc)
+- [Visit the Astro Docs Docs to see even more documentation about contributing to Astro docs!](https://contribute.docs.astro.build)
