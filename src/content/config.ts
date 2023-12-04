@@ -6,6 +6,14 @@ export const baseSchema = z.object({
 	i18nReady: z.boolean().default(false),
 	githubURL: z.string().url().optional(),
 	hasREADME: z.boolean().optional(),
+	// Extends Starlight’s default `hero` schema with custom fields.
+	hero: z.object({
+		facepile: z.object({
+			tagline: z.string(),
+			linkText: z.string(),
+			link: z.string(),
+		})
+	}).optional(),
 });
 
 export const deploySchema = baseSchema.extend({

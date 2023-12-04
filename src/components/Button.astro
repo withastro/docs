@@ -1,116 +1,64 @@
 ---
 import { Icon } from '@astrojs/starlight/components';
-const { class: className = '', style, href } = Astro.props;
-// Wrap in <span> because Houdini is disabled for a[href] for security
+import { z } from 'astro/zod';
+type IconName = Parameters<typeof Icon>[0]['name'];
 
-const { variant = 'primary', icon = null } = Astro.props;
+interface Props {
+	variant: 'primary' | 'secondary' | 'minimal';
+	link: string;
+	icon?: undefined | { type: 'icon'; name: IconName } | { type: 'raw'; html: string };
+}
+
+const propsSchema = z.object({
+	variant: z.enum(['primary', 'secondary', 'minimal']),
+	link: z.string(),
+	icon: z
+		.union([
+			z.object({ type: z.literal('icon'), name: z.string() }),
+			z.object({ type: z.literal('raw'), html: z.string() }),
+		])
+		.optional(),
+});
+
+const parsed = propsSchema.safeParse(Astro.props);
+if (!parsed.success) console.error(parsed.error);
+
+const { link, variant, icon } = Astro.props;
 ---
 
-<span class:list={[`link variant-${variant}`, className]} {style}>
-	<a {href}>
-		<span>
-			<slot />
-			{icon && <Icon name={icon} size="1.5rem" class="icon" />}
-		</span>
-	</a>
-</span>
+<a class:list={['sl-flex action', variant]} href={link}>
+	<slot />
+	{icon?.type === 'icon' && <Icon name={icon.name} size="1.5em" />}
+	{icon?.type === 'raw' && <Fragment set:html={icon.html} />}
+</a>
 
 <style>
-	.link {
-		--border-radius: 9999;
-		position: relative;
-		border-radius: calc(var(--border-radius) * 1px);
-		background: var(--background);
-	}
-	.variant-outline {
-		background: rgba(0, 0, 0, 0);
-		border-radius: 0;
-	}
-	.link {
-		--border-radius: 9999;
-		--duration: 200ms;
-		--delay: 30ms;
-		display: flex;
-		color: var(--sl-color-black);
-		font-family: var(--font-display);
-		font-size: var(--sl-text-lg);
-		width: max-content;
-	}
-	.link:active {
-		transform: translateY(0);
-	}
-	.link.variant-outline {
-		color: var(--sl-color-white);
-	}
-
-	.icon {
-		display: inline-block !important;
-		transform: translateY(0.375rem);
-		align-self: center;
-	}
-
-	a {
-		display: flex;
+	.action {
+		gap: 0.5em;
 		align-items: center;
-		justify-content: center;
-		padding: 0.67rem 1.5rem;
-		width: 100%;
-		height: 100%;
-		text-decoration: none;
-		color: inherit !important;
-		/* Indicates the button boundaries for forced colors users in older browsers */
-		outline: 1px solid transparent;
-	}
-
-	.variant-blank a {
-		padding: 0.5rem 3rem;
-	}
-
-	@media (forced-colors: active) {
-		a {
-			border: 1px solid LinkText;
-		}
-	}
-
-	a > :global(* + *) {
-		margin-inline-start: 0.25rem;
-	}
-
-	.variant-primary {
-		--variant: primary;
-		--background: var(--sl-color-banner-bg, var(--sl-color-bg-accent));
-	}
-	.variant-primary:hover,
-	.variant-primary:focus-within {
-		--link-color-stop-a: #6d39ff;
-		--link-color-stop-b: #af43ff;
-	}
-	.variant-primary:active {
-		--link-color-stop-a: #5f31e1;
-		--link-color-stop-b: #a740f3;
-	}
-
-	.variant-blank {
-		--variant: primary;
-		--background: var(--sl-color-black);
-		color: var(--sl-color-accent-high);
-		border: 2px solid var(--sl-color-accent-high);
-	}
-
-	.variant-blank:hover {
-		text-decoration: underline;
-	}
-
-	:root[data-theme='light'] .variant-blank {
+		border-radius: 999rem;
+		padding: 0.5rem 1.125rem;
 		color: var(--sl-color-white);
-		border-color: var(--sl-color-white);
+		line-height: 1.1875;
+		text-decoration: none;
+		font-size: var(--sl-text-sm);
+	}
+	.action.primary {
+		background: var(--sl-color-text-accent);
+		color: var(--sl-color-black);
+	}
+	.action.secondary {
+		background: var(--sl-color-black);
+		border: 2px solid;
+	}
+	.action.minimal {
+		padding-inline: 0;
 	}
 
-	.variant-outline {
-		--variant: outline;
-	}
-	.variant-outline:hover,
-	.variant-outline:focus-within {
-		color: var(--sl-color-accent-high);
+	@media (min-width: 50rem) {
+		.action {
+			font-size: var(--sl-text-base);
+			padding: 1rem 1.25rem;
+		}
 	}
 </style>
