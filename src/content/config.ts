@@ -1,15 +1,20 @@
-import { defineCollection, z, type CollectionEntry } from 'astro:content';
+import { type CollectionEntry, defineCollection, z } from 'astro:content';
+import { docsSchema } from '@astrojs/starlight/schema';
 
-export const baseSchema = z
-	.object({
-		type: z.literal('base').optional().default('base'),
-		title: z.string(),
-		description: z.string().optional(),
-		i18nReady: z.boolean().default(false),
-		githubURL: z.string().url().optional(),
-		hasREADME: z.boolean().optional(),
-	})
-	.strict();
+export const baseSchema = z.object({
+	type: z.literal('base').optional().default('base'),
+	i18nReady: z.boolean().default(false),
+	githubURL: z.string().url().optional(),
+	hasREADME: z.boolean().optional(),
+	// Extends Starlight’s default `hero` schema with custom fields.
+	hero: z.object({
+		facepile: z.object({
+			tagline: z.string(),
+			linkText: z.string(),
+			link: z.string(),
+		})
+	}).optional(),
+});
 
 export const deploySchema = baseSchema.extend({
 	type: z.literal('deploy'),
@@ -112,9 +117,8 @@ export function createIsLangEntry(lang: string) {
 }
 
 export const isEnglishEntry = createIsLangEntry('en');
+export const isKoreanEntry = createIsLangEntry('ko');
 
-const docs = defineCollection({
-	schema: docsCollectionSchema,
-});
-
-export const collections = { docs };
+export const collections = {
+	docs: defineCollection({ schema: docsSchema({ extend: docsCollectionSchema }) }),
+};
