@@ -155,8 +155,8 @@ export default [
 	},
 	{
 		text: 'API du plugin Overlay Dev',
-		slug: 'reference/dev-overlay-plugin-reference',
-		key: 'reference/dev-overlay-plugin-reference',
+		slug: 'reference/dev-toolbar-app-reference',
+		key: 'reference/dev-toolbar-app-reference',
 	},
 	{
 		text: 'Utilisation des Directives',
