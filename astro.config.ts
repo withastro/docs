@@ -56,6 +56,17 @@ export default defineConfig({
 				discord: 'https://astro.build/chat',
 			},
 			pagefind: false,
+			head: [
+				// Add ICO favicon fallback for Safari.
+				{
+					tag: 'link',
+					attrs: {
+						rel: 'icon',
+						href: '/favicon.ico',
+						sizes: '32x32',
+					},
+				},
+			],
 		}),
 		sitemap(),
 	],
