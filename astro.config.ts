@@ -1,5 +1,4 @@
 import starlight from '@astrojs/starlight';
-import preact from '@astrojs/preact';
 import { defineConfig, sharpImageService } from 'astro/config';
 import { makeLocalesConfig } from './config/locales';
 import { makeSidebar } from './config/sidebar';
@@ -24,7 +23,6 @@ const site = VERCEL_PREVIEW_SITE || 'https://docs.astro.build/';
 export default defineConfig({
 	site,
 	integrations: [
-		preact({ compat: true }),
 		starlight({
 			title: 'Docs',
 			customCss: ['./src/styles/custom.css'],
