@@ -154,7 +154,7 @@ export default [
 		key: 'reference/image-service-reference',
 	},
 	{
-		text: 'API de la barre d'outils Dev',
+		text: "API de la barre d'outils Dev",
 		slug: 'reference/dev-toolbar-app-reference',
 		key: 'reference/dev-toolbar-app-reference',
 	},
