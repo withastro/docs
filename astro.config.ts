@@ -6,10 +6,10 @@ import { makeSidebar } from './config/sidebar';
 import rehypeSlug from 'rehype-slug';
 import remarkSmartypants from 'remark-smartypants';
 
+import { sitemap } from './integrations/sitemap';
 import { rehypeOptimizeStatic } from './plugins/rehype-optimize-static';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
-import { sitemap } from './integrations/sitemap';
 
 /* https://vercel.com/docs/projects/environment-variables/system-environment-variables#system-environment-variables */
 const VERCEL_PREVIEW_SITE =
@@ -32,7 +32,7 @@ export default defineConfig({
 				alt: 'Astro',
 			},
 			components: {
-        EditLink: './src/components/starlight/EditLink.astro',
+				EditLink: './src/components/starlight/EditLink.astro',
 				Head: './src/components/starlight/Head.astro',
 				Hero: './src/components/starlight/Hero.astro',
 				MarkdownContent: './src/components/starlight/MarkdownContent.astro',
