@@ -1,3 +1,4 @@
+import type { RehypePlugins } from 'astro';
 import type { Root } from 'hast';
 import { toString } from 'hast-util-to-string';
 import { h } from 'hastscript';
@@ -9,7 +10,6 @@ import { visit } from 'unist-util-visit';
 import type { UILanguageKeys } from '../src/i18n/translation-checkers';
 import { useTranslationsForLang } from '../src/i18n/util';
 import { getLanguageCodeFromPathname, mdFilePathToUrl } from './remark-fallback-lang';
-import type { RehypePlugins } from 'astro';
 
 const AnchorLinkIcon = h(
 	'span',
