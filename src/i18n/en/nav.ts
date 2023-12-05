@@ -150,9 +150,9 @@ export default [
 		key: 'reference/image-service-reference',
 	},
 	{
-		text: 'Dev Overlay Plugin API',
-		slug: 'reference/dev-overlay-plugin-reference',
-		key: 'reference/dev-overlay-plugin-reference',
+		text: 'Dev Toolbar App API',
+		slug: 'reference/dev-toolbar-app-reference',
+		key: 'reference/dev-toolbar-app-reference',
 	},
 	{
 		text: 'Template Directives',
