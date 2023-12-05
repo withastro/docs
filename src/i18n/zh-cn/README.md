@@ -1,7 +1,7 @@
 # Astro Docs 中文翻译指南
 
 感谢你为 Astro 中文文档做出贡献！  
-在提交改动之前，请阅读 [i18n 指南](../../../contributor-guides/translating-astro-docs.md)，它含有翻译指南、提交流程、审查流程等很多有用的内容。同时也欢迎加入 Astro 的 [Discord 社区](https://astro.build/chat)！  
+在提交改动之前，请阅读 [i18n 指南](https://contribute.docs.astro.build/guides/i18n/)，它含有翻译指南、提交流程、审查流程等很多有用的内容。同时也欢迎加入 Astro 的 [Discord 社区](https://astro.build/chat)！  
 本中文翻译指南是在上述 i18n 指南的基础上针对中文翻译的补充说明，上述指南中已经存在的内容不再赘述。
 
 和其他开源项目一样，我们的文档是由很多人自愿参与翻译的，参与翻译的人也会随着时间而变化。这篇翻译指南的目的是保证文档的翻译风格和质量的一致性，使文档读起来更加流畅易懂。
