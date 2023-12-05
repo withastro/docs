@@ -1,0 +1,55 @@
+---
+import type { Props } from '@astrojs/starlight/props';
+import SidebarSublist from '@astrojs/starlight/components/SidebarSublist.astro';
+import { MobileMenuFooter } from 'virtual:starlight/components';
+import type { SidebarEntry } from 'node_modules/@astrojs/starlight/utils/navigation';
+
+import Sponsors from '../LeftSidebar/Sponsors.astro';
+import { stripLangFromSlug } from '~/util';
+import { isSubPage } from '~/util/isSubPage';
+import { getEntry } from 'astro:content';
+import { stripLeadingAndTrailingSlashes } from 'node_modules/@astrojs/starlight/utils/path';
+
+let { sidebar, slug } = Astro.props;
+
+async function remap(i: SidebarEntry) {
+	if (i.type === 'group') {
+		i.entries = await Promise.all(i.entries.map(remap));
+		return i;
+	}
+
+	const itemSlug = stripLeadingAndTrailingSlashes(i.href);
+	// @ts-expect-error i.href is not defined as a page slug, even though we know it is
+	const itemSlugWithoutLang = stripLangFromSlug(itemSlug);
+
+	const fallback = (await getEntry('docs', itemSlug)) ? undefined : true;
+
+	i.isCurrent = isSubPage(slug, itemSlugWithoutLang);
+	i.attrs.class = fallback ? 'fallback' : undefined;
+	return i;
+}
+
+sidebar = await Promise.all(sidebar.map(remap));
+---
+
+<SidebarSublist sublist={sidebar} />
+
+<Sponsors />
+
+<div class="md:sl-hidden">
+	<MobileMenuFooter {...Astro.props} />
+</div>
+
+<style>
+	p {
+		color: var(--sl-color-gray-3);
+		font-family: 'Courier New', Courier, monospace;
+	}
+
+	:global(.fallback)::after {
+		content: 'EN';
+		vertical-align: super;
+		font-size: 0.75em;
+		font-weight: 700;
+	}
+</style>

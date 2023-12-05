@@ -90,8 +90,8 @@ class IntegrationPagesBuilder {
 		const category = keywords.includes('renderer')
 			? 'renderer'
 			: keywords.includes('astro-adapter')
-			? 'adapter'
-			: 'other';
+			  ? 'adapter'
+			  : 'other';
 		const i18nReady = (!this.#i18nNotReadyIntegrations.has(packageName)).toString();
 		const readme = await (await fetch(readmeURL)).text();
 		return { name, category, readme, srcdir: packageName, i18nReady, isPrivate };
@@ -102,9 +102,7 @@ class IntegrationPagesBuilder {
 	 */
 	async #getIntegrationData(): Promise<IntegrationData[]> {
 		// Read all the packages in Astro’s integrations directory.
-		const url = `https://api.github.com/repos/${this.#sourceRepo}/contents/${
-			this.#sourcePath
-		}?ref=${this.#sourceBranch}`;
+		const url = `https://api.github.com/repos/${this.#sourceRepo}/contents/${this.#sourcePath}?ref=${this.#sourceBranch}`;
 		const packages: { name: string }[] = await githubGet({ url, githubToken: this.#githubToken });
 
 		const integrationData = await Promise.all(
@@ -112,12 +110,8 @@ class IntegrationPagesBuilder {
 				.filter((pkg) => !this.#deprecatedIntegrations.has(pkg.name))
 
 				.map(async (pkg) => {
-					const pkgJsonURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${
-						this.#sourceBranch
-					}/${this.#sourcePath}/${pkg.name}/package.json`;
-					const readmeURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${
-						this.#sourceBranch
-					}/${this.#sourcePath}/${pkg.name}/README.md`;
+					const pkgJsonURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${this.#sourceBranch}/${this.#sourcePath}/${pkg.name}/package.json`;
+					const readmeURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${this.#sourceBranch}/${this.#sourcePath}/${pkg.name}/README.md`;
 
 					return this.#getSingleIntegrationData({
 						packageName: pkg.name,
@@ -146,9 +140,7 @@ class IntegrationPagesBuilder {
 	}: IntegrationData): Promise<string> {
 		// Remove title from body
 		readme = readme.replace(/^# (.+)/, '');
-		const githubLink = `https://github.com/${this.#sourceRepo}/tree/${this.#sourceBranch}/${
-			this.#sourcePath
-		}/${srcdir}/`;
+		const githubLink = `https://github.com/${this.#sourceRepo}/tree/${this.#sourceBranch}/${this.#sourcePath}/${srcdir}/`;
 
 		const createDescription = (name: string, category: string): string => {
 			return `Learn how to use the ${name} ${prettyCategoryDescription[category]}.`;
