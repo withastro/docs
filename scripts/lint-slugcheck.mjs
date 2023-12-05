@@ -14,6 +14,7 @@ class SlugChecker {
 		/** @type {Record<string, string[]>} */
 		const errorMap = {};
 		(await glob('./src/content/docs/**/*.{md,mdx}'))
+			.filter((file) => !file.endsWith('404.mdx'))
 			.map((file) => {
 				const [, lang, slug] = file.replace('./src/content/docs/', '').match(/^([^/]+)\/(.+)$/);
 				if (lang === 'en') enSlugs.add(slug);
