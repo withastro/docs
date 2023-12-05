@@ -1,7 +1,7 @@
 # Astro Docs 中文翻譯指南
 
 感謝你有興趣對 Astro 文檔翻譯做出貢獻！  
-提交改動前，別忘了閱讀 [i18n 指南](../../../contributor-guides/translating-astro-docs.md)，裡面包含了貢獻過程中需要知道的內容。  
+提交改動前，別忘了閱讀 [i18n 指南](https://contribute.docs.astro.build/guides/i18n/)，裡面包含了貢獻過程中需要知道的內容。  
 也歡迎加入 Astro 的 [Discord 社群](https://astro.build/chat)與其他貢獻者們交流！
 
 本指南旨在整理一份統一的格式及風格指南，使文檔讀起來更流暢並易於理解。  
