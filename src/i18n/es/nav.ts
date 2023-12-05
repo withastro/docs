@@ -68,7 +68,7 @@ export default NavDictionary({
 	'reference/integrations-reference': 'API de Integraciones',
 	'reference/adapter-reference': 'API de Adaptador',
 	'reference/image-service-reference': 'API de Servicio de Imágenes',
-	'reference/dev-overlay-plugin-reference': 'API de Plugin de Superposición para Desarrolladores',
+	'reference/dev-toolbar-app-reference': 'API de la Barra de Herramientas de Desarrollo',
 	'reference/directives-reference': 'Directivas de Plantilla',
 	'reference/cli-reference': 'La CLI de Astro',
 	'reference/error-reference': 'Referencia de Errores',
