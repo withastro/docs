@@ -1,0 +1,147 @@
+---
+title: 动态导入图片
+description: 了解如何使用 Vite 的 import.meta.glob 函数动态导入图片
+i18nReady: true
+type: recipe
+---
+import FileTree from '~/components/FileTree.astro'
+
+本地[图片](/zh-cn/guides/images/)必须导入 `.astro` 文件中才能显示。但有时，你会想或需要动态地导入图片路径，而不是明确地导入每一张图片。
+
+在这个指南中，你将学会如何使用 Vite 的 `import.meta.glob` 函数动态导入图片。你将构建一个卡片组件，展示一个人的姓名、年龄和照片。
+
+## 操作步骤
+
+1. 在 `src` 目录下创建一个新的 `assets` 文件夹，并将你的图片添加到这个新文件夹中。
+
+<FileTree>
+- src/
+  - assets/
+    - avatar-1.jpg
+    - avatar-2.png
+    - avatar-3.jpeg
+</FileTree>
+
+:::note
+`assets` 是一个常用的文件夹命名约定，用于放置图片，但你也可以随意命名这个文件夹。
+::: 
+
+2. 为你的卡片创建一个新的 Astro 组件，并导入 `<Image />` 组件。
+
+    ```astro title="src/components/MyCustomCardComponent.astro" 
+    ---
+     import { Image } from 'astro:assets';
+    ---
+    ```
+
+3. 指定组件将接收的 `props`，以便在每张卡片上显示必要的信息。如果你在项目中使用 TypeScript，你还可以选择定义它们的类型。
+
+    ```astro title="src/components/MyCustomCardComponent.astro" ins={4-11}
+    ---
+     import { Image } from 'astro:assets';
+
+     interface Props {
+        imagePath: string;
+        altText: string;
+        name: string;
+        age: number;
+     }
+
+     const { imagePath, altText, name, age } = Astro.props;
+    ---
+    ``` 
+
+4. 创建一个新的 `images` 变量并使用 `import.meta.glob` 函数，它将返回 `assets` 文件夹内所有图片路径的对象。
+
+    ```astro title="src/components/MyCustomCardComponent.astro" ins={12}
+    ---
+     import { Image } from 'astro:assets';
+
+     interface Props {
+        imagePath: string;
+        altText: string;
+        name: string;
+        age: number;
+     }
+     
+     const { imagePath, altText, name, age } = Astro.props;
+     const images = import.meta.glob('/src/assets/*.{jpeg,jpg,png,gif}')
+    ---
+    ```
+
+5. 使用 `props` 属性来为你的组件创建 HTML 标记。
+
+    ```astro title="src/components/MyCustomCardComponent.astro" ins={14-18}
+    ---
+     import { Image } from 'astro:assets';
+
+     interface Props {
+        imagePath: string;
+        altText: string;
+        name: string;
+        age: number;
+     }
+     
+     const { imagePath, altText, name, age } = Astro.props;
+     // 类型：Record<string, () => Promise<{default: ImageMetadata}>>
+     const images = import.meta.glob('/src/assets/*.{jpeg,jpg,png,gif}')
+    ---
+    <div class="card">
+        <h2>{name}</h2>
+        <p>Age: {age}</p>
+        <Image src={} alt={altText} />
+    </div>
+    ```
+
+6. 在 `src` 属性中，传入 `images` 对象并使用方括号表示法来指定图片路径。然后确保调用 glob 函数。
+   
+    ```astro title="src/components/MyCustomCardComponent.astro" ins={17}
+    ---
+     import { Image } from 'astro:assets';
+
+     interface Props {
+        imagePath: string;
+        altText: string;
+        name: string;
+        age: number;
+     }
+     
+     const { imagePath, altText, name, age } = Astro.props;
+     const images = import.meta.glob('/src/assets/*.{jpeg,jpg,png,gif}')
+    ---
+    <div class="card">
+        <h2>{name}</h2>
+        <p>Age: {age}</p>
+        <Image src={images[imagePath]()} alt={altText} />
+    </div>
+    ```
+
+:::note
+`images` 是一个包含 `assets` 文件夹内所有图片路径的对象。
+
+```js
+const images = {
+  './assets/avatar-1.jpg': () => import('./assets/avatar-1.jpg'),
+  './assets/avatar-2.png': () => import('./assets/avatar-2.png'),
+  './assets/avatar-3.jpeg': () => import('./assets/avatar-3.jpeg')
+}
+```
+
+`imagePath` 属性是一个包含你想要显示的图片路径的字符串。`import.meta.glob()` 正在做的任务是找到与 `imagePath` 属性匹配的图片路径，并为你处理导入。
+::: 
+
+7. 在一个 Astro 页面中导入并使用卡片组件，并传入 `props` 的值。
+
+    ```astro title="src/pages/index.astro" 
+    ---
+    import MyCustomCardComponent from '../components/MyCustomCardComponent.astro';
+    ---
+    <MyCustomCardComponent 
+        imagePath="/src/assets/avatar-1.jpg"
+        altText="A headshot of Priya against a brick wall background."
+        name="Priya"
+        age={25}
+    />
+    ```
+
+
