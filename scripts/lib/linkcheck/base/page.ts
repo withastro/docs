@@ -108,7 +108,7 @@ export class HtmlPage {
 
 		// Attempt to find the page's main content element
 		this.mainContent =
-			this.findFirst((el) => el.tagName.toLowerCase() === 'article') ||
+			this.findFirst((el) => el.tagName.toLowerCase() === 'main') ||
 			this.findFirst((el) => el.tagName.toLowerCase() === 'body');
 
 		// Attempt to determine the main content language by traversing the tree upwards
