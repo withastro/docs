@@ -126,4 +126,7 @@ export default UIDictionary({
 	'stub.description.cms': 'Astro에서 이 CMS를 사용하는 방법에 대해 잘 알고 계신가요?',
 	'stub.description.backend':
 		'Astro에서 이 백엔드 서비스를 사용하는 방법에 대해 더 잘 알고 계신가요?',
+	// Starlight banner
+	'starlight.title': '나만의 문서를 만들고 싶으신가요?',
+	'starlight.description': '시작하려면 이 템플릿을 사용하세요.',
 });
