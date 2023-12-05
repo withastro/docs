@@ -25,34 +25,43 @@ export default NavDictionary({
 	'core-concepts/astro-components': 'コンポーネント',
 	'core-concepts/astro-pages': 'ページ',
 	'core-concepts/layouts': 'レイアウト',
+	'core-concepts/astro-syntax': 'Astroテンプレートの構文',
+	'core-concepts/rendering-modes': 'レンダリングモード',
+
+	// Built-ins
+	builtins: '組み込み機能',
+	'guides/content-collections': 'コンテンツコレクション',
+	'guides/view-transitions': 'ビュートランジション',
+	'guides/prefetch': 'プリフェッチ',
+
+	// Add-ons
+	addons: 'アドオン',
+	'guides/integrations-guide': 'インテグレーションの追加',
+	'core-concepts/framework-components': 'UIフレームワーク',
+	'guides/server-side-rendering': 'サーバーサイドレンダリング（SSR）',
 
 	// Recipes
 	examples: 'レシピ',
 	'guides/migrate-to-astro': 'Astroへの移行',
 	'guides/cms': 'CMSとの接続',
 	'guides/backend': 'バックエンドサービスの追加',
-	'guides/integrations-guide': 'インテグレーションの追加',
 	'guides/deploy': 'サイトのデプロイ',
 	'guides/recipes': 'その他のレシピ',
 
 	// Guides
 	features: 'ガイド',
-	'core-concepts/astro-syntax': 'Astroテンプレートの構文',
-	'core-concepts/framework-components': 'UIフレームワーク',
 	'core-concepts/routing': 'ルーティング',
-	'guides/markdown-content': 'MarkdownとMDX',
-	'guides/content-collections': 'コンテンツコレクション',
+	'guides/markdown-content': 'Markdown',
 	'guides/client-side-scripts': 'スクリプトとイベントハンドリング',
 	'guides/styling': 'CSSとスタイル',
 	'guides/images': '画像',
 	'guides/fonts': 'フォント',
 	'guides/imports': 'インポート',
-	'guides/server-side-rendering': 'サーバーサイドレンダリング（SSR）',
 	'core-concepts/endpoints': 'エンドポイント',
 	'guides/data-fetching': 'データフェッチ',
+	'guides/internationalization': '国際化',
 	'guides/middleware': 'ミドルウェア',
 	'guides/testing': 'テスト',
-	'guides/view-transitions': 'ビュートランジション',
 	'guides/troubleshooting': 'トラブルシューティング',
 
 	// Configuration
@@ -69,6 +78,7 @@ export default NavDictionary({
 	'reference/integrations-reference': 'インテグレーションAPI',
 	'reference/adapter-reference': 'アダプターAPI',
 	'reference/image-service-reference': '画像サービスAPI',
+	'reference/dev-overlay-plugin-reference': 'Dev OverlayプラグインAPI',
 	'reference/directives-reference': 'テンプレートディレクティブ',
 	'reference/cli-reference': 'Astro CLI',
 	'reference/error-reference': 'エラーリファレンス',
