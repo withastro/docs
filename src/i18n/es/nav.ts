@@ -3,7 +3,7 @@ import { NavDictionary } from '../translation-checkers';
 export default NavDictionary({
 	startHere: 'Empezar Aquí',
 	'getting-started': 'Cómo Empezar',
-	install: 'Instalación',
+	'install': 'Instalación',
 	'editor-setup': 'Configuración del Editor',
 	'guides/upgrade-to/v3': 'Actualizar a v3',
 
@@ -27,6 +27,7 @@ export default NavDictionary({
 	builtins: 'Funciones Integradas',
 	'guides/content-collections': 'Colecciones de Contenido',
 	'guides/view-transitions': 'View Transitions',
+	'guides/prefetch': 'Precargar',
 
 	addons: 'Complementos',
 	'guides/integrations-guide': 'Agregar integraciones',
@@ -50,10 +51,9 @@ export default NavDictionary({
 	'guides/imports': 'Importaciones',
 	'core-concepts/endpoints': 'Endpoints',
 	'guides/data-fetching': 'Fetching de Datos',
+	'guides/internationalization': 'Internacionalización',
 	'guides/middleware': 'Middleware',
 	'guides/testing': 'Testing',
-	'guides/prefetch': 'Precargar',
-	'guides/internationalization': 'Internacionalización',
 	'guides/troubleshooting': 'Solución de Problemas',
 
 	configuration: 'Configuración',
