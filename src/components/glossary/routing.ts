@@ -63,7 +63,10 @@ function getTermsPerLocale(locale: string, defaultTerms: { slug: string, entry: 
 }
 
 function getPaths(): Path[] {
-	const locales = Object.entries(config.locales).map(([code, locale]) => ({ locale: code, ...locale }));
+	const locales = config.isMultilingual
+		? Object.entries(config.locales).map(([code, locale]) => ({ locale: code, ...locale }))
+		: [{ ...config.defaultLocale, locale: 'en' }];
+
 	const defaultLocale = config.defaultLocale.locale || 'en';
 
 	const defaultTerms = glossaryEntries
