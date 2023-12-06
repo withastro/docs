@@ -69,7 +69,7 @@ export default NavDictionary({
 	'reference/integrations-reference': 'एकीकरण API',
 	'reference/adapter-reference': 'एडाप्टर API',
 	'reference/image-service-reference': 'छवि सेवा API',
-	'reference/dev-overlay-plugin-reference': 'डेवलपर ओवरले प्लगइन API',
+	'reference/dev-toolbar-app-reference': 'डेवलपर टूलबार ऍप API',
 	'reference/directives-reference': 'टेम्पलेट निर्देशिकाएँ',
 	'reference/cli-reference': 'Astro CLI',
 	'reference/error-reference': 'त्रुटि संदर्भ',
