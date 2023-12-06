@@ -1,169 +1,75 @@
 ---
-const { class: className = '', style, href } = Astro.props;
-// Wrap in <span> because Houdini is disabled for a[href] for security
+import { Icon } from '@astrojs/starlight/components';
+import { z } from 'astro/zod';
+type IconName = Parameters<typeof Icon>[0]['name'];
 
-const { variant = 'primary' } = Astro.props;
+interface Props {
+	variant: 'primary' | 'secondary' | 'minimal';
+	link: string;
+	icon?: undefined | { type: 'icon'; name: IconName } | { type: 'raw'; html: string };
+}
+
+const propsSchema = z.object({
+	variant: z.enum(['primary', 'secondary', 'minimal']).default('primary'),
+	link: z.string(),
+	icon: z
+		.union([
+			z.object({ type: z.literal('icon'), name: z.custom<IconName>(z.string().parse) }),
+			z.object({ type: z.literal('raw'), html: z.string() }),
+		])
+		.optional(),
+});
+
+// TODO: Remove once all content has been updated to use the correct props.
+if (Astro.props.variant === ('outline' as any)) {
+	console.warn(`
+<Button variant="outline"> is deprecated.
+Please use <Button variant="secondary"> instead.`);
+	Astro.props.variant = 'secondary';
+}
+if ('href' in Astro.props && typeof Astro.props.href === 'string') {
+	console.warn(`
+<Button href="..."> is deprecated.
+Please use <Button link="..."> instead.`);
+	Astro.props.link = Astro.props.href;
+}
+const { link, variant, icon } = propsSchema.parse(Astro.props);
 ---
 
-<span class:list={[`link pixel variant-${variant}`, className]} {style}>
-	<a {href}>
-		<span><slot /></span>
-	</a>
-</span>
+<a class:list={['sl-flex action', variant]} href={link}>
+	<slot />
+	{icon?.type === 'icon' && <Icon name={icon.name} size="1.5em" />}
+	{icon?.type === 'raw' && <Fragment set:html={icon.html} />}
+</a>
 
 <style>
-	.pixel {
-		--link-color-stop-a: #205eff;
-		--link-color-stop-b: #c238bd;
-
-		--border-radius: 8;
-		--pixel-size: 4;
-		--background: var(--gradient-pop-1);
-		position: relative;
-		border-radius: calc(var(--border-radius) * 1px);
-	}
-	.pixel::before {
-		content: '';
-		position: absolute;
-		top: calc(var(--pixel-size) * 1px);
-		right: 0;
-		bottom: calc(var(--pixel-size) * 1px);
-		left: 0;
-		background: var(--background);
-		z-index: -1;
-	}
-	.pixel::after {
-		content: '';
-		position: absolute;
-		top: 0;
-		right: calc(var(--pixel-size) * 1px);
-		bottom: 0;
-		left: calc(var(--pixel-size) * 1px);
-		background: var(--background);
-		z-index: -1;
-	}
-	.pixel.variant-outline {
-		background: rgba(255, 255, 255, 0);
-		border-radius: 0;
-	}
-	.pixel.variant-outline::before {
-		background: rgba(255, 255, 255, 0);
-		border: calc(var(--pixel-size) * 1px) solid var(--background);
-		border-top: 0;
-		border-bottom: 0;
-	}
-	.pixel.variant-outline::after {
-		background: rgba(255, 255, 255, 0);
-		border: calc(var(--pixel-size) * 1px) solid var(--background);
-		border-right: 0;
-		border-left: 0;
-	}
-	@supports (background: paint(pixel)) {
-		:global(.js) .pixel {
-			background: none !important;
-		}
-		:global(.js) .pixel::before {
-			content: '';
-			position: absolute;
-			top: 0;
-			right: 0;
-			bottom: 0;
-			left: 0;
-			display: block;
-			z-index: -1;
-			overflow: hidden;
-			border-radius: 0;
-			background: var(--background);
-			-webkit-mask-image: paint(pixel);
-			mask-image: paint(pixel);
-		}
-		:global(.js) .pixel::after {
-			content: none;
-		}
-	}
-	.link {
-		--border-radius: 8;
-		--duration: 200ms;
-		--delay: 30ms;
-		--background: linear-gradient(180deg, var(--link-color-stop-a), var(--link-color-stop-b));
-		display: flex;
-		color: white;
-		font-family: var(--font-display);
-		font-size: 1.25rem;
-		width: max-content;
-		transition-property: transform, --link-color-stop-a, --link-color-stop-b;
-		transition-duration: var(--duration);
-		transition-delay: var(--delay);
-		transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-	}
-	.link:hover,
-	.link:focus-within {
-		transform: translateY(calc(var(--pixel-size) * -0.5px));
-	}
-	.link:active {
-		transform: translateY(0);
-	}
-	a {
-		display: flex;
+	.action {
+		gap: 0.5em;
 		align-items: center;
-		justify-content: center;
-		padding: 0.67rem 1.25rem;
-		width: 100%;
-		height: 100%;
+		border-radius: 999rem;
+		padding: 0.5rem 1.125rem;
+		color: var(--sl-color-white);
+		line-height: 1.1875;
 		text-decoration: none;
-		color: inherit !important;
-		/* Indicates the button boundaries for forced colors users in older browsers */
-		outline: 1px solid transparent;
+		font-size: var(--sl-text-sm);
+	}
+	.action.primary,
+	.action.primary:hover {
+		background: var(--sl-color-text-accent);
+		color: var(--sl-color-black);
+	}
+	.action.secondary {
+		background: var(--sl-color-black);
+		border: 2px solid;
+	}
+	.action.minimal {
+		padding-inline: 0;
 	}
 
-	@media (forced-colors: active) {
-		a {
-			border: 1px solid LinkText;
+	@media (min-width: 50rem) {
+		.action {
+			font-size: var(--sl-text-base);
+			padding: 1rem 1.25rem;
 		}
-	}
-
-	a > :global(* + *) {
-		margin-inline-start: 0.25rem;
-	}
-
-	.variant-primary {
-		--variant: primary;
-		--background: linear-gradient(180deg, var(--link-color-stop-a), var(--link-color-stop-b));
-	}
-	.variant-primary:hover,
-	.variant-primary:focus-within {
-		--link-color-stop-a: #6d39ff;
-		--link-color-stop-b: #af43ff;
-	}
-	.variant-primary:active {
-		--link-color-stop-a: #5f31e1;
-		--link-color-stop-b: #a740f3;
-	}
-
-	.variant-outline {
-		--variant: outline;
-		--background: none;
-		color: var(--background);
-	}
-	.variant-outline > a::before {
-		position: absolute;
-		top: 0;
-		right: calc(var(--pixel-size) * 1px);
-		bottom: calc(var(--pixel-size) * 1px);
-		left: calc(var(--pixel-size) * 1px);
-		content: '';
-		display: block;
-		transform-origin: bottom center;
-		background: linear-gradient(to top, var(--background), rgba(255, 255, 255, 0));
-		opacity: 0.3;
-		transform: scaleY(0);
-		transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
-	}
-	.variant-outline:hover > a::before,
-	.variant-outline:focus-within > a::before {
-		transform: scaleY(1);
-	}
-	.variant-outline:active > a::before {
-		transform: scaleY(1);
 	}
 </style>

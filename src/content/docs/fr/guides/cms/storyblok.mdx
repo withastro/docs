@@ -1,0 +1,543 @@
+---
+title: Storyblok & Astro
+description: Ajouter du contenu à votre projet Astro en utilisant Storyblok comme CMS
+type: cms
+service: Storyblok
+stub: false
+i18nReady: true
+---
+import FileTree from '~/components/FileTree.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+
+
+[Storyblok](https://www.storyblok.com/) est un CMS headless basé sur des composants qui vous permet de gérer votre contenu à l'aide de composants réutilisables appelés Bloks.
+
+## Intégration avec Astro
+
+Dans cette section, vous utiliserez l'[intégration Storyblok](https://github.com/storyblok/storyblok-astro) pour connecter Storyblok à Astro.
+
+### Prérequis
+
+Pour commencer, vous devez disposer des éléments suivants :
+
+1. **Un projet Astro** - Si vous n'avez pas encore de projet Astro, notre [Guide d'installation](/fr/install/auto/) vous permettra d'être opérationnel en un rien de temps.
+
+2. **Un compte Storyblok et un espace** - Si vous n'avez pas encore de compte, [inscrivez-vous gratuitement](https://app.storyblok.com/#/signup) et créez un nouvel espace.
+
+3. **Un jeton de prévisualisation Storyblok** - Ce jeton sera utilisé pour récupérer les brouillons et les versions publiées de votre contenu. Vous pouvez trouver et générer votre jeton API dans l'onglet Jetons d'accès des paramètres de votre espace Storyblok.
+
+### Mise en place des identifiants
+
+Pour ajouter vos identifiants Storyblok à Astro, créez un fichier `.env` à la racine de votre projet avec la variable suivante :
+
+```ini title=".env"
+STORYBLOK_TOKEN=YOUR_PREVIEW_TOKEN
+```
+
+Vous devriez maintenant pouvoir utiliser ces variables d'environnement dans votre projet.
+
+Votre répertoire racine doit maintenant contenir ce nouveau fichier :
+
+<FileTree title="Structure du projet">
+  - src/
+  - **.env**
+  - astro.config.mjs
+  - package.json
+</FileTree>
+
+### Installation des dépendances
+
+Pour connecter Astro à votre espace Storyblok, installez l'intégration officielle [Storyblok integration](https://github.com/storyblok/storyblok-astro) en utilisant la commande ci-dessous pour votre gestionnaire de paquets préféré :
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```shell
+    npm install @storyblok/astro vite
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```shell
+    pnpm add @storyblok/astro vite
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    yarn add @storyblok/astro vite
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Configuration de Storyblok
+
+Modifiez votre fichier de configuration Astro pour inclure l'intégration de Storyblok :
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import storyblok from '@storyblok/astro';
+import { loadEnv } from 'vite';
+
+const env = loadEnv("", process.cwd(), 'STORYBLOK');
+
+export default defineConfig({
+  integrations: [
+    storyblok({
+      accessToken: env.STORYBLOK_TOKEN,
+      components: {
+        // Ajoutez vos composants ici
+      },
+      apiOptions: {
+        // Choisissez votre région de l'espace Storyblok
+        region: 'us', // optional,  or 'eu' (default)
+      },
+    })
+  ],
+});
+```
+
+L'intégration de Storyblok nécessite un objet avec les propriétés suivantes :
+
+1. `accessToken` - Ceci fait référence au jeton API de Storyblok que vous avez ajouté dans l'étape précédente.
+
+:::tip
+Comme le fichier de configuration d'Astro ne supporte pas normalement les variables d'environnement, utilisez la fonction `loadEnv` de Vite pour les charger.
+:::
+
+2. `components` - Un objet qui associe les noms des composants Storyblok aux chemins vers vos composants locaux. Ceci est nécessaire pour rendre vos Storyblok Bloks dans Astro.
+
+:::note
+Les chemins des composants sont relatifs au répertoire `src`. Par exemple, si votre composant est situé dans le répertoire `src/storyblok/MyComponent.astro`, le chemin sera `storyblok/MyComponent` (sans l'extension `.astro`).
+:::
+
+3. `apiOptions` - Un objet contenant les [options de l'API Storyblok](https://github.com/storyblok/storyblok-astro#options).
+
+:::caution
+Par défaut, la région est `eu`. Si votre espace Storyblok a été créé dans la région US, vous devrez définir la région à `us`.
+:::
+
+### Connexion des Bloks aux composants Astro
+
+Pour connecter vos Bloks à Astro, créez un nouveau dossier nommé `storyblok` dans le répertoire `src`. Ce dossier contiendra tous les composants Astro qui correspondront à vos Bloks dans votre bibliothèque Storyblok Blok.
+
+Dans cet exemple, vous avez un type de contenu Blok `blogPost` dans votre bibliothèque Storyblok avec les champs suivants :
+
+- `title` - Un champ de texte
+- `description` - Un champ de texte
+- `content` - Un champ de texte riche
+
+Notre but est de créer un composant Astro équivalent qui utilisera ces champs pour rendre son contenu. Pour ce faire, créez un nouveau fichier nommé `BlogPost.astro` dans `src/storyblok` avec le contenu suivant :
+
+```astro title="src/storyblok/BlogPost.astro"
+---
+import { storyblokEditable, renderRichText } from '@storyblok/astro'
+
+const { blok } = Astro.props
+const content = renderRichText(blok.content)
+---
+
+<article {...storyblokEditable(blok)}>
+  <h1>{blok.title}</h1>
+  <p>{blok.description}</p>
+  <Fragment set:html={content} />
+</article>
+```
+
+La propriété `blok` contient les données que vous recevrez de Storyblok. Elle contient également les champs qui ont été définis dans le type de contenu `blogPost` Blok dans Storyblok.
+
+Pour rendre notre contenu, l'intégration fournit des fonctions utilitaires telles que :
+
+- `storyblokEditable` - elle ajoute les attributs nécessaires aux éléments afin que vous puissiez les éditer dans Storyblok.
+- `renderRichText` - elle transforme le champ de texte riche en HTML.
+
+Votre répertoire racine devrait inclure ce nouveau fichier :
+
+<FileTree title="Structure du projet">
+  - src/
+  - storyblok/
+  - **BlogPost.astro**
+  - .env
+  - astro.config.mjs
+  - package.json
+</FileTree>
+
+Enfin, pour connecter le Blok `blogPost` au composant `BlogPost`, ajoutez une nouvelle propriété à votre objet components dans votre fichier de configuration Astro.
+
+- La clé est le nom du Blok dans Storyblok. Dans ce cas, il s'agit de `blogPost`.
+- La valeur est le chemin vers le composant. Dans ce cas, c'est `storyblok/BlogPost`.
+
+:::caution
+Le `key` doit correspondre exactement au nom de votre Blok dans Storyblok pour être référencé correctement. Si ce n'est pas le cas, ou si vous essayez de référencer un composant qui n'existe pas dans Storyblok, vous obtiendrez une erreur.
+:::
+
+```js title="astro.config.mjs" ins={12}
+import { defineConfig } from 'astro/config';
+import storyblok from '@storyblok/astro';
+import { loadEnv } from 'vite';
+
+const env = loadEnv("", process.cwd(), 'STORYBLOK');
+
+export default defineConfig({
+  integrations: [
+    storyblok({
+      accessToken: env.STORYBLOK_TOKEN,
+      components: {
+        blogPost: 'storyblok/BlogPost',
+      },
+      apiOptions: { 
+        region: 'us',
+      },
+    })
+  ],
+});
+```
+
+### Récupération de données
+
+Pour tester la configuration, dans Storyblok, créez une nouvelle story avec le type de contenu `blogPost` nommée `test-post`.
+Dans Astro, créez une nouvelle page dans le répertoire `src/pages/` nommée `test-post.astro` avec le contenu suivant :
+
+```astro title="src/pages/test-post.astro"
+---
+import { useStoryblokApi } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+
+const storyblokApi = useStoryblokApi()
+
+const { data } = await storyblokApi.get("cdn/stories/test-post", {
+  version: import.meta.env.DEV ? "draft" : "published",
+});
+
+const content = data.story.content;
+---
+<StoryblokComponent blok={content} />
+```
+
+Pour interroger vos données, utilisez le hook `useStoryblokApi`. Cela initialisera une nouvelle instance de client en utilisant votre configuration d'intégration.
+
+Pour rendre votre contenu, passez la propriété `content` de la story au `StoryblokComponent` en tant que prop `blok`. Ce composant rendra les Bloks définis dans la propriété `content`. Dans ce cas, il rendra le composant `BlogPost`.
+
+## Créer un blog avec Astro et Storyblok
+
+Avec l'intégration mise en place, vous pouvez maintenant créer un blog avec Astro et Storyblok.
+
+### Prérequis
+
+1. **Un espace Storyblok** - Pour ce tutoriel, nous recommandons d'utiliser un nouvel espace. Si vous avez déjà un espace avec des Bloks, n'hésitez pas à les utiliser, mais vous devrez modifier le code pour qu'il corresponde aux noms et aux types de contenu des Bloks.
+
+2. **Un projet Astro intégré à Storyblok** - Voir [les intégrations avec Astro](#intégration-avec-astro) pour les instructions sur la façon de mettre en place l'intégration.
+
+### Création d'une librairie blok
+
+Pour créer des Bloks, allez dans l'application Storyblok et cliquez sur le bouton **Block Library**. Cliquez ensuite sur le bouton <kbd>+ New blok</kbd> et créer les Bloks suivants :
+
+1. `blogPost` - Un type de contenu Blok avec les champs suivants :
+ - `title` - Un champ de texte
+ - `description` - Un champ de texte
+ - `content` - Un champ de texte enrichi
+
+2. `blogPostList` - Un Blok imbriqué vide
+
+3. `page` - Un type de contenu Blok avec les champs suivants :
+ - `body` - Un Blok emboîtable
+
+### Création de contenu
+
+Pour ajouter un nouveau contenu, accédez à la section Contenu en cliquant sur l'onglet **Contenu**. En utilisant la bibliothèque Blok que vous avez créée à l'étape précédente, créez les storys suivantes :
+
+1. Une story de type contenu avec le Blok `page`. Dans le champ `body`, ajoutez un Blok `blogPostList`.
+
+2. `blog/no-javascript` - Une story de type de contenu `blogPost` dans le dossier blog.
+ ```yaml
+ title: Pas de JavaScript
+ description: Un exemple d'article de blog
+ content: Bonjour à tous ! Cet article de blog qui n'utilise pas de JavaScript.
+    ```
+3. `blog/astro-is-amazing` - Une story de type de contenu `blogPost` dans le dossier blog.
+ ```yaml
+ title: Astro est incroyable
+ description: Nous aimons Astro
+ content: Bonjour à tous ! Cet article de blog a été créé avec Astro.
+    ```
+
+Maintenant que votre contenu est prêt, retournez à votre projet Astro et commencez à construire votre blog.
+
+### Connecter les Bloks aux composants
+
+Pour connecter vos Bloks nouvellement créés aux composants Astro, créez un nouveau dossier nommé `storyblok` dans votre répertoire `src` et ajoutez les fichiers suivants :
+
+`Page.astro` est un composant de type Block emboîtable qui rendra récursivement tous les Bloks à l'intérieur de la propriété `body` du Blok `page`. Il ajoute également les attributs `storyblokEditable` à l'élément parent, ce qui nous permettra d'éditer la page dans Storyblok.
+
+```astro title="src/storyblok/Page.astro"
+---
+import { storyblokEditable } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/components/StoryblokComponent';
+const { blok } = Astro.props
+---
+
+<main {...storyblokEditable(blok)}>
+  {
+    blok.body?.map((blok) => {
+      return <StoryblokComponent blok={blok} />
+    })
+  }
+</main>
+```
+
+`BlogPost.astro` rendra les propriétés `title`, `description` et `content` du Blok `blogPost`.
+
+Pour transformer la propriété `content` d'un champ de texte riche en HTML, vous pouvez utiliser la fonction d'aide `renderRichText`.
+
+```astro title="src/storyblok/BlogPost.astro"
+---
+import { storyblokEditable, renderRichText } from '@storyblok/astro'
+const { blok } = Astro.props
+const content = renderRichText(blok.content)
+---
+<article {...storyblokEditable(blok)}>
+  <h1>{blok.title}</h1>
+  <p>{blok.description}</p>
+  <Fragment set:html={content} />
+</article>
+```
+
+`BlogPostList.astro` est un composant de type Blok imbriquable qui rendra une liste d'aperçus d'articles de blogs.
+
+Il utilise le hook `useStoryblokApi` pour récupérer toutes les story avec le type de contenu `blogPost`. Il utilise le paramètre de requête `version` pour récupérer les versions préliminaires des articles lorsqu'il est en mode développement et les versions publiées lorsqu'il est en mode production.
+
+`Astro.props` est utilisé pour configurer l'éditeur dans Storyblok. Des props supplémentaires peuvent également être passés à votre composant ici, si nécessaire.
+```astro title="src/storyblok/BlogPostList.astro"
+---
+import { storyblokEditable } from '@storyblok/astro'
+import { useStoryblokApi } from '@storyblok/astro'
+
+const storyblokApi = useStoryblokApi();
+
+const { data } = await storyblokApi.get('cdn/stories', {
+  version: import.meta.env.DEV ? "draft" : "published",
+  content_type: 'blogPost',
+})
+
+const posts = data.stories.map(story => {
+  return {
+    title: story.content.title,
+    date: new Date(story.published_at).toLocaleDateString("en-US", {dateStyle: "full"}),
+    description: story.content.description,
+    slug: story.full_slug,
+  }
+})
+
+const { blok } = Astro.props
+---
+
+<ul {...storyblokEditable(blok)}>
+  {posts.map(post => (
+    <li>
+      <time>{post.date}</time>
+      <a href={post.slug}>{post.title}</a>
+      <p>{post.description}</p>
+    </li>
+  ))}
+</ul>
+```
+
+Enfin, ajoutez vos composants à la propriété `components` de l'objet de configuration `storyblok` dans `astro.config.mjs`. La clé est le nom du Blok dans Storyblok, et la valeur est le chemin vers le composant relatif à `src`.
+
+```js title="astro.config.mjs" ins={12-14}
+import { defineConfig } from 'astro/config';
+import storyblok from '@storyblok/astro';
+import { loadEnv } from 'vite';
+
+const env = loadEnv("", process.cwd(), 'STORYBLOK');
+
+export default defineConfig({
+  integrations: [
+    storyblok({
+      accessToken: env.STORYBLOK_TOKEN,
+      components: {
+        blogPost: 'storyblok/BlogPost',
+        blogPostList: 'storyblok/BlogPostList',
+        page: 'storyblok/Page',
+      },
+      apiOptions: { 
+        region: 'us',
+      },
+    })
+  ],
+});
+```
+
+### Générer des pages
+
+Pour créer une route pour une `page` spécifique, vous pouvez récupérer son contenu directement à partir de l'API Storyblok et le passer au composant `StoryblokComponent`.  N'oubliez pas de vous assurer que vous avez ajouté le composant `Page` à votre astro.config.mjs.
+
+Créez un fichier `index.astro` dans `src/pages/` pour rendre la page `home` :
+
+```astro title="src/pages/index.astro" {3,7,8,9,17} 
+---
+import { useStoryblokApi } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+import BaseLayout from '../layouts/BaseLayout.astro'
+
+const storyblokApi = useStoryblokApi();
+const { data } = await storyblokApi.get('cdn/stories/home', {
+  version: import.meta.env.DEV ? "draft" : "published",
+});
+const content = data.story.content;
+---
+<html lang="en">
+  <head>
+    <title>Storyblok & Astro</title>
+  </head>
+  <body>
+    <StoryblokComponent blok={content} />
+  </body>
+</html>
+```
+
+Pour générer des pages pour tous les articles de votre blog, créez une page `.astro` qui créera des routes dynamiques. Cette approche varie selon que vous utilisez la **génération de site statique** (par défaut) ou le **rendu côté serveur**.
+
+#### Génération de sites statiques
+
+Si vous utilisez la génération de site statique par défaut d'Astro, vous utiliserez les [routes dynamiques](/fr/core-concepts/routing/#routes-dynamiques) et la fonction `getStaticPaths` pour générer les pages de votre projet.
+
+Créez un nouveau répertoire `src/pages/blog/` et ajoutez un nouveau fichier appelé `[...slug].astro` avec le code suivant :
+
+```astro title="src/pages/blog/[...slug].astro"
+---
+import { useStoryblokApi } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+
+export async function getStaticPaths() {
+  const sbApi = useStoryblokApi();
+
+  const { data } = await sbApi.get("cdn/stories", {
+    content_type: "blogPost",
+    version: import.meta.env.DEV ? "draft" : "published",
+  });
+
+  const stories = Object.values(data.stories);
+
+  return stories.map((story) => {
+    return {
+      params: { slug: story.slug },
+    };
+  });
+}
+
+const sbApi = useStoryblokApi();
+const { slug } = Astro.params;
+const { data } = await sbApi.get(`cdn/stories/blog/${slug}`, {
+  version: import.meta.env.DEV ? "draft" : "published",
+});
+
+const story = data.story;
+---
+
+<html lang="en">
+  <head>
+    <title>Storyblok & Astro</title>
+  </head>
+  <body>
+    <StoryblokComponent blok={story.content} />
+  </body>
+</html>
+```
+
+Ce fichier génère une page pour chaque story, avec le titre et le contenu récupérés de l'API Storyblok.
+
+:::note
+Lorsque vous ajoutez des dossiers à l'intérieur de Storyblok, incluez-les dans la balise lorsque vous interagissez avec l'API de Storyblok. Par exemple, dans la requête GET ci-dessus, nous pouvons utiliser **cdn/stories/blog**, avec un dossier de blog à l'intérieur plutôt que de les utiliser à la racine.
+:::
+
+#### Rendu côté serveur
+
+Si vous avez [opté pour le mode SSR](/fr/guides/server-side-rendering/), vous utiliserez des routes dynamiques pour récupérer les données des pages de Storyblok.
+
+Créez un nouveau répertoire `src/pages/blog/` et ajoutez un nouveau fichier appelé `[...slug].astro` avec le code suivant :
+
+```astro title="src/pages/blog/[...slug].astro"
+---
+import { useStoryblokApi } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+const storyblokApi = useStoryblokApi()
+const slug = Astro.params.slug;
+let content;
+try {
+  const { data } = await storyblokApi.get(`cdn/stories/blog/${slug}`, {
+    version: import.meta.env.DEV ? "draft" : "published",
+  });
+  content = data.story.content
+} catch (error) {
+  return Astro.redirect('/404')
+}
+---
+<html lang="en">
+  <head>
+    <title>Storyblok & Astro</title>
+  </head>
+  <body>
+    <StoryblokComponent blok={content} />
+  </body>
+</html>
+```
+
+Ce fichier va chercher et rendre les données de la page de Storyblok qui correspondent au paramètre dynamique `slug`.
+
+Puisque vous utilisez une redirection vers `/404`, créez une page 404 dans `src/pages` :
+
+```astro title="src/pages/404.astro"
+<html lang="fr">
+  <head>
+    <title>Non trouvé</title>
+  </head>
+  <body>
+    <p>Désolé, cette page n'existe pas.</p>
+  </body>
+</html>
+```
+
+Si la story n'est pas trouvée, la demande sera redirigée vers la page 404.
+
+### Publier votre site
+
+Pour déployer votre site, consultez nos [guides de déploiement](/fr/guides/deploy/) et suivez les instructions de votre hébergeur préféré.
+
+#### Reconstruction sur les changements de Storyblok
+
+Si votre projet utilise le mode statique par défaut d'Astro, vous devrez configurer un webhook pour déclencher une nouvelle construction lorsque votre contenu change. Si vous utilisez Netlify ou Vercel comme hébergeur, vous pouvez utiliser sa fonction webhook pour déclencher une nouvelle compilation à partir des événements Storyblok.
+
+##### Netlify
+
+Pour configurer un webhook dans Netlify :
+
+1. Allez sur le tableau de bord de votre site et cliquez sur **Build & deploy**.
+
+2. Sous l'onglet **Continuous Deployment**, trouvez la section **Build hooks** et cliquez sur **Add build hook**.
+
+3. Donnez un nom à votre webhook et sélectionnez la branche sur laquelle vous souhaitez déclencher la construction. Cliquez sur **Save** et copiez l'URL générée.
+
+##### Vercel
+
+Pour configurer un webhook dans Vercel :
+
+1. Allez sur le tableau de bord de votre projet et cliquez sur **Settings**.
+
+2. Sous l'onglet **Git**, trouvez la section **Deploy hooks**.
+
+3. Donnez un nom à votre webhook et indiquez la branche sur laquelle vous souhaitez déclencher la construction. Cliquez sur **Add** et copiez l'URL générée.
+
+##### Ajouter un webhook à Storyblok
+
+Dans votre espace Storyblok **Settings**, cliquez sur l'onglet **Webhooks**. Collez l'URL du webhook que vous avez copié dans le champ **Story published & unpublished** et cliquez sur <kbd>Save</kbd> pour créer un webhook.
+
+Désormais, chaque fois que vous publierez un nouvel article, une nouvelle construction sera déclenchée et votre blog sera mis à jour.
+
+## Ressources officielles
+
+- Storyblok fournit une [Intégration Astro](https://www.storyblok.com/mp/announcing-storyblok-astro) pour ajouter Storyblok à votre projet.
+
+## Ressources communautaires
+
+- [Faire fonctionner l'éditeur visuel pour Storyblok + Astro](https://dev.to/sandrarodgers/getting-the-visual-editor-to-work-for-storyblok-astro-2gja) par Sandra Rodgers
+- [Astro + Storyblok : prévisualisation SSR pour une édition visuelle instantanée](https://dev.to/jgierer12/astro-storyblok-ssr-preview-for-instant-visual-editing-3g9m) par Jonas Gierer
+- [Astro-Storyblok prévisualise le site avec la fonctionnalité Branch Deploys de Netlify](https://dev.to/sandrarodgers/astro-storyblok-previews-site-with-netlifys-branch-deploys-feature-44dh) par Sandra Rodgers
