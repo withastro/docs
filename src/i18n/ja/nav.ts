@@ -6,7 +6,7 @@ export default NavDictionary({
 	'getting-started': 'はじめに',
 	install: 'インストール',
 	'editor-setup': 'エディタのセットアップ',
-	'guides/upgrade-to/v3': 'v3へのアップグレード',
+	'guides/upgrade-to/v4': 'v4へのアップグレード',
 
 	// Core Concepts
 	coreConcepts: 'コアコンセプト',
@@ -78,7 +78,7 @@ export default NavDictionary({
 	'reference/integrations-reference': 'インテグレーションAPI',
 	'reference/adapter-reference': 'アダプターAPI',
 	'reference/image-service-reference': '画像サービスAPI',
-	'reference/dev-overlay-plugin-reference': 'Dev OverlayプラグインAPI',
+	'reference/dev-toolbar-app-reference': 'Dev Toolbar App API',
 	'reference/directives-reference': 'テンプレートディレクティブ',
 	'reference/cli-reference': 'Astro CLI',
 	'reference/error-reference': 'エラーリファレンス',
