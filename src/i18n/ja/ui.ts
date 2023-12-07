@@ -128,7 +128,7 @@ export default UIDictionary({
 		'このガイドに貢献したいですか？この技術からAstroへの移行に関するブログ記事や動画、その他のリソースを共有したいですか？',
 	'stub.description.cms': 'このCMSをAstroで使う方法をご存知ですか？',
 	'stub.description.backend': 'このバックエンドサービスをAstroで使う方法をご存知ですか？',
-	// Starlight banner 
+	// Starlight banner
 	'starlight.title': '自分のドキュメントを作りたいですか？',
 	'starlight.description': 'このテンプレートを使って始めましょう。',
 });
