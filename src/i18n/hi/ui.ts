@@ -51,11 +51,11 @@ export default UIDictionary({
 	'deploy.ssrTag': 'SSR', // "SSR"
 	'deploy.staticTag': 'Static', // "Static"
 	// CMS Guides vocabulary
-	'cms.navTitle': 'और CMS मार्गदर्शिकाएँ', // "More CMS guides"
+	'cms.navTitle': 'अधिक CMS मार्गदर्शिकाएँ', // "More CMS guides"
 	// Migration Guides vocabulary
-	'migration.navTitle': 'और माइग्रेशन मार्गदर्शिकाएँ', // "More migration guides"
+	'migration.navTitle': 'अधिक माइग्रेशन मार्गदर्शिकाएँ', // "More migration guides"
 	// Recipes vocabulary
-	'recipes.navTitle': 'और अधिक रेसिपीस', // "More recipes"
+	'recipes.navTitle': 'अधिक रेसिपी', // "More recipes"
 	// `<RecipeLinks>` vocabulary
 	'recipesLink.singular': 'संबंधित रेसिपी:', // "Related recipe:"
 	'recipesLink.plural': 'संबंधित रेसिपीस', // "Related recipes"
@@ -77,7 +77,7 @@ export default UIDictionary({
 	// `<LanguageSelect>` vocabulary
 	'languageSelect.label': 'भाषा चुने', // "Select language"
 	// Integrations vocabulary
-	'integrations.changelog': 'चेंजलॉग', // "Changelog"
+	'integrations.changelog': 'परिवर्तन लॉग', // "Changelog"
 	'integrations.footerTitle': 'अधिक एकीकरण', // "More Integrations"
 	'integrations.renderers': 'UI फ्रेमवर्क', // "UI Frameworks"
 	'integrations.adapters': 'SSR एडेप्टर', // "SSR Adapters"
