@@ -44,6 +44,7 @@ export default defineConfig({
 				SiteTitle: './src/components/starlight/SiteTitle.astro',
 				Search: './src/components/starlight/Search.astro',
 				Sidebar: './src/components/starlight/Sidebar.astro',
+				PageTitle: './src/components/starlight/PageTitle.astro',
 			},
 			editLink: {
 				baseUrl: 'https://github.com/withastro/docs/edit/main',
