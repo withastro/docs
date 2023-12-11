@@ -103,10 +103,13 @@ export default UIDictionary({
 	'feedback.categoryGroupLabel': 'フィードバックカテゴリを選択',
 	'feedback.issue': '問題',
 	'feedback.createIssue': 'GitHub Issueを作成',
+	'feedback.createIssue.description': 'チームに素早く問題を報告できます。',
+	'feedback.sendFeedback': 'フィードバックを送信',
+	'feedback.sendFeedback.description': 'メッセージを直接送ります。',
 	'feedback.idea': 'アイデア',
 	'feedback.other': 'その他',
 	'feedback.messageA11yLabel': 'メッセージ',
-	'feedback.placeholder': 'なにをお知らせしますか？',
+	'feedback.placeholder': '伝えたいことは何ですか？',
 	'feedback.submit': 'フィードバックを送る',
 	'feedback.close': 'フィードバックフォームを閉じる',
 	'feedback.success': 'ありがとうございます！フィードバックを受け取りました。',
@@ -125,4 +128,7 @@ export default UIDictionary({
 		'このガイドに貢献したいですか？この技術からAstroへの移行に関するブログ記事や動画、その他のリソースを共有したいですか？',
 	'stub.description.cms': 'このCMSをAstroで使う方法をご存知ですか？',
 	'stub.description.backend': 'このバックエンドサービスをAstroで使う方法をご存知ですか？',
+	// Starlight banner
+	'starlight.title': '自分のドキュメントを作りたいですか？',
+	'starlight.description': 'このテンプレートを使って始めましょう。',
 });
