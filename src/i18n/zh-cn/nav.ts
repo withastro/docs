@@ -5,7 +5,7 @@ export default NavDictionary({
 	'getting-started': '入门指南',
 	install: '安装',
 	'editor-setup': '编辑器设置',
-	'guides/upgrade-to/v3': '升级到 v3',
+	'guides/upgrade-to/v4': '升级到 v4',
 
 	coreConcepts: '核心理念',
 	'concepts/why-astro': '为什么选择 Astro',
@@ -68,7 +68,7 @@ export default NavDictionary({
 	'reference/integrations-reference': '集成 API',
 	'reference/adapter-reference': '适配器 API',
 	'reference/image-service-reference': '图像服务 API',
-	'reference/dev-overlay-plugin-reference': 'Dev Overlay 插件 API',
+	'reference/dev-toolbar-app-reference': '开发工具栏应用 API',
 	'reference/directives-reference': '模板指令',
 	'reference/cli-reference': '命令行',
 	'reference/error-reference': '错误参考',
