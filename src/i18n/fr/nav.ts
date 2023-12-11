@@ -154,9 +154,9 @@ export default [
 		key: 'reference/image-service-reference',
 	},
 	{
-		text: 'API du plugin Overlay Dev',
-		slug: 'reference/dev-overlay-plugin-reference',
-		key: 'reference/dev-overlay-plugin-reference',
+		text: "API de la barre d'outils Dev",
+		slug: 'reference/dev-toolbar-app-reference',
+		key: 'reference/dev-toolbar-app-reference',
 	},
 	{
 		text: 'Utilisation des Directives',
