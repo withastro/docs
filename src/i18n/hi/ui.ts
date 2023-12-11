@@ -103,7 +103,8 @@ export default UIDictionary({
 	'feedback.categoryGroupLabel': 'प्रतिक्रिया श्रेणी चुनें', // "Choose feedback category"
 	'feedback.issue': 'मुद्दा', // "Issue"
 	'feedback.createIssue': 'GitHub मुद्दा बनाएं', // "Create GitHub Issue"
-	'feedback.createIssue.description': 'किसी समस्या के बारे में हमारी टीम को सचेत करने का सबसे तेज़ तरीका।', // "Quickest way to alert our team of a problem."
+	'feedback.createIssue.description':
+		'किसी समस्या के बारे में हमारी टीम को सचेत करने का सबसे तेज़ तरीका।', // "Quickest way to alert our team of a problem."
 	'feedback.sendFeedback': 'हमें प्रतिक्रिया भेजें', // "Send us feedback"
 	'feedback.sendFeedback.description': 'हमें सीधे संदेश भेजें.', // "Send us a message directly."
 	'feedback.idea': 'विचार', // "Idea"
@@ -127,7 +128,8 @@ export default UIDictionary({
 	'stub.description.migration':
 		'क्या आप इस मार्गदर्शिका में योगदान देना चाहते हैं? क्या आपके पास इस तकनीक से Astro की ओर स्थानांतरित होने के बारे में साझा करने के लिए कोई ब्लॉग पोस्ट, Video या कोई अन्य संसाधन है?', // "Want to contribute to this guide? Have a blog post, video, or another resource to share about migrating from this technology to Astro?"
 	'stub.description.cms': 'Astro के साथ इस CMS का उपयोग कैसे करें इसके बारे में और जानें?', // "Know more about how to use this CMS with Astro?"
-	'stub.description.backend': 'Astro के साथ इस बैकएंड सेवा का उपयोग कैसे करें इसके बारे में और जानें?', // "Know more about how to use this backend service with Astro?"
+	'stub.description.backend':
+		'Astro के साथ इस बैकएंड सेवा का उपयोग कैसे करें इसके बारे में और जानें?', // "Know more about how to use this backend service with Astro?"
 	// Starlight banner
 	'starlight.title': 'क्या आप अपने स्वयं के दस्तावेज़ बनाना चाहते हैं?', // "Want to build your own Docs?"
 	'starlight.description': 'आरंभ करने के लिए इस टेम्पलेट को पकड़ें।', // "Grab this template to get started."
