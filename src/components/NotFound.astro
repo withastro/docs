@@ -1,0 +1,157 @@
+---
+import { Image } from 'astro:assets';
+import Houston from '~/assets/houston_astronaut.png';
+import NotFoundSvg from '~/assets/not_found.png';
+import languages from '~/i18n/languages';
+import type { UILanguageKeys } from '~/i18n/translation-checkers';
+import { useTranslationsForLang } from '~/i18n/util';
+
+const defaultLang = 'en';
+const t = useTranslationsForLang(defaultLang);
+
+/**
+ * Dictionary of translated content for the 404 page.
+ * Creates an object like:
+ * ```js
+ * {
+ *   en: { p: 'This page isn’t in our solar system.', a: 'Take me home.' },
+ *   // other languages
+ * }
+ * ```
+ * `p` targets the paragraph content, `a` targets the link text.
+ */
+const dictionary = Object.fromEntries(
+	Object.keys(languages).map((_lang) => {
+		const lang = _lang as UILanguageKeys;
+		const t = useTranslationsForLang(lang);
+		return [lang, { p: t('404.content'), a: t('404.linkText') }];
+	})
+);
+---
+
+<div class="wrapper">
+	<Image class="galaxy" src={NotFoundSvg} alt="" loading="eager" />
+	<Image class="houston" src={Houston} alt="" loading="eager" width="192" />
+	<four-oh-four data-dictionary={JSON.stringify(dictionary)}>
+		<div class="hero-text">
+			<h1>404</h1>
+			<p>{t('404.content')}</p>
+			<a href={`/${defaultLang}/`}>{t('404.linkText')}</a>
+		</div>
+	</four-oh-four>
+</div>
+
+<style is:global>
+	main .content-panel:first-child {
+		display: none;
+	}
+</style>
+<style>
+	.wrapper {
+		margin: -1.5rem calc(-1 * var(--sl-content-pad-x));
+		padding-block: 1.5rem;
+		display: grid;
+		grid-template: 100% / 100%;
+		overflow: hidden;
+	}
+	.wrapper > * {
+		grid-column: 1 / -1;
+		grid-row: 1 / -1;
+		place-self: center;
+	}
+
+	.galaxy {
+		min-height: 45rem;
+		object-fit: cover;
+	}
+	.houston {
+		width: 8rem;
+		transform: translate(0, -12rem);
+		filter: drop-shadow(0 0 3px var(--sl-color-gray-4));
+	}
+
+	@media (min-width: 50rem) {
+		.houston {
+			transform: translate(-20rem, 0);
+		}
+	}
+	@media (prefers-reduced-motion: no-preference) {
+		.houston {
+			animation: float-mobile 5s ease-in-out infinite;
+		}
+		@media (min-width: 50rem) {
+			.houston {
+				animation: float 5s ease-in-out infinite;
+			}
+		}
+	}
+	.hero-text {
+		text-align: center;
+		padding: 0 1rem;
+		color: hsl(224, 6%, 77%);
+	}
+	.hero-text h1 {
+		font-size: 6rem;
+		color: white;
+	}
+	.hero-text p {
+		font-size: var(--sl-text-xl);
+	}
+
+	:global([data-theme='light']) a,
+	:global([data-theme='light']) a:hover {
+		color: white;
+	}
+
+	@keyframes float-mobile {
+		50% {
+			transform: translate(0, -12.25rem) rotate(3deg);
+		}
+	}
+	@keyframes float {
+		50% {
+			transform: translate(-20rem, -0.25rem) rotate(3deg);
+		}
+	}
+</style>
+
+<script>
+	window.addEventListener('load', () => (window as any).fathom.trackGoal('4KN9VI2W', 0));
+</script>
+
+<script is:inline>
+	/**
+	 * Custom element that updates its content to match the requested URL’s language.
+	 * Script is inlined to avoid a visible flash of the English fallback content.
+	 */
+	class FourOhFour extends HTMLElement {
+		constructor() {
+			super();
+			try {
+				if (!this.dataset.dictionary) return;
+				const dictionary = JSON.parse(this.dataset.dictionary);
+
+				// Get current language from the URL path.
+				const langCodeMatch = location.pathname.match(/\/([a-z]{2}-?[a-z]{0,2})\//);
+				const lang = langCodeMatch ? langCodeMatch[1] : 'en';
+
+				// Update homepage link to use current language.
+				const a = this.querySelector('a');
+				a.pathname = `/${lang}/`;
+
+				// Update text to use current language’s strings.
+				const translations = dictionary[lang];
+				for (const key in translations) {
+					this.querySelector(key).innerText = translations[key];
+				}
+
+				// Set the `lang` attribute to match the updated content.
+				const bcp47 = lang.slice(0, 3) + lang.slice(3, 5).toUpperCase();
+				this.setAttribute('lang', bcp47);
+			} catch {
+				// Falls back to static rendered text on errors, which should be fine.
+			}
+		}
+	}
+	customElements.define('four-oh-four', FourOhFour);
+</script>
