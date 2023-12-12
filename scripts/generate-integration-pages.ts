@@ -2,7 +2,7 @@ import kleur from 'kleur';
 import type {
 	Blockquote,
 	Definition,
-	HTML,
+	Html,
 	Link,
 	ListContent,
 	Paragraph,
@@ -335,7 +335,7 @@ function relativeLinks({ base }: { base: string }) {
 /** Remark plugin to convert GitHub video URLs to `<video>` elements. */
 function githubVideos() {
 	return function transform(tree: Root) {
-		visit(tree, 'text', function visitor(node: Text | HTML) {
+		visit(tree, 'text', function visitor(node: Text | Html) {
 			if (node.value.startsWith('https://user-images.githubusercontent.com/')) {
 				const type = node.value.split('.').pop();
 				node.type = 'html';
