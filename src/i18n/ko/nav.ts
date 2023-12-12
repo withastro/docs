@@ -5,7 +5,7 @@ export default NavDictionary({
 	'getting-started': '개요',
 	install: '설치',
 	'editor-setup': '편집기 설정',
-	'guides/upgrade-to/v3': 'v3로 업그레이드',
+	'guides/upgrade-to/v4': 'v4로 업그레이드',
 
 	coreConcepts: '핵심 개념',
 	'concepts/why-astro': '왜 Astro인가?',
@@ -68,7 +68,7 @@ export default NavDictionary({
 	'reference/integrations-reference': '통합 API',
 	'reference/adapter-reference': '어댑터 API',
 	'reference/image-service-reference': '이미지 서비스 API',
-	'reference/dev-overlay-plugin-reference': '개발 오버레이 플러그인 API',
+	'reference/dev-toolbar-app-reference': '개발 툴바 앱 API',
 	'reference/directives-reference': '템플릿 지시어',
 	'reference/cli-reference': 'Astro CLI',
 	'reference/error-reference': '오류 참조',

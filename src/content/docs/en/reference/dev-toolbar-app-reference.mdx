@@ -1,0 +1,444 @@
+---
+title: Dev Toolbar App API
+i18nReady: false
+---
+
+The Astro Dev Toolbar App API allows you to create apps that can be used to extend the Astro Dev Toolbar. This allows you to add new features and integrations with third-party services.
+
+## Adding apps
+
+[Astro Integrations](/en/reference/configuration-reference/#integrations) can add apps in [the `astro:config:setup` hook](/en/reference/integrations-reference/#astroconfigsetup) using the `addDevToolbarApp` method.
+
+```ts title="integrations.js"
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "my-integration",
+  hooks: {
+    "astro:config:setup": ({ addDevToolbarApp }) => {
+      addDevToolbarApp("./my-app.js");
+    },
+  },
+});
+```
+
+## Structure of a Dev Toolbar App
+
+A Dev Toolbar App is a `.js` or `.ts` file that default exports an object with the following required properties:
+
+```ts title="src/my-app.js"
+export default {
+	id: 'super-app',
+	name: 'My Super App',
+	icon: '<svg>...</svg>',
+	init(canvas, eventTarget) {
+    eventTarget.dispatchEvent(
+      new CustomEvent('app-notification', {
+        detail: {
+          state: true,
+        },
+      })
+    );
+  }
+}
+```
+
+
+### `id: string`
+
+A unique identifier for the app. This will be used to uniquely identify the app in hooks and events.
+
+```ts title="src/my-app.js" {2}
+export default {
+  id: 'my-app',
+  // ...
+}
+```
+
+### `name: string`
+
+The name of the app. This will be shown to users whenever the app needs to be referenced using a human-readable name.
+
+```ts title="src/my-app.js" {2}
+export default {
+  // ...
+  name: 'My App',
+  // ...
+}
+```
+
+### `icon: Icon`
+
+The icon of the app. This will be used to display the app in the UI. This can either be an icon from [the icon list](#icons), or a string containing the SVG markup of the icon.
+
+```ts title="src/my-app.js" {2}
+export default {
+  // ...
+  icon: '<svg>...</svg>', // or 'astro:logo'
+}
+```
+
+### `init: (canvas: ShadowRoot, eventTarget: EventTarget) => void`
+
+This is the core part of the app. This function will be called when the app is loaded, which will either be when the browser is idle or when the user clicks on the app in the UI.
+
+The function receives two arguments:
+
+#### `canvas`
+
+A ShadowRoot that the app can use to render its UI. Every app receives its own dedicated ShadowRoot for rendering its UI. Additionally, the parent element is positioned using `position: absolute;` and as such, the app UI automatically won't affect the layout of the page.
+
+```ts
+export default {
+	id: 'super-app',
+	name: 'My Super App',
+	icon: '<svg>...</svg>',
+	init(canvas) {
+    canvas.appendChild(document.createTextNode('Hello World!'))
+  }
+}
+```
+
+#### `eventTarget`
+
+An [`EventTarget`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget) that can be used to send and receive events from the Dev Toolbar.
+
+### `beforeTogglingOff`
+
+This optional function will be called when the user clicks on the app icon in the UI to toggle off the app. This function can be used, for example, to perform cleanup operations, do an animation, or to ask the user for confirmation before toggling off the app.
+
+If a falsy value is returned, the toggling off will be cancelled and the app will stay enabled.
+
+```ts title="src/my-app.js" {2}
+export default {
+  // ...
+  beforeTogglingOff() {
+    const confirmation = window.confirm('Are you sure you want to disable this app?');
+    return confirmation;
+  }
+}
+```
+
+#### canvas
+
+The ShadowRoot of the app, can be used to render any UI needed.
+
+## Client-side Events
+
+Using the [`eventTarget`](#eventtarget) argument on the [`init`](#init-canvas-shadowroot-eventtarget-eventtarget--void) hook, apps can send and receive events from the Dev Toolbar. The following events are available:
+
+### `app-toggled`
+
+This event is fired when the user clicks on the app icon in the Dev Toolbar.
+
+```ts title="src/my-app.js" {3-6}
+  export default {
+    // ...
+    init(canvas, eventTarget) {
+      eventTarget.addEventListener('app-toggled', (event) => {
+        if (event.detail.state === true) {
+          console.log("The app is now enabled!")
+        }
+      })
+    }
+  }
+```
+
+#### `state: boolean`
+
+Indicates whether or not the app is enabled after the user's click.
+
+### `toggle-notification`
+
+This event can be sent to inform the user that the app requires attention.
+
+```ts title="src/my-app.js" {3-6}
+  export default {
+    // ...
+    init(canvas, eventTarget) {
+      eventTarget.dispatchEvent(
+          new CustomEvent('toggle-notification', {
+            detail: {
+              state: true,
+            },
+          })
+        );
+    }
+  }
+```
+
+#### `state: boolean`
+
+Indicates whether or not the app has a notification for the user. When `true`, the app icon will be highlighted using a red dot. Conversely, when `false`, the highlight will be removed. If this property is not specified, `true` will be assumed.
+
+### `toggle-app`
+
+This event can be sent from your app to change the state of your app. This can be useful, for instance, to implement a "Close" button in your app's UI.
+
+```ts title="src/my-app.js" {3-6}
+  export default {
+    // ...
+    init(canvas, eventTarget) {
+      eventTarget.dispatchEvent(
+          new CustomEvent('toggle-app', {
+            detail: {
+              state: false,
+            },
+          })
+        );
+    }
+  }
+```
+
+#### `state: boolean`
+
+Indicates whether or not the app should be enabled. When `true`, the app will be enabled. Conversely, when `false`, the app will be disabled. If this property is not specified, `true` will be assumed.
+
+## Client-Server Communication
+
+Using [Vite's methods for client-server communication](https://vitejs.dev/guide/api-plugin.html#client-server-communication), Dev Toolbar Apps can communicate with the server.
+
+In addition to being able to send and receive custom messages, the Dev Toolbar also sends the following messages, where `APP_ID` is the [app's ID](#id-string):
+
+### `astro-dev-toolbar:APP_ID:initialized`
+
+This message is sent when the app is initialized. The data for this message is empty.
+
+```ts title="integration.ts"
+{
+  // ...
+  "astro:server:setup": ({ server }) => {
+    server.ws.on("astro-dev-toolbar:super-app:initialized", () => {
+      console.log("My app was initialized!");
+    });
+  },
+  // ...
+}
+```
+
+### `astro-dev-toolbar:APP_ID:toggled`
+
+This message is sent when the user clicks on the app icon in the UI. The data for this message is a boolean indicating whether the app is enabled or not.
+
+```ts title="integration.ts"
+{
+  // ...
+  "astro:server:setup": ({ server }) => {
+    server.ws.on("astro-dev-toolbar:super-app:toggled", (data) => {
+      console.log(`My app is now ${data.state ? "enabled" : "disabled"}!`);
+    });
+  },
+  // ...
+}
+```
+
+:::note
+The built-in `connection` event from Vite fires **before** Dev Toolbar apps are initialized and therefore cannot be used directly by apps. Instead, use the `astro-dev-toolbar:APP_ID:initialized` event.
+:::
+
+## UI Toolkit
+
+The Dev Toolbar includes a set of web components that can be used to build apps with a consistent look and feel.
+
+### `astro-dev-toolbar-window`
+
+Shows a window.
+
+
+The slot of the component will be used as the content of the window.
+
+```html
+<astro-dev-toolbar-window>
+  <p>My content</p>
+</astro-dev-toolbar-window>
+```
+
+When building a window using JavaScript, slotted content must go inside the light DOM of the component.
+
+```js
+const myWindow = document.createElement('astro-dev-toolbar-window');
+const myContent = document.createElement('p');
+myContent.textContent = 'My content';
+
+// use appendChild directly on the window
+myWindow.appendChild(myContent);
+```
+
+### `astro-dev-toolbar-button`
+
+Shows a button.
+
+The slot of the component will be used as the content of the button.
+
+```js
+const myButton = document.createElement('astro-dev-toolbar-button');
+myButton.textContent = 'Click me!';
+myButton.buttonStyle = "purple";
+myButton.size = "medium";
+
+myButton.addEventListener('click', () => {
+  console.log('Clicked!');
+});
+```
+
+#### `size`
+
+The size of the button (small, medium, large).
+
+#### `button-style`
+
+The style of the button (`ghost`, `outline`, `purple`, `gray`, `red`). When using `ghost`, the button itself is invisible and only the content of the button will be shown.
+
+In JavaScript, set this property using the `buttonStyle` property to avoid conflict with the native `style` property.
+
+### `astro-dev-toolbar-badge`
+
+Shows a badge.
+
+The slot of the component will be used as the content of the badge.
+
+```html
+<astro-dev-toolbar-badge>My badge</astro-dev-toolbar-badge>
+```
+
+#### `size`
+
+The size of the badge (`small`, `large`).
+
+#### `badge-style`
+
+The style (color) of the badge (`purple`, `gray`, `red`, `green`, `yellow`).
+
+In JavaScript, set this property using the `buttonStyle` property to avoid conflict with the native `style` property.
+
+### `astro-dev-toolbar-card`
+
+Shows a card. Specify an optional `link` attribute to make the card act like an `<a>` element.
+
+
+When making a card using JavaScript, a `clickAction` property can be specified to make the card act like a `<button>` element.
+
+The slot of the component will be used as the content of the card.
+
+```html
+<astro-dev-toolbar-card icon="astro:logo" link="https://github.com/withastro/astro/issues/new/choose">Report an issue</astro-dev-toolbar-card>
+```
+
+### `astro-dev-toolbar-toggle`
+
+Shows a toggle element, acting as a checkbox. This element internally is a simple wrapper around a native `<input type="checkbox">` element. The checkbox element can be accessed using the `input` property.
+
+```ts
+const toggle = document.createElement('astro-dev-toolbar-toggle');
+
+toggle.input.addEventListener('change', (evt) => {
+  console.log(`The toggle is now ${evt.currentTarget.checked ? 'enabled' : 'disabled'}!`);
+});
+```
+
+### `astro-dev-toolbar-highlight`
+
+Can be used to highlight an element on the page. In most cases, you'll want to position and resize this element using the `top`, `left`, `width` and `height` CSS properties to match the element you want to highlight. An [icon](#icons) can also be specified using the `icon` attribute and will be shown in the top right corner of the highlight.
+
+```html
+<!-- Highlight the entire page -->
+<astro-dev-toolbar-highlight style="top: 0; left: 0; width: 100%; height: 100%;"></astro-dev-toolbar-highlight>
+```
+
+```ts
+const elementToHighlight = document.querySelector('h1');
+const rect = elementToHighlight.getBoundingClientRect();
+
+const highlight = document.createElement('astro-dev-toolbar-highlight');
+
+highlight.style.top = `${Math.max(rect.top + window.scrollY - 10, 0)}px`;
+highlight.style.left = `${Math.max(rect.left + window.scrollX - 10, 0)}px`;
+highlight.style.width = `${rect.width + 15}px`;
+highlight.style.height = `${rect.height + 15}px`;
+highlight.icon = 'astro:logo';
+```
+
+### `astro-dev-toolbar-tooltip`
+
+Shows a tooltip with different sections. This component is set to `display: none;` by default and can be made visible using a `data-show="true"` attribute.
+
+Sections are defined using the `sections` property. This property is an array of objects with the following shape:
+
+```ts
+{
+	title?: string; // Title of the section
+	inlineTitle?: string; // Title of the section, shown inline next to the title
+	icon?: Icon; // Icon of the section
+	content?: string; // Content of the section
+	clickAction?: () => void | Promise<void>; // Action to perform when clicking on the section
+	clickDescription?: string; // Description of the action to perform when clicking on the section
+}
+```
+
+```ts
+const tooltip = document.createElement('astro-dev-toolbar-tooltip');
+
+tooltip.sections = [{
+  title: 'My section',
+  icon: 'astro:logo',
+  content: 'My content',
+  clickAction: () => {
+    console.log('Clicked!')
+  },
+  clickDescription: 'Click me!'
+}]
+```
+
+This component is often combined with the `astro-dev-toolbar-highlight` component to show a tooltip when hovering a highlighted element:
+
+```ts
+const highlight = document.createElement('astro-dev-toolbar-highlight');
+
+// Position the highlight...
+
+const tooltip = document.createElement('astro-dev-toolbar-tooltip');
+
+// Add sections to the tooltip...
+
+highlight.addEventListener('mouseover', () => {
+  tooltip.dataset.show = 'true';
+});
+
+highlight.addEventListener('mouseout', () => {
+  tooltip.dataset.show = 'false';
+});
+```
+
+### `astro-dev-toolbar-icon`
+
+Shows an icon. An icon from [the icon list](#icons) can be specified using the `icon` attribute, or the SVG markup of an icon can be passed as a slot.
+
+```html
+<astro-dev-toolbar-icon icon="astro:logo" />
+```
+
+```html
+<astro-dev-toolbar-icon>
+  <svg>...</svg>
+</astro-dev-toolbar-icon>
+```
+
+#### Icons
+
+Currently, the following icons are available and can be used in any component that accepts an icon:
+
+- `astro:logo`
+- `warning`
+- `arrow-down`
+- `bug`
+- `file-search`
+- `check-circle`
+- `gear`
+- `lightbulb`
+- `file-search`
+- `checkmark`
+- `dots-three`
+- `copy`
+
+All of the above icons have `fill="currentColor"` set by default and will inherit their color from the parent element.
