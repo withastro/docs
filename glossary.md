@@ -21,4 +21,6 @@ Some future guidelines for this:
 
 ### Islands
 
-**Islands** is a frontend architecture that results in better frontend performance by helping you avoid monolithic JavaScript patterns and stripping all non-essential JavaScript from the page automatically. The technique that this architectural pattern builds on is also known as partial or selective hydration. In Astro, an `island` refers to any interactive UI component on the page. Read more about islands in the [Astro Islands](https://docs.astro.build/en/concepts/islands/) page.
+An [Astro Island](https://docs.astro.build/en/concepts/islands/) is an [interactive UI framework component](https://docs.astro.build/en/core-concepts/framework-components/) on the page.
+
+**Islands** is a frontend architecture that results in better frontend performance by helping you avoid monolithic JavaScript patterns and stripping all non-essential JavaScript from the page automatically. The technique that this architectural pattern builds on is also known as partial or selective hydration. In Astro,  Read more about islands in the  page.
