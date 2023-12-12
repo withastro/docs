@@ -1,0 +1,196 @@
+---
+title: Le Middleware
+description: Apprendre à utiliser le middleware dans Astro.
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+**Middleware** vous permet d'intercepter les demandes et les réponses et d'injecter des comportements de manière dynamique chaque fois qu'une page ou un point de terminaison est sur le point d'être rendu.
+
+Cela vous permet également de définir et de partager des informations spécifiques à une requête entre les points de terminaison et les pages en modifiant un objet `locals` disponible dans tous les composants Astro et les points de terminaison de l'API.
+
+Le middleware est disponible dans les projets SSG et SSR Astro.
+
+## Utilisation basique
+
+1. Créez `src/middleware.js|ts` (Alternativement, vous pouvez créer `src/middleware/index.js|ts`.)
+
+2. Dans ce fichier, exportez une fonction [`onRequest()`](/fr/reference/api-reference/#onrequest) à laquelle on peut passer un objet [`context`](#objet-context) et une fonction `next()`. Il ne doit pas s'agir d'une exportation par défaut.
+
+ ```js title="src/middleware.js"
+ export function onRequest ({ locals, request }, next) {
+     // intercepter les données d'une requête
+     // optionnellement, modifie la propriété dans `locals`
+     locals.title = "Nouveau titre";
+
+     // renvoie une Réponse ou le résultat de l'appel à `next()`
+     return next();
+ };
+    ```
+
+3. Dans n'importe quel fichier `.astro`, accédez aux données de réponse en utilisant `Astro.locals`.
+
+    ```astro title="src/components/Component.astro"
+    ---
+    const data = Astro.locals;
+    ---
+    <h1>{data.title}</h1>
+    <p>This {data.property} provient du middleware.</p>
+    ```
+
+### Objet `context`
+
+L'objet [`context`](/fr/reference/api-reference/#endpoint-context) inclut des informations à mettre à disposition d'autres middleware, routes API et routes `.astro` pendant le processus de rendu.
+
+C'est un argument optionnel passé à `onRequest()` qui peut contenir l'objet `locals` ainsi que toutes les propriétés additionnelles à partager pendant le rendu.Par exemple, l'objet `context` peut inclure les cookies utilisés pour l'authentification.
+
+### Stocker des données dans `context.locals`
+
+`context.locals` est un objet pouvant être manipulé dans le middleware. 
+
+Cet objet `locals` est transmis à travers le processus de traitement des requêtes et est disponible en tant que propriété pour [`APIContext`](/fr/reference/api-reference/#contextlocals) et [`AstroGlobal`](/fr/reference/api-reference/#astrolocals). Cela permet de partager des données entre les middlewares, les routes API et les pages `.astro`. Ceci est utile pour stocker des données spécifiques à une requête, telles que les données de l'utilisateur, à travers l'étape de rendu.
+
+:::tip[Propriétés de l'intégration]
+Les [Integrations](/fr/guides/integrations-guide/) peuvent définir des propriétés et fournir des fonctionnalités à travers l'objet `locals`. Si vous utilisez une intégration, vérifiez sa documentation pour vous assurer que vous ne surchargez aucune de ses propriétés et que vous ne faites pas de travail inutile.
+:::
+
+Vous pouvez stocker n'importe quel type de données dans `locals` : des chaînes, des nombres, et même des types de données complexes tels que des fonctions et des cartes.
+
+```js title="src/middleware.js"
+export function onRequest ({ locals, request }, next) {
+    // intercepter les données de réponse d'une requête
+    // optionnellement, modifie la propriété dans `locals`
+    locals.user.name = "John Wick";
+    locals.welcomeTitle = () => {
+        return "Welcome back " + locals.user.name;
+    };
+
+    // renvoie une Réponse ou le résultat de l'appel à `next()`
+    return next();
+};
+```
+
+Vous pouvez ensuite utiliser ces informations dans n'importe quel fichier `.astro` avec `Astro.locals`.
+
+```astro title="src/pages/orders.astro"
+---
+const title = Astro.locals.welcomeTitle();
+const orders = Array.from(Astro.locals.orders.entries());
+---
+<h1>{title}</h1>
+<p>Cette {data.property} provient du middleware.</p>
+<ul>
+    {orders.map(order => {
+        return <li>{/* faire quelque chose avec order */}</li>;
+    })}
+</ul>
+```
+
+`locals` est un objet qui vit et meurt au sein d'une seule route Astro ; lorsque la page de votre route est rendue, `locals` n'existera plus et un nouvel objet sera créé. Les informations qui doivent persister à travers plusieurs requêtes de pages doivent être stockées ailleurs.
+
+:::note
+La valeur de `locals` ne peut pas être modifiée à l'exécution. Cela risquerait d'effacer toutes les informations stockées par l'utilisateur.  En mode `dev`, Astro effectue des vérifications et lèvera une erreur si `locals` est surchargé.
+:::
+
+### Exemple : Supprimer des informations sensibles
+
+L'exemple ci-dessous utilise un middleware pour remplacer "PRIVATE INFO" par le mot "REDACTED" afin de vous permettre d'afficher le code HTML modifié sur votre page :
+
+```js title="src/middleware.js"
+export const onRequest = async (context, next) => {
+    const response = await next();
+    const html = await response.text();
+    const redactedHtml = html.replaceAll("PRIVATE INFO", "REDACTED");
+    
+    return new Response(redactedHtml, {
+        status: 200,
+        headers: response.headers
+    });
+};
+```
+
+### Type de middleware
+
+Vous pouvez importer et utiliser la fonction utilitaire `defineMiddleware()` pour bénéficier de la sécurité de type :
+
+```ts
+// src/middleware.ts
+import { defineMiddleware } from "astro:middleware";
+
+// `context` et `next` sont automatiquement typés
+export const onRequest = defineMiddleware((context, next) => {
+
+});
+```
+
+A la place, si vous utilisez JsDoc pour profiter de la sécurité des types, vous pouvez utiliser `MiddlewareResponseHandler` :
+
+```js
+// src/middleware.js
+/**
+ * @type {import("astro").MiddlewareResponseHandler}
+ */
+// `context` et `next` sont automatiquement typés
+export const onRequest = (context, next) => {
+
+};
+```
+
+Pour taper l'information dans `Astro.locals`, ce qui vous donne l'autocomplétion dans les fichiers `.astro` et le code middleware, déclarez un espace de noms global dans le fichier `env.d.ts` :
+
+```ts title="src/env.d.ts"
+/// <reference types="astro/client" />
+declare namespace App {
+    interface Locals {
+        user: {
+            name: string
+        },
+        welcomeTitle: () => string,
+        orders: Map<string, object>
+    }
+}
+```
+
+Ensuite, dans le fichier du middleware, vous pouvez tirer parti de l'autocomplétion et de la sécurité des types.
+
+## Enchaînement middleware
+
+Plusieurs intergiciels peuvent être reliés dans un ordre précis à l'aide de [`séquence()`](/fr/reference/api-reference/#sequence) :
+
+```js title="src/middleware.js"
+import { sequence } from "astro/middleware";
+
+async function validation(_, next) {
+    console.log("validation request");
+    const response = await next();
+    console.log("validation response");
+    return response;
+}
+
+async function auth(_, next) {
+    console.log("auth request");
+    const response = await next();
+    console.log("auth response");
+    return response;
+}
+
+async function greeting(_, next) {
+    console.log("greeting request");
+    const response = await next();
+    console.log("greeting response");
+    return response;
+}
+
+export const onRequest = sequence(validation, auth, greeting);
+```
+
+L'ordre de la console sera alors le suivant :
+
+```sh
+validation request
+auth request
+greeting request
+greeting response
+auth response
+validation response
+```

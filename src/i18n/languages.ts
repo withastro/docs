@@ -1,4 +1,4 @@
-const allLanguages = {
+export const allLanguages = {
 	en: 'English',
 	de: 'Deutsch',
 	'pt-br': 'Português do Brasil',
@@ -6,6 +6,7 @@ const allLanguages = {
 	'zh-cn': '简体中文',
 	'zh-tw': '正體中文',
 	fr: 'Français',
+	hi: 'हिन्दी',
 	ar: 'العربية',
 	ja: '日本語',
 	ko: '한국어',

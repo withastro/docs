@@ -2,7 +2,7 @@ import { UIDictionary } from '../translation-checkers';
 
 export default UIDictionary({
 	'a11y.skipLink': 'コンテンツにスキップ',
-	'a11y.sectionLink': 'セクションタイトル: ',
+	'a11y.sectionLink': 'セクションタイトル：',
 	'navbar.a11yTitle': 'トップナビゲーション',
 	// Site settings
 	'site.title': 'Astroドキュメント',
@@ -15,7 +15,7 @@ export default UIDictionary({
 	'leftSidebar.learnTab': '学習',
 	'leftSidebar.referenceTab': 'リファレンス',
 	'leftSidebar.viewInEnglish': '英語版で見る',
-	'leftSidebar.sponsoredBy': 'スポンサー:',
+	'leftSidebar.sponsoredBy': 'スポンサー',
 	// Right Sidebar
 	'rightSidebar.a11yTitle': '目次',
 	'rightSidebar.onThisPage': '目次',
@@ -38,7 +38,7 @@ export default UIDictionary({
 	'articleNav.nextPage': '次のページ',
 	'articleNav.prevPage': '戻る',
 	// Used in `<Since>`: Added in: v0.24.0 [NEW]
-	'since.addedIn': '追加:',
+	'since.addedIn': '追加：',
 	'since.new': 'New',
 	'since.beta': 'ベータ',
 	// Installation Guide
@@ -57,7 +57,7 @@ export default UIDictionary({
 	// Recipes vocabulary
 	'recipes.navTitle': 'その他のレシピ',
 	// `<RecipeLinks>` vocabulary
-	'recipesLink.singular': '関連レシピ:',
+	'recipesLink.singular': '関連レシピ：',
 	'recipesLink.plural': '関連レシピ',
 	// `<ContributorList>` fallback texta
 	'contributors.seeAll': 'すべてのコントリビューターを見る',
@@ -85,8 +85,8 @@ export default UIDictionary({
 	// Checklist component
 	'checklist.or': 'または',
 	// Multiple Choice component
-	'multipleChoice.defaultCorrect': '正解!',
-	'multipleChoice.defaultIncorrect': 'もう一度!',
+	'multipleChoice.defaultCorrect': '正解！',
+	'multipleChoice.defaultIncorrect': 'もう一度！',
 	'multipleChoice.submitLabel': '確認する',
 	// Tutorial Progress
 	'progress.todo': '未完了',
@@ -103,19 +103,22 @@ export default UIDictionary({
 	'feedback.categoryGroupLabel': 'フィードバックカテゴリを選択',
 	'feedback.issue': '問題',
 	'feedback.createIssue': 'GitHub Issueを作成',
+	'feedback.createIssue.description': 'チームに素早く問題を報告できます。',
+	'feedback.sendFeedback': 'フィードバックを送信',
+	'feedback.sendFeedback.description': 'メッセージを直接送ります。',
 	'feedback.idea': 'アイデア',
 	'feedback.other': 'その他',
 	'feedback.messageA11yLabel': 'メッセージ',
-	'feedback.placeholder': 'なにをお知らせしますか？',
+	'feedback.placeholder': '伝えたいことは何ですか？',
 	'feedback.submit': 'フィードバックを送る',
 	'feedback.close': 'フィードバックフォームを閉じる',
-	'feedback.success': 'ありがとうございますｌフィードバックを受け取りました。',
+	'feedback.success': 'ありがとうございます！フィードバックを受け取りました。',
 	// `<FileTree>` component
 	'fileTree.directoryLabel': 'ディレクトリ',
 	// Code snippet vocabulary
 	'expressiveCode.terminalWindowFallbackTitle': 'ターミナルウィンドウ',
 	'expressiveCode.copyButtonTooltip': 'クリップボードにコピー',
-	'expressiveCode.copyButtonCopied': 'コピーしました!',
+	'expressiveCode.copyButtonCopied': 'コピーしました！',
 	// Backend Guides vocabulary
 	'backend.navTitle': 'その他のバックエンドサービスガイド',
 	// Stubs vocabulary
@@ -125,4 +128,7 @@ export default UIDictionary({
 		'このガイドに貢献したいですか？この技術からAstroへの移行に関するブログ記事や動画、その他のリソースを共有したいですか？',
 	'stub.description.cms': 'このCMSをAstroで使う方法をご存知ですか？',
 	'stub.description.backend': 'このバックエンドサービスをAstroで使う方法をご存知ですか？',
+	// Starlight banner
+	'starlight.title': '自分のドキュメントを作りたいですか？',
+	'starlight.description': 'このテンプレートを使って始めましょう。',
 });

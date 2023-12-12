@@ -26,12 +26,14 @@ interface AstroIntegration {
       config: AstroConfig;
       command: 'dev' | 'build';
       isRestart: boolean;
-      updateConfig: (newConfig: Record<string, any>) => void;
+      updateConfig: (newConfig: DeepPartial<AstroConfig>) => AstroConfig;
       addRenderer: (renderer: AstroRenderer) => void;
       addWatchFile: (path: URL | string) => void;
       addClientDirective: (directive: ClientDirectiveConfig) => void;
+      addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
+      addDevToolbarApp: (pluginEntrypoint: string) => void;
       injectScript: (stage: InjectedScriptStage, content: string) => void;
-      injectRoute: ({ pattern: string, entryPoint: string }) => void;
+      injectRoute: ({ pattern: string, entrypoint: string }) => void;
       logger: AstroIntegrationLogger;
     }) => void;
     'astro:config:done'?: (options: { config: AstroConfig; logger: AstroIntegrationLogger; }) => void | Promise<void>;
@@ -46,8 +48,8 @@ interface AstroIntegration {
       logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
     'astro:build:generated'?: (options: { dir: URL; logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:build:ssr'?: (options: { 
-        manifest: SerializedSSRManifestm; 
+    'astro:build:ssr'?: (options: {
+        manifest: SerializedSSRManifest;
         entryPoints: Map<RouteData, URL>;
         logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
@@ -71,12 +73,14 @@ interface AstroIntegration {
   config: AstroConfig;
   command: 'dev' | 'build';
   isRestart: boolean;
-  updateConfig: (newConfig: Record<string, any>) => void;
+  updateConfig: (newConfig: DeepPartial<AstroConfig>) => AstroConfig;
   addRenderer: (renderer: AstroRenderer) => void;
   addClientDirective: (directive: ClientDirectiveConfig) => void;
+  addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
+  addDevToolbarApp: (pluginEntrypoint: string) => void;
   addWatchFile: (path: URL | string) => void;
   injectScript: (stage: InjectedScriptStage, content: string) => void;
-  injectRoute: ({ pattern: string, entryPoint: string }) => void;
+  injectRoute: ({ pattern: string, entrypoint: string }) => void;
   logger: AstroIntegrationLogger;
 }) => void;
 ```
@@ -102,7 +106,7 @@ A read-only copy of the user-supplied [Astro config](/en/reference/configuration
 
 #### `updateConfig` option
 
-**Type:** `(newConfig: Record<string, any>) => void;`
+**Type:** `(newConfig: DeepPartial<AstroConfig>) => AstroConfig;`
 
 A callback function to update the user-supplied [Astro config](/en/reference/configuration-reference/). Any config you provide **will be merged with the user config + other integration config updates,** so you are free to omit keys!
 
@@ -214,16 +218,105 @@ declare module 'astro' {
 }
 ```
 
+#### `addDevToolbarApp` option
+
+<Since v="3.4.0" />
+
+**Type:** `(pluginEntrypoint: string) => void;`
+
+Adds a [custom dev toolbar app](/en/reference/dev-toolbar-app-reference/).
+
+Example usage:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import devToolbarIntegration from './astro-dev-toolbar-app/integration.js'
+
+// https://astro.build/config
+export default defineConfig({
+  integrations: [
+    devToolbarIntegration()
+  ],
+});
+```
+
+```js title="astro-dev-toolbar-app/integration.js"
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "dev-toolbar-app",
+  hooks: {
+    "astro:config:setup": ({ addDevToolbarApp }) => {
+      addDevToolbarApp("./astro-dev-toolbar-app/plugin.js");
+    },
+  },
+});
+```
+
+```js title="astro-dev-toolbar-app/plugin.js"
+
+/**
+ * @type {import('astro').DevToolbarApp}
+ */
+export default {
+  id: "my-plugin",
+  name: "My Plugin",
+  icon: "<svg>...</svg>",
+  init() {
+    console.log("I'm a dev toolbar app!")
+  },
+};
+```
+#### `addMiddleware` option
+
+<Since v="3.5.0" />
+
+**Type:** `(middleware:` [`AstroIntegrationMiddleware`](https://github.com/withastro/astro/blob/852ac0f75dfca1b2602e9cdbfa0447d9998e2449/packages/astro/src/%40types/astro.ts#L2124-L2127) `) => void;`
+
+Adds [middleware](/en/guides/middleware/) to run on each request. Takes the `entrypoint` module that contains the middleware, and an `order` to specify whether it should run before (`pre`) other middleware or after (`post`).
+
+```js title="@my-package/integration.js"
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "my-middleware-package",
+  hooks: {
+    "astro:config:setup": ({ addMiddleware }) => {
+        addMiddleware({
+          entrypoint: '@my-package/middleware',
+          order: 'pre'
+        });
+    },
+  },
+});
+```
+
+Middleware is defined in a package with an `onRequest` function, as with user-defined middleware.
+
+```js title="@my-package/middleware.js"
+import { defineMiddleware } from 'astro:middleware';
+
+export const onRequest = defineMiddleware(async (context, request) => {
+  if(context.url.pathname === '/some-test-path') {
+    return Response.json({
+      ok: true
+    });
+  }
+});
+```
+
 #### `injectRoute` option
 
-**Type:** `({ pattern: string, entryPoint: string }) => void;`
+**Type:** `({ pattern: string, entrypoint: string }) => void;`
 
 A callback function to inject routes into an Astro project. Injected routes can be [`.astro` pages](/en/core-concepts/astro-pages/) or [`.js` and `.ts` route handlers](/en/core-concepts/endpoints/#static-file-endpoints).
 
-`injectRoute` takes an object with a `pattern` and an `entryPoint`.
+`injectRoute` takes an object with a `pattern` and an `entrypoint`.
 
 - `pattern` - where the route should be output in the browser, for example `/foo/bar`. A `pattern` can use Astro's filepath syntax for denoting dynamic routes, for example `/foo/[bar]` or `/foo/[...bar]`. Note that a file extension is **not** needed in the `pattern`.
-- `entryPoint` - a bare module specifier pointing towards the `.astro` page or `.js`/`.ts` route handler that handles the route denoted in the `pattern`.
+- `entrypoint` - a bare module specifier pointing towards the `.astro` page or `.js`/`.ts` route handler that handles the route denoted in the `pattern`.
 
 ##### Example usage
 
@@ -232,7 +325,7 @@ injectRoute({
   // Use Astro’s pattern syntax for dynamic routes.
   pattern: '/subfolder/[dynamic]',
   // Use relative path syntax for a local route.
-  entryPoint: './src/dynamic-page.astro'
+  entrypoint: './src/dynamic-page.astro'
 });
 ```
 
@@ -242,7 +335,7 @@ The following example shows a package published to npm as `@fancy/dashboard` inj
 ```js
 injectRoute({
   pattern: '/fancy-dashboard',
-  entryPoint: '@fancy/dashboard/dashboard.astro'
+  entrypoint: '@fancy/dashboard/dashboard.astro'
 });
 ```
 
@@ -441,7 +534,7 @@ export default function myIntegration() {
     hooks: {
       'astro:build:done': async ({ dir }) => {
         const metadata = await getIntegrationMetadata();
-        // Use fileURLToPath to get a valid, cross-platform absolute path string 
+        // Use fileURLToPath to get a valid, cross-platform absolute path string
         const outFile = fileURLToPath(new URL('./my-integration.json', dir));
         await writeFile(outFile, JSON.stringify(metadata));
       }
@@ -474,7 +567,7 @@ interface RouteData {
    * note: will be undefined for [dynamic] and [...spread] routes
    */
   pathname?: string;
-  /** 
+  /**
    * regex used for matching an input URL against a requested route
    * ex. "[fruit]/about.astro" will generate the pattern: /^\/([^/]+?)\/about\/?$/
    * where pattern.test("banana/about") is "true"
@@ -491,7 +584,7 @@ interface RouteData {
    * [[ { content: 'lang', dynamic: true, spread: false } ]]
    */
   segments: { content: string; dynamic: boolean; spread: boolean; }[][];
-  /** 
+  /**
    * Function to render component in-place from a set of input data.
    * This is typically for internal use, so call with caution!
    */
@@ -553,7 +646,7 @@ export function formatIntegration(): AstroIntegration {
     return {
         name: "astro-format",
         hooks: {
-            "astro:build:done": (options, { logger }) => {
+            "astro:build:done": ({ logger }) => {
                 // do something
                 logger.info("Integration ready.");
             }
@@ -613,3 +706,7 @@ integrations: [
   examplePreset()
 ]
 ```
+
+## Community Resources
+
+[Build your own Astro Integrations](https://www.freecodecamp.org/news/how-to-use-the-astro-ui-framework/#chapter-8-build-your-own-astro-integrations-1) - by Emmanuel Ohans on FreeCodeCamp
