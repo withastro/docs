@@ -1,0 +1,123 @@
+---
+title: Hygraph & Astro
+description: Ajouter du contenu a votre projet Astro en utilisant Hygraph en tant que CMS
+type: cms
+service: Hygraph
+i18nReady: true
+---
+import FileTree from '~/components/FileTree.astro'
+
+[Hygraph](https://hygraph.com/) est une plateforme de gestion de contenu fédérée. Elle expose un point de terminaison GraphQL pour récupérer du contenu.
+
+## Intégration avec Astro
+
+Dans cette section, vous allez créer un point d'accès GraphQL [Hygraph](https://hygraph.com/) pour récupérer du contenu avec Astro.
+
+### Prérequis
+
+Pour commencer, vous devez disposer des éléments suivants :
+
+1. **Un compte Hygraph et un projet**. Si vous n'avez pas de compte, vous pouvez [vous inscrire gratuitement](https://app.hygraph.com/signup) et créer un nouveau projet.
+
+2. **Autorisation d'accès à Hygraph** - Dans `Project Settings > API Access`, configurez les permissions de l'API Public Content pour autoriser les requêtes en lecture sans authentification. Si vous n'avez pas défini de permissions, vous pouvez cliquer sur **Yes, initialize defaults** pour ajouter les permissions nécessaires à l'utilisation de "High Performance Content API".
+
+### Configuration du point de terminaison
+
+Pour ajouter votre point de terminaison Hygraph à Astro, créez un fichier `.env` à la racine de votre projet avec la variable suivante :
+
+```ini title=".env"
+HYGRAPH_ENDPOINT=YOUR_HIGH_PERFORMANCE_API
+```
+
+Maintenant, vous devriez être capable d'utiliser cette variable d'environnement dans votre projet. 
+
+Si vous voulez avoir IntelliSense pour vos variables d'environnement, vous pouvez créer un fichier `env.d.ts` dans le répertoire `src/` et configurer `ImportMetaEnv` comme ceci :
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly HYGRAPH_ENDPOINT: string;
+}
+```
+
+:::note
+En savoir plus sur [l'utilisation des variables d'environnement](/fr/guides/environment-variables/) et les fichiers `.env` dans Astro.
+:::
+
+Votre répertoire racine doit maintenant contenir ces nouveaux fichiers :
+
+<FileTree title="Structure du projet">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Récupérer des données
+
+Récupérez les données de votre projet Hygraph en utilisant le `HYGRAPH_ENDPOINT`.
+
+Par exemple, pour récupérer les entrées d'un type de contenu `blogPosts` qui a un champ de chaîne `title`, créez une requête GraphQL pour récupérer ce contenu. Ensuite, définissez le type du contenu, et définissez-le comme type de la réponse.
+
+```astro title="src/pages/index.astro"
+---
+interface Post {
+	title: string;
+}
+
+const query = {
+	method: "POST",
+	headers: { "Content-Type": "application/json" },
+	body: JSON.stringify({
+		query: `
+      {
+        blogPosts {
+          title
+        }
+      }`,
+	}),
+};
+
+const response = await fetch(import.meta.env.HYGRAPH_ENDPOINT, query);
+const json = await response.json();
+const posts: Post[] = json.data.blogPosts;
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Astro</title>
+	</head>
+	<body>
+		<h1>Astro</h1>
+		{
+			posts.map((post) => (
+				<div>
+					<h2>{post.title}</h2>
+				</div>
+			))
+		}
+	</body>
+</html>
+```
+
+## Déployer
+
+### Configuration de Netlify Webhook
+
+Pour configurer un webhook dans Netlify :
+
+1. Déployez votre site sur Netlify avec [ce guide](/fr/guides/deploy/netlify/). N'oubliez pas d'ajouter votre `HYGRAPH_ENDPOINT` aux variables d'environnement.
+
+2. Allez ensuite sur le tableau de bord de votre projet Hygraph et cliquez sur **Apps**. 
+
+3. Allez sur la place de marché, recherchez Netlify et suivez les instructions fournies.
+
+4. Si tout s'est bien passé, vous pouvez maintenant déployer votre site web en un clic dans l'interface de Hygraph.
+
+## Ressources communautaires
+
+- [Exemple Hygraph + Astro avec `marked` pour l'analyse markdown](https://github.com/camunoz2/example-astrowithhygraph)

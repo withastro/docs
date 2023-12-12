@@ -26,12 +26,14 @@ interface AstroIntegration {
       config: AstroConfig;
       command: 'dev' | 'build';
       isRestart: boolean;
-      updateConfig: (newConfig: Record<string, any>) => void;
+      updateConfig: (newConfig: DeepPartial<AstroConfig>) => AstroConfig;
       addRenderer: (renderer: AstroRenderer) => void;
       addWatchFile: (path: URL | string) => void;
       addClientDirective: (directive: ClientDirectiveConfig) => void;
+      addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
+      addDevToolbarApp: (pluginEntrypoint: string) => void;
       injectScript: (stage: InjectedScriptStage, content: string) => void;
-      injectRoute: ({ pattern: string, entryPoint: string }) => void;
+      injectRoute: ({ pattern: string, entrypoint: string }) => void;
     }) => void;
     'astro:config:done'?: (options: { config: AstroConfig; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:server:setup'?: (options: { server: vite.ViteDevServer; logger: AstroIntegrationLogger; }) => void | Promise<void>;
@@ -46,7 +48,7 @@ interface AstroIntegration {
     }) => void | Promise<void>;
     'astro:build:generated'?: (options: { dir: URL; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:build:ssr'?: (options: {
-        manifest: SerializedSSRManifestm;
+        manifest: SerializedSSRManifest;
         entryPoints: Map<RouteData, URL>;
         logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
@@ -70,11 +72,14 @@ interface AstroIntegration {
   config: AstroConfig;
   command: 'dev' | 'build';
   isRestart: boolean;
-  updateConfig: (newConfig: Record<string, any>) => void;
+  updateConfig: (newConfig: DeepPartial<AstroConfig>) => AstroConfig;
   addRenderer: (renderer: AstroRenderer) => void;
+  addClientDirective: (directive: ClientDirectiveConfig) => void;
+  addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
+  addDevToolbarApp: (pluginEntrypoint: string) => void;
   addWatchFile: (path: URL | string) => void;
   injectScript: (stage: InjectedScriptStage, content: string) => void;
-  injectRoute: ({ pattern: string, entryPoint: string }) => void;
+  injectRoute: ({ pattern: string, entrypoint: string }) => void;
   logger: AstroIntegrationLogger;
 }) => void;
 ```
@@ -100,7 +105,7 @@ interface AstroIntegration {
 
 #### `updateConfig` 选项
 
-**类型**：`(newConfig: Record<string, any>) => void;`
+**类型**：`(newConfig: DeepPartial<AstroConfig>) => AstroConfig;`
 
 用来更新用户提供的[Astro 配置](/zh-cn/reference/configuration-reference/)的回调函数。你提供的任何配置**将与用户配置 + 其他集成配置的更新合并**，所以你可以随意省略键名！
 
@@ -211,16 +216,106 @@ declare module 'astro' {
 }
 ```
 
+#### `addDevToolbarApp` 选项
+
+<Since v="4.0" />
+
+**类型：** `(pluginEntrypoint: string) => void;`
+
+添加一个[自定义的开发工具栏应用](/zh-cn/reference/dev-toolbar-app-reference/)。
+
+使用示例：
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import devToolbarIntegration from './astro-dev-toolbar-app/integration.js'
+
+// https://astro.build/config
+export default defineConfig({
+  integrations: [
+    devToolbarIntegration()
+  ],
+});
+```
+
+```js title="astro-dev-toolbar-app/integration.js"
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "dev-toolbar-app",
+  hooks: {
+    "astro:config:setup": ({ addDevToolbarApp }) => {
+      addDevToolbarApp("./astro-dev-toolbar-app/plugin.js");
+    },
+  },
+});
+```
+
+```js title="astro-dev-toolbar-app/app.js"
+
+/**
+ * @type {import('astro').DevToolbarApp}
+ */
+export default {
+  id: "my-app",
+  name: "My App",
+  icon: "<svg>...</svg>",
+  init() {
+    console.log("I'm a dev toolbar app!")
+  },
+};
+```
+
+#### `addMiddleware` 选项
+
+<Since v="3.5.0" />
+
+**类型：** `(middleware:` [`AstroIntegrationMiddleware`](https://github.com/withastro/astro/blob/852ac0f75dfca1b2602e9cdbfa0447d9998e2449/packages/astro/src/%40types/astro.ts#L2124-L2127) `) => void;`
+
+添加[中间件](/zh-cn/guides/middleware/)以在每个请求上运行。接受包含中间件的 `entrypoint` 模块，以及一个 `order` 参数来指定它应该在其他中间件之前（`pre`）运行还是之后（`post`）运行。
+
+```js title="@my-package/integration.js"
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "my-middleware-package",
+  hooks: {
+    "astro:config:setup": ({ addMiddleware }) => {
+        addMiddleware({
+          entrypoint: '@my-package/middleware',
+          order: 'pre'
+        });
+    },
+  },
+});
+```
+
+中间件在一个包中定义，它有一个对应的 `onRequest` 函数，就像用户定义的中间件一样。
+
+```js title="@my-package/middleware.js"
+import { defineMiddleware } from 'astro:middleware';
+
+export const onRequest = defineMiddleware(async (context, request) => {
+  if(context.url.pathname === '/some-test-path') {
+    return Response.json({
+      ok: true
+    });
+  }
+});
+```
+
 #### `injectRoute` 选项
 
-**类型**：`({ pattern: string, entryPoint: string }) => void;`
+**类型**：`({ pattern: string, entrypoint: string }) => void;`
 
 用于向 Astro 项目注入路由的回调函数。注入的路由可以是 [`.astro`页面](/zh-cn/core-concepts/astro-pages/) 或 [`.js`和`.ts`路由处理程序](/zh-cn/core-concepts/endpoints/#静态文件端点)。
 
-`injectRoute` 接收带有 `pattern` 和 `entryPoint` 的对象值。
+`injectRoute` 接收带有 `pattern` 和 `entrypoint` 的对象值。
 
 - `pattern` - 应该在浏览器中使用的路由，例如 `/foo/bar`。`pattern` 可以使用 Astro 的文件路径语法来表示动态路由，例如 `/foo/[bar]` 或 `/foo/[...bar]`。请注意，在 `pattern` 中**无需**文件扩展名。
-- `entryPoint` — 裸模块指定器，指向 `.astro` 页面或 `.js`/`.ts` 路由处理程序，处理`pattern` 中指定路由。
+- `entrypoint` — 裸模块指定器，指向 `.astro` 页面或 `.js`/`.ts` 路由处理程序，处理`pattern` 中指定路由。
 
 ##### 使用示例
 
@@ -229,7 +324,7 @@ injectRoute({
   // 使用 Astro 语法模式来匹配动态路由
   pattern: '/subfolder/[dynamic]',
   // 使用相对路径语法来匹配本地路由
-  entryPoint: './src/dynamic-page.astro'
+  entrypoint: './src/dynamic-page.astro'
 });
 ```
 
@@ -240,7 +335,7 @@ injectRoute({
 ```js
 injectRoute({
   pattern: '/fancy-dashboard',
-  entryPoint: '@fancy/dashboard/dashboard.astro'
+  entrypoint: '@fancy/dashboard/dashboard.astro'
 });
 ```
 
@@ -613,3 +708,8 @@ integrations: [
   examplePreset()
 ]
 ```
+
+
+## 社区资源
+
+[构建你自己的 Astro 集成](https://www.freecodecamp.org/news/how-to-use-the-astro-ui-framework/#chapter-8-build-your-own-astro-integrations-1) - 由 FreeCodeCamp 的 Emmanuel Ohans 撰写

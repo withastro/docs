@@ -1,0 +1,174 @@
+---
+title: Astro 구성
+i18nReady: true
+---
+
+프로젝트에 `astro.config.mjs` 파일을 추가하여 Astro의 작동 방식을 원하는 대로 변경하세요. 이 파일은 모든 공식 템플릿과 테마에 포함된 Astro 프로젝트의 공통 파일입니다.
+
+📚 Astro의 [API 구성 참조](/ko/reference/configuration-reference/)에서 지원되는 모든 구성 옵션을 확인하세요.
+
+## Astro 구성 파일
+
+유효한 Astro 구성 파일은 `defineConfig` 도우미를 사용하며, `default` export를 통해 구성을 내보냅니다.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  // 구성 옵션은 여기에 작성합니다.
+  // https://docs.astro.build/en/reference/configuration-reference/
+});
+```
+
+IDE에서 자동 타입 힌트를 사용하기 위해 `defineConfig()` 도우미를 사용하는 것을 권장하지만 필수는 아닙니다. 최소한의 유효한 구성 파일은 다음과 같습니다.
+
+```js title="astro.config.mjs"
+// 예: 최소한의 빈 구성 파일
+export default {};
+```
+
+## 지원하는 구성 파일 타입
+
+Astro는 JavaScript 구성 파일에 대해 `astro.config.js`, `astro.config.mjs`, `astro.config.cjs`, `astro.config.ts`와 같은 여러 파일 형식을 지원합니다. 대부분의 경우 `.mjs` 파일 확장자를 사용하는 것을 권장하지만, 구성 파일에 TypeScript를 작성하고 싶다면 `.ts` 파일 확장자를 사용할 수도 있습니다.
+
+TypeScript 구성 파일은 [`tsm`](https://github.com/lukeed/tsm) 패키지를 통해 불러오며, 불러온 구성 파일은 프로젝트의 tsconfig 옵션을 따릅니다.
+
+## 구성 파일 확인
+
+Astro는 프로젝트 루트 디렉터리에 존재하는 `astro.config.mjs` 구성 파일을 확인하려 합니다. 프로젝트 루트 디렉터리에 구성 파일이 존재하지 않는다면 Astro의 기본 옵션이 사용됩니다.
+
+```bash
+# 예: ./astro.config.mjs에서 구성을 읽습니다.
+astro build
+```
+
+CLI에서 `--config` 플래그를 사용하여 구성 파일의 경로를 명시적으로 설정할 수 있습니다. 이 CLI 플래그는 항상 `astro` CLI 명령이 실행되는 현재 작업 디렉터리를 기준으로 구성 파일의 경로를 확인합니다.
+
+```bash
+# 예: 이 파일에서 구성을 읽습니다.
+astro build --config my-config-file.js
+```
+
+## 구성 자동완성
+
+`defineConfig()` 도우미는 IDE에 자동 완성 기능을 제공하므로, Astro는 구성 파일에 이 함수를 사용하는 것을 권장합니다. 이를 통해 VSCode와 같은 편집기는 구성 파일이 TypeScript로 정의되어 있지 않더라도, Astro의 TypeScript 타입 정의를 읽고 jsdoc 타입 힌트를 제공할 수 있습니다.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  // 구성 옵션은 여기에 작성합니다.
+  // https://docs.astro.build/en/reference/configuration-reference/
+});
+```
+
+다음과 같은 JSDoc 표기법을 사용하여 VSCode에 수동으로 타입 정의를 제공할 수도 있습니다.
+
+```js
+// astro.config.mjs
+export default /** @type {import('astro').AstroUserConfig} */ {
+  // 구성 옵션은 여기에 작성합니다.
+  // https://docs.astro.build/en/reference/configuration-reference/
+};
+```
+
+## 상대 파일 참조
+
+구성 파일의 `root` 속성 또는 CLI의 `--root` 플래그에 상대 경로를 제공하면 Astro는 `astro` CLI 명령이 실행된 현재 작업 디렉터리를 기준으로 파일의 경로를 확인합니다.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  // 현재 작업 디렉터리의 하위 디렉터리인 "./foo"를 가리킵니다.
+  root: 'foo',
+});
+```
+
+Astro는 다른 모든 상대 파일과 상대 디렉터리를 프로젝트의 루트 디렉러티를 기준으로 확인합니다.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  // 현재 작업 디렉터리의 하위 디렉터리인 "./foo"를 가리킵니다.
+  root: 'foo',
+  // 현재 작업 디렉터리의 하위 디렉터리인 "./foo/public"을 가리킵니다.
+  publicDir: 'public',
+});
+```
+
+구성 파일의 현재 경로를 기준으로 다른 파일이나 디렉터리를 참조하려면 `import.meta.url`을 사용하세요. (구성 파일을 common.js인 `astro.config.cjs` 파일로 작성한 경우에는 사용할 수 없습니다.)
+
+```js "import.meta.url"
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  // 구성 파일의 현재 경로에서 "./foo"를 가리킵니다.
+  root: new URL('./foo', import.meta.url).toString(),
+  // 구성 파일의 현재 경로에서 "./public"을 가리킵니다.
+  publicDir: new URL('./public', import.meta.url).toString(),
+});
+```
+
+:::note
+`import.meta.env`, `import.meta.glob`과 같은 Vite 전용 `import.meta` 속성은 구성 파일에서 사용할 수 _없습니다_. 이 경우, [dotenv](https://github.com/motdotla/dotenv) 또는 [fast-glob](https://github.com/mrmlnc/fast-glob)과 같은 대체 패키지를 사용하는 것을 권장합니다.
+
+:::
+
+## 출력 파일 이름 사용자 정의
+
+가져온 JavaScript 또는 CSS 파일과 같이 Astro가 직접 처리하는 코드는 `astro.config.*` 파일의 `vite.build.rollupOptions` 항목에 있는 [`entryFileNames`](https://rollupjs.org/guide/en/#outputentryfilenames), [`chunkFileNames`](https://rollupjs.org/guide/en/#outputchunkfilenames), [`assetFileNames`](https://rollupjs.org/guide/en/#outputassetfilenames)를 사용하여 출력되는 파일의 이름을 원하는 대로 변경할 수 있습니다.
+
+```js ins={9-11}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          entryFileNames: 'entry.[hash].mjs',
+          chunkFileNames: 'chunks/chunk.[hash].mjs',
+          assetFileNames: 'assets/asset.[hash][extname]',
+        },
+      },
+    },
+  },
+});
+```
+
+이는 광고 차단 프로그램의 영향을 받을 수 있는 이름을 가진 스크립트(예: `ads.js` 또는 `google-tag-manager.js`)를 사용하는 경우 유용할 수 있습니다.
+
+## 환경 변수
+
+Astro는 구성 파일이 다른 파일을 불러오기 전에 구성 파일을 먼저 평가합니다. 따라서, `import.meta.env`를 사용하여 `.env` 파일에 설정된 환경 변수를 가져올 수 없습니다.
+
+대신, 구성 파일에서 `process.env`를 사용하여 다른 환경 변수를 가져올 수 있으며, 이는 [CLI에 설정하는 것](/ko/guides/environment-variables/#cli-사용)과 동일하게 동작합니다.
+
+또한, [Vite의 `loadEnv` 도우미](https://ko.vitejs.dev/config/#using-environment-variables-in-config)를 사용하여 `.env` 파일을 수동으로 불러올 수도 있습니다.
+
+:::note
+
+`pnpm`을 사용하면 프로젝트에 직접 설치되지 않은 모듈을 가져올 수 없습니다. `pnpm`을 사용하는 경우 `loadEnv` 도우미를 사용하기 위해 `vite`를 설치해야 합니다.
+
+```sh
+pnpm add vite --save-dev
+```
+
+:::
+
+```js title="astro.config.mjs"
+import { loadEnv } from 'vite';
+const { SECRET_PASSWORD } = loadEnv(process.env.NODE_ENV, process.cwd(), '');
+```
+
+## 구성 참조
+
+📚 Astro의 [API 구성 참조](/ko/reference/configuration-reference/)에서 지원되는 모든 구성 옵션을 확인하세요.
