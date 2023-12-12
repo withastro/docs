@@ -101,11 +101,14 @@ export default UIDictionary({
 	'feedback.categoryGroupLabel': '选择反馈类型',
 	'feedback.issue': '问题',
 	'feedback.createIssue': '创建 GitHub Issue',
+	'feedback.createIssue.description': '向我们的团队发出问题警报的最快方法。',
+	'feedback.sendFeedback': '发送反馈',
+	'feedback.sendFeedback.description': '直接给我们发送消息。',
 	'feedback.idea': '想法',
 	'feedback.other': '其它',
 	'feedback.messageA11yLabel': '留言',
 	'feedback.placeholder': '你想让我们知道什么？',
-	'feedback.submit': '发送反馈',
+	'feedback.submit': '提交反馈',
 	'feedback.close': '关闭反馈表单',
 	'feedback.success': '感谢！我们收到了你的反馈。',
 	// `<FileTree>` component
@@ -123,4 +126,7 @@ export default UIDictionary({
 		'想为这个指南做贡献吗？有关于从这项技术迁移到 Astro 的文章、视频或其他资源？',
 	'stub.description.cms': '知道更多在 Astro 使用此 CMS 的信息？',
 	'stub.description.backend': '知道更多在 Astro 使用此后端服务的信息？',
+	// Starlight banner
+	'starlight.title': '想要构建你自己的文档？',
+	'starlight.description': '获取此模板以开始使用。',
 });
