@@ -1,0 +1,176 @@
+---
+title: Astro 구문
+description: .astro 컴포넌트 구문을 소개합니다.
+i18nReady: true
+---
+
+**HTML을 안다면 첫 번째 Astro 컴포넌트를 작성할 준비가 된 것입니다.**
+
+Astro 컴포넌트 구문은 HTML의 상위 집합입니다. [HTML이나 JSX를 작성해 본 경험이 있다면 이 구문이 친숙하게 느껴질 것입니다.](#astro와-jsx의-차이점) 구문은 컴포넌트 및 JavaScript 표현식을 포함하는 것을 지원합니다.
+
+
+## JSX와 유사한 표현식
+
+Astro 컴포넌트의 두 코드 펜스(`---`) 사이에 있는 프론트매터 컴포넌트 스크립트 내부에서 로컬 JavaScript 변수를 정의할 수 있습니다. 그런 다음 JSX와 유사한 표현식을 사용하여 해당 변수를 컴포넌트의 HTML 템플릿에 삽입할 수 있습니다!
+
+:::note[동적 vs 반응형]
+이 방법을 사용하면 프론트매터에서 계산된 **동적** 값을 포함할 수 있습니다. 그러나 이 값은 일단 포함된 후에는 **반응하지** 않으며 절대 변경되지 않습니다. Astro 컴포넌트는 렌더링 단계에서 한 번만 실행되는 템플릿입니다.
+
+[Astro와 JSX의 차이점](#astro와-jsx의-차이점)에 대한 자세한 예는 하단을 참고하세요.
+:::
+
+### 변수
+
+중괄호 구문을 사용하여 HTML에 로컬 변수를 추가할 수 있습니다.
+
+```astro title="src/components/Variables.astro" "{name}"
+---
+const name = "Astro";
+---
+<div>
+  <h1>안녕하세요 {name}!</h1>  <!-- <h1>안녕하세요 Astro!</h1> 를 출력 -->
+</div>
+```
+
+### 동적 속성
+
+중괄호 안에 로컬 변수를 사용하여 HTML 요소와 컴포넌트 모두에 속성 값을 전달할 수 있습니다.
+
+```astro title="src/components/DynamicAttributes.astro" "{name}" "${name}"
+---
+const name = "Astro";
+---
+<h1 class={name}>속성 표현식이 지원됩니다</h1>
+
+<MyComponent templateLiteralNameAttribute={`MyNameIs${name}`} />
+```
+
+:::caution
+HTML 속성은 문자열로 변환되므로 함수나 객체는 HTML 요소로 전달할 수 없습니다.
+예를 들어 이벤트 핸들러는 Astro 컴포넌트의 HTML 요소에 할당할 수 없습니다.
+
+```astro title="dont-do-this.astro"
+---
+function handleClick () {
+    console.log("버튼이 클릭되었습니다!");
+}
+---
+<!-- ❌ 작동하지 않습니다! ❌ -->
+<button onClick={handleClick}>클릭해도 아무 일도 일어나지 않습니다!</button>
+```
+
+대신 순수 JavaScript처럼 클라이언트 측 스크립트를 사용하여 이벤트 핸들러를 추가하세요.
+
+```astro title="do-this-instead.astro"
+---
+---
+<button id="button">클릭하세요</button>
+<script>
+  function handleClick () {
+    console.log("버튼이 클릭되었습니다!");
+  }
+  document.getElementById("button").addEventListener("click", handleClick);
+</script>
+```
+:::
+
+### 동적 HTML
+
+JSX와 유사한 함수에서 로컬 변수를 사용하여 동적으로 생성된 HTML 요소를 생성할 수 있습니다.
+
+```astro title="src/components/DynamicHtml.astro" "{item}"
+---
+const items = ["개", "고양이", "오리너구리"];
+---
+<ul>
+  {items.map((item) => (
+    <li>{item}</li>
+  ))}
+</ul>
+```
+
+Astro는 JSX 논리 연산자와 삼항 연산자를 사용하여 조건부로 HTML을 표시할 수 있습니다.
+
+```astro title="src/components/ConditionalHtml.astro" "visible"
+---
+const visible = true;
+---
+{visible && <p>보여주세요!</p>}
+
+{visible ? <p>보여주세요!</p> : <p>아니면 이것을 보여주세요!</p>}
+```
+
+### 동적 태그
+
+변수에 HTML 태그 이름이나 가져온 컴포넌트를 할당하여 동적 태그를 사용할 수도 있습니다.
+
+```astro title="src/components/DynamicTags.astro" /Element|(?<!My)Component/
+---
+import MyComponent from "./MyComponent.astro";
+const Element = 'div'
+const Component = MyComponent;
+---
+<Element>안녕하세요!</Element> <!-- <div>안녕하세요!</div> 로 렌더링됨 -->
+<Component /> <!-- <MyComponent /> 로 렌더링됨 -->
+```
+
+동적 태그를 사용할 때 다음 사항을 주의하세요.
+
+- **변수 이름은 대문자로 시작해야 합니다.** 예를 들어 `element` 대신 `Element`를 사용하세요. 그렇지 않으면 Astro는 변수 이름을 리터럴 HTML 태그로 렌더링하는 것을 시도합니다.
+
+- **하이드레이션 지시문은 지원되지 않습니다.** [`client:*` 하이드레이션 지시문](/ko/core-concepts/framework-components/#인터랙티브-컴포넌트-하이드레이션하기)을 사용하면 Astro는 프로덕션을 위해 번들링할 컴포넌트를 알아야 하지만 동적 태그 패턴이 이를 알 수 없게 만듭니다.
+
+### 프래그먼트
+
+Astro에서는 `<Fragment> </Fragment>` 또는 간단히 `<> </>`를 사용할 수 있습니다.
+
+프래그먼트는 다음 예시와 같이 [`set:*` directives](/ko/reference/directives-reference/#sethtml)를 추가할 때 래퍼 요소를 피하는 데 유용할 수 있습니다.
+
+```astro title="src/components/SetHtml.astro" "Fragment"
+---
+const htmlString = '<p>원시 HTML 콘텐츠</p>';
+---
+<Fragment set:html={htmlString} />
+```
+
+### Astro와 JSX의 차이점
+
+Astro 컴포넌트 구문은 HTML의 상위 집합입니다. HTML이나 JSX 경험이 있는 사람이라면 누구나 친숙하게 느낄 수 있도록 설계되었지만, `.astro` 파일과 JSX에는 몇 가지 주요 차이점이 있습니다.
+
+#### 속성
+
+Astro에서는 모든 HTML 속성에 JSX에서 사용되는 `camelCase` 대신 표준 `kebab-case` 형식을 사용합니다. 이는 React에서 지원하지 않는 `class`에도 적용됩니다.
+
+```jsx del={1} ins={2} title="example.astro"
+<div className="box" dataValue="3" />
+<div class="box" data-value="3" />
+```
+
+#### 여러 요소
+
+JavaScript나 JSX에서는 모든 것을 하나의 `<div>` 또는 `<>`로 감싸야 했습니다. 하지만 Astro 컴포넌트 템플릿에서는 그럴 필요가 없습니다.
+
+```astro title="src/components/RootElements.astro"
+---
+// 여러 요소가 있는 템플릿
+---
+<p>여러 요소를 하나의 컨테이너 요소로 감쌀 필요가 없습니다.</p>
+<p>Astro는 템플릿에서 여러 개의 루트 요소를 지원합니다.</p>
+```
+
+#### 주석
+
+Astro에서는 표준 HTML 주석이나 JavaScript 스타일 주석을 사용할 수 있습니다.
+
+```astro title="example.astro"
+---
+---
+<!-- HTML 주석 구문은 .astro 파일에서 유효 -->
+{/* JS 주석 구문도 유효 */}
+```
+
+:::caution
+HTML 스타일 주석은 브라우저 DOM에 포함되지만 JS 스타일 주석은 포함되지 않습니다. TODO 메시지나 기타 개발 전용 설명을 남기려면 HTML 주석 대신 JavaScript 주석을 사용할 수 있습니다.
+:::
+
+
