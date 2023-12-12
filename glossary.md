@@ -17,7 +17,7 @@ Some future guidelines for this:
 
 ### Component
 
-Astro components are the basic building blocks of any Astro project. They are HTML-only templating components with no client-side runtime. You can spot an Astro component by its file extension: `.astro`. Read more about components in the [Astro Components](https://docs.astro.build/en/core-concepts/astro-components/) page.
+[Astro Components](https://docs.astro.build/en/core-concepts/astro-components/) are the basic building blocks of any Astro project. They are HTML-only templating components with no client-side runtime. You can spot an Astro component by its file extension: `.astro`. 
 
 ### Islands
 
