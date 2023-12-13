@@ -4,7 +4,9 @@ import type {
 	Definition,
 	Html,
 	Link,
+	List,
 	ListContent,
+	Node,
 	Paragraph,
 	PhrasingContent,
 	Root,
@@ -269,7 +271,7 @@ function stripPrettierIgnoreComments() {
 function enforceCodeLang() {
 	return function transform(tree: Root) {
 		visit(tree, 'code', function codeblockVisitor(node) {
-			if (/^(ins=|del=|\{|"|\/)/.test(node.lang)) {
+			if (node.lang && /^(ins=|del=|\{|"|\/)/.test(node.lang)) {
 				node.meta = node.lang + ' ' + node.meta;
 				node.lang = 'diff';
 			}
@@ -349,7 +351,7 @@ function githubVideos() {
 function removeTOC() {
 	return function transform(tree: Root) {
 		remove(tree, (node) => {
-			if (node.type !== 'list') return;
+			if (!isList(node)) return;
 			const firstItemContent = node.children[0].children[0];
 			if (firstItemContent.type !== 'paragraph') return;
 			return firstItemContent.children.some(
@@ -359,4 +361,8 @@ function removeTOC() {
 			);
 		});
 	};
+}
+
+function isList(node: Node): node is List {
+	return node.type === 'list';
 }
