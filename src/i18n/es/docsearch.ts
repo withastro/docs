@@ -25,7 +25,7 @@ export default DocSearchDictionary({
 		},
 		errorScreen: {
 			titleText: 'No se pueden recuperar los resultados',
-			helpText: 'Es posible que desee verificar su conexión de red.',
+			helpText: 'Es posible que desees verificar tu conexión de red.',
 		},
 		footer: {
 			selectText: 'para seleccionar',
