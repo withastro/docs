@@ -1,0 +1,144 @@
+---
+title: Turso & Astro
+description: Build locally with a SQLite file and deploy globally using Turso.
+type: backend
+service: Turso
+stub: false
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+[Turso](https://turso.tech) is a distributed database built on libSQL, a fork of SQLite. It's optimized for low query latency, making it suitable for global applications.
+
+### Prerequisites
+
+- The [Turso CLI](https://docs.turso.tech/reference/turso-cli) installed and signed in
+- A [Turso](https://turso.tech) Database with schema
+- Your Database URL
+- An Access Token
+
+If you don't have an existing database and schema with Turso, you can create one and connect to the shell using the Turso CLI:
+
+```bash
+turso db create my-astro-db
+turso db shell my-astro-db
+```
+
+Then add the following
+
+```sql
+CREATE TABLE posts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title TEXT,
+    slug TEXT UNIQUE,
+    content TEXT
+);
+```
+
+Make sure to popular the `posts` table with some content. You'll need it to make the most out of the examples below.
+
+### Configure environment variables
+
+You can obtain your database URL using the following command:
+
+```bash
+turso db show my-astro-db --url
+```
+
+Then we'll need to create an auth token for the database:
+
+```bash
+turso db tokens create my-astro-db
+```
+
+Now create the file `.env` and add the output from both commands above:
+
+```ini title=".env"
+TURSO_DATABASE_URL=libsql://...
+TURSO_AUTH_TOKEN=
+```
+
+:::caution
+Make sure you **do not** expose the `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` on the client with the `PUBLIC_` prefix when creating [environment variables](/en/guides/environment-variables/).
+:::
+
+## Install LibSQL Client
+
+To connect Astro to Turso we will need to install the `@libsql/client`:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```shell
+    npm install @libsql/client
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```shell
+    pnpm install @libsql/client
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    yarn add @libsql/client
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+## Initialize a new client
+
+Now create the file `turso.ts` in the `src` folder and invoke `createClient`, passing it `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN`:
+
+```ts
+import { createClient } from "@libsql/client/web";
+
+export const turso = createClient({
+  url: import.meta.env.TURSO_DATABASE_URL,
+  authToken: import.meta.env.TURSO_AUTH_TOKEN,
+});
+```
+
+## Create a query
+
+Now inside `src/pages/index.astro`, import `turso` and execute a SQL query to fetch all `posts` from the table:
+
+```astro title="src/pages/index.astro"
+---
+import {turso} from '../turso'
+
+const posts = await turso.execute('SELECT * FROM posts')
+---
+
+<ul>
+  {posts.map((post) => (
+    <li>{post.title}</li>
+  ))}
+</ul>
+```
+
+## Create a query with arguments
+
+There are cases where you'll need to pass values to your SQL query for things like a `slug`, `id` or even for pagination. Thankfully, the `execute` method also accepts an object that safely passes your variables to the SQL statement.
+
+Create the file `src/pages/posts/[slug].astro` with the following:
+
+```astro title="src/pages/posts/[slug].astro"
+---
+import {turso} from '../../turso'
+
+const {slug} = Astro.params
+
+const post = await turso.execute({
+  sql: 'SELECT * FROM posts WHERE slug = ?',
+  args: [slug!]
+})
+---
+
+<pre>{JSON.stringify(post, null, 2)}</pre>
+```
+
+That's it! You now have Turso setup and configured to read content from your database.
+
+## Turso Resources
+- [Turso Docs](https://docs.turso.tech)
+- [Turso on GitHub](https://github.com/tursodatabase)
+- [Using Turso to serve a Server-side Rendered Astro blog's content](https://blog.turso.tech/using-turso-to-serve-a-server-side-rendered-astro-blogs-content-58caa6188bd5)
