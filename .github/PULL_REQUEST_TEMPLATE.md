@@ -11,4 +11,4 @@
 
 <!-- For a new/changed feature in an upcoming Astro release? -->
 <!-- Uncomment the line below, update the minor version number if known, and include a PR link -->
-<!-- #### For Astro version: `3.x`. See astro PR [#](url). -->
+<!-- #### For Astro version: `4.x`. See astro PR [#](url). -->

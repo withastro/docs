@@ -6,7 +6,7 @@ export default NavDictionary({
 	'getting-started': 'دليل البداية',
 	install: 'التثبيت',
 	'editor-setup': 'إعداد المحرر',
-	'guides/upgrade-to/v3': 'الترقية إلى الإصدار 3',
+	// 'guides/upgrade-to/v3': 'الترقية إلى الإصدار 3',
 
 	// Core Concepts
 	coreConcepts: 'المفاهيم الأساسية',
