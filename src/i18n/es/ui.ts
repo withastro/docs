@@ -104,6 +104,9 @@ export default UIDictionary({
 	'feedback.categoryGroupLabel': 'Elige una categoría de opinión',
 	'feedback.issue': 'Problema',
 	'feedback.createIssue': 'Crear un problema en GitHub',
+	'feedback.createIssue.description': 'La forma más rápida de alertar a nuestro equipo de un problema.',
+	'feedback.sendFeedback': 'Envíanos comentarios',
+	'feedback.sendFeedback.description': 'Envíanos un mensaje directamente.',
 	'feedback.idea': 'Idea',
 	'feedback.other': 'Otro',
 	'feedback.messageA11yLabel': 'Mensaje',
@@ -126,4 +129,7 @@ export default UIDictionary({
 		'¿Quieres contribuir a esta guía? ¿Tienes alguna publicación en un blog, un video u otro recurso para compartir sobre la migración desde esta tecnología a Astro?',
 	'stub.description.cms': '¿Quieres saber más sobre cómo usar este CMS con Astro?',
 	'stub.description.backend': '¿Quieres saber más sobre cómo usar este servicio backend con Astro?',
+	// Starlight banner
+	'starlight.title': '¿Quieres crear tus propios Docs?',
+	'starlight.description': 'Toma esta plantilla para comenzar.',
 });
