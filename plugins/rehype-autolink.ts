@@ -81,7 +81,6 @@ function rehypei18nAutolinkHeadings() {
  * Spread this into Astro’s `markdown.rehypePlugins` option.
  */
 export const rehypeAutolink = (): RehypePlugins => [
-	// @ts-expect-error — Astro is not happy with this [plugin, options] tuple for some reason, but it works!
 	[rehypeAutolinkHeadings, autolinkConfig],
 	rehypei18nAutolinkHeadings(),
 ];

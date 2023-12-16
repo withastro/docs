@@ -27,11 +27,6 @@ export default defineConfig({
 		starlight({
 			title: 'Docs',
 			customCss: ['./src/styles/custom.css'],
-			logo: {
-				light: './src/assets/astro-logo-light.svg',
-				dark: './src/assets/astro-logo-dark.svg',
-				alt: 'Astro',
-			},
 			components: {
 				EditLink: './src/components/starlight/EditLink.astro',
 				Head: './src/components/starlight/Head.astro',
@@ -44,6 +39,7 @@ export default defineConfig({
 				SiteTitle: './src/components/starlight/SiteTitle.astro',
 				Search: './src/components/starlight/Search.astro',
 				Sidebar: './src/components/starlight/Sidebar.astro',
+				PageTitle: './src/components/starlight/PageTitle.astro',
 			},
 			editLink: {
 				baseUrl: 'https://github.com/withastro/docs/edit/main',
