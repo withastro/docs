@@ -5,7 +5,7 @@ export default NavDictionary({
 	'getting-started': '개요',
 	install: '설치',
 	'editor-setup': '편집기 설정',
-	'guides/upgrade-to/v3': 'v3로 업그레이드',
+	'guides/upgrade-to/v4': 'v4로 업그레이드',
 
 	coreConcepts: '핵심 개념',
 	'concepts/why-astro': '왜 Astro인가?',

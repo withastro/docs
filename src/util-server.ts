@@ -5,6 +5,7 @@
 
 // @ts-expect-error Package without types we can’t do anything about.
 import EleventyFetch from '@11ty/eleventy-fetch';
+import retry from 'p-retry';
 
 export type CachedFetchOptions = {
 	duration?: string;
@@ -21,12 +22,14 @@ export async function cachedFetch(
 	let buffer: Buffer | undefined;
 
 	try {
-		buffer = await EleventyFetch(url, {
-			duration,
-			verbose,
-			type: 'buffer',
-			fetchOptions,
-		});
+		buffer = await retry(() =>
+			EleventyFetch(url, {
+				duration,
+				verbose,
+				type: 'buffer',
+				fetchOptions,
+			})
+		);
 	} catch (e: unknown) {
 		const error = e as Error;
 		const msg: string = error?.message || error.toString();
