@@ -1,6 +1,7 @@
 // @ts-check
 
 import fs from 'fs';
+// @ts-expect-error — Untyped npm package
 import jsdoc from 'jsdoc-api';
 import fetch from 'node-fetch';
 
@@ -69,7 +70,7 @@ export async function run() {
 
 	const allParsedComments = jsdoc
 		.explainSync({ source: allCommentsInput })
-		.filter((data) => data.tags);
+		.filter((/** @type {any} */ data) => data.tags);
 
 	let result = ``;
 
@@ -84,7 +85,7 @@ export async function run() {
 			getCommentProperties(comment),
 			comment.description?.trim() || undefined,
 			comment.see
-				? `**See Also:**\n${comment.see.map((s) => `- ${s}`.trim()).join('\n')}`
+				? `**See Also:**\n${comment.see.map((/** @type {any} */ s) => `- ${s}`.trim()).join('\n')}`
 				: undefined,
 			`\n`,
 		]
