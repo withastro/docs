@@ -6,7 +6,7 @@ export default NavDictionary({
 
 	install: 'स्थापित करें',
 	'editor-setup': 'एडिटर सेटअप',
-	'guides/upgrade-to/v3': 'v3 में अपग्रेड करें',
+	// 'guides/upgrade-to/v3': 'v3 में अपग्रेड करें',
 
 	coreConcepts: 'मूल अवधारणाएँ',
 	'concepts/why-astro': 'क्यों Astro',

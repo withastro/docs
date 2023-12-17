@@ -27,11 +27,6 @@ export default defineConfig({
 		starlight({
 			title: 'Docs',
 			customCss: ['./src/styles/custom.css'],
-			logo: {
-				light: './src/assets/astro-logo-light.svg',
-				dark: './src/assets/astro-logo-dark.svg',
-				alt: 'Astro',
-			},
 			components: {
 				EditLink: './src/components/starlight/EditLink.astro',
 				Head: './src/components/starlight/Head.astro',
