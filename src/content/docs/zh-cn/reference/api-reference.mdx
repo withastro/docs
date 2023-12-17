@@ -3,7 +3,6 @@ title: API 参考
 ---
 import Since from '~/components/Since.astro';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
-import Badge from '~/components/Badge.astro';
 
 
 ## `Astro` global
@@ -457,6 +456,28 @@ const orders = Array.from(Astro.locals.orders.entries());
 </ul>
 ```
 
+### `Astro.preferredLocale`
+
+`Astro.preferredLocale` 是一个代表当前用户的首选语言环境的计算出的值。
+
+它是通过检查 `i18n.locales` 数组中配置的语言环境和用户浏览器通过头部 `Accept-Language` 指定的语言环境来计算的。如果不存在匹配项则该值为 `undefined`。
+
+这个属性只在为 SSR（服务器端渲染）构建时可用，不应该用于静态网站。
+
+### `Astro.preferredLocaleList`
+
+`Astro.preferredLocaleList` 是一个同时被浏览器请求并且你的网站也支持的语言环境的数组。它是一个由你的网站和你的访客共同支持的语言环境的列表。
+
+如果浏览器请求的语言环境没有在你的网站中被支持，那么该值为 `[]`：你不支持你的访客的任何首选语言环境。
+
+如果浏览器没有指定任何首选语言环境，那么该值将是 [`i18n.locales`](/zh-cn/reference/configuration-reference/#i18nlocales)：你支持的所有语言环境都将被同等视为访客倾向的语言环境。
+
+这个属性只在为 SSR（服务器端渲染）构建时可用，不应该用于静态网站。
+
+### `Astro.currentLocale`
+
+从当前 URL 使用你的 `locales` 配置中指定的语法计算出的语言环境。如果 URL 不包含 `/[locale]/` 前缀，则该值将默认为 `i18n.defaultLocale`。
+
 ## 端点上下文
 
 [端点函数](/zh-cn/core-concepts/endpoints/)接收一个上下文对象作为第一个参数。它与许多 `Astro` 全局属性相似。
@@ -490,9 +511,9 @@ export function getStaticPaths() {
 }
 
 export function GET({ params }: APIContext) {
-	return {
-		body: JSON.stringify({ id: params.id })
-	};
+	return new Response(
+    JSON.stringify({ id: params.id }),
+  );
 }
 ```
 
@@ -514,9 +535,9 @@ export function getStaticPaths() {
 }
 
 export function GET({ props }: APIContext) {
-	return {
-		body: JSON.stringify({ author: props.author }),
-	};
+  return new Response(
+    JSON.stringify({ author: props.author }),
+  );
 }
 ```
 
@@ -530,9 +551,7 @@ export function GET({ props }: APIContext) {
 import type { APIContext } from 'astro';
 
 export function GET({ request }: APIContext) {
-  return {
-    body: `Hello ${request.url}`
-  }
+  return new Response(`Hello ${request.url}`);
 }
 ```
 
@@ -558,9 +577,7 @@ export function GET({ request }: APIContext) {
 import type { APIContext } from 'astro';
 
 export function GET({ clientAddress }: APIContext) {
-  return {
-    body: `Your IP address is: ${clientAddress}`
-  }
+  return new Response(`Your IP address is: ${clientAddress}`);
 }
 ```
 
@@ -626,9 +643,7 @@ API 端点只能从 `context.locals`中读取信息：
 import type { APIContext } from 'astro';
 
 export function get({ locals }: APIContext) {
-  return {
-    body: locals.title // "默认标题"
-  }
+  return new Response(locals.title); // "默认标题"
 }
 ```
 
@@ -798,7 +813,7 @@ export default function () {
 
 ## 图像（`astro:assets`）
 
-### getImage()
+### `getImage()`
 
 :::caution
 `getImage()` 依赖于仅在服务器上可用的 API，当在客户端使用时会导致构建失败。
@@ -1135,6 +1150,57 @@ const blog = defineCollection({
 });
 ```
 
+## 中间件（`astro:middleware`）
+
+<p>
+  <Since v="2.6.0" />
+</p>
+
+中间件使你能拦截请求和响应，并在每次渲染页面或端点时动态注入行为。有关功能和用法示例，请参考[中间件指南](/zh-cn/guides/middleware/)。
+
+### `onRequest()`
+
+一个在 `src/middleware.js` 里的必须导出的函数，它将在每次渲染页面或端点时被调用。它接受两个可选参数：[context](#contextlocals) 和 [next()](#next)。`onRequest()` 必须返回一个 `Response`：要么直接返回，要么通过调用 `next()` 返回。
+
+    ```js title="src/middleware.js"
+    export function onRequest (context, next) {
+        // 拦截一个请求的响应数据
+        // 可选修改响应
+        // 直接返回一个 Response 对象，或者调用 `next()` 的结果
+        return next();
+    };
+    ```
+
+### `next()`
+
+一个拦截（读取和修改）一个 `Request` 的 `Response` 或调用链中的“下一个（next）”中间件并返回一个 `Response` 的函数。例如，这个函数可以修改响应的 HTML 主体。
+
+这是 `onRequest()` 的可选参数，并且可能会提供中间件返回的所需 `Response`。
+
+### `sequence()`
+
+一个接受中间件函数作为参数的函数，它将按照它们传递的顺序执行它们。
+
+```js title="src/middleware.js"
+import { sequence } from "astro:middleware";
+
+async function validation(_, next) {...}
+async function auth(_, next) {...}
+async function greeting(_, next) {...}
+
+export const onRequest = sequence(validation, auth, greeting);
+```
+
+### `createContext()`
+
+一个底层 API，用于创建一个 [`APIContext`](#端点上下文) 以传递给 Astro 中间件的 `onRequest()` 函数。
+
+此函数可以由集成/适配器用于执行 Astro 中间件。
+
+### `trySerializeLocals()`
+
+一个底层 API，它接受任何值并尝试返回它的序列化版本（一个字符串）。如果该值无法序列化，该函数将抛出一个运行时错误。
+
 ## 内置组件
 
 Astro 包括几个内置的组件供你在你的项目中使用。在 `.astro` 文件中可以通过 `import {} from 'astro:components';` 引用所有的内置组件。
@@ -1248,7 +1314,7 @@ import myImage from "../assets/my_image.png"; // Image is 1600x900
 
 ### `<Picture />`
 
-<Since v="3.3.0" /> <Badge>实验性</Badge>
+<Since v="3.3.0" />
 
 使用内置的 `<Picture />` Astro 组件来展示具有多种格式和（或）尺寸的响应式图像。
 
