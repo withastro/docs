@@ -1,0 +1,58 @@
+---
+title: AstroサイトをGitLab Pagesにデプロイする
+description: GitLab Pagesを使ってAstroサイトをウェブにデプロイする方法。
+type: deploy
+i18nReady: true
+---
+
+[GitLab Pages](https://pages.gitlab.io/)を使って、[GitLab](https://about.gitlab.com/)のプロジェクトやグループ、ユーザーアカウント用のAstroサイトをホストすることができます。
+
+:::tip[例をお探しですか？]
+[公式GitLab Pages Astroサンプルプロジェクト](https://gitlab.com/pages/astro)を確認してください！
+:::
+
+## デプロイ方法
+
+1. `astro.config.mjs`に正しい`site`を設定します。
+2. `public/`ディレクトリを`static`にリネームします.
+3. `astro.config.mjs`に`outDir:public`を設定します。この設定は、静的ビルドの出力をGitLab Pagesがファイルを公開するために必要なフォルダである`public`というフォルダに置くようにAstroに指示します。
+
+   [`public/`ディレクトリ](/ja/core-concepts/project-structure/#public)をAstroプロジェクトで静的ファイルのソースとして使用していた場合は、名前を変更し、`astro.config.mjs`の`publicDir`の値に新しいフォルダ名を指定します。
+
+   例えば、`public/`ディレクトリを`static/`にリネームした場合の`astro.config.mjs`の正しい設定は以下の通りです。
+
+   ```js
+   import { defineConfig } from 'astro/config';
+
+   export default defineConfig({
+     site: 'https://<user>.gitlab.io',
+     base: '/<project-name>',
+     outDir: 'public',
+     publicDir: 'static',
+   });
+   ```
+
+4. プロジェクトのルートに`.gitlab-ci.yml`というファイルを以下の内容で作成します。これにより、コンテンツを変更するたびにサイトをビルドしてデプロイすることができます。
+
+   ```yaml
+   pages:
+     # アプリのビルドに使用するDockerイメージ
+     image: node:lts
+
+     before_script:
+       - npm ci
+
+     script:
+       # アプリのビルドに必要な手順をここで指定します
+       - npm run build
+
+     artifacts:
+       paths:
+         # 公開するビルド済みのファイルを含むフォルダ。
+         # "public"を指定する必要があります。
+         - public
+
+     only:
+       # 以下のブランチへのプッシュがある時のみに、新しいビルドとデプロイをトリガーします。
+       - main
+   ```

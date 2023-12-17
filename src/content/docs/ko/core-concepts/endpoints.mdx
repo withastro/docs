@@ -1,0 +1,223 @@
+---
+title: 엔드포인트
+description: 모든 종류의 데이터를 제공하는 엔드포인트 만드는 방법 알아보기
+i18nReady: true
+---
+import RecipeLinks from "~/components/RecipeLinks.astro";
+
+Astro를 사용하면 모든 종류의 데이터를 제공하는 사용자 지정 엔드포인트를 만들 수 있습니다. 이를 사용하여 이미지를 생성하거나, RSS 문서를 노출하거나, 이를 API 라우트로 사용하여 사이트에 대한 전체 API를 만들 수 있습니다.
+
+정적으로 생성된 사이트에서는 정적 파일을 생성하기 위해 빌드 시 사용자 지정 엔드포인트가 호출됩니다. [SSR](/ko/guides/server-side-rendering/) 모드를 선택하면 사용자 정의 엔드포인트가 요청 시 호출되는 라이브 서버 엔드포인트로 전환됩니다. 정적 및 SSR 엔드포인트는 유사하게 정의되지만 SSR 엔드포인트는 추가 기능을 지원합니다.
+
+## 정적 파일 엔드포인트
+
+사용자 정의 엔드포인트를 생성하려면 `.js` 또는 `.ts` 파일을 `/pages` 디렉터리에 추가하세요. `.js` 또는 `.ts` 확장자는 빌드 프로세스 중에 제거되므로 파일 이름에는 생성하려는 데이터의 확장자가 포함되어야 합니다. 예를 들어 `src/pages/data.json.ts`는 `/data.json` 엔드포인트를 빌드합니다.
+
+엔드포인트는 `Astro` global 객체와 유사한 속성을 가진 [context 객체](/ko/reference/api-reference/#endpoint-context)를 수신하는 `GET` 함수(선택적으로 `async`)를 내보냅니다. 여기서는 `name`과 `url`이 포함된 Response 객체를 반환하고 Astro는 빌드 시 이를 호출하고 본문 내용을 사용하여 파일을 생성합니다.
+
+```ts
+// Example: src/pages/builtwith.json.ts
+// Outputs: /builtwith.json
+export async function GET({params, request}) {
+  return new Response(
+    JSON.stringify({
+      name: 'Astro',
+      url: 'https://astro.build/'
+    })
+  )
+}
+```
+
+Astro v3.0부터, 반환된 `Response` 객체는 더 이상 `encoding` 속성을 포함할 필요가 없습니다. 예를 들어, 바이너리 png 이미지를 생성하려면:
+
+```ts title="src/pages/astro-logo.png.ts" {3}
+export async function GET({ params, request }) {
+  const response = await fetch("https://docs.astro.build/assets/full-logo-light.png");
+  return new Response(await response.arrayBuffer());
+}
+```
+
+`APIRoute` 타입을 엔드포인트 함수의 타입으로 지정할 수도 있습니다.
+
+```ts
+import type { APIRoute } from 'astro';
+
+export const GET: APIRoute = async ({ params, request }) => {...}
+```
+
+### `params` 및 동적 라우팅
+
+엔드포인트는 페이지와 동일한 [동적 라우팅](/ko/core-concepts/routing/#dynamic-routes) 기능을 지원합니다. 대괄호로 묶인 매개변수 이름을 사용하여 파일 이름을 지정하고 [`getStaticPaths()` 함수](/ko/reference/api-reference/#getstaticpaths)를 내보냅니다. 그런 다음 엔드포인트 함수에 전달된 `params` 속성을 통해 매개변수를 사용할 수 있습니다.
+
+```ts title="src/pages/api/[id].json.ts"
+import type { APIRoute } from 'astro';
+
+const usernames = ["Sarah", "Chris", "Yan", "Elian"]
+
+export const GET: APIRoute = ({ params, request }) => {
+  const id = params.id;
+  return new Response(
+    JSON.stringify({
+      name: usernames[id]
+    })
+  )
+}
+
+export function getStaticPaths() {
+  return [ 
+    { params: { id: "0"} },
+    { params: { id: "1"} },
+    { params: { id: "2"} },
+    { params: { id: "3"} }
+  ]
+}
+```
+
+그러면 빌드 시 `/api/0.json`, `/api/1.json`, `/api/2.json`, `/api/3.json`로 4개의 JSON 엔드포인트가 생성됩니다. 엔드포인트를 사용한 동적 라우팅은 페이지와 동일하게 작동하지만 엔드포인트는 컴포넌트가 아니라 함수이기 때문에 [props](/ko/reference/api-reference/#data-passing-with-props)는 지원되지 않습니다.
+
+### `request`
+
+모든 엔드포인트는 `request` 속성을 받지만 정적 모드에서는 `request.url`만 사용할 수 있습니다. 이는 현재 엔드포인트의 전체 URL을 반환하고 [Astro.request.url](/ko/reference/api-reference/#astrorequest)이 페이지에 대해 수행하는 것과 동일하게 작동합니다.
+
+```ts title="src/pages/request-path.json.ts"
+import type { APIRoute } from 'astro';
+
+export const GET: APIRoute = ({ params, request }) => {
+  return new Response(JSON.stringify({
+      path: new URL(request.url).pathname
+    })
+  )
+}
+```
+
+## 서버 엔드포인트 (API 라우트)
+
+정적 파일 엔드포인트 섹션에 설명된 모든 내용은 SSR 모드에서도 사용할 수 있습니다. 파일은 `Astro` global 객체와 유사한 속성을 가진 [context 객체](/ko/reference/api-reference/#endpoint-context)를 수신하는 `GET` 함수를 내보낼 수 있습니다.
+
+그러나 `정적` 모드와 달리 `서버` 모드를 구성하면 엔드포인트가 요청될 때 빌드됩니다. 이를 통해 빌드 시 사용할 수 없던 새로운 기능을 사용할 수 있으며, 요청을 수신하고 런타임 시 서버에서 코드를 안전하게 실행하는 API 라우트를 만들 수 있습니다.
+
+<RecipeLinks slugs={["ko/recipes/call-endpoints" ]}/>
+
+:::note
+이 예시를 시도하기 전에 [SSR을 활성화](/ko/guides/server-side-rendering/)하세요.
+:::
+
+서버 엔드포인트는 `getStaticPaths`를 내보내지 않고도 `params`를 사용할 수 있으며 [`Response`](https://developer.mozilla.org/ko/docs/Web/API/Response) 객체를 반환할 수 있으므로 상태 코드와 헤더를 설정할 수 있습니다.
+
+```js title="src/pages/[id].json.js"
+import { getProduct } from '../db';
+
+export async function GET({ params }) {
+  const id = params.id;
+  const product = await getProduct(id);
+
+  if (!product) {
+    return new Response(null, {
+      status: 404,
+      statusText: 'Not found'
+    });
+  }
+
+  return new Response(
+    JSON.stringify(product), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json"
+      }
+    }
+  );
+}
+```
+
+이는 동적 경로와 일치하는 모든 요청에 ​​응답합니다. 예를 들어 `/helmet.json`으로 이동하면 `params.id`가 `helmet`으로 설정됩니다. 모의 제품 데이터베이스에 `helmet`이 있는 경우 엔드포인트는 `Response` 객체를 생성하여 JSON으로 응답하고 성공적인 [HTTP 상태 코드](https://developer.mozilla.org/en-US/docs/Web/API/Response/status)를 반환합니다. 그렇지 않은 경우 `Response` 객체를 사용하여 `404`로 응답합니다.
+
+SSR 모드에서 특정 공급자는 이미지를 반환하기 위해 `Content-Type` 헤더를 요구합니다. 이 경우 `Response` 객체를 사용하여 `headers` 속성을 지정하세요. 예를 들어 바이너리 `.png` 이미지를 생성하기 위해 다음 코드를 사용하세요.
+
+```ts title="src/pages/astro-logo.png.ts"
+export async function GET({ params, request }) {
+  const response = await fetch("https://docs.astro.build/assets/full-logo-light.png");
+  const buffer = Buffer.from(await response.arrayBuffer());
+  return new Response(buffer, {
+    headers: { "Content-Type": "image/png" },
+  });
+}
+```
+
+### HTTP 메서드
+
+`GET` 함수 외 다른 [HTTP 메서드](https://developer.mozilla.org/ko/docs/Web/HTTP/Methods) 이름으로 함수를 내보낼 수 있습니다. 요청이 들어오면 Astro는 메서드를 확인하고 해당 함수를 호출합니다.
+
+또한 내보낸 해당 함수가 없는 다른 메서드와 일치하도록 `ALL` 함수를 내보낼 수도 있습니다. 일치하는 메서드가 없는 요청이 있는 경우 사이트의 [404 페이지](/ko/core-concepts/astro-pages/#사용자-정의-404-오류-페이지)로 리디렉션됩니다.
+
+```ts title="src/pages/methods.json.ts"
+export const GET: APIRoute = ({ params, request }) => {
+  return new Response(JSON.stringify({
+      message: "GET 메서드!"
+    })
+  )
+}
+
+export const POST: APIRoute = ({ request }) => {
+  return new Response(JSON.stringify({
+      message: "POST 메서드!"
+    })
+  )
+}
+
+export const DELETE: APIRoute = ({ request }) => {
+  return new Response(JSON.stringify({
+      message: "DELETE 메서드!"
+    })
+  )
+}
+
+export const ALL: APIRoute = ({ request }) => {
+  return new Response(JSON.stringify({
+      message: `${request.method} 메서드!`
+    })
+  )
+}
+```
+
+<RecipeLinks slugs={["ko/recipes/captcha", "ko/recipes/build-forms-api" ]}/>
+
+### `request`
+
+SSR 모드에서 `request` 속성은 현재 요청을 참조하는 완전히 사용 가능한 [`Request`](https://developer.mozilla.org/ko/docs/Web/API/Request) 객체를 반환합니다. 이를 통해 데이터를 승인하고 헤더를 확인할 수 있습니다.
+
+```ts title="src/pages/test-post.json.ts"
+export const POST: APIRoute = async ({ request }) => {
+  if (request.headers.get("Content-Type") === "application/json") {
+    const body = await request.json();
+    const name = body.name;
+    return new Response(JSON.stringify({
+      message: "이름: " + name
+    }), {
+      status: 200
+    })
+  }
+  return new Response(null, { status: 400 });
+}
+```
+
+### Redirects
+
+엔드포인트 context는 `Astro.redirect`와 유사한 `redirect()` 유틸리티를 내보냅니다.
+
+```js title="src/pages/links/[id].js" {14}
+import { getLinkUrl } from '../db';
+
+export async function GET({ params, redirect }) {
+  const { id } = params;
+  const link = await getLinkUrl(id);
+
+  if (!link) {
+    return new Response(null, {
+      status: 404,
+      statusText: '찾을 수 없음'
+    });
+  }
+
+  return redirect(link, 307);
+}
+```

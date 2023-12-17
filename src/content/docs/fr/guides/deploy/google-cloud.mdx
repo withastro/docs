@@ -1,0 +1,84 @@
+---
+title: Déployez votre site Astro sur Google Cloud
+description: Comment déployer votre site Astro sur le web en utilisant Google Cloud.
+type: deploy
+i18nReady: true
+---
+
+[Google Cloud](https://cloud.google.com/) est une plateforme d'hébergement d'applications web complète qui peut être utilisée pour déployer un site Astro.
+
+## Comment déployer
+
+### Cloud Storage (statique uniquement)
+
+1. [Créer un nouveau projet GCP](https://console.cloud.google.com/projectcreate), ou sélectionnez un projet existant.
+
+2. Créez un nouveau bucket sous [Cloud Storage](https://cloud.google.com/storage).
+
+3. Donnez-lui un nom et les autres paramètres requis.
+
+4. Téléchargez le dossier `dist` dedans ou téléchargez en utilisant [Cloud Build](https://cloud.google.com/build).
+
+5. Activez l'accès public en ajoutant une nouvelle permission à `allUsers` appelée `Storage Object Viewer`.
+
+6. Éditez la configuration du site web et ajoutez `index.html` comme point d'entrée et `404.html` comme page d'erreur.
+
+### Cloud Run (SSR et statique)
+
+Cloud Run est une plateforme sans serveur qui vous permet d'exécuter un conteneur sans avoir à gérer une quelconque infrastructure. Elle peut être utilisée pour déployer des sites statiques et des SSR.
+
+#### Préparer le service
+
+1. [Créer un nouveau projet GCP](https://console.cloud.google.com/projectcreate), ou sélectionnez un projet existant.
+
+2. Assurez-vous que [Cloud Run API](https://console.cloud.google.com/apis/library/run.googleapis.com) est activé.
+
+3. Créez un nouveau service.
+
+
+#### Créer un fichier Dockerfile et composer le Container
+
+Avant de pouvoir déployer votre site Astro sur Cloud Run, vous devez créer un Dockerfile qui sera utilisé pour composer le Container. Vous trouverez plus d'informations sur [comment utiliser Docker avec Astro](/fr/recipes/docker/#création-dun-dockerfile) dans notre section des méthodes.
+
+Une fois le fichier Docker créé, créez une image et envoyez-la sur Google Cloud. Il existe plusieurs façons d'y parvenir :
+
+**Composer localement en utilisant Docker** :
+
+Utilisez la commande `docker build` pour composer l'image, `docker tag` pour lui donner un tag, puis `docker push` pour la pousser vers un registre. Dans le cas de Google Cloud, [`Google Cloud Registry`](https://cloud.google.com/container-registry/docs/pushing-and-pulling#add-registry) est l'option la plus facile, mais vous pouvez aussi utiliser [Docker Hub](https://hub.docker.com/).
+
+```bash
+# composez votre conteneur
+docker build .
+
+docker tag SOURCE_IMAGE HOSTNAME/PROJECT-ID/TARGET-IMAGE:TAG
+
+# Transférer l'image vers un registre
+docker push HOSTNAME/PROJECT-ID/IMAGE:TAG
+```
+
+Modifiez les valeurs suivantes dans les commandes ci-dessus pour qu'elles correspondent à votre projet :
+
+- `SOURCE_IMAGE` : le nom ou l'ID de l'image locale.
+- `HOSTNAME` : l'hôte du registre (`gcr.io`, `eu.gcr.io`, `asia.gcr.io`, `us.gcr.io`).
+- `PROJECT` : votre ID de projet Google Cloud.
+- `TARGET-IMAGE` : le nom de l'image lorsqu'elle est stockée dans le registre.
+- `TAG` est la version associée à l'image.
+
+
+[Pour plus d'informations, consultez la documentation Google Cloud](https://cloud.google.com/container-registry/docs/pushing-and-pulling)
+
+**Utiliser un autre outil** :
+
+Vous pouvez utiliser un outil CI/CD qui prend en charge Docker, comme [GitHub Actions](https://github.com/marketplace/actions/push-to-gcr-github-action).
+
+**Construction à l'aide de [Cloud Build](https://cloud.google.com/build)** :
+
+Au lieu de composer le fichier Docker localement, vous pouvez demander à Google Cloud de composer l'image à distance. Voir la [documentation Google Cloud Build ici](https://cloud.google.com/build/docs/build-push-docker-image).
+
+#### Déployer le conteneur
+
+Le déploiement peut être géré manuellement dans votre terminal [en utilisant `gcloud`](https://cloud.google.com/run/docs/deploying#service) ou automatiquement en utilisant [Cloud Build](https://cloud.google.com/build) ou tout autre système CI/CD.
+
+:::note[Besoin d'un accès public ?]
+N'oubliez pas d'ajouter la permission `Cloud Run Invoker` au groupe `allUsers` dans les paramètres de permissions de Cloud Run !
+:::

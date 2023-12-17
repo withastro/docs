@@ -98,7 +98,7 @@ Note that the provided `transition:name` value can only be used once on each pag
 
 ### Maintaining State
 
-<Since v="2.10.0" />
+<p><Since v="2.10.0" /></p>
 
 You can persist components and HTML elements (instead of replacing them) across page navigations using the `transition:persist` directive. 
 
@@ -252,7 +252,7 @@ The following options allow you to further control when navigation occurs within
 
 There are some cases where you cannot navigate via client-side routing since both pages involved must use the `<ViewTransitions />` router to prevent a full-page reload. You may also not want client-side routing on every navigation change and would prefer a traditional page navigation on select routes instead.
 
-You can opt out of client-side routing on a per-link basis by adding the `data-astro-reload` attribute to any `<a>` tag. This attribute will override any existing `<ViewTransitions />` component and instead trigger a browser refresh during navigation.
+You can opt out of client-side routing on a per-link basis by adding the `data-astro-reload` attribute to any `<a>` or `<form>` tag. This attribute will override any existing `<ViewTransitions />` component and instead trigger a browser refresh during navigation.
 
 The following example shows preventing client-side routing when navigating to an article from the home page only. This still allows you to have animation on shared elements, such as a hero image, when navigating to the same page from an article listing page:
 
@@ -343,6 +343,7 @@ The `navigate` method takes these arguments:
 		- `'push'`: the router will use `history.pushState` to create a new entry in the browser history. 
 		- `'replace'`: the router will use `history.replaceState` to update the URL without adding a new entry into navigation.
 		- `'auto'` (default): the router will attempt `history.pushState`, but if the URL is not one that can be transitioned to, the current URL will remain with no changes to the browser history.
+  - `formData`: A FormData object for `POST` requests.
 
 For backward and forward navigation through the browser history, you can combine `navigate()` with the built-in `history.back()`, `history.forward()` and `history.go()` functions of the browser. If `navigate()` is called during the server-side render of your component, it has no effect.
 
@@ -367,6 +368,21 @@ The following example navigates to the `/main` page but does not add a new entry
 
 This has the effect that if you go back from the `/main` page, the browser will not display the `/confirmation` page, but the page before it.
 
+### Transitions with forms
+
+<p><Since v="4.0.0" /></p>
+
+The `<ViewTransitions />` router will trigger in-page transitions from `<form>` elements, supporting both `GET` and `POST` requests.
+
+By default, your page will transition after a form is submitted, even if you are using `event.preventDefault()` to prevent this behavior.
+
+You can opt out of router transitions on any individual form using the `data-astro-reload` attribute:
+
+```astro title="src/components/Form.astro"
+<form action="/contact" data-astro-reload>
+  <!-- -->
+</form>
+```
 
 ## Fallback control
 
@@ -387,7 +403,7 @@ import { ViewTransitions } from 'astro:transitions';
 <ViewTransitions fallback="swap">
 ```
 
-:::note[known limitations]
+:::note[Known limitations]
 The `initial` browser animation is not simulated by Astro. So any element using this animation will not currently be animated.
 :::
 
@@ -435,13 +451,136 @@ If you have code that sets up global state, this state will need to take into ac
 </script>
 ```
 
-Module scripts are only ever executed once because the browser keeps track of which modules are already loaded. For these scripts, you do not need to worry about re-execution.
+Module scripts, including those that add event listeners for `DOMContentLoaded`, are only ever executed once because the browser keeps track of which modules are already loaded. You must add listeners for a [Lifecycle event](#lifecycle-events) to re-execute scripts during client-side page navigation.
+
+See the [Add View Transitions Tutorial](/en/tutorials/add-view-transitions/#update-scripts) for an example of updating existing scripts in a project.
+
+## Lifecycle events
+
+The `<ViewTransition />` router fires a number events on the `document` during navigation. These events provide hooks into the lifecycle of navigation, allowing you to do things like show indicators that a new page is loading, override default behavior, and restore state as navigation is completing.
+
+The navigation process involves a **preparation** phase, when new content is loaded; a **DOM swap** phase, where the old page's content is replaced by the new page's content; and a **completion** phase where scripts are executed, loading is reported as completed and clean-up work is carried out. 
+
+Astro's View Transition API lifecycle events in order are:
+- [`astro:before-preparation`](#astrobefore-preparation)
+- [`astro:after-preparation`](#astroafter-preparation)
+- [`astro:before-swap`](#astrobefore-swap)
+- [`astro:after-swap`](#astroafter-swap)
+- [`astro:page-load`](#astropage-load)
+
+:::tip
+`before-` events allow you to influence and modify actions that are about to take place, and `after-` events are notifications that a phase is complete.
+:::
+
+While some actions can be triggered during any event, some tasks can only be performed during a specific event for best results, such as displaying a loading spinner before preparation or overriding animation pairs before swapping content.
+
+### `astro:before-preparation`
+
+<p><Since v="3.6.0" /></p>
+
+An event that fires at the beginning of the preparation phase, after navigation has started (e.g. after the user has clicked a link), but before content is loaded.
+
+This event is used:
+
+- To do something before loading has started, such as showing a loading spinner.
+- To alter loading, such as loading content you've defined in a template rather than from the external URL.
+- To change the `direction` of the navigation (which is usually either `forward` or `backward`) for custom animation.
+
+Here is an example of using the `astro:before-preparation` event to load a spinner before the content is loaded and stop it immediately after loading. Note that using the loader callback in this way allows asynchronous execution of code. 
+
+```js
+<script is:inline>
+  document.addEventListener('astro:before-preparation', ev => {
+    const originalLoader = ev.loader;
+    ev.loader = async function() {
+      const { startSpinner } = await import('./spinner.js');
+      const stop = startSpinner();
+      await originalLoader();
+      stop();
+    };
+  });
+</script>
+```
+
+### `astro:after-preparation`
+
+<p><Since v="3.6.0" /></p>
+
+An event that fires at the end of the preparation phase, after the new page's content has been loaded and parsed into a document. This event occurs before the view transitions phase.
+
+This example uses the `astro:before-preparation` event to start a loading indicator and the `astro:after-preparation` event to stop it:
+
+```astro
+<script is:inline>
+  document.addEventListener('astro:before-preparation', () => {
+    document.querySelector('#loading').classList.add('show');
+  });
+  document.addEventListener('astro:after-preparation', () => {
+    document.querySelector('#loading').classList.remove('show');
+  });
+</script>
+```
+This is a simpler version of loading a spinner than the example shown above: if all of the listener's code can be executed synchronously, there is no need to hook into the loader's callback. 
+
+### `astro:before-swap`
+
+<p><Since v="3.6.0" /></p>
+
+An event that fires before the new document (which is populated during the preparation phase) replaces the current document. This event occurs inside of the view transition, where the user is still seeing a snapshot of the old page.
+
+This event can be used to make changes before the swap occurs. The `newDocument` property on the event represents the incoming document. Here is an example of ensuring the browser's light or dark mode preference in `localStorage` is carried over to the new page:
+
+```astro
+<script is:inline>
+  function setDarkMode(document) {
+    let theme = localStorage.darkMode ? 'dark' : 'light';
+    document.documentElement.dataset.theme = theme;
+  }
+
+  setDarkMode(document);
+
+  document.addEventListener('astro:before-swap', ev => {
+    // Pass the incoming document to set the theme on it
+    setDarkMode(ev.newDocument);
+  });
+</script>
+```
+
+The `astro:before-swap` event can also be used to change the *implementation* of the swap. The default swap implementation diffs head content, moves __persistent__ elements from the old document to the `newDocument`, and then replaces the entire `body` with the body of the new document.
+
+At this point of the lifecycle, you could choose to define your own swap implementation, for example to diff the entire contents of the existing document (which some other routers do):
+
+```astro
+<script is:inline>
+  document.addEventListener('astro:before-swap', ev => {
+    ev.swap = () => {
+      diff(document, ev.newDocument);
+    };
+  });
+</script>
+```
+
+### `astro:after-swap`
+
+An event that fires immediately after the new page replaces the old page. You can listen to this event on the `document` and trigger actions that will occur before the new page's DOM elements render and scripts run. 
+
+This event, when listened to on the **outgoing page**, is useful to pass along and restore any state on the DOM that needs to transfer over to the new page.
+
+This is the latest point in the lifecycle where it is still safe to, for example, add a dark mode class name (`<html class="dark-mode">`), though you may wish to do so in an earlier event.
+
+The `astro:after-swap` event occurs immediately after the browser history has been updated and the scroll position has been set. 
+Therefore, one use of targeting this event is to override the default scroll restore for history navigation. The following example resets the horizontal and vertical scroll position to the top left corner of the page for each navigation. 
+
+```js
+document.addEventListener('astro:after-swap', 
+  () => window.scrollTo({ left: 0, top: 0, behavior: 'instant' }))
+```
 
 ### `astro:page-load`
 
 An event that fires at the end of page navigation, after the new page is visible to the user and blocking styles and scripts are loaded. You can listen to this event on the `document`.
 
-The `<ViewTransitions />` component fires this event both on initial page navigation (MPA) and any subsequent navigation, either forwards or backwards.
+The `<ViewTransitions />` component fires this event both on initial page navigation for a pre-rendered page and on any subsequent navigation, either forwards or backwards.
 
 You can use this event to run code on every page navigation, or only once ever:
 
@@ -454,36 +593,13 @@ You can use this event to run code on every page navigation, or only once ever:
 </script>
 ```
 
-### `astro:after-swap`
-
-An event that fires immediately after the new page replaces the old page. You can listen to this event on the `document`.
-
-This event is useful to restore any state on the DOM that needs to transfer over to the new page.
-
-For example, if you are implementing dark mode support, this event can be used to restore state across page loads:
-
-```astro
-<script>
-	const setDarkMode = () => {
-		if (localStorage.darkMode) {
-			document.documentElement.dataset.dark = '';
-		}
-	};
-
-  // Runs on initial navigation
-	setDarkMode();
-  // Runs on view transitions navigation
-	document.addEventListener('astro:after-swap', setDarkMode);
-</script>
-```
-
 ## Accessibility
 
 Enabling client-side routing and animating page transitions both come with accessibility challenges, and Astro aims to make sites opting in to View Transitions as accessible-by-default as possible.
 
 ### Route announcement
 
-<Since v="3.2.0" />
+<p><Since v="3.2.0" /></p>
 
 The `<ViewTransitions />` component includes a route announcer for page navigation during client-side routing. No configuration or action is needed to enable this.
 
@@ -552,7 +668,7 @@ import { ViewTransitions } from "astro:components astro:transitions"
 
 **Changed:** The `transition:animate` value `morph` has been renamed to `initial`. Also, this is no longer the default animation. If no `transition:animate` directive is specified, your animations will now default to `fade`.
 
-1. Rename any `morph` animations to `intial`.
+1. Rename any `morph` animations to `initial`.
     ```astro title="src/components/MyComponent.astro" del="morph" ins="initial"
     <div transition:name="name" transition:animate="morph initial" />
     ```

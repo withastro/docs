@@ -2,9 +2,11 @@ import kleur from 'kleur';
 import type {
 	Blockquote,
 	Definition,
-	HTML,
+	Html,
 	Link,
+	List,
 	ListContent,
+	Node,
 	Paragraph,
 	PhrasingContent,
 	Root,
@@ -25,6 +27,7 @@ interface IntegrationData {
 	readme: string;
 	srcdir: string;
 	i18nReady: string;
+	isPrivate: boolean;
 }
 
 const prettyCategoryDescription: Record<string, unknown> = {
@@ -78,18 +81,22 @@ class IntegrationPagesBuilder {
 		pkgJsonURL: string;
 		readmeURL: string;
 	}): Promise<IntegrationData> {
-		const { name, keywords } = await githubGet({
+		const {
+			name,
+			keywords,
+			private: isPrivate = false,
+		} = await githubGet({
 			url: pkgJsonURL,
 			githubToken: this.#githubToken,
 		});
 		const category = keywords.includes('renderer')
 			? 'renderer'
 			: keywords.includes('astro-adapter')
-			? 'adapter'
-			: 'other';
+			  ? 'adapter'
+			  : 'other';
 		const i18nReady = (!this.#i18nNotReadyIntegrations.has(packageName)).toString();
 		const readme = await (await fetch(readmeURL)).text();
-		return { name, category, readme, srcdir: packageName, i18nReady };
+		return { name, category, readme, srcdir: packageName, i18nReady, isPrivate };
 	}
 
 	/**
@@ -97,22 +104,16 @@ class IntegrationPagesBuilder {
 	 */
 	async #getIntegrationData(): Promise<IntegrationData[]> {
 		// Read all the packages in Astro’s integrations directory.
-		const url = `https://api.github.com/repos/${this.#sourceRepo}/contents/${
-			this.#sourcePath
-		}?ref=${this.#sourceBranch}`;
+		const url = `https://api.github.com/repos/${this.#sourceRepo}/contents/${this.#sourcePath}?ref=${this.#sourceBranch}`;
 		const packages: { name: string }[] = await githubGet({ url, githubToken: this.#githubToken });
 
-		return await Promise.all(
+		const integrationData = await Promise.all(
 			packages
 				.filter((pkg) => !this.#deprecatedIntegrations.has(pkg.name))
 
 				.map(async (pkg) => {
-					const pkgJsonURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${
-						this.#sourceBranch
-					}/${this.#sourcePath}/${pkg.name}/package.json`;
-					const readmeURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${
-						this.#sourceBranch
-					}/${this.#sourcePath}/${pkg.name}/README.md`;
+					const pkgJsonURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${this.#sourceBranch}/${this.#sourcePath}/${pkg.name}/package.json`;
+					const readmeURL = `https://raw.githubusercontent.com/${this.#sourceRepo}/${this.#sourceBranch}/${this.#sourcePath}/${pkg.name}/README.md`;
 
 					return this.#getSingleIntegrationData({
 						packageName: pkg.name,
@@ -121,6 +122,8 @@ class IntegrationPagesBuilder {
 					});
 				})
 		);
+
+		return integrationData.filter((pkg) => pkg.isPrivate === false);
 	}
 
 	/**
@@ -139,9 +142,7 @@ class IntegrationPagesBuilder {
 	}: IntegrationData): Promise<string> {
 		// Remove title from body
 		readme = readme.replace(/^# (.+)/, '');
-		const githubLink = `https://github.com/${this.#sourceRepo}/tree/${this.#sourceBranch}/${
-			this.#sourcePath
-		}/${srcdir}/`;
+		const githubLink = `https://github.com/${this.#sourceRepo}/tree/${this.#sourceBranch}/${this.#sourcePath}/${srcdir}/`;
 
 		const createDescription = (name: string, category: string): string => {
 			return `Learn how to use the ${name} ${prettyCategoryDescription[category]}.`;
@@ -270,7 +271,7 @@ function stripPrettierIgnoreComments() {
 function enforceCodeLang() {
 	return function transform(tree: Root) {
 		visit(tree, 'code', function codeblockVisitor(node) {
-			if (/^(ins=|del=|\{|"|\/)/.test(node.lang)) {
+			if (node.lang && /^(ins=|del=|\{|"|\/)/.test(node.lang)) {
 				node.meta = node.lang + ' ' + node.meta;
 				node.lang = 'diff';
 			}
@@ -336,7 +337,7 @@ function relativeLinks({ base }: { base: string }) {
 /** Remark plugin to convert GitHub video URLs to `<video>` elements. */
 function githubVideos() {
 	return function transform(tree: Root) {
-		visit(tree, 'text', function visitor(node: Text | HTML) {
+		visit(tree, 'text', function visitor(node: Text | Html) {
 			if (node.value.startsWith('https://user-images.githubusercontent.com/')) {
 				const type = node.value.split('.').pop();
 				node.type = 'html';
@@ -350,7 +351,7 @@ function githubVideos() {
 function removeTOC() {
 	return function transform(tree: Root) {
 		remove(tree, (node) => {
-			if (node.type !== 'list') return;
+			if (!isList(node)) return;
 			const firstItemContent = node.children[0].children[0];
 			if (firstItemContent.type !== 'paragraph') return;
 			return firstItemContent.children.some(
@@ -360,4 +361,8 @@ function removeTOC() {
 			);
 		});
 	};
+}
+
+function isList(node: Node): node is List {
+	return node.type === 'list';
 }

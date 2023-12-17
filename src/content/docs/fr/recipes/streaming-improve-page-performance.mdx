@@ -1,0 +1,102 @@
+---
+title: "Utilisation de la diffusion en continu pour améliorer les performances des pages"
+description: Apprendre à utiliser la diffusion en continu pour améliorer les performances des pages.
+type: recipe
+i18nReady: true
+---
+
+Le SSR d'Astro utilise le streaming HTML pour envoyer chaque composant au navigateur lorsqu'il est disponible, afin d'accélérer le chargement de la page. Pour améliorer encore les performances de votre page, vous pouvez construire vos composants de manière stratégique afin d'optimiser leur chargement en évitant de bloquer la récupération des données.
+
+L'exemple de refactorisation suivant montre comment améliorer les performances d'une page en déplaçant les appels de données vers d'autres composants, et en les retirant d'un composant où ils bloquent le rendu de la page.
+
+La page suivante "attend" des données dans son frontmatter. Astro attendra que tous les appels `fetch` soient résolus avant d'envoyer du HTML au navigateur.
+
+```astro title="src/pages/index.astro"
+---
+const personResponse = await fetch('https://randomuser.me/api/');
+const personData = await personResponse.json();
+const randomPerson = personData.results[0];
+const factResponse = await fetch('https://catfact.ninja/fact');
+const factData = await factResponse.json();
+---
+<html>
+  <head>
+    <title>Un nom et un fait</title>
+  </head>
+  <body>
+    <h2>Un nom</h2>
+    <p>{randomPerson.name.first}</p>
+    <h2>Un fait</h2>
+    <p>{factData.fact}</p>
+  </body>
+</html>
+```
+
+En déplaçant les appels `await` dans des composants plus petits, vous pouvez tirer profit du streaming d'Astro. En utilisant les composants suivants pour effectuer les recherches de données, Astro peut rendre d'abord certains éléments HTML, tels que le titre, puis les paragraphes lorsque les données sont prêtes.
+
+```astro title="src/components/RandomName.astro"
+---
+const personResponse = await fetch('https://randomuser.me/api/');
+const personData = await personResponse.json();
+const randomPerson = personData.results[0];
+---
+<p>{randomPerson.name.first}</p>
+```
+
+```astro title="src/components/RandomFact.astro"
+---
+const factResponse = await fetch('https://catfact.ninja/fact');
+const factData = await factResponse.json();
+---
+<p>{factData.fact}</p>
+```
+
+
+La page Astro ci-dessous utilisant ces composants peut rendre des parties de la page plus rapidement. Les balises `<head>`, `<body>` et `<h1>` ne sont plus bloquées par les recherches de données. Le serveur récupère alors les données pour `RandomName` et `RandomFact` en parallèle et transmet le code HTML résultant au navigateur.
+
+```astro title="src/pages/index.astro"
+---
+import RandomName from '../components/RandomName.astro'
+import RandomFact from '../components/RandomFact.astro'
+---
+<html>
+  <head>
+    <title>Un nom et un fait</title>
+  </head>
+  <body>
+    <h2>Un Nom</h2>
+    <RandomName />
+    <h2>Un Fait</h2>
+    <RandomFact />
+  </body>
+</html>
+```
+
+#### Inclure des promesses directement
+
+Vous pouvez également inclure des promesses directement dans le modèle. Au lieu de bloquer l'ensemble du composant, il résoudra la promesse en parallèle et ne bloquera que le balisage qui vient après.
+
+```astro title="src/pages/index.astro"
+---
+const personPromise = fetch('https://randomuser.me/api/')
+  .then(response => response.json())
+  .then(arr => arr[0].name.first);
+const factPromise = fetch('https://catfact.ninja/fact')
+  .then(response => response.json())
+  .then(factData => factData.fact);
+---
+<html>
+  <head>
+    <title>Un Nom et un Fait</title>
+  </head>
+  <body>
+    <h2>Un Nom</h2>
+    <p>{personPromise}</p>
+    <h2>Un Fait</h2>
+    <p>{factPromise}</p>
+  </body>
+</html>
+```
+
+Dans cet exemple, `un nom` sera affiché pendant que `personPromise` et `factPromise`sont en cours de chargement.
+Une fois que `personPromise` aura été résolue, `Un fait` apparaîtra et `factPromise` sera affiché lorsque son chargement sera terminé.

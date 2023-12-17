@@ -250,7 +250,7 @@ const myFade = {
 
 只有关联的两个页面都使用了 `<ViewTransitions />` 路由器才能通过客户端路由进行导航，防止重新加载全页面。你可能也不希望在每次导航更改时都使用客户端路由，而是更希望在特定路由上进行传统的页面导航。
 
-你可以通过将 `data-astro-reload` 属性添加到任何 `<a>` 标签中，为单个链接选择不使用客户端路由器。此属性将覆盖任何现有的 `<ViewTransitions />` 组件，而是在导航期间触发浏览器刷新。
+你可以通过将 `data-astro-reload` 属性添加到任何 `<a>` 或 `<form>` 标签中，为单个链接选择不使用客户端路由器。此属性将覆盖任何现有的 `<ViewTransitions />` 组件，而是在导航期间触发浏览器刷新。
 
 以下示例显示了仅从主页导航到文章时如何阻止客户端路由器。这样，当从文章列表页面导航到同一页面时，仍然可以对共享元素（例如主视觉图）进行动画处理：
 
@@ -340,6 +340,7 @@ import { ViewTransitions } from "astro:transitions";
 		- `'push'`: 路由器将使用 `history.pushState` 在浏览器历史中创建一个新条目。
 		- `'replace'`: 路由器将使用 `history.replaceState` 更新 URL，而不向导航添加新条目。
 		- `'auto'`（默认）: 路由器将尝试使用 `history.pushState`，但如果无法转换到指定的 URL，则当前 URL 将保持不变，浏览器历史不会发生变化。
+  - `formData`: 一个 `POST` 请求的 FormData 对象。
 
 要想通过浏览器的历史记录进行后退和前进导航，你可以将 `navigate()` 与浏览器内置的 `history.back()`、`history.forward()` 和 `history.go()` 等函数结合使用。如果 `navigate()` 在服务器渲染时被调用，它不会有任何效果。
 
@@ -363,6 +364,34 @@ import { ViewTransitions } from "astro:transitions";
 ```
 
 这样做的效果是，如果你从 `/main` 页面返回，则浏览器不会显示 `/confirmation` 页面，而是显示该页面之前的页面。
+
+### 表单的视图过渡动画
+
+<Since v="3.5.0" />
+
+默认情况下，`<ViewTransitions />` 路由器只在由 `<a>` 点击触发的导航上进行视图过渡。你也可以通过在路由器上添加 `handleForms` 选项来允许表单提交时的视图过渡。
+
+```astro title="src/pages/index.astro"
+---
+import { ViewTransitions } from "astro:transitions";
+---
+<html>
+	<head>
+		<ViewTransitions handleForms />
+	</head>
+	<body>
+		<!-- stuff here -->
+	</body>
+</html>
+```
+
+有了这个选项，路由器将从 `<form>` 元素触发页面内的转换，支持 `GET` 和 `POST` 请求。你可以使用 `data-astro-reload` 属性在任何单独的表单上选择退出路由器视图过渡动画：
+
+```astro title="src/components/Form.astro"
+<form action="/contact" data-astro-reload>
+  <!-- -->
+</form>
+```
 
 ## 回退控制
 
@@ -452,9 +481,9 @@ Astro 不会模拟 `initial` 浏览器动画。因此，任何使用此动画的
 
 ### `astro:after-swap`
 
-这是一个在新页面替换旧页面后立即触发的事件。你可以在 `document` 上监听此事件。
+这是一个在新页面替换旧页面后立即触发的事件。你可以在 `document` 上监听此事件并触发在新页面的 DOM 元素渲染和脚本运行之前发生的操作。
 
-此事件非常适用于恢复需要在 DOM 中传递到新页面的任何状态。
+当在**离开的页面**上监听该事件时，它非常适用于传递和恢复需要转移到新页面的 DOM 上的任何状态。
 
 例如，如果你正在实现深色模式支持，可以使用此事件在页面加载时恢复状态：
 
@@ -549,7 +578,7 @@ import { ViewTransitions } from "astro:components astro:transitions"
 
 **改变：** `transition:animate` 的值 `morph` 已重命名为 `initial`。此外，这不再是默认的动画。如果没有指定 `transition:animate` 指令，则你的动画现在默认为 `fade`。
 
-1. 重命名任何 `morph` 动画为 `intial`。
+1. 重命名任何 `morph` 动画为 `initial`。
     ```astro title="src/components/MyComponent.astro" del="morph" ins="initial"
     <div transition:name="name" transition:animate="morph initial" />
     ```
