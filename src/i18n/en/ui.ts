@@ -80,6 +80,8 @@ export default {
 	'integrations.renderers': 'UI Frameworks',
 	'integrations.adapters': 'SSR Adapters',
 	'integrations.others': 'Others',
+	'integrations.markdowns': 'Markdown Integrations',
+
 	// Checklist component
 	'checklist.or': 'or',
 	// Multiple Choice component
