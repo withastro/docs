@@ -75,22 +75,22 @@ export default [
 	},
 
 	{ text: 'Add-ons', header: true, type: 'learn', key: 'addons' },
-	{ text: 'Integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
+	{ text: 'Add integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
 	{
 		text: 'UI Frameworks',
 		slug: 'core-concepts/framework-components',
 		key: 'core-concepts/framework-components',
 	},
 	{
-		text: 'Server Adapters',
+		text: 'SSR Adapters',
 		slug: 'guides/server-side-rendering',
 		key: 'guides/server-side-rendering',
 	},
-	{ text: 'Content Management Systems', slug: 'guides/cms', key: 'guides/cms' },
-	{ text: 'Backend services', slug: 'guides/backend', key: 'guides/backend' },
 
 	{ text: 'Recipes', header: true, type: 'learn', key: 'examples' },
 	{ text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
+	{ text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
+	{ text: 'Add backend services', slug: 'guides/backend', key: 'guides/backend' },
 	{ text: 'Deploy your site', slug: 'guides/deploy', key: 'guides/deploy' },
 	{ text: 'More recipes', slug: 'recipes', key: 'guides/recipes' },
 
