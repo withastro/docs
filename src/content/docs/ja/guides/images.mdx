@@ -5,6 +5,8 @@ i18nReady: true
 ---
 import Since from '~/components/Since.astro';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import Badge from '~/components/Badge.astro';
+import RecipeLinks from "~/components/RecipeLinks.astro";
 
 
 Astroでは、プロジェクト内にローカルに保存された画像、外部URLにリンクされた画像、CMSやCDNで管理されている画像などについて、これらをサイト上で使用するためのいくつかの方法を提供しています。
@@ -83,10 +85,6 @@ import myImage from "../assets/my_image.png"; // 画像は1600x900
 />
 ```
 
-現在、組み込みのassets機能には`<Picture />`コンポーネントは含まれていません。
-
-代わりに、[アートディレクションやレスポンシブ画像を作成する](https://developer.mozilla.org/ja/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#アートディレクション)ために、HTMLの画像属性`srcset`と`sizes`または`<picture>`タグを使用して、[`getImage()`により画像やカスタムコンポーネントを生成](#getimageで画像を生成する)できます。
-
 #### プロパティ
 
 ##### src (必須)
@@ -144,6 +142,87 @@ import myImage from "../assets/my_image.png"; // 画像は1600x900
 ローカル画像をオリジナルのアスペクト比で使用する場合、`width`と`height`はソースファイルから自動的に推測されるため、必須ではありません。
 
 ただし、リモート画像と`public/`フォルダに保存されている画像については、Astroはこれらのファイルを解析できないため、両プロパティは必須となります。
+
+##### densities
+
+<p><Since v="3.3.0" /> <Badge>Experimental</Badge></p>
+
+A list of pixel densities to generate for the image.
+
+If provided, this value will be used to generate a `srcset` attribute on the `<img>` tag. Do not provide a value for `widths` when using this value.
+
+Densities that are equal to widths larger than the original image will be ignored to avoid upscaling the image.
+
+```astro title="src/components/MyComponent.astro"
+---
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png";
+---
+<Image src={myImage} width={myImage.width / 2} densities={[1.5, 2]} alt="A description of my image." />
+```
+
+```html
+<img
+  src="/_astro/my_image.hash.webp"
+  srcset="
+    /_astro/my_image.hash.webp 1.5x
+    /_astro/my_image.hash.webp 2x
+  "
+  alt="A description of my image."
+  width="800"
+  height="450"
+  loading="lazy"
+  decoding="async"
+/>
+```
+
+##### widths
+
+<p><Since v="3.3.0" /> <Badge>Experimental</Badge></p>
+
+A list of widths to generate for the image.
+
+If provided, this value will be used to generate a `srcset` attribute on the `<img>` tag. A [`sizes` property](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/sizes) must also be provided.
+
+Do not provide a value for `densities` when using this value. Only one of these two values can be used to generate a `srcset`.
+
+Widths that are larger than the original image will be ignored to avoid upscaling the image.
+
+```astro
+---
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // Image is 1600x900
+---
+<Image
+  src={myImage}
+  widths={[240, 540, 720, myImage.width]}
+  sizes={`(max-width: 360px) 240px, (max-width: 720px) 540px, (max-width: 1600px) 720px, ${myImage.width}px`}
+  alt="A description of my image."
+/>
+```
+
+```html
+<img
+  src="/_astro/my_image.hash.webp"
+  srcset="
+    /_astro/my_image.hash.webp 240w,
+    /_astro/my_image.hash.webp 540w,
+    /_astro/my_image.hash.webp 720w,
+		/_astro/my_image.hash.webp 1600w
+  "
+  sizes="
+    (max-width: 360px) 240px,
+    (max-width: 720px) 540px,
+    (max-width: 1600px) 720px,
+    1600px
+  "
+  alt="A description of my image."
+  width="1600"
+  height="900"
+  loading="lazy"
+  decoding="async"
+/>
+```
 
 ##### format
 
@@ -209,6 +288,78 @@ const {src, ...attrs} = Astro.props;
 </style>
 ```
 
+### `<Picture />`
+
+<Since v="3.3.0" /> <Badge>Experimental</Badge>
+
+Use the built-in `<Picture />` Astro component to display a responsive image with multiple formats and/or sizes.
+
+```astro title="src/pages/index.astro"
+---
+import { Picture } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // Image is 1600x900
+---
+<!-- `alt` is mandatory on the Picture component -->
+<Picture src={myImage} formats={['avif', 'webp']} alt="A description of my image." />
+```
+
+```html
+<!-- Output -->
+<picture>
+  <source srcset="/_astro/my_image.hash.avif" type="image/avif" />
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.jpg"
+    width="1600"
+    height="900"
+    decoding="async"
+    loading="lazy"
+    alt="A description of my image."
+  />
+</picture>
+```
+
+#### Properties
+
+`<Picture />` accepts all the properties of the `<Image />` component, plus the following:
+
+##### `formats`
+
+An array of image formats to use for the `<source>` tags. Entries will be added as `<source>` elements in the order they are listed, and this order determines which format is displayed. For the best performance, list the most modern format first (e.g. `webp` or `avif`). By default, this is set to `['webp']`.
+
+##### `fallbackFormat`
+
+Format to use as a fallback value for the `<img>` tag.
+
+Defaults to `.png` for static images, `.gif` for animated images, and `.svg` for SVG files.
+
+##### `pictureAttributes`
+
+An object of attributes to be added to the `<picture>` tag. 
+
+Use this property to apply attributes to the outer `<picture>` element itself. Attributes applied to the `<Picture />` component directly will apply to the inner `<img>` element, except for those used for image transformation.
+
+```astro
+---
+import { Picture } from "astro:assets";
+import myImage from "../my_image.png"; // Image is 1600x900
+---
+<Picture src={myImage} alt="A description of my image." pictureAttributes={{style: "background-color: red;"}} />
+```
+
+```html
+<picture style="background-color: red;">
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.png"
+    alt="A description of my image."
+    width="1600"
+    height="900"
+    loading="lazy"
+    decoding="async"
+  />
+</picture>
+```
 ### `<img>`
 
 [Astroテンプレートの構文](/ja/core-concepts/astro-syntax/)では、最終的な出力を完全に制御可能な`<img>`タグを直接書くこともできます。これらの画像は処理されず、最適化もされません。
@@ -259,7 +410,7 @@ interface ImageMetadata {
 
 ### `<Image />`と`<img>`の選択
 
-`<Image />`コンポーネントは、画像を最適化し、また（ローカル画像の場合は）オリジナルのアスペクト比に基づいて幅と高さを推測することでCLSを回避します。ただし、特定のフォーマットのみに対応しており、`<picture>`要素はなく、`srcset`もサポートしていません。
+`<Image />`コンポーネントは、画像を最適化し、また（ローカル画像の場合は）オリジナルのアスペクト比に基づいて幅と高さを推測することでCLSを回避します。
 
 以下のような`<Image />`コンポーネントを使用できない場合に、HTMLの`<img>`要素を使用してください。
   - サポートされていない画像フォーマット
@@ -485,8 +636,13 @@ const optimizedBackground = await getImage({src: myBackground, format: 'avif'})
 
 ```js
 {
-  options: {...} // 渡されたオリジナルのパラメータ
-  src: "https//..." // 生成された画像へのパス
+  rawOptions: {...}, // Original parameters passed
+  options: {...}, // 渡されたオリジナルのパラメータ
+  src: "https//...", // 生成された画像へのパス
+  srcSet: {
+    values: [...], // Generated values for srcset, every entry has a url and a size descriptor
+    attribute: "", // Generated srcset attribute from the values
+  }
   attributes: {...} // 画像をレンダリングするために必要な追加のHTML属性（width、height、styleなど）
 }
 ```
