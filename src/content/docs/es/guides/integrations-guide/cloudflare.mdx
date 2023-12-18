@@ -27,13 +27,13 @@ pnpm astro add cloudflare
 
 Si prefieres instalar el adaptador manualmente en su lugar, sigue los siguientes dos pasos:
 
-1.  Agrega el adaptador de Cloudflare como una dependencia de tu proyecto utilizando el gestor de paquetes de tu preferencia. Si estás utilizando npm o no estás seguro, ejecuta el siguiente comando en la terminal:
+1. Agrega el adaptador de Cloudflare como una dependencia de tu proyecto utilizando el gestor de paquetes de tu preferencia. Si estás utilizando npm o no estás seguro, ejecuta el siguiente comando en la terminal:
 
 ```bash
 npm install @astrojs/cloudflare
 ```
 
-2.  Agrega lo siguiente a tu archivo `astro.config.mjs`:
+2. Agrega lo siguiente a tu archivo `astro.config.mjs`:
 
 ```diff lang="js"
   // astro.config.mjs
@@ -208,24 +208,46 @@ export default defineConfig({
 
 ### `runtime`
 
-`runtime: { mode: "off" | "local", persistTo: string }`
+Consulta el repositorio de Cloudflare para obtener más información sobre el tipo [CF\_BINDING](https://github.com/cloudflare/workers-sdk/blob/eaa16db25103d26ef31499634a31b86caccdf7aa/packages/wrangler/src/api/startDevWorker/types.ts#L190-L219)
+
+`runtime: { mode: 'off' } | { mode: 'local'; type: 'pages'; persistTo?: string; bindings?: Record<string, CF_BINDING> } | { mode: 'local'; type: 'workers'; persistTo?: string; };`
 
 por defecto: `{ mode: 'off', persistTo: '' }`
 
 Determina si y como el Runtime de Cloudflare es añadido a `astro dev`.
+Lee más sobre [el tiempo de ejecución de Cloudflare](#tiempo-de-ejecución-de-cloudflare).
 
-El Runtime de Cloudflare incluye [Cloudflare Bindings](https://developers.cloudflare.com/pages/platform/functions/bindings), [variables de entorno](https://developers.cloudflare.com/pages/platform/functions/bindings/#environment-variables), y el [objeto cf](https://developers.cloudflare.com/workers/runtime-apis/request/#incomingrequestcfproperties). Obtén más información sobre [cómo acceder al Runtime de Cloudflare](#runtime-de-cloudflare).
+La propiedad `type` define donde tu proyecto de Astro es desplegado:
 
-La propiedad `mode` define como el runtime es agregado a `astro dev`:
+*   `pages`: Desplegadas en [Cloudflare Pages](https://pages.cloudflare.com/)
+*   `workers`: Desplegados en [Cloudflare Workers](https://workers.cloudflare.com/)
 
-* `local`: utiliza simulaciones de bindings y placeholders estáticos locales.
-* `off`: no tiene acceso al runtime de Cloudflare usando `astro dev`. Alternativamente, puedes usar [Vista previa con Wrangler](#vista-previa-con-wrangler).
+La propiedad `mode` define lo que quieres que el tiempo de ejecución soporte en `astro dev`:
 
-La propiedad `persistTo` define donde el runtime local es persistido cuando se usa `mode: local`. Este valor es un directorio relativo a la ruta de ejecución de `astro dev`.
+*   `off`: no tiene acceso al tiempo de ejecución usando `astro dev`. Alternativamente, puedes usar [Vista previa con Wrangler](#vista-previa-con-wrangler) cuando necesites acceso al tiempo de ejecución, para simular el entorno de producción localmente.
+*   `local`: utiliza un tiempo de ejecución local alimentado por miniflare y workerd, que soporta los Bindings de Cloudflare. Solo si quieres usar características no soportadas, como `eval`, bindings sin soporte local elige [Vista previa con Wrangler](#vista-previa-con-wrangler)
 
-El valor predeterminado se establece en `.wrangler/state/v3` para que coincida con la ruta predeterminada que utiliza Wrangler. Esto significa que ambas herramientas pueden acceder y utilizar el estado local.
+En `mode: local`, tienes acceso a la propiedad `persistTo` que define donde se guarda el estado de los bindings locales. Esto evita que se generen bindings nuevos cada vez que se reinicia el servidor de desarrollo. Este valor es un directorio relativo a la ruta de ejecución de `astro dev`. Por defecto se establece en `.wrangler/state/v3` para permitir el uso de los comandos de la interfaz de línea de comandos de `wrangler` (por ejemplo, para las migraciones). Añade esta ruta a tu `.gitignore`.
 
-Cualquier directorio que se establezca en `persistTo`, `.wrangler` o tu valor personalizado, debe añadirse a `.gitignore`.
+## Tiempo de ejecución de Cloudflare
+
+El tiempo de ejecución de Cloudflare te proporciona acceso a las variables de entorno y a los bindings de Cloudflare. Puedes encontrar más información en la documentación de [Workers](https://developers.cloudflare.com/workers/configuration/bindings/) y [Pages](https://developers.cloudflare.com/pages/platform/functions/bindings/) de Cloudflare. Dependiendo de tu tipo de despliegue (`pages` o `workers`), necesitas configurar los bindings de forma diferente.
+
+Los bindings actualmente admitidos son:
+
+*   Variables de entorno
+*   [Cloudflare Workers KV](https://developers.cloudflare.com/kv/)
+*   [Cloudflare D1](https://developers.cloudflare.com/d1/)
+*   [Cloudflare R2](https://developers.cloudflare.com/r2/)
+*   [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/)
+
+### Configuración
+
+#### Cloudflare Pages
+
+Las Cloudflare Pages no admiten un archivo de configuración.
+
+Para desplegar tu proyecto de páginas en producción, necesitas configurar los bindings usando el Panel de Control de Cloudflare. Para poder acceder a los bindings localmente, necesitas configurarlos usando la opción `runtime` del adaptador.
 
 ```diff lang="js"
 // astro.config.mjs
@@ -235,21 +257,99 @@ import cloudflare from '@astrojs/cloudflare';
 export default defineConfig({
   output: 'server',
   adapter: cloudflare({
-+   runtime: 'local',
++   runtime: {
++     mode: 'local',
++     type: 'pages',
++     bindings: {
+        // ejemplo de una variable de binding (variable de entorno)
++       "URL": {
++         type: "var",
++         value: "https://example.com",
++       },
+        // ejemplo de un binding KV
++       "KV": {
++         type: "kv",
++       },
+        // ejemplo de un binding D1
++       "D1": {
++         type: "d1",
++       },
+        // ejemplo de un binding R2
++       "R2": {
++         type: "r2",
++       },
+        // ejemplo de un Durable Object binding
++       "DO": {
++         type: "durable-object",
++         className: "DO",
++       },
++     },
++   },
   }),
 });
 ```
 
-## Runtime de Cloudflare
+Si también necesitas definir `secrets` además de las variables de entorno, necesitas añadir un archivo `.dev.vars` a la raíz del proyecto de Astro:
 
-Te proporciona acceso a las [variables de entorno](https://developers.cloudflare.com/pages/platform/functions/bindings/#environment-variables) y [bindings de Cloudflare](https://developers.cloudflare.com/pages/platform/functions/bindings).
+    # .dev.vars
+    DB_PASSWORD=miContraseña
 
-Los bindings actualmente admitidos son:
+Si quieres usar `wrangler` para los comandos de la cli, por ejemplo, las migraciones de D1, también necesitas añadir un `wrangler.toml` a la raíz del proyecto de Astro con el contenido correcto. Consulta la [documentación de Cloudflare](https://developers.cloudflare.com/) para más detalles.
 
-*   [Cloudflare D1](https://developers.cloudflare.com/d1/)
-*   [Cloudflare R2](https://developers.cloudflare.com/r2/)
-*   [Cloudflare Workers KV](https://developers.cloudflare.com/kv/)
-*   [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/)
+```toml
+# wrangler.toml
+name = "ejemplo"
+compatibility_date = "2023-06-14"
+
+# ejemplo para el binding D1
+[[d1_databases]]
+binding = "D1"
+database_name = "D1"
+database_id = "D1"
+preview_database_id = "D1"
+```
+
+#### Cloudflare Workers
+
+Para desplegar tu proyecto de workers en producción, necesitas configurar los bindings usando un archivo de configuración `wrangler.toml` en la raíz de tu proyecto de Astro. Para poder acceder a los bindings localmente, el adaptador `@astrojs/cloudflare` también leerá el archivo `wrangler.toml`.
+
+```toml
+# wrangler.toml
+name = "example"
+
+# ejemplo de un Binding de KV
+kv_namespaces = [
+    { binding = "KV", id = "KV", preview_id = "KV" },
+]
+
+# ejemplo de una variable de binding (variables de entorno)
+[vars]
+URL = "example.com"
+
+# ejemplo de un Binding de D1
+[[d1_databases]]
+binding = "D1"
+database_name = "D1"
+database_id = "D1"
+preview_database_id = "D1"
+
+# ejemplo de un Binding de R2
+[[r2_buckets]]
+binding = 'R2'
+bucket_name = 'R2'
+
+# ejemplo de un Durable Object Binding
+[[durable_objects.bindings]]
+name = "DO"
+class_name = "DO"
+```
+
+Si también necesitas definir `secrets` además de las variables de entorno, necesitas añadir un archivo `.dev.vars` a la raíz del proyecto de Astro:
+
+    # .dev.vars
+    DB_PASSWORD=myPassword
+
+### Uso
 
 Puedes acceder al runtime desde los componentes de Astro a través de `Astro.locals` dentro de cualquier archivo `.astro`.
 
