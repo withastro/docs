@@ -5,7 +5,7 @@ export default NavDictionary({
 	'getting-started': 'Cómo Empezar',
 	install: 'Instalación',
 	'editor-setup': 'Configuración del Editor',
-	'guides/upgrade-to/v3': 'Actualizar a v3',
+	'guides/upgrade-to/v4': 'Actualizar a v4',
 
 	coreConcepts: 'Conceptos Principales',
 	'concepts/why-astro': 'Por qué Astro',
@@ -27,6 +27,7 @@ export default NavDictionary({
 	builtins: 'Funciones Integradas',
 	'guides/content-collections': 'Colecciones de Contenido',
 	'guides/view-transitions': 'View Transitions',
+	'guides/prefetch': 'Precargar',
 
 	addons: 'Complementos',
 	'guides/integrations-guide': 'Agregar integraciones',
@@ -50,10 +51,9 @@ export default NavDictionary({
 	'guides/imports': 'Importaciones',
 	'core-concepts/endpoints': 'Endpoints',
 	'guides/data-fetching': 'Fetching de Datos',
+	'guides/internationalization': 'Internacionalización',
 	'guides/middleware': 'Middleware',
 	'guides/testing': 'Testing',
-	'guides/prefetch': 'Precargar',
-	'guides/internationalization': 'Internacionalización',
 	'guides/troubleshooting': 'Solución de Problemas',
 
 	configuration: 'Configuración',
@@ -68,7 +68,7 @@ export default NavDictionary({
 	'reference/integrations-reference': 'API de Integraciones',
 	'reference/adapter-reference': 'API de Adaptador',
 	'reference/image-service-reference': 'API de Servicio de Imágenes',
-	'reference/dev-overlay-plugin-reference': 'API de Plugin de Superposición para Desarrolladores',
+	'reference/dev-toolbar-app-reference': 'API de la Barra de Herramientas de Desarrollo',
 	'reference/directives-reference': 'Directivas de Plantilla',
 	'reference/cli-reference': 'La CLI de Astro',
 	'reference/error-reference': 'Referencia de Errores',

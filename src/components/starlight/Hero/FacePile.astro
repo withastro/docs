@@ -1,0 +1,143 @@
+---
+import { Image } from 'astro:assets';
+import { cachedFetch } from '~/util-server';
+
+export interface Props {
+	tagline: string;
+	link: string;
+	linkText: string;
+}
+
+const { tagline, link, linkText } = Astro.props;
+
+type Contributor = {
+	avatar_url: string;
+};
+
+const res = await cachedFetch('https://astro.badg.es/api/v1/top-contributors.json');
+const allContributors: Contributor[] = (await res.json()).data;
+
+const arrangement = [3, 4, 3, 3, 6, 4, 6, 3, 3, 3];
+const circles = [1, 0, 2, 2, -1, 2, -1, -1, 3, -1];
+const spaces = [-1, -1, -1, 1, -1, -1, -1, -1, -1];
+
+const contributorArrangement = arrangement.map((i) => allContributors.splice(0, i));
+---
+
+<div class="mobile-only not-content">
+	<p class="tagline">{tagline} <a href={link}>{linkText}</a></p>
+</div>
+<div class="facepile not-content">
+	{
+		contributorArrangement.map((contributors: (Contributor | number)[], i) => {
+			if (circles[i] !== -1) contributors.splice(circles[i], 0, 1);
+			if (spaces[i] !== -1) contributors.splice(spaces[i], 0, 2);
+			return (
+				<div class="row">
+					{i === 7 && (
+						<p class="tagline">
+							{tagline} <a href={link}>{linkText}</a>
+						</p>
+					)}
+					{contributors.map((cell) =>
+						typeof cell === 'number' ? (
+							<span class:list={[cell === 1 && 'circle']} />
+						) : (
+							<Image
+								width="84"
+								height="84"
+								quality="low"
+								loading="eager"
+								src={cell.avatar_url}
+								alt=""
+							/>
+						)
+					)}
+				</div>
+			);
+		})
+	}
+</div>
+
+<style>
+	.facepile {
+		/* Size grid fluidly so on mobile 6 avatars fit in the viewport and size is capped at 56px. */
+		--cell-size: min(3.5rem, 13vw);
+		--grid-gap: min(1rem, 3vw);
+
+		margin-block: calc(-0.5 * var(--cell-size));
+		padding: 0 var(--grid-gap);
+		display: flex;
+		flex-direction: column;
+		align-items: end;
+		gap: var(--grid-gap);
+		overflow: hidden;
+		/* Cap at 6 rows of avatars on mobile. */
+		max-height: calc(6 * var(--cell-size) + 5 * var(--grid-gap));
+		-webkit-mask-image: linear-gradient(to bottom, transparent, black, transparent);
+		mask-image: linear-gradient(to bottom, transparent, black, transparent);
+		pointer-events: none;
+
+		background: radial-gradient(closest-side, var(--sl-color-red-low), transparent) no-repeat
+			calc(100% + var(--cell-size) * 5) 50% / calc(var(--cell-size) * 8) calc(var(--cell-size) * 15);
+	}
+
+	.row {
+		display: flex;
+		align-items: center;
+		gap: var(--grid-gap);
+	}
+
+	.row > :not(.tagline) {
+		border-radius: 100%;
+		width: var(--cell-size);
+		height: var(--cell-size);
+	}
+
+	.circle {
+		border: 1px solid var(--sl-color-white);
+		opacity: 0.2;
+	}
+
+	.tagline {
+		color: var(--sl-color-white);
+		font-size: var(--sl-text-sm);
+		text-wrap: balance;
+		pointer-events: all;
+	}
+
+	.tagline a {
+		color: var(--sl-color-text-accent);
+		white-space: nowrap;
+	}
+
+	.row > .tagline {
+		text-align: right;
+		max-width: 15rem;
+		padding-inline-end: 0.5rem;
+		/* Negative vertical margin prevents the tagline forcing the grid row wider if text wraps onto three lines. */
+		margin-block: -1rem;
+	}
+
+	.mobile-only {
+		padding: 0 1rem;
+		text-align: center;
+		color: var(--sl-color-white);
+	}
+
+	@media (min-width: 78rem) {
+		.mobile-only {
+			display: none;
+		}
+		.facepile {
+			display: flex;
+			padding: var(--grid-gap);
+			margin-block: 0;
+
+			max-height: unset;
+			-webkit-mask-image: unset;
+			mask-image: unset;
+			background: none;
+		}
+	}
+</style>

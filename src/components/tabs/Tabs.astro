@@ -1,0 +1,80 @@
+---
+import { Tabs as StarlightTabs } from '@astrojs/starlight/components';
+
+export interface Props {
+	group?: string;
+}
+---
+
+<astro-docs-tabs data-group={Astro.props.group}>
+	<StarlightTabs>
+		<slot />
+	</StarlightTabs>
+</astro-docs-tabs>
+
+<style>
+	astro-docs-tabs {
+		display: block;
+	}
+</style>
+
+<script>
+	class AstroDocsTabs extends HTMLElement {
+		tabs: HTMLAnchorElement[];
+		panels: HTMLElement[];
+
+		constructor() {
+			super();
+
+			const tablist = this.querySelector('[role="tablist"]')!;
+			const starlightTab = this.querySelector('starlight-tabs')!;
+			this.tabs = [...tablist.querySelectorAll<HTMLAnchorElement>('[role="tab"]')];
+			this.panels = [...this.querySelectorAll<HTMLElement>('starlight-tabs > [role="tabpanel"]')];
+
+			if (!this.dataset.group) return;
+
+			const newSwitchTab = (a: HTMLAnchorElement, index: number) => {
+				// @ts-expect-error __proto__ isn't typed
+				starlightTab.__proto__.switchTab.bind(starlightTab)(a, index);
+
+				const starlightTabs = document.querySelectorAll(
+					`[data-group="${this.dataset.group}"] starlight-tabs`
+				)!;
+				starlightTabs.forEach((tab) => {
+					// @ts-ignore
+					tab.parentElement.switchTab(
+						tab.firstElementChild?.firstElementChild?.children.item(index)?.firstElementChild,
+						index
+					);
+				});
+
+				starlightTab.scrollIntoView();
+			};
+			// @ts-expect-error starlightTab isn't typed as a custom element
+			starlightTab.switchTab = newSwitchTab;
+		}
+
+		// modified version to not scroll on switch (https://github.com/withastro/starlight/blob/201eb88f42069e5e575cba578b9cd6a3dfbbc5a9/packages/starlight/user-components/Tabs.astro#L116)
+		switchTab(newTab: HTMLAnchorElement | null | undefined, index: number) {
+			if (!newTab) return;
+
+			// Mark all tabs as unselected and hide all tab panels.
+			this.tabs.forEach((tab) => {
+				tab.removeAttribute('aria-selected');
+				tab.setAttribute('tabindex', '-1');
+			});
+			this.panels.forEach((oldPanel) => {
+				oldPanel.hidden = true;
+			});
+
+			// Show new panel and mark new tab as selected.
+			const newPanel = this.panels[index];
+			if (newPanel) newPanel.hidden = false;
+			// Restore active tab to the default tab order.
+			newTab.removeAttribute('tabindex');
+			newTab.setAttribute('aria-selected', 'true');
+		}
+	}
+
+	customElements.define('astro-docs-tabs', AstroDocsTabs);
+</script>
