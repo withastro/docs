@@ -87,9 +87,9 @@ export default [
 		key: 'guides/server-side-rendering',
 	},
 	{
-		text: 'Markdown Content',
-		slug: 'guides/markdown-content',
-		key: 'guides/markdown-content',
+		text: 'Markdown Integrations',
+		slug: 'guides/markdown-integrations',
+		key: 'guides/markdown-integrations',
 	},
 
 
@@ -102,7 +102,7 @@ export default [
 
 	{ text: 'Guides', header: true, type: 'learn', key: 'features' },
 	{ text: 'Routing', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
-	// { text: 'Markdown', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
+	{ text: 'Markdown', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 	{
 		text: 'Scripts & Event Handling',
 		slug: 'guides/client-side-scripts',
