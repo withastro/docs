@@ -86,11 +86,6 @@ export default [
 		slug: 'guides/server-side-rendering',
 		key: 'guides/server-side-rendering',
 	},
-	{
-		text: 'Markdown Integrations',
-		slug: 'guides/markdown-integrations',
-		key: 'guides/markdown-integrations',
-	},
 
 
 	{ text: 'Recipes', header: true, type: 'learn', key: 'examples' },
