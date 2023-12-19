@@ -1,29 +1,17 @@
 import { setOutput } from '@actions/core';
-import { join } from 'path';
 import languages from '../src/i18n/languages';
-import { TranslationStatusBuilder } from './lib/translation-status/builder';
-
-const PAGE_SOURCE_DIRECTORY = './src/content/docs';
+import { lunaria } from '@lunariajs/core';
+import { readFileSync } from 'fs';
 
 await setDiscordMessage();
 
 async function setDiscordMessage() {
-	const builder = new TranslationStatusBuilder({
-		pageSourceDir: './src/content/docs',
-		oldTranslationDir: './old-translations',
-		htmlOutputFilePath: './dist/translation-status/index.html',
-		sourceLanguage: 'en',
-		targetLanguages: Object.keys(languages)
-			.filter((lang) => lang !== 'en')
-			.sort(),
-		languageLabels: languages,
-		githubRepo: process.env.GITHUB_REPOSITORY || 'withastro/docs',
-	});
+	const config = JSON.parse(readFileSync('./lunaria.config.json', 'utf-8'));
+	const translationStatus = await lunaria(config);
 
-	const pages = await builder.createPageIndex();
-	const oldTranslations = await builder.createOldTranslationIndex();
-	const statusByPage = builder.getTranslationStatusByPage(pages, oldTranslations);
-	const toTranslate = statusByPage.filter(
+	if (!translationStatus) return;
+
+	const toTranslate = translationStatus.filter(
 		(s) => new Date(s.sourcePage.lastMajorChange) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
 	);
 
@@ -42,11 +30,7 @@ async function setDiscordMessage() {
 				Object.keys(languages).length - 1
 					? ['all']
 					: Object.keys(s.translations);
-			return `- [\`${s.subpath}\`](<https://github.com/withastro/docs/tree/main/${join(
-				PAGE_SOURCE_DIRECTORY,
-				'en',
-				s.subpath
-			)}>) (${
+			return `- [\`${s.sharedPath}\`](<${s.gitHostingFileURL}>) (${
 				langs[0] === 'all'
 					? 'all'
 					: langs
