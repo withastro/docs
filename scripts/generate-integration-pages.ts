@@ -1,3 +1,6 @@
+// Can this whole file just be deleted?
+// Otherwise, including for Chris to edit
+
 import kleur from 'kleur';
 import type {
 	Blockquote,
