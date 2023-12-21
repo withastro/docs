@@ -74,7 +74,7 @@ export default [
 		key: 'guides/prefetch',
 	},
 
-	{ text: 'Add-ons', header: true, type: 'learn', key: 'addons' },
+	{ text: 'Integrations', header: true, type: 'learn', key: 'addons' },
 	{ text: 'Add integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
 	{
 		text: 'UI Frameworks',
@@ -86,6 +86,7 @@ export default [
 		slug: 'guides/server-side-rendering',
 		key: 'guides/server-side-rendering',
 	},
+
 
 	{ text: 'Recipes', header: true, type: 'learn', key: 'examples' },
 	{ text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
