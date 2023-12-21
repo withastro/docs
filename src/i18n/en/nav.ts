@@ -87,7 +87,6 @@ export default [
 		key: 'guides/server-side-rendering',
 	},
 
-
 	{ text: 'Recipes', header: true, type: 'learn', key: 'examples' },
 	{ text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
 	{ text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
