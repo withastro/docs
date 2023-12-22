@@ -12,7 +12,7 @@ export default [
 	{ text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },
 	{ text: 'Installation', slug: 'install/auto', key: 'install' },
 	{ text: 'Editor Setup', slug: 'editor-setup', key: 'editor-setup' },
-	{ text: 'Upgrade to v3', slug: 'guides/upgrade-to/v3', key: 'guides/upgrade-to/v3' },
+	{ text: 'Upgrade to v4', slug: 'guides/upgrade-to/v4', key: 'guides/upgrade-to/v4' },
 
 	{ text: 'Core Concepts', header: true, type: 'learn', key: 'coreConcepts' },
 	{ text: 'Why Astro', slug: 'concepts/why-astro', key: 'concepts/why-astro' },
@@ -74,7 +74,7 @@ export default [
 		key: 'guides/prefetch',
 	},
 
-	{ text: 'Add-ons', header: true, type: 'learn', key: 'addons' },
+	{ text: 'Integrations', header: true, type: 'learn', key: 'addons' },
 	{ text: 'Add integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
 	{
 		text: 'UI Frameworks',
@@ -150,9 +150,9 @@ export default [
 		key: 'reference/image-service-reference',
 	},
 	{
-		text: 'Dev Overlay Plugin API',
-		slug: 'reference/dev-overlay-plugin-reference',
-		key: 'reference/dev-overlay-plugin-reference',
+		text: 'Dev Toolbar App API',
+		slug: 'reference/dev-toolbar-app-reference',
+		key: 'reference/dev-toolbar-app-reference',
 	},
 	{
 		text: 'Template Directives',

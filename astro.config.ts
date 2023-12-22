@@ -7,6 +7,7 @@ import rehypeSlug from 'rehype-slug';
 import remarkSmartypants from 'remark-smartypants';
 
 import { sitemap } from './integrations/sitemap';
+import { rehypeAutolink } from './plugins/rehype-autolink';
 import { rehypeOptimizeStatic } from './plugins/rehype-optimize-static';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
@@ -26,11 +27,6 @@ export default defineConfig({
 		starlight({
 			title: 'Docs',
 			customCss: ['./src/styles/custom.css'],
-			logo: {
-				light: './src/assets/astro-logo-light.svg',
-				dark: './src/assets/astro-logo-dark.svg',
-				alt: 'Astro',
-			},
 			components: {
 				EditLink: './src/components/starlight/EditLink.astro',
 				Head: './src/components/starlight/Head.astro',
@@ -43,6 +39,7 @@ export default defineConfig({
 				SiteTitle: './src/components/starlight/SiteTitle.astro',
 				Search: './src/components/starlight/Search.astro',
 				Sidebar: './src/components/starlight/Sidebar.astro',
+				PageTitle: './src/components/starlight/PageTitle.astro',
 			},
 			editLink: {
 				baseUrl: 'https://github.com/withastro/docs/edit/main',
@@ -82,6 +79,8 @@ export default defineConfig({
 		],
 		rehypePlugins: [
 			rehypeSlug,
+			// This adds links to headings
+			...rehypeAutolink(),
 			// Tweak GFM task list syntax
 			rehypeTasklistEnhancer(),
 			// Collapse static parts of the hast to html

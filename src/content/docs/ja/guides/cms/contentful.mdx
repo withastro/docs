@@ -3,7 +3,9 @@ title: ContentfulとAstro
 description: ContentfulをCMSとして使ってコンテンツをAstroプロジェクトへ追加する
 type: cms
 service: Contentful
+i18nReady: true
 ---
+import FileTree from '~/components/FileTree.astro'
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
 
@@ -55,13 +57,13 @@ interface ImportMetaEnv {
 
 ルートディレクトリは以下のように作成したファイル含まれているはずです。
 
-```ini title="Project Structure" ins={2-3}
-├── src/
-│   └── env.d.ts
-├── .env
-├── astro.config.mjs
-└── package.json
-```
+<FileTree title="Project Structure">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
 
 ### 依存関係をインストールする
 
@@ -77,7 +79,7 @@ Contentfulスペースと接続するために、次の中から好みのパッ�
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  pnpm install contentful @contentful/rich-text-html-renderer
+  pnpm add contentful @contentful/rich-text-html-renderer
   ```
   </Fragment>
   <Fragment slot="yarn">
@@ -112,19 +114,19 @@ export const contentfulClient = contentful.createClient({
 
 最終的にルートディレクトリは作成したファイルが以下のように含まれています。
 
-```ini ins={3-4}
-├── src/
-│   └── env.d.ts
-│   └── lib/
-│       └── contentful.ts
-├── .env
-├── astro.config.mjs
-└── package.json
-```
+<FileTree title="Project Structure">
+- src/
+  - env.d.ts
+  - lib/
+    - **contentful.ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
 
 ### 取得するデータ
 
-これで、Astroコンポーネントは`contentfulClient`を使ってデータを取得でき、Contentfulアカウントから受信する`content_type`を指定できます。
+Astroコンポーネントは`contentfulClient`を使ってデータを取得でき、Contentfulアカウントから受信する`content_type`を指定できます。
 
 例えば、もしタイトルのテキストフィールドとコンテンツのリッチテキストフィールドを持つ`blogPost`コンテンツタイプがある場合、コンポーネントは以下のようになります。
 
@@ -132,11 +134,14 @@ export const contentfulClient = contentful.createClient({
 ---
 import { contentfulClient } from "../lib/contentful";
 import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
-import type { Document } from "@contentful/rich-text-types";
+import type { EntryFieldTypes } from "contentful";
 
 interface BlogPost {
-    title: string,
-    content: Document
+  contentTypeId: "blogPost",
+  fields: {
+    title: EntryFieldTypes.Text
+    content: EntryFieldTypes.RichText,
+  }
 }
 
 const entries = await contentfulClient.getEntries<BlogPost>({
@@ -157,7 +162,7 @@ const entries = await contentfulClient.getEntries<BlogPost>({
 もしContentfulスペースが空の場合、コンテンツの基本ブログ型の作成方法は [Contentfulモデルのセットアップ](#contentfulモデルのセットアップ)を確認してください。
 :::
 
-[Contentful documentation](https://contentful.github.io/contentful.js/contentful/9.1.34/ContentfulClientAPI.html)からより多くのクエリオプションを見つけることができます。
+[Contentful documentation](https://contentful.github.io/contentful.js/)からより多くのクエリオプションを見つけることができます。
 
 ## AstroとContentfulを利用してブログを作成する
 
@@ -215,16 +220,18 @@ Contentfulスペースの**Content**セクションで、**Add Entry**ボタン�
 
 `BlogPost`というインターフェイスを作成し`src/lib`に`contentful.ts`というファイルを追加してください。このインターフェイスはContentfulのブログ記事のコンテンツタイプと一致します。ブログエントリーのレスポンスと型を一致させるときに利用します。
 
-```ts title="src/lib/contentful.ts" ins={2,4-10}
-import contentful from "contentful";
-import type { Document } from "@contentful/rich-text-types";
+```ts title="src/lib/contentful.ts" ins=", { EntryFieldTypes }" ins={3-12}
+import contentful, { EntryFieldTypes } from "contentful";
 
 export interface BlogPost {
-  title: string;
-  date: string;
-  description: string;
-  content: Document;
-  slug: string;
+  contentTypeId: "blogPost",
+  fields: {
+    title: EntryFieldTypes.Text
+    content: EntryFieldTypes.RichText,
+    date: EntryFieldTypes.Date,
+    description: EntryFieldTypes.Text,
+    slug: EntryFieldTypes.Text
+  }
 }
 
 export const contentfulClient = contentful.createClient({
@@ -234,7 +241,6 @@ export const contentfulClient = contentful.createClient({
     : import.meta.env.CONTENTFUL_DELIVERY_TOKEN,
   host: import.meta.env.DEV ? "preview.contentful.com" : "cdn.contentful.com",
 });
-
 ```
 
 次に、Contentfulからデータを取得するAstroページを見てみましょう。`src/pages/`にある`index.astro`のサンプルをホームページとして使います。
@@ -419,7 +425,7 @@ const { content, title, date } = Astro.props;
 </html>
 ```
 
-http://localhost:4321/posts/astro-is-amazing/にアクセスすると動的ルーティングが動作していることが分かります！
+http://localhost:4321/ にアクセスしていずれかの投稿をクリックすると動的ルーティングが動作していることが分かります！
 
 #### サーバーサイドレンダリング
 
@@ -441,9 +447,7 @@ const data = await contentfulClient.getEntries<BlogPost>({
 ---
 ```
 
-もしエントリーが見つからない場合は、 [`Astro.redirect`](/ja/core-concepts/routing/)を使ってユーザーを404ページにリダイレクトできます。
-
-{/* TODO: ルーティングページが更新されたらビルド対象からエントリーを除外のリンク先を /ja/core-concepts/routing/#dynamic-redirects にする */}
+もしエントリーが見つからない場合は、 [`Astro.redirect`](/ja/core-concepts/routing/#動的ルーティング)を使ってユーザーを404ページにリダイレクトできます。
 
 ```astro title="src/pages/posts/[slug].astro" ins={7, 12-13}
 ---
