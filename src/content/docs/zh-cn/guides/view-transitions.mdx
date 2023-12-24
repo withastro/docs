@@ -97,7 +97,7 @@ Astro 会自动为在旧页面和新页面中找到的相应元素并分配一�
 
 ### 维持状态
 
-<Since v="2.10.0" />
+<p><Since v="2.10.0" /></p>
 
 你可以使用 `transition:persist` 指令在页面导航时保持组件和 HTML 元素的状态（而不是替换它们）。
 
@@ -367,25 +367,13 @@ import { ViewTransitions } from "astro:transitions";
 
 ### 表单的视图过渡动画
 
-<Since v="3.5.0" />
+<p><Since v="4.0.0" /></p>
 
-默认情况下，`<ViewTransitions />` 路由器只在由 `<a>` 点击触发的导航上进行视图过渡。你也可以通过在路由器上添加 `handleForms` 选项来允许表单提交时的视图过渡。
+`<ViewTransitions />` 路由器将从 `<form>` 元素触发页面内的转换，支持 `GET` 和 `POST` 请求。
 
-```astro title="src/pages/index.astro"
----
-import { ViewTransitions } from "astro:transitions";
----
-<html>
-	<head>
-		<ViewTransitions handleForms />
-	</head>
-	<body>
-		<!-- stuff here -->
-	</body>
-</html>
-```
+默认情况下，即使你使用 `event.preventDefault()` 来阻止此行为，你的页面也会在提交表单后进行转换。
 
-有了这个选项，路由器将从 `<form>` 元素触发页面内的转换，支持 `GET` 和 `POST` 请求。你可以使用 `data-astro-reload` 属性在任何单独的表单上选择退出路由器视图过渡动画：
+你可以使用 `data-astro-reload` 属性在任何单独的表单上选择退出路由器视图过渡动画：
 
 ```astro title="src/components/Form.astro"
 <form action="/contact" data-astro-reload>
@@ -460,48 +448,146 @@ Astro 不会模拟 `initial` 浏览器动画。因此，任何使用此动画的
 </script>
 ```
 
-模块脚本只会执行一次，因为浏览器会跟踪已经加载的模块。所以对于这些脚本，你无需担心重新执行的问题。
+模块脚本，包括那些为 `DOMContentLoaded` 添加事件监听器的脚本，只会执行一次，因为浏览器会跟踪已经加载的模块。你必须添加一个 [生命周期事件](#生命周期事件) 的监听器，以便在客户端页面导航期间重新执行脚本。
 
-### `astro:page-load`
+有关在项目中更新现有脚本的示例，请参阅 [添加视图过渡动画教程](/zh-cn/tutorials/add-view-transitions/#更新你的脚本)。
 
-该事件在页面导航结束后触发，当新页面对用户可见时会阻塞式样并加载脚本。你可以在 `document` 上监听此事件。
+## 生命周期事件
 
-`<ViewTransitions />` 组件在初始页面导航（MPA）和后续的前后退导航中都会触发此事件。
+`<ViewTransition />` 路由器在导航期间在 `document` 上触发了许多事件。这些事件提供了导航生命周期的钩子，允许你做一些事情，例如显示新页面正在加载的指示器、覆盖默认行为以及在导航完成时恢复状态。
 
-你可以利用此事件在每次页面导航时运行代码，或者仅在全局执行一次：
+导航过程包括一个**准备**阶段，在此阶段加载新内容；一个**DOM 交换**阶段，在此阶段旧页面的内容被新页面的内容替换；以及一个**完成**阶段，在此阶段执行脚本，报告加载完成，并进行清理工作。
 
-```astro "{ once: true }"
-<script>
-  document.addEventListener('astro:page-load', () => {
-    // 这只会运行一次
-    setupStuff();
-  }, { once: true });
+Astro 的视图过渡动画 API 生命周期事件顺序如下：
+- [`astro:before-preparation`](#astrobefore-preparation)
+- [`astro:after-preparation`](#astroafter-preparation)
+- [`astro:before-swap`](#astrobefore-swap)
+- [`astro:after-swap`](#astroafter-swap)
+- [`astro:page-load`](#astropage-load)
+
+:::tip
+`before-` 事件允许你影响和修改即将发生的动作，而 `after-` 事件则是通知某个阶段已经完成。
+:::
+
+虽然某些动作可以在任何事件中触发，但是某些任务只能在特定事件中执行，以获得最佳结果，例如在准备阶段之前显示加载指示器或在交换内容之前覆盖动画对。
+
+### `astro:before-preparation`
+
+<p><Since v="3.6.0" /></p>
+
+在准备阶段开始时触发的事件，导航开始后（例如，用户点击链接后），但在加载内容之前。
+
+此事件用于：
+
+- 在加载开始之前做一些事情，例如显示加载指示器。
+- 更改加载内容，例如从模板中加载而不是从外部 URL 加载。
+- 在加载时更改 `direction`（通常为 `forward` 或 `backward`）以进行自定义动画。
+
+以下示例展示了如何在内容加载前使用 `astro:before-preparation` 事件加载一个加载指示器，并在加载完成后立即停止它。请注意，以这种方式使用加载器回调允许异步执行代码。
+
+```js
+<script is:inline>
+  document.addEventListener('astro:before-preparation', ev => {
+    const originalLoader = ev.loader;
+    ev.loader = async function() {
+      const { startSpinner } = await import('./spinner.js');
+      const stop = startSpinner();
+      await originalLoader();
+      stop();
+    };
+  });
+</script>
+```
+
+### `astro:after-preparation`
+
+<p><Since v="3.6.0" /></p>
+
+在准备阶段结束时触发的事件，新页面的内容在加载并解析为文档后。此事件发生在视图过渡阶段之前。
+
+此示例使用 `astro:before-preparation` 事件来启动加载指示器，使用 `astro:after-preparation` 事件来停止它：
+
+```astro
+<script is:inline>
+  document.addEventListener('astro:before-preparation', () => {
+    document.querySelector('#loading').classList.add('show');
+  });
+  document.addEventListener('astro:after-preparation', () => {
+    document.querySelector('#loading').classList.remove('show');
+  });
+</script>
+```
+这是一个比上面显示的加载 spinner 更简单的版本：如果所有监听器的代码都可以同步执行，则无需进行加载器的回调。
+
+### `astro:before-swap`
+
+<p><Since v="3.6.0" /></p>
+
+在新文档（在准备阶段填充）替换当前文档之前触发的事件。此事件发生在视图过渡中，用户仍然可以看到旧页面的快照。
+
+此事件可用于在交换发生之前进行更改。事件上的 `newDocument` 属性表示传入的文档。以下示例确保浏览器中的浅色或深色模式偏好设置在新页面中得到保留：
+
+```astro
+<script is:inline>
+  function setDarkMode(document) {
+    let theme = localStorage.darkMode ? 'dark' : 'light';
+    document.documentElement.dataset.theme = theme;
+  }
+
+  setDarkMode(document);
+
+  document.addEventListener('astro:before-swap', ev => {
+    // Pass the incoming document to set the theme on it
+    setDarkMode(ev.newDocument);
+  });
+</script>
+```
+
+`astro:before-swap` 事件还可用于更改交换的*实现*。默认的交换实现会对 head 内容进行 diff，将 __persistent__ 元素从旧文档移动到 `newDocument`，然后用新文档的 body 替换整个 `body`。
+
+在生命周期的这一点上，你可以选择定义自己的交换实现，例如对现有文档的整个内容进行 diff（某些其他路由器会这样做）：
+
+```astro
+<script is:inline>
+  document.addEventListener('astro:before-swap', ev => {
+    ev.swap = () => {
+      diff(document, ev.newDocument);
+    };
+  });
 </script>
 ```
 
 ### `astro:after-swap`
 
-这是一个在新页面替换旧页面后立即触发的事件。你可以在 `document` 上监听此事件并触发在新页面的 DOM 元素渲染和脚本运行之前发生的操作。
+在新页面替换旧页面后立即触发的事件。你可以在 `document` 上监听此事件，并触发在新页面的 DOM 元素渲染和脚本运行之前发生的操作。
 
-当在**离开的页面**上监听该事件时，它非常适用于传递和恢复需要转移到新页面的 DOM 上的任何状态。
+此事件在**旧页面**上监听时，可用于传递和恢复需要转移到新页面的 DOM 上的任何状态。
 
-例如，如果你正在实现深色模式支持，可以使用此事件在页面加载时恢复状态：
+这是生命周期中的最后一个点，仍然可以安全地在其中添加一个深色模式类名（`<html class="dark-mode">`），尽管你可能希望在更早的事件中这样做。
 
-```astro
-<script>
-	const setDarkMode = () => {
-		if (localStorage.darkMode) {
-			document.documentElement.dataset.dark = '';
-		}
-	};
+`astro:after-swap` 事件发生在浏览器历史记录已更新并设置了滚动位置之后。因此，可以使用此事件的一个用途是覆盖默认的历史记录导航滚动恢复。以下示例将水平和垂直滚动位置重置为页面的左上角：
 
-  // 在初始化导航时运行
-	setDarkMode();
-  // 在视图过渡动画导航时运行
-	document.addEventListener('astro:after-swap', setDarkMode);
-</script>
+```js
+document.addEventListener('astro:after-swap', 
+  () => window.scrollTo({ left: 0, top: 0, behavior: 'instant' }))
 ```
 
+### `astro:page-load`
+
+在页面导航结束时触发的事件，在新页面对用户可见且阻塞样式和脚本加载完成后。你可以在 `document` 上监听此事件。
+
+`<ViewTransitions />` 组件在预渲染页面的初始页面导航以及任何后续导航（向前或向后）时都会触发此事件。
+
+你可以使用此事件在每次页面导航时运行代码，或者只运行一次：
+
+```astro "{ once: true }"
+<script>
+  document.addEventListener('astro:page-load', () => {
+    // This only runs once.
+    setupStuff();
+  }, { once: true });
+</script>
+```
 
 ## 无障碍特性
 
@@ -509,7 +595,7 @@ Astro 不会模拟 `initial` 浏览器动画。因此，任何使用此动画的
 
 ### 路由读出
 
-<Since v="3.2.0" />
+<p><Since v="3.2.0" /></p>
 
 `<ViewTransitions />` 组件包含一个用于在客户端路由间进行页面导航的路由读出器。你无需配置或操作即可启用此功能。
 
