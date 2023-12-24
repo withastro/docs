@@ -84,6 +84,7 @@ export const logos = LogoCheck({
 	preprcms: { file: 'preprcms.svg', padding: '0' },
 	'kontent-ai': { file: 'kontent-ai.svg', padding: '.15em' },
 	keystatic: { file: 'keystatic.svg', padding: '0' },
+	zeabur: { file: 'zeabur.svg', padding: '.2em' },
 });
 
 export type LogoKey = keyof typeof logos;
