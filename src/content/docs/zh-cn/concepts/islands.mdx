@@ -6,13 +6,28 @@ description: >-
 ---
 import IslandsDiagram from '~/components/IslandsDiagram.astro';
 
+Astro 开创并推广了一种叫做 **群岛** 的前端架构。群岛架构通过帮助你避免单体 JavaScript 模式并自动从页面中剥离所有非必需的 JavaScript，从而实现了更好的前端性能。开发者在使用 Astro 的同时，仍然可以继续使用他们最喜欢的 UI 组件和框架，并且从中得到受益。
 
+## 简史
 
-**Astro 群岛**（又称组件群岛）是 Astro 开创的一种新 Web 架构模式。“群岛架构”由 Etsy 前端架构工程师 [Katie Sylor-Miller](https://twitter.com/ksylor) 于 2019 年首次提出，并由 Preact 的作者 Jason Miller 在[这篇文章](https://jasonformat.com/islands-architecture/)进行了扩展。
+"Etsy" 的前端架构师 [Katie Sylor-Miller](https://twitter.com/ksylor) 在 2019 年首次创造了 "组件岛屿" 这个术语。随后，Preact 的创造者 Jason Miller 在 2020 年 8 月 11 日扩展了这个概念，并在 [这篇文章](https://jasonformat.com/islands-architecture/) 中进行了记录。
 
-## 什么是 Astro 群岛
+> "群岛" 架构的总体思想看似简单：在服务器上渲染 HTML 页面，并在高度动态的区域周围注入占位符或插槽 [...] 这些区域随后可以在客户端 "激活" 成为小型独立的小部件，重用它们服务器渲染的初始 HTML。
+> — Jason Miller, Preact 的创造者
+
+这种架构模式所依赖的技术也被称为 **局部化**或**选择性激活**。
+
+相比之下，大多数基于 JavaScript 的 Web 框架会将整个网站作为一个大型 JavaScript 应用程序（也被称为单页应用程序，或 SPA）进行激活和渲染。SPA 提供了简单性和强大的功能，但由于大量使用客户端 JavaScript 也导致存在一些页面加载的性能问题。
+
+SPA 在 [嵌入 Astro 页面内](/zh-cn/guides/migrate-to-astro/from-create-react-app/) 时也有其一席之地。但是，SPA 缺乏选择性和策略性激活的原生能力，使得它们对于当今大多数 Web 项目来说是一个笨重的选择。
+
+Astro 因为是第一个内置选择性激活的主流 JavaScript Web 框架而变得流行，它使用了由 Sylor-Miller 首次提出的组件岛屿模式。
+
+## 什么是群岛？
 
 “Astro 群岛“指的是静态 HTML 中的交互性的 UI 组件。一个页面上可以有多个岛屿，并且每个岛屿都被独立呈现。你可以将它们想象成在一片由静态（不可交互）的 HTML 页面中的动态岛屿。
+
+**在 Astro 中，“岛屿”指的是页面上的任何交互式 UI 组件。**你可以将岛屿想象成在一片由静态、轻量级、服务器渲染的 HTML 所构成的海洋中所漂浮的交互式小部件。
 
 <IslandsDiagram>
     <Fragment slot="headerApp">页头（可交互岛屿）</Fragment>
@@ -25,35 +40,40 @@ import IslandsDiagram from '~/components/IslandsDiagram.astro';
     <Fragment slot="source">来源：[群岛架构：Jason Miller](https://jasonformat.com/islands-architecture/)</Fragment>
 </IslandsDiagram>
 
-在 Astro 中，你可以使用任何被支持的 UI 框架（比如 React, Svelte, Vue）来在浏览器中呈现群岛。你可以在一个页面中混合或拼接许多不同的框架，或者仅仅使用自己最喜欢的。
+岛屿始终独立于页面上的其他岛屿运行，且一个页面上可以存在多个岛屿。尽管岛屿在不同的组件上下文中运行，它们仍然可以共享状态并相互通信。
 
-这种架构模式依赖于 partial（局部）或 selective hydration（选择性混合）技术。
+这种灵活性使得 Astro 能够支持多个 UI 框架，如 [React](https://react.dev/)、[Preact](https://preactjs.com/)、[Svelte](https://svelte.dev/)、[Vue](https://vuejs.org/) 和 [SolidJS](https://www.solidjs.com/)。由于它们是独立的，你甚至可以在每个页面上混合使用多种框架。
 
-## 群岛如何在 Astro 中运作
+:::tip
+虽然大多数开发者会坚持使用一个 UI 框架，但 Astro 支持在同一个项目中使用多个框架。这允许你：
 
-**Astro 默认生成不含客户端 JavaScript 的网站。** 如果使用前端框架 [React](https://react.dev/)、[Preact](https://preactjs.com/)、[Svelte](https://svelte.dev/)、[Vue](https://vuejs.org/)、[SolidJS](https://www.solidjs.com/)、[AlpineJS](https://alpinejs.dev/) 或 [Lit](https://lit.dev/)，Astro 会自动提前将它们渲染为 HTML，然后再除去所有 JavaScript。这使得 Astro 创建的网站默认非常迅速，因为 Astro 帮你自动清除了所有页面上的 JavaScript。
+- 为每个组件选择最合适的框架。
+- 无需在启动新项目时学习新框架。
+- 即使使用不同的框架也能与他人协作。
+- 逐步将现有网站转换为另一个框架，无需停机。
+:::
+
+## 创建一个岛屿
+
+默认情况下，Astro 会自动将每个 UI 组件渲染成仅包含 HTML 和 CSS 的形式，**并自动剥离掉所有客户端 JavaScript。**
 
 ```astro title="src/pages/index.astro"
----
-// 例子：在此页面使用一个静态的 React 组件，没有 JavaScript。
-import MyReactComponent from '../components/MyReactComponent.jsx';
----
-<!-- 100% HTML，没有 JavaScript 在这个页面上！ -->
 <MyReactComponent />
 ```
 
-但是有些时候，响应式的 UI 是需要客户端 JavaScript 的。你不该将整个页面做成一个像 SPA（单页面应用）一样的 JavaScript 应用，相反，Astro 允许你创建岛屿。
+这听起来可能很严格，但正是这种做法使得 Astro 网站默认保持快速，并且避免开发者不小心发送不必要或不想要的 JavaScript，而拖慢他们的网站速度。
+
+只需使用一个 `client:*` 指令，就可以将任何静态 UI 组件转变为交互式岛屿。然后 Astro 会自动构建并打包你的客户端 JavaScript，以优化性能。
 
 ```astro title="src/pages/index.astro" ins="client:load"
----
-// 例子：在此页面上使用一个动态 React 组件
----
-<!-- 现在这个组件是可交互性的了！
-  网站的其他部分仍然是静态、没有JavaScript的。 -->
+<!-- 现在这个组件在页面上是可交互的了！
+  而网站的其他部分仍然是静态。 -->
 <MyReactComponent client:load />
 ```
 
-使用 Astro 群岛，你的大部分页面保持着纯正、轻盈的 HTML 和 CSS。在上面的例子中，你仅仅添加了一个简单的、孤立的**可响应岛屿**，而并没有改变任何页面其他部分的代码。
+在使用群岛时，客户端的 JavaScript 只会加载你所使用 `client:*` 指令明确标记的交互组件。
+
+并且由于交互是在组件层面配置的，所有你可以根据每个组件的使用情况来处理不同的加载优先级。例如，`client:idle` 告诉一个组件在浏览器变为空闲时加载，而 `client:visible` 告诉一个组件只有在进入视口后才加载。
 
 ## 群岛的好处有哪些？
 
