@@ -5,6 +5,8 @@ i18nReady: true
 ---
 import Since from '~/components/Since.astro';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import Badge from '~/components/Badge.astro';
+import RecipeLinks from "~/components/RecipeLinks.astro";
 
 
 Astroでは、プロジェクト内にローカルに保存された画像、外部URLにリンクされた画像、CMSやCDNで管理されている画像などについて、これらをサイト上で使用するためのいくつかの方法を提供しています。
@@ -29,7 +31,7 @@ Astroは、APIを使用してリモートからデータを取得したり、画
 
 ## `.astro`ファイル内の画像
 
-`.astro`ファイルでローカル画像を使用するには、ファイルにインポートする必要があります。リモートと`public/`の画像はインポートする必要はありません。
+`.astro`ファイルでローカル画像を使用するには、**ファイルにインポートする必要があります**。リモートと`public/`の画像はインポートする必要はありません。
 
 `astro:assets`からAstro組み込みの`<Image />`コンポーネントをインポートして使用すると、画像を最適化できます。また、Astro構文ではHTMLの`<img>`タグを直接書くこともできますが、画像処理はスキップされます。
 
@@ -46,6 +48,10 @@ import localBirdImage from '../../images/subfolder/localBirdImage.png';
 <img src="/images/bird-in-public-folder.jpg" alt="鳥。">
 <img src="https://example.com/remote-bird.jpg" alt="鳥。">
 ```
+
+`src/`フォルダーから動的に画像を読み込むには、次のレシピを参考にしてください:
+
+<RecipeLinks slugs={["ja/recipes/dynamically-importing-images" ]}/>
 
 ### `<Image />` (`astro:assets`)
 
@@ -82,10 +88,6 @@ import myImage from "../assets/my_image.png"; // 画像は1600x900
   alt="画像の説明。"
 />
 ```
-
-現在、組み込みのassets機能には`<Picture />`コンポーネントは含まれていません。
-
-代わりに、[アートディレクションやレスポンシブ画像を作成する](https://developer.mozilla.org/ja/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#アートディレクション)ために、HTMLの画像属性`srcset`と`sizes`または`<picture>`タグを使用して、[`getImage()`により画像やカスタムコンポーネントを生成](#getimageで画像を生成する)できます。
 
 #### プロパティ
 
@@ -144,6 +146,87 @@ import myImage from "../assets/my_image.png"; // 画像は1600x900
 ローカル画像をオリジナルのアスペクト比で使用する場合、`width`と`height`はソースファイルから自動的に推測されるため、必須ではありません。
 
 ただし、リモート画像と`public/`フォルダに保存されている画像については、Astroはこれらのファイルを解析できないため、両プロパティは必須となります。
+
+##### densities
+
+<p><Since v="3.3.0" /> <Badge>実験的</Badge></p>
+
+生成する画像のピクセル密度の配列です。
+
+この値を指定すると、`<img>`タグの`srcset`属性を生成するために使用されます。この値を使用する場合は`widths`を使用しないでください。
+
+元の画像以上の濃度になる値が指定されると、画像のアップスケーリングを避けるために無視されます。
+
+```astro title="src/components/MyComponent.astro"
+---
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png";
+---
+<Image src={myImage} width={myImage.width / 2} densities={[1.5, 2]} alt="説明文" />
+```
+
+```html
+<img
+  src="/_astro/my_image.hash.webp"
+  srcset="
+    /_astro/my_image.hash.webp 1.5x
+    /_astro/my_image.hash.webp 2x
+  "
+  alt="説明文"
+  width="800"
+  height="450"
+  loading="lazy"
+  decoding="async"
+/>
+```
+
+##### widths
+
+<p><Since v="3.3.0" /> <Badge>実験的</Badge></p>
+
+生成する画像の幅の配列です。
+
+この値を指定すると、`<img>`タグの`srcset`属性を生成するために使用されます。また、[`sizes`プロパティ](https://developer.mozilla.org/ja/docs/Web/API/HTMLImageElement/sizes)も指定する必要があります。
+
+この値を使用する場合は`densities`を使用しないでください。`srcset`属性を生成するために使用できるのは、どちらかひとつの値になります。
+
+元の画像以上の幅が指定されると、画像のアップスケーリングを避けるために無視されます。
+
+```astro
+---
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // 画像は1600x900
+---
+<Image
+  src={myImage}
+  widths={[240, 540, 720, myImage.width]}
+  sizes={`(max-width: 360px) 240px, (max-width: 720px) 540px, (max-width: 1600px) 720px, ${myImage.width}px`}
+  alt="説明文"
+/>
+```
+
+```html
+<img
+  src="/_astro/my_image.hash.webp"
+  srcset="
+    /_astro/my_image.hash.webp 240w,
+    /_astro/my_image.hash.webp 540w,
+    /_astro/my_image.hash.webp 720w,
+		/_astro/my_image.hash.webp 1600w
+  "
+  sizes="
+    (max-width: 360px) 240px,
+    (max-width: 720px) 540px,
+    (max-width: 1600px) 720px,
+    1600px
+  "
+  alt="説明文"
+  width="1600"
+  height="900"
+  loading="lazy"
+  decoding="async"
+/>
+```
 
 ##### format
 
@@ -209,6 +292,78 @@ const {src, ...attrs} = Astro.props;
 </style>
 ```
 
+### `<Picture />`
+
+<p><Since v="3.3.0" /></p>
+
+Astro組み込みの`<Picture />`コンポーネントを使用することで、複数のフォーマットやサイズでのレスポンシブな画像を表示できます。
+
+```astro title="src/pages/index.astro"
+---
+import { Picture } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // 画像は1600x900
+---
+<!-- `alt` is mandatory on the Picture component -->
+<Picture src={myImage} formats={['avif', 'webp']} alt="説明文" />
+```
+
+```html
+<!-- Output -->
+<picture>
+  <source srcset="/_astro/my_image.hash.avif" type="image/avif" />
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.png"
+    width="1600"
+    height="900"
+    decoding="async"
+    loading="lazy"
+    alt="説明文"
+  />
+</picture>
+```
+
+#### プロパティ
+
+`<Picture />`コンポーネントでは`<Image />`コンポーネントの全てのプロパティと、以下のプロパティが使用できます。
+
+##### `formats`
+
+`<source>`タグに使用するフォーマットの配列です。この配列の順番で`<source>`要素として追加され、表示するフォーマットが決定されます。最適なパフォーマンスのためには、最新のフォーマット(例：`webp`や`avif`)を最初に追加してみてください。デフォルトでは`['webp']`が設定されています。
+
+##### `fallbackFormat`
+
+`<img>`タグのフォールバック値として使用するフォーマットです。
+
+それぞれデフォルトとして、静止画像の場合は`.png`、アニメーション画像の場合は`.gif`、そしてSVGファイルの場合は`.svg`が設定されています。
+
+##### `pictureAttributes`
+
+`<picture>`タグに追加する属性のオブジェクト。
+
+このプロパティは、外側の`<picture>`要素自体に属性を適用するために使用します。直接`<Picture />`コンポーネントに適用される属性は、画像変換に使用されるものを除き、内側の`<img>`要素に適用されます。
+
+```astro title="src/components/MyComponent.astro"
+---
+import { Picture } from "astro:assets";
+import myImage from "../my_image.png"; // 画像は1600x900
+---
+<Picture src={myImage} alt="説明文" pictureAttributes={{style: "background-color: red;"}} />
+```
+
+```html
+<picture style="background-color: red;">
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.png"
+    alt="説明文"
+    width="1600"
+    height="900"
+    loading="lazy"
+    decoding="async"
+  />
+</picture>
+```
 ### `<img>`
 
 [Astroテンプレートの構文](/ja/core-concepts/astro-syntax/)では、最終的な出力を完全に制御可能な`<img>`タグを直接書くこともできます。これらの画像は処理されず、最適化もされません。
@@ -221,7 +376,7 @@ const {src, ...attrs} = Astro.props;
 
 たとえば、CLSを回避しCore Web Vitalsを改善するために、画像の`height`と`width`プロパティを使用します。
 
-```astro "myDog.width" "myDog.height"
+```astro title="src/pages/posts/post-1.astro" "myDog.width" "myDog.height"
 ---
 // ローカル画像のインポート
 import myDog from `../../images/pets/local-dog.jpg`
@@ -259,7 +414,7 @@ interface ImageMetadata {
 
 ### `<Image />`と`<img>`の選択
 
-`<Image />`コンポーネントは、画像を最適化し、また（ローカル画像の場合は）オリジナルのアスペクト比に基づいて幅と高さを推測することでCLSを回避します。ただし、特定のフォーマットのみに対応しており、`<picture>`要素はなく、`srcset`もサポートしていません。
+`<Image />`コンポーネントは、画像を最適化し、また（ローカル画像の場合は）オリジナルのアスペクト比に基づいて幅と高さを推測することでCLSを回避します。
 
 以下のような`<Image />`コンポーネントを使用できない場合に、HTMLの`<img>`要素を使用してください。
   - サポートされていない画像フォーマット
@@ -468,6 +623,8 @@ import stars from "~/stars/docline.png";
 
 `getImage()`関数は、たとえば[APIルート](/ja/core-concepts/endpoints/#サーバーエンドポイントapiルーティング)など、HTML以外の場所で使用する画像を生成することを目的としています。また、これを使って独自のカスタム`<Image />`コンポーネントも作成できます。
 
+<RecipeLinks slugs={["ja/recipes/build-custom-img-component" ]}/>
+
 `getImage()`は、（`alt`を除く）[Imageコンポーネントと同じプロパティ](#プロパティ)をもつオプションオブジェクトを受け取ります。
 
 ```astro
@@ -475,7 +632,7 @@ import stars from "~/stars/docline.png";
 import { getImage } from "astro:assets";
 import myBackground from "../background.png"
 
-const optimizedBackground = await getImage({src: myBackground, format: 'avif'})
+const optimizedBackground = await getImage({src: myBackground, format: 'webp'})
 ---
 
 <div style={`background-image: url(${optimizedBackground.src});`}></div>
@@ -485,8 +642,13 @@ const optimizedBackground = await getImage({src: myBackground, format: 'avif'})
 
 ```js
 {
-  options: {...} // 渡されたオリジナルのパラメータ
-  src: "https//..." // 生成された画像へのパス
+  rawOptions: {...}, // オリジナルのパラメータを渡す
+  options: {...}, // 有効なパラメータを渡す
+  src: "https//...", // 生成された画像へのパス
+  srcSet: {
+    values: [...], // 生成されたsrcsetの値。各エントリーはurlとサイズ記述子を持つ。
+    attribute: "", // valuesから生成されたsrcset属性
+  }
   attributes: {...} // 画像をレンダリングするために必要な追加のHTML属性（width、height、styleなど）
 }
 ```
@@ -503,6 +665,16 @@ const optimizedBackground = await getImage({src: myBackground, format: 'avif'})
 
 [Sharp](https://github.com/lovell/sharp)は、`astro:assets`で使用されるデフォルトの画像サービスです。
 
+:::note
+`pnpm`のような[厳格なパッケージマネージャー](https://pnpm.io/pnpm-vs-npm#npms-flat-tree)を使用している場合は、Astroの依存関係であるにもかかわらず、プロジェクトにSharpを手動でインストールする必要があるかもしれません。
+
+```bash
+pnpm install sharp
+```
+:::
+
+### Squooshの設定
+
 画像を変換するために[Squoosh](https://github.com/GoogleChromeLabs/squoosh)を使用したい場合は、以下のように設定を更新してください。
 
 ```js title="astro.config.mjs" ins={4-6}
@@ -515,13 +687,20 @@ export default defineConfig({
 });
 ```
 
-:::note
-`pnpm`のような[厳格なパッケージマネージャー](https://pnpm.io/pnpm-vs-npm#npms-flat-tree)を使用している場合は、Astroの依存関係であるにもかかわらず、プロジェクトにSharpを手動でインストールする必要があるかもしれません。
+### no-opパススルーサービスの設定
 
-```bash
-pnpm install sharp
+もし使用している[`server`または`hybrid`モードのアダプター](https://astro.build/integrations/?search=&categories%5B%5D=adapters)が、Astroの組み込みのSquooshおよびSharp画像最適化（Deno、Cloudflareなど）をサポートしていない場合、`<Image />`や`<Picture />`コンポーネントを使用できるようにno-op画像サービスを設定することができます。Astroはこれらの環境では画像の変換や処理をおこないませんが、Cumulative Layout Shift（CLS）がなくなること、`alt`属性が必須であること、一貫したコードの書き心地など、`astro:assets`を使用した場合の他の利点は享受することができます。
+
+SquooshとSharpの画像処理を回避する`passthroughImageService()`の設定:
+
+```js title="astro.config.mjs" ins={4-6} "passthroughImageService"
+import { defineConfig, passthroughImageService } from 'astro/config';
+export default defineConfig({
+  image: {
+    service: passthroughImageService()
+  }
+});
 ```
-:::
 
 ## コミュニティインテグレーション
 
@@ -702,13 +881,7 @@ Astro v2.xで画像インテグレーションを使用していた場合は、�
       />
       ```
 
-4. 既存の`<Picture />`コンポーネントを削除します。
-
-    現在、組み込みのアセット機能には`<Picture />`コンポーネントは含まれていません。
-
-    代わりに、HTMLの画像属性`srcset`と`sizes`、または`<picture>`タグを使用して、[アートディレクションやレスポンシブ画像を作成](https://developer.mozilla.org/ja/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images#アートディレクション)できます。
-
-5. デフォルトの画像サービスを選択します。
+4. デフォルトの画像サービスを選択します。
 
     [Sharp](https://github.com/lovell/sharp)は、`astro:assets`で使用されるデフォルトの画像サービスとなりました。Sharpを使用する場合は、特に設定は必要ありません。
 
