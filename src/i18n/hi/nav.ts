@@ -4,9 +4,9 @@ export default NavDictionary({
 	startHere: 'यहाँ से शुरू करे',
 	'getting-started': 'पहले कदम',
 
-	install: 'स्थापित करें',
+	install: 'इंस्टॉल करें',
 	'editor-setup': 'एडिटर सेटअप',
-	// 'guides/upgrade-to/v3': 'v3 में अपग्रेड करें',
+	'guides/upgrade-to/v4': 'v4 में अपग्रेड करें',
 
 	coreConcepts: 'मूल अवधारणाएँ',
 	'concepts/why-astro': 'क्यों Astro',
