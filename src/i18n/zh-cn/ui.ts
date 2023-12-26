@@ -79,7 +79,8 @@ export default UIDictionary({
 	'integrations.footerTitle': '更多集成',
 	'integrations.renderers': 'UI 框架',
 	'integrations.adapters': 'SSR 适配器',
-	'integrations.others': '其他',
+	'integrations.others': '其他集成',
+	'integrations.more': '更多集成',
 	// Checklist component
 	'checklist.or': '或',
 	// Multiple Choice component
