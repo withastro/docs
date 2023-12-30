@@ -7,40 +7,74 @@ category: adapter
 i18nReady: true
 ---
 
-An SSR adapter for use with Cloudflare Pages Functions targets. Write your code in Astro/Javascript and deploy to Cloudflare Pages.
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
-## Install
+This adapter allows Astro to deploy your [`hybrid` or `server` rendered site](/en/core-concepts/rendering-modes/#on-demand-rendered) to [Cloudflare](https://www.cloudflare.com/).
 
-Add the Cloudflare adapter to enable SSR in your Astro project with the following `astro add` command. This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step.
+If you're using Astro as a [static site builder](/en/core-concepts/rendering-modes/#pre-rendered), you don't need an adapter.
 
-```sh
-# Using NPM
-npx astro add cloudflare
-# Using Yarn
-yarn astro add cloudflare
-# Using PNPM
-pnpm astro add cloudflare
-```
+Learn how to deploy your Astro site in our [Cloudflare Pages deployment guide](/en/guides/deploy/cloudflare/).
 
-If you prefer to install the adapter manually instead, complete the following two steps:
+## Why Astro Cloudflare
 
-1. Add the Cloudflare adapter to your project's dependencies using your preferred package manager. If you’re using npm or aren’t sure, run this in the terminal:
+[Cloudflare](https://www.cloudflare.com/) provides CDNs, web security, and other services. This adapter enhances the Astro build process to prepare your project for deployment through Cloudflare.
 
-```bash
-npm install @astrojs/cloudflare
-```
+## Installation
 
-2. Add the following to your `astro.config.mjs` file:
+Astro includes an `astro add` command to automate the setup of official integrations. If you prefer, you can [install integrations manually](#manual-install) instead.
 
-```diff lang="js"
-  // astro.config.mjs
-  import { defineConfig } from 'astro/config';
-+ import cloudflare from '@astrojs/cloudflare';
+Add the Cloudflare adapter to enable SSR in your Astro project with the `astro add` command. This will install `@astrojs/cloudflare` and make the appropriate changes to your `astro.config.*` file in one step.
 
-  export default defineConfig({
-+   output: 'server',
-+   adapter: cloudflare(),
-  });
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add cloudflare
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add cloudflare
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add cloudflare
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Manual Install
+
+First, add the `@astrojs/cloudflare` adapter to your project's dependencies using your preferred package manager.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install @astrojs/cloudflare
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add @astrojs/cloudflare
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add @astrojs/cloudflare
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Then, add the adapter and your desired [on-demand rendering mode](/en/core-concepts/rendering-modes/#on-demand-rendered) to your `astro.config.*` file:
+
+```js title="astro.config.mjs" ins={2,5-6}
+import { defineConfig } from 'astro/config';
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+  output: 'server',
+  adapter: cloudflare(),
+});
 ```
 
 ## Options
@@ -58,8 +92,7 @@ This configuration option defines how your Astro project is deployed to Cloudfla
 
 Switching to directory mode allows you to add additional files manually such as [Cloudflare Pages Plugins](https://developers.cloudflare.com/pages/platform/functions/plugins/), [Cloudflare Pages Middleware](https://developers.cloudflare.com/pages/platform/functions/middleware/) or custom functions using [Cloudflare Pages Functions Routing](https://developers.cloudflare.com/pages/platform/functions/routing/).
 
-```js
-// astro.config.mjs
+```js title="astro.config.mjs" ins="mode: 'directory'"
 export default defineConfig({
   adapter: cloudflare({ mode: 'directory' }),
 });
@@ -67,17 +100,16 @@ export default defineConfig({
 
 To compile a separate bundle for each page, set the `functionPerRoute` option in your Cloudflare adapter config. This option requires some manual maintenance of the `functions` folder. Files emitted by Astro will overwrite existing files with identical names in the `functions` folder, so you must choose unique file names for each file you manually add. Additionally, the adapter will never empty the `functions` folder of outdated files, so you must clean up the folder manually when you remove pages.
 
-```diff lang="js"
-  // astro.config.mjs
-  import {defineConfig} from "astro/config";
-  import cloudflare from '@astrojs/cloudflare';
+```js title="astro.config.mjs" ins={7}
+import {defineConfig} from "astro/config";
+import cloudflare from '@astrojs/cloudflare';
 
-  export default defineConfig({
-    adapter: cloudflare({
-      mode: 'directory',
-+     functionPerRoute: true
-    })
+export default defineConfig({
+  adapter: cloudflare({
+    mode: 'directory',
+    functionPerRoute: true
   })
+})
 ```
 
 This adapter doesn't support the [`edgeMiddleware`](/en/reference/adapter-reference/#edgemiddleware) option.
@@ -98,7 +130,7 @@ There are three options available:
 
   Example: For `src/pages/index.astro` (static), `src/pages/company.astro` (static), `src/pages/users/faq.astro` (static) and `/src/pages/users/[id].astro` (SSR) this will produce the following `_routes.json`:
 
-  ```json
+  ```json title="dist/_routes.json"
   {
     "version": 1,
     "include": [
@@ -117,7 +149,7 @@ There are three options available:
 
   Example: For the same pages as in the previous example this will produce the following `_routes.json`:
 
-  ```json
+  ```json title="dist/_routes.json"
   {
     "version": 1,
     "include": [
@@ -154,18 +186,17 @@ If you want to use the automatic `_routes.json` generation, but want to exclude 
 
 The following example automatically generates `_routes.json` while including and excluding additional routes. Note that that is only necessary if you have custom functions in the `functions` folder that are not handled by Astro.
 
-```diff lang="js"
-  // astro.config.mjs
-  export default defineConfig({
-    adapter: cloudflare({
-      mode: 'directory',
-+     routes: {
-+       strategy: 'include',
-+       include: ['/users/*'], // handled by custom function: functions/users/[id].js
-+       exclude: ['/users/faq'], // handled by static page: pages/users/faq.astro
-+     },
-    }),
-  });
+```js title="astro.config.mjs" ins={4-8}
+export default defineConfig({
+  adapter: cloudflare({
+    mode: 'directory',
+    routes: {
+      strategy: 'include',
+      include: ['/users/*'], // handled by custom function: functions/users/[id].js
+      exclude: ['/users/faq'], // handled by static page: pages/users/faq.astro
+    },
+  }),
+});
 ```
 
 ### `imageService`
@@ -187,16 +218,15 @@ Whether or not to import `.wasm` files [directly as ES modules](https://github.c
 
 Add `wasmModuleImports: true` to `astro.config.mjs` to enable this functionality in both the Cloudflare build and the Astro dev server. Read more about [using Wasm modules](#use-wasm-modules).
 
-```diff lang="js"
-// astro.config.mjs
+```js title="astro.config.mjs" ins={6}
 import {defineConfig} from "astro/config";
 import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
-    adapter: cloudflare({
-+      wasmModuleImports: true
-    }),
-    output: 'server'
+  adapter: cloudflare({
+     wasmModuleImports: true
+  }),
+  output: 'server'
 })
 ```
 
@@ -243,57 +273,54 @@ Cloudflare Pages does not support a configuration file.
 
 To deploy your pages project to production, you need to configure the bindings using Cloudflare's Dashboard. To be able to access bindings locally, you need to configure them using the adpater's `runtime` option.
 
-```diff lang="js"
-// astro.config.mjs
+```js title="astro.config.mjs" ins={7-10, 12-15, 17-19, 21-23, 25-27, 29-34}
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
   output: 'server',
   adapter: cloudflare({
-+   runtime: {
-+     mode: 'local',
-+     type: 'pages',
-+     bindings: {
+    runtime: {
+      mode: 'local',
+      type: 'pages',
+      bindings: {
         // example of a var binding (environment variable)
-+       "URL": {
-+         type: "var",
-+         value: "https://example.com",
-+       },
+        "URL": {
+          type: "var",
+          value: "https://example.com",
+        },
         // example of a KV binding
-+       "KV": {
-+         type: "kv",
-+       },
+        "KV": {
+          type: "kv",
+        },
         // example of a D1 binding
-+       "D1": {
-+         type: "d1",
-+       },
+        "D1": {
+          type: "d1",
+        },
         // example of a R2 binding
-+       "R2": {
-+         type: "r2",
-+       },
+        "R2": {
+          type: "r2",
+        },
         // example of a Durable Object binding
-+       "DO": {
-+         type: "durable-object",
-+         className: "DO",
-+       },
-+     },
-+   },
+        "DO": {
+          type: "durable-object",
+          className: "DO",
+        },
+      },
+    },
   }),
 });
 ```
 
 If you also need to define `secrets` in addition to enviroment variables, you need to add a `.dev.vars` file to the root of the Astro project:
 
-```
-# .dev.vars
+```ini title=".dev.vars"
 DB_PASSWORD=myPassword
 ```
 
 If you want to use `wrangler` for cli commands, e.g. D1 migrations, you also need to add a `wrangler.toml` to the root of the Astro project with the correct content. Consult [Cloudflare's documentation](https://developers.cloudflare.com/) for further details.
 
-```toml
-# wrangler.toml
+```toml title="wrangler.toml"
 name = "example"
 compatibility_date = "2023-06-14"
 
@@ -309,8 +336,7 @@ preview_database_id = "D1"
 
 To deploy your workers project to production, you need to configure the bindings using a `wrangler.toml` config file in the root directory of your Astro project. To be able to access bindings locally, the `@astrojs/cloudflare` adapter will also read the `wrangler.toml` file.
 
-```toml
-# wrangler.toml
+```toml title="wrangler.toml"
 name = "example"
 
 # example of a KV Binding
@@ -342,8 +368,7 @@ class_name = "DO"
 
 If you also need to define `secrets` in addition to enviroment variables, you need to add a `.dev.vars` file to the root of the Astro project:
 
-```
-# .dev.vars
+```ini title=".dev.vars"
 DB_PASSWORD=myPassword
 ```
 
@@ -351,9 +376,8 @@ DB_PASSWORD=myPassword
 
 You can access the runtime from Astro components through `Astro.locals` inside any `.astro` file.
 
-```astro
+```astro title="src/pages/index.astro"
 ---
-// src/pages/index.astro
 const runtime = Astro.locals.runtime;
 ---
 
@@ -362,8 +386,7 @@ const runtime = Astro.locals.runtime;
 
 You can access the runtime from API endpoints through `context.locals`:
 
-```js
-// src/pages/api/someFile.js
+```js title="src/pages/api/someFile.js"
 export function GET(context) {
   const runtime = context.locals.runtime;
 
@@ -375,8 +398,7 @@ export function GET(context) {
 
 If you have configured `mode: advanced`, you can type the `runtime` object using `AdvancedRuntime`:
 
-```ts
-// src/env.d.ts
+```ts title="src/env.d.ts"
 /// <reference types="astro/client" />
 
 type KVNamespace = import('@cloudflare/workers-types/experimental').KVNamespace;
@@ -399,8 +421,7 @@ declare namespace App {
 
 If you have configured `mode: directory`, you can type the `runtime` object using `DirectoryRuntime`:
 
-```ts
-// src/env.d.ts
+```ts title="src/env.d.ts"
 /// <reference types="astro/client" />
 
 type KVNamespace = import('@cloudflare/workers-types/experimental').KVNamespace;
@@ -444,8 +465,7 @@ This will enable Cloudflare to serve files and process static redirects without 
 
 The following is an example of importing a Wasm module that then responds to requests by adding the request's number parameters together.
 
-```js
-// pages/add/[a]/[b].js
+```js title="pages/add/[a]/[b].js"
 import mod from '../util/add.wasm?module';
 
 // instantiate ahead of time to share module
@@ -478,8 +498,7 @@ Astro's Cloudflare adapter allows you to use any Node.js runtime API supported b
 
 To use these APIs, your page or endpoint must be server-side rendered (not pre-rendered) and must use the the `import {} from 'node:*'` import syntax.
 
-```js
-// pages/api/endpoint.js
+```js title="pages/api/endpoint.js"
 export const prerender = false;
 import { Buffer } from 'node:buffer';
 ```
@@ -494,8 +513,7 @@ All Cloudflare namespaced packages (e.g. `cloudflare:sockets`) are allowlisted f
 
 To use [`wrangler`](https://developers.cloudflare.com/workers/wrangler/) to run your application locally, update the preview script:
 
-```json
-//package.json
+```json title="package.json"
 "preview": "wrangler pages dev ./dist"
 ```
 
@@ -505,28 +523,16 @@ To use [`wrangler`](https://developers.cloudflare.com/workers/wrangler/) to run 
 
 Currently, errors during running your application in Wrangler are not very useful, due to the minification of your code. For better debugging, you can add `vite.build.minify = false` setting to your `astro.config.mjs`.
 
-```diff lang="js"
-  // astro.config.mjs
-  export default defineConfig({
-    adapter: cloudflare(),
-    output: 'server',
-
-+   vite: {
-+     build: {
-+       minify: false,
-+     },
-+   },
-  });
+```js title="astro.config.mjs" ins={4-8}
+export default defineConfig({
+  adapter: cloudflare(),
+  output: 'server',
+  vite: {
+    build: {
+      minify: false,
+    },
+  },
+});
 ```
-
-## Troubleshooting
-
-For help, check out the `#support` channel on [Discord](https://astro.build/chat). Our friendly Support Squad members are here to help!
-
-You can also check our [Astro Integration Documentation][astro-integration] for more on integrations.
-
-## Contributing
-
-This package is maintained by Astro's Core team. You're welcome to submit an issue or PR!
 
 [astro-integration]: /en/guides/integrations-guide/
