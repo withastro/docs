@@ -36,7 +36,7 @@ import FileTree from '~/components/FileTree.astro'
 
 3. 指定组件将接收的 `props`，以便在每张卡片上显示必要的信息。如果你在项目中使用 TypeScript，你还可以选择定义它们的类型。
 
-    ```astro title="src/components/MyCustomCardComponent.astro" ins={4-11}
+    ```astro title="src/components/MyCustomCardComponent.astro" ins={4-9, 11}
     ---
     import { Image } from 'astro:assets';
 
@@ -71,7 +71,7 @@ import FileTree from '~/components/FileTree.astro'
 
 5. 使用 `props` 属性来为你的组件创建 HTML 标记。
 
-    ```astro title="src/components/MyCustomCardComponent.astro" ins={14-18}
+    ```astro title="src/components/MyCustomCardComponent.astro" ins={15-19} "<Image src={} alt={altText} />"
     ---
     import type { ImageMetadata } from 'astro';
     import { Image } from 'astro:assets';
@@ -83,8 +83,7 @@ import FileTree from '~/components/FileTree.astro'
     }
     
     const { imagePath, altText, name, age } = Astro.props;
-    // Type: Record<string, () => Promise<{default: ImageMetadata}>>
-    const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/*.{jpeg,jpg,png,gif}')
+    const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/*.{jpeg,jpg,png,gif}');
     ---
     <div class="card">
         <h2>{name}</h2>
@@ -94,8 +93,10 @@ import FileTree from '~/components/FileTree.astro'
     ```
 
 6. 在 `src` 属性中，传入 `images` 对象并使用方括号表示法来指定图片路径。然后确保调用 glob 函数。
+
+    由于你正在访问的 `images` 对象类型未知，所以你也应该在传递了无效文件路径作为 prop 时 `throw` 一个错误。
    
-    ```astro title="src/components/MyCustomCardComponent.astro" ins="images[imagePath]()"
+    ```astro title="src/components/MyCustomCardComponent.astro" ins="images[imagePath]()" ins={13}
     ---
     import type { ImageMetadata } from 'astro';
     import { Image } from 'astro:assets';
@@ -107,7 +108,8 @@ import FileTree from '~/components/FileTree.astro'
     }
     
     const { imagePath, altText, name, age } = Astro.props;
-    const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/*.{jpeg,jpg,png,gif}')
+    const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/*.{jpeg,jpg,png,gif}');
+    if (!images[imagePath]) throw new Error(`"${imagePath}" does not exist in glob: "src/assets/*.{jpeg,jpg,png,gif}"`);
     ---
     <div class="card">
         <h2>{name}</h2>
