@@ -81,7 +81,8 @@ export default UIDictionary({
 	'integrations.footerTitle': 'अधिक एकीकरण', // "More Integrations"
 	'integrations.renderers': 'UI फ्रेमवर्क', // "UI Frameworks"
 	'integrations.adapters': 'SSR एडेप्टर', // "SSR Adapters"
-	'integrations.others': 'अन्य', // "Others"
+	'integrations.others': 'अन्य एकीकरण', // "Other integrations"
+	'integrations.more': 'अधिक एकीकरण', //"More integrations"
 	// Checklist component
 	'checklist.or': 'या', // "or"
 	// Multiple Choice component
