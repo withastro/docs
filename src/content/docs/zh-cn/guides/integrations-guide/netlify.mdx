@@ -6,54 +6,76 @@ githubIntegrationURL: 'https://github.com/withastro/adapters/tree/main/packages/
 category: adapter
 i18nReady: true
 ---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
 此适配器可以部署你的 [`hybrid` 或 `server` 渲染站点](/zh-cn/core-concepts/rendering-modes/#按需渲染) 到 [Netlify](https://www.netlify.com/)。
+
+如果你正在使用 Astro 作为[静态站点生成器](/zh-cn/core-concepts/rendering-modes/#预渲染)，则不需要适配器。
 
 在我们的 [Netlify 部署指南](/zh-cn/guides/deploy/netlify/) 中学习如何部署你的 Astro 网站。
 
 ## 为什么是 Astro Netlify
 
-如果你正在使用 Astro 作为静态站点生成器——也就是它的开箱即用的行为——你不需要一个适配器。
-
-如果你希望 [使用按需渲染，也称作服务器端渲染（SSR）](/zh-cn/guides/server-side-rendering/)，Astro 需要一个与你的部署运行时相匹配的适配器。
-
 [Netlify](https://www.netlify.com/) 是一个部署平台，允许你通过直接连接 GitHub 仓库来托管您的网站。这个适配器增强了 Astro 的构建流程，为通过 Netlify 部署项目做好准备。
 
 ## 安装
 
-使用以下 `astro add` 命令添加 Netlify 适配器。这将在一步中安装适配器并对 `astro.config.mjs` 文件进行适当的更改。
+Astro 包含了一个 `astro add` 命令，用于自动设置官方集成。如果你愿意，可以改为[手动安装集成](#手动安装)。
 
-```sh
-# Using NPM
-npx astro add netlify
-# Using Yarn
-yarn astro add netlify
-# Using PNPM
-pnpm astro add netlify
-```
+在 Astro 项目中使用以下 `asrto add` 命令添加 Netlify 适配器，以启用 SSR。这将安装 `@astrojs/netlify` 并一步到位地对你的 `astro.config.mjs` 文件进行相应的更改。
 
-### 手动添加依赖
-
-如果你更喜欢手动安装适配器，请完成以下两个步骤：
-
-1. 安装 Netlify 适配器到你的项目依赖中，使用你喜欢的包管理器。如果你使用 npm 或者不确定，请在终端中运行：
-
-  ```bash
-    npm install @astrojs/netlify
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm run astro add netlify
   ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add netlify
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
-2. 添加两行内容到你的 `astro.config.mjs` 项目配置文件中。
+### 手动安装
 
-  ```diff lang="js"
-    // astro.config.mjs
+首先，使用适合你的包管理器将 Netlify 适配器安装到你的项目依赖中：
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install @astrojs/netlify
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add @astrojs/netlify
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add @astrojs/netlify
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+然后，将适配器和你所需的[按需渲染模式](/zh-cn/core-concepts/rendering-modes/#按需渲染)添加到你的 `astro.config.*` 文件中：
+
+   ```js title="astro.config.mjs" ins={2, 6-7}
     import { defineConfig } from 'astro/config';
-  + import netlify from '@astrojs/netlify';
-    
+    import netlify from '@astrojs/netlify';
+
     export default defineConfig({
-  +   output: 'server',
-  +   adapter: netlify(),
+       // ...
+       output: 'server',
+       adapter: netlify(),
     });
-  ```
+   ```
 
 ## 用法
 
@@ -87,8 +109,7 @@ const {
 
 如果你使用 TypeScript，你可以通过更新 `src/env.d.ts` 来使用 `NetlifyLocals` 来获得正确的类型：
 
-```ts
-// src/env.d.ts
+```ts title="src/env.d.ts"
 /// <reference path="../.astro/types.d.ts" />
 /// <reference types="astro/client" />
 
@@ -96,7 +117,7 @@ type NetlifyLocals = import('@astrojs/netlify').NetlifyLocals
 
 declare namespace App {
   interface Locals extends NetlifyLocals {
-    ...
+    // ...
   }
 }
 ```
@@ -107,17 +128,17 @@ declare namespace App {
 
 任何 Astro 中间件都会在构建时应用于预渲染页面，在运行时应用于按需渲染页面。
 
-要在预渲染页面上实现重定向、访问控制或自定义响应头，请通过启用 `edgeMiddleware` 选项在 Netlify Edge Functions 上运行你的中间件：
+要在预渲染页面上实现重定向、访问控制或自定义响应头，请通过启用 [`edgeMiddleware` 选项](/zh-cn/reference/adapter-reference/#edgemiddleware) 在 Netlify Edge Functions 上运行你的中间件：
 
-```diff lang="js"
-// astro.config.mjs
+```js title="astro.config.mjs" ins={7}
 import { defineConfig } from 'astro/config';
 import netlify from '@astrojs/netlify/functions';
 
 export default defineConfig({
+  // ...
   output: 'server',
   adapter: netlify({
-+   edgeMiddleware: true,
+    edgeMiddleware: true,
   }),
 });
 ```
@@ -129,7 +150,7 @@ export default defineConfig({
 这个适配器使用 [Netlify 图片 CDN](https://docs.netlify.com/image-cdn/) 来实时转换图片，而不会影响构建时间。
 它背后是使用 [Astro 图片服务](/zh-cn/reference/image-service-reference/) 实现的。
 
-:::note
+:::caution
 这个适配器不支持你的 Astro 配置中的 `image.domains` 和 `image.remotePatterns` 属性。要[为 Netlify 图片 CDN 指定远程路径](https://docs.netlify.com/image-cdn/overview/#remote-path)，请使用 `netlify.toml` 中的 `remote_images` 字段。
 :::
 
@@ -137,14 +158,13 @@ export default defineConfig({
 
 对于静态站点，你通常不需要适配器。但是，如果你在 Astro 配置中使用了 `redirects` 配置，Netlify 适配器可以将其转换为正确的 `_redirects` 格式。
 
-```js
-// astro.config.mjs
+```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
 import netlify from '@astrojs/netlify/static';
 
 export default defineConfig({
+  // ...
   adapter: netlify(),
-
   redirects: {
     '/blog/old-post': '/blog/new-post',
   },
@@ -162,9 +182,9 @@ export default defineConfig({
 可以缓存没有任何动态内容的按需渲染页面，以提高性能并降低资源使用率。
 在适配器中启用 `cacheOnDemandPages` 选项将会缓存所有服务器渲染的页面，最长可达一年：
 
-```ts
-// astro.config.mjs
+```ts title="astro.config.mjs"
 export default defineConfig({
+  // ...
   output: 'server',
   adapter: netlify({
     cacheOnDemandPages: true,
@@ -173,9 +193,8 @@ export default defineConfig({
 ```
 
 这可以通过向你的响应添加缓存头来根据每个页面进行更改：
-```astro
+```astro title="pages/index.astro"
 ---
-// src/pages/index.astro
 import Layout from '../components/Layout.astro';
 
 Astro.response.headers.set('CDN-Cache-Control', 'public, max-age=45, must-revalidate');
@@ -193,19 +212,5 @@ Astro.response.headers.set('CDN-Cache-Control', 'public, max-age=45, must-revali
 
 * [Astro Netlify Edge Starter](https://github.com/sarahetter/astro-netlify-edge-starter) 提供了一个示例以及 README 中的指南。
 * [浏览 GitHub 上的 Astro Netlify 项目](https://github.com/search?q=path%3A**%2Fastro.config.mjs+%40astrojs%2Fnetlify\&type=code) 查看更多示例！
-
-## 故障排除
-
-寻求帮助，请查看 [Discord](https://astro.build/chat) 上的 `#support` 频道。我们友好的支持小组成员在这里帮助你！
-
-你还可以查看我们的 [Astro 集成文档][astro-integration] 了解更多关于集成的信息。
-
-## 参与贡献
-
-这个项目由 Astro 核心团队维护。欢迎提交 issue 或 PR！
-
-## 更新日志
-
-查看 [CHANGELOG.md](https://github.com/withastro/adapters/tree/main/packages/netlify/CHANGELOG.md)，了解本集成的更改历史。
 
 [astro-integration]: /zh-cn/guides/integrations-guide/
