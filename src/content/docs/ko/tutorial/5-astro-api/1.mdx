@@ -1,0 +1,243 @@
+---
+type: tutorial
+title: 블로그 게시물 아카이브 만들기
+description: |-
+  튜토리얼: 첫 번째 Astro 블로그 구축 - Astro.glob()을 사용하여 프로젝트 파일의 데이터에 액세스
+i18nReady: true
+---
+
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+
+이제 링크할 블로그 게시물이 몇 개 있으므로 자동으로 게시물 목록을 생성하도록 블로그 페이지를 구성할 차례입니다!
+
+<PreCheck>
+  - `Astro.glob()`을 사용하여 모든 게시물의 데이터에 한 번에 액세스
+  - 블로그 페이지에 동적으로 생성된 게시물 목록 표시
+  - 각 목록 항목에 `<BlogPost />` 컴포넌트를 사용하도록 리팩터링
+</PreCheck>
+
+## 게시물 목록 동적으로 표시
+
+1. 모든 Markdown 파일에 대한 정보를 반환하려면 `blog.astro`에 다음 코드를 추가하세요. `Astro.glob()`은 각 블로그 게시물에 대해 하나씩 객체 배열을 반환합니다.
+
+    ```astro title="src/pages/blog.astro" ins={3}
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro'
+    const allPosts = await Astro.glob('../pages/posts/*.md');
+    const pageTitle = "My Astro Learning Blog";
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <p>This is where I will post about my journey learning Astro.</p>
+      <ul>
+        <li><a href="/posts/post-1/">Post 1</a></li>
+        <li><a href="/posts/post-2/">Post 2</a></li>
+        <li><a href="/posts/post-3/">Post 3</a></li>
+      </ul>
+    </BaseLayout>
+      ```
+
+2. 게시물 제목과 URL을 사용하여 전체 게시물 목록을 동적으로 생성하려면 개별 `<li>` 태그를 다음 Astro 코드로 바꾸세요.
+
+    ```astro title="src/pages/blog.astro" del={9,10,11} ins={13}
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro'
+    const allPosts = await Astro.glob('../pages/posts/*.md');
+    const pageTitle = "My Astro Learning Blog";
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <p>This is where I will post about my journey learning Astro.</p>
+      <ul>
+        <li><a href="/posts/post-1/">Post 1</a></li>
+        <li><a href="/posts/post-2/">Post 2</a></li>
+        <li><a href="/posts/post-3/">Post 3</a></li>
+
+        {allPosts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+      </ul>
+    </BaseLayout>
+    ```
+
+    이제 `Astro.glob()`에서 반환된 배열을 매핑하여 블로그 게시물의 전체 목록이 동적으로 생성됩니다.
+
+3. `src/pages/posts/`에 새 `post-4.md` 파일을 만들고 Markdown 콘텐츠를 추가하여 새 블로그 게시물을 추가하세요. 아래에 사용된 프런트매터 속성을 최소한 포함해야 합니다.
+
+    ```markdown
+    ---
+    layout: ../../layouts/MarkdownPostLayout.astro
+    title: My Fourth Blog Post
+    author: Astro Learner
+    description: "This post will show up on its own!"
+    image: 
+        url: "https://docs.astro.build/default-og-image.png"
+        alt: "The word astro against an illustration of planets and stars."
+    pubDate: 2022-08-08
+    tags: ["astro", "successes"]
+    ---
+    This post should show up with my other blog posts, because `Astro.glob()` is returning a list of all my posts in order to create my list.
+    ```
+
+4. `http://localhost:4321/blog`의 브라우저 미리보기에서 블로그 페이지를 다시 방문하여 새 블로그 게시물을 포함하여 4개 항목이 포함된 업데이트된 목록을 찾아보세요!
+
+<Box icon="puzzle-piece">
+
+## 과제: BlogPost 컴포넌트 만들기
+
+대신 다음 코드를 사용하여 블로그 게시물 목록을 생성할 수 있도록 Astro 프로젝트에 필요한 모든 변경 사항을 직접 시도해 보세요.
+
+```astro title="src/pages/blog.astro" del={2} ins={3}
+<ul>
+  {allPosts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+  {allPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title} />)}
+</ul>
+```
+
+<details>
+<summary>확장하여 단계를 확인하세요.</summary>
+
+1. `src/components/`에 새 컴포넌트를 만듭니다.
+
+    <details>
+    <summary>파일 이름 표시</summary>
+    ```
+    BlogPost.astro
+    ```
+    </details>
+
+2. `title`과 `url`을 `Astro.props`로 수신할 수 있도록 컴포넌트에 코드 줄을 작성합니다.
+
+    <details>
+    <summary>코드 표시</summary>
+    ```astro
+    ---
+    // src/components/BlogPost.astro
+    const { title, url } = Astro.props;
+    ---
+    ```
+    </details>
+
+3. 블로그 게시물 목록의 각 항목을 만드는 데 사용된 템플릿을 추가합니다.
+
+    <details>
+    <summary>코드 표시</summary>
+    ```astro
+    <!-- src/components/BlogPost.astro -->
+    <li><a href={url}>{title}</a></li>
+    ```
+    </details>
+
+4. 새 컴포넌트를 블로그 페이지로 가져옵니다.
+
+    <details>
+    <summary>코드 표시</summary>
+    ```astro title="src/pages/blog.astro" ins={3}
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    import BlogPost from '../components/BlogPost.astro';
+    const allPosts = await Astro.glob('../pages/posts/*.md');
+    const pageTitle = "My Astro Learning Blog";
+    ---
+    ```
+    </details>
+
+5. 직접 확인: 완성된 컴포넌트 코드를 확인하세요.
+
+    <details>
+    <summary>코드 표시</summary>
+    ```astro title="src/components/BlogPost.astro"
+    ---
+    const { title, url } = Astro.props
+    ---
+    <li><a href={url}>{title}</a></li>
+    ```
+    ```astro title="src/pages/blog.astro" ins={3,10}
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    import BlogPost from '../components/BlogPost.astro';
+    const allPosts = await Astro.glob('../pages/posts/*.md');
+    const pageTitle = "My Astro Learning Blog"
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <p>This is where I will post about my journey learning Astro.</p>
+      <ul>
+        {allPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title} />)}
+      </ul>
+    </BaseLayout>
+    ```
+    </details>
+</details>
+</Box>
+
+<Box icon="question-mark">
+
+### 지식 테스트
+
+Astro 컴포넌트에 다음 코드 줄이 포함되어 있을때
+
+```astro
+---
+const myPosts = await Astro.glob('../pages/posts/*.md');
+---
+```
+
+다음을 나타내기 위해 작성할 수 있는 구문을 선택하십시오.
+
+1. 세 번째 블로그 게시물의 제목
+
+    <MultipleChoice>
+      <Option>
+        `myPosts.map((post) => <LastUpdated date={post.frontmatter.pubDate} />)`
+      </Option>
+      <Option isCorrect>
+        `myPosts[2].frontmatter.title`
+      </Option>
+      <Option>
+        `<a href={myPosts[0].url}>First Post!!</a>`
+      </Option>
+    </MultipleChoice>
+
+2. 첫 번째 블로그 게시물의 URL에 대한 링크
+
+    <MultipleChoice>
+      <Option>
+        `myPosts.map((post) => <LastUpdated date={post.frontmatter.pubDate} />)`
+      </Option>
+      <Option>
+        `myPosts[2].frontmatter.title`
+      </Option>
+      <Option isCorrect>
+        `<a href={myPosts[0].url}>First Post!!</a>`
+      </Option>
+    </MultipleChoice>
+
+3. 마지막으로 업데이트된 날짜를 표시하는 각 게시물의 컴포넌트
+
+    <MultipleChoice>
+      <Option isCorrect>
+        `myPosts.map((post) => <LastUpdated date={post.frontmatter.pubDate} />)`
+      </Option>
+      <Option>
+        `myPosts[2].frontmatter.title`
+      </Option>
+      <Option>
+        `<a href={myPosts[0].url}>First Post!!</a>`
+      </Option>
+    </MultipleChoice>
+
+</Box>
+
+## 체크리스트
+
+<Box icon="check-list">
+
+<Checklist>
+- [ ] 내 로컬 파일에서 데이터를 쿼리할 수 있습니다.
+- [ ] 내 블로그 게시물 전체 목록을 표시할 수 있습니다.
+</Checklist>
+</Box>
+
+### 참고 자료
+
+- [`Astro.glob()` API 문서](/ko/reference/api-reference/#astroglob)
