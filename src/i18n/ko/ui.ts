@@ -81,7 +81,8 @@ export default UIDictionary({
 	'integrations.footerTitle': '더 많은 통합',
 	'integrations.renderers': 'UI 프레임워크',
 	'integrations.adapters': 'SSR 어댑터',
-	'integrations.others': '기타',
+	'integrations.others': '기타 통합',
+	'integrations.more': '더 많은 통합',
 	// Checklist component
 	'checklist.or': '또는',
 	// Multiple Choice component
