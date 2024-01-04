@@ -79,7 +79,8 @@ export default {
 	'integrations.footerTitle': 'More Integrations',
 	'integrations.renderers': 'UI Frameworks',
 	'integrations.adapters': 'SSR Adapters',
-	'integrations.others': 'Others',
+	'integrations.others': 'Other integrations',
+	'integrations.more': 'More integrations',
 	// Checklist component
 	'checklist.or': 'or',
 	// Multiple Choice component
