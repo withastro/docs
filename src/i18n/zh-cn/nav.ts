@@ -28,7 +28,7 @@ export default NavDictionary({
 	'guides/view-transitions': '视图过渡动画',
 	'guides/prefetch': '预获取',
 
-	addons: '附加功能',
+	addons: '集成',
 	'guides/integrations-guide': '添加集成',
 	'core-concepts/framework-components': 'UI 框架',
 	'guides/server-side-rendering': '服务端渲染 (SSR)',
