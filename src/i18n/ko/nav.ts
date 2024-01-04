@@ -29,7 +29,7 @@ export default NavDictionary({
 	'guides/view-transitions': 'View Transitions',
 	'guides/prefetch': '프리페치',
 
-	addons: '애드온',
+	addons: '통합',
 	'guides/integrations-guide': '통합 추가',
 	'core-concepts/framework-components': 'UI 프레임워크',
 	'guides/server-side-rendering': '서버 측 렌더링 (SSR)',
