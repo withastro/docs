@@ -6,59 +6,87 @@ githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/int
 category: renderer
 i18nReady: true
 ---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
-此 **[Astro 集成][astro-integration]**为你的 [SolidJS](https://www.solidjs.com/) 组件启用服务器端渲染和客户端水合。
+此 **[Astro 集成][astro-integration]** 为你的 [SolidJS](https://www.solidjs.com/) 组件启用服务器端渲染和客户端水合。
 
 ## 安装
 
-有两种方式可以将集成添加到你的项目当中，先让我们从最方便的方式来入手！
-
-### `astro add` 命令
-
-Astro 包含一个 CLI 工具来提供一等集成支持，`astro add` 这个命令将会：
-
-1. 安装所有必须的依赖和对等依赖（可选）
-2. 更新你的 `astro.config.*` 文件，以应用当前的集成（同样可选）
+Astro 包含了一个 `astro add` 命令，用于自动设置官方集成。如果你愿意，可以改为[手动安装集成](#手动安装)。
 
 要安装 `@astrojs/solid-js`，需要在你的项目工程中依次运行以下命令：
 
-```sh
-# 使用 NPM
-npx astro add solid
-# 使用 Yarn
-yarn astro add solid
-# 使用 PNPM
-pnpm astro add solid
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add solid
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add solid
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add solid
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
 如果你有任何问题，[欢迎随时在 GitHub 上开个 issue 来向我们报告](https://github.com/withastro/astro/issues) 然后尝试执行以下的手动安装步骤。
 
-### 手动安装依赖项
+### 手动安装
 
-首先像下面这样安装 `@astrojs/solid-js` 集成：
+首先，安装 `@astrojs/solid-js` 包:
 
-```sh
-npm install @astrojs/solid-js
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install @astrojs/solid-js
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm install @astrojs/solid-js
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add @astrojs/solid-js
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
-大多数包管理器将会安装关联的对等依赖，如果你在启动 Astro 的时候仍然遇到 "Cannot find package 'solid-js'" 或者相似的警告，你将需要手动安装 SolidJS：
+大多数包管理器也会安装相关的对等依赖项。如果在启动 Astro 时看到 "Cannot find package 'solid-js'" (或类似的)警告，则需要安装 SolidJS：
 
-```sh
-npm install solid-js
-```
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install solid-js
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm install solid-js
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add solid-js
+  ```
+  </Fragment>
+</PackageManagerTabs>
 
-现在，使用 `integrations` 属性来应用你的集成到 `astro.config.*` 文件：
+然后，使用 `integrations` 属性将集成应用到你的 `astro.config.*` 文件中：
 
-```diff lang="js" "solid()"
-  // astro.config.mjs
-  import { defineConfig } from 'astro/config';
-+ import solid from '@astrojs/solid-js';
-
-  export default defineConfig({
-    // ...
-    integrations: [solid()],
-    //             ^^^^^^^
-  });
+```js title="astro.config.mjs" ins={2} ins="solid()"
+import { defineConfig } from 'astro/config';
+import solid from '@astrojs/solid-js';
+export default defineConfig({
+  // ...
+  integrations: [solid()],
+});
 ```
 
 ## 入门
@@ -79,8 +107,7 @@ npm install solid-js
 
 我们建议将每个框架的组件放在同一个文件夹中（例如 `/components/react/` 和 `/components/solid/`），以便更容易地指定你的包含内容，但这不是必需的：
 
-```js
-// astro.config.mjs
+```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
 import preact from '@astrojs/preact';
 import react from '@astrojs/react';
@@ -99,22 +126,48 @@ export default defineConfig({
       include: ['**/react/*'],
     }),
     solid({
-      include: ['**/solid/*'],
+      include: ['**/solid/*', '**/node_modules/@suid/material/**],
     }),
   ],
 });
 ```
 
-## 疑难解答
+## 使用
+像使用任何 [UI 框架组件](/zh-cn/core-concepts/framework-components/) 一样使用 SolidJS 组件。
+### Suspense 边界
+为了支持 Solid 资源和懒加载组件而无需过多配置，服务器端和水合组件会自动包装在顶级 Suspense 边界内，并使用 [`renderToStringAsync`][solid-render-to-string-async] 函数在服务器上渲染。因此，你不需要在异步组件周围添加顶级 Suspense 边界。
+例如，你可以使用 Solid 的 [`createResource`][solid-create-resource] 在服务器上获取异步远程数据。远程数据将包含在 Astro 的初始服务器渲染的 HTML 中：
 
-如需帮助，请查看我们在 [Discord](https://astro.build/chat) 上的  `#support` 频道。我们友好的支持小队成员随时为你提供帮助！
+```tsx
+// CharacterName.tsx
+function CharacterName() {
+  const [name] = createResource(() =>
+    fetch('https://swapi.dev/api/people/1')
+      .then((result) => result.json())
+      .then((data) => data.name)
+  );
+  return (
+    <>
+      <h2>Name:</h2>
+      {/* Luke Skywalker */}
+      <div>{name()}</div>
+    </>
+  );
+}
+```
 
-你也可以查看我们的 [Astro 集成文档][astro-integration] 以获取集成的更多信息。
-
-## 贡献
-
-该 Astro 包是由核心团队维护的，欢迎提交 issue 和 PR！
+同样，Solid 的 [懒加载组件][solid-lazy-components] 也会被解析，它们的 HTML 会被包含在初始的服务器渲染页面中。
+不进行水合的 [`client:only` 组件][astro-client-only] 不会自动被包裹在 Suspense 边界内。
+你可以根据自己的喜好添加额外的 Suspense 边界。
 
 [astro-integration]: /zh-cn/guides/integrations-guide/
 
 [astro-ui-frameworks]: /zh-cn/core-concepts/framework-components/#使用框架组件
+
+[astro-client-only]: /zh-cn/reference/directives-reference/#clientonly
+
+[solid-render-to-string-async]: https://www.solidjs.com/docs/latest/api#rendertostringasync
+
+[solid-create-resource]: https://www.solidjs.com/docs/latest/api#createresource
+
+[solid-lazy-components]: https://www.solidjs.com/docs/latest/api#lazy
