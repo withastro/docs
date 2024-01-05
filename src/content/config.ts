@@ -43,8 +43,7 @@ export const integrationSchema = baseSchema.extend({
 			'"title" must start with "@astrojs/" for integration docs.'
 		),
 	category: z.enum(['renderer', 'adapter', 'other']),
-	hasREADME: z.literal(true).default(true),
-	githubURL: z.string().url(),
+	githubIntegrationURL: z.string().url(),
 });
 
 export const migrationSchema = baseSchema.extend({
