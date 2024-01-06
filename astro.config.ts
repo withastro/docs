@@ -3,6 +3,11 @@ import { defineConfig, sharpImageService } from 'astro/config';
 import { makeLocalesConfig } from './config/locales';
 import { makeSidebar } from './config/sidebar';
 
+import AstroPWA from "@vite-pwa/astro";
+import type { ManifestOptions } from "vite-plugin-pwa";
+import manifest from "./webmanifest.json";
+
+
 import rehypeSlug from 'rehype-slug';
 import remarkSmartypants from 'remark-smartypants';
 
@@ -24,6 +29,19 @@ const site = VERCEL_PREVIEW_SITE || 'https://docs.astro.build/';
 export default defineConfig({
 	site,
 	integrations: [
+		AstroPWA({
+			mode: "production",
+			registerType: "autoUpdate",
+			includeAssets: ["favicon.svg"],
+			workbox: {
+			  navigateFallback: "/",
+			  globPatterns: ["**/*.{css,js,html,svg,png,ico,txt}"],
+			},
+			experimental: {
+			  directoryAndTrailingSlashHandler: true,
+			},
+			manifest: manifest as Partial<ManifestOptions>,
+		  }),
 		starlight({
 			title: 'Docs',
 			customCss: ['./src/styles/custom.css'],
