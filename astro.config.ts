@@ -34,8 +34,7 @@ export default defineConfig({
 			registerType: "autoUpdate",
 			includeAssets: ["favicon.svg"],
 			workbox: {
-			  navigateFallback: "/",
-			  globPatterns: ["**/*.{css,js,html,svg,png,ico,txt}"],
+			  navigateFallback: "/404",
 			},
 			experimental: {
 			  directoryAndTrailingSlashHandler: true,
