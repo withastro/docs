@@ -81,7 +81,8 @@ export default UIDictionary({
 	'integrations.footerTitle': 'Mais Integrações',
 	'integrations.renderers': 'Frameworks de UI',
 	'integrations.adapters': 'Adaptadores de SSR',
-	'integrations.others': 'Outras',
+	'integrations.others': 'Outras integrações',
+	'integrations.more': 'Mais integrações',
 	// Checklist component
 	'checklist.or': 'ou',
 	// Multiple Choice component
@@ -102,7 +103,11 @@ export default UIDictionary({
 	'feedback.formTitle': 'O que passa em sua cabeça?',
 	'feedback.categoryGroupLabel': 'Escolha a categoria do feedback',
 	'feedback.issue': 'Problema',
-	'feedback.createIssue': 'Criar um problema no GitHub',
+	'feedback.createIssue': 'Criar uma Issue no GitHub',
+	'feedback.createIssue.description':
+		'A maneira mais rápida de alertar nosso time sobre um problema.',
+	'feedback.sendFeedback': 'Enviar feedback',
+	'feedback.sendFeedback.description': 'Nos envie uma mensagem diretamente.',
 	'feedback.idea': 'Ideia',
 	'feedback.other': 'Outro',
 	'feedback.messageA11yLabel': 'Mensagem',
@@ -125,4 +130,6 @@ export default UIDictionary({
 		'Quer contribuir para este guia? Tem uma postagem de blog, vídeo ou outro recurso para compartilhar sobre a migração desta tecnologia para o Astro?',
 	'stub.description.cms': 'Sabe mais sobre como usar este CMS com Astro?',
 	'stub.description.backend': 'Sabe mais sobre como usar este serviço de back-end com o Astro?',
+	'starlight.title': 'Quer criar sua própria documentação?',
+	'starlight.description': 'Use esse template e comece agora.',
 });
