@@ -82,7 +82,8 @@ export default UIDictionary({
 	'integrations.footerTitle': 'Más integraciones',
 	'integrations.renderers': 'Frameworks UI',
 	'integrations.adapters': 'Adaptadores SSR',
-	'integrations.others': 'Otros',
+	'integrations.others': 'Otras integraciones',
+	'integrations.more': 'Más integraciones',
 	// Componente Checklist
 	'checklist.or': 'o',
 	// Componente Multiple Choice
