@@ -34,8 +34,8 @@ export default NavDictionary({
 	'guides/view-transitions': 'ビュートランジション',
 	'guides/prefetch': 'プリフェッチ',
 
-	// Add-ons
-	addons: 'アドオン',
+	// Integrations
+	addons: 'インテグレーション',
 	'guides/integrations-guide': 'インテグレーションの追加',
 	'core-concepts/framework-components': 'UIフレームワーク',
 	'guides/server-side-rendering': 'サーバーサイドレンダリング（SSR）',
