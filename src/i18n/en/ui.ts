@@ -130,4 +130,8 @@ export default {
 	// Starlight banner
 	'starlight.title': 'Want to build your own Docs?',
 	'starlight.description': 'Grab this template to get started.',
+	// Api Reference Table
+	'apiTable.name': 'Name',
+	'apiTable.type': 'Type',
+	'apiTable.description': 'Description',
 };
