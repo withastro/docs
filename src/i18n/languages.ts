@@ -3,6 +3,7 @@ export const allLanguages = {
 	de: 'Deutsch',
 	'pt-br': 'Português do Brasil',
 	es: 'Español',
+	ca: 'Català',
 	'zh-cn': '简体中文',
 	'zh-tw': '正體中文',
 	fr: 'Français',
