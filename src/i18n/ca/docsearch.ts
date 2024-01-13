@@ -1,8 +1,8 @@
 import { DocSearchDictionary } from '../translation-checkers';
 
 export default DocSearchDictionary({
-	button: 'Trobar',
-	placeholder: 'Trobar en la documentació',
+	button: 'Cercar',
+	placeholder: 'Cercar en la documentació',
 	shortcutLabel: 'Pressiona / per trobar',
 	resultsFooterLede: "Busques una integració o tema d'Astro? Necesites més ajuda?",
 	resultsFooterIntegrations: "Directori d'integracions d'Astro",
@@ -28,20 +28,20 @@ export default DocSearchDictionary({
 			helpText: 'És posible que desitgis verificar la teva conexió de red.',
 		},
 		footer: {
-			selectText: 'para seleccionar',
-			selectKeyAriaLabel: 'Tecla de entrada',
-			navigateText: 'para navegar',
-			navigateUpKeyAriaLabel: 'Flecha hacia arriba',
-			navigateDownKeyAriaLabel: 'Flecha hacia abajo',
-			closeText: 'para cerrar',
-			closeKeyAriaLabel: 'Tecla de escape',
-			searchByText: 'Búsqueda por',
+			selectText: 'per seleccionar',
+			selectKeyAriaLabel: "Tecla d'entrada",
+			navigateText: "per navegar",
+			navigateUpKeyAriaLabel: 'Fletxa cap amunt',
+			navigateDownKeyAriaLabel: 'Fletxa cap abaix',
+			closeText: 'per tancar',
+			closeKeyAriaLabel: "Tecla d'escapament",
+			searchByText: 'Cerca per',
 		},
 		noResultsScreen: {
-			noResultsText: 'No hay resultados para',
-			suggestedQueryText: 'Intenta buscar',
-			reportMissingResultsText: '¿Crees que esta consulta debería devolver resultados?',
-			reportMissingResultsLinkText: 'Háganos saber.',
+			noResultsText: 'No n¡hi han resultats per',
+			suggestedQueryText: 'Prova buscar',
+			reportMissingResultsText: "Creus què aquesta consulta deuria retornar resultats?",
+			reportMissingResultsLinkText: 'Fes-ne saber.',
 		},
 	},
 });
