@@ -4,7 +4,7 @@ export default DocSearchDictionary({
 	button: 'Cercar',
 	placeholder: 'Cercar en la documentació',
 	shortcutLabel: 'Pressiona / per trobar',
-	resultsFooterLede: "Busques una integració o tema d'Astro? Necesites més ajuda?",
+	resultsFooterLede: "Busques una integració o tema d'Astro? Necessites més ajuda?",
 	resultsFooterIntegrations: "Directori d'integracions d'Astro",
 	resultsFooterThemes: "Galeria de temes d'Astro",
 	resultsFooterDiscord: "Uneix-te'n a nosaltres en Discord",
@@ -25,7 +25,7 @@ export default DocSearchDictionary({
 		},
 		errorScreen: {
 			titleText: 'No es poden recuperar els resultats',
-			helpText: 'És posible que desitgis verificar la teva conexió de red.',
+			helpText: 'És possible que desitgis verificar la teva connexió de red.',
 		},
 		footer: {
 			selectText: 'per seleccionar',
