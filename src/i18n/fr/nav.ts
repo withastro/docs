@@ -147,7 +147,11 @@ export default [
 		slug: 'reference/integrations-reference',
 		key: 'reference/integrations-reference',
 	},
-	{ text: 'Adapteur API', slug: 'reference/adapter-reference', key: 'reference/adapter-reference' },
+	{
+		text: 'Adaptateur API',
+		slug: 'reference/adapter-reference',
+		key: 'reference/adapter-reference',
+	},
 	{
 		text: "API du Service d'Images",
 		slug: 'reference/image-service-reference',
