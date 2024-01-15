@@ -1,5 +1,4 @@
 import { UIDictionary } from '../translation-checkers';
-
 export default UIDictionary({
 	'a11y.skipLink': 'Aller au contenu principal',
 	'a11y.sectionLink': 'Titre de la section',
@@ -82,7 +81,8 @@ export default UIDictionary({
 	'integrations.footerTitle': "Plus d'intégrations",
 	'integrations.renderers': "Framework d'interface utilisateur",
 	'integrations.adapters': 'Adaptateurs SSR',
-	'integrations.others': 'Autres',
+	'integrations.others': 'Autres intégrations',
+	'integrations.more': "Plus d'intégrations",
 	// Checklist component
 	'checklist.or': 'ou',
 	// Multiple Choice component
