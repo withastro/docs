@@ -1,0 +1,501 @@
+---
+title: Supabase & Astro
+description: Supabase 를 이용하여 당신의 프로젝트에 백앤드자원을 추가합니다!
+type: backend
+service: Supabase
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import FileTree from '~/components/FileTree.astro'
+
+[Supabase](https://supabase.com/) 는 오픈소스로, Firebase의 상위호환 입니다. Authentication(인증), Postgres Database(DB), Edge Function(엣지 함수), Realtime(실시간 데이터 fetch) 및 Storage(스토리지) 를 제공합니다.
+
+## Astro 에서 Supabase 초기화 하기
+
+### 선행조건
+
+- 만일 Supabase 프로젝트가 없을 경우, [supabase.com](https://supabase.com/)에서 무료로 가입하고, 새로운 프로젝트를 생성할 수 있습니다.
+- [server-side rendering (SSR)](/en/guides/server-side-rendering/)이 활성화 되어있는 Astro 프로젝트여야 합니다.
+- Supabase 프로젝트의 자격증명을 확인해야 합니다. Supabase 프로젝트의 **설정 > API** 탭에서 아래의 두개의 자격증명을 확인이 가능합니다.
+  - `SUPABASE_URL`: Supabase 프로젝트의 URL 입니다.
+  - `SUPABASE_ANON_KEY`: Supabase 프로젝트의 익명키 입니다.
+
+### Supabase 자격증명 추가하기
+
+Astro 프로젝트에 Supabase의 자격증명을 추가하기 위해, `.env` 파일을 아래와 같이 추가합니다.
+
+```ini title=".env"
+SUPABASE_URL=YOUR_SUPABASE_URL
+SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+```
+
+이제, 프로젝트에서 위와 같은 환경변수를 사용할 수 있습니다.
+
+만일 환경변수에 IntelliSense를 사용하려면, `src/`에 `env.d.ts`를 생성 또는 수정하고 아래와 같이 추가합니다:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly SUPABASE_URL: string
+  readonly SUPABASE_ANON_KEY: string
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv
+}
+```
+
+:::팁
+Astro의 [환경 변수](/en/guides/environment-variables/)와 `.env`에 대해 자세히 알아봅시다.
+:::
+
+이제 아래와 같은 파일을 프로젝트에 추가합니다:
+
+<FileTree title="Project Structure">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### 종속성 설치
+
+Supabase를 연결하기 위해, `@supabase/supabase-js` 를 프로젝트에 설치해야 합니다.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @supabase/supabase-js
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @supabase/supabase-js
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @supabase/supabase-js
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+다음으로, `src/` 폴더에 `lib` 이름으로 폴더를 생성합니다. 이 폴더에 Supabase Client를 추가합니다.
+
+`supabase.ts` 에 아래와 같이 추가하고 Supabase Client를 초기화 합니다:
+
+```ts title="src/lib/supabase.ts"
+import { createClient } from "@supabase/supabase-js";
+
+export const supabase = createClient(
+  import.meta.env.SUPABASE_URL,
+  import.meta.env.SUPABASE_ANON_KEY,
+);
+```
+
+이제, 아래와 같은 파일이 프로젝트에 포함되어야 합니다:
+
+<FileTree title="Project Structure">
+- src/
+  - lib/
+    - **supabase.ts**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## Supabase로 인증 추가하기
+
+Supabase는 즉시 인증기능을 제공해줍니다. 이메일/비밀번호 인증뿐만 아니라, GitHub, Google, Kakao 와 같은 기타 여러 제공업체의 인증방식과, Oauth 인증을 지원합니다.
+
+### 선행조건
+
+- [Supabase가 초기화된](#initializing-supabase-in-astro) Astro 프로젝트여야 합니다.
+- Supabase 프로젝트에 이메일/비밀번호 인증이 활성화 되어있어야 합니다. Supabase 프로젝트 에서 **인증 > 제공업체** 탭에서 이를 활성화 할 수 있습니다.
+
+### 인증서버 엔드포인트 생성
+
+인증을 프로젝트에 추가하기 위해, 몇가지 서버 엔드포인트를 생성해야 합니다. 이러한 엔드포인트는 사용자 등록(register)과 로그인(sign in), 로그아웃(sign out)하는데 사용됩니다.
+
+- `POST /api/auth/register`: 새로운 사용자를 등록합니다.
+- `POST /api/auth/signin`: 사용자를 로그인합니다.
+- `GET /api/auth/signout`: 사용자를 로그아웃합니다.
+
+프로젝트에 `src/pages/api/auth` 폴더에 위와 같은 엔드포인트를 생성합니다. 이제 프로젝트에는 아래와 같이 새로운 파일이 포함되어야 합니다:
+
+<FileTree title="Project Structure">
+- src/
+  - lib/
+    - supabase.ts
+  - pages/
+    - api/
+      - auth/
+        - **signin.ts**
+        - **signout.ts**
+        - **register.ts**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+`register.ts` 는 Supabase에서 새 사용자를 생성해줍니다. 이는 이메일과 비밀번호가 포함된 `POST` 요청을 해줍니다. 그런 후에 Supabase SDK를 통해 새로운 사용자를 생성합니다.
+
+```ts title="src/pages/api/auth/register.ts"
+import type { APIRoute } from "astro";
+import { supabase } from "../../../lib/supabase";
+
+export const POST: APIRoute = async ({ request, redirect }) => {
+  const formData = await request.formData();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+
+  if (!email || !password) {
+    return new Response("Email and password are required", { status: 400 });
+  }
+
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+  });
+
+  if (error) {
+    return new Response(error.message, { status: 500 });
+  }
+
+  return redirect("/signin");
+};
+```
+
+`signin.ts` 는 Supabase에서 사용자를 로그인 해줍니다. 이는 이메일과 비밀번호가 포함된 `POST` 요청을 해줍니다. 그런 후에 Supabase SDK를 통해 사용자를 로그인합니다.
+
+```ts title="src/pages/api/auth/signin.ts"
+import type { APIRoute } from "astro";
+import { supabase } from "../../../lib/supabase";
+
+export const POST: APIRoute = async ({ request, cookies, redirect }) => {
+  const formData = await request.formData();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+
+  if (!email || !password) {
+    return new Response("Email and password are required", { status: 400 });
+  }
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    return new Response(error.message, { status: 500 });
+  }
+
+  const { access_token, refresh_token } = data.session;
+  cookies.set("sb-access-token", access_token, {
+    path: "/",
+  });
+  cookies.set("sb-refresh-token", refresh_token, {
+    path: "/",
+  });
+  return redirect("/dashboard");
+};
+```
+
+`signout.ts` 는 Supabase에서 사용자를 로그아웃 해줍니다. 이는 `GET` 요청을 해주며, 사용자 access token(엑세스 토큰)과 refresh token(리프레쉬 토큰)을 제거합니다.
+
+```ts title="src/pages/api/auth/signout.ts"
+import type { APIRoute } from "astro";
+
+export const GET: APIRoute = async ({ cookies, redirect }) => {
+  cookies.delete("sb-access-token", { path: "/" });
+  cookies.delete("sb-refresh-token", { path: "/" });
+  return redirect("/signin");
+};
+```
+
+### 인증페이지 만들기
+
+이제 서버 엔드포인트를 만들었으니, 이를 사용할 페이지를 생성합니다.
+
+- `src/pages/register`: 새로운 사용자를 등록할 양식이 포함되어 있습니다.
+- `src/pages/signin`: 사용자의 로그인양식이 포함되어 있습니다.
+- `src/pages/dashboard`: 인증된 사용자만 접근가능한 페이지가 포함되어 있습니다.
+
+`src/pages` 폴더에 위와 같은 페이지를 만듭니다. 이제 프로젝트에 아래와 같은 파일이 포함되어야 합니다:
+
+<FileTree title="Project Structure">
+- src/
+  - lib/
+    - supabase.ts
+  - pages/
+    - api/
+      - auth/
+        - signin.ts
+        - signout.ts
+        - register.ts
+    - **register.astro**
+    - **signin.astro**
+    - **dashboard.astro**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+`register.astro` 는 새로운 사용자를 등록할 양식이 포함되어 있습니다. 이메일과 비밀번호를 포함한 `POST` 요청을 `/api/auth/register` 에 보내줍니다.
+
+```astro title="src/pages/register.astro"
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Register">
+  <h1>Register</h1>
+  <p>Already have an account? <a href="/signin">Sign in</a></p>
+  <form action="/api/auth/register" method="post">
+    <label for="email" for="email">Email</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+  </form>
+</Layout>
+```
+
+`signin.astro` 는 사용자의 로그인양식이 포함되어 있습니다. 이는 이메일과 비밀번호가 포함된 `POST` 요청을 `/api/auth/signin` 에 보내줍니다. 또한, refresh token(리프레쉬 토큰)과 access token(엑세스 토큰)이 있는지 확인합니다. 있을 경우에는 대시보드로 리디렉션 됩니다.
+
+```astro title="src/pages/signin.astro"
+---
+import Layout from "../layouts/Layout.astro";
+
+const { cookies, redirect } = Astro;
+
+const accessToken = cookies.get("sb-access-token");
+const refreshToken = cookies.get("sb-refresh-token");
+
+if (accessToken && refreshToken) {
+  return redirect("/dashboard");
+}
+---
+
+<Layout title="Sign in">
+  <h1>Sign in</h1>
+  <p>New here? <a href="/register">Create an account</a></p>
+  <form action="/api/auth/signin" method="post">
+    <label for="email" for="email">Email</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+  </form>
+</Layout>
+```
+
+`dashboard.astro`는 인증된 사용자만 접근할 수 있는 페이지가 포함되어 있습니다. access token(엑세스 토큰)과 refresh token(리프레쉬 토큰) 이 있는지 체크합니다. 존재하지 않으면, 로그인 페이지로 리디렉션 됩니다.
+
+```astro title="src/pages/dashboard.astro"
+---
+import Layout from "../layouts/Layout.astro";
+import { supabase } from "../lib/supabase";
+
+const { cookies, redirect } = Astro;
+
+const accessToken = cookies.get("sb-access-token");
+const refreshToken = cookies.get("sb-refresh-token");
+
+if (!accessToken || !refreshToken) {
+  return redirect("/signin");
+}
+
+const { data, error } = await supabase.auth.setSession({
+  refresh_token: refreshToken.value,
+  access_token: accessToken.value,
+});
+
+if (error) {
+  cookies.delete("sb-access-token", {
+    path: "/",
+  });
+  cookies.delete("sb-refresh-token", {
+    path: "/",
+  });
+
+  return redirect("/signin");
+}
+
+const email = data?.user?.email;
+---
+<Layout title="dashboard">
+  <h1>Welcome {email}</h1>
+  <p>We are happy to see you here</p>
+  <form action="/api/auth/signout">
+    <button type="submit">Sign out</button>
+  </form>
+</Layout>
+```
+
+### OAuth 인증 추가
+
+OAuth 인증을 프로젝트에 추가하기 위해서는, `"pkce"` 인증과정을 활성화 할 수 있도록 Supabase Client를 수정해야 합니다. [Supabase 문서](https://supabase.com/docs/guides/auth/server-side-rendering#understanding-the-authentication-flow) 에서 인증흐름에 대한 자세한 내용을 읽을 수 있습니다.
+
+```ts title="src/lib/supabase.ts" ins={6-10}
+import { createClient } from "@supabase/supabase-js";
+
+export const supabase = createClient(
+  import.meta.env.SUPABASE_URL,
+  import.meta.env.SUPABASE_ANON_KEY,
+  {
+    auth: {
+      flowType: "pkce",
+    },
+  },
+);
+```
+
+다음으로, Supabase 대시보드에서 사용하려는 OAuth 제공업체를 활성화 합니다. Supabase 프로젝트에서 **인증 > 제공업체** 에서 지원되는 제공업체를 찾을 수 있습니다.
+
+아래의 예에서는 GitHub을 OAuth 공급자로 사용합니다. 프로젝트를 GitHub에 연결하려면, [Supabase 문서](https://supabase.com/docs/guides/auth/social-login/auth-github) 의 단계를 수행합니다.
+
+그리고 나서, OAuth 콜백을 처리할 새 엔드포인트인 `src/pages/api/auth/callback.ts` 을 생성합니다. 이 엔드포인트는 OAuth 코드를 access token(엑세스 토큰)과 refresh token(리프레쉬 토큰) 으로 교환하는데 사용합니다.
+
+```ts title="src/pages/api/auth/callback.ts"
+import type { APIRoute } from "astro";
+import { supabase } from "../../../lib/supabase";
+
+export const GET: APIRoute = async ({ url, cookies, redirect }) => {
+  const authCode = url.searchParams.get("code");
+
+  if (!authCode) {
+    return new Response("No code provided", { status: 400 });
+  }
+
+  const { data, error } = await supabase.auth.exchangeCodeForSession(authCode);
+
+  if (error) {
+    return new Response(error.message, { status: 500 });
+  }
+
+  const { access_token, refresh_token } = data.session;
+
+  cookies.set("sb-access-token", access_token, {
+    path: "/",
+  });
+  cookies.set("sb-refresh-token", refresh_token, {
+    path: "/",
+  });
+
+  return redirect("/dashboard");
+};
+```
+
+그리고 나서, OAuth 공급자를 통해 로그인하기 위한 새 버튼을 포함할 수 있도록 페이지를 수정합니다. 이 버튼은 공급자 이름으로 설정된 `provider` 을 포함하는 `POST` 요청을 `/api/auth/signin`에 보내야 합니다.
+
+```astro title="src/pages/signin.astro" ins={23}
+---
+import Layout from "../layouts/Layout.astro";
+
+const { cookies, redirect } = Astro;
+
+const accessToken = cookies.get("sb-access-token");
+const refreshToken = cookies.get("sb-refresh-token");
+
+if (accessToken && refreshToken) {
+  return redirect("/dashboard");
+}
+---
+
+<Layout title="Sign in">
+  <h1>Sign in</h1>
+  <p>New here? <a href="/register">Create an account</a></p>
+  <form action="/api/auth/signin" method="post">
+    <label for="email" for="email">Email</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+    <button value="github" name="provider" type="submit">Sign in with GitHub</button>
+  </form>
+</Layout>
+```
+
+마지막으로, OAuth 공급자를 처리할 수 있도록 로그인 서버 엔드포인트를 수정합니다. `provider` 가 있을 경우, OAuth 공급자로 리디렉션 됩니다. 그렇지 않을 경우, 이메일과 비밀번호를 사용하여 사용자를 로그인합니다.
+
+```ts title="src/pages/api/auth/signin.ts" ins={10-23}
+import type { APIRoute } from "astro";
+import { supabase } from "../../../lib/supabase";
+import type { Provider } from "@supabase/supabase-js";
+
+export const POST: APIRoute = async ({ request, cookies, redirect }) => {
+  const formData = await request.formData();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+  const provider = formData.get("provider")?.toString();
+
+  const validProviders = ["google", "github", "discord"];
+
+  if (provider && validProviders.includes(provider)) {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: provider as Provider,
+      options: {
+        redirectTo: "http://localhost:4321/api/auth/callback"
+      },
+    });
+
+    if (error) {
+      return new Response(error.message, { status: 500 });
+    }
+
+    return redirect(data.url);
+  }
+
+  if (!email || !password) {
+    return new Response("Email and password are required", { status: 400 });
+  }
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    return new Response(error.message, { status: 500 });
+  }
+
+  const { access_token, refresh_token } = data.session;
+  cookies.set("sb-access-token", access_token, {
+    path: "/",
+  });
+  cookies.set("sb-refresh-token", refresh_token, {
+    path: "/",
+  });
+  return redirect("/dashboard");
+};
+```
+
+OAuth 콜백 엔드포인트를 생성하고 로그인 서버 엔드포인트를 수정한 이후의 프로젝트 구조는 다음과 같습니다:
+
+<FileTree title="Project Structure">
+- src/
+  - lib/
+    - supabase.ts
+  - pages/
+    - api/
+      - auth/
+        - signin.ts
+        - signout.ts
+        - register.ts
+        - callback.ts
+    - register.astro
+    - signin.astro
+    - dashboard.astro
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## 커뮤니티 리소스
+
+- [Astro, React, Supabase와 함께 연말 분위기 만끽하기](https://www.aleksandra.codes/astro-supabase)
+- [Astro와 Supabase의 인증 데모](https://github.com/kevinzunigacuellar/astro-supabase)
