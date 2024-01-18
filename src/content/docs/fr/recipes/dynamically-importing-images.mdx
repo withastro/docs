@@ -1,0 +1,152 @@
+---
+title: Importer dynamiquement des images
+description: Apprenez à importer dynamiquement des images en utilisant la fonction import.meta.glob de Vite.
+i18nReady: true
+type: recipe
+---
+import FileTree from '~/components/FileTree.astro'
+
+Les [images](/fr/guides/images/) locales doivent être importées dans les fichiers `.astro` afin de les afficher. Il y aura des moments où vous voudrez ou devrez importer dynamiquement les chemins de vos images au lieu d'importer explicitement chaque image individuelle.
+
+Dans cette recette, vous apprendrez à importer dynamiquement vos images en utilisant la fonction `import.meta.glob` de Vite. Vous allez construire un composant de carte qui affiche le nom, l'âge et la photo d'une personne.
+
+## Recette
+
+1. Créez un nouveau dossier `assets` sous le répertoire `src` et ajoutez vos images dans ce nouveau dossier.
+
+    <FileTree>
+    - src/
+      - assets/
+        - avatar-1.jpg
+        - avatar-2.png
+        - avatar-3.jpeg
+    </FileTree>
+
+    :::note
+    `assets` est une convention de nom de dossier populaire pour placer des images, mais vous êtes libre de nommer le dossier comme vous le souhaitez.
+    ::: 
+
+2. Créez un nouveau composant Astro pour votre carte et importez le composant `<Image />`.
+
+    ```astro title="src/components/MyCustomCardComponent.astro" 
+    ---
+    import { Image } from 'astro:assets';
+    ---
+    ```
+
+3. Spécifiez les `props` que votre composant recevra afin d'afficher les informations nécessaires sur chaque carte. Vous pouvez optionnellement définir leurs types, si vous utilisez TypeScript dans votre projet.
+
+    ```astro title="src/components/MyCustomCardComponent.astro" ins={4-9, 11}
+    ---
+    import { Image } from 'astro:assets';
+
+    interface Props {
+       imagePath: string;
+       altText: string;
+       name: string;
+       age: number;
+    }
+
+    const { imagePath, altText, name, age } = Astro.props;
+    ---
+    ``` 
+
+4. Créez une nouvelle variable `images` et utilisez la fonction `import.meta.glob` qui retourne un objet contenant tous les chemins d'accès aux images dans le dossier `assets`. Vous devrez également importer le type `ImageMetadata` pour vous aider à définir le type de la variable `images`.
+
+    ```astro title="src/components/MyCustomCardComponent.astro" ins={2, 13} "ImageMetadata"
+    ---
+    import type { ImageMetadata } from 'astro';
+    import { Image } from 'astro:assets';
+
+    interface Props {
+       imagePath: string;
+       altText: string;
+       name: string;
+       age: number;
+    }
+    
+    const { imagePath, altText, name, age } = Astro.props;
+    const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/*.{jpeg,jpg,png,gif}')
+    ---
+    ```
+    
+
+5. Utilisez les props pour créer le balisage de votre composant de carte. 
+
+    ```astro title="src/components/MyCustomCardComponent.astro" ins={15-19} "<Image src={} alt={altText} />"
+    ---
+    import type { ImageMetadata } from 'astro';
+    import { Image } from 'astro:assets';
+
+    interface Props {
+       imagePath: string;
+       altText: string;
+       name: string;
+       age: number;
+    }
+    
+    const { imagePath, altText, name, age } = Astro.props;
+    const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/*.{jpeg,jpg,png,gif}');
+    ---
+    <div class="card">
+        <h2>{name}</h2>
+        <p>Age: {age}</p>
+        <Image src={} alt={altText} />
+    </div>
+    ```
+
+6. Dans l'attribut `src`, passez l'objet `images` et utilisez la notation entre crochets pour le chemin de l'image. Assurez-vous ensuite d'invoquer la fonction glob. 
+
+    Puisque vous accédez à l'objet `images` qui a un type inconnu, vous devriez aussi `throw` une erreur dans le cas où un chemin de fichier invalide est passé en tant que prop.
+   
+    ```astro title="src/components/MyCustomCardComponent.astro" ins="images[imagePath]()" ins={14}
+
+    ---
+    import type { ImageMetadata } from 'astro';
+    import { Image } from 'astro:assets';
+
+    interface Props {
+       imagePath: string;
+       altText: string;
+       name: string;
+       age: number;
+    }
+    
+    const { imagePath, altText, name, age } = Astro.props;
+    const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/*.{jpeg,jpg,png,gif}');
+    if (!images[imagePath]) throw new Error(`"${imagePath}" does not exist in glob: "src/assets/*.{jpeg,jpg,png,gif}"`);
+    ---
+    <div class="card">
+        <h2>{name}</h2>
+        <p>Age: {age}</p>
+        <Image src={images[imagePath]()} alt={altText} />
+    </div>
+    ```
+
+    :::note
+    `images` est un objet qui contient tous les chemins d'accès aux images dans le dossier `assets`.
+
+    ```js
+    const images = {
+      './assets/avatar-1.jpg': () => import('./assets/avatar-1.jpg'),
+      './assets/avatar-2.png': () => import('./assets/avatar-2.png'),
+      './assets/avatar-3.jpeg': () => import('./assets/avatar-3.jpeg')
+    }
+    ```
+
+    La propriété `imagePath` est une chaîne de caractères qui contient le chemin de l'image que vous voulez afficher. `import.meta.glob()` se charge de trouver le chemin de l'image qui correspond à la propriété `imagePath` et de gérer l'importation pour vous.
+    ::: 
+
+7. Importer et utiliser le composant carte dans une page Astro, en passant les valeurs pour les `props`.
+
+    ```astro title="src/pages/index.astro" 
+    ---
+    import MyCustomCardComponent from '../components/MyCustomCardComponent.astro';
+    ---
+    <MyCustomCardComponent 
+        imagePath="/src/assets/avatar-1.jpg"
+        altText="Une photo de Priya sur fond de mur de briques."
+        name="Priya"
+        age={25}
+    />
+    ```
