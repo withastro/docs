@@ -191,7 +191,7 @@ export function start(manifest) {
 
 다음과 같은 메서드가 제공됩니다.
 
-##### `app.render(request, { routeData, locals })`
+##### `app.render(request: Request, options?: RenderOptions)`
 
 이 메서드는 요청과 일치하는 Astro 페이지를 호출하고 렌더링한 후 [Response](https://developer.mozilla.org/ko/docs/Web/API/Response) 객체에 Promise를 반환합니다. 이는 페이지를 렌더링하지 않는 API 경로에도 적용됩니다.
 
@@ -199,13 +199,38 @@ export function start(manifest) {
 const response = await app.render(request);
 ```
 
-이 메서드는 필수 `request` 인수와 [`routeData`](/ko/reference/integrations-reference/#routedata-타입-참조) 및 [`locals`](/ko/reference/api-reference/#astrolocals)에 대한 선택적 인수를 허용합니다.
+##### `RenderOptions`
 
-렌더링할 경로를 이미 알고 있는 경우 `routeData`에 대한 값을 제공하세요. 그렇게 하면 렌더링할 경로를 결정하기 위해 [`app.match`](#appmatchrequest)에 대한 내부 호출을 우회하게 됩니다.
+`app.render()` 메서드는 필수 `request` 인수와 [`addCookieHeader`](#addcookieheader), [`clientAddress`](#clientaddress), [`locals`](#locals), [`routeData`](#routedata)에 대한 선택적 `RenderOptions` 객체를 허용합니다.
+
+###### `addCookieHeader`
+
+`Astro.cookie.set()`이 작성한 모든 쿠키를 응답 헤더에 자동으로 추가할지 여부입니다.
+
+`true`로 설정하면 응답의 `Set-Cookie` 헤더에 쉼표로 구분된 키-값 쌍으로 추가됩니다. 표준 `response.headers.getSetCookie()` API를 사용하여 개별적으로 읽을 수 있습니다. `false` (기본값)로 설정하면 `App.getSetCookieFromResponse(response)`에서만 쿠키를 사용할 수 있습니다.
+
+```js
+const response = await app.render(request, { addCookieHeader: true });
+```
+
+###### `clientAddress`
+
+페이지에서는 [`Astro.clientAddress`](/ko/reference/api-reference/#astroclientaddress)로, API 경로 및 미들웨어에서는 `ctx.clientAddress`로 사용할 수 있는 클라이언트 IP 주소입니다.
+
+아래 예시에서는 `x-forwarded-for` 헤더를 읽고 이를 `clientAddress`로 전달합니다. 이 값은 사용자가 `Astro.clientAddress`로 사용할 수 있게 됩니다.
+
+```js "clientAddress"
+const clientAddress = request.headers.get("x-forwarded-for");
+const response = await app.render(request, { clientAddress });
+```
+
+###### `locals`
+
+요청 수명 주기 동안 정보를 저장하고 액세스하는 데 사용되는 [`context.locals` 객체](/ko/reference/api-reference/#contextlocals)입니다.
 
 아래 예시에서는 `x-private-header`라는 헤더를 읽고 이를 객체로 구문 분석한 후 `locals`에 전달하려고 시도합니다. 그런 다음 [미들웨어 함수](/ko/guides/middleware/)에 전달될 수 있습니다.
 
-```js
+```js "locals"
 const privateHeader = request.headers.get("x-private-header");
 let locals = {};
 try {
@@ -214,6 +239,20 @@ try {
     }
 } finally {
     const response = await app.render(request, { locals });
+}
+```
+
+###### `routeData`
+
+렌더링할 경로를 이미 알고 있는 경우 [`routeData`](/ko/reference/integrations-reference/#routedata-타입-참조)에 대한 값을 제공하세요. 그렇게 하면 렌더링할 경로를 결정하기 위해 [`app.match`](#appmatchrequest)에 대한 내부 호출을 우회하게 됩니다.
+
+```js "routeData"
+const routeData = app.match(request);
+if (routeData) {
+    return app.render(request, { routeData });
+} else {
+    /* 어댑터별 404 응답 */
+    return new Response(..., { status: 404 });
 }
 ```
 
