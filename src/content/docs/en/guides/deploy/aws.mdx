@@ -113,77 +113,22 @@ CloudFront is a web service that provides content delivery network (CDN) capabil
 
 We will use CloudFront to wrap our S3 bucket to serve our project's files using Amazon global CDN network. This will reduce the cost of serving your project's files and will increase the performance of your site.
 
-### S3 setup
-
-1. Create an S3 bucket with your project's name.
-
-    :::tip
-    The bucket name should be globally unique. We recommend a combination of your project name and the domain name of your site.
-    :::
-2. Upload your built files located in `dist` to S3. You can do this manually in the console or use the AWS CLI. If you use the AWS CLI, you can use the following command after [authenticating with your AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html):
-
-    ```
-    aws s3 cp dist/ s3://<BUCKET_NAME>/ --recursive
-    ```
-
-3. Update your bucket policy to allow **CloudFront Access**. You can find this setting in the bucket's **Permissions > Bucket policy**. 
-
-    ```json
-    {
-      "Version": "2012-10-17",
-      "Statement": [{
-        "Effect": "Allow",
-        "Principal": {
-          "AWS": "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity <CLOUDFRONT_OAI_ID>"
-        },
-        "Action": "s3:GetObject",
-        "Resource": "arn:aws:s3:::astro-aws/*"
-      }]
-    }
-    ```
-
-    :::caution
-    Do not forget to replace `<CLOUDFRONT_OAI_ID>` with the name of your CloudFront Origin Access Identity ID. You can find the CloudFront Origin Access Identity ID in **CloudFront > Origin access identities** after setting up CloudFront.
-    :::
-
 ### CloudFront setup
 
 1. Create a CloudFront distribution with the following values:
     * **Origin domain:** Your S3 bucket
-    * **S3 bucket access:** "Yes use OAI (bucket can restrict access to only CloudFront)"
+    * **Origin access:** "Use *Legacy access identities* (bucket can restrict access to only CloudFront)"
     * **Origin access identity:** Create a new origin access identity
-    * **Viewer - Bucket policy:** "No, I will update the bucket policy"
+    * **Bucket policy:** "Yes, update the bucket policy"
     * **Viewer protocol policy:** "Redirect to HTTPS"
-    * **Default root object:** `index.html`
+
+  :::caution
+  After selecting your S3 bucket as origin domain, CloudFront will recommend using the S3 website endpoint instead.
+  Click `Use website endpoint`, otherwise requests may not be resolved correctly.
+  If the banner does not show, your S3 bucket is missing the website hosting endpoint, which can be configured for the bucket under **Settings > Static website hosting**.
+  :::
 
 This configuration will block access to your S3 bucket from the public internet and serve your site using the global CDN network. You can find your CloudFront distribution URL in the bucket's **Distributions > Domain name**.
-
-### CloudFront Functions setup
-
-Unfortunately, CloudFront does not support multi-page `sub-folder/index` routing by default. To configure it, we will use CloudFront Functions to point the request to the desired object in S3.
-
-1. Create a new CloudFront function with the following code snippet. You can find CloudFront functions in **CloudFront > Functions**.
-
-    ```js
-    function handler(event) {
-      var request = event.request;
-      var uri = request.uri;
-
-      // Check whether the URI is missing a file name.
-      if (uri.endsWith('/')) {
-        request.uri += 'index.html';
-      } 
-      // Check whether the URI is missing a file extension.
-      else if (!uri.includes('.')) {
-        request.uri += '/index.html';
-      }
-
-      return request;
-    }
-    ```
-  2. Attach your function to the CloudFront distribution. You can find this option in your CloudFront distribution's **Settings > Behaviors > Edit > Function** associations.
-        * **Viewer request - Function type:** CloudFront Function.
-        * **Viewer request - Function ARN:** Select the function you created in the previous step.
 
 ### CloudFront Error Pages setup
 
