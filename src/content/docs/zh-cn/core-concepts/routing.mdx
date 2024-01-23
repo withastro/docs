@@ -297,28 +297,34 @@ if (!isLoggedIn(cookie)) {
 
 ## 路由优先级顺序
 
-多个路由可以匹配相同的 URL 路径。例如下面的每个路由都会匹配 `/posts/create`。
+可能有多个已定义的路由试图构建相同的 URL 路径。例如，下面所有这些路由都有可能构建 `/posts/create`：
 
 <FileTree>
 - src/pages/
+  - [...slug].astro
   - posts/
     - create.astro
-    - [pid].astro
+    - [page].astro
+    - [pid].ts
     - [...slug].astro
 </FileTree>
 
-Astro 需要知道哪个路由应该被用来建立页面。为了做到这一点，它根据以下规则对它们进行排序。
+Astro 需要知道哪个路由应该被用来构建页面。为此，它会按照以下规则按顺序对它们进行排序：
 
-- 没有路径参数的静态路由将优先于所有其他路由
-- 使用命名参数的动态路由优先于使用剩余参数的动态路由
-- 剩余参数的优先级最低
-- 以上规则优先级相同，则按字母顺序排序
+- 路径段更多的路由将优先于不太具体的路由。在上面的例子中，所有在 `/posts/` 下的路由优先于根目录的 `/[...slug].astro`。
+- 没有路径参数的静态路由将优先于动态路由。例如，`/posts/create.astro` 优先于示例中的所有其他路由。
+- 使用命名参数的动态路由优先于剩余参数。例如，`/posts/[page].astro` 优先于 `/posts/[...slug].astro`。
+- 预渲染的动态路由优先于服务器动态路由。
+- 端点优先于页面。
+- 如果以上规则都无法决定顺序，路由将根据你的 Node 安装的默认语言环境按字母顺序排序。
 
-鉴于上面的示例，下面用几个例子，说明这些规则如何匹配请求的URL与用于建立HTML的路由。
+鉴于上面的示例，下面用几个例子，说明这些规则如何匹配请求的 URL 与用于建立 HTML 的路由。
 
-- `pages/posts/create.astro` - 将构建 `/posts/create`
-- `pages/posts/[pid].astro` - 将构建 `/posts/1`、`/posts/abc` 等，但不包括 `/posts/create`
-- `pages/posts/[...slug].astro` - 将构建 `/posts/1/2`、`/posts/a/b/c` 等，但不包括 `/posts/create`、`/posts/1`、`/posts/abc`
+- `pages/posts/create.astro` - 将只构建 `/posts/create`
+- `pages/posts/[pid].ts` - 将构建 `/posts/abc`、`/posts/xyz` 等，但不包括 `/posts/create`
+- `pages/posts/[page].astro` - 将构建 `/posts/1`、`/posts/2` 等，但不包括 `/posts/create`、`/posts/abc` 以及 `/posts/xyz`
+- `pages/posts/[...slug].astro` - 将构建 `/posts/1/2`、`/posts/a/b/c` 等，但不包括 `/posts/create`、`/posts/1`、`/posts/abc` 等
+- `pages/[...slug].astro` - 将构建 `/abc`、`/xyz`、`/abc/xyz` 等，但不包括 `/posts/create`、`/posts/1`、`/posts/abc` 等
 
 ## 分页
 
