@@ -6,6 +6,7 @@ i18nReady: true
 import FileTree from '~/components/FileTree.astro'
 import RecipeLinks from "~/components/RecipeLinks.astro"
 import Since from '~/components/Since.astro'
+import ReadMore from '~/components/ReadMore.astro'
 
 Astro utiliza **enrutamiento basado en archivos** para generar las URLs finales según el contenido de la carpeta `src/pages/`. 
 
@@ -83,11 +84,11 @@ Esto generará `/en-v1/info` y `/fr-v2/info`.
 
 Los parámetros pueden incluirse en distintas partes del path. Por ejemplo, el archivo `src/pages/[lang]/[version]/info.astro` con la misma `getStaticPaths()` arriba generará las rutas `/en/v1/info` y `/fr/v2/info`.
 
-📚 Lee más sobre [`getStaticPaths()`](/es/reference/api-reference/#getstaticpaths).
+<ReadMore>Lee más sobre [`getStaticPaths()`](/es/reference/api-reference/#getstaticpaths).</ReadMore>
 
 <RecipeLinks slugs={["es/recipes/i18n"]} />
 
-### Parámetros Rest
+#### Parámetros Rest
 
 Si necesitas más flexibilidad en el enrutamiento de la URL, puedes usar un [parámetro rest](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Functions/rest_parameters) (`[...param]`) en el nombre de archivo `.astro` para emparejar rutas de archivos de cualquier profundidad:
 
@@ -287,34 +288,36 @@ if (!isLoggedIn(cookie)) {
 ```
 
 
-### Orden de prioridad de rutas
+## Orden de prioridad de rutas
 
-Es posible que varias rutas coincidan con la misma ruta URL. Por ejemplo, cada una de estas rutas coincidiría con `/posts/create`:
+Es posible que varias rutas definidas intenten construir la misma ruta de URL. Por ejemplo, todas estas rutas podrían construir `/posts/create`:
 
 <FileTree>
 - src/pages/
+  - [...slug].astro
   - posts/
     - create.astro
-    - [pid].astro
+    - [page].astro
+    - [pid].ts
     - [...slug].astro
 </FileTree>
 
-Astro necesita saber qué ruta debe usarse para construir la página. Para ello, los ordena de acuerdo con las siguientes reglas:
+Astro necesita saber qué ruta debe usarse para construir la página. Para ello, los ordena de acuerdo con las siguientes reglas en orden:
 
-- Las rutas estáticas sin parámetros de ruta tendrán prioridad sobre todas las demás rutas
-- Las rutas dinámicas que usan parámetros nombrados tienen prioridad sobre los parámetros rest
-- Las rutas dinámicas pre-renderizadas tienen prioridad sobre las rutas dinámicas del servidor
-- Los parámetros rest tienen la prioridad más baja
-- Los endpoints siempre tienen prioridad sobre las páginas
-- Los empates se resuelven alfabéticamente
+- Las rutas con más segmentos de ruta tendrán prioridad sobre las rutas con menos parámetros. En el ejemplo anterior, todas las rutas bajo `/posts/` tienen prioridad sobre `/[...slug].astro` en la raíz.
+- Las rutas estáticas sin parámetros de ruta tendrán prioridad sobre las rutas dinámicas. Por ejemplo, `/posts/create.astro` tiene prioridad sobre todas las demás rutas del ejemplo.
+- Las rutas dinámicas que usan parámetros nombrados tienen prioridad sobre los parámetros restantes. Por ejemplo, `/posts/[page].astro` tiene prioridad sobre `/posts/[...slug].astro`.
+- Las rutas dinámicas pre-renderizadas tienen prioridad sobre las rutas dinámicas del servidor.
+- Los endpoints tienen prioridad sobre las páginas.
+- Si ninguna de las reglas anteriores decide el orden, las rutas se ordenan alfabéticamente según la configuración regional predeterminada de tu instalación de Node.
 
 Dado el ejemplo anterior, aquí hay algunos ejemplos de cómo las reglas harán coincidir una URL solicitada con la ruta utilizada al compilar el HTML:
 
-- `pages/posts/create.astro` - Construirá `/posts/create`
-- `pages/posts/[pid].astro` - Construirá `/posts/1`, `/posts/abc`, etc. Pero no `/posts/create`
-- `pages/posts/[...slug].astro` - Construirá `/posts/1/2`, `/posts/a/b/c`, etc. Pero no `/posts/create`, ` /mensajes/1`, `/mensajes/abc`
-
-Las redirecciones también siguen las mismas reglas, pero se priorizan en *último lugar*. Si existe una ruta basada en archivos y una redirección con el mismo nivel de prioridad de ruta, se elige la ruta basada en archivos.
+- `pages/posts/create.astro` - Solo construirá `/posts/create`
+- `pages/posts/[pid].ts` - Construirá `/posts/abc`, `/posts/xyz`, etc. Pero no `/posts/create`
+- `pages/posts/[page].astro` - Construirá `/posts/1`, `/posts/2`, etc. Pero no `/posts/create`, `/posts/abc` ni `/posts/xyz`
+- `pages/posts/[...slug].ts` - Construirá `/posts/1/2`, `/posts/a/b/c`, etc. Pero no `/posts/create`, `/posts/1`, `/posts/abc`, etc.
+- `pages/[...slug].astro` - Construirá `/abc`, `/xyz`, `/abc/xyz`, etc. Pero no `/posts/create`, `/posts/1`, `/posts/abc`, , etc.
 
 ## Paginación
 
