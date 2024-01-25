@@ -32,7 +32,7 @@ export default NavDictionary({
 
 	addons: 'एड-ऑन्स',
 	'guides/integrations-guide': 'एकीकरण जानकारी',
-	'basics/framework-components': 'UI फ़्रेमवर्क्स',
+	'guides/framework-components': 'UI फ़्रेमवर्क्स',
 	'guides/server-side-rendering': 'सर्वर-साइड रेंडरिंग (SSR)',
 
 	examples: 'उदाहरण',
@@ -43,14 +43,14 @@ export default NavDictionary({
 	'guides/recipes': 'अधिक रेसिपी',
 
 	features: 'गाइड्स',
-	'basics/routing': 'रूटिंग',
+	'guides/routing': 'रूटिंग',
 	'guides/markdown-content': 'Markdown और MDX',
 	'guides/client-side-scripts': 'स्क्रिप्ट और घटना संचालन',
 	'guides/styling': 'स्टाइल और CSS',
 	'guides/images': 'छवियाँ',
 	'guides/fonts': 'फ़ॉन्ट्स',
 	'guides/imports': 'आयात',
-	'basics/endpoints': 'एंडपॉइंट्स',
+	'guides/endpoints': 'एंडपॉइंट्स',
 	'guides/data-fetching': 'डेटा फ़ेचिंग',
 	'guides/internationalization': 'अंतर्राष्ट्रीयकरण',
 	'guides/middleware': 'मिडलवेयर',

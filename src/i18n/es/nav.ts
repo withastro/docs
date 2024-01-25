@@ -31,7 +31,7 @@ export default NavDictionary({
 
 	addons: 'Integraciones',
 	'guides/integrations-guide': 'Agregar integraciones',
-	'basics/framework-components': 'Frameworks UI',
+	'guides/framework-components': 'Frameworks UI',
 	'guides/server-side-rendering': 'Renderizado en el lado del servidor (SSR)',
 
 	examples: 'Recetas',
@@ -42,14 +42,14 @@ export default NavDictionary({
 	'guides/recipes': 'Más recetas',
 
 	features: 'Guías',
-	'basics/routing': 'Enrutamiento',
+	'guides/routing': 'Enrutamiento',
 	'guides/markdown-content': 'Markdown y MDX',
 	'guides/client-side-scripts': 'Scripts y Manejo de Eventos',
 	'guides/styling': 'Estilos y CSS',
 	'guides/images': 'Imágenes',
 	'guides/fonts': 'Fuentes',
 	'guides/imports': 'Importaciones',
-	'basics/endpoints': 'Endpoints',
+	'guides/endpoints': 'Endpoints',
 	'guides/data-fetching': 'Fetching de Datos',
 	'guides/internationalization': 'Internacionalización',
 	'guides/middleware': 'Middleware',

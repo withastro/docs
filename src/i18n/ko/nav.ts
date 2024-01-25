@@ -31,7 +31,7 @@ export default NavDictionary({
 
 	addons: '통합',
 	'guides/integrations-guide': '통합 추가',
-	'basics/framework-components': 'UI 프레임워크',
+	'guides/framework-components': 'UI 프레임워크',
 	'guides/server-side-rendering': '서버 측 렌더링 (SSR)',
 
 	examples: '레시피',
@@ -42,14 +42,14 @@ export default NavDictionary({
 	'guides/recipes': '더 많은 레시피',
 
 	features: '안내서',
-	'basics/routing': '라우팅',
+	'guides/routing': '라우팅',
 	'guides/markdown-content': 'Markdown & MDX',
 	'guides/client-side-scripts': '스크립트 & 이벤트 처리',
 	'guides/styling': 'CSS & 스타일링',
 	'guides/images': '이미지',
 	'guides/fonts': '글꼴',
 	'guides/imports': '가져오기',
-	'basics/endpoints': '엔드포인트',
+	'guides/endpoints': '엔드포인트',
 	'guides/data-fetching': '데이터 페칭',
 	'guides/internationalization': '국제화',
 	'guides/middleware': '미들웨어',

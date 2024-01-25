@@ -37,7 +37,7 @@ export default NavDictionary({
 	// Integrations
 	addons: 'インテグレーション',
 	'guides/integrations-guide': 'インテグレーションの追加',
-	'basics/framework-components': 'UIフレームワーク',
+	'guides/framework-components': 'UIフレームワーク',
 	'guides/server-side-rendering': 'サーバーサイドレンダリング（SSR）',
 
 	// Recipes
@@ -50,14 +50,14 @@ export default NavDictionary({
 
 	// Guides
 	features: 'ガイド',
-	'basics/routing': 'ルーティング',
+	'guides/routing': 'ルーティング',
 	'guides/markdown-content': 'Markdown',
 	'guides/client-side-scripts': 'スクリプトとイベントハンドリング',
 	'guides/styling': 'CSSとスタイル',
 	'guides/images': '画像',
 	'guides/fonts': 'フォント',
 	'guides/imports': 'インポート',
-	'basics/endpoints': 'エンドポイント',
+	'guides/endpoints': 'エンドポイント',
 	'guides/data-fetching': 'データフェッチ',
 	'guides/internationalization': '国際化',
 	'guides/middleware': 'ミドルウェア',

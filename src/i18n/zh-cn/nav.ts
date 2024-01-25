@@ -30,7 +30,7 @@ export default NavDictionary({
 
 	addons: '集成',
 	'guides/integrations-guide': '添加集成',
-	'basics/framework-components': 'UI 框架',
+	'guides/framework-components': 'UI 框架',
 	'guides/server-side-rendering': '服务端渲染 (SSR)',
 
 	examples: '操作指南',
@@ -42,14 +42,14 @@ export default NavDictionary({
 
 	features: '使用指南',
 	'basics/astro-syntax': 'Astro 模板语法',
-	'basics/routing': '路由',
+	'guides/routing': '路由',
 	'guides/markdown-content': 'Markdown & MDX',
 	'guides/client-side-scripts': '处理脚本和事件',
 	'guides/styling': 'CSS 样式',
 	'guides/fonts': '字体',
 	'guides/images': '图像',
 	'guides/imports': '导入',
-	'basics/endpoints': 'API 端点',
+	'guides/endpoints': 'API 端点',
 	'guides/data-fetching': '数据获取',
 	'guides/middleware': '中间件',
 	'guides/testing': '测试',

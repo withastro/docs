@@ -78,8 +78,8 @@ export default [
 	{ text: 'Add integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
 	{
 		text: 'UI Frameworks',
-		slug: 'basics/framework-components',
-		key: 'basics/framework-components',
+		slug: 'guides/framework-components',
+		key: 'guides/framework-components',
 	},
 	{
 		text: 'SSR Adapters',
@@ -95,7 +95,7 @@ export default [
 	{ text: 'More recipes', slug: 'recipes', key: 'guides/recipes' },
 
 	{ text: 'Guides', header: true, type: 'learn', key: 'features' },
-	{ text: 'Routing', slug: 'basics/routing', key: 'basics/routing' },
+	{ text: 'Routing', slug: 'guides/routing', key: 'guides/routing' },
 	{ text: 'Markdown', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 	{
 		text: 'Scripts & Event Handling',
@@ -106,7 +106,7 @@ export default [
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 	{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
-	{ text: 'Endpoints', slug: 'basics/endpoints', key: 'basics/endpoints' },
+	{ text: 'Endpoints', slug: 'guides/endpoints', key: 'guides/endpoints' },
 	{ text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
 	{
 		text: 'Internationalization',

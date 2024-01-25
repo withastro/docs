@@ -78,8 +78,8 @@ export default [
 	{ text: 'Intégrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
 	{
 		text: "Framework d'interface",
-		slug: 'basics/framework-components',
-		key: 'basics/framework-components',
+		slug: 'guides/framework-components',
+		key: 'guides/framework-components',
 	},
 	{
 		text: 'Rendu Côté Serveur (SSR)',
@@ -95,7 +95,7 @@ export default [
 	{ text: 'Plus de méthodes', slug: 'recipes', key: 'guides/recipes' },
 
 	{ text: 'Guides', header: true, type: 'learn', key: 'features' },
-	{ text: 'Routage', slug: 'basics/routing', key: 'basics/routing' },
+	{ text: 'Routage', slug: 'guides/routing', key: 'guides/routing' },
 	{ text: 'Markdown', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 	{
 		text: "Scripts & gestion d'évènements",
@@ -108,8 +108,8 @@ export default [
 	{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
 	{
 		text: 'Points de terminaison',
-		slug: 'basics/endpoints',
-		key: 'basics/endpoints',
+		slug: 'guides/endpoints',
+		key: 'guides/endpoints',
 	},
 	{ text: 'Récupération de Données', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
 	{
