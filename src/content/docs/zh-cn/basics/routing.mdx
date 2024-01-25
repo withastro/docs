@@ -1,0 +1,478 @@
+---
+title: 路由
+description: 关于 Astro 路由的介绍。
+---
+import FileTree from '~/components/FileTree.astro'
+import RecipeLinks from "~/components/RecipeLinks.astro"
+import Since from '~/components/Since.astro'
+import ReadMore from '~/components/ReadMore.astro'
+
+Astro 使用**基于文件的路由**，它根据项目 `src/pages` 目录中的文件结构来生成你的构建链接。
+
+## 页面之间的导航
+
+Astro 使用标准 HTML [`<a>` 元素](https://developer.mozilla.org/zh-CN/docs/Web/HTML/Element/a) 在路由之间导航。 没有提供特定框架的 `<Link>` 组件。
+
+```astro title="src/pages/index.astro"
+<p>Read more <a href="/about/">about</a> Astro!</p>
+```
+
+## 静态路由
+
+`src/pages` 目录中的 [`.astro` 页面组件](/zh-cn/basics/astro-pages/)以及 Markdown 和 MDX 文件（`.md`，`.mdx`）将**自动作为网站页面**。每个页面的路由对应于它在 `src/pages/` 目录中的路径和文件名。
+
+```diff
+# 示例：静态路由
+src/pages/index.astro        -> mysite.com/
+src/pages/about.astro        -> mysite.com/about
+src/pages/about/index.astro  -> mysite.com/about
+src/pages/about/me.astro     -> mysite.com/about/me
+src/pages/posts/1.md         -> mysite.com/posts/1
+```
+
+:::tip
+Astro 项目没有单独的路由配置！当你在 `src/pages` 目录新增文件时，会自动生成一个新的路由。在静态生成中，你可以使用 [`build.format`](/zh-cn/reference/configuration-reference/#buildformat) 配置项自定义文件输出格式。
+:::
+
+## 动态路由
+
+Astro 页面文件可以在其文件名中指定动态路由参数以生成多个匹配页面。
+
+例如，`src/pages/authors/[author].astro` 可以为你博客上的每一位作者生成一个简介页面，而 `author` 将作为一个你可以从页面内部访问的 _参数_ 。
+
+在 Astro 默认的静态输出模式中，这些页面是在构建时生成的，因此你必须预设对应文件的 `author` 列表。而在 SSR 模式下，将根据请求为任何匹配的路由生成一个页面。
+
+### 静态 （SSG） 模式
+
+因为必须在构建时确定所有路由，所以动态路由必须导出一个 `getStaticPaths()` ，它返回一个具有 `params` 属性的对象数组。数组中的每一个对象都会生成相应的路由。
+
+`[dog].astro` 在其文件名中定义一个 `dog` 参数，则 `getStaticPaths()` 返回的这些对象的 `params` 中必须包含 `dog` 。 
+然后页面可以使用 `Astro.params` 访问该参数。
+
+```astro title="src/pages/dogs/[dog].astro"
+---
+export function getStaticPaths() {
+  return [
+    {params: {dog: 'clifford'}},
+    {params: {dog: 'rover'}},
+    {params: {dog: 'spot'}},
+  ];
+}
+
+const { dog } = Astro.params;
+---
+<div>Good dog, {dog}!</div>
+```
+
+这将生成三个页面： `/dogs/clifford`、`/dogs/rover` 和 `/dogs/spot` ，每个页面显示相应的狗名。
+
+文件名可以包含多个参数，这些参数必须都包含在 `getStaticPaths()` 的 `params` 对象中：
+
+
+```astro title="src/pages/[lang]-[version]/info.astro"
+---
+export function getStaticPaths () {
+ return [
+    {params: {lang: 'en', version: 'v1'}},
+    {params: {lang: 'fr', version: 'v2'}},
+  ];
+}
+
+const { lang, version } = Astro.params;
+---
+...
+```
+
+这将生成 `/en-v1/info` 和 `/fr-v2/info` 路由。
+
+参数也可以包含在路径的单独部分中。例如， `src/pages/[lang]/[version]/info.astro` 文件与上面相同的 `getStaticPaths()` 将生成路由 `/en/v1/info` 和 `/fr/v2/info`。
+
+<ReadMore>了解更多关于 [`getStaticPaths()`](/zh-cn/reference/api-reference/#getstaticpaths) 的内容。</ReadMore>
+
+<RecipeLinks slugs={["zh-cn/recipes/i18n"]} />
+
+#### 剩余参数
+
+如果你的URL路由需要更加灵活，你可以在 `.astro` 文件名中使用一个 [剩余参数](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters)（`[...path]`），去匹配任何深度的文件路径。
+
+```astro title="src/pages/sequences/[...path].astro"
+---
+export function getStaticPaths() {
+  return [
+    {params: {path: 'one/two/three'}},
+    {params: {path: 'four'}},
+    {params: {path: undefined }}
+  ]
+}
+
+const { path } = Astro.params;
+---
+...
+```
+
+这将生成 `/sequences/one/two/three` 、 `/sequences/four` 和 `/sequences` 。（将剩余参数设置为 `undefined` 允许它匹配顶级页面。）
+
+剩余参数可以与 **其他命名参数** 一起使用。例如， GitHub 的文件查看器可以用以下动态路由表示：
+
+```
+/[org]/[repo]/tree/[branch]/[...file]
+```
+
+在这个示例中，对 `/withastro/astro/tree/main/docs/public/favicon.svg` 的请求将拆分为以下命名参数：
+
+```js
+{
+	org: 'withastro',
+	repo: 'astro',
+	branch: 'main',
+	file: 'docs/public/favicon.svg'
+}
+```
+
+#### 示例：多级动态页面
+
+在下面的示例中， 剩余参数（`[...slug]`）和 `getStaticPaths()` 的 [`props`](/zh-cn/reference/api-reference/#通过-props-传递数据) 为不同深度的 slug 生成页面。
+
+```astro title="src/pages/[...slug].astro"
+---
+export async function getStaticPaths() {
+  const pages = [
+    {
+      slug: undefined,
+      title: "Astro Store",
+      text: "Welcome to the Astro store!",
+    },
+    {
+      slug: "products",
+      title: "Astro products",
+      text: "We have lots of products for you",
+    },
+    {
+      slug: "products/astro-handbook",
+      title: "The ultimate Astro handbook",
+      text: "If you want to learn Astro, you must read this book.",
+    },
+  ];
+  return pages.map(({ slug, title, text }) => {
+    return {
+      params: { slug },
+      props: { title, text },
+    };
+  });
+}
+
+const { title, text } = Astro.props;
+---
+<html>
+  <head>
+    <title>{title}</title>
+  </head>
+  <body>
+    <h1>{title}</h1>
+    <p>{text}</p>
+  </body>
+</html>
+```
+### 服务器（SSR）模式
+
+在 [SSR](/zh-cn/guides/server-side-rendering/) 模式下，动态路由以相同的方式定义：在文件名中包含 `[param]` 或 `[...path]` 以匹配任意字符串或路径。但是由于不再提前构建路由，页面将提供给任何匹配的路由。由于这些路由不是“静态”的，因此不应使用 `getStaticPaths`。
+
+```astro title="src/pages/resources/[resource]/[id].astro"
+---
+const { resource, id } = Astro.params;
+---
+<h1>{resource}: {id}</h1>
+```
+
+该页面将为任意的 `resource` 和 `id` 提供服务： `resources/users/1`、 `resources/colors/blue` 等。
+
+#### 修改 `[...slug]` 示例用于SSR
+
+由于 SSR 页面无法使用 `getStaticPaths()`，因此无法接收 props。可以通过在对象中查找 `slug` 参数的值，将 [前面的示例](#示例多级动态页面) 调整为 SSR 模式。如果路由位于根目录（“/”），则 slug 参数为 `undefined`。如果对象中不存在该值，将重定向到 404 页面。
+
+```astro title="src/pages/[...slug].astro"
+---
+const pages = [
+	{
+		slug: undefined,
+		title: 'Astro Store',
+		text: 'Welcome to the Astro store!',
+	},
+	{
+		slug: 'products',
+		title: 'Astro products',
+		text: 'We have lots of products for you',
+	},
+	{
+		slug: 'products/astro-handbook',
+		title: 'The ultimate Astro handbook',
+		text: 'If you want to learn Astro, you must read this book.',
+	}
+];
+
+const { slug } = Astro.params;
+const page = pages.find((page) => page.slug === slug);
+if (!page) return Astro.redirect("/404");
+const { title, text } = page;
+---
+<html>
+<head>
+  <title>{title}</title>
+</head>
+<body>
+  <h1>{title}</h1>
+  <p>{text}</p>
+</body>
+</html>
+```
+
+## 重定向
+
+有时你需要为你的读者重定向到一个新的页面，可能由于你的网站结构发生了永久性的变动，又或者是作为响应动作（比如从登录到身份验证的过程）。
+
+你可以在你的 Astro 配置中定义规则来将用户 [永久重定向到已移动的页面](#配置重定向)。或者，根据用户的使用情况，[动态地将用户重定向](#动态重定向)。
+
+### 配置重定向
+
+<p><Since v="2.9.0" /></p>
+
+在你的 Astro 配置中，你可以使用 `redirects` 值来指定永久重定向的映射关系。对于大多数重定向而言，通常是将旧路由映射到新路由：
+
+```js title="astro.config.mjs" {4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  redirects: {
+    '/old-page': '/new-page'
+  }
+});
+```
+
+这些重定向遵循与基于文件路由相同的规则。只要新旧路由都包含相同的参数，就可以使用动态路由，例如：
+
+```js
+{
+  "/blog/[...slug]": "/articles/[...slug]"
+}
+```
+
+使用 SSR（服务器端渲染）或者静态适配器，你还可以将对象作为值提供，除了新的 `destination` 端点指向之外，还可以指定 `status` 状态码：
+
+```js title="astro.config.mjs" {5-8}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  redirects: {
+    '/old-page': {
+      status: 302,
+      destination: '/new-page'
+    }
+  }
+});
+```
+
+在运行 `astro build` 时，默认情况下，Astro 将输出带有 [meta refresh](https://developer.mozilla.org/zh-CN/docs/Web/HTML/Element/meta#examples) 标签的 HTML 文件。支持的适配器将会使用托管服务器的配置文件写入重定向信息。
+
+状态码默认为 `301`。如果构建为 HTML 文件，则服务器不会使用状态码。
+
+### 动态重定向
+
+在全局的 `Astro` 对象上，`Astro.redirect` 方法允许你动态地重定向到另一个页面。例如，你可以在检查用户是否已登录（通过从 Cookie 中获取其会话）之后执行此操作。
+
+```astro title="src/pages/account.astro" {8}
+---
+import { isLoggedIn } from '../utils';
+
+const cookie = Astro.request.headers.get('cookie');
+
+// 如果用户未登录，将其重定向到登录页面。
+if (!isLoggedIn(cookie)) {
+  return Astro.redirect('/login');
+}
+---
+<html>
+  <!-- Page here... -->
+</html>
+```
+
+## 路由优先级顺序
+
+可能有多个已定义的路由试图构建相同的 URL 路径。例如，下面所有这些路由都有可能构建 `/posts/create`：
+
+<FileTree>
+- src/pages/
+  - [...slug].astro
+  - posts/
+    - create.astro
+    - [page].astro
+    - [pid].ts
+    - [...slug].astro
+</FileTree>
+
+Astro 需要知道哪个路由应该被用来构建页面。为此，它会按照以下规则按顺序对它们进行排序：
+
+- 路径段更多的路由将优先于不太具体的路由。在上面的例子中，所有在 `/posts/` 下的路由优先于根目录的 `/[...slug].astro`。
+- 没有路径参数的静态路由将优先于动态路由。例如，`/posts/create.astro` 优先于示例中的所有其他路由。
+- 使用命名参数的动态路由优先于剩余参数。例如，`/posts/[page].astro` 优先于 `/posts/[...slug].astro`。
+- 预渲染的动态路由优先于服务器动态路由。
+- 端点优先于页面。
+- 如果以上规则都无法决定顺序，路由将根据你的 Node 安装的默认语言环境按字母顺序排序。
+
+鉴于上面的示例，下面用几个例子，说明这些规则如何匹配请求的 URL 与用于建立 HTML 的路由。
+
+- `pages/posts/create.astro` - 将只构建 `/posts/create`
+- `pages/posts/[pid].ts` - 将构建 `/posts/abc`、`/posts/xyz` 等，但不包括 `/posts/create`
+- `pages/posts/[page].astro` - 将构建 `/posts/1`、`/posts/2` 等，但不包括 `/posts/create`、`/posts/abc` 以及 `/posts/xyz`
+- `pages/posts/[...slug].astro` - 将构建 `/posts/1/2`、`/posts/a/b/c` 等，但不包括 `/posts/create`、`/posts/1`、`/posts/abc` 等
+- `pages/[...slug].astro` - 将构建 `/abc`、`/xyz`、`/abc/xyz` 等，但不包括 `/posts/create`、`/posts/1`、`/posts/abc` 等
+
+## 分页
+
+Astro 支持内置分页，用于需要分割成多个页面的大量数据。Astro 会生成常见的分页属性，包括上一页/下一页链接、总页数等。
+
+分页的路由名应该使用与标准动态路由一样的 `[bracket]` 语法。例如，文件名 `/astronauts/[page].astro` 将生成 `/astronauts/1`、`/astronauts/2` 等路由，其中 `[page]` 是生成的页码。
+
+你可以用 `paginate()` 函数根据数组值生成这些页面：
+
+```astro /{ (paginate) }/ /paginate\\(.*\\)/ /(?<=const.*)(page)/ /page\\.[a-zA-Z]+/
+---
+// src/pages/astronauts/[page].astro
+export async function getStaticPaths({ paginate }) {
+  const astronautPages = [{
+    astronaut: 'Neil Armstrong',
+  }, {
+    astronaut: 'Buzz Aldrin',
+  }, {
+    astronaut: 'Sally Ride',
+  }, {
+    astronaut: 'John Glenn',
+  }];
+  // 根据宇航员数组生成页面，每页2项
+  return paginate(astronautPages, { pageSize: 2 });
+}
+// 所有分页数据都在 "page" 参数中传递
+const { page } = Astro.props;
+---
+
+<!-- 显示当前页面。也可以使用 Astro.params.page！-->
+<h1>Page {page.currentPage}</h1>
+<ul>
+  <!-- 列出宇航员信息数组 -->
+  {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
+</ul>
+```
+
+将生成以下两个页面，每页 2 项：
+
+- `/astronauts/1` - 第一页显示“Neil Armstrong”和“Buzz Aldrin”
+- `/astronauts/2` - 第二页显示“Sally Ride”和“John Glenn”
+
+### `page` 属性
+
+当你使用 `paginate()` 函数时，每个页面将通过 `page` 传递数据。`page` 有很多有用的属性，下面列出最为重要的：
+
+- **page.data** - 数组，包含你传递给 `paginate()` 函数的页面数据片段
+- **page.url.next** - 下一个页面的链接
+- **page.url.prev** - 上一个页面的链接
+
+```astro /(?<=const.*)(page)/ /page\\.[a-zA-Z]+(?:\\.(?:prev|next))?/
+---
+// src/pages/astronauts/[page].astro
+// 将与上一个示例相同的 { astronaut } 对象进行分页
+export async function getStaticPaths({ paginate }) { /* ... */ }
+const { page } = Astro.props;
+---
+<h1>Page {page.currentPage}</h1>
+<ul>
+  {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
+</ul>
+{page.url.prev ? <a href={page.url.prev}>Previous</a> : null}
+{page.url.next ? <a href={page.url.next}>Next</a> : null}
+```
+
+#### 完整的 API 参考
+
+```ts
+interface Page<T = any> {
+	/** 结果 */
+	data: T[];
+	/** 元数据 */
+	/** 页面第一项的计数，从 0 开始。 */
+	start: number;
+	/** 页面最后一项的计数，从 0 开始 */
+	end: number;
+	/** 结果总计数 */
+	total: number;
+	/** 当前页码, 从 1 开始 */
+	currentPage: number;
+	/** 每个页面的项数（默认为 25) */
+	size: number;
+	/** 最后一页的序号 */
+	lastPage: number;
+	url: {
+		/** 当前页面链接 */
+		current: string;
+		/** 前一页的链接（如果有） */
+		prev: string | undefined;
+		/** 下一页的链接（如果有） */
+		next: string | undefined;
+	};
+}
+```
+
+### 嵌套分页
+
+分页的一个更高级的用例是**嵌套分页**。当分页与其他动态路由参数相结合时，你可以使用嵌套式分页和一些属性或标签来将分页进行分类。
+
+例如，如果你想通过一些标签来分组你的分页的 Markdown 帖子，你可以通过创建一个 `/src/pages/[tag]/[page].astro` 的页面来使用嵌套分页，该页面将匹配以下链接。
+
+- `/red/1` (tag=red)
+- `/red/2` (tag=red)
+- `/blue/1` (tag=blue)
+- `/green/1` (tag=green)
+
+嵌套分页的工作原理是使用 `getStaticPaths()` 返回每个分组的 `paginate()` 结果数组。
+
+在下面的例子中，我们将实现嵌套分页来建立上面列出的URL。
+
+```astro /(?:[(]|=== )(tag)/ "params: { tag }" /const [{ ]*(page|params)/
+---
+// src/pages/[tag]/[page].astro
+export async function getStaticPaths({paginate}) {
+  const allTags = ['red', 'blue', 'green'];
+  const allPosts = await Astro.glob('../../posts/*.md');
+  // 每个标签都会返回 paginate() 结果。
+  // 确保将 `{params: {tag}}` 传递给 `paginate()`
+  // 这样 Astro 才知道怎么把这些结果进行分组
+  return allTags.flatMap((tag) => {
+    const filteredPosts = allPosts.filter((post) => post.frontmatter.tag === tag);
+    return paginate(filteredPosts, {
+      params: { tag },
+      pageSize: 10
+    });
+  });
+}
+const { page } = Astro.props;
+const params = Astro.params;
+```
+
+## 排除页面
+
+你可以通过在文件名前加上下划线（`_`）来排除页面或目录的构建。带有 `_` 前缀的文件不会被路由识别，也不会被放入 `dist/` 目录。
+
+你可以使用它来暂时禁用页面，并将测试、工具函数和组件放在与其相关页面同一个文件夹中。
+
+在这个例子中，只有 `src/pages/index.astro` 和 `src/pages/posts/post1.md` 将被构建为页面路由和 HTML 文件。
+
+<FileTree>
+- src/pages/
+  - _hidden-directory/
+    - page1.md
+    - page2.md
+  - _hidden-page.astro
+  - **index.astro**
+  - posts/
+    - _SomeComponent.astro
+    - _utils.js
+    - **post1.md**
+</FileTree>
