@@ -29,7 +29,7 @@ Você pode criar conjuntos inteiros de páginas dinamicamente utilizando arquivo
 
     ```astro title="src/pages/tags/[tag].astro"
     ---
-    import LayoutBase from '../../layouts/LayoutBase.astro';
+    import BaseLayout from '../../layouts/BaseLayout.astro';
 
     export async function getStaticPaths() {
       return [
@@ -44,9 +44,9 @@ Você pode criar conjuntos inteiros de páginas dinamicamente utilizando arquivo
 
     const { tag } = Astro.params;
     ---
-    <LayoutBase tituloPagina={tag}>
+    <BaseLayout pageTitle={tag}>
       <p>Postagens com a tag {tag}</p>
-    </LayoutBase>
+    </BaseLayout>
     ```
 
     A função `getStaticPaths` retorna uma array de rotas de páginas, e todas as páginas nessas rotas vão utilizar o mesmo template definido no arquivo.
@@ -64,20 +64,20 @@ Você pode criar conjuntos inteiros de páginas dinamicamente utilizando arquivo
 
     Certifique-se de dar novas props para cada rota em seu array, e então faça essas props disponíveis ao seu template do componente fora da sua função.
 
-    ```astro title="src/pages/tags/[tag].astro" ins={5,18} "props: {posts: todasPostagens}" 
+    ```astro title="src/pages/tags/[tag].astro" ins={5,18} "props: {posts: allPosts}" 
     ---
-    import LayoutBase from '../../layouts/LayoutBase.astro';
+    import BaseLayout from '../../layouts/BaseLayout.astro';
 
     export async function getStaticPaths() {
-      const todasPostagens = await Astro.glob('../posts/*.md');
+      const allPosts = await Astro.glob('../posts/*.md');
 
       return [
-        {params: {tag: "astro"}, props: {posts: todasPostagens}},
-        {params: {tag: "sucessos"}, props: {posts: todasPostagens}},
-        {params: {tag: "comunidade"}, props: {posts: todasPostagens}},
-        {params: {tag: "blogueirando"}, props: {posts: todasPostagens}},
-        {params: {tag: "contratempos"}, props: {posts: todasPostagens}},
-        {params: {tag: "aprendendo em público"}, props: {posts: todasPostagens}}
+        {params: {tag: "astro"}, props: {posts: allPosts}},
+        {params: {tag: "sucessos"}, props: {posts: allPosts}},
+        {params: {tag: "comunidade"}, props: {posts: allPosts}},
+        {params: {tag: "blogueirando"}, props: {posts: allPosts}},
+        {params: {tag: "contratempos"}, props: {posts: allPosts}},
+        {params: {tag: "aprendendo em público"}, props: {posts: allPosts}}
       ]
     }
     
@@ -92,31 +92,31 @@ Você pode criar conjuntos inteiros de páginas dinamicamente utilizando arquivo
     ---
     const { tag } = Astro.params;
     const { posts } = Astro.props;
-    const postagensFiltradas = posts.filter((post) => post.frontmatter.tags?.includes(tag));
+    const filteredPosts = posts.filter((post) => post.frontmatter.tags?.includes(tag));
     ---
     ```
 
 3. Agora você pode atualizar seu template HTML para mostrar uma lista de cada postagem do blog contendo a tag da própria página. Adicione o seguinte código em `[tag].astro`:
 
     ```astro title="src/pages/tags/[tag].astro" ins={3-5}
-    <LayoutBase tituloPagina={tag}>   
+    <BaseLayout pageTitle={tag}>   
       <p>Postagens com a tag {tag}</p>
       <ul>
-        {postagensFiltradas.map((post) => <li><a href={post.url}>{post.frontmatter.titulo}</a></li>)}
+        {filteredPosts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
       </ul>
-    </LayoutBase>
+    </BaseLayout>
     ```
 
-4. Você pode até refatorar para utilizar seu componente `<PostBlog />` no lugar! (Não se esqueça de importar esse componente no topo de `[tag].astro`.)
+4. Você pode até refatorar para utilizar seu componente `<BlogPost />` no lugar! (Não se esqueça de importar esse componente no topo de `[tag].astro`.)
 
     ```astro title="src/pages/tags/[tag].astro" del={4} ins={5}
-    <LayoutBase tituloPagina={tag}>
+    <BaseLayout pageTitle={tag}>
       <p>Postagens com a tag {tag}</p>
       <ul>
-        {postagensFiltradas.map((post) => <li><a href={post.url}>{post.frontmatter.titulo}</a></li>)}
-        {postagensFiltradas.map((post) => <PostBlog url={post.url} titulo={post.frontmatter.titulo}/>)}
+        {filteredPosts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+        {filteredPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
       </ul>
-    </LayoutBase>
+    </BaseLayout>
     ```
 
 5. Verifique a pré-visualização do seu navegador para as páginas de tag individuais, e você deve agora ver uma lista de todas as suas postagens do blog contendo aquela tag em particular.
@@ -176,12 +176,12 @@ Adicione o seguinte código para fornecê-lo com uma lista de cada tag utilizada
 
   ```astro title="src/pages/tags/[tag].astro" ins={7}
   ---
-  import LayoutBase from '../../layouts/LayoutBase.astro';
+  import BaseLayout from '../../layouts/BaseLayout.astro';
 
   export async function getStaticPaths() {
-    const todasPostagens = await Astro.glob('../posts/*.md');
+    const allPosts = await Astro.glob('../posts/*.md');
 
-    const tagsUnicas = [...new Set(todasPostagens.map((post) => post.frontmatter.tags).flat())];
+    const uniqueTags = [...new Set(allPosts.map((post) => post.frontmatter.tags).flat())];
   ```
 
     <details>
@@ -192,43 +192,43 @@ Adicione o seguinte código para fornecê-lo com uma lista de cada tag utilizada
     Ela vai por cada postagem Markdown, uma por uma, e combina cada array de tags em um único array maior. Então, ela faz um novo `Set` a partir de todas as tags individuais encontradas (para ignorar valores repetidos). Finalmente, ela torna aquele set em um array (sem duplicações), que você pode usar para mostrar uma lista de tags em sua página.
     </details>
 
-Agora você tem um array `tagsUnicas` com os itens de elemento `"astro"`, `"sucessos"`, `"comunidade"`, `"blogueirando"`, `"contratempos"`, `"aprendendo em público"` 
+Agora você tem um array `uniqueTags` com os itens de elemento `"astro"`, `"sucessos"`, `"comunidade"`, `"blogueirando"`, `"contratempos"`, `"aprendendo em público"` 
 
 ### 3. Substitua o valor de `return` da função `getStaticPaths`
 
 ```js title="src/pages/tags/[tag].astro" del={1-8} ins={10-16}
   return [
-        {params: {tag: "astro"}, props: {posts: todasPostagens}},
-        {params: {tag: "sucessos"}, props: {posts: todasPostagens}},
-        {params: {tag: "comunidade"}, props: {posts: todasPostagens}},
-        {params: {tag: "blogueirando"}, props: {posts: todasPostagens}},
-        {params: {tag: "contratempos"}, props: {posts: todasPostagens}},
-        {params: {tag: "aprendendo em público"}, props: {posts: todasPostagens}}
+        {params: {tag: "astro"}, props: {posts: allPosts}},
+        {params: {tag: "sucessos"}, props: {posts: allPosts}},
+        {params: {tag: "comunidade"}, props: {posts: allPosts}},
+        {params: {tag: "blogueirando"}, props: {posts: allPosts}},
+        {params: {tag: "contratempos"}, props: {posts: allPosts}},
+        {params: {tag: "aprendendo em público"}, props: {posts: allPosts}}
       ]
 
-  return tagsUnicas.map((tag) => {
-    const postagensFiltradas = todasPostagens.filter((post) => post.frontmatter.tags.includes(tag));
+  return uniqueTags.map((tag) => {
+    const filteredPosts = allPosts.filter((post) => post.frontmatter.tags.includes(tag));
     return {
       params: { tag },
-      props: { posts: postagensFiltradas },
+      props: { posts: filteredPosts },
     };
   });
 ```
 Uma função `getStaticPaths` deve sempre retornar uma lista de objetos contendo `params` (do que chamar cada rota de página) e opcionalmente quaisquer `props` (dados que você quer passar para essas páginas). Anteriormente, você definiu cada nome de tag que você sabia que estava sendo utilizada em sua seu blog e passou a lista inteira de postagens como props para cada página.
 
-Agora, você gerou essa lista de objetos automaticamente utilizando seu array `tagsUnicas` para definir cada parâmetro.
+Agora, você gerou essa lista de objetos automaticamente utilizando seu array `uniqueTags` para definir cada parâmetro.
 
-E agora, a lista de todas as postagens do blog é filtrada **antes** de ser enviada para cada página como props. Certifique-se de remover a linha de código usada anteriormente para filtrar as postagens, e atualize seu template HTML para utilizar `posts` ao invés de `postagensFiltradas`.
+E agora, a lista de todas as postagens do blog é filtrada **antes** de ser enviada para cada página como props. Certifique-se de remover a linha de código usada anteriormente para filtrar as postagens, e atualize seu template HTML para utilizar `posts` ao invés de `filteredPosts`.
 
 ```astro title="src/pages/tags/[tag].astro" del={3,7} ins={8}
 const { tag } = Astro.params;
 const { posts } = Astro.props;
-const postagensFiltradas = posts.filter((post) => post.frontmatter.tags?.includes(tag));
+const filteredPosts = posts.filter((post) => post.frontmatter.tags?.includes(tag));
 ---
 <!-- -->
 <ul>
-    {postagensFiltradas.map((post) => <PostBlog url={post.url} titulo={post.frontmatter.titulo}/>)}
-    {posts.map((post) => <PostBlog url={post.url} titulo={post.frontmatter.titulo}/>)}
+    {filteredPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+    {posts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
 </ul>
 ```
 
@@ -238,19 +238,19 @@ Para verificar seu trabalho, ou se você só quer um código completo e correto 
 
 ```astro title="src/pages/tags/[tag].astro"
 ---
-import LayoutBase from '../../layouts/LayoutBase.astro';
-import PostBlog from '../../components/PostBlog.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BlogPost from '../../components/BlogPost.astro';
 
 export async function getStaticPaths() {
-  const todasPostagens = await Astro.glob('../posts/*.md');
+  const allPosts = await Astro.glob('../posts/*.md');
   
-  const tagsUnicas = [...new Set(todasPostagens.map((post) => post.frontmatter.tags).flat())];
+  const uniqueTags = [...new Set(allPosts.map((post) => post.frontmatter.tags).flat())];
 
-  return tagsUnicas.map((tag) => {
-    const postagensFiltradas = todasPostagens.filter((post) => post.frontmatter.tags.includes(tag));
+  return uniqueTags.map((tag) => {
+    const filteredPosts = allPosts.filter((post) => post.frontmatter.tags.includes(tag));
     return {
       params: { tag },
-      props: { posts: postagensFiltradas },
+      props: { posts: filteredPosts },
     };
   });
 }
@@ -258,12 +258,12 @@ export async function getStaticPaths() {
 const { tag } = Astro.params;
 const { posts } = Astro.props;
 ---
-<LayoutBase tituloPagina={tag}>
+<BaseLayout pageTitle={tag}>
   <p>Postagens com a tag {tag}</p>
   <ul>
-    {posts.map((post) => <PostBlog url={post.url} titulo={post.frontmatter.titulo}/>)}
+    {posts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
   </ul>
-</LayoutBase>
+</BaseLayout>
 ```
 
 Agora, você deve ser capaz de visitar qualquer uma das suas páginas de tag na sua pré-visualização do navegador. 
