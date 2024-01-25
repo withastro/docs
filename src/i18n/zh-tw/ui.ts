@@ -80,6 +80,7 @@ export default UIDictionary({
 	'integrations.renderers': 'UI 框架',
 	'integrations.adapters': 'SSR 配接器',
 	'integrations.others': '其他',
+	'integrations.more': '更多',
 	// Checklist component
 	'checklist.or': '或',
 	// Multiple Choice component
@@ -101,6 +102,9 @@ export default UIDictionary({
 	'feedback.categoryGroupLabel': '選擇反饋類型',
 	'feedback.issue': '問題',
 	'feedback.createIssue': '建立 GitHub Issue',
+	'feedback.createIssue.description': '向我們的團隊發出問題警報的最快方法。',
+	'feedback.sendFeedback': '向我們發送回饋',
+	'feedback.sendFeedback.description': '直接給我們留言。',
 	'feedback.idea': '想法',
 	'feedback.other': '其它',
 	'feedback.messageA11yLabel': '留言',
@@ -123,4 +127,7 @@ export default UIDictionary({
 		'想為這個指南貢獻嗎？是否有介紹從這種技術遷移至 Astro 的部落格文章、影片或其他資源可以分享？',
 	'stub.description.cms': '知道更多在 Astro 使用此 CMS 的資訊？',
 	'stub.description.backend': '知道更多在 Astro 使用此後端服務的資訊？',
+	// Starlight banner
+	'starlight.title': '想要創建自己的文檔嗎？',
+	'starlight.description': '獲取此模版即可開始。',
 });
