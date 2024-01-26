@@ -1,0 +1,503 @@
+---
+title: Supabase 与 Astro
+description: 为你的项目集成 Supabase 后端
+type: backend
+service: Supabase
+stub: false
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import FileTree from '~/components/FileTree.astro'
+
+[Supabase](https://supabase.com/) 是一个 Firebase 的开源替代品。它提供了 Postgres 数据库、身份验证、边缘函数、实时订阅和存储。
+
+## 在 Astro 中初始化 Supabase
+
+### 前期准备
+
+- 一个 Supabase 项目。如果你没有，你可以免费注册 [supabase.com](https://supabase.com/) 并创建一个新的项目。
+- 一个开启了 [服务端渲染模式 (SSR)](/zh-cn/guides/server-side-rendering/) 的 Astro 项目。
+- 为你的项目添加 Supabase 凭据。你可以在你的 Supabase 项目中的 **Settings > API** 页签中找到这些内容。
+  - `SUPABASE_URL`: 你的 Supabase 项目的URL。
+  - `SUPABASE_ANON_KEY`: 你的 Supabase 项目的密钥。
+
+### 添加 Supabase 凭据
+
+要将 Supabase 凭据添加到 Astro，需要项目的根目录下创建一个名为 `.env` 的文件，并添加以下变量:
+
+```ini title=".env"
+SUPABASE_URL=YOUR_SUPABASE_URL
+SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+```
+
+现在你已经可以在项目中使用这些变量。
+
+如果你希望为 Supabase 环境变量启用 IntelliSense 功能，那么可以在 `src/` 目录中编辑或创建 `env.d.ts` 文件，并配置你的自定义类型：
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly SUPABASE_URL: string
+  readonly SUPABASE_ANON_KEY: string
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv
+}
+```
+
+:::tip
+了解更多在 Astro 有关于 [环境变量](/zh-cn/guides/environment-variables/) 以及 `.env` 文件的内容。
+:::
+
+现在你的项目应该包括以下几个新文件：
+
+<FileTree title="Project Structure">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### 安装依赖
+
+要将 Astro 连接到 Supabase 需要在你的项目中安装 `@supabase/supabase-js`：
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @supabase/supabase-js
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @supabase/supabase-js
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @supabase/supabase-js
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+接下来，在 `src/` 目录下创建一个名为 `lib` 的文件夹。 这将是你添加 Supabase 客户端代码的地方。
+
+在 `supabase.ts`文件中，请添加以下代码来初始化客户端中的 Supabase：
+
+```ts title="src/lib/supabase.ts"
+import { createClient } from "@supabase/supabase-js";
+
+export const supabase = createClient(
+  import.meta.env.SUPABASE_URL,
+  import.meta.env.SUPABASE_ANON_KEY,
+);
+```
+
+现在，你的项目应该包含了以下这些新文件：
+
+<FileTree title="Project Structure">
+- src/
+  - lib/
+    - **supabase.ts**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## 使用 Supabase 添加身份验证
+
+Supabase 提供了开箱即用的身份验证功能。它支持电子邮件（或密码身份）验证以及如GitHub, Google等多个提供商的 OAuth 身份验证。
+
+### 前期准备
+
+- [一个已经初始化 Supabase 的 Astro 项目](#在-astro-中初始化-supabase).
+- 一个启用了电子邮件（或密码身份）验证的 Supabase 项目，你可以在 Supabase 控制台中的「身份验证（Authentication） > 提供商（Providers）」中启用。
+
+### 创建身份验证的服务器端点
+
+为了在你的项目中添加身份验证功能，你需要创建一些服务器端点。这些端点将被用作注册、登录、退出登录用户：
+
+- `POST /api/auth/register`: 创建一个新用户。
+- `POST /api/auth/signin`: 用户登录。
+- `GET /api/auth/signout`: 用户退出登录。
+
+在新建目录 `src/pages/api/auth/` 下，创建与身份验证相关的三个端点：`signin.ts`、`signout.ts` 和 `register.ts`。
+
+<FileTree title="Project Structure">
+- src/
+  - lib/
+    - supabase.ts
+  - pages/
+    - api/
+      - auth/
+        - **signin.ts**
+        - **signout.ts**
+        - **register.ts**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+`register.ts` 文件包含使用 Supabase 注册用户的代码逻辑。它接受带有一个电子邮箱和密码信息的 `POST` 请求。然后它将使用 Supabase SDK 创建一个新用户。
+
+```ts title="src/pages/api/auth/register.ts"
+import type { APIRoute } from "astro";
+import { supabase } from "../../../lib/supabase";
+
+export const POST: APIRoute = async ({ request, redirect }) => {
+  const formData = await request.formData();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+
+  if (!email || !password) {
+    return new Response("Email and password are required", { status: 400 });
+  }
+
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+  });
+
+  if (error) {
+    return new Response(error.message, { status: 500 });
+  }
+
+  return redirect("/signin");
+};
+```
+
+`signin.ts` 文件包含使用 Supabase 执行用户登录的代码逻辑。它接受一个带有电子邮箱和密码信息的 `POST` 请求。然后它将使用 Supabase SDK 登录用户。
+
+```ts title="src/pages/api/auth/signin.ts"
+import type { APIRoute } from "astro";
+import { supabase } from "../../../lib/supabase";
+
+export const POST: APIRoute = async ({ request, cookies, redirect }) => {
+  const formData = await request.formData();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+
+  if (!email || !password) {
+    return new Response("Email and password are required", { status: 400 });
+  }
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    return new Response(error.message, { status: 500 });
+  }
+
+  const { access_token, refresh_token } = data.session;
+  cookies.set("sb-access-token", access_token, {
+    path: "/",
+  });
+  cookies.set("sb-refresh-token", refresh_token, {
+    path: "/",
+  });
+  return redirect("/dashboard");
+};
+```
+
+`signout.ts` 文件包含使用 Supabase 执行用户退出登录的代码逻辑。它接受一个 `GET` 请求并且删除用户的访问信息和刷新令牌。
+
+```ts title="src/pages/api/auth/signout.ts"
+import type { APIRoute } from "astro";
+
+export const GET: APIRoute = async ({ cookies, redirect }) => {
+  cookies.delete("sb-access-token", { path: "/" });
+  cookies.delete("sb-refresh-token", { path: "/" });
+  return redirect("/signin");
+};
+```
+
+### 创建页面
+
+现在你已经创建了服务器端点，接下来创建使用它们的页面：
+
+- `src/pages/register`: 包含一个创建新用户的表单。
+- `src/pages/signin`: 包含一个用户登录的表单。
+- `src/pages/dashboard`: 包含一个仅登录用户能访问的页面。
+
+在 `src/pages` 目录中创建这些页面。你的项目将会包含以下这些新文件：
+
+<FileTree title="Project Structure">
+- src/
+  - lib/
+    - supabase.ts
+  - pages/
+    - api/
+      - auth/
+        - signin.ts
+        - signout.ts
+        - register.ts
+    - **register.astro**
+    - **signin.astro**
+    - **dashboard.astro**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+`register.astro` 包含一个用于创建新用户的表单，该表单接受电子邮箱和密码信息并将向 `/api/auth/register` 端点发送 `POST` 请求。
+
+```astro title="src/pages/register.astro"
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="注册">
+  <h1>注册</h1>
+  <p>已经有一个账户? <a href="/signin">登录</a></p>
+  <form action="/api/auth/register" method="post">
+    <label for="email" for="email">邮箱</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">密码</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">登录</button>
+  </form>
+</Layout>
+```
+
+`signin.astro` 包含一个用于用户登录的表单。该表单接受电子邮箱和密码信息并将向 `/api/auth/signin` 端点发送 `POST` 请求。它还检查是否存在访问和刷新令牌。如果它们存在，它将重定向到 `/dashboard` 页面。
+
+```astro title="src/pages/signin.astro"
+---
+import Layout from "../layouts/Layout.astro";
+
+const { cookies, redirect } = Astro;
+
+const accessToken = cookies.get("sb-access-token");
+const refreshToken = cookies.get("sb-refresh-token");
+
+if (accessToken && refreshToken) {
+  return redirect("/dashboard");
+}
+---
+
+<Layout title="登录">
+  <h1>登录</h1>
+  <p>新用户? <a href="/register">创建一个账号</a></p>
+  <form action="/api/auth/signin" method="post">
+    <label for="email" for="email">邮箱</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">密码</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">登录</button>
+  </form>
+</Layout>
+```
+
+`dashboard.astro` 包含一个只有经过身份验证的用户才能访问的页面。它检查是否存在访问信息和刷新令牌。如果它们不存在，它将重定向到登录页面。
+
+```astro title="src/pages/dashboard.astro"
+---
+import Layout from "../layouts/Layout.astro";
+import { supabase } from "../lib/supabase";
+
+const { cookies, redirect } = Astro;
+
+const accessToken = cookies.get("sb-access-token");
+const refreshToken = cookies.get("sb-refresh-token");
+
+if (!accessToken || !refreshToken) {
+  return redirect("/signin");
+}
+
+const { data, error } = await supabase.auth.setSession({
+  refresh_token: refreshToken.value,
+  access_token: accessToken.value,
+});
+
+if (error) {
+  cookies.delete("sb-access-token", {
+    path: "/",
+  });
+  cookies.delete("sb-refresh-token", {
+    path: "/",
+  });
+
+  return redirect("/signin");
+}
+
+const email = data?.user?.email;
+---
+<Layout title="控制台">
+  <h1>欢迎 {email}</h1>
+  <p>我们很高兴在这里见到你</p>
+  <form action="/api/auth/signout">
+    <button type="submit">退出登录</button>
+  </form>
+</Layout>
+```
+
+### 添加 OAuth 提供商
+
+要想为你的应用程序添加 OAuth 提供商，你需要编辑 Supabase 客户端，以使用 `"pkce"` 启用身份验证流。你可以在 [Supabase 文档](https://supabase.com/docs/guides/auth/server-side-rendering#understanding-the-authentication-flow) 中阅读更多关于身份验证流的信息
+
+```ts title="src/lib/supabase.ts" ins={6-10}
+import { createClient } from "@supabase/supabase-js";
+
+export const supabase = createClient(
+  import.meta.env.SUPABASE_URL,
+  import.meta.env.SUPABASE_ANON_KEY,
+  {
+    auth: {
+      flowType: "pkce",
+    },
+  },
+);
+```
+
+接下来，你可以在 Supabase 控制台中，启用你想要使用的 OAuth 提供商。你可以在Supabase项目的「身份验证（Authentication） > 提供商（Providers）」选项卡中找到受支持的提供商列表。
+
+下面的示例使用 GitHub 作为 OAuth 提供商。要将项目连接到 GitHub，请按照 [Supabase 文档](https://supabase.com/docs/guides/auth/social-login/auth-github) 中的步骤操作。
+
+然后，在 `src/pages/api/auth/callback.ts` 处创建一个新的服务器端点来处理 OAuth 回调。该端点将用于交换 OAuth 代码以获得访问信息和刷新令牌。
+
+```ts title="src/pages/api/auth/callback.ts"
+import type { APIRoute } from "astro";
+import { supabase } from "../../../lib/supabase";
+
+export const GET: APIRoute = async ({ url, cookies, redirect }) => {
+  const authCode = url.searchParams.get("code");
+
+  if (!authCode) {
+    return new Response("No code provided", { status: 400 });
+  }
+
+  const { data, error } = await supabase.auth.exchangeCodeForSession(authCode);
+
+  if (error) {
+    return new Response(error.message, { status: 500 });
+  }
+
+  const { access_token, refresh_token } = data.session;
+
+  cookies.set("sb-access-token", access_token, {
+    path: "/",
+  });
+  cookies.set("sb-refresh-token", refresh_token, {
+    path: "/",
+  });
+
+  return redirect("/dashboard");
+};
+```
+
+接下来，编辑登录页面，使其包含一个用于使用 OAuth 提供商进行登录的新按钮。这个按钮应该发送一个 `POST` 请求到 `provider` 设置为 OAuth 提供商的名称的 `/api/auth/signin` 端点：
+
+```astro title="src/pages/signin.astro" ins={23}
+---
+import Layout from "../layouts/Layout.astro";
+
+const { cookies, redirect } = Astro;
+
+const accessToken = cookies.get("sb-access-token");
+const refreshToken = cookies.get("sb-refresh-token");
+
+if (accessToken && refreshToken) {
+  return redirect("/dashboard");
+}
+---
+
+<Layout title="登录">
+  <h1>登录</h1>
+  <p>新用户? <a href="/register">创建账户</a></p>
+  <form action="/api/auth/signin" method="post">
+    <label for="email" for="email">邮箱</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">密码</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">登录</button>
+    <button value="github" name="provider" type="submit">通过 GitHub 登录</button>
+  </form>
+</Layout>
+```
+
+最后，编辑登录服务器端点以处理 OAuth 提供商。如果 `provider` 存在，它将重定向到 OAuth 提供商。否则，它将使用电子邮件和密码登录用户：
+
+```ts title="src/pages/api/auth/signin.ts" ins={10-23}
+import type { APIRoute } from "astro";
+import { supabase } from "../../../lib/supabase";
+import type { Provider } from "@supabase/supabase-js";
+
+export const POST: APIRoute = async ({ request, cookies, redirect }) => {
+  const formData = await request.formData();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+  const provider = formData.get("provider")?.toString();
+
+  const validProviders = ["google", "github", "discord"];
+
+  if (provider && validProviders.includes(provider)) {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: provider as Provider,
+      options: {
+        redirectTo: "http://localhost:4321/api/auth/callback"
+      },
+    });
+
+    if (error) {
+      return new Response(error.message, { status: 500 });
+    }
+
+    return redirect(data.url);
+  }
+
+  if (!email || !password) {
+    return new Response("Email and password are required", { status: 400 });
+  }
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    return new Response(error.message, { status: 500 });
+  }
+
+  const { access_token, refresh_token } = data.session;
+  cookies.set("sb-access-token", access_token, {
+    path: "/",
+  });
+  cookies.set("sb-refresh-token", refresh_token, {
+    path: "/",
+  });
+  return redirect("/dashboard");
+};
+```
+
+在创建 OAuth 回调端点并编辑登录页面和服务器端点之后，你的项目应该具有以下文件结构：
+
+<FileTree title="Project Structure">
+- src/
+  - lib/
+    - supabase.ts
+  - pages/
+    - api/
+      - auth/
+        - signin.ts
+        - signout.ts
+        - register.ts
+        - callback.ts
+    - register.astro
+    - signin.astro
+    - dashboard.astro
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## 社区资源
+
+- [轻松掌握 Astro，React 与 Supabase](https://www.aleksandra.codes/astro-supabase)
+- [Astro 与 Supabase 授权示例](https://github.com/kevinzunigacuellar/astro-supabase)
