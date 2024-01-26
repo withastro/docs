@@ -168,8 +168,14 @@ export default [
 	{ text: 'NPM Package Format', slug: 'reference/publish-to-npm', key: 'guides/publish-to-npm' },
 
 	{ text: 'Community Resources', header: true, type: 'learn', key: 'communityResources' },
-	{ text: 'Courses, Guides, and Recipes', slug: 'community-resources/content', key: 'community-resources/content' },
-	{ text: 'Talks, Interviews, and Streams', slug: 'community-resources/talks', key: 'community-resources/talks' },
-
-
+	{
+		text: 'Courses, Guides, and Recipes',
+		slug: 'community-resources/content',
+		key: 'community-resources/content',
+	},
+	{
+		text: 'Talks, Interviews, and Streams',
+		slug: 'community-resources/talks',
+		key: 'community-resources/talks',
+	},
 ] as const;
