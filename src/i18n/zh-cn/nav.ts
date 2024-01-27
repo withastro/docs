@@ -73,4 +73,7 @@ export default NavDictionary({
 	'reference/cli-reference': '命令行',
 	'reference/error-reference': '错误参考',
 	'guides/publish-to-npm': 'NPM 包格式',
+	communityResources: '社区资源',
+	'community-resources/content': '课程、指南和方案',
+	'community-resources/talks': '演讲、访谈和直播',
 });
