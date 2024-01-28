@@ -949,15 +949,7 @@ Viteに追加の設定項目を渡します。Astroがサポートしていな�
 }
 ```
 
-## レガシーなフラグ
-
-Astroのバージョン間の移行を支援するために、`legacy`フラグを導入することがあります。これらのフラグを使用すると、最新バージョンのAstroでも非推奨または古い動作を有効化できるため、Astroの新しいリリースにアップグレードして引き続き利用できます。
-
-## 実験的なフラグ
-
-Astroは、ユーザーが新しい機能に早期にアクセスできるように、実験的なフラグを提供しています。これらのフラグは安定しているとは限りません。
-
-### i18n
+## i18n
 
 <p>
 
@@ -965,7 +957,7 @@ Astroは、ユーザーが新しい機能に早期にアクセスできるよう
   <Since v="3.5.0" />
 </p>
 
-実験的なi18nルーティングを設定し、カスタマイズオプションを指定できるようにします。
+i18nルーティングを設定し、カスタマイズオプションを指定できるようにします。
 
 より詳しい情報については、ガイド[Astroにおける国際化](/ja/guides/internationalization/)を参照してください。
 
@@ -1013,14 +1005,12 @@ Astroは、ユーザーが新しい機能に早期にアクセスできるよう
 
 ```js
 export default defineConfig({
-	experimental: {
-		i18n: {
-			defaultLocale: "en",
-			locales: ["en", "fr", "pt-br", "es"],
-			fallback: {
-				pt: "es",
-				fr: "en"
-			}
+	i18n: {
+		defaultLocale: "en",
+		locales: ["en", "fr", "pt-br", "es"],
+		fallback: {
+			pt: "es",
+			fr: "en"
 		}
 	}
 })
@@ -1048,6 +1038,41 @@ export default defineConfig({
 `false`の場合、デフォルト以外の言語でのみ言語プリフィックスが表示されます。`defaultLocale`では、言語プリフィックスとローカライズされたフォルダに存在しないコンテンツファイルは表示されません。URLの形式は、デフォルト以外のすべての言語では`example.com/[lang]/content/`になりますが、デフォルトのロケールでは`example.com/content/`になります。
 
 `true`の場合、すべてのURLに言語プリフィックスが表示されます。URLの形式は、デフォルト言語も含めて、すべてのルーティングで`example.com/[lang]/content/`になります。ローカライズされたフォルダが、デフォルト言語も含めてすべての言語で使用されます。
+
+#### i18n.routing.redirectToDefaultLocale
+
+<p>
+
+  **データ型:** `boolean`<br />
+  **デフォルト:** `true`<br />
+  <Since v="4.2.0" />
+</p>
+
+`prefixDefaultLocale: true`が設定されている場合に、`src/pages/index.astro`から生成されたホームURL（`/`）を`/[defaultLocale]`にリダイレクトするかどうかを設定します。
+
+`redirectToDefaultLocale: false`を設定すると、サイトのルート上でこの自動リダイレクトを無効化します。
+
+```js
+// astro.config.mjs
+export default defineConfig({
+i18n:{
+  defaultLocale: "en",
+    locales: ["en", "fr"],
+    routing: {
+    prefixDefaultLocale: true,
+      redirectToDefaultLocale: false
+  }
+}
+})
+```
+
+## レガシーなフラグ
+
+Astroのバージョン間の移行を支援するために、`legacy`フラグを導入することがあります。これらのフラグを使用すると、最新バージョンのAstroでも非推奨または古い動作を有効化できるため、Astroの新しいリリースにアップグレードして引き続き利用できます。
+
+## 実験的なフラグ
+
+Astroは、ユーザーが新しい機能に早期にアクセスできるように、実験的なフラグを提供しています。これらのフラグは安定しているとは限りません。
 
 ### experimental.optimizeHoistedScript
 
@@ -1086,3 +1111,65 @@ export default defineConfig({
 	},
 }
 ```
+
+### experimental.clientPrerender
+
+<p>
+
+  **データ型:** `boolean`<br />
+  **デフォルト:** `false`<br />
+  <Since v="4.2.0" />
+</p>
+
+対応ブラウザで、設定されたページのクライアント上でのプリレンダリングを有効化します。
+
+この機能は、実験的な[Speculation Rules Web API](https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API)を使用しており、デフォルトの`prefetch`の動作を、クライアント上でリンクをプリレンダリンクするようにグローバルで上書きします。この機能を有効にする前に、[クライアント上でのプリレンダリングを行うときの潜在的なリスク](https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API#unsafe_prefetching)を確認ことをおすすめします。
+
+以下は、`astro.config.mjs`で、好きな`prefetch`設定オプションとともにクライアントサイドのプリレンダリングを有効にする例です。
+
+```js
+// astro.config.mjs
+{
+	prefetch: {
+		prefetchAll: true,
+		defaultStrategy: 'viewport',
+	},
+	experimental: {
+  	clientPrerender: true,
+	},
+}
+```
+
+サイト上の任意の`<a />`リンク上で`data-astro-prefetch`属性を使うことで、引き続きプリフェッチにオプト・インできます。`<link>`タグをドキュメントの先頭に追加したり、ページをJavaScriptでフェッチする代わりに、対応するspeculation ruleを持つ`<script>`タグが追加されます。
+
+クライアントサイドのプリレンダリングにはブラウザの対応が必要です。Speculation Rules APIがサポートされていない場合は、`prefetch`は対応している戦略にフォールバックします。
+
+より詳しい`prefetch`のオプションや使用方法については、[prefetchのガイド](/ja/guides/prefetch/)を参照してください。
+
+### experimental.globalRoutePriority
+
+<p>
+
+  **データ型:** `boolean`<br />
+  **デフォルト:** `false`<br />
+  <Since v="4.2.0" />
+</p>
+
+すべてのルーティングに対して、同じ[ルーティング優先順位ルール](/ja/core-concepts/routing/#ルーティングの優先順位)に従い、リダイレクトと挿入されたルーティングをファイルベースのプロジェクトルーティングと同等に優先順位付けします。
+
+  これにより、特定の種類のルーティングを自動的に優先せずに、プロジェクト内のルーティングをより制御できるようになり、すべてのルーティングに対してルーティングの優先順位付けを標準化できます。
+
+以下の例は、ファイルベースのルーティング、挿入されたルーティング、リダイレクトが次のように組み合わされた場合に、どのルートが特定のページのURLをビルドするかを示しています。
+- ファイルベースのルーティング: `/blog/post/[pid]`
+- ファイルベースのルーティング: `/[page]`
+- 挿入されたルーティング: `/blog/[...slug]`
+- リダイレクト: `/blog/tags/[tag]` -> `/[tag]`
+- リダイレクト: `/posts` -> `/blog`
+
+`experimental.globalRoutingPriority`を有効化すると、（Astro 4.0のデフォルトのルーティング優先順位の代わりに）次のようになります。
+
+- （挿入されたルーティング`/blog/[...slug]`の代わりに）`/tags/[tag]`へのリダイレクトにより、`/blog/tags/astro`がビルドされる
+- （挿入されたルーティング`/blog/[...slug]`の代わりに）ファイルベースのルーティング`/blog/post/[pid]`により、`/blog/post/0`がビルドされる
+- （ファイルベースのルーティング`/[page]`の代わりに）`/blog`へのリダイレクトにより、`/posts`がビルドされる
+
+ルーティングの優先度が等しい2つのルーティングが同じURLのビルドを試みる、ルーティング衝突というイベントが起きたときは、Astroは競合するルーティングを特定できる警告をログ出力します。
