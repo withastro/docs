@@ -3,7 +3,7 @@ import { NavDictionary } from '../translation-checkers';
 export default NavDictionary({
 	startHere: 'Empezar Aquí',
 	'getting-started': 'Cómo Empezar',
-	
+
 	install: 'Instalación',
 	'editor-setup': 'Configuración del Editor',
 	'guides/upgrade-to/v4': 'Actualizar a v4',
@@ -77,5 +77,5 @@ export default NavDictionary({
 
 	communityResources: 'Recursos de la Comunidad',
 	'community-resources/content': 'Cursos, Guías y Recetas',
-	'community-resources/talks': 'Charlas, Entrevistas y Transmisiones'
+	'community-resources/talks': 'Charlas, Entrevistas y Transmisiones',
 });
