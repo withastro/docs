@@ -1,0 +1,155 @@
+---
+type: integration
+title: '@astrojs/partytown'
+description: Astro 프로젝트에서 @astrojs/partytown 통합을 사용하는 방법을 알아보세요.
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/partytown/'
+category: other
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+이 **[Astro 통합][astro-integration]**은 Astro 프로젝트에서 [Partytown](https://partytown.builder.io/)을 활성화합니다.
+
+## 왜 Astro Partytown인가?
+
+Partytown은 리소스 집약적인 스크립트를 [web worker](https://developer.mozilla.org/ko/docs/Web/API/Web_Workers_API) 및 [메인 스레드](https://developer.mozilla.org/ko/docs/Glossary/Main_thread) 외부로 재배치하는 데 도움이 되는 지연 로드 라이브러리입니다.
+
+분석이나 광고와 같은 작업에 타사 스크립트를 사용하는 경우 Partytown은 사이트 속도를 저하시키지 않도록 하는 좋은 방법입니다.
+
+Astro Partytown 통합은 Partytown을 설치하고 모든 페이지에서 활성화되었는지 확인합니다.
+
+## 설치
+
+Astro에는 공식 통합 설정을 자동화하는 `astro add` 명령이 포함되어 있습니다. 원하는 경우 대신 [통합을 수동으로 설치](#수동-설치)할 수 있습니다.
+
+새 터미널 창에서 다음 명령 중 하나를 실행합니다.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add partytown
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add partytown
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add partytown
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+문제가 발생하면 [GitHub에서 언제든지 보고](https://github.com/withastro/astro/issues)하고 아래 수동 설치 단계를 시도해 보세요.
+
+### 수동 설치
+
+먼저 `@astrojs/partytown` 패키지를 설치하세요.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install @astrojs/partytown
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add @astrojs/partytown
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add @astrojs/partytown
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+그런 다음 `integrations` 속성을 사용하여 `astro.config.*` 파일에 통합을 적용합니다.
+
+```js title="astro.config.mjs" ins={2} ins="partytown()"
+import { defineConfig } from 'astro/config';
+import partytown from '@astrojs/partytown';
+
+export default defineConfig({
+  // ...
+  integrations: [partytown()],
+});
+```
+
+## 사용하기
+
+Partytown은 구성 없이 사용할 준비가 되어 있어야 합니다. 사이트에 기존 타사 스크립트가 있는 경우 `type="text/partytown"` 속성을 추가해 보세요.
+
+```html ins="type="text/partytown""
+<script type="text/partytown" src="fancy-analytics.js"></script>
+```
+
+[브라우저 개발 도구](https://developer.chrome.com/docs/devtools/open/)에서 "Network" 탭을 열면 `partytown` 프록시가 이 요청을 가로채는 것을 볼 수 있습니다.
+
+## 구성
+
+이 통합을 구성하려면 `astro.config.mjs` 파일의 `partytown()` 함수 호출에 'config' 객체를 전달하세요.
+
+```js title="astro.config.mjs" {5-7}
+export default defineConfig({
+  // ...
+  integrations: [
+    partytown({
+      config: {
+        // 옵션은 여기에 추가합니다.
+      },
+    }),
+  ],
+});
+```
+
+이는 [Partytown 구성 객체](https://partytown.builder.io/configuration)를 미러링합니다.
+
+### config.debug
+
+Partytown에는 `debug` 모드가 포함되어 있습니다. `config.debug`에 `true` 또는 `false`를 전달하여 활성화하거나 비활성화합니다. [`debug` 모드](https://partytown.builder.io/debugging)가 활성화되면 브라우저 콘솔에 자세한 로그가 출력됩니다.
+
+기본적으로 이 옵션을 설정하지 않으면 [dev](/ko/reference/cli-reference/#astro-dev) 모드나 [preview](/ko/reference/cli-reference/#astro-preview) 모드에서 디버그 모드가 켜집니다.
+
+```js title="astro.config.mjs" {6}
+export default defineConfig({
+  // ...
+  integrations: [
+    partytown({
+      // 예: 디버그 모드를 비활성화합니다.
+      config: { debug: false },
+    }),
+  ],
+});
+```
+
+### config.forward
+
+타사 스크립트는 일반적으로 `window` 객체에 변수를 추가하므로 사이트 전체에서 해당 객체와 통신할 수 있습니다. 그러나 웹 워커에 스크립트가 로드되면 해당 전역 `window` 객체에 액세스할 수 없습니다.
+
+이 문제를 해결하기 위해 Partytown은 전역 window 객체에 변수를 "patch"하고 이를 적절한 스크립트로 전달할 수 있습니다.
+
+`config.forward` 옵션을 사용하여 전달할 변수를 지정할 수 있습니다. [Partytown 문서에서 자세히 알아보세요.](https://partytown.builder.io/forwarding-events)
+
+```js title="astro.config.mjs" {7}
+export default defineConfig({
+  // ...
+  integrations: [
+    partytown({
+      // 예: dataLayer.push를 forwarding-event로 추가합니다.
+      config: {
+        forward: ['dataLayer.push'],
+      },
+    }),
+  ],
+});
+```
+
+## 예
+
+* 더 많은 예시를 보려면 [GitHub에서 Astro Partytown 프로젝트를 찾아보세요](https://github.com/search?q=%22%40astrojs%2Fpartytown%22+path%3A**%2Fpackage.json\&type=code)!
+
+[astro-integration]: /ko/guides/integrations-guide/
