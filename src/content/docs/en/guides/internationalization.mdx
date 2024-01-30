@@ -162,30 +162,26 @@ Setting `prefixDefaultLocale: true` will also automatically set `redirectToDefau
 You can opt out of this behavior by [setting `redirectToDefaultLocale: false`](/en/reference/configuration-reference/#i18nroutingredirecttodefaultlocale). This allows you to have a site home page that exists outside of your configured locale folder structure.
 
 
-#### `strategy: "pathname"`
 
-This is the **default** strategy. The strategy is applied to the pathname of the URLs.
+#### `domains` (experimental)
 
-#### `strategy: "domain"` (experimental)
+This routing option allows you customize your domains on a per-language basis for `server` rendered projects using the [`@astrojs/node` adapter](/en/guides/integrations-guide/node/) and a `site` configured.
 
-This feature has some restrictions, which are listed below:
-- the `output` option must be set to `"server"`;
-- the `site` option is mandatory;
-- there can't be any pre-rendered pages;
-- the adapter feature [`functionPerRoute`](/en/reference/adapter-reference/#functionperroute) isn't supported;
+To enable this in your project, [configure i18n routing](/#configure-i18n-routing) with your preferences if you have not already done so. Then, set the `experimental.i18nDomains` flag to `true` and add `i18n.domains` to map any of your supported `locales` to custom URLs:
 
-When a locale is mapped to domain, all the URLs won't have the language prefix. You map `fr` to `fr.example.com`, if you want to have a blog page to look like `fr.example.com/blog` instead of `example.com/fr/blog`. The localised folders be must in the `src/pages/` folder.
-
-```js title="astro.config.mjs" ins={3-4} ins={11-18} ins="strategy: \"domains\"" 
+```js title="astro.config.mjs" {3-7} ins={12-19}
 import { defineConfig } from "astro/config"
 export default defineConfig({
   site: "https://example.com",
   output: "server",
+  adapter: node({
+    mode: 'standalone',
+  }),
   i18n: {
     defaultLocale: "en",
     locales: ["es", "en", "fr", "ja"],
     routing: {
-      strategy: "domains"
+      prefixDefaultLocale: false
     },
     domains: {
         fr: "https://fr.example.com",
@@ -197,34 +193,24 @@ export default defineConfig({
   }
 })
 ```
+All non-mapped `locales` will follow your `prefixDefaultLocales` configuration. However, even if this value is `false`, page files for your `defaultLocale` must also exist within a localized folder. For the configuration above, an `/en/` folder is required.
 
-All page content files, including those for your `defaultLocale`, must exist in a localized folder within `src/pages/`
-
-    <FileTree>
-    - src
-      - pages
-        - index.astro
-        - en
-          - index.astro
-          - about.astro
-        - es
-          - about.astro
-          - index.astro
-        - fr
-          - about.astro
-          - index.astro
-        - ja
-          - about.astro
-          - index.astro
-    </FileTree>
-
-When this routing strategy is enabled, and you run `astro build` command, the URLs emitted by `getAbsoluteLocaleUrl` and `getAbsoluteLocaleUrlList` will be different:
+With the above configuration: 
 
 - The file `/fr/about.astro` will create the URL `https://fr.example.com/about`.
 - The file `/es/about.astro` will create the URL `https://example.es/about`.
 - The file `/ja/about/astro` will create the URL `https://example.com/ja/about`.
 - The file `/en/about.astro` will create the URL `https://example.com/about`.
 
+The above URLs will also be returned by the `getAbsoluteLocaleUrl()` and `getAbsoluteLocaleUrlList()` functions.
+
+##### Limitations
+
+This feature has some restrictions:
+- The `site` option is mandatory.
+- The `output` option must be set to `"server"`.
+- There cannot be any individual prerendered pages.
+- The adapter feature [`functionPerRoute`](/en/reference/adapter-reference/#functionperroute) is not supported.
 
 Astro relies on the following headers in order to support the feature:
 - [`X-Forwarded-Host`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host) and [`Host`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Host). Astro will use the former, and if not present will try the latter.
