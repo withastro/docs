@@ -1,0 +1,142 @@
+---
+title: Astro 사이트를 Netlify에 배포하세요
+description: Astro 사이트를 Netlify의 웹에 배포하는 방법.
+type: deploy
+i18nReady: true
+---
+
+import ReadMore from '~/components/ReadMore.astro'
+
+[Netlify](https://netlify.com)는 웹 ​​애플리케이션과 정적 웹사이트를 위한 호스팅 및 서버리스 백엔드 서비스를 제공합니다. 모든 Astro 사이트는 Netlify에서 호스팅될 수 있습니다!
+
+이 가이드에는 웹사이트 UI 또는 Netlify의 CLI를 통해 Netlify에 배포하기 위한 지침이 포함되어 있습니다.
+
+## 프로젝트 구성
+
+Astro 프로젝트는 정적 사이트, 서버 렌더링 사이트, 에지 렌더링 사이트 등 세 가지 방법으로 Netlify에 배포할 수 있습니다.
+
+### 정적 사이트
+
+Astro 프로젝트는 기본적으로 정적 사이트입니다. 정적 Astro 사이트를 Netlify에 배포하기 위해 추가 구성이 필요하지 않습니다.
+
+### SSR용 어댑터
+
+Astro 프로젝트에서 SSR을 활성화하고 Netlify의 에지 함수 사용을 포함하여 Netlify에 배포하려면 다음을 수행하세요.
+
+다음 `astro add` 명령을 사용하여 Astro 프로젝트에서 SSR을 활성화하려면 [Netlify 어댑터](/ko/guides/integrations-guide/netlify/)를 추가하세요. 그러면 어댑터가 설치되고 `astro.config.mjs` 파일이 한 번에 적절하게 변경됩니다.
+
+```bash
+npx astro add netlify
+```
+
+대신 어댑터를 수동으로 설치하려면 다음 두 단계를 완료하십시오.
+
+1. 선호하는 패키지 관리자를 사용하여 프로젝트의 종속성에 [`@astrojs/netlify` 어댑터](/ko/guides/integrations-guide/netlify/)를 설치합니다. npm을 사용 중이거나 확실하지 않은 경우 터미널에서 다음을 실행하세요.
+
+    ```bash
+    npm install @astrojs/netlify
+    ```
+
+1. `astro.config.mjs` 프로젝트 구성 파일에 두 개의 새 줄을 추가합니다.
+
+    ```js title="astro.config.mjs" ins={2, 5-6}
+    import { defineConfig } from 'astro/config';
+    import netlify from '@astrojs/netlify';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: netlify(),
+    });
+    ```
+
+    Netlify 어댑터 구성에 `edgeMiddleware: true`를 추가하여 Netlify의 Edge Functions를 사용하여 프로젝트를 배포할 수도 있습니다.
+
+    ```diff lang="js"
+      // astro.config.mjs
+      import { defineConfig } from 'astro/config';
+      import netlify from '@astrojs/netlify/functions';
+
+      export default defineConfig({
+        output: 'server',
+        adapter: netlify({
+    +     edgeMiddleware: true
+        }),
+      });
+    ```
+
+## 배포 방법
+
+웹사이트 UI를 통해 또는 Netlify의 CLI (명령줄 인터페이스)를 사용하여 Netlify에 배포할 수 있습니다. 프로세스는 정적 사이트와 SSR Astro 사이트 모두 동일합니다.
+
+### 웹사이트 UI 배포
+
+프로젝트가 GitHub, GitLab, BitBucket, Azure DevOps에 저장된 경우 Netlify 웹 사이트 UI를 사용하여 Astro 사이트를 배포할 수 있습니다.
+
+1. [Netlify dashboard](https://app.netlify.com/)에서 <kbd>Add a new site</kbd>를 클릭하세요.
+
+2. <kbd>Import an existing project</kbd>를 선택하세요.
+
+    Git 공급자로부터 Astro 저장소를 가져올 때 Netlify는 자동으로 올바른 구성 설정을 감지하고 미리 값들을 채워야 합니다.
+
+3. 다음 설정이 입력되었는지 확인한 후 <kbd>Deploy</kbd> 버튼을 누르세요.
+
+    - **Build Command:** `astro build` 또는 `npm run build`
+    - **Publish directory:** `dist`
+
+ 배포 후에는 사이트 개요 페이지로 리디렉션됩니다. 여기에서 사이트 세부정보를 편집할 수 있습니다.
+
+소스 저장소에 대한 향후 변경 사항은 배포 구성에 따라 미리 보기 및 프로덕션 배포를 트리거합니다.
+
+#### `netlify.toml` 파일
+
+선택적으로 프로젝트 저장소의 최상위 수준에 새 `netlify.toml` 파일을 생성하여 빌드 명령 및 게시 디렉터리는 물론 환경 변수 및 리디렉션을 포함한 기타 프로젝트 설정을 구성할 수 있습니다. Netlify는 이 파일을 읽고 자동으로 배포를 구성합니다.
+
+기본 설정을 구성하려면 다음 내용이 포함된 `netlify.toml` 파일을 생성하세요.
+
+```toml
+[build]
+  command = "npm run build"
+  publish = "dist"
+```
+
+<ReadMore>Netlify 블로그의 ["기존 Astro Git 저장소 배포"](https://www.netlify.com/blog/how-to-deploy-astro/#deploy-an-existing-git-repository-to-netlify)에 대한 자세한 내용</ReadMore>
+
+### CLI 배포
+
+[Netlify CLI](https://cli.netlify.com/)를 설치하고 사용하여 Netlify에 새 사이트를 만들고 Git 저장소를 연결할 수도 있습니다.
+
+1. Netlify의 CLI를 전역적으로 설치
+
+    ```bash
+    npm install --global netlify-cli
+    ```
+
+2. `netlify login`을 실행하고 지침에 따라 Netlify에 로그인하고 권한을 부여하세요.
+3. `netlify init`을 실행하고 지침을 따르세요.
+4. 빌드 명령 (`astro build`)을 확인하세요.
+
+    CLI는 빌드 설정 (`astro build`)과 배포 디렉터리 (`dist`)를 자동으로 감지하고 해당 설정을 사용하여 [`netlify.toml` 파일](#netlifytoml-파일)을 자동으로 생성하도록 제안합니다.
+
+5. Git에 푸시하여 빌드 및 배포
+
+    CLI는 저장소에 배포 키를 추가합니다. 이는 `git push`를 할 때마다 Netlify에서 사이트가 자동으로 재빌드된다는 의미입니다.
+
+<ReadMore>Netlify가 제공하는 [Netlify CLI를 사용한 Astro 사이트 배포](https://www.netlify.com/blog/how-to-deploy-astro/#link-your-astro-project-and-deploy-using-the-netlify-cli)에 대한 자세한 내용</ReadMore>
+
+### Node.js 버전 설정
+
+Netlify에서 레거시 [빌드 이미지](https://docs.netlify.com/configure-builds/get-started/#build-image-selection) (Xenial)를 사용하는 경우 Node.js 버전이 설정되어 있는지 확인하세요. Astro에는 `v18.14.1` 이상이 필요합니다.
+
+다음을 사용하여 [Netlify에서 Node.js 버전을 지정](https://docs.netlify.com/configure-builds/manage-dependent/#node-js-and-javascript)할 수 있습니다.
+- base 디렉터리에 있는 [`.nvmrc`](https://github.com/nvm-sh/nvm#nvmrc) 파일.
+- Netlify 프로젝트 대시보드의 사이트 설정의 `NODE_VERSION` 환경 변수.
+
+## Netlify Functions 사용하기
+
+Astro와 함께 Netlify Functions를 사용하는 데 특별한 구성이 필요하지 않습니다. 프로젝트 루트에 `netlify/functions` 디렉터리를 추가하고 [Netlify Functions 문서](https://docs.netlify.com/functions/overview/)를 따라 시작하세요!
+
+## 예
+
+- [Astro 사이트를 배포하는 방법](https://www.netlify.com/blog/how-to-deploy-astro/) — Netlify 블로그
+- [양식, 서버리스 함수 및 리디렉션을 사용한 Astro 사이트 배포](https://www.netlify.com/blog/deploy-an-astro-site-with-forms-serverless-functions-and-redirects/) — Netlify 블로그
+- [배포 연습 동영상](https://youtu.be/GrSLYq6ZTes) — Netlify YouTube 채널
