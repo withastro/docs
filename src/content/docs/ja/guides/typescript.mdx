@@ -180,6 +180,38 @@ type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
 ```
 :::
 
+### `getStaticPaths()`の型の推論
+
+<Since v="2.1.0" />
+
+Astroには、動的ルーティングに対して[`getStaticPaths()`](/ja/reference/api-reference/#getstaticpaths)関数から返された型を扱うためのヘルパーがあります。
+
+[`Astro.params`](/ja/reference/api-reference/#astroparams)の型は`InferGetStaticParamsType`で、[`Astro.props`](/ja/reference/api-reference/#astroprops)の型は`InferGetStaticPropsType`で取得できます。
+
+```astro title="src/pages/posts/[...slug].astro" {2,14-15}
+---
+import { InferGetStaticParamsType, InferGetStaticPropsType } from 'astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((post) => {
+    return {
+      params: { slug: post.slug },
+      props: { draft: post.data.draft, title: post.data.title },
+    };
+  });
+}
+
+type Params = InferGetStaticParamsType<typeof getStaticPaths>;
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { slug } = Astro.params;
+//               ^? { slug: string; }
+const { title } = Astro.props;
+//                ^? { draft: boolean; title: string; }
+---
+```
+
 ## 型チェック
 
 エディタで型エラーを確認するには、[Astro VS Code拡張機能](/ja/editor-setup/)をインストールしてください。`astro start`と`astro build`コマンドは、esbuildでコードをトランスパイルしますが、型チェックは実行しないことに注意してください。TypeScriptのエラーが含まれている場合にビルドされないようにするには、`package.json`のbuildスクリプトを次のように変更します。
