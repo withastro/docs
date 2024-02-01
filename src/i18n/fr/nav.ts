@@ -174,4 +174,16 @@ export default [
 		key: 'reference/error-reference',
 	},
 	{ text: 'Format de Packet NPM', slug: 'reference/publish-to-npm', key: 'guides/publish-to-npm' },
+
+	{ text: 'Ressources communautaires', header: true, type: 'learn', key: 'communityResources' },
+	{
+		text: 'Cours, Guides et Recettes',
+		slug: 'community-resources/content',
+		key: 'community-resources/content',
+	},
+	{
+		text: 'Entretiens, Interviews et Streams',
+		slug: 'community-resources/talks',
+		key: 'community-resources/talks',
+	},
 ] as const;
