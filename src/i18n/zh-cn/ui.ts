@@ -106,7 +106,7 @@ export default UIDictionary({
 	'feedback.sendFeedback': '发送反馈',
 	'feedback.sendFeedback.description': '直接给我们发送消息。',
 	'feedback.idea': '想法',
-	'feedback.other': '其它',
+	'feedback.other': '其他',
 	'feedback.messageA11yLabel': '留言',
 	'feedback.placeholder': '你想让我们知道什么？',
 	'feedback.submit': '提交反馈',
