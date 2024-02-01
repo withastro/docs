@@ -1,0 +1,124 @@
+---
+title: Hygraph & Astro
+description: Hygraph를 CMS로 사용하여 Astro 프로젝트에 콘텐츠 추가
+type: cms
+service: Hygraph
+i18nReady: true
+---
+
+import FileTree from '~/components/FileTree.astro'
+
+[Hygraph](https://hygraph.com/)는 통합 콘텐츠 관리 플랫폼입니다. 콘텐츠를 가져오기 위한 GraphQL 엔드포인트를 노출합니다.
+
+## Astro와 통합
+
+이 섹션에서는 Astro로 가져올 [Hygraph](https://hygraph.com/) GraphQL 엔드포인트를 만듭니다.
+
+### 전제조건
+
+시작하려면 다음이 필요합니다.
+
+1. **Hygraph 계정 및 프로젝트**. 계정이 없다면 [무료 회원가입](https://app.hygraph.com/signup) 후 새 프로젝트를 생성하실 수 있습니다.
+
+2. **Hygraph 접근 권한** - `Project Settings > API Access`에서 인증 없이 읽기 요청을 허용하도록 공개 콘텐츠 API 권한을 구성합니다. 권한을 설정하지 않은 경우 **Yes, initialize defaults**를 클릭하여 "High Performance Content API"를 사용하는 데 필요한 권한을 추가할 수 있습니다.
+
+### 엔드포인트 설정
+
+Astro에 Hygraph 엔드포인트를 추가하려면 다음 변수를 사용하여 프로젝트 루트에 `.env` 파일을 생성하세요.
+
+```ini title=".env"
+HYGRAPH_ENDPOINT=YOUR_HIGH_PERFORMANCE_API
+```
+
+이제 프로젝트에서 이 환경 변수를 사용할 수 있습니다.
+
+환경 변수에 IntelliSense를 사용하려면 `src/` 디렉터리에 `env.d.ts` 파일을 만들고 다음과 같이 `ImportMetaEnv`를 구성하면 됩니다.
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly HYGRAPH_ENDPOINT: string;
+}
+```
+
+:::note
+Astro의 [환경 변수 사용](/ko/guides/environment-variables/) 및 `.env` 파일에 대해 자세히 알아보세요.
+:::
+
+이제 루트 디렉터리에 다음과 같은 새 파일이 포함되어야 합니다.
+
+<FileTree title="Project Structure">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### 데이터 가져오기
+
+`HYGRAPH_ENDPOINT`를 사용하여 Hygraph 프로젝트에서 데이터를 가져옵니다.
+
+예를 들어 문자열 필드 `title`이 있는 `blogPosts` 콘텐츠 타입의 항목을 가져오려면 GraphQL 쿼리를 생성하여 해당 콘텐츠를 가져옵니다. 그런 다음 콘텐츠 타입을 정의하고 이를 응답 타입으로 설정합니다.
+
+```astro title="src/pages/index.astro"
+---
+interface Post {
+	title: string;
+}
+
+const query = {
+	method: "POST",
+	headers: { "Content-Type": "application/json" },
+	body: JSON.stringify({
+		query: `
+      {
+        blogPosts {
+          title
+        }
+      }`,
+	}),
+};
+
+const response = await fetch(import.meta.env.HYGRAPH_ENDPOINT, query);
+const json = await response.json();
+const posts: Post[] = json.data.blogPosts;
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Astro</title>
+	</head>
+	<body>
+		<h1>Astro</h1>
+		{
+			posts.map((post) => (
+				<div>
+					<h2>{post.title}</h2>
+				</div>
+			))
+		}
+	</body>
+</html>
+```
+
+## 배포
+
+### Netlify 웹후크 구성
+
+Netlify에서 웹후크을 설정하려면:
+
+1. [이 가이드](/ko/guides/deploy/netlify/)를 사용하여 Netlify에 사이트를 배포하세요. 환경 변수에 `HYGRAPH_ENDPOINT`를 추가하는 것을 잊지 마세요.
+
+2. 그런 다음 Hygraph 프로젝트 대시보드로 이동하여 **Apps**를 클릭하세요.
+
+3. 마켓플레이스로 이동하여 Netlify를 검색하고 제공된 지침을 따르세요.
+
+4. 모든 것이 순조롭게 진행되었다면 이제 Hygraph 인터페이스에서 클릭 한 번으로 웹사이트를 배포할 수 있습니다.
+
+## 커뮤니티 자료
+
+- [Markdown 구문 분석을 위해 `marked`를 사용한 Hygraph + Astro 예시](https://github.com/camunoz2/example-astrowithhygraph)
