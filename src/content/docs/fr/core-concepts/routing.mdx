@@ -292,32 +292,35 @@ if (!isLoggedIn(cookie)) {
 
 ## Ordre de Priorité des Routes
 
-Il est possible que plusieurs routes correspondent au même chemin URL. Par exemple, chacune de ces routes correspondrait à `/posts/create` :
+Il est possible que plusieurs routes définies tentent de construire le même chemin d'URL. Par exemple, toutes ces routes pourraient construire `/posts/create` :
 
 <FileTree>
 - src/pages/
+  - [...slug].astro
   - posts/
     - create.astro
-    - [pid].astro
+    - [page].astro
+    - [pid].ts
     - [...slug].astro
 </FileTree>
 
-Astro a besoin de savoir quelle route doit être utilisée pour construire la page. Pour ce faire, il les trie selon les règles suivantes :
+Astro a besoin de savoir quelle route doit être utilisée pour construire la page. Pour ce faire, il les trie dans l'ordre selon les règles suivantes :
 
-- Les routes statiques sans paramètres de chemin sont prioritaires sur toutes les autres routes.
-- Les routes dynamiques utilisant des paramètres nommés sont prioritaires par rapport aux paramètres REST.
-- Les routes dynamiques pré-rendues sont prioritaires sur les routes dynamiques du serveur.
-- Les paramètres REST ont la priorité la plus basse.
-- Les points de terminaison ont toujours la priorité sur les pages.
-- Les égalités sont résolues par ordre alphabétique.
+- Les routes avec plus de segments de chemin seront prioritaires sur les itinéraires moins spécifiques. Dans l'exemple ci-dessus, toutes les routes sous `/posts/` sont prioritaires sur `/[...slug].astro` à la racine.
+- Les routes statiques sans paramètres de chemin sont prioritaires sur les routes dynamiques. Par exemple, `/posts/create.astro` est prioritaire sur toutes les autres routes de l'exemple.
+- Les routes dynamiques utilisant des paramètres nommés sont prioritaires sur les paramètres restants. Par exemple, `/posts/[page].astro` est prioritaire sur `/posts/[...slug].astro`.
+- Les routes dynamiques pré-rendues ont la priorité sur les routes dynamiques du serveur.
+- Les points de terminaison ont la priorité sur les pages.
+- Si aucune des règles ci-dessus ne décide de l'ordre, les routes sont triées par ordre alphabétique en fonction de la "locale" par défaut de votre installation Node.
 
 Dans l'exemple ci-dessus, voici quelques exemples de la manière dont les règles feront correspondre une URL demandée à la route utilisée pour construire le code HTML ::
 
-- `pages/post/create.astro` - Correspondra au chemin `/post/create`
-- `pages/post/[pid].astro` - Correspondra au chemin `/post/1`, `/post/abc`, etc. Mais pas à `/post/create`
-- `pages/post/[...slug].astro` - Correspondra au chemin `/post/1/2`, `/post/a/b/c`, etc. Mais pas à `/post/create`, `/post/1`, `/post/abc`
+- `pages/post/create.astro` - Ne construira que des `/post/create`.
+- `pages/post/[pid].ts` - Construira `/post/abc`, `/post/xyz`, etc. Mais pas `/post/create`.
+- `pages/posts/[page].astro` - Construira `/posts/1`, `/posts/2`, etc. Mais pas `/posts/create`, `/posts/abc` ni `/posts/xyz`.
+- `pages/post/[...slug].astro` - Construira `/post/1/2`, `/post/a/b/c`, etc. Mais pas `/post/create`, `/post/1`, `/post/abc` etc.
+- `pages/[...slug].astro` - Construira `/abc`, `/xyz`, `/abc/xyz`, etc. Mais pas `/posts/create`, `/posts/1`, `/posts/abc`, etc.
 
-Les redirections suivent également les mêmes règles, mais sont prioritaires *en dernier* ; s'il existe une route basée sur les fichiers et une redirection avec le même niveau de priorité de route, la route basée sur les fichiers est choisie.
 
 ## Pagination
 
