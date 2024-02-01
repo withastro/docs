@@ -91,41 +91,72 @@ export default defineConfig({
 });
 ```
 
-## 사용
+## 구성 옵션
 
-통합이 설치되면 모든 Astro 컴포넌트에서 [Alpine.js](https://alpinejs.dev/) 지시어와 구문을 사용할 수 있습니다. Alpine.js 스크립트는 웹사이트의 모든 페이지에 자동으로 추가되고 활성화됩니다.
+### `entrypoint`
 
-통합에 대한 자세한 내용은 [Astro 통합 문서][astro-integration]를 확인하세요.
+`entrypoint` 옵션을 루트 상대 가져오기 지정자 (예: `entrypoint: "/src/entrypoint"`)로 설정하여 Alpine을 확장할 수 있습니다.
 
-## 한계
+이 파일의 기본 내보내기는 시작하기 전에 Alpine 인스턴스를 허용하는 함수여야 합니다. 이를 통해 고급 사용 사례에 맞게 사용자 정의 지시어, 플러그인, 기타 맞춤 설정을 사용할 수 있습니다.
 
-Alpine.js 통합은 스크립트가 로드되거나 초기화되는 방법을 제어할 수 없습니다. 이 컨트롤이 필요한 경우 [Alpine.js를 수동으로 설치하고 사용](https://alpinejs.dev/essentials/installation)하는 것이 좋습니다. Astro는 Astro 컴포넌트의 `<script>` 태그를 사용하여 공식적으로 문서화된 모든 Alpine.js 수동 설정 지침을 지원합니다.
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import alpine from '@astrojs/alpinejs';
 
-**현재 이 컴포넌트를 사용할 때 [Alpine.js를 확장](https://alpinejs.dev/advanced/extending)하는 것은 불가능합니다.** 이 기능이 필요한 경우 Astro 스크립트 태그를 사용하는 대신 [수동 Alpine.js 설정](https://alpinejs.dev/essentials/installation)을 따르는 것이 좋습니다.
-
-```astro title="src/pages/index.astro"
----
----
-
-<!-- 예: 단일 페이지에 AlpineJS를 로드합니다. -->
-<script>
-  import Alpine from 'alpinejs';
-
-  // Optional: Extend Alpine.js
-  // Alpine.directive('foo', ...)
-
-  window.Alpine = Alpine;
-  Alpine.start();
-</script>
+export default defineConfig({
+  // ...
+  integrations: [alpine({ entrypoint: '/src/entrypoint' })],
+});
 ```
 
-## 구성
+```js title="src/entrypoint.ts"
+import type { Alpine } from 'alpinejs'
+import intersect from '@alpinejs/intersect'
 
-Alpine.js 통합은 현재 사용자 정의 구성을 지원하지 않습니다.
+export default (Alpine: Alpine) => {
+    Alpine.plugin(intersect)
+}
+```
+
+## 사용하기
+
+통합이 설치되면 모든 Astro 컴포넌트에서 [Alpine.js](https://alpinejs.dev/) 지시어와 구문을 사용할 수 있습니다. Alpine.js 스크립트는 웹사이트의 모든 페이지에 자동으로 추가되고 활성화됩니다. `<head>` 페이지에 플러그인 스크립트를 추가하세요.
+
+다음 예시에서는 [Alpine의 Collapse 플러그인](https://alpinejs.dev/plugins/collapse)을 추가하여 단락 텍스트를 확장하고 축소합니다.
+
+```astro title="src/pages/index.astro" ins={6} ins="x-collapse"
+---
+---
+<html>
+	<head>
+		<!-- ... -->
+		<script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+	</head>
+	<body>
+    <!-- ... -->
+		<div x-data="{ expanded: false }">
+			<button @click="expanded = ! expanded">Toggle Content</button>
+			<p id="foo" x-show="expanded" x-collapse>
+        Lorem ipsum
+			</p>
+		</div>
+	</body>
+</html>
+```
+
+## TypeScript용 Intellisense
+
+`@astrojs/alpine` 통합은 전역 window 객체에 `Alpine`을 추가합니다. IDE 자동 완성을 위해 `src/env.d.ts` 파일에 다음을 추가하세요:
+
+```ts title="src/env.d.ts"
+interface Window {
+  Alpine: import('alpinejs').Alpine;
+}
+```
 
 ## 예시
 
 * [Astro Alpine.js 예시](https://github.com/withastro/astro/tree/latest/examples/framework-alpine)는 Astro 프로젝트에서 Alpine.js를 사용하는 방법을 보여줍니다.
 
 [astro-integration]: /ko/guides/integrations-guide/
-[astro-ui-frameworks]: /ko/core-concepts/framework-components/#컴포넌트-프레임워크-사용하기
+[astro-ui-frameworks]: /ko/guides/framework-components/#컴포넌트-프레임워크-사용하기
