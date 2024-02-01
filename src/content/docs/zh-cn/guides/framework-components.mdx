@@ -1,0 +1,236 @@
+---
+title: 框架组件
+description: 学习如何使用 React，Svelte 等框架。
+---
+import IntegrationsNav from '~/components/IntegrationsNav.astro'
+import ReadMore from '~/components/ReadMore.astro'
+
+你可以在无需舍弃你所喜欢的组件框架的情况下使用 Astro 构建站点。而是可以任意选择的 UI 框架来创建 Astro [群岛](/zh-cn/concepts/islands/)。
+
+## 官方的 UI 框架集成
+
+Astro 支持多个受欢迎的框架并提供了集成，包括 [React](https://react.dev/)、[Preact](https://preactjs.com/)、[Svelte](https://svelte.dev/)、[Vue](https://vuejs.org/)、[SolidJS](https://www.solidjs.com/)、[AlpineJS](https://alpinejs.dev/) 和 [Lit](https://lit.dev/)。
+
+在我们的集成目录中找到更多 [社区维护的框架集成](https://astro.build/integrations/?search=&categories%5B%5D=frameworks)（例如 Angular、Qwik、Elm 等）。
+
+<IntegrationsNav category="renderer" />
+
+## 安装集成
+
+你可以在你的项目中安装和配置一个或多个 Astro 集成。
+
+查看[集成指南](/zh-cn/guides/integrations-guide/)以获取更多关于安装和配置 Astro 集成的信息。
+
+::tip
+想要看看你选择的框架的示例？访问 [astro.new](https://astro.new/) 然后选择一个框架模板。
+:::
+
+## 使用框架组件
+
+在 Astro 页面、布局和组件中就像 Astro 组件一样使用你的 JavaScript 框架组件。所有组件都可放在 `/src/components` 目录中，或者你也可以放在任何你喜欢的地方。
+
+要使用框架组件，你需要在 Astro 组件脚本中使用相对路径导入它们。然后在其他组件、HTML 元素和类 JSX 表达式中使用它们。
+
+```astro title="src/pages/static-components.astro" ins={2,7}
+---
+import MyReactComponent from '../components/MyReactComponent.jsx';
+---
+<html>
+  <body>
+    <h1>Use React components directly in Astro!</h1>
+    <MyReactComponent />
+  </body>
+</html>
+```
+
+默认情况下，你的框架组件将渲染为静态 HTML。这对于模板组件而言非常有用，它不需要交互和避免分发没用的 JavaScript 给用户。
+
+## 激活组件
+
+框架组件可以使用 [`client:*` 指令](/zh-cn/reference/directives-reference/#客户端指令)来激活（hydrate）。这些是用于确定何时将组件的 JavaScript 发送到浏览器的组件属性。
+
+使用除 `client:only` 以外的所有客户端指令，你的组件将首先在服务器上渲染以生成静态 HTML。根据你选择的指令，将向浏览器发送组件 JavaScript。然后组件将被激活并变成可交互式的。
+
+```astro title="src/pages/interactive-components.astro" /client:\S+/
+---
+// 示例：在浏览器中激活框架组件。
+import InteractiveButton from '../components/InteractiveButton.jsx';
+import InteractiveCounter from '../components/InteractiveCounter.jsx';
+import InteractiveModal from "../components/InteractiveModal.svelte"
+---
+<!-- 该组件的 JS 将在页面加载开始时导入 -->
+<InteractiveButton client:load />
+
+<!-- 该组件的 JS 将不会发送给客户端，直到用户向下滚动到该组件在页面上可见时 -->
+<InteractiveCounter client:visible />
+
+<!-- 这个组件不会在服务端渲染, 但是在页面加载时将渲染在客户端 -->
+<InteractiveModal client:only="svelte" />
+```
+
+组件渲染所需的 JavaScript 框架（React、Svelte 等）将与组件自己的 JavaScript 一起发送到浏览器。如果页面上的两个或多个组件使用相同的框架，则该框架将只发送一次。
+
+:::note[无障碍]
+在 Astro 中使用这些组件时，大多数框架特定的无障碍模式应该是一样的。请确保选择一个客户端指令，以确保任何与可访问性相关的 JavaScript 在适当的时间被正确加载和执行！
+:::
+
+### 可用激活指令
+
+这里有几个适用于 UI 框架组件的激活指令：`client:load`、`client:idle`、`client:visible`、`client:media={QUERY}` 和 `client:only={FRAMEWORK}`。
+
+<ReadMore>查看[指令参考](/zh-cn/reference/directives-reference/#客户端指令)页面获取这些激活指令的详细描述以及用法。</ReadMore>
+
+## 混合框架
+
+你可以在同一个 Astro 组件中导入并渲染来自多个框架的组件。
+
+```astro
+---
+// src/pages/mixing-frameworks.astro
+// 示例：在同一个页面混合多个框架的组件。
+import MyReactComponent from '../components/MyReactComponent.jsx';
+import MySvelteComponent from '../components/MySvelteComponent.svelte';
+import MyVueComponent from '../components/MyVueComponent.vue';
+---
+<div>
+  <MySvelteComponent />
+  <MyReactComponent />
+  <MyVueComponent />
+</div>
+```
+
+:::caution
+只有 **Astro** 组件（`.astro`）可以包括多个框架的组件
+:::
+
+## 向框架组件传递 Props
+
+你可以从 Astro 组件向框架组件传递 props：
+
+```astro title="src/pages/frameworks-props.astro"
+---
+import TodoList from '../components/TodoList.jsx';
+import Counter from '../components/Counter.svelte';
+---
+<div>
+  <TodoList initialTodos={["learn Astro", "review PRs"]} />
+  <Counter startingCount={1} />
+</div>
+```
+
+:::caution[向框架组件传递函数]
+你可以向框架组件传递函数，但是只有在服务器渲染时才有效。如果你在激活的组件中尝试使用该函数（例如作为事件处理程序），则会发生错误。
+
+这是因为函数无法被 Astro 序列化（从服务器传输到客户端）。
+:::
+
+
+## 向框架组件传递子组件
+
+在 Astro 组件中，你可以向框架组件传递子组件。每个框架都有自己的模式来引用这些子组件：React、Preact 和 Solid 均使用一个特殊的属性名 `children`，而 Svelte 和 Vue 则使用 `<slot />` 元素。
+
+```astro title="src/pages/component-children.astro" {5}
+---
+import MyReactSidebar from '../components/MyReactSidebar.jsx';
+---
+<MyReactSidebar>
+  <p>这里是一个带有一些文字和一个按钮的侧边栏。</p>
+</MyReactSidebar>
+```
+
+另外你可以使用[命名插槽](/zh-cn/basics/astro-components/#命名插槽)来区分特定的子组件。
+
+针对 React、Preact 和 Solid 的插槽都会转换成顶级属性。使用 `kebab-case` 的插槽名会转换成 `camelCase`。
+
+```astro title="src/pages/named-slots.astro" /slot="(.*)"/
+---
+import MySidebar from '../components/MySidebar.jsx';
+---
+<MySidebar>
+  <h2 slot="title">菜单</h2>
+  <p>这里是一个带有一些文字和一个按钮的侧边栏。</p>
+  <ul slot="social-links">
+    <li><a href="https://twitter.com/astrodotbuild">Twitter</a></li>
+    <li><a href="https://github.com/withastro">GitHub</a></li>
+  </ul>
+</MySidebar>
+```
+
+```jsx /{props.(title|socialLinks)}/
+// src/components/MySidebar.jsx
+export default function MySidebar(props) {
+  return (
+    <aside>
+      <header>{props.title}</header>
+      <main>{props.children}</main>
+      <footer>{props.socialLinks}</footer>
+    </aside>
+  )
+}
+```
+
+针对 Svelte 和 Vue 的插槽会使用 `<slot>` 元素进行引用。而使用 `kebab-case` 的插槽名会保留。
+
+```jsx /slot name="(.*)"/
+// src/components/MySidebar.svelte
+<aside>
+  <header><slot name="title" /></header>
+  <main><slot /></main>
+  <footer><slot name="social-links" /></footer>
+</aside>
+```
+
+## 嵌套框架组件
+
+在 Astro 文件中，框架组件子项也是激活组件。这意味着你可以嵌套地使用这些框架组件。
+
+```astro title="src/pages/nested-components.astro" {10-11}
+---
+import MyReactSidebar from '../components/MyReactSidebar.jsx';
+import MyReactButton from '../components/MyReactButton.jsx';
+import MySvelteButton from '../components/MySvelteButton.svelte';
+---
+
+<MyReactSidebar>
+  <p>这里是一个带有一些文字和一个按钮的侧边栏。</p>
+  <div slot="actions">
+    <MyReactButton client:idle />
+    <MySvelteButton client:idle />
+  </div>
+</MyReactSidebar>
+```
+
+:::caution
+记住：框架组件文件（例如 `.jsx`、`.svelte`）不能混合多个框架。
+:::
+
+这使得你可以用喜欢的 JavaScript 框架中建立整个应用，并通过在 Astro 页面中使用父组件来渲染它们。
+
+:::note
+即使 Astro 组件包括激活框架组件，它也会被渲染成静态 HTML。这意味着，你只能传递不做任何 HTML 渲染的参数。在 Astro 组件中向框架组件传递 React 的“渲染参数”是行不通的，因为 Astro 组件无法提供该模式所需要的客户端运行时行为。所以请改用命名插槽。
+:::
+
+## 我可以在我的框架组件中使用 Astro 组件吗？
+
+任何 UI 框架组件都会成为该框架的一个“孤岛”。这些组件必须完全作为该框架的有效代码来编写，只使用它自己的导入和包。你不能在一个 UI 框架组件（如 `.jsx` 或 `.svelte`）中导入 `.astro` 组件。
+
+不过你可以在`.astro`组件内使用 [Astro `<slot />` 模式](/zh-cn/basics/astro-components/#插槽)将 Astro 组件生成的静态内容作为子项传递给框架组件。
+
+```astro title="src/pages/astro-children.astro" {6}
+---
+import MyReactComponent from  '../components/MyReactComponent.jsx';
+import MyAstroComponent from '../components/MyAstroComponent.astro';
+---
+<MyReactComponent>
+  <MyAstroComponent slot="name" />
+</MyReactComponent>
+```
+
+## 我可以激活 Astro 组件吗？
+
+如果你试图使用 `client:` 修改器激活 Astro 组件，你将收到错误消息。
+
+[Astro 组件](/zh-cn/basics/astro-components/)是纯 HTML 的模板组件，没有客户端运行时。但是，你可以在 Astro 组件模板中使用 `<script>` 标签，向浏览器发送在全局范围内执行的 JavaScript。
+
+
+<ReadMore>了解更多关于 [Astro 组件中的客户端 `<script>`](/zh-cn/guides/client-side-scripts/) 的信息。</ReadMore>
