@@ -21,12 +21,12 @@ export default NavDictionary({
 
 	// Basics
 	basics: '基本',
-	'core-concepts/project-structure': 'ディレクトリ構成',
-	'core-concepts/astro-components': 'コンポーネント',
-	'core-concepts/astro-pages': 'ページ',
-	'core-concepts/layouts': 'レイアウト',
-	'core-concepts/astro-syntax': 'Astroテンプレートの構文',
-	'core-concepts/rendering-modes': 'レンダリングモード',
+	'basics/project-structure': 'ディレクトリ構成',
+	'basics/astro-components': 'コンポーネント',
+	'basics/astro-pages': 'ページ',
+	'basics/layouts': 'レイアウト',
+	'basics/astro-syntax': 'Astroテンプレートの構文',
+	'basics/rendering-modes': 'レンダリングモード',
 
 	// Built-ins
 	builtins: '組み込み機能',
@@ -37,7 +37,7 @@ export default NavDictionary({
 	// Integrations
 	addons: 'インテグレーション',
 	'guides/integrations-guide': 'インテグレーションの追加',
-	'core-concepts/framework-components': 'UIフレームワーク',
+	'guides/framework-components': 'UIフレームワーク',
 	'guides/server-side-rendering': 'サーバーサイドレンダリング（SSR）',
 
 	// Recipes
@@ -50,14 +50,14 @@ export default NavDictionary({
 
 	// Guides
 	features: 'ガイド',
-	'core-concepts/routing': 'ルーティング',
+	'guides/routing': 'ルーティング',
 	'guides/markdown-content': 'Markdown',
 	'guides/client-side-scripts': 'スクリプトとイベントハンドリング',
 	'guides/styling': 'CSSとスタイル',
 	'guides/images': '画像',
 	'guides/fonts': 'フォント',
 	'guides/imports': 'インポート',
-	'core-concepts/endpoints': 'エンドポイント',
+	'guides/endpoints': 'エンドポイント',
 	'guides/data-fetching': 'データフェッチ',
 	'guides/internationalization': '国際化',
 	'guides/middleware': 'ミドルウェア',
