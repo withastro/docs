@@ -1,0 +1,189 @@
+---
+type: integration
+title: '@astrojs/lit'
+description: '@astrojs/lit 프레임워크 통합을 사용하여 Astro 프로젝트에서 컴포넌트 지원을 확장하는 방법을 알아보세요.'
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/lit/'
+category: renderer
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+이 **[Astro 통합][astro-integration]** 을 통해 [Lit](https://lit.dev/) 맞춤 요소에 대한 서버 측 렌더링 및 클라이언트 측 하이드레이션이 가능해졌습니다.
+
+## 설치
+
+Astro에는 공식 통합 설정을 자동화하는 `astro add` 명령이 포함되어 있습니다. 원하는 경우 대신 [통합을 수동으로 설치](#수동-설치)할 수 있습니다.
+
+`@astrojs/lit`을 설치하려면 프로젝트 디렉터리에서 다음을 실행하고 프롬프트를 따르세요.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```sh
+    npx astro add lit
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```sh
+    pnpm astro add lit
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```sh
+    yarn astro add lit
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+문제가 발생하면 [GitHub에서 언제든지 보고](https://github.com/withastro/astro/issues)하고 아래 수동 설치 단계를 시도해 보세요.
+
+### 수동 설치
+
+먼저 `@astrojs/lit` 패키지를 설치하세요.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install @astrojs/lit
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add @astrojs/lit
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add @astrojs/lit
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+대부분의 패키지 관리자는 관련 피어 종속성도 설치합니다. Astro를 시작할 때 "Cannot find package 'lit'" (또는 이와 유사한) 경고가 표시되면 `lit` 및 `@webcomponents/template-shadowroot`를 설치해야 합니다.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install lit @webcomponents/template-shadowroot
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add lit @webcomponents/template-shadowroot
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add lit @webcomponents/template-shadowroot
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+그런 다음 `integrations` 속성을 사용하여 `astro.config.*` 파일에 통합을 적용합니다.
+
+```js ins={2} ins="lit()" title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import lit from '@astrojs/lit';
+
+export default defineConfig({
+  // ...
+  integrations: [lit()],
+});
+```
+
+## 시작하기
+
+Astro에서 첫 번째 Lit 컴포넌트를 사용하려면 [UI 프레임워크 문서][astro-ui-frameworks]로 이동하세요. 이는 다음을 설명합니다.
+
+* 📦 프레임워크 컴포넌트가 로드되는 방식,
+* 💧 클라이언트 측 하이드레이션 옵션
+* 🤝 프레임워크를 함께 혼합하고 중첩할 수 있는 기회
+
+Astro에서 Lit 컴포넌트를 작성하고 가져오는 방법은 다음과 같습니다.
+
+```js title="src/components/my-element.js"
+import { LitElement, html } from 'lit';
+
+export class MyElement extends LitElement {
+  render() {
+    return html` <p>Hello world! From my-element</p> `;
+  }
+}
+
+customElements.define('my-element', MyElement);
+```
+
+이제 Astro 프론트매터를 통해 컴포넌트를 가져올 준비가 되었습니다.
+
+```astro title="src/pages/index.astro"
+---
+import { MyElement } from '../components/my-element.js';
+---
+
+<MyElement />
+```
+
+:::note
+Lit에는 `HTMLElement` 및 `customElements`와 같은 브라우저 전역 항목이 있어야 합니다. 이러한 이유로 Lit 렌더러는 Lit가 실행될 수 있도록 이러한 전역 변수를 서버에 심습니다. 이로 인해 잘못 작동하는 라이브러리가 *실행될 수* 있습니다.
+:::
+
+### 폴리필 및 하이드레이션
+
+렌더러는 Declarative Shadow DOM이 없는 브라우저에서 지원하기 위해 적절한 폴리필 추가를 자동으로 처리합니다. 폴리필은 약 *1.5kB*입니다. 브라우저가 Declarative Shadow DOM을 지원하는 경우 250바이트 미만이 로드됩니다 (기능 감지 지원을 위해).
+
+하이드레이션도 자동으로 처리됩니다. Astro가 지원하는 다른 라이브러리와 마찬가지로 `client:load`, `client:idle`, `client:visible`과 같은 동일한 하이드레이션 지시어를 사용할 수 있습니다.
+
+```astro
+---
+import { MyElement } from '../components/my-element.js';
+---
+
+<MyElement client:visible />
+```
+
+위 내용은 사용자가 요소를 뷰포트로 스크롤한 경우에만 요소의 JavaScript를 로드합니다. 서버 렌더링이므로 버벅거림이 표시되지 않습니다. 투명하게 로딩되고 하이드레이션 됩니다.
+
+## 문제 해결
+
+도움이 필요하시면 [Discord](https://astro.build/chat)의 `#support` 채널을 확인하세요. 우리의 친절한 지원팀 멤버들이 도와드리겠습니다!
+
+통합에 대한 자세한 내용은 [Astro 통합 문서][astro-integration]를 확인하실 수도 있습니다.
+
+일반적인 문제는 다음과 같습니다.
+
+### 브라우저 전역 객체
+
+Lit 통합의 SSR은 전역 환경에 몇 가지 브라우저 전역 속성을 추가하여 작동합니다. 추가되는 속성 중 일부에는 `window`, `document`, `location`이 포함됩니다.
+
+이러한 전역 변수는 실제로 서버에서 실행 중일 때 브라우저에서 실행 중임을 감지하기 위해 이러한 변수의 존재를 사용할 수 있는 다른 라이브러리를 방해할 수 *있습니다*. 이로 인해 해당 라이브러리에 버그가 발생할 수 있습니다.
+
+이로 인해 Lit 통합은 이러한 유형의 라이브러리와 호환되지 않을 수 있습니다. 도움이 될 수 있는 한 가지는 Lit가 다른 통합을 방해할 때 통합 순서를 변경하는 것입니다.
+
+```js lang="js" title="astro.config.mjs" ins={7} del={6}
+  import { defineConfig } from 'astro/config';
+  import vue from '@astrojs/vue';
+  import lit from '@astrojs/lit';
+
+  export default defineConfig({
+    integrations: [vue(), lit()]
+    integrations: [lit(), vue()]
+  });
+```
+
+올바른 순서는 문제의 근본 원인에 따라 다를 수 있습니다. 그러나 이것이 모든 문제를 해결한다고 보장할 수는 없으며 이로 인해 Lit 통합을 사용하는 경우 일부 라이브러리를 사용할 수 없습니다.
+
+### 엄격한 패키지 관리자
+
+`pnpm`과 같은 [엄격한 패키지 관리자](https://pnpm.io/pnpm-vs-npm#npms-flat-tree)를 사용하면 사이트를 실행할 때 `ReferenceError: module is not defined`과 같은 오류가 발생할 수 있습니다. 이 문제를 해결하려면 `.npmrc` 파일을 사용하여 Lit 종속성을 끌어올리세요.
+
+```ini title=".npmrc"
+public-hoist-pattern[]=*lit*
+```
+
+### 제한 사항
+
+Lit 통합은 몇 가지 제한 사항이 있는 `@lit-labs/ssr`을 통해 구동됩니다. 자세한 내용은 [제한 사항 문서](https://www.npmjs.com/package/@lit-labs/ssr#user-content-notes-and-limitations)를 참조하세요.
+
+[astro-integration]: /ko/guides/integrations-guide/
+
+[astro-ui-frameworks]: /ko/guides/framework-components/#프레임워크-컴포넌트-사용하기

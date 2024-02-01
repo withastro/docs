@@ -91,38 +91,71 @@ export default defineConfig({
 });
 ```
 
-## Uso
+## Opciones de configuración
 
-Una vez que la integración está instalada, puedes usar las directivas y sintaxis de [Alpine.js](https://alpinejs.dev/) dentro de cualquier componente Astro. El script de Alpine.js se agrega y habilita automáticamente en cada página de tu sitio web.
+### `entrypoint`
 
-Revisa nuestra [documentación de integraciones de Astro][astro-integration] para obtener más información sobre las integraciones.
+Puedes extender Alpine estableciendo la opción `entrypoint` en un especificador de importación relativo a la raíz (por ejemplo, `entrypoint: "/src/entrypoint"`).
 
-## Limitaciones
+El export por defecto de este archivo debe ser una función que acepte una instancia de Alpine antes de iniciar. Esto permite el uso de directivas personalizadas, complementos y otras personalizaciones para casos de uso avanzados.
 
-La integración de Alpine.js no te da control sobre cómo se carga o inicializa el script. Si requieres este control, considera [instalar y usar Alpine.js manualmente](https://alpinejs.dev/essentials/installation). Astro admite todas las instrucciones de configuración manual de Alpine.js oficialmente documentadas, usando etiquetas `<script>` dentro de un componente Astro.
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import alpine from '@astrojs/alpinejs';
 
-**Actualmente no es posible [extender Alpine.js](https://alpinejs.dev/advanced/extending) al usar este componente.** Si necesitas esta función, considera seguir [la configuración manual de Alpine.js](https://alpinejs.dev/essentials/installation) en su lugar usando una etiqueta de script de Astro:
-
-```astro title="src/pages/index.astro"
----
-// src/pages/index.astro
----
-
-<!-- Ejemplo: Carga AlpineJS en una sola página. -->
-<script>
-  import Alpine from 'alpinejs';
-
-  // Opcional: Extiende Alpine.js
-  // Alpine.directive('foo', ...)
-
-  window.Alpine = Alpine;
-  Alpine.start();
-</script>
+export default defineConfig({
+  // ...
+  integrations: [alpine({ entrypoint: '/src/entrypoint' })],
+});
 ```
 
-## Configuración
+```js title="src/entrypoint.ts"
+import type { Alpine } from 'alpinejs'
+import intersect from '@alpinejs/intersect'
 
-La integración de Alpine.js no admite ninguna configuración personalizada en este momento.
+<!-- Ejemplo: Carga AlpineJS en una página. -->
+<script>
+  import Alpine from 'alpinejs';
+export default (Alpine: Alpine) => {
+    Alpine.plugin(intersect)
+}
+```
+
+## Uso
+
+Una vez instalada la integración, puedes usar las directivas y la sintaxis de [Alpine.js](https://alpinejs.dev/) dentro de cualquier componente de Astro. El script de Alpine.js se agrega y habilita automáticamente en cada página de tu sitio web. Agrega scripts de complementos a la etiqueta `<head>` de la página.
+
+El siguiente ejemplo agrega [el plugin Collapse de Alpine](https://alpinejs.dev/plugins/collapse) para expandir y contraer el texto del párrafo:
+
+```astro title="src/pages/index.astro" ins={6} ins="x-collapse"
+---
+---
+<html>
+	<head>
+		<!-- ... -->
+		<script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+	</head>
+	<body>
+    <!-- ... -->
+		<div x-data="{ expanded: false }">
+			<button @click="expanded = ! expanded">Toggle Content</button>
+			<p id="foo" x-show="expanded" x-collapse>
+        Lorem ipsum
+			</p>
+		</div>
+	</body>
+</html>
+```
+
+## Intellisense para TypeScript
+
+La integración `@astrojs/alpine` agrega `Alpine` al objeto global de la ventana. Para el autocompletado del IDE, agrega lo siguiente a tu `src/env.d.ts`:
+
+```ts title="src/env.d.ts"
+interface Window {
+  Alpine: import('alpinejs').Alpine;
+}
+```
 
 ## Ejemplos
 
@@ -130,4 +163,4 @@ La integración de Alpine.js no admite ninguna configuración personalizada en e
 
 [astro-integration]: /es/guides/integrations-guide/
 
-[astro-ui-frameworks]: /es/core-concepts/framework-components/#usando-componente-de-framework
+[astro-ui-frameworks]: /es/guides/framework-components/#usando-componente-de-framework

@@ -1,0 +1,248 @@
+---
+title: Cosmic & Astro
+description: Cosmic을 CMS로 사용하여 Astro 프로젝트에 콘텐츠 추가
+type: cms
+service: Cosmic
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import Grid from '~/components/FluidGrid.astro'
+import Card from '~/components/ShowcaseCard.astro'
+
+[Cosmic](https://www.cosmicjs.com/)은 콘텐츠를 관리하기 위한 관리 대시보드와 다양한 프런트엔드 도구와 통합할 수 있는 API를 제공하는 [헤드리스 CMS](https://www.cosmicjs.com/headless-cms)입니다.
+
+## 전제 조건
+
+1. **Astro 프로젝트** - 새로운 Astro 프로젝트를 시작하고 싶다면 [설치 가이드](/ko/install/auto/)를 읽어보세요. 이 가이드는 스타일링을 위해 Tailwind CSS를 사용하는 [Astro 헤드리스 CMS 테마](https://astro.build/themes/details/cosmic-cms-blog/)의 단순화된 버전을 따릅니다.
+2. **Cosmic 계정과 Bucket** - Cosmic 계정이 없다면 [무료로 계정을 만드세요](https://app.cosmicjs.com/signup). 계정을 생성한 후에는 비어 있는 새 프로젝트를 생성하라는 메시지가 표시됩니다. 이 가이드에 사용된 모든 콘텐츠를 자동으로 가져오는 데 사용할 수 있는 [Simple Astro Blog 템플릿](https://www.cosmicjs.com/marketplace/templates/simple-astro-blog) (Astro 헤드리스 CMS 테마와 동일한 템플릿)도 있습니다.
+3. **Cosmic API keys** - Cosmic 대시보드에서 Cosmic에 연결하려면 **Bucket slug** 및 **Bucket read key**를 모두 찾아야 합니다.
+
+## Cosmic과 Astro의 통합
+
+### 필요한 종속성 설치
+
+Cosmic Bucket에서 데이터를 가져오려면 [Cosmic JavaScript SDK](https://www.npmjs.com/package/@cosmicjs/sdk)를 추가하세요.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @cosmicjs/sdk
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @cosmicjs/sdk
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @cosmicjs/sdk
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### API 키 구성
+
+Astro 프로젝트의 루트에 `.env` 파일을 만듭니다 (아직 존재하지 않는 경우). Cosmic 대시보드에서 사용할 수 있는 **Bucket slug** 및 **Bucket read key**를 공개 환경 변수로 추가하세요.
+
+```ini title=".env"
+PUBLIC_COSMIC_BUCKET_SLUG=YOUR_BUCKET_SLUG
+PUBLIC_COSMIC_READ_KEY=YOUR_READ_KEY
+```
+
+## Cosmic에서 데이터 가져오기
+
+1. `cosmic.js`라는 새 파일을 만듭니다. 이 파일을 프로젝트의 `src/lib` 폴더 안에 넣으세요.
+
+2. SDK 및 환경 변수를 사용하여 Cosmic에서 데이터를 가져오려면 다음 코드를 추가합니다.
+
+    아래 예시에서는 Cosmic `posts` 객체에서 메타데이터를 가져오는 `getAllPosts()`라는 함수를 만듭니다.
+
+    ```js
+    // src/lib/cosmic.js
+    import { createBucketClient } from '@cosmicjs/sdk'
+
+    const cosmic = createBucketClient({
+      bucketSlug: import.meta.env.PUBLIC_COSMIC_BUCKET_SLUG,
+      readKey: import.meta.env.PUBLIC_COSMIC_READ_KEY
+    })
+
+    export async function getAllPosts() {
+      const data = await cosmic.objects
+        .find({
+          type: 'posts'
+        })
+        .props('title,slug,metadata,created_at')
+      return data.objects
+    }
+    ```
+
+    [Cosmic 문서에서 쿼리](https://www.cosmicjs.com/docs/api/queries)에 대해 자세히 알아보세요.
+
+3. `.astro` 컴포넌트에서 쿼리 함수를 가져옵니다. 데이터를 가져온 후 쿼리 결과를 Astro 템플릿에서 사용할 수 있습니다.
+
+    다음 예시에서는 Cosmic `posts`에서 메타데이터를 가져오고 이 값을 `<Card />` 컴포넌트에 props로 전달하여 블로그 게시물 목록을 만드는 방법을 보여줍니다.
+
+    ```astro
+    ---
+    // src/pages/index.astro
+    import Card from '../components/Card.astro'
+    import { getAllPosts } from '../lib/cosmic'
+
+    const data = await getAllPosts()
+    ---
+
+    <section>
+      <ul class="grid gap-8 md:grid-cols-2">
+        {
+          data.map((post) => (
+            <Card
+              title={post.title}
+              href={post.slug}
+              body={post.metadata.excerpt}
+              tags={post.metadata.tags.map((tag) => tag)}
+            />
+          ))
+        }
+      </ul>
+    </section>
+    ```
+
+    [Card 컴포넌트의 소스 코드 보기](https://github.com/cosmicjs/simple-astro-blog/blob/main/src/components/Card.astro)
+
+## Astro와 Cosmic으로 블로그 만들기
+
+Cosmic을 사용하여 Astro 블로그 콘텐츠를 관리하고 웹후크를 생성하여 새 콘텐츠를 업데이트하거나 추가할 때 웹사이트를 자동으로 재배포할 수 있습니다.
+
+### Cosmic 콘텐츠 객체
+
+다음 지침에서는 Cosmic에 **posts**라는 **Object Type**이 있다고 가정합니다. 각 개별 블로그 게시물은 다음 메타필드를 사용하여 Cosmic 대시보드에 정의된 `post`입니다.
+
+1. **Text input** - Author
+2. **Image** - Cover Image
+3. **Repeater** - Tags
+    - **Text input** - Title
+4. **Text area** - Excerpt  
+5. **Rich Text** - Content
+
+### Astro에서 블로그 게시물 목록 표시하기
+
+위와 동일한 [데이터 가져오기 방법](#cosmic에서-데이터-가져오기)을 사용하여 스크립트 파일에서 `getAllPosts()` 쿼리를 가져오고 데이터를 기다립니다 (await 사용). 이 함수는 동적으로 표시될 수 있는 각 `post`에 대한 메타데이터를 제공합니다.
+
+아래 예시에서는 이러한 값을 `<Card />` 컴포넌트에 전달하여 형식화된 블로그 게시물 목록을 표시합니다.
+
+```astro
+---
+// src/pages/index.astro
+import Card from '../components/Card.astro'
+import { getAllPosts } from '../lib/cosmic'
+
+const data = await getAllPosts()
+---
+
+<section>
+  <ul class="grid gap-8 md:grid-cols-2">
+    {
+      data.map((post) => (
+        <Card
+          title={post.title}
+          href={post.slug}
+          body={post.metadata.excerpt}
+          tags={post.metadata.tags.map((tag) => tag)}
+        />
+      ))
+    }
+  </ul>
+</section>
+```
+
+### Astro로 개별 블로그 게시물 생성하기
+
+각 블로그 게시물의 전체 콘텐츠가 포함된 개별 페이지를 생성하려면 `src/pages/blog/[slug].astro`에서 [동적 라우팅 페이지](/ko/guides/routing/#동적-경로)를 생성하세요.
+
+이 페이지는 `getStaticPaths()` 함수를 내보내 각 `post` 객체에서 반환된 `slug`에서 페이지 경로를 생성합니다. 이 함수는 빌드 시 호출되며 모든 블로그 게시물을 한 번에 생성하고 렌더링합니다.
+
+Cosmic에서 데이터에 액세스하려면:
+
+- `getStaticPaths()` 내부에서 Cosmic을 쿼리하여 각 게시물에 대한 데이터를 가져와 함수에 제공합니다.
+- 각 `post.slug`를 경로 매개변수로 사용하여 각 블로그 게시물에 대한 URL을 생성합니다.
+- `Astro.props` 내부의 각 `post`을 반환하여 렌더링을 위해 페이지 컴포넌트의 HTML 템플릿 부분에 게시물 데이터를 사용할 수 있도록 합니다.
+
+아래 HTML 마크업은 게시물의 title, cover image, **rich text content** (블로그 게시물의 전체 콘텐츠) 등 Cosmic의 다양한 데이터를 사용합니다. Cosmic의 리치 텍스트 콘텐츠를 표시하는 요소에 [set&colon;html](/ko/reference/directives-reference/#sethtml)을 사용하면 Cosmic에서 가져온 것과 똑같이 페이지의 HTML 요소를 렌더링할 수 있습니다.
+
+```astro
+---
+// src/pages/blog/[slug].astro
+import { getAllPosts } from '../../lib/cosmic'
+import { Image } from 'astro:assets'
+
+export async function getStaticPaths() {
+  const data = (await getAllPosts()) || []
+
+  return data.map((post) => {
+    return {
+      params: { slug: post.slug },
+      props: { post }
+    }
+  })
+}
+
+const { post } = Astro.props
+---
+
+<article class="mx-auto max-w-screen-md pt-20">
+  <section class="border-b pb-8">
+    <h1 class="text-4xl font-bold">{post.title}</h1>
+    <div class="my-4"></div>
+    <span class="text-sm font-semibold">{post.metadata.author?.title}</span>
+  </section>
+  {
+    post.metadata.cover_image && (
+      <Image
+        src={post.metadata.cover_image.imgix_url}
+        format="webp"
+        width={1200}
+        height={675}
+        aspectRatio={16 / 9}
+        quality={50}
+        alt={`Cover image for the blog ${post.title}`}
+        class={'my-12 rounded-md shadow-lg'}
+      />
+    )
+  }
+  <div set:html={post.metadata.content} />
+</article>
+```
+
+### 사이트 게시
+
+웹사이트를 배포하려면 [배포 가이드](/ko/guides/deploy/)를 방문하여 선호하는 호스팅 제공업체의 지침을 따르세요.
+
+#### Cosmic 콘텐츠 업데이트로 재빌드
+
+콘텐츠 객체를 업데이트하거나 추가할 때마다 호스팅 플랫폼 (예: Vercel)에서 사이트 재배포를 트리거하도록 Cosmic에서 직접 웹후크를 설정할 수 있습니다.
+
+"Settings" > "webhooks"에서 Vercel의 URL 엔드포인트를 추가하고 웹후크를 트리거하려는 객체 유형을 선택하세요. “Add webhook”를 클릭하여 저장하세요.
+
+##### Netlify
+
+Netlify에서 웹후크를 설정하려면:
+
+1. 사이트 대시보드로 이동하여 **Build & deploy**를 클릭합니다.
+2. **Continuous Deployment** 탭에서 **Build hooks** 섹션을 찾아 **Add build hook**를 클릭합니다.
+3. 웹후크의 이름을 제공하고 빌드를 트리거할 브랜치를 선택합니다. **Save**을 클릭하고 생성된 URL을 복사하세요.
+
+##### Vercel
+
+Vercel에서 웹후크를 설정하려면 다음 안내를 따르세요.
+
+1. 프로젝트 대시보드로 이동하여 **Settings**을 클릭합니다.
+2. **Git** 탭에서 **Deploy Hooks** 섹션을 찾습니다.
+3. 빌드를 트리거할 웹후크와 브랜치의 이름을 제공합니다. **Add**를 클릭하고 생성된 URL을 복사합니다.
+
+## 테마
+
+<Grid>
+  <Card title="Astro 헤드리스 CMS 블로그" href="https://astro.build/themes/details/cosmic-cms-blog/" thumbnail="simple-astro-blog.png" />
+</Grid>
