@@ -17,6 +17,190 @@ export default defineConfig({
 ## Opciones de nivel superior
 
 
+### site
+
+<p>
+**Tipo:** `string`
+</p>
+
+La URL final donde se desplegará. Astro usa esta URL completa para generar el sitemap y las URL canónicas en la compilación final. Se recomienda establecer esta configuración para aprovechar al máximo Astro.
+
+```js
+{
+  site: 'https://www.my-site.dev',
+}
+```
+
+### base
+
+<p>
+**Tipo:** `string`
+</p>
+
+La ruta base en la que se desplegará. Astro usará esta ruta como la raíz para tus páginas y activos en desarrollo y producción.
+
+En el ejemplo de abajo, `astro dev` empezará tu servidor en `/docs`.
+
+```js
+{
+  base: '/docs',
+}
+```
+
+Cuando utilices esta opción, todas tus importaciones de activos estáticos y URL deben agregar la base como prefijo. Puedes acceder a este valor a través de `import.meta.env.BASE_URL`.
+
+El valor de `import.meta.env.BASE_URL` se determinará según la configuración de `trailingSlash`, sin importar el valor que hayas establecido para `base`.
+
+Se incluirá una barra diagonal al final siempre que se establezca `trailingSlash: "always"`. Si se establece `trailingSlash: "never"`, `BASE_URL` no incluirá una barra diagonal al final, incluso si `base` la incluye.
+
+Además, Astro manipulará internamente el valor configurado de `config.base` antes de ponerlo a disposición de las integraciones. El valor de `config.base` tal como lo leen las integraciones también se determinará según la configuración de `trailingSlash` de la misma manera.
+
+En el siguiente ejemplo, los valores de `import.meta.env.BASE_URL` y `config.base`, al ser procesados, serán ambos `/docs`:
+```js
+{
+	 base: '/docs/',
+	 trailingSlash: "never"
+}
+```
+
+En el siguiente ejemplo, los valores de `import.meta.env.BASE_URL` y `config.base`, al ser procesados, serán ambos `/docs/`:
+```js
+{
+	 base: '/docs',
+	 trailingSlash: "always"
+}
+```
+
+### trailingSlash
+
+<p>
+**Tipo:** `'always' | 'never' | 'ignore'`<br />
+**Por defecto:** `'ignore'`
+</p>
+
+Establece el comportamiento de coincidencia de rutas del servidor de desarrollo. Elige entre las siguientes opciones:
+   - `'always'`: solo coincide con las URL que incluyen una barra inclinada al final (por ejemplo: "/foo/")
+   - `'never'`: nunca haga coincidir las URL que incluyen una barra inclinada al final (por ejemplo: "/foo")
+   - `'ignore'`: coincide con las URL independientemente de si existe un "/" final
+
+Utiliza esta opción de configuración si tu host de producción tiene un manejo estricto de cómo funcionan o no las barras inclinadas finales.
+
+También puedes configurar esto si prefieres ser más estricto, de modo que las URL con o sin barras diagonales finales no funcionen durante el desarrollo.
+
+```js
+{
+  // Ejemplo: Requiera una barra inclinada final durante el desarrollo
+  trailingSlash: 'always',
+}
+```
+**Ver también:**
+- build.format
+
+### redirects
+
+<p>
+
+**Tipo:** `Record.<string, RedirectConfig>`<br />
+**Por defecto:** `{}`<br />
+<Since v="2.9.0" />
+</p>
+
+Especifica un mapeo de redirecciones donde la clave es la ruta a coincidir y el valor es la ruta a la que se redirige.
+
+Puedes redirigir tanto rutas estáticas como dinámicas, pero solo a un tipo de ruta similar.
+Por ejemplo, no puedes tener una redirección `'/article': '/blog/[...slug]'`.
+
+
+```js
+{
+  redirects: {
+    '/old': '/new',
+    '/blog/[...slug]': '/articles/[...slug]',
+  }
+}
+```
+
+Para sitios generados estáticamente sin un adaptador instalado, esto producirá una redirección del cliente utilizando una [etiqueta `<meta http-equiv="refresh">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#http-equiv) y no admitirá códigos de estado.
+
+Cuando se utiliza SSR o un adaptador estático en el modo `output: static`, se admiten los códigos de estado.
+Astro servirá las solicitudes GET redirigidas con un estado `301` y utilizará un estado `308` para cualquier otro método de solicitud.
+
+Puedes personalizar el [código de estado de redirección](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages) utilizando un objeto en la configuración de redirección:
+
+```js
+{
+  redirects: {
+    '/other': {
+      status: 302,
+      destination: '/place',
+    },
+  }
+}
+```
+
+### output
+
+<p>
+**Tipo:** `'static' | 'server' | 'hybrid'`<br />
+**Por defecto:** `'static'`
+</p>
+
+Especifica el tipo de la compilación.
+
+- `'static'`: construye un sitio estático para implementarlo en cualquier host estático.
+- `'server'`: construye una aplicación que se implementará en un host compatible con SSR (renderizado en el servidor).
+- `'hybrid'` - Construye un sitio estático con algunas páginas renderizadas en el lado del servidor.
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  output: 'static',
+})
+```
+**Ver también:**
+- adapter
+
+### adapter
+
+<p>
+**Tipo:** `AstroIntegration`
+</p>
+
+Despliega a tu servidor favorito, serverless o edge host con adaptadores de compilación. Importa uno de nuestros adaptadores propios para [Netlify](/es/guides/deploy/netlify/#adaptador-para-ssr), [Vercel](/es/guides/deploy/vercel/#adaptador-para-ssr), y más para incluir a Astro SSR.
+
+[Consulta nuestra guía de renderizado en el servidor](/es/guides/server-side-rendering/) para obtener más información sobre SSR, y [nuestras guías de despliegue](/es/guides/deploy/) para obtener una lista completa de hosts.
+
+```js
+import netlify from '@astrojs/netlify';
+{
+ // Ejemplo: Compila para desplegar en Netlify serverless
+ adapter: netlify(),
+}
+```
+
+**Ver también:**
+- output
+
+### integraciones
+
+<p>
+**Tipo:** `AstroIntegration[]`
+</p>
+
+Extiende Astro con integraciones personalizadas. Las integraciones sirven para agregar soporte a frameworks (como Solid.js), nuevas funcionalidades (sitemaps) y nuevas bibliotecas (como Partytown).
+
+Consulta nuestra [guía de integraciones](/es/guides/integrations-guide/) para obtener ayuda para comenzar con integraciones de Astro.
+
+```js
+import react from '@astrojs/react';
+import tailwind from '@astrojs/tailwind';
+{
+  // Ejemplo: Agrega compatibilidad con React + Tailwind a Astro
+  integrations: [react(), tailwind()],
+}
+```
+
 ### root
 
 <p>
@@ -110,61 +294,6 @@ El valor puede ser una ruta absoluta del sistema de archivos o una ruta relativa
 }
 ```
 
-### redirects
-
-<p>
-
-**Tipo:** `Record.<string, RedirectConfig>`<br />
-**Por defecto:** `{}`<br />
-<Since v="2.9.0" />
-</p>
-
-Especifica un mapeo de redirecciones donde la clave es la ruta a coincidir y el valor es la ruta a la que se redirige.
-
-Puedes redirigir tanto rutas estáticas como dinámicas, pero solo a un tipo de ruta similar.
-Por ejemplo, no puedes tener una redirección `'/article': '/blog/[...slug]'`.
-
-
-```js
-{
-  redirects: {
-    '/old': '/new',
-    '/blog/[...slug]': '/articles/[...slug]',
-  }
-}
-```
-
-Para sitios generados estáticamente sin un adaptador instalado, esto producirá una redirección del cliente utilizando una [etiqueta `<meta http-equiv="refresh">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#http-equiv) y no admitirá códigos de estado.
-
-Cuando se utiliza SSR o un adaptador estático en el modo `output: static`, se admiten los códigos de estado.
-Astro servirá las solicitudes GET redirigidas con un estado `301` y utilizará un estado `308` para cualquier otro método de solicitud.
-
-Puedes personalizar el [código de estado de redirección](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages) utilizando un objeto en la configuración de redirección:
-
-```js
-{
-  redirects: {
-    '/other': {
-      status: 302,
-      destination: '/place',
-    },
-  }
-}
-```
-
-### site
-
-<p>
-**Tipo:** `string`
-</p>
-
-La URL final donde se desplegará. Astro usa esta URL completa para generar el sitemap y las URL canónicas en la compilación final. Se recomienda establecer esta configuración para aprovechar al máximo Astro.
-```js
-{
-  site: 'https://www.my-site.dev',
-}
-```
-
 ### compressHTML
 
 <p>
@@ -180,71 +309,6 @@ Para desactivar la compresión del HTML, establece el parámetro `compressHTML` 
   compressHTML: false
 }
 ```
-
-### base
-
-<p>
-**Tipo:** `string`
-</p>
-
-La ruta base en la que se desplegará. Astro usará esta ruta como la raíz para tus páginas y activos en desarrollo y producción.
-
-En el ejemplo de abajo, `astro dev` empezará tu servidor en `/docs`.
-
-```js
-{
-  base: '/docs',
-}
-```
-
-Cuando utilices esta opción, todas tus importaciones de activos estáticos y URL deben agregar la base como prefijo. Puedes acceder a este valor a través de `import.meta.env.BASE_URL`.
-
-El valor de `import.meta.env.BASE_URL` se determinará según la configuración de `trailingSlash`, sin importar el valor que hayas establecido para `base`.
-
-Se incluirá una barra diagonal al final siempre que se establezca `trailingSlash: "always"`. Si se establece `trailingSlash: "never"`, `BASE_URL` no incluirá una barra diagonal al final, incluso si `base` la incluye.
-
-Además, Astro manipulará internamente el valor configurado de `config.base` antes de ponerlo a disposición de las integraciones. El valor de `config.base` tal como lo leen las integraciones también se determinará según la configuración de `trailingSlash` de la misma manera.
-
-En el siguiente ejemplo, los valores de `import.meta.env.BASE_URL` y `config.base`, al ser procesados, serán ambos `/docs`:
-```js
-{
-	 base: '/docs/',
-	 trailingSlash: "never"
-}
-```
-
-En el siguiente ejemplo, los valores de `import.meta.env.BASE_URL` y `config.base`, al ser procesados, serán ambos `/docs/`:
-```js
-{
-	 base: '/docs',
-	 trailingSlash: "always"
-}
-```
-
-### trailingSlash
-
-<p>
-**Tipo:** `'always' | 'never' | 'ignore'`<br />
-**Por defecto:** `'ignore'`
-</p>
-
-Establece el comportamiento de coincidencia de rutas del servidor de desarrollo. Elige entre las siguientes opciones:
-   - `'always'`: solo coincide con las URL que incluyen una barra inclinada al final (por ejemplo: "/foo/")
-   - `'never'`: nunca haga coincidir las URL que incluyen una barra inclinada al final (por ejemplo: "/foo")
-   - `'ignore'`: coincide con las URL independientemente de si existe un "/" final
-
-Utiliza esta opción de configuración si tu host de producción tiene un manejo estricto de cómo funcionan o no las barras inclinadas finales.
-
-También puedes configurar esto si prefieres ser más estricto, de modo que las URL con o sin barras diagonales finales no funcionen durante el desarrollo.
-
-```js
-{
-  // Ejemplo: Requiera una barra inclinada final durante el desarrollo
-  trailingSlash: 'always',
-}
-```
-**Ver también:**
-- build.format
 
 ### scopedStyleStrategy
 
@@ -263,50 +327,37 @@ Utilizar `'class'` es útil cuando quieres asegurar que los selectores de elemen
 Utilizar `'where'` te brinda más control sobre la especificidad, pero requiere que utilices selectores de mayor especificidad, capas y otras herramientas para controlar qué selectores se aplican.
 Utilizar `'attribute'` es útil cuando estás manipulando el atributo `class` de elementos y necesitas evitar conflictos entre tu lógica de estilo y la aplicación de estilos de Astro.
 
-### adapter
+### vite
 
 <p>
-**Tipo:** `AstroIntegration`
+**Tipo:** `ViteUserConfig`
 </p>
 
-Despliega a tu servidor favorito, serverless o edge host con adaptadores de compilación. Importa uno de nuestros adaptadores propios para [Netlify](/es/guides/deploy/netlify/#adaptador-para-ssr), [Vercel](/es/guides/deploy/vercel/#adaptador-para-ssr), y más para incluir a Astro SSR.
+Pasa opciones de configuración adicionales a Vite. Útil cuando Astro no admite alguna configuración avanzada que pueda necesitar.
 
-[Consulta nuestra guía de renderizado en el servidor](/es/guides/server-side-rendering/) para obtener más información sobre SSR, y [nuestras guías de despliegue](/es/guides/deploy/) para obtener una lista completa de hosts.
+Consulta la documentación completa del objeto de configuración `vite` en [vitejs.dev](https://vitejs.dev/config/).
+
+#### Ejemplos
 
 ```js
-import netlify from '@astrojs/netlify';
 {
-  // Ejemplo: Compila para desplegar en Netlify serverless
- adapter: netlify(),
+  vite: {
+    ssr: {
+      // Ejemplo: Obliga a un paquete roto a omitir el procesamiento de SSR, si es necesario
+      external: ['broken-npm-package'],
+    }
+  }
 }
 ```
 
-**Ver también:**
-- output
-
-### output
-
-<p>
-**Tipo:** `'static' | 'server'`<br />
-**Por defecto:** `'static'`
-</p>
-
-Especifica el tipo de la compilación.
-
-- `'static'`: construye un sitio estático para implementarlo en cualquier host estático.
-- `'server'`: construye una aplicación que se implementará en un host compatible con SSR (renderizado en el servidor).
-- `'hybrid'` - Construye un sitio estático con algunas páginas renderizadas en el lado del servidor.
-
 ```js
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  output: 'static',
-})
+{
+  vite: {
+    // Ejemplo: Agrega plugins de vite personalizados directamente a tu proyecto de Astro
+    plugins: [myPlugin()],
+  }
+}
 ```
-**Ver también:**
-- adapter
-
 
 ## Opciones de Build
 
@@ -491,72 +542,6 @@ Controla si los estilos del proyecto se envían al navegador en un archivo CSS s
 }
 ```
 
-### Opciones de Precarga
-
-<p>
-
-**Tipo:** `boolean | object`
-</p>
-
-Habilita la precarga de enlaces en tu sitio para proporcionar transiciones de página más rápidas.
-(Activado de forma predeterminada en las páginas que utilizan el router `<ViewTransitions />`. Establece `prefetch: false` para optar por no utilizar este comportamiento.)
-
-Esta configuración agrega automáticamente un script de precarga a cada página del proyecto
-dandote acceso al atributo `data-astro-prefetch`.
-Agrega este atributo a cualquier enlace `<a />` en tu página para habilitar el prefetching para esa página.
-
-```html
-<a href="/about" data-astro-prefetch>Acerca</a>
-```
-Para personalizar aún más el comportamiento predeterminado de precarga puedes usar las opciones [`prefetch.defaultStrategy`](#prefetchdefaultstrategy) y [`prefetch.prefetchAll`](#prefetchprefetchall).
-
-Consulta la [guía de Prefetch](/es/guides/prefetch/) para obtener más información.
-
-
-### prefetch.prefetchAll
-
-<p>
-
-**Tipo:** `boolean`
-</p>
-
-Habilita la precarga para todos los enlaces, incluidos aquellos sin el atributo `data-astro-prefetch`.
-El valor predeterminado es `true` cuando se utiliza el router `<ViewTransitions />`. De lo contrario, el valor predeterminado es `false`.
-
-```js
-prefetch: {
-	prefetchAll: true
-}
-```
-
-Cuando se establece en `true`, puedes deshabilitar el prefetching individualmente estableciendo `data-astro-prefetch="false"` en cualquier enlace individual.
-
-```html
-<a href="/about" data-astro-prefetch="false">About</a>
-```
-
-
-### prefetch.defaultStrategy
-
-<p>
-
-**Tipo:** `'tap' | 'hover' | 'viewport' | 'load'`<br />
-**Por defecto:** `'hover'`
-</p>
-
-La estrategia de precarga predeterminada para utilizar cuando el atributo `data-astro-prefetch` está establecido en un enlace sin valor.
-
-- `'tap'`: Precarga justo antes de hacer clic en el enlace.
-- `'hover'`: Precarga cuando pasas el cursor o te enfocas en el enlace. (predeterminada)
-- `'viewport'`: Precarga cuando los enlaces entran en el viewport.
-- `'load'`: Precarga todos los enlaces en la página después de que la página se ha cargado.
-
-Puedes reemplazar este valor predeterminado y seleccionar una estrategia diferente para cualquier enlace individual estableciendo un valor en el atributo.
-
-```html
-<a href="/about" data-astro-prefetch="viewport">Acerca</a>
-```
-
 ## Opciones del Servidor
 
 Personaliza el entorno de desarrollo de Astro, utilizado por `astro dev` y `astro preview`.
@@ -634,6 +619,85 @@ Pasa un string de URL completo (p. ej. "http://example.com") o una ruta (p. ej. 
 </p>
 
 Establece encabezados de respuesta HTTP personalizados para enviar en `astro dev` y `astro preview`.
+
+## Opciones de la barra de herramientas de desarrollo
+
+### devToolbar.enabled
+
+<p>
+**Tipo:** `boolean`<br />
+**Por defecto:** `true`
+</p>
+
+Si deseas activar la barra de herramientas de Astro Dev. Esta barra de herramientas te permite inspeccionar las islas de tu página, ver auditorías útiles sobre rendimiento y accesibilidad, y mucho más.
+
+Esta opción se aplica a todo el proyecto, para desactivar la barra de herramientas sólo para ti, ejecuta `npm run astro preferences disable devToolbar`. Para desactivar la barra de herramientas para todos tus proyectos de Astro, ejecuta `npm run astro preferences disable devToolbar --global`.
+
+### Opciones de Precarga
+
+<p>
+
+**Tipo:** `boolean | object`
+</p>
+
+Habilita la precarga de enlaces en tu sitio para proporcionar transiciones de página más rápidas.
+(Activado de forma predeterminada en las páginas que utilizan el router `<ViewTransitions />`. Establece `prefetch: false` para optar por no utilizar este comportamiento.)
+
+Esta configuración agrega automáticamente un script de precarga a cada página del proyecto
+dandote acceso al atributo `data-astro-prefetch`.
+Agrega este atributo a cualquier enlace `<a />` en tu página para habilitar el prefetching para esa página.
+
+```html
+<a href="/about" data-astro-prefetch>Acerca</a>
+```
+Para personalizar aún más el comportamiento predeterminado de precarga puedes usar las opciones [`prefetch.defaultStrategy`](#prefetchdefaultstrategy) y [`prefetch.prefetchAll`](#prefetchprefetchall).
+
+Consulta la [guía de Prefetch](/es/guides/prefetch/) para obtener más información.
+
+
+### prefetch.prefetchAll
+
+<p>
+
+**Tipo:** `boolean`
+</p>
+
+Habilita la precarga para todos los enlaces, incluidos aquellos sin el atributo `data-astro-prefetch`.
+El valor predeterminado es `true` cuando se utiliza el router `<ViewTransitions />`. De lo contrario, el valor predeterminado es `false`.
+
+```js
+prefetch: {
+	prefetchAll: true
+}
+```
+
+Cuando se establece en `true`, puedes deshabilitar el prefetching individualmente estableciendo `data-astro-prefetch="false"` en cualquier enlace individual.
+
+```html
+<a href="/about" data-astro-prefetch="false">About</a>
+```
+
+
+### prefetch.defaultStrategy
+
+<p>
+
+**Tipo:** `'tap' | 'hover' | 'viewport' | 'load'`<br />
+**Por defecto:** `'hover'`
+</p>
+
+La estrategia de precarga predeterminada para utilizar cuando el atributo `data-astro-prefetch` está establecido en un enlace sin valor.
+
+- `'tap'`: Precarga justo antes de hacer clic en el enlace.
+- `'hover'`: Precarga cuando pasas el cursor o te enfocas en el enlace. (predeterminada)
+- `'viewport'`: Precarga cuando los enlaces entran en el viewport.
+- `'load'`: Precarga todos los enlaces en la página después de que la página se ha cargado.
+
+Puedes reemplazar este valor predeterminado y seleccionar una estrategia diferente para cualquier enlace individual estableciendo un valor en el atributo.
+
+```html
+<a href="/about" data-astro-prefetch="viewport">Acerca de</a>
+```
 
 ## Opciones de Imagen
 
@@ -893,61 +957,6 @@ Puedes pasar opciones a [remark-rehype](https://github.com/remarkjs/remark-rehyp
 }
 ```
 
-## Integraciones
-
-Extiende Astro con integraciones personalizadas. Las integraciones sirven para agregar soporte a frameworks (como Solid.js), nuevas funcionalidades (sitemaps) y nuevas bibliotecas (como Partytown).
-
-Consulta nuestra [guía de integraciones](/es/guides/integrations-guide/) para obtener ayuda para comenzar con integraciones de Astro.
-
-```js
-import react from '@astrojs/react';
-import tailwind from '@astrojs/tailwind';
-{
-  // Ejemplo: Agrega compatibilidad con React + Tailwind a Astro
-  integrations: [react(), tailwind()],
-}
-```
-
-## Vite
-
-Pasa opciones de configuración adicionales a Vite. Útil cuando Astro no admite alguna configuración avanzada que pueda necesitar.
-
-Consulta la documentación completa del objeto de configuración `vite` en [vitejs.dev](https://vitejs.dev/config/).
-
-#### Ejemplos
-
-```js
-{
-  vite: {
-    ssr: {
-      // Ejemplo: Obliga a un paquete roto a omitir el procesamiento de SSR, si es necesario
-      external: ['broken-npm-package'],
-    }
-  }
-}
-```
-
-```js
-{
-  vite: {
-    // Ejemplo: Agrega plugins de vite personalizados directamente a tu proyecto de Astro
-    plugins: [myPlugin()],
-  }
-}
-```
-
-## Flags legacy
-
-Para ayudar a algunos usuarios a migrar entre versiones de Astro, ocasionalmente introducimos flags `legacy`.
-Estas flags te permiten optar por algunos comportamientos desactualizados u obsoletos de Astro
-en la última versión, para que pueda continuar actualizándose y aprovechar los nuevos lanzamientos de Astro.
-
-## Flags Experimentales
-
-Astro ofrece flags experimentales para dar a los usuarios acceso temprano a nuevas características.
-
-Estas flags no son garantía de ser estables.
-
 ## i18n
 
 <p>
@@ -1045,6 +1054,33 @@ Cuando es `true`, todas las URLs mostrarán un prefijo de idioma.
 Las URLs serán de la forma `example.com/[lang]/content/` para cada ruta, incluyendo el idioma por defecto.
 Se utilizan carpetas localizadas para cada idioma, incluido el predeterminado.
 
+#### i18n.routing.redirectToDefaultLocale
+
+<p>
+
+**Tipo:** `boolean`<br />
+**Por defecto:** `true`<br />
+<Since v="4.2.0" />
+</p>
+
+Configura si la URL de inicio (`/`) generada por `src/pages/index.astro`
+se redireccionará a `/[defaultLocale]` cuando `prefixDefaultLocale: true` está configurado.
+
+Establece `redirectToDefaultLocale: false` para desactivar esta redirección automática en la raíz de tu sitio:
+```js
+// astro.config.mjs
+export default defineConfig({
+  i18n:{
+    defaultLocale: "en",
+		locales: ["en", "fr"],
+    routing: {
+      prefixDefaultLocale: true,
+      redirectToDefaultLocale: false
+    }
+  }
+})
+```
+
 ## Banderas legacy
 
 Para ayudar a algunos usuarios a migrar entre versiones de Astro, ocasionalmente introducimos banderas `legacy`.
@@ -1096,3 +1132,68 @@ Habilita un caché persistente para las colecciones de contenido cuando se compi
 	},
 }
 ```
+
+### experimental.clientPrerender
+
+<p>
+
+**Tipo:** `boolean`<br />
+**Por defecto:** `false`<br />
+<Since v="4.2.0" />
+</p>
+
+Permite la pre-renderización de tus páginas precargadas en el cliente en navegadores compatibles.
+
+Esta característica utiliza la [API experimental de Reglas de Especulación Web](https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API) y anula el comportamiento predeterminado de `prefetch` a nivel global para pre-renderizar enlaces en el cliente.
+Puede que desees revisar los [posibles riesgos al pre-renderizar en el cliente](https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API#unsafe_prefetching) antes de habilitar esta característica.
+
+Habilita la pre-renderización en el lado del cliente en tu archivo `astro.config.mjs`, junto con cualquier opción de configuración de `prefetch` deseada:
+
+```js
+// astro.config.mjs
+{
+  prefetch: {
+    prefetchAll: true,
+    defaultStrategy: 'viewport',
+  },
+	experimental: {
+		clientPrerender: true,
+	},
+}
+```
+
+Continúa utilizando el atributo `data-astro-prefetch` en cualquier enlace `<a />` en tu sitio para optar por la precarga.
+En lugar de añadir una etiqueta `<link>` a la cabecera del documento o recuperar la página con JavaScript, se agregará una etiqueta `<script>` con las reglas de especulación correspondientes.
+
+La pre-renderización en el lado del cliente requiere el soporte del navegador. Si la API de Reglas de Especulación no es compatible, `prefetch` volverá a la estrategia compatible.
+
+Consulta la [Guía de Precargar] para más opciones y uso de `prefetch`.
+
+### experimental.globalRoutePriority
+
+<p>
+
+**Tipo:** `boolean`<br />
+**Por defecto:** `false`<br />
+<Since v="4.2.0" />
+</p>
+
+Da la misma prioridad a las redirecciones y las rutas inyectadas junto con las rutas del proyecto basadas en archivos, siguiendo las mismas [reglas de orden de prioridad de rutas](/es/core-concepts/routing/#orden-de-prioridad-de-rutas) para todas las rutas.
+
+Esto permite más control sobre el enrutamiento en tu proyecto al no priorizar automáticamente ciertos tipos de rutas, y estandariza el orden de prioridad para todas las rutas.
+
+El siguiente ejemplo muestra que ruta construirá ciertas URLs de páginas cuando se combinan rutas basadas en archivos, rutas inyectadas y redirecciones como se muestra a continuación:
+- Ruta basada en archivos: `/blog/post/[pid]`
+- Ruta basada en archivos: `/[page]`
+- Ruta inyectada: `/blog/[...slug]`
+- Redirección: `/blog/tags/[tag]` -> `/[tag]`
+- Redirección: `/posts` -> `/blog`
+
+Con `experimental.globalRoutingPriority` habilitado (en lugar del orden de prioridad de rutas por defecto de Astro 4.0):
+
+- `/blog/tags/astro` se construye mediante la redirección a `/tags/[tag]` (en lugar de la ruta inyectada `/blog/[...slug]`)
+- `/blog/post/0` se construye mediante la ruta basada en archivos `/blog/post/[pid]` (en lugar de la ruta inyectada `/blog/[...slug]`)
+- `/posts` se construye mediante la redirección a `/blog` (en lugar de la ruta basada en archivos `/[page]`)
+
+
+En caso de colisión de rutas, cuando dos rutas con la misma prioridad intentan construir la misma URL, Astro registrará una advertencia identificando las rutas en conflicto.
