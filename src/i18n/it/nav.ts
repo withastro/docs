@@ -16,10 +16,10 @@ export default NavDictionary({
 
 	basics: 'Le basi',
 
-	'core-concepts/project-structure': 'Struttura del Progetto',
-	'core-concepts/astro-components': 'Componenti',
-	'core-concepts/astro-pages': 'Pagine',
-	'core-concepts/layouts': 'Layout',
+	'basics/project-structure': 'Struttura del Progetto',
+	'basics/astro-components': 'Componenti',
+	'basics/astro-pages': 'Pagine',
+	'basics/layouts': 'Layout',
 
 	examples: 'Soluzioni',
 	'guides/migrate-to-astro': 'Passa ad Astro',
@@ -30,9 +30,9 @@ export default NavDictionary({
 	'guides/recipes': 'Altre soluzioni',
 
 	features: 'Guide',
-	'core-concepts/astro-syntax': 'Sintassi dei Template di Astro',
-	'core-concepts/framework-components': 'Framework UI',
-	'core-concepts/routing': 'Navigazione',
+	'basics/astro-syntax': 'Sintassi dei Template di Astro',
+	'guides/framework-components': 'Framework UI',
+	'guides/routing': 'Navigazione',
 	'guides/markdown-content': 'Markdown & MDX',
 	'guides/content-collections': 'Collezioni di Contenuti',
 	'guides/client-side-scripts': 'Script & Gestione degli Eventi',
@@ -41,7 +41,7 @@ export default NavDictionary({
 	'guides/fonts': 'Font',
 	'guides/imports': 'Import',
 	'guides/server-side-rendering': 'Rendering lato server (SSR)',
-	'core-concepts/endpoints': 'Punti d’accesso',
+	'guides/endpoints': 'Punti d’accesso',
 	'guides/data-fetching': 'Fetch dei Dati',
 	'guides/middleware': 'Middleware',
 	'guides/testing': 'Testing',

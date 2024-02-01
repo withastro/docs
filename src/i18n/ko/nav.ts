@@ -17,12 +17,12 @@ export default NavDictionary({
 	'add-transitions-tutorial': 'View Transitions 사용하기',
 
 	basics: '기본',
-	'core-concepts/project-structure': '프로젝트 구조',
-	'core-concepts/astro-components': '컴포넌트',
-	'core-concepts/astro-pages': '페이지',
-	'core-concepts/layouts': '레이아웃',
-	'core-concepts/astro-syntax': 'Astro 템플릿 구문',
-	'core-concepts/rendering-modes': '렌더링 모드',
+	'basics/project-structure': '프로젝트 구조',
+	'basics/astro-components': '컴포넌트',
+	'basics/astro-pages': '페이지',
+	'basics/layouts': '레이아웃',
+	'basics/astro-syntax': 'Astro 템플릿 구문',
+	'basics/rendering-modes': '렌더링 모드',
 
 	builtins: '내장 기능',
 	'guides/content-collections': '콘텐츠 컬렉션',
@@ -31,7 +31,7 @@ export default NavDictionary({
 
 	addons: '통합',
 	'guides/integrations-guide': '통합 추가',
-	'core-concepts/framework-components': 'UI 프레임워크',
+	'guides/framework-components': 'UI 프레임워크',
 	'guides/server-side-rendering': '서버 측 렌더링 (SSR)',
 
 	examples: '레시피',
@@ -42,14 +42,14 @@ export default NavDictionary({
 	'guides/recipes': '더 많은 레시피',
 
 	features: '안내서',
-	'core-concepts/routing': '라우팅',
+	'guides/routing': '라우팅',
 	'guides/markdown-content': 'Markdown & MDX',
 	'guides/client-side-scripts': '스크립트 & 이벤트 처리',
 	'guides/styling': 'CSS & 스타일링',
 	'guides/images': '이미지',
 	'guides/fonts': '글꼴',
 	'guides/imports': '가져오기',
-	'core-concepts/endpoints': '엔드포인트',
+	'guides/endpoints': '엔드포인트',
 	'guides/data-fetching': '데이터 페칭',
 	'guides/internationalization': '국제화',
 	'guides/middleware': '미들웨어',
@@ -73,4 +73,8 @@ export default NavDictionary({
 	'reference/cli-reference': 'Astro CLI',
 	'reference/error-reference': '오류 참조',
 	'guides/publish-to-npm': 'NPM 패키지 형식',
+
+	communityResources: '커뮤니티 자료',
+	'community-resources/content': '강의, 안내서, 레시피',
+	'community-resources/talks': '강연, 인터뷰, 스트림',
 });
