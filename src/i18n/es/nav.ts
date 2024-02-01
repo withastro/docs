@@ -3,6 +3,7 @@ import { NavDictionary } from '../translation-checkers';
 export default NavDictionary({
 	startHere: 'Empezar Aquí',
 	'getting-started': 'Cómo Empezar',
+
 	install: 'Instalación',
 	'editor-setup': 'Configuración del Editor',
 	'guides/upgrade-to/v4': 'Actualizar a v4',
@@ -17,12 +18,12 @@ export default NavDictionary({
 	'add-transitions-tutorial': 'Ampliar con View Transitions',
 
 	basics: 'Conceptos Básicos',
-	'core-concepts/project-structure': 'Estructura del proyecto',
-	'core-concepts/astro-components': 'Componentes',
-	'core-concepts/astro-pages': 'Páginas',
-	'core-concepts/layouts': 'Plantillas',
-	'core-concepts/astro-syntax': 'Sintaxis de Astro',
-	'core-concepts/rendering-modes': 'Modos de Renderizado',
+	'basics/project-structure': 'Estructura del proyecto',
+	'basics/astro-components': 'Componentes',
+	'basics/astro-pages': 'Páginas',
+	'basics/layouts': 'Plantillas',
+	'basics/astro-syntax': 'Sintaxis de Astro',
+	'basics/rendering-modes': 'Modos de Renderizado',
 
 	builtins: 'Funciones Integradas',
 	'guides/content-collections': 'Colecciones de Contenido',
@@ -31,7 +32,7 @@ export default NavDictionary({
 
 	addons: 'Integraciones',
 	'guides/integrations-guide': 'Agregar integraciones',
-	'core-concepts/framework-components': 'Frameworks UI',
+	'guides/framework-components': 'Frameworks UI',
 	'guides/server-side-rendering': 'Renderizado en el lado del servidor (SSR)',
 
 	examples: 'Recetas',
@@ -42,14 +43,14 @@ export default NavDictionary({
 	'guides/recipes': 'Más recetas',
 
 	features: 'Guías',
-	'core-concepts/routing': 'Enrutamiento',
+	'guides/routing': 'Enrutamiento',
 	'guides/markdown-content': 'Markdown y MDX',
 	'guides/client-side-scripts': 'Scripts y Manejo de Eventos',
 	'guides/styling': 'Estilos y CSS',
 	'guides/images': 'Imágenes',
 	'guides/fonts': 'Fuentes',
 	'guides/imports': 'Importaciones',
-	'core-concepts/endpoints': 'Endpoints',
+	'guides/endpoints': 'Endpoints',
 	'guides/data-fetching': 'Fetching de Datos',
 	'guides/internationalization': 'Internacionalización',
 	'guides/middleware': 'Middleware',
@@ -73,4 +74,8 @@ export default NavDictionary({
 	'reference/cli-reference': 'La CLI de Astro',
 	'reference/error-reference': 'Referencia de Errores',
 	'guides/publish-to-npm': 'Formato de Paquete NPM',
+
+	communityResources: 'Recursos de la Comunidad',
+	'community-resources/content': 'Cursos, Guías y Recetas',
+	'community-resources/talks': 'Charlas, Entrevistas y Transmisiones',
 });
