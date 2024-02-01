@@ -1,0 +1,571 @@
+---
+type: integration
+title: '@astrojs/cloudflare'
+description: '@astrojs/cloudflare SSR 어댑터를 사용하여 Astro 프로젝트를 배포하는 방법을 알아보세요.'
+githubIntegrationURL: 'https://github.com/withastro/adapters/tree/main/packages/cloudflare/'
+category: adapter
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+이 어댑터를 사용하면 Astro가 [`hybrid` 또는 `server` 렌더링된 사이트](/ko/basics/rendering-modes/#요청-시-렌더링)를 [Cloudflare](https://www.cloudflare.com/)에 배포할 수 있습니다.
+
+Astro를 [정적 사이트 빌더](/ko/basics/rendering-modes/#사전-렌더링)로 사용하는 경우 어댑터가 필요하지 않습니다.
+
+[Cloudflare Pages 배포 가이드](/ko/guides/deploy/cloudflare/)에서 Astro 사이트를 배포하는 방법을 알아보세요.
+
+## 왜 Astro Cloudflare인가?
+
+[Cloudflare](https://www.cloudflare.com/)는 CDN, 웹 보안 및 기타 서비스를 제공합니다. 이 어댑터는 Astro 빌드 프로세스를 향상하여 Cloudflare를 통한 배포용 프로젝트를 준비합니다.
+
+## 설치
+
+Astro에는 공식 통합 설정을 자동화하는 `astro add` 명령이 포함되어 있습니다. 원하는 경우 대신 [통합을 수동으로 설치](#수동-설치)할 수 있습니다.
+
+Astro 프로젝트에서 SSR을 활성화하려면 `astro add` 명령을 사용하여 Cloudflare 어댑터를 추가하세요. 그러면 `@astrojs/cloudflare`가 설치되고 `astro.config.mjs` 파일이 한 번에 적절하게 변경됩니다.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add cloudflare
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add cloudflare
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add cloudflare
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### 수동 설치
+
+먼저, 선호하는 패키지 관리자를 사용하여 `@astrojs/cloudflare` 어댑터를 프로젝트 종속성에 추가하세요.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install @astrojs/cloudflare
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add @astrojs/cloudflare
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add @astrojs/cloudflare
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+그런 다음 어댑터와 원하는 [on-demand 렌더링 모드](/ko/basics/rendering-modes/#요청-시-렌더링)를 `astro.config.mjs` 파일에 추가하세요.
+
+```js title="astro.config.mjs" ins={2,5-6}
+import { defineConfig } from 'astro/config';
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+  output: 'server',
+  adapter: cloudflare(),
+});
+```
+
+## 옵션
+
+### mode
+
+<p>
+
+**타입:** `'advanced' | 'directory'`<br />
+**기본값:** `'advanced'`
+</p>
+
+이 구성 옵션은 Astro 프로젝트가 Cloudflare Pages에 배포되는 방식을 정의합니다.
+
+* `advanced` 모드는 `dist` 폴더에 있는 `_worker.js` 파일을 선택합니다.
+* `directory` 모드는 `functions` 폴더의 파일을 선택하며, 기본적으로 하나의 `[[path]].js` 파일만 생성됩니다.
+
+directory 모드로 전환하면 [Cloudflare Pages Plugins](https://developers.cloudflare.com/pages/platform/functions/plugins/), [Cloudflare Pages Middleware](https://developers.cloudflare.com/pages/platform/functions/middleware/) 또는 [Cloudflare Pages Functions Routing](https://developers.cloudflare.com/pages/platform/functions/routing/)을 사용하는 사용자 정의 함수와 같은 파일을 수동으로 추가할 수 있습니다.
+
+```js title="astro.config.mjs" ins="mode: 'directory'"
+export default defineConfig({
+  adapter: cloudflare({ mode: 'directory' }),
+});
+```
+
+각 페이지에 대해 별도의 번들을 컴파일하려면 Cloudflare 어댑터 구성에서 `functionPerRoute` 옵션을 설정하세요. 이 옵션을 사용하려면 `functions` 폴더를 수동으로 유지 관리해야 합니다. Astro에서 내보낸 파일은 `functions` 폴더에 있는 동일한 이름의 기존 파일을 덮어쓰므로 수동으로 추가하는 각 파일에 대해 고유한 파일 이름을 선택해야 합니다. 또한 어댑터는 오래된 파일이 있는 `functions` 폴더를 비우지 않으므로 페이지를 제거할 때 폴더를 수동으로 정리해야 합니다.
+
+```js title="astro.config.mjs" ins={7}
+import {defineConfig} from "astro/config";
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+  adapter: cloudflare({
+    mode: 'directory',
+    functionPerRoute: true
+  })
+})
+```
+
+이 어댑터는 [`edgeMiddleware`](/ko/reference/adapter-reference/#edgemiddleware) 옵션을 지원하지 않습니다.
+
+### routes.strategy
+
+<p>
+
+**타입:** `'auto' | 'include' | 'exclude'`<br />
+**기본값:** `'auto'`
+</p>
+
+[custom `_routes.json`](#사용자-정의-_routesjson)이 제공되지 않은 경우 `routes.json` 파일이 생성되는 방법을 결정합니다.
+
+다음 세 가지 옵션을 사용할 수 있습니다.
+
+* **`"auto"`(기본값):** 가장 적은 항목을 생성하는 전략을 자동으로 선택합니다. 거의 항상 이것으로 충분하므로 특별한 이유가 없는 한 이 옵션을 선택하세요.
+
+* **`include`:** 사전 렌더링되지 않은 페이지와 엔드포인트는 `include` 항목으로 나열되어 Cloudflare가 이러한 경로를 함수로 호출하도록 지시합니다. `exclude` 항목은 충돌을 해결하는 데에만 사용됩니다. 일반적으로 웹사이트에 대부분 정적 페이지가 있고 동적 페이지나 엔드포인트가 소수인 경우 가장 좋은 전략입니다.
+
+  예: `src/pages/index.astro` (정적), `src/pages/company.astro` (정적), `src/pages/users/faq.astro` (정적) 및 `/src/pages/ users/[id].astro` (SSR) 인 경우 다음과 같은 `_routes.json` 파일이 생성됩니다.
+
+  ```json title="dist/_routes.json"
+  {
+    "version": 1,
+    "include": [
+      "/_image", // Astro의 이미지 엔드포인트
+      "/users/*" // 동적 경로
+    ],
+    "exclude": [
+      // 위의 동적 와일드카드 경로에서 제외되어야 하는 정적 경로
+      "/users/faq/",
+      "/users/faq/index.html"
+    ]
+  }
+  ```
+
+* **`exclude`:** 사전 렌더링된 페이지는 `exclude` 항목으로 나열됩니다 (Cloudflare가 이러한 경로를 정적 자산으로 처리하도록 지시함). 일반적으로 웹 사이트가 대부분 동적 페이지 또는 엔드포인트이고 소수의 정적 페이지만 있는 경우 가장 좋은 전략입니다.
+
+  예: 이전 예시와 동일한 페이지의 경우 다음 `_routes.json` 파일이 생성됩니다.
+
+  ```json title="dist/_routes.json"
+  {
+    "version": 1,
+    "include": [
+      "/*" // 아래 경로를 제외한 모든 것을 함수로 처리합니다.
+    ],
+    "exclude": [
+      // 모든 정적 자산
+      "/",
+      "/company/",
+      "/index.html",
+      "/users/faq/",
+      "/favicon.png",
+      "/company/index.html",
+      "/users/faq/index.html"
+    ]
+  }
+  ```
+
+### routes.include
+
+<p>
+
+**타입:** `string[]`<br />
+**기본값:** `[]`
+</p>
+
+자동으로 `_routes.json` 파일을 생성하고 싶지만 추가 경로를 포함하고 싶은 경우 (예를 들면, `functions` 폴더에 사용자 정의 함수를 가지고 있는 경우) 새 경로를 `include` 배열에 추가하기 위해 `routes.include` 옵션을 사용할 수 있습니다.
+
+### routes.exclude
+
+<p>
+
+**타입:** `string[]`<br />
+**기본값:** `[]`
+</p>
+
+자동으로 `_routes.json` 파일을 생성하고 싶지만 추가 경로를 제외하려는 경우 `routes.exclude` 옵션을 사용하여 `exclude` 배열에 새 경로를 추가할 수 있습니다.
+
+다음 예시에서는 추가 경로를 포함 및 제외하면서 `_routes.json`을 자동으로 생성합니다. 이는 Astro에서 처리하지 않는 `functions` 폴더에 사용자 정의 함수가 있는 경우에만 필요합니다.
+
+```js title="astro.config.mjs" ins={4-8}
+export default defineConfig({
+  adapter: cloudflare({
+    mode: 'directory',
+    routes: {
+      strategy: 'include',
+      include: ['/users/*'], // 사용자 정의 함수에서 처리됨: functions/users/[id].js
+      exclude: ['/users/faq'], // 정적 페이지에서 처리됨: pages/users/faq.astro
+    },
+  }),
+});
+```
+
+### imageService
+
+<p>
+
+**타입:** `'passthrough' | 'cloudflare' | 'compile'`<br />
+**기본값:** `'passthrough'`
+</p>
+
+어댑터에서 사용되는 이미지 서비스를 결정합니다. 호환되지 않는 이미지 서비스가 구성되면 어댑터는 기본적으로 `passthrough` 모드로 설정됩니다. 그렇지 않으면 전역적으로 구성된 이미지 서비스를 사용합니다.
+
+* **`cloudflare`:** [Cloudflare Image Resizing](https://developers.cloudflare.com/images/image-resizing/) 서비스를 사용합니다.
+* **`passthrough`:** 기존 [`noop`](/ko/guides/images/#무작동-패스스루-서비스-구성) 서비스를 사용합니다.
+* **`compile`:** Astro의 기본 서비스 (sharp)를 사용하지만 빌드 시 사전 렌더링된 경로에서만 사용됩니다. 주문형 렌더링 페이지에 대한 SSR 중에는 모든 `astro:assets` 기능이 비활성화됩니다.
+
+```js title="astro.config.mjs" ins={6}
+import {defineConfig} from "astro/config";
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+  adapter: cloudflare({
+     imageService: 'cloudflare'
+  }),
+  output: 'server'
+})
+```
+
+### `wasmModuleImports`
+
+<p>
+
+**타입:** `true | false`<br />
+**기본값:** `false`
+</p>
+
+`.wasm?module` import 구문을 사용하여 `.wasm` 파일을 [ES 모듈로 직접 가져올지](https://github.com/WebAssembly/esm-integration/tree/main/proposals/esm-integration) 여부입니다.
+
+Cloudflare 빌드와 Astro 개발 서버 모두에서 이 기능을 활성화하려면 `astro.config.mjs` 파일에 `wasmModuleImports: true`를 추가하세요. [Wasm 모듈 사용](#wasm-모듈-사용)에 대해 자세히 알아보세요.
+
+```js title="astro.config.mjs" ins={6}
+import {defineConfig} from "astro/config";
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+  adapter: cloudflare({
+     wasmModuleImports: true
+  }),
+  output: 'server'
+})
+```
+
+### runtime
+
+<p>
+
+**타입:**
+  ```
+  { mode: 'off' }
+  | { mode: 'local'; type: 'pages'; persistTo?: string; bindings?: Record<string, CF_BINDING> }
+  | { mode: 'local'; type: 'workers'; persistTo?: string; };
+  ```
+([CF\_BINDING 타입 참조](https://github.com/cloudflare/workers-sdk/blob/eaa16db25103d26ef31499634a31b86caccdf7aa/packages/wrangler/src/api/startDevWorker/types.ts#L190-L219))<br />
+**기본값:** `{ mode: 'off', persistTo: '' }`
+</p>
+
+Cloudflare Runtime이 `astro dev`에 추가되는지 여부와 방법을 결정합니다.
+[Cloudflare Runtime](#cloudflare-런타임)에 대해 자세히 알아보세요.
+
+`type` 속성은 Astro 프로젝트가 배포되는 위치를 정의합니다.
+
+* `pages`: [Cloudflare Pages](https://pages.cloudflare.com/)에 배포됩니다.
+* `workers`: [Cloudflare Workers](https://workers.cloudflare.com/)에 배포됩니다.
+
+`mode` 속성은 런타임이 `astro dev`에서 지원하려는 항목을 정의합니다.
+
+* `off`: `astro dev`를 사용하여 런타임에 액세스할 수 없습니다. 런타임에 액세스해야 할 때 [Preview with Wrangler](#wrangler로-미리보기)를 선택하여 로컬에서 프로덕션 환경을 시뮬레이션할 수 있습니다.
+* `local`: Cloudflare의 바인딩을 지원하는 miniflare 및 workerd로 구동되는 로컬 런타임을 사용합니다. `eval`과 같이 지원되지 않는 기능을 사용하려는 경우에만 로컬 지원이 없는 바인딩에서 [Preview with Wrangler](#wrangler로-미리보기)를 선택하세요.
+
+`mode: local`에서는 로컬 바인딩 상태가 저장되는 위치를 정의하는 `persistTo` 속성에 액세스할 수 있습니다. 이렇게 하면 개발 서버를 다시 시작할 때마다 새로운 바인딩이 방지됩니다. 이 값은 `astro dev` 실행 경로에 상대적인 디렉터리입니다. 기본적으로 `wrangler` cli 명령 사용 (예: 마이그레이션)을 허용하도록 `.wrangler/state/v3`으로 설정됩니다. 이 경로를 `.gitignore`에 추가하세요.
+
+## Cloudflare 런타임
+
+Cloudflare 런타임은 환경 변수와 Cloudflare 바인딩에 대한 액세스를 제공합니다. Cloudflare의 [Workers](https://developers.cloudflare.com/workers/configuration/bindings/) 및 [Pages](https://developers.cloudflare.com/pages/platform/functions/bindings/) 문서에서 자세한 내용을 확인할 수 있습니다. 배포 타입 (`pages` 또는 `workers`)에 따라 바인딩을 다르게 구성해야 합니다.
+
+현재 지원되는 바인딩:
+
+* 환경 변수
+* [Cloudflare Workers KV](https://developers.cloudflare.com/kv/)
+* [Cloudflare D1](https://developers.cloudflare.com/d1/)
+* [Cloudflare R2](https://developers.cloudflare.com/r2/)
+* [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/)
+
+### 구성
+
+#### Cloudflare Pages
+
+Cloudflare Pages는 구성 파일을 지원하지 않습니다.
+
+페이지 프로젝트를 프로덕션에 배포하려면 Cloudflare의 Dashboard를 사용하여 바인딩을 구성해야 합니다. 바인딩에 로컬로 액세스하려면 어댑터의 `runtime` 옵션을 사용하여 바인딩을 구성해야 합니다.
+
+```js title="astro.config.mjs" ins={7-10, 12-15, 17-19, 21-23, 25-27, 29-34}
+import { defineConfig } from 'astro/config';
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+  output: 'server',
+  adapter: cloudflare({
+    runtime: {
+      mode: 'local',
+      type: 'pages',
+      bindings: {
+        // var 바인딩의 예 (환경 변수)
+        "URL": {
+          type: "var",
+          value: "https://example.com",
+        },
+        // KV 바인딩의 예
+        "KV": {
+          type: "kv",
+        },
+        // D1 바인딩의 예
+        "D1": {
+          type: "d1",
+        },
+        // R2 바인딩의 예
+        "R2": {
+          type: "r2",
+        },
+        // Durable Object 바인딩의 예
+        "DO": {
+          type: "durable-object",
+          className: "DO",
+        },
+      },
+    },
+  }),
+});
+```
+
+환경 변수 외에 `secrets`도 정의해야 하는 경우 Astro 프로젝트의 루트에 `.dev.vars` 파일을 추가해야 합니다.
+
+```ini title=".dev.vars"
+DB_PASSWORD=myPassword
+```
+
+cli 명령에 `wrangler`를 사용하려는 경우 (예를 들어, D1 마이그레이션) Astro 프로젝트 루트에 올바른 콘텐츠가 작성된 `wrangler.toml` 파일을 추가해야 합니다. 자세한 내용은 [Cloudflare 문서](https://developers.cloudflare.com/)를 참조하세요.
+
+```toml title="wrangler.toml"
+name = "example"
+compatibility_date = "2023-06-14"
+
+# D1 바인딩의 예시
+[[d1_databases]]
+binding = "D1"
+database_name = "D1"
+database_id = "D1"
+preview_database_id = "D1"
+```
+
+#### Cloudflare Workers
+
+workers 프로젝트를 프로덕션에 배포하려면 Astro 프로젝트의 루트 디렉터리에 있는 `wrangler.toml` 구성 파일을 사용하여 바인딩을 구성해야 합니다. 바인딩에 로컬로 액세스할 수 있도록 `@astrojs/cloudflare` 어댑터는 `wrangler.toml` 파일도 읽습니다.
+
+```toml title="wrangler.toml"
+name = "example"
+
+# KV 바인딩의 예시
+kv_namespaces = [
+    { binding = "KV", id = "KV", preview_id = "KV" },
+]
+
+# var 바인딩 (환경 변수)의 예시
+[vars]
+URL = "example.com"
+
+# D1 바인딩의 예시
+[[d1_databases]]
+binding = "D1"
+database_name = "D1"
+database_id = "D1"
+preview_database_id = "D1"
+
+# R2 바인딩의 예시
+[[r2_buckets]]
+binding = 'R2'
+bucket_name = 'R2'
+
+# Durable Object 바인딩의 예시
+[[durable_objects.bindings]]
+name = "DO"
+class_name = "DO"
+```
+
+환경 변수 외에 `secrets`도 정의해야 하는 경우 Astro 프로젝트의 루트에 `.dev.vars` 파일을 추가해야 합니다.
+
+```ini title=".dev.vars"
+DB_PASSWORD=myPassword
+```
+
+### 사용하기
+
+`.astro` 파일의 `Astro.locals`를 통해 Astro 컴포넌트에서 런타임에 액세스할 수 있습니다.
+
+```astro title="src/pages/index.astro"
+---
+const runtime = Astro.locals.runtime;
+---
+
+<pre>{JSON.stringify(runtime.env)}</pre>
+```
+
+`context.locals`를 통해 API 엔드포인트에서 런타임에 액세스할 수 있습니다.
+
+```js title="src/pages/api/someFile.js"
+export function GET(context) {
+  const runtime = context.locals.runtime;
+
+  return new Response('Some body');
+}
+```
+
+### 타입 정의
+
+`mode: advanced`를 구성한 경우 `AdvancedRuntime`을 사용하여 `runtime` 객체의 타입을 정의할 수 있습니다.
+
+```ts title="src/env.d.ts"
+/// <reference types="astro/client" />
+
+type KVNamespace = import('@cloudflare/workers-types/experimental').KVNamespace;
+type ENV = {
+  SERVER_URL: string;
+  KV_BINDING: KVNamespace;
+};
+
+type Runtime = import('@astrojs/cloudflare').AdvancedRuntime<ENV>;
+
+declare namespace App {
+  interface Locals extends Runtime {
+    user: {
+      name: string;
+      surname: string;
+    };
+  }
+}
+```
+
+`mode: directory`를 구성한 경우 `DirectoryRuntime`을 사용하여 `runtime` 객체의 타입을 정의할 수 있습니다.
+
+```ts title="src/env.d.ts"
+/// <reference types="astro/client" />
+
+type KVNamespace = import('@cloudflare/workers-types/experimental').KVNamespace;
+type ENV = {
+  SERVER_URL: string;
+  KV_BINDING: KVNamespace;
+};
+
+type Runtime = import('@astrojs/cloudflare').DirectoryRuntime<ENV>;
+
+declare namespace App {
+  interface Locals extends Runtime {
+    user: {
+      name: string;
+      surname: string;
+    };
+  }
+}
+```
+
+## 플랫폼
+
+### Headers
+
+Astro 프로젝트의 `public/` 폴더에 `_headers` 파일을 추가하여 [사용자 정의 헤더](https://developers.cloudflare.com/pages/platform/headers/)를 응답에 첨부할 수 있습니다. 이 파일은 빌드 출력 디렉터리에 복사됩니다.
+
+### Redirects
+
+Cloudflare Pages를 사용하여 [사용자 지정 리디렉션](https://developers.cloudflare.com/pages/platform/redirects/)을 선언할 수 있습니다. 이를 통해 요청을 다른 URL로 리디렉션할 수 있습니다. Astro 프로젝트의 `public/` 폴더에 `_redirects` 파일을 추가할 수 있습니다. 이 파일은 빌드 출력 디렉터리에 복사됩니다.
+
+### Routes
+
+`_routes.json` 파일을 통해 [Cloudflare 라우팅](https://developers.cloudflare.com/pages/platform/functions/routing/#functions-invocation-routes)을 사용하여 함수를 호출하는 경로와 정적 자산을 정의할 수 있습니다. 이 파일은 Astro에 의해 자동으로 생성됩니다.
+
+#### 사용자 정의 `_routes.json`
+
+기본적으로 `@astrojs/cloudflare`는 애플리케이션의 동적 및 정적 경로를 기반으로 `include` 및 `exclude` 규칙을 사용하여 `_routes.json` 파일을 생성합니다.
+이를 통해 Cloudflare는 함수 호출 없이 파일을 제공하고 정적 리디렉션을 처리할 수 있습니다. 사용자 정의 `_routes.json`을 생성하면 이 자동 최적화가 재정의됩니다. 자세한 내용은 [사용자 지정 `routes.json` 생성에 대한 Cloudflare 설명서](https://developers.cloudflare.com/pages/platform/functions/routing/#create-a-_routesjson-file)를 참조하세요.
+
+## Wasm 모듈 사용
+
+다음은 요청의 숫자 매개변수를 함께 추가하여 요청에 응답하는 Wasm 모듈을 가져오는 예시입니다.
+
+```js title="pages/add/[a]/[b].js"
+import mod from '../util/add.wasm?module';
+
+// 모듈을 공유하기 위해 미리 인스턴스화
+const addModule: any = new WebAssembly.Instance(mod);
+
+export async function GET(context) {
+  const a = Number.parseInt(context.params.a);
+  const b = Number.parseInt(context.params.b);
+  return new Response(`${addModule.exports.add(a, b)}`);
+}
+```
+
+이 예시는 사소하지만 Wasm을 사용하면 이미지 처리 라이브러리 내장과 같은 중요한 I/O를 포함하지 않는 계산 집약적인 작업을 가속화할 수 있습니다.
+
+## Node.js 호환성
+
+Astro의 Cloudflare 어댑터를 사용하면 Cloudflare에서 지원하는 모든 Node.js 런타임 API를 사용할 수 있습니다.
+
+* assert
+* AsyncLocalStorage
+* Buffer
+* Crypto
+* Diagnostics Channel
+* EventEmitter
+* path
+* process
+* Streams
+* StringDecoder
+* util
+
+이러한 API를 사용하려면 페이지 또는 엔드포인트가 서버 측에서 렌더링되어야 하며 (사전 렌더링되지 않음) `import {} from 'node:*'` 가져오기 구문을 사용해야 합니다.
+
+```js title="pages/api/endpoint.js"
+export const prerender = false;
+import { Buffer } from 'node:buffer';
+```
+
+또한 Cloudflare에서 호환성 플래그를 활성화해야 합니다. 이 플래그의 구성은 Astro 사이트를 배포하는 위치에 따라 달라질 수 있습니다. 자세한 지침은 [Node.js 호환성 활성화에 대한 Cloudflare 문서](https://developers.cloudflare.com/workers/runtime-apis/nodejs)를 참조하세요.
+
+## Cloudflare 모듈 지원
+
+모든 Cloudflare 네임스페이스 패키지 (예: `cloudflare:sockets`)는 사용할 수 있도록 허용 목록에 포함됩니다. `cloudflare:sockets` 패키지는 Wrangler 개발 모드를 사용하지 않으면 로컬로 작동하지 않습니다.
+
+## Wrangler로 미리보기
+
+[`wrangler`](https://developers.cloudflare.com/workers/wrangler/)를 사용하여 애플리케이션을 로컬에서 실행하려면 미리 보기 스크립트를 업데이트하세요.
+
+```json title="package.json"
+"preview": "wrangler pages dev ./dist"
+```
+
+[`wrangler`](https://developers.cloudflare.com/workers/wrangler/)를 사용하면 [Cloudflare 바인딩](https://developers.cloudflare.com/pages/platform/functions/bindings), [환경 변수](https://developers.cloudflare.com/pages/platform/functions/bindings/#environment-variables), [cf 객체](https://developers.cloudflare.com/workers/runtime-apis/request/#incomingrequestcfproperties)에 액세스할 수 있습니다. Wrangler와 함께 작동하도록 핫 리로드 또는 astro dev 서버를 사용하려면 사용자 정의 설정이 필요할 수 있습니다. [커뮤니티 예시](https://github.com/withastro/roadmap/discussions/590)를 참조하세요.
+
+### 의미 있는 오류 메시지
+
+현재 Wrangler에서 애플리케이션을 실행하는 동안 발생하는 오류는 코드 축소로 인해 그다지 유용하지 않습니다. 더 나은 디버깅을 위해 `astro.config.mjs` 파일에 `vite.build.minify = false` 설정을 추가할 수 있습니다.
+
+```js title="astro.config.mjs" ins={4-8}
+export default defineConfig({
+  adapter: cloudflare(),
+  output: 'server',
+  vite: {
+    build: {
+      minify: false,
+    },
+  },
+});
+```
+
+[astro-integration]: /ko/guides/integrations-guide/

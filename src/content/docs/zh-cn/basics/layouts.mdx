@@ -1,0 +1,263 @@
+---
+title: 布局
+description: 布局简介——一种在页面中共享常用布局的 Astro 组件。
+---
+
+import ReadMore from '~/components/ReadMore.astro'
+
+**布局**是特殊的 [Astro 组件](/zh-cn/basics/astro-components/)，可用于创建可重用的页面模板。
+
+我们通常将“布局”用于提供共享页面的常用 UI 元素（如标题、导航栏和页脚）的 Astro 组件。典型的 Astro 布局组件为 [Astro、Markdown 或 MDX 页面](/zh-cn/basics/astro-pages/)提供：
+- 一个 **页面外壳**（`<html>`、`<head>` 和 `<body>` 标签）
+- 一个 [**`<slot />`**](/zh-cn/basics/astro-components/#插槽) 来指定单个页面内容应该被注入的位置。
+
+但是，布局组件没有什么特别的！它们可以像任何其他 Astro 组件一样[接受 props](/zh-cn/basics/astro-components/#组件参数)和[导入和使用其他组件](/zh-cn/basics/astro-components/#组件概述)。它们可以包含[UI 框架组件](/zh-cn/guides/framework-components/)和[客户端脚本](/zh-cn/guides/client-side-scripts/)。它们甚至不必提供完整的页面外壳，而是可以用作部分 UI 模板。
+
+布局组件通常放置在项目中的 `src/layouts` 目录中，但这不是必须的。你可以选择将它们放置在项目中的任何位置。你甚至可以通过[在布局组件名称前面加上“_”](/zh-cn/guides/routing/#排除页面)将布局组件与页面放在同一个文件夹中。
+
+## 示例布局
+
+```astro "<slot />" 
+// src/layouts/MySiteLayout.astro
+---
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+const { title } = Astro.props;
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <BaseHead title={title}/>
+  </head>
+  <body>
+    <nav>
+      <a href="#">主页</a>
+      <a href="#">文章</a>
+      <a href="#">联系</a>
+    </nav>
+    <h1>{title}</h1>
+    <article>
+      <slot /> <!-- 你的内容会被插入到这里 -->
+    </article>
+    <Footer />
+  </body>
+</html>
+```
+
+```astro {3} /</?MySiteLayout>/
+// src/pages/index.astro
+---
+import MySiteLayout from '../layouts/MySiteLayout.astro';
+---
+<MySiteLayout title="Home Page">
+  <p>我的页面内容，被包裹在一个布局中！</p>
+</MySiteLayout>
+```
+
+<ReadMore>详细了解[插槽](/zh-cn/basics/astro-components/#插槽)。</ReadMore>
+
+## Markdown/MDX 布局
+
+页面布局对于没有任何页面格式的 [Markdown 和 MDX 页面](/zh-cn/guides/markdown-content/#markdown-和-mdx-页面)特别有用。
+
+Astro 提供了一个特殊的 `layout` frontmatter 属性，用于指定哪个 `.astro` 组件用作页面布局。
+
+```markdown title="src/pages/page.md" {2} 
+---
+layout: ../layouts/BaseLayout.astro
+title: "Hello, World!"
+author: "Matthew Phillips"
+date: "09 Aug 2022"
+---
+所有的 frontmatter 属性都可以作为 Astro 布局组件的 props。
+
+`layout` 属性是 Astro 提供的唯一一个特殊属性。
+
+你可以在 `src/pages/` 目录下的 Markdown 和 MDX 文件中使用它。
+```
+
+一个典型的 Markdown 或 MDX 页面布局包括：
+1. 一个 `frontmatter` prop，用于访问 Markdown 或 MDX 页面的 frontmatter 和其他数据。
+2. 一个默认的 [`<slot />`](/zh-cn/basics/astro-components/#插槽)，用于指定页面的 Markdown/MDX 内容应该被渲染的位置。
+
+
+```astro /(?<!//.*){?frontmatter(?:\\.\w+)?}?/ "<slot />"
+---
+// src/layouts/BaseLayout.astro
+// 1. `frontmatter` prop 提供了访问 frontmatter 和其他数据的能力
+const { frontmatter } = Astro.props;
+---
+<html>
+  <head>
+    <!-- 添加其他 Head 元素，例如样式和 meta 标签。 -->
+    <title>{frontmatter.title}</title>
+  </head>
+  <body>
+    <!-- 添加其他 UI 组件，例如通用的头部和页脚。 -->
+    <h1>{frontmatter.title} by {frontmatter.author}</h1>
+    <!-- 2. 渲染的 HTML 将被传入默认插槽。 -->
+    <slot />
+    <p>写于: {frontmatter.date}</p>
+  </body>
+</html>
+```
+
+你可以使用 `MarkdownLayoutProps` 或 `MDXLayoutProps` 帮助程序设置布局的 [`Props` 类型](/zh-cn/guides/typescript/#组件参数)：
+
+```astro title="src/layouts/BaseLayout.astro" ins={2,4-9}
+---
+import type { MarkdownLayoutProps } from 'astro';
+
+type Props = MarkdownLayoutProps<{
+  // 在这里定义 frontmatter 属性
+  title: string;
+  author: string;
+  date: string;
+}>;
+
+// 现在，`frontmatter`、`url` 和其他 Markdown 布局属性
+// 可以通过 TypeScript 类型安全地访问
+const { frontmatter, url } = Astro.props;
+---
+<html>
+  <head>
+    <link rel="canonical" href={new URL(url, Astro.site).pathname}>
+    <title>{frontmatter.title}</title>
+  </head>
+  <body>
+    <h1>{frontmatter.title} by {frontmatter.author}</h1>
+    <slot />
+    <p>写于: {frontmatter.date}</p>
+  </body>
+</html>
+```
+
+### Markdown 布局的 Props
+
+一个 Markdown/MDX 布局将通过 `Astro.props` 访问以下信息：
+- **`file`** - 此文件的绝对路径（例如 `/home/user/projects/.../file.md`）。
+- **`url`** - 如果是页面，则为页面的 URL（例如 `/en/guides/markdown-content`）。
+- **`frontmatter`** - Markdown 或 MDX 文档中的所有 frontmatter。
+  - **`frontmatter.file`** - 与顶级 `file` 属性相同。
+  - **`frontmatter.url`** - 与顶级 `url` 属性相同。
+- **`headings`** - Markdown 或 MDX 文档中的标题（`h1 -> h6`）列表及其相关元数据。此列表遵循类型：`{ depth: number; slug: string; text: string }[]`。
+- **(Markdown only) `rawContent()`** - 返回原始 Markdown 文档的字符串的函数。
+- **(Markdown only) `compiledContent()`** - 返回 Markdown 文档编译为 HTML 字符串的函数。
+
+示例 Markdown 博客文章可能会将以下 `Astro.props` 对象传递给其布局：
+
+```js
+Astro.props = {
+  file: "/home/user/projects/.../file.md",
+  url: "/en/guides/markdown-content/",
+  frontmatter: {
+    /** 从博客文章中获取的 Frontmatter */
+    title: "Astro 0.18 Release",
+    date: "Tuesday, July 27 2021",
+    author: "Matthew Phillips",
+    description: "Astro 0.18 is our biggest release since Astro launch.",
+    /** 生成的值 */
+    file: "/home/user/projects/.../file.md",
+    url: "/en/guides/markdown-content/"
+  },
+  headings: [
+    {
+      "depth": 1,
+      "text": "Astro 0.18 Release",
+      "slug": "astro-018-release"
+    },
+    {
+      "depth": 2,
+      "text": "Responsive partial hydration",
+      "slug": "responsive-partial-hydration"
+    }
+    /* ... */
+  ],
+
+  /** 仅在 Markdown 中可用 */
+  rawContent: () => "# Astro 0.18 Release\nA little over a month ago, the first public beta [...]",
+  compiledContent: () => "<h1>Astro 0.18 Release</h1>\n<p>A little over a month ago, the first public beta [...]</p>",
+}
+```
+:::note
+Markdown/MDX 布局将通过 `Astro.props` 访问其文件的所有 [导出属性](/zh-cn/guides/markdown-content/#导出的属性)，**但有一些关键区别：**
+*   标题信息（即 `h1 -> h6` 元素）可通过 `headings` 数组访问，而不是 `getHeadings()` 函数。
+*  `file` 和 `url` 也作为嵌套的 `frontmatter` 属性（即 `frontmatter.url` 和 `frontmatter.file`）可用。
+*  在 frontmatter 之外定义的值（例如 MDX 中的 `export` 语句）不可用。请考虑 [手动导入布局](#手动导入布局mdx)。
+:::
+
+### 手动导入布局（MDX）
+
+你可能需要将信息传递给你的 MDX 布局，而该信息不存在于（或无法存在于）你的 frontmatter 中。在这种情况下，你可以导入并使用一个 [`<Layout />` 组件](/zh-cn/basics/layouts/)，并像其他组件一样传递它的 props：
+
+```mdx title="src/pages/posts/first-post.mdx" ins={6} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/
+---
+layout: ../../layouts/BaseLayout.astro
+title: 'My first MDX post'
+publishDate: '21 September 2022'
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+function fancyJsHelper() {
+  return "尝试使用 YAML 做到这一点！";
+}
+
+<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>
+  欢迎来到我的新 Astro 博客，使用 MDX！
+</BaseLayout>
+```
+然后，你可以通过布局中的 `Astro.props` 访问你的值，而你的 MDX 内容将被注入到你的 `<slot />` 组件所在的页面中：
+
+```astro /{?title}?/ "fancyJsHelper" "{fancyJsHelper()}"
+---
+// src/layouts/BaseLayout.astro
+const { title, fancyJsHelper } = Astro.props;
+---
+<!-- -->
+<h1>{title}</h1>
+<slot /> <!-- 你的内容会被插入到这里 -->
+<p>{fancyJsHelper()}</p>
+<!-- -->
+```
+
+<ReadMore>了解更多关于 Astro 的 Markdown 和 MDX 支持，请参阅 [Markdown/MDX 指南](/zh-cn/guides/markdown-content/)。</ReadMore>
+
+## 对 `.md`, `.mdx`, 和 `.astro` 使用一个布局
+
+一个 Astro 布局可以编写以接收 `.md` 和 `.mdx` 文件中的 `frontmatter` 对象，以及从 `.astro` 文件传递的任何命名 props。
+
+在下面的示例中，布局将从 frontmatter YAML `title` 属性或 Astro 组件传递的 `title` 属性中显示页面标题：
+
+```astro /{?title}?/ /Astro.props[.a-z]*/
+---
+// src/components/MyLayout.astro
+const { title } = Astro.props.frontmatter || Astro.props;
+---
+<html>
+  <head></head>
+  <body>
+    <h1>{title}</h1>
+    <slot />
+  </body>
+</html>
+```
+
+## 嵌套布局
+
+布局组件无需包含整个页面的 HTML。你可以将布局分解为更小的组件，然后重用这些组件以创建更灵活、更强大的布局。
+
+例如，`BlogPostLayout.astro` 布局组件可以对文章的标题、日期和作者进行样式化。然后，`BaseLayout.astro` 可以处理页面模板的其余部分，例如导航和页脚。你还可以将从文章接收的 props 传递给另一个布局，就像任何其他嵌套组件一样。
+
+```astro {3} /</?BaseLayout>/ /</?BaseLayout url={frontmatter.url}>/
+// src/layouts/BlogPostLayout.astro
+---
+import BaseLayout from './BaseLayout.astro';
+const { frontmatter } = Astro.props;
+---
+<BaseLayout url={frontmatter.url}>
+  <h1>{frontmatter.title}</h1>
+  <h2>文章作者: {frontmatter.author}</h2>
+  <slot />
+</BaseLayout>
+````
