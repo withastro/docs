@@ -293,32 +293,34 @@ if (!isLoggedIn(cookie)) {
 
 ## Route Priority Order
 
-It's possible for multiple routes to match the same URL path. For example each of these routes would match `/posts/create`:
+It's possible for multiple defined routes to attempt to build the same URL path. For example, all of these routes could build `/posts/create`:
 
 <FileTree>
 - src/pages/
+  - [...slug].astro
   - posts/
     - create.astro
-    - [pid].astro
+    - [page].astro
+    - [pid].ts
     - [...slug].astro
 </FileTree>
 
-Astro needs to know which route should be used to build the page. To do so, it sorts them according to the following rules:
+Astro needs to know which route should be used to build the page. To do so, it sorts them according to the following rules in order:
 
-- Static routes without path parameters will take precedence over all other routes
-- Dynamic routes using named parameters take precedence over rest parameters
-- Pre-rendered dynamic routes take precedence over server dynamic routes
-- Rest parameters have the lowest priority
-- Endpoints always take precedence over pages
-- Ties are resolved alphabetically
+- Routes with more path segments will take precedence over less specific routes. In the example above, all routes under `/posts/` take precedence over `/[...slug].astro` at the root.
+- Static routes without path parameters will take precedence over dynamic routes. E.g. `/posts/create.astro` takes precedence over all the other routes in the example.
+- Dynamic routes using named parameters take precedence over rest parameters. E.g. `/posts/[page].astro` takes precedence over `/posts/[...slug].astro`.
+- Pre-rendered dynamic routes take precedence over server dynamic routes.
+- Endpoints take precedence over pages.
+- If none of the rules above decide the order, routes are sorted alphabetically based on the default locale of your Node installation.
 
 Given the example above, here are a few examples of how the rules will match a requested URL to the route used to build the HTML:
 
-- `pages/posts/create.astro` - Will build `/posts/create`
-- `pages/posts/[pid].astro` - Will build `/posts/1`, `/posts/abc`, etc. But not `/posts/create`
-- `pages/posts/[...slug].astro` - Will build `/posts/1/2`, `/posts/a/b/c`, etc. But not `/posts/create`, `/posts/1`, `/posts/abc`
-
-Redirects also follow the same rules, but are prioritized *last*; if there is a file-based route and a redirect with the same route priority level, the file-based route is chosen.
+- `pages/posts/create.astro` - Will build only `/posts/create`
+- `pages/posts/[pid].ts` - Will build `/posts/abc`, `/posts/xyz`, etc. But not `/posts/create`
+- `pages/posts/[page].astro` - Will build `/posts/1`, `/posts/2`, etc. But not `/posts/create`, `/posts/abc` nor `/posts/xyz`
+- `pages/posts/[...slug].astro` - Will build `/posts/1/2`, `/posts/a/b/c`, etc. But not `/posts/create`, `/posts/1`, `/posts/abc`, etc.
+- `pages/[...slug].astro` - Will build `/abc`, `/xyz`, `/abc/xyz`, etc. But not `/posts/create`, `/posts/1`, `/posts/abc`, , etc.
 
 ## Pagination
 

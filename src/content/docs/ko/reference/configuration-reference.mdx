@@ -17,6 +17,7 @@ export default defineConfig({
   // 구성 옵션은 여기에 작성합니다...
 })
 ```
+
 ## 최상위 옵션
 
 ### root
@@ -284,7 +285,7 @@ Astro 컴포넌트의 요소 선택기가 전역 스타일 기본값 (예: 전�
 **타입:** `AstroIntegration`
 </p>
 
-빌드 어댑터를 사용하여 선호하는 서버, 서버리스, 에지 호스트에 배포하세요. Astro SSR을 사용하려면 [Netlify](/ko/guides/deploy/netlify/#adapter-for-ssr), [Vercel](/ko/guides/deploy/vercel/#adapter-for-ssr) 등을 위한 자사 어댑터 중 하나를 가져오세요.
+빌드 어댑터를 사용하여 선호하는 서버, 서버리스, 에지 호스트에 배포하세요. Astro SSR을 사용하려면 [Netlify](/ko/guides/deploy/netlify/#ssr용-어댑터), [Vercel](/ko/guides/deploy/vercel/#ssr용-어댑터) 등을 위한 자사 어댑터 중 하나를 가져오세요.
 
 SSR에 대한 자세한 내용은 [서버 측 렌더링 안내서를 참조](/ko/guides/server-side-rendering/)하고, 전체 호스트 목록은 [배포 안내서](/ko/guides/deploy/)를 참조하세요.
 
@@ -1057,6 +1058,33 @@ URL은 기본이 아닌 모든 언어의 경우 `example.com/[locale]/content/` 
 URL은 기본 언어를 포함하여 모든 경로에 대해 `example.com/[locale]/content/` 형식입니다.
 현지화된 폴더는 기본값을 포함하여 모든 언어에 사용됩니다.
 
+#### i18n.routing.redirectToDefaultLocale
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `true`<br />
+<Since v="4.2.0" />
+</p>
+
+`prefixDefaultLocale: true`가 설정된 경우 `src/pages/index.astro`에 의해 생성된 홈 URL (`/`)이 `/[defaultLocale]`로 리디렉션되는지 여부를 구성합니다.
+
+사이트 루트에서 자동 리디렉션을 비활성화하려면 `redirectToDefaultLocale: false`를 설정하세요.
+
+```js
+// astro.config.mjs
+export default defineConfig({
+  i18n:{
+    defaultLocale: "en",
+		locales: ["en", "fr"],
+    routing: {
+      prefixDefaultLocale: true,
+      redirectToDefaultLocale: false
+    }
+  }
+})
+```
+
 ## Legacy 플래그
 
 일부 사용자가 Astro 버전 간에 마이그레이션할 수 있도록 돕기 위해 때때로 `legacy` 플래그를 도입합니다.
@@ -1106,3 +1134,68 @@ experimental 플래그를 추가하여 호이스팅된 스크립트 분석 최�
 	},
 }
 ```
+
+### experimental.clientPrerender
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `false`<br />
+<Since v="4.2.0" />
+</p>
+
+지원되는 브라우저의 클라이언트에서 미리 가져온 페이지를 사전 렌더링할 수 있습니다.
+
+이 기능은 실험적인 [Speculation Rules Web API](https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API)를 사용하여 기본 `prefetch` 동작을 전역적으로 재정의하여 클라이언트에서 링크를 사전 렌더링합니다.
+이 기능을 활성화하기 전에 [클라이언트에서 사전 렌더링할 때 발생할 수 있는 위험](https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API#unsafe_prefetching)을 검토하는 것이 좋습니다.
+
+원하는 `prefetch` 구성 옵션과 함께 `astro.config.mjs` 파일에서 클라이언트 측 사전 렌더링을 활성화하세요.
+
+```js
+// astro.config.mjs
+{
+  prefetch: {
+    prefetchAll: true,
+    defaultStrategy: 'viewport',
+  },
+	experimental: {
+		clientPrerender: true,
+	},
+}
+```
+
+프리페치를 선택하려면 사이트의 `<a />` 링크에서 `data-astro-prefetch` 속성을 계속 사용하세요.
+문서 헤드에 `<link>` 태그를 추가하거나 JavaScript로 페이지를 가져오는 대신 `<script>` 태그에 해당 speculation rules이 추가됩니다.
+
+클라이언트 측 사전 렌더링에는 브라우저 지원이 필요합니다. Speculation Rules API가 지원되지 않는 경우 `prefetch`는 지원되는 전략으로 대체됩니다.
+
+더 많은 `prefetch` 옵션 및 사용법은 [프리페치 가이드](/ko/guides/prefetch/)를 참조하세요.
+
+### experimental.globalRoutePriority
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `false`<br />
+<Since v="4.2.0" />
+</p>
+
+모든 경로에 대해 동일한 [경로 우선 순위 규칙](/ko/core-concepts/routing/#경로-우선순위)을 따라 파일 기반 프로젝트 경로와 함께 리디렉션 및 삽입된 경로의 우선 순위를 동일하게 지정합니다.
+
+이를 통해 특정 유형의 경로에 자동으로 우선순위를 지정하지 않음으로써 프로젝트의 경로를 보다 효과적으로 제어할 수 있으며 모든 경로에 대한 경로 우선순위 순서를 표준화합니다.
+
+다음 예시에서는 파일 기반 경로, 삽입된 경로 및 리디렉션이 결합될 때 어떤 경로가 특정 페이지 URL을 빌드하는지 보여줍니다.
+
+- 파일 기반 경로: `/blog/post/[pid]`
+- 파일 기반 경로: `/[page]`
+- 삽입된 경로: `/blog/[...slug]`
+- 리디렉션: `/blog/tags/[tag]` -> `/[tag]`
+- 리디렉션: `/posts` -> `/blog`
+
+`experimental.globalRoutingPriority`를 활성화한 경우 (Astro 4.0 기본 경로 우선 순위 대신):
+
+- `/blog/tags/astro`는 `/tags/[tag]`로의 리디렉션에 의해 빌드됩니다. (삽입된 경로인 `/blog/[...slug]` 대신)
+- `/blog/post/0`은 파일 기반 경로인 `/blog/post/[pid]`에 의해 빌드됩니다. (삽입된 경로인 `/blog/[...slug]` 대신)
+- `/posts`는 `/blog`로의 리디렉션에 의해 빌드됩니다. (파일 기반 경로인 `/[page]` 대신)
+
+경로 우선순위가 동일한 두 경로가 동일한 URL을 빌드하려고 시도하는 경로 충돌이 발생하는 경우 Astro는 충돌하는 경로를 식별하는 경고를 기록합니다.
