@@ -73,4 +73,8 @@ export default NavDictionary({
 	'reference/cli-reference': 'Astro CLI',
 	'reference/error-reference': '오류 참조',
 	'guides/publish-to-npm': 'NPM 패키지 형식',
+
+	communityResources: '커뮤니티 자료',
+	'community-resources/content': '강의, 안내서, 레시피',
+	'community-resources/talks': '강연, 인터뷰, 스트림',
 });
