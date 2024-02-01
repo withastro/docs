@@ -80,7 +80,7 @@ export default {
 	'integrations.renderers': 'Framework UI',
 	'integrations.adapters': 'Adattatori SSR',
 	'integrations.others': 'Altre Integrazioni',
-    'integrations.more': 'Più integrazioni',
+  'integrations.more': 'Più integrazioni',
 	// Checklist component
 	'checklist.or': 'oppure',
 	// Multiple Choice component
@@ -102,8 +102,8 @@ export default {
 	'feedback.categoryGroupLabel': 'Scegli la categoria del feedback',
 	'feedback.issue': 'Problema',
 	'feedback.createIssue': 'Crea una Issue su GitHub',
-    'feedback.createIssue.description': 'Il modo più rapido per segnalare un problema al nostro team.',
-    'feedback.sendFeedback': ''Inviateci un feedback',
+  'feedback.createIssue.description': 'Il modo più rapido per segnalare un problema al nostro team.',
+  'feedback.sendFeedback': 'Inviateci un feedback',
 	'feedback.sendFeedback.description': 'Inviateci direttamente un messaggio.',
 	'feedback.idea': 'Idea',
 	'feedback.other': 'Altro',
