@@ -1,0 +1,520 @@
+---
+type: integration
+title: '@astrojs/markdoc'
+description: Learn how to use the @astrojs/markdoc integration in your Astro project.
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/markdoc/'
+category: other
+i18nReady: true
+---
+
+import FileTree from '~/components/FileTree.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+이 **[Astro 통합][astro-integration]** 을 통해 [Markdoc](https://markdoc.dev/)을 사용하여 컴포넌트, 페이지 및 콘텐츠 컬렉션 항목을 생성할 수 있습니다.
+
+## 왜 Markdoc인가?
+
+Markdoc을 사용하면 [Astro 컴포넌트][astro-composites]를 사용하여 Markdown을 향상할 수 있습니다. Markdoc에서 작성된 기존 콘텐츠가 있는 경우 이 통합을 통해 콘텐츠 컬렉션을 사용하여 해당 파일을 Astro 프로젝트로 가져올 수 있습니다.
+
+## 설치
+
+Astro에는 공식 통합 설정을 자동화하는 `astro add` 명령이 포함되어 있습니다. 원하는 경우 대신 [통합을 수동으로 설치](#수동-설치)할 수 있습니다.
+
+새 터미널 창에서 다음 명령 중 하나를 실행합니다.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add markdoc
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add markdoc
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add markdoc
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+문제가 발생하면 [GitHub에 언제든지 보고](https://github.com/withastro/astro/issues)하고 아래 수동 설치 단계를 시도해 보세요.
+
+### 수동 설치
+
+먼저 `@astrojs/markdoc` 패키지를 설치하세요.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install @astrojs/markdoc
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add @astrojs/markdoc
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add @astrojs/markdoc
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+그런 다음 `integrations` 속성을 사용하여 `astro.config.*` 파일에 통합을 적용합니다.
+
+```js ins="markdoc()" title="astro.config.mjs" ins={2}
+import { defineConfig } from 'astro/config';
+import markdoc from '@astrojs/markdoc';
+export default defineConfig({
+  // ...
+  integrations: [markdoc()],
+});
+```
+
+### 편집기 통합
+
+[VS Code](https://code.visualstudio.com/)는 기본적으로 Markdown을 지원합니다. 그러나 Markdoc 편집기 지원을 위해 VSCode 구성에 다음 설정을 추가할 수 있습니다. 이를 통해 Markdoc 파일 작성 시 Markdown과 유사한 편집기 환경을 제공할 수 있습니다.
+
+```json title=".vscode/settings.json" ins={3}
+{
+  "files.associations": {
+    "*.mdoc": "markdown"
+  }
+}
+```
+
+## 사용하기
+
+Markdoc 파일은 콘텐츠 컬렉션에서만 사용할 수 있습니다. `.mdoc` 확장자를 사용하여 콘텐츠 컬렉션에 항목을 추가합니다.
+
+<FileTree>
+- src/
+  - content/
+    - docs/
+      - why-markdoc.mdoc
+      - quick-start.mdoc
+</FileTree>
+
+그런 다음 [콘텐츠 컬렉션 API](/ko/guides/content-collections/#컬렉션-쿼리)를 사용하여 컬렉션을 쿼리하세요.
+
+```astro title="src/pages/why-markdoc.astro"
+---
+import { getEntryBySlug } from 'astro:content';
+
+const entry = await getEntryBySlug('docs', 'why-markdoc');
+const { Content } = await entry.render();
+---
+
+<!--`data`를 사용하여 프런트매터 속성에 액세스 -->
+<h1>{entry.data.title}</h1>
+<!--Content 컴포넌트를 사용하여 Markdoc 콘텐츠 렌더링 -->
+<Content />
+```
+
+<ReadMore>자세한 내용은 [Astro 콘텐츠 컬렉션 문서][astro-content-collections]를 참조하세요.</ReadMore>
+
+## Markdoc 구성
+
+`@astrojs/markdoc`은 Markdoc의 모든 기능을 사용하여 UI 컴포넌트를 콘텐츠에 연결하는 구성 옵션을 제공합니다.
+
+### Astro 컴포넌트를 Markdoc 태그로 사용
+
+`.astro` 컴포넌트에 매핑되는 [Markdoc 태그][markdoc-tags]를 구성할 수 있습니다. 프로젝트 루트에 `markdoc.config.mjs|ts` 파일을 생성하고 `tag` 속성을 구성하여 새 태그를 추가할 수 있습니다.
+
+이 예시는 `Aside` 컴포넌트를 렌더링하고 `type` prop이 문자열로 전달되도록 허용합니다.
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig, component } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  tags: {
+    aside: {
+      render: component('./src/components/Aside.astro'),
+      attributes: {
+        // Markdoc에는 각 속성에 대한 타입 정의가 필요합니다.
+        // 이는 렌더링 중인 컴포넌트의 'Props' 타입을 반영해야 합니다.
+        // 속성 정의에 대한 Markdoc의 문서를 참조하세요.
+        // https://markdoc.dev/docs/attributes#defining-attributes
+        type: { type: String },
+      },
+    },
+  },
+});
+```
+
+이제 이 컴포넌트는 Markdoc 파일에서 `{% along %}` 태그를 통해 사용할 수 있습니다. 하위 항목은 컴포넌트의 기본 슬롯으로 전달됩니다.
+
+```md
+# Welcome to Markdoc 👋
+
+{% aside type="tip" %}
+
+Use tags like this fancy "aside" to add some _flair_ to your docs.
+
+{% /aside %}
+```
+
+### npm 패키지 및 TypeScript 파일의 Astro 컴포넌트 사용
+
+TypeScript 또는 JavaScript 파일에서 명명된 내보내기로 노출된 Astro 컴포넌트를 사용해야 할 수도 있습니다. 이는 npm 패키지와 디자인 시스템을 사용할 때 일반적입니다.
+
+가져오기 이름을 `component()` 함수의 두 번째 인수로 전달할 수 있습니다.
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig, component } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  tags: {
+    tabs: {
+      render: component('@astrojs/starlight/components', 'Tabs'),
+    },
+  },
+});
+```
+
+그러면 내부적으로 다음 import 문이 생성됩니다.
+
+```ts
+import { Tabs } from '@astrojs/starlight/components';
+```
+
+### 맞춤 제목
+
+`@astrojs/markdoc`은 제목에 앵커 링크를 자동으로 추가하고 [콘텐츠 컬렉션 API를 통해 `headings` 목록을 생성](/ko/guides/content-collections/#콘텐츠를-html로-렌더링)합니다. 제목 렌더링 방법을 추가로 사용자 정의하려면 Astro 컴포넌트를 [Markdoc 노드로][markdoc-nodes] 적용하면 됩니다.
+
+이 예시에서는 `render` 속성을 사용하여 `Heading.astro` 컴포넌트를 렌더링합니다.
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig, nodes, component } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  nodes: {
+    heading: {
+      ...nodes.heading, // 기본 앵커 링크 생성 유지
+      render: component('./src/components/Heading.astro'),
+    },
+  },
+});
+```
+
+모든 Markdown 제목은 `Heading.astro` 컴포넌트를 렌더링하고 다음 `attributes`을 컴포넌트 props로 전달합니다.
+
+* `level: number` 레벨 1 - 6 제목
+* `id: string` 제목의 텍스트 내용에서 생성된 `id`입니다. 이는 [콘텐츠 `render()` 함수](/ko/guides/content-collections/#콘텐츠를-html로-렌더링)에 의해 생성된 `slug`에 해당합니다.
+
+예를 들어 `### Level 3heading!`이라는 제목은 `level: 3` 및 `id: 'level-3-heading'`을 컴포넌트 props로 전달합니다.
+
+### 구문 강조
+
+`@astrojs/markdoc`은 코드 블록을 강조 표시하는 [Shiki](https://github.com/shikijs/shiki) 및 [Prism](https://github.com/PrismJS) 확장 프로그램을 제공합니다.
+
+#### Shiki
+
+`extends` 속성을 사용하여 Markdoc 구성에 `shiki()` 확장을 적용합니다. 선택적으로 shiki 구성 객체를 전달할 수 있습니다:
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig } from '@astrojs/markdoc/config';
+import shiki from '@astrojs/markdoc/shiki';
+
+export default defineMarkdocConfig({
+  extends: [
+    shiki({
+      // Shiki의 테마 중에서 선택하거나 직접 추가하세요.
+      // 기본값: 'github-dark'
+      // https://github.com/shikijs/shiki/blob/main/docs/themes.md
+      theme: 'dracula',
+      // 가로 스크롤을 방지하려면 줄 바꿈을 활성화하세요.
+      // 기본값: false
+      wrap: true,
+      // 사용자 정의 언어 전달
+      // 참고: Shiki에는 `.astro`를 포함하여 수많은 언어가 내장되어 있습니다!
+      // https://github.com/shikijs/shiki/blob/main/docs/languages.md
+      langs: [],
+    }),
+  ],
+});
+```
+
+#### Prism
+
+`extends` 속성을 사용하여 Markdoc 구성에 `prism()` 확장을 적용합니다.
+
+```js title="markdoc.config.mjs" ins={5}
+import { defineMarkdocConfig } from '@astrojs/markdoc/config';
+import prism from '@astrojs/markdoc/prism';
+
+export default defineMarkdocConfig({
+  extends: [prism()],
+});
+```
+
+<ReadMore>Prism 스타일시트 구성에 대해 알아보려면 [구문 강조 가이드를 참조](/ko/guides/markdown-content/#prism-구성)하세요.</ReadMore>
+
+### 루트 HTML 요소 설정
+
+Markdoc은 기본적으로 `<article>` 태그로 문서를 래핑합니다. 이는 `document` Markdoc 노드에서 변경할 수 있습니다. 래퍼 요소를 제거하려는 경우 HTML 요소 이름 또는 `null`을 허용합니다.
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  nodes: {
+    document: {
+      ...nodes.document, // 다른 옵션에는 기본값 적용
+      render: null, // 기본값은 'article'
+    },
+  },
+});
+```
+
+### 사용자 정의 Markdoc 노드 / 요소
+
+단락 및 굵은 텍스트와 같은 표준 Markdown 요소를 Astro 컴포넌트로 렌더링할 수 있습니다. 이를 위해 [Markdoc 노드][markdoc-nodes]를 구성할 수 있습니다. 특정 노드가 속성을 받으면 해당 속성을 컴포넌트 props로 사용할 수 있습니다.
+
+이 예시는 사용자 정의 `Quote.astro` 컴포넌트를 사용하여 blockquotes를 렌더링합니다.
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig, nodes, component } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  nodes: {
+    blockquote: {
+      ...nodes.blockquote, // 다른 옵션에 대해서는 Markdoc의 기본값을 적용합니다.
+      render: component('./src/components/Quote.astro'),
+    },
+  },
+});
+```
+
+<ReadMore>모든 내장 노드 및 속성에 대해 알아보려면 [Markdoc 노드 문서](https://markdoc.dev/docs/nodes#build-in-nodes)를 참조하세요.</ReadMore>
+
+### 클라이언트 측 UI 컴포넌트 사용
+
+태그와 노드는 `.astro` 파일로 제한됩니다. Markdoc에 클라이언트 측 UI 컴포넌트를 포함하려면 원하는 `client:` 지시어로 [프레임워크 컴포넌트를 렌더링하는 래퍼 `.astro` 컴포넌트를 사용](/ko/guides/framework-components/#프레임워크-컴포넌트-중첩하기)하세요.
+
+이 예시는 React `Aside.tsx` 컴포넌트를 `ClientAside.astro` 컴포넌트로 래핑합니다.
+
+```astro title="src/components/ClientAside.astro"
+---
+import Aside from './Aside';
+---
+
+<Aside {...Astro.props} client:load />
+```
+
+이제 이 Astro 컴포넌트는 구성의 모든 [tag][markdoc-tags] 또는 [node][markdoc-nodes]에 대한 `render` prop에 전달될 수 있습니다.
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig, component } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  tags: {
+    aside: {
+      render: component('./src/components/ClientAside.astro'),
+      attributes: {
+        type: { type: String },
+      },
+    },
+  },
+});
+```
+
+### Markdoc 구성
+
+`markdoc.config.mjs|ts` 파일은 [태그](https://markdoc.dev/docs/tags) 및 [함수](https://markdoc.dev/docs/functions)를 포함한 [모든 Markdoc 구성 옵션](https://markdoc.dev/docs/config)을 허용합니다.
+
+`markdoc.config.mjs|ts` 파일의 기본 내보내기에서 다음 옵션을 전달할 수 있습니다.
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  functions: {
+    getCountryEmoji: {
+      transform(parameters) {
+        const [country] = Object.values(parameters);
+        const countryToEmojiMap = {
+          japan: '🇯🇵',
+          spain: '🇪🇸',
+          france: '🇫🇷',
+        };
+        return countryToEmojiMap[country] ?? '🏳';
+      },
+    },
+  },
+});
+```
+
+이제 모든 Markdoc 콘텐츠 항목에서 이 함수를 호출할 수 있습니다.
+
+```md
+¡Hola {% getCountryEmoji("spain") %}!
+```
+
+<ReadMore>콘텐츠에 변수나 함수를 사용하는 방법에 대한 자세한 내용은 [Markdoc 문서를 참조](https://markdoc.dev/docs/functions#creating-a-custom-function)하세요.</ReadMore>
+
+### Markdoc 언어 서버
+
+VS Code를 사용하는 경우 구성된 태그에 대한 구문 강조 및 자동 완성을 포함하는 공식 [Markdoc 언어 확장](https://marketplace.visualstudio.com/items?itemName=Stripe.markdoc-language-support)이 있습니다. 자세한 내용은 [GitHub의 언어 서버](https://github.com/markdoc/language-server.git)를 참조하세요.
+
+확장 기능을 설정하려면 다음 내용을 사용하여 프로젝트 루트에 `markdoc.config.json` 파일을 만듭니다.
+
+```json title="markdoc.config.json"
+[
+  {
+    "id": "my-site",
+    "path": "src/content",
+    "schema": {
+      "path": "markdoc.config.mjs",
+      "type": "esm",
+      "property": "default",
+      "watch": true
+    }
+  }
+]
+```
+
+`schema` 속성에는 Astro 콘텐츠 컬렉션을 위한 언어 서버를 구성하는 데 필요한 모든 정보가 포함되어 있습니다. 다음 속성을 허용합니다.
+
+* `path`: 구성 파일의 경로입니다.
+* `type`: 구성 파일이 사용하는 모듈 유형입니다 (`esm`은 `import` 구문을 허용합니다).
+* `property`: 구성 객체가 포함된 내보낸 속성 이름입니다.
+* `watch`: 구성의 변경 사항을 감시하도록 서버에 지시합니다.
+
+최상위 `path` 속성은 콘텐츠가 있는 위치를 서버에 알려줍니다. Markdoc은 콘텐츠 컬렉션에만 적용되므로 `src/content`를 사용할 수 있습니다.
+
+### Markdoc 변수 전달
+
+콘텐츠에 [변수][markdoc-variables]를 전달해야 할 수도 있습니다. 이는 A/B 테스트와 같은 SSR 매개변수를 전달할 때 유용합니다.
+
+변수는 `Content` 컴포넌트를 통해 Props로 전달될 수 있습니다.
+
+```astro title="src/pages/why-markdoc.mdoc"
+---
+import { getEntryBySlug } from 'astro:content';
+
+const entry = await getEntryBySlug('docs', 'why-markdoc');
+const { Content } = await entry.render();
+---
+
+<!--`abTest` 매개변수를 변수로 전달합니다. -->
+<Content abTestGroup={Astro.params.abTestGroup} />
+```
+
+이제 `abTestGroup`을 `docs/why-markdoc.mdoc`에서 변수로 사용할 수 있습니다.
+
+```md title="src/content/docs/why-markdoc.mdoc"
+{% if $abTestGroup === 'image-optimization-lover' %}
+
+Let me tell you about image optimization...
+
+{% /if %}
+```
+
+모든 Markdoc 파일에 전역 변수를 만들려면 `markdoc.config.mjs|ts`에서 `variables` 속성을 사용할 수 있습니다.
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  variables: {
+    environment: process.env.IS_PROD ? 'prod' : 'dev',
+  },
+});
+```
+
+### Markdoc 콘텐츠의 프런트매터에 액세스
+
+프런트매터에 액세스하려면 콘텐츠를 렌더링하는 항목 `data` 속성을 [변수로](#markdoc-변수-전달) 전달할 수 있습니다.
+
+```astro title="src/pages/why-markdoc.astro"
+---
+import { getEntry } from 'astro:content';
+
+const entry = await getEntry('docs', 'why-markdoc');
+const { Content } = await entry.render();
+---
+
+<Content frontmatter={entry.data} />
+```
+
+이제 Markdoc에서 `$frontmatter`로 액세스할 수 있습니다.
+
+## 통합 구성 옵션
+
+Astro Markdoc 통합은 `markdoc.config.js` 파일을 통해 사용할 수 없는 Markdoc 옵션 및 기능 구성을 처리합니다.
+
+### `allowHTML`
+
+Markdoc 태그 및 노드와 함께 HTML 마크업 작성을 활성화합니다.
+
+기본적으로 Markdoc은 HTML 마크업을 의미 있는 콘텐츠로 인식하지 않습니다.
+
+콘텐츠와 함께 HTML 요소를 포함할 수 있는 Markdown과 유사한 경험을 얻으려면 `markdoc` 통합 옵션으로 `allowHTML:true`를 설정하세요. 이렇게 하면 Markdoc 마크업에서 HTML 구문 분석이 활성화됩니다.
+
+```js ins="allowHTML: true" title="astro.config.mjs" ins={6}
+  import { defineConfig } from 'astro/config';
+  import markdoc from '@astrojs/markdoc';
+
+  export default defineConfig({
+    // ...
+    integrations: [markdoc({ allowHTML: true })],
+  });
+```
+
+:::caution
+`allowHTML`이 활성화되면 Markdoc 문서의 HTML 마크업이 실제 HTML 요소 (`<script>` 포함)로 렌더링되어 XSS와 같은 공격 벡터가 가능해집니다. 모든 HTML 마크업이 신뢰할 수 있는 소스에서 나온 것인지 확인하세요.
+:::
+
+### `ignoreIndentation`
+
+기본적으로 공백 4개로 들여쓰기된 모든 콘텐츠는 코드 블록으로 처리됩니다. 불행하게도 이 동작은 복잡한 구조를 가진 문서의 가독성을 향상시키기 위해 임의 수준의 들여쓰기를 사용하기 어렵게 만듭니다.
+
+Markdoc에서 중첩 태그를 사용할 때 깊이 수준이 명확하도록 태그 내부의 내용을 들여쓰는 것이 도움이 될 수 있습니다. 임의 들여쓰기를 지원하려면 들여쓰기 기반 코드 블록을 비활성화하고 들여쓰기 기반 코드 블록을 설명하는 몇 가지 다른 markdown-it 구문 분석 규칙을 수정해야 합니다. 이러한 변경 사항은 ignoreIndentation 옵션을 활성화하여 적용할 수 있습니다.
+
+```js "ignoreIndentation: true" title="astro.config.mjs" ins={6}
+  import { defineConfig } from 'astro/config';
+  import markdoc from '@astrojs/markdoc';
+
+  export default defineConfig({
+    // ...
+    integrations: [markdoc({ ignoreIndentation: true })],
+  });
+```
+
+```md
+# Welcome to Markdoc with indented tags 👋
+
+# Note: Can use either spaces or tabs for indentation
+
+{% custom-tag %}
+{% custom-tag %} ### Tags can be indented for better readability
+
+    {% another-custom-tag %}
+      This is easier to follow when there is a lot of nesting
+    {% /another-custom-tag %}
+
+{% /custom-tag %}
+{% /custom-tag %}
+```
+
+## 예시
+
+* [Astro Markdoc 시작 템플릿](https://github.com/withastro/astro/tree/latest/examples/with-markdoc)은 Astro 프로젝트에서 Markdoc 파일을 사용하는 방법을 보여줍니다.
+
+[astro-integration]: /ko/guides/integrations-guide/
+
+[astro-components]: /ko/basics/astro-components/
+
+[astro-content-collections]: /ko/guides/content-collections/
+
+[markdoc-tags]: https://markdoc.dev/docs/tags
+
+[markdoc-nodes]: https://markdoc.dev/docs/nodes
+
+[markdoc-variables]: https://markdoc.dev/docs/variables
