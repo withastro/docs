@@ -3,7 +3,7 @@ import { NavDictionary } from '../translation-checkers';
 export default NavDictionary({
 	startHere: 'Comincia qui',
 	'getting-started': 'Per Iniziare',
-	'install': 'Installazione',
+	install: 'Installazione',
 	'editor-setup': 'Setup dell’Editor',
 	'guides/upgrade-to/v4': 'Aggiorna a v4',
 
@@ -13,7 +13,7 @@ export default NavDictionary({
 
 	tutorials: 'Tutorial',
 	'blog-tutorial': 'Costruisci un Blog',
-  'add-collections-tutorial': 'Estendi con Collezioni di Contenuti',
+	'add-collections-tutorial': 'Estendi con Collezioni di Contenuti',
 	'add-transitions-tutorial': 'Estendi con View Transitions',
 
 	basics: 'Le basi',
@@ -21,15 +21,15 @@ export default NavDictionary({
 	'basics/astro-components': 'Componenti',
 	'basics/astro-pages': 'Pagine',
 	'basics/layouts': 'Layout',
-  'basics/astro-syntax': 'Sintassi di Astro',
+	'basics/astro-syntax': 'Sintassi di Astro',
 	'basics/rendering-modes': 'Modalità di Rendering',
 
-  builtins: 'Funzioni integrate',
-  'guides/content-collections': 'Collezioni di Contenuti',
+	builtins: 'Funzioni integrate',
+	'guides/content-collections': 'Collezioni di Contenuti',
 	'guides/view-transitions': 'View Transitions',
 	'guides/prefetch': 'Precaricamento',
 
-  addons: 'Integrazioni',
+	addons: 'Integrazioni',
 	'guides/integrations-guide': 'Guida alle integrazioni',
 	'guides/framework-components': 'Framework UI',
 	'guides/server-side-rendering': 'Rendering lato server (SSR)',
@@ -51,7 +51,7 @@ export default NavDictionary({
 	'guides/imports': 'Import',
 	'guides/endpoints': 'Punti d’accesso',
 	'guides/data-fetching': 'Fetch dei Dati',
-  'guides/internationalization': 'Internazionalizzazione',
+	'guides/internationalization': 'Internazionalizzazione',
 	'guides/middleware': 'Middleware',
 	'guides/testing': 'Testing',
 	'guides/troubleshooting': 'Risoluzione dei problemi',
@@ -68,13 +68,13 @@ export default NavDictionary({
 	'reference/integrations-reference': 'API delle Integrazioni',
 	'reference/adapter-reference': 'API degli Adattatori',
 	'reference/image-service-reference': 'API del Servizio Immagini',
-  'reference/dev-toolbar-app-reference': 'App API per la Barra degli Strumenti di Sviluppo',
+	'reference/dev-toolbar-app-reference': 'App API per la Barra degli Strumenti di Sviluppo',
 	'reference/directives-reference': 'Direttive dei Template',
 	'reference/cli-reference': 'La CLI di Astro',
 	'reference/error-reference': 'Reference degli Errori',
 	'guides/publish-to-npm': 'Formato del Pacchetto NPM',
 
-  communityResources: 'Risorse della Comunità',
+	communityResources: 'Risorse della Comunità',
 	'community-resources/content': 'Corsi, Guide e Soluzioni',
 	'community-resources/talks': 'Conferenze, Interviste e Trasmissioni',
 });
