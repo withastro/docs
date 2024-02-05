@@ -6,7 +6,6 @@ i18nReady: true
 import Since from '~/components/Since.astro'
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
-
 Astro vem com suporte integrado para [TypeScript](https://www.typescriptlang.org/). Você pode importar arquivos `.ts` e `.tsx` em seu projeto Astro, escrever código TypeScript dentro de seu [componente Astro](/pt-br/basics/astro-components/#o-script-do-componente), e até mesmo utilizar um arquivo [`astro.config.ts`](/pt-br/guides/configuring-astro/#o-arquivo-de-configuração-astro) se você quiser.
 
 Usando TypeScript, você pode evitar erros em tempo de execução ao definir os formatos dos objetos e componentes no seu código. Por exemplo, se você usa TypeScript para definir o [tipo das props do seu componente](#propriedades-de-componentes), você vai receber um erro no seu editor se você definir uma prop que seu componente não aceita.
@@ -124,10 +123,10 @@ Você pode querer adicionar uma propriedade para o objeto global. Você pode faz
 
 ```ts title="env.d.ts"
 declare const minhaString: string;
-declare function minhafuncao(): boolean;
+declare function minhaFuncao(): boolean;
 ```
 
-Isso vai fornecer tipos para `globalThis.minhaString` e `globalThis.minhaFuncao`, assim como para `window.minhaString` e `window.minhaFuncao`.
+Isso fornecerá tipos para `globalThis.minhaString` e `globalThis.minhaFuncao`, assim como para `window.minhaString` e `window.minhaFuncao`.
 
 Note que `window` só está disponível no código no lado do cliente. O `globalThis` está disponível no lado do servidor e no lado do cliente, mas seu valor no lado do servidor não é compartilhado com o cliente.
 
@@ -155,7 +154,7 @@ const { saudacao = 'Olá', nome } = Astro.props;
 
 ### Padrões de tipo de prop comuns
 
-- Se seu componente nao recebe props ou conteúdo em slot, você pode usar `type Props = Record<string, never>`.
+- Se seu componente não recebe props ou conteúdo em slot, você pode usar `type Props = Record<string, never>`.
 
 - Se seu componente deve receber filhos em seu slot padrão, você pode impor isso usando `type Props = { children: any; };`.
 
@@ -173,8 +172,8 @@ Por exemplo, se você está construindo um componente `<Link>`, você pode fazer
 
 ```astro title="src/components/Link.astro" ins="HTMLAttributes" ins="HTMLAttributes<'a'>"
 ---
-import { HTMLAttributes } from 'astro/types';
-// use um `type`
+import type { HTMLAttributes } from 'astro/types';
+// use `type`
 type Props = HTMLAttributes<'a'>;
 // ou estenda com uma `interface`
 interface Props extends HTMLAttributes<'a'> {
@@ -190,12 +189,17 @@ const { href, ...attrs } = Astro.props;
 Também é possível estender as definições JSX padrões para adicionar atributos que não são padrões redeclarando o namespace `astroHTML.JSX` em um arquivo `d.ts`.
 
 ```ts
-// src/atributos-customizados.d.ts
+// src/custom-attributes.d.ts
 
 declare namespace astroHTML.JSX {
   interface HTMLAttributes {
     'data-count'?: number;
     'data-label'?: string;
+  }
+
+  // Adiciona uma propriedade CSS personalizada ao objeto de estilo
+  interface CSSProperties {
+    '--theme-color'?: 'black' | 'white';
   }
 }
 ```
@@ -230,9 +234,9 @@ type ButtonProps = ComponentProps<typeof Button>;
 
 ### Tipo polimórfico
 
-<Since v="2.5.0" />
+<p><Since v="2.5.0" /></p>
 
-O Astro inclui um utilitário para tornar mais fácil construir componentes que podem renderizar como elementos HTML diferentes com segurança total de tipo. Isso é útil para componentes como `<Link>` que podem renderizar como `<a>` ou `<button>` dependendo das props passadas para ele.
+Astro inclui um utilitário para tornar mais fácil construir componentes que podem renderizar como elementos HTML diferentes com segurança total de tipo. Isso é útil para componentes como `<Link>` que podem renderizar como `<a>` ou `<button>` dependendo das props passadas para ele.
 
 O exemplo abaixo implementa um componente totalmente tipado e polimórfico que pode renderizar como qualquer elemento HTML. O tipo [`HTMLTag`](#atributos-html-integrados) é usado para garantir que a prop `as` é um elemento HTML válido.
 
@@ -250,22 +254,22 @@ const { as: Tag, ...props } = Astro.props;
 
 ### Inferir os tipos do `getStaticPaths()`
 
-<Since v="2.1.0" />
+<p><Since v="2.1.0" /></p>
 
-O Astro inclui utilitários para trabalhar com os tipos retornados pela sua função [`getStaticPaths()`](/pt-br/reference/api-reference/#getstaticpaths) para rotas dinâmicas.
+Astro inclui utilitários para trabalhar com os tipos retornados pela sua função [`getStaticPaths()`](/pt-br/reference/api-reference/#getstaticpaths) para rotas dinâmicas.
 
 Você pode obter o tipo de [`Astro.params`](/pt-br/reference/api-reference/#astroparams) com `InferGetStaticParamsType` e o tipo de [`Astro.props`](/pt-br/reference/api-reference/#astroprops) com `InferGetStaticPropsType`:
 
-```astro title="src/pages/postagens/[...slug].astro" {2,14-15}
+```astro title="src/pages/posts/[...slug].astro" {2,14-15}
 ---
 import type { InferGetStaticParamsType, InferGetStaticPropsType, GetStaticPaths } from 'astro';
 
-export const getStaticPaths = (async () {
-  const postagens = await getCollection('blog');
-  return postagens.map((postagem) => {
+export const getStaticPaths = (async () => {
+  const posts = await getCollection('blog');
+  return posts.map((post) => {
     return {
-      params: { slug: postagem.slug },
-      props: { rascunho: postagem.data.rascunho, titulo: postagem.data.titulo },
+      params: { slug: post.slug },
+      props: { draft: post.data.draft, title: post.data.title },
     };
   });
 }) satisfies GetStaticPaths;
@@ -274,15 +278,15 @@ type Params = InferGetStaticParamsType<typeof getStaticPaths>;
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 
 const { slug } = Astro.params as Params;
-//                     ^? { slug: string; }
-const { titulo } = Astro.props;
-//                       ^? { rascunho: boolean; titulo: string; }
+//               			 ^? { slug: string; }
+const { title } = Astro.props;
+//                			^? { draft: boolean; title: string; }
 ---
 ```
 
 ## Checagem de Tipos
 
-Para ver erros de tipagem no seu editor, por favor certifique-se de que você tem a [extensão Astro para VS Code](/pt-br/editor-setup/) instalada. Por favor note de que os comandos `astro start` e `astro build` irão transpilar o código com esbuild, porém você não irá executar nenhuma checagem de tipos. Para prevenir o seu código de fazer build quando conter erros de TypeScript, mude o seu script "build" no `package.json` para o seguinte:
+Para ver erros de tipagem em seu editor, por favor certifique-se de que você tem a [extensão Astro para VS Code](/pt-br/editor-setup/) instalada. Por favor note de que os comandos `astro start` e `astro build` irão transpilar o código com esbuild, porém não executará nenhuma checagem de tipos. Para prevenir o seu código de fazer build quando conter erros de TypeScript, mude o seu script "build" no `package.json` para o seguinte:
 
 ```json title="package.json" del={2} ins={3} ins="astro check &&"
   "scripts": {
@@ -305,9 +309,9 @@ import ReadMore from '~/components/ReadMore.astro'
 
 ### Erros ao fazer a tipagem de múltiplos frameworks JSX ao mesmo tempo
 
-Um problema pode ocorrer ao se utilizar múltiplos frameworks JSX no mesmo projeto, já que cada framework requer configurações diferentes, as vezes até conflitantes, dentro de `tsconfig.json`.
+Um problema pode surgir ao se utilizar múltiplos frameworks JSX no mesmo projeto, já que cada framework requer configurações diferentes, e as vezes até conflitantes, dentro de `tsconfig.json`.
 
-**Solução**: Defina a [opção `jsxImportSource`](https://www.typescriptlang.org/tsconfig#jsxImportSource) para `react` (padrão), `preact` ou `solid-js` dependendo do seu framework mais utilizado. Então, utilize um [comentário pragma](https://www.typescriptlang.org/docs/handbook/jsx.html#configuring-jsx) dentro de quaisquer arquivos conflitantes de outro framework.
+**Solução**: Defina a [opção `jsxImportSource`](https://www.typescriptlang.org/tsconfig#jsxImportSource) para `react` (padrão), `preact` ou `solid-js` dependendo do seu framework mais utilizado. Então, utilize um [comentário pragma](https://www.typescriptlang.org/docs/handbook/jsx.html#configuring-jsx) dentro de qualquer arquivo conflitante de outro framework.
 
 Para a opção padrão de `jsxImportSource: react`, você usaria:
 
