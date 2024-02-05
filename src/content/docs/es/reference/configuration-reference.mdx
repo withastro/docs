@@ -365,13 +365,14 @@ Consulta la documentación completa del objeto de configuración `vite` en [vite
 ### build.format
 
 <p>
-**Tipo:** `('file' | 'directory')`<br />
+**Tipo:** `('file' | 'directory' | 'preserve')`<br />
 **Por defecto:** `'directory'`
 </p>
 
 Controla el formato del archivo compilado de cada página. Este valor puede ser establecido por un adaptador para ti.
-  - Si es `'file'`, Astro generará un archivo HTML (por ejemplo: "/foo.html") para cada página.
-  - Si es `'directory'`, Astro generará un directorio con un archivo `index.html` anidado (por ejemplo: "/foo/index.html") para cada página.
+  - `'file'`: Astro generará un archivo HTML con el nombre de cada ruta de página. (p. ej. `src/pages/about.astro` y `src/pages/about/index.astro` generan el archivo `/about.html`)
+  - `'directory'`: Astro generará un directorio con un archivo `index.html` anidado para cada página. (p. ej. `src/pages/about.astro` y `src/pages/about/index.astro` generan el archivo `/about/index.html`)
+  - `'preserve'`: Astro generará archivos HTML exactamente como aparecen en tu carpeta de origen. (p. ej. `src/pages/about.astro` genera `/about.html` y `src/pages/about/index.astro` genera el archivo `/about/index.html`)
 
 ```js
 {
@@ -1197,3 +1198,43 @@ Con `experimental.globalRoutingPriority` habilitado (en lugar del orden de prior
 
 
 En caso de colisión de rutas, cuando dos rutas con la misma prioridad intentan construir la misma URL, Astro registrará una advertencia identificando las rutas en conflicto.
+
+### experimental.i18nDomains
+
+<p>
+
+**Tipo:** `boolean`<br />
+**Por defecto:** `false`<br />
+<Since v="4.3.0" />
+</p>
+
+Habilita el soporte de dominios para la [estrategia de enrutamiento `domains` experimental](/es/guides/internationalization/#domains-experimental) que te permite configurar el patrón de URL de uno o más idiomas admitidos para usar un dominio personalizado (o subdominio).
+
+Cuando un idioma se asigna a un dominio, no se utilizará un prefijo de ruta `/[locale]/`. Sin embargo, las carpetas localizadas dentro de `src/pages/` siguen siendo necesarias, incluido tu `defaultLocale` configurado.
+
+Cualquier otro idioma no configurado se asignará a una URL basada en la ruta localizada según tu estrategia `prefixDefaultLocale` (p. ej. `https://example.com/[locale]/blog`).
+
+```js
+//astro.config.mjs
+export default defineConfig({
+	site: "https://example.com",
+  output: "server", // requerido, sin páginas prerenderizadas
+	adapter: node({
+		mode: 'standalone',
+	}),
+	i18n: {
+		defaultLocale: "en",
+		locales: ["en", "fr", "pt-br", "es"],
+		prefixDefaultLocale: false,
+		domains: {
+			fr: "https://fr.example.com",
+			es: "https://example.es",
+		},
+	},
+	experimental: {
+		i18nDomains: true,
+	},
+});
+```
+Ambas rutas de página construidas y URLs devueltas por las funciones auxiliares `astro:i18n` [`getAbsoluteLocaleUrl()`](/es/guides/internationalization/#getabsolutelocaleurl) y [`getAbsoluteLocaleUrlList()`](/es/guides/internationalization/#getabsolutelocaleurllist) utilizarán las opciones establecidas en `i18n.domains`.
+Ver la [Guía de Internacionalización](/es/guides/internationalization/#domains-experimental) para más detalles, incluyendo las limitaciones de esta característica experimental.
