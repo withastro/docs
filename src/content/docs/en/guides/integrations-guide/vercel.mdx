@@ -224,7 +224,7 @@ export default defineConfig({
 
 ### `isr`
 
-**Type:** <code>boolean | <a href="#vercelisrconfig">VercelISRConfig</a></code><br/>
+**Type:** <code>boolean |   VercelISRConfig</code><br/>
 **Available for:** Serverless
 <Since v="7.2.0" pkg="@astrojs/vercel" />
 **Default**: `false`
@@ -248,9 +248,13 @@ export default defineConfig({
 
 Note that ISR function requests do not include search params, similar to [requests](/en/reference/api-reference/#astrorequest) in static mode.
 
-#### `VercelISRConfig`
+#### ISR cache invalidation
 
-By default, an ISR function caches for the duration of your deployment. You can further control caching using `bypassToken`, `exclude`, and `expiration`.
+By default, an ISR function caches for the duration of your deployment. You can further control caching by setting an expiration time, or by excluding particular routes from caching entirely.
+
+##### Time-based invalidation
+
+You can change the length of time to cache routes this by configuring an `expiration` value in seconds:
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
@@ -261,25 +265,33 @@ export default defineConfig({
   output: 'server',
   adapter: vercel({
     isr: {
-      /* 
-       * A secret random string that you create. Used by Vercel to manage cache.
-       */
-      bypassToken: process.env.BYPASS_TOKEN,
-      
-      /**
-       * Paths that will always be served by a serverless function instead of an ISR function.
-       */
-    	exclude: [ "/api/invalidate" ],
-
-      /**
-       * Expiration time (in seconds) before the pages will be re-generated.
-       */
+      // caches all pages on first request and saves for 1 day
       expiration: 60 * 60 * 24,
     },
   }),
 });
 ```
 
+##### Excluding paths from caching
+
+To implement Vercel's [Draft mode](https://vercel.com/docs/build-output-api/v3/features#draft-mode), or [On-Demand Incremental Static Regeneration (ISR)](https://vercel.com/docs/build-output-api/v3/features#on-demand-incremental-static-regeneration-isr), you can create a bypass token and provide it to the `isr` config along with any paths to exclude from caching: 
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/serverless';
+
+export default defineConfig({
+    output: "server",
+    adapter: vercel({
+        isr: {
+            // A secret random string that you create.
+            bypassToken: "005556d774a8",
+            // Paths that will always be served fresh.
+            exclude: [ "/api/invalidate" ] 
+        }
+    })
+})
+```
 
 ### `includeFiles`
 
