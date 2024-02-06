@@ -443,11 +443,15 @@ When using the `<ViewTransitions />` router, the following steps occur to produc
 7. The router executes any new scripts added to the page.
 8. The `astro:page-load` event fires. This is the end of the navigation process.
 
-## Script behavior during page navigation
+## Script behavior
 
 When navigating between pages with the `<ViewTransitions />` component, scripts are run in sequential order to match browser behavior. 
 
-If you have code that sets up global state, this state will need to take into account that the script might execute more than once. Check for the global state in your `<script>` tag, and conditionally execute your code where possible:
+Module scripts, which the default scripts in Astro are, only ever execute once. If a module script exists on pages that are transitioned to after its initial execution they will be ignored. Inline scripts, ones with `is:inline` attribute, will not reexecute if they exist on both the page being transitioned to and the one the user is currently on. 
+
+Unlike module scripts, inline scripts have the potential to be reexcuted during a users visit to a site, if they exist on a page that is visited multiple times. Inline scripts might also reexecute if they exist on some pages but not all, if a user goes to a page without the script then back to one with the script it will be reexecuted.
+
+If you have code that sets up global state in an inline script, this state will need to take into account that the script might execute more than once. Check for the global state in your `<script>` tag, and conditionally execute your code where possible. This works because `window` is preserved.
 
 ```astro
 <script is:inline>
@@ -457,7 +461,13 @@ If you have code that sets up global state, this state will need to take into ac
 </script>
 ```
 
-Module scripts, including those that add event listeners for `DOMContentLoaded`, are only ever executed once because the browser keeps track of which modules are already loaded. You must add listeners for a [Lifecycle event](#lifecycle-events) to re-execute scripts during client-side page navigation.
+Inline scripts can be reexecuted after every transition by adding the `data-astro-reload` property. This will make the script `is:inline` implicitly, so it will not work for module scripts.
+
+```astro
+<script data-astro-reload></script>
+```
+
+If a script should execute every time a page is loaded, it should be executed by a [Lifecycle event](#lifecycle-events). Event listeners for `DOMContentLoaded` can be replaced by the [`astro:page-load`](http://localhost:4321/en/guides/view-transitions/#astropage-load) [Lifecycle event](#lifecycle-events).
 
 See the [Add View Transitions Tutorial](/en/tutorials/add-view-transitions/#update-scripts) for an example of updating existing scripts in a project.
 
