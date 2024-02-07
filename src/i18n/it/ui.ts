@@ -79,7 +79,8 @@ export default {
 	'integrations.footerTitle': 'Altre Integrazioni',
 	'integrations.renderers': 'Framework UI',
 	'integrations.adapters': 'Adattatori SSR',
-	'integrations.others': 'Altri',
+	'integrations.others': 'Altre Integrazioni',
+	'integrations.more': 'Più integrazioni',
 	// Checklist component
 	'checklist.or': 'oppure',
 	// Multiple Choice component
@@ -101,6 +102,10 @@ export default {
 	'feedback.categoryGroupLabel': 'Scegli la categoria del feedback',
 	'feedback.issue': 'Problema',
 	'feedback.createIssue': 'Crea una Issue su GitHub',
+	'feedback.createIssue.description':
+		'Il modo più rapido per segnalare un problema al nostro team.',
+	'feedback.sendFeedback': 'Inviateci un feedback',
+	'feedback.sendFeedback.description': 'Inviateci direttamente un messaggio.',
 	'feedback.idea': 'Idea',
 	'feedback.other': 'Altro',
 	'feedback.messageA11yLabel': 'Messaggio',
@@ -123,4 +128,7 @@ export default {
 		'Vuoi contribuire a questa guida? Hai un articolo, video, o un’altra risorsa da condividere a proposito di questa tecnologia su Astro?',
 	'stub.description.cms': 'Ne sai di più su come usare questo CMS con Astro?',
 	'stub.description.backend': 'Ne sai di più su come usare questo servizio di back-end con Astro?',
+	// Starlight banner
+	'starlight.title': 'Vuoi creare la tua Documentazione?',
+	'starlight.description': 'Usa questo template per iniziare.',
 };
