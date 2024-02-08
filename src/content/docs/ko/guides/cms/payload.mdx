@@ -1,0 +1,223 @@
+---
+title: Payload CMS & Astro
+description: Payload를 CMS로 사용하여 Astro 프로젝트에 콘텐츠 추가
+type: cms
+stub: true
+service: Payload CMS
+i18nReady: true
+---
+
+[PayloadCMS](https://payloadcms.com/)는 Astro 프로젝트에 콘텐츠를 제공하는 데 사용할 수 있는 헤드리스 오픈 소스 콘텐츠 관리 시스템입니다.
+
+## Astro와 통합
+
+### 전제 조건
+
+
+1. **Astro 프로젝트** - 아직 Astro 프로젝트가 없다면 [설치 가이드](/ko/install/auto/)를 참조하여 바로 실행해 보세요.
+2. **MongoDB 데이터베이스** - PayloadCMS는 새 프로젝트를 생성할 때 MongoDB 연결 문자열을 요청합니다. 로컬로 설정하거나 [MongoDBAtlas](https://www.mongodb.com/)를 사용하여 웹에서 무료로 데이터베이스를 호스팅할 수 있습니다.
+3. **PayloadCMS REST API** - [PayloadCMS](https://payloadcms.com/docs/getting-started/installation) 프로젝트를 생성하고 설정 중에 MongoDB 데이터베이스에 연결합니다.
+
+:::note[템플릿 선택]
+PayloadCMS 설치 중에 템플릿을 사용할지 묻는 메시지가 표시됩니다.
+
+이 단계에서 사용 가능한 템플릿 (예: 'blog')을 선택하면 사용할 추가 컬렉션이 자동으로 생성됩니다. 그렇지 않으면 PayloadCMS 컬렉션을 수동으로 생성해야 합니다.
+:::
+
+### PayloadCMS 컬렉션을 위한 Astro 구성
+
+Payload 프로젝트 템플릿에는 `src/collections/`에 Posts.ts라는 파일이 포함됩니다. 설치 중에 콘텐츠 컬렉션을 생성하는 템플릿을 선택하지 않은 경우 이 구성 파일을 수동으로 추가하여 새 Payload CMS 컬렉션을 생성할 수 있습니다. 아래 예는 `title`, `content`, `slug` 필드가 필요한 `posts` 컬렉션에 대한 파일을 보여줍니다.
+
+
+```astro title="src/collections/Posts.ts"
+import { CollectionConfig } from "payload/types";
+
+const Posts: CollectionConfig = {
+  slug: "posts",
+  admin: {
+    useAsTitle: "title",
+  },
+  access: {
+    read: () => true,
+  },
+
+  fields: [
+    {
+      name: "title",
+      type: "text",
+      required: true,
+    },
+    {
+      name: "content",
+      type: "text",
+      required: true,
+    },
+    {
+      name: "slug",
+      type: "text",
+      required: true,
+    },
+  ],
+};
+
+export default Posts;
+```
+
+1. `Users` (모든 PayloadCMS 프로젝트에서 사용 가능)와 기타 컬렉션 (예: `Posts`)을 모두 가져와 `payload.config.ts` 파일의 사용 가능한 컬렉션에 추가합니다.
+
+    ```astro title="src/payload.config.ts" ins={4, 5, 12}
+    import { buildConfig } from "payload/config";
+    import path from "path";
+
+    import Users from "./collections/Users";
+    import Posts from "./collections/Posts";
+
+    export default buildConfig({
+      serverURL: "http://localhost:4321",
+      admin: {
+        user: Users.slug,
+      },
+      collections: [Users, Posts],
+      typescript: {
+        outputFile: path.resolve(__dirname, "payload-types.ts"),
+      },
+      graphQL: {
+        schemaOutputFile: path.resolve(__dirname, "generated-schema.graphql"),
+      },
+    });
+    ```
+
+    이렇게 하면 PayloadCMS 대시보드의 "Users" 컬렉션 옆에 "Posts"이라는 새 컬렉션이 표시됩니다.
+
+2. "Posts" 컬렉션에 들어가서 새 게시물을 작성하세요. 저장한 후 오른쪽 하단에 API URL이 나타나는 것을 확인할 수 있습니다.
+
+3. 개발 서버가 실행 중인 상태에서 브라우저에서 `http://localhost:4321/api/posts`를 엽니다. 객체로 생성한 게시물이 포함된 JSON 파일이 표시됩니다.
+
+    ```json
+    {
+      "docs":[
+          {
+            "id":"64098b16483b0f06a7e20ed4",
+            "title":"Astro & PayloadCMS Title 🚀",
+            "content":"Astro & PayloadCMS Content",
+            "slug":"astro-payloadcms-slug",
+            "createdAt":"2023-03-09T07:30:30.837Z",
+            "updatedAt":"2023-03-09T07:30:30.837Z"
+          }
+      ],
+      "totalDocs":1,
+      "limit":10,
+      "totalPages":1,
+      "page":1,
+      "pagingCounter":1,
+      "hasPrevPage":false,
+      "hasNextPage":false,
+      "prevPage":null,
+      "nextPage":null
+    }
+    ```
+
+:::tip
+기본적으로 Astro와 PayloadCMS는 모두 포트 4321을 사용합니다. `src/server.ts` 파일에서 PayloadCMS 포트를 변경하고 싶을 수도 있습니다. `src/payload.config.ts` 파일에서도 `serverURL`을 업데이트하는 것을 잊지 마세요.
+:::
+
+### 데이터 가져오기
+
+사이트의 고유한 REST API URL과 콘텐츠 경로를 통해 PayloadCMS 데이터를 가져옵니다. (기본적으로 PayloadCMS는 `/api`를 통해 모든 경로를 마운트합니다.) 그런 다음 Astro의 `set:html=""` 지시문을 사용하여 데이터 속성을 렌더링할 수 있습니다.
+
+여러분의 게시물과 함께 PayloadCMS는 일부 최상위 메타데이터를 반환합니다. 실제 문서는 `docs` 배열 내에 중첩됩니다.
+
+예를 들어 게시물 제목과 내용 목록을 표시하려면 다음을 수행하세요.
+
+```astro title="src/pages/index.astro"
+---
+import HomeLayout from "../layouts/HomeLayout.astro";
+
+const res = await fetch("http://localhost:5000/api/posts") // 기본적으로 http://localhost:4321/api/posts
+const posts = await res.json()
+---
+
+<HomeLayout title='Astro Blog'>
+	{
+    posts.docs.map((post) => (
+        <h2 set:html={post.title} />
+        <p set:html={post.content} />
+    ))
+	}
+</HomeLayout>
+```
+
+## PayloadCMS와 Astro로 블로그 구축하기
+
+블로그 색인 페이지 `src/pages/index.astro`를 만들어 각 게시물을 해당 페이지에 대한 링크와 함께 나열하세요.
+
+API를 통해 가져오면 다음 속성을 포함하는 객체 (게시물) 배열이 반환됩니다.
+
+- `title`
+- `content`
+- `slug`
+
+```astro title="src/pages/index.astro"
+---
+import HomeLayout from "../layouts/HomeLayout.astro";
+
+const res = await fetch("http://localhost:5000/api/posts") // 기본적으로 http://localhost:4321/api/posts
+const posts = await res.json()
+---
+
+<HomeLayout title='Astro Blog'>
+	<h1>Astro + PayloadCMS 🚀</h1>
+	<h2>Blog posts list:</h2>
+	<ul>
+		{
+			posts.docs.map((post) =>(
+				<li>
+					<a href={`posts/${post.slug}`} set:html={post.title} />
+				</li>
+			))
+		}
+	</ul>
+</HomeLayout>
+```
+
+### PayloadCMS API를 사용하여 페이지 생성
+
+`src/pages/posts/[slug].astro` 페이지를 생성하여 각 게시물에 대한 [페이지를 동적으로 생성](/ko/guides/routing/#동적-경로)합니다.
+
+```astro title="src/pages/posts/[slug].astro"
+---
+import PostLayout from "../../layouts/PostLayout.astro"
+
+const {title, content} = Astro.props
+
+// 정적 Astro 사이트에는 getStaticPaths()가 필요합니다.
+// SSR을 사용하는 경우에는 이 함수가 필요하지 않습니다.
+export async function getStaticPaths() {
+    let data = await fetch("http://localhost:5000/api/posts")
+    let posts = await data.json()
+
+    return posts.docs.map((post) => {
+        return {
+            params: {slug: post.slug},
+            props: {title: post.title, content: post.content},
+        };
+    });
+} 
+---
+<PostLayout title={title}>
+    <article>
+        <h1 set:html={title} />
+        <p set:html={content} />
+    </article>
+</PostLayout>
+```
+
+### 사이트 게시
+
+사이트를 배포하려면 [배포 가이드](/ko/guides/deploy/)를 방문하여 선호하는 호스팅 제공업체의 지침을 따르세요.
+
+
+## 커뮤니티 자료
+
+- [Payload CMS & Astro 템플릿](https://github.com/Lambdo-Labs/payloadcms-astro-template)을 시도하세요.
+- Docker를 사용한 손쉬운 개발 및 VPS 배포에 대해서는 [Astroad](https://github.com/mooxl/astroad)를 확인하세요.
