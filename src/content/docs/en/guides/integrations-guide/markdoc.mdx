@@ -293,9 +293,43 @@ export default defineMarkdocConfig({
 
 <ReadMore>See the [Markdoc nodes documentation](https://markdoc.dev/docs/nodes#built-in-nodes) to learn about all the built-in nodes and attributes.</ReadMore>
 
-### Custom image component in Markdoc
+### Custom image components in Markdoc
 
-Markdoc does not currently allow setting additional attributes using the native syntax for images (`![alt](src)`), however a `image` tag can be created to do so.
+The default image node can be overriden to use a custom Astro component. This example uses a custom `MarkdocImage.astro` component to render images:
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig, nodes, component } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  nodes: {
+    image: {
+      ...nodes.image, // Apply Markdoc's defaults for other options
+      render: component('./src/components/MarkdocImage.astro'),
+    },
+  },
+});
+```
+
+```astro title="src/components/Image.astro"
+---
+import { Image } from "astro:assets";
+
+interface Props {
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+}
+---
+
+<Image src={src} alt={alt} width={width} height={height} />
+```
+
+```mdoc
+![A picture of a cat](/cat.jpg)
+```
+
+Note that additional attributes cannot be set using the native syntax for images (`![alt](src)`). Instead, you can use a `image` tag to set additional attributes.
 
 Astro will automatically resolve the `src` attribute of any tags named `image`, so you can create Astro component with a `src` prop and use it as a Markdoc node:
 
@@ -322,17 +356,22 @@ interface Props {
   alt: string;
   width: number;
   height: number;
+  caption: string;
 }
 
 const { src, alt, width, height } = Astro.props;
 ---
-<Image {src} {alt} {width} {height} class="my-super-image" />
+<figure>
+    <Image {src} {alt} {width} {height} {customProp} />
+    {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
 ```
 
 and then, in Markdoc files:
 
 ```mdoc
-{% image src="./astro-logo.png" alt="Astro Logo" width="100" height="100" %}
+{% image src="./astro-logo.png" alt="Astro Logo" width="100" height="100" caption="a caption!" %}
 ```
 
 ### Use client-side UI components
