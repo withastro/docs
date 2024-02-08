@@ -1,0 +1,502 @@
+---
+title: Supabase y Astro
+description: Añade un backend a tu proyecto con Supabase
+type: backend
+service: Supabase
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import FileTree from '~/components/FileTree.astro'
+
+[Supabase](https://supabase.com/) es un alternativa de código abierto a Firebase. Proporciona una base de datos Postgres, autenticación, funciones edge, suscripciones en tiempo real y almacenamiento.
+
+## Inicializando Supabase en Astro
+
+### Prerrequisitos
+
+- Un proyecto con Supabase. Si no tienes uno, puedes registrarte gratis en [supabase.com](https://supabase.com/) y crear un nuevo proyecto.
+- Un proyecto de Astro con [renderizado del lado del servidor (SSR)](/es/guides/server-side-rendering/) habilitado.
+- Las credenciales de Supabase para tu proyecto. Puedes encontrarlas en la pestaña **Settings > API** de tu proyecto de Supabase.
+  - `SUPABASE_URL`: La URL de tu proyecto de Supabase.
+  - `SUPABASE_ANON_KEY`: La clave anónima de tu proyecto de Supabase.
+
+### Agregar credenciales de Supabase
+
+Para agregar tus credenciales de Supabase a tu proyecto de Astro, agrega lo siguiente a tu archivo `.env`:
+
+```ini title=".env"
+SUPABASE_URL=YOUR_SUPABASE_URL
+SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+```
+
+Ahora, estas variables de entorno están disponibles en tu proyecto.
+
+Si deseas tener IntelliSense para tus variables de entorno, edita o crea el archivo `env.d.ts` en tu directorio `src/` y agrega lo siguiente:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly SUPABASE_URL: string
+  readonly SUPABASE_ANON_KEY: string
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv
+}
+```
+
+:::tip
+Lee más sobre [variables de entorno](/es/guides/environment-variables/) y archivos `.env` en Astro.
+:::
+
+Tu proyecto debería incluir estos archivos:
+
+<FileTree title="Project Structure">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Instalar dependencias
+
+Para conectarte a Supabase, necesitarás instalar `@supabase/supabase-js` en tu proyecto.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @supabase/supabase-js
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @supabase/supabase-js
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @supabase/supabase-js
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Luego, crea un directorio llamado `lib` en tu directorio `src/`. Aquí es donde agregarás tu cliente de Supabase.
+
+En `supabase.ts`, agrega lo siguiente para inicializar tu cliente de Supabase:
+
+```ts title="src/lib/supabase.ts"
+import { createClient } from "@supabase/supabase-js";
+
+export const supabase = createClient(
+  import.meta.env.SUPABASE_URL,
+  import.meta.env.SUPABASE_ANON_KEY,
+);
+```
+
+Ahora, tu proyecto debería incluir estos archivos:
+
+<FileTree title="Project Structure">
+- src/
+  - lib/
+    - **supabase.ts**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## Agregar autenticación con Supabase
+
+Supabase proporciona autenticación de forma inmediata. Admite autenticación por correo electrónico/contraseña y autenticación OAuth con muchos proveedores, incluidos GitHub, Google y otros.
+
+### Prerrequisitos
+
+- Un proyecto de Astro [inicializado con Supabase](#inicializando-supabase-en-astro).
+- Un proyecto de Supabase con autenticación por correo electrónico/contraseña habilitada. Puedes habilitar esto en la pestaña **Authentication > Providers** de tu proyecto de Supabase.
+
+### Creando endpoints de servidor de autenticación
+
+Para agregar autenticación a tu proyecto, deberás crear algunos endpoints de servidor. Estos endpoints se utilizarán para registrar, iniciar sesión y cerrar sesión de los usuarios.
+
+- `POST /api/auth/register`: para registrar un nuevo usuario.
+- `POST /api/auth/signin`: para iniciar sesión de un usuario.
+- `GET /api/auth/signout`: para cerrar la sesión de un usuario.
+
+Crea estos endpoints en el directorio `src/pages/api/auth` de tu proyecto. Ahora tu proyecto debería incluir estos archivos:
+
+<FileTree title="Project Structure">
+- src/
+  - lib/
+    - supabase.ts
+  - pages/
+    - api/
+      - auth/
+        - **signin.ts**
+        - **signout.ts**
+        - **register.ts**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+El archivo `register.ts` crea un nuevo usuario en Supabase. Acepta una solicitud `POST` con un correo electrónico y una contraseña. Luego, utiliza el SDK de Supabase para crear un nuevo usuario.
+
+```ts title="src/pages/api/auth/register.ts"
+import type { APIRoute } from "astro";
+import { supabase } from "../../../lib/supabase";
+
+export const POST: APIRoute = async ({ request, redirect }) => {
+  const formData = await request.formData();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+
+  if (!email || !password) {
+    return new Response("Correo electrónico y contraseña obligatorios", { status: 400 });
+  }
+
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+  });
+
+  if (error) {
+    return new Response(error.message, { status: 500 });
+  }
+
+  return redirect("/signin");
+};
+```
+
+El archivo `signin.ts` inicia sesión de un usuario. Acepta una solicitud `POST` con un correo electrónico y una contraseña. Luego, utiliza el SDK de Supabase para iniciar sesión del usuario.
+
+```ts title="src/pages/api/auth/signin.ts"
+import type { APIRoute } from "astro";
+import { supabase } from "../../../lib/supabase";
+
+export const POST: APIRoute = async ({ request, cookies, redirect }) => {
+  const formData = await request.formData();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+
+  if (!email || !password) {
+    return new Response("Correo electrónico y contraseña obligatorios", { status: 400 });
+  }
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    return new Response(error.message, { status: 500 });
+  }
+
+  const { access_token, refresh_token } = data.session;
+  cookies.set("sb-access-token", access_token, {
+    path: "/",
+  });
+  cookies.set("sb-refresh-token", refresh_token, {
+    path: "/",
+  });
+  return redirect("/dashboard");
+};
+```
+
+El archivo `signout.ts` cierra la sesión de un usuario. Acepta una solicitud `GET` y elimina los tokens de acceso y actualización del usuario.
+
+```ts title="src/pages/api/auth/signout.ts"
+import type { APIRoute } from "astro";
+
+export const GET: APIRoute = async ({ cookies, redirect }) => {
+  cookies.delete("sb-access-token", { path: "/" });
+  cookies.delete("sb-refresh-token", { path: "/" });
+  return redirect("/signin");
+};
+```
+
+### Crear páginas de autenticación
+
+Ahora que has creado tus endpoints de servidor, crea las páginas que los utilizarán.
+
+- `src/pages/register`: contiene un formulario para registrar un nuevo usuario.
+- `src/pages/signin`: contiene un formulario para iniciar sesión de un usuario.
+- `src/pages/dashboard`: contiene una página que solo es accesible para usuarios autenticados.
+
+Crea estas páginas en el directorio `src/pages`. Ahora tu proyecto debería incluir estos archivos:
+
+<FileTree title="Project Structure">
+- src/
+  - lib/
+    - supabase.ts
+  - pages/
+    - api/
+      - auth/
+        - signin.ts
+        - signout.ts
+        - register.ts
+    - **register.astro**
+    - **signin.astro**
+    - **dashboard.astro**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+El archivo `register.astro` contiene un formulario para registrar un nuevo usuario. Acepta un correo electrónico y una contraseña y envía una solicitud `POST` a `/api/auth/register`.
+
+```astro title="src/pages/register.astro"
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Registrarse">
+  <h1>Registrarse</h1>
+  <p>¿Ya tienes una cuenta? <a href="/signin">Iniciar sesión</a></p>
+  <form action="/api/auth/register" method="post">
+    <label for="email" for="email">Correo electrónico</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Contraseña</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Iniciar sesión</button>
+  </form>
+</Layout>
+```
+
+El archivo `signin.astro` contiene un formulario para iniciar sesión de un usuario. Acepta un correo electrónico y una contraseña y envía una solicitud `POST` a `/api/auth/signin`. También verifica la presencia de los tokens de acceso y actualización. Si están presentes, redirige al panel.
+
+```astro title="src/pages/signin.astro"
+---
+import Layout from "../layouts/Layout.astro";
+
+const { cookies, redirect } = Astro;
+
+const accessToken = cookies.get("sb-access-token");
+const refreshToken = cookies.get("sb-refresh-token");
+
+if (accessToken && refreshToken) {
+  return redirect("/dashboard");
+}
+---
+
+<Layout title="Iniciar sesión">
+  <h1>Iniciar sesión</h1>
+  <p>¿Nuevo aquí? <a href="/register">Crea una cuenta</a></p>
+  <form action="/api/auth/signin" method="post">
+    <label for="email" for="email">Correo electrónico</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Contraseña</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Iniciar sesión</button>
+  </form>
+</Layout>
+```
+
+El archivo `dashboard.astro` contiene una página que solo es accesible para usuarios autenticados. Verifica la presencia de los tokens de acceso y actualización. Si no están presentes, redirige a la página de inicio de sesión.
+
+```astro title="src/pages/dashboard.astro"
+---
+import Layout from "../layouts/Layout.astro";
+import { supabase } from "../lib/supabase";
+
+const { cookies, redirect } = Astro;
+
+const accessToken = cookies.get("sb-access-token");
+const refreshToken = cookies.get("sb-refresh-token");
+
+if (!accessToken || !refreshToken) {
+  return redirect("/signin");
+}
+
+const { data, error } = await supabase.auth.setSession({
+  refresh_token: refreshToken.value,
+  access_token: accessToken.value,
+});
+
+if (error) {
+  cookies.delete("sb-access-token", {
+    path: "/",
+  });
+  cookies.delete("sb-refresh-token", {
+    path: "/",
+  });
+
+  return redirect("/signin");
+}
+
+const email = data?.user?.email;
+---
+<Layout title="panel de control">
+  <h1>Bienvenido {email}</h1>
+  <p>Estamos felices de verte aquí</p>
+  <form action="/api/auth/signout">
+    <button type="submit">Cerrar sesión</button>
+  </form>
+</Layout>
+```
+
+### Agregar autenticación OAuth
+
+Para agregar autenticación con OAuth a tu proyecto, deberás editar tu cliente de Supabase para habilitar el flujo de autenticación con `"pkce"`. Puedes leer más sobre los flujos de autenticación en la [documentación de Supabase](https://supabase.com/docs/guides/auth/server-side-rendering#understanding-the-authentication-flow).
+
+```ts title="src/lib/supabase.ts" ins={6-10}
+import { createClient } from "@supabase/supabase-js";
+
+export const supabase = createClient(
+  import.meta.env.SUPABASE_URL,
+  import.meta.env.SUPABASE_ANON_KEY,
+  {
+    auth: {
+      flowType: "pkce",
+    },
+  },
+);
+```
+
+Luego, en el panel de Supabase, habilita el proveedor de OAuth que te gustaría usar. Puedes encontrar la lista de proveedores compatibles en la pestaña **Authentication > Providers** de tu proyecto de Supabase.
+
+El siguiente ejemplo utiliza GitHub como proveedor de OAuth. Para conectar tu proyecto a GitHub, sigue los pasos en la [documentación de Supabase](https://supabase.com/docs/guides/auth/social-login/auth-github).
+
+Luego, crea un nuevo endpoint de servidor para manejar la devolución de llamada de OAuth en `src/pages/api/auth/callback.ts`. Este endpoint se utilizará para intercambiar el código de OAuth por un token de acceso y actualización.
+
+```ts title="src/pages/api/auth/callback.ts"
+import type { APIRoute } from "astro";
+import { supabase } from "../../../lib/supabase";
+
+export const GET: APIRoute = async ({ url, cookies, redirect }) => {
+  const authCode = url.searchParams.get("code");
+
+  if (!authCode) {
+    return new Response("No se proporcionó ningún código", { status: 400 });
+  }
+
+  const { data, error } = await supabase.auth.exchangeCodeForSession(authCode);
+
+  if (error) {
+    return new Response(error.message, { status: 500 });
+  }
+
+  const { access_token, refresh_token } = data.session;
+
+  cookies.set("sb-access-token", access_token, {
+    path: "/",
+  });
+  cookies.set("sb-refresh-token", refresh_token, {
+    path: "/",
+  });
+
+  return redirect("/dashboard");
+};
+```
+
+Después, edita la página de inicio de sesión para incluir un nuevo botón para iniciar sesión con el proveedor de OAuth. Este botón debe enviar una solicitud `POST` a `/api/auth/signin` con el `provider` establecido en el nombre del proveedor de OAuth.
+
+```astro title="src/pages/signin.astro" ins={23}
+---
+import Layout from "../layouts/Layout.astro";
+
+const { cookies, redirect } = Astro;
+
+const accessToken = cookies.get("sb-access-token");
+const refreshToken = cookies.get("sb-refresh-token");
+
+if (accessToken && refreshToken) {
+  return redirect("/dashboard");
+}
+---
+
+<Layout title="Inicia sesión">
+  <h1>Inicia sesión</h1>
+  <p>¿Nuevo aquí? <a href="/register">Crea una cuenta</a></p>
+  <form action="/api/auth/signin" method="post">
+    <label for="email" for="email">Correo electrónico</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Contraseña</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Iniciar sesión</button>
+    <button value="github" name="provider" type="submit">Inicia sesión con Github</button>
+  </form>
+</Layout>
+```
+
+Finalmente, edita el endpoint del servidor de inicio de sesión para manejar el proveedor de OAuth. Si el `provider` está presente, redirigirá al proveedor de OAuth. De lo contrario, iniciará sesión del usuario con el correo electrónico y la contraseña.
+
+```ts title="src/pages/api/auth/signin.ts" ins={10-23}
+import type { APIRoute } from "astro";
+import { supabase } from "../../../lib/supabase";
+import type { Provider } from "@supabase/supabase-js";
+
+export const POST: APIRoute = async ({ request, cookies, redirect }) => {
+  const formData = await request.formData();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+  const provider = formData.get("provider")?.toString();
+
+  const validProviders = ["google", "github", "discord"];
+
+  if (provider && validProviders.includes(provider)) {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: provider as Provider,
+      options: {
+        redirectTo: "http://localhost:4321/api/auth/callback"
+      },
+    });
+
+    if (error) {
+      return new Response(error.message, { status: 500 });
+    }
+
+    return redirect(data.url);
+  }
+
+  if (!email || !password) {
+    return new Response("Correo electrónico y contraseña obligatorios", { status: 400 });
+  }
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    return new Response(error.message, { status: 500 });
+  }
+
+  const { access_token, refresh_token } = data.session;
+  cookies.set("sb-access-token", access_token, {
+    path: "/",
+  });
+  cookies.set("sb-refresh-token", refresh_token, {
+    path: "/",
+  });
+  return redirect("/dashboard");
+};
+```
+
+Después de crear el endpoint de devolución de llamada de OAuth y editar la página de inicio de sesión y el endpoint del servidor, tu proyecto debería tener la siguiente estructura de archivos:
+
+<FileTree title="Estructura del proyecto">
+- src/
+  - lib/
+    - supabase.ts
+  - pages/
+    - api/
+      - auth/
+        - signin.ts
+        - signout.ts
+        - register.ts
+        - callback.ts
+    - register.astro
+    - signin.astro
+    - dashboard.astro
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## Recursos de la comunidad
+
+- [Adentrarse en el espíritu navideño con Astro, React y Supabase](https://www.aleksandra.codes/astro-supabase)
+- [Demo de autenticación con Astro y Supabase](https://github.com/kevinzunigacuellar/astro-supabase)
