@@ -114,6 +114,7 @@ export default [
 		key: 'guides/internationalization',
 	},
 	{ text: 'Middleware', slug: 'guides/middleware', key: 'guides/middleware' },
+	{ text: 'E-commerce', slug: 'guides/ecommerce', key: 'guides/ecommerce' },
 	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
 	{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
 
