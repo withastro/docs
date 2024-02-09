@@ -1,0 +1,58 @@
+---
+title: Astro 사이트를 GitLab Pages에 배포하세요
+description: GitLab Pages를 사용하여 Astro 사이트를 웹에 배포하는 방법.
+type: deploy
+i18nReady: true
+---
+
+[GitLab Pages](https://pages.gitlab.io/)를 사용하여 [GitLab](https://about.gitlab.com/) 프로젝트, 그룹 또는 사용자 계정을 위한 Astro 사이트를 호스팅할 수 있습니다.
+
+:::tip[예시를 찾고 계시나요?]
+[공식 GitLab Pages Astro 예시 프로젝트](https://gitlab.com/pages/astro)를 확인해 보세요!
+:::
+
+## 배포 방법
+
+1. `astro.config.mjs` 파일에서 올바른 `site`를 설정하세요.
+2. `public/` 디렉터리의 이름을 `static`으로 바꿉니다.
+3. `astro.config.mjs` 파일에서 `outDir: public`을 설정합니다. 이 설정은 Astro가 공개된 파일을 위해 GitLab Pages에 요구하는 `public` 폴더에 정적 빌드 출력을 저장하도록 지시합니다.
+
+   Astro 프로젝트에서 정적 파일의 소스로 [`public/` 디렉터리](/ko/basics/project-structure/#public)를 사용하고 있었다면 이름을 바꾸고 `publicDir` 값으로 `astro.config.mjs`의 새 폴더 이름을 사용합니다.
+
+   예를 들어 `public/` 디렉터리의 이름이 `static/`으로 변경된 경우 올바른 `astro.config.mjs` 설정은 다음과 같습니다.
+
+   ```js
+   import { defineConfig } from 'astro/config';
+   
+   export default defineConfig({
+     site: 'https://<user>.gitlab.io',
+     base: '/<project-name>',
+     outDir: 'public',
+     publicDir: 'static',
+   });
+   ```
+
+4. 아래 내용을 포함하여 프로젝트 루트에 `.gitlab-ci.yml` 파일을 생성합니다. 콘텐츠가 변경될 때마다 사이트가 빌드되고 배포됩니다.
+
+   ```yaml
+   pages:
+     # 앱을 빌드하는 데 사용될 Docker 이미지
+     image: node:lts
+
+     before_script:
+       - npm ci
+
+     script:
+       # 여기에서 앱 빌드와 관련된 단계를 지정하세요.
+       - npm run build
+
+     artifacts:
+       paths:
+         # 게시하기 위해 빌드된 파일이 포함된 폴더입니다.
+         # 이것을 "public"라고 불러야 합니다.
+         - public
+
+     only:
+       # 아래 브랜치에 푸시가 있는 경우에만 새 빌드를 트리거하고 배포합니다.
+       - main
+   ```

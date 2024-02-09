@@ -1,0 +1,195 @@
+---
+title: 헤드리스 WordPress & Astro
+description: WordPress를 CMS로 사용하여 Astro 프로젝트에 콘텐츠 추가
+type: cms
+stub: false
+service: WordPress
+i18nReady: true
+---
+
+import FileTree from '~/components/FileTree.astro'
+import Grid from '~/components/FluidGrid.astro'
+import Card from '~/components/ShowcaseCard.astro'
+
+[WordPress](https://wordpress.org/)는 자체 프런트엔드를 포함하는 콘텐츠 관리 시스템이지만 Astro 프로젝트에 콘텐츠를 제공하기 위해 헤드리스 CMS로 사용할 수도 있습니다.
+
+## Astro와 통합
+
+WordPress에는 WordPress 데이터를 Astro에 연결하기 위한 [WordPress REST API](https://developer.wordpress.org/rest-api/)가 내장되어 있습니다. 선택적으로 사이트에 [WPGraphQL](https://wordpress.org/plugins/wp-graphql/)을 설치하여 GraphQL을 사용할 수 있습니다.
+
+### 전제조건
+
+시작하려면 다음이 필요합니다.
+
+1. **Astro 프로젝트** - 아직 Astro 프로젝트가 없다면 [설치 가이드](/ko/install/auto/)를 참조하여 즉시 설치하고 실행할 수 있습니다.
+2. **WordPress 사이트** - 사이트의 REST API는 `[YOUR_SITE]/wp-json/wp/v2/`이며 기본적으로 모든 WordPress 사이트에서 사용할 수 있습니다. [로컬 환경에서 WordPress를 설정](https://wordpress.org/support/article/installing-wordpress-on-your-own-computer/)하는 것도 가능합니다.
+
+### 자격 증명 설정
+
+WordPress REST API는 기본적으로 인증 없이 데이터를 가져오기 위한 외부 요청을 위해 사용할 수 있습니다. 이를 통해 사용자는 데이터나 사이트 설정을 수정할 수 없으며 자격 증명 없이도 Astro 프로젝트에서 데이터를 사용할 수 있습니다.
+
+필요한 경우 [인증을 요구](https://developer.wordpress.org/rest-api/frequently-asked-questions/#require-authentication-for-all-requests)하도록 선택할 수 있습니다.
+
+### 데이터 가져오기
+
+사이트의 고유한 REST API URL과 콘텐츠 경로를 통해 WordPress 데이터를 가져옵니다. (블로그의 경우 일반적으로 `posts`입니다.) 그런 다음 Astro의 `set:html={}` 지시어를 사용하여 데이터 속성을 렌더링할 수 있습니다.
+
+예를 들어 게시물 제목과 내용 목록을 표시하려면 다음을 수행하세요.
+
+```astro title="src/pages/index.astro"
+---
+const res = await fetch("https://[YOUR-SITE]/wp-json/wp/v2/posts");
+const posts = await res.json();
+---
+<h1>Astro + WordPress 🚀</h1>
+{
+  posts.map((post) => (
+      <h2 set:html={post.title.rendered} />
+      <p set:html={post.content.rendered} />
+  ))
+}
+```
+
+WordPress REST API에는 `_fields` 및 `_embed`와 같은 [전역 매개변수](https://developer.wordpress.org/rest-api/using-the-rest-api/global-parameters/)가 포함되어 있습니다.
+
+이 API를 통해 대량의 데이터를 사용할 수 있으므로 특정 필드만 가져오고 싶을 수도 있습니다. API URL에 [`_fields`](https://developer.wordpress.org/rest-api/using-the-rest-api/global-parameters/#_fields) 매개변수를 추가하여 응답을 제한할 수 있습니다. 예: `[YOUR-SITE]/wp/v2/posts?_fields=author,id,excerpt,title,link`
+
+API는 상위 게시물에 대한 링크나 게시물에 대한 댓글 등 게시물과 관련된 콘텐츠를 반환할 수도 있습니다. API URL (예: `[YOUR- SITE]/wp/v2/posts?_embed`) 응답에 이러한 포함된 리소스가 포함되어야 함을 서버에 나타냅니다.
+
+## WordPress와 Astro로 블로그 만들기
+
+이 예에서는 [https://norian.studio/dinosaurs/](https://norian.studio/dinosaurs/)의 공개 WordPress API에서 데이터를 가져옵니다. 이 WordPress 사이트는 블로그가 `posts` 경로에 개별 블로그 게시물을 저장하는 것처럼 `dinos` 경로에 개별 공룡에 대한 정보를 저장합니다.
+
+이 예시는 Astro에서 이 사이트 구조를 재현하는 방법을 보여줍니다. 즉, 동적으로 생성된 개별 공룡 페이지에 대한 링크와 함께 공룡을 나열하는 색인 ​​페이지입니다.
+
+:::note
+WordPress API (`post` 및 `page` 뿐만 아니라)에서 [Custom Post Types (CPT)](https://learn.wordpress.org/lesson-plan/custom-post-types/)을 사용하려면 [WordPress 대시보드에서 이를 구성](https://stackoverflow.com/questions/48536646/how-can-i-get-data-from-custom-post-type-using-wp-rest-api)하거나 WordPress에서 [Custom Content Types에 대한 REST API 지원을 추가](https://developer.wordpress.org/rest-api/extending-the-rest-api/adding-rest-api-support-for-custom-content-types/)해야 합니다.
+
+이 예시에서는 콘텐츠 유형이 이미 구성되어 REST API에 노출된 WordPress 사이트에서 데이터를 가져옵니다.
+:::
+
+### WordPress 게시물 목록 표시
+
+`src/pages/index.astro` 페이지에는 각 공룡이 설명 및 해당 페이지에 대한 링크와 함께 나열되어 있습니다.
+
+<FileTree title="Project Structure">
+- src/
+  - pages/
+    - **index.astro**
+    - dinos/
+      - [slug].astro
+- astro.config.mjs
+- package.json
+</FileTree>
+
+API를 통해 가져오면 다음 속성을 포함하는 객체가 반환됩니다.
+
+- `title.rendered` - 게시물 제목의 HTML 렌더링을 포함합니다.
+- `content.rendered` - 게시물 내용의 HTML 렌더링을 포함합니다.
+- `slug` - 게시물의 슬러그가 포함되어 있습니다. (동적으로 생성된 개별 공룡 페이지에 대한 링크를 제공합니다.)
+
+```astro title="/src/pages/index.astro"
+---
+import Layout from "../layouts/Layout.astro";
+
+let res = await fetch("https://norian.studio/wp-json/wp/v2/dinos");
+let posts = await res.json();
+---
+<Layout title="Dinos!">
+  <section>
+    <h1>List of Dinosaurs</h1>
+    {
+      posts.map((post) => (
+        <article>
+          <h2>
+            <a href={`/dinos/${post.slug}/`} set:html={post.title.rendered} />
+          </h2>
+          <Fragment set:html={post.content.rendered} />
+        </article>
+      ))
+    }
+  </section>
+</Layout>
+```
+
+### WordPress API를 사용하여 페이지 생성
+
+`src/pages/dinos/[slug].astro` 페이지는 각 공룡에 대한 페이지를 [동적으로 생성](/ko/guides/routing/#동적-경로)합니다.
+
+```astro title="/src/pages/dinos/[slug].astro"
+---
+import Layout from '../../layouts/Layout.astro';
+
+const { slug } = Astro.params;
+
+let res = await fetch(`https://norian.studio/wp-json/wp/v2/dinos?slug=${slug}`);
+let [post] = await res.json();
+
+// 정적 Astro 사이트에는 getStaticPaths()가 필요합니다.
+// SSR을 사용하는 경우에는 이 함수가 필요하지 않습니다.
+export async function getStaticPaths() {
+  let data = await fetch("https://norian.studio/wp-json/wp/v2/dinos");
+  let posts = await data.json();
+
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post: post },
+  }));
+}
+---
+<Layout title={post.title.rendered}>
+  <article>
+    <h1 set:html={post.title.rendered} />
+    <Fragment set:html={post.content.rendered} />
+  </article>
+</Layout>
+```
+
+### 임베디드 리소스 반환
+
+`_embed` 쿼리 매개변수는 서버에 관련 (임베디드) 리소스를 반환하도록 지시합니다.
+
+```astro title="src/pages/dinos/[slug].astro" /&_embed/
+---
+const { slug } = Astro.params;
+
+let res = await fetch(`https://norian.studio/wp-json/wp/v2/dinos?slug=${slug}&_embed`);
+let [post] = await res.json();
+---
+```
+
+`_embedded['wp:featuredmedia']['0'].media_details.sizes.medium.source_url` 속성이 반환되며 각 공룡 페이지에 추천 이미지를 표시하는 데 사용할 수 있습니다. (`medium`을 원하는 이미지 크기로 바꾸세요.)
+
+```astro title="/src/pages/dinos/[slug].astro" {3}
+<Layout title={post.title.rendered}>
+  <article>
+    <img src={post._embedded['wp:featuredmedia']['0'].media_details.sizes.medium.source_url} />
+    <h1 set:html={post.title.rendered} />
+    <Fragment set:html={post.content.rendered} />
+  </article>
+</Layout>
+```
+
+### 사이트 게시
+
+사이트를 배포하려면 [배포 가이드](/ko/guides/deploy/)를 방문하여 선호하는 호스팅 제공업체의 지침을 따르세요.
+
+## 커뮤니티 자료
+
+- [헤드리스 CMS인 WordPress를 사용하여 Astro 웹사이트 구축](https://blog.openreplay.com/building-an-astro-website-with-wordpress-as-a-headless-cms/) - Chris Bongers 작성.
+- [Astro x WordPress로 구축](https://www.youtube.com/watch?v=Jstqgklvfnc) - Ben Holmes의 스트림.
+- [Astro를 사용하여 헤드리스 WordPress 사이트 구축](https://developers.wpengine.com/blog/building-a-headless-wordpress-site-with-astro) - Jeff Everhart 작성.
+- [API로서의 Astro 및 WordPress](https://darko.io/posts/wp-as-an-api/) - Darko Bozhinovski 작성.
+
+## 프로덕션 사이트
+
+다음 사이트는 프로덕션에서 Astro + WordPress를 사용합니다.
+
+- [Soft Hard System](https://softhardsystem.com/) - Rafid Muhymin Wafi — [GitHub의 소스 코드](https://github.com/RafidMuhymin/softhardsystem)  
+- [Dinos!](https://wc-dinos.netlify.app/) - Anindo Neel Dutta — [GitHub의 소스 코드](https://github.com/leen-neel/astro-wordpress)
+
+## 테마
+
+<Grid>
+  <Card title="Astro WordPress 스타터" href="https://astro.build/themes/details/astro-wordpress-starter/" thumbnail="astro-wordpress-starter.png"/>
+</Grid>

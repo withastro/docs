@@ -2,7 +2,8 @@
 title: Astro 통합 API
 i18nReady: true
 ---
-import Since from '~/components/Since.astro'
+
+import Since from '~/components/Since.astro';
 
 **Astro 통합**은 단 몇 줄의 코드만으로 프로젝트에 새로운 기능과 동작을 추가합니다.
 
@@ -24,7 +25,7 @@ interface AstroIntegration {
   hooks: {
     'astro:config:setup'?: (options: {
       config: AstroConfig;
-      command: 'dev' | 'build';
+      command: 'dev' | 'build' | 'preview';
       isRestart: boolean;
       updateConfig: (newConfig: DeepPartial<AstroConfig>) => AstroConfig;
       addRenderer: (renderer: AstroRenderer) => void;
@@ -36,24 +37,40 @@ interface AstroIntegration {
       injectRoute: ({ pattern: string, entrypoint: string }) => void;
       logger: AstroIntegrationLogger;
     }) => void;
-    'astro:config:done'?: (options: { config: AstroConfig; logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:server:setup'?: (options: { server: vite.ViteDevServer; logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:server:start'?: (options: { address: AddressInfo; logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:server:done'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:build:start'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:config:done'?: (options: {
+      config: AstroConfig;
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:server:setup'?: (options: {
+      server: vite.ViteDevServer;
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:server:start'?: (options: {
+      address: AddressInfo;
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:server:done'?: (options: { logger: AstroIntegrationLogger }) => void | Promise<void>;
+    'astro:build:start'?: (options: { logger: AstroIntegrationLogger }) => void | Promise<void>;
     'astro:build:setup'?: (options: {
       vite: ViteConfigWithSSR;
       pages: Map<string, PageBuildData>;
       target: 'client' | 'server';
       logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
-    'astro:build:generated'?: (options: { dir: URL; logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:build:ssr'?: (options: {
-        manifest: SerializedSSRManifest;
-        entryPoints: Map<RouteData, URL>;
-        logger: AstroIntegrationLogger;
+    'astro:build:generated'?: (options: {
+      dir: URL;
+      logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
-    'astro:build:done'?: (options: { dir: URL; routes: RouteData[]; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:build:ssr'?: (options: {
+      manifest: SerializedSSRManifest;
+      entryPoints: Map<RouteData, URL>;
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:build:done'?: (options: {
+      dir: URL;
+      routes: RouteData[];
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
   };
 }
 ```
@@ -71,7 +88,7 @@ interface AstroIntegration {
 ```ts
 'astro:config:setup'?: (options: {
   config: AstroConfig;
-  command: 'dev' | 'build';
+  command: 'dev' | 'build' | 'preview';
   isRestart: boolean;
   updateConfig: (newConfig: DeepPartial<AstroConfig>) => AstroConfig;
   addRenderer: (renderer: AstroRenderer) => void;
@@ -93,10 +110,11 @@ interface AstroIntegration {
 
 #### `command` 옵션
 
-**타입:** `'dev' / 'build'`
+**타입:** `'dev' | 'build' | 'preview'`
 
-- `dev` - 프로젝트는 `astro dev` 또는 `astro preview`로 실행됩니다.
+- `dev` - 프로젝트는 `astro dev`로 실행됩니다.
 - `build` - 프로젝트는 `astro build`로 실행됩니다.
+- `preview` - 프로젝트는 `astro preview`로 실행됩니다.
 
 #### `isRestart` 옵션
 
@@ -122,11 +140,11 @@ export default {
       updateConfig({
         vite: {
           plugins: [bananaCSS()],
-        }
-      })
-    }
-  }
-}
+        },
+      });
+    },
+  },
+};
 ```
 
 #### `addRenderer` 옵션
@@ -156,7 +174,9 @@ addWatchFile(new URL('./tailwind.config.js', config.root));
 
 #### `addClientDirective` 옵션
 
-<p><Since v="2.6.0" /></p>
+<p>
+  <Since v="2.6.0" />
+</p>
 
 **타입:** `(directive:` [`ClientDirectiveConfig`](https://github.com/withastro/astro/blob/00327c213f74627ac9ca1dec774efa5bf71e9375/packages/astro/src/%40types/astro.ts#L1872-L1875) `) => void;`
 
@@ -168,13 +188,11 @@ addWatchFile(new URL('./tailwind.config.js', config.root));
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-import clickDirective from './astro-click-directive/register.js'
+import clickDirective from './astro-click-directive/register.js';
 
 // https://astro.build/config
 export default defineConfig({
-  integrations: [
-    clickDirective()
-  ],
+  integrations: [clickDirective()],
 });
 ```
 
@@ -183,12 +201,12 @@ export default defineConfig({
  * @type {() => import('astro').AstroIntegration}
  */
 export default () => ({
-  name: "client:click",
+  name: 'client:click',
   hooks: {
-    "astro:config:setup": ({ addClientDirective }) => {
+    'astro:config:setup': ({ addClientDirective }) => {
       addClientDirective({
-        name: "click",
-        entrypoint: "./astro-click-directive/click.js",
+        name: 'click',
+        entrypoint: './astro-click-directive/click.js',
       });
     },
   },
@@ -201,27 +219,33 @@ export default () => ({
  * @type {import('astro').ClientDirective}
  */
 export default (load, opts, el) => {
-  window.addEventListener('click', async () => {
-    const hydrate = await load()
-    await hydrate()
-  }, { once: true })
-}
+  window.addEventListener(
+    'click',
+    async () => {
+      const hydrate = await load();
+      await hydrate();
+    },
+    { once: true }
+  );
+};
 ```
 
 라이브러리의 타입 정의 파일에 지시어 타입을 추가할 수도 있습니다.
 
 ```ts title="astro-click-directive/index.d.ts"
-import 'astro'
+import 'astro';
 declare module 'astro' {
   interface AstroClientDirectives {
-    'client:click'?: boolean
+    'client:click'?: boolean;
   }
 }
 ```
 
 #### `addDevToolbarApp` 옵션
 
-<p><Since v="3.4.0" /></p>
+<p>
+  <Since v="3.4.0" />
+</p>
 
 **타입:** `(pluginEntrypoint: string) => void;`
 
@@ -231,13 +255,11 @@ declare module 'astro' {
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-import devToolbarIntegration from './astro-dev-toolbar-app/integration.js'
+import devToolbarIntegration from './astro-dev-toolbar-app/integration.js';
 
 // https://astro.build/config
 export default defineConfig({
-  integrations: [
-    devToolbarIntegration()
-  ],
+  integrations: [devToolbarIntegration()],
 });
 ```
 
@@ -246,32 +268,34 @@ export default defineConfig({
  * @type {() => import('astro').AstroIntegration}
  */
 export default () => ({
-  name: "dev-toolbar-app",
+  name: 'dev-toolbar-app',
   hooks: {
-    "astro:config:setup": ({ addDevToolbarApp }) => {
-      addDevToolbarApp("./astro-dev-toolbar-app/plugin.js");
+    'astro:config:setup': ({ addDevToolbarApp }) => {
+      addDevToolbarApp('./astro-dev-toolbar-app/plugin.js');
     },
   },
 });
 ```
 
 ```js title="astro-dev-toolbar-app/plugin.js"
-
 /**
  * @type {import('astro').DevToolbarApp}
  */
 export default {
-  id: "my-plugin",
-  name: "My Plugin",
-  icon: "<svg>...</svg>",
+  id: 'my-plugin',
+  name: 'My Plugin',
+  icon: '<svg>...</svg>',
   init() {
-    console.log("I'm a dev toolbar app!")
+    console.log("I'm a dev toolbar app!");
   },
 };
 ```
+
 #### `addMiddleware` 옵션
 
-<p><Since v="3.5.0" /></p>
+<p>
+  <Since v="3.5.0" />
+</p>
 
 **타입:** `(middleware:` [`AstroIntegrationMiddleware`](https://github.com/withastro/astro/blob/852ac0f75dfca1b2602e9cdbfa0447d9998e2449/packages/astro/src/%40types/astro.ts#L2124-L2127) `) => void;`
 
@@ -282,13 +306,13 @@ export default {
  * @type {() => import('astro').AstroIntegration}
  */
 export default () => ({
-  name: "my-middleware-package",
+  name: 'my-middleware-package',
   hooks: {
-    "astro:config:setup": ({ addMiddleware }) => {
-        addMiddleware({
-          entrypoint: '@my-package/middleware',
-          order: 'pre'
-        });
+    'astro:config:setup': ({ addMiddleware }) => {
+      addMiddleware({
+        entrypoint: '@my-package/middleware',
+        order: 'pre',
+      });
     },
   },
 });
@@ -300,9 +324,9 @@ export default () => ({
 import { defineMiddleware } from 'astro:middleware';
 
 export const onRequest = defineMiddleware(async (context, request) => {
-  if(context.url.pathname === '/some-test-path') {
+  if (context.url.pathname === '/some-test-path') {
     return Response.json({
-      ok: true
+      ok: true,
     });
   }
 });
@@ -312,7 +336,7 @@ export const onRequest = defineMiddleware(async (context, request) => {
 
 **타입:** `({ pattern: string, entrypoint: string }) => void;`
 
-Astro 프로젝트에 경로를 삽입하는 콜백 함수입니다. 주입된 경로는 [`.astro` 페이지](/ko/core-concepts/astro-pages/) 또는 [`.js` 및 `.ts` 경로 처리기](/ko/core-concepts/endpoints/#정적-파일-엔드포인트)일 수 있습니다.
+Astro 프로젝트에 경로를 삽입하는 콜백 함수입니다. 주입된 경로는 [`.astro` 페이지](/ko/basics/astro-pages/) 또는 [`.js` 및 `.ts` 경로 처리기](/ko/guides/endpoints/#정적-파일-엔드포인트)일 수 있습니다.
 
 `injectRoute`는 `pattern`과 `entrypoint`가 있는 객체를 사용합니다.
 
@@ -326,7 +350,7 @@ injectRoute({
   // 동적 경로에는 Astro의 패턴 구문을 사용하세요.
   pattern: '/subfolder/[dynamic]',
   // 로컬 경로에는 상대 경로 구문을 사용합니다.
-  entrypoint: './src/dynamic-page.astro'
+  entrypoint: './src/dynamic-page.astro',
 });
 ```
 
@@ -336,8 +360,18 @@ injectRoute({
 ```js
 injectRoute({
   pattern: '/fancy-dashboard',
-  entrypoint: '@fancy/dashboard/dashboard.astro'
+  entrypoint: '@fancy/dashboard/dashboard.astro',
 });
+```
+
+패키지 (이 경우 `@fancy/dashboard`)를 npm에 게시할 때 `package.json` 파일에서 `dashboard.astro`를 내보내야 합니다.
+
+```json title="package.json" "exports"
+{
+  "name": "@fancy/dashboard",
+  // ...
+  "exports": { "./dashboard.astro": "./dashboard.astro" }`
+}
 ```
 
 #### `injectScript` 옵션
@@ -353,10 +387,11 @@ injectRoute({
 - `"page"`: 삽입된 조각이 Vite에 의해 처리되고 페이지의 Astro 컴포넌트 내부에 정의된 다른 `<script>` 태그와 함께 번들로 묶인다는 점을 제외하면 `head-inline`과 유사합니다. 스크립트는 최종 페이지 출력에 `<script type="module">`과 함께 로드되고 Vite에 의해 최적화되고 해결됩니다.
 - `"page-ssr"`: 모든 Astro 페이지 컴포넌트의 프런트매터에 별도의 모듈로 가져옵니다. 이 단계에서는 스크립트를 가져오기 때문에 `Astro` global을 사용할 수 없으며 스크립트는 `import`가 처음 평가될 때 한 번만 실행됩니다.
 
-    `page-ssr` 단계의 주요 용도는 Vite가 최적화하고 해결할 모든 페이지에 CSS `import`를 삽입하는 것입니다.
-    ```js
-    injectScript('page-ssr', 'import "global-styles.css";');
-    ```
+  `page-ssr` 단계의 주요 용도는 Vite가 최적화하고 해결할 모든 페이지에 CSS `import`를 삽입하는 것입니다.
+
+  ```js
+  injectScript('page-ssr', 'import "global-styles.css";');
+  ```
 
 ### `astro:config:done`
 
@@ -403,14 +438,12 @@ export default {
   name: 'partytown',
   hooks: {
     'astro:server:setup': ({ server }) => {
-      server.middlewares.use(
-        function middleware(req, res, next) {
-          // 요청 처리
-        }
-      );
-    }
-  }
-}
+      server.middlewares.use(function middleware(req, res, next) {
+        // 요청 처리
+      });
+    },
+  },
+};
 ```
 
 ### `astro:server:start`
@@ -497,6 +530,7 @@ export default {
 **동작 시기:** 프로덕션 SSR 빌드가 완료된 후.
 
 **사용 목적:** SSR 매니페스트 및 방출된 엔트리포인트 맵에 액세스합니다. 이는 플러그인이나 통합에서 사용자 정의 SSR 빌드를 생성할 때 유용합니다.
+
 - `entryPoints`는 페이지 경로를 빌드 후 방출된 실제 파일에 매핑합니다.
 - `middlewareEntryPoint`는 미들웨어 파일의 파일 시스템 경로입니다.
 
@@ -538,9 +572,9 @@ export default function myIntegration() {
         // 유효한 크로스 플랫폼 절대 경로 문자열을 얻으려면 fileURLToPath를 사용하십시오.
         const outFile = fileURLToPath(new URL('./my-integration.json', dir));
         await writeFile(outFile, JSON.stringify(metadata));
-      }
-    }
-  }
+      },
+    },
+  };
 }
 ```
 
@@ -584,7 +618,7 @@ interface RouteData {
    * 예시: "/pages/[lang]/index.astro"는 다음 세그먼트를 출력합니다.
    * [[ { content: 'lang', dynamic: true, spread: false } ]]
    */
-  segments: { content: string; dynamic: boolean; spread: boolean; }[][];
+  segments: { content: string; dynamic: boolean; spread: boolean }[][];
   /**
    * 입력 데이터 세트에서 컴포넌트를 내부에 렌더링하는 기능입니다.
    * 이는 일반적으로 내부용이므로 주의해서 호출하세요!
@@ -608,7 +642,7 @@ interface RouteData {
 ```json
 {
   "name": "example",
-  "keywords": ["astro-integration"],
+  "keywords": ["astro-integration"]
 }
 ```
 
@@ -633,6 +667,7 @@ export default defineConfig({
 로그를 작성하는 데 유용한 Astro 로거의 인스턴스입니다. 이 로거는 CLI를 통해 구성된 것과 동일한 [로그 수준](/ko/reference/cli-reference/#--verbose)을 사용합니다.
 
 터미널에서 **쓸 수 있는 메서드**는 다음과 같습니다.
+
 - `logger.info("Message")`;
 - `logger.warn("Message")`;
 - `logger.error("Message")`;
@@ -641,17 +676,17 @@ export default defineConfig({
 모든 메시지 앞에는 동일한 통합 값을 갖는 라벨이 추가됩니다.
 
 ```ts title="integration.ts" {8}
-import type { AstroIntegration } from "astro";
+import type { AstroIntegration } from 'astro';
 export function formatIntegration(): AstroIntegration {
-    return {
-        name: "astro-format",
-        hooks: {
-            "astro:build:done": ({ logger }) => {
-                // 작업을 수행합니다.
-                logger.info("Integration ready.");
-            }
-        }
-    }
+  return {
+    name: 'astro-format',
+    hooks: {
+      'astro:build:done': ({ logger }) => {
+        // 작업을 수행합니다.
+        logger.info('Integration ready.');
+      },
+    },
+  };
 }
 ```
 
@@ -664,22 +699,22 @@ export function formatIntegration(): AstroIntegration {
 다른 라벨을 사용하여 일부 메시지를 기록하려면 `.fork` 메서드를 사용하여 기본 `name`에 대한 대안을 지정하세요.
 
 ```ts title="integration.ts" ".fork"
-import type { AstroIntegration } from "astro";
+import type { AstroIntegration } from 'astro';
 export function formatIntegration(): AstroIntegration {
-    return {
-        name: "astro-format",
-        hooks: {
-            "astro:config:done": ({ logger }) => {
-                // 작업을 수행합니다.
-                logger.info("Integration ready.");
-            },
-            "astro:build:done": ({ logger }) => {
-                const buildLogger = logger.fork("astro-format/build");
-                // 작업을 수행합니다.
-                buildLogger.info("Build finished.")
-            }
-        }
-    }
+  return {
+    name: 'astro-format',
+    hooks: {
+      'astro:config:done': ({ logger }) => {
+        // 작업을 수행합니다.
+        logger.info('Integration ready.');
+      },
+      'astro:build:done': ({ logger }) => {
+        const buildLogger = logger.fork('astro-format/build');
+        // 작업을 수행합니다.
+        buildLogger.info('Build finished.');
+      },
+    },
+  };
 }
 ```
 
@@ -703,10 +738,11 @@ export function formatIntegration(): AstroIntegration {
 ```js
 integrations: [
   // 예: examplePreset()이 [integrationOne, IntegrationTwo, ...etc]를 반환
-  examplePreset()
-]
+  examplePreset(),
+];
 ```
 
 ## 커뮤니티 리소스
 
-[나만의 Astro 통합 구축](https://www.freecodecamp.org/news/how-to-use-the-astro-ui-framework/#chapter-8-build-your-own-astro-integrations-1) - FreeCodeCamp의 Emmanuel Ohans
+- [나만의 Astro 통합 구축](https://www.freecodecamp.org/news/how-to-use-the-astro-ui-framework/#chapter-8-build-your-own-astro-integrations-1) - FreeCodeCamp의 Emmanuel Ohans
+- [Astro 통합 템플릿](https://github.com/florian-lefebvre/astro-integration-template) - Florian Lefebvre의 GitHub

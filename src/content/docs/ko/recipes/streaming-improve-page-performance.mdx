@@ -1,0 +1,101 @@
+---
+title: "스트리밍을 사용하여 페이지 성능 향상"
+description: "스트리밍을 사용하여 페이지 성능을 향상시키는 방법을 알아보세요."
+type: recipe
+i18nReady: true
+---
+
+Astro의 SSR은 HTML 스트리밍을 사용하여 더 빠른 페이지 로딩이 가능한 경우 각 컴포넌트를 브라우저로 보냅니다. 페이지 성능을 더욱 향상시키려면 컴포넌트를 전략적으로 빌드하여 데이터 가져오기 차단을 방지함으로써 로드를 최적화할 수 있습니다.
+
+다음 리팩토링 예시에서는 fetch 호출을 다른 컴포넌트로 이동하고 페이지 렌더링을 차단하는 컴포넌트 밖으로 이동시켜 페이지 성능을 향상시키는 방법을 보여줍니다.
+
+다음 페이지는 프런트매터에서 일부 데이터를 가져올 때까지 기다립니다. (`await` 사용) Astro는 HTML을 브라우저에 보내기 전에 모든 `fetch` 호출이 해결될 때까지 기다립니다.
+
+```astro title="src/pages/index.astro"
+---
+const personResponse = await fetch('https://randomuser.me/api/');
+const personData = await personResponse.json();
+const randomPerson = personData.results[0];
+const factResponse = await fetch('https://catfact.ninja/fact');
+const factData = await factResponse.json();
+---
+<html>
+  <head>
+    <title>A name and a fact</title>
+  </head>
+  <body>
+    <h2>A name</h2>
+    <p>{randomPerson.name.first}</p>
+    <h2>A fact</h2>
+    <p>{factData.fact}</p>
+  </body>
+</html>
+```
+
+`await` 호출을 더 작은 컴포넌트로 이동하면 Astro의 스트리밍을 활용할 수 있습니다. 데이터 가져오기를 수행하기 위해 다음 컴포넌트를 사용하면 Astro는 제목과 같은 일부 HTML을 먼저 렌더링한 다음 데이터가 준비되면 단락을 렌더링할 수 있습니다.
+
+```astro title="src/components/RandomName.astro"
+---
+const personResponse = await fetch('https://randomuser.me/api/');
+const personData = await personResponse.json();
+const randomPerson = personData.results[0];
+---
+<p>{randomPerson.name.first}</p>
+```
+
+```astro title="src/components/RandomFact.astro"
+---
+const factResponse = await fetch('https://catfact.ninja/fact');
+const factData = await factResponse.json();
+---
+<p>{factData.fact}</p>
+```
+
+이러한 컴포넌트를 사용하는 아래 Astro 페이지는 페이지의 일부를 더 빨리 렌더링할 수 있습니다. `<head>`, `<body>` 및 `<h2>` 태그는 더 이상 데이터 가져오기로 인해 차단되지 않습니다. 그런 다음 서버는 `RandomName` 및 `RandomFact`에 대한 데이터를 병렬로 가져오고 결과 HTML을 브라우저로 스트리밍합니다.
+
+```astro title="src/pages/index.astro"
+---
+import RandomName from '../components/RandomName.astro';
+import RandomFact from '../components/RandomFact.astro';
+---
+<html>
+  <head>
+    <title>A name and a fact</title>
+  </head>
+  <body>
+    <h2>A name</h2>
+    <RandomName />
+    <h2>A fact</h2>
+    <RandomFact />
+  </body>
+</html>
+```
+
+#### Promise를 직접 포함하기
+
+템플릿에 Promise를 직접 포함할 수도 있습니다. 전체 컴포넌트를 차단하는 대신 Promise를 병렬로 해결하고 그 뒤에 오는 마크업만 차단합니다.
+
+```astro title="src/pages/index.astro"
+---
+const personPromise = fetch('https://randomuser.me/api/')
+  .then(response => response.json())
+  .then(arr => arr[0].name.first);
+const factPromise = fetch('https://catfact.ninja/fact')
+  .then(response => response.json())
+  .then(factData => factData.fact);
+---
+<html>
+  <head>
+    <title>A name and a fact</title>
+  </head>
+  <body>
+    <h2>A name</h2>
+    <p>{personPromise}</p>
+    <h2>A fact</h2>
+    <p>{factPromise}</p>
+  </body>
+</html>
+```
+
+이 예시에서는 `personPromise` 및 `factPromise`가 로드되는 동안 `A name`이 렌더링됩니다.
+`personPromise`가 해결되면 `A fact`가 표시되고 로드가 완료되면 `factPromise`가 렌더링됩니다.

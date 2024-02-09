@@ -1,0 +1,566 @@
+---
+title: Contentful & Astro
+description: Contentful을 CMS로 사용하여 Astro 프로젝트에 콘텐츠 추가
+type: cms
+service: Contentful
+i18nReady: true
+---
+
+import FileTree from '~/components/FileTree.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+[Contentful](https://www.contentful.com/)은 콘텐츠를 관리하고, 다른 서비스와 통합하고, 여러 플랫폼에 게시할 수 있는 헤드리스 CMS입니다.
+
+## Astro와 통합
+
+이 섹션에서는 [Contentful SDK](https://github.com/contentful/contentful.js)를 사용하여 클라이언트 측 JavaScript 없이 Contentful space를 Astro에 연결합니다.
+
+### 전제조건
+
+시작하려면 다음이 필요합니다.
+
+1. **Astro 프로젝트** - 아직 Astro 프로젝트가 없다면 [설치 가이드](/ko/install/auto/)를 참조하여 즉시 설치하고 실행할 수 있습니다.
+
+2. **Contentful 계정과 Contentful space**. 계정이 없다면 무료 계정에 [가입](https://www.contentful.com/sign-up/)하고 새로운 Contentful space를 만들 수 있습니다. 기존 space가 있는 경우 이를 사용할 수도 있습니다.
+
+3. **Contentful 자격 증명** - contentful 대시보드 **Settings > API keys**에서 다음 자격 증명을 찾을 수 있습니다. API 키가 없으면 **Add API key**를 선택하여 만듭니다.
+
+    - **Contentful space ID** - Contentful space의 ID입니다.
+    - **Contentful delivery access token** - Contentful space에서 _게시된_ 콘텐츠를 소비하기 위한 액세스 토큰입니다.
+    - **Contentful preview access token** - Contentful space에서 _게시되지 않은_ 콘텐츠를 소비하기 위한 액세스 토큰입니다.
+
+### 자격 증명 설정
+
+Astro에 Contentful space의 자격 증명을 추가하려면 다음 변수를 사용하여 프로젝트 루트에 `.env` 파일을 생성하세요.
+
+```ini title=".env"
+CONTENTFUL_SPACE_ID=YOUR_SPACE_ID
+CONTENTFUL_DELIVERY_TOKEN=YOUR_DELIVERY_TOKEN
+CONTENTFUL_PREVIEW_TOKEN=YOUR_PREVIEW_TOKEN
+```
+
+이제 프로젝트에서 이러한 환경 변수를 사용할 수 있습니다.
+
+Contentful 환경 변수에 IntelliSense를 사용하려면 `src/` 디렉터리에 `env.d.ts` 파일을 만들고 다음과 같이 `ImportMetaEnv`를 구성하면 됩니다.
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly CONTENTFUL_SPACE_ID: string;
+  readonly CONTENTFUL_DELIVERY_TOKEN: string;
+  readonly CONTENTFUL_PREVIEW_TOKEN: string;
+}
+```
+:::tip
+Astro의 [환경 변수 사용](/ko/guides/environment-variables/) 및 `.env` 파일에 대해 자세히 알아보세요.
+:::
+
+이제 루트 디렉터리에 다음과 같은 새 파일이 포함되어야 합니다.
+
+<FileTree title="Project Structure">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### 종속성 설치
+
+Contentful space에 연결하려면 선호하는 패키지 관리자로 아래 단일 명령을 사용하여 다음을 모두 설치하세요.
+- [`contentful.js`](https://github.com/contentful/contentful.js), JavaScript용 공식 Contentful SDK
+- [`rich-text-html-renderer`](https://github.com/contentful/rich-text/tree/master/packages/rich-text-html-renderer), Contentful의 리치 텍스트 필드를 HTML로 렌더링하는 패키지
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install contentful @contentful/rich-text-html-renderer
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add contentful @contentful/rich-text-html-renderer
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add contentful @contentful/rich-text-html-renderer
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+다음으로, 프로젝트의 `src/lib/` 디렉터리에 `contentful.ts`라는 새 파일을 만듭니다.
+
+```ts title="src/lib/contentful.ts"
+import contentful from "contentful";
+
+export const contentfulClient = contentful.createClient({
+  space: import.meta.env.CONTENTFUL_SPACE_ID,
+  accessToken: import.meta.env.DEV
+    ? import.meta.env.CONTENTFUL_PREVIEW_TOKEN
+    : import.meta.env.CONTENTFUL_DELIVERY_TOKEN,
+  host: import.meta.env.DEV ? "preview.contentful.com" : "cdn.contentful.com",
+});
+
+```
+
+위 코드 조각은 `.env` 파일에서 자격 증명을 전달하여 새로운 Contentful 클라이언트를 생성합니다.
+
+:::caution
+개발 모드에서는 **Contentful Preview API**에서 콘텐츠를 가져옵니다. 이는 Contentful 웹 앱에서 게시되지 않은 콘텐츠를 볼 수 있음을 의미합니다.
+
+빌드 시 **Contentful Delivery API**에서 콘텐츠를 가져옵니다. 이는 빌드 시 게시된 콘텐츠만 사용할 수 있음을 의미합니다.
+:::
+
+마지막으로 루트 디렉터리에는 이제 다음과 같은 새 파일이 포함되어야 합니다.
+
+<FileTree title="Project Structure">
+- src/
+  - env.d.ts
+  - lib/
+    - **contentful.ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### 데이터 가져오기
+
+Astro 컴포넌트는 `contentfulClient`를 사용하고 `content_type`을 지정하여 Contentful 계정에서 데이터를 가져올 수 있습니다.
+
+예를 들어 제목에 대한 텍스트 필드와 콘텐츠에 대한 리치 텍스트 필드가 있는 "blogPost" 콘텐츠 타입이 있는 경우 컴포넌트는 다음과 같습니다.
+
+```astro
+---
+import { contentfulClient } from "../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { EntryFieldTypes } from "contentful";
+
+interface BlogPost {
+  contentTypeId: "blogPost",
+  fields: {
+    title: EntryFieldTypes.Text
+    content: EntryFieldTypes.RichText,
+  }
+}
+
+const entries = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+});
+---
+<body>
+  {entries.items.map((item) => (
+    <section>
+      <h2>{item.fields.title}</h2>
+      <article set:html={documentToHtmlString(item.fields.content)}></article>
+    </section>
+  ))}
+</body>
+```
+
+:::tip
+Contentful space가 비어 있는 경우 [Contentful model 설정](#contentful-model-설정)을 확인하여 콘텐츠에 대한 기본 블로그 모델을 만드는 방법을 알아보세요.
+:::
+
+[Contentful 문서](https://contentful.github.io/contentful.js/)에서 더 많은 쿼리 옵션을 확인할 수 있습니다.
+
+## Astro와 Contentful로 블로그 만들기
+
+이제, 위 설정을 통해 Contentful을 CMS로 사용하는 블로그를 만들 수 있습니다.
+
+### 전제조건
+
+1. **Contentful space** - 이 튜토리얼은 빈 space에서 시작하는 것이 좋습니다. 이미 콘텐츠 모델이 있는 경우 자유롭게 사용하세요. 하지만 콘텐츠 모델에 맞게 코드 조각을 수정해야 합니다.
+2. **[Contentful SDK](https://github.com/contentful/contentful.js)와 통합된 Astro 프로젝트** - Contentful을 사용하여 Astro 프로젝트를 설정하는 방법에 대한 자세한 내용은 [Astro와 통합](#astro와-통합)을 참조하세요.
+
+### Contentful model 설정
+
+Contentful space의 **Content model** 섹션에서 다음 필드와 값을 사용하여 새 콘텐츠 모델을 만듭니다.
+
+- **Name:** Blog Post
+- **API identifier:** `blogPost`
+- **Description:** This content type is for a blog post
+
+새로 생성된 콘텐츠 타입에서 **Add Field** 버튼을 사용하여 다음 매개변수가 포함된 5개의 새 필드를 추가합니다.
+
+1. Text field
+    - **Name:** title
+    - **API identifier:** `title`
+    (다른 매개변수는 기본값으로 둡니다.)
+2. Date and time field
+    - **Name:** date
+    - **API identifier:** `date`
+3. Text field
+    - **Name:** slug
+    - **API identifier:** `slug`
+    (다른 매개변수는 기본값으로 둡니다.)
+4. Text field
+    - **Name:** description
+    - **API identifier:** `description`
+5. Rich text field
+    - **Name:** content
+    - **API identifier:** `content`
+
+변경사항을 저장하려면 **Save**을 클릭하세요.
+
+Contentful space의 **Content** 섹션에서 **Add Entry** 버튼을 클릭하여 새 항목을 만듭니다. 그런 다음 다음 필드를 입력합니다.
+
+- **Title:** `Astro is amazing!`
+- **Slug:** `astro-is-amazing`
+- **Description:** `Astro is a new static site generator that is blazing fast and easy to use.`
+- **Date:** `2022-10-05`
+- **Content:** `This is my first blog post!`
+
+**Publish**를 클릭하여 항목을 저장하세요. 방금 첫 번째 블로그 게시물을 작성하셨습니다.
+
+원하는 만큼 블로그 게시물을 추가한 다음 즐겨 사용하는 코드 편집기로 전환하여 Astro로 해킹을 시작해 보세요!
+
+### 블로그 게시물 목록 표시하기
+
+`BlogPost`라는 새 인터페이스를 만들어 `src/lib/` 디렉터리에 있는 `contentful.ts` 파일에 추가하세요. 이 인터페이스는 Contentful의 블로그 게시물 콘텐츠 타입 필드와 일치합니다. 이는 블로그 게시물 항목 응답의 타입을 지정하는 데 사용됩니다.
+
+```ts title="src/lib/contentful.ts" ins=", { EntryFieldTypes }" ins={3-12}
+import contentful, { EntryFieldTypes } from "contentful";
+
+export interface BlogPost {
+  contentTypeId: "blogPost",
+  fields: {
+    title: EntryFieldTypes.Text
+    content: EntryFieldTypes.RichText,
+    date: EntryFieldTypes.Date,
+    description: EntryFieldTypes.Text,
+    slug: EntryFieldTypes.Text
+  }
+}
+
+export const contentfulClient = contentful.createClient({
+  space: import.meta.env.CONTENTFUL_SPACE_ID,
+  accessToken: import.meta.env.DEV
+    ? import.meta.env.CONTENTFUL_PREVIEW_TOKEN
+    : import.meta.env.CONTENTFUL_DELIVERY_TOKEN,
+  host: import.meta.env.DEV ? "preview.contentful.com" : "cdn.contentful.com",
+});
+```
+
+다음으로, Contentful에서 데이터를 가져올 Astro 페이지로 이동하세요. 이 예시에서는 `src/pages/` 디렉터리에 있는 홈 페이지 `index.astro`를 사용합니다.
+
+`src/lib/contentful.ts` 파일에서 `BlogPost` 인터페이스와 `contentfulClient`를 가져옵니다.
+
+`BlogPost` 인터페이스를 응답의 타입으로 전달하여 Contentful에서 콘텐츠 타입이 `blogPost`인 모든 항목을 가져옵니다.
+
+```astro title="src/pages/index.astro"
+---
+import { contentfulClient } from "../lib/contentful";
+import type { BlogPost } from "../lib/contentful";
+
+const entries = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+});
+---
+```
+
+이 fetch 호출은 `entries.items`에 블로그 게시물 배열을 반환합니다. `map()`을 사용하여 반환된 데이터의 형식을 지정하는 새 배열 (`posts`)을 만들 수 있습니다.
+
+아래 예시에서는 콘텐츠 모델의 `items.fields` 속성을 반환하여 블로그 게시물 미리 보기를 생성하는 동시에 날짜 형식을 더 읽기 쉬운 형식으로 다시 지정합니다.
+
+```astro title="src/pages/index.astro" ins={9-17}
+---
+import { contentfulClient } from "../lib/contentful";
+import type { BlogPost } from "../lib/contentful";
+
+const entries = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+});
+
+const posts = entries.items.map((item) => {
+  const { title, date, description, slug } = item.fields;
+  return {
+    title,
+    slug,
+    description,
+    date: new Date(date).toLocaleDateString()
+  };
+});
+---
+```
+
+마지막으로 템플릿에서 `posts`을 사용하여 각 블로그 게시물의 미리보기를 표시할 수 있습니다.
+
+```astro astro title="src/pages/index.astro" ins={19-37}
+---
+import { contentfulClient } from "../lib/contentful";
+import type { BlogPost } from "../lib/contentful";
+
+const entries = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+});
+
+const posts = entries.items.map((item) => {
+  const { title, date, description, slug } = item.fields;
+  return {
+    title,
+    slug,
+    description,
+    date: new Date(date).toLocaleDateString()
+  };
+});
+---
+<html lang="en">
+  <head>
+    <title>My Blog</title>
+  </head>
+  <body>
+    <h1>My Blog</h1>
+    <ul>
+      {posts.map((post) => (
+        <li>
+          <a href={`/posts/${post.slug}/`}>
+            <h2>{post.title}</h2>
+          </a>
+          <time>{post.date}</time>
+          <p>{post.description}</p>
+        </li>
+      ))}
+    </ul>
+  </body>
+</html>
+```
+
+### 개별 블로그 게시물 생성
+
+위와 동일한 방법을 사용하여 Contentful에서 데이터를 가져오지만, 이번에는 페이지에서 각 블로그 게시물에 대한 고유한 페이지 경로를 생성합니다.
+
+#### 정적 사이트 생성
+
+Astro의 기본 정적 모드를 사용하는 경우 [동적 경로](/ko/guides/routing/#동적-경로) 및 `getStaticPaths()` 함수를 사용합니다. 이 함수는 페이지가 되는 경로 목록을 생성하기 위해 빌드 시 호출됩니다.
+
+`src/pages/posts/`에 `[slug].astro`라는 새 파일을 만듭니다.
+
+`index.astro`에서 했던 것처럼 `src/lib/contentful.ts`에서 `BlogPost` 인터페이스와 `contentfulClient`를 가져옵니다.
+
+이번에는 `getStaticPaths()` 함수 내에서 데이터를 가져옵니다.
+
+```astro title="src/pages/posts/[slug].astro"
+---
+import { contentfulClient } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
+
+export async function getStaticPaths() {
+  const entries = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+  });
+}
+---
+```
+
+그런 다음 `params` 및 `props` 속성을 사용하여 각 항목을 객체에 매핑합니다. `params` 속성은 페이지의 URL을 생성하는 데 사용되며 `props` 속성은 페이지 컴포넌트에 props로 전달됩니다.
+
+```astro title="src/pages/posts/[slug].astro" ins={3,11-19}
+---
+import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { BlogPost } from "../../lib/contentful";
+
+export async function getStaticPaths() {
+  const entries = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+  });
+
+  const pages = entries.items.map((item) => ({
+    params: { slug: item.fields.slug },
+    props: {
+      title: item.fields.title,
+      content: documentToHtmlString(item.fields.content),
+      date: new Date(item.fields.date).toLocaleDateString(),
+    },
+  }));
+  return pages;
+}
+---
+```
+
+`params` 내부의 속성은 동적 경로의 이름과 일치해야 합니다. 파일 이름이 `[slug].astro`이므로 `slug`를 사용합니다.
+
+이 예시에서 `props` 객체는 세 가지 속성을 페이지에 전달합니다.
+- title (문자열)
+- content (`documentToHtmlString`을 사용하여 HTML로 변환된 리치 텍스트 문서)
+- date (`Date` 생성자를 사용하여 포맷)
+
+마지막으로 `props` 페이지를 사용하여 블로그 게시물을 표시할 수 있습니다.
+
+```astro title="src/pages/posts/[slug].astro" ins={21,23-32}
+---
+import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { BlogPost } from "../../lib/contentful";
+
+export async function getStaticPaths() {
+  const { items } = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+  });
+  const pages = items.map((item) => ({
+    params: { slug: item.fields.slug },
+    props: {
+      title: item.fields.title,
+      content: documentToHtmlString(item.fields.content),
+      date: new Date(item.fields.date).toLocaleDateString(),
+    },
+  }));
+  return pages;
+}
+
+const { content, title, date } = Astro.props;
+---
+<html lang="en">
+  <head>
+    <title>{title}</title>
+  </head>
+  <body>
+    <h1>{title}</h1>
+    <time>{date}</time>
+    <article set:html={content} />
+  </body>
+</html>
+```
+
+http://localhost:4321/로 이동하여 게시물 중 하나를 클릭하여 동적 경로가 작동하는지 확인하세요!
+
+#### 서버 측 렌더링
+
+[SSR 모드를 선택](/ko/guides/server-side-rendering/)한 경우 `slug` 매개변수를 사용하는 동적 경로를 사용하여 Contentful에서 데이터를 가져옵니다.
+
+`src/pages/posts`에 `[slug].astro` 페이지를 만듭니다. [`Astro.params`](/ko/reference/api-reference/#astroparams)를 사용하여 URL에서 슬러그를 가져온 다음 이를 `getEntries`에 전달합니다.
+
+```astro title="src/pages/posts/[slug].astro"
+---
+import { contentfulClient } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
+
+const { slug } = Astro.params;
+
+const data = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+  "fields.slug": slug,
+});
+---
+```
+
+항목을 찾을 수 없으면 [`Astro.redirect`](/ko/guides/routing/#동적-리디렉션)를 사용하여 사용자를 404 페이지로 리디렉션할 수 있습니다.
+
+```astro title="src/pages/posts/[slug].astro" ins={7, 12-13}
+---
+import { contentfulClient } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
+
+const { slug } = Astro.params;
+
+try {
+  const data = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+    "fields.slug": slug,
+  });
+} catch (error) {
+  return Astro.redirect("/404");
+}
+---
+```
+게시물 데이터를 템플릿 섹션에 전달하려면 `try/catch` 블록 외부에 `post` 객체를 만듭니다.
+
+문서의 `content`를 HTML로 변환하려면 `documentToHtmlString`을 사용하고, 날짜 형식을 지정하려면 Date 생성자를 사용하세요. `title`은 그대로 둘 수 있습니다. 그런 다음 `post` 객체에 이러한 속성을 추가하세요.
+
+```astro title="src/pages/posts/[slug].astro" ins={7,14-19}
+---
+import Layout from "../../layouts/Layout.astro";
+import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { BlogPost } from "../../lib/contentful";
+
+let post;
+const { slug } = Astro.params;
+try {
+  const data = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+    "fields.slug": slug,
+  });
+  const { title, date, content } = data.items[0].fields;
+  post = {
+    title,
+    date: new Date(date).toLocaleDateString(),
+    content: documentToHtmlString(content),
+  };
+} catch (error) {
+  return Astro.redirect("/404");
+}
+---
+```
+  
+마지막으로 `post`를 참조하여 템플릿 섹션에 블로그 게시물을 표시할 수 있습니다.
+
+```astro title="src/pages/posts/[slug].astro" ins={24-33}
+---
+import Layout from "../../layouts/Layout.astro";
+import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { BlogPost } from "../../lib/contentful";
+
+let post;
+const { slug } = Astro.params;
+try {
+  const data = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+    "fields.slug": slug,
+  });
+  const { title, date, content } = data.items[0].fields;
+  post = {
+    title,
+    date: new Date(date).toLocaleDateString(),
+    content: documentToHtmlString(content),
+  };
+} catch (error) {
+  return Astro.redirect("/404");
+}
+---
+<html lang="en">
+  <head>
+    <title>{post?.title}</title>
+  </head>
+  <body>
+    <h1>{post?.title}</h1>
+    <time>{post?.date}</time>
+    <article set:html={post?.content} />
+  </body>
+</html>
+```
+
+### 사이트 게시
+
+웹사이트를 배포하려면 [배포 가이드](/ko/guides/deploy/)를 방문하여 선호하는 호스팅 제공업체의 지침을 따르세요.
+
+#### Contentful 변경에 대한 재빌드
+
+프로젝트가 Astro의 기본 정적 모드를 사용하는 경우 콘텐츠가 변경될 때 새 빌드를 트리거하도록 웹후크를 설정해야 합니다. Netlify 또는 Vercel을 호스팅 공급자로 사용하는 경우 웹후크 기능을 사용하여 Contentful 이벤트에서 새 빌드를 트리거할 수 있습니다.
+
+##### Netlify
+
+Netlify에서 웹후크를 설정하려면:
+
+1. 사이트 대시보드로 이동하여 **Build & deploy**를 클릭합니다.
+
+2. **Continuous Deployment** 탭에서 **Build hooks** 섹션을 찾아 **Add build hook**를 클릭합니다.
+
+3. 웹후크의 이름을 제공하고 빌드를 트리거할 브랜치를 선택합니다. **Save**를 클릭하고 생성된 URL을 복사하세요.
+
+##### Vercel
+
+Vercel에서 웹후크를 설정하려면 다음 안내를 따르세요.
+
+1. 프로젝트 대시보드로 이동하여 **Settings**을 클릭합니다.
+
+2. **Git** 탭에서 **Deploy Hooks** 섹션을 찾습니다.
+
+3. 빌드를 트리거할 웹후크와 브랜치의 이름을 제공합니다. **Add**를 클릭하고 생성된 URL을 복사합니다.
+
+##### Contentful에 웹후크 추가하기
+
+Contentful space **settings**에서 **Webhooks** 탭을 클릭하고 **Add Webhook** 버튼을 클릭하여 새 웹후크를 생성합니다. 웹후크의 이름을 제공하고 이전 섹션에서 복사한 웹후크 URL을 붙여넣습니다. 마지막으로 **Save**을 눌러 웹후크를 만듭니다.
+
+이제 Contentful에 새 블로그 게시물을 게시할 때마다 새 빌드가 실행되고 블로그가 업데이트됩니다.
