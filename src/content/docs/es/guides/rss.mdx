@@ -12,7 +12,7 @@ Astro proporciona una generación rápida y automática de feeds RSS para blogs 
 
 ## Configurando `@astrojs/rss`
 
-El paquete [`@astrojs/rss`](https://github.com/withastro/astro/tree/main/packages/astro-rss) provee helpers para generar RSS feeds utilizando [API endpoints](/es/core-concepts/endpoints/#endpoints-de-archivos-estáticos). Esto desbloquea la generación de RSS feeds para builds estáticos _y_ on-demand para cuando utilizamos un [adaptador SSR](/es/guides/server-side-rendering/).
+El paquete [`@astrojs/rss`](https://github.com/withastro/astro/tree/main/packages/astro-rss) provee helpers para generar RSS feeds utilizando [API endpoints](/es/guides/endpoints/#endpoints-de-archivos-estáticos). Esto desbloquea la generación de RSS feeds para builds estáticos _y_ on-demand para cuando utilizamos un [adaptador SSR](/es/guides/server-side-rendering/).
 
 1. Instala `@astrojs/rss` utilizando tu gestor de paquetes favorito:
 
@@ -67,13 +67,20 @@ El paquete [`@astrojs/rss`](https://github.com/withastro/astro/tree/main/package
 
 ## Generando `items`
 
-El campo `items` acepta una lista de objetos de feed RSS, cada uno con un `link`, `title` y `pubDate` requeridos. También se pueden incluir tres valores opcionales: `description` (una breve descripción), `content` (el contenido completo de tu publicación) y un campo `customData` para incluir cualquier dato adicional, como otras propiedades de frontmatter de tus publicaciones de blog.
+El campo `items` acepta una lista de objetos de feed RSS, que pueden ser generados a partir de las entradas de colecciones de contenido utilizando `getCollection()` o desde tus archivos de página utilizando `pagesGlobToRssItems()`.
 
-Puedes generar esta matriz a partir de un esquema de colección de contenido o utilizando [importaciones globales](/es/guides/imports/#astroglob) para las publicaciones del blog ubicadas dentro de `src/pages/`.
+El formato estándar de RSS feed incluye los siguientes valores para cada item publicado:
+
+- `title`: El título de la entrada. Opcional solo si se establece una `description`. De lo contrario, requerido.
+- `description`: Un breve extracto de o describiendo la entrada. Opcional solo si se establece un `title`. De lo contrario, requerido.
+- `link`: Una URL a la fuente original de la entrada. (opcional)
+- `pubDate`: La fecha de publicación de la entrada. (opcional)
+- `content`: El contenido completo de tu post. (opcional)
+- `customData`: Un campo para incluir cualquier dato extra, como otras propiedades de frontmatter de tus posts de blog.
 
 ### Usando colecciones de contenido
 
-Para crear un RSS feed de páginas manejadas en [colecciones de contenido](/es/guides/content-collections/), utiliza la función `getCollection()` para recuperar la lista de tus artículos.
+Para crear un RSS feed de páginas manejadas en [colecciones de contenido](/es/guides/content-collections/), utiliza la función `getCollection()` para recuperar la lista de tus artículos. Necesitarás especificar los valores para cada propiedad deseada (ej. `title`, `description`) de los datos devueltos.
 
 ```js title="src/pages/rss.xml.js" "items:" "const blog = await getCollection('blog');"
 export async function GET(context) {
@@ -137,6 +144,8 @@ En versiones de `@astrojs/rss` anteriores a la v2.1.0, pasa tu resultado de glob
 ```js
 items: import.meta.glob('./blog/*.{md,mdx}'),
 ```
+
+Este método es obsoleto para todas las versiones de Astro desde la v2.1.0 y no puede ser utilizado en proyectos modernos.
 :::
 
 ### Incluyendo contenido completo de un artículo
@@ -146,7 +155,7 @@ items: import.meta.glob('./blog/*.{md,mdx}'),
 La llave `content` contiene el contenido completo del post como HTML. Esto te permite hacer disponible todo el contenido del post a los lectores de RSS.
 
 :::tip
-Un paquete como [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) se asegurará de que tu contenido esté correctamente sanitizado, escapado y codificado.
+Un paquete como [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) se asegurará de que tu contenido esté correctamente sanitizado, escapado y codificado. En el proceso, este paquete podría remover algunos elementos y atributos inofensivos, así que asegurate de verificar la salida y configurar el paquete de acuerdo a tus necesidades.
 :::
 
 Cuando utilices colecciones de contenido, renderiza el `body` del post usando un parser de Markdown estándar como [`markdown-it`](https://github.com/markdown-it/markdown-it) y desinfecta el resultado:

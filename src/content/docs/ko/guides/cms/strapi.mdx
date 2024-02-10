@@ -1,0 +1,424 @@
+---
+title: Strapi & Astro
+description: Strapi 헤드리스 CMS를 사용하여 Astro 프로젝트에 콘텐츠 추가
+type: cms
+service: Strapi
+stub: false
+i18nReady: true
+---
+
+import FileTree from '~/components/FileTree.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+[Strapi](https://strapi.io/)는 사용자 정의가 가능한 오픈 소스 헤드리스 CMS입니다.
+
+## Astro와 통합
+
+이 가이드에서는 Strapi와 Astro를 연결하는 래퍼 함수를 구축합니다.
+
+### 전제조건
+
+시작하려면 다음이 필요합니다.
+
+1. **Astro 프로젝트** - 아직 Astro 프로젝트가 없다면 [설치 가이드](/ko/install/auto/)를 참조하여 즉시 설치하고 실행할 수 있습니다.
+2. **Strapi CMS 서버** - [로컬 환경에 Strapi 서버를 설정](https://docs.strapi.io/dev-docs/quick-start)할 수 있습니다.
+
+### `.env`에 Strapi URL 추가
+
+Astro에 Strapi URL을 추가하려면 프로젝트 루트에 `.env` 파일을 만들고 (아직 없는 경우) 다음 변수를 추가하세요.
+
+```ini title=".env"
+STRAPI_URL="http://127.0.0.1:1337" // 또는 여려분의 IP 주소를 사용하세요.
+```
+
+Astro 프로젝트에서 이 환경 변수를 사용하려면 개발 서버를 다시 시작하세요.
+
+환경 변수에 IntelliSense를 사용하려면 `src/` 디렉터리에 `env.d.ts` 파일을 만들고 다음과 같이 `ImportMetaEnv`를 구성하면 됩니다.
+
+```ts title="src/kov.d.ts"
+interface ImportMetaEnv {
+  readonly STRAPI_URL: string;
+}
+```
+
+이제 루트 디렉터리에 새 파일이 포함되어야 합니다.
+
+<FileTree title="Project Structure">
+  - src/
+    - **env.d.ts**
+  - **.env**
+  - astro.config.mjs
+  - package.json
+</FileTree>
+
+### API 래퍼 만들기
+
+`lib/strapi.ts`에 새 파일을 만들고 다음 래퍼 함수를 ​​추가하여 Strapi API와 상호 작용합니다.
+
+```ts title="lib/strapi.ts"
+interface Props {
+  endpoint: string;
+  query?: Record<string, string>;
+  wrappedByKey?: string;
+  wrappedByList?: boolean;
+}
+
+/**
+ * Fetches data from the Strapi API
+ * @param endpoint - The endpoint to fetch from
+ * @param query - The query parameters to add to the url
+ * @param wrappedByKey - The key to unwrap the response from
+ * @param wrappedByList - If the response is a list, unwrap it
+ * @returns
+ */
+export default async function fetchApi<T>({
+  endpoint,
+  query,
+  wrappedByKey,
+  wrappedByList,
+}: Props): Promise<T> {
+  if (endpoint.startsWith('/')) {
+    endpoint = endpoint.slice(1);
+  }
+
+  const url = new URL(`${import.meta.env.STRAPI_URL}/api/${endpoint}`);
+
+  if (query) {
+    Object.entries(query).forEach(([key, value]) => {
+      url.searchParams.append(key, value);
+    });
+  }
+  const res = await fetch(url.toString());
+  let data = await res.json();
+
+  if (wrappedByKey) {
+    data = data[wrappedByKey];
+  }
+
+  if (wrappedByList) {
+    data = data[0];
+  }
+
+  return data as T;
+}
+```
+
+이 함수에는 다음 속성을 가진 객체가 필요합니다.
+
+1. `endpoint` - 가져올 엔포인트입니다.
+2. `query` - URL 끝에 추가할 쿼리 매개변수입니다.
+3. `wrappedByKey` - `Response`를 래핑하는 객체의 `data` 키입니다.
+4. `wrappedByList` - Strapi에서 반환된 목록을 "해제"하고 첫 번째 항목만 반환하는 매개변수입니다.
+
+### 선택 사항: Article 인터페이스 생성
+
+TypeScript를 사용하는 경우 `src/interfaces/article.ts`에서 Strapi 콘텐츠 타입에 해당하는 다음 Article 인터페이스를 만듭니다.
+
+```ts title="src/interfaces/article.ts"
+export default interface Article {
+  id: number;
+  attributes: {
+    title: string;
+    description: string;
+    content: string;
+    slug: string;
+    createdAt: string;
+    updatedAt: string;
+    publishedAt: string;
+  };
+}
+```
+
+:::note
+자신의 프로젝트 데이터에 맞게 이 인터페이스를 수정하거나 여러 인터페이스를 생성할 수 있습니다.
+:::
+
+<FileTree title="Project Structure">
+  - src/
+    - interfaces/
+      - **article.ts**
+    - lib/
+      - strapi.ts
+    - env.d.ts
+  - .env
+  - astro.config.mjs
+  - package.json
+</FileTree>
+
+### 아티클 목록 표시
+
+1. 홈페이지 `src/pages/index.astro`를 업데이트하여 블로그 게시물 목록을 표시하세요. 각 게시물에는 설명과 해당 페이지에 대한 링크가 포함되어 있습니다.
+
+2. 래퍼 함수와 인터페이스를 가져옵니다. 아티클을 가져와 목록을 반환하려면 다음 API 호출을 추가하세요.
+
+  ```astro title="src/pages/index.astro"
+  ---
+  import fetchApi from '../lib/strapi';
+  import type Article from '../interfaces/article';
+
+  const articles = await fetchApi<Article[]>({
+    endpoint: 'articles', // 가져올 콘텐츠 타입
+    wrappedByKey: 'data', // 응답을 해제할 key
+  });
+  ---
+  ```
+
+  API 호출은 `http://localhost:1337/api/articles`에서 데이터를 요청하고 `articles` (데이터를 나타내는 json 객체 배열)를 반환합니다.
+
+  ```json
+  [
+    {
+      id: 1,
+      attributes: {
+        title: "What's inside a Black Hole",
+        description: 'Maybe the answer is in this article, or not...',
+        content: "Well, we don't know yet...",
+        slug: 'what-s-inside-a-black-hole',
+        createdAt: '2023-05-28T13:19:46.421Z',
+        updatedAt: '2023-05-28T13:19:46.421Z',
+        publishedAt: '2023-05-28T13:19:45.826Z'
+      }
+    },
+    // ...
+  ]
+  ```
+
+3. API에서 반환된 `articles` 배열의 데이터를 사용하여 Strapi 블로그 게시물을 목록에 표시합니다. 이러한 게시물은 다음 단계에서 생성할 개별 페이지로 연결됩니다.
+
+  ```astro title="src/pages/index.astro"
+  ---
+  import fetchApi from '../lib/strapi';
+  import type Article from '../interfaces/article';
+
+  const articles = await fetchApi<Article[]>({
+    endpoint: 'articles?populate=image',
+    wrappedByKey: 'data',
+  });
+  ---
+
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <title>Strapi & Astro</title>
+    </head>
+
+    <body>
+      <main>
+        <ul>
+          {
+            articles.map((article) => (
+              <a href={`/blog/${article.attributes.slug}/`}>
+                {article.attributes.title}
+              </a>
+            ))
+          }
+        </ul>
+      </main>
+    </body>
+  </html>
+  ```
+
+### 아티클 페이지 생성
+
+각 아티클에 대해 [동적으로 페이지를 생성](/ko/guides/routing/#동적-경로)하려면 `src/pages/blog/[slug].astro` 파일을 만드세요.
+
+<FileTree title="Project Structure">
+  - src/
+    - interfaces/
+      - article.ts
+    - lib/
+      - strapi.ts
+    - pages/
+      - index.astro
+      - blog/
+        - **[slug].astro**
+    - env.d.ts
+  - .env
+  - astro.config.mjs
+  - package.json
+</FileTree>
+
+#### 정적 사이트 생성
+
+Astro의 기본 정적 모드 (SSG)에서는 [`getStaticPaths()`](/ko/reference/api-reference/#getstaticpaths)를 사용하여 Strapi에서 아티클 목록을 가져옵니다.
+
+```astro title="src/pages/blog/[slug].astro
+---
+import fetchApi from '../../lib/strapi';
+import type Article from '../../interfaces/article';
+
+export async function getStaticPaths() {
+  const articles = await fetchApi<Article[]>({
+    endpoint: 'articles',
+    wrappedByKey: 'data',
+  });
+
+  return articles.map((article) => ({
+    params: { slug: article.attributes.slug },
+    props: article,
+  }));
+}
+type Props = Article;
+
+const article = Astro.props;
+---
+```
+
+각 게시물 객체의 속성을 사용하여 각 페이지의 템플릿을 만듭니다.
+
+```astro title="src/pages/blog/[slug].astro ins={21-43}
+---
+import fetchApi from '../../lib/strapi';
+import type Article from '../../interfaces/article';
+
+export async function getStaticPaths() {
+  const articles = await fetchApi<Article[]>({
+    endpoint: 'articles',
+    wrappedByKey: 'data',
+  });
+
+  return articles.map((article) => ({
+    params: { slug: article.attributes.slug },
+    props: article,
+  }));
+}
+type Props = Article;
+
+const article = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>{article.attributes.title}</title>
+  </head>
+
+  <body>
+    <main>
+      <img src={import.meta.env.STRAPI_URL + article.attributes.image.data.attributes.url} />
+
+      <h1>{article.attributes.title}</h1>
+
+      <!-- 일반 텍스트 렌더링 -->
+      <p>{article.attributes.content}</p>
+      <!-- markdown 렌더링 -->
+      <MyMarkdownComponent>
+        {article.attributes.content}
+      </MyMarkdownComponent>
+      <!-- html 렌더링 -->
+      <Fragment set:html={article.attributes.content} />
+    </main>
+  </body>
+</html>
+```
+:::tip
+여러분의 콘텐츠에 적합한 렌더링을 선택하세요. Markdown에 대해서는 [Markdown 가이드](/ko/guides/markdown-content/)를 확인하세요. HTML을 렌더링하는 경우 안전을 위해 [이 가이드](/ko/reference/directives-reference/#sethtml)를 참조하세요.
+:::
+
+#### 서버 측 렌더링
+
+`output: server` 또는 `output: hybrid`를 사용하여 [SSR 모드를 선택](/ko/guides/server-side-rendering/)한 경우, 다음 코드를 사용하여 [동적 경로를 생성](/ko/guides/routing/#서버-ssr-모드)하세요.
+
+`src/pages/blog/[slug].astro` 파일을 만듭니다:
+
+```astro title="src/pages/blog/[slug].astro"
+---
+import fetchApi from '../../../lib/strapi';
+import type Article from '../../../interfaces/article';
+
+const { slug } = Astro.params;
+
+let article: Article;
+
+try {
+  article = await fetchApi<Article>({
+    endpoint: 'articles',
+    wrappedByKey: 'data',
+    wrappedByList: true,
+    query: {
+      'filters[slug][$eq]': slug || '',
+    },
+  });
+} catch (error) {
+  return Astro.redirect('/404');
+}
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>{article.attributes.title}</title>
+  </head>
+
+  <body>
+    <main>
+      <img src={import.meta.env.STRAPI_URL + article.attributes.image.data.attributes.url} />
+
+      <h1>{article.attributes.title}</h1>
+
+      <!-- 일반 텍스트 렌더링 -->
+      <p>{article.attributes.content}</p>
+      <!-- markdown 렌더링 -->
+      <MyMarkdownComponent>
+        {article.attributes.content}
+      </MyMarkdownComponent>
+      <!-- html 렌더링 -->
+      <Fragment set:html={article.attributes.content} />
+    </main>
+  </body>
+</html>
+```
+
+이 파일은 Strapi에서 동적 `slug` 매개변수와 일치하는 페이지 데이터를 가져와 렌더링 할 것입니다.
+
+`/404`로의 리디렉션을 사용하고 있으므로 `src/pages`에 404 페이지를 만듭니다.
+
+```astro title="src/pages/404.astro"
+<html lang="en">
+  <head>
+    <title>Not found</title>
+  </head>
+  <body>
+    <p>Sorry, this page does not exist.</p>
+    <img src="https://http.cat/404" />
+  </body>
+</html>
+```
+
+아티클을 찾을 수 없으면 사용자는 이 404 페이지로 리디렉션되고 사랑스러운 고양이가 반갑게 맞이합니다.
+
+### 사이트 게시
+
+웹사이트를 배포하려면 [배포 가이드](/ko/guides/deploy/)를 방문하여 선호하는 호스팅 제공업체의 지침을 따르세요.
+
+#### 변경 시 재빌드
+
+프로젝트가 Astro의 기본 정적 모드를 사용하는 경우 콘텐츠가 변경될 때 새 빌드를 트리거하도록 웹후크를 설정해야 합니다. 호스팅 제공업체로 Netlify 또는 Vercel을 사용하는 경우 웹후크 기능을 사용하여 Strapi에서 새 빌드를 트리거할 수 있습니다.
+
+##### Netlify
+
+Netlify에서 웹후크을 설정하려면:
+
+1. 사이트 대시보드로 이동하여 **Build & deploy**를 클릭합니다.
+
+2. **Continuous Deployment** 탭에서 **Build hooks** 섹션을 찾아 **Add build hook**를 클릭합니다.
+
+3. 웹후크의 이름을 제공하고 빌드를 트리거할 브랜치를 선택합니다. **Save**을 클릭하고 생성된 URL을 복사하세요.
+
+##### Vercel
+
+Vercel에서 웹후크을 설정하려면 다음 안내를 따르세요.
+
+1. 프로젝트 대시보드로 이동하여 **Settings**을 클릭합니다.
+
+2. **Git** 탭에서 **Deploy Hooks** 섹션을 찾습니다.
+
+3. 빌드를 트리거할 웹후크와 브랜치의 이름을 제공합니다. **Add**를 클릭하고 생성된 URL을 복사합니다.
+
+##### Strapi에 웹후크 추가하기
+
+[Strapi 웹후크 가이드](https://strapi.io/blog/webhooks)에 따라 Strapi 관리 패널에서 웹후크를 생성하세요.
+
+## 공식 자료
+
+- [React용 Strapi 블로그 가이드](https://strapi.io/blog/build-a-blog-with-next-react-js-strapi) - Strapi

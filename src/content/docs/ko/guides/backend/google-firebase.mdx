@@ -1,0 +1,915 @@
+---
+title: Firebase & Astro
+description: Firebase를 사용하여 프로젝트에 백엔드 추가
+type: backend
+service: Firebase
+stub: false
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import FileTree from '~/components/FileTree.astro'
+
+[Firebase](https://firebase.google.com/)는 NoSQL 데이터베이스, 인증, 실시간 구독, 함수, 스토리지를 제공하는 앱 개발 플랫폼입니다.
+
+[Firebase hosting에 배포](/ko/guides/deploy/google-firebase/)에 대한 별도의 가이드를 참조하세요.
+
+## Astro에서 Firebase 초기화
+
+### 전제조건
+
+- [웹 앱이 구성된 Firebase 프로젝트](https://firebase.google.com/docs/web/setup).
+- [서버 측 렌더링 (SSR)](/ko/guides/server-side-rendering/)이 활성화된 Astro 프로젝트
+- Firebase 자격 증명: Astro를 Firebase에 연결하려면 두 가지 자격 증명 세트가 필요합니다.
+  - 웹 앱 자격 증명: 이 자격 증명은 앱의 클라이언트 측에서 사용됩니다. Firebase 콘솔의 *Project settings > General*에서 찾을 수 있습니다. **Your apps** 섹션까지 아래로 스크롤하고 **Web app** 아이콘을 클릭합니다.
+  - 프로젝트 자격 증명: 이 자격 증명은 앱의 서버 측에서 사용됩니다. Firebase 콘솔의 *Project settings > Service accounts > Firebase Admin SDK > Generate new private key*에서 생성할 수 있습니다.
+
+### Firebase 사용자 인증 정보 추가
+
+Astro에 Firebase 사용자 인증 정보를 추가하려면 다음 변수를 사용하여 프로젝트 루트에 `.env` 파일을 만듭니다.
+
+```ini title=".env"
+FIREBASE_PRIVATE_KEY_ID=YOUR_PRIVATE_KEY_ID
+FIREBASE_PRIVATE_KEY=YOUR_PRIVATE_KEY
+FIREBASE_PROJECT_ID=YOUR_PROJECT_ID
+FIREBASE_CLIENT_EMAIL=YOUR_CLIENT_EMAIL
+FIREBASE_CLIENT_ID=YOUR_CLIENT_ID
+FIREBASE_AUTH_URI=YOUR_AUTH_URI
+FIREBASE_TOKEN_URI=YOUR_TOKEN_URI
+FIREBASE_AUTH_CERT_URL=YOUR_AUTH_CERT_URL
+FIREBASE_CLIENT_CERT_URL=YOUR_CLIENT_CERT_URL
+```
+
+이제 이러한 환경 변수를 프로젝트에서 사용할 수 있습니다.
+
+Firebase 환경 변수에 IntelliSense를 사용하려면 `src/` 디렉터리에서 `env.d.ts` 파일을 편집하거나 생성하고 타입을 구성하세요.
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly FIREBASE_PRIVATE_KEY_ID: string;
+  readonly FIREBASE_PRIVATE_KEY: string;
+  readonly FIREBASE_PROJECT_ID: string;
+  readonly FIREBASE_CLIENT_EMAIL: string;
+  readonly FIREBASE_CLIENT_ID: string;
+  readonly FIREBASE_AUTH_URI: string;
+  readonly FIREBASE_TOKEN_URI: string;
+  readonly FIREBASE_AUTH_CERT_URL: string
+  readonly FIREBASE_CLIENT_CERT_URL: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+:::tip
+Astro의 [환경 변수](/ko/guides/environment-variables/) 및 `.env` 파일에 대해 자세히 알아보세요.
+:::
+
+이제 프로젝트에 다음과 같은 새 파일이 포함되어야 합니다.
+
+<FileTree title="Project Structure">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+
+### 종속성 설치
+
+Astro를 Firebase와 연결하려면 원하는 패키지 관리자에 대해 아래 단일 명령을 사용하여 다음 패키지를 설치하세요.
+
+- `firebase` - 클라이언트용 Firebase SDK
+- `firebase-admin` - 서버용 Firebase Admin SDK
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install firebase firebase-admin
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add firebase firebase-admin
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add firebase firebase-admin
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+다음으로 `src/` 디렉터리에 `firebase`라는 폴더를 만들고 이 폴더에 `client.ts` 및 `server.ts`라는 두 개의 새 파일을 추가합니다.
+
+`client.ts`에 다음 코드를 추가하여 웹 앱 사용자 인증 정보와 `firebase` 패키지를 사용하여 클라이언트에서 Firebase를 초기화합니다.
+
+```ts title="src/firebase/client.ts"
+import { initializeApp } from "firebase/app";
+
+const firebaseConfig = {
+  apiKey: "my-public-api-key",
+  authDomain: "my-auth-domain",
+  projectId: "my-project-id",
+  storageBucket: "my-storage-bucket",
+  messagingSenderId: "my-sender-id",
+  appId: "my-app-id",
+};
+
+export const app = initializeApp(firebaseConfig);
+```
+
+:::note
+`firebaseConfig` 객체를 여러분의 웹 앱 자격 증명으로 바꾸는 것을 잊지 마세요.
+:::
+
+`server.ts`에서 다음 코드를 추가하여 프로젝트 자격 증명과 `firebase-admin` 패키지를 사용하여 서버에서 Firebase를 초기화합니다.
+
+```ts title="src/firebase/server.ts"
+import type { ServiceAccount } from "firebase-admin";
+import { initializeApp, cert, getApps } from "firebase-admin/app";
+
+const activeApps = getApps();
+const serviceAccount = {
+  type: "service_account",
+  project_id: import.meta.env.FIREBASE_PROJECT_ID,
+  private_key_id: import.meta.env.FIREBASE_PRIVATE_KEY_ID,
+  private_key: import.meta.env.FIREBASE_PRIVATE_KEY,
+  client_email: import.meta.env.FIREBASE_CLIENT_EMAIL,
+  client_id: import.meta.env.FIREBASE_CLIENT_ID,
+  auth_uri: import.meta.env.FIREBASE_AUTH_URI,
+  token_uri: import.meta.env.FIREBASE_TOKEN_URI,
+  auth_provider_x509_cert_url: import.meta.env.FIREBASE_AUTH_CERT_URL,
+  client_x509_cert_url: import.meta.env.FIREBASE_CLIENT_CERT_URL,
+};
+
+export const app = activeApps.length === 0 ? initializeApp({
+  credential: cert(serviceAccount as ServiceAccount),
+}) : activeApps[0];
+```
+
+:::note
+`serviceAccount` 객체를 여러분의 프로젝트 자격 증명으로 바꾸는 것을 잊지 마세요.
+:::
+
+마지막으로 이제 프로젝트에 다음과 같은 새 파일이 포함되어야 합니다.
+
+<FileTree title="Project Structure">
+- src
+  - env.d.ts
+  - firebase
+    - **client.ts**
+    - **server.ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## Firebase로 인증 추가
+
+### 전제조건
+
+- Astro 프로젝트 [Firebase로 초기화](#astro에서-firebase-초기화).
+- Firebase 콘솔의 *Authentication > Sign-in*에서 이메일/비밀번호 인증이 활성화된 Firebase 프로젝트.
+
+### 인증 서버 엔드포인트 생성
+
+Astro에서 Firebase 인증을 수행하려면 다음 세 가지 [Astro 서버 엔드포인트](/ko/guides/endpoints/)가 필요합니다.
+
+- `GET /api/auth/signin` - 사용자 로그인
+- `GET /api/auth/signout` - 사용자 로그아웃
+- `POST /api/auth/register` - 사용자 등록
+
+새 디렉터리 `src/pages/api/auth/`에 인증과 관련된 3개의 엔드포인트 (`signin.ts`, `signout.ts`, `register.ts`)를 만듭니다.
+
+`signin.ts`에는 Firebase를 사용하여 사용자를 로그인하는 코드가 포함되어 있습니다.
+
+```ts title="src/pages/api/auth/signin.ts"
+import type { APIRoute } from "astro";
+import { app } from "../../../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+
+export const GET: APIRoute = async ({ request, cookies, redirect }) => {
+  const auth = getAuth(app);
+
+  /* 요청 헤더에서 토큰 가져오기 */
+  const idToken = request.headers.get("Authorization")?.split("Bearer ")[1];
+  if (!idToken) {
+    return new Response(
+      "No token found",
+      { status: 401 }
+    );
+  }
+
+  /* id 토큰 확인 */
+  try {
+    await auth.verifyIdToken(idToken);
+  } catch (error) {
+    return new Response(
+      "Invalid token",
+      { status: 401 }
+    );
+  }
+
+  /* 세션 쿠키 생성 및 설정 */
+  const fiveDays = 60 * 60 * 24 * 5 * 1000;
+  const sessionCookie = await auth.createSessionCookie(idToken, {
+    expiresIn: fiveDays,
+  });
+
+  cookies.set("session", sessionCookie, {
+    path: "/",
+  });
+
+  return redirect("/dashboard");
+};
+```
+
+:::note
+이는 로그인 엔드포인트의 기본 구현입니다. 필요에 따라 이 엔드포인트에 논리를 더 추가할 수 있습니다.
+:::
+
+`signout.ts`에는 세션 쿠키를 삭제하여 사용자를 로그아웃시키는 코드가 포함되어 있습니다.
+
+```ts title="src/pages/api/auth/signout.ts"
+import type { APIRoute } from "astro";
+
+export const GET: APIRoute = async ({ redirect, cookies }) => {
+  cookies.delete("session", {
+    path: "/",
+  });
+  return redirect("/signin");
+};
+```
+
+:::note
+이는 signout 엔드포인트의 기본 구현입니다. 필요에 따라 이 엔드포인트에 논리를 더 추가할 수 있습니다.
+:::
+
+`register.ts`에는 Firebase를 사용하여 사용자를 등록하는 코드가 포함되어 있습니다.
+
+```ts title="src/pages/api/auth/register.ts"
+import type { APIRoute } from "astro";
+import { getAuth } from "firebase-admin/auth";
+import { app } from "../../../firebase/server";
+
+export const POST: APIRoute = async ({ request, redirect }) => {
+  const auth = getAuth(app);
+
+  /* 양식 데이터 가져오기 */
+  const formData = await request.formData();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+  const name = formData.get("name")?.toString();
+
+  if (!email || !password || !name) {
+    return new Response(
+      "Missing form data",
+      { status: 400 }
+    );
+  }
+
+  /* 사용자 생성 */
+  try {
+    await auth.createUser({
+      email,
+      password,
+      displayName: name,
+    });
+  } catch (error: any) {
+    return new Response(
+      "Something went wrong",
+      { status: 400 }
+    );
+  }
+  return redirect("/signin");
+};
+```
+
+:::note
+이는 register 엔드포인트의 기본 구현입니다. 필요에 따라 이 엔드포인트에 논리를 더 추가할 수 있습니다.
+:::
+
+인증을 위한 서버 엔드포인트를 생성한 후에는 이제 프로젝트 디렉터리에 다음과 같은 새 파일이 포함되어야 합니다.
+
+<FileTree title="Project Structure">
+- src
+  - env.d.ts
+  - firebase
+    - client.ts
+    - server.ts
+  - pages
+    - api
+      - auth
+        - **signin.ts**
+        - **signout.ts**
+        - **register.ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### 페이지 생성
+
+Firebase 엔드포인트를 사용할 페이지를 만듭니다.
+
+- `src/pages/register` - 사용자를 등록하는 양식이 포함되어 있습니다.
+- `src/pages/signin` - 사용자 로그인을 위한 양식이 포함됩니다.
+- `src/pages/dashboard` - 인증된 사용자만 액세스할 수 있는 대시보드가 ​​포함됩니다.
+
+아래의 `src/pages/register.astro` 예시에는 `/api/auth/register` 엔드포인트에 `POST` 요청을 보내는 양식이 포함되어 있습니다. 이 엔드포인트는 양식의 데이터를 사용하여 새 사용자를 생성한 다음 사용자를 `/signin` 페이지로 리디렉션합니다.
+
+```astro title="src/pages/register.astro"
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Register">
+  <h1>Register</h1>
+  <p>Already have an account? <a href="/signin">Sign in</a></p>
+  <form action="/api/auth/register" method="post">
+    <label for="name">Name</label>
+    <input type="text" name="name" id="name" />
+    <label for="email" for="email">Email</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+  </form>
+</Layout>
+```
+
+`src/pages/signin.astro`는 Firebase 서버 앱을 사용하여 사용자의 세션 쿠키를 확인합니다. 사용자가 인증되면 페이지는 사용자를 `/dashboard` 페이지로 리디렉션합니다.
+
+아래 예시 페이지에는 Firebase 클라이언트 앱에서 생성된 ID 토큰을 사용하여 `/api/auth/signin` 엔드포인트에 `POST` 요청을 보내는 양식이 포함되어 있습니다.
+
+엔드포인트는 ID 토큰을 확인하고 사용자를 위한 새 세션 쿠키를 생성합니다. 그런 다음 엔드포인트는 사용자를 `/dashboard` 페이지로 리디렉션합니다.
+
+```astro title="src/pages/signin.astro"
+---
+import { app } from "../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+import Layout from "../layouts/Layout.astro";
+
+/* 사용자가 인증되었는지 확인 */
+const auth = getAuth(app);
+if (Astro.cookies.has("session")) {
+  const sessionCookie = Astro.cookies.get("session").value;
+  const decodedCookie = await auth.verifySessionCookie(sessionCookie);
+  if (decodedCookie) {
+    return Astro.redirect("/dashboard");
+  }
+}
+---
+
+<Layout title="Sign in">
+  <h1>Sign in</h1>
+  <p>New here? <a href="/register">Create an account</a></p>
+  <form action="/api/auth/signin" method="post">
+    <label for="email" for="email">Email</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+  </form>
+</Layout>
+<script>
+  import {
+    getAuth,
+    inMemoryPersistence,
+    signInWithEmailAndPassword,
+  } from "firebase/auth";
+  import { app } from "../firebase/client";
+
+  const auth = getAuth(app);
+  // This will prevent the browser from storing session data
+  auth.setPersistence(inMemoryPersistence);
+
+  const form = document.querySelector("form") as HTMLFormElement;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const email = formData.get("email")?.toString();
+    const password = formData.get("password")?.toString();
+
+    if (!email || !password) {
+      return;
+    }
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    const idToken = await userCredential.user.getIdToken();
+    const response = await fetch("/api/auth/signin", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+
+    if (response.redirected) {
+      window.location.assign(response.url);
+    }
+  });
+</script>
+```
+
+`src/pages/dashboard.astro`는 Firebase 서버 앱을 사용하여 사용자의 세션 쿠키를 확인합니다. 사용자가 인증되지 않은 경우 페이지는 사용자를 `/signin` 페이지로 리디렉션합니다.
+
+아래 예시 페이지에는 사용자 이름과 로그아웃 버튼이 표시되어 있습니다. 버튼을 클릭하면 `GET` 요청이 `/api/auth/signout` 엔드포인트로 전송됩니다.
+
+엔드포인트는 사용자의 세션 쿠키를 삭제하고 사용자를 `/signin` 페이지로 리디렉션합니다.
+
+```astro title="src/pages/dashboard.astro"
+---
+import { app } from "../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+import Layout from "../layouts/Layout.astro";
+
+const auth = getAuth(app);
+
+/* 현재 세션 확인 */
+if (!Astro.cookies.has("session")) {
+  return Astro.redirect("/signin");
+}
+const sessionCookie = Astro.cookies.get("session").value;
+const decodedCookie = await auth.verifySessionCookie(sessionCookie);
+const user = await auth.getUser(decodedCookie.uid);
+
+if (!user) {
+  return Astro.redirect("/signin");
+}
+---
+
+<Layout title="dashboard">
+  <h1>Welcome {user.displayName}</h1>
+  <p>We are happy to see you here</p>
+  <form action="/api/auth/signout">
+    <button type="submit">Sign out</button>
+  </form>
+</Layout>
+```
+
+### OAuth 공급자 추가
+
+앱에 OAuth 공급자를 추가하려면 Firebase 콘솔에서 이를 활성화해야 합니다.
+
+Firebase 콘솔에서 **Authentication** 섹션으로 이동하여 **Sign-in method** 탭을 클릭하세요. 그런 다음 **Add a new provider** 버튼을 클릭하여 사용하려는 제공업체를 활성화하세요.
+
+아래 예시에서는 **Google** 공급자를 사용합니다.
+
+다음을 추가하려면 `signin.astro` 페이지를 편집하세요.
+- 기존 양식 아래에 Google로 로그인하는 버튼
+- 기존 `<script>`의 로그인 프로세스를 처리하기 위한 버튼의 이벤트 리스너
+
+```astro title="src/pages/signin.astro" ins={27, 34, 35, 69-83}
+---
+import { app } from "../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+import Layout from "../layouts/Layout.astro";
+
+/* 사용자가 인증되었는지 확인 */
+const auth = getAuth(app);
+if (Astro.cookies.has("session")) {
+  const sessionCookie = Astro.cookies.get("session").value;
+  const decodedCookie = await auth.verifySessionCookie(sessionCookie);
+  if (decodedCookie) {
+    return Astro.redirect("/dashboard");
+  }
+}
+---
+
+<Layout title="Sign in">
+  <h1>Sign in</h1>
+  <p>New here? <a href="/register">Create an account</a></p>
+  <form action="/api/auth/signin" method="post">
+    <label for="email" for="email">Email</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+  </form>
+  <button id="google">Sign in with Google</button>
+</Layout>
+<script>
+  import {
+    getAuth,
+    inMemoryPersistence,
+    signInWithEmailAndPassword,
+    GoogleAuthProvider,
+    signInWithPopup,
+  } from "firebase/auth";
+  import { app } from "../firebase/client";
+
+  const auth = getAuth(app);
+  auth.setPersistence(inMemoryPersistence);
+
+  const form = document.querySelector("form") as HTMLFormElement;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const email = formData.get("email")?.toString();
+    const password = formData.get("password")?.toString();
+
+    if (!email || !password) {
+      return;
+    }
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    const idToken = await userCredential.user.getIdToken();
+    const response = await fetch("/api/auth/signin", {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+
+    if (response.redirected) {
+      window.location.assign(response.url);
+    }
+  });
+
+  const googleSignin = document.querySelector("#google") as HTMLButtonElement;
+  googleSignin.addEventListener("click", async () => {
+    const provider = new GoogleAuthProvider();
+    const userCredential = await signInWithPopup(auth, provider);
+    const idToken = await userCredential.user.getIdToken();
+    const res = await fetch("/api/auth/signin", {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+
+    if (res.redirected) {
+      window.location.assign(res.url);
+    }
+  });
+</script>
+```
+
+Google 로그인 버튼을 클릭하면 Google로 로그인할 수 있는 팝업 창이 열립니다. 사용자가 로그인하면 OAuth 공급자가 생성한 ID 토큰을 사용하여 `/api/auth/signin` 엔드포인트에 `POST` 요청을 보냅니다.
+
+엔드포인트는 ID 토큰을 확인하고 사용자를 위한 새 세션 쿠키를 생성합니다. 그런 다음 엔드포인트는 사용자를 `/dashboard` 페이지로 리디렉션합니다.
+
+## Firestore 데이터베이스에 연결
+
+### 전제조건
+
+- [Astro에서 Firebase 초기화](#astro에서-firebase-초기화) 섹션에 설명된 대로 Firebase로 초기화된 Astro 프로젝트
+
+- Firestore 데이터베이스가 있는 Firebase 프로젝트. [Firebase 문서에 따라 새 프로젝트를 만들고 Firestore 데이터베이스를 설정](https://firebase.google.com/docs/firestore/quickstart)할 수 있습니다.
+
+이 레시피에서 Firestore 컬렉션은 **friends**라고 하며 다음 필드가 있는 문서를 포함합니다.
+
+- `id`: Firestore에서 자동 생성됨
+- `name`: 문자열 필드
+- `age`: 숫자 필드
+- `isBestFriend`: 부울 필드
+
+### 서버 엔드포인트 생성
+
+새 디렉터리 `src/pages/api/friends/`에 `index.ts` 및 `[id].ts`라는 두 개의 새 파일을 만듭니다. 그러면 다음과 같은 방법으로 Firestore 데이터베이스와 상호작용하는 두 개의 서버 엔드포인트가 생성됩니다.
+
+- `POST /api/friends`: friends 컬렉션에 새 문서 생성
+- `POST /api/friends/:id`: friends 컬렉션의 문서를 업데이트
+- `DELETE /api/friends/:id`: friends 컬렉션에 있는 문서를 삭제
+
+`index.ts`에는 friends 컬렉션에 새 문서를 생성하는 코드가 포함됩니다.
+
+```ts title="src/pages/api/friends/index.ts"
+import type { APIRoute } from "astro";
+import { app } from "../../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+
+export const POST: APIRoute = async ({ request, redirect }) => {
+  const formData = await request.formData();
+  const name = formData.get("name")?.toString();
+  const age = formData.get("age")?.toString();
+  const isBestFriend = formData.get("isBestFriend") === "on";
+
+  if (!name || !age) {
+    return new Response("Missing required fields", {
+      status: 400,
+    });
+  }
+  try {
+    const db = getFirestore(app);
+    const friendsRef = db.collection("friends");
+    await friendsRef.add({
+      name,
+      age: parseInt(age),
+      isBestFriend,
+    });
+  } catch (error) {
+    return new Response("Something went wrong", {
+      status: 500,
+    });
+  }
+  return redirect("/dashboard");
+};
+```
+
+:::note
+이는 `friends` 엔드포인트의 기본 구현입니다. 필요에 따라 이 엔드포인트에 논리를 더 추가할 수 있습니다.
+:::
+
+`[id].ts`에는 friends 컬렉션의 문서를 업데이트하고 삭제하는 코드가 포함되어 있습니다.
+
+```ts title="src/pages/api/friends/[id].ts"
+import type { APIRoute } from "astro";
+import { app } from "../../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+
+const db = getFirestore(app);
+const friendsRef = db.collection("friends");
+
+export const POST: APIRoute = async ({ params, redirect, request }) => {
+  const formData = await request.formData();
+  const name = formData.get("name")?.toString();
+  const age = formData.get("age")?.toString();
+  const isBestFriend = formData.get("isBestFriend") === "on";
+
+  if (!name || !age) {
+    return new Response("Missing required fields", {
+      status: 400,
+    });
+  }
+
+  if (!params.id) {
+    return new Response("Cannot find friend", {
+      status: 404,
+    });
+  }
+
+  try {
+    await friendsRef.doc(params.id).update({
+      name,
+      age: parseInt(age),
+      isBestFriend,
+    });
+  } catch (error) {
+    return new Response("Something went wrong", {
+      status: 500,
+    });
+  }
+  return redirect("/dashboard");
+};
+
+export const DELETE: APIRoute = async ({ params, redirect }) => {
+  if (!params.id) {
+    return new Response("Cannot find friend", {
+      status: 404,
+    });
+  }
+
+  try {
+    await friendsRef.doc(params.id).delete();
+  } catch (error) {
+    return new Response("Something went wrong", {
+      status: 500,
+    });
+  }
+  return redirect("/dashboard");
+};
+```
+
+:::note
+이는 `friends/:id` 엔드포인트의 기본 구현입니다. 필요에 따라 이 엔드포인트에 논리를 더 추가할 수 있습니다.
+:::
+
+Firestore용 서버 엔드포인트를 생성한 후에는 이제 프로젝트 디렉터리에 다음과 같은 새 파일이 포함되어야 합니다.
+
+<FileTree title="Project Structure">
+- src
+  - env.d.ts
+  - firebase
+    - client.ts
+    - server.ts
+  - pages
+    - api
+      - friends
+        - **index.ts**
+        - **[id].ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### 페이지 생성
+
+Firestore 엔드포인트를 사용할 페이지를 만듭니다.
+
+- `src/pages/add.astro` - 새 friend를 추가하는 양식이 포함되어 있습니다.
+- `src/pages/edit/[id].astro` - friend를 편집하는 양식과 friend를 삭제하는 버튼이 포함되어 있습니다.
+- `src/pages/friend/[id].astro` - friend의 세부 정보가 포함됩니다.
+- `src/pages/dashboard.astro` - friends 목록이 표시됩니다.
+
+#### 새 레코드 추가
+
+아래의 `src/pages/add.astro` 예시에는 `/api/friends` 엔드포인트에 `POST` 요청을 보내는 양식이 포함되어 있습니다. 이 엔드포인트는 양식의 데이터를 사용하여 새 friend를 만든 다음 사용자를 `/dashboard` 페이지로 리디렉션합니다.
+
+```astro title="src/pages/add.astro"
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Add a new friend">
+  <h1>Add a new friend</h1>
+  <form method="post" action="/api/friends">
+    <label for="name">Name</label>
+    <input type="text" id="name" name="name" />
+    <label for="age">Age</label>
+    <input type="number" id="age" name="age" />
+    <label for="isBestFriend">Is best friend?</label>
+    <input type="checkbox" id="isBestFriend" name="isBestFriend" />
+    <button type="submit">Add friend</button>
+  </form>
+</Layout>
+```
+
+#### 레코드 편집 또는 삭제
+
+`src/pages/edit/[id].astro`에는 friend 데이터를 편집하는 양식과 friend를 삭제하는 버튼이 포함되어 있습니다. 제출 시 이 페이지는 friend 데이터를 업데이트하기 위해 `/api/friends/:id` 엔드포인트에 `POST` 요청을 보냅니다.
+
+사용자가 삭제 버튼을 클릭하면 이 페이지는 friend를 삭제하기 위해 `/api/friends/:id` 엔드포인트에 `DELETE` 요청을 보냅니다.
+
+```astro title="src/pages/edit/[id].astro"
+---
+import Layout from "../../layouts/Layout.astro";
+import { app } from "../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+
+interface Friend {
+  name: string;
+  age: number;
+  isBestFriend: boolean;
+}
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect("/404");
+}
+
+const db = getFirestore(app);
+const friendsRef = db.collection("friends");
+const friendSnapshot = await friendsRef.doc(id).get();
+
+if (!friendSnapshot.exists) {
+  return Astro.redirect("/404");
+}
+
+const friend = friendSnapshot.data() as Friend;
+---
+
+<Layout title="Edit {friend.name}">
+  <h1>Edit {friend.name}</h1>
+  <p>Here you can edit or delete your friend's data.</p>
+  <form method="post" action={`/api/friends/${id}`}>
+    <label for="name">Name</label>
+    <input type="text" id="name" name="name" value={friend.name} />
+    <label for="age">Age</label>
+    <input type="number" id="age" name="age" value={friend.age} />
+    <label for="isBestFriend">Is best friend?</label>
+    <input
+      type="checkbox"
+      id="isBestFriend"
+      name="isBestFriend"
+      checked={friend.isBestFriend}
+    />
+    <button type="submit">Edit friend</button>
+  </form>
+  <button type="button" id="delete-document">Delete</button>
+</Layout>
+<script>
+  const deleteButton = document.getElementById(
+    "delete-document"
+  ) as HTMLButtonElement;
+  const url = document.querySelector("form")?.getAttribute("action") as string;
+  deleteButton.addEventListener("click", async () => {
+    const response = await fetch(url, {
+      method: "DELETE",
+    });
+    if (response.redirected) {
+      window.location.assign(response.url);
+    }
+  });
+</script>
+```
+
+#### 개별 레코드 표시
+
+`src/pages/friend/[id].astro`는 friend의 세부정보를 표시합니다.
+
+```astro title="src/pages/friend/[id].astro"
+---
+import Layout from "../../layouts/Layout.astro";
+import { app } from "../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+
+interface Friend {
+  name: string;
+  age: number;
+  isBestFriend: boolean;
+}
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect("/404");
+}
+
+const db = getFirestore(app);
+const friendsRef = db.collection("friends");
+const friendSnapshot = await friendsRef.doc(id).get();
+
+if (!friendSnapshot.exists) {
+  return Astro.redirect("/404");
+}
+
+const friend = friendSnapshot.data() as Friend;
+---
+
+<Layout title={friend.name}>
+  <h1>{friend.name}</h1>
+  <p>Age: {friend.age}</p>
+  <p>Is best friend: {friend.isBestFriend ? "Yes" : "No"}</p>
+</Layout>
+```
+
+#### 편집 버튼 및 레코드 목록 표시
+
+마지막으로 `src/pages/dashboard.astro`는 friends 목록을 표시합니다. 각 friend에게는 세부 정보 페이지에 대한 링크와 사용자를 편집 페이지로 리디렉션하는 편집 버튼이 있습니다.
+
+```astro title="src/pages/dashboard.astro"
+---
+import { app } from "../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+import Layout from "../layouts/Layout.astro";
+
+interface Friend {
+  id: string;
+  name: string;
+  age: number;
+  isBestFriend: boolean;
+}
+
+const db = getFirestore(app);
+const friendsRef = db.collection("friends");
+const friendsSnapshot = await friendsRef.get();
+const friends = friendsSnapshot.docs.map((doc) => ({
+  id: doc.id,
+  ...doc.data(),
+})) as Friend[];
+---
+
+<Layout title="My friends">
+  <h1>Friends</h1>
+  <ul>
+    {
+      friends.map((friend) => (
+        <li>
+          <a href={`/friend/${friend.id}`}>{friend.name}</a>
+          <span>({friend.age})</span>
+          <strong>{friend.isBestFriend ? "Bestie" : "Friend"}</strong>
+          <a href={`/edit/${friend.id}`}>Edit</a>
+        </li>
+      ))
+    }
+  </ul>
+</Layout>
+
+```
+
+모든 페이지를 생성한 후에는 다음과 같은 파일 구조를 갖게 됩니다.
+
+<FileTree title="Project Structure">
+- src
+  - env.d.ts
+  - firebase
+    - client.ts
+    - server.ts
+  - pages
+    - dashboard.astro
+    - add.astro
+    - edit
+      - [id].astro
+    - friend
+      - [id].astro
+    - api
+      - friends
+        - index.ts
+        - [id].ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## 커뮤니티 자료
+
+- [Astro 및 Firebase SSR 앱 예시](https://github.com/kevinzunigacuellar/astro-firebase)
