@@ -27,7 +27,6 @@ import DontEditWarning from '~/components/DontEditWarning.astro'
 <DontEditWarning />
 
 The following reference is a complete list of the errors you may encounter while using Astro. For additional assistance, including common pitfalls, please also see our [Troubleshooting Guide](/en/guides/troubleshooting/).
-
 `;
 
 const FOOTER = ``;
@@ -41,7 +40,7 @@ export async function run() {
 	for (const comment of astroErrorData.jsdoc) {
 		// Header
 		if (comment.kind === 'heading') {
-			astroResult += `## ${comment.name}\n\n`;
+			astroResult += `\n## ${comment.name}\n\n`;
 			if (comment.description) {
 				astroResult += comment.description.trim() + '\n\n';
 			}
