@@ -77,5 +77,5 @@ export default NavDictionary({
 
 	communityResources: 'सामूहिक संसाधन',
 	'community-resources/content': 'पाठ्यक्रम, मार्गदर्शिकाएँ और रेसिपी',
-	'community-resources/talks': 'वार्ता, साक्षात्कार और स्ट्रीमस',
+	'community-resources/talks': 'वार्ता, इंटरव्यू, और स्ट्रीमस',
 });
