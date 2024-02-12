@@ -96,7 +96,7 @@ Ten en cuenta que el valor proporcionado `transition:name` solo se puede utiliza
 
 ### Manteniendo el estado
 
-<Since v="2.10.0" />
+<p><Since v="2.10.0" /></p>
 
 Puedes persistir componentes y elementos HTML (en lugar de reemplazarlos) a través de las navegaciones de página utilizando la directiva `transition:persist`.
 
@@ -242,8 +242,8 @@ El enrutador `<ViewTransitions />` maneja la navegación escuchando:
 
 Las siguientes opciones te permiten controlar aún más cuándo ocurre la navegación dentro del enrutador:
 
-- `astro-data-reload`: un atributo de la etiqueta `<a>` para [forzar una navegación de página completa](#previniendo-la-navegación-del-lado-del-cliente).
-- `astro-data-history="auto | push | replace"`: un atributo de la etiqueta `<a>` para [controlar el historial del navegador](#reemplazar-entradas-en-el-historial-del-navegador).
+- `data-astro-reload`: un atributo de la etiqueta `<a>` para [forzar una navegación de página completa](#previniendo-la-navegación-del-lado-del-cliente).
+- `data-astro-history="auto | push | replace"`: un atributo de la etiqueta `<a>` para [controlar el historial del navegador](#reemplazar-entradas-en-el-historial-del-navegador).
 - `navigate(href, options)`: un método disponible para cualquier script o componente cliente para [desencadenar la navegación](#desencadenar-la-navegación).
 
 ### Previniendo la navegación del lado del cliente
@@ -287,7 +287,7 @@ El siguiente ejemplo muestra un componente de Astro que lleva al visitante a otr
 ```
 ```astro title="src/pages/index.astro"
 ---
-import Form from "../components/form.astro"
+import Form from "../components/form.astro";
 import { ViewTransitions } from "astro:transitions";
 ---
 <html>
@@ -305,7 +305,7 @@ El siguiente ejemplo implementa lo mismo usando `navigate()` en un componente `<
 import React from 'react';
 import { navigate } from 'astro:transitions/client';
 
-export default function ClickToNavigate({ to }) {
+export default function Form() {
   return <select onChange={(ev) => navigate(e.target.value)}>
     <option value="/play">Jugar</option>
     <option value="/blog">Blog</option>
@@ -318,7 +318,7 @@ El componente `<Form />` puede ser renderizado en una página de Astro que utili
 
 ```astro title="src/pages/index.astro"
 ---
-import Form from "../components/form.jsx"
+import Form from "../components/form.jsx";
 import { ViewTransitions } from "astro:transitions";
 ---
 <html>
@@ -366,25 +366,19 @@ Esto tiene el efecto de que si retrocedes desde la página `/main`, el navegador
 
 ### Transiciones con formularios
 
-<Since v="3.5.0" />
+<p><Since v="4.0.0" /></p>
 
-Por defecto, el enrutador `<ViewTransitions />` solo realiza transiciones en la navegación desencadenada por clics en `<a>`. También puedes permitir transiciones en envíos de formularios al agregar la opción `handleForms` en el enrutador.
+El enrutador `<ViewTransitions />` activará transiciones en la página desde elementos `<form>`, admitiendo tanto peticiones `GET` como `POST`.
 
-```astro title="src/pages/index.astro"
----
-import { ViewTransitions } from "astro:transitions";
----
-<html>
-	<head>
-		<ViewTransitions handleForms />
-	</head>
-	<body>
-		<!-- cosas aquí -->
-	</body>
-</html>
+Por defecto, Astro envía los datos de tu formulario como `multipart/form-data` cuando el atributo `method` está configurado como `POST`. Si deseas que coincida con el comportamiento predeterminado de los navegadores web, utiliza el atributo `enctype` para enviar tus datos codificados como `application/x-www-form-urlencoded`:
+
+```astro title="src/components/Form.astro"
+<form action="/contact" method="POST" enctype="application/x-www-form-urlencoded">
+  <!-- -->
+</form>
 ```
 
-Con esta opción, el enrutador activará transiciones dentro de la página desde elementos `<form>`, admitiendo tanto solicitudes `GET` como `POST`. Puedes optar por excluir las transiciones del enrutador en formularios individuales mediante el atributo `data-astro-reload`:
+Puedes optar por excluir las transiciones del enrutador en formularios individuales mediante el atributo `data-astro-reload`:
 
 ```astro title="src/components/Form.astro"
 <form action="/contact" data-astro-reload>
@@ -411,7 +405,7 @@ import { ViewTransitions } from 'astro:transitions';
 <ViewTransitions fallback="swap">
 ```
 
-:::note[limitaciones conocidas]
+:::note[Limitaciones conocidas]
 La animación del navegador `initial` no es simulada por Astro. Por lo tanto, cualquier elemento que utilice esta animación no será animado.
 :::
 
@@ -459,11 +453,13 @@ Si tienes código que configura el estado global, este estado deberá tener en c
 </script>
 ```
 
-Los scripts de módulo solo se ejecutan una vez porque el navegador realiza un seguimiento de qué módulos ya están cargados. Para estos scripts, no necesitas preocuparte por la reejecución.
+Los scripts de módulo, incluyendo aquellos que añaden listeners de eventos para `DOMContentLoaded`, solo se ejecutan una vez debido a que el navegador realiza un seguimiento de los módulos que ya están cargados. Debes añadir listeners para un [evento del ciclo de vida](#eventos-del-ciclo-de-vida) para volver a ejecutar scripts durante la navegación de la página en el lado del cliente.
+
+Consulta el [tutorial Ampliar con View Transitions](/es/tutorials/add-view-transitions/#actualiza-los-scripts) para ver un ejemplo actualizando los scripts existentes en un proyecto.
 
 ## Eventos del ciclo de vida
 
-El enrutador `<ViewTransition />` varios eventos en el `document` durante la navegación. Estos eventos proporcionan hooks en el ciclo de vida de la navegación, permitiéndote realizar acciones como mostrar indicadores de que la nueva página está cargado, sobrescribe el comportamiento predeterminado y restablece el estado mientras se completa la navegación.
+El enrutador `<ViewTransition />` proporciona varios eventos en el `document` durante la navegación. Estos eventos proporcionan hooks en el ciclo de vida de la navegación, permitiéndote realizar acciones como mostrar indicadores de que la nueva página está cargado, sobrescribe el comportamiento predeterminado y restablece el estado mientras se completa la navegación.
 
 El proceso de navegación implica una fase de **preparación**, cuando el nuevo contenido es cargado; una fase de **intercambio de DOM**, donde el contenido de la página antigua se sustituye por el de la nueva; y una fase de **finalización** donde los scripts son ejecutados, la carga se informa como completada y se realiza un trabajo de limpieza.
 
@@ -482,7 +478,7 @@ Mientras algunas acciones pueden ser disparadas durante cualquier evento, alguna
 
 ### `astro:before-preparation`
 
-<Since v="3.6.0" />
+<p><Since v="3.6.0" /></p>
 
 Un evento que es disparado al inicio de la fase de preparación, después de que la navegación ha comenzado (p. ej. después de que el usuario haya clicado un enlace), pero antes de que el contenido es cargado.
 
@@ -511,7 +507,7 @@ Ten en cuenta que el uso del callback del loader de esta manera permite la ejecu
 
 ### `astro:after-preparation`
 
-<Since v="3.6.0" />
+<p><Since v="3.6.0" /></p>
 
 Un evento que es diparado al final de la fase de preparación, después de que el contenido de la nueva página haya sido cargado y analizado en un documento. Este evento ocurre antes de la fase de view transitions.
 
@@ -532,7 +528,7 @@ Esta es una versión más sencilla de un spinner de carga que el ejemplo mostrad
 
 ### `astro:before-swap`
 
-<Since v="3.6.0" />
+<p><Since v="3.6.0" /></p>
 
 Un evento que es disparado antes de que el nuevo documento (que se completa durante la fase de preparación) reemplace el documento actual. Este evento ocurre dentro de una view transition, donde el usuario sigue viendo una instantánea de la página anterior.
 
@@ -604,7 +600,7 @@ Habilitar la navegación del lado del cliente y animar las view transitions pres
 
 ### Anuncio de ruta
 
-<Since v="3.2.0" />
+<p><Since v="3.2.0" /></p>
 
 El componente `<ViewTransitions />` incluye un anunciador de ruta para la navegación de páginas durante la navegación del lado del cliente. No se necesita configuración ni acción para habilitar esto.
 

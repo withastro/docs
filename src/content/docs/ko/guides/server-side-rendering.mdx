@@ -1,0 +1,299 @@
+---
+title: 주문형 렌더링 어댑터
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import RecipeLinks from '~/components/RecipeLinks.astro';
+import IntegrationsNav from '~/components/IntegrationsNav.astro';
+
+Astro를 사용하면 페이지와 엔드포인트 전체 또는 일부에 대해 **주문형 렌더링**을 선택할 수 있습니다. 이는 **서버 측 렌더링(SSR)**이라고도 알려져 있으며, 요청 시 서버에서 HTML 페이지를 생성하여 클라이언트에 보냅니다. **어댑터**는 서버에서 프로젝트를 실행하고 이러한 요청을 처리하는 데 사용됩니다.
+
+이 주문형 렌더링을 통해 다음을 수행할 수 있습니다.
+- 앱에서 로그인 상태에 대한 세션을 구현합니다.
+- `fetch()`를 사용하여 동적으로 호출되는 API에서 데이터를 렌더링합니다.
+- *어댑터*를 사용하여 사이트를 호스트에 배포합니다.
+
+다음이 필요한 경우 Astro 프로젝트에서 주문형 서버 렌더링을 활성화하는 것이 좋습니다.
+
+- **API 엔드포인트**: 중요한 데이터를 클라이언트에게 숨기면서 데이터베이스 액세스, 인증, 권한 부여와 같은 작업을 위한 API 엔드포인트로 작동하는 특정 페이지를 만듭니다.
+
+- **보호된 페이지**: 서버에서 사용자 액세스를 처리하여 사용자 권한에 따라 페이지에 대한 액세스를 제한합니다.
+
+- **자주 변경되는 콘텐츠**: 사이트를 다시 정적으로 빌드하지 않고도 개별 페이지를 생성할 수 있습니다. 이는 페이지 내용이 자주 업데이트되는 경우 유용합니다.
+
+## 공식 어댑터
+
+Astro는 [NodeJs](https://nodejs.org/), [Vercel](https://vercel.com/), [Netlify](https://www.netlify.com/), [Cloudflare](https://www.cloudflare.com/)용 공식 어댑터를 유지 관리합니다.
+
+통합 디렉터리에서 [커뮤니티에서 관리하는 더 많은 어댑터](https://astro.build/integrations/?search=&categories%5B%5D=adapters) (예: Deno, SST, AWS)를 찾아보세요.
+
+<IntegrationsNav category="adapter"/>
+
+## 주문형 서버 렌더링 활성화
+
+Astro의 두 주문형 렌더링 출력 모드 (`server` 및 `hybrid`)를 사용하면 완전히 동적인 앱을 사용하든, 특정 경로에 대해서만 주문형 렌더링이 필요한 대부분이 정적인 사이트를 사용하든, 가능하면 개별 경로를 미리 렌더링하여 정적 사이트의 성능을 활용할 수 있습니다.
+
+프로젝트에서 사용할 항목을 결정하려면 페이지와 경로의 **대부분**이 렌더링되는 방식을 나타내는 `output` 옵션을 선택하세요.
+
+- __`output: 'server'`__: 기본적으로 주문형으로 렌더링됩니다. 요청 시 사이트나 앱의 대부분 또는 전부를 서버 렌더링해야 하는 경우 이 방법을 사용하세요. 모든 개별 페이지 또는 엔드포인트는 사전 렌더링을 *선택*할 수 있습니다.
+- __`output: 'hybrid'`__: 기본적으로 HTML로 사전 렌더링됩니다. 대부분의 사이트가 정적이어야 할 때 이 옵션을 사용하세요. 모든 개별 페이지 또는 엔드포인트는 사전 렌더링을 *거부*할 수 있습니다.
+ 
+서버는 요청 시 최소한 일부 페이지를 생성해야 하기 때문에 이 두 모드 모두 서버 기능을 수행하려면 [어댑터 추가](#어댑터-추가)가 필요합니다.
+
+### 어댑터 추가
+
+`server` 또는 `hybrid` 모드로 프로젝트를 배포하려면 **어댑터**를 추가해야 합니다. 이는 두 모드 모두 서버 _런타임_, 즉 요청 시 페이지를 생성하기 위해 서버에서 코드를 실행하는 환경이 필요하기 때문입니다. 각 어댑터를 사용하면 Astro는 Vercel, Netlify, Cloudflare와 같은 특정 런타임에서 프로젝트를 실행하는 스크립트를 출력할 수 있습니다.
+
+[통합 디렉터리에서 공식 어댑터와 커뮤니티 어댑터](https://astro.build/integrations/?search=&categories%5B%5D=adapters)를 모두 찾을 수 있습니다. [배포 환경](/ko/guides/deploy/)에 해당하는 것을 선택하세요.
+
+#### `astro add` 설치
+
+다음 `astro add` 명령을 사용하여 [Astro에서 유지관리하는 공식 어댑터](/ko/guides/integrations-guide/#공식-통합)를 추가할 수 있습니다. 그러면 어댑터가 설치되고 `astro.config.mjs` 파일이 한 번에 적절하게 변경됩니다.
+
+예를 들어 Vercel 어댑터를 설치하려면 다음을 실행합니다.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add vercel
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add vercel
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add vercel
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+#### 수동 설치
+
+패키지를 설치하고 `astro.config.mjs` 파일을 직접 업데이트하여 수동으로 어댑터를 추가할 수도 있습니다.
+
+예를 들어 Vercel 어댑터를 수동으로 설치하려면 다음을 수행하세요.
+
+1. 원하는 패키지 관리자를 사용하여 프로젝트 종속성에 어댑터를 설치합니다.
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm install @astrojs/vercel
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm install @astrojs/vercel
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn add @astrojs/vercel
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+2. 원하는 `output` 모드와 함께 `astro.config.mjs` 파일의 가져오기 및 기본 내보내기에 [어댑터를 추가](/ko/reference/configuration-reference/#adapter)합니다.
+
+    ```js ins={3,7} {6}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import vercel from '@astrojs/vercel/serverless';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: vercel(),
+    });
+    ```
+
+    어댑터마다 구성 설정이 다를 수도 있습니다. 각 어댑터의 문서를 읽고 `astro.config.mjs` 파일에서 선택한 어댑터에 필요한 구성 옵션을 적용하세요.
+
+### `server` 또는 `hybrid` 구성
+
+주문형 렌더링을 활성화하려면 `output` 구성을 두 가지 서버 렌더링 모드 중 하나로 업데이트해야 합니다.
+
+예를 들어 기본적으로 모든 페이지가 요청 시 렌더링되는 매우 동적인 앱을 구성하려면 Astro 구성에 `output: 'server'`를 추가하세요.
+
+```js ins={5} title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import node from "@astrojs/node";
+
+export default defineConfig({
+  output: 'server',
+  adapter: node({
+    mode: "standalone"
+  })
+});
+```
+
+그런 다음 `const prerender = true`를 내보내 모든 페이지나 경로에서 `server` 모드의 기본 주문형 렌더링을 재정의하도록 선택할 수 있습니다.
+
+```astro title="src/pages/my-static-page.astro" ins={2}
+---
+export const prerender = true;
+// ...
+---
+<html>
+  <!-- 정적, 사전 렌더링된 페이지는 여기에 있습니다... -->
+</html>
+```
+
+### `server` 모드에서 사전 렌더링 선택
+
+`output: server`를 사용하여 대부분이 서버 렌더링된 앱의 경우, 정적 페이지 또는 엔드포인트를 사전 렌더링하려면 모든 페이지 또는 경로에 `export const prerender = true`를 추가하세요.
+
+```astro title="src/pages/mypage.astro" {2}
+---
+export const prerender = true;
+// ...
+---
+<html>
+  <!-- 정적, 사전 렌더링된 페이지는 여기에 있습니다... -->
+</html>
+```
+
+```mdx title="src/pages/mypage.mdx" {5}
+---
+layout: '../layouts/markdown.astro'
+title: '내 페이지'
+---
+export const prerender = true;
+
+# 이것은 내 정적, 사전 렌더링된 페이지입니다.
+```
+
+```js title="src/pages/myendpoint.js" {1}
+export const prerender = true;
+
+export async function GET() {
+  return new Response(
+    JSON.stringify({
+      message: `이것은 내 정적 엔드포인트입니다.`,
+    }),
+  );
+}
+```
+
+### `hybrid` 모드에서 사전 렌더링 선택 해제
+
+`output: hybrid`로 구성된 대부분이 정적으로 구성된 사이트의 경우, 요청 시 서버 렌더링해야 하는 모든 파일에 `export const prerender = false`를 추가하세요.
+
+```js title="src/pages/randomnumber.js" {1}
+export const prerender = false;
+
+export async function GET() {
+  let number = Math.random();
+  return new Response(
+    JSON.stringify({
+      number,
+      message: `임의의 숫자: ${number}`,
+    }),
+  );
+}
+```
+
+## 주문형 렌더링 기능
+
+### HTML 스트리밍
+
+HTML 스트리밍을 사용하면 문서가 여러 개의 청크로 분할되어 네트워크를 통해 순서대로 전송되고 해당 순서대로 페이지에 렌더링됩니다. `server` 또는 `hybrid` 모드에서 Astro는 HTML 스트리밍을 사용하여 각 컴포넌트를 렌더링할 때 브라우저에 보냅니다. 네트워크 상태로 인해 큰 문서가 느리게 다운로드될 수 있고 데이터 가져오기를 기다리면 페이지 렌더링이 차단될 수 있지만 이렇게 하면 사용자가 가능한 한 빨리 HTML을 볼 수 있습니다.
+
+<RecipeLinks slugs={["ko/recipes/streaming-improve-page-performance"]}/>
+
+:::caution
+[응답 헤더](https://developer.mozilla.org/ko/docs/Glossary/Response_header)를 수정하는 기능은 **페이지 수준**에서만 사용할 수 있습니다. (레이아웃 컴포넌트를 포함하여 컴포넌트 내부에서는 사용할 수 없습니다.) Astro가 컴포넌트 코드를 실행할 때 이미 응답 헤더를 보냈으므로 수정할 수 없습니다.
+:::
+
+### Cookies
+
+`server` 및 `hybrid` 모드에서는 페이지 또는 API 엔드포인트가 쿠키를 확인, 설정, 가져오기 및 삭제할 수 있습니다.
+
+아래 예시에서는 페이지 조회수 카운터의 쿠키 값을 업데이트합니다.
+
+```astro title="src/pages/index.astro" {4,5,9}
+---
+let counter = 0
+
+if (Astro.cookies.has("counter")) {
+  const cookie = Astro.cookies.get("counter")
+	counter = cookie.number() + 1
+}
+
+Astro.cookies.set("counter",counter)
+---
+<html>
+  <h1>카운터 = {counter}</h1>
+</html>
+```
+
+API 참조에서 [`Astro.cookies` 및 `AstroCookie` 타입](/ko/reference/api-reference/#astrocookies)에 대한 자세한 내용을 확인하세요.
+
+### `Response`
+
+주문형 렌더링을 사용하면 모든 페이지에서 [Response](https://developer.mozilla.org/ko/docs/Web/API/Response)를 반환할 수도 있습니다.
+
+아래 예시는 데이터베이스에서 id를 조회한 후 동적 페이지에 404를 반환합니다.
+
+```astro title="src/pages/[id].astro" {8-11}
+---
+import { getProduct } from '../api';
+
+const product = await getProduct(Astro.params.id);
+
+// product를 찾지 못함
+if (!product) {
+  return new Response(null, {
+    status: 404,
+    statusText: '찾을 수 없음'
+  });
+}
+---
+<html>
+  <!-- 페이지... -->
+</html>
+```
+
+### `Request`
+
+`Astro.request`는 표준 [Request](https://developer.mozilla.org/ko/docs/Web/API/Request) 객체입니다. `url`, `headers`, `method` 및 요청 본문을 가져오는 데 사용할 수 있습니다.
+
+`server` 및 `hybrid` 모드 모두에서 정적으로 생성되지 않은 페이지에 대해 이 객체의 추가 정보에 액세스할 수 있습니다.
+
+#### `Astro.request.headers`
+
+요청 헤더는 `Astro.request.headers`에서 확인할 수 있습니다. 이는 브라우저의 [`Request.headers`](https://developer.mozilla.org/en-US/docs/Web/API/Request/headers)처럼 작동합니다. 쿠키와 같은 헤더를 검색할 수 있는 [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers) 객체입니다.
+
+```astro title="src/pages/index.astro" {2}
+---
+const cookie = Astro.request.headers.get('cookie');
+// ...
+---
+<html>
+  <!-- 페이지... -->
+</html>
+```
+
+#### `Astro.request.method`
+
+요청에 사용된 HTTP 메서드는 `Astro.request.method`로 제공됩니다. 이는 브라우저의 [`Request.method`](https://developer.mozilla.org/en-US/docs/Web/API/Request/method)처럼 작동합니다. 요청에 사용된 HTTP 메서드의 문자열 표현을 반환합니다.
+
+```astro title="src/pages/index.astro"
+---
+console.log(Astro.request.method) // GET (브라우저에서 탐색할 때)
+---
+```
+
+API 참조에서 [`Astro.request`](/ko/reference/api-reference/#astrorequest)에 대한 자세한 내용을 확인하세요.
+
+### 서버 엔드포인트
+
+**API 경로**라고도 알려진 서버 엔드포인트는 `src/pages/` 폴더 내 `.js` 또는 `.ts` 파일에서 내보낸 특수 기능입니다. 주문형 서버 측 렌더링의 강력한 기능인 API 경로는 서버에서 코드를 안전하게 실행할 수 있습니다.
+
+이 함수는 [엔드포인트 컨텍스트](/ko/reference/api-reference/#엔드포인트-context)를 취하고 [Response](https://developer.mozilla.org/ko/docs/Web/API/Response)를 반환합니다.
+
+자세한 내용은 [엔드포인트 안내서](/ko/guides/endpoints/#서버-엔드포인트-api-라우트)를 참조하세요.
+
+

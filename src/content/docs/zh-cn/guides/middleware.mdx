@@ -1,6 +1,6 @@
 ---
 title: 中间件
-description: 了解如何在Astro中使用中间件
+description: 了解如何在 Astro 中使用中间件
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
@@ -15,12 +15,12 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
 1. 创建 `src/middleware.js|ts`（或者，你也可以创建 `src/middleware/index.js|ts`）
 
-2. 在这个文件中，导出一个 [`onRequest()`](#onrequest) 函数。注意这里不能是默认导出。
+2. 在这个文件中，导出一个接收 [`context` 对象](#context-对象) 的 [`onRequest()`](/zh-cn/reference/api-reference/#onrequest) 函数。注意这里不能是默认导出。
 
     ```js title="src/middleware.js"
     export function onRequest ({ locals, request }, next) {
-        // 从请求拦截响应数据
-        // 可选项，通过修改 `locals` 来转换响应
+        // 拦截一个请求里的数据
+        // 可选地修改 `locals` 中的属性
         locals.title = "New title";
 
         // 返回一个 Response 或者调用 `next()` 的结果
@@ -37,67 +37,39 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
     <h1>{data.title}</h1>
     <p>这个 {data.property} 来自中间件。</p>
     ```
+### `context` 对象
 
-### 中间件类型
+[`context`](/zh-cn/reference/api-reference/#端点上下文) 对象包含需要对其他中间件、API 路由和 `.astro` 路由在渲染过程中可用的信息。
 
-你可以导入并使用 `defineMiddleware()` 实用函数，以利用类型安全性：
+它是一个传入 `onRequest()` 的可选参数，可能包含 `locals` 对象以及其他在渲染期间共享的任何属性。例如，`context` 对象可能包含用于认证的 cookies。
 
-```ts
-// src/middleware.ts
-import { defineMiddleware } from "astro:middleware";
+### 在 `context.locals` 中存储数据
 
-// `context` 和 `next` 已自动进行类型定义
-export const onRequest = defineMiddleware((context, next) => {
+`context.locals` 是一个可以在中间件中操作、包含来自 `Response` 的数据的对象。
 
-});
-```
-相反，如果你正在使用 JsDoc 来利用类型安全性，你可以使用 `MiddlewareResponseHandler `：
+这个 `locals` 对象在请求处理过程中被传递，并作为 [`APIContext`](/zh-cn/reference/api-reference/#端点上下文) 和 [`AstroGlobal`](/zh-cn/reference/api-reference/#astrolocals) 的属性可用。这使得中间件，API 路由和 `.astro` 页面之间可以共享数据。这对于在渲染步骤中存储请求特定的数据（例如用户数据）很有用。
 
-```js
-// src/middleware.js
-/**
- * @type {import("astro").MiddlewareResponseHandler}
- */
-// `context` 和 `next` 已自动进行类型定义
-export const onRequest = (context, next) => {
+:::tip[集成属性]
+[集成](/zh-cn/guides/integrations-guide/)可能会在 `locals` 对象中设置属性和提供一些功能。如果你在使用一个集成，检查它的文档并确认你没有覆盖掉它的属性或者在做重复的工作。
+:::
 
-};
-```
-
-为了对 `Astro.locals` 中的信息进行类型定义，这将在 `.astro` 文件和中间件代码中为你提供自动完成功能，你需要在 `env.d.ts` 文件中声明一个全局命名空间：
-
-```ts title="src/env.d.ts"
-/// <reference types="astro/client" />
-declare namespace App {
-    interface Locals {
-        user: {
-            name: string
-        },
-        welcomeTitle: () => string,
-        orders: Map<string, object>
-    }
-}
-```
-
-然后，在中间件文件中，我们可以利用自动完成和类型安全。
-
-你可以在 `Astro.locals` 中存储任何类型的数据：字符串，数字，甚至复杂的数据类型，如函数和映射。
+你可以在 `locals` 中存储任何类型的数据：字符串，数字，甚至复杂的数据类型，如函数和映射。
 
 ```js title="src/middleware.js"
 export function onRequest ({ locals, request }, next) {
-    // 从请求拦截响应数据
-    // 可选地，通过修改 `locals` 来转换响应
+    // 拦截一个请求里的数据
+    // 可选地修改 `locals` 中的属性
     locals.user.name = "John Wick";
     locals.welcomeTitle = () => {
         return "Welcome back " + locals.user.name;
     };
 
-    // 返回一个Response或者调用 `next()` 的结果
+    // 返回一个 Response 或者调用 `next()` 的结果
     return next();
 };
 ```
 
-然后你可以在任何 `.astro` 文件中使用这个信息。
+然后你可以在任何 `.astro` 文件中通过 `Astro.locals` 使用这个信息。
 
 ```astro title="src/pages/orders.astro"
 ---
@@ -113,9 +85,15 @@ const orders = Array.from(Astro.locals.orders.entries());
 </ul>
 ```
 
-### 示例：删除敏感信息
+`locals` 是一个在单个 Astro 路由中创建和销毁的对象；当你的路由页面渲染完后，`locals` 将不再存在，并会创建一个新的。需要在多个页面请求之间保持的信息必须存储在其他地方。
 
-下面的示例使用中间件将"私人信息"替换为"已删除"，以便你在页面上渲染修改后的HTML：
+:::note
+`locals` 的值不能在运行时被覆盖。这样做会有清除用户存储的所有信息的风险。在 `dev` 模式下 Astro 会进行检查，如果 `locals` 被覆盖将会抛出错误。
+:::
+
+## 示例：删除敏感信息
+
+下面的示例使用中间件将"私人信息"替换为"已删除"，以便你在页面上渲染修改后的 HTML：
 
 ```js title="src/middleware.js"
 export const onRequest = async (context, next) => {
@@ -130,9 +108,53 @@ export const onRequest = async (context, next) => {
 };
 ```
 
-### 中间件链式调用
+## 中间件类型
 
-可以使用 [`sequence()`](#sequence) 按指定顺序连接多个中间件：
+你可以导入并使用 `defineMiddleware()` 实用函数来提供类型安全：
+
+```ts
+// src/middleware.ts
+import { defineMiddleware } from "astro:middleware";
+
+// `context` 和 `next` 会自动被类型化
+export const onRequest = defineMiddleware((context, next) => {
+
+});
+```
+
+或者，如果你使用 JsDoc 来提供类型安全，你可以使用 `MiddlewareHandler`：
+
+```js
+// src/middleware.js
+/**
+ * @type {import("astro").MiddlewareHandler}
+ */
+// `context` 和 `next` 会自动被类型化
+export const onRequest = (context, next) => {
+
+};
+```
+
+要给 `Astro.locals` 内的信息定义类型，也就是在 `.astro` 文件和中间件代码中能提供自动不全，在 `env.d.ts` 文件中声明一个全局命名空间：
+
+```ts title="src/env.d.ts"
+/// <reference types="astro/client" />
+declare namespace App {
+    interface Locals {
+        user: {
+            name: string
+        },
+        welcomeTitle: () => string,
+        orders: Map<string, object>
+    }
+}
+```
+
+然后，在中间件中，你就可以使用自动补全和类型安全了。
+
+## 中间件链式调用
+
+可以使用 [`sequence()`](/zh-cn/reference/api-reference/#sequence) 按指定顺序连接多个中间件：
 
 ```js title="src/middleware.js"
 import { sequence } from "astro:middleware";
@@ -171,47 +193,3 @@ export const onRequest = sequence(validation, auth, greeting);
 授权响应
 验证响应
 ```
-
-## API 参考
-
-### `onRequest()`
-这是从 `src/middleware.js` 导出的必需函数，在渲染每个页面或 API 路由之前都会调用。它接受两个可选参数：[context](#context) 和 [next()](#next)。 `onRequest()` 必须返回一个 `Response` ：可以直接返回，或者通过调用 `next()` 返回。
-
-### `context`
-这是一个包含了要在渲染过程中提供给其他中间件，API路由和`.astro` 路由的信息的对象。
-
-这是传递给 `onRequest()` 的可选参数，可能包含 [`locals`](#locals)  对象以及在渲染期间要共享的任何其他属性。例如， `context` 对象可能包含用于认证的cookies。
-
-这是传递给 API 路由的相同的 [`context`](/zh-cn/reference/api-reference/#端点上下文) 对象。
-
-### `next()`
-
-这是一个拦截（读取和修改）`Request`的 `Response` 或调用链中的"下一个"中间件并返回一个 `Response` 的函数。例如，这个函数可以修改响应的HTML正文。
-
-这是 `onRequest()` 的可选参数，并且可能提供由中间件返回的必需的 `Response`。
-
-### `locals`
-这是一个包含在 `Response` 中的数据，可以在中间件内部操作的对象。
-
-此 `locals` 对象在请求处理过程中被传递，并作为 [`APIContext`](/zh-cn/reference/api-reference/#端点上下文) 和 `AstroGlobal` 的属性可用。这允许在中间件，API路由，和 `.astro` 页面之间共享数据。这对于在渲染步骤中存储请求特定的数据（例如用户数据）很有用。
-
-`locals` 是一个在单个 Astro 路由中创建和销毁的对象；当你的路由页面被渲染时，`locals` 将不再存在，将会创建一个新的。需要在多个页面请求之间保持的信息必须存储在其他地方。
-
-:::tip
-`locals` 的值不能在运行时被覆盖。这样做将会冒着清除用户存储的所有信息的风险。在 `dev` 模式下，Astro 会进行检查，如果 `locals` 被覆盖，将会抛出错误。
-:::
-
-### `sequence()`
-
-这是一个接受中间件函数作为参数，并按照传递的顺序执行它们的函数。
-
-
-### `createContext`
-
-一个用于创建 [`APIContext`](/zh-cn/reference/api-reference/#端点上下文) 的底层 API，Astro 中间件可以使用它。
-
-此函数可被集成/适配器用来以编程方式执行 Astro 中间件。
-
-### `trySerializeLocals`
-
-一个接受任何值并尝试返回其序列化版本（字符串）的底层API。如果该值不能被序列化，该函数将抛出运行时错误。

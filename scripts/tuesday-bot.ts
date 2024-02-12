@@ -1,58 +1,42 @@
 import { setOutput } from '@actions/core';
-import { join } from 'path';
+import { lunaria } from '@lunariajs/core';
+import { readFileSync } from 'fs';
 import languages from '../src/i18n/languages';
-import { TranslationStatusBuilder } from './lib/translation-status/builder';
-
-const PAGE_SOURCE_DIRECTORY = './src/content/docs';
 
 await setDiscordMessage();
 
 async function setDiscordMessage() {
-	const builder = new TranslationStatusBuilder({
-		pageSourceDir: './src/content/docs',
-		oldTranslationDir: './old-translations',
-		htmlOutputFilePath: './dist/translation-status/index.html',
-		sourceLanguage: 'en',
-		targetLanguages: Object.keys(languages)
-			.filter((lang) => lang !== 'en')
-			.sort(),
-		languageLabels: languages,
-		githubRepo: process.env.GITHUB_REPOSITORY || 'withastro/docs',
-	});
+	const config = JSON.parse(readFileSync('./lunaria.config.json', 'utf-8'));
+	const status = await lunaria(config);
 
-	const pages = await builder.createPageIndex();
-	const oldTranslations = await builder.createOldTranslationIndex();
-	const statusByPage = builder.getTranslationStatusByPage(pages, oldTranslations);
-	const toTranslate = statusByPage.filter(
-		(s) => new Date(s.sourcePage.lastMajorChange) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+	if (!status) return;
+
+	const toTranslate = status.filter(
+		(s) => new Date(s.sourceFile.lastMajorChange) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
 	);
 
 	const list = toTranslate
 		.filter(
 			(s) =>
-				Object.keys(s.translations).filter(
-					(l) => s.translations[l]?.isMissing || s.translations[l]?.isOutdated
+				Object.keys(s.localizations).filter(
+					(l) => s.localizations[l]?.isMissing || s.localizations[l]?.isOutdated
 				).length > 0
 		)
 		.map((s) => {
 			const langs =
-				Object.keys(s.translations).filter(
-					(l) => s.translations[l]?.isMissing || s.translations[l]?.isOutdated
+				Object.keys(s.localizations).filter(
+					(l) => s.localizations[l]?.isMissing || s.localizations[l]?.isOutdated
 				).length ===
 				Object.keys(languages).length - 1
 					? ['all']
-					: Object.keys(s.translations);
-			return `- [\`${s.subpath}\`](<https://github.com/withastro/docs/tree/main/${join(
-				PAGE_SOURCE_DIRECTORY,
-				'en',
-				s.subpath
-			)}>) (${
+					: Object.keys(s.localizations);
+			return `- [\`${s.sharedPath}\`](<${s.gitHostingFileURL}>) (${
 				langs[0] === 'all'
 					? 'all'
 					: langs
 							.filter((lang) => {
 								if (lang === 'en') return false;
-								const { isMissing, isOutdated } = s.translations[lang];
+								const { isMissing, isOutdated } = s.localizations[lang];
 								return isMissing || isOutdated;
 							})
 							.join(', ')

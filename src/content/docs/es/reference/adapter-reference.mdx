@@ -43,11 +43,13 @@ El objeto pasado a `setAdapter` se define como:
 
 ```ts
 interface AstroAdapter {
-  name: string;
-  serverEntrypoint?: string;
-  exports?: string[];
-  adapterFeatures: AstroAdapterFeatures;
-  supportedAstroFeatures: AstroFeatureMap;
+	name: string;
+	serverEntrypoint?: string;
+	previewEntrypoint?: string;
+	exports?: string[];
+	args?: any;
+	adapterFeatures?: AstroAdapterFeatures;
+	supportedAstroFeatures?: AstroFeatureMap;
 }
 
 export interface AstroAdapterFeatures {
@@ -190,7 +192,7 @@ export function start(manifest) {
 
 Se proporcionan los siguientes métodos:
 
-##### `app.render(request, routeData, locals)`
+##### `app.render(request: Request, options?: RenderOptions)`
 
 Este método llama a la página de Astro que coincide con la solicitud, la renderiza y devuelve una Promise a un objeto [Response](https://developer.mozilla.org/es/docs/Web/API/Response). Esto también funciona para las rutas API que no procesan páginas.
 
@@ -198,15 +200,41 @@ Este método llama a la página de Astro que coincide con la solicitud, la rende
 const response = await app.render(request);
 ```
 
-El método acepta un argumento obligatorio `request` y otros dos opcionales: [`routeData`](/es/reference/integrations-reference/#referencia-del-tipo-routedata) y [`locals`](/es/reference/api-reference/#astrolocals).
+##### `RenderOptions`
 
-Proporciona un valor para `routeData` si ya conoces la ruta a renderizar. Al hacerlo, se omitirá la llamada interna a [`app.match`](#appmatchrequest) para determinar la ruta a renderizar.
+El método `app.render()` acepta un argumento obligatorio `request`, y un objeto `RenderOptions` opcional para [`addCookieHeader`](#addcookieheader), [`clientAddress`](#clientaddress), [`locals`](#locals), y [`routeData`](#routedata).
 
 Cuando es usado, `locals` debe ser el tercer argumento pasado. Puedes pasar `undefined` para `routeData` si no estás apuntando a una ruta específica.
 
-El ejemplo de abajo lee un encabezado llamado `x-private-header`, intenta analizarlo como un objeto y pasarlo a `locals`, que luego se puede pasar a cualquier [función de middleware](/es/guides/middleware/).
+###### `addCookieHeader`
+
+Si se agregan o no automáticamente todas las cookies escritas por `Astro.cookie.set()` a los encabezados de respuesta.
+
+Cuando se establece en `true`, se agregarán al encabezado `Set-Cookie` de la respuesta como pares clave-valor separados por comas. Puedes usar la API estándar `response.headers.getSetCookie()` para leerlos individualmente.
+Cuando se establece en `false (predeterminado)`, las cookies solo estarán disponibles desde `App.getSetCookieFromResponse(response)`.
 
 ```js
+const response = await app.render(request, { addCookieHeader: true });
+```
+
+###### `clientAddress`
+
+La dirección IP del cliente que estará disponible como [`Astro.clientAddress`](/es/reference/api-reference/#astroclientaddress) en las páginas y como `ctx.clientAddress` en las rutas API y el middleware.
+
+El ejemplo a continuación lee el encabezado `x-forwarded-for` y lo pasa como `clientAddress`. Este valor está disponible para el usuario como `Astro.clientAddress`.
+
+```js "clientAddress"
+const clientAddress = request.headers.get("x-forwarded-for");
+const response = await app.render(request, { clientAddress });
+```
+
+###### `locals`
+
+El [objeto `context.locals`](/es/reference/api-reference/#contextlocals) se usa para almacenar y acceder a la información durante el ciclo de vida de una solicitud.
+
+El ejemplo a continuación lee un encabezado llamado `x-private-header`, intenta analizarlo como un objeto y pasarlo a `locals`, que luego se puede pasar a cualquier [función middleware](/es/guides/middleware/).
+
+```js "locals"
 const privateHeader = request.headers.get("x-private-header");
 let locals = {};
 try {
@@ -214,10 +242,23 @@ try {
         locals = JSON.parse(privateHeader);
     }
 } finally {
-    const response = await app.render(request, undefined, locals);
+    const response = await app.render(request, { locals });
 }
 ```
 
+###### `routeData`
+
+Proporciona un valor para [`routeData`](/es/reference/integrations-reference/#referencia-del-tipo-routedata) si ya conoces la ruta a renderizar. Al hacerlo, se omitirá la llamada interna a [`app.match`](#appmatchrequest) para determinar la ruta a renderizar.
+
+```js "routeData"
+const routeData = app.match(request);
+if (routeData) {
+    return app.render(request, { routeData });
+} else {
+    /* respuesta 404 específica del adaptador */
+    return new Response(..., { status: 404 });
+}
+```
 
 ##### `app.match(request)`
 
@@ -246,7 +287,7 @@ Una vez que [publiques tu adaptador a npm](https://docs.npmjs.com/cli/v8/command
 
 ## Características de Astro
 
-<Since v="3.0.0" />
+<p><Since v="3.0.0" /></p>
 
 Las características de Astro son una forma en que un adaptador le indica a Astro si puede admitir una característica, así como el nivel de soporte del adaptador para esa característica.
 

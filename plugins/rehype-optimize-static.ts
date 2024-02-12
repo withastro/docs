@@ -16,7 +16,7 @@ const headingRe = /h([0-6])/;
  * string instead, which also reduces the AST size that Rollup holds in memory.
  */
 export function rehypeOptimizeStatic(): Transformer<Root, Root> {
-	return (tree) => {
+	return (tree: Node) => {
 		// All possible elements that could be the root of a subtree
 		const allPossibleElements = new Set<Node>();
 		// The current collapsible element stack while traversing the tree

@@ -1,0 +1,727 @@
+---
+title: View Transitions
+description: >-
+  view transitions를 통해 Astro의 페이지 간 원활한 탐색이 가능해집니다.
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+Astro는 단 몇 줄의 코드만으로 **선택적, 페이지별, view transitions**을 지원합니다. view transitions는 브라우저의 일반적인 전체 페이지 탐색 새로 고침 없이 페이지 콘텐츠를 업데이트하고 페이지 간 원활한 애니메이션을 제공합니다.
+
+Astro는 다른 페이지로 이동할 때 페이지 전환을 제어하기 위해 단일 페이지의 `<head>`에 추가할 수 있는 `<ViewTransitions />` 라우팅 컴포넌트를 제공합니다. 이는 [탐색을 가로채](#클라이언트-측-탐색-프로세스) 페이지 간 전환을 사용자 정의할 수 있는 경량 클라이언트 측 라우터를 제공합니다.
+
+[전체 사이트에서 애니메이션 페이지 전환 (SPA 모드)](#전체-사이트-view-transitions-spa-모드)을 위해 공통 헤드 또는 레이아웃과 같은 재사용 가능한 `.astro` 컴포넌트에 이 컴포넌트를 추가하세요.
+
+Astro의 view transitions 지원은 새로운 [View Transitions](https://developer.chrome.com/docs/web-platform/view-transitions/) 브라우저 API에 의해 구동되며 다음도 포함됩니다.
+
+- `fade`, `slide`, `none`과 같은 몇 가지 [내장 애니메이션 옵션](#내장-애니메이션-지시어)
+- 앞으로 및 뒤로 진행되는 탐색 애니메이션
+- [전환 애니메이션의 모든 측면을 사용자 정의](#애니메이션-사용자-정의)하고 자신만의 애니메이션을 구축할 수 있는 기능
+- [페이지가 아닌 링크에 대한 클라이언트 측 탐색 방지](#클라이언트-측-탐색-방지) 옵션
+- 아직 View Transition API를 지원하지 않는 브라우저의 경우 [대체 동작 제어](#대체-제어)
+- [`prefers-reduced-motion`](#prefers-reduced-motion) 자동 지원
+
+:::note
+기본적으로 모든 페이지는 일반 전체 페이지 브라우저 탐색을 사용합니다. view transitions를 선택해야 하며 페이지별로 또는 사이트 전체에서 이를 사용할 수 있습니다.
+:::
+
+## 페이지에 View Transitions 추가
+
+원하는 모든 페이지의 `<head>`에 `<ViewTransitions />` 라우팅 컴포넌트를 가져와 추가하여 개별 페이지에서 view transitions를 사용하도록 선택합니다.
+
+```astro title="src/pages/index.astro" ins={2,7}
+---
+import { ViewTransitions } from 'astro:transitions';
+---
+<html lang="ko">
+  <head>
+    <title>내 홈페이지</title>
+    <ViewTransitions />
+  </head>
+  <body>
+    <h1>나의 웹사이트에 오신 것을 환영합니다!</h1>
+  </body>
+</html>
+```
+
+## 전체 사이트 view transitions (SPA 모드)
+
+`<ViewTransitions />` 컴포넌트를 가져와서 공통 `<head>` 또는 공유 레이아웃 컴포넌트에 추가합니다. Astro는 이전 페이지와 새 페이지 간 유사성을 기반으로 기본 페이지 애니메이션을 생성하고 지원되지 않는 브라우저에 대한 대체 동작도 제공합니다.
+
+아래 예시에서는 이 컴포넌트를 `<CommonHead />` Astro 컴포넌트에 가져와 추가하여 지원되지 않는 브라우저에 대한 기본 대체 제어 옵션을 포함하여 Astro의 기본 페이지 탐색 애니메이션을 사이트 전체에 추가하는 방법을 보여줍니다.
+
+```astro title="components/CommonHead.astro" ins={2,12}
+---
+import { ViewTransitions } from 'astro:transitions';
+---
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<meta name="generator" content={Astro.generator} />
+
+<!-- 기본 메타 태그 -->
+<title>{title}</title>
+<meta name="title" content={title} />
+<meta name="description" content={description} />
+
+<ViewTransitions />
+```
+
+Astro의 기본 클라이언트 측 탐색을 활성화하는 데 다른 구성은 필요하지 않습니다!
+
+더 세밀하게 제어하려면 개별 요소에 [전환 지시어](#전환-지시어) 또는 [기본 클라이언트 측 탐색 재정의](#클라이언트-측-탐색-방지)를 사용하세요.
+
+## 전환 지시어
+
+Astro는 이전 페이지와 새 페이지 모두에서 발견된 해당 요소에 공유된 고유한 `view-transition-name`을 자동으로 할당합니다. 이 일치하는 요소 쌍은 요소 타입과 DOM에서의 해당 위치에 의해 추론됩니다.
+
+탐색 중 페이지 전환 동작을 보다 세밀하게 제어하려면 `.astro` 컴포넌트의 페이지 요소에 선택적 `transition:*` 지시어를 사용하세요.
+
+- `transition:name`: 이전/새 콘텐츠 애니메이션에 대해 일치하는 Astro의 기본 요소를 재정의하고 [전환 이름 지정](#전환-이름-지정)을 통해 DOM 요소 쌍을 연결할 수 있습니다.
+- `transition:animate`: 애니메이션 타입을 지정하여 이전 요소를 새 요소로 바꾸는 동안 Astro의 기본 애니메이션을 재정의할 수 있습니다. Astro의 [내장 애니메이션 지시어](#내장-애니메이션-지시어) 또는 [맞춤 전환 애니메이션 생성](#애니메이션-사용자-정의)을 사용하세요.
+- `transition:persist`: Astro의 기본 요소를 새 요소로 대체하고 대신 다른 페이지로 이동할 때 [컴포넌트 및 HTML 요소를 유지](#상태-유지)할 수 있습니다.
+
+### 전환 이름 지정
+
+어떤 경우에는 해당 view transition 요소를 직접 식별하고 싶거나 식별해야 할 수도 있습니다. `transition:name` 지시어을 사용하여 요소 쌍의 이름을 지정할 수 있습니다.
+
+```astro title="old-page.astro"
+<aside transition:name="hero">
+```
+
+```astro title="new-page.astro"
+<aside transition:name="hero">
+```
+
+제공된 `transition:name` 값은 각 페이지에서 한 번만 사용할 수 있습니다. Astro가 적절한 이름을 유추할 수 없거나 일치하는 요소를 보다 세밀하게 제어하려면 이를 수동으로 설정하십시오.
+
+### 상태 유지
+
+<p><Since v="2.10.0" /></p>
+
+`transition:persist` 지시어를 사용하면 페이지 탐색 전반에 걸쳐 컴포넌트와 HTML 요소를 교체하는 대신 유지할 수 있습니다.
+
+예를 들어, 동일한 비디오 요소가 포함된 다른 페이지로 이동하면 다음 `<video>`가 계속 재생됩니다. 이는 앞으로 및 뒤로 진행되는 탐색 모두에 적용됩니다.
+
+```astro title="components/Video.astro" "transition:persist"
+<video controls="" autoplay="" transition:persist>
+	<source src="https://ia804502.us.archive.org/33/items/GoldenGa1939_3/GoldenGa1939_3_512kb.mp4" type="video/mp4">
+</video>
+```
+
+[Astro 아일랜드](/ko/concepts/islands/) ([`client:` 지시어가 있는 UI 프레임워크 컴포넌트](/ko/reference/directives-reference/#클라이언트-지시어)에 지시어를 배치할 수도 있습니다. ). 해당 컴포넌트가 다음 페이지에 있는 경우 새 페이지의 아일랜드로 바꾸는 대신 이전 페이지의 아일랜드가 **현재 상태**로 계속 표시됩니다.
+
+아래 예시에서는 `transition:persist` 속성이 있는 `<Counter />` 컴포넌트가 포함된 페이지를 앞뒤로 탐색할 때 `count`가 재설정되지 않습니다.
+
+```astro title="components/Header.astro" "transition:persist"
+<Counter client:load transition:persist count={5} />
+```
+
+아일랜드/요소가 두 페이지 사이의 다른 컴포넌트에 있는 경우 [해당 요소를 수동으로 식별](#전환-이름-지정)할 수도 있습니다.
+
+```astro title="pages/old-page.astro" "Video" 'transition:name="media-player"'
+<Video controls="" autoplay="" transition:name="media-player" transition:persist />
+```
+
+```astro title="pages/new-page.astro" "MyVideo" 'transition:name="media-player"'
+<MyVideo controls="" autoplay="" transition:name="media-player" transition:persist />
+```
+
+편리한 약어로 `transition:persist`는 전환 이름을 값으로 사용할 수도 있습니다.
+
+```astro title="pages/index.astro" '="media-player"'
+<video controls="" autoplay="" transition:persist="media-player">
+```
+
+### 내장 애니메이션 지시어
+
+Astro에는 기본 `fade` 전환을 재정의하기 위한 몇 가지 내장 애니메이션이 함께 제공됩니다. 특정 전환의 동작을 맞춤설정하려면 개별 요소에 `transition:animate` 지시어을 추가하세요.
+
+- `fade` (기본값): 독선적인 크로스페이드 애니메이션. 이전 콘텐츠는 페이드 아웃되고 새 콘텐츠는 페이드 인됩니다.
+- `initial`: Astro의 독창적인 크로스페이드 애니메이션을 선택 해제하고 브라우저의 기본 스타일을 사용합니다.
+- `slide`: 이전 콘텐츠가 왼쪽으로 슬라이드되고 새 콘텐츠가 오른쪽에서 슬라이드되는 애니메이션입니다. 뒤로 진행되는 탐색에서는 애니메이션이 반대입니다.
+- `none`: 브라우저의 기본 애니메이션을 비활성화합니다. 페이지의 `<html>` 요소에 사용하면 페이지의 모든 요소에 대한 기본 페이드를 비활성화할 수 있습니다.
+
+페이지 애니메이션을 완벽하게 제어하려면 지시어를 결합하세요. `<html>` 요소에 페이지 기본값을 설정하고 원하는 대로 개별 요소를 재정의합니다.
+
+아래 예시에서는 페이지의 나머지 부분에 대해 브라우저의 기본 페이드 애니메이션을 비활성화하면서 본문 내용에 대한 슬라이드 애니메이션을 생성합니다.
+
+```astro
+---
+import { CommonHead } from '../components/CommonHead.astro';
+---
+
+<html transition:animate="none">
+  <head>
+    <CommonHead />
+  </head>
+  <body>
+    <header>
+      ...
+    </header>
+    <!-- 단일 요소에서 페이지 기본값을 재정의합니다. -->
+    <main transition:animate="slide">
+      ...
+    </main>
+  </body>
+</html>
+```
+
+### 애니메이션 사용자 정의
+
+CSS 애니메이션 속성을 사용하여 전환의 모든 측면을 사용자 정의할 수 있습니다.
+
+내장 애니메이션을 맞춤설정하려면 먼저 `astro:transitions`에서 애니메이션을 가져온 다음 맞춤설정 옵션을 전달하세요.
+
+아래 예시에서는 내장된 `fade` 애니메이션의 지속 시간을 맞춤설정합니다.
+
+```astro
+---
+import { fade } from 'astro:transitions';
+---
+
+<header transition:animate={fade({ duration: '0.4s' })}>
+```
+
+또한 다음 타입에 따라 새 페이지와 이전 페이지는 물론 앞으로 및 뒤로 진행되는 동작을 정의하여 `transition:animate`와 함께 사용할 고유한 애니메이션을 정의할 수도 있습니다.
+
+```ts
+export interface TransitionAnimation {
+  name: string; // 키프레임의 이름
+  delay?: number | string;
+  duration?: number | string;
+  easing?: string;
+	fillMode?: string;
+	direction?: string;
+}
+
+export interface TransitionAnimationPair {
+	old: TransitionAnimation | TransitionAnimation[];
+	new: TransitionAnimation | TransitionAnimation[];
+}
+
+export interface TransitionDirectionalAnimations {
+	forwards: TransitionAnimationPair;
+	backwards: TransitionAnimationPair;
+}
+```
+
+다음 예시에서는 맞춤 `fade` 애니메이션을 정의하는 데 필요한 모든 속성을 보여줍니다.
+
+```astro
+---
+const anim = {
+  old: {
+    name: 'fadeIn',
+    duration: '0.2s',
+    easing: 'linear',
+    fillMode: 'forwards',
+  },
+  new: {
+    name: 'fadeOut',
+    duration: '0.3s',
+    easing: 'linear',
+    fillMode: 'backwards',
+  }
+};
+
+const myFade = {
+	forwards: anim,
+	backwards: anim,
+};
+---
+
+<header transition:animate={myFade}> ... </header>
+```
+
+## 라우터 제어
+
+`<ViewTransitions />` 라우터는 다음을 수신하여 탐색을 처리합니다.
+
+- `<a>` 요소를 클릭
+- 뒤로 및 앞으로 진행되는 탐색 이벤트
+
+다음 옵션을 사용하면 라우터 내에서 탐색이 발생할 때 추가 제어가 가능합니다.
+
+- `data-astro-reload`: [전체 페이지 탐색 강제](#클라이언트-측-탐색-방지)를 위한 `<a>` 태그 속성
+- `data-astro-history="auto | push | replace"`: [브라우저 기록 제어](#브라우저-기록의-항목-바꾸기)를 위한 `<a>` 태그 속성
+- `navigate(href, options)`: 모든 클라이언트 스크립트 또는 클라이언트 컴포넌트에서 [탐색을 트리거](#트리거-탐색)하는 데 사용할 수 있는 메서드
+
+### 클라이언트 측 탐색 방지
+
+전체 페이지를 다시 불러오는 것을 방지하기 위해 관련된 두 페이지 모두 `<ViewTransitions />` 라우터를 사용해야 하기 때문에 클라이언트 측 라우팅을 통해 탐색할 수 없는 경우가 있습니다. 탐색이 변경될 때마다 클라이언트 측 라우팅을 원하지 않을 수도 있으며 대신 선택 경로에서 기존 페이지 탐색을 선호할 수도 있습니다.
+
+`<a>` 또는 `<form>` 태그에 `data-astro-reload` 속성을 추가하여 링크별로 클라이언트 측 라우팅을 선택 해제할 수 있습니다. 이 속성은 기존 `<ViewTransitions />` 컴포넌트를 재정의하고 대신 탐색 중 브라우저 새로 고침을 트리거합니다.
+
+다음 예시에서는 홈페이지에서만 아티클로 이동할 때 클라이언트 측 라우팅을 방지하는 방법을 보여줍니다. 이를 통해 아티클 목록 페이지에서 동일한 페이지로 이동할 때 히어로 이미지와 같은 공유 요소에 애니메이션을 적용할 수 있습니다.
+
+```astro title="src/pages/index.astro"
+<a href="/articles/emperor-penguins" data-astro-reload>
+```
+
+```astro title="src/pages/articles.astro"
+<a href="/articles/emperor-penguins">
+```
+
+`data-astro-reload` 속성이 있는 링크는 라우터에서 무시되며 전체 페이지 탐색이 발생합니다.
+
+### 트리거 탐색
+
+또한 `navigate`를 사용하여 `<ViewTransitions />` 라우터가 일반적으로 수신하지 않는 이벤트를 통해 클라이언트 측 탐색을 트리거할 수도 있습니다. `astro:transitions/client` 모듈의 이 함수는 스크립트 및 [클라이언트 지시어](/ko/reference/directives-reference/#클라이언트-지시어)으로 수화되는 프레임워크 컴포넌트에서 사용할 수 있습니다.
+
+다음 예시는 방문자가 메뉴에서 선택한 다른 페이지로 이동하는 Astro 컴포넌트를 보여줍니다.
+
+```astro title="src/components/form.astro"
+<script>
+    import { navigate } from 'astro:transitions/client';
+
+    // 선택한 옵션으로 자동으로 이동합니다.
+    document.querySelector('select').onchange = (ev) => {
+        let href = ev.target.value;
+        navigate(href);
+    };
+</script>
+<select>
+    <option value="/play">시작</option>
+    <option value="/blog">블로그</option>
+    <option value="/about">소개</option>
+    <option value="/contact">연락처</option>
+</select>
+```
+```astro title="src/pages/index.astro"
+---
+import Form from "../components/form.astro";
+import { ViewTransitions } from "astro:transitions";
+---
+<html>
+	<head>
+		<ViewTransitions />
+	</head>
+	<body>
+		<Form />
+	</body>
+</html>
+```
+
+다음 예시는 React `<Form />` 컴포넌트에서 `navigate()`를 사용하여 동일한 것을 구현합니다.
+
+```js title="src/components/form.jsx"
+import React from 'react';
+import { navigate } from 'astro:transitions/client';
+
+export default function Form() {
+  return <select onChange={(ev) => navigate(e.target.value)}>
+    <option value="/play">시작</option>
+    <option value="/blog">블로그</option>
+    <option value="/about">소개</option>
+    <option value="/contact">연락처</option>
+  </select>;
+}
+```
+
+그런 다음 `<Form />` 컴포넌트는 `<ViewTransitions />` 라우터를 사용하는 Astro 페이지에서 클라이언트 지시어와 함께 렌더링될 수 있습니다.
+
+```astro title="src/pages/index.astro"
+---
+import Form from "../components/form.jsx";
+import { ViewTransitions } from "astro:transitions";
+---
+<html>
+	<head>
+		<ViewTransitions />
+	</head>
+	<body>
+		<Form client:load />
+	</body>
+</html>
+```
+
+`navigate` 메소드는 다음 인수를 사용합니다:
+
+- `href` (필수) - 탐색할 새 페이지입니다.
+- `options` - 다음 속성을 가진 선택적 객체:
+	- `history`: `'push'` | `'replace'` | `'auto'`
+		- `'push'`: 라우터는 `history.pushState`를 사용하여 브라우저 기록에 새 항목을 만듭니다.
+    - `'replace'`: 라우터는 탐색에 새 항목을 추가하지 않고 `history.replaceState`를 사용하여 URL을 업데이트합니다.
+    - `'auto'` (기본값): 라우터는 `history.pushState`를 시도하지만, URL이 전환될 수 있는 URL이 아닌 경우, 현재 URL은 브라우저 기록에 변경 사항 없이 그대로 유지됩니다.
+  - `formData`: `POST` 요청을 위한 FormData 객체입니다.
+
+브라우저 기록을 통한 뒤로 및 앞으로 진행되는 탐색의 경우, `navigate()`를 브라우저의 내장 `history.back()`, `history.forward()`, `history.go()` 함수와 결합할 수 있습니다. 컴포넌트의 서버 측 렌더링 중 `navigate()`가 호출되면 아무런 효과가 없습니다.
+
+### 브라우저 기록의 항목 바꾸기
+
+일반적으로 탐색할 때마다 브라우저 기록에 새 항목이 기록됩니다. 이를 통해 브라우저의 `뒤로` 및 `앞으로` 버튼을 사용하여 페이지 간 탐색이 가능해졌습니다.
+
+`<ViewTransitions />` 라우터를 사용하면 개별 `<a>` 태그에 `data-astro-history` 속성을 추가하여 기록 항목을 덮어쓸 수 있습니다.
+
+`data-astro-history` 속성은 [`navigate()` 함수의 `history` 옵션](#트리거-탐색)과 동일한 세 가지 값으로 설정할 수 있습니다.
+
+`data-astro-history`: `'push'` | `'replace'` | `'auto'`
+- `'push'`: 라우터는 `history.pushState`를 사용하여 브라우저 기록에 새 항목을 만듭니다.
+- `'replace'`: 라우터는 탐색에 새 항목을 추가하지 않고 `history.replaceState`를 사용하여 URL을 업데이트합니다.
+- `'auto'` (기본값): 라우터는 `history.pushState`를 시도하지만 URL이 전환될 수 있는 URL이 아닌 경우 현재 URL은 브라우저 기록에 변경 사항 없이 그대로 유지됩니다.
+
+다음 예시에서는 `/main` 페이지로 이동하지만 검색 기록에 새 항목을 추가하지 않습니다. 대신 기록의 현재 항목 (`/confirmation`)을 재사용하고 덮어씁니다.
+
+```astro title="/confirmation.astro"
+<a href="/main" data-astro-history="replace">
+```
+
+이는 `/main` 페이지에서 뒤로 돌아가면 브라우저에 `/confirmation` 페이지가 표시되지 않고 그 이전 페이지가 표시되는 효과가 있습니다.
+
+### 폼을 사용한 전환
+
+<p><Since v="4.0.0" /></p>
+
+`<ViewTransitions />` 라우터는 `GET` 및 `POST` 요청을 모두 지원하는 `<form>` 요소에서 페이지 내 전환을 트리거합니다.
+
+기본적으로 이 동작을 방지하기 위해 `event.preventDefault()`를 사용하는 경우에도 폼이 제출된 후 페이지가 전환됩니다.
+
+기본적으로 Astro는 `method`가 `POST`로 설정된 경우, 폼 데이터를 `multipart/form-data`로 제출합니다. 웹 브라우저의 기본 동작과 일치시키려면 `enctype` 속성을 사용하여 `application/x-www-form-urlencoded`로 인코딩된 데이터를 제출하세요.
+
+```astro title="src/components/Form.astro"
+<form action="/contact" method="POST" enctype="application/x-www-form-urlencoded">
+  <!-- -->
+</form>
+```
+
+`data-astro-reload` 속성을 사용하여 개별 폼에서 라우터 전환을 선택 해제할 수 있습니다.
+
+```astro title="src/components/Form.astro"
+<form action="/contact" data-astro-reload>
+  <!-- -->
+</form>
+```
+
+## 대체 제어
+
+`<ViewTransitions />` 라우터는 view transitions를 지원하는 브라우저 (예: Chromium 브라우저)에서 가장 잘 작동하지만 다른 브라우저를 위한 기본 대체 지원도 포함합니다. 브라우저가 View Transitions API를 지원하지 않더라도 Astro는 비슷한 경험을 위해 대체 옵션 중 하나를 사용하여 브라우저 내 탐색을 계속 제공합니다.
+
+`<ViewTransitions />` 컴포넌트에 `fallback` 속성을 추가하고 이를 `swap` 또는 `none`으로 설정하여 Astro의 기본 대체 지원을 재정의할 수 있습니다.
+
+- `animate` (기본값, 권장) - Astro는 페이지 콘텐츠를 업데이트하기 전에 사용자 정의 속성을 사용하여 view transitions를 시뮬레이션합니다.
+- `swap` - Astro는 페이지에 애니메이션을 적용하려고 시도하지 않습니다. 대신 이전 페이지가 즉시 새 페이지로 대체됩니다.
+- `none` - Astro는 애니메이션 페이지 전환을 전혀 수행하지 않습니다. 대신 지원되지 않는 브라우저에서는 전체 페이지 탐색이 가능합니다.
+
+```astro
+---
+import { ViewTransitions } from 'astro:transitions';
+---
+<title>내 사이트</title>
+
+<ViewTransitions fallback="swap">
+```
+
+:::note[알려진 제한사항]
+`initial` 브라우저 애니메이션은 Astro에서 시뮬레이션되지 않습니다. 따라서 이 애니메이션을 사용하는 모든 요소는 현재 애니메이션되지 않습니다.
+:::
+
+## 클라이언트 측 탐색 프로세스
+
+`<ViewTransitions />` 라우터를 사용할 때, Astro의 클라이언트 측 탐색을 생성하기 위해 다음 단계가 발생합니다.
+
+1. 사이트 방문자는 다음 작업 중 하나를 통해 탐색을 시작합니다.
+    - 내부적으로 사이트의 다른 페이지로 연결되는 `<a>` 태그를 클릭합니다.
+    - 뒤로 버튼을 클릭합니다.
+    - 앞으로 버튼을 클릭합니다.
+2. 라우터는 다음 페이지를 가져오기 시작합니다.
+3. 라우터는 적절하게 `'forward'` 또는 `'back'` 값을 사용하여 HTML 요소에 `data-astro-transition` 속성을 추가합니다.
+4. 라우터는 `document.startViewTransition`을 호출합니다. 이는 브라우저 자체의 [view transition 프로세스](https://developer.mozilla.org/ko/docs/Web/API/View_Transitions_API#%EB%B7%B0_%EC%A0%84%ED%99%98_%ED%94%84%EB%A1%9C%EC%84%B8%EC%8A%A4)를 트리거합니다. 중요한 것은 브라우저가 페이지의 현재 상태를 스크린샷으로 캡처한다는 것입니다.
+5. `startViewTransition` 콜백 내에서 라우터는 다음과 같은 일련의 이벤트로 구성된 __swap__ 을 수행합니다.
+    
+    - `<head>`의 내용이 교체되고 일부 요소는 그대로 유지됩니다.
+        - FOUC를 방지하기 위해 스타일시트 DOM 노드가 새 페이지에 존재하는 경우 그대로 유지됩니다.
+        - 새 페이지에 스크립트가 존재하는 경우 스크립트는 그대로 유지됩니다.
+        - 새 페이지에 해당 요소가 있는 경우 `transition:persist`가 있는 다른 헤드 요소는 그대로 유지됩니다.
+    
+    - `<body>`는 새 페이지의 본문으로 완전히 대체됩니다.
+    
+    - `transition:persist`라고 표시된 요소가 새 페이지에 존재하는 경우 새 DOM으로 이동됩니다.
+    
+    - 필요한 경우 스크롤 위치가 복원됩니다.
+    
+    - `astro:after-swap` 이벤트는 `document`에서 트리거됩니다. 이것이 __swap__ 프로세스의 끝입니다.
+
+6. 라우터는 전환을 해결하기 전에 새로운 스타일시트가 로드될 때까지 기다립니다.
+7. 라우터는 페이지에 추가된 새 스크립트를 실행합니다.
+8. `astro:page-load` 이벤트가 발생합니다. 이것이 탐색 프로세스의 끝입니다.
+
+## 페이지 탐색 중 스크립트 동작
+
+`<ViewTransitions />` 컴포넌트가 있는 페이지를 탐색할 때 스크립트는 브라우저 동작과 일치하는 순서대로 실행됩니다.
+
+전역 상태를 설정하는 코드가 있는 경우 이 상태는 스크립트가 두 번 이상 실행될 수 있다는 점을 고려해야 합니다. `<script>` 태그에서 전역 상태를 확인하고 가능한 경우 조건부로 코드를 실행합니다.
+
+```astro
+<script is:inline>
+  if(!window.SomeGlobal) {
+    window.SomeGlobal = {} // ....
+  }
+</script>
+```
+
+`DOMContentLoaded`에 대한 이벤트 리스너를 추가하는 스크립트를 포함한 모듈 스크립트는 브라우저가 이미 로드된 모듈을 추적하기 때문에 한 번만 실행됩니다. 클라이언트 측 페이지 탐색 중 스크립트를 다시 실행하려면 [수명 주기 이벤트](#수명-주기-이벤트)에 대한 리스너를 추가해야 합니다.
+
+프로젝트의 기존 스크립트를 업데이트하는 예시는 [View Transitions 추가 튜토리얼](/ko/tutorials/add-view-transitions/#스크립트-업데이트)을 참조하세요.
+
+## 수명 주기 이벤트
+
+`<ViewTransition />` 라우터는 탐색 중 `document`에 여러 이벤트를 발생시킵니다. 이러한 이벤트는 탐색 수명 주기에 후크를 제공하여 새 페이지가 로드 중이라는 내용을 표시하고, 기본 동작을 재정의하고, 탐색이 완료되면 상태를 복원하는 등의 작업을 수행할 수 있도록 합니다.
+
+탐색 프로세스에는 새 콘텐츠가 로드되는 **준비** 단계가 포함됩니다. 이전 페이지의 콘텐츠가 새 페이지의 콘텐츠로 대체되는 **DOM swap** 단계; 스크립트가 실행되고 로딩이 완료된 것으로 보고되며 정리 작업이 수행되는 **완료** 단계입니다.
+
+Astro의 View Transition API 수명 주기 이벤트는 다음과 같습니다.
+- [`astro:before-preparation`](#astrobefore-preparation)
+- [`astro:after-preparation`](#astroafter-preparation)
+- [`astro:before-swap`](#astrobefore-swap)
+- [`astro:after-swap`](#astroafter-swap)
+- [`astro:page-load`](#astropage-load)
+
+:::tip
+`before-` 이벤트를 사용하면 곧 발생할 작업에 영향을 미치고 수정할 수 있으며, `after-` 이벤트는 단계가 완료되었음을 알리는 알림입니다.
+:::
+
+일부 작업은 모든 이벤트 중에 트리거될 수 있지만 일부 작업은 준비 전에 로딩 스피너를 표시하거나 콘텐츠를 교체하기 전에 애니메이션 쌍을 재정의하는 등 최상의 결과를 위해 특정 이벤트 중에만 수행할 수 있습니다.
+
+### `astro:before-preparation`
+
+<p><Since v="3.6.0" /></p>
+
+탐색이 시작된 후 (예: 사용자가 링크를 클릭한 후), 콘텐츠가 로드되기 전인 준비 단계가 시작될 때 발생하는 이벤트입니다.
+
+이 이벤트는 다음과 같이 사용됩니다.
+
+- 로딩 스피너 표시 등 로딩이 시작되기 전에 작업을 수행하기 위해
+- 외부 URL이 아닌 템플릿에 정의한 콘텐츠를 로드하는 등 로드를 변경하기 위해
+- 사용자 지정 애니메이션에 대한 탐색의 `direction` (일반적으로 `forward` 또는 `backward`)을 변경하기 위해
+
+다음은 `astro:before-preparation` 이벤트를 사용하여 콘텐츠가 로드되기 전에 스피너를 로드하고 로드 후 즉시 중지하는 예입니다. 이런 방식으로 로더 콜백을 사용하면 코드의 비동기 실행이 가능해집니다.
+
+```js
+<script is:inline>
+  document.addEventListener('astro:before-preparation', ev => {
+    const originalLoader = ev.loader;
+    ev.loader = async function() {
+      const { startSpinner } = await import('./spinner.js');
+      const stop = startSpinner();
+      await originalLoader();
+      stop();
+    };
+  });
+</script>
+```
+
+### `astro:after-preparation`
+
+<p><Since v="3.6.0" /></p>
+
+새 페이지의 콘텐츠가 로드되어 문서로 구문 분석된 후 준비 단계가 끝날 때 발생하는 이벤트입니다. 이 이벤트는 view transitions 단계 전에 발생합니다.
+
+이 예시에서는 `astro:before-preparation` 이벤트를 사용하여 로딩 표시기를 시작하고 `astro:after-preparation` 이벤트를 사용하여 중지합니다.
+
+```astro
+<script is:inline>
+  document.addEventListener('astro:before-preparation', () => {
+    document.querySelector('#loading').classList.add('show');
+  });
+  document.addEventListener('astro:after-preparation', () => {
+    document.querySelector('#loading').classList.remove('show');
+  });
+</script>
+```
+
+이는 위에 표시된 예시보다 스피너를 로드하는 간단한 버전입니다. 모든 리스너의 코드가 동기적으로 실행될 수 있으면 로더의 콜백에 연결할 필요가 없습니다.
+
+### `astro:before-swap`
+
+<p><Since v="3.6.0" /></p>
+
+새 문서 (준비 단계에서 채워짐)가 현재 문서를 대체하기 전에 발생하는 이벤트입니다. 이 이벤트는 사용자가 이전 페이지의 스냅샷을 계속 보고 있는 view transition 내에서 발생합니다.
+
+이 이벤트는 스왑이 발생하기 전에 변경하는 데 사용될 수 있습니다. 이벤트의 `newDocument` 속성은 수신 문서를 나타냅니다. 다음은 `localStorage`에 있는 브라우저의 밝은 모드 또는 어두운 모드 기본 설정이 새 페이지로 전달되는지 확인하는 예시입니다.
+
+```astro
+<script is:inline>
+  function setDarkMode(document) {
+    let theme = localStorage.darkMode ? 'dark' : 'light';
+    document.documentElement.dataset.theme = theme;
+  }
+
+  setDarkMode(document);
+
+  document.addEventListener('astro:before-swap', ev => {
+    // 수신 문서를 전달하여 테마를 설정하세요.
+    setDarkMode(ev.newDocument);
+  });
+</script>
+```
+
+`astro:before-swap` 이벤트를 사용하여 스왑의 *구현*을 변경할 수도 있습니다. 기본 스왑 구현은 헤드 콘텐츠를 비교하고, 이전 문서의 __유지되는__ 요소를 `newDocument`로 이동한 다음 전체 `body`를 새 문서의 본문으로 바꿉니다.
+
+수명 주기의 이 시점에서, 예를 들어 기존 문서의 전체 내용을 비교하기 위해 고유한 스왑 구현을 정의하도록 선택할 수 있습니다 (일부 다른 라우터가 수행하는 작업).
+
+```astro
+<script is:inline>
+  document.addEventListener('astro:before-swap', ev => {
+    ev.swap = () => {
+      diff(document, ev.newDocument);
+    };
+  });
+</script>
+```
+
+### `astro:after-swap`
+
+새 페이지가 이전 페이지를 대체한 직후에 발생하는 이벤트입니다. `document`에서 이 이벤트를 수신할 수 있으며 새 페이지의 DOM 요소가 렌더링되고 스크립트가 실행되기 전에 발생할 작업을 트리거할 수 있습니다.
+
+**나가는 페이지**에서 수신되는 이 이벤트는 새 페이지로 전송해야 하는 DOM의 모든 상태를 전달하고 복원하는 데 유용합니다.
+
+이전 이벤트에서는 다크 모드 클래스 이름을 추가할 수 있지만 (`<html class="dark-mode">`), 이는 라이프사이클에서 여전히 안전한 최신 지점입니다.
+
+`astro:after-swap` 이벤트는 브라우저 기록이 업데이트되고 스크롤 위치가 설정된 직후에 발생합니다.
+따라서 이 이벤트를 대상으로 하는 한 가지 용도는 기록 탐색에 대한 기본 스크롤 복원을 재정의하는 것입니다. 다음 예에서는 각 탐색에 대해 가로 및 세로 스크롤 위치를 페이지의 왼쪽 상단으로 재설정합니다.
+
+```js
+document.addEventListener('astro:after-swap', 
+  () => window.scrollTo({ left: 0, top: 0, behavior: 'instant' });
+)
+```
+
+### `astro:page-load`
+
+새 페이지가 사용자에게 표시되고 차단 스타일과 스크립트가 로드된 후 페이지 탐색이 끝날 때 실행되는 이벤트입니다. 본 이벤트는 `document`에서 수신할 수 있습니다.
+
+`<ViewTransitions />` 컴포넌트는 사전 렌더링된 페이지의 초기 페이지 탐색과 앞으로 또는 뒤로 진행되는 후속 탐색 모두에서 이 이벤트를 실행합니다.
+
+이 이벤트를 사용하여 모든 페이지 탐색에서 코드를 실행하거나 한 번만 실행할 수 있습니다.
+
+```astro "{ once: true }"
+<script>
+  document.addEventListener('astro:page-load', () => {
+    // 이것은 한 번만 실행됩니다.
+    setupStuff();
+  }, { once: true });
+</script>
+```
+
+## 접근성
+
+클라이언트 측 라우팅을 활성화하고 페이지 전환 애니메이션을 적용하는 데에는 접근성 문제가 발생하며 Astro는 View Transitions을 선택하는 사이트를 가능한 한 기본적으로 액세스 가능하게 만드는 것을 목표로 합니다.
+
+### 경로 안내
+
+<p><Since v="3.2.0" /></p>
+
+`<ViewTransitions />` 컴포넌트에는 클라이언트 측 라우팅 중 페이지 탐색을 위한 경로 안내가 포함되어 있습니다. 이를 활성화하기 위해 구성이나 작업이 필요하지 않습니다.
+
+보조 기술은 탐색 후 새 페이지 제목을 알려줌으로써 방문자에게 페이지가 변경되었음을 알려줍니다. 기존의 전체 페이지 브라우저 새로 고침과 함께 서버 측 라우팅을 사용하는 경우, 이는 기본적으로 새 페이지가 로드된 후에 발생합니다. 클라이언트 측 라우팅에서는 `<ViewTransitions />` 컴포넌트가 이 작업을 수행합니다.
+
+클라이언트 측 라우팅에 경로 알림을 추가하기 위해 컴포넌트는 `aria-live` 속성이 `assertive`로 설정된 새 페이지에 요소를 추가합니다. 이는 AT (보조 기술)에 즉시 알리도록 지시합니다. 또한 컴포넌트는 안내 텍스트를 결정하기 위해 우선순위에 따라 다음 사항을 확인합니다.
+
+- `<title>` (존재하는 경우)
+- 첫 번째 `<h1>`
+- 페이지의 `pathname`
+
+접근성을 위해 각 페이지에 항상 `<title>`을 포함하는 것이 좋습니다.
+
+### `prefers-reduced-motion`
+
+Astro의 `<ViewTransitions />` 컴포넌트에는 [`prefer-reduced-motion`](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion) 설정이 감지될 때마다 대체 애니메이션을 포함한 *모든* view transition 애니메이션을 비활성화하는 CSS 미디어 쿼리가 포함되어 있습니다. 대신 브라우저는 애니메이션 없이 DOM 요소를 간단히 교체합니다.
+
+## v2.x에서 v3.0으로 업그레이드
+
+Astro v3.0에서는 View transitions이 더 이상 실험적 플래그에 있지 않습니다.
+
+Astro 2.x에서 이 실험적 플래그를 활성화하지 **않았다**면 프로젝트에 큰 변화가 발생하지 않습니다. 새로운 View Transitions API는 기존 코드에 영향을 주지 않습니다.
+
+이전에 실험적인 view transitions을 사용했다면 Astro 프로젝트를 이전 버전에서 업그레이드할 때 몇 가지 주요 변경 사항이 있을 수 있습니다.
+
+**`experimental.viewTransitions: true`로 구성된 Astro v2.x 프로젝트**를 v3.0으로 업그레이드하려면 아래 지침을 적절하게 따르십시오.
+
+### `experimental.viewTransitions`에서 업그레이드
+
+이전에 view transitions에 대한 실험적 플래그를 활성화한 경우 이제 기본적으로 view transitions을 허용하는 Astro v3.0용으로 프로젝트를 업데이트해야 합니다.
+
+#### `experimental.viewTransitions` 플래그 제거
+
+실험적 플래그를 제거합니다.
+
+```js title="astro.config.mjs" del={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+   viewTransitions: true
+  }
+});
+```
+
+#### 가져오기 소스 업데이트
+
+`<ViewTransitions />` 컴포넌트가 `astro:components`에서 `astro:transitions`로 이동되었습니다. 프로젝트의 모든 항목에서 가져오기 소스를 업데이트합니다.
+
+```astro title="src/layouts/BaseLayout.astro" del="astro:components" ins="astro:transitions"
+---
+import { ViewTransitions } from "astro:components astro:transitions"
+---
+<html lang="ko">
+  <head>
+    <title>내 홈페이지</title>
+    <ViewTransitions />
+  </head>
+  <body>
+    <h1>내 홈페이지에 오신 것을 환영합니다!</h1>
+  </body>
+</html>
+```
+
+#### `transition:animate` 지시어 업데이트
+
+**변경됨:** `transition:animate` 값 `morph`의 이름이 `initial`로 변경되었습니다. 또한 이는 더 이상 기본 애니메이션이 아닙니다. `transition:animate` 지시어가 지정되지 않으면 이제 애니메이션이 기본적으로 `fade`로 설정됩니다.
+
+1. `morph` 애니메이션의 이름을 `initial`로 바꿉니다.
+
+    ```astro title="src/components/MyComponent.astro" del="morph" ins="initial"
+    <div transition:name="name" transition:animate="morph initial" />
+    ```
+
+2. 이전에 기본적으로 `morph`를 사용했던 애니메이션을 유지하려면 `transition:animate="initial"`을 명시적으로 추가하세요.
+
+    ```astro title="src/components/MyComponent.astro" ins='transition:animate="initial"'
+    <div transition:name="name" transition:animate="initial" />
+    ```
+3. 명시적으로 `fade`로 설정된 애니메이션은 안전하게 제거할 수 있습니다. 이제 이것이 기본 동작입니다.
+
+    ```astro title="src/components/MyComponent.astro" del="transition:animate=\"fade\""
+    <div transition:name="name" transition:animate="fade" />
+    ```
+
+**추가됨:** Astro는 새로운 `transition:animate` 값 `none`도 지원합니다. 이 값은 페이지의 `<html>` 요소에 사용되어 전체 페이지에서 전체 페이지 전환 애니메이션을 비활성화할 수 있습니다. 이는 애니메이션 지시어가 없는 페이지 요소의 **기본 애니메이션 동작**만 재정의합니다. 개별 요소에 애니메이션을 설정할 수 있으며 이러한 특정 애니메이션이 발생합니다.
+
+4. 이제 개별 페이지에서 모든 기본 전환을 비활성화하여 `transition:animate` 지시어을 명시적으로 사용하는 요소에만 애니메이션을 적용할 수 있습니다.
+
+    ```astro ins="transition:animate=\"none\""
+    <html transition:animate="none">
+      <head></head>
+      <body>
+        <h1>안녕하세요!</h1>
+      </body>
+    </html>
+    ```
+
+#### 이벤트 이름 업데이트
+
+`astro:load` 이벤트의 이름이 `astro:page-load`로 변경되었습니다. 프로젝트의 모든 항목 이름을 바꿉니다.
+
+```astro title="src/components/MyComponent.astro" del="astro:load" ins="astro:page-load"
+<script>
+document.addEventListener('astro:load astro:page-load', runSetupLogic);
+</script>
+```
+
+`astro:beforeload` 이벤트의 이름이 `astro:after-swap`으로 변경되었습니다. 프로젝트의 모든 항목 이름을 바꿉니다.
+
+```astro title="src/components/MyComponent.astro" del="astro:beforeload" ins="astro:after-swap"
+<script>
+document.addEventListener('astro:beforeload astro:after-swap', setDarkMode);
+</script>
+```

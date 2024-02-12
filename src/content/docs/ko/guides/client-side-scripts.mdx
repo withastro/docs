@@ -1,0 +1,249 @@
+---
+title: 스크립트 및 이벤트 처리
+description: >-
+  기본 브라우저 JavaScript API를 사용하여 Astro 컴포넌트에 클라이언트 측 상호 작용을 추가하는 방법.
+i18nReady: true
+---
+
+import ReadMore from '~/components/ReadMore.astro'
+
+표준 HTML `<script>` 태그를 사용하여 React, Svelte, Vue 등과 같은 [UI 프레임워크 사용](/ko/guides/framework-components/) 없이 Astro 컴포넌트에 상호작용성을 추가할 수 있습니다. 이를 통해 JavaScript를 보내 브라우저에서 실행하고 Astro 컴포넌트에 기능을 추가할 수 있습니다.
+
+## 클라이언트 측 스크립트
+
+스크립트를 사용하여 이벤트 리스너를 추가하고, 분석 데이터를 전송하고, 애니메이션을 재생하는 등 JavaScript가 웹에서 수행할 수 있는 모든 작업을 수행할 수 있습니다.
+
+```astro
+<!-- src/components/ConfettiButton.astro -->
+<button data-confetti-button>Celebrate!</button>
+
+<script>
+  // npm 모듈을 가져옵니다.
+  import confetti from 'canvas-confetti';
+
+  // 페이지에서 컴포넌트 DOM을 찾으세요.
+  const buttons = document.querySelectorAll('[data-confetti-button]');
+
+  // 버튼을 클릭하면 confetti를 실행하는 이벤트 리스너를 추가합니다.
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => confetti());
+  });
+</script>
+```
+
+기본적으로 Astro는 `<script>` 태그를 처리하고 번들링하여 npm 모듈 가져오기, TypeScript 작성 등에 대한 지원을 추가합니다.
+
+## Astro에서 `<script>` 사용하기
+
+`.astro` 파일에서 하나 이상의 `<script>` 태그를 추가하여 클라이언트측 JavaScript를 추가할 수 있습니다.
+
+이 예시에서 `<Hello />` 컴포넌트를 페이지에 추가하면 브라우저 콘솔에 메시지가 기록됩니다.
+
+```astro title="src/components/Hello.astro"
+<h1>Welcome, world!</h1>
+
+<script>
+  console.log('Welcome, browser console!');
+</script>
+```
+
+### 스크립트 처리
+
+기본적으로 `<script>` 태그는 Astro에서 처리됩니다.
+
+- 모든 가져오기가 번들로 제공되므로 로컬 파일이나 노드 모듈을 가져올 수 있습니다.
+- 처리된 스크립트는 [`type="module"`](https://developer.mozilla.org/ko/docs/Web/JavaScript/Guide/Modules)을 사용하여 페이지의 `<head>`에 삽입됩니다. .
+- TypeScript 파일 가져오기를 포함하여 TypeScript가 완벽하게 지원됩니다.
+- 컴포넌트가 한 페이지에서 여러 번 사용되는 경우 스크립트는 한 번만 포함됩니다.
+
+```astro title="src/components/Example.astro"
+<script>
+  // 처리되었습니다! 번들로 제공됩니다! TypeScript 지원!
+  // 로컬 스크립트 및 노드 모듈 가져오기가 작동합니다.
+</script>
+```
+
+`type="module"` 속성은 브라우저가 스크립트를 JavaScript 모듈로 처리하도록 합니다. 여기에는 여러 가지 성능상의 이점이 있습니다.
+- 렌더링이 차단되지 않습니다. 모듈 스크립트와 해당 종속 항목이 로드되는 동안 브라우저는 HTML의 나머지 부분을 계속 처리합니다.
+- 브라우저는 모듈 스크립트를 실행하기 전에 HTML이 처리될 때까지 기다립니다. "load" 이벤트를 수신할 필요는 없습니다.
+- `async` 및 `defer` 속성은 필요하지 않습니다. 모듈 스크립트는 항상 연기됩니다.
+
+:::note
+`async` 속성은 렌더링을 차단하는 것을 방지하므로 일반 스크립트에 유용합니다. 그러나 모듈 스크립트에는 이미 이 동작이 있습니다. 모듈 스크립트에 `async`를 추가하면 페이지가 완전히 로드되기 전에 실행됩니다. 이것은 아마도 당신이 원하는 것이 아닐 것입니다.
+:::
+
+### 처리 거부
+
+Astro가 스크립트를 처리하는 것을 방지하려면 `is:inline` 지시어를 추가하세요.
+
+```astro title="src/components/InlineScript.astro" "is:inline"
+<script is:inline>
+  // 작성된 그대로 HTML로 렌더링됩니다!
+  // 로컬 가져오기가 해결되지 않아 작동하지 않습니다.
+  // 컴포넌트에 있는 경우 해당 컴포넌트가 사용될 때마다 반복됩니다.
+</script>
+```
+
+:::note
+Astro는 어떤 상황에서는 스크립트 태그를 처리하지 않습니다. 특히, `type="module"` 또는 `src` 이외의 속성을 `<script>` 태그에 추가하면 Astro는 해당 태그를 `is:inline` 지시어가 있는 것처럼 처리하게 됩니다. 스크립트가 JSX 표현식으로 작성된 경우에도 마찬가지입니다.
+:::
+
+<ReadMore>`<script>` 태그에서 사용할 수 있는 지시어에 대한 자세한 내용은 [지시어 참조](/ko/reference/directives-reference/#스크립트--스타일-지시어) 페이지를 확인하세요.</ReadMore>
+
+### 페이지에 JavaScript 파일 포함
+
+스크립트를 별도의 `.js`/`.ts` 파일로 작성하거나 다른 서버의 외부 스크립트를 참조해야 할 수도 있습니다. `<script>` 태그의 `src` 속성에서 이를 참조하여 수행할 수 있습니다.
+
+#### 로컬 스크립트 가져오기
+
+**사용 시기:** 스크립트가 `src/` 디렉터리에 있을 때.
+
+Astro는 [스크립트 처리 규칙](#스크립트-처리)에 따라 이러한 스크립트를 페이지에 빌드, 최적화, 추가합니다.
+
+```astro title="src/components/LocalScripts.astro"
+<!-- `src/scripts/local.js`에 있는 스크립트의 상대 경로 -->
+<script src="../scripts/local.js"></script>
+
+<!-- 로컬 TypeScript 파일에서도 작동합니다. -->
+<script src="./script-with-types.ts"></script>
+```
+
+#### 외부 스크립트 로드
+
+**사용 시기:** JavaScript 파일이 `public/` 또는 CDN에 있는 경우.
+
+프로젝트의 `src/` 폴더 외부에 있는 스크립트를 로드하려면 `is:inline` 지시어를 포함하세요. 이 접근 방식은 위에서 설명한 대로 스크립트를 가져올 때 Astro에서 제공하는 JavaScript 처리, 번들링 및 최적화를 건너뜁니다.
+
+```astro title="src/components/ExternalScripts.astro" "is:inline"
+<!-- `public/my-script.js`에 있는 스크립트의 절대 경로 -->
+<script is:inline src="/my-script.js"></script>
+
+<!-- 원격 서버의 스크립트에 대한 전체 URL -->
+<script is:inline src="https://my-analytics.com/script.js"></script>
+```
+
+## 일반적인 스크립트 패턴
+
+### `onclick` 및 기타 이벤트 처리
+
+일부 UI 프레임워크는 이벤트 처리를 위해 `onClick={...}` (React/Preact) 또는 `@click="..."` (Vue)과 같은 사용자 정의 구문을 사용합니다. Astro는 표준 HTML을 더 밀접하게 따르며 이벤트에 사용자 정의 구문을 사용하지 않습니다.
+
+대신 `<script>` 태그에서 [`addEventListener`](https://developer.mozilla.org/ko/docs/Web/API/EventTarget/addEventListener)를 사용하여 사용자 상호작용을 처리할 수 있습니다.
+
+```astro title="src/components/AlertButton.astro"
+<button class="alert">Click me!</button>
+
+<script>
+  // 페이지에서 `alert` 클래스가 포함된 모든 버튼을 찾습니다.
+  const buttons = document.querySelectorAll('button.alert');
+
+  // 각 버튼의 클릭을 처리합니다.
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      alert('Button was clicked!');
+    });
+  });
+</script>
+```
+
+:::note
+페이지에 여러 개의 `<AlertButton />` 컴포넌트가 있는 경우 Astro는 스크립트를 여러 번 실행하지 않습니다. 스크립트는 번들로 제공되며 페이지당 한 번만 포함됩니다. `querySelectorAll`을 사용하면 이 스크립트가 페이지에 있는 `alert` 클래스가 있는 모든 버튼에 이벤트 리스너를 연결합니다.
+:::
+
+### 사용자 정의 요소가 있는 웹 컴포넌트
+
+웹 컴포넌트 표준을 사용하여 사용자 정의 동작으로 자신만의 HTML 요소를 만들 수 있습니다. `.astro` 컴포넌트에 [맞춤 요소](https://developer.mozilla.org/ko/docs/Web/API/Web_components/Using_custom_elements)를 정의하면 UI 프레임워크 라이브러리 없이도 대화형 컴포넌트를 구축할 수 있습니다.
+
+이 예에서는 하트 버튼을 클릭한 횟수를 추적하고 최신 횟수로 `<span>`을 업데이트하는 새로운 `<astro-heart>` HTML 요소를 정의합니다.
+
+```astro title="src/components/AstroHeart.astro"
+<!-- 사용자 정의 요소 "astro-heart"에 컴포넌트 요소를 래핑합니다. -->
+<astro-heart>
+  <button aria-label="Heart">💜</button> × <span>0</span>
+</astro-heart>
+
+<script>
+  // 새로운 유형의 HTML 요소에 대한 동작을 정의합니다.
+  class AstroHeart extends HTMLElement {
+    constructor() {
+			super();
+      let count = 0;
+
+      const heartButton = this.querySelector('button');
+      const countSpan = this.querySelector('span');
+
+      // 버튼을 클릭할 때마다 개수를 업데이트합니다.
+			heartButton.addEventListener('click', () => {
+        count++;
+        countSpan.textContent = count.toString();
+      });
+		}
+  }
+
+  // <astro-heart> 요소에 AstroHeart 클래스를 사용하도록 브라우저에 지시합니다.
+  customElements.define('astro-heart', AstroHeart);
+</script>
+```
+
+여기에서 맞춤 요소를 사용하면 두 가지 이점이 있습니다.
+
+1. `document.querySelector()`를 사용하여 전체 페이지를 검색하는 대신 현재 사용자 정의 요소 인스턴스에서만 검색하는 `this.querySelector()`를 사용할 수 있습니다. 이렇게 하면 한 번에 하나의 컴포넌트 인스턴스의 하위 항목으로만 작업하는 것이 더 쉬워집니다.
+
+2. `<script>`는 한 번만 실행되지만 브라우저는 페이지에서 `<astro-heart>`를 찾을 때마다 맞춤 요소의 `constructor()` 메서드를 실행합니다. 즉, 한 페이지에서 이 컴포넌트를 여러 번 사용하려는 경우에도 한 번에 하나의 컴포넌트에 대한 코드를 안전하게 작성할 수 있습니다.
+
+<ReadMore>[web.dev의 재사용 가능한 웹 컴포넌트 안내서](https://web.dev/custom-elements-v1/)와 [MDN의 사용자 정의 요소 소개](https://developer.mozilla.org/ko/docs/Web/API/Web_components/Using_custom_elements)에서 사용자 정의 요소에 대해 자세히 알아볼 수 있습니다.</ReadMore>
+
+### 프런트매터 변수를 스크립트에 전달
+
+Astro 컴포넌트에서 `---` 펜스 사이의 [프런트매터](/ko/basics/astro-components/#컴포넌트-스크립트)에 있는 코드는 서버에서 실행되며 브라우저에서는 사용할 수 없습니다. 서버에서 클라이언트로 변수를 보내려면 변수를 저장한 다음 브라우저에서 JavaScript가 실행될 때 읽는 방법이 필요합니다.
+
+이를 수행하는 한 가지 방법은 [`data-*` 속성](https://developer.mozilla.org/ko/docs/Learn/HTML/Howto/Use_data_attributes)을 사용하여 HTML 결과물에 변수 값을 저장하는 것입니다. 사용자 정의 요소를 포함한 스크립트는 HTML이 브라우저에 로드되면 요소의 `dataset` 속성을 사용하여 이러한 속성을 읽을 수 있습니다.
+
+이 예시 컴포넌트에서 `message` prop은 `data-message` 속성에 저장되므로 맞춤 요소는 `this.dataset.message`를 읽고 브라우저에서 prop 값을 가져올 수 있습니다.
+
+```astro title="src/components/AstroGreet.astro" {2} /data-message={.+}/ "this.dataset.message"
+---
+const { message = 'Welcome, world!' } = Astro.props;
+---
+
+<!-- message prop을 data 속성으로 저장합니다. -->
+<astro-greet data-message={message}>
+  <button>Say hi!</button>
+</astro-greet>
+
+<script>
+  class AstroGreet extends HTMLElement {
+    constructor() {
+			super();
+
+      // data 속성에서 메시지를 읽습니다.
+      const message = this.dataset.message;
+      const button = this.querySelector('button');
+      button.addEventListener('click', () => {
+        alert(message);
+      });
+		}
+  }
+
+  customElements.define('astro-greet', AstroGreet);
+</script>
+```
+
+이제 컴포넌트를 여러 번 사용할 수 있으며 각 컴포넌트마다 다른 메시지가 표시됩니다.
+
+```astro title="src/pages/example.astro"
+---
+import AstroGreet from '../components/AstroGreet.astro';
+---
+
+<!-- 기본 메시지인 "Welcome, world!"를 사용하세요. -->
+<AstroGreet />
+
+<!-- props로 전달된 맞춤 메시지를 사용하세요. -->
+<AstroGreet message="Lovely day to build components!" />
+<AstroGreet message="Glad you made it! 👋" />
+```
+
+:::tip[알고 계셨나요?]
+이것은 실제로 React와 같은 UI 프레임워크를 사용하여 작성된 컴포넌트에 props를 전달할 때 Astro가 뒤에서 수행하는 작업입니다! `client:*` 지시어가 있는 컴포넌트의 경우 Astro는 HTML 출력에 서버 측 props를 저장하는 `props` 속성이 있는 `<astro-island>` 사용자 정의 요소를 생성합니다.
+:::

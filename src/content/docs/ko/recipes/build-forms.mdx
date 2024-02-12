@@ -1,0 +1,203 @@
+---
+title: Astro 페이지에서 HTML 양식 작성
+description: HTML 양식을 작성하고 프런트매터에서 제출을 처리하는 방법을 알아보세요.
+i18nReady: true
+type: recipe
+---
+
+SSR 모드에서 Astro 페이지는 양식을 표시하고 처리할 수 있습니다. 이 레시피에서는 표준 HTML 양식을 사용하여 서버에 데이터를 제출합니다. 프런트매터 스크립트는 클라이언트에 JavaScript를 보내지 않고 서버의 데이터를 처리합니다.
+
+## 전제 조건
+
+- [SSR](/ko/guides/server-side-rendering/) (`output: 'server'`)이 활성화된 프로젝트가 필요합니다.
+
+## 레시피
+
+1. 양식과 처리 코드를 포함할 `.astro` 페이지를 생성하거나 식별합니다. 예를 들어 등록 페이지를 추가할 수 있습니다.
+
+    ```astro title="src/pages/register.astro"
+    ---
+    ---
+    <h1>Register</h1>
+    ```
+
+2. 일부 입력이 포함된 `<form>` 태그를 페이지에 추가하세요. 각 입력에는 해당 입력의 값을 설명하는 `name` 속성이 있어야 합니다.
+
+    양식을 제출하려면 `<button>` 또는 `<input type="submit">` 요소를 포함해야 합니다.
+
+    ```astro title="src/pages/register.astro"
+    ---
+    ---
+    <h1>Register</h1>
+    <form>
+      <label>
+        Username:
+        <input type="text" name="username" />
+      </label>
+      <label>
+        Email:
+        <input type="email" name="email" />
+      </label>
+      <label>
+        Password:
+        <input type="password" name="password" />
+      </label>
+      <button>Submit</button>
+    </form>
+    ```
+
+3. [검증 속성](https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation#using_built-in_form_validation)을 사용하여 JavaScript가 비활성화된 경우에도 작동하는 기본 클라이언트 측 검증을 제공하세요.
+
+    이 예시에서
+    - `required`는 필드가 채워질 때까지 양식 제출을 방지합니다.
+    - `minlength`는 입력 텍스트에 필요한 최소 길이를 설정합니다.
+    - `type="email"`은 유효한 이메일 형식만 허용하는 검증입니다.
+
+    ```astro title="src/pages/register.astro"
+    ---
+    ---
+    <h1>Register</h1>
+    <form>
+      <label>
+        Username:
+        <input type="text" name="username" required />
+      </label>
+      <label>
+        Email:
+        <input type="email" name="email" required />
+      </label>
+      <label>
+        Password:
+        <input type="password" name="password" required minlength="6" />
+      </label>
+      <button>Submit</button>
+    </form>
+    ```
+    
+    :::tip
+    `<script>` 태그와 [Constraint Validation API](https://developer.mozilla.org/en-US/docs/Web/HTML/Constraint_validation#complex_constraints_using_the_constraint_validation_api)를 사용하여 여러 필드를 참조하는 사용자 정의 유효성 검사 논리를 추가할 수 있습니다.
+
+    복잡한 유효성 검사 논리를 더 쉽게 작성하려면 [프런트엔드 프레임워크](/ko/guides/framework-components/)를 사용하여 양식을 작성하고 [React Hook Form](https://react-hook-form.com/) 또는 [Felte](https://felte.dev/)와 같은 양식 라이브러리를 선택할 수 있습니다.
+    :::
+
+4. 양식을 제출하면 브라우저가 페이지를 다시 요청하게 됩니다. 양식 데이터를 URL 매개변수가 아닌 `Request` 본문의 일부로 보내려면 양식의 데이터 전송 `method`를 `POST`로 변경하세요.
+
+    ```astro title="src/pages/register.astro" 'method="POST"'
+    ---
+    ---
+    <h1>Register</h1>
+    <form method="POST">
+      <label>
+        Username:
+        <input type="text" name="username" required />
+      </label>
+      <label>
+        Email:
+        <input type="email" name="email" required />
+      </label>
+      <label>
+        Password:
+        <input type="password" name="password" required minlength="6" />
+      </label>
+      <button>Submit</button>
+    </form>
+    ```
+
+5.  프런트매터에서 `POST` 메소드를 확인하고 `Astro.request.formData()`를 사용하여 양식 데이터에 액세스합니다. `try ... catch` 블록으로 이를 래핑하여 `POST` 요청이 양식에서 전송되지 않아 `formData`가 유효하지 않은 경우를 처리합니다.
+
+    ```astro title="src/pages/register.astro" ins={2-14} "Astro.request.formData()"
+    ---
+    if (Astro.request.method === "POST") {
+      try {
+        const data = await Astro.request.formData();
+        const name = data.get("username");
+        const email = data.get("email");
+        const password = data.get("password");
+        // 데이터로 작업을 수행합니다.
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error(error.message);
+        }
+      }
+    }
+    ---
+    <h1>Register</h1>
+    <form method="POST">
+      <label>
+        Username:
+        <input type="text" name="username" required />
+      </label>
+      <label>
+        Email:
+        <input type="email" name="email" required />
+      </label>
+      <label>
+        Password:
+        <input type="password" name="password" required minlength="6" />
+      </label>
+      <button>Submit</button>
+    </form>
+    ```
+
+5. 서버에서 양식 데이터의 유효성을 검사합니다. 여기에는 엔드포인트에 대한 악의적인 제출을 방지하고 양식 유효성 검사가 없는 희귀한 레거시 브라우저를 지원하기 위해 클라이언트에서 수행된 것과 동일한 유효성 검사가 포함되어야 합니다.
+
+    클라이언트에서 수행할 수 없는 유효성 검사도 포함될 수 있습니다. 예를 들어, 이 예시에서는 이메일이 이미 데이터베이스에 있는지 확인합니다.
+
+    오류 메시지는 `errors` 객체에 저장하고 템플릿에서 액세스하여 클라이언트로 다시 보낼 수 있습니다.
+
+    ```astro title="src/pages/register.astro" ins={5, 12-22, 41, 46, 51}
+    ---
+    import { isRegistered, registerUser } from "../../data/users"
+    import { isValidEmail } from "../../utils/isValidEmail";
+
+    const errors = { username: "", email: "", password: "" };
+    if (Astro.request.method === "POST") {
+      try {
+        const data = await Astro.request.formData();
+        const name = data.get("username");
+        const email = data.get("email");
+        const password = data.get("password");
+        if (typeof name !== "string" || name.length < 1) {
+          errors.username += "Please enter a username. ";
+        }
+        if (typeof email !== "string" || !isValidEmail(email)) {
+          errors.email += "Email is not valid. ";
+        } else if (await isRegistered(email)) {
+          errors.email += "Email is already registered. ";
+        }
+        if (typeof password !== "string" || password.length < 6) {
+          errors.password += "Password must be at least 6 characters. ";
+        }
+        const hasErrors = Object.values(errors).some(msg => msg)
+        if (!hasErrors) {
+          await registerUser({name, email, password});
+          return Astro.redirect("/login");
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error(error.message);
+        }
+      }
+    }
+    ---
+    <h1>Register</h1>
+    <form method="POST">
+      <label>
+        Username:
+        <input type="text" name="username" />
+      </label>
+      {errors.username && <p>{errors.username}</p>}
+      <label>
+        Email:
+        <input type="email" name="email" required />
+      </label>
+      {errors.email && <p>{errors.email}</p>}
+      <label>
+        Password:
+        <input type="password" name="password" required minlength="6" />
+      </label>
+      {errors.password && <p>{errors.password}</p>}
+      <button>Register</button>
+    </form>
+
+    ```

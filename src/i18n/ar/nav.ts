@@ -6,7 +6,7 @@ export default NavDictionary({
 	'getting-started': 'دليل البداية',
 	install: 'التثبيت',
 	'editor-setup': 'إعداد المحرر',
-	'guides/upgrade-to/v3': 'الترقية إلى الإصدار 3',
+	// 'guides/upgrade-to/v3': 'الترقية إلى الإصدار 3',
 
 	// Core Concepts
 	coreConcepts: 'المفاهيم الأساسية',
@@ -19,10 +19,10 @@ export default NavDictionary({
 
 	// Basics
 	basics: 'الأساسيات',
-	'core-concepts/project-structure': 'هيكل المشروع',
-	'core-concepts/astro-components': 'المكوّنات',
-	'core-concepts/astro-pages': 'الصفحات',
-	'core-concepts/layouts': 'النسق',
+	'basics/project-structure': 'هيكل المشروع',
+	'basics/astro-components': 'المكوّنات',
+	'basics/astro-pages': 'الصفحات',
+	'basics/layouts': 'النسق',
 
 	// Examples
 	examples: 'الأمثلة',
@@ -35,9 +35,9 @@ export default NavDictionary({
 
 	// Guides
 	features: 'الدليل',
-	'core-concepts/astro-syntax': 'التركيب النحوي لأسترو',
-	'core-concepts/framework-components': 'مكوّنات أطر الويب الأخرى',
-	'core-concepts/routing': 'التوجيه',
+	'basics/astro-syntax': 'التركيب النحوي لأسترو',
+	'guides/framework-components': 'مكوّنات أطر الويب الأخرى',
+	'guides/routing': 'التوجيه',
 	'guides/markdown-content': 'ماركداون و MDX',
 	'guides/content-collections': 'مجموعات المحتوى',
 	'guides/client-side-scripts': 'الإخطاطات وتناول الأحداث',
@@ -46,7 +46,7 @@ export default NavDictionary({
 	'guides/fonts': 'الخطوط',
 	'guides/imports': 'الإضافات',
 	'guides/server-side-rendering': 'التصيير على الخادم',
-	'core-concepts/endpoints': 'النقاط الطرفية',
+	'guides/endpoints': 'النقاط الطرفية',
 	'guides/data-fetching': 'جلب البيانات',
 	'guides/middleware': 'الوسيط',
 	'guides/testing': 'الاختبار',

@@ -1,0 +1,440 @@
+---
+title: 开发者工具栏应用 API
+i18nReady: true
+---
+
+Astro 开发者工具栏应用 API 允许你创建可以用来扩展 Astro 开发者工具栏的应用。这使你可以添加新功能并与第三方服务集成。
+
+## 添加应用
+
+[Astro 集成](/zh-cn/reference/configuration-reference/#integrations) 可以在 [`astro:config:setup` 钩子](/zh-cn/reference/integrations-reference/#astroconfigsetup) 中使用 `addDevToolbarApp` 方法添加应用。
+
+```ts title="integrations.js" {7-9}
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "my-integration",
+  hooks: {
+    "astro:config:setup": ({ addDevToolbarApp }) => {
+      addDevToolbarApp("./my-app.js");
+    },
+  },
+});
+```
+
+## 开发者工具栏应用的结构
+
+开发者工具栏应用是 `.js` 或 `.ts` 文件，默认情况下会导出具有以下必需属性的对象：
+
+```ts title="src/my-app.js"
+export default {
+	id: 'super-app',
+	name: '我的超级应用',
+	icon: '<svg>...</svg>',
+	init(canvas, eventTarget) {
+    eventTarget.dispatchEvent(
+      new CustomEvent('toggle-notification', {
+        detail: {
+          state: true,
+        },
+      })
+    );
+  }
+}
+```
+
+
+### `id: string`
+
+应用的唯一标识符。这将用于在钩子和事件中唯一的标识应用。
+
+```ts title="src/my-app.js" {2}
+export default {
+  id: '我的应用',
+  // ...
+}
+```
+
+### `name: string`
+
+应用的名称。每当需要使用人类可读的名称引用应用时，都会向用户显示此名称。
+
+```ts title="src/my-app.js" {3}
+export default {
+  // ...
+  name: '我的应用',
+  // ...
+}
+```
+
+### `icon: Icon`
+
+应用的图标。这将用于在 UI 中显示应用。这可以是[图标列表](#图标)中的图标，也可以是包含图标 SVG 标记的字符串。
+
+```ts title="src/my-app.js" {3}
+export default {
+  // ...
+  icon: '<svg>...</svg>', // 或 'astro:logo'
+  // ...
+}
+```
+
+### `init: (canvas: ShadowRoot, eventTarget: EventTarget) => void`
+
+这是应用的核心部分。当加载应用时，将调用此函数，这将在浏览器空闲或用户在 UI 中点击应用时发生。
+
+该函数接收两个参数：
+
+#### `canvas`
+
+应用可以用来渲染其 UI 的 ShadowRoot。每个应用都会收到自己的专用 ShadowRoot 来渲染其 UI。此外，父元素使用 `position: absolute;` 定位，因此，应用 UI 不会自动影响页面的布局。
+
+```ts title="src/my-app.js" {3-5}
+export default {
+	// ...
+	init(canvas) {
+    canvas.appendChild(document.createTextNode('你好，世界！'))
+  }
+}
+```
+
+#### `eventTarget`
+
+可用于从开发者工具栏发送和接收事件的 [`EventTarget`](https://developer.mozilla.org/zh-CN/docs/Web/API/EventTarget)。
+
+### `beforeTogglingOff`
+
+当用户点击 UI 中的应用图标以关闭应用时，将调用此可选函数。例如，此函数可以用于执行清理操作，执行动画，或在关闭应用前要求用户确认。
+
+如果返回 `false` 值，将取消关闭操作，应用将保持启用状态。
+
+```ts title="src/my-app.js" {3-6}
+export default {
+  // ...
+  beforeTogglingOff() {
+    const confirmation = window.confirm('你确定要禁用这个应用吗？');
+    return confirmation;
+  }
+}
+```
+
+#### `canvas`
+
+应用的 ShadowRoot，可以用来渲染任何需要的 UI。
+
+## 客户端事件
+
+使用 [`init`](#init-canvas-shadowroot-eventtarget-eventtarget--void) 钩子上的 [`eventTarget`](#eventtarget) 参数，应用可以从 Dev Toolbar 发送和接收事件。以下事件可用：
+
+### `app-toggled`
+
+当用户在 Dev Toolbar 中点击应用图标时，会触发此事件。
+
+```ts title="src/my-app.js" {4-8}
+  export default {
+    // ...
+    init(canvas, eventTarget) {
+      eventTarget.addEventListener('app-toggled', (event) => {
+        if (event.detail.state === true) {
+          console.log("应用现在已启用！")
+        }
+      })
+    }
+  }
+```
+
+#### `state: boolean`
+
+指示用户点击后应用是否启用。
+
+### `toggle-notification`
+
+可以发送此事件来通知用户该应用需要关注。
+
+```ts title="src/my-app.js" {4-10}
+  export default {
+    // ...
+    init(canvas, eventTarget) {
+      eventTarget.dispatchEvent(
+        new CustomEvent('toggle-notification', {
+          detail: {
+            state: true,
+          },
+        })
+      );
+    }
+  }
+```
+
+#### `state: boolean`
+
+指示应用是否有针对用户的通知。当 `true` 时，应用图标将使用红点高亮显示。相反，当 `false` 时，将移除高亮。如果未指定此属性，将假定为 `true`。
+
+### `toggle-app`
+
+你的应用可以发送此事件来改变你的应用的状态。例如，这可以用于在你的应用的 UI 中实现 "关闭" 按钮。
+
+```ts title="src/my-app.js" {4-10}
+  export default {
+    // ...
+    init(canvas, eventTarget) {
+      eventTarget.dispatchEvent(
+        new CustomEvent('toggle-app', {
+          detail: {
+            state: false,
+          },
+        })
+      );
+    }
+  }
+```
+
+#### `state: boolean`
+
+指示应用是否应被启用。当 `true` 时，应用将被启用。相反，当 `false` 时，应用将被禁用。如果未指定此属性，将假定为 `true`。
+
+## 客户端 - 服务器通信
+
+使用 [Vite 的客户端 - 服务器通信方法](https://vitejs.dev/guide/api-plugin.html#client-server-communication)，Dev Toolbar Apps 可以与服务器进行通信。
+
+除了能够发送和接收自定义消息外，Dev Toolbar 还发送以下消息，其中 `APP_ID` 是[应用的 ID](#id-string)：
+
+### `astro-dev-toolbar:APP_ID:initialized`
+
+当应用初始化时，会发送此消息。此消息的数据为空。
+
+```ts title="integration.ts" {4-6}
+{
+  // ...
+  "astro:server:setup": ({ server }) => {
+    server.ws.on("astro-dev-toolbar:super-app:initialized", () => {
+      console.log("我的应用已初始化！");
+    });
+  },
+  // ...
+}
+```
+
+### `astro-dev-toolbar:APP_ID:toggled`
+
+当用户在 UI 中点击应用图标时，会发送此消息。此消息的数据是布尔值，指示应用是否已启用。
+
+```ts title="integration.ts" {4-6}
+{
+  // ...
+  "astro:server:setup": ({ server }) => {
+    server.ws.on("astro-dev-toolbar:super-app:toggled", (data) => {
+      console.log(`我的应用现在状态为 ${data.state ? "启用" : "禁用"}!`);
+    });
+  },
+  // ...
+}
+```
+
+:::note
+Vite 的内置 `connection` 事件在 Dev Toolbar 应用初始化**之前**触发，因此应用不能直接使用它。相反，应使用 `astro-dev-toolbar:APP_ID:initialized` 事件。
+:::
+
+## UI 工具包
+
+Dev Toolbar 包含一套可以用来构建具有一致外观和感觉的应用的 web 组件。
+
+### `astro-dev-toolbar-window`
+
+显示窗口。
+
+组件的插槽将被用作窗口的内容。
+
+```html
+<astro-dev-toolbar-window>
+  <p>我的内容</p>
+</astro-dev-toolbar-window>
+```
+
+使用 JavaScript 构建窗口时，插槽内容必须放在组件的 light DOM 内。
+
+```js
+const myWindow = document.createElement('astro-dev-toolbar-window');
+const myContent = document.createElement('p');
+myContent.textContent = '我的内容';
+
+// 直接在窗口上使用 appendChild
+myWindow.appendChild(myContent);
+```
+
+### `astro-dev-toolbar-button`
+
+显示按钮。
+
+组件的插槽将被用作按钮的内容。
+
+```js
+const myButton = document.createElement('astro-dev-toolbar-button');
+myButton.textContent = '点击我！';
+myButton.buttonStyle = "purple";
+myButton.size = "medium";
+
+myButton.addEventListener('click', () => {
+  console.log('被点击了！');
+});
+```
+
+#### `size`
+
+按钮的大小（`small`，`medium`，`large`）。
+
+#### `button-style`
+
+按钮的样式（`ghost`，`outline`，`purple`，`gray`，`red`）。当使用 `ghost` 时，按钮本身是不可见的，只会显示按钮的内容。
+
+在 JavaScript 中，使用 `buttonStyle` 属性设置此属性以避免与原生 `style` 属性冲突。
+
+### `astro-dev-toolbar-badge`
+
+显示徽章。
+
+组件的插槽将被用作徽章的内容。
+
+```html
+<astro-dev-toolbar-badge>我的徽章</astro-dev-toolbar-badge>
+```
+
+#### `size`
+
+徽章的大小（`small`，`large`）。
+
+#### `badge-style`
+
+徽章的样式（颜色）（`purple`，`gray`，`red`，`green`，`yellow`）。
+
+在 JavaScript 中，使用 `badgeStyle` 属性设置此属性以避免与原生 `style` 属性冲突。
+
+### `astro-dev-toolbar-card`
+
+显示一张卡片。指定可选的 `link` 属性使卡片像 `<a>` 元素一样行动。
+
+当使用 JavaScript 制作卡片时，可以指定 `clickAction` 属性使卡片像 `<button>` 元素一样行动。
+
+组件的插槽将被用作卡片的内容。
+
+```html
+<astro-dev-toolbar-card icon="astro:logo" link="https://github.com/withastro/astro/issues/new/choose">报告问题</astro-dev-toolbar-card>
+```
+
+### `astro-dev-toolbar-toggle`
+
+显示切换元素，作为复选框。这个元素内部是简单的包装器，围绕着原生的 `<input type="checkbox">` 元素。可以使用 `input` 属性访问复选框元素。
+
+```ts
+const toggle = document.createElement('astro-dev-toolbar-toggle');
+
+toggle.input.addEventListener('change', (evt) => {
+  console.log(`现在的切换状态是 ${evt.currentTarget.checked ? '启用' : '禁用'}!`);
+});
+```
+
+### `astro-dev-toolbar-highlight`
+
+可以用来高亮显示页面上的元素。在大多数情况下，你会想要使用 `top`，`left`，`width` 和 `height` CSS 属性来定位和调整这个元素的大小，以匹配你想要高亮的元素。也可以使用 `icon` 属性指定[图标](#图标)，它将显示在高亮的右上角。
+
+```html
+<!-- 高亮整个页面 -->
+<astro-dev-toolbar-highlight style="top: 0; left: 0; width: 100%; height: 100%;"></astro-dev-toolbar-highlight>
+```
+
+```ts
+const elementToHighlight = document.querySelector('h1');
+const rect = elementToHighlight.getBoundingClientRect();
+
+const highlight = document.createElement('astro-dev-toolbar-highlight');
+
+highlight.style.top = `${Math.max(rect.top + window.scrollY - 10, 0)}px`;
+highlight.style.left = `${Math.max(rect.left + window.scrollX - 10, 0)}px`;
+highlight.style.width = `${rect.width + 15}px`;
+highlight.style.height = `${rect.height + 15}px`;
+highlight.icon = 'astro:logo';
+```
+
+### `astro-dev-toolbar-tooltip`
+
+显示带有不同 sections 的工具提示。此组件默认设置为 `display: none;`，可以使用 `data-show="true"` 属性使其可见。
+
+使用 `sections` 属性定义 sections。此属性是具有以下形状的对象的数组：
+
+```ts
+{
+	title?: string; // sections 的标题
+	inlineTitle?: string; // sections 的标题，显示在标题旁边
+	icon?: Icon; // sections 的图标
+	content?: string; // sections 的内容
+	clickAction?: () => void | Promise<void>; // 点击 sections 时执行的操作
+	clickDescription?: string; // 点击 sections 时执行的操作的描述
+}
+```
+
+```ts
+const tooltip = document.createElement('astro-dev-toolbar-tooltip');
+
+tooltip.sections = [{
+  title: '我的部分',
+  icon: 'astro:logo',
+  content: '我的内容',
+  clickAction: () => {
+    console.log('点击了！')
+  },
+  clickDescription: '点击我！'
+}]
+```
+
+此组件通常与 `astro-dev-toolbar-highlight` 组件结合使用，当鼠标悬停在高亮的元素上时显示工具提示：
+
+```ts
+const highlight = document.createElement('astro-dev-toolbar-highlight');
+
+// 定位高亮...
+
+const tooltip = document.createElement('astro-dev-toolbar-tooltip');
+
+// 向工具提示添加部分...
+
+highlight.addEventListener('mouseover', () => {
+  tooltip.dataset.show = 'true';
+});
+
+highlight.addEventListener('mouseout', () => {
+  tooltip.dataset.show = 'false';
+});
+```
+
+### `astro-dev-toolbar-icon`
+
+显示图标。可以使用 `icon` 属性指定[图标列表](#图标)中的图标，或者将图标的 SVG 标记作为插槽传递。
+
+```html
+<astro-dev-toolbar-icon icon="astro:logo" />
+```
+
+```html
+<astro-dev-toolbar-icon>
+  <svg>...</svg>
+</astro-dev-toolbar-icon>
+```
+
+#### 图标
+
+目前，可以在任何接受图标的组件中使用以下图标：
+
+- `astro:logo`
+- `warning`
+- `arrow-down`
+- `bug`
+- `file-search`
+- `check-circle`
+- `gear`
+- `lightbulb`
+- `checkmark`
+- `dots-three`
+- `copy`
+
+以上所有图标默认设置为 `fill="currentColor"`，并将从父元素继承其颜色。

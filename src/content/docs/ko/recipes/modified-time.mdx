@@ -1,0 +1,144 @@
+---
+title: 마지막 수정 시간 추가
+description: Markdown 및 MDX에 마지막 수정 시간을 추가하기 위해 remark 플러그인을 빌드하세요.
+i18nReady: true
+type: recipe
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+Markdown 및 MDX 파일의 프런트매터에 마지막 수정 시간을 추가하는 [remark 플러그인](https://github.com/remarkjs/remark)을 빌드하는 방법을 알아보세요. 이 속성을 사용하여 페이지에 수정된 시간을 표시합니다.
+
+## 레시피
+
+1. 도우미 패키지 설치
+
+   시간을 수정하고 형식을 지정하려면 [`Day.js`](https://www.npmjs.com/package/dayjs)를 설치하세요.
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+       ```shell
+       npm install dayjs
+       ```
+     </Fragment>
+     <Fragment slot="pnpm">
+       ```shell
+       pnpm add dayjs
+       ```
+     </Fragment>
+     <Fragment slot="yarn">
+       ```shell
+       yarn add dayjs
+       ```
+     </Fragment>
+   </PackageManagerTabs>
+
+2. Remark 플러그인 생성
+
+   이 플러그인은 `execSync`를 사용하여 ISO 8601 형식의 최신 커밋의 타임스탬프를 반환하는 Git 명령을 실행합니다. 그러면 타임스탬프가 파일의 프런트매터에 추가됩니다.
+
+     ```js title="remark-modified-time.mjs"
+     import { execSync } from "child_process";
+
+     export function remarkModifiedTime() {
+       return function (tree, file) {
+         const filepath = file.history[0];
+         const result = execSync(`git log -1 --pretty="format:%cI" "${filepath}"`);
+         file.data.astro.frontmatter.lastModified = result.toString();
+       };
+     }
+     ```
+		<details>
+		<summary>Git 대신 파일 시스템 사용</summary>
+
+		 파일에서 마지막으로 수정된 타임스탬프를 가져오는 데 Git을 사용하는 것이 권장되는 방법이지만 파일 시스템 수정 시간을 사용할 수도 있습니다.
+     이 플러그인은 `statSync`를 사용하여 파일의 `mtime` (수정 시간)을 ISO 8601 형식으로 가져옵니다. 그러면 타임스탬프가 파일의 프런트매터에 추가됩니다.
+     
+     ```js title="remark-modified-time.mjs"
+     import { statSync } from "fs";
+
+     export function remarkModifiedTime() {
+       return function (tree, file) {
+         const filepath = file.history[0];
+         const result = statSync(filepath);
+         file.data.astro.frontmatter.lastModified = result.mtime.toISOString();
+       };
+     }
+     ```
+		</details>
+
+3. 구성에 플러그인 추가
+
+   ```js title="astro.config.mjs"
+   import { defineConfig } from 'astro/config';
+   import { remarkModifiedTime } from './remark-modified-time.mjs';
+
+   export default defineConfig({
+     markdown: {
+       remarkPlugins: [remarkModifiedTime],
+     },
+   });
+   ```
+
+   이제 모든 Markdown 문서의 프런트매터에는 `lastModified` 속성이 포함됩니다.
+
+4. 마지막 수정 시간 표시
+
+   콘텐츠가 [콘텐츠 컬렉션](/ko/guides/content-collections/)에 저장된 경우 `entry.render()` 함수에서 `remarkPluginFrontmatter`에 액세스하세요. 그런 다음 템플릿에서 표시하려는 위치에 `lastModified`를 렌더링하세요.
+
+   ```astro title="src/pages/posts/[slug].astro" {3-4,6,17,19-21,28}
+   ---
+   import { CollectionEntry, getCollection } from 'astro:content';
+   import dayjs from "dayjs";
+   import utc from "dayjs/plugin/utc";
+
+   dayjs.extend(utc);
+
+   export async function getStaticPaths() {
+     const blog = await getCollection('blog');
+     return blog.map(entry => ({
+       params: { slug: entry.slug },
+       props: { entry },
+     }));
+   }
+
+   const { entry } = Astro.props;
+   const { Content, remarkPluginFrontmatter } = await entry.render();
+
+   const lastModified = dayjs(remarkPluginFrontmatter.lastModified)
+     .utc()
+     .format("HH:mm:ss DD MMMM YYYY UTC");
+   ---
+
+   <html>
+     <head>...</head>
+     <body>
+       ...
+       <p>Last Modified: {lastModified}</p>
+       ...
+     </body>
+   </html>
+   ```
+
+   [Markdown 레이아웃](/ko/guides/markdown-content/#markdown-및-mdx-페이지)을 사용하는 경우 레이아웃 템플릿의 `Astro.props`에서 `lastModified` 프런트매터 속성을 사용하세요.
+
+   ```astro title="src/layouts/BlogLayout.astro" {2-3,5,7-9,15}
+   ---
+   import dayjs from "dayjs";
+   import utc from "dayjs/plugin/utc";
+
+   dayjs.extend(utc);
+
+   const lastModified = dayjs()
+     .utc(Astro.props.frontmatter.lastModified)
+     .format("HH:mm:ss DD MMMM YYYY UTC");
+   ---
+
+   <html>
+     <head>...</head>
+     <body>
+       <p>{lastModified}</p>
+       <slot />
+     </body>
+   </html>
+   ```

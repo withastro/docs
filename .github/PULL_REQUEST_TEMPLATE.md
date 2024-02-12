@@ -11,4 +11,9 @@
 
 <!-- For a new/changed feature in an upcoming Astro release? -->
 <!-- Uncomment the line below, update the minor version number if known, and include a PR link -->
-<!-- #### For Astro version: `3.x`. See astro PR [#](url). -->
+<!-- #### For Astro version: `4.x`. See astro PR [#](url). -->
+
+<!-- #### First-time contributor to Astro Docs? -->
+
+<!-- If you are a member of the Astro Discord, please add your username in the description so we can welcome you there! -->
+<!-- https://astro.build/chat -->

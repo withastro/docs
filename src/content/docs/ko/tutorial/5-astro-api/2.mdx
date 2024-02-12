@@ -1,0 +1,321 @@
+---
+type: tutorial
+title: 태그 페이지 생성
+description: |-
+  튜토리얼: 첫 번째 Astro 블로그 구축 — getStaticPaths()를 사용하여 한 번에 여러 페이지 (경로) 생성
+i18nReady: true
+---
+
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+
+<PreCheck>
+  - 여러 페이지를 생성하려면 페이지를 만드세요.
+  - 빌드할 페이지 경로를 지정하고 각 페이지에 자체 props를 전달합니다.
+</PreCheck>
+
+## 동적 페이지 라우팅
+
+`getStaticPaths()` 함수를 내보내는 `.astro` 파일을 사용하여 전체 페이지 세트를 동적으로 생성할 수 있습니다.
+
+## 동적으로 페이지 생성
+
+1. `src/pages/tags/[tag].astro`에 새 파일을 생성합니다. (새 폴더를 만들어야 합니다.) 파일 이름 (`[tag].astro`)에 대괄호가 사용됩니다. 다음 코드를 파일에 붙여넣습니다.
+
+    ```astro title="src/pages/tags/[tag].astro"
+    ---
+    import BaseLayout from '../../layouts/BaseLayout.astro';
+
+    export async function getStaticPaths() {
+      return [
+        { params: { tag: "astro" } },
+        { params: { tag: "successes" } },
+        { params: { tag: "community" } },
+        { params: { tag: "blogging" } },
+        { params: { tag: "setbacks" } },
+        { params: { tag: "learning in public" } },
+      ];
+    }
+
+    const { tag } = Astro.params;
+    ---
+    <BaseLayout pageTitle={tag}>
+      <p>Posts tagged with {tag}</p>
+    </BaseLayout>
+    ```
+
+    `getStaticPaths` 함수는 페이지 경로 배열을 반환하며 해당 경로의 모든 페이지는 파일에 정의된 동일한 템플릿을 사용합니다.
+
+2. 블로그 게시물을 사용자 정의한 경우 개별 태그 값 (예: "astro", "successes", "community" 등)을 자신의 게시물에 사용된 태그로 바꿉니다.
+
+3. 모든 블로그 게시물에는 배열로 작성된 태그가 하나 이상 포함되어 있는지 확인하십시오. 예: `tags: ["blogging"]`.
+
+4. 브라우저 미리보기에서 `http://localhost:4321/tags/astro`를 방문하면 `[tag].astro`에서 동적으로 생성된 페이지가 표시됩니다. `/tags/successes`, `/tags/community`, `/tags/learning%20in%20public` 등 또는 각 사용자 정의 태그에 각 태그에 대해 생성된 페이지가 있는지 확인하세요. 이러한 새 페이지를 보려면 먼저 개발 서버를 종료하고 다시 시작해야 할 수도 있습니다.
+
+## 동적 경로에 props 사용
+
+1. 모든 블로그 게시물의 데이터를 각 페이지 경로에서 사용할 수 있도록 하려면 `getStaticPaths()` 함수에 다음 props를 추가하세요.
+
+    배열의 각 경로에 새 prop을 제공한 다음 해당 prop을 함수 외부의 컴포넌트 템플릿에서 사용할 수 있도록 만드세요.
+
+    ```astro title="src/pages/tags/[tag].astro" ins={5,18} "props: {posts: allPosts}" 
+    ---
+    import BaseLayout from '../../layouts/BaseLayout.astro';
+
+    export async function getStaticPaths() {
+      const allPosts = await Astro.glob('../posts/*.md');
+
+      return [
+        {params: {tag: "astro"}, props: {posts: allPosts}},
+        {params: {tag: "successes"}, props: {posts: allPosts}},
+        {params: {tag: "community"}, props: {posts: allPosts}},
+        {params: {tag: "blogging"}, props: {posts: allPosts}},
+        {params: {tag: "setbacks"}, props: {posts: allPosts}},
+        {params: {tag: "learning in public"}, props: {posts: allPosts}}
+      ]
+    }
+    
+    const { tag } = Astro.params;
+    const { posts } = Astro.props;
+    ---
+    ```
+
+2. 페이지 자체 태그가 포함된 게시물만 포함하도록 게시물 목록을 필터링하세요.
+
+    ```astro title="/src/pages/tags/[tag].astro" ins={4}
+    ---
+    const { tag } = Astro.params;
+    const { posts } = Astro.props;
+    const filteredPosts = posts.filter((post) => post.frontmatter.tags?.includes(tag));
+    ---
+    ```
+
+3. 이제 HTML 템플릿을 업데이트하여 페이지 자체 태그가 포함된 각 블로그 게시물의 목록을 표시할 수 있습니다. `[tag].astro`에 다음 코드를 추가합니다.
+
+    ```astro title="src/pages/tags/[tag].astro" ins={3-5}
+    <BaseLayout pageTitle={tag}>   
+      <p>Posts tagged with {tag}</p>
+      <ul>
+        {filteredPosts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+      </ul>
+    </BaseLayout>
+    ```
+
+4. 대신 `<BlogPost />` 컴포넌트를 사용하도록 이를 리팩터링할 수도 있습니다! (`[tag].astro` 상단에 이 컴포넌트를 가져오는 것을 잊지 마세요.)
+
+    ```astro title="src/pages/tags/[tag].astro" del={4} ins={5}
+    <BaseLayout pageTitle={tag}>
+      <p>Posts tagged with {tag}</p>
+      <ul>
+        {filteredPosts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+        {filteredPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+      </ul>
+    </BaseLayout>
+    ```
+
+5. 개별 태그 페이지에 대한 브라우저 미리보기를 확인하면 이제 해당 특정 태그가 포함된 모든 블로그 게시물 목록이 표시됩니다.
+
+<Box icon="question-mark">
+
+### 패턴 분석
+
+다음 각각에 대해 코드가 `getStaticPaths()` 함수 **내부**에 작성되었는지, 아니면 **외부**에 작성되었는지 명시하세요.
+
+1. 각 페이지 경로에 전달할 모든 `.md` 파일에 대한 정보를 수신하는 `Astro.glob()` 호출.
+
+    <MultipleChoice>
+    <Option isCorrect>`getStaticPaths` 내부</Option>
+    <Option>`getStaticPaths` 외부</Option>
+    </MultipleChoice>
+
+2. `getStaticPaths()`에 의해 생성 (반환)될 경로 목록
+
+    <MultipleChoice>
+    <Option isCorrect>`getStaticPaths` 내부</Option>
+    <Option>`getStaticPaths` 외부</Option>
+    </MultipleChoice>
+
+3. HTML 템플릿에서 사용할 `props` 및 `params`의 수신된 값
+
+    <MultipleChoice>
+    <Option>`getStaticPaths` 내부</Option>
+    <Option isCorrect>`getStaticPaths` 외부</Option>
+    </MultipleChoice>
+</Box>
+
+:::note[핵심사항]
+페이지 경로를 구성하는 데 정보가 필요한 경우 `getStaticPaths()` **내부**에 작성하세요.
+
+페이지 경로의 HTML 템플릿에 있는 정보를 받으려면 `getStaticPaths()` **외부**에 작성하세요.
+:::
+
+## 고급 JavaScript: 기존 태그에서 페이지 생성
+
+이제 태그 페이지가 `[tag].astro`에 정적으로 정의됩니다. 블로그 게시물에 새 태그를 추가하는 경우에도 이 페이지를 다시 방문하여 페이지 경로를 업데이트해야 합니다.
+
+다음 예시에서는 이 페이지의 코드를 블로그 페이지에 사용된 각 태그에 대한 페이지를 자동으로 찾고 생성하는 코드로 바꾸는 방법을 보여줍니다.
+
+:::note
+어려워 보이더라도 이 기능을 직접 구축하는 단계를 따라해 보세요! 지금 당장 필요한 JavaScript를 살펴보고 싶지 않다면 [완성된 코드 버전](#최종-코드-샘플)으로 건너뛰고 기존 콘텐츠를 대체하여 프로젝트에서 직접 사용할 수 있습니다.
+:::
+
+### 1. 모든 블로그 게시물에 태그가 포함되어 있는지 확인
+
+기존 Markdown 페이지를 각각 다시 방문하여 모든 게시물의 프런트매터에 `tags` 배열이 포함되어 있는지 확인하세요. 태그가 하나만 있는 경우에도 배열로 작성해야 합니다. `tags: ["blogging"]`. 
+
+### 2. 모든 기존 태그의 배열을 생성
+
+블로그 게시물에 사용된 모든 태그 목록을 제공하려면 다음 코드를 추가하세요.
+
+  ```astro title="src/pages/tags/[tag].astro" ins={7}
+  ---
+  import BaseLayout from '../../layouts/BaseLayout.astro';
+
+  export async function getStaticPaths() {
+    const allPosts = await Astro.glob('../posts/*.md');
+
+    const uniqueTags = [...new Set(allPosts.map((post) => post.frontmatter.tags).flat())];
+  ```
+
+    <details>
+    <summary>이 코드 줄이 무엇을 하는지 좀 더 자세히 알려주세요!</summary>
+
+    아직 직접 작성하지 않았을 내용이라도 괜찮습니다!
+
+    각 Markdown 게시물을 하나씩 살펴보고 각 태그 배열을 하나의 더 큰 배열로 결합합니다. 그런 다음 찾은 모든 개별 태그에서 새로운 `Set`을 만듭니다 (반복되는 값을 무시하기 위해). 마지막으로 해당 세트를 중복 없는 배열로 변환하여 페이지에 태그 목록을 표시하는 데 사용할 수 있습니다.
+    </details>
+
+이제 `"astro"`, `"successes"`, `"community"`, `"blogging"`, `"setbacks"`, `"learning in public"` 요소 항목이 포함된 `uniqueTags` 배열이 있습니다.
+
+### 3. `getStaticPaths` 함수의 `return` 값 교체
+
+```js title="src/pages/tags/[tag].astro" del={1-8} ins={10-16}
+  return [
+        {params: {tag: "astro"}, props: {posts: allPosts}},
+        {params: {tag: "successes"}, props: {posts: allPosts}},
+        {params: {tag: "community"}, props: {posts: allPosts}},
+        {params: {tag: "blogging"}, props: {posts: allPosts}},
+        {params: {tag: "setbacks"}, props: {posts: allPosts}},
+        {params: {tag: "learning in public"}, props: {posts: allPosts}}
+      ]
+
+  return uniqueTags.map((tag) => {
+    const filteredPosts = allPosts.filter((post) => post.frontmatter.tags.includes(tag));
+    return {
+      params: { tag },
+      props: { posts: filteredPosts },
+    };
+  });
+```
+
+`getStaticPaths` 함수는 항상 `params` (각 페이지 경로를 호출할 항목)와 선택적으로 `props` (해당 페이지에 전달하려는 데이터)를 포함하는 객체 목록을 반환해야 합니다. 이전에는 블로그에서 사용된 것으로 알고 있는 각 태그 이름을 정의하고 전체 게시물 목록을 각 페이지에 props로 전달했습니다.
+
+이제 `uniqueTags` 배열을 사용하여 각 매개변수를 정의하는 객체 목록을 자동으로 생성합니다.
+
+그리고 이제 모든 블로그 게시물 목록은 각 페이지에 props로 전송되기 **전에** 필터링됩니다. 게시물을 필터링하는 이전 코드 줄을 제거하고 HTML 템플릿을 업데이트하여 `filteredPosts` 대신 `posts`를 사용하세요.
+
+```astro title="src/pages/tags/[tag].astro" del={3,7} ins={8}
+const { tag } = Astro.params;
+const { posts } = Astro.props;
+const filteredPosts = posts.filter((post) => post.frontmatter.tags?.includes(tag));
+---
+<!-- -->
+<ul>
+    {filteredPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+    {posts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+</ul>
+```
+
+### 최종 코드 샘플
+
+작업 내용을 확인하거나 `[tag].astro`에 복사할 완전하고 올바른 코드를 원하는 경우 Astro 컴포넌트는 다음과 같습니다.
+
+```astro title="src/pages/tags/[tag].astro"
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BlogPost from '../../components/BlogPost.astro';
+
+export async function getStaticPaths() {
+  const allPosts = await Astro.glob('../posts/*.md');
+  
+  const uniqueTags = [...new Set(allPosts.map((post) => post.frontmatter.tags).flat())];
+
+  return uniqueTags.map((tag) => {
+    const filteredPosts = allPosts.filter((post) => post.frontmatter.tags.includes(tag));
+    return {
+      params: { tag },
+      props: { posts: filteredPosts },
+    };
+  });
+}
+
+const { tag } = Astro.params;
+const { posts } = Astro.props;
+---
+<BaseLayout pageTitle={tag}>
+  <p>Posts tagged with {tag}</p>
+  <ul>
+    {posts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+  </ul>
+</BaseLayout>
+```
+
+이제 브라우저 미리보기에서 태그 페이지를 방문할 수 있습니다.
+
+`http://localhost:4321/tags/community`로 이동하면 `community` 태그가 있는 블로그 게시물 목록만 표시됩니다. 마찬가지로 `http://localhost:4321/tags/learning%20in%20public`에는 `learning in public`이라는 태그가 붙은 블로그 게시물 목록이 표시되어야 합니다.
+
+다음 섹션에서는 이러한 페이지에 대한 탐색 링크를 만듭니다.
+
+<Box icon="question-mark">
+
+### 지식 테스트
+
+설명과 일치하는 용어를 선택하세요.
+
+1. 페이지 경로의 배열을 반환하는 함수입니다.
+
+    <MultipleChoice>
+      <Option>params</Option>
+      <Option>동적 라우팅</Option>
+      <Option isCorrect>`getStaticPaths()`</Option>
+      <Option>props</Option>
+    </MultipleChoice>
+
+2. Astro의 한 파일에서 여러 페이지 경로를 만드는 프로세스입니다.
+
+    <MultipleChoice>
+      <Option>params</Option>
+      <Option isCorrect>동적 라우팅</Option>
+      <Option>`getStaticPaths()`</Option>
+      <Option>props</Option>
+    </MultipleChoice>
+
+3. 동적으로 생성된 페이지 경로의 이름을 정의하는 값입니다.
+
+    <MultipleChoice>
+      <Option isCorrect>params</Option>
+      <Option>동적 라우팅</Option>
+      <Option>`getStaticPaths()`</Option>
+      <Option>props</Option>
+    </MultipleChoice>
+
+</Box>
+
+<Box icon="check-list">
+
+## 체크리스트
+
+<Checklist>
+- [ ] 페이지를 동적으로 생성할 수 있습니다.
+- [ ] 각 페이지 경로에 `props`를 전달할 수 있습니다.
+</Checklist>
+</Box>
+
+### 추가 자료
+
+- [Astro의 동적 페이지 라우팅](/ko/guides/routing/#동적-경로)
+
+- [`getStaticPaths()` API 문서](/ko/reference/api-reference/#getstaticpaths)

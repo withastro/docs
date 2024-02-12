@@ -1,0 +1,389 @@
+---
+title: Astro v4へのアップグレード
+description: プロジェクトを最新版のAstro（v4.0）にアップグレードする方法。
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+このガイドでは、Astro v3からAstro v4への移行方法について説明します。
+
+古いプロジェクトをv3にアップグレードする必要がありますか？[以前の移行ガイド](/ja/guides/upgrade-to/v3/)を参照してください。
+
+v3のドキュメントが必要ですか？[ドキュメントサイトの以前のバージョン（メンテナンスされていないv3.6のスナップショット）](https://docs-git-v3-docs-unmaintained-astrodotbuild.vercel.app/)をご覧ください。
+
+## Astroをアップグレードする
+
+パッケージマネージャーを使用して、プロジェクトのAstroとすべての公式インテグレーションを最新バージョンに更新します。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # Astroと公式インテグレーションを一緒にアップグレードする
+  npx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # Astroと公式インテグレーションを一緒にアップグレードする
+  pnpm dlx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # Astroと公式インテグレーションを一緒にアップグレードする
+  yarn dlx @astrojs/upgrade
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+
+必要であれば、[Astroインテグレーションの手動アップグレード](/ja/guides/integrations-guide/#手動アップグレード)も可能です。プロジェクトの他の依存関係もアップグレードする必要があるかもしれません。
+
+
+:::note[他に必要なことはありますか？]
+Astroを最新版にアップグレードしたあと、プロジェクトへの変更が必要とは限りません！
+
+しかし、エラーや予想外の動作が発生した場合は、変更された内容と、プロジェクトを更新する必要があるかどうかを以下で確認してください。
+:::
+
+Astro v4.0は、[破壊的な可能性のある変更](/ja/guides/upgrade-to/v4/#破壊的変更)や、[以前に非推奨となっていた機能の削除](/ja/guides/upgrade-to/v4/#以前に非推奨となっていた機能の削除)を含んでいます。
+
+v4.0にアップグレードしたあとプロジェクトが期待どおりに動作しない場合は、このガイドを確認して、すべての破壊的な変更の概要と、コードベースを更新する方法についての手順を確認してください。
+
+完全なリリースノートについては、[チェンジログ](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)を確認してください。
+
+## Astro v4.0の実験的なフラグの削除
+
+`astro.config.mjs`において、実験的な`devOverlay`フラグを削除し、`i18n`の設定をトップレベルに移動してください。
+
+```js del={5-9} ins={11-14} title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    devOverlay: true,
+    i18n: {
+      defaultLocale: "en",
+      locales: ["en", "fr", "pt-br", "es"],
+    }
+  },
+  i18n: {
+    defaultLocale: "en",
+    locales: ["en", "fr", "pt-br", "es"],
+  },
+})
+```
+
+これらの設定、`i18n`とリネームされた`devToolbar`は、Astro v4.0で利用可能になりました。
+
+[v4.0のブログ記事](https://astro.build/blog/astro-4/)で、これら2つのエキサイティングな機能の詳細などについて確認してください！
+
+## アップグレード
+
+Astroの依存関係のメジャーアップグレードは、プロジェクトに破壊的な変更をもたらす可能性があります。
+
+### アップグレード: Vite 5.0
+
+Astro v3.0では、開発サーバーと本番用バンドラーとしてVite 4が使用されていました。
+
+Astro v4.0は、Vite 4をVite 5にアップグレードします。
+
+#### どうすればいいですか？
+
+Vite固有のプラグインや設定、APIを使用している場合は、[Viteの移行ガイド](https://ja.vitejs.dev/guide/migration.html)にアクセスして、破壊的な変更を確認し、必要に応じてプロジェクトをアップグレードしてください。Astro自体に対する破壊的な変更はありません。
+
+### アップグレード: unified、remarkとrehypeの依存関係
+
+Astro v3.xでは、MarkdownとMDXを処理するために、unified v10およびそれと関連した互換性のあるremark/rehypeパッケージが使用されていました。
+
+Astro v4.0は、[unifiedをv11](https://github.com/unifiedjs/unified/releases/tag/11.0.0)にアップグレードし、その他のremark/rehypeパッケージを最新バージョンにアップグレードします。
+
+#### どうすればいいですか？
+
+カスタムのremark/rehypeパッケージを使用している場合は、それらがunified v11をサポートするように、パッケージマネージャーを使用してすべてのパッケージを最新バージョンに更新してください。使用しているパッケージは`astro.config.mjs`で確認できます。
+
+アクティブに更新されているパッケージを使用している場合、大きな破壊的な変更はないはずですが、一部のパッケージはまだunified v11と互換性がないかもしれません。デプロイする前にMarkdown/MDXページを目視して、サイトが意図したとおりに機能しているかどうか確認してください。
+
+## 破壊的変更
+
+以下の変更は、Astroにおける破壊的な変更と見なされます。破壊的な変更には、一時的な後方互換性がある場合とない場合とがありますが、すべてのドキュメントは、現在サポートされているコードのみを示すように更新されています。
+
+v3.xプロジェクトのドキュメントを参照する必要がある場合は、[v4.0がリリースされる前の（メンテナンスされていない）ドキュメントのスナップショット](https://docs-git-v3-docs-unmaintained-astrodotbuild.vercel.app/)を参照してください。
+
+### リネーム: `entrypoint` (インテグレーションAPI)
+
+Astro v3.xでは、ルートのエントリーポイントを指定するインテグレーションAPI`injectRoute`のプロパティは`entryPoint`という名前でした。
+
+Astro v4.0は、他のAstro APIとの整合性を保つために、このプロパティを`entrypoint`にリネームします。`entryPoint`プロパティは非推奨ですが、引き続き動作し、使用している場合はコードを更新するように促す警告がログに出力されます。
+
+#### どうすればいいですか？
+
+`injectRoute` APIを使用するインテグレーションがある場合は、`entryPoint`プロパティを`entrypoint`にリネームしてください。あなたがAstro 3と4の両方をサポートしたいライブラリの作者である場合は、`entryPoint`と`entrypoint`の両方を指定できます。この場合、警告はログ出力されません。
+
+```js ins={4} del={3}
+injectRoute({
+  pattern: '/fancy-dashboard',
+  entryPoint: '@fancy/dashboard/dashboard.astro'
+  entrypoint: '@fancy/dashboard/dashboard.astro'
+});
+```
+
+### 変更: インテグレーションAPIの`app.render`のシグネチャ
+
+Astro v3.0では、`app.render()`メソッドは、`routeData`と`locals`を別々のオプション引数として受け取っていました。
+
+Astro v4.0は、`app.render()`のシグネチャを変更します。これら2つのプロパティは、単一のオブジェクトにまとめられるようになりました。このオブジェクトと2つのプロパティは、いずれも必須ではありません。
+
+#### どうすればいいですか？
+
+アダプタをメンテナンスしている場合、現在のシグネチャは次のメジャーバージョンまで引き続き動作します。新しいシグネチャに移行するには、複数の独立した引数としてではなく、`routeData`と`locals`をオブジェクトのプロパティとして渡します。
+
+```diff lang="js"
+- app.render(request, routeData, locals)
++ app.render(request, { routeData, locals })
+```
+### 変更: アダプターはサポートする機能を指定する必要があります
+
+Astro v3.xでは、アダプターはサポートする機能を指定する必要はありませんでした。
+
+Astro v4.0では、アダプターはサポートする機能のリストを指定するために、`supportedAstroFeatures{}`プロパティを渡す必要があります。このプロパティは任意ではなくなりました。
+
+#### どうすればいいですか？
+
+アダプターの作者は、サポートする機能のリストを指定するために、`supportedAstroFeatures{}`オプションを渡す必要があります。
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          supportedAstroFeatures: {
+              staticOutput: 'stable'
+          }
+        });
+      },
+    },
+  };
+}
+```
+
+### 削除: Shiki言語の`path`プロパティ
+
+Astro v3.xでは、`markdown.shikiConfig.langs`に渡されるShiki言語は、自動的にShikiji互換の言語に変換されました。Shikijiは、Astroが構文のハイライトに使用している内部ツールです。
+
+Astro v4.0は、設定をわかりづらくさせていたShiki言語の`path`プロパティのサポートを削除します。これは、`langs`に直接渡すことができるインポートに置き換えられます。
+
+#### どうすればいいですか？
+
+言語のJSONファイルをインポートし、オプションに渡します。
+
+```diff lang="js"
+// astro.config.js
++ import customLang from './custom.tmLanguage.json'
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: {
+      langs: [
+-       { path: '../../custom.tmLanguage.json' },
++       customLang,
+      ],
+    },
+  },
+})
+```
+
+## 非推奨
+
+以下の非推奨機能へのサポートは終了し、以後はドキュメントの追加もおこなわれません。プロジェクトを適切に更新してください。
+
+一部の非推奨機能は、完全に削除されるまで一時的に機能し続ける場合があります。その他の機能は、単に無効になるか、あるいはコードを更新するように促すエラーが発生します。
+
+### 非推奨: ビュートランジションの`submit`イベントの`handleForms`
+
+Astro v3.xでは、`<ViewTransitions />`コンポーネントを使用するプロジェクトは、`form`要素の`submit`イベントに対する処理を有効にする必要がありました。このためには`handleForms`プロパティを渡す必要がありました。
+
+Astro v4.0では、`<ViewTransitions />`を使用すると、`form`要素の`submit`イベントをデフォルトで処理します。`handleForms`プロパティは非推奨となり、何の効果もなくなりました。
+
+#### どうすればいいですか？
+
+`ViewTransitions`コンポーネントから`handleForms`プロパティを削除します。これはもう必要ありません。
+
+```astro title="src/pages/index.astro" del="handleForms"
+---
+import { ViewTransitions } from "astro:transitions";
+---
+<html>
+  <head>
+    <ViewTransitions handleForms />
+  </head>
+  <body>
+    <!-- 色々 -->
+  </body>
+</html>
+```
+
+`submit`イベントの処理を無効にしたい場合は、該当する`form`要素に`data-astro-reload`属性を追加します。
+
+```astro title="src/components/Form.astro" ins="data-astro-reload"
+<form action="/contact" data-astro-reload>
+  <!-- -->
+</form>
+```
+
+## 以前に非推奨となっていた機能の削除
+
+以下の非推奨機能は、コードベースから完全に削除され、使用できなくなりました。これらの機能の一部は、非推奨となってからもプロジェクトで引き続き機能する可能性があります。他の機能は、単に無効になるかもしれません。
+
+これらの削除された機能を使用しているプロジェクトはビルドできなくなり、機能を削除するよう促すサポートドキュメントはもうありません。
+
+### 削除: エンドポイントでのプレーンオブジェクトの返却
+
+Astro v3.0では、エンドポイントからプレーンオブジェクトを返すことは非推奨となりましたが、Astro v2との互換性を維持するために引き続きサポートされていました。また、移行を容易にするために`ResponseWithEncoding`ユーティリティも提供されていました。
+
+Astro v4.0では、プレーンオブジェクトのサポートが削除され、エンドポイントは常に`Response`を返す必要があります。`ResponseWithEncoding`ユーティリティも適切な`Response`型に置き換えられるかたちで削除されています。
+
+#### どうすればいいですか？
+
+`Response`オブジェクトを直接返すようにエンドポイントを更新します。
+
+```diff lang="ts"
+  export async function GET() {
+-   return { body: { "title": "ボブのブログ" }};
++   return new Response(JSON.stringify({ "title": "ボブのブログ" }));
+  }
+```
+
+`ResponseWithEncoding`の使用箇所を削除するには、`ArrayBuffer`を使用するようにコードをリファクタリングします。
+
+```diff lang="ts"
+  export async function GET() {
+    const file = await fs.readFile('./bob.png');
+-   return new ResponseWithEncoding(file.toString('binary'), undefined, 'binary');
++   return new Response(file.buffer);
+  }
+```
+
+### 削除: `build.split`と`build.excludeMiddleware`
+
+Astro v3.0では、`build.split`と`build.excludeMiddleware`のビルド設定オプションは非推奨となり、同じタスクを実行するために[アダプターの設定オプション](/ja/reference/adapter-reference/#adapter-features)に置き換えられました。
+
+Astro v4.0では、これらのプロパティは完全に削除されます。
+
+#### どうすればいいですか？
+
+非推奨の`build.split`または`build.excludeMiddleware`を使用している場合、これらはもう存在しないため、削除する必要があります。
+
+アダプターの設定で[これらの非推奨のミドルウェアプロパティを更新する](/ja/guides/upgrade-to/v3/#非推奨-buildexcludemiddlewareとbuildsplit)ためのv3の移行ガイドを参照してください。
+
+### 削除: `Astro.request.params`
+
+Astro v3.0では、`Astro.request.params` APIは非推奨となりましたが、後方互換性のために保持されていました。
+
+Astro v4.0では、このオプションは完全に削除されます。
+
+#### どうすればいいですか？
+
+すべての出現箇所を、サポートされている置き換え先である[`Astro.params`](/ja/reference/api-reference/#astroparams)に更新します。
+
+```astro del={1} ins={2}
+const { id } = Astro.request.params;
+const { id } = Astro.params;
+```
+
+### 削除: `markdown.drafts`
+
+Astro v3.0では、下書きの記事のビルドを制御するために`markdown.drafts`を使用することは非推奨となりました。
+
+Astro v4.0では、このオプションは完全に削除されます。
+
+#### どうすればいいですか？
+
+非推奨の`markdown.drafts`を使用している場合、これはもう存在しないため、削除する必要があります。
+
+プロジェクト内の一部のページを下書きとしてマークし続けるには、[コンテンツコレクションに移行](/ja/guides/content-collections/#ファイルベースのルーティングからの移行)し、代わりに`draft: true`フロントマタープロパティで[ページを手動でフィルタリング](/ja/guides/content-collections/#コレクションクエリのフィルタリング)します。
+
+### 削除: `getHeaders()`
+
+Astro v3.0では、`getHeaders()` Markdownのエクスポートは非推奨となり、`getHeadings()`に置き換えられました。
+
+Astro v4.0では、このオプションは完全に削除されます。
+
+#### どうすればいいですか？
+
+非推奨の`getHeaders()`を使用している場合、これはもう存在しないため、削除する必要があります。サポートされている置き換え先である`getHeadings()`に置き換えてください。
+
+```js del={2} ins={3}
+const posts = await Astro.glob('../content/blog/*.mdx');
+const firstPostHeadings = posts.at(0).getHeaders();
+const firstPostHeadings = posts.at(0).getHeadings();
+```
+
+
+### 削除: `getStaticPaths()`における`rss`の使用
+
+Astro v3.0では、`getStaticPaths()`で非推奨の`rss`ヘルパーを使用するとエラーが発生しました。
+
+Astro v4.0では、このヘルパーは完全に削除されます。
+
+#### どうすればいいですか？
+
+RSSフィードを生成するためにこのサポートされていないメソッドを使用している場合は、RSSのセットアップに[`@astrojs/rss`インテグレーション](/ja/guides/rss/)を使用する必要があります。
+
+### 削除: 小文字のHTTPメソッド名
+
+Astro v3.0では、小文字のHTTPリクエストメソッド名（`get`、`post`、`put`、`all`、`del`）を使用することは非推奨となりました。
+
+Astro v4.0では、小文字の名前へのサポートは完全に削除されます。すべてのHTTPリクエストメソッドは、大文字を使用して記述する必要があります。
+
+#### どうすればいいですか？
+
+非推奨の小文字の名前を使用している場合、これらを対応する大文字の名前に置き換える必要があります。
+
+[大文字のHTTPリクエストメソッドを使用する方法](/ja/guides/upgrade-to/v3/#変更-httpリクエストメソッドの大文字小文字)については、v3の移行ガイドを参照してください。
+
+### 削除: `base`プレフィックスがない場合の301リダイレクト
+
+Astro v3.xでは、ベースパスがなしでパブリックディレクトリのアセットにアクセスすると、Astroのプレビューサーバーは301リダイレクトを返しました。
+
+Astro v4.0では、プレビューサーバーが実行されている場合、開発サーバーと同じ動作になるように、ベースパスのプレフィックスがない場合にはパブリックディレクトリのアセットに対して404ステータスが返されます。
+
+#### どうすればいいですか？
+
+Astroのプレビューサーバーを使用する場合、パブリックディレクトリからのすべての静的アセットのインポートとURLには、[baseの値](/ja/reference/configuration-reference/#base)がパスの先頭に付けられている必要があります。
+
+以下の例は、`base: '/docs'`が設定されている場合に、パブリックフォルダから画像を表示するために必要な`src`属性を示しています。
+
+```astro title="src/pages/index.astro" ins="/docs"
+// public/images/my-image.pngにアクセスする:
+
+<img src="/docs/images/my-image.png" alt="">
+```
+
+### 削除: `astro/client-image`の自動変換
+
+Astro v3.xでは、非推奨の画像インテグレーションで使用されていた`astro/client-image`型が削除されましたが、`env.d.ts`ファイルでこれが見つかった場合は、デフォルトのAstro型`astro/client`に自動変換されました。
+
+Astro v4.0では、`astro/client-image`は無視され、`env.d.ts`は自動的には更新されなくなります。
+
+#### どうすればいいですか？
+
+`src/env.d.ts`で`@astrojs/image`の型を設定していて、v3.0にアップグレードしても型が自動的に変換されなかった場合は、`astro/client-image`型を`astro/client`に手動で置き換えてください。
+
+```ts title="src/env.d.ts" del={1} ins={2}
+  /// <reference types="astro/client-image" />
+  /// <reference types="astro/client" />
+```
+
+
+## コミュニティリソース
+
+Astro v4.0に関する良い資料をご存知ですか？[このページを編集](https://github.com/withastro/docs/edit/main/src/content/docs/en/guides/upgrade-to/v4.mdx)し、以下にリンクを追加してください！
+
+## 既知の問題
+
+[GitHub上のAstroのissues](https://github.com/withastro/astro/issues/)で報告済みの問題を確認するか、問題を報告してください。

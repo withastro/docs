@@ -44,12 +44,13 @@ The object passed into `setAdapter` is defined as:
 
 ```ts
 interface AstroAdapter {
-  name: string;
-  serverEntrypoint?: string;
-  exports?: string[];
-  adapterFeatures: AstroAdapterFeatures;
-  supportedAstroFeatures: AstroFeatureMap;
-
+	name: string;
+	serverEntrypoint?: string;
+	previewEntrypoint?: string;
+	exports?: string[];
+	args?: any;
+	adapterFeatures?: AstroAdapterFeatures;
+	supportedAstroFeatures?: AstroFeatureMap;
 }
 
 export interface AstroAdapterFeatures {
@@ -193,7 +194,7 @@ export function start(manifest) {
 
 The following methods are provided:
 
-##### `app.render(request, { routeData, locals })`
+##### `app.render(request: Request, options?: RenderOptions)`
 
 This method calls the Astro page that matches the request, renders it, and returns a Promise to a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object. This also works for API routes that do not render pages.
 
@@ -201,13 +202,39 @@ This method calls the Astro page that matches the request, renders it, and retur
 const response = await app.render(request);
 ```
 
-The method accepts a mandatory `request` argument, and an optional argument for [`routeData`](/en/reference/integrations-reference/#routedata-type-reference) and [`locals`](/en/reference/api-reference/#astrolocals).
+##### `RenderOptions`
 
-Provide a value for `routeData` if you already know the route to render. Doing so will bypass the internal call to [`app.match`](#appmatchrequest) to determine the route to render.
+The `app.render()` method accepts a mandatory `request` argument, and an optional `RenderOptions` object for [`addCookieHeader`](#addcookieheader), [`clientAddress`](#clientaddress), [`locals`](#locals), and [`routeData`](#routedata).
+
+###### `addCookieHeader`
+
+Whether or not to automatically add all cookies written by `Astro.cookie.set()` to the response headers.
+
+When set to `true`, they will be added to the `Set-Cookie` header of the response as comma separated key-value pairs. You can use the standard `response.headers.getSetCookie()` API to read them individually.
+When set to `false`(default), the cookies will only be available from `App.getSetCookieFromResponse(response)`.
+
+```js
+const response = await app.render(request, { addCookieHeader: true });
+```
+
+###### `clientAddress`
+
+The client IP address that will be made available as [`Astro.clientAddress`](/en/reference/api-reference/#astroclientaddress) in pages, and as `ctx.clientAddress` in API routes and middleware.
+
+The example below reads the `x-forwarded-for` header and passes it as `clientAddress`. This value becomes available to the user as `Astro.clientAddress`.
+
+```js "clientAddress"
+const clientAddress = request.headers.get("x-forwarded-for");
+const response = await app.render(request, { clientAddress });
+```
+
+###### `locals`
+
+The [`context.locals` object](/en/reference/api-reference/#contextlocals) used to store and access information during the lifecycle of a request.
 
 The example below reads a header named `x-private-header`, attempts to parse it as an object and pass it to `locals`, which can then be passed to any [middleware function](/en/guides/middleware/).
 
-```js
+```js "locals"
 const privateHeader = request.headers.get("x-private-header");
 let locals = {};
 try {
@@ -216,6 +243,20 @@ try {
     }
 } finally {
     const response = await app.render(request, { locals });
+}
+```
+
+###### `routeData`
+
+Provide a value for [`routeData`](/en/reference/integrations-reference/#routedata-type-reference) if you already know the route to render. Doing so will bypass the internal call to [`app.match`](#appmatchrequest) to determine the route to render.
+
+```js "routeData"
+const routeData = app.match(request);
+if (routeData) {
+    return app.render(request, { routeData });
+} else {
+    /* adapter-specific 404 response */
+    return new Response(..., { status: 404 });
 }
 ```
 
@@ -247,7 +288,7 @@ Once you [publish your adapter to npm](https://docs.npmjs.com/cli/v8/commands/np
 
 ## Astro features
 
-<Since v="3.0.0" />
+<p><Since v="3.0.0" /></p>
 
 Astro features are a way for an adapter to tell Astro whether they are able to support a feature, and also the adapter's level of support.  
 

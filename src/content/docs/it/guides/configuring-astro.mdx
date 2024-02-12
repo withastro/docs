@@ -1,0 +1,169 @@
+---
+title: Configurare Astro
+i18nReady: true
+---
+
+Puoi modificare come astro lavora modificando il file `astro.config.mjs` nel tuo progetto. Questo file è molto comune nei progetti astro 
+
+📚 Puoi leggere la [referenze dell'API](/it/reference/configuration-reference/) per vedere tutte le opzioni di configurazione possibili.
+## Il file di configurazione di Astro 
+
+Una configurazione di Astro viene esportata con l'export default e viene usata la funzione `defineConfig` per rendere tutto piu semplice:
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // la tua configurazione va qui 
+  // https://docs.astro.build/it/reference/configuration-reference/
+})
+```
+
+Usare `defineConfig()` è raccomandato per avere degli hint nel tuo IDE, ma non è necessario. Puoi creare una configurazione vailida anche in questo modo:
+
+```js title="astro.config.mjs"
+// Esempio: Configurazione di base scheletrica
+export default {}
+```
+
+## Tipi di file configurazione supportati
+
+Astro supporta molti tipi di file per scrivere la tua configurazione: `astro.config.js`, `astro.config.mjs`, `astro.config.cjs` e `astro.config.ts`. Noi ti consigliamo di usere `.mjs` oppure `.ts` se vuoi scrivere la configurazione in TypeScript.
+
+Il caricamento dei file di configurazione di TypeScript è gestito tramite [`tsm`](https://github.com/lukeed/tsm) e rispetterà le opzioni tsconfig del progetto.
+
+## Risoluzione del file di configurazione
+
+Astro in automatico trovera e utilizzare il file `astro.config.mjs` dentro la root del tuo progetto. Se non verra trovato utilizzare la configurazione di base.
+
+```bash
+# Esempio: Leggera il file ./astro.config.mjs
+astro build
+```
+
+Puoi indicare che file di configurazione utilizzare con la flag `--config` nella CLI. Questa flag comunque cercera il file indicato nella root del progetto
+
+```bash
+# Esempio: Legge il tuo file di configurazione
+astro build --config my-config-file.js
+```
+
+## IntelliSense nella configurazione
+
+Astro raccomanda di usare la funzione `defineConfig()` per aiutarti. `defineConfig()` ti da IntelliSense in modo automatico nel tuo IDE. Editor come VSCode leggono le definizioni TypeScript di Astro e ti daranno IntelliSense automatica, pure se il tuo file non è scrito in TypeScript.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // configurazione qui...
+  // https://docs.astro.build/it/reference/configuration-reference/
+})
+```
+
+Puoi anche definire i tipi utilizzando JSDoc:
+
+```js
+// astro.config.mjs
+export default /** @type {import('astro').AstroUserConfig} */ {
+  // configurazione qui...
+  // https://docs.astro.build/it/reference/configuration-reference/
+}
+```
+
+## Riferimento ai file relativi
+
+Se definisci una path relativa in `root` oppure con la flag `--root` della CLI, Astro lo troverà rispetto alla cartella del progetto dove puoi avviare il comando `astro`.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // Trova la cartella "./foo" nella tua cartella attuale 
+  root: 'foo'
+})
+```
+
+Astro risolverà tutte le altre stringhe di file e le cartella relative come relative alla radice del progetto:
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // Trova la cartella "./foo" nella tua cartella di lavoro 
+  root: 'foo',
+  // Trova la cartella "./foo/public" nella tua cartella di lavoro 
+  publicDir: 'public',
+})
+```
+
+Per fare riferimento a un file o a una cartella relativa al file di configurazione, usa `import.meta.url` (a meno che tu non stia usando un file common.js `astro.config.cjs`).
+
+```js "import.meta.url"
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // Trova la cartella "./foo", relativa al file di configurazione 
+  root: new URL("./foo", import.meta.url).toString(),
+  // Trova la cartella "./public", relativa al file di configurazione 
+  publicDir: new URL("./public", import.meta.url).toString(),
+})
+```
+
+:::note
+Le proprieta del `import.meta` specifiche per Vite, come `import.meta.env` o `import.meta.glob`, _non_ accessibili dal tuo file di configurazione. Ti consigliamo di usare alternative come [dotenv](https://github.com/motdotla/dotenv) o [fast-glob](https://github.com/mrmlnc/fast-glob) per il rispettivo utilizzo.
+:::
+
+## Cambiare il nome dei file di output
+
+Per il codice che Astro processa automaticamente, comne il JavaScript o CSS importato, puoi cambiare il loro noem con l'opzione [`entryFileNames`](https://rollupjs.org/guide/en/#outputentryfilenames), [`chunkFileNames`](https://rollupjs.org/guide/en/#outputchunkfilenames), e [`assetFileNames`](https://rollupjs.org/guide/en/#outputassetfilenames) in `vite.build.rollupOptions` nel tuo file `astro.config.*`.
+
+```js ins={9-11}
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          entryFileNames: 'entry.[hash].mjs',
+          chunkFileNames: 'chunks/chunk.[hash].mjs',
+          assetFileNames: 'assets/asset.[hash][extname]',
+        },
+      },
+    },
+  },
+})
+```
+
+Questa funzione può essere utile per cambiare il nome a file che possono essere bloccati dagli ad blocker (es. `ads.js` o `google-tag-manager.js`).
+
+## Variabili d'ambiente 
+Astro controlla i file di configurazione prima di caricare gli altri file. Per questo motivo, non si può usare `import.meta.env` per accedere alle variabili d'ambiente impostate nei file `.env`.
+
+Puoi usare `process.env` nel file di configurazione per utilizzare le variabili d'ambiente, come questo [inserite dalla CLI](/it/guides/environment-variables/#using-the-cli).
+
+Puoi pure usare il [`loadEnv` di Vite](https://main.vitejs.dev/config/#using-environment-variables-in-config) per caricare i file `.env`.
+
+:::note
+`pnpm` non consente di importare moduli che non sono direttamente installati nel progetto. Se usi `pnpm`, è necessario installare `vite` per usare l'helper `loadEnv`.
+
+```sh
+pnpm add vite --save-dev
+```
+:::
+
+```js title="astro.config.mjs"
+import { loadEnv } from "vite";
+const { SECRET_PASSWORD } = loadEnv(process.env.NODE_ENV, process.cwd(), "");
+```
+
+## Referenze 
+
+📚 Scopri di più sulla [API di configurazione](/it/reference/configuration-reference/) per una panoramica completa di tutte le opzioni di configurazione supportate.

@@ -12,7 +12,7 @@ export default [
 	{ text: 'Bien démarrer', slug: 'getting-started', key: 'getting-started' },
 	{ text: 'Installation', slug: 'install/auto', key: 'install' },
 	{ text: "Configuration de l'éditeur de code", slug: 'editor-setup', key: 'editor-setup' },
-	{ text: 'Mise à jour vers la v3', slug: 'guides/upgrade-to/v3', key: 'guides/upgrade-to/v3' },
+	{ text: 'Mise à jour vers la v4', slug: 'guides/upgrade-to/v4', key: 'guides/upgrade-to/v4' },
 
 	{ text: 'Concepts Fondamentaux', header: true, type: 'learn', key: 'coreConcepts' },
 	{ text: 'Pourquoi Astro ?', slug: 'concepts/why-astro', key: 'concepts/why-astro' },
@@ -36,25 +36,25 @@ export default [
 
 	{
 		text: 'Structure du Projet',
-		slug: 'core-concepts/project-structure',
-		key: 'core-concepts/project-structure',
+		slug: 'basics/project-structure',
+		key: 'basics/project-structure',
 	},
 	{
 		text: 'Composants',
-		slug: 'core-concepts/astro-components',
-		key: 'core-concepts/astro-components',
+		slug: 'basics/astro-components',
+		key: 'basics/astro-components',
 	},
-	{ text: 'Pages', slug: 'core-concepts/astro-pages', key: 'core-concepts/astro-pages' },
-	{ text: 'Layouts', slug: 'core-concepts/layouts', key: 'core-concepts/layouts' },
+	{ text: 'Pages', slug: 'basics/astro-pages', key: 'basics/astro-pages' },
+	{ text: 'Layouts', slug: 'basics/layouts', key: 'basics/layouts' },
 	{
 		text: 'Syntaxe de Template Astro',
-		slug: 'core-concepts/astro-syntax',
-		key: 'core-concepts/astro-syntax',
+		slug: 'basics/astro-syntax',
+		key: 'basics/astro-syntax',
 	},
 	{
 		text: 'Les modes de rendu',
-		slug: 'core-concepts/rendering-modes',
-		key: 'core-concepts/rendering-modes',
+		slug: 'basics/rendering-modes',
+		key: 'basics/rendering-modes',
 	},
 
 	{ text: 'Éléments encastrés', header: true, type: 'learn', key: 'builtins' },
@@ -78,8 +78,8 @@ export default [
 	{ text: 'Intégrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
 	{
 		text: "Framework d'interface",
-		slug: 'core-concepts/framework-components',
-		key: 'core-concepts/framework-components',
+		slug: 'guides/framework-components',
+		key: 'guides/framework-components',
 	},
 	{
 		text: 'Rendu Côté Serveur (SSR)',
@@ -95,7 +95,7 @@ export default [
 	{ text: 'Plus de méthodes', slug: 'recipes', key: 'guides/recipes' },
 
 	{ text: 'Guides', header: true, type: 'learn', key: 'features' },
-	{ text: 'Routage', slug: 'core-concepts/routing', key: 'core-concepts/routing' },
+	{ text: 'Routage', slug: 'guides/routing', key: 'guides/routing' },
 	{ text: 'Markdown', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 	{
 		text: "Scripts & gestion d'évènements",
@@ -108,8 +108,8 @@ export default [
 	{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
 	{
 		text: 'Points de terminaison',
-		slug: 'core-concepts/endpoints',
-		key: 'core-concepts/endpoints',
+		slug: 'guides/endpoints',
+		key: 'guides/endpoints',
 	},
 	{ text: 'Récupération de Données', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
 	{
@@ -147,7 +147,11 @@ export default [
 		slug: 'reference/integrations-reference',
 		key: 'reference/integrations-reference',
 	},
-	{ text: 'Adapteur API', slug: 'reference/adapter-reference', key: 'reference/adapter-reference' },
+	{
+		text: 'Adaptateur API',
+		slug: 'reference/adapter-reference',
+		key: 'reference/adapter-reference',
+	},
 	{
 		text: "API du Service d'Images",
 		slug: 'reference/image-service-reference',
@@ -170,4 +174,16 @@ export default [
 		key: 'reference/error-reference',
 	},
 	{ text: 'Format de Packet NPM', slug: 'reference/publish-to-npm', key: 'guides/publish-to-npm' },
+
+	{ text: 'Ressources communautaires', header: true, type: 'learn', key: 'communityResources' },
+	{
+		text: 'Cours, Guides et Recettes',
+		slug: 'community-resources/content',
+		key: 'community-resources/content',
+	},
+	{
+		text: 'Entretiens, Interviews et Streams',
+		slug: 'community-resources/talks',
+		key: 'community-resources/talks',
+	},
 ] as const;

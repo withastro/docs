@@ -43,11 +43,13 @@ export default function createIntegration() {
 
 ```ts
 interface AstroAdapter {
-  name: string;
-  serverEntrypoint?: string;
-  exports?: string[];
-  adapterFeatures: AstroAdapterFeatures;
-  supportedAstroFeatures: AstroFeatureMap;
+	name: string;
+	serverEntrypoint?: string;
+	previewEntrypoint?: string;
+	exports?: string[];
+	args?: any;
+	adapterFeatures?: AstroAdapterFeatures;
+	supportedAstroFeatures?: AstroFeatureMap;
 }
 
 export interface AstroAdapterFeatures {
@@ -171,7 +173,7 @@ export function start(manifest) {
 
 #### `astro/app`
 
-该模块用于渲染已通过 `astro build` 命令预构建的页面。Astro 使用标准的 [Request](https://developer.mozilla.org/zh-CN/docs/Web/API/Request) 和 [Response](https://developer.mozilla.org/zh-CN/docs/Web/API/Response) 对象。如果托管方使用不同格式的请求/响应 API ，需要在适配器中进行转换处理。
+该模块用于渲染已通过 `astro build` 命令预构建的页面。Astro 使用标准的 [Request](https://developer.mozilla.org/zh-CN/docs/Web/API/Request) 和 [Response](https://developer.mozilla.org/zh-CN/docs/Web/API/Response) 对象。如果托管方使用不同格式的请求/响应 API，需要在适配器中进行转换处理。
 
 ```js
 import { App } from 'astro/app';
@@ -190,7 +192,7 @@ export function start(manifest) {
 
 该模块提供以下几个方法：
 
-##### `app.render(request, routeData, locals)`
+##### `app.render(request: Request, options?: RenderOptions)`
 
 此方法用于匹配符合请求的 Astro 页面，并返回一个 Promise 对象给 [Response](https://developer.mozilla.org/zh-CN/docs/Web/API/Response) 。该方法对于不渲染页面的 API 路由同样适用。
 
@@ -198,15 +200,39 @@ export function start(manifest) {
 const response = await app.render(request);
 ```
 
-方法拥有一个必传参数 `request`，和两个可选参数 [`routeData`](/zh-cn/reference/integrations-reference/#routedata-类型参考) 以及 [`locals`](/zh-cn/guides/middleware/#locals)。
+##### `RenderOptions`
 
-如果你已经明确需要渲染的路由，可以通过传入 `routeData` 参数，跳过内部调用 [`app.match`](#appmatchrequest) 进行匹配的步骤。
+`app.render()` 方法接受一个必填的 `request` 参数，以及一个可选的 `RenderOptions` 对象，用于 [`addCookieHeader`](#addcookieheader)、[`clientAddress`](#clientaddress)、[`locals`](#locals) 和 [`routeData`](#routedata)。
 
-如需使用 `locals` 参数，必须将其作为第三个参数传入。如果不需要指定路由的话，可以将 `routeData` 参数设置为 `undefined`。
+###### `addCookieHeader`
 
-下方示例尝试解析 `x-private-header` 请求头，并将其传入 `locals` 中。在此之后，它就可以作为参数被任意[中间件](/zh-cn/guides/middleware/)使用了。
+是否自动将 `Astro.cookie.set()` 写入的所有 cookie 添加到响应头中。
+
+当设置为 `true` 时，它们将作为逗号分隔的键值对添加到响应的 `Set-Cookie` 头中。你可以使用标准的 `response.headers.getSetCookie()` API 来单独读取它们。
+当设置为 `false`（默认值）时，这些 cookie 只能从 `App.getSetCookieFromResponse(response)` 中获取。
 
 ```js
+const response = await app.render(request, { addCookieHeader: true });
+```
+
+###### `clientAddress`
+
+该客户端 IP 地址将作为 [`Astro.clientAddress`](/zh-cn/reference/api-reference/#astroclientaddress) 在页面中可用，并作为 API 路由和中间件中的 `ctx.clientAddress`。
+
+下面的示例读取 `x-forwarded-for` 头，并将其作为 `clientAddress` 传递。该值将作为 `Astro.clientAddress` 提供给用户。
+
+```js "clientAddress"
+const clientAddress = request.headers.get("x-forwarded-for");
+const response = await app.render(request, { clientAddress });
+```
+
+###### `locals`
+
+[`context.locals` 对象](/zh-cn/reference/api-reference/#contextlocals) 用于在请求的生命周期中存储和访问信息。
+
+下面的示例读取名为 `x-private-header` 的头，并尝试将其解析为对象并将其传递给 `locals`，然后可以将其传递给任何 [中间件函数](/zh-cn/guides/middleware/)。
+
+```js "locals"
 const privateHeader = request.headers.get("x-private-header");
 let locals = {};
 try {
@@ -214,7 +240,21 @@ try {
         locals = JSON.parse(privateHeader);
     }
 } finally {
-    const response = await app.render(request, undefined, locals);
+    const response = await app.render(request, { locals });
+}
+```
+
+###### `routeData`
+
+如果你已经知道要渲染的路由，请为 [`routeData`](/zh-cn/reference/integrations-reference/#routedata-类型参考) 提供一个值。这样做将绕过内部调用 [`app.match`](#appmatchrequest) 来确定要渲染的路由。
+
+```js "routeData"
+const routeData = app.match(request);
+if (routeData) {
+    return app.render(request, { routeData });
+} else {
+    /* 特定于适配器的 404 响应 */
+    return new Response(..., { status: 404 });
 }
 ```
 
@@ -247,7 +287,7 @@ if(app.match(request)) {
 
 ## Astro features
 
-<Since v="3.0.0" />
+<p><Since v="3.0.0" /></p>
 
 Astro features 是适配器告诉 Astro 它们是否能够支持某个特性的一种方式，也是适配器支持程度的一种方式。
 
@@ -426,7 +466,7 @@ export default function createIntegration() {
       },
 
       'astro:build:ssr': ({ middlewareEntryPoint }) => {
-          // 请记住检查此属性是否退出,如果适配器未选择加入该功能,则它将是 `undefined`
+          // 请记住检查此属性是否退出，如果适配器未选择加入该功能，则它将是 `undefined`
           if (middlewareEntryPoint) {
              createEdgeMiddleware(middlewareEntryPoint)
           }

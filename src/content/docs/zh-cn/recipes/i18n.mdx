@@ -5,11 +5,14 @@ type: recipe
 i18nReady: true
 ---
 import FileTree from '~/components/FileTree.astro'
+import ReadMore from '~/components/ReadMore.astro'
 import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro'
 
-尽管 Astro 没有内置的国际化功能，但你也可以构建你自己的国际化解决方案。
+在这个指南中，你将学习如何使用内容集合和动态路由来构建你自己的国际化（i18n）解决方案，并针对不同的语言提供你的内容。
 
-本节示例中，你将看到如何使用内容集合和动态路由来支持不同语言。
+:::tip
+在 v4.0 中，Astro 添加了对 i18n 路由的内置支持，允许你配置默认和支持的语言，并包含有用的辅助函数来帮助你服务于国际受众。如果你想使用它，可以查看我们的[国际化指南](/zh-cn/guides/internationalization/)来了解这些功能。
+:::
 
 假设示例拥有不同语言的子路径，例如面向英语的 `example.com/en/blog` 和面向法语的 `example.com/fr/blog`。
 
@@ -47,7 +50,7 @@ import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro'
       </Fragment>
       
       <Fragment slot="ssr">
-        如果你正好使用 SSR 适配器，那么你也可以使用 [`Astro.redirect`](/zh-cn/core-concepts/routing/#动态重定向) 来重定向到默认语言。
+        如果你正好使用 SSR 适配器，那么你也可以使用 [`Astro.redirect`](/zh-cn/guides/routing/#动态重定向) 来重定向到默认语言。
 
         ```astro
         ---
@@ -93,9 +96,9 @@ import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro'
     };
 
     ```
-    📚 你可以在这获取有关更多 [内容集合](/zh-cn/guides/content-collections/) 的内容。
+    <ReadMore>你可以在这获取有关更多 [内容集合](/zh-cn/guides/content-collections/) 的内容。</ReadMore>
 
-3. 使用 [动态路由](/zh-cn/core-concepts/routing/#动态路由) 来获取并基于 `lang` 和 `slug` 参数的内容渲染内容。
+3. 使用 [动态路由](/zh-cn/guides/routing/#动态路由) 来获取并基于 `lang` 和 `slug` 参数的内容渲染内容。
 
     <StaticSsrTabs>
       <Fragment slot="static">
@@ -104,15 +107,15 @@ import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro'
         ```astro
         //src/pages/[lang]/blog/[...slug].astro
         ---
-        import { getCollection } from 'astro:content'
+        import { getCollection } from 'astro:content';
 
         export async function getStaticPaths() {
-          const pages = await getCollection('blog')
+          const pages = await getCollection('blog');
 
           const paths = pages.map(page => {
             const [lang, ...slug] = page.slug.split('/');
-            return { params: { lang, slug: slug.join('/') || undefined }, props: page }
-          })
+            return { params: { lang, slug: slug.join('/') || undefined }, props: page };
+          });
 
           return paths;
         }
@@ -135,10 +138,10 @@ import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro'
         ```astro
         //src/pages/[lang]/blog/[...slug].astro
         ---
-        import { getEntryBySlug } from 'astro:content';
+        import { getEntry } from 'astro:content';
 
         const { lang, slug } = Astro.params;
-        const page = await getEntryBySlug('blog', `${lang}/${slug}`);
+        const page = await getEntry('blog', `${lang}/${slug}`);
 
         if (!page) {
           return Astro.redirect('/404');
@@ -154,7 +157,7 @@ import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro'
       </Fragment>
     </StaticSsrTabs>
 
-    📚 你可以在这获取有关更多 [动态路由](/zh-cn/core-concepts/routing/#动态路由) 的内容。
+    <ReadMore>你可以在这获取有关更多 [动态路由](/zh-cn/guides/routing/#动态路由) 的内容。</ReadMore>
 
 
     :::tip[日期格式化]
@@ -241,7 +244,7 @@ import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro'
     </ul>
     ```
 
-4. 每个页面必须在 `<html>` 元素中包含一个 `lang` 属性以匹配页面的语言。在这个例子中，[可复用布局](/zh-cn/core-concepts/layouts/) 会从当前路由中提取语言：
+4. 每个页面必须在 `<html>` 元素中包含一个 `lang` 属性以匹配页面的语言。在这个例子中，[可复用布局](/zh-cn/basics/layouts/) 会从当前路由中提取语言：
 
     ```astro
     ---
@@ -269,7 +272,7 @@ import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro'
     ```astro
     ---
     // src/pages/en/about.astro
-    import Base from "../../layouts/Base.astro"
+    import Base from '../../layouts/Base.astro';
     ---
     <Base>
         <h1>About me</h1>
@@ -348,15 +351,15 @@ import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro'
 3. 在 `src/i18n/utils.ts` 中添加一个辅助函数以根据当前语言对路径翻译：
 
    ```js
-    // src/i18n/utils.ts
-    import { ui, defaultLang, showDefaultLang } from './ui';
+   // src/i18n/utils.ts
+   import { ui, defaultLang, showDefaultLang } from './ui';
 
-    export function useTranslatedPath(lang: keyof typeof ui) {
-      return function translatePath(path: string, l: string = lang) {
-        return !showDefaultLang && l === defaultLang ? path : `/${l}${path}`
-      }
-    }
-    ```
+   export function useTranslatedPath(lang: keyof typeof ui) {
+     return function translatePath(path: string, l: string = lang) {
+       return !showDefaultLang && l === defaultLang ? path : `/${l}${path}`
+     }
+   }
+   ```
 
 4. 在需要的地方导入这个辅助函数。例如，一个 `nav` 组件可能如下所示：
 
@@ -395,7 +398,6 @@ import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro'
     // src/components/LanguagePicker.astro
     import { languages } from '../i18n/ui';
     ---
-
     <ul>
       {Object.entries(languages).map(([lang, label]) => (
         <li>
@@ -447,29 +449,29 @@ import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro'
     import { ui, defaultLang, showDefaultLang, routes } from './ui';
     
     export function getRouteFromUrl(url: URL): string | undefined {
-      const pathname = new URL(url).pathname
-      const parts = pathname?.split('/')
-      const path = parts.pop() || parts.pop()
+      const pathname = new URL(url).pathname;
+      const parts = pathname?.split('/');
+      const path = parts.pop() || parts.pop();
     
       if (path === undefined) {
-        return undefined
+        return undefined;
       }
       
       const currentLang = getLangFromUrl(url);
     
       if (defaultLang === currentLang) {
         const route = Object.values(routes)[0];
-        return route[path] !== undefined ? route[path] : undefined
+        return route[path] !== undefined ? route[path] : undefined;
       }
       
       const getKeyByValue = (obj: Record<string, string>, value: string): string | undefined  => {
-          return Object.keys(obj).find((key) => obj[key] === value)
+          return Object.keys(obj).find((key) => obj[key] === value);
       }
     
-      const reversedKey = getKeyByValue(routes[currentLang], path)
+      const reversedKey = getKeyByValue(routes[currentLang], path);
     
       if (reversedKey !== undefined) {
-        return reversedKey
+        return reversedKey;
       }
     
       return undefined
@@ -482,6 +484,7 @@ import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro'
     ---
     // src/components/LanguagePicker.astro
     import { languages } from '../i18n/ui';
+    import { getRouteFromUrl } from '../i18n/utils';
     const route = getRouteFromUrl(Astro.url);
     ---
 
@@ -499,6 +502,7 @@ import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro'
 - [Right-to-left Styling 101](https://rtlstyling.com/)
 
 ## 其他第三方库
-- [astro-i18next](https://github.com/yassinedoghri/astro-i18next) — An Astro integration for i18next including some utility components.
-- [astro-i18n](https://github.com/alexandre-fernandez/astro-i18n) — A TypeScript-first internationalization library for Astro.
-- [astro-i18n-aut](https://github.com/jlarmstrongiv/astro-i18n-aut) — An Astro integration for i18n that supports the `defaultLocale` without page generation. The integration is adapter agnostic and UI framework agnostic.
+- [astro-i18next](https://github.com/yassinedoghri/astro-i18next) — 为 i18next 提供的 Astro 集成，包括一些实用组件。
+- [astro-i18n](https://github.com/alexandre-fernandez/astro-i18n) — 为 Astro 设计的以 TypeScript 为主的国际化库。
+- [astro-i18n-aut](https://github.com/jlarmstrongiv/astro-i18n-aut) — i18n 的 Astro 集成，无需生成页面即可支持`defaultLocale`。该集成与适配器、UI 框架无关。
+- [paraglide](https://inlang.com/c/astro) — 一个专门为像 Astro 群岛这样的部分水合模式设计的完全类型安全的 i18n 库。

@@ -1,0 +1,219 @@
+---
+type: integration
+title: '@astrojs/node'
+description: "Apprenez à utiliser l'adaptateur SSR @astrojs/node pour déployer votre projet Astro."
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/node/'
+category: adapter
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+Cet adaptateur permet à Astro de déployer votre [site rendu `hybrid` ou `server`](/fr/basics/rendering-modes/#rendu-à-la-demande) vers des cibles Node.
+
+Si vous utilisez Astro comme [constructeur de site statique](/fr/basics/rendering-modes/#pré-rendu), vous n'avez pas besoin d'adaptateur.
+
+## Pourquoi Astro Node.js
+
+[Node.js](https://nodejs.org/fr/) est un moteur d'exécution JavaScript pour le code côté serveur. `@astrojs/node` peut être utilisé soit en mode standalone, soit comme middleware pour d'autres serveurs http, tels que [Express](https://expressjs.com/).
+
+## Installation
+
+Astro inclut une commande `astro add` pour automatiser l'installation des intégrations officielles. Si vous préférez, vous pouvez [installer les intégrations manuellement](#installation-manuelle) à la place.
+
+Ajoutez l'adaptateur Node pour activer SSR dans votre projet Astro avec la commande `astro add`.
+Cela installera `@astrojs/node` et apportera les changements appropriés à votre fichier `astro.config.*` en une seule étape.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```sh
+    npx astro add node
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```sh
+    pnpm astro add node
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```sh
+    yarn astro add node
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Installation manuelle
+
+Tout d'abord, ajoutez l'adaptateur Node aux dépendances de votre projet en utilisant votre gestionnaire de paquets préféré.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```sh
+    npm install @astrojs/node
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```sh
+    pnpm add @astrojs/node
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```sh
+    yarn add @astrojs/node
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+Ensuite, ajoutez l'adaptateur et votre [mode de rendu à la demande](/fr/basics/rendering-modes/#rendu-à-la-demande) à votre fichier `astro.config.*` :
+
+```js title="astro.config.mjs" ins={2,5-8}
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  output: 'server',
+  adapter: node({
+    mode: 'standalone',
+  }),
+});
+```
+
+## Configuration
+
+`@astrojs/node` peut être configuré en passant des options dans la fonction de l'adaptateur. Les options suivantes sont disponibles :
+
+### Mode
+
+Contrôle si l'adaptateur se construit en mode `middleware` ou `standalone`.
+
+* Le mode `middleware` permet à la sortie construite d'être utilisée comme middleware pour un autre serveur Node.js, comme Express.js ou Fastify.
+
+  ```js title="astro.config.mjs"
+  import { defineConfig } from 'astro/config';
+  import node from '@astrojs/node';
+  
+  export default defineConfig({
+    output: 'server',
+    adapter: node({
+      mode: 'middleware',
+    }),
+  });
+  ```
+
+* Le mode `standalone` construit un serveur qui démarre automatiquement lorsque le module d'entrée est exécuté. Cela vous permet de déployer plus facilement votre build sur un hôte sans code supplémentaire.
+
+## Utilisation
+
+Tout d'abord, [effectuer un build](/fr/guides/deploy/#construire-votre-site-localement). En fonction du `mode` sélectionné (voir ci-dessus), suivez les étapes appropriées ci-dessous :
+
+### Middleware
+
+Le point d'entrée du serveur est construit dans `./dist/server/entry.mjs` par défaut. Ce module exporte une fonction `handler` qui peut être utilisée avec n'importe quel framework qui supporte les objets Node `request` et `response`.
+
+Par exemple, avec Express :
+
+```js title="run-server.mjs"
+import express from 'express';
+import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+const app = express();
+// Changez ceci en fonction de votre astro.config.mjs, option `base`.
+// Ils doivent correspondre. La valeur par défaut est "/".
+const base = '/';
+app.use(base, express.static('dist/client/'));
+app.use(ssrHandler);
+
+app.listen(8080);
+```
+
+Ou, avec Fastify (>4) :
+
+```js title="run-server.mjs"
+import Fastify from 'fastify';
+import fastifyMiddie from '@fastify/middie';
+import fastifyStatic from '@fastify/static';
+import { fileURLToPath } from 'node:url';
+import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+const app = Fastify({ logger: true });
+
+await app
+  .register(fastifyStatic, {
+    root: fileURLToPath(new URL('./dist/client', import.meta.url)),
+  })
+  .register(fastifyMiddie);
+app.use(ssrHandler);
+
+app.listen({ port: 8080 });
+```
+
+De plus, vous pouvez également passer un objet qui sera accessible avec `Astro.locals` ou dans le middleware Astro :
+
+```js title="run-server.mjs"
+import express from 'express';
+import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+const app = express();
+app.use(express.static('dist/client/'));
+app.use((req, res, next) => {
+  const locals = {
+    title: 'Nouveau titre',
+  };
+
+  ssrHandler(req, res, next, locals);
+});
+
+app.listen(8080);
+```
+
+Notez que le mode middleware ne permet pas de servir des fichiers. Vous devrez configurer votre framework HTTP pour qu'il le fasse pour vous. Par défaut, les ressources du client sont écrites dans `./dist/client/`.
+
+### Standalone
+
+En mode standalone, un serveur démarre lorsque le point d'entrée du serveur est exécuté. Par défaut, il est construit dans `./dist/server/entry.mjs`. Vous pouvez le lancer avec :
+
+```sh
+node ./dist/server/entry.mjs
+```
+
+En mode standalone, le serveur gère le service de fichiers en plus des routes de pages et d'API.
+
+#### Hôte et port personnalisés
+
+Vous pouvez modifier l'hôte et le port sur lesquels le serveur standalone s'exécute en les passant comme variables d'environnement au moment de l'exécution :
+
+```sh
+HOST=0.0.0.0 PORT=4321 node ./dist/server/entry.mjs
+```
+
+#### HTTPS
+
+Par défaut, le serveur standalone utilise le protocole HTTP. Cela fonctionne bien si vous avez un serveur proxy en face de lui qui utilise HTTPS. Si vous avez besoin que le serveur standalone utilise HTTPS lui-même, vous devez fournir votre clé et votre certificat SSL.
+
+Vous pouvez passer le chemin vers votre clé et votre certificat via les variables d'environnement `SERVER_CERT_PATH` et `SERVER_KEY_PATH`. Voici comment vous pouvez les passer en bash :
+
+```bash
+SERVER_KEY_PATH=./private/key.pem SERVER_CERT_PATH=./private/cert.pem node ./dist/server/entry.mjs
+```
+
+#### Variables d'environnement d'exécution
+
+Si un fichier `.env` contenant des variables d'environnement est présent lors de l'exécution du processus de construction, ces valeurs seront codées en dur dans la sortie, tout comme lors de la génération d'un site web statique.
+
+Pendant la construction, les variables d'exécution doivent être absentes du fichier `.env`, et vous devez fournir à Astro toutes les variables d'environnement à attendre à l'exécution : `VARIABLE_1=placeholder astro build`. Ceci signale à Astro que la valeur réelle sera disponible lors de l'exécution de l'application construite. La valeur de l'espace réservé sera ignorée par le processus de construction, et Astro utilisera la valeur fournie à l'exécution.
+
+Dans le cas multiple exécution de variables, stockez-les dans un fichier séparé (par exemple `.env.runtime`) de `.env`. Lancez la compilation avec la commande suivante :
+
+```sh
+export $(cat .env.runtime) && astro build
+```
+
+#### Assets
+
+En mode standalone, les ressources de votre dossier `dist/client/` sont servies par le serveur standalone. Vous pouvez déployer ces ressources sur un CDN, auquel cas le serveur ne les servira jamais. Mais dans certains cas, comme les sites intranet, il est possible de servir les ressources statiques directement depuis le serveur d'application.
+
+Les assets dans le dossier `dist/client/_astro/` sont ceux qu'Astro a construits. Ces ressources sont toutes nommées avec un hachage et peuvent donc recevoir de longs en-têtes de cache. En interne, l'adaptateur ajoute cet en-tête pour ces ressources :
+
+```
+Cache-Control: public, max-age=31536000, immutable
+```

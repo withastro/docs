@@ -1,0 +1,624 @@
+---
+title: 스타일 & CSS
+description: >-
+  범위가 지정된 스타일, 외부 CSS, Sass 및 PostCSS와 같은 도구를 사용하여 Astro에서 컴포넌트의 스타일을 지정하는 방법을 알아보세요.
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import ReadMore from '~/components/ReadMore.astro'
+
+Astro는 스타일 지정과 CSS 작성을 쉽게 할 수 있도록 설계되었습니다. Astro 컴포넌트에서 직접 CSS를 작성하거나 [Tailwind][tailwind]와 같이 즐겨 사용하는 CSS 라이브러리를 가져오세요. [Sass][sass] 및 [Less][less]와 같은 고급 스타일 언어도 지원됩니다.
+
+## Astro에서 스타일링하기
+
+Astro 컴포넌트의 스타일을 지정하는 것은 컴포넌트나 페이지 템플릿에 `<style>` 태그를 추가하는 것만큼 쉽습니다. Astro 컴포넌트에 `<style>` 태그를 배치하면 Astro가 CSS를 감지하고 자동으로 스타일을 처리합니다.
+
+```astro title="src/components/MyComponent.astro"
+<style>
+  h1 { color: red; }
+</style>
+```
+
+### 범위가 지정된 스타일
+
+Astro `<style>` CSS 규칙은 자동으로 **기본적으로 범위가 지정됩니다**. 범위가 지정된 스타일은 동일한 컴포넌트에 작성된 HTML에만 적용되도록 백그라운드에서 컴파일됩니다. Astro 컴포넌트에 작성한 CSS는 해당 컴포넌트에 자동으로 캡슐화됩니다.
+
+CSS는 다음과 같습니다.
+
+```astro title="index.astro"
+<style>
+  h1 { 
+    color: red; 
+  }
+
+  .text { 
+    color: blue; 
+  }
+</style>
+```
+
+위 CSS는 다음과 같이 컴파일됩니다.
+
+```astro
+<style>
+  h1[data-astro-cid-hhnqfkh6] {
+     color: red;
+  }
+
+  .text[data-astro-cid-hhnqfkh6] {
+    color: blue;
+  }
+</style>
+```
+
+범위가 지정된 스타일은 누출되지 않으며 사이트의 나머지 부분에 영향을 주지 않습니다. Astro에서는 `h1 {}` 또는 `p {}`와 같은 낮은 특정 선택자를 사용해도 괜찮습니다. 왜냐하면 최종 출력에서 ​​범위와 함께 컴파일되기 때문입니다.
+
+범위가 지정된 스타일은 템플릿에 포함된 다른 Astro 컴포넌트에도 적용되지 않습니다. 하위 컴포넌트의 스타일을 지정해야 하는 경우 스타일을 지정할 수 있는 `<div>` (또는 다른 요소)로 해당 컴포넌트를 래핑하는 것을 고려하세요.
+
+범위가 지정된 스타일의 특수성은 유지되므로 스타일이 컴포넌트 외부에 적용되지 않도록 하는 배타적인 경계를 계속 유지하면서 다른 CSS 파일이나 CSS 라이브러리와 함께 일관되게 작업할 수 있습니다.
+
+### 전역 스타일
+
+대부분의 컴포넌트에 범위가 지정된 스타일을 권장하지만 결국에는 범위가 지정되지 않은 전역 CSS를 작성해야 하는 타당한 이유를 찾을 수 있습니다. `<style is:global>` 속성을 사용하여 자동 CSS 범위 지정을 선택 해제할 수 있습니다.
+
+```astro title="src/components/GlobalStyles.astro" "is:global"
+<style is:global>
+  /* 범위가 지정되지 않았으며 있는 그대로 브라우저에 전달됩니다.
+     사이트의 모든 <h1> 태그에 적용됩니다. */
+  h1 { color: red; }
+</style>
+```
+
+`:global()` 선택기를 사용하여 동일한 `<style>` 태그에서 전역 및 범위 CSS 규칙을 함께 혼합할 수도 있습니다. 이는 컴포넌트의 하위 요소에 CSS 스타일을 적용하는 강력한 패턴이 됩니다.
+
+```astro title="src/components/MixedStyles.astro" ":global(h1)"
+<style>
+  /* 이 컴포넌트에만 범위가 지정됩니다. */
+  h1 { color: red; }
+  /* 혼합: 하위 `h1` 요소에만 적용됩니다. */
+  article :global(h1) {
+    color: blue;
+  }
+</style>
+<h1>Title</h1>
+<article><slot /></article>
+```
+
+이는 블로그 게시물이나 Astro 외부에 콘텐츠가 있는 CMS 기반 콘텐츠가 포함된 문서 등의 스타일을 지정하는 좋은 방법입니다. 하지만 주의하세요. 특정 상위 컴포넌트가 있는지 여부에 따라 모양이 달라지는 컴포넌트는 문제를 해결하기 어려울 수 있습니다.
+
+범위가 지정된 스타일은 가능한 한 자주 사용해야 합니다. 전역 스타일은 필요할 때만 사용해야 합니다.
+
+### `class:list`를 사용하여 클래스 결합
+
+요소의 클래스를 동적으로 결합해야 하는 경우 `.astro` 파일에서 `class:list` 유틸리티 속성을 사용할 수 있습니다.
+
+```astro title="src/components/ClassList.astro" /class:list={.*}/
+---
+const { isRed } = Astro.props;
+---
+<!-- `isRed`가 true이면 클래스는 "box red"가 됩니다.. -->
+<!-- `isRed`가 false이면 클래스는 "box"가 됩니다. -->
+<div class:list={['box', { red: isRed }]}><slot /></div>
+
+<style>
+  .box { border: 1px solid blue; }
+  .red { border-color: red; }
+</style>
+```
+
+<ReadMore>`class:list`에 대해 자세히 알아보려면 [지시어 참조](/ko/reference/directives-reference/#classlist) 페이지를 확인하세요.</ReadMore>
+
+### CSS 변수
+
+<p><Since v="0.21.0" /></p>
+
+Astro `<style>`은 페이지에서 사용 가능한 모든 CSS 변수를 참조할 수 있습니다. `define:vars` 지시어를 사용하여 컴포넌트 앞부분에서 CSS 변수를 직접 전달할 수도 있습니다.
+
+```astro title="src/components/DefineVars.astro" /define:vars={{.*}}/ /var\\(.*\\)/
+---
+const foregroundColor = "rgb(221 243 228)";
+const backgroundColor = "rgb(24 121 78)";
+---
+<style define:vars={{ foregroundColor, backgroundColor }}>
+  h1 {
+    background-color: var(--backgroundColor);
+    color: var(--foregroundColor);
+  }
+</style>
+<h1>Hello</h1>
+```
+
+<ReadMore>`define:vars`에 대해 자세히 알아보려면 [지시어 참조](/ko/reference/directives-reference/#definevars) 페이지를 확인하세요.</ReadMore>
+
+### `class`를 하위 컴포넌트에 전달
+
+Astro에서 `class`와 같은 HTML 속성은 자동으로 하위 컴포넌트로 전달되지 않습니다.
+
+대신 하위 컴포넌트에서 `class` prop을 수락하고 이를 루트 요소에 적용하세요. 구조 분해할 때 이름을 바꿔야 합니다. 왜냐하면 `class`는 JavaScript에서 [예약어](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#reserved_words)이기 때문입니다.
+
+기본 범위 스타일 전략을 사용하면 `data-astro-cid-*` 속성도 전달해야 합니다. props의 `...rest`를 컴포넌트에 전달하면 됩니다. `scopedStyleStrategy`를 `'class'` 또는 `'where'`로 변경한 경우 `...rest` prop이 필요하지 않습니다.
+
+```astro title="src/components/MyComponent.astro" {2,4}
+---
+const { class: className, ...rest } = Astro.props;
+---
+<div class={className} {...rest}>
+  <slot/>
+</div>
+```
+
+```astro title="src/pages/index.astro"
+---
+import MyComponent from "../components/MyComponent.astro"
+---
+<style>
+  .red {
+    color: red;
+  }
+</style>
+<MyComponent class="red">This will be red!</MyComponent>
+```
+
+:::note[상위 컴포넌트의 범위가 지정된 스타일]
+`data-astro-cid-*` 속성에는 상위 범위의 하위 항목이 포함되므로 스타일이 상위에서 하위로 계단식으로 적용될 수 있습니다. 의도하지 않은 부작용이 발생하지 않도록 하려면 하위 컴포넌트에 고유한 클래스 이름을 사용해야 합니다.
+:::
+
+### 인라인 스타일
+
+`style` 속성을 사용하여 HTML 요소의 스타일을 인라인으로 지정할 수 있습니다. 이는 CSS 문자열이거나 CSS 속성의 객체일 수 있습니다.
+
+```astro title="src/pages/index.astro"
+// These are equivalent:
+<p style={{ color: "brown", textDecoration: "underline" }}>My text</p>
+<p style="color: brown; text-decoration: underline;">My text</p>
+```
+
+## 외부 스타일
+
+외부 전역 스타일시트를 해결하는 방법에는 두 가지가 있습니다. 프로젝트 소스에 있는 파일에 대한 ESM 가져오기와 `public/` 디렉터리에 있거나 프로젝트 외부에서 호스팅되는 파일에 대한 절대 URL 링크입니다.
+
+<ReadMore>`public/` 또는 `src/` 디렉터리에 있는 [정적 자산](/ko/guides/imports/) 사용에 대해 자세히 알아보세요.</ReadMore>
+
+### 로컬 스타일시트 가져오기
+
+:::caution[npm 패키지를 사용하시나요?]
+npm 패키지에서 가져올 때 `astro.config`를 업데이트해야 할 수도 있습니다. 아래의 ["npm 패키지에서 스타일시트 가져오기" 섹션](#npm-패키지에서-스타일시트-가져오기)을 참조하세요.
+:::
+
+ESM 가져오기 구문을 사용하여 Astro 컴포넌트 프런트매터에 스타일시트를 가져올 수 있습니다. CSS 가져오기는 [Astro 컴포넌트의 다른 ESM 가져오기](/ko/basics/astro-components/#컴포넌트-스크립트)처럼 작동합니다. 이는 **컴포넌트를 기준으로 참조**되어야 하며 다른 가져오기와 함께 컴포넌트 스크립트 **상단**에 작성되어야 합니다.
+
+```astro title="src/pages/index.astro" {4}
+---
+// Astro는 자동으로 이 CSS를 번들링하고 최적화합니다.
+// 이는 .scss, .styl 등과 같은 전처리기 파일에도 적용됩니다.
+import '../styles/utils.css';
+---
+<html><!-- 페이지 --></html>
+```
+
+ESM을 통한 CSS `import`는 React & Preact와 같은 JSX 컴포넌트를 포함하여 모든 JavaScript 파일에서 지원됩니다. 이는 React 컴포넌트에 대한 세부적인 컴포넌트별 스타일을 작성하는 데 유용할 수 있습니다.
+
+### npm 패키지에서 스타일시트 가져오기
+
+외부 npm 패키지에서 스타일시트를 로드해야 할 수도 있습니다. 이는 [Open Props](https://open-props.style/)와 같은 유틸리티에서 특히 일반적입니다. 패키지가 **파일 확장자 사용을 권장**하는 경우 (예: `package-name/styles` 대신 `package-name/styles.css`) 이는 로컬 스타일시트처럼 작동해야 합니다.
+
+```astro {3}
+---
+// src/pages/random-page.astro
+import 'package-name/styles.css';
+---
+<html><!-- 페이지 --></html>
+```
+
+패키지에서 **파일 확장자 사용을 제안하지 _않는_ 경우** (예: `package-name/styles`) 먼저 Astro 구성을 업데이트해야 합니다!
+
+`normalize` (파일 확장자는 생략됨)라는 `package-name`에서 CSS 파일을 가져오고 있다고 가정해 보겠습니다. 페이지를 올바르게 사전 렌더링할 수 있도록 하려면 [`vite.ssr.noExternal` 배열](https://ko.vitejs.dev/config/ssr-options.html#ssr-noexternal)에 `package-name`을 추가하세요.
+
+```js ins={7}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    ssr: {
+      noExternal: ['package-name'],
+    }
+  }
+})
+```
+
+:::note
+이는 [Astro SSR](/ko/guides/server-side-rendering/)과 관련이 없거나 필요하지 않은 [Vite 전용 설정](https://ko.vitejs.dev/config/ssr-options.html#ssr-noexternal)입니다.
+:::
+
+이제 `package-name/normalize`를 자유롭게 가져올 수 있습니다. 이는 다른 로컬 스타일시트와 마찬가지로 Astro에 의해 번들로 제공되고 최적화됩니다.
+
+```astro {3}
+---
+// src/pages/random-page.astro
+import 'package-name/normalize';
+---
+<html><!-- 페이지 --></html>
+```
+
+### "link" 태그를 통해 정적 스타일시트 로드
+
+`<link>` 요소를 사용하여 페이지에 스타일시트를 로드할 수도 있습니다. 이는 `/public` 디렉터리에 있는 CSS 파일의 절대 URL 경로이거나 외부 웹사이트의 URL이어야 합니다. 상대 `<link>` href 값은 지원되지 않습니다.
+
+```astro title="src/pages/index.astro" {3,5}
+<head>
+  <!-- 로컬: /public/styles/global.css -->
+  <link rel="stylesheet" href="/styles/global.css" />
+  <!-- 외부 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.24.1/themes/prism-tomorrow.css" />
+</head>
+```
+
+이 접근 방식은 `public/` 디렉터리를 사용하기 때문에 Astro에서 제공하는 일반적인 CSS 처리, 번들링 및 최적화를 건너뜁니다. 이러한 변환이 필요한 경우 위 [스타일시트 가져오기](#로컬-스타일시트-가져오기) 방법을 사용하세요.
+
+## Cascading 순서
+
+Astro 컴포넌트는 때때로 CSS의 여러 소스를 평가해야 합니다. 예를 들어 컴포넌트는 CSS 스타일시트를 가져오고 자체 `<style>` 태그를 포함하며 CSS를 가져오는 레이아웃에서 렌더링될 수 있습니다.
+
+동일한 요소에 충돌하는 CSS 규칙이 적용될 때 브라우저는 먼저 _구체성_ 을 사용한 다음 _표시 순서_ 를 사용하여 표시할 값을 결정합니다.
+
+한 규칙이 다른 규칙보다 더 _구체적_ 인 경우, CSS 규칙이 어디에 나타나든 해당 값이 우선 적용됩니다.
+
+```astro title="MyComponent.astro"
+<style>
+  h1 { color: red }
+  div > h1 {
+    color: purple
+  }
+</style>
+<div>
+  <h1>
+    This header will be purple!
+  </h1>
+</div>
+```
+
+두 규칙의 구체성이 동일한 경우 _표시 순서_ 가 평가되고 마지막 규칙 값이 우선 적용됩니다.
+
+```astro title="MyComponent.astro"
+<style>
+  h1 { color: purple }
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    This header will be red!
+  </h1>
+</div>
+```
+
+Astro CSS 규칙은 다음과 같은 표시 순서로 평가됩니다.
+
+- 헤드의 **`<link>` 태그** (최하위 우선순위)
+- **가져온 스타일**
+- **범위가 지정된 스타일** (가장 높은 우선순위)
+
+### 범위가 지정된 스타일
+
+[범위 스타일](#범위가-지정된-스타일)을 사용해도 CSS의 _구체성_ 이 높아지지는 않지만 항상 _표시 순서_ 에서는 마지막에 표시됩니다. 따라서 동일한 특성을 지닌 다른 스타일보다 우선합니다. 예를 들어 범위가 지정된 스타일과 충돌하는 스타일시트를 가져오는 경우 범위가 지정된 스타일의 값이 적용됩니다.
+
+```css title="make-it-purple.css"
+h1 {
+  color: purple;
+}
+```
+```astro title="MyComponent.astro"
+---
+import "./make-it-purple.css"
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    This header will be red!
+  </h1>
+</div>
+```
+
+가져온 스타일을 _더 구체적으로_ 만들면 범위가 지정된 스타일보다 우선순위가 높아집니다.
+
+```css title="make-it-purple.css"
+div > h1 {
+  color: purple;
+}
+```
+```astro title="MyComponent.astro"
+---
+import "./make-it-purple.css"
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    This header will be purple!
+  </h1>
+</div>
+```
+
+### 가져오기 순서
+
+Astro 컴포넌트에서 여러 스타일시트를 가져올 때 CSS 규칙은 가져온 순서대로 평가됩니다. CSS가 평가되는 시점에 관계없이 더 높은 구체성은 항상 표시할 스타일을 결정합니다. 그러나 충돌하는 스타일이 동일한 구체성을 갖는 경우 _마지막으로 가져온_ 스타일이 승리합니다.
+
+```css title="make-it-purple.css"
+div > h1 {
+  color: purple;
+}
+```
+```css title="make-it-green.css"
+div > h1 {
+  color: green;
+}
+```
+```astro title="MyComponent.astro"
+---
+import "./make-it-green.css"
+import "./make-it-purple.css"
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    This header will be purple!
+  </h1>
+</div>
+```
+
+`<style>` 태그는 범위가 지정되고 해당 태그를 선언하는 컴포넌트에만 적용되지만 _가져온_ CSS는 "누출"될 수 있습니다. 컴포넌트를 가져오면 해당 컴포넌트가 전혀 사용되지 않더라도 가져온 모든 CSS가 적용됩니다.
+
+```astro title="PurpleComponent.astro"
+---
+import "./make-it-purple.css"
+---
+<div>
+  <h1>I import purple CSS.</h1>
+</div>
+```
+```astro title="MyComponent.astro"
+---
+import "./make-it-green.css"
+import PurpleComponent from "./PurpleComponent.astro";
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    This header will be purple!
+  </h1>
+</div>
+```
+
+:::tip
+Astro의 일반적인 패턴은 [레이아웃 컴포넌트](/ko/basics/layouts/)에 전역 CSS를 가져오는 것입니다. 우선순위가 가장 낮도록 다른 가져오기보다 먼저 레이아웃 컴포넌트를 가져와야 합니다.
+:::
+
+### 링크 태그
+
+[링크 태그](#link-태그를-통해-정적-스타일시트-로드)를 통해 로드된 스타일시트는 Astro 파일의 다른 스타일보다 먼저 순서대로 평가됩니다. 따라서 이러한 스타일은 가져온 스타일시트 및 범위가 지정된 스타일보다 우선순위가 낮습니다.
+
+```astro title="index.astro"
+---
+import "../components/make-it-purple.css"
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Astro</title>
+		<link rel="stylesheet" href="/styles/make-it-blue.css" />
+	</head>
+	<body>
+		<div>
+			<h1>This will be purple</h1>
+		</div>
+	</body>
+</html>
+```
+
+## CSS 통합
+
+Astro는 [Tailwind](https://tailwindcss.com) 등과 같은 프로젝트에 인기 있는 CSS 라이브러리, 도구, 프레임워크를 추가할 수 있도록 지원합니다!
+
+### Tailwind
+
+프로젝트에서 Tailwind를 사용하려면 패키지 관리자의 `astro add` 명령을 사용하여 공식 [Astro Tailwind 통합][tailwind]을 설치하세요.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```shell
+    npx astro add tailwind
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```shell
+    pnpm astro add tailwind
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    yarn astro add tailwind
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+<ReadMore>Astro 통합 설치, 가져오기, 구성에 대한 지침은 [통합 안내서](/ko/guides/integrations-guide/)를 참조하세요.</ReadMore>
+
+## CSS 전처리기
+
+Astro는 [Sass][sass], [Stylus][stylus], [Less][less]부터 [Vite][vite-preprocessors] 등의 CSS 전처리기를 지원합니다.
+
+### Sass와 SCSS
+
+ ```shell
+ npm install sass
+ ```
+
+`.astro` 파일에서 `<style lang="scss">` 또는 `<style lang="sass">`를 사용하세요.
+
+### Stylus
+
+```shell
+npm install stylus
+```
+
+`.astro` 파일에서 `<style lang="styl">` 또는 `<style lang="stylus">`를 사용하세요.
+
+### Less
+
+```shell
+npm install less
+```
+
+`.astro` 파일에서 `<style lang="less">`를 사용하세요.
+
+### 프레임워크 컴포넌트에서
+
+JS 프레임워크에서도 위의 CSS 전처리기를 모두 사용할 수도 있습니다! 각 프레임워크에서 권장하는 패턴을 따르세요.
+
+- **React** / **Preact**: `import Styles from './styles.module.scss'`;
+- **Vue**: `<style lang="scss">`
+- **Svelte**: `<style lang="scss">`
+
+## PostCSS
+
+Astro에는 [Vite](https://ko.vitejs.dev/guide/features.html#postcss)의 일부로 PostCSS가 포함되어 있습니다. 프로젝트에 PostCSS를 구성하려면 프로젝트 루트에 `postcss.config.cjs` 파일을 생성하세요. 플러그인을 설치한 후 `require()`를 사용하여 플러그인을 가져올 수 있습니다 (예: `npm install autoprefixer`).
+
+```js title="postcss.config.cjs" ins={3-4}
+module.exports = {
+  plugins: [
+    require('autoprefixer'),
+    require('cssnano'),
+  ],
+};
+```
+
+## 프레임워크 및 라이브러리
+
+### 📘 React / Preact
+
+`.jsx` 파일은 전역 CSS와 CSS 모듈을 모두 지원합니다. 후자를 활성화하려면 `.module.css` 확장자 (또는 Sass를 사용하는 경우 `.module.scss`/`.module.sass`)를 사용하세요.
+
+```jsx title="src/components/MyReactComponent.jsx" /[a-z]+(\\.module\\.css)/
+import './global.css'; // global CSS 포함
+import Styles from './styles.module.css'; // CSS 모듈 사용 (`.module.css`, `.module.scss` 또는 `.module.sass`로 끝나야 합니다!)
+```
+
+### 📗 Vue
+
+Astro의 Vue는 `vue-loader`와 동일한 방법을 지원합니다:
+
+- [vue-loader - Scoped CSS][vue-scoped]
+- [vue-loader - CSS Modules][vue-css-modules]
+
+### 📕 Svelte
+
+Astro의 Svelte도 예상대로 정확하게 작동합니다: [Svelte 스타일링 문서][svelte-style].
+
+## Markdown 스타일링
+
+모든 Astro 스타일 지정 방법은 [Markdown 레이아웃 컴포넌트](/ko/basics/layouts/#markdownmdx-레이아웃)에 사용할 수 있지만, 방법에 따라 페이지에 스타일 효과가 달라집니다.
+
+페이지 콘텐츠를 래핑하는 레이아웃에 [가져온 스타일시트](#외부-스타일)를 추가하여 Markdown 콘텐츠에 전역 스타일을 적용할 수 있습니다. 레이아웃 컴포넌트에서 [`<style is:global>` 태그](#전역-스타일)를 사용하여 Markdown의 스타일을 지정할 수도 있습니다. 추가된 모든 스타일에는 [Astro의 cascading 순서](#cascading-순서)가 적용되며 렌더링된 페이지를 주의 깊게 확인하여 스타일이 의도한 대로 적용되는지 확인해야 합니다.
+
+[Tailwind](/ko/guides/integrations-guide/tailwind/)를 포함한 [CSS 통합](#css-통합)을 추가할 수도 있습니다. Tailwind를 사용하는 경우 [타이포그래피 플러그인](https://tailwindcss.com/docs/typography-plugin)이 Markdown 스타일을 지정하는 데 유용할 수 있습니다.
+
+## 프로덕션
+
+### 번들 제어
+
+Astro는 프로덕션 배포를 위해 사이트를 구축할 때 CSS를 축소하고 청크로 결합합니다. 사이트의 각 페이지는 자체 청크를 가지며, 추가적으로 여러 페이지 간 공유되는 CSS는 재사용을 위해 자체 청크로 분할됩니다.
+
+그러나 여러 페이지 공유 스타일이 있는 경우 일부 공유 청크가 매우 작아질 수 있습니다. 모두 별도로 전송되면 많은 스타일시트 요청이 발생하여 사이트 성능에 영향을 미칠 수 있습니다. 따라서 기본적으로 Astro는 크기가 4kB를 초과하는 HTML의 태그만 `<link rel="stylesheet">` 태그로 연결하고, 더 작은 태그는 `<style type="text/css">`로 인라인합니다. 이 접근 방식은 추가 요청 수와 페이지 간 캐시할 수 있는 CSS 볼륨 간 균형을 제공합니다.
+
+`assetsInlineLimit` vite 빌드 옵션을 사용하여 스타일시트가 외부적으로 연결될 크기 (바이트)를 구성할 수 있습니다. 이 옵션은 스크립트와 이미지 인라인에도 영향을 미칩니다.
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    build: {
+      assetsInlineLimit: 1024,
+    }
+  };
+});
+```
+
+모든 프로젝트 스타일을 외부에 유지하려면 `inlineStylesheets` 빌드 옵션을 구성할 수 있습니다.
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  build: {
+    inlineStylesheets: 'never'
+  }
+});
+```
+
+또한 이 옵션을 `'always'`로 설정하여 모든 스타일시트를 인라인할 수도 있습니다.
+
+## 고급
+
+:::caution
+Astro의 내장 CSS 번들링을 우회할 때는 주의하세요! 스타일은 빌드된 결과물에 자동으로 포함되지 않으며 참조 파일이 최종 페이지 결과물에 올바르게 포함되는지 확인하는 것은 사용자의 책임입니다.
+:::
+
+### `?raw` CSS 가져오기
+
+고급 사용 사례의 경우 CSS는 Astro로 묶거나 최적화하지 않고도 디스크에서 직접 읽을 수 있습니다. 이는 일부 CSS 조각을 완벽하게 제어해야 하고 Astro의 자동 CSS 처리를 우회해야 할 때 유용할 수 있습니다.
+
+이는 대부분의 사용자에게 권장되지 않습니다.
+
+```astro title="src/components/RawInlineStyles.astro" "?raw"
+---
+// 고급 예시! 대부분의 사용자에게는 권장되지 않습니다.
+import rawStylesCSS from '../styles/main.css?raw';
+---
+<style is:inline set:html={rawStylesCSS}></style>
+```
+
+자세한 내용은 [Vite 문서](https://ko.vitejs.dev/guide/assets.html#importing-asset-as-string)를 참조하세요.
+
+### `?url` CSS 가져오기
+
+고급 사용 사례의 경우 프로젝트 `src/` 디렉터리에 있는 CSS 파일에 대한 직접 URL 참조를 가져올 수 있습니다. 이는 CSS 파일이 페이지에 로드되는 방식을 완전히 제어해야 할 때 유용할 수 있습니다. 그러나 이렇게 하면 페이지 CSS의 나머지 부분과 함께 해당 CSS 파일이 최적화되지 않습니다.
+
+이는 대부분의 사용자에게 권장되지 않습니다. 대신 CSS 파일을 `public/` 디렉터리에 배치하여 일관된 URL 참조를 얻으세요.
+
+:::caution
+`?url`을 사용하여 더 작은 CSS 파일을 가져오면 CSS 파일의 base64 인코딩 콘텐츠가 최종 빌드의 데이터 URL로 반환될 수 있습니다. 인코딩된 데이터 URL (`data:text/css;base64,...`)을 지원하는 코드를 작성하거나 [`vite.build.assetsInlineLimit`](https://ko.vitejs.dev/config/build-options.html#build-assetsinlinelimit) 구성 옵션을 `0`으로 설정하여 이 기능을 비활성화하세요.
+:::
+
+```astro title="src/components/RawStylesUrl.astro" "?url"
+---
+// 고급 예시! 대부분의 사용자에게는 권장되지 않습니다.
+import stylesUrl from '../styles/main.css?url';
+---
+<link rel="preload" href={stylesUrl} as="style">
+<link rel="stylesheet" href={stylesUrl}>
+```
+
+자세한 내용은 [Vite 문서](https://ko.vitejs.dev/guide/assets.html#importing-asset-as-url)를 참조하세요.
+
+[less]: https://lesscss.org/
+[sass]: https://sass-lang.com/
+[stylus]: https://stylus-lang.com/
+[svelte-style]: https://svelte.dev/docs#component-format-style
+[tailwind]: /ko/guides/integrations-guide/tailwind/
+[vite-preprocessors]: https://ko.vitejs.dev/guide/features.html#css-pre-processors
+[vue-css-modules]: https://vue-loader.vuejs.org/guide/css-modules.html
+[vue-scoped]: https://vue-loader.vuejs.org/guide/scoped-css.html

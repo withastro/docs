@@ -1,0 +1,568 @@
+---
+title: Contentful & Astro
+description: Ajouter du contenu à votre projet Astro en utilisant Contentful comme CMS
+type: cms
+service: Contentful
+i18nReady: true
+---
+import FileTree from '~/components/FileTree.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+
+
+[Contentful](https://www.contentful.com/) est un CMS headless qui vous permet de gérer du contenu, de l'intégrer à d'autres services et de le publier sur plusieurs plateformes.
+
+## Intégration avec Astro
+
+Dans cette section, nous utiliserons le [Contentful SDK](https://github.com/contentful/contentful.js) pour connecter votre espace Contentful à Astro avec zéro JavaScript côté client.
+
+### Conditions préalables
+
+Pour commencer, vous devez disposer des éléments suivants :
+
+1. **Un projet Astro** - Si vous n'avez pas encore de projet Astro, notre [Guide d'installation](/fr/install/auto/) vous permettra d'être opérationnel en un rien de temps.
+
+2. **Un compte Contentful et un espace Contentful**. Si vous n'avez pas de compte, vous pouvez [vous inscrire](https://www.contentful.com/sign-up/) pour un compte gratuit et créer un nouvel espace Contentful. Vous pouvez également utiliser un espace existant si vous en avez un.
+
+3. **Crédentials Contentful** - Vous pouvez trouver les credentials suivants dans votre tableau de bord Contentful **Settings > API keys***. Si vous n'avez pas de clés API, créez-en une en sélectionnant **Add API key**.
+
+ - **Contentful space ID** - L'ID de votre espace Contentful.
+ - **Contentful delivery access token** - Le jeton d'accès pour consommer le contenu _publié_ de votre espace Contentful.
+ - **Contentful preview access token** - Le jeton d'accès pour consommer le contenu _non publié_ de votre espace Contentful.
+
+### Mise en place des informations d'identification
+
+Pour ajouter les identifiants de votre espace Contentful à Astro, créez un fichier `.env` à la racine de votre projet avec les variables suivantes :
+
+```ini title=".env"
+CONTENTFUL_SPACE_ID=YOUR_SPACE_ID
+CONTENTFUL_DELIVERY_TOKEN=YOUR_DELIVERY_TOKEN
+CONTENTFUL_PREVIEW_TOKEN=YOUR_PREVIEW_TOKEN
+```
+
+Vous pouvez maintenant utiliser ces variables d'environnement dans votre projet.
+
+Si vous souhaitez avoir IntelliSense pour vos variables d'environnement Contentful, vous pouvez créer un fichier `env.d.ts` dans le répertoire `src/` et configurer `ImportMetaEnv` comme ceci :
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly CONTENTFUL_SPACE_ID: string;
+  readonly CONTENTFUL_DELIVERY_TOKEN: string;
+  readonly CONTENTFUL_PREVIEW_TOKEN: string;
+}
+```
+:::tip
+Pour en savoir plus sur [l'utilisation des variables d'environnement](/fr/guides/environment-variables/) et les fichiers `.env` dans Astro.
+:::
+
+Votre répertoire racine doit maintenant contenir ces nouveaux fichiers :
+
+<FileTree title="Project Structure">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Installation des dépendances
+
+Pour vous connecter à votre espace Contentful, installez les deux éléments suivants à l'aide de la commande unique ci-dessous pour votre gestionnaire de paquets préféré :
+- [`contentful.js`](https://github.com/contentful/contentful.js), le SDK officiel de Contentful pour JavaScript
+- [`rich-text-html-renderer`](https://github.com/contentful/rich-text/tree/master/packages/rich-text-html-renderer), un paquetage pour rendre les champs de texte riche de Contentful en HTML.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install contentful @contentful/rich-text-html-renderer
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add contentful @contentful/rich-text-html-renderer
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add contentful @contentful/rich-text-html-renderer
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Ensuite, créez un nouveau fichier appelé `contentful.ts` dans le répertoire `src/lib/` de votre projet.
+
+```ts title="src/lib/contentful.ts"
+import contentful from "contentful";
+
+export const contentfulClient = contentful.createClient({
+  space: import.meta.env.CONTENTFUL_SPACE_ID,
+  accessToken: import.meta.env.DEV
+    ? import.meta.env.CONTENTFUL_PREVIEW_TOKEN
+    : import.meta.env.CONTENTFUL_DELIVERY_TOKEN,
+  host: import.meta.env.DEV ? "preview.contentful.com" : "cdn.contentful.com",
+});
+
+```
+
+L'extrait de code ci-dessus crée un nouveau client Contentful, en lui passant les informations d'identification du fichier `.env`.
+
+:::caution
+En mode développement, votre contenu sera récupéré à partir de l'**API Contentful preview**. Cela signifie que vous serez en mesure de voir le contenu non publié à partir de l'application web Contentful.
+
+Au moment de la construction, votre contenu sera récupéré à partir de l'**API Contentful delivery**. Cela signifie que seul le contenu publié sera disponible au moment de la construction.
+:::
+
+Enfin, votre répertoire racine devrait maintenant contenir ces nouveaux fichiers :
+
+<FileTree title="Project Structure">
+- src/
+  - env.d.ts
+  - lib/
+    - **contentful.ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Récupération de données
+
+Les composants Astro peuvent récupérer des données depuis votre compte Contentful en utilisant le `contentfulClient` et en spécifiant le `content_type`.
+
+Par exemple, si vous avez un type de contenu "blogPost" qui a un champ texte pour le titre et un champ texte riche pour le contenu, votre composant pourrait ressembler à ceci :
+
+```astro
+---
+import { contentfulClient } from "../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { EntryFieldTypes } from "contentful";
+
+interface BlogPost {
+  contentTypeId: "blogPost",
+  fields: {
+    title: EntryFieldTypes.Text
+    content: EntryFieldTypes.RichText,
+  }
+}
+
+const entries = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+});
+---
+<body>
+  {entries.items.map((item) => (
+    <section>
+      <h2>{item.fields.title}</h2>
+      <article set:html={documentToHtmlString(item.fields.content)}></article>
+    </section>
+  ))}
+</body>
+```
+
+:::tip
+Si vous disposez d'un espace Contentful vide, consultez [setting up a Contentful model](#mise-en-place-dun-modèle-contentful) pour apprendre à créer un modèle de blog de base pour votre contenu.
+:::
+
+Vous trouverez d'autres options de recherche dans la [documentation Contentful](https://contentful.github.io/contentful.js/).
+
+## Créer un blog avec Astro et Contentful
+
+Avec la configuration ci-dessus, vous êtes maintenant en mesure de créer un blog qui utilise Contentful comme CMS.
+
+### Conditions préalables
+
+1. **Un espace Contentful** - Pour ce tutoriel, nous vous recommandons de commencer par un espace vide. Si vous avez déjà un modèle de contenu, n'hésitez pas à l'utiliser, mais vous devrez modifier nos extraits de code pour qu'ils correspondent à votre modèle de contenu.
+2. **Un projet Astro intégré au [SDK Contentful](https://github.com/contentful/contentful.js)** - Voir l'[intégration avec Astro](#intégration-avec-astro) pour plus de détails sur la façon de configurer un projet Astro avec Contentful.
+
+### Mise en place d'un modèle Contentful
+
+Dans votre espace Contentful, dans la section **Content model**, créez un nouveau modèle de contenu avec les champs et valeurs suivants :
+
+- **Name :** Article de blog
+- **API identifier :** `blogPost`
+- **Description :** Ce type de contenu est destiné à un article de blog
+
+Dans votre nouveau type de contenu, utilisez le bouton **Add Field** pour ajouter 5 nouveaux champs avec les paramètres suivants :
+
+1. Champ de texte
+    - **Name :** title
+    - **API identifier :** `title`
+    (laisser les autres paramètres par défaut)
+2. Champ de la date et de l'heure
+    - **Name :** date
+    - **API identifier :** `date`
+3. Champ de texte
+    - **Name :** slug
+    - **API identifier :** `slug`
+    (laisser les autres paramètres par défaut)
+4. Champ de texte
+    - **Name :** description
+    - **API identifier :** `description`
+5. Champ de texte enrichi
+    - **Name :** content
+    - **API identifier :** `content`
+
+Cliquez sur **Save** pour enregistrer vos modifications.
+
+Dans la section **Content** de votre espace Contentful, créez une nouvelle entrée en cliquant sur le bouton **Add entry**. Remplissez ensuite les champs :
+
+- **Title:** `Astro est incroyable !`
+- **Slug:** `astro-is-amazing`
+- **Description:** `Astro est un nouveau générateur de sites statiques très rapide et facile à utiliser.`
+- **Date:** `2022-10-05`
+- **Content:** `C'est mon premier article de blog !`
+
+Cliquez sur **Publish** pour enregistrer votre entrée. Vous venez de créer votre premier article de blog.
+
+N'hésitez pas à ajouter autant d'articles de blog que vous le souhaitez, puis passez à votre éditeur de code préféré pour commencer à pirater avec Astro !
+
+### Afficher une liste d'articles de blog
+
+Créez une nouvelle interface appelée `BlogPost` et ajoutez-la à votre fichier `contentful.ts` dans `src/lib/`. Cette interface correspondra aux champs de votre type de contenu blog post dans Contentful. Vous l'utiliserez pour rédiger vos articles de blog.
+
+```ts title="src/lib/contentful.ts" ins=", { EntryFieldTypes }" ins={3-12}
+import contentful, { EntryFieldTypes } from "contentful";
+
+export interface BlogPost {
+  contentTypeId: "blogPost",
+  fields: {
+    title: EntryFieldTypes.Text
+    content: EntryFieldTypes.RichText,
+    date: EntryFieldTypes.Date,
+    description: EntryFieldTypes.Text,
+    slug: EntryFieldTypes.Text
+  }
+}
+
+export const contentfulClient = contentful.createClient({
+  space: import.meta.env.CONTENTFUL_SPACE_ID,
+  accessToken: import.meta.env.DEV
+    ? import.meta.env.CONTENTFUL_PREVIEW_TOKEN
+    : import.meta.env.CONTENTFUL_DELIVERY_TOKEN,
+  host: import.meta.env.DEV ? "preview.contentful.com" : "cdn.contentful.com",
+});
+```
+
+Ensuite, allez sur la page Astro où vous allez récupérer les données de Contentful. Nous utiliserons la page d'accueil `index.astro` dans `src/pages/` dans cet exemple.
+
+Importez l'interface `BlogPost` et `contentfulClient` depuis `src/lib/contentful.ts`.
+
+Récupérez toutes les entrées de Contentful avec un type de contenu `blogPost` tout en passant l'interface `BlogPost` pour saisir votre réponse.
+
+```astro title="src/pages/index.astro"
+---
+import { contentfulClient } from "../lib/contentful";
+import type { BlogPost } from "../lib/contentful";
+
+const entries = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+});
+---
+```
+
+Cet appel retournera un tableau de vos articles de blog dans `entries.items`. Vous pouvez utiliser `map()` pour créer un nouveau tableau (`posts`) qui formate les données retournées.
+
+L'exemple ci-dessous retourne les propriétés `items.fields` de notre modèle Content pour créer un aperçu de l'article de blog, et en même temps, reformate la date dans un format plus lisible.
+
+```astro title="src/pages/index.astro" ins={9-17}
+---
+import { contentfulClient } from "../lib/contentful";
+import type { BlogPost } from "../lib/contentful";
+
+const entries = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+});
+
+const posts = entries.items.map((item) => {
+  const { title, date, description, slug } = item.fields;
+  return {
+    title,
+    slug,
+    description,
+    date: new Date(date).toLocaleDateString()
+  };
+});
+---
+```
+
+Enfin, vous pouvez utiliser `posts` dans votre template pour afficher un aperçu de chaque article de blog.
+
+```astro astro title="src/pages/index.astro" ins={19-37}
+---
+import { contentfulClient } from "../lib/contentful";
+import type { BlogPost } from "../lib/contentful";
+
+const entries = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+});
+
+const posts = entries.items.map((item) => {
+  const { title, date, description, slug } = item.fields;
+  return {
+    title,
+    slug,
+    description,
+    date: new Date(date).toLocaleDateString()
+  };
+});
+---
+<html lang="fr">
+  <head>
+    <title>Mon Blog</title>
+  </head>
+  <body>
+    <h1Mon Blog</h1>
+    <ul>
+      {posts.map((post) => (
+        <li>
+          <a href={`/posts/${post.slug}/`}>
+            <h2>{post.title}</h2>
+          </a>
+          <time>{post.date}</time>
+          <p>{post.description}</p>
+        </li>
+      ))}
+    </ul>
+  </body>
+</html>
+```
+
+### Générer des articles de blog individuels
+
+Utilisez la même méthode que ci-dessus pour récupérer vos données auprès de Contentful, mais cette fois, sur une page qui créera une route de page unique pour chaque article de blog.
+
+
+#### Génération de sites statiques
+
+Si vous utilisez le mode statique par défaut d'Astro, vous utiliserez [dynamic routes](/fr/guides/routing/#routes-dynamiques) et la fonction `getStaticPaths()`. Cette fonction sera appelée au moment de la construction pour générer la liste des chemins qui deviendront des pages.
+
+Créez un nouveau fichier nommé `[slug].astro` dans `src/pages/posts/`.
+
+Comme vous l'avez fait pour `index.astro`, importez l'interface `BlogPost` et `contentfulClient` depuis `src/lib/contentful.ts`.
+
+Cette fois, récupérez vos données dans une fonction `getStaticPaths()`.
+
+```astro title="src/pages/posts/[slug].astro"
+---
+import { contentfulClient } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
+
+export async function getStaticPaths() {
+  const entries = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+  });
+}
+---
+```
+
+Ensuite, mappez chaque élément à un objet avec une propriété `params` et `props`. La propriété `params` sera utilisée pour générer l'URL de la page et la propriété `props` sera passée au composant de la page en tant que props.
+
+```astro title="src/pages/posts/[slug].astro" ins={3,11-19}
+---
+import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { BlogPost } from "../../lib/contentful";
+
+export async function getStaticPaths() {
+  const entries = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+  });
+
+  const pages = entries.items.map((item) => ({
+    params: { slug: item.fields.slug },
+    props: {
+      title: item.fields.title,
+      content: documentToHtmlString(item.fields.content),
+      date: new Date(item.fields.date).toLocaleDateString(),
+    },
+  }));
+  return pages;
+}
+---
+```
+
+La propriété à l'intérieur de `params` doit correspondre au nom de la route dynamique. Comme notre nom de fichier est `[slug].astro`, nous utilisons `slug`.
+
+Dans notre exemple, l'objet `props` fournit trois propriétés à la page :
+- title (une chaîne de caractères)
+- content (un document texte riche converti en HTML à l'aide de `documentToHtmlString`)
+- date (formatée à l'aide du constructeur `Date`)
+
+Enfin, vous pouvez utiliser la page `props` pour afficher votre article de blog.
+
+```astro title="src/pages/posts/[slug].astro" ins={21,23-32}
+---
+import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { BlogPost } from "../../lib/contentful";
+
+export async function getStaticPaths() {
+  const { items } = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+  });
+  const pages = items.map((item) => ({
+    params: { slug: item.fields.slug },
+    props: {
+      title: item.fields.title,
+      content: documentToHtmlString(item.fields.content),
+      date: new Date(item.fields.date).toLocaleDateString(),
+    },
+  }));
+  return pages;
+}
+
+const { content, title, date } = Astro.props;
+---
+<html lang="fr">
+  <head>
+    <title>{title}</title>
+  </head>
+  <body>
+    <h1>{title}</h1>
+    <time>{date}</time>
+    <article set:html={content} />
+  </body>
+</html>
+```
+
+Allez sur http://localhost:4321/ et cliquez sur l'un de vos posts pour vérifier que votre route dynamique fonctionne !
+
+#### Rendu côté serveur
+
+Si vous avez [opté pour le mode SSR](/fr/guides/server-side-rendering/), vous utiliserez une route dynamique qui utilise un paramètre `slug` pour récupérer les données de Contentful.
+
+Créez une page `[slug].astro` dans `src/pages/posts`. Utilisez [`Astro.params`](/fr/reference/api-reference/#astroparams) pour récupérer le slug de l'URL, puis passez-le à `getEntries` :
+
+```astro title="src/pages/posts/[slug].astro"
+---
+import { contentfulClient } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
+
+const { slug } = Astro.params;
+
+const data = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+  "fields.slug": slug,
+});
+---
+```
+
+Si l'entrée n'est pas trouvée, vous pouvez rediriger l'utilisateur vers la page 404 en utilisant [`Astro.redirect`](/fr/guides/routing/#redirections-dynamiques).
+
+```astro title="src/pages/posts/[slug].astro" ins={7, 12-13}
+---
+import { contentfulClient } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
+
+const { slug } = Astro.params;
+
+try {
+  const data = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+    "fields.slug": slug,
+  });
+} catch (error) {
+  return Astro.redirect("/404");
+}
+---
+```
+Pour passer les données du message à la section template, créez un objet `post` à l'extérieur du bloc `try/catch`.
+
+Utilisez `documentToHtmlString` pour convertir `contenu` d'un document en HTML, et utilisez le constructeur Date pour formater la date. `title` peut être laissé tel quel. Ensuite, ajoutez ces propriétés à votre objet `post`.
+
+```astro title="src/pages/posts/[slug].astro" ins={7,14-19}
+---
+import Layout from "../../layouts/Layout.astro";
+import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { BlogPost } from "../../lib/contentful";
+
+let post;
+const { slug } = Astro.params;
+try {
+  const data = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+    "fields.slug": slug,
+  });
+  const { title, date, content } = data.items[0].fields;
+  post = {
+    title,
+    date: new Date(date).toLocaleDateString(),
+    content: documentToHtmlString(content),
+  };
+} catch (error) {
+  return Astro.redirect("/404");
+}
+---
+```
+
+Enfin, vous pouvez faire référence à `post` pour afficher votre article de blog dans la section du modèle.
+
+```astro title="src/pages/posts/[slug].astro" ins={24-33}
+---
+import Layout from "../../layouts/Layout.astro";
+import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { BlogPost } from "../../lib/contentful";
+
+let post;
+const { slug } = Astro.params;
+try {
+  const data = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+    "fields.slug": slug,
+  });
+  const { title, date, content } = data.items[0].fields;
+  post = {
+    title,
+    date: new Date(date).toLocaleDateString(),
+    content: documentToHtmlString(content),
+  };
+} catch (error) {
+  return Astro.redirect("/404");
+}
+---
+<html lang="fr">
+  <head>
+    <title>{post?.title}</title>
+  </head>
+  <body>
+    <h1>{post?.title}</h1>
+    <time>{post?.date}</time>
+    <article set:html={post?.content} />
+  </body>
+</html>
+```
+
+### Publier votre site
+
+Pour déployer votre site web, consultez nos [guides de déploiement](/fr/guides/deploy/) et suivez les instructions correspondant à votre hébergeur préféré.
+
+#### Reconstruction en cas de changements dans Contentful
+
+Si votre projet utilise le mode statique par défaut d'Astro, vous devrez configurer un webhook pour déclencher une nouvelle construction lorsque votre contenu change. Si vous utilisez Netlify ou Vercel comme hébergeur, vous pouvez utiliser sa fonctionnalité webhook pour déclencher une nouvelle compilation à partir des événements Contentful.
+
+##### Netlify
+
+Pour configurer un webhook dans Netlify :
+
+1. Allez sur le tableau de bord de votre site et cliquez sur **Build & deploy**.
+
+2. Sous l'onglet **Continuous Deployment**, trouvez la section **Build hooks** et cliquez sur **Add build hook**.
+
+3. Donnez un nom à votre webhook et sélectionnez la branche sur laquelle vous souhaitez déclencher la construction. Cliquez sur **Save** et copiez l'URL générée.
+
+##### Vercel
+
+Pour configurer un webhook dans Vercel :
+
+1. Allez sur le tableau de bord de votre projet et cliquez sur **Settings**.
+
+2. Sous l'onglet **Git**, trouvez la section **Deploy Hooks**.
+
+3. Donnez un nom à votre webhook et indiquez la branche sur laquelle vous souhaitez déclencher la construction. Cliquez sur **Add** et copiez l'URL générée.
+
+##### Ajouter un webhook à Contentful
+
+Dans votre espace Contentful **settings**, cliquez sur l'onglet **Webhooks** et créez un nouveau webhook en cliquant sur le bouton **Add Webhook**. Donnez un nom à votre webhook et collez l'URL du webhook que vous avez copié dans la section précédente. Enfin, cliquez sur **Save** pour créer le webhook.
+
+Maintenant, chaque fois que vous publiez un nouvel article de blog dans Contentful, un nouveau build sera déclenché et votre blog sera mis à jour.

@@ -35,7 +35,7 @@ const FolderIcon = makeSVGIcon(
 	'<svg viewBox="0 0 20 20"><path d="M14.77 6.45H9.8v-.47A.97.97 0 0 0 8.83 5H3.75v10H15.7V7.42a.91.91 0 0 0-.93-.97Z"/></svg>'
 );
 
-export const fileTreeProcessor = rehype().use(() => (tree, file) => {
+export const fileTreeProcessor = rehype().use(() => (tree: Element, file) => {
 	const { directoryLabel } = file.data as { directoryLabel: string };
 	visit(tree, 'element', (node) => {
 		// Strip nodes that only contain newlines

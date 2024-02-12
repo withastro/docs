@@ -1,0 +1,236 @@
+---
+type: integration
+title: '@astrojs/netlify'
+description: "Apprenez à utiliser l'adaptateur SSR @astrojs/netlify pour déployer votre projet Astro."
+githubIntegrationURL: 'https://github.com/withastro/adapters/tree/main/packages/netlify/'
+category: adapter
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+Cet adaptateur permet à Astro de déployer votre [site rendu `hybride` ou `serveur`](/fr/basics/rendering-modes/#rendu-à-la-demande) sur [Netlify](https://www.netlify.com/).
+
+Si vous utilisez Astro en tant que [constructeur de site statique](/fr/basics/rendering-modes/#pré-rendu), vous n'avez pas besoin d'adaptateur.
+
+Apprenez à déployer votre site Astro dans notre [Guide de déploiement Netlify](/fr/guides/deploy/netlify/).
+
+## Pourquoi Astro Netlify
+
+[Netlify](https://www.netlify.com/) est une plateforme de déploiement qui vous permet d'héberger votre site en vous connectant directement à votre dépôt GitHub. Cet adaptateur améliore le processus de construction d'Astro pour préparer votre projet à être déployé via Netlify.
+
+## Installation
+
+Astro inclut une commande `astro add` pour automatiser l'installation des intégrations officielles. Si vous préférez, vous pouvez [installer les intégrations manuellement](#installation-manuelle) à la place.
+
+Ajoutez l'adaptateur Netlify pour activer SSR dans votre projet Astro avec la commande `astro add`.
+Cela installera `@astrojs/netlify` et apportera les changements appropriés à votre fichier `astro.config.mjs` en une seule étape.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add netlify
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Installation manuelle
+
+Tout d'abord, installez l'adaptateur Netlify dans les dépendances de votre projet en utilisant votre gestionnaire de paquets préféré :
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install @astrojs/netlify
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add @astrojs/netlify
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add @astrojs/netlify
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Ensuite, ajoutez l'adaptateur et votre [mode de rendu à la demande](/fr/basics/rendering-modes/#rendu-à-la-demande) à votre fichier `astro.config.*` :
+
+   ```js title="astro.config.mjs" ins={2, 6-7}
+    import { defineConfig } from 'astro/config';
+    import netlify from '@astrojs/netlify';
+
+    export default defineConfig({
+       // ...
+       output: 'server',
+       adapter: netlify(),
+    });
+   ```
+
+## Utilisation
+
+[Lisez le guide de déploiement complet ici](/fr/guides/deploy/netlify/)
+
+Suivez les instructions pour [construire votre site localement](/fr/guides/deploy/#construire-votre-site-localement). Après la construction, vous aurez un dossier `.netlify/` contenant à la fois [Netlify Functions](https://docs.netlify.com/functions/overview/) dans le dossier `.netlify/functions-internal/` et [Netlify Edge Functions](https://docs.netlify.com/edge-functions/overview/) dans le dossier `.netlify/edge-functions/`.
+
+Pour déployer votre site, installez le [Netlify CLI](https://docs.netlify.com/cli/get-started/) et exécutez-le :
+
+```sh
+netlify deploy
+```
+
+Le [blog de Netlify sur Astro](https://www.netlify.com/blog/how-to-deploy-astro/) et la [documentation de Netlify](https://docs.netlify.com/integrations/frameworks/astro/) fournissent plus d'informations sur la manière d'utiliser cette intégration pour déployer vers Netlify.
+
+### Accès au contexte Edge depuis votre site
+
+Les fonctions Netlify Edge fournissent un [objet de contexte](https://docs.netlify.com/edge-functions/api/#netlify-specific-context-object) qui comprend des métadonnées sur la demande, telles que l'IP de l'utilisateur, les données de géolocalisation et les cookies.
+
+Cet objet est accessible via l'objet `Astro.locals.netlify.context` :
+
+```astro
+---
+const {
+  geo: { city },
+} = Astro.locals.netlify.context;
+---
+
+<h1>Bonjour, aimable visiteur de {city} !</h1>
+```
+
+Si vous utilisez TypeScript, vous pouvez obtenir des typages corrects en mettant à jour `src/env.d.ts` pour utiliser `NetlifyLocals` :
+
+```ts title="src/env.d.ts"
+/// <reference path="../.astro/types.d.ts" />
+/// <reference types="astro/client" />
+
+type NetlifyLocals = import('@astrojs/netlify').NetlifyLocals
+
+declare namespace App {
+  interface Locals extends NetlifyLocals {
+    // ...
+  }
+}
+```
+
+Ceci n'est pas disponible sur les pages pré-rendues.
+
+### Exécution du middleware Astro dans les fonctions Edge
+
+Tout middleware Astro est appliqué aux pages pré-rendues au moment de la création, et aux pages pré-rendues au moment de l'exécution.
+
+Pour implémenter des redirections, des contrôles d'accès ou des en-têtes de réponse personnalisés pour les pages pré-rendues, exécutez votre middleware sur les fonctions Edge de Netlify en activant l'option [`edgeMiddleware`](/fr/reference/adapter-reference/#edgemiddleware) :
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify/functions';
+
+export default defineConfig({
+  // ...
+  output: 'server',
+  adapter: netlify({
+    edgeMiddleware: true,
+  }),
+});
+```
+
+Configurer `edgeMiddleware : true` déploiera votre middleware en tant que fonction de pointe, et l'exécutera sur toutes les routes, y compris les pages pré-rendues. Cependant, les locaux spécifiés dans le middleware ne seront pas disponibles pour les pages pré-rendues, parce qu'elles ont déjà été entièrement rendues au moment de la construction.
+
+### Support du CDN d'images Netlify
+
+Cet adaptateur utilise par défaut le [Netlify Image CDN](https://docs.netlify.com/image-cdn/overview/) pour transformer les images à la volée sans impacter sur les temps de construction.
+Il est implémenté en utilisant un [Astro Image Service](/fr/reference/image-service-reference/) sous le capot.
+
+Pour ne pas utiliser l'optimisation d'image à distance du CDN de Netlify, utilisez l'option `imageCDN` :
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify/functions';
+
+export default defineConfig({
+  // ...
+  output: 'server',
+  adapter: netlify({
+    imageCDN: false,
+  }),
+});
+```
+
+:::caution
+Cet adaptateur ne supporte pas les propriétés `image.domains` et `image.remotePatterns` de votre configuration Astro. Pour [spécifier les chemins distants pour Netlify Image CDN](https://docs.netlify.com/image-cdn/overview/#remote-path), utilisez le champ `remote_images` dans `netlify.toml`.
+:::
+
+### Sites statiques et redirections
+
+Pour les sites statiques, vous n'avez généralement pas besoin d'adaptateur. Cependant, si vous utilisez la configuration `redirects` dans votre configuration Astro, l'adaptateur Netlify peut être utilisé pour traduire cette configuration au format `_redirects` approprié.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify/static';
+
+export default defineConfig({
+  // ...
+  adapter: netlify(),
+  redirects: {
+    '/blog/old-post': '/blog/new-post',
+  },
+});
+```
+
+Une fois que vous avez lancé `astro build`, il y aura un fichier `dist/_redirects`. Netlify l'utilisera pour router correctement les pages en production.
+
+:::note
+Vous pouvez toujours inclure un fichier `public/_redirects` pour les redirections manuelles. Toutes les redirections que vous spécifiez dans la configuration des redirections sont ajoutées à la fin de la vôtre.
+:::
+
+### Mise en cache des pages
+
+Les pages rendues à la demande sans contenu dynamique peuvent être mises en cache pour améliorer les performances et réduire l'utilisation des ressources.
+L'activation de l'option `cacheOnDemandPages` dans l'adaptateur mettra en cache toutes les pages rendues par le serveur pour une durée maximale d'un an :
+
+```ts title="astro.config.mjs"
+export default defineConfig({
+  // ...
+  output: 'server',
+  adapter: netlify({
+    cacheOnDemandPages: true,
+  }),
+});
+```
+
+Cela peut être modifié page par page en ajoutant des en-têtes de mise en cache à votre réponse :
+
+```astro title="pages/index.astro"
+---
+import Layout from '../components/Layout.astro';
+
+Astro.response.headers.set('CDN-Cache-Control', 'public, max-age=45, must-revalidate');
+---
+
+<Layout title="Astro on Netlify">
+  {new Date()}
+</Layout>
+```
+
+Avec [fine-grained cache control](https://www.netlify.com/blog/swr-and-fine-grained-cache-control/), Netlify prend en charge
+les en-têtes de cache standard comme `CDN-Cache-Control` ou `Vary`.
+Reportez-vous à la documentation pour en savoir plus sur la mise en place, par exemple, de la mise en cache TTL (time to live) ou SWR (stale while revalidate) : https://docs.netlify.com/platform/caching
+
+## Exemples
+
+* Le [modèle de démarrage Astro avec Edge](https://github.com/sarahetter/astro-netlify-edge-starter) fournit un exemple et un guide dans le README.
+
+* [Parcourir les projets Astro Netlify sur GitHub](https://github.com/search?q=path%3A**%2Fastro.config.mjs+%40astrojs%2Fnetlify\&type=code) pour plus d'exemples !
+
+
+[astro-integration]: /fr/guides/integrations-guide/

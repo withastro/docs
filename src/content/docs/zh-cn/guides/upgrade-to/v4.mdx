@@ -1,0 +1,391 @@
+---
+title: 升级到 Astro v4
+description: 如何将你的项目升级到 Astro 的最新版本 (v4.0)。
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import FileTree from '~/components/FileTree.astro'
+
+本指南将帮助你从 Astro v3 迁移到 Astro v4。
+
+需要将旧项目升级到 v3 吗？请参阅我们的 [旧版本迁移指南](/zh-cn/guides/upgrade-to/v3/)。
+
+需要查阅 v3 的文档？请访问这个[旧版本文档站 (不被维护的 v3.6 快照)](https://docs-git-v3-docs-unmaintained-astrodotbuild.vercel.app/)。
+
+## 升级 Astro
+
+使用你的包管理器将项目的 Astro 和所有官方集成升级到最新版本。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # 同时升级 Astro 和官方集成
+  npx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # 同时升级 Astro 和官方集成
+  pnpm dlx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # 同时升级 Astro 和官方集成
+  yarn dlx @astrojs/upgrade
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+
+如果需要的话，你也可以[手动升级 Astro 集成](/zh-cn/guides/integrations-guide/#手动更新)，你可能还需要升级项目中的其他依赖。
+
+
+:::note[需要继续吗？]
+升级 Astro 到最新版本后，你可能不需要对你的项目做任何更改！
+
+但是，如果你注意到错误或意外的行为，请检查下面的内容，看看有什么变化可能需要在你的项目中更新。
+:::
+
+Astro v4.0 包含[潜在的破坏性](#破坏性更改)，以及[一些之前被弃用的功能被移除](#之前弃用的功能已被移除)。
+
+如果你的项目在升级后的行为不符合预期，请参考本指南，了解所有破坏性更改的概述以及如何修改你的代码的说明。
+
+完整的发行说明请参阅 [changelog](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)。
+
+## Astro v4.0 移除的实验性标志
+
+从 `astro.config.mjs` 中移除 `devOverlay` 实验性标志并把 `i18n` 移到最外层：
+
+```js del={5-9} ins={11-14} title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    devOverlay: true,
+    i18n: {
+      defaultLocale: "en",
+      locales: ["en", "fr", "pt-br", "es"],
+    }
+  },
+  i18n: {
+    defaultLocale: "en",
+    locales: ["en", "fr", "pt-br", "es"],
+  },
+})
+```
+
+这些功能现已可在 Astro v4.0 中使用。
+
+了解更多关于这两个令人兴奋的功能以及更多内容，请阅读 [v4.0 博客文章](https://astro.build/blog/astro-4/)！
+
+## 升级
+
+可能导致你的项目中出现不兼容的 major 版本更新。
+
+### 已升级：Vite 5.0
+
+在 Astro v3.0 中，开发服务器和生产打包工具使用的是 Vite 4。
+
+Astro v4.0 从 Vite 4 升级到了 Vite 5。
+
+#### 我应该做什么？
+
+如果你使用了 Vite 的插件、配置或 API，请查看 [Vite 迁移指南](https://vitejs.dev/guide/migration)中的破坏性更改并根据需要升级你的项目。Astro 本身没有任何破坏性更改。
+
+### 已升级：unified、remark、和 rehype 依赖
+
+在 Astro v3.0 中，处理 Markdown 和 MDX 使用的是 unified v10 和与它关联、兼容的 remark/rehype 包。
+
+Astro v4.0 把 [unified 升级到了 v11](https://github.com/unifiedjs/unified/releases/tag/11.0.0) 并把其他 remark/rehype 包升级到了最新版本。
+
+#### 我应该做什么？
+
+如果你使用了自定义的 remark/rehype 包，请使用你的包管理器将它们全部升级到最新版本，以确保它们支持 unified v11。你使用了的包可以在 `astro.config.mjs` 中找到。
+
+如果你使用的是有被积极更新的包，那么不应该有任何重大的破坏性更改，但是一些包可能还不兼容 unified v11。
+在部署前，检查你的 Markdown/MDX 页面，确保你的站点按预期运行。
+
+## 破坏性更改
+
+下面的这些更改被认为是 Astro 中的破坏性的更改。破坏性更改可能会提供临时的向后兼容性，所有文档都会被更新为仅引用当前支持的代码。
+
+如果你需要参考 v3.x 项目的文档，你可以浏览这个[(不再维护的) v4.0 之前的文档快照](https://docs-git-v3-docs-unmaintained-astrodotbuild.vercel.app/)。
+
+### 重命名：`entrypoint` (集成 API)
+
+在 Astro v3.0 中，集成 API `injectRoute` 用于指定路由入口点的的属性名字是 `entryPoint`。
+
+Astro v4.0 为了与其他 Astro API 的一致性把它改为 `entrypoint`。`entryPoint` 属性已被弃用，它还能被使用但会输出一条警告提醒你更新你的代码。
+
+#### 我应该做什么？
+
+如果你有使用了 `injectRoute` API 的集成，请把 `entryPoint` 属性改为 `entrypoint`。如果你是一个库的作者，想要同时支持 Astro 3 和 4，你可以同时指定 `entryPoint` 和 `entrypoint`，这样就不会输出警告。
+
+```js ins={4} del={3}
+injectRoute({
+  pattern: '/fancy-dashboard',
+  entryPoint: '@fancy/dashboard/dashboard.astro'
+  entrypoint: '@fancy/dashboard/dashboard.astro'
+});
+```
+
+### 改动：集成 API `app.render` 的函数签名
+
+在 Astro v3.0 中，`app.render()` 方法接收互相独立独立、可选的 `routeData` 和 `locals` 参数。
+
+Astro v4.0 修改了 `app.render()` 的函数签名。这两个属性现在在同一个对象里。这个对象和这两个属性仍旧是可选的。
+
+#### 我应该做什么？
+
+如果你维护了一个适配器，当前的函数签名将会继续工作到下一个 major 版本。要迁移到新的签名，把 `routeData` 和 `locals` 作为一个对象的属性传递，而不是作为多个独立的参数。
+
+```diff lang="js"
+- app.render(request, routeData, locals)
++ app.render(request, { routeData, locals })
+```
+### 改动：适配器现在必须指定所支持的功能
+
+在 Astro v3.0 中，适配器不需要指定它们所支持的功能。
+
+Astro v4.0 要求适配器通过传入 `supportedAstroFeatures{}` 属性来指定它们所支持的功能列表。这个属性不再是可选的。
+
+#### 我应该做什么？
+
+适配器作者需要传入 `supportedAstroFeatures{}` 属性来指定它们所支持的功能列表。
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          supportedAstroFeatures: {
+              staticOutput: 'stable'
+          }
+        });
+      },
+    },
+  };
+}
+```
+
+### 移除：Shiki 语言 `path` 属性
+
+在 Astro v3.0 中，一个传入 `markdown.shikiConfig.langs` 的 Shiki language 会被自动转换成一个兼容 Shikiji 的语言。Shikiji 是 Astro 内部使用的语言高亮工具。
+
+Astro v4.0 移除了对 Shiki 语言的 `path` 属性的支持，这个属性配置起来令人困惑。它被一个可以直接传入 `langs` 的导入替代。
+
+#### 我应该做什么？
+
+语言 JSON 文件应该被导入并传入到选项中。
+
+```diff lang="js"
+// astro.config.js
++ import customLang from './custom.tmLanguage.json'
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: {
+      langs: [
+-       { path: '../../custom.tmLanguage.json' },
++       customLang,
+      ],
+    },
+  },
+})
+```
+
+## 弃用
+
+下面的这些功能在 Astro v4.0 中已不再被支持，也不再被文档记录。请相应地更新你的项目。
+
+部分弃用的功能可能暂时会在 Astro v4.0 中继续工作，直到它们被完全移除。其他的可能会默默地没有任何效果，或者抛出一个错误提示你更新你的代码。
+
+### 弃用：视图过渡 `submit` 事件的 `handleForms`
+
+在 Astro v3.0 中，使用了 `<ViewTransitions />` 组件的项目必须 opt-in 处理 `form` 元素的 `submit` 事件。这是通过传入一个 `handleForms` 参数实现的。
+
+Astro v4.0 在使用 `<ViewTransitions />` 时默认处理 `form` 元素的 `submit` 事件。`handleForms` 参数已被弃用且没有任何效果。
+
+#### 我应该做什么？
+
+从你的 `ViewTransitions` 组件中移除 `handleForms` 属性。它已不被需要。
+
+```astro title="src/pages/index.astro" del="handleForms"
+---
+import { ViewTransitions } from "astro:transitions";
+---
+<html>
+  <head>
+    <ViewTransitions handleForms />
+  </head>
+  <body>
+    <!-- 一些内容 -->
+  </body>
+</html>
+```
+
+要 opt-out 处理 `form` 元素的 `submit` 事件，请在对应的 `form` 元素上添加 `data-astro-reload` 属性。
+
+```astro title="src/components/Form.astro"
+<form action="/contact" data-astro-reload>
+  <!-- -->
+</form>
+```
+
+## 之前弃用的功能已被移除
+
+下面的这些被弃用的功能现已被从代码中完全删除，不能再使用。部分功能可能在之前弃用了之后仍然在你的项目中工作。其他的可能在被弃用后默默地没有任何效果。
+
+使用了这些已被移除的功能的项目将无法构建，并且也不再有提醒你移除这些功能的文档。
+
+### 移除：从端点返回简单对象
+
+在 Astro v3.0 中，从端点返回简单对象被弃用，但为了与 Astro v2 保持兼容依旧可以使用。我们提供了一个便于迁移的 `ResponseWithEncoding`。
+
+Astro v4.0 移除了对简单对象的支持并要求端点必须返回一个 `Response`。`ResponseWithEncoding` 也被 `Response` 类型所替换并被移除。
+
+#### 我应该做什么？
+
+更新你的端点，直接返回一个 `Response` 对象。
+
+```diff lang="ts"
+  export async function GET() {
+-   return { body: { "title": "小明的博客" }};
++   return new Response(JSON.stringify({ "title": "小明的博客" }));
+  }
+```
+
+要移除对 `ResponseWithEncoding` 的使用，重构你的代码为使用 `ArrayBuffer`：
+
+```diff lang="ts"
+  export async function GET() {
+    const file = await fs.readFile('./bob.png');
+-   return new ResponseWithEncoding(file.toString('binary'), undefined, 'binary');
++   return new Response(file.buffer);
+  }
+```
+
+### 移除：`build.split` 和 `build.excludeMiddleware`
+
+在 Astro v3.0 中，`build.split` 和 `build.excludeMiddleware` 构建配置项被弃用，它们被实现相同功能的[适配器配置选项](/zh-cn/reference/adapter-reference/#adapter-features)替代。
+
+Astro v4.0 完全移除了这些属性。
+
+#### 我应该做什么？
+
+如果你在使用被弃用的 `build.split` 或 `build.excludeMiddleware`，你必须移除它们，因为它们已经不存在了。
+
+请参考 v3 迁移指南[修改这些被弃用的中间件属性](/zh-cn/guides/upgrade-to/v3/#废弃buildexcludemiddleware-和-buildsplit)为使用适配器配置选项。
+
+### 移除：`Astro.request.params`
+
+在 Astro v3.0 中，`Astro.request.params` API 被弃用，但为了兼容性被保留。
+
+Astro v4.0 完全移除了这个选项。
+
+#### 我应该做什么？
+
+把所有的 `Astro.request.params` 修改为受支持的 [`Astro.params`](/zh-cn/reference/api-reference/#astroparams)。
+
+```astro del={1} ins={2}
+const { id } = Astro.request.params;
+const { id } = Astro.params;
+```
+
+### 移除：`markdown.drafts`
+
+在 Astro v3.0 中，使用 `markdown.drafts` 来控制是否构建草稿文章被弃用。
+
+Astro v4.0 完全移除了这个选项。
+
+#### 我应该做什么？
+
+如果你在使用被弃用的 `markdown.drafts`，你必须移除它们，因为它们已经不存在了。
+
+要继续标记部分页面为草稿，请[迁移到内容集合](/zh-cn/guides/content-collections/#从基于文件的路由迁移)并使用 `draft: true` frontmatter 属性[手动过滤掉页面](/zh-cn/guides/content-collections/#筛选集合查询)。
+
+### 移除：`getHeaders()`
+
+在 Astro v3.0 中，`getHeaders()` Markdown 导出被弃用并被 `getHeadings()` 替代。
+
+Astro v4.0 完全移除了这个选项。
+
+#### 我应该做什么？
+
+如果你在使用被弃用的 `getHeaders()`，你必须移除它们，因为它们已经不存在了。把它们全部替换为受支持的 `getHeadings()`。
+
+```js del={2} ins={3}
+const posts = await Astro.glob('../content/blog/*.mdx');
+const firstPostHeadings = posts.at(0).getHeaders();
+const firstPostHeadings = posts.at(0).getHeadings();
+```
+
+
+### 移除：在 `getStaticPaths()` 里使用 `rss`
+
+在 Astro v3.0 中，在 `getStaticPaths()` 中使用被弃用的 `rss` 会抛出一个错误。
+
+Astro v4.0 完全移除了它。
+
+#### 我应该做什么？
+
+如果你在使用不受支持的方法生成 RSS 订阅，你现在必须使用 [`@astrojs/rss` 集成](/zh-cn/guides/rss/)来实现完善的 RSS。
+
+### 移除：小写的 HTTP 方法名
+
+在 Astro v3.0 中，使用小写的 HTTP 请求方法名 (`get`, `post`, `put`, `all`, `del`) 被弃用。
+
+Astro v4.0 完全移除了对小写名字的支持。所有的 HTTP 请求方法现在必须使用大写。
+
+#### 我应该做什么？
+
+如果你在使用被弃用的小写名字，你现在必须把它们换成对应的大写格式。
+
+请参考 v3 迁移指南[使用大写的 HTTP 请求方法名](/zh-cn/guides/upgrade-to/v3/#修改http-请求方法案例)。
+
+### 移除：缺少 `base` 前缀时的 301 跳转
+
+在 Astro v3.0 中，Astro 预览服务器会在不带 base 路径请求 public 文件夹资源时返回一个 301 跳转。
+
+Astro v4.0 在预览服务器运行时会给没有 base 路径前缀的 public 文件夹资源返回 404 状态码，与开发服务器的行为一致。
+ 
+#### 我应该做什么？
+
+当使用 Astro 预览服务器时，所有从 public 文件夹导入的静态资源和 URL 都必须在路径前加上 [base](/zh-cn/reference/configuration-reference/#base)。
+
+下面的示例展示了如何在配置了 `base: '/docs'` 时从 public 文件夹显示图片的 `src` 属性：
+
+```astro title="src/pages/index.astro" ins="/docs"
+// To access public/images/my-image.png:
+
+<img src="/docs/images/my-image.png" alt="">
+```
+
+### 移除：`astro/client-image` 自动转换
+
+在 Astro v3.0 中，`astro/client-image` 类型（由被弃用的图片集成使用）被移除了，但如果在你的 `env.d.ts` 文件中的话会被自动转换成最新的默认 Astro 类型 `astro/client`。
+
+Astro v4.0 忽略 `astro/client-image` 且不再会自动更新你的 `env.d.ts`。
+
+#### 我应该做什么？
+
+如果你有给配置 `@astrojs/image` 在 `src/env.d.ts` 中配置类型，且升级到 v3.0 时没有自动为你转换类型，你需要手动把 `astro/client-image` 类型替换为 `astro/client`。
+
+```ts title="src/env.d.ts" del={1} ins={2}
+  /// <reference types="astro/client-image" />
+  /// <reference types="astro/client" />
+```
+
+
+## 社区资源
+
+知道一个关于 Astro v4.0 的好资源？ [编辑此页面](https://github.com/withastro/docs/edit/main/src/content/docs/zh-cn/guides/upgrade-to/v4.mdx) 并在下面添加链接！
+
+## 已知问题
+
+请在 [Astro 在 GitHub 上的 Issues](https://github.com/withastro/astro/issues/) 中查看任何反馈的问题，或者提交一个 issue。

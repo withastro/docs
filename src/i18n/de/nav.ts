@@ -6,7 +6,7 @@ export default NavDictionary({
 	'getting-started': 'Erste Schritte',
 	install: 'Installation',
 	'editor-setup': 'Editor-Einrichtung',
-	'guides/upgrade-to/v3': 'Upgrade auf Astro v3',
+	// 'guides/upgrade-to/v4': 'Upgrade auf Astro v4',
 
 	// Core Concepts
 	coreConcepts: 'Kernkonzepte',
@@ -19,10 +19,10 @@ export default NavDictionary({
 
 	// Basics
 	basics: 'Grundlagen',
-	'core-concepts/project-structure': 'Projektstruktur',
-	'core-concepts/astro-components': 'Komponenten',
-	'core-concepts/astro-pages': 'Seiten',
-	'core-concepts/layouts': 'Layouts',
+	'basics/project-structure': 'Projektstruktur',
+	'basics/astro-components': 'Komponenten',
+	'basics/astro-pages': 'Seiten',
+	'basics/layouts': 'Layouts',
 
 	// Recipes
 	examples: 'Anleitungen',
@@ -35,9 +35,9 @@ export default NavDictionary({
 
 	// Features
 	features: 'Themenbereiche',
-	'core-concepts/astro-syntax': 'Astro-Syntax',
-	'core-concepts/framework-components': 'UI-Frameworks',
-	'core-concepts/routing': 'Routing',
+	'basics/astro-syntax': 'Astro-Syntax',
+	'guides/framework-components': 'UI-Frameworks',
+	'guides/routing': 'Routing',
 	'guides/markdown-content': 'Markdown & MDX',
 	'guides/content-collections': 'Content-Sammlungen',
 	'guides/client-side-scripts': 'Skripte & Ereignisbehandlung',
@@ -46,7 +46,7 @@ export default NavDictionary({
 	'guides/fonts': 'Schriftarten',
 	'guides/imports': 'Importe',
 	'guides/server-side-rendering': 'Serverseitiges Rendern (SSR)',
-	'core-concepts/endpoints': 'Endpunkte',
+	'guides/endpoints': 'Endpunkte',
 	'guides/data-fetching': 'Abrufen von Daten',
 	'guides/middleware': 'Middleware',
 	'guides/testing': 'Testen',

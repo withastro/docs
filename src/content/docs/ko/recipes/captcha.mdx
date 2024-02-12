@@ -1,0 +1,77 @@
+---
+title: Captcha를 사용하여 검증하기
+description: API 경로를 생성하고 클라이언트에서 가져오는 방법을 알아보세요.
+i18nReady: true
+type: recipe
+---
+
+[서버 엔드포인트](/ko/guides/endpoints/#서버-엔드포인트-api-라우트)를 REST API 엔드포인트로 사용하여 민감한 데이터를 클라이언트에 노출시키지 않고 인증, 데이터베이스 액세스, 검증과 같은 기능을 실행할 수 있습니다.
+
+이 레시피에서는 클라이언트에 민감한 정보를 노출하지 않고 Google reCAPTCHA v3로 검증을 수행하기 위해 API 경로를 사용합니다.
+
+## 전제 조건
+
+- [SSR](/ko/guides/server-side-rendering/) (`output: 'server'`)이 활성화된 프로젝트가 필요합니다.
+
+## 레시피
+
+1. recaptcha의 데이터를 허용하는 `POST` 엔드포인트를 생성한 다음 reCAPTCHA API로 이를 검증합니다. 여기서 안전하게 비밀 값을 정의하거나 환경 변수를 읽을 수 있습니다.
+
+    ```js title="src/pages/recaptcha.js"
+    export async function POST({ request }) {
+      const data = await request.json();
+
+      const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
+      const requestHeaders = {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      };
+      const requestBody = new URLSearchParams({
+        secret: "YOUR_SITE_SECRET_KEY",   // 환경 변수일 수 있습니다.
+        response: data.recaptcha          // 클라이언트에서 전달된 토큰입니다.
+      });
+
+      const response = await fetch(recaptchaURL, {
+        method: "POST",
+        headers: requestHeaders,
+        body: requestBody.toString()
+      });
+
+      const responseData = await response.json();
+
+      return new Response(JSON.stringify(responseData), { status: 200 });
+    }
+    ```
+
+2. 클라이언트 스크립트에서 `fetch`를 사용하여 엔드포인트에 액세스합니다.
+
+    ```astro title="src/pages/index.astro"
+    <html>
+      <head>
+        <script src="https://www.google.com/recaptcha/api.js"></script>
+      </head>
+
+      <body>
+        <button class="g-recaptcha" 
+          data-sitekey="PUBLIC_SITE_KEY" 
+          data-callback="onSubmit" 
+          data-action="submit"> Click me to verify the captcha challenge! </button>
+
+        <script is:inline>
+          function onSubmit(token) {
+            fetch("/recaptcha", {
+              method: "POST",
+              body: JSON.stringify({ recaptcha: token })
+            })
+            .then((response) => response.json())
+            .then((gResponse) => {
+              if (gResponse.success) {
+                // Captcha 검증이 성공하였습니다.
+              } else {
+                // Captcha 검증이 실패하였습니다.
+              }
+            })
+          }
+        </script>
+      </body>
+    </html>
+    ```

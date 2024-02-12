@@ -12,7 +12,7 @@ Astro는 블로그 및 기타 콘텐츠 웹사이트를 위한 빠른 자동 RSS
 
 ## Setting up `@astrojs/rss`
 
-패키지 [`@astrojs/rss`](https://github.com/withastro/astro/tree/main/packages/astro-rss)는 [API endpoints](/ko/core-concepts/endpoints/#정적-파일-엔드포인트)를 사용하여 RSS 피드를 생성하기 위한 헬퍼를 제공합니다. 이렇게 하면 [SSR adapter](/ko/guides/server-side-rendering/#add-an-adapter)를 사용할 때 정적 빌드 및 온디맨드 생성을 모두 사용할 수 있습니다.
+패키지 [`@astrojs/rss`](https://github.com/withastro/astro/tree/main/packages/astro-rss)는 [API endpoints](/ko/guides/endpoints/#정적-파일-엔드포인트)를 사용하여 RSS 피드를 생성하기 위한 헬퍼를 제공합니다. 이렇게 하면 [SSR adapter](/ko/guides/server-side-rendering/#어댑터-추가)를 사용할 때 정적 빌드 및 온디맨드 생성을 모두 사용할 수 있습니다.
 
 1. 선호하는 패키지 관리자를 사용하여 `@astrojs/rss`를 설치하세요.
 
@@ -54,7 +54,7 @@ export function GET(context) {
     // 출력 xml에서의 `<description>` 필드
     description: 'A humble Astronaut’s guide to the stars',
     // 엔드포인트 컨텍스트에서 프로젝트 "site"를 가져옵니다.
-    // https://docs.astro.build/en/reference/api-reference/#contextsite
+    // https://docs.astro.build/ko/reference/api-reference/#contextsite
     site: context.site,
     // 출력 xml에서의 `<item>` 배열
     // 콘텐츠 컬렉션 및 glob 가져오기를 사용한 예제는 "항목 생성" 섹션을 참조하세요.
@@ -67,15 +67,20 @@ export function GET(context) {
 
 ## `items` 필드 생성
 
-`items` 필드에는 각각 필수 `link`, `title`, `pubDate`이 포함된 RSS 피드 객체 목록을 입력할 수 있습니다. 세 가지 선택적 값으로 `description`(짧은 발췌문), `content`(글의 전체 내용), 블로그 글의 다른 앞부분 속성 등 추가 데이터를 포함하기 위한 `customData` 필드도 포함할 수 있습니다.
+`items` 필드는 `getCollection()`을 사용하여 콘텐츠 컬렉션 항목에서 또는 `pagesGlobToRssItems()`를 사용하여 페이지 파일에서 생성할 수 있는 RSS 피드 객체 목록을 허용합니다.
 
-이 배열은 콘텐츠 컬렉션 스키마에서 생성하거나 `src/pages/` 내에 있는 블로그 게시물에 대해 [glob imports](/ko/guides/imports/#astroglob)를 사용하여 생성할 수 있습니다.
+RSS 피드 표준 형식에는 게시된 각 항목에 대해 다음 값이 포함됩니다.
 
+- `title`: 항목의 제목입니다. `description`이 설정된 경우에만 선택사항입니다. 그렇지 않으면 필수입니다.
+- `description`: 항목의 짧은 발췌 또는 설명입니다. `title`이 설정된 경우에만 선택사항입니다. 그렇지 않으면 필수입니다.
+- `link`: 항목의 원본 소스에 대한 URL입니다. (선택사항)
+- `pubDate`: 항목의 게시 날짜입니다. (선택사항)
+- `content`: 게시물의 전체 내용입니다. (선택사항)
+- `customData`: 블로그 게시물의 기타 프런트매터 속성과 같은 추가 데이터를 포함하는 필드입니다.
 
 ### 콘텐츠 컬렉션 사용하기
 
-[Content collections](/ko/guides/content-collections/)에서 관리되는 페이지의 RSS 피드를 만들려면 `getCollection()` 함수를 사용하여 항목 목록을 검색할 수 있습니다.
-
+[콘텐츠 컬렉션](/ko/guides/content-collections/)에서 관리되는 페이지의 RSS 피드를 생성하려면 `getCollection()` 함수를 사용하여 `items` 배열에 필요한 데이터를 검색하세요. 반환된 데이터에서 원하는 각 속성 (예: `title`, `description`)에 대한 값을 지정해야 합니다.
 
 ```js title="src/pages/rss.xml.js" "items:" "const blog = await getCollection('blog');"
 import rss from '@astrojs/rss';
@@ -100,7 +105,7 @@ export async function GET(context) {
 }
 ```
 
-(선택 사항) 기존 블로그 컬렉션 스키마를 교체하여 예상되는 RSS 속성을 적용할 수도 있습니다.
+(선택사항) 기존 블로그 컬렉션 스키마를 교체하여 예상되는 RSS 속성을 적용할 수도 있습니다.
 
 모든 블로그 항목이 유효한 RSS 피드 항목을 생성하도록 하려면 스키마의 각 개별 속성을 정의하는 대신 선택적으로 `rssSchema`를 가져와 적용할 수 있습니다.
 
@@ -119,7 +124,7 @@ export const collections = { blog };
 
 <Since v="2.1.0" pkg="@astrojs/rss" />
 
-`src/pages/`에 있는 문서에서 RSS 피드를 만들려면 `pagesGlobToRssItems()` 헬퍼를 사용합니다. 이 함수는 [`import.meta.glob`](https://vitejs.dev/guide/features.html#glob-import)의 결과를 받아 유효한 RSS 피드 항목 배열을 출력합니다(포함할 페이지를 지정하려면 [more about writing glob patterns](/ko/guides/imports/#glob-patterns)을 참조하세요).
+`src/pages/`에 있는 문서에서 RSS 피드를 만들려면 `pagesGlobToRssItems()` 헬퍼를 사용합니다. 이 함수는 [`import.meta.glob`](https://vitejs.dev/guide/features.html#glob-import)의 결과를 받아 유효한 RSS 피드 항목 배열을 출력합니다(포함할 페이지를 지정하려면 [more about writing glob patterns](/ko/guides/imports/#glob-패턴)을 참조하세요).
 
 :::caution
 이 기능은 필요한 모든 피드 속성이 각 문서의 프런트 매터에 있다고 가정하지만 확인하지는 않습니다. 오류가 발생하면 각 페이지 프런트 매터를 수동으로 확인해야 합니다.
@@ -145,6 +150,8 @@ v2.1.0 이전 `@astrojs/rss` 버전에서는 `pagesGlobToRssItems()` 래퍼 없�
 ```js
 items: import.meta.glob('./blog/*.{md,mdx}'),
 ```
+
+이 방법은 v2.1.0 이후 모든 Astro 버전에서 더 이상 사용되지 않으며 최신 프로젝트에서는 사용할 수 없습니다.
 :::
 
 ### 게시물의 전체 콘텐츠 포함하기
@@ -154,7 +161,7 @@ items: import.meta.glob('./blog/*.{md,mdx}'),
 `content` 필드에는 글의 전체 콘텐츠가 HTML로 포함됩니다. 이를 통해 RSS 피드 리더가 전체 글 콘텐츠를 사용할 수 있도록 할 수 있습니다.
 
 :::tip
-[`sanitize-html`](https://www.npmjs.com/package/sanitize-html)과 같은 패키지를 사용하면 콘텐츠가 적절하게 이스케이프 및 인코딩되게 할 수 있습니다.
+[`sanitize-html`](https://www.npmjs.com/package/sanitize-html)과 같은 패키지는 콘텐츠가 적절하게 삭제되고, 이스케이프되고, 인코딩되었는지 확인합니다. 그 과정에서 이러한 패키지는 일부 무해한 요소와 속성도 제거할 수 있으므로 출력을 확인하고 필요에 따라 패키지를 구성하세요.
 :::
 
 콘텐츠 컬렉션을 사용할 때는 [`markdown-it`](https://github.com/markdown-it/markdown-it)과 같은 표준 마크다운 파서를 사용하여 글의 `body`를 렌더링하고 결과를 이스케이프 처리합니다.

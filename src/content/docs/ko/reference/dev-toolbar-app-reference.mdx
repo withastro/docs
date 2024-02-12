@@ -1,0 +1,439 @@
+---
+title: 개발 툴바 앱 API
+i18nReady: false
+---
+
+Astro 개발 툴바 앱 API를 사용하면 Astro 개발 툴바를 확장하는 데 사용할 수 있는 앱을 만들 수 있습니다. 이를 통해 새로운 기능을 추가하고 타사 서비스와 통합할 수 있습니다.
+
+## 앱 추가
+
+[Astro 통합](/ko/reference/configuration-reference/#integrations)은 `addDevToolbarApp` 메서드를 사용하여 [`astro:config:setup` 후크](/ko/reference/integrations-reference/#astroconfigsetup)에 앱을 추가할 수 있습니다.
+
+```ts title="integrations.js" {7-9}
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "my-integration",
+  hooks: {
+    "astro:config:setup": ({ addDevToolbarApp }) => {
+      addDevToolbarApp("./my-app.js");
+    },
+  },
+});
+```
+
+## 개발 툴바 앱의 구조
+
+개발 툴바 앱은 기본 내보내기로 다음 필수 속성과 함께 객체를 내보내는 `.js` 또는 `.ts` 파일입니다.
+
+```ts title="src/my-app.js"
+export default {
+	id: 'super-app',
+	name: 'My Super App',
+	icon: '<svg>...</svg>',
+	init(canvas, eventTarget) {
+    eventTarget.dispatchEvent(
+      new CustomEvent('toggle-notification', {
+        detail: {
+          state: true,
+        },
+      })
+    );
+  }
+}
+```
+
+### `id: string`
+
+앱의 고유 식별자입니다. 이는 후크 및 이벤트에서 앱을 고유하게 식별하는 데 사용됩니다.
+
+```ts title="src/my-app.js" {2}
+export default {
+  id: 'my-app',
+  // ...
+}
+```
+
+### `name: string`
+
+앱의 이름입니다. 이는 사람이 읽을 수 있는 이름을 사용하여 앱을 참조해야 할 때마다 사용자에게 표시됩니다.
+
+```ts title="src/my-app.js" {3}
+export default {
+  // ...
+  name: 'My App',
+  // ...
+}
+```
+
+### `icon: Icon`
+
+앱의 아이콘입니다. 이는 UI에 앱을 표시하는 데 사용됩니다. 이는 [아이콘 목록](#아이콘)의 아이콘이거나 아이콘의 SVG 마크업을 포함하는 문자열일 수 있습니다.
+
+```ts title="src/my-app.js" {3}
+export default {
+  // ...
+  icon: '<svg>...</svg>', // 또는 'astro:logo'
+  // ...
+}
+```
+
+### `init: (canvas: ShadowRoot, eventTarget: EventTarget) => void`
+
+이것이 앱의 핵심 부분입니다. 이 함수는 앱이 로드될 때 호출됩니다. 이는 브라우저가 유휴 상태이거나 사용자가 UI에서 앱을 클릭할 때 발생합니다.
+
+이 함수는 두 개의 인수를 받습니다:
+
+#### `canvas`
+
+앱이 UI를 렌더링하는 데 사용할 수 있는 ShadowRoot입니다. 모든 앱은 UI 렌더링을 위해 전용 ShadowRoot를 받습니다. 또한 상위 요소는 `position: absolute;`를 사용하여 배치되므로 앱 UI는 자동으로 페이지 레이아웃에 영향을 주지 않습니다.
+
+```ts title="src/my-app.js" {3-5}
+export default {
+	// ...
+	init(canvas) {
+    canvas.appendChild(document.createTextNode('Hello World!'))
+  }
+}
+```
+
+#### `eventTarget`
+
+개발 툴바에서 이벤트를 보내고 받는 데 사용할 수 있는 [`EventTarget`](https://developer.mozilla.org/ko/docs/Web/API/EventTarget)입니다.
+
+### `beforeTogglingOff`
+
+이 선택적 함수는 사용자가 UI에서 앱 아이콘을 클릭하여 앱을 끌 때 호출됩니다. 예를 들어 이 기능은 정리 작업을 수행하거나, 애니메이션을 수행하거나, 앱을 끄기 전에 사용자에게 확인을 요청하는 데 사용할 수 있습니다.
+
+잘못된 값이 반환되면 토글 끄기가 취소되고 앱은 계속 활성화됩니다.
+
+```ts title="src/my-app.js" {3-6}
+export default {
+  // ...
+  beforeTogglingOff() {
+    const confirmation = window.confirm('Are you sure you want to disable this app?');
+    return confirmation;
+  }
+}
+```
+
+#### canvas
+
+앱의 ShadowRoot를 사용하여 필요한 UI를 렌더링할 수 있습니다.
+
+## 클라이언트 측 이벤트
+
+[`init`](#init-canvas-shadowroot-eventtarget-eventtarget--void) 후크의 [`eventTarget`](#eventtarget) 인수를 사용하면 앱이 개발 툴바에서 이벤트를 보내고 받을 수 있습니다. 다음과 같은 이벤트를 이용할 수 있습니다:
+
+### `app-toggled`
+
+이 이벤트는 사용자가 개발 툴바에서 앱 아이콘을 클릭하면 시작됩니다.
+
+```ts title="src/my-app.js" {4-8}
+  export default {
+    // ...
+    init(canvas, eventTarget) {
+      eventTarget.addEventListener('app-toggled', (event) => {
+        if (event.detail.state === true) {
+          console.log("The app is now enabled!")
+        }
+      })
+    }
+  }
+```
+
+#### `state: boolean`
+
+사용자가 클릭한 후 앱이 활성화되는지 여부를 나타냅니다.
+
+### `toggle-notification`
+
+이 이벤트는 사용자에게 앱에 주의가 필요함을 알리기 위해 전송될 수 있습니다.
+
+```ts title="src/my-app.js" {4-10}
+  export default {
+    // ...
+    init(canvas, eventTarget) {
+      eventTarget.dispatchEvent(
+        new CustomEvent('toggle-notification', {
+          detail: {
+            state: true,
+          },
+        })
+      );
+    }
+  }
+```
+
+#### `state: boolean`
+
+앱에 사용자에 대한 알림이 있는지 여부를 나타냅니다. `true`인 경우 앱 아이콘이 빨간색 점으로 강조 표시됩니다. 반대로 `false`인 경우 강조 표시가 제거됩니다. 이 속성을 지정하지 않으면 `true`로 가정됩니다.
+
+### `toggle-app`
+
+이 이벤트는 앱에서 전송되어 앱 상태를 변경할 수 있습니다. 예를 들어 앱 UI에 '닫기' 버튼을 구현하는 데 유용할 수 있습니다.
+
+```ts title="src/my-app.js" {4-10}
+  export default {
+    // ...
+    init(canvas, eventTarget) {
+      eventTarget.dispatchEvent(
+        new CustomEvent('toggle-app', {
+          detail: {
+            state: false,
+          },
+        })
+      );
+    }
+  }
+```
+
+#### `state: boolean`
+
+앱을 활성화해야 하는지 여부를 나타냅니다. `true`이면 앱이 활성화됩니다. 반대로 `false`이면 앱이 비활성화됩니다. 이 속성을 지정하지 않으면 `true`로 가정됩니다.
+
+## 클라이언트-서버 통신
+
+[클라이언트-서버 통신을 위한 Vite의 방법](https://ko.vitejs.dev/guide/api-plugin.html#client-server-communication)을 사용하여 개발 툴바 앱은 서버와 통신할 수 있습니다.
+
+사용자 정의 메시지를 보내고 받을 수 있는 것 외에도, 개발 툴바는 `APP_ID`가 [앱의 ID](#id-string)인 다음과 같은 메시지도 보냅니다.
+
+### `astro-dev-toolbar:APP_ID:initialized`
+
+이 메시지는 앱이 초기화될 때 전송됩니다. 이 메시지의 데이터는 비어 있습니다.
+
+```ts title="integration.ts" {4-6}
+{
+  // ...
+  "astro:server:setup": ({ server }) => {
+    server.ws.on("astro-dev-toolbar:super-app:initialized", () => {
+      console.log("My app was initialized!");
+    });
+  },
+  // ...
+}
+```
+
+### `astro-dev-toolbar:APP_ID:toggled`
+
+이 메시지는 사용자가 UI에서 앱 아이콘을 클릭할 때 전송됩니다. 이 메시지의 데이터는 앱이 활성화되었는지 여부를 나타내는 불리언 값입니다.
+
+```ts title="integration.ts" {4-6}
+{
+  // ...
+  "astro:server:setup": ({ server }) => {
+    server.ws.on("astro-dev-toolbar:super-app:toggled", (data) => {
+      console.log(`My app is now ${data.state ? "enabled" : "disabled"}!`);
+    });
+  },
+  // ...
+}
+```
+
+:::note
+Vite의 내장 `connection` 이벤트는 개발 툴바 앱이 초기화되기 **전에** 발생하므로 앱에서 직접 사용할 수 없습니다. 대신 `astro-dev-toolbar:APP_ID:initialized` 이벤트를 사용하세요.
+:::
+
+## UI 툴킷
+
+개발 툴바에는 일관된 모양과 느낌으로 앱을 구축하는 데 사용할 수 있는 웹 컴포넌트 세트가 포함되어 있습니다.
+
+### `astro-dev-toolbar-window`
+
+창을 표시합니다.
+
+컴포넌트의 슬롯이 창의 콘텐츠로 사용됩니다.
+
+```html
+<astro-dev-toolbar-window>
+  <p>My content</p>
+</astro-dev-toolbar-window>
+```
+
+JavaScript를 사용하여 창을 만들 때 슬롯 콘텐츠는 컴포넌트의 가벼운 DOM에 들어가야 합니다.
+
+```js
+const myWindow = document.createElement('astro-dev-toolbar-window');
+const myContent = document.createElement('p');
+myContent.textContent = 'My content';
+
+// 창에서 직접appendChild를 사용하세요
+myWindow.appendChild(myContent);
+```
+
+### `astro-dev-toolbar-button`
+
+버튼을 표시합니다.
+
+컴포넌트의 슬롯이 버튼의 콘텐츠로 사용됩니다.
+
+```js
+const myButton = document.createElement('astro-dev-toolbar-button');
+myButton.textContent = 'Click me!';
+myButton.buttonStyle = "purple";
+myButton.size = "medium";
+
+myButton.addEventListener('click', () => {
+  console.log('Clicked!');
+});
+```
+
+#### `size`
+
+버튼의 크기 (`small`, `medium`, `large`)
+
+#### `button-style`
+
+버튼의 스타일 (`ghost`, `outline`, `purple`, `gray`, `red`). `ghost`를 사용하면 버튼 자체가 보이지 않고 버튼의 내용만 표시됩니다.
+
+JavaScript에서 기본 `style` 속성과의 충돌을 방지하려면 `buttonStyle` 속성을 사용하여 이 속성을 설정하세요.
+
+### `astro-dev-toolbar-badge`
+
+배지를 표시합니다.
+
+컴포넌트의 슬롯은 배지의 콘텐츠로 사용됩니다.
+
+```html
+<astro-dev-toolbar-badge>My badge</astro-dev-toolbar-badge>
+```
+
+#### `size`
+
+배지의 크기 (`small`, `large`).
+
+#### `badge-style`
+
+배지의 스타일 (색상) (`purple`, `gray`, `red`, `green`, `yellow`).
+
+JavaScript에서 기본 `style` 속성과의 충돌을 방지하려면 `badgeStyle` 속성을 사용하여 이 속성을 설정하세요.
+
+### `astro-dev-toolbar-card`
+
+카드를 보여줍니다. 카드가 `<a>` 요소처럼 작동하도록 하려면 선택적 `link` 속성을 지정하세요.
+
+JavaScript를 사용하여 카드를 만들 때 `clickAction` 속성을 지정하여 카드가 `<button>` 요소처럼 작동하도록 할 수 있습니다.
+
+컴포넌트의 슬롯이 카드의 콘텐츠로 사용됩니다.
+
+```html
+<astro-dev-toolbar-card icon="astro:logo" link="https://github.com/withastro/astro/issues/new/choose">Report an issue</astro-dev-toolbar-card>
+```
+
+### `astro-dev-toolbar-toggle`
+
+체크박스 역할을 하는 토글 요소를 표시합니다. 이 요소는 내부적으로 기본 `<input type="checkbox">` 요소를 둘러싼 간단한 래퍼입니다. 체크박스 요소는 `input` 속성을 사용하여 접근할 수 있습니다.
+
+```ts
+const toggle = document.createElement('astro-dev-toolbar-toggle');
+
+toggle.input.addEventListener('change', (evt) => {
+  console.log(`The toggle is now ${evt.currentTarget.checked ? 'enabled' : 'disabled'}!`);
+});
+```
+
+### `astro-dev-toolbar-highlight`
+
+페이지의 요소를 강조 표시하는 데 사용할 수 있습니다. 대부분의 경우 `top`, `left`, `width`, `height` CSS 속성을 사용하여 강조 표시하려는 요소와 일치하도록 이 요소의 위치를 ​​지정하고 크기를 조정해야 합니다. [아이콘](#아이콘)은 `icon` 속성을 사용하여 지정할 수도 있으며 강조표시의 오른쪽 상단에 표시됩니다.
+
+```html
+<!-- Highlight the entire page -->
+<astro-dev-toolbar-highlight style="top: 0; left: 0; width: 100%; height: 100%;"></astro-dev-toolbar-highlight>
+```
+
+```ts
+const elementToHighlight = document.querySelector('h1');
+const rect = elementToHighlight.getBoundingClientRect();
+
+const highlight = document.createElement('astro-dev-toolbar-highlight');
+
+highlight.style.top = `${Math.max(rect.top + window.scrollY - 10, 0)}px`;
+highlight.style.left = `${Math.max(rect.left + window.scrollX - 10, 0)}px`;
+highlight.style.width = `${rect.width + 15}px`;
+highlight.style.height = `${rect.height + 15}px`;
+highlight.icon = 'astro:logo';
+```
+
+### `astro-dev-toolbar-tooltip`
+
+다양한 섹션이 포함된 툴팁을 표시합니다. 이 컴포넌트는 기본적으로 `display: none;`으로 설정되어 있으며 `data-show="true"` 속성을 사용하여 표시할 수 있습니다.
+
+섹션은 `sections` 속성을 사용하여 정의됩니다. 이 속성은 다음과 같은 형태의 객체 배열입니다.
+
+```ts
+{
+	title?: string; // 섹션 제목
+	inlineTitle?: string; // 섹션 제목, 제목 옆에 인라인으로 표시됨
+	icon?: Icon; // 섹션의 아이콘
+	content?: string; // 섹션의 내용
+	clickAction?: () => void | Promise<void>; // 섹션을 클릭할 때 수행할 작업
+	clickDescription?: string; // 섹션을 클릭할 때 수행할 작업에 대한 설명
+}
+```
+
+```ts
+const tooltip = document.createElement('astro-dev-toolbar-tooltip');
+
+tooltip.sections = [{
+  title: 'My section',
+  icon: 'astro:logo',
+  content: 'My content',
+  clickAction: () => {
+    console.log('Clicked!')
+  },
+  clickDescription: 'Click me!'
+}]
+```
+
+이 컴포넌트는 강조 표시된 요소를 마우스로 가리키면 툴팁을 표시하기 위해 `astro-dev-toolbar-highlight` 컴포넌트와 결합되는 경우가 많습니다.
+
+```ts
+const highlight = document.createElement('astro-dev-toolbar-highlight');
+
+// 하이라이트 위치를 지정하세요.
+
+const tooltip = document.createElement('astro-dev-toolbar-tooltip');
+
+// 툴팁에 섹션 추가...
+
+highlight.addEventListener('mouseover', () => {
+  tooltip.dataset.show = 'true';
+});
+
+highlight.addEventListener('mouseout', () => {
+  tooltip.dataset.show = 'false';
+});
+```
+
+### `astro-dev-toolbar-icon`
+
+아이콘을 표시합니다. [아이콘 목록](#아이콘)의 아이콘은 `icon` 속성을 사용하여 지정하거나 아이콘의 SVG 마크업을 슬롯으로 전달할 수 있습니다.
+
+```html
+<astro-dev-toolbar-icon icon="astro:logo" />
+```
+
+```html
+<astro-dev-toolbar-icon>
+  <svg>...</svg>
+</astro-dev-toolbar-icon>
+```
+
+#### 아이콘
+
+현재 다음 아이콘을 사용할 수 있으며 아이콘을 허용하는 모든 컴포넌트에서 사용할 수 있습니다.
+
+- `astro:logo`
+- `warning`
+- `arrow-down`
+- `bug`
+- `file-search`
+- `check-circle`
+- `gear`
+- `lightbulb`
+- `checkmark`
+- `dots-three`
+- `copy`
+
+위의 모든 아이콘에는 기본적으로 `fill="currentColor"`가 설정되어 있으며 상위 요소에서 색상을 상속합니다.

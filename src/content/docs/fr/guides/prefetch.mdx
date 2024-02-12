@@ -1,0 +1,193 @@
+---
+title: Prefetch
+description: Préchargez les liens pour une navigation plus rapide entre les pages.
+i18nReady: true
+---
+
+Les temps de chargement des pages jouent un rôle important dans la convivialité et l'appréciation générale d'un site. La fonction **opt-in prefetching** d'Astro apporte les avantages d'une navigation quasi instantanée à votre application multi-pages (MPA) au fur et à mesure que vos visiteurs interagissent avec le site.
+
+## Activer le prefetching
+
+Vous pouvez activer le prefetching avec la configuration `prefetch` :
+
+```js title="astro.config.mjs" ins={4}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  prefetch: true
+})
+```
+
+Un script de prélecture (prefetch) sera ajouté à toutes les pages de votre site. Vous pouvez ensuite ajouter l'attribut `data-astro-prefetch` à n'importe quel lien `<a />` de votre site afin d'opter pour le prefetch. Lorsque vous survolez le lien, le script va chercher la page en arrière-plan.
+
+```html
+<a href="/about" data-astro-prefetch>
+```
+
+Notez que le prefetching ne fonctionne que pour les liens à l'intérieur de votre site, et non pour les liens externes.
+
+## Configuration de Prefetch
+
+La configuration `prefetch` accepte également un objet option pour personnaliser davantage le prefetch.
+
+### Stratégies de prefetch
+
+Astro supporte 4 stratégies de prefetch pour différents cas d'utilisation :
+
+- `hover` (défaut): Préchargement lorsque vous survolez ou mettez l'accent sur le lien.
+- `tap`: Préchargement juste avant que vous ne cliquiez sur le lien.
+- `viewport`: Prédéfini lorsque les liens entrent dans la fenêtre de visualisation.
+- `load`: Prépare tous les liens de la page après le chargement de celle-ci.
+
+Vous pouvez spécifier une stratégie pour un lien individuel en le passant à l'attribut `data-astro-prefetch` :
+
+```html
+<a href="/about" data-astro-prefetch="tap">About</a>
+```
+
+Chaque stratégie est finement ajustée pour ne précharger que lorsque c'est nécessaire et économiser la bande passante de vos utilisateurs. Par exemple :
+
+- Si un visiteur utilise le [mode d'économie de données](https://developer.mozilla.org/fr/docs/Web/API/NetworkInformation/saveData) ou dispose d'une [connexion lente](https://developer.mozilla.org/fr/docs/Web/API/NetworkInformation/effectiveType), la stratégie de préchargement sera remplacée par la stratégie `tap`.
+- Un survol ou un défilement rapide des liens ne les récupérera pas.
+- Les liens qui utilisent la stratégie `viewport` ou `load` ont une priorité plus faible pour éviter d'encombrer le réseau.
+
+### Stratégie de prefetch par défaut
+
+La stratégie de prefetch par défaut lors de l'ajout de l'attribut `data-astro-prefetch` est `hover`. Pour la changer, vous pouvez configurer [`prefetch.defaultStrategy`](/fr/reference/configuration-reference/#prefetchdefaultstrategy) dans votre fichier `astro.config.mjs` :
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  prefetch: {
+    defaultStrategy: 'viewport'
+  }
+})
+```
+
+### Prefetch de tous les liens par défaut
+
+Si vous voulez récupérer tous les liens, y compris ceux qui n'ont pas l'attribut `data-astro-prefetch`, vous pouvez mettre [`prefetch.prefetchAll`](/fr/reference/configuration-reference/#prefetchprefetchall) à `true`:
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  prefetch: {
+    prefetchAll: true
+  }
+})
+```
+
+Vous pouvez alors choisir de ne pas utiliser la fonction de préchargement pour les liens individuels en définissant `data-astro-prefetch="false"` :
+
+```html
+<a href="/about" data-astro-prefetch="false">About</a>
+```
+
+La stratégie de prefetch par défaut pour tous les liens peut être modifiée avec `prefetch.defaultStrategy` comme indiqué dans la section [Stratégie de prefetch par défaut](#stratégie-de-prefetch-par-défaut).
+
+## Prefetch programmatique
+
+Comme certaines navigations n'apparaissent pas toujours comme des liens `<a />` vous pouvez aussi préfetcher de manière programmatique avec l'API `prefetch()` du module `astro:prefetch` :
+
+```astro
+<button id="btn">Click me</button>
+
+<script>
+  import { prefetch } from 'astro:prefetch';
+
+  const btn = document.getElementById('btn');
+  btn.addEventListener('click', () => {
+    prefetch('/about');
+  });
+</script>
+```
+
+Vous pouvez également configurer la priorité du préchargement en passant l'option `with` :
+
+```js
+// Prefetch avec `fetch()`, qui a une priorité plus élevée.
+prefetch('/about', { with: 'fetch' });
+
+// Prefetch avec `<link rel="prefetch">`, qui a une priorité plus faible
+// et programmé manuellement par le navigateur. (par défaut)
+prefetch('/about', { with: 'link' });
+```
+
+L'API `prefetch()` inclut la même détection de [mode d'économie de données](https://developer.mozilla.org/fr/docs/Web/API/NetworkInformation/saveData) et de [connexion lente](https://developer.mozilla.org/fr/docs/Web/API/NetworkInformation/effectiveType) de façon à ce qu'elle ne prenne en compte que ce qui est nécessaire.
+
+Pour ignorer la détection de connexion lente, vous pouvez utiliser l'option `ignoreSlowConnection` :
+
+```js
+// Préchargement même en mode économiseur de données ou en cas de connexion lente
+prefetch('/about', { ignoreSlowConnection: true });
+```
+
+MVeillez à n'importer `prefetch()` que dans les scripts côté client, car il s'appuie sur les API du navigateur.
+
+## Utilisation avec les transitions de vue
+
+Lorsque vous utilisez [les transitions de vue](/fr/guides/view-transitions/) sur une page, le prefetch est également activé par défaut. Il définit une configuration par défaut de `{ prefetchAll : true }` qui active le [prefetch pour tous les liens](#prefetch-de-tous-les-liens-par-défaut) sur la page.
+
+Vous pouvez personnaliser la configuration de prefetch dans `astro.config.mjs` pour remplacer la configuration par défaut. Par exemple :
+  
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  // Désactiver complètement le prefetch
+  prefetch: false
+})
+```
+
+```js title="astro.config.js"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  // Garder le prefetch, mais seulement pour les liens avec `data-astro-prefetch`.
+  prefetch: {
+    prefetchAll: false
+  }
+})
+```
+
+## Migration depuis `@astrojs/prefetch`
+
+L'intégration `@astrojs/prefetch` a été dépréciée dans la version 3.5.0 et sera finalement entièrement supprimée. Utilisez les instructions suivantes pour migrer vers le prefetching intégré d'Astro qui remplace cette intégration.
+
+1. Supprimez l'intégration `@astrojs/prefetch` et activez la configuration `prefetch` dans `astro.config.mjs` :
+
+    ```js title="astro.config.mjs" ins={6} del={2,5}
+    import { defineConfig } from 'astro/config';
+    import prefetch from '@astrojs/prefetch';
+
+    export default defineConfig({
+      integrations: [prefetch()],
+      prefetch: true
+    })
+    ```
+
+2. Convertit les options de configuration de `@astrojs/prefetch` :
+
+    - L'intégration dépréciée utilisait l'option de configuration `selector` pour spécifier quels liens devraient être préfétrés en entrant dans la fenêtre de visualisation (viewport).
+    
+      Ajoutez `data-astro-prefetch="viewport"` à ces liens individuels à la place.
+
+      ```html
+      <a href="/about" data-astro-prefetch="viewport">
+      ```
+
+    - L'intégration dépréciée utilisait l'option de configuration `intentSelector` pour spécifier quels liens devaient être préfécturés lorsqu'ils étaient survolés ou focalisés.
+    
+      Ajoutez `data-astro-prefetch` ou `data-astro-prefetch="hover"` à ces liens individuels à la place :
+
+      ```html
+      <!-- Vous pouvez omettre la valeur si `defaultStrategy` est fixé à `hover` (par défaut). -->
+      <a href="/about" data-astro-prefetch>
+
+      <!-- Sinon, vous pouvez définir explicitement la stratégie deprefetch -->
+      <a href="/about" data-astro-prefetch="hover">
+      ```
+
+    - L'option `throttles` de `@astrojs/prefetch` n'est plus nécessaire car la nouvelle fonctionnalité prefetch va automatiquement planifier et prefetch de manière optimale.

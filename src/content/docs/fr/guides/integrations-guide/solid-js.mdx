@@ -1,0 +1,181 @@
+---
+type: integration
+title: '@astrojs/solid-js'
+description: "Apprenez à utiliser l'intégration du framework @astrojs/solid-js pour étendre la prise en charge des composants dans votre projet Astro."
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/solid/'
+category: renderer
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+Cette **[intégration Astro][astro-integration]** permet le rendu côté serveur et l'hydratation côté client pour vos composants [SolidJS](https://www.solidjs.com/).
+
+## Installation
+
+Astro inclut une commande `astro add` pour automatiser l'installation des intégrations officielles. Si vous préférez, vous pouvez [installer les intégrations manuellement](#installation-manuelle) à la place.
+
+Pour installer `@astrojs/solid-js`, exécutez ce qui suit depuis le répertoire de votre projet et suivez les instructions :
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```sh
+    npx astro add solid
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```sh
+    pnpm astro add solid
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```sh
+    yarn astro add solid
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+Si vous rencontrez des problèmes, [n'hésitez pas à nous les signaler sur GitHub](https://github.com/withastro/astro/issues) et essayez les étapes d'installation manuelle ci-dessous.
+
+### Installation manuelle
+
+Tout d'abord, installez le paquet `@astrojs/solid-js` :
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```sh
+    npm install @astrojs/solid-js
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```sh
+    pnpm add @astrojs/solid-js
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```sh
+    yarn add @astrojs/solid-js
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+La plupart des gestionnaires de paquets installent également les dépendances associées. Si vous voyez un avertissement `Cannot find package 'solid-js'` (ou similaire) lorsque vous démarrez Astro, vous devez installer SolidJS :
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```sh
+    npm install solid-js
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```sh
+    pnpm add solid-js
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```sh
+    yarn add solid-js
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+Ensuite, appliquez l'intégration à votre fichier `astro.config.*` en utilisant la propriété `integrations` :
+
+```js title="astro.config.mjs" ins={2} ins="solid()"
+import { defineConfig } from 'astro/config';
+import solid from '@astrojs/solid-js';
+
+export default defineConfig({
+  // ...
+  integrations: [solid()],
+});
+```
+
+## Démarrage
+
+Pour utiliser votre premier composant SolidJS dans Astro, consultez notre [documentation sur les frameworks UI][astro-ui-frameworks]. Vous y découvrirez :
+
+* 📦 comment les composants du framework sont chargés,
+* 💧 les options d'hydratation côté client, et
+* 🤝 les possibilités de mélanger et d'imbriquer les Frameworks.
+
+## Options
+
+### Combinaison de plusieurs frameworks JSX
+
+Lorsque vous utilisez plusieurs frameworks JSX (React, Preact, Solid) dans le même projet, Astro doit déterminer quelles transformations spécifiques au framework JSX doivent être utilisées pour chacun de vos composants. Si vous n'avez ajouté qu'une seule intégration de framework JSX à votre projet, aucune configuration supplémentaire n'est nécessaire.
+
+Utilisez les options de configuration `include` (obligatoire) et `exclude` (optionnelle) pour spécifier quels fichiers appartiennent à quel framework. Fournissez un tableau de fichiers et/ou de dossiers à `inclure` pour chaque framework que vous utilisez. Des caractères joker peuvent être utilisés pour inclure plusieurs chemins de fichiers.
+
+Nous recommandons de placer les composants communs du framework dans le même dossier (par exemple `/components/react/` et `/components/solid/`) pour faciliter la spécification de vos inclusions, mais ce n'est pas obligatoire :
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import preact from '@astrojs/preact';
+import react from '@astrojs/react';
+import svelte from '@astrojs/svelte';
+import vue from '@astrojs/vue';
+import solid from '@astrojs/solid-js';
+
+export default defineConfig({
+  // Permettre à de nombreux frameworks de prendre en charge tous les différents types de composants.
+  // Aucun `include` n'est nécessaire si vous n'utilisez qu'un seul framework JSX !
+  integrations: [
+    preact({
+      include: ['**/preact/*'],
+    }),
+    react({
+      include: ['**/react/*'],
+    }),
+    solid({
+      include: ['**/solid/*', '**/node_modules/@suid/material/**'],
+    }),
+  ],
+});
+```
+
+## Utilisation
+
+Utilisez un composant SolidJS comme vous le feriez avec n'importe quel [composant UI framework](/fr/guides/framework-components/).
+
+### Limites de Suspense
+
+Afin de prendre en charge les ressources Solid et les composants Lazy sans configuration excessive, les composants réservés au serveur et les composants d'hydratation sont automatiquement englobés dans les limites de Suspense de niveau supérieur et rendu sur le serveur à l'aide de la fonction [`renderToStringAsync`][solid-render-to-string-async]. Par conséquent, il n'est pas nécessaire d'ajouter une limite de suspension de haut niveau autour des composants asynchrones.
+
+Par exemple, vous pouvez utiliser la fonction [`createResource`][solid-create-resource] de Solid pour récupérer des données distantes asynchrones sur le serveur. Les données distantes seront incluses dans le HTML initial rendu par le serveur à partir d'Astro :
+
+```tsx
+// CharacterName.tsx
+function CharacterName() {
+  const [name] = createResource(() =>
+    fetch('https://swapi.dev/api/people/1')
+      .then((result) => result.json())
+      .then((data) => data.name)
+  );
+
+  return (
+    <>
+      <h2>Name:</h2>
+      {/* Luke Skywalker */}
+      <div>{name()}</div>
+    </>
+  );
+}
+```
+
+De même, les [Lazy Components][solid-lazy-components] de Solid seront également résolus et leur HTML sera inclus dans la page initiale rendue par le serveur.
+
+Les composants non hydratants [`client:only`][astro-client-only] ne sont pas automatiquement englobés dans les limites de Suspense.
+
+N'hésitez pas à ajouter d'autres limites de Suspense selon vos préférences.
+
+[astro-integration]: /fr/guides/integrations-guide/
+
+[astro-ui-frameworks]: /fr/guides/framework-components/#utilisation-des-composants-de-framework
+
+[astro-client-only]: /fr/reference/directives-reference/#clientonly
+
+[solid-render-to-string-async]: https://www.solidjs.com/docs/latest/api#rendertostringasync
+
+[solid-create-resource]: https://www.solidjs.com/docs/latest/api#createresource
+
+[solid-lazy-components]: https://www.solidjs.com/docs/latest/api#lazy

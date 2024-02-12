@@ -12,7 +12,7 @@ Astro supports fast, automatic RSS feed generation for blogs and other content w
 
 ## Setting up `@astrojs/rss`
 
-The package [`@astrojs/rss`](https://github.com/withastro/astro/tree/main/packages/astro-rss) provides helpers for generating RSS feeds using [API endpoints](/en/core-concepts/endpoints/#static-file-endpoints). This unlocks both static builds _and_ on-demand generation when using an [SSR adapter](/en/guides/server-side-rendering/).
+The package [`@astrojs/rss`](https://github.com/withastro/astro/tree/main/packages/astro-rss) provides helpers for generating RSS feeds using [API endpoints](/en/guides/endpoints/#static-file-endpoints). This unlocks both static builds _and_ on-demand generation when using an [SSR adapter](/en/guides/server-side-rendering/).
 
 1. Install `@astrojs/rss` using your preferred package manager:
 
@@ -67,14 +67,20 @@ The package [`@astrojs/rss`](https://github.com/withastro/astro/tree/main/packag
 
 ## Generating `items`
 
-The `items` field accepts a list of RSS feed objects, each with a required `link`, `title`, and `pubDate`. Three optional values may also be included `description` (a short excerpt), `content` (the full content of your post), and a `customData` field for including any extra data, such as other frontmatter properties from your blog posts.
+The `items` field accepts a list of RSS feed objects, which can be generated from content collections entries using `getCollection()` or from your page files using `pagesGlobToRssItems()`. 
 
-You can generate this array from a content collection schema or by using [glob imports](/en/guides/imports/#astroglob) for blog posts located within `src/pages/`.
+The RSS feed standard format includes the following values for each published item:
 
+- `title`: The title of the entry. Optional only if a `description` is set. Otherwise, required.
+- `description`: A short excerpt from or describing the entry. Optional only if a `title` is set. Otherwise, required.
+- `link`: A URL to the original source of the entry. (optional)
+- `pubDate`: The date of publication of the entry. (optional)
+- `content`: The full content of your post. (optional)
+- `customData`: A field for including any extra data, such as other frontmatter properties from your blog posts.
 
 ### Using content collections
 
-To create an RSS feed of pages managed in [content collections](/en/guides/content-collections/), use the `getCollection()` function to retrieve the list of your items.
+To create an RSS feed of pages managed in [content collections](/en/guides/content-collections/), use the `getCollection()` function to retrieve the data required for your `items` array. You will need to specify the values for each desired property (e.g. `title`, `description`) from the returned data.
 
 
 ```js title="src/pages/rss.xml.js" "items:" "const blog = await getCollection('blog');"
@@ -117,7 +123,7 @@ export const collections = { blog };
 
 ### Using glob imports
 
-<Since v="2.1.0" pkg="@astrojs/rss" />
+<p><Since v="2.1.0" pkg="@astrojs/rss" /></p>
 
 To create an RSS feed from documents in `src/pages/`, use the `pagesGlobToRssItems()` helper. This accepts an [`import.meta.glob`](https://vitejs.dev/guide/features.html#glob-import) result and outputs an array of valid RSS feed items (see [more about writing glob patterns](/en/guides/imports/#glob-patterns) for specifying which pages to include).
 
@@ -145,16 +151,18 @@ In versions of `@astrojs/rss` before v2.1.0, pass your glob result straight to `
 ```js
 items: import.meta.glob('./blog/*.{md,mdx}'),
 ```
+
+This method is deprecated for all versions of Astro since v2.1.0, and cannot be used on modern projects.
 :::
 
 ### Including full post content
 
-<Since v="1.6.14" />
+<p><Since v="1.6.14" /></p>
 
 The `content` key contains the full content of the post as HTML. This allows you to make your entire post content available to RSS feed readers.
 
 :::tip
-A package like [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) will make sure that your content is properly sanitized, escaped, and encoded.
+A package like [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) will make sure that your content is properly sanitized, escaped, and encoded. In the process, such a package might also remove some harmless elements and attributes, so make sure to verify the output and configure the package according to your needs.
 :::
 
 When using content collections, render the post `body` using a standard Markdown parser like [`markdown-it`](https://github.com/markdown-it/markdown-it) and sanitize the result:

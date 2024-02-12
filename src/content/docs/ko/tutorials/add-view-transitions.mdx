@@ -1,0 +1,433 @@
+---
+title: 튜토리얼 - View Transitions로 확장
+description: >-
+  블로그 만들기 튜토리얼 코드에 View Transitions를 추가합니다.
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import Box from '~/components/tutorial/Box.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import Spoiler from '~/components/Spoiler.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+import ReadMore from '~/components/ReadMore.astro'
+
+**View transitions**는 방문자가 사이트의 페이지를 탐색할 때 발생하는 상황을 제어하는 ​​방법입니다. Astro의 View Transitions API를 사용하면 부드러운 페이지 전환 및 애니메이션, 방문 페이지 기록 스택 제어, 표시된 콘텐츠를 업데이트하는 동안 일부 페이지 요소 및 상태를 유지하기 위한 전체 페이지 새로 고침 방지 등 선택적 탐색 기능을 추가할 수 있습니다.
+
+<PreCheck>
+  - `<ViewTransitions />` 라우터를 가져와 공통 `head` 요소에 추가합니다.
+  - 필요할 때 `<script>`를 트리거하기 위해 탐색 프로세스 중 이벤트 리스너를 추가합니다.
+  - 전환 지시어를 사용하여 페이지 전환 애니메이션을 추가합니다.
+  - 개별 페이지 링크에 대한 클라이언트 측 라우팅을 선택 해제합니다.
+</PreCheck>
+
+## 필요 조건
+
+**공통 기본 레이아웃 또는 `<Head />` 컴포넌트가 있는 기존 Astro 프로젝트**가 필요합니다.
+
+이 튜토리얼에서는 [블로그 만들기 튜토리얼의 완성된 프로젝트](https://github.com/withastro/blog-tutorial-demo)를 사용하여 기존 Astro 프로젝트에 view transitions (클라이언트 측 라우팅)를 추가하는 방법을 보여줍니다. 해당 코드베이스를 로컬에 포크하여 사용하거나 [StackBlitz에서 블로그 튜토리얼 코드를 편집](https://stackblitz.com/github/withastro/blog-tutorial-demo/tree/complete?file=src%2Fpages%2Findex.astro)하여 브라우저에서 튜토리얼을 완료할 수 있습니다.
+
+대신 자신의 Astro 프로젝트에서 이 단계를 수행할 수 있지만 코드베이스에 대한 지침을 조정해야 합니다.
+
+먼저 이 짧은 튜토리얼을 완료하려면 샘플 프로젝트를 사용하는 것이 좋습니다. 그런 다음 배운 내용을 사용하여 자신의 프로젝트에서 view transitions를 만들 수 있습니다.
+
+## 블로그 튜토리얼 코드 구축
+
+[블로그 만들기 개요 튜토리얼](/ko/tutorial/0-introduction/)에서 Astro의 [내장된 파일 기반 라우팅](/ko/guides/routing/#정적-경로)에 대해 배웠습니다. `src/pages/` 폴더 내 모든 `.astro`, `.md`, `.mdx` 파일은 자동으로 사이트의 새 페이지가 됩니다.
+
+이러한 페이지들을 탐색하기 위해 표준 HTML `<a>` 요소를 사용했습니다. 예를 들어, 소개 페이지에 대한 링크를 만들기 위해, 페이지 헤더에 `<a href="/about/">소개</a>`를 추가했습니다. 여러분의 사이트 방문자가 해당 링크를 클릭하면 브라우저가 새로 고쳐지고 완전히 새로운 콘텐츠가 포함된 새 페이지가 로드됩니다.
+
+## 전체 페이지 탐색 vs 클라이언트 측 라우팅(SPA 모드)
+
+브라우저가 새로 고쳐지고 새 페이지를 로드하면 이전 페이지와 새 페이지 사이에 연속성이 없습니다. 클라이언트 측 라우팅을 사용하면 브라우저의 전체 페이지 새로고침 없이 새로운 페이지가 표시됩니다.
+
+클라이언트 측 라우팅은 전체 사이트 또는 앱이 방문자의 상호 작용에 따라 콘텐츠가 업데이트되는 JavaScript인 "한 페이지"로 구성된 단일 페이지 애플리케이션(SPA) 사이트의 기능입니다.
+
+각각의 새 페이지에는 전체 브라우저 새로 고침이 필요하지 않으므로 클라이언트 측 라우팅을 사용하면 여러 가지 방법으로 페이지 전환을 제어할 수 있습니다. 공통 페이지 헤더와 같은 **영구적 요소**는 화면에 다시 렌더링될 필요가 없습니다. 한 페이지에서 다른 페이지로의 전환이 훨씬 더 부드럽게 나타날 수 있습니다. 그리고 상태를 보존하여 한 페이지에서 다음 페이지로 값을 전송할 수 있으며 방문자가 페이지를 탐색할 때 비디오를 계속 재생할 수도 있습니다!
+ 
+전체 페이지 브라우저 새로 고침을 원하거나 필요한 경우가 있습니다. 예를 들어 링크를 통해 방문자가 `.pdf` 문서로 이동하는 경우, 서버에서 해당 새 페이지를 로드하려면 브라우저가 필요합니다. Astro 프로젝트에서 view transitions가 활성화된 경우에도 브라우저가 전체 링크 및 각 링크별로 탐색하는 방법을 지정할 수 있으며 클라이언트 측 라우팅을 완전히 선택 해제할 수도 있습니다.
+
+안내서에서 [Astro의 view transitions](/ko/guides/view-transitions/)에 대해 읽어보거나 아래 지침에 따라 기본 블로그를 `src/pages/posts/`에서 `src/content/posts/`로 변환해 보세요.
+
+<Box icon="question-mark">
+### 여러분의 지식을 테스트해보세요
+
+1. 내 Astro 사이트에 view transitions를 추가하는 것은...
+
+    <MultipleChoice>
+      <Option>
+        기본적으로 사이트 전체를 구현하려면 2줄 이상의 코드가 필요합니다.
+      </Option>
+      <Option isCorrect>
+        `<head>`에 `<ViewTransitions />` 라우터가 포함된 페이지에서 페이지 탐색의 기본 유형을 변경합니다.
+      </Option>
+      <Option>
+        브라우저에서 일반적으로 제공하는 접근성 기능 (경로 안내 및 `prefers-reduced-motion` 등)을 다시 추가하지 않습니다.
+      </Option>
+    </MultipleChoice>
+
+2. Astro의 view transitions의 이점이 **아닌** 것은 무엇입니까?
+
+    <MultipleChoice>
+      <Option isCorrect>
+         클라이언트 측 라우팅을 위해 브라우저에 추가 JavaScript 보내기
+      </Option>
+      <Option>
+        방문자가 새 페이지를 방문할 때 개별 요소 및 컴포넌트를 유지하는 옵션
+      </Option>
+      <Option>
+        각 링크의 기본값으로 사용할 탐색 유형 제어
+      </Option>
+    </MultipleChoice>
+
+3. view transitions 라우터는... 
+    <MultipleChoice>
+      <Option>
+        React와 같은 UI 프레임워크를 사용해야 합니다.
+      </Option>
+      <Option>
+        프로덕션 사이트에서 사용하기에 적합하지 않습니다.
+      </Option>
+      <Option isCorrect>
+        아직 view transitions를 완전히 지원하지 않는 브라우저에 대한 대체 동작을 포함합니다.
+      </Option>
+    </MultipleChoice>
+
+</Box>
+
+## View transitions로 블로그 튜토리얼 확장
+
+아래 단계에서는 페이지 전환을 향상시키기 위해 클라이언트 측 라우팅을 추가하여 블로그 만들기 튜토리얼의 최종 제품을 확장하는 방법을 보여줍니다.
+
+### 종속성 업그레이드
+
+1. Astro를 최신 버전으로 업그레이드하고 터미널에서 다음 명령을 실행하여 모든 통합을 최신 버전으로 업그레이드하세요.
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      # Astro v4.x으로 업그레이드
+      npm install astro@latest
+
+      # 예: 블로그 튜토리얼의 Preact 통합 업그레이드
+      npm install @astrojs/preact@latest
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      # Astro v4.x으로 업그레이드
+      pnpm add astro@latest
+
+    # 예: 블로그 튜토리얼의 Preact 통합 업그레이드
+      pnpm add @astrojs/preact@latest
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      # Astro v4.x으로 업그레이드
+      yarn add astro@latest
+
+    # 예: 블로그 튜토리얼의 Preact 통합 업그레이드
+      yarn add @astrojs/preact@latest
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+    :::tip
+    자신의 프로젝트를 사용하는 경우, 설치한 모든 종속성을 업데이트해야 합니다. 예시 블로그 튜토리얼의 코드베이스는 Preact 통합만 사용합니다.
+    :::
+
+### `<ViewTransitions />` 라우터 추가
+
+2. `<ViewTransitions />` 컴포넌트를 가져와서 페이지 레이아웃의 `<head>`에 추가합니다.
+
+    블로그 튜토리얼 예시에서 `<head>` 요소는 `src/layouts/BaseLayout.astro`에 있습니다. 먼저 `ViewTransitions` 라우터를 컴포넌트의 프런트매터로 가져와야 합니다. 그런 다음 `<head>` 요소 안에 라우팅 컴포넌트를 추가합니다.
+
+    ```astro title="src/layouts/BaseLayout.astro" ins={2,15}
+    ---
+    import { ViewTransitions } from 'astro:transitions';
+    import Header from "../components/Header.astro";
+    import Footer from "../components/Footer.astro";
+    import "../styles/global.css";
+    const { pageTitle } = Astro.props;
+    ---
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+        <title>{pageTitle}</title>
+        <ViewTransitions />
+      </head>
+      <body>
+        <Header />
+        <h1>{pageTitle}</h1>
+        <slot />
+        <Footer />
+        <script>
+          import "../scripts/menu.js";
+        </script>
+      </body>
+    </html>
+    ```
+
+    Astro의 기본 클라이언트 측 탐색을 활성화하는 데 다른 구성은 필요하지 않습니다! Astro는 이전 페이지와 새 페이지 간 유사성을 기반으로 기본 페이지 애니메이션을 생성하고, 지원되지 않는 브라우저에 대한 대체 동작도 제공합니다.
+
+3. 사이트 미리보기에서 페이지 간 탐색을 시작합니다.
+
+    **데스크톱 모드와 같은 큰 화면 크기**에서 사이트 미리보기를 확인하세요. 사이트의 페이지를 탐색할 때 새 페이지 콘텐츠가 페이드 인되면서 이전 페이지 콘텐츠도 페이드 아웃되는 것처럼 보입니다. 기본값이 만족스럽지 않은 경우, [view transitions 안내서](/ko/guides/view-transitions/)를 사용하여 사용자 정의 동작을 추가하세요.
+    
+    **작은 화면 크기**에서 사이트 미리보기를 보고, 햄버거 메뉴를 사용하여 페이지를 탐색해 보세요. 첫 페이지 로드 이후에는 메뉴가 더 이상 작동하지 않습니다.
+
+### 스크립트 업데이트
+
+view transitions를 사용하면 전체 페이지 브라우저 새로 고침과 마찬가지로, 페이지 탐색 후 일부 스크립트가 더 이상 다시 실행되지 않을 수 있습니다. 클라이언트 측 라우팅 중 사용할 수 있는 두 가지 이벤트가 있습니다: [`astro:page-load`](/ko/guides/view-transitions/#astropage-load) 및 [`astro :after-swap`](/ko/guides/view-transitions/#astroafter-swap).
+
+4. 새 페이지로 이동한 후 `<Hamburger />` 모바일 메뉴 컴포넌트를 제어하는 ​​스크립트를 사용할 수 있도록 만듭니다.
+
+     새 페이지로 이동한 후 모바일 메뉴를 대화형으로 만들려면 페이지 탐색이 끝날 때 실행되는 `astro:page-load` 이벤트를 수신하는 다음 코드를 추가하고 이에 대한 응답으로, 클릭하면 햄버거 메뉴가 작동하도록 기존 스크립트를 실행합니다.
+
+    ```js title="src/scripts/menu.js" ins={1,5}
+    document.addEventListener('astro:page-load', () => {
+      document.querySelector('.hamburger').addEventListener('click', () => {
+        document.querySelector('.nav-links').classList.toggle('expanded');
+      });
+    });
+    ```
+
+5. 페이지 탐색 후 테마 토글을 제어하는 ​​스크립트를 사용할 수 있도록 만듭니다.
+
+    밝은/어두운 테마 전환을 제어하는 ​​`<script>`는 `<ThemeIcon />` 컴포넌트에 있습니다. 테마 토글이 모든 페이지에서 계속 작동하려면 스크립트에서 `is:inline` 속성을 제거하고 `astro:page-load` 이벤트가 기존 기능을 트리거할 수 있도록 이전 예시와 동일한 이벤트 리스너를 추가하세요.
+    
+    함수가 `astro:page-load` 이벤트에 대한 응답으로 실행되도록 기존 스크립트 태그를 업데이트하여 새 페이지가 완전히 로드되고 사용자에게 표시되면 테마 토글을 대화형으로 만듭니다.
+
+    ```astro title="src/components/ThemeIcon.astro" ins={8,38} del="is:inline"
+    ---
+    ---
+    <button id="themeToggle"> /* ... */ </button>
+
+    <style> /* ... */ </style>
+
+    <script is:inline>
+      document.addEventListener('astro:page-load', () => {
+        const theme = (() => {
+          if (typeof localStorage !== "undefined" && localStorage.getItem("theme")) {
+            return localStorage.getItem("theme");
+          }
+          if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+            return "dark";
+          }
+          return "light";
+        })();
+
+        if (theme === "light") {
+          document.documentElement.classList.remove("dark");
+        } else {
+          document.documentElement.classList.add("dark");
+        }
+
+        window.localStorage.setItem("theme", theme);
+
+        const handleToggleClick = () => {
+          const element = document.documentElement;
+          element.classList.toggle("dark");
+
+          const isDark = element.classList.contains("dark");
+          localStorage.setItem("theme", isDark ? "dark" : "light");
+        };
+
+        document
+          .getElementById("themeToggle")
+          .addEventListener("click", handleToggleClick);
+      });
+    </script>
+    ```
+    이제 `<ViewTransitions />` 라우터를 사용할 때, 페이지 로드가 완료된 후, 테마 토글이 모든 페이지에서 대화형으로 작동합니다.
+
+6. 다크 모드에서 깜박이는 것을 방지하려면 테마를 미리 확인하세요.
+
+    테마 토글은 모든 페이지에서 작동하지만 해당 스크립트는 탐색 프로세스가 끝날 때, **새 페이지가 브라우저에 완전히 로드된 후** 로드됩니다. 이 테마 토글 스크립트가 실행되고 페이지에서 어떤 테마를 사용해야 하는지 확인하기 전에 사이트의 밝은 테마 버전이 깜박일 수 있습니다.
+
+    설정이 필요한 경우, 탐색 프로세스 이전에 다크 모드를 확인하기 위해서는 `astro:after-swap` 이벤트의 응답으로 실행되는 함수를 생성하세요. 브라우저의 `localStorage`에서 어두운 테마를 확인하는 다음 함수는 **새 페이지가 이전 페이지를 대체한 직후**, DOM 요소가 화면에 그려지기 전에 실행됩니다.
+
+    테마 토글을 제어하는 ​​스크립트 외에 `<ThemeIcon />` 컴포넌트에 이 새 스크립트를 추가합니다.
+
+    ```astro title="src/components/ThemeIcon.astro" ins={3-9}
+    <script> ... <script>
+
+    <script>
+      document.addEventListener('astro:after-swap', () => {
+        localStorage.theme === 'dark' 
+        ? document.documentElement.classList.add("dark")
+        : document.documentElement.classList.add("light");
+      }); 
+    </script>
+    ```
+
+    이제 **클라이언트 측 탐색을 위해 `<ViewTransitions />` 라우터를 사용**하는 모든 페이지 변경 (`astro:after-swap` 이벤트에 액세스)은 브라우저의 `localStorage`에서 `theme: dark`를 감지하고 페이지가 뷰어에 렌더링되기 전에 현재 페이지를 업데이트할 수 있습니다.
+
+    <Box icon="question-mark">
+      ### 여러분의 지식을 테스트해보세요
+
+      클라이언트 측 탐색 중 방문자가 링크를 클릭하여 새 페이지로 이동한 후 이벤트의 올바른 순서는 무엇입니까?
+
+          <MultipleChoice>
+            <Option>
+              1. `astro:after-swap`
+              2. `astro:page-load`
+              3. 새 페이지가 표시됩니다
+            </Option>
+            <Option isCorrect>
+              1. `astro:after-swap`
+              2. 새 페이지가 표시됩니다
+              3. `astro:page-load`
+            </Option>
+            <Option>
+              1. `astro:page-load`
+              2. 새 페이지가 표시됩니다
+              3. `astro:after-swap`
+            </Option>
+          </MultipleChoice>
+
+      </Box>
+
+### 전환 애니메이션 사용자 정의
+
+7. 페이지 제목의 기본 `fade` 애니메이션을 `slide`로 변경합니다.
+
+    현재 view transitions가 활성화되어, 여러분은 모든 페이지 전환 애니메이션을 위한 작은 페이드 인 및 페이드 아웃 세트를 가지고 있습니다. 또한 Astro는 내장된 '`slide` 애니메이션도 제공합니다. 단일 요소의 애니메이션 유형을 변경하려면 `transition:animation=""` 지시어를 추가하세요.
+
+    예를 들어, 페이지 제목을 페이드 인 대신 슬라이드 인하려면 BaseLayout의 `<h1>` 요소에 `transition:animate="slide"`를 추가하세요.
+
+    ```astro title="src/layouts/BaseLayout.astro" ins='transition:animate="slide"'
+    ---
+    import Header from "../components/Header.astro";
+    import Footer from "../components/Footer.astro";
+    import "../styles/global.css";
+    import { ViewTransitions } from 'astro:transitions';
+    const { pageTitle } = Astro.props;
+    ---
+
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+        <title>{pageTitle}</title>
+        <ViewTransitions />
+      </head>
+      <body>
+        <Header />
+        <h1 transition:animate="slide">{pageTitle}</h1>
+        <slot />
+        <Footer />
+        <script>
+          import "../scripts/menu.js";
+        </script>
+      </body>
+    </html>
+    ```
+
+    이제 브라우저 미리보기에서 페이지 제목이 화면에 슬라이드되는 반면 본문 텍스트와 같은 다른 요소는 계속해서 페이드 인 및 아웃되는 것을 볼 수 있습니다.
+
+    <Box icon="puzzle-piece">
+      ### 직접 시도하기 - 탐색 링크에 슬라이드 인 애니메이션을 추가하세요.
+
+      [위와 동일한 단계](#전환-애니메이션-사용자-정의)에 따라, 모든 헤더 링크가 포함된 `Navigation.astro`의 `<div>`가 페이지 탐색 시 슬라이드 인 애니메이션이 작동하도록 애니메이션 지시어를 추가하세요.
+
+      <details>
+      <summary>코드 보기</summary>
+      ```astro title="src/components/Navigation.astro" ins='transition:animate="slide"'
+      ---
+      ---
+      <div transition:animate="slide" class="nav-links">
+        <a href="/">홈</a>
+        <a href="/about/">소개</a>
+        <a href="/blog/">블로그</a>
+        <a href="/tags/">태그</a>
+      </div>
+      ```
+      </details>
+    </Box>
+
+    이제 브라우저 미리보기를 확인하면, 모든 페이지 탐색에서 페이지 제목 및 헤더 링크가 슬라이드 인 애니메이션과 함께 작동합니다.
+
+8. 블로그 게시물 설명에 더 긴 페이드인을 추가하세요.
+
+    Astro의 내장 애니메이션을 가져온 다음 CSS 애니메이션 속성을 제공하여 사용자 정의할 수도 있습니다.
+
+    예를 들어 블로그 게시물을 탐색할 때 설명이 천천히 페이드 인되도록 하려면, Markdown 블로그 게시물 레이아웃에 `fade` 애니메이션을 가져옵니다. 그런 다음 Astro의 `fade` 및 `2s`의 duration을 포함한 전환 지시어를 추가하세요.
+
+    ```astro title="src/layouts/MarkdownPostLayout.astro" ins={3} ins="transition:animate={fade({ duration: '2s' })}"
+    ---
+    import BaseLayout from "./BaseLayout.astro";
+    import { fade } from 'astro:transitions';
+    const { frontmatter } = Astro.props;
+    ---
+
+    <BaseLayout pageTitle={frontmatter.title}>
+      <p>{frontmatter.pubDate.slice(0, 10)}</p>
+      <p transition:animate={fade({ duration: '2s' })} ><em>{frontmatter.description}</em></p>
+      <p>작성자: {frontmatter.author}</p>
+      <img src={frontmatter.image.url} width="300" alt={frontmatter.image.alt} />
+      <slot />
+    </BaseLayout>
+    ```
+    브라우저 미리보기에서 블로그 게시물을 탐색하면 설명이 나머지 텍스트보다 느리게 등장하는 것을 볼 수 있습니다.
+
+    <ReadMore>다양한 [전환 지시어](/ko/guides/view-transitions/#전환-지시어) 및 [애니메이션 맞춤설정](/ko/guides/view-transitions/#애니메이션-사용자-정의)에 대해 자세히 알아보세요.</ReadMore>
+
+### 일부 링크에 브라우저 새로고침 추가
+
+9. 클라이언트 측 라우팅을 방지하고 대신 소개 페이지로 이동할 때 브라우저에게 새로고침을 요구합니다.
+
+    때때로 방문자가 특정 링크를 클릭할 때 전체 브라우저를 다시 로드하고 싶을 때가 있습니다. 예를 들어 `<ViewTransitions />` 라우터를 사용하지 않는 페이지에 연결하거나 `.pdf`와 같은 파일에 직접 연결할 수 있습니다.
+
+    소개 페이지로 이동하기 위해 탐색 링크를 클릭할 때마다 브라우저가 새로 고쳐지도록 하려면 `<Navigation/>` 컴포넌트의 `<a>` 태그에 `data-astro-reload` 속성을 추가하세요. 이는 이 하나의 링크에 대해 `<ViewTransitions />` 라우터와 모든 view transition 애니메이션을 완전히 재정의합니다.
+
+     ```astro title="src/components/Navigation.astro" ins='data-astro-reload'
+      ---
+      ---
+      <div transition:animate="slide" class="nav-links">
+        <a href="/">홈</a>
+        <a href="/about/" data-astro-reload>소개</a>
+        <a href="/blog/">블로그</a>
+        <a href="/tags/">태그</a>
+      </div>
+      ```
+    
+    이제 소개 페이지에 대한 탐색 링크를 클릭하면 애니메이션이 발생하지 않습니다. **이 링크를 사용하여** 소개 페이지로 이동할 때 페이지 링크와 제목이 슬라이드 인되지 않으며 페이지 콘텐츠가 페이드 인되지 않습니다.
+
+10. 블로그 게시물의 Markdown 레이아웃에 있는 작성자 이름에 소개 페이지 링크를 추가하세요.
+
+    `data-astro-reload`는 **추가된 링크에서** 새 페이지로 이동할 때만 전체 브라우저 새로고침을 트리거합니다. 소개 페이지로 이동하는 모든 인스턴스를 제어하지는 않습니다.
+
+    `<MarkdownPostLayout />` 컴포넌트에서 작성자 이름에 소개 페이지 링크를 추가합니다.
+
+    ```astro title="src/layouts/MarkdownPostLayout.astro" ins='<a href="/about/">' ins="</a>"
+    ---
+    import BaseLayout from "./BaseLayout.astro";
+    import { fade } from 'astro:transitions';
+    const { frontmatter } = Astro.props;
+    ---
+
+    <BaseLayout pageTitle={frontmatter.title}>
+      <p>{frontmatter.pubDate.slice(0, 10)}</p>
+      <p transition:animate={fade({ duration: '2s' })} ><em>{frontmatter.description}</em></p>
+      <p>작성자: <a href="/about/">{frontmatter.author}</a></p>
+      <img src={frontmatter.image.url} width="300" alt={frontmatter.image.alt} />
+      <slot />
+    </BaseLayout>
+    ```
+
+    브라우저 미리 보기에서 블로그 게시물을 방문한 다음 링크된 작성자 이름을 클릭하여 소개 페이지로 이동하는 경우 페이지 탐색은 어떤 모양입니까?
+
+    <p>
+      방문자가 개별 블로그 게시물에서 소개 페이지 링크를 클릭하면 <Spoiler>해당 링크에 `data-astro-reload` 속성이 설정되어 있지 않기 때문에</Spoiler> 페이지 제목과 헤더 탐색 링크가 <Spoiler>화면을 가로질러 슬라이드 인 됩니다</Spoiler>.
+    </p>
+
+아직 탐험할 것이 훨씬 더 많습니다! view transitions로 수행할 수 있는 추가 작업은 [전체 view transitions 안내서](/ko/guides/view-transitions/)를 참조하세요.
+
+view transitions를 사용하는 블로그 튜토리얼의 전체 예시를 보려면 튜토리얼 저장소의 [view transitions 브랜치](https://github.com/withastro/blog-tutorial-demo/tree/view-transitions)를 참조하세요.

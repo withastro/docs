@@ -24,7 +24,7 @@ interface AstroIntegration {
   hooks: {
     'astro:config:setup'?: (options: {
       config: AstroConfig;
-      command: 'dev' | 'build';
+      command: 'dev' | 'build' | 'preview';
       isRestart: boolean;
       updateConfig: (newConfig: Record<string, any>) => void;
       addRenderer: (renderer: AstroRenderer) => void;
@@ -36,7 +36,7 @@ interface AstroIntegration {
       injectRoute: ({ pattern: string, entrypoint: string }) => void;
       logger: AstroIntegrationLogger;
     }) => void;
-    'astro:config:done'?: (options: { config: AstroConfig; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:config:done'?: (options: { config: AstroConfig; setAdapter: (adapter: AstroAdapter) => void; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:server:setup'?: (options: { server: vite.ViteDevServer; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:server:start'?: (options: { address: AddressInfo; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:server:done'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
@@ -71,7 +71,7 @@ interface AstroIntegration {
 ```ts
 'astro:config:setup'?: (options: {
   config: AstroConfig;
-  command: 'dev' | 'build';
+  command: 'dev' | 'build' | 'preview';
   isRestart: boolean;
   updateConfig: (newConfig: Record<string, any>) => void;
   addRenderer: (renderer: AstroRenderer) => void;
@@ -93,10 +93,11 @@ Una copia de solo lectura de la [Astro config](/es/reference/configuration-refer
 
 #### Opción `command`
 
-**Tipo:** `'dev' / 'build'`
+**Tipo:** `'dev' | 'build' | 'preview'`
 
-- `dev` - El proyecto se ejecuta con `astro dev` o `astro preview`
+- `dev` - El proyecto se ejecuta con `astro dev`
 - `build` - El proyecto se ejecuta con `astro build`
+- `preview` - El proyecto se ejecuta con `astro preview`
 
 #### Opción `isRestart`
 
@@ -219,7 +220,7 @@ declare module 'astro' {
 
 #### Opción `addDevToolbarApp`
 
-<Since v="3.4.0" />
+<p><Since v="3.4.0" /></p>
 
 **Tipo:** `(pluginEntrypoint: string) => void;`
 
@@ -270,7 +271,7 @@ export default {
 
 #### Opción `addMiddleware`
 
-<Since v="3.5.0" />
+<p><Since v="3.5.0" /></p>
 
 **Tipo:** `(middleware:` [`AstroIntegrationMiddleware`](https://github.com/withastro/astro/blob/852ac0f75dfca1b2602e9cdbfa0447d9998e2449/packages/astro/src/%40types/astro.ts#L2124-L2127) `) => void;`
 
@@ -311,11 +312,11 @@ export const onRequest = defineMiddleware(async (context, request) => {
 
 **Tipo:** `({ pattern: string, entrypoint: string }) => void;`
 
-Una función callback para inyectar rutas a un proyecto de Astro. Las rutas inyectadas pueden ser [páginas `.astro`](/es/core-concepts/astro-pages/) o [handlers de ruta `.js` y `.ts`](/es/core-concepts/endpoints/#endpoints-de-archivos-estáticos).
+Una función callback para inyectar rutas a un proyecto de Astro. Las rutas inyectadas pueden ser [páginas `.astro`](/es/basics/astro-pages/) o [controladores de ruta `.js` y `.ts`](/es/guides/endpoints/#endpoints-de-archivos-estáticos).
 
 `injectRoute` toma un objeto con un `pattern` y un `entrypoint`.
 
-- `pattern` - es la ruta en el navegador, por ejemplo `/foo/bar`. Un `pattern` puede usar la sintaxis de ruta de archivo de Astro para indicar rutas dinámicas, por ejemplo `/foo/[bar]` o `/foo/[...bar]`. Tenga en cuenta que **no** se necesita una extensión de archivo en el `patrón`.
+- `pattern` - es la ruta en el navegador, por ejemplo `/foo/bar`. Un `pattern` puede usar la sintaxis de ruta de archivo de Astro para indicar rutas dinámicas, por ejemplo `/foo/[bar]` o `/foo/[...bar]`. Ten en cuenta que **no** se necesita una extensión de archivo en el `patrón`.
 - `entrypoint` - un especificador de módulo simple que apunta hacia la página `.astro` o el controlador de ruta `.js`/`.ts` que maneja la ruta indicada en el `pattern`.
 
 ##### Ejemplo de uso
@@ -337,6 +338,16 @@ injectRoute({
   pattern: '/fancy-dashboard',
   entrypoint: '@fancy/dashboard/dashboard.astro'
 });
+```
+
+Cuando publiques tu paquete (`@fancy/dashboard`, en este caso) en npm, debes exportar `dashboard.astro` en tu `package.json`:
+
+```json title="package.json" "exports"
+{
+  "name": "@fancy/dashboard",
+  // ...
+  "exports": { "./dashboard.astro": "./dashboard.astro" }`
+}
 ```
 
 #### Opción `injectScript`
@@ -708,3 +719,8 @@ integrations: [
   examplePreset()
 ]
 ```
+
+## Recursos de la Comunidad
+
+- [Crea tus propias integraciones de Astro](https://www.freecodecamp.org/news/how-to-use-the-astro-ui-framework/#chapter-8-build-your-own-astro-integrations-1) - por Emmanuel Ohans en FreeCodeCamp
+- [Plantilla de Integración de Astro](https://github.com/florian-lefebvre/astro-integration-template) - por Florian Lefebvre en GitHub

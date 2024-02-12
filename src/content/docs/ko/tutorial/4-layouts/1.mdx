@@ -1,0 +1,213 @@
+---
+type: tutorial
+title: 첫 번째 레이아웃 구축
+description: |-
+  튜토리얼: 첫 번째 Astro 블로그 구축 — 공통 요소를 재사용 가능한 페이지 레이아웃으로 리팩터링
+i18nReady: true
+---
+
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+
+<PreCheck>
+  - 공통 요소를 페이지 레이아웃으로 리팩터링
+  - Astro `<slot />` 요소를 사용하여 레이아웃 내에 페이지 콘텐츠 배치
+  - 페이지별 값을 레이아웃에 props로 전달
+</PreCheck>
+
+여전히 모든 페이지에 일부 Astro 컴포넌트가 반복적으로 렌더링되어 있습니다. 이제 공유 페이지 레이아웃을 만들기 위해 다시 리팩터링할 시간입니다!
+
+## 첫 번째 레이아웃 컴포넌트 만들기
+
+1. `src/layouts/BaseLayout.astro` 위치에 새 파일을 만듭니다. (먼저 새로운 `layouts` 폴더를 만들어야 합니다.)
+
+2. `index.astro`의 **전체 내용**을 새 파일 `BaseLayout.astro`에 복사합니다.
+
+    ```astro title="src/layouts/BaseLayout.astro"
+    ---
+    import Header from '../components/Header.astro';
+    import Footer from '../components/Footer.astro';
+    import '../styles/global.css';
+    const pageTitle = "Home Page";
+    ---
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+        <title>{pageTitle}</title>
+      </head>
+      <body>
+        <Header />
+        <h1>{pageTitle}</h1>
+        <Footer />
+        <script>
+          import "../scripts/menu.js";
+        </script>
+      </body>
+    </html>
+    ```
+
+## 페이지에서 레이아웃 사용
+
+3. `src/pages/index.astro`의 코드를 다음으로 바꿉니다.
+
+    ```astro title="src/pages/index.astro"
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    const pageTitle = "Home Page";
+    ---
+    <BaseLayout>
+      <h2>My awesome blog subtitle</h2>
+    </BaseLayout>
+    ```
+ 
+4. 브라우저 미리보기를 다시 확인하여 무엇이 변경되었거나 변경되지 _않았는지_ 확인하세요.
+    
+5. 바닥글 컴포넌트 바로 위의 `src/layouts/BaseLayout.astro`에 `<slot />` 요소를 추가한 다음 홈 페이지의 브라우저 미리보기를 확인하고 이번에 실제로 _변경된_ 내용을 확인하세요!
+
+    ```astro title="src/layouts/BaseLayout.astro" ins={18}
+    ---
+    import Header from '../components/Header.astro';
+    import Footer from '../components/Footer.astro';
+    import '../styles/global.css';
+    const pageTitle = "Home Page";
+    ---
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+        <title>{pageTitle}</title>
+      </head>
+      <body>
+        <Header />
+        <h1>{pageTitle}</h1>
+        <slot />
+        <Footer />
+        <script>
+          import "../scripts/menu.js";
+        </script>
+      </body>
+    </html>
+    ```
+
+ `<slot />`을 사용하면 `<Component></Component>` 태그 사이에 작성된 **하위 콘텐츠**를 `Component.astro` 파일에 삽입 (또는 "슬롯 인")할 수 있습니다.
+
+## 페이지별 값을 props로 전달
+
+1. 컴포넌트 속성을 사용하여 `index.astro`에서 레이아웃 컴포넌트에 페이지 제목을 전달합니다.
+
+    ```astro title="src/pages/index.astro" 'pageTitle={pageTitle}'
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    const pageTitle = "Home Page";
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <h2>My awesome blog subtitle</h2>
+    </BaseLayout>
+    ```
+
+2. 페이지 제목을 상수로 정의하는 대신 `Astro.props`를 통해 수신하도록 `BaseLayout.astro` 레이아웃 컴포넌트의 스크립트를 변경하세요.
+
+    ```astro title="src/layouts/BaseLayout.astro" del={5} ins={6}
+    ---
+    import Header from '../components/Header.astro';
+    import Footer from '../components/Footer.astro';
+    import '../styles/global.css';
+    const pageTitle = "Home Page";
+    const { pageTitle } = Astro.props;
+    ---
+    ```
+
+3. 브라우저 미리보기를 확인하여 페이지 제목이 변경되지 않았는지 확인하세요. 값은 동일하지만 이제 동적으로 렌더링됩니다. 이제 각 개별 페이지는 레이아웃에 자체 제목을 지정할 수 있습니다.
+
+<Box icon="puzzle-piece">
+
+## 직접 시도해 보기 - 레이아웃을 어디에서나 사용하세요
+
+**리팩터링**하여 다른 페이지 (`blog.astro` 및 `about.astro`)가 새 `<BaseLayout>` 컴포넌트를 사용하여 공통 페이지 요소를 렌더링하도록 하세요.
+
+다음 사항을 잊지 마세요.
+
+- 컴포넌트 속성을 통해 페이지 제목을 props로 전달합니다.
+
+- 레이아웃이 공통 요소의 HTML 렌더링을 담당하도록 합니다.
+
+- 다음을 포함하여 레이아웃에 의해 처리되기 때문에 해당 페이지에서 더 이상 렌더링을 담당하지 않는 항목을 각 페이지에서 삭제합니다.
+
+  - HTML 요소
+  - 컴포넌트 및 가져오기 (imports)
+  - `<style>` 태그의 CSS 규칙 (예: 정보 페이지의 `<h1>`)
+  - `<script>` 태그
+</Box>
+
+<Box icon="question-mark">
+
+### 지식 테스트
+
+1. Astro 컴포넌트 (`.astro` 파일)는 다음과 같은 기능을 할 수 있습니다.
+
+    <MultipleChoice>
+      <Option>페이지</Option>
+      <Option>UI 컴포넌트</Option>
+      <Option>레이아웃</Option>
+      <Option isCorrect>위 모든 것, Astro 컴포넌트는 기능적이기 때문입니다! 🏗️</Option>
+    </MultipleChoice>
+
+2. 페이지에 페이지 제목을 표시하려면 무엇을 수행해야 합니까?
+
+    <MultipleChoice>
+      <Option>
+        정적 텍스트가 있는 페이지에서 표준 HTML 요소를 사용합니다 (예: `<h1>홈 페이지</h1>`)
+      </Option>
+      <Option>
+        컴포넌트의 프런트매터 스크립트에 정의된 변수를 참조하는 페이지의 표준 HTML 요소를 사용합니다 (예: `<h1>{pageTitle}</h1>`)
+      </Option>
+      <Option>
+        페이지의 레이아웃 컴포넌트를 사용하여 제목을 컴포넌트 속성으로 전달합니다 (예: `<BaseLayout title="Home Page" />` 또는 `<BaseLayout title={pageTitle} />`)
+      </Option>
+      <Option isCorrect>
+        Astro를 사용하면 일반 HTML을 사용하거나 일부 스크립트 및 컴포넌트를 추가할 수 있기 때문에 위의 모든 것이 가능합니다! 💪
+      </Option>
+    </MultipleChoice>
+
+3. 정보는 무엇을 통해 한 컴포넌트에서 다른 컴포넌트로 전달될 수 있습니까?
+
+    <MultipleChoice>
+      <Option>
+        UI 컴포넌트를 가져와서 다른 컴포넌트의 템플릿에 렌더링
+      </Option>
+      <Option>
+        컴포넌트 속성을 통해 렌더링되는 컴포넌트에 props 전달
+      </Option>
+      <Option>
+        `<slot />`을 사용하여 다른 컴포넌트 내부에 렌더링할 HTML 콘텐츠 보내기
+      </Option>
+      <Option isCorrect>
+        위의 모든 것, Astro는 컴포넌트 기반 디자인을 활용하도록 제작되었기 때문입니다!    
+      </Option>
+    </MultipleChoice>
+
+</Box>
+
+<Box icon="check-list">
+
+## 체크리스트
+
+<Checklist>
+- [ ] `<slot />`을 사용하여 Astro 레이아웃 컴포넌트를 만들 수 있습니다.
+- [ ] 페이지별 속성을 레이아웃으로 보낼 수 있습니다.
+</Checklist>
+</Box>
+
+### 참고 자료
+
+- [Astro 레이아웃 컴포넌트](/ko/basics/layouts/)
+
+- [Astro `<slot />`](/ko/basics/astro-components/#슬롯)

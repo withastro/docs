@@ -1,0 +1,279 @@
+---
+title: Astro 사이트를 AWS에 배포
+description: AWS를 사용하여 Astro 사이트를 웹에 배포하는 방법.
+type: deploy
+i18nReady: true
+---
+
+[AWS](https://aws.amazon.com/)는 Astro 사이트를 배포하는 데 사용할 수 있는 모든 기능을 갖춘 웹 앱 호스팅 플랫폼입니다.
+
+프로젝트를 AWS에 배포하려면 [AWS 콘솔](https://aws.amazon.com/console/)을 사용해야 합니다. (이러한 작업의 대부분은 [AWS CLI](https://aws.amazon.com/cli/)를 사용하여 수행할 수도 있습니다.) 이 가이드는 가장 기본적인 방법부터 시작하여 사이트를 AWS에 배포하는 단계를 안내합니다. 그런 다음 비용 효율성과 성능을 향상시키기 위해 서비스를 추가하는 방법을 보여줍니다.
+
+## AWS Amplify
+
+AWS Amplify는 프런트엔드 웹 및 모바일 개발자가 AWS에서 풀 스택 애플리케이션을 빠르고 쉽게 구축할 수 있도록 특별히 제작된 도구 및 기능 세트입니다.
+
+1. 새로운 Amplify 호스팅 프로젝트를 생성합니다.
+2. 저장소를 Amplify에 연결합니다.
+3. 빌드 출력 디렉터리 `baseDirectory`를 `/dist`로 수정합니다.
+
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          # npm을 사용하지 않나요? `npm ci`를 `yarn install` 또는 `pnpm i`로 변경하세요.
+          commands:
+            - npm ci
+        build:
+          commands:
+            - npm run build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    ```
+
+`pnpm`을 사용하려면 `node_modules` 대신 pnpm 저장소 디렉터리를 캐시하기 위해 약간 다른 설정이 필요합니다. 다음은 권장되는 빌드 구성입니다.
+
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm i -g pnpm
+            - pnpm config set store-dir .pnpm-store
+            - pnpm i
+        build:
+          commands:
+            - pnpm run build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - .pnpm-store/**/*
+    ```
+
+Amplify는 커밋을 저장소에 푸시할 때 자동으로 웹 사이트를 배포하고 업데이트합니다.
+
+## S3 정적 웹사이트 호스팅
+
+S3는 모든 애플리케이션의 시작점입니다. 여기에는 프로젝트 파일과 기타 자산이 저장됩니다. S3에서는 파일 저장 및 요청 수에 따라 요금을 청구합니다. [AWS 설명서](https://aws.amazon.com/s3/)에서 S3에 대한 자세한 내용을 확인할 수 있습니다.
+
+1. 프로젝트 이름으로 S3 버킷을 생성합니다.
+
+    :::tip
+    버킷 이름은 전역적으로 고유해야 합니다. 프로젝트 이름과 사이트 도메인 이름의 조합을 권장합니다.
+    :::
+
+2. **"Block all public access"** 를 비활성화합니다. 기본적으로 AWS는 모든 버킷을 비공개로 설정합니다. 공개하려면 버킷 속성에서 "Block public access" 확인란을 선택 취소해야 합니다.
+
+3. `dist`에 있는 빌드된 파일을 S3에 업로드합니다. 콘솔에서 수동으로 수행하거나 AWS CLI를 사용할 수 있습니다. AWS CLI를 사용하는 경우 [AWS 자격 증명으로 인증](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) 후 다음 명령을 사용할 수 있습니다.
+
+    ```
+    aws s3 cp dist/ s3://<BUCKET_NAME>/ --recursive
+    ```
+
+4. 공개 액세스를 허용하도록 버킷 정책을 업데이트하세요. 버킷의 **Permissions > Bucket policy**에서 이 설정을 찾을 수 있습니다.
+
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "PublicReadGetObject",
+          "Effect": "Allow",
+          "Principal": "*",
+          "Action": "s3:GetObject",
+          "Resource": "arn:aws:s3:::<BUCKET_NAME>/*"
+        }
+      ]
+    }
+    ```
+
+    :::caution
+    `<BUCKET_NAME>`을 버킷 이름으로 바꾸는 것을 잊지 마세요.
+    :::
+
+5. 버킷에 대한 웹사이트 호스팅을 활성화합니다. 버킷의 **Settings > Static website hosting**에서 이 설정을 찾을 수 있습니다. 색인 문서를 `index.html`로 설정하고 오류 문서를 `404.html`로 설정하세요. 마지막으로 버킷의 **Settings > Static website hosting**에서 새 웹사이트 URL을 찾을 수 있습니다.
+
+    :::note
+    단일 페이지 애플리케이션 (SPA)을 배포하는 경우 오류 문서를 `index.html`로 설정하세요.
+    :::
+
+## CloudFront를 사용하는 S3
+
+CloudFront는 CDN (콘텐츠 전송 네트워크) 기능을 제공하는 웹 서비스입니다. 웹 서버의 콘텐츠를 캐시하여 최종 사용자에게 배포하는 데 사용됩니다. CloudFront는 전송된 데이터 양에 따라 요금을 청구합니다. S3 버킷에 CloudFront를 추가하는 것은 더 비용 효율적이며 더 빠른 서비스를 제공합니다.
+
+CloudFront를 사용하여 S3 버킷을 래핑하고 Amazon 글로벌 CDN 네트워크를 통해 프로젝트 파일을 제공하겠습니다. 이렇게 하면 프로젝트 파일 제공 비용이 줄어들고 사이트 성능이 향상됩니다.
+
+### S3 설정
+
+1. 프로젝트 이름으로 S3 버킷을 생성합니다.
+
+    :::tip
+    버킷 이름은 전역적으로 고유해야 합니다. 프로젝트 이름과 사이트 도메인 이름의 조합을 권장합니다.
+    :::
+2. `dist`에 있는 빌드된 파일을 S3에 업로드합니다. 콘솔에서 수동으로 수행하거나 AWS CLI를 사용할 수 있습니다. AWS CLI를 사용하는 경우 [AWS 자격 증명으로 인증](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) 후 다음 명령을 사용할 수 있습니다.
+
+    ```
+    aws s3 cp dist/ s3://<BUCKET_NAME>/ --recursive
+    ```
+
+3. **CloudFront Access**를 허용하도록 버킷 정책을 업데이트하세요. 버킷의 **Permissions > Bucket policy**에서 이 설정을 찾을 수 있습니다.
+
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [{
+        "Effect": "Allow",
+        "Principal": {
+          "AWS": "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity <CLOUDFRONT_OAI_ID>"
+        },
+        "Action": "s3:GetObject",
+        "Resource": "arn:aws:s3:::astro-aws/*"
+      }]
+    }
+    ```
+
+    :::caution
+    `<CLOUDFRONT_OAI_ID>`를 CloudFront Origin Access Identity ID의 이름으로 바꾸는 것을 잊지 마세요. CloudFront를 설정한 후 **CloudFront > Origin access identities**에서 CloudFront Origin Access Identity ID를 찾을 수 있습니다.
+    :::
+
+### CloudFront 설정
+
+1. 다음 값을 사용하여 CloudFront 배포를 생성합니다.
+    * **Origin domain:** S3 버킷
+    * **S3 bucket access:** "Yes use OAI (bucket can restrict access to only CloudFront)"
+    * **Origin access identity:** Create a new origin access identity
+    * **Viewer - Bucket policy:** "No, I will update the bucket policy"
+    * **Viewer protocol policy:** "Redirect to HTTPS"
+    * **Default root object:** `index.html`
+
+이 구성은 공용 인터넷에서 S3 버킷에 대한 액세스를 차단하고 글로벌 CDN 네트워크를 사용하여 사이트를 제공합니다. 버킷의 **Distributions > Domain name**에서 CloudFront 배포 URL을 찾을 수 있습니다.
+
+### CloudFront Functions 설정
+
+안타깝게도 CloudFront는 기본적으로 다중 페이지 `sub-folder/index` 라우팅을 지원하지 않습니다. 이를 구성하기 위해 CloudFront Functions를 사용하여 S3의 원하는 객체에 대한 요청을 가리킵니다.
+
+1. 다음 코드 조각을 사용하여 새 CloudFront function을 생성합니다. **CloudFront > Functions**에서 CloudFront functions를 찾을 수 있습니다.
+
+    ```js
+    function handler(event) {
+      var request = event.request;
+      var uri = request.uri;
+
+      // URI에 파일 이름이 누락되었는지 확인하세요.
+      if (uri.endsWith('/')) {
+        request.uri += 'index.html';
+      } 
+      // URI에 파일 확장자가 누락되었는지 확인하세요.
+      else if (!uri.includes('.')) {
+        request.uri += '/index.html';
+      }
+
+      return request;
+    }
+    ```
+  2. CloudFront 배포에 function을 연결합니다. CloudFront 배포의 **Settings > Behaviors > Edit > Function** 연결에서 이 옵션을 찾을 수 있습니다.
+        * **Viewer request - Function type:** CloudFront Function.
+        * **Viewer request - Function ARN:** 이전 단계에서 생성한 function을 선택합니다.
+
+### CloudFront Error Pages 설정
+
+기본적으로 S3는 파일을 찾을 수 없으면 404 오류를 반환하고 파일이 비공개인 경우 403을 반환합니다. 이로 인해 방문자는 두 경우 모두 보기에 좋지 않은 XML 오류 페이지를 보게 됩니다.
+
+이 문제를 해결하려면 CloudFront 배포의 **Settings > Error pages**에 **custom error responses**를 추가하세요.
+
+1. 다음 값을 사용하여 404 오류에 대한 사용자 지정 오류 응답을 생성합니다.
+    * **HTTP error code:** 404: Not Found
+    * **Customize error response:** Yes
+    * **Response page path:** `/index.html`
+    * **HTTP response code:** 200: OK
+
+2. 다음 값을 사용하여 403 오류에 대한 사용자 지정 오류 응답을 만듭니다.
+    * **HTTP error code:** 403: Forbidden
+    * **Customize error response:** Yes
+    * **Response page path:** `/index.html`
+    * **HTTP response code:** 200: OK
+
+  :::tip
+  최상의 사용자 경험을 위해 프로젝트에서 [사용자 정의 404 페이지를 생성](/ko/basics/astro-pages/#사용자-정의-404-오류-페이지)하고 **Response 페이지 경로**를 `/404.html`로 설정할 수 있습니다.
+  :::
+
+## GitHub Actions를 사용한 지속적인 배포
+
+AWS에 대한 지속적 배포를 설정하는 방법에는 여러 가지가 있습니다. GitHub에 호스팅되는 코드의 한 가지 가능성은 커밋을 푸시할 때마다 [GitHub Actions](https://github.com/features/actions)를 사용하여 웹사이트를 배포하는 것입니다.
+
+1. 다음 권한과 함께 [IAM](https://aws.amazon.com/iam/)을 사용하여 AWS 계정에 새 정책을 생성합니다. 이 정책을 사용하면 빌드된 파일을 S3 버킷에 업로드하고 커밋을 푸시할 때 CloudFront 배포 파일을 무효화할 수 있습니다.
+
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+          {
+              "Sid": "VisualEditor0",
+              "Effect": "Allow",
+              "Action": [
+                  "s3:PutObject",
+                  "s3:ListBucket",
+                  "s3:DeleteObject",
+                  "cloudfront:CreateInvalidation"
+              ],
+              "Resource": [
+                  "<DISTRIBUTION_ARN>",
+                  "arn:aws:s3:::<BUCKET_NAME>/*",
+                  "arn:aws:s3:::<BUCKET_NAME>"
+              ]
+          }
+      ]
+    }
+    ```
+
+    :::caution
+    `<DISTRIBUTION_ARN>` 및 `<BUCKET_NAME>`을 바꾸는 것을 잊지 마세요. **CloudFront > Distributions > Details**에서 ARN을 찾을 수 있습니다.
+    :::
+
+2. 새 IAM 사용자를 생성하고 정책을 사용자에게 연결합니다. 이렇게 하면 `AWS_SECRET_ACCESS_KEY` 및 `AWS_ACCESS_KEY_ID`가 제공됩니다.
+
+3. 이 샘플 워크플로를 저장소의 `.github/workflows/deploy.yml`에 추가하고 GitHub에 푸시하세요. GitHub의 **Settings** > **Secrets** > **Actions**에서 `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `BUCKET_ID`, `DISTRIBUTION_ID`를 “secrets”로 추가해야 합니다. 각 secret을 추가하려면 <kbd>New repository secret</kbd>를 클릭하세요.
+
+    ```yaml
+    name: Deploy Website
+
+    on:
+      push:
+        branches:
+          - main
+
+    jobs:
+      deploy:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v3
+          - name: Configure AWS Credentials
+            uses: aws-actions/configure-aws-credentials@v1
+            with:
+              aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+              aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+              aws-region: us-east-1
+          - name: Install modules
+            run: npm ci
+          - name: Build application
+            run: npm run build
+          - name: Deploy to S3
+            run: aws s3 sync --delete ./dist/ s3://${{ secrets.BUCKET_ID }}
+          - name: Create CloudFront invalidation
+            run: aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+    ```
+
+    :::note
+    `BUCKET_ID`는 S3 버킷의 이름입니다. `DISTRIBUTION_ID`는 CloudFront 배포 ID입니다. **CloudFront > Distributions > ID**에서 CloudFront 배포 ID를 찾을 수 있습니다.
+    :::

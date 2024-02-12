@@ -1,0 +1,601 @@
+---
+title: 콘텐츠 컬렉션
+description: >-
+  콘텐츠 컬렉션은 Markdown을 구성하고 스키마로 프런트매터의 타입을 체크하는 데 도움이 됩니다.
+i18nReady: true
+---
+import FileTree from '~/components/FileTree.astro'
+import Since from '~/components/Since.astro'
+import RecipeLinks from "~/components/RecipeLinks.astro"
+import Badge from "~/components/Badge.astro"
+
+<p>
+  <Since v="2.0.0" />
+</p>
+
+**콘텐츠 컬렉션**은 Astro 프로젝트의 콘텐츠를 관리하고 작성하는 가장 좋은 방법입니다. 컬렉션은 문서를 정리하고, 프런트매터의 유효성을 검사하며, 모든 콘텐츠에 자동 TypeScript 유형 안전성을 제공하는 데 도움이 됩니다.
+
+## 콘텐츠 컬렉션이란 무엇입니까?
+
+**콘텐츠 컬렉션**은 `src/content/newsletter` 및 `src/content/authors`와 같이 예약된 `src/content` 프로젝트 디렉터리의 최상위 디렉터리입니다. `src/content` 디렉터리에서는 콘텐츠 컬렉션만 허용됩니다. 이 디렉터리는 다른 용도로 사용할 수 없습니다.
+
+**컬렉션 항목**은 콘텐츠 컬렉션 디렉터리에 저장된 콘텐츠입니다. 항목은 Markdown (`.md`) 및 MDX ([MDX 통합](/ko/guides/integrations-guide/mdx/)을 사용하는 `.mdx`)를 포함한 콘텐츠 작성 형식을 사용하거나 지원되는 두 가지 데이터 형식인 YAML (`.yaml`) 및 JSON (`.json`) 중 하나를 사용할 수 있습니다. 콘텐츠를 더 쉽게 찾고 구성할 수 있도록 파일에 일관된 명명 체계 (소문자, 공백 대신 대시)를 사용하는 것이 좋지만 필수 사항은 아닙니다. 파일 이름 앞에 밑줄 (_)을 붙여서 [항목이 작성되지 않도록 제외](/ko/guides/routing/#페이지-제외)할 수도 있습니다.
+
+<FileTree>
+- src/content/
+  - **newsletter/** "newsletter" 컬렉션
+    - week-1.md 컬렉션 항목
+    - week-2.md 컬렉션 항목
+    - week-3.md 컬렉션 항목
+</FileTree>
+
+컬렉션이 있으면 Astro의 내장 콘텐츠 API를 사용하여 [콘텐츠 쿼리](#컬렉션-쿼리)를 시작할 수 있습니다.
+
+### ".astro" 디렉터리
+
+Astro는 프로젝트의 `.astro` 디렉터리에 콘텐츠 컬렉션을 위한 중요한 메타데이터를 저장합니다. 이 디렉터리를 유지 관리하거나 업데이트하기 위해 여러분이 취해야 할 조치는 없습니다. 프로젝트 작업 중에는 이를 완전히 무시하는 것이 좋습니다.
+
+`.astro` 디렉터리는 [`astro dev`](/ko/reference/cli-reference/#astro-dev), [`astro build`](/ko/reference/cli-reference/#astro-build) 명령을 실행할 때마다 자동으로 업데이트됩니다. 언제든지 [`astro sync`](/ko/reference/cli-reference/#astro-sync)를 실행하여 `.astro` 디렉터리를 수동으로 업데이트할 수 있습니다.
+
+:::tip
+버전 제어를 위해 Git을 사용하는 경우 `.gitignore`에 `.astro`를 추가하여 `.astro` 디렉터리를 무시하는 것이 좋습니다. 이는 Git에게 이 디렉터리와 그 안에 있는 모든 파일을 무시하도록 지시합니다.
+
+```bash
+echo "\n.astro" >> .gitignore
+```
+:::
+
+### 여러 컬렉션으로 구성하기
+
+두 파일이 서로 다른 종류의 콘텐츠 (예: 블로그 게시물 및 작성자 프로필)를 나타내는 경우 해당 파일은 서로 다른 컬렉션에 속할 가능성이 높습니다. 많은 기능 (프런트매터 유효성 검사, 자동 TypeScript 타입 안전성)에서 컬렉션의 모든 항목이 비슷한 구조를 공유해야 하기 때문에 이는 중요합니다.
+
+다양한 유형의 콘텐츠로 작업하는 경우 각 유형을 나타내는 여러 컬렉션을 만들어야 합니다. 프로젝트에서 원하는 만큼 다양한 컬렉션을 만들 수 있습니다.
+
+<FileTree>
+- src/content/
+  - **newsletter/** 
+    - week-1.md
+    - week-2.md
+  - **blog/**
+    - post-1.md
+    - post-2.md
+  - **authors/**
+    - grace-hopper.json
+    - alan-turing.json
+</FileTree>
+
+### 하위 디렉터리로 구성하기
+
+콘텐츠 컬렉션은 항상 `src/content/` 디렉터리의 최상위 폴더입니다. 한 컬렉션을 다른 컬렉션 안에 중첩할 수는 없습니다. 그러나 하위 디렉터리를 사용하여 컬렉션의 콘텐츠를 구성할 수 있습니다.
+
+예를 들어, 다음 디렉터리 구조를 사용하여 단일 `docs` 컬렉션에서 i18n 번역을 구성할 수 있습니다. 이 컬렉션을 쿼리하면 파일 경로를 사용하여 언어별로 결과를 필터링할 수 있습니다.
+
+<FileTree>
+- src/content/
+  - docs/ 이 컬렉션은 하위 디렉터리를 사용하여 언어별로 구성합니다.
+    - **en/**
+    - **es/**
+    - **de/**
+</FileTree>
+
+## 컬렉션 정의
+
+:::note
+`src/content/config.ts` 파일은 선택사항입니다. 그러나 컬렉션을 정의하지 않으면 프런트매터 스키마 유효성 검사 또는 자동 TypeScript 타입 구성과 같은 일부 중요한 기능이 비활성화됩니다.
+:::
+
+콘텐츠 컬렉션을 최대한 활용하려면 프로젝트에 `src/content/config.ts` 파일을 만드세요. (`.js` 및 `.mjs` 확장자도 지원됩니다.) 이 파일은 Astro가 자동으로 불러오고 사용하여 콘텐츠 컬렉션을 구성합니다.
+
+```ts
+// src/content/config.ts
+// 1. `astro:content`에서 유틸리티 가져오기
+import { defineCollection } from 'astro:content';
+// 2. 컬렉션 정의
+const blogCollection = defineCollection({ /* ... */ });
+// 3. 컬렉션을 등록하려면 단일 'collections' 객체를 내보내세요.
+//    이 키는 "src/content"의 컬렉션 디렉터리 이름과 일치해야 합니다.
+export const collections = {
+  'blog': blogCollection,
+};
+```
+
+### TypeScript 설정
+
+Astro의 `strict` 또는 `strictest` 권장 TypeScript 설정을 `tsconfig.json` 파일에서 아직 확장하지 **않은** 경우, `strictNullChecks`를 활성화하기 위해 `tsconfig.json` 파일을 업데이트해야 할 수도 있습니다.
+
+```json title="tsconfig.json" ins={5}
+{
+  // 참고: "astro/tsconfigs/strict" 또는 "astro/tsconfigs/strictest"를 사용하는 경우 변경이 필요하지 않습니다.
+  "extends": "astro/tsconfigs/base",
+  "compilerOptions": {
+    "strictNullChecks": true
+  }
+}
+```
+
+Astro 프로젝트에서 `.js` 또는 `.mjs` 파일을 사용하는 경우 `tsconfig.json`에서 `allowJs`를 활성화하여 편집기에서 IntelliSense 및 타입 검사를 활성화할 수 있습니다.
+
+```json title="tsconfig.json" ins={6}
+{
+  // 참고: "astro/tsconfigs/strict" 또는 "astro/tsconfigs/strictest"를 사용하는 경우 변경이 필요하지 않습니다.
+  "extends": "astro/tsconfigs/base",
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "allowJs": true
+  }
+}
+```
+
+### 컬렉션 스키마 정의
+
+스키마는 컬렉션에서 일관된 프런트매터 또는 항목 데이터를 적용합니다. 스키마는 데이터를 참조하거나 쿼리해야 할 때 이 데이터가 예측 가능한 형태로 존재함을 **보장**합니다. 파일이 컬렉션 스키마를 위반하는 경우 Astro는 유용한 오류를 제공하여 알려드립니다.
+
+또한 스키마는 Astro의 콘텐츠에 대한 자동 TypeScript 타입 구성을 지원합니다. 컬렉션에 대한 스키마를 정의하면 Astro는 자동으로 TypeScript 인터페이스를 생성하고 적용합니다. 그 결과 컬렉션을 쿼리할 때 속성 자동 완성 및 타입 검사를 포함하여 완전한 TypeScript 지원이 제공됩니다.
+
+첫 번째 컬렉션을 정의하기 위해 `src/content/config.ts` 파일이 없으면 새로 만드세요. (`.js` 및 `.mjs` 확장자도 지원됩니다.) 이 파일은 다음을 충족해야 합니다.
+
+1. `astro:content`에서 **적절한 유틸리티**를 가져옵니다.
+2. **유효성을 검사하려는 각 컬렉션을 정의하세요.** 여기에는 컬렉션에 Markdown과 같은 콘텐츠 작성 형식 (`type: 'content'`) 또는 JSON 또는 YAML과 같은 데이터 형식 (`type: 'data'`)이 포함되어 있는지 여부를 지정하는 `type` (Astro v2.5.0에 도입됨)이 포함됩니다. 또한 프런트매터나 항목 데이터의 형태를 정의하는 `schema`도 포함되어 있습니다.
+3. **단일 `collections` 객체를 내보내** 컬렉션을 등록합니다.
+
+```ts
+// src/content/config.ts
+// 1. `astro:content`에서 유틸리티 가져오기
+import { z, defineCollection } from 'astro:content';
+
+// 2. 각 컬렉션에 대한 `type` 및 `schema` 정의
+const blogCollection = defineCollection({
+  type: 'content', // v2.5.0 이상
+  schema: z.object({
+    title: z.string(),
+    tags: z.array(z.string()),
+    image: z.string().optional(),
+  }),
+});
+
+// 3. 컬렉션을 등록하려면 단일 'collections' 객체를 내보내세요.
+export const collections = {
+  'blog': blogCollection,
+};
+```
+
+### 여러 컬렉션 정의
+
+여러 스키마를 생성하려는 만큼 `defineCollection()`을 사용할 수 있습니다. 모든 컬렉션은 단일 `collections` 객체에서 내보내야 합니다.
+
+```ts
+// src/content/config.ts
+const blogCollection = defineCollection({
+  type: 'content',
+  schema: z.object({ /* ... */ })
+});
+const newsletter = defineCollection({
+  type: 'content',
+  schema: z.object({ /* ... */ })
+});
+const authors = defineCollection({
+  type: 'data',
+  schema: z.object({ /* ... */ })
+});
+
+export const collections = {
+  'blog': blogCollection,
+  'newsletter': newsletter,
+  'authors': authors,
+};
+```
+
+프로젝트가 성장함에 따라 코드베이스를 자유롭게 재구성하고 `src/content/config.ts` 파일에서 로직을 이동할 수도 있습니다. 스키마를 별도로 정의하면 여러 컬렉션에서 스키마를 재사용하고 프로젝트의 다른 부분과 스키마를 공유하는 데 유용할 수 있습니다.
+
+```ts
+// src/content/config.ts
+// 1. 유틸리티 및 스키마 가져오기
+import { defineCollection } from 'astro:content';
+import { blogSchema, authorSchema } from '../schemas';
+
+// 2. 컬렉션 정의
+const blogCollection = defineCollection({
+  type: 'content',
+  schema: blogSchema,
+});
+const authorCollection = defineCollection({
+  type: 'data',
+  schema: authorSchema,
+});
+
+// 3. 여러 컬렉션을 내보내서 등록
+export const collections = {
+  'blog': blogCollection,
+  'authors': authorCollection,
+};
+```
+
+### 타사 컬렉션 스키마 사용
+
+외부 npm 패키지를 포함하여 어디에서나 컬렉션 스키마를 가져올 수 있습니다. 이는 사용자가 자체 컬렉션 스키마를 제공하는 테마 및 라이브러리로 작업할 때 유용할 수 있습니다.
+
+```ts
+// src/content/config.ts
+import { blogSchema } from 'my-blog-theme';
+const blogCollection = defineCollection({ type: 'content', schema: blogSchema });
+
+// 'my-blog-theme'의 외부 스키마를 사용하여 블로그 컬렉션 내보내기
+export const collections = {
+  'blog': blogCollection,
+};
+```
+
+### Zod로 데이터 타입 정의하기
+
+Astro는 [Zod](https://github.com/colinhacks/zod)를 사용하여 콘텐츠 스키마를 강화합니다. Zod를 사용하면 Astro는 컬렉션 내 모든 파일의 프런트매터를 검증할 수 있으며, 프로젝트에서 콘텐츠를 쿼리할 때 자동 TypeScript 타입 구성을 제공할 수 있습니다.
+
+Astro에서 Zod를 사용하려면 `"astro:content"`에서 `z` 유틸리티를 가져옵니다. 이는 Zod 라이브러리를 다시 내보낸 것이며 Zod의 모든 기능을 지원합니다. Zod의 작동 방식과 사용 가능한 기능에 대한 전체 문서는 [Zod의 README](https://github.com/colinhacks/zod)를 참조하세요.
+
+```ts
+// 예: 다양한 일반적인 Zod 데이터 타입에 대한 치트시트
+import { z, defineCollection } from 'astro:content';
+
+defineCollection({
+  schema: z.object({
+    isDraft: z.boolean(),
+    title: z.string(),
+    sortOrder: z.number(),
+    image: z.object({
+      src: z.string(),
+      alt: z.string(),
+    }),
+    author: z.string().default('Anonymous'),
+    language: z.enum(['en', 'es']),
+    tags: z.array(z.string()),
+    // 매우 일반적인 선택적 프런트매터 속성입니다!
+    footnote: z.string().optional(),
+    // 프런트매터에서, 앞뒤에 따옴표 없이 쓰여진 날짜는 Date 객체로 해석됩니다.
+    publishDate: z.date(),
+    // 날짜 문자열(예: "2022-07-08")을 날짜 객체로 변환할 수도 있습니다.
+    // publishDate: z.string().transform((str) => new Date(str)),
+    // 고급: 문자열이 이메일인지 확인합니다.
+    authorContact: z.string().email(),
+    // 고급: 문자열이 URL이기도 한지 확인합니다.
+    canonicalURL: z.string().url(),
+  })
+})
+```
+
+### 컬렉션 참조 정의하기
+
+컬렉션 항목은 다른 관련 항목을 "참조"할 수도 있습니다.
+
+컬렉션 API의 `reference()` 함수를 사용하면 컬렉션 스키마의 속성을 다른 컬렉션의 항목으로 정의할 수 있습니다. 예를 들어, 모든 `space-shuttle` 항목에는 타입 검사, 자동 완성 및 유효성 검사를 위해 `pilot` 컬렉션의 자체 스키마를 사용하는 `pilot` 속성이 포함되도록 요구할 수 있습니다.
+
+일반적인 예는 JSON으로 저장된 재사용 가능한 작성자 프로필 또는 동일한 컬렉션에 저장된 관련 게시물 URL을 참조하는 블로그 게시물입니다.
+
+```ts
+import { defineCollection, reference, z } from 'astro:content';
+
+const blog = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    // `id`를 사용해 `authors` 컬렉션에서 단일 저자 참조
+    author: reference('authors'),
+    // `slug`를 사용해 `blog` 컬렉션에서 관련 게시물 배열 참조
+    relatedPosts: z.array(reference('blog')),
+  })
+});
+
+const authors = defineCollection({
+  type: 'data',
+  schema: z.object({
+    name: z.string(),
+    portfolio: z.string().url(),
+  })
+});
+
+export const collections = { blog, authors };
+```
+
+이 예시 블로그 게시물은 관련 게시물의 `slug`와 게시물 작성자의 `id`를 지정합니다.
+
+```yaml title="src/content/blog/welcome.md"
+---
+title: "내 블로그에 오신 것을 환영합니다"
+author: ben-holmes # references `src/content/authors/ben-holmes.json`
+relatedPosts:
+- about-me # references `src/content/blog/about-me.md`
+- my-year-in-review # references `src/content/blog/my-year-in-review.md`
+---
+```
+
+### 사용자 정의 슬러그 정의
+
+`type: 'content'`를 사용하면 모든 콘텐츠 항목은 해당 [파일 `id`](/ko/reference/api-reference/#id)에서 URL 친화적인 `slug` 속성을 생성합니다. 슬러그는 컬렉션에서 직접 항목을 쿼리하는 데 사용됩니다. 콘텐츠에서 새 페이지와 URL을 만들 때도 유용합니다.
+
+파일 앞부분에 자신만의 `slug` 속성을 추가하여 항목에서 생성된 슬러그를 재정의할 수 있습니다. 이는 다른 웹 프레임워크의 "permalink" 기능과 유사합니다. `"slug"`는 사용자 정의 컬렉션 `스키마`에서 허용되지 않는 특수 예약 속성 이름이며 항목의 `data` 속성에 표시되지 않습니다.
+
+```md {3}
+---
+title: 내 블로그 게시물
+slug: my-custom-slug/supports/slashes
+---
+여러분의 블로그 게시물 내용은 여기에 있습니다.
+```
+
+## 컬렉션 쿼리
+
+Astro는 컬렉션을 쿼리하고 하나 이상의 콘텐츠 항목을 반환하는 두 가지 함수를 제공합니다: [`getCollection()`](/ko/reference/api-reference/#getcollection) 및 [`getEntry()`](/ko/reference/api-reference/#getentry).
+
+```js
+import { getCollection, getEntry } from 'astro:content';
+
+// 컬렉션에서 모든 항목을 가져옵니다.
+// 인수로 컬렉션 이름이 필요합니다.
+// 예: `src/content/blog/**`
+const allBlogPosts = await getCollection('blog');
+
+// 컬렉션에서 단일 항목을 가져옵니다.
+// 컬렉션 이름이 필요하며 다음 중 하나가 필요합니다.
+// `slug` (콘텐츠 컬렉션) 또는 `id` (데이터 컬렉션) 항목
+// 예: `src/content/authors/grace-hopper.json`
+const graceHopperProfile = await getEntry('authors', 'grace-hopper');
+```
+
+두 함수 모두 [`CollectionEntry`](/ko/reference/api-reference/#컬렉션-항목-타입) 타입에 정의된 대로 콘텐츠 항목을 반환합니다.
+
+### 참조 데이터 엑세스
+
+모든 [스키마에 정의된 참조](#컬렉션-참조-정의하기)는 먼저 컬렉션 ​​항목을 쿼리한 후 별도로 쿼리해야 합니다. `getEntry()` 함수를 다시 사용하거나 `getEntries()`를 사용하여, 반환된 `data` 객체에서 참조된 항목을 검색할 수 있습니다.
+
+```astro title="src/pages/blog/welcome.astro"
+---
+import { getEntry, getEntries } from 'astro:content';
+
+const blogPost = await getEntry('blog', 'welcome');
+
+// 단일 참조 해결
+const author = await getEntry(blogPost.data.author);
+// 참조 배열 해결
+const relatedPosts = await getEntries(blogPost.data.relatedPosts);
+---
+
+<h1>{blogPost.data.title}</h1>
+<p>작성자: {author.data.name}</p>
+
+<!-- ... -->
+
+<h2>당신이 좋아할만한 게시물:</h2>
+{relatedPosts.map(p => (
+  <a href={p.slug}>{p.data.title}</a>
+))}
+```
+
+### 컬렉션 쿼리 필터링
+
+`getCollection()`은 항목의 `id` 또는 `data` (프런트매터) 속성을 기반으로 쿼리를 필터링할 수 있는 선택적 "필터" 콜백을 사용합니다. `type: 'content'` 컬렉션의 경우 `slug`를 기준으로 필터링할 수도 있습니다.
+
+:::note
+`slug` 속성은 콘텐츠 컬렉션에만 적용되며 JSON 또는 YAML 컬렉션을 필터링할 때는 사용할 수 없습니다.
+:::
+
+이를 사용하여 원하는 콘텐츠를 필터링할 수 있습니다. 예를 들어 `draft`와 같은 속성으로 필터링하여 초안 블로그 게시물이 블로그에 게시되지 않도록 할 수 있습니다.
+
+```js
+// 예: `draft: true`를 사용하여 콘텐츠 항목 필터링
+import { getCollection } from 'astro:content';
+const publishedBlogEntries = await getCollection('blog', ({ data }) => {
+  return data.draft !== true;
+});
+```
+
+또한, 개발 서버가 실행되는 동안 사용할 수 있지만, 프로덕션 환경에서는 빌드되지 않는 초안 페이지를 만들 수도 있습니다.
+
+```js
+// 예: 프로덕션용으로 빌드하는 경우에만 `draft: true`를 사용하여 콘텐츠 항목을 필터링합니다.
+import { getCollection } from 'astro:content';
+const blogEntries = await getCollection('blog', ({ data }) => {
+  return import.meta.env.PROD ? data.draft !== true : true;
+});
+```
+
+필터 인수는 컬렉션 내 중첩된 디렉터리를 기준으로 한 필터링도 지원합니다. `id`에는 전체 중첩 경로가 포함되므로 각 `id`의 시작 부분을 기준으로 필터링하여 특정 중첩 디렉터리의 항목만 반환할 수 있습니다.
+
+```js
+// 예: 컬렉션의 하위 디렉터리를 기준으로 항목 필터링
+import { getCollection } from 'astro:content';
+const englishDocsEntries = await getCollection('docs', ({ id }) => {
+  return id.startsWith('en/');
+});
+```
+
+### Astro 템플릿에서 콘텐츠 사용하기
+
+컬렉션 항목을 쿼리한 후에는 Astro 컴포넌트 템플릿에서 직접 각 항목에 액세스할 수 있습니다. 이를 통해 콘텐츠에 대한 링크 (`slug` 콘텐츠 사용) 또는 콘텐츠에 대한 정보 (`data` 속성 사용)와 같은 항목에 대해 HTML을 렌더링할 수 있습니다.
+
+콘텐츠를 HTML로 렌더링하는 방법에 대한 자세한 내용은 아래의 [콘텐츠를 HTML로 렌더링](#콘텐츠를-html로-렌더링)을 참조하세요.
+
+```astro
+---
+// src/pages/index.astro
+import { getCollection } from 'astro:content';
+const blogEntries = await getCollection('blog');
+---
+<ul>
+  {blogEntries.map(blogPostEntry => (
+    <li>
+      <a href={`/my-blog-url/${blogPostEntry.slug}`}>{blogPostEntry.data.title}</a>
+      <time datetime={blogPostEntry.data.publishedDate.toISOString()}>
+        {blogPostEntry.data.publishedDate.toDateString()}
+      </time>
+    </li>
+  ))}
+</ul>
+```
+
+### 콘텐츠를 props로 전달하기
+
+컴포넌트는 전체 콘텐츠 항목을 prop으로 전달할 수도 있습니다.
+
+이렇게 하면 TypeScript를 사용하여 컴포넌트 props의 타입을 올바르게 구성하기 위해 [`CollectionEntry`](/ko/reference/api-reference/#컬렉션-항목-타입) 유틸리티를 사용할 수 있습니다. 이 유틸리티는 컬렉션 스키마 이름과 일치하는 문자열 인수를 사용하고 해당 컬렉션 스키마의 모든 속성을 상속합니다.
+
+```astro /CollectionEntry(?:<.+>)?/
+---
+// src/components/BlogCard.astro
+import type { CollectionEntry } from 'astro:content';
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+// `post`는 'blog' 컬렉션 스키마 타입과 일치합니다.
+const { post } = Astro.props;
+---
+```
+
+### 콘텐츠를 HTML로 렌더링
+
+쿼리가 완료되면 항목 `render()` 함수 속성을 사용하여 Markdown 및 MDX 항목을 HTML로 렌더링할 수 있습니다. 이 함수를 호출하면 `<Content />` 컴포넌트와 렌더링된 모든 제목 목록을 포함하여 렌더링된 콘텐츠와 메타데이터에 액세스할 수 있습니다.
+
+```astro {5}
+---
+// src/pages/render-example.astro
+import { getEntry } from 'astro:content';
+const entry = await getEntry('blog', 'post-1');
+const { Content, headings } = await entry.render();
+---
+<p>게시 날짜: {entry.data.published.toDateString()}</p>
+<Content />
+```
+
+## 콘텐츠에서 경로 생성
+
+콘텐츠 컬렉션은 `src/pages/` 디렉터리 외부에 저장됩니다. 이는 기본적으로 컬렉션 항목에 대한 경로가 생성되지 않음을 의미합니다. 컬렉션 항목에서 HTML 페이지를 생성하려면 새 [동적 경로](/ko/guides/routing/#동적-경로)를 수동으로 생성해야 합니다. 동적 경로는 들어오는 요청 매개변수(예: `src/pages/blog/[...slug].astro` 파일의 `Astro.params.slug`)를 매핑하여 컬렉션의 올바른 항목을 가져옵니다.
+
+경로를 생성하는 정확한 방법은 빌드 [`output`](/ko/reference/configuration-reference/#output) 모드에 따라 다릅니다. ('static' (기본값) 또는 'server' (SSR))
+
+### 정적 출력을 위한 빌드 (기본값)
+
+정적 웹 사이트 (Astro의 기본 동작)를 구축하는 경우 [`getStaticPaths()`](/ko/reference/api-reference/#getstaticpaths) 함수를 사용하여 빌드하는 동안 단일 `src/pages/` 컴포넌트에서 여러 페이지를 만듭니다.
+
+콘텐츠를 쿼리하려면 `getStaticPaths()` 함수에서 [`getCollection()`](/ko/reference/api-reference/#getcollection) 함수를 호출하세요. 그런 다음 각 콘텐츠 항목의 `slug` 속성을 사용하여 새 URL 경로를 만듭니다.
+
+```astro "{ slug: entry.slug }"
+---
+// src/pages/posts/[...slug].astro
+import { getCollection } from 'astro:content';
+// 1. 모든 컬렉션 항목에 대해 새 경로 생성
+export async function getStaticPaths() {
+  const blogEntries = await getCollection('blog');
+  return blogEntries.map(entry => ({
+    params: { slug: entry.slug }, props: { entry },
+  }));
+}
+// 2. 템플릿의 경우 prop에서 직접 항목을 가져올 수 있습니다.
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+---
+<h1>{entry.data.title}</h1>
+<Content />
+```
+
+이렇게 하면 `blog` 컬렉션의 모든 항목에 대해 새 페이지가 생성됩니다. 예를 들어 `src/content/blog/hello-world.md` 항목에는 `hello-world` 슬러그가 있으므로 최종 URL은 `/posts/hello-world/`가 됩니다.
+
+:::note
+사용자 정의 슬러그에 `/` 문자가 포함되어 여러 경로 세그먼트가 있는 URL을 생성하는 경우 이 동적 라우팅 페이지의 `.astro` 파일 이름에 [나머지 매개변수 (`[...slug]`)](/ko/guides/routing/#나머지-매개변수)를 사용해야 합니다.
+:::
+
+### 서버 출력용 빌드 (SSR)
+
+Astro의 SSR 지원을 사용하여 동적 웹 사이트를 구축하는 경우 빌드 중 미리 경로를 생성할 것으로 예상되지 않습니다. 대신 페이지에서는 요청 (`Astro.request` 또는 `Astro.params` 사용)을 검사하여 필요에 따라 슬러그를 찾은 다음 [`getEntry()`](/ko/reference/api-reference/#getentry)를 사용하여 가져와야 합니다.
+
+```astro
+---
+// src/pages/posts/[...slug].astro
+import { getEntry } from "astro:content";
+// 1. 들어오는 서버 요청에서 슬러그 가져오기
+const { slug } = Astro.params;
+if (slug === undefined) {
+	throw new Error("슬러그가 필요합니다");
+}
+// 2. 요청 슬러그를 사용하여 직접 항목 쿼리
+const entry = await getEntry("blog", slug);
+// 3. 항목이 존재하지 않는 경우 리디렉션
+if (entry === undefined) {
+	return Astro.redirect("/404");
+}
+// 4. (선택 사항) 템플릿의 HTML로 항목을 렌더링합니다.
+const { Content } = await entry.render();
+---
+```
+
+## 파일 기반 라우팅에서 마이그레이션
+
+`src/pages/` 디렉터리의 하위 폴더에 있는 Markdown 또는 MDX 파일을 사용하는 블로그와 같은 기존 Astro 프로젝트가 있는 경우 관련 콘텐츠 또는 데이터 파일을 콘텐츠 컬렉션으로 마이그레이션하는 것을 고려하세요.
+ 
+[블로그 만들기 튜토리얼의 완성된 프로젝트](https://github.com/withastro/blog-tutorial-demo)의 코드베이스를 사용하는 [단계별 튜토리얼](/ko/tutorials/add-content-collections/)에서 기본 블로그 예시를 `src/pages/posts/` 디렉터리에서 `src/content/posts` 디렉터리로 변환하는 방법을 알아보세요.
+
+## 빌드 캐싱 활성화
+
+<p><Since v="3.5.0" /><Badge>실험적 기능</Badge></p>
+
+대규모 컬렉션으로 작업하는 경우 [`experimental.contentCollectionCache`](/ko/reference/configuration-reference/#experimentalcontentcollectioncache) 플래그를 사용하여 캐시된 빌드를 활성화할 수 있습니다. 이 실험적 기능은 Astro의 빌드 프로세스를 최적화하여 변경되지 않은 컬렉션을 빌드 간 저장하고 재사용할 수 있도록 합니다.
+
+대부분의 경우 이로 인해 빌드 성능이 크게 향상될 수 있습니다.
+
+이 기능이 안정화되는 동안 저장된 캐시에 문제가 발생할 수 있습니다. 다음 명령을 실행하여 언제든지 빌드 캐시를 재설정할 수 있습니다.
+
+```
+npm run astro build -- --force
+```
+
+## 프런트매터를 Remark로 수정하기
+
+:::caution
+**권장하지 않습니다.** Remark 및 rehype 플러그인은 _raw_ Markdown 또는 MDX 문서 프런트매터에 액세스합니다. 이는 `remarkPluginFrontmatter` 프론트매터가 타입 안전성을 갖춘 `스키마`와 별도로 처리되며 Astro를 통해 적용된 변경 사항이나 기본값을 반영하지 않음을 의미합니다. 자신의 책임하에 사용하세요!
+:::
+
+Astro는 [프런트매터를 직접 수정](/ko/guides/markdown-content/#프로그래밍-방식으로-프런트매터-수정하기)하는 remark 또는 rehype 플러그인을 지원합니다. `render()` 함수에서 반환된 `remarkPluginFrontmatter` 속성을 사용하여 콘텐츠 항목에서 이 수정된 프런트매터에 액세스할 수 있습니다.
+
+```astro "{ remarkPluginFrontmatter }"
+---
+import { getEntry } from 'astro:content';
+const blogPost = await getEntry('blog', 'post-1');
+const { remarkPluginFrontmatter } = await blogPost.render();
+---
+<p>{blogPost.data.title} — {remarkPluginFrontmatter.readingTime}</p>
+```
+
+<RecipeLinks slugs={["ko/recipes/reading-time" ]}/>
+
+remark 및 rehype 파이프라인은 콘텐츠가 렌더링될 때만 실행됩니다. 이는 콘텐츠 항목에서 `render()` 함수를 호출한 후에만 `remarkPluginFrontmatter`를 사용할 수 있는 이유를 설명합니다. 반면 `getCollection()` 및 `getEntry()` 함수는 콘텐츠를 렌더링하지 않기 때문에 이러한 값을 직접 반환할 수 없습니다.
+
+## 프런트매터의 날짜 작업하기
+
+콘텐츠 컬렉션에서는 여러 가지 날짜 형식을 사용할 수 있지만 컬렉션의 스키마는 Markdown 또는 MDX YAML 프런트매터에 사용된 형식과 일치해야 합니다.
+
+YAML은 [ISO-8601](https://www.iso.org/iso-8601-date-and-time-format.html) 표준을 사용하여 날짜를 표현합니다. `z.date()` 스키마 타입과 함께 `yyyy-mm-dd`(예: `2021-07-28`) 타입을 사용하세요.
+
+```markdown title="src/pages/posts/example-post.md"
+---
+title: 내 블로그 게시물
+pubDate: 2021-07-08
+---
+```
+
+시간대가 제공되지 않으면 날짜 형식은 UTC로 지정됩니다. 시간대를 지정해야 하는 경우 [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) 형식을 사용할 수 있습니다.
+
+```markdown title="src/pages/posts/example-post.md"
+---
+title: 내 블로그 게시물
+pubDate: 2021-07-08T12:00:00-04:00
+---
+```
+
+전체 UTC 타임스탬프에서 `YYYY-MM-DD`만 렌더링하려면 JavaScript `slice` 메서드를 사용하여 타임스탬프를 제거하세요.
+
+```astro title="src/layouts/ExampleLayout.astro"
+---
+const { frontmatter } = Astro.props;
+---
+<h1>{frontmatter.title}</h1>
+<p>{frontmatter.pubDate.toString().slice(0,10)}</p>
+```
+
+대신 `toLocaleDateString` 을 사용하여 일, 월, 연도 형식을 지정하는 예시를 보려면 공식 Astro 블로그 템플릿의 [`<FormattedDate />` 컴포넌트](https://github.com/withastro/astro/blob/latest/examples/blog/src/components/FormattedDate.astro)를 참조하세요.

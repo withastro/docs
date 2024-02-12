@@ -1,0 +1,387 @@
+---
+title: 튜토리얼 - 콘텐츠 컬렉션으로 확장
+description: >-
+  파일 기반 라우팅으로 구축된 블로그 만들기 튜토리얼 코드를 콘텐츠 컬렉션으로 변환합니다.
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import Box from '~/components/tutorial/Box.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+import Option from '~/components/tutorial/Option.astro';
+
+**콘텐츠 컬렉션**은 블로그 게시물과 같은 유사한 콘텐츠 그룹을 관리하는 강력한 방법입니다. 컬렉션은 문서를 구성하고, YAML 프런트매터의 유효성을 검사하고, 모든 콘텐츠에 대해 TypeScript 타입 안전성을 제공하는 데 도움이 됩니다(직접 TypeScript를 작성하지 않은 경우에도 마찬가지).
+
+<PreCheck>
+  - 블로그 게시물 폴더를 `src/content/`로 이동하세요.
+  - 블로그 게시물의 프런트매터를 정의하는 스키마 만드세요.
+  - `getCollection()` 함수를 사용하여 블로그 게시물 콘텐츠 및 메타데이터를 가져오세요.
+</PreCheck>
+
+## 필요 조건
+
+**`src/pages/` 폴더에 Markdown 또는 MDX 파일이 있는 기존 Astro 프로젝트**가 필요합니다.
+
+이 튜토리얼에서는 [블로그 구축 튜토리얼의 완성된 프로젝트](https://github.com/withastro/blog-tutorial-demo)를 사용하여 블로그를 콘텐츠 컬렉션으로 변환하는 방법을 보여줍니다. 해당 코드베이스를 로컬에서 포크하여 사용하거나 [StackBlitz에서 블로그 튜토리얼의 코드를 편집](https://stackblitz.com/github/withastro/blog-tutorial-demo/tree/complete?file=src%2Fpages%2Findex.astro)하여 브라우저에서 튜토리얼을 완료할 수 있습니다.
+
+대신 여러분의 Astro 프로젝트에서 이 단계를 수행할 수 있지만, 코드베이스에 대한 지침을 조정해야 합니다.
+
+먼저 이 짧은 튜토리얼을 완료하려면 샘플 프로젝트를 사용하는 것이 좋습니다. 그런 다음 배운 내용을 사용하여 자신의 프로젝트에서 콘텐츠 컬렉션을 만들 수 있습니다.
+
+## 블로그 튜토리얼 코드 구축
+
+[블로그 구축 튜토리얼 개요](/ko/tutorial/0-introduction/)에서 Astro의 [내장 파일 기반 라우팅](/ko/guides/routing/#정적-경로)에 대해 배웠습니다. `src/pages/` 폴더의 모든 `.astro`, `.md`, `.mdx` 파일은 자동으로 사이트의 페이지가 됩니다.
+
+`https://example.com/posts/post-1/`에 첫 번째 블로그 게시물을 추가하기 위해 `/posts/` 폴더를 만들고 `post-1.md` 파일을 추가했습니다. 그런 다음, 사이트에 새 블로그 게시물을 추가 할 때마다 이 폴더에 새 Markdown 파일을 추가했습니다.
+
+## 페이지 vs 컬렉션
+
+콘텐츠 컬렉션을 사용하는 경우에도 소개 페이지와 같은 개별 페이지에 대해서는 `src/pages/` 폴더를 계속 사용하게 됩니다. 그러나 블로그 게시물을 특별한 `src/content/` 폴더로 이동하면 보다 강력하고 성능이 뛰어난 API를 사용하여 블로그 게시물 색인을 생성하고 개별 블로그 게시물을 표시할 수 있습니다.
+
+동시에 Astro의 작업을 도와주는 각 게시물에 대한 공통 구조를 정의하는 **[스키마](/ko/guides/content-collections/#컬렉션-스키마-정의)**를 갖게 되므로 코드 편집기에서 더 나은 지침과 자동 완성 기능을 얻을 수 있습니다. 스키마에서는 description이나 author와 같은 프런트매터 속성이 필요한 시기와 각 속성이 어떤 데이터 타입이어야 하는지 (문자열이나 배열 등) 지정할 수 있습니다. 이로 인해, 문제가 무엇인지 정확하게 알려주는 설명 오류 메시지를 통해 많은 실수를 더 빨리 발견할 수 있습니다.
+
+안내서에서 [Astro의 콘텐츠 컬렉션](/ko/guides/content-collections/)에 대해 자세히 읽어보거나 아래 지침에 따라 기본 블로그를 `src/pages/posts/`에서 `src/content/posts/`로 변환해 보세요.
+
+<Box icon="question-mark">
+### 지식을 테스트해보세요
+
+1. 어떤 유형의 페이지를 `src/pages/`에 보관하시겠습니까?
+
+    <MultipleChoice>
+      <Option>
+        모두 동일한 기본 구조와 메타데이터를 포함하는 블로그 게시물
+      </Option>
+      <Option>
+        전자상거래 사이트의 제품 페이지
+      </Option>
+      <Option isCorrect>
+        유사한 페이지가 존재하지 않는 연락처 페이지
+      </Option>
+    </MultipleChoice>
+
+2. 블로그 게시물을 콘텐츠 컬렉션으로 이동할 때의 이점이 **아닌** 것은 무엇입니까?
+
+    <MultipleChoice>
+      <Option isCorrect>
+         각 파일마다 페이지가 자동으로 생성됩니다.
+      </Option>
+      <Option>
+        Astro가 각 파일에 대해 더 많이 알고 있기 때문에 더 나은 오류 메시지가 제공됩니다.
+      </Option>
+      <Option>
+        강력한 기능을 사용하여 뛰어난 성능의 데이터 가져오기가 가능합니다.
+      </Option>
+    </MultipleChoice>
+
+3. 콘텐츠 컬렉션은 TypeScript를 사용합니다...
+    <MultipleChoice>
+      <Option>
+        기분을 나쁘게 만들기 위해
+      </Option>
+      <Option isCorrect>
+        TypeScript를 작성하지 않아도 내 프로젝트를 이해할 수 있기 때문에
+      </Option>
+      <Option>
+        `strict` 또는 `strictest` 구성 세트가 있는 경우에만
+      </Option>
+    </MultipleChoice>
+
+</Box>
+
+## 콘텐츠 컬렉션으로 블로그 튜토리얼 확장
+
+아래 단계에서는 블로그 게시물에 대한 콘텐츠 컬렉션을 생성하여 블로그 구축 튜토리얼의 최종 제품을 확장하는 방법을 보여줍니다.
+
+### 종속성 업그레이드
+
+1. Astro의 최신 버전으로 업그레이드하고 터미널에서 다음 명령을 실행하여 모든 통합을 최신 버전으로 업그레이드하세요.
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      # Astro v3.x로 업그레이드
+      npm install astro@latest
+
+      # 예: 블로그 튜토리얼의 Preact 통합 업그레이드 
+      npm install @astrojs/preact@latest
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      # Astro v3.x로 업그레이드
+      pnpm add astro@latest
+
+    # 예: 블로그 튜토리얼의 Preact 통합 업그레이드 
+      pnpm add @astrojs/preact@latest
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      # Astro v3.x로 업그레이드
+      yarn add astro@latest
+
+    # 예: 블로그 튜토리얼의 Preact 통합 업그레이드 
+      yarn add @astrojs/preact@latest
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+    :::tip
+    자신의 프로젝트를 사용하는 경우 설치한 모든 종속성을 업데이트해야 합니다. 예시의 블로그 튜토리얼 코드베이스는 Preact 통합만 사용합니다.
+    :::
+
+2. 블로그 튜토리얼에서는 `base`(가장 덜 엄격한) TypeScript 설정을 사용합니다. 콘텐츠 컬렉션을 사용하려면, `strict` 또는 `strictest` 설정을 사용하거나 `tsconfig.json`에 두 가지 옵션을 추가하여 콘텐츠 컬렉션에 대한 [TypeScript를 설정](/ko/guides/content-collections/#typescript-설정)해야 합니다.
+
+    블로그 튜토리얼 예시의 나머지 부분에서 TypeScript를 작성하지 않고 콘텐츠 컬렉션을 사용하려면 다음 두 가지 TypeScript 구성 옵션을 구성 파일에 추가하세요.
+
+    ```json title="tsconfig.json" ins={5,6}
+    {
+      // 참고: "astro/tsconfigs/strict" 또는 "astro/tsconfigs/strictest"를 사용하는 경우 변경이 필요하지 않습니다.
+      "extends": "astro/tsconfigs/base",
+      "compilerOptions": {
+        "strictNullChecks": true,
+        "allowJs": true
+      }
+    }
+    ```
+
+### 블로그 게시물에 대한 컬렉션 만들기
+
+3. `src/content/posts/`라는 새 **컬렉션** (폴더)을 만듭니다.
+
+4. `src/pages/posts/`에 있는 모든 기존 블로그 게시물(`.md` 파일)을 이 새 컬렉션으로 이동합니다.
+
+5. `postsCollection`의 [스키마 정의](/ko/guides/content-collections/#컬렉션-스키마-정의)를 위한 `src/content/config.ts` 파일을 생성합니다. 기존 블로그 튜토리얼 코드의 경우, 블로그 게시물에 사용되는 모든 프런트매터 속성을 정의하려면 다음 내용을 파일에 추가하세요.
+
+    ```ts title="src/content/config.ts"
+    // `astro:content`에서 유틸리티 가져오기
+    import { z, defineCollection } from "astro:content";
+    // 각 컬렉션에 대한 `type` 및 `schema` 정의
+    const postsCollection = defineCollection({
+        type: 'content',
+        schema: z.object({
+          title: z.string(),
+          pubDate: z.date(),
+          description: z.string(),
+          author: z.string(),
+          image: z.object({
+            url: z.string(),
+            alt: z.string()
+          }),
+          tags: z.array(z.string())
+        })
+    });
+    // 컬렉션을 등록하려면 단일 'collections' 객체를 내보내세요.
+    export const collections = {
+      posts: postsCollection,
+    };
+    ```
+
+6. Astro가 스키마를 인식하려면 개발 서버를 종료하고 (`CTRL + C`) 다음 명령을 실행하세요: [`npx astro sync`](/ko/reference/cli-reference/#astro-sync). 이는 콘텐츠 컬렉션 API에 대한 `astro:content` 모듈을 정의합니다. 튜토리얼을 계속하려면 개발 서버를 다시 시작하세요.
+
+### 컬렉션에서 페이지 생성
+
+7. `src/pages/posts/[...slug].astro`라는 페이지 파일을 만듭니다. Markdown 및 MDX 파일은 컬렉션 내에 있을 때 더 이상 자동으로 Astro의 파일 기반 라우팅을 사용하는 페이지가 되지 않으므로, 각 개별 블로그 게시물 생성을 담당하는 페이지를 만들어야 합니다.
+
+8. 각 블로그 게시물의 슬러그와 페이지 콘텐츠를 생성하기 위해 [컬렉션을 쿼리](/ko/guides/content-collections/#컬렉션-쿼리)해야 합니다. 이를 위해서 다음 코드를 추가합니다.
+
+    ```astro title="src/pages/posts/[...slug].astro"
+    ---
+    import { getCollection } from 'astro:content';
+    import MarkdownPostLayout from '../../layouts/MarkdownPostLayout.astro';
+
+    export async function getStaticPaths() {
+      const blogEntries = await getCollection('posts');
+      return blogEntries.map(entry => ({
+        params: { slug: entry.slug }, props: { entry },
+      }));
+    }
+
+    const { entry } = Astro.props;
+    const { Content } = await entry.render();
+    ---
+    ```
+
+9. Markdown 페이지 레이아웃에서 게시물 `<Content />`를 렌더링합니다. 이를 통해 모든 게시물에 대한 공통 레이아웃을 지정할 수 있습니다.
+
+    ```astro title="src/pages/posts/[...slug].astro" ins={15-17}
+    ---
+    import { getCollection } from 'astro:content';
+    import MarkdownPostLayout from '../../layouts/MarkdownPostLayout.astro';
+
+    export async function getStaticPaths() {
+      const blogEntries = await getCollection('posts');
+      return blogEntries.map(entry => ({
+        params: { slug: entry.slug }, props: { entry },
+      }));
+    }
+
+    const { entry } = Astro.props;
+    const { Content } = await entry.render();
+    ---
+    <MarkdownPostLayout frontmatter={entry.data}>
+      <Content />
+    </MarkdownPostLayout>
+    ```
+
+10. 각 개별 게시물의 프런트매터에서 `layout` 정의를 제거하세요. 이제 렌더링 시 콘텐츠가 레이아웃으로 래핑되므로 이 속성은 더 이상 필요하지 않습니다.
+
+    ```md title="src/content/posts/post-1.md" del={2}
+    ---
+    layout: ../../layouts/MarkdownPostLayout.astro
+    title: '나의 첫 블로그 게시물'
+    pubDate: 2022-07-01
+    ...
+    ---
+    ```
+
+### `Astro.glob()`을 `getCollection()`으로 대체
+
+11. 튜토리얼의 블로그 페이지(`src/pages/blog.astro/`)처럼, 블로그 게시물 목록이 있는 곳이라면 어디서든 `Astro.glob()`을 [`getCollection()`](/ko/reference/api-reference/#getcollection)로 대체하여 Markdown 파일에서 콘텐츠 및 메타데이터를 가져올 수 있습니다.
+
+    ```astro title="src/pages/blog.astro" "post.data" "getCollection(\"posts\")" "/posts/${post.slug}/" del={7} ins={2,8}
+    ---
+    import { getCollection } from "astro:content";
+    import BaseLayout from "../layouts/BaseLayout.astro";
+    import BlogPost from "../components/BlogPost.astro";
+
+    const pageTitle = "My Astro Learning Blog";
+    const allPosts = await Astro.glob("../pages/posts/*.md");
+    const allPosts = await getCollection("posts");
+    ---
+    ```
+
+12. 각 `post`마다 반환되는 데이터에 대한 참조도 업데이트해야 합니다. 이제 각 객체의 `data` 속성에서 자신의 프런트매터 값을 찾을 수 있습니다. 또한, 컬렉션을 사용할 때 각 `post` 객체에는 전체 URL이 아닌 페이지의 `slug`가 포함되어 있습니다.
+
+    ```astro title="src/pages/blog.astro" "data" "/posts/$\{post.slug\}/" del={14} ins={15}
+    ---
+    import { getCollection } from "astro:content";
+    import BaseLayout from "../layouts/BaseLayout.astro";
+    import BlogPost from "../components/BlogPost.astro";
+
+    const pageTitle = "내 Astro 학습 블로그";
+    const allPosts = await getCollection("posts");
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <p>제가 Astro를 배우게 된 과정을 게시하는 곳입니다.</p>
+      <ul>
+        {
+          allPosts.map((post) => (
+            <BlogPost url={post.url} title={post.frontmatter.title} />)}
+            <BlogPost url={`/posts/${post.slug}/`} title={post.data.title} />
+          ))
+        }
+      </ul>
+    </BaseLayout> 
+    ```
+
+13. 또한 튜토리얼 블로그 프로젝트는 `src/pages/tags/[tag].astro`를 사용하여 태그별 페이지를 동적으로 생성하고, `src/pages/tags/index.astro`에 태그 목록을 표시합니다.
+   
+          위와 동일한 변경 사항을 다음 두 파일에 적용합니다.
+      
+          - `Astro.glob()`을 사용하는 대신 `getCollection("posts")`을 사용하여 모든 블로그 게시물에 대한 데이터를 가져옵니다.
+          - `frontmatter` 대신 `data`를 사용하여 모든 프런트매터 값에 접근합니다.
+          - `/posts/` 경로에 게시물의 `slug`를 추가하여 페이지 URL을 만듭니다.
+        
+        개별 태그 페이지를 생성하는 페이지는 이제 다음과 같습니다.
+
+        ```astro title="src/pages/tags/[tag].astro" "post.data.tags" "getCollection(\"posts\")" "post.data.title" ins={2} "/posts/${post.slug}/"
+        ---
+        import { getCollection } from "astro:content";
+        import BaseLayout from "../../layouts/BaseLayout.astro";
+        import BlogPost from "../../components/BlogPost.astro";
+
+        export async function getStaticPaths() {
+          const allPosts = await getCollection("posts");
+          const uniqueTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
+
+          return uniqueTags.map((tag) => {
+            const filteredPosts = allPosts.filter((post) =>
+              post.data.tags.includes(tag)
+            );
+            return {
+              params: { tag },
+              props: { posts: filteredPosts },
+            };
+          });
+        }
+        
+        const { tag } = Astro.params;
+        const { posts } = Astro.props;
+        ---
+
+        <BaseLayout pageTitle={tag}>
+          <p>{tag} 태그가 포함된 게시물</p>
+          <ul>
+              { posts.map((post) => <BlogPost url={`/posts/${post.slug}/`} title={post.data.title} />) }
+          </ul>
+        </BaseLayout>
+        ```
+
+        <Box icon="puzzle-piece">
+          ### 직접 시도하기 - 태그 색인 페이지에서 쿼리를 업데이트하세요.
+
+          [위와 동일한 단계](#astroglob을-getcollection으로-대체)에 따라 `getCollection`을 가져와 사용하여 `src/pages/tags/index.astro`에 있는 블로그 게시물에 사용된 태그를 가져옵니다.
+
+          <details>
+          <summary>코드 보기</summary>
+          ```astro title="src/pages/tags/index.astro" "post.data" "getCollection(\"posts\")" ins={2}
+          ---
+          import { getCollection } from "astro:content";
+          import BaseLayout from "../../layouts/BaseLayout.astro";     
+          const allPosts = await getCollection("posts");
+          const tags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
+          const pageTitle = "Tag Index";
+          ---
+          ...
+          ```
+          </details>
+      </Box>
+
+### 스키마와 일치하도록 프런트매터 값을 업데이트하세요.
+
+14. 필요하다면, 프로젝트 전체에서 컬렉션 스키마와 일치하지 않는 레이아웃과 같은 프런트매터 값을 업데이트하세요.
+
+    블로그 튜토리얼 예시에서 `pubDate`는 문자열이었습니다. 이제 게시물의 프런트매터의 타입을 정의하는 스키마에 따라 `pubDate`는 `Date` 객체가 됩니다.
+    
+    블로그 게시물 레이아웃에 날짜를 렌더링하려면, 날짜를 문자열로 변환하세요.
+
+    ```astro title="src/layouts/MarkdownPostLayout.astro" ins="toString()"
+    ...
+    <BaseLayout pageTitle={frontmatter.title}>
+      <p>{frontmatter.pubDate.toString().slice(0,10)}</p>
+      <p><em>{frontmatter.description}</em></p>
+      <p>작성자: {frontmatter.author}</p>
+      <img src={frontmatter.image.url} width="300" alt={frontmatter.image.alt} />
+    ...
+    ```
+
+### RSS 함수 업데이트
+
+15. 마지막으로, 튜토리얼 블로그 프로젝트에는 RSS 피드가 포함되어 있습니다. 또한 이 함수는 `getCollection()`을 사용하여 블로그 게시물의 정보를 반환해야 합니다. 그런 다음 반환된 `data` 객체를 사용하여 RSS 항목을 생성합니다.
+
+    ```js title="src/pages/rss.xml.js" del={2,11} ins={3,6,12-17}
+    import rss from '@astrojs/rss';
+    import { pagesGlobToRssItems } from '@astrojs/rss';
+    import { getCollection } from 'astro:content';
+
+    export async function GET(context) {
+      const posts = await getCollection("posts");
+      return rss({
+        title: 'Astro 학습자 | 블로그',
+        description: 'Astro를 배우는 나의 여정',
+        site: context.site,
+        items: await pagesGlobToRssItems(import.meta.glob('./**/*.md')),
+        items: posts.map((post) => ({
+          title: post.data.title,
+          pubDate: post.data.pubDate,
+          description: post.data.description,
+          link: `/posts/${post.slug}/`,
+        })),
+        customData: `<language>ko-KR</language>`,
+      })
+    }
+    ```
+
+콘텐츠 컬렉션을 사용하는 블로그 튜토리얼의 전체 예시를 보려면, 튜토리얼 저장소의 [Content Collections 브랜치](https://github.com/withastro/blog-tutorial-demo/tree/content-collections)를 참조하세요.
