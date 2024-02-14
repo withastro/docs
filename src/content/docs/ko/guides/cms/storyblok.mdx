@@ -1,0 +1,543 @@
+---
+title: Storyblok & Astro
+description: Storyblok을 CMS로 사용하여 Astro 프로젝트에 콘텐츠 추가
+type: cms
+service: Storyblok
+stub: false
+i18nReady: true
+---
+
+import FileTree from '~/components/FileTree.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+[Storyblok](https://www.storyblok.com/)은 Bloks라는 재사용 가능한 컴포넌트를 사용하여 콘텐츠를 관리할 수 있는 컴포넌트 기반 헤드리스 CMS입니다.
+
+## Astro와 통합
+
+이 섹션에서는 [Storyblok 통합](https://github.com/storyblok/storyblok-astro)을 사용하여 Storyblok을 Astro에 연결합니다.
+
+### 전제조건
+
+시작하려면 다음이 필요합니다.
+
+1. **Astro 프로젝트** - 아직 Astro 프로젝트가 없다면 [설치 가이드](/ko/install/auto/)를 참조하여 즉시 설치하고 실행할 수 있습니다.
+
+2. **Storyblok 계정 및 space** - 아직 계정이 없다면 [무료로 회원가입](https://app.storyblok.com/#/signup)하고 새로운 space를 만드세요.
+
+3. **Storyblok Preview token** - 이 토큰은 콘텐츠의 초안 및 게시된 버전을 가져오는 데 사용됩니다. Storyblok space settings의 Access Tokens 탭에서 API 토큰을 찾고 생성할 수 있습니다.
+
+### 자격 증명 설정
+
+Astro에 Storyblok 자격 증명을 추가하려면 다음 변수를 사용하여 프로젝트 루트에 `.env` 파일을 만듭니다.
+
+```ini title=".env"
+STORYBLOK_TOKEN=YOUR_PREVIEW_TOKEN
+```
+
+이제 프로젝트에서 이러한 환경 변수를 사용할 수 있습니다.
+
+이제 루트 디렉터리에 다음 새 파일이 포함되어야 합니다.
+
+<FileTree title="Project Structure">
+- src/
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### 종속성 설치
+
+Astro를 Storyblok space와 연결하려면 선호하는 패키지 관리자에 대해 아래 명령을 사용하여 공식 [Storyblok 통합](https://github.com/storyblok/storyblok-astro)을 설치하세요.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @storyblok/astro vite
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @storyblok/astro vite
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @storyblok/astro vite
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Storyblok 구성
+
+Storyblok 통합을 포함하도록 Astro 구성 파일을 수정하세요.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import storyblok from '@storyblok/astro';
+import { loadEnv } from 'vite';
+
+const env = loadEnv("", process.cwd(), 'STORYBLOK');
+
+export default defineConfig({
+  integrations: [
+    storyblok({
+      accessToken: env.STORYBLOK_TOKEN,
+      components: {
+        // 컴포넌트 추가
+      },
+      apiOptions: {
+        // Storyblok space 지역 선택
+        region: 'us', // 선택 사항이며, 기본 값은 'eu'
+      },
+    })
+  ],
+});
+```
+
+Storyblok 통합에는 다음 속성을 가진 객체가 필요합니다.
+
+1. `accessToken` - 이전 단계에서 추가한 Storyblok API 토큰을 참조합니다.
+
+    :::tip
+    Astro 구성 파일은 일반적으로 환경 변수를 지원하지 않으므로 Vite의 `loadEnv` 함수를 사용하여 로드하세요.
+    :::
+
+2. `components` - Storyblok 컴포넌트 이름을 로컬 컴포넌트의 경로에 매핑하는 객체입니다. 이는 Astro에서 Storyblok Bloks를 렌더링하는 데 필요합니다.
+
+    :::note
+    컴포넌트 경로는 `src` 디렉터리를 기준으로 설정합니다. 예를 들어 컴포넌트가 `src/storyblok/MyComponent.astro`에 있는 경우 경로는 `storyblok/MyComponent` (`.astro` 확장자 없음)가 됩니다.
+    :::
+
+3. `apiOptions` - [Storyblok API 옵션](https://github.com/storyblok/storyblok-astro#options)을 포함하는 객체입니다.
+
+    :::caution
+    기본적으로 지역은 `eu`입니다. Storyblok space가 미국 지역에서 생성된 경우 지역을 `us`로 설정해야 합니다.
+    :::
+
+### Bloks를 Astro 컴포넌트에 연결하기
+
+Bloks를 Astro에 연결하려면 `src` 디렉터리에 `storyblok`이라는 새 폴더를 만듭니다. 이 폴더에는 Storyblok Blok 라이브러리의 Bloks와 일치하는 모든 Astro 컴포넌트가 포함됩니다.
+
+이 예시에서는 Storyblok 라이브러리에 다음 필드가 있는 `blogPost` Blok 콘텐츠 타입이 있습니다.
+
+- `title` - 텍스트 필드
+- `description` - 텍스트 필드
+- `content` - 리치 텍스트 필드
+
+우리의 목표는 이러한 필드를 사용하여 콘텐츠를 렌더링하는 동등한 Astro 컴포넌트를 만드는 것입니다. 이렇게 하려면 `src/storyblok` 안에 다음 내용이 포함된 `BlogPost.astro`라는 새 파일을 만듭니다.
+
+```astro title="src/storyblok/BlogPost.astro"
+---
+import { storyblokEditable, renderRichText } from '@storyblok/astro'
+
+const { blok } = Astro.props
+const content = renderRichText(blok.content)
+---
+
+<article {...storyblokEditable(blok)}>
+  <h1>{blok.title}</h1>
+  <p>{blok.description}</p>
+  <Fragment set:html={content} />
+</article>
+```
+
+`blok` 속성은 Storyblok에서 수신할 데이터를 포함합니다. 이는 또한 Storyblok의 `blogPost` 콘텐츠 타입 Blok에서 정의된 필드도 포함합니다.
+
+콘텐츠를 렌더링하기 위해 통합은 다음과 같은 유틸리티 함수를 제공합니다.
+
+- `storyblokEditable` - Storyblok에서 편집할 수 있도록 요소에 필요한 속성을 추가합니다.
+- `renderRichText` - 리치 텍스트 필드를 HTML로 변환합니다.
+
+루트 디렉터리에는 다음 새 파일이 포함되어야 합니다.
+
+<FileTree title="Project Structure">
+- src/
+  - storyblok/
+    - **BlogPost.astro**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+마지막으로 `blogPost` Blok을 `BlogPost` 컴포넌트에 연결하려면 Astro 구성 파일의 컴포넌트 객체에 새 속성을 추가하세요.
+
+- 키는 Storyblok에 있는 Blok의 이름입니다. 이 경우에는 `blogPost`입니다.
+- 값은 컴포넌트의 경로입니다. 이 경우 `storyblok/BlogPost`입니다.
+
+:::caution
+  `key`는 Storyblok의 Blok 이름과 정확히 일치해야 올바르게 참조됩니다. 일치하지 않거나 Storyblok에 존재하지 않는 컴포넌트를 참조하려고 하면 오류가 발생합니다.
+  :::
+
+```js title="astro.config.mjs" ins={12}
+import { defineConfig } from 'astro/config';
+import storyblok from '@storyblok/astro';
+import { loadEnv } from 'vite';
+
+const env = loadEnv("", process.cwd(), 'STORYBLOK');
+
+export default defineConfig({
+  integrations: [
+    storyblok({
+      accessToken: env.STORYBLOK_TOKEN,
+      components: {
+        blogPost: 'storyblok/BlogPost',
+      },
+      apiOptions: { 
+        region: 'us',
+      },
+    })
+  ],
+});
+```
+
+### 데이터 가져오기
+
+설정을 테스트하려면 Storyblok에서 `test-post`라는 이름의 `blogPost` 콘텐츠 타입을 사용하여 새 스토리를 만듭니다.
+Astro에서 `src/pages/` 디렉터리에 다음 내용을 포함하는 `test-post.astro`라는 새 페이지를 만듭니다.
+
+```astro title="src/pages/test-post.astro"
+---
+import { useStoryblokApi } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+
+const storyblokApi = useStoryblokApi()
+
+const { data } = await storyblokApi.get("cdn/stories/test-post", {
+  version: import.meta.env.DEV ? "draft" : "published",
+});
+
+const content = data.story.content;
+---
+<StoryblokComponent blok={content} />
+```
+
+데이터를 쿼리하려면 `useStoryblokApi` 후크를 사용하세요. 그러면 통합 구성을 사용하여 새 클라이언트 인스턴스가 초기화됩니다.
+
+콘텐츠를 렌더링하려면 Story의 `content` 속성을 `Blok` prop으로 `StoryblokComponent`에 전달하세요. 이 컴포넌트는 `content` 속성 내에 정의된 Bloks를 렌더링합니다. 이 경우 `BlogPost` 컴포넌트를 렌더링합니다.
+
+## Astro와 Storyblok으로 블로그 만들기
+
+통합 설정이 완료되면 이제 Astro 및 Storyblok을 사용하여 블로그를 만들 수 있습니다.
+
+### 전제조건
+
+1. **Storyblok space** - 이 튜토리얼에서는 새로운 space를 사용하는 것이 좋습니다. Blok이 포함된 space가 이미 있는 경우 그대로 사용하세요. 하지만 Blok 이름 및 콘텐츠 타입과 일치하도록 코드를 수정해야 합니다.
+
+2. **Storyblok과 통합된 Astro 프로젝트** - 통합 설정 방법에 대한 지침은 [Astro와 통합](#astro와-통합)을 참조하세요.
+
+### blok 라이브러리 만들기
+
+Blok을 생성하려면 Storyblok 앱으로 이동하여 **Block Library** 탭을 클릭하세요. <kbd>+ New blok</kbd> 버튼을 클릭하고 다음 Blok을 생성하세요.
+
+1. `blogPost` - 다음 필드가 포함된 콘텐츠 타입 Blok:
+    - `title` - 텍스트 필드
+    - `description` - 텍스트 필드
+    - `content` - 리치 텍스트 필드
+
+2. `blogPostList` - 비어있는 중첩 가능한 Blok
+
+3. `page` - 다음 필드가 포함된 콘텐츠 타입 Blok:
+    - `body` - 중첩 가능한 Blok
+
+### 콘텐츠 생성
+
+새 콘텐츠를 추가하려면 **Content** 탭을 클릭하여 콘텐츠 섹션으로 이동하세요. 이전 단계에서 생성한 Blok 라이브러리를 사용하여 다음 스토리를 생성합니다.
+
+1. `home` - `page` Blok이 포함된 콘텐츠 타입 스토리입니다. `body` 필드 안에 `blogPostList` Blok을 추가합니다.
+
+2. `blog/no-javascript` - 블로그 폴더 내에 `blogPost` 콘텐츠 타입이 있는 스토리입니다.
+    ```yaml
+    title: No JavaScript
+    description: A sample blog post
+    content: Hi there! This blog post doesn't use JavaScript.
+    ```
+3. `blog/astro-is-amazing` - 블로그 폴더 내에 `blogPost` 콘텐츠 타입이 있는 스토리입니다.
+    ```yaml
+    title: Astro is amazing
+    description: We love Astro
+    content: Hi there! This blog post was build with Astro.
+    ```
+
+이제 콘텐츠가 준비되었으므로 Astro 프로젝트로 돌아가서 블로그 빌드를 시작하세요.
+
+### Bloks를 컴포넌트에 연결하기
+
+새로 생성된 Bloks를 Astro 컴포넌트에 연결하려면 `src` 디렉터리에 `storyblok`이라는 새 폴더를 만들고 다음 파일을 추가하세요.
+
+`Page.astro`는 `page` Blok의 `body` 속성 내부에 모든 Blok을 재귀적으로 렌더링하는 중첩 가능한 블록 콘텐츠 타입 컴포넌트입니다. 또한 Storyblok에서 페이지를 편집할 수 있는 `storyblokEditable` 속성을 상위 요소에 추가합니다.
+
+```astro title="src/storyblok/Page.astro"
+---
+import { storyblokEditable } from '@storyblok/astro'
+import StoryblokComponent from "@storyblok/astro/StoryblokComponent.astro";
+const { blok } = Astro.props
+---
+
+<main {...storyblokEditable(blok)}>
+  {
+    blok.body?.map((blok) => {
+      return <StoryblokComponent blok={blok} />
+    })
+  }
+</main>
+```
+
+`BlogPost.astro`는 `blogPost` Blok의 `title`, `description`, `content` 속성을 렌더링합니다.
+
+`content` 속성을 리치 텍스트 필드에서 HTML로 변환하려면 `renderRichText` 도우미 함수를 사용할 수 있습니다.
+
+```astro title="src/storyblok/BlogPost.astro"
+---
+import { storyblokEditable, renderRichText } from '@storyblok/astro'
+const { blok } = Astro.props
+const content = renderRichText(blok.content)
+---
+<article {...storyblokEditable(blok)}>
+  <h1>{blok.title}</h1>
+  <p>{blok.description}</p>
+  <Fragment set:html={content} />
+</article>
+```
+
+`BlogPostList.astro`는 블로그 게시물 미리보기 목록을 렌더링하는 중첩 가능한 Blok 콘텐츠 타입 컴포넌트입니다.
+
+`useStoryblokApi` 후크를 사용하여 콘텐츠 타입이 `blogPost`인 모든 스토리를 가져옵니다. `version` 쿼리 매개변수를 사용하여 개발 모드에서는 스토리의 초안 버전을 가져오고 프로덕션용으로 빌드할 때는 게시된 버전을 가져옵니다.
+
+`Astro.props`는 Storyblok에서 편집기를 설정하는 데 사용됩니다. 필요한 경우 여기에서 추가 props를 컴포넌트에 전달할 수도 있습니다.
+
+```astro title="src/storyblok/BlogPostList.astro"
+---
+import { storyblokEditable } from '@storyblok/astro'
+import { useStoryblokApi } from '@storyblok/astro'
+
+const storyblokApi = useStoryblokApi();
+
+const { data } = await storyblokApi.get('cdn/stories', {
+  version: import.meta.env.DEV ? "draft" : "published",
+  content_type: 'blogPost',
+})
+
+const posts = data.stories.map(story => {
+  return {
+    title: story.content.title,
+    date: new Date(story.published_at).toLocaleDateString("en-US", {dateStyle: "full"}),
+    description: story.content.description,
+    slug: story.full_slug,
+  }
+})
+
+const { blok } = Astro.props
+---
+
+<ul {...storyblokEditable(blok)}>
+  {posts.map(post => (
+    <li>
+      <time>{post.date}</time>
+      <a href={post.slug}>{post.title}</a>
+      <p>{post.description}</p>
+    </li>
+  ))}
+</ul>
+```
+
+마지막으로 `astro.config.mjs` 파일에 있는 `storyblok` 구성 객체의 `components` 속성에 컴포넌트를 추가합니다. 키는 Storyblok의 Blok 이름이고, 값은 `src`를 기준으로 하는 컴포넌트의 경로입니다.
+
+```js title="astro.config.mjs" ins={12-14}
+import { defineConfig } from 'astro/config';
+import storyblok from '@storyblok/astro';
+import { loadEnv } from 'vite';
+
+const env = loadEnv("", process.cwd(), 'STORYBLOK');
+
+export default defineConfig({
+  integrations: [
+    storyblok({
+      accessToken: env.STORYBLOK_TOKEN,
+      components: {
+        blogPost: 'storyblok/BlogPost',
+        blogPostList: 'storyblok/BlogPostList',
+        page: 'storyblok/Page',
+      },
+      apiOptions: { 
+        region: 'us',
+      },
+    })
+  ],
+});
+```
+
+### 페이지 생성
+
+특정 `page`에 대한 경로를 생성하려면 Storyblok API에서 해당 콘텐츠를 직접 가져와서 `StoryblokComponent` 컴포넌트에 전달할 수 있습니다. astro.config.mjs 파일에 `Page` 컴포넌트를 추가했는지 확인하세요.
+
+`home` 페이지를 렌더링하려면 `src/pages/`에 `index.astro` 파일을 만듭니다.
+
+```astro title="src/pages/index.astro" {3,7,8,9,17} 
+---
+import { useStoryblokApi } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+import BaseLayout from '../layouts/BaseLayout.astro'
+
+const storyblokApi = useStoryblokApi();
+const { data } = await storyblokApi.get('cdn/stories/home', {
+  version: import.meta.env.DEV ? "draft" : "published",
+});
+const content = data.story.content;
+---
+<html lang="en">
+  <head>
+    <title>Storyblok & Astro</title>
+  </head>
+  <body>
+    <StoryblokComponent blok={content} />
+  </body>
+</html>
+```
+
+모든 블로그 게시물에 대한 페이지를 생성하려면 동적 경로를 생성하는 `.astro` 페이지를 생성하세요. 이 접근 방식은 **정적 사이트 생성** (기본값)을 사용하는지 **서버 측 렌더링**을 사용하는지에 따라 달라집니다.
+
+#### 정적 사이트 생성
+
+Astro의 기본 정적 사이트 생성을 사용하는 경우 [동적 경로](/ko/guides/routing/#동적-경로) 및 `getStaticPaths` 함수를 사용하여 프로젝트 페이지를 생성합니다.
+
+새 디렉터리 `src/pages/blog/`를 만들고 다음 코드를 사용하여 `[...slug].astro`라는 새 파일을 추가합니다.
+
+```astro title="src/pages/blog/[...slug].astro"
+---
+import { useStoryblokApi } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+
+export async function getStaticPaths() {
+  const sbApi = useStoryblokApi();
+
+  const { data } = await sbApi.get("cdn/stories", {
+    content_type: "blogPost",
+    version: import.meta.env.DEV ? "draft" : "published",
+  });
+
+  const stories = Object.values(data.stories);
+
+  return stories.map((story) => {
+    return {
+      params: { slug: story.slug },
+    };
+  });
+}
+
+const sbApi = useStoryblokApi();
+const { slug } = Astro.params;
+const { data } = await sbApi.get(`cdn/stories/blog/${slug}`, {
+  version: import.meta.env.DEV ? "draft" : "published",
+});
+
+const story = data.story;
+---
+
+<html lang="en">
+  <head>
+    <title>Storyblok & Astro</title>
+  </head>
+  <body>
+    <StoryblokComponent blok={story.content} />
+  </body>
+</html>
+```
+
+이 파일은 Storyblok API에서 가져온 슬러그와 콘텐츠를 사용하여 각 스토리에 대한 페이지를 생성합니다.
+
+:::note
+Storyblok 내부에 폴더를 추가하는 경우 Storyblok API와 상호 작용할 때 해당 폴더를 슬러그에 포함시킵니다. 예를 들어 위 GET 요청에서는 블로그 폴더를 루트에서 사용하는 대신 내부에 있는 **cdn/stories/blog**를 사용할 수 있습니다.
+:::
+
+#### 서버 측 렌더링
+
+[SSR 모드를 선택](/ko/guides/server-side-rendering/)한 경우 동적 경로를 사용하여 Storyblok에서 페이지 데이터를 가져옵니다.
+
+새 디렉터리 `src/pages/blog/`를 만들고 다음 코드를 사용하여 `[...slug].astro`라는 새 파일을 추가합니다.
+
+```astro title="src/pages/blog/[...slug].astro"
+---
+import { useStoryblokApi } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+const storyblokApi = useStoryblokApi()
+const slug = Astro.params.slug;
+let content;
+try {
+  const { data } = await storyblokApi.get(`cdn/stories/blog/${slug}`, {
+    version: import.meta.env.DEV ? "draft" : "published",
+  });
+  content = data.story.content
+} catch (error) {
+  return Astro.redirect('/404')
+}
+---
+<html lang="en">
+  <head>
+    <title>Storyblok & Astro</title>
+  </head>
+  <body>
+    <StoryblokComponent blok={content} />
+  </body>
+</html>
+```
+
+이 파일은 동적 `slug` 매개변수와 일치하는 Storyblok의 페이지 데이터를 가져와 렌더링합니다.
+
+`/404`로의 리디렉션을 사용하고 있으므로 `src/pages`에 404 페이지를 만듭니다.
+
+```astro title="src/pages/404.astro"
+<html lang="en">
+  <head>
+    <title>Not found</title>
+  </head>
+  <body>
+    <p>Sorry, this page does not exist.</p>
+  </body>
+</html>
+```
+
+스토리를 찾을 수 없으면 요청이 404 페이지로 리디렉션됩니다.
+
+### 사이트 게시
+
+웹사이트를 배포하려면 [배포 가이드](/ko/guides/deploy/)를 방문하여 선호하는 호스팅 제공업체의 지침을 따르세요.
+
+#### Storyblok 변경에 따라 다시 빌드
+
+프로젝트가 Astro의 기본 정적 모드를 사용하는 경우 콘텐츠가 변경될 때 새 빌드를 트리거하도록 웹후크를 설정해야 합니다. Netlify 또는 Vercel을 호스팅 공급자로 사용하는 경우 웹후크 기능을 사용하여 Storyblok 이벤트에서 새 빌드를 트리거할 수 있습니다.
+
+##### Netlify
+
+Netlify에서 웹후크을 설정하려면:
+
+1. 사이트 대시보드로 이동하여 **Build & deploy**를 클릭합니다.
+
+2. **Continuous Deployment** 탭에서 **Build hooks** 섹션을 찾아 **Add build hook**를 클릭합니다.
+
+3. 웹후크의 이름을 제공하고 빌드를 트리거할 브랜치를 선택합니다. **Save**을 클릭하고 생성된 URL을 복사하세요.
+
+##### Vercel
+
+Vercel에서 웹후크을 설정하려면 다음 안내를 따르세요.
+
+1. 프로젝트 대시보드로 이동하여 **Settings**을 클릭합니다.
+
+2. **Git** 탭에서 **Deploy Hooks** 섹션을 찾습니다.
+
+3. 빌드를 트리거할 웹후크와 브랜치의 이름을 제공합니다. **Add**를 클릭하고 생성된 URL을 복사합니다.
+
+##### Storyblok에 웹후크 추가하기
+
+Storyblok space **Settings**에서 **Webhooks** 탭을 클릭하세요. **Story published & unpublished** 필드에 복사한 웹후크 URL을 붙여넣고 <kbd>Save</kbd>를 눌러 웹후크을 생성하세요.
+
+이제 새 스토리를 게시할 때마다 새 빌드가 실행되고 블로그가 업데이트됩니다.
+
+## 공식 자료
+
+- Storyblok은 프로젝트에 Storyblok을 추가할 수 있도록 [Astro 통합](https://www.storyblok.com/mp/announce-storyblok-astro)을 제공합니다.
+
+## 커뮤니티 자료
+
+- [Storyblok + Astro를 작업하기 위한 시각적 편집기 가져오기](https://dev.to/sandrarodgers/getting-the-visual-editor-to-work-for-storyblok-astro-2gja) - Sandra Rodgers
+- [Astro + Storyblok: 즉각적인 시각적 편집을 위한 SSR 미리보기](https://dev.to/jgierer12/astro-storyblok-ssr-preview-for-instant-visual-editing-3g9m) - Jonas Gierer
+- [Astro-Storyblok, Netlify의 Branch 배포 기능을 갖춘 사이트 미리보기](https://dev.to/sandrarodgers/astro-storyblok-previews-site-with-netlifys-branch-deploys-feature-44dh) - Sandra Rodgers

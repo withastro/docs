@@ -1,0 +1,579 @@
+---
+title: Gatsby에서 마이그레이션
+description: 기존 Gatsby 프로젝트를 Astro로 마이그레이션하기 위한 팁
+type: migration
+stub: false
+framework: Gatsby
+i18nReady: true
+---
+
+import AstroJSXTabs from '~/components/tabs/AstroJSXTabs.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+다음은 시작하는 데 도움이 되는 몇 가지 주요 개념과 마이그레이션 전략입니다. 계속 진행하려면 나머지 문서와 [Discord 커뮤니티](https://astro.build/chat)를 활용하세요!
+
+## Gatsby와 Astro의 주요 유사점
+
+Gatsby와 Astro는 프로젝트 마이그레이션에 도움이 되는 몇 가지 유사점을 공유합니다.
+
+- [`.astro` 파일의 구문은 JSX와 유사합니다](/ko/basics/astro-syntax/#jsx와-유사한-표현식). Astro를 쓰는 것은 친숙하게 느껴질 것입니다.
+
+- Astro에는 [Markdown](/ko/guides/markdown-content/)에 대한 지원과 MDX 파일 사용을 위한 통합 기능이 내장되어 있습니다. 또한 기존 Markdown 플러그인 중 다수를 구성하고 계속 사용할 수 있습니다.
+
+- Astro에는 [React 컴포넌트 사용을 위한 공식 통합](/ko/guides/integrations-guide/react/)도 있습니다. Astro에서 React 파일은 `.jsx` 또는 `.tsx` 확장자를 **반드시** 가져야 합니다.
+
+- Astro는 React 라이브러리를 포함하여 [NPM 패키지 설치](/ko/guides/imports/#npm-패키지)를 지원합니다. 기존 종속성 중 상당수가 Astro에서 작동합니다.
+
+- Gatsby와 마찬가지로 Astro 프로젝트는 SSG 또는 [페이지 수준 사전 렌더링이 포함된 SSR](/ko/guides/server-side-rendering/)일 수 있습니다.
+
+## Gatsby와 Astro의 주요 차이점
+
+Astro에서 Gatsby 사이트를 다시 빌드하면 몇 가지 중요한 차이점을 발견할 수 있습니다.
+
+- Gatsby 프로젝트는 React 단일 페이지 앱이며 `index.js`를 프로젝트 루트로 사용합니다. Astro 프로젝트는 다중 페이지 사이트이고 `index.astro`는 홈 페이지입니다.
+
+- [Astro 컴포넌트](/ko/basics/astro-components/)는 페이지 템플릿을 반환하는 내보낸 함수로 작성되지 않습니다. 대신, 코드를 JavaScript용 "코드 펜스"와 생성한 HTML 전용 본문으로 분할합니다.
+
+- [로컬 파일 데이터](/ko/guides/imports/): Gatsby는 GraphQL을 사용하여 프로젝트 파일에서 데이터를 검색합니다. Astro는 프로젝트 파일에서 데이터를 가져오기 위해 ESM imports 및 최상위 await 함수를 사용합니다 (예: [`Astro.glob()`](/ko/guides/imports/#astroglob), [`getCollection()`](/ko/guides/content-collections/#컬렉션-쿼리)). Astro 프로젝트에 GraphQL을 수동으로 추가할 수 있지만 기본적으로 포함되어 있지는 않습니다.
+
+## Gatsby 프로젝트 전환
+
+각 프로젝트 마이그레이션은 다르게 보이지만 Gatsby에서 Astro로 변환할 때 수행하게 되는 몇 가지 일반적인 작업이 있습니다.
+
+### 새 Astro 프로젝트 만들기
+
+패키지 관리자의 `create astro` 명령을 사용하여 Astro의 CLI 마법사를 시작하거나 [Astro 테마 쇼케이스](https://astro.build/themes)에서 커뮤니티 테마를 선택하세요.
+
+`create astro` 명령에 `--template` 인수를 전달하여 공식 스타터 (예: `docs`, `blog`, `portfolio`) 중 하나를 사용하여 새 Astro 프로젝트를 시작할 수 있습니다. 또는 [GitHub의 기존 Astro 저장소에서 새 프로젝트를 시작](/ko/install/auto/#시작-템플릿)할 수 있습니다.
+
+  <PackageManagerTabs>
+    <Fragment slot="npm">
+    ```shell
+    # Astro CLI 마법사 실행
+    npm create astro@latest
+
+    # 공식 예시를 사용하여 새 프로젝트 만들기
+    npm create astro@latest -- --template <example-name>
+    ```
+    </Fragment>
+    <Fragment slot="pnpm">
+    ```shell
+    # Astro CLI 마법사 실행
+    pnpm create astro@latest
+
+    # 공식 예시를 사용하여 새 프로젝트 만들기
+    pnpm create astro@latest --template <example-name>
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```shell
+    # Astro CLI 마법사 실행
+    yarn create astro@latest
+
+    # 공식 예시를 사용하여 새 프로젝트 만들기
+    yarn create astro@latest --template <example-name>
+    ```
+    </Fragment>
+  </PackageManagerTabs>
+
+그런 다음 기존 Gatsby 프로젝트 파일을 새 Astro 프로젝트의 `src` 외부에 있는 별도의 폴더에 복사하세요.
+
+:::tip
+공식 시작 템플릿의 전체 목록과 StackBlitz, CodeSandbox, Gitpod에서 새 프로젝트를 열기 위한 링크를 보려면 https://astro.new를 방문하세요.
+:::
+
+### 통합 설치 (선택사항)
+
+Gatsby 프로젝트를 Astro로 변환하는 동안 사용할 수 있도록 [Astro의 선택적 통합](/ko/guides/integrations-guide/) 중 일부를 설치하는 것이 유용할 수 있습니다.
+
+- **@astrojs/react**: 새 Astro 사이트에서 기존 React UI 컴포넌트 중 일부를 재사용하거나 React 컴포넌트로 계속 작성합니다.
+
+- **@astrojs/mdx**: Gatsby 프로젝트에서 기존 MDX 파일을 가져오거나 새 Astro 사이트에서 MDX를 사용합니다.
+
+### `src`에 코드 추가
+
+[Astro의 프로젝트 구조](/ko/basics/project-structure/)를 따르세요.
+
+1. Gatsby의 `public/` 폴더를 **삭제** 하세요.
+    
+    Gatsby는 빌드 출력을 위해 `public/` 디렉터리를 사용하므로 이 폴더를 안전하게 삭제할 수 있습니다. 더 이상 Gatsby 사이트의 빌드 버전이 필요하지 않습니다. (Astro는 기본적으로 빌드 출력에 `dist/`를 사용합니다.)
+
+2. Gatsby의 `static/` 폴더 이름을 `public/`으로 **변경** 하고 Astro의 `public/` 폴더로 사용하세요.
+
+    Astro는 정적 자산에 `public/`이라는 폴더를 사용합니다. 또는 `static/`의 내용을 기존 Astro `public/` 폴더에 복사할 수도 있습니다.
+
+3. [Astro의 프로젝트 구조](/ko/basics/project-structure/)에 따라 사이트를 다시 빌드할 때 필요에 따라 Gatsby의 다른 파일 및 폴더 (예: `components`, `pages` 등)를 Astro `src/` 폴더에 **복사하거나 이동** 하세요.
+
+  Astro의 `src/pages/` 폴더는 `.astro`, `.md`, `.mdx` 파일에서 사이트의 페이지와 게시물을 생성하기 위한 파일 기반 라우팅에 사용되는 특수 폴더입니다. Astro, Markdown, MDX 파일에 대한 라우팅 동작을 구성할 필요가 없습니다.
+
+  다른 모든 폴더는 선택 사항이며 `src/` 폴더의 내용을 원하는 대로 구성할 수 있습니다. Astro 프로젝트의 다른 일반적인 폴더에는 `src/layouts/`, `src/components`, `src/styles`, `src/scripts`가 있습니다.
+
+### 팁: JSX 파일을 `.astro` 파일로 변환
+
+다음은 Gatsby `.js` 컴포넌트를 `.astro` 컴포넌트로 변환하기 위한 몇 가지 팁입니다.
+
+1. 기존 Gatsby 컴포넌트 함수의 `return()`만 HTML 템플릿으로 사용하세요.
+
+1. [Gatsby 또는 JSX 구문을 Astro 구문으로](#참조-astro-구문으로-변환) 또는 HTML 웹 표준으로 변경합니다. 예를 들어 여기에는 `<Link to="">`, `{children}`, `className`이 포함됩니다.
+
+1. import 구문을 포함하여 필요한 JavaScript를 ["코드 펜스" (`---`)](/ko/basics/astro-components/#컴포넌트-스크립트)로 이동합니다. 참고: [조건부 콘텐츠 렌더링](/ko/basics/astro-syntax/#동적-html)을 위한 JavaScript는 Astro에서 직접 HTML 템플릿 내에 작성되는 경우가 많습니다.
+
+4. 이전에 Gatsby 함수에 전달된 추가 props에 액세스하려면 [`Astro.props`](/ko/reference/api-reference/#astroprops)를 사용하세요.
+
+4. 가져온 컴포넌트도 Astro로 변환해야 하는지 여부를 결정합니다. 공식 React 통합이 설치되면 [Astro 파일의 기존 React 컴포넌트를 사용](/ko/guides/framework-components/)할 수 있습니다. 그러나 특히 대화형이 필요하지 않은 경우 `.astro` 컴포넌트로 변환할 수 있습니다!
+
+4. GraphQL 쿼리를 제거합니다. 대신 import 및 [`Astro.glob()`](/ko/reference/api-reference/#astroglob) 구문을 사용하여 로컬 파일을 쿼리하세요.
+
+[단계별 변환된 Gatsby 블로그 시작 템플릿의 예시](#안내-예시-gatsby-layout-변환)를 참조하세요.
+
+#### 비교: `.jsx`와 `.astro`
+
+다음 Gatsby 컴포넌트와 해당 Astro 컴포넌트를 비교해 보세요.
+
+<AstroJSXTabs>
+  <Fragment slot="jsx">
+    ```jsx title="component.jsx"
+    import * as React from "react"
+    import { useStaticQuery, graphql } from "gatsby"
+    import Header from "./header"
+    import Footer from "./footer"
+    import "./layout.css"
+
+    const Component = ({ message, children }) => {
+      const data = useStaticQuery(graphql`
+        query SiteTitleQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+      `)
+      return (
+        <>
+          <Header siteTitle={data.site.siteMetadata.title} />
+          <div style={{ margin: `0`, maxWidth: `960`}}>{message}</div>
+          <main>{children}</main>
+          <Footer siteTitle={data.site.siteMetadata} />
+        </>
+      )
+    }
+
+    export default Component
+    ```
+  </Fragment>
+
+  <Fragment slot="astro">
+    ```astro title="component.astro"
+    ---
+    import Header from "./Header.astro"
+    import Footer from "./Footer.astro"
+    import "../styles/stylesheet.css"
+    import { site } from "../data/siteMetaData.js"
+    const { message } = Astro.props
+    ---
+    <Header siteTitle={site.title} />
+      <div style="margin: 0; max-width: 960;">{message}</div>
+      <main>
+        <slot />
+      </main>
+    <Footer siteTitle={site.title} />
+    ```
+  </Fragment>
+</AstroJSXTabs>
+
+### Layout 파일 마이그레이션
+
+Gatsby 레이아웃과 템플릿을 [Astro 레이아웃 컴포넌트](/ko/basics/layouts/)로 변환하여 시작하는 것이 도움이 될 수 있습니다.
+
+각 Astro 페이지에는 `<html>`, `<head>`, `<body>` 태그가 명시적으로 필요하므로 페이지 전체에서 레이아웃 파일을 재사용하는 것이 일반적입니다. Astro는 페이지 콘텐츠에 대해 React의 `{children}` prop 대신 [`<slot />`](/ko/basics/astro-components/#슬롯)을 사용하며 import 구문은 필요하지 않습니다. Gatsby의 `layout.js` 및 템플릿에는 이러한 항목이 포함되지 않습니다.
+
+표준 HTML 템플릿과 `<head>`에 대한 직접 액세스를 참고하세요.
+
+```astro title="src/layouts/Layout.astro" "slot"
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Astro</title>
+  </head>
+  <body>
+    <!-- 기존 레이아웃 템플릿으로 슬롯 요소를 래핑합니다. -->
+    <slot />
+  </body>
+</html>
+```
+
+추가 사이트 메타데이터를 포함하기 위해 Gatsby의 `src/components/seo.js` 코드를 재사용할 수도 있습니다. Astro는 `<Helmet>`이나 `<Header>`를 사용하지 않고 대신 `<head>`를 직접 생성한다는 점에 유의하세요. `<head>` 내에서도 컴포넌트를 가져와 사용하여 페이지 콘텐츠를 분리하고 구성할 수 있습니다.
+
+### Pages 및 Posts 마이그레이션
+
+Gatsby에서 여러분의 [페이지 및 게시물](/ko/basics/astro-pages/)은 `src/pages/` 또는 `src` 외부 `content`와 같은 다른 폴더에 있을 수 있습니다. Astro에서는 **모든 페이지 콘텐츠가 `src/` 안에 있어야 합니다**.
+
+#### React Pages
+
+기존 Gatsby JSX (`.js`) 페이지를 [JSX 파일에서 `.astro` 페이지로 변환](#팁-jsx-파일을-astro-파일로-변환)해야 합니다. Astro에서는 기존 JSX 페이지 파일을 사용할 수 없습니다.
+
+이러한 [`.astro` 페이지](/ko/basics/astro-pages/)는 `src/pages/` 내에 있어야 하며 파일 경로에 따라 페이지 경로가 자동으로 생성됩니다.
+
+#### Markdown 및 MDX 페이지
+
+Astro에는 Markdown에 대한 기본 지원과 MDX 파일에 대한 선택적 통합이 있습니다. 기존 [Markdown 및 MDX 파일](/ko/guides/markdown-content/)을 재사용할 수 있지만 [Astro의 특수 `layout` frontmatter 속성](/ko/basics/layouts/#markdownmdx-레이아웃)을 추가하는 등 프런트매터에 일부 조정이 필요할 수 있습니다. 자동 파일 기반 라우팅을 활용하기 위해 `src/pages/` 내에 배치할 수도 있습니다.
+
+또는 Astro에서 [콘텐츠 컬렉션](/ko/guides/content-collections/)을 사용하여 콘텐츠를 저장하고 관리할 수 있습니다. 컬렉션의 일부인 경우 Markdown 및 MDX 파일은 `src/content/` 내 폴더에 저장됩니다. 콘텐츠를 직접 검색하고 [해당 페이지를 동적으로 생성](/ko/guides/content-collections/#콘텐츠에서-경로-생성)합니다.
+
+### 테스트 마이그레이션
+
+Astro는 원시 HTML을 출력하므로 빌드 단계의 출력을 사용하여 end-to-end 테스트를 작성하는 것이 가능합니다. 이전에 작성된 end-to-end 테스트는 이전 Gatsby 사이트의 마크업과 일치시킬 수 있는 경우 즉시 작동할 수 있습니다. Jest 및 React Testing Library와 같은 테스트 라이브러리를 Astro에서 가져와 React 컴포넌트를 테스트하는 데 사용할 수 있습니다.
+
+자세한 내용은 Astro의 [테스트 가이드](/ko/guides/testing/)를 참조하세요.
+
+### 구성 파일 용도 변경
+
+Gatsby에는 사이트 및 페이지 메타데이터도 포함하고 라우팅에 사용되는 여러 최상위 구성 파일이 있습니다. Astro 프로젝트에서는 이러한 `gatsby-*.js` 파일을 사용하지 않지만 Astro 프로젝트를 빌드할 때 재사용할 수 있는 일부 콘텐츠가 있을 수 있습니다.
+
+- `gatsby-config.js`: 사이트에 대한 데이터 (제목, 설명, 소셜 계정 등)를 페이지 레이아웃으로 가져오려면 `siteMetadata: {}`를 `src/data/siteMetadata.js` (또는 `siteMetadata.json`)로 이동하세요.
+
+- `gatsby-browser.js`: 여기에 사용된 모든 항목을 [기본 레이아웃](#layout-파일-마이그레이션)의 `<head>` 태그에 직접 추가하는 것을 고려해 보세요.
+
+- `gatsby-node.js`: Astro에서 자신만의 노드를 만들 필요는 없지만 이 파일의 스키마를 보면 Astro 프로젝트에서 타입을 정의하는 데 도움이 될 수 있습니다.
+
+- `gatsby-ssr.js`: Astro에서 SSR을 사용하기로 선택한 경우 `astro.config.mjs` 파일에서 직접 원하는 [SSR 어댑터를 추가 및 구성](/ko/guides/server-side-rendering/)하세요.
+
+## 참조: Astro 구문으로 변환
+
+다음은 Astro로 변환해야 하는 Gatsby 관련 구문의 몇 가지 예시입니다. Astro 컴포넌트 작성 가이드에서 [Astro와 JSX의 차이점](/ko/basics/astro-syntax/#astro와-jsx의-차이점)을 자세히 알아보세요.
+
+### Gatsby Links 변환
+
+Gatsby의 `<Link to="">`, `<NavLink>` 등의 컴포넌트를 HTML `<a href="">` 태그로 변환합니다.
+
+```astro del={1} ins={2}
+<Link to="/blog">Blog</Link>
+<a href="/blog">Blog</a>
+```
+
+Astro는 링크에 특별한 컴포넌트를 사용하지 않지만 자신만의 `<Link>` 컴포넌트를 만드는 것은 환영합니다. 그런 다음 다른 컴포넌트와 마찬가지로 이 `<Link>`를 가져와 사용할 수 있습니다.
+
+```astro title="src/components/Link.astro"
+---
+const { to } = Astro.props
+---
+<a href={to}><slot /></a>
+```
+
+### Gatsby Imports 변환
+
+필요한 경우 상대 파일 경로를 정확하게 참조하도록 [파일 가져오기](/ko/guides/imports/)를 업데이트하세요. 이는 [가져오기 별칭](/ko/guides/typescript/#가져오기-별칭)을 사용하거나 상대 경로 전체를 작성하여 수행할 수 있습니다.
+
+`.astro` 및 기타 여러 파일 타입은 전체 파일 확장자를 사용하여 가져와야 합니다.
+
+```astro title="src/pages/authors/Fred.astro" ".astro"
+---
+import Card from `../../components/Card.astro`;
+---
+<Card />
+```
+
+### Gatsby Children Props 변환
+
+`{children}`의 모든 인스턴스를 Astro `<slot />`으로 변환하세요. Astro는 `{children}`을 함수 prop으로 받을 필요가 없으며 자동으로 `<slot />`에 하위 콘텐츠를 렌더링합니다.
+
+```astro title="src/components/MyComponent" del={3-9} ins={11-13}
+---
+---
+export default function MyComponent(props) { 
+    return (
+      <div>
+        {props.children}
+      </div>
+    );  
+}
+
+<div>
+  <slot />
+</div>
+```
+
+여러 children 집합을 전달하는 React 컴포넌트는 [명명된 슬롯](/ko/basics/astro-components/#명명된-슬롯)을 사용하여 Astro 컴포넌트로 마이그레이션될 수 있습니다.
+
+[Astro의 특정 `<slot />` 사용법](/ko/basics/astro-components/#슬롯)에 대해 자세히 알아보세요.
+
+### Gatsby 스타일링 변환
+
+[CSS-in-JS 라이브러리](https://github.com/withastro/astro/issues/4432) (예: styled-components)를 Astro에서 사용 가능한 다른 CSS 옵션으로 바꿔야 할 수도 있습니다.
+
+필요한 경우 인라인 스타일 객체 (`style={{ fontWeight: "bold" }}`)를 인라인 HTML 스타일 속성(`style="font-weight:bold;"`)으로 변환합니다. 또는 범위가 지정된 CSS 스타일에는 [Astro `<style>` 태그](/ko/guides/styling/#astro에서-스타일링하기)를 사용하세요.
+
+```astro title="src/components/Card.astro" del={1} ins={2}
+<div style={{backgroundColor: `#f4f4f4`, padding: `1em`}}>{message}</div>
+<div style="background-color: #f4f4f4; padding: 1em;">{message}</div>
+```
+
+Tailwind는 [Tailwind 통합](/ko/guides/integrations-guide/tailwind/) 설치 후 지원됩니다. 기존 Tailwind 코드를 변경할 필요가 없습니다!
+
+전역 스타일은 `gatsby-browser.js` 파일의 CSS 가져오기를 사용하여 Gatsby에서 사용할 수 있게 됩니다. Astro에서는 `.css` 파일을 기본 레이아웃 컴포넌트로 직접 가져와 전역 스타일을 구현합니다.
+
+[Astro에서의 스타일링](/ko/guides/styling/)에 대해 자세히 알아보세요.
+
+### Gatsby 이미지 플러그인 변환
+
+Gatsby의 `<StaticImage />` 및 `<GatsbyImage />` 컴포넌트를 [Astro의 자체 이미지 통합 컴포넌트](/ko/guides/images/#image--astroassets)로 변환하거나 React 컴포넌트에서 적절하게 [표준 HTML `<img>` / JSX `<img />`](/ko/guides/images/#ui-프레임워크-컴포넌트의-이미지) 태그로 변환하세요.
+
+```astro title="src/pages/index.astro"
+---
+import { Image } from 'astro:assets';
+import rocket from '../assets/rocket.png';
+---
+<Image src={rocket} alt="A rocketship in space." />
+<img src={rocket.src} alt="A rocketship in space.">
+```
+
+Astro의 `<Image />` 컴포넌트는 `.astro` 및 `.mdx` 파일에서만 작동합니다. [컴포넌트 속성의 전체 목록](/ko/guides/images/#속성)을 확인하고 몇 가지 속성이 Gatsby 속성과 다르다는 점에 유의하세요.
+
+표준 Markdown 구문 (`![]()`)을 사용하여 [Markdown (`.md`) 파일의 이미지](/ko/guides/images/#markdown-파일의-이미지)를 계속 사용하려면 링크를 업데이트해야 할 수도 있습니다. HTML `<img>` 태그를 직접 사용하는 것은 로컬 이미지용 `.md` 파일에서 지원되지 않으며 Markdown 구문으로 변환해야 합니다.
+
+```md
+<!-- src/pages/post-1.md -->
+
+# My Markdown Page
+
+<!-- src/assets/stars.png에 저장된 로컬 이미지 -->
+![A starry night sky.](../assets/stars.png)
+
+```
+
+React (`.jsx`) 컴포넌트에서는 표준 JSX 이미지 구문 (`<img />`)을 사용합니다. Astro는 이러한 이미지를 최적화하지 않지만 유연성을 높이기 위해 NPM 패키지를 설치하고 사용할 수 있습니다.
+
+이미지 가이드에서 [Astro에서 이미지 사용](/ko/guides/images/)에 대해 자세히 알아볼 수 있습니다.
+
+### Gatsby GraphQL 변환
+
+GraphQL 쿼리에 대한 모든 참조를 제거하고 대신 [`Astro.glob()`](/ko/guides/imports/#astroglob)을 사용하여 로컬 파일의 데이터에 액세스하세요.
+
+또는 콘텐츠 컬렉션을 사용하는 경우 [`getEntry()` 및 `getCollection()`](/ko/guides/content-collections/#컬렉션-쿼리)을 사용하여 `src/content/`에서 Markdown 및 MDX 파일을 쿼리하세요.
+
+이러한 데이터 요청은 Astro 컴포넌트의 프런트매터에서 데이터를 사용하여 이루어집니다.
+
+```astro title="src/pages/index.astro" del={2,12-28}
+---
+import { graphql } from "gatsby"
+import { getCollection } from 'astro:content';
+
+// 모든 `src/content/blog/` 항목 가져오기
+const allBlogPosts = await getCollection('blog');
+
+// 모든 `src/pages/posts/` 항목을 가져오기
+const allPosts = await Astro.glob('../pages/posts/*.md');
+---
+
+export const pageQuery = graphql`
+  {
+    allMarkdownRemark(sort: { frontmatter: { date: DESC } }) {
+      nodes {
+        excerpt
+        fields {
+          slug
+        }
+        frontmatter {
+          date(formatString: "MMMM DD, YYYY")
+          title
+          description
+        }
+      }
+    }
+  }
+`
+```
+
+## 안내 예시: Gatsby layout 변환
+
+이 예시는 Gatsby 블로그 스타터의 기본 프로젝트 레이아웃 (`layout.js`)을 `src/layouts/Layout.astro`로 변환합니다.
+
+이 페이지 레이아웃은 홈 페이지를 방문할 때 하나의 헤더를 표시하고 다른 모든 페이지의 경우 홈으로 돌아가는 링크가 있는 다른 헤더를 표시합니다.
+
+1. return() JSX를 식별합니다.
+
+    ```jsx {21-29} title="layout.js"
+    import * as React from "react"
+    import { Link } from "gatsby"
+    const Layout = ({ location, title, children }) => {
+      const rootPath = `${__PATH_PREFIX__}/`
+      const isRootPath = location.pathname === rootPath
+      let header
+      if (isRootPath) {
+        header = (
+          <h1 className="main-heading">
+            <Link to="/">{title}</Link>
+          </h1>
+        )
+      } else {
+        header = (
+          <Link className="header-link-home" to="/">
+            Home
+          </Link>
+        )
+      }
+      return (
+        <div className="global-wrapper" data-is-root-path={isRootPath}>
+          <header className="global-header">{header}</header>
+          <main>{children}</main>
+          <footer>
+            © {new Date().getFullYear()}, Built with
+            {` `}
+            <a href="https://www.gatsbyjs.com">Gatsby</a>
+          </footer>
+        </div>
+      )
+    }
+    export default Layout
+    ```
+
+2. `Layout.astro`를 생성하고 [Astro 구문으로 변환](#참조-astro-구문으로-변환)된 이 `return` 값을 추가합니다.
+
+    참고 사항:
+
+    - `{new Date().getFullYear()}`는 그대로 사용합니다. 🎉
+    - `{children}`는 `<slot />`로 변환합니다. 🦥
+    - `className`는 `class`로 변환합니다. 📛
+    - `Gatsby`는 `Astro`로 변환합니다. 🚀
+
+    ```astro title="src/layouts/Layout.astro" "<slot />" "class" "Astro" "astro.build"
+    ---
+    ---
+    <div class="global-wrapper" data-is-root-path={isRootPath}>
+      <header class="global-header">{header}</header>
+      <main><slot /></main>
+      <footer>
+        © {new Date().getFullYear()}, Built with
+        {` `}
+        <a href="https://www.astro.build">Astro</a>
+      </footer>
+    </div>
+    ```
+
+3. 레이아웃이 각 페이지에 HTML 문서의 필요한 부분을 제공하도록 페이지 셸을 추가합니다.
+
+    ```astro title="src/layouts/Layout.astro" ins={3-10,22-23}
+    ---
+    ---
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Astro</title>
+      </head>
+      <body>
+        <div class="global-wrapper" data-is-root-path={isRootPath}>
+          <header class="global-header">{header}</header>
+          <main>
+            <slot />
+          </main>
+          <footer>
+            &#169; {new Date().getFullYear()}, Built with
+            {` `}
+            <a href="https://www.astro.build">Astro</a>
+          </footer>
+        </div>
+      </body>
+    </html>
+    ```
+
+4. 필요한 imports, props,JavaScript를 추가합니다.
+  
+    Astro에서 페이지 경로와 제목을 기반으로 헤더를 조건부로 렌더링하려면 다음을 수행하세요.
+
+    - `Astro.props`를 통해 props을 제공합니다. (기억하세요: Astro 템플릿은 함수로 전달되지 않고 프런트매터를 통해 props에 액세스합니다.)
+    - 삼항 연산자를 사용하여 홈페이지인 경우 하나의 제목을 표시하고 그렇지 않은 경우 다른 제목을 표시합니다.
+    - `{header}` 및 `{isRootPath}`에 대한 변수는 더 이상 필요하지 않으므로 제거합니다.
+    - Gatsby의 `<Link/>` 태그를 `<a>` 앵커 태그로 교체합니다.
+    - `className` 대신 `class`를 사용합니다.
+    - 클래스 이름을 적용하려면 프로젝트에서 로컬 스타일시트를 가져옵니다.
+
+    ```astro title="src/layouts/Layout.astro" ins={2-3, 15, 16, 20, 24} "class" "<a" "</a>"
+    ---
+    import '../styles/style.css';
+    const { title, pathname } = Astro.props
+    ---
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Astro</title>
+      </head>
+      <body>
+        <div class="global-wrapper">
+          <header class="global-header">
+            { pathname === "/" 
+            ? 
+              <h1 class="main-heading">
+              <a href="/">{title}</a>
+              </h1>
+            : 
+              <h1 class="main-heading">
+              <a class="header-link-home" href="/">Home</a>
+              </h1>
+            }  
+          </header>
+          <main>
+            <slot />
+          </main>
+          <footer>
+            &#169; {new Date().getFullYear()}, Built with
+            {` `}
+            <a href="https://www.astro.build">Astro</a>
+          </footer>
+        </div>
+      </body>
+    </html>
+    ```
+
+5. 이 새로운 레이아웃을 사용하려면 `index.astro`를 업데이트하고 필요한 `title` 및 `pathname` props를 전달하세요.
+
+    ```astro title="src/pages/index.astro"
+    ---
+    import Layout from '../layouts/Layout.astro';
+    const pagePathname = Astro.url.pathname
+    ---
+    <Layout title="Home Page" pathname={pagePathname}>
+        <p>Astro</p>
+    </Layout>
+    ```
+    :::tip
+    [`Astro.url`을 사용하여 현재 페이지의 경로를 가져올 수 있습니다](/ko/reference/api-reference/#astrourl).
+    :::
+
+6. 조건부 헤더를 테스트하려면 동일한 패턴을 사용하여 두 번째 페이지 `about.astro`를 만듭니다.
+
+    ```astro title="src/pages/about.astro"
+    ---
+    import Layout from '../layouts/Layout.astro';
+    const pagePathname = Astro.url.pathname
+    ---
+    <Layout title="About" pathname={pagePathname}>
+        <p>About</p>
+    </Layout>
+    ```
+
+    About 페이지를 방문할 때만 "Home" 링크가 표시됩니다.
+
+## 커뮤니티 자료
+
+- 블로그 게시물: [Migrating from Gatsby to Astro](https://loige.co/migrating-from-gatsby-to-astro/)
+
+- 블로그 게시물: [Migrating to Astro was EZ](https://joelhooks.com/migrating-to-astro-was-ez).
+
+- 블로그 게시물: [My Switch from Gatsby to Astro](https://www.joshfinnie.com/blog/my-switch-from-gatsby-to-astro/).
+
+- 블로그 게시물: [Why I moved to Astro from Gatsby](https://dev.to/askrodney/why-i-moved-to-astro-from-gatsby-3fck).
+
+- 블로그 게시물: [Migrating my website from Gatsby to Astro](https://dev.to/flashblaze/migrating-my-website-from-gatsby-to-astro-2ej5).
+
+- 블로그 게시물: [Another Migration: From Gatsby to Astro](https://logarithmicspirals.com/blog/migrating-from-gatsby-to-astro/).
+
+:::note[공유할 자료가 있나요?]
+Gatsby 사이트를 Astro로 전환하는 방법에 대한 유용한 비디오나 블로그 게시물을 찾았거나 만들었다면 [이 페이지를 편집](https://github.com/withastro/docs/edit/main/src/content/docs/en/guides/migrate-to-astro/from-gatsby.mdx)하여 여기에 추가하세요!
+:::

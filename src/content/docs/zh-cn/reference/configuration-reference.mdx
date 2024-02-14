@@ -393,14 +393,15 @@ $ astro build --root ./my-project-directory
 
 <p>
 
-**类型**：`('file' | 'directory')`<br />
+**类型**：`('file' | 'directory' | 'preserve')`<br />
 **默认值**：`'directory'`
 </p>
 
 控制每个页面的输出文件格式。这个值可能会由适配器帮你设置：
 
-- 如果是 `file`，Astro 将为每个页面生成一个 HTML 文件（例如："/foo.html"）。
-- 如果是 `directory`，Astro 将为每个页面生成一个有嵌套的`index.html`文件的目录（例如："/foo/index.html"）。
+  - `'file'`：Astro 将为每个路由生成一个 HTML 文件。（例如：`src/pages/about.astro` 和 `src/pages/about/index.astro` 都会打包成 `/about.html` 文件）
+  - `'directory'`：Astro 将生成一个目录，其中包含每个页面的嵌套的 `index.html` 文件。 (例如：`src/pages/about.astro` 和 `src/pages/about/index.astro` 都会打包成 `/about/index.html` 文件)
+  - `'preserve'`：Astro 将根据你的源文件夹中的文件生成 HTML 文件。 (例如：`src/pages/about.astro` 生成 `/about.html`，`src/pages/about/index.astro` 生成 `/about/index.html`)
 
 ```js
 {
@@ -1209,7 +1210,7 @@ Astro 提供了实验性标志，以便用户提前使用新功能。这些标�
 <Since v="4.2.0" />
 </p>
 
-将重定向和注入路由与基于文件的项目路由进行同等优先级处理，所有路由都遵循相同的[路由优先级顺序规则](/zh-cn/core-concepts/routing/#路由优先级顺序)。
+将重定向和注入路由与基于文件的项目路由进行同等优先级处理，所有路由都遵循相同的[路由优先级顺序规则](/zh-cn/guides/routing/#路由优先级顺序)。
 
 这允许你在项目中对路由有更多的控制，不会自动优先处理某些类型的路由，并且标准化所有路由的路由优先级顺序。
 
@@ -1228,3 +1229,46 @@ Astro 提供了实验性标志，以便用户提前使用新功能。这些标�
 
 
 在路由冲突的情况下，两个具有相同路由优先级的路由试图构建相同的 URL，Astro 将记录警告，标识出冲突的路由。
+
+
+### experimental.i18nDomains
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `false`<br />
+<Since v="4.3.0" />
+</p>
+
+启用域名支持，用于[实验性的 `domains` 路由策略](/zh-cn/guides/internationalization/#domains-experimental)，它允许你配置一个或多个支持的语言的 URL 模式，以使用自定义域名（或子域名）。
+
+当一个语言环境映射到一个域名时，将不会使用 `/[locale]/` 路径前缀。然而，`src/pages/` 中的本地化文件夹仍然是必需的，包括你配置的 `defaultLocale`。
+
+其他未配置的语言环境将默认为根据你的 `prefixDefaultLocale` 策略进行本地化的路径 URL（例如 `https://example.com/[locale]/blog`）。
+
+```js
+//astro.config.mjs
+export default defineConfig({
+	site: "https://example.com",
+	output: "server", // 不需要预渲染的页面
+	adapter: node({
+		mode: 'standalone',
+	}),
+	i18n: {
+		defaultLocale: "en",
+		locales: ["en", "fr", "pt-br", "es"],
+		prefixDefaultLocale: false,
+		domains: {
+			fr: "https://fr.example.com",
+			es: "https://example.es",
+		},
+	},
+	experimental: {
+		i18nDomains: true,
+	},
+});
+```
+
+`astro:i18n` 辅助函数 [`getAbsoluteLocaleUrl()`](/zh-cn/guides/internationalization/#getabsolutelocaleurl) 和 [`getAbsoluteLocaleUrlList()`](/zh-cn/guides/internationalization/#getabsolutelocaleurllist)  构建的页面路由和 URL 将使用 `i18n.domains` 中设置的选项。
+
+查看 [国际化指南](/zh-cn/guides/internationalization/#domains-experimental) 以获取更多细节，包括这个实验性功能的限制。

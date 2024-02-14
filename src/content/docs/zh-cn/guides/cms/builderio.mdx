@@ -1,0 +1,361 @@
+---
+title: Builder.io & Astro
+description: 使用 Builder.io 的可视化 CMS 为你的 Astro 项目添加内容
+type: cms
+service: Builder.io
+stub: false
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import FileTree from '~/components/FileTree.astro';
+
+[Builder.io](https://www.builder.io/) 是一个适用于构建网站的支持拖放内容编辑的可视化 CMS。
+
+这个方案将向你展示如何不需要使用客户端 JavaScript，就能将你的 Builder 空间与 Astro 连接。
+
+
+## 前期准备
+
+在开始之前，你需要准备以下内容：
+
+* **一个 Builder 账户和空间** - 如果你还没有账户，可以[免费注册](https://www.builder.io/)并创建一个新的空间。如果你已经有了一个 Builder 的空间，直接使用即可，但请确保代码中的模型名称（`blogpost`）和自定义数据字段与你的设置相匹配。
+* **一个 Builder API 密钥** - 你将需要这个密钥来从 Builder 获取内容。[查看 Builder 的指南以了解如何获取你的密钥](https://www.builder.io/c/docs/using-your-api-key#finding-your-public-api-key)。
+
+## 设置凭证
+
+为了在 Astro 项目中使用你的 Builder API 密钥和模型名称，请在项目根目录下创建一个 `.env` 文件（如果尚未存在），并添加如下环境变量：
+
+```ini title=".env"
+BUILDER_API_PUBLIC_KEY=YOUR_API_KEY
+BUILDER_BLOGPOST_MODEL='blogpost'
+```
+
+现在，你应该已经可以在你的项目中使用这个 API 密钥了。
+
+:::note
+在编写本文时，[这个密钥是公开的](https://www.builder.io/c/docs/using-your-api-key#prerequisites)，因此无需担心隐藏或加密它。
+:::
+
+如果你希望你的环境变量具有类型智能提示，你可以在 `src/` 目录下创建一个 `env.d.ts` 文件，并按照以下方式配置 `ImportMetaEnv`：
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly BUILDER_API_PUBLIC_KEY: string;
+}
+```
+
+你的项目现在应该包括这些文件：
+
+<FileTree title="项目结构">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+
+## 使用 Astro 和 Builder 创建博客
+
+### 创建博客文章的模型
+
+接下来，我们将创建一个 Astro 博客，该博客将使用名为 `blogpost` 的 Builder 模型（类型："Section"），并包含两个必填的文本字段：`title` 和 `slug`。
+
+:::tip[对于视觉类型]
+你可以在 [Builder 的官方教程](https://www.builder.io/blog/creating-blog#creating-a-blog-article-model) 中找到此过程的视频演示。
+:::
+
+在 Builder 应用中，我们将创建一个代表博客文章的模型。请转到 **模型（Models）** 标签页，点击 **+ 创建模型（Create Model）** 按钮，并按照以下指示填写字段和值：
+
+- **类型：** Section
+- **名称：** "blogpost"
+- **描述：** "这个模型是用于博客文章的"
+
+在你的新模型中使用 **+ 新建自定义字段（New Custom Field）** 按钮创建 2 个新字段：
+
+1. 文本字段
+    - **名称：** "title"
+    - **必填：** 是
+    - **默认值：** "我忘了给它提供标题"
+
+    (其他参数保持默认)
+
+2. 文本字段
+    - **名称：** "slug"
+    - **必填：** 是
+    - **默认值：** "some-slugs-take-their-time"
+
+    (其他参数保持默认)
+
+然后点击右上角的 **保存（Save）** 按钮。
+
+:::caution[Slugs]
+`slug` 字段需要注意以下几点：
+
+* 避免使用纯数字作为 slug，这可能会干扰 Builder API 的请求。
+
+* 确保每个 slug 都是唯一的，以保证网站路由的正确性。
+:::
+
+### 设置预览
+
+为了使用 Builder 的可视化编辑器，我们需要创建一个名为 `src/pages/builder-preview.astro` 的页面，这个页面将会渲染一个特殊的 `<builder-component>`：
+
+<FileTree title="项目结构">
+- src/
+  - pages/
+    - **builder-preview.astro**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+然后添加以下内容：
+
+```astro title="src/pages/builder-preview.astro"
+---
+const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
+const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
+---
+
+<html lang="en">
+  <head>
+    <title>预览 builder.io</title>
+  </head>
+  <body>
+    <header>这里是页头</header>
+
+    <builder-component model={builderModel} api-key={builderAPIpublicKey}
+    ></builder-component>
+    <script async src="https://cdn.builder.io/js/webcomponents"></script>
+
+    <footer>这里是页脚</footer>
+  </body>
+</html>
+
+```
+
+在上面的例子中，`<builder-component>` 元素指示 Builder 在页面的哪个位置插入 CMS 内容。
+
+#### 设置新路由作为预览 URL
+
+1. 复制完整的预览 URL，要包括协议，复制到你的剪贴板（例如 `https://{your host}/builder-preview`）。
+
+2. 进入你的 Builder 空间的 **模型** 标签页，选择你创建的模型，并将步骤 1 中的 URL 粘贴到 **预览 URL** 字段。确保 URL 是完整的，复制要包括协议，例如 `https://`。
+
+3. 点击右上角的 **保存（Save）** 按钮。
+
+:::tip
+当你的网站部署到生产环境时，记得将预览 URL 更新为与你的正式网站地址相匹配，例如 `https://myAwesomeAstroBlog.com/builder-preview`。
+:::
+
+#### 测试预览 URL 设置
+
+1. 确保你的开发服务器正在运行，且网站在线。同时，确认 `/builder-preview` 路由能够正常工作。
+
+2. 在你的 Builder 空间中，找到 **内容（Content）** 标签页，点击 **新建（New）** 来创建一个新的 `blogpost` 模型的内容条目。
+
+3. 在新打开的 Builder 编辑器中，你应该能看到 `builder-preview.astro` 页面，页面中间有一个显眼的 **添加块（Add Block）**。
+
+:::tip[故障排除]
+
+在设置预览时，可能会遇到一些问题。如果出现任何异常，你可以尝试以下步骤：
+
+* 确保网站处于在线状态 - 比如，你的开发服务器正在运行。
+* 确保 URL 完全一致 - 你的 Astro 项目中的 URL 应与在 Builder 应用中设置的 URL 完全匹配。
+* 确保使用的是完整的 URL，包括协议，如 `https://`。
+* 如果你在像 [StackBlitz](https://stackblitz.com/) 或 [Gitpod](https://www.gitpod.io/) 这样的虚拟环境中工作，每次重启工作区时可能需要重新复制并粘贴 URL，因为这些环境通常会为你的项目生成一个新的 URL。
+
+了解更多信息，请参阅 [Builder 的故障排除指南](https://www.builder.io/c/docs/guides/preview-url-working)。
+:::
+
+### 创建博客文章
+
+1. 在 Builder 的可视化编辑器中，创建一个新的内容条目，值如下：
+    - **标题：** '第一篇文章，哇哦！'
+    - **slug：** 'first-post-woohoo'
+2. 利用 **添加块（Add Block）** 功能来丰富你的文章内容，添加所需的文本字段。
+3. 在编辑器顶部的文本框中为你的内容条目命名，这个名称将用作在 Builder 应用中的显示名称。
+4. 准备就绪后，点击右上角的 **发布（Publish）** 按钮。
+5. 你可以随意创建更多文章，但需要确保每篇文章都有一个 `title` 和一个 `slug` 字段，以及相应的文章内容。
+
+### 显示博客文章列表
+
+在 `src/pages/index.astro` 文件中添加以下代码，以便展示一个包含所有文章标题的列表，其中每个标题都链接到相应的文章页面：
+
+```astro title="src/pages/index.astro" {9}
+---
+
+const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
+const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
+
+const { results: posts } = await fetch(
+  `https://cdn.builder.io/api/v3/content/${builderModel}?${new URLSearchParams({
+    apiKey: builderAPIpublicKey,
+    fields: ["data.slug", "data.title"].join(","),
+    cachebust: "true",
+  }).toString()}`
+)
+  .then((res) => res.json())
+  .catch();
+---
+
+<html lang="en">
+  <head>
+    <title>博客目录</title>
+  </head>
+  <body>
+    <ul>
+      {
+        posts.map(({ data: { slug, title } }) => (
+          <li>
+            <a href={`/posts/${slug}`}>{title}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </body>
+</html>
+
+```
+
+我们通过内容 API 获取了一个包含每篇文章数据的对象数组。`fields` 查询参数用于指定我们希望 Builder 返回哪些数据字段（如高亮代码所示）。`slug` 和 `title` 应与你在 Builder 模型中添加的自定义数据字段名称相匹配。
+
+我们已经在首页上使用从 API 获取的 `posts` 数组显示了博客文章标题的列表。接下来，我们将创建用于显示单篇文章的页面路由。
+
+:::tip[框架集成]
+如果你的 Astro 项目中集成了 JavaScript 框架（如 Svelte，Vue 或 React），那么你可以考虑使用 [Builder 的集成功能](https://www.builder.io/m/integrations)，这是一种比直接通过 REST API 更优雅得获取数据的方法。
+:::
+
+访问你的索引路由，你将看到一个博客文章标题的链接列表！
+
+
+### 显示单个博客文章
+
+创建页面 `src/pages/posts/[slug].astro`，该页面将为每篇文章[动态生成一个页面](/zh-cn/guides/routing/#动态路由)。
+
+<FileTree title="项目结构">
+- src/
+  - pages/
+    - index.astro
+    - posts/
+      - **[slug].astro**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+这个文件应包含以下内容：
+- 一个 [`getStaticPaths()`](/zh-cn/reference/api-reference/#getstaticpaths) 函数，它从 Builder 获取 `slug` 信息，并为每篇博客文章生成一个静态路由。
+- 使用 `slug` 标识符进行 `fetch()` 请求，从 Builder API 获取文章内容和元数据（如 `title`）。
+- 在模板中的一个 `<Fragment />`，将文章内容渲染为 HTML。
+
+下面将对代码片段中的每个部分进行高亮显示。
+
+```astro title="src/pages/posts/[slug].astro"  ins={2, 26, 33, 40, 51}
+---
+export async function getStaticPaths() {
+  const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
+  const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
+  const { results: posts } = await fetch(
+    `https://cdn.builder.io/api/v3/content/${builderModel}?${new URLSearchParams(
+      {
+        apiKey: builderAPIpublicKey,
+        fields: ["data.slug", "data.title"].join(","),
+        cachebust: "true",
+      }
+    ).toString()}`
+  )
+    .then((res) => res.json())
+    .catch
+    // ...catch some errors...);
+    ();
+  return [
+    ...posts.map(({ data: { slug, title } }) => [
+      {
+        params: { slug },
+        props: { title },
+      },
+    ]),
+  ];
+}
+const { slug } = Astro.params;
+const { title } = Astro.props;
+const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
+const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
+// 尽管在这个场景中 URL 参数对 API 的返回结果没有影响（返回的 HTML 内容是一样的），但 Builder 的 API 还是需要这个字段。
+const encodedUrl = encodeURIComponent("moot");
+const { html: postHTML } = await fetch(
+  `https://cdn.builder.io/api/v1/qwik/${builderModel}?${new URLSearchParams({
+    apiKey: builderAPIpublicKey,
+    url: encodedUrl,
+    "query.data.slug": slug,
+    cachebust: "true",
+  }).toString()}`
+)
+  .then((res) => res.json())
+  .catch();
+---
+<html lang="en">
+  <head>
+    <title>{title}</title>
+  </head>
+  <body>
+    <header>这里是页头</header>
+    <article>
+      <Fragment set:html={postHTML} />
+    </article>
+    <footer>这里是页脚</footer>
+  </body>
+</html>
+```
+
+:::note
+由于 [`getStaticPaths()` 在其自己的隔离范围内运行](/zh-cn/reference/api-reference/#getstaticpaths)，我们需要分别在两个地方创建 `builderModel` 和 `builderAPIpublicKey` 变量。
+:::
+
+现在，当你在索引路由上点击某个链接，你将会跳转到对应的博客文章页面。
+
+### 发布你的网站
+
+要部署你的网站，请访问我们的[部署指南](/zh-cn/guides/deploy/)并根据你选择的托管提供商的步骤进行操作。
+
+#### 在 Builder 更改时重建
+
+如果你的项目使用 Astro 的默认静态模式，你需要设置一个 webhook 来在你的内容更改时触发新的构建。如果你使用 Netlify 或 Vercel 作为你的托管提供商，你可以使用其 webhook 功能在你在 Builder 编辑器中点击 **发布（Publish）** 时触发新的构建。
+
+##### Netlify
+
+1. 登录到你的站点仪表板，选择 **站点设置（Site Settings）**，然后点击 **构建与部署（Build & deploy）**。
+2. 在 **持续部署（Continuous Deployment）** 标签下，找到 **构建钩子（Build hooks）** 部分，点击 **添加构建钩子（Add build hook）**。
+3. 给你的 webhook 起一个名字，选择你希望触发构建的分支，点击 **保存（Save）**，然后复制生成的 URL。
+
+##### Vercel
+
+1. 登录到你的项目仪表板并点击 **设置（Settings）**。
+2. 在 **Git** 标签下，找到 **部署钩子（Deploy Hooks）** 部分。
+3. 为你的 webhook 提供一个名称并选择你想要触发构建的分支。点击 **添加（Add）** 并复制生成的 URL。
+
+##### 将 webhook 添加到 Builder
+
+:::tip[官方资源]
+查看 [Builder 的添加 webhooks 指南](https://www.builder.io/c/docs/webhooks) 了解更多信息。
+:::
+
+1. 首先，进入你的 Builder 仪表板，找到并点击 **`blogpost`** 模型。然后在 **显示更多选项（Show More Options）** 下，选择底部的 **编辑 Webhooks（Edit Webhooks）**。
+2. 点击 **Webhook** 添加一个新的 webhook，并将你的托管提供商生成的 URL 粘贴到 **Url** 字段中。
+3. 点击 **Url** 字段下的 **显示高级（Show Advanced）**，然后选择 **禁用 Payload（Disable Payload）**。这样，Builder 将会向你的托管提供商发送一个更简单的 POST 请求，这对于你的网站的提升将会非常有帮助。最后，点击 **完成（Done）** 以保存你的设置。
+
+通过这个 webhook，每次你在 Builder 编辑器中点击 **发布（Publish）** 按钮，你的托管提供商就会自动重建网站，并且 Astro 会为你获取最新发布的内容。这意味着，你只需专注于创作优质内容，其他的更新流程都会自动完成。
+
+## 官方资源
+
+- 可以查看 [官方的 Builder.io 启动项目](https://github.com/BuilderIO/builder/tree/main/examples/astro-solidjs)，该项目采用了 Astro 和 SolidJS。
+- [官方的 Builder 快速开始指南](https://www.builder.io/c/docs/quickstart#step-1-add-builder-as-a-dependency) 详细介绍了如何通过 REST API 或与 JavaScript 框架（如 Qwik、React 或 Vue）集成来获取数据。
+- 如果你在 API 调用中遇到问题，[Builder 的 API 探索器](https://builder.io/api-explorer) 可以为你提供帮助。
+
+## 社区资源
+
+- 阅读 Yoav Ganbar 编写的 [将 Builder.io 的可视化 CMS 连接到 Astro](https://www.hamatoyogi.dev/blog/astro-log/connecting-builderio-to-astro)。
