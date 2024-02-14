@@ -1122,3 +1122,116 @@ Habilita um cache persistente para coleções de conteúdo ao fazer o build em m
 }
 ```
 
+
+### experimental.clientPrerender
+
+<p>
+
+**Tipo:** `boolean`<br />
+**Padrão:** `false`<br />
+<Since v="4.2.0" />
+</p>
+
+Habilita o pré-renderização das suas páginas pré-carregadas no cliente em navegadores compatíveis.
+
+Esta funcionalidade utiliza a experimental [Speculation Rules Web API](https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API) e substitui o comportamento padrão de `prefetch` globalmente para pré-renderizar links no cliente.
+Você pode querer revisar os [possíveis riscos ao pré-renderizar no cliente](https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API#unsafe_prefetching) antes de habilitar esta funcionalidade.
+
+Habilite a pré-renderização do lado do cliente no seu `astro.config.mjs` junto com quaisquer opções de configuração de `prefetch` desejadas:
+
+
+```js
+// astro.config.mjs
+{
+  prefetch: {
+    prefetchAll: true,
+    defaultStrategy: 'viewport',
+  },
+  experimental: {
+    clientPrerender: true,
+  },
+}
+```
+
+Continue a usar o atributo `data-astro-prefetch` em qualquer link `<a />` no seu site para optar pelo pré-carregamento.
+Em vez de anexar uma tag `<link>` ao cabeçalho do documento ou buscar a página com JavaScript, uma tag `<script>` será anexada com as Speculation Rules correspondentes.
+
+A pré-renderização do lado do cliente requer suporte do navegador. Se a Speculation Rules API não for suportada, `prefetch` reverterá para a estratégia suportada.
+
+Veja o [Guia de Prefetch](/pt-br/guides/prefetch/) para mais opções de `prefetch` e seu uso.
+
+
+### experimental.globalRoutePriority
+
+<p>
+
+**Tipo:** `boolean`<br />
+**Padrão:** `false`<br />
+<Since v="4.2.0" />
+</p>
+
+
+Prioriza redirecionamentos e rotas injetadas igualmente ao lado das rotas de projeto baseadas em arquivos, seguindo as mesmas [regras de ordem de prioridade de rota](/pt-br/guides/routing/#ordem-de-prioridade-de-rotas) para todas as rotas.
+
+Isso permite um controle maior sobre o roteamento em seu projeto, não priorizando automaticamente certos tipos de rotas, e padroniza a ordem de prioridade de rota para todas as rotas.
+
+O seguinte exemplo mostra qual rota construirá certos URLs de página quando rotas baseadas em arquivos, rotas injetadas e redirecionamentos são combinados como mostrado abaixo:
+
+- Rota baseada em arquivo: `/blog/post/[pid]`
+- Rota baseada em arquivo: `/[page]`
+- Rota injetada: `/blog/[...slug]`
+- Redirecionamento: `/blog/tags/[tag]` -> `/[tag]`
+- Redirecionamento: `/posts` -> `/blog`
+
+Com `experimental.globalRoutingPriority` habilitado (em vez da ordem de prioridade de rota padrão do Astro 4.0):
+
+- `/blog/tags/astro` é construído pelo redirecionamento para `/tags/[tag]` (em vez da rota injetada `/blog/[...slug]`)
+- `/blog/post/0` é construído pela rota baseada em arquivo `/blog/post/[pid]` (em vez da rota injetada `/blog/[...slug]`)
+- `/posts` é construído pelo redirecionamento para `/blog` (em vez da rota baseada em arquivo `/[page]`)
+
+
+No caso de colisões de rotas, onde duas rotas de igual prioridade de rota tentam construir a mesma URL, o Astro registrará um aviso identificando as rotas conflitantes.
+
+
+### experimental.i18nDomains
+
+<p>
+
+**Tipo:** `boolean`<br />
+**Padrão:** `false`<br />
+<Since v="4.3.0" />
+</p>
+
+Habilita suporte a domínio para a [estratégia de roteamento `domains` experimental](/pt-br/guides/internationalization/#domains-experimental), que permite configurar o padrão de URL de um ou mais idiomas suportados para usar um domínio personalizado (ou subdomínio).
+
+Quando um local é mapeado para um domínio, um prefixo de caminho `/[locale]/` não será usado. No entanto, pastas localizadas dentro de `src/pages/` ainda são necessárias, incluindo para o seu `defaultLocale` configurado.
+
+Qualquer outro local não configurado padronizará para uma URL baseada em caminho localizado de acordo com a sua estratégia de `prefixDefaultLocale` (por exemplo, `https://example.com/[locale]/blog`).
+
+
+```js
+//astro.config.mjs
+export default defineConfig({
+	site: "https://example.com",
+	output: "server", // obrigatório, sem páginas pré-renderizadas
+	adapter: node({
+		mode: 'standalone',
+	}),
+	i18n: {
+		defaultLocale: "en",
+		locales: ["en", "fr", "pt-br", "es"],
+		prefixDefaultLocale: false,
+		domains: {
+			fr: "https://fr.example.com",
+			es: "https://example.es",
+		},
+	},
+	experimental: {
+		i18nDomains: true,
+	},
+});
+```
+
+Tanto as rotas de página construídas quanto as URLs retornadas pelas funções auxiliares `astro:i18n` [`getAbsoluteLocaleUrl()`](/pt-br/guides/internationalization/#getabsolutelocaleurl) e [`getAbsoluteLocaleUrlList()`](/pt-br/guides/internationalization/#getabsolutelocaleurllist) usarão as opções definidas em `i18n.domains`.
+
+Veja o [Guia de Internacionalização](/pt-br/guides/internationalization/#domains-experimental) para mais detalhes, incluindo as limitações desta funcionalidade experimental.
