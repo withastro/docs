@@ -4,10 +4,11 @@ description: How to deploy your Astro site to the web using AWS.
 type: deploy
 i18nReady: true
 ---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
 [AWS](https://aws.amazon.com/) is a full-featured web app hosting platform that can be used to deploy an Astro site.
 
-Deploying your project to AWS requires using the [AWS console](https://aws.amazon.com/console/). (Most of these actions can also be done using the [AWS CLI](https://aws.amazon.com/cli/)). This guide will walk you through the steps to deploy your site to AWS starting with the most basic method. Then, it will demonstrate adding additional services to improve cost efficiency and performance.
+Deploying your project to AWS requires using the [AWS console](https://aws.amazon.com/console/). (Most of these actions can also be done using the [AWS CLI](https://aws.amazon.com/cli/)). This guide will walk you through the steps to deploy your site to AWS using [AWS Amplify](https://aws.amazon.com/amplify/), [S3 static website hosting](https://aws.amazon.com/s3/), and [CloudFront](https://aws.amazon.com/cloudfront/).
 
 ## AWS Amplify 
 
@@ -15,30 +16,10 @@ AWS Amplify is a set of purpose-built tools and features that lets frontend web 
 
 1. Create a new Amplify Hosting project.
 2. Connect your repository to Amplify.
-3. Modify your build output directory `baseDirectory` to `/dist`.
+3. Modify your build settings to match your project's build process.
 
-    ```yaml
-    version: 1
-    frontend:
-      phases:
-        preBuild:
-          # Not using npm? Change `npm ci` to `yarn install` or `pnpm i`
-          commands:
-            - npm ci
-        build:
-          commands:
-            - npm run build
-      artifacts:
-        baseDirectory: /dist
-        files:
-          - '**/*'
-      cache:
-        paths:
-          - node_modules/**/*
-    ```
-
-Using `pnpm` will require slightly different settings in order to cache the pnpm store directory instead of `node_modules`. Below is the recommended build config:
-
+    <PackageManagerTabs>
+    <Fragment slot="pnpm">
     ```yaml
     version: 1
     frontend:
@@ -59,6 +40,48 @@ Using `pnpm` will require slightly different settings in order to cache the pnpm
         paths:
           - .pnpm-store/**/*
     ```
+    </Fragment>
+    <Fragment slot="npm">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm ci
+        build:
+          commands:
+            - npm run build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - yarn install
+        build:
+          commands:
+            - yarn build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    ```
+    </Fragment>
+    </PackageManagerTabs>
 
 Amplify will automatically deploy your website and update it when you push a commit to your repository.
 
@@ -74,7 +97,7 @@ S3 is the starting point of any application. It is where your project files and 
 
 2. Disable **"Block all public access"**. By default, AWS sets all buckets to be private. To make it public, you need to uncheck the "Block public access" checkbox in the bucket's properties.
 
-3. Upload your built files located in `dist` to S3. You can do this manually in the console or use the AWS CLI. If you use the AWS CLI, you can use the following command after [authenticating with your AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html):
+3. Upload your built files located in `dist` to S3. You can do this manually in the console or use the AWS CLI. If you use the AWS CLI, use the following command after [authenticating with your AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html):
 
     ```
     aws s3 cp dist/ s3://<BUCKET_NAME>/ --recursive
@@ -101,7 +124,7 @@ S3 is the starting point of any application. It is where your project files and 
     Do not forget to replace `<BUCKET_NAME>` with the name of your bucket.
     :::
 
-5. Enable website hosting for your bucket. You can find this setting in the bucket's **Settings > Static website hosting**. Set your index document to `index.html` and your error document to `404.html`. Finally, you can find your new website URL in the bucket's **Settings > Static website hosting**.
+5. Enable website hosting for your bucket. You can find this setting in the bucket's **Properties > Static website hosting**. Set your index document to `index.html` and your error document to `404.html`. Finally, you can find your new website URL in the bucket's **Properties > Static website hosting**.
 
     :::note
     If you are deploying a single-page application (SPA), set your error document to `index.html`.
@@ -111,101 +134,15 @@ S3 is the starting point of any application. It is where your project files and 
 
 CloudFront is a web service that provides content delivery network (CDN) capabilities. It is used to cache content of a web server and distribute it to end users. CloudFront charges for the amount of data transferred. Adding CloudFront to your S3 bucket is more cost-effective and provides a faster delivery.
 
-We will use CloudFront to wrap our S3 bucket to serve our project's files using Amazon global CDN network. This will reduce the cost of serving your project's files and will increase the performance of your site.
+To connect S3 with Cloudfront, create a CloudFront distribution with the following values:
+  - **Origin domain:** Your S3 bucket static website endpoint. You can find your endpoint in your S3 bucket's **Properties > Static website hosting**. Alternative, you can select your s3 bucket and click on the callout to replace your bucket address with your bucket static endpoint.
+  - **Viewer protocol policy:** "Redirect to HTTPS"
 
-### S3 setup
+This configuration will serve your site using the Cloudfront CDN network. You can find your CloudFront distribution URL in the bucket's **Distributions > Domain name**.
 
-1. Create an S3 bucket with your project's name.
-
-    :::tip
-    The bucket name should be globally unique. We recommend a combination of your project name and the domain name of your site.
-    :::
-2. Upload your built files located in `dist` to S3. You can do this manually in the console or use the AWS CLI. If you use the AWS CLI, you can use the following command after [authenticating with your AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html):
-
-    ```
-    aws s3 cp dist/ s3://<BUCKET_NAME>/ --recursive
-    ```
-
-3. Update your bucket policy to allow **CloudFront Access**. You can find this setting in the bucket's **Permissions > Bucket policy**. 
-
-    ```json
-    {
-      "Version": "2012-10-17",
-      "Statement": [{
-        "Effect": "Allow",
-        "Principal": {
-          "AWS": "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity <CLOUDFRONT_OAI_ID>"
-        },
-        "Action": "s3:GetObject",
-        "Resource": "arn:aws:s3:::astro-aws/*"
-      }]
-    }
-    ```
-
-    :::caution
-    Do not forget to replace `<CLOUDFRONT_OAI_ID>` with the name of your CloudFront Origin Access Identity ID. You can find the CloudFront Origin Access Identity ID in **CloudFront > Origin access identities** after setting up CloudFront.
-    :::
-
-### CloudFront setup
-
-1. Create a CloudFront distribution with the following values:
-    * **Origin domain:** Your S3 bucket
-    * **S3 bucket access:** "Yes use OAI (bucket can restrict access to only CloudFront)"
-    * **Origin access identity:** Create a new origin access identity
-    * **Viewer - Bucket policy:** "No, I will update the bucket policy"
-    * **Viewer protocol policy:** "Redirect to HTTPS"
-    * **Default root object:** `index.html`
-
-This configuration will block access to your S3 bucket from the public internet and serve your site using the global CDN network. You can find your CloudFront distribution URL in the bucket's **Distributions > Domain name**.
-
-### CloudFront Functions setup
-
-Unfortunately, CloudFront does not support multi-page `sub-folder/index` routing by default. To configure it, we will use CloudFront Functions to point the request to the desired object in S3.
-
-1. Create a new CloudFront function with the following code snippet. You can find CloudFront functions in **CloudFront > Functions**.
-
-    ```js
-    function handler(event) {
-      var request = event.request;
-      var uri = request.uri;
-
-      // Check whether the URI is missing a file name.
-      if (uri.endsWith('/')) {
-        request.uri += 'index.html';
-      } 
-      // Check whether the URI is missing a file extension.
-      else if (!uri.includes('.')) {
-        request.uri += '/index.html';
-      }
-
-      return request;
-    }
-    ```
-  2. Attach your function to the CloudFront distribution. You can find this option in your CloudFront distribution's **Settings > Behaviors > Edit > Function** associations.
-        * **Viewer request - Function type:** CloudFront Function.
-        * **Viewer request - Function ARN:** Select the function you created in the previous step.
-
-### CloudFront Error Pages setup
-
-By default, S3 returns a 404 error when the file is not found, and 403 when the file is private. This causes visitors to see an ugly XML error page in both cases.
-
-To fix this, add **custom error responses** in your CloudFront distribution's **Settings > Error pages**.
-
-1. Create a custom error response for 404 errors with the following values:
-    * **HTTP error code:** 404: Not Found
-    * **Customize error response:** Yes
-    * **Response page path:** `/index.html`
-    * **HTTP response code:** 200: OK
-
-2. Create a custom error response for 403 errors with the following values:
-    * **HTTP error code:** 403: Forbidden
-    * **Customize error response:** Yes
-    * **Response page path:** `/index.html`
-    * **HTTP response code:** 200: OK
-
-  :::tip
-  For the best user experience, you can [create a custom 404 page](/en/basics/astro-pages/#custom-404-error-page) in your project and set the **Response page path** to `/404.html`.
-  :::
+:::note
+When connecting CloudFront to an S3 static website endpoint, you rely on S3 bucket policies for access control. See [S3 static website hosting](/en/guides/deploy/aws/#s3-static-website-hosting) section for more information about bucket policies.
+:::
 
 ## Continuous deployment with GitHub Actions
 
@@ -237,7 +174,7 @@ There are many ways to set up continuous deployment for AWS. One possibility for
     ```
 
     :::caution
-    Do not forget to replace `<DISTRIBUTION_ARN>` and `<BUCKET_NAME>`. You can find the ARN in **CloudFront > Distributions > Details**.
+    Do not forget to replace `<DISTRIBUTION_ARN>` and `<BUCKET_NAME>`. You can find the DISTRIBUTION_ARN in **CloudFront > Distributions > Details**.
     :::
 
 2. Create a new IAM user and attach the policy to the user. This will provide your `AWS_SECRET_ACCESS_KEY` and `AWS_ACCESS_KEY_ID`.
