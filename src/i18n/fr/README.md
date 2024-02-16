@@ -32,33 +32,34 @@ Certains mots jugés comme "inhérents" à Astro n'auront pas de traduction, car
 
 Certains mots dans la traduction ont un équivalent français utilisé uniformément dans les différentes traductions :
 
-| Anglais                      | Français                                  |
-|------------------------------|-------------------------------------------|
-| Server-side-rendering        | Rendu Coté Serveur                        |
-| Client-side                  | Sur le navigateur / Coté client           |
-| Runtime                      | Exécution / Code Exécuté                  |
-| CLI / Command line interface | ILC / Interface de ligne de commande      |
-| Routing                      | Routage                                   |
-| UI components                | Composants d'interface / Composants UI    |
-| Code fences (`---`)          | Barres de code / Triples tirets           |
-| Imports                      | Imports / Importer / Inclure              |
-| Exports                      | Exports / Exporter                        |
-| Render / Rendering           | Rendu / Affichage / Sortie                |
-| Re-render                    | Rafraîchir / Effectuer à nouveau un rendu | 
-| Component Script             | Script du composant                       |
-| Component Template           | Template du composant                     |
-| Bundle / Bundled             | Regroupé / Groupé / Compacté              |
-| Processed                    | Optimisé / Transpilé                      |
-| Process                      | Optimise / Processus / Exécute            |
-| Wrap                         | Englober / Entourer                       |
-| Slot (verbe *to slot*)       | Inclure / Injecter / Insérer              |
-| Fetch                        | Importer / Récupérer / Chercher           |
-| Endpoint                     | Point de terminaison                      |
-| Island architecture          | Architecture Isolée                       |
-| Partial Hydration            | Hydratation Partielle                     |
-| Scope / Scoped               | Limité / Délimité                         |
-| Astro Islands                | Îles Astro                                |
-| Recipes                      | Méthodes                                  |
-| Upgrade                      | Mise à niveau                             |
+| Anglais                      | Français                                     |
+|------------------------------|----------------------------------------------|
+| Server-side-rendering        | Rendu Coté Serveur                           |
+| Client-side                  | Sur le navigateur / Coté client              |
+| Runtime                      | Exécution / Code Exécuté                     |
+| CLI / Command line interface | ILC / Interface de ligne de commande         |
+| Routing                      | Routage                                      |
+| UI components                | Composants d'interface / Composants UI       |
+| Code fences (`---`)          | Barres de code / Triples tirets              |
+| Imports                      | Imports / Importer / Inclure                 |
+| Exports                      | Exports / Exporter                           |
+| Render / Rendering           | Rendu / Affichage / Sortie                   |
+| Re-render                    | Rafraîchir / Effectuer à nouveau un rendu    | 
+| Component Script             | Script du composant                          |
+| Component Template           | Template du composant                        |
+| Bundle / Bundled             | Regroupé / Groupé / Compacté                 |
+| Processed                    | Optimisé / Transpilé                         |
+| Process                      | Optimise / Processus / Exécute               |
+| Wrap                         | Englober / Entourer                          |
+| Slot (verbe *to slot*)       | Inclure / Injecter / Insérer                 |
+| Fetch                        | Importer / Récupérer / Chercher              |
+| Endpoint                     | Point de terminaison                         |
+| Island architecture          | Architecture Isolée                          |
+| Partial Hydration            | Hydratation Partielle                        |
+| Scope / Scoped               | Limité / Délimité                            |
+| Astro Islands                | Îles Astro                                   |
+| Recipes                      | Méthodes                                     |
+| Upgrade                      | Mise à niveau                                |
+| View Transitions             | Transitions de Vue / Transitions d'Affichage |
 
 > ⚠️ Ce glossaire est encore en travaux, merci de contribuer à la traduction française en lui apportant des suggestions !
