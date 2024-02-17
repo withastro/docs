@@ -108,7 +108,7 @@ vercel deploy --prebuilt
 
 To configure this adapter, pass an object to the `vercel()` function call in `astro.config.mjs`:
 
-### Web Analytics
+### `webAnalytics`
 
 **Type:** `VercelWebAnalyticsConfig`<br/>
 **Available for:** Serverless, Static<br/>
@@ -131,7 +131,7 @@ export default defineConfig({
 });
 ```
 
-### imagesConfig
+### `imagesConfig`
 
 **Type:** `VercelImageConfig`<br/>
 **Available for:** Serverless, Static
@@ -156,7 +156,7 @@ export default defineConfig({
 });
 ```
 
-### imageService
+### `imageService`
 
 **Type:** `boolean`<br/>
 **Available for:** Serverless, Static
@@ -197,12 +197,12 @@ import astroLogo from '../assets/logo.png';
 />
 ```
 
-### devImageService
+### `devImageService`
 
 **Type:** `'sharp' | 'squoosh' | string`<br/>
 **Available for:** Serverless, Static
 <Since v="3.8.0" pkg="@astrojs/vercel" />
-**Default**: 'sharp'
+**Default**: `sharp`
 
 Allows you to configure which image service to use in development when [imageService](#imageservice) is enabled. This can be useful if you cannot install Sharp's dependencies on your development machine, but using another image service like Squoosh would allow you to preview images in your dev environment. Build is unaffected and will always use Vercel's Image Optimization.
 
@@ -222,7 +222,78 @@ export default defineConfig({
 });
 ```
 
-### includeFiles
+### `isr`
+
+**Type:** <code>boolean |   VercelISRConfig</code><br/>
+**Available for:** Serverless
+<Since v="7.2.0" pkg="@astrojs/vercel" />
+**Default**: `false`
+
+Allows your project to be deployed as an [ISR (Incremental Static Regeneration)](https://vercel.com/docs/incremental-static-regeneration) function, which caches your on-demand rendered pages in the same way as prerendered pages after first request. 
+
+To enable this feature, set `isr` to true in your Vercel adapter configuration in `astro.config.mjs`:
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/serverless';
+
+export default defineConfig({
+  // ...
+  output: 'server',
+  adapter: vercel({
+    isr: true,
+  }),
+});
+```
+
+Note that ISR function requests do not include search params, similar to [requests](/en/reference/api-reference/#astrorequest) in static mode.
+
+#### ISR cache invalidation
+
+By default, an ISR function caches for the duration of your deployment. You can further control caching by setting an expiration time, or by excluding particular routes from caching entirely.
+
+##### Time-based invalidation
+
+You can change the length of time to cache routes this by configuring an `expiration` value in seconds:
+
+```js title="astro.config.mjs" {8-11}
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/serverless';
+
+export default defineConfig({
+  // ...
+  output: 'server',
+  adapter: vercel({
+    isr: {
+      // caches all pages on first request and saves for 1 day
+      expiration: 60 * 60 * 24,
+    },
+  }),
+});
+```
+
+##### Excluding paths from caching
+
+To implement Vercel's [Draft mode](https://vercel.com/docs/build-output-api/v3/features#draft-mode), or [On-Demand Incremental Static Regeneration (ISR)](https://vercel.com/docs/build-output-api/v3/features#on-demand-incremental-static-regeneration-isr), you can create a bypass token and provide it to the `isr` config along with any paths to exclude from caching: 
+
+```js title="astro.config.mjs" {7-12}
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/serverless';
+
+export default defineConfig({
+    output: "server",
+    adapter: vercel({
+        isr: {
+            // A secret random string that you create.
+            bypassToken: "005556d774a8",
+            // Paths that will always be served fresh.
+            exclude: [ "/api/invalidate" ] 
+        }
+    })
+})
+```
+
+### `includeFiles`
 
 **Type:** `string[]`<br/>
 **Available for:** Serverless
@@ -242,7 +313,7 @@ export default defineConfig({
 });
 ```
 
-### excludeFiles
+### `excludeFiles`
 
 **Type:** `string[]`<br/>
 **Available for:** Serverless
@@ -262,7 +333,7 @@ export default defineConfig({
 });
 ```
 
-### maxDuration
+### `maxDuration`
 
 **Type:** `number`<br/>
 **Available for:** Serverless
@@ -305,7 +376,9 @@ export default defineConfig({
 
 ### Vercel Edge Middleware
 
-You can use Vercel Edge middleware to intercept a request and redirect before sending a response. Vercel middleware can run for Edge, SSR, and Static deployments. You may not need to install this package for your middleware. `@vercel/edge` is only required to use some middleware features such as geolocation. For more information see [Vercel’s middleware documentation](https://vercel.com/docs/concepts/functions/edge-middleware).
+You can use [Vercel Edge middleware](https://vercel.com/docs/functions/edge-middleware) to intercept a request and redirect before sending a response. Vercel middleware can run for Edge, SSR, and Static deployments.
+
+You may not need to install this package for your middleware. `@vercel/edge` is only required to use some middleware features such as geolocation. For more information, see [Vercel’s middleware documentation](https://vercel.com/docs/concepts/functions/edge-middleware).
 
 1. Add a `middleware.js` file to the root of your project:
 
@@ -333,11 +406,13 @@ You can use Vercel Edge middleware to intercept a request and redirect before se
 **Trying to rewrite?** Currently rewriting a request with middleware only works for static files.
 :::
 
-### Vercel Edge Middleware with Astro middleware
+### Running Astro middleware on Vercel Edge Functions
 
-The `@astrojs/vercel/serverless` adapter can automatically create the Vercel Edge middleware from an Astro middleware in your code base.
+The `@astrojs/vercel/serverless` adapter can create an [edge function](https://vercel.com/docs/functions/edge-functions) from an Astro middleware in your code base. When `edgeMiddleware` is enabled, an edge function will execute your middleware code for all requests including static assets, prerendered pages, and on-demand rendered pages.
 
-This is an opt-in feature, and the `edgeMiddleware` option needs to be set to `true`:
+For on-demand rendered pages, the `context.locals` object is serialized using JSON and sent in a header for the serverless function, which performs the rendering. As a security measure, the serverless function will refuse to serve requests with a `403 Forbidden` response unless they come from the generated edge function.
+
+This is an opt-in feature. To enable it, set `edgeMiddleware` to `true`:
 
 ```js title="astro.config.mjs" "edgeMiddleware: true"
 import { defineConfig } from 'astro/config';
