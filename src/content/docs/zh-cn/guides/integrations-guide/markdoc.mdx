@@ -102,7 +102,7 @@ Markdoc 文件只能在内容集合中使用。使用 `.mdoc` 扩展名将条目
 
 然后，使用 [内容集合 API](/zh-cn/guides/content-collections/#查询集合) 查询你的集合：
 
-```astro title="src/pages/why-markdoc.mdoc"
+```astro title="src/pages/why-markdoc.astro"
 ---
 import { getEntryBySlug } from 'astro:content';
 
@@ -292,6 +292,119 @@ export default defineMarkdocConfig({
 ```
 
 <ReadMore>[在他们的文档中找到 Markdoc 的所有内置节点和节点属性。](https://markdoc.dev/docs/nodes#built-in-nodes)</ReadMore>
+
+### 在 Markdoc 中自定义图片组件
+
+Astro 的 `<Image />` 组件不能直接在 Markdoc 中使用。但是你可以配置一个 Astro 组件来覆盖每次使用原生 `![]()` 图片语法时的默认图片节点，或者作为一个自定义的 Markdoc 标签让你可以指定额外的图片属性。
+
+#### 覆盖 Markdoc 的默认图片节点
+
+为了覆盖默认图片节点，你可以配置一个 `.astro` 组件来代替标准的 `<img>` 渲染。
+
+1. 构建一个自定义的 `MarkdocImage.astro` 组件，将你的图片的必要的 `src` 和 `alt` 属性传递给 `<Image />` 组件：
+
+    ```astro title="src/components/MarkdocImage.astro"
+    ---
+    import { Image } from "astro:assets";
+    interface Props {
+      src: ImageMetadata;
+      alt: string;
+    }
+    const { src, alt } = Astro.props;
+    ---
+    <Image src={src} alt={alt} />
+    ```
+
+2. `<Image />` 组件需要为无法使用 `![]()` 语法来提供的远程图片提供 `width` 和 `height` 属性。为了避免在使用远程图片时出现错误，当发现远程 URL `src` 属性时，会更新你的组件并渲染成标准的 HTML `<img>` 标签：
+
+    ```astro title="src/components/MarkdocImage.astro" ins="| string" del={9} ins={10-12}
+    ---
+    import { Image } from "astro:assets";
+    interface Props {
+      src: ImageMetadata | string;
+      alt: string;
+    }
+    const { src, alt } = Astro.props;
+    ---
+    <Image src={src} alt={alt} />
+    {
+      typeof src === 'string' ? <img src={src} alt={alt} /> : <Image src={src} alt={alt} />
+    }
+    ```
+
+3. 配置 Markdoc 来覆盖默认的图片节点并渲染 `MarkdocImage.astro`：
+
+    ```js title="markdoc.config.mjs"
+    import { defineMarkdocConfig, nodes, component } from '@astrojs/markdoc/config';
+
+    export default defineMarkdocConfig({
+      nodes: {
+        image: {
+          ...nodes.image, // 应用 Markdoc 的其他默认选项
+          render: component('./src/components/MarkdocImage.astro'),
+        },
+      },
+    });
+    ```
+
+4. 现在，任何 `.mdoc` 文件中的原生图片语法都将使用 `<Image />` 组件来优化你的本地图片。你仍然可以使用远程图片，但是它们将不会被 Astro 的 `<Image />` 组件渲染。
+
+    ```md title="src/content/blog/post.mdoc"
+
+    <!-- 由 <Image /> 优化组件 -->
+    ![A picture of a cat](/cat.jpg)
+
+    <!-- 未优化的 <img> 标签 -->
+    ![A picture of a dog](https://example.com/dog.jpg) 
+    ```
+
+#### 创建一个自定义的 Markdoc 图片标签
+
+Markdoc 的 `image` 标签允许你在图片上设置额外的属性，这是用 `![]()` 语法无法实现的。例如，自定义图片标签允许你对需要 `width` 和 `height` 的远程图片使用 Astro 的 `<Image />` 组件。
+
+以下步骤将创建一个自定义的 Markdoc 图片标签，以显示一个带有标题的 `<figure>` 元素，使用 Astro 的 `<Image />` 组件来优化图片。
+
+1. 创建一个 `MarkdocFigure.astro` 组件，接收必要的属性并渲染一个带有标题的图片：
+
+    ```astro title="src/components/MarkdocFigure.astro"
+    ---
+    // src/components/MarkdocFigure.astro
+    import { Image } from "astro:assets";
+    interface Props {
+      src: ImageMetadata | string;
+      alt: string;
+      width: number;
+      height: number;
+      caption: string;
+    }
+    const { src, alt, width, height, caption } = Astro.props;
+    ---
+    <figure>
+        <Image {src} {alt} {width} {height}  />
+        {caption && <figcaption>{caption}</figcaption>}
+    </figure>
+    ```
+
+2. 配置你的自定义图片标签来渲染你的 Astro 组件：
+
+    ```ts title="markdoc.config.mjs"
+    import { component, defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
+
+    export default defineMarkdocConfig({
+      tags: {
+        image: {
+          attributes: nodes.image.attributes,
+          render: component('./src/components/MarkdocFigure.astro'),
+        },
+      },
+    });
+    ```
+
+3. 在 Markdoc 文件中使用 `image` 标签来显示一个带有标题的图形，为你的组件提供所有必要的属性：
+
+    ```mdoc
+    {% image src="./astro-logo.png" alt="Astro Logo" width="100" height="100" caption="a caption!" %}
+    ```
 
 ### 使用客户端 UI 组件
 
