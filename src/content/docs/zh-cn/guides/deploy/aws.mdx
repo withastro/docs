@@ -4,10 +4,11 @@ description: 如何将你的 Astro 网站通过 AWS 部署上线
 type: deploy
 i18nReady: true
 ---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
 [AWS](https://aws.amazon.com/) 是一个功能齐全的 Web 应用托管平台，可以用来部署 Astro 网站。
 
-将你的项目部署到 AWS 需要使用 [AWS 控制台](https://aws.amazon.com/console/)（大部分操作也可以使用 [AWS CLI](https://aws.amazon.com/cli/) 进行）。本指南将指导你按照最基本的方法将网站部署到 AWS 上，然后演示如何添加额外的服务以降本增效。
+将你的项目部署到 AWS 需要使用 [AWS 控制台](https://aws.amazon.com/console/)（大部分操作也可以使用 [AWS CLI](https://aws.amazon.com/cli/) 进行）。本指南将指导你通过使用 [AWS Amplify](https://aws.amazon.com/amplify/)、[S3 静态网站托管](https://aws.amazon.com/s3/) 和 [CloudFront](https://aws.amazon.com/cloudfront/) 来将网站部署到 AWS 上。
 
 ## AWS Amplify
 
@@ -15,30 +16,10 @@ AWS Amplify 是一套专为前端 Web 和移动开发人员设计的工具和功
 
 1. 创建一个新的 Amplify Hosting 项目。
 2. 将你的仓库连接到 Amplify。
-3. 修改构建输出目录 `baseDirectory` 为 `/dist`。
+3. 修改你的构建设置以匹配你的项目构建过程。
 
-    ```yaml
-    version: 1
-    frontend:
-      phases:
-        preBuild:
-          # 如果不使用 npm，请将 `npm ci` 修改为 `yarn install` 或 `pnpm i`
-          commands:
-            - npm ci
-        build:
-          commands:
-            - npm run build
-      artifacts:
-        baseDirectory: /dist
-        files:
-          - '**/*'
-      cache:
-        paths:
-          - node_modules/**/*
-    ```
-
-如果使用 `pnpm`，则需要稍微不同的配置来缓存 pnpm 存储目录而不是 `node_modules`。以下是建议的构建配置：
-
+    <PackageManagerTabs>
+    <Fragment slot="pnpm">
     ```yaml
     version: 1
     frontend:
@@ -59,6 +40,48 @@ AWS Amplify 是一套专为前端 Web 和移动开发人员设计的工具和功
         paths:
           - .pnpm-store/**/*
     ```
+    </Fragment>
+    <Fragment slot="npm">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm ci
+        build:
+          commands:
+            - npm run build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - yarn install
+        build:
+          commands:
+            - yarn build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    ```
+    </Fragment>
+    </PackageManagerTabs>
 
 之后 Amplify 将自动部署你的网站，并在你向仓库推送提交时进行更新。
 
@@ -101,7 +124,7 @@ S3 是任何应用程序的起点，因为它是一个可以存储你项目文�
     不要忘记将 `<BUCKET_NAME>` 替换为你的存储桶名称。
     :::
 
-5. 为你的存储桶启用网站托管。你可以在存储桶的 **Settings > Static website hosting** 中找到此设置。将你的索引文档设置为 `index.html`，错误文档设置为 `404.html`。最后，在存储桶的 **Settings > Static website hosting** 中找到你的新网站 URL。
+5. 为你的存储桶启用网站托管。你可以在存储桶的 **Properties > Static website hosting** 中找到此设置。将你的索引文档设置为 `index.html`，错误文档设置为 `404.html`。最后，在存储桶的 **Properties > Static website hosting** 中找到你的新网站 URL。
 
     :::note
     如果你正在部署单页面应用程序 (SPA)，请将错误文档设置为 `index.html`。
@@ -111,103 +134,15 @@ S3 是任何应用程序的起点，因为它是一个可以存储你项目文�
 
 CloudFront 是一个提供内容分发网络 (CDN) 功能的 Web 服务。它用于缓存 Web 服务器的内容并将其分发给用户。CloudFront 按照传输的数据量收费。将 CloudFront 添加到你的 S3 存储桶中可以更为经济的同时也提供更快的分发速度。
 
-我们将使用 CloudFront 来包装我们的 S3 存储桶，以使用亚马逊全球 CDN 网络为项目的文件提供服务。这样可以降低提供项目文件的成本，并提高站点的性能。
+要将 S3 与 Cloudfront 连接，创建一个具有以下值的 CloudFront 分发：
+  - **原始域名（Origin domain）**：你的 S3 存储桶静态网站端点。你可以在你的 S3 存储桶的 **Properties > Static website hosting** 中找到你的端点。或者，你可以选择你的 s3 存储桶并点击对话框以将你的存储桶地址替换为你的存储桶静态端点。
+  - **访客协议策略（Viewer protocol policy）**："重定向到 HTTPS"
 
-### S3 设置
+该配置将通过 Cloudfront CDN 网络来服务你的网站。你可以在存储桶的 **Distributions > Domain name** 中找到你 CloudFront 的分发 URL。
 
-1. 使用你的项目名称创建一个 S3 存储桶。
-
-    :::tip
-    存储桶名称应为全局唯一。我们建议使用你的项目名称和站点的域名来组合。
-    :::
-
-2. 将位于 `dist` 目录中的构建文件上传到 S3。你可以在控制台手动执行此操作，也可以使用 AWS CLI。如果使用 AWS CLI，可以在 [使用 AWS 凭证进行身份验证](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) 后使用以下命令：
-
-    ```
-    aws s3 cp dist/ s3://<BUCKET_NAME>/ --recursive
-    ```
-
-3. 更新存储桶策略以允许 **CloudFront 访问**。你可以在存储桶的 **Permissions > Bucket policy** 中找到此设置。
-
-    ```json
-    {
-      "Version": "2012-10-17",
-      "Statement": [{
-        "Effect": "Allow",
-        "Principal": {
-          "AWS": "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity <CLOUDFRONT_OAI_ID>"
-        },
-        "Action": "s3:GetObject",
-        "Resource": "arn:aws:s3:::astro-aws/*"
-      }]
-    }
-    ```
-
-    :::caution
-    请确保将 `<CLOUDFRONT_OAI_ID>` 替换为你的 CloudFront Origin Access Identity ID 的名称。你可以在设置 CloudFront 后，在 **CloudFront > Origin access identities** 中找到 CloudFront Origin Access Identity ID。
-    :::
-
-### CloudFront 设置
-
-1. 创建一个 CloudFront 分发，并按如下值配置：
-    * **源域名**：你的 S3 存储桶
-    * **S3 存储桶访问**："Yes use OAI (bucket can restrict access to only CloudFront)"
-    * **源访问标识**：创建一个新的源访问标识
-    * **查看者 - 存储桶策略**："No, I will update the bucket policy"
-    * **查看者协议策略**："Redirect to HTTPS"
-    * **默认根对象**：`index.html`
-
-这样的配置将阻止公共互联网访问你的 S3 存储桶，并通过全球 CDN 网络提供你的网站。你可以在存储桶的 **Distributions > Domain name** 中找到你的 CloudFront 分发 URL。
-
-### CloudFront 函数设置
-
-不幸的是，默认情况下，CloudFront 不支持多页的 `sub-folder/index` 路由。为了配置它，我们将使用 CloudFront 函数将请求定向到 S3 中所需的对象上。
-
-1. 使用以下代码片段创建一个新的 CloudFront 函数。你可以在 **CloudFront > Functions** 中找到 CloudFront 函数。
-
-    ```js
-    function handler(event) {
-      var request = event.request;
-      var uri = request.uri;
-
-      // 检查 URI 是否缺少文件名。
-      if (uri.endsWith('/')) {
-        request.uri += 'index.html';
-      } 
-      // 检查 URI 是否缺少文件扩展名。
-      else if (!uri.includes('.')) {
-        request.uri += '/index.html';
-      }
-
-      return request;
-    }
-    ```
-
-2. 将函数附加到 CloudFront 分发中。你可以在 CloudFront 分发的 **Settings > Behaviors > Edit > Function** 关联中找到此选项。
-   - **查看者请求 - 函数类型：** CloudFront 函数。
-   - **查看者请求 - 函数 ARN：** 选择在前面创建的函数。
-
-### CloudFront 错误页面设置
-
-默认情况下，当未找到文件时 S3 会返回 404 错误，当文件是私有的时返回 403 错误。这会导致访问者在这两种情况下都看到一个不友好的 XML 错误页面。
-
-为了解决这个问题，可以在你的 CloudFront 分发的 **Settings > Error pages** 中添加**自定义错误响应**。
-
-1. 使用以下值来为 404 错误创建一个自定义错误响应：
-    * **HTTP 错误状态码**：404: Not Found
-    * **自定义错误响应**：Yes
-    * **响应页面路径**：`/index.html`
-    * **HTTP 响应状态码**：200: OK
-
-2. 使用以下值来为 403 错误创建一个自定义错误响应：
-    * **HTTP 错误状态码**：403: Forbidden
-    * **自定义错误响应**：Yes
-    * **响应页面路径**：`/index.html`
-    * **HTTP 响应状态码**：200: OK
-
-  :::tip
-  为了提供最佳的用户体验，你可以在你的项目中[创建一个自定义的 404 页面](/zh-cn/basics/astro-pages/#自定义-404-错误页面)，并将响应页面路径设置为 `/404.html`。
-  :::
+:::note
+当连接 CloudFront 到一个 S3 静态网站端点时，你需要依赖 S3 桶策略进行访问控制。请参阅 [S3 静态网站托管](/zh-cn/guides/deploy/aws/#s3-静态网站托管) 部分，以了解更多关于桶策略的信息。
+:::
 
 ## 使用 GitHub Actions 实现持续部署
 
@@ -239,7 +174,7 @@ CloudFront 是一个提供内容分发网络 (CDN) 功能的 Web 服务。它用
     ```
 
     :::caution
-    不要忘记替换 `<DISTRIBUTION_ARN>` 和 `<BUCKET_NAME>`。你可以在 **CloudFront > Distributions > Details** 中找到 ARN。
+    不要忘记替换 `<DISTRIBUTION_ARN>` 和 `<BUCKET_NAME>`。你可以在 **CloudFront > Distributions > Details** 中找到 DISTRIBUTION_ARN。
     :::
 
 2. 创建一个新的 IAM 用户并将该策略附加到用户上。这将需要你提供 `AWS_SECRET_ACCESS_KEY` 和 `AWS_ACCESS_KEY_ID`。
