@@ -52,8 +52,8 @@ export default NavDictionary({
 	'guides/endpoints': 'API 端点',
 	'guides/data-fetching': '数据获取',
 	'guides/middleware': '中间件',
-	'guides/testing': '身份验证',
-	'guides/authentication': '测试',
+	'guides/testing': '测试',
+	'guides/authentication': '身份验证',
 	'guides/troubleshooting': '故障排除',
 	'guides/internationalization': '国际化',
 
