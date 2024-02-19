@@ -115,6 +115,7 @@ export default [
 	},
 	{ text: 'Middleware', slug: 'guides/middleware', key: 'guides/middleware' },
 	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
+	{ text: 'Authentication', slug: 'guides/authentication', key: 'guides/authentication' },
 	{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
 
 	{ text: 'Configuration', header: true, type: 'learn', key: 'configuration' },
