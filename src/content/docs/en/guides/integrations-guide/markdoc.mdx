@@ -293,6 +293,121 @@ export default defineMarkdocConfig({
 
 <ReadMore>See the [Markdoc nodes documentation](https://markdoc.dev/docs/nodes#built-in-nodes) to learn about all the built-in nodes and attributes.</ReadMore>
 
+### Custom image components in Markdoc
+
+Astro's `<Image />` component cannot be used directly in Markdoc. However, you can configure an Astro component to override the default image node every time the native `![]()` image syntax is used, or as a custom Markdoc tag to allow you to specify additional image attributes.
+
+#### Override Markdoc's default image node
+
+To override the default image node, you can configure an `.astro` component to be rendered in place of a standard `<img>`.
+
+1. Build a custom `MarkdocImage.astro` component to pass the required `src` and `alt` properties from your image to the `<Image />` component:
+
+    ```astro title="src/components/MarkdocImage.astro"
+    ---
+    import { Image } from "astro:assets";
+    interface Props {
+      src: ImageMetadata;
+      alt: string;
+    }
+    const { src, alt } = Astro.props;
+    ---
+    <Image src={src} alt={alt} />
+    ```
+
+2. The `<Image />` component requires a `width` and `height` for remote images which cannot be provided using the `![]()` syntax. To avoid errors when using remote images, update your component to render a standard HTML `<img>` tag when a remote URL `src` is found:
+
+    ```astro title="src/components/MarkdocImage.astro" ins="| string" del={9} ins={10-12}
+    ---
+    import { Image } from "astro:assets";
+    interface Props {
+      src: ImageMetadata | string;
+      alt: string;
+    }
+    const { src, alt } = Astro.props;
+    ---
+    <Image src={src} alt={alt} />
+    {
+      typeof src === 'string' ? <img src={src} alt={alt} /> : <Image src={src} alt={alt} />
+    }
+    ```
+
+3. Configure Markdoc to override the default image node and render `MarkdocImage.astro`:
+
+    ```js title="markdoc.config.mjs"
+    import { defineMarkdocConfig, nodes, component } from '@astrojs/markdoc/config';
+
+    export default defineMarkdocConfig({
+      nodes: {
+        image: {
+          ...nodes.image, // Apply Markdoc's defaults for other options
+          render: component('./src/components/MarkdocImage.astro'),
+        },
+      },
+    });
+    ```
+
+4. The native image syntax in any `.mdoc` file will now use the `<Image />` component to optimize your local images. Remote images may still be used, but will not be rendered by Astro's `<Image />` component.
+
+    ```md title="src/content/blog/post.mdoc"
+    
+    <!-- Optimized by <Image /> -->
+    ![A picture of a cat](/cat.jpg)
+
+    <!-- Unoptimized <img> -->
+    ![A picture of a dog](https://example.com/dog.jpg) 
+    ```
+
+#### Create a custom Markdoc image tag
+
+A Markdoc `image` tag allows you to set additional attributes on your image that are not possible with the `![]()` syntax. For example, custom image tags allow you to use Astro's `<Image />` component for remote images that require a `width` and `height`.
+
+The following steps will create a custom Markdoc image tag to display a `<figure>` element with a caption, using the  Astro `<Image />` component to optimize the image.
+
+1. Create a `MarkdocFigure.astro` component to receive the necessary props and render an image with a caption:
+
+    ```astro title="src/components/MarkdocFigure.astro"
+    ---
+    // src/components/MarkdocFigure.astro
+    import { Image } from "astro:assets";
+
+    interface Props {
+      src: ImageMetadata | string;
+      alt: string;
+      width: number;
+      height: number;
+      caption: string;
+    }
+
+    const { src, alt, width, height, caption } = Astro.props;
+    ---
+    <figure>
+        <Image {src} {alt} {width} {height}  />
+        {caption && <figcaption>{caption}</figcaption>}
+    </figure>
+    ```
+
+2. Configure your custom image tag to render your Astro component:
+
+    ```ts title="markdoc.config.mjs"
+    import { component, defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
+
+    export default defineMarkdocConfig({
+      tags: {
+        image: {
+          attributes: nodes.image.attributes,
+          render: component('./src/components/MarkdocFigure.astro'),
+        },
+      },
+    });
+    ```
+
+3. Use the `image` tag in Markdoc files to display a figure with caption, providing all the necessary attributes for your component:
+
+    ```mdoc
+    {% image src="./astro-logo.png" alt="Astro Logo" width="100" height="100" caption="a caption!" %}
+    ```
+
 ### Use client-side UI components
 
 Tags and nodes are restricted to `.astro` files. To embed client-side UI components in Markdoc, [use a wrapper `.astro` component that renders a framework component](/en/guides/framework-components/#nesting-framework-components) with your desired `client:` directive.
