@@ -15,7 +15,7 @@ export default {
 	'leftSidebar.viewInEnglish': 'Просмотр на английском языке',
 	'leftSidebar.sponsoredBy': 'При поддержке',
 	// Right Sidebar
-	'rightSidebar.a11yTitle': 'Вторичное',
+	'rightSidebar.a11yTitle': 'Побочное',
 	'rightSidebar.onThisPage': 'На этой странице',
 	'rightSidebar.overview': 'Обзор',
 	'rightSidebar.community': 'Сообщество',
