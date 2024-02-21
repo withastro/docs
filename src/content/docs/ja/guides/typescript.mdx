@@ -5,6 +5,7 @@ i18nReady: true
 ---
 
 import Since from '~/components/Since.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
 Astroには[TypeScript](https://www.typescriptlang.org/)のサポートが組み込まれています。Astroプロジェクトで`.ts`や`.tsx`ファイルをインポートしたり、[Astroコンポーネント](/ja/basics/astro-components/#コンポーネントスクリプト)の中で直接TypeScriptコードを書いたり、お好みで[`astro.config.ts`](/ja/guides/configuring-astro/#astroの設定ファイル)ファイルを使うこともできます。
 
@@ -34,6 +35,40 @@ Astroには、`base`、`strict`、`strictest`という3つの拡張可能な`tsc
 /// <reference types="astro/client" />
 ```
 
+VSCodeを使っていない場合は、[Astro TypeScriptプラグイン](https://www.npmjs.com/package/@astrojs/ts-plugin)をインストールすることで、`.ts`ファイルからの`.astro`ファイルのインポートをサポートできます（これは再エクスポートに便利なことがあります）。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```shell
+    npm install @astrojs/ts-plugin
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```shell
+    pnpm add @astrojs/ts-plugin
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    yarn add @astrojs/ts-plugin
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+そして、以下の設定を`tsconfig.json`に追加します。
+
+```json title="tsconfig.json"
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "@astrojs/ts-plugin"
+      },
+    ],
+  }
+```
+
+プラグインが正しく機能していることを確認するには、`.ts`ファイルを作成し、その中にAstroコンポーネントをインポートします。エディタには警告メッセージが何も表示されないはずです。
+
 ### UIフレームワーク
 
 プロジェクトで[UIフレームワーク](/ja/guides/framework-components/)を使用する場合は、フレームワークに応じた追加の設定が必要かもしれません。詳細については、フレームワークのTypeScriptドキュメントを参照してください。 ([Vue](https://vuejs.org/guide/typescript/overview.html#using-vue-with-typescript)、[React](https://react-typescript-cheatsheet.netlify.app/docs/basic/setup)、[Preact](https://preactjs.com/guide/v10/typescript)、[Solid](https://www.solidjs.com/guides/typescript))
@@ -49,14 +84,14 @@ import type { SomeType } from './script';
 
 こうすることで、Astroのバンドラーがインポートした型をJavaScriptであるかのように誤ってバンドルするようなエッジケースを避けることができます。
 
-`.tsconfig`ファイルで、TypeScriptにこれを補助させることができます。[`importsNotUsedAsValues`](https://www.typescriptlang.org/tsconfig#importsNotUsedAsValues)を`error`にセットすることで、TypeScriptはインポートをチェックし、いつ`import type`を使うべきか教えてくれるのです。この設定は、`strict`と`strictest`テンプレートにデフォルトで含まれています。
+`tsconfig.json`ファイルで、型のインポートを強制するようにTypeScriptを設定できます。[`verbatimModuleSyntax`](https://www.typescriptlang.org/tsconfig#verbatimModuleSyntax)を`true`に設定してください。TypeScriptはインポートをチェックし、いつ`import type`を使用するべきかを伝えてくれます。この設定はAstroのすべてのプリセットでデフォルトで有効化されています。
 
 ```json title="tsconfig.json" ins={3}
-{
-  "compilerOptions": {
-    "importsNotUsedAsValues": "error",
+  {
+    "compilerOptions": {
+      "verbatimModuleSyntax": true
+    }
   }
-}
 ```
 
 ## Importエイリアス
@@ -83,6 +118,27 @@ import Layout from '@layouts/Layout.astro';
 }
 ```
 
+## `window`と`globalThis`の拡張
+
+グローバルオブジェクトにプロパティを追加することもできます。これは、`env.d.ts`ファイルに`declare`キーワードを使用してトップレベルの宣言を追加することで可能です。
+
+```ts title="env.d.ts"
+declare const myString: string;
+declare function myFunction(): boolean;
+```
+
+これにより、`globalThis.myString`と`globalThis.myFunction`、さらに`window.myString`と`window.myFunction`に型が提供されます。
+
+`window`はクライアントサイドのコード内でのみ利用可能なことに注意してください。`globalThis`はサーバーサイドとクライアントサイドの両方で利用できますが、サーバーサイドの値はクライアントとは共有されません。
+
+`window`オブジェクト上のプロパティにのみ型付けしたい場合は、代わりに`Window`インターフェイスを提供してください。
+
+```ts title="env.d.ts"
+interface Window {
+	myFunction(): boolean;
+}
+```
+
 ## コンポーネントProps
 
 AstroはTypeScriptによるコンポーネントpropsの型付けをサポートしています。有効にするには、コンポーネントのfrontmatterにTypeScriptの`Props`インターフェースを追加します。`export`文を使用することもできますが、必須ではありません。[Astro VSCode拡張機能](/ja/editor-setup/)は、`Props`インターフェースを自動的に探し、そのコンポーネントを他のテンプレート内で使用するときに適切なTSサポートを提供します。
@@ -106,7 +162,7 @@ const { greeting = 'Hello', name } = Astro.props;
 
 ## 型ユーティリティ
 
-<Since v="1.6.0" />
+<p><Since v="1.6.0" /></p>
 
 Astroには、propsに型を付ける際によく出くわすパターン向けに、組み込みのユーティリティ型を提供しています。これらは`astro/types`エントリポイントから利用可能です。
 
@@ -118,7 +174,7 @@ Astroは、マークアップが有効なHTML属性を使用していること�
 
 ```astro title="src/components/Link.astro" ins="HTMLAttributes" ins="HTMLAttributes<'a'>"
 ---
-import { HTMLAttributes } from 'astro/types'
+import { HTMLAttributes } from 'astro/types';
 // `type`を使う
 type Props = HTMLAttributes<'a'>;
 // または`interface`を拡張します
@@ -142,6 +198,11 @@ declare namespace astroHTML.JSX {
     'data-count'?: number;
     'data-label'?: string;
   }
+
+  // CSSのカスタムプロパティをスタイルオブジェクトに追加する
+  interface CSSProperties {
+    '--theme-color'?: 'black' | 'white';
+  }
 }
 ```
 
@@ -155,23 +216,96 @@ type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
 ```
 :::
 
+### `ComponentProps`型
+
+<p><Since v="4.3.0" /></p>
+
+この型エクスポートを利用すると、別のコンポーネントが`Props`型を直接エクスポートしていなかったとしても、そのコンポーネントが受け付ける`Props`を参照できるようになります。
+
+以下に示すのは、`astro/types`の`ComponentProps`を使用して`<Button />`コンポーネントの`Props`型を参照する例です。
+
+```astro title="src/pages/index.astro"
+---
+import type { ComponentProps } from 'astro/types';
+
+import Button from "./Button.astro";
+
+type ButtonProps = ComponentProps<typeof Button>;
+---
+```
+
+### ポリモーフィックな型
+
+<p><Since v="2.5.0" /></p>
+
+Astroには、異なるHTML要素としてレンダリング可能なコンポーネントを、完全に型安全に作成することを簡単にするヘルパーがあります。これは、渡されたpropsに応じて、`<a>`または`<button>`のいずれかとしてレンダリングされる`<Link>`のようなコンポーネントに便利です。
+
+以下の例では、完全に型付けされた、任意のHTML要素としてレンダリングできるポリモーフィックなコンポーネントを実装しています。[`HTMLTag`](#組み込みのhtml属性)型を使うことで、`as` propが有効なHTML要素であることを保証しています。
+
+```astro
+---
+import type { HTMLTag, Polymorphic } from 'astro/types';
+
+type Props<Tag extends HTMLTag> = Polymorphic<{ as: Tag }>;
+
+const { as: Tag, ...props } = Astro.props;
+---
+
+<Tag {...props} />
+```
+
+### `getStaticPaths()`の型の推論
+
+<p><Since v="2.1.0" /></p>
+
+Astroには、動的ルーティングに対して[`getStaticPaths()`](/ja/reference/api-reference/#getstaticpaths)関数から返される型を扱うためのヘルパーがあります。
+
+[`Astro.params`](/ja/reference/api-reference/#astroparams)の型は`InferGetStaticParamsType`で、[`Astro.props`](/ja/reference/api-reference/#astroprops)の型は`InferGetStaticPropsType`で取得できます。
+
+```astro title="src/pages/posts/[...slug].astro" {2,14-15}
+---
+import type { InferGetStaticParamsType, InferGetStaticPropsType, GetStaticPaths } from 'astro';
+
+export const getStaticPaths() = (async () => {
+  const posts = await getCollection('blog');
+  return posts.map((post) => {
+    return {
+      params: { slug: post.slug },
+      props: { draft: post.data.draft, title: post.data.title },
+    };
+  });
+}) satisfies GetStaticPaths;
+
+type Params = InferGetStaticParamsType<typeof getStaticPaths>;
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { slug } = Astro.params as Params;
+//               			  ^? { slug: string; }
+const { title } = Astro.props;
+//                			^? { draft: boolean; title: string; }
+---
+```
+
 ## 型チェック
 
 エディタで型エラーを確認するには、[Astro VS Code拡張機能](/ja/editor-setup/)をインストールしてください。`astro start`と`astro build`コマンドは、esbuildでコードをトランスパイルしますが、型チェックは実行しないことに注意してください。TypeScriptのエラーが含まれている場合にビルドされないようにするには、`package.json`のbuildスクリプトを次のように変更します。
 
-```json title="package.json" del={2} ins={3} ins="astro check && tsc --noEmit && "
+```json title="package.json" del={2} ins={3} ins="astro check &&"
   "scripts": {
     "build": "astro build",
-    "build": "astro check && tsc --noEmit && astro build",
+    "build": "astro check && astro build",
   },
 ```
 
 :::note
-`astro check`は`.astro`ファイル内の型のみをチェックし、`tsc --noEmit`は`.ts`および`.tsx`ファイル内の型のみをチェックします。SvelteとVueファイル内の型をチェックするには、それぞれ[`svelte-check`](https://www.npmjs.com/package/svelte-check)と[`vue-tsc`](https://www.npmjs.com/package/vue-tsc)パッケージを使用できます。
+`astro check`は、TypeScriptプロジェクトに含まれるすべてのファイルをチェックします。SvelteとVueファイル内の型をチェックするには、それぞれ[`svelte-check`](https://www.npmjs.com/package/svelte-check)と[`vue-tsc`](https://www.npmjs.com/package/vue-tsc)パッケージを使用できます。
 :::
 
-📚 Astroにおける[`.ts`ファイルのインポート](/ja/guides/imports/#typescript)についてもっと読む。
-📚 [TypeScriptの設定](https://www.typescriptlang.org/tsconfig/)についてもっと読む。
+import ReadMore from '~/components/ReadMore.astro'
+
+<ReadMore>Astroにおける[`.ts`ファイルのインポート](/ja/guides/imports/#typescript)についてもっと読む。</ReadMore>
+
+<ReadMore>[TypeScriptの設定](https://www.typescriptlang.org/tsconfig/)についてもっと読む。</ReadMore>
 
 ## トラブルシューティング
 
