@@ -1,0 +1,189 @@
+---
+title: 身份认证
+description: Astro 中的身份认证简介
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import ReadMore from '~/components/ReadMore.astro'
+
+认证和授权是两种安全过程，帮助你控制谁可以访问你的网站或应用的不同部分。认证是确认访客身份的过程，而授权是允许访客访问受保护的路由和资源的过程。
+
+认证允许你为登录的个人定制你的网站的特定区域，并为个人或私人信息提供最大程度的保护。认证库（例如 [Lucia Auth](https://lucia-auth.com/)、[Auth.js](https://authjs.dev/)）为多种认证方法提供了实用工具，如电子邮件登录和 OAuth 提供商。
+
+:::tip
+Astro 没有官方的认证解决方案，但你可以在集成目录中找到 [社区的 “auth” 集成](https://astro.build/integrations/?search=auth)。
+:::
+
+<ReadMore>查看我们的专门指南，了解如何 [使用 Supabase 添加认证](/zh-cn/guides/backend/supabase/#使用-supabase-添加身份验证) 或 [使用 Firebase 添加认证](/zh-cn/guides/backend/google-firebase/#使用-firebase-添加身份验证)，以获取这些后端服务的详细信息。</ReadMore>
+
+## Lucia
+
+Lucia 是一个与框架无关、基于会话的认证库，对 Astro 支持良好。
+
+### 安装
+
+使用你选择的包管理器安装 Lucia。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install lucia
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add lucia
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add lucia
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### 配置
+
+使用 [Lucia 的 “Astro 入门”](https://lucia-auth.com/getting-started/astro) 指南来初始化 Lucia 并配置一个适配器，设置一个数据库来存储用户和会话信息。
+
+### 使用方法
+
+:::tip
+遵循 Lucia 的完整 Astro 教程之一，向你的 Astro 项目添加 [用户名和密码认证](https://lucia-auth.com/tutorials/username-and-password/astro) 或 [GitHub OAuth](https://lucia-auth.com/tutorials/username-and-password/astro)。
+:::
+
+### 下一步
+
+- [Astro + Lucia OAuth 项目示例](https://github.com/lucia-auth/examples/tree/main/astro/github-oauth)
+- [Astro + Lucia 用户名和密码项目示例](https://github.com/lucia-auth/examples/tree/main/astro/username-and-password)
+
+## Auth.js
+
+Auth.js 是一个与框架无关的认证解决方案。社区框架适配器 [`auth-astro`](https://www.npmjs.com/package/auth-astro) 可用于 Astro。
+
+### 安装
+
+使用你偏好的包管理器的 `astro add` 命令来添加 `astro-auth` 集成。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add auth-astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add auth-astro
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add auth-astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+#### 手动安装
+
+要手动安装 `astro-auth`，请为你的包管理器安装所需的包：
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install auth-astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add auth-astro @auth/core
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add auth-astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+然后，使用 `integrations` 属性将集成应用到你的 `astro.config.*` 文件中：
+
+```ts title="astro.config.mjs" ins={2,6}
+import { defineConfig } from 'astro/config';
+import auth from 'auth-astro';
+
+export default defineConfig({
+  // ...
+  integrations: [auth()],
+});
+```
+
+### 配置
+
+在你的项目根目录中创建一个 `auth.config.mjs` 文件。添加你希望支持的任何认证 [提供商](https://authjs.dev/getting-started/providers) 或方法，以及它们所需的任何环境变量。
+
+```ts title="auth.config.mjs"
+import GitHub from '@auth/core/providers/github';
+import { defineConfig } from 'auth-astro';
+
+export default defineConfig({
+	providers: [
+		GitHub({
+			clientId: import.meta.env.GITHUB_CLIENT_ID,
+			clientSecret: import.meta.env.GITHUB_CLIENT_SECRET,
+		}),
+	],
+});
+```
+
+如果你的项目根目录中还没有 `.env` 文件，请创建一个。添加以下两个环境变量。`AUTH_SECRET` 应该是一个至少包含 32 个字符的私有字符串。
+
+```sh title=".env"
+AUTH_TRUST_HOST=true
+AUTH_SECRET=<my-auth-secret>
+```
+
+### 使用方法
+
+你可以使用 `auth-astro/client` 模块，在脚本标签或客户端框架组件中添加登录和登出按钮。
+
+```astro title="src/pages/index.astro" {9}
+---
+import Layout from 'src/layouts/Base.astro';
+---
+<Layout>
+  <button id="login">Login</button>
+  <button id="logout">Logout</button>
+
+  <script>
+    const { signIn, signOut } = await import("auth-astro/client")
+    document.querySelector("#login").onclick = () => signIn("github")
+    document.querySelector("#logout").onclick = () => signOut()
+  </script>
+</Layout>
+```
+
+你可以使用 `getSession` 方法获取用户的会话信息。
+
+```astro title="src/pages/index.astro" {3,5}
+---
+import Layout from 'src/layouts/Base.astro';
+import { getSession } from 'auth-astro/server';
+
+const session = await getSession(Astro.request);
+---
+<Layout>
+  {
+    session ? (
+      <p>欢迎 {session.user?.name}</p>
+    ) : (
+      <p>未登录</p>
+    )
+  }
+</Layout>
+```
+
+### 下一步
+
+- [GitHub 上的 `auth-astro`](https://github.com/nowaythatworked/auth-astro?tab=readme-ov-file#auth-astro)
+- [Auth.js 文档](https://authjs.dev/)
