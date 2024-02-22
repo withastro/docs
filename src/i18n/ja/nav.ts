@@ -1,86 +1,182 @@
-import { NavDictionary } from '../translation-checkers';
+/**
+ * This configures the navigation sidebar.
+ * All other languages follow this ordering/structure and will fall back to
+ * English for any entries they haven’t translated.
+ *
+ * - All entries MUST include `text` and `key`
+ * - Heading entries MUST include `header: true` and `type`
+ * - Link entries MUST include `slug` (which excludes the language code)
+ */
+export default [
+	{ text: 'スタートガイド', header: true, type: 'learn', key: 'startHere' },
+	{ text: 'はじめに', slug: 'getting-started', key: 'getting-started' },
+	{ text: 'インストール', slug: 'install/auto', key: 'install' },
+	{ text: 'エディタのセットアップ', slug: 'editor-setup', key: 'editor-setup' },
+	{ text: 'v4へのアップグレード', slug: 'guides/upgrade-to/v4', key: 'guides/upgrade-to/v4' },
 
-export default NavDictionary({
-	// Start Here
-	startHere: 'スタートガイド',
-	'getting-started': 'はじめに',
-	install: 'インストール',
-	'editor-setup': 'エディタのセットアップ',
-	'guides/upgrade-to/v4': 'v4へのアップグレード',
+	{ text: 'コアコンセプト', header: true, type: 'learn', key: 'coreConcepts' },
+	{ text: 'Astroを選ぶ理由', slug: 'concepts/why-astro', key: 'concepts/why-astro' },
+	{ text: 'Astroアイランド', slug: 'concepts/islands', key: 'concepts/islands' },
 
-	// Core Concepts
-	coreConcepts: 'コアコンセプト',
-	'concepts/why-astro': 'Astroを選ぶ理由',
-	'concepts/islands': 'Astroアイランド',
+	{ text: 'チュートリアル', header: true, type: 'learn', key: 'tutorials' },
+	{ text: 'ブログを作る', slug: 'tutorial/0-introduction', key: 'blog-tutorial' },
+	{
+		text: 'コンテンツコレクションで拡張する',
+		slug: 'tutorials/add-content-collections',
+		key: 'add-collections-tutorial',
+	},
+	{
+		text: 'ビュートランジションで拡張する',
+		slug: 'tutorials/add-view-transitions',
+		key: 'add-transitions-tutorial',
+	},
+	// { text: 'Thinking with Islands', slug: 'tutorial/0-introduction', key: 'island-tutorial' },
 
-	// Tutorials
-	tutorials: 'チュートリアル',
-	'blog-tutorial': 'ブログを作る',
-	'add-collections-tutorial': 'コンテンツコレクションで拡張する',
-	'add-transitions-tutorial': 'ビュートランジションで拡張する',
+	{ text: '基本', header: true, type: 'learn', key: 'basics' },
 
-	// Basics
-	basics: '基本',
-	'basics/project-structure': 'ディレクトリ構成',
-	'basics/astro-components': 'コンポーネント',
-	'basics/astro-pages': 'ページ',
-	'basics/layouts': 'レイアウト',
-	'basics/astro-syntax': 'Astroテンプレートの構文',
-	'basics/rendering-modes': 'レンダリングモード',
+	{
+		text: 'ディレクトリ構成',
+		slug: 'basics/project-structure',
+		key: 'basics/project-structure',
+	},
+	{
+		text: 'コンポーネント',
+		slug: 'basics/astro-components',
+		key: 'basics/astro-components',
+	},
+	{ text: 'ページ', slug: 'basics/astro-pages', key: 'basics/astro-pages' },
+	{ text: 'レイアウト', slug: 'basics/layouts', key: 'basics/layouts' },
+	{
+		text: 'Astroテンプレートの構文',
+		slug: 'basics/astro-syntax',
+		key: 'basics/astro-syntax',
+	},
+	{
+		text: 'レンダリングモード',
+		slug: 'basics/rendering-modes',
+		key: 'basics/rendering-modes',
+	},
 
-	// Built-ins
-	builtins: '組み込み機能',
-	'guides/content-collections': 'コンテンツコレクション',
-	'guides/view-transitions': 'ビュートランジション',
-	'guides/prefetch': 'プリフェッチ',
+	{ text: '組み込み機能', header: true, type: 'learn', key: 'builtins' },
+	{
+		text: 'コンテンツコレクション',
+		slug: 'guides/content-collections',
+		key: 'guides/content-collections',
+	},
+	{
+		text: 'ビュートランジション',
+		slug: 'guides/view-transitions',
+		key: 'guides/view-transitions',
+	},
+	{
+		text: 'プリフェッチ',
+		slug: 'guides/prefetch',
+		key: 'guides/prefetch',
+	},
 
-	// Integrations
-	addons: 'インテグレーション',
-	'guides/integrations-guide': 'インテグレーションの追加',
-	'guides/framework-components': 'UIフレームワーク',
-	'guides/server-side-rendering': 'サーバーサイドレンダリング（SSR）',
+	{ text: 'インテグレーション', header: true, type: 'learn', key: 'addons' },
+	{
+		text: 'インテグレーションの追加',
+		slug: 'guides/integrations-guide',
+		key: 'guides/integrations-guide',
+	},
+	{
+		text: 'UIフレームワーク',
+		slug: 'guides/framework-components',
+		key: 'guides/framework-components',
+	},
+	{
+		text: 'サーバーサイドレンダリング（SSR）',
+		slug: 'guides/server-side-rendering',
+		key: 'guides/server-side-rendering',
+	},
 
-	// Recipes
-	examples: 'レシピ',
-	'guides/migrate-to-astro': 'Astroへの移行',
-	'guides/cms': 'CMSとの接続',
-	'guides/backend': 'バックエンドサービスの追加',
-	'guides/deploy': 'サイトのデプロイ',
-	'guides/recipes': 'その他のレシピ',
+	{ text: 'レシピ', header: true, type: 'learn', key: 'examples' },
+	{ text: 'Astroへの移行', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
+	{ text: 'CMSとの接続', slug: 'guides/cms', key: 'guides/cms' },
+	{ text: 'バックエンドサービスの追加', slug: 'guides/backend', key: 'guides/backend' },
+	{ text: 'サイトのデプロイ', slug: 'guides/deploy', key: 'guides/deploy' },
+	{ text: 'その他のレシピ', slug: 'recipes', key: 'guides/recipes' },
 
-	// Guides
-	features: 'ガイド',
-	'guides/routing': 'ルーティング',
-	'guides/markdown-content': 'Markdown',
-	'guides/client-side-scripts': 'スクリプトとイベントハンドリング',
-	'guides/styling': 'CSSとスタイル',
-	'guides/images': '画像',
-	'guides/fonts': 'フォント',
-	'guides/imports': 'インポート',
-	'guides/endpoints': 'エンドポイント',
-	'guides/data-fetching': 'データフェッチ',
-	'guides/internationalization': '国際化',
-	'guides/middleware': 'ミドルウェア',
-	'guides/testing': 'テスト',
-	'guides/troubleshooting': 'トラブルシューティング',
+	{ text: 'ガイド', header: true, type: 'learn', key: 'features' },
+	{ text: 'ルーティング', slug: 'guides/routing', key: 'guides/routing' },
+	{ text: 'Markdown', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
+	{
+		text: 'スクリプトとイベントハンドリング',
+		slug: 'guides/client-side-scripts',
+		key: 'guides/client-side-scripts',
+	},
+	{ text: 'CSSとスタイル', slug: 'guides/styling', key: 'guides/styling' },
+	{ text: '画像', slug: 'guides/images', key: 'guides/images' },
+	{ text: 'フォント', slug: 'guides/fonts', key: 'guides/fonts' },
+	{ text: 'インポート', slug: 'guides/imports', key: 'guides/imports' },
+	{ text: 'エンドポイント', slug: 'guides/endpoints', key: 'guides/endpoints' },
+	{ text: 'データフェッチ', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
+	{ text: '国際化', slug: 'guides/internationalization', key: 'guides/internationalization' },
+	{ text: 'ミドルウェア', slug: 'guides/middleware', key: 'guides/middleware' },
+	{ text: 'テスト', slug: 'guides/testing', key: 'guides/testing' },
+	{ text: '認証', slug: 'guides/authentication', key: 'guides/authentication' },
+	{ text: 'トラブルシューティング', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
 
-	// Configuration
-	configuration: '設定',
-	'guides/configuring-astro': 'Astroの設定ファイル',
-	'guides/typescript': 'TypeScript',
-	'guides/aliases': 'importエイリアス',
-	'guides/environment-variables': '環境変数',
+	{ text: '設定', header: true, type: 'learn', key: 'configuration' },
+	{
+		text: 'Astroの設定ファイル',
+		slug: 'guides/configuring-astro',
+		key: 'guides/configuring-astro',
+	},
+	{ text: 'TypeScript', slug: 'guides/typescript', key: 'guides/typescript' },
+	{ text: 'importエイリアス', slug: 'guides/aliases', key: 'guides/aliases' },
+	{ text: '環境変数', slug: 'guides/environment-variables', key: 'guides/environment-variables' },
 
-	// Reference
-	reference: 'リファレンス',
-	'reference/configuration-reference': '設定方法',
-	'reference/api-reference': 'ランタイムAPI',
-	'reference/integrations-reference': 'インテグレーションAPI',
-	'reference/adapter-reference': 'アダプターAPI',
-	'reference/image-service-reference': '画像サービスAPI',
-	'reference/dev-toolbar-app-reference': 'Dev Toolbar App API',
-	'reference/directives-reference': 'テンプレートディレクティブ',
-	'reference/cli-reference': 'Astro CLI',
-	'reference/error-reference': 'エラーリファレンス',
-	'guides/publish-to-npm': 'NPMパッケージの形式',
-});
+	{ text: 'リファレンス', header: true, type: 'api', key: 'reference' },
+	{
+		text: '設定方法',
+		slug: 'reference/configuration-reference',
+		key: 'reference/configuration-reference',
+	},
+	{ text: 'ランタイムAPI', slug: 'reference/api-reference', key: 'reference/api-reference' },
+	{
+		text: 'インテグレーションAPI',
+		slug: 'reference/integrations-reference',
+		key: 'reference/integrations-reference',
+	},
+	{
+		text: 'アダプターAPI',
+		slug: 'reference/adapter-reference',
+		key: 'reference/adapter-reference',
+	},
+	{
+		text: '画像サービスAPI',
+		slug: 'reference/image-service-reference',
+		key: 'reference/image-service-reference',
+	},
+	{
+		text: 'Dev Toolbar App API',
+		slug: 'reference/dev-toolbar-app-reference',
+		key: 'reference/dev-toolbar-app-reference',
+	},
+	{
+		text: 'テンプレートディレクティブ',
+		slug: 'reference/directives-reference',
+		key: 'reference/directives-reference',
+	},
+	{ text: 'Astro CLI', slug: 'reference/cli-reference', key: 'reference/cli-reference' },
+	{
+		text: 'エラーリファレンス',
+		slug: 'reference/error-reference',
+		key: 'reference/error-reference',
+	},
+	{ text: 'NPMパッケージの形式', slug: 'reference/publish-to-npm', key: 'guides/publish-to-npm' },
+
+	{ text: 'コミュニティリソース', header: true, type: 'learn', key: 'communityResources' },
+	{
+		text: 'コース、ガイド、レシピ',
+		slug: 'community-resources/content',
+		key: 'community-resources/content',
+	},
+	{
+		text: 'トーク、インタビュー、配信',
+		slug: 'community-resources/talks',
+		key: 'community-resources/talks',
+	},
+] as const;
