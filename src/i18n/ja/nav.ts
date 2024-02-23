@@ -151,7 +151,7 @@ export default [
 		key: 'reference/image-service-reference',
 	},
 	{
-		text: 'Dev Toolbar App API',
+		text: '開発ツールバーアプリAPI',
 		slug: 'reference/dev-toolbar-app-reference',
 		key: 'reference/dev-toolbar-app-reference',
 	},
