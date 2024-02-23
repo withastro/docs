@@ -47,6 +47,7 @@ export default NavDictionary({
 	'guides/view-transitions': 'Transições de Visualização',
 	'guides/prefetch': 'Pré-carregamento',
 	'guides/troubleshooting': 'Solução de Problemas',
+	'guides/authentication': 'Autenticação',
 
 	configuration: 'Configuração',
 	'guides/configuring-astro': 'O Arquivo de Configuração Astro',
