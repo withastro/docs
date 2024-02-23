@@ -55,7 +55,7 @@ export default NavDictionary({
 	'guides/internationalization': 'Internacionalización',
 	'guides/middleware': 'Middleware',
 	'guides/testing': 'Testing',
-	'guides/authentication': 'Autentificación',
+	'guides/authentication': 'Autenticación',
 	'guides/troubleshooting': 'Solución de Problemas',
 
 	configuration: 'Configuración',
