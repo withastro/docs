@@ -62,6 +62,7 @@ export default NavDictionary({
 	'guides/internationalization': '国際化',
 	'guides/middleware': 'ミドルウェア',
 	'guides/testing': 'テスト',
+	'guides/authentication': '認証',
 	'guides/troubleshooting': 'トラブルシューティング',
 
 	// Configuration
