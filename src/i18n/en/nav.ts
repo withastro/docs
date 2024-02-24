@@ -6,6 +6,17 @@
  * - All entries MUST include `text` and `key`
  * - Heading entries MUST include `header: true` and `type`
  * - Link entries MUST include `slug` (which excludes the language code)
+ *
+ * For translators:
+ *
+ * To avoid accidental editing, please use the existing `{key: value}`
+ * structure with `NavDictionary()` in non-English `nav.ts` files. 
+ *
+ * For example, the entry in `en/nav.ts`
+ *   { text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },
+ * should be converted to
+ *   'getting-started: 'Getting Started',
+ * and only translate 'Getting Started' part into your language.
  */
 export default [
 	{ text: 'Start Here', header: true, type: 'learn', key: 'startHere' },
