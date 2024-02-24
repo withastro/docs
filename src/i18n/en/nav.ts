@@ -15,7 +15,7 @@
  * For example, the entry in `en/nav.ts`
  *   { text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },
  * should be converted to
- *   'getting-started: 'Getting Started',
+ *   'getting-started': 'Getting Started',
  * and only translate 'Getting Started' part into your language.
  */
 export default [
