@@ -9,14 +9,10 @@
  *
  * For translators:
  *
- * To avoid accidental editing, please use the existing `{key: value}`
- * structure with `NavDictionary()` in non-English `nav.ts` files. 
- *
- * For example, the entry in `en/nav.ts`
- *   { text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },
- * should be converted to
- *   'getting-started': 'Getting Started',
- * and only translate 'Getting Started' part into your language.
+ * Copy the English `key` value unchanged and translate only the `text` into your language:
+*
+ * `src/i18n/en/nav.ts`: `{ text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },`
+ * `src/i18n/ja/nav.ts`: `'getting-started': 'はじめに',`
  */
 export default [
 	{ text: 'Start Here', header: true, type: 'learn', key: 'startHere' },
