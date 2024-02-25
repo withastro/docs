@@ -10,7 +10,7 @@
  * For translators:
  *
  * Copy the English `key` value unchanged and translate only the `text` into your language:
-*
+ *
  * `src/i18n/en/nav.ts`: `{ text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },`
  * `src/i18n/ja/nav.ts`: `'getting-started': 'はじめに',`
  */
