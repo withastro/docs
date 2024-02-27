@@ -6,7 +6,8 @@ export default UIDictionary({
 	'navbar.a11yTitle': 'Вверх',
 	// Site settings
 	'site.title': 'Документация Astro',
-	'site.description': 'Создавайте более быстрые сайты с меньшим количеством JavaScript на стороне клиента.',
+	'site.description':
+		'Создавайте более быстрые сайты с меньшим количеством JavaScript на стороне клиента.',
 	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.og.imageAlt':
 		'логотип Astro на звездном просторе космоса, с фиолетовой планетой, похожей на Сатурн, плывущей справа на переднем плане',
@@ -128,7 +129,8 @@ export default UIDictionary({
 	'stub.description.migration':
 		'Хотите внести свой вклад в это руководство? У вас есть статья в блоге, видео или другой ресурс о переходе с этой технологии на Astro?',
 	'stub.description.cms': 'Хотите узнать больше о том, как использовать эту CMS с Astro?',
-	'stub.description.backend': 'Хотите узнать больше о том, как использовать этот бэкенд-сервис с Astro?',
+	'stub.description.backend':
+		'Хотите узнать больше о том, как использовать этот бэкенд-сервис с Astro?',
 	// Starlight banner
 	'starlight.title': 'Хотите создать свою собственную документацию?',
 	'starlight.description': 'Возьмите этот шаблон, чтобы начать.',
