@@ -3,7 +3,7 @@ import { NavDictionary } from '../translation-checkers';
 export default NavDictionary({
 	startHere: 'Начать здесь',
 	'getting-started': 'Начало работы',
-	'install': 'Установка',
+	install: 'Установка',
 	'editor-setup': 'Настройка редактора',
 	'guides/upgrade-to/v4': 'Обновление до v4',
 
@@ -74,7 +74,7 @@ export default NavDictionary({
 	'reference/cli-reference': 'Astro CLI',
 	'reference/error-reference': 'Справочник ошибок',
 	'guides/publish-to-npm': 'Формат пакета NPM',
-	
+
 	communityResources: 'Ресурсы сообщества',
 	'community-resources/content': 'Курсы, руководства и инструкции',
 	'community-resources/talks': 'Доклады, интервью и стримы',
