@@ -108,7 +108,7 @@ vercel deploy --prebuilt
 
 要配置这个适配器，将一个对象传递给 `astro.config.mjs` 中的 `vercel()` 函数调用：
 
-### Web Analytics
+### `webAnalytics`
 
 **类型：** `VercelWebAnalyticsConfig`<br/>
 **适用于：** Serverless, Static<br/>
@@ -131,7 +131,7 @@ export default defineConfig({
 });
 ```
 
-### imagesConfig
+### `imagesConfig`
 
 **类型：** `VercelImageConfig`<br/>
 **适用于：** Serverless, Static<br/>
@@ -156,7 +156,7 @@ export default defineConfig({
 });
 ```
 
-### imageService
+### `imageService`
 
 **类型：** `boolean`<br/>
 **适用于：** Serverless, Static<br/>
@@ -197,12 +197,12 @@ import astroLogo from '../assets/logo.png';
 />
 ```
 
-### devImageService
+### `devImageService`
 
 **类型：** `'sharp' | 'squoosh' | string`<br/>
 **适用于：** Serverless, Static
 <Since v="3.8.0" pkg="@astrojs/vercel" />
-**默认值：** 'sharp'
+**默认值：** `sharp`
 
 当 [imageService](#imageservice) 启用时，允许你在开发中配置使用哪个图像服务。如果你无法在开发机器上安装 Sharp 的依赖项，但使用另一个图像服务（如 Squoosh）可以让你在开发环境中预览图像，这可能很有用。但构建不会受其影响，将始终使用 Vercel 的图像优化。
 
@@ -222,7 +222,78 @@ export default defineConfig({
 });
 ```
 
-### includeFiles
+### `isr`
+
+**类型：** <code>boolean |   VercelISRConfig</code><br/>
+**适用于：** Serverless
+<Since v="7.2.0" pkg="@astrojs/vercel" />
+**默认值：** `false`
+
+允许你的项目作为一个 [ISR (增量式静态再生)](https://vercel.com/docs/incremental-static-regeneration) 功能部署，这个功能以首次请求后预渲染页面相同的方式缓存你按需渲染的页面。
+
+要启用此功能，在你的 `astro.config.mjs` 中的 Vercel 适配器配置里将 `isr` 设置为 true：
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/serverless';
+
+export default defineConfig({
+  // ...
+  output: 'server',
+  adapter: vercel({
+    isr: true,
+  }),
+});
+```
+
+请注意，ISR 功能请求不包括搜索参数，这与静态模式下的 [请求](/zh-cn/reference/api-reference/#astrorequest) 类似。
+
+#### ISR 缓存失效
+
+默认情况下，ISR 函数会在你的部署期间进行缓存。你可以通过设置过期时间，或者完全排除特定路由不进行缓存，来进一步控制缓存。
+
+##### 基于时间的失效
+
+你可以通过配置秒为单位的 `expiration` 值来改变缓存路由的时间长度：
+
+```js title="astro.config.mjs" {8-11}
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/serverless';
+
+export default defineConfig({
+  // ...
+  output: 'server',
+  adapter: vercel({
+    isr: {
+      // 在首次请求时缓存所有页面，并保存 1 天
+      expiration: 60 * 60 * 24,
+    },
+  }),
+});
+```
+
+##### 从缓存中排除路径
+
+要实现 Vercel 的[草稿模式](https://vercel.com/docs/build-output-api/v3/features#draft-mode)或[按需增量式静态再生 (ISR)](https://vercel.com/docs/build-output-api/v3/features#on-demand-incremental-static-regeneration-isr)，你可以创建一个绕过令牌，并将其连同任何要从缓存中排除的路径一起提供给 `isr` 配置：
+
+```js title="astro.config.mjs" {7-12}
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel/serverless';
+
+export default defineConfig({
+    output: "server",
+    adapter: vercel({
+        isr: {
+            // 你创建的一个秘密随机字符串。
+            bypassToken: "005556d774a8",
+            // 总是提供最新内容的路径。
+            exclude: [ "/api/invalidate" ] 
+        }
+    })
+})
+```
+
+### `includeFiles`
 
 **类型：** `string[]`<br/>
 **适用于：** Serverless
@@ -242,7 +313,7 @@ export default defineConfig({
 });
 ```
 
-### excludeFiles
+### `excludeFiles`
 
 **类型：** `string[]`<br/>
 **适用于：** Serverless
@@ -262,7 +333,7 @@ export default defineConfig({
 });
 ```
 
-### maxDuration
+### `maxDuration`
 
 **类型：** `number`<br/>
 **适用于：** Serverless
@@ -305,7 +376,9 @@ export default defineConfig({
 
 ### Vercel Edge 中间件
 
-你可以使用 Vercel Edge 中间件在发送响应之前拦截请求并重定向。Vercel 中间件可以用于 Edge、SSR 和静态部署。你可能不需要安装此软件包来使用中间件。`@vercel/edge` 仅在使用某些中间件功能（例如地理位置）时需要。更多信息请参阅 [Vercel 的中间件文档](https://vercel.com/docs/concepts/functions/edge-middleware).
+你可以使用 [Vercel Edge 中间件](https://vercel.com/docs/functions/edge-middleware) 在发送响应之前拦截请求并重定向。Vercel 中间件可以用于 Edge、SSR 和静态部署。
+
+你可能不需要安装此软件包来使用中间件。`@vercel/edge` 仅在使用某些中间件功能（例如地理位置）时需要。更多信息请参阅 [Vercel 的中间件文档](https://vercel.com/docs/concepts/functions/edge-middleware)。
 
 1. 在你的项目根目录添加一个 `middleware.js` 文件：
 
@@ -331,11 +404,13 @@ export default function middleware(request) {
 **尝试重写？** 目前，使用中间件重写请求仅适用于静态文件。
 :::
 
-### 通过 Astro 中间件创建 Vercel Edge 中间件
+### 在 Vercel Edge 函数上运行 Astro 中间件
 
-`@astrojs/vercel/serverless` 适配器可以根据你代码库中的 Astro 中间件自动创建 Vercel Edge 中间件。
+`@astrojs/vercel/serverless` 适配器可以根据你代码库中的 Astro 中间件创建一个 [边缘函数](https://vercel.com/docs/functions/edge-functions)。当启用 `edgeMiddleware` 时，边缘函数将为包括静态资源、预渲染页面和按需渲染页面在内的所有请求执行你的中间件代码。
 
-这是一个选择性功能，需要将 `edgeMiddleware` 选项设置为 `true` ：
+对于按需渲染的页面，`context.locals` 对象会被 JSON 序列化并通过标头发送给无服务器函数，由该函数执行渲染。作为安全措施，除非请求来自生成的边缘函数，否则无服务器函数将拒绝服务，并返回 `403 Forbidden` 响应。
+
+这是一个选择性功能。要启用它，请将 `edgeMiddleware` 设置为 `true`：
 
 ```js title="astro.config.mjs" "edgeMiddleware: true"
 import { defineConfig } from 'astro/config';
