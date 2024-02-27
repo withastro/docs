@@ -293,19 +293,134 @@ export default defineMarkdocConfig({
 
 <ReadMore>[Trouver tous les nœuds et attributs de nœuds intégrés à Markdoc dans leur documentation](https://markdoc.dev/docs/nodes#built-in-nodes)</ReadMore>
 
-### Utiliser des composants d'interface utilisateur côté client
+### Composants d'image personnalisés dans Markdoc
 
-Les balises et les nœuds sont limités aux fichiers `.astro`. Pour intégrer des composants d'interface utilisateur côté client dans Markdoc, [utilisez un composant `.astro` enveloppant qui rend un composant de framework](/fr/guides/framework-components/#imbriquer-des-composants-de-framework) avec la directive `client:` de votre choix.
+Le composant `<Image />` d'Astro ne peut pas être utilisé directement dans Markdoc. Cependant, vous pouvez configurer un composant Astro pour remplacer le nœud d'image par défaut chaque fois que la syntaxe d'image native ` ![]()` est utilisée, ou en tant que balise Markdoc personnalisée pour vous permettre de spécifier des attributs d'image supplémentaires.
 
-Cet exemple englobe un composant React `Aside.tsx` avec un composant `ClientAside.astro` :
+#### Remplacer le lien d'image par défaut de Markdoc
 
-```astro title="src/components/ClientAside.astro"
----
-import Aside from './Aside';
----
+Pour remplacer le lien d'image par défaut, vous pouvez configurer un composant `.astro` qui sera rendu à la place d'un `<img>` standard.
 
-<Aside {...Astro.props} client:load />
-```
+1. Créez un composant `MarkdocImage.astro` personnalisé pour passer les propriétés `src` et `alt` de votre image au composant `<Image />` :
+
+    ```astro title="src/components/MarkdocImage.astro"
+    ---
+    import { Image } from "astro:assets";
+    interface Props {
+     src: ImageMetadata;
+     alt: string;
+    }
+    const { src, alt } = Astro.props;
+    ---
+    <Image src={src} alt={alt} />
+    ```
+
+2. Le composant `<Image />` nécessite une `width` et `height` pour les images distantes, qui ne peuvent pas être fournies par la syntaxe `![]()`. Pour éviter les erreurs lors de l'utilisation d'images distantes, mettez à jour votre composant `<img>` pour qu'il rende une image HTML standard lorsqu'une URL distante `src` est trouvée :
+
+    ```astro title="src/components/MarkdocImage.astro" ins="| string" del={9} ins={10-12}
+    ---
+    import { Image } from "astro:assets";
+    interface Props {
+     src: ImageMetadata | string;
+     alt: string;
+    }
+    const { src, alt } = Astro.props;
+    ---
+    <Image src={src} alt={alt} />
+    {
+     typeof src === 'string' ? <img src={src} alt={alt} /> : <Image src={src} alt={alt} />
+    }
+   ```
+
+3. Configurez Markdoc pour qu'il remplace le lien d'image par défaut et rende `MarkdocImage.astro` :
+
+    ```js title="markdoc.config.mjs"
+    import { defineMarkdocConfig, nodes, component } from '@astrojs/markdoc/config';
+    
+    export default defineMarkdocConfig({
+     nodes: {
+       image: {
+         ...nodes.image, // Applique les valeurs par défaut de Markdoc pour les autres options
+         render: component('./src/components/MarkdocImage.astro'),
+       },
+     },
+    });
+    ```
+
+4. La syntaxe de l'image native dans n'importe quel fichier `.mdoc` utilisera désormais le composant `<Image />` pour optimiser vos images locales. Les images distantes peuvent toujours être utilisées, mais ne seront pas rendues par le composant `<Image />` d'Astro.
+
+   ```md title="src/content/blog/post.mdoc"
+   
+   <!-- Optimisé par <Image /> -->
+   ![Une photo d'un chat](/chat.jpg)
+  
+   <!-- Non optimisé <img> -->
+   ![Une photo d'un chien](https://exemple.com/chien.jpg) 
+   ```
+
+#### Créer une balise d'image Markdoc personnalisée
+
+Une balise Markdoc `image` vous permet de définir des attributs supplémentaires sur votre image qui ne sont pas possibles avec la syntaxe ` ![]()`. Par exemple, les balises d'images personnalisées vous permettent d'utiliser le composant `<Image />` d'Astro pour les images distantes qui nécessitent une `width` et `height`.
+
+Les étapes suivantes permettront de créer une balise image Markdoc personnalisée pour afficher un élément `<figure>` avec une légende, en utilisant le composant `<Image />` d'Astro pour optimiser l'image.
+
+1. Créez un composant `MarkdocFigure.astro` pour recevoir les props nécessaires et rendre une image avec une légende :
+
+    ```astro title="src/components/MarkdocFigure.astro"
+    ---
+    // src/components/MarkdocFigure.astro
+    import { Image } from "astro:assets";
+    
+    interface Props {
+     src: ImageMetadata | string;
+     alt: string;
+     width: number;
+     height: number;
+     caption: string;
+    }
+    
+    const { src, alt, width, height, caption } = Astro.props;
+    ---
+    <figure>
+       <Image {src} {alt} {width} {height}  />
+       {caption && <figcaption>{caption}</figcaption>}
+    </figure>
+    ```
+
+2. Configurez votre balise d'image personnalisée pour rendre votre composant Astro :
+
+    ```ts title="markdoc.config.mjs"
+    import { component, defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
+    
+    export default defineMarkdocConfig({
+     tags: {
+       image: {
+         attributes: nodes.image.attributes,
+         render: component('./src/components/MarkdocFigure.astro'),
+       },
+     },
+    });
+    ```
+
+3. Utilisez la balise `image` dans les fichiers Markdoc pour afficher une figure avec légende, en fournissant tous les props nécessaires à votre composant :
+
+     ```mdoc
+     {% image src="./astro-logo.png" alt="Logo Astro" width="100" height="100" caption="une légende !" %}
+     ```
+    
+    ### Utiliser des composants d'interface utilisateur côté client
+    
+    Les balises et les nœuds sont limités aux fichiers `.astro`. Pour intégrer des composants d'interface utilisateur côté client dans Markdoc, [utilisez un composant `.astro` enveloppant qui rend un composant de framework](/fr/guides/framework-components/#imbriquer-des-composants-de-framework) avec la directive `client:` de votre choix.
+    
+    Cet exemple englobe un composant React `Aside.tsx` avec un composant `ClientAside.astro` :
+    
+    ```astro title="src/components/ClientAside.astro"
+    ---
+    import Aside from './Aside';
+    ---
+    
+    <Aside {...Astro.props} client:load />
+    ```
 
 Ce composant Astro peut maintenant être passé à la propriété `render` pour n'importe quel [tag][markdoc-tags] ou [node][markdoc-nodes] dans votre configuration :
 
