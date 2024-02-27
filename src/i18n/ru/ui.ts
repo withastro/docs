@@ -1,4 +1,6 @@
-export default {
+import { UIDictionary } from '../translation-checkers';
+
+export default UIDictionary({
 	'a11y.skipLink': 'Перейти к содержанию',
 	'a11y.sectionLink': 'Заголовок раздела',
 	'navbar.a11yTitle': 'Вверх',
@@ -130,4 +132,4 @@ export default {
 	// Starlight banner
 	'starlight.title': 'Хотите создать свою собственную документацию?',
 	'starlight.description': 'Возьмите этот шаблон, чтобы начать.',
-};
+});
