@@ -47,6 +47,7 @@ export default NavDictionary({
 	'guides/view-transitions': 'Transições de Visualização',
 	'guides/prefetch': 'Pré-carregamento',
 	'guides/troubleshooting': 'Solução de Problemas',
+	'guides/authentication': 'Autenticação',
 
 	configuration: 'Configuração',
 	'guides/configuring-astro': 'O Arquivo de Configuração Astro',
@@ -64,4 +65,8 @@ export default NavDictionary({
 	'reference/cli-reference': 'A CLI do Astro',
 	'reference/error-reference': 'Referência de Erros',
 	'guides/publish-to-npm': 'Publique no NPM',
+
+	communityResources: 'Conteúdos da Comunidade',
+	'community-resources/content': 'Cursos, Guias, e Receitas',
+	'community-resources/talks': 'Palestras, Entrevistas, e Transmissões',
 });

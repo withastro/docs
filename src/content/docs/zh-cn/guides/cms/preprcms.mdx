@@ -1,0 +1,231 @@
+---
+title: Prepr CMS & Astro
+description: 使用 Prepr 作为 CMS 向你的 Astro 项目添加内容
+type: cms
+service: Prepr CMS
+stub: true
+i18nReady: true
+---
+import FileTree from '~/components/FileTree.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+[Prepr CMS](https://www.prepr.io/) 是一个内置个性化功能的无头 CMS。
+
+
+## 与 Astro 集成
+
+Prepr CMS 提供了一个 [GraphQL API](https://docs.prepr.io/reference/graphql/v1/overview) 来将你的数据连接到 Astro。
+
+### 前提条件
+
+要开始使用，你需要具备以下条件：
+
+- 一个新的或现有的配置为 [按需渲染](/zh-cn/guides/server-side-rendering/) 的 Astro 项目。
+- [一个免费的 Prepr 账户](https://signup.prepr.io/)
+- [一个包含现有博客帖子的 Prepr 环境](https://docs.prepr.io/account/set-up-environments#create-an-envirntonment)。这些帖子必须包含 `title` 和 `content`。其他字段是可选的。
+
+### 设置凭证
+
+要将 Prepr 端点添加到你的 Astro 项目中，请在项目的根目录创建一个 `.env 文件`（如果还没有的话），并添加以下变量：
+
+```ini title=".env"
+PREPR_ENDPOINT=YOUR_PREPR_API_URL
+```
+
+你可以从你的 Prepr 账户设置中找到你的 `YOUR_PREPR_API_URL` 值：
+1. 前往 **Settings (设置) > Access tokens (访问令牌)** 查看你的预览和生产访问令牌。
+2. 使用来自 **GraphQL Production** 访问令牌的 **API URL** 值，仅检索你的 Astro 站点已发布的内容项。
+
+### 配置 Prepr 端点
+
+创建一个新的文件夹 `src/lib/` 并添加一个名为 `prepr.js` 的新文件。这是你将配置 Prepr 端点的地方。添加以下代码以从 Prepr CMS 获取你的数据：
+
+```js title="src/lib/prepr.js"
+
+export async function Prepr(query, variables) {
+    const response = await fetch(import.meta.env.PREPR_ENDPOINT, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ query, variables }),
+    })
+    return response
+}
+```
+
+你的根目录现在应该包含这些文件：
+
+<FileTree title="Project Structure">
+- lib/
+    - **prepr.js**
+- src/
+- **.env**
+- astro.config.mjs
+- package.json
+
+</FileTree>
+
+### 获取数据
+
+你将通过编写查询来与 Prepr 的 GraphQL API 交互来从 Prepr 获取数据。
+
+#### 创建一个 GraphQL 查询来检索你的博客文章：
+1. 创建一个新的文件夹 `src/queries/` 并添加一个名为 `get-articles.js` 的文件。
+2. 在这个文件中添加以下查询来检索所有文章：
+
+    ```js title="src/queries/get-articles.js"
+
+    const GetArticles = `
+    query {
+        Articles {
+          items {
+            _id
+            _slug
+            title
+        }
+      }
+    }
+    `
+    export default GetArticles
+    ```
+
+3. 要在页面上显示你的博客文章的链接列表，请导入并执行你的查询，包括必要的 Prepr 端点。这样，你就可以访问所有文章的标题和它们的 slugs，并将它们渲染到页面上。（在下一步中，你将[为你的博客文章创建独立的页面](#创建独立的博客文章页面)。）
+
+    ```astro title="src/pages/index.astro" ins={3-4, 6-8, 15-23}
+    ---
+    import Layout from '../layouts/Layout.astro';
+    import { Prepr } from '../lib/prepr.js';
+    import GetArticles from '../queries/get-articles.js';
+
+    const response = await Prepr(GetArticles)
+    const { data } = await response.json()
+    const articles = data.Articles
+    ---
+
+    <Layout title="My blog site">
+      <h1>
+        My blog site
+      </h1>
+      <ul>
+        {
+          articles.items.map((post) => (
+            <li>
+              <a href={post._slug}>{post.title}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </Layout>
+    ```
+
+
+你的根目录应该包含这些新文件：
+
+<FileTree title="Project Structure">
+- lib/
+    - prepr.js
+    - **queries**/
+        - **get-articles.js**
+- src/
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+#### 创建独立的博客文章页面
+
+为了为每篇博客文章创建一个页面，你将在一个使用[动态路由](/zh-cn/guides/routing/#服务器ssr模式)的 `.astro` 页面上执行一个新的 GraphQL 查询。这个查询将通过其 slug 获取一个特定的文章，并为每篇独立的博客文章创建一个新页面。
+
+1. 在 `queries` 文件夹中创建一个名为 `get-article-by-slug.js` 的文件，并添加以下内容来查询一个特定文章的 slug，并返回诸如文章的 `title` 和 `content` 等数据：
+
+    ```js title="src/lib/queries/get-article-by-slug.js"
+
+    const GetArticleBySlug = `
+    query ($slug: String) {
+       Article (slug: $slug) {
+         _id
+         title
+         content {
+           __typename
+           ... on Text {
+             body
+             text
+           }
+           ... on Assets {
+             items {
+               url
+             }
+           }
+         }
+       }
+    }`
+
+    export default GetArticleBySlug
+    ```
+
+:::tip
+你可以在 Prepr 中使用 [Apollo explorer](https://studio.apollographql.com/sandbox/explorer) 创建并[测试 GraphQL 查询](https://docs.prepr.io/reference/graphql/v1/test-queries)。从 Prepr 的 *文章* 内容项页面打开 API Explorer。
+文章内容存储在一个*动态内容字段*中。查看 GraphQL 文档以获取更多关于[如何获取此字段内的数据](https://docs.prepr.io/reference/graphql/v1/schema-field-types-dynamic-content-field)的详情。
+:::
+
+2. 在 `src/pages` 文件夹中，创建一个名为 `[…slug].astro` 的文件。添加以下代码来导入并执行上一步的查询，并展示检索到的文章：
+
+    ```astro title="src/pages/[...slug].astro"
+    ---
+    import Layout from '../layouts/Layout.astro';
+    import {Prepr} from '../lib/prepr.js';
+    import GetArticleBySlug from '../queries/get-article-by-slug.js';
+    const { slug } = Astro.params;
+    const response = await Prepr(GetArticleBySlug, {slug})
+    const { data } = await response.json()
+    const article = data.Article
+    ---
+    <Layout title={article.title}>
+      <main>
+        <h1>{article.title}</h1>
+        {
+          article.content.map((content) => (
+            <div>
+              {
+                content.__typename === "Assets" &&
+                <img src={content.items[0].url} width="300" height="250"/>
+              }
+              {
+                content.__typename === 'Text' &&
+                <div set:html={content.body}></div>
+              }
+            </div>
+          ))
+        }
+      </main>
+    </Layout>
+    ```
+
+你的根目录现在应该包含这些新文件：
+
+<FileTree title="Project Structure">
+- lib/
+    - prepr.js
+    - queries/
+        - get-articles.js
+        - **get-article-by-slug.js**
+- src/
+    - pages/
+      - index.astro
+      - **[…slug].astro**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+现在，当你从博客文章的主列表中点击一篇文章的链接时，你将被带到一个展示其独立内容的页面。
+
+### 发布你的网站
+
+要部署你的 Prepr 博客，请访问我们的[部署指南](/zh-cn/guides/deploy/)并按照你偏好的托管提供商的说明进行操作。
+
+## 官方资源
+
+- 按照 [Prepr CMS Astro 快速开始](https://github.com/preprio/astro-quick-start) 指南，使用 Astro 和 Prepr CMS 创建一个简单的博客。
+- 查看 [将 Prepr CMS 连接到 Astro](https://docs.prepr.io/connecting-front-end-apps/astro) 来了解 Astro 和 Prepr CMS 相关资源。

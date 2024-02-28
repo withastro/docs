@@ -1,0 +1,357 @@
+---
+title: Builder.io & Astro
+description: Builder.io의 시각적 CMS를 사용하여 Astro 프로젝트에 콘텐츠를 추가하세요.
+type: cms
+service: Builder.io
+stub: false
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import FileTree from '~/components/FileTree.astro';
+
+[Builder.io](https://www.builder.io/)는 웹사이트 구축을 위한 드래그 앤 드롭 콘텐츠 편집을 지원하는 시각적 CMS입니다.
+
+이 레시피는 클라이언트 측 JavaScript 없이 Builder space를 Astro에 연결하는 방법을 보여줍니다.
+
+## 전제 조건
+
+시작하려면 다음이 필요합니다.
+
+- **Builder 계정 및 space** - 아직 계정이 없다면 [무료로 가입](https://www.builder.io/)하고 새 space을 만드세요. Builder를 사용하는 space가 이미 있는 경우 자유롭게 사용하세요. 단, 모델 이름 (`blogpost`) 및 사용자 정의 데이터 필드와 일치하도록 코드를 수정해야 합니다.
+- **Builder API 키** - 이 공개 키는 Builder에서 콘텐츠를 가져오는 데 사용됩니다. [키를 찾는 방법에 대한 Builder 가이드를 읽어보세요](https://www.builder.io/c/docs/using-your-api-key#finding-your-public-api-key).
+
+## 자격 증명 설정
+
+Astro에 Builder API 키와 Builder 모델 이름을 추가하려면 프로젝트 루트에 `.env` 파일을 만들고 (아직 없는 경우) 다음 변수를 추가하세요.
+
+```ini title=".env"
+BUILDER_API_PUBLIC_KEY=YOUR_API_KEY
+BUILDER_BLOGPOST_MODEL='blogpost'
+```
+
+이제 프로젝트에서 이 API 키를 사용할 수 있습니다.
+
+:::note
+작성 당시 [이 키는 공개되어 있으므로](https://www.builder.io/c/docs/using-your-api-key#prerequisites) 숨기거나 암호화하는 것에 대해 걱정할 필요가 없습니다.
+:::
+
+환경 변수에 IntelliSense를 사용하려면 `src/` 디렉터리에 `env.d.ts` 파일을 만들고 다음과 같이 `ImportMetaEnv`를 구성하면 됩니다.
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly BUILDER_API_PUBLIC_KEY: string;
+}
+```
+
+이제 프로젝트에 다음 파일이 포함되어야 합니다.
+
+<FileTree title="Project Structure">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## Astro와 Builder로 블로그 만들기
+
+### 블로그 게시물 모델 만들기
+
+아래 지침은 `title`과 `slug`라는 두 개의 필수 텍스트 필드가 포함된 `blogpost`라는 Builder 모델 (Type: "Section")을 사용하여 Astro 블로그를 만듭니다.
+
+:::tip[시각적 타입의 경우]
+[Builder의 공식 튜토리얼](https://www.builder.io/blog/creating-blog#creating-a-blog-article-model) 중 하나에서 이 절차를 보여주는 동영상을 찾을 수 있습니다.
+:::
+
+Builder 앱에서 블로그 게시물을 나타내는 모델을 생성합니다. **Models** 탭으로 이동하여 **+ Create Model** 버튼을 클릭하여 다음 필드와 값을 사용하여 모델을 생성합니다.
+
+- **Type:** Section
+- **Name:** "blogpost"
+- **Description:** "This model is for a blog post"
+
+새 모델에서 **+ New Custom Field** 버튼을 사용하여 2개의 새 필드를 만듭니다.
+
+1. 텍스트 필드
+
+   - **Name:** "title"
+   - **Required:** Yes
+   - **Default value** "I forgot to give this a title"
+
+   (다른 매개변수는 기본값으로 둡니다.)
+
+2. 텍스트 필드
+
+   - **Name:** "slug"
+   - **Required:** Yes
+   - **Default value** "some-slugs-take-their-time"
+
+   (다른 매개변수는 기본값으로 둡니다.)
+
+그런 다음 오른쪽 상단에 있는 **Save** 버튼을 클릭하세요.
+
+:::caution[Slugs]
+`slug` 필드에는 몇 가지 함정이 있습니다:
+
+- 슬러그가 단순한 숫자가 아닌지 확인하세요. 이로 인해 Builder API에 대한 가져오기 요청이 중단되는 것 같습니다.
+
+- 사이트의 라우팅이 이에 따라 달라지므로 슬러그가 고유한지 확인하세요.
+  :::
+
+### 미리보기 설정
+
+Builder의 시각적 편집기를 사용하려면 특수 `<builder-component>`를 렌더링하는 `src/pages/builder-preview.astro` 페이지를 생성하세요.
+
+<FileTree title="Project Structure">
+- src/
+  - pages/
+    - **builder-preview.astro**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+그런 다음, 다음 내용을 추가합니다.
+
+```astro title="src/pages/builder-preview.astro"
+---
+const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
+const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
+---
+
+<html lang="en">
+  <head>
+    <title>Preview for builder.io</title>
+  </head>
+  <body>
+    <header>This is your header</header>
+
+    <builder-component model={builderModel} api-key={builderAPIpublicKey}></builder-component>
+    <script async src="https://cdn.builder.io/js/webcomponents"></script>
+
+    <footer>This is your footer</footer>
+  </body>
+</html>
+```
+
+위 예시에서 `<builder-component>`는 Builder에게 CMS의 콘텐츠를 삽입할 위치를 알려줍니다.
+
+#### 새 경로를 미리보기 URL로 설정
+
+1. 프로토콜을 포함하여 미리보기의 전체 URL을 클립보드에 복사합니다 (예: `https://{yourhost}/builder-preview`).
+
+2. Builder space의 **Models** 탭으로 이동하여 생성한 모델을 선택하고 1단계의 URL을 **Preview URL** 필드에 붙여넣습니다. URL이 완전하고 프로토콜 (예: `https://`)을 포함하는지 확인하세요.
+
+3. 오른쪽 상단의 **Save** 버튼을 클릭하세요.
+
+:::tip
+사이트를 배포할 때 미리보기 URL을 프로덕션 URL과 일치하도록 변경하세요 (예: `https://myAwesomeAstroBlog.com/builder-preview`).
+:::
+
+#### 미리보기 URL 설정 테스트
+
+1. 사이트가 활성화되어 있는지 (예: 개발 서버가 실행 중인지), 그리고 `/builder-preview` 경로가 작동하는지 확인하세요.
+
+2. **Content** 탭 아래의 Builder space에서 **New**를 클릭하여 `blogpost` 모델에 대한 새 콘텐츠 항목을 만듭니다.
+
+3. 방금 연 Builder 편집기에서 중간에 큰 **Add Block**이 있는 `builder-preview.astro` 페이지를 볼 수 있습니다.
+
+:::tip[문제해결]
+
+미리보기를 설정할 때 문제가 발생할 수 있습니다. 문제가 있는 경우 다음 중 하나를 시도해 볼 수 있습니다.
+
+- 사이트가 활성화되어 있는지 확인하세요. 예를 들어 개발 서버가 실행 중인지 확인하세요.
+- URL이 Astro 프로젝트의 URL과 Builder 앱에 설정된 URL과 정확하게 일치하는지 확인하세요.
+- 프로토콜을 포함한 전체 URL (예: `https://`)인지 확인하세요.
+- [StackBlitz](https://stackblitz.com/) 또는 [Gitpod](https://www.gitpod.io/)와 같은 가상 환경에서 작업하는 경우 URL을 복사하여 붙여넣어야 할 수도 있습니다. 작업공간을 다시 시작하면 일반적으로 프로젝트에 대한 새 URL이 생성되기 때문입니다.
+
+더 많은 아이디어를 보려면 [Builder의 문제 해결 가이드](https://www.builder.io/c/docs/guides/preview-url-working)를 읽어보세요.
+:::
+
+### 블로그 게시물 작성하기
+
+1. Builder의 시각적 편집기에서 다음 값을 사용하여 새 콘텐츠 항목을 생성합니다.
+   - **title:** 'First post, woohoo!'
+   - **slug:** 'first-post-woohoo'
+2. **Add Block** 버튼을 사용하여 게시물을 완성하고 일부 게시물 콘텐츠가 포함된 텍스트 필드를 추가하세요.
+3. 편집기 위의 텍스트 필드에 항목 이름을 지정합니다. 이것이 Builder 앱에 나열되는 방식입니다.
+4. 준비가 되면 오른쪽 상단에 있는 **Publish** 버튼을 클릭하세요.
+5. 모든 콘텐츠 항목에 `title`, `slug` 및 일부 게시물 콘텐츠가 포함되어 있는지 확인하여 원하는 만큼 게시물을 만듭니다.
+
+### 블로그 게시물 목록 표시하기
+
+모든 게시물 제목 목록을 가져와 표시하려면 각각 자체 페이지로 연결되는 `src/pages/index.astro` 파일에 다음 콘텐츠를 추가하세요.
+
+```astro title="src/pages/index.astro" {9}
+---
+const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
+const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
+
+const { results: posts } = await fetch(
+  `https://cdn.builder.io/api/v3/content/${builderModel}?${new URLSearchParams({
+    apiKey: builderAPIpublicKey,
+    fields: ['data.slug', 'data.title'].join(','),
+    cachebust: 'true',
+  }).toString()}`
+)
+  .then((res) => res.json())
+  .catch();
+---
+
+<html lang="en">
+  <head>
+    <title>Blog Index</title>
+  </head>
+  <body>
+    <ul>
+      {
+        posts.map(({ data: { slug, title } }) => (
+          <li>
+            <a href={`/posts/${slug}`}>{title}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </body>
+</html>
+```
+
+콘텐츠 API를 통해 가져오면 각 게시물에 대한 데이터가 포함된 객체 배열이 반환됩니다. `fields` 쿼리 매개변수는 Builder에 어떤 데이터가 포함되어 있는지 알려줍니다 (강조 표시된 코드 참조). `slug` 및 `title`은 Builder 모델에 추가한 사용자 정의 데이터 필드의 이름과 일치해야 합니다.
+
+가져오기에서 반환된 `posts` 배열은 홈 페이지에 블로그 게시물 제목 목록을 표시합니다. 개별 페이지 경로는 다음 단계에서 생성됩니다.
+
+:::tip[프레임워크 통합]
+Astro 프로젝트에서 JavaScript 프레임워크 (예: Svelte, Vue 또는 React)를 사용하는 경우 REST API를 통해 원시 fetch 호출을 만드는 대신 [Builder의 통합 중 하나](https://www.builder.io/m/integrations)를 사용할 수 있습니다.
+:::
+
+index 경로로 이동하면 블로그 게시물 제목이 포함된 링크 목록을 볼 수 있습니다!
+
+### 단일 블로그 게시물 표시
+
+각 게시물에 대한 [페이지를 동적으로 생성](/ko/guides/routing/#동적-경로)하는 `src/pages/posts/[slug].astro` 페이지를 만듭니다.
+
+<FileTree title="Project Structure">
+- src/
+  - pages/
+    - index.astro
+    - posts/
+      - **[slug].astro**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+이 파일에는 다음이 포함되어야 합니다.
+
+- Builder에서 `slug` 정보를 가져와 각 블로그 게시물에 대한 정적 경로를 생성하기 위한 [`getStaticPaths()`](/ko/reference/api-reference/#getstaticpaths) 함수.
+- 게시물 콘텐츠와 메타데이터 (예: `title`)를 반환하기 위해 `slug` 식별자를 사용하는 Builder API에 대한 `fetch()`.
+- 게시물 콘텐츠를 HTML로 렌더링하기 위한 템플릿의 `<Fragment />`.
+
+다음 코드 조각에서는 이들 각각을 강조 표시합니다.
+
+```astro title="src/pages/posts/[slug].astro"  ins={2, 26, 33, 40, 51}
+---
+export async function getStaticPaths() {
+  const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
+  const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
+  const { results: posts } = await fetch(
+    `https://cdn.builder.io/api/v3/content/${builderModel}?${new URLSearchParams({
+      apiKey: builderAPIpublicKey,
+      fields: ['data.slug', 'data.title'].join(','),
+      cachebust: 'true',
+    }).toString()}`
+  )
+    .then((res) => res.json())
+    .catch
+    // ...오류 처리...);
+    ();
+  return [
+    ...posts.map(({ data: { slug, title } }) => [
+      {
+        params: { slug },
+        props: { title },
+      },
+    ]),
+  ];
+}
+const { slug } = Astro.params;
+const { title } = Astro.props;
+const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
+const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
+// Builder의 API에는 이 필드가 필요하지만 이 사용 사례에서는 URL이 중요하지 않은 것 같습니다. API는 동일한 HTML을 반환합니다.
+const encodedUrl = encodeURIComponent('moot');
+const { html: postHTML } = await fetch(
+  `https://cdn.builder.io/api/v1/qwik/${builderModel}?${new URLSearchParams({
+    apiKey: builderAPIpublicKey,
+    url: encodedUrl,
+    'query.data.slug': slug,
+    cachebust: 'true',
+  }).toString()}`
+)
+  .then((res) => res.json())
+  .catch();
+---
+
+<html lang="en">
+  <head>
+    <title>{title}</title>
+  </head>
+  <body>
+    <header>This is your header</header>
+    <article>
+      <Fragment set:html={postHTML} />
+    </article>
+    <footer>The is your footer</footer>
+  </body>
+</html>
+```
+
+:::note
+[`getStaticPaths()`는 자체 격리된 범위에서 실행되므로](/ko/reference/api-reference/#getstaticpaths) `builderModel` 및 `builderAPIpublicKey` 변수를 두 번 생성해야 합니다.
+:::
+
+이제 index 경로에 있는 링크를 클릭하면 개별 블로그 게시물 페이지로 이동됩니다.
+
+### 사이트 게시
+
+웹사이트를 배포하려면 [배포 가이드](/ko/guides/deploy/)를 방문하여 선호하는 호스팅 제공업체의 지침을 따르세요.
+
+#### Builder 변경 사항에 따라 다시 빌드
+
+프로젝트가 Astro의 기본 정적 모드를 사용하는 경우 콘텐츠가 변경될 때 새 빌드를 트리거하도록 웹후크를 설정해야 합니다. 호스팅 제공업체로 Netlify 또는 Vercel을 사용하는 경우 Builder 편집기에서 **Publish**를 클릭할 때마다 웹후크 기능을 사용하여 새 빌드를 트리거할 수 있습니다.
+
+##### Netlify
+
+1. 사이트 대시보드로 이동한 다음 **Site Settings**으로 이동하여 **Build & deploy**를 클릭합니다.
+2. **Continuous Deployment** 탭에서 **Build hooks** 섹션을 찾아 **Add build hook**를 클릭합니다.
+3. 웹후크의 이름을 제공하고 빌드를 트리거할 브랜치를 선택합니다. **Save**을 클릭하고 생성된 URL을 복사하세요.
+
+##### Vercel
+
+1. 프로젝트 대시보드로 이동하여 **Settings**을 클릭합니다.
+2. **Git** 탭에서 **Deploy Hooks** 섹션을 찾습니다.
+3. 빌드를 트리거할 웹후크와 브랜치의 이름을 제공합니다. **Add**를 클릭하고 생성된 URL을 복사합니다.
+
+##### Builder에 웹후크 추가
+
+:::tip[공식 자료]
+더 많은 정보는 [Builder의 웹 후크 추가 가이드](https://www.builder.io/c/docs/webhooks)를 확인하세요.
+:::
+
+1. Builder 대시보드에서 **`blogpost`** 모델로 이동합니다. **Show More Options** 아래 하단에 있는 **Edit Webhooks**을 선택합니다.
+2. **Webhook**를 클릭하여 새 웹후크를 추가합니다. 호스팅 제공업체에서 생성한 URL을 **Url** 필드에 붙여넣습니다.
+3. URL 필드 아래에서 **Show Advanced**를 클릭하고 옵션을 전환하여 **Disable Payload**를 선택합니다. 페이로드가 비활성화되면 Builder는 호스팅 제공업체에 더 간단한 POST 요청을 보내며 이는 사이트가 성장함에 따라 도움이 될 수 있습니다. 이 선택 사항을 저장하려면 **Done**를 클릭하세요.
+
+이 웹후크를 사용하면 Builder 편집기에서 **Publish** 버튼을 클릭할 때마다 호스팅 제공업체가 사이트를 다시 빌드하고 Astro가 새로 게시된 데이터를 가져옵니다. 할 수 있는 일은 뒤로 기대어 그 달콤한 콘텐츠를 펌핑하는 것뿐입니다!
+
+## 공식 자료
+
+- Astro 및 SolidJS를 사용하는 [공식 Builder.io 시작 프로젝트](https://github.com/BuilderIO/builder/tree/main/examples/astro-solidjs)를 확인하세요.
+- [공식 Builder 빠른 시작 가이드](https://www.builder.io/c/docs/quickstart#step-1-add-builder-as-a-dependency)에서는 REST API 사용과 Qwik, React 또는 Vue와 같은 JavaScript 프레임워크와의 통합을 통한 데이터 가져오기를 모두 다룹니다.
+- API 호출 문제를 해결해야 하는 경우 [Builder의 API 탐색기](https://builder.io/api-explorer)가 도움이 될 수 있습니다.
+
+## 커뮤니티 자료
+
+- [Builder.io의 Visual CMS를 Astro에 연결하기](https://www.hamatoyogi.dev/blog/astro-log/connecting-builderio-to-astro)를 읽어보세요. - Yoav Ganbar
