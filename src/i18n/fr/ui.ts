@@ -104,6 +104,8 @@ export default UIDictionary({
 	'feedback.categoryGroupLabel': 'Choisissez le type de commentaire',
 	'feedback.issue': 'Problème',
 	'feedback.createIssue': 'Créer une issue GitHub',
+	'feedback.sendFeedback': 'Envoyez-nous un commentaire',
+	'feedback.sendFeedback.description': 'Envoyez-nous directement un message.',
 	'feedback.idea': 'Idée',
 	'feedback.other': 'Autres',
 	'feedback.messageA11yLabel': 'Message',
