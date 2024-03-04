@@ -110,8 +110,6 @@ export default UIDictionary({
 	'feedback.submit': 'أرسل',
 	'feedback.close': 'أغلق',
 	'feedback.success': 'شكرًا! تم إرسال ملاحظاتك بنجاح.',
-	// `<FileTree>` component
-	'fileTree.directoryLabel': 'دليل',
 	// Code snippet vocabulary
 	'expressiveCode.terminalWindowFallbackTitle': 'نافذة طرفيّة',
 	'expressiveCode.copyButtonTooltip': 'نسخ إلى الحافظة',
