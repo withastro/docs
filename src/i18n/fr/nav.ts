@@ -53,6 +53,7 @@ export default NavDictionary({
 	'guides/endpoints': 'Points de terminaison',
 	'guides/data-fetching': 'Récupération de Données',
 	'guides/internationalization': 'Internationalisation',
+	'guides/ecommerce': 'E-commerce',
 	'guides/middleware': 'Middleware',
 	'guides/testing': 'Test',
 	'guides/authentication': 'Authentification',
