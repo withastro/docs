@@ -3,7 +3,7 @@ import { NavDictionary } from '../translation-checkers';
 export default NavDictionary({
 	startHere: 'Comincia qui',
 	'getting-started': 'Per Iniziare',
-	'install': 'Installazione',
+	install: 'Installazione',
 	'editor-setup': 'Configurazione dell’Editor',
 	'guides/upgrade-to/v4': 'Aggiorna a v4',
 
