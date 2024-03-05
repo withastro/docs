@@ -310,7 +310,9 @@ There are a few shared configuration values across all columns:
 
 Table indexes are used for improve lookup speeds on a given column or combination of columns. The `indexes` property accepts an object with a unique index name as the key:
 
-```ts
+```ts title="db/config.ts" {6-8}
+import { defineTable, column } from 'astro:db';
+
 const Comment = defineTable({
   authorId: column.number(),
   body: column.text(),
@@ -324,3 +326,42 @@ The following configuration options are available for each index:
 
 - `on`: `string | string[]` - A single column or array of column names to index.
 - `unique`: `boolean` - Set to `true` to enforce unique values across the indexed columns.
+
+### `foreignKeys`
+
+:::note
+
+`foreignKeys` is an advanced API for relating multiple table columns. If you only need to reference a single column, the column `references` property is recommended.
+
+:::
+
+Foreign keys are used to establish a relationship between two tables. The `foreignKeys` property accepts an array of configuration objects that may relate one or more columns between tables:
+
+```ts title="db/config.ts" {12-20}
+import { defineTable, column } from 'astro:db';
+
+const Author = defineTable({
+  firstName: column.text(),
+  lastName: column.text(),
+});
+
+const Comment = defineTable({
+  authorFirstName: column.text(),
+  authorLastName: column.text(),
+  body: column.text(),
+  foreignKeys: [
+    {
+      columns: ['authorFirstName', 'authorLastName'],
+      references: () => [
+        Author.columns.firstName,
+        Author.columns.lastName
+      ],
+    },
+  ]
+});
+```
+
+Each foreign key configuration object accepts the following properties:
+
+- `columns`: `string[]` - An array of column names to relate to the referenced table.
+- `references`: `() => Column[]` - A function that returns an array of columns from the referenced table.
