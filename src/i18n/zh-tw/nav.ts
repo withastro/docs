@@ -53,6 +53,7 @@ export default NavDictionary({
 	'guides/data-fetching': '資料獲取',
 	'guides/internationalization': '多國語系',
 	'guides/middleware': '中介層',
+	'guides/ecommerce': '電子商務',
 	'guides/testing': '測試',
 	'guides/authentication': '身份驗證',
 	'guides/troubleshooting': '疑難排解',
