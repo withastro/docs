@@ -50,6 +50,7 @@ export default NavDictionary({
 	'guides/fonts': 'Шрифты',
 	'guides/imports': 'Импорт файлов',
 	'guides/endpoints': 'Эндпоинты',
+	'guides/ecommerce': 'Электронная коммерция',
 	'guides/data-fetching': 'Получение данных',
 	'guides/internationalization': 'Интернационализация',
 	'guides/middleware': 'Промежуточное ПО',
