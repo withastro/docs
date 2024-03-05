@@ -1,0 +1,310 @@
+---
+title: 'Astro DB'
+description: Learn how to use Astro DB, a full-managed SQL database designed exclusively for Astro.
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/db/'
+i18nReady: true
+---
+import FileTree from '~/components/FileTree.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+
+Astro DB is a fully-managed SQL database designed for the Astro ecosystem: develop locally in Astro and deploy from your Astro Studio dashboard.
+
+With [an Astro DB account](), you have a powerful, local, type-safe tool to query and model content as a relational database. View, manage and deploy your hosted remote data through your interactive Studio dashboard.
+
+## Installation
+
+Astro includes an `astro add` command to automate the setup of official integrations. If you prefer, you can [install integrations manually](https://docs.astro.build/en/guides/integrations-guide/mdx/#manual-install) instead.
+
+Run one of the following commands in a new terminal window.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add db
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add db
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add db
+  ```
+  </Fragment>
+ </PackageManagerTabs>
+
+If you run into any issues using the automated installation command, [feel free to report them to us on GitHub](https://github.com/withastro/astro/issues) and install `@astrojs/db` manually instead.
+
+## Configuration
+
+Create a `db/config.ts` file at the root of your project. This is a special file that Astro will automatically load and use to configure your database tables.
+
+```ts
+// db/config.ts
+import { defineDB } from 'astro:db';
+
+export default defineDB({
+  tables: {},
+})
+```
+
+### Defining a table schema
+
+Schemas enforce consistent columns within a database table. A schema guarantees that this data exists in a predictable form when you need to reference or query it.
+
+Schemas also power Astro's automatic TypeScript typings for your content. When you define a schema for your table, Astro will automatically generate and apply a TypeScript interface to it. The result is full TypeScript support when you query your data, including property autocompletion and type-checking.
+
+To configure an individual database table, import and use the `defineTable()` and `column` utilities from `astro:db`.
+
+This example configures a "Comment" table with required text columns for `author` and `body` and then makes it available to your project through the `defineDB()` export.
+
+```ts title="db/config.ts" "Comment"
+import { defineDB, defineTable, column } from 'astro:db';
+
+const Comment = defineTable({
+  columns: {
+    author: column.text(),
+    body: column.text(),
+  }
+})
+
+export default defineDB({
+  tables: { Comment },
+})
+```
+
+<ReadMore>See the [Astro DB guide](/en/guides/astro-db) for full configuration and usage.</ReadMore>
+
+### Configure references between tables
+
+As you begin to add more tables, your data will likely start to form relationships. For example, a blog post can have multiple authors, and an article can have many sources.
+
+Use the `references` property to define a table column as the `primaryKey` column of another table. This establishes a relationship between the two tables, and allows you to reference data from one table inside another.
+
+This example shows a Comment table's `authorId` column referencing an Author table's`id` column.
+
+```ts title="db/config.ts" {5-6, 15-16}
+import { defineDB, defineTable, column } from 'astro:db';
+
+const Author = defineTable({
+  columns: {
+    // Generate an incrementing numeric id using `primaryKey`
+    id: column.number({ primaryKey: true }),
+    name: column.text(),
+    bio: column.text({ optional: true }),
+    avatar: column.text({ optional: true }),
+  }
+});
+
+const Comment = defineTable({
+  columns: {
+    // Reference the author id value
+    authorId: column.number({ references: () => Author.columns.id }),
+    author: column.text(),
+    content: column.text(),
+  }
+});
+
+export default defineDB({
+  tables: { Comment, Author },
+});
+```
+
+## Seed development data
+
+In development, Astro will use your DB config to generate local types according to your schemas. These will be generated fresh each time the dev server is started, and will allow you to query and work with the shape of your data with type safety and autocompletion.
+
+To seed development data for testing and debugging into your Astro project, create a `db/seed.ts` file. Import both the `db` object and any configured table from `astro:db`. Use the `db.insert()` function to provide an array of table row data objects.
+
+The following example defines two rows of development data for a Comment table:
+
+```ts title="db/seed.ts"
+import { db, Comment } from 'astro:db';
+
+await db.insert(Comment).values([
+  {
+    author: 'Ben Holmes',
+    body: 'Hope you like Astro DB!',
+  },
+  {
+    author: 'Fred K Schott',
+    body: 'You miss 100% of the K Schotts you don\'t take.',
+  }
+])
+```
+
+Your development server will automatically restart your database whenever this file changes, regenerating your types and seeding your development data from `seed.ts`.
+
+### Seed related data
+
+TODO
+
+## Query for table data
+
+You can query your database from any [Astro page](/en/basics/astro-pages/#astro-pages) or [endpoint](/en/guides/endpoints/) in your project using the `astro:db` module. This gives you access to all configured tables and seeded development data to build type-safe SQL queries.
+
+Impor both the `db` object and the table you want to query from `astro:db`. Then, you can use the `db` object to construct SQL queries using [Drizzle's SQLite `select()`](https://orm.drizzle.team/docs/select#basic-and-partial-select).
+
+The following example selects all rows of a Comment table. This returns the complete array of seeded development data from `db/seed.ts` which is then available for use in your page template:
+
+```astro title="src/pages/index.astro"
+---
+import { db, Comment } from 'astro:db';
+
+const comments = await db.select().from(Comment);
+---
+
+<h2>Comments</h2>
+
+{
+  comments.map(({ author, body }) => (
+    <article>
+      <p>Author: {author}</p>
+      <p>{body}</p>
+    </article>
+  ))
+}
+```
+
+<ReadMore>See the [Drizzle `select()` API reference](https://orm.drizzle.team/docs/select) for a complete overview.</ReadMore>
+
+### Query for a subset of data
+
+To query for table results by a specific property, add a `.where()` call to your `select()` query and pass the comparison you want to make. 
+
+The following example queries for all rows in a `Comment` table that contain the phrase "Astro DB." Use [the `like()` operator](https://orm.drizzle.team/docs/operators#like) to check if a phrase is present within the `body`:
+
+
+```astro title="src/pages/index.astro"
+---
+import { db, Comment } from 'astro:db';
+
+const comments = await db.select().from(Comment).where(
+    like(Comment.body, '%Astro DB%')
+);
+---
+```
+
+### DB query utilities
+
+All Drizzle utilities for building queries are exposed from the `astro:db` module. This includes:
+
+- [Filter operators](https://orm.drizzle.team/docs/operators) like `eq()` and `gt()`
+- [Aggregation helpers](https://orm.drizzle.team/docs/select#aggregations-helpers) like `count()`
+- [The `sql` helper](https://orm.drizzle.team/docs/sql) for writing raw SQL queries
+
+```ts
+import { eq, gt, count, sql } from 'astro:db';
+```
+
+## Insert data from a server route
+
+
+💡 Note: **Astro recommends adding a layer of authentication** before accepting user input. [See the Authentication guide](https://docs.astro.build/en/guides/authentication/) for setup instructions.
+
+
+
+To accept user input, Astro recommends [using an SSR adapter](https://docs.astro.build/en/guides/server-side-rendering/#official-adapters). This allows you to handle form requests and insert data into your database.
+
+You can insert entries into your database using `db.insert()`. 
+
+
+This example inserts a row into a `Comment` table based on a parsed form request:
+
+```astro
+---
+// src/pages/index.astro
+import { db, Comment } from 'astro:db';
+
+if (Astro.request.method === 'POST') {
+  // parse form data
+  const formData = await Astro.request.formData();
+  const author = formData.get('author');
+  const content = formData.get('content');
+  if (typeof author === 'string' && typeof content === 'string') {
+    // insert form data into the Comment table
+    await db.insert(Comment).values({ author, content });
+  }
+}
+
+// render the new list of comments on each request
+const comments = await db.select().from(Comment);
+---
+
+<form method="POST" style="display: grid">
+	<label for="author">Author</label>
+	<input id="author" name="author" />
+
+	<textarea name="content"></textarea>
+
+	<button type="submit">Submit</button>
+</form>
+
+<!--render `comments`-->
+```
+
+[📚 See the Drizzle API reference for `insert()`](https://orm.drizzle.team/docs/insert) for a complete overview.
+
+## Deploy to Astro DB
+
+Astro DB offers [database hosting](https://astro.build/db/) to a globally distributed network with a free Astro Studio account. From your Studio dashboard, you can view, manage and deploy hosted remote data.
+
+Click the "create project" button from the Studio dashboard and follow the instructions. You can now sync your database config and seed data with your remote database. Configuration changes are automatically handled when setting up a GitHub project with a CI action, but can also be synced manually using the `astro db` CLI commands.
+
+For example, you can push your development seed data to your database using the `astro db execute` command and passing a path to the file:
+
+```bash
+astro db execute db/seed.ts
+```
+
+📚 [See the CLI reference](#cli-reference) for a complete list of commands.
+
+
+## CLI reference
+
+- `astro login`
+
+- `astro link`
+
+- `astro db gen`
+
+- `astro db push`
+
+## Table configuration reference
+
+### `columns`
+
+Table columns are configured using the `columns` object:
+
+```ts
+import { defineTable, column, NOW } from 'astro:db';
+
+const Comment = defineTable({
+	columns: {
+		id: column.number({ primaryKey: true }),
+		author: column.text(),
+		content: column.text({ optional: true }),
+		published: column.date({ default: NOW }),
+	},
+});
+```
+
+Columns are configured using the `column` utility. `column` supports the following types:
+
+- **`column.text(...)`** - store either plain or rich text content
+- **`column.number(...)`** - store integer and floating point values
+- **`column.boolean(...)`** - store true / false values
+- **`column.date(...)`** - store `Date` objects, parsed as ISO strings for data storage
+- **`column.json(...)`** - store arbitrary JSON blobs, parsed as stringified JSON for data storage
+
+There are a few shared configuration values across all columns:
+
+- `primaryKey` - Set a `number` or `text` column as the unique identifier.
+- `optional` - Astro DB uses `NOT NULL` for all columns by default. Set `optional` to `true` to all null values.
+- `default` - Set the default value for newly inserted entries. This accepts either a static value or a string of `sql` for generated values like timestamps.
+- `unique` - Mark a column as unique. This prevents duplicate values across entries in the table.
+- `references` - Reference a related table by column. This establishes a foreign key constraint, meaning each column value must have a matching value in the referenced table.  

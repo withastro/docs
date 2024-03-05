@@ -95,10 +95,10 @@ export default [
 	},
 	{
 		text: 'Astro DB',
-		slug: 'guides/integrations-guide/db',
-		key: 'guides/integrations-guide/db',
+		slug: 'guides/astro-db',
+		key: 'guides/astro-db',
 	},
-
+	
 	{ text: 'Recipes', header: true, type: 'learn', key: 'examples' },
 	{ text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
 	{ text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
@@ -120,6 +120,7 @@ export default [
 	{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
 	{ text: 'Endpoints', slug: 'guides/endpoints', key: 'guides/endpoints' },
 	{ text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
+
 	{
 		text: 'Internationalization',
 		slug: 'guides/internationalization',
