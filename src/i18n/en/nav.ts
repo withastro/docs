@@ -94,9 +94,9 @@ export default [
 		key: 'guides/server-side-rendering',
 	},
 	{
-		text: 'Studio',
-		slug: 'guides/studio',
-		key: 'guides/studio',
+		text: 'Astro DB',
+		slug: 'guides/integrations-guide/db',
+		key: 'guides/integrations-guide/db',
 	},
 
 	{ text: 'Recipes', header: true, type: 'learn', key: 'examples' },

@@ -11,9 +11,9 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import ReadMore from '~/components/ReadMore.astro';
 
 
-Astro DB is a powerful, local, type-safe tool to query and model content as a relational database.
+Astro DB is a fully-managed SQL database designed for the Astro ecosystem: develop locally in Astro and deploy from your Astro Studio dashboard.
 
-With an optional [Astro Studio account](/en/guides/studio/), you can view, manage and deploy hosted remote data through an interactive Astro Studio dashboard.
+With [an Astro DB account](), you have a powerful, local, type-safe tool to query and model content as a relational database. View, manage and deploy your hosted remote data through your interactive Studio dashboard.
 
 ## Installation
 
@@ -42,10 +42,6 @@ Run one of the following commands in a new terminal window.
 If you run into any issues using the automated installation command, [feel free to report them to us on GitHub](https://github.com/withastro/astro/issues) and install `@astrojs/db` manually instead.
 
 ## Configuration
-
-:::caution
-***Note from Sarah** Here would be a good place to point out that your database tables are configured within your Astro project, with a schema for type safety, autocomplete; don't have to set up or connect to anything else etc. blah blah blah*
-:::
 
 Create a `db/config.ts` file at the root of your project. This is a special file that Astro will automatically load and use to configure your database tables.
 
@@ -87,7 +83,7 @@ export default defineDB({
 
 ### Configure references between tables
 
-As you begin to add more tables, your data will likely start to form relationships. For example, blog post can have multiple authors, and an article can have many sources.
+As you begin to add more tables, your data will likely start to form relationships. For example, a blog post can have multiple authors, and an article can have many sources.
 
 Use the `references` property to define a table column as the `primaryKey` column of another table. This establishes a relationship between the two tables, and allows you to reference data from one table inside another.
 
@@ -124,7 +120,7 @@ export default defineDB({
 
 In development, Astro will use your DB config to generate local types according to your schemas. These will be generated fresh each time the dev server is started, and will allow you to query and work with the shape of your data with type safety and autocompletion.
 
-To seed development data into your Astro project, create a `db/seed.ts` file. Import both the `db` object and any configured table from `astro:db`. Use the `db.insert()` function to provide an array of table row data objects.
+To seed development data for testing and debugging into your Astro project, create a `db/seed.ts` file. Import both the `db` object and any configured table from `astro:db`. Use the `db.insert()` function to provide an array of table row data objects.
 
 The following example defines two rows of development data for a Comment table:
 
@@ -206,6 +202,79 @@ All Drizzle utilities for building queries are exposed from the `astro:db` modul
 ```ts
 import { eq, gt, count, sql } from 'astro:db';
 ```
+
+## Insert data from a server route
+
+
+💡 Note: **Astro recommends adding a layer of authentication** before accepting user input. [See the Authentication guide](https://docs.astro.build/en/guides/authentication/) for setup instructions.
+
+
+
+To accept user input, Astro recommends [using an SSR adapter](https://docs.astro.build/en/guides/server-side-rendering/#official-adapters). This allows you to handle form requests and insert data into your database.
+
+You can insert entries into your database using `db.insert()`. 
+
+
+This example inserts a row into a `Comment` table based on a parsed form request:
+
+```astro
+---
+// src/pages/index.astro
+import { db, Comment } from 'astro:db';
+
+if (Astro.request.method === 'POST') {
+  // parse form data
+  const formData = await Astro.request.formData();
+  const author = formData.get('author');
+  const content = formData.get('content');
+  if (typeof author === 'string' && typeof content === 'string') {
+    // insert form data into the Comment table
+    await db.insert(Comment).values({ author, content });
+  }
+}
+
+// render the new list of comments on each request
+const comments = await db.select().from(Comment);
+---
+
+<form method="POST" style="display: grid">
+	<label for="author">Author</label>
+	<input id="author" name="author" />
+
+	<textarea name="content"></textarea>
+
+	<button type="submit">Submit</button>
+</form>
+
+<!--render `comments`-->
+```
+
+[📚 See the Drizzle API reference for `insert()`](https://orm.drizzle.team/docs/insert) for a complete overview.
+
+## Deploy to Astro DB
+
+Astro DB offers [database hosting](https://astro.build/db/) to a globally distributed network with a free Astro Studio account. From your Studio dashboard, you can view, manage and deploy hosted remote data.
+
+Click the "create project" button from the Studio dashboard and follow the instructions. You can now sync your database config and seed data with your remote database. Configuration changes are automatically handled when setting up a GitHub project with a CI action, but can also be synced manually using the `astro db` CLI commands.
+
+For example, you can push your development seed data to your database using the `astro db execute` command and passing a path to the file:
+
+```bash
+astro db execute db/seed.ts
+```
+
+📚 [See the CLI reference](#cli-reference) for a complete list of commands.
+
+
+## CLI reference
+
+- `astro login`
+
+- `astro link`
+
+- `astro db gen`
+
+- `astro db push`
 
 ## Table configuration reference
 
