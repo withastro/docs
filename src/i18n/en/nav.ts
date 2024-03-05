@@ -93,6 +93,11 @@ export default [
 		slug: 'guides/server-side-rendering',
 		key: 'guides/server-side-rendering',
 	},
+	{
+		text: 'Studio',
+		slug: 'guides/studio',
+		key: 'guides/studio',
+	},
 
 	{ text: 'Recipes', header: true, type: 'learn', key: 'examples' },
 	{ text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },

@@ -42,7 +42,7 @@ export const integrationSchema = baseSchema.extend({
 			(title) => title.startsWith('@astrojs/'),
 			'"title" must start with "@astrojs/" for integration docs.'
 		),
-	category: z.enum(['renderer', 'adapter', 'other']),
+	category: z.enum(['renderer', 'adapter', 'other', 'studio']),
 	githubIntegrationURL: z.string().url(),
 });
 

@@ -81,6 +81,7 @@ export default {
 	'integrations.adapters': 'SSR Adapters',
 	'integrations.others': 'Other integrations',
 	'integrations.more': 'More integrations',
+	'integrations.studio': 'Studio integrations',
 	// Checklist component
 	'checklist.or': 'or',
 	// Multiple Choice component
