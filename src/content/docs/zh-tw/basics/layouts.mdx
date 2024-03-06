@@ -1,101 +1,271 @@
 ---
 title: 版面
-description: 版面設計介紹－藉由一種 Astro component 來在不同頁面中共享版面。
+description: 版面簡介——在不同頁面重複使用相同的 Astro 元件。
 i18nReady: true
 ---
 
-**版面** 是一種特殊的 [Astro component](/zh-tw/basics/astro-components/)，其在建立可重複使用的頁面模板時是相當有用的。
+import ReadMore from '~/components/ReadMore.astro'
 
-版面 component 通常會用來為一個 [`.astro` 或 `.md` 頁面](/zh-tw/basics/astro-pages/)提供一個 **頁面殼層** （`<html>` 、 `<head>` 和 `<body>` 標籤）以及一個用來指定嵌入到頁面內容的 `<slot />`。 
+**版面**是一種 [Astro 元件](/zh-tw/basics/astro-components/)，用來建立可重複使用的 UI 結構，例如頁面模板。
 
-版面通常會為網頁提供一般 `<head>` 元素及一般 UI 元素，像是頁首、導覽列及頁尾。
+我們習慣以「版面」稱呼在不同頁面共用的 Astro 元件，例如頁首、導覽列、頁尾這種 UI 元素。典型的 Astro 版面元件為 [Astro、Markdown 或 MDX 頁面](/zh-tw/basics/astro-pages/)提供：
 
-版面 component 一般來說會放在一個 `src/layouts` 目錄在你的專案中。
+- **頁面殼層** （`<html>` 、 `<head>` 和 `<body>` 標籤）
+- 供頁面內容嵌入的插槽 [**`<slot />`**](/zh-tw/basics/astro-components/#插槽)
 
-## 版面例子
+但其實版面元件沒什麼特別的！它們和其他 Astro 元件一樣，可以[接受參數](/zh-tw/basics/astro-components/#元件參數)、[匯入並使用其他元件](/zh-tw/basics/astro-components/#元件架構)，也能包含 [UI 框架元件](/zh-tw/guides/framework-components/)和[客戶端腳本](/zh-tw/guides/client-side-scripts/)。甚至可當作局部 UI 模板，不需要提供整個頁面。
 
-```astro
-// src/layouts/MySiteLayout.astro
+版面元件通常放在專案的 `src/layouts` 目錄，但這不是強制規定，可以自由選擇要放在哪裡。你甚至可以把它們跟頁面放在一起，只要[在版面名稱加上 `_` 前綴](/zh-tw/guides/routing/#excluding-pages)即可。
+
+## 版面範例
+
+```astro "<slot />"
 ---
+// src/layouts/MySiteLayout.astro
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+const { title } = Astro.props;
 ---
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>酷酷的 Astro 網站</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <BaseHead title={title}/>
   </head>
   <body>
     <nav>
-      <a href="#">首頁</a>
-      <a href="#">文章列表</a>
-      <a href="#">聯絡我們</a>
+      <a href="#">Home</a>
+      <a href="#">Posts</a>
+      <a href="#">Contact</a>
     </nav>
+    <h1>{title}</h1>
     <article>
-      <slot /> <!-- 你的內容會被嵌在這裡 -->
+      <slot /> <!-- 你的內容會嵌在這裡 -->
     </article>
+    <Footer />
   </body>
 </html>
 ```
 
-```astro {3} /</?MySiteLayout>/
-// src/pages/index.astro
+```astro title="src/pages/index.astro"
 ---
 import MySiteLayout from '../layouts/MySiteLayout.astro';
 ---
-<MySiteLayout>
+<MySiteLayout title="Home Page">
   <p>我的網頁內容被包在一個版面裡！</p>
 </MySiteLayout>
 ```
 
-📚 了解更多關於 [slots](/zh-tw/basics/astro-components/#slots) 的資訊。
+<ReadMore>進一步了解[插槽](/zh-tw/basics/astro-components/#插槽)。</ReadMore>
 
-## Markdown 版面
+## Markdown/MDX 版面
 
-網頁版面對 [Markdown 檔案](/zh-tw/guides/markdown-content/#markdown-and-mdx-pages)特別有用。Markdown 檔案可以利用 frontmatter 最上面一個特殊的 `layout` 屬性來定義作為網頁版面的 `.astro` component。
+版面對無法自訂頁面格式的 [Markdown 和 MDX 頁面](/zh-tw/guides/markdown-content/#markdown-and-mdx-pages)來說很實用。
 
-```markdown {3}
-// src/pages/posts/post-1.md
+Astro 特殊的 `layout` frontmatter 屬性可以指定要把哪一個 `.astro` 元件當作頁面版面。
+
+```markdown title="src/pages/page.md" {2}
 ---
-layout: ../../layouts/BlogPostLayout.astro
-title: 部落格文章
-description: 我的第一個部落格文章！
+layout: ../layouts/BaseLayout.astro
+title: "Hello, World!"
+author: "Matthew Phillips"
+date: "09 Aug 2022"
 ---
-這是一個用 Markdown 來寫的文章。
+Astro 版面元件可以透過參數存取所有 frontmatter 屬性。
+
+`layout` 是 Astro 提供的特殊屬性。
+
+`src/pages/` 的 Markdown 和 MDX 檔案都能使用該屬性。
+
 ```
 
-當一個 Markdown 檔引入了一個版面，它會傳入一個 `frontmatter` 屬性到包含所有 frontmatter 屬性及最終網頁HTML輸出的 `.astro` component 內。
+給 Markdown 或 MDX 頁面用的版面通常包含：
 
+1. `frontmatter` 參數，能夠存取 Markdown 或 MDX 頁面的 frontmatter 和其他資料。
+2. 預設的 [`<slot />`](/zh-tw/basics/astro-components/#插槽)，指名頁面的 Markdown/MDX 內容要在哪個位置渲染。
 
-```astro /frontmatter(?:.\w+)?/
-// src/layouts/BlogPostLayout.astro
+```astro /(?<!//.*){?frontmatter(?:\\.\w+)?}?/ "<slot />"
 ---
-const {frontmatter} = Astro.props;
+// src/layouts/BaseLayout.astro
+// 1. 透過 frontmatter 參數存取 frontmatter 和其他資料
+const { frontmatter } = Astro.props;
 ---
 <html>
-   <!-- ... -->
-  <h1>{frontmatter.title}</h1>
-  <h2>文章作者： {frontmatter.author}</h2>
-  <slot />
-   <!-- ... -->
+  <head>
+    <!-- 這裡可以放其他 Head 元素，例如樣式和 meta 標籤。 -->
+    <title>{frontmatter.title}</title>
+  </head>
+  <body>
+    <!-- 這裡可以放其他 UI 元件，例如共用的頁首和頁尾。 -->
+    <h1>{frontmatter.title} by {frontmatter.author}</h1>
+    <!-- 2. 渲染後的 HTML 會傳入預設插槽 -->
+    <slot />
+    <p>Written on: {frontmatter.date}</p>
+  </body>
 </html>
 ```
-📚 在我們的 [Markdown 指南](/zh-tw/guides/markdown-content/)中了解更多關於 Astro 對 Markdown 的支援。
+
+你可藉由 `MarkdownLayoutProps` or `MDXLayoutProps` 設定版面的 [`Props` 型別](/zh-tw/guides/typescript/#component-props)：
+
+```astro title="src/layouts/BaseLayout.astro" ins={2,4-9}
+---
+import type { MarkdownLayoutProps } from 'astro';
+
+type Props = MarkdownLayoutProps<{
+  // 在此定義 frontmatter 參數的型別
+  title: string;
+  author: string;
+  date: string;
+}>;
+
+// 現在，`frontmatter`、`url` 與其他 Markdown 版面屬性
+// 都能在保證型別安全的情況下存取
+const { frontmatter, url } = Astro.props;
+---
+<html>
+  <head>
+    <link rel="canonical" href={new URL(url, Astro.site).pathname}>
+    <title>{frontmatter.title}</title>
+  </head>
+  <body>
+    <h1>{frontmatter.title} by {frontmatter.author}</h1>
+    <slot />
+    <p>Written on: {frontmatter.date}</p>
+  </body>
+</html>
+```
+
+### Markdown 版面參數
+
+Markdown/MDX 版面能透過 `Astro.props` 存取下列資訊：
+
+- **`file`**：檔案的絕對路徑 (例如 `/home/user/projects/.../file.md`)。
+- **`url`**：如果是頁面的話，即頁面網址（例如 `/zh-tw/guides/markdown-content`）。
+- **`frontmatter`**：Markdown 或 MDX 文件中的所有 frontmatter。
+  - **`frontmatter.file`**：同最上層的 `file` 屬性。
+  - **`frontmatter.url`**：同最上層的 `url` 屬性。
+- **`headings`**：Markdown 或 MDX 文件中的標題（`h1 -> h6`）列表，包含對應的 metadata。其型別為 `{ depth: number; slug: string; text: string }[]`。
+- **（Markdown 專屬）`rawContent()`**：取得 Markdown 原始內容的函式，回傳值格式為字串。
+- **（Markdown 專屬）`compiledContent()`**：取得 Markdown 編譯後內容的函式，回傳值格式為 HTML 字串。
+
+舉例來說，Markdown 撰寫的部落格文章可以把下列 `Astro.props` 物件傳給它的版面：
+
+```js
+Astro.props = {
+  file: "/home/user/projects/.../file.md",
+  url: "/zh-tw/guides/markdown-content/",
+  frontmatter: {
+    /** 部落格文章的 frontmatter */
+    title: "Astro 0.18 Release",
+    date: "Tuesday, July 27 2021",
+    author: "Matthew Phillips",
+    description: "Astro 0.18 is our biggest release since Astro launch.",
+    /** 產生的值 */
+    file: "/home/user/projects/.../file.md",
+    url: "/zh-tw/guides/markdown-content/"
+  },
+  headings: [
+    {
+      "depth": 1,
+      "text": "Astro 0.18 Release",
+      "slug": "astro-018-release"
+    },
+    {
+      "depth": 2,
+      "text": "Responsive partial hydration",
+      "slug": "responsive-partial-hydration"
+    }
+    /* ... */
+  ],
+
+  /** 只能在 Markdown 使用  */
+  rawContent: () => "# Astro 0.18 Release\nA little over a month ago, the first public beta [...]",
+  compiledContent: () => "<h1>Astro 0.18 Release</h1>\n<p>A little over a month ago, the first public beta [...]</p>",
+}
+```
+
+:::note
+Markdown/MDX 版面也能透過 `Astro.props` 存取檔案的[匯出屬性](/zh-tw/guides/markdown-content/#exported-properties)，不過其中**有些差異**：
+
+* 標題資訊（即 `h1 -> h6` 元素）透過 `headings` 陣列存取，而非 `getHeadings()` 函式。
+
+* `file` 和 `url` *也*可在巢狀 `frontmatter` 屬性下存取（即 `frontmatter.url` 和 `frontmatter.file`）。
+
+* 無法存取在 frontmatter 以外宣告的數值（例如 MDX 的 `export` 表達式）。如有類似需求，請考慮[匯入版面](#手動匯入版面mdx)。
+:::
+
+### 手動匯入版面（MDX）
+
+需要傳遞資訊到 MDX 版面，但該版面不存在（或無法存在）frontmatter 時，可以匯入 [`<Layout />` 元件](/zh-tw/basics/layouts/)，再像其他元件一樣透過參數傳遞給它：
+
+```mdx title="src/pages/posts/first-post.mdx" ins={6} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/
+---
+layout: ../../layouts/BaseLayout.astro
+title: 'My first MDX post'
+publishDate: '21 September 2022'
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+function fancyJsHelper() {
+  return "Try doing that with YAML!";
+}
+
+<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>
+  Welcome to my new Astro blog, using MDX!
+</BaseLayout>
+```
+
+如此一來，版面便能透過 `Astro.props` 存取數值，而 MDX 內容則會嵌入到包含 `<slot />` 的頁面中：
+
+```astro /{?title}?/ "fancyJsHelper" "{fancyJsHelper()}"
+---
+// src/layouts/BaseLayout.astro
+const { title, fancyJsHelper } = Astro.props;
+---
+<!-- -->
+<h1>{title}</h1>
+<slot /> <!-- 你的內容會嵌在這裡 -->
+<p>{fancyJsHelper()}</p>
+<!-- -->
+```
+
+<ReadMore>關於 Astro 對 Markdown 和 MDX 的支援，請參考 [Markdown/MDX 指南](/zh-tw/guides/markdown-content/)。</ReadMore>
+
+## 在 `.md`、`.mdx`、`.astro` 之間共用相同版面
+
+Astro 版面可以接收 `.md`、`.mdx` 檔的 `frontmatter` 物件，以及從 `.astro` 檔傳入的任何具名參數。
+
+以下範例中，版面的頁面標題會顯示從 frontmatter YAML `title` 屬性傳入的值，或從 Astro 元件傳入的 `title` 屬性：
+
+```astro /{?title}?/ /Astro.props[.a-z]*/
+---
+// src/components/MyLayout.astro
+const { title } = Astro.props.frontmatter || Astro.props;
+---
+<html>
+  <head></head>
+  <body>
+    <h1>{title}</h1>
+    <slot />
+  </body>
+</html>
+```
 
 ## 巢狀版面
 
-版面 component 不需要包含所有網頁該有的 HTML 內容。你可以將你的版面分成更小的 component 然後重複使用這些 component 並建立出更有彈性、更強大的版面到你的專案中。
+版面元件不需要包含整頁 HTML 內容。可以將版面拆成更小的元件，並搭配使用版面元件建立更彈性的頁面模板。在不同版面共用程式碼時，這個模式十分實用。
 
-舉例來說，一個為部落格文章設計的一般版面會呈現出一個標題、日期及作者。一個 `BlogPostLayout.astro` 版面 component 會加入這些 UI 到網頁上，以形成一個更大、全面的版面來處理網頁剩下的部分。
+舉例來說，`BlogPostLayout.astro` 元件可以為部落格文章的標題、日期，以及作者設定樣式。接著，在整個站台共用的 `BaseLayout.astro` 可以處理剩下的頁面模板，像導覽列、頁尾、SEO meta 標籤、全域樣式、字型等。你也可以從文章接收參數，再傳遞到其他版面，就像跟其他巢狀元件互動一樣。
 
-```astro {3} /</?BaseLayout>/
+```astro {3} /</?BaseLayout>/ /</?BaseLayout url={frontmatter.url}>/
+---
 // src/layouts/BlogPostLayout.astro
+import BaseLayout from './BaseLayout.astro';
+const { frontmatter } = Astro.props;
 ---
-import BaseLayout from './BaseLayout.astro'
-const {frontmatter} = Astro.props;
----
-<BaseLayout>
+<BaseLayout url={frontmatter.url}>
   <h1>{frontmatter.title}</h1>
-  <h2>文章作者： {frontmatter.author}</h2>
+  <h2>Post author: {frontmatter.author}</h2>
   <slot />
 </BaseLayout>
 ```
