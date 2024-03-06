@@ -115,8 +115,6 @@ export default UIDictionary({
 	'feedback.submit': 'Отправить отзыв',
 	'feedback.close': 'Закрыть форму обратной связи',
 	'feedback.success': 'Спасибо! Мы получили ваш отзыв.',
-	// `<FileTree>` component
-	'fileTree.directoryLabel': 'Директория',
 	// Code snippet vocabulary
 	'expressiveCode.terminalWindowFallbackTitle': 'Окно терминала',
 	'expressiveCode.copyButtonTooltip': 'Копировать в буфер обмена',
