@@ -97,7 +97,7 @@ export default UIDictionary({
 	'tutorial.trackerLabel': 'Трекер обучения',
 	'tutorial.unit': 'Единица',
 	// Tutorial
-	'tutorial.getReady': 'Приготовьтесь к…',
+	'tutorial.getReady': 'Приготовьтесь…',
 	// Feedback Fish widget
 	'feedback.button': 'Оставить отзыв',
 	'feedback.a11yLabel': 'Форма обратной связи',
@@ -115,8 +115,6 @@ export default UIDictionary({
 	'feedback.submit': 'Отправить отзыв',
 	'feedback.close': 'Закрыть форму обратной связи',
 	'feedback.success': 'Спасибо! Мы получили ваш отзыв.',
-	// `<FileTree>` component
-	'fileTree.directoryLabel': 'Директория',
 	// Code snippet vocabulary
 	'expressiveCode.terminalWindowFallbackTitle': 'Окно терминала',
 	'expressiveCode.copyButtonTooltip': 'Копировать в буфер обмена',
