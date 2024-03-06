@@ -104,6 +104,8 @@ export default UIDictionary({
 	'feedback.categoryGroupLabel': 'Choisissez le type de commentaire',
 	'feedback.issue': 'Problème',
 	'feedback.createIssue': 'Créer une issue GitHub',
+	'feedback.createIssue.description':
+		"Le moyen le plus rapide d'alerter notre équipe d'un problème.",
 	'feedback.sendFeedback': 'Envoyez-nous un commentaire',
 	'feedback.sendFeedback.description': 'Envoyez-nous directement un message.',
 	'feedback.idea': 'Idée',
@@ -113,8 +115,6 @@ export default UIDictionary({
 	'feedback.submit': 'Envoyez des commentaires',
 	'feedback.close': 'Fermer le formulaire de commentaires',
 	'feedback.success': 'Merci ! Nous avons reçu vos commentaires.',
-	// `<FileTree>` component
-	'fileTree.directoryLabel': 'Répertoire',
 	// Code snippet vocabulary
 	'expressiveCode.terminalWindowFallbackTitle': 'Fenêtre du terminal',
 	'expressiveCode.copyButtonTooltip': 'Copier dans le presse-papiers',
