@@ -115,8 +115,6 @@ export default UIDictionary({
 	'feedback.submit': 'प्रतिक्रिया दें', // "Submit feedback"
 	'feedback.close': 'प्रतिक्रिया प्रपत्र बंद करें', // "Close feedback form"
 	'feedback.success': 'धन्यवाद! हमें आपकी प्रतिक्रिया प्राप्त हुई.', // "Thanks! We received your feedback."
-	// `<FileTree>` component
-	'fileTree.directoryLabel': 'निर्देशिका', // "Directory"
 	// Code snippet vocabulary
 	'expressiveCode.terminalWindowFallbackTitle': 'टर्मिनल विंडो', // "Terminal window"
 	'expressiveCode.copyButtonTooltip': 'क्लिपबोर्ड पर कॉपी करें', // "Copy to clipboard"

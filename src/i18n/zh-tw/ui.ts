@@ -112,8 +112,6 @@ export default UIDictionary({
 	'feedback.submit': '提交反饋',
 	'feedback.close': '關閉反饋表單',
 	'feedback.success': '謝謝！我們收到了你的反饋。',
-	// `<FileTree>` component
-	'fileTree.directoryLabel': '目錄',
 	// Code snippet vocabulary
 	'expressiveCode.terminalWindowFallbackTitle': '終端機視窗',
 	'expressiveCode.copyButtonTooltip': '複製到剪貼簿',
