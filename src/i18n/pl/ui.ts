@@ -101,6 +101,4 @@ export default UIDictionary({
 	'feedback.placeholder': 'Co chciałbyś żebyśmy wiedzieli?',
 	'feedback.submit': 'Wyślij feedback',
 	'feedback.close': 'Zamknij formularz opinii',
-	// `<FileTree>` component
-	'fileTree.directoryLabel': 'Folder',
 });

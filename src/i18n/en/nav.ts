@@ -6,6 +6,13 @@
  * - All entries MUST include `text` and `key`
  * - Heading entries MUST include `header: true` and `type`
  * - Link entries MUST include `slug` (which excludes the language code)
+ *
+ * For translators:
+ *
+ * Copy the English `key` value unchanged and translate only the `text` into your language:
+ *
+ * `src/i18n/en/nav.ts`: `{ text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },`
+ * `src/i18n/ja/nav.ts`: `'getting-started': 'はじめに',`
  */
 export default [
 	{ text: 'Start Here', header: true, type: 'learn', key: 'startHere' },
@@ -114,6 +121,7 @@ export default [
 		key: 'guides/internationalization',
 	},
 	{ text: 'Middleware', slug: 'guides/middleware', key: 'guides/middleware' },
+	{ text: 'E-commerce', slug: 'guides/ecommerce', key: 'guides/ecommerce' },
 	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
 	{ text: 'Authentication', slug: 'guides/authentication', key: 'guides/authentication' },
 	{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
