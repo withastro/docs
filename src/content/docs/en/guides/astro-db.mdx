@@ -8,15 +8,15 @@ import FileTree from '~/components/FileTree.astro';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import ReadMore from '~/components/ReadMore.astro';
 
-Astro DB is a fully-managed SQL database designed for the Astro ecosystem: develop locally in Astro and deploy from your Astro Studio dashboard.
+[Astro DB](https://preview-astro-build-git-db-lp-astrodotbuild.vercel.app/db/) is a fully-managed SQL database designed for the Astro ecosystem: develop locally in Astro and deploy from your Astro Studio dashboard.
 
-With [an Astro DB account](), you have a powerful, local, type-safe tool to query and model content as a relational database. View, manage and deploy your hosted remote data through your interactive Studio dashboard.
+With [`@astrojs/db` integration](/en/guides/integrations-guide/db/) installed, you have a powerful, local, type-safe tool to query and model content as a relational database. View, manage and deploy your hosted remote data through your interactive [Astro Studio dashboard](https://stardate.astro.build/auth/login).
 
 ## Installation
 
 Astro includes an `astro add` command to automate the setup of official integrations. If you prefer, you can [install integrations manually](https://docs.astro.build/en/guides/integrations-guide/mdx/#manual-install) instead.
 
-Run one of the following commands in a new terminal window.
+Run one of the following commands in a new terminal window to install `@astrojs/db`:
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -59,7 +59,7 @@ Schemas also power Astro's automatic TypeScript typings for your content. When y
 
 To configure an individual database table, import and use the `defineTable()` and `column` utilities from `astro:db`.
 
-This example configures a "Comment" table with required text columns for `author` and `body` and then makes it available to your project through the `defineDB()` export.
+This example configures a `Comment` table with required text columns for `author` and `body` and then makes it available to your project through the `defineDB()` export.
 
 ```ts title="db/config.ts" "Comment"
 import { defineDB, defineTable, column } from 'astro:db';
@@ -78,14 +78,14 @@ export default defineDB({
 
 ### Configure references between tables
 
-As you begin to add more tables, your data will likely start to form relationships. For example, an author can have multiple posts, and an article can have many sources.
+As you begin to add more tables, your data will likely start to form relationships. For example, a blog may have a table with information about each commenter in addition to a table storing the individual comment data.
 
 You can relate tables to each other using reference columns. To establish a relationship, you will need:
 
-- An identifier column on the referenced table. This is usually an `id` column with the `primaryKey` property.
-- A column on the base table to store the referenced id. This uses the `references` property establish a relationship.
+- An **identifier column** on the referenced table. This is usually an `id` column with the `primaryKey` property.
+- A column on the base table to **store the referenced `id`**. This uses the `references` property establish a relationship.
 
-This example shows a Comment table's `authorId` column referencing an Author table's `id` column.
+This example shows a `Comment` table's `authorId` column referencing an `Author` table's `id` column.
 
 ```ts title="db/config.ts" {5-6, 15-16}
 import { defineDB, defineTable, column } from 'astro:db';
@@ -120,7 +120,7 @@ In development, Astro will use your DB config to generate local types according 
 
 To seed development data for testing and debugging into your Astro project, create a `db/seed.ts` file. Import both the `db` object and any configured table from `astro:db`. Use the `db.insert()` function to provide an array of table row data objects.
 
-The following example defines two rows of development data for a Comment table:
+The following example defines two rows of development data for a `Comment` table:
 
 ```ts title="db/seed.ts"
 import { db, Comment } from 'astro:db';
@@ -141,9 +141,9 @@ Your development server will automatically restart your database whenever this f
 
 ### Seed related data
 
-You may need to seed related tables based on a generated id. You can use the `.returning()` function to return the inserted row, and use any generated columns for later inserts.
+You may need to seed related tables based on a generated `id`. Use the `.returning()` function to return the inserted row, and use any generated columns for later inserts.
 
-This example seeds an author and their comments using the generated Author `id`:
+This example seeds an author and their first comment using the generated Author `id`:
 
 ```ts title="db/seed.ts"
 import { db, Author, Comment } from 'astro:db';
@@ -165,11 +165,11 @@ await db.insert(Comment).values([
 
 ## Query for table data
 
-You can query your database from any [Astro page](/en/basics/astro-pages/#astro-pages) or [endpoint](/en/guides/endpoints/) in your project using the `astro:db` module. This gives you access to all configured tables and seeded development data to build type-safe SQL queries.
+You can query your database from any [Astro page](/en/basics/astro-pages/#astro-pages) or [endpoint](/en/guides/endpoints/) in your project using the `db` object from the `astro:db` module. This gives you access to all configured tables and seeded development data to build type-safe SQL queries.
 
 Import both the `db` object and the table you want to query from `astro:db`. Then, you can use the `db` object to construct SQL queries using [Drizzle's SQLite `select()`](https://orm.drizzle.team/docs/select#basic-and-partial-select).
 
-The following example selects all rows of a Comment table. This returns the complete array of seeded development data from `db/seed.ts` which is then available for use in your page template:
+The following example selects all rows of a `Comment` table. This returns the complete array of seeded development data from `db/seed.ts` which is then available for use in your page template:
 
 ```astro title="src/pages/index.astro"
 ---
@@ -194,7 +194,7 @@ const comments = await db.select().from(Comment);
 
 ### Query for a subset of data
 
-To query for table results by a specific property, add a `.where()` call to your `select()` query and pass the comparison you want to make. 
+To query for table results by a specific property, use [Drizzle options for partial selects](https://orm.drizzle.team/docs/select#partial-select). For example, add [a `.where()` call](https://orm.drizzle.team/docs/select#filtering) to your `select()` query and pass the comparison you want to make. 
 
 The following example queries for all rows in a `Comment` table that contain the phrase "Astro DB." Use [the `like()` operator](https://orm.drizzle.team/docs/operators#like) to check if a phrase is present within the `body`:
 
@@ -211,9 +211,9 @@ const comments = await db.select().from(Comment).where(
 
 ### Query related data
 
-You can query related data from multiple tables using a SQL join. To author a join query, you can extend your `db.select()` statement with a join operator. Each function accepts a table to join with and a condition to match rows between the two tables.
+You can query related data from multiple tables using a SQL join. To create a join query, extend your `db.select()` statement with a join operator. Each function accepts a table to join with and a condition to match rows between the two tables.
 
-This example uses an `innerJoin()` function to join `Comment`s with their related `Author`s based on the `authorId` column. This returns an array of objects with each `Author` and `Comment` as top-level properties:
+This example uses an `innerJoin()` function to join `Comment` authors with their related `Author` information based on the `authorId` column. This returns an array of objects with each `Author` and `Comment` row as top-level properties:
 
 ```astro title="src/pages/index.astro"
 ---
@@ -258,14 +258,13 @@ import { eq, gt, count, sql } from 'astro:db';
 
 :::caution
 
-**Astro recommends adding a layer of authentication** before accepting user input. [See the Authentication guide](https://docs.astro.build/en/guides/authentication/) for setup instructions.
+**Astro recommends adding a layer of authentication** before accepting user input. [See the Authentication guide](https://docs.astro.build/en/guides/authentication/) for more information.
 
 :::
 
-To accept user input, Astro recommends [using an SSR adapter](https://docs.astro.build/en/guides/server-side-rendering/#official-adapters). This allows you to handle form requests and insert data into your database.
+To accept user input, such as handling form requests and inserting data into your database, configure your project for [on-demand rendering](https://docs.astro.build/en/basics/rendering-modes/#on-demand-rendered) and [add an SSR adapter](https://docs.astro.build/en/guides/server-side-rendering/#official-adapters) to your project.
 
 You can insert entries into your database using `db.insert()`. 
-
 
 This example inserts a row into a `Comment` table based on a parsed form request:
 
