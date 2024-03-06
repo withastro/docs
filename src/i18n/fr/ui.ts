@@ -115,8 +115,6 @@ export default UIDictionary({
 	'feedback.submit': 'Envoyez des commentaires',
 	'feedback.close': 'Fermer le formulaire de commentaires',
 	'feedback.success': 'Merci ! Nous avons reçu vos commentaires.',
-	// `<FileTree>` component
-	'fileTree.directoryLabel': 'Répertoire',
 	// Code snippet vocabulary
 	'expressiveCode.terminalWindowFallbackTitle': 'Fenêtre du terminal',
 	'expressiveCode.copyButtonTooltip': 'Copier dans le presse-papiers',
