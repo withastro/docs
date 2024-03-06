@@ -114,8 +114,6 @@ export default UIDictionary({
 	'feedback.submit': '제출',
 	'feedback.close': '피드백 양식 닫기',
 	'feedback.success': '여러분의 생각을 들려주셔서 감사합니다!',
-	// `<FileTree>` component
-	'fileTree.directoryLabel': '디렉터리',
 	// Code snippet vocabulary
 	'expressiveCode.terminalWindowFallbackTitle': '터미널 창',
 	'expressiveCode.copyButtonTooltip': '클립보드로 복사',
