@@ -114,8 +114,6 @@ export default UIDictionary({
 	'feedback.submit': 'フィードバックを送る',
 	'feedback.close': 'フィードバックフォームを閉じる',
 	'feedback.success': 'ありがとうございます！フィードバックを受け取りました。',
-	// `<FileTree>` component
-	'fileTree.directoryLabel': 'ディレクトリ',
 	// Code snippet vocabulary
 	'expressiveCode.terminalWindowFallbackTitle': 'ターミナルウィンドウ',
 	'expressiveCode.copyButtonTooltip': 'クリップボードにコピー',
