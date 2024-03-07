@@ -20,7 +20,7 @@ export default NavDictionary({
 	basics: 'मौलिक अवधारणाएँ',
 	'basics/project-structure': 'परियोजना संरचना',
 	'basics/astro-components': 'अवयव',
-	'basics/astro-pages': 'पृष्ठ',
+	'basics/astro-pages': 'पेज',
 	'basics/layouts': 'नक़्शे',
 	'basics/astro-syntax': 'Astro की सिंटैक्स',
 	'basics/rendering-modes': 'अनुवाद मध्यम',
