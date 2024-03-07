@@ -97,7 +97,7 @@ export default UIDictionary({
 	'tutorial.trackerLabel': 'Трекер обучения',
 	'tutorial.unit': 'Единица',
 	// Tutorial
-	'tutorial.getReady': 'Приготовьтесь к…',
+	'tutorial.getReady': 'Приготовьтесь…',
 	// Feedback Fish widget
 	'feedback.button': 'Оставить отзыв',
 	'feedback.a11yLabel': 'Форма обратной связи',
