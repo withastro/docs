@@ -145,6 +145,8 @@ export default [
 		slug: 'guides/environment-variables',
 		key: 'guides/environment-variables',
 	},
+	{ text: 'Astro Studio', slug: 'guides/studio', key: 'guides/studio' },
+
 
 	{ text: 'Reference', header: true, type: 'api', key: 'reference' },
 	{
