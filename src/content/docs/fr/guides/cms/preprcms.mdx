@@ -6,11 +6,227 @@ service: Prepr CMS
 stub: true
 i18nReady: true
 ---
+import { FileTree } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
-[Prepr.io](https://www.prepr.io/), est un CMS sans tête pour construire des sites web avec un ciblage par segment.
+[Prepr.io](https://www.prepr.io/) est un CMS headless pour construire des sites web avec un ciblage par segment.
+
+## Intégrer avec Astro
+
+Prepr CMS fournit une [GraphQL API](https://docs.prepr.io/reference/graphql/v1/overview) pour connecter vos données à Astro.
+
+### Conditions préalables
+
+Pour commencer, vous aurez besoin des éléments suivants :
+
+- Un projet Astro nouveau ou existant configuré pour le [rendu à la demande](/fr/guides/server-side-rendering/).
+- [Un compte Prepr gratuit](https://signup.prepr.io/)
+- [Un environnement Prepr avec des articles de blog existants](https://docs.prepr.io/account/set-up-environments#create-an-envirntonment). Ces articles doivent comporter un `title` et un `content`. Les autres champs sont facultatifs.
+
+### Configuration des informations d'identification
+
+Pour ajouter le point de terminaison Prepr à votre projet Astro, créez un fichier `.env` à la racine de votre projet s'il n'existe pas déjà et ajoutez la variable suivante :
+
+```ini title=".env"
+PREPR_ENDPOINT=YOUR_PREPR_API_URL
+```
+
+Vous trouverez votre valeur `YOUR_PREPR_API_URL` dans les paramètres de votre compte Prepr :
+1. Allez dans **Settings > Access tokens** pour voir vos jetons d'accès de prévisualisation et de production.
+2. Utilisez la valeur **API URL** du jeton d'accès **GraphQL Production** pour récupérer uniquement les éléments de contenu publiés pour votre site Astro.
+
+### Configuration du point de terminaison Prepr
+
+Créez un nouveau dossier `src/lib/` et ajoutez un nouveau fichier appelé `prepr.js`. C'est là que vous configurerez le point de terminaison Prepr. Ajoutez le code suivant pour récupérer vos données depuis le CMS Prepr :
+
+```js title="src/lib/prepr.js"
+
+export async function Prepr(query, variables) {
+    const response = await fetch(import.meta.env.PREPR_ENDPOINT, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ query, variables }),
+    })
+    return response
+}
+```
+
+Votre répertoire racine doit maintenant contenir ces fichiers :
+
+<FileTree title="Project Structure">
+  - lib/
+    - **prepr.js**
+  - src/
+  - **.env**
+  - astro.config.mjs
+  - package.json
+
+</FileTree>
+
+### Récupération de données
+
+Vous récupérerez vos données auprès de Prepr en écrivant des requêtes pour interagir avec son API GraphQL.
+
+#### Créez une requête GraphQL pour récupérer les articles de votre blog :
+1. Créez un nouveau dossier `src/queries/` et ajoutez un fichier nommé `get-articles.js`.
+2. Ajoutez la requête suivante à ce fichier pour récupérer tous les articles :
+
+   ```js title="src/queries/get-articles.js"
+  
+     const GetArticles = `
+     query {
+         Articles {
+           items {
+             _id
+             _slug
+             title
+         }
+       }
+     }
+     `
+     export default GetArticles
+    ```
+
+3. Pour afficher une liste liée de vos articles de blog sur une page, importez et exécutez votre requête, y compris le point de terminaison Prepr nécessaire. Vous aurez alors accès à tous les titres de vos articles et à leurs slugs à rendre sur la page. (Dans l'étape suivante, vous allez [créer des pages individuelles pour vos articles de blog](#création-de-pages-individuelles-pour-les-articles-de-blog).)
+
+     ```astro title="src/pages/index.astro" ins={3-4, 6-8, 15-23}
+     ---
+     import Layout from '../layouts/Layout.astro';
+     import { Prepr } from '../lib/prepr.js';
+     import GetArticles from '../queries/get-articles.js';
+    
+     const response = await Prepr(GetArticles)
+     const { data } = await response.json()
+     const articles = data.Articles
+     ---
+    
+     <Layout title="Mon site de blog">
+       <h1>
+         My blog site
+       </h1>
+       <ul>
+         {
+           articles.items.map((post) => (
+             <li>
+               <a href={post._slug}>{post.title}</a>
+             </li>
+           ))
+         }
+       </ul>
+     </Layout>
+    ```
+
+
+Votre répertoire racine doit contenir ces nouveaux fichiers :
+
+<FileTree title="Project Structure">
+  - lib/
+    - prepr.js
+    - **queries**/
+        - **get-articles.js**
+  - src/
+  - .env
+  - astro.config.mjs
+  - package.json
+</FileTree>
+
+#### Création de pages individuelles pour les articles de blog
+
+Pour créer une page pour chaque article de blog, vous devez exécuter une nouvelle requête GraphQL sur une page [dynamic routing](/fr/guides/routing/#mode-serveur-ssr) `.astro`. Cette requête récupérera un article spécifique par son nom (slug) et une nouvelle page sera créée pour chaque article de blog.
+
+1. Créez un fichier appelé `get-article-by-slug.js` dans le dossier `queries` et ajoutez ce qui suit pour interroger un article spécifique par son slug et renvoyer des données telles que le `title` et le `content` de l'article :
+
+     ```js title="src/lib/queries/get-article-by-slug.js"
+    
+     const GetArticleBySlug = `
+     query ($slug: String) {
+        Article (slug: $slug) {
+          _id
+          title
+          content {
+            __typename
+            ... on Text {
+              body
+              text
+            }
+            ... on Assets {
+              items {
+                url
+              }
+            }
+          }
+        }
+     }`
+    
+     export default GetArticleBySlug
+    ```
+    
+    :::tip
+    Vous pouvez créer et [tester des requêtes GraphQL](https://docs.prepr.io/reference/graphql/v1/test-queries) en utilisant l'[Apollo explorer](https://studio.apollographql.com/sandbox/explorer) dans Prepr. Ouvrez l'explorateur API à partir de la page de l'élément de contenu *Article* dans Prepr.
+    Le contenu de l'article est stocké dans un *Dynamic content field* (champ de contenu dynamique). Consultez la documentation GraphQL pour plus de détails sur [comment récupérer les données dans ce champ](https://docs.prepr.io/reference/graphql/v1/schema-field-types-dynamic-content-field).
+    :::
+
+2. Dans le dossier `src/pages`, créez un fichier appelé `[...slug].astro`. Ajoutez le code suivant pour importer et exécuter la requête de l'étape précédente et afficher l'article récupéré :
+
+   ```astro title="src/pages/[...slug].astro"
+   ---
+   import Layout from '../layouts/Layout.astro';
+   import {Prepr} from '../lib/prepr.js';
+   import GetArticleBySlug from '../queries/get-article-by-slug.js';
+  
+   const { slug } = Astro.params;
+   const response = await Prepr(GetArticleBySlug, {slug})
+   const { data } = await response.json()
+   const article = data.Article
+   ---
+  
+   <Layout title={article.title}>
+     <main>
+       <h1>{article.title}</h1>
+       {
+         article.content.map((content) => (
+           <div>
+             {
+               content.__typename === "Assets" &&
+               <img src={content.items[0].url} width="300" height="250"/>
+             }
+             {
+               content.__typename === 'Text' &&
+               <div set:html={content.body}></div>
+             }
+           </div>
+         ))
+       }
+     </main>
+   </Layout>
+   ```
+
+Votre répertoire racine doit maintenant contenir ces nouveaux fichiers :
+
+<FileTree title="Structure du projet">
+  - lib/
+    - prepr.js
+    - queries/
+        - get-articles.js
+        - **get-article-by-slug.js**
+  - src/
+    - pages/
+      - index.astro
+      - **[…slug].astro**
+  - .env
+  - astro.config.mjs
+  - package.json
+</FileTree>
+
+Désormais, lorsque vous cliquez sur le lien d'un article dans la liste principale des articles de blog, vous accédez à une page contenant son contenu individuel.
+
+### Publier votre site
+
+Pour déployer votre blog Prepr, consultez nos [guides de déploiement](/fr/guides/deploy/) et suivez les instructions de votre hébergeur préféré.
 
 ## Ressources officielles
 
-- Consultez le [Prepr CMS Astro quickstart](https://github.com/preprio/astro-quick-start)
-- Lire [Connecter Prepr CMS à Astro](https://docs.prepr.io/connecting-front-end-apps/astro)
+- Suivez le guide [Prepr CMS Astro quickstart](https://github.com/preprio/astro-quick-start) pour créer un blog simple avec Astro et Prepr CMS. 
+- Consultez [Connecter Prepr CMS à Astro](https://docs.prepr.io/connecting-front-end-apps/astro) pour un aperçu des ressources Astro et Prepr CMS.
