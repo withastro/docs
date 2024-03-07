@@ -6,9 +6,9 @@ service: Xata
 stub: false
 i18nReady: true
 ---
-
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
-import FileTree from '~/components/FileTree.astro'
+import { FileTree } from '@astrojs/starlight/components';
+
 
 [Xata](https://xata.io) è una **Piattaforma dati serverless** che combina le funzionalità di un database relazionale, un motore di ricerca e un motore di analisi, e li rende utilizzabili attraverso una singola REST API.
 
@@ -25,12 +25,12 @@ Dopo aver aggiornato e inizializzato la [Xata CLI](https://xata.io/docs/getting-
 Alla fine della configurazione, dovresti avere:
 
 ```ini title=".env"
-XATA_API_KEY=chiave_hash
+XATA_API_KEY=hash_key
 
 # Branch Xata che verrà utilizzato
 # se non esiste un branch xata con
 # lo stesso nome del tuo branch git
-XATA_FALLBACK_BRANCH=main
+XATA_BRANCH=main
 ```
 
 E l'URL del database:
@@ -48,7 +48,7 @@ Per avere IntelliSense e dei tipi per le tue variabili d'ambiente, modifica o cr
 ```ts title="src/env.d.ts"
 interface ImportMetaEnv {
   readonly XATA_API_KEY: string;
-  readonly XATA_FALLBACK_BRANCH?: string;
+  readonly XATA_BRANCH?: string;
 }
 
 interface ImportMeta {
@@ -68,7 +68,7 @@ Ora, il tuo progetto dovrebbe avere la seguente struttura:
 
 <FileTree title="Struttura del Progetto">
 - src/
-  - **xata.codegen.ts**
+  - **xata.ts**
   - **env.d.ts**
 - **.env**
 - astro.config.mjs
@@ -82,9 +82,13 @@ Per ottenere i tuoi post, importa e utilizza `getXataClient()` in un file `.astr
 
 ```astro title="src/pages/blog/index.astro"
 ---
-import { getXataClient } from "../xata.codegen";
+import { XataClient } from '../../xata';
+ 
+const xata = new XataClient({
+  apiKey: import.meta.env.XATA_API_KEY,
+  branch: import.meta.env.XATA_BRANCH
+});
 
-const xata = getXataClient();
 const { records } = await xata.db.Posts.getPaginated({
   pagination: {
     size: 50
@@ -93,12 +97,13 @@ const { records } = await xata.db.Posts.getPaginated({
 ---
 
 <ul>
-  {records.map(post) => (
+  {records.map((post) => (
     <li>{post.title}</li>
-  )}
+  ))}
 </ul>
 ```
 È importante notare che l'SDK deve essere rigenerato ogni volta che lo schema viene modificato. Pertanto, evita di apportare modifiche ai file generati/dalla Xata CLI, perché una volta che lo schema viene aggiornato, le tue modifiche saranno sovrascritte.
+
 
 ## Risorse Ufficiali
 - [Xata Astro Starter](https://github.com/xataio/examples/tree/main/apps/getting-started-astro)
