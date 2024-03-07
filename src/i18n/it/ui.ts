@@ -113,8 +113,6 @@ export default {
 	'feedback.submit': 'Invia il feedback',
 	'feedback.close': 'Chiudi il modulo per il feedback',
 	'feedback.success': 'Grazie! Abbiamo ricevuto il tuo feedback.',
-	// `<FileTree>` component
-	'fileTree.directoryLabel': 'Cartella',
 	// Code snippet vocabulary
 	'expressiveCode.terminalWindowFallbackTitle': 'Finestra del terminale',
 	'expressiveCode.copyButtonTooltip': 'Copia',
