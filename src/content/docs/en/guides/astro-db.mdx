@@ -356,3 +356,74 @@ Be careful using `--remote` in development. This will connect to a live producti
 :::
 
 To use a remote connection, you will need an app token to authenticate with Studio. Visit the Studio dashboard for token creation and setup instructions.
+
+## Building Astro DB integrations
+
+[Astro integrations](/en/reference/integrations-reference/) can extend user projects with additional Astro DB tables and seed data.
+
+Use the `extendDb()` method in the `astro:db:setup` hook to register additional Astro DB config and seed files.
+The `defineDbIntegration()` helper provides TypeScript support and auto-complete for the `astro:db:setup` hook.
+
+```js {7-12}
+// my-integration/index.ts
+import { defineDbIntegration } from '@astrojs/db/utils';
+
+export default function MyIntegration() {
+  return defineDbIntegration({
+    name: 'my-astro-db-powered-integration',
+    hooks: {
+      'astro:db:setup': ({ extendDb }) => {
+        extendDb({
+          configEntrypoint: '@astronaut/my-package/config',
+          seedEntrypoint: '@astronaut/my-package/seed',
+        });
+      },
+      // Other integration hooks...
+    },
+  });
+}
+```
+
+Integration [config](#configuration) and [seed](#seed-development-data) files follow the same format as their user-defined equivalents.
+
+### Type safe operations in integrations
+
+While working on integrations, you may not be able to benefit from Astro’s generated table types exported from `astro:db`.
+For full type safety, use the `asDrizzleTable()` utility to create a table reference object you can use for database operations.
+
+For example, given an integration setting up the following `Pets` database table:
+
+```js
+// my-integration/config.ts
+import { defineDB, defineTable, column } from 'astro:db';
+
+export const Pets = defineTable({
+  columns: {
+    name: column.text(),
+    species: column.text(),
+  },
+});
+
+export default defineDB({ tables: { Pets } });
+```
+
+The seed file can import `Pets` and use `asDrizzleTable()` to insert rows into your table with type checking:
+
+```js {2,7} /typeSafePets(?! )/
+// my-integration/seed.ts
+import { asDrizzleTable } from '@astrojs/db/utils';
+import { db } from 'astro:db';
+import { Pets } from './config';
+
+export default async function() {
+  const typeSafePets = asDrizzleTable('Pets', Pets);
+
+  await db.insert(typeSafePets).values([
+    { name: 'Palomita', species: 'cat' },
+    { name: 'Pan', species: 'dog' },
+  ]);
+}
+```
+
+The value returned by `asDrizzleTable('Pets', Pets)` is equivalent to `import { Pets } from 'astro:db'`, but is available even when Astro’s type generation can’t run.
+You can use it in any integration code that needs to query or insert into the database.
