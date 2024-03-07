@@ -11,16 +11,22 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
 ミドルウェアはSSGとSSRのAstroプロジェクトの両方で利用可能です。
 
+:::note
+プリレンダリングされるページでは、ミドルウェアは静的なページを生成する**ビルドプロセス**でのみ実行され、デプロイ先のウェブサイトでは実行されません。これはすべての`static`（SSG）プロジェクトのページに当てはまります。これにはさらに、`hybrid`モードのデフォルト、または`server`モードで`export const prerender = true`を使用した際においてプリレンダリングされるページも含まれます。
+
+`server`モードのデフォルト、または`hybrid`モードで`export const prerender = false`を使用した際においてオンデマンドにレンダリングされるページの場合、ルートへのリクエスト時にデプロイ先のウェブサイトでミドルウェアが実行されます。
+:::
+
 ## 基本的な使い方
 
 1. `src/middleware.js|ts` というファイルを作成します。（あるいは、`src/middleware/index.js|ts` を作成しても構いません。）
 
-2. このファイルの中で、[`onRequest()`](#onrequest)関数をエクスポートします。これをデフォルトエクスポートにしてはいけません。
+2. このファイルの中で、[`context`オブジェクト](#contextオブジェクト)と`next()`関数を受け取る[`onRequest()`](/ja/reference/api-reference/#onrequest)関数をエクスポートします。これをデフォルトエクスポートにしてはいけません。
 
     ```js title="src/middleware.js"
     export function onRequest ({ locals, request }, next) {
-        // レスポンスデータをリクエストからインターセプトします
-        // 必要に応じて、`locals`を改変してレスポンスを加工します
+        // リクエストからデータをインターセプトします
+        // 必要に応じて、`locals`内のプロパティを改変します
         locals.title = "新しいタイトル";
 
         // Responseか`next()`の結果を返します
@@ -30,15 +36,86 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
 3. `.astro`ファイルの中で、`Astro.locals`を使ってレスポンスデータにアクセスします。
 
-```astro title="src/components/Component.astro"
----
-const data = Astro.locals;
----
-<h1>{data.title}</h1>
-<p>この{data.property}はミドルウェアで設定しました。</p>
+    ```astro title="src/components/Component.astro"
+    ---
+    const data = Astro.locals;
+    ---
+    <h1>{data.title}</h1>
+    <p>この{data.property}はミドルウェアで設定しました。</p>
+    ```
+
+### `context`オブジェクト
+
+[`context`](/ja/reference/api-reference/#endpoint-context)オブジェクトには、レンダリング中に他のミドルウェア、APIルート、`.astro`ルートで利用可能な情報が含まれています。
+
+これは`onRequest()`に渡されるオプション引数で、`locals`オブジェクトや、レンダリング中に共有されるその他のプロパティを含む場合があります。たとえば`context`オブジェクトには、認証に使用されるクッキーを含められます。
+
+### `context.locals`にデータを保存する
+
+`context.locals`は、ミドルウェア内で変更可能なオブジェクトです。
+
+この`locals`オブジェクトは、リクエスト処理のプロセスを通じて受け渡されていき、[`APIContext`](/ja/reference/api-reference/#contextlocals)と[`AstroGlobal`](/ja/reference/api-reference/#astrolocals)のプロパティとして利用できます。これにより、ミドルウェア、APIルート、`.astro`ページ間でデータを共有できます。ユーザーデータなど、リクエスト固有のデータを各レンダリングステップをまたいで保持する際に役立ちます。
+
+:::tip[インテグレーションのプロパティ]
+[インテグレーション](/ja/guides/integrations-guide/)は、`locals`オブジェクトを介してプロパティを設定し、機能を提供する場合があります。インテグレーションを使用している場合は、そのドキュメントを確認して、プロパティを上書きしていないか、不要な操作をしていないかを確認してください。
+:::
+
+`locals`には、文字列、数値、さらには関数やマップといった複雑なデータ型など、どんな型のデータでも格納できます。
+
+```js title="src/middleware.js"
+export function onRequest ({ locals, request }, next) {
+    // リクエストからデータをインターセプトします
+    // 必要に応じて、`locals`内のプロパティを改変します
+    locals.user.name = "John Wick";
+    locals.welcomeTitle = () => {
+        return "おかえりなさい " + locals.user.name;
+    };
+
+    // Responseか`next()`の結果を返します
+    return next();
+};
 ```
 
-### ミドルウェアの型
+そして、任意の`.astro`ファイル内で`Astro.locals`によりこの情報を利用できます。
+
+```astro title="src/pages/orders.astro"
+---
+const title = Astro.locals.welcomeTitle();
+const orders = Array.from(Astro.locals.orders.entries());
+---
+<h1>{title}</h1>
+<p>この{data.property}はミドルウェアで設定しました。</p>
+<ul>
+    {orders.map(order => {
+        return <li>{/* 各値を使って何かします */}</li>;
+    })}
+</ul>
+```
+
+`locals`は単一のAstroルートの中で生成・消滅します。ページルートがレンダリングされると、`locals`はもう存在せず、その後また新しいものが作成されます。複数のページリクエストをまたいで保持されるべき情報は、別の場所に保存する必要があります。
+
+:::note
+`locals`の値はランタイムに上書きできません。これをおこなうと、ユーザーが保存した情報がすべて消去される可能性があるためです。`dev`モードにおいてAstroはこれを監視し、`locals`が上書きされた場合にエラーをスローします。
+:::
+
+## センシティブな情報を消去する例
+
+以下の例では、ミドルウェアを使用して「極秘情報」という文字列を「削除済み」という語に置き換えることで、変更されたHTMLをページにレンダリングできるようにします。
+
+```js title="src/middleware.js"
+export const onRequest = async (context, next) => {
+    const response = await next();
+    const html = await response.text();
+    const redactedHtml = html.replaceAll("極秘情報", "削除済み");
+    
+    return new Response(redactedHtml, {
+        status: 200,
+        headers: response.headers
+    });
+};
+```
+
+## ミドルウェアの型
 
 `defineMiddleware()`ユーティリティ関数をインポートして使用すると、型安全性を確保できます。
 
@@ -52,12 +129,12 @@ export const onRequest = defineMiddleware((context, next) => {
 });
 ```
 
-JsDocにより型を記述している場合は、`MiddlewareRequestHandler`を使用できます。
+JsDocにより型を記述している場合は、`MiddlewareHandler`を使用できます。
 
 ```js
 // src/middleware.js
 /**
- * @type {import("astro").MiddlewareResponseHandler}
+ * @type {import("astro").MiddlewareHandler}
  */
 // `context`と`next`は自動的に型付けされます
 export const onRequest = (context, next) => {
@@ -82,58 +159,9 @@ declare namespace App {
 
 これにより、ミドルウェアファイル内で自動補完が有効になり、型安全性が確保されます。
 
-`Astro.locals`には、文字列、数値、さらには関数やマップといった複雑なデータ型など、どんな型のデータでも格納できます。
+## ミドルウェアを連結する
 
-```js title="src/middleware.js"
-export function onRequest ({ locals, request }, next) {
-    // レスポンスデータをリクエストからインターセプトします
-    // 必要に応じて、`locals`を改変してレスポンスを加工します
-    locals.user.name = "John Wick";
-    locals.welcomeTitle = () => {
-        return "おかえりなさい " + locals.user.name;
-    };
-
-    // Responseか`next()`の結果を返します
-    return next();
-};
-```
-
-そして、任意の`.astro`ファイル内でこの情報を利用できます。
-
-```astro title="src/pages/orders.astro"
----
-const title = Astro.locals.welcomeTitle();
-const orders = Array.from(Astro.locals.orders.entries());
----
-<h1>{title}</h1>
-<p>この{data.property}はミドルウェアで設定しました。</p>
-<ul>
-    {orders.map(order => {
-        return <li>{/* 各値を使って何かします */}</li>;
-    })}
-</ul>
-```
-
-### センシティブな情報を消去する例
-
-以下の例では、ミドルウェアを使用して「極秘情報」という文字列を「削除済み」という語に置き換えることで、変更されたHTMLをページにレンダリングできるようにします。
-
-```js title="src/middleware.js"
-export const onRequest = async (context, next) => {
-    const response = await next();
-    const html = await response.text();
-    const redactedHtml = html.replaceAll("極秘情報", "削除済み");
-    
-    return new Response(redactedHtml, {
-        status: 200,
-        headers: response.headers
-    });
-};
-```
-
-### ミドルウェアを連結する
-
-[`sequence()`](#sequence)を使用して、複数のミドルウェアを指定した順序で連結できます。
+[`sequence()`](/ja/reference/api-reference/#sequence)を使用して、複数のミドルウェアを指定した順序で連結できます。
 
 ```js title="src/middleware.js"
 import { sequence } from "astro:middleware";
@@ -173,7 +201,8 @@ authレスポンス
 validationレスポンス
 ```
 
-## APIリファレンス
+{/* TODO: このセクションはAPIリファレンスに移動する
+## APIリファレンス 
 
 ### `onRequest()`
 
@@ -183,7 +212,7 @@ validationレスポンス
 
 レンダリング処理中に、他のミドルウェア、APIルート、`.astro`ルートで利用可能な情報を含むオブジェクトです。
 
-これは`onRequest()`に渡されるオプション引数で、[`locals`](#locals)オブジェクトや、レンダリング中に共有されるその他のプロパティを含む場合があります。たとえば`context`オブジェクトには、認証に使用されるクッキーを含められます。
+これは`onRequest()`に渡されるオプション引数で、`locals`オブジェクトや、レンダリング中に共有されるその他のプロパティを含む場合があります。たとえば`context`オブジェクトには、認証に使用されるクッキーを含められます。
 
 これはAPIルートに渡される[`context`](/ja/reference/api-reference/#endpoint-context)オブジェクトと同じものです。
 
@@ -218,3 +247,4 @@ Astroミドルウェアで使用可能な[`APIContext`](/ja/reference/api-refere
 ### `trySerializeLocals`
 
 任意の値を受け取り、それをシリアライズした文字列を返す低レベルなAPIです。値をシリアライズできない場合、この関数はランタイムエラーをスローします。
+*/}
