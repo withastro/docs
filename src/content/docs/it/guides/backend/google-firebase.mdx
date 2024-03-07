@@ -7,7 +7,8 @@ stub: false
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
-import FileTree from '~/components/FileTree.astro'
+import { FileTree } from '@astrojs/starlight/components';
+
 
 [Firebase](https://firebase.google.com/) è una piattaforma di sviluppo di app che fornisce un database NoSQL, autenticazione, sottoscrizioni in tempo reale, funzioni e archiviazione.
 
@@ -128,8 +129,9 @@ Nel `server.ts`, aggiungi il seguente codice per inizializzare Firebase nel serv
 
 ```ts title="src/firebase/server.ts"
 import type { ServiceAccount } from "firebase-admin";
-import { initializeApp, cert } from "firebase-admin/app";
+import { initializeApp, cert, getApps } from "firebase-admin/app";
 
+const activeApps = getApps();
 const serviceAccount = {
   type: "service_account",
   project_id: import.meta.env.FIREBASE_PROJECT_ID,
@@ -143,9 +145,9 @@ const serviceAccount = {
   client_x509_cert_url: import.meta.env.FIREBASE_CLIENT_CERT_URL,
 };
 
-export const app = initializeApp({
+export const app = activeApps.length === 0 ? initializeApp({
   credential: cert(serviceAccount as ServiceAccount),
-});
+}) : activeApps[0];
 ```
 
 :::note
@@ -196,7 +198,7 @@ export const GET: APIRoute = async ({ request, cookies, redirect }) => {
   const idToken = request.headers.get("Authorization")?.split("Bearer ")[1];
   if (!idToken) {
     return new Response(
-      "Nessun token trovato",
+      "No token found",
       { status: 401 }
     );
   }
@@ -206,7 +208,7 @@ export const GET: APIRoute = async ({ request, cookies, redirect }) => {
     await auth.verifyIdToken(idToken);
   } catch (error) {
     return new Response(
-      "Token non valido",
+      "Invalid token",
       { status: 401 }
     );
   }
@@ -264,7 +266,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 
   if (!email || !password || !name) {
     return new Response(
-      "Alcuni dati del form mancano",
+      "Missing form data",
       { status: 400 }
     );
   }
@@ -278,7 +280,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     });
   } catch (error: any) {
     return new Response(
-      "Qualcosa è andato storto",
+      "Something went wrong",
       { status: 400 }
     );
   }
@@ -301,8 +303,8 @@ Dopo aver creato gli endpoint del server per l'autenticazione, la cartella del t
   - pages
     - api
       - auth
-        - **login.ts**
-        - **logout.ts**
+        - **signin.ts**
+        - **signout.ts**
         - **register.ts**
 - .env
 - astro.config.mjs
@@ -591,7 +593,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   const isBestFriend = formData.get("isBestFriend") === "on";
 
   if (!name || !age) {
-    return new Response("Mancano aluni parametri", {
+    return new Response("Missing required fields", {
       status: 400,
     });
   }
@@ -604,7 +606,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       isBestFriend,
     });
   } catch (error) {
-    return new Response("Qualcosa è andato storto", {
+    return new Response("Something went wrong", {
       status: 500,
     });
   }
@@ -907,7 +909,6 @@ Dopo aver creato tutti i file il tuo progetto dovrebbe avere una struttura come 
 - astro.config.mjs
 - package.json
 </FileTree>
-
 
 ## Community Resources
 
