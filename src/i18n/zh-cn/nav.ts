@@ -52,7 +52,9 @@ export default NavDictionary({
 	'guides/endpoints': 'API 端点',
 	'guides/data-fetching': '数据获取',
 	'guides/middleware': '中间件',
+	'guides/ecommerce': '电子商务',
 	'guides/testing': '测试',
+	'guides/authentication': '身份认证',
 	'guides/troubleshooting': '故障排除',
 	'guides/internationalization': '国际化',
 
