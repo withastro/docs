@@ -53,7 +53,9 @@ export default NavDictionary({
 	'guides/data-fetching': '데이터 페칭',
 	'guides/internationalization': '국제화',
 	'guides/middleware': '미들웨어',
+	'guides/ecommerce': '전자 상거래',
 	'guides/testing': '테스팅',
+	'guides/authentication': '인증',
 	'guides/troubleshooting': '문제 해결',
 
 	configuration: '구성',
