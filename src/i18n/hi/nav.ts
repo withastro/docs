@@ -20,7 +20,7 @@ export default NavDictionary({
 	basics: 'मौलिक अवधारणाएँ',
 	'basics/project-structure': 'परियोजना संरचना',
 	'basics/astro-components': 'अवयव',
-	'basics/astro-pages': 'पृष्ठ',
+	'basics/astro-pages': 'पेज',
 	'basics/layouts': 'नक़्शे',
 	'basics/astro-syntax': 'Astro की सिंटैक्स',
 	'basics/rendering-modes': 'अनुवाद मध्यम',
@@ -74,4 +74,8 @@ export default NavDictionary({
 	'reference/cli-reference': 'Astro CLI',
 	'reference/error-reference': 'त्रुटि संदर्भ',
 	'guides/publish-to-npm': 'NPM पैकेज प्रारूप',
+
+	communityResources: 'सामूहिक संसाधन',
+	'community-resources/content': 'पाठ्यक्रम, मार्गदर्शिकाएँ और रेसिपी',
+	'community-resources/talks': 'वार्ता, इंटरव्यू, और स्ट्रीमस',
 });
