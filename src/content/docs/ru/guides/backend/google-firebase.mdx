@@ -1,0 +1,915 @@
+---
+title: Firebase и Astro
+description:  Добавьте бэкенд в свой проект с помощью Firebase
+type: backend
+service: Firebase
+stub: false
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { FileTree } from '@astrojs/starlight/components';
+
+
+[Firebase](https://firebase.google.com/) — это платформа для разработки приложений, которая предоставляет базу данных NoSQL, аутентификацию, подписки в реальном времени, функции и хранилище. 
+
+См. наше отдельное руководство по [развертыванию на хостинге Firebase](/ru/guides/deploy/google-firebase/).
+
+## Инициализация Firebase в Astro
+
+### Необходимые условия
+
+- Проект [Firebase с настроенным веб-приложением](https://firebase.google.com/docs/web/setup).
+- Проект Astro с включенным [серверным рендерингом (SSR)](/ru/guides/server-side-rendering/).
+- Учетные данные Firebase: Для подключения Astro к Firebase вам понадобятся два набора учетных данных:
+  - Учетные данные веб-приложения: Эти учетные данные будут использоваться клиентской частью вашего приложения. Вы можете найти их в консоли Firebase в разделе *Project settings > General*. Прокрутите вниз до раздела **Your apps** и нажмите на иконку **Web app**.
+  - Учетные данные проекта: Эти учетные данные будут использоваться серверной частью вашего приложения. Вы можете сгенерировать их в консоли Firebase в разделе *Project settings > Service accounts > Firebase Admin SDK > Generate new private key*.
+
+### Добавление учетных данных Firebase
+
+Чтобы добавить учетные данные Firebase в Astro, создайте файл `.env` в корне вашего проекта со следующими переменными:
+
+```ini title=".env"
+FIREBASE_PRIVATE_KEY_ID=YOUR_PRIVATE_KEY_ID
+FIREBASE_PRIVATE_KEY=YOUR_PRIVATE_KEY
+FIREBASE_PROJECT_ID=YOUR_PROJECT_ID
+FIREBASE_CLIENT_EMAIL=YOUR_CLIENT_EMAIL
+FIREBASE_CLIENT_ID=YOUR_CLIENT_ID
+FIREBASE_AUTH_URI=YOUR_AUTH_URI
+FIREBASE_TOKEN_URI=YOUR_TOKEN_URI
+FIREBASE_AUTH_CERT_URL=YOUR_AUTH_CERT_URL
+FIREBASE_CLIENT_CERT_URL=YOUR_CLIENT_CERT_URL
+```
+
+Теперь эти переменные окружения доступны для использования в вашем проекте. 
+
+Если вы хотите иметь IntelliSense для переменных окружения Firebase, отредактируйте или создайте файл `env.d.ts` в каталоге `src/` и настройте свои типы:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly FIREBASE_PRIVATE_KEY_ID: string;
+  readonly FIREBASE_PRIVATE_KEY: string;
+  readonly FIREBASE_PROJECT_ID: string;
+  readonly FIREBASE_CLIENT_EMAIL: string;
+  readonly FIREBASE_CLIENT_ID: string;
+  readonly FIREBASE_AUTH_URI: string;
+  readonly FIREBASE_TOKEN_URI: string;
+  readonly FIREBASE_AUTH_CERT_URL: string
+  readonly FIREBASE_CLIENT_CERT_URL: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+:::tip
+Подробнее о [переменных окружения](/ru/guides/environment-variables/) и файлах `.env` в Astro.
+:::
+
+Теперь ваш проект должен включать эти новые файлы:
+
+<FileTree title="Project Structure">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+
+### Установка зависимостей
+
+Чтобы подключить Astro к Firebase, установите следующие пакеты с помощью команды ниже для предпочитаемого вами менеджера пакетов:
+
+- `firebase` - Firebase SDK для клиентской части
+- `firebase-admin` - Firebase Admin SDK для серверной части
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install firebase firebase-admin
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add firebase firebase-admin
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add firebase firebase-admin
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Далее создайте папку с именем `firebase` в каталоге `src/` и добавьте в нее два новых файла: `client.ts` и `server.ts`.
+
+В `client.ts` добавьте следующий код для инициализации Firebase в клиенте с использованием учетных данных веб-приложения и пакета `firebase`:
+
+```ts title="src/firebase/client.ts"
+import { initializeApp } from "firebase/app";
+
+const firebaseConfig = {
+  apiKey: "my-public-api-key",
+  authDomain: "my-auth-domain",
+  projectId: "my-project-id",
+  storageBucket: "my-storage-bucket",
+  messagingSenderId: "my-sender-id",
+  appId: "my-app-id",
+};
+
+export const app = initializeApp(firebaseConfig);
+```
+
+:::note
+Не забудьте заменить объект `firebaseConfig` своими учетными данными веб-приложения.
+:::
+
+В `server.ts` добавьте следующий код для инициализации Firebase на сервере с использованием учетных данных вашего проекта и пакета `firebase-admin`:
+
+```ts title="src/firebase/server.ts"
+import type { ServiceAccount } from "firebase-admin";
+import { initializeApp, cert, getApps } from "firebase-admin/app";
+
+const activeApps = getApps();
+const serviceAccount = {
+  type: "service_account",
+  project_id: import.meta.env.FIREBASE_PROJECT_ID,
+  private_key_id: import.meta.env.FIREBASE_PRIVATE_KEY_ID,
+  private_key: import.meta.env.FIREBASE_PRIVATE_KEY,
+  client_email: import.meta.env.FIREBASE_CLIENT_EMAIL,
+  client_id: import.meta.env.FIREBASE_CLIENT_ID,
+  auth_uri: import.meta.env.FIREBASE_AUTH_URI,
+  token_uri: import.meta.env.FIREBASE_TOKEN_URI,
+  auth_provider_x509_cert_url: import.meta.env.FIREBASE_AUTH_CERT_URL,
+  client_x509_cert_url: import.meta.env.FIREBASE_CLIENT_CERT_URL,
+};
+
+export const app = activeApps.length === 0 ? initializeApp({
+  credential: cert(serviceAccount as ServiceAccount),
+}) : activeApps[0];
+```
+
+:::note
+Не забудьте заменить объект `serviceAccount` на собственные учетные данные проекта.
+:::
+
+Наконец, ваш проект теперь должен включать эти новые файлы:
+
+<FileTree title="Project Structure">
+- src
+  - env.d.ts
+  - firebase
+    - **client.ts**
+    - **server.ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## Добавление аутентификации с помощью Firebase
+
+### Необходимые условия
+
+- Проект Astro [инициализированный с Firebase](#инициализация-firebase-в-astro).
+- Проект Firebase с включенной аутентификацией по электронной почте/паролю в консоли Firebase в разделе *Authentication > Sign-in*.
+
+### Создание конечных точек сервера аутентификации
+
+Для аутентификации Firebase в Astro требуются следующие три [конечные точки сервера Astro](/ru/guides/endpoints/):
+
+- `GET /api/auth/signin` - для авторизации пользователя
+- `GET /api/auth/signout` - для выхода пользователя из системы
+- `POST /api/auth/register` - для регистрации пользователя
+
+Создайте три конечные точки, связанные с аутентификацией, в новой директории `src/pages/api/auth/`: `signin.ts`, `signout.ts` и `register.ts`.
+
+`signin.ts` содержит код для авторизации пользователя с помощью Firebase:
+
+```ts title="src/pages/api/auth/signin.ts"
+import type { APIRoute } from "astro";
+import { app } from "../../../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+
+export const GET: APIRoute = async ({ request, cookies, redirect }) => {
+  const auth = getAuth(app);
+
+  /* Получение токена из заголовков запроса */
+  const idToken = request.headers.get("Authorization")?.split("Bearer ")[1];
+  if (!idToken) {
+    return new Response(
+      "No token found",
+      { status: 401 }
+    );
+  }
+
+  /* Проверка id токена */
+  try {
+    await auth.verifyIdToken(idToken);
+  } catch (error) {
+    return new Response(
+      "Invalid token",
+      { status: 401 }
+    );
+  }
+
+  /* Создание и установка куки сессии */
+  const fiveDays = 60 * 60 * 24 * 5 * 1000;
+  const sessionCookie = await auth.createSessionCookie(idToken, {
+    expiresIn: fiveDays,
+  });
+
+  cookies.set("session", sessionCookie, {
+    path: "/",
+  });
+
+  return redirect("/dashboard");
+};
+```
+
+:::note
+Это базовая реализация конечной точки входа в систему. Вы можете добавить больше логики к этой конечной точке в соответствии с вашими потребностями.
+:::
+
+`signout.ts` содержит код для выхода пользователя из системы путем удаления куки сессии:
+
+```ts title="src/pages/api/auth/signout.ts"
+import type { APIRoute } from "astro";
+
+export const GET: APIRoute = async ({ redirect, cookies }) => {
+  cookies.delete("session", {
+    path: "/",
+  });
+  return redirect("/signin");
+};
+```
+
+:::note
+Это базовая реализация конечной точки signout. Вы можете добавить больше логики к этой конечной точке в соответствии с вашими потребностями.
+:::
+
+`register.ts` содержит код для регистрации пользователя с помощью Firebase:
+
+```ts title="src/pages/api/auth/register.ts"
+import type { APIRoute } from "astro";
+import { getAuth } from "firebase-admin/auth";
+import { app } from "../../../firebase/server";
+
+export const POST: APIRoute = async ({ request, redirect }) => {
+  const auth = getAuth(app);
+
+  /* Получение данных формы */
+  const formData = await request.formData();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+  const name = formData.get("name")?.toString();
+
+  if (!email || !password || !name) {
+    return new Response(
+      "Missing form data",
+      { status: 400 }
+    );
+  }
+
+  /* Создание пользователя */
+  try {
+    await auth.createUser({
+      email,
+      password,
+      displayName: name,
+    });
+  } catch (error: any) {
+    return new Response(
+      "Something went wrong",
+      { status: 400 }
+    );
+  }
+  return redirect("/signin");
+};
+```
+
+:::note
+Это базовая реализация конечной точки регистрации. Вы можете добавить больше логики к этой конечной точке в соответствии с вашими потребностями.
+:::
+
+После создания конечных точек сервера для аутентификации каталог вашего проекта должен содержать эти новые файлы:
+
+<FileTree title="Project Structure">
+- src
+  - env.d.ts
+  - firebase
+    - client.ts
+    - server.ts
+  - pages
+    - api
+      - auth
+        - **signin.ts**
+        - **signout.ts**
+        - **register.ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Создание страниц
+
+Создайте страницы, которые будут использовать конечные точки Firebase:
+
+- `src/pages/register` - будет содержать форму для регистрации пользователя
+- `src/pages/signin` - будет содержать форму для авторизации пользователя
+- `src/pages/dashboard` - содержит приборную панель, доступ к которой могут получить только авторизованные пользователи.
+
+Пример `src/pages/register.astro`, приведенный ниже, содержит форму, которая отправляет `POST` запрос к конечной точке `/api/auth/register`. Эта конечная точка создаст нового пользователя, используя данные из формы, а затем перенаправит его на страницу `/signin`.
+
+```astro title="src/pages/register.astro"
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Register">
+  <h1>Register</h1>
+  <p>Already have an account? <a href="/signin">Sign in</a></p>
+  <form action="/api/auth/register" method="post">
+    <label for="name">Name</label>
+    <input type="text" name="name" id="name" />
+    <label for="email" for="email">Email</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+  </form>
+</Layout>
+```
+
+`src/pages/signin.astro` использует серверное приложение Firebase для проверки куки сессии пользователя. Если пользователь авторизован, страница перенаправляет его на страницу `/dashboard`.
+
+Пример страницы ниже содержит форму, которая отправит `POST` запрос к конечной точке `/api/auth/signin` с ID-токеном, сгенерированным клиентским приложением Firebase.
+
+Конечная точка проверит ID-токен и создаст новую сессионную cookie для пользователя. Затем конечная точка перенаправит пользователя на страницу `/dashboard`.
+
+```astro title="src/pages/signin.astro"
+---
+import { app } from "../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+import Layout from "../layouts/Layout.astro";
+
+/* Проверяем, авторизирован ли пользователь */
+const auth = getAuth(app);
+if (Astro.cookies.has("session")) {
+  const sessionCookie = Astro.cookies.get("session").value;
+  const decodedCookie = await auth.verifySessionCookie(sessionCookie);
+  if (decodedCookie) {
+    return Astro.redirect("/dashboard");
+  }
+}
+---
+
+<Layout title="Sign in">
+  <h1>Sign in</h1>
+  <p>New here? <a href="/register">Create an account</a></p>
+  <form action="/api/auth/signin" method="post">
+    <label for="email" for="email">Email</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+  </form>
+</Layout>
+<script>
+  import {
+    getAuth,
+    inMemoryPersistence,
+    signInWithEmailAndPassword,
+  } from "firebase/auth";
+  import { app } from "../firebase/client";
+
+  const auth = getAuth(app);
+  // Это не позволит браузеру хранить данные сессии
+  auth.setPersistence(inMemoryPersistence);
+
+  const form = document.querySelector("form") as HTMLFormElement;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const email = formData.get("email")?.toString();
+    const password = formData.get("password")?.toString();
+
+    if (!email || !password) {
+      return;
+    }
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    const idToken = await userCredential.user.getIdToken();
+    const response = await fetch("/api/auth/signin", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+
+    if (response.redirected) {
+      window.location.assign(response.url);
+    }
+  });
+</script>
+```
+
+Страница `src/pages/dashboard.astro` проверит сессионный куки пользователя с помощью серверного приложения Firebase. Если пользователь не авторизирован, страница перенаправит его на страницу ``/signin``.
+
+На приведенной ниже странице отображается имя пользователя и кнопка для выхода. При нажатии на кнопку будет отправлен запрос `GET` к конечной точке `/api/auth/signout`.
+
+Конечная точка удалит куки сессии пользователя и перенаправит его на страницу `/signin`.
+
+```astro title="src/pages/dashboard.astro"
+---
+import { app } from "../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+import Layout from "../layouts/Layout.astro";
+
+const auth = getAuth(app);
+
+/* Проверка текущей сессии */
+if (!Astro.cookies.has("session")) {
+  return Astro.redirect("/signin");
+}
+const sessionCookie = Astro.cookies.get("session").value;
+const decodedCookie = await auth.verifySessionCookie(sessionCookie);
+const user = await auth.getUser(decodedCookie.uid);
+
+if (!user) {
+  return Astro.redirect("/signin");
+}
+---
+
+<Layout title="dashboard">
+  <h1>Welcome {user.displayName}</h1>
+  <p>We are happy to see you here</p>
+  <form action="/api/auth/signout">
+    <button type="submit">Sign out</button>
+  </form>
+</Layout>
+```
+
+### Добавление провайдеров OAuth
+
+Чтобы добавить провайдеров OAuth в ваше приложение, необходимо включить их в консоли Firebase. 
+
+В консоли Firebase перейдите в раздел **Authentication** и перейдите на вкладку **Sign-in method**. Затем нажмите на кнопку **Add a new provider** и включите провайдеров, которых вы хотите использовать.
+
+В примере ниже используется провайдер **Google**.
+
+Отредактируйте страницу `signin.astro`, чтобы добавить:
+- кнопку для входа в систему с помощью Google под существующей формой
+- Слушатель событий на кнопке для обработки процесса входа в существующую форму `<script>`.
+
+```astro title="src/pages/signin.astro" ins={27, 34, 35, 69-83}
+---
+import { app } from "../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+import Layout from "../layouts/Layout.astro";
+
+/* Проверяем, авторизирован ли пользователь */
+const auth = getAuth(app);
+if (Astro.cookies.has("session")) {
+  const sessionCookie = Astro.cookies.get("session").value;
+  const decodedCookie = await auth.verifySessionCookie(sessionCookie);
+  if (decodedCookie) {
+    return Astro.redirect("/dashboard");
+  }
+}
+---
+
+<Layout title="Sign in">
+  <h1>Sign in</h1>
+  <p>New here? <a href="/register">Create an account</a></p>
+  <form action="/api/auth/signin" method="post">
+    <label for="email" for="email">Email</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+  </form>
+  <button id="google">Sign in with Google</button>
+</Layout>
+<script>
+  import {
+    getAuth,
+    inMemoryPersistence,
+    signInWithEmailAndPassword,
+    GoogleAuthProvider,
+    signInWithPopup,
+  } from "firebase/auth";
+  import { app } from "../firebase/client";
+
+  const auth = getAuth(app);
+  auth.setPersistence(inMemoryPersistence);
+
+  const form = document.querySelector("form") as HTMLFormElement;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const email = formData.get("email")?.toString();
+    const password = formData.get("password")?.toString();
+
+    if (!email || !password) {
+      return;
+    }
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    const idToken = await userCredential.user.getIdToken();
+    const response = await fetch("/api/auth/signin", {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+
+    if (response.redirected) {
+      window.location.assign(response.url);
+    }
+  });
+
+  const googleSignin = document.querySelector("#google") as HTMLButtonElement;
+  googleSignin.addEventListener("click", async () => {
+    const provider = new GoogleAuthProvider();
+    const userCredential = await signInWithPopup(auth, provider);
+    const idToken = await userCredential.user.getIdToken();
+    const res = await fetch("/api/auth/signin", {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+
+    if (res.redirected) {
+      window.location.assign(res.url);
+    }
+  });
+</script>
+```
+
+При нажатии на кнопку входа через Google откроется всплывающее окно для входа в систему Google. Как только пользователь войдет в систему, он отправит `POST`-запрос на конечную точку `/api/auth/signin` с ID-токеном, сгенерированным провайдером OAuth. 
+
+Конечная точка проверит ID-токен и создаст новую сессионную куки для пользователя. Затем конечная точка перенаправит пользователя на страницу `/dashboard`.
+
+## Подключение к базе данных Firestore
+
+### Необходимые условия
+
+- Проект Astro, инициализированный с Firebase, как описано в разделе [Инициализация Firebase в Astro](#инициализация-firebase-в-astro).
+
+- Проект Firebase с базой данных Firestore. Вы можете следовать разделу [Firebase documentation to create a new project and set up a Firestore database](https://firebase.google.com/docs/firestore/quickstart). 
+
+В этой инструкции коллекция Firestore будет называться **друзья**(friends) и содержать документы со следующими полями:
+
+- `id`: автогенерируется Firestore
+- `имя`: строковое поле
+- `возраст`: числовое поле
+- `isBestFriend`: булево поле
+
+### Создание конечных точек сервера
+
+Создайте два новых файла в новой директории `src/pages/api/friends/`: `index.ts` и `[id].ts`. Они создадут две конечные точки сервера для взаимодействия с базой данных Firestore следующими способами:
+
+- `POST /api/friends`: для создания нового документа в коллекции друзья.
+- `POST /api/friends/:id`: для обновления документа в коллекции друзья.
+- `DELETE /api/friends/:id`: удалить документ в коллекции друзья.
+
+`index.ts` будет содержать код для создания нового документа в коллекции друзья:
+
+```ts title="src/pages/api/friends/index.ts"
+import type { APIRoute } from "astro";
+import { app } from "../../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+
+export const POST: APIRoute = async ({ request, redirect }) => {
+  const formData = await request.formData();
+  const name = formData.get("name")?.toString();
+  const age = formData.get("age")?.toString();
+  const isBestFriend = formData.get("isBestFriend") === "on";
+
+  if (!name || !age) {
+    return new Response("Missing required fields", {
+      status: 400,
+    });
+  }
+  try {
+    const db = getFirestore(app);
+    const friendsRef = db.collection("friends");
+    await friendsRef.add({
+      name,
+      age: parseInt(age),
+      isBestFriend,
+    });
+  } catch (error) {
+    return new Response("Something went wrong", {
+      status: 500,
+    });
+  }
+  return redirect("/dashboard");
+};
+```
+
+:::note
+Это базовая реализация конечной точки `friends`. Вы можете добавить больше логики к этой конечной точке в соответствии с вашими потребностями.
+:::
+
+`[id].ts` будет содержать код для обновления и удаления документа в коллекции друзья:
+
+```ts title="src/pages/api/friends/[id].ts"
+import type { APIRoute } from "astro";
+import { app } from "../../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+
+const db = getFirestore(app);
+const friendsRef = db.collection("friends");
+
+export const POST: APIRoute = async ({ params, redirect, request }) => {
+  const formData = await request.formData();
+  const name = formData.get("name")?.toString();
+  const age = formData.get("age")?.toString();
+  const isBestFriend = formData.get("isBestFriend") === "on";
+
+  if (!name || !age) {
+    return new Response("Missing required fields", {
+      status: 400,
+    });
+  }
+
+  if (!params.id) {
+    return new Response("Cannot find friend", {
+      status: 404,
+    });
+  }
+
+  try {
+    await friendsRef.doc(params.id).update({
+      name,
+      age: parseInt(age),
+      isBestFriend,
+    });
+  } catch (error) {
+    return new Response("Something went wrong", {
+      status: 500,
+    });
+  }
+  return redirect("/dashboard");
+};
+
+export const DELETE: APIRoute = async ({ params, redirect }) => {
+  if (!params.id) {
+    return new Response("Cannot find friend", {
+      status: 404,
+    });
+  }
+
+  try {
+    await friendsRef.doc(params.id).delete();
+  } catch (error) {
+    return new Response("Something went wrong", {
+      status: 500,
+    });
+  }
+  return redirect("/dashboard");
+};
+```
+
+:::note
+Это базовая реализация конечной точки `friends/:id`. Вы можете добавить больше логики к этой конечной точке в соответствии с вашими потребностями.
+:::
+
+После создания конечных точек сервера для Firestore каталог вашего проекта должен включать эти новые файлы:
+
+<FileTree title="Project Structure">
+- src
+  - env.d.ts
+  - firebase
+    - client.ts
+    - server.ts
+  - pages
+    - api
+      - friends
+        - **index.ts**
+        - **[id].ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Создание страниц
+
+Создайте страницы, которые будут использовать конечные точки Firestore:
+
+- `src/pages/add.astro` - будет содержать форму для добавления нового друга.
+- `src/pages/edit/[id].astro` - будет содержать форму для редактирования друга и кнопку для удаления друга.
+- `src/pages/friend/[id].astro` - содержит информацию о друге.
+- `src/pages/dashboard.astro` - отображает список друзей.
+
+#### Добавление новой записи
+
+Пример `src/pages/add.astro` ниже содержит форму, которая отправляет `POST` запрос к конечной точке `/api/friends`. Эта конечная точка создаст нового друга, используя данные из формы, а затем перенаправит пользователя на страницу `/dashboard`.
+
+```astro title="src/pages/add.astro"
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Add a new friend">
+  <h1>Add a new friend</h1>
+  <form method="post" action="/api/friends">
+    <label for="name">Name</label>
+    <input type="text" id="name" name="name" />
+    <label for="age">Age</label>
+    <input type="number" id="age" name="age" />
+    <label for="isBestFriend">Is best friend?</label>
+    <input type="checkbox" id="isBestFriend" name="isBestFriend" />
+    <button type="submit">Add friend</button>
+  </form>
+</Layout>
+```
+
+#### Редактирование или удаление записи
+
+Страница ``rc/pages/edit/[id].astro`` будет содержать форму для редактирования данных друга и кнопку для его удаления. При отправке эта страница пошлет `POST`-запрос к конечной точке `/api/friends/:id` для обновления данных друга. 
+
+Если пользователь нажмет на кнопку удаления, эта страница отправит запрос `DELETE` к конечной точке `/api/friends/:id` для удаления друга.
+
+```astro title="src/pages/edit/[id].astro"
+---
+import Layout from "../../layouts/Layout.astro";
+import { app } from "../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+
+interface Friend {
+  name: string;
+  age: number;
+  isBestFriend: boolean;
+}
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect("/404");
+}
+
+const db = getFirestore(app);
+const friendsRef = db.collection("friends");
+const friendSnapshot = await friendsRef.doc(id).get();
+
+if (!friendSnapshot.exists) {
+  return Astro.redirect("/404");
+}
+
+const friend = friendSnapshot.data() as Friend;
+---
+
+<Layout title="Edit {friend.name}">
+  <h1>Edit {friend.name}</h1>
+  <p>Here you can edit or delete your friend's data.</p>
+  <form method="post" action={`/api/friends/${id}`}>
+    <label for="name">Name</label>
+    <input type="text" id="name" name="name" value={friend.name} />
+    <label for="age">Age</label>
+    <input type="number" id="age" name="age" value={friend.age} />
+    <label for="isBestFriend">Is best friend?</label>
+    <input
+      type="checkbox"
+      id="isBestFriend"
+      name="isBestFriend"
+      checked={friend.isBestFriend}
+    />
+    <button type="submit">Edit friend</button>
+  </form>
+  <button type="button" id="delete-document">Delete</button>
+</Layout>
+<script>
+  const deleteButton = document.getElementById(
+    "delete-document"
+  ) as HTMLButtonElement;
+  const url = document.querySelector("form")?.getAttribute("action") as string;
+  deleteButton.addEventListener("click", async () => {
+    const response = await fetch(url, {
+      method: "DELETE",
+    });
+    if (response.redirected) {
+      window.location.assign(response.url);
+    }
+  });
+</script>
+```
+
+#### Отображение индивидуальной записи
+
+В файле `src/pages/friend/[id].astro` будут отображены данные о друге.
+
+```astro title="src/pages/friend/[id].astro"
+---
+import Layout from "../../layouts/Layout.astro";
+import { app } from "../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+
+interface Friend {
+  name: string;
+  age: number;
+  isBestFriend: boolean;
+}
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect("/404");
+}
+
+const db = getFirestore(app);
+const friendsRef = db.collection("friends");
+const friendSnapshot = await friendsRef.doc(id).get();
+
+if (!friendSnapshot.exists) {
+  return Astro.redirect("/404");
+}
+
+const friend = friendSnapshot.data() as Friend;
+---
+
+<Layout title={friend.name}>
+  <h1>{friend.name}</h1>
+  <p>Age: {friend.age}</p>
+  <p>Is best friend: {friend.isBestFriend ? "Yes" : "No"}</p>
+</Layout>
+```
+
+#### Отображение списка записей с кнопкой редактирования
+
+Наконец, в `src/pages/dashboard.astro будет отображен список друзей. Каждый друг будет иметь ссылку на страницу с информацией о нем и кнопку редактирования, которая перенаправит пользователя на страницу редактирования.
+
+```astro title="src/pages/dashboard.astro"
+---
+import { app } from "../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+import Layout from "../layouts/Layout.astro";
+
+interface Friend {
+  id: string;
+  name: string;
+  age: number;
+  isBestFriend: boolean;
+}
+
+const db = getFirestore(app);
+const friendsRef = db.collection("friends");
+const friendsSnapshot = await friendsRef.get();
+const friends = friendsSnapshot.docs.map((doc) => ({
+  id: doc.id,
+  ...doc.data(),
+})) as Friend[];
+---
+
+<Layout title="My friends">
+  <h1>Friends</h1>
+  <ul>
+    {
+      friends.map((friend) => (
+        <li>
+          <a href={`/friend/${friend.id}`}>{friend.name}</a>
+          <span>({friend.age})</span>
+          <strong>{friend.isBestFriend ? "Bestie" : "Friend"}</strong>
+          <a href={`/edit/${friend.id}`}>Edit</a>
+        </li>
+      ))
+    }
+  </ul>
+</Layout>
+
+```
+
+После создания всех страниц у вас должна получиться следующая структура файлов:
+
+<FileTree title="Project Structure">
+- src
+  - env.d.ts
+  - firebase
+    - client.ts
+    - server.ts
+  - pages
+    - dashboard.astro
+    - add.astro
+    - edit
+      - [id].astro
+    - friend
+      - [id].astro
+    - api
+      - friends
+        - index.ts
+        - [id].ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## Ресурсы сообщества
+
+- [Пример приложения Astro и Firebase SSR](https://github.com/kevinzunigacuellar/astro-firebase)
