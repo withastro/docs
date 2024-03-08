@@ -9,17 +9,12 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import ReadMore from '~/components/ReadMore.astro';
 import Badge from '~/components/Badge.astro';
 
-[Astro DB](https://astro.build/db/) is a fully-managed SQL database designed for the Astro ecosystem: develop locally in Astro and deploy from your Astro Studio dashboard.
-
-With the [`@astrojs/db` integration](/en/guides/integrations-guide/db/) installed, you have a powerful, local, type-safe tool to query and model content as a relational database.
-
-<span style="margin: 0.25em;"><Badge variant="accent">Studio feature</Badge></span> View, manage and deploy your hosted remote data through your interactive [Astro Studio dashboard](/en/guides/studio/) with a free account.
+[Astro DB](https://astro.build/db/) is a fully-managed SQL database designed exclusively for Astro. Develop locally or connect to hosted database manage on our [Astro Studio](https://studio.astro.build) platform.
 
 ## Installation
 
-Astro includes an `astro add` command to automate the setup of official integrations. If you prefer, you can [install integrations manually](https://docs.astro.build/en/guides/integrations-guide/mdx/#manual-install) instead.
+Add Astro DB to any new or existing Astro project with the [`@astrojs/db` integration](/en/guides/integrations-guide/db/) on npm. Astro includes a built-in `astro add` command to automate this setup process for you.
 
-Run one of the following commands in a new terminal window to install `@astrojs/db`:
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -39,9 +34,16 @@ Run one of the following commands in a new terminal window to install `@astrojs/
   </Fragment>
  </PackageManagerTabs>
 
-If you run into any issues using the automated installation command, [feel free to report them to us on GitHub](https://github.com/withastro/astro/issues) and install `@astrojs/db` manually instead.
+ #### Manual Installation 
 
-## Configuration
+If you prefer to set things up from scratch yourself, skip `astro add` and follow these manual instructions to install Astro DB yourself.
+
+ #### 1. Add the integration
+
+ - install `@astrojs/db`
+ - add it to your config
+
+#### 2. Configure your database 
 
 Create a `db/config.ts` file at the root of your project. This is a special file that Astro will automatically load and use to configure your database tables.
 
@@ -54,7 +56,15 @@ export default defineDB({
 })
 ```
 
-### Defining a table schema
+## Define your database
+
+TODO(fks): Anything to add here? A section on the technology maybe and how we spin up a database file for local development, instead of a heavy/complex server instance?
+
+### Columns
+
+TODO(fks): Introduce the concept of columns here and a brief summary of the ~5 that we support? Doesn't need to be long, but through this you can touch on the fact that Astro DB is a SQL database, which means columns exist. Let me know if I can come back to help write this section!
+
+### Tables
 
 Schemas enforce consistent columns within a database table. A schema guarantees that this data exists in a predictable form when you need to reference or query it.
 
@@ -81,45 +91,34 @@ export default defineDB({
 
 <ReadMore>See the [table configuration reference](/en/guides/integrations-guide/db/#table-configuration-reference) for a complete reference of table options.</ReadMore>
 
-### Configure references between tables
+### Table References
 
-As you begin to add more tables, your data will likely start to form relationships. For example, a blog may have a table with information about each commenter in addition to a table storing the individual comment data.
+Relationships between tables are a common pattern in database design. For example, a `Blog` table may be closely related to other tables of `Comment`, `Author`, and `Category`.
 
-You can relate tables to each other using reference columns. To establish a relationship, you will need:
+You can define these relations tables and save them into your database schema using **reference columns**. To establish a relationship, you will need:
 
 - An **identifier column** on the referenced table. This is usually an `id` column with the `primaryKey` property.
 - A column on the base table to **store the referenced `id`**. This uses the `references` property establish a relationship.
 
 This example shows a `Comment` table's `authorId` column referencing an `Author` table's `id` column.
 
-```ts title="db/config.ts" {5-6, 15-16}
-import { defineDB, defineTable, column } from 'astro:db';
-
+```ts title="db/config.ts" {3, 10}
 const Author = defineTable({
   columns: {
-    // Generate an incrementing numeric id using `primaryKey`
     id: column.number({ primaryKey: true }),
     name: column.text(),
-    bio: column.text({ optional: true }),
-    avatar: column.text({ optional: true }),
   }
 });
 
 const Comment = defineTable({
   columns: {
-    // Reference the author id value
     authorId: column.number({ references: () => Author.columns.id }),
-    author: column.text(),
     content: column.text(),
   }
 });
-
-export default defineDB({
-  tables: { Comment, Author },
-});
 ```
 
-## Seed development data
+## Seed your database
 
 In development, Astro will use your DB config to generate local types according to your schemas. These will be generated fresh each time the dev server is started, and will allow you to query and work with the shape of your data with type safety and autocompletion.
 
@@ -132,49 +131,21 @@ import { db, Comment } from 'astro:db';
 
 export default async function() {
   await db.insert(Comment).values([
-    {
-      author: 'Ben Holmes',
-      body: 'Hope you like Astro DB!',
-    },
-    {
-      author: 'Fred K Schott',
-      body: 'You miss 100% of the K Schotts you don\'t take.',
-    }
+    { authorId: 1, body: 'Hope you like Astro DB!' },
+    { authorId: 2, body: 'Enjoy!'},
   ])
 }
 ```
 
 Your development server will automatically restart your database whenever this file changes, regenerating your types and seeding your development data from `seed.ts`.
 
-### Seed related data
+## Query your database
 
-You may need to seed related tables based on a generated `id`. Use the `.returning()` function to return the inserted row, and use any generated columns for later inserts.
-
-This example seeds an author and their first comment using the generated Author `id`:
-
-```ts title="db/seed.ts"
-import { db, Author, Comment } from 'astro:db';
-
-const Ben = await db.insert(Author)
-  .values({ name: 'Ben Holmes' })
-  // Return the generated id
-  .returning()
-  // Get the first result from the returned array
-  .get();
-
-await db.insert(Comment).values([
-  {
-    authorId: Ben.id,
-    body: 'Hope you like Astro DB!',
-  },
-])
-```
-
-## Query for table data
-
-You can query your database from any [Astro page](/en/basics/astro-pages/#astro-pages) or [endpoint](/en/guides/endpoints/) in your project using the `db` object from the `astro:db` module. This gives you access to all configured tables and seeded development data to build type-safe SQL queries.
+You can query your database from any [Astro page](/en/basics/astro-pages/#astro-pages) or [endpoint](/en/guides/endpoints/) in your project using the provided `db` Drizzle ORM import from the `astro:db` module. This gives you access to all configured tables and seeded development data to build type-safe SQL queries.
 
 Import both the `db` object and the table you want to query from `astro:db`. Then, you can use the `db` object to construct SQL queries using [Drizzle's SQLite `select()`](https://orm.drizzle.team/docs/select#basic-and-partial-select).
+
+### Select 
 
 The following example selects all rows of a `Comment` table. This returns the complete array of seeded development data from `db/seed.ts` which is then available for use in your page template:
 
@@ -199,81 +170,11 @@ const comments = await db.select().from(Comment);
 
 <ReadMore>See the [Drizzle `select()` API reference](https://orm.drizzle.team/docs/select) for a complete overview.</ReadMore>
 
-### Query for a subset of data
-
-To query for table results by a specific property, use [Drizzle options for partial selects](https://orm.drizzle.team/docs/select#partial-select). For example, add [a `.where()` call](https://orm.drizzle.team/docs/select#filtering) to your `select()` query and pass the comparison you want to make. 
-
-The following example queries for all rows in a `Comment` table that contain the phrase "Astro DB." Use [the `like()` operator](https://orm.drizzle.team/docs/operators#like) to check if a phrase is present within the `body`:
-
-
-```astro title="src/pages/index.astro"
----
-import { db, Comment } from 'astro:db';
-
-const comments = await db.select().from(Comment).where(
-    like(Comment.body, '%Astro DB%')
-);
----
-```
-
-### Query related data
-
-You can query related data from multiple tables using a SQL join. To create a join query, extend your `db.select()` statement with a join operator. Each function accepts a table to join with and a condition to match rows between the two tables.
-
-This example uses an `innerJoin()` function to join `Comment` authors with their related `Author` information based on the `authorId` column. This returns an array of objects with each `Author` and `Comment` row as top-level properties:
-
-```astro title="src/pages/index.astro"
----
-import { db, eq, Comment, Author } from 'astro:db';
-
-const comments = await db.select()
-  .from(Comment)
-  .innerJoin(Author, eq(Comment.authorId, Author.id));
----
-
-<h2>Comments</h2>
-
-{
-  comments.map(({ Author, Comment }) => (
-    <article>
-      <p>Author: {Author.name}</p>
-      <p>{Comment.body}</p>
-    </article>
-  ))
-}
-```
-
-<ReadMore>
-
-See the [Drizzle join reference](https://orm.drizzle.team/docs/joins#join-types) for all available join operators and config options.
-
-</ReadMore>
-
-### DB query utilities
-
-All Drizzle utilities for building queries are exposed from the `astro:db` module. This includes:
-
-- [Filter operators](https://orm.drizzle.team/docs/operators) like `eq()` and `gt()`
-- [Aggregation helpers](https://orm.drizzle.team/docs/select#aggregations-helpers) like `count()`
-- [The `sql` helper](https://orm.drizzle.team/docs/sql) for writing raw SQL queries
-
-```ts
-import { eq, gt, count, sql } from 'astro:db';
-```
-
-## Insert data from a server route
-
-<p style="margin: 0.25em;"><Badge variant="accent">Studio feature</Badge></p>
+### Insert
 
 To accept user input, such as handling form requests and inserting data into your remote hosted database, configure your Astro project for [on-demand rendering](https://docs.astro.build/en/basics/rendering-modes/#on-demand-rendered) and [add an SSR adapter](https://docs.astro.build/en/guides/server-side-rendering/#official-adapters) for your deployment environment.
 
-:::caution
-**Astro recommends adding a layer of authentication** before accepting user input. [See the Authentication guide](https://docs.astro.build/en/guides/authentication/) for more information.
-:::
-
-You can insert entries into your database using `db.insert()`. 
-
-This example inserts a row into a `Comment` table based on a parsed form request:
+This example inserts a row into a `Comment` table based on a parsed form POST request:
 
 ```astro
 ---
@@ -307,25 +208,95 @@ const comments = await db.select().from(Comment);
 <!--render `comments`-->
 ```
 
+TODO(fks): Add an API endpoint example? I find myself using this much more often. 
+
 <ReadMore>
 
 See the [Drizzle `insert()` API reference](https://orm.drizzle.team/docs/insert) for a complete overview.
 
 </ReadMore>
 
-## Create a hosted database with Astro Studio
+### Filtering
+
+To query for table results by a specific property, use [Drizzle options for partial selects](https://orm.drizzle.team/docs/select#partial-select). For example, add [a `.where()` call](https://orm.drizzle.team/docs/select#filtering) to your `select()` query and pass the comparison you want to make. 
+
+The following example queries for all rows in a `Comment` table that contain the phrase "Astro DB." Use [the `like()` operator](https://orm.drizzle.team/docs/operators#like) to check if a phrase is present within the `body`:
+
+
+```astro title="src/pages/index.astro"
+---
+import { db, Comment, like } from 'astro:db';
+
+const comments = await db.select().from(Comment).where(
+    like(Comment.body, '%Astro DB%')
+);
+---
+```
+
+All Drizzle utilities for building queries are exposed from the `astro:db` module. This includes:
+
+- [Filter operators](https://orm.drizzle.team/docs/operators) like `eq()` and `gt()`
+- [Aggregation helpers](https://orm.drizzle.team/docs/select#aggregations-helpers) like `count()`
+- [The `sql` helper](https://orm.drizzle.team/docs/sql) for writing raw SQL queries
+
+```ts
+import { eq, gt, count, sql } from 'astro:db';
+```
+
+
+### Relationships
+
+You can query related data from multiple tables using a SQL join. To create a join query, extend your `db.select()` statement with a join operator. Each function accepts a table to join with and a condition to match rows between the two tables.
+
+This example uses an `innerJoin()` function to join `Comment` authors with their related `Author` information based on the `authorId` column. This returns an array of objects with each `Author` and `Comment` row as top-level properties:
+
+```astro title="src/pages/index.astro"
+---
+import { db, eq, Comment, Author } from 'astro:db';
+
+const comments = await db.select()
+  .from(Comment)
+  .innerJoin(Author, eq(Comment.authorId, Author.id));
+---
+
+<h2>Comments</h2>
+
+{
+  comments.map(({ Author, Comment }) => (
+    <article>
+      <p>Author: {Author.name}</p>
+      <p>{Comment.body}</p>
+    </article>
+  ))
+}
+```
+
+<ReadMore>
+
+See the [Drizzle join reference](https://orm.drizzle.team/docs/joins#join-types) for all available join operators and config options.
+
+</ReadMore>
+
+## Astro Studio
 
 <p style="margin: 0.25em;"><Badge variant="accent">Studio feature</Badge></p>
 
-Astro DB offers [database hosting](https://astro.build/db/) to a globally distributed network with a free Astro Studio account. From your Studio dashboard, you can view, manage and deploy hosted remote data.
+Astro DB can connect to the Astro Studio platform to quickly add a hosted database to your project. You can view, manage and deploy new hosted databases all from the Astro Studio web portal.
 
-Click the "create project" button from the Studio dashboard and follow the instructions. You can now sync your database config and seed data with your remote database. Configuration changes are automatically handled when setting up a GitHub project with a CI action, but can also be synced manually using the `astro db` CLI commands.
+There are two ways to create a project in Astro Studio:
+1. via the Astro CLI using `astro link`
+2. via the Astro Studio web UI 
 
-For example, you can push your development seed data to your database using the `astro db execute` command and passing a path to the file:
+To create a new database in the Astro Studio web UI, click the "create project" button in the header and follow the instructions presented. Astro Studio will walk you through the necessary steps, and at the end of the process you'll have a hosted database configured for your project.
 
-```bash
-astro db execute db/seed.ts
-```
+
+### Pushing schemas
+
+TODO(fks): Document `astro db push` and when you might need to run it 
+
+### Pushing data 
+
+TODO(fks): Document `astro db execute` and when you might need to run it
 
 <ReadMore>
 
@@ -333,7 +304,7 @@ See the [CLI reference](/en/guides/integrations-guide/db/#cli-reference) for a c
 
 </ReadMore>
 
-## Connect to your Studio database
+### Connect to Astro Studio
 
 <p style="margin: 0.25em;"><Badge variant="accent">Studio feature</Badge></p>
 
