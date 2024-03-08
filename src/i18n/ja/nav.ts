@@ -53,6 +53,7 @@ export default NavDictionary({
 	'guides/data-fetching': 'データフェッチ',
 	'guides/internationalization': '国際化',
 	'guides/middleware': 'ミドルウェア',
+	'guides/ecommerce': 'Eコマース',
 	'guides/testing': 'テスト',
 	'guides/authentication': '認証',
 	'guides/troubleshooting': 'トラブルシューティング',
