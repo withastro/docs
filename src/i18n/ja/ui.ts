@@ -82,6 +82,7 @@ export default UIDictionary({
 	'integrations.renderers': 'UIフレームワーク',
 	'integrations.adapters': 'SSRアダプター',
 	'integrations.others': 'その他',
+	'integrations.more': '他のインテグレーション',
 	// Checklist component
 	'checklist.or': 'または',
 	// Multiple Choice component
@@ -113,8 +114,6 @@ export default UIDictionary({
 	'feedback.submit': 'フィードバックを送る',
 	'feedback.close': 'フィードバックフォームを閉じる',
 	'feedback.success': 'ありがとうございます！フィードバックを受け取りました。',
-	// `<FileTree>` component
-	'fileTree.directoryLabel': 'ディレクトリ',
 	// Code snippet vocabulary
 	'expressiveCode.terminalWindowFallbackTitle': 'ターミナルウィンドウ',
 	'expressiveCode.copyButtonTooltip': 'クリップボードにコピー',
@@ -129,6 +128,6 @@ export default UIDictionary({
 	'stub.description.cms': 'このCMSをAstroで使う方法をご存知ですか？',
 	'stub.description.backend': 'このバックエンドサービスをAstroで使う方法をご存知ですか？',
 	// Starlight banner
-	'starlight.title': '自分のドキュメントを作りたいですか？',
+	'starlight.title': 'ドキュメントを作りたいですか？',
 	'starlight.description': 'このテンプレートを使って始めましょう。',
 });
