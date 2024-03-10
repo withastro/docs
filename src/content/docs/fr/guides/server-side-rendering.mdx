@@ -1,0 +1,297 @@
+---
+title: Adaptateurs de rendu à la demande
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import RecipeLinks from '~/components/RecipeLinks.astro';
+import IntegrationsNav from '~/components/IntegrationsNav.astro';
+
+Astro vous permet d'opter pour un **rendu à la demande** pour une partie ou la totalité de vos pages et de vos points de terminaison. C'est ce qu'on appelle le **server-side rendering (SSR)** : il s'agit de générer des pages HTML sur le serveur lorsqu'elles sont demandées et de les envoyer au client. Un **adaptateur** est utilisé pour exécuter votre projet sur le serveur et gérer ces demandes.
+
+Ce rendu à la demande vous permet de :
+- d'implémenter des sessions pour l'état de connexion dans votre application
+- Rendre les données d'une API appelée dynamiquement avec `fetch()`.
+- Déployer votre site sur un hôte en utilisant un *adaptateur*.
+
+Envisagez d'activer le rendu de serveur à la demande dans votre projet Astro si vous avez besoin de ce qui suit :
+
+- **Points de terminaison d'API** : Créer des pages spécifiques qui fonctionnent comme des points de terminaison API pour des tâches telles que l'accès à la base de données, l'authentification et l'autorisation, tout en gardant les données sensibles cachées au client.
+
+- **Pages protégées** : Restreignez l'accès à une page en fonction des privilèges de l'utilisateur, en gérant l'accès de l'utilisateur sur le serveur.
+
+- **Contenu changeant fréquemment** : Générez des pages individuelles sans avoir à reconstruire votre site de manière statique. Ceci est utile lorsque le contenu d'une page est fréquemment mis à jour.
+
+## Adaptateurs officiels
+
+Astro maintient des adaptateurs officiels pour [Node.js](https://nodejs.org/), [Vercel](https://vercel.com/), [Netlify](https://www.netlify.com/), et [Cloudflare](https://www.cloudflare.com/). 
+
+Vous trouverez d'autres [adaptateurs gérés par la communauté](https://astro.build/integrations/?search=&categories%5B%5D=adapters) (par exemple Deno, SST, AWS) dans notre répertoire d'intégrations.
+
+<IntegrationsNav category="adapter"/>
+
+## Activer le rendu à la demande du serveur
+
+Les deux modes de rendu à la demande d'Astro (`server` et `hybrid`) vous permettent de profiter des performances d'un site statique en effectuant un pré-rendu des routes individuelles lorsque cela est possible, que vous ayez une application entièrement dynamique ou un site principalement statique qui ne nécessite un rendu à la demande que pour certaines routes.
+
+Pour décider laquelle utiliser dans votre projet, choisissez l'option `output` qui représente comment **la plupart** de vos pages et routes seront rendues :
+
+- __`output : 'server'`__ : Rendu à la demande par défaut. Utilisez cette option lorsque la plupart ou la totalité de votre site ou application doit être rendue sur le serveur à la demande. Chaque page individuelle ou point d'arrivée peut *opter* pour un pré-rendu.
+- __`output : 'hybrid'`__ : Pré-rendu en HTML par défaut. Utilisez cette option lorsque la majeure partie de votre site doit être statique. Chaque page individuelle ou point de terminaison peut *s'exclure* du pré-rendu.
+ 
+Parce que le serveur devra générer au moins quelques pages à la demande, ces deux modes nécessitent que vous [ajoutiez un adaptateur](#ajouter-un-adaptateur) pour exécuter les fonctions du serveur.
+
+### Ajouter un adaptateur
+
+Pour déployer un projet en mode `server` ou `hybrid`, vous devez ajouter un **adaptateur**. En effet, ces deux modes nécessitent un _runtime_ serveur : l'environnement qui exécute le code sur le serveur pour générer des pages lorsqu'elles sont demandées. Chaque adaptateur permet à Astro de générer un script qui exécute votre projet sur un runtime spécifique, tel que Vercel, Netlify ou Cloudflare.
+
+Vous pouvez trouver les [adaptateurs officiels et communautaires dans notre répertoire d'intégrations](https://astro.build/integrations/?search=&categories%5B%5D=adapters). Choisissez celui qui correspond à votre [environnement de déploiement](/fr/guides/deploy/).
+
+#### Installer `astro add`
+
+Vous pouvez ajouter n'importe lequel des [adaptateurs officiels maintenus par Astro](/fr/guides/integrations-guide/#intégrations-officielles) avec la commande `astro add` suivante. Cela installera l'adaptateur et apportera les changements appropriés à votre fichier `astro.config.mjs` en une seule étape. 
+
+Par exemple, pour installer l'adaptateur Vercel, exécutez :
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add vercel
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add vercel
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add vercel
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+#### Installation manuelle
+
+Vous pouvez également ajouter un adaptateur manuellement en installant le paquet et en mettant à jour `astro.config.mjs` vous-même.
+
+Par exemple, pour installer manuellement l'adaptateur Vercel :
+
+1. Installez l'adaptateur dans les dépendances de votre projet en utilisant votre gestionnaire de paquets préféré :
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm install @astrojs/vercel
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm add @astrojs/vercel
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn add @astrojs/vercel
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+2. [ajoutez l'adapter](/fr/reference/configuration-reference/#adapter) à votre fichier `astro.config.mjs` d'importation et d'exportation par défaut, ainsi que votre mode de `sortie` désiré :
+
+    ```js ins={3,7} {6}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import vercel from '@astrojs/vercel/serverless';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: vercel(),
+    });
+    ```
+
+    Notez que les différents adaptateurs peuvent également avoir des paramètres de configuration différents. Lisez la documentation de chaque adaptateur, et appliquez toutes les options de configuration nécessaires à l'adaptateur que vous avez choisi dans `astro.config.mjs`
+
+### Configurer `server` ou `hybrid`
+
+Pour activer le rendu à la demande, vous devez mettre à jour votre configuration `output` avec l'un des deux modes de rendu serveur.
+
+Par exemple, pour configurer une application très dynamique où chaque page est rendue à la demande par défaut, ajoutez `output : 'server'` à votre configuration Astro :
+
+```js ins={5} title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import node from "@astrojs/node";
+
+export default defineConfig({
+  output: 'server',
+  adapter: node({
+    mode: "standalone"
+  })
+});
+```
+
+Vous pouvez alors choisir de surcharger le rendu à la demande par défaut du mode `server` sur n'importe quelle page ou route en exportant `const prerender = true` :
+
+```astro title="src/pages/my-static-page.astro" ins={2}
+---
+export const prerender = true;
+// ...
+---
+<html>
+  <!-- Page statique, pré-rendue ici... -->
+</html>
+```
+
+### Accepter le pré-rendu en mode `server`
+
+Pour une application dont le rendu est principalement effectué par le serveur et configuré comme `output : server`, ajoutez `export const prerender = true` à n'importe quelle page ou route pour pré-rendre une page statique ou un point de terminaison :
+
+```astro title="src/pages/mypage.astro" {2}
+---
+export const prerender = true;
+// ...
+---
+<html>
+  <!-- Page statique, pré-rendue ici... -->
+</html>
+```
+
+```mdx title="src/pages/mypage.mdx" {5}
+---
+layout: '../layouts/markdown.astro'
+title: 'Ma page'
+---
+export const prerender = true;
+
+# Voici ma page statique, pré-rendue
+```
+
+```js title="src/pages/myendpoint.js" {1}
+export const prerender = true;
+
+export async function GET() {
+  return new Response(
+    JSON.stringify({
+      message: `Voici mon point de terminaison statique`,
+    }),
+  );
+}
+```
+
+### Désactiver le pré-rendu en mode `hybride
+
+Pour un site principalement statique configuré en mode `output : hybrid`, ajoutez `export const prerender = false` à tous les fichiers qui doivent être rendus par le serveur à la demande :
+
+```js title="src/pages/randomnumber.js" {1}
+export const prerender = false;
+
+export async function GET() {
+  let number = Math.random();
+  return new Response(
+    JSON.stringify({
+      number,
+      message: `Voici un numéro aléatoire: ${number}`,
+    }),
+  );
+}
+```
+
+## Fonctions de rendu à la demande
+
+### Streaming HTML
+
+Avec le streaming HTML, un document est divisé en morceaux, envoyé sur le réseau dans l'ordre, et rendu sur la page dans cet ordre. En mode "serveur" ou "hybride", Astro utilise le streaming HTML pour envoyer chaque composant au navigateur au fur et à mesure qu'il les rend. Cela permet à l'utilisateur de voir votre HTML aussi rapidement que possible, bien que les conditions du réseau puissent ralentir le téléchargement de documents volumineux et que l'attente des données puisse bloquer le rendu de la page.
+
+<RecipeLinks slugs={["fr/recipes/streaming-improve-page-performance"]}/>
+
+:::caution
+Les fonctionnalités qui modifient les [Response headers] (https://developer.mozilla.org/fr/docs/Glossary/Response_header) ne sont disponibles qu'au niveau de la **page** (vous ne pouvez pas les utiliser à l'intérieur des composants, y compris les composants de mise en page). Lorsque Astro exécute le code de votre composant, il a déjà envoyé les en-têtes de réponse et ceux-ci ne peuvent pas être modifiés.
+:::
+
+### Cookies
+
+Dans les modes `server` et `hybrid`, une page ou un point de terminaison de l'API peut vérifier, définir, obtenir et supprimer des cookies.
+
+L'exemple ci-dessous met à jour la valeur d'un cookie pour un compteur de pages vues :
+
+```astro title="src/pages/index.astro" {4,5,9}
+---
+let counter = 0
+
+if (Astro.cookies.has("counter")) {
+  const cookie = Astro.cookies.get("counter")
+	counter = cookie.number() + 1
+}
+
+Astro.cookies.set("counter",counter)
+---
+<html>
+  <h1>Counter = {counter}</h1>
+</html>
+```
+
+Voir plus de détails sur [`Astro.cookies` et le type `AstroCookie`](/fr/reference/api-reference/#astrocookies) dans la référence de l'API.
+
+### `Response`
+
+Vous pouvez également renvoyer une [Réponse](https://developer.mozilla.org/fr/docs/Web/API/Response) à partir de n'importe quelle page en utilisant le rendu à la demande. 
+
+L'exemple ci-dessous renvoie un message 404 sur une page dynamique après avoir recherché un identifiant dans la base de données :
+
+```astro title="src/pages/[id].astro" {8-11}
+---
+import { getProduct } from '../api';
+
+const product = await getProduct(Astro.params.id);
+
+// Aucun produit trouvé
+if (!product) {
+  return new Response(null, {
+    status: 404,
+    statusText: 'Non trouvé'
+  });
+}
+---
+<html>
+  <!-- Page ici... -->
+</html>
+```
+
+### `Request`
+
+`Astro.request` est un objet [Request](https://developer.mozilla.org/fr/docs/Web/API/Request) standard. Il peut être utilisé pour obtenir l' `url`, les `headers`, la `method`, et même le corps de la requête.
+
+En mode `server` et `hybrid`, vous pouvez accéder à des informations supplémentaires à partir de cet objet pour les pages qui ne sont pas générées statiquement.
+
+#### `Astro.request.headers`
+
+Les en-têtes de la requête sont disponibles dans `Astro.request.headers`. Cela fonctionne comme le [`Request.headers`](https://developer.mozilla.org/fr/docs/Web/API/Request/headers) du navigateur. Il s'agit d'un objet [Headers](https://developer.mozilla.org/fr/docs/Web/API/Headers) dans lequel vous pouvez récupérer des en-têtes tels que le cookie.
+
+```astro title="src/pages/index.astro" {2}
+---
+const cookie = Astro.request.headers.get('cookie');
+// ...
+---
+<html>
+  <!-- Page ici... -->
+</html>
+```
+
+#### `Astro.request.method`
+
+La méthode HTTP utilisée dans la requête est disponible sous la forme `Astro.request.method`. Cela fonctionne comme la méthode [`Request.method`](https://developer.mozilla.org/fr/docs/Web/API/Request/method) du navigateur. Elle renvoie la représentation sous forme de chaîne de la méthode HTTP utilisée dans la requête.
+
+```astro title="src/pages/index.astro"
+---
+console.log(Astro.request.method) // GET (lors de la navigation dans le navigateur)
+---
+```
+
+Voir plus de détails à propos de [`Astro.request`](/fr/reference/api-reference/#astrorequest) dans la référence de l'API.
+
+### Points de terminaison du serveur
+
+Un point de terminaison serveur, également connu sous le nom de **route API**, est une fonction spéciale exportée à partir d'un fichier `.js` ou `.ts` dans le dossier `src/pages/`. Une caractéristique puissante du rendu à la demande côté serveur, les routes API sont capables d'exécuter du code en toute sécurité sur le serveur.
+
+La fonction prend un [contexte de point de terminaison](/fr/reference/api-reference/#endpoint-context) et renvoie une [réponse](https://developer.mozilla.org/fr/docs/Web/API/Response). 
+
+Pour en savoir plus, consultez notre [Guide des points de terminaison](/fr/guides/endpoints/#points-de-terminaison-du-serveur-routes-api).
