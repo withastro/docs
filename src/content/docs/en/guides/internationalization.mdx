@@ -4,7 +4,7 @@ description: Learn how to use i18n routing in Astro.
 i18nReady: false
 ---
 
-import FileTree from '~/components/FileTree.astro'
+import { FileTree } from '@astrojs/starlight/components';
 import Since from '~/components/Since.astro'
 
 Astro's internationalization (i18n) features allow you to adapt your project for an international audience.
@@ -161,8 +161,6 @@ Setting `prefixDefaultLocale: true` will also automatically set `redirectToDefau
 
 You can opt out of this behavior by [setting `redirectToDefaultLocale: false`](/en/reference/configuration-reference/#i18nroutingredirecttodefaultlocale). This allows you to have a site home page that exists outside of your configured locale folder structure.
 
-
-
 #### `domains` (experimental)
 
 <p><Since v="4.3.0" /></p>
@@ -220,6 +218,12 @@ Astro relies on the following headers in order to support the feature:
 
 Make sure that your server proxy/hosting platform is able to provide this information. Failing to retrieve these headers will result in a 404 (status code) page.
 
+#### Routing logic
+
+Astro uses a [middleware](/en/guides/middleware/) to implement its routing logic. This middleware function is placed in the [first position](/en/guides/middleware/#chaining-middleware) where it awaits every `Response` coming from any additional middleware and each page route before finally executing its own logic.
+
+This means that operations (e.g. redirects) from your own middleware and your page logic are run first, your routes are rendered, and then the i18n middleware performs its own actions such as verifying that a localized URL corresponds to a valid route.
+
 ### `defaultLocale` and `locales`
 
 Both a default language ([`defaultLocale`](/en/reference/configuration-reference/#i18ndefaultlocale)) and a list of all supported languages ([`locales`](/en/reference/configuration-reference/#i18nlocales)) must be specified in your `i18n` routing configuration.
@@ -259,13 +263,15 @@ When using functions from the [`astro:i18n` virtual module](#virtual-module-astr
 
 ### Browser language detection
 
-Astro's i18n routing combined with one of Astro's  [on-demand server rendering modes (`output:'server'` or `output:'hybrid'`)](/en/guides/server-side-rendering/) allow you to access two properties for browser language detection: `Astro.preferredLocale` and `Astro.preferredLocaleList`.
+Astro’s i18n routing allows you to access two properties for browser language detection in pages rendered on demand: `Astro.preferredLocale` and `Astro.preferredLocaleList`. All pages, including static prerendered pages, have access to `Astro.currentLocale`.
 
 These combine the browser's `Accept-Language` header, and your `locales` (strings or `codes`) to automatically respect your visitor's preferred languages.
 
-- `Astro.preferredLocale`:  Astro can compute a **preferred locale** for your visitor if their browser's preferred locale is included in your `locales` array. This value is undefined if no such match exists.
-- `Astro.preferredLocaleList`: An array of all locales that are both requested by the browser and supported by your website. This produces a list of all compatible languages between your site and your visitor. The value is `[]` if none of the browser's requested languages are found in your `locales` array. If the browser does not specify any preferred languages, then this value will be [`i18n.locales`].
-- `Astro.currentLocale`: The locale computed from the current URL, using the syntax specified in your `locales` configuration. If the URL does not contain a `/[locale]/` prefix, then the value will default to `i18n.defaultLocale`.
+- [`Astro.preferredLocale`](/en/reference/api-reference/#astropreferredlocale):  Astro can compute a **preferred locale** for your visitor if their browser's preferred locale is included in your `locales` array. This value is undefined if no such match exists.
+
+- [`Astro.preferredLocaleList`](/en/reference/api-reference/#astropreferredlocalelist): An array of all locales that are both requested by the browser and supported by your website. This produces a list of all compatible languages between your site and your visitor. The value is `[]` if none of the browser's requested languages are found in your `locales` array. If the browser does not specify any preferred languages, then this value will be [`i18n.locales`].
+
+- [`Astro.currentLocale`](/en/reference/api-reference/#astrocurrentlocale): The locale computed from the current URL, using the syntax specified in your `locales` configuration. If the URL does not contain a `/[locale]/` prefix, then the value will default to [`i18n.defaultLocale`](/en/reference/configuration-reference/#i18ndefaultlocale).
 
 In order to successfully match your visitors' preferences, provide your `codes` using the same pattern [used by the browser](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#syntax).
 
