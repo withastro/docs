@@ -131,4 +131,6 @@ export default UIDictionary({
 	// Starlight banner
 	'starlight.title': 'Vous voulez créer votre propre Doc ?',
 	'starlight.description': 'Prenez ce modèle pour commencer.',
+	// `<StudioHeading>` component
+	'studioHeading.label': 'Fonctionnalité Studio',
 });
