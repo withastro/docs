@@ -33,9 +33,11 @@ export default NavDictionary({
 	'guides/integrations-guide': 'Добавить интеграции',
 	'guides/framework-components': 'UI-фреймворки',
 	'guides/server-side-rendering': 'Адаптеры SSR',
+	'guides/astro-db': 'Astro БД',
 
 	examples: 'Инструкции',
 	'guides/migrate-to-astro': 'Миграция на Astro',
+	'recipes/studio': 'Подключитесь к Astro Studio',
 	'guides/cms': 'Подключение CMS',
 	'guides/backend': 'Добавление бэкэнд-сервисов',
 	'guides/deploy': 'Развертывание сайта',
