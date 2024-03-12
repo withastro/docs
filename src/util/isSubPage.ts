@@ -37,7 +37,12 @@ const topLevelExceptions = ['recipes/studio'];
 export function isSubPage(currentPage: string, parentSlug: string): boolean {
 	// Test 1: is this page a known, top-level page? Don’t match its parent.
 	for (const slug of topLevelExceptions) {
-		if (currentPage.endsWith('/' + slug) && parentSlug !== slug) {
+		const currentIsExceptionPage = currentPage.endsWith('/' + slug);
+		const parentIsExceptionPage = parentSlug === slug;
+		if (
+			(parentIsExceptionPage && !currentIsExceptionPage) ||
+			(currentIsExceptionPage && !parentIsExceptionPage)
+		) {
 			return false;
 		}
 	}
