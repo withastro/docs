@@ -112,8 +112,6 @@ export default {
 	'feedback.submit': 'Submit feedback',
 	'feedback.close': 'Close feedback form',
 	'feedback.success': 'Thanks! We received your feedback.',
-	// `<FileTree>` component
-	'fileTree.directoryLabel': 'Directory',
 	// Code snippet vocabulary
 	'expressiveCode.terminalWindowFallbackTitle': 'Terminal window',
 	'expressiveCode.copyButtonTooltip': 'Copy to clipboard',
