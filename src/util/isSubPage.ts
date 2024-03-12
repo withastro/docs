@@ -32,7 +32,6 @@ const categoryIndex: Partial<Record<ReturnType<typeof getPageCategory>, string>>
  * @param parentSlug The language-less slug for the parent to test against e.g. `'guides/content-collections'`
  */
 export function isSubPage(currentPage: string, parentSlug: string): boolean {
-
 	// Test 1: do the two pages share a base URL segment?
 	if (removeSubPageSegment(currentPage).endsWith(removeSubPageSegment(parentSlug))) {
 		return true;
