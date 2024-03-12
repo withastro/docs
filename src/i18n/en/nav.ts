@@ -98,7 +98,7 @@ export default [
 		slug: 'guides/astro-db',
 		key: 'guides/astro-db',
 	},
-	
+
 	{ text: 'Recipes', header: true, type: 'learn', key: 'examples' },
 	{ text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
 	{ text: 'Connect to Astro Studio', slug: 'recipes/studio', key: 'recipes/studio' },
