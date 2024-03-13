@@ -1,0 +1,152 @@
+---
+title: Decap CMS и Astro
+description: Добавьте контент в проект Astro, используя Decap в качестве CMS
+type: cms
+stub: true
+service: Decap CMS
+i18nReady: true
+---
+import Grid from '~/components/FluidGrid.astro'
+import Card from '~/components/ShowcaseCard.astro'
+import { FileTree } from '@astrojs/starlight/components'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+[Decap CMS](https://www.decapcms.org/) (ранее известная как Netlify CMS) — это система управления контентом с открытым исходным кодом, основанная на Git.
+
+Decap позволяет в полной мере использовать все возможности Astro, включая оптимизацию изображений и коллекции контента.
+
+Decap добавляет в ваш проект маршрут (обычно `/admin`), который загружает приложение React, позволяющее авторизованным пользователям управлять контентом прямо с развернутого сайта. Decap будет фиксировать изменения непосредственно в исходном репозитории вашего проекта Astro.
+
+## Установка DecapCMS
+
+Существует два варианта добавления Decap в Astro:
+
+1. [Установить Decap через менеджер пакетов](https://decapcms.org/docs/install-decap-cms/#installing-with-npm) с помощью следующей команды:
+
+<PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm install decap-cms-app
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm add decap-cms-app
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn add decap-cms-app
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+2. Импортировать пакет в тег `<script>` на вашей странице `<body>`
+
+  ```html title='/admin'
+    <body>
+      <!-- Включите скрипт, который создает страницу и обеспечивает работу Decap CMS -->
+      <script src="https://unpkg.com/decap-cms@^3.1.2/dist/decap-cms.js"></script>
+    </body>
+	```
+
+## Конфигурация
+
+1. Создайте статическую папку admin по адресу `public/admin/`.
+2. Добавьте `config.yml` в `public/admin/`: 
+    <FileTree>
+      - public
+        - admin
+          - config.yml
+    </FileTree>
+3. Чтобы добавить поддержку коллекций контента, настройте каждую схему в `config.yml`. Следующий пример настраивает коллекцию `blog`, определяя `label` для свойства frontmatter каждой записи:
+    ```yml title="/public/admin/config.yml"
+    collections:
+      - name: "blog" # Используется в маршрутах, например, /admin/collections/blog
+        label: "Blog" # Используется в  UI
+        folder: "src/content/blog" # Путь к папке, в которой хранятся документы
+        create: true # Разрешить пользователям создавать новые документы в этой коллекции
+        fields: # Поля для каждого документа, обычно в frontmatter
+          - { label: "Layout", name: "layout", widget: "hidden", default: "blog" }
+          - { label: "Title", name: "title", widget: "string" }
+          - { label: "Publish Date", name: "date", widget: "datetime" }
+          - { label: "Featured Image", name: "thumbnail", widget: "image" }
+          - { label: "Rating (scale of 1-5)", name: "rating", widget: "number" }
+          - { label: "Body", name: "body", widget: "markdown" }
+    ```
+
+4. Добавьте маршрут `admin` для вашего приложения React. Этот файл может находиться либо в `public/admin/index.html` вместе с вашим `config.yml`, либо, если вы предпочитаете использовать маршрут Astro, в `src/pages/admin.astro`.
+
+    <FileTree>
+    - public
+      - admin
+         - config.yml
+         - index.html
+    </FileTree>
+    ```html title="/public/admin/index.html" {7, 11}
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="robots" content="noindex" />
+        <link href="/admin/config.yml" type="text/yaml" rel="cms-config-url" />
+        <title>Content Manager</title>
+      </head>
+      <body>
+        <script src="https://unpkg.com/decap-cms@^3.1.2/dist/decap-cms.js"></script>
+      </body>
+    </html>
+    ```
+
+5. Чтобы разрешить загрузку медиафайлов в определенную папку через редактор Decap, добавьте соответствующий путь:
+    ```yml title="/public/admin/config.yml"
+    media_folder: "src/assets/images" # Место, где файлы будут храниться в репозитории
+    public_folder: "src/assets/images" # Атрибут src для загружаемых медиафайлов
+    ```
+
+Полные инструкции и опции см. в [документации по конфигурации Decap CMS](https://decapcms.org/docs/configure-decap-cms/).
+
+## Использование
+Перейдите по адресу `yoursite.com/admin/` для использования редактора Decap CMS.
+
+## Аутентификация
+
+## Decap CMS с Netlify Identity
+
+Decap CMS был изначально разработан компанией Netlify и имеет первоклассную поддержку [Netlify Identity](https://docs.netlify.com/security/secure-access-to-sites/identity/).
+
+При развертывании на Netlify настройте Identity для вашего проекта через панель управления Netlify и включите [Netlify Identity Widget](https://github.com/netlify/netlify-identity-widget) в маршрут `admin` вашего проекта. Опционально включите виджет Identity на домашней странице вашего сайта, если вы планируете приглашать новых пользователей по электронной почте.
+
+### Decap CMS с внешними OAuth-клиентами
+
+При развертывании на хостинг-провайдерах, отличных от Netlify, вам необходимо создать собственные маршруты OAuth.
+
+В Astro это можно сделать с помощью динамически создаваемых маршрутов в вашем проекте, настроенных с включенным [`server` или `hybrid` выводом](/ru/guides/server-side-rendering/#enable-on-demand-server-rendering).
+
+Посмотрите [Документацию Decap по OAuth](https://decapcms.org/docs/external-oauth-clients/) для списка совместимых OAuth-клиентов, поддерживаемых сообществом.
+
+## Ресурсы сообщества 
+
+- Шаблон Netlify Identity: [astro-decap-ssg-netlify](https://github.com/OliverSpeir/astro-decap-ssg-netlify-identity)
+
+- Шаблон с маршрутами OAuth с отложенным рендерингом с помощью Astro: [astro-decap-starter-ssr](https://github.com/OliverSpeir/astro-decap-starter-ssr)
+
+- Запись в блоге: [Авторский контент вашего сайта Astro с помощью CMS на базе Git](https://aalam.vercel.app/blog/astro-and-git-cms-netlify) от Aftab Alam 
+
+- Учебное пособие на YouTube: [Создание пользовательского блога с Astro & NetlifyCMS за МИНУТЫ!](https://www.youtube.com/watch?v=3yip2wSRX_4) от Кумаил Пирзада
+
+## Сайты в производстве
+
+Следующие сайты используют Astro + Decap CMS в производстве:
+
+- [yunielacosta.com](https://www.yunielacosta.com/) от Yuniel Acosta — [исходный код на GitHub](https://github.com/yacosta738/yacosta738.github.io) (Netlify CMS)
+- [portfolioris.nl](https://www.portfolioris.nl/) от Joris Hulsbosch — [исходный код на GitHub](https://github.com/portfolioris/portfolioris.nl)
+
+## Темы
+
+<Grid >
+  <Card title="Astros" href="https://astro.build/themes/details/astros" thumbnail="astros.png"/>
+  <Card title="Enhanced Astro Starter" href="https://astro.build/themes/details/enhanced-astro-starter" thumbnail="enhanced-astro-starter.png"/>
+  <Card title="Astro Decap CMS Starter" href="https://astro.build/themes/details/astro-decap-cms-starter" thumbnail="astro-decap-starter.png"/>
+</Grid>
