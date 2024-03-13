@@ -458,22 +458,41 @@ Especifica el directorio en la salida de compilación donde los activos generado
 ### build.assetsPrefix
 
 <p>
-**Tipo:** `string`<br />
+**Type:** `string | Record.<string, string>`<br />
 **Por defecto:** `undefined`<br />
 <Since v="2.2.0" />
 </p>
 
 Especifica el prefijo para los enlaces de activos generados por Astro. Esto se puede usar si los activos se sirven desde un dominio diferente al del sitio actual.
 
-Por ejemplo, si se establece en `https://cdn.example.com`, los activos se buscarán desde `https://cdn.example.com/_astro/...` (independientemente de la opción `base`).
-Tu tendrías que subir los archivos en `./dist/_astro/` a `https://cdn.example.com/_astro/` para servir los activos.
-El proceso varía según cómo está alojado el dominio de terceros.
+Para ello, es necesario cargar los activos de la carpeta local `./dist/_astro` en la carpeta correspondiente `/_astro/` del dominio remoto.
+
 Para cambiar el nombre de la ruta `_astro`, especifique un nuevo directorio en `build.assets`.
+
+Para recuperar todos los assets cargados en el mismo dominio (por ejemplo, `https://cdn.example.com/_astro/...`), establece `assetsPrefix` en el dominio raíz como un string (independientemente de tu configuración `base`):
 
 ```js
 {
   build: {
     assetsPrefix: 'https://cdn.example.com'
+  }
+}
+```
+
+**Añadido en:** `astro@4.5.0`
+
+También puedes pasar un objeto a `assetsPrefix` para especificar un dominio diferente para cada tipo de fichero.
+En este caso, se requiere una propiedad `fallback` que se utilizará por defecto para cualquier otro archivo.
+
+```js
+{
+  build: {
+    assetsPrefix: {
+      'js': 'https://js.cdn.example.com',
+      'mjs': 'https://js.cdn.example.com',
+      'css': 'https://css.cdn.example.com',
+      'fallback': 'https://cdn.example.com'
+    }
   }
 }
 ```
@@ -858,7 +877,7 @@ Opciones de configuración de Shiki. Consulta [la documentación de configuraci�
 </p>
 
 Qué resaltador de sintaxis usar, si lo hay.
-- `shiki` - usa el resaltador [Shiki](https://github.com/shikijs/shiki)
+- `shiki` - usa el resaltador [Shiki](https://shiki.style)
 - `prism` - usa el resaltador [Prism](https://prismjs.com/)
 - `false` - no aplicar resaltado de sintaxis.
 
@@ -1093,25 +1112,29 @@ en la última versión, para que puedas continuar actualizando y aprovechar los 
 Astro ofrece banderas experimentales para dar a los usuarios acceso temprano a nuevas características.
 No se garantiza que estas banderas sean estables.
 
-### experimental.optimizeHoistedScript
+### experimental.directRenderScript
 
 <p>
 
 **Tipo:** `boolean`<br />
 **Por defecto:** `false`<br />
-<Since v="2.10.4" />
+<Since v="4.5.0" />
 </p>
 
-Evita que los scripts de los componentes no utilizados se incluyan en una página de forma inesperada.
-La optimización se realiza al máximo esfuerzo y puede que no incluya los scripts utilizados. Asegúrate de volver a comprobar las páginas creadas
-antes de publicar.
-Habilita la optimización del análisis de scripts elevados añadiendo la bandera experimental:
+Permite una estrategia más fiable para evitar que los scripts se ejecuten en páginas en las que no se utilizan.
+
+Los scripts se renderizarán directamente como se declaren en los archivos Astro (incluyendo características existentes como TypeScript, importación de `node_modules`,
+y la deduplicación de scripts). Ahora también puedes renderizar scripts condicionalmente en tu archivo Astro.
+Sin embargo, esto significa que los scripts ya no se colocan en el `<head>` y que varios scripts de una página ya no se empaquetan juntos.
+Si activas esta opción, comprueba que todas las etiquetas `<script>` se comportan como es debido.
+
+Esta opción se activará por defecto en Astro 5.0.
 
 ```js
 {
-	experimental: {
-		optimizeHoistedScript: true,
-	},
+  experimental: {
+    directRenderScript: true,
+  },
 }
 ```
 
@@ -1134,6 +1157,53 @@ Habilita un caché persistente para las colecciones de contenido cuando se compi
 }
 ```
 
+### experimental.contentCollectionJsonSchema
+
+<p>
+
+**Tipo:** `boolean`<br />
+**Por defecto:** `false`<br />
+<Since v="4.5.0" />
+</p>
+
+Esta característica auto-generará un esquema JSON para colecciones de contenido de `type: 'data'` que puede ser usado como el valor `$schema` para autocompletar/consejos al estilo TypeScript en herramientas como VSCode.
+
+Para activar esta función, añada el indicador experimental:
+
+```diff
+import { defineConfig } from 'astro/config';
+export default defineConfig({
+	experimental: {
++		contentCollectionJsonSchema: true
+	}
+});
+```
+
+Esta implementación experimental requiere referenciar manualmente el esquema en cada fichero de entrada de datos de la colección:
+
+```diff
+// src/content/test/entry.json
+{
++  "$schema": "../../../.astro/collections/test.schema.json",
+	"test": "test"
+}
+```
+
+Alternativamente, puedes establecer esto en tu [VSCode `json.schemas` settings](https://code.visualstudio.com/docs/languages/json#_json-schemas-and-settings):
+
+```diff
+"json.schemas": [
+	{
+		"fileMatch": [
+			"/src/content/test/**"
+		],
+		"url": "../../../.astro/collections/test.schema.json"
+	}
+]
+```
+
+Ten en cuenta que esta implementación inicial utiliza una biblioteca con [problemas conocidos para esquemas Zod avanzados](https://github.com/StefanTerdell/zod-to-json-schema#known-issues), por lo que puede que desees consultar estas limitaciones antes de activar la bandera experimental.
+
 ### experimental.clientPrerender
 
 <p>
@@ -1145,7 +1215,7 @@ Habilita un caché persistente para las colecciones de contenido cuando se compi
 
 Permite la pre-renderización de tus páginas precargadas en el cliente en navegadores compatibles.
 
-Esta característica utiliza la [API experimental de Reglas de Especulación Web](https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API) y anula el comportamiento predeterminado de `prefetch` a nivel global para pre-renderizar enlaces en el cliente.
+Esta característica utiliza la [API experimental de Reglas de Especulación Web](https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API) y mejora el comportamiento predeterminado de `prefetch` a nivel global para pre-renderizar enlaces en el cliente.
 Puede que desees revisar los [posibles riesgos al pre-renderizar en el cliente](https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API#unsafe_prefetching) antes de habilitar esta característica.
 
 Habilita la pre-renderización en el lado del cliente en tu archivo `astro.config.mjs`, junto con cualquier opción de configuración de `prefetch` deseada:
