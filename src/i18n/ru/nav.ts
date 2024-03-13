@@ -35,13 +35,13 @@ export default NavDictionary({
 	'guides/server-side-rendering': 'Адаптеры SSR',
 	'guides/astro-db': 'Astro DB',
 
-	examples: 'Инструкции',
+	examples: 'Рецепты',
 	'guides/migrate-to-astro': 'Миграция на Astro',
 	'recipes/studio': 'Подключитесь к Astro Studio',
 	'guides/cms': 'Подключение CMS',
 	'guides/backend': 'Добавление бэкэнд-сервисов',
 	'guides/deploy': 'Развертывание сайта',
-	'guides/recipes': 'Больше инструкций',
+	'guides/recipes': 'Больше рецептов',
 
 	features: 'Руководства',
 	'guides/routing': 'Маршрутизация',
