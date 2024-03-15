@@ -132,4 +132,6 @@ export default UIDictionary({
 	// Starlight banner
 	'starlight.title': 'Хотите создать свою собственную документацию?',
 	'starlight.description': 'Возьмите этот шаблон, чтобы начать.',
+	// `<StudioHeading>` component
+	'studioHeading.label': 'Особенность Studio',
 });
