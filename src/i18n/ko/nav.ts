@@ -33,9 +33,11 @@ export default NavDictionary({
 	'guides/integrations-guide': '통합 추가',
 	'guides/framework-components': 'UI 프레임워크',
 	'guides/server-side-rendering': '서버 측 렌더링 (SSR)',
+	'guides/astro-db': 'Astro DB',
 
 	examples: '레시피',
 	'guides/migrate-to-astro': 'Astro로 전환',
+	'recipes/studio': 'Astro Studio에 연결',
 	'guides/cms': 'CMS 연결',
 	'guides/backend': '백엔드 서비스 추가',
 	'guides/deploy': '사이트 배포',
