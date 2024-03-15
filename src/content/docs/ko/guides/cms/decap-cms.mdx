@@ -9,14 +9,132 @@ i18nReady: false
 
 import Grid from '~/components/FluidGrid.astro'
 import Card from '~/components/ShowcaseCard.astro'
+import { FileTree } from '@astrojs/starlight/components'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
 [Decap CMS](https://www.decapcms.org/) (이전 Netlify CMS)는 오픈 소스 Git 기반 콘텐츠 관리 시스템입니다.
 
+Decap을 사용하면 이미지 최적화 및 콘텐츠 컬렉션을 포함한 Astro의 모든 기능을 최대한 활용할 수 있습니다.
+
+Decap은 승인된 사용자가 배포된 웹 사이트에서 직접 콘텐츠를 관리할 수 있도록 React 앱을 로드할 프로젝트에 경로 (일반적으로 `/admin`)를 추가합니다. Decap은 변경 사항을 Astro 프로젝트의 소스 저장소에 직접 커밋합니다.
+
+## DecapCMS 설치
+
+Astro에 Decap을 추가하는 데는 두 가지 옵션이 있습니다.
+
+1. 다음 명령을 사용하여 [패키지 관리자를 통해 Decap 설치](https://decapcms.org/docs/install-decap-cms/#installing-with-npm):
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm install decap-cms-app
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm add decap-cms-app
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn add decap-cms-app
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+
+2. 패키지를 페이지 `<body>`의 `<script>` 태그로 가져옵니다.
+
+	```html title='/admin'
+    <body>
+      <!-- 페이지를 빌드하고 Decap CMS를 구동하는 스크립트를 포함합니다. -->
+      <script src="https://unpkg.com/decap-cms@^3.1.2/dist/decap-cms.js"></script>
+    </body>
+	```
+
+
+## 구성
+
+1. `public/admin/`에 정적 어드민 폴더를 생성합니다.
+2. `public/admin/`에 `config.yml` 파일을 추가합니다.
+    <FileTree>
+      - public
+        - admin
+          - config.yml
+    </FileTree>
+3. 콘텐츠 컬렉션에 대한 지원을 추가하려면 `config.yml`에서 각 스키마를 구성하세요. 다음 예시에서는 각 항목의 프런트매터 속성에 대한 `label`을 정의하여 `blog` 컬렉션을 구성합니다.
+    ```yml title="/public/admin/config.yml"
+    collections:
+      - name: "blog" # 경로에 사용됩니다. 예: /admin/collections/blog
+        label: "Blog" # UI에 사용됩니다.
+        folder: "src/content/blog" # 문서가 저장된 폴더의 경로입니다.
+        create: true # 사용자가 이 컬렉션에 새 문서를 만들 수 있도록 허용합니다.
+        fields: # 각 문서의 필드는 일반적으로 프런트매터에 있습니다.
+          - { label: "Layout", name: "layout", widget: "hidden", default: "blog" }
+          - { label: "Title", name: "title", widget: "string" }
+          - { label: "Publish Date", name: "date", widget: "datetime" }
+          - { label: "Featured Image", name: "thumbnail", widget: "image" }
+          - { label: "Rating (scale of 1-5)", name: "rating", widget: "number" }
+          - { label: "Body", name: "body", widget: "markdown" }
+    ```
+
+4. React 앱에 `admin` 경로를 추가하세요. 이 파일은 `config.yml`과 함께 `public/admin/index.html`일 수도 있고, Astro 경로를 사용하려는 경우 `src/pages/admin.astro`일 수도 있습니다.
+
+    <FileTree>
+    - public
+      - admin
+         - config.yml
+         - index.html
+    </FileTree>
+    ```html title="/public/admin/index.html" {7, 11}
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="robots" content="noindex" />
+        <link href="/admin/config.yml" type="text/yaml" rel="cms-config-url" />
+        <title>Content Manager</title>
+      </head>
+      <body>
+        <script src="https://unpkg.com/decap-cms@^3.1.2/dist/decap-cms.js"></script>
+      </body>
+    </html>
+    ```
+
+5. Decap 편집기를 통해 특정 폴더에 미디어 업로드를 활성화하려면 적절한 경로를 추가하세요.
+    ```yml title="/public/admin/config.yml"
+    media_folder: "src/assets/images" # Repo에서 파일이 저장될 위치
+    public_folder: "src/assets/images" # 업로드된 미디어의 src 속성
+    ```
+
+전체 지침과 옵션은 [Decap CMS 구성 문서](https://decapcms.org/docs/configure-decap-cms/)를 참조하세요.
+
+## 사용하기
+
+Decap CMS 편집기를 사용하려면 `yoursite.com/admin/`으로 이동하세요.
+
+## 인증
+
+### Decap CMS와 Netlify Identity
+
+Decap CMS는 원래 Netlify에서 개발되었으며 [Netlify Identity](https://docs.netlify.com/security/secure-access-to-sites/identity/)에 대한 최고 수준의 지원을 제공합니다.
+
+Netlify에 배포할 때 Netlify 대시보드를 통해 프로젝트의 Identity를 구성하고 프로젝트의 `admin` 경로에 [Netlify Identity Widget](https://github.com/netlify/netlify-identity-widget)을 포함하세요. 이메일을 통해 새로운 사용자를 초대하려는 경우 선택적으로 사이트 홈페이지에 Identity 위젯을 포함하세요.
+
+### Decap CMS와 외부 OAuth 클라이언트
+
+Netlify 이외의 호스팅 제공업체에 배포하는 경우 자체 OAuth 경로를 생성해야 합니다.
+
+Astro에서는 [`server` 또는 `hybrid` 출력](/ko/guides/server-side-rendering/#주문형-서버-렌더링-활성화)이 활성화된 상태로 구성된 프로젝트의 주문형 렌더링 경로를 통해 이 작업을 수행할 수 있습니다.
+
+커뮤니티에서 관리하는 호환 가능한 OAuth 클라이언트 목록은 [Decap의 OAuth 문서](https://decapcms.org/docs/external-oauth-clients/)를 참조하세요.
+
 ## 커뮤니티 자료
 
-- [`astro-netlify-cms`](https://github.com/delucis/astro-netlify-cms) Astro 통합을 사용하여 Netlify CMS를 프로젝트에 추가하세요.
+- Netlify Identity 템플릿: [astro-decap-ssg-netlify](https://github.com/OliverSpeir/astro-decap-ssg-netlify-identity)
 
-- [Netlify CMS를 사용한 Astro 블로그 스타터](https://github.com/delucis/astro-netlify-cms-starter)로 시작할 수 있습니다.
+- 주문형 렌더링 Oauth 경로를 사용하는 Astro 템플릿: [astro-decap-starter-ssr](https://github.com/OliverSpeir/astro-decap-starter-ssr)
 
 - 블로그 게시물: Aftab Alam이 게시한 [Git 기반 CMS를 사용하여 Astro 사이트 콘텐츠 작성](https://aalam.vercel.app/blog/astro-and-git-cms-netlify)
 
