@@ -6,11 +6,226 @@ service: Prepr CMS
 stub: true
 i18nReady: true
 ---
+import { FileTree } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
-[Prepr.io](https://www.prepr.io/)는 세그먼트 타겟팅을 갖춘 웹사이트를 구축하기 위한 헤드리스 CMS입니다.
+[Prepr CMS](https://www.prepr.io/)는 개인화 기능이 내장된 헤드리스 CMS입니다.
+
+## Astro와 통합
+
+Prepr CMS는 데이터를 Astro에 연결하기 위한 [GraphQL API](https://docs.prepr.io/reference/graphql/v1/overview)를 제공합니다.
+
+### 전제조건
+
+시작하려면 다음이 필요합니다.
+
+- [주문형 렌더링](/ko/guides/server-side-rendering/)을 위해 구성된 신규 또는 기존 Astro 프로젝트.
+- [무료 Prepr 계정](https://signup.prepr.io/)
+- [기존 블로그 게시물이 포함된 Prepr 환경](https://docs.prepr.io/account/set-up-environments#create-an-envirntonment). 이러한 게시물에는 `title` 및 `content`가 포함되어야 합니다. 다른 필드는 선택사항입니다.
+
+### 자격 증명 설정
+
+Astro 프로젝트에 Prepr 엔드포인트를 추가하려면 프로젝트 루트에 `.env 파일`이 없는 경우 이를 생성하고 다음 변수를 추가하세요.
+
+```ini title=".env"
+PREPR_ENDPOINT=YOUR_PREPR_API_URL
+```
+
+Prepr 계정 설정에서 `YOUR_PREPR_API_URL` 값을 확인할 수 있습니다.
+1. **Settings > Access tokens**로 이동하여 미리보기 및 프로덕션 액세스 토큰을 모두 확인하세요.
+2. Astro 사이트에 게시된 콘텐츠 항목만 검색하려면 **GraphQL Production** 액세스 토큰의 **API URL** 값을 사용하세요.
+
+### Prepr 엔드포인트 구성
+
+새 폴더 `src/lib/`를 만들고 `prepr.js`라는 새 파일을 추가합니다. 여기에서 Prepr 엔드포인트를 구성합니다. Prepr CMS에서 데이터를 가져오려면 다음 코드를 추가하세요.
+
+```js title="src/lib/prepr.js"
+
+export async function Prepr(query, variables) {
+    const response = await fetch(import.meta.env.PREPR_ENDPOINT, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ query, variables }),
+    })
+    return response
+}
+```
+
+이제 루트 디렉터리에 다음 파일이 포함되어야 합니다.
+
+<FileTree title="Project Structure">
+- lib/
+    - **prepr.js**
+- src/
+- **.env**
+- astro.config.mjs
+- package.json
+
+</FileTree>
+
+### 데이터를 가져오기
+
+GraphQL API와 상호 작용하는 쿼리를 작성하여 Prepr에서 데이터를 가져옵니다.
+
+#### GraphQL 쿼리를 생성하여 블로그 아티클을 검색합니다.
+1. `src/queries/`라는 새 폴더를 만들고 `get-articles.js`라는 파일을 추가합니다.
+2. 모든 아티클을 검색하려면 이 파일에 다음 쿼리를 추가합니다.
+
+    ```js title="src/queries/get-articles.js"
+
+    const GetArticles = `
+    query {
+        Articles {
+          items {
+            _id
+            _slug
+            title
+        }
+      }
+    }
+    `
+    export default GetArticles
+    ```
+
+3. 블로그 게시물의 링크된 목록을 페이지에 표시하려면 필요한 Prepr 엔드포인트를 포함한 쿼리를 가져와 실행하세요. 그러면 모든 게시물 제목과 해당 슬러그에 액세스하여 페이지에 렌더링할 수 있습니다. (다음 단계에서는 [블로그 게시물에 대한 개별 페이지를 생성](#개별-블로그-게시물-페이지-생성)합니다.)
+
+    ```astro title="src/pages/index.astro" ins={3-4, 6-8, 15-23}
+    ---
+    import Layout from '../layouts/Layout.astro';
+    import { Prepr } from '../lib/prepr.js';
+    import GetArticles from '../queries/get-articles.js';
+
+    const response = await Prepr(GetArticles)
+    const { data } = await response.json()
+    const articles = data.Articles
+    ---
+
+    <Layout title="My blog site">
+      <h1>
+        My blog site
+      </h1>
+      <ul>
+        {
+          articles.items.map((post) => (
+            <li>
+              <a href={post._slug}>{post.title}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </Layout>
+    ```
+
+
+루트 디렉터리에는 다음과 같은 새 파일이 포함되어야 합니다.
+
+<FileTree title="Project Structure">
+- lib/
+    - prepr.js
+    - **queries**/
+        - **get-articles.js**
+- src/
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+#### 개별 블로그 게시물 페이지 생성
+
+각 블로그 게시물에 대한 페이지를 생성하려면 [동적 라우팅](/ko/guides/routing/#서버-ssr-모드) `.astro` 페이지에서 새 GraphQL 쿼리를 실행합니다. 이 쿼리는 슬러그를 통해 특정 아티클을 가져오고 개별 블로그 게시물에 대해 새 페이지가 생성됩니다.
+
+1. `queries` 폴더에 `get-article-by-slug.js`라는 파일을 만들고 다음을 추가하여 해당 슬러그로 특정 아티클을 쿼리하고 아티클의 `title` 및 `content`와 같은 데이터를 반환합니다.
+
+    ```js title="src/lib/queries/get-article-by-slug.js"
+
+    const GetArticleBySlug = `
+    query ($slug: String) {
+       Article (slug: $slug) {
+         _id
+         title
+         content {
+           __typename
+           ... on Text {
+             body
+             text
+           }
+           ... on Assets {
+             items {
+               url
+             }
+           }
+         }
+       }
+    }`
+
+    export default GetArticleBySlug
+    ```
+
+:::tip
+Prepr의 [Apollo explorer](https://studio.apollographql.com/sandbox/explorer)를 사용하여 [GraphQL 쿼리를 생성하고 테스트](https://docs.prepr.io/reference/graphql/v1/test-queries)할 수 있습니다. Prepr의 *Article* 콘텐츠 항목 페이지에서 API explorer를 엽니다. Article 콘텐츠는 *Dynamic content field*에 저장됩니다. [이 필드에서 데이터를 가져오는 방법](https://docs.prepr.io/reference/graphql/v1/schema-field-types-dynamic-content-field)에 대한 자세한 내용은 GraphQL 문서를 확인하세요.
+:::
+
+2. `src/pages` 폴더에 `[...slug].astro` 파일을 생성합니다. 다음 코드를 추가하여 이전 단계에서 쿼리를 가져와 실행하여 검색된 아티클을 표시합니다.
+
+    ```astro title="src/pages/[...slug].astro"
+    ---
+    import Layout from '../layouts/Layout.astro';
+    import {Prepr} from '../lib/prepr.js';
+    import GetArticleBySlug from '../queries/get-article-by-slug.js';
+
+    const { slug } = Astro.params;
+    const response = await Prepr(GetArticleBySlug, {slug})
+    const { data } = await response.json()
+    const article = data.Article
+    ---
+
+    <Layout title={article.title}>
+      <main>
+        <h1>{article.title}</h1>
+        {
+          article.content.map((content) => (
+            <div>
+              {
+                content.__typename === "Assets" &&
+                <img src={content.items[0].url} width="300" height="250"/>
+              }
+              {
+                content.__typename === 'Text' &&
+                <div set:html={content.body}></div>
+              }
+            </div>
+          ))
+        }
+      </main>
+    </Layout>
+    ```
+
+이제 루트 디렉터리에 다음과 같은 새 파일이 포함되어야 합니다.
+
+<FileTree title="Project Structure">
+- lib/
+    - prepr.js
+    - queries/
+        - get-articles.js
+        - **get-article-by-slug.js**
+- src/
+    - pages/
+      - index.astro
+      - **[…slug].astro**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+이제 블로그 게시물의 기본 목록에서 기사 링크를 클릭하면 개별 콘텐츠가 포함된 페이지로 이동합니다.
+
+### 사이트 게시
+
+Prepr 블로그를 배포하려면 [배포 가이드](/ko/guides/deploy/)를 방문하여 선호하는 호스팅 제공업체의 지침을 따르세요.
 
 ## 공식 자료
 
-- [Prepr CMS Astro quickstart](https://github.com/preprio/astro-quick-start) 살펴보기
-- [Prepr CMS를 Astro에 연결하기](https://docs.prepr.io/connecting-front-end-apps/astro) 읽기
+- [Prepr CMS Astro 빠른 시작 가이드](https://github.com/preprio/astro-quick-start)를 따라 Astro와 Prepr CMS로 간단한 블로그를 만들어보세요.
+- Astro 및 Prepr CMS 리소스에 대한 개요는 [Prepr CMS를 Astro에 연결](https://docs.prepr.io/connecting-front-end-apps/astro)을 확인하세요.
