@@ -1,0 +1,500 @@
+---
+title: 'Astro DB'
+description: Aprende a usar Astro DB, una base de datos SQL completamente administrada diseñada exclusivamente para Astro.
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/db/'
+i18nReady: true
+---
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import StudioHeading from '~/components/StudioHeading.astro';
+
+Astro DB es una base de datos SQL completamente administrada diseñada exclusivamente para Astro. Desarrolle localmente o conéctese a una base de datos administrada alojada  en nuestra plataforma [Astro Studio](/es/recipes/studio/).
+
+## Instalación
+
+Añade Astro DB a un proyecto Astro nuevo o existente (requiere `astro@4.5` o posterior) con la integración [`@astrojs/db`](/es/guides/integrations-guide/db/) (`v0.8.1` o posterior). Astro incluye un comando `astro add` integrado para automatizar este proceso de configuración por ti.
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add db
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add db
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add db
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Si lo prefieres, puedes [instalar `@astrojs/db` manualmente](/es/guides/integrations-guide/db/#instalación-manual) en su lugar.
+## Define tu base de datos
+Astro Db es una solución completa para configurar, desarrollar y consultar tus datos. Se crea una base de datos local cada vez que ejecutas `astro dev`, utilizando LibSQL para administrar tus datos sin necesidad de Docker o una conexión de red.
+
+Instalar `@astrojs/db` con el comando `astro add` creará un archivo `db/config.ts` en tu proyecto donde definirás las tablas de tu base de datos:
+
+```ts title="db/config.ts"
+import { defineDb } from 'astro:db';
+
+export default defineDb({
+  tables: { },
+})
+```
+
+### Tablas
+
+Los datos en Astro DB se almacenan en tablas SQL. Las tablas estructuran tus datos en filas y columnas, donde las columnas imponen el tipo de cada valor de fila.
+
+Cuando defines una tabla, Astro generará una interfaz TypeScript para consultar esa tabla desde tu proyecto. El resultado es un soporte completo de TypeScript cuando accedes a tus datos con autocompletado de propiedades y comprobación de tipos.
+
+Para configurar una tabla de base de datos, importa y usa las utilidades `defineTable()` y `column` de `astro:db`.
+
+Este ejemplo configura una tabla `Comment` con columnas de texto requeridas para `author` y `body`. Luego, hazla disponible para tu proyecto a través de la exportación `defineDb()`.
+
+```ts title="db/config.ts" "Comment"
+import { defineDb, defineTable, column } from 'astro:db';
+
+const Comment = defineTable({
+  columns: {
+    author: column.text(),
+    body: column.text(),
+  }
+})
+
+export default defineDb({
+  tables: { Comment },
+})
+```
+
+<ReadMore> Consulta la [referencia de configuración de tablas](/es/guides/integrations-guide/db/#referencia-de-configuración-de-tablas) para obtener una referencia completa de las opciones de tabla.</ReadMore>
+
+### Columnas
+
+Astro DB soporta los siguientes tipos de columnas:
+
+```ts title="db/config.ts" "column.text()" "column.number()" "column.boolean()" "column.date()" "column.json()"
+import { defineTable, column } from 'astro:db';
+
+const Comment = defineTable({
+  columns: {
+    // Una cadena de texto.
+    author: column.text(),
+    // Un valor entero.
+    likes: column.number(),
+    // Un valor verdadero o falso.
+    flagged: column.boolean(),
+    // Valores de fecha/hora consultados como objetos Date de JavaScript.
+    published: column.date(),
+    // Un objeto JSON sin tipo.
+    metadata: column.json(),
+  }
+});
+```
+
+### Referencias de tabla
+
+Las relaciones entre tablas son un patrón común en el diseño de bases de datos. Por ejemplo, una tabla `Blog` puede estar estrechamente relacionada con otras tablas de `Comment`, `Author` y `Category`.
+Puedes definir estas relaciones entre tablas y guardarlas en tu esquema de base de datos usando **columnas de referencia**. Para establecer una relación, necesitarás:
+
+- Una **columna de identificador** en la tabla referenciada. Esto suele ser una columna `id` con la propiedad `primaryKey`.
+- Una columna en la tabla base para **almacenar el `id` referenciado**. Esto usa la propiedad `references` para establecer una relación.
+
+Este ejemplo muestra la columna `authorId` de una tabla `Comment` que referencia la columna `id` de una tabla `Author`.
+
+```ts title="db/config.ts" {3, 10}
+const Author = defineTable({
+  columns: {
+    id: column.number({ primaryKey: true }),
+    name: column.text(),
+  }
+});
+
+const Comment = defineTable({
+  columns: {
+    authorId: column.number({ references: () => Author.columns.id }),
+    content: column.text(),
+  }
+});
+```
+
+## Siembra tu base de datos
+
+En desarrollo, Astro usará tu configuración de base de datos para generar tipos locales de acuerdo con tus esquemas. Estos se generarán cada vez que se inicie el servidor de desarrollo, y te permitirán consultar y trabajar con la forma de tus datos con seguridad de tipos y autocompletado.
+
+Para sembrar datos de desarrollo para pruebas y depuración en tu proyecto Astro, crea un archivo `db/seed.ts`. Importa tanto el objeto `db` como cualquier tabla configurada de `astro:db`. Utiliza la función `db.insert()` para proporcionar una matriz de objetos de datos de fila de tabla.
+
+El siguiente ejemplo define dos filas de datos de desarrollo para una tabla `Comment`:
+
+```ts title="db/seed.ts"
+import { db, Comment } from 'astro:db';
+
+export default async function() {
+  await db.insert(Comment).values([
+    { authorId: 1, body: 'Hope you like Astro DB!' },
+    { authorId: 2, body: 'Enjoy!'},
+  ])
+}
+```
+
+Tu servidor de desarrollo se reiniciará automáticamente cada vez que este archivo cambie, regenerando tus tipos y sembrando tus datos de desarrollo desde `seed.ts`.
+
+## Consulta tu base de datos
+
+Puedes consultar tu base de datos desde cualquier [página Astro](/es/basics/astro-pages/#paginas-astro) o [endpoint](/es/guides/endpoints/) en tu proyecto utilizando el ORM y el generador de consultas proporcionados.
+
+### Drizzle ORM
+
+```
+import { db } from 'astro:db';
+```
+
+Astro DB incluye un cliente ORM [Drizzle](https://orm.drizzle.team/) integrado. No es necesario instalar ni configurar manualmente el cliente. El cliente `db` de Astro DB se configura automáticamente para hablar con tu base de datos (local o remota) cuando ejecutas Astro. Utiliza tu definición de esquema de base de datos exacta para consultas SQL seguras con TypeScript y errores cuando haces referencia a una columna o tabla que no existe.
+
+### Seleccionar 
+
+El siguiente ejemplo selecciona todas las filas de una tabla `Comment`. Esto devuelve la matriz completa de datos de desarrollo sembrados de `db/seed.ts` que luego está disponible para su uso en tu plantilla de página:
+
+```astro title="src/pages/index.astro"
+---
+import { db, Comment } from 'astro:db';
+
+const comments = await db.select().from(Comment);
+---
+
+<h2>Comments</h2>
+
+{
+  comments.map(({ author, body }) => (
+    <article>
+      <p>Author: {author}</p>
+      <p>{body}</p>
+    </article>
+  ))
+}
+```
+
+<ReadMore> Consulta la [referencia de API de Drizzle](https://orm.drizzle.team/docs/select) para obtener una descripción completa.</ReadMore>
+
+### Insertar
+
+Para aceptar datos de usuario, como manejar solicitudes de formulario e insertar datos en tu base de datos remota alojada, configura tu proyecto Astro para [renderizado bajo demanda](/es/basics/rendering-modes/#renderizado-bajo-demanda) y [agrega un adaptador SSR](/es/guides/server-side-rendering/#adaptadores-oficiales) para tu entorno de implementación.
+
+Este ejemplo inserta una fila en una tabla `Comment` basada en una solicitud POST de formulario analizada:
+
+```astro
+---
+// src/pages/index.astro
+import { db, Comment } from 'astro:db';
+
+if (Astro.request.method === 'POST') {
+  // analiza el formulario de solicitud
+  const formData = await Astro.request.formData();
+  const author = formData.get('author');
+  const content = formData.get('content');
+  if (typeof author === 'string' && typeof content === 'string') {
+    // inserta la fila en la base de datos
+    await db.insert(Comment).values({ author, content });
+  }
+}
+
+// renderiza la nueva lista de comentarios en cada solicitud
+const comments = await db.select().from(Comment);
+---
+
+<form method="POST" style="display: grid">
+	<label for="author">Author</label>
+	<input id="author" name="author" />
+
+	<label for="content">Content</label>
+	<textarea id="content" name="content"></textarea>
+
+	<button type="submit">Submit</button>
+</form>
+
+<!--render `comments`-->
+```
+
+También puedes consultar tu base de datos desde un endpoint de API. Este ejemplo elimina una fila de una tabla `Comment` por el parámetro `id`:
+
+```ts
+// src/pages/api/comments/[id].ts
+import type { APIRoute } from "astro";
+import { db, Comment } from 'astro:db';
+
+export const DELETE: APIRoute = async (ctx) => {
+  await db.delete(Comment).where({ id: ctx.params.id });
+  return new Response(null, { status: 204 });
+}
+```
+
+<ReadMore>
+
+Consulta la [referencia de API `insert()` de Drizzle](https://orm.drizzle.team/docs/insert) para obtener una descripción completa.
+
+</ReadMore>
+
+
+### Filtrar
+
+
+Para consultar los resultados de la tabla por una propiedad específica, utiliza [las opciones de Drizzle para selecciones parciales](https://orm.drizzle.team/docs/select#partial-select). Por ejemplo, añade [una llamada `.where()`](https://orm.drizzle.team/docs/select#filtering) a tu consulta `select()` y pasa la comparación que deseas hacer.
+
+El siguiente ejemplo consulta todas las filas de una tabla `Comment` que contienen la frase "Astro DB". Utiliza [el operador `like()`](https://orm.drizzle.team/docs/operators#like) para comprobar si una frase está presente en el `body`:
+
+```astro title="src/pages/index.astro"
+---
+import { db, Comment, like } from 'astro:db';
+
+const comments = await db.select().from(Comment).where(
+    like(Comment.body, '%Astro DB%')
+);
+---
+```
+
+### Utilidades de Drizzle
+
+Todas las utilidades de Drizzle para construir consultas se exponen desde el módulo `astro:db`. Esto incluye:
+
+- [Operadores de filtro](https://orm.drizzle.team/docs/operators) como `eq()` y `gt()`
+- [Ayudantes de agregación](https://orm.drizzle.team/docs/select#aggregations-helpers) como `count()`
+- [El ayudante `sql`](https://orm.drizzle.team/docs/sql) para escribir consultas SQL sin procesar
+
+```ts
+import { eq, gt, count, sql } from 'astro:db';
+```
+
+### Relaciones
+
+
+Puedes consultar datos relacionados de varias tablas utilizando una unión SQL. Para crear una consulta de unión, extiende tu declaración `db.select()` con un operador de unión. Cada función acepta una tabla con la que unirse y una condición para hacer coincidir filas entre las dos tablas.
+
+Este ejemplo utiliza una función `innerJoin()` para unir los autores de `Comment` con su información relacionada de `Author` basada en la columna `authorId`. Esto devuelve un array de objetos con cada fila de `Author` y `Comment` como propiedades de nivel superior:
+
+```astro title="src/pages/index.astro"
+---
+import { db, eq, Comment, Author } from 'astro:db';
+
+const comments = await db.select()
+  .from(Comment)
+  .innerJoin(Author, eq(Comment.authorId, Author.id));
+---
+
+<h2>Comments</h2>
+
+{
+  comments.map(({ Author, Comment }) => (
+    <article>
+      <p>Author: {Author.name}</p>
+      <p>{Comment.body}</p>
+    </article>
+  ))
+}
+```
+
+<ReadMore>
+
+Consulta la [referencia de unión de Drizzle](https://orm.drizzle.team/docs/joins#join-types) para obtener todos los operadores de unión disponibles y las opciones de configuración.
+
+</ReadMore>
+
+### Transacciones por lotes
+
+Todas las consultas de base de datos remotas se realizan como una solicitud de red. Puede que necesites "agrupar" consultas en una única transacción cuando hagas un gran número de consultas, o para tener retrocesos automáticos si alguna consulta falla.
+
+Este ejemplo siembra varias filas en una única solicitud utilizando el método `db.batch()`:
+
+```ts
+// db/seed.ts
+import { db, Author, Comment } from 'astro:db';
+
+export default async function () {
+  const queries = [];
+  // Siembra 100 comentarios de ejemplo en tu base de datos remota
+  // con una sola solicitud de red.
+  for (let i = 0; i < 100; i++) {
+    queries.push(db.insert(Comment).values({ body: `Test comment ${i}` }));
+  }
+  await db.batch(queries);
+}
+```
+
+<ReadMore>
+
+Consulta [Drizzle `db.batch()`](https://orm.drizzle.team/docs/batch-api) para más detalles.
+
+</ReadMore>
+
+<StudioHeading>
+## Astro Studio
+</StudioHeading>
+
+Astro DB puede [conectarse a la plataforma Astro Studio](/es/recipes/studio/) para añadir rápidamente una base de datos alojada a tu proyecto. Puedes ver, gestionar y desplegar nuevas bases de datos alojadas desde el portal web de Astro Studio.
+
+Existen dos formas de crear un proyecto en Astro Studio:
+1. a través de la [CLI de Astro Studio](/es/reference/cli-reference/#astro-studio-cli) usando `astro login` para autenticarte y `astro link` para crear.
+2. a través de la [interfaz web de Astro Studio](https://studio.astro.build)
+
+Para crear una nueva base de datos en la interfaz web de Astro Studio, haz clic en el botón "create project" en el encabezado y sigue las instrucciones presentadas. Astro Studio te guiará a través de los pasos necesarios, y al final del proceso tendrás una base de datos alojada configurada para tu proyecto.
+
+<StudioHeading>
+### Enviar esquemas de tablas
+</StudioHeading>
+
+El esquema de tu tabla cambiará con el tiempo a medida que tu proyecto crezca. Puedes probar cambios de configuración de forma segura localmente y enviarlos a tu base de datos de Studio cuando despliegues.
+
+Cuando [creas un proyecto de Studio desde el panel de control](#astro-studio), tendrás la opción de crear una acción CI de GitHub. Esto migrará automáticamente los cambios de esquema al fusionar con la rama principal de tu repositorio.
+
+También puedes enviar cambios de esquema a través de la CLI usando el comando `astro db push`:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm run astro db push
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro db push
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro db push
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Este comando verificará que los cambios se puedan realizar sin pérdida de datos y guiará sobre los cambios de esquema recomendados para resolver conflictos. Si se debe realizar un cambio de esquema que rompa, añade la bandera `--force-reset` para restablecer todos los datos de producción.
+
+<StudioHeading>
+### Enviar datos 
+</StudioHeading>
+
+Puede que necesites enviar datos a tu base de datos de Studio para sembrar o migrar datos. Puedes escribir un archivo `.ts` con el módulo `astro:db` para escribir consultas de tipado seguro. Luego, ejecuta el archivo contra tu base de datos de Studio usando el comando `astro db execute <file-path> --remote`:
+
+Los siguientes comentarios pueden ser sembrados usando el comando `astro db execute db/seed.ts --remote`:
+
+```ts
+// db/seed.ts
+import { Comment } from 'astro:db';
+
+export default async function () {
+  await db.insert(Comment).values([
+    { authorId: 1, body: 'Hope you like Astro DB!' },
+    { authorId: 2, body: 'Enjoy!' },
+  ])
+}
+```
+
+<ReadMore>
+
+Consulta la [referencia de CLI](/es/guides/integrations-guide/db/#referencia-de-astro-db-cli) para obtener una lista completa de comandos.
+
+</ReadMore>
+
+<StudioHeading>
+### Conectar a Astro Studio
+</StudioHeading>
+
+Por defecto Astro usará un archivo de base de datos local cada vez que ejecutes los comandos `dev` o `build`. Las tablas se recrean desde cero cada vez que se ejecuta cada comando, y los datos de desarrollo se insertarán.
+
+Para conectarte a tu base de datos de Studio alojada, puedes añadir la bandera `--remote`. Usa esta bandera para despliegues de producción para tener acceso de lectura y escritura a tu base de datos de Studio. Esto te permitirá [aceptar y persistir datos de usuario](#insertar).
+
+```bash
+# Construir con una conexión remota
+astro build --remote
+
+# Desarrollar con una conexión remota
+astro dev --remote
+```
+
+:::caution
+
+Ten cuidado al usar `--remote` en desarrollo. Esto se conectará a una base de datos de producción en vivo, y todas las inserciones, actualizaciones o eliminaciones se persistirán.
+
+:::
+
+
+Para usar una conexión remota, necesitarás un token de aplicación para autenticarte con Studio. Visita el panel de control de Studio para obtener instrucciones de creación y configuración de tokens.
+
+<ReadMore>
+
+Cuando estés listo para desplegar, consulta nuestra [guía de despliegue con una conexión a Studio](/es/recipes/studio/#despliega-con-una-conexión-a-studio).
+
+</ReadMore>
+
+## Construyendo integraciones de Astro DB
+
+Las [integraciones de Astro](/es/reference/integrations-reference/) pueden extender los proyectos de los usuarios con tablas y datos de semillas adicionales de Astro DB.
+
+Utiliza el método `extendDb()` en el gancho `astro:db:setup` para registrar archivos de configuración y semillas de Astro DB adicionales.
+El ayudante `defineDbIntegration()` proporciona soporte TypeScript y autocompletado para el gancho `astro:db:setup`.
+
+```js {8-13}
+// my-integration/index.ts
+import { defineDbIntegration } from '@astrojs/db/utils';
+
+export default function MyIntegration() {
+  return defineDbIntegration({
+    name: 'my-astro-db-powered-integration',
+    hooks: {
+      'astro:db:setup': ({ extendDb }) => {
+        extendDb({
+          configEntrypoint: '@astronaut/my-package/config',
+          seedEntrypoint: '@astronaut/my-package/seed',
+        });
+      },
+      // Other integration hooks...
+    },
+  });
+}
+```
+
+Los archivos de [configuración](#define-tu-base-de-datos) y [semilla](#siembra-tu-base-de-datos) siguen el mismo formato que sus equivalentes definidos por el usuario.
+
+### Operaciones de tipado seguro en integraciones
+
+Mientras trabajas en integraciones, es posible que no puedas beneficiarte de los tipos de tabla generados por Astro exportados desde `astro:db`.
+Para obtener una seguridad de tipos completa, utiliza la utilidad `asDrizzleTable()` para crear un objeto de referencia de tabla que puedes usar para operaciones de base de datos.
+
+Por ejemplo, dada una integración que configura la siguiente tabla de base de datos `Pets`:
+
+```js
+// my-integration/config.ts
+import { defineDb, defineTable, column } from 'astro:db';
+
+export const Pets = defineTable({
+  columns: {
+    name: column.text(),
+    species: column.text(),
+  },
+});
+
+export default defineDb({ tables: { Pets } });
+```
+
+El archivo de semilla puede importar `Pets` y usar `asDrizzleTable()` para insertar filas en tu tabla con comprobación de tipos:
+
+```js {2,7} /typeSafePets(?! )/
+// my-integration/seed.ts
+import { asDrizzleTable } from '@astrojs/db/utils';
+import { db } from 'astro:db';
+import { Pets } from './config';
+
+export default async function() {
+  const typeSafePets = asDrizzleTable('Pets', Pets);
+
+  await db.insert(typeSafePets).values([
+    { name: 'Palomita', species: 'cat' },
+    { name: 'Pan', species: 'dog' },
+  ]);
+}
+```
+
+El valor devuelto por `asDrizzleTable('Pets', Pets)` es equivalente a `import { Pets } from 'astro:db'`, pero está disponible incluso cuando la generación de tipos de Astro no puede ejecutarse.
+Puedes usarlo en cualquier código de integración que necesite consultar o insertar en la base de datos.
