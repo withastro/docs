@@ -1,0 +1,502 @@
+---
+title: 'Astro DB'
+description: 了解如何使用 Astro DB——一个专门为 Astro 设计的全托管 SQL 数据库。
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/db/'
+i18nReady: true
+---
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import StudioHeading from '~/components/StudioHeading.astro';
+
+Astro DB 是一款专为 Astro 设计的全托管 SQL 数据库。你可以在本地开发或者连接到我们 [Astro Studio](/zh-cn/recipes/studio/) 平台上托管的数据库。
+
+## 安装
+
+使用 [`@astrojs/db` 集成](/zh-cn/guides/integrations-guide/db/)（`v0.8.1` 或更高版本）来将 Astro DB 添加到新的或现有的 Astro 项目中（需要 `astro@4.5` 或更高版本）。Astro 包含一个内置的 `astro add` 命令能帮你自动化设置此过程。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add db
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add db
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add db
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+如果你愿意，也可以[手动安装 `@astrojs/db`](/zh-cn/guides/integrations-guide/db/#手动安装)。
+
+## 定义你的数据库
+
+Astro DB 是一个用于配置、开发和查询你的数据的完整解决方案。每当你运行 `astro dev` 时，都会创建一个本地数据库，并使用 LibSQL 来管理你的数据，而无需 Docker 或网络连接。
+
+使用 `astro add` 命令安装 `@astrojs/db` 将在你的项目中创建一个 `db/config.ts` 文件，你将在其中定义你的数据库表：
+
+```ts title="db/config.ts"
+import { defineDb } from 'astro:db';
+
+export default defineDb({
+  tables: { },
+})
+```
+
+
+
+### 表
+
+Astro DB 中的数据是通过 SQL 表存储的。表格将你的数据结构化为行和列，其中列强制每行值的类型。
+
+当你定义一个表格时，Astro 将为你的项目生成一个 TypeScript 接口来查询该表格。这意味着当你访问数据时，将获得完整的 TypeScript 支持，包括属性自动完成和类型检查。
+
+要配置数据库表，应从 `astro:db` 导入并使用 `defineTable()` 和 `column` 工具。
+
+这个例子配置了一个 `Comment` 表，它有 `author` 和 `body` 的必需文本列。然后，通过 `defineDb()` 导出使其在你的项目中可用。
+
+```ts title="db/config.ts" "Comment"
+import { defineDb, defineTable, column } from 'astro:db';
+
+const Comment = defineTable({
+  columns: {
+    author: column.text(),
+    body: column.text(),
+  }
+})
+
+export default defineDb({
+  tables: { Comment },
+})
+```
+
+<ReadMore>查看 [表配置参考](/zh-cn/guides/integrations-guide/db/#表配置参考) 以获取完整的表选项参考。</ReadMore>
+
+### 列
+
+Astro DB 支持以下列类型：
+
+```ts title="db/config.ts" "column.text()" "column.number()" "column.boolean()" "column.date()" "column.json()"
+import { defineTable, column } from 'astro:db';
+
+const Comment = defineTable({
+  columns: {
+    // A string of text.
+    author: column.text(),
+    // A whole integer value.
+    likes: column.number(),
+    // A true or false value.
+    flagged: column.boolean(),
+    // Date/time values queried as JavaScript Date objects.
+    published: column.date(),
+    // An untyped JSON object.
+    metadata: column.json(),
+  }
+});
+```
+
+### 表引用
+
+表之间的关系是数据库设计中的常见模式。例如，一个 `Blog` 表可能与 `Comment`、`Author` 和 `Category` 等其他几个表密切相关。
+
+你可以使用**引用列**定义来这些表之间的关系并将它们保存到你的数据库模式中。要建立关系，你需要：
+
+- 在被引用的表上有一个**标识符列**。这通常是带有 `primaryKey` 属性的 `id` 列。
+- 在基础表上有一个用于**存储被引用 `id`** 的列。这将使用 `references` 属性建立关系。
+
+这个例子显示了一个 `Comment` 表的 `authorId` 列引用了 `Author` 表的 `id` 列。
+
+```ts title="db/config.ts" {3, 10}
+const Author = defineTable({
+  columns: {
+    id: column.number({ primaryKey: true }),
+    name: column.text(),
+  }
+});
+
+const Comment = defineTable({
+  columns: {
+    authorId: column.number({ references: () => Author.columns.id }),
+    content: column.text(),
+  }
+});
+```
+
+## 为你的数据库填充数据
+
+在开发过程中，Astro 将使用你的 DB 配置并根据你的模式生成本地类型。这些内容将在每次启动开发服务器时重新生成，并允许你使用类型安全和自动补全来查询和处理你的数据样例。
+
+要为你的 Astro 项目填充开发数据进行测试和调试，你需要创建一个 `db/seed.ts` 文件。从 `astro:db` 导入 `db` 对象和任何配置的表，然后使用 `db.insert()` 函数提供一个表行数据对象的数组。
+
+以下例子为 `Comment` 表定义了两行开发数据：
+
+```ts title="db/seed.ts"
+import { db, Comment } from 'astro:db';
+
+export default async function() {
+  await db.insert(Comment).values([
+    { authorId: 1, body: 'Hope you like Astro DB!' },
+    { authorId: 2, body: 'Enjoy!'},
+  ])
+}
+```
+
+你的开发服务器将在此文件更改时自动重启你的数据库，然后重新生成你的类型并从 `seed.ts` 填充你的开发数据。
+
+## 查询你的数据库
+
+你可以从项目中的任何 [Astro 页面](/zh-cn/basics/astro-pages/#astro-页面) 或 [端点](/zh-cn/guides/endpoints/) 使用提供的 `db` ORM 和查询构建器来查询你的数据库。
+
+### Drizzle ORM
+
+```
+import { db } from 'astro:db';
+```
+
+Astro DB 包含一个内置的 [Drizzle ORM](https://orm.drizzle.team/) 客户端。使用该客户端无需设置或手动配置。当你运行 Astro 时，Astro DB 的 `db` 客户端会自动配置以与你的数据库（本地或远程）进行通信。它使用你明确的数据库模式定义进行类型安全的 SQL 查询，当你引用不存在的列或表时，会出现 TypeScript 错误。
+
+### 查询
+
+以下例子选择了 `Comment` 表的所有行。这将返回来自 `db/seed.ts` 全量的填充的开发数据数组，然后可以在你的页面模板中使用它们：
+
+```astro title="src/pages/index.astro"
+---
+import { db, Comment } from 'astro:db';
+
+const comments = await db.select().from(Comment);
+---
+
+<h2>Comments</h2>
+
+{
+  comments.map(({ author, body }) => (
+    <article>
+      <p>Author: {author}</p>
+      <p>{body}</p>
+    </article>
+  ))
+}
+```
+
+<ReadMore>查看 [Drizzle `select()` API 参考](https://orm.drizzle.team/docs/select) 以获取完整概述。</ReadMore>
+
+### 插入
+
+要接受用户输入，如处理表单请求并将数据插入到你的远程托管数据库，需要为你的 Astro 项目配置 [按需渲染](/zh-cn/basics/rendering-modes/#按需渲染) 并为你的部署环境 [添加一个 SSR 适配器](/zh-cn/guides/server-side-rendering/#官方适配器)。
+
+这个例子基于解析后表单的 POST 请求向 `Comment` 表插入一行：
+
+```astro
+---
+// src/pages/index.astro
+import { db, Comment } from 'astro:db';
+
+if (Astro.request.method === 'POST') {
+  // 解析表单数据
+  const formData = await Astro.request.formData();
+  const author = formData.get('author');
+  const content = formData.get('content');
+  if (typeof author === 'string' && typeof content === 'string') {
+    // 将表单数据插入到 Comment 表中
+    await db.insert(Comment).values({ author, content });
+  }
+}
+
+// 在每次请求上渲染新的评论列表
+const comments = await db.select().from(Comment);
+---
+
+<form method="POST" style="display: grid">
+	<label for="author">Author</label>
+	<input id="author" name="author" />
+
+	<label for="content">Content</label>
+	<textarea id="content" name="content"></textarea>
+
+	<button type="submit">Submit</button>
+</form>
+
+<!--渲染 `comments`-->
+```
+
+你也可以从 API 端点查询你的数据库。这个例子通过 `id` 参数从 `Comment` 表中删除一行：
+
+```ts
+// src/pages/api/comments/[id].ts
+import type { APIRoute } from "astro";
+import { db, Comment } from 'astro:db';
+
+export const DELETE: APIRoute = async (ctx) => {
+  await db.delete(Comment).where({ id: ctx.params.id });
+  return new Response(null, { status: 204 });
+}
+```
+
+<ReadMore>
+
+查看 [Drizzle `insert()` API 参考](https://orm.drizzle.team/docs/insert) 以获取完整概述。
+
+</ReadMore>
+
+### 过滤
+
+要通过特定属性查询表结果，请使用 [Drizzle 的部分查询选项](https://orm.drizzle.team/docs/select#partial-select)。例如，向你的 `select()` 查询添加 [一个 `.where()` 调用](https://orm.drizzle.team/docs/select#filtering)，并传递你想做的比较操作。
+
+以下例子查询了 `Comment` 表中包含 "Astro DB" 短语的所有行。使用 [`like()` 操作符](https://orm.drizzle.team/docs/operators#like) 检查 `body` 中是否存在短语：
+
+```astro title="src/pages/index.astro"
+---
+import { db, Comment, like } from 'astro:db';
+
+const comments = await db.select().from(Comment).where(
+    like(Comment.body, '%Astro DB%')
+);
+---
+```
+
+### Drizzle 辅助工具
+
+所有用于构建查询的 Drizzle 辅助工具都从 `astro:db` 模块中暴露出来。这包括：
+
+- [过滤操作符](https://orm.drizzle.team/docs/operators) 如 `eq()` 和 `gt()`
+- [聚合辅助工具](https://orm.drizzle.team/docs/select#aggregations-helpers) 如 `count()`
+- 用于编写原始 SQL 查询语句的 [`sql` 辅助工具](https://orm.drizzle.team/docs/sql)
+
+```ts
+import { eq, gt, count, sql } from 'astro:db';
+```
+
+### 关系
+
+你可以使用 SQL 连接从多个表查询关联的数据。要创建一个连接查询，请使用连接操作符扩展你的 `db.select()` 语句。每个函数都接受一个要连接的表和一个条件来匹配两个表之间的行。
+
+这个例子使用了 `innerJoin()` 函数将 `Comment` 的作者与他们相关的 `Author` 信息连接起来，基于 `authorId` 列。这将返回一个对象数组，每个 `Author` 和 `Comment` 行作为顶级属性：
+
+```astro title="src/pages/index.astro"
+---
+import { db, eq, Comment, Author } from 'astro:db';
+
+const comments = await db.select()
+  .from(Comment)
+  .innerJoin(Author, eq(Comment.authorId, Author.id));
+---
+
+<h2>Comments</h2>
+
+{
+  comments.map(({ Author, Comment }) => (
+    <article>
+      <p>Author: {Author.name}</p>
+      <p>{Comment.body}</p>
+    </article>
+  ))
+}
+```
+
+<ReadMore>
+
+查看 [Drizzle 连接参考](https://orm.drizzle.team/docs/joins#join-types) 以获取所有可用的连接操作符和配置选项。
+
+</ReadMore>
+
+### 批处理事务
+
+所有远程数据库查询都作为网络请求进行。当进行大量查询，或者如果任何查询失败需要自动回滚时，你可能需要将查询批量处理为单个事务。
+
+这个例子使用 `db.batch()` 方法在单个请求中填充多行：
+
+```ts
+// db/seed.ts
+import { db, Author, Comment } from 'astro:db';
+
+export default async function () {
+  const queries = [];
+  // 使用单个网络请求将 100 个样本数据填充到你的远程数据库中。
+  for (let i = 0; i < 100; i++) {
+    queries.push(db.insert(Comment).values({ body: `Test comment ${i}` }));
+  }
+  await db.batch(queries);
+}
+```
+
+<ReadMore>
+
+查看 [Drizzle `db.batch()`](https://orm.drizzle.team/docs/batch-api) 文档以获取更多详细信息。
+
+</ReadMore>
+
+<StudioHeading>
+## Astro Studio
+</StudioHeading>
+
+Astro DB 可以[连接到 Astro Studio 平台](/zh-cn/recipes/studio/)，快速为你的项目添加一个托管数据库。你可以从 Astro Studio 站点上查看、管理和部署新的托管数据库。
+
+在 Astro Studio 中创建项目有两种方式：
+1. 通过 [Astro Studio CLI](/zh-cn/reference/cli-reference/#astro-studio-cli) 使用 `astro login` 进行认证，使用 `astro link` 来创建。
+2. 通过 [Astro Studio 网页 UI](https://studio.astro.build) 
+
+要在 Astro Studio 网页 UI 中创建新的数据库，点击头部中的 "create project" 按钮并按照指示操作。Astro Studio 将引导你完成必要的步骤，流程结束时，你将为你的项目配置一个托管数据库。
+
+<StudioHeading>
+### 推送表模式
+</StudioHeading>
+
+
+随着你项目的增长，你的表模式也会随着时间的推移而改变。你可以在本地安全地测试配置更改，并在部署时推送到你的 Studio 数据库。
+
+在[从仪表板创建 Studio 项目](#astro-studio)时，你将有创建 GitHub CI 流水线的选项。这将在与你的仓库的主分支合并时自动迁移模式更改。
+
+你也可以使用 `astro db push` 命令通过 CLI 推送模式变更：
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm run astro db push
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro db push
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro db push
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+这个命令将验证更改是否可以在无数据丢失的情况下进行，并指导如何推荐模式更改以解决冲突。如果必须进行破坏性的模式更改，添加 `--force-reset` 标志以重置所有生产数据。
+
+<StudioHeading>
+### 推送数据 
+</StudioHeading>
+
+你可能需要将数据推送到你的 Studio 数据库进行填充或数据迁移。你可以使用 `astro:db` 模块创建一个 `.ts` 文件来编写类型安全的查询。然后，使用命令 `astro db execute <file-path> --remote` 执行该文件对你的 Studio 数据库：
+
+以下评论可以使用命令 `astro db execute db/seed.ts --remote` 进行填充：
+
+```ts
+// db/seed.ts
+import { Comment } from 'astro:db';
+
+export default async function () {
+  await db.insert(Comment).values([
+    { authorId: 1, body: 'Hope you like Astro DB!' },
+    { authorId: 2, body: 'Enjoy!' },
+  ])
+}
+```
+
+<ReadMore>
+
+查看 [CLI 参考](/zh-cn/guides/integrations-guide/db/#astro-db-cli-参考) 获取完整的命令列表。
+
+</ReadMore>
+
+<StudioHeading>
+### 连接 Astro Studio
+</StudioHeading>
+
+默认情况下，当你运行 `dev` 或 `build` 命令时，Astro 将使用本地数据库文件。每次运行命令时，表都会从头开始重新创建，并插入开发的样例数据。
+
+要连接到你的托管 Studio 数据库，你可以添加 `--remote` 参数。使用此参数进行生产部署，以便对你的 Studio 数据库拥有可读写权限。这将允许你 [接受并持久化用户数据](#插入)。
+
+```bash
+# 使用远程连接进行构建
+astro build --remote
+
+# 使用远程连接进行开发
+astro dev --remote
+```
+
+:::caution
+
+在开发中使用 `--remote` 时要小心。这将连接到实时生产数据库，所有的插入、更新或删除都将被持久化。
+
+:::
+
+要使用远程连接，你需要一个应用令牌来进行 Studio 认证。请访问 Studio 控制面板获取令牌创建和设置指南。
+
+<ReadMore>
+
+当你准备好部署时，参见我们的 [使用 Studio 连接进行部署指南](/zh-cn/recipes/studio/#使用-studio-连接进行部署)。
+
+</ReadMore>
+
+## 构建 Astro DB 集成
+
+[Astro 集成](/zh-cn/reference/integrations-reference/) 可以通过额外的 Astro DB 表和填充数据来扩展用户项目。
+
+在 `astro:db:setup` 钩子中使用 `extendDb()` 方法注册额外的 Astro DB 配置和填充文件。
+`defineDbIntegration()` 辅助函数为 `astro:db:setup` 钩子提供 TypeScript 支持和自动补全。
+
+```js {8-13}
+// my-integration/index.ts
+import { defineDbIntegration } from '@astrojs/db/utils';
+
+export default function MyIntegration() {
+  return defineDbIntegration({
+    name: 'my-astro-db-powered-integration',
+    hooks: {
+      'astro:db:setup': ({ extendDb }) => {
+        extendDb({
+          configEntrypoint: '@astronaut/my-package/config',
+          seedEntrypoint: '@astronaut/my-package/seed',
+        });
+      },
+      // 其他集成钩子...
+    },
+  });
+}
+```
+
+集成的 [配置](#定义你的数据库) 和 [填充](#为你的数据库填充数据) 文件遵循与其用户定义的等效项相同的格式。
+
+### 在集成中进行类型安全操作
+
+在进行集成工作时，你可能无法从 `astro:db` 导出的 Astro 生成的表类型中获益。
+为了完全的类型安全，使用 `asDrizzleTable()` 辅助工具创建一个可以用于数据库操作的表引用对象。
+
+例如，给定一个集成设置以下 `Pets` 数据库表：
+
+```js
+// my-integration/config.ts
+import { defineDb, defineTable, column } from 'astro:db';
+
+export const Pets = defineTable({
+  columns: {
+    name: column.text(),
+    species: column.text(),
+  },
+});
+
+export default defineDb({ tables: { Pets } });
+```
+
+填充文件可以导入 `Pets` 并使用 `asDrizzleTable()` 向你的表插入具有类型检查的行：
+
+```js {2,7} /typeSafePets(?! )/
+// my-integration/seed.ts
+import { asDrizzleTable } from '@astrojs/db/utils';
+import { db } from 'astro:db';
+import { Pets } from './config';
+
+export default async function() {
+  const typeSafePets = asDrizzleTable('Pets', Pets);
+
+  await db.insert(typeSafePets).values([
+    { name: 'Palomita', species: 'cat' },
+    { name: 'Pan', species: 'dog' },
+  ]);
+}
+```
+
+`asDrizzleTable('Pets', Pets)` 返回的值等同于 `import { Pets } from 'astro:db'`，但即使 Astro 的类型生成无法运行时也可用。
+你可以在任何需要查询或插入数据库的集成代码中使用它。
