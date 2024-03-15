@@ -495,21 +495,39 @@ $ astro build --root ./my-project-directory
 
 <p>
 
-**类型：** `string`<br />
+**类型：** `string | Record.<string, string>`<br />
 **默认值：** `undefined`<br />
 <Since v="2.2.0" />
 </p>
 
 指定 Astro 生成的资源链接的前缀。如果资源与当前站点来自不同的域，则可以使用此选项。
 
-例如，如果设置为 `https://cdn.example.com`，则资源将从 `https://cdn.example.com/_astro/...` 获取（而不管 `base` 选项如何设置）。
+这需要将你本地的 `./dist/_astro` 文件夹中的资源上传到远程域名下相应的 `/_astro/` 文件夹中。要重命名 `_astro` 路径，请在 `build.assets` 中指定一个新的目录。
 
-你需要将 `./dist/_astro/` 中的文件上传到 `https://cdn.example.com/_astro/` 以提供资源。该过程取决于第三方域是如何托管的。要重命名 `_astro` 路径，请在 `build.assets` 中指定一个新目录。
+要获取上传到同一域名下的所有资源（例如 `https://cdn.example.com/_astro/...`），请将 `assetsPrefix` 设置为根域名的字符串（不管你的 `base` 配置如何）：
 
 ```js
 {
   build: {
     assetsPrefix: 'https://cdn.example.com'
+  }
+}
+```
+
+**新增于：** `astro@4.5.0`
+
+你也可以传递一个对象给 `assetsPrefix`，以指定每种文件类型的不同域名。
+在这种情况下，`fallback`属性是必填的，并且它将作为默认值用于任何其他文件。
+
+```js
+{
+  build: {
+    assetsPrefix: {
+      'js': 'https://js.cdn.example.com',
+      'mjs': 'https://js.cdn.example.com',
+      'css': 'https://css.cdn.example.com',
+      'fallback': 'https://cdn.example.com'
+    }
   }
 }
 ```
@@ -889,7 +907,7 @@ Shiki 配置选项。使用方法见 [markdown 配置文档](/zh-cn/guides/markd
 
 可供使用的语法高亮器：
 
-- `shiki` - 使用 [Shiki](https://github.com/shikijs/shiki) 高亮器
+- `shiki` - 使用 [Shiki](https://shiki.style) 高亮器
 - `prism` - 使用 [Prism](https://prismjs.com/) 高亮器
 - `false` - 不使用语法高亮。
 
@@ -1125,24 +1143,28 @@ export default defineConfig({
 Astro 提供了实验性标志，以便用户提前使用新功能。这些标志不保证稳定。
 
 
-### experimental.optimizeHoistedScript
+### experimental.directRenderScript
 
 <p>
 
 **类型：** `boolean`<br />
 **默认值：** `false`<br />
-<Since v="2.10.4" />
+<Since v="4.5.0" />
 </p>
 
-防止未使用的组件脚本意外地包含在页面中。
-这个优化是尽力而为的，可能会反过来导致少包含使用了的脚本。在发布之前，请务必仔细检查你构建的页面。
-通过添加实验标志来启用脚本分析优化：
+启用一种更可靠的策略，以防止在不使用的页面中执行脚本。
+
+脚本将直接按照在 Astro 文件中声明的方式渲染（包括现有的特性，如 TypeScript，导入 `node_modules`，以及脚本去重）。现在，你也可以在你的 Astro 文件中有条件地渲染脚本。
+然而，这意味着脚本不再提升到 `<head>` 中，且页面上的多个脚本不再被打包在一起。
+如果你启用了这个选项，你应该检查所有的 `<script>` 标签是否按预期行为。
+
+这个选项将在 Astro 5.0 中默认启用。
 
 ```js
 {
-	experimental: {
-		optimizeHoistedScript: true,
-	},
+  experimental: {
+    directRenderScript: true,
+  },
 }
 ```
 
@@ -1165,6 +1187,53 @@ Astro 提供了实验性标志，以便用户提前使用新功能。这些标�
 }
 ```
 
+### experimental.contentCollectionJsonSchema
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `false`<br />
+<Since v="4.5.0" />
+</p>
+
+此功能将为 `type: 'data'` 的内容集合自动生成一个 JSON 模式，该模式可用作 VSCode 等工具中 TypeScript 风格的自动完成/提示的 `$schema` 值。
+
+要启用此功能，请添加实验性标志：
+
+```diff
+import { defineConfig } from 'astro/config';
+export default defineConfig({
+	experimental: {
++		contentCollectionJsonSchema: true
+	}
+});
+```
+
+此实验性实现要求你在内容集合的每个数据条目文件中手动引用模式：
+
+```diff
+// src/content/test/entry.json
+{
++  "$schema": "../../../.astro/collections/test.schema.json",
+	"test": "test"
+}
+```
+
+或者，你也可以在你的 [VSCode `json.schemas` 设置](https://code.visualstudio.com/docs/languages/json#_json-schemas-and-settings)中进行配置：
+
+```diff
+"json.schemas": [
+	{
+		"fileMatch": [
+			"/src/content/test/**"
+		],
+		"url": "./.astro/collections/test.schema.json"
+	}
+]
+```
+
+请注意，这个初始实现使用了一个库，该库对于高级 Zod 模式有[已知的问题](https://github.com/StefanTerdell/zod-to-json-schema#known-issues)，因此在启用实验性标志之前，你可能希望查阅这些限制。
+
 ### experimental.clientPrerender
 
 <p>
@@ -1176,7 +1245,7 @@ Astro 提供了实验性标志，以便用户提前使用新功能。这些标�
 
 允许在支持的浏览器中启用客户端预渲染来预获取页面。
 
-此功能使用实验性的 [推测规则 Web API](https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API)，并全局覆盖默认的 `prefetch` 行为，以在客户端预渲染链接。
+此功能使用实验性的 [推测规则 Web API](https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API)，并全局增强默认的 `prefetch` 行为，以在客户端预渲染链接。
 在启用此功能之前，你可能希望查看 [在客户端预渲染时可能的风险](https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API#unsafe_prefetching)。
 
 在你的 `astro.config.mjs` 中启用客户端预渲染，以及任何所需的 `prefetch` 配置选项：
