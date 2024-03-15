@@ -110,10 +110,10 @@ Por ejemplo, el siguiente `<video>` continuará reproduciéndose a medida que na
 
 También puedes colocar la directiva en una [isla de Astro](/es/concepts/islands/) (un componente de framework UI con una directiva [`client:`](/es/reference/directives-reference/#directivas-del-cliente)). Si ese componente existe en la siguiente página, la isla de la página antigua **con su estado actual** continuará mostrándose, en lugar de reemplazarla con la isla de la nueva página.
 
-En el ejemplo de abajo, el `count` no se restablecerá al navegar hacia adelante y hacia atrás a través de páginas que contengan el componente `<Counter />` con el atributo `transition:persist`.
+En el siguiente ejemplo, el estado interno del componente del recuento no se restablecerá cuando se navegue hacia adelante y hacia atrás por páginas que contengan el componente `<Counter />` con el atributo `transition:persist`.
 
 ```astro title="components/Header.astro" "transition:persist"
-<Counter client:load transition:persist count={5} />
+<Counter client:load transition:persist initialCount={5} />
 ```
 
 También puedes [identificar manualmente los elementos correspondientes](#nombrando-una-transición) si la isla/elemento está en un componente diferente entre las dos páginas.
@@ -131,6 +131,15 @@ Una alternativa práctica, `transition:persist` puede tomar un nombre de transic
 ```astro title="src/pages/index.astro" '="media-player"'
 <video controls="" autoplay="" transition:persist="media-player">
 ```
+
+#### `transition:persist-props`
+<p><Since v="4.5.0" /></p>
+
+Esto te permite controlar si los props de una isla deben persistir o no tras la navegación.
+
+Por defecto, cuando se añade `transition:persist` a una isla, el estado se mantiene durante la navegación, pero el componente se vuelve a renderizar con nuevos props. Esto es útil, por ejemplo, cuando un componente recibe props específicos de la página, como el `title` de la página actual.
+
+Puede anular este comportamiento con `transition:persist-props`. Al añadir esta directiva se conservarán los accesorios existentes de una isla (no se volverá a renderizar con nuevos valores) además de mantener su estado existente.
 
 ### Directivas de animación integradas
 
@@ -440,11 +449,34 @@ Cuando se utiliza el enrutador `<ViewTransitions />`, se siguen los siguientes p
 7. El enrutador ejecuta cualquier nuevo script agregado a la página.
 8. Se dispara el evento `astro:page-load`. Esto marca el final del proceso de navegación.
 
-## Comportamiento del script durante la navegación de la página
+## Comportamiento del script con view transitions
 
-Cuando navegas entre páginas con el componente `<ViewTransitions />`, los scripts se ejecutan en orden secuencial para coincidir con el comportamiento del navegador. 
+Al añadir view transitions a un proyecto de Astro existente, es posible que algunos de tus scripts ya no se vuelvan a ejecutar tras la navegación por la página, como ocurría con las actualizaciones de página completa del navegador. Utiliza la siguiente información para asegurarte de que tus scripts se ejecutan como se espera.
 
-Si tienes código que configura el estado global, este estado deberá tener en cuenta que el script puede ejecutarse más de una vez. Comprueba el estado global en tu etiqueta `<script>`, y ejecuta condicionalmente tu código cuando sea posible:
+### Orden del Script
+
+Al navegar entre páginas con el componente `<ViewTransitions />`, los scripts se ejecutan en orden secuencial para ajustarse al comportamiento del navegador. 
+
+### Reejecución del script
+
+Los [Bundled module scripts](/es/guides/client-side-scripts/#procesamiento-de-scripts), que son los scripts por defecto en Astro, sólo se ejecutan una vez. Después de la ejecución inicial serán ignorados, incluso si el script existe en la nueva página después de una transición.
+
+A diferencia de los scripts de módulos empaquetados, los [scripts inline](/es/guides/client-side-scripts/#optar-por-no-procesar) pueden volver a ejecutarse durante la visita de un usuario a un sitio si existen en una página que se visita varias veces. Los scripts inline también pueden volver a ejecutarse cuando un visitante navega a una página sin el script y luego vuelve a una con el script.
+
+#### `data-astro-rerun`
+
+<p><Since v="4.5.0" /></p>
+
+Para forzar a los scripts inline a reejecutarse después de cada transición, añade la propiedad `data-astro-rerun`. Al añadir cualquier atributo a un script también se añade implícitamente `is:inline`, por lo que esto sólo está disponible para scripts que no están empaquetados y procesados por Astro.
+
+
+```astro
+<script is:inline data-astro-rerun>...</script>
+```
+
+Para garantizar que un script se ejecuta cada vez que se carga una página durante la navegación del lado del cliente, debe ser ejecutado por un [evento del ciclo de vida](#eventos-del-ciclo-de-vida). Por ejemplo, los escuchadores de eventos para `DOMContentLoaded` pueden sustituirse por el evento de ciclo de vida [`astro:page-load`](/es/guides/view-transitions/#astropage-load).
+
+Si tienes código que establece un estado global en un script inline, este estado necesitará tener en cuenta que el script podría ejecutarse más de una vez. Comprueba el estado global en tu etiqueta `<script>`, y ejecuta condicionalmente tu código cuando sea posible. Esto funciona porque `window` se mantiene.
 
 ```astro
 <script is:inline>
@@ -454,9 +486,7 @@ Si tienes código que configura el estado global, este estado deberá tener en c
 </script>
 ```
 
-Los scripts de módulo, incluyendo aquellos que añaden listeners de eventos para `DOMContentLoaded`, solo se ejecutan una vez debido a que el navegador realiza un seguimiento de los módulos que ya están cargados. Debes añadir listeners para un [evento del ciclo de vida](#eventos-del-ciclo-de-vida) para volver a ejecutar scripts durante la navegación de la página en el lado del cliente.
-
-Consulta el [tutorial Ampliar con View Transitions](/es/tutorials/add-view-transitions/#actualiza-los-scripts) para ver un ejemplo actualizando los scripts existentes en un proyecto.
+Consulta el [Tutorial Añadir View Transitions](/es/tutorials/add-view-transitions/#actualiza-los-scripts) para ver un ejemplo de actualización de scripts existentes en un proyecto.
 
 ## Eventos del ciclo de vida
 
