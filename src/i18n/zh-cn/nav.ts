@@ -32,9 +32,11 @@ export default NavDictionary({
 	'guides/integrations-guide': '添加集成',
 	'guides/framework-components': 'UI 框架',
 	'guides/server-side-rendering': '服务端渲染 (SSR)',
+	'guides/astro-db': 'Astro DB',
 
 	examples: '操作指南',
 	'guides/migrate-to-astro': '迁移到 Astro',
+	'recipes/studio': '连接到 Astro Studio',
 	'guides/cms': '连接到 CMS',
 	'guides/backend': '添加后端服务',
 	'guides/deploy': '部署你的站点',

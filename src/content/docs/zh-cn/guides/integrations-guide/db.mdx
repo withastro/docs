@@ -1,0 +1,223 @@
+---
+type: integration
+title: '@astrojs/db'
+description: 了解如何在你的 Astro 项目中使用 @astrojs/db 集成。
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/db/'
+category: other
+i18nReady: true
+---
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import Badge from '~/components/Badge.astro';
+
+
+Astro DB 是一个为 Astro 生态设计的全托管 SQL 数据库：你可以在本地使用 Astro 进行开发，并从你的 [Astro Studio 仪表板](/zh-cn/recipes/studio/) 进行部署。
+
+有了 Astro DB，你就拥有了一个强大的、本地的、类型安全的工具，可以像关系数据库查询和构建内容。通过你的交互式 Studio 仪表板查看、管理和部署你的托管远程数据。
+
+<ReadMore>查看 [Astro DB 指南](/zh-cn/guides/astro-db/) 以获取完整的使用方法和示例。</ReadMore>
+
+## 安装
+
+Astro 包含了一个 `astro add` 命令，用于自动设置官方集成。如果你愿意，你也可以选择[手动安装集成](/zh-cn/guides/integrations-guide/mdx/#手动安装)。
+
+在新的终端窗口中运行以下之一的命令。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add db
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add db
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add db
+  ```
+  </Fragment>
+ </PackageManagerTabs>
+
+#### 手动安装 
+
+如果你更喜欢自己从头开始设置，可以跳过 `astro add`，并按照以下说明自行安装 Astro DB。
+
+##### 1. 通过包管理器从 npm 安装集成
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm install @astrojs/db
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm add @astrojs/db
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn add @astrojs/db
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+##### 2. 将集成添加到 `astro.config.mjs`
+
+    ```js title="astro.config.mjs" ins={2,6}
+    import { defineConfig } from 'astro/config';
+    import db from '@astrojs/db';
+
+    export default defineConfig({
+      integrations: [
+       db()
+      ]
+    });
+    ```
+
+##### 3. 配置你的数据库 
+
+在项目的根目录下创建一个 `db/config.ts` 文件。这是一个特殊的文件，Astro 会自动加载并用它来配置你的数据库表。
+
+```ts
+// db/config.ts
+import { defineDb } from 'astro:db';
+
+export default defineDb({
+  tables: {},
+})
+```
+
+## 表配置参考
+
+### `columns`
+
+表的列是使用 `columns` 对象配置：
+
+```ts
+import { defineTable, column, NOW } from 'astro:db';
+
+const Comment = defineTable({
+	columns: {
+		id: column.number({ primaryKey: true }),
+		author: column.text(),
+		content: column.text({ optional: true }),
+		published: column.date({ default: NOW }),
+	},
+});
+```
+
+列是使用 `column` 辅助工具进行配置的。`column` 支持以下类型：
+
+- **`column.text(...)`** - 存储纯文本或富文本内容
+- **`column.number(...)`** - 存储整数和浮点值
+- **`column.boolean(...)`** - 存储 true / false 值
+- **`column.date(...)`** - 存储 `Date` 对象，解析为 ISO 字符串用于数据存储
+- **`column.json(...)`** - 存储任意 JSON blobs，解析为字符串化的 JSON 用于数据存储
+
+所有列都有一些共享的配置值：
+
+- `primaryKey` - 将 `number` 或 `text` 列设置为唯一标识符。
+- `optional` - Astro DB 默认对所有列使用 `NOT NULL`。将 `optional` 设置为 `true` 以允许 null 值。
+- `default` - 设置新插入条目的默认值。这可以接受静态值或生成值（如时间戳）的 `sql` 字符串。
+- `unique` - 将列标记为唯一。这将防止表中条目的值重复。
+- `references` - 通过列引用相关表。这会建立一个外键约束，意味着每个列值必须在引用的表中有一个匹配的值。
+
+### `indexes`
+
+表索引用于提高在给定列或列组合上的查找速度。`indexes` 属性接受一个对象，其唯一的索引名作为键：
+
+```ts title="db/config.ts" {6-8}
+import { defineTable, column } from 'astro:db';
+
+const Comment = defineTable({
+  authorId: column.number(),
+  body: column.text(),
+  indexes: {
+    author_idx: { on: ['authorId'], unique: true },
+  }
+});
+```
+
+每个索引都有以下配置选项：
+
+- `on`: `string | string[]` - 要索引的单个列或列名数组。
+- `unique`: `boolean` - 设置为 `true` 以在索引列上强制唯一值。
+
+### `foreignKeys`
+
+:::tip
+
+`foreignKeys` 是一个用于关联多个表列的高级 API。如果你只需要引用一个单独的列，试试使用[列 `references` 属性。](#columns)
+
+:::
+
+外键用于建立两个表之间的关系。`foreignKeys` 属性接受一个配置对象数组，可以在表之间关联一个或多个列：
+
+```ts title="db/config.ts" {12-20}
+import { defineTable, column } from 'astro:db';
+
+const Author = defineTable({
+  firstName: column.text(),
+  lastName: column.text(),
+});
+
+const Comment = defineTable({
+  authorFirstName: column.text(),
+  authorLastName: column.text(),
+  body: column.text(),
+  foreignKeys: [
+    {
+      columns: ['authorFirstName', 'authorLastName'],
+      references: () => [
+        Author.columns.firstName,
+        Author.columns.lastName
+      ],
+    },
+  ]
+});
+```
+
+每个外键配置对象接受以下属性：
+
+- `columns`: `string[]` - 要与引用表关联的列名数组。
+- `references`: `() => Column[]` - 返回引用表的列数组的函数。
+
+## Astro DB CLI 参考
+
+Astro DB 包含一组 CLI 命令，用于与你的托管项目数据库和你的 [Astro Studio](/zh-cn/recipes/studio/) 账户进行交互。 
+
+当使用 GitHub CI 流水线时，这些命令会被自动调用，你也可以使用 `astro db` CLI 手动调用它们。
+
+### `astro db push`
+
+**标志：**
+
+- `--force-reset` 如果需要进行破坏性的模式更改，则重置所有生产数据。
+
+安全地将数据库配置更改推送到你的项目数据库。这将检查任何数据丢失的风险，并指导你进行任何推荐的迁移步骤。如果必须进行破坏性的模式更改，使用 `--force-reset` 标志重置所有生产数据。
+
+### `astro db verify`
+
+检查你的本地和远程数据库配置之间的任何差异。这是由 `astro db push` 自动运行的。`verify` 将比较你的本地 `db/config.ts` 文件与远程数据库，并在检测到更改时发出警告。
+
+### `astro db execute <file-path>`
+
+**标志：**
+
+- `--remote` 在你的 Studio 项目数据库上运行。省略则在你的开发服务器上运行。
+
+执行一个 `.ts` 或 `.js` 文件以读取或写入你的数据库。这接受一个文件路径作为参数，并支持使用 `astro:db` 模块编写类型安全的查询。使用 `--remote` 标志在你的 Studio 项目数据库上运行，或省略该标志在你的开发服务器上运行。参见如何[填充开发数据](/zh-cn/guides/astro-db/#为你的数据库填充数据)以获取一个示例文件。
+
+### `astro db shell --query <sql-string>`
+
+**标志：**
+
+- `--query` 要执行的原始 SQL 查询语句。
+- `--remote` 在你的 Studio 项目数据库上运行。省略则在你的开发服务器上运行。
+
+对你的数据库执行原始 SQL 查询。使用 `--remote` 标志在你的 Studio 项目数据库上运行，或省略该标志在你的开发服务器上运行。
