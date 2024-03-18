@@ -132,4 +132,5 @@ export default UIDictionary({
 	// Starlight banner
 	'starlight.title': '¿Quieres crear tus propios Docs?',
 	'starlight.description': 'Toma esta plantilla para comenzar.',
+	'studioHeading.label': 'Característica de Studio',
 });
