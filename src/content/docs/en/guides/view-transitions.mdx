@@ -112,11 +112,15 @@ For example, the following `<video>` will continue to play as you navigate to an
 
 You can also place the directive on an [Astro island](/en/concepts/islands/) (a UI framework component with a [`client:` directive](/en/reference/directives-reference/#client-directives)). If that component exists on the next page, the island from the old page **with its current state** will continue to be displayed, instead of replacing it with the island from the new page.
 
-In the example below, the `count` will not be reset when navigating back and forth across pages that contain the `<Counter />` component with the `transition:persist` attribute.
+In the example below, the component's internal state of the count will not be reset when navigating back and forth across pages that contain the `<Counter />` component with the `transition:persist` attribute.
 
 ```astro title="components/Header.astro" "transition:persist"
-<Counter client:load transition:persist count={5} />
+<Counter client:load transition:persist initialCount={5} />
 ```
+
+:::note[Known limitations]
+Not all state can be preserved in this way. The restart of CSS animations and the reload of iframes cannot be avoided during view transitions even when using `transition:persist`.
+:::
 
 You can also [manually identify corresponding elements](#naming-a-transition) if the island/element is in a different component between the two pages.
 
@@ -133,6 +137,15 @@ As a convenient shorthand, `transition:persist` can alternatively take a transit
 ```astro title="src/pages/index.astro" '="media-player"'
 <video controls="" autoplay="" transition:persist="media-player">
 ```
+
+#### `transition:persist-props`
+<p><Since v="4.5.0" /></p>
+
+This allows you to control whether or not an island's props should be persisted upon navigation.
+
+By default, when you add `transition:persist` to an island, the state is retained upon navigation, but your component will re-render with new props. This is useful, for example, when a component receives page-specific props such as the current page's `title`.
+
+You can override this behavior with `transition:persist-props`. Adding this directive will keep an island's existing props (not re-render with new values) in addition to maintaining its existing state.
 
 ### Built-in Animation Directives
 
@@ -444,11 +457,33 @@ When using the `<ViewTransitions />` router, the following steps occur to produc
 7. The router executes any new scripts added to the page.
 8. The `astro:page-load` event fires. This is the end of the navigation process.
 
-## Script behavior during page navigation
+## Script behavior with view transitions
+
+When you add view transitions to an existing Astro project, some of your scripts may no longer re-run after page navigation like they did with full-page browser refreshes. Use the following information to ensure that your scripts execute as expected.
+
+### Script order
 
 When navigating between pages with the `<ViewTransitions />` component, scripts are run in sequential order to match browser behavior. 
 
-If you have code that sets up global state, this state will need to take into account that the script might execute more than once. Check for the global state in your `<script>` tag, and conditionally execute your code where possible:
+### Script re-execution
+
+[Bundled module scripts](/en/guides/client-side-scripts/#script-processing), which are the default scripts in Astro, are only ever executed once. After initial execution they will be ignored, even if the script exists on the new page after a transition.
+
+Unlike bundled module scripts, [inline scripts](/en/guides/client-side-scripts/#opting-out-of-processing) have the potential to be re-executed during a user's visit to a site if they exist on a page that is visited multiple times. Inline scripts might also re-execute when a visitor navigates to a page without the script, and then back to one with the script.
+
+#### `data-astro-rerun`
+
+<p><Since v="4.5.0" /></p>
+
+To force inline scripts to re-execute after every transition, add the `data-astro-rerun` property. Adding any attribute to a script also implicitly adds `is:inline`, so this is only available for scripts that are not bundled and processed by Astro.
+
+```astro
+<script is:inline data-astro-rerun>...</script>
+```
+
+To ensure that a script runs every time a page is loaded during client-side navigation, it should be executed by a [lifecycle event](#lifecycle-events). For example, event listeners for `DOMContentLoaded` can be replaced by the [`astro:page-load`](/en/guides/view-transitions/#astropage-load) lifecycle event.
+
+If you have code that sets up a global state in an inline script, this state will need to take into account that the script might execute more than once. Check for the global state in your `<script>` tag, and conditionally execute your code where possible. This works because `window` is preserved.
 
 ```astro
 <script is:inline>
@@ -458,7 +493,6 @@ If you have code that sets up global state, this state will need to take into ac
 </script>
 ```
 
-Module scripts, including those that add event listeners for `DOMContentLoaded`, are only ever executed once because the browser keeps track of which modules are already loaded. You must add listeners for a [Lifecycle event](#lifecycle-events) to re-execute scripts during client-side page navigation.
 
 See the [Add View Transitions Tutorial](/en/tutorials/add-view-transitions/#update-scripts) for an example of updating existing scripts in a project.
 
