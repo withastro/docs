@@ -33,9 +33,11 @@ export default NavDictionary({
 	'guides/integrations-guide': 'Guida alle integrazioni',
 	'guides/framework-components': 'Framework UI',
 	'guides/server-side-rendering': 'Rendering lato server (SSR)',
+	'guides/astro-db': 'Astro DB',
 
 	examples: 'Ricette',
 	'guides/migrate-to-astro': 'Passa ad Astro',
+	'recipes/studio': 'Connetti Astro Studio',
 	'guides/cms': 'Connetti una CMS',
 	'guides/backend': 'Aggiungi un servizio backend',
 	'guides/deploy': 'Pubblica il tuo sito',
