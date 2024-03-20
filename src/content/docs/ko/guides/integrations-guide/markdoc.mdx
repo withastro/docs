@@ -7,7 +7,7 @@ category: other
 i18nReady: true
 ---
 
-import FileTree from '~/components/FileTree.astro';
+import { FileTree } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import ReadMore from '~/components/ReadMore.astro';
 
@@ -211,7 +211,7 @@ export default defineMarkdocConfig({
 
 ### 구문 강조
 
-`@astrojs/markdoc`은 코드 블록을 강조 표시하는 [Shiki](https://github.com/shikijs/shiki) 및 [Prism](https://github.com/PrismJS) 확장 프로그램을 제공합니다.
+`@astrojs/markdoc`은 코드 블록을 강조 표시하는 [Shiki](https://shiki.style) 및 [Prism](https://github.com/PrismJS) 확장 프로그램을 제공합니다.
 
 #### Shiki
 
@@ -226,14 +226,14 @@ export default defineMarkdocConfig({
     shiki({
       // Shiki의 테마 중에서 선택하거나 직접 추가하세요.
       // 기본값: 'github-dark'
-      // https://github.com/shikijs/shiki/blob/main/docs/themes.md
+      // https://shiki.style/themes
       theme: 'dracula',
       // 가로 스크롤을 방지하려면 줄 바꿈을 활성화하세요.
       // 기본값: false
       wrap: true,
       // 사용자 정의 언어 전달
       // 참고: Shiki에는 `.astro`를 포함하여 수많은 언어가 내장되어 있습니다!
-      // https://github.com/shikijs/shiki/blob/main/docs/languages.md
+      // https://shiki.style/languages
       langs: [],
     }),
   ],
@@ -292,6 +292,119 @@ export default defineMarkdocConfig({
 ```
 
 <ReadMore>모든 내장 노드 및 속성에 대해 알아보려면 [Markdoc 노드 문서](https://markdoc.dev/docs/nodes#build-in-nodes)를 참조하세요.</ReadMore>
+
+### Markdoc의 사용자 정의 이미지 컴포넌트
+
+Astro의 `<Image />` 컴포넌트는 Markdoc에서 직접 사용할 수 없습니다. 그러나 기본 `![]()` 이미지 구문이 사용될 때마다 기본 이미지 노드를 재정의하도록 Astro 컴포넌트를 구성하거나 추가 이미지 속성을 지정할 수 있도록 사용자 정의 Markdoc 태그로 구성할 수 있습니다.
+
+#### Markdoc의 기본 이미지 노드 재정의
+
+기본 이미지 노드를 재정의하려면 표준 `<img>` 대신 렌더링되도록 `.astro` 컴포넌트를 구성할 수 있습니다.
+
+1. 사용자 정의 `MarkdocImage.astro` 컴포넌트를 구축하여 이미지의 필수 `src` 및 `alt` 속성을 `<Image />` 컴포넌트에 전달합니다.
+
+    ```astro title="src/components/MarkdocImage.astro"
+    ---
+    import { Image } from "astro:assets";
+    interface Props {
+      src: ImageMetadata;
+      alt: string;
+    }
+    const { src, alt } = Astro.props;
+    ---
+    <Image src={src} alt={alt} />
+    ```
+
+2. `<Image />` 컴포넌트에는 `![]()` 구문을 사용하여 제공할 수 없는 원격 이미지에 대한 `width` 및 `height`가 필요합니다. 원격 이미지를 사용할 때 오류를 방지하려면 원격 URL `src`를 발견했을 때 표준 HTML `<img>` 태그를 렌더링하도록 컴포넌트를 업데이트하세요.
+
+    ```astro title="src/components/MarkdocImage.astro" ins="| string" del={9} ins={10-12}
+    ---
+    import { Image } from "astro:assets";
+    interface Props {
+      src: ImageMetadata | string;
+      alt: string;
+    }
+    const { src, alt } = Astro.props;
+    ---
+    <Image src={src} alt={alt} />
+    {
+      typeof src === 'string' ? <img src={src} alt={alt} /> : <Image src={src} alt={alt} />
+    }
+    ```
+
+3. 기본 이미지 노드를 재정의하고 `MarkdocImage.astro`를 렌더링하도록 Markdoc을 구성합니다.
+
+    ```js title="markdoc.config.mjs"
+    import { defineMarkdocConfig, nodes, component } from '@astrojs/markdoc/config';
+
+    export default defineMarkdocConfig({
+      nodes: {
+        image: {
+          ...nodes.image, // 다른 옵션에 대해서는 Markdoc의 기본값을 적용하세요.
+          render: component('./src/components/MarkdocImage.astro'),
+        },
+      },
+    });
+    ```
+
+4. 모든 `.mdoc` 파일의 기본 이미지 구문은 이제 `<Image />` 컴포넌트를 사용하여 로컬 이미지를 최적화합니다. 원격 이미지는 계속 사용할 수 있지만 Astro의 `<Image />` 컴포넌트에 의해 렌더링되지는 않습니다.
+
+    ```md title="src/content/blog/post.mdoc"
+
+    <!-- <Image />에 의해 최적화 -->
+    ![A picture of a cat](/cat.jpg)
+
+    <!-- 최적화되지 않은 <img> -->
+    ![A picture of a dog](https://example.com/dog.jpg) 
+    ```
+
+#### 사용자 정의 Markdoc 이미지 태그 생성
+
+Markdoc `image` 태그를 사용하면 `![]()` 구문으로는 불가능한 이미지의 추가 속성을 설정할 수 있습니다. 예를 들어 사용자 정의 이미지 태그를 사용하면 `width` 및 `height`가 필요한 원격 이미지에 Astro의 `<Image />` 컴포넌트를 사용할 수 있습니다.
+
+다음 단계에서는 이미지를 최적화하기 위해 Astro `<Image />` 컴포넌트를 사용하여 캡션이 있는 `<figure>` 요소를 표시하는 사용자 정의 Markdoc 이미지 태그를 생성합니다.
+
+1. 필요한 props을 받아 캡션이 포함된 이미지를 렌더링하려면 `MarkdocFigure.astro` 컴포넌트를 생성합니다.
+
+    ```astro title="src/components/MarkdocFigure.astro"
+    ---
+    // src/components/MarkdocFigure.astro
+    import { Image } from "astro:assets";
+    interface Props {
+      src: ImageMetadata | string;
+      alt: string;
+      width: number;
+      height: number;
+      caption: string;
+    }
+    const { src, alt, width, height, caption } = Astro.props;
+    ---
+    <figure>
+        <Image {src} {alt} {width} {height}  />
+        {caption && <figcaption>{caption}</figcaption>}
+    </figure>
+    ```
+
+2. Astro 컴포넌트를 렌더링하도록 사용자 정의 이미지 태그를 구성합니다.
+
+    ```ts title="markdoc.config.mjs"
+    import { component, defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
+
+    export default defineMarkdocConfig({
+      tags: {
+        image: {
+          attributes: nodes.image.attributes,
+          render: component('./src/components/MarkdocFigure.astro'),
+        },
+      },
+    });
+    ```
+
+3. Markdoc 파일의 `image` 태그를 사용하여 캡션이 있는 그림을 표시하고 컴포넌트에 필요한 모든 속성을 제공합니다.
+
+    ```mdoc
+    {% image src="./astro-logo.png" alt="Astro Logo" width="100" height="100" caption="a caption!" %}
+    ```
 
 ### 클라이언트 측 UI 컴포넌트 사용
 
@@ -394,7 +507,7 @@ VS Code를 사용하는 경우 구성된 태그에 대한 구문 강조 및 자�
 
 변수는 `Content` 컴포넌트를 통해 Props로 전달될 수 있습니다.
 
-```astro title="src/pages/why-markdoc.mdoc"
+```astro title="src/pages/why-markdoc.astro"
 ---
 import { getEntryBySlug } from 'astro:content';
 

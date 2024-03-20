@@ -82,6 +82,7 @@ export default UIDictionary({
 	'integrations.renderers': 'UI-Frameworks',
 	'integrations.adapters': 'SSR-Adapter',
 	'integrations.others': 'Sonstiges',
+	'integrations.more': 'Weitere Integrationen',
 	// Checklist component
 	'checklist.or': 'oder',
 	// Multiple Choice component
@@ -103,6 +104,10 @@ export default UIDictionary({
 	'feedback.categoryGroupLabel': 'Feedback-Typ wählen',
 	'feedback.issue': 'Problem',
 	'feedback.createIssue': 'Issue auf GitHub erstellen',
+	'feedback.createIssue.description':
+		'Schnellster Weg, um unser Team auf ein Problem aufmerksam zu machen.',
+	'feedback.sendFeedback': 'Schicke uns Feedback',
+	'feedback.sendFeedback.description': 'Schicke uns direkt eine Nachricht.',
 	'feedback.idea': 'Idee',
 	'feedback.other': 'Sonstiges',
 	'feedback.messageA11yLabel': 'Nachricht',
@@ -110,8 +115,6 @@ export default UIDictionary({
 	'feedback.submit': 'Feedback abschicken',
 	'feedback.close': 'Feedback-Formular schließen',
 	'feedback.success': 'Danke! Wir haben dein Feedback bekommen.',
-	// `<FileTree>` component
-	'fileTree.directoryLabel': 'Verzeichnis',
 	// Code snippet vocabulary
 	'expressiveCode.terminalWindowFallbackTitle': 'Terminal-Fenster',
 	'expressiveCode.copyButtonTooltip': 'In Zwischenablage kopieren',
@@ -126,4 +129,7 @@ export default UIDictionary({
 	'stub.description.cms': 'Weißt du mehr darüber, wie man dieses CMS mit Astro verwenden kann?',
 	'stub.description.backend':
 		'Weißt du mehr darüber, wie man diesen Backend-Dienst mit Astro verwenden kann?',
+	// Starlight banner
+	'starlight.title': 'Willst du deine eigene Dokumentation erzeugen?',
+	'starlight.description': 'Mit dieser Vorlage kannst du loslegen.',
 });

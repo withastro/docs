@@ -1,0 +1,126 @@
+---
+title: Turso и Astro
+description: Локальная сборка с помощью файла SQLite и глобальное развертывание с помощью Turso.
+type: backend
+service: Turso
+stub: false
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+[Turso](https://turso.tech) — это распределенная база данных, построенная на libSQL, форке SQLite. Она оптимизирована для низкой задержки запросов, что делает ее подходящей для глобальных приложений.
+
+## Инициализация Turso в Astro
+
+### Предварительные условия
+
+- Установленный и авторизированный [Turso CLI](https://docs.turso.tech/reference/turso-cli)
+- База данных [Turso](https://turso.tech) со схемой
+- URL вашей базы данных
+- Токен доступа
+
+### Настройте переменные окружения
+
+Получите URL вашей базы данных с помощью следующей команды:
+
+```bash
+turso db show <database-name> --url
+```
+
+Создайте токен аутентификации для базы данных:
+
+```bash
+turso db tokens create <database-name>
+```
+
+Добавьте результаты выполнения обеих команд в файл `.env` в корне проекта. Если этот файл не существует, создайте его.
+
+```ini title=".env"
+TURSO_DATABASE_URL=libsql://...
+TURSO_AUTH_TOKEN=
+```
+
+:::caution
+Не используйте префикс `PUBLIC_` при создании этих приватных [переменных окружения](/ru/guides/environment-variables/). Это приведет к раскрытию этих значений на клиенте.
+:::
+
+### Установка клиента LibSQL
+
+Установите `@libsql/client` для подключения Turso к Astro:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```shell
+    npm install @libsql/client
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```shell
+    pnpm add @libsql/client
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    yarn add @libsql/client
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Инициализация нового клиента
+
+Создайте файл `turso.ts` в папке `src` и вызовите `createClient`, передав ему `TURSO_DATABASE_URL` и `TURSO_AUTH_TOKEN`:
+
+```ts title="src/turso.ts"
+import { createClient } from "@libsql/client/web";
+
+export const turso = createClient({
+  url: import.meta.env.TURSO_DATABASE_URL,
+  authToken: import.meta.env.TURSO_AUTH_TOKEN,
+});
+```
+
+## Запрос к вашей базе данных
+
+Чтобы получить доступ к информации из вашей базы данных, импортируйте `turso` и [выполните SQL-запрос](https://docs.turso.tech/libsql/client-access/javascript-typescript-sdk#execute-a-single-statement) внутри любого компонента `.astro`.
+
+Следующий пример извлекает все `posts` из вашей таблицы, а затем выводит список заголовков в компоненте `<BlogIndex />`:
+
+```astro title="src/components/BlogIndex.astro"
+---
+import { turso } from '../turso'
+
+const { rows } = await turso.execute('SELECT * FROM posts')
+---
+
+<ul>
+  {rows.map((post) => (
+    <li>{post.title}</li>
+  ))}
+</ul>
+```
+
+### SQL Заполнители
+
+Метод `execute()` может принимать [объект для передачи переменных в SQL-запрос](https://docs.turso.tech/libsql/client-access/javascript-typescript-sdk#positional-placeholders), например, `slug` или пагинацию.
+
+Следующий пример извлекает одну запись из таблицы `posts`, где `slug` - это значение, полученное из `Astro.params`, а затем отображает заголовок сообщения.
+
+```astro title="src/pages/index.astro"
+---
+import { turso } from '../turso'
+
+const { slug } = Astro.params
+
+const { rows } = await turso.execute({
+  sql: 'SELECT * FROM posts WHERE slug = ?',
+  args: [slug!]
+})
+---
+
+<h1>{rows[0].title}</h1>
+```
+
+## Ресурсы Turso
+- [Turso Docs](https://docs.turso.tech)
+- [Turso on GitHub](https://github.com/tursodatabase)
+- [Использование Turso для обслуживания содержимого блога Astro с рендерингом на стороне сервера](https://blog.turso.tech/using-turso-to-serve-a-server-side-rendered-astro-blogs-content-58caa6188bd5)

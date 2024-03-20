@@ -112,8 +112,6 @@ export default UIDictionary({
 	'feedback.submit': '提交反馈',
 	'feedback.close': '关闭反馈表单',
 	'feedback.success': '感谢！我们收到了你的反馈。',
-	// `<FileTree>` component
-	'fileTree.directoryLabel': '目录',
 	// Code snippet vocabulary
 	'expressiveCode.terminalWindowFallbackTitle': '终端窗口',
 	'expressiveCode.copyButtonTooltip': '复制到剪贴板',
@@ -130,4 +128,6 @@ export default UIDictionary({
 	// Starlight banner
 	'starlight.title': '想要构建你自己的文档？',
 	'starlight.description': '获取此模板以开始使用。',
+	// `<StudioHeading>` component
+	'studioHeading.label': 'Studio 功能',
 });

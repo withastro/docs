@@ -72,7 +72,6 @@ export const logos = LogoCheck({
 	keystonejs: { file: 'keystonejs.svg', padding: '.25em' },
 	appwriteio: { file: 'appwriteio.svg', padding: '.05em' },
 	supabase: { file: 'supabase.svg', padding: '.2em' },
-	tigris: { file: 'tigris.svg', padding: '.3em .1em .15em' },
 	turso: { file: 'turso.svg', padding: '.2em' },
 	cloudcannon: { file: 'cloudcannon.svg', padding: '.25em' },
 	markdoc: { file: 'markdoc.svg', padding: '.35em 0 .35em .1em' },
@@ -87,6 +86,7 @@ export const logos = LogoCheck({
 	keystatic: { file: 'keystatic.svg', padding: '0' },
 	zeabur: { file: 'zeabur.svg', padding: '.2em' },
 	apostrophecms: { file: 'apostrophecms.svg', padding: '.15em .15em' },
+	db: { file: 'db.svg', padding: '.1em' },
 });
 
 export type LogoKey = keyof typeof logos;

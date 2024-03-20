@@ -52,7 +52,7 @@ import { ViewTransitions } from 'astro:transitions';
 
 下面的示例显示了如何通过导入和添加此组件到 `<CommonHead />` Astro 组件中，为不支持的浏览器提供默认的页面导航动画，包括默认的回退控制选项，从而在整个站点上添加 Astro 的默认页面导航动画：
 
-```astro title="components/CommonHead.astro" ins={2,12}
+```astro title="src/components/CommonHead.astro" ins={2,12}
 ---
 import { ViewTransitions } from 'astro:transitions';
 ---
@@ -85,11 +85,11 @@ Astro 会自动为在旧页面和新页面中找到的相应元素并分配一�
 
 在某些情况下，你可能希望自己对相应的且包含视图过渡动画的元素进行标识，那么你可以使用 `transition:name` 指令为一对元素指定一个名称。
 
-```astro title="old-page.astro"
+```astro title="src/pages/old-page.astro"
 <aside transition:name="hero">
 ```
 
-```astro title="new-page.astro"
+```astro title="src/pages/new-page.astro"
 <aside transition:name="hero">
 ```
 
@@ -103,7 +103,7 @@ Astro 会自动为在旧页面和新页面中找到的相应元素并分配一�
 
 例如，以下 `<video>` 元素在你导航到包含相同视频元素的另一个页面时仍然会继续播放。这适用于前进和后退导航。
 
-```astro title="components/Video.astro" "transition:persist"
+```astro title="src/components/Video.astro" "transition:persist"
 <video controls="" autoplay="" transition:persist>
 	<source src="https://ia804502.us.archive.org/33/items/GoldenGa1939_3/GoldenGa1939_3_512kb.mp4" type="video/mp4">
 </video>
@@ -111,27 +111,40 @@ Astro 会自动为在旧页面和新页面中找到的相应元素并分配一�
 
 你也可以将指令放在一个 [Astro 群岛](/zh-cn/concepts/islands/) 上（即带有 [`client:` 指令](/zh-cn/reference/directives-reference/#客户端指令) 的 UI 框架组件）。如果该组件存在于下一个页面上，旧页面上的岛屿与其**当前状态**将继续显示，而不是用新页上的岛屿替换它。
 
-在下面的示例中，当在包含具有 `transition:persist` 属性的 `<Counter />` 组件的页面之间来回导航时，`count` 不会重置。
+在下面的示例中，当在包含具有 `transition:persist` 属性的 `<Counter />` 组件的页面之间来回导航时，组件内部状态的计数不会重置。
 
 ```astro title="components/Header.astro" "transition:persist"
-<Counter client:load transition:persist count={5} />
+<Counter client:load transition:persist initialCount={5} />
 ```
+
+:::note[已知限制]
+并不是所有的状态都能以这种方式保存下来。即使在使用 `transition：persistent` 时，也无法避免在视图转换期间重新启动 CSS 动画和重新加载 iframe。
+:::
 
 如果岛屿（或元素）在两个页面之间位于不同的组件中，你也可以[手动标识相应的元素](#命名过渡动画)。
 
-```astro title="pages/old-page.astro" "Video" 'transition:name="media-player"'
+```astro title="src/pages/old-page.astro" "Video" 'transition:name="media-player"'
 <Video controls="" autoplay="" transition:name="media-player" transition:persist />
 ```
 
-```astro title="pages/new-page.astro" "MyVideo" 'transition:name="media-player"'
+```astro title="src/pages/new-page.astro" "MyVideo" 'transition:name="media-player"'
 <MyVideo controls="" autoplay="" transition:name="media-player" transition:persist />
 ```
 
 作为一种便捷的方式，`transition:persist` 还可以将过渡动画名称作为值传入。
 
-```astro title="pages/index.astro" '="media-player"'
+```astro title="src/pages/index.astro" '="media-player"'
 <video controls="" autoplay="" transition:persist="media-player">
 ```
+
+#### `transition:persist-props`
+<p><Since v="4.5.0" /></p>
+
+这允许你控制在导航时是否应该保持岛屿的 props。
+
+默认情况下，当你向岛屿添加 `transition:persist` 时，状态会在导航时保持，但你的组件将会使用新的 props 重新渲染。例如，当一个组件接收到特定于页面的 props，如当前页面的 `title` 时，这是很有用的。
+
+你可以使用 `transition:persist-props` 覆盖这种行为。添加这个指令将会保持岛屿现有的 props（不使用新值重新渲染）并维持其现有状态。
 
 ### 内置动画指令
 
@@ -148,7 +161,7 @@ Astro 提供了一些内置的动画选项，用于覆盖默认的 `fade` 过渡
 
 ```astro
 ---
-import { CommonHead } from '../components/CommonHead.astro';
+import CommonHead from '../components/CommonHead.astro';
 ---
 
 <html transition:animate="none">
@@ -269,25 +282,25 @@ const myFade = {
 你还可以使用 `navigate` 方法在通常不被 `<ViewTransitions />` 路由器监听的事件里触发客户端导航。该函数来自于 `astro:transitions/client` 模块，可以在任何客户端脚本和通过[客户端指令](/zh-cn/reference/directives-reference/#客户端指令)激活了的客户端组件中使用。
 
 下面的示例展示了一个当访客选择菜单中的选项时导航到另一个页面的 Astro 组件：
-```astro title="src/components/form.astro"
+```astro title="src/components/Form.astro"
 <script>
-    import { navigate } from 'astro:transitions/client';
-    // 自动导航到所选选项
-    document.querySelector('select').onchange = (ev) => {
-        let href = ev.target.value;
-        navigate(href);
-    };
+  import { navigate } from 'astro:transitions/client';
+  // 自动导航到所选选项
+  document.querySelector('select').onchange = (ev) => {
+    let href = ev.target.value;
+    navigate(href);
+  };
 </script>
 <select>
-    <option value="/play">Play</option>
-    <option value="/blog">Blog</option>
-    <option value="/about">About</option>
-    <option value="/contact">Contact</option>
+  <option value="/play">Play</option>
+  <option value="/blog">Blog</option>
+  <option value="/about">About</option>
+  <option value="/contact">Contact</option>
 </select>
 ```
 ```astro title="src/pages/index.astro"
 ---
-import Form from "../components/form.astro";
+import Form from "../components/Form.astro";
 import { ViewTransitions } from "astro:transitions";
 ---
 <html>
@@ -302,24 +315,25 @@ import { ViewTransitions } from "astro:transitions";
 
 下面的示例在一个 React 的 `<Form />` 组件中使用 `navigate()` 实现了相同的功能：
 
-```js title="src/components/form.jsx"
-import React from 'react';
-import { navigate } from 'astro:transitions/client';
+```js title="src/components/Form.jsx"
+import { navigate } from "astro:transitions/client";
 
 export default function Form() {
-  return <select onChange={(ev) => navigate(e.target.value)}>
-    <option value="/play">Play</option>
-    <option value="/blog">Blog</option>
-    <option value="/about">About</option>
-    <option value="/contact">Contact</option>
-  </select>;
+  return (
+    <select onChange={(e) => navigate(e.target.value)}>
+      <option value="/play">Play</option>
+      <option value="/blog">Blog</option>
+      <option value="/about">About</option>
+      <option value="/contact">Contact</option>
+    </select>
+  );
 }
 ```
 这个 `<Form />` 组件可以在使用 `<ViewTransitions />` 路由器的 Astro 页面上带着客户端指令渲染：
 
 ```astro title="src/pages/index.astro"
 ---
-import Form from "../components/form.jsx";
+import Form from "../components/Form.jsx";
 import { ViewTransitions } from "astro:transitions";
 ---
 <html>
@@ -359,7 +373,7 @@ import { ViewTransitions } from "astro:transitions";
 
 以下示例导航到 `/main` 页面，但不向浏览历史记录中添加新条目，而是重用历史记录中的当前条目（`/confirmation`）并进行覆盖。
 
-```astro title="/confirmation.astro"
+```astro title="src/pages/confirmation.astro"
 <a href="/main" data-astro-history="replace">
 ```
 
@@ -403,7 +417,7 @@ import { ViewTransitions } from 'astro:transitions';
 ---
 <title>My site</title>
 
-<ViewTransitions fallback="swap">
+<ViewTransitions fallback="swap" />
 ```
 
 :::note[已知限制]
@@ -440,21 +454,43 @@ Astro 不会模拟 `initial` 浏览器动画。因此，任何使用此动画的
 7. 路由器执行添加到页面的任何新脚本。
 8. `astro:page-load` 事件触发。这是导航流程的结束。
 
-### 页面导航时的脚本行为
+## 在视图过渡中的脚本行为
+
+当你在现有的 Astro 项目中添加视图过渡时，一些脚本可能不会在页面导航后重新运行，就像它们在全页面浏览器刷新时所做的那样。使用以下信息来确保你的脚本按预期执行。
+
+### 脚本顺序
 
 在使用 `<ViewTransitions />` 组件导航页面时，脚本将按顺序运行以匹配浏览器行为。
 
-如果你有设置全局状态的代码，那么该状态需要考虑到该脚本可能会执行多次的情况。在 `<script>` 标签中检查全局状态，并在可能的情况下有条件地执行你的代码：
+
+### 脚本的重新执行
+
+[Astro 默认的打包模块脚本](/zh-cn/guides/client-side-scripts/#脚本处理)在初始执行之后将只会被执行一次。即使在页面过渡后，该脚本存在于新页面上，它也会被忽略。
+
+与打包的模块脚本不同，[内联脚本](/zh-cn/guides/client-side-scripts/#选择退出处理) 在用户访问网站期间，如果它们存在于被多次访问的页面上，就有可能被重新执行。当访客导航到一个没有该脚本的页面，然后再回到一个有该脚本的页面时，内联脚本也可能会重新执行。
+
+#### `data-astro-rerun`
+
+<p><Since v="4.5.0" /></p>
+
+要强制内联脚本在每次过渡后重新执行，请添加 `data-astro-rerun` 属性。向脚本添加任何属性也会隐式地添加 `is:inline`，因此这只适用于未被 Astro 打包和处理的脚本。
+
+```astro
+<script is:inline data-astro-rerun>...</script>
+```
+
+为了确保脚本在客户端导航期间每次加载页面时都能运行，它应该由一个[生命周期事件](#生命周期事件)执行。例如，`DOMContentLoaded` 的事件监听器可以被 [`astro:page-load`](/zh-cn/guides/view-transitions/#astropage-load) 生命周期事件替换。
+
+如果你有在内联脚本中设置了全局状态的代码，那么这个状态需要考虑到脚本可能会被执行多次的情况。在你的 `<script>` 标签中检查全局状态，并在可能的情况下有条件地执行你的代码。这是因为 `window` 对象是被保留的。
+
 
 ```astro
 <script is:inline>
-  if(!window.SomeGlobal) {
+  if (!window.SomeGlobal) {
     window.SomeGlobal = {} // ....
   }
 </script>
-```
-
-模块脚本，包括那些为 `DOMContentLoaded` 添加事件监听器的脚本，只会执行一次，因为浏览器会跟踪已经加载的模块。你必须添加一个 [生命周期事件](#生命周期事件) 的监听器，以便在客户端页面导航期间重新执行脚本。
+``` 
 
 有关在项目中更新现有脚本的示例，请参阅 [添加视图过渡动画教程](/zh-cn/tutorials/add-view-transitions/#更新你的脚本)。
 

@@ -4,12 +4,12 @@ export default NavDictionary({
 	startHere: 'Comincia qui',
 	'getting-started': 'Per Iniziare',
 	install: 'Installazione',
-	'editor-setup': 'Setup dell’Editor',
+	'editor-setup': 'Configurazione dell’Editor',
 	'guides/upgrade-to/v4': 'Aggiorna a v4',
 
 	coreConcepts: 'Concetti Chiave',
 	'concepts/why-astro': 'Perché Astro',
-	'concepts/islands': 'Le Isole Astro',
+	'concepts/islands': 'Isole Astro',
 
 	tutorials: 'Tutorial',
 	'blog-tutorial': 'Costruisci un Blog',
@@ -33,13 +33,15 @@ export default NavDictionary({
 	'guides/integrations-guide': 'Guida alle integrazioni',
 	'guides/framework-components': 'Framework UI',
 	'guides/server-side-rendering': 'Rendering lato server (SSR)',
+	'guides/astro-db': 'Astro DB',
 
-	examples: 'Soluzioni',
+	examples: 'Ricette',
 	'guides/migrate-to-astro': 'Passa ad Astro',
+	'recipes/studio': 'Connetti Astro Studio',
 	'guides/cms': 'Connetti una CMS',
 	'guides/backend': 'Aggiungi un servizio backend',
 	'guides/deploy': 'Pubblica il tuo sito',
-	'guides/recipes': 'Altre soluzioni',
+	'guides/recipes': 'Altre ricette',
 
 	features: 'Guide',
 	'guides/routing': 'Navigazione',
@@ -49,11 +51,12 @@ export default NavDictionary({
 	'guides/images': 'Immagini',
 	'guides/fonts': 'Font',
 	'guides/imports': 'Import',
-	'guides/endpoints': 'Punti d’accesso',
+	'guides/endpoints': 'Endpoint',
 	'guides/data-fetching': 'Fetch dei Dati',
 	'guides/internationalization': 'Internazionalizzazione',
 	'guides/middleware': 'Middleware',
 	'guides/testing': 'Testing',
+	'guides/authentication': 'Autenticazione',
 	'guides/troubleshooting': 'Risoluzione dei problemi',
 
 	configuration: 'Configurazione',
@@ -62,7 +65,7 @@ export default NavDictionary({
 	'guides/aliases': 'Import Alias',
 	'guides/environment-variables': 'Variabili d’Ambiente',
 
-	reference: 'API Reference',
+	reference: 'Riferimento',
 	'reference/configuration-reference': 'Configurazione',
 	'reference/api-reference': 'API del Runtime',
 	'reference/integrations-reference': 'API delle Integrazioni',
@@ -75,6 +78,6 @@ export default NavDictionary({
 	'guides/publish-to-npm': 'Formato del Pacchetto NPM',
 
 	communityResources: 'Risorse della Comunità',
-	'community-resources/content': 'Corsi, Guide e Soluzioni',
-	'community-resources/talks': 'Conferenze, Interviste e Trasmissioni',
+	'community-resources/content': 'Corsi, guide e ricette',
+	'community-resources/talks': 'Conferenze, interviste e live stream',
 });
