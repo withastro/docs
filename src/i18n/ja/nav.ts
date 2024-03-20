@@ -32,10 +32,12 @@ export default NavDictionary({
 	addons: 'インテグレーション',
 	'guides/integrations-guide': 'インテグレーションの追加',
 	'guides/framework-components': 'UIフレームワーク',
-	'guides/server-side-rendering': 'サーバーサイドレンダリング（SSR）',
+	'guides/server-side-rendering': 'SSRアダプター',
+	'guides/astro-db': 'Astro DB',
 
 	examples: 'レシピ',
 	'guides/migrate-to-astro': 'Astroへの移行',
+	'recipes/studio': 'Astro Studioとの接続',
 	'guides/cms': 'CMSとの接続',
 	'guides/backend': 'バックエンドサービスの追加',
 	'guides/deploy': 'サイトのデプロイ',
