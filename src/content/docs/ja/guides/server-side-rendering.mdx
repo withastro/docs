@@ -4,6 +4,7 @@ i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import RecipeLinks from '~/components/RecipeLinks.astro';
+import IntegrationsNav from '~/components/IntegrationsNav.astro';
 
 Astroでは、一部あるいはすべてのページに**オンデマンドレンダリング**を選択できます。これは**サーバーサイドレンダリング（SSR）** とも呼ばれ、リクエスト時にサーバー上でHTMLページを生成し、結果をクライアントに送信します。プロジェクトをサーバー上で実行しリクエストを処理するためには、**アダプター**が使用されます。
 
@@ -20,6 +21,14 @@ Astroでは、一部あるいはすべてのページに**オンデマンドレ�
 
 - **頻繁に変更されるコンテンツ**: サイトを静的に再ビルドすることなく個々のページを生成する。これはページのコンテンツが頻繁に更新される場合に有効です。
 
+## 公式アダプター
+
+Astroは、[NodeJs](https://nodejs.org/)、[Vercel](https://vercel.com/)、[Netlify](https://www.netlify.com/)、[Cloudflare](https://www.cloudflare.com/)の公式アダプターを提供しています。
+
+（Deno、SST、AWSなどの）[コミュニティ製のアダプター](https://astro.build/integrations/?search=&categories%5B%5D=adapters)を、インテグレーションディレクトリで確認できます。
+
+<IntegrationsNav category="adapter"/>
+
 ## オンデマンドサーバーレンダリングを有効にする
 
 Astroのオンデマンドレンダリングの出力モード（`server`と`hybrid`）はいずれも、可能な限り個々のルートを事前レンダリングすることで、静的サイトのパフォーマンスを活かせるようにします。このことは、完全に動的なアプリケーションであっても、特定のルートのみにオンデマンドレンダリングが必要なほぼ静的なサイトであっても同様です。
@@ -31,9 +40,78 @@ Astroのオンデマンドレンダリングの出力モード（`server`と`hyb
 
 サーバーは少なくともいくつかのページをオンデマンドに生成する必要があるため、どちらのモードを選択しても、サーバー機能を実行するために[アダプターを追加](#add-an-adapter)する必要があります。
 
+### アダプターの追加
+
+プロジェクトを`server`または`hybrid`モードでデプロイするには、アダプターを追加する必要もあります。これは、どちらのモードも、リクエスト時にページを生成するためにサーバーでコードを実行する環境である**ランタイム**が必要であるためです。各アダプターによってAstroは、VercelやNetlify、Cloudflareなどの特定のランタイムでプロジェクトを実行するためのスクリプトを出力できるようになります。
+
+[公式版とコミュニティ版のアダプターを、インテグレーションディレクトリ](https://astro.build/integrations/?search=&categories%5B%5D=adapters)で確認できます。自分の[デプロイ環境](/ja/guides/deploy/)に対応するものを選択してください。
+
+#### `astro add`を使ったインストール
+
+[Astroが管理する公式のアダプター](/ja/guides/integrations-guide/#official-integrations)は、次の`astro add`コマンドを使って追加できます。これにより、アダプターのインストールと、`astro.config.mjs`ファイルへの適切な変更が一度に実行されます。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add vercel
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add vercel
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add vercel
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+#### 手動インストール
+
+パッケージのインストールと`astro.config.mjs`の更新を手動でおこない、アダプターを追加することもできます。
+
+たとえば、Vercelアダプターを手動で追加するには以下のようにします。
+
+1. 好みのパッケージマネージャーを利用してプロジェクトの依存関係にアダプターをインストールします。
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm install @astrojs/vercel
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm add @astrojs/vercel
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn add @astrojs/vercel
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+2. `astro.config.mjs`ファイルのimportとdefault exportに[アダプターを追加し](/ja/reference/configuration-reference/#adapter)、必要な`output`モードを設定します。
+
+    ```js ins={3,7} {6}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import vercel from '@astrojs/vercel/serverless';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: vercel(),
+    });
+    ```
+
+    アダプターごとに設定が異なることに注意してください。各アダプターのドキュメントを読み、選択したアダプターに必要な設定オプションを`astro.config.mjs`で適用してください。
+
 ### `server`と`hybrid`の設定
 
-オンデマンドレンダリングを有効化するには、まず`output`の設定値を2つのサーバーレンダリングモードのいずれかに更新します。
+オンデマンドレンダリングを有効化するには、`output`の設定値を2つのサーバーレンダリングモードのいずれかに更新する必要があります。
 
 たとえば、デフォルトですべてのページがオンデマンドにレンダリングされるような、大部分が動的なアプリケーションを設定するには、Astroの設定ファイルに`output: 'server'`を追加します。
 
@@ -115,75 +193,6 @@ export async function GET() {
   );
 }
 ```
-
-### アダプターの追加
-
-プロジェクトを`server`または`hybrid`モードでデプロイするには、アダプターを追加する必要もあります。これは、どちらのモードも、リクエスト時にページを生成するためにサーバーでコードを実行する環境である**ランタイム**が必要であるためです。各アダプターによってAstroは、VercelやNetlify、Cloudflareなどの特定のランタイムでプロジェクトを実行するためのスクリプトを出力できるようになります。
-
-[公式版とコミュニティ版のアダプターを、インテグレーションディレクトリ](https://astro.build/integrations/?search=&categories%5B%5D=adapters)で確認できます。自分の[デプロイ環境](/ja/guides/deploy/)に対応するものを選択してください。
-
-#### `astro add`を使ったインストール
-
-[Astroが管理する公式のアダプター](/ja/guides/integrations-guide/#official-integrations)は、次の`astro add`コマンドを使って追加できます。これにより、アダプターのインストールと、`astro.config.mjs`ファイルへの適切な変更が一度に実行されます。
-
-<PackageManagerTabs>
-  <Fragment slot="npm">
-  ```shell
-  npx astro add vercel
-  ```
-  </Fragment>
-  <Fragment slot="pnpm">
-  ```shell
-  pnpm astro add vercel
-  ```
-  </Fragment>
-  <Fragment slot="yarn">
-  ```shell
-  yarn astro add vercel
-  ```
-  </Fragment>
-</PackageManagerTabs>
-
-#### 手動インストール
-
-パッケージのインストールと`astro.config.mjs`の更新を手動でおこない、アダプターを追加することもできます。
-
-たとえば、Vercelアダプターを手動で追加するには以下のようにします。
-
-1. 好みのパッケージマネージャーを利用してプロジェクトの依存関係にアダプターをインストールします。
-
-   <PackageManagerTabs>
-     <Fragment slot="npm">
-     ```shell
-     npm install @astrojs/vercel
-     ```
-     </Fragment>
-     <Fragment slot="pnpm">
-     ```shell
-     pnpm add @astrojs/vercel
-     ```
-     </Fragment>
-     <Fragment slot="yarn">
-     ```shell
-     yarn add @astrojs/vercel
-     ```
-     </Fragment>
-   </PackageManagerTabs>
-
-2. `astro.config.mjs`ファイルのimportとdefault exportに[アダプターを追加し](/ja/reference/configuration-reference/#adapter)、必要な`output`モードを設定します。
-
-    ```js ins={3,7} {6}
-    // astro.config.mjs
-    import { defineConfig } from 'astro/config';
-    import vercel from '@astrojs/vercel/serverless';
-
-    export default defineConfig({
-      output: 'server',
-      adapter: vercel(),
-    });
-    ```
-
-    アダプターごとに設定が異なることに注意してください。各アダプターのドキュメントを読み、選択したアダプターに必要な設定オプションを`astro.config.mjs`で適用してください。
 
 ## オンデマンドレンダリングの機能
 
