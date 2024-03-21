@@ -221,3 +221,30 @@ Astro DB 包含一组 CLI 命令，用于与你的托管项目数据库和你的
 - `--remote` 在你的 Studio 项目数据库上运行。省略则在你的开发服务器上运行。
 
 对你的数据库执行原始 SQL 查询。使用 `--remote` 标志在你的 Studio 项目数据库上运行，或省略该标志在你的开发服务器上运行。
+
+## Astro DB 辅助工具参考
+
+### `isDbError()`
+
+`isDbErroe()` 函数检查错误是否为 LibSQL 数据库异常，这可能包括当使用引用时的外键约束错误或者插入数据时缺少字段等。您可以使用 `isDbError()` 与 `try/catch` 块处理应用程序中的数据库错误:
+
+```ts title="src/pages/api/comment/[id].ts" "idDbError"
+import { db, Comment, isDbError } from 'astro:db';
+import type { APIRoute } from 'astro';
+
+export const POST: APIRoute = (ctx) => {
+  try {
+    await db.insert(Comment).values({
+      id: ctx.params.id,
+      content: 'Hello, world!'
+    });
+  } catch (e) {
+    if (isDbError(e)) {
+      return new Response(`Cannot insert comment with id ${id}\n\n${e.message}`, { status: 400 });
+    }
+    return new Response('An unexpected error occurred', { status: 500 });
+  }
+
+  return new Response(null, { status: 201 });
+};
+```
