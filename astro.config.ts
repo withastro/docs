@@ -72,6 +72,9 @@ export default defineConfig({
 	experimental: {
 		contentCollectionCache: true,
 	},
+	build: {
+		inlineStylesheets: 'never'
+	},
 	markdown: {
 		// Override with our own config
 		smartypants: false,
