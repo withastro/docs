@@ -13,25 +13,29 @@
 ## 1. 術語和用詞
 
 ### 1.1 術語表
-> 部分參考[《重編國語辭典修訂本》](https://dict.revised.moe.edu.tw/index.jsp)
+> 部分參考：
+> - [《重編國語辭典修訂本》](https://dict.revised.moe.edu.tw/index.jsp)
+> - [臺灣在地化社群詞彙對照表](https://hackmd.io/@l10n-tw/glossaries)
+> - [大陸台灣計算機術語對照表](https://zh.wikibooks.org/zh-tw/大陸台灣計算機術語對照表)
 
 |原文                   |推薦翻譯              |備註                    |
 |----------------------|---------------------|-----------------------|
-|library               |庫                   |                       |
+|library               |程式庫／函式庫         |                       |
 |integration           |整合                 |                       |
-|import                |引入                 |                       |
-|package               |套件                 |                       |
+|import                |匯入                 |                       |
+|package               |軟體包／~~套件~~      |                       |
 |routing               |路由                 |                       |
 |architecture          |架構                 |                       |
 |framework             |框架                 |                       |
 |reference             |參考                 |                       |
+|build                 |建置                 |                       |
 |deploy                |部署                 |                       |
-|component             |組件                 |                       |
+|component             |元件                 |                       |
 |migration             |遷移                 |                       |
 |asset                 |資產                 |                       |
-|docs                  |文檔                 |                       |
+|docs                  |文件                 |                       |
 |project               |專案                 |                       |
-|configuration         |配置                 |                       |
+|configuration         |組態／設定            |                       |
 |community             |社群                 |                       |
 |hydration             |水合                 |                       |
 |islands               |群島                 |特指 Astro Islands      |
@@ -56,15 +60,10 @@
 |中文             |說明               |
 |----------------|-------------------|
 |你              |而不使用「您」       |
-|構建            |而不使用「建構」     |
-|開發者           |而不使用「開發人員」  |
 |應用程式         |而不使用「應用」      |
 |舉例來說         |而不使用「舉個例子」等 |
-|甚麼             |「什麼」為異體字     |
 |其他             |並無「其它」一詞     |
 |注釋             |並無「註釋」一詞     |
-|刪除、去除        |並無「移除」一詞     |
-|優化             |並無「最佳化」一詞   |
 
 
 ### 1.3 特指名詞及品牌名稱
