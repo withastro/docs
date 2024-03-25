@@ -338,7 +338,7 @@ export default defineConfig({
 **类型：** `number`<br/>
 **适用于：** Serverless
 
-使用这个属性来延长或限制无服务器函数运行的最长持续时间（以秒为单位），直到超时。请参阅 [Vercel 文档](https://vercel.com/docs/functions/serverless-functions/runtimes#maxduration) 获取你的账户计划的默认和最大时限。
+使用这个属性来延长或限制无服务器函数运行的最长持续时间（以秒为单位），直到超时。请参阅 [Vercel 文档](https://vercel.com/docs/functions/serverless-functions/runtimes#maxduration) 获取你的账号计划的默认和最大时限。
 
 ```js title="astro.config.mjs" ins={8}
 import { defineConfig } from 'astro/config';
@@ -374,36 +374,6 @@ export default defineConfig({
 });
 ```
 
-### Vercel Edge 中间件
-
-你可以使用 [Vercel Edge 中间件](https://vercel.com/docs/functions/edge-middleware) 在发送响应之前拦截请求并重定向。Vercel 中间件可以用于 Edge、SSR 和静态部署。
-
-你可能不需要安装此软件包来使用中间件。`@vercel/edge` 仅在使用某些中间件功能（例如地理位置）时需要。更多信息请参阅 [Vercel 的中间件文档](https://vercel.com/docs/concepts/functions/edge-middleware)。
-
-1. 在你的项目根目录添加一个 `middleware.js` 文件：
-
-```js title="middleware.js"
-export const config = {
-  // 仅在 admin 路由上运行中间件
-  matcher: '/admin',
-};
-
-export default function middleware(request) {
-  const url = new URL(request.url);
-  // 可以在这里获取 IP 位置或 cookie。
-  if (url.pathname === '/admin') {
-    url.pathname = '/';
-  }
-  return Response.redirect(url);
-}
-```
-
-2. 在本地开发时，你可以运行 `vercel dev` 来运行中间件。在生产中，Vercel 会自动处理这个。
-
-:::caution
-**尝试重写？** 目前，使用中间件重写请求仅适用于静态文件。
-:::
-
 ### 在 Vercel Edge 函数上运行 Astro 中间件
 
 `@astrojs/vercel/serverless` 适配器可以根据你代码库中的 Astro 中间件创建一个 [边缘函数](https://vercel.com/docs/functions/edge-functions)。当启用 `edgeMiddleware` 时，边缘函数将为包括静态资源、预渲染页面和按需渲染页面在内的所有请求执行你的中间件代码。
@@ -424,56 +394,20 @@ export default defineConfig({
   }),
 });
 ```
+边缘中间件可以用 `ctx.locals.vercel.edge` 访问 Vercel 的 [`RequestContext`](https://vercel.com/docs/functions/edge-middleware/middleware-api#requestcontext) 。如果你正在使用 TypeScript，可以通过更新 `src/env.d.ts` 来使用 `EdgeLocals` 获得正确的类型定义：
 
-可选的，你可以在 [`src文件夹`](/zh-cn/reference/configuration-reference/#srcdir) 中创建一个被适配器识别的文件，名为 `vercel-edge-middleware.(js|ts)` ，以创建 [`Astro.locals`](/zh-cn/reference/api-reference/#astrolocals) 。
+```ts
+/// <reference path="../.astro/types.d.ts" />
+/// <reference types="astro/client" />
 
-Typings 需要 [`@vercel/edge`](https://www.npmjs.com/package/@vercel/edge) 包。
+type EdgeLocals = import('@astrojs/vercel').EdgeLocals
 
-```js title="src/vercel-edge-middleware.js"
-/**
- *
- * @param options.request {Request}
- * @param options.context {import("@vercel/edge").RequestContext}
- * @returns {object}
- */
-export default function ({ request, context }) {
-  // 在这里处理 request 和 context
-  return {
-    title: "Spider-man's blog",
-  };
+declare namespace App {
+  interface Locals extends EdgeLocals {
+    // ...
+  }
 }
 ```
-
-如果你使用 TypeScript，可以将函数类型化如下：
-
-```ts title="src/vercel-edge-middleware.ts"
-import type { RequestContext } from '@vercel/edge';
-
-export default function ({ request, context }: { request: Request; context: RequestContext }) {
-  // 在这里处理 request 和 context
-  return {
-    title: "Spider-man's blog",
-  };
-}
-```
-
-这个函数返回的数据将传递给 Astro 中间件。
-
-函数：
-
-* 必须导出一个 **default** 函数；
-* 必须 **return** 一个 `object` ；
-* 接受一个具有 `request` 和 `context` 属性的对象；
-* `request` 的类型为 [`Request`](https://developer.mozilla.org/zh-CN/docs/Web/API/Request);
-* `context` 的类型为 [`RequestContext`](https://vercel.com/docs/concepts/functions/edge-functions/vercel-edge-package#requestcontext);
-
-#### 限制和约束
-
-当你选择此功能时，需要注意一些限制：
-
-* Vercel Edge 中间件将始终是**第一个**接收 `Request` 的函数，并且是接收 `Response` 的最后一个函数。这是一种遵循 [Vercel 设定的边界](https://vercel.com/docs/concepts/functions/edge-middleware)的结构性约束。
-* 仅使用 `request` 和 `context` 来生成一个 `Astro.locals` 对象。像重定向等操作应该委托给 Astro 中间件。
-* `Astro.locals` **必须是可序列化的**。不这样做将导致 **运行时错误**. 这意味着你 **不能** 存储复杂类型比如 `Map`、 `function`、 `Set` 等
 
 ### Node.js 版本支持
 `@astrojs/vercel` 适配器支持特定的 Node.js 版本，用于在 Vercel 上部署 Astro 项目。要在 Vercel 上查看受支持的 Node.js 版本，请单击项目的设置选项卡，然后向下滚动到 “Node.js版本” 部分。
