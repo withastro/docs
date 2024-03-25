@@ -220,3 +220,30 @@ Astro DB에는 호스팅된 프로젝트 데이터베이스 및 [Astro Studio](/
 - `--remote` Studio 프로젝트 데이터베이스에 대해 실행하세요. 개발 서버에 대한 실행을 생략합니다.
 
 데이터베이스에 대해 원시 SQL 쿼리를 실행합니다. Studio 프로젝트 데이터베이스에 대해 실행하려면 `--remote` 플래그를 사용하고, 개발 서버에 대해 실행하려면 플래그를 생략하세요.
+
+## Astro DB 유틸리티 참조
+
+### `isDbError()`
+
+`isDbError()` 함수는 오류가 libSQL 데이터베이스 예외인지 확인합니다. 여기에는 참조 사용 시 외래 키 제약 조건 오류가 포함되거나 데이터 삽입 시 필드 누락이 포함될 수 있습니다. `isDbError()`를 try / catch 블록과 결합하여 애플리케이션의 데이터베이스 오류를 처리할 수 있습니다.
+
+```ts title="src/pages/api/comment/[id].ts" "idDbError"
+import { db, Comment, isDbError } from 'astro:db';
+import type { APIRoute } from 'astro';
+
+export const POST: APIRoute = (ctx) => {
+  try {
+    await db.insert(Comment).values({
+      id: ctx.params.id,
+      content: 'Hello, world!'
+    });
+  } catch (e) {
+    if (isDbError(e)) {
+      return new Response(`Cannot insert comment with id ${id}\n\n${e.message}`, { status: 400 });
+    }
+    return new Response('An unexpected error occurred', { status: 500 });
+  }
+
+  return new Response(null, { status: 201 });
+};
+```

@@ -382,36 +382,6 @@ export default defineConfig({
 });
 ```
 
-### Vercel 에지 미들웨어
-
-[Vercel 에지 미들웨어](https://vercel.com/docs/functions/edge-middleware)를 사용하여 요청을 가로채고 응답을 보내기 전에 리디렉션할 수 있습니다. Vercel 미들웨어는 에지, SSR, 정적 배포에서 실행할 수 있습니다.
-
-미들웨어용으로 이 패키지를 설치할 필요가 없을 수도 있습니다. `@vercel/edge`는 위치정보와 같은 일부 미들웨어 기능을 사용하는 데에만 필요합니다. 자세한 내용은 [Vercel의 미들웨어 문서](https://vercel.com/docs/concepts/functions/edge-middleware)를 참조하세요.
-
-1. 프로젝트의 루트에 `middleware.js` 파일을 추가하세요.
-
-```js title="middleware.js"
-export const config = {
-  // 미들웨어는 /admin 경로에서만 실행됩니다
-  matcher: '/admin',
-};
-
-export default function middleware(request) {
-  const url = new URL(request.url);
-  // 여기서 IP 위치나 쿠키를 검색할 수 있습니다.
-  if (url.pathname === '/admin') {
-    url.pathname = '/';
-  }
-  return Response.redirect(url);
-}
-```
-
-2. 로컬에서 개발하는 동안, 미들웨어를 실행하기 위해 `vercel dev`를 실행할 수 있습니다. 프로덕션에서는 Vercel이 이를 처리합니다.
-
-:::caution
-**rewrite를 시도하시나요?** 현재 미들웨어를 사용한 요청 rewrite는 정적 파일에만 작동합니다.
-:::
-
 ### Vercel Edge Functions에서 Astro 미들웨어 실행
 
 `@astrojs/vercel/serverless` 어댑터는 코드 베이스의 Astro 미들웨어에서 [에지 함수](https://vercel.com/docs/functions/edge-functions)를 생성할 수 있습니다. `edgeMiddleware`가 활성화되면 에지 함수는 정적 자산, 사전 렌더링된 페이지, 주문형 렌더링된 페이지를 포함한 모든 요청에 ​​대해 미들웨어 코드를 실행합니다.
@@ -433,55 +403,21 @@ export default defineConfig({
 });
 ```
 
-선택적으로, [`Astro.locals`](/ko/reference/api-reference/#astrolocals)를 생성하기 위해 [`srcDir`](/ko/reference/configuration-reference/#srcdir) 폴더에 어댑터가 인식할 수 있는 `vercel-edge-middleware.(js|ts)`라는 이름을 가진 파일을 만들수있습니다.
+에지 미들웨어는 `ctx.locals.vercel.edge`로 Vercel의 [`RequestContext`](https://vercel.com/docs/functions/edge-middleware/middleware-api#requestcontext)에 액세스할 수 있습니다. TypeScript를 사용하는 경우 `EdgeLocals`를 사용하기 위해 `src/env.d.ts` 파일을 업데이트하여 적절한 타입을 얻을 수 있습니다.
 
-타입을 구성하기 위해서는 [`@vercel/edge`](https://www.npmjs.com/package/@vercel/edge) 패키지가 필요합니다.
 
-```js title="src/vercel-edge-middleware.js"
-/**
- *
- * @param options.request {Request}
- * @param options.context {import("@vercel/edge").RequestContext}
- * @returns {object}
- */
-export default function ({ request, context }) {
-  // 요청 및 컨텍스트로 작업을 수행합니다
-  return {
-    title: "Spider-man's blog",
-  };
+```ts
+/// <reference path="../.astro/types.d.ts" />
+/// <reference types="astro/client" />
+
+type EdgeLocals = import('@astrojs/vercel').EdgeLocals
+
+declare namespace App {
+  interface Locals extends EdgeLocals {
+    // ...
+  }
 }
 ```
-
-TypeScript를 사용하는 경우, 다음과 같이 함수에 타입을 제공할 수 있습니다.
-
-```ts title="src/vercel-edge-middleware.ts"
-import type { RequestContext } from '@vercel/edge';
-
-export default function ({ request, context }: { request: Request; context: RequestContext }) {
-  // 요청 및 컨텍스트로 작업을 수행합니다
-  return {
-    title: "Spider-man's blog",
-  };
-}
-```
-
-이 함수에서 반환된 데이터는 Astro 미들웨어로 전달됩니다.
-
-이 함수는
-
-- **default** 함수를 내보내야 합니다;
-- `object`를 **return**해야 합니다;
-- `request` 및 `context` 속성을 가진 객체를 인자로 전달받습니다;
-- `request`는 [`Request`](https://developer.mozilla.org/ko/docs/Web/API/Request)로 타입이 지정됩니다;
-- `context`는 [`RequestContext`](https://vercel.com/docs/concepts/functions/edge-functions/vercel-edge-package#requestcontext)로 타입이 지정됩니다;
-
-#### 한계 및 제약
-
-이 기능을 선택할 때 주의해야 할 몇 가지 제약 사항이 있습니다.
-
-- Vercel 에지 미들웨어는 항상 `Request`를 수신하는 **첫 번째** 함수이며 `Response`를 수신하는 마지막 함수입니다. 이는 [Vercel이 설정한 경계](https://vercel.com/docs/concepts/functions/edge-middleware)를 따르는 설계적 제약입니다.
-- `Astro.locals` 객체를 생성하기 위해서는 `request` 및 `context`만 사용할 수 있습니다. 리디렉션 등의 작업은 Astro 미들웨어에 위임해야 합니다.
-- `Astro.locals`는 **직렬화 가능해야** 합니다. 그렇지 않으면 **런타임 오류**가 발생합니다. 이는 `Map`, `function`, `Set` 등의 복잡한 유형을 저장할 수 **없음**을 의미합니다.
 
 ### Node.js 버전 지원
 
