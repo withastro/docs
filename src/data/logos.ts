@@ -22,6 +22,7 @@ export const logos = LogoCheck({
 	'microsoft-azure': { file: 'microsoft-azure.svg', padding: '.1625em .1625em .2125em' },
 	netlify: { file: 'netlify.svg', padding: '.1625em' },
 	render: { file: 'render.svg', padding: '.1875em' },
+	stormkit: { file: 'stormkit.svg', padding: '0' },
 	surge: { file: 'surge.svg', padding: '.125em' },
 	vercel: { file: 'vercel.svg', padding: '.3em .3em .35em' },
 	image: { file: 'astro-image.svg', padding: '.1875em' },
