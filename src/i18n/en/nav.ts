@@ -80,6 +80,11 @@ export default [
 		slug: 'guides/prefetch',
 		key: 'guides/prefetch',
 	},
+	{
+		text: 'Dev Toolbar',
+		slug: 'guides/dev-toolbar',
+		key: 'guides/dev-toolbar',
+	},
 
 	{ text: 'Integrations', header: true, type: 'learn', key: 'addons' },
 	{ text: 'Add integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
