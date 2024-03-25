@@ -6,7 +6,6 @@ export default NavDictionary({
 	install: 'Instalación',
 	'editor-setup': 'Configuración del Editor',
 
-
 	coreConcepts: 'Conceptos Principales',
 	'concepts/why-astro': 'Por qué Astro',
 	'concepts/islands': 'Islas de Astro',
