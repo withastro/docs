@@ -189,7 +189,7 @@ const Comment = defineTable({
 
 ## Astro DB CLI 参考
 
-Astro DB 包含一组 CLI 命令，用于与你的托管项目数据库和你的 [Astro Studio](/zh-cn/recipes/studio/) 账户进行交互。 
+Astro DB 包含一组 CLI 命令，用于与你的托管项目数据库和你的 [Astro Studio](/zh-cn/recipes/studio/) 账号进行交互。 
 
 当使用 GitHub CI 流水线时，这些命令会被自动调用，你也可以使用 `astro db` CLI 手动调用它们。
 
@@ -221,3 +221,29 @@ Astro DB 包含一组 CLI 命令，用于与你的托管项目数据库和你的
 - `--remote` 在你的 Studio 项目数据库上运行。省略则在你的开发服务器上运行。
 
 对你的数据库执行原始 SQL 查询。使用 `--remote` 标志在你的 Studio 项目数据库上运行，或省略该标志在你的开发服务器上运行。
+
+## Astro DB 工具函数参考
+
+### `isDbError()`
+
+`isDbError()` 函数用于检查一个错误是否是 libSQL 数据库异常。这可能包括在使用引用时的外键约束错误，或在插入数据时缺少字段。你可以将 `isDbError()` 与 try / catch 块结合使用，来处理应用程序中的数据库错误：
+
+```ts title="src/pages/api/comment/[id].ts" "idDbError"
+import { db, Comment, isDbError } from 'astro:db';
+import type { APIRoute } from 'astro';
+
+export const POST: APIRoute = async (ctx) => {
+  try {
+    await db.insert(Comment).values({
+      id: ctx.params.id,
+      content: 'Hello, world!'
+    });
+  } catch (e) {
+    if (isDbError(e)) {
+      return new Response(`无法插入 id 为 ${ctx.params.id} 的评论\n\n${e.message}`, { status: 400 });
+    }
+    return new Response('发生了意外错误', { status: 500 });
+  }
+
+  return new Response(null, { status: 201 });
+};
