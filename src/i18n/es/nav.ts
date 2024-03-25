@@ -33,6 +33,7 @@ export default NavDictionary({
 	'guides/integrations-guide': 'Agregar integraciones',
 	'guides/framework-components': 'Frameworks UI',
 	'guides/server-side-rendering': 'Renderizado en el lado del servidor (SSR)',
+	'guides/astro-db': 'Astro DB',
 
 	examples: 'Recetas',
 	'guides/migrate-to-astro': 'Migrar a Astro',
