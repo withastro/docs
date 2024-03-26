@@ -13,7 +13,7 @@ Astro DB is a fully-managed SQL database designed exclusively for Astro. Develop
 
 ## Installation
 
-Add Astro DB to a new or existing Astro project (requires `astro@4.5` or later) with the [`@astrojs/db` integration](/en/guides/integrations-guide/db/) (`v0.8.0` or later). Astro includes a built-in `astro add` command to automate this setup process for you.
+Add Astro DB to a new or existing Astro project (requires `astro@4.5` or later) with the [`@astrojs/db` integration](/en/guides/integrations-guide/db/) (`v0.8.1` or later). Astro includes a built-in `astro add` command to automate this setup process for you.
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -49,35 +49,15 @@ export default defineDb({
 })
 ```
 
-### Columns
-
-Data in Astro DB is stored using SQL tables. Tables structure your data into rows and columns, where columns enforce the type of each row value. Astro DB supports the following column types:
-
-```ts title="db/config.ts" "column.text()" "column.number()" "column.boolean()" "column.date()" "column.json()"
-
-const Comment = defineTable({
-  columns: {
-    // A string of text.
-    author: column.text(),
-    // A whole integer value.
-    likes: column.number(),
-    // A true or false value.
-    flagged: column.boolean(),
-    // Date/time values queried as JavaScript Date objects.
-    published: column.date(),
-    // An untyped JSON object.
-    metadata: column.json(),
-  }
-});
-```
-
 ### Tables
 
-Tables power Astro's automatic TypeScript typings for your content. When you define a table, Astro will automatically generate and apply a TypeScript interface to it. The result is full TypeScript support when you query your data, including property autocompletion and type-checking.
+Data in Astro DB is stored using SQL tables. Tables structure your data into rows and columns, where columns enforce the type of each row value.
 
-To configure an individual database table, import and use the `defineTable()` and `column` utilities from `astro:db`.
+When you define a table, Astro will generate a TypeScript interface to query that table from your project. The result is full TypeScript support when you access your data with property autocompletion and type-checking.
 
-This example configures a `Comment` table with required text columns for `author` and `body` and then makes it available to your project through the `defineDb()` export.
+To configure a database table, import and use the `defineTable()` and `column` utilities from `astro:db`.
+
+This example configures a `Comment` table with required text columns for `author` and `body`. Then, make it available to your project through the `defineDb()` export.
 
 ```ts title="db/config.ts" "Comment"
 import { defineDb, defineTable, column } from 'astro:db';
@@ -96,11 +76,36 @@ export default defineDb({
 
 <ReadMore>See the [table configuration reference](/en/guides/integrations-guide/db/#table-configuration-reference) for a complete reference of table options.</ReadMore>
 
+### Columns
+
+Astro DB supports the following column types:
+
+```ts title="db/config.ts" "column.text()" "column.number()" "column.boolean()" "column.date()" "column.json()"
+import { defineTable, column } from 'astro:db';
+
+const Comment = defineTable({
+  columns: {
+    // A string of text.
+    author: column.text(),
+    // A whole integer value.
+    likes: column.number(),
+    // A true or false value.
+    flagged: column.boolean(),
+    // Date/time values queried as JavaScript Date objects.
+    published: column.date(),
+    // An untyped JSON object.
+    metadata: column.json(),
+  }
+});
+```
+
+<ReadMore>See the [table columns reference](/en/guides/integrations-guide/db/#table-configuration-reference) for more details.</ReadMore>
+
 ### Table References
 
 Relationships between tables are a common pattern in database design. For example, a `Blog` table may be closely related to other tables of `Comment`, `Author`, and `Category`.
 
-You can define these relations tables and save them into your database schema using **reference columns**. To establish a relationship, you will need:
+You can define these relations between tables and save them into your database schema using **reference columns**. To establish a relationship, you will need:
 
 - An **identifier column** on the referenced table. This is usually an `id` column with the `primaryKey` property.
 - A column on the base table to **store the referenced `id`**. This uses the `references` property establish a relationship.
@@ -212,7 +217,8 @@ const comments = await db.select().from(Comment);
 	<label for="author">Author</label>
 	<input id="author" name="author" />
 
-	<textarea name="content"></textarea>
+	<label for="content">Content</label>
+	<textarea id="content" name="content"></textarea>
 
 	<button type="submit">Submit</button>
 </form>
@@ -225,10 +231,10 @@ You can also query your database from an API endpoint. This example deletes a ro
 ```ts
 // src/pages/api/comments/[id].ts
 import type { APIRoute } from "astro";
-import { db, Comment } from 'astro:db';
+import { db, Comment, eq } from 'astro:db';
 
 export const DELETE: APIRoute = async (ctx) => {
-  await db.delete(Comment).where({ id: ctx.params.id });
+  await db.delete(Comment).where(eq(Comment.id, ctx.params.id ));
   return new Response(null, { status: 204 });
 }
 ```
@@ -312,7 +318,7 @@ This example seeds multiple rows in a single request using the `db.batch()` meth
 import { db, Author, Comment } from 'astro:db';
 
 export default async function () {
-  let queries;
+  const queries = [];
   // Seed 100 sample comments into your remote database
   // with a single network request.
   for (let i = 0; i < 100; i++) {
@@ -332,13 +338,9 @@ See the [Drizzle `db.batch()`](https://orm.drizzle.team/docs/batch-api) docs for
 ## Astro Studio
 </StudioHeading>
 
-Astro DB can [connect to the Astro Studio platform](/en/recipes/studio/) to quickly add a hosted database to your project. You can view, manage and deploy new hosted databases all from the Astro Studio web portal.
+Astro DB can [connect to the Astro Studio platform](/en/recipes/studio/) to quickly add a hosted database to your project. You can view, manage and deploy new hosted databases all from the Astro Studio dashboard.
 
-There are two ways to create a project in Astro Studio:
-1. via the [Astro Studio CLI](/en/reference/cli-reference/#astro-studio-cli) using `astro link`
-2. via the [Astro Studio web UI](https://studio.astro.build) 
-
-To create a new database in the Astro Studio web UI, click the "create project" button in the header and follow the instructions presented. Astro Studio will walk you through the necessary steps, and at the end of the process you'll have a hosted database configured for your project.
+To create a new project, you can use a [ready-made template](https://studio.astro.build) or visit the [Astro Studio guide](/en/recipes/studio/#create-a-new-studio-project).
 
 <StudioHeading>
 ### Pushing table schemas
