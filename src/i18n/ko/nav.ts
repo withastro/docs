@@ -28,6 +28,7 @@ export default NavDictionary({
 	'guides/content-collections': '콘텐츠 컬렉션',
 	'guides/view-transitions': 'View Transitions',
 	'guides/prefetch': '프리페치',
+	'guides/dev-toolbar': '개발 툴바',
 
 	addons: '통합',
 	'guides/integrations-guide': '통합 추가',
