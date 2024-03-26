@@ -135,11 +135,13 @@ Table indexes are used for improve lookup speeds on a given column or combinatio
 import { defineTable, column } from 'astro:db';
 
 const Comment = defineTable({
-  authorId: column.number(),
-  body: column.text(),
+  columns: {
+    authorId: column.number(),
+    body: column.text(),
+  },
   indexes: {
-    author_idx: { on: ['authorId'], unique: true },
-  }
+    author_idx: { on: ["authorId"], unique: true },
+  },
 });
 ```
 
@@ -162,23 +164,24 @@ Foreign keys are used to establish a relationship between two tables. The `forei
 import { defineTable, column } from 'astro:db';
 
 const Author = defineTable({
-  firstName: column.text(),
-  lastName: column.text(),
+  columns: {
+    firstName: column.text(),
+    lastName: column.text(),
+  },
 });
 
 const Comment = defineTable({
-  authorFirstName: column.text(),
-  authorLastName: column.text(),
-  body: column.text(),
+  columns: {
+    authorFirstName: column.text(),
+    authorLastName: column.text(),
+    body: column.text(),
+  },
   foreignKeys: [
     {
-      columns: ['authorFirstName', 'authorLastName'],
-      references: () => [
-        Author.columns.firstName,
-        Author.columns.lastName
-      ],
+      columns: ["authorFirstName", "authorLastName"],
+      references: () => [Author.columns.firstName, Author.columns.lastName],
     },
-  ]
+  ],
 });
 ```
 
@@ -221,3 +224,30 @@ Execute a `.ts` or `.js` file to read or write to your database. This accepts a 
 - `--remote` Run against your Studio project database. Omit to run against your development server.
 
 Execute a raw SQL query against your database. Use the `--remote` flag to run against your Studio project database, or omit the flag to run against your development server.
+
+## Astro DB utility reference
+
+### `isDbError()`
+
+The `isDbError()` function checks if an error is a libSQL database exception. This may include a foreign key constraint error when using references, or missing fields when inserting data. You can combine `isDbError()` with a try / catch block to handle database errors in your application:
+
+```ts title="src/pages/api/comment/[id].ts" "idDbError"
+import { db, Comment, isDbError } from 'astro:db';
+import type { APIRoute } from 'astro';
+
+export const POST: APIRoute = (ctx) => {
+  try {
+    await db.insert(Comment).values({
+      id: ctx.params.id,
+      content: 'Hello, world!'
+    });
+  } catch (e) {
+    if (isDbError(e)) {
+      return new Response(`Cannot insert comment with id ${id}\n\n${e.message}`, { status: 400 });
+    }
+    return new Response('An unexpected error occurred', { status: 500 });
+  }
+
+  return new Response(null, { status: 201 });
+};
+```
