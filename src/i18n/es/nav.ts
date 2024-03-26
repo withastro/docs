@@ -3,10 +3,8 @@ import { NavDictionary } from '../translation-checkers';
 export default NavDictionary({
 	startHere: 'Empezar Aquí',
 	'getting-started': 'Cómo Empezar',
-
 	install: 'Instalación',
 	'editor-setup': 'Configuración del Editor',
-	'guides/upgrade-to/v4': 'Actualizar a v4',
 
 	coreConcepts: 'Conceptos Principales',
 	'concepts/why-astro': 'Por qué Astro',
@@ -34,6 +32,7 @@ export default NavDictionary({
 	'guides/integrations-guide': 'Agregar integraciones',
 	'guides/framework-components': 'Frameworks UI',
 	'guides/server-side-rendering': 'Renderizado en el lado del servidor (SSR)',
+	'guides/astro-db': 'Astro DB',
 
 	examples: 'Recetas',
 	'guides/migrate-to-astro': 'Migrar a Astro',

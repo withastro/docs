@@ -291,6 +291,7 @@ Cloudflare 运行时让你能够访问环境变量和 Cloudflare 绑定。你可
 * [Cloudflare D1](https://developers.cloudflare.com/d1/)
 * [Cloudflare R2](https://developers.cloudflare.com/r2/)
 * [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/)
+* [Cloudflare Service bindings](https://developers.cloudflare.com/workers/configuration/bindings/about-service-bindings/)
 
 ### Config
 
@@ -300,7 +301,7 @@ Cloudflare Pages 不支持配置文件。
 
 要将你的 pages 项目部署到生产环境，你需要使用 Cloudflare 的仪表盘来配置绑定。要在本地访问绑定，你需要使用适配器的 `runtime` 选项来配置它们。
 
-```js title="astro.config.mjs" ins={7-10, 12-15, 17-19, 21-23, 25-27, 29-34}
+```js title="astro.config.mjs" ins={7-10, 12-15, 17-19, 21-23, 25-27, 29-32, 34-39}
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 
@@ -333,6 +334,11 @@ export default defineConfig({
           type: "durable-object",
           className: "DO",
         },
+        // 一个服务绑定的例子
+        "AUTH": {
+          type: "service",
+          address: "127.0.0.1:8787",
+        }
       },
     },
   }),
@@ -391,6 +397,11 @@ bucket_name = 'R2'
 [[durable_objects.bindings]]
 name = "DO"
 class_name = "DO"
+
+# 一个服务绑定的例子
+[[services]]
+binding = "AUTH"
+service = "auth-worker"
 ```
 
 如果你还需要定义 `secrets` 以外的环境变量，你需要在 Astro 项目的根目录下添加一个 `.dev.vars` 文件：
@@ -516,7 +527,7 @@ export async function GET(context) {
 
 ## Node.js 兼容性
 
-Astro 的 Cloudflare 适配器允许你使用任何 Cloudflare 支持的 Node.js 运行时 API，例如：
+默认情况下，Cloudflare 并不支持完整的 Node.js 运行时 API。但通过一些配置，Cloudflare 确实支持 Node.js 运行时 API 的子集。以下 API 是受支持的：
 
 * assert
 * AsyncLocalStorage
@@ -539,6 +550,9 @@ import { Buffer } from 'node:buffer';
 
 另外，你需要在 Cloudflare 中启用兼容性标志。该标志的配置方法取决于你部署 Astro 站点的方式。更多详细指导，请参阅 [启用 Node.js 兼容性的 Cloudflare 文档](https://developers.cloudflare.com/workers/runtime-apis/nodejs)。
 
+:::note[包兼容性影响]
+如果一个项目将一个包导入到使用 Node.js 运行时 API 的服务器中，这可能在部署到 Cloudflare 时引起问题。这个问题出现在不使用 `node:*` 导入语法的包中。建议你联系包的作者，以确定该包是否支持上述导入语法。如果该包不支持这种语法，你可能需要使用不同的包或更换适配器。
+:::
 
 ## Cloudflare 模块支持
 
