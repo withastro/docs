@@ -135,11 +135,13 @@ Gli indici delle tabelle sono utilizzati per migliorare la velocità di ricerca 
 import { defineTable, column } from 'astro:db';
 
 const Comment = defineTable({
-  authorId: column.number(),
-  body: column.text(),
+  columns: {
+    authorId: column.number(),
+    body: column.text(),
+  },
   indexes: {
-    author_idx: { on: ['authorId'], unique: true },
-  }
+    author_idx: { on: ["authorId"], unique: true },
+  },
 });
 ```
 
@@ -162,23 +164,24 @@ Le chiavi esterne sono utilizzate per stabilire una relazione tra due tabelle. L
 import { defineTable, column } from 'astro:db';
 
 const Author = defineTable({
-  firstName: column.text(),
-  lastName: column.text(),
+  columns: {
+    firstName: column.text(),
+    lastName: column.text(),
+  },
 });
 
 const Comment = defineTable({
-  authorFirstName: column.text(),
-  authorLastName: column.text(),
-  body: column.text(),
+  columns: {
+    authorFirstName: column.text(),
+    authorLastName: column.text(),
+    body: column.text(),
+  },
   foreignKeys: [
     {
-      columns: ['authorFirstName', 'authorLastName'],
-      references: () => [
-        Author.columns.firstName,
-        Author.columns.lastName
-      ],
+      columns: ["authorFirstName", "authorLastName"],
+      references: () => [Author.columns.firstName, Author.columns.lastName],
     },
-  ]
+  ],
 });
 ```
 
@@ -195,7 +198,7 @@ Questi comandi vengono chiamati automaticamente quando si utilizza un'azione CI 
 
 ### `astro db push`
 
-**Flags:**
+**Opzioni:**
 
 - `--force-reset` Resetta tutti i dati di produzione se è richiesto un cambiamento dello schema di rottura.
 
@@ -207,7 +210,7 @@ Controlla eventuali differenze tra le tue configurazioni del database locale e r
 
 ### `astro db execute <file-path>`
 
-**Flags:**
+**Opzioni:**
 
 - `--remote` Esegui contro il tuo database di progetto Studio. Ometti per eseguire contro il tuo server di sviluppo.
 
@@ -215,9 +218,36 @@ Esegui un file `.ts` o `.js` per leggere o scrivere nel tuo database. Questo acc
 
 ### `astro db shell --query <sql-string>`
 
-**Flags:**
+**Opzioni:**
 
 - `--query` Query SQL grezza da eseguire.
 - `--remote` Esegui contro il tuo database di progetto Studio. Ometti per eseguire contro il tuo server di sviluppo.
 
 Esegui una query SQL grezza contro il tuo database. Usa la flag `--remote` per eseguire contro il tuo database di progetto Studio, o ometti la flag per eseguire contro il tuo server di sviluppo.
+
+## Riferimento delle utility di Astro DB
+
+### `isDbError()`
+
+La funzione `isDbError()` controlla se un errore è un'eccezione del database libSQL. Questo può includere un errore di vincolo di chiave esterna quando si utilizzano i riferimenti, o campi mancanti durante l'inserimento dei dati. Puoi combinare `isDbError()` con un blocco try / catch per gestire gli errori del database nella tua applicazione:
+
+```ts title="src/pages/api/comment/[id].ts" "idDbError"
+import { db, Comment, isDbError } from 'astro:db';
+import type { APIRoute } from 'astro';
+
+export const POST: APIRoute = (ctx) => {
+  try {
+    await db.insert(Comment).values({
+      id: ctx.params.id,
+      content: 'Ciao, mondo!'
+    });
+  } catch (e) {
+    if (isDbError(e)) {
+      return new Response(`Impossibile inserire il commento con id ${id}\n\n${e.message}`, { status: 400 });
+    }
+    return new Response('Si è verificato un errore imprevisto', { status: 500 });
+  }
+
+  return new Response(null, { status: 201 });
+};
+```
