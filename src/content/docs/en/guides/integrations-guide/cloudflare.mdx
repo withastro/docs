@@ -79,99 +79,6 @@ export default defineConfig({
 
 ## Options
 
-### mode
-
-<p>
-
-**Type:** `'advanced' | 'directory'`<br />
-**Default:** `'advanced'`
-</p>
-
-This configuration option defines how your Astro project is deployed to Cloudflare Pages.
-
-* `advanced` mode picks up the `_worker.js` file in the `dist` folder
-* `directory` mode picks up the files in the `functions` folder, by default only one `[[path]].js` file is generated
-
-Switching to directory mode allows you to add additional files manually such as [Cloudflare Pages Plugins](https://developers.cloudflare.com/pages/platform/functions/plugins/), [Cloudflare Pages Middleware](https://developers.cloudflare.com/pages/platform/functions/middleware/) or custom functions using [Cloudflare Pages Functions Routing](https://developers.cloudflare.com/pages/platform/functions/routing/).
-
-```js title="astro.config.mjs" ins="mode: 'directory'"
-export default defineConfig({
-  adapter: cloudflare({ mode: 'directory' }),
-});
-```
-
-To compile a separate bundle for each page, set the `functionPerRoute` option in your Cloudflare adapter config. This option requires some manual maintenance of the `functions` folder. Files emitted by Astro will overwrite existing files with identical names in the `functions` folder, so you must choose unique file names for each file you manually add. Additionally, the adapter will never empty the `functions` folder of outdated files, so you must clean up the folder manually when you remove pages.
-
-```js title="astro.config.mjs" ins={7}
-import {defineConfig} from "astro/config";
-import cloudflare from '@astrojs/cloudflare';
-
-export default defineConfig({
-  adapter: cloudflare({
-    mode: 'directory',
-    functionPerRoute: true
-  })
-})
-```
-
-This adapter doesn't support the [`edgeMiddleware`](/en/reference/adapter-reference/#edgemiddleware) option.
-
-### routes.strategy
-
-<p>
-
-**Type:** `'auto' | 'include' | 'exclude'`<br />
-**Default:** `'auto'`
-</p>
-
-Determines how `routes.json` will be generated if no [custom `_routes.json`](#custom-_routesjson) is provided.
-
-There are three options available:
-
-* **`"auto"` (default):** Will automatically select the strategy that generates the fewest entries. This should almost always be sufficient, so choose this option unless you have a specific reason not to.
-
-* **`include`:** Pages and endpoints that are not pre-rendered are listed as `include` entries, telling Cloudflare to invoke these routes as functions. `exclude` entries are only used to resolve conflicts. Usually the best strategy when your website has mostly static pages and only a few dynamic pages or endpoints.
-
-  Example: For `src/pages/index.astro` (static), `src/pages/company.astro` (static), `src/pages/users/faq.astro` (static) and `/src/pages/users/[id].astro` (SSR) this will produce the following `_routes.json`:
-
-  ```json title="dist/_routes.json"
-  {
-    "version": 1,
-    "include": [
-      "/_image", // Astro's image endpoint
-      "/users/*" // Dynamic route
-    ],
-    "exclude": [
-      // Static routes that needs to be exempted from the dynamic wildcard route above
-      "/users/faq/",
-      "/users/faq/index.html"
-    ]
-  }
-  ```
-
-* **`exclude`:** Pre-rendered pages are listed as `exclude` entries (telling Cloudflare to handle these routes as static assets). Usually the best strategy when your website has mostly dynamic pages or endpoints and only a few static pages.
-
-  Example: For the same pages as in the previous example this will produce the following `_routes.json`:
-
-  ```json title="dist/_routes.json"
-  {
-    "version": 1,
-    "include": [
-      "/*" // Handle everything as function except the routes below
-    ],
-    "exclude": [
-      // All static assets
-      "/",
-      "/company/",
-      "/index.html",
-      "/users/faq/",
-      "/favicon.png",
-      "/company/index.html",
-      "/users/faq/index.html"
-    ]
-  }
-  ```
-
 ### routes.include
 
 <p>
@@ -207,32 +114,6 @@ export default defineConfig({
 });
 ```
 
-### imageService
-
-<p>
-
-**Type:** `'passthrough' | 'cloudflare' | 'compile'`<br />
-**Default:** `'passthrough'`
-</p>
-
-Determines which image service is used by the adapter. The adapter will default to `passthrough` mode when an incompatible image service is configured. Otherwise, it will use the globally configured image service:
-
-* **`cloudflare`:** Uses the [Cloudflare Image Resizing](https://developers.cloudflare.com/images/image-resizing/) service.
-* **`passthrough`:** Uses the existing [`noop`](/en/guides/images/#configure-no-op-passthrough-service) service.
-* **`compile`:** Uses Astro's default service (sharp), but only on pre-rendered routes at build time. During SSR for pages rendered on-demand, all `astro:assets` features are disabled.
-
-```js title="astro.config.mjs" ins={6}
-import {defineConfig} from "astro/config";
-import cloudflare from '@astrojs/cloudflare';
-
-export default defineConfig({
-  adapter: cloudflare({
-     imageService: 'cloudflare'
-  }),
-  output: 'server'
-})
-```
-
 ### `wasmModuleImports`
 
 <p>
@@ -257,35 +138,6 @@ export default defineConfig({
 })
 ```
 
-### runtime
-
-<p>
-
-**Type:**
-  ```
-  { mode: 'off' }
-  | { mode: 'local'; type: 'pages'; persistTo?: string; bindings?: Record<string, CF_BINDING> }
-  | { mode: 'local'; type: 'workers'; persistTo?: string; };
-  ```
-([CF\_BINDING type reference](https://github.com/cloudflare/workers-sdk/blob/eaa16db25103d26ef31499634a31b86caccdf7aa/packages/wrangler/src/api/startDevWorker/types.ts#L190-L219))<br />
-**Default:** `{ mode: 'off', persistTo: '' }`
-</p>
-
-Determines whether and how the Cloudflare Runtime is added to `astro dev`.
-Read more about [the Cloudflare Runtime](#cloudflare-runtime).
-
-The `type` property defines where your Astro project is deployed to:
-
-* `pages`: Deployed to [Cloudflare Pages](https://pages.cloudflare.com/)
-* `workers`: Deployed to [Cloudflare Workers](https://workers.cloudflare.com/)
-
-The `mode` property defines what you want the runtime to support in `astro dev`:
-
-* `off`: no access to the runtime using `astro dev`. You can choose [Preview with Wrangler](#preview-with-wrangler) when you need access to the runtime, to simulate the production environment locally.
-* `local`: uses a local runtime powered by miniflare and workerd, which supports Cloudflare's Bindings. Only if you want to use unsupported features, such as `eval`, bindings with no local support choose [Preview with Wrangler](#preview-with-wrangler)
-
-In `mode: local`, you have access to the `persistTo` property which defines where the local bindings state is saved. This avoids fresh bindings on every restart of the dev server. This value is a directory relative to your `astro dev` execution path. By default it is set to `.wrangler/state/v3` to allow usage of `wrangler` cli commands (e.g. for migrations). Add this path to your `.gitignore`.
-
 ## Cloudflare runtime
 
 The Cloudflare runtime gives you access to environment variables and Cloudflare bindings. You can find more information in Cloudflare's [Workers](https://developers.cloudflare.com/workers/configuration/bindings/) and [Pages](https://developers.cloudflare.com/pages/platform/functions/bindings/) docs. Depending on your deployment type (`pages` or `workers`), you need to configure the bindings differently.
@@ -300,76 +152,6 @@ Currently supported bindings:
 * [Cloudflare Service bindings](https://developers.cloudflare.com/workers/configuration/bindings/about-service-bindings/)
 
 ### Config
-
-#### Cloudflare Pages
-
-Cloudflare Pages does not support a configuration file.
-
-To deploy your pages project to production, you need to configure the bindings using Cloudflare's Dashboard. To be able to access bindings locally, you need to configure them using the adapter's `runtime` option.
-
-```js title="astro.config.mjs" ins={7-10, 12-15, 17-19, 21-23, 25-27, 29-32, 34-39}
-import { defineConfig } from 'astro/config';
-import cloudflare from '@astrojs/cloudflare';
-
-export default defineConfig({
-  output: 'server',
-  adapter: cloudflare({
-    runtime: {
-      mode: 'local',
-      type: 'pages',
-      bindings: {
-        // example of a var binding (environment variable)
-        "URL": {
-          type: "var",
-          value: "https://example.com",
-        },
-        // example of a KV binding
-        "KV": {
-          type: "kv",
-        },
-        // example of a D1 binding
-        "D1": {
-          type: "d1",
-        },
-        // example of a R2 binding
-        "R2": {
-          type: "r2",
-        },
-        // example of a Durable Object binding
-        "DO": {
-          type: "durable-object",
-          className: "DO",
-        },
-        // example of a Service binding
-        "AUTH": {
-          type: "service",
-          address: "127.0.0.1:8787",
-        }
-      },
-    },
-  }),
-});
-```
-
-If you also need to define `secrets` in addition to environment variables, you need to add a `.dev.vars` file to the root of the Astro project:
-
-```ini title=".dev.vars"
-DB_PASSWORD=myPassword
-```
-
-If you want to use `wrangler` for cli commands, e.g. D1 migrations, you also need to add a `wrangler.toml` to the root of the Astro project with the correct content. Consult [Cloudflare's documentation](https://developers.cloudflare.com/) for further details.
-
-```toml title="wrangler.toml"
-name = "example"
-compatibility_date = "2023-06-14"
-
-# example for D1 Binding
-[[d1_databases]]
-binding = "D1"
-database_name = "D1"
-database_id = "D1"
-preview_database_id = "D1"
-```
 
 #### Cloudflare Workers
 
@@ -440,7 +222,7 @@ export function GET(context) {
 
 ### Typing
 
-If you have configured `mode: advanced`, you can type the `runtime` object using `AdvancedRuntime`:
+You can type the `runtime` object using `AdvancedRuntime`:
 
 ```ts title="src/env.d.ts"
 /// <reference types="astro/client" />
@@ -452,29 +234,6 @@ type ENV = {
 };
 
 type Runtime = import('@astrojs/cloudflare').AdvancedRuntime<ENV>;
-
-declare namespace App {
-  interface Locals extends Runtime {
-    user: {
-      name: string;
-      surname: string;
-    };
-  }
-}
-```
-
-If you have configured `mode: directory`, you can type the `runtime` object using `DirectoryRuntime`:
-
-```ts title="src/env.d.ts"
-/// <reference types="astro/client" />
-
-type KVNamespace = import('@cloudflare/workers-types/experimental').KVNamespace;
-type ENV = {
-  SERVER_URL: string;
-  KV_BINDING: KVNamespace;
-};
-
-type Runtime = import('@astrojs/cloudflare').DirectoryRuntime<ENV>;
 
 declare namespace App {
   interface Locals extends Runtime {
