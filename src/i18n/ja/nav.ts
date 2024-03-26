@@ -5,7 +5,6 @@ export default NavDictionary({
 	'getting-started': 'はじめに',
 	install: 'インストール',
 	'editor-setup': 'エディタのセットアップ',
-	'guides/upgrade-to/v4': 'v4へのアップグレード',
 
 	coreConcepts: 'コアコンセプト',
 	'concepts/why-astro': 'Astroを選ぶ理由',
