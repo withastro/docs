@@ -165,7 +165,7 @@ La clé `content` contient le contenu complet de l'article en HTML. Cela vous pe
 Un paquet comme [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) s'assurera que votre contenu est correctement assaini, échappé et encodé. Au cours de ce processus, un tel paquet peut également supprimer certains éléments et attributs inoffensifs. Veillez donc à vérifier le résultat et à configurer le paquet en fonction de vos besoins.
 :::
 
-Lorsque vous utilisez des collections de contenu, rendez le `body` du message en utilisant un analyseur Markdown standard comme [`markdown-it`](https://github.com/markdown-it/markdown-it) et désinfectez le résultat :
+Lorsque vous utilisez des collections de contenu, rendez le post `body` en utilisant un parseur Markdown standard comme [`markdown-it`](https://github.com/markdown-it/markdown-it) et assainissez le résultat, en incluant toutes les balises supplémentaires (par exemple `<img>`) nécessaires pour afficher votre contenu :
 
 ```js title="src/pages/rss.xml.js" ins={3, 4, 5, 16}
 import rss from '@astrojs/rss';
@@ -178,12 +178,14 @@ export async function GET(context) {
   const blog = await getCollection('blog');
   return rss({
     title: 'Blog de Buzz',
-    description: 'Le guide des étoiles d'un humble astronaute',
+    description: "Le guide des étoiles d'un humble astronaute",
     site: context.site,
     items: blog.map((post) => ({
       link: `/blog/${post.slug}/`,
       // Note : ceci ne traitera pas les composants ou les expressions JSX dans les fichiers MDX.
-      content: sanitizeHtml(parser.render(post.body)),
+      content: sanitizeHtml(parser.render(post.body), {
+        allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img'])
+      }),
       ...post.data,
     })),
   });
@@ -201,7 +203,7 @@ export function GET(context) {
   const posts = Object.values(postImportResult);
   return rss({
     title: 'Blog de Buzz',
-    description: 'Le guide des étoiles d'un humble astronaute',
+    description: "Le guide des étoiles d'un humble astronaute",
     site: context.site,
     items: posts.map((post) => ({
       link: post.url,
