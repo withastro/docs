@@ -1,0 +1,117 @@
+---
+title: Flotiq & Astro
+description: Add content to your Astro project using Flotiq as a CMS
+type: cms
+service: Flotiq
+i18nReady: true
+---
+
+[Flotiq](https://flotiq.com) is a headless CMS designed for easy integration with various frontend technologies, such as static sites, mobile, and web applications. 
+It enables developers and content creators to manage and deliver content through REST or GraphQL-based APIs, 
+making it a flexible and scalable solution for projects that require separating the presentation layer from content management.
+
+Its ease of use and flexibility in integration make it a useful tool for application and website creators who want to manage content quickly and efficiently.
+
+
+## How to use Flotiq headless CMS with Astro
+
+In this tutorial, we will describe how to use the Flotiq headless CMS API to power an Astro project with data from Flotiq and display the content of this data on your website.
+
+### Prerequisites
+
+To get started, you will need:
+
+1. An Astro project, set up according to the Astro documentation.
+2. A Flotiq headless CMS account ([sign up here](https://editor.flotiq.com/register)).
+3. An API key for your Flotiq account ([see how to obtain the key](https://flotiq.com/docs/API/)).
+
+That's all you need to enjoy a working integration of Flotiq with Astro in just a few moments.
+
+### Prepare the Environment
+
+1. We used `create astro` to create a simple project with a blog template in vanilla JS. _You can also start with a clean project or with TypeScript - the integration will be very similar._
+2. Enter the Read Only key obtained from your Flotiq account into the `.env` file.
+
+```env title=".env"
+FLOTIQ_API_KEY=__YOUR_FLOTIQ_API_KEY__
+```
+
+### Prepare Content Type Definition in Flotiq
+
+1. Log in to your [Flotiq account](https://editor.flotiq.com).
+2. Create a Blog Post [Content Type Definition](https://flotiq.com/docs/panel/content-types/) in Flotiq. You can use our pre-defined type or create custom model.
+3. Create several [Content Objects](https://flotiq.com/docs/panel/content-objects/) in the BlogPost type.
+
+:::tip
+Check your personal API Doc - in the left menu, you always have a link to your documentation. There you will find the API URLs we will use in the next step.
+:::
+
+### Connect Astro Component with Data from Flotiq
+
+Run the project with the `astro dev` command; this will allow us to see changes and possible messages in real-time.
+
+Go to the `/blog` page, e.g. `http://localhost:4322/blog`
+
+*We'll modify the component that lists posts* to showcase content from Flotiq, altering the data retrieval method by utilizing the endpoint /api/v1/content/blogpost. 
+Remember to include your token in the request header.
+
+```diff title="src/pages/blog/index.astro"
+import FormattedDate from '../../components/FormattedDate.astro';
+
+-const posts = (await getCollection('blog')).sort(
+-  (a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf()
+-);
++const posts = await fetch(`https://api.flotiq.com/api/v1/content/blogpost?hydrate=1`, {
++  headers: {
++    'Content-Type': 'application/json',
++    'X-AUTH-TOKEN': import.meta.env.FLOTIQ_API_KEY
++  },
++})
++  .then(response => response.json())
++  .then(response => {
++    console.debug({responseFromFlotiq: response});
++    return response.data;
++  });
+--- 
+
+<!doctype html>
+```
+ 
+Let's adjust the template of a single post to the structure obtained from Flotiq.
+
+```diff title="src/pages/blog/index.astro"
+posts.map((post) => (
+ <li>
+   <a href={`/blog/${post.slug}/`}>
+-     <img width={720} height={360} src={post.data.heroImage} alt="" />
+-     <h4 class="title">{post.data.title}</h4>
++     <img width={720} height={360} src={`https://api.flotiq.com/${post.headerImage?.[0]?.url}`} alt="" />
++     <h4 class="title">{post.title}</h4>
+     <p class="date">
+-       <FormattedDate date={post.data.pubDate} />
++       <FormattedDate date={new Date(post.internal.createdAt)} />
+     </p>
+   </a>
+</li>
+```
+
+Done, just refresh the localhost page; you will see your posts from Flotiq there.
+
+
+
+### Next steps
+
+Next Steps:
+
+Expand other pages, such as individual blog posts, to fetch data from Flotiq. This involves adapting the data retrieval logic to display detailed views for each post.
+
+Refactor the communication with Flotiq into a separate service. By isolating the API calls, your project becomes more maintainable and scalable, making it easier to manage the integration points.
+
+Utilize the Flotiq SDK for API interactions. The SDK simplifies working with the Flotiq API by providing convenient methods for fetching and managing content, enhancing the development experience and speeding up the integration process.
+
+### Summary
+
+This example serves as a starting point for creating a project based on Astro and Flotiq. 
+
+If you're interested in learning more, we invite you to explore the [Flotiq documentation](https://flotiq.com/docs). 
+Additionally, we encourage you to share your experiences and join the conversation on our [Discord channel](https://discord.com/invite/FwXcHnX).
