@@ -5,7 +5,7 @@ export default NavDictionary({
 	'getting-started': '入门指南',
 	install: '安装',
 	'editor-setup': '编辑器设置',
-	'upgrade-astro': 'Astro 升级',
+	'upgrade-astro': '升级 Astro',
 
 	coreConcepts: '核心理念',
 	'concepts/why-astro': '为什么选择 Astro',
