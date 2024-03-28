@@ -69,6 +69,12 @@ export default defineConfig({
 	trailingSlash: 'always',
 	scopedStyleStrategy: 'where',
 	compressHTML: false,
+	experimental: {
+		contentCollectionCache: true,
+	},
+	build: {
+		inlineStylesheets: 'never'
+	},
 	markdown: {
 		// Override with our own config
 		smartypants: false,
