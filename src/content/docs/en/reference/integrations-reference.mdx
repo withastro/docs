@@ -33,7 +33,9 @@ interface AstroIntegration {
       addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
       addDevToolbarApp: (pluginEntrypoint: string) => void;
       injectScript: (stage: InjectedScriptStage, content: string) => void;
-      injectRoute: ({ pattern: string, entrypoint: string }) => void;
+      injectRoute: (route: { pattern: string, entrypoint: string }) => void;
+      injectDts: (dts: { name: string; content: string }) => void;
+      codegenDir: URL;
       logger: AstroIntegrationLogger;
     }) => void;
     'astro:config:done'?: (options: { config: AstroConfig; setAdapter: (adapter: AstroAdapter) => void; logger: AstroIntegrationLogger; }) => void | Promise<void>;
@@ -80,7 +82,9 @@ interface AstroIntegration {
   addDevToolbarApp: (pluginEntrypoint: string) => void;
   addWatchFile: (path: URL | string) => void;
   injectScript: (stage: InjectedScriptStage, content: string) => void;
-  injectRoute: ({ pattern: string, entrypoint: string }) => void;
+  injectRoute: (route: { pattern: string, entrypoint: string }) => void;
+  injectDts: (dts: { name: string; content: string }) => void;
+  codegenDir: URL;
   logger: AstroIntegrationLogger;
 }) => void;
 ```
@@ -367,6 +371,42 @@ The **`stage`** denotes how this script (the `content`) should be inserted. Some
     ```js
     injectScript('page-ssr', 'import "global-styles.css";');
     ```
+
+#### `injectDts`
+
+**Type:** `(dts: { name: string; content: string }) => void;`
+
+A callback function that injects a `.d.ts` file inside the user's `.astro` directory. The file will be referenced for you in the user's project, no need to create a manual reference in `src/env.d.ts`.
+
+This is useful for generating types based on user content, virtual modules etc.
+
+```js
+injectDts({
+  name: 'my-integration.d.ts',
+  content:
+    `declare module "virtual:my-integration/config" {
+      export const color: string;
+    }`
+})
+```
+
+:::note
+`astro.d.ts` and `types.d.ts` are reserved names.
+:::
+
+#### `codegenDir`
+
+**Type:** `URL`
+
+The absolute path to the `.astro` directory.
+
+```js
+const dataPath = new URL('./data.json', codegenDir);
+```
+
+:::note
+This directory is always created before the `astro:config:setup` hook runs so you don't have to!
+:::
 
 ### `astro:config:done`
 
