@@ -1,0 +1,74 @@
+---
+title: 'Astro Studio'
+description: Una dashboard interattiva per gestire Astro DB.
+i18nReady: true
+---
+import ReadMore from '~/components/ReadMore.astro';
+
+
+Il [portale web di Astro Studio](http://studio.astro.build) ti permette di connetterti e gestire i tuoi database Astro DB ospitati in remoto attraverso un'interfaccia web o utilizzando [comandi CLI](/it/reference/cli-reference/#astro-studio-cli).
+
+Dalla tua dashboard di Studio, hai accesso alla gestione dell'account, articoli di aiuto e una console per messaggi di supporto.
+
+Visita [Astro Studio](http://studio.astro.build) per registrarti o accedere.
+
+## Distribuire con una connessione Studio
+
+Puoi distribuire il tuo progetto Astro DB con una connessione attiva al tuo database Studio. Questo è possibile con qualsiasi piattaforma di distribuzione utilizzando build statiche o un [adattatore SSR](/it/guides/server-side-rendering/).
+
+Prima di tutto, configura il tuo comando di build per connettersi con Studio utilizzando il flag `--remote`. Questo esempio applica il flag a uno script `"build"` nel `package.json` del tuo progetto. Se la tua piattaforma di distribuzione accetta un comando di build, assicurati che sia impostato su `npm run build`.
+
+```json title="package.json" "--remote"
+{
+  "scripts": {
+    "build": "astro build --remote"
+  }
+}
+```
+
+### Crea un token per l'app Studio
+
+Hai bisogno di creare un token per l'app per accedere al tuo database Studio da una distribuzione in produzione. Puoi creare un token per l'app dalla dashboard del tuo progetto Studio navigando nella scheda **Impostazioni** e selezionando **Token**.
+
+Copia il token generato e applicalo come variabile d'ambiente / segreto d'ambiente nella tua piattaforma di distribuzione utilizzando il nome `ASTRO_STUDIO_APP_TOKEN`.
+
+## Configura l'azione CI di GitHub
+
+Puoi spingere automaticamente le modifiche allo schema al tuo database Studio con l'azione CI di Studio. Questo verifica che le modifiche possano essere effettuate in sicurezza e mantiene la tua configurazione aggiornata ogni volta che effettui il merge su `main`.
+
+[Segui la documentazione di GitHub](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions#creating-secrets-for-a-repository) per configurare un nuovo segreto nel tuo repository con il nome `ASTRO_STUDIO_APP_TOKEN` e il tuo token per l'app Studio come valore per il segreto.
+
+Una volta configurato il tuo segreto, crea un nuovo file di workflow di GitHub Actions nella directory `.github/workflows` del tuo progetto per effettuare il checkout del repository e installare Node.js come passaggi, e usa l'azione `withastro/action-studio` per sincronizzare le modifiche allo schema.
+
+L'azione eseguirà `astro db verify` su tutti i [trigger di evento](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows) per assicurarsi che le modifiche allo schema possano essere applicate in sicurezza. Se aggiungi specificamente il trigger **[push](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#push)**, l'azione spingerà quelle modifiche al tuo database Studio.
+
+Questo esempio di GitHub Action `_studio.yml` spinge le modifiche ogni volta che il ramo `main` viene aggiornato:
+
+```yaml title=".github/workflows/_studio.yml"
+name: Astro Studio
+
+env:
+  ASTRO_STUDIO_APP_TOKEN: ${{secrets.ASTRO_STUDIO_APP_TOKEN }}
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  DB:
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: jaid/action-npm-install@v1.2.1
+      - uses: withastro/action-studio@main
+```

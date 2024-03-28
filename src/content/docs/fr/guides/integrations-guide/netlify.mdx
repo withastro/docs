@@ -125,7 +125,7 @@ declare namespace App {
 
 Ceci n'est pas disponible sur les pages pré-rendues.
 
-### Exécution du middleware Astro dans les fonctions Edge
+### Exécution du middleware Astro sur les fonctions Netlify Edge
 
 Tout middleware Astro est appliqué aux pages pré-rendues au moment de la création, et aux pages pré-rendues au moment de l'exécution.
 
@@ -133,7 +133,7 @@ Pour implémenter des redirections, des contrôles d'accès ou des en-têtes de 
 
 ```js title="astro.config.mjs" ins={8}
 import { defineConfig } from 'astro/config';
-import netlify from '@astrojs/netlify/functions';
+import netlify from '@astrojs/netlify';
 
 export default defineConfig({
   // ...
@@ -144,7 +144,9 @@ export default defineConfig({
 });
 ```
 
-Configurer `edgeMiddleware : true` déploiera votre middleware en tant que fonction de pointe, et l'exécutera sur toutes les routes, y compris les pages pré-rendues. Cependant, les locaux spécifiés dans le middleware ne seront pas disponibles pour les pages pré-rendues, parce qu'elles ont déjà été entièrement rendues au moment de la construction.
+Lorsque `edgeMiddleware` est activé, une fonction edge exécutera votre code middleware pour toutes les requêtes, y compris les actifs statiques, les pages pré-rendues et les pages rendues à la demande.
+
+Pour les pages rendues à la demande, l'objet `context.locals` est sérialisé en utilisant du JSON et envoyé dans un en-tête pour la fonction serverless, qui effectue le rendu. Comme mesure de sécurité, la fonction serverless refusera de servir les requêtes avec une réponse `403 Forbidden` à moins qu'elles ne proviennent de la fonction edge générée.
 
 ### Support du CDN d'images Netlify
 
@@ -155,7 +157,7 @@ Pour ne pas utiliser l'optimisation d'image à distance du CDN de Netlify, utili
 
 ```js title="astro.config.mjs" ins={8}
 import { defineConfig } from 'astro/config';
-import netlify from '@astrojs/netlify/functions';
+import netlify from '@astrojs/netlify';
 
 export default defineConfig({
   // ...
@@ -166,13 +168,32 @@ export default defineConfig({
 });
 ```
 
-:::caution
-Cet adaptateur ne supporte pas les propriétés `image.domains` et `image.remotePatterns` de votre configuration Astro. Pour [spécifier les chemins distants pour Netlify Image CDN](https://docs.netlify.com/image-cdn/overview/#remote-path), utilisez le champ `remote_images` dans `netlify.toml`.
-:::
+Si vous utilisez des images hébergées sur un autre domaine, vous devez autoriser les chaînes de domaines ou d'URL en utilisant les options de configuration [`image.domains`](/fr/reference/configuration-reference/#imagedomains) ou [`image.remotePatterns`](/fr/reference/configuration-reference/#imageremotepatterns) :
 
-### Sites statiques et redirections
+```js title="astro.config.mjs" ins={8-10}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
 
-Pour les sites statiques, vous n'avez généralement pas besoin d'adaptateur. Cependant, si vous utilisez la configuration `redirects` dans votre configuration Astro, l'adaptateur Netlify peut être utilisé pour traduire cette configuration au format `_redirects` approprié.
+export default defineConfig({
+    // ...
+    output: 'server',
+    adapter: netlify(),
+    image: {
+      domains: ['exemple.com'],
+    },
+});
+```
+Pour plus d'informations, voir [le guide d'autorisation des images distantes](/fr/guides/images/#autoriser-les-images-distantes). Cela n'est pas nécessaire pour les images hébergées sur le même domaine que votre site.
+
+### Sites statiques avec l'adaptateur Netlify
+
+Pour les sites statiques (`output : 'static'`) hébergés sur Netlify, vous n'avez généralement pas besoin d'adaptateur. Cependant, certaines fonctionnalités de déploiement ne sont disponibles qu'à travers un adaptateur.
+
+### Sites statiques
+
+Les sites statiques devront installer cet adaptateur pour utiliser et configurer le [service d'image de Netlify](#support-du-cdn-dimages-netlify).
+
+Si vous utilisez la configuration `redirects` dans votre configuration Astro, l'adaptateur Netlify peut être utilisé pour traduire cette configuration au format `_redirects` approprié.
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';

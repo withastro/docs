@@ -6,13 +6,20 @@
  * - All entries MUST include `text` and `key`
  * - Heading entries MUST include `header: true` and `type`
  * - Link entries MUST include `slug` (which excludes the language code)
+ *
+ * For translators:
+ *
+ * Copy the English `key` value unchanged and translate only the `text` into your language:
+ *
+ * `src/i18n/en/nav.ts`: `{ text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },`
+ * `src/i18n/ja/nav.ts`: `'getting-started': 'はじめに',`
  */
 export default [
 	{ text: 'Start Here', header: true, type: 'learn', key: 'startHere' },
 	{ text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },
 	{ text: 'Installation', slug: 'install/auto', key: 'install' },
 	{ text: 'Editor Setup', slug: 'editor-setup', key: 'editor-setup' },
-	{ text: 'Upgrade to v4', slug: 'guides/upgrade-to/v4', key: 'guides/upgrade-to/v4' },
+	{ text: 'Upgrade Astro', slug: 'upgrade-astro', key: 'upgrade-astro' },
 
 	{ text: 'Core Concepts', header: true, type: 'learn', key: 'coreConcepts' },
 	{ text: 'Why Astro', slug: 'concepts/why-astro', key: 'concepts/why-astro' },
@@ -73,6 +80,11 @@ export default [
 		slug: 'guides/prefetch',
 		key: 'guides/prefetch',
 	},
+	{
+		text: 'Dev Toolbar',
+		slug: 'guides/dev-toolbar',
+		key: 'guides/dev-toolbar',
+	},
 
 	{ text: 'Integrations', header: true, type: 'learn', key: 'addons' },
 	{ text: 'Add integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
@@ -86,9 +98,15 @@ export default [
 		slug: 'guides/server-side-rendering',
 		key: 'guides/server-side-rendering',
 	},
+	{
+		text: 'Astro DB',
+		slug: 'guides/astro-db',
+		key: 'guides/astro-db',
+	},
 
 	{ text: 'Recipes', header: true, type: 'learn', key: 'examples' },
 	{ text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
+	{ text: 'Connect to Astro Studio', slug: 'recipes/studio', key: 'recipes/studio' },
 	{ text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
 	{ text: 'Add backend services', slug: 'guides/backend', key: 'guides/backend' },
 	{ text: 'Deploy your site', slug: 'guides/deploy', key: 'guides/deploy' },
@@ -108,12 +126,14 @@ export default [
 	{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
 	{ text: 'Endpoints', slug: 'guides/endpoints', key: 'guides/endpoints' },
 	{ text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
+
 	{
 		text: 'Internationalization',
 		slug: 'guides/internationalization',
 		key: 'guides/internationalization',
 	},
 	{ text: 'Middleware', slug: 'guides/middleware', key: 'guides/middleware' },
+	{ text: 'E-commerce', slug: 'guides/ecommerce', key: 'guides/ecommerce' },
 	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
 	{ text: 'Authentication', slug: 'guides/authentication', key: 'guides/authentication' },
 	{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
