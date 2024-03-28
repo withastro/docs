@@ -27,6 +27,7 @@ export default NavDictionary({
 	'guides/content-collections': '内容集合',
 	'guides/view-transitions': '视图过渡动画',
 	'guides/prefetch': '预获取',
+	'guides/dev-toolbar': '开发者工具栏',
 
 	addons: '集成',
 	'guides/integrations-guide': '添加集成',
