@@ -1,0 +1,224 @@
+---
+type: integration
+title: '@astrojs/db'
+description: Learn how to use the @astrojs/db integration in your Astro project.
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/db/'
+category: other
+i18nReady: true
+---
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import Badge from '~/components/Badge.astro';
+
+
+Astro DBはAstroのために設計されたSQLベースのデータベースです。ローカル環境で開発し[Astro Studio dashboard](/ja/recipes/studio/)からデプロイしましょう。
+
+強力なローカルの型安全ツールを備えたAstro DBを使用し、リレーショナルデータベースとしてコンテンツをモデル、またはクエリしましょう。Interactive Studio Dashboardからあなたのリモートなデータをホストされているリモートデータを表示、管理、デプロイできます。 
+
+<ReadMore>AstroDBの詳しい例や使い方に関しては[Astro DBガイド](/ja/guides/astro-db/)をご覧ください</ReadMore>
+
+## インストール
+
+Astroは公式インテグレーションのセットアップを自動化するために標準で`astro add`コマンドを搭載しています。自動で行われたくない場合、[手動でインテグレーションをインストール](#手動でのインストール) することもできます。
+
+以下のコマンドの内いずれか一つをターミナルで実行してください。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add db
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add db
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add db
+  ```
+  </Fragment>
+ </PackageManagerTabs>
+
+#### 手動でのインストール
+
+AstroDBのインストールを手動で行いたい場合、`astro add`コマンドを実行するのではなく以下のステップに従って手動でインストールしてください。 
+
+##### 1. npmのパッケージマネージャー経由でインテグレーションをインストールする
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm install @astrojs/db
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm add @astrojs/db
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn add @astrojs/db
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+##### 2. インテグレーションを`astro.config.mjs`に追加する
+
+    ```js title="astro.config.mjs" ins={2,6}
+    import { defineConfig } from 'astro/config';
+    import db from '@astrojs/db';
+
+    export default defineConfig({
+      integrations: [
+       db()
+      ]
+    });
+    ```
+
+##### 3. データベースを設定する
+
+プロジェクトディレクトリの一番高い階層に`db/config.ts`を作成してください。このファイルはAstroが自動的にロードする特別なファイルで、データベーステーブルを設定するのに使用されます。
+
+```ts
+// db/config.ts
+import { defineDb } from 'astro:db';
+
+export default defineDb({
+  tables: {},
+})
+```
+
+## テーブル構成の参照
+
+### `columns`
+
+テーブルの行の設定をするには、以下のコードのように`columns`オブジェクトを使用します。
+
+```ts
+import { defineTable, column, NOW } from 'astro:db';
+
+const Comment = defineTable({
+	columns: {
+		id: column.number({ primaryKey: true }),
+		author: column.text(),
+		content: column.text({ optional: true }),
+		published: column.date({ default: NOW }),
+	},
+});
+```
+
+テーブルの行を細かく設定するには `column`ユーティリティーを使用します。`column`は以下の型に対応しています。
+
+- **`column.text(...)`** - プレーンまたはリッチテキストを保存
+- **`column.number(...)`** - 整数（Integer）や浮動小数点数（Float）を保存する
+- **`column.boolean(...)`** - trueまたはfalseの値を保存する
+- **`column.date(...)`** - ISO StringとしてDataストレージにパースされる`Date`オブジェクトを保存する 
+- **`column.json(...)`** - 任意のJSON blobsを文字列化されたJSONとしてデータストレージに保存する 
+
+以下の追加設定は全ての型の行で使用できます。
+
+- `primaryKey` - `number`または`text`の列を特別な識別子として設定します。
+- `optional` - Astro DBは`NOT NULL`オプションを標準で使用しています。nullな値に対応したい場合位は`optional`の値を`true`に設定してください。
+- `default` - 新しく追加された値のデフォルト値を設定します。デフォルト値としてAstroDBは静的な値かSQLによって生成されたタイムスタンプのような文字列のいずれかを受け付けます。
+- `unique` - この列をユニーク化します。ユニークと設定することで、テーブル上のユニークな値が他の箇所に複製されることを防げます。
+- `references` - 関連したテーブルを列ごとに参照します。参照を設定する場合、参照先のテーブルと参照している列が同じ値を持つ必要があります。
+
+### `indexes`
+
+テーブルインデックスは与えられた列を探すスピードを向上させるために使用されます。`indexes`プロパティはユニークなインデックス名を持つオブジェクトをKeyとして受け入れます。
+
+```ts title="db/config.ts" {6-8}
+import { defineTable, column } from 'astro:db';
+
+const Comment = defineTable({
+  authorId: column.number(),
+  body: column.text(),
+  indexes: {
+    author_idx: { on: ['authorId'], unique: true },
+  }
+});
+```
+
+各インデックスには、以下のような追加設定が可能です。
+
+- `on`: `string | string[]` - インデックスする単一の列、または複数の列が入っている配列。
+- `unique`: `boolean` - ユニークな値をインデックスされた列に強制するには`true`に設定してください。
+
+### `foreignKeys`
+
+:::tip
+
+`foreignKeys`は複数のテーブルの列を関連付けるのに使用される高度なAPIです。もし参照する必要があるのが一つの列のみである場合、[列の`references`プロパティ]を使用するようにしてください。
+
+:::
+
+Foreign keysは二つのテーブル同士を関連づけるために使用されます。`foreignKeys`プロパティはテーブルの列同士を関連づけるコンフィギュレーションオブジェクトが入った配列を受け入れます。
+
+
+```ts title="db/config.ts" {12-20}
+import { defineTable, column } from 'astro:db';
+
+const Author = defineTable({
+  firstName: column.text(),
+  lastName: column.text(),
+});
+
+const Comment = defineTable({
+  authorFirstName: column.text(),
+  authorLastName: column.text(),
+  body: column.text(),
+  foreignKeys: [
+    {
+      columns: ['authorFirstName', 'authorLastName'],
+      references: () => [
+        Author.columns.firstName,
+        Author.columns.lastName
+      ],
+    },
+  ]
+});
+```
+
+各キー設定オブジェクトは以下のようなプロパティを受け入れます。
+
+- `columns`: `string[]` - 参照されたテーブルと関連づける列で構成されている配列 
+- `references`: `() => Column[]` - 参照されたテーブルの列を配列として返す関数
+
+## Astro DB CLI レファレンス
+
+Astro DBには[Astro Studio](/ja/recipes/studio/)のアカウントやホストされたデータベースと対話するためのCLIコマンドが含まれています。
+
+これらのコマンドはGitHub CIアクションを使用している場合は自動的に実行されます。`astro db` CLIを使用することで手動でコマンドを実行することもできます。
+
+### `astro db push`
+
+**フラグ**
+
+- `--force-reset` スキーマを変更する必要があった場合に全てのプロダクションデータをリセットする
+
+安全にデータベースの変更をプロジェクトデータベースにプッシュします。このコマンドはデータ損失のリスクを確認し、推奨された移行手順などでガイドします。もし重大なスキーマの変更を行わなければいけないのであれば、`--force-reset`フラグを使用してプロダクションデータを１度全てリセットしてください。
+
+### `astro db verify`
+
+ローカルなデータベースとリモートのデータベースの設定を違いを確認します。このコマンドは`astro db push`が実行された時に自動的に実行されます。`verify`はあなたのローカルな`db/config.ts`ファイルをリモートのデータベースと比較し、変更があった場合は警告します。
+
+### `astro db execute <file-path>`
+
+**フラグ:**
+
+- `--remote` スタジオのプロジェクトのデータベースに対して実行します。開発用サーバーに対して実行したい場合は省略してください。
+
+`.ts`、または`.js`ファイルを実行しデータベース上で読み込んだり書いたりします。このコマンドはファイルパスを引数として受け入れ、型安全なクエリを書くための`astro:db`モジュールの使用もサポートしています。スタジオのプロジェクトのデータベースに対して実行したい場合は`--remote`フラグを、開発用サーバーに対して実行したい場合は`--remote`フラグを省いて実行してください。サンプルファイルを見るには[シード開発データ](/ja/guides/astro-db/#データベースのシード)を確認してください。
+
+### `astro db shell --query <sql-string>`
+
+**フラグ:**
+
+- `--query` 実行したいプレーンなSQLクエリ
+- `--remote` スタジオのプロジェクトのデータベースに対して実行します。開発用サーバーに対して実行したい場合は省略してください。
+
+SQLクエリをデータベースに対して実行します。スタジオのプロジェクトのデータベースに対して実行したい場合は`--remote`フラグを、開発用サーバーに対して実行したい場合は`--remote`フラグを省いて実行してください。
