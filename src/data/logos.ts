@@ -18,6 +18,7 @@ export const logos = LogoCheck({
 	gitlab: { file: 'gitlab.svg', padding: '0' },
 	'google-cloud': { file: 'google-cloud.svg', padding: '.1875em' },
 	'google-firebase': { file: 'firebase.svg', padding: '.1875em' },
+	hashnode: { file: 'hashnode.png', padding: '.1875em' },
 	heroku: { file: 'heroku.svg', padding: '.25em' },
 	'microsoft-azure': { file: 'microsoft-azure.svg', padding: '.1625em .1625em .2125em' },
 	netlify: { file: 'netlify.svg', padding: '.1625em' },
