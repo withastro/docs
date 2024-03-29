@@ -115,8 +115,6 @@ export default UIDictionary({
 	'feedback.submit': 'Enviar feedback',
 	'feedback.close': 'Fechar formulário de feedback',
 	'feedback.success': 'Obrigado! Nós recebemos seu feedback.',
-	// `<FileTree>` component
-	'fileTree.directoryLabel': 'Diretório',
 	// Code snippet vocabulary
 	'expressiveCode.terminalWindowFallbackTitle': 'Janela do terminal',
 	'expressiveCode.copyButtonTooltip': 'Copiar para área de transferência',
@@ -132,4 +130,6 @@ export default UIDictionary({
 	'stub.description.backend': 'Sabe mais sobre como usar este serviço de back-end com o Astro?',
 	'starlight.title': 'Quer criar sua própria documentação?',
 	'starlight.description': 'Use esse template e comece agora.',
+	// `<StudioHeading>` component
+	'studioHeading.label': 'Funcionalidade do Studio',
 });

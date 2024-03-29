@@ -6,7 +6,6 @@ export default NavDictionary({
 
 	install: 'इंस्टॉल करें',
 	'editor-setup': 'एडिटर सेटअप',
-	'guides/upgrade-to/v4': 'v4 में अपग्रेड करें',
 
 	coreConcepts: 'मूल अवधारणाएँ',
 	'concepts/why-astro': 'क्यों Astro',
@@ -20,7 +19,7 @@ export default NavDictionary({
 	basics: 'मौलिक अवधारणाएँ',
 	'basics/project-structure': 'परियोजना संरचना',
 	'basics/astro-components': 'अवयव',
-	'basics/astro-pages': 'पृष्ठ',
+	'basics/astro-pages': 'पेज',
 	'basics/layouts': 'नक़्शे',
 	'basics/astro-syntax': 'Astro की सिंटैक्स',
 	'basics/rendering-modes': 'अनुवाद मध्यम',
