@@ -53,6 +53,7 @@
 |changelog             |變更日誌             |                       |
 |recipe                |操作指南             |                       |
 |server-side rendering |伺服器端算繪          |                       |
+|call                  |呼叫                 |                       |
 
 
 ### 1.2 中文用詞
