@@ -150,4 +150,4 @@
 
 ## 4. 關於本指南
 本指南**並非**硬性規定，而是代表中文文件翻譯團隊共識的建議。  
-如果你對本指南有任何想法或勘誤建議，歡迎發起 issue 或是加入 [Discord 社群](https://astro.build/chat)中的 `#i18n-crew-zh` 頻道參與討論！
+如果你對本指南有任何想法或勘誤建議，歡迎發起 Issue 或是加入 [Discord 社群](https://astro.build/chat)中的 `#i18n-crew-zh` 頻道參與討論！
