@@ -1,10 +1,10 @@
 # Astro Docs 中文翻譯指南
 
-感謝你有興趣對 Astro 文件翻譯做出貢獻！
-提交改動前，別忘了閱讀 [i18n 指南](https://contribute.docs.astro.build/guides/i18n/)，裡面包含了貢獻過程中需要知道的內容。
+感謝你有興趣對 Astro 文件翻譯做出貢獻！  
+提交改動前，別忘了閱讀 [i18n 指南](https://contribute.docs.astro.build/guides/i18n/)，裡面包含了貢獻過程中需要知道的內容。  
 也歡迎加入 Astro 的 [Discord 社群](https://astro.build/chat)與其他貢獻者們交流！
 
-本指南旨在整理一份統一的格式及風格指南，使文件讀起來更流暢並易於理解。
+本指南旨在整理一份統一的格式及風格指南，使文件讀起來更流暢並易於理解。  
 
 編撰時參考了 [Vue 中文文档指南](https://github.com/vuejs-translations/docs-zh-cn/wiki/%E7%BF%BB%E8%AF%91%E9%A1%BB%E7%9F%A5)。
 
@@ -125,7 +125,7 @@
 例如：
 > When Vue is updating a list of elements rendered with v-for, by default it uses an "in-place patch" strategy. If the order of the data items has changed, instead of moving the DOM elements to match the order of the items, Vue will patch each element in-place and make sure it reflects what should be rendered at that particular index.
 
-像是「to match the order of the items」這樣的短語可以在**保證語意不變**的情況下簡化。
+像是「to match the order of the items」這樣的短語可以在**保證語意不變**的情況下簡化。  
 
 以上例句可譯為：「Vue 預設按照『就地更新』的策略來更新透過 `v-for` 算繪的元素列表。當資料的順序改變時，Vue 不會隨之移動 DOM 元素的順序，而是就地更新每個元素，確保它反映應在指定索引位置上算繪的內容」。
 
@@ -134,7 +134,7 @@
 例如：
 > The mustache tag will be replaced with the value of the msg property from the corresponding component instance. It will also be updated whenever the msg property changes.
 
-可在句中加入如「然而」、「並且」或「即使……也……」等連接詞來使句子更加連貫。
+可在句中加入如「然而」、「並且」或「即使……也……」等連接詞來使句子更加連貫。  
 
 以上例句的後半句可譯為：「每當 `msg` 屬性發生改變時，綁定處的內容便會隨之更新」。
 
@@ -149,5 +149,5 @@
 
 
 ## 4. 關於本指南
-本指南**並非**硬性規定，而是代表中文文件翻譯團隊共識的建議。
+本指南**並非**硬性規定，而是代表中文文件翻譯團隊共識的建議。  
 如果你對本指南有任何想法或勘誤建議，歡迎發起 issue 或是加入 [Discord 社群](https://astro.build/chat)中的 `#i18n-crew-zh` 頻道參與討論！
