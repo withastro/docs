@@ -114,8 +114,6 @@ export default UIDictionary({
 	'feedback.submit': '제출',
 	'feedback.close': '피드백 양식 닫기',
 	'feedback.success': '여러분의 생각을 들려주셔서 감사합니다!',
-	// `<FileTree>` component
-	'fileTree.directoryLabel': '디렉터리',
 	// Code snippet vocabulary
 	'expressiveCode.terminalWindowFallbackTitle': '터미널 창',
 	'expressiveCode.copyButtonTooltip': '클립보드로 복사',
@@ -133,4 +131,6 @@ export default UIDictionary({
 	// Starlight banner
 	'starlight.title': '나만의 문서를 만들고 싶으신가요?',
 	'starlight.description': '시작하려면 이 템플릿을 사용하세요.',
+	// `<StudioHeading>` component
+	'studioHeading.label': 'Studio 기능',
 });

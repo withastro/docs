@@ -165,6 +165,7 @@ items: import.meta.glob('./blog/*.{md,mdx}'),
 :::
 
 当使用内容集合时，使用标准的 Markdown 解析器如 [`markdown-it`](https://github.com/markdown-it/markdown-it) 渲染文章 `body` 并清理结果：
+在使用内容集合时，使用标准的 Markdown 解析器如 [`markdown-it`](https://github.com/markdown-it/markdown-it) 渲染文章 `body` 并清理结果，包括渲染内容所需的任何额外标签（例如 `<img>`）：
 
 ```js title="src/pages/rss.xml.js" ins={3, 4, 5, 16}
 import rss from '@astrojs/rss';
@@ -182,7 +183,9 @@ export async function GET(context) {
     items: blog.map((post) => ({
       link: `/blog/${post.slug}/`,
       // 注意：这不会处理 MDX 文件中的组件或 JSX 表达式。
-      content: sanitizeHtml(parser.render(post.body)),
+      content: sanitizeHtml(parser.render(post.body), {
+        allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img'])
+      }),
       ...post.data,
     })),
   });
@@ -228,6 +231,22 @@ rss({
 :::tip
 如果你还没有 RSS 样式表的想法，我们建议你使用 [Pretty Feed v3 默认样式表](https://github.com/genmon/aboutfeeds/blob/main/tools/pretty-feed-v3.xsl)，你可以从 GitHub 上下载并将其保存到项目的 `public/` 目录中。
 :::
+
+## 开启自动发现 RSS 摘要
+
+[RSS 自动发现](https://www.rssboard.org/rss-autodiscovery) 允许浏览器和其他软件自动从主 URL 找到网站的 RSS 摘要。
+要启用此功能，请在你的网站的 `head` 元素中添加带有以下属性的 `<link>` 标签：
+
+```html
+<link
+    rel="alternate"
+    type="application/rss+xml"
+    title="你的网站标题"
+    href={`${Astro.site}rss.xml`}
+/>
+```
+
+通过这个标签，你的博客读者可以将你的网站基础 URL 输入到他们的 RSS 阅读器中，订阅你的文章，而无需知道你的 RSS 摘要的具体 URL。
 
 ## 后续步骤
 

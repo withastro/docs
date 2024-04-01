@@ -1,0 +1,498 @@
+---
+title: 'Astro DB'
+description: Astro 전용으로 설계된 완전 관리형 SQL 데이터베이스인 Astro DB를 사용하는 방법을 알아보세요.
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/db/'
+i18nReady: true
+---
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import StudioHeading from '~/components/StudioHeading.astro';
+
+Astro DB는 Astro 전용으로 설계된 완전 관리형 SQL 데이터베이스입니다. 로컬에서 개발하거나 [Astro Studio](/ko/recipes/studio/) 플랫폼에서 관리되는 호스팅된 데이터베이스에 연결하세요.
+
+## 설치
+
+[`@astrojs/db` 통합](/ko/guides/integrations-guide/db/) (`v0.8.1` 이상)을 사용하여 신규 또는 기존 Astro 프로젝트 (`astro@4.5` 이상 필요)에 Astro DB를 추가하세요. Astro에는 이 설정 프로세스를 자동화하는 `astro add` 명령이 내장되어 있습니다.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add db
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add db
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add db
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+원한다면 [`@astrojs/db`를 수동으로 설치](/ko/guides/integrations-guide/db/#수동-설치)할 수 있습니다.
+
+## 데이터베이스 정의
+
+Astro DB는 데이터 구성, 개발 및 쿼리를 위한 완벽한 솔루션입니다. Docker나 네트워크 연결 없이 LibSQL을 사용하여 데이터를 관리하는 `astro dev`를 실행할 때마다 로컬 데이터베이스가 생성됩니다.
+
+`astro add` 명령으로 `@astrojs/db`를 설치하면 데이터베이스 테이블을 정의할 프로젝트에 `db/config.ts` 파일이 생성됩니다.
+
+```ts title="db/config.ts"
+import { defineDb } from 'astro:db';
+
+export default defineDb({
+  tables: { },
+})
+```
+
+### 테이블
+
+Astro DB의 데이터는 SQL 테이블을 사용하여 저장됩니다. 테이블은 데이터를 행과 열로 구조화하며, 여기서 열은 각 행 값의 타입을 적용합니다.
+
+테이블을 정의하면 Astro는 프로젝트에서 해당 테이블을 쿼리하기 위해 TypeScript 인터페이스를 생성합니다. 결과적으로 데이터에 액세스할 때 속성 자동 완성 및 타입 검사를 통해 완전한 TypeScript 지원이 제공됩니다.
+
+데이터베이스 테이블을 구성하려면 `astro:db`에서 `defineTable()` 및 `column` 유틸리티를 가져와 사용하세요.
+
+이 예시에서는 `author` 및 `body`에 대한 필수 텍스트 열이 있는 `Comment` 테이블을 구성합니다. 그런 다음 `defineDb()` 내보내기를 통해 프로젝트에서 사용할 수 있도록 합니다.
+
+```ts title="db/config.ts" "Comment"
+import { defineDb, defineTable, column } from 'astro:db';
+
+const Comment = defineTable({
+  columns: {
+    author: column.text(),
+    body: column.text(),
+  }
+})
+
+export default defineDb({
+  tables: { Comment },
+})
+```
+
+<ReadMore>테이블 옵션에 대한 전체 참조는 [테이블 구성 참조](/ko/guides/integrations-guide/db/#테이블-구성-참조)를 확인하세요.</ReadMore>
+
+### 열 (Columns)
+
+Astro DB는 다음 열 타입을 지원합니다.
+
+```ts title="db/config.ts" "column.text()" "column.number()" "column.boolean()" "column.date()" "column.json()"
+import { defineTable, column } from 'astro:db';
+
+const Comment = defineTable({
+  columns: {
+    // 텍스트 문자열입니다.
+    author: column.text(),
+    // 정수 값입니다.
+    likes: column.number(),
+    // 참 또는 거짓 값입니다.
+    flagged: column.boolean(),
+    // JavaScript Date 객체로 쿼리되는 날짜/시간 값입니다.
+    published: column.date(),
+    // 타입이 설정되지 않은 JSON 객체입니다.
+    metadata: column.json(),
+  }
+});
+```
+
+<ReadMore>자세한 내용은 [테이블 열 참조](/ko/guides/integrations-guide/db/#테이블-구성-참조)를 확인하세요.</ReadMore>
+
+### 테이블 참조
+
+테이블 간 관계는 데이터베이스 디자인의 일반적인 패턴입니다. 예를 들어, `Blog` 테이블은 `Comment`, `Author` 및 `Category`의 다른 테이블과 밀접하게 관련될 수 있습니다.
+
+테이블 간 관계를 정의하고 **참조 열 (reference columns)** 을 사용하여 데이터베이스 스키마에 저장할 수 있습니다. 관계를 구축하려면 다음이 필요합니다.
+
+- 참조 테이블의 **식별자 열 (identifier column)** 이 필요합니다. 이는 일반적으로 `primaryKey` 속성이 있는 `id` 열입니다.
+- **참조된 `id`를 저장하기 위한 기본 테이블의 열** 이 필요합니다. 이는 `references` 속성을 사용하여 관계를 설정합니다.
+
+이 예시에서는 `Author` 테이블의 `id` 열을 참조하는 `Comment` 테이블의 `authorId` 열을 보여줍니다.
+
+```ts title="db/config.ts" {3, 10}
+const Author = defineTable({
+  columns: {
+    id: column.number({ primaryKey: true }),
+    name: column.text(),
+  }
+});
+
+const Comment = defineTable({
+  columns: {
+    authorId: column.number({ references: () => Author.columns.id }),
+    content: column.text(),
+  }
+});
+```
+
+## 데이터베이스 시드
+
+개발 모드에서 Astro는 DB 구성을 사용하여 스키마에 따라 로컬 타입을 생성합니다. 이는 개발 서버가 시작될 때마다 새로 생성되며 타입 안전성 및 자동 완성을 통해 데이터 형태를 쿼리하고 작업할 수 있습니다.
+
+테스트 및 디버깅을 위한 개발 데이터를 Astro 프로젝트에 시드하려면 `db/seed.ts` 파일을 생성하세요. `astro:db`에서 `db` 객체와 구성된 테이블을 모두 가져옵니다. 테이블 행 데이터 객체의 배열을 제공하려면 `db.insert()` 함수를 사용하세요.
+
+다음 예시에서는 `Comment` 테이블에 대한 개발 데이터의 두 행을 정의합니다.
+
+```ts title="db/seed.ts"
+import { db, Comment } from 'astro:db';
+
+export default async function() {
+  await db.insert(Comment).values([
+    { authorId: 1, body: 'Hope you like Astro DB!' },
+    { authorId: 2, body: 'Enjoy!'},
+  ])
+}
+```
+
+개발 서버는 이 파일이 변경될 때마다 자동으로 데이터베이스를 다시 시작하여 타입을 재생성하고 `seed.ts` 파일에서 개발 데이터를 시드합니다.
+
+## 데이터베이스 쿼리
+
+제공된 db ORM 및 쿼리 빌더를 사용하여 프로젝트의 모든 [Astro 페이지](/ko/basics/astro-pages/#astro-페이지) 또는 [엔드포인트](/ko/guides/endpoints/)에서 데이터베이스를 쿼리할 수 있습니다.
+
+### Drizzle ORM
+
+```
+import { db } from 'astro:db';
+```
+
+Astro DB에는 [Drizzle ORM](https://orm.drizzle.team/) 클라이언트가 내장되어 있습니다. 클라이언트를 사용하는 데 필요한 설정이나 수동 구성이 없습니다. Astro DB의 `db` 클라이언트는 Astro를 실행할 때 데이터베이스 (로컬 또는 원격)와 통신하도록 자동으로 구성됩니다. 존재하지 않는 열이나 테이블을 참조할 때, TypeScript 오류가 발생한 타입 안정성을 갖춘 SQL 쿼리에 대해 정확한 데이터베이스 스키마 정의를 사용합니다.
+
+
+### Select 
+
+다음 예시에서는 `Comment` 테이블의 모든 행을 선택합니다. 그러면 페이지 템플릿에서 사용할 수 있는 `db/seed.ts` 파일에서 시드된 개발 데이터의 전체 배열이 반환됩니다.
+
+```astro title="src/pages/index.astro"
+---
+import { db, Comment } from 'astro:db';
+
+const comments = await db.select().from(Comment);
+---
+
+<h2>Comments</h2>
+
+{
+  comments.map(({ author, body }) => (
+    <article>
+      <p>Author: {author}</p>
+      <p>{body}</p>
+    </article>
+  ))
+}
+```
+
+<ReadMore>전체 개요는 [Drizzle `select()` API 참조](https://orm.drizzle.team/docs/select)를 확인하세요.</ReadMore>
+
+### Insert
+
+양식 요청 처리 및 원격 호스팅 데이터베이스에 데이터 삽입과 같은 사용자 입력을 허용하려면 Astro 프로젝트에 [주문형 렌더링](/ko/basics/rendering-modes/#요청-시-렌더링)을 구성하고 배포 환경에 [SSR 어댑터를 추가](/ko/guides/server-side-rendering/#공식-어댑터)하세요.
+
+이 예시에서는 구문 분석된 양식 POST 요청을 기반으로 `Comment` 테이블에 행을 삽입합니다.
+
+```astro
+---
+// src/pages/index.astro
+import { db, Comment } from 'astro:db';
+
+if (Astro.request.method === 'POST') {
+  // 양식 데이터 구문 분석
+  const formData = await Astro.request.formData();
+  const author = formData.get('author');
+  const content = formData.get('content');
+  if (typeof author === 'string' && typeof content === 'string') {
+    // Comment 테이블에 양식 데이터 삽입
+    await db.insert(Comment).values({ author, content });
+  }
+}
+
+// 각 요청에 대해 새로운 comments 목록을 렌더링
+const comments = await db.select().from(Comment);
+---
+
+<form method="POST" style="display: grid">
+	<label for="author">Author</label>
+	<input id="author" name="author" />
+
+	<label for="content">Content</label>
+	<textarea id="content" name="content"></textarea>
+
+	<button type="submit">Submit</button>
+</form>
+
+<!--`comments` 렌더링-->
+```
+
+API 엔드포인트에서 데이터베이스를 쿼리할 수도 있습니다. 이 예시에서는 `id` 매개변수를 사용하여 `Comment` 테이블에서 행을 삭제합니다.
+
+```ts
+// src/pages/api/comments/[id].ts
+import type { APIRoute } from "astro";
+import { db, Comment, eq } from 'astro:db';
+
+export const DELETE: APIRoute = async (ctx) => {
+  await db.delete(Comment).where(eq(Comment.id, ctx.params.id ));
+  return new Response(null, { status: 204 });
+}
+```
+
+<ReadMore>
+
+전체 개요는 [Drizzle `insert()` API 참조](https://orm.drizzle.team/docs/insert)를 확인하세요.
+
+</ReadMore>
+
+### 필터링
+
+특정 속성으로 테이블 결과를 쿼리하려면 [부분 선택을 위한 Drizzle 옵션](https://orm.drizzle.team/docs/select#partial-select)을 사용하세요. 예를 들어, `select()` 쿼리에 [`.where()` 호출](https://orm.drizzle.team/docs/select#filtering)을 추가하고 원하는 비교를 전달합니다.
+
+다음 예시에서는 "Astro DB"라는 문구가 포함된 `Comment` 테이블의 모든 행을 쿼리합니다. `body`에 문구가 있는지 확인하려면 [`like()` 연산자](https://orm.drizzle.team/docs/operators#like)를 사용하세요.
+
+```astro title="src/pages/index.astro"
+---
+import { db, Comment, like } from 'astro:db';
+
+const comments = await db.select().from(Comment).where(
+    like(Comment.body, '%Astro DB%')
+);
+---
+```
+
+### Drizzle 유틸리티
+
+쿼리 작성을 위한 모든 Drizzle 유틸리티는 `astro:db` 모듈에서 노출됩니다. 여기에는 다음이 포함됩니다.
+
+- [필터 연산자](https://orm.drizzle.team/docs/operators) 예: `eq()` 및 `gt()`
+- [집계 도우미](https://orm.drizzle.team/docs/select#aggregations-helpers) 예: `count()`
+- [`sql` 도우미](https://orm.drizzle.team/docs/sql) - 원시 SQL 쿼리 작성
+
+```ts
+import { eq, gt, count, sql } from 'astro:db';
+```
+
+### 관계
+
+SQL join을 사용하여 여러 테이블에서 관련 데이터를 쿼리할 수 있습니다. join 쿼리를 생성하려면 `db.select()` 문을 join 연산자로 확장하세요. 각 함수는 join할 테이블과 두 테이블 사이의 행을 일치시키는 조건을 인자로 전달받습니다.
+
+이 예시에서는 `innerJoin()` 함수를 사용하여 `authorId` 열을 기반으로 `Comment`의 authors를 관련 `Author` 정보와 join합니다. 그러면 각 `Author` 및 `Comment` 행이 최상위 속성인 객체 배열이 반환됩니다.
+
+```astro title="src/pages/index.astro"
+---
+import { db, eq, Comment, Author } from 'astro:db';
+
+const comments = await db.select()
+  .from(Comment)
+  .innerJoin(Author, eq(Comment.authorId, Author.id));
+---
+
+<h2>Comments</h2>
+
+{
+  comments.map(({ Author, Comment }) => (
+    <article>
+      <p>Author: {Author.name}</p>
+      <p>{Comment.body}</p>
+    </article>
+  ))
+}
+```
+
+<ReadMore>
+
+사용 가능한 모든 join 연산자 및 구성 옵션은 [Drizzle join 참조](https://orm.drizzle.team/docs/joins#join-types)를 확인하세요.
+
+</ReadMore>
+
+### 일괄 트랜잭션
+
+모든 원격 데이터베이스 쿼리는 네트워크 요청으로 이루어집니다. 많은 수의 쿼리를 수행할 때 쿼리를 단일 트랜잭션으로 함께 "일괄 처리"하거나 쿼리가 실패할 경우 자동 롤백을 수행해야 할 수도 있습니다.
+
+이 예시에서는 `db.batch()` 메서드를 사용하여 단일 요청에 여러 행을 시드합니다.
+
+```ts
+// db/seed.ts
+import { db, Author, Comment } from 'astro:db';
+
+export default async function () {
+  const queries = [];
+  // 단일 네트워크 요청으로 원격 데이터베이스에 100개의 샘플 comments를 시드합니다.
+  for (let i = 0; i < 100; i++) {
+    queries.push(db.insert(Comment).values({ body: `Test comment ${i}` }));
+  }
+  await db.batch(queries);
+}
+```
+
+<ReadMore>
+
+자세한 내용은 [Drizzle `db.batch()`](https://orm.drizzle.team/docs/batch-api) 문서를 참조하세요.
+
+</ReadMore>
+
+<StudioHeading>
+## Astro Studio
+</StudioHeading>
+
+Astro DB는 [Astro Studio 플랫폼](/ko/recipes/studio/)을 연결하여 호스팅된 데이터베이스를 프로젝트에 빠르게 추가할 수 있습니다. Astro Studio 대시보드에서 새로운 호스팅 데이터베이스를 확인하고, 관리하고, 배포할 수 있습니다.
+
+새 프로젝트를 생성하려면 [미리 만들어진 템플릿](https://studio.astro.build)을 사용하거나 [Astro Studio 가이드](/ko/recipes/studio/#새-studio-프로젝트-생성)를 방문하세요.
+
+<StudioHeading>
+### 테이블 스키마 푸시
+</StudioHeading>
+
+프로젝트가 성장함에 따라 테이블 스키마가 오버타임으로 변경됩니다. 구성 변경 사항을 로컬에서 안전하게 테스트하고, 배포 시 Studio 데이터베이스에 푸시할 수 있습니다.
+
+[대시보드에서 Studio 프로젝트를 생성](#astro-studio)할 때 GitHub CI action을 생성할 수 있는 옵션이 제공됩니다. 그러면 저장소의 main 브랜치와 병합할 때 스키마 변경 사항이 자동으로 마이그레이션됩니다.
+
+`astro db push` 명령을 사용하여 CLI를 통해 스키마 변경 사항을 푸시할 수도 있습니다.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm run astro db push
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro db push
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro db push
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+이 명령은 데이터 손실 없이 변경이 이루어질 수 있는지 확인하고 충돌을 해결하기 위해 권장되는 스키마 변경 사항을 안내합니다. 주요 스키마 변경이 _반드시_ 이루어져야 하는 경우 `--force-reset` 플래그를 추가하여 모든 프로덕션 데이터를 재설정하세요.
+
+<StudioHeading>
+### 데이터 푸시
+</StudioHeading>
+
+시드 또는 데이터 마이그레이션을 위해 Studio 데이터베이스에 데이터를 푸시해야 할 수도 있습니다. 타입 안정성을 갖춘 쿼리를 작성하려면 `astro:db` 모듈을 사용하여 `.ts` 파일을 작성할 수 있습니다. 그런 다음 `astro db execute <file-path> --remote` 명령을 사용하여 Studio 데이터베이스에 대해 파일을 실행합니다.
+
+다음 Comments는 `astro db execute db/seed.ts --remote` 명령을 사용하여 시드할 수 있습니다.
+
+```ts
+// db/seed.ts
+import { Comment } from 'astro:db';
+
+export default async function () {
+  await db.insert(Comment).values([
+    { authorId: 1, body: 'Hope you like Astro DB!' },
+    { authorId: 2, body: 'Enjoy!' },
+  ])
+}
+```
+
+<ReadMore>
+
+전체 명령 목록은 [CLI 참조](/ko/guides/integrations-guide/db/#astro-db-cli-참조)를 확인하세요.
+
+</ReadMore>
+
+<StudioHeading>
+### Astro Studio에 연결
+</StudioHeading>
+
+기본적으로 Astro는 `dev` 또는 `build` 명령을 실행할 때마다 로컬 데이터베이스 파일을 사용합니다. 각 명령이 실행될 때마다 테이블이 처음부터 다시 생성되고 개발 시드 데이터가 삽입됩니다.
+
+호스팅된 Studio 데이터베이스에 연결하려면 `--remote` 플래그를 추가하면 됩니다. Studio 데이터베이스에 대한 읽기 및 쓰기 액세스 권한을 모두 가지려면 프로덕션 배포에 이 플래그를 사용하세요. 이렇게 하면 [사용자 데이터를 입력받고 유지](#insert)할 수 있습니다.
+
+```bash
+# 원격 연결 및 빌드
+astro build --remote
+
+# 원격 연결 및 개발
+astro dev --remote
+```
+
+:::caution
+
+개발 모드에서 `--remote` 사용에 주의하세요. 이는 라이브 프로덕션 데이터베이스에 연결되며 모든 삽입, 업데이트 또는 삭제가 유지됩니다.
+
+:::
+
+원격 연결을 사용하려면 Studio에 인증하기 위한 앱 토큰이 필요합니다. 토큰 생성 및 설정 지침을 보려면 Studio 대시보드를 방문하세요.
+
+<ReadMore>
+
+배포할 준비가 되면 [Studio 연결 및 배포 가이드](/ko/recipes/studio/#studio-연결을-사용하여-배포)를 확인하세요.
+
+</ReadMore>
+
+## Astro DB 통합 구축
+
+[Astro 통합](/ko/reference/integrations-reference/)은 추가 Astro DB 테이블 및 시드 데이터를 사용하여 사용자 프로젝트를 확장할 수 있습니다.
+
+추가 Astro DB 구성 및 시드 파일을 등록하려면 `astro:db:setup` 후크에서 `extendDb()` 메서드를 사용하세요.
+`defineDbIntegration()` 도우미는 `astro:db:setup` 후크에 대한 TypeScript 지원 및 자동 완성 기능을 제공합니다.
+
+```js {8-13}
+// my-integration/index.ts
+import { defineDbIntegration } from '@astrojs/db/utils';
+
+export default function MyIntegration() {
+  return defineDbIntegration({
+    name: 'my-astro-db-powered-integration',
+    hooks: {
+      'astro:db:setup': ({ extendDb }) => {
+        extendDb({
+          configEntrypoint: '@astronaut/my-package/config',
+          seedEntrypoint: '@astronaut/my-package/seed',
+        });
+      },
+      // 기타 통합 후크...
+    },
+  });
+}
+```
+
+통합 [config](#데이터베이스-정의) 및 [seed](#데이터베이스-시드) 파일은 해당 사용자 정의 파일과 동일한 형식을 따릅니다.
+
+### 타입 안정성을 갖춘 통합 작업
+
+통합 작업을 하는 동안, Astro에서 생성된 (`astro:db`에서 내보낸) 테이블 타입의 이점을 활용하지 못할 수도 있습니다.
+완전한 타입 안정성을 위해 `asDrizzleTable()` 유틸리티를 사용하여 데이터베이스 작업에 사용할 수 있는 테이블 참조 객체를 생성하세요.
+
+예를 들어, 다음 `Pets` 데이터베이스 테이블을 설정하는 통합이 있다고 가정해 보겠습니다.
+
+```js
+// my-integration/config.ts
+import { defineDb, defineTable, column } from 'astro:db';
+
+export const Pets = defineTable({
+  columns: {
+    name: column.text(),
+    species: column.text(),
+  },
+});
+
+export default defineDb({ tables: { Pets } });
+```
+
+시드 파일은 `Pets`를 가져오고 `asDrizzleTable()`을 사용하여 타입 검사를 통해 테이블에 행을 삽입할 수 있습니다.
+
+```js {2,7} /typeSafePets(?! )/
+// my-integration/seed.ts
+import { asDrizzleTable } from '@astrojs/db/utils';
+import { db } from 'astro:db';
+import { Pets } from './config';
+
+export default async function() {
+  const typeSafePets = asDrizzleTable('Pets', Pets);
+
+  await db.insert(typeSafePets).values([
+    { name: 'Palomita', species: 'cat' },
+    { name: 'Pan', species: 'dog' },
+  ]);
+}
+```
+
+`asDrizzleTable('Pets', Pets)`에 의해 반환된 값은 `import { Pets } from 'astro:db'`와 동일하지만, Astro의 타입 생성을 실행할 수 없는 경우에도 사용할 수 있습니다.
+데이터베이스에 쿼리하거나 삽입해야 하는 모든 통합 코드에서 이를 사용할 수 있습니다.

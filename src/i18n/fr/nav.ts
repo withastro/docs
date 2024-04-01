@@ -6,7 +6,6 @@ export default NavDictionary({
 
 	install: 'Installation',
 	'editor-setup': "Configuration de l'éditeur de code",
-	'guides/upgrade-to/v4': 'Mise à jour vers la v4',
 
 	coreConcepts: 'Concepts Fondamentaux',
 	'concepts/why-astro': 'Pourquoi Astro ?',
@@ -53,6 +52,7 @@ export default NavDictionary({
 	'guides/endpoints': 'Points de terminaison',
 	'guides/data-fetching': 'Récupération de Données',
 	'guides/internationalization': 'Internationalisation',
+	'guides/ecommerce': 'E-commerce',
 	'guides/middleware': 'Middleware',
 	'guides/testing': 'Test',
 	'guides/authentication': 'Authentification',
