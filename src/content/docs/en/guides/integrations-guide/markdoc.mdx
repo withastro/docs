@@ -117,7 +117,7 @@ const { Content } = await entry.render();
 
 <ReadMore>See the [Astro Content Collection docs][astro-content-collections] for more information.</ReadMore>
 
-## Markdoc config
+## Render components
 
 `@astrojs/markdoc` offers configuration options to use all of Markdoc's features and connect UI components to your content.
 
@@ -159,6 +159,37 @@ Use tags like this fancy "aside" to add some _flair_ to your docs.
 {% /aside %}
 ```
 
+### Use client-side UI components
+
+Tags and nodes are restricted to `.astro` files. To embed client-side UI components in Markdoc, [use a wrapper `.astro` component that renders a framework component](/en/guides/framework-components/#nesting-framework-components) with your desired `client:` directive.
+
+This example wraps a React `Aside.tsx` component with a `ClientAside.astro` component:
+
+```astro title="src/components/ClientAside.astro"
+---
+import Aside from './Aside';
+---
+
+<Aside {...Astro.props} client:load />
+```
+
+This Astro component can now be passed to the `render` prop for any [tag][markdoc-tags] or [node][markdoc-nodes] in your config:
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig, component } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  tags: {
+    aside: {
+      render: component('./src/components/ClientAside.astro'),
+      attributes: {
+        type: { type: String },
+      },
+    },
+  },
+});
+```
+
 ### Use Astro components from npm packages and TypeScript files
 
 You may need to use Astro components exposed as named exports from TypeScript or JavaScript files. This is common when using npm packages and design systems.
@@ -181,6 +212,97 @@ This generates the following import statement internally:
 
 ```ts
 import { Tabs } from '@astrojs/starlight/components';
+```
+
+## Partials
+
+You can render other Markdoc files within your content using the `{% partial %}` tag. This is useful for reusing content across multiple documents.
+
+This example renders a `_footer.mdoc` file within the entry `src/content/blog/post.mdoc`. Use the `file` attribute to pass a relative path to the partial file:
+
+:::note
+We recommend using an underscore `_` prefix for partial files or directories. This excludes partials from content collection queries.
+:::
+
+```md title="src/content/blog/post.mdoc"
+# My Blog Post
+
+{% partial file="_footer.mdoc" %}
+```
+
+```md title="src/content/blog/_footer.mdoc"
+Social links:
+
+- [Twitter / X](https://twitter.com/astrodotbuild)
+- [Discord](https://astro.build/chat)
+- [GitHub](https://github.com/withastro/astro)
+```
+
+## Syntax highlighting
+
+`@astrojs/markdoc` provides [Shiki](https://shiki.style) and [Prism](https://github.com/PrismJS) extensions to highlight your code blocks.
+
+### Shiki
+
+Apply the `shiki()` extension to your Markdoc config using the `extends` property. You can optionally pass a shiki configuration object:
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig } from '@astrojs/markdoc/config';
+import shiki from '@astrojs/markdoc/shiki';
+
+export default defineMarkdocConfig({
+  extends: [
+    shiki({
+      // Choose from Shiki's built-in themes (or add your own)
+      // Default: 'github-dark'
+      // https://shiki.style/themes
+      theme: 'dracula',
+      // Enable word wrap to prevent horizontal scrolling
+      // Default: false
+      wrap: true,
+      // Pass custom languages
+      // Note: Shiki has countless langs built-in, including `.astro`!
+      // https://shiki.style/languages
+      langs: [],
+    }),
+  ],
+});
+```
+
+### Prism
+
+Apply the `prism()` extension to your Markdoc config using the `extends` property.
+
+```js title="markdoc.config.mjs" ins={5}
+import { defineMarkdocConfig } from '@astrojs/markdoc/config';
+import prism from '@astrojs/markdoc/prism';
+
+export default defineMarkdocConfig({
+  extends: [prism()],
+});
+```
+
+<ReadMore>To learn about configuring Prism stylesheets, [see our syntax highlighting guide](/en/guides/markdown-content/#prism-configuration).</ReadMore>
+
+<ReadMore>See the [Markdoc nodes documentation](https://markdoc.dev/docs/nodes#built-in-nodes) to learn about all the built-in nodes and attributes.</ReadMore>
+
+## Custom Markdoc nodes / elements
+
+You may want to render standard Markdown elements, such as paragraphs and bolded text, as Astro components. For this, you can configure a [Markdoc node][markdoc-nodes]. If a given node receives attributes, they will be available as component props.
+
+This example renders blockquotes with a custom `Quote.astro` component:
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig, nodes, component } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  nodes: {
+    blockquote: {
+      ...nodes.blockquote, // Apply Markdoc's defaults for other options
+      render: component('./src/components/Quote.astro'),
+    },
+  },
+});
 ```
 
 ### Custom headings
@@ -209,119 +331,7 @@ All Markdown headings will render the `Heading.astro` component and pass the fol
 
 For example, the heading `### Level 3 heading!` will pass `level: 3` and `id: 'level-3-heading'` as component props.
 
-### Markdoc Partials
-
-The `{% partial %}` tag allows you to render other `.mdoc` files inside your Markdoc content.
-
-This is useful for reusing content across multiple documents, and allows you to have `.mdoc` content files that do not follow your collection schema.
-
-:::tip
-Use an underscore `_` prefix for partial files or directories. This excludes partials from content collection queries.
-:::
-
-This example shows a Markdoc partial for a footer to be used inside blog collection entries:
-
-```md title="src/content/blog/_footer.mdoc"
-Social links:
-
-- [Twitter / X](https://twitter.com/astrodotbuild)
-- [Discord](https://astro.build/chat)
-- [GitHub](https://github.com/withastro/astro)
-```
-
-Use the `{% partial %}` tag with to render the footer at the bottom of a blog post entry. Apply the `file` attribute with the path to the file, using either a relative path or an import alias:
-
-```md title="src/content/blog/post.mdoc" ins='file="_footer.mdoc"'
-# My Blog Post
-
-{% partial file="./_footer.mdoc" %}
-```
-
-### Syntax highlighting
-
-`@astrojs/markdoc` provides [Shiki](https://shiki.style) and [Prism](https://github.com/PrismJS) extensions to highlight your code blocks.
-
-#### Shiki
-
-Apply the `shiki()` extension to your Markdoc config using the `extends` property. You can optionally pass a shiki configuration object:
-
-```js title="markdoc.config.mjs"
-import { defineMarkdocConfig } from '@astrojs/markdoc/config';
-import shiki from '@astrojs/markdoc/shiki';
-
-export default defineMarkdocConfig({
-  extends: [
-    shiki({
-      // Choose from Shiki's built-in themes (or add your own)
-      // Default: 'github-dark'
-      // https://shiki.style/themes
-      theme: 'dracula',
-      // Enable word wrap to prevent horizontal scrolling
-      // Default: false
-      wrap: true,
-      // Pass custom languages
-      // Note: Shiki has countless langs built-in, including `.astro`!
-      // https://shiki.style/languages
-      langs: [],
-    }),
-  ],
-});
-```
-
-#### Prism
-
-Apply the `prism()` extension to your Markdoc config using the `extends` property.
-
-```js title="markdoc.config.mjs" ins={5}
-import { defineMarkdocConfig } from '@astrojs/markdoc/config';
-import prism from '@astrojs/markdoc/prism';
-
-export default defineMarkdocConfig({
-  extends: [prism()],
-});
-```
-
-<ReadMore>To learn about configuring Prism stylesheets, [see our syntax highlighting guide](/en/guides/markdown-content/#prism-configuration).</ReadMore>
-
-### Set the root HTML element
-
-Markdoc wraps documents with an `<article>` tag by default. This can be changed from the `document` Markdoc node. This accepts an HTML element name or `null` if you prefer to remove the wrapper element:
-
-```js title="markdoc.config.mjs"
-import { defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
-
-export default defineMarkdocConfig({
-  nodes: {
-    document: {
-      ...nodes.document, // Apply defaults for other options
-      render: null, // default 'article'
-    },
-  },
-});
-```
-
-### Custom Markdoc nodes / elements
-
-You may want to render standard Markdown elements, such as paragraphs and bolded text, as Astro components. For this, you can configure a [Markdoc node][markdoc-nodes]. If a given node receives attributes, they will be available as component props.
-
-This example renders blockquotes with a custom `Quote.astro` component:
-
-```js title="markdoc.config.mjs"
-import { defineMarkdocConfig, nodes, component } from '@astrojs/markdoc/config';
-
-export default defineMarkdocConfig({
-  nodes: {
-    blockquote: {
-      ...nodes.blockquote, // Apply Markdoc's defaults for other options
-      render: component('./src/components/Quote.astro'),
-    },
-  },
-});
-```
-
-<ReadMore>See the [Markdoc nodes documentation](https://markdoc.dev/docs/nodes#built-in-nodes) to learn about all the built-in nodes and attributes.</ReadMore>
-
-### Custom image components in Markdoc
+### Custom image components
 
 Astro's `<Image />` component cannot be used directly in Markdoc. However, you can configure an Astro component to override the default image node every time the native `![]()` image syntax is used, or as a custom Markdoc tag to allow you to specify additional image attributes.
 
@@ -436,38 +446,8 @@ The following steps will create a custom Markdoc image tag to display a `<figure
     {% image src="./astro-logo.png" alt="Astro Logo" width="100" height="100" caption="a caption!" %}
     ```
 
-### Use client-side UI components
 
-Tags and nodes are restricted to `.astro` files. To embed client-side UI components in Markdoc, [use a wrapper `.astro` component that renders a framework component](/en/guides/framework-components/#nesting-framework-components) with your desired `client:` directive.
-
-This example wraps a React `Aside.tsx` component with a `ClientAside.astro` component:
-
-```astro title="src/components/ClientAside.astro"
----
-import Aside from './Aside';
----
-
-<Aside {...Astro.props} client:load />
-```
-
-This Astro component can now be passed to the `render` prop for any [tag][markdoc-tags] or [node][markdoc-nodes] in your config:
-
-```js title="markdoc.config.mjs"
-import { defineMarkdocConfig, component } from '@astrojs/markdoc/config';
-
-export default defineMarkdocConfig({
-  tags: {
-    aside: {
-      render: component('./src/components/ClientAside.astro'),
-      attributes: {
-        type: { type: String },
-      },
-    },
-  },
-});
-```
-
-### Markdoc config
+## Advanced Markdoc configuration
 
 The `markdoc.config.mjs|ts` file accepts [all Markdoc configuration options](https://markdoc.dev/docs/config), including [tags](https://markdoc.dev/docs/tags) and [functions](https://markdoc.dev/docs/functions).
 
@@ -501,7 +481,24 @@ Now, you can call this function from any Markdoc content entry:
 
 <ReadMore>[See the Markdoc documentation](https://markdoc.dev/docs/functions#creating-a-custom-function) for more on using variables or functions in your content.</ReadMore>
 
-### Markdoc Language Server
+### Set the root HTML element
+
+Markdoc wraps documents with an `<article>` tag by default. This can be changed from the `document` Markdoc node. This accepts an HTML element name or `null` if you prefer to remove the wrapper element:
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  nodes: {
+    document: {
+      ...nodes.document, // Apply defaults for other options
+      render: null, // default 'article'
+    },
+  },
+});
+```
+
+## Markdoc Language Server
 
 If you are using VS Code, there is an official [Markdoc language extension](https://marketplace.visualstudio.com/items?itemName=Stripe.markdoc-language-support) that includes syntax highlighting and autocomplete for configured tags. [See the language server on GitHub](https://github.com/markdoc/language-server.git) for more information.
 
@@ -531,7 +528,7 @@ The `schema` property contains all information to configure the language server 
 
 The top-level `path` property tells the server where content is located. Since Markdoc is specific to content collections, you can use `src/content`.
 
-### Pass Markdoc variables
+## Pass Markdoc variables
 
 You may need to pass [variables][markdoc-variables] to your content. This is useful when passing SSR parameters like A/B tests.
 
@@ -571,7 +568,7 @@ export default defineMarkdocConfig({
 });
 ```
 
-### Access frontmatter from your Markdoc content
+## Access frontmatter from your Markdoc content
 
 To access frontmatter, you can pass the entry `data` property [as a variable](#pass-markdoc-variables) where you render your content:
 
