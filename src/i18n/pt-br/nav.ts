@@ -15,11 +15,12 @@ export default NavDictionary({
 	'blog-tutorial': 'Construa um Blog',
 
 	basics: 'Fundamentos',
-
 	'basics/project-structure': 'Estrutura de Projetos',
 	'basics/astro-components': 'Componentes',
 	'basics/astro-pages': 'Páginas',
 	'basics/layouts': 'Layouts',
+	'basics/astro-syntax': 'Sintaxe do Astro',
+	'basics/rendering-modes': 'Modos de Renderização',
 
 	examples: 'Receitas',
 	'guides/migrate-to-astro': 'Migre para o Astro',
@@ -31,7 +32,6 @@ export default NavDictionary({
 	'guides/recipes': 'Mais Receitas',
 
 	features: 'Guias',
-	'basics/astro-syntax': 'Sintaxe do Astro',
 	'guides/framework-components': 'Frameworks de UI',
 	'guides/routing': 'Roteamento',
 	'guides/markdown-content': 'Markdown e MDX',
