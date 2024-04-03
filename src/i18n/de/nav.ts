@@ -6,7 +6,7 @@ export default NavDictionary({
 	'getting-started': 'Erste Schritte',
 	'install': 'Installation',
 	'editor-setup': 'Editor-Einrichtung',
-	'guides/upgrade-to/v4': 'Upgrade auf Astro v4',
+	'upgrade-astro: 'Upgrade Astro',
 
 	// Core Concepts
 	coreConcepts: 'Kernkonzepte',
@@ -33,23 +33,26 @@ export default NavDictionary({
 	'guides/content-collections': 'Content-Sammlungen',
 	'guides/view-transitions': 'View-Transitions',
 	'guides/prefetch': 'Vorabladen',
+'guides/dev-toolbar': 'Dev Toolbar',
 
 	// Integrations
 	addons: 'Integrationen',
 	'guides/integrations-guide': 'Integrationen hinzufügen',
 	'guides/framework-components': 'UI-Frameworks',
 	'guides/server-side-rendering': 'Serverseitiges Rendern (SSR)',
+'guides/astro-db': 'Astro DB',
 
 	// Recipes
-	examples: 'Rezepte',
+	examples: 'Anleitungen',
 	'guides/migrate-to-astro': 'Zu Astro migrieren',
+	'recipes/studio': 'Mit Astro Studio verbinden',
 	'guides/cms': 'Ein CMS verbinden',
 	'guides/backend': 'Backend-Dienste hinzufügen',
 	'guides/deploy': 'Website veröffentlichen',
-	'guides/recipes': 'Mehr Rezepte',
+	'guides/recipes': 'Mehr Anleitungen',
 
 	// Guides
-	features: 'Anleitungen',
+	features: 'Themenbereiche',
 	'guides/routing': 'Routing',
 	'guides/markdown-content': 'Markdown & MDX',
 	'guides/client-side-scripts': 'Skripte & Ereignisbehandlung',
