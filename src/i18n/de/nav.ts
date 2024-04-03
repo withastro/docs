@@ -6,7 +6,7 @@ export default NavDictionary({
 	'getting-started': 'Erste Schritte',
 	'install': 'Installation',
 	'editor-setup': 'Editor-Einrichtung',
-	'upgrade-astro: 'Upgrade Astro',
+	'upgrade-astro': 'Upgrade Astro',
 
 	// Core Concepts
 	coreConcepts: 'Kernkonzepte',
