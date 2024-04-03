@@ -79,138 +79,9 @@ export default defineConfig({
 
 ## 옵션
 
-### mode
-
-<p>
-
-**타입:** `'advanced' | 'directory'`<br />
-**기본값:** `'advanced'`
-</p>
-
-이 구성 옵션은 Astro 프로젝트가 Cloudflare Pages에 배포되는 방식을 정의합니다.
-
-* `advanced` 모드는 `dist` 폴더에 있는 `_worker.js` 파일을 선택합니다.
-* `directory` 모드는 `functions` 폴더의 파일을 선택하며, 기본적으로 하나의 `[[path]].js` 파일만 생성됩니다.
-
-directory 모드로 전환하면 [Cloudflare Pages Plugins](https://developers.cloudflare.com/pages/platform/functions/plugins/), [Cloudflare Pages Middleware](https://developers.cloudflare.com/pages/platform/functions/middleware/) 또는 [Cloudflare Pages Functions Routing](https://developers.cloudflare.com/pages/platform/functions/routing/)을 사용하는 사용자 정의 함수와 같은 파일을 수동으로 추가할 수 있습니다.
-
-```js title="astro.config.mjs" ins="mode: 'directory'"
-export default defineConfig({
-  adapter: cloudflare({ mode: 'directory' }),
-});
-```
-
-각 페이지에 대해 별도의 번들을 컴파일하려면 Cloudflare 어댑터 구성에서 `functionPerRoute` 옵션을 설정하세요. 이 옵션을 사용하려면 `functions` 폴더를 수동으로 유지 관리해야 합니다. Astro에서 내보낸 파일은 `functions` 폴더에 있는 동일한 이름의 기존 파일을 덮어쓰므로 수동으로 추가하는 각 파일에 대해 고유한 파일 이름을 선택해야 합니다. 또한 어댑터는 오래된 파일이 있는 `functions` 폴더를 비우지 않으므로 페이지를 제거할 때 폴더를 수동으로 정리해야 합니다.
-
-```js title="astro.config.mjs" ins={7}
-import {defineConfig} from "astro/config";
-import cloudflare from '@astrojs/cloudflare';
-
-export default defineConfig({
-  adapter: cloudflare({
-    mode: 'directory',
-    functionPerRoute: true
-  })
-})
-```
-
-이 어댑터는 [`edgeMiddleware`](/ko/reference/adapter-reference/#edgemiddleware) 옵션을 지원하지 않습니다.
-
-### routes.strategy
-
-<p>
-
-**타입:** `'auto' | 'include' | 'exclude'`<br />
-**기본값:** `'auto'`
-</p>
-
-[custom `_routes.json`](#사용자-정의-_routesjson)이 제공되지 않은 경우 `routes.json` 파일이 생성되는 방법을 결정합니다.
-
-다음 세 가지 옵션을 사용할 수 있습니다.
-
-* **`"auto"`(기본값):** 가장 적은 항목을 생성하는 전략을 자동으로 선택합니다. 거의 항상 이것으로 충분하므로 특별한 이유가 없는 한 이 옵션을 선택하세요.
-
-* **`include`:** 사전 렌더링되지 않은 페이지와 엔드포인트는 `include` 항목으로 나열되어 Cloudflare가 이러한 경로를 함수로 호출하도록 지시합니다. `exclude` 항목은 충돌을 해결하는 데에만 사용됩니다. 일반적으로 웹사이트에 대부분 정적 페이지가 있고 동적 페이지나 엔드포인트가 소수인 경우 가장 좋은 전략입니다.
-
-  예: `src/pages/index.astro` (정적), `src/pages/company.astro` (정적), `src/pages/users/faq.astro` (정적) 및 `/src/pages/ users/[id].astro` (SSR) 인 경우 다음과 같은 `_routes.json` 파일이 생성됩니다.
-
-  ```json title="dist/_routes.json"
-  {
-    "version": 1,
-    "include": [
-      "/_image", // Astro의 이미지 엔드포인트
-      "/users/*" // 동적 경로
-    ],
-    "exclude": [
-      // 위의 동적 와일드카드 경로에서 제외되어야 하는 정적 경로
-      "/users/faq/",
-      "/users/faq/index.html"
-    ]
-  }
-  ```
-
-* **`exclude`:** 사전 렌더링된 페이지는 `exclude` 항목으로 나열됩니다 (Cloudflare가 이러한 경로를 정적 자산으로 처리하도록 지시함). 일반적으로 웹 사이트가 대부분 동적 페이지 또는 엔드포인트이고 소수의 정적 페이지만 있는 경우 가장 좋은 전략입니다.
-
-  예: 이전 예시와 동일한 페이지의 경우 다음 `_routes.json` 파일이 생성됩니다.
-
-  ```json title="dist/_routes.json"
-  {
-    "version": 1,
-    "include": [
-      "/*" // 아래 경로를 제외한 모든 것을 함수로 처리합니다.
-    ],
-    "exclude": [
-      // 모든 정적 자산
-      "/",
-      "/company/",
-      "/index.html",
-      "/users/faq/",
-      "/favicon.png",
-      "/company/index.html",
-      "/users/faq/index.html"
-    ]
-  }
-  ```
-
-### routes.include
-
-<p>
-
-**타입:** `string[]`<br />
-**기본값:** `[]`
-</p>
-
-자동으로 `_routes.json` 파일을 생성하고 싶지만 추가 경로를 포함하고 싶은 경우 (예를 들면, `functions` 폴더에 사용자 정의 함수를 가지고 있는 경우) 새 경로를 `include` 배열에 추가하기 위해 `routes.include` 옵션을 사용할 수 있습니다.
-
-### routes.exclude
-
-<p>
-
-**타입:** `string[]`<br />
-**기본값:** `[]`
-</p>
-
-자동으로 `_routes.json` 파일을 생성하고 싶지만 추가 경로를 제외하려는 경우 `routes.exclude` 옵션을 사용하여 `exclude` 배열에 새 경로를 추가할 수 있습니다.
-
-다음 예시에서는 추가 경로를 포함 및 제외하면서 `_routes.json`을 자동으로 생성합니다. 이는 Astro에서 처리하지 않는 `functions` 폴더에 사용자 정의 함수가 있는 경우에만 필요합니다.
-
-```js title="astro.config.mjs" ins={4-8}
-export default defineConfig({
-  adapter: cloudflare({
-    mode: 'directory',
-    routes: {
-      strategy: 'include',
-      include: ['/users/*'], // 사용자 정의 함수에서 처리됨: functions/users/[id].js
-      exclude: ['/users/faq'], // 정적 페이지에서 처리됨: pages/users/faq.astro
-    },
-  }),
-});
-```
-
 ### imageService
 
 <p>
-
 **타입:** `'passthrough' | 'cloudflare' | 'compile'`<br />
 **기본값:** `'passthrough'`
 </p>
@@ -233,6 +104,104 @@ export default defineConfig({
 })
 ```
 
+### platformProxy
+
+Cloudflare 런타임이 `astro dev`에 추가되는지 여부와 방법을 결정합니다. 여기에는 로컬 `workerd` 바인딩에 대한 프록시와 Cloudflare 특정 값의 에뮬레이션이 포함되어 있어 Node.js 개발 프로세스에서 런타임을 에뮬레이션할 수 있습니다. [Cloudflare 런타임](#cloudflare-런타임)에 대해 자세히 알아보세요.
+
+:::note
+제공되는 프록시는 최선을 다해 실제 프로덕션을 에뮬레이션한 것입니다. 최대한 실제와 비슷하게 설계되었으나 약간의 차이와 불일치가 있을 수 있습니다.
+:::
+
+#### platformProxy.enabled
+<p>
+**타입:** `{ enabled?: boolean }`<br />
+**기본값:** `{ enabled: false }`
+</p>
+
+`enabled` 속성을 사용하면 `astro dev`에서 Cloudflare 런타임을 활성화할 수 있습니다.
+
+#### platformProxy.configPath
+<p>
+**타입:** `{ configPath?: string }`<br />
+**기본값:** `{ configPath: 'wrangler.toml' }`
+</p>
+
+`configPath`를 사용하면 Astro 프로젝트의 루트를 기준으로 Wrangler 구성 파일을 정의할 수 있습니다.
+
+#### platformProxy.experimentalJsonConfig
+<p>
+**타입:** `{ experimentalJsonConfig?: boolean }`<br />
+**기본값:** `{ experimentalJsonConfig?: false }`
+</p>
+
+`experimentalJsonConfig` 속성은 유틸리티가 JSON 구성 파일 (예: `wrangler.json`)을 읽는지 여부를 정의합니다.
+
+#### platformProxy.persist
+<p>
+**타입:** `{ persist?: boolean | { path: string } }`<br />
+**기본값:** `{ persist: true }`
+</p>
+
+`persist` 속성은 바인딩 데이터가 지속되는지 여부와 위치를 정의합니다. `true`는 Wrangler에서 사용하는 것과 동일한 위치를 기본값으로 지정하므로 둘 간에 데이터를 공유할 수 있습니다. `false`인 경우 데이터가 파일 시스템에 저장되지 않고, 파일 시스템에서 읽을 수 없게 됩니다.
+
+:::note
+`wrangler`의 `--persist-to` 옵션은 내부적으로 `v3`라는 하위 디렉터리를 추가하지만 `@astrojs/cloudflare` `persist` 속성은 그렇지 않습니다. 예를 들어 `wrangler dev --persist-to ./my-directory`를 실행하는 것과 동일한 위치를 재사용하려면 `persist: "./my-directory/v3"`을 지정해야 합니다.
+:::
+
+다음 구성은 개발 서버를 실행할 때 Cloudflare 런타임을 활성화하고 `wrangler.json` 구성 파일 (실험적)을 사용하는 예를 보여줍니다. 또한 파일 시스템에 데이터를 유지하기 위한 사용자 정의 위치를 ​​지정합니다.
+
+```js
+import cloudflare from '@astrojs/cloudflare';
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+	adapter: cloudflare({
+		platformProxy: {
+			enabled: true,
+			configPath: 'wrangler.json',
+			experimentalJsonConfig: true,
+			persist: './.cache/wrangler/v3',
+		},
+	}),
+});
+```
+### routes.extend
+
+이 옵션을 사용하면 요청 시 생성되는 경로를 결정하기 위해 생성된 [`_routes.json`](#사용자-정의-_routesjson) 파일에 사용자 지정 패턴 (예: `/fonts/*`)을 추가하거나 제외할 수 있습니다. 이는 자동으로 생성할 수 없는 경로 패턴을 추가해야 하거나 사전 렌더링된 경로를 제외해야 하는 경우 유용할 수 있습니다.
+
+사용자 지정 경로 패턴에 대한 자세한 내용은 [Cloudflare의 라우팅 문서](https://developers.cloudflare.com/pages/functions/routing/#functions-invocation-routes)에서 확인할 수 있습니다. 지정된 경로는 자동으로 중복 제거되지 않으며 기존 경로에 그대로 추가됩니다.
+
+#### routes.extend.include
+
+<p>
+**타입:** `{ pattern: string }[]`<br />
+**기본값:** `undefined`
+</p>
+
+Cloudflare 어댑터가 요청 시 생성할 추가 경로를 `routes.extend.include` 배열에 구성합니다.
+
+#### routes.extend.exclude
+
+<p>
+**타입:** `{ pattern: string }[]`<br />
+**기본값:** `undefined`
+</p>
+
+주문형 렌더링에서 제외할 경로를 `routes.extend.exclude` 배열에 구성합니다. 대신 이러한 경로는 사전 렌더링되어 정적으로 제공되며 SSR 함수를 호출하지 않습니다. 또한 이 옵션을 사용하면 SSR 함수를 통해 요청을 라우팅하지 않고도 정적 자산 (예: 이미지, 글꼴, CSS, js, html, txt, json 등) 파일을 직접 제공할 수 있습니다.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  adapter: cloudflare({
+    routes: {
+      extend: {
+        include: [{ pattern: '/static' }], // 주문형 렌더링을 위해 사전 렌더링된 페이지를 SSR 함수로 라우팅합니다.
+        exclude: [{ pattern: '/pagefind/*' }], // 빌드 시 정적으로 생성되는 Starlight의 pagefind 검색을 사용합니다.
+      }
+    },
+  }),
+});
+```
+
 ### `wasmModuleImports`
 
 <p>
@@ -243,7 +212,8 @@ export default defineConfig({
 
 `.wasm?module` import 구문을 사용하여 `.wasm` 파일을 [ES 모듈로 직접 가져올지](https://github.com/WebAssembly/esm-integration/tree/main/proposals/esm-integration) 여부입니다.
 
-Cloudflare 빌드와 Astro 개발 서버 모두에서 이 기능을 활성화하려면 `astro.config.mjs` 파일에 `wasmModuleImports: true`를 추가하세요. [Wasm 모듈 사용](#wasm-모듈-사용)에 대해 자세히 알아보세요.
+`astro build` 및 `astro dev` 모두에서 이 기능을 활성화하려면 `astro.config.mjs` 파일에 `wasmModuleImports: true`를 추가하세요. [Wasm 모듈 사용](#wasm-모듈-사용)에 대해 자세히 알아보세요.
+
 
 ```js title="astro.config.mjs" ins={6}
 import {defineConfig} from "astro/config";
@@ -257,146 +227,18 @@ export default defineConfig({
 })
 ```
 
-### runtime
-
-<p>
-
-**타입:**
-  ```
-  { mode: 'off' }
-  | { mode: 'local'; type: 'pages'; persistTo?: string; bindings?: Record<string, CF_BINDING> }
-  | { mode: 'local'; type: 'workers'; persistTo?: string; };
-  ```
-([CF\_BINDING 타입 참조](https://github.com/cloudflare/workers-sdk/blob/eaa16db25103d26ef31499634a31b86caccdf7aa/packages/wrangler/src/api/startDevWorker/types.ts#L190-L219))<br />
-**기본값:** `{ mode: 'off', persistTo: '' }`
-</p>
-
-Cloudflare Runtime이 `astro dev`에 추가되는지 여부와 방법을 결정합니다.
-[Cloudflare Runtime](#cloudflare-런타임)에 대해 자세히 알아보세요.
-
-`type` 속성은 Astro 프로젝트가 배포되는 위치를 정의합니다.
-
-* `pages`: [Cloudflare Pages](https://pages.cloudflare.com/)에 배포됩니다.
-* `workers`: [Cloudflare Workers](https://workers.cloudflare.com/)에 배포됩니다.
-
-`mode` 속성은 런타임이 `astro dev`에서 지원하려는 항목을 정의합니다.
-
-* `off`: `astro dev`를 사용하여 런타임에 액세스할 수 없습니다. 런타임에 액세스해야 할 때 [Preview with Wrangler](#wrangler로-미리보기)를 선택하여 로컬에서 프로덕션 환경을 시뮬레이션할 수 있습니다.
-* `local`: Cloudflare의 바인딩을 지원하는 miniflare 및 workerd로 구동되는 로컬 런타임을 사용합니다. `eval`과 같이 지원되지 않는 기능을 사용하려는 경우에만 로컬 지원이 없는 바인딩에서 [Preview with Wrangler](#wrangler로-미리보기)를 선택하세요.
-
-`mode: local`에서는 로컬 바인딩 상태가 저장되는 위치를 정의하는 `persistTo` 속성에 액세스할 수 있습니다. 이렇게 하면 개발 서버를 다시 시작할 때마다 새로운 바인딩이 방지됩니다. 이 값은 `astro dev` 실행 경로에 상대적인 디렉터리입니다. 기본적으로 `wrangler` cli 명령 사용 (예: 마이그레이션)을 허용하도록 `.wrangler/state/v3`으로 설정됩니다. 이 경로를 `.gitignore`에 추가하세요.
-
 ## Cloudflare 런타임
 
-Cloudflare 런타임은 환경 변수와 Cloudflare 바인딩에 대한 액세스를 제공합니다. Cloudflare의 [Workers](https://developers.cloudflare.com/workers/configuration/bindings/) 및 [Pages](https://developers.cloudflare.com/pages/platform/functions/bindings/) 문서에서 자세한 내용을 확인할 수 있습니다. 배포 타입 (`pages` 또는 `workers`)에 따라 바인딩을 다르게 구성해야 합니다.
+Cloudflare 런타임은 환경 변수와 Cloudflare 바인딩에 대한 액세스를 제공합니다. Cloudflare 런타임은 `wrangler` 및 `.dev.vars` 구성 파일에 있는 바인딩을 사용합니다.
 
-현재 지원되는 바인딩:
+### 사용
 
-* 환경 변수
-* [Cloudflare Workers KV](https://developers.cloudflare.com/kv/)
-* [Cloudflare D1](https://developers.cloudflare.com/d1/)
-* [Cloudflare R2](https://developers.cloudflare.com/r2/)
-* [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/)
+예를 들어, `wrangler.toml` 파일에 [환경 변수](https://developers.cloudflare.com/workers/configuration/environment-variables/#add-environment-variables-via-wrangler) 구성이 설정된 경우:
 
-### 구성
-
-#### Cloudflare Pages
-
-Cloudflare Pages는 구성 파일을 지원하지 않습니다.
-
-페이지 프로젝트를 프로덕션에 배포하려면 Cloudflare의 Dashboard를 사용하여 바인딩을 구성해야 합니다. 바인딩에 로컬로 액세스하려면 어댑터의 `runtime` 옵션을 사용하여 바인딩을 구성해야 합니다.
-
-```js title="astro.config.mjs" ins={7-10, 12-15, 17-19, 21-23, 25-27, 29-34}
-import { defineConfig } from 'astro/config';
-import cloudflare from '@astrojs/cloudflare';
-
-export default defineConfig({
-  output: 'server',
-  adapter: cloudflare({
-    runtime: {
-      mode: 'local',
-      type: 'pages',
-      bindings: {
-        // var 바인딩의 예 (환경 변수)
-        "URL": {
-          type: "var",
-          value: "https://example.com",
-        },
-        // KV 바인딩의 예
-        "KV": {
-          type: "kv",
-        },
-        // D1 바인딩의 예
-        "D1": {
-          type: "d1",
-        },
-        // R2 바인딩의 예
-        "R2": {
-          type: "r2",
-        },
-        // Durable Object 바인딩의 예
-        "DO": {
-          type: "durable-object",
-          className: "DO",
-        },
-      },
-    },
-  }),
-});
-```
-
-환경 변수 외에 `secrets`도 정의해야 하는 경우 Astro 프로젝트의 루트에 `.dev.vars` 파일을 추가해야 합니다.
-
-```ini title=".dev.vars"
-DB_PASSWORD=myPassword
-```
-
-cli 명령에 `wrangler`를 사용하려는 경우 (예를 들어, D1 마이그레이션) Astro 프로젝트 루트에 올바른 콘텐츠가 작성된 `wrangler.toml` 파일을 추가해야 합니다. 자세한 내용은 [Cloudflare 문서](https://developers.cloudflare.com/)를 참조하세요.
 
 ```toml title="wrangler.toml"
-name = "example"
-compatibility_date = "2023-06-14"
-
-# D1 바인딩의 예시
-[[d1_databases]]
-binding = "D1"
-database_name = "D1"
-database_id = "D1"
-preview_database_id = "D1"
-```
-
-#### Cloudflare Workers
-
-workers 프로젝트를 프로덕션에 배포하려면 Astro 프로젝트의 루트 디렉터리에 있는 `wrangler.toml` 구성 파일을 사용하여 바인딩을 구성해야 합니다. 바인딩에 로컬로 액세스할 수 있도록 `@astrojs/cloudflare` 어댑터는 `wrangler.toml` 파일도 읽습니다.
-
-```toml title="wrangler.toml"
-name = "example"
-
-# KV 바인딩의 예시
-kv_namespaces = [
-    { binding = "KV", id = "KV", preview_id = "KV" },
-]
-
-# var 바인딩 (환경 변수)의 예시
 [vars]
-URL = "example.com"
-
-# D1 바인딩의 예시
-[[d1_databases]]
-binding = "D1"
-database_name = "D1"
-database_id = "D1"
-preview_database_id = "D1"
-
-# R2 바인딩의 예시
-[[r2_buckets]]
-binding = 'R2'
-bucket_name = 'R2'
-
-# Durable Object 바인딩의 예시
-[[durable_objects.bindings]]
-name = "DO"
-class_name = "DO"
+MY_VARIABLE = "test"
 ```
 
 환경 변수 외에 `secrets`도 정의해야 하는 경우 Astro 프로젝트의 루트에 `.dev.vars` 파일을 추가해야 합니다.
@@ -405,16 +247,12 @@ class_name = "DO"
 DB_PASSWORD=myPassword
 ```
 
-### 사용하기
-
-`.astro` 파일의 `Astro.locals`를 통해 Astro 컴포넌트에서 런타임에 액세스할 수 있습니다.
+다음과 같이 Astro 로컬을 사용하여 바인딩에 액세스할 수 있습니다.
 
 ```astro title="src/pages/index.astro"
 ---
-const runtime = Astro.locals.runtime;
+const { env } = Astro.locals.runtime;
 ---
-
-<pre>{JSON.stringify(runtime.env)}</pre>
 ```
 
 `context.locals`를 통해 API 엔드포인트에서 런타임에 액세스할 수 있습니다.
@@ -427,55 +265,56 @@ export function GET(context) {
 }
 ```
 
-### 타입 정의
+`MY_VARIABLE` 바인딩의 값에 액세스하려면 코드에 다음을 추가하세요.
 
-`mode: advanced`를 구성한 경우 `AdvancedRuntime`을 사용하여 `runtime` 객체의 타입을 정의할 수 있습니다.
+```astro title="src/pages/index.astro"
+---
+const { env } = Astro.locals.runtime;
+const myVariable = env.MY_VARIABLE;
+---
+```
+
+Cloudflare 문서에서 [지원되는 모든 바인딩 목록](https://developers.cloudflare.com/workers/wrangler/api/#supported-bindings)을 참조하세요.
+
+### 타입 설정
+
+`wrangler`는 바인딩을 위한 TypeScript 타입을 생성하는 `types` 명령을 제공합니다. 이를 통해 수동으로 타입을 설정하지 않고도 locals의 타입을 설정할 수 있습니다. 자세한 내용은 [Cloudflare 문서](https://developers.cloudflare.com/workers/wrangler/commands/#types)를 참조하세요.
+
+구성 파일 (예: `wrangler.toml`, `.dev.vars`)을 변경할 때마다 `wrangler types`를 실행해야 합니다.
+
+:::note
+자동으로 다른 명령보다 먼저 `wrangler types`를 실행하는 pnpm 스크립트를 만들 수 있습니다.
+
+```json title="package.json"
+{
+  "scripts": {
+    "dev": "wrangler types && astro dev",
+    "start": "wrangler types && astro dev",
+    "build": "wrangler types && astro check && astro build",
+    "preview": "wrangler types && astro preview",
+    "astro": "astro"
+  }
+}
+```
+:::
+
+`Runtime`을 사용하여 `runtime` 객체의 타입을 설정할 수 있습니다.
 
 ```ts title="src/env.d.ts"
 /// <reference types="astro/client" />
 
-type KVNamespace = import('@cloudflare/workers-types/experimental').KVNamespace;
-type ENV = {
-  SERVER_URL: string;
-  KV_BINDING: KVNamespace;
-};
-
-type Runtime = import('@astrojs/cloudflare').AdvancedRuntime<ENV>;
+type Runtime = import('@astrojs/cloudflare').Runtime<Env>;
 
 declare namespace App {
   interface Locals extends Runtime {
-    user: {
-      name: string;
-      surname: string;
+    otherLocals: {
+      test: string;
     };
   }
 }
 ```
 
-`mode: directory`를 구성한 경우 `DirectoryRuntime`을 사용하여 `runtime` 객체의 타입을 정의할 수 있습니다.
-
-```ts title="src/env.d.ts"
-/// <reference types="astro/client" />
-
-type KVNamespace = import('@cloudflare/workers-types/experimental').KVNamespace;
-type ENV = {
-  SERVER_URL: string;
-  KV_BINDING: KVNamespace;
-};
-
-type Runtime = import('@astrojs/cloudflare').DirectoryRuntime<ENV>;
-
-declare namespace App {
-  interface Locals extends Runtime {
-    user: {
-      name: string;
-      surname: string;
-    };
-  }
-}
-```
-
-## 플랫폼
+## Cloudflare 플랫폼
 
 ### Headers
 
@@ -490,12 +329,13 @@ Cloudflare Pages를 사용하여 [사용자 지정 리디렉션](https://develop
 
 ### Routes
 
-`_routes.json` 파일을 통해 [Cloudflare 라우팅](https://developers.cloudflare.com/pages/platform/functions/routing/#functions-invocation-routes)을 사용하여 함수를 호출하는 경로와 정적 자산을 정의할 수 있습니다. 이 파일은 Astro에 의해 자동으로 생성됩니다.
+[Cloudflare 라우팅](https://developers.cloudflare.com/pages/platform/functions/routing/#functions-invocation-routes)은 `_routes.json` 파일을 사용하여 어떤 요청이 SSR 함수로 라우팅되는지, 어떤 요청이 정적 자산으로 제공되는지 결정합니다. 기본적으로 `_routes.json` 파일은 프로젝트의 파일 및 구성을 기반으로 자동으로 생성됩니다.
+
+어댑터 구성에서 [추가 라우팅 패턴을 지정](#routesextend)하거나 사용자 정의 `_routes.json` 파일을 생성하여 자동 생성을 완전히 재정의할 수 있습니다.
 
 #### 사용자 정의 `_routes.json`
 
-기본적으로 `@astrojs/cloudflare`는 애플리케이션의 동적 및 정적 경로를 기반으로 `include` 및 `exclude` 규칙을 사용하여 `_routes.json` 파일을 생성합니다.
-이를 통해 Cloudflare는 함수 호출 없이 파일을 제공하고 정적 리디렉션을 처리할 수 있습니다. 사용자 정의 `_routes.json`을 생성하면 이 자동 최적화가 재정의됩니다. 자세한 내용은 [사용자 지정 `routes.json` 생성에 대한 Cloudflare 설명서](https://developers.cloudflare.com/pages/platform/functions/routing/#create-a-_routesjson-file)를 참조하세요.
+사용자 정의 `public/_routes.json`파일을 생성하면 자동 생성이 재정의됩니다. 자세한 내용은 [사용자 지정 `_routes.json` 생성에 대한 Cloudflare 문서](https://developers.cloudflare.com/pages/platform/functions/routing/#create-a-_routesjson-file)를 참조하세요.
 
 ## Wasm 모듈 사용
 
@@ -518,19 +358,7 @@ export async function GET(context) {
 
 ## Node.js 호환성
 
-Astro의 Cloudflare 어댑터를 사용하면 Cloudflare에서 지원하는 모든 Node.js 런타임 API를 사용할 수 있습니다.
-
-* assert
-* AsyncLocalStorage
-* Buffer
-* Crypto
-* Diagnostics Channel
-* EventEmitter
-* path
-* process
-* Streams
-* StringDecoder
-* util
+기본적으로 Cloudflare는 Node.js 런타임 API를 지원하지 않습니다. 일부 구성에서는 Cloudflare가 Node.js 런타임 API의 하위 집합을 지원합니다. Cloudflare의 [문서](https://developers.cloudflare.com/workers/runtime-apis/nodejs)에서 지원되는 Node.js 런타임 API를 찾을 수 있습니다.
 
 이러한 API를 사용하려면 페이지 또는 엔드포인트가 서버 측에서 렌더링되어야 하며 (사전 렌더링되지 않음) `import {} from 'node:*'` 가져오기 구문을 사용해야 합니다.
 
@@ -539,11 +367,31 @@ export const prerender = false;
 import { Buffer } from 'node:buffer';
 ```
 
-또한 Cloudflare에서 호환성 플래그를 활성화해야 합니다. 이 플래그의 구성은 Astro 사이트를 배포하는 위치에 따라 달라질 수 있습니다. 자세한 지침은 [Node.js 호환성 활성화에 대한 Cloudflare 문서](https://developers.cloudflare.com/workers/runtime-apis/nodejs)를 참조하세요.
+또한 `node:*` import 구문을 허용하려면 astro 구성에서 `vite` 구성을 수정해야 합니다.
 
-## Cloudflare 모듈 지원
+```js title="astro.config.mjs" ins={7-11}
+import {defineConfig} from "astro/config";
+import cloudflare from '@astrojs/cloudflare';
 
-모든 Cloudflare 네임스페이스 패키지 (예: `cloudflare:sockets`)는 사용할 수 있도록 허용 목록에 포함됩니다. `cloudflare:sockets` 패키지는 Wrangler 개발 모드를 사용하지 않으면 로컬로 작동하지 않습니다.
+export default defineConfig({
+  adapter: cloudflare({}),
+  output: 'server',
+  vite: {
+		ssr: {
+			external: ['node:buffer'],
+		},
+	},
+})
+```
+
+Additionally, you'll need to follow Cloudflare's documentation on how to enable support. For detailed guidance, please refer to the [Cloudflare documentation on enabling Node.js compatibility](https://developers.cloudflare.com/workers/runtime-apis/nodejs#enable-nodejs-with-pages-functions).
+
+또한 활성화를 지원하는 방법에 대한 Cloudflare 문서를 따라야 합니다. 자세한 지침은 [Node.js 호환성 활성화에 대한 Cloudflare 문서](https://developers.cloudflare.com/workers/runtime-apis/nodejs#enable-nodejs-with-pages-functions)를 참조하세요.
+
+
+:::note[패키지 호환성에 미치는 영향]
+프로젝트가 Node.js 런타임 API를 사용하는 서버로 패키지를 가져오는 경우, Cloudflare에 배포할 때 문제가 발생할 수 있습니다. 이 문제는 `node:*` import 구문을 사용하지 않는 패키지에서 발생합니다. 패키지가 위 import 구문을 지원하는지 확인하기 위해 패키지 작성자에게 문의하는 것이 좋습니다. 패키지가 이를 지원하지 않으면 다른 패키지를 사용해야 할 수도 있습니다.
+:::
 
 ## Wrangler로 미리보기
 

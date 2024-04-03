@@ -129,4 +129,6 @@ export default {
 	// Starlight banner
 	'starlight.title': 'Vuoi creare la tua Documentazione?',
 	'starlight.description': 'Usa questo template per iniziare.',
+	// `<StudioHeading>` component
+	'studioHeading.label': 'Funzionalità Studio',
 };
