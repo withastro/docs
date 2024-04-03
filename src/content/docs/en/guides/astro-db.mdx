@@ -381,25 +381,63 @@ If a breaking schema change _must_ be made, add the `--force-reset` flag to rese
 ### Renaming tables
 </StudioHeading>
 
-If you have already pushed your schema to Astro Studio and want to rename a table you can take one of thes approaches:
+It is possible to rename a table after pushing your schema to Astro Studio.
 
-If you *do __not__ have production data* then you can reset your database using the `--force-reset` flag. This flag will drop all of the tables in the database and create new ones so that it matches your current schema exactly.
+If you **do not have any important production data**, then you can [reset your database](#pushing-breaking-schema-changes) using the `--force-reset` flag. This flag will drop all of the tables in the database and create new ones so that it matches your current schema exactly.
 
-If you __do__ have production data you need to be more careful. You can perform a rename with the following steps:
+To rename a table while preserving your production data, you must perform a series of non-breaking changes to push your local schema to Astro studio safely.
 
-1. Keep the __old table__ schema in your config and add the `deprecated: true` property:
+The following example renames a table from `Comment` to `Feedback`:
 
-    ```ts
-    const Ingredient = defineTable({
+1. In your database config file, add the `deprecated: true` property to the table you want to rename:
+
+    ```ts title="db/config.ts" ins={2}
+    const Comment = defineTable({
       deprecated: true
-      // ...
+    	columns: {
+    		author: column.text(),
+    		body: column.text(),
+  		}
     });
     ```
-2. Add the __new table__ schema alongside the old table.
-3. Push to Astro Studio with `astro db push --remote`. This will add the new table and mark the old as deprecated.
-4. __Important__: Update any of your code to use the new table instead of the old table. You might need to migrate data to the new table as well.
-5. Once you are confident at the old table is no longer used you can remove it. Remove the schema from your `config.ts`.
-6. Push to Astro Studio with `astro db push --remote`. The old table will be dropped, leaving only the new, renamed table.
+2. Add a new table schema (matching the existing table's properties exactly) with the new name:
+
+	  ```ts title="db/config.ts" ins={9-14}
+    const Comment = defineTable({
+      deprecated: true
+    	columns: {
+    		author: column.text(),
+    		body: column.text(),
+  		}
+   	});
+
+		const Feedback = defineTable({
+			  columns: {
+    			author: column.text(),
+    			body: column.text(),
+  		}
+		});
+    ```
+3. [Push to Astro Studio](#pushing-table-schemas) with `astro db push --remote`. This will add the new table and mark the old as deprecated.
+5. Update any of your local project code to use the new table instead of the old table. You might need to migrate data to the new table as well.
+6. Once you are confident at the old table is no longer used in your project, you can remove the schema from your `config.ts`:
+		```ts title="db/config.ts" del={1-7}
+    const Comment = defineTable({
+      deprecated: true
+    	columns: {
+    		author: column.text(),
+    		body: column.text(),
+  		}
+   	});
+
+		const Feedback = defineTable({
+			  columns: {
+    			author: column.text(),
+    			body: column.text(),
+  		}
+		});
+    ```
+7. Push to Astro Studio again with `astro db push --remote`. The old table will be dropped, leaving only the new, renamed table.
 
 <StudioHeading>
 ### Pushing data 
