@@ -224,6 +224,66 @@ Astro uses a [middleware](/en/guides/middleware/) to implement its routing logic
 
 This means that operations (e.g. redirects) from your own middleware and your page logic are run first, your routes are rendered, and then the i18n middleware performs its own actions such as verifying that a localized URL corresponds to a valid route.
 
+#### Manual routing
+
+<p><Since v="4.6.0" /></p>
+
+The `routing` option can be changed to `"manual"`. When this option is enabled, Astro will **disable** its i18n middleware, so a user can implement their custom logic. When this option is enabled, new utility functions become available, which can be used in the user middleware.
+
+```js title="astro.config.mjs" del={6-8} ins={9}
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  i18n: {
+    defaultLocale: "en",
+    locales: ["es", "en", "fr"],
+    routing: {
+        prefixDefaultLocale: true
+    },
+    routing: "manual"
+  }
+})
+```
+
+```js title="src/middleware.js"
+import {defineMiddleware} from "astro:middleware";
+import { redirectToDefaultLocale } from "astro:i18n"; // new function provided by the manual routing
+export const onRequest = defineMiddleware(async (ctx, next) => {
+  if (ctx.url.startsWith("/about")) {
+    return next();
+  } else {
+    return redirectToDefaultLocale(302);
+  }
+})
+```
+
+Sometimes, you want to take advantage of the Astro i18n routing, but you'd want to have some exceptions. Now this is possible via manual routing. When manual routing is enabled, Astro will export a function tha allows to *manually* create the Astro i18n middleware, and you can decide where to place it in combination with the `sequence` utility:
+
+```js title="src/middleware.js"
+import {defineMiddleware, sequence} from "astro:middleware";
+import { middleware } from "astro:i18n"; // new function provided by the manual routing
+export const userMiddleware = defineMiddleware(async (ctx, next) => {
+  // this response might come from the i18n middleware, and it might return a 404
+  const response = await next();
+  // the /about page is an exception and we want to render it
+  if (ctx.url.startsWith("/about")) {
+    return new Response("About page", {
+      status: 200
+    });
+  } else {
+    return response;
+  }
+});
+
+
+export const onRequest = sequence(
+  userMiddleware,
+  middleware({
+    redirectToDefaultLocale: false,
+    prefixDefaultLocale: true
+  })
+)
+```
+
 ### `defaultLocale` and `locales`
 
 Both a default language ([`defaultLocale`](/en/reference/configuration-reference/#i18ndefaultlocale)) and a list of all supported languages ([`locales`](/en/reference/configuration-reference/#i18nlocales)) must be specified in your `i18n` routing configuration.
