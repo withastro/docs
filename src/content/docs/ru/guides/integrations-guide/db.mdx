@@ -135,11 +135,13 @@ const Comment = defineTable({
 import { defineTable, column } from 'astro:db';
 
 const Comment = defineTable({
-  authorId: column.number(),
-  body: column.text(),
+  columns: {
+    authorId: column.number(),
+    body: column.text(),
+  },
   indexes: {
-    author_idx: { on: ['authorId'], unique: true },
-  }
+    author_idx: { on: ["authorId"], unique: true },
+  },
 });
 ```
 
@@ -162,23 +164,24 @@ const Comment = defineTable({
 import { defineTable, column } from 'astro:db';
 
 const Author = defineTable({
-  firstName: column.text(),
-  lastName: column.text(),
+  columns: {
+    firstName: column.text(),
+    lastName: column.text(),
+  },
 });
 
 const Comment = defineTable({
-  authorFirstName: column.text(),
-  authorLastName: column.text(),
-  body: column.text(),
+  columns: {
+    authorFirstName: column.text(),
+    authorLastName: column.text(),
+    body: column.text(),
+  },
   foreignKeys: [
     {
-      columns: ['authorFirstName', 'authorLastName'],
-      references: () => [
-        Author.columns.firstName,
-        Author.columns.lastName
-      ],
+      columns: ["authorFirstName", "authorLastName"],
+      references: () => [Author.columns.firstName, Author.columns.lastName],
     },
-  ]
+  ],
 });
 ```
 
@@ -223,3 +226,30 @@ Astro DB включает в себя набор команд CLI для вза�
 - `--remote` Выполнить в вашей проектной базе данных Studio. Опустите, чтобы выполнить на вашем сервере разработки.
 
 Выполните необработанный SQL-запрос к вашей базе данных. Используйте флаг `--remote` для выполнения в базе данных проекта Studio или опустите этот флаг для выполнения на сервере разработки.
+
+## Справочник по утилитам Astro DB
+
+### `isDbError()`
+
+Функция `isDbError()` проверяет, является ли ошибка исключением базы данных libSQL. Это может быть ошибка ограничения внешнего ключа при использовании ссылок или отсутствие полей при вставке данных. Вы можете комбинировать `isDbError()` с блоком try / catch для обработки ошибок базы данных в вашем приложении:
+
+```ts title="src/pages/api/comment/[id].ts" "idDbError"
+import { db, Comment, isDbError } from 'astro:db';
+import type { APIRoute } from 'astro';
+
+export const POST: APIRoute = (ctx) => {
+  try {
+    await db.insert(Comment).values({
+      id: ctx.params.id,
+      content: 'Hello, world!'
+    });
+  } catch (e) {
+    if (isDbError(e)) {
+      return new Response(`Невозможно вставить комментарий с id ${id}\n\n${e.message}`, { status: 400 });
+    }
+    return new Response('Произошла непредвиденная ошибка', { status: 500 });
+  }
+
+  return new Response(null, { status: 201 });
+};
+```
