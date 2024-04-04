@@ -165,7 +165,7 @@ La clé `content` contient le contenu complet de l'article en HTML. Cela vous pe
 Un paquet comme [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) s'assurera que votre contenu est correctement assaini, échappé et encodé. Au cours de ce processus, un tel paquet peut également supprimer certains éléments et attributs inoffensifs. Veillez donc à vérifier le résultat et à configurer le paquet en fonction de vos besoins.
 :::
 
-Lorsque vous utilisez des collections de contenu, rendez le `body` du message en utilisant un analyseur Markdown standard comme [`markdown-it`](https://github.com/markdown-it/markdown-it) et désinfectez le résultat :
+Lorsque vous utilisez des collections de contenu, rendez le post `body` en utilisant un parseur Markdown standard comme [`markdown-it`](https://github.com/markdown-it/markdown-it) et assainissez le résultat, en incluant toutes les balises supplémentaires (par exemple `<img>`) nécessaires pour afficher votre contenu :
 
 ```js title="src/pages/rss.xml.js" ins={3, 4, 5, 16}
 import rss from '@astrojs/rss';
@@ -183,7 +183,9 @@ export async function GET(context) {
     items: blog.map((post) => ({
       link: `/blog/${post.slug}/`,
       // Note : ceci ne traitera pas les composants ou les expressions JSX dans les fichiers MDX.
-      content: sanitizeHtml(parser.render(post.body)),
+      content: sanitizeHtml(parser.render(post.body), {
+        allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img'])
+      }),
       ...post.data,
     })),
   });
@@ -229,6 +231,23 @@ rss({
 :::tip
 Si vous préférez ne pas créer votre propre feuille de style, vous pouvez utiliser une feuille de style préétablie comme la [Pretty Feed v3 default stylesheet](https://github.com/genmon/aboutfeeds/blob/main/tools/pretty-feed-v3.xsl). Téléchargez la feuille de style depuis GitHub et enregistrez-la dans le répertoire `public/` de votre projet.
 :::
+
+## Activation de la découverte automatique des flux RSS
+
+[RSS autodiscovery](https://www.rssboard.org/rss-autodiscovery) permet aux navigateurs et autres logiciels de trouver automatiquement le flux RSS d'un site à partir de l'URL principale.
+
+Pour l'activer, ajoutez une balise `<link>` avec les attributs suivants à l'élément `head` de votre site :
+
+```html
+<link
+    rel="alternate"
+    type="application/rss+xml"
+    title="Votre titre de site"
+    href={`${Astro.site}rss.xml`}
+/>
+```
+
+Grâce à cette balise, les lecteurs de votre blog peuvent saisir l'URL de base de votre site dans leur lecteur RSS pour s'abonner à vos articles sans avoir besoin de l'URL spécifique de votre flux RSS.
 
 ## Prochaines étapes
 

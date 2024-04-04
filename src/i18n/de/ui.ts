@@ -115,8 +115,6 @@ export default UIDictionary({
 	'feedback.submit': 'Feedback abschicken',
 	'feedback.close': 'Feedback-Formular schließen',
 	'feedback.success': 'Danke! Wir haben dein Feedback bekommen.',
-	// `<FileTree>` component
-	'fileTree.directoryLabel': 'Verzeichnis',
 	// Code snippet vocabulary
 	'expressiveCode.terminalWindowFallbackTitle': 'Terminal-Fenster',
 	'expressiveCode.copyButtonTooltip': 'In Zwischenablage kopieren',
@@ -134,4 +132,6 @@ export default UIDictionary({
 	// Starlight banner
 	'starlight.title': 'Willst du deine eigene Dokumentation erzeugen?',
 	'starlight.description': 'Mit dieser Vorlage kannst du loslegen.',
+	// `<StudioHeading>` component
+	'studioHeading.label': 'Studio-Funktion',
 });
