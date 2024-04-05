@@ -4,7 +4,7 @@ export default NavDictionary({
 	// Start Here
 	startHere: 'Beginne hier',
 	'getting-started': 'Erste Schritte',
-	'install': 'Installation',
+	install: 'Installation',
 	'editor-setup': 'Editor-Einrichtung',
 	'upgrade-astro': 'Upgrade Astro',
 
@@ -33,14 +33,14 @@ export default NavDictionary({
 	'guides/content-collections': 'Content-Sammlungen',
 	'guides/view-transitions': 'View-Transitions',
 	'guides/prefetch': 'Vorabladen',
-'guides/dev-toolbar': 'Dev Toolbar',
+	'guides/dev-toolbar': 'Dev Toolbar',
 
 	// Integrations
 	addons: 'Integrationen',
 	'guides/integrations-guide': 'Integrationen hinzufügen',
 	'guides/framework-components': 'UI-Frameworks',
 	'guides/server-side-rendering': 'Serverseitiges Rendern (SSR)',
-'guides/astro-db': 'Astro DB',
+	'guides/astro-db': 'Astro DB',
 
 	// Recipes
 	examples: 'Anleitungen',
@@ -93,5 +93,4 @@ export default NavDictionary({
 	communityResources: 'Community-Ressourcen',
 	'community-resources/content': 'Kurse, Anleitungen & Beispiele',
 	'community-resources/talks': 'Vorträge, Interviews & Streams',
-
 });
