@@ -27,6 +27,7 @@ export default NavDictionary({
 	'guides/content-collections': 'Colecciones de Contenido',
 	'guides/view-transitions': 'View Transitions',
 	'guides/prefetch': 'Precargar',
+	'guides/dev-toolbar': 'Barra de Herramientas de Desarrollo',
 
 	addons: 'Integraciones',
 	'guides/integrations-guide': 'Agregar integraciones',

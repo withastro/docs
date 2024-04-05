@@ -27,6 +27,7 @@ export default NavDictionary({
 	'guides/content-collections': 'Коллекции контента',
 	'guides/view-transitions': 'Анимации переходов',
 	'guides/prefetch': 'Предварительная загрузка',
+	'guides/dev-toolbar': 'Панель разработчика',
 
 	addons: 'Интеграции',
 	'guides/integrations-guide': 'Добавить интеграции',
