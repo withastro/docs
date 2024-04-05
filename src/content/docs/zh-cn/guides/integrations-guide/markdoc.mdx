@@ -76,17 +76,27 @@ export default defineConfig({
 });
 ```
 
-### 编辑器集成
+### VS Code 编辑器集成
 
-[VS Code](https://code.visualstudio.com/) 默认支持 Markdown。但是，为了支持 Markdoc 编辑器，你可能希望在 VSCode 配置中添加以下设置。这样可以确保编写 Markdoc 文件时提供类似 Markdown 的编辑器体验。
+如果你正在使用 VS Code，有一个官方的 [Markdoc 语言扩展](https://marketplace.visualstudio.com/items?itemName=Stripe.markdoc-language-support)，其中包括了对配置标签的语法高亮和自动完成功能。[在 GitHub 上查看语言服务器](https://github.com/markdoc/language-server.git)以获取更多信息。
 
-```json title=".vscode/settings.json" ins={3}
-{
-  "files.associations": {
-    "*.mdoc": "markdown"
+要设置扩展，需在项目根目录创建一个名为 `markdoc.config.json` 的文件，并包含以下内容：
+
+```json title="markdoc.config.json"
+[
+  {
+    "id": "my-site",
+    "path": "src/content",
+    "schema": {
+      "path": "markdoc.config.mjs",
+      "type": "esm",
+      "property": "default",
+      "watch": true
+    }
   }
-}
+]
 ```
+将 `markdoc.config.mjs` 设置为你的配置文件，并使用 `schema` 对象，通过 `path` 属性定义你的 Markdoc 文件存储的位置。由于 Markdoc 是专门用于内容集合的，你可以使用 `src/content`。
 
 ## 用法
 
@@ -118,7 +128,60 @@ const { Content } = await entry.render();
 
 <ReadMore>了解更多关于 [Astro 内容集合文档][astro-content-collections] 的信息。</ReadMore>
 
-## Markdoc 配置
+## 传递 Markdoc 变量
+
+你可能需要向你的内容传递 [变量][markdoc-variables]。这在传递服务端渲染参数如 A/B 测试时非常有用。
+
+变量可以通过 `Content` 组件作为 props 传递：
+
+```astro title="src/pages/why-markdoc.astro"
+---
+import { getEntryBySlug } from 'astro:content';
+const entry = await getEntryBySlug('docs', 'why-markdoc');
+const { Content } = await entry.render();
+---
+<!--将 `abTest` 参数作为变量传递-->
+<Content abTestGroup={Astro.params.abTestGroup} />
+```
+
+现在，`abTestGroup` 可以在 `docs/why-markdoc.mdoc` 中作为一个变量使用：
+
+```md title="src/content/docs/why-markdoc.mdoc"
+{% if $abTestGroup === 'image-optimization-lover' %}
+
+让我来告诉你关于图像优化的信息...
+
+{% /if %}
+```
+
+要使一个变量对所有 Markdoc 文件全局可用，你可以使用 `markdoc.config.mjs|ts` 中的 `variables` 属性：
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  variables: {
+    environment: process.env.IS_PROD ? 'prod' : 'dev',
+  },
+});
+```
+
+### 从你的 Markdoc 内容中访问 frontmatter
+
+要访问 frontmatter，你可以在渲染内容的地方将条目的 `data` 属性作为一个变量传递：
+
+```astro title="src/pages/why-markdoc.astro"
+---
+import { getEntry } from 'astro:content';
+const entry = await getEntry('docs', 'why-markdoc');
+const { Content } = await entry.render();
+---
+<Content frontmatter={entry.data} />
+```
+
+现在，这可以在你的 Markdoc 中作为 `$frontmatter` 访问。
+
+## 渲染组件
 
 `@astrojs/markdoc` 提供了配置选项，以使用 Markdoc 的所有功能，并将 UI 组件连接到你的内容。
 
@@ -159,11 +222,40 @@ export default defineMarkdocConfig({
 {% /aside %}
 ```
 
-### 使用 npm 包和 TypeScript 文件中的 Astro 组件
+### 使用客户端 UI 组件
 
-你可能需要在 TypeScript 或 JavaScript 文件中使用 Astro 组件。当使用 npm 包和设计系统时，这是很常见的。
+标签和节点仅限于 `.astro` 文件。为了在 Markdoc 中嵌入客户端 UI 组件，[使用一个包装 `.astro` 组件来渲染一个框架组件](/zh-cn/guides/framework-components/#嵌套框架组件)，并配合你所需的 `client:` 指令。
 
-你可以将导入名称作为 `component()` 函数的第二个参数：
+这个例子使用 `ClientAside.astro` 组件包装了一个 React 的 `Aside.tsx` 组件：
+
+```astro title="src/components/ClientAside.astro"
+---
+import Aside from './Aside';
+---
+<Aside {...Astro.props} client:load />
+```
+
+现在，这个 Astro 组件可以传递给配置中任何 [标签][markdoc-tags] 或 [节点][markdoc-nodes] 的 `render` 属性：
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig, component } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  tags: {
+    aside: {
+      render: component('./src/components/ClientAside.astro'),
+      attributes: {
+        type: { type: String },
+      },
+    },
+  },
+});
+```
+### 从 npm 包和 TypeScript 文件中使用 Astro 组件
+
+你可能需要使用从 TypeScript 或 JavaScript 文件中以命名导出形式暴露的 Astro 组件。这在使用 npm 包和设计系统时很常见。
+
+你可以将导入名称作为第二个参数传递给 `component()` 函数：
 
 ```js title="markdoc.config.mjs"
 import { defineMarkdocConfig, component } from '@astrojs/markdoc/config';
@@ -178,38 +270,11 @@ export default defineMarkdocConfig({
 ```
 
 这将在内部生成以下导入语句：
-
 ```ts
 import { Tabs } from '@astrojs/starlight/components';
 ```
 
-### 自定义标题
-
-`@astrojs/markdoc` 会自动为你的标题添加锚点链接，并且通过 [内容集合 API 生成一个 `headings` 列表](/zh-cn/guides/content-collections/#将内容渲染成-html)。为了进一步自定义标题的渲染方式，你可以将 Astro 组件 [作为 Markdoc 节点][markdoc-nodes] 应用。
-
-此示例使用 `render` 属性渲染 `Heading.astro` 组件：
-
-```js title="markdoc.config.mjs"
-import { defineMarkdocConfig, nodes, component } from '@astrojs/markdoc/config';
-
-export default defineMarkdocConfig({
-  nodes: {
-    heading: {
-      ...nodes.heading, // 保留默认锚点链接生成
-      render: component('./src/components/Heading.astro'),
-    },
-  },
-});
-```
-
-所有的 Markdown 标题都会渲染 `Heading.astro` 组件，并将以下 `attributes` 作为组件的 props 传递：
-
-* `level: number` 标题级别 1 - 6
-* `id: string` 从标题的文本内容生成的 `id`。这对应于 [内容 `render()` 函数生成的 `slug`](/zh-cn/guides/content-collections/#将内容渲染成-html)。
-
-例如，标题 `### Level 3 heading!` 将会传递 `level: 3` 和 `id: 'level-3-heading'` 作为组件的 props。
-
-### Markdoc 部分内容
+## Markdoc 部分内容
 
 `{% partial %}` 标签允许你在 Markdoc 内容中渲染其他的 `.mdoc` 文件。
 
@@ -237,11 +302,11 @@ export default defineMarkdocConfig({
 {% partial file="./_footer.mdoc" %}
 ```
 
-### 语法高亮
+## 语法高亮
 
 `@astrojs/markdoc` 提供了 [Shiki](https://shiki.style) 和 [Prism](https://github.com/PrismJS) 扩展来高亮你的代码块。
 
-#### Shiki
+### Shiki
 
 使用 `extends` 属性将 `shiki()` 扩展应用到你的 Markdoc 配置中，你可以选择传递一个 shiki 配置对象：
 
@@ -268,7 +333,7 @@ export default defineMarkdocConfig({
 });
 ```
 
-#### Prism
+### Prism
 
 使用 `extends` 属性将 `prism()` 扩展应用到你的 Markdoc 配置中。
 
@@ -283,28 +348,11 @@ export default defineMarkdocConfig({
 
 <ReadMore>要了解如何配置 Prism 样式表，[请看我们的语法高亮指南](/zh-cn/guides/markdown-content/#prism-配置)。</ReadMore>
 
-### 设置根 HTML 元素
+## 自定义 Markdoc 节点 / 元素
 
-默认情况下，Markdoc 会使用 `<article>` 标签包装文档。这可以从 `document` Markdoc 节点中更改。这个节点接受一个 HTML 元素名称，或者如果你想删除包装元素的话，可以传递 `null`：
+你可能想要将标准的 Markdown 元素，比如段落和加粗文本，渲染为 Astro 组件。为此，你可以配置一个 [Markdoc 节点][markdoc-nodes]。如果某个节点接收到属性，这些属性将作为组件的 props 可用。
 
-```js title="markdoc.config.mjs"
-import { defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
-
-export default defineMarkdocConfig({
-  nodes: {
-    document: {
-      ...nodes.document, // 应用默认的其他配置项
-      render: null, // 默认 'article'
-    },
-  },
-});
-```
-
-### 自定义 Markdoc 节点 / 元素
-
-你可能想要将标准的 Markdown 元素，例如段落和加粗文本，渲染为 Astro 组件。为此，你可以配置一个 [Markdoc 节点][markdoc-nodes]。如果给定的节点接收到属性，它们可将作为组件 props 来使用。
-
-这个例子使用一个自定义的 `Quote.astro` 组件渲染引用块：
+这个例子使用一个自定义的 `Quote.astro` 组件来渲染引用块：
 
 ```js title="markdoc.config.mjs"
 import { defineMarkdocConfig, nodes, component } from '@astrojs/markdoc/config';
@@ -312,16 +360,42 @@ import { defineMarkdocConfig, nodes, component } from '@astrojs/markdoc/config';
 export default defineMarkdocConfig({
   nodes: {
     blockquote: {
-      ...nodes.blockquote, // 应用默认的其他配置项
+      ...nodes.blockquote, // 应用 Markdoc 的默认的其他配置项
       render: component('./src/components/Quote.astro'),
     },
   },
 });
 ```
 
-<ReadMore>[在他们的文档中找到 Markdoc 的所有内置节点和节点属性。](https://markdoc.dev/docs/nodes#built-in-nodes)</ReadMore>
+<ReadMore>查看 [Markdoc 节点文档](https://markdoc.dev/docs/nodes#built-in-nodes) 了解所有内置节点及其属性。</ReadMore>
 
-### 在 Markdoc 中自定义图片组件
+### Custom headings
+
+`@astrojs/markdoc` 自动为你的标题添加锚点链接，并通过内容集合 API 生成一个 `headings` 列表。为了进一步自定义标题的渲染方式，你可以应用一个 Astro 组件作为 Markdoc 节点。
+
+这个例子使用 `render` 属性渲染了一个 `Heading.astro` 组件：
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig, nodes, component } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  nodes: {
+    heading: {
+      ...nodes.heading, // Preserve default anchor link generation
+      render: component('./src/components/Heading.astro'),
+    },
+  },
+});
+```
+
+所有 Markdown 标题将渲染 `Heading.astro` 组件，并将以下 `attributes` 作为组件的 props 传递：
+
+* `level: number` 标题的级别 1 - 6
+* `id: string` 从标题的文本内容生成的 `id`。这对应于由 [内容 `render()` 函数](/zh-cn/guides/content-collections/#将内容渲染成-html) 生成的 `slug`。
+
+例如，标题 `### Level 3 heading!` 将传递 `level: 3` 和 `id: 'level-3-heading'` 作为组件的 props。
+
+### 自定义图片组件
 
 Astro 的 `<Image />` 组件不能直接在 Markdoc 中使用。但是你可以配置一个 Astro 组件来覆盖每次使用原生 `![]()` 图片语法时的默认图片节点，或者作为一个自定义的 Markdoc 标签让你可以指定额外的图片属性。
 
@@ -434,38 +508,7 @@ Markdoc 的 `image` 标签允许你在图片上设置额外的属性，这是用
     {% image src="./astro-logo.png" alt="Astro Logo" width="100" height="100" caption="a caption!" %}
     ```
 
-### 使用客户端 UI 组件
-
-标签和节点仅限于 `.astro` 文件。要在 Markdoc 中嵌入客户端 UI 组件，请 [使用一个包装器 `.astro` 组件来渲染框架组件](/zh-cn/guides/framework-components/#嵌套框架组件) 和你想要的 `client:` 指令。
-
-此示例使用 `ClientAside.astro` 组件包装 React `Aside.tsx` 组件：
-
-```astro title="src/components/ClientAside.astro"
----
-import Aside from './Aside';
----
-
-<Aside {...Astro.props} client:load />
-```
-
-这个 Astro 组件现在可以传递给你的配置中的任何 [标签][markdoc-tags] 或 [节点][markdoc-nodes] 的 `render` 属性：
-
-```js title="markdoc.config.mjs"
-import { defineMarkdocConfig, component } from '@astrojs/markdoc/config';
-
-export default defineMarkdocConfig({
-  tags: {
-    aside: {
-      render: component('./src/components/ClientAside.astro'),
-      attributes: {
-        type: { type: String },
-      },
-    },
-  },
-});
-```
-
-### Markdoc 配置
+## Markdoc 高级配置
 
 `markdoc.config.mjs|ts` 文件接受 [所有 Markdoc 配置选项](https://markdoc.dev/docs/config)，包括 [标签](https://markdoc.dev/docs/tags) 和 [函数](https://markdoc.dev/docs/functions)。
 
@@ -499,88 +542,22 @@ export default defineMarkdocConfig({
 
 <ReadMore> [查看 Markdoc 文档](https://markdoc.dev/docs/functions#creating-a-custom-function) 了解更多关于在你的内容中使用变量或函数的信息。</ReadMore>
 
-### Markdoc 语言服务器
+### 设置根 HTML 元素
 
-如果你使用的是 VS Code，有一个官方的 [Markdoc 语言扩展](https://marketplace.visualstudio.com/items?itemName=Stripe.markdoc-language-support)，它包括了为配置的标签提供语法高亮和自动完成。[在 GitHub 上查看语言服务器](https://github.com/markdoc/language-server.git) 的更多信息。
-
-要设置这个扩展，创建一个 `markdoc.config.json` 文件到项目根目录，内容如下：
-```json
-[
-  {
-    "id": "my-site",
-    "path": "src/content",
-    "schema": {
-      "path": "markdoc.config.mjs",
-      "type": "esm",
-      "property": "default",
-      "watch": true
-    }
-  }
-]
-```
-`schema` 属性 包含了为 Astro 内容集合配置语言服务器的所有信息。它接受以下属性：
-* `path`: 配置文件的路径。
-* `type`: 配置文件使用的模块类型（`esm` 允许 `import` 语法）。
-* `property`: 包含配置对象的导出属性名称。
-* `watch`: 告诉服务器监听配置中的更改。
-顶级 `path` 属性告诉服务器内容位于哪里。由于 Markdoc 是特定于内容集合的，因此可以使用 `src/content`。
-
-### 传递 Markdoc 变量
-
-你可能需要将 [变量][markdoc-variables] 传递给你的内容。当传递 SSR 参数时，这是很有用的，比如 A/B 测试。
-
-变量可以通过 `Content` 组件作为 props 传递：
-
-```astro title="src/pages/why-markdoc.astro"
----
-import { getEntryBySlug } from 'astro:content';
-
-const entry = await getEntryBySlug('docs', 'why-markdoc');
-const { Content } = await entry.render();
----
-
-<!--将`abTest`参数作为变量传递-->
-<Content abTestGroup={Astro.params.abTestGroup} />
-```
-
-现在，`abTestGroup` 可以作为变量在 `docs/why-markdoc.mdoc` 中使用：
-
-```md title="src/content/docs/why-markdoc.mdoc"
-{% if $abTestGroup === 'image-optimization-lover' %}
-
-让我告诉你关于图像优化...
-
-{% /if %}
-```
-
-要使变量对所有 Markdoc 文件全局可用，你可以使用 `markdoc.config.mjs|ts` 中的 `variables` 属性：
+默认情况下，Markdoc 会用 `<article>` 标签包裹文档。这可以通过修改 Markdoc 的 `document` 节点来改变。它接受一个 HTML 元素名称或者如果你希望移除包裹元素，可以使用 `null`：
 
 ```js title="markdoc.config.mjs"
-import { defineMarkdocConfig } from '@astrojs/markdoc/config';
+import { defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
 
 export default defineMarkdocConfig({
-  variables: {
-    environment: process.env.IS_PROD ? 'prod' : 'dev',
+  nodes: {
+    document: {
+      ...nodes.document, // Apply defaults for other options
+      render: null, // default 'article'
+    },
   },
 });
 ```
-
-### 从你的 Markdoc 内容中访问 frontmatter
-
-要访问 frontmatter，你可以在渲染内容的地方将条目 `data` 属性 [作为变量](#传递-markdoc-变量) 传递：
-
-```astro title="src/pages/why-markdoc.astro"
----
-import { getEntry } from 'astro:content';
-
-const entry = await getEntry('docs', 'why-markdoc');
-const { Content } = await entry.render();
----
-
-<Content frontmatter={entry.data} />
-```
-
-这样就可以在你的 Markdoc 中作为 `$frontmatter` 访问。
 
 ## 集成配置选项
 
