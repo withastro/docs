@@ -8,6 +8,7 @@ import { FileTree } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import ReadMore from '~/components/ReadMore.astro';
 import StudioHeading from '~/components/StudioHeading.astro';
+import { Steps } from '@astrojs/starlight/components';
 
 Astro DB는 Astro 전용으로 설계된 완전 관리형 SQL 데이터베이스입니다. 로컬에서 개발하거나 [Astro Studio](/ko/recipes/studio/) 플랫폼에서 관리되는 호스팅된 데이터베이스에 연결하세요.
 
@@ -348,27 +349,121 @@ Astro DB는 [Astro Studio 플랫폼](/ko/recipes/studio/)을 연결하여 호스
 
 [대시보드에서 Studio 프로젝트를 생성](#astro-studio)할 때 GitHub CI action을 생성할 수 있는 옵션이 제공됩니다. 그러면 저장소의 main 브랜치와 병합할 때 스키마 변경 사항이 자동으로 마이그레이션됩니다.
 
-`astro db push` 명령을 사용하여 CLI를 통해 스키마 변경 사항을 푸시할 수도 있습니다.
+`astro db push --remote` 명령을 사용하여 CLI를 통해 로컬 스키마 변경 사항을 Astro Studio로 푸시할 수도 있습니다.
 
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```sh
-  npm run astro db push
+  npm run astro db push --remote
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```sh
-  pnpm astro db push
+  pnpm astro db push --remote
   ```
   </Fragment>
   <Fragment slot="yarn">
   ```sh
-  yarn astro db push
+  yarn astro db push --remote
   ```
   </Fragment>
 </PackageManagerTabs>
 
-이 명령은 데이터 손실 없이 변경이 이루어질 수 있는지 확인하고 충돌을 해결하기 위해 권장되는 스키마 변경 사항을 안내합니다. 주요 스키마 변경이 _반드시_ 이루어져야 하는 경우 `--force-reset` 플래그를 추가하여 모든 프로덕션 데이터를 재설정하세요.
+이 명령은 데이터 손실 없이 로컬 변경이 이루어질 수 있는지 확인하고 필요한 경우 충돌을 해결하기 위해 스키마를 안전하게 변경하는 방법을 제안합니다.
+
+#### 주요 스키마 변경 사항 푸시
+
+:::caution
+__이렇게 하면 데이터베이스가 파괴됩니다__. 프로덕션 데이터가 필요하지 않은 경우에만 이 명령을 수행하세요.
+:::
+
+Astro Studio에서 호스팅되는 기존 데이터와 호환되지 않는 방식으로 테이블 스키마를 변경해야 하는 경우 프로덕션 데이터베이스를 재설정해야 합니다.
+
+주요 변경 사항이 포함된 테이블 스키마 업데이트를 푸시하려면 `--force-reset` 플래그를 추가하여 모든 프로덕션 데이터를 재설정하세요.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm run astro db push --remote --force-reset
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro db push --remote --force-reset
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro db push --remote --force-reset
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+<StudioHeading>
+### 테이블 이름 변경
+</StudioHeading>
+
+스키마를 Astro Studio로 푸시한 후 테이블 이름을 변경할 수 있습니다.
+
+**중요한 프로덕션 데이터가 없는** 경우 `--force-reset` 플래그를 사용하여 [데이터베이스를 재설정](#주요-스키마-변경-사항-푸시)할 수 있습니다. 이 플래그는 데이터베이스의 모든 테이블을 삭제하고 현재 스키마와 정확히 일치하는 새 테이블을 생성합니다.
+
+프로덕션 데이터를 보존하면서 테이블 이름을 변경하려면, 기존 기능을 중단하지 않는 변경을 수행하여 로컬 스키마를 Astro Studio에 안전하게 푸시해야 합니다.
+
+다음 예시에서는 테이블의 이름을 `Comment`에서 `Feedback`으로 변경합니다.
+
+<Steps>
+
+1. 데이터베이스 구성 파일에서 이름을 바꾸려는 테이블에 `deprecated: true` 속성을 추가하세요.
+
+    ```ts title="db/config.ts" ins={2}
+    const Comment = defineTable({
+      deprecated: true,
+    	columns: {
+    		author: column.text(),
+    		body: column.text(),
+  		}
+    });
+    ```
+
+2. 새 이름으로 새 테이블 스키마 (기존 테이블의 속성과 정확히 일치)를 추가합니다.
+
+	  ```ts title="db/config.ts" ins={9-14}
+    const Comment = defineTable({
+        deprecated: true,
+    	columns: {
+    		author: column.text(),
+    		body: column.text(),
+  		}
+    });
+
+	  const Feedback = defineTable({
+        columns: {
+          author: column.text(),
+          body: column.text(),
+        }
+    });
+    ```
+3. `astro db push --remote` 명령을 사용하여 [Astro Studio로 푸시](#테이블-스키마-푸시)합니다. 그러면 새 테이블이 추가되고 이전 테이블은 더 이상 사용되지 않는 것으로 표시됩니다.
+4. 이전 테이블 대신 새 테이블을 사용하도록 로컬 프로젝트 코드를 업데이트하세요. 데이터를 새 테이블로 마이그레이션해야 할 수도 있습니다.
+5. 이전 테이블이 프로젝트에서 더 이상 사용되지 않는다고 확신하면 `config.ts` 파일에서 스키마를 제거할 수 있습니다.
+		```ts title="db/config.ts" del={1-7}
+    const Comment = defineTable({
+          deprecated: true,
+    	  columns: {
+    		  author: column.text(),
+    		  body: column.text(),
+  		  }
+    });
+
+	  const Feedback = defineTable({
+          columns: {
+            author: column.text(),
+            body: column.text(),
+          }
+    });
+    ```
+6. `astro db push --remote` 명령을 사용하여 Astro Studio로 다시 푸시합니다. 이전 테이블은 삭제되고 이름이 변경된 새 테이블만 남습니다.
+</Steps>
 
 <StudioHeading>
 ### 데이터 푸시
