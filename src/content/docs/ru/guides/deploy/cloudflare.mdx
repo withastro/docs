@@ -1,0 +1,129 @@
+---
+title: Разверните ваш сайт Astro на Cloudflare Pages
+description: Как развернуть сайт Astro используя Cloudflare Pages.
+type: deploy
+i18nReady: true
+---
+import ReadMore from '~/components/ReadMore.astro'
+
+Вы можете развернуть ваш проект Astro на [Cloudflare Pages](https://pages.cloudflare.com/), платформе для фронтенд-разработчиков для совместной работы и развёртывания статических (JAMstack) и SSR веб-сайтов.
+
+Это руководство включает:
+
+- [Как развернуть через панель управления Cloudflare Pages](#как-развернуть-сайт-с-использованием-git)
+- [Как развернуть, используя Wrangler, интерфейс командной строки Cloudflare](#как-развернуть-сайт-с-использованием-wrangler)
+- [Как развернуть сайт SSR, используя `@astrojs/cloudflare`](#как-развернуть-сайт-ssr)
+
+
+## Необходимые условия 
+
+Чтобы начать работу, вам понадобятся:
+
+- Учётная запись Cloudflare. Если у вас её ещё нет, вы можете создать бесплатную учётную запись Cloudflare в процессе.
+
+- Ваш код приложения загруженный в [GitHub](https://github.com/) или в репозиторий [GitLab](https://about.gitlab.com/).
+
+
+## Как развернуть сайт с использованием Git
+
+1. Настройте новый проект на Cloudflare Pages.
+2. Загрузите свой код в ваш репозиторий Git (GitHub, GitLab).
+3. Войдите в панель управления Cloudflare и выберите вашу учётную запись в **Account Home** > **Pages**.
+4. Выберите **Create a new Project** и опцию **Connect Git**.
+5. Выберите проект Git, который вы хотите развернуть, и нажмите **Begin setup**.
+6. Используйте следующие настройки сборки:
+
+    - **Предустановленный фреймворк**: `Astro`
+    - **Команда сборки:** `npm run build`
+    - **Каталог вывода сборки:** `dist`
+
+7. Нажмите кнопку **Сохранить и развернуть**.
+
+## Как развернуть сайт с использованием Wrangler
+
+1. Установите [CLI Wrangler](https://developers.cloudflare.com/workers/wrangler/get-started/).
+2. Аутентифицируйте Wrangler с вашей учётной записью Cloudflare, используя `wrangler login`.
+3. Запустите вашу команду сборки.
+4. Разверните, используя `npx wrangler pages deploy dist`.
+
+```bash
+# Установите CLI Wrangler
+npm install -g wrangler
+# Войдите в учётную запись Cloudflare из командной строки
+wrangler login
+# Запустите вашу команду сборки
+npm run build
+# Создайте новое развертывание
+npx wrangler pages deploy dist
+```
+
+После загрузки ваших ресурсов, Wrangler даст вам URL для предварительного просмотра вашего сайта. Когда вы войдёте в панель управления Cloudflare Pages, вы увидите ваш новый проект.
+
+### Включение предварительного просмотра локально с помощью Wrangler
+
+Для работы предварительного просмотра, вам необходимо установить `wrangler`
+
+```bash
+pnpm add wrangler --save-dev
+```
+
+Затем можно обновить скрипт предварительного просмотра для запуска `wrangler` вместо встроенной команды предварительного просмотра Astro:
+
+
+```json title="package.json"
+"preview": "wrangler pages dev ./dist"
+```
+
+## Как развернуть сайт SSR
+
+Вы можете собрать сайт Astro SSR для развертывания на Cloudflare Pages с помощью адаптера [`@astrojs/cloudflare`](/ru/guides/integrations-guide/cloudflare/).
+
+Для настройки адаптера выполните следующие действия. Затем вы можете развернуть систему, используя любой из описанных выше подходов.
+
+### Быстрая установка
+
+Добавьте адаптер Cloudflare для включения SSR в ваш проект Astro с помощью следующей команды `astro add`. Это позволит установить адаптер и внести соответствующие изменения в файл `astro.config.mjs` за один шаг.
+
+```bash
+npx astro add cloudflare
+```
+
+### Ручная установка
+
+Если вы предпочитаете установить адаптер вручную, выполните следующие два шага:
+
+1. Добавьте адаптер `@astrojs/cloudflare` в зависимости вашего проекта, используя ваш менеджер пакетов по умолчанию. Если вы используете npm или не уверены, выполните следующее в терминале:
+
+    ```bash
+    npm install @astrojs/cloudflare
+    ```
+
+2. Добавьте следующий код в ваш файл `astro.config.mjs`:
+
+    ```js title="astro.config.mjs" ins={2, 5-6}
+    import { defineConfig } from 'astro/config';
+    import cloudflare from '@astrojs/cloudflare';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: cloudflare()
+    });
+    ```
+
+<ReadMore>Узнайте больше о [SSR в Astro](/ru/guides/server-side-rendering/).</ReadMore>
+
+## Устранение неполадок
+
+### Гидратация на стороне клиента
+
+Гидратация на стороне клиента может завершиться неудачно из-за настройки автоматического минимизирования Cloudflare. Если вы видите `Hydration completed but contains mismatches` в консоли, убедитесь, что автоматическое минимизирование отключено в настройках Cloudflare.
+
+### API среды выполнения Node.js
+
+Если вы собираете проект, использующий рендеринг по требованию с [адаптером Cloudflare SSR](/ru/guides/integrations-guide/cloudflare/), и сервер не может быть собран с сообщением об ошибке, например `[Error] Could not resolve "XXXX. The package "XXXX" wasn't found on the file system but is built into node.`:
+
+- Это означает, что пакет или импорт, который вы используете в среде сервера, не совместим с [API среды выполнения Cloudflare](https://developers.cloudflare.com/workers/runtime-apis/nodejs/). 
+
+- Если вы напрямую импортируете API среды выполнения Node.js, обратитесь к документации Astro по совместимости с Cloudflare [Node.js](/ru/guides/integrations-guide/cloudflare/#nodejs-compatibility), чтобы узнать, как решить эту проблему.
+
+- Если вы импортируете пакет, который импортирует API среды исполнения Node.js, уточните у автора пакета, поддерживает ли он синтаксис импорта `node:*`. Если нет, вам, возможно, придется найти альтернативный пакет.
