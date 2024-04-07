@@ -8,6 +8,7 @@ import { FileTree } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import ReadMore from '~/components/ReadMore.astro';
 import StudioHeading from '~/components/StudioHeading.astro';
+import { Steps } from '@astrojs/starlight/components';
 
 Astro DB 是一款专为 Astro 设计的全托管 SQL 数据库。你可以在本地开发或者连接到我们 [Astro Studio](/zh-cn/recipes/studio/) 平台上托管的数据库。
 
@@ -350,27 +351,121 @@ Astro DB 可以[连接到 Astro Studio 平台](/zh-cn/recipes/studio/)，快速�
 
 在[从仪表板创建 Studio 项目](#astro-studio)时，你将有创建 GitHub CI 流水线的选项。这将在与你的仓库的主分支合并时自动迁移模式更改。
 
-你也可以使用 `astro db push` 命令通过 CLI 推送模式变更：
+你也可以通过 CLI 使用 `astro db push --remote` 命令将本地架构更改推送到 Astro Studio：
 
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```sh
-  npm run astro db push
+  npm run astro db push --remote
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```sh
-  pnpm astro db push
+  pnpm astro db push --remote
   ```
   </Fragment>
   <Fragment slot="yarn">
   ```sh
-  yarn astro db push
+  yarn astro db push --remote
   ```
   </Fragment>
 </PackageManagerTabs>
 
-这个命令将验证更改是否可以在无数据丢失的情况下进行，并指导如何推荐模式更改以解决冲突。如果必须进行破坏性的模式更改，添加 `--force-reset` 标志以重置所有生产数据。
+此命令将验证你的本地更改是否可以在不丢失数据的情况下进行，并在必要时，建议如何安全地修改你的架构以解决冲突。
+
+#### 推送破坏性架构更改
+
+:::caution
+__这将销毁你的数据库__。仅在你不需要你的生产数据时执行此命令。
+:::
+
+如果你必须以一种与 Astro Studio 托管的现有数据不兼容的方式更改你的表模式，你将需要重置你的生产数据库。
+
+要推送包含破坏性更改的表模式更新，请添加 `--force-reset` 标志以重置所有生产数据：
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm run astro db push --remote --force-reset
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro db push --remote --force-reset
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro db push --remote --force-reset
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+<StudioHeading>
+### 重命名表格
+</StudioHeading>
+
+在将你的架构推送到 Astro Studio 之后，可以重命名一个表格。
+
+如果你**没有任何重要的生产数据**，那么你可以使用 `--force-reset` 标志[重置你的数据库](#pushing-breaking-schema-changes)。这个标志将会删除数据库中的所有表格，并创建新的表格，以便它完全匹配你当前的架构。
+
+为了在保留你的生产数据的同时重命名一个表格，你必须执行一系列非破坏性更改，以安全地将你的本地架构推送到 Astro Studio。
+
+以下示例将一个表格从 `Comment` 重命名为 `Feedback`：
+
+<Steps>
+
+1. 在你的数据库配置文件中，为你想要重命名的表添加 `deprecated: true` 属性：
+
+    ```ts title="db/config.ts" ins={2}
+    const Comment = defineTable({
+      deprecated: true,
+    	columns: {
+    		author: column.text(),
+    		body: column.text(),
+  		}
+    });
+    ```
+
+2. 添加一个新的表格模式（完全匹配现有表格的属性）并使用新名称：
+
+	  ```ts title="db/config.ts" ins={9-14}
+    const Comment = defineTable({
+        deprecated: true,
+    	columns: {
+    		author: column.text(),
+    		body: column.text(),
+  		}
+    });
+
+	  const Feedback = defineTable({
+        columns: {
+          author: column.text(),
+          body: column.text(),
+        }
+    });
+    ```
+3. 使用 `astro db push --remote` [推送到 Astro Studio](#pushing-table-schemas)。这将添加新表并将旧表标记为已弃用。
+4. 更新你的本地项目代码以使用新表而不是旧表。你可能还需要将数据迁移到新表。
+5. 当你确信旧表格不再被你的项目使用时，可以从你的 `config.ts` 中移除该架构：
+		```ts title="db/config.ts" del={1-7}
+    const Comment = defineTable({
+          deprecated: true,
+    	  columns: {
+    		  author: column.text(),
+    		  body: column.text(),
+  		  }
+    });
+
+	  const Feedback = defineTable({
+          columns: {
+            author: column.text(),
+            body: column.text(),
+          }
+    });
+    ```
+6. 再次使用 `astro db push --remote` 命令推送到 Astro Studio。旧表将被删除，只留下新的、重命名的表。
+</Steps>
 
 <StudioHeading>
 ### 推送数据 
