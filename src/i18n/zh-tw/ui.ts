@@ -5,7 +5,7 @@ export default UIDictionary({
 	'a11y.sectionLink': '標題為',
 	'navbar.a11yTitle': '頂部導覽',
 	// Site settings
-	'site.title': 'Astro 文檔',
+	'site.title': 'Astro 說明文件',
 	'site.description': '用更少的用戶端 JavaScript 打造更快速的網站。',
 	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.og.imageAlt': 'Astro 的標誌在充滿星辰的太空中，右邊前景飄浮著土星似的紫色星球',
