@@ -224,3 +224,30 @@ Exécute un fichier `.ts` ou `.js` pour lire ou écrire dans votre base de donn�
 - `--remote` Exécuter sur la base de données de votre projet Studio. Ignorer pour l'exécuter sur votre serveur de développement.
 
 Exécute une requête SQL brute sur votre base de données. Utilisez l'option `--remote` pour lancer la requête sur la base de données de votre projet Studio, ou ignorez l'option pour lancer la requête sur votre serveur de développement.
+
+## Référence de l'utilitaire Astro DB
+
+### `isDbError()`
+
+La fonction `isDbError()` vérifie si une erreur est une exception de la base de données libSQL. Il peut s'agir d'une erreur de contrainte de clé étrangère lors de l'utilisation de références, ou de champs manquants lors de l'insertion de données. Vous pouvez combiner `isDbError()` avec un bloc try/catch pour gérer les erreurs de base de données dans votre application :
+
+```ts title="src/pages/api/comment/[id].ts" "idDbError"
+import { db, Comment, isDbError } from 'astro:db';
+import type { APIRoute } from 'astro';
+
+export const POST: APIRoute = (ctx) => {
+  try {
+    await db.insert(Comment).values({
+      id: ctx.params.id,
+      content: 'Hello, world!'
+    });
+  } catch (e) {
+    if (isDbError(e)) {
+      return new Response(`Cannot insert comment with id ${id}\n\n${e.message}`, { status: 400 });
+    }
+    return new Response('An unexpected error occurred', { status: 500 });
+  }
+
+  return new Response(null, { status: 201 });
+};
+```
