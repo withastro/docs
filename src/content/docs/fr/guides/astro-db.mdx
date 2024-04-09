@@ -8,6 +8,7 @@ import { FileTree } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import ReadMore from '~/components/ReadMore.astro';
 import StudioHeading from '~/components/StudioHeading.astro';
+import { Steps } from '@astrojs/starlight/components';
 
 Astro DB est une base de données SQL entièrement gérée, conçue exclusivement pour Astro. Développez localement ou connectez-vous à une base de données hébergée et gérée sur notre plateforme [Astro Studio](/fr/recipes/studio/).
 
@@ -49,29 +50,9 @@ export default defineDb({
 })
 ```
 
-### Colonnes
-
-Dans Astro DB, les données sont stockées dans des tables SQL. Les tables structurent vos données en lignes et en colonnes, où les colonnes imposent le type de chaque valeur de ligne. Astro DB prend en charge les types de colonnes suivants :
-
-```ts title="db/config.ts" "column.text()" "column.number()" "column.boolean()" "column.date()" "column.json()"
-
-const Comment = defineTable({
-  columns: {
-    // Une chaîne de texte.
-    author: column.text(),
-    // Une valeur entière.
-    likes: column.number(),
-    // Une valeur vraie ou fausse.
-    flagged: column.boolean(),
-    // Valeurs de date et d'heure interrogées sous forme d'Objets JavaScript de type date.
-    published: column.date(),
-    // Un objet JSON non typé.
-    metadata: column.json(),
-  }
-});
-```
-
 ### Tableaux
+
+Dans Astro DB, les données sont stockées dans des tables SQL. Les tables structurent vos données en lignes et en colonnes, où les colonnes imposent le type de chaque valeur de ligne.
 
 Les tableaux alimentent les typages TypeScript automatiques d'Astro pour votre contenu. Lorsque vous définissez une table, Astro génère et applique automatiquement une interface TypeScript. Le résultat est un support TypeScript complet lorsque vous interrogez vos données, y compris l'autocomplétion des propriétés et la vérification des types.
 
@@ -95,6 +76,31 @@ export default defineDb({
 ```
 
 <ReadMore>Voir la [référence de configuration des tables](/fr/guides/integrations-guide/db/#référence-de-la-configuration-du-tableau) pour une référence complète des options de table.</ReadMore>
+
+### Colonnes
+
+Astro DB prend en charge les types de colonnes suivants :
+
+```ts title="db/config.ts" "column.text()" "column.number()" "column.boolean()" "column.date()" "column.json()"
+import { defineTable, column } from 'astro:db';
+
+const Comment = defineTable({
+  columns: {
+    // Une chaîne de texte.
+    author: column.text(),
+    // Une valeur entière.
+    likes: column.number(),
+    // Une valeur vraie ou fausse.
+    flagged: column.boolean(),
+    // Valeurs de date et d'heure interrogées sous forme d'Objets JavaScript de type date.
+    published: column.date(),
+    // Un objet JSON non typé.
+    metadata: column.json(),
+  }
+});
+```
+
+<ReadMore>Voir la [référence des colonnes de la table](/fr/guides/integrations-guide/db/#configuration-de-la-table) pour plus de détails.</ReadMore>
 
 ### Tableau des références
 
@@ -212,7 +218,8 @@ const comments = await db.select().from(Comment);
 	<label for="author">Auteur</label>
 	<input id="author" name="author" />
 
-	<textarea name="content"></textarea>
+	<label for="content">Contenu</label>
+	<textarea id="content" name="content"></textarea>
 
 	<button type="submit">Envoyer</button>
 </form>
@@ -334,11 +341,7 @@ export default async function () {
 
 Astro DB peut [se connecter à la plateforme Astro Studio](/fr/recipes/studio/) pour ajouter rapidement une base de données hébergée à votre projet. Vous pouvez visualiser, gérer et déployer de nouvelles bases de données hébergées à partir du portail web Astro Studio.
 
-Il y a deux façons de créer un projet dans Astro Studio :
-1. via l'[Astro Studio CLI](/fr/reference/cli-reference/#astro-studio-cli) en utilisant `astro link`.
-2. via l'[Astro Studio web UI](https://studio.astro.build)
-
-Pour créer une nouvelle base de données dans l'interface web d'Astro Studio, cliquez sur le bouton "create project" dans l'en-tête et suivez les instructions présentées. Astro Studio vous guidera à travers les étapes nécessaires et, à la fin du processus, vous aurez une base de données hébergée configurée pour votre projet.
+Pour créer un nouveau projet, vous pouvez utiliser un [modèle prêt à l'emploi](https://studio.astro.build) ou consulter le [guide Astro Studio](/fr/recipes/studio/#create-a-new-studio-project).
 
 <StudioHeading>
   ### Pousser les schémas de table
@@ -349,35 +352,129 @@ Le schéma de vos tables évoluera au fur et à mesure que votre projet se déve
 
 Lorsque vous [créez un projet Studio à partir du tableau de bord](#astro-studio), vous avez la possibilité de créer une action GitHub CI. Cette action migrera automatiquement les changements de schéma lors de la fusion avec la branche principale de votre dépôt.
 
-Vous pouvez aussi pousser les changements de schéma via le CLI en utilisant la commande `astro db push` :
+Vous pouvez aussi pousser les changements de schéma via le CLI en utilisant la commande `astro db push --remote` :
 
 <PackageManagerTabs>
   <Fragment slot="npm">
     ```sh
-    npm run astro db push
+    npm run astro db push --remote
     ```
   </Fragment>
   <Fragment slot="pnpm">
     ```sh
-    pnpm astro db push
+    pnpm astro db push --remote
     ```
   </Fragment>
   <Fragment slot="yarn">
     ```sh
-    yarn astro db push
+    yarn astro db push --remote
     ```
   </Fragment>
 </PackageManagerTabs>
 
 Cette commande vérifiera que les changements peuvent être effectués sans perte de données et guidera sur les changements de schéma recommandés pour résoudre les conflits. Si une modification du schéma _doit_ être faite, ajoutez le drapeau `--force-reset` pour réinitialiser toutes les données de production.
 
+### Pousser les changements majeurs de schéma
+
+:::caution
+__Cela détruira votre base de données__. N'exécutez cette commande que si vous n'avez pas besoin de vos données de production.
+:::
+
+Si vous devez modifier le schéma de votre table d'une manière incompatible avec vos données existantes hébergées chez Astro Studio, vous devrez réinitialiser votre base de données de production.
+
+Pour pousser une mise à jour du schéma de table qui inclut un changement radical, ajoutez le drapeau `--force-reset` pour réinitialiser toutes les données de production :
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ``sh
+    npm run astro db push --remote --force-reset
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```sh
+    pnpm astro db push --remote --force-reset
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```sh
+    yarn astro db push --remote --force-reset
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+<StudioHeading>
+  ### Renommer des tables
+</StudioHeading>
+
+Il est possible de renommer une table après avoir transféré votre schéma dans Astro Studio.
+
+Si vous **n'avez pas de données de production importantes**, alors vous pouvez [réinitialiser votre base de données](#pushing-breaking-schema-changes) en utilisant l'option `--force-reset`. Ce drapeau supprimera toutes les tables de la base de données et en créera de nouvelles afin qu'elle corresponde exactement à votre schéma actuel.
+
+Pour renommer une table tout en préservant vos données de production, vous devez effectuer une série de modifications irréversibles afin de transférer votre schéma local vers Astro studio en toute sécurité.
+
+L'exemple suivant renomme une table de `Comment` en `Feedback` :
+
+<Steps>
+
+1. Dans le fichier de configuration de votre base de données, ajoutez la propriété `deprecated : true` à la table que vous voulez renommer :
+
+    ```ts title="db/config.ts" ins={2}
+    const Comment = defineTable({
+      deprecated: true,
+    	columns: {
+    		author: column.text(),
+    		body: column.text(),
+  		}
+    });
+    ```
+
+2. Ajoutez un nouveau schéma de table (correspondant exactement aux propriétés de la table existante) avec le nouveau nom :
+
+  ```ts title="db/config.ts" ins={9-14}
+    const Comment = defineTable({
+        deprecated: true,
+    	columns: {
+    		author: column.text(),
+    		body: column.text(),
+  		}
+    });
+
+	  const Feedback = defineTable({
+        columns: {
+          author: column.text(),
+          body: column.text(),
+        }
+    });
+    ```
+3. [Poussez vers Astro Studio](#pousser-les-changements-de-schéma) avec `astro db push --remote`. Cela ajoutera la nouvelle table et marquera l'ancienne comme obsolète.
+4. Mettez à jour le code de votre projet local pour utiliser la nouvelle table au lieu de l'ancienne. Il se peut que vous deviez également migrer des données vers la nouvelle table.
+5. Une fois que vous êtes sûr que l'ancienne table n'est plus utilisée dans votre projet, vous pouvez supprimer le schéma de votre `config.ts` :
+    ```ts title="db/config.ts" del={1-7}
+    const Comment = defineTable({
+          deprecated: true,
+    	  columns: {
+    		  author: column.text(),
+    		  body: column.text(),
+  		  }
+    });
+
+	  const Feedback = defineTable({
+          columns: {
+            author: column.text(),
+            body: column.text(),
+          }
+    });
+    ```
+6. Push to Astro Studio again with `astro db push --remote`. The old table will be dropped, leaving only the new, renamed table.
+</Steps>
+
 <StudioHeading>
   ### Pousser des données
 </StudioHeading>
 
-Vous pouvez avoir besoin de transférer des données vers votre base de données Studio pour réaliser du seeding ou des migrations de données. Vous pouvez créer un fichier `.ts` avec le module `astro:db` pour écrire des requêtes sûres. Ensuite, exécutez le fichier contre votre base de données Studio en utilisant la commande `astro db execute <file-path> --remote` :
+Vous pouvez avoir besoin de pousser des données vers votre base de données Studio pour la seed ou les migrations de données. Vous pouvez créer un fichier `.ts` avec le module `astro:db` pour écrire des requêtes sûres. Ensuite, exécutez le fichier contre votre base de données Studio en utilisant la commande `astro db execute <file-path> --remote` :
 
-Les Comments suivants peuvent être ajoutés en utilisant la commande `astro db execute db/seed.ts --remote` :
+Les commentaires suivants peuvent être initiés à l'aide de la commande `astro db execute db/seed.ts --remote` :
 
 ```ts
 // db/seed.ts
@@ -385,15 +482,15 @@ import { Comment } from 'astro:db';
 
 export default async function () {
   await db.insert(Comment).values([
-    { authorId: 1, body: "J'espère que vous aimerez Astro DB !" },
-    { authorId: 2, body: 'Profitez !'},
+    { authorId: 1, body: 'Hope you like Astro DB!' },
+    { authorId: 2, body: 'Enjoy!' },
   ])
 }
 ```
 
 <ReadMore>
 
-  Voir la [référence CLI](/fr/guides/integrations-guide/db/#référence-cli-astro-db) pour une liste complète des commandes.
+  Voir la [référence CLI](/fr/guides/integrations-guide/db/#astro-db-cli-reference) pour une liste complète des commandes.
 
 </ReadMore>
 
@@ -423,7 +520,7 @@ Pour utiliser une connexion à distance, vous aurez besoin d'un jeton d'applicat
 
 <ReadMore>
 
-  Lorsque vous êtes prêt à déployer, consultez notre guide [Déployer avec une connexion Studio](/fr/recipes/studio/#déployer-avec-une-connexion-studio).
+Lorsque vous êtes prêt à déployer, consultez notre guide [Déployer avec une connexion Studio](/fr/recipes/studio/#déployer-avec-une-connexion-studio).
 
 </ReadMore>
 
@@ -497,3 +594,31 @@ export default async function() {
 
 La valeur retournée par `asDrizzleTable('Pets', Pets)` est équivalente à `import { Pets } from 'astro:db'`, mais elle est disponible même si la génération de type d'Astro ne peut pas fonctionner.
 Vous pouvez l'utiliser dans tout code d'intégration qui doit interroger ou insérer dans la base de données.
+
+## Déploiement de la production en auto-hébergement
+
+Si vous déployez votre site sur un hôte autogéré tel qu'un [serveur privé virtuel](https://fr.wikipedia.org/wiki/Serveur_d%C3%A9di%C3%A9_virtuel), vous pouvez choisir d'utiliser un fichier de base de données au lieu de vous connecter à une base de données hébergée chez Astro Studio.
+
+:::caution
+L'utilisation d'un fichier de base de données est une fonctionnalité avancée, et il convient d'être prudent lors du déploiement afin d'éviter d'écraser votre base de données et de perdre vos données de production.
+
+En outre, cette méthode ne fonctionnera pas dans les déploiements sans serveur, car le système de fichiers n'est pas persisté dans ces environnements.
+
+Pour une solution entièrement gérée, [se connecter aux bases de données hébergées sur la plateforme Astro Studio](/fr/recettes/studio/) à la place.
+:::
+
+Si vous êtes prêt à prendre des risques et que vous pouvez gérer le déploiement vous-même, vous pouvez utiliser un fichier de base de données au lieu de vous connecter à Studio.
+
+Définissez la variable d'environnement `ASTRO_DATABASE_FILE` avec un chemin pointant vers votre fichier `.db` dans l'environnement de l'hôte pendant votre compilation :
+
+```shell
+ASTRO_DATABASE_FILE=/srv/files/database.db astro build
+```
+
+La compilation se fera de manière statique avec ce chemin comme base de données de production. Lorsque vous déployez et lancez votre serveur, il se connectera au fichier à ce chemin sur l'hôte de production.
+
+En outre, [pousser tout changement de schéma de table](#pousser-les-schémas-de-table) (également connu sous le nom de "migrations de schéma") doit être géré manuellement à l'aide de cette variable d'environnement.
+
+:::danger
+Si vous remplacez votre fichier `.db` lors du déploiement, vous perdrez vos données de production. Suivez attentivement le processus de la méthode de déploiement pour votre hôte afin d'éviter toute perte de données.
+:::
