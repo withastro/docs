@@ -21,7 +21,7 @@ export default NavDictionary({
 	'basics/astro-pages': '頁面',
 	'basics/layouts': '版面',
 	'basics/astro-syntax': 'Astro 模板語法',
-	'basics/rendering-modes': '渲染模式',
+	'basics/rendering-modes': '算繪模式',
 
 	builtins: '內建功能',
 	'guides/content-collections': '内容合集',
@@ -31,7 +31,7 @@ export default NavDictionary({
 	addons: '整合',
 	'guides/integrations-guide': '新增整合',
 	'guides/framework-components': 'UI 框架',
-	'guides/server-side-rendering': '伺服器端渲染（SSR）',
+	'guides/server-side-rendering': '伺服器端算繪（SSR）',
 
 	examples: '操作指南',
 	'guides/migrate-to-astro': '遷移到 Astro',
