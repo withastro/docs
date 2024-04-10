@@ -133,5 +133,5 @@ export default UIDictionary({
 	'starlight.title': 'Хотите создать свою собственную документацию?',
 	'starlight.description': 'Возьмите этот шаблон, чтобы начать.',
 	// `<StudioHeading>` component
-	'studioHeading.label': 'Функция Studio',
+	'studioHeading.label': 'Особенность Studio',
 });
