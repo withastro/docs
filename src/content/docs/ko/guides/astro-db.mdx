@@ -8,6 +8,7 @@ import { FileTree } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import ReadMore from '~/components/ReadMore.astro';
 import StudioHeading from '~/components/StudioHeading.astro';
+import { Steps } from '@astrojs/starlight/components';
 
 Astro DB는 Astro 전용으로 설계된 완전 관리형 SQL 데이터베이스입니다. 로컬에서 개발하거나 [Astro Studio](/ko/recipes/studio/) 플랫폼에서 관리되는 호스팅된 데이터베이스에 연결하세요.
 
@@ -98,6 +99,8 @@ const Comment = defineTable({
   }
 });
 ```
+
+<ReadMore>자세한 내용은 [테이블 열 참조](/ko/guides/integrations-guide/db/#테이블-구성-참조)를 확인하세요.</ReadMore>
 
 ### 테이블 참조
 
@@ -229,10 +232,10 @@ API 엔드포인트에서 데이터베이스를 쿼리할 수도 있습니다. �
 ```ts
 // src/pages/api/comments/[id].ts
 import type { APIRoute } from "astro";
-import { db, Comment } from 'astro:db';
+import { db, Comment, eq } from 'astro:db';
 
 export const DELETE: APIRoute = async (ctx) => {
-  await db.delete(Comment).where({ id: ctx.params.id });
+  await db.delete(Comment).where(eq(Comment.id, ctx.params.id ));
   return new Response(null, { status: 204 });
 }
 ```
@@ -334,14 +337,9 @@ export default async function () {
 ## Astro Studio
 </StudioHeading>
 
-Astro DB는 [Astro Studio 플랫폼에 연결](/ko/recipes/studio/)하여 호스팅된 데이터베이스를 프로젝트에 빠르게 추가할 수 있습니다. Astro Studio 웹 포털에서 새로운 호스팅 데이터베이스를 보고, 관리하고, 배포할 수 있습니다.
+Astro DB는 [Astro Studio 플랫폼](/ko/recipes/studio/)을 연결하여 호스팅된 데이터베이스를 프로젝트에 빠르게 추가할 수 있습니다. Astro Studio 대시보드에서 새로운 호스팅 데이터베이스를 확인하고, 관리하고, 배포할 수 있습니다.
 
-Astro Studio에서 프로젝트를 생성하는 방법에는 두 가지가 있습니다.
-
-1. 인증을 위한 `astro login`과 생성을 위한 `astro link`를 사용하는 [Astro Studio CLI](/ko/reference/cli-reference/#astro-studio-cli)를 통해
-2. [Astro Studio 웹 UI](https://studio.astro.build)를 통해
-
-Astro Studio 웹 UI에서 새 데이터베이스를 생성하려면 헤더에서 "create project" 버튼을 클릭하고 제시된 지침을 따르세요. Astro Studio는 필요한 단계를 안내하며, 프로세스가 끝나면 프로젝트에 맞게 호스팅된 데이터베이스가 구성됩니다.
+새 프로젝트를 생성하려면 [미리 만들어진 템플릿](https://studio.astro.build)을 사용하거나 [Astro Studio 가이드](/ko/recipes/studio/#새-studio-프로젝트-생성)를 방문하세요.
 
 <StudioHeading>
 ### 테이블 스키마 푸시
@@ -351,27 +349,121 @@ Astro Studio 웹 UI에서 새 데이터베이스를 생성하려면 헤더에서
 
 [대시보드에서 Studio 프로젝트를 생성](#astro-studio)할 때 GitHub CI action을 생성할 수 있는 옵션이 제공됩니다. 그러면 저장소의 main 브랜치와 병합할 때 스키마 변경 사항이 자동으로 마이그레이션됩니다.
 
-`astro db push` 명령을 사용하여 CLI를 통해 스키마 변경 사항을 푸시할 수도 있습니다.
+`astro db push --remote` 명령을 사용하여 CLI를 통해 로컬 스키마 변경 사항을 Astro Studio로 푸시할 수도 있습니다.
 
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```sh
-  npm run astro db push
+  npm run astro db push --remote
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```sh
-  pnpm astro db push
+  pnpm astro db push --remote
   ```
   </Fragment>
   <Fragment slot="yarn">
   ```sh
-  yarn astro db push
+  yarn astro db push --remote
   ```
   </Fragment>
 </PackageManagerTabs>
 
-이 명령은 데이터 손실 없이 변경이 이루어질 수 있는지 확인하고 충돌을 해결하기 위해 권장되는 스키마 변경 사항을 안내합니다. 주요 스키마 변경이 _반드시_ 이루어져야 하는 경우 `--force-reset` 플래그를 추가하여 모든 프로덕션 데이터를 재설정하세요.
+이 명령은 데이터 손실 없이 로컬 변경이 이루어질 수 있는지 확인하고 필요한 경우 충돌을 해결하기 위해 스키마를 안전하게 변경하는 방법을 제안합니다.
+
+#### 주요 스키마 변경 사항 푸시
+
+:::caution
+__이렇게 하면 데이터베이스가 파괴됩니다__. 프로덕션 데이터가 필요하지 않은 경우에만 이 명령을 수행하세요.
+:::
+
+Astro Studio에서 호스팅되는 기존 데이터와 호환되지 않는 방식으로 테이블 스키마를 변경해야 하는 경우 프로덕션 데이터베이스를 재설정해야 합니다.
+
+주요 변경 사항이 포함된 테이블 스키마 업데이트를 푸시하려면 `--force-reset` 플래그를 추가하여 모든 프로덕션 데이터를 재설정하세요.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm run astro db push --remote --force-reset
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro db push --remote --force-reset
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro db push --remote --force-reset
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+<StudioHeading>
+### 테이블 이름 변경
+</StudioHeading>
+
+스키마를 Astro Studio로 푸시한 후 테이블 이름을 변경할 수 있습니다.
+
+**중요한 프로덕션 데이터가 없는** 경우 `--force-reset` 플래그를 사용하여 [데이터베이스를 재설정](#주요-스키마-변경-사항-푸시)할 수 있습니다. 이 플래그는 데이터베이스의 모든 테이블을 삭제하고 현재 스키마와 정확히 일치하는 새 테이블을 생성합니다.
+
+프로덕션 데이터를 보존하면서 테이블 이름을 변경하려면, 기존 기능을 중단하지 않는 변경을 수행하여 로컬 스키마를 Astro Studio에 안전하게 푸시해야 합니다.
+
+다음 예시에서는 테이블의 이름을 `Comment`에서 `Feedback`으로 변경합니다.
+
+<Steps>
+
+1. 데이터베이스 구성 파일에서 이름을 바꾸려는 테이블에 `deprecated: true` 속성을 추가하세요.
+
+    ```ts title="db/config.ts" ins={2}
+    const Comment = defineTable({
+      deprecated: true,
+    	columns: {
+    		author: column.text(),
+    		body: column.text(),
+  		}
+    });
+    ```
+
+2. 새 이름으로 새 테이블 스키마 (기존 테이블의 속성과 정확히 일치)를 추가합니다.
+
+	  ```ts title="db/config.ts" ins={9-14}
+    const Comment = defineTable({
+        deprecated: true,
+    	columns: {
+    		author: column.text(),
+    		body: column.text(),
+  		}
+    });
+
+	  const Feedback = defineTable({
+        columns: {
+          author: column.text(),
+          body: column.text(),
+        }
+    });
+    ```
+3. `astro db push --remote` 명령을 사용하여 [Astro Studio로 푸시](#테이블-스키마-푸시)합니다. 그러면 새 테이블이 추가되고 이전 테이블은 더 이상 사용되지 않는 것으로 표시됩니다.
+4. 이전 테이블 대신 새 테이블을 사용하도록 로컬 프로젝트 코드를 업데이트하세요. 데이터를 새 테이블로 마이그레이션해야 할 수도 있습니다.
+5. 이전 테이블이 프로젝트에서 더 이상 사용되지 않는다고 확신하면 `config.ts` 파일에서 스키마를 제거할 수 있습니다.
+		```ts title="db/config.ts" del={1-7}
+    const Comment = defineTable({
+          deprecated: true,
+    	  columns: {
+    		  author: column.text(),
+    		  body: column.text(),
+  		  }
+    });
+
+	  const Feedback = defineTable({
+          columns: {
+            author: column.text(),
+            body: column.text(),
+          }
+    });
+    ```
+6. `astro db push --remote` 명령을 사용하여 Astro Studio로 다시 푸시합니다. 이전 테이블은 삭제되고 이름이 변경된 새 테이블만 남습니다.
+</Steps>
 
 <StudioHeading>
 ### 데이터 푸시
@@ -499,3 +591,31 @@ export default async function() {
 
 `asDrizzleTable('Pets', Pets)`에 의해 반환된 값은 `import { Pets } from 'astro:db'`와 동일하지만, Astro의 타입 생성을 실행할 수 없는 경우에도 사용할 수 있습니다.
 데이터베이스에 쿼리하거나 삽입해야 하는 모든 통합 코드에서 이를 사용할 수 있습니다.
+
+## 자체 호스팅 프로덕션 배포
+
+[가상 사설 서버](https://ko.wikipedia.org/wiki/%EA%B0%80%EC%83%81_%EC%82%AC%EC%84%A4_%EC%84%9C%EB%B2%84)와 같은 자체 관리형 호스트에 사이트를 배포하는 경우 호스팅되는 데이터베이스에 연결하는 대신 Astro Studio에서 데이터베이스 파일을 사용하도록 선택할 수 있습니다.
+
+:::caution
+데이터베이스 파일을 사용하는 것은 고급 기능이므로 배포 시 데이터베이스가 재정의되어 프로덕션 데이터가 손실되지 않도록 주의해야 합니다.
+
+또한 서버리스 배포에서는 파일 시스템이 유지되지 않으므로 이 방법은 작동하지 않습니다.
+
+완전 관리형 솔루션의 경우 [Astro Studio 플랫폼에서 호스팅되는 데이터베이스에 연결](/ko/recipes/studio/)하세요.
+:::
+
+위험을 감수하고 배포를 직접 관리할 수 있는 경우 Studio에 연결하는 대신 데이터베이스 파일을 사용할 수 있습니다.
+
+빌드하는 동안 호스트 환경에서 `.db` 파일을 가리키는 경로로 `ASTRO_DATABASE_FILE` 환경 변수를 설정합니다.
+
+```shell
+ASTRO_DATABASE_FILE=/srv/files/database.db astro build
+```
+
+빌드는 정적으로 이 경로를 프로덕션 데이터베이스로 컴파일합니다. 서버를 배포하고 실행하면 프로덕션 호스트에 있는 이 경로의 파일에 연결됩니다.
+
+또한 [테이블 스키마 변경 사항 푸시](#테이블-스키마-푸시) ("스키마 마이그레이션" 이라고도 함)는 이 환경 변수를 사용하여 수동으로 관리해야 합니다.
+
+:::danger
+배포 시 `.db` 파일을 재정의하면 프로덕션 데이터가 손실됩니다. 데이터 손실을 방지하려면 호스트의 배포 방법 프로세스를 주의 깊게 따르세요.
+:::
