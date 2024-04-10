@@ -8,6 +8,7 @@ import { FileTree } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import ReadMore from '~/components/ReadMore.astro';
 import StudioHeading from '~/components/StudioHeading.astro';
+import { Steps } from '@astrojs/starlight/components';
 
 Astro DB is a fully-managed SQL database designed exclusively for Astro. Develop locally or connect to a hosted database managed on our [Astro Studio](/en/recipes/studio/) platform.
 
@@ -351,27 +352,121 @@ Your table schema will change overtime as your project grows. You can safely tes
 
 When [creating a Studio project from the dashboard](#astro-studio), you will have the option to create a GitHub CI action. This will automatically migrate schema changes when merging with your repository's main branch.
 
-You can also push schema changes via the CLI using the `astro db push` command:
+You can also push your local schema changes to Astro Studio via the CLI using the `astro db push --remote` command:
 
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```sh
-  npm run astro db push
+  npm run astro db push --remote
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```sh
-  pnpm astro db push
+  pnpm astro db push --remote
   ```
   </Fragment>
   <Fragment slot="yarn">
   ```sh
-  yarn astro db push
+  yarn astro db push --remote
   ```
   </Fragment>
 </PackageManagerTabs>
 
-This command will verify changes can be made without data loss and guide on recommended schema changes to resolve conflicts. If a breaking schema change _must_ be made, add the `--force-reset` flag to reset all production data.
+This command will verify that your local changes can be made without data loss and, if necessary, suggest how to safely make changes to your schema in order to resolve conflicts.
+
+#### Pushing breaking schema changes
+
+:::caution
+__This will destroy your database__. Only perform this command if you do not need your production data.
+:::
+
+If you must change your table schema in a way that is incompatible with your existing data hosted at Astro Studio, you will need to reset your production database.
+
+To push a table schema update that includes a breaking change, add the `--force-reset` flag to reset all production data:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm run astro db push --remote --force-reset
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro db push --remote --force-reset
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro db push --remote --force-reset
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+<StudioHeading>
+### Renaming tables
+</StudioHeading>
+
+It is possible to rename a table after pushing your schema to Astro Studio.
+
+If you **do not have any important production data**, then you can [reset your database](#pushing-breaking-schema-changes) using the `--force-reset` flag. This flag will drop all of the tables in the database and create new ones so that it matches your current schema exactly.
+
+To rename a table while preserving your production data, you must perform a series of non-breaking changes to push your local schema to Astro studio safely.
+
+The following example renames a table from `Comment` to `Feedback`:
+
+<Steps>
+
+1. In your database config file, add the `deprecated: true` property to the table you want to rename:
+
+    ```ts title="db/config.ts" ins={2}
+    const Comment = defineTable({
+      deprecated: true,
+    	columns: {
+    		author: column.text(),
+    		body: column.text(),
+  		}
+    });
+    ```
+
+2. Add a new table schema (matching the existing table's properties exactly) with the new name:
+
+	  ```ts title="db/config.ts" ins={9-14}
+    const Comment = defineTable({
+        deprecated: true,
+    	columns: {
+    		author: column.text(),
+    		body: column.text(),
+  		}
+    });
+
+	  const Feedback = defineTable({
+        columns: {
+          author: column.text(),
+          body: column.text(),
+        }
+    });
+    ```
+3. [Push to Astro Studio](#pushing-table-schemas) with `astro db push --remote`. This will add the new table and mark the old as deprecated.
+4. Update any of your local project code to use the new table instead of the old table. You might need to migrate data to the new table as well.
+5. Once you are confident that the old table is no longer used in your project, you can remove the schema from your `config.ts`:
+		```ts title="db/config.ts" del={1-7}
+    const Comment = defineTable({
+          deprecated: true,
+    	  columns: {
+    		  author: column.text(),
+    		  body: column.text(),
+  		  }
+    });
+
+	  const Feedback = defineTable({
+          columns: {
+            author: column.text(),
+            body: column.text(),
+          }
+    });
+    ```
+6. Push to Astro Studio again with `astro db push --remote`. The old table will be dropped, leaving only the new, renamed table.
+</Steps>
 
 <StudioHeading>
 ### Pushing data 
@@ -499,3 +594,32 @@ export default async function() {
 
 The value returned by `asDrizzleTable('Pets', Pets)` is equivalent to `import { Pets } from 'astro:db'`, but is available even when Astro’s type generation can’t run.
 You can use it in any integration code that needs to query or insert into the database.
+
+## Self-hosted production deployment
+
+If you deploy your site to a self-managed host such as a [virtual private server](https://en.wikipedia.org/wiki/Virtual_private_server), you can choose to use a database file instead of connecting to a database hosted at Astro Studio.
+
+:::caution
+Using a database file is an advanced feature, and care should be taken when deploying to prevent overriding your database and losing your production data.
+
+Additionally, this method will not work in serverless deployments, as the file system is not persisted in those environments.
+
+For a fully managed solution, [connect to databases hosted on the Astro Studio platform](/en/recipes/studio/) instead.
+:::
+
+If you are comfortable with the risks, and can manage deployment yourself, you can use a database file instead of connecting to Studio. 
+
+Set the `ASTRO_DATABASE_FILE` environment variable to a path pointing to your `.db` file within the host environment during your build:
+
+```shell
+ASTRO_DATABASE_FILE=/srv/files/database.db astro build
+```
+
+The build will statically compile with this path as your production database. When you deploy and launch your server it will connect to the file at this path on the production host.
+
+Additionally, [pushing any table schema changes](#pushing-table-schemas) (also known as "schema migrations") must be managed manually using this environment variable.
+
+:::danger
+If you override your `.db` file on deployment, you will lose your production data. Follow the deployment method process for your host carefully to prevent data loss.
+:::
+
