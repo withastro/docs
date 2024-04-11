@@ -69,9 +69,6 @@ export default defineConfig({
 	trailingSlash: 'always',
 	scopedStyleStrategy: 'where',
 	compressHTML: false,
-	experimental: {
-		contentCollectionCache: true,
-	},
 	markdown: {
 		// Override with our own config
 		smartypants: false,
@@ -95,6 +92,7 @@ export default defineConfig({
 		service: sharpImageService(),
 	},
 	experimental: {
+		contentCollectionCache: true,
 		directRenderScript: true,
 	},
 });
