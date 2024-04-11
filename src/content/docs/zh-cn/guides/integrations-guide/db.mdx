@@ -20,7 +20,7 @@ Astro DB 是一个为 Astro 生态设计的全托管 SQL 数据库：你可以�
 
 ## 安装
 
-Astro 包含了一个 `astro add` 命令，用于自动设置官方集成。如果你愿意，你也可以选择[手动安装集成](/zh-cn/guides/integrations-guide/mdx/#手动安装)。
+Astro 包含了一个 `astro add` 命令，用于自动设置官方集成。如果你愿意，你也可以选择[手动安装集成](#手动安装)。
 
 在新的终端窗口中运行以下之一的命令。
 
@@ -129,24 +129,30 @@ const Comment = defineTable({
 
 ### `indexes`
 
-表索引用于提高在给定列或列组合上的查找速度。`indexes` 属性接受一个对象，其唯一的索引名作为键：
+表索引用于提高在特定列或列组合上的查找速度。`indexes` 属性接受一个配置对象数组，用于指定要索引的列：
 
-```ts title="db/config.ts" {6-8}
+```ts title="db/config.ts" {9-11}
 import { defineTable, column } from 'astro:db';
 
 const Comment = defineTable({
-  authorId: column.number(),
-  body: column.text(),
-  indexes: {
-    author_idx: { on: ['authorId'], unique: true },
-  }
+  columns: {
+    authorId: column.number(),
+    published: column.date(),
+    body: column.text(),
+  },
+  indexes: [
+    { on: ["authorId", "published"], unique: true },
+  ]
 });
 ```
+
+这将在 `authorId` 和 `published` 列上生成一个名为 `Comment_authorId_published_idx` 的唯一索引。
 
 每个索引都有以下配置选项：
 
 - `on`: `string | string[]` - 要索引的单个列或列名数组。
 - `unique`: `boolean` - 设置为 `true` 以在索引列上强制唯一值。
+- `name`: `string` (可选) - 为唯一索引指定一个自定义名称。这将覆盖 Astro 根据被索引的表和列名生成的名称（例如 `Comment_authorId_published_idx`）。自定义名称是全局的，因此请确保索引名称在不同的表之间不会冲突。
 
 ### `foreignKeys`
 
@@ -162,23 +168,24 @@ const Comment = defineTable({
 import { defineTable, column } from 'astro:db';
 
 const Author = defineTable({
-  firstName: column.text(),
-  lastName: column.text(),
+  columns: {
+    firstName: column.text(),
+    lastName: column.text(),
+  },
 });
 
 const Comment = defineTable({
-  authorFirstName: column.text(),
-  authorLastName: column.text(),
-  body: column.text(),
+  columns: {
+    authorFirstName: column.text(),
+    authorLastName: column.text(),
+    body: column.text(),
+  },
   foreignKeys: [
     {
-      columns: ['authorFirstName', 'authorLastName'],
-      references: () => [
-        Author.columns.firstName,
-        Author.columns.lastName
-      ],
+      columns: ["authorFirstName", "authorLastName"],
+      references: () => [Author.columns.firstName, Author.columns.lastName],
     },
-  ]
+  ],
 });
 ```
 
@@ -189,7 +196,7 @@ const Comment = defineTable({
 
 ## Astro DB CLI 参考
 
-Astro DB 包含一组 CLI 命令，用于与你的托管项目数据库和你的 [Astro Studio](/zh-cn/recipes/studio/) 账户进行交互。 
+Astro DB 包含一组 CLI 命令，用于与你的托管项目数据库和你的 [Astro Studio](/zh-cn/recipes/studio/) 账号进行交互。 
 
 当使用 GitHub CI 流水线时，这些命令会被自动调用，你也可以使用 `astro db` CLI 手动调用它们。
 
@@ -221,3 +228,29 @@ Astro DB 包含一组 CLI 命令，用于与你的托管项目数据库和你的
 - `--remote` 在你的 Studio 项目数据库上运行。省略则在你的开发服务器上运行。
 
 对你的数据库执行原始 SQL 查询。使用 `--remote` 标志在你的 Studio 项目数据库上运行，或省略该标志在你的开发服务器上运行。
+
+## Astro DB 工具函数参考
+
+### `isDbError()`
+
+`isDbError()` 函数用于检查一个错误是否是 libSQL 数据库异常。这可能包括在使用引用时的外键约束错误，或在插入数据时缺少字段。你可以将 `isDbError()` 与 try / catch 块结合使用，来处理应用程序中的数据库错误：
+
+```ts title="src/pages/api/comment/[id].ts" "idDbError"
+import { db, Comment, isDbError } from 'astro:db';
+import type { APIRoute } from 'astro';
+
+export const POST: APIRoute = async (ctx) => {
+  try {
+    await db.insert(Comment).values({
+      id: ctx.params.id,
+      content: 'Hello, world!'
+    });
+  } catch (e) {
+    if (isDbError(e)) {
+      return new Response(`无法插入 id 为 ${ctx.params.id} 的评论\n\n${e.message}`, { status: 400 });
+    }
+    return new Response('发生了意外错误', { status: 500 });
+  }
+
+  return new Response(null, { status: 201 });
+};

@@ -5,7 +5,7 @@ export default NavDictionary({
 	'getting-started': 'はじめに',
 	install: 'インストール',
 	'editor-setup': 'エディタのセットアップ',
-	'guides/upgrade-to/v4': 'v4へのアップグレード',
+	'upgrade-astro': 'Astroのアップグレード',
 
 	coreConcepts: 'コアコンセプト',
 	'concepts/why-astro': 'Astroを選ぶ理由',
@@ -28,14 +28,17 @@ export default NavDictionary({
 	'guides/content-collections': 'コンテンツコレクション',
 	'guides/view-transitions': 'ビュートランジション',
 	'guides/prefetch': 'プリフェッチ',
+	'guides/dev-toolbar': '開発ツールバー',
 
 	addons: 'インテグレーション',
 	'guides/integrations-guide': 'インテグレーションの追加',
 	'guides/framework-components': 'UIフレームワーク',
-	'guides/server-side-rendering': 'サーバーサイドレンダリング（SSR）',
+	'guides/server-side-rendering': 'SSRアダプター',
+	'guides/astro-db': 'Astro DB',
 
 	examples: 'レシピ',
 	'guides/migrate-to-astro': 'Astroへの移行',
+	'recipes/studio': 'Astro Studioとの接続',
 	'guides/cms': 'CMSとの接続',
 	'guides/backend': 'バックエンドサービスの追加',
 	'guides/deploy': 'サイトのデプロイ',
