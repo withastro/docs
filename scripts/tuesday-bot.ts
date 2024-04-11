@@ -1,6 +1,6 @@
 import { setOutput } from '@actions/core';
 import { lunaria } from '@lunariajs/core';
-import { readFileSync } from 'fs';
+import { readFileSync } from 'node:fs';
 import languages from '../src/i18n/languages';
 
 await setDiscordMessage();
@@ -12,32 +12,37 @@ async function setDiscordMessage() {
 	if (!status) return;
 
 	const toTranslate = status.filter(
-		(s) => new Date(s.sourceFile.lastMajorChange) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+		(s) =>
+			new Date(s.sourceFile.git.lastMajorChange) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
 	);
 
 	const list = toTranslate
 		.filter(
 			(s) =>
-				Object.keys(s.localizations).filter(
-					(l) => s.localizations[l]?.isMissing || s.localizations[l]?.isOutdated
-				).length > 0
+				Object.keys(s.localizations).filter((l) => {
+					const localization = s.localizations[l];
+					return localization.isMissing || (!localization.isMissing && localization.isOutdated);
+				}).length > 0
 		)
 		.map((s) => {
 			const langs =
-				Object.keys(s.localizations).filter(
-					(l) => s.localizations[l]?.isMissing || s.localizations[l]?.isOutdated
-				).length ===
+				Object.keys(s.localizations).filter((l) => {
+					const localization = s.localizations[l];
+					return localization.isMissing || (!localization.isMissing && localization.isOutdated);
+				}).length ===
 				Object.keys(languages).length - 1
 					? ['all']
 					: Object.keys(s.localizations);
-			return `- [\`${s.sharedPath}\`](<${s.gitHostingFileURL}>) (${
+			return `- [\`${s.sharedPath}\`](<${s.sourceFile.gitHostingFileURL}>) (${
 				langs[0] === 'all'
 					? 'all'
 					: langs
 							.filter((lang) => {
 								if (lang === 'en') return false;
-								const { isMissing, isOutdated } = s.localizations[lang];
-								return isMissing || isOutdated;
+								const localization = s.localizations[lang];
+								return (
+									localization.isMissing || (!localization.isMissing && localization.isOutdated)
+								);
 							})
 							.join(', ')
 			})`;
