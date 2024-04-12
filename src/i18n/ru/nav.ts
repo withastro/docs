@@ -1,11 +1,11 @@
 import { NavDictionary } from '../translation-checkers';
 
 export default NavDictionary({
-	startHere: 'Начать здесь',
+	startHere: 'Первые шаги',
 	'getting-started': 'Начало работы',
 	install: 'Установка',
 	'editor-setup': 'Настройка редактора',
-	'guides/upgrade-to/v4': 'Обновление до v4',
+	'upgrade-astro': 'Обновление Astro',
 
 	coreConcepts: 'Основные концепции',
 	'concepts/why-astro': 'Почему Astro',
@@ -28,18 +28,21 @@ export default NavDictionary({
 	'guides/content-collections': 'Коллекции контента',
 	'guides/view-transitions': 'Анимации переходов',
 	'guides/prefetch': 'Предварительная загрузка',
+	'guides/dev-toolbar': 'Панель разработчика',
 
 	addons: 'Интеграции',
 	'guides/integrations-guide': 'Добавить интеграции',
 	'guides/framework-components': 'UI-фреймворки',
 	'guides/server-side-rendering': 'Адаптеры SSR',
+	'guides/astro-db': 'Astro DB',
 
-	examples: 'Инструкции',
+	examples: 'Рецепты',
 	'guides/migrate-to-astro': 'Миграция на Astro',
+	'recipes/studio': 'Подключитесь к Astro Studio',
 	'guides/cms': 'Подключение CMS',
 	'guides/backend': 'Добавление бэкэнд-сервисов',
-	'guides/deploy': 'Развертывание сайта',
-	'guides/recipes': 'Больше инструкций',
+	'guides/deploy': 'Развёртывание сайта',
+	'guides/recipes': 'Больше рецептов',
 
 	features: 'Руководства',
 	'guides/routing': 'Маршрутизация',

@@ -31,7 +31,7 @@ Astro pode buscar dados remotamente usando APIs ou mostrar imagens a partir de s
 
 ## Imagens em arquivos `.astro`
 
-Em arquivos `.astro`, imagens locais devem ser importadas no arquivo para que sejam utilizadas. Imagens remotas e de `public/` não precisam ser importadas.
+Em arquivos `.astro`, **imagens locais devem ser importadas no arquivo para que sejam utilizadas**. Imagens remotas e de `public/` não precisam ser importadas.
 
 Importe e utilize o componente `<Image />` integrado do Astro para imagens otimizadas utilizando `astro:assets`. Alternativamente, a sintaxe do Astro suporta escrever uma tag `<img>` do HTML diretamente, o que pula o processamento de imagem.
 
@@ -48,6 +48,10 @@ import imagemPassaroLocal from '../../imagens/subpasta/imagemPassaroLocal.png';
 <img src="/imagens/passaro-na-pasta-public.jpg" alt="Um passáro.">
 <img src="https://exemplo.com/passaro-remoto.jpg" alt="Um passáro.">
 ```
+
+Para importar imagens dinamicamente do diretório `src/`, veja a seguinte receita:
+
+<RecipeLinks slugs={["pt-br/recipes/dynamically-importing-images"]}/>
 
 ### `<Image />` (`astro:assets`)
 
@@ -138,13 +142,13 @@ Se uma imagem é meramente decorativa (ou seja, não contribui para o entendimen
 
 Essas propriedades definem as dimensões a se utilizar para a imagem.
 
-Ao utilizar imagens em sua proporção de tela original, o `width` e `height` podem ser inferidos automaticamente do arquivo fonte e são opcionais.
+Ao utilizar imagens em sua proporção de tela original, o `width` e `height` são opcionais. Essas dimensões podem ser inferidos automaticamente a partir de arquivos de imagem localizados em `src/` e a partir de imagens remotas com [`inferSize` definido como `true`](#infersize).
 
-Porém, ambas essas propriedades são obrigatórias para imagens remotas e imagens armazenadas em sua pasta `public/` já que o Astro é incapaz de analisar esses arquivos.
+Porém, ambas essas propriedades são obrigatórias para imagens armazenadas em sua pasta `public/` já que o Astro é incapaz de analisar esses arquivos.
 
 ##### densities
 
-<Since v="3.3.0" /> <Badge>Experimental</Badge>
+<p><Since v="3.3.0" /></p>
 
 Uma lista de densidades de pixels para gerar a imagem
 
@@ -152,7 +156,7 @@ Se atribuído, o valor é usado para gerar o atributo `srcset`na tag `<img>`. Vo
 
 As densidades que são iguais a larguras maiores do que a imagem original serão ignoradas para evitar o aumento da escala da imagem.
 
-```astro
+```astro title="src/components/MeuComponente.astro"
 ---
 import { Image } from 'astro:assets';
 import minhaImagem from "../assets/minha_imagem.png";
@@ -177,7 +181,7 @@ import minhaImagem from "../assets/minha_imagem.png";
 
 ##### widths
 
-<Since v="3.3.0" /> <Badge>Experimental</Badge>
+<p><Since v="3.3.0" /></p>
 
 Uma lista de larguras a serem geradas para a imagem.
 
@@ -192,7 +196,12 @@ Larguras que forem maiores do que a imagem original serão ignoradas para evitar
 import { Image } from 'astro:assets';
 import minhaImagem from "../assets/minha_imagem.png"; // Image is 1600x900
 ---
-<Image src={minhaImagem} widths={[240, 540, 720, minhaImagem.width]} alt="Uma descrição para minha imagem." />
+<Image
+  src={minhaImagem}
+  widths={[240, 540, 720, minhaImagem.width]}
+  sizes={`(max-width: 360px) 240px, (max-width: 720px) 540px, (max-width: 1600px) 720px, ${minhaImagem.width}px`}
+  alt="Uma descrição para minha imagem."
+/>
 ```
 
 ```html
@@ -203,6 +212,12 @@ import minhaImagem from "../assets/minha_imagem.png"; // Image is 1600x900
     /_astro/minha_imagem.hash.webp 540w,
     /_astro/minha_imagem.hash.webp 720w,
 		/_astro/minha_imagem.hash.webp 1600w
+  "
+  sizes="
+    (max-width: 360px) 240px,
+    (max-width: 720px) 540px,
+    (max-width: 1600px) 720px,
+    1600px
   "
   alt="Uma descrição para minha imagem."
   width="1600"
@@ -224,6 +239,24 @@ Por padrão, o componente `<Image />` irá produzir um arquivo `.webp`.
 - uma predefinição (`low`, `mid`, `high`, `max`) que é automaticamente normalizada entre formatos.
 - um número de `0` a `100` (interpretado diferentemente entre formatos).
 
+##### inferSize
+
+<p><Since v="4.4.0" /></p>
+
+Te permite definir os valores oridinais de `width` e `height` para imagens remotas automaticamente.
+
+Por padrão, essa propriedade é definida como `false` e você deve especificar ambas as dimensões para sua imagem remota.
+
+Adicione `inferSize` ao componente `<Image />` (ou `inferSize: true` em `getImage()`) para inferrir esses valores da imagem remota quando baixada. Isso é útil quando você não sabe as dimensões da imagem remota, ou quando elas podem mudar.
+
+```astro mark="inferSize"
+---
+import { Image } from 'astro:assets';
+---
+<Image src="https://example.com/cat.png" inferSize alt="Um gato dormindo no sol."/>
+```
+
+`inferSize` pode baixar informações de uma [imagem remota de um domínio que não foi autorizado](#autorizando-imagens-remotas), no entanto, a imagem em si não sera processada.
 
 ##### Propriedades adicionais
 
@@ -279,7 +312,7 @@ const {src, ...attrs} = Astro.props;
 
 ### `<Picture />`
 
-<Since v="3.3.0" /> <Badge>Experimental</Badge>
+<p><Since v="3.3.0" /></p>
 
 Utilize o componente `<Picture />` integrado do Astro para exibir uma imagem responsiva com vários formatos e/ou tamanhos.
 
@@ -321,7 +354,7 @@ Um array de formatos de imagem a serem usados para as tags `<source>`. As entrad
 
 Formato a ser usado como um valor de fallback para a tag `<img>`.
 
-Por padrão, é configurado como `.png` para imagens estáticas, `.gif` para imagens animadas e `.svg` para arquivos SVG.
+Por padrão, é configurado como `.png` para imagens estáticas (ou `.jpg` se a imagem for um JPG), `.gif` para imagens animadas e `.svg` para arquivos SVG.
 
 ##### `pictureAttributes`
 
@@ -329,7 +362,7 @@ Um objeto de atributos a serem adicionados à tag `<picture>`.
 
 Use essa propriedade para aplicar atributos ao elemento externo `<picture>`. Atributos aplicados diretamente ao componente `<Picture />` serão aplicados internamente ao elemento `<img>`, exceto aqueles usados para a transformação da imagem.
 
-```astro
+```astro title="src/components/MeuComponente.astro"
 ---
 import { Picture } from "astro:assets";
 import minhaImagem from "../minha_imagem.png"; // Image is 1600x900
@@ -364,7 +397,7 @@ Imagens locais devem ser **importadas de seu caminho relativo** a partir do arqu
 
 Por exemplo, utilize as propriedades `height` e `width` da imagem para evitar CLS e melhorar os Core Web Vitals.
 
-```astro "meuCachorro.width" "meuCachorro.height"
+```astro title="src/pages/posts/post-1.astro" "meuCachorro.width" "meuCachorro.height"
 ---
 // importe imagens locais
 import meuCachorro from `../../imagens/pets/cachorro-local.jpg`
@@ -501,9 +534,11 @@ import foguete from '../assets/foguete.png';
 
 ```
 
-## Imagens em Coleções de Conteúdo
+## Imagens em coleções de conteúdo
 
-Você pode declarar uma imagem associada para uma entrada de coleções de conteúdo, como a imagem de capa de uma postagem de blog, em seu frontmatter utilizando o caminho relativo a pasta atual:
+Imagens em coleções de conteúdo serão processadas da mesma forma que em arquivos [Markdown](#imagens-em-arquivos-markdown) e [MDX](#imagens-em-arquivos-mdx) dependendo do tipo do arquivo que estiver usando.
+
+Adicionalmente, você pode declarar uma imagem associada para uma entrada de coleções de conteúdo, como a imagem de capa de uma postagem de blog, em seu frontmatter utilizando o caminho relativo a pasta atual:
 
 ```md title="src/content/blog/minha-postagem.md" {3}
 ---
@@ -619,7 +654,7 @@ A função `getImage()` foi planejada para gerar imagens destinadas a serem em o
 import { getImage } from "astro:assets";
 import meuPlanoFundo from "../planoFundo.png"
 
-const planoFundoOtimizado = await getImage({src: meuPlanoFundo, format: 'avif'})
+const planoFundoOtimizado = await getImage({src: meuPlanoFundo, format: 'webp'})
 ---
 
 <div style={`background-image: url(${planoFundoOtimizado.src});`}></div>
@@ -644,13 +679,23 @@ Retorna um objeto com as seguintes propriedades:
 
 Nem todos os usuários podem ver imagens da mesma forma, então acessibilidade é uma preocupação especialmente importante ao utilizar imagens. Utilize o atributo `alt` para fornecer [texto alternativo descritivo](https://www.w3.org/WAI/tutorials/images/) para imagens.
 
-Esse atributo é necessário para o componente `<Image />`. `<Image />` irá lançar um erro se nenhum texto alternativo for fornecido.
+Esse atributo é necessário para ambos os componentes `<Image />` e `<Picture />`. Se nenhum texto alternativo for fornecido, uma mensagem de erro será exibida te lembrando de incluir o atributo `alt`.
 
 Se a imagem for meramente decorativa (ou seja, não contribui para o entendimento da página), defina `alt=""` para que leitores de tela saibam ignorar a imagem.
 
 ## Serviço de imagem padrão
 
-[Sharp](https://github.com/lovell/sharp) é o serviço de imagem padrão utilizado em `astro:assets`.
+[Sharp](https://github.com/lovell/sharp) é o serviço de imagem padrão utilizado em `astro:assets`. Você pode configurar o serviço de imagem utilizando a opção [`image.service`](/pt-br/reference/configuration-reference/#imageservice).
+
+:::note
+Ao usar um [gerenciador de pacotes rigoroso](https://pnpm.io/pnpm-vs-npm#npms-flat-tree) como o `pnpm`, talvez seja necessário instalar o Sharp manualmente o seu projeto, mesmo que seja uma dependência do Astro:
+
+```bash
+pnpm add sharp
+```
+:::
+
+### Configure o Squoosh
 
 Se você preferir utilizar [Squoosh](https://github.com/GoogleChromeLabs/squoosh) para transformar suas imagens, atualize sua configuração com o seguinte:
 
@@ -664,13 +709,21 @@ export default defineConfig({
 });
 ```
 
-:::note
-Ao usar um [gerenciador de pacotes rigoroso](https://pnpm.io/pnpm-vs-npm#npms-flat-tree) como o `pnpm`, talvez seja necessário instalar o Sharp manualmente o seu projeto, mesmo que seja uma dependência do Astro:
+### Configure o serviço de passagem não-operacional
 
-```bash
-pnpm add sharp
+Se o seu [adaptador para modo `server` ou `hybrid`](https://astro.build/integrations/?search=&categories%5B%5D=adapters) não suportar os serviços de otimização Squoosh e Shart integrados do Astro (e.g. Deno, Cloudflare), você pode configurar um serviço de imagem não-operacional para permitir que utilize os componentes `<Image />` e `<Picture />`. Note que o Astro não executa nenhuma transformação e processamento de imagens nesses ambientes. No entanto, você ainda pode os outros benefícios de utilizar o `astro:assets`, incluindo não ter Cumulative Layout Shift (CLS), a exigência do atributo `alt`, e a experiência de autoria consistente.
+
+Configure o `passthroughImageService` para evitar ambos os processamentos de imagem Squoosh e Sharp:
+
+```js title="astro.config.mjs" ins={4-6} "passthroughImageService"
+import { defineConfig, passthroughImageService } from 'astro/config';
+
+export default defineConfig({
+  image: {
+    service: passthroughImageService()
+  }
+});
 ```
-:::
 
 ## Integrações da Comunidade
 
