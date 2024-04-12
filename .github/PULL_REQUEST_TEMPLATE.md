@@ -4,6 +4,8 @@
 
 <!-- Please describe the change you are proposing, and why -->
 
+<!-- Please make changes in **one language** only -->
+
 #### Related issues & labels (optional)
 
 - Closes #<!-- Add an issue number if this PR will close it. -->
