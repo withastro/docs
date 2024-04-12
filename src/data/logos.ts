@@ -89,6 +89,7 @@ export const logos = LogoCheck({
 	zeabur: { file: 'zeabur.svg', padding: '.2em' },
 	apostrophecms: { file: 'apostrophecms.svg', padding: '.15em .15em' },
 	db: { file: 'db.svg', padding: '.1em' },
+	umbraco: { file: 'umbraco.svg', padding: '.05em' },
 });
 
 export type LogoKey = keyof typeof logos;
