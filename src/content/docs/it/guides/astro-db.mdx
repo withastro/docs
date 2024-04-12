@@ -8,6 +8,7 @@ import { FileTree } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import ReadMore from '~/components/ReadMore.astro';
 import StudioHeading from '~/components/StudioHeading.astro';
+import { Steps } from '@astrojs/starlight/components';
 
 Astro DB è un database SQL completamente gestito progettato esclusivamente per Astro. Sviluppa localmente o connettiti a un database ospitato gestito sulla nostra piattaforma [Astro Studio](/it/recipes/studio/).
 
@@ -351,27 +352,121 @@ Il tuo schema delle tabelle cambierà nel tempo man mano che il tuo progetto cre
 
 Quando [crei un progetto Studio dalla dashboard](#astro-studio), avrai l'opzione di creare un'azione CI di GitHub. Questo migrerà automaticamente le modifiche allo schema quando si fonde con il ramo principale del tuo repository.
 
-Puoi anche spingere le modifiche allo schema tramite la CLI usando il comando `astro db push`:
+Puoi anche pubblicare le modifiche allo schema locale ad Astro Studio tramite la CLI utilizzando il comando `astro db push --remote`:
 
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```sh
-  npm run astro db push
+  npm run astro db push --remote
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```sh
-  pnpm astro db push
+  pnpm astro db push --remote
   ```
   </Fragment>
   <Fragment slot="yarn">
   ```sh
-  yarn astro db push
+  yarn astro db push --remote
   ```
   </Fragment>
 </PackageManagerTabs>
 
-Questo comando verificherà che le modifiche possano essere effettuate senza perdita di dati e guiderà sulle modifiche allo schema consigliate per risolvere i conflitti. Se una modifica allo schema di rottura _deve_ essere effettuata, aggiungi il flag `--force-reset` per resettare tutti i dati di produzione.
+Questo comando verificherà che le modifiche locali possano essere effettuate senza perdita di dati e, se necessario, suggerirà come apportare in sicurezza modifiche allo schema per risolvere i conflitti.
+
+#### Pubblicare modifiche distruttive allo schema
+
+:::caution
+__Questo distruggerà il tuo database__. Esegui questo comando solo se non hai bisogno dei tuoi dati di produzione.
+:::
+
+Se devi modificare lo schema della tabella in un modo incompatibile con i tuoi dati esistenti ospitati su Astro Studio, dovrai resettare il tuo database di produzione.
+
+Per pubblicare un aggiornamento dello schema della tabella che include una modifica di rottura, aggiungi il flag `--force-reset` per resettare tutti i dati di produzione:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm run astro db push --remote --force-reset
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro db push --remote --force-reset
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro db push --remote --force-reset
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+<StudioHeading>
+### Rinominare le tabelle
+</StudioHeading>
+
+È possibile rinominare una tabella dopo aver pubblicato lo schema su Astro Studio.
+
+Se **non hai dati di produzione importanti**, puoi [resettare il tuo database](#pubblicare-modifiche-distruttive-allo-schema) utilizzando il flag `--force-reset`. Questo flag eliminerà tutte le tabelle nel database e ne creerà di nuove in modo che corrisponda esattamente al tuo schema attuale.
+
+Per rinominare una tabella preservando i dati di produzione, devi eseguire una serie di modifiche non di rottura per pubblicare in sicurezza lo schema locale su Astro Studio.
+
+L'esempio seguente rinomina una tabella da `Comment` a `Feedback`:
+
+<Steps>
+
+1. Nel file di configurazione del database, aggiungi la proprietà `deprecated: true` alla tabella che vuoi rinominare:
+
+    ```ts title="db/config.ts" ins={2}
+    const Comment = defineTable({
+      deprecated: true,
+    	columns: {
+    		author: column.text(),
+    		body: column.text(),
+  		}
+    });
+    ```
+
+2. Aggiungi un nuovo schema di tabella (corrispondente esattamente alle proprietà della tabella esistente) con il nuovo nome:
+
+	  ```ts title="db/config.ts" ins={9-14}
+    const Comment = defineTable({
+        deprecated: true,
+    	columns: {
+    		author: column.text(),
+    		body: column.text(),
+  		}
+    });
+
+	  const Feedback = defineTable({
+        columns: {
+          author: column.text(),
+          body: column.text(),
+        }
+    });
+    ```
+3. [Pubblica su Astro Studio](#pubblicazione-gli-schemi-delle-tabelle) con `astro db push --remote`. Questo aggiungerà la nuova tabella e segnerà la vecchia come deprecata.
+4. Aggiorna qualsiasi codice del tuo progetto locale per utilizzare la nuova tabella invece della vecchia. Potresti anche dover migrare i dati nella nuova tabella.
+5. Una volta che sei sicuro che la vecchia tabella non viene più utilizzata nel tuo progetto, puoi rimuovere lo schema dal tuo `config.ts`:
+		```ts title="db/config.ts" del={1-7}
+    const Comment = defineTable({
+          deprecated: true,
+    	  columns: {
+    		  author: column.text(),
+    		  body: column.text(),
+  		  }
+    });
+
+	  const Feedback = defineTable({
+          columns: {
+            author: column.text(),
+            body: column.text(),
+          }
+    });
+    ```
+6. Pubblica di nuovo su Astro Studio con `astro db push --remote`. La vecchia tabella verrà eliminata, lasciando solo la nuova tabella rinominata.
+</Steps>
 
 <StudioHeading>
 ### Pubblicazione dei dati
@@ -499,3 +594,32 @@ export default async function() {
 
 Il valore restituito da `asDrizzleTable('Pets', Pets)` è equivalente a `import { Pets } from 'astro:db'`, ma è disponibile anche quando la generazione dei tipi di Astro non può essere eseguita.
 Puoi usarlo in qualsiasi codice di integrazione che necessita di interrogare o inserire nel database.
+
+## Distribuzione di produzione self-hosted
+
+Se distribuisci il tuo sito su un host autogestito come un [server privato virtuale](https://it.wikipedia.org/wiki/Virtual_private_server), puoi scegliere di utilizzare un file di database invece di connetterti a un database ospitato su Astro Studio.
+
+:::caution
+L'utilizzo di un file di database è una funzionalità avanzata e occorre prestare attenzione durante la distribuzione per evitare di sovrascrivere il database e perdere i dati di produzione.
+
+Inoltre, questo metodo non funzionerà nelle distribuzioni serverless, poiché il file system non viene persistito in tali ambienti.
+
+Per una soluzione completamente gestita, [connettiti invece ai database ospitati sulla piattaforma Astro Studio](/it/recipes/studio/).
+:::
+
+Se sei a tuo agio con i rischi e puoi gestire la distribuzione autonomamente, puoi utilizzare un file di database invece di connetterti a Studio.
+
+Imposta la variabile d'ambiente `ASTRO_DATABASE_FILE` su un percorso che punta al tuo file `.db` all'interno dell'ambiente host durante la build:
+
+```shell
+ASTRO_DATABASE_FILE=/srv/files/database.db astro build
+```
+
+La build compilerà staticamente con questo percorso come database di produzione. Quando distribuisci e avvii il server, si connetterà al file in questo percorso sull'host di produzione.
+
+Inoltre, [la pubblicazione di eventuali modifiche allo schema delle tabelle](#pubblicazione-gli-schemi-delle-tabelle) (note anche come "migrazioni dello schema") deve essere gestita manualmente utilizzando questa variabile d'ambiente.
+
+:::danger
+Se sovrascrivi il tuo file `.db` durante la distribuzione, perderai i dati di produzione. Segui attentamente il processo del metodo di distribuzione per il tuo host per evitare la perdita di dati.
+:::
+
