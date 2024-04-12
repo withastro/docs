@@ -236,7 +236,7 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 **타입:** `(key: string, options?: CookieDeleteOptions) => void`
 </p>
 
-쿠키를 삭제된 것으로 표시합니다. 쿠키가 삭제되면 `Astro.cookies.has()`는 `false`를 반환하고 `Astro.cookies.get()`은 `value`가 `undefined`로 설정된 [`AstroCookie`](#astrocookie)를 반환합니다. 옵션을 사용하면 삭제할 쿠키의 `domain` 및 `path`를 설정할 수 있습니다.
+쿠키를 삭제된 것으로 표시합니다. 쿠키가 삭제되면 `Astro.cookies.has()`는 `false`를 반환하고 `Astro.cookies.get()`은 `value`가 `undefined`인 [`AstroCookie`](#astrocookie)를 반환합니다. 쿠키를 삭제할 때 사용할 수 있는 옵션은 `domain`, `path`, `httpOnly`, `sameSite` 및 `secure`입니다.
 
 ##### `headers`
 
@@ -1387,6 +1387,271 @@ Astro 미들웨어 `onRequest()` 함수에 전달될 [`APIContext`](#엔드포�
 ### `trySerializeLocals()`
 
 모든 값을 받아들여 해당 값의 직렬화된 버전 (문자열)을 반환하려고 시도하는  저수준 API입니다. 값을 직렬화할 수 없으면 함수에서 런타임 오류가 발생합니다.
+
+## 국제화 (`astro:i18n`)
+
+<p><Since v="3.5.0" /></p>
+
+이 모듈은 프로젝트에 구성된 로케일을 사용하여 URL을 생성하는 데 도움이 되는 함수를 제공합니다.
+
+i18n 라우터를 사용하여 프로젝트에 대한 경로를 생성하는 것은 페이지 경로에 영향을 주는 특정 구성 값에 따라 달라집니다. 이러한 함수를 사용하여 경로를 생성할 때 다음에 대한 개별 설정을 고려해야 합니다.
+
+- [`base`](/ko/reference/configuration-reference/#base)
+- [`trailingSlash`](/ko/reference/configuration-reference/#trailingslash)
+- [`build.format`](/ko/reference/configuration-reference/#buildformat)
+- [`site`](/ko/reference/configuration-reference/#site)
+
+또한 `defaultLocale`에 대해 이러한 함수에서 반환된 URL은 `i18n.routing` 구성을 반영합니다.
+
+기능 및 사용 예시는 [i18n 라우팅 가이드](/ko/guides/internationalization/)를 참조하세요.
+
+### `getRelativeLocaleUrl()` 
+
+`getRelativeLocaleUrl(locale: string, path?: string,  options?: GetLocaleOptions): string`
+
+이 함수를 사용하여 로케일의 상대 경로를 검색합니다. 해당 로케일이 존재하지 않으면 Astro는 오류를 발생시킵니다.
+
+```astro
+---
+getRelativeLocaleUrl("fr");
+// /fr 반환
+getRelativeLocaleUrl("fr", "");
+// /fr 반환
+getRelativeLocaleUrl("fr", "getting-started");
+// /fr/getting-started 반환
+getRelativeLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog"
+}); 
+// /blog/fr-ca/getting-started 반환
+getRelativeLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog",
+  normalizeLocale: false
+}); 
+// /blog/fr_CA/getting-started 반환
+---
+```
+
+### `getAbsoluteLocaleUrl()` 
+
+`getAbsoluteLocaleUrl(locale: string, path: string, options?: GetLocaleOptions): string` 
+
+[`site`]의 값이 존재할 때 로케일의 절대 경로를 검색하려면 이 함수를 사용하세요. [`site`]가 구성되지 않은 경우 함수는 상대 URL을 반환합니다. 해당 로케일이 존재하지 않으면 Astro는 오류를 발생시킵니다.
+
+```astro title="src/pages/index.astro"
+---
+// `site`가 `https://example.com`로 설정된 경우
+getAbsoluteLocaleUrl("fr"); 
+// https://example.com/fr 반환
+getAbsoluteLocaleUrl("fr", ""); 
+// https://example.com/fr 반환
+getAbsoluteLocaleUrl("fr", "getting-started"); 
+// https://example.com/fr/getting-started 반환
+getAbsoluteLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog"
+}); 
+// https://example.com/blog/fr-ca/getting-started 반환
+getAbsoluteLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog",
+  normalizeLocale: false
+}); 
+// https://example.com/blog/fr_CA/getting-started 반환
+---
+```
+
+### `getRelativeLocaleUrlList()` 
+
+`getRelativeLocaleUrlList(path?: string, options?: GetLocaleOptions): string[]`
+
+모든 로케일에 대한 상대 경로 목록을 반환하려면 [`getRelativeLocaleUrl`](#getrelativelocaleurl)처럼 이 함수를 사용하세요.
+
+### `getAbsoluteLocaleUrlList()` 
+
+`getAbsoluteLocaleUrlList(path?: string, options?: GetLocaleOptions): string[]`
+
+모든 로케일에 대한 절대 경로 목록을 반환하려면 [`getAbsoluteLocaleUrl`](/ko/guides/internationalization/#사용자-정의-로케일-경로)처럼 이 함수를 사용하세요.
+
+### `getPathByLocale()` 
+
+`getPathByLocale(locale: string): string`
+
+[사용자 정의 로케일 경로](/ko/guides/internationalization/#사용자-정의-로케일-경로)가 구성된 경우 하나 이상의 `codes`와 연결된 `path`를 반환하는 함수입니다.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  i18n: {
+    locales: ["es", "en", {
+      path: "french",
+      codes: ["fr", "fr-BR", "fr-CA"]
+    }]
+  }
+})
+```
+
+```astro title="src/pages/index.astro"
+---
+getPathByLocale("fr"); // "french" 반환
+getPathByLocale("fr-CA"); // "french" 반환
+---
+```
+
+### `getLocaleByPath`
+
+ `getLocaleByPath(path: string): string`
+
+로케일 `path`와 연관된 `code`를 반환하는 함수입니다.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  i18n: {
+    locales: ["es", "en", {
+      path: "french",
+      codes: ["fr", "fr-BR", "fr-CA"]
+    }]
+  }
+})
+```
+
+```astro title="src/pages/index.astro"
+---
+getLocaleByPath("french"); // 구성된 첫 번째 code이기 때문에 "fr"을 반환합니다.
+---
+```
+
+### `redirectToDefaultLocale()`
+
+`redirectToDefaultLocale(context: APIContext, statusCode?: ValidRedirectStatus): Promise<Response>`
+
+<p><Since v="4.6.0" /></p>
+
+:::note
+`i18n.routing`이 `"manual"`로 설정된 경우에만 사용할 수 있습니다.
+:::
+
+구성된 `defaultLocale`로 리디렉션되는 `Response`를 반환하는 함수입니다. 유효한 리디렉션 상태 코드를 선택적으로 허용합니다.
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { redirectToDefaultLocale } from "astro:i18n";
+
+export const onRequest = defineMiddleware((context, next) => {
+  if (context.url.pathname.startsWith("/about")) {
+    return next();
+  } else {
+    return redirectToDefaultLocale(context, 302);
+  }
+})
+```
+
+### `redirectToFallback()`
+
+`redirectToFallback(context: APIContext, response: Response): Promise<Response>`
+
+<p><Since v="4.6.0" /></p>
+
+:::note
+`i18n.routing`이 `"manual"`로 설정된 경우에만 사용할 수 있습니다.
+:::
+
+자체 미들웨어에서 [`i18n.fallback` 구성](/ko/reference/configuration-reference/#i18nfallback)을 사용할 수 있게 해주는 함수입니다.
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { redirectToFallback } from "astro:i18n";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const response = await next();
+  if (response.status >= 300) {
+    return redirectToFallback(context, response)
+  }
+  return response;
+})
+```
+
+### `notFound()`
+
+`notFound(context: APIContext, response: Response): Promise<Response>`
+
+<p><Since v="4.6.0" /></p>
+
+:::note
+`i18n.routing`이 `"manual"`로 설정된 경우에만 사용할 수 있습니다.
+:::
+
+다음과 같은 경우 라우팅 미들웨어에서 이 함수를 사용하여 404를 반환합니다. 
+- 현재 경로가 루트가 아닌 경우. 예를 들어 `/` 또는 `/<base>` 
+- URL에 로케일이 포함되어 있지 않은 경우
+
+`Response`가 전달되면 이 함수에서 내보낸 새 `Response`에는 원래 응답과 동일한 헤더가 포함됩니다.
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { notFound } from "astro:i18n";
+
+export const onRequest = defineMiddleware((context, next) => {
+  const pathNotFound = notFound(context);
+  if (pathNotFound) {
+    return pathNotFound;
+  }
+  return next();
+})
+```
+
+### `middleware()`
+
+`middleware(options: { prefixDefaultLocale: boolean, redirectToDefaultLocale: boolean })`
+
+<p><Since v="4.6.0" /></p>
+
+:::note
+`i18n.routing`이 `"manual"`로 설정된 경우에만 사용할 수 있습니다.
+:::
+
+Astro i18n 미들웨어를 프로그래밍 방식으로 생성할 수 있는 함수입니다.
+
+이는 기본 i18n 로직을 계속 사용하고 싶지만 웹 사이트에 몇 가지 예외만 추가하려는 경우에 유용합니다.
+
+```js title="middleware.js"
+import { middleware } from "astro:i18n";
+import { sequence, defineMiddleware } from "astro:middleware";
+
+const customLogic = defineMiddleware(async (context, next) => {
+  const response = await next();
+
+  // 응답을 해결한 후 사용자 정의 로직.
+  // Astro i18n 미들웨어에서 오는 응답을 캐치할 수 있습니다.
+
+  return response;
+});
+
+export const onRequest = sequence(customLogic, middleware({
+	prefixDefaultLocale: true,
+	redirectToDefaultLocale: false
+}))
+```
+
+### `requestHasLocale()`
+
+`requestHasLocale(context: APIContext): boolean`
+
+<p><Since v="4.6.0" /></p>
+
+:::note
+`i18n.routing`이 `"manual"`로 설정된 경우에만 사용할 수 있습니다.
+:::
+
+현재 URL에 구성된 로케일이 포함되어 있는지 확인합니다. 내부적으로 이 함수는 `APIContext#url.pathname`을 사용합니다.
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { requestHasLocale } from "astro:i18n";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  if (requestHasLocale(context)) {
+    return next();
+  }
+  return new Response("Not found", { status: 404 });
+})
+```
 
 ## 내장 컴포넌트
 
