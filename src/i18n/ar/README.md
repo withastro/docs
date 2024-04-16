@@ -26,7 +26,7 @@
 | Template        | قالب                        |
 | Version         | إصدار                       |
 | Frontend        | واجهة أمامية                |
-| Backend         | قفوي                        |
+| Backend         | واجهة خلفية                        |
 | Editor          | محرر                        |
 | Upgrade         | ترقية                       |
 | Migrate         | تحويل                       |
@@ -36,8 +36,8 @@
 | Dynamic         | ديناميكي                    |
 | Routing         | توجيه                       |
 | Rendering       | تصيير                       |
-| Script          | إخطاطة                      |
-| Event Handling  | تناول الأحداث               |
+| Script          | نص برمجي                      |
+| Event Handling  | معالجة الأحداث               |
 | Import          | إضافة / استيراد             |
 | Export          | تصدير                       |
 | Client          | زبون                        |
@@ -59,7 +59,7 @@
 | Reference       | مرجع                        |
 | Bundle          | رزمة                        |
 | Package         | حزمة                        |
-| Repository      | خازنة / مستودعة             |
+| Repository      | مستودع             |
 | Privacy Policy  | سياسة الخصوصية              |
 | Stub            | مسودة                       |
 | Recipe          | مثال                       |
