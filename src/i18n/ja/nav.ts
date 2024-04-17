@@ -28,6 +28,7 @@ export default NavDictionary({
 	'guides/content-collections': 'コンテンツコレクション',
 	'guides/view-transitions': 'ビュートランジション',
 	'guides/prefetch': 'プリフェッチ',
+	'guides/dev-toolbar': '開発ツールバー',
 
 	addons: 'インテグレーション',
 	'guides/integrations-guide': 'インテグレーションの追加',
