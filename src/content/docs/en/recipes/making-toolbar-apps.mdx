@@ -5,12 +5,11 @@ type: recipe
 ---
 
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { FileTree } from '@astrojs/starlight/components';
 
 Astro includes a [development toolbar](https://docs.astro.build/en/guides/dev-toolbar/) that you can use to inspect your site, check for accessibility and performance issues, and more. 
 
 In this recipe, you'll learn how to create a dev toolbar app that you can use to extend the functionality of the dev toolbar.
-
-## Building the app
 
 :::tip 
 Just wanna get started quickly and start working on your app? Jump start your app by creating a new Astro project with the `toolbar-app` template.
@@ -32,38 +31,61 @@ Just wanna get started quickly and start working on your app? Jump start your ap
     ```
   </Fragment>
 </PackageManagerTabs>
+
+Alternatively, keep on reading to learn how to build an app from scratch.
 :::
 
-### Creating the integration
+## Creating the integration
 
-Dev toolbar apps can only be added by [Astro Integrations](/en/reference/configuration-reference/#integrations). To create an integration, create a file anywhere in your project exporting an object with the integration name and hooks. 
+Dev toolbar apps can only be added by [Astro Integrations](/en/guides/integrations-guide/). To create an integration, create a file anywhere in your project exporting an object with the integration name and hooks. 
 
-The `astro:config:setup` hook has access to the `addDevToolbarApp` function, which you can use to add your dev toolbar app. The `addDevToolbarApp` function takes an object with the id, name, icon and finally entrypoint of the dev toolbar app. The entrypoint is the path to the file that exports the dev toolbar app.
+The `astro:config:setup` hook has access to the `addDevToolbarApp` function, which can be used to add dev toolbar apps. The `addDevToolbarApp` function takes an object with the id, name, icon and finally entrypoint of the dev toolbar app. The entrypoint is the path to the file that exports the dev toolbar app.
 
 ```ts title="my-integration.ts"
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 import type { AstroIntegration } from 'astro';
 
 export default {
-	name: 'my-astro-integration',
-	hooks: {
-		'astro:config:setup': ({ addDevToolbarApp }) => {
-			addDevToolbarApp({
+  name: 'my-astro-integration',
+  hooks: {
+    'astro:config:setup': ({ addDevToolbarApp }) => {
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = dirname(__filename);
+  
+      addDevToolbarApp({
         id: "my-toolbar-app",
         name: "My Toolbar App",
         icon: "🚀",
-        entrypoint: "astro-toolbar-app/app.ts",
+        entrypoint: join(__dirname, "./app.ts"),
       });
-		},
-	},
+    },
+  },
 } satisfies AstroIntegration;
-
 ```
 
-### Creating the app
+:::caution[Using relative paths]
+Note that the entrypoint is relative to the root of the project using the integration, not to the root of the integration itself, which means using a simple `./app.ts` will not work. 
+
+In order to use relative paths for entrypoints, you should always use the `import.meta.url` variable to get the path to the current file and resolve the path to the entrypoint from there to make sure it works regardless of where the integration is used.
+:::
+
+You can now use this integration in your project by adding it to the `integrations` array in your `astro.config.mjs` file.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import myIntegration from './my-integration.ts';
+
+export default defineConfig({
+  integrations: [myIntegration],
+})
+```
+
+## Creating the app
 
 Dev toolbar apps are defined using the `defineToolbarApp` function from the `astro/toolbar` module. This function takes an object with an `init` function that will be called when the dev toolbar app is loaded. 
 
-```ts title="astro-toolbar-app/app.ts"
+```ts title="app.ts"
 import { defineToolbarApp } from "astro/toolbar";
 
 export default defineToolbarApp({
@@ -75,7 +97,7 @@ export default defineToolbarApp({
 
 The `init()` function receives a standard [ShadowRoot](https://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot) as its first argument, which you can use to create a UI for your dev toolbar app. Elements can be created and added to the ShadowRoot using the standard DOM API.
 
-```ts title="astro-toolbar-app/app.ts" ins={5-7}
+```ts title="app.ts" ins={5-7}
 import { defineToolbarApp } from "astro/toolbar";
 
 export default defineToolbarApp({
@@ -87,7 +109,28 @@ export default defineToolbarApp({
 });
 ```
 
-In its 
+In most cases, the `init()` function will contain the vast majority of your dev toolbar app's logic, as this function will create the UI for your app, set up event listeners, etc. In order to make it easier to do common operations, `init()` also includes two additional arguments: `app` and `server`.
+
+```ts title="app.ts" ins=/(app),/ ins=/(server)\\)/
+import { defineToolbarApp } from "astro/toolbar";
+
+export default defineToolbarApp({
+    init(canvas, app, server) {
+      // Create a new text node every time the app is toggled on or off
+      app.onAppToggled(({ state }) => {
+        const text = document.createTextNode(
+          `The app is now ${state ? "enabled" : "disabled"}!`,
+        );
+        canvas.appendChild(text);
+      });
+      
+      // Send a message to the server
+      server.send("my-app:hello-server", {message: "Hello, server!"});
+    },
+});
+```
+
+For more information on the hooks and helpers available in the `init()` function, see the [Astro Toolbar API documentation](https://docs.astro.build/api/astro/toolbar).
 
 ## Using a UI framework
 
@@ -95,7 +138,7 @@ In its
 
 If your framework supports it, you can create a dev toolbar app using a framework without a build step. For example, you can use Preact's `h` function to create elements and render them directly to the ShadowRoot.
 
-```ts
+```ts title="app.ts"
 import { defineToolbarApp } from "astro/toolbar";
 import { render, h } from "preact";
 
@@ -106,9 +149,9 @@ export default defineToolbarApp({
 });
 ```
 
-The [HTM package](https://github.com/developit/htm) is also a good choice for creating dev toolbar apps without a build step, offering native integration for React and Preact and support for other frameworks.
+The [HTM package](https://github.com/developit/htm) is a good choice for creating dev toolbar apps without a build step, offering native integration for React and Preact and support for other frameworks.
 
-```ts
+```ts title="app.ts" ins={3, 7}
 import { defineToolbarApp } from "astro/toolbar";
 import { render } from "preact";
 import { html } from 'htm/preact';
@@ -157,4 +200,28 @@ Next, create a `tsconfig.json` file in the root of your project with the appropr
 }
 ```
 
-You can now run `tsc` to build your toolbar app, or `tsc --watch` to automatically rebuild your app when you make changes. Make sure to adjust the `entrypoint` in your integration to point to the compiled file.
+You can now run `tsc` to build your toolbar app, or `tsc --watch` to automatically rebuild your app when you make changes. Make sure to adjust the `entrypoint` in your integration to point to the compiled file:
+
+```ts title="my-integration.ts" ins="app.js"
+addDevToolbarApp({
+  id: "my-toolbar-app",
+  name: "My Toolbar App",
+  icon: "🚀",
+  entrypoint: join(__dirname, "./app.js"),
+});
+```
+
+If your app and integrations are directly in an Astro project, as opposed to being in a separate package intended for distribution, you may want to move your app, integration, and TypeScript configuration to a separate folder to keep your project organized and avoid conflicts with your website's own TypeScript configuration.
+
+<FileTree>
+- **my-toolbar-app/**
+  - **app.ts**
+  - **my-integration.ts**
+  - **tsconfig.json**
+- src/
+  - pages/
+  - ...
+- astro.config.mjs
+- package.json
+- tsconfig.json
+</FileTree>
