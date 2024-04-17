@@ -21,6 +21,8 @@ export default NavDictionary({
 	'basics/astro-pages': 'Páginas',
 	'basics/layouts': 'Layouts',
 
+	'guides/dev-toolbar': 'Barra de Ferramentas de Desenvolvimento',
+
 	examples: 'Receitas',
 	'guides/migrate-to-astro': 'Migre para o Astro',
 	'recipes/studio': 'Conecte ao Astro Studio',
