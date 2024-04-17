@@ -43,7 +43,7 @@ export default NavDictionary({
 	'guides/images': 'Imagens',
 	'guides/fonts': 'Fontes',
 	'guides/imports': 'Importações',
-	'guides/server-side-rendering': 'Renderização no lado do Servidor (SSR)',
+	'guides/server-side-rendering': 'Adaptadores SSR',
 	'guides/astro-db': 'Astro DB',
 	'guides/endpoints': 'Endpoints',
 	'guides/data-fetching': 'Busca de Dados',
