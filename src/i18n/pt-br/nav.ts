@@ -22,6 +22,8 @@ export default NavDictionary({
 	'basics/astro-syntax': 'Sintaxe do Astro',
 	'basics/rendering-modes': 'Modos de Renderização',
 
+	'guides/dev-toolbar': 'Barra de Ferramentas de Desenvolvimento',
+
 	examples: 'Receitas',
 	'guides/migrate-to-astro': 'Migre para o Astro',
 	'recipes/studio': 'Conecte ao Astro Studio',
@@ -41,7 +43,7 @@ export default NavDictionary({
 	'guides/images': 'Imagens',
 	'guides/fonts': 'Fontes',
 	'guides/imports': 'Importações',
-	'guides/server-side-rendering': 'Renderização no lado do Servidor (SSR)',
+	'guides/server-side-rendering': 'Adaptadores SSR',
 	'guides/astro-db': 'Astro DB',
 	'guides/endpoints': 'Endpoints',
 	'guides/data-fetching': 'Busca de Dados',
