@@ -104,6 +104,9 @@ export default UIDictionary({
 	'feedback.categoryGroupLabel': 'اختر فئة الملاحظة المناسبة',
 	'feedback.issue': 'مشكلة',
 	'feedback.createIssue': 'انشئ مشكلة على GitHub',
+	'feedback.createIssue.description': 'أسرع طريقة لتنبيه فريقنا عن مشكلة.',
+	'feedback.sendFeedback': 'أرسل تعليقات',
+	'feedback.sendFeedback.description': 'أرسل لنا رسالة مباشرة',
 	'feedback.idea': 'فكرة',
 	'feedback.other': 'أخرى',
 	'feedback.messageA11yLabel': 'رسالتك',
@@ -126,4 +129,6 @@ export default UIDictionary({
 	// Starlight banner
 	'starlight.title': 'تريد بناء مستنداتك الخاصة؟',
 	'starlight.description': 'استلم هذا القالب للبدء.',
+		// `<StudioHeading>` component
+	'studioHeading.label': 'ميزة الاستوديو',
 });
