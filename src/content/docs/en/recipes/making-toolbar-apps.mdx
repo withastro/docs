@@ -1,18 +1,22 @@
 ---
-title: Creating a dev toolbar app
+title: Create a dev toolbar app
 description: Learn how to create a dev toolbar app for your site.
 type: recipe
+i18nReady: true
 ---
 
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import { FileTree } from '@astrojs/starlight/components';
+import { Steps } from '@astrojs/starlight/components';
 
 Astro includes a [development toolbar](https://docs.astro.build/en/guides/dev-toolbar/) that you can use to inspect your site, check for accessibility and performance issues, and more. This toolbar can be extended with custom apps.
+
+## Build a motivational dev toolbar app
 
 In this recipe, you'll learn how to create a dev toolbar app that helps you stay motivated while working on your site. This app will display a motivational message every time you toggle it on.
 
 :::tip 
-Just wanna get started quickly and start working on a toolbar app? Jump start your app by creating a new Astro project with the `toolbar-app` template.
+Just want to get started quickly? Jump start your app by creating a new Astro project with the `toolbar-app` template.
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -32,136 +36,167 @@ Just wanna get started quickly and start working on a toolbar app? Jump start yo
   </Fragment>
 </PackageManagerTabs>
 
-Alternatively, keep on reading to learn how to build an app from scratch.
+Or, keep reading to learn how to build an app from scratch.
 :::
 
-## Creating the integration
+### Creating the Astro integration
 
-Dev toolbar apps can only be added by [Astro Integrations](/en/guides/integrations-guide/). To create an integration, create a file anywhere in your project exporting an object with the integration name and hooks. 
+Dev toolbar apps can only be added by [Astro Integrations](/en/guides/integrations-guide/) using [the `astro:config:setup` hook](/en/reference/integrations-reference/#astroconfigsetup). You will need to create both a toolbar app and the integration that will add it to the toolbar of your existing Astro project.
 
-The `astro:config:setup` hook has access to the `addDevToolbarApp` function, which can be used to add dev toolbar apps. The `addDevToolbarApp` function takes an object with the id, name, icon and finally entrypoint of the dev toolbar app. The entrypoint is the path to the file that exports the dev toolbar app.
+<Steps>
 
-Create a new file called `my-integration.ts` in the root of your toolbar app project and export an object with the integration name and hooks:
+1. In the root of your existing Astro project, create a new folder named `my-toolbar-app/` for your app and integration files. Create two new files in this folder: `app.ts` and `my-integration.ts`.
 
-```ts title="my-integration.ts"
-import { fileURLToPath } from 'node:url';
-import type { AstroIntegration } from 'astro';
+    <FileTree>
+    - **my-toolbar-app/**
+      - **app.ts**
+      - **my-integration.ts**
+    - src/
+      - pages/
+      - ...
+    - astro.config.mjs
+    - package.json
+    - tsconfig.json
+    </FileTree>
 
-export default {
-  name: 'my-astro-integration',
-  hooks: {
-    'astro:config:setup': ({ addDevToolbarApp }) => {  
-      addDevToolbarApp({
-        id: "my-toolbar-app",
-        name: "My Toolbar App",
-        icon: "🚀",
-        entrypoint: fileURLToPath(new URL('./app.ts', import.meta.url))
-      });
-    },
-  },
-} satisfies AstroIntegration;
-```
+2. In `my-integration.ts`, add the following code to provide the name of your integration and run the function to add your dev toolbar app with the `astro:config:setup` hook:
 
-:::caution[Using relative paths]
-Note that the entrypoint is relative to the root of the project using the integration, not to the root of the integration itself, which means using a simple `./app.ts` will not work. 
+    ```ts title="my-toolbar-app/my-integration.ts" "'astro:config:setup'" "hooks" "addDevToolbarApp"
+    import { fileURLToPath } from 'node:url';
+    import type { AstroIntegration } from 'astro';
 
-In order to use relative paths for entrypoints, you should always use the `import.meta.url` variable to get the path to the current file and resolve the path to the entrypoint from there to make sure it works regardless of where the integration is used.
-:::
+    export default {
+      name: 'my-astro-integration',
+      hooks: {
+        'astro:config:setup': ({ addDevToolbarApp }) => {  
+          addDevToolbarApp({
+            id: "my-toolbar-app",
+            name: "My Toolbar App",
+            icon: "🚀",
+            entrypoint: fileURLToPath(new URL('./app.ts', import.meta.url))
+          });
+        },
+      },
+    } satisfies AstroIntegration;
+    ```
 
-You can now use this integration in your project by adding it to the `integrations` array in your `astro.config.mjs` file.
 
-```js title="astro.config.mjs"
-import { defineConfig } from 'astro/config';
-import myIntegration from './my-integration.ts';
+    :::note[Using relative paths to the entrypoint]
+    The `entrypoint` is the path to your dev toolbar app file **relative to the root of your existing Astro project**, not to the integration folder (`my-toolbar-app`) itself.
 
-export default defineConfig({
-  integrations: [myIntegration],
-})
-```
+    To use relative paths for entrypoints, get the path to the current file using `import.meta.url` and resolve the path to the entrypoint from there.
+    :::
 
-If you start your project now, you should see a new app in the dev toolbar with the name "My Toolbar App" and the icon "🚀". You won't be able to click on it just now, as we haven't implemented any logic yet, however.
+3. To use this integration in your project, add it to the `integrations` array in your `astro.config.mjs` file.
 
-## Creating the app
+    ```js title="astro.config.mjs" ins={2,5}
+    import { defineConfig } from 'astro/config';
+    import myIntegration from './my-toolbar-app/my-integration.ts';
 
-Dev toolbar apps are defined using the `defineToolbarApp` function from the `astro/toolbar` module. This function takes an object with an `init` function that will be called when the dev toolbar app is loaded.
+    export default defineConfig({
+      integrations: [myIntegration],
+    })
+    ```
 
-Create a new file called `app.ts` in the same directory as your integration file and export the result of calling `defineToolbarApp` with an object containing an `init` function. We'll leave the `init` function empty for now:
+4. If not already running, start the dev server. If your integration has been successfully added to your project, you should see a new "undefined" app in the dev toolbar.
+
+    But, you will also see an error message that your dev toolbar app has failed to load. This is because you have not yet built the app itself. You will do that in the next section.
+
+</Steps>
+
+### Creating the JavaScript app
+
+Dev toolbar apps are defined using the `defineToolbarApp()` function from the `astro/toolbar` module. This function takes an object with an `init()` function that will be called when the dev toolbar app is loaded.
+
+This `init()` function contains your app logic to render elements to the screen, send and receive client-side events from the dev toolbar, and communicate with the server.
 
 ```ts title="app.ts"
 import { defineToolbarApp } from "astro/toolbar";
 
 export default defineToolbarApp({
-    init() {
+    init(canvas, app, server) {
       // ...
     },
 });
 ```
 
-The `init()` function receives a standard [ShadowRoot](https://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot) as its first argument, which you can use to create a UI for your dev toolbar app. Elements can be created and added to the ShadowRoot using the standard DOM APIs.
+To display motivational messages on the screen, you will use the `canvas` property to access a standard [ShadowRoot](https://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot). Elements can be created and added to the ShadowRoot using the standard DOM APIs.  
 
-Create a new `h1` element with a motivational message and append it to the ShadowRoot:
+<Steps>
 
-```ts title="app.ts" ins={3-8, 12-15}
-import { defineToolbarApp } from "astro/toolbar";
+1. Copy the following code into `my-toolbar-app/app.ts`. This provides a list of motivational messages, and the logic to create a new `<h1>` element with a random message:
 
-const motivationalMessages = [
-  "You're doing great!",
-  "Keep up the good work!",
-  "You're awesome!",
-  "You're a star!",
-];
+    ```ts title="my-toolbar-app/app.ts" {3-8, 12-15}
+    import { defineToolbarApp } from "astro/toolbar";
 
-export default defineToolbarApp({
-    init(canvas) {
-      const h1 = document.createElement('h1');
-      h1.textContent = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+    const motivationalMessages = [
+      "You're doing great!",
+      "Keep up the good work!",
+      "You're awesome!",
+      "You're a star!",
+    ];
 
-      canvas.appendChild(h1);
-    },
-});
-```
+    export default defineToolbarApp({
+        init(canvas) {
+          const h1 = document.createElement('h1');
+          h1.textContent = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
 
-You can now start your project, toggle the app on in the dev toolbar, and see a motivational message displayed in the top-left corner of the screen! However, this message will not change when the app is toggled on or off, as the `init` function is only called once when the app is loaded.
+          canvas.appendChild(h1);
+        },
+    });
+    ```
 
-To make the message change, use the `onAppToggled` hook provided by the `app` argument:
+2. Start the dev server if it is not already running and toggle the app on in the dev toolbar. If your app is working successfully, you will see a motivational message displayed in the top-left corner of the screen. (And, it's true!) 
 
-```ts title="app.ts" ins=/(app),/ ins={17-21}
-import { defineToolbarApp } from "astro/toolbar";
+    However, this message will not change when the app is toggled on and off, as the `init()` function is only called once when the app is loaded.
 
-const motivationalMessages = [
-  "You're doing great!",
-  "Keep up the good work!",
-  "You're awesome!",
-  "You're a star!",
-];
+3. To select a new message each time your toolbar app is toggled, use the `onAppToggled` hook provided by the `app` argument:
 
-export default defineToolbarApp({
-    init(canvas, app) {
-      const h1 = document.createElement('h1');
-      h1.textContent = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
-      
-      canvas.appendChild(h1);
+    ```ts title="app.ts" ins=", app" ins={17-21}
+    import { defineToolbarApp } from "astro/toolbar";
 
-      // Update the message when the app is toggled
-      app.onAppToggled(({ state }) => {
-        const newMessage = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
-        h1.textContent = newMessage;
-      });
-    },
-});
-```
+    const motivationalMessages = [
+      "You're doing great!",
+      "Keep up the good work!",
+      "You're awesome!",
+      "You're a star!",
+    ];
 
-With this change, the message will now change every time you toggle the app on or off, providing you with an infinite source of motivation.
+    export default defineToolbarApp({
+        init(canvas, app) {
+          const h1 = document.createElement('h1');
+          h1.textContent = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+          
+          canvas.appendChild(h1);
+
+          // Display a random message when the app is toggled
+          app.onToggled(({ state }) => {
+            const newMessage = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+            h1.textContent = newMessage;
+          });
+        },
+    });
+    ```
+
+    With this change, the a new random message will be selected every time you toggle the app on, providing you with an infinite source of motivation.
+
+</Steps>
 
 For more information on building toolbar apps, see the [Astro Toolbar API documentation](https://docs.astro.build/api/astro/toolbar).
 
-## Alternative: Using a UI framework
+## Building apps with a UI framework
 
-UI frameworks like React, Vue, or Svelte can be used to create dev toolbar apps. These frameworks provide a more declarative way to create UIs and can make your code more maintainable and easier to read.
+UI frameworks like React, Vue, or Svelte can also be used to create dev toolbar apps. These frameworks provide a more declarative way to create UIs and can make your code more maintainable and easier to read.
+
+The same motivational dev toolbar app built into your existing Astro project earlier on this page with JavaScript can be built instead using a UI framework (e.g. Preact). Depending on your chosen framework, you may or may not require a build step.
+
+:::note 
+However your choose to build your dev toolbar app, using JavaScript or a UI framework, you will still need to [create the integration](#creating-the-astro-integration) that adds your app to the dev toolbar.
+:::
 
 ### Without a build step
 
-If your framework supports it, you can create a dev toolbar app using a framework without a build step. For example, you can use Preact's `h` function to create elements and render them directly to the ShadowRoot:
+If your framework supports it, you can create a dev toolbar app without a build step. For example, you can use Preact's `h` function to create elements and render them directly to the ShadowRoot:
 
 ```ts title="app.ts"
 import { defineToolbarApp } from "astro/toolbar";
@@ -208,88 +243,77 @@ In both cases, you can now start your project and see the motivational message d
 
 ### With a build step
 
-Astro does not preprocess JSX code in dev toolbar apps. As such, a build step is required in order to use JSX components in your dev toolbar app. In this recipe, we'll be using TypeScript to do this, but any other tools that compile JSX code will work as well (e.g. Babel, Rollup, ESBuild).
+Astro does not preprocess JSX code in dev toolbar apps, so a build step is required in order to use JSX components in your dev toolbar app.
 
-First, install TypeScript inside your project:
+The following steps will use TypeScript to do this, but any other tools that compile JSX code will also work (e.g. Babel, Rollup, ESBuild).
 
-<PackageManagerTabs>
-  <Fragment slot="npm">
-    ```shell
-    npm install --save-dev typescript
+<Steps>
+1. Install TypeScript inside your project:
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+        ```shell
+        npm install --save-dev typescript
+        ```
+      </Fragment>
+      <Fragment slot="pnpm">
+        ```shell
+        pnpm install --save-dev typescript
+        ```
+      </Fragment>
+      <Fragment slot="yarn">
+        ```shell
+        yarn add --dev typescript
+        ```
+      </Fragment>
+    </PackageManagerTabs>
+
+2. Create a `tsconfig.json` file in the root of your toolbar app's folder with the appropriate settings to build and for the framework you're using ([React](https://react-typescript-cheatsheet.netlify.app/docs/basic/setup), [Preact](https://preactjs.com/guide/v10/typescript), [Solid](https://www.solidjs.com/guides/typescript)). For example, for Preact:
+
+    ```json title="my-toolbar-app/tsconfig.json"
+    {
+      "compilerOptions": {
+        "skipLibCheck": true,
+        "module": "NodeNext",
+        "jsx": "react-jsx",
+        "jsxImportSource": "preact",
+      }
+    }
     ```
-  </Fragment>
-  <Fragment slot="pnpm">
-    ```shell
-    pnpm install --save-dev typescript
+
+3. Adjust the `entrypoint` in your integration to point to the compiled file, remembering that this file is relative to the root of your Astro project:
+
+    ```ts title="my-integration.ts" ins="app.js"
+    addDevToolbarApp({
+      id: "my-toolbar-app",
+      name: "My Toolbar App",
+      icon: "🚀",
+      entrypoint: join(__dirname, "./app.js"),
+    });
     ```
-  </Fragment>
-  <Fragment slot="yarn">
-    ```shell
-    yarn add --dev typescript
-    ```
-  </Fragment>
-</PackageManagerTabs>
 
-Next, create a `tsconfig.json` file in the root of your toolbar app with the appropriate settings to build and for the framework you're using ([React](https://react-typescript-cheatsheet.netlify.app/docs/basic/setup), [Preact](https://preactjs.com/guide/v10/typescript), [Solid](https://www.solidjs.com/guides/typescript)). For example, for Preact:
+4. Run `tsc` to build your toolbar app, or `tsc --watch` to automatically rebuild your app when you make changes.
 
-```json title="tsconfig.json"
-{
-  "compilerOptions": {
-		"skipLibCheck": true,
-    "module": "NodeNext",
-    "jsx": "react-jsx",
-    "jsxImportSource": "preact",
-  }
-}
-```
+      With these changes, you can now rename your `app.ts` file to `app.tsx` (or `.jsx`) and use JSX syntax to create your dev toolbar app:
 
-Finally, adjust the `entrypoint` in your integration to point to the compiled file:
+      ```tsx title="app.tsx"
+      import { defineToolbarApp } from "astro/toolbar";
+      import { render } from "preact";
 
-```ts title="my-integration.ts" ins="app.js"
-addDevToolbarApp({
-  id: "my-toolbar-app",
-  name: "My Toolbar App",
-  icon: "🚀",
-  entrypoint: join(__dirname, "./app.js"),
-});
-```
+      const motivationalMessages = [
+        "You're doing great!",
+        "Keep up the good work!",
+        "You're awesome!",
+        "You're a star!",
+      ];
 
-You can now run `tsc` to build your toolbar app, or `tsc --watch` to automatically rebuild your app when you make changes.
+      export default defineToolbarApp({
+          init(canvas) {
+            const message = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+            render(<h1>{message}</h1>, canvas);
+          },
+      });
+      ```
+</Steps>
 
-If your app and integrations are directly in an Astro project, as opposed to being in a separate package intended for distribution, you may want to move your app, integration, and TypeScript configuration to a separate folder to keep your project organized and avoid conflicts with your website's own TypeScript configuration:
-
-<FileTree>
-- **my-toolbar-app/**
-  - **app.tsx**
-  - **my-integration.ts**
-  - **tsconfig.json**
-- src/
-  - pages/
-  - ...
-- astro.config.mjs
-- package.json
-- tsconfig.json
-</FileTree>
-
-With these changes, you can now rename your `app.ts` file to `app.tsx` (or `.jsx`) and use JSX syntax to create your dev toolbar app:
-
-```tsx title="app.tsx" ins={14}
-import { defineToolbarApp } from "astro/toolbar";
-import { render } from "preact";
-
-const motivationalMessages = [
-  "You're doing great!",
-  "Keep up the good work!",
-  "You're awesome!",
-  "You're a star!",
-];
-
-export default defineToolbarApp({
-    init(canvas) {
-      const message = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
-      render(<h1>{message}</h1>, canvas);
-    },
-});
-```
-
-You should now have all the tools you need to create a dev toolbar app using a UI framework of your choice, awesome!
+You should now have all the tools you need to create a dev toolbar app using a UI framework of your choice!
