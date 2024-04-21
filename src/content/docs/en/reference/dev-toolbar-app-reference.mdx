@@ -7,7 +7,7 @@ The Astro Dev Toolbar App API allows you to create [Astro Integrations](/en/refe
 
 ## Toolbar app integration setup
 
- Integrations can add apps to the dev toolbar in [the `astro:config:setup` hook](/en/reference/integrations-reference/#astroconfigsetup). The `addDevToolbarApp()` method takes an object with the following required properties to define the toolbar app: `id`, `name`, `icon`, and `entrypoint`.
+ Integrations can add apps to the dev toolbar in [the `astro:config:setup` hook](/en/reference/integrations-reference/#astroconfigsetup). 
 
 ```ts title="my-integration.js" {8-13}
 /**
@@ -27,6 +27,10 @@ export default () => ({
   },
 });
 ```
+
+### `addDevToolbarApp()`
+
+A function available to [the `astro:config:setup` hook](/en/reference/integrations-reference/#astroconfigsetup) that adds dev toolbar apps. It takes an object with the following required properties to define the toolbar app: [`id`](#id), [`name`](#name), [`icon`](#icon), and [`entrypoint`](#entrypoint).
 
 ### `id`
 
@@ -53,7 +57,7 @@ The name of the app. This will be shown to users whenever the app needs to be re
 
 ### `icon`
 
-The icon of the app. This will be used to display the app in the toolbar. This can either be an icon from [the icon list](#icons), or a string containing the SVG markup of the icon.
+The icon used to display the app in the toolbar. This can either be an icon from [the icon list](#icons), or a string containing the SVG markup of the icon.
 
 ```ts title="my-integration.js" {3}
 {
@@ -76,7 +80,7 @@ The path to the file that exports the dev toolbar app.
 
 ## Structure of a Dev Toolbar App
 
-A Dev Toolbar App is a `.js` or `.ts` file that default exports an object with the `init` property (required) and an optional `beforeTogglingOff()` function.
+A Dev Toolbar App is a `.js` or `.ts` file that default exports a [`defineToolbarApp()` function](#definetoolbarapp) which is available from the `astro/toolbar module`.
 
 ```ts title="src/my-app.js"
 import { defineToolbarApp } from "astro/toolbar";
@@ -92,20 +96,27 @@ export default defineToolbarApp({
   } 
 });
 ```
+### `defineToolbarApp()`
+
+A function that defines the logic of your toolbar app when it is loaded and toggled off. 
+
+This function takes an object with an [`init()`](#init) function that will be called when the dev toolbar app is loaded. It can also optionally take a [`beforeTogglingOff()`](#beforetogglingoff) function that will run when the toolbar app is clicked to toggle off the its active status.
 
 ### `init()`
 
 **Signature:** `init(canvas: ShadowRoot, app: ToolbarAppEventTarget, server: ToolbarServerHelpers) => void`
 
-This is the core part of the app. This function will be called when the app is loaded, which will either be when the browser is idle or when the user clicks on the app in the UI, depending on which one comes first.
+This required function defines the core behavior of the app. This function will be called only once when the app is loaded, which will either be when the browser is idle or when the user clicks on the app in the UI, depending on which one comes first.
 
-The function receives three arguments:
+The function receives three arguments to define your app logic: [`canvas`](#canvas) (to render elements to the screen), [`app`](#app) (to send and receive client-side events from the dev toolbar), and [`server`](#server) (to communicate with the server).
 
 #### `canvas`
 
-A ShadowRoot that the app can use to render its UI. Every app receives its own dedicated ShadowRoot for rendering its UI. Additionally, the parent element is positioned using `position: absolute;` and as such, the app UI automatically won't affect the layout of the page.
+A standard [ShadowRoot](https://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot) that the app can use to render its UI. Elements can be created and added to the ShadowRoot using the standard DOM APIs.
 
-```ts title="src/my-app.js" {3-5}
+Every app receives its own dedicated ShadowRoot for rendering its UI. Additionally, the parent element is positioned using `position: absolute;` so the app UI will not affect the layout of an Astro page.
+
+```ts title="src/my-app.js" {3}
 export default defineToolbarApp({
 	init(canvas) {
     canvas.appendChild(document.createTextNode('Hello World!'))
@@ -115,9 +126,9 @@ export default defineToolbarApp({
 
 #### `app`
 
-An [`EventTarget`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget) augmented with a few helpers that can be used to send and receive events from the Dev Toolbar, see the [Client-side Events](#client-side-events) section for more information.
+A standard [`EventTarget`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget) with a few additional [helpers for client-side events](#client-side-events) that can be used to send and receive events from the Dev toolbar.
 
-```ts title="src/my-app.js" {3-8}
+```ts title="src/my-app.js" {3-6}
 export default defineToolbarApp({
   init(canvas, app) {
     app.onAppToggled(({ state }) => {
@@ -132,7 +143,7 @@ export default defineToolbarApp({
 
 #### `server`
 
-An object that can be used to communicate with the server. See the [Client-Server Communication](#client-server-communication) section for more information.
+An object that can be used to [communicate with the server](#client-server-communication).
 
 ```ts title="src/my-app.js" {3-7}
 export default defineToolbarApp({
@@ -166,11 +177,11 @@ export default defineToolbarApp({
 
 #### canvas
 
-The ShadowRoot of the app, can be used to render any UI needed before closing. Same as the `canvas` argument of the `init` function.
+The ShadowRoot of the app, can be used to render any UI needed before closing. Same as the [`canvas` argument of the `init` function](#canvas).
 
 ## Client-side Events
 
-In addition to the standard methods of an `EventTarget` (addEventListener, dispatchEvent, etc), the `app` object also has the following methods:
+In addition to the standard methods of an `EventTarget` ([`addEventListener`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget), [`dispatchEvent`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/dispatchEvent), [`removeEventListener`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/removeEventListener)etc.), the [`app`](#app) object also has the following methods:
 
 ### `onToggled()`
 
@@ -229,17 +240,29 @@ Indicates the level of the notification. This will be used to determine the colo
 
 ## Client-Server Communication
 
-Using [Vite's methods for client-server communication](https://vitejs.dev/guide/api-plugin.html#client-server-communication), Dev Toolbar Apps and the server can communicate with each other. In order to facilitate sending and receiving custom messages, helper methods are provided both in the app (client) and your integration (server).
+Using [Vite's methods for client-server communication](https://vitejs.dev/guide/api-plugin.html#client-server-communication), Dev Toolbar Apps and the server can communicate with each other. In order to facilitate sending and receiving custom messages, helper methods are provided for use both in your toolbar app (on the client) and in your integration (on the server).
 
 ### On the client
 
-In your app, use the `server` object on [the `init()` hook](#init) to send and receive messages to and from the server.
+In your app, use the [`server` object on the `init()` hook](#server) to send and receive messages to and from the server.
+
+```ts title="src/my-app.js" {3-7} "server"
+export default defineToolbarApp({
+  init(canvas, app, server) {
+    server.send('my-message', { message: 'Hello!' });
+
+    server.on('server-message', (data) => {
+      console.log(data.message);
+    });
+  },
+});
+```
 
 #### `send()`
 
 **Signature:** `send<T>(event: stringify, data: T) => void`
 
-Sends data to the server.
+Sends data to the server from logic defined in your toolbar app.
 
 ```ts title="src/my-app.js"
 init(canvas, app, server) {
@@ -265,7 +288,17 @@ init(canvas, app, server) {
 
 ### On the server
 
-In your integration's `astro:server:setup` hook, use the `toolbar` object to send and receive messages to and from your apps.
+In [the integration that adds your toolbar app](#toolbar-app-integration-setup), use the [`astro:server:setup` hook](/en/reference/integrations-reference/#astroserversetup) to access the `toolbar` object to send and receive messages to and from your apps.
+
+```ts title="my-integration.js" {5}
+export default () => ({
+  name: "my-integration",
+  hooks: {
+    "astro:config:setup": ({ addDevToolbarApp }) => {},
+    "astro:server:setup": ({ toolbar }) => {},
+  },
+});
+```
 
 #### `send()`
 
@@ -293,7 +326,7 @@ Registers a callback to be called when the client sends a message with the speci
 },
 ```
 
-#### `onInitialized`
+#### `onInitialized()`
 
 **Signature:** `onInitialized(appId: string, callback: () => void) => void`
 
@@ -311,7 +344,7 @@ Registers a callback to be called when the app is initialized.
 The built-in `connection` event from Vite fires **before** Dev Toolbar apps are initialized and therefore cannot be used directly by apps. Use the `onInitialized` method to ensure that the app is fully initialized before sending messages to it.
 :::
 
-#### `onAppToggled`
+#### `onAppToggled()`
 
 **Signature:** `onAppToggled(appId: string, callback: (options: {state: boolean}) => void) => void`
 
