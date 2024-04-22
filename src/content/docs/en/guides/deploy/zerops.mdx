@@ -6,73 +6,54 @@ i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
-[Zerops](https://zerops.io/) is a cloud platform that can be used to deploy an Astro site.
+[Zerops](https://zerops.io/) is a dev-first cloud platform that can be used to deploy an Astro site. As of April 2024, it only supports SSR deployments.
 
-As of April 2024, it only supports SSR deployments.
-
-This guide will walk you through how you can deploy an astro Node.js service on Zerops. If you get stuck, go to the [Zerops Docs](https://docs.zerops.io/).
+This guide will walk you through deploying an Astro Node.js service to Zerops.
 
 ## Prerequisites
 
-Before starting you should know this:
-
 - A Zerops account. If you don’t already have one, you can create an account for free.
-- Zerops Dashboard Mapping: Dashboard > Projects > Services(You can manage ENVs, Public Access, Internal Ports, Manage Pipelines & CI / CD, Preview Runtime Logs and File Browser).
-- Install [zCLI](https://docs.zerops.io/references/cli/) on your system (CLI by Zerops).
-- As of April 2024, Your web app's code should be pushed to [GitHub](https://github.com/) or a [GitLab](https://about.gitlab.com/) repository to use zCLI but its not necessary to connect your github on zerops dashboard unless you plan to automatically push the new commit and redeploy.
-- @astrojs/node package
+- `@astrojs/node` package
 
-### Importing a Project
-:::tip[Looking for an example?]
-Check out [Zerops with Astro Example](https://github.com/fxck/zerops-astro-nodejs)!
-:::
-
-To import a project from a github repository you need to
-1. Navigate to [Zerops Dashboard](https://app.zerops.io/dashboard/projects), and navigate to the sidebar, and click on `Import a project` .
-2. Paste this YAML code in the textarea.
+:::tip[How about a one-click example?]
+Import [Zerops x Astro - Node.js](https://github.com/zeropsio/recipe-astro-nodejs) example app into Zerops.
+Open [Zerops Dashboard](https://app.zerops.io/dashboard/projects), click "Import project", paste ⬇️ — built, deployed, done.
 ```yaml
 project:
   name: astro
-
 services:
   - hostname: astronode
     type: nodejs@20
-    buildFromGit: https://github.com/fxck/zerops-astro-nodejs
+    buildFromGit: https://github.com/zeropsio/recipe-astro-nodejs
     ports:
       - port: 4321
+        httpSupport: true
     enableSubdomainAccess: true
     minContainers: 1
 ```
+:::
 
-This YAML code will create a project named `astro`, use a Node.js server with version 20, set up a service called `astronode`, fetch code from `https://github.com/fxck/zerops-astro-nodejs`, and deploy it on port `4321`. Zerops will assign a new subdomain for this project, which you can find in the Service Dashboard of the astro project.
+### Creating your own Zerops project with Astro apps
 
-For more info you can navigate to Service Dashboard check Runtime Log and File Browser.
+You can either add project and your first Node.js service through the [project add](https://app.zerops.io/dashboard/project-add) wizard in Zerops app, or by importing it using a yaml structure.
 
+```yaml
+#
+project:
+  name: my-astro-sites
 
-### Setting Up SSR
-
-To deploy your project on **Zerops**, you need to:
-- Include a `build` script in your `package.json`. (Your Astro project should already include this.)
-- Install the [`@astrojs/node`](/en/guides/integrations-guide/node/) package and set the `start` script to `node ./dist/server/entry.mjs`.
-- Set the `astro.config.mjs` to use `@astrojs/node`.
-
-Here are the necessary lines in your `package.json` file:
-```json title="package.json" ins={5,12} "node ./dist/server/entry.mjs"
-{
-  "name": "your-project-name", // This is required, but the value does not matter.
-  "scripts": {
-    "dev": "astro dev",
-    "start": "node ./dist/server/entry.mjs",
-    "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro"
-  },
-  "dependencies": {
-    "astro": "^4.6.3",
-    "@astrojs/node": "^8.2.5"
-  },
-}
+services:
+  - hostname: hellothere
+    type: nodejs@20
+    ports:
+      - port: 3000
+    minContainers: 1
 ```
+
+This will setup a project called `my-astro-sites`, with a Node.js v20 service called `hellothere`, which will be ready for you to deploy your Astro app into. One Zerops project can contain many Astro apps.
+
+### Setting Up Node.js SSR in your app
+Zerops is using [`@astrojs/node`](/en/guides/integrations-guide/node/) package to run the app. Add it to your deps, if you haven't already, and modify your Astro config to utilize it.
 
 Here are the necessary lines in your `astro.config.mjs` file:
 ```js title="astro.config.mjs"
@@ -87,29 +68,17 @@ Here are the necessary lines in your `astro.config.mjs` file:
   });
 ```
 
+## Building and deploying your app to Zerops
 
+Now that you you've set up your app and prepared a Node.js service on Zerops, we can trigger the build and deploy pipeline on Zerops.
 
-## Deploying to Zerops 
-
-
-Zerops is a bare-metal platform designed to simplify the deployment of full-stack projects.
-
-You can easily set up automatic deployments when using GitHub or Gitlab as their codebase. Additionally, Zerops offers a CLI called zCLI, which facilitates code deployment to the platform
-
-
-1. Go to [Zerops Dashboard](https://app.zerops.io/dashboard/projects), and navigate to the sidebar, and [Add new Project](https://app.zerops.io/dashboard/project-add).
-2. Choose the node runtime for Astro SSR, Change the name of the service then scroll down and add new Node service (You'll also see a default zerops.yml code).
-3. Start by adding `zerops.yml` to the root of your astro web app and modify it to fit your application.
-
-    :::caution
-    Do not forget to replace `setup: your-service-name` with the name of your Node.js service.
-    :::
+Start by describing how to build and run your app through `zerops.yml` file placed at the root of your codebase. `setup:` part should match the hostname your chose for your service, in case of our example - `hellothere`.
 
   <PackageManagerTabs>
     <Fragment slot="npm">
     ```yaml
       zerops:
-        - setup: astronode
+        - setup: hellothere
           build:
             base: nodejs@20
             buildCommands:
@@ -123,15 +92,16 @@ You can easily set up automatic deployments when using GitHub or Gitlab as their
               - node_modules
               - package-lock.json
           run:
-            start: npm start
+            start: node dist/server/entry.mjs
           envVariables:
             HOST: 0.0.0.0
+            NODE_ENV: production
     ```
     </Fragment>
     <Fragment slot="pnpm">
     ```yaml
       zerops:
-        - setup: astronode
+        - setup: hellothere
           build:
             base: nodejs@20
             buildCommands:
@@ -145,11 +115,12 @@ You can easily set up automatic deployments when using GitHub or Gitlab as their
               - node_modules
               - pnpm-lock.json
           run:
-            start: pnpm start
+            start: node dist/server/entry.mjs
           envVariables:
             HOST: 0.0.0.0
+            NODE_ENV: production
     ```
-    </Fragment>    
+    </Fragment>
     <Fragment slot="yarn">
     ```yaml
       zerops:
@@ -167,54 +138,40 @@ You can easily set up automatic deployments when using GitHub or Gitlab as their
               - node_modules
               - yarn.lock
           run:
-            start: pnpm start
+            start: node dist/server/entry.mjs
           envVariables:
             HOST: 0.0.0.0
+            NODE_ENV: production
     ```
-    </Fragment>    
+    </Fragment>
   </PackageManagerTabs>
 
+### Trigger the pipeline by connecting the service to GitHub / GitLab
+Zerops continuous deployment on push to branch or a new release connecting your Zerops service with either GitHub or GitLab repository. Open Zerops, navigate to service detail, connect with GitHub / GitLab.
 
-### Deploying Using zCLI
-zCLI is a command-line tool that simplifies the deployment of projects on Zerops.
 
-1. Install zCLI on your System (Use your MacOS / Windows / Linux Terminal)
+### Trigger the pipeline Using Zerops CLI (zcli)
+
+1. **Install Zerops CLI**
 ```shell
+# To download the zcli binary directly,
+# use https://github.com/zeropsio/zcli/releases
 npm i -g @zerops/zcli
 ```
 
-Currently, the zCLI is distributed for Linux (x86 & x64 architecture), macOS (x64 & M1 architecture) and Windows (x64 architecture).
+2. **Open [`Settigs > Access Token Management`](https://app.zerops.io/settings/token-management) in Zerops app, generate a new access token**
 
-To download the zCLI directly, use the [latest release](https://github.com/zeropsio/zcli/releases) on GitHub.
-
-2. Go to the Zerops Dashboard, then click on your profile icon at the top left. Click on `Access Token Management`, generate a new access token, and copy it.
-
-3. Login using zCLI
+3. **Login**
 ```shell
 zcli login <token>
 ```
 
-4. Use your project's root terminal (assuming you've added `zerops.yml` file in your project's root) and push the code.
+4. **Navigate to your apps root (where zerops.yml is also placed)**
 ```shell
 zcli push
 ```
-It will prompt you projects you'll have to click `enter` then it will show services click `enter` again to push the code.
 
-
-### Deploying Using Github
-
-Zerops will automatically deploy your website and update it whenever you push a commit to your repository.
-
-1. Go to Zerops Dashboard > Your Project > Your Astro Node Service
-2. Connect your Repository to update your web app whenever you push your code to your repository `Connect with a Github Repository` & `Connect with a Gitlab Repository`(Make sure pop ups are not blocked in your browser).
-3. Choose your github repository.
-
-You can also push your code manually without pushing the code to your repository by using Zerops CLI from your local terminal. You can also trigger the pipeline from your existing CI/CD pipeline and reDeploy.
-
-
-
-
-## Community Resources
+## Resources
 
 - [Deploying Astro to Zerops in 3 mins](https://medium.com/@arjun.js/how-to-deploy-astro-to-zerops-4230816a62b4)
 - [Detailed guide to create a Node.js service](https://docs.zerops.io/nodejs/how-to/create)
