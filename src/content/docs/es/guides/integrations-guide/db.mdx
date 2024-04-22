@@ -129,24 +129,30 @@ Hay algunos valores de configuración compartidos en todas las columnas:
 
 ### `indexes`
 
-Los índices de tabla se utilizan para mejorar la velocidad de búsqueda en una columna o combinación de columnas. La propiedad `indexes` acepta un objeto con un nombre de índice único como clave:
+Los índices de tabla se utilizan para mejorar la velocidad de búsqueda en una columna o combinación de columnas. La propiedad `indexes` acepta un arreglo de objetos de configuración especificando las columnas a indexar:
 
-```ts title="db/config.ts" {6-8}
+```ts title="db/config.ts" {9-11}
 import { defineTable, column } from 'astro:db';
 
 const Comment = defineTable({
-  authorId: column.number(),
-  body: column.text(),
-  indexes: {
-    author_idx: { on: ['authorId'], unique: true },
-  }
+  columns: {
+    authorId: column.number(),
+    published: column.date(),
+    body: column.text(),
+  },
+  indexes: [
+    { on: ["authorId", "published"], unique: true },
+  ]
 });
 ```
+
+Esto generará un índice único en las columnas `authorId` y `published` con el nombre `Comment_authorId_published_idx`.
 
 Las siguientes opciones de configuración están disponibles para cada índice:
 
 - `on`: `string | string[]` - Una sola columna o un array de nombres de columnas para indexar.
 - `unique`: `boolean` - Establece `true` para forzar valores únicos en las columnas indexadas.
+- `name`: `string` (opcional) - Un nombre personalizado para el índice único. Esto anulará el nombre generado por Astro basado en el nombre de la tabla y las columnas que se están indexando (por ejemplo, `Comment_authorId_published_idx`). Los nombres personalizados son globales, así que asegúrate de que los nombres de índice no entren en conflicto entre tablas.
 
 ### `foreignKeys`
 
@@ -162,23 +168,24 @@ Las claves foráneas se utilizan para establecer una relación entre dos tablas.
 import { defineTable, column } from 'astro:db';
 
 const Author = defineTable({
-  firstName: column.text(),
-  lastName: column.text(),
+  columns: {
+    firstName: column.text(),
+    lastName: column.text(),
+  },
 });
 
 const Comment = defineTable({
-  authorFirstName: column.text(),
-  authorLastName: column.text(),
-  body: column.text(),
+  columns: {
+    authorFirstName: column.text(),
+    authorLastName: column.text(),
+    body: column.text(),
+  },
   foreignKeys: [
     {
-      columns: ['authorFirstName', 'authorLastName'],
-      references: () => [
-        Author.columns.firstName,
-        Author.columns.lastName
-      ],
+      columns: ["authorFirstName", "authorLastName"],
+      references: () => [Author.columns.firstName, Author.columns.lastName],
     },
-  ]
+  ],
 });
 ```
 
@@ -221,3 +228,30 @@ Ejecuta un archivo `.ts` o `.js` para leer o escribir en tu base de datos. Esto 
 - `--remote` Ejecuta contra la base de datos de tu proyecto de Studio. Omite para ejecutar contra tu servidor de desarrollo.
 
 Ejecuta una consulta SQL sin procesar contra tu base de datos. Utiliza la bandera `--remote` para ejecutar contra la base de datos de tu proyecto de Studio u omite la bandera para ejecutar contra tu servidor de desarrollo.
+
+## Referencia de utilidad de Astro DB
+
+### `isDbError()`
+
+La función `isDbError()` comprueba si un error es una excepción de base de datos libSQL. Esto puede incluir un error de restricción de clave foránea al utilizar referencias, o campos que faltan al insertar datos. Puedes combinar `isDbError()` con un bloque try / catch para manejar errores de base de datos de tu aplicación:
+
+```ts title="src/pages/api/comment/[id].ts" "idDbError"
+import { db, Comment, isDbError } from 'astro:db';
+import type { APIRoute } from 'astro';
+
+export const POST: APIRoute = (ctx) => {
+  try {
+    await db.insert(Comment).values({
+      id: ctx.params.id,
+      content: '¡Hola, mundo!'
+    });
+  } catch (e) {
+    if (isDbError(e)) {
+      return new Response(`No se puede insertar comentario con id ${id}\n\n${e.message}`, { status: 400 });
+    }
+    return new Response('Se ha producido un error inesperado', { status: 500 });
+  }
+
+  return new Response(null, { status: 201 });
+};
+```

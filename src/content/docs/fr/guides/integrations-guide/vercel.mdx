@@ -274,7 +274,7 @@ export default defineConfig({
 
 ##### Exclusion des chemins d'accès de la mise en cache
 
-Pour mettre en œuvre le [Mode brouillon](https://vercel.com/docs/build-output-api/v3/features#draft-mode) ou la [Régénération statique incrémentale (RSI) à la demande](https://vercel.com/docs/build-output-api/v3/features#on-demand-incremental-static-regeneration-isr) de Vercel, vous pouvez créer un jeton de contournement et le fournir à la configuration `isr` avec tous les chemins à exclure de la mise en cache :
+Pour mettre en œuvre le [Mode brouillon](https://vercel.com/docs/build-output-api/v3/features#draft-mode) ou la [Régénération statique incrémentale (RSI) à la demande](https://vercel.com/docs/build-output-api/v3/features#on-demand-incremental-static-regeneration-isr) de Vercel, vous pouvez créer un jeton de contournement et le fournir à la configuration `isr` avec toutes les routes à exclure de la mise en cache :
 
 ```js title="astro.config.mjs" {7-12}
 import { defineConfig } from 'astro/config';
@@ -287,7 +287,7 @@ export default defineConfig({
             // Une chaîne aléatoire secrète que vous créez.
             bypassToken: "005556d774a8",
             // Des chemins qui seront toujours fraîchement servis.
-            exclude: [ "/api/invalidate" ] 
+            exclude: [ "/api/invalidate", "/posts/[...slug]" ]
         }
     })
 })
@@ -374,41 +374,9 @@ export default defineConfig({
 });
 ```
 
-### Middleware Vercel Edge 
-
-Vous pouvez utiliser le middleware Vercel Edge pour intercepter une demande et la rediriger avant d'envoyer une réponse. Le middleware de Vercel peut être exécuté pour les déploiements de type Edge, SSR, et statiques. Il se peut que vous n'ayez pas besoin d'installer ce paquet pour votre middleware. `@vercel/edge` n'est nécessaire que pour utiliser certaines fonctionnalités du middleware telles que la géolocalisation. Pour plus d'informations, voir [la documentation de Vercel sur le middleware](https://vercel.com/docs/concepts/functions/edge-middleware).
-
-Il se peut que vous n'ayez pas besoin d'installer ce paquet pour votre middleware. `@vercel/edge` n'est nécessaire que pour utiliser certaines fonctionnalités du middleware telles que la géolocalisation. Pour plus d'informations, voir [la documentation du middleware de Vercel](https://vercel.com/docs/concepts/functions/edge-middleware).
-
-1. Ajoutez un fichier `middleware.js` à la racine de votre projet :
-
-    ```js title="middleware.js"
-    export const config = {
-      // N'exécutez le middleware que sur l'itinéraire d'administration.
-      matcher: '/admin',
-    };
-    
-    export default function middleware(request) {
-      const url = new URL(request.url);
-      // Vous pouvez récupérer l'adresse IP ou les cookies ici.
-      if (url.pathname === '/admin') {
-        url.pathname = '/';
-      }
-      return Response.redirect(url);
-    }
-    ```
-
-2. Lorsque vous développez localement, vous pouvez lancer `vercel dev` pour exécuter le middleware. En production, Vercel s'en chargera pour vous.
-
-
-
-:::caution
-**Tentative de réécriture ?** Actuellement, la réécriture d'une requête avec un middleware ne fonctionne que pour les fichiers statiques.
-:::
-
 ### Le middleware Vercel Edge avec le middleware Astro
 
-L'adaptateur `@astrojs/vercel/serverless` peut créer automatiquement le middleware Vercel Edge à partir d'un middleware Astro dans votre base de code.
+L’adaptateur @astrojs/vercel/serverless peut créer une [fonction edge] (https://vercel.com/docs/functions/edge-functions) à partir d’un middleware Astro dans votre base de code. Lorsque ‘edgeMiddleware’ est activé, une fonction edge exécute votre code middleware pour toutes les demandes, y compris les ressources statiques, les pages pré-rendues et les pages rendues à la demande.
 
 Pour les pages rendues à la demande, l'objet `context.locals` est sérialisé en utilisant du JSON et envoyé dans un en-tête pour la fonction serverless, qui effectue le rendu. Comme mesure de sécurité, la fonction serverless refusera de servir les requêtes avec une réponse `403 Forbidden` à moins qu'elles ne proviennent de la fonction edge générée.
 
@@ -427,55 +395,20 @@ export default defineConfig({
 });
 ```
 
-En option, vous pouvez créer un fichier reconnu par l'adaptateur nommé `vercel-edge-middleware.(js|ts)` dans le dossier [`srcDir`](/fr/reference/configuration-reference/#srcdir) pour créer [`Astro.locals`](/fr/reference/api-reference/#astrolocals).
+L'Edge Middleware a accès au [`RequestContext`](https://vercel.com/docs/functions/edge-middleware/middleware-api#requestcontext) de Vercel avec `ctx.locals.vercel.edge`. Si vous utilisez TypeScript, vous pouvez obtenir les typages appropriés en mettant à jour `src/env.d.ts` pour utiliser `EdgeLocals` :
 
-Typings nécessite le paquetage [`@vercel/edge`](https://www.npmjs.com/package/@vercel/edge).
+```ts
+/// <reference path="../.astro/types.d.ts" />
+/// <reference types="astro/client" />
 
-```js title="src/vercel-edge-middleware.js"
-/**
- *
- * @param options.request {Request}
- * @param options.context {import("@vercel/edge").RequestContext}
- * @returns {object}
- */
-export default function ({ request, context }) {
-  // faire quelque chose avec la demande et le contexte
-  return {
-    title: "Blog de Spider-man",
-  };
+type EdgeLocals = import('@astrojs/vercel').EdgeLocals
+
+declare namespace App {
+  interface Locals extends EdgeLocals {
+    // ...
+  }
 }
 ```
-
-Si vous utilisez TypeScript, vous pouvez taper la fonction comme suit :
-
-```ts title="src/vercel-edge-middleware.ts"
-import type { RequestContext } from '@vercel/edge';
-
-export default function ({ request, context }: { request: Request; context: RequestContext }) {
-  // faire quelque chose avec la demande et le contexte
-  return {
-    title: "Blog de Spider-man",
-  };
-}
-```
-
-Les données renvoyées par cette fonction seront transmises au middleware Astro.
-
-La fonction :
-
-* doit exporter une fonction **par défaut** ;
-* doit **renvoyer** un `objet` ;
-* accepte un objet avec comme propriétés `request` et `context` ;
-* `request` est typée comme [`Request`](https://developer.mozilla.org/fr/docs/Web/API/Request) ;
-* `contexte` est typé comme [`RequestContext`](https://vercel.com/docs/concepts/functions/edge-functions/vercel-edge-package#requestcontext) ;
-
-#### Limitations et contraintes
-
-Lorsque vous optez pour cette fonctionnalité, il y a quelques contraintes à noter :
-
-* Le middleware Vercel Edge sera toujours la **première** fonction à recevoir la `Request` et la dernière fonction à recevoir la `Response`. C'est une contrainte architecturale qui suit les [limites fixées par Vercel](https://vercel.com/docs/concepts/functions/edge-middleware).
-* Seuls `request` et `context` peuvent être utilisés pour produire un objet `Astro.locals`. Les opérations telles que les redirections, etc. doivent être déléguées au middleware Astro.
-* Les objets `Astro.locals` **doivent être sérialisables**. Si ce n'est pas le cas, cela entraînera une **erreur d'exécution**. Cela signifie que vous ne pouvez pas stocker des types complexes comme `Map`, `function`, `Set`, etc.
 
 ### Support des versions de Node.js
 

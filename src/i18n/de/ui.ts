@@ -132,4 +132,6 @@ export default UIDictionary({
 	// Starlight banner
 	'starlight.title': 'Willst du deine eigene Dokumentation erzeugen?',
 	'starlight.description': 'Mit dieser Vorlage kannst du loslegen.',
+	// `<StudioHeading>` component
+	'studioHeading.label': 'Studio-Funktion',
 });

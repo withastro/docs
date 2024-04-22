@@ -19,7 +19,7 @@ export default [
 	{ text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },
 	{ text: 'Installation', slug: 'install/auto', key: 'install' },
 	{ text: 'Editor Setup', slug: 'editor-setup', key: 'editor-setup' },
-	{ text: 'Upgrade to v4', slug: 'guides/upgrade-to/v4', key: 'guides/upgrade-to/v4' },
+	{ text: 'Upgrade Astro', slug: 'upgrade-astro', key: 'upgrade-astro' },
 
 	{ text: 'Core Concepts', header: true, type: 'learn', key: 'coreConcepts' },
 	{ text: 'Why Astro', slug: 'concepts/why-astro', key: 'concepts/why-astro' },
@@ -79,6 +79,11 @@ export default [
 		text: 'Prefetch',
 		slug: 'guides/prefetch',
 		key: 'guides/prefetch',
+	},
+	{
+		text: 'Dev Toolbar',
+		slug: 'guides/dev-toolbar',
+		key: 'guides/dev-toolbar',
 	},
 
 	{ text: 'Integrations', header: true, type: 'learn', key: 'addons' },
