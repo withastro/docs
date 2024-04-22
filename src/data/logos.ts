@@ -87,6 +87,7 @@ export const logos = LogoCheck({
 	'kontent-ai': { file: 'kontent-ai.svg', padding: '.15em' },
 	keystatic: { file: 'keystatic.svg', padding: '0' },
 	zeabur: { file: 'zeabur.svg', padding: '.2em' },
+	zerops: { file: 'zerops.svg', padding: '.2em' },
 	apostrophecms: { file: 'apostrophecms.svg', padding: '.15em .15em' },
 	db: { file: 'db.svg', padding: '.1em' },
 });
