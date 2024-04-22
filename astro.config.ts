@@ -6,9 +6,9 @@ import { makeSidebar } from './config/sidebar';
 import rehypeSlug from 'rehype-slug';
 import remarkSmartypants from 'remark-smartypants';
 
+import { mdx } from './integrations/mdx';
 import { sitemap } from './integrations/sitemap';
 import { rehypeAutolink } from './plugins/rehype-autolink';
-import { rehypeOptimizeStatic } from './plugins/rehype-optimize-static';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
 
@@ -65,6 +65,7 @@ export default defineConfig({
 			],
 		}),
 		sitemap(),
+		mdx(),
 	],
 	trailingSlash: 'always',
 	scopedStyleStrategy: 'where',
@@ -83,8 +84,6 @@ export default defineConfig({
 			...rehypeAutolink(),
 			// Tweak GFM task list syntax
 			rehypeTasklistEnhancer(),
-			// Collapse static parts of the hast to html
-			rehypeOptimizeStatic,
 		],
 	},
 	image: {
