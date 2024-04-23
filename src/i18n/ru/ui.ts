@@ -10,7 +10,7 @@ export default UIDictionary({
 		'Создавайте более быстрые сайты с меньшим количеством JavaScript на стороне клиента.',
 	'site.og.imageSrc': '/default-og-image.png?v=1',
 	'site.og.imageAlt':
-		'логотип Astro на звездном просторе космоса, с фиолетовой планетой, похожей на Сатурн, плывущей справа на переднем плане',
+		'логотип Astro на звёздном просторе космоса, с фиолетовой планетой, похожей на Сатурн, плывущей справа на переднем плане',
 	// Left Sidebar
 	'leftSidebar.a11yTitle': 'Главное',
 	'leftSidebar.learnTab': 'Изучить',
@@ -34,7 +34,7 @@ export default UIDictionary({
 	'footer.privacyPolicy': 'Политика конфиденциальности',
 	// `<ThemeToggleButton>` acessibility labels
 	'themeToggle.useLight': 'Использовать светлую тему',
-	'themeToggle.useDark': 'Использовать темную тему',
+	'themeToggle.useDark': 'Использовать тёмную тему',
 	// Used in previous/next page links at the bottom of pages
 	'articleNav.nextPage': 'Следующая страница',
 	'articleNav.prevPage': 'Назад',
@@ -46,9 +46,9 @@ export default UIDictionary({
 	'install.autoTab': 'Автоматическая установка через CLI',
 	'install.manualTab': 'Ручная настройка',
 	// `<DeployGuidesNav>` vocabulary
-	'deploy.sectionTitle': 'Руководства по развертыванию',
-	'deploy.altSectionTitle': 'Дополнительные руководства по развертыванию',
-	'deploy.filterLabel': 'Фильтровать по типу развертывания',
+	'deploy.sectionTitle': 'Руководства по развёртыванию',
+	'deploy.altSectionTitle': 'Дополнительные руководства по развёртыванию',
+	'deploy.filterLabel': 'Фильтровать по типу развёртывания',
 	'deploy.ssrTag': 'SSR',
 	'deploy.staticTag': 'Статический',
 	// CMS Guides vocabulary
@@ -64,10 +64,10 @@ export default UIDictionary({
 	'contributors.seeAll': 'Посмотреть всех участников',
 	// Fallback content notice shown when a page is not yet translated
 	'fallbackContent.notice':
-		'Эта страница еще не доступна на вашем языке, поэтому мы показываем вам английскую версию. Вы можете помочь, переведя ее!',
+		'Эта страница еще не доступна на вашем языке, поэтому мы показываем вам английскую версию. Вы можете помочь, переведя её!',
 	'fallbackContent.linkText': 'Узнайте больше о том, как вы можете помочь',
 	// 404 Page
-	'404.title': 'Не Найдено',
+	'404.title': 'Не найдено',
 	'404.content': 'Этой страницы нет в нашей Солнечной системе',
 	'404.linkText': 'Вернуться домой.',
 	// Aside component default labels
@@ -88,7 +88,7 @@ export default UIDictionary({
 	'checklist.or': 'или',
 	// Multiple Choice component
 	'multipleChoice.defaultCorrect': 'Верно!',
-	'multipleChoice.defaultIncorrect': 'Попробуйте еще раз!',
+	'multipleChoice.defaultIncorrect': 'Попробуйте ещё раз!',
 	'multipleChoice.submitLabel': 'Отправить',
 	// Tutorial Progress
 	'progress.todo': 'В процессе',
@@ -123,7 +123,7 @@ export default UIDictionary({
 	'backend.navTitle': 'Дополнительные руководства по бэкенд-сервисам',
 	// Stubs vocabulary
 	'stub.title': 'Раскрыть эту заглушку!',
-	'stub.subtitle': 'Это руководство - заглушка.',
+	'stub.subtitle': 'Это руководство — заглушка.',
 	'stub.description.migration':
 		'Хотите внести свой вклад в это руководство? У вас есть статья в блоге, видео или другой ресурс о переходе с этой технологии на Astro?',
 	'stub.description.cms': 'Хотите узнать больше о том, как использовать эту CMS с Astro?',
