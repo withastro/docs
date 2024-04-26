@@ -183,3 +183,137 @@ Para mostrar mensajes motivacionales en la pantalla, utilizarás la propiedad `c
 </Steps>
 
 <ReadMore> Mira la [documentación de la API de aplicaciones de barra de herramientas para desarrollo](/es/reference/dev-toolbar-app-reference/) para más información sobre como construir aplicaciones de barra de herramientas para desarrollo. </ReadMore>
+
+## Construyendo apps con un framework UI
+
+Los frameworks UI como React, Vue, o Svelte pueden también ser usados para crear aplicaciones de barra de herramientas para desarrollo. Estos frameworks proveen una manera más declarativa para crear UIs y hacer que tu código sea más mantenible y fácil de leer.
+
+La misma aplicación de barra de herramientas para desarrollo motivacional construida en tu proyecto Astro en esta página con JavaScript, puede ser construida con un framework UI (e.j Preact) en su lugar. Dependiendo en el framework de tu elección, puedes o no puedes requerir un paso de build adicional.
+
+:::note
+Como tu hayas escogido crear tu aplicación de barra de herramientas para desarrollo, usando JavaScript o un framework UI, necesitarás [crear la integración](#creando-la-integración-con-astro) que agrega tu aplicación a la barra de herramientas de desarrollo.
+:::
+
+### Sin un paso de build
+
+Si tu framework lo soporta, puedes crear una aplicación de barra de herramientas para desarrollo sin un paso de build adicional. Por ejemplo, puedes usar la función de Preact `h` para crear elementos y renderizarlos directamente al ShadowRoot:
+
+```ts title="app.ts"
+import { defineToolbarApp } from "astro/toolbar";
+import { render, h } from "preact";
+
+const motivationalMessages = [
+  "¡Lo estás haciendo genial!",
+  "¡Sigue trabajando así!",
+  "¡Eres increíble!",
+  "¡Eres una estrella!",
+];
+
+export default defineToolbarApp({
+    init(canvas) {
+      const message = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+      render(h('h1', null, message), canvas);
+    },
+});
+```
+
+Alternativamente, el [paquete `htm`](https://github.com/developit/htm) es una buena elección para crear una aplicación de barra de herramientas para desarrollo sin un paso de build adicional, ofreciendo una integración nativa para React y Preact, además del soporte para otros frameworks:
+
+```ts title="app.ts" ins={3, 15}
+import { defineToolbarApp } from "astro/toolbar";
+import { render } from "preact";
+import { html } from 'htm/preact';
+
+const motivationalMessages = [
+  "¡Lo estás haciendo genial!",
+  "¡Sigue trabajando así!",
+  "¡Eres increíble!",
+  "¡Eres una estrella!",
+];
+
+export default defineToolbarApp({
+    init(canvas) {
+      const message = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+      render(html`<h1>${message}</h1>`, canvas);
+    },
+});
+```
+
+En ambos casos, puedes iniciar el proyecto y ver el mensaje motivacional en la esquina superior izquierda de tu pantalla cuando la aplicación es activada.
+
+### Con un paso de build
+
+Astro no preprocesa código JSX en las aplicaciones de barra de herramientas para desarrollo, por lo tanto un paso de build adicional es requerido para usar componentes JSX en tu aplicación de barra de herramientas para desarrollo.
+
+Los siguientes pasos usarán TypeScript para hacerlo, pero cualquier otra herramienta para compilar código JSX puede ser usada (e.j Babel, Rollup, ESBuild).
+
+<Steps>
+1. Instala TypeScript en tu proyecto:
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+        ```shell
+        npm install --save-dev typescript
+        ```
+      </Fragment>
+      <Fragment slot="pnpm">
+        ```shell
+        pnpm install --save-dev typescript
+        ```
+      </Fragment>
+      <Fragment slot="yarn">
+        ```shell
+        yarn add --dev typescript
+        ```
+      </Fragment>
+    </PackageManagerTabs>
+
+
+2. Crear un archivo `tsconfig.json` en la raíz de tu directorio de aplicación de barra de herramientas con las configuraciones apropiadas para hacer un build y para el framework que estés usando ([React](https://react-typescript-cheatsheet.netlify.app/docs/basic/setup), [Preact](https://preactjs.com/guide/v10/typescript), [Solid](https://www.solidjs.com/guides/typescript)). Por ejemplo, para Preact:
+
+    ```json title="my-toolbar-app/tsconfig.json"
+    {
+      "compilerOptions": {
+        "skipLibCheck": true,
+        "module": "NodeNext",
+        "jsx": "react-jsx",
+        "jsxImportSource": "preact",
+      }
+    }
+    ```
+3. Ajustar la propiedad `entrypoint` en tu integración para apuntar al archivo compilado, recordando que ese archivo es relativo a la raíz de tu proyecto Astro.
+
+    ```ts title="my-integration.ts" ins="app.js"
+    addDevToolbarApp({
+      id: "my-toolbar-app",
+      name: "Mi aplicación de barra de herramientas",
+      icon: "🚀",
+      entrypoint: join(__dirname, "./app.js"),
+    });
+    ```
+
+4. Ejecuta `tsc` para hacer un build de tu aplicación de barra de herramientas, o `tsc --watch` para automáticamente hacer un rebuild de tu aplicación cuando hagas cambios.
+
+      Con estos cambios, puedes renombrar tu archivo `app.ts` a `app.tsx` (o `.jsx`) y usar la síntaxis JSX para crear tu aplicación de barra de herramientas para desarrollo.
+
+      ```tsx title="app.tsx"
+      import { defineToolbarApp } from "astro/toolbar";
+      import { render } from "preact";
+
+      const motivationalMessages = [
+        "¡Lo estás haciendo genial!",
+        "¡Sigue trabajando así!",
+        "¡Eres increíble!",
+        "¡Eres una estrella!",
+      ];
+
+      export default defineToolbarApp({
+          init(canvas) {
+            const message = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+            render(<h1>{message}</h1>, canvas);
+          },
+      });
+      ```
+</Steps>
+
+Ya deberías tener todas las herramientas que necesitas para crear una aplicación de barra de herramientas para desarrollo usando el framework UI de tu elección.
