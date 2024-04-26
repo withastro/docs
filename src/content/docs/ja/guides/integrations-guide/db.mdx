@@ -222,3 +222,31 @@ Astro DBには[Astro Studio](/ja/recipes/studio/)のアカウントやホスト�
 - `--remote` Studioのプロジェクトのデータベースに対して実行します。開発用サーバーに対して実行したい場合は省略してください。
 
 SQLクエリをデータベースに対して実行します。Studioのプロジェクトのデータベースに対して実行したい場合は`--remote`フラグを、開発用サーバーに対して実行したい場合は`--remote`フラグを省いて実行してください。
+
+
+ ## Astro DB utility レファレンス
+
+ ### `isDbError()`
+
+ `isDbError()`関数はエラーがlibSQLデータベースの例外であるか確認します。This may include a　レファレンスを使用するときに起こるforeign key制約エラーやデータを追加するときに必要な情報が足りないかどうかも含まれます。 `isDbError()`と try / catch ブロックと合わせて使用してデータベースのエラーを処理することもできます。
+
+ ```ts title="src/pages/api/comment/[id].ts" "idDbError"
+ import { db, Comment, isDbError } from 'astro:db';
+ import type { APIRoute } from 'astro';
+
+ export const POST: APIRoute = (ctx) => {
+   try {
+     await db.insert(Comment).values({
+       id: ctx.params.id,
+       content: 'Hello, world!'
+     });
+   } catch (e) {
+     if (isDbError(e)) {
+       return new Response(`Cannot insert comment with id ${id}\n\n${e.message}`, { status: 400 });
+     }
+     return new Response('An unexpected error occurred', { status: 500 });
+   }
+
+   return new Response(null, { status: 201 });
+ };
+ ```
