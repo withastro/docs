@@ -529,26 +529,33 @@ When you're ready to deploy, see our [Deploy with a Studio Connection guide](/en
 [Astro integrations](/en/reference/integrations-reference/) can extend user projects with additional Astro DB tables and seed data.
 
 Use the `extendDb()` method in the `astro:db:setup` hook to register additional Astro DB config and seed files.
-The `defineDbIntegration()` helper provides TypeScript support and auto-complete for the `astro:db:setup` hook.
+The `AstroDbHooks` type can be used to augment `AstroIntegrationHooks` and add TypeScript auto-complete for the `astro:db:setup` hook.
 
-```js {8-13}
-// my-integration/index.ts
-import { defineDbIntegration } from '@astrojs/db/utils';
+```ts {3,5-7,14-19} title="my-integration/index.ts"
+import { defineIntegration } from 'astro/integration';
+import {} from 'astro';
+import type { AstroDbHooks } from '@astrojs/db/types';
 
-export default function MyIntegration() {
-  return defineDbIntegration({
-    name: 'my-astro-db-powered-integration',
-    hooks: {
-      'astro:db:setup': ({ extendDb }) => {
-        extendDb({
-          configEntrypoint: '@astronaut/my-package/config',
-          seedEntrypoint: '@astronaut/my-package/seed',
-        });
+declare module 'astro' {
+  interface AstroIntegrationHooks extends AstroDbHooks {};
+};
+
+export default defineIntegration({
+  name: 'my-astro-db-powered-integration',
+  setup() {
+    return {
+      hooks: {
+        'astro:db:setup': ({ extendDb }) => {
+          extendDb({
+            configEntrypoint: '@astronaut/my-package/config',
+            seedEntrypoint: '@astronaut/my-package/seed',
+          });
+        },
+        // Other integration hooks...
       },
-      // Other integration hooks...
-    },
-  });
-}
+    };
+  },
+})
 ```
 
 Integration [config](#define-your-database) and [seed](#seed-your-database) files follow the same format as their user-defined equivalents.
