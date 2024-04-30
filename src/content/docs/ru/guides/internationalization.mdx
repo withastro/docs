@@ -1,0 +1,370 @@
+---
+title: Многоязычная маршрутизация (i18n)
+description: Узнайте, как использовать i18n-маршрутизацию в Astro.
+i18nReady: true
+---
+
+import { FileTree } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro'
+
+Функции интернационализации Astro позволяют вам адаптировать ваш проект для международной аудитории. Этот API маршрутизации помогает вам создавать, использовать и проверять URL-адреса, которые производит ваш многоязычный сайт.
+
+Маршрутизация i18n Astro позволяет вам представлять ваше многоязычное содержимое с поддержкой настройки языка по умолчанию, вычисления относительных URL-адресов страниц и принятия предпочтительных языков, предоставляемых браузером вашего посетителя. Вы также можете указать резервные языки для каждого языка отдельно, чтобы ваши посетители всегда могли быть направлены к существующему контенту на вашем сайте.
+
+## Логика маршрутизации
+
+Astro использует [промежуточное программное обеспечение](/ru/guides/middleware/) для реализации своей логики маршрутизации. Эта функция промежуточного ПО размещается в [первой позиции](/ru/guides/middleware/#цепочка-промежуточного-по), где она ожидает каждого `Response`, поступающего от любого дополнительного промежуточного программного обеспечения, и каждого маршрута страницы, прежде чем, наконец, выполнить свою собственную логику.
+
+Это означает, что сначала выполняются операции (например, перенаправления) из вашего собственного промежуточного программного обеспечения и логики вашей страницы, визуализируются ваши маршруты, а затем промежуточное программное обеспечение i18n выполняет свои собственные действия, такие как проверка соответствия локализованного URL-адреса допустимому маршруту.
+
+Вы также можете [добавить свою собственную логику i18n в дополнение или вместо промежуточного программного обеспечения Astro i18n](#manual), что даст вам ещё больший контроль над вашими маршрутами, сохраняя при этом доступ к вспомогательным функциям `astro: i18n`.
+
+
+## Настройка i18n-маршрутизации
+
+И язык по умолчанию ([`defaultLocale`](/ru/reference/configuration-reference/#i18ndefaultlocale)), и список всех поддерживаемых языков ([`locales`](/ru/reference/configuration-reference/#i18nlocales) ) должны быть указаны в объекте конфигурации `i18n`. Кроме того, можно настроить более конкретную маршрутизацию и резервное поведение в соответствии с желаемыми URL-адресами.
+
+```js title="astro.config.mjs"
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  i18n: {
+    defaultLocale: "en",
+    locales: ["ru", "en", "pt-br"],
+  }
+})
+```
+
+### Создание локализованных папок
+
+Организуйте папки с контентом, локализованным по языку. Создайте отдельные папки `/[locale]/` в любом месте `src/pages/`, и [маршрутизация на основе файлов](/ru/guides/routing/) Astro создаст ваши страницы по соответствующим URL-путям.
+
+Имена ваших папок должны точно соответствовать элементам в `locales`. Включите локализованную папку для вашей `defaultLocale`, только если вы настроили `prefixDefaultLocale: true` для отображения локализованного URL-пути для вашего языка по умолчанию (например, `/en/about/`).
+
+<FileTree>
+- src
+  - pages
+    - about.astro
+    - index.astro
+    - ru
+      - about.astro
+      - index.astro
+    - pt-br
+      - about.astro
+      - index.astro
+</FileTree>
+
+:::note
+Локализованные папки не обязательно должны находиться в корне директории `/pages/`.
+:::
+
+
+### Создание ссылок
+
+Настроив маршрутизацию i18n, вы теперь можете вычислять ссылки на страницы вашего сайта, используя вспомогательные функции, такие как [`getRelativeLocaleURL()`](/ru/reference/api-reference/#getrelativelocaleurl), доступные из [`astro: i18n`](/ru/reference/api-reference/#интернационализация-astroi18n). Эти сгенерированные ссылки всегда будут обеспечивать правильный локализованный маршрут и могут помочь вам правильно использовать или проверять URL-адреса на вашем сайте.
+
+Вы также можете написать ссылки вручную.
+
+```astro title="src/pages/ru/index.astro"
+---
+import { getRelativeLocaleUrl } from 'astro:i18n';
+
+// defaultLocale = "ru"
+const aboutURL = getRelativeLocaleUrl("ru", "about");
+---
+
+<a href="/get-started/">Начнём!</a>
+<a href={getRelativeLocaleUrl('ru', 'blog')}>Блог</a>
+<a href={aboutURL}>О сайте</a> 
+``` 
+
+## `routing`
+
+Встроенная файловая маршрутизация Astro автоматически создает для вас URL-маршруты на основе вашей файловой структуры в `src/pages/`.
+
+Когда вы настраиваете i18n-маршрутизацию, информация об этой структуре файлов (и соответствующие сгенерированные пути URL) доступна вспомогательным функциям i18n, чтобы они могли генерировать, использовать и проверять маршруты в вашем проекте. Многие из этих опций можно использовать вместе для ещё большей настройки и гибкости для каждого языка.
+
+Вы даже можете [реализовать собственную логику маршрутизации вручную](#manual) для ещё большего контроля.
+
+### `prefixDefaultLocale`
+
+<p><Since v="3.5.0" /></p>
+
+Этот параметр маршрутизации определяет, должны ли URL-адреса вашего языка по умолчанию использовать языковой префикс (например, `/en/about/`).
+
+Все языки, поддерживаемые не по умолчанию, **будут** использовать локализованный префикс (например, `/ru/` или `/russian/`), а файлы содержимого должны находиться в соответствующих папках. Этот параметр конфигурации позволяет указать, должен ли язык по умолчанию также следовать локализованной структуре URL.
+
+Этот параметр также определяет, где должны находиться файлы страниц для вашего языка по умолчанию (например, `src/pages/about/` или `src/pages/en/about`), так как структура файлов и структура URL должны совпадать для всех языков.
+
+- `"prefixDefaultLocale: false"` (по умолчанию): URL-адреса на вашем языке по умолчанию **не** будут иметь префикса `/[locale]/`. Все остальные локали будут.
+
+- `"prefixDefaultLocale: true"`: Все URL-адреса, включая язык по умолчанию, будут иметь префикс `/[locale]/`.
+
+
+#### `prefixDefaultLocale: false`
+
+```js title="astro.config.mjs" ins={7}
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  i18n: {
+    defaultLocale: "en",
+    locales: ["ru", "en", "fr"],
+    routing: {
+        prefixDefaultLocale: false
+    }
+  }
+})
+```
+
+Это значение **по умолчанию**. Установите эту опцию, если URL-адреса на вашем языке по умолчанию **не** будут иметь префикс `/[locale]/`, а файлы на вашем языке по умолчанию существуют в корне `src/pages/`:
+
+<FileTree>
+  - src
+    - pages
+      - about.astro
+      - index.astro
+      - ru
+        - about.astro
+        - index.astro
+      - fr
+        - about.astro
+        - index.astro
+</FileTree>
+
+- `src/pages/about.astro` создаст маршрут `example.com/about/` 
+- `src/pages/fr/about.astro` создаст маршрут `example.com/fr/about/` 
+
+
+#### `prefixDefaultLocale: true`
+
+```js title="astro.config.mjs" ins={7}
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  i18n: {
+    defaultLocale: "en",
+    locales: ["ru", "en", "fr"],
+    routing: {
+        prefixDefaultLocale: true
+    }
+  }
+})
+```
+
+Установите эту опцию, когда все маршруты будут иметь префикс `/locale/` в своем URL и когда все файлы содержимого страницы, включая файлы для вашей `defaultLocale`, существуют в локализованной папке:
+
+    <FileTree>
+    - src
+      - pages
+        - **index.astro** // Примечание: этот файл всегда необходим
+        - en
+          - index.astro
+          - about.astro
+        - ru
+          - about.astro
+          - index.astro
+        - pt-br
+          - about.astro
+          - index.astro
+    </FileTree>
+
+- URL-адреса без префикса локали, (например, `example.com/about/`) вернут код состояния 404 (страница не найдена), если вы не укажете [резервную локаль](#резервная-локаль).
+
+### `redirectToDefaultLocale`
+
+<p><Since v="4.2.0" /></p>
+
+Определяет, будет ли URL главной страницы (`/`), сгенерированный `src/pages/index.astro`, перенаправляться на `/<defaultLocale>`.
+
+Установка `prefixDefaultLocale: true` также автоматически установит `redirectToDefaultLocale: true` в вашем объекте конфигурации `routing`. По умолчанию требуемый файл `src/pages/index.astro` автоматически перенаправляется на индексную страницу вашего языка по умолчанию.
+
+Вы можете отказаться от такого поведения, [установив `redirectToDefaultLocale: false`](/ru/reference/configuration-reference/#i18nroutingredirecttodefaultlocale). Это позволяет вам иметь домашнюю страницу сайта, которая существует за пределами настроенной вами структуры папок локали.
+
+
+### `manual`
+
+<p><Since v="4.6.0" /></p>
+
+Когда эта опция включена, Astro отключит свое промежуточное программное обеспечение i18n, чтобы вы могли реализовать свою собственную пользовательскую логику. Никакие другие параметры `routing` (например, `prefixDefaultLocale`) не могут быть настроены с помощью `routing: "manual"`.
+
+Вы будете нести ответственность за написание своей собственной логики маршрутизации или [выполнение промежуточного программного обеспечения Astro i18n вручную](#функция-middleware) наряду со своим собственным.
+
+```js title="astro.config.mjs"
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  i18n: {
+    defaultLocale: "en",
+    locales: ["ru", "en", "fr"],
+    routing: "manual"
+  }
+})
+```
+
+Astro предоставляет вспомогательные функции для вашего промежуточного программного обеспечения, чтобы вы могли самостоятельно управлять маршрутизацией по умолчанию, исключениями, резервным поведением, отслеживанием ошибок и т. д.: [`redirectToDefaultLocale()`](/ru/reference/api-reference/#redirecttodefaultlocale), [`NotFound()`](/ru/reference/api-reference/#notfound), и [`redirectToFallback()`](/ru/reference/api-reference/#redirecttofallback):
+
+
+```js title="src/middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { redirectToDefaultLocale } from "astro:i18n"; // function available with `manual` routing
+export const onRequest = defineMiddleware(async (ctx, next) => {
+  if (ctx.url.startsWith("/about")) {
+    return next();
+  } else {
+    return redirectToDefaultLocale(302);
+  }
+})
+```
+
+#### Функция `middleware`
+
+Функция [`middleware`](#функция-middleware) вручную создаёт промежуточное программное обеспечение Astro i18n. Это позволяет расширить маршрутизацию Astro i18n вместо её полной замены.
+
+Вы можете запустить `middleware` с [параметрами маршрутизации](#routing) в сочетании с вашим собственным промежуточным программным обеспечением, используя утилиту [`sequence`](/ru/reference/api-reference/#sequence) для определения порядка:
+
+```js title="src/middleware.js"
+import {defineMiddleware, sequence} from "astro:middleware";
+import { middleware } from "astro:i18n"; // Собственная конфигурация маршрутизации Astro i18n
+
+export const userMiddleware = defineMiddleware(async (ctx, next) => {
+  // этот ответ может исходить от промежуточного программного обеспечения Astro i18n, и он может возвращать 404
+  const response = await next();
+  // страница /about является исключением, и мы хотим отобразить её
+  if (ctx.url.startsWith("/about")) {
+    return new Response("About page", {
+      status: 200
+    });
+  } else {
+    return response;
+  }
+});
+
+
+export const onRequest = sequence(
+  userMiddleware,
+  middleware({
+    redirectToDefaultLocale: false,
+    prefixDefaultLocale: true
+  })
+)
+```
+
+## Пользовательские пути локалей
+
+В дополнение к определению поддерживаемых вашим сайтом языковых стандартов в виде строк (например, `en`, `pt-br`), Astro также позволяет сопоставить произвольное количество [языковых кодов, распознаваемых браузером](https://developer.mozilla.org/ru/docs/Web/HTTP/Headers/Accept-Language#%D1%81%D0%B8%D0%BD%D1%82%D0%B0%D0%BA%D1%81%D0%B8%D1%81) с пользовательским URL-адресом `path`. Хотя локали могут быть строками любого формата, если они соответствуют структуре папок вашего проекта, `codes` должны соответствовать принятому в браузере синтаксису.
+
+Передайте объект в массив `locales` с ключом `path` для определения пользовательского префикса URL-адреса и `codes` для указания языков, сопоставленных с этим URL-адресом. В этом случае имя вашей папки `/[locale]/` должно точно соответствовать значению `path`, и ваши URL-адреса будут созданы с использованием значения `path`.
+
+Это полезно, если вы поддерживаете несколько вариантов языка (например, `"fr"`, `"fr-BR"` и `"fr-CA"`) и хотите, чтобы все эти варианты отображались под одним и тем же URL-адресом `/fr/`, или даже полностью настроить его (например, `/french/`):
+
+```js title="astro.config.mjs" del={5} ins={6-9}
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  i18n: {
+    defaultLocale: "en",
+    locales: ["ru", "en", "fr"],
+    locales: ["ru", "en", {
+        path: "french", // косые черты не включены
+        codes: ["fr", "fr-BR", "fr-CA"]
+    }],
+    routing: {
+        prefixDefaultLocale: true
+    }
+  }
+})
+```
+
+При использовании функций из [виртуального модуля `astro: i18n`](/ru/reference/api-reference/#интернационализация-astroi18n) для вычисления допустимых URL-путей на основе вашей конфигурации (например, `getRelativeLocaleUrl()`), [используйте `path` как значение `locale`](/ru/reference/api-reference/#getlocalebypath).
+
+## Определение языка браузера
+
+Маршрутизация Astro i18n позволяет вам получить доступ к двум свойствам для определения языка браузера на страницах, отображаемых по запросу: `Astro.preferredLocale` и `Astro.preferredLocaleList`. Все страницы, включая статические страницы с предварительным отображением, имеют доступ к `Astro.currentLocale`.
+
+Они объединяют заголовок `Accept-Language` браузера и ваши `locales` (строки или `codes`) для автоматического учёта предпочитаемых языков вашего посетителя.
+
+- [`Astro.preferredLocale`](/ru/reference/api-reference/#astropreferredlocale): Astro может вычислить **предпочтительный языковой стандарт** для вашего посетителя, если предпочтительный языковой стандарт его браузера включен в ваш массив `locales`. Это значение не определено, если такого соответствия не существует.
+
+- [`Astro.preferredLocaleList`](/ru/reference/api-reference/#astropreferredlocalelist): Массив всех локалей, которые запрашиваются браузером и поддерживаются вашим веб-сайтом. В результате выводится список всех языков, совместимых между вашим сайтом и посетителем. Значением является `[]`, если ни один из запрошенных браузером языков не найден в массиве `locales`. Если в браузере не указаны предпочтительные языки, то это значение будет [`i18n.locales`].
+
+- [`Astro.currentLocale`](/ru/reference/api-reference/#astrocurrentlocale): Локаль, рассчитанная на основе текущего URL-адреса с использованием синтаксиса, указанного в опции `locales`. Если URL-адрес не содержит префикс `/[locale]/`, то значением по умолчанию будет [`i18n.defaultLocale`](/ru/reference/configuration-reference/#i18ndefaultlocale).
+
+Чтобы успешно соответствовать предпочтениям ваших посетителей, предоставляйте свои `codes`, используя тот же шаблон, [используемый браузером](https://developer.mozilla.org/ru/docs/Web/HTTP/Headers/Accept-Language#%D1%81%D0%B8%D0%BD%D1%82%D0%B0%D0%BA%D1%81%D0%B8%D1%81).
+
+## Резервная локаль
+
+Маршрутизация i18n от Astro позволяет настроить **стратегию резервной маршрутизации**. Если страница на одном языке не существует (например, страница, которая ещё не переведена), вместо отображения страницы 404 вы можете перенаправить пользователя с одной локали на другую для каждого языка отдельно. Это полезно, если у вас ещё нет страницы для каждого маршрута, но вы всё равно хотите предоставить посетителям некоторый контент.
+
+Например, приведённая ниже конфигурация устанавливает `ru` в качестве резервной локали для любых отсутствующих маршрутов `fr`. Это означает, что пользователь, посещающий `example.com/fr/my-page/`, будет перенаправлен на `example.com/ru/my-page/` вместо перехода на страницу 404, если `src/pages/fr/my-page.астро` не существует.
+
+```js title="astro.config.mjs" ins={6-8} 
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  i18n: {
+    defaultLocale: "en",
+    locales: ["ru", "en", "fr"],
+    fallback: {
+      fr: "ru"  
+    }
+  }
+})
+```
+
+Astro гарантирует, что страница будет построена в `src/pages/fr` для каждой страницы, существующей в `src/pages/ru/`. Если страница ещё не существует, то будет создана страница с редиректом на соответствующий маршрут `ru`.
+
+## `domains` (экспериментально)
+
+<p><Since v="4.3.0" /></p>
+
+Эта опция маршрутизации позволяет вам настраивать ваши домены для каждого языка для проектов, отображаемых на `server`, с использованием [`@astrojs/node`](/ru/guides/integrations-guide/node/) или адаптера [`@astrojs/ vercel`](/ru/guides/integrations-guide/vercel/) с настроенным параметром `site`.
+
+Чтобы включить это в своем проекте, [настройте маршрутизацию i18n](#настройка-i18n-маршрутизации), если вы ещё этого не сделали. Затем установите значение `true` для опции `experimental.i18nDomains` и добавьте `i18n.domains`, чтобы сопоставить любые поддерживаемые вами `locales` с пользовательскими URL-адресами:
+
+```js title="astro.config.mjs" {3-7} ins={14-21}
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  site: "https://example.com",
+  output: "server", // обязательно, без предварительно отрисованных страниц
+  adapter: node({
+    mode: 'standalone',
+  }),
+  i18n: {
+    defaultLocale: "en",
+    locales: ["ru", "en", "fr", "ja"],
+    routing: {
+      prefixDefaultLocale: false
+    },
+    domains: {
+        fr: "https://fr.example.com",
+        ru: "https://example.ru"
+    }
+  },
+  experimental: {
+    i18nDomains: true
+  }
+})
+```
+
+Все несопоставленные `locales` будут соответствовать вашей конфигурации `prefixDefaultLocales`. Однако, даже если это значение равно `false`, файлы для вашей `defaultLocale` также должны существовать в локализованной папке. Для приведённой выше конфигурации требуется папка `/en/`.
+
+С вышеуказанной конфигурацией: 
+
+- Файл `/fr/about.astro` создаст URL-адрес `https://fr.example.com/about`.
+- Файл `/ru/about.astro` создаст URL-адрес `https://example.ru/about`.
+- Файл `/ja/about.astro` создаст URL-адрес `https://example.com/ja/about`.
+- Файл `/en/about.astro` создаст URL-адрес `https://example.com/about`.
+
+Вышеуказанные URL-адреса также будут возвращены функциями `getAbsoluteLocaleUrl()` и `getAbsoluteLocaleUrlList()`.
+
+#### Ограничения
+
+Эта функция имеет некоторые ограничения:
+- Опция `site` является обязательной.
+- Опция `output` должна иметь значение `"server"`.
+- Не может быть отдельных пререндеренных страниц.
+- Функция адаптера [`functionPerRoute`](/ru/reference/adapter-reference/#functionperroute) не поддерживается.
+
+Для поддержки этой функции Astro использует следующие заголовки:
+- [`X-Forwarded-Host`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host) и [`Host`](https://developer.mozilla.org/ru/docs/Web/HTTP/Headers/Host). Астро будет использовать первый вариант, а если его нет, то попробует второй.
+- [`X-Forwarded-Proto`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto) и [`URL#protocol`](https://developer.mozilla.org/en-US/docs/Web/API/URL/protocol) запроса сервера.
+
+Убедитесь, что ваш прокси-сервер/хостинговая платформа способны предоставить эту информацию. Невозможность получить эти заголовки приведет к появлению страницы 404 (код состояния).
+
+[`site`]: /ru/reference/configuration-reference/#site
+[`i18n.locales`]: /ru/reference/configuration-reference/#i18nlocales
