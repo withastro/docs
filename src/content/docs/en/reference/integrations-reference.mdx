@@ -622,6 +622,129 @@ A list of all generated pages. It is an object with one property.
 
 - `pathname` - the finalized path of the page.
 
+## Helpers
+
+### `defineIntegration`
+
+The `defineIntegration` helper allows defining an integration in a type-safe way and optionally validate options.
+
+```ts
+import { defineIntegration } from "astro/integration";
+
+const integration = defineIntegration({
+  name: "my-integration",
+  setup({ name }) {
+    return {
+      hooks: {
+        "astro:config:setup": ({ logger }) => {
+          logger(`Hi from ${name}!`)
+        }
+      }
+    }
+  },
+})
+```
+
+#### Handling options and defaults
+
+The helper accepts an optional `optionsSchema` argument that is a zod schema.
+
+```ts title="my-integration/index.ts" ins={2,6-13}
+import { defineIntegration } from "astro/integration";
+import { z } from "astro/zod";
+
+export default defineIntegration({
+  // ...
+  optionsSchema: z.object({
+    /**
+     * A comment
+     *
+     * @default `"bar"`
+     */
+    foo: z.string().optional().default("bar"),
+  }),
+})
+```
+
+#### Add logic with `setup`
+
+If you've written an integration before by returning an `AstroIntegration` from a function, it's exactly the same with `setup`! This is where all the logic lives:
+
+```ts title="my-integration/index.ts" ins={5-7}
+import { defineIntegration } from "astro/integration";
+
+export default defineIntegration({
+  // ...
+  setup() {
+    return { hooks: {} };
+  },
+})
+```
+It accepts an object with data from the integration definition:
+
+```ts title="my-integration/index.ts" "{ options, name }"
+import { defineIntegration } from "astro/integration";
+
+export default defineIntegration({
+  // ...
+  setup({ options, name }) {
+    return { hooks: {} };
+  },
+})
+```
+
+In setup, you'll want to add any logic that is shared between any hook, for example saving the `config` from `astro:config:done` to be used in later hooks. It needs to return Astro hooks.
+
+#### Defining extra integration fields
+
+Any extra property present on the return of `setup` will be present on the integration object returned by initializing the integration with the options.
+
+You can use this to define fields you might want to access from outside your integration while having access to it's internal state.
+
+```ts title="my-integration.ts" ins={13-20}
+import { defineIntegration } from "astro/integration";
+
+export default defineIntegration({
+  // ...
+  setup() {
+    let counter = 0;
+    return {
+      hooks: {
+        "astro:config:setup": ({ logger }) => {
+          logger.info(`Counter: ${counter++}`);
+        },
+      },
+      api: {
+        get counter() {
+          return counter;
+        },
+        increment() {
+          counter++;
+        },
+      },
+    };
+  },
+});
+```
+
+```ts
+import { defineConfig } from "astro/config";
+import myIntegration from "./my-integration";
+
+const integration = myIntegration();
+
+console.log(myIntegration.api.counter); // 0
+
+myIntegration.api.increment();
+
+console.log(myIntegration.api.counter); // 1
+
+export default defineConfig({
+  // Will log "Counter: 1" during setup
+  integrations: [myIntegration],
+});
+```
+
 ## Allow installation with `astro add`
 
 [The `astro add` command](/en/reference/cli-reference/#astro-add) allows users to easily add integrations and adapters to their project. If you want _your_ integration to be installable with this tool, **add `astro-integration` to the `keywords` field in your `package.json`**:
