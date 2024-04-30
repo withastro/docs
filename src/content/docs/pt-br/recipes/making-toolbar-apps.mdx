@@ -1,0 +1,315 @@
+---
+title: Crie um aplicativo da barra de ferramentas de desenvolvimento
+description: Aprenda a criar um aplicativo da barra de ferramentas de desenvolvimento para seu site.
+type: recipe
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { FileTree } from '@astrojs/starlight/components';
+import { Steps } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
+
+O Astro inclui uma [barra de ferramentas de desenvolvimento](/pt-br/guides/dev-toolbar/) que você pode usar para inspecionar seu site, verificar problemas de acessibilidade e desempenho e mais. Essa barra de ferramentas pode ser estendida com aplicativos personalizados.
+
+## Crie um aplicativo de barra de ferramentas de desenvolvimento motivacional
+
+Nesta receita, você aprenderá a criar um aplicativo da barra de ferramentas de desenvolvimento que o ajudará a se manter motivado enquanto trabalha no seu site. Esse aplicativo exibirá uma mensagem motivacional sempre que você o ativar.
+
+:::tip
+Quer apenas começar rapidamente? Inicie seu aplicativo criando um novo projeto Astro com o template `toolbar-app`.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```shell
+    npm create astro@latest -- --template toolbar-app
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```shell
+    pnpm create astro -- --template toolbar-app
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    yarn create astro -- --template toolbar-app
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+Ou continue lendo para saber como criar um aplicativo do zero.
+:::
+
+### Criando a integração do Astro
+
+Os aplicativos da barra de ferramentas de desenvolvimento só podem ser adicionados pelas [Integrações do Astro](/pt-br/guides/integrations-guide/) usando o [hook `astro:config:setup`](/pt-br/reference/integrations-reference/#astroconfigsetup). Você precisará criar um aplicativo de barra de ferramentas e a integração que o adicionará à barra de ferramentas do seu projeto Astro existente.
+
+<Steps>
+1. Na raiz do seu projeto Astro existente, crie uma nova pasta chamada `meu-app-toolbar/` para o aplicativo e os arquivos de integração. Crie dois novos arquivos nessa pasta: `app.ts` e `minha-integracao.ts`.
+
+    <FileTree>
+    - **meu-app-toolbar/**
+      - **app.ts**
+      - **minha-integracao.ts**
+    - src/
+      - pages/
+      - ...
+    - astro.config.mjs
+    - package.json
+    - tsconfig.json
+    </FileTree>
+
+2. Em `minha-integracao.ts`, adicione o seguinte código para fornecer o nome da sua integração e a [função `addDevToolbarApp()`](/pt-br/reference/dev-toolbar-app-reference/#toolbar-app-integration-setup) necessária para adicionar o aplicativo da barra de ferramentas de desenvolvimento com o hook `astro:config:setup`:
+
+    ```ts title="meu-app-toolbar/minha-integracao.ts" "'astro:config:setup'" "hooks" "addDevToolbarApp"
+    import { fileURLToPath } from 'node:url';
+    import type { AstroIntegration } from 'astro';
+
+    export default {
+      name: 'minha-integracao-astro',
+      hooks: {
+        'astro:config:setup': ({ addDevToolbarApp }) => {  
+          addDevToolbarApp({
+            id: "meu-app-toolbar",
+            name: "Meu App da Toolbar",
+            icon: "🚀",
+            entrypoint: fileURLToPath(new URL('./app.ts', import.meta.url))
+          });
+        },
+      },
+    } satisfies AstroIntegration;
+    ```
+    :::note[Usando caminhos relativos para o ponto de entrada]
+    O `entrypoint` é o caminho para o arquivo do aplicativo da barra de ferramentas de desenvolvimento **relativo à raiz do seu projeto Astro existente**, não à pasta de integração (`meu-app-toolbar`) em si.
+
+    Para usar caminhos relativos para pontos de entrada, obtenha o caminho para o arquivo atual usando `import.meta.url` e resolva o caminho para o ponto de entrada a partir daí.
+    :::
+
+3. Para usar essa integração em seu projeto, adicione-a ao array `integrations` em seu arquivo `astro.config.mjs`.
+
+    ```js title="astro.config.mjs" ins={2,5}
+    import { defineConfig } from 'astro/config';
+    import minhaIntegracao from './meu-app-toolbar/minha-integracao.ts';
+
+    export default defineConfig({
+      integrations: [minhaIntegracao],
+    })
+    ```
+
+4. Se ainda não estiver em execução, inicie o servidor de desenvolvimento. Se a sua integração tiver sido adicionada com êxito ao projeto, você verá um novo aplicativo “undefined” na barra de ferramentas de desenvolvimento.
+
+    Porém, você também verá uma mensagem de erro informando que o aplicativo da barra de ferramentas de desenvolvimento não foi carregado. Isso ocorre porque você ainda não criou o aplicativo propriamente dito. Você fará isso na próxima seção.
+</Steps>
+
+<ReadMore>Consulte a [documentação da API de Integração Astro](/pt-br/reference/integrations-reference/) para saber mais sobre como criar integrações do Astro.</ReadMore>
+
+### Criando o aplicativo
+
+Os aplicativos da barra de ferramentas de desenvolvimento são definidos usando a função `defineToolbarApp()` do módulo `astro/toolbar`. Essa função recebe um objeto com uma função `init()` que será chamada quando o aplicativo da barra de ferramentas de desenvolvimento for carregado.
+
+Essa função `init()` contém a lógica do seu aplicativo para renderizar elementos na tela, enviar e receber eventos do lado do cliente da barra de ferramentas de desenvolvimento e se comunicar com o servidor.
+
+```ts title="app.ts"
+import { defineToolbarApp } from "astro/toolbar";
+
+export default defineToolbarApp({
+    init(canvas, app, server) {
+      // ...
+    },
+});
+```
+
+Para exibir mensagens motivacionais na tela, você usará a propriedade `canvas` para acessar um [ShadowRoot](https://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot) padrão. Os elementos podem ser criados e adicionados ao ShadowRoot usando as APIs padrão do DOM.
+
+<Steps>
+1. Copie o código a seguir em `meu-app-toolbar/app.ts`. Isso fornece uma lista de mensagens motivacionais e a lógica para criar um novo elemento `<h1>` com uma mensagem aleatória:
+
+    ```ts title="meu-app-toolbar/app.ts" {3-8, 12-15}
+    import { defineToolbarApp } from "astro/toolbar";
+
+    const mensagensMotivacionais = [
+      "Você está indo muito bem!",
+      "Continue com o bom trabalho!",
+      "Você é incrível!",
+      "Você é uma estrela!",
+    ];
+
+    export default defineToolbarApp({
+        init(canvas) {
+          const h1 = document.createElement('h1');
+          h1.textContent = mensagensMotivacionais[Math.floor(Math.random() * mensagensMotivacionais.length)];
+
+          canvas.append(h1);
+        },
+    });
+    ```
+
+2. Inicie o servidor de desenvolvimento se ele ainda não estiver em execução e ative o aplicativo na barra de ferramentas de desenvolvimento. Se o aplicativo estiver funcionando corretamente, você verá uma mensagem motivacional exibida no canto superior esquerdo da tela. (E é verdade!) 
+
+    No entanto, essa mensagem não será alterada quando o aplicativo for ativado e desativado, pois a função `init()` é chamada apenas uma vez quando o aplicativo é carregado.
+
+3. Para adicionar interatividade no lado do cliente ao seu aplicativo, adicione o argumento `app` e use `onAppToggled()` para selecionar uma nova mensagem aleatória sempre que o aplicativo da barra de ferramentas for ativado:
+
+    ```ts title="app.ts" ins=", app" ins={17-21}
+    import { defineToolbarApp } from "astro/toolbar";
+
+    const mensagensMotivacionais = [
+      "Você está indo muito bem!",
+      "Continue com o bom trabalho!",
+      "Você é incrível!",
+      "Você é uma estrela!",
+    ];
+
+    export default defineToolbarApp({
+        init(canvas, app) {
+          const h1 = document.createElement('h1');
+          h1.textContent = mensagensMotivacionais[Math.floor(Math.random() * mensagensMotivacionais.length)];
+          
+          canvas.append(h1);
+
+          // Exibe uma mensagem aleatória quando o aplicativo for acionado
+          app.onToggled(({ state }) => {
+            const novaMensagem = mensagensMotivacionais[Math.floor(Math.random() * mensagensMotivacionais.length)];
+            h1.textContent = novaMensagem;
+          });
+        },
+    });
+    ```
+
+4. Na visualização do navegador, ative e desative o aplicativo várias vezes. Com essa alteração, uma nova mensagem aleatória será selecionada toda vez que você ativar o aplicativo, proporcionando uma fonte infinita de motivação!
+</Steps>
+
+<ReadMore>Consulte a [documentação da API da Barra de Ferramentas de Desenvolvimento do Astro](/pt-br/reference/dev-toolbar-app-reference/) para obter mais informações sobre a criação de aplicativos da barra de ferramentas de desenvolvimento.</ReadMore>
+
+## Criando aplicativos com um framework de UI
+
+Frameworks de interface do usuário, como React, Vue ou Svelte, também podem ser usados para criar aplicativos de barra de ferramentas de desenvolvimento. Esses frameworks oferecem uma maneira mais declarativa de criar UIs e podem tornar seu código mais fácil de manter e ler.
+
+O mesmo aplicativo de barra de ferramentas de desenvolvimento motivacional criado em seu projeto Astro existente anteriormente nesta página com JavaScript pode ser criado usando um framework de UI (por exemplo, Preact). Dependendo da estrutura escolhida, você pode ou não precisar de uma etapa de build.
+
+:::note 
+Independentemente da sua escolha de criar o aplicativo da barra de ferramentas de desenvolvimento, usando JavaScript ou um framework de UI, você ainda precisará [criar a integração](#criando-a-integração-do-astro) que adiciona seu aplicativo à barra de ferramentas de desenvolvimento.
+:::
+
+### Sem uma etapa de build
+
+Se o seu framework permitir, você poderá criar um aplicativo de barra de ferramentas de desenvolvimento sem uma etapa de build. Por exemplo, você pode usar a função `h` do Preact para criar elementos e renderizá-los diretamente no ShadowRoot:
+
+```ts title="app.ts"
+import { defineToolbarApp } from "astro/toolbar";
+import { render, h } from "preact";
+
+const mensagensMotivacionais = [
+  "Você está indo muito bem!",
+  "Continue com o bom trabalho!",
+  "Você é incrível!",
+  "Você é uma estrela!",
+];
+
+export default defineToolbarApp({
+    init(canvas) {
+      const mensagem = mensagensMotivacionais[Math.floor(Math.random() * mensagensMotivacionais.length)];
+      render(h('h1', null, mensagem), canvas);
+    },
+});
+```
+
+Como alternativa, o [pacote `htm`](https://github.com/developit/htm) é uma boa opção para criar aplicativos da barra de ferramentas de desenvolvimento sem uma etapa de build, oferecendo integração nativa para React e Preact e suporte para outros frameworks:
+
+```ts title="app.ts" ins={3, 15}
+import { defineToolbarApp } from "astro/toolbar";
+import { render } from "preact";
+import { html } from 'htm/preact';
+
+const mensagensMotivacionais = [
+  "Você está indo muito bem!",
+  "Continue com o bom trabalho!",
+  "Você é incrível!",
+  "Você é uma estrela!",
+];
+
+export default defineToolbarApp({
+    init(canvas) {
+      const mensagem = mensagensMotivacionais[Math.floor(Math.random() * mensagensMotivacionais.length)];
+      render(html`<h1>${mensagem}</h1>`, canvas);
+    },
+});
+```
+
+Em ambos os casos, agora você pode iniciar seu projeto e ver a mensagem motivacional exibida no canto superior esquerdo da tela ao ativar o aplicativo.
+
+### Com uma etapa de build
+
+O Astro não pré-processa o código JSX em aplicativos da barra de ferramentas de desenvolvimento, portanto, é necessária uma etapa de build para usar componentes JSX em seu aplicativo da barra de ferramentas de desenvolvimento.
+
+As etapas a seguir usarão o TypeScript para fazer isso, mas qualquer outra ferramenta que compile código JSX também funcionará (por exemplo, Babel, Rollup e ESBuild).
+
+<Steps>
+1. Instale o TypeScript em seu projeto:
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+        ```shell
+        npm install --save-dev typescript
+        ```
+      </Fragment>
+      <Fragment slot="pnpm">
+        ```shell
+        pnpm install --save-dev typescript
+        ```
+      </Fragment>
+      <Fragment slot="yarn">
+        ```shell
+        yarn add --dev typescript
+        ```
+      </Fragment>
+    </PackageManagerTabs>
+
+2. Crie um arquivo `tsconfig.json` na raiz da pasta do seu aplicativo de barra de ferramentas com as configurações apropriadas para o build e para o framework que você está usando ([React](https://react-typescript-cheatsheet.netlify.app/docs/basic/setup), [Preact](https://preactjs.com/guide/v10/typescript) e [Solid](https://www.solidjs.com/guides/typescript)). Por exemplo, para o Preact:
+
+    ```json title="meu-app-toolbar/tsconfig.json"
+    {
+      "compilerOptions": {
+        "skipLibCheck": true,
+        "module": "NodeNext",
+        "jsx": "react-jsx",
+        "jsxImportSource": "preact",
+      }
+    }
+    ```
+
+3. Ajuste o `entrypoint` em sua integração para apontar para o arquivo compilado, lembrando que esse arquivo é relativo à raiz do seu projeto Astro:
+
+    ```ts title="minha-integracao.ts" ins="app.js"
+    addDevToolbarApp({
+      id: "meu-app-toolbar",
+      name: "Meu App da Toolbar",
+      icon: "🚀",
+      entrypoint: join(__dirname, "./app.js"),
+    });
+    ```
+
+4. Execute `tsc` para criar o aplicativo da barra de ferramentas ou `tsc --watch` para automaticamente fazer o build do aplicativo quando você fizer alterações.
+
+    Com essas mudanças, agora você pode renomear seu arquivo `app.ts` para `app.tsx` (ou `.jsx`) e usar a sintaxe JSX para criar seu aplicativo da barra de ferramentas de desenvolvimento:
+
+    ```tsx title="app.tsx"
+    import { defineToolbarApp } from "astro/toolbar";
+    import { render } from "preact";
+
+    const mensagensMotivacionais = [
+      "Você está indo muito bem!",
+      "Continue com o bom trabalho!",
+      "Você é incrível!",
+      "Você é uma estrela!",
+    ];
+
+    export default defineToolbarApp({
+        init(canvas) {
+          const mensagem = mensagensMotivacionais[Math.floor(Math.random() * mensagensMotivacionais.length)];
+          render(<h1>{mensagem}</h1>, canvas);
+        },
+    });
+    ```
+</Steps>
+
+Agora você deve ter todas as ferramentas necessárias para criar um aplicativo de barra de ferramentas de desenvolvimento usando um framework de UI de sua escolha!
