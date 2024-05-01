@@ -164,7 +164,6 @@ items: import.meta.glob('./blog/*.{md,mdx}'),
 无论何时在 XML 中使用 HTML 内容，我们建议使用像 [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) 这样的包，以确保你的内容被正确地清理、转义和编码。在这个过程中，这样的包可能也会移除一些无害的元素和属性，所以请确保验证输出并根据你的需要配置包。
 :::
 
-当使用内容集合时，使用标准的 Markdown 解析器如 [`markdown-it`](https://github.com/markdown-it/markdown-it) 渲染文章 `body` 并清理结果：
 在使用内容集合时，使用标准的 Markdown 解析器如 [`markdown-it`](https://github.com/markdown-it/markdown-it) 渲染文章 `body` 并清理结果，包括渲染内容所需的任何额外标签（例如 `<img>`）：
 
 ```js title="src/pages/rss.xml.js" ins={3, 4, 5, 16}
@@ -214,6 +213,30 @@ export function GET(context) {
 }
 ```
 
+## 移除尾部斜杠
+
+Astro 的 RSS 摘要默认生成带尾部斜杠的链接，无论你为 `trailingSlash` 配置了什么值。这意味着你的 RSS 链接可能与你的文章 url 不完全匹配。
+
+如果你在 `astro.config.mjs` 中设置了 `trailingSlash: "never"`，请在 `rss()` 助手中设置 `trailingSlash: false`，以使你的摘要与项目配置相匹配。
+
+```ts title="src/pages/rss.xml.js" ins={9}
+import rss from '@astrojs/rss';
+
+export function GET(context) {
+  const posts = Object.values(postImportResult);
+  return rss({
+    title: 'Buzz 的博客',
+    description: '一个谦逊的星际旅行宇航员向导',
+    site: context.site,
+    trailingSlash: false,
+    items: posts.map((post) => ({
+      link: post.url,
+      ...post.frontmatter,
+    })),
+  });
+}
+```
+
 ## 添加样式表
 
 你可以为 RSS 摘要添加样式表，以便在浏览器中查看文件时获得更好的用户体验。
@@ -237,7 +260,7 @@ rss({
 [RSS 自动发现](https://www.rssboard.org/rss-autodiscovery) 允许浏览器和其他软件自动从主 URL 找到网站的 RSS 摘要。
 要启用此功能，请在你的网站的 `head` 元素中添加带有以下属性的 `<link>` 标签：
 
-```html
+```jsx
 <link
     rel="alternate"
     type="application/rss+xml"
