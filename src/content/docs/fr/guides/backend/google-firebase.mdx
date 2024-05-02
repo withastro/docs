@@ -20,13 +20,13 @@ Consultez notre guide dédié au [déploiement sur Firebase hosting](/fr/guides/
 
 - Un [projet Firebase avec une application Web configurée](https://firebase.google.com/docs/web/setup).
 - Un projet astro avec [server-side rendering (SSR)](/fr/guides/server-side-rendering/) activé.
-- Des identifiants Firebase : vous aurez besoin de deux ensembles d'identifiants pour connecter Astro à Firebase :
-  - Les identifiants de l'application Web : ces informations d'identification seront utilisées par le côté client de votre application. Vous pouvez les trouver dans la console Firebase sous *Paramètres du projet > Général*. Faites défiler jusqu'à la section **Vos applications** et cliquez sur l'icône **Application Web**.
-  - Les informations d'identification du projet : ces informations d'identification seront utilisées par le côté serveur de votre application. Vous pouvez les générer dans la console Firebase sous *Paramètres du projet > Comptes de service > Firebase Admin SDK > Générer une nouvelle clé privée*.
+- Des identifiants Firebase : vous aurez besoin de deux ensembles d'identifiants pour connecter Astro à Firebase :
+  - Les identifiants de l'application Web : ces informations d'identification seront utilisées par le côté client de votre application. Vous pouvez les trouver dans la console Firebase sous *Paramètres du projet > Général*. Faites défiler jusqu'à la section **Vos applications** et cliquez sur l'icône **Application Web**.
+  - Les informations d'identification du projet : ces informations d'identification seront utilisées par le côté serveur de votre application. Vous pouvez les générer dans la console Firebase sous *Paramètres du projet > Comptes de service > Firebase Admin SDK > Générer une nouvelle clé privée*.
 
 ### Ajouter les informations d'identification Firebase
 
-Pour ajouter vos informations d'identification Firebase à Astro, créez un fichier « .env » à la racine de votre projet avec les variables suivantes :
+Pour ajouter vos informations d'identification Firebase à Astro, créez un fichier « .env » à la racine de votre projet avec les variables suivantes :
 
 ```ini title=".env"
 FIREBASE_PRIVATE_KEY_ID=YOUR_PRIVATE_KEY_ID
@@ -79,7 +79,7 @@ Votre projet devrait à présent inclure les fichiers suivants :
 
 ### Installer les dépendances
 
-Pour connecter Astro à Firebase, installez les paquets suivants à l'aide de la commande ci-dessous dans votre gestionnaire de paquets préféré :
+Pour connecter Astro à Firebase, installez les paquets suivants à l'aide de la commande ci-dessous dans votre gestionnaire de paquets préféré :
 
 - `firebase` - le SDK Firebase pour le côté client
 - `firebase-admin` - le SDK Firebase Admin pour le côté serveur
@@ -104,7 +104,7 @@ Pour connecter Astro à Firebase, installez les paquets suivants à l'aide de la
 
 Ensuite, créez un dossier nommé `firebase` dans le répertoire `src/ ` et ajoutez deux nouveaux fichiers à ce dossier : `client.ts` et `server.ts`.
 
-Dans `client.ts`, ajoutez le code suivant pour initialiser Firebase côté client à l'aide des informations d'identification de votre application Web et du paquet « firebase » :
+Dans `client.ts`, ajoutez le code suivant pour initialiser Firebase côté client à l'aide des informations d'identification de votre application Web et du paquet « firebase » :
 
 ```ts title="src/firebase/client.ts"
 import { initializeApp } from "firebase/app";
@@ -125,7 +125,7 @@ export const app = initializeApp(firebaseConfig);
 N'oubliez pas de remplacer l'objet `firebaseConfig` par vos propres informations d'identification d'application Web.
 :::
 
-Dans `server.ts`, ajoutez le code suivant pour initialiser Firebase côté serveur à l'aide des informations d'identification de votre projet et du package `firebase-admin` :
+Dans `server.ts`, ajoutez le code suivant pour initialiser Firebase côté serveur à l'aide des informations d'identification de votre projet et du package `firebase-admin` :
 
 ```ts title="src/firebase/server.ts"
 import type { ServiceAccount } from "firebase-admin";
@@ -176,13 +176,13 @@ N'oubliez pas de remplacer l'objet `serviceAccount` par vos propres informations
 
 ### Créer les points de terminaison du serveur d'authentification
 
-L'authentification Firebase dans Astro nécessite les trois [points de terminaison du serveur Astro](/fr/guides/endpoints/) suivants :
+L'authentification Firebase dans Astro nécessite les trois [points de terminaison du serveur Astro](/fr/guides/endpoints/) suivants :
 
 - `GET /api/auth/signin` - pour connecter un utilisateur
 - `GET /api/auth/signout` - pour déconnecter un utilisateur
 - `POST /api/auth/register` - pour enregistrer un utilisateur
 
-Créez trois points de terminaison liés à l'authentification dans un nouveau répertoire `src/pages/api/auth/` : `signin.ts`, `signout.ts` et `register.ts`.
+Créez trois points de terminaison liés à l'authentification dans un nouveau répertoire `src/pages/api/auth/` : `signin.ts`, `signout.ts` et `register.ts`.
 
 `signin.ts` contient le code nécessaire pour connecter un utilisateur via Firebase :
 
@@ -219,13 +219,17 @@ export const GET: APIRoute = async ({ request, cookies, redirect }) => {
     expiresIn: fiveDays,
   });
 
-  cookies.set("session", sessionCookie, {
+  cookies.set("__session", sessionCookie, {
     path: "/",
   });
 
   return redirect("/dashboard");
 };
 ```
+
+:::caution
+Firebase n'autorise que l'utilisation d'un seul cookie, qui doit être nommé `__session`](https://firebase.google.com/docs/hosting/manage-cache#using_cookies). Tout autre cookie envoyé par le client ne sera pas visible par votre application.
+:::
 
 :::note
 Il s'agit d'une implémentation de base du point de terminaison de connexion. Vous pouvez ajouter plus de logique à ce point de terminaison en fonction de vos besoins.
@@ -355,8 +359,8 @@ import Layout from "../layouts/Layout.astro";
 
 /* On vérifie si l'utilisateur est authentifié */
 const auth = getAuth(app);
-if (Astro.cookies.has("session")) {
-  const sessionCookie = Astro.cookies.get("session").value;
+if (Astro.cookies.has("__session")) {
+  const sessionCookie = Astro.cookies.get("__session").value;
   const decodedCookie = await auth.verifySessionCookie(sessionCookie);
   if (decodedCookie) {
     return Astro.redirect("/dashboard");
@@ -432,10 +436,10 @@ import Layout from "../layouts/Layout.astro";
 const auth = getAuth(app);
 
 /* Vérification de la session */
-if (!Astro.cookies.has("session")) {
+if (!Astro.cookies.has("__session")) {
   return Astro.redirect("/signin");
 }
-const sessionCookie = Astro.cookies.get("session").value;
+const sessionCookie = Astro.cookies.get("__session").value;
 const decodedCookie = await auth.verifySessionCookie(sessionCookie);
 const user = await auth.getUser(decodedCookie.uid);
 
@@ -461,7 +465,7 @@ Dans la console Firebase, accédez à la section **Authentification** et cliquez
 
 L'exemple ci-dessous utilise le fournisseur **Google**.
 
-Modifiez la page `signin.astro` pour ajouter :
+Modifiez la page `signin.astro` pour ajouter :
 - un bouton pour se connecter avec Google sous le formulaire existant
 - un écouteur d'événement sur le bouton pour gérer le processus de connexion dans le `<script>` existant.
 
@@ -473,8 +477,8 @@ import Layout from "../layouts/Layout.astro";
 
 /* Vérification de l'authentification de l'utilisateur */
 const auth = getAuth(app);
-if (Astro.cookies.has("session")) {
-  const sessionCookie = Astro.cookies.get("session").value;
+if (Astro.cookies.has("__session")) {
+  const sessionCookie = Astro.cookies.get("__session").value;
   const decodedCookie = await auth.verifySessionCookie(sessionCookie);
   if (decodedCookie) {
     return Astro.redirect("/dashboard");
@@ -564,22 +568,22 @@ Le endpoint vérifiera le token d'identification et créera un nouveau cookie de
 
 - Un projet Firebase avec une base de données Firestore. Vous pouvez suivre la [documentation Firebase pour créer un nouveau projet et configurer une base de données Firestore](https://firebase.google.com/docs/firestore/quickstart).
 
-Dans cette recette, la collection Firestore s'appellera **friends** et contiendra des documents avec les champs suivants :
+Dans cette recette, la collection Firestore s'appellera **friends** et contiendra des documents avec les champs suivants :
 
-- `id` : généré automatiquement par Firestore
-- `name` : un champ de type string
-- `age` : un champ de type number
+- `id` : généré automatiquement par Firestore
+- `name` : un champ de type string
+- `age` : un champ de type number
 - `isBestFriend` : un champ de type booléen
 
 ### Création des points de terminaison serveur
 
-Créez deux nouveaux fichiers dans un nouveau répertoire `src/pages/api/friends/` : `index.ts` et `[id].ts`. Ceux-ci créeront deux points de terminaison de serveur pour interagir avec la base de données Firestore des manières suivantes :
+Créez deux nouveaux fichiers dans un nouveau répertoire `src/pages/api/friends/` : `index.ts` et `[id].ts`. Ceux-ci créeront deux points de terminaison de serveur pour interagir avec la base de données Firestore des manières suivantes :
 
 - `POST /api/friends` : pour créer un nouveau document dans la collection "friends".
 - `POST /api/friends/:id` : pour mettre à jour un document dans la collection "friends".
 - `DELETE /api/friends/:id` : pour supprimer un document dans la collection "friends".
 
-`index.ts` contiendra le code pour créer un nouveau document dans la collection "friends" :
+`index.ts` contiendra le code pour créer un nouveau document dans la collection "friends" :
 
 ```ts title="src/pages/api/friends/index.ts"
 import type { APIRoute } from "astro";
@@ -682,7 +686,7 @@ export const DELETE: APIRoute = async ({ params, redirect }) => {
 Il s'agit d'une implémentation de point de terminaison `friends/:id`. Vous pouvez ajouter plus de logique à ce point de terminaison en fonction de vos besoins.
 :::
 
-Après avoir créé les points de terminaison du serveur pour Firestore, votre répertoire de projet doit maintenant inclure ces nouveaux fichiers :
+Après avoir créé les points de terminaison du serveur pour Firestore, votre répertoire de projet doit maintenant inclure ces nouveaux fichiers :
 
 <FileTree title="Project Structure">
 - src
@@ -886,7 +890,7 @@ const friends = friendsSnapshot.docs.map((doc) => ({
 
 ```
 
-Après avoir créé toutes les pages, vous devriez avoir la structure de fichiers suivante :
+Après avoir créé toutes les pages, vous devriez avoir la structure de fichiers suivante :
 
 <FileTree title="Project Structure">
 - src
