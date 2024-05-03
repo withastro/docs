@@ -24,17 +24,19 @@ interface AstroIntegration {
   hooks: {
     'astro:config:setup'?: (options: {
       config: AstroConfig;
-      command: 'dev' | 'build';
+      command: 'dev' | 'build' | 'preview';
       isRestart: boolean;
-      updateConfig: (newConfig: Record<string, any>) => void;
+      updateConfig: (newConfig: DeepPartial<AstroConfig>) => AstroConfig;
       addRenderer: (renderer: AstroRenderer) => void;
       addWatchFile: (path: URL | string) => void;
       addClientDirective: (directive: ClientDirectiveConfig) => void;
+      addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
+      addDevToolbarApp: (pluginEntrypoint: string) => void;
       injectScript: (stage: InjectedScriptStage, content: string) => void;
       injectRoute: ({ pattern: string, entrypoint: string }) => void;
       logger: AstroIntegrationLogger;
-    }) => void;
-    'astro:config:done'?: (options: { config: AstroConfig; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    }) => void | Promise<void>;
+    'astro:config:done'?: (options: { config: AstroConfig; setAdapter: (adapter: AstroAdapter) => void; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:server:setup'?: (options: { server: vite.ViteDevServer; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:server:start'?: (options: { address: AddressInfo; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:server:done'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
@@ -46,8 +48,8 @@ interface AstroIntegration {
       logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
     'astro:build:generated'?: (options: { dir: URL; logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:build:ssr'?: (options: { 
-        manifest: SerializedSSRManifestm; 
+    'astro:build:ssr'?: (options: {
+        manifest: SerializedSSRManifest;
         entryPoints: Map<RouteData, URL>;
         logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
@@ -69,16 +71,18 @@ interface AstroIntegration {
 ```ts
 'astro:config:setup'?: (options: {
   config: AstroConfig;
-  command: 'dev' | 'build';
+  command: 'dev' | 'build' | 'preview';
   isRestart: boolean;
-  updateConfig: (newConfig: Record<string, any>) => void;
+  updateConfig: (newConfig: DeepPartial<AstroConfig>) => AstroConfig;
   addRenderer: (renderer: AstroRenderer) => void;
   addClientDirective: (directive: ClientDirectiveConfig) => void;
+  addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
+  addDevToolbarApp: (pluginEntrypoint: string) => void;
   addWatchFile: (path: URL | string) => void;
   injectScript: (stage: InjectedScriptStage, content: string) => void;
   injectRoute: ({ pattern: string, entrypoint: string }) => void;
   logger: AstroIntegrationLogger;
-}) => void;
+}) => void | Promise<void>;
 ```
 
 #### Opção `config`
@@ -89,10 +93,11 @@ Uma cópia de somente leitura da [configuração Astro](/pt-br/reference/configu
 
 #### Opção `command`
 
-**Tipo:** `'dev' / 'build'`
+**Tipo:** `'dev' | 'build' | 'preview'`
 
-- `dev` - Projeto é executado a partir de `astro dev` ou `astro preview`
-- `build` - Projeto é executado a partir de `astro build`
+- `dev` - O projeto é executado com `astro dev`
+- `build` - O projeto é executado com `astro build`
+- `preview` - O projeto é executado com `astro preview`
 
 #### Opção `isRestart`
 
@@ -102,7 +107,7 @@ Uma cópia de somente leitura da [configuração Astro](/pt-br/reference/configu
 
 #### Opção `updateConfig`
 
-**Tipo:** `(newConfig: Record<string, any>) => void;`
+**Tipo:** `(newConfig: DeepPartial<AstroConfig>) => AstroConfig;`
 
 Uma função de callback para atualizar a [configuração Astro](/pt-br/reference/configuration-reference/) suprida pelo usuário. Qualquer configuração que você providenciar **será mesclada com a configuração do usuário + atualizações da configuração de outras integrações**, então você está livre para omitir as chaves!
 
@@ -151,7 +156,7 @@ addWatchFile(new URL('./tailwind.config.js', config.root));
 
 #### Opção `addClientDirective`
 
-<Since v="2.6.0" />
+<p><Since v="2.6.0" /></p>
 
 **Tipo:** `(directive:` [`ClientDirectiveConfig`](https://github.com/withastro/astro/blob/00327c213f74627ac9ca1dec774efa5bf71e9375/packages/astro/src/%40types/astro.ts#L1872-L1875) `) => void;`
 
@@ -214,6 +219,95 @@ declare module 'astro' {
 }
 ```
 
+#### Opção `addDevToolbarApp`
+
+<p><Since v="3.4.0" /></p>
+
+**Tipo:** `(pluginEntrypoint: string) => void;`
+
+Adiciona um [aplicativo de barra de ferramentas de desenvolvimento personalizado](/pt-br/reference/dev-toolbar-app-reference/).
+
+Exemplo de uso:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import integracaoDevToolbar from './app-dev-toolbar-astro/integracao.js'
+
+// https://astro.build/config
+export default defineConfig({
+  integrations: [
+    integracaoDevToolbar()
+  ],
+});
+```
+
+```js title="app-dev-toolbar-astro/integracao.js"
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "app-dev-toolbar",
+  hooks: {
+    "astro:config:setup": ({ addDevToolbarApp }) => {
+      addDevToolbarApp("./app-dev-toolbar-astro/plugin.js");
+    },
+  },
+});
+```
+
+```js title="app-dev-toolbar-astro/plugin.js"
+
+/**
+ * @type {import('astro').DevToolbarApp}
+ */
+export default {
+  id: "meu-plugin",
+  name: "Meu Plugin",
+  icon: "<svg>...</svg>",
+  init() {
+    console.log("Sou um aplicativo de barra de ferramentas de desenvolvimento!")
+  },
+};
+```
+#### Opção `addMiddleware`
+
+<p><Since v="3.5.0" /></p>
+
+**Tipo:** `(middleware:` [`AstroIntegrationMiddleware`](https://github.com/withastro/astro/blob/852ac0f75dfca1b2602e9cdbfa0447d9998e2449/packages/astro/src/%40types/astro.ts#L2124-L2127) `) => void;`
+
+Adiciona um [middleware](/pt-br/guides/middleware/) para ser executado em cada requisição. Recebe o módulo `entrypoint` que contém o middleware e um `order` para especificar se ele deve ser executado antes (`pre`) de outro middleware ou depois (`post`).
+
+```js title="@meu-pacote/integracao.js"
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "meu-pacote-de-middleware",
+  hooks: {
+    "astro:config:setup": ({ addMiddleware }) => {
+        addMiddleware({
+          entrypoint: '@mew-pacote/middleware',
+          order: 'pre'
+        });
+    },
+  },
+});
+```
+
+O middleware é definido em um pacote com uma função `onRequest`, como acontece com o middleware definido pelo usuário.
+
+```js title="@meu-pacote/middleware.js"
+import { defineMiddleware } from 'astro:middleware';
+
+export const onRequest = defineMiddleware(async (context, request) => {
+  if(context.url.pathname === '/algum-caminho-de-teste') {
+    return Response.json({
+      ok: true
+    });
+  }
+});
+```
+
 #### Opção `injectRoute`
 
 **Tipo:** `({ pattern: string, entrypoint: string }) => void;`
@@ -244,6 +338,16 @@ injectRoute({
   pattern: '/painel-chique',
   entrypoint: '@chique/painel/painel.astro'
 });
+```
+
+Ao publicar seu pacote (`@chique/painel`, neste caso) no npm, você deve exportar `painel.astro` em seu `package.json`:
+
+```json title="package.json" "exports"
+{
+  "name": "@chique/painel",
+  // ...
+  "exports": { "./painel.astro": "./painel.astro" }
+}
 ```
 
 #### Opção `injectScript` 
@@ -613,3 +717,8 @@ integrations: [
   presetExemplo()
 ]
 ```
+
+## Recursos da comunidade
+
+- [Crie suas próprias integrações do Astro](https://www.freecodecamp.org/news/how-to-use-the-astro-ui-framework/#chapter-8-build-your-own-astro-integrations-1) - por Emmanuel Ohans no FreeCodeCamp
+- [Template de Integração do Astro](https://github.com/florian-lefebvre/astro-integration-template) - por Florian Lefebvre no GitHub
