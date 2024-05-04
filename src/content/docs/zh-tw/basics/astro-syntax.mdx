@@ -1,0 +1,174 @@
+---
+title: Astro 語法
+description: .astro 元件語法簡介。
+i18nReady: true
+---
+
+**如果你知道 HTML，那麼你離撰寫 Astro 元件已經不遠了。**
+
+Astro 元件語法是 HTML 的超集合，[寫過 HTML 或 JSX 的人會感到熟悉](#astro-和-jsx-的差異)，而且它還支援匯入元件與 JavaScript 表達式。
+
+
+## 類 JSX 表達式
+
+你可以在 Astro 元件內兩道圍欄（`---`）中的 frontmatter 元件腳本定義本地 JavaScript 變數，接著使用類 JSX 表達式將這些變數注入到元件的 HTML 模板！
+
+:::note[動態（dynamic）vs 互動式（reactive）]
+透過這種方式，frontmatter 可以計算並包含**動態**值。一旦包含其中，這些值便不再是**互動式**，之後也無法改變。Astro 元件這種模板只會在算繪階段執行一次而已。
+
+詳見：[Astro 和 JSX 的差異](#astro-和-jsx-的差異)。
+:::
+
+### 變數
+
+本地變數可以透過大括弧（curly braces）加入 HTML：
+
+```astro title="src/components/Variables.astro" "{name}"
+---
+const name = "Astro";
+---
+<div>
+  <h1>Hello {name}!</h1>  <!-- 會輸入成 <h1>Hello Astro!</h1> -->
+</div>
+```
+
+### 動態屬性
+
+本地變數也能透過大括弧傳遞屬性值給 HTML 元素與元件：
+
+```astro title="src/components/DynamicAttributes.astro" "{name}" "${name}"
+---
+const name = "Astro";
+---
+<h1 class={name}>支援屬性表達式</h1>
+
+<MyComponent templateLiteralNameAttribute={`MyNameIs${name}`} />
+```
+
+:::caution
+HTML 屬性會轉換成字串，因此無法傳遞函式和物件給 HTML 元素。
+舉例來說，在 Astro 元件裡，你不能指派 event handler 給 HTML 元素：
+
+```astro title="dont-do-this.astro"
+---
+function handleClick () {
+    console.log("button clicked!");
+}
+---
+<!-- ❌ 無法這麼做！❌ -->
+<button onClick={handleClick}>點選這個按鈕，什麼事也不會發生！</button>
+```
+
+正確的做法是透過客戶端 JavaScript 建立 event handler，如同原生 JavaScript 寫法：
+
+```astro title="do-this-instead.astro"
+---
+---
+<button id="button">點選這個按鈕</button>
+<script>
+  function handleClick () {
+    console.log("button clicked!");
+  }
+  document.getElementById("button").addEventListener("click", handleClick);
+</script>
+```
+:::
+
+### 動態 HTML
+
+類 JSX 函式可以使用本地變數動態產生 HTML 元素：
+
+```astro title="src/components/DynamicHtml.astro" "{item}"
+---
+const items = ["Dog", "Cat", "Platypus"];
+---
+<ul>
+  {items.map((item) => (
+    <li>{item}</li>
+  ))}
+</ul>
+```
+
+使用 JSX 邏輯運算子和三元表達式，Astro 能依照條件顯示 HTML。
+
+```astro title="src/components/ConditionalHtml.astro" "visible"
+---
+const visible = true;
+---
+{visible && <p>Show me!</p>}
+
+{visible ? <p>Show me!</p> : <p>Else show me!</p>}
+```
+
+### 動態標籤
+
+把變數設為 HTML 標籤名稱或要匯入的元件，便可使用動態標籤：
+
+```astro title="src/components/DynamicTags.astro" /Element|(?<!My)Component/
+---
+import MyComponent from "./MyComponent.astro";
+const Element = 'div'
+const Component = MyComponent;
+---
+<Element>Hello!</Element> <!-- 算繪成 <div>Hello!</div> -->
+<Component /> <!-- 算繪成 <MyComponent /> -->
+```
+
+使用動態標籤時：
+
+- **變數名稱首字要大寫**。舉例來說：使用 `Element` 而不是 `element`。否則，Astro 會嘗試將變數名稱算繪成一般的 HTML 標籤。
+
+- **不支援水合作用指令（hydration directive）**。使用 [`client:*` 水合作用指令](/zh-tw/guides/framework-components/#hydrating-interactive-components)時，Astro 需要事先知道哪個元件會被打包進正式版本，因此這種情況下不適用動態標籤。
+
+### Fragment
+
+Astro 支援 `<Fragment> </Fragment>` 或簡寫 `<> </>`。
+
+有了 Fragment，我們在使用 [`set:*` 指令](/zh-tw/reference/directives-reference/#sethtml) 時便不需要額外包一層元素，如下所示：
+
+```astro title="src/components/SetHtml.astro" "Fragment"
+---
+const htmlString = '<p>原始 HTML 內容</p>';
+---
+<Fragment set:html={htmlString} />
+```
+
+### Astro 和 JSX 的差異
+
+Astro 元件語法是 HTML 的超集合，寫過 HTML 或 JSX 的人會感到熟悉。但 `.astro` 檔案和 JSX 仍有些關鍵差異。
+
+#### 屬性
+
+所有屬性在 Astro 都用標準的 `kebab-case` 格式，而 JSX 則使用 `camelCase`。`class` 對 Astro 來說也一樣，然而 React 卻不支援這點。
+
+```jsx del={1} ins={2} title="example.astro"
+<div className="box" dataValue="3" />
+<div class="box" data-value="3" />
+```
+
+#### 複數元素
+
+與 JavaScript 或 JSX 不同，Astro 元件模板能算繪多個元素，不需要額外包一層 `<div>` 或 `<>`。
+
+```astro title="src/components/RootElements.astro"
+---
+// 有多個元素的模板
+---
+<p>不需要用容器把多個元素包起來。</p>
+<p>Astro 模板支援複數根元素。</p>
+```
+
+#### 註解
+
+在 Astro 可以使用標準的 HTML 註解或 JavaScript 風格的註解。
+
+```astro title="example.astro"
+---
+---
+<!-- HTML 註解語法在 .astro 檔案是合法的 -->
+{/* JS 註解語法也同樣合法 */}
+```
+
+:::caution
+HTML 風格的註解會出現在瀏覽器的 DOM，而 JS 風格的註解則不會。如果需要留下待辦註解或其他開發用的訊息，建議使用 JavaScript 風格的註解。
+:::

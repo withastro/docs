@@ -6,7 +6,7 @@ export default NavDictionary({
 	install: 'Instalacja',
 	'editor-setup': 'Konfiguracja edytora',
 	'guides/migrate-to-astro': 'Migracja do Astro',
-	'guides/upgrade-to/v4': 'Aktualizacja do Astro 4.0',
+
 	// 'guides/upgrade-to/v3': 'Aktualizacja do Astro 3.0',
 	//migrate: 'Przewodnik migracji',
 	tutorials: 'Samouczki',
