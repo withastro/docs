@@ -1,83 +1,56 @@
 ---
-title: Renderização no lado do Servidor
+title: Adaptadores de Renderização sob Demanda
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
-import Since from '~/components/Since.astro';
+import RecipeLinks from '~/components/RecipeLinks.astro';
+import IntegrationsNav from '~/components/IntegrationsNav.astro';
 
-Renderização no lado do Servidor (SSR), se refere a gerar páginas HTML no servidor sob-demanda e então enviar elas para o cliente.
+O Astro permite que você escolha **renderização sob demanda** para algumas ou todas as suas páginas e endpoints. Isso também é conhecido como **renderização no lado do servidor (SSR)**: gerar páginas HTML no servidor quando solicitadas e enviá-las ao cliente. Um **adaptador** é usado para executar seu projeto no servidor e processar essas solicitações.
 
-SSR te permite:
-- Implementar sessões para um estado de login no seu app.
-- Renderizar dados de uma API chamada dinamicamente com `fetch`.
-- Fazer deploy do seu site em uma hospedagem utilizando um **adaptador**.
+Essa renderização sob demanda lhe permite:
+- Implementar sessões para um estado de login na sua aplicação.
+- Renderizar dados de uma API chamada dinamicamente com `fetch()`.
+- Fazer deploy do seu site em uma hospedagem utilizando um *adaptador*.
 
-Considere habilitar a renderização no lado do servidor em seu projeto do Astro se você precisa do seguinte:
+Considere ativar a renderização no servidor sob demanda em seu projeto Astro se precisar do seguinte:
 
-- **Endpoints de API**: SSR permite você criar páginas específicas que funcionam como endpoints de API para tarefas como acesso a banco de dados, autenticação e autorização enquanto mantém dados sensíveis ocultos do cliente.
+- **Endpoints de API**: Criar páginas específicas que funcionam como endpoints de API para tarefas como acesso a banco de dados, autenticação e autorização enquanto mantém dados sensíveis ocultos do cliente.
 
-- **Páginas protegidas**: Se você precisa restringir o acesso a uma página baseado nas permissões do usuário, você pode habilitar SSR para lidar com o acesso do usuário no servidor.
+- **Páginas protegidas**: Restringir o acesso a uma página com base nos privilégios do usuário, gerenciando o acesso do usuário no servidor.
 
-- **Conteúdo que atualiza frequentemente**: Habilitando SSR faz com que você gere páginas individuais sem exigir uma reconstrução estática no seu site. Isso é útil quando o conteúdo de uma página atualiza frequentemente.
+- **Conteúdo que atualiza frequentemente**: Gerar páginas individuais sem exigir um novo build estático do seu site. Isso é útil quando o conteúdo de uma página é atualizado com frequência.
 
-## Habilitando o SSR em seu Projeto
+## Adaptadores oficiais
 
-Para habilitar funcionalidades do SSR em deploys de produção, atualize sua configuração `output` para `'server'` ou `'hybrid'` (introduzido na **v2.6.0**). Ambos os modos controlam quais [páginas](/pt-br/basics/astro-pages/) ou [endpoints do servidor](/pt-br/guides/endpoints/#endpoints-do-servidor-rotas-de-api) devem ser renderizadas pelo servidor. Cada opção de configuração possui um comportamento padrão, e permite que rotas individuais optem por sair do comportamento padrão de acordo:
+O Astro mantém adaptadores oficiais para [Node.js](https://nodejs.org/), [Vercel](https://vercel.com/), [Netlify](https://www.netlify.com/) e [Cloudflare](https://www.cloudflare.com/pt-br/).
 
-- __`output: 'server'`__: Renderizado pelo servidor por padrão. Use esta opção quando a maior parte ou todo o seu site deve ser renderizado pelo servidor. Qualquer página individual ou endpoint pode *optar em* ser pré-renderizada.
+Encontre ainda mais [adaptadores mantidos pela comunidade](https://astro.build/integrations/?search=&categories%5B%5D=adapters) (por exemplo, Deno, SST e AWS) em nosso diretório de integrações.
 
-```js ins={3,6,7}
-  // astro.config.mjs
-  import { defineConfig } from 'astro/config';
-  import nodejs from '@astrojs/node';
+<IntegrationsNav category="adapter"/>
 
-  export default defineConfig({
-    output: 'server',
-    adapter: nodejs(),
-  });
-  ```
+## Habilitando a renderização no servidor sob demanda
 
-- __`output: 'hybrid'`__: Pré-renderiza para HTML por padrão. Use este opção quando a maior parte do seu site deve ser estático. Qualquer página individual ou endpoint pode *optar em não* ser pré-renderizada.
+Os dois modos de saída de renderização sob demanda do Astro (`server` e `hybrid`) permitem que você aproveite a performance do site estático ao pré-renderizar rotas individuais sempre que possível, quer você tenha uma aplicação totalmente dinâmica ou um site majoritariamente estático que precise de renderização sob demanda apenas para rotas selecionadas.
 
-Você pode então optar por sair do comportamento de renderização padrão com uma declaração de exportação em qualquer página ou rota:
+Para decidir qual deles usar em seu projeto, escolha a opção de `output` que representa como a **maioria** de suas páginas e rotas será renderizada:
 
-```astro title="src/pages/minhapagina.astro" {2}
----
-export const prerender = true;
-// ...
----
-<html>
-  <!-- Página estática, pré-renderizada aqui... -->
-</html>
-```
-Veja mais exemplos de uso de como [configurar rotas individuais](#configurando-rotas-individuais)
+- __`output: 'server'`__: Renderizado sob demanda por padrão. Use essa opção quando a maior parte ou todo o seu site ou aplicativo precisar ser renderizado pelo servidor quando solicitado. Qualquer página individual ou endpoint pode *ativar* a pré-renderização.
+- __`output: 'hybrid'`__: Pré-renderizado para HTML por padrão. Use essa opção quando a maior parte do seu site deve ser estática. Qualquer página individual ou endpoint pode *desativar* a pré-renderização.
 
-### Convertendo um site estático para renderização híbrida
+Como o servidor precisará gerar pelo menos algumas páginas sob demanda, esses dois modos exigem que você [adicione um adaptador](#adicionando-um-adaptador) para executar as funções do servidor.
 
-Para converter um site Astro estático existente para permitir renderização híbrida, mude `output` para `'hybrid'` e adicione um adaptador:
+### Adicionando um adaptador
 
-```js ins={2,5-8} title="astro.config.mjs"
-import { defineConfig } from 'astro/config';
-import nodejs from '@astrojs/node';
+Para fazer o deploy de um projeto no modo `server` ou `hybrid`, você precisa adicionar um **adaptador**. Isso ocorre porque esses dois modos exigem um _runtime_ de servidor: o ambiente que executa o código no servidor para gerar páginas quando elas são solicitadas. Cada adaptador permite que o Astro produza um script que executa seu projeto em um runtime específico, como Vercel, Netlify ou Cloudflare.
 
-export default defineConfig({
-  adapter: nodejs({
-    mode: 'middleware' // or 'standalone'
-  }),
-  output: 'hybrid',
-});
-```
-
-### Adicionando um Adaptador
-
-Quando for a hora de fazer deploy de um projeto SSR, você também vai precisar adicionar um adaptador. Isso porque SSR precisa de um _runtime_ do servidor: o ambiente que executa o seu código no lado do servidor. Cada adaptador permite que o Astro retorne um script que executa seu projeto em um runtime específico.
-
-Você pode encontrar ambos [adaptadores SSR, oficias e da comunidade, no nosso diretório de integrações](https://astro.build/integrations/?search=&categories%5B%5D=adapters)
-
+Você pode encontrar os [adaptadores oficiais e da comunidade em nosso diretório de integrações](https://astro.build/integrations/?search=&categories%5B%5D=adapters). Escolha o que corresponde ao seu [ambiente de deploy](/pt-br/guides/deploy/).
 
 #### Instalação com `astro add`
 
-Você pode adicionar qualquer um dos [adaptadores de integração oficiais do Astro](/pt-br/guides/integrations-guide/) com o comando `astro add`. Ele irá instalar o adaptador e fazer as mudanças apropriadas em seu arquivo `astro.config.mjs` em uma só etapa. Por exemplo, para instalar o adaptador para Vercel, execute:
+Você pode adicionar qualquer um dos [adaptadores oficiais mantidos pelo Astro](/pt-br/guides/integrations-guide/#integrações-oficiais) com o comando `astro add`. Ele irá instalar o adaptador e fazer as mudanças apropriadas em seu arquivo `astro.config.mjs` em uma só etapa.
+
+Por exemplo, para instalar o adaptador para Vercel, execute:
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -97,54 +70,68 @@ Você pode adicionar qualquer um dos [adaptadores de integração oficiais do As
   </Fragment>
 </PackageManagerTabs>
 
-#### Instalação Manual
+#### Instalação manual
 
-Você também pode adicionar um adaptador manualmente instalando o pacote e atualizando `astro.config.mjs` sozinho. (Veja os links acima para instruções especificadas de cada adaptador para completar as etapas necessárias para habilitar SSR.) Utilizando `meu-adaptador` como um exemplo, as instruções vão se parecer com isso:
+Você também pode adicionar um adaptador manualmente, instalando o pacote e atualizando o arquivo `astro.config.mjs` por conta própria.
+
+Por exemplo, para instalar o adaptador para Vercel manualmente:
 
 1. Instale o adaptador nas dependências do seu projetado utilizando seu gerenciador de pacotes preferido:
 
-  <PackageManagerTabs>
-    <Fragment slot="npm">
-    ```shell
-    npx astro add netlify
-    ```
-    </Fragment>
-    <Fragment slot="pnpm">
-    ```shell
-    pnpm astro add netlify
-    ```
-    </Fragment>
-    <Fragment slot="yarn">
-    ```shell
-    yarn astro add netlify
-    ```
-    </Fragment>
-  </PackageManagerTabs>
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm install @astrojs/vercel
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm add @astrojs/vercel
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn add @astrojs/vercel
+      ```
+      </Fragment>
+    </PackageManagerTabs>
 
-1. [Adicione o adaptador](/pt-br/reference/configuration-reference/#adapter) no import e default export do seu arquivo `astro.config.mjs`
+2. [Adicione o adaptador](/pt-br/reference/configuration-reference/#adapter) no import e default export do seu arquivo `astro.config.mjs`, juntamente com o modo de `output` desejado:
 
-    ```js ins={3,6-7}
+    ```js ins={3,7} {6}
     // astro.config.mjs
     import { defineConfig } from 'astro/config';
-    import meuAdaptador from '@astrojs/meu-adaptador';
+    import vercel from '@astrojs/vercel/serverless';
 
     export default defineConfig({
       output: 'server',
-      adapter: meuAdaptador(),
+      adapter: vercel(),
     });
     ```
 
-## Funcionalidades
+    Observe que adaptadores diferentes também podem ter definições de configuração diferentes. Leia a documentação de cada adaptador e aplique as opções de configuração necessárias ao adaptador escolhido no arquivo `astro.config.mjs`.
 
-O Astro continuará sendo um gerador de sites estáticos por padrão. Porém, quando você habilita a renderização no lado do servidor e adiciona um adaptador, algumas novas funcionalidades são disponibilizadas a você.
+### Configurando `server` ou `hybrid`
 
-### Configurando rotas individuais
+Para ativar a renderização sob demanda, você deve atualizar sua configuração de `output` para um dos dois modos de renderização no servidor.
 
-Ambos os modos `server` e `hybrid` permitem páginas e endpoints renderizados pelo servidor e vão renderizar todas as páginas de acordo com seu comportamento padrão. Entretanto, ambos os modos permitem que você marque uma página individual para optar em sair desse comportamento padrão.
+Por exemplo, para configurar uma aplicação altamente dinâmica em que cada página é renderizada sob demanda por padrão, adicione `output: 'server'` à sua configuração do Astro:
 
-### Optando por sair da renderização pelo servidor
+```js ins={5} title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import node from "@astrojs/node";
 
-Para uma aplicação majoritariamente renderizada pelo servidor configurada como `output: server`, adicione `export const prerender = true` para qualquer página ou rota para pré-renderizar uma página ou endpoint:
+export default defineConfig({
+  output: 'server',
+  adapter: node({
+    mode: "standalone"
+  })
+});
+```
+
+### Ativando a pré-renderização no modo `server`
+
+Para uma aplicação renderizada principalmente no servidor configurada como `output: server`, adicione `export const prerender = true` a qualquer página ou rota para pré-renderizar uma página estática ou um endpoint:
 
 ```astro title="src/pages/minhapagina.astro" {2}
 ---
@@ -152,7 +139,7 @@ export const prerender = true;
 // ...
 ---
 <html>
-  <!-- Página estática, pré-renderizada aqui... -->
+  <!-- Página estática e pré-renderizada aqui... -->
 </html>
 ```
 
@@ -163,73 +150,56 @@ title: 'Minha página'
 ---
 export const prerender = true;
 
-# Esta é minha página estática, pré-renderizada
+# Esta é minha página estática e pré-renderizada
 ```
-
-E para um endpoint:
 
 ```js title="src/pages/meuendpoint.js" {1}
 export const prerender = true;
 
 export async function GET() {
-  return {
-    body: JSON.stringify({ message: `Este é meu endpoint estático` }),
-  };
+  return new Response(
+    JSON.stringify({
+      message: `Este é meu endpoint estático`,
+    }),
+  );
 }
 ```
 
-### Optando por sair da pré-renderização
+### Desativando a pré-renderização no modo `hybrid`
 
-Para um aplicação majoritariamente estática configurada como `output: hybrid`, adicione `export const prerender = false` a qualquer arquivo que deve ser renderizado pelo servidor:
+Para um site predominantemente estático configurado como `output: hybrid`, adicione `export const prerender = false` a todos os arquivos que devem ser renderizados pelo servidor sob demanda:
 
 ```js title="src/pages/numeroaleatorio.js" {1}
 export const prerender = false;
 
 export async function GET() {
-  let numero = Math.random();
-  return {
-    body: JSON.stringify({ numero, mensagem: `Aqui está um número aleatório: ${numero}` }),
-  };
+  let number = Math.random();
+  return new Response(
+    JSON.stringify({
+      number,
+      message: `Here's a random number: ${number}`,
+    }),
+  );
 }
 ```
 
-### `Astro.request.headers`
+## Recursos de renderização sob demanda
 
-Os cabeçalhos de uma requisição estão disponíveis em `Astro.request.headers`, que funciona como o [`Request.headers`](https://developer.mozilla.org/en-US/docs/Web/API/Request/headers) do navegador. Ele é um objeto [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers), parecido com um Map, onde você pode pegar cabeçalhos como o cookie.
+### Streaming de HTML
 
-```astro title="src/pages/index.astro" {2}
----
-const cookie = Astro.request.headers.get('cookie');
-// ...
----
-<html>
-  <!-- Página aqui... -->
-</html>
-```
+Com o streaming de HTML, um documento é dividido em partes, enviado pela rede em ordem e renderizado na página nessa ordem. No modo `server` ou `hybrid`, o Astro usa o streaming de HTML para enviar cada componente ao navegador à medida que ele os renderiza. Isso garante que o usuário veja o HTML o mais rápido possível, embora as condições da rede possam fazer com que documentos grandes sejam baixados lentamente e a espera pela obtenção de dados possa bloquear a renderização da página.
 
-### `Astro.request.method`
-
-O método HTTP usado na requisição está disponível em `Astro.request.method`, que funciona como o [`Request.method`](https://developer.mozilla.org/en-US/docs/Web/API/Request/method) do navegador. Ele retorna a representação em string do método HTTP usado na requisição.
-
-```astro title="src/pages/index.astro"
----
-console.log(Astro.request.method) // GET (quando navegado para cá no navegador)
----
-```
+<RecipeLinks slugs={["pt-br/recipes/streaming-improve-page-performance"]}/>
 
 :::caution
-As funcionalidades abaixo estão disponíveis apenas em páginas. (Você não pode usá-las dentro de componentes, incluindo componentes de layout)
-
-Isso é por que essas funcionalidades modificam os [Response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header), que não podem ser modificados após serem enviados ao navegador. No modo SSR, Astro utiliza streaming de HTML para enviar cada componente ao navegador enquanto são renderizados. Isso permite que o usuário veja o HTML o mais rápido o possível, mas também significa que no momento em que o Astro executar o código de seu componente, ele já terá enviado os Response headers.
+Os recursos que modificam os [Response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header) só estão disponíveis no **nível de página** (você não pode usá-los dentro de componentes, incluindo componentes de layout). No momento em que o Astro executa o código do seu componente, ele já enviou os Responde headers e eles não podem ser modificados.
 :::
 
-### `Astro.cookies`
+### Cookies
 
-Este é um utilitário para ler e modificar um único cookie. Ele te permite verificar, definir, pegar e deletar um cookie.
+Nos modos `server` e `hybrid`, uma página ou endpoint de API pode verificar, definir, obter e excluir cookies.
 
-Para mais detalhes sobre [`Astro.cookies` e o tipo `AstroCookie`](/pt-br/reference/api-reference/#astrocookies) na referência da API.
-
-O exemplo abaixo atualiza o valor de um cookie da contagem de visualizações da página.
+O exemplo abaixo atualiza o valor de um cookie para um contador de visualizações de página:
 
 ```astro title="src/pages/index.astro" {4,5,9}
 ---
@@ -241,16 +211,19 @@ if (Astro.cookies.has("contagem")) {
 }
 
 Astro.cookies.set("contagem", contagem)
-
 ---
 <html>
   <h1>Contagem = {contagem}</h1>
 </html>
 ```
 
+Veja mais detalhes sobre [`Astro.cookies` e o tipo `AstroCookie`](/pt-br/reference/api-reference/#astrocookies) na referência da API.
+
 ### `Response`
 
-Você também consegue retornar uma [Response](https://developer.mozilla.org/pt-BR/docs/Web/API/Response) de qualquer página. Você talvez faça isso para retornar um 404 em uma página dinâmica após verificar um id em um banco de dados.
+Você também consegue retornar uma [Response](https://developer.mozilla.org/pt-BR/docs/Web/API/Response) de qualquer página usando a renderização sob demanda.
+
+O exemplo abaixo retorna um erro 404 em uma página dinâmica depois de procurar um ID no banco de dados:
 
 ```astro title="src/pages/[id].astro" {8-11}
 ---
@@ -271,108 +244,42 @@ if (!produto) {
 </html>
 ```
 
-### Endpoints do Servidor
+### `Request`
 
-Um endpoint do servidor, também conhecido como **rota de API**, é um arquivo `.js` ou `.ts` dentro da pasta `src/pages`.
-A função recebe um [Request](https://developer.mozilla.org/pt-BR/docs/Web/API/Request) e retorna uma [Response](https://developer.mozilla.org/pt-BR/docs/Web/API/Response). Sendo uma poderosa funcionalidade de SSR, rotas de API são capazes de executar código no lado do servidor de forma segura. Para aprender mais, veja nosso [Guia de Endpoints](/pt-br/guides/endpoints/#endpoints-do-servidor-rotas-de-api).
+O `Astro.request` é um objeto [Request](https://developer.mozilla.org/pt-BR/docs/Web/API/Request) padrão. Ele pode ser usado para obter a `url`, `headers`, `method` e até mesmo o corpo da requisição.
 
-### Streaming
+Nos modos `server` e `hybrid`, você pode acessar informações adicionais desse objeto para páginas que não são geradas estaticamente.
 
-Os navegadores nativamente suportam streaming HTTP, onde um documento é quebrado em pedaços, enviado para a rede em ordem, e renderizado na página naquela ordem.
+#### `Astro.request.headers`
 
-Durante esse processo, os navegadores consomem o HTML incrementalmente: analisando, renderizando para o DOM e desenhando. Isso acontece independente de você fazer stream do seu HTML intencionalmente ou não. As condições da rede podem causar que documentos grandes sejam baixados lentamente, e esperar por requisições de dados pode bloquear a renderização da página.
+Os cabeçalhos da requisição estão disponíveis em `Astro.request.headers`. Isso funciona como o [Request.headers](https://developer.mozilla.org/en-US/docs/Web/API/Request/headers) do navegador. É um objeto [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers) no qual você pode recuperar cabeçalhos, como o cookie.
 
-
-### Usando streaming para melhorar o desempenho da página
-
-A página a seguir espera por alguns dados no seu frontmatter usando `await`. O Astro vai esperar até que todas as chamadas `fetch` tenham resolvido antes de enviar qualquer HTML para o navegador.
-
-```astro title="src/pages/index.astro"
+```astro title="src/pages/index.astro" {2}
 ---
-const respostaPessoa = await fetch('https://randomuser.me/api/');
-const dadosPessoa = await respostaPessoa.json();
-const pessoaAleatoria = dadosPessoa.results[0];
-const respostaFato = await fetch('https://catfact.ninja/fact');
-const dadosFato = await respostaFato.json();
+const cookie = Astro.request.headers.get('cookie');
+// ...
 ---
 <html>
-  <head>
-    <title>Um nome e um fato</title>
-  </head>
-  <body>
-    <h2>Um nome</h2>
-    <p>{pessoaAleatoria.name.first}</p>
-    <h2>Um fato</h2>
-    <p>{dadosFato.fact}</p>
-  </body>
+  <!-- Página aqui... -->
 </html>
 ```
 
-Mover as chamadas com `await` para componentes menores permite que você tome vantagem do streaming do Astro. Usando os seguintes componentes para executar as requisições de dados, o Astro pode renderizar um pouco de HTML primeiro, como o título, e então os parágrafos quando os dados estiverem prontos.
+#### `Astro.request.method`
 
-```astro title="src/components/NomeAleatorio.astro"
----
-const respostaPessoa = await fetch('https://randomuser.me/api/');
-const dadosPessoa = await respostaPessoa.json();
-const pessoaAleatoria = dadosPessoa.results[0];
----
-<p>{pessoaAleatoria.name.first}</p>
-```
-
-```astro title="src/components/FatoAleatorio.astro"
----
-const respostaFato = await fetch('https://catfact.ninja/fact');
-const dadosFato = await respostaFato.json();
----
-<p>{dadosFato.fact}</p>
-```
-
-
-A página do Astro abaixo usando esses componentes pode renderizar parte da página mais cedo. As tags `<head>`, `<body>` e `<h1>` não são mais bloqueadas pelas requisições de dados. O servidor vai requisitar dados para `NomeAleatorio` e `FatoAleatorio` em paralelo e fazer stream do HTML resultante para o navegador.
+O método HTTP usado na requisição está disponível como `Astro.request.method`. Isso funciona como o [Request.method](https://developer.mozilla.org/en-US/docs/Web/API/Request/method) do navegador. Ele retorna a representação em string do método HTTP usado na requisição.
 
 ```astro title="src/pages/index.astro"
 ---
-import NomeAleatorio from '../components/NomeAleatorio.astro'
-import FatoAleatorio from '../components/FatoAleatorio.astro'
+console.log(Astro.request.method) // GET (quando acessada no navegador)
 ---
-<html>
-  <head>
-    <title>Um nome e um fato</title>
-  </head>
-  <body>
-    <h2>Um nome</h2>
-    <NomeAleatorio />
-    <h2>Um fato</h2>
-    <FatoAleatorio />
-  </body>
-</html>
 ```
 
-#### Incluindo Promises diretamente
+Veja mais detalhes sobre o [`Astro.request`](/pt-br/reference/api-reference/#astrorequest) na referência da API.
 
-Você também pode incluir promises diretamente no template. Ao invés de bloquear um componente inteiro, isso vai resolver a promise em paralelo e só bloquear a marcação que vier depois disso.
+### Endpoints de Servidor
 
-```astro title="src/pages/index.astro"
----
-const pessoaPromise = fetch('https://randomuser.me/api/')
-  .then(resposta => resposta.json())
-  .then(arr => arr[0].name.first);
-const fatoPromise = fetch('https://catfact.ninja/fact')
-  .then(resposta => resposta.json())
-  .then(dadosFato => dadosFato.fact);
----
-<html>
-  <head>
-    <title>Um nome e um fato</title>
-  </head>
-  <body>
-    <h2>Um nome</h2>
-    <p>{pessoaPromise}</p>
-    <h2>Um fato</h2>
-    <p>{fatoPromise}</p>
-  </body>
-</html>
-```
+Um endpoint de servidor, também conhecido como **Rota de API**, é uma função especial exportada de um arquivo `.js` ou `.ts` dentro da pasta `src/pages/`. Um recurso poderoso de renderização sob demanda no lado do servidor, as rotas de API são capazes de executar código com segurança no servidor.
 
-Nesse exemplo, `Um nome` vai renderizar enquanto `pessoaPromise` e `fatoPromise` estão carregando.
-Quando `pessoaPromise` tiver resolvido, `Um fato` irá aparecer e `fatoPromise` vai renderizar quando tiver terminado de carregar.
+A função recebe um [contexto de endpoint](/pt-br/reference/api-reference/#contexto-de-endpoint) e retorna uma [Response](https://developer.mozilla.org/pt-BR/docs/Web/API/Response).
+
+Para mais informações, consulte nosso [Guia de Endpoints](/pt-br/guides/endpoints/#endpoints-do-servidor-rotas-de-api).
