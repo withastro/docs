@@ -26,22 +26,37 @@ const categoryIndex: Partial<Record<ReturnType<typeof getPageCategory>, string>>
 	'Error Reference': 'reference/error-reference',
 };
 
+/** Slugs of pages that appear at the top level even though they are in a sub-category. */
+const topLevelExceptions = ['recipes/studio'];
+
 /**
  * Test if `currentPage` is considered a sub-page of `parentSlug`.
  * @param currentPage The full slug for the current page, e.g. `'en/guides/rss'`
  * @param parentSlug The language-less slug for the parent to test against e.g. `'guides/content-collections'`
  */
 export function isSubPage(currentPage: string, parentSlug: string): boolean {
-	// Test 1: do the two pages share a base URL segment?
+	// Test 1: is this page a known, top-level page? Don’t match its parent.
+	for (const slug of topLevelExceptions) {
+		const currentIsExceptionPage = currentPage.endsWith('/' + slug);
+		const parentIsExceptionPage = parentSlug === slug;
+		if (
+			(parentIsExceptionPage && !currentIsExceptionPage) ||
+			(currentIsExceptionPage && !parentIsExceptionPage)
+		) {
+			return false;
+		}
+	}
+
+	// Test 2: do the two pages share a base URL segment?
 	if (removeSubPageSegment(currentPage).endsWith(removeSubPageSegment(parentSlug))) {
 		return true;
 	}
-	// Test 2: is there a known parent page for this page category?
+	// Test 3: is there a known parent page for this page category?
 	const category = getPageCategory({ pathname: '/' + currentPage + '/' });
 	if (categoryIndex[category] === parentSlug) {
 		return true;
 	}
-	// Test 3: is there a known parent page for this page type?
+	// Test 4: is there a known parent page for this page type?
 	const type = englishPages.find(({ slug }) => slug === currentPage)?.data.type;
 	if (type && typeIndexes[type] === parentSlug) {
 		return true;

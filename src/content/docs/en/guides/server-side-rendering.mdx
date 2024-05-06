@@ -3,6 +3,7 @@ title: On-demand Rendering Adapters
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
 import RecipeLinks from '~/components/RecipeLinks.astro';
 import IntegrationsNav from '~/components/IntegrationsNav.astro';
 
@@ -23,7 +24,7 @@ Consider enabling on-demand server rendering in your Astro project if you need t
 
 ## Official Adapters
 
-Astro maintains official adapters for [NodeJs](https://nodejs.org/), [Vercel](https://vercel.com/), [Netlify](https://www.netlify.com/), and [Cloudflare](https://www.cloudflare.com/). 
+Astro maintains official adapters for [Node.js](https://nodejs.org/), [Vercel](https://vercel.com/), [Netlify](https://www.netlify.com/), and [Cloudflare](https://www.cloudflare.com/). 
 
 Find even more [community-maintained adapters](https://astro.build/integrations/?search=&categories%5B%5D=adapters) (e.g. Deno, SST, AWS) in our integrations directory. 
 
@@ -76,6 +77,7 @@ You can also add an adapter manually by installing the package and updating `ast
 
 For example, to install the Vercel adapter manually:
 
+<Steps>
 1. Install the adapter to your project dependencies using your preferred package manager:
 
    <PackageManagerTabs>
@@ -110,6 +112,7 @@ For example, to install the Vercel adapter manually:
     ```
 
     Note that different adapters may also have different configuration settings. Read each adapter's documentation, and apply any necessary config options to your chosen adapter in `astro.config.mjs`
+</Steps>
 
 ### Configure `server` or `hybrid`
 
@@ -127,18 +130,6 @@ export default defineConfig({
     mode: "standalone"
   })
 });
-```
-
-You can then choose to override the default on-demand rendering of `server` mode on any page or route by exporting `const prerender = true`:
-
-```astro title="src/pages/my-static-page.astro" ins={2}
----
-export const prerender = true;
-// ...
----
-<html>
-  <!-- Static, pre-rendered page here... -->
-</html>
 ```
 
 ### Opting-in to pre-rendering in `server` mode
@@ -234,7 +225,43 @@ See more details about [`Astro.cookies` and the `AstroCookie` type](/en/referenc
 
 ### `Response`
 
-You can also return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) from any page using on-demand rendering. 
+[`Astro.response`](/en/reference/api-reference/#astroresponse) is a standard [`ResponseInit`](https://developer.mozilla.org/en-US/docs/Web/API/Response/Response#options) object. It can be used to set the response status and headers.
+
+The example below sets a response status and status text for a product listing page when the product does not exist:
+
+```astro title="src/pages/my-product.astro" {8-9}
+---
+import { getProduct } from '../api';
+
+const product = await getProduct(Astro.params.id);
+
+// No product found
+if (!product) {
+  Astro.response.status = 404;
+  Astro.response.statusText = 'Not found';
+}
+---
+<html>
+  <!-- Page here... -->
+</html>
+```
+
+#### `Astro.response.headers`
+
+You can set headers using the `Astro.response.headers` object:
+
+```astro title="src/pages/index.astro" {2}
+---
+Astro.response.headers.set('Cache-Control', 'public, max-age=3600');
+---
+<html>
+  <!-- Page here... -->
+</html>
+```
+
+#### Return a `Response` object
+
+You can also return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object directly from any page using on-demand rendering. 
 
 The example below returns a 404 on a dynamic page after looking up an id in the database:
 

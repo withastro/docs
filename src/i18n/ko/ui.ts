@@ -131,4 +131,6 @@ export default UIDictionary({
 	// Starlight banner
 	'starlight.title': '나만의 문서를 만들고 싶으신가요?',
 	'starlight.description': '시작하려면 이 템플릿을 사용하세요.',
+	// `<StudioHeading>` component
+	'studioHeading.label': 'Studio 기능',
 });

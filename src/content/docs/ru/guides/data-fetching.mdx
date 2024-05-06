@@ -1,18 +1,20 @@
 ---
 title: Получение данных
-description: Узнайте как получать данные с Astro используя fetch API.
+description: Узнайте, как получать удаленные данные с помощью Astro, используя API fetch.
 i18nReady: true
 ---
 
-`.astro` файлы могут выполнять запросы на получение данных во время сборки чтобы помочь с генерацией ваших страниц.
+Файлы `.astro` могут получать удаленные данные, чтобы помочь вам генерировать страницы.
 
 ## `fetch()` в Astro
 
-Все [Astro компоненты](/ru/basics/astro-components/) имеют доступ к [глобальной `fetch()` функции](https://developer.mozilla.org/en-US/docs/Web/API/fetch) в скрипте компонента для отправки HTTP запросов к APIs. Этот запрос будет выполнен во время сборки, и данные будут доступны шаблону компонента для генерации динамического HTML.
+Все [компоненты Astro](/ru/basics/astro-components/) имеют доступ к [глобальной функции `fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/fetch) в скрипте своего компонента для выполнения HTTP-запросов к API с использованием полного URL (например, https://example.com/api или `Astro.url + "/api"`).
+
+Этот запрос fetch будет выполнен во время сборки, и данные будут доступны шаблону компонента для генерации динамического HTML. Если включен режим [SSR](/ru/guides/server-side-rendering/), любые запросы fetch будут выполняться во время выполнения.
 
 💡 Воспользуйтесь преимуществом [**await верхнего уровня**](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await#top_level_await) внутри скрипта вашего Astro компонента.
 
-💡 Передавайте полученные данные в Astro и компоненты фреймворков, как пропсы.
+💡 Передавайте полученные данные как компонентам Astro, так и компонентам фреймворка в виде пропсов.
 
 ```astro /await fetch\\(.*?\\)/
 ---
@@ -24,36 +26,35 @@ const response = await fetch('https://randomuser.me/api/');
 const data = await response.json();
 const randomUser = data.results[0];
 ---
-<!-- Данные полученные во время сборки будут доступны в HTML -->
+<!-- Данные, полученные при сборке, могут быть отображены в HTML -->
 <h1>User</h1>
 <h2>{randomUser.name.first} {randomUser.name.last}</h2>
 
-<!-- Данные полученные во время сборки могут быть переданы в компоненты как пропсы -->
+<!-- Данные, полученные при сборке, могут быть переданы компонентам как пропсы -->
 <Contact client:load email={randomUser.email} />
 <Location city={randomUser.location.city} />
 ```
 
 :::note
-Помните, что, Astro компоненты получают данные когда они рендерятся.
+Помните, что Astro компоненты получают данные когда они рендерятся.
 
-Ваш задеплоенный Astro сайт выполнит запрос на получение данных **один раз, во время сборки**. Во время разработки, вы увидите запросы данных когда компонент обновляется. Если вам нужно обновлять данные несколько раз на стороне клиента, используйте [компоненты фреймворка](/ru/guides/framework-components/) или [клиентские скрипты](/ru/guides/client-side-scripts/) в Astro компоненте.
+Ваш развернутый сайт Astro будет получать данные **один раз, во время сборки**. Во время разработки вы увидите запросы данных при обновлении компонента. Если вам нужно обновлять данные несколько раз на стороне клиента, используйте [компоненты фреймворка](/ru/guides/framework-components/) или [клиентские скрипты](/ru/guides/client-side-scripts/) в компоненте Astro.
 :::
 
 
 ## `fetch()` в компонентах фреймворка
 
-Функция `fetch()` доступна глобально в любом [компоненте фреймворка](/ru/guides/framework-components/):
+Функция `fetch()` также глобально доступна для любого [компонента фреймворка](/ru/guides/framework-components/):
 
 ```tsx title="src/components/Movies.tsx" /await fetch\\(.*?\\)/
 import type { FunctionalComponent } from 'preact';
-import { h } from 'preact';
 
 const data = await fetch('https://example.com/movies.json').then((response) =>
   response.json()
 );
 
-// Компоненты, которые рендерятся во время сборки выведут данные в CLI.
-// В случае рендера с директивой client:*, они также выведут данные в консоль браузера.
+// Компоненты, которые рендерятся во время сборки, также регистрируются в CLI.
+// При рендеринге с помощью директивы client:* они также выводятся в консоль браузера.
 console.log(data);
 
 const Movies: FunctionalComponent = () => {
@@ -65,146 +66,45 @@ export default Movies;
 ```
 
 
-## GraphQL запросы
+## Запросы на GraphQL
 
-Astro также может использовать `fetch()` для запроса к GraphQL серверу с любым действительным GraphQL запросом.
+Astro также может использовать `fetch()` для запроса к GraphQL-серверу с любым корректным GraphQL-запросом.
 
-```astro title="src/components/Weather.astro" "await fetch"
+```astro title="src/components/Film.astro" "await fetch"
 ---
-const response = await fetch("https://graphql-weather-api.herokuapp.com",
+const response = await fetch("https://swapi-graphql.netlify.app/.netlify/functions/index",
   {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({
       query: `
-        query getWeather($name:String!) {
-            getCityByName(name: $name){
-              name
-              country
-              weather {
-                summary {
-                    description
-                }
-              }
-            }
+        query getFilm ($id:ID!) {
+          film(id: $id) {
+            title
+            releaseDate
           }
-        `,
+        }
+      `,
       variables: {
-          name: "Toronto",
+        id: "ZmlsbXM6MQ==",
       },
     }),
   });
 
 const json = await response.json();
-const weather = json.data;
+const { film } = json.data;
 ---
-<h1>Fetching Weather at build time</h1>
-<h2>{weather.getCityByName.name}, {weather.getCityByName.country}</h2>
-<p>Weather: {weather.getCityByName.weather.summary.description}</p>
+<h1>Fetching information about Star Wars: A New Hope</h1>
+<h2>Title: {film.title}</h2>
+<p>Year: {film.releaseDate}</p>
 ```
 
-## Запросы к Headless CMS
+## Получение данных из безголовой CMS
 
-Запрашивайте контент с вашей любимой CMS как Storyblok или WordPress!
+Компоненты Astro могут получать данные из вашей любимой CMS и затем отображать их в качестве содержимого страницы. Используя [динамические маршруты](/ru/guides/routing/#динамические-маршруты), компоненты могут даже генерировать страницы на основе содержимого вашей CMS.
 
-Astro компоненты могут получать данные с вашей CMS и затем рендерить контент на странице. Используя [динамические роуты](/ru/guides/routing/#динамические-переадресации), компоненты даже могут генерировать страницы основываясь на контенте с вашей CMS.
+Посмотрите наши [Руководства по CMS](/ru/guides/cms/) для получения подробной информации об интеграции Astro с безголовыми CMS, включая Storyblok, Contentful и WordPress.
 
-Ниже примеры, как такое получение данных выглядит в Astro, с ссылками на полные инструкции.
+## Ресурсы сообщества
 
-### Пример: Storyblok API
-
-```astro
----
-// src/pages/index.astro
-// Получите список ссылок на ваши Storyblok страницы с помощью @storyblok/js
-import BaseLayout from '../layouts/BaseLayout.astro';
-import { storyblokInit, apiPlugin } from "@storyblok/js";
-
-const { storyblokApi } = storyblokInit({
-  accessToken: "MY_STORYBLOK_ACCESS_TOKEN",
-  use: [apiPlugin],
-});
-
-const { data } = await storyblokApi.get('cdn/links');
-const links = Object.values(data.links);
----
-<BaseLayout>
-  <h1>Astro + Storyblok</h1>
-  <ul>
-    {links.map(link => (
-      <li><a href={link.slug}>{link.name}</a></li>
-    ))}
-  </ul>
-</BaseLayout>
-```
-Посмотрите полное руководство [Добавление Headless CMS в Astro за 5 минут](https://www.storyblok.com/tp/add-a-headless-cms-to-astro-in-5-minutes) чтобы добавить Storyblok в ваш Astro проект!
-
-### Пример: WordPress + GraphQL
-
-```astro
----
-// src/pages/about.astro
-// Получите контент с вашей страницы "О нас" с WordPress API
-
-import BaseLayout from '../../layouts/BaseLayout.astro';
-
-const slug = 'about';
-const response = await fetch(import.meta.env.WORDPRESS_API_URL, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: `
-    {
-      page(id:"${slug}", idType:URI) {
-        title
-        content
-      }
-    }
-  `
-});
-const data = await response.json();
----
-<BaseLayout>
-  <h1>{data.title}</h1>
-  <article set:html={data.content} />
-</BaseLayout>
-```
-
-Посмотрите полное руководство [Создание Astro веб-сайта с WordPress как Headless CMS](https://blog.openreplay.com/building-an-astro-website-with-wordpress-as-a-headless-cms) чтобы добавить WordPress в ваш Astro проект!
-
-### Пример: Crystallize
-
-```astro title="src/pages/index.astro"
----
-// Получите пути вашего каталога с Crystallize GraphQL API
-
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { createClient } from '@crystallize/js-api-client';
-
-const apiClient = createClient({
-  tenantIdentifier: 'furniture'
-});
-
-const query = `
-  query getCataloguePaths{
-    catalogue(language: "en", path: "/shop") {
-      name
-      children {
-        name
-        path
-      }
-    }
-  }
-`
-const { data: { catalogue } } = await apiClient.catalogueApi(query)
----
-<BaseLayout>
-  <h1>{catalogue.name}</h1>
-  <nav>
-    <ul>
-      {catalogue.children.map(child => (
-        <li><a href={child.path}>{child.name}</a></li>
-      ))}
-    </ul>
-  </nav>
-</BaseLayout>
-```
+- [Создание фуллстек приложения с помощью Astro + GraphQL](https://robkendal.co.uk/blog/how-to-build-astro-site-with-graphql/)

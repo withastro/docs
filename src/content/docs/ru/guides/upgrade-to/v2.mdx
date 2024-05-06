@@ -1,0 +1,423 @@
+---
+title: Обновление до Astro v2
+description: Как обновить ваш проект до последней версии Astro.
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { FileTree } from '@astrojs/starlight/components';
+
+
+Это руководство поможет вам перейти с Astro v1 на Astro v2.
+
+Вам нужно обновить старый проект до версии 1? Смотрите наше [старое руководство по миграции](/ru/guides/upgrade-to/v1/).
+
+## Обновление Astro
+
+Обновите версию Astro для вашего проекта до последней версии с помощью менеджера пакетов. Если вы используете интеграции Astro, также обновите их до последней версии.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # Обновление до Astro v2.x
+  npm install astro@latest
+  
+  # Пример: обновление интеграций React и Tailwind
+  npm install @astrojs/react@latest @astrojs/tailwind@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # Обновление до Astro v2.x
+  pnpm add astro@latest
+
+  # Пример: обновление интеграций React и Tailwind
+  pnpm add @astrojs/react@latest @astrojs/tailwind@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # Обновление до Astro v2.x
+  yarn add astro@latest
+  
+  # Пример: обновление интеграций React и Tailwind
+  yarn add @astrojs/react@latest @astrojs/tailwind@latest
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## Изменения в Astro v2.0
+
+Astro v2.0 включает в себя некоторые изменения, а также удаление некоторых ранее устаревших функций. Если после обновления до версии 2.0 ваш проект работает не так, как ожидалось, ознакомьтесь с этим руководством, чтобы получить обзор всех изменений и инструкции по обновлению вашей кодовой базы.
+
+Полную информацию о выпуске смотрите в [журнале изменений](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md).
+
+### Удалено: Поддержка Node 14
+
+Срок службы Node 14 истекает в апреле 2023 года. 
+
+Astro v2.0 полностью отказывается от поддержки Node 14, чтобы все пользователи Astro могли воспользоваться более современными возможностями Node.
+
+#### Что делать?
+
+ Убедитесь, что и ваша среда разработки, и среда развертывания используют **Node `16.12.0` или более позднюю версию**.
+
+1. Проверьте локальную версию Node, используя:
+
+    ```sh
+    node -v
+ 
+    ```
+    Если ваша локальная среда разработки нуждается в обновлении, [установите Node](https://nodejs.org/en/download/).
+
+
+2. Проверьте собственную документацию вашей [среды развертывания](/ru/guides/deploy/), чтобы убедиться, что она поддерживает Node 16. 
+
+    Вы можете указать Node `16.12.0` для вашего проекта Astro либо в настройках конфигурации приборной панели, либо в файле `.nvmrc`.
+
+
+### Зарезервировано: ``src/content/`.
+
+Astro v2.0 теперь включает API Collections для организации ваших Markdown и MDX файлов в [коллекции контента](/ru/guides/content-collections/). Этот API резервирует `src/content/` в качестве специальной папки.
+
+#### Что делать?
+
+Переименуйте существующую папку `src/content/`, чтобы избежать конфликтов. Эта папка, если она существует, теперь может использоваться только для [коллекций контента](/ru/guides/content-collections/).
+
+### Изменено: `Astro.site` в конце слэша
+
+В версии 1.x Astro следил за тем, чтобы URL, заданный в качестве `site` в файле `astro.config.mjs`, всегда содержал косую черту при обращении к нему с помощью `Astro.site`.
+
+Astro v2.0 больше не изменяет значение `site`. `Astro.site` будет использовать точное значение, и при желании необходимо указать косую черту.
+
+#### Что делать?
+
+ В файле `astro.config.mjs` добавьте косую черту к URL, заданному в `site`. 
+
+```js del={5} ins={6}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  site: 'https://example.com',
+  site: 'https://example.com/',
+});
+```
+
+### Изменено: папка `_astro/` для ассетов сборки
+
+В версии 1.x ассеты собирались в различных местах, включая `assets/`, `chunks/` и в корне выходных данных сборки.
+
+В Astro v2.0 все ассеты сборки перемещены и унифицированы в новую папку `_astro/`. 
+
+<FileTree>
+- dist/
+  - _astro
+    - client.9218e799.js
+    - index.df3f880e0.css
+</FileTree>
+
+Вы можете управлять этим расположением с помощью [новой опции конфигурации `build.assets`](/ru/reference/configuration-reference/#buildassets).
+
+#### Что делать?
+
+Обновите конфигурацию платформы развертывания, если она зависит от расположения этих ассетов.
+
+### Изменено: Конфигурация плагина Markdown
+
+#### Удалено: `extendDefaultPlugins`.
+
+В версии 1.x Astro использовал `markdown.extendDefaultPlugins` для повторного включения плагинов Astro по умолчанию при добавлении собственных плагинов Markdown.
+
+В Astro v2.0 этот параметр полностью удален, поскольку его поведение теперь используется по умолчанию.
+
+Применение плагинов remark и rehype в вашей конфигурации Markdown **больше не отключает плагины Astro по умолчанию**. GitHub-Flavored Markdown и Smartypants теперь применяются независимо от того, настроены ли пользовательские `remarkPlugins` или `rehypePlugins`.
+
+
+##### Что делать?
+
+Удалите `extendDefaultPlugins` в вашей конфигурации. Теперь это поведение Astro по умолчанию в версии 2.0, и вы можете удалить эту строку без какой-либо замены.
+
+```js del={6}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  markdown: {
+    extendDefaultPlugins,
+  }
+});
+```
+
+#### Добавлено: `gfm` и `smartypants`.
+
+В версии 1.x вы могли отключить оба стандартных плагина Astro для работы с Markdown (GitHub-Flavored Markdown и SmartyPants), установив `markdown.extendDefaultPlugins: false`.
+
+В Astro v2.0 параметр `markdown.extendDefaultPlugins: false` заменен на отдельные булевы опции для индивидуального управления каждым из встроенных в Astro плагинов Markdown по умолчанию. Они включены по умолчанию и могут быть установлены на `false` независимо друг от друга.
+
+##### Что делать?
+
+Удалите `extendDefaultPlugins: false` и добавьте вместо этого флаги для отключения каждого плагина по отдельности.
+
+- `markdown.gfm: false` отключает GitHub-Flavored Markdown
+- `markdown.smartypants: false` отключает SmartyPants
+
+```js del={6} ins={7-8}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  markdown: {
+    extendDefaultPlugins: false,
+    smartypants: false,
+    gfm: false,
+  }
+});
+```
+
+### Изменено: Конфигурация MDX-плагина
+
+#### Заменено: `extendPlugins` заменено на `extendMarkdownConfig`.
+
+В версии 1.x опция `extendPlugins` интеграции MDX управляла тем, как ваши MDX файлы должны наследовать вашу конфигурацию Markdown: всю вашу конфигурацию Markdown (`markdown`), или только плагины Astro по умолчанию (`default`).
+
+В Astro v2.0 поведение, контролируемое `mdx.extendPlugins`, заменено тремя новыми, независимо настраиваемыми опциями, которые по умолчанию имеют значение `true`:
+
+- **[`mdx.extendMarkdownConfig`](/ru/guides/integrations-guide/mdx/#extendmarkdownconfig)** чтобы наследовать все или ничего из вашей конфигурации Markdown
+- **`mdx.gfm`** для включения или отключения GitHub-Flavored Markdown в MDX
+- **`mdx.smartypants`** для включения или отключения SmartyPants в MDX
+
+##### Что мне делать?
+
+Удалите `extendPlugins: 'markdown'` в вашей конфигурации. Теперь это поведение по умолчанию.
+
+```js del={8}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  integrations: [
+    mdx({
+      extendPlugins: 'markdown',
+    }),
+  ],
+});
+```
+
+Замените `extendPlugins: 'defaults'` на `extendMarkdownConfig: false` и добавьте отдельные опции для GitHub-Flavored Markdown и SmartyPants, чтобы включить эти плагины по умолчанию по отдельности в MDX.
+
+```js del={8} ins={9-11}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  integrations: [
+    mdx({
+      extendPlugins: 'defaults',
+      extendMarkdownConfig: false,
+      smartypants: true,
+      gfm: true,
+    }),
+  ],
+});
+```
+
+#### Добавлено: Больше опций конфигурации MDX для соответствия Markdown
+
+Astro v2.0 позволяет вам теперь отдельно устанавливать [все доступные опции конфигурации Markdown](/ru/reference/configuration-reference/#markdown-options) (кроме `drafts`) в конфигурации интеграции MDX.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  markdown: {
+    remarkPlugins: [remarkPlugin1],
+    gfm: true,
+  },
+  integrations: [
+    mdx({
+      remarkPlugins: [remarkPlugin2],
+      gfm: false,
+    })
+  ]
+});
+```
+
+##### Что мне делать?
+
+Пересмотрите свою конфигурацию Markdown и MDX и сравните существующий конфиг с новыми доступными опциями.
+
+
+### Изменено: Доступ плагинов к frontmatter
+
+В версии 1.x плагины remark и rehype не имели доступа к пользовательскому frontmatter. Astro объединял frontmatter плагина с frontmatter вашего файла, не передавая frontmatter файла вашим плагинам.
+
+Astro v2.0 предоставляет плагинам remark и rehype доступ к пользовательскому frontmatter через инъекцию frontmatter. Это позволяет авторам плагинов изменять существующий frontmatter пользователя или вычислять новые свойства на основе других свойств.
+
+
+#### Что делать?
+
+Проверьте все написанные вами плагины remark и rehype, чтобы узнать, не изменилось ли их поведение. Обратите внимание, что `data.astro.frontmatter` теперь является _полным_ frontmatter'ом документа Markdown или MDX, а не пустым объектом.
+
+### Изменено: Конфигурация RSS
+
+В версии 1.x пакет RSS Astro позволял вам использовать `items: import.meta.glob(...)` для создания списка элементов RSS-ленты. Сейчас это использование устарело и со временем будет удалено.
+
+В Astro v2.0 появилась обертка `pagesGlobToRssItems()` для свойства `items`.
+
+
+#### Что делать?
+
+Импортируйте, а затем оберните вашу существующую функцию, содержащую `import.meta.glob()`, помощником `pagesGlobToRssItems()`.
+
+```js ins={3, 8, 10}
+// src/pages/rss.xml.js
+import rss, {
+  pagesGlobToRssItems
+} from '@astrojs/rss';
+
+export async function get(context) {
+  return rss({
+    items: await pagesGlobToRssItems(
+      import.meta.glob('./blog/*.{md,mdx}'),
+    ),
+  });
+}
+```
+
+### Изменено: Поддержка Svelte IDE
+
+Astro v2.0 требует наличия файла `svelte.config.js в вашем проекте, если вы используете [интеграцию `@astrojs/svelte`](/ru/guides/integrations-guide/svelte/). Это необходимо для обеспечения автодополнения в IDE.
+
+#### Что делать?
+
+Добавьте файл `svelte.config.js в корень вашего проекта:
+
+```js
+// svelte.config.js
+import { vitePreprocess } from '@astrojs/svelte';
+
+export default {
+  preprocess: vitePreprocess(),
+};
+```
+
+Для новых пользователей этот файл будет добавлен автоматически при выполнении команды `astro add svelte`.
+
+### Удалено: `legacy.astroFlavoredMarkdown`.
+
+В версии 1.0 Astro переместил старый Astro-Flavored Markdown (также известный как Components in Markdown) в унаследованную функцию.
+
+В Astro v2.0 опция `legacy.astroFlavoredMarkdown` полностью удалена. Импорт и использование компонентов в файлах `.md` больше не будет работать.
+
+#### Что делать?
+
+Удалите этот флаг наследия. Он больше не доступен в Astro.
+
+```js del={3-5}
+// astro.config.mjs
+export default defineConfig({
+	legacy: {
+		astroFlavoredMarkdown: true,
+	},
+})
+
+```
+
+Если вы использовали эту функцию в версии 1.x, мы рекомендуем [использовать интеграцию MDX](/ru/guides/integrations-guide/mdx/), которая позволяет комбинировать компоненты и JSX-выражения с синтаксисом Markdown.
+
+### Удалено: `Astro.resolve()`.
+
+В версии 0.24 Astro устарела функция `Astro.resolve()` для получения разрешенных URL-адресов активов, на которые вы можете захотеть сослаться в браузере.
+
+В Astro v2.0 эта опция полностью удалена. Использование `Astro.resolve()` в вашем коде приведет к ошибке.
+
+#### Что делать?
+
+Вместо этого разрешайте пути к активам с помощью `import`. Например:
+
+```astro
+---
+// src/pages/index.astro
+import 'style.css';
+import imageUrl from './image.png';
+---
+
+<img src={imageUrl} />
+```
+
+### Удалено: `Astro.fetchContent()`.
+
+В версии 0.26 Astro устарела опция `Astro.fetchContent()` для получения данных из ваших локальных файлов Markdown.
+
+В версии Astro v2.0 эта опция полностью удалена. Использование `Astro.fetchContent()` в вашем коде приведет к ошибке.
+
+#### Что делать?
+
+Используйте [`Astro.glob()`](/ru/guides/imports/#astroglob) для получения файлов Markdown, или перейдите на [Коллекцию Контента](/ru/guides/content-collections/).
+
+```astro
+---
+// src/pages/index.astro
+const allPosts = await Astro.glob('./posts/*.md');
+---
+```
+
+### Удалено: `Astro.canonicalURL`.
+
+В версии 1.0 Astro устарела функция `Astro.canonicalURL` для построения канонического URL. 
+
+
+В Astro v2.0 эта опция полностью удалена. Использование `Astro.canonicalURL` в вашем коде приведет к ошибке.
+
+#### Что делать?
+
+Используйте `Astro.url` для построения канонического URL.
+
+```astro
+---
+// src/pages/index.astro
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+---
+
+```
+
+### Обновлено: Vite 4
+
+Astro v2.0 обновляется с Vite 3 до [Vite 4](https://vitejs.dev/), который выйдет в декабре 2022 года.
+
+#### Что мне делать?
+
+Никаких изменений в вашем коде не должно быть! Мы выполнили большую часть обновления за вас внутри Astro; однако некоторые тонкости поведения Vite могут измениться между версиями. 
+
+Обратитесь к официальному руководству [Vite Migration Guide](https://vitejs.dev/guide/migration.html), если у вас возникнут проблемы.
+
+## Удалены экспериментальные флаги Astro v2.0
+
+Удалите следующие экспериментальные флаги из `astro.config.mjs`:
+
+```js del={5-9}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    contentCollections: true,
+    prerender: true,
+    errorOverlay: true,
+  },
+})
+```
+
+Эти функции теперь доступны по умолчанию:
+
+- [Коллекции контента](/ru/guides/content-collections/) как способ управления файлами Markdown и MDX с безопасностью типов.
+- [Предрендеринг отдельных страниц в статический HTML](/ru/guides/server-side-rendering/) при использовании SSR для повышения скорости и кэшируемости.
+- Переработанный оверлей сообщений об ошибках.
+
+## Известные проблемы
+
+В настоящее время известных проблем нет.

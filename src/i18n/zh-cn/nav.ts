@@ -5,7 +5,7 @@ export default NavDictionary({
 	'getting-started': '入门指南',
 	install: '安装',
 	'editor-setup': '编辑器设置',
-	'guides/upgrade-to/v4': '升级到 v4',
+	'upgrade-astro': '升级 Astro',
 
 	coreConcepts: '核心理念',
 	'concepts/why-astro': '为什么选择 Astro',
@@ -27,14 +27,17 @@ export default NavDictionary({
 	'guides/content-collections': '内容集合',
 	'guides/view-transitions': '视图过渡动画',
 	'guides/prefetch': '预获取',
+	'guides/dev-toolbar': '开发者工具栏',
 
 	addons: '集成',
 	'guides/integrations-guide': '添加集成',
 	'guides/framework-components': 'UI 框架',
 	'guides/server-side-rendering': '服务端渲染 (SSR)',
+	'guides/astro-db': 'Astro DB',
 
 	examples: '操作指南',
 	'guides/migrate-to-astro': '迁移到 Astro',
+	'recipes/studio': '连接到 Astro Studio',
 	'guides/cms': '连接到 CMS',
 	'guides/backend': '添加后端服务',
 	'guides/deploy': '部署你的站点',

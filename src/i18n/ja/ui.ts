@@ -130,4 +130,6 @@ export default UIDictionary({
 	// Starlight banner
 	'starlight.title': 'ドキュメントを作りたいですか？',
 	'starlight.description': 'このテンプレートを使って始めましょう。',
+	// `<StudioHeading>` component
+	'studioHeading.label': 'Studioの機能',
 });

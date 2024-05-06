@@ -8,13 +8,132 @@ i18nReady: true
 ---
 import Grid from '~/components/FluidGrid.astro'
 import Card from '~/components/ShowcaseCard.astro'
+import { FileTree } from '@astrojs/starlight/components'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
 [Decap CMS](https://www.decapcms.org/)（前身为 Netlify CMS）是一个基于 Git 的开源内容管理系统。
+
+Decap 允许你充分利用 Astro 的所有功能，包括图像优化和内容集合。
+
+Decap 会在你的项目中添加一个路由（通常是 `/admin`），这个路由会加载一个 React 应用，允许授权用户直接从部署的网站管理内容。Decap 会将更改直接提交到你的 Astro 项目的源代码仓库中。
+
+## 安装 DecapCMS
+
+有两种方法将 Decap 集成到 Astro 中：
+
+1. [通过包管理器安装 Decap](https://decapcms.org/docs/install-decap-cms/#installing-with-npm) 使用以下命令：
+
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm install decap-cms-app
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm add decap-cms-app
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn add decap-cms-app
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+
+2. 将包导入到页面 `<body>` 中的 `<script>` 标签里
+
+	```html title='/admin'
+    <body>
+      <!-- 引入构建页面并支持 Decap CMS 的脚本 -->
+      <script src="https://unpkg.com/decap-cms@^3.1.2/dist/decap-cms.js"></script>
+    </body>
+	```
+
+
+## 配置
+
+1. 在 `public/admin/` 创建一个静态的 admin 文件夹
+2. 向 `public/admin/` 添加 `config.yml` 文件：
+    <FileTree>
+      - public
+        - admin
+          - config.yml
+    </FileTree>
+3. 为了添加对内容集合的支持，请在 `config.yml` 中配置每个模式。以下示例配置了一个 `blog` 集合，为每个条目的 frontmatter 属性定义了一个 `label`：
+    ```yml title="/public/admin/config.yml"
+    collections:
+      - name: "blog" # 用于路由，例如，/admin/collections/blog
+        label: "Blog" # 在 UI 中使用
+        folder: "src/content/blog" # 存储文档的文件夹路径
+        create: true # 允许用户在此集合中创建新文档
+        fields: # 每个文档的字段，通常在 front matter 中
+          - { label: "布局", name: "layout", widget: "hidden", default: "blog" }
+          - { label: "标题", name: "title", widget: "string" }
+          - { label: "发布日期", name: "date", widget: "datetime" }
+          - { label: "缩略图", name: "thumbnail", widget: "image" }
+          - { label: "评分（1-5 的范围）", name: "rating", widget: "number" }
+          - { label: "正文", name: "body", widget: "markdown" }
+    ```
+
+4. 为你的 React 应用添加 `admin` 路由。这个文件可以是 `public/admin/index.html`，与你的 `config.yml` 放在一起，或者，如果你更喜欢使用 Astro 路由，可以是 `src/pages/admin.astro`。
+
+    <FileTree>
+    - public
+      - admin
+         - config.yml
+         - index.html
+    </FileTree>
+    ```html title="/public/admin/index.html" {7, 11}
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="robots" content="noindex" />
+        <link href="/admin/config.yml" type="text/yaml" rel="cms-config-url" />
+        <title>内容管理器</title>
+      </head>
+      <body>
+        <script src="https://unpkg.com/decap-cms@^3.1.2/dist/decap-cms.js"></script>
+      </body>
+    </html>
+    ```
+
+5. 为了通过 Decap 编辑器启用媒体文件上传到特定文件夹，请添加一个合适的路径：
+    ```yml title="/public/admin/config.yml"
+    media_folder: "src/assets/images" # 文件将被存储在仓库中的位置
+    public_folder: "src/assets/images" # 上传媒体文件的 src 属性
+    ```
+
+查看 [Decap CMS 配置文档](https://decapcms.org/docs/configure-decap-cms/) 以获取完整的指导和选项。
+
+## 使用方法
+访问 `yoursite.com/admin/` 来使用 Decap CMS 编辑器。
+
+## 认证
+
+### Decap CMS 与 Netlify 身份验证
+
+Decap CMS 最初是由 Netlify 开发的，并且对 [Netlify 身份验证](https://docs.netlify.com/security/secure-access-to-sites/identity/) 提供了一流的支持。
+
+当你部署到 netlify 时，通过 Netlify 控制面板为你的项目配置 Identity，并在你项目的 `admin` 路由上包含 [Netlify Identity Widget](https://github.com/netlify/netlify-identity-widget)。如果你计划通过电子邮件邀请新用户，可以选择性地在你网站的首页上也包含 Identity Widget。
+
+### Decap CMS 与外部 OAuth 客户端
+
+当部署到 Netlify 以外的托管服务提供商时，你必须创建自己的 OAuth 路由。
+
+在 Astro 中，这可以通过在你的项目中配置了 [`server` 或 `hybrid` 输出](/zh-cn/guides/server-side-rendering/#启用按需服务器渲染) 的按需渲染路由来完成。
+
+查看 [Decap 的 OAuth 文档](https://decapcms.org/docs/external-oauth-clients/)，了解兼容的社区维护的 OAuth 客户端列表。
+
 ## 社区资源 
 
-- 使用 [`astro-netlify-cms`](https://github.com/delucis/astro-netlify-cms) Astro 集成，将 Netlify CMS 添加到你的项目中。
+- Netlify 身份验证模板：[astro-decap-ssg-netlify](https://github.com/OliverSpeir/astro-decap-ssg-netlify-identity)
 
-- 你可以从 [Astro 博客入门与 Netlify CMS](https://github.com/delucis/astro-netlify-cms-starter) 开始。
+- 按需渲染 Oauth 路由与 Astro 模板：[astro-decap-starter-ssr](https://github.com/OliverSpeir/astro-decap-starter-ssr)
 
 - 博客文章：[使用基于 Git 的 CMS 管理 Astro 站点内容](https://aalam.vercel.app/blog/astro-and-git-cms-netlify) 作者：Aftab Alam
 

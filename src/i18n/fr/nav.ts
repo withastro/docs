@@ -6,7 +6,6 @@ export default NavDictionary({
 
 	install: 'Installation',
 	'editor-setup': "Configuration de l'éditeur de code",
-	'guides/upgrade-to/v4': 'Mise à jour vers la v4',
 
 	coreConcepts: 'Concepts Fondamentaux',
 	'concepts/why-astro': 'Pourquoi Astro ?',
@@ -34,9 +33,11 @@ export default NavDictionary({
 	'guides/integrations-guide': 'Intégrations',
 	'guides/framework-components': "Framework d'interface",
 	'guides/server-side-rendering': 'Rendu Côté Serveur (SSR)',
+	'guides/astro-db': 'Astro DB',
 
 	examples: 'Méthodes',
 	'guides/migrate-to-astro': 'Migrer vers Astro',
+	'recipes/studio': 'Connecter a Astro Studio',
 	'guides/cms': 'Connecter un CMS',
 	'guides/backend': 'Ajouter des services Backend',
 	'guides/deploy': 'Déployez votre site',
