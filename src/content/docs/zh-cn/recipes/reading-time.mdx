@@ -4,112 +4,114 @@ description: 编写一个在你的 Markdown 和 MDX 文件里添加阅读所需�
 i18nReady: true
 type: recipe
 ---
-
-import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
 创建一个在你的 Markdown 或 MDX 文件的 frontmatter 中添加阅读所需时间的 [remark 插件](https://github.com/remarkjs/remark)。使用该属性来为每个页面显示所需的阅读时间。
 
 ## 操作步骤
 
+<Steps>
 1. 安装辅助包
 
-  安装如下两个辅助包：
-  - [`reading-time`](https://www.npmjs.com/package/reading-time) 用于计算阅读分钟数
-  - [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string) 用于从你的 Markdown 中提取所有文本
+    安装如下两个辅助包：
+    - [`reading-time`](https://www.npmjs.com/package/reading-time) 用于计算阅读分钟数
+    - [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string) 用于从你的 Markdown 中提取所有文本
 
-  <PackageManagerTabs>
-    <Fragment slot="npm">
-    ```shell
-  npm install reading-time mdast-util-to-string
-    ```
-    </Fragment>
-    <Fragment slot="pnpm">
-    ```shell
-  pnpm add reading-time mdast-util-to-string
-    ```
-    </Fragment>
-    <Fragment slot="yarn">
-    ```shell
-  yarn add reading-time mdast-util-to-string
-    ```
-    </Fragment>
-  </PackageManagerTabs>
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+    npm install reading-time mdast-util-to-string
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+    pnpm add reading-time mdast-util-to-string
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+    yarn add reading-time mdast-util-to-string
+      ```
+      </Fragment>
+    </PackageManagerTabs>
 
 2. 创建一个 remark 插件
 
-  该插件使用 `mdast-util-to-string` 包来获取 Markdown 文件的文本内容，然后将文本传递给 `reading-time` 包以计算阅读所需的分钟数。
+    该插件使用 `mdast-util-to-string` 包来获取 Markdown 文件的文本内容，然后将文本传递给 `reading-time` 包以计算阅读所需的分钟数。
 
-  ```js title="remark-reading-time.mjs"
-  import getReadingTime from 'reading-time';
-  import { toString } from 'mdast-util-to-string';
+    ```js title="remark-reading-time.mjs"
+    import getReadingTime from 'reading-time';
+    import { toString } from 'mdast-util-to-string';
 
-  export function remarkReadingTime() {
-    return function (tree, { data }) {
-      const textOnPage = toString(tree);
-      const readingTime = getReadingTime(textOnPage);
-      // readingTime.text 会以友好的字符串形式给出阅读时间，例如 "3 min read"。
-      data.astro.frontmatter.minutesRead = readingTime.text;
-    };
-  }
-  ```
+    export function remarkReadingTime() {
+      return function (tree, { data }) {
+        const textOnPage = toString(tree);
+        const readingTime = getReadingTime(textOnPage);
+        // readingTime.text 会以友好的字符串形式给出阅读时间，例如 "3 min read"。
+        data.astro.frontmatter.minutesRead = readingTime.text;
+      };
+    }
+    ```
 
 3. 将插件添加到你的配置中：
 
-  ```js title="astro.config.mjs" "import { remarkReadingTime } from './remark-reading-time.mjs';" "remarkPlugins: [remarkReadingTime],"
-  import { defineConfig } from 'astro/config';
-  import { remarkReadingTime } from './remark-reading-time.mjs';
+    ```js title="astro.config.mjs" "import { remarkReadingTime } from './remark-reading-time.mjs';" "remarkPlugins: [remarkReadingTime],"
+    import { defineConfig } from 'astro/config';
+    import { remarkReadingTime } from './remark-reading-time.mjs';
 
-  export default defineConfig({
-    markdown: {
-      remarkPlugins: [remarkReadingTime],
-    },
-  });
-  ```
+    export default defineConfig({
+      markdown: {
+        remarkPlugins: [remarkReadingTime],
+      },
+    });
+    ```
 
-  现在所有的 Markdown 文档的 frontmatter 中都会有一个计算出来的 `minutesRead` 属性。
+    现在所有的 Markdown 文档的 frontmatter 中都会有一个计算出来的 `minutesRead` 属性。
 
 4. 显示阅读时间
 
-  如果你的博客文章存储在 [内容集合](/zh-cn/guides/content-collections/) 中，通过 `entry.render()` 函数获取 `remarkPluginFrontmatter`，然后在模板中你喜欢的位置渲染 `minutesRead`。
+    如果你的博客文章存储在 [内容集合](/zh-cn/guides/content-collections/) 中，通过 `entry.render()` 函数获取 `remarkPluginFrontmatter`，然后在模板中你喜欢的位置渲染 `minutesRead`。
 
-  ```astro title="src/pages/posts/[slug].astro" "const { Content, remarkPluginFrontmatter } = await entry.render();" "<p>{remarkPluginFrontmatter.minutesRead}</p>"
-  ---
-  import { CollectionEntry, getCollection } from 'astro:content';
+    ```astro title="src/pages/posts/[slug].astro" "const { Content, remarkPluginFrontmatter } = await entry.render();" "<p>{remarkPluginFrontmatter.minutesRead}</p>"
+    ---
+    import { CollectionEntry, getCollection } from 'astro:content';
 
-  export async function getStaticPaths() {
-    const blog = await getCollection('blog');
-    return blog.map(entry => ({
-      params: { slug: entry.slug },
-      props: { entry },
-    }));
-  }
+    export async function getStaticPaths() {
+      const blog = await getCollection('blog');
+      return blog.map(entry => ({
+        params: { slug: entry.slug },
+        props: { entry },
+      }));
+    }
 
-  const { entry } = Astro.props;
-  const { Content, remarkPluginFrontmatter } = await entry.render();
-  ---
+    const { entry } = Astro.props;
+    const { Content, remarkPluginFrontmatter } = await entry.render();
+    ---
 
-  <html>
-    <head>...</head>
-    <body>
-      ...
-      <p>{remarkPluginFrontmatter.minutesRead}</p>
-      ...
-    </body>
-  </html>
-  ```
+    <html>
+      <head>...</head>
+      <body>
+        ...
+        <p>{remarkPluginFrontmatter.minutesRead}</p>
+        ...
+      </body>
+    </html>
+    ```
 
-  如果你使用的是 [Markdown 布局](/zh-cn/guides/markdown-content/#markdown-和-mdx-页面)，在布局模板中通过 `Astro.props` 来获取 frontmatter 中的 `minutesRead` 属性。
+    如果你使用的是 [Markdown 布局](/zh-cn/guides/markdown-content/#markdown-和-mdx-页面)，在布局模板中通过 `Astro.props` 来获取 frontmatter 中的 `minutesRead` 属性。
 
-  ```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.frontmatter;" "<p>{minutesRead}</p>"
-  ---
-  const { minutesRead } = Astro.props.frontmatter;
-  ---
+    ```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.frontmatter;" "<p>{minutesRead}</p>"
+    ---
+    const { minutesRead } = Astro.props.frontmatter;
+    ---
 
-  <html>
-    <head>...</head>
-    <body>
-      <p>{minutesRead}</p>
-      <slot />
-    </body>
-  </html>
-  ```
+    <html>
+      <head>...</head>
+      <body>
+        <p>{minutesRead}</p>
+        <slot />
+      </body>
+    </html>
+    ```
+</Steps>
