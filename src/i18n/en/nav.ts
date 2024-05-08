@@ -4,7 +4,10 @@
  * English for any entries they haven’t translated.
  *
  * - All entries MUST include `text` and `key`
+ * - The first entry MUST be a heading
  * - Heading entries MUST include `header: true` and `type`
+ * - Heading entries MAY include `nested: true` to move that heading and following links under the previous unnested heading
+ * - Heading entries MAY include `collapsed: true` to mark it and its children as collapsed by default
  * - Link entries MUST include `slug` (which excludes the language code)
  *
  * For translators:
