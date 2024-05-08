@@ -19,7 +19,10 @@ export type NavDict = Array<
 		key: NavDictionaryKeys;
 		labelIsTranslated: boolean;
 		isFallback?: boolean;
-	} & ({ slug: string } | { header: true; type: 'learn' | 'api' })
+	} & (
+		| { slug: string }
+		| { header: true; nested?: boolean; collapsed?: boolean; type: 'learn' | 'api' }
+	)
 >;
 
 /**

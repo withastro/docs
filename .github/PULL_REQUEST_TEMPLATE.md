@@ -12,8 +12,10 @@
 - Suggested label: <!-- Help us triage by suggesting one of our labels that describes your PR -->
 
 <!-- For a new/changed feature in an upcoming Astro release? -->
-<!-- Uncomment the line below, update the minor version number if known, and include a PR link -->
+<!-- 1. Uncomment the line below, update the minor version number if known, and include a PR link -->
 <!-- #### For Astro version: `4.x`. See astro PR [#](url). -->
+
+<!-- 2. Check that your PR includes `<p><Since v="4.x.0" /></p>` and imports the `<Since>` component, if necessary! -->
 
 <!-- #### First-time contributor to Astro Docs? -->
 
