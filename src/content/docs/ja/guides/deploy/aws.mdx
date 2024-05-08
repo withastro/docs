@@ -4,42 +4,26 @@ description: AWSを使ってAstroサイトをウェブにデプロイする方�
 type: deploy
 i18nReady: true
 ---
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
 [AWS](https://aws.amazon.com/)は、Astroサイトのデプロイに使用できる、機能豊富なウェブアプリホスティングプラットフォームです。
 
-プロジェクトをAWSにデプロイするには、[AWSコンソール](https://aws.amazon.com/console/)を使用する必要があります。(これらのアクションのほとんどは、[AWS CLI](https://aws.amazon.com/cli/)を使用しても実行できます)。このガイドでは、AWSにサイトをデプロイする手順を最も基本的な方法から説明します。その後、コスト効率とパフォーマンスを向上させるための追加サービスをデモンストレーションします。
+プロジェクトをAWSにデプロイするには、[AWSコンソール](https://aws.amazon.com/console/)を使用する必要があります。(これらのアクションのほとんどは、[AWS CLI](https://aws.amazon.com/cli/)を使用しても実行できます)。このガイドでは、[AWS Amplify](https://aws.amazon.com/amplify/)、[S3の静的ウェブサイトホスティング](https://aws.amazon.com/s3/)、および[CloudFront](https://aws.amazon.com/cloudfront/)を使用して、サイトをAWSにデプロイする手順を説明します。
 
 ## AWS Amplify
 
 AWS Amplifyは、フロントエンドのWebおよびモバイル開発者が、AWS上で迅速かつ容易にフルスタックアプリケーションを構築できるようにするという目的のために設計されたツールと機能のセットです。
 
+<Steps>
 1. 新しいAmplify Hostingプロジェクトを作成します。
+
 2. リポジトリをAmplifyに接続します。
-3. ビルド出力ディレクトリ `baseDirectory` を `/dist` に変更します。
 
-    ```yaml
-    version: 1
-    frontend:
-      phases:
-        preBuild:
-          # npmを使用していない場合は、`npm ci` を `yarn install` または `pnpm i` に変更してください。
-          commands:
-            - npm ci
-        build:
-          commands:
-            - npm run build
-      artifacts:
-        baseDirectory: /dist
-        files:
-          - '**/*'
-      cache:
-        paths:
-          - node_modules/**/*
-    ```
+3. プロジェクトのビルドプロセスに合わせてビルド設定を変更します。
 
-`pnpm` を使用する場合は、`node_modules` の代わりに pnpm store ディレクトリをキャッシュするために、設定を変更する必要があります。以下は推奨のビルド設定です.
-
-
+    <PackageManagerTabs>
+    <Fragment slot="pnpm">
     ```yaml
     version: 1
     frontend:
@@ -60,6 +44,49 @@ AWS Amplifyは、フロントエンドのWebおよびモバイル開発者が、
         paths:
           - .pnpm-store/**/*
     ```
+    </Fragment>
+    <Fragment slot="npm">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm ci
+        build:
+          commands:
+            - npm run build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - yarn install
+        build:
+          commands:
+            - yarn build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    ```
+    </Fragment>
+    </PackageManagerTabs>
+</Steps>
 
 Amplifyは、あなたがリポジトリにコミットをプッシュすると、自動的にあなたのウェブサイトをデプロイし、更新します。
 
@@ -67,6 +94,7 @@ Amplifyは、あなたがリポジトリにコミットをプッシュすると�
 
 S3はあらゆるアプリケーションの出発点です。プロジェクトファイルやその他のアセットが保存されます。S3はファイルの保存容量とリクエスト数に対して課金されます。S3についての詳細は[AWS documentation](https://aws.amazon.com/s3/)を参照してください。
 
+<Steps>
 1. プロジェクト名を含んだS3バケットを作成します。
 
     :::tip
@@ -107,6 +135,7 @@ S3はあらゆるアプリケーションの出発点です。プロジェクト
     :::note
     シングルページアプリケーション (SPA) をデプロイする場合は、エラードキュメントを `index.html` に設定してください。
     :::
+</Steps>
 
 ## S3とCloudFront
 
@@ -212,6 +241,7 @@ S3はデフォルトで、ファイルが見つからなかった場合には404
 
 AWSで継続的デプロイを設定する方法はたくさんあります。GitHub 上でホストされているコードの場合、[GitHub Actions](https://github.com/features/actions) を使ってコミットをプッシュするたびにウェブサイトをデプロイする方法があります。
 
+<Steps>
 1. AWSアカウントで[IAM](https://aws.amazon.com/iam/)を使って、以下の権限で新しいポリシーを作成します。このポリシーによって、ビルドしたファイルをS3バケットにアップロードしたり、コミットをプッシュしたときにCloudFrontの配布ファイルを無効にしたりできるようになります。
 
     ```json
@@ -278,3 +308,4 @@ AWSで継続的デプロイを設定する方法はたくさんあります。Gi
     :::note
     `BUCKET_ID`はS3バケットの名前です。`DISTRIBUTION_ID`はCloudFrontのディストリビューションIDです。CloudFrontのディストリビューションIDは**CloudFront > ディストリビューション > ID**で確認できます。
     :::
+</Steps>
