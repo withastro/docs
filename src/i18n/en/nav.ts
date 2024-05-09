@@ -50,7 +50,7 @@ export default [
 
 
 	{ text: 'Manage your content', header: true, type: 'learn', key: 'content' },
-	{ text: 'Authoring Content', slug: 'guides/authoring-content', key: 'guides/authoring-content' },
+	{ text: 'Authoring Content', slug: 'guides/content', key: 'guides/content' },
 	{ text: 'Markdown', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 	{ text: 'Content Collections', slug: 'guides/content-collections', key: 'guides/content-collections' },
 	{ text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
