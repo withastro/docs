@@ -60,7 +60,7 @@ export default NavDictionary({
 	'guides/ecommerce': 'E-commerce',
 	'guides/testing': 'Testowanie',
 	'guides/authentication': 'Autentykacja',
-	'guides/troubleshooting': 'Rozwiązywanie błędów'
+	'guides/troubleshooting': 'Rozwiązywanie błędów',
 		
 	'configuration': 'Konfiguracja',
 	'guides/configuring-astro': 'Plik konfiguracyjny Astro',
@@ -73,7 +73,7 @@ export default NavDictionary({
 	'reference/api-reference': 'API środowiska wykonawczego',
 	'reference/integrations-reference': 'API integracji',
 	'reference/adapter-reference': 'API adapterów',
-	'reference/image-service-reference': 'API usług obrazów'
+	'reference/image-service-reference': 'API usług obrazów',
 	'reference/dev-toolbar-app-reference': 'API narzędzi deweloperskich',
 	'reference/directives-reference': 'Dyrektywy szablonów',
 	'reference/cli-reference': 'Interfejs linii poleceń Astro',
