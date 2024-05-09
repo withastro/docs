@@ -14,10 +14,12 @@ export const logos = LogoCheck({
 	datocms: { file: 'datocms.svg', padding: '0.25em 0.25em 0.25em 0.3em' },
 	deno: { file: 'deno.svg', padding: '0' },
 	edgio: { file: 'edgio.svg', padding: '.1625em' },
+	flyio: { file: 'flyio.svg', padding: '.1625em' },
 	github: { file: 'github.svg', padding: '0.125em 0.125em 0.1375em' },
 	gitlab: { file: 'gitlab.svg', padding: '0' },
 	'google-cloud': { file: 'google-cloud.svg', padding: '.1875em' },
 	'google-firebase': { file: 'firebase.svg', padding: '.1875em' },
+	hashnode: { file: 'hashnode.png', padding: '.1875em' },
 	heroku: { file: 'heroku.svg', padding: '.25em' },
 	'microsoft-azure': { file: 'microsoft-azure.svg', padding: '.1625em .1625em .2125em' },
 	netlify: { file: 'netlify.svg', padding: '.1625em' },
@@ -86,8 +88,10 @@ export const logos = LogoCheck({
 	'kontent-ai': { file: 'kontent-ai.svg', padding: '.15em' },
 	keystatic: { file: 'keystatic.svg', padding: '0' },
 	zeabur: { file: 'zeabur.svg', padding: '.2em' },
+	zerops: { file: 'zerops.svg', padding: '.2em' },
 	apostrophecms: { file: 'apostrophecms.svg', padding: '.15em .15em' },
 	db: { file: 'db.svg', padding: '.1em' },
+	umbraco: { file: 'umbraco.svg', padding: '.05em' },
 });
 
 export type LogoKey = keyof typeof logos;

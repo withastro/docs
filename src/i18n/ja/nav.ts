@@ -5,6 +5,7 @@ export default NavDictionary({
 	'getting-started': 'はじめに',
 	install: 'インストール',
 	'editor-setup': 'エディタのセットアップ',
+	'upgrade-astro': 'Astroのアップグレード',
 
 	coreConcepts: 'コアコンセプト',
 	'concepts/why-astro': 'Astroを選ぶ理由',
@@ -27,6 +28,7 @@ export default NavDictionary({
 	'guides/content-collections': 'コンテンツコレクション',
 	'guides/view-transitions': 'ビュートランジション',
 	'guides/prefetch': 'プリフェッチ',
+	'guides/dev-toolbar': '開発ツールバー',
 
 	addons: 'インテグレーション',
 	'guides/integrations-guide': 'インテグレーションの追加',
