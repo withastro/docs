@@ -51,7 +51,6 @@ Each strategy is fine-tuned to only prefetch when needed and save your users' ba
 
 - If a visitor is using [data saver mode](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/saveData) or has a [slow connection](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/effectiveType), prefetch will fallback to the `tap` strategy.
 - Quickly hovering or scrolling over links will not prefetch them.
-- Links that use the `viewport` or `load` strategy are prefetched with a lower priority to avoid clogging up the network.
 
 ### Default prefetch strategy
 
@@ -106,17 +105,6 @@ As some navigation might not always appear as `<a />` links, you can also prefet
 </script>
 ```
 
-You can additionally configure the priority of prefetching by passing the `with` option:
-
-```js
-// Prefetch with `fetch()`, which has a higher priority.
-prefetch('/about', { with: 'fetch' });
-
-// Prefetch with `<link rel="prefetch">`, which has a lower priority
-// and manually scheduled by the browser. (default)
-prefetch('/about', { with: 'link' });
-```
-
 The `prefetch()` API includes the same [data saver mode](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/saveData) and [slow connection](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/effectiveType) detection so that it only prefetches when needed.
 
 To ignore slow connection detection, you can use the `ignoreSlowConnection` option:
@@ -153,6 +141,32 @@ export default defineConfig({
   }
 });
 ```
+
+## Browser support
+
+Prefetching relies on [`<link rel="prefetch">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel/prefetch) if supported, or falls back to the [`fetch()` API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API). Below covers the common browsers which have subtle differences when prefetching:
+
+### Chrome
+
+1. It supports `<link rel="prefetch">` and will generally always work as expected.
+
+### Firefox
+
+1. It supports `<link rel="prefetch">` but errors with `NS_BINDING_ABORTED` if an explicit cache header like [`Cache-Control`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) or [`Expires`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Expires) doesn't exist.
+2. If it errors but the response have a proper [`ETag`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag) header, it will be re-used on navigation.
+3. Otherwise, if it errors with no other cache headers, the prefetch will not work.
+
+### Safari
+
+1. It doesn't support `<link rel="prefetch">` and will fall back to the `fetch()` API.
+2. The `fetch()` API requires cache headers, like [`Cache-Control`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control), [`Expires`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Expires), and [`ETag`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag), to be set in order to work. Otherwise, the prefetch will not work.
+3. Edge case: `ETag` headers do not work in private windows.
+
+### Recommendations
+
+To best support all browsers, make sure your pages have the proper cache headers. For SSG or pre-rendered pages, the `ETag` header is often automatically set by the deployment platform, so they should work out of the box.
+
+For dynamic and server-side rendered pages, you should set the appropriate cache headers based on the page content. Visit the [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching) for more information on HTTP caching.
 
 ## Migrating from `@astrojs/prefetch`
 
