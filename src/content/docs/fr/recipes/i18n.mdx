@@ -6,6 +6,7 @@ i18nReady: true
 ---
 import { FileTree } from '@astrojs/starlight/components';
 import ReadMore from '~/components/ReadMore.astro'
+import { Steps } from '@astrojs/starlight/components';
 import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro'
 
 Dans cette recette, vous apprendrez à utiliser les collections de contenus et le routage dynamique pour construire votre propre solution d'internationalisation (i18n) et servir votre contenu dans différentes langues.
@@ -21,6 +22,7 @@ Si vous préférez que la langue par défaut ne soit pas visible dans l'URL cont
 
 ### Créer des pages pour chaque langue
 
+<Steps>
 1. Créez un répertoire pour chaque langue que vous voulez supporter. Par exemple, `en/` et `fr/` si vous supportez l'anglais et le français :
 
     <FileTree>
@@ -34,7 +36,6 @@ Si vous préférez que la langue par défaut ne soit pas visible dans l'URL cont
           - index.astro
         - index.astro
     </FileTree>
-
 
 2. Configurez `src/pages/index.Astro` pour rediriger vers votre langue par défaut.
 
@@ -61,9 +62,11 @@ Si vous préférez que la langue par défaut ne soit pas visible dans l'URL cont
         ```
       </Fragment>
     </StaticSsrTabs>
+</Steps>
 
 ### Utiliser des collections pour le contenu traduit
 
+<Steps>
 1. Créez un dossier dans `src/content/` pour chaque type de contenu que vous voulez inclure et ajoutez des sous-répertoires pour chaque langue supportée. Par exemple, pour prendre en charge les articles de blog en anglais et en français :
 
     <FileTree>
@@ -102,74 +105,76 @@ Si vous préférez que la langue par défaut ne soit pas visible dans l'URL cont
 
 3. Utilisez [dynamic routes](/fr/guides/routing/#routes-dynamiques) pour récupérer et rendre le contenu en fonction d'un paramètre `lang` et d'un paramètre `slug`.
 
-<StaticSsrTabs>
-  <Fragment slot="static">
-        En mode de rendu statique, utilisez `getStaticPaths` pour faire correspondre chaque entrée de contenu à une page :
-
-        ```astro
-        //src/pages/[lang]/blog/[...slug].astro
-        ---
-        import { getCollection } from 'astro:content';
-
-        export async function getStaticPaths() {
-          const pages = await getCollection('blog');
-
-          const paths = pages.map(page => {
-            const [lang, ...slug] = page.slug.split('/');
-            return { params: { lang, slug: slug.join('/') || undefined }, props: page };
-          });
-
-          return paths;
-        }
-
-        const { lang, slug } = Astro.params;
-        const page = Astro.props;
-        const formattedDate = page.data.date.toLocaleString(lang);
-
-        const { Content } = await page.render();
-        ---
-        <h1>{page.data.title}</h1>
-        <p>by {page.data.author} • {formattedDate}</p>
-        <Content/>
-        ```
-      </Fragment>
-
-      <Fragment slot="ssr">
-        En [mode SSR](/fr/guides/server-side-rendering/), recherchez directement l'entrée demandée :
-
-        ```astro
-        //src/pages/[lang]/blog/[...slug].astro
-        ---
-        import { getEntry } from 'astro:content';
-
-        const { lang, slug } = Astro.params;
-        const page = await getEntry('blog', `${lang}/${slug}`);
-
-        if (!page) {
-          return Astro.redirect('/404');
-        }
-
-        const formattedDate = page.data.date.toLocaleString(lang);
-        const { Content, headings } = await page.render();
-        ---
-        <h1>{page.data.title}</h1>
-        <p>by {page.data.author} • {formattedDate}</p>
-        <Content/>
-        ```
-      </Fragment>
+    <StaticSsrTabs>
+      <Fragment slot="static">
+            En mode de rendu statique, utilisez `getStaticPaths` pour faire correspondre chaque entrée de contenu à une page :
+    
+            ```astro
+            //src/pages/[lang]/blog/[...slug].astro
+            ---
+            import { getCollection } from 'astro:content';
+    
+            export async function getStaticPaths() {
+              const pages = await getCollection('blog');
+    
+              const paths = pages.map(page => {
+                const [lang, ...slug] = page.slug.split('/');
+                return { params: { lang, slug: slug.join('/') || undefined }, props: page };
+              });
+    
+              return paths;
+            }
+    
+            const { lang, slug } = Astro.params;
+            const page = Astro.props;
+            const formattedDate = page.data.date.toLocaleString(lang);
+    
+            const { Content } = await page.render();
+            ---
+            <h1>{page.data.title}</h1>
+            <p>by {page.data.author} • {formattedDate}</p>
+            <Content/>
+            ```
+          </Fragment>
+    
+          <Fragment slot="ssr">
+            En [mode SSR](/fr/guides/server-side-rendering/), recherchez directement l'entrée demandée :
+    
+            ```astro
+            //src/pages/[lang]/blog/[...slug].astro
+            ---
+            import { getEntry } from 'astro:content';
+    
+            const { lang, slug } = Astro.params;
+            const page = await getEntry('blog', `${lang}/${slug}`);
+    
+            if (!page) {
+              return Astro.redirect('/404');
+            }
+    
+            const formattedDate = page.data.date.toLocaleString(lang);
+            const { Content, headings } = await page.render();
+            ---
+            <h1>{page.data.title}</h1>
+            <p>by {page.data.author} • {formattedDate}</p>
+            <Content/>
+            ```
+          </Fragment>
     </StaticSsrTabs>
 
-<ReadMore>En savoir plus sur les [routes dynamiques](/fr/guides/routing/#routes-dynamiques).</ReadMore>
-
-:::tip[Mise en forme de la date]
-L'exemple ci-dessus utilise la méthode intégrée de mise en forme de la date [`toLocaleString()`](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString) pour créer une chaîne lisible par un humain à partir de la date de la page d'accueil.
-Cela permet de s'assurer que la date et l'heure sont formatées pour correspondre à la langue de l'utilisateur.
-:::
+    <ReadMore>En savoir plus sur les [routes dynamiques](/fr/guides/routing/#routes-dynamiques).</ReadMore>
+    
+    :::tip[Mise en forme de la date]
+    L'exemple ci-dessus utilise la méthode intégrée de mise en forme de la date [`toLocaleString()`](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString) pour créer une chaîne lisible par un humain à partir de la date de la page d'accueil.
+    Cela permet de s'assurer que la date et l'heure sont formatées pour correspondre à la langue de l'utilisateur.
+    :::
+</Steps>
 
 ### Traduire les chaînes de l'UI
 
 Créez des dictionnaires de vocabulaire pour traduire les appellations des éléments de l'interface utilisateur de votre site. Cela permet à vos visiteurs de découvrir votre site dans leur langue.
 
+<Steps>
 1. Créez un fichier `src/i18n/ui.ts` pour stocker vos chaînes de traduction :
 
     ```ts
@@ -281,11 +286,13 @@ Créez des dictionnaires de vocabulaire pour traduire les appellations des élé
         ...
     </Base>
     ```
+</Steps>
 
 ### Permettre aux utilisateurs de passer d'une langue à l'autre
 
 Créez des liens vers les différentes langues que vous prenez en charge afin que les utilisateurs puissent choisir la langue dans laquelle ils souhaitent lire votre site.
 
+<Steps>
 1. Créez un composant pour afficher un lien pour chaque langue :
 
     ```astro
@@ -327,9 +334,11 @@ Créez des liens vers les différentes langues que vous prenez en charge afin qu
         </body>
     </html>
     ```
+</Steps>
 
 ### Masquer la langue par défaut dans l'URL
 
+<Steps>
 1. Créez un répertoire pour chaque langue à l'exception de la langue par défaut. Par exemple, stockez vos pages dans la langue par défaut directement dans `pages/`, et vos pages traduites dans `fr/` :
 
     <FileTree>
@@ -350,7 +359,7 @@ Créez des liens vers les différentes langues que vous prenez en charge afin qu
     ```
 
 3. Ajouter une fonction d'aide à `src/i18n/utils.ts`, pour traduire les chemins en fonction de la langue courante :
-
+  
    ```js
    // src/i18n/utils.ts
    import { ui, defaultLang, showDefaultLang } from './ui';
@@ -407,11 +416,13 @@ Créez des liens vers les différentes langues que vous prenez en charge afin qu
       ))}
     </ul>
     ```
+</Steps>
 
 ### Traduire les routes
 
 Traduisez les routes de vos pages pour chaque langue.
 
+<Steps>
 1. Ajouter les mappings de routes à `src/i18n/ui.ts` :
 
     ```ts
@@ -497,6 +508,7 @@ Traduisez les routes de vos pages pour chaque langue.
       ))}
     </ul>
     ```
+</Steps>
 
 ## Ressources
 - [Choisir une étiquette de langue](https://www.w3.org/International/questions/qa-choosing-language-tags)
