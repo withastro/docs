@@ -22,22 +22,30 @@ type StarlightSidebarConfig = NonNullable<Parameters<typeof starlight>[0]['sideb
 
 /** Generate a Starlight sidebar config object from our existing `nav.ts` files. */
 export function makeSidebar(): StarlightSidebarConfig {
+	let currentSubGroup: Extract<StarlightSidebarConfig[number], { items: any }>;
 	return navTranslations.en.reduce((sidebar, item) => {
 		if ('header' in item) {
-			sidebar.push({
+			const newGroup = {
 				label: item.text,
 				translations: getTranslations(item),
 				items: [],
-			});
-		} else {
-			const group = sidebar.at(-1);
-			if (group && 'items' in group) {
-				group.items.push({
-					label: item.text,
-					link: item.slug,
-					translations: getTranslations(item),
-				});
+				collapsed: item.collapsed,
+			};
+			if (item.nested) {
+				const parentGroup = sidebar.at(-1);
+				if (parentGroup && 'items' in parentGroup) {
+					parentGroup.items.push(newGroup);
+				}
+			} else {
+				sidebar.push(newGroup);
 			}
+			currentSubGroup = newGroup;
+		} else {
+			currentSubGroup.items.push({
+				label: item.text,
+				link: item.slug,
+				translations: getTranslations(item),
+			});
 		}
 		return sidebar;
 	}, [] as StarlightSidebarConfig);
