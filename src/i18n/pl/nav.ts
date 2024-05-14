@@ -1,22 +1,22 @@
 import { NavDictionary } from '../translation-checkers';
 
 export default NavDictionary({
-	'startHere': 'Zacznij tutaj',
+	startHere: 'Zacznij tutaj',
 	'getting-started': 'Wprowadzenie',
-	'install': 'Instalacja',
+	install: 'Instalacja',
 	'editor-setup': 'Konfiguracja edytora',
 	'upgrade-astro': 'Aktualizacja Astro',
 
-	'coreConcepts': 'Podstawowe pojęcia',
+	coreConcepts: 'Podstawowe pojęcia',
 	'concepts/why-astro': 'Dlaczego Astro?',
 	'concepts/islands': 'Wyspy Astro',
 
-	'tutorials': 'Samouczki',
+	tutorials: 'Samouczki',
 	'blog-tutorial': 'Zbuduj blog',
 	'add-collections-tutorial': 'Rozszerz przy użyciu kolekcji zawartości',
 	'add-transitions-tutorial': 'Rozszerz przy użyciu View Transitions',
-	
-	'basics': 'Podstawy',
+
+	basics: 'Podstawy',
 	'basics/project-structure': 'Struktura projektu',
 	'basics/astro-components': 'Komponenty Astro',
 	'basics/astro-pages': 'Strony',
@@ -24,19 +24,19 @@ export default NavDictionary({
 	'basics/astro-syntax': 'Składnia plików Astro',
 	'basics/rendering-modes': 'Tryby renderowania',
 
-	'builtins': 'Wbudowane funkcjonalności',
+	builtins: 'Wbudowane funkcjonalności',
 	'guides/content-collections': 'Kolecje zawartości',
 	'guides/view-transitions': 'View Transitions',
 	'guides/prefetch': 'Prefetch',
 	'guides/dev-toolbar': 'Narzędzia deweloperskie',
 
-	'addons': 'Integracje',
+	addons: 'Integracje',
 	'guides/integrations-guide': 'Dodaj integrację',
 	'guides/framework-components': 'Frameworki UI',
 	'guides/server-side-rendering': 'Renderowanie po stronie serwera (SSR)',
 	'guides/astro-db': 'Astro DB',
 
-	'examples': 'Przykłady',
+	examples: 'Przykłady',
 	'guides/migrate-to-astro': 'Migracja do Astro',
 	'recipes/studio': 'Połączenie z Astro Studio',
 	'guides/cms': 'Połączenie z CMS',
@@ -44,7 +44,7 @@ export default NavDictionary({
 	'guides/deploy': 'Wdrażanie',
 	'guides/recipes': 'Więcej przykładów',
 
-	'features': 'Przewodniki',
+	features: 'Przewodniki',
 	'guides/routing': 'Routing',
 	'guides/markdown-content': 'Markdown',
 	'guides/client-side-scripts': 'Skrypty i obsługa zdarzeń',
@@ -54,21 +54,21 @@ export default NavDictionary({
 	'guides/imports': 'Importowanie',
 	'guides/endpoints': 'Endpointy',
 	'guides/data-fetching': 'Pobieranie danych',
-	
+
 	'guides/internationalization': 'Internacjonalizacja',
 	'guides/middleware': 'Middleware',
 	'guides/ecommerce': 'E-commerce',
 	'guides/testing': 'Testowanie',
 	'guides/authentication': 'Autentykacja',
 	'guides/troubleshooting': 'Rozwiązywanie błędów',
-		
-	'configuration': 'Konfiguracja',
+
+	configuration: 'Konfiguracja',
 	'guides/configuring-astro': 'Plik konfiguracyjny Astro',
 	'guides/typescript': 'TypeScript',
 	'guides/aliases': 'Aliasy importów',
 	'guides/environment-variables': 'Zmienne środowiskowe',
 
-	'reference': 'Odnośniki',
+	reference: 'Odnośniki',
 	'reference/configuration-reference': 'Konfiguracja',
 	'reference/api-reference': 'API środowiska wykonawczego',
 	'reference/integrations-reference': 'API integracji',
@@ -80,7 +80,7 @@ export default NavDictionary({
 	'reference/error-reference': 'Błędy',
 	'guides/publish-to-npm': 'Publikowanie w NPM',
 
-	'communityResources': 'Zasoby społecznościowe',
+	communityResources: 'Zasoby społecznościowe',
 	'community-resources/content': 'Kursy, przewodniki i przykłady',
 	'community-resources/talks': 'Prelekcje, wywiady i nagrania',
 });
