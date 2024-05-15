@@ -129,6 +129,6 @@ export default UIDictionary({
 	// Starlight banner
 	'starlight.title': 'تريد بناء مستنداتك الخاصة؟',
 	'starlight.description': 'استلم هذا القالب للبدء.',
-		// `<StudioHeading>` component
+	// `<StudioHeading>` component
 	'studioHeading.label': 'ميزة الاستوديو',
 });
