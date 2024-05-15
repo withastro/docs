@@ -1,0 +1,292 @@
+---
+title: Astro Container API (experimental)
+i18nReady: false
+---
+import Since from '~/components/Since.astro'
+
+The Container API allows to render Astro components in isolation.
+
+<Since v="4.9.0" />
+
+## `create()`
+
+Creates a new instance of the container. 
+
+```js
+import { experimental_AstroContainer } from "astro/container";
+
+const container = await experimental_AstroContainer.create();
+```
+
+It accepts an object with the following options
+
+
+```ts
+export type AstroContainerOptions = {
+	streaming?: boolean;
+	renderers?: AstroRenderer[];
+	astroConfig?: AstroContainerUserConfig;
+};
+```
+
+#### `streaming` option
+
+Enables rendering components using the streaming.
+
+**Type:** `boolean`
+
+#### `renderers` option
+
+A list of client renderers. Add a renderer if your Astro component renders some client components such as React, Preact, etc.
+
+**Type:**: `AstroRenderer[]`;
+
+For example, if you're rendering a Astro component that renders a React component, you'll have to provide the following renderer: 
+
+```js
+const container = await experimental_AstroContainer.create({
+    renderers: [
+      {
+	      name: "@astrojs/react",
+	      client: "@astrojs/react/client.js",
+	      server: "@astrojs/react/server.js"
+      }
+    ]
+})
+const result = await container.renderToString(ReactWrapper);
+```
+
+#### `astroConfig` option
+
+A subset of the Astro user configuration.
+
+**Type**: `AstroContainerUserConfig`
+
+## `renderToString()`
+
+It renders a component, and it returns a string that represents the HTML/content rendered by the Astro component.
+
+```js
+import { experimental_AstroContainer } from "astro/container";
+import Card from "../src/components/Card.astro";
+
+const container = await experimental_AstroContainer.create();
+const result = await container.renderToString(Card);
+```
+
+Under the hood, this function calls [`renderToResponse`](#rendertoresponse) and calls `Response.text()`. 
+
+It accepts a [number of options](#rendering-options).
+
+## `renderToResponse()`
+
+It renders a component, and it returns a `Response` object.
+
+```js
+import { experimental_AstroContainer } from "astro/container";
+import Card from "../src/components/Card.astro";
+
+const container = await experimental_AstroContainer.create();
+const result = await container.renderToResponse(Card);
+```
+
+It accepts a [number of options](#rendering-options).
+
+### Rendering options
+
+Both [`renderToResponse`](#rendertoresponse) and [`renderToString`](#rendertostring) accept an object as their second argument:
+
+```ts
+export type ContainerRenderOptions = {
+	slots?: Record<string, any>;
+	request?: Request;
+	params?: Record<string, string | undefined>;
+	locals?: App.Locals;
+	routeType?: "page" | "endpoint";
+  
+};
+```
+
+#### `slots`
+
+**Type**: `Record<string, any>`;
+
+Use this options if your component needs to render some [slots](en/basics/astro-components/#slots).
+
+If your components renders one slot, pass an object with `default` as key:
+
+```js name="Card.test.js"
+import Card from "../src/components/Card.astro";
+
+const result = await container.renderToString(Card, { 
+  slots: { default: "Some value"}
+});
+```
+
+If your component renders named slots, use the keys of the object to name the slots:
+
+```astro name="Card.astro"
+---
+---
+<div>
+  <slot name="header" />
+  <slot name="footer" />
+</div>
+```
+
+```js name="Card.test.js"
+import Card from "../src/components/Card.astro";
+
+const result = await container.renderToString(Card, { 
+  slots: { "header": "Header content", "footer": "Footer" }
+});
+```
+
+You can also render components in cascade:
+
+```astro name="Card.astro"
+---
+---
+<div>
+  <slot name="header" />
+  <slot name="footer" />
+</div>
+```
+
+```js name="Card.test.js"
+import Card from "../src/components/Card.astro";
+import CardHeader from "../src/components/CardHeader.astro";
+import CardFooter from "../src/components/CardFooter.astro";
+
+const result = await container.renderToString(Card, { 
+  slots: { 
+    "header": await container.renderToString(CardHeader), 
+    "footer":  await container.renderToString(CardFooter),
+  }
+});
+```
+
+#### `request` option
+
+**Type**: `Request`
+
+The request is used to understand which path/URL the component is about to render.
+
+Use this option in case your component needs to read information like `Astro.url` or `Astro.request`.
+
+You can also inject possible headers or cookies.
+
+```js file="Card.test.js"
+import Card from "../src/components/Card.astro";
+
+const result = await container.renderToString(Card, { 
+  request: new Request("https://example.com/blog", {
+    headers: {
+      "X-some-secret-header": "test-value"
+    }
+  })
+});
+```
+
+#### `params` option
+
+**Type**: `Record<string, string | undefined>`;
+
+Use this option in case your component needs to read `Astro.params`. As opposed to `getStaticPaths`, you must provide only **one** item of the params returned by that function.
+
+```astro name="Card.astro"
+---
+const { locale, slug } = Astro.params;
+---
+<div></div>
+```
+
+```js file="Card.test.js"
+import Card from "../src/components/Card.astro";
+
+const result = await container.renderToString(Card, { 
+  params: {
+    locale: "en",
+    slug: "getting-started"
+  }
+});
+```
+
+#### `locals` options 
+
+**Type**: `App.Locals`
+
+Use this option to stub the `Astro.locals` object:
+
+```astro name="Card.astro"
+---
+const { checkAuth } = Astro.locals;
+const isAuthenticated = checkAuth();
+---
+{isAuthenticated ? <span>You're in</span> : <span>You're out</span> }
+```
+
+```js file="Card.test.js"
+import Card from "../src/components/Card.astro";
+
+test("User is in", async () => {
+  const result = await container.renderToString(Card, { 
+    locals: {
+      checkAuth() { return true }
+    }
+  });
+  
+  // assert result contains "You're in"
+})
+
+
+test("User is out", async () => {
+  const result = await container.renderToString(Card, { 
+    locals: {
+      checkAuth() { return false }
+    }
+  });
+  
+  // assert result contains "You're out"
+})
+```
+
+#### `routeType` option
+
+**Type**: `"page" | "endpoint"`
+
+Useful in case you're rendering an endpoint. In this case, you want to use `renderToResponse`:
+
+```js
+container.renderToString(Endpoint, { routeType: "endpoint" });
+```
+
+```js file="endpoint.test.js"
+import * as Endpoint from "../src/pages/api/endpoint.js";
+
+const response = await container.renderToResponse(Endpoint, { 
+  routeType: "endpoint"
+});
+const json = await response.json();
+```
+
+If your endpoint needs to be tested on methods such as `POST`, `PATCH`, etc., you'll have to use the `request` option to signal Astro to call the correct function:
+
+```js file="endpoint.js"
+export function GET() {}
+
+// need to test this
+export function POST() {}
+```
+
+```js file="endpoint.test.js" ins={5-7}
+import * as Endpoint from "../src/pages/api/endpoint.js";
+
+const response = await container.renderToResponse(Endpoint, { 
+    routeType: "endpoint",
+    request: new Request("https://example.com", {
+      method: "POST" //
+    })
+});
+const json = await response.json();
+```
