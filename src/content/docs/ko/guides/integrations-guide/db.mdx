@@ -128,24 +128,30 @@ const Comment = defineTable({
 
 ### `indexes`
 
-테이블 인덱스는 특정 열 또는 열 조합에 대한 조회 속도를 향상시키는 데 사용됩니다. `indexes` 속성은 고유한 인덱스 이름을 가진 객체를 키로 허용합니다.
+테이블 인덱스는 특정 열 또는 열 조합에 대한 조회 속도를 향상시키는 데 사용됩니다. `indexes` 속성은 인덱스를 생성할 열을 지정하는 구성 객체의 배열을 값으로 전달받습니다.
 
-```ts title="db/config.ts" {6-8}
+```ts title="db/config.ts" {9-11}
 import { defineTable, column } from 'astro:db';
 
 const Comment = defineTable({
-  authorId: column.number(),
-  body: column.text(),
-  indexes: {
-    author_idx: { on: ['authorId'], unique: true },
-  }
+  columns: {
+    authorId: column.number(),
+    published: column.date(),
+    body: column.text(),
+  },
+  indexes: [
+    { on: ["authorId", "published"], unique: true },
+  ]
 });
 ```
+
+그러면 `authorId` 및 `published` 열에 `Comment_authorId_published_idx`라는 이름의 고유 인덱스가 생성됩니다.
 
 각 인덱스에 대해 다음 구성 옵션을 사용할 수 있습니다.
 
 - `on`: `string | string[]` - 인덱싱할 단일 열 또는 열 이름 배열입니다.
 - `unique`: `boolean` - 인덱스가 생성된 열 전체에 고유한 값을 적용하려면 `true`로 설정합니다.
+- `name`: `string` (선택 사항) - 고유 인덱스의 사용자 정의 이름입니다. 이는 색인화되는 테이블 및 열 이름을 기반으로 Astro에서 생성된 이름을 재정의합니다 (예: `Comment_authorId_published_idx`). 사용자 정의 이름은 전역적이므로 인덱스 이름이 테이블 간에 충돌하지 않는지 확인하세요.
 
 ### `foreignKeys`
 
@@ -161,23 +167,24 @@ const Comment = defineTable({
 import { defineTable, column } from 'astro:db';
 
 const Author = defineTable({
-  firstName: column.text(),
-  lastName: column.text(),
+  columns: {
+    firstName: column.text(),
+    lastName: column.text(),
+  },
 });
 
 const Comment = defineTable({
-  authorFirstName: column.text(),
-  authorLastName: column.text(),
-  body: column.text(),
+  columns: {
+    authorFirstName: column.text(),
+    authorLastName: column.text(),
+    body: column.text(),
+  },
   foreignKeys: [
     {
-      columns: ['authorFirstName', 'authorLastName'],
-      references: () => [
-        Author.columns.firstName,
-        Author.columns.lastName
-      ],
+      columns: ["authorFirstName", "authorLastName"],
+      references: () => [Author.columns.firstName, Author.columns.lastName],
     },
-  ]
+  ],
 });
 ```
 
@@ -220,3 +227,30 @@ Astro DB에는 호스팅된 프로젝트 데이터베이스 및 [Astro Studio](/
 - `--remote` Studio 프로젝트 데이터베이스에 대해 실행하세요. 개발 서버에 대한 실행을 생략합니다.
 
 데이터베이스에 대해 원시 SQL 쿼리를 실행합니다. Studio 프로젝트 데이터베이스에 대해 실행하려면 `--remote` 플래그를 사용하고, 개발 서버에 대해 실행하려면 플래그를 생략하세요.
+
+## Astro DB 유틸리티 참조
+
+### `isDbError()`
+
+`isDbError()` 함수는 오류가 libSQL 데이터베이스 예외인지 확인합니다. 여기에는 참조 사용 시 외래 키 제약 조건 오류가 포함되거나 데이터 삽입 시 필드 누락이 포함될 수 있습니다. `isDbError()`를 try / catch 블록과 결합하여 애플리케이션의 데이터베이스 오류를 처리할 수 있습니다.
+
+```ts title="src/pages/api/comment/[id].ts" "idDbError"
+import { db, Comment, isDbError } from 'astro:db';
+import type { APIRoute } from 'astro';
+
+export const POST: APIRoute = (ctx) => {
+  try {
+    await db.insert(Comment).values({
+      id: ctx.params.id,
+      content: 'Hello, world!'
+    });
+  } catch (e) {
+    if (isDbError(e)) {
+      return new Response(`Cannot insert comment with id ${id}\n\n${e.message}`, { status: 400 });
+    }
+    return new Response('An unexpected error occurred', { status: 500 });
+  }
+
+  return new Response(null, { status: 201 });
+};
+```
