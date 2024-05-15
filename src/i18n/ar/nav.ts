@@ -31,7 +31,7 @@ export default NavDictionary({
 
 	addons: 'الإضافات',
 	'guides/integrations-guide': 'التكامل',
-	'guides/framework-components': "إطار الواجهة",
+	'guides/framework-components': 'إطار الواجهة',
 	'guides/server-side-rendering': 'العرض من جانب الخادم (SSR)',
 	'guides/astro-db': 'أسترو دي بي',
 
@@ -53,7 +53,7 @@ export default NavDictionary({
 	'guides/imports': 'الإضافات',
 	'guides/endpoints': 'النقاط الطرفية',
 	'guides/data-fetching': 'جلب البيانات',
-  'guides/internationalization': 'تدويل',
+	'guides/internationalization': 'تدويل',
 	'guides/ecommerce': 'التجارة الإلكترونية',
 	'guides/middleware': 'الوسيط',
 	'guides/testing': 'الاختبار',
@@ -74,7 +74,7 @@ export default NavDictionary({
 	'reference/integrations-reference': 'API التكاملات',
 	'reference/adapter-reference': 'API الموائِم',
 	'reference/image-service-reference': 'API خدمة الصور',
-	'reference/dev-toolbar-app-reference': "واجهة برمجة تطبيقات شريط أدوات التطوير",
+	'reference/dev-toolbar-app-reference': 'واجهة برمجة تطبيقات شريط أدوات التطوير',
 	'reference/directives-reference': 'توجيهات القوالب',
 	'reference/cli-reference': 'واجهة سطر الأوامر (CLI) لأسترو',
 	'reference/error-reference': 'مرجع الأخطاء',
