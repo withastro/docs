@@ -4,6 +4,8 @@ description: 预获取链接以在页面间实现更快的导航。
 i18nReady: true
 ---
 
+import { Steps } from '@astrojs/starlight/components'
+
 页面加载时间在网站的可用性和整体体验中扮演着重要角色。当你的访问者与网站进行交互时，Astro 的**可选预获取**功能能在你的多页面应用（MPA）中带来几乎瞬时的页面导航的好处。
 
 ## 启用预获取
@@ -49,7 +51,6 @@ Astro 支持 4 种预获取策略，以适应各种用例：
 
 - 如果访问者使用[流量节省模式](https://developer.mozilla.org/zh-CN/docs/Web/API/NetworkInformation/saveData)或者有[慢速连接](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/effectiveType)，则预获取策略将会回退到 “tap” 策略。
 - 快速悬停或滚动链接不会预获取它们。
-- 使用 `viewport` 或者 `load` 策略的链接会以较低的优先级预获取，以避免堵塞网络。
 
 ### 默认预获取策略
 
@@ -104,17 +105,6 @@ export default defineConfig({
 </script>
 ```
 
-你还可以通过传递 `with` 选项来配置预获取的优先级：
-
-```js
-// 使用 `fetch()` 预获取，它具有更高的优先级。
-prefetch('/about', { with: 'fetch' });
-
-// 使用 `<link rel="prefetch">` 预获取，它具有较低的优先级
-// 并由浏览器手动调度。（默认）
-prefetch('/about', { with: 'link' });
-```
-
 `prefetch()` API 包括相同的[流量节省模式](https://developer.mozilla.org/zh-CN/docs/Web/API/NetworkInformation/saveData)和[慢速连接](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/effectiveType)检测，因此只有在需要时才预获取。
 
 要忽略慢速连接检测，你可以使用 `ignoreSlowConnection` 选项：
@@ -152,10 +142,43 @@ export default defineConfig({
 });
 ```
 
+## 浏览器支持
+
+如果浏览器支持，Astro 的预获取将使用 [`<link rel="prefetch">`](https://developer.mozilla.org/zh-CN/docs/Web/HTML/Attributes/rel/prefetch)，否则将回退到 [`fetch()` API](https://developer.mozilla.org/zh-CN/docs/Web/API/Fetch_API)。
+
+常见的浏览器对 Astro 的预获取支持存在细微差别：
+
+### Chrome
+
+Chrome 支持 `<link rel="prefetch">`。预获取按预期工作。
+
+### Firefox
+
+Firefox 支持 `<link rel="prefetch">`，但可能会显示错误或完全失败：
+
+ - 如果没有明确的缓存头（例如 [`Cache-Control`](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Cache-Control) 或 [`Expires`](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Expires)），预获取将会因 `NS_BINDING_ABORTED` 错误而失败。
+- 即使出现错误，如果响应中有正确的 [`ETag`](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/ETag) 头，它将在导航时被重用。
+- 否则，如果没有其他缓存头的错误，预获取将不会工作。
+
+### Safari
+
+Safari 不支持 `<link rel="prefetch">`，将回退到 `fetch()` API，这需要设置缓存头（例如 [`Cache-Control`](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Cache-Control)、[`Expires`](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Expires) 和 [`ETag`](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/ETag)）。否则，预获取将不会工作。
+
+**特殊情况：** 在隐私窗口中，`ETag` 头不起作用。
+
+### 建议
+
+为了更好地支持所有浏览器，请确保你的页面设置了正确的缓存头。
+
+对于静态或预渲染的页面，`ETag` 头通常由部署平台自动设置，并且预期可以直接使用。
+
+对于动态和服务端渲染的页面，根据页面内容自行设置适当的缓存头。更多信息请访问 [MDN 关于 HTTP 缓存的文档](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Caching)。
+
 ## 从 `@astrojs/prefetch` 迁移
 
 `@astrojs/prefetch` 集成在 v3.5.0 中被弃用，最终将被完全移除。使用以下说明将 `@astrojs/prefetch` 迁移到 Astro 的内置预获取，这将替代这个集成。
 
+<Steps>
 1. 删除 `@astrojs/prefetch` 集成，并在 `astro.config.mjs` 中启用 `prefetch` 配置：
 
     ```js title="astro.config.mjs" ins={6} del={2,5}
@@ -191,3 +214,4 @@ export default defineConfig({
       ```
 
     - `@astrojs/prefetch` 的 `throttles` 选项不再需要，因为新的预获取特性将自动调度和优化预获取。
+</Steps>

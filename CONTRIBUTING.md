@@ -99,7 +99,7 @@ Our Docs are translated into several languages and we rely on automation to noti
 
 **Pages generated from outside sources**
 
-Some of our English-language pages are generated from outside sources and maintained in another repo. Currently, these files are `configuration-reference.md` and all those under the `integrations-guides/` directory as well as our error messages.
+Some of our English-language pages are generated from outside sources and maintained in another repo. Currently, these files are `configuration-reference.md` and all those under the `integrations-guide/` directory as well as our error messages.
 
 The page's **Edit this page** button should redirect you to the file that should be changed. Alternatively, you can get the correct URL from the file's `githubURL` frontmatter property.
 

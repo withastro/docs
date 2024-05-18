@@ -6,7 +6,7 @@ service: Strapi
 stub: false
 i18nReady: true
 ---
-
+import { Steps } from '@astrojs/starlight/components';
 import { FileTree } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
@@ -52,9 +52,9 @@ interface ImportMetaEnv {
 
 ### 创建 API 包装器
 
-在 `lib/strapi.ts` 中创建一个新文件，并添加以下包装函数来与 Strapi API 进行交互：
+在 `src/lib/strapi.ts` 中创建一个新文件，并添加以下包装函数来与 Strapi API 进行交互：
 
-```ts title="lib/strapi.ts"
+```ts title="src/lib/strapi.ts"
 interface Props {
   endpoint: string;
   query?: Record<string, string>;
@@ -146,83 +146,83 @@ export default interface Article {
 
 ### 展示文章列表
 
+<Steps>
 1. 更新你的首页 `src/pages/index.astro`，用以展示一个博客文章列表，当中的每篇文章都有描述和链接到自己页面。
 
 2. 导入包装函数和接口。添加以下 API 调用来获取你的文章并返回一个列表：
+    ```astro title="src/pages/index.astro"
+    ---
+    import fetchApi from '../lib/strapi';
+    import type Article from '../interfaces/article';
 
-  ```astro title="src/pages/index.astro"
-  ---
-  import fetchApi from '../lib/strapi';
-  import type Article from '../interfaces/article';
+    const articles = await fetchApi<Article[]>({
+      endpoint: 'articles', // 需要获取的内容类型
+      wrappedByKey: 'data', // 在响应中被拆封的键
+    });
+    ---
+    ```
 
-  const articles = await fetchApi<Article[]>({
-    endpoint: 'articles', // 需要获取的内容类型
-    wrappedByKey: 'data', // 在响应中被拆封的键
-  });
-  ---
-  ```
+    该 API 调用请求会从 `http://localhost:1337/api/articles` 获取数据，并返回 `articles`，这是一个表示数据的 JSON 对象数组：
 
-  该 API 调用请求会从 `http://localhost:1337/api/articles` 获取数据，并返回 `articles`，这是一个表示数据的 JSON 对象数组：
-
-  ```
-  [
-    {
-      id: 1,
-      attributes: {
-        title: "What's inside a Black Hole",
-        description: 'Maybe the answer is in this article, or not...',
-        description: "Maybe the answer is in this article, or not...",
-        content: "Well, we don't know yet...",
-        slug: 'what-s-inside-a-black-hole',
-        createdAt: '2023-05-28T13:19:46.421Z',
-        updatedAt: '2023-05-28T13:19:46.421Z',
-        publishedAt: '2023-05-28T13:19:45.826Z'
-        slug: "what-s-inside-a-black-hole",
-        createdAt: "2023-05-28T13:19:46.421Z",
-        updatedAt: "2023-05-28T13:19:46.421Z",
-        publishedAt: "2023-05-28T13:19:45.826Z"
-      }
-    },
-    // ...
-  ]
-  ```
+    ```json
+    [
+      {
+        id: 1,
+        attributes: {
+          title: "What's inside a Black Hole",
+          description: 'Maybe the answer is in this article, or not...',
+          description: "Maybe the answer is in this article, or not...",
+          content: "Well, we don't know yet...",
+          slug: 'what-s-inside-a-black-hole',
+          createdAt: '2023-05-28T13:19:46.421Z',
+          updatedAt: '2023-05-28T13:19:46.421Z',
+          publishedAt: '2023-05-28T13:19:45.826Z'
+          slug: "what-s-inside-a-black-hole",
+          createdAt: "2023-05-28T13:19:46.421Z",
+          updatedAt: "2023-05-28T13:19:46.421Z",
+          publishedAt: "2023-05-28T13:19:45.826Z"
+        }
+      },
+      // ...
+    ]
+    ```
 
 3. 使用 API 返回的 `articles` 数组中的数据，并在列表中展示你的 Strapi 博客文章。这些文章将链接到它们各自的页面，在下一步中你将创建这些页面。
+    ```astro title="src/pages/index.astro"
+    ---
+    import fetchApi from '../lib/strapi';
+    import type Article from '../interfaces/article';
 
-  ```astro title="src/pages/index.astro"
-  ---
-  import fetchApi from '../lib/strapi';
-  import type Article from '../interfaces/article';
+    const articles = await fetchApi<Article[]>({
+      endpoint: 'articles?populate=image',
+      wrappedByKey: 'data',
+    });
+    ---
 
-  const articles = await fetchApi<Article[]>({
-    endpoint: 'articles?populate=image',
-    wrappedByKey: 'data',
-  });
-  ---
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <title>Strapi & Astro</title>
+      </head>
 
-  <!DOCTYPE html>
-  <html lang="en">
-    <head>
-      <title>Strapi & Astro</title>
-    </head>
-
-    <body>
-      <main>
-        <ul>
-          {
-            articles.map((article) => (
-              <li>
-                <a href={`/blog/${article.attributes.slug}/`}>
-                  {article.attributes.title}
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-      </main>
-    </body>
-  </html>
-  ```
+      <body>
+        <main>
+          <ul>
+            {
+              articles.map((article) => (
+                <li>
+                  <a href={`/blog/${article.attributes.slug}/`}>
+                    {article.attributes.title}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </main>
+      </body>
+    </html>
+    ```
+</Steps>
 
 ### 生成文章页面
 
@@ -271,7 +271,6 @@ const article = Astro.props;
 ```
 
 接着，使用每个文章对象的属性来创建每个页面的模板。
-
 
 ```astro title="src/pages/blog/[slug].astro ins={21-43}
 ---
@@ -407,17 +406,25 @@ try {
 
 在 Netlify 中设置 Webhook：
 
+<Steps>
 1. 进入你的网站控制面板，点击 **Build & deploy**；
+
 2. 在 **Continuous Deployment** 标签下，找到 **Build hooks** 部分，点击 **Add build hook**；
+
 3. 为你的 Webhook 提供一个名称，并选择要触发构建的分支。点击 **Save** 并复制生成的 URL。
+</Steps>
 
 ##### Vercel
 
 在 Vercel 中设置 Webhook：
 
+<Steps>
 1. 进入你的项目控制面板，点击 **Settings**；
+
 2. 在 **Git** 标签下，找到 **Deploy Hooks** 部分；
+
 3. 为你的 Webhook 提供一个名称和要触发构建的分支。点击 **Add** 并复制生成的 URL。
+</Steps>
 
 ##### 在 Strapi 中添加 Webhook
 
