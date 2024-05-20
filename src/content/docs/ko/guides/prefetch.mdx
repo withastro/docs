@@ -51,7 +51,6 @@ Astro는 다양한 사용 사례에 대해 4가지 프리페치 전략을 지원
 
 - 방문자가 [데이터 절약 모드](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/saveData)를 사용 중이거나 [연결 속도가 느린 경우](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/effectiveType), 프리페치는 `tap` 전략으로 대체됩니다.
 - 링크 위에 빠르게 마우스를 올리거나 스크롤하면 해당 링크를 미리 가져오지 않습니다.
-- `viewport` 또는 `load` 전략을 사용하는 링크는 네트워크 막힘을 방지하기 위해 낮은 우선순위로 미리 가져옵니다.
 
 ### 기본 프리페치 전략
 
@@ -106,18 +105,7 @@ export default defineConfig({
 </script>
 ```
 
-`with` 옵션을 전달하여 프리페치 우선순위를 추가로 구성할 수 있습니다.
-
-```js
-// 우선순위가 더 높은 `fetch()`를 사용하여 프리페치합니다.
-prefetch('/about', { with: 'fetch' });
-
-// 우선순위가 낮은 `<link rel="prefetch">`를 사용하여 프리페치
-// 그리고, 브라우저에 의해 수동으로 예약됩니다. (기본)
-prefetch('/about', { with: 'link' });
-```
-
-`prefetch()` API에는 동일한 [데이터 절약 모드](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/saveData)와 [느린 연결](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/effectiveType) 감지 기능이 포함되어 있어, 필요할 때만 프리페치를 수행합니다.
+`prefetch()` API에는 동일한 [데이터 절약 모드](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/saveData)와 [느린 연결](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/effectiveType) 감지 기능이 포함되어 있기 때문에 필요할 때만 프리페치를 수행합니다.
 
 느린 연결 감지를 무시하려면 `ignoreSlowConnection` 옵션을 사용하세요:
 
@@ -153,6 +141,38 @@ export default defineConfig({
   }
 });
 ```
+
+## 브라우저 지원
+
+Astro의 프리페칭은 브라우저에서 지원하는 경우 [`<link rel="prefetch">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel/prefetch)를 사용하며, 그렇지 않으면 [`fetch()` API](https://developer.mozilla.org/ko/docs/Web/API/Fetch_API)를 대신 사용합니다.
+
+가장 일반적인 브라우저들은 미묘한 차이를 제외하고 Astro의 프리패치를 모두 지원합니다.
+
+### Chrome
+
+Chrome은 `<link rel="prefetch">`를 지원합니다. 프리페치는 의도한 대로 작동합니다.
+
+### Firefox
+
+Firefox는 `<link rel="prefetch">`를 지원하지만 오류를 표시하거나 완전히 실패할 수 있습니다.
+
+ - 명시적인 캐시 헤더 (예: [`Cache-Control`](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/Cache-Control) 또는 [`Expires`](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/Expires))가 없는 경우, 프리패치 시 `NS_BINDING_ABORTED` 오류가 발생합니다. 
+- 오류가 발생하더라도 응답에 올바른 [`ETag`](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/ETag) 헤더가 있으면 탐색 시 재사용됩니다. 
+- 그렇지 않은 경우 다른 캐시 헤더 없이 오류가 발생하면 프리페치가 작동하지 않습니다.
+
+### Safari
+
+Safari는 `<link rel="prefetch">`를 지원하지 않기 때문에 캐시 헤더 (예: [`Cache-Control`](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/Cache-Control), [`Expires`](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/Expires), [`ETag`](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/ETag))가 필요한 `fetch()` API로 대체됩니다. 그렇지 않으면 프리페치가 작동하지 않습니다.
+
+**특이한 경우:** `ETag` 헤더는 개인정보 보호 브라우징 윈도우에서 작동하지 않습니다.
+
+### 권장사항
+
+모든 브라우저를 가장 효과적으로 지원하려면 페이지에 적절한 캐시 헤더가 있는지 확인하세요.
+
+정적 또는 사전 렌더링된 페이지의 경우 `ETag` 헤더는 배포 플랫폼에 의해 자동으로 설정되는 경우가 많으며 즉시 작동할 것으로 예상됩니다.
+
+동적 및 서버 측 렌더링된 페이지의 경우 페이지 콘텐츠에 따라 적절한 캐시 헤더를 직접 설정하세요. 자세한 내용은 [HTTP 캐싱에 대한 MDN 문서](https://developer.mozilla.org/ko/docs/Web/HTTP/Caching)를 참조하세요.
 
 ## `@astrojs/prefetch`에서 마이그레이션
 
