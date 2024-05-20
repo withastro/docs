@@ -107,7 +107,7 @@ export default UIDictionary({
 	'feedback.createIssue': 'Otwórz Issue na GitHubie',
 	'feedback.createIssue.description': 'Najszybszy sposób na powiadomienie nas o problemie.',
 	'feedback.sendFeedback': 'Prześlij nam opinię',
-	'feedback.sendFeedback.description': 'Send us a message directly.',
+	'feedback.sendFeedback.description': 'Wyślij nam wiadomość bezpośrednio.',
 	'feedback.idea': 'Pomysł',
 	'feedback.other': 'Inne',
 	'feedback.messageA11yLabel': 'Wiadomość',
