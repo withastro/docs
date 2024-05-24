@@ -179,6 +179,11 @@ export default [
 		key: 'reference/dev-toolbar-app-reference',
 	},
 	{
+		text: 'Container API',
+		slug: 'reference/container-reference',
+		key: 'reference/container-reference',
+	},
+	{
 		text: 'Template Directives',
 		slug: 'reference/directives-reference',
 		key: 'reference/directives-reference',
