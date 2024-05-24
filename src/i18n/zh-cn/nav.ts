@@ -74,6 +74,7 @@ export default NavDictionary({
 	'reference/adapter-reference': '适配器 API',
 	'reference/image-service-reference': '图像服务 API',
 	'reference/dev-toolbar-app-reference': '开发工具栏应用 API',
+	'reference/container-reference': '容器 API',
 	'reference/directives-reference': '模板指令',
 	'reference/cli-reference': '命令行',
 	'reference/error-reference': '错误参考',
