@@ -1,0 +1,68 @@
+---
+import { englishPages } from '~/content';
+import {
+	type IntegrationCategory,
+	type IntegrationEntry,
+	isIntegrationEntry,
+} from '~/content/config';
+import { isLogoKey } from '~/data/logos';
+import { useTranslations } from '~/i18n/util';
+import { getLanguageFromURL } from '~/util';
+import CardsNav from './NavGrid/CardsNav.astro';
+
+interface Props {
+	category?: IntegrationCategory;
+}
+
+const lang = getLanguageFromURL(Astro.url.pathname);
+
+function categoryLinksFromPages(pages: IntegrationEntry[], category: IntegrationCategory) {
+	return pages
+		.filter((page) => page.data.category === category)
+		.map((page) => {
+			const [scope, name] = page.data.title.split(' ').shift()!.split('/');
+			const pageUrl = page.slug.replace('en/', `/${lang}/`) + '/';
+			return {
+				title:
+					'<span class="scope">' +
+					scope +
+					'/</span><wbr>' +
+					name.replaceAll('-', '&#8288;-&#8288;'),
+				href: pageUrl,
+				logo: isLogoKey(name),
+			};
+		});
+}
+
+const t = useTranslations(Astro);
+
+const enPages = englishPages.filter(isIntegrationEntry);
+
+const allCategories = {
+	renderer: {
+		title: t('integrations.renderers'),
+		links: categoryLinksFromPages(enPages, 'renderer'),
+	},
+	adapter: { title: t('integrations.adapters'), links: categoryLinksFromPages(enPages, 'adapter') },
+	other: { title: t('integrations.others'), links: categoryLinksFromPages(enPages, 'other') },
+};
+const category = allCategories[Astro.props.category!];
+
+const categories = category ? [category] : allCategories;
+---
+
+{
+	Object.values(categories).map((category) => (
+		<>
+			<h3>{category.title}</h3>
+			<CardsNav minimal links={category.links} class="integrations-nav" />
+		</>
+	))
+}
+
+<style>
+	.integrations-nav :global(.scope) {
+		font-weight: 400;
+		color: var(--sl-color-text);
+	}
+</style>

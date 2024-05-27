@@ -1,0 +1,272 @@
+---
+title: Макеты
+description: Введение в макеты, тип компонента Astro, который используется между страницами для общих макетов.
+i18nReady: true
+---
+
+import ReadMore from '~/components/ReadMore.astro'
+
+**Макеты** - это [компоненты Astro](/ru/basics/astro-components/), которые определяют структуру пользовательского интерфейса(UI), например, шаблоны страниц.
+
+
+Мы условно используем термин "макет" для компонентов Astro, которые создают общие элементы UI, такие как заголовки, панели навигации и нижние колонтитулы, используемые на разных страницах. Типичный компонент макета Astro используется для предоставления [страницам Astro, Markdown или MDX](/ru/basics/astro-pages/) следующего:
+- **оболочки страницы** (теги `<html>`, `<head>` и `<body>`)
+- [**`<slot />`**](/ru/basics/astro-components/#слоты), чтобы указать, куда должно быть вставлено содержимое отдельной страницы.
+
+Но в макетном компоненте нет ничего особенного! Они могут [принимать свойства](/ru/basics/astro-components/#входные-параметры-компонента) и [импортировать и использовать другие компоненты](/ru/basics/astro-components/#структура-компонента), как и любой другой компонент Astro. Они могут включать в себя [компоненты UI-фреймворков](/ru/guides/framework-components/) и [скрипты на стороне клиента](/ru/guides/client-side-scripts/). Они даже не обязательно должны предоставлять полную оболочку страницы, вместо этого их можно использовать как частичные шаблоны пользовательского интерфейса.
+
+Компоненты макета обычно помещаются в раздел `src/layouts` в вашем проекте для организации, но это не является обязательным; вы можете выбрать местоположение по своему усмотрению. Вы даже можете поместить компоненты макета рядом со своими страницами, [добавив префикс `_` к именам макетов](/ru/guides/routing/#исключение-страниц).
+
+## Пример Макета
+
+```astro "<slot />" 
+---
+// src/layouts/MySiteLayout.astro
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+const { title } = Astro.props;
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <BaseHead title={title}/>
+  </head>
+  <body>
+    <nav>
+      <a href="#">Home</a>
+      <a href="#">Posts</a>
+      <a href="#">Contact</a>
+    </nav>
+    <h1>{title}</h1>
+    <article>
+      <slot /> <!--  Ваше содержимое вставляется сюда -->
+    </article>
+    <Footer />
+  </body>
+</html>
+```
+
+```astro title="src/pages/index.astro"
+---
+import MySiteLayout from '../layouts/MySiteLayout.astro';
+---
+<MySiteLayout title="Home Page">
+  <p>Мой контент, обернутый в макет!</p>
+</MySiteLayout>
+```
+
+<ReadMore>Узнать больше о [слотах](/ru/basics/astro-components/#слоты).</ReadMore>
+
+## Markdown/MDX макеты
+
+Макеты страниц особенно полезны для [Markdown и MDX файлов](/ru/guides/markdown-content/#страницы-markdown-и-mdx), которые иначе не имели бы какого-либо форматирования. 
+
+Astro предоставляет специальное свойство `layout` frontmatter, чтобы указать, какой компонент `.astro` использовать в качестве макета страницы.
+
+```markdown title="src/pages/page.md" {2} 
+---
+layout: ../layouts/BaseLayout.astro
+title: "Hello, World!"
+author: "Matthew Phillips"
+date: "09 Aug 2022"
+---
+Все свойства frontmatter доступны в качестве входных параметров компонента для макета Astro.
+
+Свойство `layout` - единственное специальное свойство, предоставляемое Astro.
+
+Вы можете использовать его как в Markdown, так и в MDX-файлах, расположенных внутри `src/pages/`.
+
+```
+
+Типичный макет для страниц Markdown или MDX включает в себя:
+
+1. Свойство `frontmatter` для доступа к frontmatter и другим данным страницы Markdown или MDX. 
+2. Cтандартный [`<slot />`](/ru/basics/astro-components/#слоты) для указания места, где должно быть отображено содержимое страницы в формате Markdown/MDX.
+
+```astro /(?<!//.*){?frontmatter(?:\\.\w+)?}?/ "<slot />"
+---
+// src/layouts/BaseLayout.astro
+// 1. Свойство frontmatter предоставляет доступ к frontmatter и другим данным
+const { frontmatter } = Astro.props;
+---
+<html>
+  <head>
+    <!-- Добавьте сюда другие элементы <head>, такие как стили и мета-теги. -->
+    <title>{frontmatter.title}</title>
+  </head>
+  <body>
+    <!-- Добавьте сюда другие компоненты UI, такие как верхний и нижний колонтитулы страницы. -->
+    <h1>{frontmatter.title} by {frontmatter.author}</h1>
+    <!-- 2. Готовый HTML будет передан в стандартный слот. -->
+    <slot />
+    <p>Written on: {frontmatter.date}</p>
+  </body>
+</html>
+```
+
+Вы можете установить [тип входных параметров компонента](/ru/basics/astro-components/#входные-параметры-компонента) макета с помощью вспомогательных функций `MarkdownLayoutProps` или `MDXLayoutProps`:
+
+```astro title="src/layouts/BaseLayout.astro" ins={2,4-9}
+---
+import type { MarkdownLayoutProps } from 'astro';
+
+type Props = MarkdownLayoutProps<{
+  // Здесь определите свойства frontmatter
+  title: string;
+  author: string;
+  date: string;
+}>;
+
+// Теперь свойства макета Markdown, такие как `frontmatter`, `url`,
+// и другие, доступны с типобезопасностью
+const { frontmatter, url } = Astro.props;
+---
+<html>
+  <head>
+    <link rel="canonical" href={new URL(url, Astro.site).pathname}>
+    <title>{frontmatter.title}</title>
+  </head>
+  <body>
+    <h1>{frontmatter.title} by {frontmatter.author}</h1>
+    <slot />
+    <p>Written on: {frontmatter.date}</p>
+  </body>
+</html>
+```
+
+### Свойства макета Markdown
+
+Макет Markdown/MDX будет иметь доступ к следующей информации через `Astro.props`:
+
+- **`file`** - Абсолютный путь этого файла (например, `/home/user/projects/.../file.md`).
+- **`url`** - Если это страница, то URL страницы (например, `/en/guides/markdown-content`).
+- **`frontmatter`** - Вся мета-информация из документа Markdown или MDX.
+  - **`frontmatter.file`** - То же, что и свойство верхнего уровня `file`.
+  - **`frontmatter.url`** - То же, что и свойство верхнего уровня `url`.
+- **`headings`** - Список заголовков (`h1 -> h6`) в документе Markdown или MDX с соответствующими метаданными. Этот список следует типу: `{ depth: number; slug: string; text: string }[]`.
+- **(Только для Markdown) `rawContent()`** - Функция, возвращающая необработанный документ Markdown в виде строки.
+- **(Только для Markdown) `compiledContent()`** - Функция, возвращающая документ Markdown, скомпилированный в HTML-строку.
+
+Пример записи блога в формате Markdown может передавать в макет следующий объект `Astro.props`:
+
+```js
+Astro.props = {
+  file: "/home/user/projects/.../file.md",
+  url: "/en/guides/markdown-content/",
+  frontmatter: {
+    /** Frontmatter из записи в блоге */
+    title: "Astro 0.18 Release",
+    date: "Tuesday, July 27 2021",
+    author: "Matthew Phillips",
+    description: "Astro 0.18 is our biggest release since Astro launch.",
+    /** Сгенерированные значения */
+    file: "/home/user/projects/.../file.md",
+    url: "/en/guides/markdown-content/"
+  },
+  headings: [
+    {
+      "depth": 1,
+      "text": "Astro 0.18 Release",
+      "slug": "astro-018-release"
+    },
+    {
+      "depth": 2,
+      "text": "Responsive partial hydration",
+      "slug": "responsive-partial-hydration"
+    }
+    /* ... */
+  ],
+
+  /** Доступно только для Markdown */
+  rawContent: () => "# Astro 0.18 Release\nA little over a month ago, the first public beta [...]",
+  compiledContent: () => "<h1>Astro 0.18 Release</h1>\n<p>A little over a month ago, the first public beta [...]</p>",
+}
+```
+
+:::note
+Макет Markdown/MDX будет иметь доступ ко всем [экспортированным свойствам](/ru/guides/markdown-content/#экспортированные-свойства) своего файла  из `Astro.props` **с некоторыми ключевыми отличиями:**.
+
+*   Информация о заголовках (т.е. элементы `h1 -> h6`) доступна через массив `headings`, а не через функцию `getHeadings()`.
+
+*   `file` и `url` также *доступны как вложенные свойства `frontmatter` (т.е. `frontmatter.url` и `frontmatter.file`).
+
+*   Значения, определенные вне frontmatter (например, операторы `export` в MDX), недоступны. Вместо этого рассмотрите [импорт макета](#импорт-макетов-вручную-mdx).
+:::
+
+### Импорт макетов вручную (MDX)
+
+Вам может понадобиться передать в MDX макет информацию, которая не существует (или не может существовать) в frontmatter. В этом случае вы можете импортировать и использовать компонент [`<Layout />`](/ru/basics/layouts/) и передавать ему входные параметры, как любому другому компоненту:
+
+```mdx title="src/pages/posts/first-post.mdx" ins={6} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/
+---
+layout: ../../layouts/BaseLayout.astro
+title: 'My first MDX post'
+publishDate: '21 September 2022'
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export function fancyJsHelper() {
+  return "Try doing that with YAML!";
+}
+
+<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>.
+  Welcome to my new Astro blog, using MDX!
+</BaseLayout>
+```
+
+Затем ваши значения будут доступны вам через `Astro.props` в вашем макете, и ваш MDX-контент будет внедрен на страницу, где прописан ваш компонент `<slot />`:
+
+```astro /{?title}?/ "fancyJsHelper" "{fancyJsHelper()}"
+---
+// src/layouts/BaseLayout.astro
+const { title, fancyJsHelper } = Astro.props;
+---
+<!-- -->
+<h1>{title}</h1>
+<slot /> <!-- здесь вставляется ваш контент -->
+<p>{fancyJsHelper()}</p>
+<!-- -->
+```
+
+<ReadMore>Подробнее о поддержке в Astro Markdown и MDX вы можете узнать из нашего [руководства по Markdown/MDX](/ru/guides/markdown-content/).</ReadMore>
+
+## Использование одного макета для `.md`, `.mdx` и `.astro`
+
+Можно написать один макет Astro, который будет принимать объект `frontmatter` из файлов `.md` и `.mdx`, а также любые именованные входные параметры, передаваемые из файлов `.astro`.
+
+В приведенном ниже примере макет будет отображать заголовок страницы либо из свойства `title` в frontmatter YAML, либо из атрибута `title`, переданного компонентом Astro:
+
+
+```astro /{?title}?/ /Astro.props[.a-z]*/
+---
+// src/components/MyLayout.astro
+const { title } = Astro.props.frontmatter || Astro.props;
+---
+<html>
+  <head></head>
+  <body>
+    <h1>{title}</h1>
+    <slot />
+  </body>
+</html>
+```
+
+## Вложенные макеты
+
+Компоненты макета не обязательно должны содержать целую страницу HTML. Вы можете разбить свои макеты на более мелкие компоненты и комбинировать их, чтобы создавать еще более гибкие шаблоны страниц. Этот шаблон полезен, когда вы хотите совместно использовать некоторый код в нескольких макетах.
+
+Например, макет компонента BlogPostLayout.astro может стилизовать заголовок, дату и автора статьи. Затем, глобальный макет `BaseLayout.astro` может обрабатывать остальную часть вашего шаблона страницы, такую как навигация, нижние колонтитулы, мета-теги SEO, глобальные стили и шрифты. Вы также можете передавать входные параметры, полученные из вашей статьи, в другой макет, так же как и любой другой вложенный компонент.
+
+```astro {3} /</?BaseLayout>/ /</?BaseLayout url={frontmatter.url}>/
+---
+// src/layouts/BlogPostLayout.astro
+import BaseLayout from './BaseLayout.astro';
+const { frontmatter } = Astro.props;
+---
+<BaseLayout url={frontmatter.url}>
+  <h1>{frontmatter.title}</h1>
+  <h2>Post author: {frontmatter.author}</h2>
+  <slot />
+</BaseLayout>
+```	

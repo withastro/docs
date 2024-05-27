@@ -1,0 +1,62 @@
+---
+import { Icon } from '@astrojs/starlight/components';
+import { z } from 'astro/zod';
+type IconName = Parameters<typeof Icon>[0]['name'];
+
+interface Props {
+	variant: 'primary' | 'secondary' | 'minimal';
+	link: string;
+	icon?: undefined | { type: 'icon'; name: IconName } | { type: 'raw'; html: string };
+}
+
+const propsSchema = z.object({
+	variant: z.enum(['primary', 'secondary', 'minimal']).default('primary'),
+	link: z.string(),
+	icon: z
+		.union([
+			z.object({ type: z.literal('icon'), name: z.custom<IconName>(z.string().parse) }),
+			z.object({ type: z.literal('raw'), html: z.string() }),
+		])
+		.optional(),
+});
+
+const { link, variant, icon } = propsSchema.parse(Astro.props);
+---
+
+<a class:list={['sl-flex action', variant]} href={link}>
+	<slot />
+	{icon?.type === 'icon' && <Icon name={icon.name} size="1.5em" />}
+	{icon?.type === 'raw' && <Fragment set:html={icon.html} />}
+</a>
+
+<style>
+	.action {
+		gap: 0.5em;
+		align-items: center;
+		border-radius: 999rem;
+		padding: 0.5rem 1.125rem;
+		color: var(--sl-color-white);
+		line-height: 1.1875;
+		text-decoration: none;
+		font-size: var(--sl-text-sm);
+	}
+	.action.primary,
+	.action.primary:hover {
+		background: var(--sl-color-text-accent);
+		color: var(--sl-color-black);
+	}
+	.action.secondary {
+		background: var(--sl-color-black);
+		border: 2px solid;
+	}
+	.action.minimal {
+		padding-inline: 0;
+	}
+
+	@media (min-width: 50rem) {
+		.action {
+			font-size: var(--sl-text-base);
+			padding: 1rem 1.25rem;
+		}
+	}
+</style>

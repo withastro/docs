@@ -1,0 +1,142 @@
+---
+import { tutorialPages as pages } from '~/content';
+import { getLanguageFromURL, stripLangFromSlug } from '../../util';
+import { getTutorialPages, getTutorialUnits } from '../../util/getTutorialPages';
+import TabbedContent from '../tabs/TabbedContent.astro';
+import TabListItem from '../tabs/TabListItem.astro';
+import TabPanel from '../tabs/TabPanel.astro';
+import Progress from './Progress.astro';
+import UnitProgressIcon from './UnitProgressIcon.astro';
+
+export interface Props {
+	id: string;
+}
+
+const currentUrl = Astro.url.pathname.replace(/\/$/, '');
+const lang = getLanguageFromURL(Astro.url.pathname);
+
+const tutorialPages = getTutorialPages(pages, lang);
+const units = getTutorialUnits(tutorialPages);
+
+const makeUnitId = (index: number) => `${Astro.props.id}__tutorial-unit-nav-panel-${index}`;
+const isCurrentUnit = (unit: (typeof units)[number]) =>
+	unit.lessons.some((lesson) => currentUrl.endsWith(stripLangFromSlug(lesson.slug)));
+---
+
+<div class="tutorial-nav">
+	<TabbedContent>
+		<Fragment slot="tab-list">
+			{
+				units.map((unit, idx) => (
+					<TabListItem id={makeUnitId(idx)} initial={isCurrentUnit(unit)}>
+						<UnitProgressIcon unitNumber={idx} paths={unit.lessons.map((l) => '/' + l.slug)} />
+					</TabListItem>
+				))
+			}
+		</Fragment>
+		{
+			units.map((unit, idx) => (
+				<TabPanel id={makeUnitId(idx)} initial={isCurrentUnit(unit)}>
+					<div class="unit">
+						<h2 class="heading">{unit.title}</h2>
+						<ol class="lessons">
+							{unit.lessons.map(async (lesson, index) => {
+								const slugWithoutLang = stripLangFromSlug(lesson.slug);
+								return (
+									<li>
+										<div>
+											<a
+												class="header-link"
+												href={`/${lang}/${slugWithoutLang}/`}
+												aria-current={currentUrl.endsWith(slugWithoutLang)}
+											>
+												<Progress {index} path={'/' + lesson.slug} />
+												{lesson.data.title}
+											</a>
+										</div>
+										{currentUrl.endsWith(lesson.slug) && (
+											<ul class="on-this-page">
+												{(await lesson.render()).headings
+													.filter(({ depth }) => depth <= 2)
+													.map((h) => (
+														<li>
+															<a class="header-link" href={'#' + h.slug}>
+																{h.text}
+															</a>
+														</li>
+													))}
+											</ul>
+										)}
+									</li>
+								);
+							})}
+						</ol>
+					</div>
+				</TabPanel>
+			))
+		}
+	</TabbedContent>
+</div>
+
+<style>
+	.tutorial-nav {
+		width: 100%;
+		font-size: var(--sl-text-xs);
+	}
+
+	.unit {
+		padding: 1em;
+		background-color: var(--sl-color-gray-6);
+		box-shadow: 0px 0px 0px 1px var(--sl-color-gray-5);
+		border-radius: 0.25rem;
+	}
+
+	:global(section:first-child) .unit {
+		border-radius: 0 0.25rem 0.25rem 0.25rem;
+	}
+	:global(section:last-child) .unit {
+		border-radius: 0.25rem 0 0.25rem 0.25rem;
+	}
+
+	.tutorial-nav ol.lessons {
+		margin: 0;
+		padding-inline-start: 0;
+		list-style: none;
+	}
+
+	h2.heading {
+		font-size: var(--sl-text-sm);
+		margin-top: 0;
+		padding: 0;
+	}
+
+	a {
+		color: var(--sl-color-gray-3);
+	}
+
+	a[aria-current='true'] {
+		color: var(--sl-color-white);
+		font: bold;
+	}
+
+	a[aria-current='true'] :global(.circle) {
+		border-color: var(--sl-color-gray-1);
+	}
+
+	a[data-status='complete'] :global(.circle) {
+		border-color: transparent;
+	}
+
+	.header-link[data-status='complete'] {
+		color: var(--sl-color-green-high);
+	}
+
+	.header-link :global(.circle) {
+		opacity: 1;
+		margin-top: -0.125rem;
+	}
+
+	.on-this-page {
+		margin-bottom: 0.5rem;
+	}
+</style>

@@ -1,0 +1,181 @@
+---
+title: 如何将你的 Astro 网站部署到 Deno
+description: 如何将你的 Astro 网站通过 Deno 部署上线
+type: deploy
+i18nReady: true
+---
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+你可以将一个使用服务器端渲染的 Astro 网站部署到 Deno Deploy，它是一个在全球范围边的边缘服务上运行 JavaScript、TypeScript 和 WebAssembly 的分布式系统。
+
+本指南提供了通过 GitHub Actions 或 Deno Deploy CLI 部署到 Deno Deploy 的介绍。
+
+## 要求
+
+本指南假设你已经安装了 [Deno](https://deno.com/)。
+
+## 项目配置
+
+本页面提供了将你的 Astro 项目作为服务端渲染（SSR）站点部署到 [Deno Deploy](https://deno.com/deploy) 的指南。
+
+要部署静态站点，请参阅 [Deno 部署静态站点教程](https://docs.deno.com/deploy/tutorials/static-site)。
+
+### SSR 适配器
+
+要在 Astro 项目中启用 SSR 并在 Deno Deploy 上进行部署，请执行以下 `astro add` 命令添加 [Deno 适配器][Deno adapter]。这将一步安装适配器并对你的 `astro.config.mjs` 文件进行适当更改。
+
+```bash
+npx astro add deno
+```
+
+如果你更喜欢手动安装适配器，则需要完成以下两个步骤：
+
+<Steps>
+1. 使用你喜欢的包管理器将 [`@astrojs/deno` 适配器][Deno adapter] 安装到你的项目依赖中。如果你不确定是否使用 npm 的话，可以在终端中运行以下命令：
+
+    ```bash
+      npm install @astrojs/deno
+    ```
+
+2. 使用下面的修改来更新你的 `astro.config.mjs` 项目配置文件。
+
+    ```js ins={3,6-7}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import deno from '@astrojs/deno';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: deno(),
+    });
+    ```
+
+    接下来，使用以下修改来更新 `package.json` 中的 `preview` 脚本。
+
+    ```json del={8} ins={9}
+    // package.json
+    {
+      // ...
+      "scripts": {
+        "dev": "astro dev",
+        "start": "astro dev",
+        "build": "astro build",
+        "preview": "astro preview"
+        "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs"
+      }
+    }
+    ```
+    
+    你现在可以使用以下命令通过 Deno 在本地预览你生产环境的 Astro 站点。
+
+    ```bash
+    npm run preview
+    ```
+</Steps>
+
+## 如何部署 SSR Astro 站点
+
+你可以通过 GitHub Actions 或使用 Deno Deploy 的命令行界面（CLI）将项目部署到 Deno Deploy。
+
+### 使用 GitHub Actions 进行部署
+
+如果你的项目存储在 GitHub 上，[Deno Deploy 网站](https://dash.deno.com/) 将指导你设置 GitHub Actions 来部署你的 Astro 站点。
+
+<Steps>
+1. 将你的代码推送到公开或私有的 GitHub 存储仓库。
+
+2. 使用你的 GitHub 账号登录 [Deno Deploy](https://dash.deno.com/)，然后单击 [New Project](https://dash.deno.com)。
+
+3. 选择你的存储仓库和要部署的分支，并选择 **GitHub Action** 模式。（你的 Astro 站点需要一个构建步骤，不能使用 Automatic 模式。）
+
+4. 在你的 Astro 项目中，创建一个名为 `.github/workflows/deploy.yml` 的新文件，并粘贴下面的 YAML 内容。这类似于 Deno Deploy 提供的 YAML，但还包括你的 Astro 站点所需的其他步骤。
+
+    ```yaml
+    name: Deploy
+    on: [push]
+
+    jobs:
+      deploy:
+        name: Deploy
+        runs-on: ubuntu-latest
+        permissions:
+          id-token: write # 用于 Deno Deploy 身份认证
+          contents: read # 用于克隆仓库
+
+        steps:
+          - name: Clone repository
+            uses: actions/checkout@v4
+
+          # 没有使用 npm？请将 `npm ci` 修改为 `yarn install` 或 `pnpm i`
+          - name: Install dependencies
+            run: npm ci
+
+          # 没有使用 npm？请将 `npm run build` 修改为 `yarn build` 或 `pnpm run build`
+          - name: Build Astro
+            run: npm run build
+
+          - name: Upload to Deno Deploy
+            uses: denoland/deployctl@v1
+            with:
+              project: my-deno-project # TODO: 替换为 Deno Deploy 项目的名称
+              entrypoint: server/entry.mjs
+              root: dist
+    ```
+
+5. 提交此 YAML 文件，然后推送到你配置的部署分支后，将会自动开始部署！
+
+   你可以在 GitHub 存储库页面上的 "Actions" 选项卡上，或在 [Deno Deploy](https://dash.deno.com) 上跟查看部署进度。
+</Steps>
+
+### 使用 CLI 进行部署
+
+<Steps>
+1. 安装 [Deno Deploy CLI](https://docs.deno.com/deploy/manual/deployctl)。
+
+    ```bash
+    deno install --allow-read --allow-write --allow-env --allow-net --allow-run --no-check -r -f https://deno.land/x/deploy/deployctl.ts
+    ```
+
+2. 运行 Astro 的构建步骤。
+
+    ```bash
+    npm run build
+    ```
+
+3. 运行 `deployctl` 进行部署！
+
+   在下面的命令中，将 `<ACCESS-TOKEN>` 替换为你的 [个人访问令牌](https://dash.deno.com/account#access-tokens)，将 `<MY-DENO-PROJECT>` 替换为你的 Deno Deploy 项目名称。
+
+    ```bash
+    DENO_DEPLOY_TOKEN=<ACCESS-TOKEN> deployctl deploy --project=<MY-DENO-PROJECT> --no-static --include=./dist ./dist/server/entry.mjs
+    ```
+
+    你可以在 [Deno Deploy](https://dash.deno.com) 上跟踪所有部署。
+
+4. (可选) 为了将构建和部署简化为一个命令，可以在 `package.json` 中添加一个 `deploy-deno` 脚本。
+
+    ```json ins={9}
+    // package.json
+    {
+      // ...
+      "scripts": {
+        "dev": "astro dev",
+        "start": "astro dev",
+        "build": "astro build",
+        "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs",
+        "deno-deploy": "npm run build && deployctl deploy --project=<MY-DENO-PROJECT> --no-static --include=./dist ./dist/server/entry.mjs"
+      }
+    }
+    ```
+
+    然后你可以使用以下命令一步构建和部署你的 Astro 站点。
+
+    ```bash
+    DENO_DEPLOY_TOKEN=<ACCESS-TOKEN> npm run deno-deploy
+    ```
+</Steps>
+
+<ReadMore>了解更多关于 [Astro 中的 SSR](/zh-cn/guides/server-side-rendering/) 的内容。</ReadMore>
+
+[Deno adapter]: https://github.com/denoland/deno-astro-adapter

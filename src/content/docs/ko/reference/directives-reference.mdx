@@ -1,0 +1,294 @@
+---
+title: 템플릿 지시어 참조
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro'
+
+**템플릿 지시어**는 Astro 컴포넌트 템플릿 (`.astro` 파일)에서 사용할 수 있는 특별한 종류의 HTML 속성이며, 일부는 `.mdx` 파일에서도 사용할 수 있습니다.
+
+템플릿 지시어는 어떤 방식으로든 요소나 컴포넌트의 동작을 제어하는 ​​데 사용됩니다. 템플릿 지시어는 여러분의 삶을 더 쉽게 만들어주는 일부 컴파일러 기능을 활성화할 수 있습니다 (예: `class` 대신 `class:list` 사용). 또는 지시어는 Astro 컴파일러에게 해당 컴포넌트에 대해 특별한 작업을 수행하도록 지시할 수 있습니다 (예: `client:load`를 사용하여 수화).
+
+이 페이지에서는 Astro에서 사용할 수 있는 모든 템플릿 지시어와 작동 방식을 설명합니다.
+
+## 규칙
+
+템플릿 지시어가 유효하려면 다음을 충족해야 합니다.
+
+- `X:Y` 형식을 사용하여 이름에 콜론 `:`을 포함해야합니다 (예: `client:load`).
+- 컴파일러에 표시되어야 합니다 (예: `<X {...attr}>`는 `attr`에 지시어가 포함된 경우 작동하지 않습니다).
+
+전부는 아니지만 일부 템플릿 지시어는 사용자 정의 값을 가질 수 있습니다.
+- `<X client:load />` (값 없음)
+- `<X class:list={['some-css-class']} />` (배열 사용)
+
+템플릿 지시어는 컴포넌트의 최종 HTML 출력에 직접 포함되지 않습니다.
+
+## 공통 지시어
+
+### `class:list`
+
+`class:list={...}`는 클래스 값의 배열을 가져와 이를 클래스 문자열로 변환합니다. 이는 @lukeed의 인기 있는 [clsx](https://github.com/lukeed/clsx) 도우미 라이브러리를 기반으로 합니다.
+
+`class:list`는 여러 가지 가능한 값 종류의 배열을 취합니다.
+- `string`: `class` 요소에 추가됨
+- `Object`: 참의 값을 가진 모든 키가 `class` 요소에 추가됩니다.
+- `Array`: 평탄화됩니다.
+- `false`, `null`, `undefined`: 무시됩니다.
+
+```astro
+<!-- 이 코드는 -->
+<span class:list={[ 'hello goodbye', { world: true }, [ 'friend' ] ]} />
+<!-- 아래 코드로 변환됩니다. -->
+<span class="hello goodbye world friend"></span>
+```
+
+### `set:html`
+
+`set:html={string}`은 `el.innerHTML` 설정과 유사하게 HTML 문자열을 요소에 삽입합니다.
+
+**값은 Astro에 의해 자동으로 이스케이프되지 않습니다!** 값을 신뢰하는지, 아니면 템플릿에 전달하기 전에 수동으로 이스케이프했는지 확인하세요. 이 작업을 잊어버리면 [교차 사이트 스크립팅 (XSS) 공격에 노출될 수 있습니다.](https://owasp.org/www-community/attacks/xss/)
+
+```astro
+---
+const rawHTMLString = "Hello <strong>World</strong>"
+---
+<h1>{rawHTMLString}</h1>
+  <!-- 출력 결과: <h1>Hello &lt;strong&gt;World&lt;/strong&gt;</h1> -->
+<h1 set:html={rawHTMLString} />
+  <!-- 출력 결과: <h1>Hello <strong>World</strong></h1> -->
+```
+
+불필요한 래퍼 요소를 추가하지 않으려면 `<Fragment>`에 `set:html`을 사용할 수도 있습니다. 이는 CMS에서 HTML을 가져올 때 특히 유용할 수 있습니다.
+
+```astro
+---
+const cmsContent = await fetchHTMLFromMyCMS();
+---
+<Fragment set:html={cmsContent}>
+```
+
+`set:html={Promise<string>}`은 Promise에 포함된 요소에 HTML 문자열을 삽입합니다.
+
+이는 데이터베이스와 같이 외부에 저장된 HTML을 삽입하는 데 사용할 수 있습니다.
+
+```astro
+---
+import api from '../db/api.js';
+---
+<article set:html={api.getArticle(Astro.props.id)}></article>
+```
+
+`set:html={Promise<Response>}`는 [Response](https://developer.mozilla.org/ko/docs/Web/API/Response)를 요소에 삽입합니다.
+
+이는 `fetch()`를 사용할 때 가장 유용합니다. 예를 들어 이전 정적 사이트 생성기에서 이전 게시물을 가져오는 것입니다.
+
+```astro
+<article set:html={fetch('http://example/old-posts/making-soup.html')}></article>
+```
+
+`set:html`은 모든 태그에 사용할 수 있으며, HTML을 포함할 필요가 없습니다. 예를 들어 `<script>`에서 [`JSON.stringify()`](https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify)와 함께 사용합니다. 태그를 사용하여 페이지에 [JSON-LD](https://json-ld.org/) 스키마를 추가하세요.
+
+```astro
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org/",
+  "@type": "Person",
+  name: "Houston",
+  hasOccupation: {
+    "@type": "Occupation",
+    name: "Astronaut"
+  }
+})}/>
+```
+
+### `set:text`
+
+`set:text={string}`은 `el.innerText` 설정과 유사하게 텍스트 문자열을 요소에 삽입합니다. `set:html`과 달리 전달된 `string` 값은 Astro에 의해 자동으로 이스케이프됩니다.
+
+이는 변수를 템플릿 표현식에 직접 전달하는 것과 동일하므로 (예: `<div>{someText}</div>`) 이 지시어는 일반적으로 사용되지 않습니다.
+
+## 클라이언트 지시어
+
+이러한 지시어는 [UI 프레임워크 컴포넌트](/ko/guides/framework-components/)가 페이지에서 수화되는 방식을 제어합니다.
+
+기본적으로 UI 프레임워크 컴포넌트는 클라이언트에서 수화되지 않습니다. `client:*` 지시어가 제공되지 않으면 HTML이 JavaScript 없이 페이지에 렌더링됩니다.
+
+클라이언트 지시어는 `.astro` 컴포넌트로 직접 가져온 UI 프레임워크 컴포넌트에서만 사용할 수 있습니다. [동적 태그](/ko/basics/astro-syntax/#동적-태그)와 [`components` prop을 통해 전달된 사용자 정의 컴포넌트](/ko/guides/markdown-content/#가져온-mdx가-있는-사용자-정의-컴포넌트)를 사용할 때는 수화 지시어가 지원되지 않습니다.
+
+### `client:load`
+
+- **우선순위:** 높음
+- **유용한 상황:** 가능한 한 빨리 대화형으로 작동해야 하는 즉시 표시되는 UI 요소 생성 시
+
+페이지 로드 시 컴포넌트 JavaScript를 즉시 로드하고 수화합니다.
+
+```astro
+<BuyButton client:load />
+```
+
+### `client:idle`
+
+- **우선순위:** 중간
+- **유용한 상황:** 즉시 상호작용할 필요가 없는 우선순위가 낮은 UI 요소 생성 시
+
+페이지의 초기 로드가 완료되고 `requestIdleCallback` 이벤트가 실행되면 컴포넌트 JavaScript를 로드하고 수화합니다. [`requestIdleCallback`](https://developer.mozilla.org/ko/docs/Web/API/Window/requestIdleCallback)을 지원하지 않는 브라우저를 사용하는 경우, document의 [`load`](https://developer.mozilla.org/ko/docs/Web/API/Window/load_event) 이벤트가 사용됩니다.
+
+```astro
+<ShowHideButton client:idle />
+```
+
+### `client:visible`
+
+- **우선순위:** 낮음
+- **유용한 상황:** 페이지 아래쪽 ("스크롤 없이 볼 수 있는 부분")에 있거나 로드하는 데 리소스를 많이 사용하므로 사용자가 해당 요소를 본 적이 없는 경우에는 전혀 로드하지 않는 우선순위가 낮은 UI 요소 생성 시
+
+컴포넌트가 사용자의 뷰포트에 들어가면 컴포넌트 JavaScript를 로드하고 수화합니다. 이는 가시성을 추적하기 위해 내부적으로 `IntersectionObserver`를 사용합니다.
+
+```astro
+<HeavyImageCarousel client:visible />
+```
+
+#### `client:visible={{rootMargin}}`
+<p><Since v="4.1.0" /></p>
+
+선택적으로 `rootMargin` 값을 기본 `IntersectionObserver`에 전달할 수 있습니다. `rootMargin`이 지정되면 컴포넌트 자체가 아닌 컴포넌트 주변 지정된 마진 (픽셀 단위)이 뷰포트에 들어갈 때 컴포넌트 JavaScript가 수화됩니다.
+
+```astro
+<HeavyImageCarousel client:visible={{rootMargin: "200px"}} />
+```
+
+`rootMargin` 값을 지정하면 레이아웃 변경 (CLS)이 줄어들고, 느린 인터넷 연결에서 컴포넌트가 수화되는 데 더 많은 시간이 허용되며, 컴포넌트가 더 빨리 대화형으로 만들어져 페이지의 안정성과 응답성이 향상됩니다.
+
+### `client:media`
+
+- **우선순위:** 낮음
+- **유용한 상황:** 사이드바 토글 또는 특정 화면 크기에서만 표시될 수 있는 기타 요소 생성 시
+
+`client:media={string}`은 특정 CSS 미디어 쿼리가 충족되면 JavaScript 컴포넌트를 로드하고 수화합니다.
+
+:::note
+컴포넌트가 CSS의 미디어 쿼리에 의해 이미 숨겨지고 표시된 경우, `client:visible`을 사용하고 동일한 미디어 쿼리를 지시어에 전달하지 않는 것이 더 좋을 수도 있습니다.
+:::
+
+```astro
+<SidebarToggle client:media="(max-width: 50em)" />
+```
+### `client:only`
+
+`client:only={string}` HTML 서버 렌더링을 **건너뛰고** 클라이언트에서만 렌더링합니다. 페이지 로드 시 즉시 컴포넌트를 로드, 렌더링 및 수화한다는 점에서 `client:load`와 유사하게 작동합니다.
+
+**컴포넌트의 올바른 프레임워크를 값으로 전달해야 합니다!** Astro는 서버에서 빌드하는 동안 컴포넌트를 실행하지 않기 때문에 Astro는 명시적으로 지정하지 않는 한 컴포넌트가 어떤 프레임워크를 사용하는지 알 수 없습니다.
+
+```astro
+<SomeReactComponent client:only="react" />
+<SomePreactComponent client:only="preact" />
+<SomeSvelteComponent client:only="svelte" />
+<SomeVueComponent client:only="vue" />
+<SomeSolidComponent client:only="solid-js" />
+<SomeLitComponent client:only="lit" />
+```
+
+### 사용자 정의 클라이언트 지시어
+
+Astro 2.6.0부터 통합에서는 컴포넌트를 수화해야 하는 방법과 시기를 변경하기 위해 사용자 정의 `client:*` 지시어를 추가할 수도 있습니다.
+
+사용자 정의 클라이언트 지시어 생성에 대해 자세히 알아보려면 [`addClientDirective` API](/ko/reference/integrations-reference/#addclientdirective-옵션) 페이지를 방문하세요.
+
+## 스크립트 & 스타일 지시어
+
+이러한 지시어는 HTML `<script>` 및 `<style>` 태그에만 사용되어 클라이언트 측 JavaScript 및 CSS가 페이지에서 처리되는 방식을 제어할 수 있습니다.
+
+### `is:global`
+
+기본적으로 Astro는 자동으로 `<style>` CSS 규칙의 범위를 컴포넌트로 지정합니다. `is:global` 지시어를 사용하여 이 동작을 선택 해제할 수 있습니다.
+
+`is:global`은 컴포넌트가 포함될 때 `<style>` 태그의 내용을 페이지에 전체적으로 적용하도록 만듭니다. 이는 Astro의 CSS 범위 지정 시스템을 비활성화합니다. 이는 `<style>` 태그의 모든 선택기를 `:global()`로 래핑하는 것과 같습니다.
+
+동일한 컴포넌트에서 `<style>`과 `<style is:global>`을 함께 결합하여 대부분의 컴포넌트 CSS 범위를 지정하면서 일부 전역 스타일 규칙을 만들 수 있습니다.
+
+<ReadMore>전역 스타일의 작동 방식에 대한 자세한 내용은 [스타일링 및 CSS](/ko/guides/styling/#전역-스타일) 페이지를 참조하세요.</ReadMore>
+
+```astro
+<style is:global>
+  body a { color: red; }
+</style>
+```
+
+### `is:inline`
+
+기본적으로 Astro는 페이지에 표시되는 `<script>` 및 `<style>` 태그를 처리, 최적화, 번들링합니다. `is:inline` 지시어를 사용하여 이 동작을 선택 해제할 수 있습니다.
+
+`is:inline`은 Astro에게 최종 출력 HTML에서 `<script>` 또는 `<style>` 태그를 그대로 두도록 지시합니다. 콘텐츠는 처리, 최적화, 번들링되지 않습니다. 이로 인해 npm 패키지 가져오기, Sass와 같이 CSS로 컴파일되는 언어 사용과 같은 일부 Astro 기능이 제한됩니다.
+
+`is:inline` 지시어는 `<style>` 및 `<script>` 태그를 의미합니다.
+
+- 외부 파일로 번들링되지 않습니다. 이는 외부 파일의 로드를 제어하는 ​​[`defer`와 같은 속성](https://ko.javascript.info/script-async-defer)이 아무런 영향을 미치지 않음을 의미합니다.
+- 중복이 제거되지 않습니다. 요소는 렌더링되는 횟수만큼 나타납니다.
+- `import`/`@import`/`url()` 참조가 `.astro` 파일을 기준으로 확인되지 않습니다.
+- 최종 출력된 HTML에서 작성된 위치와 정확하게 렌더링됩니다.
+- 스타일은 전역적이며 컴포넌트의 범위가 지정되지 않습니다.
+
+:::caution
+`<script>` 또는 `<style>` 태그에 `src` 이외의 속성이 사용될 때마다 `is:inline` 지시어가 사용됩니다.
+:::
+
+```astro
+<style is:inline>
+  /* 인라인: 상대 및 npm 패키지 가져오기는 지원되지 않습니다. */
+  @import '/assets/some-public-styles.css';
+  span { color: green; }
+</style>
+
+<script is:inline>
+  /* 인라인: 상대 및 npm 패키지 가져오기는 지원되지 않습니다. */
+  console.log('I am inlined right here in the final output HTML.');
+</script>
+```
+
+<ReadMore>Astro 컴포넌트에서 [클라이언트 측 스크립트](/ko/guides/client-side-scripts/)가 어떻게 작동하는지 알아보세요.</ReadMore>
+
+### `define:vars`
+
+`define:vars={...}`는 컴포넌트 프런트매터의 서버 측 변수를 클라이언트 `<script>` 또는 `<style>` 태그로 전달할 수 있습니다. `Astro.props`를 통해 컴포넌트에 전달된 `props`를 포함하여 모든 JSON 직렬화 가능 프런트매터 변수가 지원됩니다. 값은 [`JSON.stringify()`](https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify)로 직렬화됩니다.
+
+```astro
+---
+const foregroundColor = "rgb(221 243 228)";
+const backgroundColor = "rgb(24 121 78)";
+const message = "Astro is awesome!";
+---
+<style define:vars={{ textColor: foregroundColor, backgroundColor }}>
+  h1 {
+    background-color: var(--backgroundColor);
+    color: var(--textColor);
+  }
+</style>
+
+<script define:vars={{ message }}>
+  alert(message);
+</script>
+```
+
+:::caution
+`<script>` 태그에 `define:vars`를 사용하는 것은 [`is:inline` 지시어](#isinline)를 의미합니다. 이는 스크립트가 번들로 묶이지 않고 HTML에 직접 인라인된다는 의미입니다.
+
+Astro가 스크립트를 번들링하면 한 페이지에 스크립트가 포함된 컴포넌트를 여러 번 포함시키더라도 해당 스크립트를 한 번만 포함하여 실행하기 때문입니다. `define:vars`는 각 값 세트로 스크립트를 다시 실행해야 하므로 Astro는 대신 인라인 스크립트를 만듭니다.
+
+스크립트의 경우, 대신 [변수를 스크립트에 수동으로 전달](/ko/guides/client-side-scripts/#프런트매터-변수를-스크립트에-전달)해 보세요.
+:::
+
+## 고급 지시어
+
+### `is:raw`
+
+`is:raw`는 Astro 컴파일러에게 해당 요소의 모든 하위 요소를 텍스트로 처리하도록 지시합니다. 이는 이 컴포넌트에서 모든 특수 Astro 템플릿 구문이 무시된다는 것을 의미합니다.
+
+예를 들어 일부 텍스트를 HTML로 변환하는 사용자 정의 Katex 컴포넌트가 있는 경우, 사용자가 다음을 수행하도록 할 수 있습니다.
+
+```astro
+---
+import Katex from '../components/Katex.astro';
+---
+<Katex is:raw>Some conflicting {syntax} here</Katex>
+```

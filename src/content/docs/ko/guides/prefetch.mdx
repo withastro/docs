@@ -1,0 +1,217 @@
+---
+title: 프리페치
+description: 페이지 간 더 빠른 탐색을 위한 프리페치 링크입니다.
+i18nReady: true
+---
+
+import { Steps } from '@astrojs/starlight/components'
+
+페이지 로드 시간은 사이트의 유용성과 전반적인 즐거움에 큰 역할을 합니다. Astro의 **선택적 프리페칭**은 방문자가 사이트와 상호 작용할 때 다중 페이지 애플리케이션(MPA)에 거의 즉각적인 페이지 탐색 이점을 제공합니다.
+
+## 프리페칭 활성화
+
+`prefetch` 구성을 사용하여 프리페치를 활성화할 수 있습니다.
+
+```js title="astro.config.mjs" ins={4}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  prefetch: true
+});
+```
+
+프리페치 스크립트가 사이트의 모든 페이지에 추가됩니다. 그런 다음, 사이트의 `<a />` 링크에 `data-astro-prefetch` 속성을 추가하여 프리페칭을 선택할 수 있습니다. 링크 위로 마우스를 가져가면 스크립트가 백그라운드에서 페이지를 가져옵니다.
+
+```html
+<a href="/about" data-astro-prefetch>
+```
+
+프리페치는 사이트 내 링크에 대해서만 작동하며 외부 링크에는 작동하지 않습니다.
+
+## 프리페치 구성
+
+또한 `prefetch` 구성은 프리페치를 사용자 정의하기 위한 옵션 객체를 허용합니다.
+
+### 프리페치 전략
+
+Astro는 다양한 사용 사례에 대해 4가지 프리페치 전략을 지원합니다.
+
+- `hover` (기본값): 링크 위로 마우스를 가져가거나 링크에 포커싱하면 페이지를 미리 가져옵니다.
+- `tap`: 링크를 클릭하기 직전에 페이지를 미리 가져옵니다.
+- `viewport`: 링크가 뷰포트에 들어갈 때 페이지를 미리 가져옵니다.
+- `load`: 페이지가 로드된 후에 페이지의 모든 링크를 미리 가져오세요.。
+
+`data-astro-prefetch` 속성에 전달하여 개별 링크에 대한 전략을 지정할 수 있습니다.
+
+```html
+<a href="/about" data-astro-prefetch="tap">소개</a>
+```
+
+각 전략은 필요할 때만 미리 가져오고 사용자의 대역폭을 절약하도록 미세 조정됩니다. 예를 들어:
+
+- 방문자가 [데이터 절약 모드](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/saveData)를 사용 중이거나 [연결 속도가 느린 경우](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/effectiveType), 프리페치는 `tap` 전략으로 대체됩니다.
+- 링크 위에 빠르게 마우스를 올리거나 스크롤하면 해당 링크를 미리 가져오지 않습니다.
+
+### 기본 프리페치 전략
+
+`data-astro-prefetch` 속성을 추가할 때 기본 프리페치 전략은 `hover`입니다. 이를 변경하려면 `astro.config.mjs` 파일에서 [`prefetch.defaultStrategy`](/ko/reference/configuration-reference/#prefetchdefaultstrategy)를 구성하면 됩니다.
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  prefetch: {
+    defaultStrategy: 'viewport'
+  }
+});
+```
+
+### 모든 링크에 대한 프리페치를 기본값으로 설정하기
+
+`data-astro-prefetch` 속성이 없는 링크를 포함하여 모든 링크를 프리페치하려면, [`prefetch.prefetchAll`](/ko/reference/configuration-reference/#prefetchprefetchall)을 `true`로 설정하면 됩니다.
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  prefetch: {
+    prefetchAll: true
+  }
+});
+```
+
+그런 다음 `data-astro-prefetch="false"`를 설정하여 개별 링크에 대한 프리페치를 선택 해제할 수 있습니다.
+
+```html
+<a href="/about" data-astro-prefetch="false">소개</a>
+```
+
+모든 링크에 대한 기본 프리페치 전략은 [기본 프리페치 전략 섹션](#기본-프리페치-전략)에 표시된 대로 `prefetch.defaultStrategy`를 사용하여 변경할 수 있습니다.
+
+## 프로그래밍 방식으로 프리패치
+
+일부 탐색은 항상 `<a />` 링크로 표시되지 않을 수 있으므로, `astro:prefetch` 모듈에 포함된 `prefetch()` API를 사용하여 프로그래밍 방식으로 프리페치할 수도 있습니다.
+
+```astro
+<button id="btn">클릭</button>
+
+<script>
+  import { prefetch } from 'astro:prefetch';
+
+  const btn = document.getElementById('btn');
+  btn.addEventListener('click', () => {
+    prefetch('/about');
+  });
+</script>
+```
+
+`prefetch()` API에는 동일한 [데이터 절약 모드](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/saveData)와 [느린 연결](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/effectiveType) 감지 기능이 포함되어 있기 때문에 필요할 때만 프리페치를 수행합니다.
+
+느린 연결 감지를 무시하려면 `ignoreSlowConnection` 옵션을 사용하세요:
+
+```js
+// 데이터 절약 모드 또는 느린 연결에서도 프리페치
+prefetch('/about', { ignoreSlowConnection: true });
+```
+
+브라우저 API에 의존하므로, 클라이언트 측 스크립트에서만 `prefetch()`를 가져와야 합니다.
+
+## View Transitions와 함께 사용
+
+페이지에서 [View Transitions](/ko/guides/view-transitions/)를 사용하면 기본적으로 프리페치도 활성화됩니다. 페이지에서 [모든 링크에 대한 프리페칭](#모든-링크에-대한-프리페치를-기본값으로-설정하기)을 활성화하는 `{ prefetchAll: true }`의 기본 구성을 설정합니다.
+
+`astro.config.mjs`에서 프리페치 구성을 맞춤설정하여 기본값을 재정의할 수 있습니다. 예를 들어:
+  
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  // 프리페치를 완전히 비활성화
+  prefetch: false
+});
+```
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  // 프리페치를 유지하지만 'data-astro-prefetch'가 있는 링크에 대해서만 프리페치합니다.
+  prefetch: {
+    prefetchAll: false
+  }
+});
+```
+
+## 브라우저 지원
+
+Astro의 프리페칭은 브라우저에서 지원하는 경우 [`<link rel="prefetch">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel/prefetch)를 사용하며, 그렇지 않으면 [`fetch()` API](https://developer.mozilla.org/ko/docs/Web/API/Fetch_API)를 대신 사용합니다.
+
+가장 일반적인 브라우저들은 미묘한 차이를 제외하고 Astro의 프리패치를 모두 지원합니다.
+
+### Chrome
+
+Chrome은 `<link rel="prefetch">`를 지원합니다. 프리페치는 의도한 대로 작동합니다.
+
+### Firefox
+
+Firefox는 `<link rel="prefetch">`를 지원하지만 오류를 표시하거나 완전히 실패할 수 있습니다.
+
+ - 명시적인 캐시 헤더 (예: [`Cache-Control`](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/Cache-Control) 또는 [`Expires`](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/Expires))가 없는 경우, 프리패치 시 `NS_BINDING_ABORTED` 오류가 발생합니다. 
+- 오류가 발생하더라도 응답에 올바른 [`ETag`](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/ETag) 헤더가 있으면 탐색 시 재사용됩니다. 
+- 그렇지 않은 경우 다른 캐시 헤더 없이 오류가 발생하면 프리페치가 작동하지 않습니다.
+
+### Safari
+
+Safari는 `<link rel="prefetch">`를 지원하지 않기 때문에 캐시 헤더 (예: [`Cache-Control`](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/Cache-Control), [`Expires`](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/Expires), [`ETag`](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/ETag))가 필요한 `fetch()` API로 대체됩니다. 그렇지 않으면 프리페치가 작동하지 않습니다.
+
+**특이한 경우:** `ETag` 헤더는 개인정보 보호 브라우징 윈도우에서 작동하지 않습니다.
+
+### 권장사항
+
+모든 브라우저를 가장 효과적으로 지원하려면 페이지에 적절한 캐시 헤더가 있는지 확인하세요.
+
+정적 또는 사전 렌더링된 페이지의 경우 `ETag` 헤더는 배포 플랫폼에 의해 자동으로 설정되는 경우가 많으며 즉시 작동할 것으로 예상됩니다.
+
+동적 및 서버 측 렌더링된 페이지의 경우 페이지 콘텐츠에 따라 적절한 캐시 헤더를 직접 설정하세요. 자세한 내용은 [HTTP 캐싱에 대한 MDN 문서](https://developer.mozilla.org/ko/docs/Web/HTTP/Caching)를 참조하세요.
+
+## `@astrojs/prefetch`에서 마이그레이션
+
+`@astrojs/prefetch` 통합은 v3.5.0에서 더 이상 사용되지 않으며 결국 완전히 제거될 예정입니다. 이 통합을 대체하는 Astro의 내장 프리페칭으로 마이그레이션하려면 다음 지침을 따르세요.
+
+<Steps>
+1. `@astrojs/prefetch` 통합을 제거하고 `astro.config.mjs`에서 `prefetch` 구성을 활성화합니다.
+
+    ```js title="astro.config.mjs" ins={6} del={2,5}
+    import { defineConfig } from 'astro/config';
+    import prefetch from '@astrojs/prefetch';
+
+    export default defineConfig({
+      integrations: [prefetch()],
+      prefetch: true
+    });
+    ```
+
+2. `@astrojs/prefetch`의 구성 옵션에서 변환하세요.
+
+    - 더 이상 사용되지 않는 통합에서는 `selector` 구성 옵션을 사용하여 뷰포트에 들어갈 때 어떤 링크를 미리 가져와야 하는지 지정했습니다.
+    
+      대신 이러한 개별 링크에 `data-astro-prefetch="viewport"`를 추가하세요.
+
+      ```html
+      <a href="/about" data-astro-prefetch="viewport">
+      ```
+
+    - 더 이상 사용되지 않는 통합에서는 `intentSelector` 구성 옵션을 사용하여 링크 위에 마우스를 올리거나 포커싱할 때 미리 가져와야 하는 링크를 지정했습니다.
+    
+      대신 이러한 개별 링크에 `data-astro-prefetch` 또는 `data-astro-prefetch="hover"`를 추가하세요.
+
+      ```html
+      <!-- `defaultStrategy`가 `hover`(기본값)로 설정된 경우 값을 생략할 수 있습니다. -->
+      <a href="/about" data-astro-prefetch>
+
+      <!-- 그렇지 않으면, 프리페치 전략을 명시적으로 정의해야 합니다. -->
+      <a href="/about" data-astro-prefetch="hover">
+      ```
+
+    - 새로운 프리페치 기능이 자동으로 예약하고 최적으로 프리페치하므로, `@astrojs/prefetch`의 `throttles` 옵션은 더 이상 필요하지 않습니다.
+</Steps>

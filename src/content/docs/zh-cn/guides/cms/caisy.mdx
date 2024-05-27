@@ -1,0 +1,62 @@
+---
+title: Caisy & Astro
+description: 使用 Caisy 作为 CMS 向你的 Astro 项目添加内容
+type: cms
+service: Caisy
+i18nReady: true
+stub: true
+---
+
+[Caisy](https://caisy.io/) 是一个无头（headless） CMS ，它公开了 GraphQL API 来存取内容。
+
+## 将 Caisy CMS 与 Astro 结合使用
+
+使用 `graphql-request` 和 Caisy 的 Astro 富文本渲染器来获取你的 CMS 数据，并在 Astro 页面上显示你的内容：
+
+```astro title="src/pages/blog/[...slug].astro"
+---
+import RichTextRenderer from '@caisy/rich-text-astro-renderer';
+import { gql, GraphQLClient } from 'graphql-request';
+
+const params = Astro.params;
+
+const client = new GraphQLClient(
+	`https://cloud.caisy.io/api/v3/e/${import.meta.env.CAISY_PROJECT_ID}/graphql`,
+	{
+		headers: {
+			'x-caisy-apikey': import.meta.env.CAISY_API_KEY
+		}
+	}
+);
+const gqlResponse = await client.request(
+	gql`
+		query allBlogArticle($slug: String) {
+			allBlogArticle(where: { slug: { eq: $slug } }) {
+				edges {
+					node {
+						text {
+							json
+						}
+						title
+						slug
+						id
+					}
+				}
+			}
+		}
+	`,
+	{ slug: params.slug }
+);
+
+const post = gqlResponse?.allBlogArticle?.edges?.[0]?.node;
+---
+<h1>{post.title}</h1>
+<RichTextRenderer node={post.text.json} />
+```
+
+## 官方资源
+
+- 查看 [GitHub](https://github.com/caisy-io/caisy-example-astro) 或 [StackBlitz](https://stackblitz.com/github/caisy-io/caisy-example-astro?file=src%2Fpages%2Fblog%2F%5B...slug%5D.astro) 上的 Caissy + Astro 示例。
+- 在[草稿模式](https://caisy.io/developer/docs/external-api/localization-and-preview#preview-mode-15)和多个[区域设置](https://caisy.io/developer/docs/external-api/localization-and-preview#localization-in-a-graphql-query-8)中查询文档。
+- 使用[分页](https://caisy.io/developer/docs/external-api/queries-pagination)可以查询大量文档。
+- 在查询中使用[筛选](https://caisy.io/developer/docs/external-api/external-filter-and-sorting)并对结果进行[排序](https://caisy.io/developer/docs/external-api/external-filter-and-sorting#sorting-8)。

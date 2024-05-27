@@ -1,0 +1,62 @@
+---
+title: Caisy & Astro
+description: 'Caisy를 CMS로 사용하여 Astro 프로젝트에 콘텐츠를 추가하세요.'
+type: cms
+service: Caisy
+i18nReady: false
+stub: true
+---
+
+[Caisy](https://caisy.io/)는 콘텐츠에 엑세스하기 위해 GraphQL API를 노출하는 헤드리스 CMS입니다.
+
+## Astro와 함께 Caisy CMS 사용하기
+
+Astro용 `graphql-request`와 Caisy의 서식이 있는 텍스트 렌더러를 사용하여 CMS 데이터를 가져오고 Astro 페이지에 콘텐츠를 표시하세요.
+
+```astro title="src/pages/blog/[...slug].astro"
+---
+import RichTextRenderer from '@caisy/rich-text-astro-renderer';
+import { gql, GraphQLClient } from 'graphql-request';
+
+const params = Astro.params;
+
+const client = new GraphQLClient(
+	`https://cloud.caisy.io/api/v3/e/${import.meta.env.CAISY_PROJECT_ID}/graphql`,
+	{
+		headers: {
+			'x-caisy-apikey': import.meta.env.CAISY_API_KEY
+		}
+	}
+);
+const gqlResponse = await client.request(
+	gql`
+		query allBlogArticle($slug: String) {
+			allBlogArticle(where: { slug: { eq: $slug } }) {
+				edges {
+					node {
+						text {
+							json
+						}
+						title
+						slug
+						id
+					}
+				}
+			}
+		}
+	`,
+	{ slug: params.slug }
+);
+
+const post = gqlResponse?.allBlogArticle?.edges?.[0]?.node;
+---
+<h1>{post.title}</h1>
+<RichTextRenderer node={post.text.json} />
+```
+
+## 공식 자료
+
+- [GitHub](https://github.com/caisy-io/caisy-example-astro) 또는 [StackBlitz](https://stackblitz.com/github/caisy-io/caisy-example-astro?file=src%2Fpages%2Fblog%2F%5B...slug%5D.astro)에서 Caisy + Astro 예시를 확인해 보세요.
+- [초안 모드](https://caisy.io/developer/docs/external-api/localization-and-preview#preview-mode-15) 및 여러 [언어](https://caisy.io/developer/docs/external-api/localization-and-preview#localization-in-a-graphql-query-8)로 문서를 쿼리하세요.
+- 많은 수의 문서를 조회하려면 [pagination](https://caisy.io/developer/docs/external-api/queries-pagination)을 사용하세요.
+- 쿼리에 [필터](https://caisy.io/developer/docs/external-api/external-filter-and-sorting)를 사용하고 결과를 [정렬](https://caisy.io/developer/docs/external-api/external-filter-and-sorting#sorting-8)하세요.

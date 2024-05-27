@@ -1,0 +1,144 @@
+---
+title: Astro konfigurieren
+---
+
+Passe die Funktionsweise von Astro an, indem du die Datei `astro.config.mjs` zu deinem Projekt hinzufügst. Dies ist eine gängige Datei in Astro-Projekten, die standardmäßig in allen offiziellen Vorlagen und Themes enthalten ist.
+
+📚 In Astros [API-Konfigurationsreferenz](/de/reference/configuration-reference/) findest du eine Gesamtübersicht aller unterstützter Konfigurationsoptionen.
+## Die Astro-Konfigurationsdatei
+
+Eine gültige Astro-Konfigurationsdatei exportiert ihre Konfiguration mithilfe des `default`-Exports und der empfohlenen Hilfsfunktion `defineConfig`:
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // Füge deine Konfigurationsoptionen hier ein...
+  // https://docs.astro.build/de/reference/configuration-reference/
+})
+```
+
+Die Verwendung von `defineConfig()` wird für automatische Typhinweise in der IDE empfohlen, ist aber optional. Eine minimale, gültige Konfiguration würde so aussehen:
+
+```js title="astro.config.mjs"
+// Beispiel: Minimale, leere Konfigurationsdatei
+export default {}
+```
+
+## Unterstützte Konfigurationsdateitypen
+
+Astro unterstützt mehrere Dateiformate für seine Konfigurationsdatei: `astro.config.js`, `astro.config.mjs`, `astro.config.cjs` und `astro.config.ts`. 
+
+Das Laden von TypeScript-Konfigurationsdateien erfolgt mithilfe von [`tsm`](https://github.com/lukeed/tsm) und berücksichtigt die tsconfig-Optionen deines Projektes.
+## Auflösen von Konfigurationsdateien
+
+Astro versucht automatisch, eine Konfigurationsdatei mit dem Namen `astro.config.mjs` im Stammverzeichnis deines Projekts aufzulösen. Wenn keine Konfigurationsdatei dort gefunden wurde, werden die Standardoptionen von Astro verwendet.
+
+```bash
+# Beispiel: Liest deine Konfiguration aus ./astro.config.mjs
+astro build
+```
+
+Du kannst mit der Kommandozeilenoption `--config` eine Konfigurationsdatei explizit festlegen. Der Dateipfad wird dabei relativ zum aktuellen Arbeitsverzeichnis aufgelöst, in dem der `astro`-Befehl ausgeführt wurde.
+
+```bash
+# Beispiel: Liest deine Konfiguration aus dieser Datei
+astro build --config my-config-file.js
+```
+
+## IntelliSense-Konfiguration
+
+Astro empfiehlt die Verwendung der Hilfsfunktion `defineConfig()` in deiner Konfiguration. `defineConfig()` bietet automatisches IntelliSense in deiner IDE. Editoren wie VS Code sind in der Lage, Astros TypeScript-Typdefinitionen zu lesen und automatische JSDoc-Typhinweise zu liefern, selbst wenn deine Konfiguration nicht in TypeScript geschrieben ist.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // Füge deine Konfigurationsoptionen hier ein...
+  // https://docs.astro.build/en/reference/configuration-reference/
+})
+```
+
+Du kannst außerdem VS Code auch manuell Typdefinitionen zur Verfügung stellen, indem du diese JSDoc-Notation verwendest: 
+
+```js
+// astro.config.mjs
+export default /** @type {import('astro').AstroUserConfig} */ ({
+  // Füge deine Konfigurationsoptionen hier ein...
+  // https://docs.astro.build/en/reference/configuration-reference/
+}
+```
+
+## Referenzierung relativer Dateien
+
+Wenn du einen relativen Pfad an `root` oder die Kommandozeilenoption `--root` übergibst, wird Astro diesen relativ zum aktuellen Arbeitsverzeichnis auflösen, in dem du den `astro`-Befehl ausgeführt hast.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // Wird ins Verzeichnis "./foo" im aktuellen Arbeitsverzeichnis aufgelöst
+  root: 'foo'
+})
+```
+Astro löst alle anderen relativen Datei- und Verzeichnis-strings relativ zum Projektstammverzeichnis auf:
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // Wird ins Verzeichnis "./foo" im aktuellen Arbeitsverzeichnis aufgelöst
+  root: 'foo',
+  // Wird ins Verzeichnis "./foo/public" im aktuellen Arbeitsverzeichnis aufgelöst
+  publicDir: 'public',
+})
+```
+
+Um eine Datei oder ein Verzeichnis relativ zur Konfigurationsdatei zu referenzieren, verwende `import.meta.url` (es sei denn, du schreibst eine common.js-Datei `astro.config.cjs`)
+
+```js "import.meta.url"
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // Wird ins Verzeichnis "./foo" relativ zu dieser Konfigurationsdatei aufgelöst
+  root: new URL("./foo", import.meta.url),
+  // Wird ins Verzeichnis "./public" relativ zu dieser Konfigurationsdatei aufgelöst
+  publicDir: new URL("./public", import.meta.url),
+})
+```
+
+## Anpassen von Ausgabedateinamen
+
+Für von Astro verarbeiteten Code, z. B. importierte JavaScript- oder CSS-Dateien, kannst du die Ausgabedateinamen mit [`entryFileNames`](https://rollupjs.org/guide/en/#outputentryfilenames), [`chunkFileNames`](https://rollupjs.org/guide/en/#outputchunkfilenames), und [`assetFileNames`](https://rollupjs.org/guide/en/#outputassetfilenames) in einem `vite.build.rollupOptions`-Eintrag in deiner `astro.config.*`-Datei anpassen. 
+
+```js ins={9-11}
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          entryFileNames: 'entry.[hash].mjs',
+          chunkFileNames: 'chunks/chunk.[hash].mjs',
+          assetFileNames: 'assets/asset.[hash][extname]',
+        },
+      },
+    },
+  },
+})
+```
+
+Dies kann hilfreich sein, wenn du Skripts mit Namen hast, die von Werbeblockern blockiert werden (z.B. `ads.js` oder `google-tag-manager.js`).
+
+
+## Konfigurationsreferenz
+
+📚 In Astros [API-Konfigurationsreferenz](/de/reference/configuration-reference/) findest du eine Gesamtübersicht aller unterstützter Konfigurationsoptionen.
+

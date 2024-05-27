@@ -1,0 +1,199 @@
+---
+title: プリフェッチ
+description: ページ間のすばやいナビゲーションのためにリンクをプリフェッチします。
+i18nReady: true
+---
+
+import { Steps } from '@astrojs/starlight/components'
+
+ページのロード時間は、サイトの使いやすさとサイト全体の快適さに大きな影響を与えます。Astroの**オプトインのプリフェッチ**を利用すると、訪問者がマルチページアプリケーション（MPA）のサイトを操作する際に、ほぼ瞬時にページナビゲーションできるようになります。
+
+## プリフェッチを有効にする
+
+プリフェッチは、`prefetch`設定で有効にできます。
+
+```js title="astro.config.mjs" ins={4}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  prefetch: true
+});
+```
+
+プリフェッチスクリプトがサイトのすべてのページに追加されます。その後、サイト上の任意の`<a />`リンクに`data-astro-prefetch`属性を追加することで、プリフェッチにオプトインできます。リンク上にホバーすると、スクリプトがページをバックグラウンドでフェッチします。
+
+```html
+<a href="/about" data-astro-prefetch>
+```
+
+プリフェッチはサイト内のリンクに対してのみ機能し、外部リンクに対しては機能しないことに注意してください。
+
+## プリフェッチの設定
+
+`prefetch`設定は、プリフェッチをさらにカスタマイズするためのオプションのオブジェクトも受け付けます。
+
+### プリフェッチ戦略
+
+Astroは、さまざまなユースケースのために、以下の4種類のプリフェッチ戦略をサポートします。
+
+- `hover`（デフォルト）: リンク上にホバーまたはフォーカスしたときにプリフェッチします。
+- `tap`: リンクをクリックする直前にプリフェッチします。
+- `viewport`: リンクがビューポートに入ったときにプリフェッチします。
+- `load`: ページのロード後に、ページ上のすべてのリンクをプリフェッチします。
+
+個別のリンクに対して戦略を指定するには、戦略を`data-astro-prefetch`属性に渡します。
+
+```html
+<a href="/about" data-astro-prefetch="tap">About</a>
+```
+
+各戦略はファインチューニングされており、必要なときにのみプリフェッチしてユーザーの帯域を節約します。たとえば、
+
+- 訪問者が[データ節約モード](https://developer.mozilla.org/ja/docs/Web/API/NetworkInformation/saveData)や[低速なコネクション](https://developer.mozilla.org/ja/docs/Web/API/NetworkInformation/effectiveType)を使っている場合、プリフェッチは`tap`戦略にフォールバックします。
+- リンク上にすばやくホバーやスクロールした場合はプリフェッチしません。
+- `viewport`または`load`戦略を使用したリンクは、ネットワークの専有を避けるために低優先度でプリフェッチされます。
+
+### デフォルトのプリフェッチ戦略
+
+{/* TODO: 「設定方法」ページにprefetch.defaultStrategyが追加されたら#prefetchdefaultstrategyへのリンクに変更する */}
+`data-astro-prefetch`属性を追加した場合のデフォルトのプリフェッチ戦略は`hover`です。デフォルトを変更するには、`astro.config.mjs`ファイルの[`prefetch.defaultStrategy`](/ja/reference/configuration-reference/)で設定できます。
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  prefetch: {
+    defaultStrategy: 'viewport'
+  }
+});
+```
+
+### すべてのリンクをデフォルトでプリフェッチする
+
+{/* TODO: 「設定方法」ページにprefetch.prefetchAllが追加されたら#prefetchprefetchallへのリンクに変更する */}
+`data-astro-prefetch`属性のないリンクも含めて、すべてのリンクをプリフェッチしたい場合は、次のように、[`prefetch.prefetchAll`](/ja/reference/configuration-reference/)を`true`に設定できます。
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  prefetch: {
+    prefetchAll: true
+  }
+});
+```
+
+その後、`data-astro-prefetch="false"`に設定することで、個別のリンクのプリフェッチをオプトアウトできます。
+
+```html
+<a href="/about" data-astro-prefetch="false">About</a>
+```
+
+すべてのリンクに対するデフォルトのプリフェッチ戦略は、[デフォルトのプリフェッチ戦略](#デフォルトのプリフェッチ戦略)に示したように、`prefetch.defaultStrategy`で変更できます。
+
+## プログラムによるプリフェッチ
+
+ナビゲーションは常に`<a />`リンクとして表示されるとは限らないため、`astro:prefetch`モジュールの`prefetch()` APIを使用してプログラムからプロフェッチすることもできます。
+
+```astro
+<button id="btn">Click me</button>
+
+<script>
+  import { prefetch } from 'astro:prefetch';
+
+  const btn = document.getElementById('btn');
+  btn.addEventListener('click', () => {
+    prefetch('/about');
+  });
+</script>
+```
+
+`with`オプションを渡すことで、追加で優先度を設定できます。
+
+```js
+// 高優先度の`fetch()`を使用してプリフェッチする。
+prefetch('/about', { with: 'fetch' });
+
+// 低優先度で、ブラウザにより手動でスケジュールされる
+// `<link rel="prefetch">`を使用してプリフェッチする。（デフォルト）
+prefetch('/about', { with: 'link' });
+```
+
+`prefetch()` APIには、同様の[データ節約モード](https://developer.mozilla.org/ja/docs/Web/API/NetworkInformation/saveData)と[低速なコネクション](https://developer.mozilla.org/ja/docs/Web/API/NetworkInformation/effectiveType)の検出機能があるため、必要なときにだけプリフェッチします。
+
+低速なコネクションの検出を無視するには、`ignoreSlowConnection`オプションが利用できます。
+
+```js
+// データ節約モードや低速なコネクションの場合でもプリフェッチする
+prefetch('/about', { ignoreSlowConnection: true });
+```
+
+ブラウザのAPIに依存しているため、クライアント側で`prefetch()`だけをインポートするようにしてください。
+
+## ビュートランジションとともに使用する
+
+ページ内で[ビュートランジション](/ja/guides/view-transitions/)を使用するときは、プリフェッチもデフォルトで有効になります。ビュートランジションは、`{ prefetchAll: true }`というデフォルト設定を設定し、ページ内の[すべてのリンクに対してプリフェッチ](#すべてのリンクをデフォルトでプリフェッチする)を有効化します。
+
+デフォルトを上書きするには、`astro.config.mjs`内のプリフェッチ設定をカスタマイズできます。たとえば、次のように設定します。
+  
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  // プリフェッチを完全に無効化する
+  prefetch: false
+});
+```
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  // プリフェッチは維持するが、`data-astro-prefetch`があるリンクのみをプリフェッチする。
+  prefetch: {
+    prefetchAll: false
+  }
+});
+```
+
+## `@astrojs/prefetch`からのマイグレーション
+
+`@astrojs/prefetch`インテグレーションはv3.5.0で廃止され、最終的には完全に削除される予定です。以下の手順を利用して、このインテグレーションを置き換えるAstroのビルトインのプリフェッチにマイグレーションしてください。
+
+<Steps>
+1. `@astrojs/prefetch`インテグレーションを削除し、`astro.config.mjs`内の`prefetch`設定を有効化します。
+
+    ```js title="astro.config.mjs" ins={6} del={2,5}
+    import { defineConfig } from 'astro/config';
+    import prefetch from '@astrojs/prefetch';
+
+    export default defineConfig({
+      integrations: [prefetch()],
+      prefetch: true
+    });
+    ```
+
+2. `@astrojs/prefetch`の設定オプションから変換します。
+
+    - 非推奨になったインテグレーションでは、ビューポートに入ったときにプリフェッチするべきリンクを指定するために、`selector`設定オプションを使用していました。
+    
+      代わりに、これらの個別のリンクに`data-astro-prefetch="viewport"`を追加してください。
+
+      ```html
+      <a href="/about" data-astro-prefetch="viewport">
+      ```
+
+    - 非推奨になったインテグレーションは、ホバーまたはフォーカスしたときにプリフェッチするべきリンクを指定するために、`selector`設定オプションを使用していました。`intentSelector`設定オプションを使用していました。
+    
+      代わりに、これらの個別のリンクに`data-astro-prefetch`または`data-astro-prefetch="hover"`を追加してください。
+
+      ```html
+      <!-- `defaultStrategy`が`hover`（デフォルト）に設定されている場合、値を省略できます -->
+      <a href="/about" data-astro-prefetch>
+
+      <!-- そうでない場合は、プリフェッチ戦略を明示的に定義できます -->
+      <a href="/about" data-astro-prefetch="hover">
+      ```
+
+    - 新しいプリフェッチ機能は自動的にスケジューリングを行って最適にプリフェッチするため、`@astrojs/prefetch`の`throttles`オプションは必要なくなりました。
+</Steps>

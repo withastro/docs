@@ -1,0 +1,112 @@
+---
+title: Xata & Astro
+description: Xata를 사용하여 전체 텍스트 검색 기능이 있는 서버리스 데이터베이스를 프로젝트에 추가하세요.
+type: backend
+service: Xata
+stub: false
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { FileTree } from '@astrojs/starlight/components';
+
+
+[Xata](https://xata.io)는 일관된 단일 REST API를 노출하여 관계형 데이터베이스, 검색 엔진 및 분석 엔진의 기능을 결합한 **서버리스 데이터 플랫폼**입니다.
+
+## Xata를 사용하여 데이터베이스 추가
+
+### 전제조건
+
+- 데이터베이스가 생성된 [Xata](https://app.xata.io/signin) 계정이 필요합니다. (웹 UI에서 샘플 데이터베이스를 사용할 수 있습니다.)
+- 액세스 토큰 (`XATA_TOKEN_API`)이 필요합니다.
+- 여러분의 데이터베이스 URL이 필요합니다.
+
+[Xata CLI](https://xata.io/docs/getting-started/installation)를 업데이트하고 초기화하면 `.env` 파일에 API 토큰이 정의되고 데이터베이스 URL이 정의됩니다.
+
+설정이 끝나면 다음이 필요합니다.
+
+```ini title=".env"
+XATA_API_KEY=hash_key
+
+# 사용될 Xata 브랜치
+# xata 브랜치가 없는 경우
+# git 브랜치와 동일한 이름
+XATA_BRANCH=main
+```
+
+그리고 `databaseURL`은 다음과 같이 정의됩니다.
+
+```ini title=".xatarc"
+{
+  "databaseUrl": "https://your-database-url"
+}
+```
+
+### 환경 구성
+
+환경 변수에 대해 IntelliSense 및 타입 안전성을 추가하려면 `src/` 디렉터리에서 `env.d.ts` 파일을 편집하거나 생성하세요.
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly XATA_API_KEY: string;
+  readonly XATA_BRANCH?: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+:::tip
+Astro의 [환경 변수](/ko/guides/environment-variables/) 및 `.env` 파일에 대해 자세히 알아보세요.
+:::
+
+Xata CLI의 코드 생성을 사용하고 TypeScript 옵션을 선택하면 데이터베이스 스키마에 맞는 타입으로 SDK 인스턴스가 생성됩니다. 또한 `@xata.io/client`가 `package.json` 파일에 추가됩니다.
+
+Xata 환경 변수와 데이터베이스 URL은 SDK 인스턴스에서 자동으로 가져오므로 더 이상 설정 작업이 필요하지 않습니다.
+
+이제 프로젝트의 구조는 다음과 같습니다.
+
+<FileTree title="Project Structure">
+- src/
+  - **xata.ts**
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+- **.xatarc**
+</FileTree>
+
+## 쿼리 생성
+
+게시물을 쿼리하려면 `.astro` 파일에서 `XataClient` 클래스를 가져와 사용하세요. 아래 예시에서는 Xata의 샘플 블로그 데이터베이스에서 처음 50개의 게시물을 쿼리합니다.
+
+```astro title="src/pages/blog/index.astro"
+---
+import { XataClient } from '../../xata';
+ 
+const xata = new XataClient({
+  apiKey: import.meta.env.XATA_API_KEY,
+  branch: import.meta.env.XATA_BRANCH
+});
+
+const { records } = await xata.db.Posts.getPaginated({
+  pagination: {
+    size: 50
+  }
+})
+---
+
+<ul>
+  {records.map((post) => (
+    <li>{post.title}</li>
+  ))}
+</ul>
+```
+
+스키마가 변경될 때마다 SDK를 다시 생성해야 한다는 점에 유의하는 것이 중요합니다. 따라서 Xata CLI가 생성하는 파일을 변경하지 마세요. 스키마가 업데이트되면 변경 사항을 덮어쓰게 되기 때문입니다.
+
+## 공식 자료
+
+- [Xata Astro 스타터](https://github.com/xataio/examples/tree/main/apps/getting-started-astro)
+- [Xata 문서: 빠른 시작 안내서](https://xata.io/docs/getting-started/quickstart-astro)

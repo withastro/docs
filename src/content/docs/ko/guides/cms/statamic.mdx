@@ -1,0 +1,109 @@
+---
+title: Headless Statamic & Astro
+description: Add content to your Astro project using Statamic as a CMS
+type: cms
+stub: false
+service: Statamic
+i18nReady: true
+---
+
+import Grid from '~/components/FluidGrid.astro'
+import Card from '~/components/ShowcaseCard.astro'
+
+[Statamic](https://statamic.com/)은 현대적인 플랫 파일 CMS입니다. 이를 통해 개발자는 동적 웹사이트와 애플리케이션을 쉽게 만들 수 있으며 콘텐츠 편집자에게는 콘텐츠 관리를 위한 직관적이고 사용자 친화적인 인터페이스를 제공합니다.
+
+## Astro와 통합
+
+Statamic에는 데이터를 Astro에 연결하기 위한 [REST API](https://statamic.dev/rest-api) 및 [GraphQL API](https://statamic.dev/graphql)가 내장되어 있습니다.
+
+### 전제조건
+
+시작하려면 다음이 필요합니다.
+
+1. REST API 및 GraphQL API는 Statamic의 프로 버전에서만 사용할 수 있습니다. [로컬 장치](https://statamic.dev/tips/how-to-enable-statamic-pro#trial-mode)에서 Pro 버전을 무료로 사용해 볼 수 있습니다.
+2. **Astro 프로젝트** - Astro 프로젝트가 여전히 필요한 경우 [설치 가이드](/ko/install/auto/)를 통해 빠르게 시작하고 실행할 수 있습니다.
+3. **Statamic 사이트** - Statamic 웹사이트가 필요한 경우 [이 가이드](https://statamic.dev/quick-start-guide)가 시작하는 데 도움이 될 것입니다.
+`.env` 파일에 `STATAMIC_API_ENABLED=true` 또는 `STATAMIC_GRAPHQL_ENABLED=true`를 추가하여 [REST API](https://statamic.dev/rest-api#enable-the-api) 또는 [GraphQL API를 활성화](https://statamic.dev/graphql#enable-graphql)하고 API 구성 파일에서 필수 리소스를 활성화해야 합니다.
+
+:::caution
+모든 예시는 여러분의 웹사이트가 `posts`라는 컬렉션을 가지고 있다고 가정합니다. 이는 `post`라는 청사진으로 구성되어 있으며, 제목 필드 (text 타입) 및 콘텐츠 필드 (Markdown 타입)이 있습니다.
+:::
+
+### 데이터 가져오기
+
+:::caution
+로컬 컴퓨터에서 Statamic 및 Astro를 사용하는 경우 API를 가져올 때 `localhost` 대신 `127.0.0.1`을 사용해야 합니다.
+
+Astro 서버 `localhost`에서 요청할 때 브라우저에서처럼 올바르게 확인되지 않으며 두 API 중 하나에 대한 가져오기가 실패합니다.
+:::
+
+#### REST API
+
+사이트의 REST API URL에서 Statamic 데이터를 가져옵니다. 기본적으로 `https://[YOUR-SITE]/api/`입니다. 그런 다음 Astro의 `set:html={}` 지시어를 사용하여 데이터 속성을 렌더링할 수 있습니다.
+
+예를 들어 선택한 [컬렉션](https://statamic.dev/collections)의 제목 및 해당 콘텐츠 목록을 표시하려면 다음을 수행하세요.
+
+```astro title="src/pages/index.astro
+---
+const res = await fetch("https://[YOUR-SITE]/api/collections/posts/entries?sort=-date")
+const posts = await res.json()
+---
+<h1>Astro + Statamic 🚀</h1>
+{
+  posts.map((post) => (
+      <h2 set:html={post.title} />
+      <p set:html={post.content} />
+  ))
+}
+```
+
+#### GraphQL
+
+사이트의 GraphQL API URL을 사용하여 Statamic 데이터를 가져옵니다. 기본적으로 `https://[YOUR-SITE]/graphql/`입니다. 그런 다음 Astro의 `set:html={}` 지시어를 사용하여 데이터 속성을 렌더링할 수 있습니다.
+
+예를 들어 선택한 [컬렉션](https://statamic.dev/collections)의 제목 및 해당 콘텐츠 목록을 표시하려면 다음을 수행하세요.
+
+```astro title="src/pages/index.astro
+---
+const res = await fetch("https://[YOUR-SITE]/graphql/",
+  {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      query: `
+        posts: entries(collection: "posts", sort: "date desc") {
+          data {
+            title
+            ... on Entry_Posts_Post {
+              content
+            }
+          }
+        }
+      `
+    }),
+  });
+const entries = await res.json()
+---
+<h1>Astro + Statamic 🚀</h1>
+{
+  entries.data.posts.data.map((post) => (
+      <h2 set:html={post.title} />
+      <p set:html={post.content} />
+  ))
+}
+```
+
+### 사이트 게시
+
+Astro 사이트를 배포하려면 [배포 가이드](/ko/guides/deploy/)를 방문하여 선호하는 호스팅 제공업체의 지침을 따르세요.
+
+## 커뮤니티 자료
+
+- [Statamic을 헤드리스 CMS로 사용하여 정적 사이트를 구축하는 방법](https://buddy.works/guides/statamic-rest-api)
+- [헤드리스 Statamic에서 Astro 라이브 미리보기 구현](https://maciekpalmowski.dev/implementing-live-previews-in-headless-statamic-when-using-astro/)
+
+## 테마
+
+<Grid>
+  <Card title="Creek" href="https://astro.build/themes/details/creek/" thumbnail="creek.png"/>
+</Grid>

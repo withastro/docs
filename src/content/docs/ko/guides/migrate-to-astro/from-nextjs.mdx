@@ -1,0 +1,581 @@
+---
+title: Next.js에서 마이그레이션
+description: 기존 Next.js 프로젝트를 Astro로 마이그레이션하기 위한 팁
+type: migration
+stub: false
+framework: Next.js
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+import AstroJSXTabs from '~/components/tabs/AstroJSXTabs.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+다음은 시작하는 데 도움이 되는 몇 가지 주요 개념과 마이그레이션 전략입니다. 계속 진행하려면 나머지 문서와 [Discord 커뮤니티](https://astro.build/chat)를 활용하세요!
+
+## Next.js와 Astro의 주요 유사점
+
+Next.js와 Astro는 프로젝트 마이그레이션에 도움이 되는 몇 가지 유사점을 공유합니다.
+
+- [`.astro` 파일의 구문은 JSX와 유사합니다](/ko/basics/astro-syntax/#astro와-jsx의-차이점). Astro를 쓰는 것은 친숙하게 느껴질 것입니다.
+- Astro 프로젝트는 SSG 또는 [페이지 수준 사전 렌더링이 포함된 SSR](/ko/guides/server-side-rendering/)일 수도 있습니다.
+- Astro는 파일 기반 라우팅을 사용하며 [특별히 명명된 페이지가 동적 경로를 생성하도록 허용합니다](/ko/guides/routing/#동적-경로).
+- Astro는 [컴포넌트 기반](/ko/basics/astro-components/)이며 마이그레이션 전후의 마크업 구조는 유사합니다.
+- Astro에는 [React, Preact, Solid에 대한 공식 통합](/ko/guides/integrations-guide/react/)이 있으므로 기존 JSX 컴포넌트를 사용할 수 있습니다. Astro에서 이러한 파일은 **반드시** `.jsx` 또는 `.tsx` 확장자를 가져야 합니다.
+- Astro는 React 라이브러리를 포함하여 [NPM 패키지 설치](/ko/guides/imports/#npm-패키지)를 지원합니다. 기존 종속성 중 상당수가 Astro에서 작동합니다.
+
+## Next.js와 Astro의 주요 차이점
+
+Astro에서 Next.js 사이트를 다시 빌드하면 몇 가지 중요한 차이점을 발견할 수 있습니다.
+
+- Next.js는 React 단일 페이지 앱이며 `index.js`를 프로젝트 루트로 사용합니다. Astro는 다중 페이지 사이트이고 `index.astro`는 홈 페이지입니다.
+
+- [`.astro` 컴포넌트](/ko/basics/astro-components/)는 페이지 템플릿을 반환하는 내보낸 함수로 작성되지 않습니다. 대신, 코드를 JavaScript용 "코드 펜스"와 생성한 HTML 전용 본문으로 분할합니다.
+
+- [콘텐츠 중심](/ko/concepts/why-astro/#콘텐츠-중심): Astro는 콘텐츠를 선보이고 필요할 때만 상호 작용을 선택할 수 있도록 설계되었습니다. 기존 Next.js 앱은 높은 클라이언트 측 상호 작용을 위해 빌드될 수 있으며 대시보드와 같은 `.astro` 컴포넌트를 사용하여 복제하기가 더 어려운 항목을 포함하려면 고급 Astro 기술이 필요할 수 있습니다.
+
+## Next.js 프로젝트 변환
+
+각 프로젝트 마이그레이션은 다르게 보이지만 Next.js에서 Astro로 변환할 때 수행하게 되는 몇 가지 일반적인 작업이 있습니다.
+
+### 새 Astro 프로젝트 만들기
+
+패키지 관리자의 `create astro` 명령을 사용하여 Astro의 CLI 마법사를 시작하거나 [Astro 테마 쇼케이스](https://astro.build/themes)에서 커뮤니티 테마를 선택하세요.
+
+`create astro` 명령에 `--template` 인수를 전달하여 공식 스타터 (예: `docs`, `blog`, `portfolio`) 중 하나를 사용하여 새 Astro 프로젝트를 시작할 수 있습니다. 또는 [GitHub의 기존 Astro 저장소에서 새 프로젝트를 시작](/ko/install/auto/#시작-템플릿)할 수 있습니다.
+
+  <PackageManagerTabs>
+    <Fragment slot="npm">
+    ```shell
+    # Astro CLI 마법사 실행 
+    npm create astro@latest
+
+    # 공식 예시를 사용하여 새 프로젝트 만들기
+    npm create astro@latest -- --template <example-name>
+    ```
+    </Fragment>
+    <Fragment slot="pnpm">
+    ```shell
+    # Astro CLI 마법사 실행 
+    pnpm create astro@latest
+
+    # 공식 예시를 사용하여 새 프로젝트 만들기
+    pnpm create astro@latest --template <example-name>
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```shell
+    # Astro CLI 마법사 실행 
+    yarn create astro@latest
+
+    # 공식 예시를 사용하여 새 프로젝트 만들기
+    yarn create astro@latest --template <example-name>
+    ```
+    </Fragment>
+  </PackageManagerTabs>
+
+그런 다음 기존 Next 프로젝트 파일을 `src` 외부의 별도 폴더에 있는 새 Astro 프로젝트로 복사하세요.
+
+:::tip
+공식 시작 템플릿의 전체 목록과 StackBlitz, CodeSandbox, Gitpod에서 새 프로젝트를 열기 위한 링크를 보려면 https://astro.new를 방문하세요.
+:::
+
+### 통합 설치 (선택사항)
+
+Next 프로젝트를 Astro로 변환하는 동안 사용할 수 있도록 [Astro의 선택적 통합](/ko/guides/integrations-guide/) 중 일부를 설치하는 것이 유용할 수 있습니다.
+
+- **@astrojs/react**: 새 Astro 사이트에서 기존 React UI 컴포넌트를 재사용하거나 React 컴포넌트를 계속 사용하기 위해 필요합니다.
+
+- **@astrojs/mdx**: Next 프로젝트에서 기존 MDX 파일을 가져오거나 새 Astro 사이트에서 MDX를 사용하기 위해 필요합니다.
+
+### `src`에 소스 코드를 배치
+
+[Astro의 프로젝트 구조](/ko/basics/project-structure/)를 따르세요.
+
+<Steps>
+1. Next의 `public/` 폴더를 그대로 **유지**하세요.
+
+    Astro는 Next와 마찬가지로 정적 자산에 `public/` 디렉터리를 사용합니다. 이 폴더나 그 내용에는 변경이 필요하지 않습니다.
+
+2. [Astro의 프로젝트 구조](/ko/basics/project-structure/)에 따라 사이트를 재빌드할 때 Next의 다른 파일과 폴더 (예: `pages`, `styles` 등)를 Astro의 `src/` 폴더에 **복사하거나 이동**하세요.
+
+    Next와 마찬가지로 Astro의 `src/pages/` 폴더는 파일 기반 라우팅에 사용되는 특수 폴더입니다. 다른 모든 폴더는 선택 사항이며 `src/` 폴더의 내용을 원하는 대로 구성할 수 있습니다. Astro 프로젝트의 다른 일반적인 폴더에는 `src/layouts/`, `src/components`, `src/styles`, `src/scripts`가 있습니다.
+</Steps>
+
+### Astro 구성 파일
+
+Astro에는 프로젝트 루트에 [`astro.config.mjs`](/ko/guides/configuring-astro/)라는 구성 파일이 있습니다. 이는 Astro 프로젝트와 [SSR 어댑터](/ko/guides/deploy/)를 포함하여 설치된 모든 통합을 구성하는 데에만 사용됩니다.
+
+### 팁: JSX 파일을 `.astro` 파일로 변환
+
+다음 `.js` 컴포넌트를 `.astro` 컴포넌트로 변환하기 위한 몇 가지 팁은 다음과 같습니다.
+
+1. 기존 Next.js 컴포넌트 함수의 반환된 JSX를 HTML 템플릿의 기초로 사용합니다.
+
+2. [Next 또는 JSX 구문을 Astro로](#참조-nextjs-구문을-astro로-변환) 또는 HTML 웹 표준으로 변경합니다. 예를 들어 여기에는 `<Link>`, `<Script>`, `{children}`, `className`이 포함됩니다.
+
+3. import 구문을 포함하여 필요한 JavaScript를 ["코드 펜스" (`---`)](/ko/basics/astro-components/#컴포넌트-스크립트)로 이동합니다. 참고: [조건부 콘텐츠 렌더링](/ko/basics/astro-syntax/#동적-html)을 위한 JavaScript는 Astro에서 직접 HTML 템플릿 내에 작성되는 경우가 많습니다.
+
+4. 이전에 Next 함수에 전달된 추가 props에 액세스하려면 [`Astro.props`](/ko/reference/api-reference/#astroprops)를 사용하세요.
+
+5. 가져온 컴포넌트도 Astro로 변환해야 하는지 여부를 결정합니다. 공식 통합이 설치되면 [Astro 파일의 기존 React 컴포넌트를 사용](/ko/guides/framework-components/)할 수 있습니다. 그러나 특히 대화형이 필요하지 않은 경우 `.astro` 컴포넌트로 변환할 수 있습니다!
+
+6. `getStaticProps()`를 import 구문으로 바꾸거나 [`Astro.glob()`](/ko/reference/api-reference/#astroglob)을 사용하여 로컬 파일을 쿼리합니다. 외부 데이터를 가져오려면 `fetch()`를 사용하세요.
+
+[단계별로 변환된 Next `.js` 파일의 예시](#안내-예시-next-데이터-페칭-변환)를 참조하세요.
+
+#### 비교: JSX vs Astro
+
+다음 Next 컴포넌트와 해당 Astro 컴포넌트를 비교하세요.
+
+<AstroJSXTabs>
+  <Fragment slot="jsx">
+    ```jsx title="StarCount.jsx"
+    import Header from "./header";
+    import Footer from "./footer";
+    import "./layout.css";
+
+    export async function getStaticProps() {
+        const res = await fetch("https://api.github.com/repos/withastro/astro");
+        const json = await res.json();
+        return {
+            props: { message: json.message, stars: json.stargazers_count || 0 },
+        }
+    }
+
+    const Component = ({ stars, message }) => {
+        
+        return (
+            <>
+                <Header />
+                <p style={{
+                    backgroundColor: `#f4f4f4`,
+                    padding: `1em 1.5em`,
+                    textAlign: `center`,
+                    marginBottom: `1em`
+                }}>Astro has {stars} 🧑‍🚀</p>
+                <Footer />
+            </>
+        )
+    }
+
+    export default Component;
+    ```
+  </Fragment>
+  <Fragment slot="astro">
+    ```astro title="StarCount.astro"
+    ---
+    import Header from "./header";
+    import Footer from "./footer";
+    import "./layout.css";
+
+    const res = await fetch("https://api.github.com/repos/withastro/astro");
+    const json = await res.json();
+    const message = json.message;
+    const stars = json.stargazers_count || 0;
+    ---
+    <Header />
+    <p class="banner">Astro has {stars} 🧑‍🚀</p>
+    <Footer />
+
+    <style>
+      .banner {
+        background-color: #f4f4f4; 
+        padding: 1em 1.5em;
+        text-align: center;
+        margin-bottom: 1em;
+      }
+    <style>
+    ```
+  </Fragment>
+</AstroJSXTabs>
+
+### 레이아웃 파일 마이그레이션
+
+Next.js 레이아웃과 템플릿을 [Astro 레이아웃 컴포넌트](/ko/basics/layouts/)로 변환하여 시작하는 것이 도움이 될 수 있습니다.
+
+Next에는 레이아웃 파일을 생성하는 두 가지 방법이 있으며, 각 방법은 Astro와 다르게 레이아웃을 처리합니다.
+
+- `pages` 디렉터리
+
+- [`/app` 디렉터리](https://nextjs.org/docs/app/building-your-application/routing/pages-and-layouts#layouts)
+
+각 Astro 페이지에는 `<html>`, `<head>`, `<body>` 태그가 명시적으로 필요하므로 페이지 전체에서 레이아웃 파일을 재사용하는 것이 일반적입니다. Astro는 import 구문이 필요 없이 페이지 콘텐츠에 [`<slot />`](/ko/basics/astro-components/#슬롯)을 사용합니다. 표준 HTML 템플릿과 `<head>`에 대한 직접 액세스를 참고하세요.
+
+```astro title="src/layouts/Layout.astro"
+---
+---
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Astro</title>
+	</head>
+	<body>
+    <!-- 기존 레이아웃 템플릿으로 슬롯 요소를 래핑합니다. -->
+		<slot />
+	</body>
+</html>
+```
+
+#### Next.js의 `pages` 디렉터리에서 마이그레이션
+
+Next 프로젝트에는 앱의 `<head>`를 맞춤설정하기 위해 React 컴포넌트를 가져오는 `pages/_document.jsx` 파일이 있을 수 있습니다.
+
+```jsx title="pages/_document.jsx"
+import Document, { Html, Head, Main, NextScript } from "next/document";
+
+export default class MyDocument extends Document {
+  render() {
+    return (
+      <Html lang="en">
+        <Head>
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
+        <body>
+          <Main />
+          <NextScript />
+        </body>
+      </Html>
+    );
+  }
+}
+```
+
+<Steps>
+1. 반환된 JSX만을 사용하여 새로운 Astro 레이아웃 파일을 만듭니다.
+
+2. React 컴포넌트를 `<html>`, `<head>`, `<slot>` 및 기타 HTML 표준 태그로 교체합니다.
+
+    ```astro title="src/layouts/Document.astro"
+    <html lang="en">
+      <head>
+          <link rel="icon" href="/favicon.ico" />
+      </head>
+      <body>
+        <slot/>
+      </body>
+    </html>
+    ```
+</Steps>
+
+#### Next.js의 `/app` 디렉터리에서 마이그레이션
+
+Next.js의 `app/` 디렉터리 레이아웃 파일은 `<html>` 및 `<body>` 내용을 사용자 정의하기 위한 `layout.jsx` 파일과 `<head>` 요소 내용을 사용자 정의하기 위한 `head.jsx` 파일의 두 가지 파일로 생성됩니다.
+
+```jsx title="app/layout.jsx"
+export default function Layout({ children }) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+```jsx title="app/head.jsx"
+export default function Head() {
+  return (
+    <>
+      <title>My Page</title>
+    </>
+  );
+}
+```
+
+<Steps>
+1. 반환된 JSX만을 사용하여 새로운 Astro 레이아웃 파일을 만듭니다.
+
+2. 이 두 파일을 React의 `{children}` prop 대신 페이지 셸 (`<html>`, `<head>`, `<body>` 태그)과 `<slot/>`이 포함된 단일 Astro 레이아웃 파일로 바꾸세요.
+
+    ```astro title="src/layouts/Layout.astro"
+    <html lang="en">
+      <head>
+          <title>My Page</title>
+      </head>
+      <body>
+        <slot/>
+      </body>
+    </html>
+    ```
+</Steps>
+
+### 페이지 및 게시물 마이그레이션
+
+Next.js에서 게시물은 `/pages` 또는 `/app/routeName/page.jsx`에 있습니다.
+
+Astro에서 **모든 페이지 콘텐츠는 `src/`**, `src/pages` 또는 `src/content` 내에 있어야 합니다.
+
+#### React 페이지
+
+기존 Next JSX (`.js`) 페이지를 [JSX 파일에서 `.astro` 페이지로 변환](#팁-jsx-파일을-astro-파일로-변환)해야 합니다. Astro에서는 기존 JSX 페이지 파일을 사용할 수 없습니다.
+
+이러한 [`.astro` 페이지](/ko/basics/astro-pages/)는 `src/pages/` 내에 있어야 하며 파일 경로에 따라 페이지 경로가 자동으로 생성됩니다.
+
+#### Markdown 및 MDX 페이지
+
+Astro에는 Markdown에 대한 기본 지원과 MDX 파일에 대한 선택적 통합이 있습니다. 기존 [Markdown 및 MDX 파일](/ko/guides/markdown-content/)을 재사용할 수 있지만 [Astro의 특수 `layout` frontmatter 속성](/ko/basics/layouts/#markdownmdx-레이아웃)을 추가하는 등 frontmatter에 대한 일부 조정이 필요할 수 있습니다. 더 이상 Markdown으로 생성된 각 경로에 대해 페이지를 수동으로 만들 필요가 없습니다. 이러한 파일은 `src/pages/` 내에 배치하여 자동 파일 기반 라우팅을 활용할 수 있습니다.
+
+또는 Astro에서 [콘텐츠 컬렉션](/ko/guides/content-collections/)을 사용하여 콘텐츠를 저장하고 관리할 수 있습니다. 컬렉션의 일부인 경우 Markdown 및 MDX 파일은 `src/content/` 내의 폴더에 저장됩니다. 콘텐츠를 직접 검색하고 [해당 페이지를 동적으로 생성](/ko/guides/content-collections/#콘텐츠에서-경로-생성)합니다.
+
+### 테스트 마이그레이션
+
+Astro는 원시 HTML을 출력하므로 빌드 단계의 출력을 사용하여 end-to-end 테스트를 작성하는 것이 가능합니다. 이전에 작성된 모든 end-to-end 테스트는 Next 사이트의 마크업과 일치할 수 있는 경우 즉시 작동할 수 있습니다. Jest 및 React Testing Library와 같은 테스트 라이브러리를 Astro에서 가져와서 React 컴포넌트를 테스트하는 데 사용할 수 있습니다.
+
+자세한 내용은 Astro의 [테스트 가이드](/ko/guides/testing/)를 참조하세요.
+
+## 참조: Next.js 구문을 Astro로 변환
+
+### Next Links 변환
+
+Next `<Link to="">`, `<NavLink>` 등의 컴포넌트를 HTML `<a href="">` 태그로 변환합니다.
+
+```astro del={1} ins={2}
+<Link to="/blog">Blog</Link>
+<a href="/blog">Blog</a>
+```
+
+Astro는 링크에 특별한 컴포넌트를 사용하지 않지만 자신만의 `<Link>` 컴포넌트를 만드는 것은 환영합니다. 그런 다음 다른 컴포넌트와 마찬가지로 이 `<Link>`를 가져와 사용할 수 있습니다.
+
+```astro title="src/components/Link.astro"
+---
+const { to } = Astro.props;
+---
+<a href={to}><slot /></a>
+```
+
+### Next Imports 변환
+
+상대 파일 경로를 정확하게 참조하도록 모든 [파일 가져오기](/ko/guides/imports/)를 업데이트하세요. 이는 [가져오기 별칭](/ko/guides/typescript/#가져오기-별칭)을 사용하거나 상대 경로 전체를 작성하여 수행할 수 있습니다.
+
+`.astro` 및 기타 여러 파일 형식은 전체 파일 확장자를 사용하여 가져와야 합니다.
+
+```astro title="src/pages/authors/Fred.astro"
+---
+import Card from "../../components/Card.astro";
+---
+<Card />
+```
+
+### Next Children Props 변환
+
+`{children}`의 모든 인스턴스를 Astro `<slot />`으로 변환하세요. Astro는 `{children}`을 함수 prop으로 받을 필요가 없으며 자동으로 `<slot />`에 하위 콘텐츠를 렌더링합니다.
+
+```astro title="src/components/MyComponent.astro" del={3-9} ins={11-13}
+---
+---
+export default function MyComponent(props) { 
+    return (
+      <div>
+        {props.children}
+      </div>
+    );  
+}
+
+<div>
+  <slot />
+</div>
+```
+
+여러 children 집합을 전달하는 React 컴포넌트는 [명명된 슬롯](/ko/basics/astro-components/#명명된-슬롯)을 사용하여 Astro 컴포넌트로 마이그레이션될 수 있습니다.
+
+[Astro의 특정 `<slot />` 사용법](/ko/basics/astro-components/#슬롯)에 대해 자세히 알아보세요.
+
+### Next 데이터 페칭 변환
+
+프로젝트 소스에 있는 다른 파일의 데이터에 액세스하려면 `getStaticProps()`의 모든 인스턴스를 `Astro.glob()` 또는 `getCollection()`/`getEntryBySlug()`로 변환하세요. [원격 데이터를 가져오려면](/ko/guides/data-fetching/) `fetch()`를 사용하세요.
+
+이러한 데이터 요청은 Astro 컴포넌트의 프런트매터에서 이루어지며 top-level await을 사용합니다.
+
+```astro title="src/pages/index.astro"
+---
+import { getCollection } from 'astro:content';
+
+// 모든 `src/content/blog/` 항목 가져오기
+const allBlogPosts = await getCollection('blog');
+
+// 모든 `src/pages/posts/` 항목을 가져오기
+const allPosts = await Astro.glob('../pages/posts/*.md');
+
+const response = await fetch('https://randomuser.me/api/');
+const data = await response.json();
+const randomUser = data.results[0];
+---
+```
+
+[`Astro.glob()`을 사용한 로컬 파일 가져오기](/ko/guides/imports/#astroglob), [Collections API를 사용한 쿼리](/ko/guides/content-collections/#컬렉션-쿼리) 또는 [원격 데이터 가져오기](/ko/guides/data-fetching/)에 대해 자세히 알아보세요.
+
+### Next 스타일링 변환
+
+[CSS-in-JS 라이브러리](https://github.com/withastro/astro/issues/4432) (예: styled-components)를 Astro에서 사용 가능한 다른 CSS 옵션으로 바꿔야 할 수도 있습니다.
+
+필요한 경우 인라인 스타일 객체 (`style={{ fontWeight: "bold" }}`)를 인라인 HTML 스타일 속성(`style="font-weight:bold;"`)으로 변환합니다. 또는 범위가 지정된 CSS 스타일에는 [Astro `<style>` 태그](/ko/guides/styling/#astro에서-스타일링하기)를 사용하세요.
+
+```astro title="src/components/Card.astro" del={1} ins={2}
+<div style={{backgroundColor: `#f4f4f4`, padding: `1em`}}>{message}</div>
+<div style="background-color: #f4f4f4; padding: 1em;">{message}</div>
+```
+
+Tailwind는 [Tailwind 통합](/ko/guides/integrations-guide/tailwind/) 설치 후 지원됩니다. 기존 Tailwind 코드를 변경할 필요가 없습니다!
+
+[Astro에서의 스타일링](/ko/guides/styling/)에 대해 자세히 알아보세요.
+
+### Next 이미지 플러그인 변환
+
+Next `<Image />` 컴포넌트를 `.astro` 또는 `.mdx` 파일의 [Astro 자체 이미지 컴포넌트](/ko/guides/images/#image--astroassets)로 변환하거나 [표준 HTML ` <img>` / JSX `<img />`](/ko/guides/images/#ui-프레임워크-컴포넌트의-이미지) 태그를 React 컴포넌트에 적절하게 추가하세요.
+
+Astro의 `<Image />` 컴포넌트는 `.astro` 및 `.mdx` 파일에서만 작동합니다. [컴포넌트 속성의 전체 목록](/ko/guides/images/#속성)을 확인하고 일부 속성이 Next 속성과 다르다는 점에 유의하세요.
+
+```astro title="src/pages/index.astro"
+---
+import { Image } from 'astro:assets';
+import rocket from '../assets/rocket.png';
+---
+<Image src={rocket} alt="A rocketship in space." />
+<img src={rocket.src} alt="A rocketship in space.">
+```
+
+React (`.jsx`) 컴포넌트에서는 표준 JSX 이미지 구문 (`<img />`)을 사용합니다. Astro는 이러한 이미지를 최적화하지 않지만 유연성을 높이기 위해 NPM 패키지를 설치하고 사용할 수 있습니다.
+
+이미지 가이드에서 [Astro에서 이미지 사용](/ko/guides/images/)에 대해 자세히 알아볼 수 있습니다.
+
+## 안내 예시: Next 데이터 페칭 변환
+
+다음은 Astro로 변환된 Next.js Pokédex 데이터 페칭의 예시입니다.
+    
+`pages/index.js`는 [REST PokéAPI](https://pokeapi.co/)를 사용하여 처음 151마리의 포켓몬 목록을 가져와 표시합니다.
+
+`src/pages/index.astro`에서 이를 다시 생성하고 `getStaticProps()`를 `fetch()`로 바꾸는 방법은 다음과 같습니다.
+
+<Steps>
+1. return() JSX를 식별합니다.
+
+    ```jsx title="pages/index.js" {6-18}
+    import Link from 'next/link'
+    import styles from '../styles/poke-list.module.css';
+
+    export default function Home({ pokemons }) {
+        return (
+            <>
+                <ul className={`plain-list ${styles.pokeList}`}>
+                    {pokemons.map((pokemon) => (
+                        <li className={styles.pokemonListItem} key={pokemon.name}>
+                            <Link className={styles.pokemonContainer} as={`/pokemon/${pokemon.name}`} href="/pokemon/[name]">
+                                <p className={styles.pokemonId}>No. {pokemon.id}</p>
+                                <img className={styles.pokemonImage} src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}></img>
+                                <h2 className={styles.pokemonName}>{pokemon.name}</h2>
+                            </Link>
+                        </li>
+                    ))}
+                </ul>
+            </>
+        )
+    }
+
+    export const getStaticProps = async () => {
+        const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151")
+        const resJson = await res.json();
+        const pokemons = resJson.results.map(pokemon => {
+            const name = pokemon.name;
+            // https://pokeapi.co/api/v2/pokemon/1/
+            const url = pokemon.url;
+            const id = url.split("/")[url.split("/").length - 2];
+            return {
+                name,
+                url,
+                id
+            }
+        });
+        return {
+            props: {
+                pokemons,
+            },
+        }
+    }
+    ```
+
+2. `src/pages/index.astro`를 생성합니다.
+
+    Next 함수의 반환 값을 사용합니다. [HTML 전역 속성](https://developer.mozilla.org/ko/docs/Web/HTML/Global_attributes)의 대소문자 변경을 포함하여 Next 또는 React 구문을 Astro로 변환하세요.
+
+    참고 사항:
+
+    - `.map`이 제대로 작동합니다!
+
+    - `className`은 `class`가 됩니다.
+
+    - `<Link>`는 `<a>`가 됩니다.
+
+    - Astro 템플릿에는 `<> </>` 프래그먼트가 필요하지 않습니다.
+
+    - `key`는 React 속성이며 Astro의 `li` 속성이 아닙니다.
+
+    ```astro title="src/pages/index.astro" "class" "</a>" "<a"
+    ---
+    ---
+    <ul class="plain-list pokeList">
+        {pokemons.map((pokemon) => (
+            <li class="pokemonListItem">
+                <a class="pokemonContainer" href={`/pokemon/${pokemon.name}`}>
+                    <p class="pokemonId">No. {pokemon.id}</p>
+                    <img class="pokemonImage" src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}/>
+                    <h2 class="pokemonName">{pokemon.name}</h2>
+                </a>
+            </li>
+        ))}
+    </ul>
+    ```
+
+3. 필요한 imports, props, JavaScript를 추가하세요.
+
+    참고 사항:
+
+    - `getStaticProps` 함수는 더 이상 필요하지 않습니다. API의 데이터는 코드 펜스에서 직접 가져옵니다.
+    - `<Layout>` 컴포넌트를 가져와서 페이지 템플릿을 래핑합니다.
+
+    ```astro ins={2,4-16,19,31} title="src/pages/index.astro"
+    ---
+    import Layout from '../layouts/layout.astro';
+
+    const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151");
+    const resJson = await res.json();
+    const pokemons = resJson.results.map(pokemon => {
+        const name = pokemon.name;
+        // https://pokeapi.co/api/v2/pokemon/1/
+        const url = pokemon.url;
+        const id = url.split("/")[url.split("/").length - 2];
+        return {
+            name,
+            url,
+            id
+        }
+    });
+    ---
+
+    <Layout>
+      <ul class="plain-list pokeList">
+          {pokemons.map((pokemon) => (
+              <li class="pokemonListItem" key={pokemon.name}>
+                  <a class="pokemonContainer" href={`/pokemon/${pokemon.name}`}>
+                      <p class="pokemonId">No. {pokemon.id}</p>
+                      <img class="pokemonImage" src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}/>
+                      <h2 class="pokemonName">{pokemon.name}</h2>
+                  </a>
+              </li>
+          ))}
+      </ul>
+    </Layout>
+    ```
+</Steps>
+
+## 커뮤니티 자료
+
+- 동영상: [NextJS에서 Astro로: 더 많은 제어 = 더 빠른 사이트](https://www.youtube.com/watch?v=PSzCtdM20Fc).
+
+- 동영상: [Astro가 내 사이트를 100배 더 빠르게 만든 방법](https://www.youtube.com/watch?v=cOxA3kMYtkM).
+
+- 블로그 게시물: [Next.js에서 Astro로 마이그레이션](https://johnzanussi.com/posts/nextjs-to-astro-migration).
+
+- 블로그 게시물: [NextJS에서 Astro로](https://vanntile.com/blog/next-to-astro).
+- 블로그 게시물: [Next.js를 Astro로 변환](https://ericclemmons.com/blog/converting-nextjs-to-astro).

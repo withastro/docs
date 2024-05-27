@@ -1,0 +1,83 @@
+---
+title: AstroサイトをGoogle Cloudにデプロイする
+description: Google CloudでAstroサイトをウェブにデプロイする方法。
+type: deploy
+i18nReady: true
+---
+
+フル機能のWebアプリホスティングプラットフォーム[Google Cloud](https://cloud.google.com/)で、Astroサイトをデプロイできます。
+
+## デプロイ方法
+
+### Cloud Storage (静的配信のみ)
+
+1. [新しいGCPのプロジェクトを作成](https://console.cloud.google.com/projectcreate)、または既存のプロジェクトを選択します。
+
+2. [Cloud Storage](https://cloud.google.com/storage)で新しいバケットを作成します。
+
+3. バケットに名前を付け、その他必要な設定を行います。
+
+4. `dist`フォルダをバケットにアップロードするか、[Cloud Build](https://cloud.google.com/build)を使用してアップロードします。
+
+5. 新しく`Storage オブジェクト閲覧者`という権限を`allUsers`に追加して、公開アクセスを有効にします。
+
+6. Webサイトの設定を編集し、エントリポイントとして`ìndex.html`を、エラーページとして`404.html`を追加します。
+
+### Cloud Run (SSRと静的配信)
+
+Cloud Runはインフラストラクチャを管理せずにコンテナを実行できるサーバーレスプラットフォームです。 静的サイトとSSRサイトの両方のデプロイに使用できます。
+
+#### サービスの準備
+
+1. [新しいGCPのプロジェクトを作成](https://console.cloud.google.com/projectcreate)、または既存のプロジェクトを選択します。
+
+2. [Cloud Run API](https://console.cloud.google.com/apis/library/run.googleapis.com)が有効になっていることを確認してください。
+
+3. 新しいサービスを作成します。
+
+#### Dockerfileの作成とコンテナのビルド
+
+AstroのサイトをCloud Runにデプロイする前に、コンテナのビルドに使用されるDockerfileを作成する必要があります。[AstroでDockerを使用する方法](/ja/recipes/docker/#dockerfileを作成する)の詳細はレシピセクションをご覧ください。
+
+Dockerfileが作成されたら、イメージをビルドしてGoogle Cloudにプッシュします。これを実現するには、いくつかの方法があります:
+
+**Dockerを使用してローカルでビルドする**:
+
+`docker build`コマンドを使用してイメージをビルドし、`docker tag`でタグを付け、`docker push`でレジストリにプッシュします。Google Cloud の場合、[`Artifact Registry`](https://cloud.google.com/artifact-registry/docs/docker/pushing-and-pulling)が最も簡単なオプションですが、[Docker Hub](https://hub.docker.com/)を使用することもできます。
+
+```bash
+# コンテナをビルドします
+docker build .
+
+docker tag SOURCE_IMAGE HOSTNAME/PROJECT-ID/TARGET-IMAGE:TAG
+
+# イメージをレジストリにプッシュします
+docker push HOSTNAME/PROJECT-ID/IMAGE:TAG
+```
+
+プロジェクトに合わせて、上記のコマンド内の次の値を変更します。
+
+- `SOURCE_IMAGE`: ローカルイメージ名またはイメージID。
+- `HOSTNAME`: レジストリのホスト（`gcr.io`, `eu.gcr.io`, `asia.gcr.io`, `us.gcr.io`）。
+- `PROJECT`: Google CloudのプロジェクトID。
+- `TARGET-IMAGE`: レジストリに保存された時のイメージ名。
+- `TAG`はイメージに関連付けられたバージョンです。
+
+
+[詳細はGoogle Cloudのドキュメントをご覧ください。](https://cloud.google.com/artifact-registry/docs/docker/pushing-and-pulling)
+
+**他のツールを使用する**:
+
+[GitHub Actions](https://github.com/marketplace/actions/push-to-gcr-github-action)のような、DockerをサポートするCI/CDツールを使用できます。
+
+**[Cloud Build](https://cloud.google.com/build)を使用してビルドする**:
+
+Dockerfileをローカルでビルドする代わりに、イメージをリモートでビルドするようにGoogle Cloudに指示できます。[Google Cloud Buildのドキュメント](https://cloud.google.com/build/docs/build-push-docker-image)を参照してください。
+
+#### コンテナのデプロイ
+
+デプロイは[`gcloud`を使用して](https://cloud.google.com/run/docs/deploying#service)ターミナルで手動で行うことも、[Cloud Build](https://cloud.google.com/build)やその他のCI/CDシステムを使用して自動的に行うこともできます。
+
+:::note[公開アクセスが必要ですか？]
+Cloud Runの権限設定の`allUsers`グループに`Cloud Run 起動元`権限を追加することを忘れないでください！
+:::

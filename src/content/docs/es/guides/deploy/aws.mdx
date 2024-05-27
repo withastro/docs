@@ -1,0 +1,230 @@
+---
+title: Despliega tu proyecto de Astro en AWS
+description: Cómo desplegar tu proyecto de Astro en AWS.
+type: deploy
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+[AWS](https://aws.amazon.com/) es una plataforma integral de alojamiento, que puede ser usada para desplegar un proyecto de Astro.
+
+Desplegar tu proyecto en AWS requiere el uso de la [consola de AWS](https://aws.amazon.com/console/). (La mayoría de estas acciones también se pueden realizar mediante el [CLI de AWS](https://aws.amazon.com/cli/)). Esta guía te indicará los pasos a seguir para desplegar tu proyecto en AWS, usando [AWS Amplify](https://aws.amazon.com/amplify/), [S3 alojamiento de sitios web estáticos](https://aws.amazon.com/s3/) y [CloudFront](https://aws.amazon.com/cloudfront/).
+
+## AWS Amplify
+
+AWS Amplify es un conjunto de herramientas que permiten a los desarrolladores web y mobile crear aplicaciones completas en AWS de manera rápida y fácil.
+
+<Steps>
+1. Crea un nuevo proyecto en Amplify.
+2. Conecta tu repositorio a Amplify.
+3. Modifica los ajustes de compilación para adaptarlos al proceso de compilación de tu proyecto.
+
+    <PackageManagerTabs>
+    <Fragment slot="pnpm">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm i -g pnpm
+            - pnpm config set store-dir .pnpm-store
+            - pnpm i
+        build:
+          commands:
+            - pnpm run build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - .pnpm-store/**/*
+    ```
+    </Fragment>
+    <Fragment slot="npm">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm ci
+        build:
+          commands:
+            - npm run build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+           - yarn install
+        build:
+          commands:
+            - yarn build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    ```
+    </Fragment>
+    </PackageManagerTabs>
+</Steps>
+
+Amplify desplegará automáticamente tu proyecto y lo actualizará al subir los cambios a tu repositorio.
+
+## Alojando contenido estático en S3
+
+S3 es el punto de partida de cualquier aplicación. Es donde se almacenan los archivos de tu proyecto. S3 cobra por el almacenamiento de archivos y la cantidad de solicitudes a estos archivos. Puedes encontrar más información sobre S3 en la [documentación de AWS](https://aws.amazon.com/s3/).
+
+<Steps>
+1. Crea un bucket en S3 con el nombre de tu proyecto.
+
+    :::tip
+    El nombre del bucket debe ser único globalmente. Recomendamos una combinación del nombre del proyecto y el dominio de tu proyecto.
+    :::
+
+2. Desactiva **"Block all public access"**. De forma predeterminada, AWS establece a todos los buckets como privados. Para hacerlo público, debes desmarcar la casilla de verificación "Block public access" en las propiedades del bucket.
+
+3. Carga los archivos construidos ubicados en `dist` a S3. Puedes hacerlo manualmente desde la consola o usar la CLI de AWS. Si usas la CLI utiliza el siguiente comando después de [autenticarte en AWS](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html):
+
+    ```
+    aws s3 cp dist/ s3://<BUCKET_NAME>/ --recursive
+    ```
+
+4. Actualiza la política del bucket para permitir acceso público. Puedes encontrar esta configuración en **Permissions > Bucket policy** del bucket.
+
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "PublicReadGetObject",
+          "Effect": "Allow",
+          "Principal": "*",
+          "Action": "s3:GetObject",
+          "Resource": "arn:aws:s3:::<BUCKET_NAME>/*"
+        }
+      ]
+    }
+    ```
+
+    :::caution
+    No olvides reemplazar `<BUCKET_NAME>` con el nombre de tu bucket.
+    :::
+
+5. Habilita el alojamiento de sitios web para tu bucket. Puedes encontrar esta configuración en **Properties > Static website hosting** del bucket. Establece el documento index a `index.html` y el documento error a `404.html`. Finalmente, puedes encontrar la URL de tu nuevo sitio web en **Properties > Static website hosting** del bucket.
+
+    :::note
+    Si estás desplegando una aplicación de una sola página (SPA), establece el documento de error a `index.html`.
+    :::
+</Steps>
+
+## S3 y CloudFront
+
+CloudFront es un servicio web que proporciona capacidades de red de entrega de contenido (CDN). Se utiliza para almacenar en caché el contenido de un servidor web y distribuirlo a los usuarios finales. CloudFront cobra por la cantidad de datos transferidos. Agregar CloudFront a tu bucket S3 es más rentable y proporciona una entrega más rápida.
+
+Para conectar S3 con CloudFront, crea una distribución de CloudFront con los siguientes valores:
+  - **Origin domain:** El endpint del sitio web estático de tu bucket de S3. Puedes encontrar tu endpint en **Properties > Static website hosting** de tu bucket de S3. Alternativamente, puedes seleccionar tu bucket de S3 y hacer clic en la llamada para reemplazar la dirección de tu bucket con el endpint estático de tu bucket.
+  - **Viewer protocol policy:** "Redirect to HTTPS"
+
+Esta configuración servirá tu sitio utilizando la red de CDN de CloudFront. Puedes encontrar la URL de distribución de CloudFront en la sección **Distributions > Domain name** del bucket.
+
+:::note
+Cuando conectas CloudFront a un endpoint de sitio web estático de S3, dependes de las políticas del bucket de S3 para el control de acceso. Consulta la sección de [Alojando contenido estático en S3](/es/guides/deploy/aws/#alojando-contenido-estático-en-s3) para obtener más información sobre las políticas del bucket.
+:::
+
+## Despliegue continuo con GitHub Actions
+
+Hay muchas formas de configurar despliegue continuo en AWS. Una posibilidad si el código está alojado en GitHub es usar [GitHub Actions](https://github.com/features/actions) que desplegará tu proyecto cada vez que hagas un push.
+
+<Steps>
+1. Crea una nueva política en tu cuenta de AWS utilizando [IAM](https://aws.amazon.com/iam/) con los siguientes permisos. Esta política te permitirá cargar los nuevos archivos en tu bucket de S3 e invalidar los archivos antiguos de la distribución de CloudFront al desplegar.
+
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+          {
+              "Sid": "VisualEditor0",
+              "Effect": "Allow",
+              "Action": [
+                  "s3:PutObject",
+                  "s3:ListBucket",
+                  "s3:DeleteObject",
+                  "cloudfront:CreateInvalidation"
+              ],
+              "Resource": [
+                  "<DISTRIBUTION_ARN>",
+                  "arn:aws:s3:::<BUCKET_NAME>/*",
+                  "arn:aws:s3:::<BUCKET_NAME>"
+              ]
+          }
+      ]
+    }
+    ```
+
+    :::caution
+    No olvides reemplazar `<DISTRIBUTION_ARN>` y `<BUCKET_NAME>`. Puedes encontrar el DISTRIBUTION_ARN en **CloudFront > Distributions > Details**.
+    :::
+
+2. Crea un nuevo usuario de IAM y adjunta la política al usuario. Esto te proporcionará el `AWS_SECRET_ACCESS_KEY` y el `AWS_ACCESS_KEY_ID`.
+
+3. Agrega el siguiente workflow a tu repositorio en `.github/workflows/deploy.yml` y envíalo a GitHub. Deberás agregar `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `BUCKET_ID` y `DISTRIBUTION_ID` como "secrets" a tu repositorio en GitHub en **Settings** > **Secrets** > **Actions**. Haz clic en <kbd>New repository secret</kbd> para agregar cada uno.
+
+    ```yaml
+    name: Deploy Website
+
+    on:
+      push:
+        branches:
+          - main
+
+    jobs:
+      deploy:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v4
+          - name: Configure AWS Credentials
+            uses: aws-actions/configure-aws-credentials@v1
+            with:
+              aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+              aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+              aws-region: us-east-1
+          - name: Install modules
+            run: npm ci
+          - name: Build application
+            run: npm run build
+          - name: Deploy to S3
+            run: aws s3 sync --delete ./dist/ s3://${{ secrets.BUCKET_ID }}
+          - name: Create CloudFront invalidation
+            run: aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+    ```
+
+    :::note
+    El `BUCKET_ID` es el nombre del bucket de S3. El `DISTRIBUTION_ID` es el ID de la distribución de CloudFront. Puedes encontrar el ID de la distribución de CloudFront en **CloudFront > Distributions > ID**
+    :::
+</Steps>
+
+## Recursos de la comunidad
+
+- [Despliega Astro a AWS Amplify](https://www.launchfa.st/blog/deploy-astro-aws-amplify)
+- [Despliega Astro a AWS Elastic Beanstalk](https://www.launchfa.st/blog/deploy-astro-aws-elastic-beanstalk)
+- [Despliega Astro a Amazon ECS en AWS Fargate](https://www.launchfa.st/blog/deploy-astro-aws-fargate)

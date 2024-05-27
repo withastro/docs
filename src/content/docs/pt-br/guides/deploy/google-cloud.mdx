@@ -1,0 +1,84 @@
+---
+title: Faça deploy do seu Site Astro no Google Cloud
+description: Como fazer deploy do seu site Astro usando Google Cloud.
+type: deploy
+i18nReady: true
+---
+
+[Google Cloud](https://cloud.google.com/) é uma plataforma de hospedagem de aplicativos web completa que pode ser usada para fazer deploy do seu site Astro.
+
+## Como fazer o deploy
+
+### Cloud Storage (somente estático)
+
+1. [Crie um novo projeto GCP](https://console.cloud.google.com/projectcreate), ou selecione um que você já tenha.
+
+2. Crie um novo bucket em [Cloud Storage](https://cloud.google.com/storage).
+
+3. Dê um nome e outras configurações necessárias.
+
+4. Faça upload de sua pasta `dist` para ele ou faça upload usando o [Cloud Build](https://cloud.google.com/build).
+
+5. Habilite o acesso público adicionando uma nova permissão, chamada `Storage Object Viewer`, ao `allUsers`.
+
+6. Edite a configuração do site e adicione `ìndex.html` como entrypoint e `404.html` como página de erro.
+
+### Cloud Run (SSR e estático)
+
+Cloud Run é uma plataforma serverless que permite você executar um container sem ter que gerenciar nenhuma infraestrutura. Ele pode ser usado para fazer deploy tanto de sites estáticos como de sites SSR.
+
+#### Prepare o Serviço
+
+1. [Crie um novo projeto GCP](https://console.cloud.google.com/projectcreate), ou selecione um que você já tenha.
+
+2. Confira que o [Cloud Run API](https://console.cloud.google.com/apis/library/run.googleapis.com) está habilitado.
+
+3. Crie um novo serviço.
+
+
+#### Crie um DockerFile & Construa o Container
+
+Antes de vocês poder fazer deploy do seu site com Astro para o Cloud Run, você precisa criar um Dockerfile que vai ser usado para construir o container. Veja mais informações sobre [como usar Docker com Astro](/pt-br/recipes/docker/#creating-a-dockerfile) em nossa seção de receitas.
+
+Com o Dockerfile criado, faça sua build dele para uma imagem e o push para o Google Cloud. Existem algumas formas de conseguir isso:
+
+**Faça a build localmente usando Docker**:
+
+Use o comando `docker build` para fazer a build da imagem, `docker tag` para dar uma etiqueta a ela, e então `docker push` para colocá-la em um registro. No caso do Google Cloud, o [`Google Cloud Registry`](https://cloud.google.com/container-registry/docs/pushing-and-pulling#add-registry) é a opção mais fácil, mas você também pode usar o [Docker Hub](https://hub.docker.com/).
+
+```bash
+# faz a build do seu container
+docker build .
+
+docker tag SOURCE_IMAGE HOSTNAME/PROJECT-ID/TARGET-IMAGE:TAG
+
+# Coloca sua imagem em um registro
+docker push HOSTNAME/PROJECT-ID/IMAGE:TAG
+```
+
+Mude os seguintes valores nos comandos acima para condizer com seu projeto:
+
+- `SOURCE_IMAGE`: o nome ou ID da imagem local.
+- `HOSTNAME`: a hospedagem do registro (`gcr.io`, `eu.gcr.io`, `asia.gcr.io`, `us.gcr.io`).
+- `PROJECT`: o ID do seu projeto do Google Cloud.
+- `TARGET-IMAGE`: o nome que a imagem terá ao ser armazenada no registro.
+- `TAG` é a versão associada com a imagem.
+
+
+[Leia mais na documentação do Google Cloud.](https://cloud.google.com/container-registry/docs/pushing-and-pulling)
+
+**Usando outra ferramenta**:
+
+Você pode usar uma ferramenta de CI/CD que suporte Docker, como o [GitHub Actions](https://github.com/marketplace/actions/push-to-gcr-github-action).
+
+**Faça a build usando [Cloud Build](https://cloud.google.com/build)**:
+
+Ao invés de fazer a build do Dockerfile localmente, você pode instruir o Google Cloud para fazer a build da imagem remotamente. Veja a [documentação de Build do Google Cloud aqui](https://cloud.google.com/build/docs/build-push-docker-image).
+
+#### Fazendo deploy do container
+
+O deploy pode ser lidado manualmente no seu terminal [usando `gcloud`](https://cloud.google.com/run/docs/deploying#service) ou automaticamente usando [Cloud Build](https://cloud.google.com/build) ou qualquer outro sistema de CI/CD.
+
+:::note[Precisa de acesso público?]
+Não se esqueça de adicionar a permissão `Cloud Run Invoker` para o grupo `allUsers` nas configurações de permissão do Cloud Run!
+:::

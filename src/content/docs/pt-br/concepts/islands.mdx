@@ -1,0 +1,91 @@
+---
+title: Ilhas Astro
+description: >-
+  Ilhas Astro (ou Ilhas de Componente) é um padrão de arquitetura web em que
+  Astro é pioneiro. O termo “Arquitetura em ilhas” foi criado pela arquiteta
+  frontend da Etsy, Katie Sylor-Miller, em 2019 e expandido pelo criador do
+  Preact, Jason Miller.
+i18nReady: true
+---
+
+import IslandsDiagram from '~/components/IslandsDiagram.astro';
+
+Astro foi pioneiro e também popularizou uma arquitetura de frontend chamadas **Ilhas**. Arquitetura em ilhas resulta em melhor performance no frontend por lhe ajudar a evitar padrões de JavaScript monolíticos e por remover todo o JavaScript não essencial de uma página automaticamente. Desenvolvedores continuam usando seus componente e frameworks de UI favoritos com Astro e ainda recebem esses benefícios.
+
+## Uma breve história
+
+O termo "componente em ilhas" (component island) foi cunhado inicialmente pela arquiteta de frontend da Etsy, [Katie Sylor-Miller](https://twitter.com/ksylor), em 2019. Essa ideia foi então ampliada e documentada [nesta postagem](https://jasonformat.com/islands-architecture/) pelo criador do Preact, Jason Miller, em 11 de Agosto de 2020.
+
+> A ideia geral de uma arquitetura em "Ilhas" é enganosamente simples: renderizar páginas HTML no servidor, e injetar espaços reservados ou slots ao redor de regiões altamente dinâmicas [...] que podem, então, ser "hidratadas" no cliente em widgets pequenos e autônomos, reutilizando o HTML inicial deles renderizado no servidor.  
+> — Jason Miller, Criador do Preact
+
+A técnica que esse padrão arquitetural se baseia também é conhecido como **hidratação parcial** ou **seletiva.**
+
+Em contraste, a maioria dos frameworks web baseados em JavaScript hidratam e renderizam um website inteiro como uma grande aplicação JavaScript (também conhecidas como aplicações de página única, ou SPA). SPAs oferecem simplicidade e poder, mas sofrem de problemas de performance no carregamento da página por causa do uso pesado de JavaScript no lado do cliente.
+
+As SPAs tem seu lugar, incluindo [embedadas dentro de uma página Astro](/pt-br/guides/migrate-to-astro/from-create-react-app/). Entretanto, SPAs carecem da habilidade nativa de hidratar de forma selecionada e estratégica, fazendo delas escolhas excessivas para a maioria dos projetos na web hoje em dia.
+
+Astro se tornou popular como o primeiro framework web JavaScript popular com hidratação seletiva integrada, utilizando esse padrão de componentes em ilhas cunhado por Sylor-Miller.
+
+## O que é uma ilha?
+
+**No Astro, uma "ilha" se refere a qualquer componente de UI interativo em uma página.** Pense em uma ilha como um widget interativo flutuando em um mar de HTML stático, leve e renderizado no servidor.
+
+<IslandsDiagram>
+    <Fragment slot="headerApp">Cabeçalho (ilha interativa)</Fragment>
+    <Fragment slot="sidebarApp">Barra lateral (HTML estático)</Fragment>
+    <Fragment slot="main">
+        Conteúdo estático como texto, imagens, etc.
+    </Fragment>
+    <Fragment slot="carouselApp">Carrossel de imagens (ilha interativa)</Fragment>
+    <Fragment slot="footer">Rodapé (HTML estático)</Fragment>
+    <Fragment slot="source">Fonte: [Arquitetura em Ilhas: Jason Miller](https://jasonformat.com/islands-architecture/)</Fragment>
+</IslandsDiagram>
+
+Uma ilha sempre executa de forma isolada de outras ilhas na página, e múltiplas ilhas podem existir em uma página. Ilhas ainda assim podem compartilhar estado e se comunicarem umas com as outras, apesar de executarem em contextos de componentes diferentes.
+
+Essa flexibilidade permite que Astro suporte múltiplos frameworks de UI como [React](https://react.dev/), [Preact](https://preactjs.com/?lang=pt-br), [Svelte](https://svelte.dev/), [Vue](https://pt.vuejs.org/), e [SolidJS](https://www.solidjs.com/). Por serem independentes, você pode até misturar múltiplos frameworks em cada página.
+
+:::tip
+Apesar da maioria dos desenvolvedores se manter em um único framework de UI, Astro suporta múltiplos frameworks no mesmo projeto. Isso lhe permite:
+
+- Escolher o melhor framework para cada componente.
+- Aprender um novo framework sem precisar iniciar um novo projeto.
+- Colaborar com outros mesmo quando trabalhando em frameworks diferentes.
+- Converter de forma incremental um site existente para outro frameworks sem um período de inatividate.
+:::
+
+## Criando uma ilha
+
+Por padrão, Astro vai renderizar automaticamente todos os componentes de UI para apenas HTML e CSS, **removendo todo o JavaScript do lado do cliente automaticamente.**
+
+
+```astro title="src/pages/index.astro"
+<MeuComponenteReact />
+```
+
+Isso pode soar restrito, mas esse comportamento é o o que mantém websites Astro rápidos por padrão e proteje desenvolvedores de acidentalmente enviar JavaScript desnecessário ou indesejado que pode tornar seu website lento.
+
+Tornar qualquer componente de UI estático em uma ilha interativa requer apenas uma diretiva `client:*`. Astro, então, vai fazer um build automaticamente e empacotar seu JavaScript do lado do cliente para uma performance otimizada.
+
+```astro title="src/pages/index.astro" ins="client:load"
+<!-- Este componente agora é interativo na página! 
+     O resto do seu website continua estático. -->
+<MeuComponenteReact client:load />
+```
+
+Com ilhas, JavaScript do lado do cliente só é carregado para os componentes explicitamente interativos que você demarcar utilizando diretivas `client:*`.
+
+E por causa das interações serem definidas a nível de componente, você pode lidar com diferentes prioridades de carregamento para cada componente baseado em seu uso. Por exemplo, `client:idle` informa um componente para carregar quando o navegador estiver inativo, e `client:visible` informa um componente para carregar apenas quando ele entrar na janela de visualização.
+
+## Quais são os benefícios das Ilhas?
+
+O mais óbvio benefício de se construir com Ilhas Astro é performance: a maior parte do seu website é convertido em HTML estático e rápido, carregando JavaScript apenas para os componentes individuais que o necessitam. JavaScript é um dos assets mais lentos que você pode carregar por byte, então cada byte conta.
+
+Outro benefício é carregamento paralelo. Na ilustração de exemplo acima, a ilha de baixa prioridade "carrossel de imagens" não precisa bloquear a ilha de alta prioridade "cabeçalho". Os dois são carregados em paralelo e hidratados de forma isolada, o que significa que o cabeçalho se torna interativo imediatamente sem precisar esperar que o carrossel, mais pesado, desacelere o carregamento da página.
+
+Melhor ainda, você pode dizer para o Astro exatamente como e quando renderizar cada componente. Se o carrossel de imagens é realmente caro de se carregar, você pode adicionar uma [diretiva de cliente](/pt-br/reference/directives-reference/#diretivas-de-cliente) especial que diz ao Astro para apenas carregar o carrossel de imagens quando ele estiver visível na página. Se o usuário nunca o ver, ele nunca será carregado.
+
+No Astro, cabe a você como desenvolvedor explicitamente dizer ao Astro quais componentes na página também precisam ser executados no navegador. Astro irá apenas hidratar exatamente o que é necessário na página e deixar o resto do seu website como HTML estático.
+
+**Ilhas são o segredo para a história de performance rápida por padrão do Astro!**

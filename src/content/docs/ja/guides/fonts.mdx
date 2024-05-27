@@ -1,0 +1,134 @@
+---
+title: カスタムフォントの使用
+description: Astro Webサイトにカスタム書体を使用したいですか？ FontsourceでGoogle Fontsを使用するか、お好みのフォントを追加してください。
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+
+このガイドでは、プロジェクトにウェブフォントを追加し、コンポーネントで使用する方法を紹介します。
+
+## ローカルのフォントファイルを使う
+
+以下の例では、`DistantGalaxy.woff`というフォントファイルを使ってカスタムフォントを追加する方法を説明します。
+
+1. `public/fonts/`にフォントファイルを追加します。
+
+1. CSSに以下の`@font-face`文を追加します。追加する場所は、インポートするグローバルな`.css`ファイルでも、`<style is:global>`ブロックでも、このフォントを使用したいレイアウトやコンポーネントの`<style>`ブロックでもかまいません。
+
+    ```css
+    /* カスタムフォントファミリーを登録し、ブラウザにその場所を知らせます。 */
+    @font-face {
+      font-family: 'DistantGalaxy';
+      src: url('/fonts/DistantGalaxy.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+    ```
+
+1. コンポーネントやレイアウトにスタイルを設定するには、`@font-face`文で指定した`font-family`を使用します。この例では、見出しの`<h1>`にはカスタムフォントが適用され、段落の`<p>`には適用されません。
+
+    ```astro {10-12}
+    ---
+    // src/pages/example.astro
+    ---
+
+    <h1>はるかかなたの銀河系で…</h1>
+
+    <p>カスタムフォントを使うと、見出しがよりカッコよくなりますね！</p>
+
+    <style>
+    h1 {
+      font-family: 'DistantGalaxy', sans-serif;
+    }
+    </style>
+    ```
+
+## Fontsourceを使う
+
+[Fontsource](https://fontsource.org/)プロジェクトにより、Google Fontsやその他のオープンソースのフォントを簡単に使用できます。使用したいフォントをnpmモジュールとしてインストールできます。
+
+1. [Fontsourceのカタログ](https://fontsource.org/)で使用したいフォントを探します。例として、ここでは[Twinkle Star](https://fontsource.org/fonts/twinkle-star)を使用します。
+
+2. 選択したフォントのパッケージをインストールしてください。
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm install @fontsource/twinkle-star
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm add @fontsource/twinkle-star
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn add @fontsource/twinkle-star
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+    :::tip
+    正しいパッケージ名は、Fontsourceのウェブサイトの各フォントページの「Quick Installation」セクションに記載されています。`@fontsource/`または`@fontsource-variable/`で始まり、その後にフォントの名前が続きます。
+    :::
+
+3. フォントを使用したいコンポーネントで、フォントパッケージをインポートします。通常は、サイト全体でフォントを利用するために、共通のレイアウトコンポーネントでこれを行います。
+
+    インポートすると、フォントを設定するのに必要な`@font-face`ルールが自動的に追加されます。
+
+    ```astro
+    ---
+    // src/layouts/BaseLayout.astro
+    import '@fontsource/twinkle-star';
+    ---
+    ```
+
+4. そのフォントのFontsourceページの`body`の例に記載されている名前を`font-family`として使用します。AstroプロジェクトでCSSを書ける場所であればどこでも指定できます。
+
+    ```css
+    h1 {
+      font-family: "Twinkle Star", cursive;
+    }
+    ```
+
+
+
+## Tailwindでフォントを登録する
+
+[Tailwindインテグレーション](/ja/guides/integrations-guide/tailwind/)を使用している場合は、このページで説明した方法のいずれかを使ってフォントをインストールできますが、いくつかの変更が必要です。[ローカルのフォントに対して`@font-face`文を追加](#ローカルのフォントファイルを使う)するか、フォントをインストールするために[Fontsourceの`import`戦略](#fontsourceを使う)を使えます。
+
+Tailwindにフォントを登録する流れは以下の通りです。
+
+1. 上のガイドのいずれかに従ってください。ただし、CSSに`font-family`を追加する最後のステップはスキップしてください。
+1. `tailwind.config.mjs`に書体名を追加します。
+
+    この例では、`Inter`をサンセリフのフォントスタックに追加し、またTailwind CSSのデフォルトのフォールバックフォントも使用しています。
+
+    ```js title="tailwind.config.mjs" ins={1,8-10}
+    import defaultTheme from 'tailwindcss/defaultTheme'
+
+    /** @type {import('tailwindcss').Config} */
+    export default {
+    	content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
+    	theme: {
+    		extend: {
+    			fontFamily: {
+    				sans: ['Inter', ...defaultTheme.fontFamily.sans],
+    			},
+    		},
+    	},
+    	plugins: [],
+    }
+    ```
+
+    これで、プロジェクト内のすべてのサンセリフテキスト（Tailwindのデフォルト）は選択したフォントを使用し、`font-sans`クラスはInterフォントを適用するようになりました。
+
+詳細は、[カスタムフォントファミリーの追加に関するTailwindのドキュメント](https://tailwindcss.com/docs/font-family#using-custom-values)を参照してください。
+
+## その他のリソース
+
+- [MDNのウェブフォントガイド](https://developer.mozilla.org/ja/docs/Learn/CSS/Styling_text/Web_fonts)でウェブフォントの仕組みを学びましょう。
+- [Font Squirrelのウェブフォントジェネレーター](https://www.fontsquirrel.com/tools/webfont-generator)でフォント用のCSSを生成できます。

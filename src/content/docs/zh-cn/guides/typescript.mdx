@@ -1,0 +1,322 @@
+---
+title: TypeScript
+description: 了解如何使用 Astro 内置的 TypeScript 支持。
+---
+import Since from '~/components/Since.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+Astro 内置了对 [TypeScript](https://www.typescriptlang.org/) 的支持。你可以在 Astro 项目中导入 `.ts` 和 `.tsx` 文件，甚至可以直接在 [Astro 组件](/zh-cn/basics/astro-components/#组件脚本) 中编写 TypeScript 代码。如果你愿意，你甚至可以使用 [`astro.config.ts`](/zh-cn/guides/configuring-astro/#astro-配置文件)。
+
+使用 TypeScript，你可以通过约束代码中对象和组件的类型来防止运行时的错误。例如，如果你使用了 TypeScript 来[定义组件参数](#组件参数)；而如果你在使用时不小心传入了一个与之不匹配的参数，编辑器将会报错。
+
+你无需在 Astro 项目中编写 TypeScript 代码也可从中受益。Astro 始终将你的组件代码视为 TypeScript，并且 [Astro 的 VSCode 扩展](/zh-cn/editor-setup/) 将尝试尽可能多地推断，以便在编辑器中提供自动完成、提示和错误。
+
+Astro 的开发服务器不会进行任何类型检查，但你可以编辑 [`package.json` 中的 `scripts` 属性](#类型检验)来通过命令行工具检查代码中的类型错误。
+
+## 设置
+
+Astro 入门项目在你的项目中包含一个名为 `tsconfig.json` 的文件。即使你不编写 TypeScript 代码，这个文件也很重要；通过这个文件，可以让 Astro 和 VSCode 等工具知道应当如何理解你的项目。如果没有 `tsconfig.json` 文件，编辑器将不能对某些功能提供完整支持（比如 npm 包导入）。如果你手动安装的 Astro，请务必自己创建此文件。
+
+Astro 中包含三个可扩展的 `tsconfig.json` 模板：`base`、`strict` 和 `strictest`。`base` 模板开启了对现代 JavaScript 的相关特性的支持，也可用作其他模板的基础。但如果你打算在项目中编写 TypeScript，我们建议使用 `strict` 或 `strictest`。你可以在 [astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/) 中查看和比较这三个配置模板。
+
+要继承其中某个模板，请使用 [设置项 `extends`](https://www.typescriptlang.org/tsconfig#extends)：
+
+```json title="tsconfig.json"
+{
+  "extends": "astro/tsconfigs/base"
+}
+```
+
+此外，我们的模板在 `src` 文件夹中包含一个名为 `env.d.ts` 的文件，它为你的项目提供 [Vite 的客户端类型](https://cn.vitejs.dev/guide/features.html#client-types)：
+
+```typescript title="env.d.ts"
+/// <reference types="astro/client" />
+```
+
+如果你不使用 VSCode，那可以安装 [Astro TypeScript plugin](https://www.npmjs.com/package/@astrojs/ts-plugin) 插件来支持从 `.ts` 文件导入 `.astro` 文件。 (这对于别名导出非常有用)。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @astrojs/ts-plugin
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @astrojs/ts-plugin
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/ts-plugin
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+然后，将下面内容添加到你的 `tsconfig.json`:
+
+```json title="tsconfig.json"
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "@astrojs/ts-plugin"
+      },
+    ],
+  }
+```
+
+要检查插件是否正常工作，创建一个 `.ts` 文件，并在里面导入一个 Astro 组件。你的编辑器应该没有警告消息。
+
+### UI 框架
+
+如果你的项目使用了 [UI 框架](/zh-cn/guides/framework-components/)，则可能需要根据框架的不同进行额外的设置。请参阅你使用的框架的文档中关于 TypeScript 的相关文档以获取更多信息。（[Vue](https://cn.vuejs.org/guide/typescript/overview.html)、[React](https://react-typescript-cheatsheet.netlify.app/docs/basic/setup)、[Preact](https://preactjs.com/guide/v10/typescript)、[Solid](https://www.solidjs.com/guides/typescript)）
+
+## 类型导入
+
+尽可能显式的导入和导出类型。
+
+```js del={1} ins={2} ins="type"
+import { SomeType } from './script';
+import type { SomeType } from './script';
+```
+
+通过这种方式，你可以避免让 Astro 的打包程序将导入的类型误以为是 JavaScript，从而错误地被打包。
+
+你可以在 `tsconfig.json` 文件配置 TypeScript 强制执行类型导入。设置 [`verbatimModuleSyntax`](https://www.typescriptlang.org/tsconfig#verbatimModuleSyntax) 为 `true`。TypeScript 会检查你的导入并告诉你什么时候应该使用 `import type`。这个设置在我们所有的预设里都是默认启用的。
+
+```json title="tsconfig.json" ins={3}
+  {
+    "compilerOptions": {
+      "verbatimModuleSyntax": true
+    }
+  }
+```
+
+## 导入别名
+
+Astro 支持你在 `tsconfig.json` 和 `jsconfig.json` 文件里的 `paths` 配置所定义的 [导入别名](/zh-cn/guides/aliases/)。[阅读我们的指南](/zh-cn/guides/aliases/)以了解更多。
+
+```astro title="src/pages/about/nate.astro" "@components" "@layouts"
+---
+import HelloWorld from '@components/HelloWorld.astro';
+import Layout from '@layouts/Layout.astro';
+---
+```
+
+```json title="tsconfig.json" {5-6}
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@components/*": ["src/components/*"],
+      "@layouts/*": ["src/layouts/*"]
+    }
+  }
+}
+```
+
+## 扩展 `window` 和 `globalThis`
+
+你可能需要在全局对象中添加一项属性。可以通过在 `env.d.ts` 文件中使用 `declare` 关键字添加顶级声明来实现这一点：
+
+```ts title="env.d.ts"
+declare const myString: string;
+declare function myFunction(): boolean;
+```
+
+这将为 `globalThis.myString` 和 `globalThis.myFunction` 以及 `window.myString` 和 `window.myFunction` 提供类型。
+
+注意， `window` 只能在客户端代码中访问。 `globalThis` 在服务器端和客户端上都可用，但服务器端值不会共享给客户端。
+
+如果你只想为 `window` 对象中的一个属性提供类型注释，可以提供一个 `Window` 接口来实现：
+
+```ts title="env.d.ts"
+interface Window {
+	myFunction(): boolean;
+}
+```
+
+## 组件参数
+
+Astro 支持通过 TypeScript 来定义你的组件参数。为了启动它，你需要将一个名为 `Props` 的 TypeScript 接口添加到你的的组件。你可以（可选的）使用 `export` 语句将其导出，但这不是强制的。[Astro VSCode 扩展](/zh-cn/editor-setup/)会自动寻找 `Props` 接口，并且当你在其他模板内使用该组件时，给你提供适当的 TS 支持。
+
+```astro title="src/components/HelloProps.astro" ins={2-5}
+---
+interface Props {
+  name: string;
+  greeting?: string;
+}
+const { greeting = 'Hello', name } = Astro.props;
+---
+<h2>{greeting}, {name}!</h2>
+```
+
+### 常见的 Props 类型的套路
+
+- 如果你的组件没有任何的参数或插槽，你可以使用 `type Props = Record<string, never>`。
+
+- 如果你的组件必须将一个子组件传递给默认插槽，你可以使用 `type Props = { children: any; };`。
+
+## 类型工具包
+
+<p><Since v="1.6.0" /></p>
+
+Astro 为常见的组件参数的类型模式准备了一些实用的类型工具集。这些可以通过在代码中引入 `astro/types` 来使用。
+
+### 内置的属性类型
+
+Astro 提供 `HTMLAttributes` 类型，以检查你的类型是否使用有效的 HTML 属性。你可以使用这些类型来帮助构建组件参数。
+
+例如，如果你正在构建一个 `<Link>` 组件，你可以通过以下语法来为组件的 Props 类型镜像 `<a>` 的默认的 HTML 属性。
+
+```astro title="src/components/Link.astro" ins="HTMLAttributes" ins="HTMLAttributes<'a'>"
+---
+import { HTMLAttributes } from 'astro/types';
+// 使用 `type`
+type Props = HTMLAttributes<'a'>;
+// 或者通过 `interface` 继承
+interface Props extends HTMLAttributes<'a'> {
+  myProp?: boolean;
+}
+const { href, ...attrs } = Astro.props;
+---
+<a href={href} {...attrs}>
+  <slot />
+</a>
+```
+
+也可以通过在 `.d.ts` 文件中重新声明命名空间 `astroHTML.JSX`，来为默认的 JSX 定义扩展非标准属性。
+
+```ts
+// src/custom-attributes.d.ts
+declare namespace astroHTML.JSX {
+  interface HTMLAttributes {
+    'data-count'?: number;
+    'data-label'?: string;
+  }
+
+  // 添加一个 CSS 自定义属性到 style 对象中
+  interface CSSProperties {
+    '--theme-color'?: 'black' | 'white';
+  }
+}
+```
+
+:::note
+`astroHTML` 被全局注入到 `.astro` 组件中。如果要在 TypeScript 文件中使用它，请使用一个[三斜杠指令（triple-slash directive）](https://www.typescriptlang.org/docs/handbook/triple-slash-directives.html)来进行引用：
+
+```ts
+/// <reference types="astro/astro-jsx" />
+
+type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
+```
+:::
+
+### `ComponentProps` 类型
+
+<p><Since v="4.3.0" /></p>
+
+这种导出类型允许你引用另一个组件所接收的 `Props`，即使那个组件并没有直接导出 `Props` 类型。
+
+下面的例子展示了如何使用来自 `astro/types` 的 `ComponentProps` 工具来引用一个 `<Button />` 组件的 `Props` 类型：
+
+```astro title="src/pages/index.astro"
+---
+import type { ComponentProps } from 'astro/types';
+
+import Button from "./Button.astro";
+
+type ButtonProps = ComponentProps<typeof Button>;
+---
+```
+
+### 多态类型
+
+<p><Since v="2.5.0" /></p>
+
+Astro 包含一个辅助工具，使得构建能够以完全类型安全的方式渲染不同 HTML 元素的组件更加容易。这对于像 `<Link>` 这样的组件非常有用，它可以根据传递给它的 props 渲染为 `<a>` 标签或 `<button>` 标签。
+
+下面的示例实现了一个完全类型化的多态组件，可以渲染为任何 HTML 元素。使用 [`HTMLTag`](#内置的属性类型) 类型来确保 `as` 属性是一个有效的 HTML 元素。
+
+```astro
+---
+import type { HTMLTag, Polymorphic } from 'astro/types';
+
+type Props<Tag extends HTMLTag> = Polymorphic<{ as: Tag }>;
+
+const { as: Tag, ...props } = Astro.props;
+---
+
+<Tag {...props} />
+```
+
+### 推断 `getStaticPaths()` 的类型
+
+<p><Since v="2.1.0" /></p>
+
+Astro 中有帮助你处理动态路由 [`getStaticPaths()`](/zh-cn/reference/api-reference/#getstaticpaths) 函数返回类型的类型。
+
+你可以使用 `InferGetStaticParamsType` 和 `InferGetStaticPropsType` 来获取 [`Astro.params`](/zh-cn/reference/api-reference/#astroparams) 和 [`Astro.props`](/zh-cn/reference/api-reference/#astroprops) 的类型。
+
+```astro title="src/pages/posts/[...slug].astro" {2,14-15}
+---
+import type { InferGetStaticParamsType, InferGetStaticPropsType, GetStaticPaths } from 'astro';
+
+export const getStaticPaths = (async () => {
+  const posts = await getCollection('blog');
+  return posts.map((post) => {
+    return {
+      params: { slug: post.slug },
+      props: { draft: post.data.draft, title: post.data.title },
+    };
+  });
+}) satisfies GetStaticPaths;
+
+type Params = InferGetStaticParamsType<typeof getStaticPaths>;
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { slug } = Astro.params as Params;
+//               			 ^? { slug: string; }
+const { title } = Astro.props;
+//                			^? { draft: boolean; title: string; }
+---
+```
+
+## 类型检验
+
+要在编辑器中查看类型错误，请确保已安装 [Astro VSCode 扩展](/zh-cn/editor-setup/)。请注意，`astro start` 和 `astro build` 命令将使用 esbuild 转译代码，但不会运行任何类型检查。为了防止你的代码在包含 TypeScript 错误的情况下被构建，请将你 `package.json` 中的 `build` 脚本更改为以下内容：
+
+```json title="package.json" del={2} ins={3} ins="astro check &&"
+  "scripts": {
+    "build": "astro build",
+    "build": "astro check && astro build",
+  },
+```
+
+:::note
+`astro check` 会检查你 TypeScript 项目中的所有文件。要检查 Svelte 和 Vue 文件中的类型，可以使用 [`svelte-check`](https://www.npmjs.com/package/svelte-check) 和 [`vue-tsc`](https://www.npmjs.com/package/vue-tsc) 包。
+:::
+
+import ReadMore from '~/components/ReadMore.astro'
+
+<ReadMore>阅读更多关于 Astro 中的 [`.ts` 文件导入](/zh-cn/guides/imports/#typescript) 的内容。</ReadMore>
+
+<ReadMore>阅读更多关于 [TypeScript 配置](https://www.typescriptlang.org/tsconfig/) 的内容。</ReadMore>
+
+## 故障排除
+
+### 同时使用多个 JSX 框架所带来的类型错误
+
+在同一个项目中使用多个 JSX 框架时可能会出现问题，因为每个框架在 `tsconfig.json` 中的不同需求有时会相互冲突。
+
+**解决方案**：根据你最常用的框架，将 [`jsxImportSource` 这一设置项](https://www.typescriptlang.org/tsconfig#jsxImportSource)设置为 `react`（默认）、`preact` 或 `solid-js`。然后，在来自不同框架的任何冲突文件中使用[编译指示（pragma comment）](https://www.typescriptlang.org/docs/handbook/jsx.html#configuring-jsx)进行注释。
+
+对于默认设置 `jsxImportSource: react`，你可以使用：
+
+```jsx
+// For Preact
+/** @jsxImportSource preact */
+
+// For Solid
+/** @jsxImportSource solid-js */
+```

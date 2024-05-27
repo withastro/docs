@@ -1,0 +1,127 @@
+---
+title: Turso 和 Astro
+description: 使用 SQLite 文件在本地构建并使用 Turso 在全球部署。
+type: backend
+service: Turso
+stub: false
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+[Turso](https://turso.tech) 是一个基于 libSQL（一个 SQLite 的分支）的分布式数据库。它针对低查询延迟进行了优化，适用于全球范围内的应用程序。
+
+## 在 Astro 中初始化 Turso
+
+### 先决条件
+
+- 已安装并登录 [Turso CLI](https://docs.turso.tech/reference/turso-cli)
+- 一个创建 Schema 的 [Turso](https://turso.tech) 数据库
+- 你的数据库 URL
+- 一个访问令牌
+
+### 配置环境变量
+
+使用以下命令获取你的数据库 URL：
+
+```bash
+turso db show <database-name> --url
+```
+
+为数据库创建一个认证令牌：
+
+```bash
+turso db tokens create <database-name>
+```
+
+将上面两个命令的输出添加到项目根目录下的 `.env` 文件中。如果这个文件不存在，请创建一个。
+
+```ini title=".env"
+TURSO_DATABASE_URL=libsql://...
+TURSO_AUTH_TOKEN=
+```
+
+:::caution
+创建这些私有 [环境变量](/zh-cn/guides/environment-variables/) 时，请不要使用 `PUBLIC_` 前缀，这会在客户端暴露这些值。
+:::
+
+### 安装 LibSQL 客户端
+
+安装 `@libsql/client` 以将 Turso 连接到 Astro：
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```shell
+    npm install @libsql/client
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```shell
+    pnpm add @libsql/client
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    yarn add @libsql/client
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+### 初始化一个新客户端
+
+在 `src` 文件夹中创建一个名为 `turso.ts` 的文件，并调用 `createClient`，传递 `TURSO_DATABASE_URL` 和 `TURSO_AUTH_TOKEN`：
+
+```ts title="src/turso.ts"
+import { createClient } from "@libsql/client/web";
+
+export const turso = createClient({
+  url: import.meta.env.TURSO_DATABASE_URL,
+  authToken: import.meta.env.TURSO_AUTH_TOKEN,
+});
+```
+
+## 查询你的数据库
+
+要从数据库中访问信息，请在任何 `.astro` 组件中导入 `turso` 并[执行 SQL 查询](https://docs.turso.tech/libsql/client-access/javascript-typescript-sdk#execute-a-single-statement)。
+
+以下示例从你的表中获取所有 `posts`，然后在 `<BlogIndex />` 组件中显示标题列表：
+
+```astro title="src/components/BlogIndex.astro"
+---
+import { turso } from '../turso'
+
+const { rows } = await turso.execute('SELECT * FROM posts')
+---
+
+<ul>
+  {rows.map((post) => (
+    <li>{post.title}</li>
+  ))}
+</ul>
+```
+
+### SQL 占位符
+
+`execute()` 方法可以[传递一个对象来将变量传递给 SQL 语句](https://docs.turso.tech/libsql/client-access/javascript-typescript-sdk#positional-placeholders)，例如 `slug` 或分页。
+
+以下示例从 `posts` 表中获取 `WHERE` 的 `slug` 值从 `Astro.params` 检索的单个条目，然后显示帖子的标题。
+
+```astro title="src/pages/index.astro"
+---
+import { turso } from '../turso'
+
+const { slug } = Astro.params
+
+const { rows } = await turso.execute({
+  sql: 'SELECT * FROM posts WHERE slug = ?',
+  args: [slug!]
+})
+---
+
+<h1>{rows[0].title}</h1>
+```
+
+## Turso 资源
+- [Turso 文档](https://docs.turso.tech)
+- [Turso 在 GitHub 上](https://github.com/tursodatabase)
+- [使用 Turso 提供服务端渲染的 Astro 博客的内容](https://blog.turso.tech/using-turso-to-serve-a-server-side-rendered-astro-blogs-content-58caa6188bd5)
+

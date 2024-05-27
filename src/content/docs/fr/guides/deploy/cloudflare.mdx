@@ -1,0 +1,140 @@
+---
+title: Déployez votre site Astro sur les pages Cloudflare
+description: Comment déployer votre site Astro sur le web en utilisant les pages Cloudflare.
+type: deploy
+i18nReady: true
+---
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+Vous pouvez déployer votre projet Astro sur [Cloudflare Pages](https://pages.cloudflare.com/), une plateforme permettant aux développeurs frontaux de collaborer et de déployer des sites web statiques (JAMstack) et SSR.
+
+Ce guide comprend :
+
+- [Comment déployer via le Cloudflare Pages Dashboard](#comment-déployer-un-site-avec-git)
+- [Comment déployer un site en utilisant Wrangler, la CLI de Cloudflare](#comment-déployer-un-site-à-laide-de-wrangler)
+- [Comment déployer un site SSR en utilisant `@astrojs/cloudflare`](#comment-déployer-un-site-ssr)
+
+## Pré-requis
+
+Pour commencer, vous aurez besoin :
+
+- Un compte Cloudflare. Si vous n'en avez pas encore, vous pouvez créer un compte Cloudflare gratuit au cours de la procédure.
+- Le code de votre application poussé sur un dépôt [GitHub](https://github.com/) ou [GitLab](https://about.gitlab.com/).
+
+## Comment déployer un site avec Git
+
+<Steps>
+1. Créez un nouveau projet sur Cloudflare Pages.
+
+2. Poussez votre code dans votre dépôt Git (GitHub, GitLab).
+
+3. Connectez-vous au tableau de bord de Cloudflare et sélectionnez votre compte dans **Comptes** > **Workers et Pages**.
+
+4. Sélectionnez **Créer une application**, naviguez dans l'onglet **Pages** et cliquez sur **Se connecter à Git**.
+
+5. Sélectionnez le projet git que vous souhaitez déployer et cliquez sur **Commencer la configuration**.
+
+6. Utilisez les paramètres de construction suivants :
+
+   - **Framework preset**: `Astro`
+   - **Build command:** `npm run build`
+   - **Build output directory:** `dist`
+
+7. Cliquez sur le bouton **Enregistrer et déployer**.
+</Steps>
+
+## Comment déployer un site à l'aide de Wrangler
+
+<Steps>
+1. Installez [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/get-started/).
+
+2. Authentifiez Wrangler avec votre compte Cloudflare en utilisant `wrangler login`.
+
+3. Lancez votre commande de construction.
+
+4. Déployez en utilisant `npx wrangler pages deploy dist`.
+</Steps>
+
+```bash
+# Installez Wrangler CLI
+npm install -g wrangler
+# Connectez-vous à votre compte Cloudflare depuis le CLI
+wrangler login
+# Exécutez votre commande de build
+npm run build
+# Créer un nouveau déploiement
+npx wrangler pages deploy dist
+```
+
+Une fois vos ressources téléchargées, Wrangler vous donnera une URL de prévisualisation pour inspecter votre site. Lorsque vous vous connectez au tableau de bord de Cloudflare Pages, vous verrez votre nouveau projet.
+
+### Activer la prévisualisation localement avec Wrangler
+
+Pour que la prévisualisation fonctionne, vous devez installer `wrangler`
+
+```bash
+pnpm add wrangler --save-dev
+```
+
+Il est alors possible de mettre à jour le script de prévisualisation pour exécuter `wrangler` au lieu de la commande de prévisualisation intégrée à Astro :
+
+```json title="package.json"
+"preview" : "wrangler pages dev ./dist"
+```
+
+## Comment déployer un site SSR
+
+Vous pouvez construire un site Astro SSR pour le déployer sur Cloudflare Pages en utilisant l'adaptateur [`@astrojs/cloudflare`](/fr/guides/integrations-guide/cloudflare/).
+
+Suivez les étapes ci-dessous pour configurer l'adaptateur. Vous pouvez ensuite déployer en utilisant l'une ou l'autre des approches documentées ci-dessus.
+
+### Installation rapide
+
+Ajoutez l'adaptateur Cloudflare pour activer SSR dans votre projet Astro avec la commande `astro add` suivante. Cela installera l'adaptateur et apportera les changements appropriés à votre fichier `astro.config.mjs` en une seule étape.
+
+```bash
+npx astro add cloudflare
+```
+
+### Installation manuelle
+
+Si vous préférez installer l'adaptateur manuellement, suivez les deux étapes suivantes :
+
+<Steps>
+1. Ajoutez l'adaptateur `@astrojs/cloudflare` aux dépendances de votre projet en utilisant votre gestionnaire de paquets préféré. Si vous utilisez npm ou si vous n'êtes pas sûr, lancez ceci dans le terminal :
+
+   ```bash
+   npm install @astrojs/cloudflare
+   ```
+
+2. Ajoutez ce qui suit à votre fichier `astro.config.mjs` :
+
+   ```js title="astro.config.mjs" ins={2, 5-6}
+   import { defineConfig } from 'astro/config' ;
+   import cloudflare from '@astrojs/cloudflare' ;
+  
+   export default defineConfig({
+     output : 'server',
+     adapter : cloudflare()
+   }) ;
+   ```
+</Steps>
+
+<ReadMore>En savoir plus sur [SSR in Astro](/fr/guides/server-side-rendering/).</ReadMore>
+
+## Dépannage
+
+### Hydratation côté client
+
+L'hydratation côté client peut échouer à cause du paramètre Auto Minify de Cloudflare. Si vous voyez `Hydration completed but contains mismatches` dans la console, assurez-vous de désactiver Auto Minify dans les paramètres de Cloudflare.
+
+### API d'exécution Node.js
+
+Si vous construisez un projet qui utilise le rendu à la demande avec [l'adaptateur Cloudflare SSR](/fr/guides/integrations-guide/cloudflare/) et que le serveur ne parvient pas à s'afficher avec un message d'erreur tel que "Si vous construisez un projet qui utilise le rendu à la demande avec [l'adaptateur Cloudflare SSR](/fr/guides/integrations-guide/cloudflare/) et que le serveur ne parvient pas à s'afficher avec un message d'erreur tel que `[Error] Could not resolve "XXXX. The package "XXXX" wasn't found on the file system but is built into node.` :
+
+- Cela signifie qu'un paquetage ou une importation que vous utilisez dans l'environnement côté serveur n'est pas compatible avec les [Cloudflare Workers runtime APIs](https://developers.cloudflare.com/workers/runtime-apis/nodejs/). 
+
+- Si vous importez directement une API d'exécution Node.js, veuillez consulter la documentation Astro sur la [compatibilité Node.js de Cloudflare](/fr/guides/integrations-guide/cloudflare/#compatibilité-nodejs) pour savoir comment résoudre ce problème.
+
+- Si vous importez un paquet qui importe une API d'exécution Node.js, vérifiez avec l'auteur du paquet s'il supporte la syntaxe d'importation `node:*`. Si ce n'est pas le cas, vous devrez peut-être trouver un autre paquetage ou utiliser un autre adaptateur.

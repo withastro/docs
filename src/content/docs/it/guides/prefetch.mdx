@@ -1,0 +1,217 @@
+---
+title: Precaricamento
+description: Precaricamento dei link per una navigazione più rapida tra le pagine.
+i18nReady: true
+---
+
+import { Steps } from '@astrojs/starlight/components'
+
+I tempi di caricamento delle pagine giocano un ruolo importante nell'usabilità e nel piacere generale di un sito. Il precaricamento opzionale di Astro porta i benefici di navigazioni tra pagine quasi istantanee alla tua applicazione a pagine multiple (MPA) mentre i tuoi visitatori interagiscono con il sito. 
+
+## Abilitare il precaricamento
+
+Puoi abilitare il precaricamento con la configurazione `prefetch`:
+
+```js title="astro.config.mjs" ins={4}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  prefetch: true
+});
+```
+
+Uno script di precaricamento verrà aggiunto a tutte le pagine del tuo sito. Puoi quindi aggiungere l'attributo `data-astro-prefetch` a qualsiasi link `<a />` nel tuo sito per abilitare il precaricamento. Quando passi il mouse sopra il link, lo script recupererà la pagina in background.
+
+```html
+<a href="/about" data-astro-prefetch>
+```
+
+Nota che il precaricamento funziona solo per i link all'interno del tuo sito, non per i link esterni.
+
+## Configurazione del precaricamento
+
+La configurazione `prefetch` accetta anche un "oggetto opzioni" per personalizzare ulteriormente il precaricamento.
+
+### Strategie di precaricamento
+
+Astro supporta 4 strategie di precaricamento per vari casi d'uso:
+
+- `hover` (default): Prefetch quando passi il mouse sopra o metti a fuoco il link.
+- `tap`: Prefetch poco prima di cliccare sul link.  
+- `viewport`: Prefetch mentre i link entrano nel viewport.
+- `load`: Prefetch di tutti i link della pagina dopo il caricamento della pagina.
+
+Puoi specificare una strategia per un singolo link passandolo all'attributo `data-astro-prefetch`:
+
+```html
+<a href="/about" data-astro-prefetch="tap">About</a>
+```
+
+Ogni strategia è ottimizzata per prefetchare solo quando necessario e risparmiare banda ai tuoi utenti. Per esempio:
+
+- Se un visitatore sta usando la [modalità risparmio dati](https://developer.mozilla.org/en/docs/Web/API/NetworkInformation/saveData) o ha una [connessione lenta](https://developer.mozilla.org/en/docs/Web/API/NetworkInformation/effectiveType), il precaricamento passerà alla strategia `tap`.
+- Passare velocemente il mouse o scorrere sui link non li precaricherà.
+
+### Strategia di precaricamento predefinita
+
+La strategia di precaricamento predefinita quando si aggiunge l'attributo `data-astro-prefetch` è `hover`. Per cambiarla, puoi configurare [`prefetch.defaultStrategy`](/it/reference/configuration-reference/#prefetchdefaultstrategy) nel tuo file `astro.config.mjs`:
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  prefetch: {
+    defaultStrategy: 'viewport'
+  }
+});
+```
+
+### Precaricamento di tutti i link di default
+
+Se vuoi precaricare tutti i link, inclusi quelli senza l'attributo `data-astro-prefetch`, puoi impostare [`prefetch.prefetchAll`](/it/reference/configuration-reference/#prefetchprefetchall) a `true`:
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  prefetch: {
+    prefetchAll: true
+  }
+});
+```
+
+Puoi quindi escludere il precaricamento per singoli link impostando `data-astro-prefetch="false"`:
+
+```html
+<a href="/about" data-astro-prefetch="false">About</a>
+```
+
+La strategia di precaricamento predefinita per tutti i link può essere cambiata con `prefetch.defaultStrategy` come mostrato nella sezione [Strategia di precaricamento predefinita](#strategia-di-precaricamento-predefinita).
+
+## Precarica programmaticamente
+
+Siccome alcune navigazioni potrebbero non apparire sempre come link `<a />`, puoi anche precaricare programmaticamente con l'API `prefetch()` dal modulo `astro:prefetch`:
+
+```astro
+<button id="btn">Cliccami</button>
+
+<script>
+  import { prefetch } from 'astro:prefetch';
+
+  const btn = document.getElementById('btn');
+  btn.addEventListener('click', () => {
+    prefetch('/about');
+  });
+</script>
+```
+
+L'API `prefetch()` include la stessa rilevazione di [modalità risparmio dati](https://developer.mozilla.org/en/docs/Web/API/NetworkInformation/saveData) e [connessione lenta](https://developer.mozilla.org/en/docs/Web/API/NetworkInformation/effectiveType) in modo che il precaricamento avvenga solo quando necessario.
+
+Per ignorare il rilevamento di connessioni lente, puoi usare l'opzione `ignoreSlowConnection`:
+
+```js
+// Precarica anche in modalità risparmio dati o connessione lenta
+prefetch('/about', { ignoreSlowConnection: true });
+```
+
+Assicurati di importare `prefetch()` solo negli script lato client poiché fa affidamento sulle API del browser.
+
+## Usarlo con le View Transitions
+
+Quando usi le [View Transitions](/it/guides/view-transitions/) in una pagina, il precaricamento verrà abilitato di default. Imposta una configurazione predefinita di `{ prefetchAll: true }` che abilita il [precaricamento per tutti i link](#precaricamento-di-tutti-i-link-di-default) nella pagina.
+
+Puoi personalizzare la configurazione di precaricamento in `astro.config.mjs` per sovrascrivere il valore di default. Per esempio:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  // Disabilita completamente il precaricamento
+  prefetch: false
+});
+```
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  // Mantieni il precaricamento, ma solo per i link con `data-astro-prefetch`
+  prefetch: {
+    prefetchAll: false
+  }
+});
+```
+
+## Supporto dei browser
+
+Il prefetching di Astro utilizza [`<link rel="prefetch">`](https://developer.mozilla.org/en/docs/Web/HTML/Attributes/rel/prefetch) se supportato dal browser, altrimenti utilizza l'[`API fetch()`](https://developer.mozilla.org/en/docs/Web/API/Fetch_API) al suo posto.
+
+I browser più diffusi supportano il prefetching di Astro con alcune differenze minori:
+
+### Chrome
+
+Chrome supporta `<link rel="prefetch">`. Il prefetching funziona come previsto.
+
+### Firefox
+
+Firefox supporta `<link rel="prefetch">` ma potrebbe visualizzare errori o fallire completamente:
+
+ - Senza un'intestazione cache esplicita (ad es. [`Cache-Control`](https://developer.mozilla.org/en/docs/Web/HTTP/Headers/Cache-Control) o [`Expires`](https://developer.mozilla.org/en/docs/Web/HTTP/Headers/Expires)), il prefetching genererà un errore `NS_BINDING_ABORTED`.
+- Anche in caso di errore, se la risposta ha un'intestazione [`ETag`](https://developer.mozilla.org/en/docs/Web/HTTP/Headers/ETag) valida, verrà riutilizzata durante la navigazione.
+- In caso contrario, se si verifica un errore senza altre intestazioni cache, il prefetch non funzionerà.
+
+### Safari
+
+Safari non supporta `<link rel="prefetch">` e ricadrà sull'[`API fetch()`](https://developer.mozilla.org/en/docs/Web/API/Fetch_API), che richiede l'impostazione delle intestazioni cache (ad es. [`Cache-Control`](https://developer.mozilla.org/en/docs/Web/HTTP/Headers/Cache-Control), [`Expires`](https://developer.mozilla.org/en/docs/Web/HTTP/Headers/Expires) e [`ETag`](https://developer.mozilla.org/en/docs/Web/HTTP/Headers/ETag)). In caso contrario, il prefetch non funzionerà.
+
+**Caso limite:** le intestazioni `ETag` non funzionano nelle finestre private.
+
+### Raccomandazioni
+
+Per supportare al meglio tutti i browser, assicurati che le tue pagine abbiano le intestazioni cache appropriate.
+
+Per le pagine statiche o prerenderizzate, l'intestazione `ETag` è spesso impostata automaticamente dalla piattaforma di distribuzione e dovrebbe funzionare senza problemi.
+
+Per le pagine dinamiche e server-side, imposta le intestazioni cache appropriate in base al contenuto della pagina. Visita la [documentazione MDN sull'HTTP caching](https://developer.mozilla.org/en/docs/Web/HTTP/Caching) per ulteriori informazioni.
+
+## Migrazione da `@astrojs/prefetch`
+
+L'integrazione `@astrojs/prefetch` è stata deprecata nella v3.5.0 e verrà rimossa completamente. Usa le seguenti istruzioni per passare al precaricamento integrato di Astro che sostituisce questa integrazione.
+
+<Steps>
+1. Rimuovi l'integrazione `@astrojs/prefetch` e abilita la configurazione `prefetch` in `astro.config.mjs`:
+
+    ```js title="astro.config.mjs" ins={6} del={2,5}
+    import { defineConfig } from 'astro/config';
+    import prefetch from '@astrojs/prefetch';
+
+    export default defineConfig({
+      integrations: [prefetch()],
+      prefetch: true
+    });
+    ```
+
+2. Converti dalle opzioni di configurazione di `@astrojs/prefetch`:
+
+    - L'integrazione deprecata usava l'opzione `selector` per specificare quali link dovrebbero essere precaricati quando entrano nel viewport.
+   
+      Aggiungi invece `data-astro-prefetch="viewport"` a questi singoli link
+
+      ```html
+      <a href="/about" data-astro-prefetch="viewport">
+      ```
+
+    - L'integrazione deprecata usava l'opzione `intentSelector` per specificare quali link dovrebbero essere precaricati quando venivano passati sopra col mouse o messi a fuoco.
+   
+      Aggiungi `data-astro-prefetch` o `data-astro-prefetch="hover"` a questi singoli link:
+    
+      ```html
+      <!-- Puoi omettere il valore se `defaultStrategy` è impostato a `hover` (default) -->
+      <a href="/about" data-astro-prefetch>
+      
+      <!-- Altrimenti, puoi definire esplicitamente la strategia di precaricamento -->
+      <a href="/about" data-astro-prefetch="hover">
+      ```
+
+    - L'opzione `throttles` di `@astrojs/prefetch` non è più necessaria poiché la nuova funzionalità di prefetch pianificherà e precaricherà in modo ottimale automaticamente.
+</Steps>

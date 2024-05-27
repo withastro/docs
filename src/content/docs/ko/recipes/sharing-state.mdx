@@ -1,0 +1,88 @@
+---
+title: Astro 컴포넌트 간 상태 공유
+description: Nano Stores를 사용하여 Astro 컴포넌트 전체에서 상태를 공유하는 방법을 알아보세요.
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+:::tip
+프레임워크 컴포넌트를 사용하시나요? [아일랜드 간 상태 공유 방법](/ko/recipes/sharing-state-islands/)을 참조하세요!
+:::
+
+Astro 웹 사이트를 구축할 때 컴포넌트 간 상태를 공유해야 할 수도 있습니다. Astro는 공유 클라이언트 스토리지로 [Nano Stores](https://github.com/nanostores/nanostores) 사용을 권장합니다.
+
+## 레시피
+
+<Steps>
+1. Nano Stores를 설치합니다.
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm install nanostores
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm add nanostores
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn add nanostores
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+2. 스토어를 만드세요. 이 예시에서 스토어는 대화 상자가 열려 있는지 여부를 추적합니다.
+
+    ```ts title="src/store.js"
+    import { atom } from 'nanostores';
+
+    export const isOpen = atom(false);
+    ```
+
+3. 상태를 공유할 컴포넌트의 `<script>` 태그에 있는 스토어를 가져와 사용합니다.
+
+    다음 `Button` 및 `Dialog` 컴포넌트는 각각 공유된 `isOpen` 상태를 사용하여 특정 `<div>`를 숨길지 표시할지 여부를 제어합니다.
+
+    ```astro title="src/components/Button.astro"
+    <button id="openDialog">Open</button>
+
+    <script>
+      import { isOpen } from '../store.js';
+      
+      // 버튼을 클릭하면 스토어를 true로 설정합니다.
+      function openDialog() {
+        isOpen.set(true);
+      }
+
+      // 버튼에 이벤트 리스너 추가를 추가합니다.
+      document.getElementById('openDialog').addEventListener('click', openDialog);
+    </script>
+    ```
+
+    ```astro title="src/components/Dialog.astro"
+    <div id="dialog" style="display: none">Hello world!</div>
+
+    <script>
+      import { isOpen } from '../store.js';
+
+      // 스토어의 변경 사항을 수신하여 그에 따라 대화 상자를 표시하거나 숨깁니다.  
+      isOpen.subscribe(open => {
+        if (open) {
+          document.getElementById('dialog').style.display = 'block';
+        } else {
+          document.getElementById('dialog').style.display = 'none';
+        }
+      })
+    </script>
+    ```
+</Steps>
+
+## 자료
+
+- [Nano Stores의 NPM 링크](https://www.npmjs.com/package/nanostores)
+- [Vanilla JS를 위한 Nano Stores 문서 ](https://github.com/nanostores/nanostores#vanilla-js)

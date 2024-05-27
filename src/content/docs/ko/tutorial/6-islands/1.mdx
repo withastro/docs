@@ -1,0 +1,224 @@
+---
+type: tutorial
+title: 첫 번째 Astro 아일랜드를 구축
+description: |-
+  튜토리얼: 첫 번째 Astro 블로그 구축 - Preact 컴포넌트를 사용하여 무작위로 선택된 메시지로 방문자에게 인사하세요.
+i18nReady: true
+---
+
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import Spoiler from '~/components/Spoiler.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+Preact 컴포넌트를 사용하여 무작위로 선택된 환영 메시지로 방문자를 맞이하세요!
+
+<PreCheck>
+  - Astro 프로젝트에 Preact 추가
+  - 홈 페이지에 Astro 아일랜드 (Preact `.jsx` 컴포넌트)를 포함합니다.
+  - `client:` 지시어를 사용하여 아일랜드를 대화형으로 만듭니다.
+</PreCheck>
+
+## Astro 프로젝트에 Preact 추가
+
+<Steps>
+1. 실행 중인 경우 개발 서버를 종료하여 터미널을 실행합니다 (단축키: <kbd>Ctrl + C</kbd>).
+
+2. 단일 명령으로 Astro 프로젝트에서 Preact 컴포넌트를 사용하는 기능을 추가합니다.
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+        ```sh
+        npx astro add preact
+        ```
+      </Fragment>
+      <Fragment slot="pnpm">
+        ```sh
+        pnpm astro add preact
+        ```
+      </Fragment>
+      <Fragment slot="yarn">
+        ```sh
+        yarn astro add preact
+        ```
+      </Fragment>
+    </PackageManagerTabs>
+
+3. 명령줄 지침에 따라 프로젝트에 Preact 추가를 확인합니다.
+</Steps>
+
+## Preact 인사말 배너 포함
+
+이 컴포넌트는 인사말 메시지 배열을 prop으로 사용하고 그중 하나를 무작위로 선택하여 환영 메시지로 표시합니다. 사용자는 버튼을 클릭하여 새로운 무작위 메시지를 받을 수 있습니다.
+
+<Steps>
+1. `Greeting.jsx`라는 이름의 새로운 파일을 `src/components/`에 만듭니다.
+
+    `.jsx` 파일 확장자를 참고하세요. 이 파일은 Astro가 아닌 Preact로 작성됩니다.
+
+2. `Greeting.jsx`에 다음 코드를 추가합니다.
+
+    ```jsx title="src/components/Greeting.jsx"
+    import { useState } from 'preact/hooks';
+
+    export default function Greeting({messages}) {
+
+      const randomMessage = () => messages[(Math.floor(Math.random() * messages.length))];
+      
+      const [greeting, setGreeting] = useState(messages[0]);
+
+      return (
+        <div> 
+          <h3>{greeting}! Thank you for visiting!</h3>
+          <button onClick={() => setGreeting(randomMessage())}>
+            New Greeting
+          </button>
+        </div>
+      );
+    }
+    ```
+
+3. 홈 페이지 `index.astro`에서 이 컴포넌트를 가져와 사용하세요.
+
+    ```astro title="src/pages/index.astro" ins={3,8}
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    import Greeting from '../components/Greeting';
+    const pageTitle = "Home Page";
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <h2>My awesome blog subtitle</h2>
+      <Greeting messages={["Hi", "Hello", "Howdy", "Hey there"]} />
+    </BaseLayout>
+    ```
+
+    브라우저에서 미리보기를 확인하세요. 임의의 인사말이 표시되지만 버튼이 작동하지 않습니다!
+
+
+4. `client:load` 지시어를 사용하여 두 번째 `<Greeting />` 컴포넌트를 추가합니다.
+
+    ```astro title="src/pages/index.astro" ins={9} "client:load"
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    import Greeting from '../components/Greeting';
+    const pageTitle = "Home Page";
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <h2>My awesome blog subtitle</h2>
+      <Greeting messages={["Hi", "Hello", "Howdy", "Hey there"]} />
+      <Greeting client:load messages={["Hej", "Hallo", "Hola", "Habari"]} />
+    </BaseLayout>
+    ```
+
+  5. 페이지를 다시 방문하여 두 컴포넌트를 비교하십시오. 두 번째 버튼은 페이지가 _로드_ 될 때 `client:load` 지시어가 Astro에게 _클라이언트_ 에서 JavaScript를 보내고 다시 실행하도록 지시하여 컴포넌트를 대화형으로 만들기 때문에 작동합니다. 이것을 **수화된** 컴포넌트라고 합니다.
+  
+  6. 차이점이 명확해지면 수화되지 않은 인사말 컴포넌트를 제거합니다.
+
+      ```astro title="src/pages/index.astro" del={8} "client:load"
+      ---
+      import BaseLayout from '../layouts/BaseLayout.astro';
+      import Greeting from '../components/Greeting';
+      const pageTitle = "Home Page";
+      ---
+      <BaseLayout pageTitle={pageTitle}>
+        <h2>My awesome blog subtitle</h2>
+        <Greeting messages={["Hi", "Hello", "Howdy", "Hey there"]} />
+        <Greeting client:load messages={["Hej", "Hallo", "Hola", "Habari"]} />
+      </BaseLayout>
+      ```
+</Steps>
+
+<Box icon="question-mark">
+
+### 패턴 분석
+
+살펴볼 다른 `client:` 지시어가 있습니다. 각각은 서로 다른 시간에 클라이언트에 JavaScript를 보냅니다. 예를 들어 `client:visible`은 컴포넌트가 페이지에 표시될 때만 컴포넌트의 JavaScript를 보냅니다.
+
+다음 코드가 포함된 Astro 컴포넌트를 생각해 보세요.
+
+```astro
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AstroBanner from '../components/AstroBanner.astro';
+import PreactBanner from '../components/PreactBanner';
+import SvelteCounter from '../components/SvelteCounter.svelte';
+---
+<BaseLayout>
+  <AstroBanner />
+  <PreactBanner />
+  <PreactBanner client:load />
+  <SvelteCounter />
+  <SvelteCounter client:visible />
+</BaseLayout>
+```
+
+1. 다섯 가지 컴포넌트 중 어느 것이 **수화된** 아일랜드가 되어 JavaScript를 클라이언트에 전송하게 됩니까?
+
+    <p>
+      <Spoiler>`<PreactBanner client:load />` 및 `<SvelteCounter client:visible />`이 수화된 섬이 됩니다.</Spoiler>
+    </p>
+
+2. 두 `<PreactBanner />` 컴포넌트는 어떤 면에서 동일하고 어떤 면에서 다를까요?
+
+    <p>
+      <Spoiler>**동일**: 둘 다 동일한 HTML 요소를 표시하고 처음에는 동일하게 보입니다. **다름**: `client:load` 지시어가 있는 컴포넌트는 페이지가 로드된 후 다시 렌더링되며, 포함된 모든 대화형 요소가 작동합니다.</Spoiler>
+    </p>
+
+3. `SvelteCounter` 컴포넌트에 숫자가 표시되고 숫자를 늘리는 버튼이 있다고 가정합니다. 웹사이트의 코드가 보이지 않고 실시간으로 게시된 페이지만 볼 수 있다면 두 개의 `<SvelteCounter />` 컴포넌트 중 `client:visible`을 사용한 컴포넌트를 어떻게 알 수 있습니까?
+
+    <p>
+      <Spoiler>버튼을 클릭해 보고 어떤 버튼이 대화형인지 확인하세요. 사용자 입력에 응답하는 경우 `client:` 지시어가 있어야 합니다.</Spoiler>
+    </p>
+</Box>
+
+<Box icon="question-mark">
+
+### 지식을 테스트해보세요
+
+다음 각 컴포넌트에 대해 브라우저로 전송되는 내용을 선택하세요.
+
+1. `<ReactCounter client:load />`
+
+    <MultipleChoice>
+      <Option>
+        HTML 및 CSS만
+      </Option>
+      <Option isCorrect>
+        HTML, CSS, JavaScript
+      </Option>
+    </MultipleChoice>
+
+2. `<SvelteCard />`
+
+    <MultipleChoice>
+      <Option  isCorrect>
+        HTML 및 CSS만
+      </Option>
+      <Option>
+        HTML, CSS, JavaScript
+      </Option>
+    </MultipleChoice>
+</Box>
+
+<Box icon="check-list">
+
+## 체크리스트
+
+<Checklist>
+- [ ] Astro 통합을 설치할 수 있습니다.
+- [ ] UI 프레임워크 컴포넌트를 자신의 언어로 작성할 수 있습니다.
+- [ ] UI 프레임워크 컴포넌트의 수화를 위해 `client:` 지시어를 사용할 수 있습니다.
+</Checklist>
+</Box>
+
+### 추가 자료
+
+- [Astro 통합 안내서](/ko/guides/integrations-guide/)
+
+- [Astro에서 UI 프레임워크 컴포넌트 사용](/ko/guides/framework-components/#프레임워크-컴포넌트-사용)
+
+- [Astro 클라이언트 지시어 참조](/ko/reference/directives-reference/#클라이언트-지시어)

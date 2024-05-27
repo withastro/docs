@@ -1,0 +1,104 @@
+---
+import { useTranslations } from '../../i18n/util';
+
+export interface Props {
+	path: string;
+	index: number;
+}
+
+const { path, index } = Astro.props as Props;
+const t = useTranslations(Astro);
+const todoLabel = t('progress.todo');
+const doneLabel = t('progress.done');
+---
+
+<check-mark data-path={path} data-todo-label={todoLabel} data-done-label={doneLabel}>
+	<span class="sr-only">{todoLabel}</span>
+	<span class="circle">
+		<span class="index">{index}</span>
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			viewBox="0 0 16 16"
+			fill-rule="evenodd"
+			aria-hidden="true"
+			style="display:none"
+		>
+			<path
+				d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm3.78-9.72a.75.75 0 0 0-1.06-1.06L6.75 9.19 5.28 7.72a.75.75 0 0 0-1.06 1.06l2 2a.75.75 0 0 0 1.06 0l4.5-4.5z"
+			></path>
+		</svg>
+	</span>
+</check-mark>
+
+<style>
+	.circle {
+		display: inline-block;
+		text-align: center;
+		vertical-align: middle;
+		line-height: 1.25;
+		width: 1.5em;
+		height: 1.5em;
+		font-size: 1em;
+		border-radius: 50%;
+		border: 0.125rem solid var(--sl-color-gray-5);
+		background-color: var(--sl-color-gray-6);
+	}
+	path {
+		fill: var(--sl-color-green);
+		transform-origin: center;
+	}
+</style>
+
+<script>
+	import { ProgressStore } from './ProgressStore';
+
+	class CheckMark extends HTMLElement {
+		private readonly loaded: boolean;
+		private readonly todoLabel: string;
+		private readonly doneLabel: string;
+		private readonly label: HTMLSpanElement;
+		private readonly icon: SVGElement;
+		private readonly index: HTMLSpanElement;
+
+		constructor() {
+			super();
+			this.todoLabel = this.dataset.todoLabel!;
+			this.doneLabel = this.dataset.doneLabel!;
+			this.label = this.querySelector('.sr-only')!;
+			this.icon = this.querySelector('svg')!;
+			this.index = this.querySelector('.index')!;
+
+			ProgressStore.subscribePageDone(this.dataset.path!, (done: boolean) =>
+				done ? this.setDone() : this.setTodo()
+			);
+			this.loaded = true;
+		}
+
+		private setTodo(): void {
+			this.parentElement!.dataset.status = 'todo';
+			this.label.innerText = this.todoLabel;
+			this.icon.style.display = 'none';
+			this.index.style.display = 'initial';
+		}
+
+		private setDone(): void {
+			this.parentElement!.dataset.status = 'complete';
+			const wasDone = this.label.innerText === this.doneLabel;
+			if (wasDone) return;
+			this.label.innerText = this.doneLabel;
+			this.icon.style.display = 'initial';
+			this.index.style.display = 'none';
+			if (this.loaded) this.animateDone();
+		}
+
+		private animateDone(): void {
+			if (!matchMedia('(prefers-reduced-motion: no-preference').matches) return;
+			this.querySelector('svg')!.animate([{ transform: 'scale(1.1)' }], {
+				duration: 200,
+				easing: 'ease-in-out',
+			});
+		}
+	}
+
+	customElements.define('check-mark', CheckMark);
+</script>

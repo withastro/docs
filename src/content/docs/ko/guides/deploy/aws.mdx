@@ -1,0 +1,232 @@
+---
+title: Astro 사이트를 AWS에 배포
+description: AWS를 사용하여 Astro 사이트를 웹에 배포하는 방법.
+type: deploy
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+[AWS](https://aws.amazon.com/)는 Astro 사이트를 배포하는 데 사용할 수 있는 모든 기능을 갖춘 웹 앱 호스팅 플랫폼입니다.
+
+프로젝트를 AWS에 배포하려면 [AWS 콘솔](https://aws.amazon.com/console/)을 사용해야 합니다. (이러한 작업의 대부분은 [AWS CLI](https://aws.amazon.com/cli/)를 사용하여 수행할 수도 있습니다.) 이 가이드에서는 [AWS Amplify](https://aws.amazon.com/amplify/), [S3 정적 웹사이트 호스팅](https://aws.amazon.com/s3/), [CloudFront](https://aws.amazon.com/cloudfront/)를 사용하여 사이트를 AWS에 배포하는 단계를 안내합니다.
+
+
+## AWS Amplify
+
+AWS Amplify는 프런트엔드 웹 및 모바일 개발자가 AWS에서 풀 스택 애플리케이션을 빠르고 쉽게 구축할 수 있도록 특별히 제작된 도구 및 기능 세트입니다.
+
+<Steps>
+1. 새로운 Amplify 호스팅 프로젝트를 생성합니다.
+
+2. 저장소를 Amplify에 연결합니다.
+
+3. 프로젝트의 빌드 프로세스에 맞게 빌드 설정을 수정합니다.
+
+    <PackageManagerTabs>
+    <Fragment slot="pnpm">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm i -g pnpm
+            - pnpm config set store-dir .pnpm-store
+            - pnpm i
+        build:
+          commands:
+            - pnpm run build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - .pnpm-store/**/*
+    ```
+    </Fragment>
+    <Fragment slot="npm">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm ci
+        build:
+          commands:
+            - npm run build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - yarn install
+        build:
+          commands:
+            - yarn build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    ```
+    </Fragment>
+    </PackageManagerTabs>
+</Steps>
+
+Amplify는 커밋을 저장소에 푸시할 때 자동으로 웹 사이트를 배포하고 업데이트합니다.
+
+## S3 정적 웹사이트 호스팅
+
+S3는 모든 애플리케이션의 시작점입니다. 여기에는 프로젝트 파일과 기타 자산이 저장됩니다. S3에서는 파일 저장 및 요청 수에 따라 요금을 청구합니다. [AWS 설명서](https://aws.amazon.com/s3/)에서 S3에 대한 자세한 내용을 확인할 수 있습니다.
+
+<Steps>
+1. 프로젝트 이름으로 S3 버킷을 생성합니다.
+
+    :::tip
+    버킷 이름은 전역적으로 고유해야 합니다. 프로젝트 이름과 사이트 도메인 이름의 조합을 권장합니다.
+    :::
+
+2. **"Block all public access"** 를 비활성화합니다. 기본적으로 AWS는 모든 버킷을 비공개로 설정합니다. 공개하려면 버킷 속성에서 "Block public access" 확인란을 선택 취소해야 합니다.
+
+3. `dist`에 있는 빌드된 파일을 S3에 업로드합니다. 콘솔에서 수동으로 수행하거나 AWS CLI를 사용할 수 있습니다. AWS CLI를 사용하는 경우 [AWS 자격 증명으로 인증](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) 후 다음 명령을 사용하세요.
+
+    ```
+    aws s3 cp dist/ s3://<BUCKET_NAME>/ --recursive
+    ```
+
+4. 공개 액세스를 허용하도록 버킷 정책을 업데이트하세요. 버킷의 **Permissions > Bucket policy**에서 이 설정을 찾을 수 있습니다.
+
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "PublicReadGetObject",
+          "Effect": "Allow",
+          "Principal": "*",
+          "Action": "s3:GetObject",
+          "Resource": "arn:aws:s3:::<BUCKET_NAME>/*"
+        }
+      ]
+    }
+    ```
+
+    :::caution
+    `<BUCKET_NAME>`을 버킷 이름으로 바꾸는 것을 잊지 마세요.
+    :::
+
+5. 버킷에 대한 웹사이트 호스팅을 활성화합니다. 버킷의 **Properties > Static website hosting**에서 이 설정을 찾을 수 있습니다. 색인 문서를 `index.html`로 설정하고 오류 문서를 `404.html`로 설정하세요. 마지막으로 버킷의 **Properties > Static website hosting**에서 새 웹사이트 URL을 찾을 수 있습니다.
+
+    :::note
+    단일 페이지 애플리케이션 (SPA)을 배포하는 경우 오류 문서를 `index.html`로 설정하세요.
+    :::
+</Steps>
+
+## CloudFront를 사용하는 S3
+
+CloudFront는 CDN (콘텐츠 전송 네트워크) 기능을 제공하는 웹 서비스입니다. 웹 서버의 콘텐츠를 캐시하여 최종 사용자에게 배포하는 데 사용됩니다. CloudFront는 전송된 데이터 양에 따라 요금을 청구합니다. S3 버킷에 CloudFront를 추가하는 것은 더 비용 효율적이며 더 빠른 서비스를 제공합니다.
+
+S3를 Cloudfront와 연결하려면 다음 값을 사용하여 CloudFront 배포를 생성합니다.
+  - **Origin domain:** S3 버킷 정적 웹 사이트 엔드포인트. S3 버킷의 **Properties > Static website hosting**에서 엔드포인트를 찾을 수 있습니다. 또는 s3 버킷을 선택하고 callout을 클릭하여 버킷 주소를 버킷 정적 엔드포인트로 바꿀 수 있습니다.
+  - **Viewer protocol policy:** "HTTPS로 리디렉션"
+
+이 구성은 Cloudfront CDN 네트워크를 사용하여 사이트를 제공합니다. 버킷의 **Distributions > Domain name**에서 CloudFront 배포 URL을 찾을 수 있습니다.
+
+:::note
+CloudFront를 S3 정적 웹 사이트 엔드포인트에 연결할 때 액세스 제어를 위해 S3 버킷 정책을 사용합니다. 버킷 정책에 대한 자세한 내용은 [S3 정적 웹사이트 호스팅](/ko/guides/deploy/aws/#s3-정적-웹사이트-호스팅) 섹션을 참조하세요.
+:::
+
+## GitHub Actions를 사용한 지속적인 배포
+
+AWS에 대한 지속적 배포를 설정하는 방법에는 여러 가지가 있습니다. GitHub에 호스팅되는 코드의 한 가지 가능성은 커밋을 푸시할 때마다 [GitHub Actions](https://github.com/features/actions)를 사용하여 웹사이트를 배포하는 것입니다.
+
+<Steps>
+1. 다음 권한과 함께 [IAM](https://aws.amazon.com/iam/)을 사용하여 AWS 계정에 새 정책을 생성합니다. 이 정책을 사용하면 빌드된 파일을 S3 버킷에 업로드하고 커밋을 푸시할 때 CloudFront 배포 파일을 무효화할 수 있습니다.
+
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+          {
+              "Sid": "VisualEditor0",
+              "Effect": "Allow",
+              "Action": [
+                  "s3:PutObject",
+                  "s3:ListBucket",
+                  "s3:DeleteObject",
+                  "cloudfront:CreateInvalidation"
+              ],
+              "Resource": [
+                  "<DISTRIBUTION_ARN>",
+                  "arn:aws:s3:::<BUCKET_NAME>/*",
+                  "arn:aws:s3:::<BUCKET_NAME>"
+              ]
+          }
+      ]
+    }
+    ```
+
+    :::caution
+    `<DISTRIBUTION_ARN>` 및 `<BUCKET_NAME>`을 바꾸는 것을 잊지 마세요. **CloudFront > Distributions > Details**에서 DISTRIBUTION_ARN을 찾을 수 있습니다.
+    :::
+
+2. 새 IAM 사용자를 생성하고 정책을 사용자에게 연결합니다. 이렇게 하면 `AWS_SECRET_ACCESS_KEY` 및 `AWS_ACCESS_KEY_ID`가 제공됩니다.
+
+3. 이 샘플 워크플로를 저장소의 `.github/workflows/deploy.yml`에 추가하고 GitHub에 푸시하세요. GitHub의 **Settings** > **Secrets** > **Actions**에서 `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `BUCKET_ID`, `DISTRIBUTION_ID`를 “secrets”로 추가해야 합니다. 각 secret을 추가하려면 <kbd>New repository secret</kbd>를 클릭하세요.
+
+    ```yaml
+    name: Deploy Website
+
+    on:
+      push:
+        branches:
+          - main
+
+    jobs:
+      deploy:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v4
+          - name: Configure AWS Credentials
+            uses: aws-actions/configure-aws-credentials@v1
+            with:
+              aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+              aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+              aws-region: us-east-1
+          - name: Install modules
+            run: npm ci
+          - name: Build application
+            run: npm run build
+          - name: Deploy to S3
+            run: aws s3 sync --delete ./dist/ s3://${{ secrets.BUCKET_ID }}
+          - name: Create CloudFront invalidation
+            run: aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+    ```
+
+    :::note
+    `BUCKET_ID`는 S3 버킷의 이름입니다. `DISTRIBUTION_ID`는 CloudFront 배포 ID입니다. **CloudFront > Distributions > ID**에서 CloudFront 배포 ID를 찾을 수 있습니다.
+    :::
+</Steps>
+
+## 커뮤니티 자료
+
+- [Astro를 AWS Amplify에 배포](https://www.launchfa.st/blog/deploy-astro-aws-amplify)
+- [Astro를 AWS Elastic Beanstalk에 배포](https://www.launchfa.st/blog/deploy-astro-aws-elastic-beanstalk)
+- [Astro를 AWS Fargate의 Amazon ECS에 배포](https://www.launchfa.st/blog/deploy-astro-aws-fargate)

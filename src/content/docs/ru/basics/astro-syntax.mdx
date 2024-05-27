@@ -1,0 +1,173 @@
+---
+title: Синтаксис Astro
+description: Введение в синтаксис компонентов .astro.
+i18nReady: true
+---
+
+**Если вы знаете HTML, то имеете уже достаточно знаний, для того, чтобы создать первый Astro компонент.**
+
+Синтаксис компонентов Astro - это надмножество HTML. Синтаксис был [разработан так, чтобы показаться знакомым любому, кто имеет опыт написания HTML или JSX](#отличия-между-astro-и-jsx), и добавляет поддержку для встраивания компонентов и выражений JavaScript.
+
+## JSX Выражения
+
+Вы можете определить локальные переменные JavaScript внутри скрипта компонента frontmatter между двумя блоками кода ( `---` ) компонента Astro. Затем вы можете вставить эти переменные в HTML-шаблон компонента, используя JSX выражения!
+
+:::note[Динамичекие vs реактивные]
+Используя этот подход, вы можете включать **динамические** значения, которые расчитываются внутри frontmatter. Но после включения эти значения не **реактивны** и никогда не изменятся. Компоненты Astro - это шаблоны, которые исполняются единожды, в фазе рендеринга.
+
+Ниже представлены примеры [отличий между Astro и JSX](#отличия-между-astro-и-jsx).
+:::
+
+### Переменные
+
+Локальные переменные можно добавить в HTML с помощью синтаксиса фигурных скобок:
+
+```astro title="src/components/Variables.astro" "{name}"
+---
+const name = "Astro";
+---
+<div>
+  <h1>Hello {name}!</h1>  <!-- Outputs <h1>Hello Astro!</h1> -->
+</div>
+```
+
+### Динамические атрибуты 
+
+Локальные переменные можно использовать в фигурных скобках для передачи значений атрибутов как элементам HTML, так и компонентам:
+
+```astro title="src/components/DynamicAttributes.astro" "{name}" "${name}"
+---
+const name = "Astro";
+---
+<h1 class={name}>Attribute expressions are supported</h1>
+
+<MyComponent templateLiteralNameAttribute={`MyNameIs${name}`} />
+```
+
+:::caution
+Атрибуты HTML будут преобразованы в строки, поэтому передать функции и объекты элементам HTML невозможно.
+Например, вы не можете назначить обработчик события элементу HTML в компоненте Astro:
+
+```astro title="dont-do-this.astro"
+---
+function handleClick () {
+    console.log("button clicked!");
+}
+---
+<!-- ❌ Это не работает! ❌ -->
+<button onClick={handleClick}>Nothing will happen when you click me!</button>
+```
+
+Вместо этого используйте клиентский скрипт для добавления обработчика событий, как вы бы делали в обычном JavaScript:
+
+```astro title="do-this-instead.astro"
+---
+---
+<button id="button">Click Me</button>
+<script>
+  function handleClick () {
+    console.log("button clicked!");
+  }
+  document.getElementById("button").addEventListener("click", handleClick);
+</script>
+```
+:::
+
+### Динамический HTML 
+
+Локальные переменные можно использовать в JSX-подобных функциях для создания динамически генерируемых HTML-элементов:
+
+```astro title="src/components/DynamicHtml.astro" "{item}"
+---
+const items = ["Dog", "Cat", "Platypus"];
+---
+<ul>
+  {items.map((item) => (
+    <li>{item}</li>
+  ))}
+</ul>
+```
+
+Astro поддерживает условное отображение HTML с использованием логических операторов и тернарных выражений JSX:
+
+```astro title="src/components/ConditionalHtml.astro" "visible"
+---
+const visible = true;
+---
+{visible && <p>Show me!</p>}
+
+{visible ? <p>Show me!</p> : <p>Else show me!</p>}
+```
+
+### Динамические HTML теги 
+
+Вы также можете использовать динамические теги, установив переменную на имя HTML-тега или импорта компонента:
+
+```astro title="src/components/DynamicTags.astro" /Element|(?<!My)Component/
+---
+import MyComponent from "./MyComponent.astro";
+const Element = 'div'
+const Component = MyComponent;
+---
+<Element>Hello!</Element> <!-- отображается как <div>Hello!</div> -->
+<Component /> <!-- отображается как <MyComponent /> -->
+```
+
+При использовании динамических тегов:
+
+- **Имена переменных должны быть написаны с заглавной буквы.** Например, используйте `Element`, а не `element`. В противном случае Astro попытается отобразить имя переменной как HTML-тег.
+
+- **Директивы для гидрации не поддерживаются.** При использовании [`client:*`директив гидрации](/ru/guides/framework-components/#hydrating-interactive-components), Astro необходимо знать, какие компоненты добавлять в production сборку, а подобный паттерн препятствует корректной работе сборщика.
+
+### Фрагменты
+
+Astro поддерживает использование как `<Fragment> </Fragment>`, так и краткой записи `<> </>`.
+
+Фрагменты могут быть полезны, чтобы избежать оберточных элементов при добавлении [директив `set:*`](/ru/reference/directives-reference/#sethtml), как в следующем примере:
+
+```astro title="src/components/SetHtml.astro" "Fragment"
+---
+const htmlString = '<p>Raw HTML content</p>';
+---
+<Fragment set:html={htmlString} />
+```
+
+### Отличия между Astro и JSX
+
+Синтаксис компонентов Astro - это надмножество HTML. Он был разработан так, чтобы казаться знакомым любому, кто имеет опыт работы с HTML или JSX, но есть несколько ключевых различий между файлами `.astro` и JSX.
+
+#### Атрибуты
+
+В Astro вы используете стандартный формат `kebab-case` для всех HTML атрибутов вместо `camelCase` из JSX. Это работает, в том числе, для `class` атрибута, который не поддерживается в React.
+
+```jsx del={1} ins={2} title="example.astro"
+<div className="box" dataValue="3" />
+<div class="box" data-value="3" />
+```
+
+#### Множественные элементы
+
+Шаблон Astro компонента может выводить множество элементов без необходимости оборачивать их все в единственный элемент, например `div` или `<>`, как делается в JavaScript или JSX.
+
+```astro title="src/components/RootElements.astro"
+---
+// Шаблон с множественными элементами
+---
+<p>Нет необходимости оборачивать элементы в одиночную обёртку.</p>
+<p>Astro поддерживает множественные корневые элементы в шаблоне.</p>
+```
+
+#### Комментарии
+
+В Astro вы можете использовать стандартный HTML или JavaScript-подобный синтаксисы.
+
+```astro title="example.astro"
+---
+---
+<!-- Синтаксис HTML комментариев валиден в .astro файлах -->
+{/* Синтаксис JS комментариев тоже валиден */}
+```
+
+:::caution
+HTML-подобные комментарии будут включены в DOM браузера, а комментарии в стиле JS будут пропущены. Чтобы оставлять сообщения TODO или другие пояснения, относящиеся только к разработке, вы можете использовать JavaScript-подобные комментарии.
+:::

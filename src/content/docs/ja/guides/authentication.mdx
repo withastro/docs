@@ -1,0 +1,189 @@
+---
+title: 認証
+description: Astroにおける認証の導入
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import ReadMore from '~/components/ReadMore.astro'
+
+認証と認可は、ウェブサイトやアプリへのアクセスを管理する2つのセキュリティプロセスです。認証は訪問者のアイデンティティを検証し、認可は保護された領域やリソースへのアクセスを許可します。
+
+認証を利用することで、ログインした個人に合わせてサイトの領域をカスタマイズしたり、個人情報やプライベートな情報を最大限に保護できるようになります。認証ライブラリ（例: [Lucia Auth](https://lucia-auth.com/)、[Auth.js](https://authjs.dev/)）は、電子メールサインインやOAuthプロバイダーなどの複数の認証方法のためのユーティリティを提供します。
+
+:::tip
+Astro向けの公式の認証ソリューションはありませんが、インテグレーションディレクトリでは[コミュニティの "auth" インテグレーション](https://astro.build/integrations/?search=auth)が検索できます。
+:::
+
+<ReadMore>[Supabaseを利用して認証を追加する](/ja/guides/backend/supabase/#adding-authentication-with-supabase)方法や、[Firebaseを利用して認証を追加する](/ja/guides/backend/google-firebase/#adding-authentication-with-firebase)方法については、これらのバックエンドサービス向けの専用ガイドを参照してください。</ReadMore>
+
+## Lucia
+
+Luciaは、フレームワークに依存しないセッションベースの認証ライブラリで、Astroをよくサポートしています。
+
+### インストール
+
+好きなパッケージマネージャでLuciaをインストールします。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install lucia
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add lucia
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add lucia
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### 設定
+
+[Luciaの"Getting started in Astro"](https://lucia-auth.com/getting-started/astro)ガイドを使用し、Luciaをアダプタとともに初期化して、ユーザーとセッションを保存するデータベースをセットアップします。
+
+### 使い方
+
+:::tip
+Luciaの充実したAstroチュートリアルの1つに従って、[ユーザー名とパスワードの認証](https://lucia-auth.com/tutorials/username-and-password/astro)または[GitHub OAuth](https://lucia-auth.com/tutorials/github-oauth/astro)をAstroプロジェクトに追加します。
+:::
+
+### 次のステップ
+
+- [Example Astro + Lucia OAuth project](https://github.com/lucia-auth/examples/tree/main/astro/github-oauth)
+- [Example Astro + Lucia username and password project](https://github.com/lucia-auth/examples/tree/main/astro/username-and-password)
+
+## Auth.js
+
+Auth.jsは、フレームワークに依存しない認証ソリューションです。Astro用のコミュニティによるフレームワークアダプタ[`auth-astro`](https://www.npmjs.com/package/auth-astro)が利用できます。
+
+### インストール
+
+好きなパッケージマネージャで、`astro add`コマンドを使って`auth-astro`を追加します。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add auth-astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add auth-astro
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add auth-astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+#### 手動インストール
+
+`auth-astro`を手動でインストールするには、パッケージマネージャで必要なパッケージをインストールします。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install auth-astro @auth/core@^0.18.6
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add auth-astro @auth/core@^0.18.6
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add auth-astro @auth/core@^0.18.6
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+その後、`astro.config.*`ファイルの`integrations`プロパティを用いてインテグレーションを反映させます。
+
+```ts title="astro.config.mjs" ins={2,6}
+import { defineConfig } from 'astro/config';
+import auth from 'auth-astro';
+
+export default defineConfig({
+  // ...
+  integrations: [auth()],
+});
+```
+
+### 設定
+
+プロジェクトのルートディレクトリに`auth.config.mjs`ファイルを作成します。サポートしたい任意の認証[プロバイダ](https://authjs.dev/getting-started/providers)または認証メソッドを、必要な環境変数とともに追加します。
+
+```ts title="auth.config.mjs"
+import GitHub from '@auth/core/providers/github';
+import { defineConfig } from 'auth-astro';
+
+export default defineConfig({
+	providers: [
+		GitHub({
+			clientId: import.meta.env.GITHUB_CLIENT_ID,
+			clientSecret: import.meta.env.GITHUB_CLIENT_SECRET,
+		}),
+	],
+});
+```
+
+まだ存在しなければ、プロジェクトのルートに`.env`ファイルを作成します。以下の2つの環境変数を追加します。`AUTH_SECRET`は最低32文字以上の秘密の文字列です。
+
+```sh title=".env"
+AUTH_TRUST_HOST=true
+AUTH_SECRET=<my-auth-secret>
+```
+
+### 使い方
+
+サインインとサインアウトボタンは、scriptタグまたはクライアントサイドフレームワークのコンポーネント内で`auth-astro/client`モジュールを使用することで追加できます。
+
+```astro title="src/pages/index.astro" {9}
+---
+import Layout from 'src/layouts/Base.astro';
+---
+<Layout>
+  <button id="login">ログイン</button>
+  <button id="logout">ログアウト</button>
+
+  <script>
+    const { signIn, signOut } = await import("auth-astro/client")
+    document.querySelector("#login").onclick = () => signIn("github")
+    document.querySelector("#logout").onclick = () => signOut()
+  </script>
+</Layout>
+```
+
+ユーザーのセッションは、`getSession`メソッドを使って取得できます。
+
+```astro title="src/pages/index.astro" {3,5}
+---
+import Layout from 'src/layouts/Base.astro';
+import { getSession } from 'auth-astro/server';
+
+const session = await getSession(Astro.request);
+---
+<Layout>
+  {
+    session ? (
+      <p>{session.user?.name}さん、ようこそ</p>
+    ) : (
+      <p>未ログイン</p>
+    )
+  }
+</Layout>
+```
+
+### 次のステップ
+
+- [`auth-astro` on GitHub](https://github.com/nowaythatworked/auth-astro?tab=readme-ov-file#auth-astro)
+- [Auth.jsのドキュメント](https://authjs.dev/)

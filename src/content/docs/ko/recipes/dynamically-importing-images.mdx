@@ -1,0 +1,155 @@
+---
+title: 동적으로 이미지 가져오기
+description: Vite의 import.meta.glob 함수를 사용하여 이미지를 동적으로 가져오는 방법을 알아보세요.
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+import { FileTree } from '@astrojs/starlight/components';
+
+로컬 [이미지](/ko/guides/images/)를 표시하려면 `.astro` 파일로 가져와야 합니다. 각 개별 이미지를 명시적으로 가져오는 대신 이미지의 이미지 경로를 동적으로 가져와야 하는 경우가 있습니다.
+
+이 레시피에서는 Vite의 `import.meta.glob` 함수를 사용하여 이미지를 동적으로 가져오는 방법을 배우게 됩니다. 사람의 이름, 나이, 사진을 표시하는 카드 컴포넌트를 만듭니다.
+
+## 레시피
+
+<Steps>
+1. `src` 디렉터리 아래에 새 `assets` 폴더를 만들고 해당 새 폴더 안에 이미지를 추가합니다.
+
+    <FileTree>
+    - src/
+      - assets/
+        - avatar-1.jpg
+        - avatar-2.png
+        - avatar-3.jpeg
+    </FileTree>
+
+    :::note
+    `assets`은 이미지를 배치할 때 널리 사용되는 폴더 이름 규칙이지만 원하는 대로 폴더 이름을 자유롭게 지정할 수 있습니다.
+    ::: 
+
+2. 카드에 대한 새 Astro 컴포넌트를 만들고 `<Image />` 컴포넌트를 가져옵니다.
+
+    ```astro title="src/components/MyCustomCardComponent.astro" 
+    ---
+    import { Image } from 'astro:assets';
+    ---
+    ```
+
+3. 각 카드에 필요한 정보를 표시하기 위해 컴포넌트가 수신할 `props`를 지정합니다. 프로젝트에서 TypeScript를 사용하는 경우 선택적으로 해당 타입을 정의할 수 있습니다.
+
+    ```astro title="src/components/MyCustomCardComponent.astro" ins={4-9, 11}
+    ---
+    import { Image } from 'astro:assets';
+
+    interface Props {
+       imagePath: string;
+       altText: string;
+       name: string;
+       age: number;
+    }
+
+    const { imagePath, altText, name, age } = Astro.props;
+    ---
+    ``` 
+
+4. 새로운 `images` 변수를 생성하고 `assets` 폴더 내 모든 이미지 경로의 객체를 반환하는 `import.meta.glob` 함수를 사용하세요. 또한 `images` 변수의 타입을 정의하는 데 도움이 되도록 `ImageMetadata` 타입을 가져와야 합니다.
+
+    ```astro title="src/components/MyCustomCardComponent.astro" ins={2, 13} "ImageMetadata"
+    ---
+    import type { ImageMetadata } from 'astro';
+    import { Image } from 'astro:assets';
+
+    interface Props {
+       imagePath: string;
+       altText: string;
+       name: string;
+       age: number;
+    }
+    
+    const { imagePath, altText, name, age } = Astro.props;
+    const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/*.{jpeg,jpg,png,gif}')
+    ---
+    ```
+    
+
+5. props를 사용하여 카드 컴포넌트에 대한 마크업을 만듭니다.
+
+    ```astro title="src/components/MyCustomCardComponent.astro" ins={15-19} "<Image src={} alt={altText} />"
+    ---
+    import type { ImageMetadata } from 'astro';
+    import { Image } from 'astro:assets';
+
+    interface Props {
+       imagePath: string;
+       altText: string;
+       name: string;
+       age: number;
+    }
+    
+    const { imagePath, altText, name, age } = Astro.props;
+    const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/*.{jpeg,jpg,png,gif}');
+    ---
+    <div class="card">
+        <h2>{name}</h2>
+        <p>Age: {age}</p>
+        <Image src={} alt={altText} />
+    </div>
+    ```
+
+6. `src` 속성에서 `images` 객체를 전달하고 이미지 경로에 대괄호 표기법을 사용합니다. 그런 다음 glob 함수를 호출해야 합니다.
+
+    unknown 타입의 `images` 객체에 액세스하고 있으므로 잘못된 파일 경로가 prop으로 전달되는 경우에 오류를 `throw`해야 합니다.
+   
+    ```astro title="src/components/MyCustomCardComponent.astro" ins="images[imagePath]()" ins={14}
+
+    ---
+    import type { ImageMetadata } from 'astro';
+    import { Image } from 'astro:assets';
+
+    interface Props {
+       imagePath: string;
+       altText: string;
+       name: string;
+       age: number;
+    }
+    
+    const { imagePath, altText, name, age } = Astro.props;
+    const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/*.{jpeg,jpg,png,gif}');
+    if (!images[imagePath]) throw new Error(`"${imagePath}" does not exist in glob: "src/assets/*.{jpeg,jpg,png,gif}"`);
+    ---
+    <div class="card">
+        <h2>{name}</h2>
+        <p>Age: {age}</p>
+        <Image src={images[imagePath]()} alt={altText} />
+    </div>
+    ```
+
+    :::note
+    `images`는 `assets` 폴더 내 모든 이미지 경로를 포함하는 객체입니다.
+
+    ```js
+    const images = {
+      './assets/avatar-1.jpg': () => import('./assets/avatar-1.jpg'),
+      './assets/avatar-2.png': () => import('./assets/avatar-2.png'),
+      './assets/avatar-3.jpeg': () => import('./assets/avatar-3.jpeg')
+    }
+    ```
+
+    `imagePath` prop은 표시하려는 이미지의 경로가 포함된 문자열입니다. `import.meta.glob()`은 `imagePath` prop과 일치하는 이미지 경로를 찾고 가져오기를 처리하는 작업을 수행합니다.
+    ::: 
+
+7. Astro 페이지 내에서 카드 컴포넌트를 가져와 사용하고 `props` 값을 전달합니다.
+
+    ```astro title="src/pages/index.astro" 
+    ---
+    import MyCustomCardComponent from '../components/MyCustomCardComponent.astro';
+    ---
+    <MyCustomCardComponent 
+        imagePath="/src/assets/avatar-1.jpg"
+        altText="A headshot of Priya against a brick wall background."
+        name="Priya"
+        age={25}
+    />
+    ```
+</Steps>

@@ -1,0 +1,287 @@
+---
+title: Référence des directives de modèle
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro'
+
+Les **directives de modèle** sont un type spécial d'attribut HTML disponible dans n'importe quel modèle de composant Astro (fichiers `.astro`). Certains peuvent également être utilisés dans les fichiers `.mdx`.
+
+Les directives de modèle sont utilisées pour contrôler le comportement d'un élément ou d'un composant d'une certaine manière. Une directive de modèle peut activer certaines fonctionnalités du compilateur qui vous facilitent la vie (comme l'utilisation de `class:list` au lieu de `class`). Ou, une directive pourrait dire au compilateur d'Astro de faire quelque chose de spécial avec un composant (comme l'hydratation avec `client:load`).
+
+Cette page décrit toutes les directives de modèle disponibles dans Astro et leur fonctionnement.
+## Règles
+
+Pour qu'une directive de modèle soit valide, il faut :
+
+- Inclure un deux-points `:` dans son nom, en utilisant la forme `X:Y` (ex : `client:load`).
+- Être visible pour le compilateur (ex : `<X {...attr}>` ne fonctionnerait pas si `attr` contenait une directive).
+
+Certaines directives de modèle, mais pas toutes, peuvent prendre une valeur personnalisée :
+- `<X client:load />` (ne prend aucune valeur)
+- `<X class:list={['une-class-css']} />` (prend un tableau)
+
+Une directive de modèle n'est jamais incluse directement dans la sortie HTML finale d'un composant.
+
+##  Directives Communes
+### `class:list`
+
+`class:list={...}` prend un tableau de classe et les convertit en une chaîne de caractères contenant les classes. Ceci est inspiré de la populaire bibliothèque d'assistance [clsx](https://github.com/lukeed/clsx) de @lukeed, mais intégrée directement dans Astro lui-même.
+
+`class:list` prend un tableau de plusieurs types de valeurs possibles :
+- `string` : ajouté à l'élément `class`
+- `Object` : toutes les clés truthy sont ajoutées à l'élément `class`
+- `Array` : aplati
+- `false`, `null`, ou `undefined`: ignoré
+
+```astro
+<!-- Ceci -->
+<span class:list={[ 'bonjour salut', { bonjour: true, monde: true }, new Set([ 'bonjour', 'ami' ]) ]} />
+<!-- Devient -->
+<span class="bonjour salut monde ami"></span>
+```
+
+### `set:html`
+
+`set:html={string}` injecte une chaîne de caractères HTML dans un élément, similaire à la propriété `el.innerHTML`.
+
+**La valeur n'est pas automatiquement échappée par Astro !** Assurez-vous que vous faites confiance à la valeur ou que vous l'avez échappée manuellement avant de la transmettre au modèle. Oublier de le faire vous exposera aux [attaques de type Cross Site Scripting (XSS).](https://owasp.org/www-community/attacks/xss/)
+
+```astro
+---
+const rawHTMLString = "Hello <strong>World</strong>"
+---
+<h1>{rawHTMLString}</h1>
+  <!-- Sortie: <h1>Hello &lt;strong&gt;World&lt;/strong&gt;</h1> -->
+<h1 set:html={rawHTMLString} />
+  <!-- Sortie: <h1>Hello <strong>World</strong></h1> -->
+```
+
+Vous pouvez également utiliser `set:html` sur un `<Fragment>` pour éviter d'ajouter un élément d'enveloppe inutile. Cela peut être particulièrement utile lors de la récupération de code HTML à partir d'un CMS.
+
+```astro
+---
+const cmsContent = await fetchHTMLFromMyCMS();
+---
+<Fragment set:html={cmsContent}>
+```
+
+`set:html={Promise<string>}` injecte une chaîne de caractères HTML dans un élément qui est enveloppé dans une Promise.
+
+Cela peut être utilisé pour injecter du HTML stocké en externe, comme dans une base de données.
+
+```astro
+---
+import API from '../db/api.js';
+---
+<article set:html={api.getArticle(Astro.props.id)}></article>
+```
+
+`set:html={Promise<Response>}` injecte une [Response](https://developer.mozilla.org/fr/docs/Web/API/Response) dans un élément.
+
+Ceci est particulièrement utile lors de l'utilisation de `fetch()`. Par exemple, récupérer d'anciens posts à partir d'un précédent générateur de site statique.
+
+```astro
+<article set:html={fetch('http://example/old-posts/making-soup.html')}></article>
+```
+
+`set:html` peut être utilisé sur n'importe quelle balise et n'a pas besoin d'inclure de HTML. Par exemple, vous pouvez l'utiliser avec [`JSON.stringify()`](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify) sur une balise `<script>` pour ajouter un schéma [JSON-LD](https://json-ld.org/) à votre page.
+
+```astro
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org/",
+  "@type": "Person",
+  name: "Houston",
+  hasOccupation: {
+    "@type": "Occupation",
+    name: "Astronaut"
+  }
+})}/>
+```
+
+### `set:text`
+
+`set:text={string}` injecte une chaîne de caractères dans un élément, similaire à la propriété `el.innerText`. Contrairement à `set:html`, la valeur `string` transmise est automatiquement échappée par Astro.
+
+Cela équivaut à passer directement une variable dans une expression de modèle (ex : `<div>{someText}</div>`) et, par conséquent, cette directive n'est pas couramment utilisée.
+## Directives Client
+
+Ces directives contrôlent la façon dont les [composants de Framework UI](/fr/guides/framework-components/) sont hydratés sur la page.
+
+Par défaut, un composant de Framework UI n'est pas hydraté côté client. Si aucune directive `client:*` n'est fournie, son HTML est rendu sur la page sans JavaScript.
+
+Une directive client ne peut être utilisée que sur un composant de Framework UI directement importé dans un composant `.astro`. Les directives d'hydratation ne sont pas prises en charge lors de l'utilisation de [balises dynamiques](/fr/basics/astro-syntax/#balises-dynamiques) et de [composants personnalisés transmis via la prop `components`](/fr/guides/markdown-content/#composants-personnalisés-avec-du-mdx-importé).
+
+### `client:load`
+
+- **Priorité :** Élevée
+- **Utile pour :** Les éléments UI immédiatement visibles qui doivent être interactifs le plus tôt possible.
+
+Charge et hydrate le composant JavaScript immédiatement au chargement de la page.
+
+```astro
+<BuyButton client:load />
+```
+### `client:idle`
+
+- **Priorité :** Moyenne
+- **Utile pour :** Les éléments UI de priorité moindre qui n'ont pas besoin d'être immédiatement interactifs.
+
+Charge et hydrate le composant JavaScript une fois que le chargement initial de la page est terminé et que l'événement `requestIdleCallback` s'est déclenché. Si vous utilisez un navigateur qui ne prend pas en charge [`requestIdleCallback`](https://developer.mozilla.org/fr/docs/Web/API/Window/requestIdleCallback), alors l'évenement [`load`](https://developer.mozilla.org/fr/docs/Web/API/Window/load_event) est utilisé.
+
+```astro
+<ShowHideButton client:idle />
+```
+### `client:visible`
+
+- **Priorité :** Faible
+- **Utile pour :** Les éléments UI de faible priorité qui sont soit loin en bas de page ("sous la ligne de flottaison") ou qui consomment tellement de ressources que vous préféreriez ne pas les charger du tout si l'utilisateur ne voit jamais ces éléments.
+
+Charge et hydrate le JavaScript du composant une fois que le celui-ci est entré dans la fenêtre d'affichage de l'utilisateur. Ceci utilise un `IntersectionObserver` en interne pour garder une trace de la visibilité.
+
+```astro
+<HeavyImageCarousel client:visible />
+```
+
+#### `client:visible={{rootMargin}}`
+<p><Since v="4.1.0" /></p>
+
+Optionnellement, une valeur pour `rootMargin` peut être passée au `IntersectionObserver` sous-jacent. Lorsque `rootMargin` est spécifié, le JavaScript du composant s'hydrate lorsqu'une marge spécifiée (en pixels) autour du composant entre dans le viewport, plutôt que le composant lui-même.
+
+```astro
+<HeavyImageCarousel client:visible={{rootMargin: "200px"}} />
+```
+
+La spécification d'une valeur de `rootMargin` peut réduire les décalages de mise en page (CLS), donner plus de temps à un composant pour s'hydrater sur des connexions Internet plus lentes, et rendre les composants interactifs plus tôt, améliorant ainsi la stabilité et la réactivité de la page.
+
+### `client:media`
+
+- **Priorité :** Faible
+- **Utile pour :** Les barres latérales ou autres éléments qui ne peuvent être visibles que sur certaines tailles d'écran.
+
+`client:media={string}` charge et hydrate le composant JavaScript une fois qu'une certaine requête média CSS est satisfaite.
+
+:::note
+Si le composant est déjà masqué et affiché par une requête multimédia dans votre CSS, il peut être plus simple d'utiliser simplement `client: visible` et de ne pas passer cette même requête multimédia dans la directive.
+:::
+
+```astro
+<SidebarToggle client:media="(max-width: 50em)" />
+```
+### `client:only`
+
+`client:only={string}` **ignore** le rendu HTML côté serveur et s'affiche uniquement côté client. Cette directive agit de la même manière que `client:load` dans le où elle charge, rend et hydrate le composant immédiatement au chargement de la page.
+
+**Vous devez transmettre le bon Framework du composant en tant que valeur !** Parce qu'Astro n'exécute le composant ni pendant le Build ni sur le serveur, Astro ne sait pas quel framework votre composant utilise à moins que vous ne lui disiez explicitement.
+
+```astro
+<SomeReactComponent client:only="react" />
+<SomePreactComponent client:only="preact" />
+<SomeSvelteComponent client:only="svelte" />
+<SomeVueComponent client:only="vue" />
+<SomeSolidComponent client:only="solid-js" />
+<SomeLitComponent client:only="lit" />
+```
+
+### Directives Client personnalisées
+
+Depuis Astro 2.6.0, les intégrations peuvent également ajouter des directives `client:*` personnalisées pour modifier comment et quand les composants doivent être hydratés.
+
+Visitez la page [API `addClientDirective`](/fr/reference/integrations-reference/#addclientdirective-option) pour en savoir plus sur la création d'une directive client personnalisée.
+
+## Directives de Script et de Style
+
+Ces directives ne peuvent être utilisées que sur les balises HTML `<script>` et `<style>` pour contrôler la façon dont votre JavaScript côté client et votre CSS sont gérés sur la page.
+### `is:global`
+
+Par défaut, Astro limite automatiquement la portée des règles CSS du `<style>` au composant. Vous pouvez désactiver ce comportement avec la directive `is:global`.
+
+`is:global` fait en sorte que le contenu d'une balise `<style>` s'applique globalement sur la page lorsque le composant est inclus. Cela désactive le système de portée des règles CSS d'Astro. Cela équivaut à envelopper tous les sélecteurs dans la balise `<style>` avec `:global()`.
+
+Vous pouvez combiner `<style>` et `<style is:global>` ensemble dans le même composant pour créer des règles de style globales tout en limitant la portée de la plupart des règles CSS de votre composant.
+
+<ReadMore>Consultez la page [CSS et Stylisation](/fr/guides/styling/#styles-globaux) pour plus de détails sur le fonctionnement des styles globaux.</ReadMore>
+
+```astro
+<style is:global>
+  body a { color: red; }
+</style>
+```
+
+### `is:inline`
+
+Par défaut, Astro traitera, optimisera et regroupera toutes les balises `<script>` et `<style>` qu'il voit sur la page. Vous pouvez désactiver ce comportement avec la directive `is:inline`.
+
+`is:inline` indique à Astro de laisser la balise `<script>` ou `<style>` telle quelle dans la sortie HTML finale. Le contenu ne sera ni traité, ni optimisé ni regroupé. Cela limite certaines fonctionnalités d'Astro, comme l'importation d'un paquet npm ou l'utilisation d'un langage de compilation vers CSS comme Sass.
+
+La directive `is:inline` signifie que les balises `<style>` et `<script>` :
+
+- Ne seront pas regroupées dans un fichier externe. Cela signifie que les [attributs comme `defer`](https://javascript.info/script-async-defer) qui contrôlent le chargement d'un fichier externe n'auront aucun effet.
+- Ne seront pas dédupliquées : l'élément apparaîtra autant de fois qu'il sera rendu.
+- Les références `import`/`@import`/`url()` ne seront pas résolues relativement au fichier `.astro`.
+- Seront rendues dans le HTML de la sortie final exactement là où elles ont été créées.
+- Les styles seront globaux et non limités au composant.
+
+:::caution
+La directive `is:inline` est implicite chaque fois qu'un attribut autre que `src` est utilisé sur une balise `<script>` ou `<style>`.
+:::
+
+```astro
+<style is:inline>
+  /* inline: les imports relatifs et de paquets npm ne sont pas supportés */
+  @import '/assets/some-public-styles.css';
+  span { color: green; }
+</style>
+
+<script is:inline>
+   /* inline: les imports relatifs et de paquets npm ne sont pas supportés */
+  console.log('Je suis en ligne ici dans le HTMl de sortie final.');
+</script>
+```
+
+<ReadMore>Découvrez comment les [scripts côté client](/fr/guides/client-side-scripts/) fonctionnent dans les composants Astro.</ReadMore>
+
+### `define:vars`
+
+`define:vars={...}` peut passer des variables côté serveur du frontmatter de votre composant dans les balises client `<script>` ou `<style>`. Toute variable du frontmatter sérialisable en JSON est supportée, y compris les "props" transmis à votre composant via `Astro.props`. Les valeurs sont sérialisées avec [`JSON.stringify()`](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).
+
+```astro
+---
+const foregroundColor = "rgb(221 243 228)";
+const backgroundColor = "rgb(24 121 78)";
+const message = "Astro est génial !";
+---
+<style define:vars={{ textColor: foregroundColor, backgroundColor }}>
+  h1 {
+    background-color: var(--backgroundColor);
+    color: var(--textColor);
+  }
+</style>
+
+<script define:vars={{ message }}>
+  alert(message);
+</script>
+```
+
+:::caution
+L'utilisation de `define:vars` sur une balise `<script>` implique la [directive `is:inline`](#isinline), ce qui signifie que vos scripts ne seront pas regroupés et seront intégrés directement dans le code HTML.
+
+En effet, lorsque Astro regroupe un script, il inclut et exécute le script une seule fois même si vous incluez le composant contenant le script plusieurs fois sur une même page. `define:vars` nécessite qu'un script soit réexécuté avec chaque ensemble de valeurs, donc Astro crée un script en ligne à la place.
+
+Pour les scripts, essayez plutôt de [transmettre les variables aux scripts manuellement](/fr/guides/client-side-scripts/#passer-les-variables-frontmatter-aux-scripts).
+:::
+
+## Directives Avancées
+### `is:raw`
+
+`is:raw` indique au compilateur d'Astro de traiter tous les enfants de cet élément comme du texte. Cela signifie que toute syntaxe spéciale de template Astro sera ignorée à l'intérieur de ce composant.
+
+Par exemple, si vous aviez un composant Katex personnalisé qui convertit du texte en HTML, vous pourriez demander aux utilisateurs de faire ceci :
+
+```astro
+---
+import Katex from '../components/Katex.astro' ;
+---
+<Katex is:raw>Certaines {syntaxes} contradictoires ici</Katex>
+```

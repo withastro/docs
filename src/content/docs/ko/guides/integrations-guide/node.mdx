@@ -1,0 +1,219 @@
+---
+type: integration
+title: '@astrojs/node'
+description: '@astrojs/node SSR 어댑터를 사용하여 Astro 프로젝트를 배포하는 방법을 알아보세요.'
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/node/'
+category: adapter
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+이 어댑터를 사용하면 Astro가 [`hybrid` 또는 `server` 렌더링 사이트](/ko/basics/rendering-modes/#요청-시-렌더링)를 Node 대상에 배포할 수 있습니다.
+
+Astro를 [정적 사이트 빌더](/ko/basics/rendering-modes/#사전-렌더링)로 사용하는 경우에는 어댑터가 필요하지 않습니다.
+
+## 왜 Astro Node.js인가?
+
+[Node.js](https://nodejs.org/ko/)는 서버 측 코드를 위한 JavaScript 런타임입니다. @astrojs/node는 standalone 모드에서 사용하거나 [Express](https://expressjs.com/)와 같은 다른 http 서버의 미들웨어로 사용할 수 있습니다.
+
+## 설치
+
+Astro에는 공식 통합 설정을 자동화하는 `astro add` 명령이 포함되어 있습니다. 원하는 경우 대신 [통합을 수동으로 설치](#수동-설치)할 수 있습니다.
+
+`astro add` 명령을 사용하여 Astro 프로젝트에서 SSR을 활성화하려면 Node 어댑터를 추가하세요.
+그러면 `@astrojs/node`가 설치되고 `astro.config.*` 파일이 한 번에 적절하게 변경됩니다.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add node
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add node
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add node
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### 수동 설치
+
+먼저, 선호하는 패키지 관리자를 사용하여 프로젝트의 종속성에 Node 어댑터를 추가하세요.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install @astrojs/node
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add @astrojs/node
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add @astrojs/node
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+그런 다음 어댑터와 원하는 [주문형 렌더링 모드](/ko/basics/rendering-modes/#요청-시-렌더링)를 `astro.config.*` 파일에 추가하세요.
+
+```js title="astro.config.mjs" ins={2,5-8}
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  output: 'server',
+  adapter: node({
+    mode: 'standalone',
+  }),
+});
+```
+
+## 구성
+
+@astrojs/node는 옵션을 어댑터 함수에 전달하여 구성할 수 있습니다. 다음 옵션을 사용할 수 있습니다.
+
+### 모드
+
+어댑터가 `middleware` 또는 `standalone` 모드로 빌드되는지 여부를 제어합니다.
+
+* `middleware` 모드를 사용하면 빌드된 출력을 Express.js 또는 Fastify와 같은 다른 Node.js 서버의 미들웨어로 사용할 수 있습니다.
+
+  ```js title="astro.config.mjs"
+  import { defineConfig } from 'astro/config';
+  import node from '@astrojs/node';
+
+  export default defineConfig({
+    output: 'server',
+    adapter: node({
+      mode: 'middleware',
+    }),
+  });
+  ```
+
+* `standalone` 모드는 항목 모듈이 실행되면서 자동으로 시작되는 서버에 빌드됩니다. 이를 통해 추가 코드 없이 빌드를 호스트에 더 쉽게 배포할 수 있습니다.
+
+## 사용하기
+
+먼저 [빌드를 수행](/ko/guides/deploy/#사이트를-로컬로-빌드)합니다. 선택한 모드 (위 참조)에 따라 아래의 적절한 단계를 따르세요.
+
+### 미들웨어
+
+서버 엔트리포인트는 기본적으로 `./dist/server/entry.mjs`에 빌드됩니다. 이 모듈은 Node `request` 및 `response` 객체를 지원하는 모든 프레임워크와 함께 사용할 수 있는 `handler` 함수를 내보냅니다.
+
+예를 들어 Express의 경우:
+
+```js title="run-server.mjs"
+import express from 'express';
+import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+const app = express();
+// astro.config.mjs 파일의 `base` 옵션에 따라 이를 변경하세요.
+// 일치해야 합니다. 기본값은 "/"입니다.
+const base = '/';
+app.use(base, express.static('dist/client/'));
+app.use(ssrHandler);
+
+app.listen(8080);
+```
+
+또는 Fastify (>4)를 사용하면 다음과 같습니다.
+
+```js title="run-server.mjs"
+import Fastify from 'fastify';
+import fastifyMiddie from '@fastify/middie';
+import fastifyStatic from '@fastify/static';
+import { fileURLToPath } from 'node:url';
+import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+const app = Fastify({ logger: true });
+
+await app
+  .register(fastifyStatic, {
+    root: fileURLToPath(new URL('./dist/client', import.meta.url)),
+  })
+  .register(fastifyMiddie);
+app.use(ssrHandler);
+
+app.listen({ port: 8080 });
+```
+
+또한 `Astro.locals` 또는 Astro 미들웨어를 통해 액세스할 객체를 전달할 수도 있습니다.
+
+```js title="run-server.mjs"
+import express from 'express';
+import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+const app = express();
+app.use(express.static('dist/client/'));
+app.use((req, res, next) => {
+  const locals = {
+    title: 'New title',
+  };
+
+  ssrHandler(req, res, next, locals);
+});
+
+app.listen(8080);
+```
+
+미들웨어 모드는 파일 제공을 수행하지 않습니다. 이를 수행하려면 HTTP 프레임워크를 구성해야 합니다. 기본적으로 클라이언트 자산은 `./dist/client/`에 기록됩니다.
+
+### Standalone
+
+standalone 모드에서는 서버 엔트리포인트가 실행될 때 서버가 시작됩니다. 기본적으로 `./dist/server/entry.mjs`에 빌드됩니다. 다음을 사용하여 실행할 수 있습니다.
+
+```sh
+node ./dist/server/entry.mjs
+```
+
+standalone 모드의 경우 서버는 페이지 및 API 경로 외에도 파일 제공을 처리합니다.
+
+#### 사용자 정의 호스트 및 포트
+
+런타임 시 환경 변수로 전달하여 standalone 서버가 실행되는 호스트와 포트를 재정의할 수 있습니다.
+
+```sh
+HOST=0.0.0.0 PORT=4321 node ./dist/server/entry.mjs
+```
+
+#### HTTPS
+
+기본적으로 standalone 서버는 HTTP를 사용합니다. 이는 HTTPS를 수행하는 프록시 서버가 앞에 있는 경우에 잘 작동합니다. HTTPS 자체를 실행하기 위해 standalone 서버가 필요한 경우 SSL 키와 인증서를 제공해야 합니다.
+
+환경 변수 `SERVER_CERT_PATH` 및 `SERVER_KEY_PATH`를 통해 키 및 인증 경로를 전달할 수 있습니다. Bash에서 이를 전달하는 방법은 다음과 같습니다.
+
+```bash
+SERVER_KEY_PATH=./private/key.pem SERVER_CERT_PATH=./private/cert.pem node ./dist/server/entry.mjs
+```
+
+#### 런타임 환경 변수
+
+빌드 프로세스가 실행될 때 환경 변수가 포함된 `.env` 파일이 존재하는 경우 이러한 값은 정적 웹 사이트를 생성할 때와 마찬가지로 출력에 하드 코딩됩니다.
+
+빌드하는 동안 런타임 변수는 `.env` 파일에 없어야 하며 런타임에 예상되는 모든 환경 변수를 Astro에 제공해야 합니다.  (`VARIABLE_1=placeholder astro build`) 이는 빌드된 애플리케이션이 실행될 때 실제 값을 사용할 수 있다는 신호를 Astro에 보냅니다. placeholder 값은 빌드 프로세스에서 무시되며 Astro는 런타임에 제공된 값을 사용합니다.
+
+런타임 변수가 여러 개인 경우 `.env` 파일에서 별도의 파일 (예: `.env.runtime`)에 옮겨 저장하세요. 다음 명령을 사용하여 빌드를 시작합니다.
+
+```sh
+export $(cat .env.runtime) && astro build
+```
+
+#### 자산
+
+standalone 모드에서는 `dist/client/` 폴더의 자산이 standalone 서버를 통해 제공됩니다. 이러한 자산을 CDN에 배포할 수 있으며, 이 경우 서버는 실제로 해당 자산을 제공하지 않습니다. 그러나 인트라넷 사이트와 같은 일부 경우에는 애플리케이션 서버에서 직접 정적 자산을 제공하는 것이 좋습니다.
+
+`dist/client/_astro/` 폴더에 있는 자산은 Astro가 빌드한 자산입니다. 이러한 자산은 모두 해시로 이름이 지정되므로 긴 캐시 헤더가 제공될 수 있습니다. 내부적으로 어댑터는 다음 자산에 대해 이 헤더를 추가합니다.
+
+```
+Cache-Control: public, max-age=31536000, immutable
+```
