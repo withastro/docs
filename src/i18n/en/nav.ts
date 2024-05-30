@@ -96,9 +96,9 @@ export default [
 	{ text: 'Adapter API', slug: 'reference/adapter-reference', key: 'reference/adapter-reference' },
 	{ text: 'Image Service API', slug: 'reference/image-service-reference', key: 'reference/image-service-reference' },
 	{ text: 'Dev Toolbar App API', slug: 'reference/dev-toolbar-app-reference', key: 'reference/dev-toolbar-app-reference' },
+  { text: 'Container API', slug: 'reference/container-reference', key: 'reference/container-reference' },
 
-
-	{ text: 'Community Resources', header: true, type: 'learn', key: 'communityResources' },
+  { text: 'Community Resources', header: true, type: 'learn', key: 'communityResources' },
 	{ text: 'Courses, Guides, and Recipes', slug: 'community-resources/content', key: 'community-resources/content' },
 	{ text: 'Talks, Interviews, and Streams', slug: 'community-resources/talks', key: 'community-resources/talks' },
 
