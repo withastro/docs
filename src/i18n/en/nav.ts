@@ -91,7 +91,7 @@ export default [
 	{ text: 'Error Reference', slug: 'reference/error-reference', key: 'reference/error-reference' },
 
 
-	{ text: 'Other Develoment APIs', header: true, type: 'api', key: 'dev' },
+	{ text: 'Other Development APIs', header: true, type: 'api', key: 'dev' },
 	{ text: 'Integrations API', slug: 'reference/integrations-reference', key: 'reference/integrations-reference' },
 	{ text: 'Adapter API', slug: 'reference/adapter-reference', key: 'reference/adapter-reference' },
 	{ text: 'Image Service API', slug: 'reference/image-service-reference', key: 'reference/image-service-reference' },
