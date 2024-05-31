@@ -25,9 +25,11 @@ export default [
 	{ text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
 	{ text: 'Introductory Tutorial - Build a Blog', slug: 'tutorial/0-introduction', key: 'blog-tutorial' },
 
+
 	{ text: 'Core Concepts', header: true, type: 'learn', key: 'coreConcepts' },
 	{ text: 'Why Astro?', slug: 'concepts/why-astro', key: 'concepts/why-astro' },
 	{ text: 'Astro Islands', slug: 'concepts/islands', key: 'concepts/islands' },
+
 
 	{ text: 'Learn the Basics', header: true, type: 'learn', key: 'basics' },
 	{ text: 'Project Structure', slug: 'basics/project-structure', key: 'basics/project-structure' },
@@ -39,15 +41,6 @@ export default [
 	{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
 	{ text: 'Integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
 
-	
-	{ text: 'Create Routes', header: true, type: 'learn', key: 'routes' },
-	{ text: 'Routing', slug: 'guides/routing', key: 'guides/routing' },
-	{ text: 'Endpoints', slug: 'guides/endpoints', key: 'guides/endpoints' },
-	{ text: 'Prefetch', slug: 'guides/prefetch', key: 'guides/prefetch' },
-	{ text: 'Middleware', slug: 'guides/middleware', key: 'guides/middleware' },
-	{ text: 'Internationalization', slug: 'guides/internationalization', key: 'guides/internationalization' },
-	{ text: 'View Transitions', slug: 'guides/view-transitions', key: 'guides/view-transitions' },
-
 
 	{ text: 'Manage your content', header: true, type: 'learn', key: 'content' },
 	{ text: 'Authoring Content', slug: 'guides/content', key: 'guides/content' },
@@ -56,6 +49,20 @@ export default [
 	{ text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
 	{ text: 'Add an RSS feed', slug: 'guides/rss', key: 'guides/rss' },
 
+
+	{ text: 'Routes and Navigation', header: true, type: 'learn', key: 'routes' },
+	{ text: 'Routing', slug: 'guides/routing', key: 'guides/routing' },
+	{ text: 'Endpoints', slug: 'guides/endpoints', key: 'guides/endpoints' },
+	{ text: 'Prefetch', slug: 'guides/prefetch', key: 'guides/prefetch' },
+	{ text: 'Middleware', slug: 'guides/middleware', key: 'guides/middleware' },
+	{ text: 'Internationalization', slug: 'guides/internationalization', key: 'guides/internationalization' },
+	{ text: 'View Transitions', slug: 'guides/view-transitions', key: 'guides/view-transitions' },
+
+
+	{ text: 'Assets', header: true, type: 'learn', key: 'assets' },
+	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
+	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
+	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 
 
 	{ text: 'Connect your data', header: true, type: 'learn', key: 'data' },
@@ -69,12 +76,6 @@ export default [
 	{ text: 'Client-side interactivity', header: true, type: 'learn', key: 'clientSide' },
 	{ text: 'UI Frameworks', slug: 'guides/framework-components', key: 'guides/framework-components' },
 	{ text: 'Scripts & Event Handling', slug: 'guides/client-side-scripts', key: 'guides/client-side-scripts' },
-
-
-	{ text: 'Assets', header: true, type: 'learn', key: 'assets' },
-	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
-	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
-	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 
 
 	{ text: 'Maintain your project', header: true, type: 'learn', key: 'maintain' },
@@ -96,7 +97,7 @@ export default [
 	{ text: 'Adapter API', slug: 'reference/adapter-reference', key: 'reference/adapter-reference' },
 	{ text: 'Image Service API', slug: 'reference/image-service-reference', key: 'reference/image-service-reference' },
 	{ text: 'Dev Toolbar App API', slug: 'reference/dev-toolbar-app-reference', key: 'reference/dev-toolbar-app-reference' },
-  { text: 'Container API', slug: 'reference/container-reference', key: 'reference/container-reference' },
+  { text: 'Container API (Experimental)', slug: 'reference/container-reference', key: 'reference/container-reference' },
 
   { text: 'Community Resources', header: true, type: 'learn', key: 'communityResources' },
 	{ text: 'Courses, Guides, and Recipes', slug: 'community-resources/content', key: 'community-resources/content' },
