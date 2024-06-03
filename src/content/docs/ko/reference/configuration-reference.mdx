@@ -362,6 +362,44 @@ Astro 컴포넌트의 요소 선택기가 전역 스타일 기본값 (예: 전�
 ``where'`를 사용하면 구체성을 더 잘 제어할 수 있지만, 적용되는 선택기를 제어하려면 더 높은 구체성 선택기, 레이어 및 기타 도구를 사용해야 합니다.
 `'attribute'`를 사용하는 것은 요소의 `class` 속성을 조작하고 자신의 스타일 지정 로직과 Astro의 스타일 적용 사이의 충돌을 피해야 할 때 유용합니다.
 
+### security
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `{}`<br />
+<Since v="4.9.0" />
+</p>
+
+Astro 웹사이트에 대한 보안 조치를 활성화합니다.
+
+이러한 기능은 `server` 모드를 사용하여 요청 시 렌더링된 페이지 (SSR) 또는 `hybrid` 모드에서 사전 렌더링을 선택 해제한 페이지에만 존재합니다.
+
+```js
+// astro.config.mjs
+export default defineConfig({
+  output: "server",
+  security: {
+    checkOrigin: true
+  }
+})
+```
+
+#### security.checkOrigin
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** 'false'<br />
+<Since v="4.9.0" />
+</p>
+
+활성화되면 모든 최신 브라우저에서 자동으로 전달되는 "origin" 헤더가 각 `Request`에서 보낸 URL과 일치하는지 확인합니다. 이는 CSRF (Cross-Site Request Forgery) 보호를 위해 사용됩니다.
+
+"origin" 확인은 요청 시 렌더링된 페이지에 대해서만 실행되며, `content-type` 헤더가 `'application/x-www-form-urlencoded'`, `'multipart/form-data'`, `'text/plain'` 중 하나인 `POST`, `PATCH`, `DELETE`, `PUT` 요청에 대해서만 실행됩니다.
+
+"origin" 헤더가 요청의 `pathname`과 일치하지 않으면 Astro는 403 상태 코드를 반환하며 페이지를 렌더링하지 않습니다.
+
 ### vite
 
 <p>
@@ -1257,6 +1295,106 @@ Astro는 사용자가 새로운 기능에 조기에 액세스할 수 있도록 e
 }
 ```
 
+### experimental.actions
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `false`<br />
+<Since v="4.8.0" />
+</p>
+
+액션은 어디에서나 호출할 수 있는 타입 안정성을 갖춘 백엔드 함수를 작성하는 데 도움이 됩니다. [`output` 속성을 사용하여](/ko/basics/rendering-modes/#on-demand-rendered) 서버 렌더링을 활성화하고 `experimental` 객체에 `actions` 플래그를 추가합니다.
+
+```js
+{
+  output: 'hybrid', // 또는 'server'
+  experimental: {
+    actions: true,
+  },
+}
+```
+
+`src/actions/index.ts` 파일에서 모든 액션을 선언합니다. 이 파일은 전역 액션 핸들러입니다.
+
+`astro:actions` 모듈의 `defineAction()` 유틸리티를 사용하여 액션을 정의합니다. 이 액션은 서버 측 요청 핸들러를 정의하기 위해 `handler` 속성을 허용합니다. 액션이 인수를 허용하는 경우 `input` 속성을 적용하여 Zod로 매개변수를 검증하세요.
+
+이 예시에서는 `like`와 `comment`라는 두 가지 액션을 정의합니다. `like` 액션은 `postId` 문자열이 포함된 JSON 객체를 허용하는 반면, `comment` 액션은 `postId`, `author` 및 `body` 문자열을 포함하는 [FormData](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest_API/Using_FormData_Objects)를 허용합니다. 각 `handler`는 데이터베이스를 업데이트하고 타입 안정성을 갖춘 응답을 반환합니다.
+
+```ts
+// src/actions/index.ts
+import { defineAction, z } from "astro:actions";
+
+export const server = {
+  like: defineAction({
+    input: z.object({ postId: z.string() }),
+    handler: async ({ postId }) => {
+      // db에서 likes 업데이트
+
+      return likes;
+    },
+  }),
+  comment: defineAction({
+    accept: 'form',
+    input: z.object({
+      postId: z.string(),
+      author: z.string(),
+      body: z.string(),
+    }),
+    handler: async ({ postId }) => {
+      // db에 comment 삽입
+
+      return comment;
+    },
+  }),
+};
+```
+
+그런 다음 `astro:actions`의 `actions` 객체를 사용하여 클라이언트 컴포넌트에서 액션을 호출합니다. JSON을 사용할 때는 타입 안정성을 갖춘 객체를 전달할 수 있고, 액션 정의에서 `accept: 'form'`을 사용할 때는 [FormData](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest_API/Using_FormData_Objects) 객체를 전달할 수 있습니다.
+
+이 예시는 React 컴포넌트에서 `like` 및 `comment` 액션을 호출합니다.
+
+```tsx "actions"
+// src/components/blog.tsx
+import { actions } from "astro:actions";
+import { useState } from "react";
+
+export function Like({ postId }: { postId: string }) {
+  const [likes, setLikes] = useState(0);
+  return (
+    <button
+      onClick={async () => {
+        const newLikes = await actions.like({ postId });
+        setLikes(newLikes);
+      }}
+    >
+      {likes} likes
+    </button>
+  );
+}
+
+export function Comment({ postId }: { postId: string }) {
+  return (
+    <form
+      onSubmit={async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target as HTMLFormElement);
+        const result = await actions.blog.comment(formData);
+        // result 핸들링
+      }}
+    >
+      <input type="hidden" name="postId" value={postId} />
+      <label htmlFor="author">Author</label>
+      <input id="author" type="text" name="author" />
+      <textarea rows={10} name="body"></textarea>
+      <button type="submit">Post</button>
+    </form>
+  );
+}
+```
+
+전체 개요를 확인하고 이 실험적 API에 대한 피드백을 제공하려면 [Actions RFC](https://github.com/withastro/roadmap/blob/actions/proposals/0046-actions.md)를 참조하세요.
+
 ### experimental.contentCollectionCache
 
 <p>
@@ -1391,71 +1529,57 @@ export default defineConfig({
 
 경로 우선순위가 동일한 두 경로가 동일한 URL을 빌드하려고 시도하는 경로 충돌이 발생하는 경우 Astro는 충돌하는 경로를 식별하는 경고를 기록합니다.
 
-### experimental.i18nDomains
+### experimental.rewriting
 
 <p>
 
 **타입:** `boolean`<br />
 **기본값:** `false`<br />
-
-<Since v="4.3.0" />
+<Since v="4.8.0" />
 </p>
 
-사용자 정의 도메인 (또는 하위 도메인)을 사용하도록 하나 이상의 지원 언어의 URL 패턴을 구성할 수 있는 [실험적 `domains` 라우팅 전략](/ko/guides/internationalization/#domains-실험적)에 대한 지원을 활성화합니다.
-
-로케일이 도메인에 매핑되면 `/[locale]/` 경로 접두사가 사용되지 않습니다. 그러나 구성된 `defaultLocale`을 포함하여 `src/pages/` 내 현지화된 폴더는 여전히 필요합니다.
-
-구성되지 않은 다른 로케일은 `prefixDefaultLocale` 전략 (예: `https://example.com/[locale]/blog`)에 따라 현지화된 경로 기반 URL로 기본 설정됩니다.
+Astro 페이지, 엔드포인트 및 Astro 미들웨어에서 요청을 리라이팅하기 위한 라우팅 기능을 활성화하여 경로를 프로그래밍 방식으로 제어할 수 있습니다.
 
 ```js
-//astro.config.mjs
-export default defineConfig({
-	site: "https://example.com",
-	output: "server", // 필수, 사전 렌더링된 페이지 없음
-  adapter: node({
-    mode: 'standalone',
-  }),
-	i18n: {
-		defaultLocale: "en",
-		locales: ["en", "fr", "pt-br", "es"],
-    prefixDefaultLocale: false,
-		  domains: {
-			  fr: "https://fr.example.com",
-			  es: "https://example.es"
-   },
- experimental: {
-    i18nDomains: true
- }
-})
-```
-
-빌드된 페이지 경로와 `astro:i18n` 도우미 함수 [`getAbsoluteLocaleUrl()`](/ko/reference/api-reference/#getabsolutelocaleurl) 및 [`getAbsoluteLocaleUrlList()`](/ko/reference/api-reference/#getabsolutelocaleurllist)에 의해 반환된 URL은 모두 `i18n.domains`에 설정된 옵션을 사용합니다.
-
-이 실험적 기능의 제한 사항을 포함한 자세한 내용은 [국제화 가이드](/ko/guides/internationalization/#domains-실험적)를 참조하세요.
-
-### experimental.security
-
-<p>
-
-**타입:** `boolean`<br />
-**기본값:** `false`<br />
-<Since v="4.6.0" />
-</p>
-
-Astro 웹사이트에 대한 CSRF 보호를 활성화합니다.
-
-CSRF 보호는 `server` 또는 `hybrid` 모드를 사용하여 요청 시 렌더링되는 페이지 (SSR)에만 작동합니다. 페이지는 `hybrid` 모드에서 사전 렌더링을 선택 해제해야 합니다.
-
-```js
-// astro.config.mjs
-export default defineConfig({
-  output: "server",
+{
   experimental: {
-    security: {
-      csrfProtection: {
-        origin: true
-      }
-    }
-  }
-})
+    rewriting: true,
+  },
+}
 ```
+
+다른 페이지로 다시 라우팅하려면 `.astro` 파일에서 `Astro.rewrite`를 사용합니다.
+
+```astro "rewrite"
+---
+// src/pages/dashboard.astro
+if (!Astro.props.allowed) {
+	return Astro.rewrite("/")
+}
+---
+```
+
+다른 페이지로 다시 라우팅하려면 엔드포인트 파일에서 `context.rewrite`를 사용합니다.
+
+```js
+// src/pages/api.js
+export function GET(ctx) {
+	if (!ctx.locals.allowed) {
+		return ctx.rewrite("/")
+	}
+}
+```
+
+미들웨어 파일에서 `next("/")`를 사용하여 다른 페이지로 다시 라우팅한 후 다음 미들웨어 함수를 호출합니다.
+
+```js
+// src/middleware.js
+export function onRequest(ctx, next) {
+	if (!ctx.cookies.get("allowed")) {
+		return next("/") // 새 시그니처
+	}
+	return next();
+}
+```
+
+전체 개요를 확인하고 이 실험적 API에 대한 피드백을 제공하려면 [RFC 리라우팅](https://github.com/withastro/roadmap/blob/feat/reroute/proposals/0047-rerouting.md)을 참조하세요
