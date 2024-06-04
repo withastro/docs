@@ -82,6 +82,7 @@ export default UIDictionary({
 	'integrations.renderers': 'أطر عمل الواجهات',
 	'integrations.adapters': 'محولات تصيير على الخادم SSR',
 	'integrations.others': 'أخرى',
+	'integrations.more': 'إدماجات أخرى',
 	// Checklist component
 	'checklist.or': 'أو',
 	// Multiple Choice component
@@ -103,6 +104,9 @@ export default UIDictionary({
 	'feedback.categoryGroupLabel': 'اختر فئة الملاحظة المناسبة',
 	'feedback.issue': 'مشكلة',
 	'feedback.createIssue': 'انشئ مشكلة على GitHub',
+	'feedback.createIssue.description': 'أسرع طريقة لتنبيه فريقنا عن مشكلة.',
+	'feedback.sendFeedback': 'أرسل تعليقات',
+	'feedback.sendFeedback.description': 'أرسل لنا رسالة مباشرة',
 	'feedback.idea': 'فكرة',
 	'feedback.other': 'أخرى',
 	'feedback.messageA11yLabel': 'رسالتك',
@@ -122,4 +126,9 @@ export default UIDictionary({
 		'هل تريد المساهمة في هذا الدليل؟ هل لديك منشور في المدونة أو فيديو أو مصدر آخر لمشاركته حول التحويل من هذه التقنية إلى Astro؟',
 	'stub.description.cms': 'هل تعلم المزيد عن كيفية استخدام نظام إدارة المحتوى هذا مع Astro؟',
 	'stub.description.backend': 'هل تعلم المزيد عن كيفية استخدام هذه الخدمة القفويّة مع Astro؟',
+	// Starlight banner
+	'starlight.title': 'تريد بناء مستنداتك الخاصة؟',
+	'starlight.description': 'استلم هذا القالب للبدء.',
+	// `<StudioHeading>` component
+	'studioHeading.label': 'ميزة الاستوديو',
 });
