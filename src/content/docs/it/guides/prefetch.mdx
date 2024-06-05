@@ -4,6 +4,8 @@ description: Precaricamento dei link per una navigazione più rapida tra le pagi
 i18nReady: true
 ---
 
+import { Steps } from '@astrojs/starlight/components'
+
 I tempi di caricamento delle pagine giocano un ruolo importante nell'usabilità e nel piacere generale di un sito. Il precaricamento opzionale di Astro porta i benefici di navigazioni tra pagine quasi istantanee alla tua applicazione a pagine multiple (MPA) mentre i tuoi visitatori interagiscono con il sito. 
 
 ## Abilitare il precaricamento
@@ -47,9 +49,8 @@ Puoi specificare una strategia per un singolo link passandolo all'attributo `dat
 
 Ogni strategia è ottimizzata per prefetchare solo quando necessario e risparmiare banda ai tuoi utenti. Per esempio:
 
-- Se un visitatore sta usando la [modalità risparmio dati](https://developer.mozilla.org/it/docs/Web/API/NetworkInformation/saveData) o ha una [connessione lenta](https://developer.mozilla.org/it/docs/Web/API/NetworkInformation/effectiveType), il precaricamento passerà alla strategia `tap`.
+- Se un visitatore sta usando la [modalità risparmio dati](https://developer.mozilla.org/en/docs/Web/API/NetworkInformation/saveData) o ha una [connessione lenta](https://developer.mozilla.org/en/docs/Web/API/NetworkInformation/effectiveType), il precaricamento passerà alla strategia `tap`.
 - Passare velocemente il mouse o scorrere sui link non li precaricherà.
-- I link che usano le strategie `viewport` o `load` vengono precaricati con priorità inferiore per evitare di intasare la rete.
 
 ### Strategia di precaricamento predefinita
 
@@ -104,18 +105,7 @@ Siccome alcune navigazioni potrebbero non apparire sempre come link `<a />`, puo
 </script>
 ```
 
-Puoi inoltre configurare la priorità del precaricamento passando l'opzione `with`:
-
-```js
-// Precaricamento con `fetch()`, che ha una priorità più alta.  
-prefetch('/about', { with: 'fetch' });
-
-// Precaricamento con `<link rel="prefetch">`, che ha una priorità inferiore
-// e viene pianificato manualmente dal browser. (default)
-prefetch('/about', { with: 'link' });
-```
-
-L'API `prefetch()` include la stessa rilevazione di [modalità risparmio dati](https://developer.mozilla.org/it/docs/Web/API/NetworkInformation/saveData) e [connessione lenta](https://developer.mozilla.org/it/docs/Web/API/NetworkInformation/effectiveType) in modo che il precaricamento avvenga solo quando necessario.
+L'API `prefetch()` include la stessa rilevazione di [modalità risparmio dati](https://developer.mozilla.org/en/docs/Web/API/NetworkInformation/saveData) e [connessione lenta](https://developer.mozilla.org/en/docs/Web/API/NetworkInformation/effectiveType) in modo che il precaricamento avvenga solo quando necessario.
 
 Per ignorare il rilevamento di connessioni lente, puoi usare l'opzione `ignoreSlowConnection`:
 
@@ -152,10 +142,43 @@ export default defineConfig({
 });
 ```
 
+## Supporto dei browser
+
+Il prefetching di Astro utilizza [`<link rel="prefetch">`](https://developer.mozilla.org/en/docs/Web/HTML/Attributes/rel/prefetch) se supportato dal browser, altrimenti utilizza l'[`API fetch()`](https://developer.mozilla.org/en/docs/Web/API/Fetch_API) al suo posto.
+
+I browser più diffusi supportano il prefetching di Astro con alcune differenze minori:
+
+### Chrome
+
+Chrome supporta `<link rel="prefetch">`. Il prefetching funziona come previsto.
+
+### Firefox
+
+Firefox supporta `<link rel="prefetch">` ma potrebbe visualizzare errori o fallire completamente:
+
+ - Senza un'intestazione cache esplicita (ad es. [`Cache-Control`](https://developer.mozilla.org/en/docs/Web/HTTP/Headers/Cache-Control) o [`Expires`](https://developer.mozilla.org/en/docs/Web/HTTP/Headers/Expires)), il prefetching genererà un errore `NS_BINDING_ABORTED`.
+- Anche in caso di errore, se la risposta ha un'intestazione [`ETag`](https://developer.mozilla.org/en/docs/Web/HTTP/Headers/ETag) valida, verrà riutilizzata durante la navigazione.
+- In caso contrario, se si verifica un errore senza altre intestazioni cache, il prefetch non funzionerà.
+
+### Safari
+
+Safari non supporta `<link rel="prefetch">` e ricadrà sull'[`API fetch()`](https://developer.mozilla.org/en/docs/Web/API/Fetch_API), che richiede l'impostazione delle intestazioni cache (ad es. [`Cache-Control`](https://developer.mozilla.org/en/docs/Web/HTTP/Headers/Cache-Control), [`Expires`](https://developer.mozilla.org/en/docs/Web/HTTP/Headers/Expires) e [`ETag`](https://developer.mozilla.org/en/docs/Web/HTTP/Headers/ETag)). In caso contrario, il prefetch non funzionerà.
+
+**Caso limite:** le intestazioni `ETag` non funzionano nelle finestre private.
+
+### Raccomandazioni
+
+Per supportare al meglio tutti i browser, assicurati che le tue pagine abbiano le intestazioni cache appropriate.
+
+Per le pagine statiche o prerenderizzate, l'intestazione `ETag` è spesso impostata automaticamente dalla piattaforma di distribuzione e dovrebbe funzionare senza problemi.
+
+Per le pagine dinamiche e server-side, imposta le intestazioni cache appropriate in base al contenuto della pagina. Visita la [documentazione MDN sull'HTTP caching](https://developer.mozilla.org/en/docs/Web/HTTP/Caching) per ulteriori informazioni.
+
 ## Migrazione da `@astrojs/prefetch`
 
 L'integrazione `@astrojs/prefetch` è stata deprecata nella v3.5.0 e verrà rimossa completamente. Usa le seguenti istruzioni per passare al precaricamento integrato di Astro che sostituisce questa integrazione.
 
+<Steps>
 1. Rimuovi l'integrazione `@astrojs/prefetch` e abilita la configurazione `prefetch` in `astro.config.mjs`:
 
     ```js title="astro.config.mjs" ins={6} del={2,5}
@@ -191,3 +214,4 @@ L'integrazione `@astrojs/prefetch` è stata deprecata nella v3.5.0 e verrà rimo
       ```
 
     - L'opzione `throttles` di `@astrojs/prefetch` non è più necessaria poiché la nuova funzionalità di prefetch pianificherà e precaricherà in modo ottimale automaticamente.
+</Steps>
