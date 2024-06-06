@@ -75,6 +75,7 @@ export default NavDictionary({
 	'reference/adapter-reference': 'API adapterów',
 	'reference/image-service-reference': 'API usługi obrazów',
 	'reference/dev-toolbar-app-reference': 'API narzędzi deweloperskich',
+	'reference/container-reference': 'API kontenerów',
 	'reference/directives-reference': 'Dyrektywy plików Astro',
 	'reference/cli-reference': 'Interfejs linii poleceń Astro',
 	'reference/error-reference': 'Błędy',
