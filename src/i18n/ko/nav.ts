@@ -74,6 +74,7 @@ export default NavDictionary({
 	'reference/adapter-reference': '어댑터 API',
 	'reference/image-service-reference': '이미지 서비스 API',
 	'reference/dev-toolbar-app-reference': '개발 툴바 앱 API',
+	'reference/container-reference': '컨테이너 API',
 	'reference/directives-reference': '템플릿 지시어',
 	'reference/cli-reference': 'Astro CLI',
 	'reference/error-reference': '오류 참조',
