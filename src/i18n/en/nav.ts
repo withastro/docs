@@ -20,7 +20,7 @@
 export default [
 	{ text: 'Welcome, world!', header: true, type: 'learn', key: 'welcomeWorld' },
 	{ text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },
-	{ text: 'Installation and Setup', slug: 'install/auto', key: 'install/auto' },
+	{ text: 'Installation and Setup', slug: 'install-and-setup', key: 'install-and-setup' },
 	{ text: 'Deploy your site', slug: 'guides/deploy', key: 'guides/deploy' },
 	{ text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
 	{ text: 'Introductory Tutorial - Build a Blog', slug: 'tutorial/0-introduction', key: 'blog-tutorial' },
