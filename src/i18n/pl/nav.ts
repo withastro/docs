@@ -38,7 +38,6 @@ export default NavDictionary({
 
 	examples: 'Przykłady',
 	'guides/migrate-to-astro': 'Migracja do Astro',
-	'recipes/studio': 'Połączenie z Astro Studio',
 	'guides/cms': 'Połączenie z CMS',
 	'guides/backend': 'Użycie usług backendowych',
 	'guides/deploy': 'Wdrażanie',

@@ -37,7 +37,6 @@ export default NavDictionary({
 
 	examples: 'الأمثلة',
 	'guides/migrate-to-astro': 'التحويل إلى أسترو',
-	'recipes/studio': 'اتصال باستديو استرو',
 	'guides/cms': 'ربط نظام إدارة المحتوى',
 	'guides/backend': 'إضافة خدمات قفويّة',
 	'guides/deploy': 'نشر موقعك',
