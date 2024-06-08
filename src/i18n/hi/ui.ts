@@ -132,4 +132,6 @@ export default UIDictionary({
 	// Starlight banner
 	'starlight.title': 'क्या आप अपने स्वयं के दस्तावेज़ बनाना चाहते हैं?', // "Want to build your own Docs?"
 	'starlight.description': 'आरंभ करने के लिए इस टेम्पलेट को पकड़ें।', // "Grab this template to get started."
+	// `<StudioHeading>` component
+	'studioHeading.label': 'Studio सुविधा',
 });
