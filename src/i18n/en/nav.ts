@@ -4,7 +4,10 @@
  * English for any entries they haven’t translated.
  *
  * - All entries MUST include `text` and `key`
+ * - The first entry MUST be a heading
  * - Heading entries MUST include `header: true` and `type`
+ * - Heading entries MAY include `nested: true` to move that heading and following links under the previous unnested heading
+ * - Heading entries MAY include `collapsed: true` to mark it and its children as collapsed by default
  * - Link entries MUST include `slug` (which excludes the language code)
  *
  * For translators:
@@ -106,7 +109,6 @@ export default [
 
 	{ text: 'Recipes', header: true, type: 'learn', key: 'examples' },
 	{ text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
-	{ text: 'Connect to Astro Studio', slug: 'recipes/studio', key: 'recipes/studio' },
 	{ text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
 	{ text: 'Add backend services', slug: 'guides/backend', key: 'guides/backend' },
 	{ text: 'Deploy your site', slug: 'guides/deploy', key: 'guides/deploy' },
@@ -176,6 +178,11 @@ export default [
 		key: 'reference/dev-toolbar-app-reference',
 	},
 	{
+		text: 'Container API',
+		slug: 'reference/container-reference',
+		key: 'reference/container-reference',
+	},
+	{
 		text: 'Template Directives',
 		slug: 'reference/directives-reference',
 		key: 'reference/directives-reference',
@@ -199,4 +206,29 @@ export default [
 		slug: 'community-resources/talks',
 		key: 'community-resources/talks',
 	},
-] as const;
+] satisfies NavEntry[];
+
+type NavEntry = {
+	/** The visible label for this link or heading. */
+	text: string;
+	/**
+	 * A unique key for this entry. Used in translation files to provide a translation for this entry’s label.
+	 * Often the same as `slug` for links (but doesn’t have to be).
+	 */
+	key: string;
+} & (
+	| {
+			/** The content collection slug for this page *without* the language code. */
+			slug: string;
+	  }
+	| {
+			/** Marks this entry as a group heading and starts a new group. */
+			header: true;
+			/** Whether this group is in the learn or API category (currently unused). */
+			type: 'learn' | 'api';
+			/** Whether this group should be nested inside the preceding group. */
+			nested?: boolean;
+			/** Whether this group should be collapsed by default. */
+			collapsed?: boolean;
+	  }
+);

@@ -19,9 +19,18 @@ export const { getStaticPaths, GET } = OGImageRoute({
 
 	pages,
 
+	getSlug(path) {
+		path = path.replace(/^\/src\/pages\//, '');
+		path = path.replace(/\.[^.]*$/, '') + '.webp';
+		path = path.replace(/\/index\.webp$/, '.webp');
+		return path;
+	},
+
 	getImageOptions: async (_, { data, slug }: (typeof pages)[string]): Promise<OGImageOptions> => {
 		const isRtl = rtlLanguages.has(getLangFromSlug(slug));
 		return {
+			format: 'WEBP',
+			quality: 90,
 			title: data.title,
 			description: data.description,
 			dir: isRtl ? 'rtl' : 'ltr',
