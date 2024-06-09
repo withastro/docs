@@ -109,7 +109,6 @@ export default [
 
 	{ text: 'Recipes', header: true, type: 'learn', key: 'examples' },
 	{ text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
-	{ text: 'Connect to Astro Studio', slug: 'recipes/studio', key: 'recipes/studio' },
 	{ text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
 	{ text: 'Add backend services', slug: 'guides/backend', key: 'guides/backend' },
 	{ text: 'Deploy your site', slug: 'guides/deploy', key: 'guides/deploy' },
@@ -177,6 +176,11 @@ export default [
 		text: 'Dev Toolbar App API',
 		slug: 'reference/dev-toolbar-app-reference',
 		key: 'reference/dev-toolbar-app-reference',
+	},
+	{
+		text: 'Container API',
+		slug: 'reference/container-reference',
+		key: 'reference/container-reference',
 	},
 	{
 		text: 'Template Directives',
