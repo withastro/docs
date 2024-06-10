@@ -18,10 +18,10 @@
  * `src/i18n/ja/nav.ts`: `'getting-started': 'はじめに',`
  */
 export default [
-	{ text: 'Welcome, world!', header: true, type: 'learn', key: 'welcomeWorld' },
+	{ text: 'Welcome, World!', header: true, type: 'learn', key: 'welcomeWorld' },
 	{ text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },
 	{ text: 'Installation and Setup', slug: 'install-and-setup', key: 'install-and-setup' },
-	{ text: 'Deploy your site', slug: 'guides/deploy', key: 'guides/deploy' },
+	{ text: 'Deploy Your Site', slug: 'guides/deploy', key: 'guides/deploy' },
 	{ text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
 	{ text: 'Introductory Tutorial - Build a Blog', slug: 'tutorial/0-introduction', key: 'blog-tutorial' },
 
@@ -42,7 +42,7 @@ export default [
 	{ text: 'Integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
 
 
-	{ text: 'Manage your content', header: true, type: 'learn', key: 'content' },
+	{ text: 'Manage Your Content', header: true, type: 'learn', key: 'content' },
 	{ text: 'Authoring Content', slug: 'guides/content', key: 'guides/content' },
 	{ text: 'Markdown', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 	{ text: 'Content Collections', slug: 'guides/content-collections', key: 'guides/content-collections' },
@@ -65,20 +65,20 @@ export default [
 	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
 
 
-	{ text: 'Connect your data', header: true, type: 'learn', key: 'data' },
+	{ text: 'Connect Your Data', header: true, type: 'learn', key: 'data' },
 	{ text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
 	{ text: 'Astro DB', slug: 'guides/astro-db', key: 'guides/astro-db' },
-	{ text: 'Add backend services', slug: 'guides/backend', key: 'guides/backend' },
+	{ text: 'Add Backend Services', slug: 'guides/backend', key: 'guides/backend' },
 	{ text: 'E-commerce', slug: 'guides/ecommerce', key: 'guides/ecommerce' },
 	{ text: 'Authentication', slug: 'guides/authentication', key: 'guides/authentication' },
 
 
-	{ text: 'Client-side interactivity', header: true, type: 'learn', key: 'clientSide' },
+	{ text: 'Client-side Interactivity', header: true, type: 'learn', key: 'clientSide' },
 	{ text: 'UI Frameworks', slug: 'guides/framework-components', key: 'guides/framework-components' },
 	{ text: 'Scripts & Event Handling', slug: 'guides/client-side-scripts', key: 'guides/client-side-scripts' },
 
 
-	{ text: 'Maintain your project', header: true, type: 'learn', key: 'maintain' },
+	{ text: 'Maintain Your project', header: true, type: 'learn', key: 'maintain' },
 	{ text: 'Upgrade Astro', slug: 'upgrade-astro', key: 'upgrade-astro' },
 	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
 	{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
