@@ -38,7 +38,6 @@ export default NavDictionary({
 
 	examples: '레시피',
 	'guides/migrate-to-astro': 'Astro로 전환',
-	'recipes/studio': 'Astro Studio에 연결',
 	'guides/cms': 'CMS 연결',
 	'guides/backend': '백엔드 서비스 추가',
 	'guides/deploy': '사이트 배포',
@@ -74,6 +73,7 @@ export default NavDictionary({
 	'reference/adapter-reference': '어댑터 API',
 	'reference/image-service-reference': '이미지 서비스 API',
 	'reference/dev-toolbar-app-reference': '개발 툴바 앱 API',
+	'reference/container-reference': '컨테이너 API',
 	'reference/directives-reference': '템플릿 지시어',
 	'reference/cli-reference': 'Astro CLI',
 	'reference/error-reference': '오류 참조',
