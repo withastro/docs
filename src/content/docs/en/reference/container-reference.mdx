@@ -28,7 +28,7 @@ It accepts an object with the following options:
 ```ts
 export type AstroContainerOptions = {
 	streaming?: boolean;
-	renderers?: AstroRenderer[];
+	renderers?: SSRLoadedRenderer[];
 };
 ```
 
@@ -40,21 +40,26 @@ Enables rendering components using [HTML streaming](/en/guides/server-side-rende
 
 #### `renderers` option
 
-**Type:** `AstroRenderer[]`
+**Type:** `SSRLoadedRenderer[]`
 
-A list of client renderers required by the component. Use this if your `.astro` component renders any [UI framework components](/en/guides/framework-components/) using an official Astro integration (e.g. React, Vue, etc.). For each framework rendered, you must provide an object stating the integration package `name`, as well as both its client and server rendering script
+A list of loaded client renderers required by the component. Use this if your `.astro` component renders any [UI framework components](/en/guides/framework-components/) or MDX using an official Astro integration (e.g. React, Vue, etc.).
 
-The following example provides the necessary object to render an Astro component that renders a React component: 
+For each official Astro integration, import and use the `getContainerRenderer()` helper function to expose its client and server rendering scripts. These are available for `@astrojs/react`, `@astrojs/preact`, `@astrojs/solid-js`, `@astrojs/svelte`, `@astrojs/vue`, `@astrojs/lit`, and `@astrojs/mdx`.
+
+For renderer packages outside the `@astrojs` npm org, look in their documentation for `getContainerRenderer()` or a similar function provided.
+
+When using `vite` (`vitest`, Astro integrations, etc.), the renderers are loaded with the function `loadRenderers()` from the virtual module `astro:container`. Outside `vite`, you'll have to load the renderers manually.
+
+The following example provides the necessary object to render an Astro component that renders a React component and a Svelte component: 
 
 ```js
+import { getContainerRenderer as reactContainerRenderer } from "@astrojs/react";
+import { getContainerRenderer as svelteContainerRenderer } from "@astrojs/svelte";
+import { loadRenderers } from "astro:container";
+
+const renderers = loadRenderers([reactContainerRenderer(), svelteContainerRenderer()]);
 const container = await experimental_AstroContainer.create({
-    renderers: [
-      {
-	      name: "@astrojs/react",
-	      clientEntrypoint: "@astrojs/react/client.js",
-	      serverEntrypoint: "@astrojs/react/server.js"
-      }
-    ]
+    renderers
 })
 const result = await container.renderToString(ReactWrapper);
 ```

@@ -38,7 +38,6 @@ export default NavDictionary({
 
 	examples: 'レシピ',
 	'guides/migrate-to-astro': 'Astroへの移行',
-	'recipes/studio': 'Astro Studioとの接続',
 	'guides/cms': 'CMSとの接続',
 	'guides/backend': 'バックエンドサービスの追加',
 	'guides/deploy': 'サイトのデプロイ',
