@@ -1304,7 +1304,7 @@ Astro는 사용자가 새로운 기능에 조기에 액세스할 수 있도록 e
 <Since v="4.8.0" />
 </p>
 
-액션은 어디에서나 호출할 수 있는 타입 안정성을 갖춘 백엔드 함수를 작성하는 데 도움이 됩니다. [`output` 속성을 사용하여](/ko/basics/rendering-modes/#on-demand-rendered) 서버 렌더링을 활성화하고 `experimental` 객체에 `actions` 플래그를 추가합니다.
+액션은 어디에서나 호출할 수 있는 타입 안정성을 갖춘 백엔드 함수를 작성하는 데 도움이 됩니다. [`output` 속성을 사용하여](/ko/basics/rendering-modes/#요청-시-렌더링) 서버 렌더링을 활성화하고 `experimental` 객체에 `actions` 플래그를 추가합니다.
 
 ```js
 {
@@ -1582,4 +1582,109 @@ export function onRequest(ctx, next) {
 }
 ```
 
-전체 개요를 확인하고 이 실험적 API에 대한 피드백을 제공하려면 [RFC 리라우팅](https://github.com/withastro/roadmap/blob/feat/reroute/proposals/0047-rerouting.md)을 참조하세요
+전체 개요를 확인하고 이 실험적 API에 대한 피드백을 제공하려면 [RFC 리라우팅](https://github.com/withastro/roadmap/blob/feat/reroute/proposals/0047-rerouting.md)을 참조하세요.
+
+### experimental.env
+
+<p>
+
+**타입:** `object`<br />
+**기본값:** `undefined`<br />
+<Since v="4.10.0" />
+</p>
+
+실험적인 `astro:env` 기능을 활성화합니다.
+
+`astro:env` API를 사용하면 환경 변수에 대해 타입 안정성을 갖춘 스키마를 구성하고 서버 또는 클라이언트에서 사용할 수 있는지 여부를 나타낼 수 있습니다. 적절한 `/client` 또는 `/server` 모듈에서 정의된 변수를 가져와 사용합니다.
+
+```astro
+---
+import { PUBLIC_APP_ID } from "astro:env/client"
+import { PUBLIC_API_URL, getSecret } from "astro:env/server"
+const API_TOKEN = getSecret("API_TOKEN")
+const data = await fetch(`${PUBLIC_API_URL}/users`, {
+	method: "POST",
+	headers: {
+		"Content-Type": "application/json",
+		"Authorization": `Bearer ${API_TOKEN}`
+	},
+	body: JSON.stringify({ appId: PUBLIC_APP_ID })
+})
+---
+```
+
+환경 변수의 데이터 타입과 속성을 정의하려면 `experimental.env.schema` Astro 구성에 스키마를 선언하세요. `envField` 도우미를 사용하면 변수를 문자열, 숫자 또는 부울로 정의하고 객체에 속성을 전달할 수 있습니다.
+
+```js
+// astro.config.mjs
+import { defineConfig, envField } from "astro/config"
+
+export default defineConfig({
+    experimental: {
+        env: {
+            schema: {
+                PUBLIC_API_URL: envField.string({ context: "client", access: "public", optional: true }),
+                PUBLIC_PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+                API_SECRET: envField.string({ context: "server", access: "secret" }),
+            }
+        }
+    }
+})
+```
+
+현재 지원되는 데이터 타입은 문자열, 숫자, 부울 세 가지입니다.
+
+[`env.schema`](#experimentalenvschema)에 정의된 `context` (클라이언트 또는 서버) 및 `access`(비밀 또는 공개) 설정의 조합에 따라 결정되는 세 가지 종류의 환경 변수가 있습니다.
+
+- **공개 클라이언트 변수**: 이러한 변수는 최종 클라이언트 및 서버 번들 모두에 포함되며 `astro:env/client` 모듈을 통해 클라이언트와 서버 모두에서 액세스할 수 있습니다.
+
+    ```js
+    import { PUBLIC_API_URL } from "astro:env/client"
+    ```
+
+- **공개 서버 변수**: 이 변수는 최종 서버 번들에 포함되며 `astro:env/server` 모듈을 통해 서버에서 액세스할 수 있습니다.
+
+    ```js
+    import { PUBLIC_PORT } from "astro:env/server"
+    ```
+
+- **비밀 서버 변수**: 이 변수는 최종 번들의 일부가 아니며 `astro:env/server` 모듈에서 사용할 수 있는 `getSecret()` 도우미 함수를 통해 서버에서 액세스할 수 있습니다.
+
+    ```js
+    import { getSecret } from "astro:env/server"
+
+    const API_SECRET = getSecret("API_SECRET") // 타입이 설정됨
+    const SECRET_NOT_IN_SCHEMA = getSecret("SECRET_NOT_IN_SCHEMA") // string | undefined
+    ```
+
+**참고:** 이 데이터를 클라이언트에 보내는 안전한 방법이 없기 때문에 비밀 클라이언트 변수는 지원되지 않습니다. 따라서 스키마에서 `context: "client"`와 `access: "secret"`을 모두 구성하는 것은 불가능합니다.
+
+전체 개요를 확인하고 이 실험적 API에 대한 피드백을 제공하려면 [Astro Env RFC](https://github.com/withastro/roadmap/blob/feat/astro-env-rfc/proposals/0046-astro-env.md)를 참조하세요.
+
+#### experimental.env.schema
+
+<p>
+
+**타입:** `EnvSchema`<br />
+**기본값:** `undefined`<br />
+<Since v="4.10.0" />
+</p>
+
+`envField`를 사용하여 데이터 타입 (`string`, `number`, `boolean`)과 환경 변수의 속성 (`context` (클라이언트 또는 서버), `access` (공개 또는 비밀), `default` (사용할 기본값)) 및 환경 변수의 선택 사항 여부 (기본 값은 `false`)를 정의하는 객체입니다.
+
+```js
+// astro.config.mjs
+import { defineConfig, envField } from "astro/config"
+
+export default defineConfig({
+  experimental: {
+    env: {
+      schema: {
+        PUBLIC_API_URL: envField.string({ context: "client", access: "public", optional: true }),
+        PUBLIC_PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+        API_SECRET: envField.string({ context: "server", access: "secret" }),
+      }
+    }
+  }
+})
+```
