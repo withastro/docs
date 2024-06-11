@@ -37,7 +37,6 @@ export default NavDictionary({
 
 	examples: 'Méthodes',
 	'guides/migrate-to-astro': 'Migrer vers Astro',
-	'recipes/studio': 'Connecter a Astro Studio',
 	'guides/cms': 'Connecter un CMS',
 	'guides/backend': 'Ajouter des services Backend',
 	'guides/deploy': 'Déployez votre site',
