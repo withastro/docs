@@ -59,7 +59,6 @@ Las carpetas localizadas no necesitan estar en la raíz de la carpeta `/pages/`.
 
 ### Crear enlaces
 
-
 Con el enrutamiento i18n configurado, ahora puedes calcular enlaces a páginas dentro de tu sitio utilizando las funciones de ayuda como [`getRelativeLocaleURL()`](/es/reference/api-reference/#getrelativelocaleurl) disponibles en el módulo [`astro:i18n`](/es/reference/api-reference/#internacionalización-astroi18n). Estos enlaces generados siempre proporcionarán la ruta localizada correcta y pueden ayudarte a usar o verificar correctamente las URL en tu sitio.
 
 
@@ -166,7 +165,7 @@ Establece esta opción cuando todas las rutas tendrán su prefijo `/locale/` en 
           - index.astro
   </FileTree>
 
-- Las URLs sin un prefijo de idioma (por ejemplo, `example.com/about/`) devolverán un código de estado 404 (no encontrado) a menos que especifiques una [estrategia de respaldo](#estrategia-de-respaldo).
+- Las URLs sin un prefijo de idioma (por ejemplo, `example.com/about/`) devolverán un código de estado 404 (no encontrado) a menos que especifiques una [estrategia de respaldo](#fallback).
 
 ### `redirectToDefaultLocale`
 
@@ -245,74 +244,15 @@ export const onRequest = sequence(
 )
 ```
 
-## Rutas de idioma personalizadas
+## `domains`
 
-En lugar de definir los `locales` de tu sitio como cadenas (por ejemplo, "en", "pt-br"), Astro también te permite mapear un número arbitrario de [códigos de idioma reconocidos por el navegador](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#syntax) a una `path` de URL personalizada. Mientras que los `locales` pueden ser cadenas de cualquier formato siempre que correspondan a la estructura de carpetas de tu proyecto, los `codes` deben seguir la sintaxis aceptada por el navegador.
-
-Pasa un objeto al array `locales` con una clave `path` para definir un prefijo de URL personalizado, y `codes` para indicar los idiomas mapeados a esta URL. En este caso, el nombre de tu carpeta `/[locale]/` debe coincidir exactamente con el valor de `path` y tus URLs se generarán utilizando el valor de `path`.
-
-Esto es útil si admites múltiples variaciones de un idioma (por ejemplo, `"fr"`, `"fr-BR"` y `"fr-CA"`) y deseas tener todas estas variaciones mapeadas bajo la misma URL `/fr/`, o incluso personalizarla por completo (por ejemplo, `/french/`):
-
-```js title="astro.config.mjs" del={5} ins={6-9}
-import { defineConfig } from "astro/config"
-export default defineConfig({
-  i18n: {
-    defaultLocale: "en",
-    locales: ["es", "en", "fr"],
-    locales: ["es", "en", {
-        path: "french", // sin barras incluidas
-        codes: ["fr", "fr-BR", "fr-CA"]
-    }],
-    routing: {
-        prefixDefaultLocale: true
-    }
-  }
-})
-```
-
-Cuando uses funciones del [módulo virtual `astro:i18n`](/es/reference/api-reference/#internacionalización-astroi18n) para calcular rutas de URL válidas basadas en tu configuración (por ejemplo, `getRelativeLocaleUrl()`), [usa el `path` como valor para `locale`](/es/reference/api-reference/#getlocalebypath).
-
-## Detección de idioma del navegador
-
-El enrutamiento i18n de Astro te permite acceder a dos propiedades para la detección del idioma del navegador en las páginas renderizadas bajo demanda: `Astro.preferredLocale` y `Astro.preferredLocaleList`. Todas las páginas, incluidas las páginas prerenderizadas estáticamente, tienen acceso a `Astro.currentLocale`.
-
-Esto combina el encabezado `Accept-Language` del navegador y tus `locales` (cadenas o `codes`) para respetar automáticamente los idiomas preferidos de tus usuarios.
-
-- [`Astro.preferredLocale`](/es/reference/api-reference/#astropreferredlocale): Astro puede calcular un **idioma preferido** para tu visitante si el idioma preferido de su navegador está incluido en tu matriz `locales`. Este valor es `undefined` si no existe tal coincidencia.
-
-- [`Astro.preferredLocaleList`](/es/reference/api-reference/#astropreferredlocalelist): Un array de todos los idiomas que son solicitados por el navegador y admitidos por tu sitio web. Esto produce una lista de todos los idiomas compatibles entre tu sitio y tu visitante. El valor es `[]` si ninguno de los idiomas solicitados por el navegador se encuentra en tu matriz `locales`. Si el navegador no especifica ningún idioma preferido, entonces este valor será [`i18n.locales`].
-
-- [`Astro.currentLocale`](/es/reference/api-reference/#astrocurrentlocale): El idioma calculado a partir de la URL actual, utilizando la sintaxis especificada en tu configuración de `locales`. Si la URL no contiene un prefijo `/[locale]/`, entonces el valor se establecerá en [`i18n.defaultLocale`](/es/reference/configuration-reference/#i18ndefaultlocale).
-
-Para que coincidan correctamente con las preferencias de tus usuarios, proporciona tus `codes` utilizando el mismo patrón [utilizado por el navegador](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#syntax).
-
-## Estrategia de respaldo
-
-El sistema de rutas i18n de Astro permite configurar **una estrategia de respaldo**.  Cuando una página en un idioma no existe (por ejemplo, una página que aún no está traducida), en lugar de mostrar una página de error 404, puedes redirigir a un usuario de un idioma a otro según el idioma.  Esto es útil cuando aún no tienes una página para cada ruta, pero deseas seguir ofreciendo contenido a tus visitantes.
-
-Por ejemplo, la configuración a continuación establece `es` como el idioma de respaldo para cualquier ruta `fr` que falte. Esto significa que un usuario que visite `example.com/fr/mi-pagina/` será redirigido y se le mostrará el contenido de `example.com/es/mi-pagina/` en lugar de ser llevado a una página 404 cuando `src/pages/fr/mi-pagina.astro` no existe.
-
-```js title="astro.config.mjs" ins={6-8} 
-import { defineConfig } from "astro/config"
-export default defineConfig({
-  i18n: {
-    defaultLocale: "en",
-    locales: ["es", "en", "fr"],
-    fallback: {
-      fr: "es"  
-    }
-  }
-})
-```
-Astro se asegurará de que se cree una página en `src/pages/fr` para cada página que exista en `src/pages/es/`. Si la página no existe, se creará una página con una redirección a la ruta `es` correspondiente.
-
-## `domains` (experimental)
-
-<p><Since v="4.3.0" /></p>
+<p><Since v="4.9.0" /></p>
 
 Esta opción de enrutamiento te permite personalizar tus dominios en función de cada idioma para proyectos renderizados en `server` utilizando el adaptador [`@astrojs/node`](/es/guides/integrations-guide/node/) o [`@astrojs/vercel`](/es/guides/integrations-guide/vercel/) con un `site` configurado.
 
-Para habilitar esto en tu proyecto, [configura el enrutamiento i18n](#configuración-de-rutas-i18n) con tus preferencias si aún no lo has hecho. Luego, establece la bandera `experimental.i18nDomains` en `true` y agrega `i18n.domains` para mapear cualquiera de tus `locales` admitidos a URLs personalizadas:
+Esto es útil si admites múltiples variaciones de un idioma (por ejemplo, `"fr"`, `"fr-BR"` y `"fr-CA"`) y deseas tener todas estas variaciones mapeadas bajo la misma URL `/fr/`, o incluso personalizarla por completo (por ejemplo, `/french/`):
+
+Agrega `i18n.domains` para mapear cualquiera de tus `locales` admitidos a URLs personalizadas:
 
 ```js title="astro.config.mjs" {3-7} ins={14-21}
 import { defineConfig } from "astro/config"
@@ -332,39 +272,92 @@ export default defineConfig({
         fr: "https://fr.example.com",
         es: "https://example.es"
     }
-  },
-  experimental: {
-    i18nDomains: true
   }
 })
 ```
 
-Todas las `locales` no mapeadas seguirán tu configuración de `prefixDefaultLocales`. Sin embargo, incluso si este valor es `false`, los archivos de página para tu `defaultLocale` también deben existir dentro de una carpeta localizada. Para la configuración anterior, se requiere una carpeta `/en/`.
+Todos los `locales` no mapeados seguirán tu configuración de `prefixDefaultLocales`. Sin embargo, incluso si este valor es `false`, los archivos de página para tu `defaultLocale` también deben existir dentro de una carpeta localizada. Para la configuración anterior, se requiere una carpeta `/en/`.
 
 Con la configuración anterior:
-  
-- El archivo /fr/about.astro creará la URL `https://fr.example.com/about`.
-- El archivo /es/about.astro creará la URL `https://example.es/about`.
-- El archivo /ja/about.astro creará la URL `https://example.com/ja/about`.
-- El archivo /en/about.astro creará la URL `https://example.com/about`.
 
-Las URL anteriores también serán devueltas por las funciones `getAbsoluteLocaleUrl()` y `getAbsoluteLocaleUrlList()`.
+- El archivo `/fr/about.astro` creará la URL `https://fr.example.com/about`.
+- El archivo `es/about.astro` creará la URL `https://example.es/about`.
+- El archivo `/ja/about.astro` creará la URL `https://example.com/ja/about`.
+- El archivo `/en/about.astro` creará la URL `https://example.com/about`.
+
+Los URL anteriores también serán devueltos por las funciones `getAbsoluteLocaleUrl()` y `getAbsoluteLocaleUrlList()`.
+
+## `fallback`
+
+El sistema de rutas i18n de Astro permite configurar **una estrategia de respaldo**.  Cuando una página en un idioma no existe (por ejemplo, una página que aún no está traducida), en lugar de mostrar una página de error 404, puedes redirigir a un usuario de un idioma a otro según el idioma.  Esto es útil cuando aún no tienes una página para cada ruta, pero deseas seguir ofreciendo contenido a tus visitantes.
+
+Por ejemplo, la configuración a continuación establece `es` como el idioma de respaldo para cualquier ruta `fr` que falte. Esto significa que un usuario que visite `example.com/fr/mi-pagina/` será redirigido y se le mostrará el contenido de `example.com/es/mi-pagina/` en lugar de ser llevado a una página 404 cuando `src/pages/fr/mi-pagina.astro` no existe.
+
+```js title="astro.config.mjs" ins={6-8} 
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  i18n: {
+    defaultLocale: "en",
+    locales: ["es", "en", "fr"],
+    fallback: {
+      fr: "es"  
+    }
+  }
+})
+```
+Astro se asegurará de que se cree una página en `src/pages/fr` para cada página que exista en `src/pages/es/`. Si la página no existe, se creará una página con una redirección a la ruta `es` correspondiente.
+
+## Rutas de idioma personalizadas
+
+Además de definir los `locales` admitidos por tu sitio como cadenas (por ejemplo, "en", "pt-br"), Astro también te permite mapear un número arbitrario de [códigos de idioma reconocidos por el navegador](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#syntax) a una `ruta` URL personalizada. Mientras que los `locales` pueden ser cadenas de cualquier formato siempre que correspondan a la estructura de carpetas de tu proyecto, los `códigos` deben seguir la sintaxis aceptada por el navegador.
+
+Pasa un objeto al array `locales` con una clave `path` para definir un prefijo de URL personalizado, y `codes` para indicar los idiomas mapeados a esta URL. En este caso, el nombre de la carpeta `/[locale]/` debe coincidir exactamente con el valor de `path` y tus URLs se generarán utilizando el valor de `path`.
+
+Esto es útil si admites múltiples variaciones de un idioma (por ejemplo, `"fr"`, `"fr-BR"` y `"fr-CA"`) y deseas tener todas estas variaciones mapeadas bajo la misma URL `/fr/`, o incluso personalizarla por completo (por ejemplo, `/french/`):
+
+```js title="astro.config.mjs" del={5} ins={6-9}
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  i18n: {
+    defaultLocale: "en",
+    locales: ["es", "en", "fr"],
+    locales: ["es", "en", {
+        path: "french", // no slashes included
+        codes: ["fr", "fr-BR", "fr-CA"]
+    }],
+    routing: {
+        prefixDefaultLocale: true
+    }
+})
+```
+
+Cuando uses funciones del [módulo virtual `astro:i18n`](/es/reference/api-reference/#internacionalización-astroi18n) para computar rutas de URL válidas basadas en tu configuración (por ejemplo, `getRelativeLocaleUrl()`), [usa el `path` como valor para `locale`](/es/reference/api-reference/#getlocalebypath).
 
 #### Limitaciones
 
-
-Esta función tiene algunas restricciones:
-
+Esta característica tiene algunas restricciones:
 - La opción `site` es obligatoria.
-- El `output` debe ser `server`.
+- La opción `output` debe estar configurada en `"server"`.
 - No puede haber páginas prerenderizadas individuales.
-- La funcionalidad del adaptador [`functionPerRoute`](/es/reference/adapter-reference/#functionperroute) no es compatible.
-
+- La característica del adaptador [`functionPerRoute`](/es/reference/adapter-reference/#functionperroute) no es admitida.
 Astro depende de los siguientes encabezados para admitir la función:
-
-- [`X-Forwarded-Host`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host) y [`Host`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Host). Astro usará lo principal primero. Si no existe, intentará lo secundario.
+- [`X-Forwarded-Host`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host) y [`Host`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Host). Astro usará el primero, y si no está presente, intentará el segundo.
 - [`X-Forwarded-Proto`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto) y [`URL#protocol`](https://developer.mozilla.org/en-US/docs/Web/API/URL/protocol) de la solicitud del servidor.
+Asegúrate de que tu servidor proxy/plataforma de alojamiento pueda proporcionar esta información. Si no se pueden recuperar estos encabezados, se mostrará una página 404 (código de estado).
 
-El servidor proxy/alojamiento debe proveer esta información. Si no se obtienen las cabeceras, dará error 404.
+## Detección de idioma del navegador
+
+El enrutamiento i18n de Astro te permite acceder a dos propiedades para la detección del idioma del navegador en las páginas renderizadas bajo demanda: `Astro.preferredLocale` y `Astro.preferredLocaleList`. Todas las páginas, incluidas las páginas prerenderizadas estáticamente, tienen acceso a `Astro.currentLocale`.
+
+Estas propiedades combinan el encabezado `Accept-Language` del navegador y tus `locales` (cadenas o `codes`) para respetar automáticamente los idiomas preferidos de tus visitantes.
+
+- [`Astro.preferredLocale`](/es/reference/api-reference/#astropreferredlocale):  Astro puede computar un **idioma preferido** para tu visitante si el idioma preferido de su navegador está incluido en tu array `locales`. Este valor es `undefined` si no existe tal coincidencia.
+
+- [`Astro.preferredLocaleList`](/es/reference/api-reference/#astropreferredlocalelist): Un array de todos los idiomas que son solicitados por el navegador y admitidos por tu sitio web. Esto produce una lista de todos los idiomas compatibles entre tu sitio y tu visitante. El valor es `[]` si ninguno de los idiomas solicitados por el navegador se encuentra en tu array `locales`. Si el navegador no especifica ningún idioma preferido, entonces este valor será [`i18n.locales`].
+
+- [`Astro.currentLocale`](/es/reference/api-reference/#astrocurrentlocale): El idioma computado a partir de la URL actual, utilizando la sintaxis especificada en tu configuración `locales`. Si la URL no contiene un prefijo `/[locale]/`, entonces el valor se establecerá en [`i18n.defaultLocale`](/es/reference/configuration-reference/#i18ndefaultlocale).
+
+Para que coincidan correctamente con las preferencias de tus visitantes, proporciona tus `codes` utilizando el mismo patrón [utilizado por el navegador](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#syntax).
 
 [`site`]: /es/reference/configuration-reference/#site
+[`i18n.locales`]: /es/reference/configuration-reference/#i18nlocales

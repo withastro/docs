@@ -89,7 +89,7 @@ export default defineConfig({
 		service: sharpImageService(),
 	},
 	experimental: {
-		contentCollectionCache: true,
+		contentCollectionCache: false,
 		directRenderScript: true,
 	},
 });
