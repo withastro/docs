@@ -204,30 +204,17 @@ export default defineConfig({
 });
 ```
 
-### `wasmModuleImports`
+### `cloudflareModules`
 
 <p>
 
 **타입:** `true | false`<br />
-**기본값:** `false`
+**기본값:** `true`
 </p>
 
-`.wasm?module` import 구문을 사용하여 `.wasm` 파일을 [ES 모듈로 직접 가져올지](https://github.com/WebAssembly/esm-integration/tree/main/proposals/esm-integration) 여부입니다.
+[`.wasm`, `.bin`, `.txt` 모듈 가져오기](#cloudflare-모듈-가져오기)를 활성화합니다.
 
-`astro build` 및 `astro dev` 모두에서 이 기능을 활성화하려면 `astro.config.mjs` 파일에 `wasmModuleImports: true`를 추가하세요. [Wasm 모듈 사용](#wasm-모듈-사용)에 대해 자세히 알아보세요.
-
-
-```js title="astro.config.mjs" ins={6}
-import {defineConfig} from "astro/config";
-import cloudflare from '@astrojs/cloudflare';
-
-export default defineConfig({
-  adapter: cloudflare({
-     wasmModuleImports: true
-  }),
-  output: 'server'
-})
-```
+이 기능은 기본적으로 활성화되어 있습니다. 비활성화하려면 `cloudflareModules: false`를 설정하세요.
 
 ## Cloudflare 런타임
 
@@ -339,14 +326,23 @@ Cloudflare Pages를 사용하여 [사용자 지정 리디렉션](https://develop
 
 사용자 정의 `public/_routes.json`파일을 생성하면 자동 생성이 재정의됩니다. 자세한 내용은 [사용자 지정 `_routes.json` 생성에 대한 Cloudflare 문서](https://developers.cloudflare.com/pages/platform/functions/routing/#create-a-_routesjson-file)를 참조하세요.
 
-## Wasm 모듈 사용
+## Cloudflare 모듈 가져오기
+
+Cloudflare worker 런타임은 일부 [비표준 모듈 타입](https://developers.cloudflare.com/pages/functions/module-support/) 가져오기를 지원합니다. 대부분의 추가 파일 타입은 Astro에서도 사용할 수 있습니다.
+
+- `.wasm` 또는 `.wasm?module`: 인스턴스화할 수 있는 [`WebAssembly.Module`](https://developer.mozilla.org/ko/docs/WebAssembly/JavaScript_interface/Module)을 내보냅니다.
+- `.bin`: 파일의 원시 바이너리 콘텐츠의 [`ArrayBuffer`](https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer)를 내보냅니다.
+- `.txt`: 파일 콘텐츠의 문자열을 내보냅니다.
+
+모든 모듈 타입은 단일 기본값을 내보냅니다. 모듈은 서버 측에서 렌더링된 페이지 또는 정적 사이트 생성을 위해 사전 렌더링된 페이지에서 가져올 수 있습니다.
 
 다음은 요청의 숫자 매개변수를 함께 추가하여 요청에 응답하는 Wasm 모듈을 가져오는 예시입니다.
 
 ```js title="pages/add/[a]/[b].js"
-import mod from '../util/add.wasm?module';
+// WebAssembly 모듈 가져오기
+import mod from '../util/add.wasm';
 
-// 모듈을 공유하기 위해 미리 인스턴스화
+// 사용하기 위해 먼저 인스턴스화
 const addModule: any = new WebAssembly.Instance(mod);
 
 export async function GET(context) {
@@ -356,7 +352,7 @@ export async function GET(context) {
 }
 ```
 
-이 예시는 사소하지만 Wasm을 사용하면 이미지 처리 라이브러리 내장과 같은 중요한 I/O를 포함하지 않는 계산 집약적인 작업을 가속화할 수 있습니다.
+이 예시는 사소하지만 Wasm을 사용하면 이미지 처리 라이브러리를 포함하거나 읽기 전용 데이터 세트에 대한 검색을 위해 미리 인덱싱된 작은 데이터베이스를 포함하는 등 중요한 I/O를 포함하지 않는 계산 집약적인 작업을 가속화할 수 있습니다.
 
 ## Node.js 호환성
 
