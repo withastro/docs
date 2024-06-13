@@ -30,8 +30,6 @@ const categoryIndex: Partial<Record<ReturnType<typeof getPageCategory>, string>>
 /** Map of page slugs to the slug of their parent page. */
 const parentIndex: Record<string, string> = {
 	'editor-setup': 'install-and-setup',
-	'guides/typescript': 'install-and-setup',
-	'guides/aliases': 'install-and-setup',
 	'guides/dev-toolbar': 'install-and-setup',
 };
 
