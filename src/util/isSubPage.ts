@@ -32,7 +32,6 @@ const parentIndex: Record<string, string> = {
 	'editor-setup': 'install-and-setup',
 	'guides/typescript': 'install-and-setup',
 	'guides/aliases': 'install-and-setup',
-	'guides/environment-variables': 'install-and-setup',
 	'guides/dev-toolbar': 'install-and-setup',
 };
 
