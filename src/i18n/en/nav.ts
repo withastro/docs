@@ -78,7 +78,7 @@ export default [
 	{ text: 'Scripts & Event Handling', slug: 'guides/client-side-scripts', key: 'guides/client-side-scripts' },
 
 
-	{ text: 'Maintain Your project', header: true, type: 'learn', key: 'maintain' },
+	{ text: 'Maintain Your Project', header: true, type: 'learn', key: 'maintain' },
 	{ text: 'Upgrade Astro', slug: 'upgrade-astro', key: 'upgrade-astro' },
 	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
 	{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
