@@ -23,7 +23,7 @@ export default [
 	{ text: 'Installation and Setup', slug: 'install-and-setup', key: 'install-and-setup' },
 	{ text: 'Deploy Your Site', slug: 'guides/deploy', key: 'guides/deploy' },
 	{ text: 'Migrate to Astro', slug: 'guides/migrate-to-astro', key: 'guides/migrate-to-astro' },
-	{ text: 'Introductory Tutorial - Build a Blog', slug: 'tutorial/0-introduction', key: 'blog-tutorial' },
+	{ text: 'Tutorial: Build a Blog', slug: 'tutorial/0-introduction', key: 'blog-tutorial' },
 
 
 	{ text: 'Core Concepts', header: true, type: 'learn', key: 'coreConcepts' },
