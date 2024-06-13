@@ -71,6 +71,7 @@ export default [
 	{ text: 'Add Backend Services', slug: 'guides/backend', key: 'guides/backend' },
 	{ text: 'E-commerce', slug: 'guides/ecommerce', key: 'guides/ecommerce' },
 	{ text: 'Authentication', slug: 'guides/authentication', key: 'guides/authentication' },
+	{ text: 'Environment Variables', slug: 'guides/environment-variables', key: 'guides/environment-variables' },
 
 
 	{ text: 'Client-Side Interactivity', header: true, type: 'learn', key: 'clientSide' },
