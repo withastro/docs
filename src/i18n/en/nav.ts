@@ -90,6 +90,7 @@ export default [
 	{ text: 'Astro Runtime API', slug: 'reference/api-reference', key: 'reference/api-reference' },
 	{ text: 'Astro CLI', slug: 'reference/cli-reference', key: 'reference/cli-reference' },
 	{ text: 'Directives Reference', slug: 'reference/directives-reference', key: 'reference/directives-reference' },
+	{ text: 'TypeScript Reference', slug: 'guides/typescript', key: 'guides/typescript' },
 	{ text: 'Error Reference', slug: 'reference/error-reference', key: 'reference/error-reference' },
 
 
