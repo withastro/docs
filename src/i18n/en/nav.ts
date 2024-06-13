@@ -73,7 +73,7 @@ export default [
 	{ text: 'Authentication', slug: 'guides/authentication', key: 'guides/authentication' },
 
 
-	{ text: 'Client-side Interactivity', header: true, type: 'learn', key: 'clientSide' },
+	{ text: 'Client-Side Interactivity', header: true, type: 'learn', key: 'clientSide' },
 	{ text: 'UI Frameworks', slug: 'guides/framework-components', key: 'guides/framework-components' },
 	{ text: 'Scripts & Event Handling', slug: 'guides/client-side-scripts', key: 'guides/client-side-scripts' },
 
