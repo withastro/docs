@@ -7,24 +7,123 @@ i18nReady: true
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import { Steps } from '@astrojs/starlight/components';
 
-[Zerops](https://zerops.io/) is a dev-first cloud platform that can be used to deploy an SSR Astro site.
+[Zerops](https://zerops.io/) is a dev-first cloud platform that can be used to deploy both Static and SSR Astro site.
 
-This guide will walk you through deploying an Astro project using the Node.js adapter to Zerops.
+This guide will walk you through deploying of a static project and Node.js Project to Zerops.
 
 ## Prerequisites
 
-- **An Astro project using the [`@astrojs/node` SSR adapter](/en/guides/integrations-guide/node/)** 
+- **An Astro project using the [`@astrojs/node` SSR adapter](/en/guides/integrations-guide/node/)** (for Node.js Project)
+- **zCli** zerops cli (optional)
 - **A Zerops account** - If you don’t already have one, you can [create a Zerops account](https://zerops.io/) for free.
 
-:::tip[Start from a template]
+## Creating a Zerops Static project
+
+:::tip[Start from a Static template]
+The [Zerops x Astro - Static example app](https://github.com/zeropsio/recipe-astro-static) can be imported directly into your [Zerops Dashboard](https://app.zerops.io/dashboard/projects), and deployed in one click! 
+
+```yaml
+project:
+  name: recipe-astro
+  tags:
+    - zerops-recipe
+
+services:
+  - hostname: app
+    type: static@1.0
+    enableSubdomainAccess: true
+    buildFromGit: https://github.com/zeropsio/recipe-astro-static
+```
+
+The following YAML structure will setup a project called recipe-astro with a static service called app.
+:::
+
+First create a project using [Zerops `project add` wizard](https://app.zerops.io/dashboard/project-add) then create a static service for your Astro project.
+
+#### Pushing your static app to Zerops
+
+Now that you've prepared a Static service on Zerops,  you will need to create a `zerops.yml` file at the root of your project to trigger the build and deploy pipeline on Zerops.
+
+The following example shows the configuration of the required build and operations for the project with hostname `app`:
+
+  <PackageManagerTabs>
+    <Fragment slot="npm">
+    ```yaml title="zerops.yml"
+    zerops:
+      - setup: app # Should match with static service's name
+        build:
+          base: nodejs@20
+          buildCommands:
+            - npm i
+            - npm build
+          deployFiles:
+            - dist/~
+          cache:
+            - node_modules
+            - package-lock.json
+        run:
+          base: static
+    ```
+    </Fragment>
+    <Fragment slot="pnpm">
+    ```yaml title="zerops.yml"
+    zerops:
+      - setup: app # Should match with static service's name
+        build:
+          base: nodejs@20
+          buildCommands:
+            - pnpm i
+            - pnpm build
+          deployFiles:
+            - dist/~
+          cache:
+            - node_modules
+            - pnpm-lock.yaml
+        run:
+          base: static
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```yaml title="zerops.yml"
+    zerops:
+      - setup: app # Should match with static service's name
+        build:
+          base: nodejs@20
+          buildCommands:
+            - yarn
+            - yarn build
+          deployFiles:
+            - dist/~
+          cache:
+            - node_modules
+            - yarn.lock
+        run:
+          base: static
+    ```
+    </Fragment>
+  </PackageManagerTabs>
+
+Now you can deploy this using zCli [Trigger the pipeline using zcli](#trigger-the-pipeline-using-zerops-cli-zcli) or you can Or you can import a github/gitlab repository which already has a `zerops.yml`
+
+
+:::note
+One Zerops project can contain multiple Astro apps.
+:::
+
+## Creating a Zerops Node.js project
+
+:::tip[Start from a Node.js template]
 The [Zerops x Astro - Node.js example app](https://github.com/zeropsio/recipe-astro-nodejs) can be imported directly into your [Zerops Dashboard](https://app.zerops.io/dashboard/projects), and deployed in one click!
 
 ```yaml
 project:
-  name: astro
+  name: recipe-astro
+  tags:
+    - zerops-recipe
+
 services:
-  - hostname: astronode
-    type: nodejs@20
+  - hostname: app
+    type: nodejs@20 
     buildFromGit: https://github.com/zeropsio/recipe-astro-nodejs
     ports:
       - port: 4321
@@ -32,32 +131,19 @@ services:
     enableSubdomainAccess: true
     minContainers: 1
 ```
+
+The following YAML structure will setup a project called recipe-astro with a Node.js v20 service called app.
 :::
 
-## Creating a Zerops Node.js project
-
-You can create a Node.js service for your Astro site through the [Zerops `project add` wizard](https://app.zerops.io/dashboard/project-add), or by importing an Astro site using `.yaml`.
-
-The following YAML structure will setup a project called `my-astro-sites` with a Node.js v20 service called `hellothere`. One Zerops project can contain many Astro apps.
-
-```yaml
-project:
-  name: my-astro-sites
-services:
-  - hostname: hellothere
-    type: nodejs@20
-    ports:
-      - port: 4321
-        httpSupport: true
-    minContainers: 1
-```
+You can create a Node.js service for your Astro site through the [Zerops `project add` wizard](https://app.zerops.io/dashboard/project-add), or by importing an Astro site using [`zerops-project-import.yaml`](https://github.com/zeropsio/recipe-astro-nodejs/blob/main/zerops-project-import.yml).
 
 
-## Building and deploying your app to Zerops
+
+#### Pushing your Node.js app to Zerops
 
 Now that you've prepared a Node.js service on Zerops,  you will need to create a `zerops.yml` file at the root of your project to trigger the build and deploy pipeline on Zerops.
 
-The following example shows configuring the required build and run operations for the example project with hostname `hellothere`:
+The following example shows the configuration of the required build and operations for the project with hostname `app`:
 
   <PackageManagerTabs>
     <Fragment slot="npm">
@@ -143,9 +229,9 @@ The following example shows configuring the required build and run operations fo
     </Fragment>
   </PackageManagerTabs>
 
-### Trigger the pipeline using GitHub / GitLab
-To setup continuous deployment on either a push to a branch or on a new release, go to your Node.js service detail and connect your Zerops service with a GitHub or GitLab repository.
+## Deploying
 
+There are three ways to deploy your astro app in Zerops.
 
 ### Trigger the pipeline Using Zerops CLI (zcli)
 
@@ -170,7 +256,49 @@ To setup continuous deployment on either a push to a branch or on a new release,
 		```
 </Steps>
 
+### Trigger the pipeline using GitHub / GitLab
+To setup continuous deployment on either a push to a branch or on a new release, go to your Node.js service detail and connect your Zerops service with a GitHub or GitLab repository.
+
+### Importing an Existing Project
+To setup continuous deployment on either a push to a branch or on a new release, go to your Node.js service detail and connect your Zerops service with a GitHub or GitLab repository.
+
+<Steps>
+1. Importing for Node.js deployment.
+    ```yaml
+    project:
+      name: recipe-astro # creates a new project
+      tags:
+        - zerops-recipe
+
+    # You can ignore the yaml above - if you already have project 
+    # Just go to the project and then navigate to import a service button
+    services:
+      - hostname: app # should match with zerops.yml service name
+        type: nodejs@20
+        enableSubdomainAccess: true
+        buildFromGit: https://github.com/zeropsio/recipe-astro-nodejs
+    ```
+
+2. Importing for Static deployment.
+    ```yaml
+    project:
+      name: recipe-astro # creates a new project
+      tags:
+        - zerops-recipe
+
+    # You can use the below if you already have project 
+    # Just go to the project and then navigate to import a service button
+    services:
+      - hostname: app # should match with zerops.yml service name
+        type: static@1.0 # should match with zerops.yml service name
+        enableSubdomainAccess: true # enables zerops subdomain to preview the project
+        buildFromGit: https://github.com/zeropsio/recipe-astro-static  # you can replace with your github repo if the project has zerops.yml
+    ```
+</Steps>
+
+
+
 ## Resources
 
 - [Deploying Astro to Zerops in 3 mins](https://medium.com/@arjunaditya/how-to-deploy-astro-to-zerops-4230816a62b4)
-- [Detailed guide to creating a Zerops Node.js service](https://docs.zerops.io/nodejs/how-to/create)
+- [Zerops Docs: Detailed guide to creating a Zerops Node.js service](https://docs.zerops.io/nodejs/how-to/create)
