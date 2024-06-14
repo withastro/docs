@@ -202,28 +202,16 @@ export default defineConfig({
 });
 ```
 
-### wasmModuleImports
+### `cloudflareModules`
 
 <p>
 **类型：** `true | false`<br />
-**默认值：** `false`
+**默认值：** `true`
 </p>
 
-是否使用 `.wasm?module` 导入语法将 `.wasm` 文件[直接作为 ES 模块](https://github.com/WebAssembly/esm-integration/tree/main/proposals/esm-integration)导入。
+启用 [`.wasm`、`.bin` 和 `.txt` 模块的导入](#cloudflare-模块导入)。
 
-将 `wasmModuleImports: true` 添加到 `astro.config.mjs` 中，以在 `astro build` 和 `astro dev` 中启用此功能。阅读更多关于[使用 Wasm 模块](#使用-wasm-模块)的信息。
-
-```js title="astro.config.mjs" ins={6}
-import {defineConfig} from "astro/config";
-import cloudflare from '@astrojs/cloudflare';
-
-export default defineConfig({
-  adapter: cloudflare({
-     wasmModuleImports: true
-  }),
-  output: 'server'
-})
-```
+此功能默认启用。如果你想禁用它，请设置 `cloudflareModules: false`。
 
 ## Cloudflare 运行时
 
@@ -335,14 +323,23 @@ declare namespace App {
 
 这将使 Cloudflare 能够在没有函数调用的情况下提供文件和处理静态重定向。创建自定义的 `_routes.json` 将覆盖这种自动生成的文件。参阅 [Cloudflare 关于创建自定义 `routes.json` 的文档](https://developers.cloudflare.com/pages/platform/functions/routing/#create-a-_routesjson-file) 了解更多细节。
 
-## 使用 Wasm 模块
+## Cloudflare 模块导入
+
+Cloudflare worker 运行时支持导入一些[非标准模块类型](https://developers.cloudflare.com/pages/functions/module-support/)。大多数额外的文件类型在 astro 中也是可用的：
+
+- `.wasm` 或 `.wasm?module`：导出一个可以实例化的 [`WebAssembly.Module`](https://developer.mozilla.org/zh-CN/docs/WebAssembly/JavaScript_interface/Module)
+- `.bin`：导出一个文件的原始二进制内容的 [`ArrayBuffer`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer)
+- `.txt`：导出文件内容的字符串
+
+所有模块类型都导出一个默认值。模块既可以从服务器端渲染的页面导入，也可以从预渲染的页面导入，以生成静态站点。
 
 以下是导入一个 Wasm 模块的示例，该模块通过将请求的数字参数相加来响应请求：
 
 ```js title="pages/add/[a]/[b].js"
+// 导入 WebAssembly 模块
 import mod from '../util/add.wasm?module';
 
-// 预先初始化以共享同一个模块
+// 先实例化才能使用
 const addModule: any = new WebAssembly.Instance(mod);
 
 export async function GET(context) {
@@ -352,7 +349,7 @@ export async function GET(context) {
 }
 ```
 
-虽然这个例子很简单，但是 Wasm 可以用来加速在不涉及大量 I/O 的情况下的计算密集型操作，比如嵌入图像处理库。
+虽然这个例子很简单，但是 Wasm 可以用来加速在不涉及大量 I/O 的情况下的计算密集型操作，比如嵌入图像处理库，或嵌入小型预索引数据库以在只读数据集上进行搜索。
 
 ## Node.js 兼容性
 
