@@ -26,7 +26,6 @@ export default NavDictionary({
 
 	examples: 'Receitas',
 	'guides/migrate-to-astro': 'Migre para o Astro',
-	'recipes/studio': 'Conecte ao Astro Studio',
 	'guides/cms': 'Conecte um CMS',
 	'guides/backend': 'Adicione serviços de backend',
 	'guides/integrations-guide': 'Adicione integrações',

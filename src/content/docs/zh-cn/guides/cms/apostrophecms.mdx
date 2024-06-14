@@ -6,9 +6,456 @@ stub: true
 service: Apostrophe
 i18nReady: true
 ---
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
 [ApostropheCMS](https://apostrophecms.com/) 是一个支持在 Astro 中进行页面编辑的内容管理系统。
 
-## 社区资源
+## 与 Astro 集成
+
+在本节中，你将使用 [Apostrophe 集成](https://apostrophecms.com/extensions/astro-integration) 将 ApostropheCMS 连接到 Astro。
+
+### 前提条件
+
+要开始集成，你需要具备以下条件：
+
+1. **一个按需渲染的 Astro 项目**，已安装 [Node.js 适配器](/zh-cn/guides/integrations-guide/node/) 并配置了 `output: 'server'` - 如果你还没有 Astro 项目，我们的[安装指南](/zh-cn/install-and-setup/)将帮助你快速启动。
+
+2. **一个配置了名为 `APOS_EXTERNAL_FRONT_KEY` 环境变量的 ApostropheCMS 项目** - 这个环境变量可以设置为任意随机字符串。如果你还没有 ApostropheCMS 项目，[安装指南](https://docs.apostrophecms.org/guide/development-setup.html)将快速帮你设置。我们强烈推荐使用 [Apostrophe CLI 工具](https://apostrophecms.com/extensions/apos-cli) 来简化这个过程。
+
+### 设置项目通信
+
+你的 Astro 项目需要设置一个名为 `APOS_EXTERNAL_FRONT_KEY` 的环境变量，其值需与你的 ApostropheCMS 项目中的相同，以便两者之间能够进行通信。这个共享密钥用作验证前端（Astro）与后端（ApostropheCMS）之间请求的手段。
+
+在你的 Astro 项目的根目录下创建一个 `.env` 文件，并添加以下变量：
+
+```ini title=".env"
+APOS_EXTERNAL_FRONT_KEY='RandomStrongString'
+```
+
+你的根目录现在应该包含这个新文件：
+
+<FileTree title="项目结构">
+- src/
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### 安装依赖
+
+为了将 Astro 与你的 ApostropheCMS 项目连接，使用下面的命令为你选择的包管理器安装官方的 Apostrophe 集成。
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @apostrophecms/apostrophe-astro vite @astro/node
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @apostrophecms/apostrophe-astro vite @astro/node
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @apostrophecms/apostrophe-astro vite @astro/node
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### 配置 Astro
+
+在你的 `astro.config.mjs` 文件中配置 `apostrophe-astro` 集成和 `vite`。
+
+下面的示例提供了你的 Apostrophe 实例的基础 URL 和你的项目中的文件夹路径，用于映射 ApostropheCMS 的 [widgets](https://docs.apostrophecms.org/guide/core-widgets.html) 和 [页面模板](https://docs.apostrophecms.org/guide/pages.html) 类型到你的 Astro 项目。它还配置了 Vite 的服务端渲染。
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+import apostrophe from '@apostrophecms/apostrophe-astro';
+import { loadEnv } from 'vite';
+
+const env = loadEnv("", process.cwd(), 'APOS');
+
+export default defineConfig({
+  output: 'server',
+  adapter: node({
+    mode: 'standalone'
+  }),
+  integrations: [
+    apostrophe({
+      aposHost: 'http://localhost:3000',
+      widgetsMapping: './src/widgets',
+      templatesMapping: './src/templates'
+    })
+  ],
+  vite: {
+    ssr: {
+      // 不要外部化 @apostrophecms/apostrophe-astro 插件，我们需要
+      // 在那里使用 virtual: url
+      noExternal: [ '@apostrophecms/apostrophe-astro' ],
+    },
+    define: {
+      'process.env.APOS_EXTERNAL_FRONT_KEY': JSON.stringify(env.APOS_EXTERNAL_FRONT_KEY),
+      'process.env.APOS_HOST': JSON.stringify(env.APOS_HOST)
+    }
+  }
+});
+```
+要查看完整的配置选项和解释，请参阅 [`apostrophe-astro` 文档](https://apostrophecms.com/extensions/astro-integration#configuration-astro)。
+
+### 将 ApostropheCMS 小部件连接到 Astro 组件
+ApostropheCMS 小部件是可以添加到页面上的结构化内容块，例如布局列、图片和文本块。你需要为你的 Apostrophe 项目中的每个小部件创建一个 Astro 组件，并创建一个文件来将这些组件映射到相应的 Apostrophe 小部件。
+
+在 `src/widgets/` 下创建一个新文件夹，用于存放你的 Astro 组件和映射文件 `index.js`。
+
+位于此文件夹中的映射组件通过 `Astro.props` 接收一个包含你的小部件的模式字段和任何自定义属性的 `widget` 属性。这些值随后可用于页面上的编辑。
+
+下面的示例展示了一个 `RichTextWidget.astro` 组件，它访问其对应的 ApostropheCMS 小部件的内容，以允许在上下文中编辑：
+
+```js title="src/widgets/RichTextWidget.astro"
+---
+const { widget } = Astro.props;
+const { content } = widget;
+---
+<Fragment set:html={ content }></Fragment>
+```
+
+一些标准的 Apostrophe 小部件，如图片和视频，需要 **占位符**，因为它们默认不包含可编辑内容。下面的示例创建了一个标准的 `ImageWidget.astro` 组件，该组件根据条件设置 `src` 值，可能是小部件传递的 `aposPlaceholder` 图片的值、Astro 项目中的备用图片，或者内容管理者使用 Apostrophe 的 `attachment` 助手选择的图片：
+
+```js title="src/widgets/ImageWidget.astro"
+---
+const { widget } = Astro.props;
+const placeholder = widget?.aposPlaceholder;
+const src = placeholder ?
+  '/images/image-widget-placeholder.jpg' :
+  widget?._image[0]?.attachment?._urls['full'];
+---
+<style>
+  .img-widget {
+    width: 100%;
+  }
+</style>
+<img class="img-widget" {src} />
+```
+
+要查看更多示例，请参阅 [`astro-frontend` 初始项目的小部件示例](https://github.com/apostrophecms/astro-frontend/tree/main/src/widgets)。
+
+每个 `.astro` 组件都必须在 `src/widgets/index.js` 中映射到相应的核心 Apostrophe 小部件。
+
+下面的示例将前两个组件添加到此文件中：
+
+```js title="src/widgets/index.js"
+import RichTextWidget from './RichTextWidget.astro';
+import ImageWidget from './ImageWidget.astro';
+
+const widgetComponents = {
+  '@apostrophecms/rich-text': RichTextWidget,
+  '@apostrophecms/image': ImageWidget
+};
+
+export default widgetComponents;
+```
+
+请参阅 [ApostropheCMS 文档](https://apostrophecms.com/extensions/astro-integration) 了解标准、专业和自定义项目级别小部件的命名约定。
+
+项目目录现在应该如下所示：
+<FileTree title="Project Structure">
+- src/
+  - widgets/
+    - **index.js**
+    - **ImageWidget.astro**
+    - **RichTextWidget.astro**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### 添加页面类型
+就像小部件一样，你的 ApostropheCMS 项目中的任何页面类型模板都需要在你的 Astro 项目中有一个对应的模板组件。你还需要一个文件来将 Apostrophe 页面类型映射到各个组件。
+
+在 `src/templates/` 下创建一个新文件夹，用于存放你的 Astro 组件和映射文件 `index.js`。位于此文件夹中的映射组件通过 `Astro.props` 接收一个包含页面的 schema 字段和任何自定义属性的 `page` 属性。这些组件还可以访问 `AposArea` 组件来渲染 Apostrophe 区域。
+
+下面的示例展示了一个 `HomePage.astro` 组件，它从其对应的 `home-page` ApostropheCMS 页面类型渲染页面模板，包括一个名为 `main` 的区域 schema 字段：
+
+```js title="src/templates/HomePage.astro"
+---
+import AposArea from '@apostrophecms/apostrophe-astro/components/AposArea.astro';
+const { page, user, query } = Astro.props.aposData;
+const { main } = page;
+---
+
+<section class="bp-content">
+  <h1>{ page.title }</h1>
+  <AposArea area={main} />
+</section>
+```
+
+每个 `.astro` 组件都必须在 `src/templates/index.js` 中映射到相应的核心 Apostrophe 页面类型。
+
+下面的示例将之前的 `HomePage.astro` 组件添加到此文件中：
+
+```js title="src/templates/index.js"
+import HomePage from './HomePage.astro';
+
+const templateComponents = {
+  '@apostrophecms/home-page': HomePage
+};
+
+export default templateComponents;
+```
+
+请参阅 [ApostropheCMS 文档](https://apostrophecms.com/extensions/astro-integration/#how-apostrophe-template-names-work) 了解模板命名约定，包括特殊页面和片段页面类型。
+
+项目目录现在应该如下所示：
+
+<FileTree title="Project Structure">
+- src/
+  - widgets/
+    - index.js
+    - ImageWidget.astro
+    - RichTextWidget.astro
+  - templates/
+    - **HomePage.astro**
+    - **index.js**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### 创建 [...slug.astro] 组件并获取 Apostrophe 数据
+
+由于 Apostrophe 负责将 url 连接到内容，包括即时创建新内容和页面，你只需要一个顶级 Astro 页面组件：`[...slug].astro` 路由。
+
+下面的示例展示了一个最小化的 `[...slug].astro` 组件：
+
+```js title="src/pages/[...slug].astro"
+---
+import aposPageFetch from '@apostrophecms/apostrophe-astro/lib/aposPageFetch.js';
+import AposLayout from '@apostrophecms/apostrophe-astro/components/layouts/AposLayout.astro';
+import AposTemplate from '@apostrophecms/apostrophe-astro/components/AposTemplate.astro';
+
+const aposData = await aposPageFetch(Astro.request);
+const bodyClass = `myclass`;
+
+if (aposData.redirect) {
+  return Astro.redirect(aposData.url, aposData.status);
+}
+if (aposData.notFound) {
+  Astro.response.status = 404;
+}
+---
+<AposLayout title={aposData.page?.title} {aposData} {bodyClass}>
+    <Fragment slot="standardHead">
+      <meta name="description" content={aposData.page?.seoDescription} />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <meta charset="UTF-8" />
+    </Fragment>
+    <AposTemplate {aposData} slot="main"/>
+</AposLayout>
+```
+
+请参阅 [ApostropheCMS 文档](https://apostrophecms.com/extensions/astro-integration#creating-the-slugastro-component-and-fetching-apostrophe-data) 了解更多模板选项，包括 `AposTemplate` 组件中可用的插槽。
+
+## 使用 Astro 和 ApostropheCMS 创建博客
+
+在完成集成后，你现在可以使用 Astro 和 ApostropheCMS 创建博客。你的博客将使用 Apostrophe 的独立内容类型，这种内容类型可以包含在任何页面上，并且使用专门的页面类型来单独或集体展示这些内容。
+
+### 前提条件
+
+1. **安装了 Apostrophe CLI 工具的 ApostropheCMS 项目** - 你可以创建一个新项目或使用现有的项目。然而，本教程只会展示如何创建博客内容和页面类型。你需要独立集成任何其他现有的项目代码。如果你还没有安装 CLI 工具，请参阅[Apostrophe CLI 安装说明](https://docs.apostrophecms.org/guide/setting-up.html#the-apostrophe-cli-tool)。
+2. **与 ApostropheCMS 集成的 Astro 项目** - 要从头开始创建项目，请参阅[与 Astro 集成](#与-astro-集成)中的指南了解如何设置集成，或使用 [astro-frontend](https://github.com/apostrophecms/astro-frontend) 启动项目。
+
+### 创建博客内容和页面类型
+
+要创建你的博客内容和页面类型以供展示，请在终端中导航到你的 ApostropheCMS 项目的根目录。使用 ApostropheCMS CLI 工具，通过以下命令创建新的内容和页面类型：
+
+```sh
+apos add piece blog --page
+```
+
+这将在你的项目中创建两个新模块，一个用于博客内容类型，另一个用于相应的页面类型。接下来，打开你的 ApostropheCMS 项目根目录下的 `app.js` 文件，在代码编辑器中添加你的新模块。
+
+```js title="app.js"
+require('apostrophe')({
+  // 其他配置选项
+  modules: {
+    // 其他项目模块
+    blog: {},
+    'blog-page': {}
+  }
+});
+```
+
+`blog-page` 模块还需要被添加到 `@apostrophecms/page` 模块的 `types` 选项数组中，以便在页面创建模态框中选择。在你的 ApostropheCMS 项目中，打开 `modules/@apostrophecms/page/index.js` 文件，并添加 `blog-page`。
+
+```js title="modules/@apostrophecms/page/index.js"
+module.exports = {
+  options: {
+    types: [
+      {
+        name: '@apostrophecms/home-page',
+        label: 'Home'
+      },
+      // 任意其他项目页面
+      {
+        name: 'blog-page',
+        label: 'Blog'
+      }
+    ]
+  }
+};
+```
+
+### 创建博客模式
+在 ApostropheCMS 项目中，编辑者会得到一组输入字段来添加内容。这里有一个简单的博客帖子的例子，它添加了三个输入字段：`authorName`（作者名）、`publicationDate`（发布日期）和 `content`（内容）区域，内容管理者可以在其中添加多个小部件实例。在这种情况下，我们指定他们可以添加我们在[集成设置](#将-apostrophecms-小部件连接到-astro-组件)期间创建的图像和富文本小部件。
+
+```js title="modules/blog/index.js"
+module.exports = {
+  extend: '@apostrophecms/piece-type',
+  options: {
+    label: 'Blog',
+    // 如有需要，还可以添加一个 `pluralLabel` 选项。
+  },
+  fields: {
+    add: {
+      authorName: {
+        type: 'string',
+        label: 'Author'
+      },
+      publicationDate: {
+        type: 'date',
+        label: 'Publication date'
+      },
+      content: {
+        type: 'area',
+        label: 'Content',
+        options: {
+          widgets: {
+            '@apostrophecms/rich-text': {},
+            '@apostrophecms/image': {}
+          }
+        }
+      }
+    },
+    group: {
+      basics: {
+        label: 'Basic',
+        fields: [ 'authorName', 'publicationDate', 'content' ]
+      }
+    }
+  }
+};
+```
+
+到此为止，所有来自 ApostropheCMS 项目的组件都已设置完毕。从命令行启动本地站点，使用 `npm run dev` 命令，并确保传入设置为你选择的字符串的 `APOS_EXTERNAL_FRONT_KEY` 环境变量：
+
+```bash
+APOS_EXTERNAL_FRONT_KEY='MyRandomString' npm run dev
+```
+
+### 展示博客帖子
+
+要展示一个包含所有博客帖子的页面，请在你的 Astro 项目的 `src/templates` 目录下创建一个 `BlogIndex.astro` 组件文件，并添加以下代码：
+
+在从 `aposData` 属性获取页面和部件数据之后，这个组件使用我们创建的博客部件模式中的字段，同时也使用 Apostrophe 为每个部件添加的 `piece.title` 和 `piece._url` 来创建标记。
+
+```js title="src/templates/BlogIndex.astro"
+---
+import dayjs from 'dayjs';
+
+const { page, pieces } = Astro.props.aposData;
+---
+
+<section class="bp-content">
+  <h1>{ page.title }</h1>
+
+  <h2>博客文章</h2>
+
+  {pieces.map(piece => (
+    <h4>
+      发布于 { dayjs(piece.publicationDate).format('MMMM D, YYYY') }
+    </h4>
+    <h3>
+      <a href={ piece._url }>{ piece.title }</a>
+    </h3>
+    <h4>{ piece.authorName }</h4>
+  ))}
+</section>
+```
+
+要展示单个博客帖子，请在 Astro 项目的 `src/templates` 文件夹中创建一个名为 `BlogShow.astro` 的文件，并使用以下代码：
+
+此组件使用 `<AposArea>` 组件来展示添加到 `content` 区域的任何小部件以及输入到同名字段中的 `authorName` 和 `publicationDate` 内容。
+
+```js title="src/templates/BlogShow.astro"
+---
+import AposArea from '@apostrophecms/apostrophe-astro/components/AposArea.astro';
+import dayjs from 'dayjs';
+
+const { page, piece } = Astro.props.aposData;
+const { main } = piece;
+---
+
+<section class="bp-content">
+  <h1>{ piece.title }</h1>
+  <h3>创建者: { piece.authorName }
+  <h4>
+    发布于 { dayjs(piece.publicationDate).format('MMMM D, YYYY') }
+  </h4>
+  <AposArea area={content} />
+</section>
+```
+
+最后，这些 Astro 组件必须映射到相应的 ApostropheCMS 页面类型。打开 Astro 项目的 `src/templates/index.js` 文件，并修改它以包含以下代码：
+
+```js title="src/templates/index.js"
+import HomePage from './HomePage.astro';
+import BlogIndexPage from './BlogIndexPage.astro';
+import BlogShowPage from './BlogShowPage.astro';
+
+const templateComponents = {
+  '@apostrophecms/home-page': HomePage,
+  '@apostrophecms/blog-page:index': BlogIndexPage,
+  '@apostrophecms/blog-page:show': BlogShowPage
+};
+
+export default templateComponents;
+```
+
+### 创建博客帖子
+
+在你的网站上添加博客帖子，可以通过使用 ApostropheCMS 的内容和管理工具来创建这些帖子，并至少发布一个首页来展示它们。
+
+当 Astro 开发服务器运行时，导航到浏览器预览中位于 [http://localhost:4321/login](http://localhost:4321/login) 的登录页面。使用在 [创建 ApostropheCMS 项目](https://docs.apostrophecms.org/guide/development-setup.html#creating-a-project) 期间添加的凭证作为管理员登录。你的 ApostropheCMS 项目应该仍在运行。
+
+一旦登录，你的浏览器将被重定向到你的项目的首页，并在顶部显示一个管理栏，用于编辑内容和管理你的项目。
+
+要添加你的第一个博客帖子，点击管理栏中的 `Blogs` 按钮以打开博客片段创建模态框。点击右上角的 `New Blog` 按钮将打开一个编辑模态框，你可以在其中添加内容。`content` 区域字段将允许你添加尽可能多的图片和富文本小部件。
+
+你可以重复这个步骤并添加尽可能多的帖子。每次你想添加新帖子时也会遵循这些步骤。
+
+为了发布一个用于展示所有帖子的页面，点击管理栏中的 `Pages` 按钮。从页面树模态框中点击 `New Page` 按钮。在右列的 `Type` 下拉菜单中选择 `Blog`。为页面添加一个标题，然后点击 `Publish and View`。你只需要做这一次。
+
+任何新创建的博客帖子都将自动显示在这个页面上。可以通过点击首页上创建的链接来显示单个博客帖子。
+
+单个帖子的 `content` 区域可以通过导航到帖子并在管理栏中点击 `edit` 直接在页面上编辑。其他字段可以通过点击管理栏中的 `Blogs` 菜单项打开的编辑模态框来编辑。
+
+### 部署你的网站
+
+要部署你的网站，你需要托管你的 Astro 和 ApostropheCMS 项目。
+
+对于 Astro，访问我们的[部署指南](/zh-cn/guides/deploy/)并按照你选择的托管提供商的指南进行操作。
+
+对于 ApostropheCMS 项目，按照我们的[托管指南](https://docs.apostrophecms.org/guide/hosting.html)中的指示操作。最后，你需要为 Astro 项目提供一个 `APOS_HOST` 环境变量，以反映你的 ApostropheCMS 网站已部署的正确 url。
+
+## 官方资源
 
 - [ApostropheCMS 的 Astro 集成](https://apostrophecms.com/extensions/astro-integration) - ApostropheCMS 的 Astro 插件，Apostrophe 和 Astro 的集成指南以及入门项目。
+- [适用于 ApostropheCMS 的 Astro 示例项目](https://github.com/apostrophecms/astro-frontend) - 一个简单的 Astro 项目，已创建了几个页面和 Apostrophe 小部件。
+- [适用于 Astro 的 ApostropheCMS 启动包](https://apostrophecms.com/starter-kits/astro-integration-starter-kit) - 一个为 Astro 使用而进行了核心页面修改的 ApostropheCMS 项目。
+
+## 社区资源
+- [ApostropheCMS 与 Astro 集成，第 1 部分](https://apostrophecms.com/blog/how-to-integrate-astro-with-apostrophecms-pt-1) 作者 Antonello Zaini
+- [ApostropheCMS 与 Astro 集成，第 2 部分](https://apostrophecms.com/blog/how-to-integrate-astro-with-apostrophecms-pt-2) 作者 Antonello Zaini
+- [现场展示与讲解 | Astro 与 Apostrophe](https://youtu.be/cwJhtJhAhwA?si=6iUU9EjidfdnOdCh)
