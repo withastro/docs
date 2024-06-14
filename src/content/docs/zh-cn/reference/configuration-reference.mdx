@@ -1526,3 +1526,107 @@ export function onRequest(ctx, next) {
 ```
 
 要全面了解并对这个实验性 API 提供反馈，请查看 [Rerouting RFC](https://github.com/withastro/roadmap/blob/feat/reroute/proposals/0047-rerouting.md)。
+
+### experimental.env
+
+<p>
+
+**类型：** `object`<br />
+**默认值：** `undefined`<br />
+<Since v="4.10.0" />
+</p>
+
+启用实验性的 `astro:env` 功能。
+
+`astro:env` API 允许你为环境变量配置类型安全的 schema，并指示它们是否应该在服务端或客户端可用。从相应的 `/client` 或 `/server` 模块中导入并使用你定义的变量：
+
+```astro
+---
+import { PUBLIC_APP_ID } from "astro:env/client"
+import { PUBLIC_API_URL, getSecret } from "astro:env/server"
+const API_TOKEN = getSecret("API_TOKEN")
+const data = await fetch(`${PUBLIC_API_URL}/users`, {
+	method: "POST",
+	headers: {
+		"Content-Type": "application/json",
+		"Authorization": `Bearer ${API_TOKEN}`
+	},
+	body: JSON.stringify({ appId: PUBLIC_APP_ID })
+})
+---
+```
+
+要定义环境变量的数据类型和属性，请在你的 Astro 配置中用 `experimental.env.schema` 声明一个 schema。`envField` 助手函数允许你将变量定义为字符串、数字或布尔值，并在一个对象中传递属性：
+
+```js
+// astro.config.mjs
+import { defineConfig, envField } from "astro/config"
+
+export default defineConfig({
+    experimental: {
+        env: {
+            schema: {
+                PUBLIC_API_URL: envField.string({ context: "client", access: "public", optional: true }),
+                PUBLIC_PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+                API_SECRET: envField.string({ context: "server", access: "secret" }),
+            }
+        }
+    }
+})
+```
+
+目前支持三种数据类型：字符串、数字和布尔值。
+
+环境变量有三种类型，由 `context`（client 或 server）和 `access`（secret 或 public）的组合设置在你的 [`env.schema`](#experimentalenvschema) 中确定：
+
+- **公开客户端变量**：这些变量最终会出现在你的客户端和服务端包中，并且可以通过 `astro:env/client` 模块在客户端和服务端访问：
+
+    ```js
+    import { PUBLIC_API_URL } from "astro:env/client"
+    ```
+
+- **公开服务端变量**：这些变量最终会出现在你的最终服务端包中，并且可以通过 `astro:env/server` 模块在服务端访问：
+
+    ```js
+    import { PUBLIC_PORT } from "astro:env/server"
+    ```
+
+- **秘密服务端变量**：这些变量不会包含在你的最终包中，可以通过 `astro:env/server` 模块提供的 `getSecret()` 助手函数在服务端访问：
+
+    ```js
+    import { getSecret } from "astro:env/server"
+
+    const API_SECRET = getSecret("API_SECRET") // 定义的类型
+    const SECRET_NOT_IN_SCHEMA = getSecret("SECRET_NOT_IN_SCHEMA") // string | undefined
+    ```
+
+**注意：** 因为没有方式可以将数据安全地发送到客户端，所以不支持秘密客户端变量。因此，在你的 schema 中不能同时配置 `context: "client"` 和 `access: "secret"`。
+
+要完整了解此实验性 API 并提供反馈，请查看 [Astro Env RFC](https://github.com/withastro/roadmap/blob/feat/astro-env-rfc/proposals/0046-astro-env.md)。
+
+#### experimental.env.schema
+
+<p>
+
+**类型：** `EnvSchema`<br />
+**默认值：** `undefined`<br />
+<Since v="4.10.0" />
+</p>
+
+一个使用 `envField` 来定义环境变量的数据类型（`string`、`number` 或 `boolean`）及其属性的对象：`context`（client 或 server）、`access`（public 或 secret）、使用的默认值 `default` 以及该环境变量是否为可选的 `optional`（默认为 `false`）。
+```js
+// astro.config.mjs
+import { defineConfig, envField } from "astro/config"
+
+export default defineConfig({
+  experimental: {
+    env: {
+      schema: {
+        PUBLIC_API_URL: envField.string({ context: "client", access: "public", optional: true }),
+        PUBLIC_PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+        API_SECRET: envField.string({ context: "server", access: "secret" }),
+      }
+    }
+  }
+})
+```
