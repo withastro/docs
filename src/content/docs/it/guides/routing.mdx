@@ -1,10 +1,12 @@
 ---
-title: Itinerario
+title: Navigazione
 description: Un'introduzione al routing con Astro.
+i18nReady: true
 ---
-import FileTree from '~/components/FileTree.astro'
+import { FileTree } from '@astrojs/starlight/components';
 import RecipeLinks from "~/components/RecipeLinks.astro"
 import Since from '~/components/Since.astro'
+import ReadMore from '~/components/ReadMore.astro'
 
 Astro utilizza il **routing basato su file** per generare gli URL di build in base al layout del file della directory `src/pages/` del tuo progetto.
 
@@ -82,7 +84,8 @@ Questo genererà `/en-v1/info` e `/fr-v2/info`.
 
 I parametri possono essere inclusi in parti separate del percorso. Ad esempio, il file `src/pages/[lang]/[version]/info.astro` con lo stesso `getStaticPaths()` genererà i percorsi `/it/v1/info` e `/fr/v2/info`.
 
-📚 Ulteriori informazioni su [`getStaticPaths()`](/it/reference/api-reference/#getstaticpaths).
+<ReadMore>Ulteriori informazioni su [`getStaticPaths()`](/it/reference/api-reference/#getstaticpaths).</ReadMore>
+
 
 <RecipeLinks slugs={["it/recipes/i18n"]} />
 
@@ -226,7 +229,8 @@ A volte dovrai reindirizzare i tuoi lettori a una nuova pagina, in modo permanen
 Puoi definire le regole per [reindirizzare gli utenti alle pagine spostate in modo permanente](#reindirizzamenti-configurati) nella configurazione di Astro. Oppure [reindirizza gli utenti in modo dinamico](#reindirizzamenti-dinamici) mentre utilizzano il tuo sito.
 
 ### Reindirizzamenti configurati
-<Since v="2.9.0" />
+
+<p><Since v="2.9.0" /></p>
 
 Puoi specificare una mappatura di reindirizzamenti permanenti nella tua configurazione Astro con il valore `redirects`. Per la maggior parte dei reindirizzamenti, si tratta di una mappatura di un vecchio percorso sul nuovo percorso:
 
@@ -293,28 +297,30 @@ if (!isLoggedIn(cookie)) {
 
 <FileTree>
 - src/pages/
+  - [...slug].astro
   - posts/
     - create.astro
-    - [pid].astro
+    - [page].astro
+    - [pid].ts
     - [...slug].astro
 </FileTree>
 
 Astro ha bisogno di sapere quale percorso deve essere utilizzato per creare la pagina. Per fare ciò, li ordina secondo le seguenti regole:
 
-- I percorsi statici senza parametri di percorso avranno la precedenza su tutti gli altri percorsi
-- I percorsi dinamici che utilizzano parametri denominati hanno la precedenza sui parametri rest
-- I percorsi dinamici pre-renderizzati hanno la precedenza sui percorsi dinamici del server
-- I parametri rest hanno la priorità più bassa
-- Gli endpoint hanno sempre la precedenza sulle pagine
-- I pareggi vengono risolti in ordine alfabetico
+- I percorsi con più segmenti di percorso avranno la precedenza sui percorsi meno specifici. Nell'esempio sopra, tutti i percorsi sotto `/posts/` avranno la precedenza su `/[...slug].astro` alla radice.
+- I percorsi statici senza parametri di percorso avranno la precedenza sui percorsi dinamici. Ad esempio, `/posts/create.astro` avrà la precedenza su tutti gli altri percorsi nell'esempio.
+- I percorsi dinamici che utilizzano parametri denominati avranno la precedenza sui parametri rest. Ad esempio, `/posts/[page].astro` avrà la precedenza su `/posts/[...slug].astro`.
+- I percorsi dinamici pre-renderizzati avranno la precedenza sui percorsi dinamici del server.
+- Gli endpoint avranno la precedenza sulle pagine.
+- Se nessuna delle regole sopra decide l'ordine, i percorsi sono ordinati in ordine alfabetico in base alla localizzazione predefinita dell'installazione di Node.
 
 Considerando l'esempio sopra, ecco alcuni esempi di come le regole abbineranno un URL richiesto al percorso utilizzato per creare l'HTML:
 
-- `pages/posts/create.astro` - Costruirà `/posts/create`
-- `pages/posts/[pid].astro` - Costruirà `/posts/1`, `/posts/abc`, ecc. Ma non `/posts/create`
-- `pages/posts/[...slug].astro` - Costruirà `/posts/1/2`, `/posts/a/b/c`, ecc. Ma non `/posts/create`, `/posts/1`, `/posts/abc`
-
-Anche i reindirizzamenti seguono le stesse regole, ma hanno la priorità *ultima*; se sono presenti un percorso basato su file e un reindirizzamento con lo stesso livello di priorità del percorso, viene scelto il percorso basato su file.
+- `pages/posts/create.astro` - Produrrà solo `/posts/create`
+- `pages/posts/[pid].ts` - Produrrà `/posts/abc`, `/posts/xyz`, ecc. Ma non `/posts/create`
+- `pages/posts/[page].astro` - Produrrà `/posts/1`, `/posts/2`, ecc. Ma non `/posts/create`, `/posts/abc` né `/posts/xyz`
+- `pages/posts/[...slug].astro` - Produrrà `/posts/1/2`, `/posts/a/b/c`, ecc. Ma non `/posts/create`, `/posts/1`, `/posts/abc`, ecc.
+- `pages/[...slug].astro` - Produrrà `/abc`, `/xyz`, `/abc/xyz`, ecc. Ma non `/posts/create`, `/posts/1`, `/posts/abc`, , ecc.
 
 ## Impaginazione
 
@@ -326,7 +332,7 @@ Puoi utilizzare la funzione `paginate()` per generare queste pagine per un array
 
 ```astro /{ (paginate) }/ /paginate\\(.*\\)/ /(?<=const.*)(page)/ /page\\.[a-zA-Z]+/
 ---
-// Example: src/pages/astronauts/[page].astro
+// src/pages/astronauts/[page].astro
 export async function getStaticPaths({ paginate }) {
   const astronautPages = [{
     astronaut: 'Neil Armstrong',
@@ -366,7 +372,7 @@ Quando usi la funzione `paginate()`, a ogni pagina verranno passati i suoi dati 
 
 ```astro /(?<=const.*)(page)/ /page\\.[a-zA-Z]+(?:\\.(?:prev|next))?/
 ---
-// Esempio: src/pages/astronauti/[pagina].astro
+// src/pages/astronauts/[page].astro
 // Impagina lo stesso elenco di oggetti { astronaut } dell'esempio precedente
 export async function getStaticPaths({ paginate }) { /* ... */ }
 const { page } = Astro.props;
@@ -378,6 +384,7 @@ const { page } = Astro.props;
 {page.url.prev ? <a href={page.url.prev}>Previous</a> : null}
 {page.url.next ? <a href={page.url.next}>Next</a> : null}
 ```
+
 
 #### Riferimento API completo
 
@@ -426,7 +433,7 @@ Nell'esempio seguente, implementeremo l'impaginazione all'interno di altri perco
 
 ```astro /(?:[(]|=== )(tag)/ "params: { tag }" /const [{ ]*(page|params)/
 ---
-// Example: src/pages/[tag]/[page].astro
+// src/pages/[tag]/[page].astro
 export async function getStaticPaths({ paginate }) {
   const allTags = ['red', 'blue', 'green'];
   const allPosts = await Astro.glob('../../posts/*.md');

@@ -3,17 +3,20 @@ title: データフェッチ
 description: Astroでfetch APIを使用してリモートのデータを取得する方法を学びましょう。
 i18nReady: true
 ---
-`.astro`ファイルはビルド時にリモートのデータを取得し、ページの生成に使います。
+
+`.astro`ファイルでは、リモートのデータを取得してページを生成できます。
 
 ## Astroでの`fetch()`
 
-すべての[Astroコンポーネント](/ja/basics/astro-components/)は、そのコンポーネントスクリプトで[グローバルな`fetch()`function](https://developer.mozilla.org/ja/docs/Web/API/fetch)にアクセスし、APIにHTTPリクエストを行えます。このfetchはビルド時に実行され、そのデータは動的なHTMLを生成するためコンポーネントテンプレートで利用可能になります。
+[Astroコンポーネント](/ja/basics/astro-components/)では、コンポーネントのスクリプトで[グローバルの`fetch()`関数](https://developer.mozilla.org/ja/docs/Web/API/fetch)にアクセスできます。これにより、https://example.com/api や`Astro.url + "/api"`のようにURL全体を指定してAPIにHTTPリクエストをおこなえます。
+
+このfetch呼び出しはビルド時に実行され、そのデータは動的なHTMLを生成するためにコンポーネントテンプレートで利用できます。[SSR](/ja/guides/server-side-rendering/)モードが有効になっている場合、fetch呼び出しはランタイムに実行されます。
 
 💡 Astroコンポーネントスクリプトの内部で、[**top-level await**](https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Operators/await#top_level_await)を利用できます。
 
-💡 取得したデータはAstroとフレームワークの両方のコンポーネントにpropsとして渡されます。
+💡 取得したデータは、Astroコンポーネントとフレームワークコンポーネント両方にpropsとして渡せます。
 
-```astro
+```astro /await fetch\\(.*?\\)/
 ---
 // src/components/User.astro
 import Contact from '../components/Contact.jsx';
@@ -32,65 +35,26 @@ const randomUser = data.results[0]
 <Location city={randomUser.location.city} />
 ```
 
-### GraphQLクエリ
-
-Astroはまた、`fetch()`を使用して任意の有効なGraphQLクエリでGraphQLサーバーにクエリを投げられます。
-
-```astro
----
-const response = await fetch("https://graphql-weather-api.herokuapp.com",
-  {
-    method:'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({
-      query: `
-        query getWeather($name:String!) {
-            getCityByName(name: $name){
-              name
-              country
-              weather {
-                summary {
-                    description
-                }
-              }
-            }
-          }
-        `,
-      variables: {
-          name: "Tokyo",
-      },
-    }),
-  })
-
-const json = await response.json();
-const weather = json.data
----
-<h1>天気をビルド時にフェッチします。</h1>
-<h2>{weather.getCityByName.name}, {weather.getCityByName.country}</h2>
-<p>天気: {weather.getCityByName.weather.summary.description}</p>
-```
-
 :::note
-Astroコンポーネントのすべてのデータは、コンポーネントがレンダリングされるときにフェッチされることを忘れないでください。
+Astroコンポーネントのすべてのデータは、コンポーネントがレンダリングされるときにフェッチされることを覚えておいてください。
 
-デプロイされたAstroサイトは、**ビルド時に一度だけ**データをfetchします。開発環境では、コンポーネントの更新時にfetchされたデータが表示されます。クライアントサイドで何度もデータを再取得する必要がある場合は、Astroコンポーネントで[UIフレームワーク](/ja/guides/framework-components/)または[クライアントサイドスクリプト](/ja/guides/client-side-scripts/)を使用します。
+デプロイされたAstroサイトは、**ビルド時に一度だけ**データをfetchします。開発環境では、コンポーネントの更新時にfetchされたデータが表示されます。クライアントサイドで何度もデータを再取得する必要がある場合は、Astroコンポーネントで[フレームワークコンポーネント](/ja/guides/framework-components/)または[クライアントサイドスクリプト](/ja/guides/client-side-scripts/)を使用します。
 :::
 
-## UIフレームワークでの`fetch()`
 
-`fetch()`関数は、任意の[UI フレームワーク](/ja/guides/framework-components/)からもグローバルに利用できます。
+## フレームワークコンポーネントでの`fetch()`
 
-```tsx
-// Movies.tsx
+`fetch()`関数は、任意の[フレームワークコンポーネント](/ja/guides/framework-components/)からもグローバルに利用できます。
+
+```tsx title="src/components/Movies.tsx" /await fetch\\(.*?\\)/
 import type { FunctionalComponent } from 'preact';
-import { h } from 'preact';
 
 const data = await fetch('https://example.com/movies.json').then((response) =>
   response.json()
 );
 
-// ビルド時にレンダリングされるコンポーネントはCLIにもログとして出力されます。
-// client:*ディレクティブでレンダリングされた場合、ブラウザコンソールにもログが出力されます。
+// ビルド時にレンダリングされるコンポーネントはCLIにもログを出力します。
+// client:* ディレクティブでレンダリングされた場合、ブラウザコンソールにもログが出力されます。
 console.log(data);
 
 const Movies: FunctionalComponent = () => {
@@ -100,3 +64,47 @@ const Movies: FunctionalComponent = () => {
 
 export default Movies;
 ```
+
+
+## GraphQLクエリ
+
+Astroはまた、`fetch()`を使用して任意の有効なGraphQLクエリでGraphQLサーバーにクエリを投げられます。
+
+```astro title="src/components/Film.astro" "await fetch"
+---
+const response = await fetch("https://swapi-graphql.netlify.app/.netlify/functions/index",
+  {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      query: `
+        query getFilm ($id:ID!) {
+          film(id: $id) {
+            title
+            releaseDate
+          }
+        }
+      `,
+      variables: {
+        id: "ZmlsbXM6MQ==",
+      },
+    }),
+  });
+
+const json = await response.json();
+const { film } = json.data;
+---
+<h1>Star Wars: A New Hopeに関する情報を取得</h1>
+<h2>タイトル: {film.title}</h2>
+<p>公開年: {film.releaseDate}</p>
+```
+
+## ヘッドレスCMSからのfetch
+
+Astroコンポーネントは、お気に入りのCMSからデータを取得し、それをページコンテンツとしてレンダリングできます。[動的ルーティング](/ja/guides/routing/#動的ルーティング)を使用すれば、コンポーネントはCMSコンテンツをもとにページを生成できます。
+
+StoryblokやContentful、WordPressなどのヘッドレスCMSとAstroを組み合わせる方法について詳しくは、[CMSガイド](/ja/guides/cms/)を参照してください。
+
+## コミュニティリソース
+
+- [Creating a fullstack app with Astro + GraphQL](https://robkendal.co.uk/blog/how-to-build-astro-site-with-graphql/)

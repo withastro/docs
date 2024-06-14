@@ -112,8 +112,6 @@ export default {
 	'feedback.submit': 'Submit feedback',
 	'feedback.close': 'Close feedback form',
 	'feedback.success': 'Thanks! We received your feedback.',
-	// `<FileTree>` component
-	'fileTree.directoryLabel': 'Directory',
 	// Code snippet vocabulary
 	'expressiveCode.terminalWindowFallbackTitle': 'Terminal window',
 	'expressiveCode.copyButtonTooltip': 'Copy to clipboard',
@@ -130,4 +128,6 @@ export default {
 	// Starlight banner
 	'starlight.title': 'Want to build your own Docs?',
 	'starlight.description': 'Grab this template to get started.',
+	// `<StudioHeading>` component
+	'studioHeading.label': 'Studio feature',
 };

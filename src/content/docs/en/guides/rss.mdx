@@ -2,11 +2,10 @@
 title: Add an RSS feed
 description: Add an RSS feed to your Astro site to let users subscribe to your content.
 i18nReady: true
-type: recipe
 ---
-import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
-import Since from '~/components/Since.astro'
-
+import Since from '~/components/Since.astro';
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
 Astro supports fast, automatic RSS feed generation for blogs and other content websites. RSS feeds provide an easy way for users to subscribe to your content.
 
@@ -14,6 +13,7 @@ Astro supports fast, automatic RSS feed generation for blogs and other content w
 
 The package [`@astrojs/rss`](https://github.com/withastro/astro/tree/main/packages/astro-rss) provides helpers for generating RSS feeds using [API endpoints](/en/guides/endpoints/#static-file-endpoints). This unlocks both static builds _and_ on-demand generation when using an [SSR adapter](/en/guides/server-side-rendering/).
 
+<Steps>
 1. Install `@astrojs/rss` using your preferred package manager:
 
     <PackageManagerTabs>
@@ -64,6 +64,7 @@ The package [`@astrojs/rss`](https://github.com/withastro/astro/tree/main/packag
       });
     }
     ```
+</Steps>
 
 ## Generating `items`
 
@@ -81,7 +82,6 @@ The RSS feed standard format includes the following values for each published it
 ### Using content collections
 
 To create an RSS feed of pages managed in [content collections](/en/guides/content-collections/), use the `getCollection()` function to retrieve the data required for your `items` array. You will need to specify the values for each desired property (e.g. `title`, `description`) from the returned data.
-
 
 ```js title="src/pages/rss.xml.js" "items:" "const blog = await getCollection('blog');"
 import rss from '@astrojs/rss';
@@ -165,7 +165,7 @@ The `content` key contains the full content of the post as HTML. This allows you
 A package like [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) will make sure that your content is properly sanitized, escaped, and encoded. In the process, such a package might also remove some harmless elements and attributes, so make sure to verify the output and configure the package according to your needs.
 :::
 
-When using content collections, render the post `body` using a standard Markdown parser like [`markdown-it`](https://github.com/markdown-it/markdown-it) and sanitize the result:
+When using content collections, render the post `body` using a standard Markdown parser like [`markdown-it`](https://github.com/markdown-it/markdown-it) and sanitize the result, including any extra tags (e.g. `<img>`) needed to render your content:
 
 ```js title="src/pages/rss.xml.js" ins={3, 4, 5, 16}
 import rss from '@astrojs/rss';
@@ -183,7 +183,9 @@ export async function GET(context) {
     items: blog.map((post) => ({
       link: `/blog/${post.slug}/`,
       // Note: this will not process components or JSX expressions in MDX files.
-      content: sanitizeHtml(parser.render(post.body)),
+      content: sanitizeHtml(parser.render(post.body), {
+        allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img'])
+      }),
       ...post.data,
     })),
   });
@@ -212,6 +214,30 @@ export function GET(context) {
 }
 ```
 
+## Removing trailing slashes
+
+Astro's RSS feed produces links with a trailing slash by default, no matter what value you have configured for `trailingSlash`. This means that your RSS links may not match your post URLs exactly.
+ 
+If you have set `trailingSlash: "never"` on your `astro.config.mjs`, set `trailingSlash: false` in the `rss()` helper so that your feed matches your project configuration.
+
+```ts title="src/pages/rss.xml.js" ins={9}
+import rss from '@astrojs/rss';
+
+export function GET(context) {
+  const posts = Object.values(postImportResult);
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    trailingSlash: false,
+    items: posts.map((post) => ({
+      link: post.url,
+      ...post.frontmatter,
+    })),
+  });
+}
+```
+
 ## Adding a stylesheet
 
 Style your RSS feed for a more pleasant user experience when viewing the file in your browser.
@@ -230,10 +256,26 @@ rss({
 If you'd prefer not to create your own stylesheet, you may use a premade stylesheet such as the [Pretty Feed v3 default stylesheet](https://github.com/genmon/aboutfeeds/blob/main/tools/pretty-feed-v3.xsl). Download the stylesheet from GitHub and save into your project's `public/` directory.
 :::
 
+## Enabling RSS feed auto-discovery
+
+[RSS autodiscovery](https://www.rssboard.org/rss-autodiscovery) allows browsers and other software to automatically find a site's RSS feed from the main URL.
+
+To enable, add a `<link>` tag with the following attributes to your site's `head` element:
+
+```jsx
+<link
+    rel="alternate"
+    type="application/rss+xml"
+    title="Your Site's Title"
+    href={`${Astro.site}rss.xml`}
+/>
+```
+
+With this tag, readers of your blog can enter your site's base URL into their RSS reader to subscribe to your posts without needing the specific URL of your RSS feed.
+
 ## Next Steps
 
 After visiting your feed in the browser at `your-domain.com/rss.xml` and confirming that you can see data for each of your posts, you can now [promote your feed on your website](https://medium.com/samsung-internet-dev/add-rss-feeds-to-your-website-to-keep-your-core-readers-engaged-3179dca9c91e#:~:text=com/~deno%2Drss-,Advertising%20your%20RSS%20feed,-Now%20you%20have). Adding the standard RSS icon to your site lets your readers know that they can subscribe to your posts in their own feed reader.
-
 
 ## Resources
 

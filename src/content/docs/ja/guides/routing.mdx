@@ -3,9 +3,10 @@ title: ルーティング
 description: Astroのルーティングの紹介
 i18nReady: true
 ---
-import FileTree from '~/components/FileTree.astro'
+import { FileTree } from '@astrojs/starlight/components';
 import RecipeLinks from "~/components/RecipeLinks.astro"
 import Since from '~/components/Since.astro'
+import ReadMore from '~/components/ReadMore.astro'
 
 Astroは**ファイルベースルーティング**を使用して、プロジェクトの`src/pages/`ディレクトリのファイルレイアウトを元にビルドURLを生成します。
 
@@ -84,7 +85,7 @@ const { lang, version } = Astro.params;
 
 パラメーターはパス内の異なる部分に設定できます。たとえば、上と同じ`getStaticPaths()`をもつ`src/pages/[lang]/[version]/info.astro`ファイルは、`/en/v1/info`と`/fr/v2/info`のルートを生成します。
 
-📚 [`getStaticPaths()`](/ja/reference/api-reference/#getstaticpaths)についてもっと学ぶ。
+<ReadMore>[`getStaticPaths()`](/ja/reference/api-reference/#getstaticpaths)についてもっと学ぶ。</ReadMore>
 
 <RecipeLinks slugs={["ja/recipes/i18n"]} />
 
@@ -231,7 +232,8 @@ const { title, text } = page;
 Astroの設定で、[永久的に移動したページにユーザーをリダイレクト](#リダイレクトの設定)するルールを定義できます。また、ユーザーがサイトを利用した際に[動的にリダイレクト](#動的リダイレクト)することもできます。
 
 ### リダイレクトの設定
-<Since v="2.9.0" />
+
+<p><Since v="2.9.0" /></p>
 
 `redirects`値を使用して、Astroの設定から永久的なリダイレクトのマッピングを指定できます。ほとんどのリダイレクトでは、これは古いルートから新しいルートへのマッピングとなります。
 
@@ -294,32 +296,34 @@ if (!isLoggedIn(cookie)) {
 
 ## ルーティングの優先順位
 
-複数のルートが同じURLのパスにマッチすることがあります。たとえば、以下の各ルートは`/posts/create`にマッチします。
+複数のルートが同じURLパスをビルドする可能性があります。たとえば、これらのルートはすべて`/posts/create`をビルドできます。
 
 <FileTree>
 - src/pages/
+  - [...slug].astro
   - posts/
     - create.astro
-    - [pid].astro
+    - [page].astro
+    - [pid].ts
     - [...slug].astro
 </FileTree>
 
-Astroは、ページをビルドするためにどのルートを使用すべきかを知る必要があります。そのために、以下のルールにしたがってルートの順番を決定します。
+Astroは、ページをビルドするためにどのルートを使用すべきかを知る必要があります。そのために、以下のルールを順に適用してルートの順番を決定します。
 
-- パスパラメーターを持たない静的ルートは、他のすべてのルーティングよりも優先される
-- 名前付きパラメーターを使用する動的ルーティングは、レストパラメーターよりも優先される
-- 事前レンダリングされた動的ルートは、サーバーの動的ルートよりも優先される
-- レストパラメーターはもっとも低い優先度となる
-- エンドポイントは常にページよりも優先される
-- 同順位はアルファベット順に解決される
+- より多くのパスセグメントを持つルートが、詳細度が低いルートよりも優先される。上の例では、`/posts/`配下のすべてのルートが、`/[...slug].astro`よりも優先される。
+- パスパラメーターを持たない静的ルートは、動的ルートより優先される。例えば、`/posts/create.astro`は、他のすべてのルートよりも優先される。
+- 名前付きパラメーターを使用する動的ルーティングは、レストパラメーターよりも優先される。例えば、`/posts/[page].astro`は`/posts/[...slug].astro`よりも優先される。
+- 事前レンダリングされた動的ルートは、サーバーの動的ルートよりも優先される。
+- エンドポイントはページよりも優先される。
+- ルートを上記のルールで解決できない場合、Nodeのデフォルトロケールに基づいてアルファベット順に解決される。
 
 上記のようにファイルが配置されている場合に、リクエストされたURLと、HTMLをビルドするために使用されるルートがどのようにマッチングされるかの例をいくつか見てみましょう。
 
-- `pages/posts/create.Astro` - `/posts/create`をビルドします
-- `pages/posts/[pid].astro` - `/posts/1`, `/posts/abc`などをビルドします。しかし、`/posts/create`はビルドされません
-- `pages/posts/[...slug].Astro` - `/posts/1/2`, `/posts/a/b/c`などをビルドします。しかし、 `/posts/create`、`/posts/1`、`/posts/abc`はビルドされません
-
-リダイレクトも同じルールに従いますが、優先順位は*最後*になります。つまり、ファイルベースのルートとリダイレクトが同じルート優先順位である場合、ファイルベースのルートが選択されます。
+- `pages/posts/create.Astro` - `/posts/create`だけをビルドします
+- `pages/posts/[pid].ts` - `/posts/abc`、`/posts/xyz`などをビルドします。しかし、`/posts/create`はビルドしません
+- `pages/posts/[page].astro` - `/posts/1`、`/posts/2`などをビルドします。しかし、`/posts/create`、`/posts/abc`、`/posts/xyz`はビルドしません
+- `pages/posts/[...slug].astro` - `/posts/1/2`、`/posts/a/b/c`などをビルドします。しかし、`/posts/create`、`/posts/1`、`/posts/abc`などはビルドしません
+- `pages/[...slug].astro` - `/abc`、`/xyz`、`/abc/xyz`などをビルドします。しかし、`/posts/create`、`/posts/1`、`/posts/abc`などはビルドしません
 
 ## ページネーション
 
@@ -331,7 +335,7 @@ Astroは、複数のページに分割する必要がある大規模なデータ
 
 ```astro /{ (paginate) }/ /paginate\\(.*\\)/ /(?<=const.*)(page)/ /page\\.[a-zA-Z]+/
 ---
-// 例: /src/pages/astronauts/[page].astro
+// src/pages/astronauts/[page].astro
 export async function getStaticPaths({ paginate }) {
   const astronautPages = [{
     astronaut: 'ニール・アームストロング',
@@ -371,7 +375,7 @@ const { page } = Astro.props;
 
 ```astro /(?<=const.*)(page)/ /page\\.[a-zA-Z]+(?:\\.(?:prev|next))?/
 ---
-// 例: /src/pages/astronauts/[page].astro
+// src/pages/astronauts/[page].astro
 // 前の例と同じように、{ astronaut } オブジェクトのリストをページネーションします
 export async function getStaticPaths({ paginate }) { /* ... */ }
 const { page } = Astro.props;
@@ -432,14 +436,14 @@ interface Page<T = any> {
 
 ```astro /(?:[(]|=== )(tag)/ "params: { tag }" /const [{ ]*(page|params)/
 ---
-// 例: /src/pages/[tag]/[page].astro
+// src/pages/[tag]/[page].astro
 export function getStaticPaths({paginate}) {
   const allTags = ['red', 'blue', 'green'];
   const allPosts = await Astro.glob('../../posts/*.md');
   // すべてのタグに対して、paginate()の結果を返します。
   // その結果がどのタググループに対するものかAstroに伝えるために、
   // `{params: {tag}}`を必ず`paginate()`に渡してください。
-  return allTags.map((tag) => {
+  return allTags.flatMap((tag) => {
     const filteredPosts = allPosts.filter((post) => post.frontmatter.tag === tag);
     return paginate(filteredPosts, {
       params: { tag },

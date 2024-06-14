@@ -1,0 +1,189 @@
+---
+title: Аутентификация
+description: Введение в аутентификацию в Astro
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import ReadMore from '~/components/ReadMore.astro'
+
+Аутентификация и авторизация — это два процесса безопасности, которые управляют доступом к вашему веб-сайту или приложению. Аутентификация проверяет личность посетителя, а авторизация предоставляет доступ к защищенным областям и ресурсам.
+
+Аутентификация позволяет настраивать области вашего сайта для авторизованных пользователей и обеспечивает наивысшую защиту для личной или конфиденциальной информации. Библиотеки аутентификации (например, [Lucia Auth](https://lucia-auth.com/), [Auth.js](https://authjs.dev/)) предоставляют утилиты для различных методов аутентификации, таких как вход по электронной почте и OAuth-провайдеры.
+
+:::tip
+Официального решения для аутентификации в Astro нет, но вы можете найти ["auth" интеграции сообщества](https://astro.build/integrations/?search=auth) в каталоге интеграций.
+:::
+
+<ReadMore>Узнайте, как [добавить аутентификацию с помощью Supabase](/ru/guides/backend/supabase/#добавление-аутентификации-с-помощью-supabase) или [добавить аутентификацию с помощью Firebase](/ru/guides/backend/google-firebase/#добавление-аутентификации-с-помощью-firebase) в наших специальных руководствах по этим бэкэнд-сервисам.</ReadMore>
+
+## Lucia
+
+Lucia — это библиотека аутентификации на основе сессий, не зависящая от фреймворка, с отличной поддержкой Astro.
+
+### Установка
+
+Установите Lucia с помощью выбранного вами менеджера пакетов.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install lucia
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add lucia
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add lucia
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Конфигурация
+
+Используйте руководство [Lucia "Getting started in Astro"](https://lucia-auth.com/getting-started/astro) для инициализации Lucia с адаптером и настройки базы данных для хранения пользователей и сессий.
+
+### Использование
+
+:::tip
+Следуйте одному из полных руководств Lucia по Astro, чтобы добавить [аутентификацию по имени пользователя и паролю](https://lucia-auth.com/tutorials/username-and-password/astro) или [GitHub OAuth](https://lucia-auth.com/tutorials/github-oauth/astro) в ваш проект Astro.
+:::
+
+### Следующие шаги
+
+- [Пример проекта Astro + Lucia OAuth](https://github.com/lucia-auth/examples/tree/main/astro/github-oauth)
+- [Пример проекта Astro + Lucia с использованием имени пользователя и пароля](https://github.com/lucia-auth/examples/tree/main/astro/username-and-password)
+
+## Auth.js
+
+Auth.js — это решение для аутентификации, не зависящее от фреймворка. Для Astro доступен адаптер фреймворка сообщества [`auth-astro`](https://www.npmjs.com/package/auth-astro).
+
+### Установка
+
+Используйте команду `astro add` в предпочитаемом менеджере пакетов для добавления интеграции `auth-astro`.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add auth-astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add auth-astro
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add auth-astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+#### Ручная установка
+
+Чтобы установить `auth-astro` вручную, установите требуемый пакет для вашего менеджера пакетов:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install auth-astro @auth/core@^0.18.6
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add auth-astro @auth/core@^0.18.6
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add auth-astro @auth/core@^0.18.6
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Затем примените интеграцию к вашему файлу `astro.config.*` с помощью свойства `integrations`:
+
+```ts title="astro.config.mjs" ins={2,6}
+import { defineConfig } from 'astro/config';
+import auth from 'auth-astro';
+
+export default defineConfig({
+  // ...
+  integrations: [auth()],
+});
+```
+
+### Конфигурация
+
+Создайте файл `auth.config.mjs` в корне вашего проекта. Добавьте любых [поставщиков](https://authjs.dev/getting-started/providers) аутентификации или методы, которые вы хотите поддерживать, вместе с любыми переменными среды, которые они требуют.
+
+```ts title="auth.config.mjs"
+import GitHub from '@auth/core/providers/github';
+import { defineConfig } from 'auth-astro';
+
+export default defineConfig({
+	providers: [
+		GitHub({
+			clientId: import.meta.env.GITHUB_CLIENT_ID,
+			clientSecret: import.meta.env.GITHUB_CLIENT_SECRET,
+		}),
+	],
+});
+```
+
+Создайте файл `.env` в корне проекта, если его еще нет. Добавьте следующие две переменные окружения. `AUTH_SECRET` должна быть закрытой строкой, состоящей минимум из 32 символов.
+
+```sh title=".env"
+AUTH_TRUST_HOST=true
+AUTH_SECRET=<my-auth-secret>
+```
+
+### Использование
+
+Вы можете добавить кнопки входа и выхода, используя модуль `auth-astro/client` в теге script или компоненте фреймворка на стороне клиента.
+
+```astro title="src/pages/index.astro" {9}
+---
+import Layout from 'src/layouts/Base.astro';
+---
+<Layout>
+  <button id="login">Login</button>
+  <button id="logout">Logout</button>
+
+  <script>
+    const { signIn, signOut } = await import("auth-astro/client")
+    document.querySelector("#login").onclick = () => signIn("github")
+    document.querySelector("#logout").onclick = () => signOut()
+  </script>
+</Layout>
+```
+
+Вы можете получить сессию пользователя с помощью метода `getSession`.
+
+```astro title="src/pages/index.astro" {3,5}
+---
+import Layout from 'src/layouts/Base.astro';
+import { getSession } from 'auth-astro/server';
+
+const session = await getSession(Astro.request);
+---
+<Layout>
+  {
+    session ? (
+      <p>Welcome {session.user?.name}</p>
+    ) : (
+      <p>Not logged in</p>
+    )
+  }
+</Layout>
+```
+
+### Следующие шаги
+
+- [`auth-astro` на GitHub](https://github.com/nowaythatworked/auth-astro?tab=readme-ov-file#auth-astro)
+- [Документация по Auth.js](https://authjs.dev/)

@@ -1,0 +1,256 @@
+---
+type: integration
+title: '@astrojs/db'
+description: Aprende a usar la integración @astrojs/db en tu proyecto de Astro.
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/db/'
+category: other
+i18nReady: true
+---
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+
+Astro DB es una base de datos SQL completamente administrada diseñada para el ecosistema de Astro: desarrolla localmente en Astro y despliega desde tu [panel de Astro Studio](/es/guides/astro-db/#astro-studio).
+
+Con Astro DB tienes una herramienta potente, local y segura para consultar y modelar contenido como una base de datos relacional. Visualiza, administra y despliega tus datos remotos alojados a través de tu panel interactivo de Studio. 
+
+<ReadMore>Consulta la [guía de Astro DB](/es/guides/astro-db/) para obtener ejemplos y usos completos.</ReadMore>
+
+## Instalación
+
+Astro incluye un comando `astro add` para automatizar la configuración de integraciones oficiales. Si lo prefieres, puedes [instalar las integraciones manualmente](/es/guides/integrations-guide/mdx/#instalación-manual) en su lugar.
+
+Ejecuta uno de los siguientes comandos en una nueva ventana de terminal.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add db
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add db
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add db
+  ```
+  </Fragment>
+ </PackageManagerTabs>
+
+#### Instalación manual
+
+Si prefieres configurar las cosas desde cero, omite `astro add` y sigue estas instrucciones para instalar Astro DB tú mismo.
+
+##### 1. Instala la integración desde npm a través de un gestor de paquetes
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm install @astrojs/db
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm add @astrojs/db
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn add @astrojs/db
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+##### 2. Agrega la integración a `astro.config.mjs`
+
+    ```js title="astro.config.mjs" ins={2,6}
+    import { defineConfig } from 'astro/config';
+    import db from '@astrojs/db';
+
+    export default defineConfig({
+      integrations: [
+       db()
+      ]
+    });
+    ```
+
+##### 3. Configura tu base de datos
+
+Crea un archivo `db/config.ts` en la raíz de tu proyecto. Este es un archivo especial que Astro cargará y utilizará automáticamente para configurar las tablas de tu base de datos.
+
+```ts
+// db/config.ts
+import { defineDb } from 'astro:db';
+
+export default defineDb({
+  tables: {},
+})
+```
+
+## Configuración de la tabla de referencia
+
+### `columns`
+
+Las columnas de la tabla se configuran utilizando el objeto `columns`:
+
+```ts
+import { defineTable, column, NOW } from 'astro:db';
+
+const Comment = defineTable({
+	columns: {
+		id: column.number({ primaryKey: true }),
+		author: column.text(),
+		content: column.text({ optional: true }),
+		published: column.date({ default: NOW }),
+	},
+});
+```
+
+Las columnas se configuran utilizando la utilidad `column`. `column` admite los siguientes tipos:
+
+- **`column.text(...)`** - guarda contenido de texto plano o enriquecido
+- **`column.number(...)`** - almacena valores enteros y de punto flotante
+- **`column.boolean(...)`** - almacena valores verdaderos / falsos
+- **`column.date(...)`** - almacena objetos `Date`, analizados como strings ISO para el almacenamiento de datos
+- **`column.json(...)`** - almacena bloques JSON arbitrarios, analizados como JSON serializado para el almacenamiento de datos
+
+Hay algunos valores de configuración compartidos en todas las columnas:
+
+- `primaryKey` - Establece una columna `number` o `text` como identificador único.
+- `optional` - Astro DB usa `NOT NULL` para todas las columnas de forma predeterminada. Establece `optional` en `true` para permitir valores nulos.
+- `default` - Establece el valor predeterminado para las entradas recién insertadas. Esto acepta un valor estático o un string de `sql` para valores generados como marcas de tiempo.
+ `unique` - Marca una columna como única. Esto evita valores duplicados en las entradas de la tabla.
+- `references` - Hace referencia a una tabla relacionada por columna. Esto establece una restricción de clave externa, lo que significa que cada valor de columna debe tener un valor coincidente en la tabla referenciada.
+
+### `indexes`
+
+Los índices de tabla se utilizan para mejorar la velocidad de búsqueda en una columna o combinación de columnas. La propiedad `indexes` acepta un arreglo de objetos de configuración especificando las columnas a indexar:
+
+```ts title="db/config.ts" {9-11}
+import { defineTable, column } from 'astro:db';
+
+const Comment = defineTable({
+  columns: {
+    authorId: column.number(),
+    published: column.date(),
+    body: column.text(),
+  },
+  indexes: [
+    { on: ["authorId", "published"], unique: true },
+  ]
+});
+```
+
+Esto generará un índice único en las columnas `authorId` y `published` con el nombre `Comment_authorId_published_idx`.
+
+Las siguientes opciones de configuración están disponibles para cada índice:
+
+- `on`: `string | string[]` - Una sola columna o un array de nombres de columnas para indexar.
+- `unique`: `boolean` - Establece `true` para forzar valores únicos en las columnas indexadas.
+- `name`: `string` (opcional) - Un nombre personalizado para el índice único. Esto anulará el nombre generado por Astro basado en el nombre de la tabla y las columnas que se están indexando (por ejemplo, `Comment_authorId_published_idx`). Los nombres personalizados son globales, así que asegúrate de que los nombres de índice no entren en conflicto entre tablas.
+
+### `foreignKeys`
+
+:::tip
+
+`foreignKeys` es una API avanzada para relacionar múltiples columnas de tabla. Si solo necesitas hacer referencia a una columna, intenta usar [la propiedad `references` de la columna.](#columns)
+
+:::
+
+Las claves foráneas se utilizan para establecer una relación entre dos tablas. La propiedad `foreignKeys` acepta una matriz de objetos de configuración que pueden relacionar una o más columnas entre tablas:
+
+```ts title="db/config.ts" {12-20}
+import { defineTable, column } from 'astro:db';
+
+const Author = defineTable({
+  columns: {
+    firstName: column.text(),
+    lastName: column.text(),
+  },
+});
+
+const Comment = defineTable({
+  columns: {
+    authorFirstName: column.text(),
+    authorLastName: column.text(),
+    body: column.text(),
+  },
+  foreignKeys: [
+    {
+      columns: ["authorFirstName", "authorLastName"],
+      references: () => [Author.columns.firstName, Author.columns.lastName],
+    },
+  ],
+});
+```
+
+Cada objeto de configuración de clave foránea acepta las siguientes propiedades:
+
+- `columns`: `string[]` - Un array de nombres de columnas para relacionar con la tabla referenciada.
+- `references`: `() => Column[]` - Una función que devuelve un array de columnas de la tabla referenciada.
+
+## Referencia de la CLI de Astro DB
+
+Astro DB incluye un conjunto de comandos CLI para interactuar con tu base de datos de proyecto alojada y tu cuenta de [Astro Studio](/es/guides/astro-db/#astro-studio).
+
+Estos comandos se ejecutan automáticamente al usar una acción de GitHub CI, y se pueden llamar manualmente utilizando el CLI `astro db`.
+
+### `astro db push`
+
+**Banderas:**
+
+- `--force-reset` Reinicia todos los datos de producción si se requiere un cambio de esquema. 
+
+De forma segura envía cambios de configuración de la base de datos a la base de datos de tu proyecto. Esto comprobará cualquier riesgo de pérdida de datos y te guiará en cualquier paso de migración recomendado. Si se debe realizar un cambio de esquema que rompa, usa la bandera `--force-reset` para restablecer todos los datos de producción.
+
+### `astro db verify`
+
+Verifica si hay diferencias entre las configuraciones de tu base de datos local y remota. Esto se ejecuta automáticamente con `astro db push`. `verify` comparará tu archivo `db/config.ts` local con la base de datos remota y advertirá si se detectan cambios.
+
+### `astro db execute <file-path>`
+
+**Banderas:**
+
+- `--remote` Ejecuta contra la base de datos de tu proyecto de Studio. Omite para ejecutar contra tu servidor de desarrollo.
+
+Ejecuta un archivo `.ts` o `.js` para leer o escribir en tu base de datos. Esto acepta una ruta de archivo como argumento y admite el uso del módulo `astro:db` para escribir consultas seguras. Utiliza la bandera `--remote` para ejecutar contra la base de datos de tu proyecto de Studio, u omite la bandera para ejecutar contra tu servidor de desarrollo. Consulta cómo [sembrar datos de desarrollo](/es/guides/astro-db/#sembrar-tu-base-de-datos) para ver un archivo de ejemplo. 
+
+### `astro db shell --query <sql-string>`
+
+**Banderas:**
+
+- `--query` Consulta SQL sin procesar para ejecutar.
+- `--remote` Ejecuta contra la base de datos de tu proyecto de Studio. Omite para ejecutar contra tu servidor de desarrollo.
+
+Ejecuta una consulta SQL sin procesar contra tu base de datos. Utiliza la bandera `--remote` para ejecutar contra la base de datos de tu proyecto de Studio u omite la bandera para ejecutar contra tu servidor de desarrollo.
+
+## Referencia de utilidad de Astro DB
+
+### `isDbError()`
+
+La función `isDbError()` comprueba si un error es una excepción de base de datos libSQL. Esto puede incluir un error de restricción de clave foránea al utilizar referencias, o campos que faltan al insertar datos. Puedes combinar `isDbError()` con un bloque try / catch para manejar errores de base de datos de tu aplicación:
+
+```ts title="src/pages/api/comment/[id].ts" "idDbError"
+import { db, Comment, isDbError } from 'astro:db';
+import type { APIRoute } from 'astro';
+
+export const POST: APIRoute = (ctx) => {
+  try {
+    await db.insert(Comment).values({
+      id: ctx.params.id,
+      content: '¡Hola, mundo!'
+    });
+  } catch (e) {
+    if (isDbError(e)) {
+      return new Response(`No se puede insertar comentario con id ${id}\n\n${e.message}`, { status: 400 });
+    }
+    return new Response('Se ha producido un error inesperado', { status: 500 });
+  }
+
+  return new Response(null, { status: 201 });
+};
+```

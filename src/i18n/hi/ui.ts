@@ -115,8 +115,6 @@ export default UIDictionary({
 	'feedback.submit': 'प्रतिक्रिया दें', // "Submit feedback"
 	'feedback.close': 'प्रतिक्रिया प्रपत्र बंद करें', // "Close feedback form"
 	'feedback.success': 'धन्यवाद! हमें आपकी प्रतिक्रिया प्राप्त हुई.', // "Thanks! We received your feedback."
-	// `<FileTree>` component
-	'fileTree.directoryLabel': 'निर्देशिका', // "Directory"
 	// Code snippet vocabulary
 	'expressiveCode.terminalWindowFallbackTitle': 'टर्मिनल विंडो', // "Terminal window"
 	'expressiveCode.copyButtonTooltip': 'क्लिपबोर्ड पर कॉपी करें', // "Copy to clipboard"
@@ -134,4 +132,6 @@ export default UIDictionary({
 	// Starlight banner
 	'starlight.title': 'क्या आप अपने स्वयं के दस्तावेज़ बनाना चाहते हैं?', // "Want to build your own Docs?"
 	'starlight.description': 'आरंभ करने के लिए इस टेम्पलेट को पकड़ें।', // "Grab this template to get started."
+	// `<StudioHeading>` component
+	'studioHeading.label': 'Studio सुविधा',
 });

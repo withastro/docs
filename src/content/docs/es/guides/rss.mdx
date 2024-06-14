@@ -4,9 +4,9 @@ description: Agrega un feed RSS a tu sitio Astro para permitir que los usuarios 
 i18nReady: true
 type: recipe
 ---
-
-import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import Since from '~/components/Since.astro';
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
 Astro proporciona una generación rápida y automática de feeds RSS para blogs u otros sitios web con mucho contenido. Los feeds RSS proporcionan una forma fácil para que los usuarios se suscriban a tu contenido.
 
@@ -14,6 +14,7 @@ Astro proporciona una generación rápida y automática de feeds RSS para blogs 
 
 El paquete [`@astrojs/rss`](https://github.com/withastro/astro/tree/main/packages/astro-rss) provee helpers para generar RSS feeds utilizando [API endpoints](/es/guides/endpoints/#endpoints-de-archivos-estáticos). Esto desbloquea la generación de RSS feeds para builds estáticos _y_ on-demand para cuando utilizamos un [adaptador SSR](/es/guides/server-side-rendering/).
 
+<Steps>
 1. Instala `@astrojs/rss` utilizando tu gestor de paquetes favorito:
 
     <PackageManagerTabs>
@@ -64,6 +65,7 @@ El paquete [`@astrojs/rss`](https://github.com/withastro/astro/tree/main/package
       });
     }
     ```
+</Steps>
 
 ## Generando `items`
 
@@ -150,7 +152,7 @@ Este método es obsoleto para todas las versiones de Astro desde la v2.1.0 y no 
 
 ### Incluyendo contenido completo de un artículo
 
-<p><Since v="1.6" /></p>
+<p><Since v="1.6.14" /></p>
 
 La llave `content` contiene el contenido completo del post como HTML. Esto te permite hacer disponible todo el contenido del post a los lectores de RSS.
 
@@ -158,7 +160,7 @@ La llave `content` contiene el contenido completo del post como HTML. Esto te pe
 Un paquete como [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) se asegurará de que tu contenido esté correctamente sanitizado, escapado y codificado. En el proceso, este paquete podría remover algunos elementos y atributos inofensivos, así que asegurate de verificar la salida y configurar el paquete de acuerdo a tus necesidades.
 :::
 
-Cuando utilices colecciones de contenido, renderiza el `body` del post usando un parser de Markdown estándar como [`markdown-it`](https://github.com/markdown-it/markdown-it) y desinfecta el resultado:
+Cuando utilices colecciones de contenido, renderiza el `body` del post usando un parser de Markdown estándar como [`markdown-it`](https://github.com/markdown-it/markdown-it) y desinfecta el resultado, incluyendo cualquier etiqueta (e.g. `<img>`) necesaria para renderizar tu componente:
 
 ```js title="src/pages/rss.xml.js" ins={2, 3, 4, 15}
 import rss from '@astrojs/rss';
@@ -175,7 +177,9 @@ export async function GET(context) {
     items: blog.map((post) => ({
       link: `/blog/${post.slug}/`,
       // Nota: esto no procesará componentes ni expresiones JSX en archivos MDX.
-      content: sanitizeHtml(parser.render(post.body)),
+      content: sanitizeHtml(parser.render(post.body), {
+        allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img'])
+      }),
       ...post.data,
     })),
   });
@@ -187,6 +191,7 @@ Cuando utilices imports glob con Markdown, puedes utilizar el helper `compiledCo
 ```js title="src/pages/rss.xml.js" ins={2, 13}
 import rss from '@astrojs/rss';
 import sanitizeHtml from 'sanitize-html';
+
 export function GET(context) {
   const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true }); 
   const posts = Object.values(postImportResult);
@@ -202,6 +207,31 @@ export function GET(context) {
   });
 }
 ```
+
+## Eliminando las barras diagonales finales
+
+El feed RSS de Astro produce enlaces con una barra diagonal al final por defecto, sin importar el valor que hayas configurado para `trailingSlash`. Esto significa que los enlaces de tu RSS pueden no coincidir exactamente con las URLs de tus posts.
+
+Si has configurado `trailingSlash: "never"` en tu `astro.config.mjs`, establece `trailingSlash: false` en el helper `rss()` para que tu feed coincida con la configuración de tu proyecto.
+
+```ts title="src/pages/rss.xml.js" ins={9}
+import rss from '@astrojs/rss';
+
+export function GET(context) {
+  const posts = Object.values(postImportResult);
+  return rss({
+    title: 'Blog de Buzz',
+    description: 'Guía de un humilde astronauta a las estrellas',
+    site: context.site,
+    trailingSlash: false,
+    items: posts.map((post) => ({
+      link: post.url,
+      ...post.frontmatter,
+    })),
+  });
+}
+```
+
 
 ## Añadiendo una hoja de estilos
 
@@ -220,6 +250,23 @@ rss({
 :::tip
 Si prefieres no crear tu propia hoja de estilos, puedes utilizar una hoja de estilos predefinida como la [hoja de estilos predeterminada de Pretty Feed v3](https://github.com/genmon/aboutfeeds/blob/main/tools/pretty-feed-v3.xsl). Descarga la hoja de estilos desde GitHub y guárdala en el directorio `public/` de tu proyecto.
 :::
+
+## Detección automática de fuentes RSS
+
+[RSS autodiscovery](https://www.rssboard.org/rss-autodiscovery) permite a los navegadores y otros programas encontrar automáticamente el canal RSS de un sitio a partir de la URL principal.
+
+Para habilitarlo, agregue una etiqueta `<link>` con los siguientes atributos al elemento `head` de su sitio.
+
+```jsx
+<link
+    rel="alternate"
+    type="application/rss+xml"
+    title="Título de su sitio web"
+    href={`${Astro.site}rss.xml`}
+/>
+```
+
+Con esta etiqueta, los lectores de tu blog pueden introducir la URL base de tu sitio en su lector RSS para suscribirse a tus entradas sin necesidad de la URL específica de tu canal RSS.
 
 ## Siguientes pasos
 

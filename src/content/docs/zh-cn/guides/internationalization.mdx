@@ -1,0 +1,365 @@
+---
+title: 国际化（i18n）路由
+description: 学习如何在 Astro 中使用 i18n 路由。
+i18nReady: true
+---
+
+import { FileTree } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro'
+
+Astro 的国际化（i18n）功能允许你将项目适配给国际受众。这个路由 API 帮助你生成、使用并验证你的多语言站点产生的 URL。
+
+Astro 的 i18n 路由允许你带来你的多语言内容，并支持配置默认语言、计算相对页面 URL 以及接受访客浏览器提供的首选语言。你还可以基于每种语言指定回退语言，以便你的访客始终可以被引导至你站点上现有的内容。
+
+## 路由逻辑
+
+Astro 通过使用一个 [中间件](/zh-cn/guides/middleware/) 来实现其路由逻辑。这个中间件函数被放置在 [第一个位置](/zh-cn/guides/middleware/#中间件链式调用)，它会在最终执行自己的逻辑之前，等待来自任何额外中间件和每个页面路由的每一个 `Response`。
+
+这意味着来自你自己的中间件和页面逻辑的操作（例如重定向）首先被执行，你的路由被渲染，然后 i18n 中间件执行它自己的动作，比如验证一个本地化的 URL 是否对应一个有效的路由。
+
+你也可以选择[在 Astro 的 i18n 中间件之外，添加你自己的 i18n 逻辑](#manual)，这样你可以在仍然能访问 `astro:i18n` 辅助函数的同时，对你的路由有更多的控制权。
+
+
+## 配置 i18n 路由
+
+在 `i18n` 配置对象中必须指定一个默认语言（[`defaultLocale`](/zh-cn/reference/configuration-reference/#i18ndefaultlocale)）和所有支持的语言列表（[`locales`](/zh-cn/reference/configuration-reference/#i18nlocales)）。此外，你还可以配置更具体的路由和回退行为，以匹配你期望的 URL。
+
+```js title="astro.config.mjs"
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  i18n: {
+    defaultLocale: "en",
+    locales: ["es", "en", "pt-br"],
+  }
+})
+```
+
+### 创建本地化文件夹
+
+根据语言组织你的内容文件夹中的本地化内容。在 `src/pages/` 内的任何位置创建单独的 `/[locale]/` 文件夹，Astro 的 [基于文件的路由](/zh-cn/guides/routing/) 将会在相应的 URL 路径下创建你的页面。
+
+你的文件夹名称必须与 `locales` 中的项完全匹配。仅当你配置了 `prefixDefaultLocale: true` 来为你的默认语言显示一个本地化的 URL 路径时（例如 /zh-cn/about/），才包含一个为你的 `defaultLocale` 设定的本地化文件夹。
+
+<FileTree>
+- src
+  - pages
+    - about.astro
+    - index.astro
+    - es
+      - about.astro
+      - index.astro
+    - pt-br
+      - about.astro
+      - index.astro
+</FileTree>
+
+:::note
+本地化文件夹不需要位于 `/pages/` 文件夹的根目录。
+:::
+
+
+### 创建链接
+
+配置了 i18n 路由后，你现在可以使用诸如 [`astro:i18n` 模块](/zh-cn/reference/api-reference/#国际化astroi18n) 中提供的 [`getRelativeLocaleURL()`](/zh-cn/reference/api-reference/#getrelativelocaleurl) 辅助函数来计算站点内页面的链接。这些生成的链接将始终提供正确的、本地化的路由，并且可以帮助你正确地使用或检查站点上的 URL。
+
+你也可以选择手动编写链接。
+
+```astro title="src/pages/es/index.astro"
+---
+import { getRelativeLocaleUrl } from 'astro:i18n';
+
+// defaultLocale 为 "es"
+const aboutURL = getRelativeLocaleUrl("es", "about");
+---
+
+<a href="/get-started/">¡Vamos!</a>
+<a href={getRelativeLocaleUrl('es', 'blog')}>Blog</a>
+<a href={aboutURL}>Acerca</a> 
+``` 
+
+## `routing`
+
+Astro 的内置基于文件的路由系统会根据你在 `src/pages/` 中的文件结构自动为你创建 URL 路由。
+
+当你配置 i18n 路由时，这个文件结构的信息（以及生成的相应 URL 路径）将可供 i18n 辅助函数使用，以便它们能够为你的项目生成、使用和验证路由。许多这样的选项可以一起使用，以实现更多的自定义和按语言的灵活性。
+
+你甚至可以选择[手动实现自己的路由逻辑](#manual)，以获得更大的控制权。
+
+### `prefixDefaultLocale`
+
+<p><Since v="3.5.0" /></p>
+
+此路由选项定义了你的默认语言的 URL 是否应该使用语言前缀（例如 `/en/about/`）。
+
+所有非默认支持的语言**将**使用本地化前缀（例如 `/fr/` 或 `/french/`），并且内容文件必须位于适当的文件夹中。此配置选项允许你指定你的默认语言是否也应该遵循本地化的 URL 结构。
+
+此设置还决定了你的默认语言的页面文件必须存在于哪个位置（例如 `src/pages/about/` 或 `src/pages/en/about`），因为文件结构和 URL 结构必须对所有语言都匹配。
+
+- `"prefixDefaultLocale: false"`（默认）：你的默认语言的 URL **不会**有 `/[locale]/` 前缀。所有其他语言都会有。
+
+- `"prefixDefaultLocale: true"`：所有 URL，包括你的默认语言，都会有 `/[locale]/` 前缀。
+
+
+#### `prefixDefaultLocale: false`
+
+```js title="astro.config.mjs" ins={7}
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  i18n: {
+    defaultLocale: "en",
+    locales: ["es", "en", "fr"],
+    routing: {
+        prefixDefaultLocale: false
+    }
+  }
+})
+```
+
+这是**默认**值。当你的默认语言的 URL **不会**有 `/[locale]/` 前缀，并且你的默认语言的文件位于 `src/pages/` 的根目录时，设置这个选项：
+
+<FileTree>
+  - src
+    - pages
+      - about.astro
+      - index.astro
+      - es
+        - about.astro
+        - index.astro
+      - fr
+        - about.astro
+        - index.astro
+</FileTree>
+
+- `src/pages/about.astro` 将生成路由 `example.com/about/`
+- `src/pages/fr/about.astro` 将生成路由 `example.com/fr/about/`
+
+
+#### `prefixDefaultLocale: true`
+
+```js title="astro.config.mjs" ins={7}
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  i18n: {
+    defaultLocale: "en",
+    locales: ["es", "en", "fr"],
+    routing: {
+        prefixDefaultLocale: true
+    }
+  }
+})
+```
+
+当所有路由在其 URL 中都有 `/locale/` 前缀，并且包括默认语言环境的所有页面内容文件都存在于一个本地化文件夹中时，设置这个选项：
+
+    <FileTree>
+    - src
+      - pages
+        - **index.astro** // 注意：这个文件是必需的
+        - en
+          - index.astro
+          - about.astro
+        - es
+          - about.astro
+          - index.astro
+        - pt-br
+          - about.astro
+          - index.astro
+    </FileTree>
+- 没有区域前缀的 URL（例如 `example.com/about/`）将返回 404（未找到）状态码，除非你指定了一个[回退策略](#fallback)。
+
+### `redirectToDefaultLocale`
+
+<p><Since v="4.2.0" /></p>
+
+配置是否将由 `src/pages/index.astro` 生成的首页 URL (`/`) 重定向到 `/<defaultLocale>`。
+
+设置 `prefixDefaultLocale: true` 也会在你的 `routing` 配置对象中自动设置 `redirectToDefaultLocale: true`。默认情况下，必需的 `src/pages/index.astro` 文件将自动重定向到你的默认语言环境的首页。
+
+你可以通过[设置 `redirectToDefaultLocale: false`](/zh-cn/reference/configuration-reference/#i18nroutingredirecttodefaultlocale) 来选择退出此行为。这允许你拥有一个存在于你配置的语言环境文件夹结构之外的站点首页。
+
+### `manual`
+
+<p><Since v="4.6.0" /></p>
+
+当这个选项被启用时，Astro 将**禁用**其 i18n 中间件，以便你可以实现自己的自定义逻辑。其他的 `routing` 选项（例如 `prefixDefaultLocale`）不能与 `routing: "manual"` 一起配置。
+
+你将负责编写自己的路由逻辑，或者[手动执行 Astro 的 i18n 中间件](#中间件函数)与你自己的逻辑一起。
+
+```js title="astro.config.mjs"
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  i18n: {
+    defaultLocale: "en",
+    locales: ["es", "en", "fr"],
+    routing: "manual"
+  }
+})
+```
+
+Astro 为你的中间件提供了辅助函数，以便你可以控制自己的默认路由、异常、回退行为、错误捕获等：[`redirectToDefaultLocale()`](/zh-cn/reference/api-reference/#redirecttodefaultlocale)、[`notFound()`](/zh-cn/reference/api-reference/#notfound) 和 [`redirectToFallback()`](/zh-cn/reference/api-reference/#redirecttofallback)：
+
+
+```js title="src/middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { redirectToDefaultLocale } from "astro:i18n"; // 在 `manual` 路由下可用的函数
+export const onRequest = defineMiddleware(async (ctx, next) => {
+  if (ctx.url.startsWith("/about")) {
+    return next();
+  } else {
+    return redirectToDefaultLocale(302);
+  }
+})
+```
+
+#### 中间件函数
+
+[`middleware`](#中间件函数) 函数手动创建 Astro 的 i18n 中间件。这允许你扩展 Astro 的 i18n 路由，而不是完全替换它。
+
+你可以将带有 [路由选项](#routing)的 `middleware` 与你自己的中间件结合使用，通过使用 [`sequence`](/zh-cn/reference/api-reference/#sequence) 工具来确定顺序运行 `middleware`：
+
+```js title="src/middleware.js"
+import { defineMiddleware, sequence } from "astro:middleware";
+import { middleware } from "astro:i18n"; // Astro 自己的 i18n 路由配置
+
+export const userMiddleware = defineMiddleware(async (ctx, next) => {
+  // 这个响应可能来自 Astro 的 i18n 中间件，它可能会返回一个 404
+  const response = await next();
+  // /about 页面是一个例外，我们想要渲染它
+  if (ctx.url.startsWith("/about")) {
+    return new Response("关于页面", {
+      status: 200
+    });
+  } else {
+    return response;
+  }
+});
+
+
+export const onRequest = sequence(
+  userMiddleware,
+  middleware({
+    redirectToDefaultLocale: false,
+    prefixDefaultLocale: true
+  })
+)
+```
+
+## `domains`
+
+<p><Since v="4.9.0" /></p>
+
+这个路由选项允许你为使用 [`@astrojs/node`](/zh-cn/guides/integrations-guide/node/) 或 [`@astrojs/vercel`](/zh-cn/guides/integrations-guide/vercel/) 适配器并配置了 `site` 的服务端渲染项目，按语言自定义你的域名。
+
+添加 `i18n.domains` 来将你支持的任何 `locales` 映射到自定义 url：
+
+```js title="astro.config.mjs" {3-7} ins={14-21}
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  site: "https://example.com",
+  output: "server", // 必须，没有预渲染的页面
+  adapter: node({
+    mode: 'standalone',
+  }),
+  i18n: {
+    defaultLocale: "en",
+    locales: ["es", "en", "fr", "ja"],
+    routing: {
+      prefixDefaultLocale: false
+    },
+    domains: {
+        fr: "https://fr.example.com",
+        es: "https://example.es"
+    }
+  }
+})
+```
+
+所有未映射的 `locales` 将遵循你的 `prefixDefaultLocales` 配置。然而，即使这个值为 `false`，你的 `defaultLocale` 的页面文件也必须存在于一个本地化文件夹中。对于上面的配置，需要一个 `/en/` 文件夹。
+
+根据上述配置：
+
+- 文件 `/fr/about.astro` 将创建 URL `https://fr.example.com/about`。
+- 文件 `/es/about.astro` 将创建 URL `https://example.es/about`。
+- 文件 `/ja/about.astro` 将创建 URL `https://example.com/ja/about`。
+- 文件 `/en/about.astro` 将创建 URL `https://example.com/about`。
+
+上述 URL 也将通过 `getAbsoluteLocaleUrl()` 和 `getAbsoluteLocaleUrlList()` 函数返回。
+
+## `fallback`
+
+Astro 的 i18n 路由允许你配置一个**回退路由策略**。当一个页面在某种语言下不存在时（例如，一个尚未翻译的页面），你可以基于每种语言将用户从一个语言环境重定向到另一个语言环境，而不是显示 404 页面。这在你还没有为每个路由准备好页面，但仍想为访客提供一些内容时非常有用。
+
+例如，下面的配置为任何缺失的 `fr` 路由设置 `es` 作为回退语言环境。这意味着，当 `src/pages/fr/my-page.astro` 不存在时，访问 `example.com/fr/my-page/` 的用户将被重定向到 `example.com/es/my-page/` 并显示那里的内容，而不是被带到 404 页面。
+
+```js title="astro.config.mjs" ins={6-8} 
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  i18n: {
+    defaultLocale: "en",
+    locales: ["es", "en", "fr"],
+    fallback: {
+      fr: "es"  
+    }
+  }
+})
+```
+
+Astro 会确保 `src/pages/es/` 中的每个页面都在 `src/pages/fr` 中构建一个对应页面。如果页面尚未存在，那么将创建一个页面，并将其重定向到相应的 `es` 路由。
+
+## 自定义语言环境路径
+
+除了将你的网站支持的 `locales` 定义为字符串（例如 "en", "pt-br"）之外，Astro 还允许你将任意数量的[浏览器识别的语言 `codes`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#syntax)映射到自定义的 URL `path` 上。虽然语言环境可以是任何格式的字符串，只要它们与你的项目文件夹结构相对应，但 `codes` 必须遵循浏览器接受的语法。
+
+向 `locales` 数组传递一个对象，并使用 `path` 键来定义自定义的 URL 前缀，使用 `codes` 来指示映射到此 URL 的语言。在这种情况下，你的 `/[locale]/` 文件夹名称必须与 `path` 的值完全匹配，而你的 URL 将使用 `path` 的值来生成。
+
+如果你支持一个语言的多个变体（例如 `"fr"`、`"fr-BR"` 和 `"fr-CA"`），并且你希望所有这些变体都映射到同一个 URL `/fr/` 下，或者甚至完全自定义它（例如 `/french/`），这将非常有用：
+
+```js title="astro.config.mjs" del={5} ins={6-9}
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  i18n: {
+    defaultLocale: "en",
+    locales: ["es", "en", "fr"],
+    locales: ["es", "en", {
+        path: "french", // 不包含斜杠
+        codes: ["fr", "fr-BR", "fr-CA"]
+    }],
+    routing: {
+        prefixDefaultLocale: true
+    }
+  }
+})
+```
+
+当使用来自 [`astro:i18n` 虚拟模块](/zh-cn/reference/api-reference/#国际化astroi18n) 的函数根据你的配置计算有效的 URL 路径时（例如 `getRelativeLocaleUrl()`），[请使用 `path` 作为 `locale` 的值](/zh-cn/reference/api-reference/#getlocalebypath)。
+
+#### 限制
+
+此功能有一些限制：
+- 必须设置 `site` 选项。
+- `output` 选项必须设置为 `"server"`。
+- 不能有任何单独的预渲染页面。
+- 不支持适配器功能 [`functionPerRoute`](/zh-cn/reference/adapter-reference/#functionperroute)。
+
+Astro 依赖以下头信息以支持此功能：
+- [`X-Forwarded-Host`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host) 和 [`Host`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Host)。Astro 会优先使用前者，如果不存在，则尝试后者。
+- 服务端请求的 [`X-Forwarded-Proto`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto) 和 [`URL#protocol`](https://developer.mozilla.org/en-US/docs/Web/API/URL/protocol)。
+
+请确保你的服务器代理/托管平台能够提供这些信息。获取这些头信息失败将导致一个 404（状态码）页面。
+
+## 浏览器语言检测
+
+Astro 的 i18n 路由允许你在按需渲染的页面中访问两个用于浏览器语言检测的属性：`Astro.preferredLocale` 和 `Astro.preferredLocaleList`。所有页面，包括静态预渲染页面，都可以访问 `Astro.currentLocale`。
+
+这些属性结合了浏览器的 `Accept-Language` 头部信息和你的 `locales`（字符串或 `codes`），以自动遵循访问者的首选语言。
+
+- [`Astro.preferredLocale`](/zh-cn/reference/api-reference/#astropreferredlocale): 如果访客的浏览器首选语言环境包含在你的 `locales` 数组中，Astro 可以为你的访客计算一个**首选语言环境**。如果没有这样的匹配存在，此值为 undefined。
+
+- [`Astro.preferredLocaleList`](/zh-cn/reference/api-reference/#astropreferredlocalelist): 一个包含了浏览器请求并且你的网站支持的所有语言环境的数组。这将产生一个你的网站和访客之间所有兼容语言的列表。如果在你的 `locales` 数组中找不到浏览器请求的任何语言，该值为 `[]`。如果浏览器没有指定任何首选语言，则此值将是 [`i18n.locales`]。
+
+- [`Astro.currentLocale`](/zh-cn/reference/api-reference/#astrocurrentlocale): 从当前 URL 计算的语言环境，使用你的 `locales` 配置指定的语法。如果 URL 不包含 `/[locale]/` 前缀，则该值将默认为 [`i18n.defaultLocale`](/zh-cn/reference/configuration-reference/#i18ndefaultlocale)。
+
+为了成功匹配访客的偏好，请使用与[浏览器使用的模式](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#syntax)相同的模式提供你的 `codes`。
+
+[`site`]: /zh-cn/reference/configuration-reference/#site
+[`i18n.locales`]: /zh-cn/reference/configuration-reference/#i18nlocales

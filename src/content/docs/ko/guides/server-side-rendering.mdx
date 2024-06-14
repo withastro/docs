@@ -3,10 +3,11 @@ title: 주문형 렌더링 어댑터
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
 import RecipeLinks from '~/components/RecipeLinks.astro';
 import IntegrationsNav from '~/components/IntegrationsNav.astro';
 
-Astro를 사용하면 페이지와 엔드포인트 전체 또는 일부에 대해 **주문형 렌더링**을 선택할 수 있습니다. 이는 **서버 측 렌더링(SSR)**이라고도 알려져 있으며, 요청 시 서버에서 HTML 페이지를 생성하여 클라이언트에 보냅니다. **어댑터**는 서버에서 프로젝트를 실행하고 이러한 요청을 처리하는 데 사용됩니다.
+Astro를 사용하면 페이지와 엔드포인트 전체 또는 일부에 대해 **주문형 렌더링**을 선택할 수 있습니다. 이는 **서버 측 렌더링(SSR)** 이라고도 알려져 있으며, 요청 시 서버에서 HTML 페이지를 생성하여 클라이언트에 보냅니다. **어댑터**는 서버에서 프로젝트를 실행하고 이러한 요청을 처리하는 데 사용됩니다.
 
 이 주문형 렌더링을 통해 다음을 수행할 수 있습니다.
 - 앱에서 로그인 상태에 대한 세션을 구현합니다.
@@ -23,7 +24,7 @@ Astro를 사용하면 페이지와 엔드포인트 전체 또는 일부에 대�
 
 ## 공식 어댑터
 
-Astro는 [NodeJs](https://nodejs.org/), [Vercel](https://vercel.com/), [Netlify](https://www.netlify.com/), [Cloudflare](https://www.cloudflare.com/)용 공식 어댑터를 유지 관리합니다.
+Astro는 [Node.js](https://nodejs.org/), [Vercel](https://vercel.com/), [Netlify](https://www.netlify.com/), [Cloudflare](https://www.cloudflare.com/)용 공식 어댑터를 유지 관리합니다.
 
 통합 디렉터리에서 [커뮤니티에서 관리하는 더 많은 어댑터](https://astro.build/integrations/?search=&categories%5B%5D=adapters) (예: Deno, SST, AWS)를 찾아보세요.
 
@@ -76,6 +77,7 @@ Astro의 두 주문형 렌더링 출력 모드 (`server` 및 `hybrid`)를 사용
 
 예를 들어 Vercel 어댑터를 수동으로 설치하려면 다음을 수행하세요.
 
+<Steps>
 1. 원하는 패키지 관리자를 사용하여 프로젝트 종속성에 어댑터를 설치합니다.
 
    <PackageManagerTabs>
@@ -110,6 +112,7 @@ Astro의 두 주문형 렌더링 출력 모드 (`server` 및 `hybrid`)를 사용
     ```
 
     어댑터마다 구성 설정이 다를 수도 있습니다. 각 어댑터의 문서를 읽고 `astro.config.mjs` 파일에서 선택한 어댑터에 필요한 구성 옵션을 적용하세요.
+</Steps>
 
 ### `server` 또는 `hybrid` 구성
 
@@ -127,18 +130,6 @@ export default defineConfig({
     mode: "standalone"
   })
 });
-```
-
-그런 다음 `const prerender = true`를 내보내 모든 페이지나 경로에서 `server` 모드의 기본 주문형 렌더링을 재정의하도록 선택할 수 있습니다.
-
-```astro title="src/pages/my-static-page.astro" ins={2}
----
-export const prerender = true;
-// ...
----
-<html>
-  <!-- 정적, 사전 렌더링된 페이지는 여기에 있습니다... -->
-</html>
 ```
 
 ### `server` 모드에서 사전 렌더링 선택
@@ -233,7 +224,42 @@ API 참조에서 [`Astro.cookies` 및 `AstroCookie` 타입](/ko/reference/api-re
 
 ### `Response`
 
-주문형 렌더링을 사용하면 모든 페이지에서 [Response](https://developer.mozilla.org/ko/docs/Web/API/Response)를 반환할 수도 있습니다.
+[`Astro.response`](/ko/reference/api-reference/#astroresponse)는 표준 [`ResponseInit`](https://developer.mozilla.org/en-US/docs/Web/API/Response/Response#options) 객체입니다. 응답 상태와 헤더를 설정하는 데 사용할 수 있습니다.
+
+아래 예시에서는 제품이 존재하지 않는 경우 제품 목록 페이지에 대한 응답 상태 및 상태 텍스트를 설정합니다.
+
+```astro title="src/pages/my-product.astro" {8-9}
+---
+import { getProduct } from '../api';
+const product = await getProduct(Astro.params.id);
+
+// 제품을 찾을 수 없는 경우
+if (!product) {
+  Astro.response.status = 404;
+  Astro.response.statusText = 'Not found';
+}
+---
+<html>
+  <!-- 페이지 -->
+</html>
+```
+
+#### `Astro.response.headers`
+
+`Astro.response.headers` 객체를 사용하여 헤더를 설정할 수 있습니다.
+
+```astro title="src/pages/index.astro" {2}
+---
+Astro.response.headers.set('Cache-Control', 'public, max-age=3600');
+---
+<html>
+  <!-- 페이지 -->
+</html>
+```
+
+#### `Response` 객체 반환
+
+주문형 렌더링을 사용하면 모든 페이지에서 직접 [Response](https://developer.mozilla.org/ko/docs/Web/API/Response) 객체를 반환할 수도 있습니다.
 
 아래 예시는 데이터베이스에서 id를 조회한 후 동적 페이지에 404를 반환합니다.
 

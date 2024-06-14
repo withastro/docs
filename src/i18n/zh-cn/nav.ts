@@ -5,7 +5,7 @@ export default NavDictionary({
 	'getting-started': '入门指南',
 	install: '安装',
 	'editor-setup': '编辑器设置',
-	'guides/upgrade-to/v4': '升级到 v4',
+	'upgrade-astro': '升级 Astro',
 
 	coreConcepts: '核心理念',
 	'concepts/why-astro': '为什么选择 Astro',
@@ -27,11 +27,13 @@ export default NavDictionary({
 	'guides/content-collections': '内容集合',
 	'guides/view-transitions': '视图过渡动画',
 	'guides/prefetch': '预获取',
+	'guides/dev-toolbar': '开发者工具栏',
 
 	addons: '集成',
 	'guides/integrations-guide': '添加集成',
 	'guides/framework-components': 'UI 框架',
 	'guides/server-side-rendering': '服务端渲染 (SSR)',
+	'guides/astro-db': 'Astro DB',
 
 	examples: '操作指南',
 	'guides/migrate-to-astro': '迁移到 Astro',
@@ -52,6 +54,7 @@ export default NavDictionary({
 	'guides/endpoints': 'API 端点',
 	'guides/data-fetching': '数据获取',
 	'guides/middleware': '中间件',
+	'guides/ecommerce': '电子商务',
 	'guides/testing': '测试',
 	'guides/authentication': '身份认证',
 	'guides/troubleshooting': '故障排除',
@@ -70,6 +73,7 @@ export default NavDictionary({
 	'reference/adapter-reference': '适配器 API',
 	'reference/image-service-reference': '图像服务 API',
 	'reference/dev-toolbar-app-reference': '开发工具栏应用 API',
+	'reference/container-reference': '容器 API',
 	'reference/directives-reference': '模板指令',
 	'reference/cli-reference': '命令行',
 	'reference/error-reference': '错误参考',

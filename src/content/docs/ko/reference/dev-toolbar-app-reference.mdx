@@ -1,15 +1,20 @@
 ---
 title: 개발 툴바 앱 API
-i18nReady: false
+i18nReady: true
 ---
 
-Astro 개발 툴바 앱 API를 사용하면 Astro 개발 툴바를 확장하는 데 사용할 수 있는 앱을 만들 수 있습니다. 이를 통해 새로운 기능을 추가하고 타사 서비스와 통합할 수 있습니다.
+import Since from '~/components/Since.astro';
+import RecipeLinks from "~/components/RecipeLinks.astro";
 
-## 앱 추가
+Astro 개발 툴바 앱 API를 사용하면 Astro 개발 툴바에 앱을 추가하는 [Astro 통합](/ko/reference/integrations-reference/)을 생성할 수 있습니다. 이를 통해 새로운 기능을 추가하고 타사 서비스와 통합할 수 있습니다.
 
-[Astro 통합](/ko/reference/configuration-reference/#integrations)은 `addDevToolbarApp` 메서드를 사용하여 [`astro:config:setup` 후크](/ko/reference/integrations-reference/#astroconfigsetup)에 앱을 추가할 수 있습니다.
+<RecipeLinks slugs={["ko/recipes/making-toolbar-apps"]} />
 
-```ts title="integrations.js" {7-9}
+## 툴바 앱 통합 설정
+
+통합은 [`astro:config:setup` 후크](/ko/reference/integrations-reference/#astroconfigsetup)의 개발 툴바에 앱을 추가할 수 있습니다.
+
+```ts title="my-integration.js" {8-13}
 /**
  * @type {() => import('astro').AstroIntegration}
  */
@@ -17,225 +22,367 @@ export default () => ({
   name: "my-integration",
   hooks: {
     "astro:config:setup": ({ addDevToolbarApp }) => {
-      addDevToolbarApp("./my-app.js");
+      addDevToolbarApp({
+        id: "my-app",
+        name: "My App",
+        icon: "<svg>...</svg>",
+        entrypoint: "./my-app.js",
+      });
     },
   },
 });
 ```
 
-## 개발 툴바 앱의 구조
+### `addDevToolbarApp()`
 
-개발 툴바 앱은 기본 내보내기로 다음 필수 속성과 함께 객체를 내보내는 `.js` 또는 `.ts` 파일입니다.
+[`astro:config:setup` 후크](/ko/reference/integrations-reference/#astroconfigsetup)에 사용할 수 있는 개발 툴바 앱을 추가하는 함수입니다. 개발 툴바 앱을 정의하려면 다음과 같은 필수 속성이 있는 객체를 사용합니다: [`id`](#id), [`name`](#name), [`icon`](#icon), [`entrypoint`](#entrypoint).
 
-```ts title="src/my-app.js"
-export default {
-	id: 'super-app',
-	name: 'My Super App',
-	icon: '<svg>...</svg>',
-	init(canvas, eventTarget) {
-    eventTarget.dispatchEvent(
-      new CustomEvent('toggle-notification', {
-        detail: {
-          state: true,
-        },
-      })
-    );
-  }
-}
-```
-
-### `id: string`
+### `id`
 
 앱의 고유 식별자입니다. 이는 후크 및 이벤트에서 앱을 고유하게 식별하는 데 사용됩니다.
 
-```ts title="src/my-app.js" {2}
-export default {
+```ts title="my-integration.js" {2}
+{
   id: 'my-app',
   // ...
 }
 ```
 
-### `name: string`
+### `name`
 
 앱의 이름입니다. 이는 사람이 읽을 수 있는 이름을 사용하여 앱을 참조해야 할 때마다 사용자에게 표시됩니다.
 
-```ts title="src/my-app.js" {3}
-export default {
+```ts title="my-integration.js" {3}
+{
   // ...
   name: 'My App',
   // ...
 }
 ```
 
-### `icon: Icon`
+### `icon`
 
-앱의 아이콘입니다. 이는 UI에 앱을 표시하는 데 사용됩니다. 이는 [아이콘 목록](#아이콘)의 아이콘이거나 아이콘의 SVG 마크업을 포함하는 문자열일 수 있습니다.
+개발 툴바에 앱을 표시하는 데 사용되는 아이콘입니다. 이는 [아이콘 목록](#아이콘)의 아이콘이거나 아이콘의 SVG 마크업을 포함하는 문자열일 수 있습니다.
 
-```ts title="src/my-app.js" {3}
-export default {
+```ts title="my-integration.js" {3}
+{
   // ...
-  icon: '<svg>...</svg>', // 또는 'astro:logo'
+  icon: '<svg>...</svg>', // 또는 예를 들어 'astro:logo'
   // ...
 }
 ```
 
-### `init: (canvas: ShadowRoot, eventTarget: EventTarget) => void`
+### `entrypoint`
 
-이것이 앱의 핵심 부분입니다. 이 함수는 앱이 로드될 때 호출됩니다. 이는 브라우저가 유휴 상태이거나 사용자가 UI에서 앱을 클릭할 때 발생합니다.
+개발 툴바 앱을 내보내는 파일의 경로입니다.
 
-이 함수는 두 개의 인수를 받습니다:
+```ts title="my-integration.js" {3}
+{
+  // ...
+  entrypoint: './my-app.js',
+}
+```
+
+## 개발 툴바 앱의 구조
+
+개발 툴바 앱은 `astro/toolbar` 모듈에서 사용할 수 있는 [`defineToolbarApp()` 함수](#definetoolbarapp)를 사용하여 객체에 기본 내보내기 (default exports)를 사용하는 `.js` 또는 `.ts` 파일입니다.
+
+```ts title="src/my-app.js"
+import { defineToolbarApp } from "astro/toolbar";
+
+export default defineToolbarApp({
+  init(canvas) {
+    const text = document.createTextNode('Hello World!');
+    canvas.appendChild(text);
+  }
+  beforeTogglingOff() {
+    const confirmation = window.confirm('Really exit?');
+    return confirmation;
+  } 
+});
+```
+
+### `defineToolbarApp()`
+
+<p><Since v="4.7.0" /></p>
+
+개발 툴바 앱이 로드되고 꺼질 때 논리를 정의하는 함수입니다.
+
+이 함수는 개발 툴바 앱이 로드될 때 호출되는 [`init()`](#init) 함수가 있는 객체를 사용합니다. 또한 툴바 앱을 클릭하여 활성 상태를 끌 때 실행되는 [`beforeTogglingOff()`](#beforetogglingoff) 함수를 사용할 수도 있습니다.
+
+### `init()`
+
+**시그니처:** `init(canvas: ShadowRoot, app: ToolbarAppEventTarget, server: ToolbarServerHelpers) => void`
+
+필수는 아니지만 대부분의 앱은 이 함수를 사용하여 앱의 핵심 동작을 정의합니다. 이 함수는 앱이 로드될 때 한 번만 호출됩니다. 어느 것이 먼저 나타나는지에 따라 브라우저가 유휴 상태일 때나 사용자가 UI에서 앱을 클릭할 때 호출됩니다.
+
+이 함수는 앱 로직을 정의하기 위해 세 가지 인수를 전달받습니다: [`canvas`](#canvas) (요소를 화면에 렌더링하기 위해), [`app`](#app)(개발 툴바에서 클라이언트 측 이벤트를 주고 받기 위해), [`server`](#server)(서버와 통신하기 위해)
 
 #### `canvas`
 
-앱이 UI를 렌더링하는 데 사용할 수 있는 ShadowRoot입니다. 모든 앱은 UI 렌더링을 위해 전용 ShadowRoot를 받습니다. 또한 상위 요소는 `position: absolute;`를 사용하여 배치되므로 앱 UI는 자동으로 페이지 레이아웃에 영향을 주지 않습니다.
+앱이 UI를 렌더링하는 데 사용할 수 있는 표준 [ShadowRoot](https://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot)입니다. 표준 DOM API를 사용하여 요소를 생성하고 ShadowRoot에 추가할 수 있습니다.
 
-```ts title="src/my-app.js" {3-5}
-export default {
-	// ...
+모든 앱은 UI 렌더링을 위해 전용 ShadowRoot를 받습니다. 또한 상위 요소는 `position: absolute;`를 사용하여 배치되므로 앱 UI는 Astro 페이지의 레이아웃에 영향을 미치지 않습니다.
+
+```ts title="src/my-app.js" {3}
+export default defineToolbarApp({
 	init(canvas) {
     canvas.appendChild(document.createTextNode('Hello World!'))
   }
-}
+});
 ```
 
-#### `eventTarget`
+#### `app`
 
-개발 툴바에서 이벤트를 보내고 받는 데 사용할 수 있는 [`EventTarget`](https://developer.mozilla.org/ko/docs/Web/API/EventTarget)입니다.
+<p><Since v="4.7.0" /></p>
 
-### `beforeTogglingOff`
+개발 툴바에서 이벤트를 주고 받을 수 있는 몇 가지 추가 [클라이언트 측 이벤트 도우미](#클라이언트-측-이벤트)가 포함된 표준 [`EventTarget`](https://developer.mozilla.org/ko/docs/Web/API/EventTarget)입니다.
 
-이 선택적 함수는 사용자가 UI에서 앱 아이콘을 클릭하여 앱을 끌 때 호출됩니다. 예를 들어 이 기능은 정리 작업을 수행하거나, 애니메이션을 수행하거나, 앱을 끄기 전에 사용자에게 확인을 요청하는 데 사용할 수 있습니다.
+```ts title="src/my-app.js" {3-6}
+export default defineToolbarApp({
+  init(canvas, app) {
+    app.onToggled(({ state }) => {
+      const text = document.createTextNode(
+        `The app is now ${state ? "enabled" : "disabled"}!`,
+      );
+      canvas.appendChild(text);
+    });
+  },
+});
+```
+
+#### `server`
+
+<p><Since v="4.7.0" /></p>
+
+[서버와 통신](#클라이언트-서버-통신)하는데 사용할 수 있는 객체입니다.
+
+```ts title="src/my-app.js" {3-7}
+export default defineToolbarApp({
+  init(canvas, app, server) {
+    server.send('my-message', { message: 'Hello!' });
+
+    server.on('server-message', (data) => {
+      console.log(data.message);
+    });
+  },
+});
+```
+
+### `beforeTogglingOff()`
+
+**시그니처:** `beforeTogglingOff(canvas: ShadowRoot): boolean | void`
+<Since v="4.7.0" /><br/>
+
+이 선택적 함수는 사용자가 UI에서 앱 아이콘을 클릭하여 앱을 끌 때 호출됩니다. 예를 들어 이 함수은 정리 작업을 수행하거나 앱을 끄기 전에 사용자에게 확인을 요청하는 데 사용할 수 있습니다.
 
 잘못된 값이 반환되면 토글 끄기가 취소되고 앱은 계속 활성화됩니다.
 
 ```ts title="src/my-app.js" {3-6}
-export default {
+export default defineToolbarApp({
   // ...
   beforeTogglingOff() {
     const confirmation = window.confirm('Are you sure you want to disable this app?');
     return confirmation;
   }
-}
+});
 ```
 
 #### canvas
 
-앱의 ShadowRoot를 사용하여 필요한 UI를 렌더링할 수 있습니다.
+앱의 ShadowRoot는 닫기 전에 필요한 UI를 렌더링하는 데 사용할 수 있습니다. [`init` 함수의 `canvas` 인수](#canvas)와 동일합니다.
 
 ## 클라이언트 측 이벤트
 
-[`init`](#init-canvas-shadowroot-eventtarget-eventtarget--void) 후크의 [`eventTarget`](#eventtarget) 인수를 사용하면 앱이 개발 툴바에서 이벤트를 보내고 받을 수 있습니다. 다음과 같은 이벤트를 이용할 수 있습니다:
+`EventTarget` ([`addEventListener`](https://developer.mozilla.org/ko/docs/Web/API/EventTarget), [`dispatchEvent`](https://developer.mozilla.org/ko/docs/Web/API/EventTarget/dispatchEvent), [`removeEventListener`](https://developer.mozilla.org/ko/docs/Web/API/EventTarget/removeEventListener) 등)의 표준 메서드 외에도 [`app`](#app) 객체에는 다음과 같은 메서드도 있습니다:
 
-### `app-toggled`
+### `onToggled()`
 
-이 이벤트는 사용자가 개발 툴바에서 앱 아이콘을 클릭하면 시작됩니다.
+**시그니처:** `onToggled(callback: (options: {state: boolean})) => void`
+<Since v="4.7.0" /><br/>
 
-```ts title="src/my-app.js" {4-8}
-  export default {
-    // ...
-    init(canvas, eventTarget) {
-      eventTarget.addEventListener('app-toggled', (event) => {
-        if (event.detail.state === true) {
-          console.log("The app is now enabled!")
-        }
-      })
-    }
-  }
+사용자가 앱을 켜거나 끄기 위해 UI에서 앱 아이콘을 클릭할 때 호출될 콜백을 등록합니다.
+
+```ts title="src/my-app.js"
+app.onToggled((options) => {
+  console.log(`The app is now ${options.state ? 'enabled' : 'disabled'}!`);
+});
+```
+
+### `onToolbarPlacementUpdated()`
+
+**시그니처:** `onToolbarPlacementUpdated(callback: (options: {placement: 'bottom-left' | 'bottom-center' | 'bottom-right'})) => void`
+<Since v="4.7.0" /><br/>
+
+이 이벤트는 사용자가 개발 툴바의 배치를 변경할 때 시작됩니다. 예를 들어 툴바가 이동될 때 앱의 UI 위치를 변경하는 데 사용할 수 있습니다.
+
+```ts title="src/my-app.js"
+app.onToolbarPlacementUpdated((options) => {
+  console.log(`The toolbar is now placed at ${options.placement}!`);
+});
+```
+
+### `toggleState()`
+
+**시그니처:** `toggleState(options: {state: boolean}) => void`
+<Since v="4.7.0" /><br/>
+
+앱의 상태를 변경합니다. 예를 들어 사용자가 앱 UI에서 버튼을 클릭할 때 프로그래밍 방식으로 앱을 활성화하거나 비활성화하는 데 사용할 수 있습니다.
+
+```ts title="src/my-app.js"
+app.toggleState({ state: false });
+```
+
+### `toggleNotification()`
+
+**시그니처:** `toggleNotification(options: {state?: boolean, level?: 'error' | 'warning' | 'info'}) => void`
+<Since v="4.7.0" /><br/>
+
+앱 아이콘의 알림을 전환합니다. 이는 사용자에게 앱에 주의가 필요함을 알리거나 현재 알림을 제거하는 데 사용될 수 있습니다.
+
+```ts title="src/my-app.js"
+app.toggleNotification({
+  state: true,
+  level: 'warning',
+});
 ```
 
 #### `state: boolean`
 
-사용자가 클릭한 후 앱이 활성화되는지 여부를 나타냅니다.
+앱에 사용자에 대한 알림이 있는지 여부를 나타냅니다. `true`인 경우 앱 아이콘이 강조 표시됩니다. 반대로 `false`인 경우 강조 표시가 제거됩니다. 이 속성을 지정하지 않으면 `true`로 가정됩니다.
 
-### `toggle-notification`
+#### `level: 'error' | 'warning' | 'info'`
 
-이 이벤트는 사용자에게 앱에 주의가 필요함을 알리기 위해 전송될 수 있습니다.
-
-```ts title="src/my-app.js" {4-10}
-  export default {
-    // ...
-    init(canvas, eventTarget) {
-      eventTarget.dispatchEvent(
-        new CustomEvent('toggle-notification', {
-          detail: {
-            state: true,
-          },
-        })
-      );
-    }
-  }
-```
-
-#### `state: boolean`
-
-앱에 사용자에 대한 알림이 있는지 여부를 나타냅니다. `true`인 경우 앱 아이콘이 빨간색 점으로 강조 표시됩니다. 반대로 `false`인 경우 강조 표시가 제거됩니다. 이 속성을 지정하지 않으면 `true`로 가정됩니다.
-
-### `toggle-app`
-
-이 이벤트는 앱에서 전송되어 앱 상태를 변경할 수 있습니다. 예를 들어 앱 UI에 '닫기' 버튼을 구현하는 데 유용할 수 있습니다.
-
-```ts title="src/my-app.js" {4-10}
-  export default {
-    // ...
-    init(canvas, eventTarget) {
-      eventTarget.dispatchEvent(
-        new CustomEvent('toggle-app', {
-          detail: {
-            state: false,
-          },
-        })
-      );
-    }
-  }
-```
-
-#### `state: boolean`
-
-앱을 활성화해야 하는지 여부를 나타냅니다. `true`이면 앱이 활성화됩니다. 반대로 `false`이면 앱이 비활성화됩니다. 이 속성을 지정하지 않으면 `true`로 가정됩니다.
+알림 수준을 나타냅니다. 이는 앱 아이콘 강조 표시의 색상과 모양 (진한 분홍색 원, 금색 삼각형 또는 파란색 사각형)을 결정하는 데 사용됩니다. 이 속성을 지정하지 않으면 `'error'`로 간주됩니다.
 
 ## 클라이언트-서버 통신
 
-[클라이언트-서버 통신을 위한 Vite의 방법](https://ko.vitejs.dev/guide/api-plugin.html#client-server-communication)을 사용하여 개발 툴바 앱은 서버와 통신할 수 있습니다.
+[클라이언트-서버 통신을 위한 Vite의 방법](https://ko.vitejs.dev/guide/api-plugin.html#client-server-communication)을 사용하면 개발 툴바 앱과 서버가 서로 통신할 수 있습니다. 사용자 정의 메시지를 쉽게 주고받을 수 있도록 개발 툴바 앱 (클라이언트)과 통합 (서버) 모두에서 사용할 수 있는 도우미 메서드가 제공됩니다.
 
-사용자 정의 메시지를 보내고 받을 수 있는 것 외에도, 개발 툴바는 `APP_ID`가 [앱의 ID](#id-string)인 다음과 같은 메시지도 보냅니다.
+### 클라이언트에서
 
-### `astro-dev-toolbar:APP_ID:initialized`
+앱에서 [`init()` 후크의 `server` 객체](#server)를 사용하여 서버와 메시지를 주고받습니다.
 
-이 메시지는 앱이 초기화될 때 전송됩니다. 이 메시지의 데이터는 비어 있습니다.
+```ts title="src/my-app.js" {3-7} "server"
+export default defineToolbarApp({
+  init(canvas, app, server) {
+    server.send('my-message', { message: 'Hello!' });
 
-```ts title="integration.ts" {4-6}
-{
-  // ...
-  "astro:server:setup": ({ server }) => {
-    server.ws.on("astro-dev-toolbar:super-app:initialized", () => {
-      console.log("My app was initialized!");
+    server.on('server-message', (data) => {
+      console.log(data.message);
     });
   },
-  // ...
+});
+```
+
+#### `send()`
+
+**시그니처:** `send<T>(event: stringify, data: T) => void`
+
+<Since v="4.7.0" />
+
+개발 툴바 앱에 정의된 로직에서 서버로 데이터를 보냅니다.
+
+```ts title="src/my-app.js"
+init(canvas, app, server) {
+  server.send('my-app:my-message', { message: 'Hello!' });
 }
 ```
 
-### `astro-dev-toolbar:APP_ID:toggled`
+클라이언트에서 서버로 메시지를 보낼 때 메시지를 수신할 수 있는 다른 앱이나 다른 통합과의 충돌을 피하기 위해 이벤트 이름 앞에 앱 ID나 다른 네임스페이스를 붙이는 것이 좋습니다.
 
-이 메시지는 사용자가 UI에서 앱 아이콘을 클릭할 때 전송됩니다. 이 메시지의 데이터는 앱이 활성화되었는지 여부를 나타내는 불리언 값입니다.
+#### `on()`
 
-```ts title="integration.ts" {4-6}
-{
-  // ...
-  "astro:server:setup": ({ server }) => {
-    server.ws.on("astro-dev-toolbar:super-app:toggled", (data) => {
-      console.log(`My app is now ${data.state ? "enabled" : "disabled"}!`);
-    });
-  },
-  // ...
+**시그니처:** `on<T>(event: string, callback: (data: T) => void) => void`
+<Since v="4.7.0" /><br/>
+
+서버가 지정된 이벤트와 함께 메시지를 보낼 때 호출될 콜백을 등록합니다.
+
+```ts title="src/my-app.js"
+init(canvas, app, server) {
+  server.on('server-message', (data) => {
+    console.log(data.message);
+  });
 }
+```
+
+### 서버에서
+
+[툴바 앱을 추가하는 통합](#툴바-앱-통합-설정)과 같은 통합에서는 앱에서 메시지를 주고받기 위한 `toolbar` 객체에 액세스하기 위해 [`astro:server:setup` 후크](/ko/reference/integrations-reference/#astroserversetup)을 사용하세요.
+
+```ts title="my-integration.js" {5}
+export default () => ({
+  name: "my-integration",
+  hooks: {
+    "astro:config:setup": ({ addDevToolbarApp }) => {},
+    "astro:server:setup": ({ toolbar }) => {},
+  },
+});
+```
+
+#### `send()`
+
+**시그니처:** `send<T>(event: string, data: T) => void`
+<Since v="4.7.0" /><br/>
+
+클라이언트에 데이터를 보냅니다.
+
+```ts title="my-integration.js"
+'astro:server:setup': ({ toolbar }) => {
+  toolbar.send('server-message', { message: 'Hello!' });
+},
+```
+
+#### `on()`
+
+**시그니처:** `on<T>(event: string, callback: (data: T) => void) => void`
+<Since v="4.7.0" /><br/>
+
+클라이언트가 지정된 이벤트와 함께 메시지를 보낼 때 호출될 콜백을 등록합니다.
+
+```ts title="my-integration.js"
+'astro:server:setup': ({ toolbar }) => {
+  toolbar.on('my-app:my-message', (data) => {
+    console.log(data.message);
+  });
+},
+```
+
+#### `onInitialized()`
+
+**시그니처:** `onInitialized(appId: string, callback: () => void) => void`
+<Since v="4.7.0" /><br/>
+
+앱 초기화 시 호출할 콜백을 등록합니다.
+
+```ts title="my-integration.js"
+'astro:server:setup': ({ toolbar }) => {
+  toolbar.onInitialized('my-app', () => {
+    console.log('The app is now initialized!');
+  });
+},
 ```
 
 :::note
-Vite의 내장 `connection` 이벤트는 개발 툴바 앱이 초기화되기 **전에** 발생하므로 앱에서 직접 사용할 수 없습니다. 대신 `astro-dev-toolbar:APP_ID:initialized` 이벤트를 사용하세요.
+Vite의 내장 `connection` 이벤트는 개발 툴바 앱이 초기화되기 **전에** 발생하므로 앱에서 직접 사용할 수 없습니다. `onInitialized` 메서드를 사용하여 메시지를 보내기 전에 앱이 완전히 초기화되었는지 확인하세요.
 :::
 
-## UI 툴킷
+#### `onAppToggled()`
+
+**시그니처:** `onAppToggled(appId: string, callback: (options: {state: boolean}) => void) => void`
+<Since v="4.7.0" /><br/>
+
+사용자가 앱을 켜거나 끄기 위해 UI에서 앱 아이콘을 클릭할 때 호출될 콜백을 등록합니다.
+
+```ts title="my-integration.js"
+'astro:server:setup': ({ toolbar }) => {
+  toolbar.onAppToggled('my-app', ({ state }) => {
+    console.log(`The app is now ${state ? 'enabled' : 'disabled'}!`);
+  });
+},
+```
+
+## 컴포넌트 라이브러리
 
 개발 툴바에는 일관된 모양과 느낌으로 앱을 구축하는 데 사용할 수 있는 웹 컴포넌트 세트가 포함되어 있습니다.
 
@@ -258,7 +405,7 @@ const myWindow = document.createElement('astro-dev-toolbar-window');
 const myContent = document.createElement('p');
 myContent.textContent = 'My content';
 
-// 창에서 직접appendChild를 사용하세요
+// `myWindow.shadowRoot`가 아닌 `window`에서 직접 appendChild를 사용하세요.
 myWindow.appendChild(myContent);
 ```
 
@@ -285,9 +432,17 @@ myButton.addEventListener('click', () => {
 
 #### `button-style`
 
-버튼의 스타일 (`ghost`, `outline`, `purple`, `gray`, `red`). `ghost`를 사용하면 버튼 자체가 보이지 않고 버튼의 내용만 표시됩니다.
+버튼의 스타일 (`ghost`, `outline`, `purple`, `gray`, `red`, `green`, `yellow`, `blue`). `ghost`를 사용하면 버튼 자체가 보이지 않고 버튼의 내용만 표시됩니다.
 
 JavaScript에서 기본 `style` 속성과의 충돌을 방지하려면 `buttonStyle` 속성을 사용하여 이 속성을 설정하세요.
+
+#### `button-border-radius`
+
+<p><Since v="4.8.0" /></p>
+
+버튼의 테두리 반경입니다 (`normal`, `rounded`). `rounded`를 사용하면 버튼의 모서리가 둥글게 되고 모든 면에 균일한 패딩이 적용됩니다.
+
+JavaScript에서는 `buttonBorderRadius` 속성을 사용하여 이 속성을 설정합니다.
 
 ### `astro-dev-toolbar-badge`
 
@@ -305,7 +460,7 @@ JavaScript에서 기본 `style` 속성과의 충돌을 방지하려면 `buttonSt
 
 #### `badge-style`
 
-배지의 스타일 (색상) (`purple`, `gray`, `red`, `green`, `yellow`).
+배지의 스타일 (색상) (`purple`, `gray`, `red`, `green`, `yellow`, `blue`).
 
 JavaScript에서 기본 `style` 속성과의 충돌을 방지하려면 `badgeStyle` 속성을 사용하여 이 속성을 설정하세요.
 
@@ -321,6 +476,12 @@ JavaScript를 사용하여 카드를 만들 때 `clickAction` 속성을 지정�
 <astro-dev-toolbar-card icon="astro:logo" link="https://github.com/withastro/astro/issues/new/choose">Report an issue</astro-dev-toolbar-card>
 ```
 
+#### `card-style`
+
+카드의 스타일 (`purple`, `gray`, `red`, `green`, `yellow`, `blue`). 색상은 마우스 오버 시 카드 테두리에만 적용됩니다.
+
+JavaScript에서는 `cardStyle`을 사용하여 이 속성을 설정합니다.
+
 ### `astro-dev-toolbar-toggle`
 
 체크박스 역할을 하는 토글 요소를 표시합니다. 이 요소는 내부적으로 기본 `<input type="checkbox">` 요소를 둘러싼 간단한 래퍼입니다. 체크박스 요소는 `input` 속성을 사용하여 접근할 수 있습니다.
@@ -333,9 +494,29 @@ toggle.input.addEventListener('change', (evt) => {
 });
 ```
 
+### `astro-dev-toolbar-radio-checkbox`
+
+<p><Since v="4.8.0" /></p>
+
+라디오 체크박스를 표시합니다. `astro-dev-toolbar-toggle` 컴포넌트와 유사하게 이 요소는 기본 `<input type="radio">` 요소를 둘러싼 간단한 래퍼입니다. 라디오 요소는 `input` 속성을 사용하여 액세스할 수 있습니다.
+
+```ts
+const radio = document.createElement('astro-dev-toolbar-radio-checkbox');
+
+radio.input.addEventListener('change', (evt) => {
+  console.log(`The radio is now ${evt.currentTarget.checked ? 'enabled' : 'disabled'}!`);
+});
+```
+
+#### `toggle-style`
+
+토글의 스타일 (`purple`, `gray`, `red`, `green`, `yellow`, `blue`).
+
+JavaScript에서는 `toggleStyle`을 사용하여 이 속성을 설정합니다.
+
 ### `astro-dev-toolbar-highlight`
 
-페이지의 요소를 강조 표시하는 데 사용할 수 있습니다. 대부분의 경우 `top`, `left`, `width`, `height` CSS 속성을 사용하여 강조 표시하려는 요소와 일치하도록 이 요소의 위치를 ​​지정하고 크기를 조정해야 합니다. [아이콘](#아이콘)은 `icon` 속성을 사용하여 지정할 수도 있으며 강조표시의 오른쪽 상단에 표시됩니다.
+페이지의 요소를 강조 표시하는 데 사용할 수 있습니다. 대부분의 경우 `top`, `left`, `width`, `height` CSS 속성을 사용하여 강조 표시하려는 요소와 일치하도록 이 요소의 위치를 ​​지정하고 크기를 조정해야 합니다.
 
 ```html
 <!-- Highlight the entire page -->
@@ -354,6 +535,14 @@ highlight.style.width = `${rect.width + 15}px`;
 highlight.style.height = `${rect.height + 15}px`;
 highlight.icon = 'astro:logo';
 ```
+
+#### `style`
+
+강조 표시의 스타일 (`purple`, `gray`, `red`, `green`, `yellow`, `blue`).
+
+#### `icon`
+
+강조 표시의 오른쪽 상단에 표시할 [아이콘](#아이콘)입니다.
 
 ### `astro-dev-toolbar-tooltip`
 
@@ -391,7 +580,7 @@ tooltip.sections = [{
 ```ts
 const highlight = document.createElement('astro-dev-toolbar-highlight');
 
-// 하이라이트 위치를 지정하세요.
+// 강조 표시 위치를 지정하세요.
 
 const tooltip = document.createElement('astro-dev-toolbar-tooltip');
 

@@ -1,0 +1,260 @@
+---
+title: API сервиса изображений
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+
+`astro:assets` был разработан для того, чтобы любой сервис по оптимизации изображений мог легко создать сервис поверх Astro.
+
+## Что такое сервис изображений?
+
+Astro предоставляет два типа сервисов для работы с изображениями: Локальные и Внешние.
+
+- **Локальные сервисы** обрабатывают преобразования изображений непосредственно при сборке для статических сайтов или во время выполнения как в режиме разработки, так и в SSR. Часто это обертки вокруг таких библиотек, как Sharp, ImageMagick или Squoosh. В режиме разработки и в SSR локальные сервисы используют конечную точку API для выполнения преобразования.
+- **Внешние сервисы** указывают на URL-адреса и могут добавлять поддержку таких сервисов, как Cloudinary, Vercel или любого [RIAPI](https://github.com/riapi/riapi)-совместимого сервера.
+
+## Разработка с использованием API сервисов изображений
+
+Определения сервисов имеют форму экспортируемого объекта по умолчанию с различными обязательными методами ("хуками").
+
+Внешние сервисы предоставляют метод `getURL()`, который указывает на `src` выходного тега `<img>`.
+
+Локальные сервисы предоставляют метод `transform()` для выполнения преобразований изображения, а также методы `getURL()` и `parseURL()` для использования конечной точки в режиме разработки и SSR.
+
+Оба типа сервисов могут предоставлять `getHTMLAttributes()` для определения других атрибутов выходного `<img>` и `validateOptions()` для проверки и дополнения переданных параметров.
+
+### Внешние сервисы
+
+Внешний сервис указывает на удаленный URL, который будет использоваться в качестве атрибута `src` конечного тега `<img>`. Этот удаленный URL отвечает за загрузку, преобразование и возврат изображения.
+
+```js
+import type { ExternalImageService, ImageTransform, AstroConfig } from "astro";
+
+const service: ExternalImageService = {
+  validateOptions(options: ImageTransform, imageConfig: AstroConfig['image']) {
+    const serviceConfig = imageConfig.service.config;
+
+    // Принудительное установление максимальной ширины
+    if (options.width > serviceConfig.maxWidth) {
+      console.warn(`Ширина изображения ${options.width} превышает максимальную ширину ${serviceConfig.maxWidth}. Возврат к максимальной ширине.`);
+      options.width = serviceConfig.maxWidth;
+    }
+
+    return options;
+  },
+  getURL(options, imageConfig) {
+    return `https://mysupercdn.com/${options.src}?q=${options.quality}&w=${options.width}&h=${options.height}`;
+  },
+  getHTMLAttributes(options, imageConfig) {
+    const { src, format, quality, ...attributes } = options;
+		return {
+			...attributes,
+			loading: options.loading ?? 'lazy',
+			decoding: options.decoding ?? 'async',
+		};
+	}
+};
+
+
+export default service;
+```
+
+### Локальные сервисы
+
+Чтобы создать свой собственный локальный сервис, вы можете указать на [встроенную конечную точку](https://github.com/withastro/astro/blob/main/packages/astro/src/assets/endpoint/generic.ts) (`/_image`) или дополнительно создать свою собственную конечную точку, которая сможет вызывать методы сервиса.
+
+```js
+import type { LocalImageService, AstroConfig } from "astro";
+
+const service: LocalImageService = {
+  getURL(options: ImageTransform, imageConfig: AstroConfig['image']) {
+    const searchParams = new URLSearchParams();
+		searchParams.append('href', typeof options.src === "string" ? options.src : options.src.src);
+		options.width && searchParams.append('w', options.width.toString());
+		options.height && searchParams.append('h', options.height.toString());
+		options.quality && searchParams.append('q', options.quality.toString());
+		options.format && searchParams.append('f', options.format);
+    return `/my_custom_endpoint_that_transforms_images?${searchParams}`;
+    // Или используйте встроенную конечную точку, которая вызовет ваши функции parseURL и transform:
+    // return `/_image?${searchParams}`;
+  },
+  parseURL(url: URL, imageConfig) {
+    return {
+      src: params.get('href')!,
+      width: params.has('w') ? parseInt(params.get('w')!) : undefined,
+      height: params.has('h') ? parseInt(params.get('h')!) : undefined,
+			format: params.get('f'),
+      quality: params.get('q'),
+    };
+  },
+  transform(buffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig): { data: Uint8Array, format: OutputFormat } {
+    const { buffer } = mySuperLibraryThatEncodesImages(options);
+    return {
+      data: buffer,
+      format: options.format,
+    };
+  },
+  getHTMLAttributes(options, imageConfig) {
+		let targetWidth = options.width;
+		let targetHeight = options.height;
+		if (typeof options.src === "object") {
+			const aspectRatio = options.src.width / options.src.height;
+
+			if (targetHeight && !targetWidth) {
+				targetWidth = Math.round(targetHeight * aspectRatio);
+			} else if (targetWidth && !targetHeight) {
+				targetHeight = Math.round(targetWidth / aspectRatio);
+			}
+		}
+
+		const { src, width, height, format, quality, ...attributes } = options;
+
+		return {
+			...attributes,
+			width: targetWidth,
+			height: targetHeight,
+			loading: attributes.loading ?? 'lazy',
+			decoding: attributes.decoding ?? 'async',
+		};
+	}
+};
+export default service;
+```
+
+Во время сборки статических сайтов и предварительно отрендеренных маршрутов, как `<Image />`, так и `getImage(options)` вызывают функцию `transform()`. Они передают опции либо через атрибуты компонента, либо через аргумент `options`, соответственно. Преобразованные изображения будут собраны в папку `dist/_astro`.
+
+В режиме разработки и режиме SSR Astro не знает заранее, какие изображения нужно оптимизировать. Astro использует конечную точку GET (по умолчанию `/_image`) для обработки изображений во время выполнения. Команды `<Image />` и `getImage()` передают свои параметры в `getURL()`, которая возвращает URL конечной точки. Затем конечная точка вызывает `parseURL()` и передает полученные свойства в `transform()`.
+
+#### getConfiguredImageService и imageConfig
+
+Если вы реализуете свою собственную конечную точку как конечную точку Astro, вы можете использовать `getConfiguredImageService` и `imageConfig` для вызова методов `parseURL` и `transform` вашего сервиса и предоставления конфигурации изображения.
+
+Чтобы получить доступ к конфигурации сервиса изображений ([`image.service.config`](/ru/reference/configuration-reference/#imageservice)), вы можете использовать `imageConfig.service.config`.
+
+```ts title="src/api/my_custom_endpoint_that_transforms_images.ts"
+import type { APIRoute } from "astro";
+import { getConfiguredImageService, imageConfig } from 'astro:assets';
+
+export const GET: APIRoute = async ({ request }) => {
+  const imageService = await getConfiguredImageService();
+
+  const imageTransform = imageService.parseURL(new URL(request.url), imageConfig);
+  // ... получаем изображение из imageTransform.src и сохраняем его в inputBuffer
+  const { data, format } = await imageService.transform(inputBuffer, imageTransform, imageConfig);
+  return new Response(data, {
+			status: 200,
+			headers: {
+				'Content-Type': mime.getType(format) || ''
+      }
+    }
+  );
+}
+```
+
+[См. встроенную конечную точку](https://github.com/withastro/astro/blob/main/packages/astro/src/assets/endpoint/generic.ts) для полного примера.
+
+## Хуки
+
+### `getURL()`
+
+**Необходимо для локальных и внешних сервисов**
+
+`getURL(options: ImageTransform, imageConfig: AstroConfig['image']): string`
+
+Для локальных сервисов этот хук возвращает URL конечной точки, которая генерирует ваше изображение (в режиме SSR и разработки). Во время сборки он не используется. Локальная конечная точка, на которую указывает `getURL()`, может вызывать как `parseURL()`, так и `transform()`.
+
+Для внешних сервисов этот хук возвращает конечный URL изображения.
+
+Для обоих типов сервисов `options` - это свойства, переданные пользователем в качестве атрибутов компонента `<Image />` или в качестве опций для `getImage()`. Они имеют следующий тип:
+
+```ts
+export type ImageTransform = {
+    // Импортированные изображения ESM | пути к удаленным/публичным изображениям
+    src: ImageMetadata | string;
+    width?: number;
+    height?: number;
+    widths?: number[] | undefined;
+	  densities?: (number | `${number}x`)[] | undefined;
+    quality?: ImageQuality;
+    format?: OutputFormat;
+    alt?: string;
+    [key: string]: any;
+};
+```
+
+
+### `parseURL()`
+
+**Необходимо для локальных сервисов; недоступно для внешних сервисов**
+
+`parseURL(url: URL, imageConfig: AstroConfig['image']): { src: string, [key: string]: any}`
+
+Этот хук разбирает сгенерированные URL с помощью `getURL()` обратно в объект с различными свойствами для использования `transform` (в режиме SSR и разработки). Во время сборки он не используется.
+
+### `transform()`
+
+**Необходимо только для локальных сервисов; недоступно для внешних сервисов**.
+
+`transform(buffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig: AstroConfig['image']): { data: Uint8Array, format: OutputFormat }`
+
+Этот хук преобразует и возвращает изображение и вызывается во время сборки для создания финальных файлов.
+
+Вы должны вернуть `format`, чтобы гарантировать, что правильный MIME-тип обслуживается пользователям в режиме SSR и разработки.
+
+### `getHTMLAttributes()`
+
+**Опционально для локальных и внешних сервисов**
+
+`getHTMLAttributes(options: ImageTransform, imageConfig: AstroConfig['image']): Record<string, any>`
+
+Этот хук возвращает все дополнительные атрибуты, используемые для рендеринга изображения в HTML, на основе параметров, переданных пользователем (`options`).
+
+### `getSrcSet()`
+
+<p><Since v="3.3.0" /></p>
+
+**Опционально для локальных и внешних сервисов.**
+
+`getSrcSet?: (options: ImageTransform, imageConfig: AstroConfig['image']): SrcSetValue[] | Promise<SrcSetValue[]>;`
+
+Этот хук генерирует несколько вариантов указанного изображения, например, чтобы создать атрибут `srcset` для `<img>` или `source` в `<picture>`.
+
+Этот хук возвращает массив объектов со следующими свойствами:
+
+```ts
+export type SrcSetValue = {
+	transform: ImageTransform;
+	descriptor?: string;
+	attributes?: Record<string, any>;
+};
+```
+
+### `validateOptions()`
+
+**Опционально для локальных и внешних сервисов**
+
+`validateOptions(options: ImageTransform, imageConfig: AstroConfig['image']): ImageTransform`
+
+Этот хук позволяет проверять и дополнять опции, переданные пользователем. Это полезно для установки параметров по умолчанию или указания пользователю, что тот или иной параметр является обязательным.
+
+[Смотрите, как `validateOptions()` используется во встроенных сервисах Astro](https://github.com/withastro/astro/blob/0ab6bad7dffd413c975ab00e545f8bc150f6a92f/packages/astro/src/assets/services/service.ts#L124).
+
+## Конфигурация пользователя
+
+Настройте используемый сервис изображений в файле `astro.config.mjs`. Конфиг имеет следующий вид:
+
+```js title="astro.config.mjs"
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  image: {
+    service: {
+      entrypoint: "your-entrypoint", // 'astro/assets/services/squoosh' | 'astro/assets/services/sharp' | string,
+      config: {
+        // ... конфигурация, специфичная для сервиса. Необязательно.
+      }
+    }
+  },
+});
+```

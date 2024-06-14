@@ -1,0 +1,352 @@
+---
+title: Hashnode & Astro
+description: Hashnode를 CMS로 사용하여 Astro 프로젝트에 콘텐츠 추가
+type: cms
+stub: false
+service: Hashnode
+i18nReady: true
+---
+
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { Steps } from '@astrojs/starlight/components';
+
+[Hashnode](https://hashnode.com/)는 블로그나 출판물을 만들 수 있는 호스팅 CMS입니다.
+
+## Astro와 통합
+[Hashnode Public API](https://apidocs.hashnode.com/)는 Hashnode와 상호 작용할 수 있는 GraphQL API입니다. 이 가이드에서는 Astro와 잘 작동하는 최소 GraphQL 클라이언트인 [`graphql-request`](https://github.com/jasonkuhrt/graphql-request)를 사용하여 Hashnode 데이터를 Astro 프로젝트로 가져옵니다.
+
+### 전제조건
+시작하려면 다음이 필요합니다.
+
+1. **Astro 프로젝트** - 아직 Astro 프로젝트가 없다면 [설치 가이드](/ko/install-and-setup/)를 참조하여 즉시 설치하고 실행할 수 있습니다.
+
+2. **Hashnode 사이트** - [Hashnode](https://hashnode.com/)에 접속하면 무료로 개인 사이트를 생성할 수 있습니다.
+
+### 종속성 설치
+
+선택한 패키지 관리자를 사용하여 `graphql-request` 패키지를 설치합니다.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install graphql-request
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add graphql-request
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add graphql-request
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## Astro와 Hashnode로 블로그 만들기
+
+이 가이드에서는 Astro와 잘 작동하는 최소 GraphQL 클라이언트인 [`graphql-request`](https://github.com/jasonkuhrt/graphql-request)를 사용하여 Hashnode 데이터를 Astro 프로젝트로 가져옵니다.
+
+### 전제조건
+
+1. Hashnode 블로그
+2. [graphql-request](https://github.com/jasonkuhrt/graphql-request) 패키지와 통합된 Astro 프로젝트
+
+이 예시에서는 동적으로 생성된 개별 게시물 페이지에 대한 링크가 포함된 게시물을 나열하는 인덱스 페이지를 생성합니다.
+
+### 데이터 가져오기
+
+<Steps>
+1. `graphql-request` 패키지를 사용하여 사이트의 데이터를 가져오려면 `src/lib` 디렉터리를 생성하고 두 개의 새 파일 `client.ts` 및 `schema.ts`를 생성합니다.
+
+    <FileTree title="Project Structure">
+    - src/
+      - lib/
+        - **client.ts**
+        - **schema.ts**
+      - pages/
+        - index.astro
+    - astro.config.mjs
+    - package.json
+    </FileTree>
+
+2. Hashnode 웹사이트의 URL을 사용하여 GraphQLClient로 API 인스턴스를 초기화합니다.
+
+    ```ts title="src/lib/client.ts" "astroplayground.hashnode.dev"
+
+    import { gql, GraphQLClient } from "graphql-request";
+    import type { AllPostsData, PostData } from "./schema";
+
+    export const getClient = () => { 
+      return new GraphQLClient("https://gql.hashnode.com") 
+    }
+
+    const myHashnodeURL = "astroplayground.hashnode.dev";
+
+    export const getAllPosts = async () => {
+      const client = getClient();
+
+      const allPosts = await client.request<AllPostsData>(
+        gql`
+          query allPosts {
+            publication(host: "${myHashnodeURL}") {
+              title
+              posts(first: 20) {
+                pageInfo{
+                  hasNextPage
+                  endCursor
+                }
+                edges {
+                  node {
+                    author{
+                      name
+                      profilePicture
+                    }
+                    title
+                    subtitle
+                    brief
+                    slug
+                    coverImage {
+                      url
+                    }
+                    tags {
+                      name
+                      slug
+                    }
+                    publishedAt
+                    readTimeInMinutes
+                  }
+                }
+              }
+            }
+          }
+        `
+      );
+
+      return allPosts;
+    };
+
+
+    export const getPost = async (slug: string) => {
+      const client = getClient();
+
+      const data = await client.request<PostData>(
+        gql`
+          query postDetails($slug: String!) {
+            publication(host: "${myHashnodeURL}") {
+              post(slug: $slug) {
+                author{
+                  name
+                  profilePicture
+                }
+                publishedAt
+                title
+                subtitle
+                readTimeInMinutes
+                content{
+                  html
+                }
+                tags {
+                  name
+                  slug
+                }
+                coverImage {
+                  url
+                }
+              }
+            }
+          }
+        `,
+        { slug: slug }
+      );
+          
+      return data.publication.post;
+    };
+
+    ```
+
+3. Hashnode API에서 반환된 데이터의 형태를 정의하려면 `schema.ts`를 구성하세요.
+
+    ```ts title="src/lib/schema.ts"
+
+    import { z } from "astro/zod";
+
+    export const PostSchema = z.object({
+        author: z.object({
+            name: z.string(),
+            profilePicture: z.string(),
+            }),
+        publishedAt: z.string(),
+        title: z.string(),
+        subtitle: z.string(),
+        brief: z.string(),
+        slug: z.string(),
+        readTimeInMinutes: z.number(),
+        content: z.object({
+            html: z.string(),
+        }),
+        tags: z.array(z.object({
+            name: z.string(),
+            slug: z.string(),
+        })),
+        coverImage: z.object({
+            url: z.string(),
+        }),
+    })
+
+    export const AllPostsDataSchema = z.object({
+        publication: z.object({
+            title: z.string(),
+            posts: z.object({
+                pageInfo: z.object({
+                    hasNextPage: z.boolean(),
+                    endCursor: z.string(),
+                }),
+                edges: z.array(z.object({
+                    node: PostSchema,
+                })),
+            }),
+        }),
+    })
+
+    export const PostDataSchema = z.object({
+        publication: z.object({
+            title: z.string(),
+            post: PostSchema,
+        }),
+    })
+
+    export type Post = z.infer<typeof PostSchema>
+    export type AllPostsData = z.infer<typeof AllPostsDataSchema>
+    export type PostData = z.infer<typeof PostDataSchema>
+
+    ```
+</Steps>
+
+### 게시물 목록 표시
+
+`getAllPosts()`를 통해 가져오면 다음과 같은 각 게시물의 속성을 포함하는 객체 배열이 반환됩니다.
+- `title` - 게시물의 제목
+- `brief` - 게시물 내용의 HTML 렌더링
+- `coverImage.url` - 게시물의 추천 이미지 소스 URL
+- `slug` - 게시물의 슬러그
+
+가져오기에서 반환된 `posts` 배열을 사용하여 페이지에 블로그 게시물 목록을 표시합니다.
+
+```astro title="src/pages/index.astro"
+---
+import { getAllPosts } from '../lib/client';
+
+const data = await getAllPosts();
+const allPosts = data.publication.posts.edges;
+
+---
+
+<html lang="en">
+    <head>
+        <title>Astro + Hashnode</title>
+    </head>
+    <body>
+
+        {
+            allPosts.map((post) => (
+                <div>
+                    <h2>{post.node.title}</h2>
+                    <p>{post.node.brief}</p>
+                    <img src={post.node.coverImage.url} alt={post.node.title} />
+                    <a href={`/post/${post.node.slug}`}>Read more</a>
+                </div>
+            ))
+        }
+    </body>
+</html>
+```
+
+### 페이지 생성
+
+<Steps>
+1. 각 게시물에 대해 [동적으로 페이지를 생성](/ko/guides/routing/#동적-경로)하려면 `src/pages/post/[slug].astro` 페이지를 생성하세요.
+
+    <FileTree title="Project Structure">
+    - src/
+    - lib/
+        - client.ts
+        - schema.ts
+      - pages/
+        - index.astro
+        - post/
+          - **[slug].astro**
+    - astro.config.mjs
+    - package.json
+    </FileTree>
+
+2. `getAllPosts()` 및 `getPost()`를 가져와 사용하여 Hashnode에서 데이터를 가져오고 각 게시물에 대한 개별 페이지 경로를 생성합니다.
+
+    ```astro title="src/pages/post/[slug].astro"
+    ---
+    import { getAllPosts, getPost } from '../../lib/client';
+
+
+    export async function getStaticPaths() {
+      const data = await getAllPosts();
+      const allPosts = data.publication.posts.edges;
+      return allPosts.map((post) => {
+        return {
+          params: { slug: post.node.slug },
+        }
+      })
+    }
+    const { slug } = Astro.params;
+    const post = await getPost(slug);
+
+    ---
+    ```
+
+3. 각 `post` 객체의 속성을 사용하여 각 페이지에 대한 템플릿을 만듭니다. 아래 예시는 게시물 제목과 읽기 시간, 그리고 전체 게시물 내용을 보여줍니다.
+
+    ```astro title="src/pages/post/[slug].astro"
+    ---
+    import { getAllPosts, getPost } from '../../lib/client';
+
+
+    export async function getStaticPaths() {
+      const data = await getAllPosts();
+      const allPosts = data.publication.posts.edges;
+      return allPosts.map((post) => {
+        return {
+          params: { slug: post.node.slug },
+        }
+      })
+    }
+    const { slug } = Astro.params;
+    const post = await getPost(slug);
+
+    ---
+    <!DOCTYPE html>
+    <html lang="en">
+        <head>
+            <title>{post.title}</title>
+        </head>
+        <body>
+            <img src={post.coverImage.url} alt={post.title} />
+
+            <h1>{post.title}</h1>
+            <p>{post.readTimeInMinutes} min read</p>
+
+            <Fragment set:html={post.content.html} />
+        </body>
+    </html>
+    ```
+    :::note
+    `<Fragment />`는 불필요한 래퍼 요소를 방지할 수 있는 Astro 내장 컴포넌트입니다. 이는 CMS (예: Hashnode 또는 [WordPress](/ko/guides/cms/wordpress/))에서 HTML을 가져올 때 특히 유용할 수 있습니다.
+    :::
+</Steps>
+
+### 사이트 게시
+사이트를 배포하려면 [배포 가이드](/ko/guides/deploy/)를 방문하여 선호하는 호스팅 제공업체의 지침을 따르세요.
+
+## 커뮤니티 자료 
+
+- [`astro-hashnode`](https://github.com/matthiesenxyz/astro-hashnode) - GitHub

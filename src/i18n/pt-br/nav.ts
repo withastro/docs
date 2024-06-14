@@ -5,7 +5,8 @@ export default NavDictionary({
 	'getting-started': 'Introdução',
 	install: 'Instalação',
 	'editor-setup': 'Configuração do Editor',
-	'guides/upgrade-to/v4': 'Atualize para a v4',
+	'upgrade-astro': 'Atualize o Astro',
+
 	coreConcepts: 'Principais Conceitos',
 	'concepts/why-astro': 'Por que Astro?',
 	'concepts/islands': 'Ilhas Astro',
@@ -14,11 +15,14 @@ export default NavDictionary({
 	'blog-tutorial': 'Construa um Blog',
 
 	basics: 'Fundamentos',
-
 	'basics/project-structure': 'Estrutura de Projetos',
 	'basics/astro-components': 'Componentes',
 	'basics/astro-pages': 'Páginas',
 	'basics/layouts': 'Layouts',
+	'basics/astro-syntax': 'Sintaxe do Astro',
+	'basics/rendering-modes': 'Modos de Renderização',
+
+	'guides/dev-toolbar': 'Barra de Ferramentas de Desenvolvimento',
 
 	examples: 'Receitas',
 	'guides/migrate-to-astro': 'Migre para o Astro',
@@ -29,7 +33,6 @@ export default NavDictionary({
 	'guides/recipes': 'Mais Receitas',
 
 	features: 'Guias',
-	'basics/astro-syntax': 'Sintaxe do Astro',
 	'guides/framework-components': 'Frameworks de UI',
 	'guides/routing': 'Roteamento',
 	'guides/markdown-content': 'Markdown e MDX',
@@ -39,10 +42,12 @@ export default NavDictionary({
 	'guides/images': 'Imagens',
 	'guides/fonts': 'Fontes',
 	'guides/imports': 'Importações',
-	'guides/server-side-rendering': 'Renderização no lado do Servidor (SSR)',
+	'guides/server-side-rendering': 'Adaptadores SSR',
+	'guides/astro-db': 'Astro DB',
 	'guides/endpoints': 'Endpoints',
 	'guides/data-fetching': 'Busca de Dados',
 	'guides/middleware': 'Middleware',
+	'guides/ecommerce': 'Comércio Eletrônico',
 	'guides/testing': 'Testes',
 	'guides/view-transitions': 'Transições de Visualização',
 	'guides/prefetch': 'Pré-carregamento',

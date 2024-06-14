@@ -7,7 +7,8 @@ stub: false
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
-import FileTree from '~/components/FileTree.astro'
+import { FileTree } from '@astrojs/starlight/components';
+
 
 [Firebase](https://firebase.google.com/) è una piattaforma di sviluppo di app che fornisce un database NoSQL, autenticazione, sottoscrizioni in tempo reale, funzioni e archiviazione.
 
@@ -128,8 +129,9 @@ Nel `server.ts`, aggiungi il seguente codice per inizializzare Firebase nel serv
 
 ```ts title="src/firebase/server.ts"
 import type { ServiceAccount } from "firebase-admin";
-import { initializeApp, cert } from "firebase-admin/app";
+import { initializeApp, cert, getApps } from "firebase-admin/app";
 
+const activeApps = getApps();
 const serviceAccount = {
   type: "service_account",
   project_id: import.meta.env.FIREBASE_PROJECT_ID,
@@ -143,9 +145,9 @@ const serviceAccount = {
   client_x509_cert_url: import.meta.env.FIREBASE_CLIENT_CERT_URL,
 };
 
-export const app = initializeApp({
+export const app = activeApps.length === 0 ? initializeApp({
   credential: cert(serviceAccount as ServiceAccount),
-});
+}) : activeApps[0];
 ```
 
 :::note
@@ -196,7 +198,7 @@ export const GET: APIRoute = async ({ request, cookies, redirect }) => {
   const idToken = request.headers.get("Authorization")?.split("Bearer ")[1];
   if (!idToken) {
     return new Response(
-      "Nessun token trovato",
+      "No token found",
       { status: 401 }
     );
   }
@@ -206,7 +208,7 @@ export const GET: APIRoute = async ({ request, cookies, redirect }) => {
     await auth.verifyIdToken(idToken);
   } catch (error) {
     return new Response(
-      "Token non valido",
+      "Invalid token",
       { status: 401 }
     );
   }
@@ -217,13 +219,17 @@ export const GET: APIRoute = async ({ request, cookies, redirect }) => {
     expiresIn: fiveDays,
   });
 
-  cookies.set("session", sessionCookie, {
+  cookies.set("__session", sessionCookie, {
     path: "/",
   });
 
   return redirect("/dashboard");
 };
 ```
+
+:::caution
+Firebase consente solo l'utilizzo di [un cookie, e deve essere denominato `__session`](https://firebase.google.com/docs/hosting/manage-cache#using_cookies). Eventuali altri cookie inviati dal client non saranno visibili all'applicazione.
+:::
 
 :::note
 Questa è un'implementazione di base dell'endpoint per l'accesso. Puoi aggiungere ulteriore logica a questo endpoint per adattarlo alle tue esigenze.
@@ -235,7 +241,7 @@ Questa è un'implementazione di base dell'endpoint per l'accesso. Puoi aggiunger
 import type { APIRoute } from "astro";
 
 export const GET: APIRoute = async ({ redirect, cookies }) => {
-  cookies.delete("session", {
+  cookies.delete("__session", {
     path: "/",
   });
   return redirect("/signin");
@@ -264,7 +270,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 
   if (!email || !password || !name) {
     return new Response(
-      "Alcuni dati del form mancano",
+      "Missing form data",
       { status: 400 }
     );
   }
@@ -278,7 +284,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     });
   } catch (error: any) {
     return new Response(
-      "Qualcosa è andato storto",
+      "Something went wrong",
       { status: 400 }
     );
   }
@@ -301,8 +307,8 @@ Dopo aver creato gli endpoint del server per l'autenticazione, la cartella del t
   - pages
     - api
       - auth
-        - **login.ts**
-        - **logout.ts**
+        - **signin.ts**
+        - **signout.ts**
         - **register.ts**
 - .env
 - astro.config.mjs
@@ -353,8 +359,8 @@ import Layout from "../layouts/Layout.astro";
 
 /* Controlla se l'utente è autenticato */
 const auth = getAuth(app);
-if (Astro.cookies.has("session")) {
-  const sessionCookie = Astro.cookies.get("session").value;
+if (Astro.cookies.has("__session")) {
+  const sessionCookie = Astro.cookies.get("__session").value;
   const decodedCookie = await auth.verifySessionCookie(sessionCookie);
   if (decodedCookie) {
     return Astro.redirect("/dashboard");
@@ -430,10 +436,10 @@ import Layout from "../layouts/Layout.astro";
 const auth = getAuth(app);
 
 /* Verifica la sessione corrente */
-if (!Astro.cookies.has("session")) {
+if (!Astro.cookies.has("__session")) {
   return Astro.redirect("/signin");
 }
-const sessionCookie = Astro.cookies.get("session").value;
+const sessionCookie = Astro.cookies.get("__session").value;
 const decodedCookie = await auth.verifySessionCookie(sessionCookie);
 const user = await auth.getUser(decodedCookie.uid);
 
@@ -471,8 +477,8 @@ import Layout from "../layouts/Layout.astro";
 
 /* Controlla se l'utente è autenticato */
 const auth = getAuth(app);
-if (Astro.cookies.has("session")) {
-  const sessionCookie = Astro.cookies.get("session").value;
+if (Astro.cookies.has("__session")) {
+  const sessionCookie = Astro.cookies.get("__session").value;
   const decodedCookie = await auth.verifySessionCookie(sessionCookie);
   if (decodedCookie) {
     return Astro.redirect("/dashboard");
@@ -591,7 +597,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   const isBestFriend = formData.get("isBestFriend") === "on";
 
   if (!name || !age) {
-    return new Response("Mancano aluni parametri", {
+    return new Response("Missing required fields", {
       status: 400,
     });
   }
@@ -604,7 +610,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       isBestFriend,
     });
   } catch (error) {
-    return new Response("Qualcosa è andato storto", {
+    return new Response("Something went wrong", {
       status: 500,
     });
   }
@@ -886,7 +892,7 @@ const friends = friendsSnapshot.docs.map((doc) => ({
 
 Dopo aver creato tutti i file il tuo progetto dovrebbe avere una struttura come questa:
 
-<FileTree title="Project Structure">
+<FileTree title="Struttura del progetto">
 - src
   - env.d.ts
   - firebase
@@ -908,7 +914,7 @@ Dopo aver creato tutti i file il tuo progetto dovrebbe avere una struttura come 
 - package.json
 </FileTree>
 
+## Risorse della community
 
-## Community Resources
-
-- [Astro e Firebase SSR app example](https://github.com/kevinzunigacuellar/astro-firebase)
+- [Astro e Firebase SSR app di esempio](https://github.com/kevinzunigacuellar/astro-firebase)
+- [Utilizzare Firebase Realtime Database in Astro con Vue: una guida passo passo](https://www.launchfa.st/blog/vue-astro-firebase-realtime-database-it)

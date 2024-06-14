@@ -7,7 +7,7 @@ stub: false
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
-import FileTree from '~/components/FileTree.astro'
+import { FileTree } from '@astrojs/starlight/components';
 
 [Firebase](https://firebase.google.com/) 是一个应用开发平台，它提供了 NoSQL 数据库、身份验证、实时订阅、云函数和存储等功能。
 
@@ -21,7 +21,7 @@ import FileTree from '~/components/FileTree.astro'
 - 一个开启了 [服务端渲染模式（SSR）](/zh-cn/guides/server-side-rendering/) 的 Astro 项目；
 - Firebase 凭据：你需要准备两组凭据来将 Astro 连接到 Firebase：
   - 网页应用凭据：这些凭据将用于你的应用的客户端部分。你可以在 Firebase 控制台的「项目设置 > 通用」下找到它们。向下滚动到「你的应用」部分，然后并点击「网页应用」图标；
-  - 项目凭据：这些凭据将用于你的应用的服务器端部分。你可以在 Firebase 控制台的「项目设置 > 服务帐号 > Firebase Admin SDK > 生成新的私钥」下生成它们。
+  - 项目凭据：这些凭据将用于你的应用的服务器端部分。你可以在 Firebase 控制台的「项目设置 > 服务账号 > Firebase Admin SDK > 生成新的私钥」下生成它们。
 
 ### 添加 Firebase 凭据
 
@@ -217,13 +217,17 @@ export const GET: APIRoute = async ({ request, cookies, redirect }) => {
     expiresIn: fiveDays,
   });
 
-  cookies.set("session", sessionCookie, {
+  cookies.set("__session", sessionCookie, {
     path: "/",
   });
 
   return redirect("/dashboard");
 };
 ```
+
+:::caution
+Firebase 仅允许使用[一个名为 `__session` 的 cookie](https://firebase.google.com/docs/hosting/manage-cache#using_cookies)。客户端发送的任何其他 cookie 都不会对你的应用程序可见。
+:::
 
 :::note
 这是仅是一个基本的登录端点实现，你可以根据需要为该端点添加更多逻辑。
@@ -235,7 +239,7 @@ export const GET: APIRoute = async ({ request, cookies, redirect }) => {
 import type { APIRoute } from "astro";
 
 export const GET: APIRoute = async ({ redirect, cookies }) => {
-  cookies.delete("session", {
+  cookies.delete("__session", {
     path: "/",
   });
   return redirect("/signin");
@@ -353,8 +357,8 @@ import Layout from "../layouts/Layout.astro";
 
 /* 校验用户是否已经通过身份验证 */
 const auth = getAuth(app);
-if (Astro.cookies.has("session")) {
-  const sessionCookie = Astro.cookies.get("session").value;
+if (Astro.cookies.has("__session")) {
+  const sessionCookie = Astro.cookies.get("__session").value;
   const decodedCookie = await auth.verifySessionCookie(sessionCookie);
   if (decodedCookie) {
     return Astro.redirect("/dashboard");
@@ -430,10 +434,10 @@ import Layout from "../layouts/Layout.astro";
 const auth = getAuth(app);
 
 /* 检查当前会话 */
-if (!Astro.cookies.has("session")) {
+if (!Astro.cookies.has("__session")) {
   return Astro.redirect("/signin");
 }
-const sessionCookie = Astro.cookies.get("session").value;
+const sessionCookie = Astro.cookies.get("__session").value;
 const decodedCookie = await auth.verifySessionCookie(sessionCookie);
 const user = await auth.getUser(decodedCookie.uid);
 
@@ -909,4 +913,5 @@ const friends = friendsSnapshot.docs.map((doc) => ({
 
 ## 社区资源
 
-- [Astro and Firebase SSR app example](https://github.com/kevinzunigacuellar/astro-firebase)
+- [Astro 和 Firebase 服务端渲染应用示例](https://github.com/kevinzunigacuellar/astro-firebase)
+- [在 Astro 中使用 Vue 和 Firebase 实时数据库：分步指南](https://www.launchfa.st/blog/vue-astro-firebase-realtime-database)
