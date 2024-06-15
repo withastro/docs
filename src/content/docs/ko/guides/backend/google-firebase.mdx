@@ -145,9 +145,19 @@ const serviceAccount = {
   client_x509_cert_url: import.meta.env.FIREBASE_CLIENT_CERT_URL,
 };
 
-export const app = activeApps.length === 0 ? initializeApp({
-  credential: cert(serviceAccount as ServiceAccount),
-}) : activeApps[0];
+const initApp = () => {
+  if (import.meta.env.PROD) {
+    console.info('PROD env detected. Using default service account.')
+    // Firebase 함수에서 기본 구성을 사용합니다. Firebase에 의해 이미 서버에 삽입되어 있어야 합니다.
+    return initializeApp()
+  }
+  console.info('Loading service account from env.')
+  return initializeApp({
+    credential: cert(serviceAccount as ServiceAccount)
+  })
+}
+
+export const app = activeApps.length === 0 ? initApp() : activeApps[0];
 ```
 
 :::note
@@ -219,13 +229,17 @@ export const GET: APIRoute = async ({ request, cookies, redirect }) => {
     expiresIn: fiveDays,
   });
 
-  cookies.set("session", sessionCookie, {
+  cookies.set("__session", sessionCookie, {
     path: "/",
   });
 
   return redirect("/dashboard");
 };
 ```
+
+:::caution
+Firebase에서는 [쿠키 1개만 사용할 수 있으며 이름은 `__session`으로 지정해야 합니다](https://firebase.google.com/docs/hosting/manage-cache#using_cookies). 클라이언트가 보내는 다른 쿠키는 애플리케이션에 표시되지 않습니다.
+:::
 
 :::note
 이는 로그인 엔드포인트의 기본 구현입니다. 필요에 따라 이 엔드포인트에 논리를 더 추가할 수 있습니다.
@@ -237,7 +251,7 @@ export const GET: APIRoute = async ({ request, cookies, redirect }) => {
 import type { APIRoute } from "astro";
 
 export const GET: APIRoute = async ({ redirect, cookies }) => {
-  cookies.delete("session", {
+  cookies.delete("__session", {
     path: "/",
   });
   return redirect("/signin");
@@ -355,8 +369,8 @@ import Layout from "../layouts/Layout.astro";
 
 /* 사용자가 인증되었는지 확인 */
 const auth = getAuth(app);
-if (Astro.cookies.has("session")) {
-  const sessionCookie = Astro.cookies.get("session").value;
+if (Astro.cookies.has("__session")) {
+  const sessionCookie = Astro.cookies.get("__session").value;
   const decodedCookie = await auth.verifySessionCookie(sessionCookie);
   if (decodedCookie) {
     return Astro.redirect("/dashboard");
@@ -432,10 +446,10 @@ import Layout from "../layouts/Layout.astro";
 const auth = getAuth(app);
 
 /* 현재 세션 확인 */
-if (!Astro.cookies.has("session")) {
+if (!Astro.cookies.has("__session")) {
   return Astro.redirect("/signin");
 }
-const sessionCookie = Astro.cookies.get("session").value;
+const sessionCookie = Astro.cookies.get("__session").value;
 const decodedCookie = await auth.verifySessionCookie(sessionCookie);
 const user = await auth.getUser(decodedCookie.uid);
 
@@ -473,8 +487,8 @@ import Layout from "../layouts/Layout.astro";
 
 /* 사용자가 인증되었는지 확인 */
 const auth = getAuth(app);
-if (Astro.cookies.has("session")) {
-  const sessionCookie = Astro.cookies.get("session").value;
+if (Astro.cookies.has("__session")) {
+  const sessionCookie = Astro.cookies.get("__session").value;
   const decodedCookie = await auth.verifySessionCookie(sessionCookie);
   if (decodedCookie) {
     return Astro.redirect("/dashboard");
@@ -913,3 +927,4 @@ const friends = friendsSnapshot.docs.map((doc) => ({
 ## 커뮤니티 자료
 
 - [Astro 및 Firebase SSR 앱 예시](https://github.com/kevinzunigacuellar/astro-firebase)
+- [Vue와 함께 Astro에서 Firebase 실시간 데이터베이스 사용: 단계별 가이드](https://www.launchfa.st/blog/vue-astro-firebase-realtime-database)

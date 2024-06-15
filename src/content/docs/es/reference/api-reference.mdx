@@ -582,6 +582,29 @@ const orders = Array.from(Astro.locals.orders.entries());
 </ul>
 ```
 
+### `Astro.preferredLocale`
+
+`Astro.preferredLocale` es un valor computado que representa el idioma preferido del usuario.
+
+Es calculado verificando los idiomas configurados en tu array `i18n.locales` y los idiomas soportados por el navegador del usuario a través de la cabecera `Accept-Language`. Este valor es `undefined` si no existe tal coincidencia.
+
+Esta propiedad solo está disponible cuando se compila para SSR (renderizado en el servidor) y no debe usarse para sitios estáticos.
+
+### `Astro.preferredLocaleList`
+
+`Astro.preferredLocaleList` representa el array de todos los idiomas que son solicitados por el navegador y soportados por tu sitio web. Esto produce una lista de todos los idiomas compatibles entre tu sitio y tu usuario.
+
+Si la petición del navegador no especifica ningún idioma preferido, entonces este valor será `[]`: no admites ninguno de los idiomas preferidos de un usuario sin preferencias.
+
+Si el navegador no especifica ningún idioma preferido, entonces este valor será [`i18n.locales`](/es/reference/configuration-reference/#i18nlocales): todos tus idiomas soportados serán considerados igualmente preferidos por un visitante sin preferencias.
+
+Esta propiedad solo está disponible cuando se compila para SSR (renderizado en el servidor) y no debe usarse para sitios estáticos.
+
+### `Astro.currentLocale`
+
+La localización computada a partir de la URL actual, utilizando la sintaxis especificada en tu configuración `locales`. Si la URL no contiene un prefijo `/[locale]/`, entonces el valor por defecto será `i18n.defaultLocale`.
+
+
 ## Contexto del Endpoint
 
 [Las funciones de Endpoint](/es/guides/endpoints/) reciben un objeto de contexto como primer parámetro. Posee muchas de las propiedades del objeto global `Astro`.
@@ -1358,6 +1381,272 @@ Esta función puede ser utilizada por integraciones/adaptadores para ejecutar pr
 
 Una API de bajo nivel que toma cualquier valor y trata de devolver una versión serializada (un string) de él. Si el valor no se puede serializar, la función lanzará un error en tiempo de ejecución.
 
+## Internacionalización (`astro:i18n`)
+
+<p><Since v="3.5.0" /></p>
+
+Este módulo proporciona funciones para ayudarte a crear URLs utilizando los locales configurados en tu proyecto.
+
+Crear rutas para tu proyecto con el enrutador i18n dependerá de ciertos valores de configuración que hayas establecido y que afectan a las rutas de tus páginas. Al crear rutas con estas funciones, asegúrate de tener en cuenta tus ajustes individuales para:
+
+- [`base`](/es/reference/configuration-reference/#base)
+- [`trailingSlash`](/es/reference/configuration-reference/#trailingslash)
+- [`build.format`](/es/reference/configuration-reference/#buildformat)
+- [`site`](/es/reference/configuration-reference/#site)
+
+También, ten en cuenta que las URLs devueltas por estas funciones para tu `defaultLocale` reflejarán tu configuración de `i18n.routing`.
+
+Para obtener características y ejemplos de uso, [consulta nuestra guía de enrutamiento i18n](/es/guides/internationalization/).
+
+### `getRelativeLocaleUrl()` 
+
+`getRelativeLocaleUrl(locale: string, path?: string,  options?: GetLocaleOptions): string`
+ 
+Usa esta función para obtener una ruta relativa para un idioma. Si el idioma no existe, Astro lanzará un error.
+
+```astro
+---
+getRelativeLocaleUrl("fr");
+// devuelve /fr
+getRelativeLocaleUrl("fr", "");
+// devuelve /fr
+getRelativeLocaleUrl("fr", "getting-started");
+// devuelve /fr/getting-started
+getRelativeLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog"
+}); 
+// devuelve /blog/fr-ca/getting-started
+getRelativeLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog",
+  normalizeLocale: false
+}); 
+// devuelve /blog/fr_CA/getting-started
+---
+```
+
+### `getAbsoluteLocaleUrl()` 
+
+`getAbsoluteLocaleUrl(locale: string, path: string, options?: GetLocaleOptions): string` 
+
+Usa esta función para obtener una ruta absoluta para un idioma cuando [`site`] tiene un valor. Si [`site`] no está configurado, la función devolverá una URL relativa. Si el idioma no existe, Astro lanzará un error.
+
+
+```astro title="src/pages/index.astro"
+---
+// Si `site` está configurado como `https://example.com`
+getAbsoluteLocaleUrl("fr"); 
+// devuelve https://example.com/fr
+getAbsoluteLocaleUrl("fr", ""); 
+// devuelve https://example.com/fr
+getAbsoluteLocaleUrl("fr", "getting-started"); 
+// devuelve https://example.com/fr/getting-started
+getAbsoluteLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog"
+}); 
+// devuelve https://example.com/blog/fr-ca/getting-started
+getAbsoluteLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog",
+  normalizeLocale: false
+}); 
+// devuelve https://example.com/blog/fr_CA/getting-started
+---
+```
+
+### `getRelativeLocaleUrlList()` 
+
+`getRelativeLocaleUrlList(path?: string, options?: GetLocaleOptions): string[]`
+
+Usa esto como [`getRelativeLocaleUrl`](#getrelativelocaleurl) para devolver una lista de rutas relativas para todos los idiomas.
+
+
+### `getAbsoluteLocaleUrlList()` 
+
+`getAbsoluteLocaleUrlList(path?: string, options?: GetLocaleOptions): string[]`
+
+Usa esto como [`getAbsoluteLocaleUrl`](/es/guides/internationalization/#rutas-de-idioma-personalizadas) para devolver una lista de rutas absolutas para todos los idiomas.
+
+### `getPathByLocale()` 
+
+`getPathByLocale(locale: string): string`
+
+Una función que devuelve el `path` asociado a uno o más `codes` cuando se configuran [rutas de idioma personalizadas](/es/guides/internationalization/#rutas-de-idioma-personalizadas).
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  i18n: {
+    locales: ["es", "en", {
+      path: "french",
+      codes: ["fr", "fr-BR", "fr-CA"]
+    }]
+  }
+})
+```
+
+```astro title="src/pages/index.astro"
+---
+getPathByLocale("fr"); // devuelve "french"
+getPathByLocale("fr-CA"); // devuelve "french"
+---
+```
+
+### `getLocaleByPath`
+
+ `getLocaleByPath(path: string): string`
+
+Una función que devuelve el `code` asociado a un `path` de idioma.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  i18n: {
+    locales: ["es", "en", {
+      path: "french",
+      codes: ["fr", "fr-BR", "fr-CA"]
+    }]
+  }
+})
+```
+
+```astro title="src/pages/index.astro"
+---
+getLocaleByPath("french"); // devuelve "fr" porque es el primer código configurado
+---
+```
+
+### `redirectToDefaultLocale()`
+
+`redirectToDefaultLocale(context: APIContext, statusCode?: ValidRedirectStatus): Promise<Response>`
+
+<p><Since v="4.6.0" /></p>
+
+:::note
+Disponible solo cuando `i18n.routing` está configurado en `"manual"`
+:::
+
+Una función que devuelve una `Response` que redirige al `defaultLocale` configurado. Acepta un código de estado de redirección válido opcional.
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { redirectToDefaultLocale } from "astro:i18n";
+
+export const onRequest = defineMiddleware((context, next) => {
+  if (context.url.pathname.startsWith("/about")) {
+    return next();
+  } else {
+    return redirectToDefaultLocale(context, 302);
+  }
+})
+```
+
+### `redirectToFallback()`
+
+`redirectToFallback(context: APIContext, response: Response): Promise<Response>`
+
+<p><Since v="4.6.0" /></p>
+
+:::note
+Disponible solo cuando `i18n.routing` está configurado en `"manual"`
+:::
+
+Una función que te permite usar tu configuración de [`i18n.fallback`](/es/reference/configuration-reference/#i18nfallback) en tu propio middleware.
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { redirectToFallback } from "astro:i18n";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const response = await next();
+  if (response.status >= 300) {
+    return redirectToFallback(context, response)
+  }
+  return response;
+})
+```
+
+### `notFound()`
+
+`notFound(context: APIContext, response: Response): Promise<Response>`
+
+<p><Since v="4.6.0" /></p>
+
+:::note
+Disponible solo cuando `i18n.routing` está configurado en `"manual"`
+:::
+
+Usa esta función en tu middleware de enrutamiento para devolver un 404 cuando:
+- la ruta actual no es una raíz. por ejemplo, `/` o `/<base>`
+- la URL no contiene un idioma configurado
+
+Cuando se pasa una `Response`, la nueva `Response` emitida por esta función contendrá los mismos encabezados de la respuesta original.
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { notFound } from "astro:i18n";
+
+export const onRequest = defineMiddleware((context, next) => {
+  const pathNotFound = notFound(context);
+  if (pathNotFound) {
+    return pathNotFound;
+  }
+  return next();
+})
+```
+
+### `middleware()`
+
+`middleware(options: { prefixDefaultLocale: boolean, redirectToDefaultLocale: boolean })`
+
+<p><Since v="4.6.0" /></p>
+
+:::note
+Disponible solo cuando `i18n.routing` está configurado en `"manual"`
+:::
+
+Una función que te permite crear programáticamente el middleware de Astro i18n.
+
+Esto es útil cuando aún deseas utilizar la lógica i18n predeterminada, pero solo agregar algunas excepciones a tu sitio web.
+
+```js title="middleware.js"
+import { middleware } from "astro:i18n";
+import { sequence, defineMiddleware } from "astro:middleware";
+
+const customLogic = defineMiddleware(async (context, next) => {
+  const response = await next();
+
+  // Lógica personalizada después de resolver la respuesta.
+  // Es posible capturar la respuesta que proviene del middleware de Astro i18n.
+
+  return response;
+});
+
+export const onRequest = sequence(customLogic, middleware({
+	prefixDefaultLocale: true,
+	redirectToDefaultLocale: false
+}))
+```
+
+### `requestHasLocale()`
+
+`requestHasLocale(context: APIContext): boolean`
+
+<p><Since v="4.6.0" /></p>
+
+:::note
+Disponible solo cuando `i18n.routing` está configurado en `"manual"`
+:::
+
+Verifica si la URL actual contiene un idioma configurado. Internamente, esta función usará `APIContext#url.pathname`.
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { requestHasLocale } from "astro:i18n";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  if (requestHasLocale(context)) {
+    return next();
+  }
+  return new Response("Not found", { status: 404 });
+})
+```
 
 ## Componentes incorporados
 

@@ -145,9 +145,19 @@ const serviceAccount = {
   client_x509_cert_url: import.meta.env.FIREBASE_CLIENT_CERT_URL,
 };
 
-export const app = activeApps.length === 0 ? initializeApp({
-  credential: cert(serviceAccount as ServiceAccount),
-}) : activeApps[0];
+const initApp = () => {
+  if (import.meta.env.PROD) {
+    console.info('PROD env detected. Using default service account.')
+    // Use default config in firebase functions. Should be already injected in the server by Firebase.
+    return initializeApp()
+  }
+  console.info('Loading service account from env.')
+  return initializeApp({
+    credential: cert(serviceAccount as ServiceAccount)
+  })
+}
+
+export const app = activeApps.length === 0 ? initApp() : activeApps[0];
 ```
 
 :::note
@@ -219,13 +229,17 @@ export const GET: APIRoute = async ({ request, cookies, redirect }) => {
     expiresIn: fiveDays,
   });
 
-  cookies.set("session", sessionCookie, {
+  cookies.set("__session", sessionCookie, {
     path: "/",
   });
 
   return redirect("/dashboard");
 };
 ```
+
+:::caution
+Firebase only allows the use of [one cookie, and it must be named `__session`](https://firebase.google.com/docs/hosting/manage-cache#using_cookies). Any other cookies the client sends will not be visible to your application.
+:::
 
 :::note
 This is a basic implementation of the signin endpoint. You can add more logic to this endpoint to suit your needs.
@@ -237,7 +251,7 @@ This is a basic implementation of the signin endpoint. You can add more logic to
 import type { APIRoute } from "astro";
 
 export const GET: APIRoute = async ({ redirect, cookies }) => {
-  cookies.delete("session", {
+  cookies.delete("__session", {
     path: "/",
   });
   return redirect("/signin");
@@ -355,8 +369,8 @@ import Layout from "../layouts/Layout.astro";
 
 /* Check if the user is authenticated */
 const auth = getAuth(app);
-if (Astro.cookies.has("session")) {
-  const sessionCookie = Astro.cookies.get("session").value;
+if (Astro.cookies.has("__session")) {
+  const sessionCookie = Astro.cookies.get("__session").value;
   const decodedCookie = await auth.verifySessionCookie(sessionCookie);
   if (decodedCookie) {
     return Astro.redirect("/dashboard");
@@ -432,10 +446,10 @@ import Layout from "../layouts/Layout.astro";
 const auth = getAuth(app);
 
 /* Check current session */
-if (!Astro.cookies.has("session")) {
+if (!Astro.cookies.has("__session")) {
   return Astro.redirect("/signin");
 }
-const sessionCookie = Astro.cookies.get("session").value;
+const sessionCookie = Astro.cookies.get("__session").value;
 const decodedCookie = await auth.verifySessionCookie(sessionCookie);
 const user = await auth.getUser(decodedCookie.uid);
 
@@ -473,8 +487,8 @@ import Layout from "../layouts/Layout.astro";
 
 /* Check if the user is authenticated */
 const auth = getAuth(app);
-if (Astro.cookies.has("session")) {
-  const sessionCookie = Astro.cookies.get("session").value;
+if (Astro.cookies.has("__session")) {
+  const sessionCookie = Astro.cookies.get("__session").value;
   const decodedCookie = await auth.verifySessionCookie(sessionCookie);
   if (decodedCookie) {
     return Astro.redirect("/dashboard");
@@ -913,3 +927,4 @@ After creating all the pages, you should have the following file structure:
 ## Community Resources
 
 - [Astro and Firebase SSR app example](https://github.com/kevinzunigacuellar/astro-firebase)
+- [Using Firebase Realtime Database in Astro with Vue: A Step-by-Step Guide](https://www.launchfa.st/blog/vue-astro-firebase-realtime-database)

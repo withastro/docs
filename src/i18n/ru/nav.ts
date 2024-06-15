@@ -1,10 +1,11 @@
 import { NavDictionary } from '../translation-checkers';
 
 export default NavDictionary({
-	startHere: 'Начать здесь',
+	startHere: 'Первые шаги',
 	'getting-started': 'Начало работы',
 	install: 'Установка',
 	'editor-setup': 'Настройка редактора',
+	'upgrade-astro': 'Обновление Astro',
 
 	coreConcepts: 'Основные концепции',
 	'concepts/why-astro': 'Почему Astro',
@@ -37,10 +38,9 @@ export default NavDictionary({
 
 	examples: 'Рецепты',
 	'guides/migrate-to-astro': 'Миграция на Astro',
-	'recipes/studio': 'Подключитесь к Astro Studio',
 	'guides/cms': 'Подключение CMS',
 	'guides/backend': 'Добавление бэкэнд-сервисов',
-	'guides/deploy': 'Развертывание сайта',
+	'guides/deploy': 'Развёртывание сайта',
 	'guides/recipes': 'Больше рецептов',
 
 	features: 'Руководства',

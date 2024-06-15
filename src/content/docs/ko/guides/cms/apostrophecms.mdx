@@ -6,9 +6,460 @@ stub: true
 service: Apostrophe
 i18nReady: true
 ---
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
 [ApostropheCMS](https://apostrophecms.com/)는 Astro에서 페이지 편집을 지원하는 콘텐츠 관리 시스템입니다.
 
-## 커뮤니티 자료
+## Astro와 통합
+
+이 섹션에서는 [Apostrophe 통합](https://apostrophecms.com/extensions/astro-integration)을 사용하여 ApostropheCMS를 Astro에 연결합니다.
+
+### 전제 조건
+
+시작하려면 다음이 필요합니다.
+
+1. [Node.js 어댑터](/ko/guides/integrations-guide/node/)가 설치되고 `output: 'server'`가 구성된 **주문형 렌더링된 Astro 프로젝트** - 아직 Astro 프로젝트가 없다면 [설치 가이드](/ko/install-and-setup/)를 참조하여 즉시 설치하여 실행할 수 있습니다.
+
+2. **`APOS_EXTERNAL_FRONT_KEY`라는 환경 변수가 구성된 ApostropheCMS 프로젝트** - 이 환경 변수는 임의의 문자열로 설정할 수 있습니다. 아직 ApostropheCMS 프로젝트가 없다면 [설치 가이드](https://docs.apostrophecms.org/guide/development-setup.html)를 통해 빠르게 설치할 수 있습니다. [Apostrophe CLI 도구](https://apostrophecms.com/extensions/apos-cli)를 사용하면 설치가 쉬워지므로 이를 사용하는 것을 권장합니다.
+
+### 프로젝트 통신 설정
+
+Astro 프로젝트에는 둘 사이의 통신을 허용하기 위해 ApostropheCMS 프로젝트의 값과 동일한 값으로 설정된 `APOS_EXTERNAL_FRONT_KEY` 환경 변수가 있어야 합니다. 이 공유 키는 프런트엔드 (Astro)와 백엔드 (ApostropheCMS) 간 요청을 확인하는 수단으로 사용됩니다.
+
+다음 변수를 사용하여 Astro 프로젝트 루트에 `.env` 파일을 만듭니다.
+
+```ini title=".env"
+APOS_EXTERNAL_FRONT_KEY='RandomStrongString'
+```
+
+이제 루트 디렉터리에 다음 새 파일이 포함되어야 합니다.
+
+<FileTree title="Project Structure">
+- src/
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### 종속성 설치
+
+Astro를 ApostropheCMS 프로젝트와 연결하려면 선호하는 패키지 관리자로 아래 명령을 사용하여 Astro 프로젝트에 공식 Apostrophe 통합을 설치하세요.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @apostrophecms/apostrophe-astro vite @astro/node
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @apostrophecms/apostrophe-astro vite @astro/node
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @apostrophecms/apostrophe-astro vite @astro/node
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Astro 구성
+
+`apostrophe-astro` 통합 및 `astro.config.mjs` 파일의 `vite`를 모두 구성합니다.
+
+다음 예시는 ApostropheCMS [위젯](https://docs.apostrophecms.org/guide/core-widgets.html)과 [페이지 템플릿](https://docs.apostrophecms.org/guide/pages.html) 타입 및 Astro 프로젝트를 일치시키기 위해 Apostrophe 인스턴스의 기본 URL과 프로젝트의 폴더 경로를 제공합니다. 그리고 Vite의 서버 측 렌더링도 구성합니다.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+import apostrophe from '@apostrophecms/apostrophe-astro';
+import { loadEnv } from 'vite';
+
+const env = loadEnv("", process.cwd(), 'APOS');
+
+export default defineConfig({
+  output: 'server',
+  adapter: node({
+    mode: 'standalone'
+  }),
+  integrations: [
+    apostrophe({
+      aposHost: 'http://localhost:3000',
+      widgetsMapping: './src/widgets',
+      templatesMapping: './src/templates'
+    })
+  ],
+  vite: {
+    ssr: {
+      // @apostrophecms/apostrophe-astro 플러그인을 외부화하지 마세요.
+      // virtual: URL을 사용할 수 있어야 합니다.
+      noExternal: [ '@apostrophecms/apostrophe-astro' ],
+    },
+    define: {
+      'process.env.APOS_EXTERNAL_FRONT_KEY': JSON.stringify(env.APOS_EXTERNAL_FRONT_KEY),
+      'process.env.APOS_HOST': JSON.stringify(env.APOS_HOST)
+    }
+  }
+});
+```
+
+전체 구성 옵션 및 설명은 [`apostrophe-astro` 문서](https://apostrophecms.com/extensions/astro-integration#configuration-astro)를 참조하세요.
+
+### ApostropheCMS 위젯을 Astro 컴포넌트에 연결
+ApostropheCMS 위젯은 레이아웃 열, 이미지, 텍스트 블록 등의 페이지에 추가할 수 있는 구조화된 콘텐츠 블록입니다. Apostrophe 프로젝트의 각 위젯에 대한 Astro 컴포넌트와 해당 컴포넌트를 Apostrophe 위젯에 매핑하는 파일을 생성해야 합니다.
+
+Astro 컴포넌트와 매핑 파일 `index.js`를 위한 새 폴더인 `src/widgets/`를 생성합니다.
+
+이 폴더에 있는 매핑된 컴포넌트는 `Astro.props`를 통해 위젯의 스키마 필드와 사용자 정의 props가 포함된 `widget` 속성을 받습니다. 그러면 이 값을 페이지 편집에 사용할 수 있습니다.
+
+다음 예시는 편집을 허용하기 위해 해당 ApostropheCMS 위젯의 콘텐츠에 액세스하는 `RichTextWidget.astro` 컴포넌트를 보여줍니다.
+
+```js title="src/widgets/RichTextWidget.astro"
+---
+const { widget } = Astro.props;
+const { content } = widget;
+---
+<Fragment set:html={ content }></Fragment>
+```
+
+이미지 및 비디오와 같은 일부 표준 Apostrophe 위젯에는 기본적으로 편집 가능한 콘텐츠가 포함되어 있지 않기 때문에 **자리 표시자**가 필요합니다. 다음 예시에서는 조건부로 `src` 값을 위젯에서 전달된 `aposPlaceholder` 이미지의 값 (Astro 프로젝트의 대체 이미지) 또는  Apostrophe `attachment`를 사용하는 콘텐츠 관리자에 의해 선택된 이미지로 설정하는 표준 `ImageWidget.astro` 컴포넌트를 생성합니다.
+
+
+```js title="src/widgets/ImageWidget.astro"
+---
+const { widget } = Astro.props;
+const placeholder = widget?.aposPlaceholder;
+const src = placeholder ?
+  '/images/image-widget-placeholder.jpg' :
+  widget?._image[0]?.attachment?._urls['full'];
+---
+<style>
+  .img-widget {
+    width: 100%;
+  }
+</style>
+<img class="img-widget" {src} />
+```
+더 많은 예시를 보려면 [`astro-frontend` 시작 프로젝트 위젯 예시](https://github.com/apostrophecms/astro-frontend/tree/main/src/widgets)를 참조하세요.
+
+각 `.astro` 컴포넌트는 `src/widgets/index.js`의 해당 핵심 Apostrophe 위젯에 매핑되어야 합니다.
+
+아래 예시에서는 이전 두 컴포넌트를 이 파일에 추가합니다.
+
+```js title="src/widgets/index.js"
+import RichTextWidget from './RichTextWidget.astro';
+import ImageWidget from './ImageWidget.astro';
+
+const widgetComponents = {
+  '@apostrophecms/rich-text': RichTextWidget,
+  '@apostrophecms/image': ImageWidget
+};
+
+export default widgetComponents;
+```
+
+표준, 프로 및 사용자 정의 프로젝트 수준 위젯의 명명 규칙은 [ApostropheCMS 문서](https://apostrophecms.com/extensions/astro-integration)를 참조하세요.
+
+이제 프로젝트 디렉터리는 다음과 같아야 합니다.
+
+<FileTree title="Project Structure">
+- src/
+  - widgets/
+    - **index.js**
+    - **ImageWidget.astro**
+    - **RichTextWidget.astro**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### 페이지 타입 추가
+
+위젯과 마찬가지로 ApostropheCMS 프로젝트의 모든 페이지 타입 템플릿에는 Astro 프로젝트에 해당 템플릿 컴포넌트가 있어야 합니다. Apostrophe 페이지 타입을 개별 컴포넌트에 매핑하는 파일도 필요합니다.
+
+Astro 컴포넌트와 매핑 파일 `index.js`를 위한 새 폴더인 `src/templates/`를 생성합니다. 이 폴더에 있는 매핑된 컴포넌트는 `Astro.props`를 통해 페이지의 스키마 필드와 사용자 정의 props를 포함하는 `page` 속성을 받습니다. 이러한 컴포넌트는 `AposArea` 컴포넌트에 액세스하여 Apostrophe areas을 렌더링할 수도 있습니다.
+
+다음 예시는 `main`이라는 영역 스키마 필드를 포함하여 해당 `home-page` ApostropheCMS 페이지 타입에서 페이지 템플릿을 렌더링하는 `HomePage.astro` 컴포넌트를 보여줍니다.
+
+```js title="src/templates/HomePage.astro"
+---
+import AposArea from '@apostrophecms/apostrophe-astro/components/AposArea.astro';
+const { page, user, query } = Astro.props.aposData;
+const { main } = page;
+---
+
+<section class="bp-content">
+  <h1>{ page.title }</h1>
+  <AposArea area={main} />
+</section>
+```
+
+각 `.astro` 컴포넌트는 `src/templates/index.js`의 해당 핵심 Apostrophe 페이지 타입에 매핑되어야 합니다.
+
+아래 예시에서는 이전 `HomePage.astro` 컴포넌트를 이 파일에 추가합니다.
+
+```js title="src/templates/index.js"
+import HomePage from './HomePage.astro';
+
+const templateComponents = {
+  '@apostrophecms/home-page': HomePage
+};
+
+export default templateComponents;
+```
+
+특수 페이지 및 조각 페이지 타입을 포함한 템플릿 명명 규칙은 [ApostropheCMS 문서](https://apostrophecms.com/extensions/astro-integration/#how-apostrophe-template-names-work)를 참조하세요.
+
+이제 프로젝트 디렉터리는 다음과 같아야 합니다.
+
+<FileTree title="Project Structure">
+- src/
+  - widgets/
+    - index.js
+    - ImageWidget.astro
+    - RichTextWidget.astro
+  - templates/
+    - **HomePage.astro**
+    - **index.js**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### [...slug.astro] 컴포넌트 생성 및 Apostrophe 데이터 가져오기
+
+Apostrophe는 새 콘텐츠와 페이지를 즉시 생성하는 것을 포함하여 URL을 콘텐츠에 연결하는 역할을 담당하므로 최상위 Astro 페이지 컴포넌트인 `[...slug].astro` 경로 하나만 필요합니다.
+
+다음 예시에서는 최소한의 `[...slug].astro` 컴포넌트를 보여줍니다.
+
+```js title="src/pages/[...slug].astro"
+---
+import aposPageFetch from '@apostrophecms/apostrophe-astro/lib/aposPageFetch.js';
+import AposLayout from '@apostrophecms/apostrophe-astro/components/layouts/AposLayout.astro';
+import AposTemplate from '@apostrophecms/apostrophe-astro/components/AposTemplate.astro';
+
+const aposData = await aposPageFetch(Astro.request);
+const bodyClass = `myclass`;
+
+if (aposData.redirect) {
+  return Astro.redirect(aposData.url, aposData.status);
+}
+if (aposData.notFound) {
+  Astro.response.status = 404;
+}
+---
+<AposLayout title={aposData.page?.title} {aposData} {bodyClass}>
+    <Fragment slot="standardHead">
+      <meta name="description" content={aposData.page?.seoDescription} />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <meta charset="UTF-8" />
+    </Fragment>
+    <AposTemplate {aposData} slot="main"/>
+</AposLayout>
+```
+
+`AposTemplate` 컴포넌트에서 사용 가능한 슬롯을 포함한 추가 템플릿 옵션은 [Apostrophecms 문서](https://apostrophecms.com/extensions/astro-integration#creating-the-slugastro-component-and-fetching-apostrophe-data)를 참조하세요.
+
+## Astro와 ApostropheCMS로 블로그 만들기
+
+통합 설정이 완료되면 이제 Astro 및 ApostropheCMS를 사용하여 블로그를 만들 수 있습니다. 블로그에서는 모든 페이지에 포함될 수 있는 독립형 콘텐츠 타입인 Apostrophe 조각과 이러한 부분을 개별적으로 또는 집합적으로 표시하는 데 사용되는 특수 페이지 타입인 조각 페이지 타입을 사용합니다.
+
+### 전제 조건
+
+1. **Apostrophe CLI 도구가 설치된 ApostropheCMS 프로젝트** - 새 프로젝트를 생성하거나 기존 프로젝트를 사용할 수 있습니다. 그러나 이 튜토리얼에서는 블로그 조각과 조각 페이지 타입을 만드는 방법만 보여줄 뿐입니다. 다른 기존 프로젝트 코드를 독립적으로 통합해야 합니다. CLI 도구가 설치되어 있지 않은 경우 [Apostrophe CLI 설치 지침](https://docs.apostrophecms.org/guide/setting-up.html#the-apostrophe-cli-tool)을 참조하세요.
+2. **ApostropheCMS와 통합된 Astro 프로젝트** - 프로젝트를 처음부터 생성하려면 [Astro와 통합](#astro와-통합)에서 통합 설정 방법에 대한 지침을 참조하거나 [astro-frontend](https://github.com/apostrophecms/astro-frontend)를 사용하세요.
+
+### 블로그 조각 및 조각 페이지 타입 만들기
+
+표시할 블로그 조각과 조각 페이지 타입을 만들려면 터미널에서 ApostropheCMS 프로젝트의 루트로 이동하세요. ApostropheCMS CLI 도구를 사용하여 다음 명령으로 새 조각 및 조각 페이지 타입을 만듭니다.
+
+```sh
+apos add piece blog --page
+```
+
+그러면 프로젝트에 두 개의 새 모듈이 생성됩니다. 하나는 블로그 조각 타입용이고 다른 하나는 해당 조각 페이지 타입용입니다. 그런 다음, 코드 편집기에서 ApostropheCMS 프로젝트 루트에 있는 `app.js` 파일을 열고 새 모듈을 추가하세요.
+
+```js title="app.js"
+require('apostrophe')({
+  // 기타 구성 옵션
+  modules: {
+    // 기타 프로젝트 모듈
+    blog: {},
+    'blog-page': {}
+  }
+});
+```
+
+`blog-page` 모듈도 페이지 생성 모달에서 선택할 수 있도록 `@apostrophecms/page` 모듈 `types` 옵션 배열에 추가되어야 합니다. ApostropheCMS 프로젝트에서 `modules/@apostrophecms/page/index.js` 파일을 열고 `blog-page`를 추가하세요.
+
+```js title="modules/@apostrophecms/page/index.js"
+module.exports = {
+  options: {
+    types: [
+      {
+        name: '@apostrophecms/home-page',
+        label: 'Home'
+      },
+      // 기타 프로젝트 페이지
+      {
+        name: 'blog-page',
+        label: 'Blog'
+      }
+    ]
+  }
+};
+```
+
+### 블로그 스키마 생성
+
+ApostropheCMS 프로젝트에서는 편집기에 콘텐츠 추가를 위한 입력 필드 세트가 제공됩니다. 다음은 콘텐츠 관리자가 여러 위젯 인스턴스를 추가할 수 있는 `authorName`, `publicationDate` 및 `content` 영역의 세 가지 입력 필드를 추가하는 간단한 블로그 게시물의 예시입니다. 이 경우 [통합 설정](#apostrophecms-위젯을-astro-컴포넌트에-연결) 중 생성한 이미지 및 서식 있는 텍스트 위젯을 추가할 수 있도록 지정합니다.
+
+```js title="modules/blog/index.js"
+module.exports = {
+  extend: '@apostrophecms/piece-type',
+  options: {
+    label: 'Blog',
+    // 필요한 경우 'pluralLabel' 옵션도 추가하세요.
+  },
+  fields: {
+    add: {
+      authorName: {
+        type: 'string',
+        label: 'Author'
+      },
+      publicationDate: {
+        type: 'date',
+        label: 'Publication date'
+      },
+      content: {
+        type: 'area',
+        label: 'Content',
+        options: {
+          widgets: {
+            '@apostrophecms/rich-text': {},
+            '@apostrophecms/image': {}
+          }
+        }
+      }
+    },
+    group: {
+      basics: {
+        label: 'Basic',
+        fields: [ 'authorName', 'publicationDate', 'content' ]
+      }
+    }
+  }
+};
+```
+
+이 시점에서 ApostropheCMS 프로젝트의 모든 컴포넌트가 설정되었습니다. `npm run dev`를 사용하여 명령줄에서 로컬 사이트를 시작하고 선택한 문자열에 설정된 `APOS_EXTERNAL_FRONT_KEY` 환경 변수를 전달해야 합니다.
+
+```bash
+APOS_EXTERNAL_FRONT_KEY='MyRandomString' npm run dev
+```
+
+### 블로그 게시물 표시
+모든 블로그 게시물이 포함된 페이지를 표시하려면 Astro 프로젝트의 `src/templates` 디렉터리에 `BlogIndex.astro` 컴포넌트 파일을 만들고 다음 코드를 추가하세요.
+
+이 컴포넌트는 `aposData` props에서 페이지와 조각 데이터를 모두 가져온 후, 여러분이 생성한 블로그 조각 스키마의 필드 뿐만 아니라 Apostrophe에 의해 각 조각에 추가된 `piece.title` 및 `piece._url`의 필드까지 사용하여 마크업을 생성합니다.
+
+```js title="src/templates/BlogIndex.astro"
+---
+import dayjs from 'dayjs';
+
+const { page, pieces } = Astro.props.aposData;
+---
+
+<section class="bp-content">
+  <h1>{ page.title }</h1>
+
+  <h2>Blog Posts</h2>
+
+  {pieces.map(piece => (
+    <h4>
+      Released On { dayjs(piece.publicationDate).format('MMMM D, YYYY') }
+    </h4>
+    <h3>
+      <a href={ piece._url }>{ piece.title }</a>
+    </h3>
+    <h4>{ piece.authorName }</h4>
+  ))}
+</section>
+```
+
+개별 블로그 게시물을 표시하려면 다음 코드를 사용하여 Astro 프로젝트의 `src/templates` 폴더에 `BlogShow.astro` 파일을 생성합니다.
+
+이 컴포넌트는 `<AposArea>` 컴포넌트를 사용하여 `content` 영역에 추가된 모든 위젯과 동일한 이름의 필드에 입력된 `authorName` 및 `publicationDate` 콘텐츠를 표시합니다.
+
+```js title="src/templates/BlogShow.astro"
+---
+import AposArea from '@apostrophecms/apostrophe-astro/components/AposArea.astro';
+import dayjs from 'dayjs';
+
+const { page, piece } = Astro.props.aposData;
+const { main } = piece;
+---
+
+<section class="bp-content">
+  <h1>{ piece.title }</h1>
+  <h3>Created by: { piece.authorName }
+  <h4>
+    Released On { dayjs(piece.publicationDate).format('MMMM D, YYYY') }
+  </h4>
+  <AposArea area={content} />
+</section>
+```
+
+마지막으로 이러한 Astro 컴포넌트는 해당 ApostropheCMS 페이지 타입에 매핑되어야 합니다. Astro 프로젝트의 `src/templates/index.js` 파일을 열고 다음 코드를 포함하도록 수정합니다.
+
+```js title="src/templates/index.js"
+import HomePage from './HomePage.astro';
+import BlogIndexPage from './BlogIndexPage.astro';
+import BlogShowPage from './BlogShowPage.astro';
+
+const templateComponents = {
+  '@apostrophecms/home-page': HomePage,
+  '@apostrophecms/blog-page:index': BlogIndexPage,
+  '@apostrophecms/blog-page:show': BlogShowPage
+};
+
+export default templateComponents;
+```
+
+### 블로그 게시물 작성
+
+사이트에 블로그 게시물을 추가하려면 ApostropheCMS 콘텐츠 및 관리 도구를 사용하여 해당 게시물을 만들고 적어도 하나의 색인 페이지를 게시하여 이를 표시하면 됩니다.
+
+Astro 개발 서버가 실행 중인 상태에서 브라우저 미리 보기의 [http://localhost:4321/login](http://localhost:4321/login)에 있는 로그인 페이지로 이동합니다. [ApostropheCMS 프로젝트 생성](https://docs.apostrophecms.org/guide/development-setup.html#creating-a-project) 중 추가된 자격 증명을 사용하여 관리자로 로그인합니다. ApostropheCMS 프로젝트는 계속 실행 중이어야 합니다.
+
+로그인하면 브라우저가 프로젝트 홈 페이지로 리디렉션되고 상단에 콘텐츠 편집 및 프로젝트 관리를 위한 관리 표시줄이 나타납니다.
+
+첫 번째 블로그 게시물을 추가하려면 관리 표시줄에서 `Blogs` 버튼을 클릭하여 블로그 조각 생성 모달을 엽니다. 오른쪽 상단 `New Blog` 버튼을 클릭하면 콘텐츠를 추가할 수 있는 편집 모달이 열립니다. `content` 영역 필드를 사용하면 원하는 만큼 이미지와 서식 있는 텍스트 위젯을 추가할 수 있습니다.
+
+이 단계를 반복하여 원하는 만큼 게시물을 추가할 수 있습니다. 새 게시물을 추가할 때마다 다음 단계를 따르세요.
+
+모든 게시물을 표시할 페이지를 게시하려면 관리 표시줄에서 `Pages` 버튼을 클릭하세요. 페이지 트리 모달에서 `New Page` 버튼을 클릭하세요. 오른쪽 열의 `Type` 드롭다운에서 `Blog`를 선택하세요. 페이지 제목을 추가한 다음 `Publish and View`를 클릭하세요. 이 작업은 한 번만 수행하면 됩니다.
+
+생성된 모든 새 블로그 게시물은 자동으로 이 페이지에 표시됩니다. 개별 블로그 게시물은 색인 페이지에 생성된 링크를 클릭하여 표시할 수 있습니다.
+
+개별 게시물의 `content` 영역은 게시물로 이동한 후 관리 표시줄에서 `edit`을 클릭하여 페이지에서 직접 편집할 수 있습니다. 다른 필드는 관리 표시줄에서 `Blogs` 메뉴 항목을 클릭하면 열리는 편집 모달을 사용하여 편집할 수 있습니다.
+
+### 사이트 배포
+
+웹사이트를 배포하려면 Astro 및 ApostropheCMS 프로젝트를 모두 호스팅해야 합니다.
+
+Astro의 경우 [배포 가이드](/ko/guides/deploy/)를 방문하여 선호하는 호스팅 제공업체의 지침을 따르세요.
+
+ApostropheCMS 프로젝트의 경우 [호스팅 가이드](https://docs.apostrophecms.org/guide/hosting.html)에서 호스팅 유형에 대한 지침을 따르세요. 마지막으로 ApostropheCMS 사이트가 배포된 올바른 URL을 반영하기 위해 Astro 프로젝트에 `APOS_HOST` 환경 변수를 제공해야 합니다.
+
+## 공식 자료
 
 - [ApostropheCMS의 Astro 통합](https://apostrophecms.com/extensions/astro-integration) - ApostropheCMS Astro 플러그인, ApostropheCMS와 Astro 모두를 위한 통합 가이드 및 스타터 프로젝트
+- [ApostropheCMS와 함께 사용할 샘플 Astro 프로젝트](https://github.com/apostrophecms/astro-frontend) - 여러 페이지와 Apostrophe 위젯이 이미 생성된 간단한 Astro 프로젝트
+- [Astro와 함께 사용할 수 있는 샘플 ApostropheCMS 스타터 키트](https://apostrophecms.com/starter-kits/astro-integration-starter-kit) - Astro와 함께 사용하기 위해 핵심 페이지 수정이 포함된 ApostropheCMS 프로젝트
+
+## 커뮤니티 자료
+- [ApostropheCMS를 Astro와 통합, 파트1](https://apostrophecms.com/blog/how-to-integrate-astro-with-apostrophecms-pt-1) - Antonello Zaini
+- [ApostropheCMS를 Astro와 통합, 파트2](https://apostrophecms.com/blog/how-to-integrate-astro-with-apostrophecms-pt-2) - Antonello Zaini
+- [Show & Tell 라이브 | Astro & Apostrophe](https://youtu.be/cwJhtJhAhwA?si=6iUU9EjidfdnOdCh)
