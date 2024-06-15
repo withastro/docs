@@ -11,7 +11,7 @@ export default NavDictionary({
 	coreConcepts: '핵심 개념',
 	'concepts/why-astro': '왜 Astro인가',
 	'concepts/islands': 'Astro 아일랜드',
-	
+
 	basics: '기본 배우기',
 	'basics/project-structure': '프로젝트 구조',
 	'basics/astro-components': '컴포넌트',
@@ -76,5 +76,5 @@ export default NavDictionary({
 
 	communityResources: '커뮤니티 리소스',
 	'community-resources/content': '강의, 가이드, 레시피',
-	'community-resources/talks': '강연, 인터뷰, 스트림',	
+	'community-resources/talks': '강연, 인터뷰, 스트림',
 });
