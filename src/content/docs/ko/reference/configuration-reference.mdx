@@ -1012,7 +1012,7 @@ Shiki 구성 옵션. 사용법은 [Markdown 구성 문서](/ko/guides/markdown-c
 import remarkToc from 'remark-toc';
 {
   markdown: {
-    remarkPlugins: [remarkToc];
+    remarkPlugins: [ [remarkToc, { heading: "contents"} ] ]
   }
 }
 ```
@@ -1599,16 +1599,17 @@ export function onRequest(ctx, next) {
 
 ```astro
 ---
-import { PUBLIC_APP_ID } from "astro:env/client"
-import { PUBLIC_API_URL, getSecret } from "astro:env/server"
-const API_TOKEN = getSecret("API_TOKEN")
-const data = await fetch(`${PUBLIC_API_URL}/users`, {
+import { APP_ID } from "astro:env/client"
+import { API_URL, API_TOKEN, getSecret } from "astro:env/server"
+const NODE_ENV = getSecret("NODE_ENV")
+
+const data = await fetch(`${API_URL}/users`, {
 	method: "POST",
 	headers: {
 		"Content-Type": "application/json",
 		"Authorization": `Bearer ${API_TOKEN}`
 	},
-	body: JSON.stringify({ appId: PUBLIC_APP_ID })
+	body: JSON.stringify({ appId: APP_ID, nodeEnv: NODE_ENV })
 })
 ---
 ```
@@ -1623,8 +1624,8 @@ export default defineConfig({
     experimental: {
         env: {
             schema: {
-                PUBLIC_API_URL: envField.string({ context: "client", access: "public", optional: true }),
-                PUBLIC_PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+                API_URL: envField.string({ context: "client", access: "public", optional: true }),
+                PORT: envField.number({ context: "server", access: "public", default: 4321 }),
                 API_SECRET: envField.string({ context: "server", access: "secret" }),
             }
         }
@@ -1632,28 +1633,27 @@ export default defineConfig({
 })
 ```
 
-현재 지원되는 데이터 타입은 문자열, 숫자, 부울 세 가지입니다.
+현재 지원되는 데이터 타입은 문자열, 숫자, 부울, 열거형 네 가지입니다.
 
-[`env.schema`](#experimentalenvschema)에 정의된 `context` (클라이언트 또는 서버) 및 `access`(비밀 또는 공개) 설정의 조합에 따라 결정되는 세 가지 종류의 환경 변수가 있습니다.
+[`env.schema`](#experimentalenvschema)에 정의된 `context` (클라이언트 또는 서버) 및 `access`(비밀 또는 공개) 설정의 조합에 따라 결정되는 세 종류의 환경 변수가 있습니다.
 
 - **공개 클라이언트 변수**: 이러한 변수는 최종 클라이언트 및 서버 번들 모두에 포함되며 `astro:env/client` 모듈을 통해 클라이언트와 서버 모두에서 액세스할 수 있습니다.
 
     ```js
-    import { PUBLIC_API_URL } from "astro:env/client"
+    import { API_URL } from "astro:env/client"
     ```
 
 - **공개 서버 변수**: 이 변수는 최종 서버 번들에 포함되며 `astro:env/server` 모듈을 통해 서버에서 액세스할 수 있습니다.
 
     ```js
-    import { PUBLIC_PORT } from "astro:env/server"
+    import { PORT } from "astro:env/server"
     ```
 
-- **비밀 서버 변수**: 이 변수는 최종 번들의 일부가 아니며 `astro:env/server` 모듈에서 사용할 수 있는 `getSecret()` 도우미 함수를 통해 서버에서 액세스할 수 있습니다.
+- **비밀 서버 변수**: 이 변수는 최종 번들의 일부가 아니며 `astro:env/server` 모듈을 통해 서버에서 액세스할 수 있습니다. `getSecret()` 도우미 함수를 사용하면 스키마에 지정되지 않은 비밀을 검색할 수 있습니다.
 
     ```js
-    import { getSecret } from "astro:env/server"
+    import { API_SECRET, getSecret } from "astro:env/server"
 
-    const API_SECRET = getSecret("API_SECRET") // 타입이 설정됨
     const SECRET_NOT_IN_SCHEMA = getSecret("SECRET_NOT_IN_SCHEMA") // string | undefined
     ```
 
@@ -1680,8 +1680,8 @@ export default defineConfig({
   experimental: {
     env: {
       schema: {
-        PUBLIC_API_URL: envField.string({ context: "client", access: "public", optional: true }),
-        PUBLIC_PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+        API_URL: envField.string({ context: "client", access: "public", optional: true }),
+        PORT: envField.number({ context: "server", access: "public", default: 4321 }),
         API_SECRET: envField.string({ context: "server", access: "secret" }),
       }
     }
