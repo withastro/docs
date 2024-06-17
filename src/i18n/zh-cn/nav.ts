@@ -2,7 +2,7 @@ import { NavDictionary } from '../translation-checkers';
 
 export default NavDictionary({
 	welcomeWorld: '欢迎世界！',
-	'getting-started': '入门指南',
+	'getting-started': '开始',
 	'install-and-setup': '安装并设置',
 	'guides/deploy': '部署你的网站',
 	'guides/migrate-to-astro': '迁移到 Astro',
