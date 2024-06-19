@@ -31,6 +31,7 @@ const categoryIndex: Partial<Record<ReturnType<typeof getPageCategory>, string>>
 const parentIndex: Record<string, string> = {
 	'editor-setup': 'install-and-setup',
 	'guides/dev-toolbar': 'install-and-setup',
+	'guides/server-side-rendering':'guides/integrations-guide'
 };
 
 /** Slugs of pages that appear at the top level even though they are in a sub-category. */
