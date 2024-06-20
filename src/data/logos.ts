@@ -91,6 +91,7 @@ export const logos = LogoCheck({
 	zerops: { file: 'zerops.svg', padding: '.2em' },
 	apostrophecms: { file: 'apostrophecms.svg', padding: '.15em .15em' },
 	db: { file: 'db.svg', padding: '.1em' },
+	sentry: { file: 'sentry.svg', padding: '.1em' },
 	umbraco: { file: 'umbraco.svg', padding: '.05em' },
 });
 
