@@ -1,0 +1,88 @@
+---
+title: Sentry로 Astro 사이트를 모니터링하세요
+description: Sentry로 Astro 사이트를 모니터링하는 방법
+type: backend
+service: Sentry
+stub: false
+i18nReady: true
+---
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+[Sentry](https://sentry.io)는 개발자가 실시간으로 문제를 식별, 진단 및 해결할 수 있도록 설계된 포괄적인 애플리케이션 모니터링 및 오류 추적 서비스를 제공합니다.
+
+[Sentry와 Astro의 파트너십](https://astro.build/blog/sentry-official-monitoring-partner/) 및 Astro 개발 환경에 풍부한 디버그 오버레이를 제공하는 Sentry의 Spotlight 개발 도구 모음 앱에 대해 블로그에서 자세히 알아보세요. Spotlight는 로컬 개발 중 발생하는 오류, 추적 및 중요한 컨텍스트를 브라우저에 바로 표시합니다.
+
+Sentry의 Astro SDK를 사용하면 Astro 애플리케이션의 오류 및 추적 데이터를 자동으로 보고할 수 있습니다.
+
+## 프로젝트 구성
+
+필수 구성 요소의 전체 목록은 [Astro용 Sentry 가이드](https://docs.sentry.io/platforms/javascript/guides/astro/#prerequisites)에서 확인할 수 있습니다.
+
+## 설치
+
+Sentry는 애플리케이션 런타임에서 SDK를 사용하여 데이터를 캡처합니다.
+
+Astro CLI에서 선택한 패키지 관리자에 대해 다음 명령을 실행하여 SDK를 설치합니다.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add @sentry/astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add @sentry/astro
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add @sentry/astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Astro CLI는 SDK 패키지를 설치하고 `astro.config.mjs` 파일에 Sentry 통합을 추가합니다.
+
+## 구성
+
+Sentry 통합을 구성하려면 `astro.config.mjs` 파일에 다음 자격 증명을 제공해야 합니다.
+
+1. **클라이언트 키 (DSN)** - *Client keys (DSN)* 아래 Sentry 프로젝트 설정에서 DSN을 찾을 수 있습니다.
+2. **프로젝트 이름** - *General settings* 아래 Sentry 프로젝트 설정에서 프로젝트 이름을 찾을 수 있습니다.
+3. **인증 토큰** - *Auth tokens* 아래 Sentry 조직 설정에서 인증 토큰을 생성할 수 있습니다.
+
+:::note
+새로운 Sentry 프로젝트를 생성하는 경우 Astro를 플랫폼으로 선택하여 SDK 구성에 필요한 모든 정보를 얻으세요.
+:::
+
+```js title="astro.config.mjs" ins={2, 6-12}
+import {defineConfig} from 'astro/config';
+import sentry from '@sentry/astro';
+
+export default defineConfig({
+  integrations: [
+    sentry({
+      dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0',
+      sourceMapsUploadOptions: {
+        project: 'example-project',
+        authToken: process.env.SENTRY_AUTH_TOKEN,
+      },
+    }),
+  ],
+});
+```
+
+`sourceMapsUploadOptions`를 구성하고 `dsn`을 추가하면 SDK가 자동으로 오류와 성능 이벤트를 캡처하여 Sentry에 보냅니다.
+
+## 설정 테스트
+
+`.astro` 페이지 중 하나에 다음 `<button>` 요소를 추가하세요. 이렇게 하면 오류 보고 프로세스를 테스트할 수 있도록 오류를 수동으로 트리거할 수 있습니다.
+
+```astro title="src/pages/index.astro"
+<button onclick="throw new Error('This is a test error')">Throw test error</button>
+```
+
+[sentry.io](https://sentry.io/)에 로그인하여 프로젝트를 열어 기록된 오류를 확인하고 해결할 수 있습니다.
