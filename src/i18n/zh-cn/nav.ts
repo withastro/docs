@@ -11,7 +11,7 @@ export default NavDictionary({
 	coreConcepts: '核心理念',
 	'concepts/why-astro': '为什么选择 Astro？',
 	'concepts/islands': 'Astro 群岛',
-	
+
 	basics: '基础知识',
 	'basics/project-structure': '项目结构',
 	'basics/astro-components': '组件',
@@ -41,7 +41,7 @@ export default NavDictionary({
 	'guides/styling': 'CSS 样式',
 	'guides/images': '图像',
 	'guides/fonts': '字体',
-	
+
 	data: '连接你的数据',
 	'guides/data-fetching': '数据请求',
 	'guides/astro-db': 'Astro DB',
