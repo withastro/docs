@@ -6,7 +6,7 @@ service: Strapi
 stub: false
 i18nReady: true
 ---
-
+import { Steps } from '@astrojs/starlight/components';
 import { FileTree } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
@@ -20,7 +20,7 @@ Ce guide va construire une fonction wrapper pour connecter Strapi avec Astro.
 
 Pour commencer, vous devez disposer des éléments suivants :
 
-1. **Un projet Astro** - Si vous n'avez pas encore de projet Astro, notre [Guide d'installation](/fr/install/auto/) vous permettra d'être opérationnel en un rien de temps.
+1. **Un projet Astro** - Si vous n'avez pas encore de projet Astro, notre [Guide d'installation](/fr/install-and-setup/) vous permettra d'être opérationnel en un rien de temps.
 2. **Un serveur CMS Strapi** - Vous pouvez [configurer un serveur Strapi dans un environnement local](https://docs.strapi.io/dev-docs/quick-start).
 
 ### Ajouter l'URL de Strapi dans `.env`
@@ -34,7 +34,6 @@ STRAPI_URL="http://127.0.0.1:1337" // ou utiliser votre adresse IP
 Vous pouvez maintenant utiliser cette variable d'environnement dans votre projet Astro.
 
 Si vous voulez avoir IntelliSense pour votre variable d'environnement, vous pouvez créer un fichier `env.d.ts` dans le répertoire `src/` et configurer `ImportMetaEnv` comme ceci :
-
 ```ts title="src/env.d.ts"
 interface ImportMetaEnv {
   readonly STRAPI_URL: string;
@@ -147,78 +146,81 @@ Vous pouvez modifier cette interface, ou en créer plusieurs, pour qu'elle corre
 
 ### Affichage d'une liste d'articles
 
+<Steps>
 1. Mettez à jour votre page d'accueil `src/pages/index.astro` pour afficher une liste d'articles de blog, chacun avec une description et un lien vers sa propre page.
 
 2. Importez la fonction wrapper et l'interface. Ajoutez l'appel API suivant pour récupérer vos articles et renvoyer une liste :
+    
+    ```astro title="src/pages/index.astro"
+    ---
+    import fetchApi from '../lib/strapi';
+    import type Article from '../interfaces/article';
 
-  ```astro title="src/pages/index.astro"
-  ---
-  import fetchApi from '../lib/strapi';
-  import type Article from '../interfaces/article';
+    const articles = await fetchApi<Article[]>({
+      endpoint: 'articles', // le type de contenu à récupérer
+      wrappedByKey: 'data', // la clé pour décapsuler la réponse
+    });
+    ---
+    ```
 
-  const articles = await fetchApi<Article[]>({
-    endpoint: 'articles', // le type de contenu à récupérer
-    wrappedByKey: 'data', // la clé pour décapsuler la réponse
-  });
-  ---
-  ```
-
-L'appel API demande des données à `http://localhost:1337/api/articles` et renvoie `articles` : un tableau d'objets json représentant vos données :
-
-  ```json
-  [
-    {
-      id: 1,
-      attributes: {
-        title: "Ce qu'il y a à l'intérieur d'un trou noir",
-        description: "La réponse se trouve peut-être dans cet article, ou pas...",
-        content: "Nous ne le savons pas encore...",
-        slug: "what-s-inside-a-black-hole",
-        createdAt: "2023-05-28T13:19:46.421Z",
-        updatedAt: "2023-05-28T13:19:46.421Z",
-        publishedAt: "2023-05-28T13:19:45.826Z"
-      }
-    },
-    // ...
-  ]
-  ```
+    L'appel API demande des données à `http://localhost:1337/api/articles` et renvoie `articles` : un tableau d'objets json représentant vos données :
+    
+    ```json
+    [
+      {
+        id: 1,
+        attributes: {
+          title: "Ce qu'il y a à l'intérieur d'un trou noir",
+          description: "La réponse se trouve peut-être dans cet article, ou pas...",
+          content: "Nous ne le savons pas encore...",
+          slug: "what-s-inside-a-black-hole",
+          createdAt: "2023-05-28T13:19:46.421Z",
+          updatedAt: "2023-05-28T13:19:46.421Z",
+          publishedAt: "2023-05-28T13:19:45.826Z"
+        }
+      },
+      // ...
+    ]
+    ```
 
 3. En utilisant les données du tableau `articles` renvoyé par l'API, affichez les articles de votre blog Strapi dans une liste. Ces articles seront liés à leur propre page individuelle, que vous allez créer à l'étape suivante.
+  
+    ```astro title="src/pages/index.astro"
+    ---
+    import fetchApi from '../lib/strapi';
+    import type Article from '../interfaces/article';
 
-  ```astro title="src/pages/index.astro"
-  ---
-  import fetchApi from '../lib/strapi';
-  import type Article from '../interfaces/article';
+    const articles = await fetchApi<Article[]>({
+      endpoint: 'articles?populate=image',
+      wrappedByKey: 'data',
+    });
+    ---
 
-  const articles = await fetchApi<Article[]>({
-    endpoint: 'articles?populate=image',
-    wrappedByKey: 'data',
-  });
-  ---
+    <!DOCTYPE html>
+    <html lang="fr">
+      <head>
+        <title>Strapi & Astro</title>
+      </head>
 
-  <!DOCTYPE html>
-  <html lang="fr">
-    <head>
-      <title>Strapi & Astro</title>
-    </head>
+      <body>
+        <main>
+          <ul>
+            {
+              articles.map((article) => (
+                <li>
+                  <a href={`/blog/${article.attributes.slug}/`}>
+                    {article.attributes.title}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </main>
+      </body>
+    </html>
+    ```
 
-    <body>
-      <main>
-        <ul>
-          {
-            articles.map((article) => (
-              <li>
-                <a href={`/blog/${article.attributes.slug}/`}>
-                  {article.attributes.title}
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-      </main>
-    </body>
-  </html>
-  ```
+</Steps>
 
 ### Générer des pages d'articles
 
@@ -267,7 +269,6 @@ const article = Astro.props;
 ```
 
 Créer le modèle pour chaque page en utilisant les propriétés de chaque objet post.
-
 
 ```astro title="src/pages/blog/[slug].astro ins={21-43}
 ---
@@ -402,21 +403,25 @@ Si votre projet utilise le mode statique par défaut d'Astro, vous devrez config
 
 Pour configurer un webhook dans Netlify :
 
+<Steps>
 1. Allez dans le tableau de bord de votre site et cliquez sur **Build & deploy**.
 
 2. Sous l'onglet **Continuous Deployment**, trouvez la section **Build hooks** et cliquez sur **Add build hook**.
 
 3. Donnez un nom à votre webhook et sélectionnez la branche sur laquelle vous souhaitez déclencher la construction. Cliquez sur **Save** et copiez l'URL générée.
+</Steps>
 
 ##### Vercel
 
 Pour configurer un webhook dans Vercel :
 
+<Steps>
 1. Allez sur le tableau de bord de votre projet et cliquez sur **Settings**.
 
 2. Sous l'onglet **Git**, trouvez la section **Deploy Hooks**.
 
 3. Donnez un nom à votre webhook et indiquez la branche sur laquelle vous souhaitez déclencher la construction. Cliquez sur **Add** et copiez l'URL générée.
+</Steps>
 
 ##### Ajouter un webhook à Strapi
 

@@ -236,7 +236,9 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 **타입:** `(key: string, options?: CookieDeleteOptions) => void`
 </p>
 
-쿠키를 삭제된 것으로 표시합니다. 쿠키가 삭제되면 `Astro.cookies.has()`는 `false`를 반환하고 `Astro.cookies.get()`은 `value`가 `undefined`인 [`AstroCookie`](#astrocookie)를 반환합니다. 쿠키를 삭제할 때 사용할 수 있는 옵션은 `domain`, `path`, `httpOnly`, `sameSite` 및 `secure`입니다.
+만료 날짜를 과거 (Unix 시간에서는 0)로 설정하여 쿠키를 무효화합니다.
+
+쿠키가 "제거되면" (만료되면) `Astro.cookies.has()`는 `false`를 반환하고 `Astro.cookies.get()`은 `value`가 `undefined`인 [`AstroCookie`](#astrocookie)를 반환합니다. 쿠키를 삭제할 때 사용할 수 있는 옵션은 `domain`, `path`, `httpOnly`, `sameSite` 및 `secure`입니다.
 
 ##### `headers`
 
@@ -368,8 +370,11 @@ true인 경우 쿠키는 https 사이트에만 설정됩니다.
 
 ### `Astro.redirect()`
 
-`Astro.redirect()`를 사용하면 다른 페이지로 리디렉션할 수 있습니다.
+다른 페이지로 리디렉션하며, 선택적으로 두 번째 매개변수로 [HTTP 응답 상태 코드](https://developer.mozilla.org/ko/docs/Web/HTTP/Status)를 제공할 수 있습니다.
+
 페이지 (하위 컴포넌트는 아님)에 리디렉션이 발생하려면 `Astro.redirect()` 결과를 `return`해야 합니다.
+
+다음 예시에서는 기본 HTTP 응답 상태 코드 302를 사용하여 사용자를 로그인 페이지로 리디렉션합니다.
 
 ```astro title="src/pages/account.astro" {8}
 ---
@@ -987,7 +992,7 @@ const { page } = Astro.props;
 **타입:** `string | undefined`
 </p>
 
-이전 페이지의 URL을 가져옵니다(1페이지인 경우 `undefined`).
+이전 페이지의 URL을 가져옵니다 (1페이지인 경우 `undefined`). [`base`](/ko/reference/configuration-reference/#base)에 값이 설정된 경우 기본 경로를 URL 앞에 추가하세요.
 
 ##### `page.url.next`
 
@@ -995,7 +1000,7 @@ const { page } = Astro.props;
 **타입:** `string | undefined`
 </p>
 
-다음 페이지의 URL을 가져옵니다(더 이상 페이지가 없으면 `undefined`).
+다음 페이지의 URL을 가져옵니다 (더 이상 페이지가 없으면 `undefined`). [`base`](/ko/reference/configuration-reference/#base)에 값이 설정된 경우 기본 경로를 URL 앞에 추가하세요.
 
 ## `import.meta`
 
@@ -1676,7 +1681,36 @@ import { Code } from 'astro:components';
 </p>
 ```
 
-이 컴포넌트는 빌드 시 코드 블록에 대한 구문 강조 표시를 제공합니다 (클라이언트 측 JavaScript는 포함되지 않음). 이 컴포넌트는 Shiki에 의해 내부적으로 구동되며 모든 인기 있는 [테마](https://shiki.style/themes)와 [언어](https://shiki.style/languages)를 지원합니다. 또한 사용자 정의 테마와 언어를 각각 `theme` 및 `lang`에 전달하여 추가할 수 있습니다.
+이 컴포넌트는 빌드 시 코드 블록에 구문 강조 표시를 제공합니다 (클라이언트 측 JavaScript는 포함되지 않음). 이 컴포넌트는 Shiki에 의해 내부적으로 구동되며 모든 인기 있는 [테마](https://shiki.style/themes) 및 [언어](https://shiki.style/languages)를 지원합니다. 또한 사용자 정의 테마, 언어 및 [transformers](#transformers)를 각각 `theme`, `lang`, `transformers` 속성에 전달하여 추가할 수 있습니다.
+
+#### Transformers
+
+<p><Since v="4.11.0" /></p>
+
+[Shiki transformers](https://shiki.style/packages/transformers#shikijs-transformers)는 `transformers` 속성에 배열로 전달하여 선택적으로 코드에 적용할 수 있습니다.
+
+`transformers`는 단지 클래스만 적용하며 코드 블록의 요소를 대상으로 지정하려면 자체 CSS 규칙을 제공해야 합니다.
+
+```astro
+---
+import { transformerNotationFocus } from '@shikijs/transformers'
+import { Code } from 'astro:components'
+const code = `const foo = 'hello'
+const bar = ' world'
+console.log(foo + bar) // [!code focus]
+`
+---
+<Code
+  code={code}
+  lang="js"
+  transformers={[transformerNotationFocus()]} />
+  
+  <style is:global>
+    pre.has-focused .line:not(.focused) {
+      filter: blur(1px);
+    }
+  </style>
+```
 
 ### `<Fragment />`
 
