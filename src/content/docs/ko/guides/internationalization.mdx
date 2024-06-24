@@ -160,7 +160,7 @@ export default defineConfig({
           - index.astro
     </FileTree>
 
-- 로케일 접두사가 없는 URL (예: `example.com/about/`)은 [대체 전략](#대체-전략)을 지정하지 않는 한 404 (찾을 수 없음) 상태 코드를 반환합니다.
+- 로케일 접두사가 없는 URL (예: `example.com/about/`)은 [대체 전략](#fallback)을 지정하지 않는 한 404 (찾을 수 없음) 상태 코드를 반환합니다.
 
 ### `redirectToDefaultLocale`
 
@@ -239,77 +239,13 @@ export const onRequest = sequence(
 )
 ```
 
-## 사용자 정의 로케일 경로
+## `domains`
 
-사이트에서 지원되는 `locales`를 문자열 (예: "en", "pt-br")로 정의하는 것 외에도 Astro를 사용하면 [브라우저에서 인식할 수 있는 임의 개수의 언어 `codes`](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/Accept-Language)를 사용자 정의 URL `path`에 매핑할 수 있습니다. locales는 프로젝트 폴더 구조에 해당하는 한 모든 형식의 문자열이 될 수 있지만 `codes`는 브라우저에서 허용되는 구문을 따라야 합니다.
-
-맞춤 URL 접두사를 정의하려면 `path` 키를 사용하여 `locales` 배열에 객체를 전달하고, 이 URL에 매핑된 언어를 나타내는 `codes`를 전달합니다. 이 경우 `/[locale]/` 폴더 이름은 `path` 값과 정확히 일치해야 하며 URL은 `path` 값을 사용하여 생성됩니다.
-
-이는 언어의 여러 변형 (예: `"fr"`, `"fr-BR"`, `"fr-CA"`)을 지원하고 이러한 모든 변형을 동일한 URL `/fr/` 아래에 매핑하거나 사용자 정의하려는 경우에 유용합니다. (예: `/french/`):
-
-```js title="astro.config.mjs" del={5} ins={6-9}
-import { defineConfig } from 'astro/config';
-export default defineConfig({
-  i18n: {
-    defaultLocale: 'en',
-    locales: ['es', 'en', 'fr'],
-    locales: [
-      'es',
-      'en',
-      {
-        path: 'french', // 슬래시가 포함되지 않음
-        codes: ['fr', 'fr-BR', 'fr-CA'],
-      },
-    ],
-    routing: {
-      prefixDefaultLocale: true,
-    },
-  },
-});
-```
-
-[`astro:i18n` 가상 모듈](/ko/reference/api-reference/#국제화-astroi18n)의 함수를 사용하여 구성 (예: `getRelativeLocaleUrl()`)에 따라 유효한 URL 경로를 계산하는 경우, [해당 `path`를 `locale` 값으로 사용](/ko/reference/api-reference/#getlocalebypath)하세요.
-
-## 브라우저 언어 감지
-
-Astro의 [주문형 서버 렌더링 모드 (`output:'server'` 또는 `output:'hybrid'`)](/ko/guides/server-side-rendering/) 중 하나와 결합된 Astro의 i18n 라우팅을 사용하면 브라우저 언어 감지를 위한 두 가지 속성인 `Astro.preferredLocale` 및 `Astro.preferredLocaleList`에 액세스할 수 있습니다.
-
-이는 브라우저의 `Accept-Language` 헤더와 `locales` (문자열 또는 `codes`)를 결합하여 방문자가 선호하는 언어를 자동으로 적용합니다.
-
-- `Astro.preferredLocale`: Astro는 브라우저의 선호 언어가 `locales` 배열에 포함된 경우, 방문자를 위한 **선호 언어**를 계산할 수 있습니다. 일치 항목이 없으면 이 값은 undefined가 됩니다.
-- `Astro.preferredLocaleList`: 브라우저에서 요청하고 웹사이트에서 지원하는 모든 언어의 배열입니다. 그러면 여러분의 사이트와 방문자 간 호환되는 모든 언어 목록이 생성됩니다. 브라우저가 요청한 언어가 `locales` 배열에 없으면 값은 `[]`입니다. 브라우저가 기본 언어를 지정하지 않으면 이 값은 [`i18n.locales`]가 됩니다.
-- `Astro.currentLocale`: `locales` 구성에 지정된 구문을 사용하여 현재 URL에서 계산된 언어입니다. URL에 `/[locale]/` 접두사가 포함되어 있지 않으면 값은 기본적으로 `i18n.defaultLocale`이 됩니다.
-
-방문자의 선호도를 성공적으로 일치시키려면 [브라우저에서 사용하는 것](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/Accept-Language)과 동일한 패턴을 사용하여 `codes`를 제공하십시오.
-
-## 대체 전략
-
-Astro의 i18n 라우팅을 사용하면 **대체 라우팅 전략**을 구성할 수 있습니다. 한 언어로 된 페이지가 존재하지 않는 경우 (예: 아직 번역되지 않은 페이지) 404 페이지를 표시하는 대신 언어별로 사용자를 한 언어에서 다른 언어로 리디렉션할 수 있습니다. 이는 아직 모든 경로에 대한 페이지가 없지만 방문자에게 일부 콘텐츠를 제공하려는 경우에 유용합니다.
-
-예를 들어 아래 구성은 누락된 `fr` 경로에 대한 대체 언어로 `es`를 설정합니다. 이는 `src/pages/fr/my-page.astro` 파일이 존재하지 않을때 `example.com/fr/my-page/`에 방문한 사용자가 404 페이지로 이동하지 않고 `example.com/es/my-page/`로 리디렉션되어 콘텐츠를 볼 수 있다는 것을 의미합니다.
-
-```js title="astro.config.mjs" ins={6-8}
-import { defineConfig } from 'astro/config';
-export default defineConfig({
-  i18n: {
-    defaultLocale: 'en',
-    locales: ['es', 'en', 'fr'],
-    fallback: {
-      fr: 'es',
-    },
-  },
-});
-```
-
-Astro는 `src/pages/es/`에 존재하는 모든 페이지에 대해 `src/pages/fr/`에 페이지가 빌드되었는지 확인합니다. 페이지가 아직 존재하지 않으면 해당 `es` 경로로 리디렉션되는 페이지가 생성됩니다.
-
-## `domains` (실험적)
-
-<p><Since v="4.3.0" /></p>
+<p><Since v="4.9.0" /></p>
 
 이 라우팅 옵션을 사용하면 `site`가 구성된 [`@astrojs/node`](/ko/guides/integrations-guide/node/) 또는 [`@astrojs/vercel`](/ko/guides/integrations-guide/vercel/) 어댑터를 사용하여 `server` 렌더링 프로젝트에 대해 언어별로 도메인을 사용자 정의할 수 있습니다.
 
-아직 구성하지 않은 경우, 프로젝트에서 이 기능을 활성화하려면 기본 설정으로 [i18n 라우팅을 구성](#i18n-라우팅-구성)하세요. 그런 다음 `experimental.i18nDomains` 플래그를 `true`로 설정하고 `i18n.domains`를 추가하여 지원되는 `locales`를 맞춤 URL에 매핑합니다.
+지원되는 `locales`를 맞춤 URL에 매핑하려면 `i18n.domains`를 추가하세요.
 
 ```js title="astro.config.mjs" {3-7} ins={14-21}
 import { defineConfig } from "astro/config"
@@ -347,6 +283,58 @@ export default defineConfig({
 
 위 URL은 `getAbsoluteLocaleUrl()` 및 `getAbsoluteLocaleUrlList()` 함수에서도 반환됩니다.
 
+## `fallback`
+
+Astro의 i18n 라우팅을 사용하면 **대체 라우팅 전략**을 구성할 수 있습니다. 한 언어로 된 페이지가 존재하지 않는 경우 (예: 아직 번역되지 않은 페이지) 404 페이지를 표시하는 대신 언어별로 사용자를 한 언어에서 다른 언어로 리디렉션할 수 있습니다. 이는 아직 모든 경로에 대한 페이지가 없지만 방문자에게 일부 콘텐츠를 제공하려는 경우에 유용합니다.
+
+예를 들어 아래 구성은 누락된 `fr` 경로에 대한 대체 언어로 `es`를 설정합니다. 이는 `src/pages/fr/my-page.astro` 파일이 존재하지 않을때 `example.com/fr/my-page/`에 방문한 사용자가 404 페이지로 이동하지 않고 `example.com/es/my-page/`로 리디렉션되어 콘텐츠를 볼 수 있다는 것을 의미합니다.
+
+```js title="astro.config.mjs" ins={6-8}
+import { defineConfig } from 'astro/config';
+export default defineConfig({
+  i18n: {
+    defaultLocale: 'en',
+    locales: ['es', 'en', 'fr'],
+    fallback: {
+      fr: 'es',
+    },
+  },
+});
+```
+
+Astro는 `src/pages/es/`에 존재하는 모든 페이지에 대해 `src/pages/fr/`에 페이지가 빌드되었는지 확인합니다. 페이지가 아직 존재하지 않으면 해당 `es` 경로로 리디렉션되는 페이지가 생성됩니다.
+
+## 사용자 정의 로케일 경로
+
+사이트에서 지원되는 `locales`를 문자열 (예: "en", "pt-br")로 정의하는 것 외에도 Astro를 사용하면 [브라우저에서 인식할 수 있는 임의 개수의 언어 `codes`](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/Accept-Language)를 사용자 정의 URL `path`에 매핑할 수 있습니다. locales는 프로젝트 폴더 구조에 해당하는 한 모든 형식의 문자열이 될 수 있지만 `codes`는 브라우저에서 허용되는 구문을 따라야 합니다.
+
+맞춤 URL 접두사를 정의하려면 `path` 키를 사용하여 `locales` 배열에 객체를 전달하고, 이 URL에 매핑된 언어를 나타내는 `codes`를 전달합니다. 이 경우 `/[locale]/` 폴더 이름은 `path` 값과 정확히 일치해야 하며 URL은 `path` 값을 사용하여 생성됩니다.
+
+이는 언어의 여러 변형 (예: `"fr"`, `"fr-BR"`, `"fr-CA"`)을 지원하고 이러한 모든 변형을 동일한 URL `/fr/` 아래에 매핑하거나 사용자 정의하려는 경우에 유용합니다. (예: `/french/`):
+
+```js title="astro.config.mjs" del={5} ins={6-9}
+import { defineConfig } from 'astro/config';
+export default defineConfig({
+  i18n: {
+    defaultLocale: 'en',
+    locales: ['es', 'en', 'fr'],
+    locales: [
+      'es',
+      'en',
+      {
+        path: 'french', // 슬래시가 포함되지 않음
+        codes: ['fr', 'fr-BR', 'fr-CA'],
+      },
+    ],
+    routing: {
+      prefixDefaultLocale: true,
+    },
+  },
+});
+```
+
+[`astro:i18n` 가상 모듈](/ko/reference/api-reference/#국제화-astroi18n)의 함수를 사용하여 구성 (예: `getRelativeLocaleUrl()`)에 따라 유효한 URL 경로를 계산하는 경우, [해당 `path`를 `locale` 값으로 사용](/ko/reference/api-reference/#getlocalebypath)하세요.
+
 #### 제한 사항
 
 이 기능에는 몇 가지 제한사항이 있습니다.
@@ -361,6 +349,18 @@ Astro는 이 기능을 지원하기 위해 다음 헤더를 사용합니다.
 - 서버 요청의 [`X-Forwarded-Proto`](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/X-Forwarded-Proto) 및 [`URL#protocol`](https://developer.mozilla.org/ko/docs/Web/API/URL/protocol).
 
 서버 프록시/호스팅 플랫폼이 이 정보를 제공할 수 있는지 확인하세요. 이러한 헤더를 검색하지 못하면 404 (상태 코드) 페이지가 표시됩니다.
+
+## 브라우저 언어 감지
+
+Astro의 [주문형 서버 렌더링 모드 (`output:'server'` 또는 `output:'hybrid'`)](/ko/guides/server-side-rendering/) 중 하나와 결합된 Astro의 i18n 라우팅을 사용하면 브라우저 언어 감지를 위한 두 가지 속성인 `Astro.preferredLocale` 및 `Astro.preferredLocaleList`에 액세스할 수 있습니다.
+
+이는 브라우저의 `Accept-Language` 헤더와 `locales` (문자열 또는 `codes`)를 결합하여 방문자가 선호하는 언어를 자동으로 적용합니다.
+
+- `Astro.preferredLocale`: Astro는 브라우저의 선호 언어가 `locales` 배열에 포함된 경우, 방문자를 위한 **선호 언어**를 계산할 수 있습니다. 일치 항목이 없으면 이 값은 undefined가 됩니다.
+- `Astro.preferredLocaleList`: 브라우저에서 요청하고 웹사이트에서 지원하는 모든 언어의 배열입니다. 그러면 여러분의 사이트와 방문자 간 호환되는 모든 언어 목록이 생성됩니다. 브라우저가 요청한 언어가 `locales` 배열에 없으면 값은 `[]`입니다. 브라우저가 기본 언어를 지정하지 않으면 이 값은 [`i18n.locales`]가 됩니다.
+- `Astro.currentLocale`: `locales` 구성에 지정된 구문을 사용하여 현재 URL에서 계산된 언어입니다. URL에 `/[locale]/` 접두사가 포함되어 있지 않으면 값은 기본적으로 `i18n.defaultLocale`이 됩니다.
+
+방문자의 선호도를 성공적으로 일치시키려면 [브라우저에서 사용하는 것](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/Accept-Language)과 동일한 패턴을 사용하여 `codes`를 제공하십시오.
 
 [`site`]: /ko/reference/configuration-reference/#site
 [`i18n.locales`]: /ko/reference/configuration-reference/#i18nlocales

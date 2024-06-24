@@ -3,9 +3,9 @@ import { NavDictionary } from '../translation-checkers';
 export default NavDictionary({
 	startHere: 'Commencer ici',
 	'getting-started': 'Bien démarrer',
-
 	install: 'Installation',
 	'editor-setup': "Configuration de l'éditeur de code",
+	'upgrade-astro': 'Mettre à jour Astro',
 
 	coreConcepts: 'Concepts Fondamentaux',
 	'concepts/why-astro': 'Pourquoi Astro ?',
@@ -28,6 +28,7 @@ export default NavDictionary({
 	'guides/content-collections': 'Collections de Contenu',
 	'guides/view-transitions': 'Voir les Transitions',
 	'guides/prefetch': 'Prefetch',
+	'guides/dev-toolbar': "Barre d'outils de développement",
 
 	addons: 'Add-ons',
 	'guides/integrations-guide': 'Intégrations',
@@ -37,7 +38,6 @@ export default NavDictionary({
 
 	examples: 'Méthodes',
 	'guides/migrate-to-astro': 'Migrer vers Astro',
-	'recipes/studio': 'Connecter a Astro Studio',
 	'guides/cms': 'Connecter un CMS',
 	'guides/backend': 'Ajouter des services Backend',
 	'guides/deploy': 'Déployez votre site',
@@ -54,8 +54,8 @@ export default NavDictionary({
 	'guides/endpoints': 'Points de terminaison',
 	'guides/data-fetching': 'Récupération de Données',
 	'guides/internationalization': 'Internationalisation',
-	'guides/ecommerce': 'E-commerce',
 	'guides/middleware': 'Middleware',
+	'guides/ecommerce': 'E-commerce',
 	'guides/testing': 'Test',
 	'guides/authentication': 'Authentification',
 	'guides/troubleshooting': 'Dépannage',
@@ -73,6 +73,7 @@ export default NavDictionary({
 	'reference/adapter-reference': 'Adaptateur API',
 	'reference/image-service-reference': "API du Service d'Images",
 	'reference/dev-toolbar-app-reference': "API de la barre d'outils Dev",
+	'reference/container-reference': 'Conteneur API',
 	'reference/directives-reference': 'Utilisation des Directives',
 	'reference/cli-reference': "CLI d'Astro",
 	'reference/error-reference': 'Référence des erreurs',

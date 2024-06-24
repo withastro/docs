@@ -143,7 +143,7 @@ The `experimentalJsonConfig` property defines whether the utility reads a JSON c
 **Default:** `{ persist: true }`
 </p>
 
-The `persist` property defines if and where the bindings data is persistent. `true` defaults to the same location used by Wrangler so data can be shared between the two. If `false`, no data is persited to or read from the filesystem.
+The `persist` property defines if and where the bindings data is persistent. `true` defaults to the same location used by Wrangler so data can be shared between the two. If `false`, no data is persisted to or read from the filesystem.
 
 :::note
 `wrangler`'s `--persist-to` option adds a sub directory called `v3` under the hood while the `@astrojs/cloudflare` `persist` property does not. For example, to reuse the same location as running `wrangler dev --persist-to ./my-directory`, you must specify: `persist: "./my-directory/v3"`.
@@ -204,28 +204,16 @@ export default defineConfig({
 });
 ```
 
-### `wasmModuleImports`
+### `cloudflareModules`
 
 <p>
 **Type:** `true | false`<br />
-**Default:** `false`
+**Default:** `true`
 </p>
 
-Whether or not to import `.wasm` files [directly as ES modules](https://github.com/WebAssembly/esm-integration/tree/main/proposals/esm-integration) using the `.wasm?module` import syntax.
+Enables [imports of `.wasm`, `.bin`, and `.txt` modules](#cloudflare-module-imports).
 
-Add `wasmModuleImports: true` to `astro.config.mjs` to enable this functionality in both `astro build` & `astro dev`. Read more about [using Wasm modules](#use-wasm-modules).
-
-```js title="astro.config.mjs" ins={6}
-import {defineConfig} from "astro/config";
-import cloudflare from '@astrojs/cloudflare';
-
-export default defineConfig({
-  adapter: cloudflare({
-     wasmModuleImports: true
-  }),
-  output: 'server'
-})
-```
+This functionality is enabled by default. If you'd like to disable it, set `cloudflareModules: false`.
 
 ## Cloudflare runtime
 
@@ -338,14 +326,23 @@ You can [specify additional routing patterns to follow](#routesextend) in your a
 
 Creating a custom `public/_routes.json` will override the automatic generation. See [Cloudflare's documentation on creating a custom `_routes.json`](https://developers.cloudflare.com/pages/platform/functions/routing/#create-a-_routesjson-file) for more details.
 
-## Use Wasm modules
+## Cloudflare Module Imports
+
+The cloudflare worker runtime supports imports of some [non-standard module types](https://developers.cloudflare.com/pages/functions/module-support/). Most additional file types are also available in astro:
+
+- `.wasm` or `.wasm?module`: exports a [`WebAssembly.Module`](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Module) that can then be instantiated
+- `.bin`: exports an [`ArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer) of the raw binary contents of the file
+- `.txt`: Exports a string of the file contents
+
+All module types export a single default value. Modules can be imported both from server-side rendered pages, or from prerendered pages for static site generation.
 
 The following is an example of importing a Wasm module that then responds to requests by adding the request's number parameters together.
 
 ```js title="pages/add/[a]/[b].js"
-import mod from '../util/add.wasm?module';
+// Import the WebAssembly module
+import mod from '../util/add.wasm';
 
-// instantiate ahead of time to share module
+// Instantiate first in order to use it
 const addModule: any = new WebAssembly.Instance(mod);
 
 export async function GET(context) {
@@ -355,7 +352,7 @@ export async function GET(context) {
 }
 ```
 
-While this example is trivial, Wasm can be used to accelerate computationally intensive operations which do not involve significant I/O such as embedding an image processing library.
+While this example is trivial, Wasm can be used to accelerate computationally intensive operations which do not involve significant I/O such as embedding an image processing library, or embedding a small pre-indexed database for search over a read-only dataset.
 
 ## Node.js compatibility
 

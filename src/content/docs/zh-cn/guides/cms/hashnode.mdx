@@ -1,0 +1,352 @@
+---
+title: Hashnode & Astro
+description: 使用 Hashnode 作为 CMS 向你的 Astro 项目添加内容
+type: cms
+stub: false
+service: Hashnode
+i18nReady: true
+---
+
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { Steps } from '@astrojs/starlight/components';
+
+[Hashnode](https://hashnode.com/) 是一个托管 CMS，允许你创建博客或出版物。
+
+## 与 Astro 集成
+[Hashnode 公共 API](https://apidocs.hashnode.com/) 是一个 GraphQL API，允许你与 Hashnode 进行交互。本指南使用 [`graphql-request`](https://github.com/jasonkuhrt/graphql-request)，一个与 Astro 配合良好的简约 GraphQL 客户端，将你的 Hashnode 数据引入你的 Astro 项目。
+
+### 前提条件
+要开始，你需要具备以下条件：
+
+1. **一个 Astro 项目** - 如果你还没有 Astro 项目，我们的[安装指南](/zh-cn/install-and-setup/)将帮助你快速启动并运行。
+
+2. **一个 Hashnode 站点** - 你可以通过访问 [Hashnode](https://hashnode.com/) 免费创建个人站点。
+
+### 安装依赖
+
+使用你选择的包管理器安装 `graphql-request` 包：
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install graphql-request
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add graphql-request
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add graphql-request
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## 使用 Astro 和 Hashnode 创建博客
+
+本指南使用 [`graphql-request`](https://github.com/jasonkuhrt/graphql-request)，一个与 Astro 配合良好的简约 GraphQL 客户端，将你的 Hashnode 数据引入你的 Astro 项目。
+
+### 前提条件
+
+1. 一个 Hashnode 博客
+2. 已安装了 [graphql-request](https://github.com/jasonkuhrt/graphql-request) 包的 Astro 项目。
+
+此示例将创建一个首页，列出所有文章并链接到动态生成的各个文章页面。
+
+### 获取数据
+
+<Steps>
+1. 要使用 `graphql-request` 包获取你的站点数据，请创建一个 `src/lib` 目录并新建两个文件 `client.ts` 和 `schema.ts`：
+
+    <FileTree title="项目结构">
+    - src/
+      - lib/
+        - **client.ts**
+        - **schema.ts**
+      - pages/
+        - index.astro
+    - astro.config.mjs
+    - package.json
+    </FileTree>
+
+2. 使用来自你的 Hashnode 网站的 URL，初始化一个带有 GraphQLClient 的 API 实例。
+
+    ```ts title="src/lib/client.ts" "astroplayground.hashnode.dev"
+
+    import { gql, GraphQLClient } from "graphql-request";
+    import type { AllPostsData, PostData } from "./schema";
+
+    export const getClient = () => { 
+      return new GraphQLClient("https://gql.hashnode.com") 
+    }
+
+    const myHashnodeURL = "astroplayground.hashnode.dev";
+
+    export const getAllPosts = async () => {
+      const client = getClient();
+
+      const allPosts = await client.request<AllPostsData>(
+        gql`
+          query allPosts {
+            publication(host: "${myHashnodeURL}") {
+              title
+              posts(first: 20) {
+                pageInfo{
+                  hasNextPage
+                  endCursor
+                }
+                edges {
+                  node {
+                    author{
+                      name
+                      profilePicture
+                    }
+                    title
+                    subtitle
+                    brief
+                    slug
+                    coverImage {
+                      url
+                    }
+                    tags {
+                      name
+                      slug
+                    }
+                    publishedAt
+                    readTimeInMinutes
+                  }
+                }
+              }
+            }
+          }
+        `
+      );
+
+      return allPosts;
+    };
+
+
+    export const getPost = async (slug: string) => {
+      const client = getClient();
+
+      const data = await client.request<PostData>(
+        gql`
+          query postDetails($slug: String!) {
+            publication(host: "${myHashnodeURL}") {
+              post(slug: $slug) {
+                author{
+                  name
+                  profilePicture
+                }
+                publishedAt
+                title
+                subtitle
+                readTimeInMinutes
+                content{
+                  html
+                }
+                tags {
+                  name
+                  slug
+                }
+                coverImage {
+                  url
+                }
+              }
+            }
+          }
+        `,
+        { slug: slug }
+      );
+          
+      return data.publication.post;
+    };
+
+    ```
+
+3. 配置 `schema.ts` 来定义从 Hashnode API 返回的数据的结构。
+
+    ```ts title="src/lib/schema.ts"
+
+    import { z } from "astro/zod";
+
+    export const PostSchema = z.object({
+        author: z.object({
+            name: z.string(),
+            profilePicture: z.string(),
+            }),
+        publishedAt: z.string(),
+        title: z.string(),
+        subtitle: z.string(),
+        brief: z.string(),
+        slug: z.string(),
+        readTimeInMinutes: z.number(),
+        content: z.object({
+            html: z.string(),
+        }),
+        tags: z.array(z.object({
+            name: z.string(),
+            slug: z.string(),
+        })),
+        coverImage: z.object({
+            url: z.string(),
+        }),
+    })
+
+    export const AllPostsDataSchema = z.object({
+        publication: z.object({
+            title: z.string(),
+            posts: z.object({
+                pageInfo: z.object({
+                    hasNextPage: z.boolean(),
+                    endCursor: z.string(),
+                }),
+                edges: z.array(z.object({
+                    node: PostSchema,
+                })),
+            }),
+        }),
+    })
+
+    export const PostDataSchema = z.object({
+        publication: z.object({
+            title: z.string(),
+            post: PostSchema,
+        }),
+    })
+
+    export type Post = z.infer<typeof PostSchema>
+    export type AllPostsData = z.infer<typeof AllPostsDataSchema>
+    export type PostData = z.infer<typeof PostDataSchema>
+
+    ```
+</Steps>
+
+### 显示文章列表
+
+通过 `getAllPosts()` 获取的数据返回一个对象数组，包含每篇文章的属性，例如：
+- `title` - 文章的标题
+- `brief` - 文章内容的 HTML 渲染
+- `coverImage.url` - 文章特色图片的源 url
+- `slug` - 文章的 slug
+
+使用从获取中返回的 `posts` 数组在页面上显示博客文章列表。
+
+```astro title="src/pages/index.astro"
+---
+import { getAllPosts } from '../lib/client';
+
+const data = await getAllPosts();
+const allPosts = data.publication.posts.edges;
+
+---
+
+<html lang="en">
+    <head>
+        <title>Astro + Hashnode</title>
+    </head>
+    <body>
+
+        {
+            allPosts.map((post) => (
+                <div>
+                    <h2>{post.node.title}</h2>
+                    <p>{post.node.brief}</p>
+                    <img src={post.node.coverImage.url} alt={post.node.title} />
+                    <a href={`/post/${post.node.slug}`}>Read more</a>
+                </div>
+            ))
+        }
+    </body>
+</html>
+```
+
+### 生成页面
+
+<Steps>
+1. 创建页面 `src/pages/post/[slug].astro`，为每篇文章[动态生成页面](/zh-cn/guides/routing/#动态路由)。
+
+    <FileTree title="项目结构">
+    - src/
+    - lib/
+        - client.ts
+        - schema.ts
+      - pages/
+        - index.astro
+        - post/
+          - **[slug].astro**
+    - astro.config.mjs
+    - package.json
+    </FileTree>
+
+2. 导入并使用 `getAllPosts()` 和 `getPost()` 从 Hashnode 获取数据，并为每篇文章生成单独的页面路由。
+
+    ```astro title="src/pages/post/[slug].astro"
+    ---
+    import { getAllPosts, getPost } from '../../lib/client';
+
+
+    export async function getStaticPaths() {
+      const data = await getAllPosts();
+      const allPosts = data.publication.posts.edges;
+      return allPosts.map((post) => {
+        return {
+          params: { slug: post.node.slug },
+        }
+      })
+    }
+    const { slug } = Astro.params;
+    const post = await getPost(slug);
+
+    ---
+    ```
+
+3. 利用每个 `post` 对象的属性为每个页面创建模板。下面的示例展示了文章标题和阅读时间，然后是完整的文章内容：
+
+    ```astro title="src/pages/post/[slug].astro"
+    ---
+    import { getAllPosts, getPost } from '../../lib/client';
+
+
+    export async function getStaticPaths() {
+      const data = await getAllPosts();
+      const allPosts = data.publication.posts.edges;
+      return allPosts.map((post) => {
+        return {
+          params: { slug: post.node.slug },
+        }
+      })
+    }
+    const { slug } = Astro.params;
+    const post = await getPost(slug);
+
+    ---
+    <!DOCTYPE html>
+    <html lang="en">
+        <head>
+            <title>{post.title}</title>
+        </head>
+        <body>
+            <img src={post.coverImage.url} alt={post.title} />
+
+            <h1>{post.title}</h1>
+            <p>{post.readTimeInMinutes} min read</p>
+
+            <Fragment set:html={post.content.html} />
+        </body>
+    </html>
+    ```
+    :::note
+    `<Fragment />` 是 Astro 内置的一个组件，它可以帮助你避免使用不必要的包裹元素。当从 CMS（例如 Hashnode 或 [WordPress](/zh-cn/guides/cms/wordpress/)）获取 HTML 时，这一点尤其有用。
+    :::
+</Steps>
+
+### 发布你的网站
+要部署你的网站，请访问我们的[部署指南](/zh-cn/guides/deploy/)并按照你选择的托管提供商的指示操作。
+
+## 社区资源
+
+- GitHub 上的 [`astro-hashnode`](https://github.com/matthiesenxyz/astro-hashnode)

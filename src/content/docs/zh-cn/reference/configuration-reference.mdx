@@ -355,6 +355,44 @@ $ astro build --root ./my-project-directory
 
 使用 `'attribute'` 在你操作元素的 `class` 属性时很有用，这样你就可以避免你自己的样式逻辑和 Astro 的样式应用之间的冲突。
 
+### security
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `{}`<br />
+<Since v="4.9.0" />
+</p>
+
+为 Astro 网站启用安全措施。
+
+这些功能仅存在于使用 `server` 模式按需渲染的页面，或在 `hybrid` 模式中选择不进行预渲染的页面。
+
+```js
+// astro.config.mjs
+export default defineConfig({
+  output: "server",
+  security: {
+    checkOrigin: true
+  }
+})
+```
+
+#### security.checkOrigin
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** 'false'<br />
+<Since v="4.9.0" />
+</p>
+
+启用后，将检查所有现代浏览器自动传递的 "origin" 头是否与每个 `Request` 发送的 URL 匹配。这用于提供跨站请求伪造（CSRF）保护。
+
+"origin" 检查仅对按需渲染的页面执行，并且仅对具有以下 `content-type` 头的 `POST`、`PATCH`、`DELETE` 和 `PUT` 请求执行：`'application/x-www-form-urlencoded'`、`'multipart/form-data'`、`'text/plain'`。
+
+如果 "origin" 头与请求的 `pathname` 不匹配，Astro 将返回 403 状态码，并不会渲染该页面。
+
 ### vite
 
 <p>
@@ -933,7 +971,7 @@ Shiki 配置选项。使用方法见 [markdown 配置文档](/zh-cn/guides/markd
 import remarkToc from 'remark-toc';
 {
   markdown: {
-    remarkPlugins: [remarkToc]
+    remarkPlugins: [ [remarkToc, { heading: "contents"} ] ]
   }
 }
 ```
@@ -1305,6 +1343,106 @@ export default defineConfig({
 
 查看 [预获取指南](/zh-cn/guides/prefetch/) 以获取更多 `prefetch` 选项和使用方法。
 
+### experimental.actions
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `false`<br />
+<Since v="4.8.0" />
+</p>
+
+Actions 可以帮助你编写可从任何地方调用的类型安全的后端函数。[使用 `output` 属性](/zh-cn/basics/rendering-modes/#按需渲染) 启用服务端渲染并在 `experimental` 对象中添加 `actions` 标志：
+
+```js
+{
+  output: 'hybrid', // 或 'server'
+  experimental: {
+    actions: true,
+  },
+}
+```
+
+在 `src/actions/index.ts` 中声明所有的 action。这个文件是全局的 action 处理函数。
+
+使用 `astro:actions` 模块中的 `defineAction()` 工具定义一个 action。Action 接受 `handler` 属性来定义你的服务端请求处理函数。如果你的 action 接受参数，使用 `input` 属性通过 Zod 对参数进行校验。
+
+此示例定义了两个 action：`like` 和 `comment`。`like` 接受一个包含 `postId` 字符串的 JSON 对象，而 `comment` 接受包含 `postId`、`author` 和 `body` 字符串的 [FormData](https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest_API/Using_FormData_Objects)。每个 `handler` 更新你的数据库并返回一个类型安全的响应。
+
+```ts
+// src/actions/index.ts
+import { defineAction, z } from "astro:actions";
+
+export const server = {
+  like: defineAction({
+    input: z.object({ postId: z.string() }),
+    handler: async ({ postId }) => {
+      // 更新数据库中的点赞
+
+      return likes;
+    },
+  }),
+  comment: defineAction({
+		 accept: 'form',
+    input: z.object({
+      postId: z.string(),
+      author: z.string(),
+      body: z.string(),
+    }),
+    handler: async ({ postId }) => {
+      // 在数据库中插入评论
+
+      return comment;
+    },
+  }),
+};
+```
+
+然后，使用来自 `astro:actions` 的 `actions` 对象从你的客户端组件调用一个 action。当使用 JSON 时，你可以传递一个类型安全的对象，或者当在你的 action 定义中使用 `accept: 'form'` 时，传递一个 [FormData](https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest_API/Using_FormData_Objects) 对象：
+
+这个例子展示了如何从 React 组件中调用`like` 和 `comment` action：
+
+```tsx "actions"
+// src/components/blog.tsx
+import { actions } from "astro:actions";
+import { useState } from "react";
+
+export function Like({ postId }: { postId: string }) {
+  const [likes, setLikes] = useState(0);
+  return (
+    <button
+      onClick={async () => {
+        const newLikes = await actions.like({ postId });
+        setLikes(newLikes);
+      }}
+    >
+      {likes} likes
+    </button>
+  );
+}
+
+export function Comment({ postId }: { postId: string }) {
+  return (
+    <form
+      onSubmit={async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target as HTMLFormElement);
+        const result = await actions.blog.comment(formData);
+        // 处理结果
+      }}
+    >
+      <input type="hidden" name="postId" value={postId} />
+      <label htmlFor="author">Author</label>
+      <input id="author" type="text" name="author" />
+      <textarea rows={10} name="body"></textarea>
+      <button type="submit">Post</button>
+    </form>
+  );
+}
+```
+
+要全面了解并对这个实验性 API 提供反馈，请查看 [Actions RFC](https://github.com/withastro/roadmap/blob/actions/proposals/0046-actions.md)。
+
 ### experimental.globalRoutePriority
 
 <p>
@@ -1334,70 +1472,159 @@ export default defineConfig({
 
 在路由冲突的情况下，两个具有相同路由优先级的路由试图构建相同的 URL，Astro 将记录警告，标识出冲突的路由。
 
-
-### experimental.i18nDomains
+### experimental.rewriting
 
 <p>
 
 **类型：** `boolean`<br />
 **默认值：** `false`<br />
-<Since v="4.3.0" />
+<Since v="4.8.0" />
 </p>
 
-启用域名支持，用于[实验性的 `domains` 路由策略](/zh-cn/guides/internationalization/#domains实验性功能)，它允许你配置一个或多个支持的语言的 URL 模式，以使用自定义域名（或子域名）。
-
-当一个语言环境映射到一个域名时，将不会使用 `/[locale]/` 路径前缀。然而，`src/pages/` 中的本地化文件夹仍然是必需的，包括你配置的 `defaultLocale`。
-
-其他未配置的语言环境将默认为根据你的 `prefixDefaultLocale` 策略进行本地化的路径 URL（例如 `https://example.com/[locale]/blog`）。
+启用一个路由功能，用于在 Astro 页面、端点和 Astro 中间件中重写请求，使你可以对路由进行编程控制。
 
 ```js
-//astro.config.mjs
-export default defineConfig({
-	site: "https://example.com",
-	output: "server", // 不需要预渲染的页面
-	adapter: node({
-		mode: 'standalone',
-	}),
-	i18n: {
-		defaultLocale: "en",
-		locales: ["en", "fr", "pt-br", "es"],
-		prefixDefaultLocale: false,
-		domains: {
-			fr: "https://fr.example.com",
-			es: "https://example.es",
-		},
-	},
-	experimental: {
-		i18nDomains: true,
-	},
-});
+{
+  experimental: {
+    rewriting: true,
+  },
+}
 ```
 
-由 `astro:i18n` 辅助函数 [`getAbsoluteLocaleUrl()`](/zh-cn/reference/api-reference/#getabsolutelocaleurl) 和 [`getAbsoluteLocaleUrlList()`](/zh-cn/reference/api-reference/#getabsolutelocaleurllist) 构建的页面路由和返回的 URL 将采用在 `i18n.domains` 中设置的选项。
+在你的 `.astro` 文件中使用 `Astro.rewrite` 来重定向到不同的页面：
 
-查看 [国际化指南](/zh-cn/guides/internationalization/#domains实验性功能) 以获取更多细节，包括这个实验性功能的限制。
+```astro "rewrite"
+---
+// src/pages/dashboard.astro
+if (!Astro.props.allowed) {
+	return Astro.rewrite("/")
+}
+---
+```
 
-### experimental.security
+在你的端点文件中使用 `context.rewrite` 来重定向到不同的页面：
+
+```js
+// src/pages/api.js
+export function GET(ctx) {
+	if (!ctx.locals.allowed) {
+		return ctx.rewrite("/")
+	}
+}
+```
+
+在你的中间件文件中使用 `next("/")` 来重定向到不同的页面，然后调用下一个中间件函数：
+
+```js
+// src/middleware.js
+export function onRequest(ctx, next) {
+	if (!ctx.cookies.get("allowed")) {
+		return next("/") // new signature
+	}
+	return next();
+}
+```
+
+要全面了解并对这个实验性 API 提供反馈，请查看 [Rerouting RFC](https://github.com/withastro/roadmap/blob/feat/reroute/proposals/0047-rerouting.md)。
+
+### experimental.env
 
 <p>
 
-**类型：** `boolean`<br />
-**默认值：** `false`<br />
-<Since v="4.6.0" />
+**类型：** `object`<br />
+**默认值：** `undefined`<br />
+<Since v="4.10.0" />
 </p>
 
-为 Astro 网站启用 CSRF 保护。
+启用实验性的 `astro:env` 功能。
 
-CSRF 保护仅适用于按需渲染（服务端渲染）的页面，使用 `server` 或 `hybrid` 模式。在 `hybrid` 模式中，页面必须选择退出预渲染。
+`astro:env` API 允许你为环境变量配置类型安全的 schema，并指示它们是否应该在服务端或客户端可用。从相应的 `/client` 或 `/server` 模块中导入并使用你定义的变量：
+
+```astro
+---
+import { PUBLIC_APP_ID } from "astro:env/client"
+import { PUBLIC_API_URL, getSecret } from "astro:env/server"
+const API_TOKEN = getSecret("API_TOKEN")
+const data = await fetch(`${PUBLIC_API_URL}/users`, {
+	method: "POST",
+	headers: {
+		"Content-Type": "application/json",
+		"Authorization": `Bearer ${API_TOKEN}`
+	},
+	body: JSON.stringify({ appId: PUBLIC_APP_ID })
+})
+---
+```
+
+要定义环境变量的数据类型和属性，请在你的 Astro 配置中用 `experimental.env.schema` 声明一个 schema。`envField` 助手函数允许你将变量定义为字符串、数字或布尔值，并在一个对象中传递属性：
 
 ```js
 // astro.config.mjs
+import { defineConfig, envField } from "astro/config"
+
 export default defineConfig({
-  output: "server",
+    experimental: {
+        env: {
+            schema: {
+                PUBLIC_API_URL: envField.string({ context: "client", access: "public", optional: true }),
+                PUBLIC_PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+                API_SECRET: envField.string({ context: "server", access: "secret" }),
+            }
+        }
+    }
+})
+```
+
+目前支持三种数据类型：字符串、数字和布尔值。
+
+环境变量有三种类型，由 `context`（client 或 server）和 `access`（secret 或 public）的组合设置在你的 [`env.schema`](#experimentalenvschema) 中确定：
+
+- **公开客户端变量**：这些变量最终会出现在你的客户端和服务端包中，并且可以通过 `astro:env/client` 模块在客户端和服务端访问：
+
+    ```js
+    import { PUBLIC_API_URL } from "astro:env/client"
+    ```
+
+- **公开服务端变量**：这些变量最终会出现在你的最终服务端包中，并且可以通过 `astro:env/server` 模块在服务端访问：
+
+    ```js
+    import { PUBLIC_PORT } from "astro:env/server"
+    ```
+
+- **秘密服务端变量**：这些变量不会包含在你的最终包中，可以通过 `astro:env/server` 模块提供的 `getSecret()` 助手函数在服务端访问：
+
+    ```js
+    import { getSecret } from "astro:env/server"
+
+    const API_SECRET = getSecret("API_SECRET") // 定义的类型
+    const SECRET_NOT_IN_SCHEMA = getSecret("SECRET_NOT_IN_SCHEMA") // string | undefined
+    ```
+
+**注意：** 因为没有方式可以将数据安全地发送到客户端，所以不支持秘密客户端变量。因此，在你的 schema 中不能同时配置 `context: "client"` 和 `access: "secret"`。
+
+要完整了解此实验性 API 并提供反馈，请查看 [Astro Env RFC](https://github.com/withastro/roadmap/blob/feat/astro-env-rfc/proposals/0046-astro-env.md)。
+
+#### experimental.env.schema
+
+<p>
+
+**类型：** `EnvSchema`<br />
+**默认值：** `undefined`<br />
+<Since v="4.10.0" />
+</p>
+
+一个使用 `envField` 来定义环境变量的数据类型（`string`、`number` 或 `boolean`）及其属性的对象：`context`（client 或 server）、`access`（public 或 secret）、使用的默认值 `default` 以及该环境变量是否为可选的 `optional`（默认为 `false`）。
+```js
+// astro.config.mjs
+import { defineConfig, envField } from "astro/config"
+
+export default defineConfig({
   experimental: {
-    security: {
-      csrfProtection: {
-        origin: true
+    env: {
+      schema: {
+        PUBLIC_API_URL: envField.string({ context: "client", access: "public", optional: true }),
+        PUBLIC_PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+        API_SECRET: envField.string({ context: "server", access: "secret" }),
       }
     }
   }

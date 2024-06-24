@@ -1,0 +1,230 @@
+---
+title: Umbraco & Astro
+description: Umbraco를 CMS로 사용하여 Astro 프로젝트에 콘텐츠 추가
+type: cms
+stub: false
+service: Umbraco
+i18nReady: true
+---
+import { FileTree, Steps } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro'; 
+
+[Umbraco CMS](https://umbraco.com/)는 오픈 소스 ASP.NET Core CMS입니다. 기본적으로 Umbraco는 프런트엔드에 Razor 페이지를 사용하지만 헤드리스 CMS로 사용할 수도 있습니다.
+
+## Astro와 통합
+
+이 섹션에서는 Umbraco의 기본 [Content Delivery API](https://docs.umbraco.com/umbraco-cms/reference/content-delivery-api)를 사용하여 Astro 프로젝트에 콘텐츠를 제공합니다.
+
+### 전제조건
+
+시작하려면 다음이 필요합니다.
+
+1. **Astro 프로젝트** - 아직 Astro 프로젝트가 없다면 [설치 가이드](/ko/install-and-setup/)를 통해 즉시 설치하고 실행할 수 있습니다.
+2. **Umbraco (v12+) 프로젝트** - 아직 Umbraco 프로젝트가 없다면 이 [설치 가이드](https://docs.umbraco.com/umbraco-cms/fundamentals/setup/)를 참조하세요.
+
+### Content Delivery API 설정
+
+Content Delivery API를 활성화하려면 Umbraco 프로젝트의 `appsettings.json` 파일을 업데이트하세요.
+
+```json title="appsettings.json"
+{
+  "Umbraco": {
+    "CMS": {
+      "DeliveryApi": {
+        "Enabled": true,
+        "PublicAccess": true
+      }
+    }
+  }
+}
+```
+
+필요에 따라 공개 액세스, API 키, 허용된 콘텐츠 유형, 멤버십 인증 등과 같은 추가 옵션을 구성할 수 있습니다. 자세한 내용은 [Umbraco Content Delivery API 문서](https://docs.umbraco.com/umbraco-cms/reference/content-delivery-api)를 참조하세요.
+
+### 데이터 가져오기
+
+Content Delivery API에 대한 `fetch()` 호출을 사용하여 콘텐츠에 액세스하고 Astro 컴포넌트에서 사용할 수 있도록 만듭니다.
+
+다음 예시에서는 기사 날짜 및 콘텐츠와 같은 속성을 포함하여 가져온 기사 목록을 표시합니다.
+
+```astro title="src/pages/index.astro"
+---
+const res = await fetch('http://localhost/umbraco/delivery/api/v2/content?filter=contentType:article');
+const articles = await res.json();
+---
+<h1>Astro + Umbraco 🚀</h1>
+{
+  articles.items.map((article) => (
+      <h1>{article.name}</h1>
+      <p>{article.properties.articleDate}</p>
+      <div set:html={article.properties.content?.markup}></div>
+  ))
+}
+```
+
+
+<ReadMore>[Astro에서 데이터 가져오기](/ko/guides/data-fetching/)에 대해 자세히 알아보세요.</ReadMore>
+
+## Umbraco와 Astro로 블로그 만들기
+
+### 전제조건
+
+- **Astro 프로젝트** - 아직 Astro 프로젝트가 없다면 [설치 가이드](/ko/install-and-setup/)를 참조하여 바로 실행해 보세요.
+
+- Content Delivery API가 활성화된  **Umbraco 프로젝트 (v12+)** - 이 [설치 가이드](https://docs.umbraco.com/umbraco-cms/fundamentals/setup/install/)에 따라 새 프로젝트를 생성하세요.
+
+### Umbraco에서 블로그 게시물 만들기
+
+[Umbraco 백오피스](https://docs.umbraco.com/umbraco-cms/fundamentals/backoffice)에서 'Article'이라는 간단한 블로그 기사에 대한 Document Type을 만듭니다.
+
+<Steps>
+1. 다음 속성을 사용하여 'Article' Document Type을 구성합니다.
+
+		- Title (DataType: Textstring)
+		- Article Date (DataType: Date Picker)
+		- Content (DataType: Richtext Editor)
+
+2. 'Article' 문서 유형에서 'Allow as root'을 `true`로 전환합니다.
+
+3. Umbraco 백오피스의 "Content" 섹션에서 [첫 번째 블로그 게시물을 작성 및 게시](https://docs.umbraco.com/umbraco-cms/fundamentals/data/defining-content)하세요. 원하는 만큼 이 과정을 반복하세요.
+
+</Steps>
+
+자세한 내용은 [Document Types 생성에 대한 동영상 가이드](https://www.youtube.com/watch?v=otRuIkN80qM)를 시청하세요.
+
+### Astro에서 블로그 게시물 목록 표시
+
+`src/layouts/` 폴더를 생성한 후 다음 코드를 사용하여 새 파일인 `Layout.astro`를 추가합니다.
+
+```astro title="src/layouts/Layout.astro"
+---
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>My Blog with Astro and Umbraco</title>
+</head>
+<body>
+    <main>
+        <slot />
+    </main>
+</body>
+</html>
+```
+
+이제 프로젝트에 다음 파일이 포함되어야 합니다.
+
+<FileTree>
+- src/
+  - **layouts/**
+    - **Layout.astro**
+  - pages/
+    - index.astro
+</FileTree>
+
+블로그 게시물 목록을 만들려면 먼저 `fetch`를 통해 Content Delivery API `content` 엔드포인트를 호출하고 'article'의 contentType을 기준으로 필터링하세요. article 객체에는 CMS에 설정된 속성과 콘텐츠가 포함됩니다. 그런 다음 이를 모든 기사에 반복하여 해당 기사에 대한 링크와 함께 각 제목을 표시할 수 있습니다.
+
+`index.astro`의 기본 콘텐츠를 다음 코드로 바꿉니다.
+
+```astro title="src/pages/index.astro"
+---
+import Layout from '../layouts/Layout.astro';
+const res = await fetch('http://localhost/umbraco/delivery/api/v2/content?filter=contentType:article');
+const articles = await res.json();
+---
+<Layout>
+	<h2>Blog Articles</h2>
+	{
+        articles.items.map((article: any) => (
+            <div>
+                <h3>{article.properties.title}</h3>
+                <p>{article.properties.articleDate}</p>
+                <a href={article.route.path}>Read more</a>
+            </div>
+        ))
+    }
+</Layout>
+```
+
+### 개별 블로그 게시물 생성
+
+`/pages/` 디렉터리 루트에 `[...slug].astro` 파일을 생성합니다. 이 파일은 [개별 블로그 페이지를 동적으로 생성](/ko/guides/routing/#동적-경로)하는 데 사용됩니다.
+
+페이지의 URL 경로를 생성하는 `params` 속성에는 API fetch의 `article.route.path`가 포함되어 있습니다. 마찬가지로 CMS 항목의 모든 정보에 액세스할 수 있도록 `props` 속성에는 전체 `article` 자체가 포함되어야 합니다.
+
+개별 블로그 게시물 페이지를 생성하는 `[...slug].astro` 파일에 다음 코드를 추가하세요.
+
+```astro title="[...slug].astro"
+---
+import Layout from '../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+    let data = await fetch("http://localhost/umbraco/delivery/api/v2/content?filter=contentType:article");
+    let articles = await data.json();
+    
+    return articles.items.map((article: any) => ({
+        params: { slug: article.route.path },
+        props: { article: article },
+    }));
+}
+
+const { article } = Astro.props;
+---
+
+<Layout>
+  <h1>{article.properties.title}</h1>
+  <p>{article.properties.articleDate}</p>
+  <div set:html={article.properties.content?.markup}></div>
+</Layout>
+```
+
+이제 프로젝트에 다음 파일이 포함되어야 합니다.
+
+<FileTree>
+- src/
+  - layouts/
+    - Layout.astro
+  - pages/
+    - index.astro
+    - **[...slug].astro**
+</FileTree>
+
+개발 서버가 실행되면 이제 Astro 프로젝트의 브라우저 미리보기에서 Umbraco가 생성한 콘텐츠를 볼 수 있습니다. 축하해요! 🚀
+
+
+## 사이트 게시
+
+사이트를 배포하려면 [배포 가이드](/ko/guides/deploy/)를 방문하고 선호하는 호스팅 제공업체의 지침을 따르세요.
+
+## 로컬 개발, HTTPS 및 자체 서명 SSL 인증서
+
+Umbraco HTTPS 엔드포인트를 로컬에서 사용하는 경우 `fetch` 쿼리를 실행하면 `DEPTH_ZERO_SELF_SIGNED_CERT` 코드와 함께 `fetch failed`가 발생합니다. 이는 Astro가 구축된 Node가 기본적으로 자체 서명된 인증서를 허용하지 않기 때문입니다. 이를 방지하려면 로컬 개발용 Umbraco HTTP 엔드포인트를 사용하세요.
+
+또는 `env.development` 파일에서 `NODE_TLS_REJECT_UNAUTHORIZED=0`을 설정하고 다음과 같이 `astro.config.js` 파일을 업데이트할 수 있습니다.
+
+```sh title=".env.development"
+NODE_TLS_REJECT_UNAUTHORIZED=0
+```
+
+```astro title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import { loadEnv } from "vite";
+
+const { NODE_TLS_REJECT_UNAUTHORIZED } = loadEnv(process.env.NODE_ENV, process.cwd(), "");
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = NODE_TLS_REJECT_UNAUTHORIZED;
+// https://astro.build/config
+export default defineConfig({});
+```
+
+이 방법은 [동반된 저장소](https://github.com/kjac/UmbracoAzureCloudflare)와 함께 이 [자체 서명 인증서에 맞게 프로젝트를 구성하는 방법을 보여주는 블로그 게시물](https://kjac.dev/posts/jamstack-for-free-with-azure-and-cloudflare/)에 자세히 설명되어 있습니다.
+
+## 공식 문서
+- [Content Delivery API - Umbraco 문서](https://docs.umbraco.com/umbraco-cms/reference/content-delivery-api)
+
+## 커뮤니티 자료
+
+- [Content Delivery API를 사용하는 천문학적으로 (Astro-nomically) 성능이 뛰어난 웹사이트 - Louis Richardson](https://24days.in/umbraco-cms/2023/sustainable-performant/astronomically-performant/)
+- [Umbraco의 Content Delivery API에서 TypeScript OpenAPI 클라이언트 생성 - Rick Butterfield](https://rickbutterfield.dev/blog/typescript-openapi-umbraco-content-delivery/)
+- [Azure 및 CloudFlare를 통한 무료 Jamstack - Kenn Jacobsen](https://kjac.dev/posts/jamstack-for-free-with-azure-and-cloudflare/)
+- [Astro와 Umbraco를 사용한 빠르고 간단한 블로그 - Kenn Jacobsen](https://kjac.dev/posts/quick-n-dirty-blog-with-astro-and-umbraco/)

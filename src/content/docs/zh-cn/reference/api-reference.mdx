@@ -239,7 +239,9 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 **类型：** `(key: string, options?: CookieDeleteOptions) => void`
 </p>
 
-将 Cookie 标记为已删除。一旦 Cookie 被删除，`Astro.cookies.has()` 将返回 `false`，`Astro.cookies.get()` 将返回一个值为 `undefined` 的 [`AstroCookie`](#astrocookie)。删除 Cookie 时可用的选项包括：`domain`、`path`、`httpOnly`、`sameSite` 和 `secure`。
+通过设置过去的到期日期（Unix 时间为 0）使 cookie 失效。
+
+一旦 Cookie 被“删除”（过期），`Astro.cookies.has()` 将返回 `false`，`Astro.cookies.get()` 将返回一个 `value` 为 `undefined` 的 [`AstroCookie`](#astrocookie)。删除 Cookie 时可用的选项包括：`domain`、`path`、`httpOnly`、`sameSite` 和 `secure`。
 
 ##### `headers`
 
@@ -303,7 +305,7 @@ cookie 的原始字符串值。
 
 <p><Since v="4.1.0"/></p>
 
-通过 `Astro.cookies.set()` 设置 cookie， 允许传入 `CookieSetOptions` 来自定义 cookie 如何被序列化。
+通过 `Astro.cookies.set()` 设置 cookie，允许传入 `CookieSetOptions` 来自定义 cookie 如何被序列化。
 
 ##### `domain`
 
@@ -373,9 +375,11 @@ cookie 的原始字符串值。
 
 ### `Astro.redirect()`
 
-`Astro.redirect()` 允许你重定向到另一个页面。
+允许你重定向到另一个页面，并可选地提供一个 [HTTP 响应状态码](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Status) 作为第二个参数。
 
 页面（而不是子组件）必须 `return` `Astro.redirect()` 的结果，以便重定向发生。
+
+以下示例将用户重定向到登录页面，使用默认的 HTTP 响应状态码 302：
 
 ```astro title="src/pages/account.astro" {8}
 ---
@@ -1686,7 +1690,37 @@ import { Code } from 'astro:components';
 </p>
 ```
 
-该组件在构建时为代码块提供语法高亮（不包括客户端 JavaScript）。该组件由 Shiki 驱动，它支持所有流行的[主题](https://shiki.style/themes)和[语言](https://shiki.style/languages)。另外，你可以通过给 `theme` 和 `lang` 传递自定义主题和语言分别添加它们。
+该组件在构建时为代码块提供语法高亮（不包括客户端 JavaScript）。该组件由 Shiki 驱动，它支持所有流行的[主题](https://shiki.style/themes)和[语言](https://shiki.style/languages)。另外，你可以通过给 `theme`、`lang` 和 `transformers` 传递自定义主题、语言和[转换器](#转换器)并分别添加它们。
+
+#### 转换器
+
+
+<p><Since v="4.11.0" /></p>
+
+[Shiki 转换器](https://shiki.tmrs.site/packages/transformers#shikijs-transformers) 可以通过将其作为数组传递到 `transformers` 属性中，来选择性地应用于代码。
+
+注意，`transformers` 只能用于类，同时你必须提供自己的 CSS 规则来针对代码块的元素。
+
+```astro
+---
+import { transformerNotationFocus } from '@shikijs/transformers'
+import { Code } from 'astro:components'
+const code = `const foo = 'hello'
+const bar = ' world'
+console.log(foo + bar) // [!code focus]
+`
+---
+<Code
+  code={code}
+  lang="js"
+  transformers={[transformerNotationFocus()]} />
+  
+  <style is:global>
+    pre.has-focused .line:not(.focused) {
+      filter: blur(1px);
+    }
+  </style>
+```
 
 ### `<Fragment />`
 
