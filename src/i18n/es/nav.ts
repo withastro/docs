@@ -1,7 +1,7 @@
 import { NavDictionary } from '../translation-checkers';
 
 export default NavDictionary({
-	'welcomeWorld': '¡Hola, Mundo!',
+	'welcomeWorld': '¡Hola Mundo!',
 	'getting-started': 'Cómo Empezar',
 	'install-and-setup': 'Instalación y Configuración',
 	'guides/deploy': 'Despliega tu Aplicación',
@@ -16,7 +16,7 @@ export default NavDictionary({
 	'basics/project-structure': 'Estructura del proyecto',
 	'basics/astro-components': 'Componentes',
 	'basics/astro-pages': 'Páginas',
-	'basics/layouts': 'Esquema',
+	'basics/layouts': 'Esquemas',
 	'basics/astro-syntax': 'Sintaxis de Plantilla de Astro',
 	'basics/rendering-modes': 'Modos de Renderizado',
 	'guides/imports': 'Importaciones',
@@ -31,8 +31,8 @@ export default NavDictionary({
 	'guides/view-transitions': 'Transiciones de vista',
 	'routes': 'Rutas y Navegación',
 	'guides/routing': 'Enrutamiento',
-	'guides/endpoints': 'EndPoints',
-	'guides/prefetch': 'Prefetch',
+	'guides/endpoints': 'Endpoints',
+	'guides/prefetch': 'Precarga',
 	'guides/middleware': 'Middleware',
 	'guides/internationalization': 'Internacionalización',
 
@@ -60,10 +60,10 @@ export default NavDictionary({
 
 	'reference': 'Referencia',
 	'reference/configuration-reference': 'Configuración',
-	'reference/api-reference': 'API de tiempo de Ejecución de Astro',
+	'reference/api-reference': 'API de Tiempo de Ejecución de Astro',
 	'reference/cli-reference': 'CLI de Astro',
 	'reference/directives-reference': 'Referencia de Directivas',
-	'guides/typescript': 'Referencia de Typescript',
+	'guides/typescript': 'Referencia de TypeScript',
 	'reference/error-reference': 'Referencia de Errores',
 
 	'dev': 'Otras APIs de Desarrollo',
