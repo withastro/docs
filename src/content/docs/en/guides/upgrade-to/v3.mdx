@@ -68,8 +68,8 @@ export default defineConfig({
 
 These features are now available by default:
 
-- View Transitions for animated page transitions and persistent islands. See [view transitions API breaking changes and upgrading advice](/en/guides/view-transitions/#upgrade-to-v30-from-v2x) if you were using this experimental flag.
-- A new image services API `astro:assets` for using images in Astro, including a new `<Image />` component and `getImage()` function. Please read the detailed [image upgrade advice](/en/guides/images/#upgrade-to-v30-from-v2x) **whether or not you were using this experimental flag** to see how this might affect your project.
+- View Transitions for animated page transitions and persistent islands. See [view transitions API breaking changes and upgrading advice](#upgrade-view-transitions-to-v3) if you were using this experimental flag.
+- A new image services API `astro:assets` for using images in Astro, including a new `<Image />` component and `getImage()` function. Please read the detailed [image upgrade advice](#upgrade-images-to-v3) **whether or not you were using this experimental flag** to see how this might affect your project.
 
 Read more about these two exciting features and more in [the 3.0 Blog post](https://astro.build/blog/astro-3/)!
 
@@ -129,9 +129,9 @@ Astro v3.0 removes this integration from the codebase entirely. Astro's new solu
 
 Remove the `@astrojs/image` integration from your project. You will need to not only uninstall the integration but also update or remove any import statements and existing `<Image />` and `<Picture />` components. You might also need to configure a preferred default image processing service.
 
-You will find [complete, step-by-step instructions for removing the old image integration](/en/guides/images/#remove-astrojsimage) in our Images guide.
+You will find [complete, step-by-step instructions for removing the old image integration](#remove-astrojsimage) in our Images guide.
 
-Migrating to `astro:assets` will also bring some new image options and features that you may now wish to use. Please see the full [v3.0 Image Upgrade Advice](/en/guides/images/#upgrade-to-v30-from-v2x) for full details!
+Migrating to `astro:assets` will also bring some new image options and features that you may now wish to use. Please see the full [v3.0 Image Upgrade Advice](#upgrade-images-to-v3) for full details!
 
 ```js del={3,7}
 // astro.config.mjs
@@ -196,7 +196,7 @@ Astro v3.0 removes this export entirely.
 
 #### What should I do?
 
-If you are using the deprecated `image()` from `astro:content`, remove it as this no longer exists. Validate images through [the `image` helper from `schema`](/en/guides/images/#update-content-collections-schemas) instead:
+If you are using the deprecated `image()` from `astro:content`, remove it as this no longer exists. Validate images through [the `image` helper from `schema`](#update-content-collections-schemas) instead:
 
  ```ts title="src/content/config.ts" del={1} ins={2} "({ image })"
 import { defineCollection, z, image } from "astro:content";
@@ -554,9 +554,9 @@ Rename all functions to their uppercase equivalent:
 - `all` to `ALL`
 - `del` to `DELETE`
 
-```js title="endpoint.ts" del={1} ins={2}
-export function get() {
-export function GET() {
+```diff lang="js" title="endpoint.ts"
+-export function get() {
++export function GET() {
     return new Response(JSON.stringify({ "title": "Bob's blog" }));
 }
 ```
@@ -668,6 +668,326 @@ const result = await transform(source, {
   // ...
 });
 ```
+
+## Feature Upgrades
+
+### Upgrade images to v3
+
+`astro:assets` is no longer behind an experimental flag in Astro v3.0.
+
+`<Image />` is now a built-in component and the previous `@astrojs/image` integration has been removed.
+
+These and other accompanying changes to using images in Astro may cause some breaking changes when you upgrade your Astro project from an earlier version.
+
+Please follow the instructions below as appropriate to upgrade an Astro v2.x project to v3.0.
+
+#### Upgrade from `experimental.assets`
+
+If you had previously enabled the experimental flag for `astro:assets`, you will need to update your project for Astro v3.0 which now includes assets features by default.
+
+##### Remove `experimental.assets` flag
+
+Remove the experimental flag:
+
+```js title="astro.config.mjs" del={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    assets: true
+  }
+});
+```
+
+If necessary, also update your `src/env.d.ts` file to replace the `astro/client-image` reference with `astro/client`:
+
+```ts title="src/env.d.ts" del={1} ins={2}
+/// <reference types="astro/client-image" />
+/// <reference types="astro/client" />
+```
+
+##### Remove the `~/assets` import alias
+
+This import alias is no longer included by default with `astro:assets`. If you were using this alias with experimental assets, you must convert them to relative file paths, or [create your own import aliases](/en/guides/imports/#aliases).
+
+```astro title="src/pages/posts/post-1.astro" del={2} ins={3}
+---
+import rocket from '~/assets/rocket.png';
+import rocket from '../../assets/rocket.png';
+---
+```
+
+##### Add simple asset support for Cloudflare, Deno, Vercel Edge and Netlify Edge
+
+ Astro v3.0 allows `astro:assets` to work without errors in Cloudflare, Deno, Vercel Edge and Netlify Edge, which do not support Astro's built-in Squoosh and Sharp image optimization. Note that Astro does not perform any image transformation and processing in these environments. However, you can still enjoy the other benefits of using `astro:assets`, including no Cumulative Layout Shift (CLS), the enforced `alt` attribute, and a consistent authoring experience.
+
+ If you previously avoided using `astro:assets` because of these constraints, you can now use them without issues. You can configure the no-op image service to explicitly opt-in to this behavior:
+
+```js title="astro.config.mjs" ins={4-8}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  image: {
+    service: {
+      entrypoint: 'astro/assets/services/noop'
+    }
+  }
+});
+```
+
+#### Decide where to store your images
+
+See the Images guide to help you decide [where to store your images](/en/guides/images/#where-to-store-images). You may wish to take advantage of new options for storing your images with the added flexibility `astro:assets` brings. For example, relative images from your project `src/` can now be referenced in Markdown, MDX, and Markdoc using standard Markdown `![alt](src)` syntax.
+
+#### Update existing `<img>` tags
+
+Previously, importing an image would return a simple `string` with the path of the image. Now, imported image assets match the following signature:
+
+```ts
+interface ImageMetadata {
+  src: string;
+  width: number;
+  height: number;
+  format: string;
+}
+```
+
+You must update the `src` attribute of any existing `<img>` tags (including any [images in UI framework components](/en/guides/images/#images-in-ui-framework-components)) and you may also update other attributes that are now available to you from the imported image.
+
+```astro title="src/components/MyComponent.astro" ".src" ".width" ".height" del={4} ins={6}
+---
+import rocket from '../images/rocket.svg';
+---
+<img src={rocket} width="250" height="250" alt="A rocketship in space." />
+
+<img src={rocket.src} width={rocket.width} height={rocket.height} alt="A rocketship in space." />
+```
+
+#### Update your Markdown, MDX, and Markdoc files
+
+Relative images from your project `src/` can now be referenced in Markdown, MDX, and Markdoc using standard Markdown `![alt](src)` syntax.
+
+This allows you to move your images from the `public/` directory to your project `src/` where they will now be processed and optimized. Your existing images in `public/` and remote images are still valid but are not optimized by Astro's build process.
+
+```md title="src/pages/posts/post-1.md" "/_astro" ".hash" "../../assets/"
+# My Markdown Page
+
+<!-- Local images now possible! -->
+![A starry night sky.](../../images/stars.png)
+
+<!-- Keep your images next to your content! -->
+![A starry night sky.](./stars.png)
+```
+
+If you require more control over your image attributes, we recommend using the `.mdx` file format, which allows you to include Astro's `<Image />` component or a JSX `<img />` tag in addition to the Markdown syntax. Use the [MDX integration](/en/guides/integrations-guide/mdx/) to add support for MDX to Astro.
+
+#### Remove `@astrojs/image`
+
+
+If you were using the image integration in Astro v2.x, complete the following steps:
+
+<Steps>
+1. Remove the `@astrojs/image` integration.
+
+    You must [remove the integration](/en/guides/integrations-guide/#removing-an-integration) by uninstalling and then removing it from your `astro.config.mjs` file.
+
+    ```js del={3,7}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import image from '@astrojs/image';
+
+    export default defineConfig({
+      integrations: [
+        image(),
+      ]
+    })
+    ```
+
+2. Update types (if required).
+
+		If you had special types configured for `@astrojs/image` in `src/env.d.ts`, you may need to change them back to the default Astro types if your upgrade to v3 did not complete this step for you.
+
+		```ts title="src/env.d.ts" del={1} ins={2}
+		 /// <reference types="@astrojs/image/client" />
+		 /// <reference types="astro/client" />
+		```
+
+		Similarly, update `tsconfig.json` if necessary:
+
+		```json title="tsconfig.json" del={3} ins={4}
+		{
+			"compilerOptions": {
+			  "types": ["@astrojs/image/client"]
+			  "types": ["astro/client"]
+			}
+		}
+		```
+
+3. Migrate any existing `<Image />` components.
+
+    Change all `import` statements from `@astrojs/image/components` to `astro:assets` in order to use the new built-in `<Image />` component.
+
+    Remove any component attributes that are not [currently supported image asset properties](/en/guides/images/#properties).
+
+    For example, `aspectRatio` is no longer supported, as it is now automatically inferred from the `width` and `height` attributes.
+
+      ```astro title="src/components/MyComponent.astro" del= {2,11} ins={3}
+      ---
+      import { Image } from '@astrojs/image/components';
+      import { Image } from 'astro:assets';
+      import localImage from '../assets/logo.png';
+      const localAlt = 'The Astro Logo';
+      ---
+
+      <Image
+        src={localImage}
+        width={300}
+        aspectRatio="16:9"
+        alt={localAlt}
+      />
+      ```
+
+4. Choose a default image service.
+
+    [Sharp](https://github.com/lovell/sharp) is now the default image service used for `astro:assets`. If you would like to use Sharp, no configuration is required.
+
+    If you would prefer to use [Squoosh](https://github.com/GoogleChromeLabs/squoosh) to transform your images, update your config with the following `image.service` option:
+
+    ```js title="astro.config.mjs" ins={4-6}
+    import { defineConfig, squooshImageService } from 'astro/config';
+
+    export default defineConfig({
+      image: {
+        service: squooshImageService(),
+      },
+    });
+    ```
+</Steps>
+
+#### Update Content Collections schemas
+
+You can now declare an associated image for a content collections entry, such as a blog post's cover image, in your frontmatter using its path relative to the current folder.
+
+The new `image` helper for content collections lets you validate the image metadata using Zod. Learn more about [how to use images in content collections](/en/guides/images/#images-in-content-collections)
+
+#### Navigating Image Imports in Astro v3.0
+
+In Astro v3.0, if you have to preserve the old import behavior for images and require a string representation of the image's URL, append `?url` to the end of your image path when importing it. For example:
+
+```astro title="src/pages/blog/MyImages.astro"
+---
+import Sprite from '../assets/logo.svg?url';
+---
+
+<svg>
+  <use xlink:href={Sprite + '#cart'} />
+</svg>
+```
+
+This approach ensures you obtain the URL string. Keep in mind that during development, Astro uses a `src/` path, but upon building, it generates hashed paths like `/_astro/cat.a6737dd3.png`.
+
+If you prefer to work directly with the image object itself, you can access the `.src` property. This approach is best for tasks like managing image dimensions for Core Web Vitals metrics and preventing CLS.
+
+If you are transitioning into the new import behavior, combining `?url` and `.src` methods might be the right method for seamless image handling.
+
+
+### Upgrade view transitions to v3
+
+View transitions are no longer behind an experimental flag in Astro v3.0.
+
+If you had **not** enabled this experimental flag in Astro 2.x, this will not cause any breaking changes to your project. The new View Transitions API has no effect on your existing code.
+
+If you were previously using experimental view transitions, there may be some breaking changes when you upgrade your Astro project from an earlier version.
+
+Please follow the instructions below as appropriate to upgrade **an Astro v2.x project configured with `experimental.viewTransitions: true`**  to v3.0.
+
+#### Upgrade from `experimental.viewTransitions`
+
+If you had previously enabled the experimental flag for view transitions, you will need to update your project for Astro v3.0 which now allows view transitions by default.
+
+##### Remove `experimental.viewTransitions` flag
+
+Remove the experimental flag:
+
+```js title="astro.config.mjs" del={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+   viewTransitions: true
+  }
+});
+```
+
+##### Update import source
+
+The `<ViewTransitions />` component has been moved from `astro:components` to `astro:transitions`. Update the import source across all occurrences in your project.
+
+```astro title="src/layouts/BaseLayout.astro" del="astro:components" ins="astro:transitions"
+---
+import { ViewTransitions } from "astro:components astro:transitions"
+---
+<html lang="en">
+  <head>
+    <title>My Homepage</title>
+    <ViewTransitions />
+  </head>
+  <body>
+    <h1>Welcome to my website!</h1>
+  </body>
+</html>
+```
+
+#### Update `transition:animate` directives
+
+**Changed:** The `transition:animate` value `morph` has been renamed to `initial`. Also, this is no longer the default animation. If no `transition:animate` directive is specified, your animations will now default to `fade`.
+
+1. Rename any `morph` animations to `initial`.
+    ```astro title="src/components/MyComponent.astro" del="morph" ins="initial"
+    <div transition:name="name" transition:animate="morph initial" />
+    ```
+2. To keep any animations that were previously using `morph` by default, explicitly add `transition:animate="initial"`
+
+    ```astro title="src/components/MyComponent.astro" ins='transition:animate="initial"'
+    <div transition:name="name" transition:animate="initial" />
+    ```
+3. You can safely remove any animations explicitly set to `fade`. This is now the default behavior:
+
+    ```astro title="src/components/MyComponent.astro" del="transition:animate=\"fade\""
+    <div transition:name="name" transition:animate="fade" />
+    ```
+
+**Added:** Astro also supports a new `transition:animate` value, `none`. This value can be used on a page's `<html>` element to disable animated full-page transitions on an entire page. This will only override **default animation behavior** on page elements without an animation directive. You can still set animations on individual elements, and these specific animations will occur.
+
+4. You may now disable all default transitions on an individual page, animating only elements that explicitly use a `transition:animate` directive: 
+
+    ```astro ins="transition:animate=\"none\""
+    <html transition:animate="none">
+      <head></head>
+      <body>
+        <h1>Hello world!</h1>
+      </body>
+    </html>
+    ```
+
+##### Update event names
+
+The event `astro:load` has been renamed to `astro:page-load`. Rename all occurrences in your project.
+
+```astro title="src/components/MyComponent.astro" del="astro:load" ins="astro:page-load"
+<script>
+document.addEventListener('astro:load astro:page-load', runSetupLogic);
+</script>
+```
+
+The event `astro:beforeload` has been renamed to `astro:after-swap`. Rename all occurrences in your project.
+
+```astro title="src/components/MyComponent.astro" del="astro:beforeload" ins="astro:after-swap"
+<script>
+document.addEventListener('astro:beforeload astro:after-swap', setDarkMode);
+</script>
+```
+
 
 ## Community Resources
 
