@@ -204,28 +204,16 @@ export default defineConfig({
 });
 ```
 
-### `wasmModuleImports`
+### `cloudflareModules`
 
 <p>
   **Type :** `true | false`<br />
-  **Par défaut :** `false`
+  **Par défaut :** `true`
 </p>
 
-Importer ou non les fichiers `.wasm` directement en tant que [modules ES](https://github.com/WebAssembly/esm-integration/tree/main/proposals/esm-integration).
+Active [les importations des modules `.wasm`, `.bin`, et `.txt`](#cloudflaremodules).
 
-Ajouter `wasmModuleImports: true` à `astro.config.mjs` pour l'activer à la fois dans la version Cloudflare et dans le serveur de développement Astro. En savoir plus sur l'[utilisation des modules Wasm](#utilisation-des-modules-wasm).
-
-```js title="astro.config.mjs" ins={6}
-import {defineConfig} from "astro/config";
-import cloudflare from '@astrojs/cloudflare';
-
-export default defineConfig({
-  adapter: cloudflare({
-     wasmModuleImports: true
-  }),
-  output: 'server'
-})
-```
+Cette fonctionnalité est activée par défaut. Si vous souhaitez la désactiver, définissez `cloudflareModules : false`.
 
 ## Cloudflare runtime
 
@@ -337,14 +325,24 @@ Vous pouvez [spécifier des modèles de routage supplémentaires à suivre](#rou
 
 La création d'un `public/_routes.json` personnalisé annulera la génération automatique. Voir [la documentation de Cloudflare sur la création d'un `_routes.json` personnalisé](https://developers.cloudflare.com/pages/platform/functions/routing/#create-a-_routesjson-file) pour plus de détails.
 
-## Utilisation des modules Wasm
+
+## Importations de modules Cloudflare
+
+Le moteur d'exécution cloudflare worker prend en charge les importations de certains [types de modules non standard](https://developers.cloudflare.com/pages/functions/module-support/). La plupart des types de fichiers supplémentaires sont également disponibles dans astro :
+
+- `.wasm` ou `.wasm?module` : exporte un [`WebAssembly.Module`](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Module) qui peut ensuite être instancié.
+- `.bin` : exporte un [`ArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer) du contenu binaire brut du fichier
+- `.txt` : Exporte une chaîne de caractères du contenu du fichier
+
+Tous les types de modules exportent une seule valeur par défaut. Les modules peuvent être importés à partir de pages affichées côté serveur ou de pages pré-rendues pour la génération de sites statiques.
 
 Voici un exemple d'importation d'un module Wasm qui répond aux requêtes en additionnant les paramètres numériques de la requête.
 
 ```js title="pages/add/[a]/[b].js"
-import mod from '../util/add.wasm?module';
+// Importer le module WebAssembly
+import mod from '../util/add.wasm';
 
-// instanciation à l'avance pour partager le module
+// Instancier d'abord pour l'utiliser
 const addModule: any = new WebAssembly.Instance(mod);
 
 export async function GET(context) {
@@ -354,7 +352,7 @@ export async function GET(context) {
 }
 ```
 
-Bien que cet exemple soit trivial, Wasm peut être utilisé pour accélérer des opérations de calcul intensif qui n'impliquent pas d'E/S importantes, comme l'intégration d'une bibliothèque de traitement d'images.
+Bien que cet exemple soit trivial, Wasm peut être utilisé pour accélérer des opérations de calcul intensif qui n'impliquent pas d'E/S importantes, comme l'intégration d'une bibliothèque de traitement d'images, ou l'intégration d'une petite base de données pré-indexée pour la recherche sur un ensemble de données en lecture seule.
 
 ## Compatibilité Node.js
 
