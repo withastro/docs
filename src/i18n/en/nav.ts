@@ -146,7 +146,11 @@ export default [
 		slug: 'community-resources/talks',
 		key: 'community-resources/talks',
 	},
-
+	{
+		text: 'Questions and Answers',
+		slug: 'community-resources/questions',
+		key: 'community-resources/questions',
+	},
 	// { text: 'Configuration', header: true, type: 'learn', key: 'configuration' },
 	// {
 	// 	text: 'The Astro Config File',
