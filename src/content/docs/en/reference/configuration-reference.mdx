@@ -327,8 +327,12 @@ The value can be either an absolute file system path or a path relative to the p
 **Default:** `true`
 </p>
 
-This is an option to minify your HTML output and reduce the size of your HTML files. By default, Astro removes all whitespace from your HTML, including line breaks, from `.astro` components. This occurs both in development mode and in the final build.
-To disable HTML compression, set the `compressHTML` flag to `false`.
+This is an option to minify your HTML output and reduce the size of your HTML files.
+
+By default, Astro removes whitespace from your HTML, including line breaks, from `.astro` components in a lossless manner.
+Some whitespace may be kept as needed to preserve the visual rendering of your HTML. This occurs both in development mode and in the final build.
+
+To disable HTML compression, set `compressHTML` to false.
 
 ```js
 {
@@ -973,7 +977,7 @@ Pass [remark plugins](https://github.com/remarkjs/remark) to customize how your 
 import remarkToc from 'remark-toc';
 {
   markdown: {
-    remarkPlugins: [remarkToc]
+    remarkPlugins: [ [remarkToc, { heading: "contents"} ] ]
   }
 }
 ```
@@ -1547,17 +1551,17 @@ The `astro:env` API lets you configure a type-safe schema for your environment v
 
 ```astro
 ---
-import { PUBLIC_APP_ID } from "astro:env/client"
-import { PUBLIC_API_URL, getSecret } from "astro:env/server"
-const API_TOKEN = getSecret("API_TOKEN")
+import { APP_ID } from "astro:env/client"
+import { API_URL, API_TOKEN, getSecret } from "astro:env/server"
+const NODE_ENV = getSecret("NODE_ENV")
 
-const data = await fetch(`${PUBLIC_API_URL}/users`, {
+const data = await fetch(`${API_URL}/users`, {
 	method: "POST",
 	headers: {
 		"Content-Type": "application/json",
 		"Authorization": `Bearer ${API_TOKEN}`
 	},
-	body: JSON.stringify({ appId: PUBLIC_APP_ID })
+	body: JSON.stringify({ appId: APP_ID, nodeEnv: NODE_ENV })
 })
 ---
 ```
@@ -1572,8 +1576,8 @@ export default defineConfig({
     experimental: {
         env: {
             schema: {
-                PUBLIC_API_URL: envField.string({ context: "client", access: "public", optional: true }),
-                PUBLIC_PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+                API_URL: envField.string({ context: "client", access: "public", optional: true }),
+                PORT: envField.number({ context: "server", access: "public", default: 4321 }),
                 API_SECRET: envField.string({ context: "server", access: "secret" }),
             }
         }
@@ -1581,28 +1585,27 @@ export default defineConfig({
 })
 ```
 
-There are currently three data types supported: strings, numbers and booleans.
+There are currently four data types supported: strings, numbers, booleans and enums.
 
 There are three kinds of environment variables, determined by the combination of `context` (client or server) and `access` (secret or public) settings defined in your [`env.schema`](#experimentalenvschema):
 
 - **Public client variables**: These variables end up in both your final client and server bundles, and can be accessed from both client and server through the `astro:env/client` module:
 
     ```js
-    import { PUBLIC_API_URL } from "astro:env/client"
+    import { API_URL } from "astro:env/client"
     ```
 
 - **Public server variables**: These variables end up in your final server bundle and can be accessed on the server through the `astro:env/server` module:
 
     ```js
-    import { PUBLIC_PORT } from "astro:env/server"
+    import { PORT } from "astro:env/server"
     ```
 
-- **Secret server variables**: These variables are not part of your final bundle and can be accessed on the server through the `getSecret()` helper function available from the `astro:env/server` module:
+- **Secret server variables**: These variables are not part of your final bundle and can be accessed on the server through the `astro:env/server` module. The `getSecret()` helper function can be used to retrieve secrets not specified in the schema:
 
     ```js
-    import { getSecret } from "astro:env/server"
+    import { API_SECRET, getSecret } from "astro:env/server"
 
-    const API_SECRET = getSecret("API_SECRET") // typed
     const SECRET_NOT_IN_SCHEMA = getSecret("SECRET_NOT_IN_SCHEMA") // string | undefined
     ```
 
@@ -1628,8 +1631,8 @@ export default defineConfig({
   experimental: {
     env: {
       schema: {
-        PUBLIC_API_URL: envField.string({ context: "client", access: "public", optional: true }),
-        PUBLIC_PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+        API_URL: envField.string({ context: "client", access: "public", optional: true }),
+        PORT: envField.number({ context: "server", access: "public", default: 4321 }),
         API_SECRET: envField.string({ context: "server", access: "secret" }),
       }
     }
