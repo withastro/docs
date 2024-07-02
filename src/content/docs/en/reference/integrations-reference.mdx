@@ -21,41 +21,43 @@ The official Astro integrations can act as reference for you as you go to build 
 ```ts
 interface AstroIntegration {
   name: string;
-  hooks: {
-    'astro:config:setup'?: (options: {
-      config: AstroConfig;
-      command: 'dev' | 'build' | 'preview';
-      isRestart: boolean;
-      updateConfig: (newConfig: DeepPartial<AstroConfig>) => AstroConfig;
-      addRenderer: (renderer: AstroRenderer) => void;
-      addWatchFile: (path: URL | string) => void;
-      addClientDirective: (directive: ClientDirectiveConfig) => void;
-      addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
-      addDevToolbarApp: (pluginEntrypoint: string) => void;
-      injectScript: (stage: InjectedScriptStage, content: string) => void;
-      injectRoute: ({ pattern: string, entrypoint: string }) => void;
+  hooks: AstroIntegrationHooks;
+};
+
+interface AstroIntegrationHooks {
+  'astro:config:setup'?: (options: {
+    config: AstroConfig;
+    command: 'dev' | 'build' | 'preview';
+    isRestart: boolean;
+    updateConfig: (newConfig: DeepPartial<AstroConfig>) => AstroConfig;
+    addRenderer: (renderer: AstroRenderer) => void;
+    addWatchFile: (path: URL | string) => void;
+    addClientDirective: (directive: ClientDirectiveConfig) => void;
+    addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
+    addDevToolbarApp: (pluginEntrypoint: string) => void;
+    injectScript: (stage: InjectedScriptStage, content: string) => void;
+    injectRoute: ({ pattern: string, entrypoint: string }) => void;
+    logger: AstroIntegrationLogger;
+  }) => void | Promise<void>;
+  'astro:config:done'?: (options: { config: AstroConfig; setAdapter: (adapter: AstroAdapter) => void; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+  'astro:server:setup'?: (options: { server: vite.ViteDevServer; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+  'astro:server:start'?: (options: { address: AddressInfo; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+  'astro:server:done'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
+  'astro:build:start'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
+  'astro:build:setup'?: (options: {
+    vite: ViteConfigWithSSR;
+    pages: Map<string, PageBuildData>;
+    target: 'client' | 'server';
+    logger: AstroIntegrationLogger;
+  }) => void | Promise<void>;
+  'astro:build:generated'?: (options: { dir: URL; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+  'astro:build:ssr'?: (options: {
+      manifest: SerializedSSRManifest;
+      entryPoints: Map<RouteData, URL>;
       logger: AstroIntegrationLogger;
-    }) => void | Promise<void>;
-    'astro:config:done'?: (options: { config: AstroConfig; setAdapter: (adapter: AstroAdapter) => void; logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:server:setup'?: (options: { server: vite.ViteDevServer; logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:server:start'?: (options: { address: AddressInfo; logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:server:done'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:build:start'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:build:setup'?: (options: {
-      vite: ViteConfigWithSSR;
-      pages: Map<string, PageBuildData>;
-      target: 'client' | 'server';
-      logger: AstroIntegrationLogger;
-    }) => void | Promise<void>;
-    'astro:build:generated'?: (options: { dir: URL; logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:build:ssr'?: (options: {
-        manifest: SerializedSSRManifest;
-        entryPoints: Map<RouteData, URL>;
-        logger: AstroIntegrationLogger;
-    }) => void | Promise<void>;
-    'astro:build:done'?: (options: { dir: URL; routes: RouteData[]; logger: AstroIntegrationLogger; }) => void | Promise<void>;
-  };
-}
+  }) => void | Promise<void>;
+  'astro:build:done'?: (options: { dir: URL; routes: RouteData[]; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+};
 ```
 
 ## Hooks
@@ -179,18 +181,21 @@ export default defineConfig({
 ```
 
 ```js title="astro-click-directive/register.js"
-/**
- * @type {() => import('astro').AstroIntegration}
- */
-export default () => ({
+import { defineIntegration } from "astro/integration";
+
+export default defineIntegration({
   name: "client:click",
-  hooks: {
-    "astro:config:setup": ({ addClientDirective }) => {
-      addClientDirective({
-        name: "click",
-        entrypoint: "./astro-click-directive/click.js",
-      });
-    },
+  setup() {
+    return {
+      hooks: {
+        "astro:config:setup": ({ addClientDirective }) => {
+          addClientDirective({
+            name: "click",
+            entrypoint: "./astro-click-directive/click.js",
+          });
+        },
+      },
+    };
   },
 });
 ```
@@ -242,17 +247,20 @@ export default defineConfig({
 ```
 
 ```js title="astro-dev-toolbar-app/integration.js"
-/**
- * @type {() => import('astro').AstroIntegration}
- */
-export default () => ({
+import { defineIntegration } from "astro/integration";
+
+export default defineIntegration({
   name: "dev-toolbar-app",
-  hooks: {
-    "astro:config:setup": ({ addDevToolbarApp }) => {
-      addDevToolbarApp("./astro-dev-toolbar-app/plugin.js");
-    },
+  setup() {
+    return {
+      hooks: {
+        "astro:config:setup": ({ addDevToolbarApp }) => {
+          addDevToolbarApp("./astro-dev-toolbar-app/plugin.js");
+        },
+      },
+    };
   },
-});
+})
 ```
 
 ```js title="astro-dev-toolbar-app/plugin.js"
@@ -278,18 +286,21 @@ export default {
 Adds [middleware](/en/guides/middleware/) to run on each request. Takes the `entrypoint` module that contains the middleware, and an `order` to specify whether it should run before (`pre`) other middleware or after (`post`).
 
 ```js title="@my-package/integration.js"
-/**
- * @type {() => import('astro').AstroIntegration}
- */
-export default () => ({
+import { defineIntegration } from "astro/integration";
+
+export default defineIntegration({
   name: "my-middleware-package",
-  hooks: {
-    "astro:config:setup": ({ addMiddleware }) => {
-        addMiddleware({
-          entrypoint: '@my-package/middleware',
-          order: 'pre'
-        });
-    },
+  setup() {
+    return {
+      hooks: {
+        "astro:config:setup": ({ addMiddleware }) => {
+            addMiddleware({
+              entrypoint: '@my-package/middleware',
+              order: 'pre'
+            });
+        },
+      },
+    };
   },
 });
 ```
@@ -613,6 +624,129 @@ A list of all generated pages. It is an object with one property.
 
 - `pathname` - the finalized path of the page.
 
+## Helpers
+
+### `defineIntegration`
+
+The `defineIntegration` helper allows defining an integration in a type-safe way and optionally validate options.
+
+```ts
+import { defineIntegration } from "astro/integration";
+
+const integration = defineIntegration({
+  name: "my-integration",
+  setup({ name }) {
+    return {
+      hooks: {
+        "astro:config:setup": ({ logger }) => {
+          logger(`Hi from ${name}!`)
+        }
+      }
+    }
+  },
+})
+```
+
+#### Handling options and defaults
+
+The helper accepts an optional `optionsSchema` argument that is a zod schema.
+
+```ts title="my-integration/index.ts" ins={2,6-13}
+import { defineIntegration } from "astro/integration";
+import { z } from "astro/zod";
+
+export default defineIntegration({
+  // ...
+  optionsSchema: z.object({
+    /**
+     * A comment
+     *
+     * @default `"bar"`
+     */
+    foo: z.string().optional().default("bar"),
+  }),
+})
+```
+
+#### Add logic with `setup`
+
+If you've written an integration before by returning an `AstroIntegration` from a function, it's exactly the same with `setup`! This is where all the logic lives:
+
+```ts title="my-integration/index.ts" ins={5-7}
+import { defineIntegration } from "astro/integration";
+
+export default defineIntegration({
+  // ...
+  setup() {
+    return { hooks: {} };
+  },
+})
+```
+It accepts an object with data from the integration definition:
+
+```ts title="my-integration/index.ts" "{ options, name }"
+import { defineIntegration } from "astro/integration";
+
+export default defineIntegration({
+  // ...
+  setup({ options, name }) {
+    return { hooks: {} };
+  },
+})
+```
+
+In setup, you'll want to add any logic that is shared between any hook, for example saving the `config` from `astro:config:done` to be used in later hooks. It needs to return Astro hooks.
+
+#### Defining extra integration fields
+
+Any extra property present on the return of `setup` will be present on the integration object returned by initializing the integration with the options.
+
+You can use this to define fields you might want to access from outside your integration while having access to it's internal state.
+
+```ts title="my-integration.ts" ins={13-20}
+import { defineIntegration } from "astro/integration";
+
+export default defineIntegration({
+  // ...
+  setup() {
+    let counter = 0;
+    return {
+      hooks: {
+        "astro:config:setup": ({ logger }) => {
+          logger.info(`Counter: ${counter++}`);
+        },
+      },
+      api: {
+        get counter() {
+          return counter;
+        },
+        increment() {
+          counter++;
+        },
+      },
+    };
+  },
+});
+```
+
+```ts
+import { defineConfig } from "astro/config";
+import myIntegration from "./my-integration";
+
+const integration = myIntegration();
+
+console.log(myIntegration.api.counter); // 0
+
+myIntegration.api.increment();
+
+console.log(myIntegration.api.counter); // 1
+
+export default defineConfig({
+  // Will log "Counter: 1" during setup
+  integrations: [myIntegration],
+});
+```
+
 ## Allow installation with `astro add`
 
 [The `astro add` command](/en/reference/cli-reference/#astro-add) allows users to easily add integrations and adapters to their project. If you want _your_ integration to be installable with this tool, **add `astro-integration` to the `keywords` field in your `package.json`**:
@@ -653,19 +787,22 @@ configured via CLI.
 
 All the messages are prepended with a label that has the same value of the integration.
 
-```ts title="integration.ts" {8}
-import type { AstroIntegration } from "astro";
-export function formatIntegration(): AstroIntegration {
+```ts title="integration.ts" {10}
+import { defineIntegration } from "astro/integration";
+
+export default defineIntegration({
+  name: "astro-format",
+  setup() {
     return {
-        name: "astro-format",
-        hooks: {
-            "astro:build:done": ({ logger }) => {
-                // do something
-                logger.info("Integration ready.");
-            }
-        }
-    }
-}
+      hooks: {
+          "astro:build:done": ({ logger }) => {
+              // do something
+              logger.info("Integration ready.");
+          }
+      }
+    };
+  },
+})
 ```
 
 The example above will log a message that includes the provided `info` message:
@@ -677,23 +814,26 @@ The example above will log a message that includes the provided `info` message:
 To log some messages with a different label, use the `.fork` method to specify an alternative to the default `name`:
 
 ```ts title="integration.ts" ".fork"
-import type { AstroIntegration } from "astro";
-export function formatIntegration(): AstroIntegration {
+import { defineIntegration } from "astro/integration";
+
+export default defineIntegration({
+  name: "astro-format",
+  setup({ name }) {
     return {
-        name: "astro-format",
-        hooks: {
-            "astro:config:done": ({ logger }) => {
-                // do something
-                logger.info("Integration ready.");
-            },
-            "astro:build:done": ({ logger }) => {
-                const buildLogger = logger.fork("astro-format/build");
-                // do something
-                buildLogger.info("Build finished.")
-            }
-        }
-    }
-}
+      hooks: {
+          "astro:config:done": ({ logger }) => {
+              // do something
+              logger.info("Integration ready.");
+          },
+          "astro:build:done": ({ logger }) => {
+              const buildLogger = logger.fork(`${name}/build`);
+              // do something
+              buildLogger.info("Build finished.")
+          }
+      }
+    };
+  },
+});
 ```
 
 The example above will produce logs with `[astro-format]` by default, and `[astro-format/build]` when specified:
