@@ -54,8 +54,6 @@ interface AstroIntegration {
         logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
     'astro:build:done'?: (options: { dir: URL; routes: RouteData[]; logger: AstroIntegrationLogger; }) => void | Promise<void>;
-
-    // ... other integration-defined hooks
   };
 }
 ```
@@ -615,9 +613,13 @@ A list of all generated pages. It is an object with one property.
 
 - `pathname` - the finalized path of the page.
 
-### Defining your own hooks for other integrations
+### Defining custom hooks
 
-You can extend the hooks defined for Astro integration by provide the following type augmentation along with your integration code:
+As an integration author, you can define custom hooks that your integration will call. This allows your integration to interact with other integrations. Other integrations can provide values for your custom hooks and your integration can call those at the appropriate moment in the integration lifecycle.
+
+#### Typing a custom integration hook
+
+Provide the type for your custom hook by augmenting Astro’s `IntegrationHooks` interface in a types file in your integration:
 
 ```ts
 // your-integration/types.ts
@@ -632,9 +634,9 @@ declare global {
 
 #### Calling custom hooks on other integrations
 
-Custom hooks implemented by all the integrations in use can be accessed from the `astro:config:setup` and `astro:config:done` hooks.
+Other integrations in use can be accessed from the `astro:config:setup` and `astro:config:done` hooks. Loop over these to call your custom hook on each if available:
 
-```ts
+```ts {9-11}
 // your-integration/index.ts
 import './types.ts';
 
@@ -652,9 +654,9 @@ export default (): AstroIntegration => {
 }
 ```
 
-Custom hooks don't need to be triggered inside of those hooks, they can be stored and called later:
+To call custom hooks outside of `astro:config:setup` and `astro:config:done`, store the integrations array and use it later:
 
-```ts
+```ts {5,11-12,15-18}
 // your-integration/index.ts
 import './types.ts';
 
@@ -665,11 +667,11 @@ export default (): AstroIntegration => {
     name: 'your-integration',
     hooks: {
       'astro:config:done': async ({ config }) => {
-        // Retrieve the integration from one of the hooks they are given
+        // Store the integrations when available
         integrations = config.integrations;
       },
       'astro:build:done': async () => {
-        // Calls the custom hook at a different phase of the integration
+        // Loop over the stored integrations in a later hook
         for (const integration of config.integrations) {
           await integration.hooks['myLib:eventHappened'].?('your values', 123);
         }
@@ -683,7 +685,7 @@ export default (): AstroIntegration => {
 
 Integrations can declare hooks defined by other integrations by importing their types:
 
-```ts
+```ts {2,8-10}
 // your-integration/index.ts
 import 'other-integration/types.ts';
 
