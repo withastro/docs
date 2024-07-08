@@ -54,11 +54,17 @@ interface AstroIntegration {
         logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
     'astro:build:done'?: (options: { dir: URL; routes: RouteData[]; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+
+    // ... integration-defined hooks gets added here
   };
 }
 ```
 
 ## Hooks
+
+Astro defines hooks that integrations can implement to execute during certain parts of Astro's lifecycle and to extend its functionality. The Astro hooks are defined in the `IntegrationHooks` interface, which is part of the global `Astro` namespace.
+
+The following hooks are built-in to Astro:
 
 ### `astro:config:setup`
 
@@ -613,120 +619,21 @@ A list of all generated pages. It is an object with one property.
 
 - `pathname` - the finalized path of the page.
 
-### Defining custom hooks
+### Custom hooks
 
-As an integration author, you can define custom hooks that your integration will call. This allows for runtime interactions between your integration and other integrations. Other integrations can provide implementations for your custom hooks and your integration can call those at the appropriate moment in your integration's lifecycle.
-
-#### Defining hook types
-
-Provide the type for your custom hook by augmenting Astro’s `IntegrationHooks` interface within your integration:
-
-```ts title="types.ts"
-// on an implementation file
-declare global {
-  namespace Astro {
-    interface IntegrationHooks {
-      'myLib:eventHappened': (your: string, parameters: number) => Promise<void>;
-    }
-  }
-}
-```
-
-#### Calling custom hooks
-
-Installed integrations can be accessed from the `astro:config:setup` and `astro:config:done` hooks. Loop over these to call your custom hook on each if available:
-
-```ts {7-9}
-// your-integration/index.ts
-export default (): AstroIntegration => {
-  return {
-    name: 'your-integration',
-    hooks: {
-      'astro:config:setup': async ({ config }) => {
-        for (const integration of config.integrations) {
-          await integration.hooks['myLib:eventHappened'].?('your values', 123);
-        }
-      },
-    }
-  }
-}
-```
-
-To call custom hooks outside of `astro:config:setup` and `astro:config:done`, store the integrations array and use it later. `astro:config:done` should be preferred to work with integrations that get added by other integrations during `astro:config:setup`.
-
-```ts {3,9-10,13-16}
-// your-integration/index.ts
-export default (): AstroIntegration => {
-  let integrations: AstroIntegration[] = [];
-
-  return {
-    name: 'your-integration',
-    hooks: {
-      'astro:config:done': async ({ config }) => {
-        // Store the integrations when available
-        integrations = config.integrations;
-      },
-      'astro:build:done': async () => {
-        // Loop over the stored integrations in a later hook
-        for (const integration of config.integrations) {
-          await integration.hooks['myLib:eventHappened'].?('your values', 123);
-        }
-      },
-    }
-  }
-}
-```
-
-#### Using a custom hook from another integration
-
-An integration that uses your custom hook will need to import your types file. It can then provide a value for your hook in `hooks` with type checking and editor hints.
-
-```ts {6-8}
-// other-integration/index.ts
-export default (): AstroIntegration => {
-  return {
-    name: 'other-integration',
-    hooks: {
-      'myLib:eventHappened': async (your, values) => {
-        // ...
-      },
-    }
-  }
-}
-```
-
-Make sure that your type augmentation can be loaded by other integrations; otherwise, their hook implementations won't be properly typed. The easiest way to ensure this is to either have that declaration in the same file that exports your integration or import it from that file:
-
-```ts {2-3} {5-12}
-// your-integration/index.ts
-// Import the types
-import './types.ts';
-
-// Or declare it in the same file
-declare global {
-  namespace Astro {
-    interface IntegrationHooks {
-      'myLib:eventHappened': (your: string, parameters: number) => Promise<void>;
-    }
-  }
-}
-
-export default (): AstroIntegration => {
-  return {
-    name: 'your-integration',
-    hooks: { /* ... */ }
-  }
-}
-```
-
-In either case, other integrations can load your types by importing your integration or declaring it as a reference:
+Since the `IntegrationHooks` is a global interface, custom hooks can be added to integrations by extending the `IntegrationHooks` interface through [global augmentation](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#global-augmentation).
 
 ```ts
-// other-integration/index.ts
-import yourIntegration from 'your-integration';
-// or
-/// <reference types="your-integration" />
+declare global {
+  namespace Astro {
+    export interface IntegrationHook {
+      'your:hook': (params: YourHookParameters) => Promise<void>
+    }
+  }
+}
 ```
+
+Astro reserves the `astro:` prefix for future built-in hooks, defining a hook with that prefix may break in future versions.
 
 ## Allow installation with `astro add`
 
