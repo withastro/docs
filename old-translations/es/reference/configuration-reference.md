@@ -5,7 +5,7 @@ title: Referencia de Configuración
 
 Para configurar Astro, agrega un archivo `astro.config.mjs` en la raíz de tu proyecto. Todos los ajustes son opcionales.
 
-Puedes ver la API de configuración completa (incluida la información sobre la configuración predeterminada) en [GitHub](https://github.com/withastro/astro/blob/latest/packages/astro/src/@types/config.ts).
+Puedes ver la API de configuración completa (incluida la información sobre la configuración predeterminada) en [GitHub](https://github.com/prosopo/captcha/blob/latest/packages/astro/src/@types/config.ts).
 
 ```js
 // Example: astro.config.mjs

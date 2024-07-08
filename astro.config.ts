@@ -2,14 +2,13 @@ import starlight from '@astrojs/starlight';
 import { defineConfig, sharpImageService } from 'astro/config';
 import { makeLocalesConfig } from './config/locales';
 import { makeSidebar } from './config/sidebar';
-
 import rehypeSlug from 'rehype-slug';
 import remarkSmartypants from 'remark-smartypants';
-
 import { sitemap } from './integrations/sitemap';
 import { rehypeAutolink } from './plugins/rehype-autolink';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
+import tailwind from '@astrojs/tailwind';
 
 /* https://vercel.com/docs/projects/environment-variables/system-environment-variables#system-environment-variables */
 const VERCEL_PREVIEW_SITE =
@@ -22,10 +21,12 @@ const site = VERCEL_PREVIEW_SITE || 'https://docs.astro.build/';
 // https://astro.build/config
 export default defineConfig({
 	site,
+
 	integrations: [
 		starlight({
 			title: 'Docs',
-			customCss: ['./src/styles/custom.css'],
+
+			customCss: ['./src/styles/custom.css', './src/styles/tailwind.css'],
 			components: {
 				EditLink: './src/components/starlight/EditLink.astro',
 				Head: './src/components/starlight/Head.astro',
@@ -41,14 +42,14 @@ export default defineConfig({
 				PageTitle: './src/components/starlight/PageTitle.astro',
 			},
 			editLink: {
-				baseUrl: 'https://github.com/withastro/docs/edit/main',
+				baseUrl: 'https://github.com/prosopo/docs/edit/main',
 			},
 			defaultLocale: 'en',
 			locales: makeLocalesConfig(),
 			sidebar: makeSidebar(),
 			social: {
-				github: 'https://github.com/withastro/astro',
-				discord: 'https://astro.build/chat',
+				github: 'https://github.com/prosopo/captcha',
+				discord: 'https://discord.gg/3nMYAHecZT',
 			},
 			pagefind: false,
 			head: [
@@ -62,6 +63,10 @@ export default defineConfig({
 					},
 				},
 			],
+		}),
+		tailwind({
+			// Disable the default base styles:
+			applyBaseStyles: false,
 		}),
 		sitemap(),
 	],

@@ -15,7 +15,7 @@ lub przeczytaj [Poradnik instalacyjny](/pl/install/manual/) w celu uzyskania pe�
 
 ### Przykładowe projekty
 
-Jeśli preferujesz uczyć się Astro z przykładów, zobacz naszą [bibliotekę przykładów](https://github.com/withastro/astro/tree/main/examples) na GitHubie.
+Jeśli preferujesz uczyć się Astro z przykładów, zobacz naszą [bibliotekę przykładów](https://github.com/prosopo/captcha/tree/main/examples) na GitHubie.
 
 Możesz także skorzystać z tych przykładów na swojej lokalnej maszynie uruchamiając `npm create astro@latest` z parametrem `--template` w konsoli. Parametr `--template` wspiera także nieoficjalne szablony społeczności.
 
@@ -36,13 +36,13 @@ npm create astro@latest -- --template [UZYTKOWNIK_GITHUB]/[NAZWA_REPOZYTORIUM]/s
 
 Jeżeli chciałbyś pobawić się z Astro w swojej przeglądarce, możesz w mgnieniu oka odpalić nowy projekt Astro za pomocą naszego interfejsu na [astro.new](https://astro.new/).
 
-Możesz wypróbować Astro w edytorach kodu online takich jak Stackblitz, CodeSandbox, Gitpod, i GitHub Codespaces. Kliknij w link "Open in Stackblitz" przy jednym z przykładów w naszej [bibliotece przykładów](https://github.com/withastro/astro/tree/main/examples). Albo, [kliknij tutaj](https://stackblitz.com/fork/astro) aby stworzyć nowy projekt na platformie [Stackblitz](https://stackblitz.com/fork/astro).
+Możesz wypróbować Astro w edytorach kodu online takich jak Stackblitz, CodeSandbox, Gitpod, i GitHub Codespaces. Kliknij w link "Open in Stackblitz" przy jednym z przykładów w naszej [bibliotece przykładów](https://github.com/prosopo/captcha/tree/main/examples). Albo, [kliknij tutaj](https://stackblitz.com/fork/astro) aby stworzyć nowy projekt na platformie [Stackblitz](https://stackblitz.com/fork/astro).
 
 ## Poznaj Astro
 
 Różni ludzie, z różnych środowisk mają odmienne podejście do zaznajamiania się z technologiami. Niezależnie od tego, czy wolisz bardziej teoretyczne, czy praktyczne podejście, mamy nadzieję, że ta sekcja będzie dla Ciebie pomocna.
 
-- Jeżeli preferujesz **praktykę**, zacznij z naszą [biblioteką przykładów](https://github.com/withastro/astro/tree/main/examples).
+- Jeżeli preferujesz **praktykę**, zacznij z naszą [biblioteką przykładów](https://github.com/prosopo/captcha/tree/main/examples).
 - Jeżeli preferujesz **teoretyczne podejście**, zacznij od [podstawowych konceptów i poradników](/pl/core-concepts/project-structure/).
 
 Podobnie jak z innymi nieznanymi technologiami, Astro również wymaga poświęcenia chwili na naukę podstaw. Mamy nadzieję, że z odrobiną praktyki i cierpliwości poradzisz sobie z tym w krótkim czasie.
@@ -65,13 +65,13 @@ Dokumentacja zawsze odnosi się to najnowszej stabilnej wersji Astro. Gdy osiąg
 
 [@astrodotbuild](https://twitter.com/astrodotbuild) to oficjalne konto na Twitterze oraz źródło dla wszelkich aktualizacji od zespołu Astro.
 
-Publikujemy także ogłoszenia dotyczące nowych wydań Astro na [Discordzie](https://astro.build/chat) na kanale #announcements.
+Publikujemy także ogłoszenia dotyczące nowych wydań Astro na [Discordzie](https://discord.gg/3nMYAHecZT) na kanale #announcements.
 
-Nie każde wydanie Astro zasługuje na osobny post na blogu, ale możesz znaleźć szczegółową listę zmian dla każdej wersji w pliku [`CHANGELOG.md` w naszym repozytorium](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md).
+Nie każde wydanie Astro zasługuje na osobny post na blogu, ale możesz znaleźć szczegółową listę zmian dla każdej wersji w pliku [`CHANGELOG.md` w naszym repozytorium](https://github.com/prosopo/captcha/blob/main/packages/astro/CHANGELOG.md).
 
 ## Czegoś brakuje?
 
-Jeżeli czegoś brakuje w dokumentacji albo coś cię zaniepokoiło [uzupełnij formularz "issue" na GitHubie](https://github.com/withastro/astro/issues/new/choose) wraz ze swoimi sugestiami i przemyśleniami albo daj znać poprzez Twittera [@astrodotbuild](https://twitter.com/astrodotbuild). Czekamy na twoją opinię!
+Jeżeli czegoś brakuje w dokumentacji albo coś cię zaniepokoiło [uzupełnij formularz "issue" na GitHubie](https://github.com/prosopo/captcha/issues/new/choose) wraz ze swoimi sugestiami i przemyśleniami albo daj znać poprzez Twittera [@astrodotbuild](https://twitter.com/astrodotbuild). Czekamy na twoją opinię!
 
 ## Podziękowania
 

@@ -29,7 +29,7 @@ npm run build
 
 Para saber más sobre la instalación y uso de Astro por primera vez, por favor [lea nuestra guía de instalación.](/es/installation)
 
-Si prefieres aprender con ejemplos, revisa nuestra [librería completa de ejemplos](https://github.com/withastro/astro/tree/main/examples) en GitHub. Puedes revisar cualquiera de estos ejemplos localmente ejecutando `npm create astro@latest -- --template "EXAMPLE_NAME"`.
+Si prefieres aprender con ejemplos, revisa nuestra [librería completa de ejemplos](https://github.com/prosopo/captcha/tree/main/examples) en GitHub. Puedes revisar cualquiera de estos ejemplos localmente ejecutando `npm create astro@latest -- --template "EXAMPLE_NAME"`.
 
 ## Comienza con tu proyecto
 

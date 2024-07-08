@@ -1,6 +1,6 @@
 # Guia PT-BR de Tradução do Astro
 
-Este guia foi feito pelo core maintainer [@Yan-Thomas](https://github.com/Yan-Thomas) para auxiliar contribuidores dessa tradução. Sinta-se livre para se juntar a nós nosso [grupo do Discord](https://astro.build/chat) para fazer perguntas, sugestões, etc.
+Este guia foi feito pelo core maintainer [@Yan-Thomas](https://github.com/Yan-Thomas) para auxiliar contribuidores dessa tradução. Sinta-se livre para se juntar a nós nosso [grupo do Discord](https://discord.gg/3nMYAHecZT) para fazer perguntas, sugestões, etc.
 
 ## Princípios da tradução
 

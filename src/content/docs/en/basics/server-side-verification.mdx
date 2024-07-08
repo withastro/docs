@@ -1,0 +1,81 @@
+---
+title: Server-side verification
+i18nReady: true
+---
+
+By adding the client side code, you were able to render a Procaptcha widget that identified if users were real people or
+automated bots. When the captcha succeeded, the Procaptcha script inserted unique data into your form data, which is
+then sent to your server for verification. The are currently two options for verifying the user's response server side:
+
+## API Verification
+
+To verify that the token is indeed real and valid, you must now verify it at the API endpoint:
+
+https://api.prosopo.io/siteverify
+
+The endpoint expects a POST request with the `procaptcha-response` token. You must also pass your **secret key**, which you can obtain by [logging in to our customer portal](https://portal.prosopo.io).
+
+A simple test will look like this, where the contents in data is the `procaptcha-response` token, after being
+parsed:
+
+```javascript
+// pseudocode
+// get the contents of the procaptcha-response token
+data = req.body['procaptcha-response']
+
+// send a POST application/json request to the API endpoint
+response = POST('https://api.prosopo.io/siteverify', {
+    token: data.token,
+    secret: 'your_secret_key',
+})
+```
+
+Or, as a CURL command:
+
+```bash
+curl --location 'https://api.prosopo.io/siteverify' \
+--header 'Content-Type: application/json' \
+--data '{"secret":"your secret key copied from within the customer portal","token":"PROCAPTCHA-RESPONSE"}''
+```
+
+Note that the endpoint expects the application/json Content-Type. You can see exactly what is sent
+using
+
+```bash
+curl -vv
+```
+
+in the example above.
+
+## Verification Package
+
+So far, we only have a TypeScript implementation of the Procaptcha verification package. However, we are working on
+delivering additional language support in the future.
+
+### TypeScript Verification
+
+To verify a user's response using TypeScript, simpy import the `verify` function from `@prosopo/server` and pass it
+the `procaptcha-response` POST data. Types can be imported from `@prosopo/types`.
+
+```typescript
+import {ProsopoServer} from '@prosopo/server'
+import {ApiParams} from '@prosopo/types'
+
+...
+// parse the body received from the frontend
+const payload = JSON.parse(event.body)
+
+// parse the procaptcha response token
+const procaptchaResponse = payload[ApiParams.procaptchaResponse]
+
+// initialise the `ProsopoServer` class
+const prosopoServer = new ProsopoServer(config)
+
+// check if the captcha response is verified
+if (await prosopoServer.isVerified(procaptchaResponse)) {
+    // perform CAPTCHA protected action
+}
+```
+
+There is an example TypeScript server side implementation
+in [demos/client-example-server](/en/demos/client-example-server/).

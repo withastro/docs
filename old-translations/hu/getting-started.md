@@ -16,7 +16,7 @@ Ellenkező esetben, olvasd el a [Telepítési útmutató](/hu/install/manual/) o
 
 ### Minta projektek
 
-Ha jobban szeretsz példák alapján tanulni, nézd meg a [komplett példa gyűjteményünket](https://github.com/withastro/astro/tree/main/examples) GitHub-on.
+Ha jobban szeretsz példák alapján tanulni, nézd meg a [komplett példa gyűjteményünket](https://github.com/prosopo/captcha/tree/main/examples) GitHub-on.
 
 Bármelyik minta projektet kipróbálhatod a saját számítógépeden az `npm create astro@latest` parancs lefuttatásával és a `--template` paraméterrel. A `--template` paraméter támogatja a harmadik féltől és a közösségtől származó mintákat is.
 
@@ -36,13 +36,13 @@ npm create astro@latest -- --template [GITHUB_FELHASZNÁLÓ]/[REPO_NEVE]/minta/e
 
 Ha előbb szeretnéd az Astro-t a böngésződben kipróbálni, pillanatok alatt létrehozhatsz egy új Astro projektet az [astro.new](https://astro.new/) oldalunkon.
 
-Ezen felül az Astro elérhető olyan online kód szerkesztőkben is mint a Stackblitz, CodeSandbox, Gitpod, és GitHub Codespaces. Kattints az "Open in Stackblitz" gombra bármelyik mintánknál a [minta gyűjteményeink](https://github.com/withastro/astro/tree/main/examples) között. Vagy, [kattints ide](https://stackblitz.com/fork/astro) és automatikusan elindul egy új Astro projekt [Stackblitz-en](https://stackblitz.com/fork/astro).
+Ezen felül az Astro elérhető olyan online kód szerkesztőkben is mint a Stackblitz, CodeSandbox, Gitpod, és GitHub Codespaces. Kattints az "Open in Stackblitz" gombra bármelyik mintánknál a [minta gyűjteményeink](https://github.com/prosopo/captcha/tree/main/examples) között. Vagy, [kattints ide](https://stackblitz.com/fork/astro) és automatikusan elindul egy új Astro projekt [Stackblitz-en](https://stackblitz.com/fork/astro).
 
 ## Tanuld meg az Astro-t
 
 Különböző emberek különféle nyelvekből és háttérből érkeznek az Astro-hoz. Akár az elméleti, akár a gyakorlati tanulást preferálod, reméljük ez a szekció a segítségedre lesz.
 
-- Ha szeretsz **gyakorlással tanulni**, látogass el a [minta gyűjteményeink közé](https://github.com/withastro/astro/tree/main/examples).
+- Ha szeretsz **gyakorlással tanulni**, látogass el a [minta gyűjteményeink közé](https://github.com/prosopo/captcha/tree/main/examples).
 - Ha szereted **az alapokat lépésről lépésre elsajátítani**, kezdd az [alap koncepciókkal és útmutatókkal](/hu/core-concepts/project-structure/).
 
 Mint minden új technológiának, az Astronak is van egy tanulási görbéje. Azonban gyakorlással és egy kis türelemmel, tudjuk, hogy _meg fogod tanulni_ pillanatokon belül.
@@ -67,13 +67,13 @@ Ez a dokumentáció mindig a legfrissebb stabil Astro verziót tükrözi. Amint 
 
 Az [@astrodotbuild](https://twitter.com/astrodotbuild) Twitter felhasználó a hivatalos csatornánk ahol új információkat szerezhetsz az Astro csapattól.
 
-Ezen felül az egyes verziók megjelenését bejelentjük a [Discord szerverünkön](https://astro.build/chat) is az #announcements csatornán.
+Ezen felül az egyes verziók megjelenését bejelentjük a [Discord szerverünkön](https://discord.gg/3nMYAHecZT) is az #announcements csatornán.
 
-Nem minden verizó kiadás érdemel meg egy külön posztot, de minden verzióhoz találsz részletes naplót, - ahol láthatod mi változott - a [`CHANGELOG.md` fájlban GitHubon](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md).
+Nem minden verizó kiadás érdemel meg egy külön posztot, de minden verzióhoz találsz részletes naplót, - ahol láthatod mi változott - a [`CHANGELOG.md` fájlban GitHubon](https://github.com/prosopo/captcha/blob/main/packages/astro/CHANGELOG.md).
 
 ## Valami hiányzik?
 
-Ha valami hiányzik a dokumentációból, vagy valami félreérthető, kérjük [készíts egy bejelentést hozzá](https://github.com/withastro/astro/issues/new/choose) a javaslataiddal, vagy tweetelj az [@astrodotbuild](https://twitter.com/astrodotbuild) Twitter fiókunknak. Örömmel hallanánk mit gondolsz!
+Ha valami hiányzik a dokumentációból, vagy valami félreérthető, kérjük [készíts egy bejelentést hozzá](https://github.com/prosopo/captcha/issues/new/choose) a javaslataiddal, vagy tweetelj az [@astrodotbuild](https://twitter.com/astrodotbuild) Twitter fiókunknak. Örömmel hallanánk mit gondolsz!
 
 ## Elismerés
 

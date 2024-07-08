@@ -27,7 +27,7 @@ npm run build
 
 はじめて Astro をインストールして使用する場合は、[インストールガイド](/ja/installation)をご覧ください。
 
-サンプルを見ながら学びたいという方は、GitHub にある[全サンプル](https://github.com/withastro/astro/tree/main/examples)をご覧ください。 `npm create astro@latest -- --template "EXAMPLE_NAME"` を実行すれば、これらのサンプルをローカルにチェックアウトできます。
+サンプルを見ながら学びたいという方は、GitHub にある[全サンプル](https://github.com/prosopo/captcha/tree/main/examples)をご覧ください。 `npm create astro@latest -- --template "EXAMPLE_NAME"` を実行すれば、これらのサンプルをローカルにチェックアウトできます。
 
 ## プロジェクトの開始
 

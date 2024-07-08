@@ -20,4 +20,4 @@
 <!-- #### First-time contributor to Astro Docs? -->
 
 <!-- If you are a member of the Astro Discord, please add your username in the description so we can welcome you there! -->
-<!-- https://astro.build/chat -->
+<!-- https://discord.gg/3nMYAHecZT -->

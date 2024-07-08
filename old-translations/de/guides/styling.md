@@ -249,7 +249,7 @@ Alternativ zu einer Datei `src/styles/global.css` kannst du Tailwind-Utilities a
 
 #### Umziehen von v0.19
 
-Mit der [Version 0.20.0](https://github.com/withastro/astro/releases/tag/astro%400.20.0) packt, kompiliert und prozessiert Astro keine Dateien mehr, die im Verezichnis `public/` liegen. Wir haben ursprünglich empfohlen sämtliche Tailwind-Dateien im `public`-Verzeichnis zu speichern. Falls du dein Projekt diesem Modell folgend begonnen hast, solltest du alle Tailwind-Dateien in das `src`-Verzeichnis verschieben und sie in deinem Template über [Astro.resolve()][astro-resolve] importieren:
+Mit der [Version 0.20.0](https://github.com/prosopo/captcha/releases/tag/astro%400.20.0) packt, kompiliert und prozessiert Astro keine Dateien mehr, die im Verezichnis `public/` liegen. Wir haben ursprünglich empfohlen sämtliche Tailwind-Dateien im `public`-Verzeichnis zu speichern. Falls du dein Projekt diesem Modell folgend begonnen hast, solltest du alle Tailwind-Dateien in das `src`-Verzeichnis verschieben und sie in deinem Template über [Astro.resolve()][astro-resolve] importieren:
 
 ```astro
   <link
@@ -622,7 +622,7 @@ Wirf bitte auch einen Blick auf das [Stylelint][stylelint]-Projekt, mit dem du d
 [fouc]: https://en.wikipedia.org/wiki/Flash_of_unstyled_content
 [layout-isolated]: https://web.archive.org/web/20210227162315/https://visly.app/blogposts/layout-isolated-components
 [less]: https://lesscss.org/
-[issues]: https://github.com/withastro/astro/issues
+[issues]: https://github.com/prosopo/captcha/issues
 [magic-number]: https://css-tricks.com/magic-numbers-in-css/
 [material-ui]: https://material.io/components
 [peace-on-css]: https://didoo.medium.com/let-there-be-peace-on-css-8b26829f1be0
