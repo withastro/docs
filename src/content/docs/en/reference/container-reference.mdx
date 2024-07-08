@@ -8,7 +8,11 @@ import Since from '~/components/Since.astro'
 
 The Container API allows you to render Astro components in isolation.
 
-This experimental server-side API unlocks a variety of potential future uses, but is currently scoped to allow [testing of `.astro` component output](/en/guides/testing/#vitest-and-container-api). This API allows you to create a new container, and render an Astro component returning a string or a `Response`.
+This experimental server-side API unlocks a variety of potential future uses, but is currently scoped to allow [testing of `.astro` component output](/en/guides/testing/#vitest-and-container-api) in `vite` environments such as `vitest`.
+
+It also allows you to [manually load rendering scripts](#adding-a-renderer-manually) for creating containers in pages rendered on demand or other "shell" environments outside of `vite` (e.g. inside a PHP or Elixir application).
+
+This API allows you to [create a new container](#create), and render an Astro component returning [a string](#rendertostring) or a [`Response`](#rendertoresponse). 
 
 This API is experimental and subject to breaking changes, even in [minor or patch releases](/en/upgrade-astro/#semantic-versioning). Please consult [the Astro CHANGELOG](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md) for changes as they occur. This page will always be updated with the most current information for the latest version of Astro.
 
@@ -28,21 +32,37 @@ It accepts an object with the following options:
 ```ts
 export type AstroContainerOptions = {
 	streaming?: boolean;
-	renderers?: SSRLoadedRenderer[];
+	renderers?: AddServerRenderer[];
 };
+
+export type AddServerRenderer =
+	| {
+			renderer: NamedSSRLoadedRendererValue;
+			name: never;
+	  }
+	| {
+			renderer: SSRLoadedRendererValue;
+			name: string;
+	  };
 ```
 
-#### `streaming` option
+### `streaming` option
 
 **Type:** `boolean`
 
 Enables rendering components using [HTML streaming](/en/guides/server-side-rendering/#html-streaming).
 
-#### `renderers` option
+### `renderers` option
 
-**Type:** `SSRLoadedRenderer[]`
+**Type:** `AddServerRenderer[]`
 
 A list of loaded client renderers required by the component. Use this if your `.astro` component renders any [UI framework components](/en/guides/framework-components/) or MDX using an official Astro integration (e.g. React, Vue, etc.).
+
+Renderers can be added through the Container API automatically for [static applications](/en/basics/rendering-modes/#pre-rendered), or cases where the container isn't called at runtime (e.g. testing with `vitest`).
+
+For [on-demand rendered applications](/en/basics/rendering-modes/#on-demand-rendered), or cases where the container is called at runtime or inside other "shells" (e.g. PHP, Ruby, Java, etc.), renderers must be manually imported.
+
+#### Adding a renderer through the Container API
 
 For each official Astro integration, import and use the `getContainerRenderer()` helper function to expose its client and server rendering scripts. These are available for `@astrojs/react`, `@astrojs/preact`, `@astrojs/solid-js`, `@astrojs/svelte`, `@astrojs/vue`, `@astrojs/lit`, and `@astrojs/mdx`.
 
@@ -62,6 +82,23 @@ const container = await experimental_AstroContainer.create({
     renderers
 })
 const result = await container.renderToString(ReactWrapper);
+```
+
+#### Adding a renderer manually
+
+When the container is called at runtime, or inside other "shells", the `astro:container` virtual module's helper functions are not available. Import the necessary server renderer manually and store it inside the container using `experimental_Astro.Container.addServerRenderer`.
+
+The following example manually imports the server renderers for React and Vue components, and MDX for `.mdx` pages. 
+
+```js
+import reactRenderer from "@astrojs/react/server.js";
+import vueRenderer from "@astrojs/vue/server.js";
+import mdxRenderer from "astro/jsx/server.js";
+
+const container = await experimental_AstroContainer.create();
+container.addServerRenderer({renderer: reactRenderer});
+container.addServerRenderer({renderer: vueRenderer});
+container.addServerRenderer({renderer: mdxRenderer});
 ```
 
 ## `renderToString()`
