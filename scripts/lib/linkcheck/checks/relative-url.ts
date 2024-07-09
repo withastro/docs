@@ -1,6 +1,6 @@
-import kleur from 'kleur';
 import { CheckBase, type CheckHtmlPageContext } from '../base/check';
 import { IssueType } from '../base/issue';
+import kleur from 'kleur';
 
 export class RelativeUrl extends CheckBase {
 	private static readonly AbsoluteLink = new IssueType({

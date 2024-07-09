@@ -1,6 +1,6 @@
+import fetch from 'node-fetch';
 import fs from 'fs';
 import jsdoc from 'jsdoc-api';
-import fetch from 'node-fetch';
 import ts from 'typescript';
 
 const sourceBranch = process.env.SOURCE_BRANCH || 'main';
@@ -221,7 +221,7 @@ function extractStringFromFunction(func) {
 	function expressionToText(text) {
 		return sanitizeString(
 			text.replaceAll(
-				/\${([^}]+)}/gm,
+				/\$\{([^}]+)\}/g,
 				(_, match1) =>
 					`${match1
 						.split(/\.?(?=[A-Z])/)
@@ -239,10 +239,10 @@ function extractStringFromFunction(func) {
  */
 function sanitizeString(message) {
 	return message
-		.replaceAll(/\\`/gm, '`')
-		.replaceAll(/`?(client:[\w]+(="\(.+\)")?)`?/g, '`$1`')
-		.replaceAll(/([^`\\])</gm, `$1\\<`)
-		.replaceAll(/>([^`\\])/gm, '\\$1>')
+		.replaceAll(/\\`/g, '`')
+		.replaceAll(/`?(client:\w+(="\(.+\)")?)`?/g, '`$1`')
+		.replaceAll(/([^`\\])</g, `$1\\<`)
+		.replaceAll(/>([^`\\])/g, '\\$1>')
 		.replaceAll('\\n', '<br/>');
 }
 

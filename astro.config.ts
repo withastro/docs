@@ -1,13 +1,13 @@
-import starlight from '@astrojs/starlight';
 import { defineConfig, sharpImageService } from 'astro/config';
 import { makeLocalesConfig } from './config/locales';
 import { makeSidebar } from './config/sidebar';
-import rehypeSlug from 'rehype-slug';
-import remarkSmartypants from 'remark-smartypants';
-import { sitemap } from './integrations/sitemap';
 import { rehypeAutolink } from './plugins/rehype-autolink';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
+import { sitemap } from './integrations/sitemap';
+import rehypeSlug from 'rehype-slug';
+import remarkSmartypants from 'remark-smartypants';
+import starlight from '@astrojs/starlight';
 import tailwind from '@astrojs/tailwind';
 
 /* https://vercel.com/docs/projects/environment-variables/system-environment-variables#system-environment-variables */

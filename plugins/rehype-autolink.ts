@@ -1,15 +1,15 @@
+import { escape } from 'html-escaper';
+import { getLanguageCodeFromPathname, mdFilePathToUrl } from './remark-fallback-lang';
+import { h } from 'hastscript';
+import { resolve as nodeResolve } from 'node:path';
+import { toString } from 'hast-util-to-string';
+import { useTranslationsForLang } from '../src/i18n/util';
+import { visit } from 'unist-util-visit';
+import rehypeAutolinkHeadings, { type Options as AutolinkOptions } from 'rehype-autolink-headings';
 import type { RehypePlugins } from 'astro';
 import type { Root } from 'hast';
-import { toString } from 'hast-util-to-string';
-import { h } from 'hastscript';
-import { escape } from 'html-escaper';
-import { resolve as nodeResolve } from 'node:path';
-import rehypeAutolinkHeadings, { type Options as AutolinkOptions } from 'rehype-autolink-headings';
 import type { Transformer } from 'unified';
-import { visit } from 'unist-util-visit';
 import type { UILanguageKeys } from '../src/i18n/translation-checkers';
-import { useTranslationsForLang } from '../src/i18n/util';
-import { getLanguageCodeFromPathname, mdFilePathToUrl } from './remark-fallback-lang';
 
 const AnchorLinkIcon = h(
 	'span',

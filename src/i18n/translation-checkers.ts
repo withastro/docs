@@ -1,7 +1,7 @@
-import type docsearch from '@docsearch/js';
 import enNav from './en/nav';
-import type enUI from './en/ui';
 import type { allLanguages } from './languages';
+import type docsearch from '@docsearch/js';
+import type enUI from './en/ui';
 
 type ModalTranslations = NonNullable<Parameters<typeof docsearch>[0]['translations']>['modal'];
 

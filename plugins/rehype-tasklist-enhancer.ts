@@ -1,7 +1,7 @@
-import type { Root } from 'hast';
+import { CONTINUE, EXIT, SKIP, visit } from 'unist-util-visit';
 import { h } from 'hastscript';
 import type { Plugin, Transformer } from 'unified';
-import { CONTINUE, EXIT, SKIP, visit } from 'unist-util-visit';
+import type { Root } from 'hast';
 
 /**
  * Rehype plugin to enhance the output of GitHub-Flavored Markdown’s task lists.

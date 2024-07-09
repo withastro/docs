@@ -1,6 +1,6 @@
-import type { CollectionEntry } from 'astro:content';
 import { englishPages } from '~/content';
 import { getPageCategory } from './getPageCategory';
+import type { CollectionEntry } from 'astro:content';
 
 /** Remove the sub-page segment of a URL string */
 export function removeSubPageSegment(path: string) {

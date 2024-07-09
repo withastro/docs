@@ -1,8 +1,8 @@
+import { visit } from 'unist-util-visit';
 import fs from 'fs';
-import type { Root } from 'mdast';
 import path from 'path';
 import type { Plugin, Transformer } from 'unified';
-import { visit } from 'unist-util-visit';
+import type { Root } from 'mdast';
 
 export function remarkFallbackLang(): Plugin<[], Root> {
 	const pageSourceDir = path.resolve('./src/content/docs');

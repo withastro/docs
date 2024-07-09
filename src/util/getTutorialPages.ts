@@ -1,7 +1,7 @@
+import { groupPagesByLang } from './groupPagesByLang';
+import { stripLangFromSlug } from '~/util';
 import path from 'node:path';
 import type { TutorialEntry } from '~/content/config';
-import { stripLangFromSlug } from '~/util';
-import { groupPagesByLang } from './groupPagesByLang';
 
 /** Get a full list of pages for the tutorial in the current language, falling back to English if not available. */
 export function getTutorialPages(allPages: TutorialEntry[], lang: string) {

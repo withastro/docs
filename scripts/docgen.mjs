@@ -1,9 +1,6 @@
-// @ts-check
-
-import fs from 'fs';
-// @ts-expect-error — Untyped npm package
-import jsdoc from 'jsdoc-api';
 import fetch from 'node-fetch';
+import fs from 'fs';
+import jsdoc from 'jsdoc-api';
 
 // Fill this in to test a response locally, with fetching.
 const STUB = ``; // fs.readFileSync('/PATH/TO/MONOREPO/astro/packages/astro/src/@types/astro.ts', {encoding: 'utf-8'});
@@ -61,7 +58,7 @@ export async function run() {
 
 	// Get all `@docs` JSDoc comments in the file.
 	const allComments = [
-		...inputBuffer.matchAll(/\/\*\*\s*\n([^*]|\*[^/])*@docs([^*]|\*[^/])*\*\//g),
+		...inputBuffer.matchAll(/\/\*\*\s{0,1000}\n([^*]|\*[^/])*@docs([^*]|\*[^/])*\*\//g),
 	];
 	const allCommentsInput = allComments
 		.map((m) => m[0])
@@ -123,7 +120,7 @@ function h(headingLevel) {
  */
 function getHeading(comment) {
 	let headingLevel = 3;
-	const headingMatches = /^h(1|2|3|4|5|6)$/.exec(comment.kind || '');
+	const headingMatches = /^h([1-6])$/.exec(comment.kind || '');
 	if (headingMatches) {
 		headingLevel = parseInt(headingMatches[1]);
 	} else if (comment.kind === 'heading') {

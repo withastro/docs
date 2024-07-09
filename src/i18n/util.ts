@@ -1,5 +1,5 @@
-import type { AstroGlobal } from 'astro';
 import { getLanguageFromURL } from '../util';
+import type { AstroGlobal } from 'astro';
 import type {
 	DocSearchTranslation,
 	NavDict,

@@ -1,9 +1,9 @@
+import { type LinkCheckerOptions, LinkCheckerState, indexOfHref } from '../base/base';
+import { dedentMd } from '../../output.mjs';
 import fs from 'fs';
 import path from 'path';
-import { dedentMd } from '../../output.mjs';
-import { indexOfHref, LinkCheckerState, type LinkCheckerOptions } from '../base/base';
-import type { LinkIssue } from '../base/issue';
 import type { AllPagesByPathname, HtmlPage } from '../base/page';
+import type { LinkIssue } from '../base/issue';
 
 /**
  * Goes through all pre-parsed and indexed pages, runs all configured checks,
