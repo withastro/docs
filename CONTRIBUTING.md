@@ -22,7 +22,7 @@ There are lots of ways to contribute to the Astro Docs website!
 
 The Astro Docs website is ... an Astro website! Maintaining it requires not only written content but also maintaining Astro code and addressing a11y, CSS, UI, and UX concerns. We also make our documentation available in several languages, so we need help translating the entire site.
 
-You can also make a huge contribution by getting involved by leaving review comments on [PRs](https://github.com/withastro/docs/pulls), adding ideas in existing GitHub [Issues](https://github.com/withastro/docs/issues) and [Discussions](https://github.com/withastro/docs/discussions) and participating in our "Pinned" issue maintenance tasks! 
+You can also make a huge contribution by getting involved by leaving review comments on [PRs](https://github.com/prosopo/docs/pulls), adding ideas in existing GitHub [Issues](https://github.com/prosopo/docs/issues) and [Discussions](https://github.com/prosopo/docs/discussions) and participating in our "Pinned" issue maintenance tasks! 
 
 Every PR, especially translation PRs, needs reviewers! Reviewing PRs and leaving comments, suggestions, or an approving "LGTM!" ("Looks Good To Me!") is a great way to get started on Team Docs, and to learn more about Astro.
 
@@ -34,7 +34,7 @@ We encourage you to:
 
 - **Make a PR directly** for very obvious documentation fixes like typos or broken links.
 
-- **Look at our Existing Issues** (especially those labelled [`help wanted`](https://github.com/withastro/docs/issues?q=is:open+is:issue+label:%22help+wanted%22) and [`good first issue`](https://github.com/withastro/docs/issues?q=is:open+is:issue+label:%22good+first+issue%22)) for contributions we are actively seeking.
+- **Look at our Existing Issues** (especially those labelled [`help wanted`](https://github.com/prosopo/docs/issues?q=is:open+is:issue+label:%22help+wanted%22) and [`good first issue`](https://github.com/prosopo/docs/issues?q=is:open+is:issue+label:%22good+first+issue%22)) for contributions we are actively seeking.
 
 - **Review Existing PRs** (especially translations!) to help us get our fixes implemented live on the website sooner.
 
@@ -68,7 +68,7 @@ Larger contributions to the docs are encouraged after participating in Issues an
 
 ## Making a New Issue
 
-If you're unsure which type of contribution best represents your concern, please [make a new issue](https://github.com/withastro/docs/issues/new)!
+If you're unsure which type of contribution best represents your concern, please [make a new issue](https://github.com/prosopo/docs/issues/new)!
 
 ### Writing an Issue
 
@@ -80,7 +80,7 @@ Helpful issues usually include:
 
 ## Making PRs (pull requests)
 
-> Need help making a PR? [Join us on Discord](https://astro.build/chat), we'll be more than glad to help you out!
+> Need help making a PR? [Join us on Discord](https://discord.gg/3nMYAHecZT), we'll be more than glad to help you out!
 
 Contributions to the documentation site are made by editing the docs repository. You can do this directly on GitHub.com or by creating a copy of the repository locally, making your changes there, and contributing back to our repository.
 
@@ -208,7 +208,7 @@ In the terminal on your computer:
 ## Next Steps
 
 - [Read the docs](https://docs.astro.build/)
-- [Fork the docs](https://github.com/withastro/docs/fork)
-- [Raise an issue](https://github.com/withastro/docs/issues/new)
+- [Fork the docs](https://github.com/prosopo/docs/fork)
+- [Raise an issue](https://github.com/prosopo/docs/issues/new)
 - [Discuss the docs](https://discord.gg/cZDZU3hJHc)
 - [Visit the Astro Docs Docs to see even more documentation about contributing to Astro docs!](https://contribute.docs.astro.build)

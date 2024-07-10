@@ -1,5 +1,5 @@
-import type { Document, Element } from 'domhandler';
 import htmlparser2 from 'htmlparser2';
+import type { Document, Element } from 'domhandler';
 
 export interface AllPagesByPathname {
 	[key: string]: HtmlPage;
@@ -94,7 +94,8 @@ export class HtmlPage {
 				el.tagName.toLowerCase() === 'meta' && el.attribs['http-equiv']?.toLowerCase() === 'refresh'
 		);
 		const metaRefreshContent = metaRefreshElement?.attribs['content'];
-		const metaRefreshMatches = metaRefreshContent?.match(/^([0-9]+)\s*;\s*url\s*=\s*(.+)$/i);
+		// eslint-disable-next-line regexp/no-super-linear-backtracking
+		const metaRefreshMatches = metaRefreshContent?.match(/^(\d+)\s*;\s*url\s*=\s*(.+)$/i);
 		this.redirectTargetUrl = metaRefreshMatches ? new URL(metaRefreshMatches[2], this.href) : null;
 		this.isRedirect = Boolean(this.redirectTargetUrl);
 

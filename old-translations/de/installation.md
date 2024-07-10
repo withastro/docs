@@ -29,7 +29,7 @@ yarn create astro
 pnpm create astro@latest
 ```
 
-Der [`create-astro`](https://github.com/withastro/astro/tree/main/packages/create-astro)-Assistent lässt dich aus einer Reihe von [Start-Vorlagen](https://github.com/withastro/astro/tree/main/examples) auswählen. Alternativ könntest du auch dein eigenes Astro-Projekt direkt aus GitHub heraus importieren.
+Der [`create-astro`](https://github.com/prosopo/captcha/tree/main/packages/create-astro)-Assistent lässt dich aus einer Reihe von [Start-Vorlagen](https://github.com/prosopo/captcha/tree/main/examples) auswählen. Alternativ könntest du auch dein eigenes Astro-Projekt direkt aus GitHub heraus importieren.
 
 ```bash
 # Hinweis: Ersetze "mein-astro-projekt" durch den Namen deines Projekts.

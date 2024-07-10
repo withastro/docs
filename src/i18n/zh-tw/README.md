@@ -2,7 +2,7 @@
 
 感謝你有興趣對 Astro 文件翻譯做出貢獻！  
 提交改動前，別忘了閱讀 [i18n 指南](https://contribute.docs.astro.build/guides/i18n/)，裡面包含了貢獻過程中需要知道的內容。  
-也歡迎加入 Astro 的 [Discord 社群](https://astro.build/chat)與其他貢獻者們交流！
+也歡迎加入 Astro 的 [Discord 社群](https://discord.gg/3nMYAHecZT)與其他貢獻者們交流！
 
 本指南旨在整理一份統一的格式及風格指南，使文件讀起來更流暢並易於理解。  
 
@@ -151,4 +151,4 @@
 
 ## 4. 關於本指南
 本指南**並非**硬性規定，而是代表中文文件翻譯團隊共識的建議。  
-如果你對本指南有任何想法或勘誤建議，歡迎發起 Issue 或是加入 [Discord 社群](https://astro.build/chat)中的 `#i18n-crew-zh` 頻道參與討論！
+如果你對本指南有任何想法或勘誤建議，歡迎發起 Issue 或是加入 [Discord 社群](https://discord.gg/3nMYAHecZT)中的 `#i18n-crew-zh` 頻道參與討論！

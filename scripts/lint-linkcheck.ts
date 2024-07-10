@@ -1,11 +1,11 @@
-import { LinkCheckerState, type LinkCheckerOptions } from './lib/linkcheck/base/base';
 import { CanonicalUrl } from './lib/linkcheck/checks/canonical-url';
 import { GoodLabels } from './lib/linkcheck/checks/good-link-label';
+import { type LinkCheckerOptions, LinkCheckerState } from './lib/linkcheck/base/base';
 import { RelativeUrl } from './lib/linkcheck/checks/relative-url';
 import { SameLanguage } from './lib/linkcheck/checks/same-language';
 import { TargetExists } from './lib/linkcheck/checks/target-exists';
-import { getPagePathnamesFromSitemap, parsePages } from './lib/linkcheck/steps/build-index';
 import { addSourceFileAnnotations, findLinkIssues } from './lib/linkcheck/steps/find-issues';
+import { getPagePathnamesFromSitemap, parsePages } from './lib/linkcheck/steps/build-index';
 import { handlePossibleAutofix } from './lib/linkcheck/steps/optional-autofix';
 import { outputAnnotationsForGitHub, outputIssues } from './lib/linkcheck/steps/output-issues';
 

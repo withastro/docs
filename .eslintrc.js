@@ -67,6 +67,8 @@ module.exports = {
           { argsIgnorePattern: '^_', destructuredArrayIgnorePattern: '^_' },
         ],
         '@typescript-eslint/no-non-null-assertion': 'off',
+        'no-empty-interface': 1,
+        'regexp/no-super-linear-backtracking': 0,
       },
     },
     {

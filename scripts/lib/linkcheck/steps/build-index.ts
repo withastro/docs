@@ -1,8 +1,8 @@
+import { type AllPagesByPathname, HtmlPage } from '../base/page';
+import { dedentMd } from '../../output.mjs';
 import fs from 'fs';
 import path from 'path';
-import { dedentMd } from '../../output.mjs';
 import type { LinkCheckerOptions } from '../base/base';
-import { HtmlPage, type AllPagesByPathname } from '../base/page';
 
 /**
  * Reads sitemaps from the build output and extracts all unique pathnames.
@@ -12,7 +12,7 @@ export function getPagePathnamesFromSitemap(options: LinkCheckerOptions) {
 	const distContents = fs.readdirSync(options.buildOutputDir);
 	const sitemaps = distContents.filter((path) => /^sitemap-\d+\.xml$/.test(path));
 
-	const sitemapRegex = new RegExp(`<loc>${options.baseUrl}(/.*?)</loc>`, 'ig');
+	const sitemapRegex = new RegExp(`<loc>${options.baseUrl}(/.*?)</loc>`, 'gi');
 	const uniquePagePaths = new Set<string>();
 
 	for (const filename of sitemaps) {

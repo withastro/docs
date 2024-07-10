@@ -1,12 +1,12 @@
-import generator from '@babel/generator';
-import parser from '@babel/parser';
-import traverse from '@babel/traverse';
 import * as t from '@babel/types';
 import { bcp47Normalize } from 'bcp-47-normalize';
 import fs from 'fs';
+import generator from '@babel/generator';
 import kleur from 'kleur';
+import parser from '@babel/parser';
 import prettier from 'prettier';
 import prompts from 'prompts';
+import traverse from '@babel/traverse';
 
 // Logging utilities.
 const skip = (...message) => console.log(kleur.gray().dim('•'), ...message.map(kleur.gray));

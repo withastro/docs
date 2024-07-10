@@ -1,0 +1,162 @@
+---
+title: Client-side rendering
+i18nReady: true
+---
+
+First, you must include the Procaptcha JavaScript resource somewhere in your HTML page. The `<script>` must be loaded
+via HTTPS and can be placed anywhere on the page. Inside the `<head>` tag or immediately after the `.procaptcha` container
+are both fine.
+
+```html
+<script type="module" src="https://js.prosopo.io/js/procaptcha.bundle.js" async defer></script>
+```
+
+Now, you can either render the Procaptcha widget implicitly or explicitly.
+
+## Implicit Rendering
+
+Add an empty DOM container where the Procaptcha widget will be inserted automatically. The container is
+typically a `<div>` (but can be any element) and must have class `procaptcha` and a `data-sitekey` attribute set to your
+public
+site key.
+
+```html
+<body>
+    <div class="procaptcha" data-sitekey="your_site_key"></div>
+</body>
+```
+
+Typically, you'll want to include the empty `.procaptcha` container inside an HTML form. When a captcha is successfully
+solved, a hidden JSON payload will automatically be added to your form that you can then POST to your server for
+verification. You can retrieve it server side with POST parameter `procaptcha-response`.
+
+Here's a full example where Procaptcha is being used to protect a signup form from automated abuse. When the form is
+submitted, the `procaptcha-response` token will be included with the email and password POST data after the captcha
+is solved.
+
+### Example of implicit rendering
+
+```html
+<html>
+    <head>
+        <title>Procaptcha Demo</title>
+        <script type="module" src="https://js.prosopo.io/js/procaptcha.bundle.js" async defer></script>
+    </head>
+    <body>
+        <form action="" method="POST">
+            <input type="text" name="email" placeholder="Email" />
+            <input type="password" name="password" placeholder="Password" />
+            <div class="procaptcha" data-sitekey="your_site_key"></div>
+            <br />
+            <input type="submit" value="Submit" />
+        </form>
+    </body>
+</html>
+```
+
+## Explicit Rendering
+
+If you prefer to render the widget yourself, you can use the `Procaptcha.render()` method. The `Procaptcha.render()`
+must be called after the procaptcha.bundle.js script has loaded.
+
+### Example of explicit rendering
+
+The script is loaded in the head of the document and given the id `procaptcha-script`. A container is created with the
+id `procaptcha-container` where the widget will be rendered.
+
+```html
+<html>
+    <head>
+        <script
+            type="module"
+            id="procaptcha-script"
+            src="https://js.prosopo.io/js/procaptcha.bundle.js"
+            async
+            defer
+        ></script>
+    </head>
+    <body>
+        <div id="procaptcha-container"></div>
+    </body>
+</html>
+```
+
+An `onload` event is added to the script tag to call the render function when the script has loaded.
+
+```javascript
+// A function that will call the render Procaptcha function when the procaptcha script has loaded
+document.getElementById('procaptcha-script').addEventListener('load', function () {
+    // Define a callback function to be called when the CAPTCHA is verified
+    function onCaptchaVerified(output) {
+        console.log('Captcha verified, output: ' + JSON.stringify(output))
+    }
+
+    // Get the Element using elementId
+    const captchaContainer = document.getElementById('procaptcha-container')
+    // Render the CAPTCHA explicitly on a container with id "procaptcha-container"
+    window.procaptcha.render(captchaContainer, {
+        siteKey: 'YOUR_SITE_KEY',
+        theme: 'dark',
+        callback: onCaptchaVerified,
+    })
+})
+```
+
+## Procaptcha Options
+
+The `Procaptcha.render()` function takes an options object as its second argument. The options object can contain the
+following fields:
+
+| Key                    | Type     | Description                                                                                              | Required |
+| ---------------------- | -------- | -------------------------------------------------------------------------------------------------------- | -------- |
+| siteKey                | string   | The site key of your application / website. This is required.                                            | ✓        |
+| callback               | function | The function that will be called when the CAPTCHA is verified.                                           | ✗        |
+| theme                  | string   | The theme of the CAPTCHA widget. The default is `light`. The other option is `dark`.                     | ✗        |
+| captchaType            | string   | The type of CAPTCHA to render. The default is `frictionless`. Other options are `image`, `pow`.          | ✗        |
+| chalexpired-callback   | string   | The name of the window function that will be called when the CAPTCHA challenge expires.                  | ✗        |
+| error-callback         | string   | The name of the window function that will be called when an error occurs.                                | ✗        |
+| close-callback         | string   | The name of the window function that will be called when the CAPTCHA is closed.                          | ✗        |
+| open-callback          | string   | The name of the window function that will be called when the CAPTCHA is opened.                          | ✗        |
+| expired-callback       | string   | The name of the window function that will be called when the CAPTCHA solution expires.                   | ✗        |
+| challenge-valid-length | number   | The amount of time, in milliseconds, a successful CAPTCHA challenge is valid for. Defaults to 2 minutes. | ✗        |
+
+The same options can be passed to the implicit rendering method by adding them as data attributes to the `.procaptcha`.
+For example, to set the theme to dark, you would add `data-theme="dark"` to the `.procaptcha` container.
+
+```html
+<div class="procaptcha" data-sitekey="your_site_key" data-theme="dark"></div>
+```
+
+### `captchaType`
+
+You can choose to implement any of the following types of captcha when rendering the Procaptcha component:
+
+| Type           | Description                                                                                                                                                                                                                                                                           |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `frictionless` | The default CAPTCHA type is `frictionless`. This type of CAPTCHA is invisible to the user, only requiring them to complete an invisible [Proof of Work challenge](https://en.wikipedia.org/wiki/Proof_of_work) (`pow`). Suspected bots are served image captcha challenges (`image`). |
+| `pow`          | The `pow` CAPTCHA type requires the user to solve a cryptographic puzzle. This puzzle simply requires a small amount of computational work to solve, and slows down bots significantly, making it difficult for them to scrape in high volumes.                                       |
+| `image`        | The `image` CAPTCHA type requires the user to solve a simple image CAPTCHA. This is CAPTCHA type most people are familiar with, created by Google reCAPTCHA.                                                                                                                          |
+
+## React Component
+
+To use the Procaptcha React Component, import Procaptcha, define a config with ProcaptchaConfigSchema, optionally define callbacks, and render via the Procaptcha component. A minimal example would be as follows:
+
+```javascript
+import { Procaptcha } from '@prosopo/procaptcha-react'
+import { ProcaptchaConfigSchema } from '@prosopo/types'
+
+const MyApp = () => {
+    const config = ProcaptchaConfigSchema.parse({
+        account: {
+            address: 'YOUR_SITEKEY',
+        },
+        // Other config options, see demos/client-example for more details
+    })
+
+    return <Procaptcha config={config} />
+}
+
+export default MyApp
+```
+
+Further example usage can be seen in [demos/client-example](https://github.com/prosopo/captcha/blob/main/demos/client-example/src/App.tsx#L220C1-L223C43)

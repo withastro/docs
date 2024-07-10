@@ -1,7 +1,7 @@
-import kleur from 'kleur';
-import { dedentMd } from '../../output.mjs';
 import { CheckBase, type CheckHtmlPageContext } from '../base/check';
 import { IssueType } from '../base/issue';
+import { dedentMd } from '../../output.mjs';
+import kleur from 'kleur';
 
 export class TargetExists extends CheckBase {
 	private static readonly BrokenPageLink = new IssueType({

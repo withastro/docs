@@ -70,7 +70,7 @@ export async function getAllContributors(repo: string) {
 }
 
 export async function getTranslationContributors(paths: string[], repo: string) {
-	const ignoredCommitKeywords = /(en-only|typo|broken link|i18nReady|i18nIgnore)/i;
+	const ignoredCommitKeywords = /en-only|typo|broken link|i18nReady|i18nIgnore/i;
 	const contributors: Contributor[] = [];
 
 	for (const path of paths) {

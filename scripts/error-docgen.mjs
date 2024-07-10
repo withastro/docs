@@ -1,6 +1,6 @@
+import fetch from 'node-fetch';
 import fs from 'fs';
 import jsdoc from 'jsdoc-api';
-import fetch from 'node-fetch';
 import ts from 'typescript';
 
 const sourceBranch = process.env.SOURCE_BRANCH || 'main';
@@ -14,12 +14,12 @@ const STUB = undefined; // fs.readFileSync('../astro/packages/astro/src/core/err
 const HEADER = `---
 # NOTE: This file is auto-generated from 'scripts/error-docgen.mjs'
 # Do not make edits to it directly, they will be overwritten.
-# Instead, change this file: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
+# Instead, change this file: https://github.com/prosopo/captcha/blob/main/packages/astro/src/core/errors/errors-data.ts
 # Translators, please remove this note and the <DontEditWarning/> component.
 
 title: Error reference
 i18nReady: true
-githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
+githubURL: https://github.com/prosopo/captcha/blob/main/packages/astro/src/core/errors/errors-data.ts
 ---
 
 import DontEditWarning from '~/components/DontEditWarning.astro'
@@ -195,12 +195,12 @@ function getErrorReferenceEntryHeader(errorTitle) {
 ---
 # NOTE: This file is auto-generated from 'scripts/error-docgen.mjs'
 # Do not make edits to it directly, they will be overwritten.
-# Instead, change this file: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
+# Instead, change this file: https://github.com/prosopo/captcha/blob/main/packages/astro/src/core/errors/errors-data.ts
 # Translators, please remove this note and the <DontEditWarning/> component.
 
 title: ${errorTitle}
 i18nReady: true
-githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
+githubURL: https://github.com/prosopo/captcha/blob/main/packages/astro/src/core/errors/errors-data.ts
 ---
 import DontEditWarning from '~/components/DontEditWarning.astro'
 
@@ -221,7 +221,7 @@ function extractStringFromFunction(func) {
 	function expressionToText(text) {
 		return sanitizeString(
 			text.replaceAll(
-				/\${([^}]+)}/gm,
+				/\$\{([^}]+)\}/g,
 				(_, match1) =>
 					`${match1
 						.split(/\.?(?=[A-Z])/)
@@ -239,10 +239,10 @@ function extractStringFromFunction(func) {
  */
 function sanitizeString(message) {
 	return message
-		.replaceAll(/\\`/gm, '`')
-		.replaceAll(/`?(client:[\w]+(="\(.+\)")?)`?/g, '`$1`')
-		.replaceAll(/([^`\\])</gm, `$1\\<`)
-		.replaceAll(/>([^`\\])/gm, '\\$1>')
+		.replaceAll(/\\`/g, '`')
+		.replaceAll(/`?(client:\w+(="\(.+\)")?)`?/g, '`$1`')
+		.replaceAll(/([^`\\])</g, `$1\\<`)
+		.replaceAll(/>([^`\\])/g, '\\$1>')
 		.replaceAll('\\n', '<br/>');
 }
 

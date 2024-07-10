@@ -1,7 +1,7 @@
-import type starlight from '@astrojs/starlight';
+import { navTranslations } from '../src/i18n/util';
 import { normalizeLangTag } from '../src/i18n/bcp-normalize';
 import type { NavDict } from '../src/i18n/translation-checkers';
-import { navTranslations } from '../src/i18n/util';
+import type starlight from '@astrojs/starlight';
 
 /** For an item in our sidebar, get translations of its label. */
 function getTranslations(item: NavDict[number]): Record<string, string> | undefined {
@@ -22,7 +22,8 @@ type StarlightSidebarConfig = NonNullable<Parameters<typeof starlight>[0]['sideb
 
 /** Generate a Starlight sidebar config object from our existing `nav.ts` files. */
 export function makeSidebar(): StarlightSidebarConfig {
-	let currentSubGroup: Extract<StarlightSidebarConfig[number], { items: any }>;
+	// eslint-disable-next-line
+	let currentSubGroup: Extract<StarlightSidebarConfig[number], { items: any[] }>;
 	return navTranslations.en.reduce((sidebar, item) => {
 		if ('header' in item) {
 			const newGroup = {

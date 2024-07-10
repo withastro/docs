@@ -1,5 +1,5 @@
+import { type CollectionEntry, defineCollection, z } from 'astro:content';
 import { docsSchema } from '@astrojs/starlight/schema';
-import { defineCollection, z, type CollectionEntry } from 'astro:content';
 
 export const baseSchema = z.object({
 	type: z.literal('base').optional().default('base'),

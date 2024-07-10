@@ -1,5 +1,5 @@
-import type { AnnotationProperties } from '@actions/core';
 import { formatCount } from '../../output.mjs';
+import type { AnnotationProperties } from '@actions/core';
 import type { CheckBase } from './check';
 import type { HtmlPage } from './page';
 

@@ -29,7 +29,7 @@ yarn create astro
 pnpm create astro@latest
 ```
 
-[`create-astro`](https://github.com/withastro/astro/tree/main/packages/create-astro) varázsló felajánlja hogy válassz a [kezdő minták közül](https://github.com/withastro/astro/tree/main/examples) vagy, importálhatod a saját Astro projektedet GitHub-ról.
+[`create-astro`](https://github.com/prosopo/captcha/tree/main/packages/create-astro) varázsló felajánlja hogy válassz a [kezdő minták közül](https://github.com/prosopo/captcha/tree/main/examples) vagy, importálhatod a saját Astro projektedet GitHub-ról.
 
 ```bash
 # Megjegyzés: Cseréld ki a "my-astro-project"-et a saját projekted nevére.

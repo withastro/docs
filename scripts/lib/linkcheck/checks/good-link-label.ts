@@ -1,8 +1,8 @@
-import { DomUtils } from 'htmlparser2';
-import kleur from 'kleur';
-import { dedentMd } from '../../output.mjs';
 import { CheckBase, type CheckHtmlPageContext } from '../base/check';
+import { DomUtils } from 'htmlparser2';
 import { IssueType } from '../base/issue';
+import { dedentMd } from '../../output.mjs';
+import kleur from 'kleur';
 
 /** List of labels that are insufficiently descriptive for a link. */
 const blocklist = new Set(['read more', 'click here', 'here', 'more']);
@@ -21,7 +21,7 @@ export class GoodLabels extends CheckBase {
 
 		context.page.anchors.forEach((anchor) => {
 			const linkLabel = DomUtils.innerText(anchor)
-				.replace(/[\n\s\t]+/g, ' ')
+				.replace(/\s+/g, ' ')
 				.trim();
 
 			if (!blocklist.has(linkLabel.toLowerCase())) return;

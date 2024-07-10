@@ -21,7 +21,7 @@ _Opmerking: sommige functies (bv. Snel vernieuwen) zijn momenteel beperkt op Cod
 
 Mensen komen naar Astro vanuit verschillende achtergronden en met verschillende leerstijlen. Of je nu de voorkeur geeft aan een meer theoretische of praktische benadering, we hopen dat je deze sectie nuttig zult vinden.
 
-- Als je liever **leert door te doen**, begin dan met onze [voorbeeldenbibliotheek](https://github.com/withastro/astro/tree/main/examples).
+- Als je liever **leert door te doen**, begin dan met onze [voorbeeldenbibliotheek](https://github.com/prosopo/captcha/tree/main/examples).
 - Als je de concepten liever **stap voor stap leert**, begin dan met onze [basisconcepten en handleidingen](/nl/core-concepts/project-structure/).
 
 Zoals elke onbekende technologie heeft Astro een leercurve. Met wat oefening en wat geduld krijg je het onder de knie.
@@ -44,13 +44,13 @@ Deze documentatie geeft altijd de laatste stabiele versie van Astro weer. Zodra 
 
 Het [@astrodotbuild](https://twitter.com/astrodotbuild) Twitter-account is de officiële bron voor de updates van het Astro-team.
 
-We plaatsen ook release-aankondigingen in onze [Discord-community](https://astro.build/chat) in het #announcements kanaal.
+We plaatsen ook release-aankondigingen in onze [Discord-community](https://discord.gg/3nMYAHecZT) in het #announcements kanaal.
 
-Niet elke Astro-release verdient een eigen blogpost, maar je kunt een gedetailleerde changelog voor elke release vinden in het [CHANGELOG.md-bestand in de Astro-repository](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md).
+Niet elke Astro-release verdient een eigen blogpost, maar je kunt een gedetailleerde changelog voor elke release vinden in het [CHANGELOG.md-bestand in de Astro-repository](https://github.com/prosopo/captcha/blob/main/packages/astro/CHANGELOG.md).
 
 ## Mis je iets?
 
-Als er iets ontbreekt in de documentatie of als je een onderdeel verwarrend vond, [dien dan een probleem in voor de documentatie](https://github.com/withastro/astro/issues/new/choose) met je suggesties voor verbetering, of tweet naar het [@astrodotbuild](https://twitter.com/astrodotbuild) Twitter-account. We horen graag van je!
+Als er iets ontbreekt in de documentatie of als je een onderdeel verwarrend vond, [dien dan een probleem in voor de documentatie](https://github.com/prosopo/captcha/issues/new/choose) met je suggesties voor verbetering, of tweet naar het [@astrodotbuild](https://twitter.com/astrodotbuild) Twitter-account. We horen graag van je!
 
 ## Credit
 

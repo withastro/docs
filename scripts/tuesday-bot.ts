@@ -1,6 +1,6 @@
-import { setOutput } from '@actions/core';
 import { lunaria } from '@lunariajs/core';
 import { readFileSync } from 'node:fs';
+import { setOutput } from '@actions/core';
 import languages from '../src/i18n/languages';
 
 await setDiscordMessage();
