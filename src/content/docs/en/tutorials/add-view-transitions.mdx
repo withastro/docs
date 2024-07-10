@@ -184,6 +184,7 @@ The steps below show you how to extend the final product of the Build a Blog tut
     View your site preview **at a smaller screen size**, and try to use the hamburger menu to navigate between pages. Notice that your menu will no longer work after the first page load.
 
 </Steps>
+
 ### Update scripts
 
 With view transitions, some scripts may no longer re-run after page navigation like they do with full-page browser refreshes. There are several [events during client-side routing that you can listen for](/en/guides/view-transitions/#lifecycle-events), and fire events when they occur. The scripts in your project will now need to hook into two events to run at the right time during page navigation: [`astro:page-load`](/en/guides/view-transitions/#astropage-load) and [`astro:after-swap`](/en/guides/view-transitions/#astroafter-swap).
@@ -207,7 +208,7 @@ With view transitions, some scripts may no longer re-run after page navigation l
     
     Update the existing script tag so that your function runs in response to the `astro:page-load` event, making your theme toggle interactive after the new page is fully loaded and visible to the user:
 
-    ```astro title="src/components/ThemeIcon.astro" ins={8,38} del="is:inline"
+    ```astro title="src/components/ThemeIcon.astro" ins={8,36} del="is:inline"
     ---
     ---
     <button id="themeToggle"> /* ... */ </button>
@@ -242,9 +243,7 @@ With view transitions, some scripts may no longer re-run after page navigation l
           localStorage.setItem("theme", isDark ? "dark" : "light");
         };
 
-        document
-          .getElementById("themeToggle")
-          .addEventListener("click", handleToggleClick);
+        document.getElementById("themeToggle").onclick = handleToggleClick;
       });
     </script>
     ```
@@ -254,19 +253,22 @@ With view transitions, some scripts may no longer re-run after page navigation l
 
     The theme toggle works on every page, but its script is loaded at the end of the navigation process, **after the new page has fully loaded in the browser**. There may be a flash of the light theme version of the site before this theme toggle script runs and checks which theme it should use on the page.
 
-    To check for, and if necessary set, dark mode earlier in the navigation process, create a function that will run in response to the `astro:after-swap` event. The following function to check the browser's `localStorage` for dark theme will run **immediately after the new page has replaced the old page**, before the DOM elements are painted to the screen.
+    To check for, and if necessary set, dark mode earlier in the navigation process, create a function that will run in response to the `astro:after-swap` event. The following function to check the browser's `localStorage` for dark theme will run when the first page is visited and **immediately after the new page has replaced the old page**, before the DOM elements are painted to the screen.
 
     Add this new script to the `<ThemeIcon />` component, in addition to the script that controls the theme toggle.
 
     ```astro title="src/components/ThemeIcon.astro" ins={3-9}
     <script> ... </script>
 
-    <script>
-      document.addEventListener('astro:after-swap', () => {
+    <script is:inline>
+      function applyTheme() {
         localStorage.theme === 'dark' 
-        ? document.documentElement.classList.add("dark")
-        : document.documentElement.classList.remove("dark");
-      }); 
+          ? document.documentElement.classList.add("dark")
+          : document.documentElement.classList.remove("dark");
+      }
+    
+      document.addEventListener('astro:after-swap', applyTheme);
+      applyTheme(); 
     </script>
     ```
 
