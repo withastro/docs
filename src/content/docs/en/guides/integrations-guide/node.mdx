@@ -102,6 +102,67 @@ Controls whether the adapter builds to `middleware` or `standalone` mode.
 
 * `standalone` mode builds to server that automatically starts with the entry module is run. This allows you to more easily deploy your build to a host without any additional code.
 
+### Standalone Middleware
+
+Ability to pass middleware to be used `only with standalone mode`. Gives you the ability to use packages such as [http-proxy-middleware](https://www.npmjs.com/package/http-proxy-middleware) in standalone mode.
+
+* `standaloneMiddleware` specify the filename thats going to export the one (or many combined) middleware. These middleware will be added when starting standalone server.
+
+  ```js title="astro.config.mjs"
+  import { defineConfig } from 'astro/config';
+  import node from '@astrojs/node';
+
+  export default defineConfig({
+    output: 'server',
+    adapter: node({
+      mode: 'standalone',
+      standaloneMiddleware: `${import.meta.dirname}/src/node_middleware.js`,
+    }),
+  });
+  ```
+
+  ```js title="src/node_middleware.js"
+  const combineMiddleware = (...middlewares) => {
+    return (req, res, next) => {
+        let index = 0;
+        const run = (err) => {
+            if (err) {
+                return next(err);
+            }
+            if (index >= middlewares.length) {
+                return next();
+            }
+            const middleware = middlewares[index++];
+            try {
+                middleware(req, res, run);
+            } catch (error) {
+                next(error);
+            }
+        };
+
+        run();
+    };
+  };
+
+  const middleware_one = (req, res, next) => {
+      if (req.url === '/middleware-one') {
+          res.end('This is middleware one');
+      } else {
+          next();
+      }
+  };
+
+  const middleware_two = (req, res, next) => {
+      if (req.url === '/middleware-two') {
+          res.end('This is middleware two');
+      } else {
+          next();
+      }
+  };
+
+  export default combineMiddleware(middleware_one, middleware_two);
+  ```
+
 ## Usage
 
 First, [performing a build](/en/guides/deploy/#building-your-site-locally). Depending on which `mode` selected (see above) follow the appropriate steps below:
