@@ -1,0 +1,996 @@
+---
+title: Astro v3로 업그레이드
+description: 프로젝트를 최신 버전의 Astro (v3.0)로 업그레이드하는 방법
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+이 가이드는 Astro v2에서 Astro v3로 마이그레이션하는 데 도움이 됩니다.
+
+이전 프로젝트를 v2로 업그레이드해야 합니까? [이전 마이그레이션 가이드](/ko/guides/upgrade-to/v2/)를 참조하세요.
+
+## Astro 업그레이드
+
+패키지 관리자를 사용하여 프로젝트의 Astro 버전을 최신 버전으로 업데이트하세요. Astro 통합을 사용하는 경우 통합과 함께 최신 버전으로 업데이트하세요.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # Astro v3.x 버전으로 업그레이드
+  npm install astro@latest
+
+  # 예: React 및 Tailwind 통합 업그레이드
+  npm install @astrojs/react@latest @astrojs/tailwind@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # Astro v3.x 버전으로 업그레이드
+  pnpm add astro@latest
+
+  # 예: React 및 Tailwind 통합 업그레이드
+  pnpm add @astrojs/react@latest @astrojs/tailwind@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # Astro v3.x 버전으로 업그레이드
+  yarn add astro@latest
+
+  # 예: React 및 Tailwind 통합 업그레이드
+  yarn add @astrojs/react@latest @astrojs/tailwind@latest
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+:::note[계속해야 합니까?]
+Astro를 최신 버전으로 업그레이드한 후에는 프로젝트를 전혀 변경할 필요가 없을 수도 있습니다!
+
+그러나 오류나 예상치 못한 동작이 발견되면 아래에서 프로젝트 업데이트가 필요할 수 있는 변경 사항을 확인하세요.
+:::
+
+## Astro v3.0 실험적 플래그 제거
+
+`astro.config.mjs`에서 다음 실험적 플래그를 제거합니다.
+
+```js del={5-8}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    assets: true,
+    viewTransitions: true,
+  },
+})
+```
+
+이제 다음 기능을 기본적으로 사용할 수 있습니다.
+
+- 페이지 전환 애니메이션 및 지속적 아일랜드에 대한 View Transitions. 이 실험적 플래그를 사용하는 경우 [view transitions API 주요 변경 사항 및 업그레이드 조언](#view-transitions를-v3로-업그레이드)을 참조하세요.
+- 새로운 `<Image />` 컴포넌트 및 `getImage()` 함수를 포함하는 Astro에서 이미지를 사용하기 위한 새로운 이미지 서비스 API인 `astro:assets`. **이 실험적 플래그를 사용하고 있는지 여부에 관계없이** 자세한 [이미지 업그레이드 조언](#이미지를-v3로-업그레이드)을 읽고 이것이 프로젝트에 어떤 영향을 미칠 수 있는지 확인하세요.
+
+[3.0 블로그 게시물](https://astro.build/blog/astro-3/)에서 이 두 가지 흥미로운 기능에 대해 자세히 알아보세요!
+
+## Astro v3.0 주요 변경 사항
+
+Astro v3.0에는 몇 가지 주요 변경 사항이 포함되어 있으며 이전에 더 이상 사용되지 않는 일부 기능이 제거되었습니다. v3.0으로 업그레이드한 후 프로젝트가 예상대로 작동하지 않으면 이 가이드에서 모든 주요 변경 사항에 대한 개요와 코드베이스 업데이트 방법에 대한 지침을 확인하세요.
+
+전체 릴리스 노트는 [변경 로그](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)를 참조하세요.
+
+### 제거됨: Node 16에 대한 지원
+
+Node 16은 2023년 9월에 수명이 종료될 예정입니다.
+
+Astro v3.0은 모든 Astro 사용자가 Node의 최신 기능을 활용할 수 있도록 Node 16 지원을 완전히 중단합니다.
+
+#### 어떻게 해야 하나요?
+
+ 개발 환경과 배포 환경 모두 **Node `18.14.1` 이상**을 사용하고 있는지 확인하세요.
+
+<Steps>
+1. 다음을 사용하여 Node의 로컬 버전을 확인하세요.
+
+    ```sh
+    node -v
+    ```
+
+2. [배포 환경](/ko/guides/deploy/) 문서를 확인하여 Node 18을 지원하는지 확인하세요.
+
+    대시보드 구성 설정이나 `.nvmrc` 파일에서 Astro 프로젝트에 대해 Node `18.14.1`을 지정할 수 있습니다.
+
+    ```bash title=".nvmrc"
+    18.14.1
+    ```
+</Steps>
+
+### 제거됨: TypeScript 4 지원
+
+Astro v2.x의 `tsconfig.json` 프리셋에는 TypeScript 4.x 및 5.x에 대한 지원이 모두 포함됩니다.
+
+Astro v3.0은 TypeScript 5.x만 지원하도록 `tsconfig.json` 프리셋을 업데이트합니다. Astro는 이제 TypeScript 5.0 (2023년 3월)을 사용하거나 편집기에 TypeScript 5.0이 포함되어 있다고 가정합니다. (예: VS Code 1.77)
+
+#### 어떻게 해야 하나요?
+
+TypeScript를 로컬에 설치한 경우 v5.0 이상으로 업데이트하세요.
+
+```bash
+npm install typescript@latest --save-dev
+```
+
+### 제거됨: `@astrojs/image`
+
+Astro v2.x에서는 `<Image />` 및 `<Picture />` 컴포넌트를 포함하는 공식 이미지 통합을 제공했습니다.
+
+Astro v3.0은 코드베이스에서 이러한 통합을 완전히 제거합니다. Astro의 새로운 이미지 솔루션은 내장된 이미지 서비스 API인 `astro:assets`입니다.
+
+#### 어떻게 해야 하나요?
+
+프로젝트에서 `@astrojs/image` 통합을 제거하세요. 통합을 제거할 뿐만 아니라 import 문과 기존 `<Image />` 및 `<Picture />` 컴포넌트도 업데이트하거나 제거해야 합니다. 선호하는 기본 이미지 처리 서비스를 구성해야 할 수도 있습니다.
+
+이미지 가이드에서 [이전 이미지 통합을 제거하기 위한 전체 단계별 지침](#astrojsimage-제거)을 확인할 수 있습니다.
+
+`astro:assets`로 마이그레이션하면 사용하고 싶은 몇 가지 새로운 이미지 옵션과 기능도 제공됩니다. 자세한 내용은 전체 [v3.0 이미지 업그레이드 조언](#이미지를-v3로-업그레이드)을 참조하세요!
+
+```js del={3,7}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import image from '@astrojs/image';
+
+export default defineConfig({
+  integrations: [
+    image(),
+  ]
+})
+```
+
+### 제거됨: `<Markdown />` 컴포넌트
+
+Astro v1.x는 `<Markdown />` 컴포넌트를 더 이상 사용하지 않고 외부 패키지로 옮겼습니다.
+
+Astro v3.0은 `@astrojs/markdown-component` 패키지를 완전히 제거합니다. Astro의 `<Markdown />` 컴포넌트는 더 이상 프로젝트에서 작동하지 않습니다.
+
+#### 어떻게 해야 하나요?
+
+`@astrojs/markdown-component`의 모든 인스턴스를 제거합니다.
+
+```astro del={2} title="src/components/MyAstroComponent.astro"
+---
+import Markdown from '@astrojs/markdown-component';
+---
+```
+
+코드에서 `<Markdown />`과 유사한 컴포넌트를 계속 사용하려면 [`astro-remote`](https://github.com/natemoo-re/astro-remote)와 같은 [커뮤니티 통합](https://astro.build/integrations/) 사용을 고려하세요. 통합 자체 문서에 따라 `<Markdown />` 컴포넌트 가져오기 및 속성을 업데이트하세요.
+
+그렇지 않으면 Astro의 `<Markdown />` 컴포넌트와 `.astro` 파일의 컴포넌트 자체 가져오기에 대한 모든 참조를 삭제하세요. 콘텐츠를 HTML로 직접 다시 작성하거나 `.md` 파일에서 [Markdown을 가져와야](/ko/guides/markdown-content/#markdown-가져오기) 합니다.
+
+### 제거됨: 더 이상 사용되지 않는 1.x API
+
+Astro v1.x에서는 `<style global>` 및 `<script hoist>` 지원뿐만 아니라 원래 구성 설정을 더 이상 사용하지 않습니다. 그러나 이전 버전과의 호환성을 위해 여전히 지원되었습니다.
+
+Astro v3.0은 더 이상 사용되지 않는 이러한 API를 완전히 제거합니다. 대신 공식적으로 지원되는 [구성 설정](/ko/reference/configuration-reference/)과 최신 `<style is:global>` 및 `<script>` 구문을 사용해야 합니다.
+
+#### 어떻게 해야 하나요?
+
+v1.x API를 계속 사용하는 경우 각 기능을 대체하는 새 API를 사용하세요.
+
+- 더 이상 사용되지 않는 구성 옵션: [0.26 마이그레이션 가이드](/ko/guides/upgrade-to/v1/#new-configuration-api)를 참조하세요.
+- 더 이상 사용되지 않는 스크립트/스타일 속성 타입: [0.26 마이그레이션 가이드](/ko/guides/upgrade-to/v1/#new-default-script-behavior)를 참조하세요.
+
+### 제거됨: 서버 코드의 Web API에 대한 부분 shims
+
+Astro v2.x에서는 서버 렌더링 코드에서 `document` 또는 `localStorage`와 같은 Web API에 대한 부분 shims을 제공했습니다. 이러한 shims는 불완전하고 신뢰할 수 없는 경우가 많았습니다.
+
+Astro v3.0은 이러한 부분 shims를 완전히 제거합니다. Web API는 더 이상 서버 렌더링 코드에서 사용할 수 없습니다.
+
+#### 어떻게 해야 하나요?
+
+서버 렌더링 컴포넌트에서 Web API를 사용하는 경우 해당 API의 사용을 조건부로 설정하거나 [`client:only` 클라이언트 지시어](/ko/reference/directives-reference/#clientonly)를 사용해야 합니다.
+
+### 제거됨: 콘텐츠 컬렉션 스키마 `astro:content`의 `image`
+
+Astro v2.x에서 콘텐츠 컬렉션 API는 콘텐츠 컬렉션 스키마에서 사용하기 위한 `astro:content`의 `image` 내보내기를 더 이상 사용하지 않습니다.
+
+Astro v3.0은 이 내보내기를 완전히 제거합니다.
+
+#### 어떻게 해야 하나요?
+
+`astro:content`에서 더 이상 사용되지 않는 `image()`를 사용하는 경우 더 이상 존재하지 않으므로 제거하세요. 대신 [`schema`의 `image` 도우미](#콘텐츠-컬렉션-스키마-업데이트)를 통해 이미지를 확인하세요.
+
+ ```ts title="src/content/config.ts" del={1} ins={2} "({ image })"
+import { defineCollection, z, image } from "astro:content";
+import { defineCollection, z } from "astro:content";
+
+ defineCollection({
+   schema: ({ image }) =>
+     z.object({
+       image: image(),
+    }),
+});
+```
+
+### 제거됨: 0.14 이전 Shiki 테마 이름
+
+Astro v2.x에서는 일부 Shiki 테마 이름이 변경되었지만 이전 버전과의 호환성을 위해 원래 이름은 유지되었습니다.
+
+Astro v3.0은 이름이 변경된 테마 이름을 위해 원래 이름을 제거합니다.
+
+#### 어떻게 해야 하나요?
+
+프로젝트에서 아래 테마 중 하나를 사용하는 경우 업데이트된 이름으로 이름을 바꾸세요.
+
+- `material-darker` -> `material-theme-darker`
+- `material-default` -> `material-theme`
+- `material-lighter` -> `material-theme-lighter`
+- `material-ocean` -> `material-theme-ocean`
+- `material-palenight` -> `material-theme-palenight`
+
+### 제거됨: `class:list` 기능
+
+Astro v2.x에서 [`class:list` 지시어](/ko/reference/directives-reference/#classlist)는 중복 제거 및 `Set` 지원과 같은 몇 가지 추가 기능과 함께 [`clsx`](https://github.com/lukeed/clsx)에서 영감을 받은 사용자 정의 구현을 사용했습니다.
+
+Astro v3.0은 이제 `class:list`에 `clsx`를 직접 사용하며, 중복 제거나 `Set` 값은 지원하지 않습니다.
+
+#### 어떻게 해야 하나요?
+
+`class:list` 지시어에 전달된 모든 `Set` 요소를 일반 `Array`로 바꾸세요.
+
+```astro title="src/components/MyAstroComponent.astro" del={4} ins={5}
+<Component class:list={[
+  'a',
+  'b',
+  new Set(['c', 'd'])
+  ['c', 'd']
+]} />
+```
+
+### 제거됨: `class:list`를 prop으로 전달
+
+Astro v2.x에서는 [`class:list` 값](/ko/reference/directives-reference/#classlist)이 [`Astro.props['class:list']`](/ko/reference/api-reference/#astroprops)를 통해 컴포넌트로 전송되었습니다.
+
+Astro v3.0은 `Astro.props['class']`를 통해 컴포넌트로 전송되기 전에 `class:list` 값을 문자열로 정규화합니다.
+
+#### 어떻게 해야 하나요?
+
+`class:list` prop을 받을 것으로 예상되는 코드를 제거하세요.
+
+```astro title="src/components/MyAstroComponent.astro" del={2,3,7} ins={4,8} "classList" "'class:list': classList"
+---
+import { clsx } from 'clsx';
+const { class: className, 'class:list': classList } = Astro.props;
+const { class: className } = Astro.props;
+---
+<div
+  class:list={[className, classList]}
+  class:list={[className]}
+/>
+```
+
+### 제거됨: camelCase CSS 변수에 대한 kebab-case 변환
+
+Astro v2.x에서는 `style` 속성에 전달된 camelCase [CSS 변수](/ko/guides/styling/#css-변수)가 작성된 대로 camelCase 및 하위 호환성을 위한 kebab-case로 렌더링되었습니다.
+
+Astro v3.0은 이러한 camelCase CSS 변수 이름에 대한 kebab-case 변환을 제거하고 원래 camelCase CSS 변수만 렌더링합니다.
+
+```astro "my-value"
+---
+// src/components/MyAstroComponent.astro
+const myValue = "red"
+---
+<!-- 입력 -->
+<div style={{ "--myValue": myValue }}></div>
+
+<!-- 출력 (Astro 2.x) -->
+<div style="--my-value:var(--myValue);--myValue:red"></div>
+<!-- 출력 (Astro 3.0) -->
+<div style="--myValue:red"></div>
+```
+
+#### 어떻게 해야 하나요?
+
+Astro를 사용하여 스타일을 kebab-case로 변환했다면 기존 스타일을 camelCase로 업데이트하여 스타일 누락을 방지하세요. 예를 들어:
+
+```astro del={3} ins={4} title="src/components/MyAstroComponent.astro"
+<style>
+  div {
+   color: var(--my-value);
+   color: var(--myValue);
+  }
+</style>
+```
+
+### 제거됨: `getStaticPaths()`의 반환 값 자동 플랫
+
+Astro v2.x에서는 [`getStaticPaths()`](/ko/reference/api-reference/#getstaticpaths)의 반환 값이 자동으로 플랫되어 오류 없이 요소가 배열인 배열을 반환할 수 있습니다.
+
+Astro v3.0은 `getStaticPaths()` 결과의 자동 플랫을 제거합니다.
+
+#### 어떻게 해야 하나요?
+
+요소가 _객체_ 인 배열 대신 요소가 배열인 배열을 반환하는 경우 이제 `.flatMap` 및 `.flat`을 사용하여 플랫 배열을 반환해야 합니다.
+
+코드를 업데이트해야 하는 경우 [`getStaticPaths()`의 반환 값이 객체의 배열이어야 함을 나타내는 오류 메시지](/ko/reference/errors/invalid-get-static-paths-entry/#무엇이-잘못되었나요)가 제공됩니다.
+
+### 이동됨: `astro check`에는 이제 외부 패키지가 필요합니다.
+
+Astro v2.x에서는 [`astro check`](/ko/reference/cli-reference/#astro-check)가 기본적으로 Astro에 포함되었으며 해당 종속 항목은 Astro에 번들로 포함되었습니다. 이는 `astro check`를 사용했는지 여부에 관계없이 더 큰 패키지를 의미합니다. 이로 인해 사용할 TypeScript 및 Astro 언어 서버 버전을 제어할 수 없게 되었습니다.
+
+Astro v3.0은 `astro check` 명령을 Astro 코어 밖으로 이동했으며 이제 외부 패키지 `@astrojs/check`가 필요합니다. 또한 `astro check` 명령을 사용하려면 프로젝트에 `typescript`를 설치해야 합니다.
+
+#### 어떻게 해야 하나요?
+
+Astro v3.0으로 업그레이드한 후 `astro check` 명령을 실행하고 프롬프트에 따라 필요한 종속성을 설치하거나 프로젝트에 `@astrojs/check` 및 `typescript`를 수동으로 설치하세요.
+
+### 더 이상 사용되지 않음: `build.excludeMiddleware` 및 `build.split`
+
+Astro v2.x에서는 `build.excludeMiddleware` 및 `build.split`을 사용하여 SSR 모드에서 어댑터를 사용할 때 특정 파일이 내보내지는 방식을 변경했습니다.
+
+Astro v3.0은 이러한 빌드 구성 옵션을 새로운 [SSR 어댑터 구성 옵션](/ko/guides/integrations-guide/#공식-통합)으로 대체하여 동일한 작업인 `edgeMiddleware` 및 `functionPerRoute`를 수행합니다.
+
+#### 어떻게 해야 하나요?
+
+이제 **어댑터 구성**의 새 옵션을 직접 사용하려면 Astro 구성 파일을 업데이트하세요.
+
+```js title="astro.config.mjs" del={5-7} ins={9}
+import { defineConfig } from "astro/config";
+import vercel from "@astrojs/vercel/serverless";
+
+export default defineConfig({
+    build: {
+      excludeMiddleware: true
+    },
+    adapter: vercel({
+      edgeMiddleware: true
+    }),
+});
+```
+
+```js title="astro.config.mjs" del={5-7} ins={9}
+import { defineConfig } from "astro/config";
+import netlify from "@astrojs/netlify/functions";
+
+export default defineConfig({
+     build: {
+        split: true
+     },
+     adapter: netlify({
+        functionPerRoute: true
+     }),
+});
+```
+
+### 더 이상 사용되지 않음: `markdown.drafts`
+
+Astro v2.x에서는 `markdown.drafts` 구성을 통해 개발 서버를 실행할 때 사용할 수 있지만 프로덕션에서는 빌드되지 않은 초안 페이지를 가질 수 있었습니다.
+
+Astro v3.0에서는 수동으로 필터링하여 초안 페이지를 처리하는 콘텐츠 컬렉션 방법을 선호하여 이 기능을 더 이상 사용하지 않으며, 이는 기능에 대한 더 많은 제어를 제공합니다.
+
+#### 어떻게 해야 하나요?
+
+프로젝트의 일부 페이지를 계속해서 초안으로 표시하려면 [콘텐츠 컬렉션으로 마이그레이션](/ko/guides/content-collections/#파일-기반-라우팅에서-마이그레이션)하고 대신 `draft: true` 프런트매터 속성을 사용하여 [페이지를 수동으로 필터링](/ko/guides/content-collections/#컬렉션-쿼리-필터링)하세요.
+
+### 더 이상 사용되지 않음: 엔드포인트에서 단순 객체 반환
+
+Astro v2.x에서 엔드포인트는 JSON 응답으로 변환되는 간단한 객체를 반환할 수 있습니다.
+
+Astro v3.0에서는 `Response` 객체를 직접 반환하기 위해 이 동작을 더 이상 사용하지 않습니다.
+
+#### 어떻게 해야 하나요?
+
+`Response` 객체를 직접 반환하도록 엔드포인트를 업데이트하세요.
+
+```ts title="endpoint.json.ts" del={2} ins={3}
+export async function GET() {
+  return { body: { "title": "Bob's blog" }};
+  return new Response(JSON.stringify({ "title": "Bob's blog" }));
+}
+```
+
+이전 형식을 유지해야 하는 경우 `ResponseWithEncoding` 객체를 사용할 수 있지만 앞으로는 더 이상 사용되지 않습니다.
+
+```ts title="endpoint.json.ts" del={2} ins={3}
+export async function GET() {
+  return { body: { "title": "Bob's blog" } };
+  return new ResponseWithEncoding({ body: { "title": "Bob's blog" }});
+}
+```
+
+### 기본값 변경: tsconfig.json 프리셋의 `verbatimModuleSyntax`
+
+Astro v2.x에서 [`verbatimModuleSyntax`](https://www.typescriptlang.org/tsconfig#verbatimModuleSyntax) 설정은 기본적으로 꺼져 있었고 TypeScript 4.x에 해당하는 `importsNotUsedAsValues`는 `strict` 프리셋에서 활성화되었습니다.
+
+Astro v3.0에서는 `verbatimModuleSyntax`가 모든 프리셋에서 활성화됩니다.
+
+#### 어떻게 해야 하나요?
+
+이 옵션을 사용하려면 `import type` 구문을 사용하여 타입을 가져와야 합니다.
+
+```astro title="src/components/MyAstroComponent.astro" "type"
+---
+import { type CollectionEntry, getEntry } from "astro:content";
+---
+```
+
+위에 표시된 대로 이를 유지하고 `type`을 사용하여 타입을 올바르게 가져오는 것이 좋습니다. 문제가 발생하는 경우 `tsconfig.json` 파일에서 `verbatimModuleSyntax: false`를 설정하여 비활성화할 수 있습니다.
+
+```json title="tsconfig.json" "false"
+{
+  "compilerOptions": {
+    "verbatimModuleSyntax": false
+  }
+}
+```
+
+### 기본값 변경: 포트 `3000`
+
+Astro v2.x에서 Astro는 기본적으로 `3000` 포트에서 실행되었습니다.
+
+Astro v3.0은 [기본 포트](/ko/reference/cli-reference/#--port-number)를 `4321`로 변경합니다. 🚀
+
+#### 어떻게 해야 하나요?
+
+예를 들어 테스트나 `README`에서 `localhost:3000`에 대한 기존 참조를 업데이트하여 새 포트 `localhost:4321`을 반영하세요.
+
+### 기본값 변경: import.meta.env.BASE_URL `trailingSlash`
+
+Astro v2.x에서 `import.meta.env.BASE_URL`은 기본적으로 [`base`](/ko/reference/configuration-reference/#base) 설정에 [trailingSlash](/ko/reference/configuration-reference/#trailingslash)를 추가했습니다. `trailingSlash: "ignore"`도 후행 슬래시를 추가했습니다.
+
+Astro v3.0은 기본적으로 또는 `trailingSlash: "ignore"`가 설정된 경우 더 이상 `import.meta.env.BASE_URL`에 후행 슬래시를 추가하지 않습니다. (`trailingSlash: "always"` 또는 `trailingSlash: "never"`와 결합된 `base`의 기존 동작은 변경되지 않습니다.)
+
+#### 어떻게 해야 하나요?
+
+`base`에 이미 후행 슬래시가 있으면 변경할 필요가 없습니다.
+
+`base`에 후행 슬래시가 없는 경우 이전 기본값 (또는 `trailingSlash: "ignore"`) 동작을 유지하려면 슬래시를 추가하세요.
+
+```js title="astro.config.mjs" del={4} ins={5}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  base: 'my-base',
+  base: 'my-base/',
+});
+```
+
+### 기본값 변경: `compressHTML`
+
+Astro v2.x에서 Astro는 [`compressHTML`](/ko/reference/configuration-reference/#compresshtml)이 명시적으로 `true`로 설정된 경우에만 방출된 HTML을 압축했습니다. 기본값은 `false`였습니다.
+
+Astro v3.0은 이제 기본적으로 방출된 HTML을 압축합니다.
+
+#### 어떻게 해야 하나요?
+
+이제 새로운 기본 동작이므로 구성에서 `compressHTML: true`를 제거할 수 있습니다.
+
+```js title="astro.config.mjs" del={4}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  compressHTML: true
+})
+```
+
+이제 HTML 압축을 선택 해제하려면 `compressHTML: false`를 설정해야 합니다.
+
+### 변경된 기본값: `scopedStyleStrategy`
+
+Astro v2.x에서 [`scopedStyleStrategy`](/ko/reference/configuration-reference/#scopedstylestrategy)의 기본값은 `"where"`였습니다.
+
+Astro v3.0에는 `"attribute"`라는 새로운 기본값이 도입되었습니다. 기본적으로 스타일은 이제 `data-*` 속성을 사용하여 적용됩니다.
+
+#### 어떻게 해야 하나요?
+
+프로젝트의 현재 [스타일 범위 지정](/ko/guides/styling/#범위가-지정된-스타일)을 유지하려면 구성 파일을 이전 기본값으로 업데이트하세요.
+
+```js title="astro.config.mjs" ins={4}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  scopedStyleStrategy: "where"
+})
+```
+
+### 기본값 변경: `inlineStyleSheets`
+
+Astro v2.x에서는 모든 프로젝트 스타일시트가 기본적으로 링크 태그로 전송되었습니다. `"always"`를 사용하여 매번 `<style>` 태그에 인라인 처리하거나 [`build.inlineStylesheets`](/ko/reference/configuration-reference/#buildinlinestylesheets) 구성의 값을 `"auto"`로 설정하여 특정 크기 이하의 스타일시트만 인라인 처리하도록 선택할 수 있습니다. 기본 설정은 `"never"` 였습니다.
+
+Astro v3.0은 `inlineStylesheets`의 기본값을 `"auto"`로 변경합니다. `ViteConfig.build.assetsInlineLimit` (기본값: 4kb)보다 작은 스타일시트는 기본적으로 인라인입니다. 그렇지 않으면 프로젝트 스타일이 외부 스타일시트로 전송됩니다.
+
+#### 어떻게 해야 하나요?
+프로젝트의 현재 동작을 유지하려면 `build.inlineStylesheets`를 이전 기본값인 `"never"`로 설정하세요.
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+	 build: {
+    inlineStylesheets: "never"
+  }
+})
+```
+
+### 변경된 기본값: 이미지 서비스
+
+Astro v2.x에서는 Squoosh가 [기본 이미지 처리 서비스](/ko/guides/images/#기본-이미지-서비스)였습니다.
+
+Astro v3.0에서는 이제 Sharp가 기본 이미지 처리 서비스로 포함되어 있으며 대신 Squoosh를 사용하기 위한 구성 옵션이 제공됩니다.
+
+#### 어떻게 해야 하나요?
+
+:::note
+`pnpm`과 같은 [엄격한 패키지 관리자](https://pnpm.io/ko/pnpm-vs-npm#npms-flat-tree)를 사용하는 경우 Astro 종속성이기는 하지만 프로젝트에 직접 Sharp를 설치해야 할 수 있습니다:
+
+```bash
+pnpm add sharp
+```
+:::
+
+Squoosh를 계속 사용하여 이미지를 변환하려면 다음과 같이 구성을 업데이트하세요.
+
+```ts title="astro.config.mjs" ins={4-6}
+import { defineConfig, squooshImageService } from "astro/config";
+
+export default defineConfig({
+  image: {
+    service: squooshImageService(),
+  }
+})
+```
+
+### 변경됨: HTTP 요청 메서드
+
+Astro v2.x에서는 [HTTP 요청 메서드](/ko/guides/endpoints/#http-메서드)가 소문자 함수 이름 (`get`, `post`, `put`, `all` 및 `del`)을 사용하여 작성되었습니다.
+
+Astro v3.0은 `del` 대신 `DELETE`를 포함한 대문자 함수 이름을 사용합니다.
+
+#### 어떻게 해야 하나요?
+
+모든 함수의 이름을 해당하는 대문자로 바꿉니다.
+
+- `get`을 `GET`로 변경합니다.
+- `post`를 `POST`로 변경합니다.
+- `put`을 `PUT`로 변경합니다.
+- `all`을 `ALL`로 변경합니다.
+- `del`을 `DELETE`로 변경합니다.
+
+```diff lang="js" title="endpoint.ts"
+-export function get() {
++export function GET() {
+    return new Response(JSON.stringify({ "title": "Bob's blog" }));
+}
+```
+
+### 변경됨: 다중 JSX 프레임워크 구성
+
+Astro v2.x에서는 어떤 파일이 어떤 프레임워크를 사용하는지 식별할 필요 없이 동일한 프로젝트에서 [여러 JSX 프레임워크 통합](/ko/guides/integrations-guide/#공식-통합) (React, Solid, Preact)을 사용할 수 있습니다.
+
+Astro v3.0에서는 이제 여러 JSX 프레임워크 통합이 설치된 경우 새로운 `include` 및 `exclude` 통합 구성 옵션을 사용하여 파일에 사용할 프레임워크를 지정해야 합니다. 이를 통해 Astro는 단일 프레임워크 사용은 물론 React Fast Refresh와 같은 고급 기능을 더 잘 지원할 수 있습니다.
+
+#### 어떻게 해야 하나요?
+
+동일한 프로젝트에서 여러 JSX 프레임워크를 사용하는 경우 `include` (및 선택적으로 `exclude`)를 파일 및/또는 폴더 배열로 설정하세요. 와일드카드를 사용하여 여러 파일 경로를 포함할 수 있습니다.
+
+포함을 더 쉽게 지정할 수 있도록 공통 프레임워크 컴포넌트를 동일한 폴더 (예: `/components/react/` 및 `/components/solid/`)에 배치하는 것이 좋지만 필수는 아닙니다.
+
+```js ins={13,16,19}
+import { defineConfig } from 'astro/config';
+import preact from '@astrojs/preact';
+import react from '@astrojs/react';
+import svelte from '@astrojs/svelte';
+import vue from '@astrojs/vue';
+import solid from '@astrojs/solid-js';
+
+export default defineConfig({
+  // 다양한 종류의 컴포넌트를 지원하기 위해 많은 프레임워크를 활성화합니다.
+  // 단일 프레임워크만 사용하는 경우 `include`가 필요하지 않습니다!
+  integrations: [
+    preact({
+      include: ['**/preact/*']
+    }),
+    react({
+      include: ['**/react/*']
+    }),
+    solid({
+      include: ['**/solid/*'],
+    }),
+  ]
+});
+```
+
+### 변경됨: `Astro.cookies.get(key)`는 `undefined`를 반환할 수 있습니다.
+
+Astro v2.x에서 [`Astro.cookies.get(key)`](/ko/reference/api-reference/#astrocookies)는 쿠키가 존재하지 않더라도 항상 [`AstroCookie` 객체](/ko/reference/api-reference/#astrocookie)를 반환합니다. 존재 여부를 확인하려면 `Astro.cookies.has(key)`를 사용해야 했습니다.
+
+Astro v3.0은 쿠키가 존재하지 않는 경우 `Astro.cookies.get(key)`가 `undefined`을 반환합니다.
+
+#### 어떻게 해야 하나요?
+
+이 변경 사항은 `Astro.cookies.get(key)`를 사용하기 전에 `Astro.cookie` 객체의 존재를 확인하는 코드를 손상시키지 않지만 이제는 더 이상 필요하지 않습니다.
+
+`Astro.cookies` 값이 `undefined`인지 확인하기 위해 `has()`를 사용하는 모든 코드를 안전하게 제거할 수 있습니다.
+
+```js del={1-3} ins={5-7}
+if (Astro.cookies.has(id)) {
+  const id = Astro.cookies.get(id)!;
+}
+
+const id = Astro.cookies.get(id);
+if (id) {
+}
+```
+
+### 변경됨: Astro CLI를 프로그래밍 방식으로 실행
+
+Astro v2.x에서는 `"astro"` 패키지 엔트리포인트가 Astro CLI를 직접 내보내고 실행했습니다. 실제로 Astro를 이런 방식으로 실행하는 것은 권장되지 않습니다.
+
+Astro v3.0은 엔트리포인트에서 CLI를 제거하고 `dev()`, `build()`, `preview()` 및 `sync()`를 포함한 새로운 실험적 JavaScript API 세트를 내보냅니다.
+
+#### 어떻게 해야 하나요?
+
+[Astro CLI를 프로그래밍 방식으로 실행](/ko/reference/cli-reference/#고급-api-실험적-기능)하려면 새로운 실험적 JavaScript API를 사용하세요.
+
+```js
+import { dev, build } from "astro";
+
+// Astro 개발 서버 시작
+const devServer = await dev();
+await devServer.stop();
+
+// Astro 프로젝트 빌드
+await build();
+```
+
+### 변경됨: 인터널 Astro API 엔트리포인트 내보내기 경로
+
+Astro v2.x에서는 `astro/internal/*` 및 `astro/runtime/server/*`에서 인터널 Astro API를 가져올 수 있습니다.
+
+Astro v3.0은 기존 `astro/runtime/*` 엔트리포인트를 위해 두 엔트리포인트를 제거합니다. 또한 컴파일러별 런타임 코드를 위한 새로운 `astro/compiler-runtime` 내보내기가 추가되었습니다.
+
+#### 어떻게 해야 하나요?
+
+이는 Astro의 인터널 API에 대한 엔트리포인트이며 프로젝트에 영향을 주지 않아야 합니다. 그러나 이러한 엔트리포인트를 사용하는 경우 아래와 같이 업데이트하세요.
+
+```js del={1,4,10} ins={2,5,11}
+import 'astro/internal/index.js';
+import 'astro/runtime/server/index.js';
+
+import 'astro/server/index.js';
+import 'astro/runtime/server/index.js';
+```
+
+```js ins={5} del={4}
+import { transform } from '@astrojs/compiler';
+
+const result = await transform(source, {
+  internalURL: 'astro/runtime/server/index.js',
+  internalURL: 'astro/compiler-runtime',
+  // ...
+});
+```
+
+## 기능 업그레이드
+
+### 이미지를 v3로 업그레이드
+
+`astro:assets`는 더 이상 Astro v3.0의 실험적 플래그 뒤에 있지 않습니다.
+
+`<Image />`는 이제 내장 컴포넌트이며 이전 `@astrojs/image` 통합은 제거되었습니다.
+
+Astro에서 이미지 사용에 대한 이러한 변경 사항 및 기타 수반되는 변경 사항은 Astro 프로젝트를 이전 버전에서 업그레이드할 때 일부 주요 변경 사항을 초래할 수 있습니다.
+
+Astro v2.x 프로젝트를 v3.0으로 업그레이드하려면 아래 지침을 적절하게 따르세요.
+
+#### `experimental.assets`에서 업그레이드
+
+이전에 `astro:assets`에 대한 실험적 플래그를 활성화한 경우 이제 기본적으로 자산 기능이 포함된 Astro v3.0용으로 프로젝트를 업데이트해야 합니다.
+
+##### `experimental.assets` 플래그 제거
+
+실험적 플래그를 제거합니다.
+
+```js title="astro.config.mjs" del={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    assets: true
+  }
+});
+```
+
+필요한 경우 `astro/client-image` 참조를 `astro/client`로 바꾸도록 `src/env.d.ts` 파일도 업데이트하세요.
+
+```ts title="src/env.d.ts" del={1} ins={2}
+/// <reference types="astro/client-image" />
+/// <reference types="astro/client" />
+```
+
+##### `~/assets` 가져오기 별칭 제거
+
+이 가져오기 별칭은 더 이상 `astro:assets`에 기본적으로 포함되지 않습니다. 실험적 자산과 함께 이 별칭을 사용하는 경우 이를 상대 파일 경로로 변환하거나 [자신만의 가져오기 별칭을 생성](/ko/guides/imports/#별칭)해야 합니다.
+
+```astro title="src/pages/posts/post-1.astro" del={2} ins={3}
+---
+import rocket from '~/assets/rocket.png';
+import rocket from '../../assets/rocket.png';
+---
+```
+
+##### Cloudflare, Deno, Vercel Edge, Netlify Edge에 대한 간단한 자산 지원 추가
+
+ Astro v3.0을 사용하면 Astro의 기본 제공 Squoosh 및 Sharp 이미지 최적화를 지원하지 않는 Cloudflare, Deno, Vercel Edge, Netlify Edge에서 `astro:assets`가 오류 없이 작동할 수 있습니다. Astro는 이러한 환경에서 이미지 변환 및 처리를 수행하지 않습니다. 그러나 CLS (Cumulative Layout Shift) 없음, 강제된 `alt` 속성 및 일관된 작성 환경을 포함하여 `astro:assets` 사용의 다른 이점을 계속 누릴 수 있습니다.
+
+ 이전에는 이러한 제약으로 인해 `astro:assets` 사용을 피했다면 이제 문제 없이 사용할 수 있습니다. 이 동작을 명시적으로 선택하도록 무작동 이미지 서비스를 구성할 수 있습니다.
+
+```js title="astro.config.mjs" ins={4-8}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  image: {
+    service: {
+      entrypoint: 'astro/assets/services/noop'
+    }
+  }
+});
+```
+
+#### 이미지를 저장할 위치 결정
+
+[이미지를 저장할 위치](/ko/guides/images/#이미지-저장-위치)를 결정하는 데 도움이 되는 이미지 안내서를 참조하세요. `astro:assets`가 제공하는 유연성을 추가하여 이미지를 저장하는 새로운 옵션을 활용하고 싶을 수도 있습니다. 예를 들어, 이제 표준 Markdown `![alt](src)` 구문을 사용하여 `src/` 프로젝트의 상대 이미지를 Markdown, MDX, Markdoc에서 참조할 수 있습니다.
+
+#### 기존 `<img>` 태그 업데이트
+
+이전에는 이미지를 가져오면 이미지 경로가 포함된 간단한 `string`이 반환되었습니다. 이제 가져온 이미지 자산은 다음 시그니처와 일치합니다.
+
+```ts
+interface ImageMetadata {
+  src: string;
+  width: number;
+  height: number;
+  format: string;
+}
+```
+
+기존 `<img>` 태그 ([UI 프레임워크 컴포넌트의 이미지](/ko/guides/images/#ui-프레임워크-컴포넌트의-이미지) 포함)의 `src` 속성을 업데이트해야 하며 가져온 이미지에서 현재 사용할 수 있는 다른 속성도 업데이트할 수도 있습니다.
+
+```astro title="src/components/MyComponent.astro" ".src" ".width" ".height" del={4} ins={6}
+---
+import rocket from '../images/rocket.svg';
+---
+<img src={rocket} width="250" height="250" alt="A rocketship in space." />
+
+<img src={rocket.src} width={rocket.width} height={rocket.height} alt="A rocketship in space." />
+```
+
+#### Markdown, MDX, Markdoc 파일 업데이트
+
+이제 프로젝트 `src/`의 상대 이미지를 표준 Markdown `![alt](src)` 구문을 사용하여 Markdown, MDX, Markdoc에서 참조할 수 있습니다.
+
+이를 통해 이미지를 `public/` 디렉터리에서 프로젝트 `src/`로 이동하여 처리 및 최적화할 수 있습니다. `public/`에 있는 기존 이미지와 원격 이미지는 여전히 유효하지만 Astro의 빌드 프로세스에 의해 최적화되지 않습니다.
+
+```md title="src/pages/posts/post-1.md" "/_astro" ".hash" "../../assets/"
+# My Markdown Page
+
+<!-- 이제 로컬 이미지가 가능해졌습니다! -->
+![A starry night sky.](../../images/stars.png)
+
+<!-- 콘텐츠 옆에 이미지를 보관하세요! -->
+![A starry night sky.](./stars.png)
+```
+
+이미지 속성에 대한 더 많은 제어가 필요한 경우 Markdown 구문 외에 Astro의 `<Image />` 컴포넌트 또는 JSX `<img />` 태그를 포함할 수 있는 `.mdx` 파일 형식을 사용하는 것이 좋습니다. [MDX 통합](/ko/guides/integrations-guide/mdx/)을 사용하여 Astro에 MDX 지원을 추가하세요.
+
+#### `@astrojs/image` 제거
+
+Astro v2.x에서 이미지 통합을 사용하는 경우 다음 단계를 완료하세요.
+
+<Steps>
+1. `@astrojs/image` 통합을 제거합니다.
+
+    통합을 제거한 다음 `astro.config.mjs` 파일에서도 [통합을 제거](/ko/guides/integrations-guide/#통합-제거)해야 합니다.
+
+    ```js del={3,7}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import image from '@astrojs/image';
+
+    export default defineConfig({
+      integrations: [
+        image(),
+      ]
+    })
+    ```
+
+2. 타입을 업데이트합니다 (필요한 경우).
+
+		`src/env.d.ts`에 `@astrojs/image`에 대해 구성된 특수 유형이 있는 경우, v3으로 업그레이드해도 이 단계가 완료되지 않으면 이를 기본 Astro 타입으로 다시 변경해야 할 수 있습니다.
+
+		```ts title="src/env.d.ts" del={1} ins={2}
+		 /// <reference types="@astrojs/image/client" />
+		 /// <reference types="astro/client" />
+		```
+
+		마찬가지로 필요한 경우 `tsconfig.json`을 업데이트합니다.
+
+		```json title="tsconfig.json" del={3} ins={4}
+		{
+			"compilerOptions": {
+			  "types": ["@astrojs/image/client"]
+			  "types": ["astro/client"]
+			}
+		}
+		```
+
+3. 기존 `<Image />` 컴포넌트를 마이그레이션합니다.
+
+    새로운 내장 `<Image />` 컴포넌트를 사용하려면 모든 `import` 문을 `@astrojs/image/components`에서 `astro:assets`로 변경하세요.
+
+    [현재 지원되는 이미지 자산 속성](/ko/guides/images/#속성)이 아닌 컴포넌트 속성을 제거하세요.
+
+    예를 들어, `aspectRatio`는 이제 `width` 및 `height` 속성에서 자동으로 추론되므로 더 이상 지원되지 않습니다.
+
+      ```astro title="src/components/MyComponent.astro" del= {2,11} ins={3}
+      ---
+      import { Image } from '@astrojs/image/components';
+      import { Image } from 'astro:assets';
+      import localImage from '../assets/logo.png';
+      const localAlt = 'The Astro Logo';
+      ---
+
+      <Image
+        src={localImage}
+        width={300}
+        aspectRatio="16:9"
+        alt={localAlt}
+      />
+      ```
+
+4. 기본 이미지 서비스를 선택합니다.
+
+    [Sharp](https://github.com/lovell/sharp)는 이제 `astro:assets`에 사용되는 기본 이미지 서비스입니다. Sharp를 사용하려면 구성이 필요하지 않습니다.
+
+    [Squoosh](https://github.com/GoogleChromeLabs/squoosh)를 사용하여 이미지를 변환하려면 다음 `image.service` 옵션으로 구성을 업데이트하세요.
+
+    ```js title="astro.config.mjs" ins={4-6}
+    import { defineConfig, squooshImageService } from 'astro/config';
+
+    export default defineConfig({
+      image: {
+        service: squooshImageService(),
+      },
+    });
+    ```
+</Steps>
+
+#### 콘텐츠 컬렉션 스키마 업데이트
+
+이제 현재 폴더에 대한 상대 경로를 사용하여 블로그 게시물의 표지 이미지와 같은 콘텐츠 컬렉션 항목에 대한 관련 이미지를 프런트매터에서 선언할 수 있습니다.
+
+콘텐츠 컬렉션을 위한 새로운 `image` 도우미를 사용하면 Zod를 사용하여 이미지 메타데이터의 유효성을 검사할 수 있습니다. [콘텐츠 컬렉션에서 이미지를 사용하는 방법](/ko/guides/images/#콘텐츠-컬렉션의-이미지)에 대해 자세히 알아보세요.
+
+#### Astro v3.0에서 이미지 가져오기 탐색
+
+Astro v3.0에서는 이미지에 대한 이전 가져오기 동작을 유지해야 하고 이미지 URL의 문자열 표현이 필요한 경우 이미지를 가져올 때 이미지 경로 끝에 `?url`을 추가하세요. 예를 들어:
+
+```astro title="src/pages/blog/MyImages.astro"
+---
+import Sprite from '../assets/logo.svg?url';
+---
+<svg>
+  <use xlink:href={Sprite + '#cart'} />
+</svg>
+```
+
+이 접근 방식을 사용하면 URL 문자열을 얻을 수 있습니다. 개발 중에는 Astro가 `src/` 경로를 사용하지만 빌드 시 `/_astro/cat.a6737dd3.png`와 같은 해시된 경로를 생성한다는 점을 명심하세요.
+
+이미지 객체 자체로 직접 작업하려는 경우 `.src` 속성에 액세스할 수 있습니다. 이 접근 방식은 Core Web Vitals 측정항목의 이미지 크기 관리 및 CLS 방지와 같은 작업에 가장 적합합니다.
+
+새로운 가져오기 동작으로 전환하는 경우 `?url`과 `.src` 메서드를 결합하는 것이 원활한 이미지 처리를 위한 올바른 방법일 수 있습니다.
+
+### view transitions를 v3로 업그레이드
+
+Astro v3.0에서는 View transitions이 더 이상 실험적 플래그에 있지 않습니다.
+
+Astro 2.x에서 이 실험적 플래그를 활성화하지 **않았다**면 프로젝트에 큰 변화가 발생하지 않습니다. 새로운 View Transitions API는 기존 코드에 영향을 주지 않습니다.
+
+이전에 실험적인 view transitions을 사용했다면 Astro 프로젝트를 이전 버전에서 업그레이드할 때 몇 가지 주요 변경 사항이 있을 수 있습니다.
+
+**`experimental.viewTransitions: true`로 구성된 Astro v2.x 프로젝트**를 v3.0으로 업그레이드하려면 아래 지침을 적절하게 따르십시오.
+
+#### `experimental.viewTransitions`에서 업그레이드
+
+이전에 view transitions에 대한 실험적 플래그를 활성화한 경우 이제 기본적으로 view transitions을 허용하는 Astro v3.0용으로 프로젝트를 업데이트해야 합니다.
+
+##### `experimental.viewTransitions` 플래그 제거
+
+실험적 플래그를 제거합니다.
+
+```js title="astro.config.mjs" del={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+   viewTransitions: true
+  }
+});
+```
+
+##### 가져오기 소스 업데이트
+
+`<ViewTransitions />` 컴포넌트가 `astro:components`에서 `astro:transitions`로 이동되었습니다. 프로젝트의 모든 항목에서 가져오기 소스를 업데이트합니다.
+
+```astro title="src/layouts/BaseLayout.astro" del="astro:components" ins="astro:transitions"
+---
+import { ViewTransitions } from "astro:components astro:transitions"
+---
+<html lang="ko">
+  <head>
+    <title>내 홈페이지</title>
+    <ViewTransitions />
+  </head>
+  <body>
+    <h1>내 홈페이지에 오신 것을 환영합니다!</h1>
+  </body>
+</html>
+```
+
+##### `transition:animate` 지시어 업데이트
+
+**변경됨:** `transition:animate` 값 `morph`의 이름이 `initial`로 변경되었습니다. 또한 이는 더 이상 기본 애니메이션이 아닙니다. `transition:animate` 지시어가 지정되지 않으면 이제 애니메이션이 기본적으로 `fade`로 설정됩니다.
+
+1. `morph` 애니메이션의 이름을 `initial`로 바꿉니다.
+
+    ```astro title="src/components/MyComponent.astro" del="morph" ins="initial"
+    <div transition:name="name" transition:animate="morph initial" />
+    ```
+
+2. 이전에 기본적으로 `morph`를 사용했던 애니메이션을 유지하려면 `transition:animate="initial"`을 명시적으로 추가하세요.
+
+    ```astro title="src/components/MyComponent.astro" ins='transition:animate="initial"'
+    <div transition:name="name" transition:animate="initial" />
+    ```
+3. 명시적으로 `fade`로 설정된 애니메이션은 안전하게 제거할 수 있습니다. 이제 이것이 기본 동작입니다.
+
+    ```astro title="src/components/MyComponent.astro" del="transition:animate=\"fade\""
+    <div transition:name="name" transition:animate="fade" />
+    ```
+
+**추가됨:** Astro는 새로운 `transition:animate` 값 `none`도 지원합니다. 이 값은 페이지의 `<html>` 요소에 사용되어 전체 페이지에서 전체 페이지 전환 애니메이션을 비활성화할 수 있습니다. 이는 애니메이션 지시어가 없는 페이지 요소의 **기본 애니메이션 동작**만 재정의합니다. 개별 요소에 애니메이션을 설정할 수 있으며 이러한 특정 애니메이션이 발생합니다.
+
+4. 이제 개별 페이지에서 모든 기본 전환을 비활성화하여 `transition:animate` 지시어을 명시적으로 사용하는 요소에만 애니메이션을 적용할 수 있습니다.
+
+    ```astro ins="transition:animate=\"none\""
+    <html transition:animate="none">
+      <head></head>
+      <body>
+        <h1>안녕하세요!</h1>
+      </body>
+    </html>
+    ```
+
+##### 이벤트 이름 업데이트
+
+`astro:load` 이벤트의 이름이 `astro:page-load`로 변경되었습니다. 프로젝트의 모든 항목 이름을 바꿉니다.
+
+```astro title="src/components/MyComponent.astro" del="astro:load" ins="astro:page-load"
+<script>
+document.addEventListener('astro:load astro:page-load', runSetupLogic);
+</script>
+```
+
+`astro:beforeload` 이벤트의 이름이 `astro:after-swap`으로 변경되었습니다. 프로젝트의 모든 항목 이름을 바꿉니다.
+
+```astro title="src/components/MyComponent.astro" del="astro:beforeload" ins="astro:after-swap"
+<script>
+document.addEventListener('astro:beforeload astro:after-swap', setDarkMode);
+</script>
+```
+
+## 커뮤니티 자료
+
+Astro v3.0에 대한 좋은 자료를 알고 계십니까? [이 페이지를 편집](https://github.com/withastro/docs/edit/main/src/content/docs/ko/guides/upgrade-to/v3.mdx)하여 아래 링크를 추가하세요!
+
+## 알려진 문제
+
+현재 알려진 문제는 없습니다.

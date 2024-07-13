@@ -51,7 +51,6 @@ Astro 支持 4 种预获取策略，以适应各种用例：
 
 - 如果访问者使用[流量节省模式](https://developer.mozilla.org/zh-CN/docs/Web/API/NetworkInformation/saveData)或者有[慢速连接](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/effectiveType)，则预获取策略将会回退到 “tap” 策略。
 - 快速悬停或滚动链接不会预获取它们。
-- 使用 `viewport` 或者 `load` 策略的链接会以较低的优先级预获取，以避免堵塞网络。
 
 ### 默认预获取策略
 
@@ -106,17 +105,6 @@ export default defineConfig({
 </script>
 ```
 
-你还可以通过传递 `with` 选项来配置预获取的优先级：
-
-```js
-// 使用 `fetch()` 预获取，它具有更高的优先级。
-prefetch('/about', { with: 'fetch' });
-
-// 使用 `<link rel="prefetch">` 预获取，它具有较低的优先级
-// 并由浏览器手动调度。（默认）
-prefetch('/about', { with: 'link' });
-```
-
 `prefetch()` API 包括相同的[流量节省模式](https://developer.mozilla.org/zh-CN/docs/Web/API/NetworkInformation/saveData)和[慢速连接](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/effectiveType)检测，因此只有在需要时才预获取。
 
 要忽略慢速连接检测，你可以使用 `ignoreSlowConnection` 选项：
@@ -153,6 +141,38 @@ export default defineConfig({
   }
 });
 ```
+
+## 浏览器支持
+
+如果浏览器支持，Astro 的预获取将使用 [`<link rel="prefetch">`](https://developer.mozilla.org/zh-CN/docs/Web/HTML/Attributes/rel/prefetch)，否则将回退到 [`fetch()` API](https://developer.mozilla.org/zh-CN/docs/Web/API/Fetch_API)。
+
+常见的浏览器对 Astro 的预获取支持存在细微差别：
+
+### Chrome
+
+Chrome 支持 `<link rel="prefetch">`。预获取按预期工作。
+
+### Firefox
+
+Firefox 支持 `<link rel="prefetch">`，但可能会显示错误或完全失败：
+
+ - 如果没有明确的缓存头（例如 [`Cache-Control`](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Cache-Control) 或 [`Expires`](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Expires)），预获取将会因 `NS_BINDING_ABORTED` 错误而失败。
+- 即使出现错误，如果响应中有正确的 [`ETag`](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/ETag) 头，它将在导航时被重用。
+- 否则，如果没有其他缓存头的错误，预获取将不会工作。
+
+### Safari
+
+Safari 不支持 `<link rel="prefetch">`，将回退到 `fetch()` API，这需要设置缓存头（例如 [`Cache-Control`](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Cache-Control)、[`Expires`](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Expires) 和 [`ETag`](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/ETag)）。否则，预获取将不会工作。
+
+**特殊情况：** 在隐私窗口中，`ETag` 头不起作用。
+
+### 建议
+
+为了更好地支持所有浏览器，请确保你的页面设置了正确的缓存头。
+
+对于静态或预渲染的页面，`ETag` 头通常由部署平台自动设置，并且预期可以直接使用。
+
+对于动态和服务端渲染的页面，根据页面内容自行设置适当的缓存头。更多信息请访问 [MDN 关于 HTTP 缓存的文档](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Caching)。
 
 ## 从 `@astrojs/prefetch` 迁移
 

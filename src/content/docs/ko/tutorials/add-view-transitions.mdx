@@ -184,6 +184,7 @@ import { Steps } from '@astrojs/starlight/components';
     **작은 화면 크기**에서 사이트 미리보기를 보고, 햄버거 메뉴를 사용하여 페이지를 탐색해 보세요. 첫 페이지 로드 이후에는 메뉴가 더 이상 작동하지 않습니다.
 
 </Steps>
+
 ### 스크립트 업데이트
 
 view transitions를 사용하면 전체 페이지 브라우저 새로 고침과 마찬가지로, 페이지 탐색 후 일부 스크립트가 더 이상 다시 실행되지 않을 수 있습니다. 클라이언트 측 라우팅 중 사용할 수 있는 두 가지 이벤트가 있습니다: [`astro:page-load`](/ko/guides/view-transitions/#astropage-load) 및 [`astro :after-swap`](/ko/guides/view-transitions/#astroafter-swap).
@@ -207,7 +208,7 @@ view transitions를 사용하면 전체 페이지 브라우저 새로 고침과 
     
     함수가 `astro:page-load` 이벤트에 대한 응답으로 실행되도록 기존 스크립트 태그를 업데이트하여 새 페이지가 완전히 로드되고 사용자에게 표시되면 테마 토글을 대화형으로 만듭니다.
 
-    ```astro title="src/components/ThemeIcon.astro" ins={8,38} del="is:inline"
+    ```astro title="src/components/ThemeIcon.astro" ins={8,36} del="is:inline"
     ---
     ---
     <button id="themeToggle"> /* ... */ </button>
@@ -242,9 +243,7 @@ view transitions를 사용하면 전체 페이지 브라우저 새로 고침과 
           localStorage.setItem("theme", isDark ? "dark" : "light");
         };
 
-        document
-          .getElementById("themeToggle")
-          .addEventListener("click", handleToggleClick);
+        document.getElementById("themeToggle").onclick = handleToggleClick;
       });
     </script>
     ```
@@ -254,19 +253,22 @@ view transitions를 사용하면 전체 페이지 브라우저 새로 고침과 
 
     테마 토글은 모든 페이지에서 작동하지만 해당 스크립트는 탐색 프로세스가 끝날 때, **새 페이지가 브라우저에 완전히 로드된 후** 로드됩니다. 이 테마 토글 스크립트가 실행되고 페이지에서 어떤 테마를 사용해야 하는지 확인하기 전에 사이트의 밝은 테마 버전이 깜박일 수 있습니다.
 
-    설정이 필요한 경우, 탐색 프로세스 이전에 다크 모드를 확인하기 위해서는 `astro:after-swap` 이벤트의 응답으로 실행되는 함수를 생성하세요. 브라우저의 `localStorage`에서 어두운 테마를 확인하는 다음 함수는 **새 페이지가 이전 페이지를 대체한 직후**, DOM 요소가 화면에 그려지기 전에 실행됩니다.
+    설정이 필요한 경우, 탐색 프로세스 이전에 다크 모드를 확인하기 위해서는 `astro:after-swap` 이벤트의 응답으로 실행되는 함수를 생성하세요. 브라우저의 `localStorage`에서 어두운 테마를 확인하는 다음 함수는 첫 페이지 방문 시 및 **새 페이지가 이전 페이지를 대체한 직후**, DOM 요소가 화면에 그려지기 전에 실행됩니다.
 
     테마 토글을 제어하는 ​​스크립트 외에 `<ThemeIcon />` 컴포넌트에 이 새 스크립트를 추가합니다.
 
     ```astro title="src/components/ThemeIcon.astro" ins={3-9}
-    <script> ... <script>
+    <script> ... </script>
 
-    <script>
-      document.addEventListener('astro:after-swap', () => {
+    <script is:inline>
+      function applyTheme() {
         localStorage.theme === 'dark' 
-        ? document.documentElement.classList.add("dark")
-        : document.documentElement.classList.remove("dark");
-      }); 
+          ? document.documentElement.classList.add("dark")
+          : document.documentElement.classList.remove("dark");
+      }
+  
+      document.addEventListener('astro:after-swap', applyTheme);
+      applyTheme(); 
     </script>
     ```
 </Steps>

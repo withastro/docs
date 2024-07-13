@@ -4,22 +4,24 @@ description: 了解如何在 Astro 中使用中间件
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
 
-**中间件**允许你拦截请求和响应，并在即将渲染页面或端点时动态注入行为。对于所有预渲染的页面，这种渲染发生在构建时，但对于按需渲染的页面，这种渲染发生在请求路由时。
+**中间件**允许你拦截请求和响应，并在即将渲染页面或端点时动态注入行为。对于所有预渲染的页面，这种渲染发生在构建时，但对于按需渲染的页面，这种渲染发生在请求路由时，这时可以使用 [额外的 SSR 功能如 cookie 和标头](/zh-cn/guides/server-side-rendering/#按需渲染功能特性)。
 
 这也允许你通过修改在所有 Astro 组件和 API 端点中可用的 `locals` 对象，设置和共享跨端点和页面的请求特定信息。即使在构建时运行这个中间件时，这个对象也是可用的。
 
 ## 基本用法
 
+<Steps>
 1. 创建 `src/middleware.js|ts`（或者，你也可以创建 `src/middleware/index.js|ts`）
 
 2. 在这个文件中，导出一个接收 [`context` 对象](#context-对象) 的 [`onRequest()`](/zh-cn/reference/api-reference/#onrequest) 函数。注意这里不能是默认导出。
 
     ```js title="src/middleware.js"
-    export function onRequest ({ locals, request }, next) {
+    export function onRequest (context, next) {
         // 拦截一个请求里的数据
         // 可选地修改 `locals` 中的属性
-        locals.title = "New title";
+        context.locals.title = "New title";
 
         // 返回一个 Response 或者调用 `next()` 的结果
         return next();
@@ -35,6 +37,8 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
     <h1>{data.title}</h1>
     <p>这个 {data.property} 来自中间件。</p>
     ```
+</Steps>
+
 ### `context` 对象
 
 [`context`](/zh-cn/reference/api-reference/#端点上下文) 对象包含需要对其他中间件、API 路由和 `.astro` 路由在渲染过程中可用的信息。
@@ -54,11 +58,11 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 你可以在 `locals` 中存储任何类型的数据：字符串，数字，甚至复杂的数据类型，如函数和映射。
 
 ```js title="src/middleware.js"
-export function onRequest ({ locals, request }, next) {
+export function onRequest (context, next) {
     // 拦截一个请求里的数据
     // 可选地修改 `locals` 中的属性
-    locals.user.name = "John Wick";
-    locals.welcomeTitle = () => {
+    context.locals.user.name = "John Wick";
+    context.locals.welcomeTitle = () => {
         return "Welcome back " + locals.user.name;
     };
 

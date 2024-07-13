@@ -6,9 +6,458 @@ stub: true
 service: Apostrophe
 i18nReady: true
 ---
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
 [ApostropheCMS](https://apostrophecms.com/) est un système de gestion de contenu qui prend en charge l'édition de pages dans Astro.
 
-## Ressources communautaires
+## Intégration avec Astro
 
-- [Intégration d'Astro pour ApostropheCMS](https://apostrophecms.com/extensions/astro-integration) - Plugin Astro pour ApostropheCMS, guide d'intégration et projets de démarrage pour Apostrophe et Astro
+Dans cette section, vous utiliserez l'[intégration Apostrophe](https://apostrophecms.com/extensions/astro-integration) pour connecter ApostropheCMS à Astro.
+
+### Prérequis
+
+Pour commencer, vous devez disposer des éléments suivants :
+
+1. **Un projet Astro affiché à la demande** avec l'[adaptateur Node.js](/fr/guides/integrations-guide/node/) installé et `output : 'server'` configuré - Si vous n'avez pas encore de projet Astro, notre [guide d'installation](/fr/install-and-setup/) vous permettra d'être opérationnel en un rien de temps.
+
+2. **Un projet ApostropheCMS avec une variable d'environnement configurée appelée `APOS_EXTERNAL_FRONT_KEY`** - Cette variable d'environnement peut être configurée avec n'importe quelle chaîne de caractères aléatoire. Si vous n'avez pas encore de projet ApostropheCMS, le [guide d'installation](https://docs.apostrophecms.org/guide/development-setup.html) vous permettra de l'installer rapidement. Nous recommandons fortement l'utilisation de l'[outil CLI d'Apostrophe](https://apostrophecms.com/extensions/apos-cli) pour faciliter cette opération.
+
+
+### Mise en place de la communication entre les projets
+
+Votre projet Astro doit avoir une variable d'environnement `APOS_EXTERNAL_FRONT_KEY` définie à la même valeur que celle de votre projet ApostropheCMS pour permettre la communication entre les deux. Cette clé partagée permet de vérifier les requêtes entre le frontend (Astro) et le backend (ApostropheCMS).
+
+Créez un fichier `.env` à la racine de votre projet Astro avec la variable suivante :
+
+```ini title=".env"
+APOS_EXTERNAL_FRONT_KEY='RandomStrongString'
+```
+
+Votre répertoire racine doit maintenant contenir ce nouveau fichier :
+
+<FileTree title="Structure du projet">
+  - src/
+  - **.env**
+  - astro.config.mjs
+  - package.json
+</FileTree>
+
+### Installation des dépendances
+
+Pour connecter Astro à votre projet ApostropheCMS, installez l'intégration officielle d'Apostrophe dans votre projet Astro en utilisant la commande ci-dessous pour votre gestionnaire de paquets préféré.
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```shell
+    npm install @apostrophecms/apostrophe-astro vite @astro/node
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```shell
+    pnpm add @apostrophecms/apostrophe-astro vite @astro/node
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    yarn add @apostrophecms/apostrophe-astro vite @astro/node
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Configuration d'Astro
+
+Configurez l'intégration `apostrophe-astro` et `vite` dans votre fichier `astro.config.mjs`.
+
+L'exemple suivant fournit l'URL de base de votre instance d'Apostrophe et les chemins vers les dossiers de votre projet pour établir une correspondance entre les types [widgets](https://docs.apostrophecms.org/guide/core-widgets.html) et les [templates de page](https://docs.apostrophecms.org/guide/pages.html) d'ApostropheCMS et votre projet Astro. Il configure également l'affichage côté serveur de Vite.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+import apostrophe from '@apostrophecms/apostrophe-astro';
+import { loadEnv } from 'vite';
+
+const env = loadEnv("", process.cwd(), 'APOS');
+
+export default defineConfig({
+  output: 'server',
+  adapter: node({
+    mode: 'standalone'
+  }),
+  integrations: [
+    apostrophe({
+      aposHost: 'http://localhost:3000',
+      widgetsMapping: './src/widgets',
+      templatesMapping: './src/templates'
+    })
+  ],
+  vite: {
+    ssr: {
+      // Ne pas externaliser le plugin @apostrophecms/apostrophe-astro, nous avons besoin
+      // pour pouvoir y utiliser des URL virtuels :.
+      noExternal: [ '@apostrophecms/apostrophe-astro' ],
+    },
+    define: {
+      'process.env.APOS_EXTERNAL_FRONT_KEY': JSON.stringify(env.APOS_EXTERNAL_FRONT_KEY),
+      'process.env.APOS_HOST': JSON.stringify(env.APOS_HOST)
+    }
+  }
+});
+```
+
+Pour les options de configuration complètes et les explications, voir la [documentation `apostrophe-astro`](https://apostrophecms.com/extensions/astro-integration#configuration-astro).
+
+### Connecter les widgets d'ApostropheCMS aux composants Astro
+Les widgets d'ApostropheCMS sont des blocs de contenu structuré qui peuvent être ajoutés à la page, tels que des colonnes de mise en page, des images et des blocs de texte. Vous devrez créer un composant Astro pour chaque widget dans votre projet Apostrophe, ainsi qu'un fichier pour faire correspondre ces composants au widget Apostrophe correspondant.
+
+Créez un nouveau dossier dans `src/widgets/` pour vos composants Astro et le fichier de correspondance, `index.js`.
+
+Les composants mappés situés dans ce dossier reçoivent une propriété `widget` contenant les champs du schéma de votre widget, et tous les props personnalisés, à travers `Astro.props`. Ces valeurs sont alors disponibles pour l'édition sur la page.
+
+L'exemple suivant montre un composant `RichTextWidget.astro` accédant au contenu de son widget ApostropheCMS correspondant pour permettre une édition en contexte :
+
+```js title="src/widgets/RichTextWidget.astro"
+---
+const { widget } = Astro.props;
+const { content } = widget;
+---
+<Fragment set:html={ content }></Fragment>
+```
+
+Certains widgets standard d'Apostrophe, tels que les images et les vidéos, nécessitent des **placeholders** car ils ne contiennent pas de contenu éditable par défaut. L'exemple suivant crée un composant standard `ImageWidget.astro` qui définit la valeur `src` conditionnellement à la valeur de l'image `aposPlaceholder` passée par le widget, à une image de repli du projet Astro, ou à l'image sélectionnée par le gestionnaire de contenu en utilisant l'aide `attachment` d'Apostrophe :
+
+```js title="src/widgets/ImageWidget.astro"
+---
+const { widget } = Astro.props;
+const placeholder = widget?.aposPlaceholder;
+const src = placeholder ?
+  '/images/image-widget-placeholder.jpg' :
+  widget?._image[0]?.attachment?._urls['full'];
+---
+<style>
+  .img-widget {
+    width: 100%;
+  }
+</style>
+<img class="img-widget" {src} />
+```
+
+Pour plus d'exemples, voir [les exemples de widgets de projets de démarrage `astro-frontend`](https://github.com/apostrophecms/astro-frontend/tree/main/src/widgets).
+
+Chaque composant `.astro` doit être associé au widget Apostrophe correspondant dans `src/widgets/index.js`.
+
+L'exemple ci-dessous ajoute les deux composants précédents à ce fichier :
+
+```js title="src/widgets/index.js"
+import RichTextWidget from './RichTextWidget.astro';
+import ImageWidget from './ImageWidget.astro';
+
+const widgetComponents = {
+  '@apostrophecms/rich-text': RichTextWidget,
+  '@apostrophecms/image': ImageWidget
+};
+
+export default widgetComponents;
+```
+
+Voir [la documentation d'ApostropheCMS](https://apostrophecms.com/extensions/astro-integration) pour les conventions de nommage des widgets standard, pro et personnalisés au niveau du projet.
+
+Le répertoire du projet devrait maintenant ressembler à ceci :
+
+<FileTree title="Structure du projet">
+  - src/
+  - widgets/
+  - **index.js**
+  - **ImageWidget.astro**
+  - **RichTextWidget.astro**
+  - .env
+  - astro.config.mjs
+  - package.json
+</FileTree>
+
+### Ajouter des types de pages
+
+Comme pour les widgets, tout modèle de type de page dans votre projet ApostropheCMS doit avoir un composant de modèle correspondant dans votre projet Astro. Vous aurez également besoin d'un fichier qui associe les types de pages Apostrophe aux composants individuels.
+
+Créez un nouveau dossier dans `src/templates/` pour vos composants Astro et le fichier de correspondance, `index.js`. Les composants mappés situés dans ce dossier reçoivent une propriété `page` contenant les champs du schéma de votre page, et tous les props personnalisés, à travers `Astro.props`. Ces composants peuvent également accéder à un composant `AposArea` pour afficher les zones d'apostrophe.
+
+L'exemple suivant montre un composant `HomePage.astro` affichant un modèle de page à partir de son type de page correspondant `home-page` ApostropheCMS, incluant un champ de schéma de zone nommé `main` :
+
+```js title="src/templates/HomePage.astro"
+---
+import AposArea from '@apostrophecms/apostrophe-astro/components/AposArea.astro';
+const { page, user, query } = Astro.props.aposData;
+const { main } = page;
+---
+
+<section class="bp-content">
+  <h1>{ page.title }</h1>
+  <AposArea area={main} />
+</section>
+```
+
+Chaque composant `.astro` doit être associé au type de page Apostrophe correspondant dans `src/templates/index.js`.
+
+L'exemple ci-dessous ajoute le composant `HomePage.astro` précédent à ce fichier :
+
+```js title="src/templates/index.js"
+import HomePage from './HomePage.astro';
+
+const templateComponents = {
+  '@apostrophecms/home-page': HomePage
+};
+
+export default templateComponents;
+```
+
+See [the ApostropheCMS documentation](https://apostrophecms.com/extensions/astro-integration/#how-apostrophe-template-names-work) for template naming conventions, including special pages and piece page types.
+
+The project directory should now look like this:
+
+<FileTree title="Structure du projet">
+  - src/
+  - widgets/
+  - index.js
+  - ImageWidget.astro
+  - RichTextWidget.astro
+  - templates/
+  - **HomePage.astro**
+  - **index.js**
+  - .env
+  - astro.config.mjs
+  - package.json
+</FileTree>
+
+### Création du composant [...slug.astro] et récupération des données d'Apostrophe
+
+Puisque Apostrophe est responsable de la connexion des URLs au contenu, y compris la création de nouveaux contenus et pages à la volée, vous n'aurez besoin que d'un composant de page Astro de premier niveau : la route `[...slug].astro`.
+
+L'exemple suivant montre un composant `[...slug].astro` minimal :
+
+```js title="src/pages/[...slug].astro"
+---
+import aposPageFetch from '@apostrophecms/apostrophe-astro/lib/aposPageFetch.js';
+import AposLayout from '@apostrophecms/apostrophe-astro/components/layouts/AposLayout.astro';
+import AposTemplate from '@apostrophecms/apostrophe-astro/components/AposTemplate.astro';
+
+const aposData = await aposPageFetch(Astro.request);
+const bodyClass = `myclass`;
+
+if (aposData.redirect) {
+  return Astro.redirect(aposData.url, aposData.status);
+}
+if (aposData.notFound) {
+  Astro.response.status = 404;
+}
+---
+<AposLayout title={aposData.page?.title} {aposData} {bodyClass}>
+    <Fragment slot="standardHead">
+      <meta name="description" content={aposData.page?.seoDescription} />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <meta charset="UTF-8" />
+    </Fragment>
+    <AposTemplate {aposData} slot="main"/>
+</AposLayout>
+```
+Voir [la documentation d'ApostropheCMS](https://apostrophecms.com/extensions/astro-integration#creating-the-slugastro-component-and-fetching-apostrophe-data) pour des options de modélisation supplémentaires, y compris les emplacements disponibles dans le composant `AposTemplate`.
+
+## Créer un blog avec Astro et ApostropheCMS
+
+Avec l'intégration mise en place, vous pouvez maintenant créer un blog avec Astro et ApostropheCMS. Votre blog utilisera une pièce d'Apostrophe, un type de contenu autonome qui peut être inclus dans n'importe quelle page, et un type de page de pièce, un type de page spécialisé qui est utilisé pour afficher ces pièces individuellement ou collectivement.
+
+### Prérequis
+
+1. **Un projet ApostropheCMS avec l'outil CLI d'Apostrophe installée** - Vous pouvez créer un nouveau projet ou utiliser un projet existant. Cependant, ce tutoriel ne montrera que la création d'un article de blog et d'un type de page d'article. Vous devrez intégrer le code de tout autre projet existant de manière indépendante. Si vous n'avez pas installé l'outil CLI, consulter les [instructions d'installation de l'Apostrophe CLI](https://docs.apostrophecms.org/guide/setting-up.html#the-apostrophe-cli-tool).
+2. **Un projet Astro intégré à ApostropheCMS** - Pour créer un projet à partir de zéro, voir [integrating with Astro](#intégration-avec-astro) pour les instructions sur la façon de configurer l'intégration, ou utiliser le projet de démarrage [astro-frontend](https://github.com/apostrophecms/astro-frontend).
+
+### Création d'un article de blog et d'un type de page d'article
+
+Pour créer votre pièce de blog et votre type de page de pièce pour leur affichage, naviguez vers la racine de votre projet ApostropheCMS dans votre terminal. Utilisez l'outil CLI d'ApostropheCMS pour créer le nouveau morceau et le nouveau type de page du morceau à l'aide de la commande suivante :
+
+```sh
+apos add piece blog --page
+```
+
+Cela créera deux nouveaux modules dans votre projet, un pour le type de pièce du blog et un pour le type de page de la pièce correspondante. Ensuite, ouvrez le fichier `app.js` à la racine de votre projet ApostropheCMS dans votre éditeur de code et ajoutez vos nouveaux modules.
+
+```js title="app.js"
+require('apostrophe')({
+  // autres options de configuration
+  modules: {
+    // autres modules du projet
+    blog: {},
+    'blog-page': {}
+  }
+});
+```
+
+Le module `blog-page` doit également être ajouté au tableau d'options `types` du module `@apostrophecms/page` afin qu'il puisse être sélectionné dans la modale de création de page. Dans votre projet ApostropheCMS, ouvrez le fichier `modules/@apostrophecms/page/index.js` et ajoutez le module `blog-page`.
+
+```js title="modules/@apostrophecms/page/index.js"
+module.exports = {
+  options: {
+    types: [
+      {
+        name: '@apostrophecms/home-page',
+        label: 'Accueil'
+      },
+      // Toutes les autres pages du projet
+      {
+        name: 'blog-page',
+        label: 'Blog'
+      }
+    ]
+  }
+};
+```
+
+### Création du schéma du blog
+
+Dans un projet ApostropheCMS, les éditeurs disposent d'un ensemble de champs de saisie pour ajouter du contenu. Voici un exemple de billet de blog simple qui ajoute trois champs de saisie, un `authorName`, un `publicationDate` et une zone de `content` où les gestionnaires de contenu peuvent ajouter plusieurs instances de widgets. Dans ce cas, nous spécifions qu'ils peuvent ajouter les widgets image et texte riche que nous avons créés pendant la [configuration de l'intégration](#connecter-les-widgets-dapostrophecms-aux-composants-astro).
+
+```js title="modules/blog/index.js"
+module.exports = {
+  extend: '@apostrophecms/piece-type',
+  options: {
+    label: 'Blog',
+    // Ajoutez également une option `pluralLabel` si nécessaire.
+  },
+  fields: {
+    add: {
+      authorName: {
+        type: 'string',
+        label: 'Auteur'
+      },
+      publicationDate: {
+        type: 'date',
+        label: 'Date de publication'
+      },
+      content: {
+        type: 'area',
+        label: 'Contenu',
+        options: {
+          widgets: {
+            '@apostrophecms/rich-text': {},
+            '@apostrophecms/image': {}
+          }
+        }
+      }
+    },
+    group: {
+      basics: {
+        label: 'Basic',
+        fields: [ 'authorName', 'publicationDate', 'content' ]
+      }
+    }
+  }
+};
+```
+
+À ce stade, tous les composants provenant du projet ApostropheCMS sont installés. Démarrez le site local à partir de la ligne de commande en utilisant `npm run dev`, en vous assurant de passer la variable d'environnement `APOS_EXTERNAL_FRONT_KEY` à votre chaîne de caractères sélectionnée :
+
+```bash
+APOS_EXTERNAL_FRONT_KEY='MyRandomString' npm run dev
+```
+
+### Affichage des articles de blog
+Pour afficher une page avec tous les articles du blog, créez un fichier composant `BlogIndex.astro` dans le répertoire `src/templates` de votre projet Astro et ajoutez le code suivant :
+
+Après avoir récupéré les données de la page et des articles dans le props `aposData`, ce composant crée des balises en utilisant les deux champs du schéma de l'article de blog que nous avons créé, mais aussi les `piece.title` et `piece._url` qui sont ajoutés à chaque article par Apostrophe.
+
+```js title="src/templates/BlogIndex.astro"
+---
+import dayjs from 'dayjs';
+
+const { page, pieces } = Astro.props.aposData;
+---
+
+<section class="bp-content">
+  <h1>{ page.title }</h1>
+
+  <h2>Blog Posts</h2>
+
+  {pieces.map(piece => (
+    <h4>
+      Released On { dayjs(piece.publicationDate).format('MMMM D, YYYY') }
+    </h4>
+    <h3>
+      <a href={ piece._url }>{ piece.title }</a>
+    </h3>
+    <h4>{ piece.authorName }</h4>
+  ))}
+</section>
+```
+
+Pour afficher des articles de blog individuels, créez un fichier `BlogShow.astro` dans le dossier `src/templates` du projet Astro avec le code suivant :
+
+Ce composant utilise le composant `<AposArea>` pour afficher tous les widgets ajoutés à la zone `content` et le contenu `authorName` et `publicationDate` saisi dans les champs du même nom.
+
+```js title="src/templates/BlogShow.astro"
+---
+import AposArea from '@apostrophecms/apostrophe-astro/components/AposArea.astro';
+import dayjs from 'dayjs';
+
+const { page, piece } = Astro.props.aposData;
+const { main } = piece;
+---
+
+<section class="bp-content">
+  <h1>{ piece.title }</h1>
+  <h3>Créé par: { piece.authorName }
+  <h4>
+    Sortie le { dayjs(piece.publicationDate).format('MMMM D, YYYY') }
+  </h4>
+  <AposArea area={content} />
+</section>
+```
+
+Enfin, ces composants Astro doivent être mappés aux types de pages ApostropheCMS correspondants. Ouvrez le fichier `src/templates/index.js` du projet Astro et modifiez-le pour qu'il contienne le code suivant :
+
+```js title="src/templates/index.js"
+import HomePage from './HomePage.astro';
+import BlogIndexPage from './BlogIndexPage.astro';
+import BlogShowPage from './BlogShowPage.astro';
+
+const templateComponents = {
+  '@apostrophecms/home-page': HomePage,
+  '@apostrophecms/blog-page:index': BlogIndexPage,
+  '@apostrophecms/blog-page:show': BlogShowPage
+};
+
+export default templateComponents;
+```
+
+### Créer des articles de blog
+
+Pour ajouter des articles de blog à votre site, vous devez utiliser les outils de gestion et de contenu d'ApostropheCMS pour créer ces articles et publier au moins une page d'index pour les afficher.
+
+Lorsque le serveur Astro dev est en cours d'exécution, accédez à la page de connexion située à l'adresse [http://localhost:4321/login](http://localhost:4321/login) dans l'aperçu de votre navigateur. Utilisez les identifiants qui ont été ajoutés lors de la [création du projet ApostropheCMS](https://docs.apostrophecms.org/guide/development-setup.html#creating-a-project) pour vous connecter en tant qu'administrateur. Votre projet ApostropheCMS doit toujours être en cours d'exécution.
+
+Une fois connecté, votre navigateur sera redirigé vers la page d'accueil de votre projet et affichera une barre d'administration en haut pour éditer le contenu et gérer votre projet.
+
+Pour ajouter votre premier article de blog, cliquez sur le bouton `Blogs` dans la barre d'administration pour ouvrir la fenêtre de création d'un article de blog. En cliquant sur le bouton `New Blog` en haut à droite, vous ouvrirez une fenêtre d'édition dans laquelle vous pourrez ajouter du contenu. Le champ `content` vous permettra d'ajouter autant d'images et de textes enrichis que vous le souhaitez.
+
+Vous pouvez répéter cette étape et ajouter autant de messages que vous le souhaitez. Vous suivrez également ces étapes chaque fois que vous voudrez ajouter un nouveau message.
+
+Pour publier une page pour afficher tous vos messages, cliquez sur le bouton `Pages` dans la barre d'administration. Dans la fenêtre de l'arbre des pages, cliquez sur le bouton "Nouvelle page". Dans le menu déroulant `Type` dans la colonne de droite, sélectionnez `Blog`. Ajoutez un titre à la page et cliquez sur `Publish and View`. Vous n'aurez à le faire qu'une seule fois.
+
+Tout nouvel article de blog créé sera automatiquement affiché sur cette page. Les articles de blog individuels peuvent être affichés en cliquant sur le lien créé sur la page d'index.
+
+Le `content` des articles individuels peut être modifié directement sur la page en naviguant jusqu'à l'article et en cliquant sur `edit` dans la barre d'administration. D'autres champs peuvent être édités en utilisant la modale d'édition ouverte en cliquant sur l'élément de menu `Blogs` dans la barre d'administration.
+
+### Déployer votre site
+Pour déployer votre site, vous devez héberger vos projets Astro et ApostropheCMS.
+
+Pour Astro, visitez nos [guides de déploiement](/fr/guides/deploy/) et suivez les instructions de votre fournisseur d'hébergement préféré.
+
+Pour le projet ApostropheCMS, suivez les instructions pour votre type d'hébergement dans notre [guide d'hébergement](https://docs.apostrophecms.org/guide/hosting.html). Enfin, vous devrez fournir une variable d'environnement `APOS_HOST` au projet Astro pour refléter l'URL correcte où votre site ApostropheCMS a été déployé.
+
+## Ressources officielles
+
+- [Astro integration for ApostropheCMS](https://apostrophecms.com/extensions/astro-integration) - Plugin Astro d'ApostropheCMS, guide d'intégration et projets de démarrage pour Apostrophe et Astro.
+- [Exemple de projet Astro à utiliser avec ApostropheCMS](https://github.com/apostrophecms/astro-frontend) - Un projet Astro simple avec plusieurs pages et des widgets Apostrophe déjà créés.
+- [Exemple de kit de démarrage ApostropheCMS à utiliser avec Astro](https://apostrophecms.com/starter-kits/astro-integration-starter-kit) - Un projet ApostropheCMS avec des modifications de pages de base pour une utilisation avec Astro.
+
+## Ressources communautaires
+- [Intégrer ApostropheCMS avec Astro, Pt. 1](https://apostrophecms.com/blog/how-to-integrate-astro-with-apostrophecms-pt-1) par Antonello Zaini
+- [Intégration d'ApostropheCMS avec Astro, Partie 2](https://apostrophecms.com/blog/how-to-integrate-astro-with-apostrophecms-pt-2) par Antonello Zaini
+- [Show & Tell Live | Astro & Apostrophe](https://youtu.be/cwJhtJhAhwA?si=6iUU9EjidfdnOdCh)
