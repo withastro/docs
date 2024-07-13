@@ -60,6 +60,7 @@ export const tutorialSchema = baseSchema.extend({
 export const recipeSchema = baseSchema.extend({
 	type: z.literal('recipe'),
 	description: z.string(),
+	altTitle: z.string().optional(),
 });
 
 export const docsCollectionSchema = z.union([
