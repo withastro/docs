@@ -238,7 +238,9 @@ Sets the cookie `key` to the given value. This will attempt to convert the cooki
 **Type:** `(key: string, options?: CookieDeleteOptions) => void`
 </p>
 
-Marks the cookie as deleted. Once a cookie is deleted `Astro.cookies.has()` will return `false` and `Astro.cookies.get()` will return an [`AstroCookie`](#astrocookie) with a `value` of `undefined`. Options available when deleting a cookie are: `domain`, `path`, `httpOnly`, `sameSite`, and `secure`.
+Invalidates a cookie by setting the expiration date in the past (0 in Unix time).
+
+Once a cookie is "deleted" (expired), `Astro.cookies.has()` will return `false` and `Astro.cookies.get()` will return an [`AstroCookie`](#astrocookie) with a `value` of `undefined`. Options available when deleting a cookie are: `domain`, `path`, `httpOnly`, `sameSite`, and `secure`.
 
 ##### `headers`
 
@@ -369,8 +371,12 @@ If true, the cookie is only set on https sites.
 Allows customizing how the cookie is serialized.
 
 ### `Astro.redirect()`
-`Astro.redirect()` allows you to redirect to another page. 
+
+Allows you to redirect to another page, and optionally provide an [HTTP response status code](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status) as a second parameter.
+
 A page (and not a child component) must `return` the result of `Astro.redirect()` for the redirect to occur.
+
+The following example redirects a user to a login page, using the default HTTP response status code 302:
 
 ```astro title="src/pages/account.astro" {8}
 ---
@@ -991,7 +997,7 @@ Get the URL of the current page (useful for canonical URLs).
 **Type:** `string | undefined`
 </p>
 
-Get the URL of the previous page (will be `undefined` if on page 1).
+Get the URL of the previous page (will be `undefined` if on page 1). If a value is set for [`base`](/en/reference/configuration-reference/#base), prepend the base path to the URL.
 
 ##### `page.url.next`
 
@@ -999,7 +1005,7 @@ Get the URL of the previous page (will be `undefined` if on page 1).
 **Type:** `string | undefined`
 </p>
 
-Get the URL of the next page (will be `undefined` if no more pages).
+Get the URL of the next page (will be `undefined` if no more pages). If a value is set for [`base`](/en/reference/configuration-reference/#base), prepend the base path to the URL.
 
 ## `import.meta`
 
@@ -1695,7 +1701,36 @@ import { Code } from 'astro:components';
 </p>
 ```
 
-This component provides syntax highlighting for code blocks at build time (no client-side JavaScript included). The component is powered internally by Shiki and it supports all popular [themes](https://shiki.style/themes) and [languages](https://shiki.style/languages). Plus, you can add your custom themes and languages by passing them to `theme` and `lang` respectively.
+This component provides syntax highlighting for code blocks at build time (no client-side JavaScript included). The component is powered internally by Shiki and it supports all popular [themes](https://shiki.style/themes) and [languages](https://shiki.style/languages). Plus, you can add your custom themes, languages, and [transformers](#transformers) by passing them to the `theme`, `lang`, and `transformers` attributes respectively.
+
+#### Transformers
+
+<p><Since v="4.11.0" /></p>
+
+[Shiki transformers](https://shiki.style/packages/transformers#shikijs-transformers) can optionally be applied to code by passing them in through the `transformers` property as an array:
+
+Note that `transformers` only applies classes and you must provide your own CSS rules to target the elements of your code block.
+
+```astro
+---
+import { transformerNotationFocus } from '@shikijs/transformers'
+import { Code } from 'astro:components'
+const code = `const foo = 'hello'
+const bar = ' world'
+console.log(foo + bar) // [!code focus]
+`
+---
+<Code
+  code={code}
+  lang="js"
+  transformers={[transformerNotationFocus()]} />
+  
+  <style is:global>
+    pre.has-focused .line:not(.focused) {
+      filter: blur(1px);
+    }
+  </style>
+```
 
 ### `<Fragment />`
 

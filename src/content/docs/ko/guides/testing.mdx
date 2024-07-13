@@ -3,14 +3,17 @@ title: 테스팅
 description: Astro의 테스팅에 대한 소개
 i18nReady: true
 ---
-
-import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import Since from '~/components/Since.astro'
 
 테스팅은 제대로 작동하는 Astro 코드를 작성하고 유지하는 데 도움이 됩니다. Astro는 널리 사용되는 많은 단위 테스트, 컴포넌트 테스트, end-to-end 테스트 도구를 지원합니다. 여기에는 Jest, Mocha, Jasmine, [Cypress](https://cypress.io), [Playwright](https://playwright.dev)가 포함됩니다. 또한 여러분이 사용하는 UI 프레임워크 컴포넌트를 테스트하기 위해 React Testing Library와 같은 특정 프레임워크에 종속된 테스팅 라이브러리를 설치할 수도 있습니다.
 
 테스팅 프레임워크를 사용해 특정 상황에서의 코드의 동작에 대한 **assertions** 또는 **expectations**를 기술하여 현재 코드의 실제 동작과 비교할 수 있습니다.
 
-## Vitest
+## 단위 및 통합 테스트
+
+### Vitest
 
 esbuild로 동작하며 ESM, TypeScript, JSX를 지원하는 Vite-native 단위 테스팅 프레임워크입니다.
 
@@ -28,13 +31,174 @@ export default getViteConfig({
 });
 ```
 
+기본적으로 `getViteConfig()`는 프로젝트 Astro 구성 파일을 로드하고 이를 테스트 환경에 적용하려고 시도합니다.
+Astro 4.8 버전에서는 테스트에 적용된 Astro 구성을 사용자 정의해야 하기 위해 `getViteConfig()`에 두 번째 인수를 전달해야 합니다.
+
+```js
+export default getViteConfig(
+  { test: { /* Vitest 구성 옵션 */ } },
+  {
+    site: 'https://example.com/',
+    trailingSlash: 'always',
+  },
+);
+```
+
 GitHub에서 [Astro + Vitest 시작 템플릿](https://github.com/withastro/astro/tree/latest/examples/with-vitest)을 확인하세요.
 
-## Cypress
+#### Vitest 및 컨테이너 API
+
+<p><Since v="4.9.0" /></p>
+
+[컨테이너 API](/ko/reference/container-reference/)를 사용하여 Astro 컴포넌트를 테스트할 수 있습니다. 먼저, [위에 설명된 대로 `vitest`를 설정](#vitest)한 다음 `.test.js` 파일을 생성하여 컴포넌트를 테스트하세요.
+
+```js title="example.test.js"
+import { experimental_AstroContainer as AstroContainer } from 'astro/container';
+import { expect, test } from 'vitest';
+import Card from '../src/components/Card.astro';
+
+test('Card with slots', async () => {
+	const container = await AstroContainer.create();
+	const result = await container.renderToString(Card, {
+		slots: {
+			default: 'Card content',
+		},
+	});
+
+	expect(result).toContain('This is a card');
+	expect(result).toContain('Card content');
+});
+```
+
+## End-to-end 테스트
+
+### Playwright
+
+Playwright는 최신 웹 앱을 위한 end-to-end 테스팅 프레임워크입니다. JavaScript 또는 TypeScript에서 Playwright API를 사용하여 Chromium, WebKit, Firefox를 포함한 모든 최신 렌더링 엔진에서 Astro 코드를 테스트하세요.
+
+#### 설치
+
+[VS Code 확장](https://playwright.dev/docs/getting-started-vscode)을 사용하여 테스트를 시작하고 실행할 수 있습니다.
+
+또는 원하는 패키지 관리자를 사용하여 Astro 프로젝트에 Playwright를 설치할 수 있습니다. CLI 단계에 따라 JavaScript/TypeScript를 선택하고, 테스트 폴더 이름을 지정하고, 선택적으로 GitHub Actions 워크플로를 추가하세요.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm init playwright@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm dlx create-playwright
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn create playwright
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+#### 첫 Playwright 테스트 생성
+
+<Steps>
+1. 테스트할 페이지를 선택하세요. 이 예에서는 아래 `index.astro` 페이지를 테스트합니다.
+
+    ```html title="src/pages/index.astro"
+    ---
+    ---
+    <html lang="ko">
+      <head>
+        <title>Astro는 놀랍습니다!</title>
+        <meta
+          name="description"
+          content="Astro의 차세대 아일랜드 아키텍처를 통해 어디에서나 콘텐츠를 가져와 빠르게 제공할 수 있습니다."
+        />
+      </head>
+      <body></body>
+    </html>
+    ```
+
+2. 새 `src/test/` 디렉터리를 생성하고 다음 테스트 파일을 추가하세요. 페이지의 메타 정보가 정확한지 확인하기 위해 다음 테스트 코드를 복사하여 테스트 파일에서 사용하세요. 테스트 중인 페이지와 일치하도록 페이지의 `<title>`의 값을 업데이트하세요.
+
+    ```jsx title="src/test/index.spec.ts" "Astro는 놀랍습니다!"
+    import { test, expect } from '@playwright/test';
+
+    test('meta is correct', async ({ page }) => {
+      await page.goto('http://localhost:4321/');
+
+      await expect(page).toHaveTitle('Astro는 놀랍습니다!');
+    });
+    ```
+
+    :::tip[`baseUrl` 설정]
+    `page.goto("http://localhost:4321/")` 대신 더 편리한 URL인 `page.goto("/")`를 사용하기 위해 `playwright.config.ts` 구성 파일에서 [`"baseURL": "http://localhost:4321"`](https://playwright.dev/docs/api/class-testoptions#test-options-base-url)을 설정할 수 있습니다.
+    :::
+</Steps>
+
+#### Playwright 테스트 실행
+
+단일 테스트 및 여러 테스트를 한번에 실행할 수 있으며, 단일 브라우저 또는 여러 브라우저에서 테스트 할 수도 있습니다. 기본적으로 테스트 결과는 터미널에 표시됩니다. 선택적으로 HTML Test Reporter를 실행하여 전체 보고서를 확인하고 테스트 결과를 필터링할 수도 있습니다.
+
+<Steps>
+1. 명령줄을 사용하여 이전 예시 코드를 테스트하려면 `test` 명령을 사용하세요. 하나의 파일에 대해 테스트하기 위해 파일 이름을 포함시킬 수도 있습니다.
+
+    ```sh
+    npx playwright test index.spec.ts
+    ```
+
+2. 다음 명령을 사용하여 전체 HTML 테스트 보고서를 열어 확인할 수 있습니다.
+
+    ```sh
+    npx playwright show-report
+    ```
+</Steps>
+
+:::tip
+실제 배포된 사이트와 더욱 유사한 프로덕션 코드를 테스트하세요.
+:::
+
+##### 고급: 테스트 중 개발 웹 서버 시작
+
+또한, Playwright 구성 파일의 `webServer` 옵션을 사용하여 테스트 스크립트가 실행될 때 Playwright가 웹 서버를 시작하도록 설정할 수도 있습니다.
+
+다음은 npm을 사용할 때 필요한 구성 및 명령의 예입니다.
+
+<Steps>
+1. 프로젝트의 `package.json` 파일에 `"test:e2e": "playwright test"`와 같은 테스트 스크립트를 추가합니다.
+
+2. `playwright.config.ts`에서 `webServer` 객체를 추가하고 command 속성의 값을 `npm run preview`로 업데이트합니다.
+
+    ```js title="playwright.config.ts" ins={4-9} "npm run preview"
+    import { defineConfig } from '@playwright/test';
+
+    export default defineConfig({
+      webServer: {
+        command: 'npm run preview',
+        url: 'http://localhost:4321/',
+        timeout: 120 * 1000,
+        reuseExistingServer: !process.env.CI,
+      },
+      use: {
+        baseURL: 'http://localhost:4321/',
+      },
+    });
+    ```
+
+3. `npm run build`를 실행한 다음 `npm run test:e2e`를 실행하여 Playwright 테스트를 시작합니다.
+</Steps>
+
+Playwright에 대한 자세한 내용은 아래 링크에서 확인할 수 있습니다.
+
+- [Playwright 시작하기](https://playwright.dev/docs/intro)
+- [개발 서버 사용하기](https://playwright.dev/docs/test-webserver#configuring-a-web-server)
+
+### Cypress
 
 Cypress는 최신 웹을 위해 제작된 프런트엔드 테스팅 도구입니다. Cypress를 사용하면 Astro 사이트에 대해 end-to-end 테스트를 시작할 수 있습니다.
 
-### 설치
+#### 설치
 
 원하는 패키지 관리자를 사용하여 Cypress를 설치할 수 있습니다.
 
@@ -58,7 +222,7 @@ Cypress는 최신 웹을 위해 제작된 프런트엔드 테스팅 도구입니
   </Fragment>
 </PackageManagerTabs>
 
-### 구성
+#### 구성
 
 프로젝트의 루트 디렉터리에 다음 내용이 포함된 `cypress.config.js` 파일을 생성합니다.
 
@@ -72,8 +236,9 @@ export default defineConfig({
 });
 ```
 
-### 첫 Cypress 테스트 생성
+#### 첫 Cypress 테스트 생성
 
+<Steps>
 1. 테스트할 페이지를 선택하세요. 이 예에서는 아래 `index.astro` 페이지를 테스트합니다.
 
     ```html title="src/pages/index.astro"
@@ -104,11 +269,12 @@ export default defineConfig({
     });
     ```
 
-:::tip[`baseUrl` 설정]
-`cy.visit("http://localhost:4321/")` 대신 더 짧은 URL인 `cy.visit("/")`를 사용하기 위해 `cypress.config.js` 구성 파일에 [`"baseUrl": "http://localhost:4321"`](https://docs.cypress.io/guides/end-to-end-testing/testing-your-app#Step-3-Configure-Cypress)를 설정할 수 있습니다.
-:::
+    :::tip[`baseUrl` 설정]
+    `cy.visit("http://localhost:4321/")` 대신 더 짧은 URL인 `cy.visit("/")`를 사용하기 위해 `cypress.config.js` 구성 파일에 [`"baseUrl": "http://localhost:4321"`](https://docs.cypress.io/guides/end-to-end-testing/testing-your-app#Step-3-Configure-Cypress)를 설정할 수 있습니다.
+    :::
+</Steps>
 
-### Cypress 테스트 실행
+#### Cypress 테스트 실행
 
 명령 줄이나 Cypress 앱에서 Cypress를 실행할 수 있습니다. Cypress 앱은 테스팅 및 디버깅을 위한 시각적 인터페이스를 제공합니다.
 
@@ -133,7 +299,6 @@ Cypress 앱이 시작되면 **E2E Testing**을 선택하고 테스트에 사용�
 ```shell title="Output from npx cypress run"
 Running:  index.cy.js                                                                     (1 of 1)
 
-
 ✓ titles are correct (107ms)
 
 1 passing (1s)
@@ -152,18 +317,18 @@ Running:  index.cy.js                                                           
 그리고 테스트를 다시 실행하세요. 테스트가 실패했음을 알리는 빨간색 "x" 표시가 출력되어야 합니다.
 :::
 
-### 다음 단계
+#### 다음 단계
 
 Cypress에 대한 자세한 내용은 아래 링크에서 확인할 수 있습니다.
 
-- [Cypress 개요](https://docs.cypress.io/guides/basics/introduction-to-cypress)
+- [Cypress 개요](https://docs.cypress.io/guides/core-concepts/introduction-to-cypress)
 - [앱 테스팅](https://docs.cypress.io/guides/end-to-end-testing/testing-your-app)
 
-## NightwatchJS
+### NightwatchJS
 
 Nightwatch.js는 모든 주요 브라우저와 이에 상응하는 모바일 브라우저는 물론 기본 모바일 애플리케이션에 대한 기본 지원을 통해 웹 전체에서 테스트를 작성, 실행, 디버깅할 수 있는 강력한 도구 세트를 갖춘 테스트 자동화 프레임워크입니다.
 
-### 설치
+#### 설치
 
 선택한 패키지 관리자를 사용하여 Astro 프로젝트에 NightwatchJS를 설치할 수 있습니다. CLI 단계에 따라 JavaScript/TypeScript를 선택하고, 테스트 폴더 이름을 지정하고, 컴포넌트 테스트와 모바일 브라우저 테스트를 포함할지 여부를 선택하세요.
 
@@ -185,8 +350,9 @@ Nightwatch.js는 모든 주요 브라우저와 이에 상응하는 모바일 브
   </Fragment>
 </PackageManagerTabs>
 
-### 첫 번째 Nightwatch 테스트 만들기
+#### 첫 번째 Nightwatch 테스트 만들기
 
+<Steps>
 1. 테스트할 페이지를 선택하세요. 이 예시에서는 아래의 `index.astro` 페이지를 테스트합니다.
 
     ```html title="src/pages/index.astro"
@@ -218,8 +384,9 @@ Nightwatch.js는 모든 주요 브라우저와 이에 상응하는 모바일 브
     :::tip[`baseUrl` 설정]
     더 편리한 URL을 사용하기 위해 `browser.navigateTo("http://localhost:4321/")` 대신 `browser.navigateTo("/")`를 사용하도록 `nightwatch.conf.js` 구성 파일에서 [`"baseURL": "http://localhost:4321"`](https://nightwatchjs.org/guide/reference/settings.html#setting-the-baseurl-property)을 설정할 수 있습니다.
     :::
+</Steps>
 
-### NightwatchJS 테스트 실행
+#### NightwatchJS 테스트 실행
 
 단일 테스트 또는 여러 테스트를 한 번에 실행하여 하나 또는 여러 브라우저를 테스트할 수 있습니다. 기본적으로 테스트 결과는 터미널에 표시됩니다. 선택적으로 HTML Test Reporter를 열어 전체 보고서를 표시하고 테스트 결과를 필터링할 수 있습니다.
 
@@ -251,118 +418,3 @@ NightwatchJS에 대한 자세한 내용은 아래 링크에서 확인할 수 있
 
   - [Nightwatch 소개](https://nightwatchjs.org/guide/overview/what-is-nightwatch.html)
   - [Nightwatch를 이용한 테스팅](https://nightwatchjs.org/guide/writing-tests/introduction.html)
-
-## Playwright
-
-Playwright는 최신 웹 앱을 위한 end-to-end 테스팅 프레임워크입니다. JavaScript 또는 TypeScript에서 Playwright API를 사용하여 Chromium, WebKit, Firefox를 포함한 모든 최신 렌더링 엔진에서 Astro 코드를 테스트하세요.
-
-### 설치
-
-[VS Code 확장](https://playwright.dev/docs/getting-started-vscode)을 사용하여 테스트를 시작하고 실행할 수 있습니다.
-
-또는 원하는 패키지 관리자를 사용하여 Astro 프로젝트에 Playwright를 설치할 수 있습니다. CLI 단계에 따라 JavaScript/TypeScript를 선택하고, 테스트 폴더 이름을 지정하고, 선택적으로 GitHub Actions 워크플로를 추가하세요.
-
-<PackageManagerTabs>
-  <Fragment slot="npm">
-  ```shell
-  npm init playwright@latest
-  ```
-  </Fragment>
-  <Fragment slot="pnpm">
-  ```shell
-  pnpm dlx create-playwright
-  ```
-  </Fragment>
-  <Fragment slot="yarn">
-  ```shell
-  yarn create playwright
-  ```
-  </Fragment>
-</PackageManagerTabs>
-
-### 첫 Playwright 테스트 생성
-
-1. 테스트할 페이지를 선택하세요. 이 예에서는 아래 `index.astro` 페이지를 테스트합니다.
-
-    ```html title="src/pages/index.astro"
-    ---
-    ---
-    <html lang="ko">
-      <head>
-        <title>Astro는 놀랍습니다!</title>
-        <meta
-          name="description"
-          content="Astro의 차세대 아일랜드 아키텍처를 통해 어디에서나 콘텐츠를 가져와 빠르게 제공할 수 있습니다."
-        />
-      </head>
-      <body></body>
-    </html>
-    ```
-
-1. 새 `src/test/` 디렉터리를 생성하고 다음 테스트 파일을 추가하세요. 페이지의 메타 정보가 정확한지 확인하기 위해 다음 테스트 코드를 복사하여 테스트 파일에서 사용하세요. 테스트 중인 페이지와 일치하도록 페이지의 `<title>`의 값을 업데이트하세요.
-
-    ```jsx title="src/test/index.spec.ts" "Astro는 놀랍습니다!"
-    import { test, expect } from '@playwright/test';
-
-    test('meta is correct', async ({ page }) => {
-      await page.goto('http://localhost:4321/');
-
-      await expect(page).toHaveTitle('Astro는 놀랍습니다!');
-    });
-    ```
-
-:::tip[`baseUrl` 설정]
-`page.goto("http://localhost:4321/")` 대신 더 편리한 URL인 `page.goto("/")`를 사용하기 위해 `playwright.config.ts` 구성 파일에서 [`"baseURL": "http://localhost:4321"`](https://playwright.dev/docs/api/class-testoptions#test-options-base-url)을 설정할 수 있습니다.
-:::
-
-### Playwright 테스트 실행
-
-단일 테스트 및 여러 테스트를 한번에 실행할 수 있으며, 단일 브라우저 또는 여러 브라우저에서 테스트 할 수도 있습니다. 기본적으로 테스트 결과는 터미널에 표시됩니다. 선택적으로 HTML Test Reporter를 실행하여 전체 보고서를 확인하고 테스트 결과를 필터링할 수도 있습니다.
-
-1. 명령줄을 사용하여 이전 예시 코드를 테스트하려면 `test` 명령을 사용하세요. 하나의 파일에 대해 테스트하기 위해 파일 이름을 포함시킬 수도 있습니다.
-
-    ```sh
-    npx playwright test index.spec.ts
-    ```
-
-1. 다음 명령을 사용하여 전체 HTML 테스트 보고서를 열어 확인할 수 있습니다.
-
-    ```sh
-    npx playwright show-report
-    ```
-
-:::tip
-실제 배포된 사이트와 더욱 유사한 프로덕션 코드를 테스트하세요.
-:::
-
-#### 고급: 테스트 중 개발 웹 서버 시작
-
-또한, Playwright 구성 파일의 `webServer` 옵션을 사용하여 테스트 스크립트가 실행될 때 Playwright가 웹 서버를 시작하도록 설정할 수도 있습니다.
-
-다음은 npm을 사용할 때 필요한 구성 및 명령의 예입니다.
-
-1. 프로젝트의 `package.json` 파일에 `"test:e2e": "playwright test"`와 같은 테스트 스크립트를 추가합니다.
-1. `playwright.config.ts`에서 `webServer` 객체를 추가하고 command 속성의 값을 `npm run preview`로 업데이트합니다.
-
-    ```js title="playwright.config.ts" ins={4-9} "npm run preview"
-    import { defineConfig } from '@playwright/test';
-
-    export default defineConfig({
-      webServer: {
-        command: 'npm run preview',
-        url: 'http://localhost:4321/',
-        timeout: 120 * 1000,
-        reuseExistingServer: !process.env.CI,
-      },
-      use: {
-        baseURL: 'http://localhost:4321/',
-      },
-    });
-    ```
-
-1. `npm run build`를 실행한 다음 `npm run test:e2e`를 실행하여 Playwright 테스트를 시작합니다.
-
-Playwright에 대한 자세한 내용은 아래 링크에서 확인할 수 있습니다.
-
-- [Playwright 시작하기](https://playwright.dev/docs/intro)
-- [개발 서버 사용하기](https://playwright.dev/docs/test-webserver#configuring-a-web-server)

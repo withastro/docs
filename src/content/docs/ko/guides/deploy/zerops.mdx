@@ -1,0 +1,231 @@
+---
+title: Astro 사이트를 Zerops에 배포
+description: Zerops를 사용하여 Astro 사이트를 웹에 배포하는 방법.
+type: deploy
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { Steps } from '@astrojs/starlight/components';
+
+[Zerops](https://zerops.io/)는 Static 및 SSR Astro 사이트를 배포하는 데 사용할 수 있는 개발 우선 클라우드 플랫폼입니다.
+
+이 가이드는 Zerops에서 Static 및 SSR Astro 사이트를 설정하고 배포하는 과정을 안내합니다.
+
+:::tip[Astro x Zerops 빠르게 시작하기]
+
+아무것도 설치하거나 설정하지 않고 Zerops에서 Astro 실행을 테스트하고 싶나요? [Zerops x Astro - Static](https://github.com/zeropsio/recipe-astro-static) 또는 [Zerops x Astro - Node.js SSR](https://github.com/zeropsio/recipe-astro-nodejs) 저장소를 사용하면 예시 Astro 사이트를 클릭 한 번으로 배포할 수 있습니다.
+
+:::
+
+Zerops에서 앱을 실행하려면 다음 두 단계가 필요합니다.
+1. 프로젝트 생성
+2. 빌드 및 배포 파이프라인 트리거
+
+:::note
+하나의 Zerops 프로젝트에는 여러 Astro 사이트가 포함될 수 있습니다.
+:::
+
+## Zerops의 Astro Static 사이트
+
+### Astro Static용 프로젝트 및 서비스 만들기
+프로젝트와 서비스는 [`Project add`](https://app.zerops.io/dashboard/project-add) 마법사를 통해 추가하거나 다음 yaml 구조를 사용하여 가져올 수 있습니다.
+
+```yaml
+# 전체 참조를 확인하기 위해 https://docs.zerops.io/references/import 를 방문하세요.
+project:
+  name: recipe-astro
+services:
+  - hostname: app
+    type: static
+```
+
+그러면 `app`이라는 Zerops Static 서비스를 사용하여 `recipe-astro`라는 프로젝트가 생성됩니다.
+
+### Astro Static 사이트 배포
+
+Zerops에게 사이트 빌드 및 실행 방법을 알려주려면 'zerops.yml'을 저장소에 추가하세요.
+
+  <PackageManagerTabs>
+    <Fragment slot="npm">
+    ```yaml title="zerops.yml"
+    # 전체 참조를 확인하기 위해 https://docs.zerops.io/references/zeropsyml 를 방문하세요.
+    zerops:
+      - setup: app
+        build:
+          base: nodejs@20
+          buildCommands:
+            - npm i
+            - npm build
+          deployFiles:
+            - dist/~
+        run:
+          base: static
+    ```
+    </Fragment>
+    <Fragment slot="pnpm">
+    ```yaml title="zerops.yml"
+    # 전체 참조를 확인하기 위해 https://docs.zerops.io/references/zeropsyml 를 방문하세요.
+    zerops:
+      - setup: app
+        build:
+          base: nodejs@20
+          buildCommands:
+            - pnpm i
+            - pnpm build
+          deployFiles:
+            - dist/~
+        run:
+          base: static
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```yaml title="zerops.yml"
+    # 전체 참조를 확인하기 위해 https://docs.zerops.io/references/zeropsyml 를 방문하세요.
+    zerops:
+      - setup: app
+        build:
+          base: nodejs@20
+          buildCommands:
+            - yarn
+            - yarn build
+          deployFiles:
+            - dist/~
+        run:
+          base: static
+    ```
+    </Fragment>
+  </PackageManagerTabs>
+
+이제 [Zerops CLI를 사용](#zerops-cli-zcli를-사용하는-파이프라인-트리거)하거나 서비스 세부 세부 사항에서 [GitHub](https://docs.zerops.io/references/github-integration/) / [GitLab](https://docs.zerops.io/references/gitlab-integration) 저장소와 `app` 서비스를 연결하여 빌드 및 배포 파이프라인을 트리거할 수 있습니다.
+
+## Zerops의 Astro SSR 사이트
+
+### Astro SSR (Node.js)용 프로젝트 및 서비스 만들기
+프로젝트와 서비스는 [`Project add`](https://app.zerops.io/dashboard/project-add) 마법사를 통해 추가하거나 다음 yaml 구조를 사용하여 가져올 수 있습니다.
+
+```yaml
+# 전체 참조를 확인하기 위해 https://docs.zerops.io/references/import 를 방문하세요.
+project:
+  name: recipe-astro
+services:
+  - hostname: app
+    type: nodejs@20
+```
+
+그러면 `app`이라는 Zerops Node.js 서비스를 사용하여 `recipe-astro`라는 프로젝트가 생성됩니다.
+
+### Astro SSR 사이트 배포
+
+`standalone` 모드에서 공식 [Astro Node.js 어댑터](/ko/guides/integrations-guide/node/)를 사용하여 사이트를 빌드하고 실행하는 방법을 Zerops에게 알리려면 저장소에 `zerops.yml` 파일을 추가하세요.
+
+  <PackageManagerTabs>
+    <Fragment slot="npm">
+    ```yaml title="zerops.yml"
+    # 전체 참조를 확인하기 위해 https://docs.zerops.io/references/zeropsyml 를 방문하세요.
+      - setup: app
+        build:
+          base: nodejs@20
+          buildCommands:
+            - npm i
+            - npm run build
+          deployFiles:
+            - dist
+            - package.json
+            - node_modules
+        run:
+          base: nodejs@20
+          ports:
+            - port: 3000
+              httpSupport: true
+          envVariables:
+            PORT: 3000
+            HOST: 0.0.0.0
+          start: npm start
+    ```
+    </Fragment>
+    <Fragment slot="pnpm">
+    ```yaml title="zerops.yml"
+    # 전체 참조를 확인하기 위해 https://docs.zerops.io/references/zeropsyml 를 방문하세요.
+      - setup: app
+        build:
+          base: nodejs@20
+          buildCommands:
+            - pnpm i
+            - pnpm run build
+          deployFiles:
+            - dist
+            - package.json
+            - node_modules
+        run:
+          base: nodejs@20
+          ports:
+            - port: 3000
+              httpSupport: true
+          envVariables:
+            PORT: 3000
+            HOST: 0.0.0.0
+          start: pnpm start
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```yaml title="zerops.yml"
+    # 전체 참조를 확인하기 위해 https://docs.zerops.io/references/zeropsyml 를 방문하세요.
+      - setup: app
+        build:
+          base: nodejs@20
+          buildCommands:
+            - yarn
+            - yarn build
+          deployFiles:
+            - dist
+            - package.json
+            - node_modules
+        run:
+          base: nodejs@20
+          ports:
+            - port: 3000
+              httpSupport: true
+          envVariables:
+            PORT: 3000
+            HOST: 0.0.0.0
+          start: yarn start
+    ```
+    </Fragment>
+  </PackageManagerTabs>
+
+이제 [Zerops CLI를 사용](#zerops-cli-zcli를-사용하는-파이프라인-트리거)하거나 서비스 세부 세부 사항에서 [GitHub](https://docs.zerops.io/references/github-integration/) / [GitLab](https://docs.zerops.io/references/gitlab-integration) 저장소와 `app` 서비스를 연결하여 빌드 및 배포 파이프라인을 트리거할 수 있습니다.
+
+## Zerops CLI (zcli)를 사용하는 파이프라인 트리거
+
+<Steps>
+1. Zerops CLI를 설치합니다.
+		```shell
+		# zcli 바이너리를 직접 다운로드하려면,
+		# https://github.com/zeropsio/zcli/releases 를 방문하세요.
+		npm i -g @zerops/zcli
+		```
+
+2. Zerops 앱에서 [`Settings > Access Token Management`](https://app.zerops.io/settings/token-management)를 열고 새 액세스 토큰을 생성합니다.
+
+3. 다음 명령으로 액세스 토큰을 사용하여 로그인합니다.
+		```shell
+		zcli login <token>
+		```
+
+4. 앱의 루트 (`zerops.yml`이 있는 위치)로 이동하고 다음 명령을 실행하여 배포를 트리거합니다.
+		```shell
+		zcli push
+		```
+</Steps>
+
+## 리소스
+### 공식
+
+- [Zerops 계정 생성](https://app.zerops.io/registration)
+- [Zerops 문서](https://docs.zerops.io)
+- [Zerops Astro 레시피](https://app.zerops.io/recipe/astro)
+
+### 커뮤니티
+- [3분 안에 Astro를 Zerops에 배포](https://medium.com/@arjunaditya/how-to-deploy-astro-to-zerops-4230816a62b4)
+- [원클릭 배포로 Zerops에서 Node.js를 사용하여 Astro SSG 배포](https://youtu.be/-4KTa4VWtBE)
+- [원클릭 배포로 Zerops에서 Node.js를 사용하여 Astro SSR 배포](https://youtu.be/eR6b_JnDH6g)
