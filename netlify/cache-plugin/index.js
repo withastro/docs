@@ -25,31 +25,33 @@ const paths = ['node_modules/.astro', 'node_modules/.astro-og-canvas'];
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// Try to restore cache before build begins, if it exists
-export const onPreBuild = async ({ utils }) => {
-	console.log('Hello world from onPreBuild event!');
-	if (await utils.cache.restore(paths)) {
-		const files = await utils.cache.list(paths);
-		console.log(`Successfully restored: ${paths.join(', ')} ... ${files.length} files in total.`);
-	} else {
-		console.log(`A cache of '${paths.join(', ')}' doesn't exist (yet).`);
-	}
-};
+module.exports = {
+	// Try to restore cache before build begins, if it exists
+	onPreBuild: async ({ utils }) => {
+		console.log('Hello world from onPreBuild event!');
+		if (await utils.cache.restore(paths)) {
+			const files = await utils.cache.list(paths);
+			console.log(`Successfully restored: ${paths.join(', ')} ... ${files.length} files in total.`);
+		} else {
+			console.log(`A cache of '${paths.join(', ')}' doesn't exist (yet).`);
+		}
+	},
 
-// Only save/update cache if build was successful
-export const onSuccess = async ({ utils }) => {
-	if (await utils.cache.save(paths)) {
-		const files = await utils.cache.list(paths);
-		console.log(`Successfully cached: ${paths.join(', ')} ... ${files.length} files in total.`);
+	// Only save/update cache if build was successful
+	onSuccess: async ({ utils }) => {
+		if (await utils.cache.save(paths)) {
+			const files = await utils.cache.list(paths);
+			console.log(`Successfully cached: ${paths.join(', ')} ... ${files.length} files in total.`);
 
-		// Show success & more detail in deploy summary
-		utils.status.show({
-			title: `${files.length} files cached`,
-			summary: 'These will be restored on the next build! ⚡',
-			text: `${paths.join(', ')}`,
-		});
-	} else {
-		// This probably happened because the default `paths` is set, so provide instructions to fix
-		console.log(`Attempted to cache: ${paths.join(', ')} ... but failed. :(`);
-	}
+			// Show success & more detail in deploy summary
+			utils.status.show({
+				title: `${files.length} files cached`,
+				summary: 'These will be restored on the next build! ⚡',
+				text: `${paths.join(', ')}`,
+			});
+		} else {
+			// This probably happened because the default `paths` is set, so provide instructions to fix
+			console.log(`Attempted to cache: ${paths.join(', ')} ... but failed. :(`);
+		}
+	},
 };
