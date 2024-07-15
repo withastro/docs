@@ -28,7 +28,6 @@ const paths = ['node_modules/.astro', 'node_modules/.astro-og-canvas'];
 module.exports = {
 	// Try to restore cache before build begins, if it exists
 	onPreBuild: async ({ utils }) => {
-		console.log('Hello world from onPreBuild event!');
 		if (await utils.cache.restore(paths)) {
 			const files = await utils.cache.list(paths);
 			console.log(`Successfully restored: ${paths.join(', ')} ... ${files.length} files in total.`);
