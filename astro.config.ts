@@ -6,7 +6,6 @@ import { makeSidebar } from './config/sidebar';
 import rehypeSlug from 'rehype-slug';
 import remarkSmartypants from 'remark-smartypants';
 
-import { netlifyCache } from './integrations/netlify-cache';
 import { sitemap } from './integrations/sitemap';
 import { rehypeAutolink } from './plugins/rehype-autolink';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
@@ -21,7 +20,6 @@ const site = NETLIFY_PREVIEW_SITE || 'https://docs.astro.build/';
 export default defineConfig({
 	site,
 	integrations: [
-		netlifyCache(),
 		starlight({
 			title: 'Docs',
 			customCss: ['./src/styles/custom.css'],
