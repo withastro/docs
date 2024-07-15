@@ -1,3 +1,4 @@
+// @ts-expect-error This package does not provide types (despite being authored in TypeScript...)
 import { save, restore } from '@netlify/cache-utils';
 import type { AstroIntegration } from 'astro';
 
