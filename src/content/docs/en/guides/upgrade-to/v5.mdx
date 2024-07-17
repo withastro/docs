@@ -4,6 +4,7 @@ description: Documentation for Astro v5.0-beta projects
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { Steps } from '@astrojs/starlight/components';
 
 {/* This guide will help you migrate from Astro v3 to Astro v4.
 
@@ -99,16 +100,18 @@ See [the changelog](https://github.com/withastro/astro/blob/main/packages/astro/
 
 ## Astro v5.0 Experimental Flags Removed
 
-The following features are no longer experimental in Astro v5.0: actions, rewrites, environment variables, server islands.
+The following features are no longer experimental in Astro v5.0: `actions`, `directRenderScript`, `globalRoutePriority`, `rewrites`, `env`, `serverIslands`.
 
 Remove their experimental flags if you were previously using them, and move your `env` configuration to the root of your Astro config:
 
-```js del={5-10} ins={12-14} title="astro.config.mjs"
+```js del={5-12} ins={14-16} title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   experimental: {
     actions: true,
+    directRenderScript: true,
+    globalRoutePriority: true,
     rewrites: true,
     serverIslands: true,
     env: {
@@ -121,9 +124,9 @@ export default defineConfig({
 })
 ```
 
-These features are all available by default in Astro v5.0
+These features are all available by default in Astro v5.0. Only `astro:env` requires any configuration to use.
 
-Read more about these exciting features and more in [the v5.0-beta Blog post](https://astro.build/blog/astro-4/). 
+Read about these exciting features and more in [the v5.0-beta Blog post](https://astro.build/blog/astro-4/). 
 
 :::note
 These features are still experimental in the current stable version of Astro. You can continue to find their official documentation in the [Experimental flags section](/en/reference/configuration-reference/#experimental-flags) of the configuration reference page.
@@ -137,80 +140,195 @@ Any major upgrades to Astro's dependencies may cause breaking changes in your pr
 
 ### Upgraded: Vite 5.0
 
-In Astro v3.0, Vite 4 was used as the development server and production bundler.
-
-Astro v4.0 upgrades from Vite 4 to Vite 5.
+Placeholder
 
 #### What should I do?
 
 If you are using Vite-specific plugins, configuration, or APIs, check the [Vite migration guide](https://vitejs.dev/guide/migration) for their breaking changes and upgrade your project as needed. There are no breaking changes to Astro itself.
 
-### Upgraded: unified, remark, and rehype dependencies
+### Upgraded: minimum Node version
 
-In Astro v3.x, unified v10 and its related compatible remark/rehype packages were used to process Markdown and MDX.
-
-Astro v4.0 upgrades [unified to v11](https://github.com/unifiedjs/unified/releases/tag/11.0.0) and the other remark/rehype packages to the latest version.
+Placeholder (ensures compatibility with Sharp)
 
 #### What should I do?
 
-If you used custom remark/rehype packages, update all of them to the latest version using your package manager to ensure they support unified v11. The packages you are using can be found in `astro.config.mjs`.
+ Check that both your development environment and your deployment environment are using **Node `x.x.x` or higher**.
 
-There should not be any significant breaking changes if you use actively updated packages, but some packages may not yet be compatible with unified v11.
-Visually inspect your Markdown/MDX pages before deploying to ensure your site is functioning as intended.
+<Steps>
+1. Check your local version of Node using:
+
+    ```sh
+    node -v
+    ```
+
+2. Check your [deployment environment's](/en/guides/deploy/) own documentation to verify that they support Node xx.
+
+    You can specify Node `x.x.x` for your Astro project either in a dashboard configuration setting or a `.nvmrc` file.
+
+    ```bash title=".nvmrc"
+    x.x.x
+    ```
+</Steps>
 
 ## Breaking Changes
 
 The following changes are considered breaking changes in Astro v5.0. Breaking changes may or may not provide temporary backwards compatibility.
 
+:::note
+
 **These 5.0-beta changes conflict with the rest of Astro's documentation.**
 
 The following content is **not**  consistent with the rest of Astro Docs. The main docs will be updated for the v5.0 **stable** release only.
+:::
  
 {/* If you need to refer to the documentation for a v4.x project, you can browse this [(unmaintained) snapshot of the docs from before v4.0 was released](https://docs-git-v3-docs-unmaintained-astrodotbuild.vercel.app/). */}
 
-### Renamed: `entrypoint` (Integrations API)
+### Removed: some public-facing types (core)
 
-In Astro v3.x, the property of the `injectRoute` integrations API that specified the route entry point was named `entryPoint`.
+In Astro v4.x, `@types/astro.ts` exposed all types publicly to users, whether or not they were still actively used or only intended for internal use.
 
-Astro v4.0 renames this property to `entrypoint` to be consistent with other Astro APIs. The `entryPoint` property is deprecated but will continue to work and logs a warning prompting you to update your code.
+Astro v5.0 refactors this file to [remove outdated and internal types (link to PR for all the messy details if it's too long to list here)](). This refactor brings improvements to your editor (faster completions, lower memory use, more relevant completion options). However, this refactor may cause errors in some projects that have been relying on types that are no longer available to the public.
 
 #### What should I do?
 
-If you have integrations that use the `injectRoute` API, rename the `entryPoint` property to `entrypoint`. If you're a library author who wants to support both Astro 3 and 4, you can specify both `entryPoint` and `entrypoint`, in which case, a warning will not be logged.
+Remove any types that now cause errors in your project. You no longer have access to these.
 
-```js ins={4} del={3}
-injectRoute({
-  pattern: '/fancy-dashboard',
-  entryPoint: '@fancy/dashboard/dashboard.astro'
-  entrypoint: '@fancy/dashboard/dashboard.astro'
-});
+### Changed: CSRF protection is now set by default (core)
+
+In Astro v4.0, The default value of `security.checkOrigin` was `false`. Previously, you had to explicitly set this value to `true` to enable Cross-Site Request Forgery (CSRF) protection.
+
+Astro v5.0 changes the default value  of this option to `true`, and will automatically check that the "origin" header matches the URL sent by each request in on-demand rendered pages.
+
+#### What should I do?
+
+If you had previously configured `security.checkOrigin: true`, you no longer need this line in your Astro config. This is now the default.
+
+To disable this behaviour, you must explicitly set  `security.checkOrigin: false`.
+
+```js title="astro.config.mjs" del={3-5}
+export default defineConfig({
+  output: "server",
+  security: {
+    checkOrigin: true
+  }
+})
 ```
 
-### Changed: `app.render` signature in Integrations API
+### Changed: (PLT2255)
 
-In Astro v3.0, the `app.render()` method accepted `routeData` and `locals` as separate, optional arguments. 
-
-Astro v4.0 changes the `app.render()` signature. These two properties are now available in a single object. Both the object and these two properties are still optional.
+Enable prefetch by default
 
 #### What should I do?
 
-If you are maintaining an adapter, the current signature will continue to work until the next major version. To migrate to the new signature, pass `routeData` and `locals` as properties of an object instead of as multiple independent arguments.
+Stuff!
 
-```diff lang="js"
-- app.render(request, routeData, locals)
-+ app.render(request, { routeData, locals })
-```
-### Changed: adapters must now specify supported features
+### Changed: (PLT2220)
 
-In Astro v3.x, adapters were not required to specify the features they support.
-
-Astro v4.0 requires adapters to pass the `supportedAstroFeatures{}` property to specify a list of features they support. This property is no longer optional.
+Rethink `--mode` and internal mode usage
 
 #### What should I do?
 
-Adapter authors need to pass the `supportedAstroFeatures{}` option to specify a list of features they support.
+Stuff!
 
-```js title="my-adapter.mjs" ins={9-11}
+### Changed: (PLT2204)
+
+Add base to `paginate`
+
+#### What should I do?
+
+Stuff!
+
+### Changed: (PLT2214)
+
+COnsider renaming the CLI command `sync`
+
+#### What should I do?
+
+Stuff!
+
+### Changed: (PLT1057)
+
+Decide if charset=utf-8 should not be set for md/mdx pages by default
+
+#### What should I do?
+
+Stuff!
+
+### Changed: (PLT2118)
+
+Prevent use of `astro:content` on the client
+
+#### What should I do?
+
+Stuff!
+
+### Changed: (PLT1776)
+
+Revisit configuration passed to integrations
+
+#### What should I do?
+
+Stuff!
+
+### Changed: (PLT1631)
+
+To consider - set `ssr.external: true` when using Vite to load configs
+
+#### What should I do?
+
+Stuff!
+
+### Changed: (PLT1548)
+
+COnsider supporting `type="module"` for people who want to set it explicitly
+
+#### What should I do?
+
+Stuff!
+
+
+### Changed: (PLT1323)
+
+Revisit top level await in `vite-plugin-markdown`'s `astro:assets` support
+
+#### What should I do?
+
+Stuff!
+
+### Removed: (PLT1380)
+
+Remove the Squoosh image service from AStro's built-in services
+
+#### What should I do?
+
+Stuff!
+
+### Removed: (PLT1751)
+
+Remove `allowJs: false` from our strictest preset
+
+#### What should I do?
+
+Stuff!
+
+## Deprecated
+
+The following deprecated features are no longer supported and are no longer documented. Please update your project accordingly.
+
+Some deprecated features may temporarily continue to function until they are completely removed. Others may silently have no effect, or throw an error prompting you to update your code.
+
+### Deprecated: `functionPerRoute` (Adapter API)
+
+In Astro v4.x, you could opt in to creating a separate file for each route defined in the project, mirroring your `src/pages/` directory in the build folder. By default, Astro emitted a single `entry.mjs` file, which was responsible for emitting the rendered page on each request.
+
+Astro v5.0 removes the option to opt out of the default behavior. This behavior is now standard, and non-configurable.
+
+
+#### What should I do?
+
+Remove the `functionPerRoute` property from your `adapterFeatures` configuration. It is no longer available.
+
+```js title="my-adapter.mjs" del={10}
 export default function createIntegration() {
   return {
     name: '@matthewp/my-adapter',
@@ -219,79 +337,49 @@ export default function createIntegration() {
         setAdapter({
           name: '@matthewp/my-adapter',
           serverEntrypoint: '@matthewp/my-adapter/server.js',
-          supportedAstroFeatures: {
-              staticOutput: 'stable'
+          adapterFeatures: {
+              functionPerRoute: true
           }
         });
       },
     },
   };
 }
+
 ```
 
-### Removed: Shiki language `path` property
+### Deprecated: `build.format=file` (core)
 
-In Astro v3.x, a Shiki language passed to `markdown.shikiConfig.langs` was automatically converted to a Shikiji-compatible language. Shikiji is the internal tooling used by Astro for syntax highlighting.
+In Astro v4.x, 
 
-Astro v4.0 removes support for the `path` property of a Shiki language, which was confusing to configure. It is replaced by an import which can be passed to `langs` directly.
+Astro v5.0 removes the option 
+
 
 #### What should I do?
 
-The language JSON file should be imported and passed to the option instead.
+Choose a different value
 
-```diff lang="js"
-// astro.config.js
-+ import customLang from './custom.tmLanguage.json'
+### Deprecated: The Lit integration (integrations)
 
-export default defineConfig({
-  markdown: {
-    shikiConfig: {
-      langs: [
--       { path: '../../custom.tmLanguage.json' },
-+       customLang,
-      ],
-    },
-  },
-})
-```
+In Astro v4.x, 
 
-## Deprecated
+Astro v5.0 removes the integration 
 
-The following deprecated features are no longer supported and are no longer documented. Please update your project accordingly.
-
-Some deprecated features may temporarily continue to function until they are completely removed. Others may silently have no effect, or throw an error prompting you to update your code.
-
-### Deprecated: `handleForms` for View Transitions `submit` events
-
-In Astro v3.x, projects using the `<ViewTransitions />` component were required to opt-in to handling `submit` events for `form` elements. This was done by passing a `handleForms` prop.
-
-Astro v4.0 handles `submit` events for `form` elements by default when `<ViewTransitions />` are used. The `handleForms` prop has been deprecated and no longer has any effect.
 
 #### What should I do?
 
-Remove the `handleForms` property from your `ViewTransitions` component. It is no longer necessary.
+Choose a different value
 
-```astro title="src/pages/index.astro" del="handleForms"
----
-import { ViewTransitions } from "astro:transitions";
----
-<html>
-  <head>
-    <ViewTransitions handleForms />
-  </head>
-  <body>
-    <!-- stuff here -->
-  </body>
-</html>
-```
+### Deprecated: `define:vars` (core)
 
-To opt out of `submit` event handling, add the `data-astro-reload` attribute to relevant `form` elements.
+In Astro v4.x, 
 
-```astro title="src/components/Form.astro" ins="data-astro-reload"
-<form action="/contact" data-astro-reload>
-  <!-- -->
-</form>
-```
+Astro v5.0 removes the directive 
+
+
+#### What should I do?
+
+Choose a different value
 
 ## Previously deprecated features now removed
 
