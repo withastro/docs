@@ -32,7 +32,7 @@ export async function fetchBrandFont() {
 	} catch (error) {
 		// When running locally, if anything goes wrong, we can safely return
 		// nothing and continue with the default local fonts.
-		if (!import.meta.env.CI) return undefined;
+		if (!import.meta.env.NETLIFY) return undefined;
 		// But in production builds we want to error if we failed to download fonts.
 		throw error;
 	}
