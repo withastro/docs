@@ -1645,3 +1645,67 @@ export default defineConfig({
   }
 })
 ```
+
+### experimental.serverIslands
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `false`<br />
+<Since v="4.12.0" />
+</p>
+
+Active les fonctionnalités expérimentales des Îles de serveurs.
+Les Îles de serveurs offrent la possibilité de différer le rendu asynchrone d'un composant une fois le rendu de la page terminé.
+
+Pour l'activer, définissez un [mode de sortie (`output`) permettant le rendu à la demande côté serveur](/en/basics/rendering-modes/#on-demand-rendered) avec un adaptateur, et ajoutez le drapeau `serverIslands` à l'objet `experimental` :
+
+```js
+{
+  output: 'hybrid', // ou 'server'
+  adapter: nodejs({ mode: 'standalone' }),
+  experimental: {
+    serverIslands: true,
+  },
+}
+```
+
+Utilisez la directive `server:defer` sur n'importe quel composant Astro pour retarder le rendu initial :
+
+```astro "server:defer"
+---
+import Avatar from '~/components/Avatar.astro';
+---
+<Avatar server:defer />
+```
+
+La page externe sera rendue, soit au moment de la construction (`hybrid`) ou au moment de l'exécution (`server`) avec le contenu de l'île omis et une balise `<script>` incluse à sa place.
+
+Une fois la page chargée dans le navigateur, la balise de script se remplacera par le contenu de l'île en faisant une requête.
+
+Tout composant Astro peut recevoir l'attribut `server: defer` pour retarder son rendu. Il n'y a pas d'API spéciale et vous pouvez écrire du code `.astro` comme d'habitude :
+
+```astro
+---
+import { getUser } from '../api';
+
+const user = await getUser(Astro.locals.userId);
+---
+<img class="avatar" src={user.imageUrl}>
+```
+
+#### Contenu de secours des Îles de serveurs
+
+Étant donné que votre composant ne s'affichera pas avec le reste de la page, vous souhaiterez peut-être ajouter du contenu générique (par exemple un message de chargement) à afficher temporairement à sa place. Ce contenu sera affiché lors du premier rendu de la page, mais avant le chargement de l'île.
+
+Ajoutez du contenu d'espace réservé en tant qu'enfant de votre composant Astro avec l'attribut `slot="fallback:`. Lorsque le contenu de votre île est disponible, le contenu de secours sera remplacé.
+
+L'exemple ci-dessous affiche un avatar générique comme contenu de secours, puis s'anime en un avatar personnalisé à l'aide de transitions de vue :
+
+```astro
+<Avatar server:defer>
+  <svg slot="fallback" class="generic-avatar" transition:name="avatar">...</svg>
+</Avatar>
+```
+
+Pour un aperçu complet et pour donner votre avis sur cette API expérimentale, voir la [RFC des Îles de serveurs](https://github.com/withastro/roadmap/pull/963).
