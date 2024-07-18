@@ -18,9 +18,53 @@ You can deploy an Astro site to GitLab Pages by using GitLab CI/CD to automatica
 
 <Steps>
 
-1. Rename the `public/` directory to `static/`.
+1. Set up [`site`](/en/reference/configuration-reference/#site) and [`base`](/en/reference/configuration-reference/#base) options in `astro.config.mjs`.
 
-1. Set `outDir:public` in `astro.config.mjs`. This setting instructs Astro to put the static build output in a folder called `public`, which is the folder required by GitLab Pages for exposed files.
+    ```js title="astro.config.mjs" ins={4-5}
+    import { defineConfig } from 'astro/config';
+
+    export default defineConfig({
+      site: 'https://<username>.gitlab.io',
+      base: '/<my-repo>',
+      outDir: 'public',
+      publicDir: 'static',
+    });
+    ```
+
+    `site`
+
+    The value for `site` must be one of the following:
+
+    - The following URL based on your username: `https://<username>.gitlab.io`
+    - The following URL based on your group name: `https://<groupname>.gitlab.io`
+    - Your custom domain if you have it configured in your Gitlab project’s settings: `https://example.com`
+
+    For GitLab self-managed instances, replace `gitlab.io` with your instance’s Pages domain.
+
+    `base`
+
+    A value for `base` may be required so that Astro will treat your repository name (e.g. `/my-repo`) as the root of your website.
+
+    :::note
+      Don't set a `base` parameter if your page is served from the root folder.
+    :::
+
+    The value for `base` should be your repository’s name starting with a forward slash, for example `/my-blog`. This is so that Astro understands your website's root is `/my-repo`, rather than the default `/`.
+
+    :::caution
+        When this value is configured, all of your internal page links must be prefixed with your `base` value:
+
+      ```astro ins="/my-repo"
+      <a href="/my-repo/about">About</a>
+      ```
+
+    See more about [configuring a `base` value](/en/reference/configuration-reference/#base)
+    :::
+
+
+2. Rename the `public/` directory to `static/`.
+
+3. Set `outDir: 'public'` in `astro.config.mjs`. This setting instructs Astro to put the static build output in a folder called `public`, which is the folder required by GitLab Pages for exposed files.
 
    If you were using the [`public/` directory](/en/basics/project-structure/#public) as a source of static files in your Astro project, rename it and use that new folder name in `astro.config.mjs` for the value of `publicDir`.
 
@@ -35,15 +79,15 @@ You can deploy an Astro site to GitLab Pages by using GitLab CI/CD to automatica
    });
    ```
 
-1. Change the build output in `.gitignore`. In our example we need to change `public/` to `static/`:
+4. Change the build output in `.gitignore`. In our example we need to change `dist/` to `public/`:
 
     ```diff  title=".gitignore"
     # build output
-    -public/
-    +static/
+    -dist/
+    +public/
     ```
 
-1. Create a file called `.gitlab-ci.yml` in the root of your project with the content below. This will build and deploy your site whenever you make changes to your content:
+5. Create a file called `.gitlab-ci.yml` in the root of your project with the content below. This will build and deploy your site whenever you make changes to your content:
 
    ```yaml title=".gitlab-ci.yml"
    pages:
@@ -68,49 +112,11 @@ You can deploy an Astro site to GitLab Pages by using GitLab CI/CD to automatica
        # branch(es) below
        - main
    ```
+
+6. Commit your changes and push them to GitLab.
+
+7. On Gitlab, go to your repository’s **Deploy** menu and select **Pages**. Here you will see the full URL of your GitLab Pages website. To make sure you are using the URL format `https://username.gitlab.io/my-repo`, uncheck the **Use unique domain** setting on this page.
+
 </Steps>
 
-## Additional Configurations
-
-The [`site`](/en/reference/configuration-reference/#site) and [`base`](/en/reference/configuration-reference/#base) options can be set in `astro.config.mjs`.
-
-```js title="astro.config.mjs" ins={4-5}
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  site: 'https://<username>.gitlab.io',
-  base: '/<my-repo>',
-  outDir: 'public',
-  publicDir: 'static',
-});
-```
-
-### `site`
-
-The value for `site` must be one of the following:
-
-- The following URL based on your user name: `https://<username>.github.io`
-- The following URL based on your group name: `https://<groupname>.github.io`
-- Your custom domain if you have it configured in your Gitlab project’s settings: `https://example.com`
-
-For GitLab self-managed instances, replace `gitlab.io` with your instance’s Pages domain.
-
-### `base`
-
-A value for `base` may be required so that Astro will treat your repository name (e.g. `/my-repo`) as the root of your website.
-
-:::note
-  Don't set a `base` parameter if your page is served from the root folder.
-:::
-
-The value for `base` should be your repository’s name starting with a forward slash, for example `/my-blog`. This is so that Astro understands your website's root is `/my-repo`, rather than the default `/`.
-
-:::caution
-    When this value is configured, all of your internal page links must be prefixed with your `base` value:
-
-```astro ins="/my-repo"
-<a href="/my-repo/about">About</a>
-```
-
-See more about [configuring a `base` value](/en/reference/configuration-reference/#base)
-:::
+Your site should now be published! When you push changes to your Astro project’s repository, the GitLab CI/CD pipeline will automatically deploy them for you.
