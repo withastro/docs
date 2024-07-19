@@ -1,0 +1,1926 @@
+---
+title: API Reference
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+## `Astro` グローバル
+
+`Astro` グローバルは、`.astro` ファイルのすべてのコンテキストで利用可能です。次の機能があります。
+
+### `Astro.glob()`
+
+`Astro.glob()` は、多くのローカルファイルを静的サイト設定にロードする方法です。
+
+```astro
+---
+// src/components/my-component.astro
+const posts = await Astro.glob('../pages/post/*.md'); // ./src/pages/post/*.mdにある投稿の配列を返す
+---
+
+<div>
+{posts.slice(0, 3).map((post) => (
+  <article>
+    <h2>{post.frontmatter.title}</h2>
+    <p>{post.frontmatter.description}</p>
+    <a href={post.url}>Read more</a>
+  </article>
+))}
+</div>
+```
+
+`.glob()` は、インポートしたいローカルファイルを指定するための相対パスパターンを1つだけ引数として受け取ります。非同期で動作し、パターンにマッチしたファイルのエクスポートを配列で返します。
+
+`.glob()` は変数や変数を含む文字列を引数として受け付けません。これは静的解析ができないためです。（回避策については[トラブルシューティングガイド](/ja/guides/troubleshooting/#サポートされている値)を参照してください。この制限がある理由は、`Astro.glob()` が Vite の [`import.meta.glob()`](https://vitejs.dev/guide/features.html#glob-import) をラップした関数だからです。
+
+:::note
+Astroプロジェクトでは `import.meta.glob()` を直接使用することもできます。以下のような場合に有用です。
+- APIルートなど、`.astro` ファイル以外のファイルでこの機能が必要な場合   
+`Astro.glob()` は `.astro` ファイルでのみ使用可能ですが、`import.meta.glob()` はプロジェクト内のどこでも使用できます。
+- ファイルをすぐにロードしたくない場合   
+`import.meta.glob()` は、ファイルの内容そのものではなく、ファイルの内容をインポートする関数を返すことができます。ただし、このインポートには、インポートされたファイルのすべてのスタイルとスクリプトが含まれます。これらは静的解析によって決定されるため、実際にファイルが使用されるかどうかに関わらず、バンドルされてページに追加されます。
+- 各ファイルのパスにアクセスしたい場合   
+`import.meta.glob()` はファイルのパスとその内容のマップを返しますが、`Astro.glob()` は内容のリストのみを返します。
+- 複数のパターンを指定したい場合   
+例えば、特定のファイルをフィルタリングする「ネガティブパターン」を追加したい場合です。`import.meta.glob()` は単一の文字列ではなく、グロブパターンの配列を引数として受け取ることができます。
+
+詳細は [Vite のドキュメント](https://vitejs.dev/guide/features.html#glob-import) を参照してください。
+:::
+#### マークダウンファイル
+
+マークダウンファイルは以下のような形式で定義されています。
+
+```ts
+export interface MarkdownInstance<T extends Record<string, any>> {
+  /* このファイルのYAMLフロントマターで定義されたデータ */
+  frontmatter: T;
+  /* このファイルのファイルパス */
+  file: string;
+  /* このファイルの出力先URL */
+  url: string | undefined;
+  /* このファイルの内容をレンダリングするAstroコンポーネント */
+  Content: AstroComponent;
+  /* このファイル内の見出し要素（h1〜h6）の情報を配列で返す非同期関数 */
+  getHeadings(): Promise<{ depth: number; slug: string; text: string }[]>;
+}
+```
+
+`frontmatter` 変数の型をTypeScriptジェネリックで指定することもできます。
+
+```astro
+---
+interface Frontmatter {
+  title: string;
+  description?: string;
+}
+const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
+---
+
+<ul>
+  {posts.map(post => <li>{post.frontmatter.title}</li>)}
+</ul>
+```
+
+#### Astroファイル
+
+Astroファイルは以下のような形式で定義されています。
+
+```ts
+export interface AstroInstance {
+  /* このファイルのパス */
+  file: string;
+  /* このファイルのURL（ページディレクトリ内の場合） */
+  url: string | undefined;
+  default: AstroComponent;
+}
+```
+
+#### その他のファイル
+
+その他のファイルは様々な異なる形式を定義している場合がありますが、`Astro.glob()` は認識されていないファイルタイプの内容を正確に知っている場合、TypeScriptジェネリックを受け入れます。
+
+```ts
+---
+interface CustomDataFile {
+  default: Record<string, any>;
+}
+const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
+---
+```
+
+### `Astro.props`
+
+`Astro.props` は、[コンポーネント属性](/ja/basics/astro-components/#コンポーネントのprops) として渡された任意の値を含むオブジェクトです。`.md` および `.mdx` ファイルのレイアウトコンポーネントは、フロントマターの値をプロップとして受け取ります。
+
+```astro {3}
+---
+// src/components/Heading.astro
+const { title, date } = Astro.props;
+---
+<div>
+  <h1>{title}</h1>
+  <p>{date}</p>
+</div>
+```
+
+```astro /title=".+"/ /date=".+"/
+---
+// src/pages/index.astro
+import Heading from '../components/Heading.astro';
+---
+<Heading title="My First Post" date="09 Aug 2022" />
+```
+
+<ReadMore> [MarkdownとMDXレイアウト](/ja/guides/markdown-content/#フロントマター-layout) がプロップをどのように処理するかについての詳細を学びましょう。</ReadMore>
+
+<ReadMore> [プロップのためのTypeScript型定義を追加する方法](/ja/guides/typescript/#コンポーネントprops) を学びましょう。</ReadMore>
+
+### `Astro.params`
+
+`Astro.params` は、現在のリクエストに対応する動的ルーティングで指定された変数の値を保持するオブジェクトです。
+
+静的ビルドの場合、これは[動的ルーティング](/ja/guides/routing/#動的ルーティング)のプリレンダリングに使用される `getStaticPaths()` 関数が返す `params` オブジェクトと同じものです。
+
+SSR（サーバーサイドレンダリング）ビルドの場合、動的ルーティングで指定されたパスの一部に合致する、任意の値を含むことができます。
+
+```astro title="src/pages/posts/[id].astro"
+---
+export function getStaticPaths() {
+  return [
+    { params: { id: '1' } },
+    { params: { id: '2' } },
+    { params: { id: '3' } }
+  ];
+}
+
+const { id } = Astro.params;
+---
+<h1>{id}</h1>
+```
+
+参照： [`params`](#params)
+
+### `Astro.request`
+
+`Astro.request` は標準の [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) オブジェクトです。リクエストの `url`、`headers`、`method`、ボディにアクセスするために使用できます。
+
+```astro
+<p>{Astro.request.method} リクエストを "{Astro.request.url}" に受信しました。</p>
+<p>受信したリクエストヘッダー： <code>{JSON.stringify(Object.fromEntries(Astro.request.headers))}</code>
+```
+
+参照： [`Astro.url`](#astrourl)
+
+:::note
+デフォルトの `output: 'static'` オプションを使用する場合、`Astro.request.url` には `?foo=bar` のようなクエリパラメータは含まれません。これは、静的ビルド時にこれらの値を事前に決定することができないためです。一方、`output: 'server'` モードでは、`Astro.request.url` にクエリパラメータが含まれます。これは、サーバーサイドでリクエストを処理する際に、これらの値を取得できるためです。
+:::
+
+### `Astro.response`
+
+
+`Astro.response` は標準の `ResponseInit` オブジェクトです。次の構造を持っています。
+
+ - `status`: レスポンスの数値ステータスコード（例：`200`）。
+ - `statusText`: ステータスコードに関連するステータスメッセージ（例：`'OK'`）。
+ - `headers`: HTTPレスポンスヘッダーを設定するために使用できる [`Headers`](https://developer.mozilla.org/en-US/docs/Web/API/Headers) インスタンス。
+
+`Astro.response` はページのレスポンスの `status`、`statusText`、`headers` を設定するために使用されます。
+
+
+```astro
+---
+if(condition) {
+  Astro.response.status = 404;
+  Astro.response.statusText = 'Not found';
+}
+---
+```
+
+また、ヘッダーを設定するために使用できます。
+
+```astro
+---
+Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
+---
+```
+
+### `Astro.cookies`
+
+<p><Since v="1.4.0" /></p>
+
+`Astro.cookies` は、[サーバーサイドレンダリング](/ja/guides/server-side-rendering/)モードでクッキーの読み取りと操作を行うためのユーティリティを提供します。
+
+##### `get`
+
+<p>
+**型:** `(key: string, options?: CookieGetOptions) => AstroCookie`
+</p>
+
+クッキーを [`AstroCookie`](#astrocookie) オブジェクトとして取得します。このオブジェクトには `value` プロパティと、クッキーの値を様々な型に変換するためのユーティリティ関数が含まれています。
+
+##### `has`
+
+<p>
+**型:** `(key: string) => boolean`
+</p>
+
+指定したクッキーが存在するかどうかを確認します。`Astro.cookies.set()` で設定されたクッキーの場合は `true` を返し、そうでない場合は `Astro.request` 内のクッキーを確認します。
+
+##### `set`
+
+<p>
+**型:** `(key: string, value: string | number | boolean | object, options?: CookieSetOptions) => void`
+</p>
+
+指定された `key` に対応するクッキーの値を設定します。設定する値は自動的に文字列に変換されます。オプションを使用して、`maxAge` や `httpOnly` などの[クッキーの属性](https://www.npmjs.com/package/cookie#options-1)を指定できます。
+
+##### `delete`
+
+<p>
+**型:** `(key: string, options?: CookieDeleteOptions) => void`
+</p>
+
+有効期限を過去の日付（Unix時間の0）に設定することで、クッキーを無効化します。
+
+クッキーが「削除」（つまり有効期限切れ）されると、`Astro.cookies.has()` は `false` を返し、`Astro.cookies.get()` は `value` が `undefined` の [`AstroCookie`](#astrocookie) を返します。クッキー削除時に使用できるオプションは、`domain`、`path`、`httpOnly`、`sameSite`、`secure` です。
+
+##### `headers`
+
+<p>
+**型:** `() => Iterator<string>`
+</p>
+
+レスポンスと共に送信される `Set-Cookie` ヘッダーの値を取得します。
+
+#### `AstroCookie`
+
+`Astro.cookies.get()` でクッキーを取得すると、`AstroCookie` 型が返されます。この型は以下の構造を持ちます。
+
+##### `value`
+
+<p>
+**型:** `string | undefined`
+</p>
+
+クッキーの生の文字列値です。
+
+##### `json`
+
+<p>
+**型:** `() => Record<string, any>`
+</p>
+
+クッキーの値を `JSON.parse()` で解析し、オブジェクトとして返します。値が有効なJSONでない場合はエラーを投げます。
+
+##### `number`
+
+<p>
+**型:** `() => number`
+</p>
+
+クッキーの値を数値として解析します。有効な数値でない場合は `NaN` を返します。
+
+##### `boolean`
+
+<p>
+**型:** `() => boolean`
+</p>
+
+クッキーの値をブール値に変換します。
+
+#### `CookieGetOptions`
+
+<p><Since v="4.1.0"/></p>
+
+クッキーの取得時に、`CookieGetOptions` インターフェースを通じてオプションを指定できます。
+
+##### `decode`
+
+<p>
+**型:** `(value: string) => string`
+</p>
+
+クッキーの値を読み取る方法をカスタマイズできます。
+
+#### `CookieSetOptions`
+
+<p><Since v="4.1.0"/></p>
+
+`Astro.cookies.set()` でクッキーを設定する際、`CookieSetOptions` を使ってクッキーを保存する形式をカスタマイズできます。
+
+##### `domain`
+
+<p>
+**型:** `string`
+</p>
+
+ドメインを指定します。未設定の場合、多くのクライアントは現在のドメインに適用されると解釈します。
+
+##### `expires`
+
+<p>
+**型:** `Date`
+</p>
+
+クッキーの有効期限を指定します。
+
+##### `httpOnly`
+
+<p>
+**型:** `boolean`
+</p>
+
+`true` の場合、クライアントサイドからクッキーにアクセスできなくなります。
+
+##### `maxAge`
+
+<p>
+**型:** `number`
+</p>
+
+クッキーの有効期間を秒単位で指定します。
+
+##### `path`
+
+<p>
+**型:** `string`
+</p>
+
+クッキーが適用されるドメイン内のパスを指定します。
+
+##### `sameSite`
+
+<p>
+**型:** `boolean | 'lax' | 'none' | 'strict'`
+</p>
+
+[SameSite](https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-rfc6265bis-09#section-5.4.7) クッキーヘッダーの値を指定します。
+
+##### `secure`
+
+<p>
+**型:** `boolean`
+</p>
+
+`true` の場合、クッキーはhttpsサイトでのみ設定されます。
+
+##### `encode`
+
+<p>
+**型:** `(value: string) => string`
+</p>
+
+クッキーのシリアライズ方法をカスタマイズできます。
+
+### `Astro.redirect()`
+
+このメソッドを使用すると、別のページへのリダイレクトが可能です。必要に応じて、2番目の引数として[HTTPレスポンスステータスコード](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)を指定することもできます。
+
+リダイレクトを実行するには、ページコンポーネント（子コンポーネントではなく）内で `Astro.redirect()` の結果を `return` する必要があります。
+
+以下の例では、ユーザーをログインページにリダイレクトしています。この際、デフォルトのHTTPレスポンスステータスコード302が使用されます。
+
+```astro title="src/pages/account.astro" {8}
+---
+import { isLoggedIn } from '../utils';
+
+const cookie = Astro.request.headers.get('cookie');
+
+// ユーザーがログインしていない場合、ログインページにリダイレクト
+if (!isLoggedIn(cookie)) {
+  return Astro.redirect('/login');
+}
+---
+```
+
+### `Astro.canonicalURL`
+
+:::caution[Deprecated]
+独自のカノニカルURLを構築するには、[`Astro.url`](#astrourl) を使用してください。
+:::
+
+現在のページの [カノニカルURL][canonical]。
+
+### `Astro.url`
+
+<p><Since v="1.0.0-rc" /></p>
+
+現在の `Astro.request.url` URL文字列の値から構築された [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) オブジェクトです。パス名やオリジンのようなリクエストURLの個々のプロパティと対話するのに便利です。
+
+`new URL(Astro.request.url)` と同等です。
+
+```astro
+<h1>現在のURLは: {Astro.url}</h1>
+<h1>現在のURLのパス名は: {Astro.url.pathname}</h1>
+<h1>現在のURLのオリジンは: {Astro.url.origin}</h1>
+```
+
+また、[`new URL()`](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL) の引数として `Astro.url` を渡して新しいURLを作成することもできます。
+
+```astro title="src/pages/index.astro"
+---
+// 例: プロダクションドメインを使用してカノニカルURLを構築する
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+// 例: 現在のドメインを使用してSEOメタタグ用のURLを構築する
+const socialImageURL = new URL('/images/preview.png', Astro.url);
+---
+<link rel="canonical" href={canonicalURL} />
+<meta property="og:image" content={socialImageURL} />
+```
+
+### `Astro.clientAddress`
+
+<p><Since v="1.0.0-rc" /></p>
+
+リクエストの [IPアドレス](https://en.wikipedia.org/wiki/IP_address) を指定します。このプロパティはSSR（サーバーサイドレンダリング）用にビルドする場合にのみ利用可能で、静的サイトには使用しないでください。
+
+```astro
+---
+const ip = Astro.clientAddress;
+---
+
+<div>あなたのIPアドレスは: <span class="address">{ ip }</span></div>
+```
+
+### `Astro.site`
+
+`Astro.site` は、Astro の設定ファイルにある `site` から作成された `URL` を返します。Astro の設定ファイルに `site` が定義されていない場合、`Astro.site` は定義されません。
+
+### `Astro.generator`
+
+<p><Since v="1.0.0" /></p>
+
+`Astro.generator` は、現在のAstroのバージョンを含む [`<meta name="generator">`](https://html.spec.whatwg.org/multipage/semantics.html#meta-generator) タグを追加するための便利な方法です。形式は `"Astro v1.x.x"` です。
+
+```astro mark="Astro.generator"
+<html>
+  <head>
+    <meta name="generator" content={Astro.generator} />
+  </head>
+  <body>
+    <footer>
+      <p>Built with <a href="https://astro.build">{Astro.generator}</a></p>
+    </footer>
+  </body>
+</html>
+```
+
+### `Astro.slots`
+
+`Astro.slots` は、Astro コンポーネントのスロットされた子要素を変更するためのユーティリティ関数を含んでいます。
+
+#### `Astro.slots.has()`
+
+**型:** `(slotName: string) => boolean`
+
+特定のスロット名のコンテンツが存在するかどうかを `Astro.slots.has()` で確認できます。これはスロットの内容をラップしたいが、そのスロットが使用されている場合にのみラッパー要素をレンダリングしたい場合に便利です。
+
+```astro title="src/pages/index.astro"
+<slot />
+
+{Astro.slots.has('more') && (
+  <aside>
+    <h2>More</h2>
+    <slot name="more" />
+  </aside>
+)}
+```
+
+#### `Astro.slots.render()`
+
+**型:** `(slotName: string, args?: any[]) => Promise<string>`
+
+`Astro.slots.render()` を使用すると、スロットの内容を非同期でHTML文字列としてレンダリングできます。
+
+```astro
+---
+const html = await Astro.slots.render('default');
+---
+<Fragment set:html={html} />
+```
+
+:::note
+これは上級者向けの機能です！通常は、[`<slot />` 要素](/ja/basics/astro-components/#スロット)を使用してスロットの内容をレンダリングする方が簡単です。
+:::
+
+`Astro.slots.render()` は、オプションで2つ目の引数を受け取ることができます。この引数は、関数として渡された子要素に転送されるパラメータの配列です。これは、カスタムユーティリティコンポーネントを作成する際に便利です。
+
+例えば、以下の `<Shout />` コンポーネントは、`message` プロパティの値を大文字に変換し、処理後の文字列をデフォルトスロットの内容として提供します。
+
+```astro title="src/components/Shout.astro" "await Astro.slots.render('default', [message])"
+---
+const message = Astro.props.message.toUpperCase();
+let html = '';
+if (Astro.slots.has('default')) {
+  html = await Astro.slots.render('default', [message]);
+}
+---
+<Fragment set:html={html} />
+```
+
+`<Shout />` の子として渡されたコールバック関数は、大文字の `message` パラメータを受け取ります。
+
+```astro title="src/pages/index.astro"
+---
+import Shout from "../components/Shout.astro";
+---
+<Shout message="slots!">
+  {(message) => <div>{message}</div>}
+</Shout>
+
+<!-- <div>SLOTS!</div> としてレンダリングされます -->
+```
+
+### `Astro.self`
+
+`Astro.self` を使用すると、Astro コンポーネントを再帰的に呼び出すことができます。この動作により、コンポーネントテンプレート内で `<Astro.self>` を使用することで、自身をレンダリングすることができます。これは、大規模なデータストアやネストされたデータ構造を反復処理するのに役立ちます。
+
+```astro
+---
+// NestedList.astro
+const { items } = Astro.props;
+---
+<ul class="nested-list">
+  {items.map((item) => (
+    <li>
+      <!-- ネストされたデータ構造がある場合は `<Astro.self>` をレンダリング -->
+      <!-- 再帰呼び出しでプロップを渡すことができます -->
+      {Array.isArray(item) ? (
+        <Astro.self items={item} />
+      ) : (
+        item
+      )}
+    </li>
+  ))}
+</ul>
+```
+
+このコンポーネントは次のように使用できます。
+
+```astro
+---
+import NestedList from './NestedList.astro';
+---
+<NestedList items={['A', ['B', 'C'], 'D']} />
+```
+
+そして、このようなHTMLとしてレンダリングされます。
+
+```html
+<ul class="nested-list">
+  <li>A</li>
+  <li>
+    <ul class="nested-list">
+      <li>B</li>
+      <li>C</li>
+    </ul>
+  </li>
+  <li>D</li>
+</ul>
+```
+
+
+### `Astro.locals`
+
+`Astro.locals` は、ミドルウェアからの [`context.locals`](#contextlocals) オブジェクトの値を含むオブジェクトです。これを使用して `.astro` ファイル内でミドルウェアによって返されるデータにアクセスします。
+
+```astro title="src/pages/Orders.astro"
+---
+const title = Astro.locals.welcomeTitle();
+const orders = Array.from(Astro.locals.orders.entries());
+---
+<h1>{title}</h1>
+<ul>
+    {orders.map(order => {
+        return <li>{/* 各注文に対して何かを行う */}</li>
+    })}
+</ul>
+```
+
+### `Astro.preferredLocale`
+
+`Astro.preferredLocale` は、ユーザーが優先する言語（ロケール）を表す計算済みの値です。
+
+この値は、`i18n.locales` 配列で設定された言語と、ブラウザの `Accept-Language` ヘッダーを通じてサポートされる言語を照合して算出されます。一致する言語がない場合、この値は `undefined` となります。
+
+このプロパティは、SSR（サーバーサイドレンダリング）のビルド時のみ利用可能で、静的サイトでは使用すべきではありません。
+
+### `Astro.preferredLocaleList`
+
+`Astro.preferredLocaleList` は、ブラウザが要求する言語とあなたのウェブサイトがサポートする言語の両方を含む配列です。これにより、サイトと訪問者の間で互換性のあるすべての言語のリストが生成されます。
+
+ブラウザが要求する言語が `locales` 配列に一つも含まれていない場合、この値は空の配列 `[]` になります。これは、訪問者の希望する言語をサポートしていないことを意味します。
+
+ブラウザが優先言語を指定していない場合、この値は [`i18n.locales`](/ja/reference/configuration-reference/#i18nlocales) と同じになります。つまり、言語設定のない訪問者に対しては、サポートしているすべての言語が同等に扱われます。
+
+このプロパティも、SSR（サーバーサイドレンダリング）のビルド時のみ利用可能で、静的サイトでは使用すべきではありません。
+
+### `Astro.currentLocale`
+
+`Astro.currentLocale` は、現在のURLから算出された言語設定です。これは `locales` 設定で指定された形式に基づいています。URLに `/[locale]/` という接頭辞がない場合、この値は `i18n.defaultLocale` に設定されます。
+
+## エンドポイントコンテキスト
+
+[エンドポイント関数](/ja/guides/endpoints/) は、最初のパラメータとしてコンテキストオブジェクトを受け取ります。これは多くの `Astro` グローバルプロパティを反映しています。
+
+```ts title="endpoint.json.ts"
+import type { APIContext } from 'astro';
+
+export function GET(context: APIContext) {
+  // ...
+}
+```
+
+### `context.params`
+
+`context.params` は、このリクエストに一致した動的ルートセグメントの値を含むオブジェクトです。
+
+静的ビルドでは、これは [動的ルート](/ja/guides/routing/#動的ルーティング) のプリレンダリングに使用される `getStaticPaths()` から返される `params` です。
+
+SSR ビルドでは、これは動的ルートパターンのパスセグメントに一致する任意の値です。
+
+```ts title="src/pages/posts/[id].json.ts"
+import type { APIContext } from 'astro';
+
+export function getStaticPaths() {
+  return [
+    { params: { id: '1' } },
+    { params: { id: '2' } },
+    { params: { id: '3' } }
+  ];
+}
+
+export function GET({ params }: APIContext) {
+  return new Response(
+    JSON.stringify({ id: params.id }),
+  );
+}
+```
+
+参照： [`params`](#params)
+
+### `context.props`
+
+`context.props` は、`getStaticPaths()` から渡された任意の `props` を含むオブジェクトです。`getStaticPaths()` は SSR（サーバーサイドレンダリング）用にビルドする際には使用されないため、`context.props` は静的ビルドでのみ利用可能です。
+
+```ts title="src/pages/posts/[id].json.ts"
+import type { APIContext } from 'astro';
+
+export function getStaticPaths() {
+  return [
+    { params: { id: '1' }, props: { author: 'Blu' } },
+    { params: { id: '2' }, props: { author: 'Erika' } },
+    { params: { id: '3' }, props: { author: 'Matthew' } }
+  ];
+}
+
+export function GET({ props }: APIContext) {
+  return new Response(
+    JSON.stringify({ author: props.author }),
+  );
+}
+```
+
+参照： [`props` を使用したデータの受け渡し](#props-を使用したデータの受け渡し)
+
+### `context.request`
+
+標準の [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) オブジェクトです。これを使用して、リクエストの `url`、`headers`、`method`、さらにはボディを取得できます。
+
+```ts
+import type { APIContext } from 'astro';
+
+export function GET({ request }: APIContext) {
+  return new Response(`Hello ${request.url}`);
+}
+```
+
+参照： [Astro.request](#astrorequest)
+
+### `context.cookies`
+
+`context.cookies` は、クッキーの読み取りおよび操作のためのユーティリティを含んでいます。
+
+参照： [Astro.cookies](#astrocookies)
+
+### `context.url`
+
+現在の `context.request.url` URL 文字列値から構築された [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) オブジェクトです。
+
+参照： [Astro.url](#astrourl)
+
+### `context.clientAddress`
+
+リクエストの [IP アドレス](https://en.wikipedia.org/wiki/IP_address) を指定します。このプロパティは SSR（サーバーサイドレンダリング）用にビルドする場合にのみ利用可能で、静的サイトには使用しないでください。
+
+```ts
+import type { APIContext } from 'astro';
+
+export function GET({ clientAddress }: APIContext) {
+  return new Response(`Your IP address is: ${clientAddress}`);
+}
+```
+
+参照： [Astro.clientAddress](#astroclientaddress)
+
+
+### `context.site`
+
+`context.site` は、Astro の設定ファイルにある `site` から作成された `URL` を返します。未定義の場合、`localhost` から生成された URL を返します。
+
+参照： [Astro.site](#astrosite)
+
+### `context.generator`
+
+`context.generator` は、プロジェクトが実行しているAstroのバージョンを示すための便利な方法です。形式は `"Astro v1.x.x"` です。
+
+```ts title="src/pages/site-info.json.ts"
+import type { APIContext } from 'astro';
+
+export function GET({ generator, site }: APIContext) {
+  const body = JSON.stringify({ generator, site });
+  return new Response(body);
+}
+```
+
+参照： [Astro.generator](#astrogenerator)
+
+### `context.redirect()`
+
+`context.redirect()` は、別のページにリダイレクトするための [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) オブジェクトを返します。この関数は SSR（サーバーサイドレンダリング）用にビルドする場合にのみ利用可能で、静的サイトには使用しないでください。
+
+```ts
+import type { APIContext } from 'astro';
+
+export function GET({ redirect }: APIContext) {
+  return redirect('/login', 302);
+}
+```
+
+参照： [`Astro.redirect()`](#astroredirect)
+
+### `context.locals`
+
+`context.locals` は、リクエストのライフサイクル中に任意の情報を保存およびアクセスするために使用されるオブジェクトです。
+
+ミドルウェア関数は `context.locals` の値を読み書きできます。
+
+```ts title="src/middleware.ts"
+import type { MiddlewareHandler } from 'astro';
+
+export const onRequest: MiddlewareHandler = ({ locals }, next) => {
+  if (!locals.title) {
+    locals.title = "Default Title";
+  }
+  return next();
+}
+```
+
+API エンドポイントは `context.locals` から情報を読み取ることしかできません。
+
+```ts title="src/pages/hello.ts"
+import type { APIContext } from 'astro';
+
+export function GET({ locals }: APIContext) {
+  return new Response(locals.title); // "Default Title"
+}
+```
+
+参照： [`Astro.locals`](#astrolocals)
+
+## `getStaticPaths()`
+
+ページがファイル名に動的なパラメータを使用する場合、そのコンポーネントは `getStaticPaths()` 関数をエクスポートする必要があります。
+
+この関数は、Astro が静的サイトビルダーであるために必要です。これは、サイト全体が事前にビルドされることを意味します。Astro がビルド時にページを生成することを知らない場合、ユーザーはサイトを訪問した際にそのページを表示できません。
+
+```astro
+---
+export async function getStaticPaths() {
+  return [
+    { params: { /* required */ }, props: { /* optional */ } },
+    { params: { ... } },
+    { params: { ... } },
+    // ...
+  ];
+}
+---
+<!-- Your HTML template here. -->
+```
+
+`getStaticPaths()` 関数は、Astro によってプリレンダリングされるパスを決定するために、オブジェクトの配列を返す必要があります。
+
+これは [動的ルーティング](/ja/guides/endpoints/#paramsと動的ルーティング) のための静的ファイルエンドポイントでも使用できます。
+
+:::caution
+`getStaticPaths()` 関数は、ページが読み込まれる前に独自の分離されたスコープ内で一度だけ実行されます。したがって、ファイルのインポート以外は親スコープから何も参照することはできません。この要件を破るとコンパイラーが警告します。
+:::
+
+### `params`
+
+返される各オブジェクトの `params` キーは、Astro にどのルートをビルドするかを知らせます。返される `params` は、コンポーネントファイルパスで定義された動的パラメータおよび残りのパラメータにマッピングされる必要があります。
+
+`params` は URL にエンコードされるため、値としては文字列のみがサポートされています。各 `params` オブジェクトの値は、ページ名で使用されるパラメータと一致する必要があります。
+
+例えば、`src/pages/posts/[id].astro` にページがあるとします。このページから `getStaticPaths` をエクスポートし、次のパスを返すと。
+
+```astro
+---
+export async function getStaticPaths() {
+  return [
+    { params: { id: '1' } },
+    { params: { id: '2' } },
+    { params: { id: '3' } }
+  ];
+}
+
+const { id } = Astro.params;
+---
+<h1>{id}</h1>
+```
+
+Astro はビルド時に `posts/1`、`posts/2`、`posts/3` を静的に生成します。
+
+### `props` を使用したデータの受け渡し
+
+生成された各ページに追加のデータを渡すために、返される各パスオブジェクトに `props` 値を設定することができます。`params` とは異なり、`props` は URL にエンコードされないため、文字列以外も使用できます。
+
+例えば、リモート API からフェッチしたデータを基にページを生成する場合、`getStaticPaths` 内でデータオブジェクト全体をページコンポーネントに渡すことができます。
+
+```astro
+---
+export async function getStaticPaths() {
+  const data = await fetch('...').then(response => response.json());
+
+  return data.map((post) => {
+    return {
+      params: { id: post.id },
+      props: { post },
+    };
+  });
+}
+
+const { id } = Astro.params;
+const { post } = Astro.props;
+---
+<h1>{id}: {post.name}</h1>
+```
+
+また、既知のルートのリストを生成またはスタブする際に便利な通常の配列を渡すこともできます。
+
+```astro
+---
+export async function getStaticPaths() {
+  const posts = [
+    {id: '1', category: "astro", title: "API Reference"},
+    {id: '2', category: "react", title: "Creating a React Counter!"}
+  ];
+  return posts.map((post) => {
+    return {
+      params: { id: post.id },
+      props: { post }
+    };
+  });
+}
+const {id} = Astro.params;
+const {post} = Astro.props;
+---
+<body>
+  <h1>{id}: {post.title}</h1>
+  <h2>Category: {post.category}</h2>
+</body>
+```
+
+この場合、Astro はビルド時に `pages/posts/[id].astro` 内のページコンポーネントを使用して `posts/1` および `posts/2` を静的に生成します。ページは `Astro.props` を使用してこのデータを参照できます。
+
+### `paginate()`
+
+ページネーションは、Astro がネイティブにサポートする一般的なウェブサイトのユースケースで、`paginate()` 関数を使用します。`paginate()` は、ページネートされたコレクションの各ページの URL を生成するために `getStaticPaths()` から返す配列を自動的に生成します。ページ番号はパラメータとして渡され、ページデータは `page` プロップとして渡されます。
+
+```js
+export async function getStaticPaths({ paginate }) {
+  // fetch()、Astro.glob() などでデータをロードします
+  const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=150`);
+  const result = await response.json();
+  const allPokemon = result.results;
+
+  // すべてのポストのパスのページネーションされたコレクションを返します
+  return paginate(allPokemon, { pageSize: 10 });
+}
+
+// 正しく設定されていれば、page プロップには次のセクションで
+// 必要なすべての情報が含まれます。
+const { page } = Astro.props;
+```
+
+`paginate()` はファイル名として `[page].astro` または `[...page].astro` を想定します。`page` パラメータは URL のページ番号になります。
+
+- `/posts/[page].astro` は `/posts/1`、`/posts/2`、`/posts/3` などの URL を生成します。
+- `/posts/[...page].astro` は `/posts`、`/posts/2`、`/posts/3` などの URL を生成します。
+
+`paginate()` には以下の引数があります。
+- `pageSize` - 1ページに表示するアイテムの数
+- `params` - 動的ルートを作成するための追加のパラメータ
+- `props` - 各ページで利用可能な追加のプロップ
+
+#### ページネーション `page` プロップ
+
+ページネーションでは、ページネートされたコレクションの単一ページのデータを表す `page` プロップがすべてのレンダリングされたページに渡されます。これにはページネートされたデータ（`page.data`）およびページのメタデータ（`page.url`、`page.start`、`page.end`、`page.total` など）が含まれます。このメタデータは、「次のページ」ボタンや「100 件中 1-10 件を表示」メッセージなどに便利です。
+
+##### `page.data`
+
+<p>
+**タイプ:** `Array`
+</p>
+
+現在のページに対して `data()` から返されたデータの配列。
+
+##### `page.start`
+
+<p>
+**タイプ:** `number`
+</p>
+
+現在のページの最初のアイテムのインデックス。`0` から始まります。（例：`pageSize: 25` の場合、ページ 1 では `0`、ページ 2 では `25` など）
+
+##### `page.end`
+
+<p>
+**タイプ:** `number`
+</p>
+
+現在のページの最後のアイテムのインデックス。
+
+##### `page.size`
+
+<p>
+**タイプ:** `number`
+</p>
+
+1ページあたりのアイテム数。
+
+##### `page.total`
+
+<p>
+**タイプ:** `number`
+</p>
+
+すべてのページにわたるアイテムの総数。
+
+##### `page.currentPage`
+
+<p>
+**タイプ:** `number`
+</p>
+
+現在のページ番号。`1` から始まります。
+
+##### `page.lastPage`
+
+<p>
+**タイプ:** `number`
+</p>
+
+ページの総数。
+
+##### `page.url.current`
+
+<p>
+**タイプ:** `string`
+</p>
+
+現在のページの URL を取得します（正規 URL に便利です）。
+
+##### `page.url.prev`
+
+<p>
+**タイプ:** `string | undefined`
+</p>
+
+前のページの URL を取得します（ページ 1 の場合は `undefined` になります）。[`base`](/ja/reference/configuration-reference/#base) の値が設定されている場合は、URL にベースパスを追加します。
+
+##### `page.url.next`
+
+<p>
+**タイプ:** `string | undefined`
+</p>
+
+次のページの URL を取得します（これ以上ページがない場合は `undefined` になります）。[`base`](/ja/reference/configuration-reference/#base) の値が設定されている場合は、URL にベースパスを追加します。
+
+## `import.meta`
+
+すべての ESM モジュールには `import.meta` プロパティが含まれています。Astro は [Vite](https://vitejs.dev/guide/env-and-mode.html) を通じて `import.meta.env` を追加します。
+
+**`import.meta.env.SSR`** はサーバーでレンダリングしている時を判別するために使用できます。例えば、クライアントでのみレンダリングすべきコンポーネントなど、異なるロジックを使用したい場合があります。
+
+```jsx
+export default function () {
+  return import.meta.env.SSR ? <div class="spinner"></div> : <FancyComponent />;
+}
+```
+
+## Images (`astro:assets`)
+
+### `getImage()`
+
+:::caution
+`getImage()` はサーバー専用の API に依存しており、クライアントで使用するとビルドが失敗します。
+:::
+
+`getImage()` 関数は、HTML 以外の場所で使用される画像を生成するためのもので、例えば [API ルート](/ja/guides/endpoints/#サーバーエンドポイントapiルーティング) で使用します。また、独自の `<Image />` コンポーネントを作成することも可能です。
+
+`getImage()` はオプションオブジェクトを引数として受け取り、そのオブジェクトは [Image コンポーネントと同じプロパティ](#プロパティ)（`alt` を除く）を持ちます。
+
+```astro
+---
+import { getImage } from "astro:assets";
+import myBackground from "../background.png"
+
+const optimizedBackground = await getImage({src: myBackground, format: 'avif'})
+---
+
+<div style={`background-image: url(${optimizedBackground.src});`}></div>
+```
+
+この関数は以下のプロパティを持つオブジェクトを返します。
+
+```js
+{
+  options: {...} // 渡された元のパラメータ
+  src: "https://..." // 生成された画像のパス
+  attributes: {...} // 画像をレンダリングするために必要な追加の HTML 属性（幅、高さ、スタイルなど）
+}
+```
+
+## コンテンツコレクション (`astro:content`)
+
+<p><Since v="2.0.0" /></p>
+
+コンテンツコレクションは、`src/content/` にある Markdown や MDX ドキュメントを構成およびクエリするための API を提供します。機能や使用例については、[コンテンツコレクションガイド](/ja/guides/content-collections/) を参照してください。
+
+### `defineCollection()`
+
+`defineCollection()` は `src/content/config.*` ファイル内でコレクションを構成するためのユーティリティです。
+
+```ts
+// src/content/config.ts
+import { z, defineCollection } from 'astro:content';
+const blog = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    permalink: z.string().optional(),
+  }),
+});
+
+// 定義したコレクションを `collections` エクスポートで Astro に公開します
+export const collections = { blog };
+```
+
+この関数は以下のプロパティを受け取ります。
+
+#### `type`
+
+<p><Since v="2.5.0" /></p>
+
+**タイプ:** `'content' | 'data'`  
+**デフォルト:** `'content'`
+
+`type` はコレクション内に格納されるエントリーのタイプを定義する文字列です。
+
+- `'content'` - Markdown（`.md`）、MDX（`.mdx`）、または Markdoc（`.mdoc`）のようなコンテンツオーサリング形式
+- `'data'` - JSON（`.json`）や YAML（`.yaml`）のようなデータ専用形式
+
+:::tip
+コレクションにコンテンツとデータ形式を **混在させることはできません**。エントリーはタイプごとに別々のコレクションに分ける必要があります。
+:::
+
+#### `schema`
+
+**タイプ:** `TSchema extends ZodType`
+
+`schema` はコレクションのドキュメントフロントマターのタイプと形状を構成するためのオプションの Zod オブジェクトです。各値は [Zod バリデータ](https://github.com/colinhacks/zod) を使用する必要があります。
+
+使用例については、[コンテンツコレクションガイドの「コレクションスキーマの定義」セクション](/ja/guides/content-collections/#コレクションスキーマの定義) を参照してください。
+
+### `reference()`
+
+**タイプ:** `(collection: string) => ZodEffects<ZodString, { collection, id: string } | { collection, slug: string }>`
+
+`reference()` 関数は、1つのコレクションから別のコレクションへの関係または「参照」を定義するためにコンテンツ設定で使用されます。これはコレクション名を受け取り、コンテンツフロントマターまたはデータファイルで指定されたエントリー識別子を検証します。
+
+この例では、ブログの著者を `authors` コレクションに、関連する投稿の配列を同じ `blog` コレクションに参照します。
+
+```ts
+import { defineCollection, reference, z } from 'astro:content';
+
+const blog = defineCollection({
+  type: 'content',
+  schema: z.object({
+    // `authors` コレクションから `id` で単一の著者を参照
+    author: reference('authors'),
+    // `blog` コレクションから `slug` で関連投稿の配列を参照
+    relatedPosts: z.array(reference('blog')),
+  })
+});
+
+const authors = defineCollection({
+  type: 'data',
+  schema: z.object({ /* ... */ })
+});
+
+export const collections = { blog, authors };
+```
+
+使用例については、[コンテンツコレクションガイドの「コレクション参照の定義」セクション](/ja/guides/content-collections/#コレクション参照の定義) を参照してください。
+
+### `getCollection()`
+
+**タイプ:** `(collection: string, filter?: (entry: CollectionEntry<collection>) => boolean) => CollectionEntry<collection>[]`
+
+`getCollection()` はコレクション名でコンテンツコレクションエントリーのリストを取得する関数です。
+
+デフォルトではコレクション内のすべてのアイテムを返し、エントリーのプロパティで絞り込むためのオプションの `filter` 関数を受け取ります。これにより、`id`、`slug`、またはフロントマターの値を使用して、コレクション内の一部のアイテムのみをクエリできます。
+
+```astro
+---
+import { getCollection } from 'astro:content';
+
+// `src/content/blog/` のすべてのエントリーを取得
+const allBlogPosts = await getCollection('blog');
+
+// フロントマターに `draft: true` を含む投稿のみを返す
+const draftBlogPosts = await getCollection('blog', ({ data }) => {
+  return data.draft === true;
+});
+---
+```
+
+使用例については、[コンテンツコレクションガイドの「コレクションのクエリ」セクション](/ja/guides/content-collections/#コレクションのクエリ) を参照してください。
+
+### `getEntry()`
+
+<p><Since v="2.5.0" /></p>
+
+**タイプ:**
+
+- `(collection: string, contentSlugOrDataId: string) => CollectionEntry<collection>`
+- `({ collection: string, id: string }) => CollectionEntry<collection>`
+- `({ collection: string, slug: string }) => CollectionEntry<collection>`
+
+`getEntry()` はコレクション名とエントリー `id`（`type: 'data'` コレクションの場合）またはエントリー `slug`（`type: 'content'` コレクションの場合）で単一のコレクションエントリーを取得する関数です。`getEntry()` は、参照されたエントリーを取得してその `data`、`body`、または `render()` プロパティにアクセスするためにも使用できます。
+
+```astro
+---
+import { getEntry } from 'astro:content';
+
+// `src/content/blog/enterprise.md` を取得
+const enterprisePost = await getEntry('blog', 'enterprise');
+
+// `src/content/captains/picard.yaml` を取得
+const picardProfile = await getEntry('captains', 'picard');
+
+// `data.captain` に参照されたプロファイルを取得
+const enterpriseCaptainProfile = await getEntry(enterprisePost.data.captain);
+---
+```
+
+使用例については、[コンテンツコレクションガイドの「コレクションのクエリ」セクション](/ja/guides/content-collections/#コレクションのクエリ) を参照してください。
+
+### `getEntries()`
+
+<p><Since v="2.5.0" /></p>
+
+**タイプ:**
+
+- `(Array<{ collection: string, id: string }>) => Array<CollectionEntry<collection>>`
+- `(Array<{ collection: string, slug: string }>) => Array<CollectionEntry<collection>>`
+
+`getEntries()` は、同じコレクションから複数のコレクションエントリーを取得する関数です。これは、関連するエントリーの配列を返して、その関連する `data`、`body`、および `render()` プロパティにアクセスするために便利です。
+
+```astro
+---
+import { getEntries } from 'astro:content';
+
+const enterprisePost = await getEntry('blog', 'enterprise');
+
+// `data.relatedPosts` に参照された関連投稿を取得
+const enterpriseRelatedPosts = await getEntries(enterprisePost.data.relatedPosts);
+---
+```
+
+### `getEntryBySlug()`
+
+**タイプ:** `(collection: string, slug: string) => CollectionEntry<collection>`
+
+:::caution[非推奨]
+コンテンツエントリーをクエリするには [`getEntry()` 関数](#getentry) を使用してください。これは `getEntryBySlug()` と同じ引数を受け取り、JSON や YAML コレクションの `id` によるクエリもサポートしています。
+:::
+
+`getEntryBySlug()` は、コレクション名とエントリーの `slug` によって単一のコレクションエントリーを取得する関数です。
+
+```astro
+---
+import { getEntryBySlug } from 'astro:content';
+
+const enterprise = await getEntryBySlug('blog', 'enterprise');
+---
+```
+
+使用例については、[コンテンツコレクションガイドの「コレクションのクエリ」セクション](/ja/guides/content-collections/#コレクションのクエリ) を参照してください。
+
+### コレクションエントリータイプ
+
+[`getCollection()`](#getcollection)、[`getEntry()`](#getentry)、および [`getEntries()`](#getentries) を含むクエリ関数は、各エントリーを `CollectionEntry` タイプで返します。このタイプは `astro:content` からユーティリティとして利用できます。
+
+```ts
+import type { CollectionEntry } from 'astro:content';
+```
+
+`CollectionEntry<TCollectionName>` タイプは以下の値を持つオブジェクトです。`TCollectionName` はクエリしているコレクションの名前です（例：`CollectionEntry<'blog'>`）。
+
+#### `id`
+
+**使用可能:** `type: 'content'` および `type: 'data'` コレクション  
+**例:**
+  - コンテンツコレクション: `'entry-1.md' | 'entry-2.md' | ...`
+  - データコレクション: `'author-1' | 'author-2' | ...`
+
+`src/content/[collection]` に相対的なファイルパスを使用した一意のIDです。コレクションエントリーのファイルパスに基づいてすべての可能な文字列値を列挙します。`type: 'content'` として定義されたコレクションは ID にファイル拡張子を含みますが、`type: 'data'` として定義されたコレクションは含みません。
+
+#### `collection`
+
+**使用可能:** `type: 'content'` および `type: 'data'` コレクション  
+**例:** `'blog' | 'authors' | ...`
+
+エントリーが配置されている `src/content/` のトップレベルフォルダーの名前です。これはスキーマでコレクションを参照するため、およびクエリ関数で使用する名前です。
+
+#### `data`
+
+**使用可能:** `type: 'content'` および `type: 'data'` コレクション  
+**タイプ:** `CollectionSchema<TCollectionName>`
+
+コレクションスキーマから推測されたフロントマタープロパティのオブジェクトです（参照： [`defineCollection()`](#definecollection)）。スキーマが設定されていない場合、デフォルトで `any` になります。
+
+#### `slug`
+
+**使用可能:** `type: 'content'` コレクションのみ  
+**例:** `'entry-1' | 'entry-2' | ...`
+
+Markdown または MDX ドキュメントの URL 対応スラグです。デフォルトではファイル拡張子を除いた `id` に設定されますが、ファイルのフロントマターで [`slug` プロパティ](/ja/guides/content-collections/#カスタムスラグの定義) を設定することで上書きできます。
+
+#### `body`
+
+**使用可能:** `type: 'content'` コレクションのみ  
+**タイプ:** `string`
+
+Markdown または MDX ドキュメントの未コンパイルの本文を含む文字列です。
+
+#### `render()`
+
+**使用可能:** `type: 'content'` コレクションのみ  
+**タイプ:** `() => Promise<RenderedEntry>`
+
+指定された Markdown または MDX ドキュメントをレンダリングするためにコンパイルする関数です。以下のプロパティを返します。
+
+- `<Content />` - Astro ファイルでドキュメントの内容をレンダリングするために使用されるコンポーネント。
+- `headings` - Astro の Markdown と MDX インポートの [`getHeadings()` ユーティリティ](/ja/guides/markdown-content/#エクスポートしたプロパティ) を反映した生成された見出しリスト。
+- `remarkPluginFrontmatter` - 任意の [remark または rehype プラグインが適用された後の](/ja/guides/markdown-content/#プログラムによるフロントマターの変更)修正済みフロントマターオブジェクト。タイプは `any` に設定されています。
+
+```astro
+---
+import { getEntryBySlug } from 'astro:content';
+const entry = await getEntryBySlug('blog', 'entry-1');
+
+const { Content, headings, remarkPluginFrontmatter } = await entry.render();
+---
+```
+
+使用例については、[コンテンツコレクションガイドの「コンテンツを HTML にレンダリングする」セクション](/ja/guides/content-collections/#コンテンツをhtmlにレンダリングする) を参照してください。
+
+### その他のコンテンツコレクションタイプ
+
+`astro:content` モジュールは、Astro プロジェクトで使用するための以下のタイプもエクスポートしています。
+
+#### `CollectionKey`
+
+`src/content/config.*` ファイルで定義されたすべてのコレクション名の文字列ユニオンです。このタイプは、任意のコレクション名を受け取るジェネリック関数を定義する際に役立ちます。
+
+```ts
+import type { CollectionKey, getCollection } from 'astro:content';
+
+async function getCollection(collection: CollectionKey) {
+  return getCollection(collection);
+}
+```
+
+#### `ContentCollectionKey`
+
+`src/content/config.*` ファイルで定義された `type: 'content'` コレクションのすべての名前の文字列ユニオンです。
+
+#### `DataCollectionKey`
+
+`src/content/config.*` ファイルで定義された `type: 'data'` コレクションのすべての名前の文字列ユニオンです。
+
+#### `SchemaContext`
+
+`defineCollection` が `schema` の関数形式のために使用する `context` オブジェクト。この型は複数のコレクションで再利用可能なスキーマを構築する際に役立ちます。
+
+この型には次のプロパティが含まれます。
+
+- `image` - コンテンツコレクションでローカル画像を使用するための `image()` スキーマヘルパー。詳しくは [images のコンテンツコレクションと画像に関するセクション](/ja/guides/images/#コンテンツコレクションと画像) を参照してください。
+
+```ts
+import type { SchemaContext } from 'astro:content';
+
+export const imageSchema = ({ image }: SchemaContext) =>
+    z.object({
+        image: image(),
+        description: z.string().optional(),
+    });
+
+const blog = defineCollection({
+  type: 'content',
+  schema: ({ image }) => z.object({
+    title: z.string(),
+    permalink: z.string().optional(),
+    image: imageSchema({ image })
+  }),
+});
+```
+
+## ミドルウェア (`astro:middleware`)
+
+<p><Since v="2.6.0" /></p>
+
+ミドルウェアを使用すると、ページやエンドポイントがレンダリングされるたびにリクエストとレスポンスをインターセプトして動的に動作を注入できます。機能や使用例については、[ミドルウェアガイド](/ja/guides/middleware/) を参照してください。
+
+### `onRequest()`
+
+すべてのページや API ルートをレンダリングする前に呼び出される、`src/middleware.js` からの必須のエクスポート関数です。オプションの引数として [context](#contextlocals) と [next()](#next) を受け取ります。`onRequest()` は `Response` を返す必要があります。直接返すか、`next()` を呼び出して返します。
+
+```js title="src/middleware.js"
+export function onRequest (context, next) {
+    // リクエストからレスポンスデータをインターセプト
+    // オプションでレスポンスを変換
+    // 直接 `Response` を返すか、`next()` を呼び出した結果を返す
+    return next();
+};
+```
+
+### `next()`
+
+`Request` の `Response` をインターセプト（読み取りと修正）する関数、またはチェーン内の次のミドルウェアを呼び出して `Response` を返す関数です。この関数は、レスポンスの HTML 本文を修正する
+
+ために使用される可能性があります。
+
+これは `onRequest()` のオプション引数であり、ミドルウェアが返す必要のある `Response` を提供します。
+
+### `sequence()`
+
+ミドルウェア関数を引数として受け取り、それらを渡された順に実行する関数です。
+
+```js title="src/middleware.js"
+import { sequence } from "astro:middleware";
+
+async function validation(_, next) {...}
+async function auth(_, next) {...}
+async function greeting(_, next) {...}
+
+export const onRequest = sequence(validation, auth, greeting);
+```
+
+### `createContext()`
+
+Astro ミドルウェアの `onRequest()` 関数に渡す [`APIContext`](#endpoint-context) を作成するための低レベル API です。
+
+この関数は、Astro ミドルウェアをプログラム的に実行するために統合/アダプターによって使用されることがあります。
+
+### `trySerializeLocals()`
+
+任意の値を受け取り、そのシリアライズ版（文字列）を返そうとする低レベル API です。値をシリアライズできない場合、この関数はランタイムエラーを投げます。
+
+## Internationalization (`astro:i18n`)
+
+<p><Since v="3.5.0" /></p>
+
+このモジュールは、プロジェクトで設定した言語（ロケール）を使用してURLを作成するための関数を提供します。
+
+i18nルーターを使用してプロジェクトのルートを作成するには、ページルートに影響する特定の設定値に依存します。これらの関数を使用してルートを作成する際には、以下の個別設定を考慮してください。
+
+- [`base`](/ja/reference/configuration-reference/#base)
+- [`trailingSlash`](/ja/reference/configuration-reference/#trailingslash)
+- [`build.format`](/ja/reference/configuration-reference/#buildformat)
+- [`site`](/ja/reference/configuration-reference/#site)
+
+また、これらの関数によって作成された `defaultLocale` 用の返されたURLは、`i18n.routing` 設定を反映することに注意してください。
+
+機能や使用例については、[i18nルーティングガイド](/ja/guides/internationalization/) を参照してください。
+
+### `getRelativeLocaleUrl()` 
+
+`getRelativeLocaleUrl(locale: string, path?: string, options?: GetLocaleOptions): string`
+
+この関数を使用して、言語（ロケール）の相対パスを取得します。ロケールが存在しない場合、Astroはエラーをスローします。
+
+```astro
+---
+getRelativeLocaleUrl("fr");
+// 結果: /fr
+
+getRelativeLocaleUrl("fr", "");
+// 結果: /fr
+
+getRelativeLocaleUrl("fr", "getting-started");
+// 結果: /fr/getting-started
+
+getRelativeLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog"
+}); 
+// 結果: /blog/fr-ca/getting-started
+
+getRelativeLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog",
+  normalizeLocale: false
+}); 
+// 結果: /blog/fr_CA/getting-started
+---
+```
+
+### `getAbsoluteLocaleUrl()` 
+
+`getAbsoluteLocaleUrl(locale: string, path: string, options?: GetLocaleOptions): string`
+
+[`site`] に値が設定されている場合、言語（ロケール）の絶対パスを取得するためにこの関数を使用します。[`site`] が設定されていない場合、この関数は相対URLを返します。ロケールが存在しない場合、Astroはエラーをスローします。
+
+```astro title="src/pages/index.astro"
+---
+// `site` が `https://example.com` に設定されている場合
+
+getAbsoluteLocaleUrl("fr"); 
+// 結果: https://example.com/fr
+
+getAbsoluteLocaleUrl("fr", ""); 
+// 結果: https://example.com/fr
+
+getAbsoluteLocaleUrl("fr", "getting-started"); 
+// 結果: https://example.com/fr/getting-started
+
+getAbsoluteLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog"
+}); 
+// 結果: https://example.com/blog/fr-ca/getting-started
+
+getAbsoluteLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog",
+  normalizeLocale: false
+}); 
+// 結果: https://example.com/blog/fr_CA/getting-started
+---
+```
+
+### `getRelativeLocaleUrlList()` 
+
+`getRelativeLocaleUrlList(path?: string, options?: GetLocaleOptions): string[]`
+
+[`getRelativeLocaleUrl`](#getrelativelocaleurl) と同様に使用して、すべてのロケールの相対パスのリストを返します。
+
+### `getAbsoluteLocaleUrlList()` 
+
+`getAbsoluteLocaleUrlList(path?: string, options?: GetLocaleOptions): string[]`
+
+[`getAbsoluteLocaleUrl`](#getabsolutelocaleurl) と同様に使用して、すべてのロケールの絶対パスのリストを返します。
+
+### `getPathByLocale()` 
+
+`getPathByLocale(locale: string): string`
+
+[カスタムロケールパス](/ja/guides/internationalization/#custom-locale-paths) が設定されている場合、一つ以上の `codes` に関連付けられた `path` を返す関数です。
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  i18n: {
+    locales: ["es", "en", {
+      path: "french",
+      codes: ["fr", "fr-BR", "fr-CA"]
+    }]
+  }
+})
+```
+
+```astro title="src/pages/index.astro"
+---
+getPathByLocale("fr"); // 結果: "french"
+getPathByLocale("fr-CA"); // 結果: "french"
+---
+```
+
+### `getLocaleByPath`
+
+ `getLocaleByPath(path: string): string`
+
+言語（ロケール）の `path` に関連付けられた `code` を返す関数です。
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  i18n: {
+    locales: ["es", "en", {
+      path: "french",
+      codes: ["fr", "fr-BR", "fr-CA"]
+    }]
+  }
+})
+```
+
+```astro title="src/pages/index.astro"
+---
+getLocaleByPath("french"); // 結果: "fr" （設定された最初のコードのため）
+---
+```
+
+### `redirectToDefaultLocale()`
+
+`redirectToDefaultLocale(context: APIContext, statusCode?: ValidRedirectStatus): Promise<Response>`
+
+<p><Since v="4.6.0" /></p>
+
+:::note
+`i18n.routing` が `"manual"` に設定されている場合にのみ使用可能です。
+:::
+
+設定された `defaultLocale` にリダイレクトする `Response` を返す関数です。オプションで有効なリダイレクトステータスコードを受け入れます。
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { redirectToDefaultLocale } from "astro:i18n";
+
+export const onRequest = defineMiddleware((context, next) => {
+  if (context.url.pathname.startsWith("/about")) {
+    return next();
+  } else {
+    return redirectToDefaultLocale(context, 302);
+  }
+})
+```
+
+### `redirectToFallback()`
+
+`redirectToFallback(context: APIContext, response: Response): Promise<Response>`
+
+<p><Since v="4.6.0" /></p>
+
+:::note
+`i18n.routing` が `"manual"` に設定されている場合にのみ使用可能です。
+:::
+
+[`i18n.fallback` 設定](/ja/reference/configuration-reference/#i18nfallback) をミドルウェア内で使用できる関数です。
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { redirectToFallback } from "astro:i18n";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const response = await next();
+  if (response.status >= 300) {
+    return redirectToFallback(context, response)
+  }
+  return response;
+})
+```
+
+### `notFound()`
+
+`notFound(context: APIContext, response: Response): Promise<Response>`
+
+<p><Since v="4.6.0" /></p>
+
+:::note
+`i18n.routing` が `"manual"` に設定されている場合にのみ使用可能です。
+:::
+
+ルーティングミドルウェア内で使用して、次のような場合に404を返す関数です。
+- 現在のパスがルートでない場合（例：`/` や `/<base>` ではない）
+- URLに言語（ロケール）が含まれていない場合
+
+`Response` が渡された場合、この関数によって発行された新しい `Response` には元のレスポンスと同じヘッダーが含まれます。
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { notFound } from "astro:i18n";
+
+export const onRequest = defineMiddleware((context, next) => {
+  const pathNotFound = notFound(context);
+  if (pathNotFound) {
+    return pathNotFound;
+  }
+  return next();
+})
+```
+
+### `middleware()`
+
+`middleware(options: { prefixDefaultLocale: boolean, redirectToDefaultLocale: boolean })`
+
+<p><Since v="4.6.0" /></p>
+
+:::note
+`i18n.routing` が `"manual"` に設定されている場合にのみ使用可能です。
+:::
+
+プログラムによってAstro i18nミドルウェアを作成する関数です。
+
+これは、デフォルトのi18nロジックを引き続き使用しながら、ウェブサイトにいくつかの例外を追加したい場合に役立ちます。
+
+```js title="middleware.js"
+import { middleware } from "astro:i18n";
+import { sequence, defineMiddleware } from "astro:middleware";
+
+const customLogic = defineMiddleware(async (context, next) => {
+  const response = await next();
+
+  // レスポンスの解決後にカスタムロジックを実行。
+  // Astro i18n ミドルウェアからのレスポンスをキャッチすることができます。
+
+  return response;
+});
+
+export const onRequest = sequence(customLogic, middleware({
+	prefixDefaultLocale: true,
+	redirectToDefaultLocale: false
+}))
+```
+
+### `requestHasLocale()`
+
+`requestHasLocale(context: APIContext): boolean`
+
+<p><Since v="4.6.0" /></p>
+
+:::note
+`i18n.routing` が `"manual"` に設定されている場合にのみ使用可能です。
+:::
+
+現在のURLに設定された言語（ロケール）が含まれているかどうかを確認します。内部的にはこの関数は `APIContext#url.pathname` を使用します。
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { requestHasLocale } from "astro:i18n";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  if (requestHasLocale(context)) {
+    return next();
+  }
+  return new Response("Not found", { status: 404 });
+})
+```
+
+## 組み込みコンポーネント
+
+Astroには、プロジェクトで使用するためのいくつかの組み込みコンポーネントが含まれています。すべての組み込みコンポーネントは `.astro` ファイルで `import {} from 'astro:components';` を通じて利用できます。
+
+### `<Code />`
+
+```astro 'theme="dark-plus"' /wrap\b/ /(inline) \/>/
+---
+import { Code } from 'astro:components';
+---
+<!-- JavaScriptコードのシンタックスハイライト -->
+<Code code={`const foo = 'bar';`} lang="js" />
+<!-- オプション: テーマをカスタマイズ -->
+<Code code={`const foo = 'bar';`} lang="js" theme="dark-plus" />
+<!-- オプション: ワードラップを有効に -->
+<Code code={`const foo = 'bar';`} lang="js" wrap />
+<!-- オプション: インラインコードを出力 -->
+<p>
+  <Code code={`const foo = 'bar';`} lang="js" inline />
+  がインラインで表示されます。
+</p>
+```
+
+このコンポーネントは、ビルド時にコードブロックのシンタックスハイライトを提供します（クライアント側のJavaScriptは含まれません）。コンポーネントは内部的にはShikiによって動作し、すべての人気のある[テーマ](https://shiki.style/themes)や[言語](https://shiki.style/languages)をサポートします。さらに、カスタムテーマ、言語、および[トランスフォーマー](#トランスフォーマー)をそれぞれの属性に渡すことで追加できます。
+
+#### トランスフォーマー
+
+<p><Since v="4.11.0" /></p>
+
+[Shikiのトランスフォーマー](https://shiki.style/packages/transformers#shikijs-transformers)は、`transformers` プロパティを介して配列としてコードに適用することができます。
+
+注意：`transformers` はクラスのみを適用し、コードブロックの要素をターゲットにするための独自のCSSルールを提供する必要があります。
+
+```astro
+---
+import { transformerNotationFocus } from '@shikijs/transformers'
+import { Code } from 'astro:components'
+const code = `const foo = 'hello'
+const bar = ' world'
+console.log(foo + bar) // [!code focus]
+`
+---
+<Code
+  code={code}
+  lang="js"
+  transformers={[transformerNotationFocus()]} />
+  
+  <style is:global>
+    pre.has-focused .line:not(.focused) {
+      filter: blur(1px);
+    }
+  </style>
+```
+
+### `<Fragment />`
+
+[`set:*` ディレクティブ](/ja/reference/directives-reference/#sethtml) とともに使用して、追加のラッピング要素なしにHTMLコンテンツをレンダリングするためのコンポーネントです。
+
+```astro title="src/components/SetHtml.astro" "Fragment"
+---
+const htmlString = '<p>Raw HTML content</p>';
+---
+<Fragment set:html={htmlString} />
+```
+
+Astroのシンタックスで [フラグメントの使用](/ja/basics/astro-syntax/#フラグメント) についての詳細を参照してください。
+
+### `<Prism />`
+
+`Prism` ハイライターコンポーネントを使用するには、まず `@astrojs/prism` パッケージを**インストール**します。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @astrojs/prism
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @astrojs/prism
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/prism
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+```astro
+---
+import { Prism } from '@astrojs/prism';
+---
+<Prism lang="js" code={`const foo = 'bar';`} />
+```
+
+このコンポーネントは、Prism の CSS クラスを利用して、コードブロックに言語別のシンタックスハイライトを適用します。ただし、シンタックスハイライトを表示するには **Prism の CSS スタイルシート（または独自のスタイルシート）を別途追加する必要があります**。詳しくは [Prism の設定に関するセクション](/ja/guides/markdown-content/#シンタックスハイライト) を参照してください。
+
+使用可能な言語とそのエイリアス（短縮名）については、[Prismがサポートする言語のリスト](https://prismjs.com/#supported-languages)で確認できます。さらに、`lang="astro"` を指定することで、Astroのコードブロックもハイライト表示できます。
+
+### `<Image />`
+
+```astro title="src/components/MyComponent.astro"
+---
+// Imageコンポーネントと画像をインポート
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // 画像のサイズは1600x900
+---
+
+<!-- Imageコンポーネントには`alt`属性が必須 -->
+<Image src={myImage} alt="画像の説明" />
+```
+
+```html
+<!-- 出力 -->
+<!-- 画像は最適化され、適切な属性が適用される -->
+<img
+  src="/_astro/my_image.hash.webp"
+  width="1600"
+  height="900"
+  decoding="async"
+  loading="lazy"
+  alt="画像の説明"
+/>
+```
+#### プロパティ
+
+- src（必須）
+- alt（必須）
+- width および height（`public/` やリモート画像の場合は必須）
+- format
+- quality
+- densities
+- widths
+
+上記のプロパティに加えて、`<Image />` コンポーネントはHTMLの `<img>` タグで受け入れられるすべてのプロパティを受け入れます。
+
+詳細は [画像ガイドの「Image コンポーネント」セクション](/ja/guides/images/#image--astroassets) を参照してください。
+
+### `<Picture />`
+
+<p><Since v="3.3.0" /></p>
+
+複数の形式やサイズでレスポンシブ画像を表示するために、組み込みの `<Picture />` Astroコンポーネントを使用します。
+
+```astro title="src/pages/index.astro"
+---
+import { Picture } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // 画像のサイズは1600x900
+---
+
+<!-- Pictureコンポーネントには`alt`属性が必須 -->
+<Picture src={myImage} formats={['avif', 'webp']} alt="画像の説明" />
+```
+
+```html
+<!-- 出力 -->
+<picture>
+  <source srcset="/_astro/my_image.hash.avif" type="image/avif" />
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.png"
+    width="1600"
+    height="900"
+    decoding="async"
+    loading="lazy"
+    alt="画像の説明"
+  />
+</picture>
+```
+
+詳細は [画像ガイドの「Picture コンポーネント」セクション](/ja/guides/images/#picture-) を参照してください。
+
+#### プロパティ
+
+`<Picture />` は `<Image />` コンポーネントのすべてのプロパティに加えて、以下のプロパティを受け入れます。
+
+##### `formats`
+
+`<source>` タグで使用する画像フォーマットの配列です。デフォルトは `['webp']` に設定されています。
+
+##### `fallbackFormat`
+
+`<img>` タグで代替として使用する画像フォーマットです。静的画像の場合は `.png`、アニメーション画像の場合は `.gif`、SVGファイルの場合は `.svg` がデフォルトとなります。
+
+##### `pictureAttributes`
+
+`<picture>` タグに追加する属性を指定するオブジェクトです。このプロパティを使用して、外側の `<picture>` 要素自体に属性を適用できます。`<Picture />` コンポーネントに直接適用された属性は、画像変換に関するものを除き、内部の `<img>` 要素に適用されます。
+
+### `<Content />`
+
+[コンテンツコレクションのエントリー](/ja/guides/content-collections/#コンテンツコレクションとは)の内容を表示するための汎用コンポーネントです。
+
+使用方法は以下の通りです。
+1. `getCollection()` または `getEntry()` を使用して、1つまたは複数のエントリーを取得します。
+2. `entry.render()` 関数を呼び出すと、`.astro` ファイルのテンプレート内で使用できる `<Content />` コンポーネントが返されます。
+
+```astro title="src/pages/render-example.astro" {4, 7}
+---
+import { getEntry } from 'astro:content';
+const entry = await getEntry('blog', 'post-1');
+const { Content } = await entry.render();
+---
+<p>Published on: {entry.data.published.toDateString()}</p>
+<Content />
+```
+
+### `<ViewTransitions />`
+
+個々のページでビュー遷移を使用するために、`<ViewTransitions />` ルーティングコンポーネントをインポートして `<head>` に追加します。
+
+```astro title="src/pages/index.astro" ins={2,7}
+---
+import { ViewTransitions } from 'astro:transitions';
+---
+<html lang="en">
+  <head>
+    <title>My Homepage</title>
+    <ViewTransitions />
+  </head>
+  <body>
+    <h1>Welcome to my website!</h1>
+  </body>
+</html>
+```
+
+ルーターの [制御方法](/en/guides/view-transitions/#router-control) や、ページ要素やコンポーネントに [遷移ディレクティブを追加する方法](/ja/guides/view-transitions/#トランジションディレクティブ) について詳しくは参照してください。
+
+### `<Debug />`
+
+```astro
+---
+import { Debug } from 'astro:components';
+const serverObject = {
+  a: 0,
+  b: "string",
+  c: {
+    nested: "object"
+  }
+}
+---
+<Debug {serverObject} />
+```
+
+このコンポーネントは、クライアント側で値をインスペクトする方法を提供しますが、JavaScriptは使用しません。
+
+
+[canonical]: https://en.wikipedia.org/wiki/Canonical_link_element
