@@ -1721,3 +1721,66 @@ export default defineConfig({
   }
 })
 ```
+
+### experimental.serverIslands
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `false`<br />
+<Since v="4.12.0" />
+</p>
+
+실험적인 서버 아일랜드 기능을 활성화합니다.
+서버 아일랜드는 페이지가 이미 렌더링된 후, 비동기적으로 렌더링되도록 컴포넌트를 지연시키는 기능을 제공합니다.
+
+활성화하려면 어댑터를 사용하여 [주문형 서버 렌더링 `output` 모드](/ko/basics/rendering-modes/#요청-시-렌더링)를 구성하고 `experimental` 객체에 `serverIslands` 플래그를 추가합니다
+
+```js
+{
+  output: 'hybrid', // 또는 'server'
+  adapter: nodejs({ mode: 'standalone' }),
+  experimental: {
+    serverIslands: true,
+  },
+}
+```
+
+Astro 컴포넌트에서 `server:defer` 지시어를 사용하면 초기 렌더링을 지연시킬 수 있습니다:
+
+```astro "server:defer"
+---
+import Avatar from '~/components/Avatar.astro';
+---
+<Avatar server:defer />
+```
+
+외부 페이지는 빌드 타임 (`hybrid`) 또는 런타임(`server`)에 아일랜드 콘텐츠가 생략되고 그 자리에 `<script>` 태그가 포함된 상태로 렌더링됩니다.
+
+브라우저에서 페이지가 로드된 후 스크립트 태그는 요청을 통해 아일랜드 콘텐츠로 교체됩니다.
+
+모든 Astro 컴포넌트는 `server: defer` 속성을 지정하여 렌더링을 지연시킬 수 있습니다. 특별한 API는 없으며 평소처럼 `.astro` 코드를 작성하면 됩니다.
+
+```astro
+---
+import { getUser } from '../api';
+const user = await getUser(Astro.locals.userId);
+---
+<img class="avatar" src={user.imageUrl}>
+```
+
+#### 서버 아일랜드 대체 콘텐츠
+
+컴포넌트가 페이지의 나머지 부분과 함께 렌더링되지 않으므로 일반 콘텐츠 (예: 로딩 메시지)를 추가하여 임시로 그 자리에 표시할 수 있습니다. 이 콘텐츠는 페이지가 처음 렌더링되고 아일랜드가 로드되기 전에 나타납니다.
+
+`slot="fallback"` 속성을 가진 자리 표시자 콘텐츠를 Astro 컴포넌트의 자식으로 추가합니다. 아일랜드 콘텐츠를 사용할 수 있게 되면 대체 콘텐츠가 교체됩니다.
+
+아래 예시에서는 일반 아바타를 대체 콘텐츠로 표시한 다음, view transitions를 사용하여 개인화된 아바타로 애니메이션을 표시합니다.
+
+```astro
+<Avatar server:defer>
+  <svg slot="fallback" class="generic-avatar" transition:name="avatar">...</svg>
+</Avatar>
+```
+
+전체 개요를 보거나 이 실험적인 API에 대한 피드백을 제공하려면 [서버 아일랜드 RFC](https://github.com/withastro/roadmap/pull/963)를 참조하세요.
