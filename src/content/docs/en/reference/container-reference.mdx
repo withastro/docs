@@ -86,9 +86,13 @@ const result = await container.renderToString(ReactWrapper);
 
 #### Adding a renderer manually
 
-When the container is called at runtime, or inside other "shells", the `astro:container` virtual module's helper functions are not available. Import the necessary server renderer manually and store it inside the container using `experimental_Astro.Container.addServerRenderer`.
+When the container is called at runtime, or inside other "shells", the `astro:container` virtual module's helper functions are not available.  You must import the necessary server and client renderers manually and store them inside the container using `addServerRenderer` and `addClientRenderer`.
 
-The following example manually imports the server renderers for React and Vue components, and MDX for `.mdx` pages. 
+Server renderers are required to build your project, and must be stored in the container for every framework used. Client renderers are additionally needed to any hydrate client-side components using [`client:*` directives](/en/reference/directives-reference/#client-directives).
+
+Only one import statement is needed per framework. Importing a renderer makes both the server and client renderers available to your container. However, **server renderers must be added to your container before client renderers**. This allows your entire container to render first, and then hydrate any interactive components.
+
+The following example manually imports the necessary server renderers to be able to display static Vue components and `.mdx` pages. It additionally adds both server and client renderers for interactive React components.
 
 ```js
 import reactRenderer from "@astrojs/react/server.js";
@@ -96,9 +100,11 @@ import vueRenderer from "@astrojs/vue/server.js";
 import mdxRenderer from "astro/jsx/server.js";
 
 const container = await experimental_AstroContainer.create();
-container.addServerRenderer({renderer: reactRenderer});
 container.addServerRenderer({renderer: vueRenderer});
 container.addServerRenderer({renderer: mdxRenderer});
+
+container.addServerRenderer({ renderer: reactRenderer });
+container.addClientRenderer({ name: "@astrojs/react", entrypoint: "@astrojs/react/client.js" });
 ```
 
 ## `renderToString()`
