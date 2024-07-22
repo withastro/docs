@@ -1,4 +1,3 @@
-import fetch from 'node-fetch';
 import pRetry, { AbortError } from 'p-retry';
 
 /**

@@ -1,6 +1,5 @@
 import fs from 'fs';
 import jsdoc from 'jsdoc-api';
-import fetch from 'node-fetch';
 import ts from 'typescript';
 
 const sourceBranch = process.env.SOURCE_BRANCH || 'main';

@@ -6,7 +6,6 @@
  * our scripts by creating separate GitHub actions with their own repos and compilation steps.
  */
 
-import fetch from 'node-fetch';
 import { githubGet } from './github-get.mjs';
 import output from './output.mjs';
 
