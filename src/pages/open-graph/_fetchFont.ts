@@ -30,10 +30,9 @@ export async function fetchBrandFont() {
 		await writeFile(fontFile, Buffer.from(fontArrayBuffer));
 		return fontFile;
 	} catch (error) {
-		// When running locally, if anything goes wrong, we can safely return
-		// nothing and continue with the default local fonts.
-		if (!import.meta.env.VERCEL) return undefined;
-		// But in production builds we want to error if we failed to download fonts.
-		throw error;
+		// In production builds, error if we failed to download fonts.
+		if (import.meta.env.NETLIFY && import.meta.env.CONTEXT === 'production') {
+			throw error;
+		}
 	}
 }
