@@ -11,13 +11,10 @@ import { rehypeAutolink } from './plugins/rehype-autolink';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
 
-/* https://vercel.com/docs/projects/environment-variables/system-environment-variables#system-environment-variables */
-const VERCEL_PREVIEW_SITE =
-	process.env.VERCEL_ENV !== 'production' &&
-	process.env.VERCEL_URL &&
-	`https://${process.env.VERCEL_URL}`;
+/* https://docs.netlify.com/configure-builds/environment-variables/#read-only-variables */
+const NETLIFY_PREVIEW_SITE = process.env.CONTEXT !== 'production' && process.env.DEPLOY_PRIME_URL;
 
-const site = VERCEL_PREVIEW_SITE || 'https://docs.astro.build/';
+const site = NETLIFY_PREVIEW_SITE || 'https://docs.astro.build/';
 
 // https://astro.build/config
 export default defineConfig({
@@ -35,6 +32,7 @@ export default defineConfig({
 				TableOfContents: './src/components/starlight/TableOfContents.astro',
 				PageSidebar: './src/components/starlight/PageSidebar.astro',
 				Pagination: './src/components/starlight/Pagination.astro',
+				Footer: './src/components/starlight/Footer.astro',
 				SiteTitle: './src/components/starlight/SiteTitle.astro',
 				Search: './src/components/starlight/Search.astro',
 				Sidebar: './src/components/starlight/Sidebar.astro',
@@ -62,6 +60,7 @@ export default defineConfig({
 					},
 				},
 			],
+			disable404Route: true,
 		}),
 		sitemap(),
 	],
