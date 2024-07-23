@@ -7,135 +7,197 @@ i18nReady: true
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import { Steps } from '@astrojs/starlight/components';
 
-[Zerops](https://zerops.io/) es una plataforma en la nube centrada en el desarrollo que se puede utilizar para desplegar un sitio Astro SSR.
+[Zerops](https://zerops.io/) es una plataforma en la nube centrada en el desarrollo que se puede utilizar para desplegar tanto un sitio Astro estático como SSR.
 
-Esta guía te guiará a través del despliegue de un proyecto de Astro utilizando el adaptador Node.js en Zerops.
+Esta guía te guiará a través de la configuración y el despliegue de sitios Astro estáticos y SSR en Zerops.
 
-## Prerrequisitos
+:::tip[Vista rápida de Astro x Zerops]
 
-- **Un proyecto de Astro usando el [adaptador SSR `@astrojs/node`](/es/guides/integrations-guide/node/)**
-- **Una cuenta de Zerops** - Si aún no tienes una, puedes [crear una cuenta de Zerops](https://zerops.io/) de forma gratuita.
+¿Quieres probar Astro en Zerops sin instalar o configurar nada? Usando los repositorios [Zerops x Astro - Estático](https://github.com/zeropsio/recipe-astro-nodejs) o [Zerops x Astro - SSR en Node.js](https://github.com/zeropsio/recipe-astro-static) puedes desplegar un sitio de ejemplo de Astro con un solo clic.
 
-:::tip[Comienza desde una plantilla]
-¡El [ejemplo de aplicación Zerops x Astro - Node.js](https://github.com/zeropsio/recipe-astro-nodejs) se puede importar directamente en tu [Panel de Zerops](https://app.zerops.io/dashboard/projects) y desplegar en un solo clic!
-
-```yaml
-project:
-  name: astro
-services:
-  - hostname: astronode
-    type: nodejs@20
-    buildFromGit: https://github.com/zeropsio/recipe-astro-nodejs
-    ports:
-      - port: 4321
-        httpSupport: true
-    enableSubdomainAccess: true
-    minContainers: 1
-```
 :::
 
-## Crear un proyecto de Node.js en Zerops
+Ejecutar aplicaciones en Zerops requiere dos pasos:t
+1. Crear un proyecto
+2. Desencadenar el pipeline de compilación y despliegue
 
-Puedes crear un servicio Node.js para tu sitio Astro a través del [asistente `project add` de Zerops](https://app.zerops.io/dashboard/project-add) o importando un sitio Astro usando `.yaml`.
+:::note
+Un proyecto de Zerops puede contener muchos sitios Astro.
+:::
 
-La siguiente estructura YAML configurará un proyecto llamado `my-astro-sites` con un servicio Node.js v20 llamado `hellothere`. Un proyecto de Zerops puede contener muchas aplicaciones Astro.
+## Sitio Astro estático en Zerops
+
+### Crear un proyecto y un servicio para Astro estático
+Los proyectos y servicios se pueden añadir a través del asistente [`Project add`](https://app.zerops.io/dashboard/project-add) o importando una estructura yaml:
 
 ```yaml
 project:
-  name: my-astro-sites
+  name: recipe-astro
 services:
-  - hostname: hellothere
-    type: nodejs@20
-    ports:
-      - port: 4321
-        httpSupport: true
-    minContainers: 1
+  - hostname: app
+    type: static 
 ```
 
+Esto creará un proyecto llamado `recipe-astro` con un servicio estático de Zerops llamado `app`.
 
-## Construir y desplegar tu aplicación en Zerops
+### Desplegar tu sitio Astro estático
 
-Ahora que has preparado un servicio Node.js en Zerops, necesitarás crear un archivo `zerops.yml` en la raíz de tu proyecto para activar el proceso de compilación y despliegue en Zerops.
-
-El siguiente ejemplo muestra la configuración de las operaciones de construcción y ejecución necesarias para el proyecto de ejemplo con el nombre de host `hellothere`:
+Para indicarle a Zerops cómo construir y ejecutar tu sitio, añade un archivo `zerops.yml` a tu repositorio:
 
   <PackageManagerTabs>
     <Fragment slot="npm">
     ```yaml title="zerops.yml"
-      zerops:
-        - setup: hellothere
-          build:
-            base: nodejs@20
-            buildCommands:
-              - npm i
-              - npm run build
-            deploy:
-              - dist
-              - package.json
-              - node_modules
-            cache:
-              - node_modules
-              - package-lock.json
-          run:
-            start: node dist/server/entry.mjs
+    # consulta https://docs.zerops.io/references/zeropsyml para obtener la referencia completa
+    zerops:
+      - setup: app
+        build:
+          base: nodejs@20
+          buildCommands:
+            - npm i
+            - npm build
+          deployFiles:
+            - dist/~
+        run:
+          base: static
+    ```
+    </Fragment>
+    <Fragment slot="pnpm">
+    ```yaml title="zerops.yml"
+    # consulta https://docs.zerops.io/references/zeropsyml para obtener la referencia completa
+    zerops:
+      - setup: app
+        build:
+          base: nodejs@20
+          buildCommands:
+            - pnpm i
+            - pnpm build
+          deployFiles:
+            - dist/~
+        run:
+          base: static
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```yaml title="zerops.yml"
+    # consulta https://docs.zerops.io/references/zeropsyml para obtener la referencia completa
+    zerops:
+      - setup: app
+        build:
+          base: nodejs@20
+          buildCommands:
+            - yarn
+            - yarn build
+          deployFiles:
+            - dist/~
+        run:
+          base: static
+    ```
+    </Fragment>
+  </PackageManagerTabs>
+
+Ahora puedes [desencadenar el pipeline de construcción y despliegue usando la CLI de Zerops](#desencadenar-el-pipeline-usando-zerops-cli-zcli) o conectando el servicio `app` con tu repositorio de [GitHub](https://docs.zerops.io/references/github-integration/) / El repositorio de [GitLab](https://docs.zerops.io/references/gitlab-integration) desde dentro del detalle del servicio.
+
+## Sitio Astro SSR en Zerops
+
+### Crear un proyecto y un servicio para Astro SSR (Node.js)
+Los proyectos y servicios se pueden añadir a través del asistente [`Project add`](https://app.zerops.io/dashboard/project-add) o importando una estructura yaml:
+
+```yaml
+project:
+  name: recipe-astro
+services:
+  - hostname: app
+    type: nodejs@20
+```
+
+Esto creará un proyecto llamado `recipe-astro` con un servicio de Zerops Node.js llamado `app`.
+
+### Desplegar tu sitio Astro SSR
+
+Para indicarle a Zerops cómo construir y ejecutar tu sitio usando el [adaptador oficial de Astro Node.js](/es/guides/integrations-guide/node/) en modo `standalone`, añade un archivo `zerops.yml` a tu repositorio:
+
+  <PackageManagerTabs>
+    <Fragment slot="npm">
+    ```yaml title="zerops.yml"
+    # consulta https://docs.zerops.io/references/zeropsyml para obtener la referencia completa
+    zerops:
+      - setup: app
+        build:
+          base: nodejs@20
+          buildCommands:
+            - npm i
+            - npm run build
+          deployFiles:
+            - dist
+            - package.json
+            - node_modules
+        run:
+          base: nodejs@20
+          ports:
+            - port: 3000
+              httpSupport: true
           envVariables:
+            PORT: 3000
             HOST: 0.0.0.0
-            NODE_ENV: production
+          start: npm start
     ```
     </Fragment>
     <Fragment slot="pnpm">
     ```yaml title="zerops.yml"
       zerops:
-        - setup: hellothere
-          build:
-            base: nodejs@20
-            buildCommands:
-              - pnpm i
-              - pnpm run build
-            deploy:
-              - dist
-              - package.json
-              - node_modules
-            cache:
-              - node_modules
-              - pnpm-lock.json
-          run:
-            start: node dist/server/entry.mjs
+    # consulta https://docs.zerops.io/references/zeropsyml para obtener la referencia completa
+    zerops:
+      - setup: app
+        build:
+          base: nodejs@20
+          buildCommands:
+            - pnpm i
+            - pnpm run build
+          deployFiles:
+            - dist
+            - package.json
+            - node_modules
+        run:
+          base: nodejs@20
+          ports:
+            - port: 3000
+              httpSupport: true
           envVariables:
+            PORT: 3000
             HOST: 0.0.0.0
-            NODE_ENV: production
+          start: pnpm start
     ```
     </Fragment>
     <Fragment slot="yarn">
     ```yaml title="zerops.yml"
-      zerops:
-        - setup: astronode
-          build:
-            base: nodejs@20
-            buildCommands:
-              - yarn
-              - yarn build
-            deploy:
-              - dist
-              - package.json
-              - node_modules
-            cache:
-              - node_modules
-              - yarn.lock
-          run:
-            start: node dist/server/entry.mjs
+    # consulta https://docs.zerops.io/references/zeropsyml para obtener la referencia completa
+    zerops:
+      - setup: app
+        build:
+          base: nodejs@20
+          buildCommands:
+            - yarn
+            - yarn build
+          deployFiles:
+            - dist
+            - package.json
+            - node_modules
+        run:
+          base: nodejs@20
+          ports:
+            - port: 3000
+              httpSupport: true
           envVariables:
+            PORT: 3000
             HOST: 0.0.0.0
-            NODE_ENV: production
+          start: yarn start
     ```
     </Fragment>
   </PackageManagerTabs>
 
-### Desencadenar el pipeline usando GitHub / GitLab
-Para configurar el despliegue continuo en una rama o en un nuevo lanzamiento, ve a los detalles del servicio Node.js y conecta tu servicio de Zerops con un repositorio de GitHub o GitLab.
+Ahora puedes [desencadenar el pipeline de construcción y despliegue usando la CLI de Zerops](#desencadenar-el-pipeline-usando-zerops-cli-zcli) o conectando el servicio `app` con tu repositorio de [GitHub](https://docs.zerops.io/references/github-integration/) / El repositorio de [GitLab](https://docs.zerops.io/references/gitlab-integration) desde dentro del detalle del servicio.
 
-
-### Desencadenar el pipeline usando Zerops CLI (zcli)
+## Desencadenar el pipeline usando Zerops CLI (zcli)
 
 <Steps>
 1. Instala la CLI de Zerops.
@@ -159,6 +221,13 @@ Para configurar el despliegue continuo en una rama o en un nuevo lanzamiento, ve
 </Steps>
 
 ## Recursos
+### Official
 
+- [Crear una cuenta de Zerops](https://app.zerops.io/registration)
+- [Documentación de Zerops](https://docs.zerops.io)
+- [Receta de Zerops Astro]https://app.zerops.io/recipe/astro)
+
+### Community
 - [Desplegando Astro a Zerops en 3 minutos](https://medium.com/@arjunaditya/how-to-deploy-astro-to-zerops-4230816a62b4)
-- [Guía detallada para crear un servicio Node.js en Zerops](https://docs.zerops.io/nodejs/how-to/create)
+- [Desplegand Astro SSG con Node.js en Zerops con un solo clic](https://youtu.be/-4KTa4VWtBE)
+- [Desplegando Astro SSR con Node.js en Zerops con un solo clic](https://youtu.be/eR6b_JnDH6g)
