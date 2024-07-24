@@ -1662,3 +1662,66 @@ export default defineConfig({
   }
 })
 ```
+
+### experimental.serverIslands
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `false`<br />
+<Since v="4.12.0" />
+</p>
+
+启用实验性的服务器群岛功能。
+服务器群岛提供了在页面渲染完成后异步延迟渲染组件的功能。
+
+要启用该功能，请使用适配器配置为 [在服务器上按需渲染的 `output` 模式](/zh-cn/basics/rendering-modes/#按需渲染)，并在 `experimental` 对象中添加 `serverIslands` 标志：
+
+```js
+{
+  output: 'hybrid', // 或是 'server'
+  adapter: nodejs({ mode: 'standalone' }),
+  experimental: {
+    serverIslands: true,
+  },
+}
+```
+
+在任意 Astro 组件上使用 `server:defer` 的指令，来延迟初始化渲染：
+
+```astro "server:defer"
+---
+import Avatar from '~/components/Avatar.astro';
+---
+<Avatar server:defer />
+```
+
+外部页面将在构建时（`hybrid`）或是在运行时（`server`）渲染，它会省去群岛内容，而以 `<script>` 标签来代替其位置。
+
+页面在浏览器中加载完后，script 标签将通过请求用群岛内容替换掉自己。
+
+任意 Astro 组件都可以被赋予 `server:defer` 的属性来延迟渲染。没有特殊的 API，你可以像往常一样编写 `.astro` 代码：
+
+```astro
+---
+import { getUser } from '../api';
+const user = await getUser(Astro.locals.userId);
+---
+<img class="avatar" src={user.imageUrl}>
+```
+
+#### 服务器群岛的回退内容
+
+由于你的组件不会与页面的其他部分一起渲染，因此可能需要添加通用内容（例如：加载中）以临时显示在该位置。这些内容将在页面上群岛加载之前的首次渲染时显示。
+
+使用 `slot="fallback"` 属性将占位内容添加为 Astro 组件的子组件。当群岛内容可用时，回退内容就会被替换。
+
+下面的示例将一个通用的头像作为回退内容，然后使用视图过渡动画转换为个性化头像：
+
+```astro
+<Avatar server:defer>
+  <svg slot="fallback" class="generic-avatar" transition:name="avatar">...</svg>
+</Avatar>
+```
+
+要全面了解并对这个实验性 API 提供反馈，请查看 [服务器群岛 RFC](https://github.com/withastro/roadmap/pull/963)。
