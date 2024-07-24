@@ -6,7 +6,7 @@ i18nReady: true
 ---
 import { Steps } from '@astrojs/starlight/components';
 
-你可以使用 [GitLab Pages](https://pages.gitlab.io/) 为你的 [GitLab](https://about.gitlab.com/) 项目、组或用户账号托管 Astro 网站。
+你可以使用 [GitLab Pages](https://docs.gitlab.com/ee/user/project/pages/) 为你的 [GitLab](https://about.gitlab.com/) 项目、组或用户账号托管 Astro 网站。
 
 :::tip[正在寻找示例？]
 看一看 [GitLab Pages 官方的 Astro 示例项目](https://gitlab.com/pages/astro)!
@@ -14,31 +14,81 @@ import { Steps } from '@astrojs/starlight/components';
 
 ## 如何部署
 
+你可以使用 GitLab CI/CD 来自动构建和部署站点，从而将 Astro 网站部署到 GitLab Pages。为此，你的源代码必须托管在 GitLab 上，并且需要对 Astro 项目进行以下更改：
+
 <Steps>
-1. 在 `astro.config.mjs` 文件中设置正确的 `site`。
+1. 在 `astro.config.mjs` 文件中设置 [`site`](/zh-cn/reference/configuration-reference/#site) 和 [`base`](/zh-cn/reference/configuration-reference/#base)。
 
-2. 将 `public/` 文件夹重命名为 `static`。
+    ```js title="astro.config.mjs" ins={4-5}
+    import { defineConfig } from 'astro/config';
 
-3. 在 `astro.config.mjs` 文件中设置 `outDir:public`。这会告诉 Astro 将静态构建输出放在 `public` 目录下，该目录是 GitLab Pages 指定的静态资源存放位置。
+    export default defineConfig({
+      site: 'https://<username>.gitlab.io',
+      base: '/<my-repo>',
+      outDir: 'public',
+      publicDir: 'static',
+    });
+    ```
+
+    `site`
+
+    `site` 的值必须是以下之一：
+
+    - 以下基于用户名的链接：`https://<username>.gitlab.io`
+    - 以下基于群组名的链接：`https://<groupname>.gitlab.io`
+    - 如果你在 GitLab 项目中配置了自定义域名: `https://example.com`
+
+    对于 GitLab 的自托管实例，请将 `gitlab.io` 替换为你实例的 Page 域名。
+
+    `base`
+
+    为了让 Astro 将你的仓库名（例如：`/my-repo`）视为网站的根目录，所以可能需要一个 `base` 的值。
+
+    :::note
+      如果你的页面是由根目录提供的，则不需要设置 `base` 参数。
+    :::
+
+    `base` 的值应该是诸如 `/my-blog` 这样以斜杠开头的仓库名称。这样 Astro 就能理解你网站的根目录是 `/my-repo`，而不是默认的 `/`。
+
+    :::caution
+        配置此值后，所有内部页面链接都必须以你的 `base` 值作为前缀：
+
+      ```astro ins="/my-repo"
+      <a href="/my-repo/about">关于</a>
+      ```
+
+    请参阅 [配置 `base` 的值](/zh-cn/reference/configuration-reference/#base)
+    :::
+
+
+2. 将 `public/` 目录重命名为 `static`。
+
+3. 在 `astro.config.js` 文件中，设置 `outDir: 'public'`。此设置指示 Astro 将静态构建输出放入 `public` 文件夹，这是 GitLab Pages 公开文件所需的文件夹。
 
    如果你在 Astro 项目中使用 [`public/` 目录](/zh-cn/basics/project-structure/#public) 存放静态资源，你需要重命名该目录，并在 `astro.config.mjs` 文件中将 `publicDir` 的值改为新的目录名。
 
    例如，当 `public/` 目录被重命名为 `static/`，正确的 `astro.config.mjs` 文件设置则如下：
 
-   ```js
+   ```js title="astro.config.mjs" ins={4-5}
    import { defineConfig } from 'astro/config';
-   
+
    export default defineConfig({
-     site: 'https://<user>.gitlab.io',
-     base: '/<project-name>',
      outDir: 'public',
      publicDir: 'static',
    });
    ```
 
-4. 在项目根目录下创建一个名为 `.gitlab-ci.yml` 的文件，文件内容如下。这样，每当你对项目内容作出更改，该文件便会自动构建并部署你的站点。
+4. 更改 `.gitignore` 文件中的构建输出。在我们的示例中，需要将 `dist/` 更改为 `public/`：
 
-    ```yaml
+    ```diff  title=".gitignore"
+    # 构建输出
+    -dist/
+    +public/
+    ```
+
+5. 在项目的根目录中创建一个名为 `.gitlab-ci.yml` 的文件，其中包含以下内容。每当你更改内容时，都会构建和部署网站：
+
+    ```yaml title=".gitlab-ci.yml"
     pages:
       # 用于构建你的应用的 Docker 镜像
       image: node:lts
@@ -60,4 +110,11 @@ import { Steps } from '@astrojs/starlight/components';
         # 触发新的构建和部署
         - main
     ```
+
+6. 提交你的更改并将其推送到 GitLab。
+
+7. 在 Gitlab 上，转到你仓库的 **Deploy** 菜单并选择 **Pages**。在这里你能看到 GitLab Pages 网站的完整 URL。要确保使用的是 `https://username.gitlab.io/my-repo` 这样的 URL 格式，请取消选中此页面上的 **Use unique domain** 设置。
+
 </Steps>
+
+你的网站现在应该可以发布了！当你将更改推送到 Astro 项目的仓库时，GitLab CI/CD 流水线将自动为你部署它们。
