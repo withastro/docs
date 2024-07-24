@@ -5,6 +5,7 @@ i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import { Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro';
 
 **Middleware** allows you to intercept requests and responses and inject behaviors dynamically every time a page or endpoint is about to be rendered. This rendering occurs at build time for all prerendered pages, but occurs when the route is requested for pages rendered on demand, making [additional SSR features like cookies and headers](/en/guides/server-side-rendering/#on-demand-rendering-features) available.
 
@@ -195,6 +196,56 @@ greeting response
 auth response
 validation response
 ```
+
+## Rewriting
+
+<Since v="4.13.0" />
+
+The `next` function optionally accept a parameter that allows to **rewrite** the current `Request`. For example, if a user isn't logged in, you could **rewrite** the current request without the need of a redirect:
+
+```js title="src/middleware.js"
+import { isLoggedIn } from "~/auth.js"
+export function onRequest (context, next) {
+  if (!isLoggedIn(context) {
+    // The user is not logged in, then we rewrite the current `Request` with a new one, and create an header
+    // The header will tell to the `/login` where the user should be sent after a successfully login.
+    return next(new Request("/login", {
+      headers: {
+        "x-redirect-to": context.url.pathname
+      }
+    }));
+  }
+
+  return next();
+};
+```
+
+The `next` function accepts the same payload of the [`Astro.redirect() function`](/en/reference/api-reference/#astrorewrite).
+
+In case you have multiple middleware functions chained via [sequence](#chaining-middleware), using `next("/")` with  a payload will rewrite the request **in place** which means that the next middleware function will receive the **new `Request`**:
+
+```js
+// This is the first middleware function that will be triggered by Astro 
+async function first(_, next) {
+  // Let's suppose the current URL is https://exmpale.com/blog
+  console.log(ctx.url.pathname) // this will log "/blog"
+  // We rewrite to a new route, the homepage 
+  return next("/")
+}
+
+// This is the second middleware function that will be triggered by Astro
+async function second(ctx, next) {
+  // `ctx` will contain new information, computed by the previous rewrite
+  console.log(ctx.url.pathname) // this will log  "/"    
+  return next()
+}
+
+export const onRequest = sequence(first, second);
+```
+
+:::caution
+Contrary to `Astro.redirect()`, `next(payload)` **won't** execute a new rendering phase, hence the middleware won't be called again.
+:::
 
 ## Error pages
 
