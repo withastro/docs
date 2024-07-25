@@ -401,7 +401,6 @@ The [canonical URL][canonical] of the current page.
 
 ### `Astro.rewrite()`
 
-
 <p><Since v="4.13.0" /></p>
 
 Allows you to serve content from a different URL or path without redirecting the browser to a new page. 
@@ -435,6 +434,11 @@ return Astro.rewrite(new Request(new URL("../", Astro.url), {
 }))
 ---
 ```
+
+The status code returned by the request will change based on the result of the rewrite. For example, if you call `Astro.rewrite("/foo/bar")`, but `/foo/bar` doesn't exist even though you have a dynamic route, Astro will return a `404` status code. 
+
+You can take advantage of this logic by conditionally return different status code. For example, for a certain user can't access certain routes, you can call `Astro.rewrite("/404")` and Astro will render the content of the 404 page (built-in or custom). 
+
 
 ### `Astro.url`
 
@@ -795,6 +799,51 @@ export function GET({ redirect }: APIContext) {
 ```
 
 See also: [`Astro.redirect()`](#astroredirect)
+
+
+<p><Since v="4.13.0" /></p>
+
+Allows you to serve content from a different URL or path without redirecting the browser to a new page. 
+
+The method accepts either a string, a `URL`, or a `Request` for the location of the path.
+
+Use a string to provide an explicit path:
+
+```ts
+import type { APIContext } from 'astro';
+
+export function GET({ rewrite }: APIContext) {
+  return rewrite('/login');
+}
+```
+
+Use a `URL` type when you need to construct the URL path for the rewrite. The following example renders a page's parent path by creating a new URL from the relative  `"../"` path:
+
+```ts
+import type { APIContext } from 'astro';
+
+export function GET({ rewrite }: APIContext) {
+  return rewrite(new URL("../", Astro.url));
+}
+```
+
+Use a `Request` type for complete control of the `Request` sent to the server for the new path. The following example sends a request to render the parent page while also providing headers:
+
+```ts
+import type { APIContext } from 'astro';
+
+export function GET({ rewrite }: APIContext) {
+  return rewrite(new Request(new URL("../", Astro.url), {
+   headers: {
+     "x-custom-header": JSON.stringify(Astro.locals.someValue)
+   }
+ }));
+}
+```
+
+The status code returned by the request will change based on the result of the rewrite. For example, if you call `context.rewrite("/foo/bar")`, but `/foo/bar` doesn't exist even though you have a dynamic route, Astro will return a `404` status code. 
+
+You can take advantage of this logic by conditionally return different status code. For example, for a certain user can't access certain routes, you can call `context.rewrite("/404")` and Astro will render the content of the 404 page (built-in or custom). 
 
 ### `context.locals`
 
@@ -1429,6 +1478,9 @@ A function that intercepts (reads and modifies) the `Response` of a `Request` or
 
 This is an optional argument of `onRequest()`, and may provide the required `Response` returned by the middleware.
 
+<Since v="4.13.0" />
+
+It accepts, optionally, a string, `URL`, or `Request` to trigger a [rewrite](/en/guides/routing/#rewrites) of the current request.  
 
 ### `sequence()`
 
