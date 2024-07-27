@@ -1,9 +1,11 @@
 import { NavDictionary } from '../translation-checkers';
 
 export default NavDictionary({
+	welcomeWorld: 'Bem-vindo, Mundo!',
 	startHere: 'Comece Aqui',
 	'getting-started': 'Introdução',
 	install: 'Instalação',
+	'install-and-setup': 'Instalação e Configuração',
 	'editor-setup': 'Configuração do Editor',
 	'upgrade-astro': 'Atualize o Astro',
 
@@ -23,6 +25,21 @@ export default NavDictionary({
 	'basics/rendering-modes': 'Modos de Renderização',
 
 	'guides/dev-toolbar': 'Barra de Ferramentas de Desenvolvimento',
+
+	content: 'Gerencie seu Conteúdo',
+	'guides/content': 'Criando Conteúdo',
+	'guides/rss': 'Adicione um feed RSS',
+
+	routes: 'Rotas e Navegação',
+	'guides/internationalization': 'Internacionalização',
+
+	assets: 'Recursos',
+
+	data: 'Conecte com Dados',
+
+	clientSide: 'Interatividade no Lado do Cliente',
+
+	maintain: 'Mantendo seu Projeto',
 
 	examples: 'Receitas',
 	'guides/migrate-to-astro': 'Migre para o Astro',
@@ -70,6 +87,10 @@ export default NavDictionary({
 	'reference/cli-reference': 'A CLI do Astro',
 	'reference/error-reference': 'Referência de Erros',
 	'guides/publish-to-npm': 'Publique no NPM',
+
+	dev: 'Outras APIs de desenvolvimento',
+	'reference/dev-toolbar-app-reference': 'Barra de Ferramentas de Desenvolvimento',
+	'reference/container-reference': 'API Container (Experimental)',
 
 	communityResources: 'Conteúdos da Comunidade',
 	'community-resources/content': 'Cursos, Guias, e Receitas',
