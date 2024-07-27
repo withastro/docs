@@ -8,7 +8,6 @@ export default NavDictionary({
 	'guides/migrate-to-astro': 'Migre para o Astro',
 	'blog-tutorial': 'Construa um Blog',
 
-
 	coreConcepts: 'Principais Conceitos',
 	'concepts/why-astro': 'Por que Astro?',
 	'concepts/islands': 'Ilhas Astro',
@@ -66,7 +65,7 @@ export default NavDictionary({
 	configuration: 'Configuração',
 	'guides/configuring-astro': 'O Arquivo de Configuração Astro',
 	'guides/aliases': 'Atalhos de Importação',
-	
+
 	reference: 'Referência',
 	'reference/configuration-reference': 'Configuração',
 	'reference/api-reference': 'API de Runtime',
@@ -74,7 +73,7 @@ export default NavDictionary({
 	'reference/directives-reference': 'Diretivas de Template',
 	'guides/typescript': 'TypeScript',
 	'reference/error-reference': 'Referência de Erros',
-	
+
 	dev: 'Outras APIs de desenvolvimento',
 	'reference/integrations-reference': 'API de Integrações',
 	'reference/adapter-reference': 'API de Adaptadores',
