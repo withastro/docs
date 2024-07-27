@@ -59,13 +59,6 @@ export default NavDictionary({
 	'guides/testing': 'Testes',
 	'guides/troubleshooting': 'Solução de Problemas',
 
-	features: 'Guias',
-	'guides/server-side-rendering': 'Adaptadores SSR',
-
-	configuration: 'Configuração',
-	'guides/configuring-astro': 'O Arquivo de Configuração Astro',
-	'guides/aliases': 'Atalhos de Importação',
-
 	reference: 'Referência',
 	'reference/configuration-reference': 'Configuração',
 	'reference/api-reference': 'API de Runtime',
