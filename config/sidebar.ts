@@ -20,9 +20,13 @@ function getTranslations(item: NavDict[number]): Record<string, string> | undefi
 
 type StarlightSidebarConfig = NonNullable<Parameters<typeof starlight>[0]['sidebar']>;
 
+type SidebarItem = Parameters<typeof starlight>[0]['sidebar']
+
 /** Generate a Starlight sidebar config object from our existing `nav.ts` files. */
 export function makeSidebar(): StarlightSidebarConfig {
-	let currentSubGroup: Extract<StarlightSidebarConfig[number], { items: any }>;
+	let currentSubGroup:
+		| Extract<StarlightSidebarConfig[number], { items: SidebarItem }>
+		| undefined;
 	return navTranslations.en.reduce((sidebar, item) => {
 		if ('header' in item) {
 			const newGroup = {
@@ -41,7 +45,7 @@ export function makeSidebar(): StarlightSidebarConfig {
 			}
 			currentSubGroup = newGroup;
 		} else {
-			currentSubGroup.items.push({
+			currentSubGroup?.items.push({
 				label: item.text,
 				link: item.slug,
 				translations: getTranslations(item),
