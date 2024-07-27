@@ -6,13 +6,13 @@ export default NavDictionary({
 	'install-and-setup': 'Instalação e Configuração',
 	'guides/deploy': 'Faça deploy do seu site',
 	'guides/migrate-to-astro': 'Migre para o Astro',
-	'blog-tutorial': 'Construa um Blog',
+	'blog-tutorial': 'Tutorial: Construa um Blog',
 
 	coreConcepts: 'Principais Conceitos',
 	'concepts/why-astro': 'Por que Astro?',
 	'concepts/islands': 'Ilhas Astro',
 
-	basics: 'Fundamentos',
+	basics: 'Aprenda os Fundamentos',
 	'basics/project-structure': 'Estrutura de Projetos',
 	'basics/astro-components': 'Componentes',
 	'basics/astro-pages': 'Páginas',
@@ -20,7 +20,7 @@ export default NavDictionary({
 	'basics/astro-syntax': 'Sintaxe do Astro',
 	'basics/rendering-modes': 'Modos de Renderização',
 	'guides/imports': 'Importações',
-	'guides/integrations-guide': 'Adicione integrações',
+	'guides/integrations-guide': 'Integrações',
 
 	content: 'Gerencie seu Conteúdo',
 	'guides/content': 'Criando Conteúdo',
@@ -35,7 +35,7 @@ export default NavDictionary({
 	'guides/prefetch': 'Pré-carregamento',
 	'guides/middleware': 'Middleware',
 	'guides/internationalization': 'Internacionalização',
-	'guides/view-transitions': 'Transições de Visualização',
+	'guides/view-transitions': 'Transições entre Páginas',
 
 	assets: 'Recursos',
 	'guides/styling': 'Estilização e CSS',
