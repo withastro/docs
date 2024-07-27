@@ -2,20 +2,16 @@ import { NavDictionary } from '../translation-checkers';
 
 export default NavDictionary({
 	welcomeWorld: 'Bem-vindo, Mundo!',
-	startHere: 'Comece Aqui',
 	'getting-started': 'Introdução',
-	install: 'Instalação',
 	'install-and-setup': 'Instalação e Configuração',
 	'guides/deploy': 'Faça deploy do seu site',
 	'guides/migrate-to-astro': 'Migre para o Astro',
 	'blog-tutorial': 'Construa um Blog',
-	'editor-setup': 'Configuração do Editor',
+
 
 	coreConcepts: 'Principais Conceitos',
 	'concepts/why-astro': 'Por que Astro?',
 	'concepts/islands': 'Ilhas Astro',
-
-	tutorials: 'Tutoriais',
 
 	basics: 'Fundamentos',
 	'basics/project-structure': 'Estrutura de Projetos',
@@ -26,8 +22,6 @@ export default NavDictionary({
 	'basics/rendering-modes': 'Modos de Renderização',
 	'guides/imports': 'Importações',
 	'guides/integrations-guide': 'Adicione integrações',
-
-	'guides/dev-toolbar': 'Barra de Ferramentas de Desenvolvimento',
 
 	content: 'Gerencie seu Conteúdo',
 	'guides/content': 'Criando Conteúdo',
@@ -66,9 +60,6 @@ export default NavDictionary({
 	'guides/testing': 'Testes',
 	'guides/troubleshooting': 'Solução de Problemas',
 
-	examples: 'Receitas',
-	'guides/recipes': 'Mais Receitas',
-
 	features: 'Guias',
 	'guides/server-side-rendering': 'Adaptadores SSR',
 
@@ -83,7 +74,6 @@ export default NavDictionary({
 	'reference/directives-reference': 'Diretivas de Template',
 	'guides/typescript': 'TypeScript',
 	'reference/error-reference': 'Referência de Erros',
-	'guides/publish-to-npm': 'Publique no NPM',
 	
 	dev: 'Outras APIs de desenvolvimento',
 	'reference/integrations-reference': 'API de Integrações',
