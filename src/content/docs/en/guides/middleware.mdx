@@ -203,6 +203,23 @@ validation response
 
 The `APIContext` exposes a method called `rewrite`, which works the same way as [Astro.rewrite](/en/guides/routing/#rewrites).
 
+```js title="src/middleware.js"
+import { isLoggedIn } from "~/auth.js"
+export function onRequest (context, next) {
+  if (!isLoggedIn(context) {
+    // If the user is not logged in, update the Request to render the `/login` route and
+    // add header to indicate where the user should be sent after a successful login.
+    return context.rewrite(new Request("/login", {
+      headers: {
+        "x-redirect-to": context.url.pathname
+      }
+    }));
+  }
+
+  return next();
+};
+```
+
 The `next` function optionally accept a parameter that allows to **rewrite** the current `Request`. For example, if a user isn't logged in, you could **rewrite** the current request without the need of a redirect:
 
 ```js title="src/middleware.js"
@@ -224,7 +241,7 @@ export function onRequest (context, next) {
 
 The `next` function accepts the same payload of the [`Astro.rewrite() function`](/en/reference/api-reference/#astrorewrite). The location of the rewrite path can be provided as a string, URL, or `Request`.
 
-When you have multiple middleware functions chained via [sequence()](#chaining-middleware), submitting a path to `next()` will rewrite the `Request` in place. The next middleware function in the chain will receive the new `Request`:
+When you have multiple middleware functions chained via [sequence()](#chaining-middleware), submitting a path to `next()` will rewrite the `Request` in place and **it _won't_ execute again the middleware**. The next middleware function in the chain will receive the new `Request`:
 
 ```js title="src/middleware.js"
 // Current URL is https://example.com/blog
@@ -249,8 +266,6 @@ async function second(ctx, next) {
 export const onRequest = sequence(first, second);
 ```
 
-:::caution
-:::
 
 ## Error pages
 
