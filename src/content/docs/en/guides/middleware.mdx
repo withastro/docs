@@ -199,9 +199,11 @@ validation response
 
 ## Rewriting
 
-<Since v="4.13.0" />
+<p><Since v="4.13.0" /></p>
 
-The `APIContext` exposes a method called `rewrite`, which works the same way as [Astro.rewrite](/en/guides/routing/#rewrites).
+The `APIContext` exposes a method called `rewrite()` which works the same way as [Astro.rewrite](/en/guides/routing/#rewrites).
+
+Use `context.rewrite()` inside middleware to display a different page's content without [redirecting](/en/guides/routing/#dynamic-redirects) your visitor to a new page. This will trigger a new rendering phase, causing any middleware to be re-executed.
 
 ```js title="src/middleware.js"
 import { isLoggedIn } from "~/auth.js"
@@ -209,6 +211,7 @@ export function onRequest (context, next) {
   if (!isLoggedIn(context) {
     // If the user is not logged in, update the Request to render the `/login` route and
     // add header to indicate where the user should be sent after a successful login.
+    // Re-execute middleware. CHECK THIS IS TRUE/THE POINT!!
     return context.rewrite(new Request("/login", {
       headers: {
         "x-redirect-to": context.url.pathname
@@ -220,7 +223,7 @@ export function onRequest (context, next) {
 };
 ```
 
-The `next` function optionally accept a parameter that allows to **rewrite** the current `Request`. For example, if a user isn't logged in, you could **rewrite** the current request without the need of a redirect:
+You can also pass the `next()` function an optional URL path parameter to rewrite the current `Request` without retriggering a new rendering phase. The location of the rewrite path can be provided as a string, URL, or `Request`:
 
 ```js title="src/middleware.js"
 import { isLoggedIn } from "~/auth.js"
@@ -228,6 +231,7 @@ export function onRequest (context, next) {
   if (!isLoggedIn(context) {
     // If the user is not logged in, update the Request to render the `/login` route and
     // add header to indicate where the user should be sent after a successful login.
+    // Return a new `context` to any following middlewares. CHECK THIS IS TRUE/THE POINT!!
     return next(new Request("/login", {
       headers: {
         "x-redirect-to": context.url.pathname
@@ -239,7 +243,7 @@ export function onRequest (context, next) {
 };
 ```
 
-The `next` function accepts the same payload of the [`Astro.rewrite() function`](/en/reference/api-reference/#astrorewrite). The location of the rewrite path can be provided as a string, URL, or `Request`.
+The `next()` function accepts the same payload of [the `Astro.rewrite() function`](/en/reference/api-reference/#astrorewrite). The location of the rewrite path can be provided as a string, URL, or `Request`.
 
 When you have multiple middleware functions chained via [sequence()](#chaining-middleware), submitting a path to `next()` will rewrite the `Request` in place and the middleware will not execute again. The next middleware function in the chain will receive the new `Request` with its updated `context`:
 
@@ -265,7 +269,6 @@ async function second(ctx, next) {
 
 export const onRequest = sequence(first, second);
 ```
-
 
 ## Error pages
 
