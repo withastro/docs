@@ -9,7 +9,7 @@ import ReadMore from '~/components/ReadMore.astro'
 
 认证和授权是两种安全过程，用来管理对你的网站或应用的访问。身份认证用于验证访客的身份，而授权则允许访问受保护的区域和资源。
 
-认证允许你为登录的个人定制你的网站的特定区域，并为个人或私人信息提供最大程度的保护。认证库（例如 [Lucia Auth](https://lucia-auth.com/)、[Auth.js](https://authjs.dev/)）为多种认证方法提供了实用工具，如电子邮件登录和 OAuth 提供商。
+认证允许你为登录的个人定制你的网站的特定区域，并为个人或私人信息提供最大程度的保护。认证库（例如 [Lucia Auth](https://lucia-auth.com/)、[Auth.js](https://authjs.dev/)、[Clerk](https://clerk.com)）为多种认证方法提供了实用工具，如电子邮件登录和 OAuth 提供商。
 
 :::tip
 Astro 没有官方的认证解决方案，但你可以在集成目录中找到 [社区的“auth”集成](https://astro.build/integrations/?search=auth)。
@@ -187,6 +187,77 @@ const session = await getSession(Astro.request);
 
 - [GitHub 上的 `auth-astro`](https://github.com/nowaythatworked/auth-astro?tab=readme-ov-file#auth-astro)
 - [Auth.js 文档](https://authjs.dev/)
+
+## Clerk
+
+Clear 是一套完整的系统，他拥有嵌入式 UI、灵活的 API 以及用于验证和管理用户的仪表盘。[Astro 的官方 Clerk SDK](https://clerk.com/docs/references/astro/overview) 现已推出。
+
+### 安装
+
+使用你选择的包管理器安装 `@clerk/astro`。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @clerk/astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @clerk/astro
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @clerk/astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### 配置
+
+按照 [Clerk 自己的 Astro 快速入门指南](https://clerk.com/docs/quickstarts/astro) 在你的 Astro 项目中设置 Clerk 集成和中间件。
+
+### 使用方法
+
+Clerk 提供的组件允许你根据用户的身份验证状态控制页面的可见性。向已注销的用户显示登录按钮，而不是向已登录的用户显示可用的内容：
+
+```astro title="src/pages/index.astro"
+---
+import Layout from 'src/layouts/Base.astro';
+import { SignedIn, SignedOut, UserButton, SignInButton } from '@clerk/astro/components';
+---
+<Layout>
+    <SignedIn>
+        <UserButton />
+    </SignedIn>
+    <SignedOut>
+        <SignInButton />
+    </SignedOut>
+</Layout>
+```
+
+Clerk 还允许你使用中间件以保护服务器上的路由。指定受保护的路由，并提示未经身份验证的用户登录：
+
+```ts title="src/middleware.ts"
+import { clerkMiddleware, createRouteMatcher } from '@clerk/astro/server';
+
+const isProtectedRoute = createRouteMatcher([
+  '/dashboard(.*)',
+  '/forum(.*)',
+]);
+
+export const onRequest = clerkMiddleware((auth, context) => {
+  if (!auth().userId && isProtectedRoute(context.request)) {
+    return auth().redirectToSignIn();
+  }
+});
+```
+
+### 下一步
+
+- 阅读 [官方 `@clerk/astro` 文档](https://clerk.com/docs/references/astro/overview)
+- 从 [Clerk + Astro 快速入门项目](https://github.com/clerk/clerk-astro-quickstart) 的模板开始
 
 ## 社区资源
 
