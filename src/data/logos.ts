@@ -9,6 +9,7 @@ export const logos = LogoCheck({
 	buddy: { file: 'buddy.svg', padding: '.1625em' },
 	cleavr: { file: 'cleavr.svg', padding: '0.125em 0.125em 0.1375em' },
 	cloudflare: { file: 'cloudflare-pages.svg', padding: '.1875em' },
+	'craft-cms': { file: 'craft-cms.svg', padding: '.225em' },
 	crystallize: { file: 'crystallize.svg', padding: '.1875em' },
 	'create-react-app': { file: 'create-react-app.svg', padding: '.1875em' },
 	datocms: { file: 'datocms.svg', padding: '0.25em 0.25em 0.25em 0.3em' },
