@@ -24,7 +24,7 @@ export default NavDictionary({
 
 	content: 'Gerencie seu Conteúdo',
 	'guides/content': 'Criando Conteúdo',
-	'guides/markdown-content': 'Markdown e MDX',
+	'guides/markdown-content': 'Markdown',
 	'guides/content-collections': 'Coleções de Conteúdo',
 	'guides/cms': 'Conecte um CMS',
 	'guides/rss': 'Adicione um feed RSS',
