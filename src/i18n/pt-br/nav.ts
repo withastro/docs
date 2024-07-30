@@ -42,7 +42,7 @@ export default NavDictionary({
 	'guides/images': 'Imagens',
 	'guides/fonts': 'Fontes',
 
-	data: 'Conecte com Dados',
+	data: 'Conecte seus Dados',
 	'guides/data-fetching': 'Busca de Dados',
 	'guides/astro-db': 'Astro DB',
 	'guides/backend': 'Adicione serviços de backend',
