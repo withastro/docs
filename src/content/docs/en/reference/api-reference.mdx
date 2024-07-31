@@ -372,11 +372,17 @@ Allows customizing how the cookie is serialized.
 
 ### `Astro.redirect()`
 
-Allows you to redirect to another page, and optionally provide an [HTTP response status code](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status) as a second parameter.
+**Type:** `(path: string, status?: number) => Response`
+
+Allows you to redirect to another page, and optionally provide an [HTTP response status code](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages) as a second parameter.
 
 A page (and not a child component) must `return` the result of `Astro.redirect()` for the redirect to occur.
 
-The following example redirects a user to a login page, using the default HTTP response status code 302:
+For statically-generated sites, this will produce a client redirect using a [`<meta http-equiv="refresh">` tag](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#http-equiv) and does not support status codes.
+
+When using an on-demand rendering mode, status codes are supported. Astro will serve redirected requests with a default HTTP response status of `302` unless another code is specified.
+
+The following example redirects a user to a login page:
 
 ```astro title="src/pages/account.astro" {8}
 ---
@@ -530,6 +536,18 @@ import Shout from "../components/Shout.astro";
 
 <!-- renders as <div>SLOTS!</div> -->
 ```
+
+Callback functions can be passed to named slots inside a wrapping HTML element tag with a `slot` attribute. This element is only used to transfer the callback to a named slot and will not be rendered onto the page.
+
+```astro
+<Shout message="slots!">
+  <fragment slot="message">
+    {(message) => <div>{message}</div>}
+  </fragment>
+</Shout>
+```
+
+Use a standard HTML element for the wrapping tag, or any lower case tag (e.g. `<fragment>` instead of `<Fragment />`) that will not be interpreted as a component.  Do not use the HTML `<slot>` element as this will be interpreted as an Astro slot.
 
 ### `Astro.self`
 
@@ -1006,6 +1024,22 @@ Get the URL of the previous page (will be `undefined` if on page 1). If a value 
 </p>
 
 Get the URL of the next page (will be `undefined` if no more pages). If a value is set for [`base`](/en/reference/configuration-reference/#base), prepend the base path to the URL.
+
+##### `page.url.first`
+
+<p>
+**Type:** `string | undefined`
+</p>
+
+Get the URL of the first page (will be `undefined` if on page 1). If a value is set for [`base`](/en/reference/configuration-reference/#base), prepend the base path to the URL.
+
+##### `page.url.last`
+
+<p>
+**Type:** `string | undefined`
+</p>
+
+Get the URL of the last page (will be `undefined` if no more pages). If a value is set for [`base`](/en/reference/configuration-reference/#base), prepend the base path to the URL.
 
 ## `import.meta`
 
@@ -1699,9 +1733,15 @@ import { Code } from 'astro:components';
   <Code code={`const foo = 'bar';`} lang="js" inline />
   will be rendered inline.
 </p>
+<!-- Optional: defaultColor -->
+<Code code={`const foo = 'bar';`} lang="js" defaultColor={false} />
 ```
 
-This component provides syntax highlighting for code blocks at build time (no client-side JavaScript included). The component is powered internally by Shiki and it supports all popular [themes](https://shiki.style/themes) and [languages](https://shiki.style/languages). Plus, you can add your custom themes, languages, and [transformers](#transformers) by passing them to the `theme`, `lang`, and `transformers` attributes respectively.
+This component provides syntax highlighting for code blocks at build time (no client-side JavaScript included). The component is powered internally by Shiki and it supports all popular [themes](https://shiki.style/themes) and [languages](https://shiki.style/languages). Plus, you can add your custom themes, languages, [transformers](#transformers), and [default colors](https://shiki.style/guide/dual-themes#without-default-color) by passing them to the `theme`, `lang`, `transformers`, and `defaultColor` attributes respectively.
+
+:::note
+This component **does not** inherit the settings from your [Shiki configuration](/en/guides/markdown-content/#shiki-configuration). You will have to set them using the component props.
+:::
 
 #### Transformers
 

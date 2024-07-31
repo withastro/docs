@@ -1245,6 +1245,106 @@ Astro 提供了实验性标志，以便用户提前使用新功能。这些标�
 }
 ```
 
+### experimental.actions
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `false`<br />
+<Since v="4.8.0" />
+</p>
+
+Actions 可以帮助你编写可从任何地方调用的类型安全的后端函数。[使用 `output` 属性](/zh-cn/basics/rendering-modes/#按需渲染) 启用服务端渲染并在 `experimental` 对象中添加 `actions` 标志：
+
+```js
+{
+  output: 'hybrid', // 或 'server'
+  experimental: {
+    actions: true,
+  },
+}
+```
+
+在 `src/actions/index.ts` 中声明所有的 action。这个文件是全局的 action 处理函数。
+
+使用 `astro:actions` 模块中的 `defineAction()` 工具定义一个 action。Action 接受 `handler` 属性来定义你的服务端请求处理函数。如果你的 action 接受参数，使用 `input` 属性通过 Zod 对参数进行校验。
+
+此示例定义了两个 action：`like` 和 `comment`。`like` 接受一个包含 `postId` 字符串的 JSON 对象，而 `comment` 接受包含 `postId`、`author` 和 `body` 字符串的 [FormData](https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest_API/Using_FormData_Objects)。每个 `handler` 更新你的数据库并返回一个类型安全的响应。
+
+```ts
+// src/actions/index.ts
+import { defineAction, z } from "astro:actions";
+
+export const server = {
+  like: defineAction({
+    input: z.object({ postId: z.string() }),
+    handler: async ({ postId }) => {
+      // 更新数据库中的点赞
+
+      return likes;
+    },
+  }),
+  comment: defineAction({
+		 accept: 'form',
+    input: z.object({
+      postId: z.string(),
+      author: z.string(),
+      body: z.string(),
+    }),
+    handler: async ({ postId }) => {
+      // 在数据库中插入评论
+
+      return comment;
+    },
+  }),
+};
+```
+
+然后，使用来自 `astro:actions` 的 `actions` 对象从你的客户端组件调用一个 action。当使用 JSON 时，你可以传递一个类型安全的对象，或者当在你的 action 定义中使用 `accept: 'form'` 时，传递一个 [FormData](https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest_API/Using_FormData_Objects) 对象：
+
+这个例子展示了如何从 React 组件中调用`like` 和 `comment` action：
+
+```tsx "actions"
+// src/components/blog.tsx
+import { actions } from "astro:actions";
+import { useState } from "react";
+
+export function Like({ postId }: { postId: string }) {
+  const [likes, setLikes] = useState(0);
+  return (
+    <button
+      onClick={async () => {
+        const newLikes = await actions.like({ postId });
+        setLikes(newLikes);
+      }}
+    >
+      {likes} likes
+    </button>
+  );
+}
+
+export function Comment({ postId }: { postId: string }) {
+  return (
+    <form
+      onSubmit={async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target as HTMLFormElement);
+        const result = await actions.blog.comment(formData);
+        // 处理结果
+      }}
+    >
+      <input type="hidden" name="postId" value={postId} />
+      <label htmlFor="author">Author</label>
+      <input id="author" type="text" name="author" />
+      <textarea rows={10} name="body"></textarea>
+      <button type="submit">Post</button>
+    </form>
+  );
+}
+```
+
+要全面了解并对这个实验性 API 提供反馈，请查看 [Actions RFC](https://github.com/withastro/roadmap/blob/actions/proposals/0046-actions.md)。
+
 ### experimental.contentCollectionCache
 
 <p>
@@ -1347,106 +1447,6 @@ export default defineConfig({
 
 查看 [预获取指南](/zh-cn/guides/prefetch/) 以获取更多 `prefetch` 选项和使用方法。
 
-### experimental.actions
-
-<p>
-
-**类型：** `boolean`<br />
-**默认值：** `false`<br />
-<Since v="4.8.0" />
-</p>
-
-Actions 可以帮助你编写可从任何地方调用的类型安全的后端函数。[使用 `output` 属性](/zh-cn/basics/rendering-modes/#按需渲染) 启用服务端渲染并在 `experimental` 对象中添加 `actions` 标志：
-
-```js
-{
-  output: 'hybrid', // 或 'server'
-  experimental: {
-    actions: true,
-  },
-}
-```
-
-在 `src/actions/index.ts` 中声明所有的 action。这个文件是全局的 action 处理函数。
-
-使用 `astro:actions` 模块中的 `defineAction()` 工具定义一个 action。Action 接受 `handler` 属性来定义你的服务端请求处理函数。如果你的 action 接受参数，使用 `input` 属性通过 Zod 对参数进行校验。
-
-此示例定义了两个 action：`like` 和 `comment`。`like` 接受一个包含 `postId` 字符串的 JSON 对象，而 `comment` 接受包含 `postId`、`author` 和 `body` 字符串的 [FormData](https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest_API/Using_FormData_Objects)。每个 `handler` 更新你的数据库并返回一个类型安全的响应。
-
-```ts
-// src/actions/index.ts
-import { defineAction, z } from "astro:actions";
-
-export const server = {
-  like: defineAction({
-    input: z.object({ postId: z.string() }),
-    handler: async ({ postId }) => {
-      // 更新数据库中的点赞
-
-      return likes;
-    },
-  }),
-  comment: defineAction({
-		 accept: 'form',
-    input: z.object({
-      postId: z.string(),
-      author: z.string(),
-      body: z.string(),
-    }),
-    handler: async ({ postId }) => {
-      // 在数据库中插入评论
-
-      return comment;
-    },
-  }),
-};
-```
-
-然后，使用来自 `astro:actions` 的 `actions` 对象从你的客户端组件调用一个 action。当使用 JSON 时，你可以传递一个类型安全的对象，或者当在你的 action 定义中使用 `accept: 'form'` 时，传递一个 [FormData](https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest_API/Using_FormData_Objects) 对象：
-
-这个例子展示了如何从 React 组件中调用`like` 和 `comment` action：
-
-```tsx "actions"
-// src/components/blog.tsx
-import { actions } from "astro:actions";
-import { useState } from "react";
-
-export function Like({ postId }: { postId: string }) {
-  const [likes, setLikes] = useState(0);
-  return (
-    <button
-      onClick={async () => {
-        const newLikes = await actions.like({ postId });
-        setLikes(newLikes);
-      }}
-    >
-      {likes} likes
-    </button>
-  );
-}
-
-export function Comment({ postId }: { postId: string }) {
-  return (
-    <form
-      onSubmit={async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target as HTMLFormElement);
-        const result = await actions.blog.comment(formData);
-        // 处理结果
-      }}
-    >
-      <input type="hidden" name="postId" value={postId} />
-      <label htmlFor="author">Author</label>
-      <input id="author" type="text" name="author" />
-      <textarea rows={10} name="body"></textarea>
-      <button type="submit">Post</button>
-    </form>
-  );
-}
-```
-
-要全面了解并对这个实验性 API 提供反馈，请查看 [Actions RFC](https://github.com/withastro/roadmap/blob/actions/proposals/0046-actions.md)。
-
 ### experimental.globalRoutePriority
 
 <p>
@@ -1523,7 +1523,7 @@ export function GET(ctx) {
 // src/middleware.js
 export function onRequest(ctx, next) {
 	if (!ctx.cookies.get("allowed")) {
-		return next("/") // new signature
+		return next("/") // 新签名
 	}
 	return next();
 }
@@ -1546,16 +1546,16 @@ export function onRequest(ctx, next) {
 
 ```astro
 ---
-import { PUBLIC_APP_ID } from "astro:env/client"
-import { PUBLIC_API_URL, getSecret } from "astro:env/server"
-const API_TOKEN = getSecret("API_TOKEN")
-const data = await fetch(`${PUBLIC_API_URL}/users`, {
+import { APP_ID } from "astro:env/client"
+import { API_URL, API_TOKEN, getSecret } from "astro:env/server"
+const NODE_ENV = getSecret("NODE_ENV")
+const data = await fetch(`${API_URL}/users`, {
 	method: "POST",
 	headers: {
 		"Content-Type": "application/json",
 		"Authorization": `Bearer ${API_TOKEN}`
 	},
-	body: JSON.stringify({ appId: PUBLIC_APP_ID })
+	body: JSON.stringify({ appId: APP_ID, nodeEnv: NODE_ENV })
 })
 ---
 ```
@@ -1570,8 +1570,8 @@ export default defineConfig({
     experimental: {
         env: {
             schema: {
-                PUBLIC_API_URL: envField.string({ context: "client", access: "public", optional: true }),
-                PUBLIC_PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+                API_URL: envField.string({ context: "client", access: "public", optional: true }),
+                PORT: envField.number({ context: "server", access: "public", default: 4321 }),
                 API_SECRET: envField.string({ context: "server", access: "secret" }),
             }
         }
@@ -1586,21 +1586,20 @@ export default defineConfig({
 - **公开客户端变量**：这些变量最终会出现在你的客户端和服务端包中，并且可以通过 `astro:env/client` 模块在客户端和服务端访问：
 
     ```js
-    import { PUBLIC_API_URL } from "astro:env/client"
+    import { API_URL } from "astro:env/client"
     ```
 
 - **公开服务端变量**：这些变量最终会出现在你的最终服务端包中，并且可以通过 `astro:env/server` 模块在服务端访问：
 
     ```js
-    import { PUBLIC_PORT } from "astro:env/server"
+    import { PORT } from "astro:env/server"
     ```
 
 - **秘密服务端变量**：这些变量不会包含在你的最终包中，可以通过 `astro:env/server` 模块提供的 `getSecret()` 助手函数在服务端访问：
 
     ```js
-    import { getSecret } from "astro:env/server"
+    import { API_SECRET, getSecret } from "astro:env/server"
 
-    const API_SECRET = getSecret("API_SECRET") // 定义的类型
     const SECRET_NOT_IN_SCHEMA = getSecret("SECRET_NOT_IN_SCHEMA") // string | undefined
     ```
 
@@ -1626,11 +1625,103 @@ export default defineConfig({
   experimental: {
     env: {
       schema: {
-        PUBLIC_API_URL: envField.string({ context: "client", access: "public", optional: true }),
-        PUBLIC_PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+        API_URL: envField.string({ context: "client", access: "public", optional: true }),
+        PORT: envField.number({ context: "server", access: "public", default: 4321 }),
         API_SECRET: envField.string({ context: "server", access: "secret" }),
       }
     }
   }
 })
 ```
+
+#### experimental.env.validateSecrets
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `false`<br />
+<Since v="4.11.6" />
+</p>
+
+是否在启动开发服务器或运行构建时验证服务器上的机密。
+
+默认情况下，在启动开发服务器或构建时，服务器上只会验证公有变量，而私有变量只会在运行时被验证。如果启用该功能，启动时也会检查私有变量。这在某些持续集成（CI）管道中非常有用，可以确保在部署前正确设置所有机密。
+
+```js
+// astro.config.mjs
+import { defineConfig, envField } from "astro/config"
+
+export default defineConfig({
+  experimental: {
+    env: {
+      schema: {
+        // ...
+      },
+      validateSecrets: true
+    }
+  }
+})
+```
+
+### experimental.serverIslands
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `false`<br />
+<Since v="4.12.0" />
+</p>
+
+启用实验性的服务器群岛功能。
+服务器群岛提供了在页面渲染完成后异步延迟渲染组件的功能。
+
+要启用该功能，请使用适配器配置为 [在服务器上按需渲染的 `output` 模式](/zh-cn/basics/rendering-modes/#按需渲染)，并在 `experimental` 对象中添加 `serverIslands` 标志：
+
+```js
+{
+  output: 'hybrid', // 或是 'server'
+  adapter: nodejs({ mode: 'standalone' }),
+  experimental: {
+    serverIslands: true,
+  },
+}
+```
+
+在任意 Astro 组件上使用 `server:defer` 的指令，来延迟初始化渲染：
+
+```astro "server:defer"
+---
+import Avatar from '~/components/Avatar.astro';
+---
+<Avatar server:defer />
+```
+
+外部页面将在构建时（`hybrid`）或是在运行时（`server`）渲染，它会省去群岛内容，而以 `<script>` 标签来代替其位置。
+
+页面在浏览器中加载完后，script 标签将通过请求用群岛内容替换掉自己。
+
+任意 Astro 组件都可以被赋予 `server:defer` 的属性来延迟渲染。没有特殊的 API，你可以像往常一样编写 `.astro` 代码：
+
+```astro
+---
+import { getUser } from '../api';
+const user = await getUser(Astro.locals.userId);
+---
+<img class="avatar" src={user.imageUrl}>
+```
+
+#### 服务器群岛的回退内容
+
+由于你的组件不会与页面的其他部分一起渲染，因此可能需要添加通用内容（例如：加载中）以临时显示在该位置。这些内容将在页面上群岛加载之前的首次渲染时显示。
+
+使用 `slot="fallback"` 属性将占位内容添加为 Astro 组件的子组件。当群岛内容可用时，回退内容就会被替换。
+
+下面的示例将一个通用的头像作为回退内容，然后使用视图过渡动画转换为个性化头像：
+
+```astro
+<Avatar server:defer>
+  <svg slot="fallback" class="generic-avatar" transition:name="avatar">...</svg>
+</Avatar>
+```
+
+要全面了解并对这个实验性 API 提供反馈，请查看 [服务器群岛 RFC](https://github.com/withastro/roadmap/pull/963)。

@@ -82,10 +82,10 @@ export default defineConfig({
 
 <p>
 **Tipo:** `'passthrough' | 'cloudflare' | 'compile' | 'custom'`<br />
-**Por defecto:** `'passthrough'`
+**Por defecto:** `'compile'`
 </p>
 
-Determina que servicio de imágenes es utilizado por el adaptador. El adaptador utilizará el modo `passthrough` de forma predeterminada cuando se configure un servicio de imágenes incompatible. De lo contrario, utilizará el servicio de imágenes configurado globalmente:
+Determina que servicio de imágenes es utilizado por el adaptador. El adaptador utilizará el modo `compile` de forma predeterminada cuando se configure un servicio de imágenes incompatible. De lo contrario, utilizará el servicio de imágenes configurado globalmente:
 
  **`cloudflare`:** Usa el servicio de [Redimensionamiento de Imagen de Cloudflare](https://developers.cloudflare.com/images/image-resizing/).
 * **`passthrough`:** Usa el servicio existente [`noop`](/es/guides/images/#configura-el-servicio-no-op-de-paso).
@@ -204,28 +204,16 @@ export default defineConfig({
 });
 ```
 
-### `wasmModuleImports`
+### `cloudflareModules`
 
 <p>
 **Tipo:** `true | false`<br />
-**Por defecto:** `false`
+**Por defecto:** `true`
 </p>
 
-Importar o no archivos `.wasm` [directamente como módulos ES](https://github.com/WebAssembly/esm-integration/tree/main/proposals/esm-integration) usando la sintaxis de importación `.wasm?module`.
+Habilita [importaciones de módulos `.wasm`, `.bin`, y `.txt`](#importaciones-de-módulos-cloudflare).
 
-Añade `wasmModuleImports: true` a `astro.config.mjs` para habilitar esta funcionalidad tanto en la compilación de Cloudflare como en el servidor de desarrollo de Astro. Lee más sobre [el uso de módulos Wasm](#usar-módulos-wasm)
-
-```js title="astro.config.mjs" ins={6}
-import {defineConfig} from "astro/config";
-import cloudflare from '@astrojs/cloudflare';
-
-export default defineConfig({
-  adapter: cloudflare({
-     wasmModuleImports: true
-  }),
-  output: 'server'
-})
-```
+Esta funcionalidad está habilitada de forma predeterminada. Si deseas deshabilitarla, establece `cloudflareModules: false`.
 
 ## Tiempo de ejecución de Cloudflare
 
@@ -338,14 +326,23 @@ Puedes [especificar patrones de enrutamiento adicionales](#routesextend) en tu c
 
 Crear un archivo `_routes.json` personalizado en la carpeta `public/` de tu proyecto de Astro anulará la generación automática. Consulta la [documentación de Cloudflare](https://developers.cloudflare.com/pages/platform/functions/routing/#create-a-_routesjson-file) para obtener más detalles.
 
-## Usar módulos Wasm
+## Importaciones de Módulos Cloudflare
+
+El tiempo de ejecución del worker de Cloudflare soporta importaciones de algunos [tipos de módulos no estándar](https://developers.cloudflare.com/pages/functions/module-support/). La mayoría de los tipos de archivos adicionales también están disponibles en astro:
+
+- `.wasm` o `.wasm?module`: exporta un [`WebAssembly.Module`](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Module) que luego puede ser instanciado
+- `.bin`: exporta un [`ArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer) de los contenidos binarios crudos del archivo
+- `.txt`: Exporta un string con el contenido del archivo
+
+Todos los tipos de módulos exportan un único valor predeterminado. Los módulos pueden ser importados tanto desde páginas renderizadas en el servidor como desde páginas prerenderizadas para la generación de sitios estáticos.
 
 Lo siguiente es un ejemplo de importación de un módulo Wasm que responde a las solicitudes sumando los parámetros numéricos de la solicitud.
 
 ```js title="pages/add/[a]/[b].js"
-import mod from '../util/add.wasm?module';
+// Importa el módulo WebAssembly
+import mod from '../util/add.wasm';
 
-// crea una instancia con anticipación para compartir el módulo
+// Instancia primero para poder usarlo
 const addModule: any = new WebAssembly.Instance(mod);
 
 export async function GET(context) {
@@ -355,7 +352,7 @@ export async function GET(context) {
 }
 ```
 
-Mientras que este ejemplo es trivial, Wasm puede ser utilizado para acelerar operaciones computacionalmente intensivas que no involucran una E/S significativa, como incrustar una biblioteca de procesamiento de imágenes.
+Mientras que este ejemplo es trivial, Wasm puede ser utilizado para acelerar operaciones computacionalmente intensivas que no involucran una E/S significativa, como incrustar una biblioteca de procesamiento de imágenes o una pequeña base de datos pre-indexada para la búsqueda en un conjunto de datos de solo lectura.
 
 ## Compatibilidad con Node.js
 
