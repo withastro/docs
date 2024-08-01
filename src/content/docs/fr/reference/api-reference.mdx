@@ -1,0 +1,2054 @@
+---
+title: Référence API
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+## `Astro` global
+
+Le global `Astro` est disponible dans tous les contextes des fichiers `.astro`. Il a les fonctions suivantes :
+
+### `Astro.glob()`
+
+`Astro.glob()` est un moyen de charger de nombreux fichiers locaux dans votre site statique.
+
+```astro
+---
+// src/components/my-component.astro
+const posts = await Astro.glob('../pages/post/*.md'); // renvoie un tableau de publications qui se trouvent à l'adresse ./src/pages/post/*.md
+---
+
+<div>
+{posts.slice(0, 3).map((post) => (
+  <article>
+    <h2>{post.frontmatter.title}</h2>
+    <p>{post.frontmatter.description}</p>
+    <a href={post.url}>En savoir plus</a>
+  </article>
+))}
+</div>
+```
+
+`.glob()` ne prend qu'un seul paramètre : une URL relative globale des fichiers locaux que vous souhaitez importer. Il est asynchrone et renvoie un tableau des exportations des fichiers correspondants.
+
+`.glob()` ne peut pas prendre des variables ou des chaînes qui les interpolent, car elles ne sont pas statiquement analysables. (Voir [le guide de dépannage](/fr/guides/troubleshooting/#astroglob---no-matches-found) pour une solution de contournement). Ceci est dû au fait que `Astro.glob()` est une enveloppe de [`import.meta.glob()`](https://vitejs.dev/guide/features.html#glob-import) de Vite.
+
+:::note
+Vous pouvez également utiliser `import.meta.glob()` dans votre projet Astro. Vous pouvez faire cela dans les cas suivants :
+- Vous avez besoin de cette fonctionnalité dans un fichier qui n'est pas `.astro`, comme une route d'API. `Astro.glob()` n'est disponible que dans les fichiers `.astro`, alors que `import.meta.glob()` est disponible n'importe où dans le projet.
+- Vous ne voulez pas charger chaque fichier immédiatement. `import.meta.glob()` peut retourner des fonctions qui importent le contenu du fichier, plutôt que de retourner le contenu lui-même. Notez que cette importation inclut tous les styles et les scripts pour tous les fichiers importés. Ceux-ci seront regroupés et ajoutés à la page, qu'un fichier soit réellement utilisé ou non, car c'est l'analyse statique qui en décide, et non l'exécution.
+- Vous voulez avoir accès au chemin de chaque fichier. `import.meta.glob()` renvoie une carte du chemin d'un fichier à son contenu, tandis que `Astro.glob()` renvoie une liste de contenu.
+- Vous voulez passer plusieurs motifs ; par exemple, vous voulez ajouter un "motif négatif" qui filtre certains fichiers. `import.meta.glob()` peut optionnellement prendre un tableau de chaînes globales, plutôt qu'une seule chaîne.
+
+Pour en savoir plus, consultez la [documentation Vite](https://vitejs.dev/guide/features.html#glob-import).
+:::
+#### Fichiers Markdown
+
+Les fichiers Markdown ont l'interface suivante :
+
+```ts
+export interface MarkdownInstance<T extends Record<string, any>> {
+  /* Toutes les données spécifiées dans le frontmatter YAML de ce fichier. */
+	frontmatter: T;
+  /* Le chemin d'accès à ce fichier */
+	file: string;
+  /* Le chemin affiché de ce fichier */
+	url: string | undefined;
+  /* Composant Astro qui affiche le contenu de ce fichier */
+	Content: AstroComponent;
+  /* Fonction qui renvoie un tableau des éléments h1...h6 de ce fichier */
+	getHeadings(): Promise<{ depth: number; slug: string; text: string }[]>;
+}
+```
+
+Vous pouvez optionnellement fournir un type pour la variable `frontmatter` en utilisant un générique TypeScript.
+
+```astro
+---
+interface Frontmatter {
+  title: string;
+  description?: string;
+}
+const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
+---
+
+<ul>
+  {posts.map(post => <li>{post.frontmatter.title}</li>)}
+</ul>
+```
+
+#### Fichiers Astro
+
+Les fichiers Astro ont l'interface suivante :
+
+```ts
+export interface AstroInstance {
+  /* Le chemin d'accès à ce fichier */
+  file: string;
+  /* L'URL de ce fichier (s'il se trouve dans le répertoire des pages) */
+	url: string | undefined;
+	default: AstroComponent;
+}
+```
+
+#### Autres fichiers
+
+D'autres fichiers peuvent avoir des interfaces différentes, mais `Astro.glob()` accepte un générique TypeScript si vous savez exactement ce que contient un type de fichier non reconnu.
+
+```ts
+---
+interface CustomDataFile {
+  default: Record<string, any>;
+}
+const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
+---
+```
+
+### `Astro.props`
+
+`Astro.props` est un objet contenant toutes les valeurs qui ont été transmises en tant qu'[attributs de composant](/fr/basics/astro-components/#props-de-composant). Les composants de mise en page pour les fichiers `.md` et `.mdx` reçoivent les valeurs de frontmatter comme props.
+
+```astro {3}
+---
+// src/components/Heading.astro
+const { title, date } = Astro.props;
+---
+<div>
+  <h1>{title}</h1>
+  <p>{date}</p>
+</div>
+```
+
+```astro /title=".+"/ /date=".+"/
+---
+// src/pages/index.astro
+import Heading from '../components/Heading.astro';
+---
+<Heading title="Mon tout premier article" date="09 Août 2022" />
+```
+
+<ReadMore>En savoir plus sur la façon dont les [Dispositions Markdown et MDX](/fr/guides/markdown-content/#frontmatter-layout) gèrent les props.</ReadMore>
+
+<ReadMore>Apprenez à ajouter des [définitions de type TypeScript pour vos props](/fr/guides/typescript/#type-componentprops).</ReadMore>
+
+### `Astro.params`
+
+`Astro.params` est un objet contenant les valeurs des segments de routes dynamiques correspondant à cette requête.
+
+Dans les versions statiques, il s'agira des `params` renvoyés par `getStaticPaths()` utilisés pour le pré-rendering [des routes dynamiques](/fr/guides/routing/#routes-dynamiques).
+
+Dans les versions SSR, il peut s'agir de n'importe quelle valeur correspondant aux segments de chemin dans le modèle de route dynamique.
+
+```astro title="src/pages/posts/[id].astro"
+---
+export function getStaticPaths() {
+  return [
+    { params: { id: '1' } },
+    { params: { id: '2' } },
+    { params: { id: '3' } }
+  ];
+}
+
+const { id } = Astro.params;
+---
+<h1>{id}</h1>
+```
+
+Voir aussi : [`params`](#params)
+
+### `Astro.request`
+
+`Astro.request` est un objet standard [Request](https://developer.mozilla.org/fr/docs/Web/API/Request). Il peut être utilisé pour obtenir les propriétés `url`, `headers`, `method`, et même le corps de la requête.
+
+```astro
+<p>Reçu une requête {Astro.request.method} depuis "{Astro.request.url}".</p>
+<p>En-têtes de requête reçus : <code>{JSON.stringify(Object.fromEntries(Astro.request.headers))}</code>
+```
+
+Voir aussi : [`Astro.url`](#astrourl)
+
+:::note
+Avec l'option par défaut `output: 'static'`, `Astro.request.url` ne contient pas de paramètres de recherche, comme `?foo=bar`, car il n'est pas possible de les déterminer à l'avance lors des constructions statiques. Cependant, en mode `output: 'server'`, `Astro.request.url` contient les paramètres de recherche car ils peuvent être déterminés à partir d'une requête du serveur.
+:::
+
+### `Astro.response`
+
+
+`Astro.response` est un objet `ResponseInit` standard. Il a la structure suivante.
+
+ - `status` : Le code de statut numérique de la réponse, par exemple, `200`.
+ - `statusText` : Le message de statut associé au code de statut, par exemple, `'OK'`.
+ - `headers` : Une instance [`Headers`](https://developer.mozilla.org/fr/docs/Web/API/Headers) que vous pouvez utiliser pour définir les en-têtes HTTP de la réponse.
+
+`Astro.response` est utilisé pour définir le `status`, le `statusText` et les `headers` de la réponse d'une page.
+
+```astro
+---
+if(condition) {
+  Astro.response.status = 404;
+  Astro.response.statusText = 'Non trouvé';
+}
+---
+```
+
+Ou de définir un en-tête :
+
+```astro
+---
+Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
+---
+```
+
+### `Astro.cookies`
+
+<p><Since v="1.4.0" /></p>
+
+`Astro.cookies` contient des utilitaires pour lire et manipuler les cookies en mode [rendu à la demande](/fr/guides/server-side-rendering/).
+
+##### `get`
+
+<p>
+**Type :** `(key: string, options?: CookieGetOptions) => AstroCookie`
+</p>
+
+Obtient le cookie sous la forme d'un objet [`AstroCookie`](#astrocookie), qui contient la `value` et des fonctions utilitaires pour convertir le cookie en types autres que des chaînes de caractères.
+
+##### `has`
+
+<p>
+**Type :** `(key: string) => boolean`
+</p>
+
+Si ce cookie existe. Si le cookie a été défini via `Astro.cookies.set()` cela retournera true, sinon cela vérifiera les cookies dans `Astro.request`.
+
+##### `set`
+
+<p>
+**Type :** `(key: string, value: string | number | boolean | object, options?: CookieSetOptions) => void`
+</p>
+
+Fixe le cookie `key` à la valeur donnée. Ceci tentera de convertir la valeur du cookie en une chaîne de caractères. Les options permettent de définir les [caractéristiques du cookie](https://www.npmjs.com/package/cookie#options-1), comme `maxAge` ou `httpOnly`.
+
+##### `delete`
+
+<p>
+**Type :** `(key: string, options?: CookieDeleteOptions) => void`
+</p>
+
+Invalide un cookie en fixant la date d'expiration dans le passé (0 en temps Unix).
+
+Une fois qu'un cookie est "supprimé" (expiré), `Astro.cookies.has()` retournera `false` et `Astro.cookies.get()` retournera un [`AstroCookie`](#astrocookie) avec une `valeur` de `undefined`. Les options disponibles lors de la suppression d'un cookie sont : `domain`, `path`, `httpOnly`, `sameSite`, et `secure`.
+
+##### `headers`
+
+<p>
+**Type :** `() => Iterator<string>`
+</p>
+
+Obtient les valeurs de l'en-tête `Set-Cookie` qui seront envoyées avec la réponse.
+
+#### `AstroCookie`
+
+Obtenir un cookie via `Astro.cookies.get()` renvoie un type `AstroCookie`. Il a la structure suivante.
+
+##### `value`
+
+<p>
+**Type :** `string | undefined`
+</p>
+
+La valeur brute de la chaîne du cookie.
+
+##### `json`
+
+<p>
+**Type :** `() => Record<string, any>`
+</p>
+
+Analyse la valeur du cookie via `JSON.parse()`, retournant un objet. Génère une erreur si la valeur du cookie n'est pas un JSON valide.
+
+##### `number`
+
+<p>
+**Type :** `() => number`
+</p>
+
+Analyse la valeur du cookie en tant que nombre. Renvoie NaN s'il ne s'agit pas d'un nombre valide.
+
+##### `boolean`
+
+<p>
+**Type :** `() => boolean`
+</p>
+
+Convertit la valeur du cookie en un booléen.
+
+#### `CookieGetOptions`
+
+<p><Since v="4.1.0"/></p>
+
+L'obtention d'un cookie permet également de spécifier des options via l'interface `CookieGetOptions` :
+
+##### `decode`
+
+<p>
+**Type :** `(value: string) => string`
+</p>
+
+Permet de personnaliser la manière dont un cookie est désérialisé en une valeur.
+
+#### `CookieSetOptions`
+
+<p><Since v="4.1.0"/></p>
+
+La définition d'un cookie via `Astro.cookies.set()` permet de passer un `CookieSetOptions` pour personnaliser la façon dont le cookie est sérialisé.
+
+##### `domain`
+
+<p>
+**Type :** `string`
+</p>
+
+Spécifie le domaine. Si aucun domaine n'est défini, la plupart des clients interpréteront l'application au domaine actuel.
+
+##### `expires`
+
+<p>
+**Type :** `Date`
+</p>
+
+Spécifie la date d'expiration du cookie.
+
+##### `httpOnly`
+
+<p>
+**Type :** `boolean`
+</p>
+
+Si c'est le cas, le cookie ne sera pas accessible côté client.
+
+##### `maxAge`
+
+<p>
+**Type :** `number`
+</p>
+
+Spécifie un nombre, en secondes, pour lequel le cookie est valide.
+
+##### `path`
+
+<p>
+**Type :** `string`
+</p>
+
+Spécifie un sous-chemin du domaine dans lequel le cookie est appliqué.
+
+##### `sameSite`
+
+<p>
+**Type :** `boolean | 'lax' | 'none' | 'strict'`
+</p>
+
+Spécifie la valeur de l'en-tête du cookie [SameSite](https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-rfc6265bis-09#section-5.4.7).
+
+##### `secure`
+
+<p>
+**Type :** `boolean`
+</p>
+
+Si c'est vrai, le cookie n'est défini que sur les sites https.
+
+##### `encode`
+
+<p>
+**Type :** `(value: string) => string`
+</p>
+
+Permet de personnaliser la façon dont le cookie est sérialisé.
+
+### `Astro.redirect()`
+
+**Type :** `(path: string, status?: number) => Response`
+
+Permet de rediriger vers une autre page, et optionnellement de fournir un [code de réponse avec un statut HTTP](https://developer.mozilla.org/fr/docs/Web/HTTP/Status#messages_de_redirection) comme second paramètre.
+
+Une page (et non un composant enfant) doit retourner le résultat de `Astro.redirect()` pour que la redirection ait lieu.
+
+Pour les sites générés statiquement, cela produira une redirection client utilisant une balise [`<meta http-equiv="refresh">`](https://developer.mozilla.org/fr/docs/Web/HTML/Element/meta) et ne prend pas en charge les codes d'état.
+
+Lors de l'utilisation d'un mode d'affichage à la demande, les codes d'état sont pris en charge. Astro servira les requêtes redirigées avec un statut de réponse HTTP par défaut de `302` à moins qu'un autre code ne soit spécifié.
+
+L'exemple suivant redirige un utilisateur vers une page de connexion :
+
+```astro title="src/pages/account.astro" {8}
+---
+import { isLoggedIn } from '../utils';
+
+const cookie = Astro.request.headers.get('cookie');
+
+// Si l'utilisateur n'est pas connecté, le rediriger vers la page de connexion.
+if (!isLoggedIn(cookie)) {
+  return Astro.redirect('/login');
+}
+---
+```
+
+### `Astro.canonicalURL`
+
+:::caution[Obsolète]
+Utilisez [`Astro.url`](#astrourl) pour construire votre propre URL canonique.
+:::
+
+L'[URL canonique][canonical] de la page actuelle.
+
+### `Astro.rewrite()`
+
+<p><Since v="4.13.0" /></p>
+
+**Type :** `(rewritePayload: string | URL | Request) => Promise<Response>`
+
+Permet de servir du contenu à partir d'une URL ou d'un chemin différent sans rediriger le navigateur vers une nouvelle page.
+
+La méthode accepte soit une chaîne de caractères, soit une `URL`, soit une `Request` pour l'emplacement du chemin.
+
+Utilisez une chaîne de caractères pour fournir un chemin explicite :
+
+```astro title="src/pages/index.astro"
+---
+return Astro.rewrite("/login")
+---
+```
+
+Utilisez un type `URL` lorsque vous devez construire le chemin de l'URL pour la réécriture. L'exemple suivant affiche le chemin parent d'une page en créant une nouvelle URL à partir du chemin relatif `"../"` :
+
+```astro title="src/pages/blog/index.astro"
+---
+return Astro.rewrite(new URL("../", Astro.url))
+---
+```
+
+Utilisez un type `Request` pour un contrôle complet de la `Request` envoyée au serveur pour le nouveau chemin. L'exemple suivant envoie une requête pour afficher la page parent tout en fournissant des en-têtes :
+
+```astro title="src/pages/blog/index.astro"
+---
+return Astro.rewrite(new Request(new URL("../", Astro.url), {
+  headers: {
+    "x-custom-header": JSON.stringify(Astro.locals.someValue)
+  }
+}))
+---
+```
+
+### `Astro.url`
+
+<p><Since v="1.0.0-rc" /></p>
+
+Un objet [URL](https://developer.mozilla.org/fr/docs/Web/API/URL) construit à partir de la chaîne d'URL courante `Astro.request.url`. Utile pour interagir avec les propriétés individuelles de l'URL de la requête, comme le chemin et l'origine.
+
+Equivalent à `new URL(Astro.request.url)`.
+
+```astro
+<h1>L'URL actuelle est : {Astro.url}</h1>
+<h1>Le chemin d'accès à l'URL actuelle est : {Astro.url.pathname}</h1>
+<h1>L'origine de l'URL actuelle est : {Astro.url.origin}</h1>
+```
+
+Vous pouvez également utiliser `Astro.url` pour créer de nouvelles URL en le passant comme argument à [`new URL()`] (https://developer.mozilla.org/fr/docs/Web/API/URL).
+
+```astro title="src/pages/index.astro"
+---
+// Exemple : Construire une URL canonique en utilisant votre domaine de production
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+// Exemple : Construire une URL pour les méta-tags SEO en utilisant votre domaine actuel
+const socialImageURL = new URL('/images/preview.png', Astro.url);
+---
+<link rel="canonical" href={canonicalURL} />
+<meta property="og:image" content={socialImageURL} />
+```
+
+### `Astro.clientAddress`
+
+<p><Since v="1.0.0-rc" /></p>
+
+Spécifie l'[adresse IP](https://en.wikipedia.org/wiki/IP_address) de la requête. Cette propriété n'est disponible que lors de la construction pour SSR (server-side rendering) et ne doit pas être utilisée pour les sites statiques.
+
+```astro
+---
+const ip = Astro.clientAddress;
+---
+
+<div>Votre adresse IP est : <span class="address">{ ip }</span></div>
+```
+
+### `Astro.site`
+
+`Astro.site` retourne une `URL` faite à partir de `site` dans votre configuration Astro. Si `site` n'est pas défini dans votre configuration Astro, `Astro.site` ne sera pas défini.
+
+### `Astro.generator`
+
+<p><Since v="1.0.0" /></p>
+
+`Astro.generator` est un moyen pratique d'ajouter une balise [`<meta name="generator">`](https://html.spec.whatwg.org/multipage/semantics.html#meta-generator) avec votre version actuelle d'Astro. Elle suit le format `"Astro v1.x.x"`.
+
+```astro mark="Astro.generator"
+<html>
+  <head>
+    <meta name="generator" content={Astro.generator} />
+  </head>
+  <body>
+    <footer>
+      <p>Généré avec <a href="https://astro.build">{Astro.generator}</a></p>
+    </footer>
+  </body>
+</html>
+```
+
+### `Astro.slots`
+  
+`Astro.slots` contient des fonctions utilitaires pour modifier les enfants d'un composant Astro.
+
+#### `Astro.slots.has()`
+
+**Type :** `(slotName: string) => boolean`
+
+Vous pouvez vérifier si le contenu d'un slot spécifique existe avec `Astro.slots.has()`. Cela peut être utile lorsque vous voulez envelopper le contenu d'un slot, mais que vous ne voulez afficher les éléments de l'enveloppe que lorsque le slot est utilisé.
+
+```astro  title="src/pages/index.astro"
+---
+---
+<slot />
+
+{Astro.slots.has('more') && (
+  <aside>
+    <h2>Plus d'informations</h2>
+    <slot name="more" />
+  </aside>
+)}
+```
+
+#### `Astro.slots.render()`
+
+**Type :** `(slotName: string, args?: any[]) => Promise<string>`
+
+Vous pouvez afficher de manière asynchrone le contenu d'un slot en une chaîne de caractères HTML en utilisant `Astro.slots.render()`.
+
+```astro
+---
+const html = await Astro.slots.render('default');
+---
+<Fragment set:html={html} />
+```
+
+:::note
+Ceci est pour les cas d'utilisation avancés ! Dans la plupart des cas, il est plus simple d'afficher le contenu des slots avec [l'élément `<slot />`](/fr/basics/astro-components/#les-emplacements-slots).
+:::
+
+`Astro.slots.render()` accepte optionnellement un second argument : un tableau de paramètres qui sera transmis à tous les enfants de la fonction. Cela peut être utile pour les composants utilitaires personnalisés.
+
+Par exemple, ce composant `<Shout />` convertit son prop `message` en majuscules et le transmet au slot par défaut :
+
+```astro title="src/components/Shout.astro" "await Astro.slots.render('default', [message])"
+---
+const message = Astro.props.message.toUpperCase();
+let html = '';
+if (Astro.slots.has('default')) {
+  html = await Astro.slots.render('default', [message]);
+}
+---
+<Fragment set:html={html} />
+```
+
+Une fonction de callback passée comme un enfant de `<Shout />` recevra le paramètre `message` tout en majuscules :
+
+```astro title="src/pages/index.astro"
+---
+import Shout from "../components/Shout.astro";
+---
+<Shout message="slots!">
+  {(message) => <div>{message}</div>}
+</Shout>
+
+<!-- s'affiche comme <div>SLOTS!</div> -->
+```
+
+Les fonctions de rappel peuvent être transmises à des emplacements nommés à l'intérieur d'une balise d'élément HTML enveloppante avec un attribut `slot`. Cet élément est uniquement utilisé pour transférer la fonction de rappel à un emplacement nommé et ne sera pas rendu sur la page.
+
+```astro
+<Shout message="slots!">
+  <fragment slot="message">
+    {(message) => <div>{message}</div>}
+  </fragment>
+</Shout>
+```
+
+Utilisez un élément HTML standard pour la balise d'encapsulation ou toute balise en minuscules (par exemple `<fragment>` au lieu de `<Fragment />`) qui ne sera pas interprété comme un composant. N'utilisez pas l'élément HTML `<slot>` car il sera interprété comme un slot Astro.
+
+### `Astro.self`
+
+`Astro.self` permet aux composants Astro d'être appelés de manière récursive. Ce comportement vous permet d'afficher un composant Astro à partir de lui-même en utilisant `<Astro.self>` dans le modèle du composant. Cela peut être utile pour itérer sur de grands magasins de données et des structures de données imbriquées.
+
+```astro
+---
+// NestedList.astro
+const { items } = Astro.props;
+---
+<ul class="nested-list">
+  {items.map((item) => (
+    <li>
+      <!-- S'il y a une structure de données imbriquée, nous affichons `<Astro.self>` -->
+      <!-- et pouvons passer des props avec l'appel récursif -->
+      {Array.isArray(item) ? (
+        <Astro.self items={item} />
+      ) : (
+        item
+      )}
+    </li>
+  ))}
+</ul>
+```
+
+Ce composant pourrait alors être utilisé comme suit :
+
+```astro
+---
+import NestedList from './NestedList.astro';
+---
+<NestedList items={['A', ['B', 'C'], 'D']} />
+```
+
+Et afficherait le code HTML comme suit :
+
+```html
+<ul class="nested-list">
+  <li>A</li>
+  <li>
+    <ul class="nested-list">
+      <li>B</li>
+      <li>C</li>
+    </ul>
+  </li>
+  <li>D</li>
+</ul>
+```
+
+
+### `Astro.locals`
+
+`Astro.locals` est un objet contenant toutes les valeurs de l'objet [`context.locals`](#contextlocals) d'un middleware. Utilisez-le pour accéder aux données retournées par le middleware dans vos fichiers `.astro`.
+
+```astro title="src/pages/Orders.astro"
+---
+const title = Astro.locals.welcomeTitle();
+const orders = Array.from(Astro.locals.orders.entries());
+---
+<h1>{title}</h1>
+<ul>
+    {orders.map(order => {
+        return <li>{/* fait quelque chose avec chaque commande */}</li>
+    })}
+</ul>
+```
+
+### `Astro.preferredLocale`
+
+`Astro.preferredLocale` est une valeur calculée qui représente la locale préférée de l'utilisateur.
+
+Elle est calculée en vérifiant les locales configurées dans votre tableau `i18n.locales` et les locales supportées par le navigateur de l'utilisateur via l'en-tête `Accept-Language`. Cette valeur est `undefined` si aucune correspondance n'existe.
+
+Cette propriété n'est disponible que lors de la construction pour SSR (server-side rendering) et ne devrait pas être utilisée pour les sites statiques.
+
+### `Astro.preferredLocaleList`
+
+`Astro.preferredLocaleList` représente le tableau de toutes les locales qui sont à la fois demandées par le navigateur et supportées par votre site web. Cela produit une liste de toutes les langues compatibles entre votre site et votre visiteur.
+
+Si aucune des langues demandées par le navigateur n'est trouvée dans votre tableau de langues, la valeur est `[]` : vous ne supportez aucune des langues préférées de votre visiteur.
+
+Si le navigateur ne spécifie aucune langue préférée, alors cette valeur sera [`i18n.locales`](/fr/reference/configuration-reference/#i18nlocales) : toutes les langues supportées seront considérées comme préférées par un visiteur qui n'a pas de préférences.
+
+Cette propriété n'est disponible que pour l'affichage côté serveur (SSR) et ne doit pas être utilisée pour les sites statiques.
+
+### `Astro.currentLocale`
+
+La locale calculée à partir de l'URL courante, en utilisant la syntaxe spécifiée dans votre configuration `locales`. Si l'URL ne contient pas de préfixe `/[locale]/`, alors la valeur sera par défaut `i18n.defaultLocale`.
+
+## Contexte du point de terminaison
+
+Les [fonctions de points de terminaisons](/fr/guides/endpoints/) reçoivent un objet contextuel comme premier paramètre. Il reflète la plupart des propriétés globales de `Astro`.
+
+```ts title="endpoint.json.ts"
+import type { APIContext } from 'astro';
+
+export function GET(context: APIContext) {
+  // ...
+}
+```
+
+### `context.params`
+
+`context.params` est un objet contenant les valeurs des segments de routes dynamiques correspondant à cette requête.
+
+Dans les versions statiques, il s'agira des `params` retournés par `getStaticPaths()` utilisés pour le pré-rendement des [routes dynamiques](/fr/guides/routing/#routes-dynamiques).
+
+Dans les versions SSR, il peut s'agir de n'importe quelle valeur correspondant aux segments de chemin dans le modèle de route dynamique.
+
+```ts title="src/pages/posts/[id].json.ts"
+import type { APIContext } from 'astro';
+
+export function getStaticPaths() {
+  return [
+    { params: { id: '1' } },
+    { params: { id: '2' } },
+    { params: { id: '3' } }
+  ];
+}
+
+export function GET({ params }: APIContext) {
+	return new Response(
+    JSON.stringify({ id: params.id }),
+  );
+}
+```
+
+Voir aussi : [`params`](#params)
+
+### `context.props`
+
+`context.props` est un objet contenant tous les `props` passés par `getStaticPaths()`. Comme `getStaticPaths()` n'est pas utilisé lors de la construction pour SSR (rendu côté serveur), `context.props` n'est disponible que dans les constructions statiques.
+
+```ts title="src/pages/posts/[id].json.ts"
+import type { APIContext } from 'astro';
+
+export function getStaticPaths() {
+  return [
+    { params: { id: '1' }, props: { author: 'Blu' } },
+    { params: { id: '2' }, props: { author: 'Erika' } },
+    { params: { id: '3' }, props: { author: 'Matthew' } }
+  ];
+}
+
+export function GET({ props }: APIContext) {
+	return new Response(
+    JSON.stringify({ author: props.author }),
+  );
+}
+```
+
+Voir aussi : [Transfert de données avec `props`](#transfert-de-données-avec-props)
+
+### `context.request`
+
+Un objet [Request](https://developer.mozilla.org/fr/docs/Web/API/Request) standard. Il peut être utilisé pour obtenir le `url`, `headers`, `method`, et même le corps de la requête.
+
+```ts
+import type { APIContext } from 'astro';
+
+export function GET({ request }: APIContext) {
+  return new Response(`Hello ${request.url}`);
+}
+```
+
+Voir aussi : [Astro.request](#astrorequest)
+
+### `context.cookies`
+
+`context.cookies` contient des utilitaires pour lire et manipuler les cookies.
+
+Voir aussi : [Astro.cookies](#astrocookies)
+
+### `context.url`
+
+Un objet [URL](https://developer.mozilla.org/fr/docs/Web/API/URL) construit à partir de la valeur de la chaîne URL `context.request.url` actuelle.
+
+Voir aussi : [Astro.url](#astrourl)
+
+### `context.clientAddress`
+
+Spécifie l'[adresse IP]https://fr.wikipedia.org/wiki/Adresse_IP) de la requête. Cette propriété n'est disponible que lors de la construction pour SSR (server-side rendering) et ne doit pas être utilisée pour les sites statiques.
+
+```ts
+import type { APIContext } from 'astro';
+
+export function GET({ clientAddress }: APIContext) {
+  return new Response(`Your IP address is: ${clientAddress}`);
+}
+```
+
+Voir aussi : [Astro.clientAddress](#astroclientaddress)
+
+
+### `context.site`
+
+`context.site` renvoie une `URL` générée à partir de `site` dans votre configuration Astro. Si elle n'est pas définie, elle retournera une URL générée à partir de `localhost`.
+
+Voir aussi : [Astro.site](#astrosite)
+
+### `context.generator`
+
+`context.generator` est un moyen pratique d'indiquer la version d'Astro que votre projet utilise. Il suit le format `"Astro v1.x.x"`.
+
+```ts title="src/pages/site-info.json.ts"
+import type { APIContext } from 'astro';
+
+export function GET({ generator, site }: APIContext) {
+  const body = JSON.stringify({ generator, site });
+  return new Response(body);
+}
+```
+
+Voir aussi : [Astro.generator](#astrogenerator)
+
+### `context.redirect()`
+
+`context.redirect()` renvoie un objet [Response](https://developer.mozilla.org/fr/docs/Web/API/Response) qui vous permet de rediriger vers une autre page. Cette fonction n'est disponible que lors de la construction pour SSR (server-side rendering) et ne doit pas être utilisée pour les sites statiques.
+
+```ts
+import type { APIContext } from 'astro';
+
+export function GET({ redirect }: APIContext) {
+  return redirect('/login', 302);
+}
+```
+
+Voir aussi : [`Astro.redirect()`](#astroredirect)
+
+### `context.rewrite()`
+
+<p><Since v="4.13.0" /></p>
+
+**Type :** `(rewritePayload: string | URL | Request) => Promise<Response>`
+
+Permet de servir du contenu à partir d'une URL ou d'un chemin différent sans rediriger le navigateur vers une nouvelle page.
+
+La méthode accepte soit une chaîne de caractères, soit une `URL`, soit une `Request` pour l'emplacement du chemin.
+
+Utilisez une chaîne de caractères pour fournir un chemin explicite :
+
+```ts
+import type { APIContext } from 'astro';
+
+export function GET({ rewrite }: APIContext) {
+  return rewrite('/login');
+}
+```
+
+Utilisez un type `URL` lorsque vous devez construire le chemin de l'URL pour la réécriture. L'exemple suivant affiche le chemin parent d'une page en créant une nouvelle URL à partir du chemin relatif `"../"` :
+
+```ts
+import type { APIContext } from 'astro';
+
+export function GET({ rewrite }: APIContext) {
+  return rewrite(new URL("../", Astro.url));
+}
+```
+
+Utilisez un type `Request` pour un contrôle complet de la `Request` envoyée au serveur pour le nouveau chemin. L'exemple suivant envoie une requête pour afficher la page parent tout en fournissant des en-têtes :
+```ts
+import type { APIContext } from 'astro';
+
+export function GET({ rewrite }: APIContext) {
+  return rewrite(new Request(new URL("../", Astro.url), {
+   headers: {
+     "x-custom-header": JSON.stringify(Astro.locals.someValue)
+   }
+ }));
+}
+```
+
+Voir aussi : [`Astro.rewrite()`](#astrorewrite)
+
+### `context.locals`
+
+`context.locals` est un objet utilisé pour stocker et accéder à des informations arbitraires pendant le cycle de vie d'une requête.
+
+Les fonctions du middleware peuvent lire et écrire les valeurs de `context.locals` :
+
+```ts title="src/middleware.ts"
+import type { MiddlewareHandler } from 'astro';
+
+export const onRequest: MiddlewareHandler = ({ locals }, next) => {
+  if (!locals.title) {
+    locals.title = "Default Title";
+  }
+  return next();
+}
+```
+
+Les points de terminaison de l'API ne peuvent lire que des informations provenant de `context.locals` :
+
+```ts title="src/pages/hello.ts"
+import type { APIContext } from 'astro';
+
+export function GET({ locals }: APIContext) {
+  return new Response(locals.title); // "Titre par défaut"
+}
+```
+
+Voir aussi : [`Astro.locals`](#astrolocals)
+
+## `getStaticPaths()`
+
+Si une page utilise des paramètres dynamiques dans le nom de fichier, ce composant devra exporter une fonction `getStaticPaths()`.
+
+Cette fonction est nécessaire car Astro est un constructeur de sites statiques. Cela signifie que l'ensemble de votre site est construit à l'avance. Si Astro ne sait pas générer une page au moment de la construction, vos utilisateurs ne la verront pas lorsqu'ils visiteront votre site.
+
+```astro
+---
+export async function getStaticPaths() {
+  return [
+    { params: { /* requis */ }, props: { /* optionnel */ } },
+    { params: { ... } },
+    { params: { ... } },
+    // ...
+  ];
+}
+---
+<!-- Votre modèle HTML ici. -->
+```
+
+La fonction `getStaticPaths()` doit renvoyer un tableau d'objets pour déterminer les chemins qui seront pré-rendus par Astro.
+
+Elle peut également être utilisée dans les points d'extrémité des fichiers statiques pour le [routage dynamique](/fr/guides/endpoints/#params-et-routage-dynamique).
+
+:::caution
+La fonction `getStaticPaths()` s'exécute dans sa propre portée isolée une seule fois, avant le chargement de toute page. Par conséquent, vous ne pouvez pas faire référence à quoi que ce soit à partir de sa portée parentale, à l'exception des importations de fichiers. Le compilateur vous avertira si vous ne respectez pas cette exigence.
+:::
+
+### `params`
+
+La clé `params` de chaque objet retourné indique à Astro les routes à construire. Les paramètres retournés doivent correspondre aux paramètres dynamiques et aux paramètres de repos définis dans le chemin de fichier de votre composant.
+
+Les `params` sont encodés dans l'URL, donc seules les chaînes de caractères sont supportées comme valeurs. La valeur de chaque objet `params` doit correspondre aux paramètres utilisés dans le nom de la page.
+
+Par exemple, supposons que vous ayez une page à `src/pages/posts/[id].astro`. Si vous exportez `getStaticPaths` depuis cette page et que vous renvoyez les chemins suivants :
+
+```astro
+---
+export async function getStaticPaths() {
+  return [
+    { params: { id: '1' } },
+    { params: { id: '2' } },
+    { params: { id: '3' } }
+  ];
+}
+
+const { id } = Astro.params;
+---
+<h1>{id}</h1>
+```
+
+Astro générera alors statiquement `posts/1`, `posts/2`, et `posts/3` au moment de la construction.
+
+### Transfert de données avec `props`
+
+Pour passer des données supplémentaires à chaque page générée, vous pouvez également définir une valeur `props` sur chaque objet path retourné. Contrairement à `params`, `props` n'est pas encodé dans l'URL et n'est donc pas limité à des chaînes de caractères.
+
+Par exemple, supposons que vous génériez des pages basées sur des données récupérées à partir d'une API distante. Vous pouvez passer l'objet de données complet au composant page à l'intérieur de `getStaticPaths` :
+
+```astro
+---
+export async function getStaticPaths() {
+  const data = await fetch('...').then(response => response.json());
+
+  return data.map((post) => {
+    return {
+      params: { id: post.id },
+      props: { post },
+    };
+  });
+}
+
+const { id } = Astro.params;
+const { post } = Astro.props;
+---
+<h1>{id} : {post.name}</h1>
+```
+
+Vous pouvez également passer un tableau régulier, ce qui peut être utile pour générer ou créer une liste connue d'itinéraires.
+
+```astro
+---
+export async function getStaticPaths() {
+  const posts = [
+    {id: '1', category: "astro", title: "Référence API"},
+    {id: '2', category: "react", title: "Créer un compteur React !"}
+  ];
+  return posts.map((post) => {
+    return {
+      params: { id: post.id },
+      props: { post }
+    };
+  });
+}
+const {id} = Astro.params;
+const {post} = Astro.props;
+---
+<body>
+  <h1>{id} : {post.title}</h1>
+  <h2>Catégorie : {post.category}</h2>
+</body>
+```
+
+Astro va alors générer statiquement `posts/1` et `posts/2` au moment de la construction en utilisant le composant page dans `pages/posts/[id].astro`. La page peut référencer ces données en utilisant `Astro.props` :
+
+### `paginate()`
+
+La pagination est un cas d'utilisation courant pour les sites web qu'Astro supporte nativement via la fonction `paginate()`. La fonction `paginate()` génère automatiquement le tableau à renvoyer par `getStaticPaths()` qui crée une URL pour chaque page de la collection paginée. Le numéro de page sera passé en tant que paramètre, et les données de la page seront passées en tant que prop `page`.
+
+```js
+export async function getStaticPaths({ paginate }) {
+  // Chargez vos données avec fetch(), Astro.glob(), etc.
+  const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=150`);
+  const result = await response.json();
+  const allPokemon = result.results;
+
+  // Retourne une collection indexée de chemins d'accès pour tous les articles.
+  return paginate(allPokemon, { pageSize: 10 });
+}
+
+// Si la configuration est correcte, la page prop contient maintenant tout ce dont
+// dont vous avez besoin pour afficher une seule page (voir la section suivante).
+const { page } = Astro.props;
+```
+
+`paginate()` suppose un nom de fichier `[page].astro` ou `[...page].astro`. Le paramètre `page` devient le numéro de page dans votre URL :
+
+- `/posts/[page].astro` générerait les URL suivants `/posts/1`, `/posts/2`, `/posts/3`, etc.
+- `/posts/[...page].astro` générerait les URL suivants `/posts`, `/posts/2`, `/posts/3`, etc.
+
+`paginate()` a les arguments suivants :
+- `pageSize` - Nombre d'éléments affichés par page
+- `params` - Envoi de paramètres supplémentaires pour la création d'itinéraires dynamiques
+- `props` - Envoi de props supplémentaires pour être disponible sur chaque page
+
+#### La propriété `page` de pagination
+
+La pagination va passer une propriété `page` à chaque page affichée qui représente une seule page de données dans la collection paginée. Cela inclut les données que vous avez paginées (`page.data`) ainsi que les métadonnées de la page (`page.url`, `page.start`, `page.end`, `page.total`, etc). Ces métadonnées sont utiles pour des choses comme un bouton "Page suivante" ou un message "Pages 1-10 sur 100".
+
+##### `page.data`
+
+<p>
+**Type :** `Array`
+</p>
+
+Tableau des données renvoyées par `data()` pour la page en cours.
+
+##### `page.start`
+
+<p>
+**Type :** `number`
+</p>
+
+Index du premier élément de la page courante, en commençant par `0`. (par exemple, si `pageSize : 25`, ce sera `0` sur la page 1, `25` sur la page 2, etc.)
+
+##### `page.end`
+
+<p>
+**Type :** `number`
+</p>
+
+Index du dernier élément de la page en cours.
+
+##### `page.size`
+
+<p>
+**Type :** `number`
+</p>
+
+Nombre d'éléments par page.
+
+##### `page.total`
+
+<p>
+**Type :** `number`
+</p>
+
+Le nombre total d'éléments sur toutes les pages.
+
+##### `page.currentPage`
+
+<p>
+**Type :** `number`
+</p>
+
+Le numéro de la page actuelle, en commençant par `1`.
+
+##### `page.lastPage`
+
+<p>
+**Type :** `number`
+</p>
+
+Le nombre total de pages.
+
+##### `page.url.current`
+
+<p>
+**Type :** `string`
+</p>
+
+Obtenir l'URL de la page actuelle (utile pour les URL canoniques).
+
+##### `page.url.prev`
+
+<p>
+**Type :** `string | undefined`
+</p>
+
+Récupère l'URL de la page précédente (sera `undefined` si à la page 1). Si une valeur est définie pour [`base`](/fr/reference/configuration-reference/#base), le chemin de la base est ajouté à l'URL.
+
+##### `page.url.next`
+
+<p>
+**Type :** `string | undefined`
+</p>
+
+Récupère l'URL de la page suivante (sera `undefined` s'il n'y a plus de pages). Si une valeur est définie pour [`base`](/fr/reference/configuration-reference/#base), le chemin de la base est ajouté à l'URL.
+
+##### `page.url.first`
+
+<p>
+**Type :** `string | undefined`
+</p>
+
+Récupère l'URL de la première page (sera `undefined` si c'est la page 1). Si une valeur est définie pour [`base`](/fr/reference/configuration-reference/#base), le chemin de la base est ajouté à l'URL.
+
+##### `page.url.last`
+
+<p>
+**Type :** `string | undefined`
+</p>
+
+Récupère l'URL de la dernière page (sera `undefined` s'il n'y a plus de pages). Si une valeur est définie pour [`base`](/fr/reference/configuration-reference/#base), le chemin de la base est ajouté à l'URL.
+
+## `import.meta`
+
+Tous les modules ESM incluent une propriété `import.meta`. Astro ajoute `import.meta.env` via [Vite](https://vitejs.dev/guide/env-and-mode.html).
+
+**`import.meta.env.SSR`** peut être utilisée pour identifier si le rendu se fait côté serveur. Parfois, vous souhaiterez peut-être une logique différente, comme un composant qui ne doit être restitué que dans le client :
+
+```jsx
+export default function () {
+  return import.meta.env.SSR ? <div class="spinner"></div> : <FancyComponent />;
+}
+```
+
+## Images (`astro:assets`)
+
+### `getImage()`
+
+:::caution
+`getImage()` s'appuie sur des API serveur uniquement et interrompt la construction lorsqu'il est utilisé sur le client.
+:::
+
+La fonction `getImage()` est prévue pour générer des images destinées à être utilisées ailleurs que directement en HTML, par exemple dans une [route d'API](/fr/guides/endpoints/#points-de-terminaison-du-serveur-routes-api). Elle vous permet également de créer votre propre composant `<Image />` personnalisé.
+
+`getImage()` prend un objet d'options avec les [mêmes propriétés que le composant Image](#propriétés) (à l'exception de `alt`).
+
+```astro
+---
+import { getImage } from "astro:assets";
+import myBackground from "../background.png"
+
+const optimizedBackground = await getImage({src: myBackground, format: 'avif'})
+---
+
+<div style={`background-image: url(${optimizedBackground.src});`}></div>
+```
+
+Il renvoie un objet avec les propriétés suivantes :
+
+```js
+{
+  options: {...} // Paramètres d'origine transmis
+  src: "https//..." // Chemin d'accès à l'image générée
+  attributes: {...} // Attributs HTML supplémentaires nécessaires au rendu de l'image (largeur, hauteur, style, etc.)
+}
+```
+
+## Collections de contenu (`astro:content`)
+
+<p><Since v="2.0.0" /></p>
+
+Les collections de contenu proposent des API pour configurer et interroger vos documents Markdown ou MDX dans `src/content/`. Pour connaître les fonctionnalités et les exemples d'utilisation, [consultez notre guide sur les collections de contenu](/fr/guides/content-collections/).
+
+### `defineCollection()`
+
+`defineCollection()` est un utilitaire pour configurer une collection dans un fichier `src/content/config.*`.
+
+```ts
+// src/content/config.ts
+import { z, defineCollection } from 'astro:content';
+const blog = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    permalink: z.string().optional(),
+  }),
+});
+
+// Exposez votre collection définie à Astro
+// avec l'exportation `collections`
+export const collections = { blog };
+```
+
+Cette fonction accepte les propriétés suivantes :
+
+#### `type`
+
+<p><Since v="2.5.0" /></p>
+
+**Type :** `'content' | 'data'`  
+**Par défaut :** `'content'`
+
+`type` est une chaîne de caractères qui définit le type d'entrées stockées dans une collection :
+
+- `'content'` - pour les formats de création de contenu comme Markdown (`.md`), MDX (`.mdx`) ou Markdoc (`.mdoc`)
+- `'data'` - pour les formats de données uniquement comme JSON (`.json`) ou YAML (`.yaml`)
+
+:::tip
+Cela signifie que les collections **ne peuvent pas** stocker un mélange de contenus et de formats de données. Vous devez diviser ces entrées en collections distinctes par type.
+:::
+
+#### `schema`
+
+**Type :** `TSchema extends ZodType`
+
+`schema` est un objet Zod facultatif pour configurer le type et la forme du document pour une collection. Chaque valeur doit utiliser [un validateur Zod](https://github.com/colinhacks/zod).
+
+[Consultez le guide Collections de contenu](/fr/guides/content-collections/#définition-dun-schéma-de-collection) pour un exemple d'utilisation.
+
+### `reference()`
+
+**Type :** `(collection: string) => ZodEffects<ZodString, { collection, id: string } | { collection, slug: string }>`
+
+La fonction `reference()` est utilisée dans la configuration du contenu pour définir une relation, ou une « référence », entre une collection et une autre. Elle accepte un nom de collection et valide le ou les identifiants d'entrée spécifiés dans le frontmatter de votre contenu ou dans votre fichier de données.
+
+Cet exemple définit les références d'un auteur de blog à la collection `authors` et un tableau d'articles associés à la même collection `blog` :
+
+```ts
+import { defineCollection, reference, z } from 'astro:content';
+
+const blog = defineCollection({
+  type: 'content',
+  schema: z.object({
+    // Référencer un seul auteur de la collection `authors` par `id`
+    author: reference('authors'),
+    // Référencer un tableau d'articles connexes de la collection `blog` par `slug`
+    relatedPosts: z.array(reference('blog')),
+  })
+});
+
+const authors = defineCollection({
+  type: 'data',
+  schema: z.object({ /* ... */ })
+});
+
+export const collections = { blog, authors };
+```
+
+[Consultez le guide Collections de contenu](/fr/guides/content-collections/#définition-des-références-de-collection) pour un exemple d'utilisation.
+
+### `getCollection()`
+
+**Type :** `(collection: string, filter?: (entry: CollectionEntry<collection>) => boolean) => CollectionEntry<collection>[]`
+
+`getCollection()` est une fonction qui récupère une liste d'entrées de collection de contenu par nom de collection.
+
+Il renvoie tous les éléments de la collection par défaut et accepte une fonction facultative `filter` pour affiner les propriétés d'entrée. Cela vous permet d'interroger uniquement certains éléments d'une collection en fonction de `id`, `slug` ou des valeurs du frontmatter via l'objet `data`.
+
+```astro
+---
+import { getCollection } from 'astro:content';
+
+// Obtenez toutes les entrées dans `src/content/blog/`
+const allBlogPosts = await getCollection('blog');
+
+// Ne renvoyez que les messages avec `draft: true` dans le frontmatter
+const draftBlogPosts = await getCollection('blog', ({ data }) => {
+  return data.draft === true;
+});
+---
+```
+
+[Consultez le guide Collections de contenu](/fr/guides/content-collections/#interroger-les-collections) pour un exemple d'utilisation.
+
+### `getEntry()`
+
+<p><Since v="2.5.0" /></p>
+
+**Types :**
+
+- `(collection: string, contentSlugOrDataId: string) => CollectionEntry<collection>`
+- `({ collection: string, id: string }) => CollectionEntry<collection>`
+- `({ collection: string, slug: string }) => CollectionEntry<collection>`
+
+`getEntry()` est une fonction qui récupère une seule entrée de collection en utilisant le nom de la collection et soit l'entrée `id` (pour les collections utilisant `type: 'data'`) soit l'entrée `slug` (pour les collections utilisant `type: 'content'`). `getEntry()` peut également être utilisée pour obtenir des entrées référencées pour accéder aux propriétés `data`, `body` ou `render()` :
+
+```astro
+---
+import { getEntry } from 'astro:content';
+
+// Récupère `src/content/blog/enterprise.md`
+const enterprisePost = await getEntry('blog', 'enterprise');
+
+// Récupère `src/content/captains/picard.yaml`
+const picardProfile = await getEntry('captains', 'picard');
+
+// Récupère le profil référencé par `data.captain`
+const enterpriseCaptainProfile = await getEntry(enterprisePost.data.captain);
+---
+```
+
+Consultez le guide Collections de contenu pour des exemples d'[interrogation des entrées de collection](/fr/guides/content-collections/#interroger-les-collections).
+
+### `getEntries()`
+
+<p><Since v="2.5.0" /></p>
+
+**Types :**
+
+- `(Array<{ collection: string, id: string }>) => Array<CollectionEntry<collection>>`
+- `(Array<{ collection: string, slug: string }>) => Array<CollectionEntry<collection>>`
+
+`getEntries()` est une fonction qui récupère plusieurs entrées dans une même collection. Ceci est utile pour [renvoyer un tableau d'entrées référencées](/fr/guides/content-collections/#définition-des-références-de-collection) pour accéder à leurs propriétés `data`, `body` et `render()` associées.
+
+```astro
+---
+import { getEntries } from 'astro:content';
+
+const enterprisePost = await getEntry('blog', 'enterprise');
+
+// Obtenir les articles associés référencés par `data.relatedPosts`
+const enterpriseRelatedPosts = await getEntries(enterprisePost.data.relatedPosts);
+---
+```
+
+### `getEntryBySlug()`
+
+**Type :** `(collection: string, slug: string) => CollectionEntry<collection>`
+
+:::caution[Obsolète]
+Utilisez la fonction [`getEntry()`](#getentry) pour interroger les entrées de contenu. Elle accepte les mêmes arguments que `getEntryBySlug()` et prend en charge les requêtes par `id` pour les collections JSON ou YAML.
+:::
+
+`getEntryBySlug()` est une fonction qui récupère une seule entrée de collection en utilisant le nom de la collection et le `slug` d'une entrée.
+
+
+```astro
+---
+import { getEntryBySlug } from 'astro:content';
+
+const enterprise = await getEntryBySlug('blog', 'enterprise');
+---
+```
+
+[Consultez le guide Collections de contenu](/fr/guides/content-collections/#interroger-les-collections) pour un exemple d'utilisation.
+
+### Type des entrées de collection
+
+Les fonctions de requête, notamment [`getCollection()`](#getcollection), [`getEntry()`](#getentry) et [`getEntries()`](#getentries) renvoient chacune des entrées avec le type `CollectionEntry`. Ce type est disponible en tant qu'utilitaire depuis `astro:content` :
+
+```ts
+import type { CollectionEntry } from 'astro:content';
+```
+
+Le type `CollectionEntry<TCollectionName>` est un objet avec les valeurs suivantes. `TCollectionName` est le nom de la collection que vous interrogez (par exemple `CollectionEntry<'blog'>`).
+
+#### `id`
+
+**Disponible pour :** les collections utilisant `type: 'content'` ou `type: 'data'`  
+**Exemple de types :**
+  - collections de contenu : `'entry-1.md' | 'entry-2.md' | ...`
+  - collections de données : `'author-1' | 'author-2' | ...`
+
+Un identifiant unique utilisant le chemin du fichier relatif à `src/content/[collection]`. Énumère toutes les valeurs de chaîne de caractères possibles en fonction des chemins d’accès au fichier d’entrée de collection. Notez que les collections [définies comme `type: 'content'`](#type) incluent l'extension de fichier dans leur ID, contrairement aux collections définies comme `type: 'data'`.
+
+#### `collection`
+
+**Disponible pour :** les collections utilisant `type: 'content'` ou `type: 'data'`  
+**Exemple de type :** `'blog' | 'authors' | ...`
+
+Le nom d'un dossier placé à la racine de `src/content/` et dans lequel se trouvent les entrées. Il s'agit du nom utilisé pour référencer la collection dans votre schéma et dans les fonctions de requête.
+
+#### `data`
+
+**Disponible pour :** les collections utilisant `type: 'content'` ou `type: 'data'`  
+**Type :** `CollectionSchema<TCollectionName>`
+
+Un objet de propriétés provenant du frontmatter et déduit de votre schéma de collection ([voir la référence `defineCollection()`](#definecollection)). La valeur par défaut est `any` si aucun schéma n'est configuré.
+
+#### `slug`
+
+**Disponible pour :** les collections utilisant `type: 'content'` seulement  
+**Exemple de type :** `'entry-1' | 'entry-2' | ...`
+
+Un slug d'URL préparé pour les documents Markdown ou MDX. La valeur par défaut est `id` sans l'extension de fichier, mais peut être remplacée en définissant [la propriété `slug`](/fr/guides/content-collections/#définition-dun-slug-personnalisé) dans le frontmatter d'un fichier.
+
+#### `body`
+
+**Disponible pour :** les collections utilisant `type: 'content'` seulement  
+**Type :** `string`
+
+Une chaîne de caractères contenant le corps brut et non compilé du document Markdown ou MDX.
+
+#### `render()`
+
+**Disponible pour :** les collections utilisant `type: 'content'` seulement  
+**Type :** `() => Promise<RenderedEntry>`
+
+Une fonction pour compiler un document Markdown ou MDX donné à afficher. Cela renvoie les propriétés suivantes :
+
+- `<Content />` - Un composant utilisé pour restituer le contenu du document dans un fichier Astro.
+- `headings` - Une liste générée de titres, [reflétant l'utilitaire `getHeadings()` d'Astro](/fr/guides/markdown-content/#propriétés-exportées) sur les importations Markdown et MDX.
+- `remarkPluginFrontmatter` - L'objet frontmatter modifié après [l'application de plugins Remark or Rehype](/fr/guides/markdown-content/#modifier-le-frontmatter-par-un-programme). Définit sur le type `any`.
+
+```astro
+---
+import { getEntryBySlug } from 'astro:content';
+const entry = await getEntryBySlug('blog', 'entry-1');
+
+const { Content, headings, remarkPluginFrontmatter } = await entry.render();
+---
+```
+
+[Consultez le guide Collections de contenu](/fr/guides/content-collections/#rendre-le-contenu-en-html) pour un exemple d'utilisation.
+
+### Autres types associés aux collections de contenu
+
+Le module `astro:content` exporte également les types suivants pour les utiliser dans votre projet Astro :
+
+#### `CollectionKey`
+
+Une union de chaînes de caractères de tous les noms de collections définis dans votre fichier `src/content/config.*`. Ce type peut être utile lors de la définition d'une fonction générique qui accepte n'importe quel nom de collection.
+
+```ts
+import type { CollectionKey, getCollection } from 'astro:content';
+
+async function getCollection(collection: CollectionKey) {
+  return getCollection(collection);
+}
+```
+
+#### `ContentCollectionKey`
+
+Une union de chaînes de caractères de tous les noms des collections `type: 'content'` définies dans votre fichier `src/content/config.*`.
+
+#### `DataCollectionKey`
+
+Une union de chaînes de caractères de tous les noms de la collection `type: 'data'` définie dans votre fichier `src/content/config.*`.
+
+#### `SchemaContext`
+
+L'objet `context` que `defineCollection` utilise pour la forme de fonction du `schema`. Ce type peut être utile lors de la création de schémas réutilisables pour plusieurs collections.
+
+Cela inclut la propriété suivante :
+
+- `image` - L'assistant de schéma `image()` qui vous permet [d'utiliser des images locales dans les collections de contenu](/fr/guides/images/#images-dans-les-collections-de-contenus)
+
+```ts
+import type { SchemaContext } from 'astro:content';
+
+export const imageSchema = ({ image }: SchemaContext) =>
+    z.object({
+        image: image(),
+        description: z.string().optional(),
+    });
+
+const blog = defineCollection({
+  type: 'content',
+  schema: ({ image }) => z.object({
+    title: z.string(),
+    permalink: z.string().optional(),
+    image: imageSchema({ image })
+  }),
+});
+```
+
+## Middleware (`astro:middleware`)
+
+<p><Since v="2.6.0" /></p>
+
+Le middleware vous permet d'intercepter les requêtes et les réponses et d'injecter des comportements de manière dynamique chaque fois qu'une page ou un point de terminaison est sur le point d'être rendu. Pour les fonctionnalités et les exemples d'utilisation, [consultez notre guide Middleware](/fr/guides/middleware/).
+
+### `onRequest()`
+
+Une fonction exportée requise depuis `src/middleware.js` qui sera appelée avant le rendu de chaque page ou route API. Elle accepte deux arguments facultatifs : [context](#contextlocals) et [next()](#next). `onRequest()` doit renvoyer une une réponse (`Response`) : soit directement, soit en appelant `next()`.
+
+```js title="src/middleware.js"
+export function onRequest (context, next) {
+    // intercepte les données de réponse d'une requête
+    // éventuellement, transforme la réponse
+    // renvoie directement une réponse, ou le résultat de l'appel de `next()`
+    return next();
+};
+```
+
+### `next()`
+
+Une fonction qui intercepte (lit et modifie) la réponse (`Response`) d'une requête (`Request`) ou appelle le prochain middleware dans la chaîne et renvoie une Réponse (`Response`). Par exemple, cette fonction pourrait modifier le corps HTML d'une réponse.
+
+Il s'agit d'un argument facultatif de `onRequest()`, et peut fournir la réponse (`Response`) requise renvoyée par le middleware.
+
+<p><Since v="4.13.0" /></p>
+
+**Type :** `(rewritePayload?: string | URL | Request) => Promise<Response>`
+
+Il accepte un paramètre optionnel de chemin d'URL sous la forme d'une chaîne, `URL`, ou `Request` pour [récrire](/fr/guides/routing/#réécritures]) la requête en cours sans réenclencher une nouvelle phase de rendu.  
+
+### `sequence()`
+
+Une fonction qui accepte les fonctions middleware comme arguments et les exécutera dans l'ordre dans lequel elles sont transmises. 
+
+```js title="src/middleware.js"
+import { sequence } from "astro:middleware";
+
+async function validation(_, next) {...}
+async function auth(_, next) {...}
+async function greeting(_, next) {...}
+
+export const onRequest = sequence(validation, auth, greeting);
+```
+
+### `createContext()`
+
+Une API de bas niveau pour créer un objet [`APIContext`](#contexte-du-point-de-terminaison) à transmettre à une fonction `onRequest()` du middleware Astro.
+
+Cette fonction peut être utilisée par les intégrations/adaptateurs pour exécuter par programmation le middleware Astro.
+
+### `trySerializeLocals()`
+
+Une API de bas niveau qui prend n'importe quelle valeur et tente d'en renvoyer une version sérialisée (une chaîne de caractères). Si la valeur ne peut pas être sérialisée, la fonction générera une erreur d'exécution.
+
+## Internationalisation (`astro:i18n`)
+
+<p><Since v="3.5.0" /></p>
+
+Ce module fournit des fonctions pour vous aider à créer des URL à l'aide des paramètres régionaux configurés de votre projet.
+
+La création de routes pour votre projet avec le routeur i18n dépendra de certaines valeurs de configuration que vous avez définies et qui affectent les routes de vos pages. Lorsque vous créez des routes avec ces fonctions, veillez à prendre en compte vos paramètres individuels pour :
+
+- [`base`](/fr/reference/configuration-reference/#base)
+- [`trailingSlash`](/fr/reference/configuration-reference/#trailingslash)
+- [`build.format`](/fr/reference/configuration-reference/#buildformat)
+- [`site`](/fr/reference/configuration-reference/#site)
+
+Notez également que les URL renvoyées créées par ces fonctions pour votre `defaultLocale` refléteront votre configuration `i18n.routing`.
+
+Pour les fonctionnalités et les exemples d'utilisation, [consultez notre guide de routage i18n](/fr/guides/internationalization/).
+
+### `getRelativeLocaleUrl()` 
+
+`getRelativeLocaleUrl(locale: string, path?: string,  options?: GetLocaleOptions): string`
+
+Utilisez cette fonction pour récupérer un chemin relatif pour des paramètres régionaux. Si les paramètres régionaux n'existent pas, Astro renvoie une erreur.
+
+```astro
+---
+getRelativeLocaleUrl("fr");
+// renvoie /fr
+
+getRelativeLocaleUrl("fr", "");
+// renvoie /fr
+
+getRelativeLocaleUrl("fr", "getting-started");
+// renvoie /fr/getting-started
+
+getRelativeLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog"
+}); 
+// renvoie /blog/fr-ca/getting-started
+
+getRelativeLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog",
+  normalizeLocale: false
+}); 
+// renvoie /blog/fr_CA/getting-started
+---
+```
+
+### `getAbsoluteLocaleUrl()` 
+
+`getAbsoluteLocaleUrl(locale: string, path: string, options?: GetLocaleOptions): string` 
+
+Utilisez cette fonction pour récupérer un chemin absolu pour des paramètres régionaux lorsque [`site`] a une valeur. Si [`site`] n'est pas configuré, la fonction renvoie une URL relative. Si les paramètres régionaux n'existent pas, Astro renvoie une erreur.
+
+
+```astro title="src/pages/index.astro"
+---
+// Si `site` est défini sur `https://example.com`
+
+getAbsoluteLocaleUrl("fr"); 
+// renvoie https://example.com/fr
+
+getAbsoluteLocaleUrl("fr", ""); 
+// renvoie https://example.com/fr
+
+getAbsoluteLocaleUrl("fr", "getting-started"); 
+// renvoie https://example.com/fr/getting-started
+
+getAbsoluteLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog"
+}); 
+// renvoie https://example.com/blog/fr-ca/getting-started
+
+getAbsoluteLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog",
+  normalizeLocale: false
+}); 
+// renvoie https://example.com/blog/fr_CA/getting-started
+---
+```
+ 
+### `getRelativeLocaleUrlList()` 
+
+`getRelativeLocaleUrlList(path?: string, options?: GetLocaleOptions): string[]`
+
+
+Utilisez cette fonction de la même manière que [`getRelativeLocaleUrl`](#getrelativelocaleurl) pour renvoyer une liste de chemins relatifs pour tous les paramètres régionaux.
+
+
+### `getAbsoluteLocaleUrlList()` 
+
+`getAbsoluteLocaleUrlList(path?: string, options?: GetLocaleOptions): string[]`
+
+Utilisez cette fonction de la même manière que [`getAbsoluteLocaleUrl`](/fr/guides/internationalization/#chemins-daccès-aux-paramètres-régionaux-personnalisés) pour renvoyer une liste de chemins absolus pour tous les paramètres régionaux.
+
+### `getPathByLocale()` 
+
+`getPathByLocale(locale: string): string`
+
+Une fonction qui renvoie le chemin (`path`) associé à un ou plusieurs `codes` lorsque les [chemins de paramètres régionaux personnalisés](/fr/guides/internationalization/#chemins-daccès-aux-paramètres-régionaux-personnalisés) sont configurés.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  i18n: {
+    locales: ["es", "en", {
+      path: "french",
+      codes: ["fr", "fr-BR", "fr-CA"]
+    }]
+  }
+})
+```
+
+```astro title="src/pages/index.astro"
+---
+getPathByLocale("fr"); // renvoie "french"
+getPathByLocale("fr-CA"); // renvoie "french"
+---
+```
+
+### `getLocaleByPath`
+
+ `getLocaleByPath(path: string): string`
+
+Une fonction qui renvoie le `code` associé à un chemin (`path`) de paramètres régionaux.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  i18n: {
+    locales: ["es", "en", {
+      path: "french",
+      codes: ["fr", "fr-BR", "fr-CA"]
+    }]
+  }
+})
+```
+
+```astro title="src/pages/index.astro"
+---
+getLocaleByPath("french"); // renvoie "fr" car c'est le premier code configuré
+---
+```
+
+### `redirectToDefaultLocale()`
+
+`redirectToDefaultLocale(context: APIContext, statusCode?: ValidRedirectStatus): Promise<Response>`
+
+<p><Since v="4.6.0" /></p>
+
+:::note
+Disponible uniquement lorsque `i18n.routing` est défini sur `"manual"`
+:::
+
+Une fonction qui renvoie une `Response` qui redirige vers les paramètres régionaux utilisés par défaut (`defaultLocale`). Il accepte un code d’état de redirection valide facultatif.
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { redirectToDefaultLocale } from "astro:i18n";
+
+export const onRequest = defineMiddleware((context, next) => {
+  if (context.url.pathname.startsWith("/about")) {
+    return next();
+  } else {
+    return redirectToDefaultLocale(context, 302);
+  }
+})
+```
+
+### `redirectToFallback()`
+
+`redirectToFallback(context: APIContext, response: Response): Promise<Response>`
+
+<p><Since v="4.6.0" /></p>
+
+:::note
+Disponible uniquement lorsque `i18n.routing` est défini sur `"manual"`
+:::
+
+Une fonction qui vous permet d'utiliser votre [configuration `i18n.fallback`](/fr/reference/configuration-reference/#i18nfallback) dans votre propre middleware.
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { redirectToFallback } from "astro:i18n";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const response = await next();
+  if (response.status >= 300) {
+    return redirectToFallback(context, response)
+  }
+  return response;
+})
+```
+
+### `notFound()`
+
+`notFound(context: APIContext, response: Response): Promise<Response>`
+
+<p><Since v="4.6.0" /></p>
+
+:::note
+Disponible uniquement lorsque `i18n.routing` est défini sur `"manual"`
+:::
+
+Utilisez cette fonction dans votre middleware de routage pour renvoyer une 404 lorsque :
+- le chemin actuel n'est pas une racine, par exemple `/` ou `/<base>`
+- l'URL ne contient pas de paramètres régionaux
+
+Lorsqu'une `Response` est transmise, la nouvelle `Response` émise par cette fonction contiendra les mêmes en-têtes que la réponse d'origine.
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { notFound } from "astro:i18n";
+
+export const onRequest = defineMiddleware((context, next) => {
+  const pathNotFound = notFound(context);
+  if (pathNotFound) {
+    return pathNotFound;
+  }
+  return next();
+})
+```
+
+### `middleware()`
+
+`middleware(options: { prefixDefaultLocale: boolean, redirectToDefaultLocale: boolean })`
+
+<p><Since v="4.6.0" /></p>
+
+:::note
+Disponible uniquement lorsque `i18n.routing` est défini sur `"manual"`
+:::
+
+Une fonction qui vous permet de créer par programmation le middleware i18n d'Astro.
+
+Ceci est utile lorsque vous souhaitez utiliser la logique i18n par défaut tout en ajoutant quelques exceptions pour votre site.
+
+```js title="middleware.js"
+import { middleware } from "astro:i18n";
+import { sequence, defineMiddleware } from "astro:middleware";
+
+const customLogic = defineMiddleware(async (context, next) => {
+  const response = await next();
+
+  // Logique personnalisée après résolution de la réponse.
+  // Il est possible de capter la réponse provenant du middleware i18n d'Astro.
+
+  return response;
+});
+
+export const onRequest = sequence(customLogic, middleware({
+	prefixDefaultLocale: true,
+	redirectToDefaultLocale: false
+}))
+```
+
+### `requestHasLocale()`
+
+`requestHasLocale(context: APIContext): boolean`
+
+<p><Since v="4.6.0" /></p>
+
+:::note
+Disponible uniquement lorsque `i18n.routing` est défini sur `"manual"`
+:::
+
+Vérifie si l'URL actuelle contient des paramètres régionaux configurés. En interne, cette fonction utilisera `APIContext#url.pathname`.
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { requestHasLocale } from "astro:i18n";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  if (requestHasLocale(context)) {
+    return next();
+  }
+  return new Response("Not found", { status: 404 });
+})
+```
+
+## Composants intégrés
+
+Astro comprend plusieurs composants intégrés que vous pouvez utiliser dans vos projets. Tous les composants intégrés sont disponibles dans les fichiers `.astro` via `import {} from 'astro:components';`.
+
+### `<Code />`
+
+```astro 'theme="dark-plus"' /wrap\b/ /(inline) \/>/
+---
+import { Code } from 'astro:components';
+---
+<!-- Ajouter la coloration syntaxique à du code JavaScript. -->
+<Code code={`const foo = 'bar';`} lang="js" />
+<!-- Facultatif : Personnaliser votre thème. -->
+<Code code={`const foo = 'bar';`} lang="js" theme="dark-plus" />
+<!-- Facultatif : Activer le retour à la ligne. -->
+<Code code={`const foo = 'bar';`} lang="js" wrap />
+<!-- Facultatif : Générer du code en ligne. -->
+<p>
+  <Code code={`const foo = 'bar';`} lang="js" inline />
+  sera généré en ligne.
+</p>
+<!-- Facultatif : defaultColor -->
+<Code code={`const foo = 'bar';`} lang="js" defaultColor={false} />
+```
+
+Ce composant fournit une coloration syntaxique pour les blocs de code au moment de la construction (aucun JavaScript côté client n'est inclus). Le composant est alimenté en interne par Shiki et prend en charge tous les [thèmes](https://shiki.style/themes) et [langues](https://shiki.style/languages) populaires. De plus, vous pouvez ajouter vos thèmes, langues, [transformateurs](#transformateurs) et [couleurs par défaut](https://shiki.style/guide/dual-themes#without-default-color) personnalisés en les transmettant respectivement aux attributs `theme`, `lang`, `transformers` et `defaultColor`.
+
+:::note
+Ce composant **n'hérite** pas des paramètres de votre [configuration Shiki](/fr/guides/markdown-content/#configuration-de-shiki). Vous devrez les définir à l'aide des propriétés du composant.
+:::
+
+#### Transformateurs
+
+<p><Since v="4.11.0" /></p>
+
+[Les Transformateurs de Shiki](https://shiki.style/packages/transformers#shikijs-transformers) peuvent éventuellement être appliqués au code en les transmettant via la propriété `transformers` sous forme de tableau :
+
+Notez que `transformers` n'applique que les classes et vous devez fournir vos propres règles CSS pour cibler les éléments de votre bloc de code.
+
+```astro
+---
+import { transformerNotationFocus } from '@shikijs/transformers'
+import { Code } from 'astro:components'
+const code = `const foo = 'hello'
+const bar = ' world'
+console.log(foo + bar) // [!code focus]
+`
+---
+<Code
+  code={code}
+  lang="js"
+  transformers={[transformerNotationFocus()]} />
+  
+  <style is:global>
+    pre.has-focused .line:not(.focused) {
+      filter: blur(1px);
+    }
+  </style>
+```
+
+### `<Fragment />`
+
+Un composant utilisé avec les [directives `set:*`](/fr/reference/directives-reference/#sethtml) pour restituer le contenu HTML sans aucun élément d'habillage supplémentaire :
+
+```astro title="src/components/SetHtml.astro" "Fragment"
+---
+const htmlString = '<p>Contenu HTML brut</p>';
+---
+<Fragment set:html={htmlString} />
+```
+
+En savoir plus sur [l'utilisation de fragments](/fr/basics/astro-syntax/#fragments) dans la syntaxe Astro.
+
+### `<Prism />`
+
+Pour utiliser le composant de coloration `Prism`, **installez** d'abord le package `@astrojs/prism` :
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @astrojs/prism
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @astrojs/prism
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/prism
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+```astro
+---
+import { Prism } from '@astrojs/prism';
+---
+<Prism lang="js" code={`const foo = 'bar';`} />
+```
+
+Ce composant fournit une coloration syntaxique spécifique au langage pour les blocs de code en appliquant les classes CSS de Prism. Notez que **vous devez fournir une feuille de style CSS Prism** (ou apporter la vôtre) pour que la coloration syntaxique apparaisse ! Consultez la [section Configuration de Prism](/fr/guides/markdown-content/#configuration-de-prism) pour plus de détails.
+
+Consultez la [liste des langues supportées par Prism](https://prismjs.com/#supported-languages) où vous pouvez trouver l'alias correspondant à une langue. Et vous pouvez également afficher vos blocs de code Astro avec `lang="astro"` !
+
+### `<Image />`
+
+```astro title="src/components/MyComponent.astro"
+---
+// importation du composant Image et de l'image
+import { Image } from 'astro:assets';
+import myImage from "../assets/mon_image.png"; // La résolution de l'image est de 1600x900
+---
+
+<!-- `alt` est obligatoire sur le composant Image -->
+<Image src={myImage} alt="Une description de mon image." />
+```
+
+```html
+<!-- Sortie -->
+<!-- L'image est optimisée, les attributs appropriés sont appliqués -->
+<img
+  src="/_astro/mon_image.hash.webp"
+  width="1600"
+  height="900"
+  decoding="async"
+  loading="lazy"
+  alt="Une description de mon image."
+/>
+```
+#### Propriétés
+
+- src (requis)
+- alt (requis)
+- width et height (requis pour les images dans `public/` et celles distantes)
+- format
+- quality
+- densities
+- widths
+
+En plus des propriétés ci-dessus, le composant `<Image />` accepte toutes les propriétés acceptées par la balise HTML `<img>`.
+
+Pour en savoir plus, consultez le [Guide des images](/fr/guides/images/#image--astroassets).
+
+### `<Picture />`
+
+<p><Since v="3.3.0" /></p>
+
+Utilisez le composant Astro intégré `<Picture />` pour afficher une image réactive avec plusieurs formats et/ou tailles.
+
+```astro title="src/pages/index.astro"
+---
+import { Picture } from 'astro:assets';
+import monImage from "../assets/mon_image.png"; // La résolution de l'image est de 1600x900
+---
+
+<!-- `alt` est obligatoire sur le composant Image -->
+<Picture src={monImage} formats={['avif', 'webp']} alt="Une description de mon image." />
+```
+
+```html
+<!-- Sortie -->
+<picture>
+  <source srcset="/_astro/mon_image.hash.avif" type="image/avif" />
+  <source srcset="/_astro/mon_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/mon_image.hash.png"
+    width="1600"
+    height="900"
+    decoding="async"
+    loading="lazy"
+    alt="Une description de mon image."
+  />
+</picture>
+```
+
+Pour en savoir plus, consultez le [Guide des images](/fr/guides/images/#picture-).
+
+#### Propriétés
+
+`<Picture />` accepte toutes les propriétés du composant `<Image />` en plus des suivantes :
+
+##### `formats`
+
+Un tableau de formats d'image à utiliser pour les balises `<source>`. Par défaut, ceci est défini sur `['webp']`.
+
+##### `fallbackFormat`
+
+Format à utiliser comme valeur de repli pour la balise `<img>`. La valeur par défaut est `.png` pour les images statiques, `.gif` pour les images animées et `.svg` pour les fichiers SVG.
+
+##### `pictureAttributes`
+
+Un objet d'attributs à ajouter à la balise `<picture>`. Utilisez cette propriété pour appliquer des attributs à l'élément externe `<picture>` lui-même. Les attributs appliqués directement au composant `<Picture />` s'appliqueront à l'élément interne `<img>`, à l'exception de ceux utilisés pour la transformation d'image.
+
+
+### `<Content />`
+
+Un composant générique utilisé pour restituer le contenu d'une [entrée de collection de contenu](/fr/guides/content-collections/#que-sont-les-collections-de-contenu-).
+
+Tout d'abord, interrogez une ou plusieurs entrées en utilisant `getCollection()` ou `getEntry()`. Ensuite, la fonction `entry.render()` peut renvoyer le composant `<Content />` à utiliser dans un modèle de fichier `.astro`.
+
+```astro title="src/pages/render-example.astro" {4, 7}
+---
+import { getEntry } from 'astro:content';
+const entry = await getEntry('blog', 'article-1');
+const { Content } = await entry.render();
+---
+<p>Publié le : {entry.data.published.toDateString()}</p>
+<Content />
+```
+
+### `<ViewTransitions />`
+
+Choisissez d'utiliser les transitions de vue sur des pages individuelles en important et en ajoutant le composant de routage `<ViewTransitions />` à la balise `<head>` sur chaque page souhaitée.
+
+```astro title="src/pages/index.astro" ins={2,7}
+---
+import { ViewTransitions } from 'astro:transitions';
+---
+<html lang="fr">
+  <head>
+    <title>Ma page d'accueil</title>
+    <ViewTransitions />
+  </head>
+  <body>
+    <h1>Bienvenue sur mon site web !</h1>
+  </body>
+</html>
+```
+
+Découvrez comment [contrôler le routeur](/fr/guides/view-transitions/#contrôle-du-routeur) et [ajouter des directives de transition](/fr/guides/view-transitions/#directives-de-transition) aux éléments et composants de la page.
+
+### `<Debug />`
+
+```astro
+---
+import { Debug } from 'astro:components';
+const serverObject = {
+  a: 0,
+  b: "string",
+  c: {
+    nested: "object"
+  }
+}
+---
+<Debug {serverObject} />
+```
+
+Ce composant fournit un moyen d'inspecter les valeurs côté client, sans aucun JavaScript.
+
+
+[canonical]: https://fr.wikipedia.org/wiki/Élément_de_lien_canonique
