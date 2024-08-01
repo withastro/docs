@@ -295,6 +295,68 @@ if (!isLoggedIn(cookie)) {
 </html>
 ```
 
+## Réécritures
+
+<p><Since v="4.13.0" /></p>
+
+Une réécriture vous permet de servir une route différente sans rediriger le navigateur vers une page différente. Le navigateur affichera l'adresse originale dans la barre d'URL, mais il affichera à la place le contenu de l'URL fournie à [`Astro.rewrite()`](/fr/reference/api-reference/#astrorewrite).
+
+:::tip
+Pour un contenu qui a été déplacé de façon permanente, ou pour diriger l'utilisateur vers une page différente avec une nouvelle URL (par exemple, le tableau de bord d'un utilisateur après sa connexion), utilisez plutôt une [redirection](#redirections).
+:::
+
+Les réécritures peuvent être utiles pour afficher le même contenu sur plusieurs chemins (par exemple, `/products/shoes/men/` et `/products/men/shoes`/) sans avoir à maintenir deux fichiers sources différents.
+
+Les réécritures sont également utiles à des fins de référencement et d'expérience utilisateur. Elles vous permettent d'afficher un contenu qui, autrement, nécessiterait de rediriger votre visiteur vers une autre page ou renverrait un statut 404. Une utilisation courante des réécritures consiste à afficher le même contenu localisé pour différentes variantes d'une langue.
+
+L'exemple suivant utilise une réécriture pour afficher la version `/es/` d'une page lorsque le chemin URL `/es-CU/` (espagnol cubain) est visité. Lorsqu'un visiteur se rend à l'URL `/es-cu/articles/introduction`, Astro affiche le contenu généré par le fichier `src/pages/es/articles/introduction.astro`.
+
+```astro title="src/pages/es-cu/articles/introduction.astro"
+---
+return Astro.rewrite("/es/articles/introduction")
+---
+```
+
+Utilisez `context.rewrite()` dans vos fichiers de destination pour rediriger vers une autre page :
+
+```js title="src/pages/api.js"
+export function GET(context) {
+  if (!context.locals.allowed) {
+    return context.rewrite("/")
+  }
+}
+```
+
+Si l'URL passée à `Astro.rewrite()` émet une erreur d'exécution, Astro affichera l'erreur en superposition dans le cadre du développement et renverra un code d'état 500 dans le cadre de la production. Si l'URL n'existe pas dans votre projet, un code d'état 404 sera retourné.
+
+Vous pouvez intentionnellement créer une réécriture pour afficher votre page `/404`, par exemple pour indiquer qu'un produit de votre boutique e-commerce n'est plus disponible :
+
+```astro title="src/pages/[item].astro"
+---
+const { item } = Astro.params;
+if (!itemExists(item)) {
+  return Astro.rewrite("/404")
+}
+---
+<div>...</div>
+``` 
+
+Vous pouvez également procéder à une réécriture conditionnelle sur la base d'un statut de réponse HTTP, par exemple pour afficher une certaine page de votre site lorsque vous visitez une URL qui n'existe pas :
+
+```js title="src/middleware.mjs"
+export const onRequest = async (context, next) => {
+  const response = await next();
+  if (response.status === 404) {
+    return context.rewrite("/");
+  }
+  return response;
+}
+``` 
+
+Avant d'afficher le contenu du chemin de réécriture spécifié, la fonction `Astro.rewrite()` déclenche une nouvelle phase complète d'affichage. Celle-ci ré-exécute tout middleware pour la nouvelle route/demande.
+
+<ReadMore>Voir la référence de l'API [`Astro.rewrite()`](/fr/reference/api-reference/#astrorewrite) pour plus d'informations.</ReadMore>
+
 ## Ordre de Priorité des Routes
 
 Il est possible que plusieurs routes définies tentent de construire le même chemin d'URL. Par exemple, toutes ces routes pourraient construire `/posts/create` :
