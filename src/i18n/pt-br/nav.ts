@@ -72,7 +72,7 @@ export default NavDictionary({
 	'reference/adapter-reference': 'API de Adaptadores',
 	'reference/image-service-reference': 'API de Serviço de Imagem',
 	'reference/dev-toolbar-app-reference': 'Barra de Ferramentas de Desenvolvimento',
-	'reference/container-reference': 'API Container (Experimental)',
+	'reference/container-reference': 'API de Contêiner (Experimental)',
 
 	communityResources: 'Conteúdos da Comunidade',
 	'community-resources/content': 'Cursos, Guias, e Receitas',
