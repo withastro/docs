@@ -5,11 +5,15 @@ i18nReady: true
 ---
 
 import { Steps } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
 
+Astro Actions make it easy to define and call backend functions with type-safety. Actions greatly reduce boilerplate on the backend compared to basic API endpoints:
 
-Astro actions make it easy to define and call backend functions with type-safety. 
+- Automatically validate JSON and form data inputs using [Zod](https://zod.dev).
+- Generate type-safe functions to call your backend [from the client](#basic-usage) and even [from server forms](#call-actions-from-an-html-form-action). No need for manual `fetch()` calls.
+- Standardize backend errors with the `ActionError` object.
 
-# Basic usage
+## Basic usage
 
 <Steps>
 
@@ -23,7 +27,7 @@ Astro actions make it easy to define and call backend functions with type-safety
     }
     ```
 
-3. Import the `defineAction()` utility from `astro:actions`, and the `z` object from `astro:schema`. `defineAction()` accepts a `handler` function containing any backend logic you want to run, and an optional `input` object to validate input parameters with Zod. Anything returned from the `handler` function will be serialized as a response.
+3. Import the `defineAction()` utility from `astro:actions`, and the `z` object from `astro:schema`. `defineAction()` accepts a `handler` function containing any backend logic you want to run, and an optional `input` object to validate input parameters with [Zod](https://zod.dev). Anything returned from the `handler` function will be serialized as a response.
 
     ```ts ins={1-2, 5-12} title="src/actions/index.ts"
     import { defineAction } from 'astro:actions';
@@ -40,6 +44,8 @@ Astro actions make it easy to define and call backend functions with type-safety
       })
     }
     ```
+
+    <ReadMore>The `input` object can validate any JSON-compatible input. [Check the Zod documentation](https://zod.dev/?id=primitives) for all available validation functions.</ReadMore>
 
 4. Call your action from client code by importing `actions` from `astro:actions`. This object contains all functions exported by the `server` object. For example, call `actions.getGreeting()` on a button press using a `<script>` tag:
 
@@ -78,7 +84,7 @@ export const user = {
 }
 ```
 
-Then, you can import this `user` object into your `actions/index` file and apply to the `server` object:
+Then, you can import this `user` object into your `src/actions/index.ts` file and apply to the `server` object:
 
 ```ts
 import { user } from './user';
@@ -93,9 +99,6 @@ Now, all user actions are callable from the `actions.user` object:
 - `actions.user.getUser()`
 - `actions.user.createUser()`
 
-## Defining actions
-
-Actions are defined using the `defineAction()` function from the `astro:actions` module. This function accepts a `handler` function for backend logic you want to run, and an optional `input` object to validate inputs at runtime with Zod.
 
 ## Handling action return values
 
@@ -117,7 +120,7 @@ if (error) {
 
 You may have simpler actions that do you not need to throw errors. In these cases, you may prefer to get data directly and allow unexpected errors to throw.
 
-Use the `.orThrow()` extension function on your action call to access `data` directly. This example calls a `likePost` action that returns the updated number of likes as a `number` from the action `handler`:
+Use the `.orThrow()` property on your action call to access `data` directly. This example calls a `likePost` action that returns the updated number of likes as a `number` from the action `handler`:
 
 ```ts ins="orThrow"
 const updatedLikes = await actions.likePost.orThrow({ postId: 'example' });
@@ -136,7 +139,7 @@ It may be tempting to return `undefined` in these cases. However, Astro recommen
 
 To throw an error, import the `ActionError()` class from the `astro:actions` module. `ActionError()` accepts as `code` containing a human-readable status code (like `"NOT_FOUND"` or `"BAD_REQUEST"`), and an optional `message` field to provide further information about the error.
 
-This example throws an error from a `likePost()` action when a user is not logged in, checking a hypothetical "user-session" cookie from an authentication service:
+This example throws an error from a `likePost()` action when a user is not logged in, checking a hypothetical "user-session" cookie for authentication:
 
 ```ts title="src/actions/index.ts" ins="ActionError"
 import { defineAction, ActionError } from "astro:actions";
@@ -187,12 +190,11 @@ export function LikeButton({ postId }: { postId: string }) {
 }
 ```
 
-
 ## Accepting form data from an action
 
-Actions accept JSON data by default. You can switch an action to accept `FormData` by adding the `accept: 'form'` paremeter to your `defineAction()` call:
+Actions accept JSON data by default. If you are using an HTML form, you can switch an action to accept form data by adding the `accept: 'form'` parameter to your `defineAction()` call:
 
-```ts ins="accept: 'form'"
+```ts title="src/actions/index.ts" ins="accept: 'form'"
 import { defineAction } from 'astro:actions';
 import { z } from 'astro:schema';
 
@@ -203,4 +205,129 @@ export const server = {
     handler: async (input) => { /* ... */ },
   })
 }
+```
+
+### Validating form data
+
+You can validate form inputs by applying the `z.object()` validator to the `input` property. Astro will smartly parse form data to an object, mapping each form input based on the input `name`. You can also omit the `input` property to receive the raw `FormData` object in your action handler.
+
+In this example, say you have a newsletter form that accepts a user's email and a "terms of service" agreement checkbox:
+
+```astro title="src/components/Newsletter.astro
+<form>
+  <input required type="email" name="email" />
+  <label>
+    <input required type="checkbox" name="terms">
+    I agree to the terms of service
+  </label>
+</form>
+```
+
+Create a `newsletter()` action to accept this form. Validate the `email` field using the `z.string().email()` validator, and the `terms` checkbox using `z.boolean()`:
+
+```ts title="src/actions/index.ts" ins={7-10}
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  newsletter: defineAction({
+    accept: 'form',
+    input: z.object({
+      email: z.string().email(),
+      terms: z.boolean(),
+    }),
+    handler: async ({ email, terms }) => { /* ... */ },
+  })
+}
+```
+
+<ReadMore>[Check the `input` API reference](/en/reference/api-reference/#input-validator) for all available form validators.</ReadMore>
+
+You can call this action using a [client component framework](https://docs.astro.build/en/guides/integrations-guide/#official-integrations), [a form POST request](#call-actions-from-an-html-form-action), or by using a `<script>` tag in an Astro component. This example overrides the form's `onSubmit` behavior to call `actions.newsletter()`:
+
+```astro title="src/components/Newsletter.astro ins={10-19}
+<form id="newsletter-form">
+  <input required type="email" name="email" />
+  <label>
+    <input required type="checkbox" name="terms">
+    I agree to terms of service
+  </label>
+</form>
+
+<script>
+  import { actions } from 'astro:actions';
+
+  const form = document.getElementById('newsletter-form') as HTMLFormElement;
+  form.onSubmit(async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+    const { data, error } = await actions.newsletter(formData);
+    // handle result
+  })
+</script>
+```
+
+## Call actions from an HTML form action
+
+:::caution
+Pages must be server rendered when calling actions using a from action. [Ensure prerendering is disabled on the page](/en/guides/server-side-rendering/#opting-in-to-pre-rendering-in-server-mode) before using this API.
+:::
+
+You may want to call an action using a standard HTML form action. This allows you to submit a form entirely on the server using an Astro component. It is also useful as a fallback for client forms, where slow internet connections or low-powered devices may delay the loading of client-side JavaScript.
+
+To use a standard form request, add `method="POST"` as a form attribute to any `<form>` element. Then, apply your action function directly to the `action` property of the form. This will apply the function name as a query string to be handled by the server. 
+
+This example applies the `comment` action to a form using an Astro component:
+
+```astro title="src/pages/index.astro" ins="action={actions.comment}" ins='method="POST"'
+---
+import { actions } from 'astro:actions';
+---
+
+<form method="POST" action={actions.comment}>
+  <!--output: action="?_astroAction=comment"-->
+  <input required name="author" />
+  <textarea required name="body" />
+  <input type="hidden" name="postId" value="example-post" />
+</form>
+```
+
+:::tip
+
+[Enable view transitions](/en/guides/view-transitions/) to submit the form with a nice client-side transition. This will allow you to animate your UI with new information once the page reloads. The `<ViewTransition />` component will also prevent the "Confirm form resubmission" dialog from appearing when a user refreshes the page.
+
+:::
+
+### Handle a form action result on the server
+
+When using a standard form request, you can get the resulting data or error from your Astro page. Call `Astro.getActionResult()`, passing the action you want to get a result for (ex. `Astro.getActionResult(actions.comment)`). This will return type-safe `data` or `error` objects when a matching POST request is received, and `undefined` otherwise.
+
+```astro
+---
+import { actions } from 'astro:actions';
+
+const comment = Astro.getActionResult(actions.comment);
+---
+
+{comment?.data?.title && (
+	<article class="new-comment">
+		{/* ... */}
+	</article>
+)}
+```
+
+
+### Construct an `action` path to a new page
+
+You may also construct form action URLs using string concatenation, or by using the `URL()` constructor, with the an action's `.queryString` property:
+
+```astro
+---
+import { actions } from 'astro:actions';
+const confirmationUrl = new URL('/confirmation', Astro.url);
+confirmationUrl.search = actions.queryString;
+---
+<form method="POST" action={confirmationUrl.pathname}>
+  <button>Submit</button>
+</form>
 ```
