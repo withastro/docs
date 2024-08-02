@@ -9,7 +9,7 @@ import ReadMore from '~/components/ReadMore.astro'
 
 인증 및 승인은 웹사이트 또는 앱에 대한 액세스를 관리하는 두 가지 보안 프로세스입니다. 인증은 방문자의 신원을 확인하는 반면, 승인은 보호 구역 및 자원에 대한 접근 권한을 부여합니다.
 
-인증을 사용하면 사이트의 특정 영역을 로그인한 개인에 맞춰 사용자 정의할 수 있으며 개인 정보 또는 비공개 정보를 최대한 보호할 수 있습니다. 인증 라이브러리 (예: [Lucia Auth](https://lucia-auth.com/), [Auth.js](https://authjs.dev/))는 이메일 로그인 및 OAuth 공급자와 같은 다양한 인증 방법을 위한 유틸리티를 제공합니다.
+인증을 사용하면 사이트의 특정 영역을 로그인한 개인에 맞춰 사용자 정의할 수 있으며 개인 정보 또는 비공개 정보를 최대한 보호할 수 있습니다. 인증 라이브러리 (예: [Lucia Auth](https://lucia-auth.com/), [Auth.js](https://authjs.dev/), [Clerk](https://clerk.com))는 이메일 로그인 및 OAuth 공급자와 같은 다양한 인증 방법을 위한 유틸리티를 제공합니다.
 
 :::tip
 Astro에 대한 공식 인증 솔루션은 없지만 통합 디렉터리에서 [커뮤니티 "인증" 통합](https://astro.build/integrations/?search=auth)을 찾을 수 있습니다.
@@ -187,6 +187,77 @@ const session = await getSession(Astro.request);
 
 - [GitHub의 `auth-astro`](https://github.com/nowaythatworked/auth-astro?tab=readme-ov-file#auth-astro)
 - [Auth.js 문서](https://authjs.dev/)
+
+## Clerk
+
+Clerk는 임베드 가능한 UI, 유연한 API, 관리자 대시보드로 구성된 완벽한 제품군으로 사용자를 인증하고 관리할 수 있습니다. [Astro용 공식 Clerk SDK](https://clerk.com/docs/references/astro/overview)를 사용할 수 있습니다.
+
+### 설치
+
+원하는 패키지 관리자를 사용하여 `@clerk/astro`를 설치합니다.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @clerk/astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @clerk/astro
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @clerk/astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### 구성
+
+[Clerk의 자체 Astro 빠른 시작 가이드](https://clerk.com/docs/quickstarts/astro)를 따라 Astro 프로젝트에서 Clerk 통합 및 미들웨어를 설정하세요.
+
+### 사용
+
+Clerk는 사용자의 인증 상태에 따라 페이지의 표시 여부를 제어할 수 있는 컴포넌트를 제공합니다. 로그아웃한 사용자에게는 로그인한 사용자에게 제공되는 콘텐츠 대신 로그인 버튼을 표시합니다:
+
+```astro title="src/pages/index.astro"
+---
+import Layout from 'src/layouts/Base.astro';
+import { SignedIn, SignedOut, UserButton, SignInButton } from '@clerk/astro/components';
+---
+<Layout>
+    <SignedIn>
+        <UserButton />
+    </SignedIn>
+    <SignedOut>
+        <SignInButton />
+    </SignedOut>
+</Layout>
+```
+
+또한 Clerk를 사용하면 미들웨어를 통해 서버에서 경로를 보호할 수 있습니다. 보호할 경로를 지정하고 인증되지 않은 사용자에게 로그인하라는 메시지를 표시할 수 있습니다:
+
+```ts title="src/middleware.ts"
+import { clerkMiddleware, createRouteMatcher } from '@clerk/astro/server';
+
+const isProtectedRoute = createRouteMatcher([
+  '/dashboard(.*)',
+  '/forum(.*)',
+]);
+
+export const onRequest = clerkMiddleware((auth, context) => {
+  if (!auth().userId && isProtectedRoute(context.request)) {
+    return auth().redirectToSignIn();
+  }
+});
+```
+
+### 다음 단계
+
+- [공식 `@clerk/astro` 문서](https://clerk.com/docs/references/astro/overview)를 읽어보세요.
+- [Clerk + Astro 빠른 시작 프로젝트](https://github.com/clerk/clerk-astro-quickstart) 템플릿으로 시작하세요.
 
 ## 커뮤니티 자료
 

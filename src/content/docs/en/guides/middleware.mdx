@@ -5,6 +5,7 @@ i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import { Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro';
 
 **Middleware** allows you to intercept requests and responses and inject behaviors dynamically every time a page or endpoint is about to be rendered. This rendering occurs at build time for all prerendered pages, but occurs when the route is requested for pages rendered on demand, making [additional SSR features like cookies and headers](/en/guides/server-side-rendering/#on-demand-rendering-features) available.
 
@@ -194,6 +195,79 @@ greeting request
 greeting response
 auth response
 validation response
+```
+
+## Rewriting
+
+<p><Since v="4.13.0" /></p>
+
+The `APIContext` exposes a method called `rewrite()` which works the same way as [Astro.rewrite](/en/guides/routing/#rewrites).
+
+Use `context.rewrite()` inside middleware to display a different page's content without [redirecting](/en/guides/routing/#dynamic-redirects) your visitor to a new page. This will trigger a new rendering phase, causing any middleware to be re-executed.
+
+```js title="src/middleware.js"
+import { isLoggedIn } from "~/auth.js"
+export function onRequest (context, next) {
+  if (!isLoggedIn(context)) {
+    // If the user is not logged in, update the Request to render the `/login` route and
+    // add header to indicate where the user should be sent after a successful login.
+    // Re-execute middleware.
+    return context.rewrite(new Request("/login", {
+      headers: {
+        "x-redirect-to": context.url.pathname
+      }
+    }));
+  }
+
+  return next();
+};
+```
+
+You can also pass the `next()` function an optional URL path parameter to rewrite the current `Request` without retriggering a new rendering phase. The location of the rewrite path can be provided as a string, URL, or `Request`:
+
+```js title="src/middleware.js"
+import { isLoggedIn } from "~/auth.js"
+export function onRequest (context, next) {
+  if (!isLoggedIn(context)) {
+    // If the user is not logged in, update the Request to render the `/login` route and
+    // add header to indicate where the user should be sent after a successful login.
+    // Return a new `context` to any following middlewares.
+    return next(new Request("/login", {
+      headers: {
+        "x-redirect-to": context.url.pathname
+      }
+    }));
+  }
+
+  return next();
+};
+```
+
+The `next()` function accepts the same payload of [the `Astro.rewrite()` function](/en/reference/api-reference/#astrorewrite). The location of the rewrite path can be provided as a string, URL, or `Request`.
+
+When you have multiple middleware functions chained via [sequence()](#chaining-middleware), submitting a path to `next()` will rewrite the `Request` in place and the middleware will not execute again. The next middleware function in the chain will receive the new `Request` with its updated `context`:
+
+```js title="src/middleware.js"
+// Current URL is https://example.com/blog
+
+// First middleware function
+async function first(_, next) {
+  console.log(context.url.pathname) // this will log "/blog"
+  // Rewrite to a new route, the homepage 
+  // Return updated `context` which is passed to next function
+  return next("/")
+}
+
+// Current URL is still https://example.com/blog
+
+// Second middleware function
+async function second(context, next) {
+  // Receives updated `context`
+  console.log(context.url.pathname) // this will log  "/"    
+  return next()
+}
+
+export const onRequest = sequence(first, second);
 ```
 
 ## Error pages
