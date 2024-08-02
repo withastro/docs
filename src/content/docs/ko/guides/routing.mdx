@@ -298,6 +298,68 @@ if (!isLoggedIn(cookie)) {
 </html>
 ```
 
+## 리라이트
+
+<p><Since v="4.13.0" /></p>
+
+리라이트를 사용하면 브라우저를 다른 페이지로 리디렉션하지 않고도 다른 경로를 제공할 수 있습니다. 브라우저는 URL 표시줄에 원래 주소를 표시하지만, 대신 [`Astro.rewrite()`](/ko/reference/api-reference/#astrorewrite)에 제공된 URL의 콘텐츠를 표시합니다.
+
+:::tip
+영구적으로 이동한 콘텐츠를 제공하거나 사용자를 새 URL을 사용하는 다른 페이지로 안내하려면 (예: 로그인 후 사용자 대시보드) [리디렉션](#리디렉션)을 사용하세요.
+:::
+
+리라이트는 두 개의 다른 소스 파일을 유지 관리할 필요 없이 여러 경로 (예: `/products/shoes/men/` 및 `/products/men/shoes`/)에서 동일한 콘텐츠를 표시하는 데 유용할 수 있습니다.
+
+리라이트는 SEO 목적과 사용자 경험에도 유용합니다. 방문자를 다른 페이지로 리디렉션해야 하거나 404 상태를 반환하는 콘텐츠를 표시할 수 있습니다. 리라이트의 일반적인 용도 중 하나는 다양한 언어 변형에 대해 동일한 현지화된 콘텐츠를 표시하는 것입니다.
+
+다음은 방문자가 `/es-CU/` (쿠바 스페인어) URL 경로에 방문했을 때 리라이트를 사용하여 페이지의 `/es/` 버전을 렌더링하는 예시입니다. 방문자가 `/es-cu/articles/introduction` URL로 이동하면 Astro는 `src/pages/es/articles/introduction.astro` 파일에 의해 생성된 콘텐츠를 렌더링합니다.
+
+```astro title="src/pages/es-cu/articles/introduction.astro"
+---
+return Astro.rewrite("/es/articles/introduction")
+---
+```
+
+다른 페이지로 경로를 변경하려면 엔드포인트 파일에서 `context.rewrite()`를 사용하세요:
+
+```js title="src/pages/api.js"
+export function GET(context) {
+  if (!context.locals.allowed) {
+    return context.rewrite("/")
+  }
+}
+```
+
+`Astro.rewrite()`에 전달된 URL이 런타임 오류를 발생시키면 개발 환경에서는 오버레이 오류가 표시되고 프로덕션 환경에서는 500 상태 코드가 반환됩니다. URL이 프로젝트에 존재하지 않으면 404 상태 코드가 반환됩니다.
+
+예를 들어 이커머스 스토어의 제품을 더 이상 사용할 수 없음을 표시하기 위해 의도적으로 `/404` 페이지를 렌더링하는 리라이트를 생성할 수 있습니다:
+
+```astro title="src/pages/[item].astro"
+---
+const { item } = Astro.params;
+if (!itemExists(item)) {
+  return Astro.rewrite("/404")
+}
+---
+<div>...</div>
+``` 
+
+예를 들어, 존재하지 않는 URL을 방문할 때 사이트의 특정 페이지를 표시하는 등 HTTP 응답 상태에 따라 조건부로 리라이트할 수도 있습니다:
+
+```js title="src/middleware.mjs"
+export const onRequest = async (context, next) => {
+  const response = await next();
+  if (response.status === 404) {
+    return context.rewrite("/");
+  }
+  return response;
+}
+``` 
+
+지정된 리라이트 경로의 콘텐츠를 표시하기 전에 `Astro.rewrite()` 함수는 새롭고 완전한 렌더링 단계를 트리거합니다. 그러면 새 경로/요청에 대한 모든 미들웨어가 다시 실행됩니다.
+
+<ReadMore>[`Astro.rewrite()` API 참조](/ko/reference/api-reference/#astrorewrite)에 대해 자세히 알아보세요.</ReadMore>
+
 ## 경로 우선순위
 
 정의된 여러 경로가 동일한 URL 경로를 빌드하려고 시도할 수 있습니다. 예를 들어, 다음 경로는 모두 `/posts/create`를 빌드할 수 있습니다.
