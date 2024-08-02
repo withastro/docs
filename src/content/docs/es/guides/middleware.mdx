@@ -5,6 +5,7 @@ i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import { Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro';
 
 Un **Middleware** te permite interceptar las solicitudes y respuestas e inyectar comportamientos dinámicamente cada vez que una página o endpoint está a punto de ser renderizado. Esta renderización se produce en tiempo de compilación para todas las páginas prerenderizadas, pero se produce cuando se solicita la ruta para las páginas renderizadas bajo demanda, lo que permite [características adicionales de SSR como cookies y encabezados](/es/guides/server-side-rendering/#características-de-renderización-bajo-demanda) disponibles.
 
@@ -197,6 +198,74 @@ solicitud de saludo
 respuesta de saludo
 respuesta de autenticación
 respuesta de validación
+```
+## Rewriting
+## Reescritura
+
+<p><Since v="4.13.0" /></p>
+
+El `APIContext` expone un método llamado `rewrite()` que funciona de la misma manera que [Astro.rewrite](/es/guides/routing/#rewrites).
+
+Usa `context.rewrite()` dentro del middleware para mostrar el contenido de una página diferente sin [redirigir](/es/guides/routing/#redirecciones-dinámicas) a tu visitante a una nueva página. Esto desencadenará una nueva fase de renderizado, lo que hará que cualquier middleware se vuelva a ejecutar.
+
+```js title="src/middleware.js"
+import { isLoggedIn } from "~/auth.js"
+export function onRequest (context, next) {
+  if (!isLoggedIn(context) {
+    // Si el usuario no ha iniciado sesión, actualiza la solicitud para renderizar la ruta `/login` y
+    // agrega un encabezado para indicar a dónde se debe enviar al usuario después de un inicio de sesión exitoso.
+    // Reejecuta el middleware.
+    return context.rewrite(new Request("/login", {
+      headers: {
+        "x-redirect-to": context.url.pathname
+      }
+    }));
+  }
+
+  return next();
+};
+```
+Puedes pasarle a la función `next()` un parámetro de ruta de URL opcional para reescribir la `Request` actual sin volver a desencadenar una nueva fase de renderizado. La ubicación de la ruta de reescritura se puede proporcionar como una cadena, URL o `Request`:
+```js title="src/middleware.js"
+import { isLoggedIn } from "~/auth.js"
+export function onRequest (context, next) {
+  if (!isLoggedIn(context) {
+    // Si el usuario no ha iniciado sesión, actualiza la solicitud para renderizar la ruta `/login` y
+    // agrega un encabezado para indicar a dónde se debe enviar al usuario después de un inicio de sesión exitoso.
+    // Regresa un nuevo `context` a cualquier middleware siguiente.
+    return next(new Request("/login", {
+      headers: {
+        "x-redirect-to": context.url.pathname
+      }
+    }));
+  }
+
+  return next();
+};
+```
+La función `next()` acepta el mismo payload que [la función `Astro.rewrite()`](/es/reference/api-reference/#astrorewrite). La ubicación de la ruta de reescritura se puede proporcionar como una cadena, URL o `Request`.
+Cuando tienes múltiples funciones de middleware encadenadas a través de [sequence()](#chaining-middleware), enviar una ruta a `next()` reescribirá la `Request` en su lugar y el middleware no se ejecutará de nuevo. La siguiente función de middleware en la cadena recibirá la nueva `Request` con su `context` actualizado:
+```js title="src/middleware.js"
+// URL actual es https://example.com/blog
+
+// Primera función de middleware
+async function first(_, next) {
+  console.log(context.url.pathname) // esto registrará "/blog"
+  // Reescribe a una nueva ruta, la página de inicio
+  // Regresa un `context` actualizado que se pasa a la siguiente función
+  return next("/")
+}
+
+// URL actual sigue siendo https://example.com/blog
+
+// Segunda función de middleware
+async function second(context, next) {
+  // Recibe un `context` actualizado   
+  console.log(context.url.pathname) // esto registrará "/"
+  return next()
+}
+
+export const onRequest = sequence(first, second);
 ```
 
 ## Páginas de error
