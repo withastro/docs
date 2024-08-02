@@ -82,66 +82,29 @@ export default defineConfig({
 
 ## Usage
 
-`@astrojs/sitemap` requires a deployment / site URL for generation. Add your site's URL under your `astro.config.*` using the `site` property. This must begin with `http:` or `https:`.
+`@astrojs/sitemap` needs to know your site’s deployed URL to generate a sitemap.
 
-```js title="astro.config.mjs" "'https://stargazers.club'"
+Add your site's URL as the [`site`](/en/reference/configuration-reference/#site) option in `astro.config.mjs`. This must begin with `http://` or `https://`.
+
+```js title="astro.config.mjs" {5}
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
 export default defineConfig({
-  // ...
   site: 'https://stargazers.club',
   integrations: [sitemap()],
+  // ...
 });
 ```
 
-Note that unlike other configuration options, `site` is set in the root `defineConfig` object, rather than inside the `sitemap()` call.
+With the sitemap integration configured, `sitemap-index.xml` and `sitemap-0.xml` files will be added to your output directory when building your site.
 
-Now, [build your site for production](/en/reference/cli-reference/#astro-build) via the `astro build` command. You will find both `sitemap-index.xml` and `sitemap-0.xml` in the `dist/` folder (or your custom [output directory](/en/reference/configuration-reference/#outdir) if set).
+`sitemap-index.xml` links to all the numbered sitemap files.
+`sitemap-0.xml` lists the pages on your site.
+For extremely large sites, there may also be additional numbered files like `sitemap-1.xml` and `sitemap-2.xml`.
 
-:::caution
-If you forget to add a `site`, you'll get a friendly warning when you build, and the `sitemap-index.xml` file won't be generated.
-:::
-
-After verifying that the sitemaps are built, you can add them to your site's `<head>` and the `robots.txt` file for crawlers to pick up.
-
-```html title="src/layouts/Layout.astro" ins={2}
-<head>
-  <link rel="sitemap" href="/sitemap-index.xml" />
-</head>
-```
-
-```txt ins={5}
-# public/robots.txt
-User-agent: *
-Allow: /
-
-Sitemap: https://<YOUR SITE>/sitemap-index.xml
-```
-
-To generate `robots.txt` dynamically, add a file named `robots.txt.ts` with the following code:
-
-```ts title="src/pages/robots.txt.ts"
-import type { APIRoute } from 'astro';
-
-const robotsTxt = `
-User-agent: *
-Allow: /
-
-Sitemap: ${new URL('sitemap-index.xml', import.meta.env.SITE).href}
-`.trim();
-
-export const GET: APIRoute = () => {
-  return new Response(robotsTxt, {
-    headers: {
-      'Content-Type': 'text/plain; charset=utf-8',
-    },
-  });
-};
-
-```
-
-### Example of generated files for a two-page website
+<details>
+<summary>Example of generated files for a two-page website</summary>
 
 ```xml title="sitemap-index.xml"
 <?xml version="1.0" encoding="UTF-8"?>
@@ -163,10 +126,56 @@ export const GET: APIRoute = () => {
   </url>
 </urlset>
 ```
+</details>
+
+### Sitemap discovery
+
+You can make it easier for crawlers to find your sitemap with links in your site's `<head>` and `robots.txt` file.
+
+#### Sitemap link in `<head>`
+
+Add a `<link rel="sitemap">` element to your site’s `<head>` pointing to the sitemap index file:
+
+```html title="src/layouts/Layout.astro" ins={2}
+<head>
+  <link rel="sitemap" href="/sitemap-index.xml" />
+</head>
+```
+
+#### Sitemap link in `robots.txt`
+
+If you have a `robots.txt` for your website, you can add the URL for the sitemap index to help crawlers:
+
+```txt ins={5}
+# public/robots.txt
+User-agent: *
+Allow: /
+
+Sitemap: https://<YOUR SITE>/sitemap-index.xml
+```
+
+You can also generate `robots.txt` dynamically if you want to reuse the `site` value from `astro.config.mjs`.
+To do so, create a `src/pages/robots.txt.ts` file with the following code:
+
+```ts title="src/pages/robots.txt.ts"
+import type { APIRoute } from 'astro';
+
+const getRobotsTxt = (sitemapURL: URL) => `
+User-agent: *
+Allow: /
+
+Sitemap: ${sitemapURL.href}
+`;
+
+export const GET: APIRoute = ({ site }) => {
+  const sitemapURL = new URL('sitemap-index.xml', site);
+  return new Response(getRobotsTxt(sitemapURL));
+};
+```
 
 ## Configuration
 
-To configure this integration, pass an object to the `sitemap()` function call in `astro.config.mjs`.
+To configure this integration, pass an object to the `sitemap()` function in `astro.config.mjs`.
 
 ```js title="astro.config.mjs" {6-8}
 import { defineConfig } from 'astro/config';
