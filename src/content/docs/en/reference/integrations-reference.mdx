@@ -33,10 +33,15 @@ interface AstroIntegration {
       addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
       addDevToolbarApp: (pluginEntrypoint: string) => void;
       injectScript: (stage: InjectedScriptStage, content: string) => void;
-      injectRoute: ({ pattern: string, entrypoint: string }) => void;
+      injectRoute: (injectedRoute: { pattern: string, entrypoint: string }) => void;
       logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
-    'astro:config:done'?: (options: { config: AstroConfig; setAdapter: (adapter: AstroAdapter) => void; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:config:done'?: (options: {
+      config: AstroConfig;
+      setAdapter: (adapter: AstroAdapter) => void;
+      injectTypes: (injectedType: { filename: string; content: string }) => URL;
+      logger: AstroIntegrationLogger;
+      }) => void | Promise<void>;
     'astro:server:setup'?: (options: { server: vite.ViteDevServer; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:server:start'?: (options: { address: AddressInfo; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:server:done'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
@@ -385,9 +390,14 @@ The **`stage`** denotes how this script (the `content`) should be inserted. Some
 **When:** After the Astro config has resolved and other integrations have run their `astro:config:setup` hooks.
 
 **Why:** To retrieve the final config for use in other hooks.
-
+TODO:
 ```js
-'astro:config:done'?: (options: { config: AstroConfig }) => void | Promise<void>;
+'astro:config:done'?: (options: {
+  config: AstroConfig;
+  setAdapter: (adapter: AstroAdapter) => void;
+  injectTypes: (injectedType: { filename: string; content: string }) => URL;
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
 ```
 
 #### `config` option
@@ -395,6 +405,28 @@ The **`stage`** denotes how this script (the `content`) should be inserted. Some
 **Type:** `AstroConfig`
 
 A read-only copy of the user-supplied [Astro config](/en/reference/configuration-reference/). This is resolved _after_ other integrations have run.
+
+#### `setAdapter` option
+
+**Type:** `(adapter: AstroAdapter) => void;`
+
+Makes the integration an adapter. Read more in the [adapter API](/en/reference/adapter-reference/).
+
+#### `injectTypes` options
+
+**Type:** `(injectedType: { filename: string; content: string }) => URL`
+
+Allows you to inject types easily in your user's project. `filename` must ends with `".d.ts"` and `content` must be valid TypeScript (it will be formatted).
+
+Under the hood, it will create a file at `/.astro/integrations/<normalized_integration_name>/<normalized_filename>.d.ts` and create references to it. `injectTypes` returns a URL to the normalized path.
+
+```ts
+const path = injectTypes({
+  filename: "types.d.ts",
+  content: "declare module 'virtual:integration' {}"
+})
+console.log(path) // URL
+```
 
 ### `astro:server:setup`
 
@@ -745,4 +777,6 @@ integrations: [
 ## Community Resources
 
 - [Build your own Astro Integrations](https://www.freecodecamp.org/news/how-to-use-the-astro-ui-framework/#chapter-8-build-your-own-astro-integrations-1) - by Emmanuel Ohans on FreeCodeCamp
-- [Astro Integration Template](https://github.com/florian-lefebvre/astro-integration-template) - by Florian Lefebvre on GitHub
+- [Astro Integration Template](https://github.com/florian-lefebvre/astro-integration-template) - by Florian Lefebvre on GitHubimport type { log } from 'console'
+import type { log } from 'console'
+
