@@ -2057,11 +2057,34 @@ This component provides a way to inspect values on the client-side, without any 
 
 ## Actions (astro:actions)
 
-WIP
+Actions are backend functions used for type-safe server-to-client communication. All utilities used to define and call actions are exposed by the `astro:actions` module. For examples and usage instructions, [see the Actions guide](/en/guides/actions).
 
 ### `defineAction()`
 
+The `defineAction()` utility is used to define new actions from the `src/actions/index.ts` file. This accepts a `handler()` function containing the server logic to run, and an optional `input` property to validate input parameters at runtime.
+
+```ts
+export const server = {
+    getGreeting: defineAction({
+    input: z.object({
+      name: z.string(),
+    }),
+    handler: async (input) => {
+      return `Hello, ${input.name}!`
+    }
+  })
+}
+```
+
+#### `handler()` property
+
+`defineAction()` accepts a `handler()` function containing the server logic to run when the action is called. This function can return data that is automatically serialized and sent to the caller.
+
+Return values are parsed using the [devalue library](https://github.com/Rich-Harris/devalue). This supports JSON values, along with instances of `Date()`, `Map()`, `Set()`, or `URL()`.
+
 #### `input` validator
+
+The optional `input` property accepts a Zod validator to validate handler inputs at runtime. If the action fails to validate, a "bad request" error is returned and the `handler` is not called.
 
 When using `accept: 'form'`, `input` must use the `z.object()` validator when it is present. The following validators are supported for form data fields:
 
@@ -2070,3 +2093,8 @@ When using `accept: 'form'`, `input` must use the `z.object()` validator when it
 - Inputs of type `file` can be validated using `z.instanceof(File)`
 - Multiple inputs of the same `name` can be validated using `z.array(/* validator */)`
 - All other inputs can be validated using `z.string()`
+
+### `ActionError`
+
+The `ActionError()` constructor is used to create errors thrown by an action `handler`. This accepts a `code` property describing the error that occurred (example: `"UNAUTHORIZED"`), and an optional `message` property with further details.
+
