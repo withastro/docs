@@ -54,11 +54,17 @@ interface AstroIntegration {
         logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
     'astro:build:done'?: (options: { dir: URL; routes: RouteData[]; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+
+    // ...任何来自集成的自定义钩子
   };
 }
 ```
 
 ## 钩子
+
+Astro 提供了集成可以实现的钩子，以便在 Astro 生命周期的某些部分执行。Astro 钩子被定义在 `IntegrationHooks` 接口中，该接口是全局 `Astro` 命名空间的一部分。
+
+Astro 内置了以下钩子：
 
 ### `astro:config:setup`
 
@@ -419,7 +425,7 @@ export default {
     'astro:server:setup': ({ server }) => {
       server.middlewares.use(
         function middleware(req, res, next) {
-          // handle requests
+          // 处理请求
         }
       );
     }
@@ -532,7 +538,7 @@ export default {
 **用途**：访问生成的路由和资产进行扩展（例如，将内容复制到生成的 `/assets` 目录）。如果你打算转换生成的资源，我们建议探索 [Vite 插件 API](https://vitejs.dev/guide/api-plugin.html) 和[通过 `astro:config:setup` 进行配置](#updateconfig-选项)来代替。
 
 ```js
-'astro:build:done'?: (options: { dir: URL; routes: RouteData[] }) => void | Promise<void>;
+'astro:build:done'?: (options: { dir: URL; routes: RouteData[], pages: { pathname: string }[] }) => void | Promise<void>;
 ```
 
 #### `dir` option
@@ -615,6 +621,22 @@ interface RouteData {
 生成的所有页面的列表是一个包含一个属性的对象。
 
 -  `pathname` - 页面的最终路径。
+
+### 自定义钩子
+
+通过 [全局增强](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#global-augmentation) 来扩展 `IntegrationHooks` 接口，可以将自定义钩子添加到集成中。
+
+```ts
+declare global {
+  namespace Astro {
+    export interface IntegrationHook {
+      'your:hook': (params: YourHookParameters) => Promise<void>
+    }
+  }
+}
+```
+
+Astro 为未来的内置钩子保留了 `astro:` 前缀。请在命名时，为自定义钩子选择不同的前缀。
 
 ## 使用 `astro add` 安装
 
