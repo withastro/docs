@@ -5,6 +5,7 @@ i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import { Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro';
 
 **Middleware** vous permet d'intercepter les demandes et les réponses et d'injecter des comportements de manière dynamique chaque fois qu'une page ou un point de terminaison est sur le point d'être rendu. Ce rendu a lieu au moment de la construction pour toutes les pages pré-rendues, mais il a lieu lorsque la route est demandée pour les pages rendues à la demande, rendant disponible [des fonctionnalités SSR supplémentaires telles que les cookies et les en-têtes](/fr/guides/server-side-rendering/#fonctions-de-rendu-à-la-demande).
 
@@ -41,7 +42,7 @@ Le middleware vous permet également de définir et de partager des informations
 
 ### Objet `context`
 
-L'objet [`context`](/fr/reference/api-reference/#endpoint-context) inclut des informations à mettre à disposition d'autres middleware, routes API et routes `.astro` pendant le processus de rendu.
+L'objet [`context`](/fr/reference/api-reference/#contexte-du-point-de-terminaison) inclut des informations à mettre à disposition d'autres middleware, routes API et routes `.astro` pendant le processus de rendu.
 
 C'est un argument optionnel passé à `onRequest()` qui peut contenir l'objet `locals` ainsi que toutes les propriétés additionnelles à partager pendant le rendu.Par exemple, l'objet `context` peut inclure les cookies utilisés pour l'authentification.
 
@@ -194,6 +195,79 @@ greeting request
 greeting response
 auth response
 validation response
+```
+
+## Réécriture
+
+<p><Since v="4.13.0" /></p>
+
+L'`APIContext` expose une méthode appelée `rewrite()` qui fonctionne de la même manière que [Astro.rewrite](/fr/guides/routing/#réécritures).
+
+Utilisez `context.rewrite()` dans un middleware pour afficher le contenu d'une autre page sans [rediriger](/fr/guides/routing/#redirections-dynamiques) votre visiteur vers une nouvelle page. Cela déclenchera une nouvelle phase d'affichage, entraînant la ré-exécution de tout middleware.
+
+```js title="src/middleware.js"
+import { isLoggedIn } from "~/auth.js"
+export function onRequest (context, next) {
+  if (!isLoggedIn(context)) {
+    // Si l'utilisateur n'est pas connecté, mettre à jour la requête pour afficher la route `/login` et
+    // ajouter un en-tête pour indiquer où l'utilisateur doit être envoyé après une connexion réussie.
+    // Ré-exécuter le middleware.
+    return context.rewrite(new Request("/login", {
+      headers: {
+        "x-redirect-to": context.url.pathname
+      }
+    }));
+  }
+
+  return next();
+};
+```
+
+Vous pouvez également passer à la fonction `next()` un paramètre optionnel de chemin URL pour réécrire la `Request` courante sans réenclencher une nouvelle phase de rendu. L'emplacement du chemin de réécriture peut être fourni sous la forme d'une chaîne, d'une URL ou d'une `Request` :
+
+```js title="src/middleware.js"
+import { isLoggedIn } from "~/auth.js"
+export function onRequest (context, next) {
+  if (!isLoggedIn(context) {
+    // Si l'utilisateur n'est pas connecté, mettre à jour la requête pour afficher la route `/login` et
+    // ajouter un en-tête pour indiquer où l'utilisateur doit être envoyé après une connexion réussie.
+    // Renvoyer un nouveau `contexte` à tous les middlewares suivants.
+    return next(new Request("/login", {
+      headers: {
+        "x-redirect-to": context.url.pathname
+      }
+    }));
+  }
+
+  return next();
+};
+```
+
+La fonction `next()` accepte la même charge utile que [la fonction `Astro.rewrite()`](/fr/reference/api-reference/#astrorewrite). L'emplacement du chemin de réécriture peut être fourni sous la forme d'une chaîne, d'une URL ou d'une `Request`.
+
+Quand vous avez plusieurs fonctions middleware enchaînées via [sequence()](#enchaînement-middleware), soumettre un chemin à `next()` réécrira la `Request` en place et le middleware ne s'exécutera pas à nouveau. Le middleware suivant dans la chaîne recevra la nouvelle `Request` avec son `context` mis à jour :
+
+```js title="src/middleware.js"
+// L'URL actuel est https://example.com/blog
+
+// Première fonction du middleware
+async function first(_, next) {
+  console.log(context.url.pathname) // ceci enregistrera "/blog"
+  // Réécriture vers une nouvelle route, la page d'accueil 
+  // Retourne le `context` mis à jour qui est passé à la fonction suivante
+  return next("/")
+}
+
+// L'URL actuelle est toujours https://example.com/blog
+
+// Deuxième fonction du middleware
+async function second(context, next) {
+  // Reçoit la mise à jour du `context`
+  console.log(context.url.pathname) // Cela sera affiché dans les logs "/"    
+  return next()
+}
+
+export const onRequest = sequence(first, second);
 ```
 
 ## Pages d'erreur
