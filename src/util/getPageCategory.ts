@@ -9,7 +9,7 @@ const categories = [
 	['guides/backend/', 'Recipes'],
 	['guides/cms/', 'Recipes'],
 	['guides/deploy/', 'Recipes'],
-	['guides/integrations-guide/', 'Recipes'],
+	['guides/integrations-guide/', 'Learn'],
 	['guides/migrate-to-astro/', 'Recipes'],
 	['guides/upgrade-to/', 'Upgrade Guides'],
 	['recipes/', 'Recipes'],
