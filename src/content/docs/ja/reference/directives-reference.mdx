@@ -1,0 +1,302 @@
+---
+title: テンプレートディレクティブの概要
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro'
+
+Astroでは**テンプレートディレクティブ**と呼ばれる特別なHTML属性が用意されています。これらは主にAstroコンポーネント（`.astro`ファイル）のテンプレート内で使えますが、一部は`.mdx`ファイルでも使用可能です。
+
+テンプレートディレクティブの役割は、要素やコンポーネントの挙動をコントロールすることです。例えば、開発をより楽にするコンパイラ機能（`class`の代わりに`class:list`を使うなど）を有効にしたり、Astroコンパイラに特別な指示（`client:load`でクライアントサイドの機能を有効にするなど）を出したりします。
+
+このページでは、Astroで使えるすべてのテンプレートディレクティブとその働きについて詳しく解説します。
+
+## 規則
+
+テンプレートディレクティブを正しく使うには、以下の2つの条件を満たす必要があります。
+
+1. 名前にコロン（:）を含めること。例えば「X:Y」のような形式です（例：`client:load`）。
+2. コンパイラから認識できる位置に書くこと。例えば、`<X {...attr}>`のように書いた場合、`attr`の中身にディレクティブがあってもコンパイラには見えないので注意が必要です。
+
+テンプレートディレクティブの中には、独自の値を設定できるものもあります。例えば、
+- `<X client:load />` → 値を設定する必要がありません
+- `<X class:list={['some-css-class']} />` → 配列を値として渡します。
+
+なお、テンプレートディレクティブはコンポーネントの最終的なHTML出力には含まれません。あくまでAstroのビルド時に使われる特別な指示といえるでしょう。
+
+## よく使われるディレクティブ
+
+### `class:list`
+
+`class:list={...}` は、複数のクラス値を配列で受け取り、それを一つのクラス文字列に変換します。この機能は、@lukeedの人気ライブラリ [clsx](https://github.com/lukeed/clsx) を使って実現しています。
+
+`class:list` で使える値の種類は以下の通りです。
+- 文字列：そのまま要素のクラスとして追加されます
+- オブジェクト：値が真のキーが要素のクラスとして追加されます
+- 配列：中身を展開して処理します
+- `false`, `null`, `undefined`：無視されます
+
+```astro
+<!-- This -->
+<span class:list={[ 'hello goodbye', { world: true }, [ 'friend' ] ]} />
+<!-- Becomes -->
+<span class="hello goodbye world friend"></span>
+```
+
+### `set:html`
+
+`set:html={string}` は、HTML文字列を要素の中身として挿入します。これは `el.innerHTML` を使うのと似た動作をします。
+
+**注意：Astroは自動的にこの値をエスケープしません！** 必ず信頼できる値を使うか、テンプレートに渡す前に手動でエスケープしてください。これを怠ると、[クロスサイトスクリプティング（XSS）攻撃](https://owasp.org/www-community/attacks/xss/)の危険性があります。
+
+```astro
+---
+const rawHTMLString = "Hello <strong>World</strong>"
+---
+<h1>{rawHTMLString}</h1>
+  <!-- Output: <h1>Hello &lt;strong&gt;World&lt;/strong&gt;</h1> -->
+<h1 set:html={rawHTMLString} />
+  <!-- Output: <h1>Hello <strong>World</strong></h1> -->
+```
+
+また、`set:html` は `<Fragment>` でも使えるので、余分なラッパー要素を追加せずにHTMLを挿入できます。これはCMSからHTMLを取得する場合などに特に便利です。
+
+```astro
+---
+const cmsContent = await fetchHTMLFromMyCMS();
+---
+<Fragment set:html={cmsContent}>
+```
+
+`set:html={Promise<string>}` を使うと、PromiseでラップされたHTML文字列を要素に挿入できます。
+
+これは、データベースなどに保存されている外部のHTMLを挿入する際に役立ちます。
+
+```astro
+---
+import api from '../db/api.js';
+---
+<article set:html={api.getArticle(Astro.props.id)}></article>
+```
+
+`set:html={Promise<Response>}` を使うと、[Response](https://developer.mozilla.org/ja/docs/Web/API/Response) オブジェクトの内容を要素に挿入できます。
+
+これは主に `fetch()` を使う場合に便利です。例えば、以前の静的サイトジェネレーターで作成した古い記事を取得する際などに使えます。
+
+```astro
+<article set:html={fetch('http://example/old-posts/making-soup.html')}></article>
+```
+
+`set:html` はどんなタグでも使えますし、必ずしもHTMLを含める必要はありません。例えば、ページに [JSON-LD](https://json-ld.org/) スキーマを追加したい場合、`<script>` タグ内で [`JSON.stringify()`](https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify) と組み合わせて使うこともできます。
+
+```astro
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org/",
+  "@type": "Person",
+  name: "Houston",
+  hasOccupation: {
+    "@type": "Occupation",
+    name: "Astronaut"
+  }
+})}/>
+```
+
+### `set:text`
+
+`set:text={string}` は、テキスト文字列を要素に挿入します。これは、`el.innerText` を設定するのと似ています。`set:html` とは異なり、渡された `string` 値はAstroによって自動的にエスケープされます。
+
+これは、テンプレート式に直接変数を渡すことと等価です（例：`<div>{someText}</div>`）。そのため、このディレクティブは一般的にはあまり使用されません。
+
+## クライアントディレクティブ
+
+クライアントディレクティブは、[UIフレームワークコンポーネント](/ja/guides/framework-components/)がブラウザ上でどのように「動的に機能するか」を制御します。
+
+特に指定がない限り、UIフレームワークコンポーネントはクライアントサイドでは静的なHTMLとして扱われます。`client:*`ディレクティブを使用しない場合、JavaScriptを含まない単なるHTMLとしてページに表示されます。
+
+クライアントディレクティブを使えるのは、`.astro`ファイルに直接インポートされたUIフレームワークコンポーネントに限ります。[動的タグ](/ja/basics/astro-syntax/#動的タグ)や、[`components`プロップを通じて渡されるカスタムコンポーネント](/ja/guides/markdown-content/#インポートしたmdxを使ったカスタムコンポーネント)では、これらのディレクティブは使用できません。
+
+### `client:load`
+
+- **優先度:** 高
+- **適している場面:** すぐに操作可能にする必要がある、ページ読み込み時に見えるUI要素
+
+ページの読み込みと同時に、コンポーネントのJavaScriptを読み込んで動的機能を有効化します。
+
+```astro
+<BuyButton client:load />
+```
+
+### `client:idle`
+
+- **優先度:** 中
+- **適している場面:** すぐに操作可能にする必要のない、それほど重要でないUI要素
+
+ページの初期読み込みが終わり、ブラウザが待機状態になったときに、コンポーネントのJavaScriptを読み込んで動的機能を有効化します。具体的には`requestIdleCallback`イベントが発生したタイミングです。もし使用中のブラウザが[`requestIdleCallback`](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback)に対応していない場合は、代わりに[`load`](https://developer.mozilla.org/en-US/docs/Web/API/Window/load_event)イベントが使用されます。
+
+```astro
+<ShowHideButton client:idle />
+```
+
+### `client:visible`
+
+- **優先度:** 低
+- **適している場面:** 画面下部にあるUI要素や、読み込みに時間がかかる要素で、ユーザーが実際に見たときのみ読み込みたいもの
+
+コンポーネントが画面内に表示されたときに、JavaScriptを読み込んで動的機能を有効化します。内部的には`IntersectionObserver`を使って要素の表示状態を監視しています。
+
+```astro
+<HeavyImageCarousel client:visible />
+```
+
+#### `client:visible={{rootMargin}}`
+
+<p><Since v="4.1.0" /></p>
+
+必要に応じて、`rootMargin`の値を指定できます。これは内部で使用される`IntersectionObserver`に渡されます。`rootMargin`を指定すると、コンポーネント自体ではなく、コンポーネントの周囲に指定したマージン（ピクセル単位）が画面に入ったときにJavaScriptが読み込まれ、動的機能が有効化されます。
+
+```astro
+<HeavyImageCarousel client:visible={{rootMargin: "200px"}} />
+```
+
+`rootMargin`を指定すると、以下のような利点があります。
+- レイアウトの急な変化（CLS）を減らせる
+- 通信速度が遅い環境でも、コンポーネントの準備に余裕を持たせられる
+- コンポーネントをより早く操作可能にできる
+
+これらにより、ページの安定性と応答性が向上します。
+
+### `client:media`
+
+- **優先度:** 低
+- **適している場面:** サイドバーの切り替えボタンや、特定の画面サイズでのみ表示される要素など
+
+`client:media={string}` は、指定したCSSメディアクエリの条件が満たされたときに、コンポーネントのJavaScriptを読み込み、動的機能を有効化します。
+
+:::note
+もしコンポーネントがすでにCSSのメディアクエリで表示/非表示を制御している場合は、同じメディアクエリをこのディレクティブに指定するよりも、単に `client:visible` を使用する方が簡単かもしれません。
+:::
+
+```astro
+<SidebarToggle client:media="(max-width: 50em)" />
+```
+
+### `client:only`
+
+`client:only={string}` は、サーバー側でのHTMLレンダリングを**行わず**、クライアント側でのみレンダリングします。ページ読み込み時にすぐにコンポーネントを読み込み、レンダリングし、動的機能を有効化するという点で、`client:load` と似た動作をします。
+
+**重要：コンポーネントが使用しているフレームワークを正確に指定する必要があります！** Astroはビルド時やサーバー側でこのコンポーネントを実行しないため、明示的に指定しない限り、どのフレームワークを使用しているか把握できません。
+
+```astro
+<SomeReactComponent client:only="react" />
+<SomePreactComponent client:only="preact" />
+<SomeSvelteComponent client:only="svelte" />
+<SomeVueComponent client:only="vue" />
+<SomeSolidComponent client:only="solid-js" />
+<SomeLitComponent client:only="lit" />
+```
+
+### カスタムクライアントディレクティブ
+
+Astro 2.6.0以降、インテグレーションを通じて独自の `client:*` ディレクティブを追加できるようになりました。これにより、コンポーネントをいつ、どのように動的に機能させるかをカスタマイズできます。
+
+カスタムクライアントディレクティブの作成方法については、[`addClientDirective` API](/ja/reference/integrations-reference/#addclientdirective-option) のページを参照してください。
+
+## スクリプトとスタイルのディレクティブ
+
+これらのディレクティブは、HTML の `<script>` と `<style>` タグでのみ使えます。ページ上のクライアントサイドJavaScriptとCSSの扱い方を制御するためのものです。
+
+### `is:global`
+
+通常、Astroは `<style>` 内のCSSルールを自動的にコンポーネント内に限定します。この動作を解除したい場合は `is:global` ディレクティブを使います。
+
+`is:global` を使うと、`<style>` タグの中身がページ全体に適用されます。つまり、AstroのCSS限定機能が無効になります。これは、`<style>` タグ内のすべてのセレクタを `:global()` で囲むのと同じ効果があります。
+
+同じコンポーネント内で `<style>` と `<style is:global>` を併用することもできます。これにより、一部のスタイルをグローバルに適用しつつ、大部分のCSSはコンポーネント内に限定することができます。
+
+<ReadMore>グローバルスタイルの詳細については、[スタイリングとCSS](/ja/guides/styling/#グローバルスタイル)のページをご覧ください。</ReadMore>
+
+```astro
+<style is:global>
+  body a { color: red; }
+</style>
+```
+
+### `is:inline`
+
+通常、Astroはページ上の `<script>` と `<style>` タグを処理し、最適化して、まとめます。この動作を止めたい場合は `is:inline` ディレクティブを使います。
+
+`is:inline` を使うと、Astroは `<script>` や `<style>` タグをそのまま最終的なHTMLに出力します。内容の処理や最適化、まとめは行われません。ただし、これによりAstroの一部機能（npmパッケージのインポートや、SassのようなCSSプリプロセッサの使用など）が制限されます。
+
+`is:inline` ディレクティブを使うと、`<style>` と `<script>` タグは以下のようになります。
+
+- 別ファイルにまとめられません。そのため、外部ファイルの読み込みを制御する[`defer`などの属性](https://javascript.info/script-async-defer)は効果がありません。
+- 重複排除されません。要素は記述された回数だけ出力されます。
+- `import`、`@import`、`url()` の参照が `.astro` ファイルからの相対パスで解決されません。
+- 記述された位置にそのまま最終的なHTMLとして出力されます。
+- スタイルはグローバルになり、コンポーネントに限定されません。
+
+:::caution
+`<script>` や `<style>` タグに `src` 以外の属性がある場合、`is:inline` ディレクティブが自動的に適用されます。
+ただし、`<style>` タグに [`define:vars` ディレクティブ](/ja/reference/directives-reference/#definevars) を使用する場合は例外で、自動的に `is:inline` にはなりません。
+:::
+
+```astro
+<style is:inline>
+  /* インライン: 相対パスやnpmパッケージのインポートはサポートされていません。 */
+  @import '/assets/some-public-styles.css';
+  span { color: green; }
+</style>
+
+<script is:inline>
+  /* インライン: 相対パスやnpmパッケージのインポートはサポートされていません。 */
+  console.log('最終出力HTMLでここにインライン化されています。');
+</script>
+```
+
+<ReadMore>Astroコンポーネントでの[クライアントサイドスクリプト](/ja/guides/client-side-scripts/)の動作についてはこちらをご覧ください。</ReadMore>
+
+### `define:vars`
+
+`define:vars={...}` を使うと、コンポーネントのフロントマターからクライアントの `<script>` や `<style>` タグに、サーバーサイドの変数を渡せます。JSON形式にできるフロントマター変数なら何でも使えます。`Astro.props` を通じてコンポーネントに渡された `props` も含みます。値は [`JSON.stringify()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify) でシリアライズされます。
+
+```astro
+---
+const foregroundColor = "rgb(221 243 228)";
+const backgroundColor = "rgb(24 121 78)";
+const message = "Astroは素晴らしい！";
+---
+<style define:vars={{ textColor: foregroundColor, backgroundColor }}>
+  h1 {
+    background-color: var(--backgroundColor);
+    color: var(--textColor);
+  }
+</style>
+
+<script define:vars={{ message }}>
+  alert(message);
+</script>
+```
+
+:::caution
+`<script>` タグで `define:vars` を使うと、自動的に [`is:inline` ディレクティブ](#isinline) が適用されます。つまり、スクリプトはまとめられずに、HTMLに直接埋め込まれます。
+
+これは、Astroがスクリプトをまとめる際、そのスクリプトを一度だけ実行するようにしているためです。同じコンポーネントがページに複数回含まれていても、スクリプトは一度しか実行されません。しかし `define:vars` は、それぞれの値セットでスクリプトを再実行する必要があるため、Astroはインラインスクリプトを作成します。
+
+スクリプトに変数を渡す場合は、代わりに[手動で変数を渡す方法](/ja/guides/client-side-scripts/#フロントマター変数をスクリプトに渡す)を試してみてください。
+:::
+
+## 高度なディレクティブ
+
+### `is:raw`
+
+`is:raw` は、Astroコンパイラにその要素の中身をテキストとして扱うよう指示します。これにより、その要素内ではAstroの特殊なテンプレート構文がすべて無視されます。
+
+例えば、テキストをHTMLに変換するカスタムのKatexコンポーネントがある場合、ユーザーは以下のように使えます。
+
+```astro
+---
+import Katex from '../components/Katex.astro';
+---
+<Katex is:raw>ここには{構文}の衝突があります</Katex>
+```
