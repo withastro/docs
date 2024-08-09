@@ -2328,3 +2328,62 @@ This component provides a way to inspect values on the client-side, without any 
 
 
 [canonical]: https://en.wikipedia.org/wiki/Canonical_link_element
+
+## Actions (astro:actions)
+
+Actions are backend functions used for type-safe server-to-client communication. All utilities used to define and call actions are exposed by the `astro:actions` module. For examples and usage instructions, [see the Actions guide](/en/guides/actions/).
+
+### `defineAction()`
+
+The `defineAction()` utility is used to define new actions from the `src/actions/index.ts` file. This accepts a `handler()` function containing the server logic to run, and an optional `input` property to validate input parameters at runtime.
+
+```ts
+export const server = {
+    getGreeting: defineAction({
+    input: z.object({
+      name: z.string(),
+    }),
+    handler: async (input) => {
+      return `Hello, ${input.name}!`
+    }
+  })
+}
+```
+
+#### `handler()` property
+
+`defineAction()` accepts a `handler()` function containing the server logic to run when the action is called. This function can return data that is automatically serialized and sent to the caller.
+
+Return values are parsed using the [devalue library](https://github.com/Rich-Harris/devalue). This supports JSON values, along with instances of `Date()`, `Map()`, `Set()`, or `URL()`.
+
+#### `input` validator
+
+The optional `input` property accepts a Zod validator to validate handler inputs at runtime. If the action fails to validate, a "bad request" error is returned and the `handler` is not called.
+
+When using `accept: 'form'`, `input` must use the `z.object()` validator when it is present. The following validators are supported for form data fields:
+
+- Inputs of type `number` can be validated using `z.number()`
+- Inputs of type `checkbox` can be validated using `z.boolean()`
+- Inputs of type `file` can be validated using `z.instanceof(File)`
+- Multiple inputs of the same `name` can be validated using `z.array(/* validator */)`
+- All other inputs can be validated using `z.string()`
+
+### `ActionError`
+
+The `ActionError()` constructor is used to create errors thrown by an action `handler`. This accepts a `code` property describing the error that occurred (example: `"UNAUTHORIZED"`), and an optional `message` property with further details.
+
+#### `code`
+
+The `code` property accepts human-readable versions of all HTTP status codes. The following are the most common codes you may raise:
+
+| Value | Description | Status code |
+| --- | --- | --- |
+| BAD_REQUEST | The client sent invalid input. Note: This error is thrown when an action `input` validator fails to validate. | 400 |
+| UNAUTHORIZED | The client lacks valid authentication credentials. | 401 |
+| FORBIDDEN | The client is not authorized to access a resource. | 403 |
+| NOT_FOUND | The server cannot find the requested resource. | 404 |
+| CONFLICT | The server cannot update a resource due to a conflict. | 409 |
+| TOO_MANY_REQUESTS | The server has exceeded a specified rate limit. | 429 |
+| INTERNAL_SERVER_ERROR | The server failed unexpectedly. | 500 |
+
+<ReadMore>[See the tRPC error code table](https://trpc.io/docs/server/error-handling#error-codes) for a complete list of supported codes.</ReadMore>

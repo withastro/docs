@@ -53,6 +53,7 @@ export default [
 	{ text: 'Routes and Navigation', header: true, type: 'learn', key: 'routes' },
 	{ text: 'Routing', slug: 'guides/routing', key: 'guides/routing' },
 	{ text: 'Endpoints', slug: 'guides/endpoints', key: 'guides/endpoints' },
+	{ text: 'Actions', slug: 'guides/actions', key: 'guides/actions' },
 	{ text: 'Prefetch', slug: 'guides/prefetch', key: 'guides/prefetch' },
 	{ text: 'Middleware', slug: 'guides/middleware', key: 'guides/middleware' },
 	{
