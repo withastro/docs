@@ -364,38 +364,108 @@ import { actions } from 'astro:actions';
 </form>
 ```
 
-### Handle form action data on the server
+### Handle form action errors
 
-When using standard form request, you can get the resulting data or error from your Astro page. Call `Astro.getActionResult()` passing the action you want to get a result for (ex. `Astro.getActionResult(actions.newsletter)`). This will return type-safe `data` or `error` objects when a matching POST request is received, and `undefined` otherwise.
+Astro avoids redirecting to your success route when an action fails. Instead, the current page is re-rendered with `error` available via `Astro.getActionResult()`. This function receives the action you want the result for as an argument (example: `Astro.getActionResult(actions.signup)`). This return an object with either `data` or `error` when an action is called, and `undefined` otherwise.
 
-Call `Astro.getActionResult()` from your success route to get the `data` object:
+:::note
+`getActionResult()` persists data as a single-use cookie. This means `getActionResult()` will return `undefined` when refreshing the page or revisiting the form.
+:::
 
-```astro title="src/pages/confirmation.astro"
+You can use the `isInputError()` utility to check whether an error contains validation errors. If the check passes, `error` will contain a `fields` object containing error messages for each input value that failed to validate. These messages can then be displayed to prompt your user to correct their submission.
+
+This example renders an error banner under the `email` input when an invalid email is submitted:
+
+```astro title="src/pages/index.astro" ins={6,11}
+---
+// src/pages/index.astro
+import { actions, isInputError } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.newsletter);
+const inputErrors = isInputError(result?.error) ? result.error.fields : {};
+---
+
+<form method="POST" action={'/confirmation' + actions.newsletter}>
+  <input required type="email" name="email" />
+  {inputErrors.email && <p class="error">{inputErrors.email.join(',')}</p>}
+
+  <!--...-->
+</form>
+```
+
+### Handle redirects to a specific route on success
+
+You may need to use the result of an action to construct a redirect path. This is common when creating a product record and redirecting to that product's page (example: `/products/[id]`).
+
+To create a redirect, call `Astro.getActionResult()` from the Astro component that received the action call. Check if a given action has returned successfully, and if so, redirect based on the `data` the action returns.
+
+For example, say you have a `createProduct()` action that returns the generated product id:
+
+```ts title="src/actions/index.ts" mark={10}
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  createProduct: defineAction({
+    accept: 'form',
+    input: z.object({ /* ... */ }),
+    handler: async (input) => {
+      // persist product to database
+      return productId;
+    },
+  })
+}
+```
+
+Retrieve this generated `productId` from the `data` property returned by `Astro.getActionResult(actions.createProduct)`. Use this value to construct an url and return a `redirect` response:
+
+```astro title="src/pages/products/create.astro"
 ---
 import { actions } from 'astro:actions';
 
-const result = Astro.getActionResult(actions.newsletter);
-if (!result?.email) return Astro.redirect('/');
+const result = Astro.getActionResult(actions.createProduct);
+if (result?.data?.productId) {
+  return Astro.redirect(`/products/${result.data.productId}`);
+}
 ---
 
-<h1>Thanks for signing up!</h1>
-<p>We sent a confirmation email to {result.email}.</p>
+<form method="POST" action={actions.createProduct}>
+  <!--...-->
+</form>
+```
+
+### Display form action success banners
+
+The result returned by `Astro.getActionResult()` is single-use, and will reset to `undefined` whenever the page is refreshed. This is ideal for [displaying input errors](#handle-form-action-errors-1) and showing temporary success banners.
+
+Call `Astro.getActionResult()` with a given action function, and use the `data` property to render a success message. This example uses the `productName` property returned by an `addToCart` action:
+
+```astro title="src/pages/products/[slug].astro"
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.addToCart);
+---
+
+{result.data?.productName && <p class="success">Added {result.data.productName} to cart</p>}
+
+<!--...-->
 ```
 
 :::caution
 Action data is passed using a persisted cookie. **This cookie is not encrypted.** In general, we recommend returning the minimum information required from your action `handler` to avoid vulnerabilities, and persist other sensitive information in a database.
 
-For example, you might return the generated session id for a user when they are logged in, rather than returning the entire `user` object:
+For example, you might return the name of a product in an `addToCart` action, rather than returning the entire `product` object:
 
 ```diff title="src/actions/index.ts"
 import { defineAction } from 'astro:actions';
 
 export const server = {
-  login: defineAction({
+  addToCard: defineAction({
     handler: async () => {
       /* ... */
--     return user;
-+     return user.sessionId;
+-     return product;
++     return { productName: product.name };
     }
   })
 }
@@ -404,7 +474,7 @@ export const server = {
 
 ### Handle form action errors
 
-Astro avoids redirecting to your success route when an action fails. Instead, the current page is re-rendered with `error` available via `Astro.getActionResult()`.
+Astro avoids redirecting to your success route when an action fails. Instead, the current page is re-rendered with `error` available via `Astro.getActionResult()`. This function receives the action you want the result for as an argument (example: `Astro.getActionResult(actions.signup)`). This return
 
 You can use the `isInputError()` utility to check whether an error contains validation errors. If the check passes, `error` will contain a `fields` object containing error messages for each input value that failed to validate. These messages can then be displayed to prompt your user to correct their submission.
 
