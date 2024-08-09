@@ -330,90 +330,111 @@ You can then submit a form request using either client code or an [HTML form act
 Pages must be server rendered when calling actions using a form action. [Ensure prerendering is disabled on the page](/en/guides/server-side-rendering/#opting-out-of-pre-rendering-in-hybrid-mode) before using this API.
 :::
 
-Calling an action using [a standard HTML `<form>` action](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#action) allows you to submit a form entirely on the server using an Astro component. It is also useful as a fallback for client forms, where slow internet connections or low-powered devices may delay the loading of client-side JavaScript.
+You may want to pass `FormData` using a standard HTML form as well. This is useful as a fallback for client forms during slow internet connections or older devices. You may also prefer to handle forms entirely from the server using an Astro component.
 
-To use a standard form request, add `method="POST"` as a form attribute to any `<form>` element. 
+To use a standard form request, add `method="POST"` as a form attribute to any `<form>` element. Then, apply the route you want to navigate to on success using the `action` property, followed by the action function you want to call. For example, `action={'/success' + actions.signup}`. This will apply the function name as a query string to be handled by the server.
 
-Then, pass your action function directly to the `action` property of the form. This will apply the function name as a query string (example: `?_astroAction=name`) to be handled by the server.
+This example applies the `newsletter` action to a form using an Astro component, navigating to `/confirmation` on success:
 
-This example applies the `comment` action to a form using an Astro component:
-
-```astro title="src/pages/index.astro" ins="action={actions.comment}" ins='method="POST"'
+```astro title="src/pages/index.astro"
 ---
 import { actions } from 'astro:actions';
 ---
 
-<form method="POST" action={actions.comment}>
-  <!--output: action="?_astroAction=comment"-->
-  <input required name="author" />
-  <textarea required name="body" />
-  <input type="hidden" name="postId" value="example-post" />
+<form method="POST" action={'/confirmation' + actions.newsletter}>
+<!--output: action="/confirmation?_astroAction=newsletter"-->
+  <input required type="email" name="email" />
+  <label>
+    <input required type="checkbox" name="promo" />
+    Receive occasional promo emails
+  </label>
 </form>
 ```
 
-:::tip
+You can also re-render the current page with the result by passing an action function directly:
 
-[Enable view transitions](/en/guides/view-transitions/) to submit the form with a nice client-side transition. This will allow you to animate your UI with new information once the page reloads. The `<ViewTransition />` component will also prevent the "Confirm form resubmission" dialog from appearing when a user refreshes the page.
+```astro title="src/pages/index.astro"
+---
+import { actions } from 'astro:actions';
+---
 
+<!--Re-render the current page on success-->
+<form method="POST" action={actions.logout}>
+  <button>Log out</button>
+</form>
+```
+
+### Handle form action data on the server
+
+When using standard form request, you can get the resulting data or error from your Astro page. Call `Astro.getActionResult()` passing the action you want to get a result for (ex. `Astro.getActionResult(actions.newsletter)`). This will return type-safe `data` or `error` objects when a matching POST request is received, and `undefined` otherwise.
+
+Call `Astro.getActionResult()` from your success route to get the `data` object:
+
+```astro title="src/pages/confirmation.astro"
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.newsletter);
+if (!result?.email) return Astro.redirect('/');
+---
+
+<h1>Thanks for signing up!</h1>
+<p>We sent a confirmation email to {result.email}.</p>
+```
+
+:::caution
+Action data is passed using a persisted cookie. **This cookie is not encrypted.** In general, we recommend returning the minimum information required from your action `handler` to avoid vulnerabilities, and persist other sensitive information in a database.
+
+For example, you might return the generated session id for a user when they are logged in, rather than returning the entire `user` object:
+
+```diff title="src/actions/index.ts"
+import { defineAction } from 'astro:actions';
+
+export const server = {
+  login: defineAction({
+    handler: async () => {
+      /* ... */
+-     return user;
++     return user.sessionId;
+    }
+  })
+}
+```
 :::
 
-### Handling a form action result on the server
+### Handle form action errors
 
-When using a standard form request, calling `Astro.getActionResult()` in your server code returns type-safe `data` or `error` objects when a matching POST request is received, and `undefined` otherwise.
+Astro avoids redirecting to your success route when an action fails. Instead, the current page is re-rendered with `error` available via `Astro.getActionResult()`.
 
-Pass an action as a parameter (e.g. `Astro.getActionResult(actions.comment)`) to get the result. The data returned is then available for use in your component template.
+You can use the `isInputError()` utility to check whether an error contains validation errors. If the check passes, `error` will contain a `fields` object containing error messages for each input value that failed to validate. These messages can then be displayed to prompt your user to correct their submission.
 
-```astro title="src/pages/index.astro" ins={4} "comment?.data?.title"
+This example renders an error banner under the `email` input when an invalid email is submitted:
+
+```astro title="src/pages/index.astro" ins={6,11}
 ---
-import { actions } from 'astro:actions';
-
-const comment = Astro.getActionResult(actions.comment);
----
-
-{comment?.data?.title && (
-	<article class="new-comment">
-		{/* ... */}
-	</article>
-)}
-```
-
-### Displaying validation errors on a form
-
-You can check whether an error is caused by invalid form data submitted by your user with the `isInputError()` function.
-
-This will return a `fields` object containing error messages for each input value that could not be validated. These messages can then be displayed to prompt your user to correct their submission.
-
-The following example displays an error for the `body` and `author` fields of a `comment` action when either fail to validate:
-
-```astro title="src/pages/index.astro" ins="isInputError" ins={10,13}
----
+// src/pages/index.astro
 import { actions, isInputError } from 'astro:actions';
 
-const comment = Astro.getActionResult(actions.comment);
-const errors = isInputError(comment?.error) ? comment.error.fields : {};
+const result = Astro.getActionResult(actions.newsletter);
+const inputErrors = isInputError(result?.error) ? result.error.fields : {};
 ---
 
-<form method="POST" action={actions.comment}>
-  <input required name="author">
-  {errors.name && <p class="error">{errors.name.join(',')}</p>}
+<form method="POST" action={'/confirmation' + actions.newsletter}>
+  <input required type="email" name="email" />
+  {inputErrors.email && <p class="error">{inputErrors.email.join(',')}</p>}
 
-  <textarea required name="body">
-  {errors.body && <p class="error">{errors.body.join(',')}</p>}
+  <!--...-->
 </form>
 ```
 
+:::note
+Errors are passed as a single-use cookie. This means error banners will disappear when refreshing the page or revisiting the form.
+:::
 
-### Construct an `action` path to a new page
+### Preserve input values on error
 
-You can [construct form action URLs](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#formaction) using string concatenation, or by using the `URL()` constructor, with an action's `.queryString` property:
+Inputs will be cleared whenever a form is submitted. To persist input values, you can [enable view transitions](https://docs.astro.build/en/guides/view-transitions/#adding-view-transitions-to-a-page) on the page and apply the `transition:persist` directive to each input:
 
-```astro
----
-import { actions } from 'astro:actions';
-const confirmationUrl = new URL('/confirmation', Astro.url);
-confirmationUrl.search = actions.queryString;
----
-<form method="POST" action={confirmationUrl.pathname}>
-  <button>Submit</button>
-</form>
+```astro ins="transition:persist"
+<input transition:persist required type="email" name="email" />
 ```
