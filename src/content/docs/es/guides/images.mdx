@@ -129,7 +129,7 @@ El formato del valor `src` de tu archivo de imagen depende de dónde esté ubica
     src="https://example.com/remote-image.jpg"
     alt="texto descriptivo"
     width="200"
-    height="150" 
+    height="150"
    />
   ```
 
@@ -143,7 +143,7 @@ Si una imagen es meramente decorativa (es decir, no contribuye a la comprensión
 
 Estas propiedades definen las dimensiones a utilizar para la imagen.
 
-Cuando se utilizan imágenes en su relación de aspecto original, `width` y `height` son opcionales. Estas dimensiones pueden inferirse automáticamente de archivos de imagen ubicados en `src/` y de imágenes remotas con [`inferSize` establecido en `true`](#infersize).
+Cuando se utilizan imágenes en su relación de aspecto original, `width` y `height` son opcionales. Estas dimensiones pueden inferirse automáticamente de archivos de imagen ubicados en `src/`. Para imágenes remotas, agrega [el atributo `inferSize` establecido en `true`](#infersize) en el componente `<Image />` o `<Picture />` o utiliza la [función `inferRemoteSize()`](#inferremotesize).
 
 Sin embargo, ambas de estas propiedades son necesarias para imágenes almacenadas en tu carpeta `public/`, ya que Astro no puede analizar estos archivos.
 
@@ -265,6 +265,17 @@ import { Image } from 'astro:assets';
 ```
 
 `inferSize` puede obtener las dimensiones de una [imagen remota de un dominio que no ha sido autorizado](#autorizando-imágenes-remotas), sin embargo la imagen en sí permanecerá sin procesar.
+
+###### inferRemoteSize()
+
+<p><Since v="4.12.0" /></p>
+
+Una función para inferir las dimensiones de las imágenes remotas. Esto puede utilizarse como alternativa a pasar la propiedad `inferSize`.
+
+```ts
+import { inferRemoteSize } from 'astro:assets';
+const {width, height} = await inferRemoteSize("https://example.com/cat.png");
+```
 
 ##### Propiedades adicionales
 
@@ -741,220 +752,4 @@ export default defineConfig({
 
 ## Integraciones comunitarias
 
-Existen varias [integraciones de imágenes de la comunidad](https://astro.build/integrations?search=images) de terceros para optimizar y trabajar con imágenes en tu proyecto de Astro.
-
-## Actualizar a v3.0 desde v2.x
-
-`astro:assets` ya no está detrás de una bandera experimental en Astro v3.0.
-
-`<Image />` es ahora un componente integrado y se ha eliminado la integración anterior `@astrojs/image`.
-
-Estos y otros cambios relacionados con el uso de imágenes en Astro pueden causar algunos cambios disruptivos al actualizar tu proyecto de Astro de una versión anterior.
-
-Sigue las instrucciones a continuación según corresponda para actualizar un proyecto de Astro v2.x a v3.0.
-
-### Actualizar desde `experimental.assets`
-
-Si habías habilitado previamente la bandera experimental para `astro:assets`, deberás actualizar tu proyecto para Astro v3.0, que ahora incluye las características de assets de forma predeterminada.
-
-#### Eliminar la bandera `experimental.assets`
-
-Elimina la bandera experimental:
-
-```js title="astro.config.mjs" del={4-6}
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  experimental: {
-    assets: true
-  }
-});
-```
-
-Si es necesario, también actualiza tu archivo `src/env.d.ts` para reemplazar la referencia `astro/client-image` por `astro/client`:
-
-```ts title="src/env.d.ts" del={1} ins={2}
-/// <reference types="astro/client-image" />
-/// <reference types="astro/client" />
-```
-
-#### Eliminar el alias de importación `~/assets`
-
-Este alias de importación ya no se incluye por defecto con `astro:assets`. Si estabas usando este alias con assets experimentales, debes convertirlos a rutas de archivo relativas o [crear tus propios alias de importación](/es/guides/imports/#alias).
-
-```astro title="src/pages/posts/post-1.astro" del={2} ins={3}
----
-import rocket from '~/assets/rocket.png';
-import rocket from '../../assets/rocket.png';
----
-```
-
-#### Agrega soporte sencillo para assets en Cloudflare, Deno, Vercel Edge y Netlify Edge
-
- Astro v3.0 permite que `astro:assets` funcione sin errores en Cloudflare, Deno, Vercel Edge y Netlify Edge, que no admiten la optimización de imágenes integrada de Astro con Squoosh y Sharp. Ten en cuenta que Astro no realiza ninguna transformación ni procesamiento de imágenes en estos entornos. Sin embargo, aún puedes disfrutar de otros beneficios de usar `astro:assets`, como la ausencia de Desplazamiento Acumulativo de Diseño (CLS), el atributo `alt` obligatorio y una experiencia de autoría coherente.
- 
- Si antes evitaste usar `astro:assets` debido a estas limitaciones, ahora puedes usarlo sin problemas. Puedes configurar el servicio de imágenes sin acción para optar explícitamente por este comportamiento:
-
-```js title="astro.config.mjs" ins={4-8}
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  image: {
-    service: {
-      entrypoint: 'astro/assets/services/noop'
-    }
-  }
-});
-```
-
-### Decide dónde almacenar tus imágenes
-
-Consulta la guía de Imágenes para ayudarte a decidir [dónde almacenar tus imágenes](#dónde-guardar-las-imágenes). Es posible que desees aprovechar las nuevas opciones para almacenar tus imágenes con la flexibilidad adicional que `astro:assets` ofrece. Por ejemplo, las imágenes relativas desde la carpeta `src/` de tu proyecto ahora pueden ser referenciadas en Markdown, MDX y Markdoc utilizando la sintaxis estándar de Markdown `![alt](src)`.
-
-### Actualiza las etiquetas existentes `<img>`
-
-Anteriormente, importar una imagen devolvía un `string` con la ruta de la imagen. Los assets de imagen importados coinciden con la siguiente firma:
-
-```ts
-interface ImageMetadata {
-  src: string;
-  width: number;
-  height: number;
-  format: string;
-}
-```
-
-Debes actualizar el atributo `src` de cualquier etiqueta `<img>` existente (incluyendo cualquier [imagen en componentes de frameworks UI](#imágenes-en-componentes-de-frameworks-ui)) y también puedes actualizar otros atributos que ahora están disponibles para ti a partir de la imagen importada.
-
-```astro title="src/components/MyComponent.astro" ".src" ".width" ".height" del={4} ins={6}
----
-import rocket from '../images/rocket.svg';
----
-<img src={rocket} width="250" height="250" alt="Un cohete en el espacio." />
-
-<img src={rocket.src} width={rocket.width} height={rocket.height} alt="Un cohete en el espacio." />
-```
-
-### Actualiza tus archivos Markdown, MDX y Markdoc
-
-Las imágenes relativas desde la carpeta `src/` de tu proyecto ahora pueden ser referenciadas en Markdown, MDX y Markdoc utilizando la sintaxis estándar de Markdown `![alt](src)`.
-
-Esto te permite mover tus imágenes desde el directorio `public/` a la carpeta `src/` de tu proyecto, donde ahora serán procesadas y optimizadas. Tus imágenes existentes en `public/` y las imágenes remotas siguen siendo válidas, pero no son optimizadas por el proceso de compilación de Astro.
-
-```md title="src/pages/posts/post-1.md" "/_astro" ".hash" "../../assets/"
-# Mi página Markdown
-
-<!-- ¡Imágenes locales ahora posibles! -->
-![Un cielo estrellado](../../images/stars.png)
-
-<!-- ¡Mantén tus imágenes junto a tu contenido! -->
-![Un cielo estrellado](./stars.png)
-```
-
-Si necesitas más control sobre los atributos de tu imagen, te recomendamos usar el formato de archivo `.mdx`, que te permite incluir el componente `<Image />` de Astro o una etiqueta JSX `<img />` además de la sintaxis Markdown. Utiliza la [integración de MDX](/es/guides/integrations-guide/mdx/) para agregar soporte para MDX a Astro.
-
-### Elimina `@astrojs/image`
-
-Si estabas utilizando la integración de imágenes en Astro v2.x, completa los siguientes pasos:
-<Steps>
-1. Elimina la integración `@astrojs/image`.
-
-    Debes [eliminar la integración](/es/guides/integrations-guide/#eliminando-una-integración) desinstalándola y luego eliminándola de tu archivo `astro.config.mjs`.
-
-    ```js del={3,7}
-    // astro.config.mjs
-    import { defineConfig } from 'astro/config';
-    import image from '@astrojs/image';
-
-    export default defineConfig({
-      integrations: [
-        image(),
-      ]
-    })
-    ```
-
-2. Actualiza los tipos (si es necesario).
-
-		Si tenías tipos especiales configurados para `@astrojs/image` en `src/env.d.ts`, es posible que necesites cambiarlos de nuevo a los tipos predeterminados de Astro si la actualización a la versión 3 no completó este paso por ti.
-
-		```ts title="src/env.d.ts" del={1} ins={2}
-		 /// <reference types="@astrojs/image/client" />
-		 /// <reference types="astro/client" />
-		```
-
-		Del mismo modo, actualiza `tsconfig.json` si es necesario:
-
-		```json title="tsconfig.json" del={3} ins={4}
-		{
-			"compilerOptions": {
-			  "types": ["@astrojs/image/client"]
-			  "types": ["astro/client"]
-			}
-		}
-		```
-
-3. Migra cualquier componente `<Imagen />` existente.
-
-    Cambia todas las declaraciones de `import` de `@astrojs/image/components` a `astro:assets` para poder usar el nuevo componente integrado `<Image />`.
-
-    Elimina cualquier atributo del componente que no sean [propiedades de assets de imagen actualmente admitidas](/es/guides/images/#propiedades).
-
-    Por ejemplo, `aspectRatio` ya no es compatible, ya que ahora se infiere automáticamente a partir de los atributos `width` y `height`.
-
-      ```astro title="src/components/MyComponent.astro" del= {2,11} ins={3}
-      ---
-      import { Image } from '@astrojs/image/components';
-      import { Image } from 'astro:assets';
-      import localImage from '../assets/logo.png';
-      const localAlt = 'El logo de Astro';
-      ---
-
-      <Image
-        src={localImage}
-        width={300}
-        aspectRatio="16:9"
-        alt={localAlt}
-      />
-      ```
-      
-4. Elige un servicio de imágenes predeterminado.
-
-   [Sharp](https://github.com/lovell/sharp) es ahora el servicio de imágenes predeterminado utilizado para `astro:assets`. Si deseas utilizar Sharp, no se requiere ninguna configuración.
-
-    Si prefieres utilizar [Squoosh](https://github.com/GoogleChromeLabs/squoosh) para transformar tus imágenes, actualiza tu configuración con la siguiente opción `image.service`:
-
-    ```js title="astro.config.mjs" ins={4-6}
-    import { defineConfig, squooshImageService } from 'astro/config';
-
-    export default defineConfig({
-      image: {
-        service: squooshImageService(),
-      },
-    });
-    ```
-</Steps>
-
-### Actualiza los esquemas de Colecciones de Contenido
-
-Ahora puedes declarar una imagen asociada para una entrada de colecciones de contenido, como la imagen de portada de una entrada de blog, en tu metadatos usando su ruta relativa a la carpeta actual.
-
-El nuevo helper `image` para colecciones de contenido te permite validar los metadatos de la imagen utilizando Zod. Aprende más sobre [cómo usar imágenes en colecciones de contenido](/es/guides/images/#imágenes-en-colecciones-de-contenido)
-
-### Navegando por las importaciones de imágenes en Astro v3.0
-
-En Astro v3.0, si tienes que conservar el antiguo comportamiento de importación para las imágenes y requieres una representación de tipo string de la URL de la imagen, añade `?url` al final de la ruta de la imagen al importarla. Por ejemplo:
-
-```astro title="src/pages/blog/MyImages.astro"
----
-import Sprite from '../assets/logo.svg?url';
----
-<svg>
-  <use xlink:href={Sprite + '#cart'} />
-</svg>
-```
-
-Este enfoque garantiza que obtengas el string URL. Ten en cuenta que durante el desarrollo, Astro utiliza una ruta `src/`, pero al compilar, genera rutas hash como `/_astro/cat.a6737dd3.png`.
-
-Si prefieres trabajar directamente con el objeto de imagen, puedes acceder a la propiedad `.src`. Este enfoque es el mejor para tareas como la gestión de las dimensiones de la imagen para las métricas de Core Web Vitals y la prevención de CLS.
-
-Si estás en transición al nuevo comportamiento de importación, combinar `?url` y `.src` puede ser el método adecuado para el manejo de imágenes sin problemas.
+Hay varias [integraciones de imágenes de la comunidad](https://astro.build/integrations?search=images) de terceros para optimizar y trabajar con imágenes en tu proyecto de Astro.
