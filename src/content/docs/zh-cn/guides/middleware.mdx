@@ -5,6 +5,7 @@ i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import { Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro';
 
 **中间件**允许你拦截请求和响应，并在即将渲染页面或端点时动态注入行为。对于所有预渲染的页面，这种渲染发生在构建时，但对于按需渲染的页面，这种渲染发生在请求路由时，这时可以使用 [额外的 SSR 功能如 cookie 和标头](/zh-cn/guides/server-side-rendering/#按需渲染功能特性)。
 
@@ -195,6 +196,80 @@ export const onRequest = sequence(validation, auth, greeting);
 授权响应
 验证响应
 ```
+
+## 重写
+
+<p><Since v="4.13.0" /></p>
+
+`APIContext` 中暴露了一个名为 `rewrite()` 的方法，它的工作方式与 [Astro.rewrite](/zh-cn/guides/routing/#重写) 相同。
+
+使用 `context.rewrite()` 在中间件中显示不同页面的内容，而不会将访问者 [重定向](/zh-cn/guides/routing/#动态重定向) 到新页面。这将触发一个新的渲染阶段，导致任何中间件被重新执行。
+
+```js title="src/middleware.js"
+import { isLoggedIn } from "~/auth.js"
+export function onRequest (context, next) {
+  if (!isLoggedIn(context)) {
+    // 如果用户未登录，则更新请求来渲染 `/login` 路由，
+    // 并添加标头以指示在成功登录应该把用户重定向到何处。
+    // 重新执行中间件。
+    return context.rewrite(new Request("/login", {
+      headers: {
+        "x-redirect-to": context.url.pathname
+      }
+    }));
+  }
+
+  return next();
+};
+```
+
+你也可以向 `next()` 函数传递一个可选的 URL 路径参数，以重写当前的 `Request` 而不重新触发新的渲染阶段。重写路径的位置可以作为字符串、URL 或 `Request` 提供：
+
+```js title="src/middleware.js"
+import { isLoggedIn } from "~/auth.js"
+export function onRequest (context, next) {
+  if (!isLoggedIn(context)) {
+    // 如果用户未登录，则更新请求来渲染 `/login` 路由，
+    // 并添加标头以指示在成功登录应该把用户重定向到何处。
+    // 将新的 `context` 返回给任何后续中间件。
+    return next(new Request("/login", {
+      headers: {
+        "x-redirect-to": context.url.pathname
+      }
+    }));
+  }
+
+  return next();
+};
+```
+
+`next` 函数接受与 [`Astro.rewrite()` 函数](/zh-cn/reference/api-reference/#astrorewrite) 相同的参数。重写路径的位置可以作为字符串、URL 或 `Request` 提供。
+
+当你有多个通过 [sequence()](#中间件链式调用) 链接的中间件函数时，向 `next()` 提交一个路径将在原地重写 `Request`，并且中间件不会再次执行。链中的下一个中间件函数将接收具有其更新的 `context` 的新 `Request`：
+
+```js title="src/middleware.js"
+// 当前 URL 是 https://example.com/blog
+
+// 第一个中间件函数
+async function first(_, next) {
+  console.log(context.url.pathname) // 这里会打印 "/blog"
+  // 重写到一个新的路由，首页
+  // 返回更新的 `context`，传递给下一个函数
+  return next("/")
+}
+
+// 当前 URL 仍然是 https://example.com/blog
+
+// 第二个中间件函数
+async function second(context, next) {
+  // 接收更新后的 `context`
+  console.log(context.url.pathname) // 这里会打印  "/"    
+  return next()
+}
+
+export const onRequest = sequence(first, second);
+```
+
 ## 错误页面
 
 即使找不到匹配的路由，中间件也会尝试为所有按需渲染的页面运行。这包括 Astro 的默认（空白）404 页面和任何自定义 404 页面。然而，是否运行该代码取决于[适配器](/zh-cn/guides/server-side-rendering/)。一些适配器可能会提供特定平台的错误页面。

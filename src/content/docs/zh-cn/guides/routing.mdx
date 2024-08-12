@@ -300,6 +300,69 @@ if (!isLoggedIn(cookie)) {
 </html>
 ```
 
+## 重写
+
+<p><Since v="4.13.0" /></p>
+
+重写允许你提供不同的路由，而无需将浏览器重定向到不同的页面。浏览器将在 URL 栏中显示原始地址，但实际上会显示 [`Astro.rewrite()`](/zh-cn/reference/api-reference/#astrorewrite) 提供的 URL 的内容。
+
+:::tip
+对于永久性移动的内容，或者将用户重定向到具有新 URL 的不同页面（例如登录后的用户仪表盘），请使用 [重定向](#重定向)。
+:::
+
+重写对于在不同路径（例如 `/products/shoes/men/` 和 `/products/men/shoes/`）显示相同内容非常有用，而无需维护两个不同的源文件。
+
+重写对于用户体验和 SEO 也非常有用。它允许你显示需要将访问者重定向到其他页面或返回 404 状态的内容。
+重写的一个常见用途是为语言的不同变体显示相同的本地化内容。
+
+以下示例使用重写来在访问 `/es-CU/`（古巴西班牙语）URL 路径时渲染 `/es/` 版本的页面。当访问者导航到 `/es-cu/articles/introduction` URL 时，Astro 将渲染由文件 `src/pages/es/articles/introduction.astro` 生成的内容。
+
+```astro title="src/pages/es-cu/articles/introduction.astro"
+---
+return Astro.rewrite("/es/articles/introduction")
+---
+```
+
+使用 `context.rewrite()` 在你的端点文件中重定向到不同的页面：
+
+```js title="src/pages/api.js"
+export function GET(context) {
+  if (!context.locals.allowed) {
+    return context.rewrite("/")
+  }
+}
+```
+
+如果传递给 `Astro.rewrite()` 的 URL 引发运行时错误，Astro 将在开发中显示错误覆盖层，并在生产中返回 500 状态码。如果你的项目中不存在该 URL，则将返回 404 状态码。
+
+你可以有意创建一个重写来渲染你的 `/404` 页面，例如，以指示你的电子商店中的产品不再可用：
+
+```astro title="src/pages/[item].astro"
+---
+const { item } = Astro.params;
+if (!itemExists(item)) {
+  return Astro.rewrite("/404")
+}
+---
+<div>...</div>
+``` 
+
+你也可以根据 HTTP 响应状态有条件地重写，例如在访问不存在的 URL 时显示站点上的某个页面：
+
+```js title="src/middleware.mjs"
+export const onRequest = async (context, next) => {
+  const response = await next();
+  if (response.status === 404) {
+    return context.rewrite("/");
+  }
+  return response;
+}
+``` 
+
+显示指定重写路径的内容之前，`Astro.rewrite()` 函数将触发一个新的完整渲染阶段。这将为新的路由/请求重新执行任何中间件。
+
+<ReadMore>有关更多信息，请查阅 [`Astro.rewrite()` API 参考](/zh-cn/reference/api-reference/#astrorewrite)</ReadMore>
+
 ## 路由优先级顺序
 
 可能有多个已定义的路由试图构建相同的 URL 路径。例如，下面所有这些路由都有可能构建 `/posts/create`：
@@ -411,7 +474,7 @@ interface Page<T = any> {
 	total: number;
 	/** 当前页码, 从 1 开始 */
 	currentPage: number;
-	/** 每个页面的项数（默认为 25) */
+	/** 每个页面的项数（默认为 10) */
 	size: number;
 	/** 最后一页的序号 */
 	lastPage: number;
@@ -422,9 +485,15 @@ interface Page<T = any> {
 		prev: string | undefined;
 		/** 下一页的链接（如果有） */
 		next: string | undefined;
+		/** 第一页的链接 (如果当前页面不是第一页) */
+		first: string | undefined;
+		/** 最后一页的链接 (如果当前页面不是最后一页) */
+		last: string | undefined;
 	};
 }
 ```
+
+<ReadMore>了解更多关于 [page 分页参数](/zh-cn/reference/api-reference/#page-分页参数) 的内容。</ReadMore>
 
 ### 嵌套分页
 
