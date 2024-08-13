@@ -1364,53 +1364,6 @@ export function Comment({ postId }: { postId: string }) {
 }
 ```
 
-### experimental.contentCollectionJsonSchema
-
-<p>
-
-**类型：** `boolean`<br />
-**默认值：** `false`<br />
-<Since v="4.5.0" />
-</p>
-
-此功能将为 `type: 'data'` 的内容集合自动生成一个 JSON 模式，该模式可用作 VSCode 等工具中 TypeScript 风格的自动完成/提示的 `$schema` 值。
-
-要启用此功能，请添加实验性标志：
-
-```diff
-import { defineConfig } from 'astro/config';
-export default defineConfig({
-	experimental: {
-+		contentCollectionJsonSchema: true
-	}
-});
-```
-
-此实验性实现要求你在内容集合的每个数据条目文件中手动引用模式：
-
-```diff
-// src/content/test/entry.json
-{
-+  "$schema": "../../../.astro/collections/test.schema.json",
-	"test": "test"
-}
-```
-
-或者，你也可以在你的 [VSCode `json.schemas` 设置](https://code.visualstudio.com/docs/languages/json#_json-schemas-and-settings)中进行配置：
-
-```diff
-"json.schemas": [
-	{
-		"fileMatch": [
-			"/src/content/test/**"
-		],
-		"url": "./.astro/collections/test.schema.json"
-	}
-]
-```
-
-请注意，这个初始实现使用了一个库，该库对于高级 Zod 模式有[已知的问题](https://github.com/StefanTerdell/zod-to-json-schema#known-issues)，因此在启用实验性标志之前，你可能希望查阅这些限制。
-
 ### experimental.clientPrerender
 
 <p>
@@ -1546,18 +1499,21 @@ export function onRequest(ctx, next) {
 
 ```astro
 ---
-import { APP_ID } from "astro:env/client"
-import { API_URL, API_TOKEN, getSecret } from "astro:env/server"
-const NODE_ENV = getSecret("NODE_ENV")
+import { API_URL } from "astro:env/client"
+import { API_SECRET_TOKEN } from "astro:env/server"
 const data = await fetch(`${API_URL}/users`, {
-	method: "POST",
+	method: "GET",
 	headers: {
 		"Content-Type": "application/json",
-		"Authorization": `Bearer ${API_TOKEN}`
+		"Authorization": `Bearer ${API_SECRET_TOKEN}`
 	},
-	body: JSON.stringify({ appId: APP_ID, nodeEnv: NODE_ENV })
 })
 ---
+<script>
+import { API_URL } from "astro:env/client"
+
+fetch(`${API_URL}/ping`)
+</script>
 ```
 
 要定义环境变量的数据类型和属性，请在你的 Astro 配置中用 `experimental.env.schema` 声明一个 schema。`envField` 助手函数允许你将变量定义为字符串、数字或布尔值，并在一个对象中传递属性：
@@ -1595,7 +1551,7 @@ export default defineConfig({
     import { PORT } from "astro:env/server"
     ```
 
-- **秘密服务端变量**：这些变量不会包含在你的最终包中，可以通过 `astro:env/server` 模块提供的 `getSecret()` 助手函数在服务端访问：
+- **秘密服务端变量**：这些变量不会包含在你的最终包中，可以通过 `astro:env/server` 模块提供的 `getSecret()` 助手函数在服务端访问。它的实现由你的适配器提供，默认为 `process.env`：
 
     ```js
     import { API_SECRET, getSecret } from "astro:env/server"

@@ -1419,53 +1419,6 @@ export function Comment({ postId }: { postId: string }) {
 }
 ```
 
-### experimental.contentCollectionJsonSchema
-
-<p>
-
-**타입:** `boolean`<br />
-**기본값:** `false`<br />
-<Since v="4.5.0" />
-</p>
-
-이 기능은 VSCode와 같은 도구에서 TypeScript 스타일 자동 완성/힌트에 대한 `$schema` 값으로 사용할 수 있는 `type: 'data'` 콘텐츠 컬렉션에 대한 JSON 스키마를 자동으로 생성합니다.
-
-이 기능을 활성화하려면 experimental 플래그를 추가하세요.
-
-```diff
-import { defineConfig } from 'astro/config';
-export default defineConfig({
-	experimental: {
-+		contentCollectionJsonSchema: true
-	}
-});
-```
-
-이 실험적 구현에서는 컬렉션의 각 데이터 항목 파일에 있는 스키마를 수동으로 참조해야 합니다.
-
-```diff
-// src/content/test/entry.json
-{
-+  "$schema": "../../../.astro/collections/test.schema.json",
-	"test": "test"
-}
-```
-
-또는 [VSCode `json.schemas` 설정](https://code.visualstudio.com/docs/languages/json#_json-schemas-and-settings)에서 이를 설정할 수 있습니다.
-
-```diff
-"json.schemas": [
-	{
-		"fileMatch": [
-			"/src/content/test/**"
-		],
-		"url": "../../../.astro/collections/test.schema.json"
-	}
-]
-```
-
-이 초기 구현은 [고급 Zod 스키마에 대해 알려진 문제](https://github.com/StefanTerdell/zod-to-json-schema#known-issues)가 있는 라이브러리를 사용하므로 실험적 플래그를 활성화하기 전에 이러한 제한 사항을 참조하는 것이 좋습니다.
-
 ### experimental.clientPrerender
 
 <p>
@@ -1533,61 +1486,6 @@ export default defineConfig({
 
 경로 우선순위가 동일한 두 경로가 동일한 URL을 빌드하려고 시도하는 경로 충돌이 발생하는 경우 Astro는 충돌하는 경로를 식별하는 경고를 기록합니다.
 
-### experimental.rewriting
-
-<p>
-
-**타입:** `boolean`<br />
-**기본값:** `false`<br />
-<Since v="4.8.0" />
-</p>
-
-Astro 페이지, 엔드포인트 및 Astro 미들웨어에서 요청을 리라이팅하기 위한 라우팅 기능을 활성화하여 경로를 프로그래밍 방식으로 제어할 수 있습니다.
-
-```js
-{
-  experimental: {
-    rewriting: true,
-  },
-}
-```
-
-다른 페이지로 다시 라우팅하려면 `.astro` 파일에서 `Astro.rewrite`를 사용합니다.
-
-```astro "rewrite"
----
-// src/pages/dashboard.astro
-if (!Astro.props.allowed) {
-	return Astro.rewrite("/")
-}
----
-```
-
-다른 페이지로 다시 라우팅하려면 엔드포인트 파일에서 `context.rewrite`를 사용합니다.
-
-```js
-// src/pages/api.js
-export function GET(ctx) {
-	if (!ctx.locals.allowed) {
-		return ctx.rewrite("/")
-	}
-}
-```
-
-미들웨어 파일에서 `next("/")`를 사용하여 다른 페이지로 다시 라우팅한 후 다음 미들웨어 함수를 호출합니다.
-
-```js
-// src/middleware.js
-export function onRequest(ctx, next) {
-	if (!ctx.cookies.get("allowed")) {
-		return next("/") // 새 시그니처
-	}
-	return next();
-}
-```
-
-전체 개요를 확인하고 이 실험적 API에 대한 피드백을 제공하려면 [RFC 리라우팅](https://github.com/withastro/roadmap/blob/feat/reroute/proposals/0047-rerouting.md)을 참조하세요.
-
 ### experimental.env
 
 <p>
@@ -1603,19 +1501,24 @@ export function onRequest(ctx, next) {
 
 ```astro
 ---
-import { APP_ID } from "astro:env/client"
-import { API_URL, API_TOKEN, getSecret } from "astro:env/server"
-const NODE_ENV = getSecret("NODE_ENV")
+import { API_URL } from "astro:env/client"
+import { API_SECRET_TOKEN } from "astro:env/server"
 
 const data = await fetch(`${API_URL}/users`, {
-	method: "POST",
+	method: "GET",
 	headers: {
 		"Content-Type": "application/json",
-		"Authorization": `Bearer ${API_TOKEN}`
+		"Authorization": `Bearer ${API_SECRET_TOKEN}`
 	},
 	body: JSON.stringify({ appId: APP_ID, nodeEnv: NODE_ENV })
 })
 ---
+
+<script>
+import { API_URL } from "astro:env/client"
+
+fetch(`${API_URL}/ping`)
+</script>
 ```
 
 환경 변수의 데이터 타입과 속성을 정의하려면 `experimental.env.schema` Astro 구성에 스키마를 선언하세요. `envField` 도우미를 사용하면 변수를 문자열, 숫자 또는 부울로 정의하고 객체에 속성을 전달할 수 있습니다.
@@ -1653,7 +1556,7 @@ export default defineConfig({
     import { PORT } from "astro:env/server"
     ```
 
-- **비밀 서버 변수**: 이 변수는 최종 번들의 일부가 아니며 `astro:env/server` 모듈을 통해 서버에서 액세스할 수 있습니다. `getSecret()` 도우미 함수를 사용하면 스키마에 지정되지 않은 비밀을 검색할 수 있습니다.
+- **비밀 서버 변수**: 이 변수는 최종 번들의 일부가 아니며 `astro:env/server` 모듈을 통해 서버에서 액세스할 수 있습니다. `getSecret()` 도우미 함수를 사용하면 스키마에 지정되지 않은 비밀을 검색할 수 있습니다. 이 구현은 어댑터에서 제공되며, 기본값은 `process.env`입니다:
 
     ```js
     import { API_SECRET, getSecret } from "astro:env/server"
