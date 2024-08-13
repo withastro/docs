@@ -11,6 +11,7 @@ import { Steps } from '@astrojs/starlight/components';
 - (PLT-2347) Figure out where Zod comes from -- I THINK THIS WILL NEED DOCS, BUT NO TASK FOR IT
 - (PLT-1954) [Update `astro.js` runtime engine check](https://github.com/withastro/astro/pull/10742)
 - (PLT-1626) Rename Shiki CSS vars theme color tokens
+- (PLT-2279) Fix boolean attribute rendering 
 
 ## LINEAR ISSUES MARKED AS NON-BREAKING
 
@@ -20,7 +21,6 @@ If completed, would any of these require a change to existing documentation??
 - (PLT-2339) Expose the current route via `Astro.route`
 - (PLT-2338) Expose `RouteData[]` to integrations
 - (PLT-2315) Remove collection item types
-- (PLT-2279) Fix boolean attribute rendering 
 - (PLT-2171) Make `build.client` and `build.server` predictable
 - (PLT-2151) Redesign 404 / 500 special-cased components
 - (PLT-2149) Allow customizing the redirect page
@@ -293,6 +293,56 @@ You can perform a global find and replace in your project to migrate to the new 
 +  --astro-code-foreground: #000;
 +  --astro-code-background: #fff;
 }
+```
+
+### Changed: Correctly render non-boolean HTML attribute values (PLT2279)
+
+In Astro v4.0, non-[boolean HTML attributes](https://developer.mozilla.org/en-US/docs/Glossary/Boolean/HTML) may not have included their values when rendered to HTML.
+
+Astro v5.0 renders the values explicitly as `="true"` or `="false"`, matching proper attribute handling in browsers.
+
+In the following `.astro` examples, only `allowfullscreen` is a boolean attribute:
+
+```astro
+<!-- src/pages/index.astro -->
+<!-- `allowfullscreen` is a boolean attribute -->
+<p allowfullscreen={true}></p>
+<p allowfullscreen={false}></p>
+<!-- `inherit` is *not* a boolean attribute -->
+<p inherit={true}></p>
+<p inherit={false}></p>
+<!-- `data-*` attributes are not boolean attributes -->
+<p data-light={true}></p>
+<p data-light={false}></p>
+```
+
+Astro v5.0 now preserves the full data attribute with its value when rendering the HTML of non-boolean attributes:
+
+```diff lang="astro"
+  <p allowfullscreen></p>
+  <p></p>
+
+  <p inherit="true"></p>
+- <p inherit></p>
++ <p inherit="false"></p>
+
+- <p data-light></p>
++ <p data-light="true"></p>
+- <p></p>
++ <p data-light="false"></p>
+```
+
+#### What should I do?
+
+
+If you rely on attribute values, for example to locate elements or to conditionally render, update your code to match the new non-boolean attribute values:
+
+```diff lang="js"
+- el.getAttribute('inherit') === ''
++ el.getAttribute('inherit') === 'false'
+
+- el.hasAttribute('data-light')
++ el.dataset.light === 'true'
 ```
 
 ### Removed: top level await in `vite-plugin-markdown`'s `astro:assets` (PLT1323)
