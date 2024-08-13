@@ -476,7 +476,7 @@ const { Content, headings } = await entry.render();
 
 静的なウェブサイトを構築する場合（Astroのデフォルトの動作）、ビルド中に1つの`src/pages/`コンポーネントから複数のページを作成するには、[`getStaticPaths()`](/ja/reference/api-reference/#getstaticpaths)関数を使用します。
 
-`getStaticPaths()`内で[`getCollection()`](/ja/reference/api-reference/#getcollection) を呼び出し、コンテンツをクエリします。それから、各コンテンツエントリーの`slug`プロパティを使用して、新しいURLパスを作成します。
+`getStaticPaths()`内で`getCollection()`を呼び出し、[コンテンツまたはデータををクエリします](/ja/guides/content-collections/#querying-collections)。それから、各コンテンツエントリーの`slug`プロパティ(コンテンツコレクション)または`id`プロパティ(データコレクション)を使用して、新しいURLパスを作成します。
 
 ```astro "{ slug: entry.slug }"
 ---
@@ -528,6 +528,9 @@ const { Content } = await entry.render();
 ---
 ```
 
+:::tip
+[GitHubのブログチュートリアルデモコード](https://github.com/withastro/blog-tutorial-demo/tree/content-collections/src/pages) または [StackBlitzで開く](https://stackblitz.com/github/withastro/blog-tutorial-demo/tree/content-collections?file=src/pages/blog.astro) の `src/pages/` フォルダを探せば、ブログ記事のリストやタグページなど、コレクションからページを作成する完全な例を見ることができます！
+:::
 
 ## ファイルベースのルーティングからの移行
 
@@ -535,9 +538,40 @@ const { Content } = await entry.render();
 
 [ブログ作成チュートリアルの完成プロジェクト](https://github.com/withastro/blog-tutorial-demo)のコードベースを使用する[ステップバイステップのチュートリアル](/ja/tutorials/add-content-collections/)で、基本的なブログの例を `src/pages/posts/` から `src/content/posts` に変換する方法を確認してください。
 
+## JSONスキーマの生成を有効にする
+
+<p><Since v="4.13.0" /></p>
+
+`data`型のコレクションを使用している場合、Astroはインテリセンスと型チェックを行うために、エディタ用のJSONスキーマファイルを自動生成します。`src/content/config.ts`で定義されたコレクションに基づいて、プロジェクト内の各データコレクションごとに、[`zod-to-json-schema`](https://github.com/StefanTerdell/zod-to-json-schema#known-issues)と呼ばれるライブラリを使用して個別のファイルが作成されます。
+
+この機能では、コレクションの各データ入力ファイルで、スキーマのファイルパスを `$schema` の値として手動で設定する必要があります。
+
+```json title="src/content/authors/armand.json" ins={2}
+{
+  "$schema": "../../../.astro/collections/authors.schema.json",
+  "name": "Armand",
+  "skills": ["Astro", "Starlight"]
+}
+```
+
+または、エディタの設定でこの値を設定することもできます。例えば、[VSCodeの`json.schemas`設定](https://code.visualstudio.com/docs/languages/json#_json-schemas-and-settings)でこの値を設定するには、マッチするファイルのパスとJSONスキーマの場所を指定します。
+
+```json
+{
+  "json.schemas": [
+    {
+      "fileMatch": [
+        "/src/content/authors/**"
+      ],
+      "url": "./.astro/collections/authors.schema.json"
+    }
+  ]
+}
+```
+
 ## ビルドキャッシュを有効にする
 
-<p><Since v="3.5.0" /><Badge>Experimental</Badge></p>
+<p><Since v="3.5.0" /><Badge class="neutral-badge" text="Experimental" /></p>
 
 大規模なコレクションを扱っている場合は、[`experimental.contentCollectionCache`](/ja/reference/configuration-reference/#experimentalcontentcollectioncache)フラグを使用してキャッシュされたビルドを有効にするとよいでしょう。この実験的な機能は、Astroのビルドプロセスを最適化し、変更されていないコレクションを保存してビルド間で再利用できるようにします。
 
@@ -569,3 +603,36 @@ const { remarkPluginFrontmatter } = await blogPost.render();
 <RecipeLinks slugs={["ja/recipes/reading-time" ]}/>
 
 remarkやrehypeのパイプラインは、コンテンツがレンダリングされたときにのみ実行されます。そのため、`render()`をコールした後に`remarkPluginFrontmatter`を使用できるようになります。対照的に、`getCollection()`や`getEntry()`はコンテンツをレンダリングしないので、これらの値を直接返すことはできません。
+
+## フロントマターでの日付の扱い
+
+コンテンツコレクションではいくつかの日付フォーマットが可能ですが、コレクションのスキーマはMarkdownまたはMDX YAMLのフロントマターで使用されているフォーマットと一致しなければなりません。
+
+YAMLは日付を表現するために[ISO-8601](https://www.iso.org/iso-8601-date-and-time-format.html)の標準を使います。`yyyy-mm-dd`(例 `2021-07-28`)というフォーマットと`z.date()`というスキーマタイプを使います：
+
+```markdown title="src/pages/posts/example-post.md"
+---
+title: My Blog Post
+pubDate: 2021-07-08
+---
+```
+
+タイムゾーンが指定されていない場合、日付の書式はUTCで指定されます。タイムゾーンを指定する必要がある場合は、[ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) 形式を使うことができます。
+
+```markdown title="src/pages/posts/example-post.md"
+---
+title: My Blog Post
+pubDate: 2021-07-08T12:00:00-04:00
+---
+```
+
+完全なUTCタイムスタンプから`YYYY-MM-DD`だけをレンダリングするには、JavaScriptの`slice`メソッドを使用してタイムスタンプを削除します：
+
+```astro title="src/layouts/ExampleLayout.astro"
+---
+const { frontmatter } = Astro.props;
+---
+<h1>{frontmatter.title}</h1>
+<p>{frontmatter.pubDate.toISOString().slice(0,10)}</p>
+```
+`toLocaleDateString`を使って日、月、年をフォーマットする例を見るには、Astro公式ブログテンプレートの[`<FormattedDate />`コンポーネント](https://github.com/withastro/astro/blob/latest/examples/blog/src/components/FormattedDate.astro)を参照してください。
