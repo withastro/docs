@@ -41,7 +41,7 @@ export const logos = LogoCheck({
 	svelte: { file: 'svelte.svg', padding: '.1875em' },
 	tailwind: { file: 'tailwind.svg', padding: '.1875em' },
 	vue: { file: 'vue.svg', padding: '.3em .2em .2em' },
-	flightcontrol: { file: 'flightcontrol.svg', padding: '0em 0em 0em' },
+	flightcontrol: { file: 'flightcontrol.svg', padding: '.225em' },
 	sst: { file: 'sst.svg', padding: '0em 0.15em 0em' },
 	buttercms: { file: 'buttercms.svg', padding: '.1875em' },
 	builderio: { file: 'builderio.svg', padding: '.25em' },
