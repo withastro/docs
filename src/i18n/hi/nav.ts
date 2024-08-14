@@ -48,7 +48,7 @@ export default NavDictionary({
 	'guides/backend': 'Backend सेवाएँ जोड़ें',
 	'guides/ecommerce': 'E-commerce',
 	'guides/authentication': 'प्रमाणीकरण',
-	'guides/environment-variables': "पर्यावरण चर",
+	'guides/environment-variables': 'पर्यावरण चर',
 
 	clientSide: 'क्लाइंट-साइड इंटरएक्टिविटी',
 	'guides/framework-components': 'UI फ्रेमवर्क',
@@ -61,17 +61,17 @@ export default NavDictionary({
 
 	reference: 'संदर्भ',
 	'reference/configuration-reference': 'कॉन्फ़िगरेशन',
-	'reference/api-reference': "Astro रनटाइम API",
-	'reference/cli-reference': "Astro CLI",
+	'reference/api-reference': 'Astro रनटाइम API',
+	'reference/cli-reference': 'Astro CLI',
 	'reference/directives-reference': 'निर्देश संदर्भ',
 	'reference/typescript': 'TypeScript संदर्भ',
 	'reference/error-reference': 'त्रुटि संदर्भ',
 
 	dev: 'अन्य विकास APIs',
-	'reference/integrations-reference': "एकीकरण API",
+	'reference/integrations-reference': 'एकीकरण API',
 	'reference/adapter-reference': 'Adapter API',
-	'reference/image-service-reference': "छवि सेवा API",
-	'reference/dev-toolbar-app-reference': "देव टूलबार ऐप API",
+	'reference/image-service-reference': 'छवि सेवा API',
+	'reference/dev-toolbar-app-reference': 'देव टूलबार ऐप API',
 	'reference/container-reference': 'Container API(प्रायोगिक)',
 
 	communityResources: 'सामूहिक संसाधन',
