@@ -33,10 +33,15 @@ interface AstroIntegration {
       addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
       addDevToolbarApp: (pluginEntrypoint: string) => void;
       injectScript: (stage: InjectedScriptStage, content: string) => void;
-      injectRoute: ({ pattern: string, entrypoint: string }) => void;
+      injectRoute: (injectedRoute: { pattern: string, entrypoint: string }) => void;
       logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
-    'astro:config:done'?: (options: { config: AstroConfig; setAdapter: (adapter: AstroAdapter) => void; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:config:done'?: (options: {
+      config: AstroConfig;
+      setAdapter: (adapter: AstroAdapter) => void;
+      injectTypes: (injectedType: { filename: string; content: string }) => URL;
+      logger: AstroIntegrationLogger;
+      }) => void | Promise<void>;
     'astro:route:setup'?: (options: { route: RouteOptions; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:server:setup'?: (options: { server: vite.ViteDevServer; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:server:start'?: (options: { address: AddressInfo; logger: AstroIntegrationLogger; }) => void | Promise<void>;
@@ -388,7 +393,12 @@ The **`stage`** denotes how this script (the `content`) should be inserted. Some
 **Why:** To retrieve the final config for use in other hooks.
 
 ```js
-'astro:config:done'?: (options: { config: AstroConfig }) => void | Promise<void>;
+'astro:config:done'?: (options: {
+  config: AstroConfig;
+  setAdapter: (adapter: AstroAdapter) => void;
+  injectTypes: (injectedType: { filename: string; content: string }) => URL;
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
 ```
 
 #### `config` option
@@ -396,6 +406,34 @@ The **`stage`** denotes how this script (the `content`) should be inserted. Some
 **Type:** `AstroConfig`
 
 A read-only copy of the user-supplied [Astro config](/en/reference/configuration-reference/). This is resolved _after_ other integrations have run.
+
+#### `setAdapter` option
+
+**Type:** `(adapter: AstroAdapter) => void;`
+
+Makes the integration an adapter. Read more in the [adapter API](/en/reference/adapter-reference/).
+
+#### `injectTypes` options
+
+<p><Since v="4.14.0" /></p>
+
+**Type:** `(injectedType: { filename: string; content: string }) => URL`
+
+Allows you to inject types into your user's project by adding a new a `*.d.ts` file.
+
+The `filename` property will be used to generate a file at `/.astro/integrations/<normalized_integration_name>/<normalized_filename>.d.ts` and must end with `".d.ts"`.
+
+The `content` property will create the body of the file, and must be valid TypeScript.
+
+Additionally, `injectTypes()` returns a URL to the normalized path so you can overwrite its content later on, or manipulate it in any way you want.
+
+```js
+const path = injectTypes({
+  filename: "types.d.ts",
+  content: "declare module 'virtual:integration' {}"
+})
+console.log(path) // URL
+```
 
 ### `astro:server:setup`
 
