@@ -1,0 +1,26 @@
+---
+# NOTE: This file is auto-generated from 'scripts/error-docgen.mjs'
+# Do not make edits to it directly, they will be overwritten.
+# Instead, change this file: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
+# Translators, please remove this note and the <DontEditWarning/> component.
+
+title: Collection does not exist
+i18nReady: true
+githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
+---
+import DontEditWarning from '~/components/DontEditWarning.astro'
+
+<DontEditWarning />
+
+
+:::caution[Deprecated]
+Collections that do not exist no longer result in an error. A warning is given instead.
+:::
+
+> A collection queried via `getCollection()` does not exist.
+
+## What went wrong?
+When querying a collection, ensure a collection directory with the requested name exists under `src/content/`.
+
+
+

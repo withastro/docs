@@ -1,0 +1,265 @@
+---
+title: Authentication
+description: An intro to authentication in Astro
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import ReadMore from '~/components/ReadMore.astro'
+
+Authentication and authorization are two security processes that manage access to your website or app. Authentication verifies a visitor's identity, while authorization grants access to protected areas and resources.
+
+Authentication allows you to customize areas of your site for logged-in individuals and provides the greatest protection for personal or private information. Authentication libraries (e.g. [Lucia Auth](https://lucia-auth.com/), [Auth.js](https://authjs.dev/), [Clerk](https://clerk.com)) provide utilities for multiple authentication methods such as email sign-in and OAuth providers.
+
+:::tip
+There is no official authentication solution for Astro, but you can find [community "auth" integrations](https://astro.build/integrations/?search=auth) in the integrations directory.
+:::
+
+<ReadMore>See how to [add authentication with Supabase](/en/guides/backend/supabase/#adding-authentication-with-supabase) or [add authentication with Firebase](/en/guides/backend/google-firebase/#adding-authentication-with-firebase) in our dedicated guides for these backend services.</ReadMore>
+
+## Lucia
+
+Lucia is a framework-agnostic, session-based authentication library with great Astro support.
+
+### Installation
+
+Install Lucia using the package manager of your choice.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install lucia
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add lucia
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add lucia
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Configuration
+
+Use [Lucia's "Getting started in Astro"](https://lucia-auth.com/getting-started/astro) guide to initialize Lucia with an adapter and set up a database to store users and sessions.
+
+### Usage
+
+:::tip
+Follow one of Lucia's complete Astro tutorials to add [username and password authentication](https://lucia-auth.com/tutorials/username-and-password/astro) or [GitHub OAuth](https://lucia-auth.com/tutorials/github-oauth/astro) to your Astro project.
+:::
+
+### Next Steps
+
+- [Example Astro + Lucia OAuth project](https://github.com/lucia-auth/examples/tree/main/astro/github-oauth)
+- [Example Astro + Lucia username and password project](https://github.com/lucia-auth/examples/tree/main/astro/username-and-password)
+
+## Auth.js
+
+Auth.js is a framework agnostic solution for authentication. A community framework adapter [`auth-astro`](https://www.npmjs.com/package/auth-astro) is available for Astro.
+
+### Installation
+
+Use the `astro add` command for your preferred package manager to add the `auth-astro` integration.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add auth-astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add auth-astro
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add auth-astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+#### Manual installation
+
+To install `auth-astro` manually, install the required package for your package manager:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install auth-astro @auth/core@^0.18.6
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add auth-astro @auth/core@^0.18.6
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add auth-astro @auth/core@^0.18.6
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Then, apply the integration to your `astro.config.*` file using the `integrations` property:
+
+```ts title="astro.config.mjs" ins={2,6}
+import { defineConfig } from 'astro/config';
+import auth from 'auth-astro';
+
+export default defineConfig({
+  // ...
+  integrations: [auth()],
+});
+```
+
+### Configuration
+
+Create an `auth.config.mjs` file in your project's root directory. Add any auth [providers](https://authjs.dev/getting-started/providers) or methods you wish to support, along with any environment variables they require.
+
+```ts title="auth.config.mjs"
+import GitHub from '@auth/core/providers/github';
+import { defineConfig } from 'auth-astro';
+
+export default defineConfig({
+	providers: [
+		GitHub({
+			clientId: import.meta.env.GITHUB_CLIENT_ID,
+			clientSecret: import.meta.env.GITHUB_CLIENT_SECRET,
+		}),
+	],
+});
+```
+
+Create a `.env` file in the root of your project if it does not already exist. Add the following two environment variables. `AUTH_SECRET` should be a private string with a minimum of 32 characters.
+
+```sh title=".env"
+AUTH_TRUST_HOST=true
+AUTH_SECRET=<my-auth-secret>
+```
+
+### Usage
+
+You can add sign-in and sign-out buttons using the `auth-astro/client` module in a script tag or client-side framework component.
+
+```astro title="src/pages/index.astro" {9}
+---
+import Layout from 'src/layouts/Base.astro';
+---
+<Layout>
+  <button id="login">Login</button>
+  <button id="logout">Logout</button>
+
+  <script>
+    const { signIn, signOut } = await import("auth-astro/client")
+    document.querySelector("#login").onclick = () => signIn("github")
+    document.querySelector("#logout").onclick = () => signOut()
+  </script>
+</Layout>
+```
+
+You can fetch the user's session using the `getSession` method.
+
+```astro title="src/pages/index.astro" {3,5}
+---
+import Layout from 'src/layouts/Base.astro';
+import { getSession } from 'auth-astro/server';
+
+const session = await getSession(Astro.request);
+---
+<Layout>
+  {
+    session ? (
+      <p>Welcome {session.user?.name}</p>
+    ) : (
+      <p>Not logged in</p>
+    )
+  }
+</Layout>
+```
+
+### Next Steps
+
+- [`auth-astro` on GitHub](https://github.com/nowaythatworked/auth-astro?tab=readme-ov-file#auth-astro)
+- [Auth.js documentation](https://authjs.dev/)
+
+## Clerk
+
+Clerk is a complete suite of embeddable UIs, flexible APIs, and admin dashboards to authenticate and manage your users. An [official Clerk SDK for Astro](https://clerk.com/docs/references/astro/overview) is available.
+
+### Installation
+
+Install `@clerk/astro` using the package manager of your choice.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @clerk/astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @clerk/astro
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @clerk/astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Configuration
+
+Follow [Clerk's own Astro Quickstart guide](https://clerk.com/docs/quickstarts/astro) to set up Clerk integration and middleware in your Astro project.
+
+### Usage
+
+Clerk provides components that allow you to control the visibility of pages based on your user's authentication state. Show logged out users a sign in button instead of the content available to users who are logged in:
+
+```astro title="src/pages/index.astro"
+---
+import Layout from 'src/layouts/Base.astro';
+import { SignedIn, SignedOut, UserButton, SignInButton } from '@clerk/astro/components';
+---
+
+<Layout>
+    <SignedIn>
+        <UserButton />
+    </SignedIn>
+    <SignedOut>
+        <SignInButton />
+    </SignedOut>
+</Layout>
+```
+
+Clerk also allows you to protect routes on the server using middleware. Specify which routes are protected, and prompt unauthenticated users to sign in:
+
+```ts title="src/middleware.ts"
+import { clerkMiddleware, createRouteMatcher } from '@clerk/astro/server';
+
+const isProtectedRoute = createRouteMatcher([
+  '/dashboard(.*)',
+  '/forum(.*)',
+]);
+
+export const onRequest = clerkMiddleware((auth, context) => {
+  if (!auth().userId && isProtectedRoute(context.request)) {
+    return auth().redirectToSignIn();
+  }
+});
+```
+
+### Next Steps
+
+- Read the [official `@clerk/astro` documentation](https://clerk.com/docs/references/astro/overview)
+- Start from a template with the [Clerk + Astro Quickstart project](https://github.com/clerk/clerk-astro-quickstart)
+
+## Community Resources
+
+- [Using Microsoft Entra Id EasyAuth with Astro and Azure Static Web App](https://agramont.net/blog/entra-id-easyauth-with-astro/)

@@ -1,0 +1,327 @@
+---
+title: On-demand Rendering Adapters
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+import RecipeLinks from '~/components/RecipeLinks.astro';
+import IntegrationsNav from '~/components/IntegrationsNav.astro';
+
+Astro allows you to choose **on-demand rendering** for some, or all of your pages and endpoints. This is also known as **server-side rendering (SSR)**: generating HTML pages on the server when requested and sending them to the client. An **adapter** is used to run your project on the server and handle these requests.
+
+This on-demand rendering allows you to:
+- Implement sessions for login state in your app.
+- Render data from an API called dynamically with `fetch()`.
+- Deploy your site to a host using an *adapter*.
+
+Consider enabling on-demand server rendering in your Astro project if you need the following:
+
+- **API endpoints**: Create specific pages that function as API endpoints for tasks like database access, authentication, and authorization while keeping sensitive data hidden from the client.
+
+- **Protected pages**: Restrict access to a page based on user privileges, by handling user access on the server.
+
+- **Frequently changing content**: Generate individual pages without requiring a static rebuild of your site. This is useful when the content of a page updates frequently.
+
+## Official Adapters
+
+Astro maintains official adapters for [Node.js](https://nodejs.org/), [Vercel](https://vercel.com/), [Netlify](https://www.netlify.com/), and [Cloudflare](https://www.cloudflare.com/). 
+
+Find even more [community-maintained adapters](https://astro.build/integrations/?search=&categories%5B%5D=adapters) (e.g. Deno, SST, AWS) in our integrations directory. 
+
+<IntegrationsNav category="adapter"/>
+
+## Enable on-demand server rendering
+
+Both of Astro's on-demand rendering output modes (`server` and `hybrid`) allow you to take advantage of static site performance by pre-rendering individual routes whenever possible, whether you have an entirely dynamic app or a mostly static site that needs on-demand rendering only for select routes.
+
+To decide which one to use in your project, choose the `output` option that represents how **most** of your pages and routes will be rendered:
+
+- __`output: 'server'`__: On-demand rendered by default. Use this when most or all of your site or app should be server-rendered on request. Any individual page or endpoint can *opt-in* to pre-rendering.
+- __`output: 'hybrid'`__: Pre-rendered to HTML by default. Use this when most of your site should be static. Any individual page or endpoint can *opt-out* of pre-rendering.
+ 
+Because the server will need to generate at least some pages on demand, both of these modes require you to [add an adapter](#add-an-adapter) to carry out the server functions.
+
+### Add an Adapter
+
+To deploy a project in `server` or `hybrid` mode, you need to add an **adapter**. This is because both of these modes require a server _runtime_: the environment that runs code on the server to generate pages when they are requested. Each adapter allows Astro to output a script that runs your project on a specific runtime, such as Vercel, Netlify or Cloudflare.
+
+You can find both [official and community adapters in our integrations directory](https://astro.build/integrations/?search=&categories%5B%5D=adapters). Choose the one that corresponds to your [deployment environment](/en/guides/deploy/).
+
+#### `astro add` install
+
+You can add any of the [official adapters maintained by Astro](/en/guides/integrations-guide/#official-integrations) with the following `astro add` command. This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step. 
+
+For example, to install the Vercel adapter, run:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add vercel
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add vercel
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add vercel
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+#### Manual Install
+
+You can also add an adapter manually by installing the package and updating `astro.config.mjs` yourself.
+
+For example, to install the Vercel adapter manually:
+
+<Steps>
+1. Install the adapter to your project dependencies using your preferred package manager:
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm install @astrojs/vercel
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm add @astrojs/vercel
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn add @astrojs/vercel
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+2. [Add the adapter](/en/reference/configuration-reference/#adapter) to your `astro.config.mjs` file's import and default export, along with your desired `output` mode:
+
+    ```js ins={3,7} {6}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import vercel from '@astrojs/vercel/serverless';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: vercel(),
+    });
+    ```
+
+    Note that different adapters may also have different configuration settings. Read each adapter's documentation, and apply any necessary config options to your chosen adapter in `astro.config.mjs`
+</Steps>
+
+### Configure `server` or `hybrid`
+
+To enable on-demand rendering, you must update your `output` configuration to one of the two server-rendered modes.
+
+For example, to configure a highly dynamic app where every page is rendered on demand by default, add `output: 'server'` to your Astro config: 
+
+```js ins={5} title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import node from "@astrojs/node";
+
+export default defineConfig({
+  output: 'server',
+  adapter: node({
+    mode: "standalone"
+  })
+});
+```
+
+### Opting-in to pre-rendering in `server` mode
+
+For a mostly server-rendered app configured as `output: server`, add `export const prerender = true` to any page or route to pre-render a static page or endpoint:
+
+```astro title="src/pages/mypage.astro" {2}
+---
+export const prerender = true;
+// ...
+---
+<html>
+  <!-- Static, pre-rendered page here... -->
+</html>
+```
+
+```mdx title="src/pages/mypage.mdx" {5}
+---
+layout: '../layouts/markdown.astro'
+title: 'My page'
+---
+export const prerender = true;
+
+# This is my static, pre-rendered page
+```
+
+```js title="src/pages/myendpoint.js" {1}
+export const prerender = true;
+
+export async function GET() {
+  return new Response(
+    JSON.stringify({
+      message: `This is my static endpoint`,
+    }),
+  );
+}
+```
+
+### Opting out of pre-rendering in `hybrid` mode
+
+For a mostly static site configured as `output: hybrid`, add `export const prerender = false` to any files that should be server-rendered on demand:
+
+```js title="src/pages/randomnumber.js" {1}
+export const prerender = false;
+
+export async function GET() {
+  let number = Math.random();
+  return new Response(
+    JSON.stringify({
+      number,
+      message: `Here's a random number: ${number}`,
+    }),
+  );
+}
+```
+
+## On-demand rendering features
+
+### HTML streaming
+
+With HTML streaming, a document is broken up into chunks, sent over the network in order, and rendered on the page in that order. In `server` or `hybrid` mode, Astro uses HTML streaming to send each component to the browser as it renders them. This makes sure the user sees your HTML as fast as possible, although network conditions can cause large documents to be downloaded slowly, and waiting for data fetches can block page rendering.
+
+<RecipeLinks slugs={["en/recipes/streaming-improve-page-performance"]}/>
+
+:::caution
+Features that modify the [Response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header) are only available at the **page level**. (You can't use them inside of components, including layout components.) By the time Astro runs your component code, it has already sent the Response headers and they cannot be modified.
+
+:::
+
+### Cookies
+
+In `server` and `hybrid` modes, a page or API endpoint can check, set, get, and delete cookies.
+
+The example below updates the value of a cookie for a page view counter:
+
+```astro title="src/pages/index.astro" {4,5,9}
+---
+let counter = 0
+
+if (Astro.cookies.has("counter")) {
+  const cookie = Astro.cookies.get("counter")
+	counter = cookie.number() + 1
+}
+
+Astro.cookies.set("counter",counter)
+---
+<html>
+  <h1>Counter = {counter}</h1>
+</html>
+```
+
+See more details about [`Astro.cookies` and the `AstroCookie` type](/en/reference/api-reference/#astrocookies) in the API reference.
+
+### `Response`
+
+[`Astro.response`](/en/reference/api-reference/#astroresponse) is a standard [`ResponseInit`](https://developer.mozilla.org/en-US/docs/Web/API/Response/Response#options) object. It can be used to set the response status and headers.
+
+The example below sets a response status and status text for a product listing page when the product does not exist:
+
+```astro title="src/pages/my-product.astro" {8-9}
+---
+import { getProduct } from '../api';
+
+const product = await getProduct(Astro.params.id);
+
+// No product found
+if (!product) {
+  Astro.response.status = 404;
+  Astro.response.statusText = 'Not found';
+}
+---
+<html>
+  <!-- Page here... -->
+</html>
+```
+
+#### `Astro.response.headers`
+
+You can set headers using the `Astro.response.headers` object:
+
+```astro title="src/pages/index.astro" {2}
+---
+Astro.response.headers.set('Cache-Control', 'public, max-age=3600');
+---
+<html>
+  <!-- Page here... -->
+</html>
+```
+
+#### Return a `Response` object
+
+You can also return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object directly from any page using on-demand rendering. 
+
+The example below returns a 404 on a dynamic page after looking up an id in the database:
+
+```astro title="src/pages/[id].astro" {8-11}
+---
+import { getProduct } from '../api';
+
+const product = await getProduct(Astro.params.id);
+
+// No product found
+if (!product) {
+  return new Response(null, {
+    status: 404,
+    statusText: 'Not found'
+  });
+}
+---
+<html>
+  <!-- Page here... -->
+</html>
+```
+
+### `Request`
+
+`Astro.request` is a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request.
+
+In both `server` and `hybrid` mode, you can access additional information from this object for pages that are not statically-generated.
+
+#### `Astro.request.headers`
+
+The headers for the request are available on `Astro.request.headers`. This works like the browser's [`Request.headers`](https://developer.mozilla.org/en-US/docs/Web/API/Request/headers). It is a [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers) object where you can retrieve headers such as the cookie.
+
+```astro title="src/pages/index.astro" {2}
+---
+const cookie = Astro.request.headers.get('cookie');
+// ...
+---
+<html>
+  <!-- Page here... -->
+</html>
+```
+
+#### `Astro.request.method`
+
+The HTTP method used in the request is available as `Astro.request.method`. This works like the browser's [`Request.method`](https://developer.mozilla.org/en-US/docs/Web/API/Request/method). It returns the string representation of the HTTP method used in the request.
+
+```astro title="src/pages/index.astro"
+---
+console.log(Astro.request.method) // GET (when navigated to in the browser)
+---
+```
+
+See more details about [`Astro.request`](/en/reference/api-reference/#astrorequest) in the API reference.
+
+### Server Endpoints
+
+A server endpoint, also known as an **API route**, is a special function exported from a `.js` or `.ts` file within the `src/pages/` folder. A powerful feature of server-side rendering on demand, API routes are able to securely execute code on the server.
+
+The function takes an [endpoint context](/en/reference/api-reference/#endpoint-context) and returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response). 
+
+To learn more, see our [Endpoints Guide](/en/guides/endpoints/#server-endpoints-api-routes).
+
+

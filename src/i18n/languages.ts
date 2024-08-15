@@ -13,12 +13,13 @@ export const allLanguages = {
 	pl: 'Polski',
 	ru: 'Русский',
 	it: 'Italiano',
+	id: 'Indonesia',
 } as const;
 
 // Build for two languages only to speed up Astro's smoke tests
 const twoLanguages = {
 	en: 'English',
-	ko: '한국어',
+	id: 'Indonesia',
 } as const;
 
 /**
