@@ -52,7 +52,7 @@ export async function run() {
 	const inputBuffer =
 		STUB ||
 		(await fetch(
-			`https://raw.githubusercontent.com/${sourceRepo}/${sourceBranch}/packages/astro/src/%40types/astro.ts`
+			`https://raw.githubusercontent.com/${sourceRepo}/${sourceBranch}/packages/astro/src/types/public/config.ts`
 		).then((r) => r.text()));
 
 	console.timeEnd(task);
