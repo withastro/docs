@@ -3,7 +3,7 @@ import { NavDictionary } from '../translation-checkers';
 export default NavDictionary({
 	startHere: 'Zacznij tutaj',
 	'getting-started': 'Wprowadzenie',
-	install: 'Instalacja',
+	'install-and-setup': 'Instalacja i konfiguracja',
 	'editor-setup': 'Konfiguracja edytora',
 	'upgrade-astro': 'Aktualizacja Astro',
 
