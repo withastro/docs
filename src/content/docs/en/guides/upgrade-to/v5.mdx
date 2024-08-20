@@ -397,9 +397,11 @@ If you rely on attribute values, for example to locate elements or to conditiona
 + el.dataset.light === 'true'
 ```
 
-### Removed: top level await in `vite-plugin-markdown`'s `astro:assets` (PLT1323)
+### Removed: top level await in `vite-plugin-markdown`'s `astro:assets` (PLT1323 - alpha.1)
 
-The `compiledContent()` property on Markdown imports is now an async function, requiring an `await` to resolve the content.
+In Astro 4.x, included top level await in Markdown modules. This caused some issues with custom image services and images inside Markdown, causing Node to suddenly exit with no error message.
+
+Astro 5.0 makes the `compiledContent()` property on Markdown imports an async function, requiring an `await` to resolve the content.
 
 #### What should I do?
 
@@ -416,26 +418,33 @@ import * as myPost from "../post.md";
 <Fragment set:html={content} />
 ```
 
-### Removed: Squoosh image service from core repo (PLT1380)
+### Removed: Squoosh image service from core repo (PLT1380 - alpha.1)
 
-The Squoosh image service has been removed from Astro 5.0.
+In Astro 4.0, you could configure `image.service: squooshImageService()` to use Squoosh to transform your images instead of Sharp. However, the underlying library `libsquoosh` is no longer maintained and has memory and performance issues.
+
+Astro 5.0 removes the Squoosh image optimization service entirely.
 
 #### What should I do?
 
-To switch to the built-in Sharp image service, remove the `squooshImageService` import from your Astro config.
+To switch to the built-in Sharp image service, remove the `squooshImageService` import from your Astro config. By default, you will use Sharp for `astro:assets`.
 
-```diff lang="ts" title="astro.config.mjs"
-- import { squooshImageService } from "astro/config";
+```ts title="astro.config.mjs" del={1, 5-7}
+import { squooshImageService } from "astro/config";
 import { defineConfig } from "astro/config";
 
 export default defineConfig({
--  image: {
--    service: squooshImageService()
--  }
+ image: {
+   service: squooshImageService()
+ }
 });
 ```
 
-If using a strict package manager like `pnpm`, you may need to install the `sharp` package manually to use the Sharp image service.
+If you are using a strict package manager like `pnpm`, you may need to install the `sharp` package manually to use the Sharp image service, even though it is built-in to Astro by default.
+
+If your adapter for server or hybrid mode does not support Astro's built-in Sharp image optimization, you can [configure a no-op image service](/en/guides/images/#configure-no-op-passthrough-service) to allow you to use the `<Image />` and `<Picture />` components.
+
+Alternatively, you may wish to consider [a community-maintained Squoosh image service](https://github.com/Princesseuh/astro-image-service-squoosh) if you are unable to use the Sharp image service.
+
 
 ##### For adapters
 
@@ -449,11 +458,11 @@ supportedAstroFeatures: {
 }
 ```
 
-### Removed: Internal JSX exports entrypoints (PLT1935)
+### Removed: Internal JSX exports entrypoints (PLT1935 - alpha.1)
 
-In Astro v4.0, the `astro/jsx/*` exports were available for `@astrojs/mdx` to handle MDX and JSX rendering.
+In Astro v4.0, Astro performed internal JSX handling for the `@astrojs/mdx` integration.
 
-Astro v5.0 moves the responsibility to the `@astrojs/mdx` package directly and removes the following exports:
+Astro v5.0 moves this responsibility tohandle and render JSX and MDX the `@astrojs/mdx` package directly, and removes the following exports:
 
 - `astro/jsx/babel.js`
  - `astro/jsx/component.js`
@@ -464,8 +473,7 @@ Astro v5.0 moves the responsibility to the `@astrojs/mdx` package directly and r
 
 #### What should I do?
 
-If your project includes `.mdx` files, you must upgrade `@astrojs/mdx` to the latest version so that it doesn't rely on these entrypoints to handle your JSX.
-
+If your project includes `.mdx` files, you must upgrade `@astrojs/mdx` to the latest version so that your JSX can be handled properly by the integration and no longer relies on these removed entrypoints.
 
 ## Deprecated
 
