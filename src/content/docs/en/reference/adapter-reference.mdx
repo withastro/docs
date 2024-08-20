@@ -61,7 +61,6 @@ export interface AstroAdapterFeatures {
 	/**
 	 * SSR only. Each route becomes its own function/file.
 	 */
-	functionPerRoute: boolean;
 }
 
 export type SupportsKind = 'unsupported' | 'stable' | 'experimental' | 'deprecated';
@@ -338,89 +337,6 @@ and an error if the service used for assets is not compatible with the adapter:
 ## Adapter features
 
 A set of features that changes the output of the emitted files. When an adapter opts in to these features, they will get additional information inside specific hooks.
-
-### `functionPerRoute`
-
-This is a feature that is enabled when using SSR only. By default, Astro emits a single `entry.mjs` file, which is responsible for emitting the rendered page on each request.
-
-When `functionPerRoute` is `true`, Astro will instead create a separate file for each route defined in the project.
-
-Each file emitted will only render one page. The pages will be emitted inside a `dist/pages/` directory (or under a `/pages/` directory in the directory specified for [`outDir`](/en/reference/configuration-reference/#outdir)), and the emitted files will keep the same file paths of the `src/pages/` directory.
-
-The files inside the `pages/` directory of the build will mirror the directory structure of your page files in `src/pages/`, for example:
-
-<FileTree>
-- dist/
-    - pages/
-        - blog/
-            - entry.\_slug\_.astro.mjs
-            - entry.about.astro.mjs
-        - entry.index.astro.mjs
-</FileTree>
-
-Enable the feature by passing `true` to the adapter.
-
-```js title="my-adapter.mjs" ins={9-11}
-export default function createIntegration() {
-  return {
-    name: '@matthewp/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@matthewp/my-adapter',
-          serverEntrypoint: '@matthewp/my-adapter/server.js',
-          adapterFeatures: {
-              functionPerRoute: true
-          } 
-        });
-      },
-    },
-  };
-}
-```
-
-Then, consume the hook [`astro:build:ssr`](/en/reference/integrations-reference/#astrobuildssr), which will give you an `entryPoints` object that maps a page route to the physical file emitted after the build.
-
-```js title="my-adapter.mjs" ins={15-19}
-export default function createIntegration() {
-  return {
-    name: '@matthewp/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@matthewp/my-adapter',
-          serverEntrypoint: '@matthewp/my-adapter/server.js',
-          adapterFeatures: {
-              functionPerRoute: true
-          } 
-        });
-      },
-
-      'astro:build:ssr': ({ entryPoints }) => {
-          for (const [route, entryFile] of entryPoints) {
-              // do something with route and entryFile
-          }
-      }  
-    },
-  };
-}
-```
-
-:::caution
-The `entryFile` is of type `URL` and represents the physical path of the file in the file system. This means that the paths change based on the OS where the code runs. 
-:::
-
-#### Serverless environments
-
-Setting `functionPerRoute: true` in a serverless environment creates a JavaScript file (handler) for each route. A handler might have different names based on your hosting platform: lambda, function, page, etc.
-
-Each of these routes is subject to a [cold start](https://azure.microsoft.com/en-us/blog/understanding-serverless-cold-start/) when the handler runs, which may cause some delay. This delay is influenced by different factors.
-
-With `functionPerRoute: false`, there is only one single handler in charge of rendering all your routes. When this handler is first triggered, you will be subject to a cold start. Then, all other routes should function without delay. However, you will lose the benefit of code splitting that `functionPerRoute: true` provides.
-
-:::note
-It's important that you understand your hosting platform, and how it works, in order to choose the appropriate `functionPerRoute` configuration for your project.
-:::
 
 ### `edgeMiddleware`
 
