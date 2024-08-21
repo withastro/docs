@@ -38,7 +38,6 @@ export async function run() {
 
 	const alreadyDocumentedErrors = fs.readdirSync('src/content/docs/en/reference/errors');
 
-	console.log('Documented errors:', alreadyDocumentedErrors);
 	const documentedErrors = [];
 
 	let astroResult = '';
