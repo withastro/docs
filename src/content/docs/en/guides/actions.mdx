@@ -43,7 +43,7 @@ Actions return an object with either `data` containing the JSON-serialized resul
 import { actions } from 'astro:actions';
 
 async () => {
-  const { data, error } = await actions.myAction({ /* ... */ });
+  const { success, data, error } = await actions.myAction({ /* ... */ });
 }
 
 </script>
@@ -91,7 +91,7 @@ Follow these steps to define an action and call it in a `script` tag in your Ast
     }
     ```
 
-4. To access your action from client code, import `actions` from `astro:actions`. This object contains all functions exported by the `server` object. Call `actions.getGreeting()` on a button press using a `<script>` tag:
+4. To access your action from client code, import `actions` from `astro:actions`. This object contains all functions exported by the `server` object. Call `actions.getGreeting()` on a button press using a `<script>` tag, and use the `success` property to check whether `data` was returned:
 
     ```astro title="src/pages/index.astro" {7, 10}
     ---
@@ -103,8 +103,8 @@ Follow these steps to define an action and call it in a `script` tag in your Ast
     import { actions } from 'astro:actions';
 
     document.querySelector('button')?.addEventListener('click', async () => {
-      const { data, error } = await actions.getGreeting({ name: "Houston" });
-      if (!error) {
+      const { success, data, error } = await actions.getGreeting({ name: "Houston" });
+      if (success) {
         alert(data);
         // Show alert pop-up with "Hello, Houston!"
       }
@@ -157,13 +157,13 @@ Actions return an object containing either `data` with the type-safe return valu
 
 ### Checking for errors
 
-It's best to check if an `error` is present before using the `data` property. This allows you to handle errors up-front, and ensure `data` is defined without an `undefined` check.
+It's best to check whether an action succeeded before using the `data` property. This allows you to handle errors up-front and ensures `data` is defined without needing an `undefined` check. Use the `success` property to handle error cases before using `data`:
 
 ```ts
-const { data, error } = await actions.example();
+const { success, data, error } = await actions.example();
 
-if (error) {
-  // handle error cases
+if (!success) {
+  // handle `error`
   return;
 }
 // use `data`
@@ -235,7 +235,7 @@ export function LikeButton({ postId }: { postId: string }) {
       }
       <button onClick={async () => {
         const { data, error } = await actions.likePost({ postId });
-        if (error.code === 'UNAUTHORIZED') setShowLogin(true);
+        if (error?.code === 'UNAUTHORIZED') setShowLogin(true);
         // Early return for unexpected errors
         else if (error) return;
         // update likes
@@ -318,7 +318,7 @@ You can then submit a form request using either client code or an [HTML form act
   form.onSubmit(async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
-    const { data, error } = await actions.newsletter(formData);
+    const { success, data, error } = await actions.newsletter(formData);
     // handle result
   })
 </script>
@@ -425,14 +425,14 @@ export const server = {
 }
 ```
 
-Retrieve this generated `productId` from the `data` property returned by `Astro.getActionResult(actions.createProduct)`. Use this value to construct an url and return a `redirect` response:
+If the action succeeded, retrieve this generated `productId` from the `data` property returned by `Astro.getActionResult(actions.createProduct)`. Use this value to construct a URL and return a redirect response with `Astro.redirect()`:
 
 ```astro title="src/pages/products/create.astro"
 ---
 import { actions } from 'astro:actions';
 
 const result = Astro.getActionResult(actions.createProduct);
-if (result?.data?.productId) {
+if (result.success) {
   return Astro.redirect(`/products/${result.data.productId}`);
 }
 ---
@@ -455,7 +455,7 @@ import { actions } from 'astro:actions';
 const result = Astro.getActionResult(actions.addToCart);
 ---
 
-{result.data?.productName && <p class="success">Added {result.data.productName} to cart</p>}
+{result.success && <p class="success">Added {result.data.productName} to cart</p>}
 
 <!--...-->
 ```
