@@ -33,7 +33,7 @@ export function makeSidebar(): StarlightSidebarConfig {
 			};
 			if (item.nested) {
 				const parentGroup = sidebar.at(-1);
-				if (parentGroup && 'items' in parentGroup) {
+				if (parentGroup && typeof parentGroup !== 'string' && 'items' in parentGroup) {
 					parentGroup.items.push(newGroup);
 				}
 			} else {
