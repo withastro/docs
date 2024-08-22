@@ -27,7 +27,7 @@ export default UIDictionary({
 	'rightSidebar.contributorGuides': '貢獻者指南',
 	'rightSidebar.editPage': '編輯此頁',
 	'rightSidebar.translatePage': '翻譯此頁',
-	'rightSidebar.github': 'GitHub 上的 Astro 文檔',
+	'rightSidebar.github': 'GitHub 上的 Astro 文件',
 	// Footer
 	'footer.privacyPolicy': '隱私權政策',
 	// `<ThemeToggleButton>` acessibility labels
@@ -126,7 +126,7 @@ export default UIDictionary({
 	'stub.description.cms': '知道更多在 Astro 使用此 CMS 的資訊？',
 	'stub.description.backend': '知道更多在 Astro 使用此後端服務的資訊？',
 	// Starlight banner
-	'starlight.title': '想要創建自己的文檔嗎？',
+	'starlight.title': '想要創建自己的文件嗎？',
 	'starlight.description': '獲取此模版即可開始。',
 	// `<StudioHeading>` component
 	'studioHeading.label': 'Studio 功能',
