@@ -96,10 +96,10 @@ export default UIDictionary({
 	// Tutorial
 	'tutorial.getReady': '準備好……',
 	// Feedback Fish widget
-	'feedback.button': '給予我們反饋',
-	'feedback.a11yLabel': '反饋表單',
+	'feedback.button': '給予我們回饋',
+	'feedback.a11yLabel': '回饋表單',
 	'feedback.formTitle': '你有哪些想法？',
-	'feedback.categoryGroupLabel': '選擇反饋類型',
+	'feedback.categoryGroupLabel': '選擇回饋類型',
 	'feedback.issue': '問題',
 	'feedback.createIssue': '建立 GitHub Issue',
 	'feedback.createIssue.description': '向我們的團隊發出問題警報的最快方法。',
@@ -109,9 +109,9 @@ export default UIDictionary({
 	'feedback.other': '其它',
 	'feedback.messageA11yLabel': '留言',
 	'feedback.placeholder': '你想讓我們知道甚麼？',
-	'feedback.submit': '提交反饋',
-	'feedback.close': '關閉反饋表單',
-	'feedback.success': '謝謝！我們收到了你的反饋。',
+	'feedback.submit': '送出回饋',
+	'feedback.close': '關閉回饋表單',
+	'feedback.success': '謝謝！我們收到了你的回饋。',
 	// Code snippet vocabulary
 	'expressiveCode.terminalWindowFallbackTitle': '終端機視窗',
 	'expressiveCode.copyButtonTooltip': '複製到剪貼簿',
