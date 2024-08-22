@@ -128,4 +128,6 @@ export default UIDictionary({
 	// Starlight banner
 	'starlight.title': '想要創建自己的文檔嗎？',
 	'starlight.description': '獲取此模版即可開始。',
+	// `<StudioHeading>` component
+	'studioHeading.label': 'Studio 功能',
 });
