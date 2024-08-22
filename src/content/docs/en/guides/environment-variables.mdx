@@ -9,38 +9,240 @@ Astro supports 2 main ways for handling environment variables: the `astro:env` m
 
 ## `astro:env`
 
-- feature tldr
-- example usage
+`astro:env` lets you configure a type-safe schema for your environment variables, and indicate whether they should be available on the server or the client.
 
-TODO: where to talk about integrations & adapters?
+To configure a schema, add the `env` option to your Astro config and define your client and server variables:
+
+```js title="astro.config.mjs" ins={4-10}
+import { defineConfig, envField } from 'astro/config'
+
+export default defineConfig({
+  env: {
+    schema: {
+      API_URL: envField.string({ context: "client", access: "public", optional: true }),
+      PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+      API_SECRET: envField.string({ context: "server", access: "secret" }),
+    }
+  }
+})
+```
+
+You can import and use your defined variables from the appropriate `/client` or `/server` module:
+
+```astro
+---
+import { API_URL } from "astro:env/client"
+import { API_SECRET_TOKEN } from "astro:env/server"
+const data = await fetch(`${API_URL}/users`, {
+  method: "GET",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${API_SECRET_TOKEN}`
+  },
+});
+---
+
+<script>
+import { API_URL } from "astro:env/client"
+fetch(`${API_URL}/ping`)
+</script>
+```
+
+**TODO: where to talk about integrations & adapters?**
 
 ### Define your schema
 
-- envField helper
-- field types + validations
+To configure a schema, add the `env.schema` option to your Astro config:
 
-### Typegen
+```js title="astro.config.mjs" ins={4-8}
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  env: {
+    schema: {
+      // ...
+    }
+  }
+})
+```
+
+You can then register variables using the `envField` helper:
+
+```js title="astro.config.mjs" ins={3,9-11}
+import {
+   defineConfig,
+   envField
+} from 'astro/config'
+
+export default defineConfig({
+  env: {
+    schema: {
+      API_URL: envField.string({ context: "client", access: "public", optional: true }),
+      PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+      API_SECRET: envField.string({ context: "server", access: "secret" }),
+    }
+  }
+})
+```
+
+Types will be generated for you when running `astro dev` or `astro build`, but you can run `astro sync` to generate types only.
 
 ### Variables types
 
-- client/public (accessible on client+server, only use not sensitive data)
-- client/secret (impossible)
-- server/public (accessible on server, can remain in build output)
-- server/secret (accessible on server, no trace anywhere, validated at runtime unless validateSecrets is used)
+There are three kinds of environment variables, determined by the combination of `context` (client or server) and `access` (secret or public) settings defined in your schema:
 
-### Usage
+- **Public client variables**: These variables end up in both your final client and server bundles, and can be accessed from both client and server through the `astro:env/client` module:
 
-- imports
-- getSecret (raw value, proxy for process.env etc BUT it's framework agnostic since provided by adapter)
+   ```js
+   import { API_URL } from "astro:env/client"
+   ```
+
+- **Public server variables**: These variables end up in your final server bundle and can be accessed on the server through the `astro:env/server` module:
+
+   ```js
+   import { PORT } from "astro:env/server"
+   ```
+
+- **Secret server variables**: These variables are not part of your final bundle and can be accessed on the server through the `astro:env/server` module:
+
+   ```js
+   import { API_SECRET } from "astro:env/server"
+   ```
+
+   Worth nothing that by default, secrets are only validated at runtime. To validate secrets on start, check [validateSecrets](#validatesecrets-option).
+
+**Note:** Secret client variables are not supported because there is no safe way to send this data to the client. Therefore, it is not possible to configure both `context: "client"` and `access: "secret"` in your schema.
+
+### Data types
+
+There are currently four data types supported:
+
+#### String
+
+```js
+envField.string({
+   // context & access
+   optional: true,
+   default: "foo",
+   max: 20,
+   min: 1,
+   length: 13,
+   url: true,
+   includes: "oo",
+   startsWith: "f",
+   endsWith: "o",
+})
+```
+
+#### Number
+
+```js
+envField.number({
+   // context & access
+   optional: true,
+   default: 15,
+   gt: 2,
+   min: 1,
+   lt: 3,
+   max: 4,
+   int: true,
+})
+```
+
+#### Boolean
+
+```js
+envField.boolean({
+   // context & access
+   optional: true,
+   default: true,
+})
+```
+
+#### Enum
+
+```js
+envField.enum({
+   // context & access
+   values: ['foo', 'bar', 'baz'],
+   optional: true,
+   default: 'baz',
+})
+```
+
+### `getSecret()`
+
+The `getSecret()` helper function can be used for several things:
+
+1. **Get the raw value of a secret defined in your schema**: if you define a variable `FOO` of type boolean, using `getSecret()` will allow you to get the value as string:
+
+   ```js
+   import {
+      FOO, // boolean
+      getSecret
+   } from 'astro:env/server'
+
+   getSecret('FOO') // string | undefined
+   ```
+
+2. **Retrieve secrets not specified in your schema**: that can be useful if you need to get a secret depending on dynamic data, eg. a database or API.
+
+   :::note
+   If you need to use environment variables, we recommend you use `getSecret()` instead of `process.env` (or equivalent) because its implementation is provided by your adapter: It means you won't need to update all your calls if you switch adapters. It defaults to `process.env` in dev and build.
+   :::
 
 ### validateSecrets option
 
-- validate on start
+By default, only public variables are validated on the server when starting the dev server or a build, and private variables are validated at runtime only. If enabled, private variables will also be checked on start. This is useful in some continuous integration (CI) pipelines to make sure all your secrets are correctly set before deploying.
+
+```js title="astro.config.mjs" ins={9}
+import { defineConfig, envField } from "astro/config"
+
+export default defineConfig({
+  experimental: {
+    env: {
+      schema: {
+        // ...
+      },
+      validateSecrets: true
+    }
+  }
+})
+```
 
 ### Limitations
 
-- can only be used within vite context
-- cloudflare
+1. `astro:env` is a virtual module which means it can only be used inside Astro context. For example, you can use it in:
+
+   - Middlewares
+   - Astro routes and endpoints
+   - Astro components
+   - Framework components
+   - Modules
+
+   You cannot use it in the following and will have to resort to `process.env`:
+
+   - `astro.config.mjs`
+   - Scripts
+
+2. [`@astrojs/cloudflare`](/en/guides/integrations-guide/cloudflare/) is a bit different than other adapters. Environment variables are scoped to the request, unlike Node.js where it's global.
+
+   That means you always need to use secrets inside the request scope:
+
+   ```js title="src/middleware.ts"
+   import { defineMiddleware } from "astro:middleware"
+   import { FOO, getSecret } from "astro:env"
+
+   console.log(FOO) // undefined
+   console.log(getSecret("FOO")) // undefined
+
+   export const onRequest = defineMiddleware((context, next) => {
+      console.log(FOO) // boolean
+      console.log(getSecret("FOO")) // string
+
+      return next()
+   })
+   ```
 
 ## Vite's built-in support
 
