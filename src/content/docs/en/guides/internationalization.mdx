@@ -245,27 +245,6 @@ export const onRequest = sequence(
 )
 ```
 
-### `fallbackType`
-
-<Since v="4.15.0" />
-
-The configuration `i18n.fallbackType` allows to change the behavior of the fallback strategy. By default, Astro will redirect to the fallback locale when a page is not found. You can change this behavior to show the content of the fallback locale without redirecting.
-
-When `i18n.fallbackType` is set to `"rewrite"`, Astro will show the content of the fallback locale without redirecting. This means that the URL will remain the same, but the content will be from the fallback locale.
-
-```js title="astro.config.mjs" ins={8}
-export default defineConfig({
-  i18n: {
-    defaultLocale: "en",
-    locales: ["es", "en", "fr"],
-    fallback: {
-      fr: "es"
-    },
-    fallbackType: "rewrite" // the value `"redirect"` is the default behavior and value
-  }
-})
-```
-
 ## `domains`
 
 <p><Since v="4.9.0" /></p>
@@ -307,13 +286,22 @@ With the above configuration:
 
 The above URLs will also be returned by the `getAbsoluteLocaleUrl()` and `getAbsoluteLocaleUrlList()` functions.
 
-## `fallback`
+## Fallback
 
-Astro's i18n routing allows you to configure a **fallback routing strategy**. When a page in one language doesn't exist (e.g. a page that is not yet translated), instead of displaying a 404 page, you can redirect a user from one locale to another on a per-language basis. This is useful when you do not yet have a page for every route, but you want to still provide some content to your visitors.
+When a page in one language doesn't exist (e.g. a page that is not yet translated), instead of displaying a 404 page, you can choose to display fallback content from another `locale` on a per-language basis. This is useful when you do not yet have a page for every route, but you want to still provide some content to your visitors.
 
-For example, the configuration below sets `es` as the fallback locale for any missing `fr` routes. This means that a user visiting `example.com/fr/my-page/` will be redirected to and shown the content for `example.com/es/my-page/` instead of being taken to a 404 page when `src/pages/fr/my-page.astro` does not exist.
+Your fallback strategy consists of two parts: choosing which languages should fallback to which other languages ([`i18n.fallback`](/en/reference/configuration-reference/#i18nfallback)) and choosing whether to perform a [redirect](https://docs.astro.build/en/guides/routing/#redirects) or a [rewrite](https://docs.astro.build/en/guides/routing/#rewrites) to show the fallback content ([`i18n.routing.fallbackType`](/en/reference/configuration-reference/#i18nroutingfallbacktype) added in Astro v4.15.0).
 
-```js title="astro.config.mjs" ins={6-8} 
+For example, when you configure `i18n.fallback: { fr: "es" }`, Astro will ensure that a page is built in `src/pages/fr/` for every page that exists in `src/pages/es/`.
+
+If any page does not already exist, then a page will be created depending on your `fallbackType`:
+
+- With a redirect to the corresponding `es` route (default behavior).
+- With the content of the `/es/` page (`i18n.routing.fallbackType: "rewrite"`).
+
+For example, the configuration below sets `es` as the fallback locale for any missing `fr` routes. This means that a user visiting `example.com/fr/my-page/` will be shown the content for `example.com/es/my-page/` (without being redirected) instead of being taken to a 404 page when `src/pages/fr/my-page.astro` does not exist.
+
+```js title="astro.config.mjs" ins={6-8,10} 
 import { defineConfig } from "astro/config"
 export default defineConfig({
   i18n: {
@@ -321,12 +309,13 @@ export default defineConfig({
     locales: ["es", "en", "fr"],
     fallback: {
       fr: "es"  
+    },
+    routing: {
+      fallbackType: "rewrite"
     }
   }
 })
 ```
-
-Astro will ensure that a page is built in `src/pages/fr` for every page that exists in `src/pages/es/`. If the page does not already exist, then a page with a redirect to the corresponding `es` route will be created.
 
 ## Custom locale paths
 
