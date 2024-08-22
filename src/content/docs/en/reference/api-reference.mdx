@@ -46,20 +46,25 @@ Read more in the [Vite documentation](https://vitejs.dev/guide/features.html#glo
 :::
 #### Markdown Files
 
-Markdown files have the following interface:
+Markdown files loaded with `Astro.glob()` return the following `MarkdownInstance` interface:
 
 ```ts
 export interface MarkdownInstance<T extends Record<string, any>> {
   /* Any data specified in this file's YAML frontmatter */
 	frontmatter: T;
-  /* The file path of this file */
+  /* The absolute file path of this file */
 	file: string;
   /* The rendered path of this file */
 	url: string | undefined;
   /* Astro Component that renders the contents of this file */
-	Content: AstroComponent;
+	Content: AstroComponentFactory;
+  /** (Markdown only) Raw Markdown file content, excluding layout HTML and YAML frontmatter */
+	rawContent(): string;
+  /** (Markdown only) Markdown file compiled to HTML, excluding layout HTML */
+	compiledContent(): string;
   /* Function that returns an array of the h1...h6 elements in this file */
 	getHeadings(): Promise<{ depth: number; slug: string; text: string }[]>;
+	default: AstroComponentFactory;
 }
 ```
 
@@ -89,7 +94,7 @@ export interface AstroInstance {
   file: string;
   /* The URL for this file (if it is in the pages directory) */
 	url: string | undefined;
-	default: AstroComponent;
+	default: AstroComponentFactory;
 }
 ```
 
@@ -160,6 +165,11 @@ See also: [`params`](#params)
 
 ### `Astro.request`
 
+<p>
+
+**Type:** `Request`
+</p>
+
 `Astro.request` is a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request. 
 
 ```astro
@@ -175,6 +185,10 @@ With the default `output: 'static'` option, `Astro.request.url` does not contain
 
 ### `Astro.response`
 
+<p>
+
+**Type:** `ResponseInit & { readonly headers: Headers }`
+</p>
 
 `Astro.response` is a standard `ResponseInit` object. It has the following structure. 
 
@@ -204,14 +218,19 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 
 ### `Astro.cookies`
 
-<p><Since v="1.4.0" /></p>
+<p>
+
+**Type:** `AstroCookies`<br />
+<Since v="1.4.0" />
+</p>
 
 `Astro.cookies` contains utilities for reading and manipulating cookies in [server-side rendering](/en/guides/server-side-rendering/) mode.
 
 ##### `get`
 
 <p>
-**Type:** `(key: string, options?: CookieGetOptions) => AstroCookie`
+
+**Type:** <code>(key: string, options?: <a href="#astrocookiegetoptions">AstroCookieGetOptions</a>) => <a href="#astrocookie">AstroCookie</a> | undefined</code>
 </p>
 
 Gets the cookie as an [`AstroCookie`](#astrocookie) object, which contains the `value` and utility functions for converting the cookie to non-string types.
@@ -219,7 +238,8 @@ Gets the cookie as an [`AstroCookie`](#astrocookie) object, which contains the `
 ##### `has`
 
 <p>
-**Type:** `(key: string) => boolean`
+
+**Type:** <code>(key: string, options?: <a href="#astrocookiegetoptions">AstroCookieGetOptions</a>) => boolean</code>
 </p>
 
 Whether this cookie exists. If the cookie has been set via `Astro.cookies.set()` this will return true, otherwise it will check cookies in the `Astro.request`.
@@ -227,7 +247,8 @@ Whether this cookie exists. If the cookie has been set via `Astro.cookies.set()`
 ##### `set`
 
 <p>
-**Type:** `(key: string, value: string | number | boolean | object, options?: CookieSetOptions) => void`
+
+**Type:** <code>(key: string, value: string | object, options?: <a href="#astrocookiesetoptions">AstroCookieSetOptions</a>) => void</code>
 </p>
 
 Sets the cookie `key` to the given value. This will attempt to convert the cookie value to a string. Options provide ways to set [cookie features](https://www.npmjs.com/package/cookie#options-1), such as the `maxAge` or `httpOnly`.
@@ -235,16 +256,27 @@ Sets the cookie `key` to the given value. This will attempt to convert the cooki
 ##### `delete`
 
 <p>
-**Type:** `(key: string, options?: CookieDeleteOptions) => void`
+
+**Type:** `(key: string, options?: AstroCookieDeleteOptions) => void`
 </p>
 
 Invalidates a cookie by setting the expiration date in the past (0 in Unix time).
 
 Once a cookie is "deleted" (expired), `Astro.cookies.has()` will return `false` and `Astro.cookies.get()` will return an [`AstroCookie`](#astrocookie) with a `value` of `undefined`. Options available when deleting a cookie are: `domain`, `path`, `httpOnly`, `sameSite`, and `secure`.
 
+##### `merge`
+
+<p>
+
+**Type:** `(cookies: AstroCookies) => void`
+</p>
+
+Merges a new `AstroCookies` instance into the current instance. Any new cookies will be added to the current instance and any cookies with the same name will overwrite existing values.
+
 ##### `headers`
 
 <p>
+
 **Type:** `() => Iterator<string>`
 </p>
 
@@ -257,7 +289,8 @@ Getting a cookie via `Astro.cookies.get()` returns a `AstroCookie` type. It has 
 ##### `value`
 
 <p>
-**Type:** `string | undefined`
+
+**Type:** `string`
 </p>
 
 The raw string value of the cookie.
@@ -265,6 +298,7 @@ The raw string value of the cookie.
 ##### `json`
 
 <p>
+
 **Type:** `() => Record<string, any>`
 </p>
 
@@ -273,6 +307,7 @@ Parses the cookie value via `JSON.parse()`, returning an object. Throws if the c
 ##### `number`
 
 <p>
+
 **Type:** `() => number`
 </p>
 
@@ -281,16 +316,17 @@ Parses the cookie value as a Number. Returns NaN if not a valid number.
 ##### `boolean`
 
 <p>
+
 **Type:** `() => boolean`
 </p>
 
 Converts the cookie value to a boolean.
 
-#### `CookieGetOptions`
+#### `AstroCookieGetOptions`
 
 <p><Since v="4.1.0"/></p>
 
-Getting a cookie also allows specifying options via the `CookieGetOptions` interface:
+Getting a cookie also allows specifying options via the `AstroCookieGetOptions` interface:
 
 ##### `decode`
 
@@ -300,31 +336,34 @@ Getting a cookie also allows specifying options via the `CookieGetOptions` inter
 
 Allows customization of how a cookie is deserialized into a value.
 
-#### `CookieSetOptions`
+#### `AstroCookieSetOptions`
 
 <p><Since v="4.1.0"/></p>
 
-Setting a cookie via `Astro.cookies.set()` allows passing in a `CookieSetOptions` to customize how the cookie is serialized.
+Setting a cookie via `Astro.cookies.set()` allows passing in a `AstroCookieSetOptions` to customize how the cookie is serialized.
 
 ##### `domain`
 
 <p>
+
 **Type:** `string`
 </p>
 
  Specifies the domain. If no domain is set, most clients will interpret to apply to the current domain.
 
- ##### `expires`
+##### `expires`
 
- <p>
- **Type:** `Date`
- </p>
+<p>
+
+**Type:** `Date`
+</p>
 
 Specifies the date on which the cookie will expire.
 
 ##### `httpOnly`
 
 <p>
+
 **Type:** `boolean`
 </p>
 
@@ -333,6 +372,7 @@ If true, the cookie will not be accessible client-side.
 ##### `maxAge`
 
 <p>
+
 **Type:** `number`
 </p>
 
@@ -341,6 +381,7 @@ Specifies a number, in seconds, for which the cookie is valid.
 ##### `path`
 
 <p>
+
 **Type:** `string`
 </p>
 
@@ -349,6 +390,7 @@ Specifies a subpath of the domain in which the cookie is applied.
 ##### `sameSite`
 
 <p>
+
 **Type:** `boolean | 'lax' | 'none' | 'strict'`
 </p>
 
@@ -357,6 +399,7 @@ Specifies the value of the [SameSite](https://datatracker.ietf.org/doc/html/draf
 ##### `secure`
 
 <p>
+
 **Type:** `boolean`
 </p>
 
@@ -365,6 +408,7 @@ If true, the cookie is only set on https sites.
 ##### `encode`
 
 <p>
+
 **Type:** `(value: string) => string`
 </p>
 
@@ -372,7 +416,10 @@ Allows customizing how the cookie is serialized.
 
 ### `Astro.redirect()`
 
+<p>
+
 **Type:** `(path: string, status?: number) => Response`
+</p>
 
 Allows you to redirect to another page, and optionally provide an [HTTP response status code](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages) as a second parameter.
 
@@ -397,21 +444,59 @@ if (!isLoggedIn(cookie)) {
 ---
 ```
 
-### `Astro.canonicalURL`
+### `Astro.rewrite()`
 
-:::caution[Deprecated]
-Use [`Astro.url`](#astrourl) to construct your own canonical URL. 
-:::
+<p>
 
-The [canonical URL][canonical] of the current page.
+**Type:** `(rewritePayload: string | URL | Request) => Promise<Response>`<br />
+<Since v="4.13.0" />
+</p>
+
+Allows you to serve content from a different URL or path without redirecting the browser to a new page. 
+
+The method accepts either a string, a `URL`, or a `Request` for the location of the path.
+
+Use a string to provide an explicit path:
+
+```astro title="src/pages/index.astro"
+---
+return Astro.rewrite("/login")
+---
+```
+
+Use a `URL` type when you need to construct the URL path for the rewrite. The following example renders a page's parent path by creating a new URL from the relative  `"../"` path:
+
+```astro title="src/pages/blog/index.astro"
+---
+return Astro.rewrite(new URL("../", Astro.url))
+---
+```
+
+Use a `Request` type for complete control of the `Request` sent to the server for the new path. The following example sends a request to render the parent page while also providing headers:
+
+```astro title="src/pages/blog/index.astro"
+---
+return Astro.rewrite(new Request(new URL("../", Astro.url), {
+  headers: {
+    "x-custom-header": JSON.stringify(Astro.locals.someValue)
+  }
+}))
+---
+```
 
 ### `Astro.url`
 
-<p><Since v="1.0.0-rc" /></p>
+<p>
+
+**Type:** `URL`<br />
+<Since v="1.0.0-rc" />
+</p>
 
 A [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) object constructed from the current `Astro.request.url` URL string value. Useful for interacting with individual properties of the request URL, like pathname and origin. 
 
-Equivalent to doing `new URL(Astro.request.url)`. 
+Equivalent to doing `new URL(Astro.request.url)`.
+
+`Astro.url` will be `localhost` in dev mode if [site](/en/reference/configuration-reference/#site) is not configured for static sites, and for on-demand rendered sites using `server` or `hybrid` output.
 
 ```astro
 <h1>The current URL is: {Astro.url}</h1>
@@ -434,7 +519,11 @@ const socialImageURL = new URL('/images/preview.png', Astro.url);
 
 ### `Astro.clientAddress`
 
-<p><Since v="1.0.0-rc" /></p>
+<p>
+
+**Type:** `string`<br />
+<Since v="1.0.0-rc" />
+</p>
 
 Specifies the [IP address](https://en.wikipedia.org/wiki/IP_address) of the request. This property is only available when building for SSR (server-side rendering) and should not be used for static sites.
 
@@ -448,11 +537,20 @@ const ip = Astro.clientAddress;
 
 ### `Astro.site`
 
+<p>
+
+**Type:** `URL | undefined`
+</p>
+
 `Astro.site` returns a `URL` made from `site` in your Astro config. If `site` in your Astro config isn't defined, `Astro.site` won't be defined.
 
 ### `Astro.generator`
 
-<p><Since v="1.0.0" /></p>
+<p>
+
+**Type:** `string`<br />
+<Since v="1.0.0" />
+</p>
 
 `Astro.generator` is a convenient way to add a [`<meta name="generator">`](https://html.spec.whatwg.org/multipage/semantics.html#meta-generator) tag with your current version of Astro. It follows the format `"Astro v1.x.x"`.
 
@@ -475,7 +573,10 @@ const ip = Astro.clientAddress;
 
 #### `Astro.slots.has()`
 
+<p>
+
 **Type:** `(slotName: string) => boolean`
+</p>
 
 You can check whether content for a specific slot name exists with `Astro.slots.has()`. This can be useful when you want to wrap slot contents, but only want to render the wrapper elements when the slot is being used.
 
@@ -494,7 +595,10 @@ You can check whether content for a specific slot name exists with `Astro.slots.
 
 #### `Astro.slots.render()`
 
+<p>
+
 **Type:** `(slotName: string, args?: any[]) => Promise<string>`
+</p>
 
 You can asynchronously render the contents of a slot to a string of HTML using `Astro.slots.render()`.
 
@@ -600,6 +704,11 @@ And would render HTML like this:
 
 ### `Astro.locals`
 
+<p>
+
+<Since v="2.4.0" />
+</p>
+
 `Astro.locals` is an object containing any values from the [`context.locals`](#contextlocals) object from a middleware. Use this to access data returned by middleware in your `.astro` files.
 
 ```astro title="src/pages/Orders.astro"
@@ -617,6 +726,12 @@ const orders = Array.from(Astro.locals.orders.entries());
 
 ### `Astro.preferredLocale`
 
+<p>
+
+**Type:** `string | undefined`<br />
+<Since v="3.5.0" />
+</p>
+
 `Astro.preferredLocale` is a computed value that represents the preferred locale of the user. 
 
 It is computed by checking the configured locales in your `i18n.locales` array and locales supported by the users's browser via the header `Accept-Language`. This value is `undefined` if no such match exists.
@@ -624,6 +739,12 @@ It is computed by checking the configured locales in your `i18n.locales` array a
 This property is only available when building for SSR (server-side rendering) and should not be used for static sites.
 
 ### `Astro.preferredLocaleList`
+
+<p>
+
+**Type:** `string[] | undefined`<br />
+<Since v="3.5.0" />
+</p>
 
 `Astro.preferredLocaleList` represents the array of all locales that are both requested by the browser and supported by your website. This produces a list of all compatible languages between your site and your visitor. 
 
@@ -634,6 +755,12 @@ If the browser does not specify any preferred languages, then this value will be
 This property is only available when building for SSR (server-side rendering) and should not be used for static sites.
 
 ### `Astro.currentLocale`
+
+<p>
+
+**Type:** `string | undefined`<br />
+<Since v="3.5.6" />
+</p>
 
 The locale computed from the current URL, using the syntax specified in your `locales` configuration. If the URL does not contain a `/[locale]/` prefix, then the value will default to `i18n.defaultLocale`.
 
@@ -679,6 +806,11 @@ See also: [`params`](#params)
 
 ### `context.props`
 
+<p>
+
+<Since v="1.5.0" />
+</p>
+
 `context.props` is an object containing any `props` passed from `getStaticPaths()`. Because `getStaticPaths()` is not used when building for SSR (server-side rendering), `context.props` is only available in static builds.
 
 ```ts title="src/pages/posts/[id].json.ts"
@@ -703,6 +835,11 @@ See also: [Data Passing with `props`](#data-passing-with-props)
 
 ### `context.request`
 
+<p>
+
+**Type:** `Request`
+</p>
+
 A standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request.
 
 ```ts
@@ -717,17 +854,34 @@ See also: [Astro.request](#astrorequest)
 
 ### `context.cookies`
 
+<p>
+
+**Type:** `AstroCookies`
+</p>
+
 `context.cookies` contains utilities for reading and manipulating cookies.
 
 See also: [Astro.cookies](#astrocookies)
 
 ### `context.url`
 
+<p>
+
+**Type:** `URL`<br />
+<Since v="1.5.0" />
+</p>
+
 A [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) object constructed from the current `context.request.url` URL string value.
 
 See also: [Astro.url](#astrourl)
 
 ### `context.clientAddress`
+
+<p>
+
+**Type:** `string`<br />
+<Since v="1.5.0" />
+</p>
 
 Specifies the [IP address](https://en.wikipedia.org/wiki/IP_address) of the request. This property is only available when building for SSR (server-side rendering) and should not be used for static sites.
 
@@ -744,11 +898,23 @@ See also: [Astro.clientAddress](#astroclientaddress)
 
 ### `context.site`
 
+<p>
+
+**Type:** `URL | undefined`<br />
+<Since v="1.5.0" />
+</p>
+
 `context.site` returns a `URL` made from `site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
 
 See also: [Astro.site](#astrosite)
 
 ### `context.generator`
+
+<p>
+
+**Type:** `string`<br />
+<Since v="1.5.0" />
+</p>
 
 `context.generator` is a convenient way to indicate the version of Astro your project is running. It follows the format `"Astro v1.x.x"`.
 
@@ -765,6 +931,12 @@ See also: [Astro.generator](#astrogenerator)
 
 ### `context.redirect()`
 
+<p>
+
+**Type:** `(path: string, status?: number) => Response`<br />
+<Since v="1.5.0" />
+</p>
+
 `context.redirect()` returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object that allows you to redirect to another page. This function is only available when building for SSR (server-side rendering) and should not be used for static sites.
 
 ```ts
@@ -777,7 +949,57 @@ export function GET({ redirect }: APIContext) {
 
 See also: [`Astro.redirect()`](#astroredirect)
 
+### `context.rewrite()`
+
+<p>
+
+**Type:** `(rewritePayload: string | URL | Request) => Promise<Response>`<br />
+<Since v="4.13.0" />
+</p>
+
+Allows you to serve content from a different URL or path without redirecting the browser to a new page. 
+
+The method accepts either a string, a `URL`, or a `Request` for the location of the path.
+
+Use a string to provide an explicit path:
+
+```ts
+import type { APIContext } from 'astro';
+
+export function GET({ rewrite }: APIContext) {
+  return rewrite('/login');
+}
+```
+
+Use a `URL` type when you need to construct the URL path for the rewrite. The following example renders a page's parent path by creating a new URL from the relative  `"../"` path:
+
+```ts
+import type { APIContext } from 'astro';
+
+export function GET({ rewrite }: APIContext) {
+  return rewrite(new URL("../", Astro.url));
+}
+```
+
+Use a `Request` type for complete control of the `Request` sent to the server for the new path. The following example sends a request to render the parent page while also providing headers:
+
+```ts
+import type { APIContext } from 'astro';
+
+export function GET({ rewrite }: APIContext) {
+  return rewrite(new Request(new URL("../", Astro.url), {
+   headers: {
+     "x-custom-header": JSON.stringify(Astro.locals.someValue)
+   }
+ }));
+}
+```
+
+See also: [`Astro.rewrite()`](#astrorewrite)
+
 ### `context.locals`
+
+<p><Since v="2.4.0" /></p>
 
 `context.locals` is an object used to store and access arbitrary information during the lifecycle of a request.
 
@@ -807,6 +1029,8 @@ export function GET({ locals }: APIContext) {
 See also: [`Astro.locals`](#astrolocals)
 
 ## `getStaticPaths()`
+
+**Type:** `(options: GetStaticPathsOptions) => Promise<GetStaticPathsResult> | GetStaticPathsResult`
 
 If a page uses dynamic params in the filename, that component will need to export a `getStaticPaths()` function.
 
@@ -937,7 +1161,7 @@ const { page } = Astro.props;
 - `/posts/[...page].astro` would generate the URLs `/posts`, `/posts/2`, `/posts/3`, etc.
 
 `paginate()` has the following arguments:
-- `pageSize` - The number of items shown per page
+- `pageSize` - The number of items shown per page (`10` by default)
 - `params` - Send additional parameters for creating dynamic routes
 - `props` - Send additional props to be available on each page
 
@@ -948,6 +1172,7 @@ Pagination will pass a `page` prop to every rendered page that represents a sing
 ##### `page.data`
 
 <p>
+
 **Type:** `Array`
 </p>
 
@@ -956,6 +1181,7 @@ Array of data returned from `data()` for the current page.
 ##### `page.start`
 
 <p>
+
 **Type:** `number`
 </p>
 
@@ -964,6 +1190,7 @@ Index of first item on current page, starting at `0`. (e.g. if `pageSize: 25`, t
 ##### `page.end`
 
 <p>
+
 **Type:** `number`
 </p>
 
@@ -972,7 +1199,9 @@ Index of last item on current page.
 ##### `page.size`
 
 <p>
-**Type:** `number`
+
+**Type:** `number`<br />
+**Default:** `10`
 </p>
 
 How many items per-page.
@@ -980,6 +1209,7 @@ How many items per-page.
 ##### `page.total`
 
 <p>
+
 **Type:** `number`
 </p>
 
@@ -988,6 +1218,7 @@ The total number of items across all pages.
 ##### `page.currentPage`
 
 <p>
+
 **Type:** `number`
 </p>
 
@@ -996,6 +1227,7 @@ The current page number, starting with `1`.
 ##### `page.lastPage`
 
 <p>
+
 **Type:** `number`
 </p>
 
@@ -1004,6 +1236,7 @@ The total number of pages.
 ##### `page.url.current`
 
 <p>
+
 **Type:** `string`
 </p>
 
@@ -1012,6 +1245,7 @@ Get the URL of the current page (useful for canonical URLs).
 ##### `page.url.prev`
 
 <p>
+
 **Type:** `string | undefined`
 </p>
 
@@ -1020,6 +1254,7 @@ Get the URL of the previous page (will be `undefined` if on page 1). If a value 
 ##### `page.url.next`
 
 <p>
+
 **Type:** `string | undefined`
 </p>
 
@@ -1028,7 +1263,9 @@ Get the URL of the next page (will be `undefined` if no more pages). If a value 
 ##### `page.url.first`
 
 <p>
-**Type:** `string | undefined`
+
+**Type:** `string | undefined`<br />
+<Since v="4.12.0" />
 </p>
 
 Get the URL of the first page (will be `undefined` if on page 1). If a value is set for [`base`](/en/reference/configuration-reference/#base), prepend the base path to the URL.
@@ -1036,7 +1273,9 @@ Get the URL of the first page (will be `undefined` if on page 1). If a value is 
 ##### `page.url.last`
 
 <p>
-**Type:** `string | undefined`
+
+**Type:** `string | undefined`<br />
+<Since v="4.12.0" />
 </p>
 
 Get the URL of the last page (will be `undefined` if no more pages). If a value is set for [`base`](/en/reference/configuration-reference/#base), prepend the base path to the URL.
@@ -1057,6 +1296,11 @@ export default function () {
 
 ### `getImage()`
 
+<p>
+
+**Type:** `(options: UnresolvedImageTransform) => Promise<GetImageResult>`
+</p>
+
 :::caution
 `getImage()` relies on server-only APIs and breaks the build when used on the client.
 :::
@@ -1076,13 +1320,24 @@ const optimizedBackground = await getImage({src: myBackground, format: 'avif'})
 <div style={`background-image: url(${optimizedBackground.src});`}></div>
 ```
 
-It returns an object with the following properties:
+It returns an object with the following type:
 
-```js
-{
-  options: {...} // Original parameters passed
-  src: "https//..." // Path to the generated image
-  attributes: {...} // Additional HTML attributes needed to render the image (width, height, style, etc..)
+```ts
+type GetImageResult = {
+  /* Additional HTML attributes needed to render the image (width, height, style, etc..) */
+  attributes: Record<string, any>;
+  /* Validated parameters passed */
+  options: ImageTransform;
+  /* Original parameters passed */
+  rawOptions: ImageTransform;
+  /* Path to the generated image */
+  src: string;
+  srcSet: {
+    /* Generated values for srcset, every entry has a url and a size descriptor */
+    values: SrcSetValue[];
+    /* A value ready to use in`srcset` attribute */
+    attribute: string;
+  };
 }
 ```
 
@@ -1093,6 +1348,11 @@ It returns an object with the following properties:
 Content collections offer APIs to configure and query your Markdown or MDX documents in `src/content/`. For features and usage examples, [see our content collections guide](/en/guides/content-collections/).
 
 ### `defineCollection()`
+
+<p>
+
+**Type:** `(input: CollectionConfig) => CollectionConfig`
+</p>
 
 `defineCollection()` is a utility to configure a collection in a `src/content/config.*` file.
 
@@ -1116,10 +1376,12 @@ This function accepts the following properties:
 
 #### `type`
 
-<p><Since v="2.5.0" /></p>
+<p>
 
-**Type:** `'content' | 'data'`  
-**Default:** `'content'`
+**Type:** `'content' | 'data'`<br />
+**Default:** `'content'`<br />
+<Since v="2.5.0" />
+</p>
 
 `type` is a string that defines the type of entries stored within a collection:
 
@@ -1132,7 +1394,10 @@ This means collections **cannot** store a mix of content and data formats. You m
 
 #### `schema`
 
-**Type:** `TSchema extends ZodType`
+<p>
+
+**Type:** <code>ZodType | (context: <a href="#schemacontext">SchemaContext</a>) => ZodType</code>
+</p>
 
 `schema` is an optional Zod object to configure the type and shape of document frontmatter for a collection. Each value must use [a Zod validator](https://github.com/colinhacks/zod).
 
@@ -1140,7 +1405,11 @@ This means collections **cannot** store a mix of content and data formats. You m
 
 ### `reference()`
 
-**Type:** `(collection: string) => ZodEffects<ZodString, { collection, id: string } | { collection, slug: string }>`
+<p>
+
+**Type:** `(collection: string) => ZodEffects<ZodString, { collection, id: string } | { collection, slug: string }>`<br />
+<Since v="2.5.0" />
+</p>
 
 The `reference()` function is used in the content config to define a relationship, or "reference," from one collection to another. This accepts a collection name and validates the entry identifier(s) specified in your content frontmatter or data file.
 
@@ -1171,7 +1440,10 @@ export const collections = { blog, authors };
 
 ### `getCollection()`
 
+<p>
+
 **Type:** `(collection: string, filter?: (entry: CollectionEntry<collection>) => boolean) => CollectionEntry<collection>[]`
+</p>
 
 `getCollection()` is a function that retrieves a list of content collection entries by collection name.
 
@@ -1198,7 +1470,6 @@ const draftBlogPosts = await getCollection('blog', ({ data }) => {
 <p><Since v="2.5.0" /></p>
 
 **Types:**
-
 - `(collection: string, contentSlugOrDataId: string) => CollectionEntry<collection>`
 - `({ collection: string, id: string }) => CollectionEntry<collection>`
 - `({ collection: string, slug: string }) => CollectionEntry<collection>`
@@ -1227,7 +1498,6 @@ See the `Content Collections` guide for examples of [querying collection entries
 <p><Since v="2.5.0" /></p>
 
 **Types:**
-
 - `(Array<{ collection: string, id: string }>) => Array<CollectionEntry<collection>>`
 - `(Array<{ collection: string, slug: string }>) => Array<CollectionEntry<collection>>`
 
@@ -1246,7 +1516,10 @@ const enterpriseRelatedPosts = await getEntries(enterprisePost.data.relatedPosts
 
 ### `getEntryBySlug()`
 
-**Type:** `(collection: string, slug: string) => CollectionEntry<collection>`
+<p>
+
+**Type:** `(collection: string, slug: string) => Promise<CollectionEntry<collection>>`
+</p>
 
 :::caution[Deprecated]
 Use the [`getEntry()` function](#getentry) to query content entries. This accepts the same arguments as `getEntryBySlug()`, and supports querying by `id` for JSON or YAML collections.
@@ -1264,6 +1537,29 @@ const enterprise = await getEntryBySlug('blog', 'enterprise');
 ```
 
 [See the `Content Collection` guide](/en/guides/content-collections/#querying-collections) for example usage.
+
+### `getDataEntryById()`
+
+<p>
+
+**Type:** `(collection: string, id: string) => Promise<CollectionEntry<collection>>`<br />
+<Since v="2.5.0" />
+</p>
+
+:::caution[Deprecated]
+Use the [`getEntry()` function](#getentry) to query data entries. This accepts the same arguments as `getDataEntryById()`, and supports querying by `slug` for content authoring formats like Markdown.
+:::
+
+`getDataEntryById()` is a function that retrieves a single collection entry by collection name and entry `id`.
+
+
+```astro
+---
+import { getDataEntryById } from 'astro:content';
+
+const picardProfile = await getDataEntryById('captains', 'picard');
+---
+```
 
 ### Collection Entry Type
 
@@ -1340,6 +1636,8 @@ The `astro:content` module also exports the following types for use in your Astr
 
 #### `CollectionKey`
 
+<p><Since v="3.1.0" /></p>
+
 A string union of all collection names defined in your `src/content/config.*` file. This type can be useful when defining a generic function that accepts any collection name.
 
 ```ts
@@ -1352,9 +1650,13 @@ async function getCollection(collection: CollectionKey) {
 
 #### `ContentCollectionKey`
 
+<p><Since v="3.1.0" /></p>
+
 A string union of all the names of `type: 'content'` collections defined in your `src/content/config.*` file.
 
 #### `DataCollectionKey`
+
+<p><Since v="3.1.0" /></p>
 
 A string union of all the names of `type: 'data'` collection defined in your `src/content/config.*` file.
 
@@ -1393,7 +1695,9 @@ Middleware allows you to intercept requests and responses and inject behaviors d
 
 ### `onRequest()`
 
-A required exported function from `src/middleware.js` that will be called before rendering every page or API route. It accepts two optional arguments: [context](#contextlocals) and [next()](#next). `onRequest()` must return a `Response`: either directly, or by calling `next()`.
+**Type:** `(context: APIContext, next: MiddlewareNext) => Promise<Response> | Response | Promise<void> | void`
+
+A required exported function from `src/middleware.js` that will be called before rendering every page or API route. It receives two arguments: [context](#context) and [next()](#next). `onRequest()` must return a `Response`: either directly, or by calling `next()`.
 
 ```js title="src/middleware.js"
 export function onRequest (context, next) {
@@ -1404,14 +1708,34 @@ export function onRequest (context, next) {
 };
 ```
 
-### `next()`
+#### `context`
 
-A function that intercepts (reads and modifies) the `Response` of a `Request` or calls the "next" middleware in the chain and returns a `Response`. For example, this function could modify the HTML body of a response.
+<p>
 
-This is an optional argument of `onRequest()`, and may provide the required `Response` returned by the middleware.
+**Type:** `APIContext`
+</p>
 
+The first argument of `onRequest()` is a context object. It mirrors many of the `Astro` global properties.
+
+<ReadMore>See [Endpoint contexts](#endpoint-context) for more information about the context object.</ReadMore>
+
+#### `next()`
+
+<p>
+
+**Type:** `(rewritePayload?: string | URL | Request) => Promise<Response>`<br />
+</p>
+
+The second argument of `onRequest()` is a function that calls all the subsequent middleware in the chain and returns a `Response`. For example, other middleware could modify the HTML body of a response and awaiting the result of `next()` would allow your middleware to respond to those changes.
+
+Since Astro v4.13.0, `next()` accepts an optional URL path parameter in the form of a string, `URL`, or `Request` to [rewrite](/en/guides/routing/#rewrites) the current request without retriggering a new rendering phase.
 
 ### `sequence()`
+
+<p>
+
+**Type:** `(...handlers: MiddlewareHandler[]) => MiddlewareHandler`
+</p>
 
 A function that accepts middleware functions as arguments, and will execute them in the order in which they are passed. 
 
@@ -1427,11 +1751,23 @@ export const onRequest = sequence(validation, auth, greeting);
 
 ### `createContext()`
 
+<p>
+
+**Type:** `(context: CreateContext) => APIContext`<br />
+<Since v="2.8.0" />
+</p>
+
 A low-level API to create an [`APIContext`](#endpoint-context)to be passed to an Astro middleware `onRequest()` function.
 
 This function can be used by integrations/adapters to programmatically execute the Astro middleware.
 
 ### `trySerializeLocals()`
+
+<p>
+
+**Type:** `(value: unknown) => string`<br />
+<Since v="2.8.0" />
+</p>
 
 A low-level API that takes in any value and tries to return a serialized version (a string) of it. If the value cannot be serialized, the function will throw a runtime error.
 
@@ -1454,7 +1790,10 @@ For features and usage examples, [see our i18n routing guide](/en/guides/interna
 
 ### `getRelativeLocaleUrl()` 
 
-`getRelativeLocaleUrl(locale: string, path?: string,  options?: GetLocaleOptions): string`
+<p>
+
+**Type:** `(locale: string, path?: string,  options?: GetLocaleOptions) => string`
+</p>
 
 Use this function to retrieve a relative path for a locale. If the locale doesn't exist, Astro throws an error. 
 
@@ -1484,7 +1823,10 @@ getRelativeLocaleUrl("fr_CA", "getting-started", {
 
 ### `getAbsoluteLocaleUrl()` 
 
-`getAbsoluteLocaleUrl(locale: string, path: string, options?: GetLocaleOptions): string` 
+<p>
+
+**Type:** `(locale: string, path: string, options?: GetLocaleOptions) => string`
+</p>
 
 Use this function to retrieve an absolute path for a locale when [`site`] has a value. If [`site`] isn't configured, the function returns a relative URL. If the locale doesn't exist, Astro throws an error.
 
@@ -1517,21 +1859,29 @@ getAbsoluteLocaleUrl("fr_CA", "getting-started", {
  
 ### `getRelativeLocaleUrlList()` 
 
-`getRelativeLocaleUrlList(path?: string, options?: GetLocaleOptions): string[]`
+<p>
 
+**Type:** `(path?: string, options?: GetLocaleOptions) => string[]`
+</p>
 
 Use this like [`getRelativeLocaleUrl`](#getrelativelocaleurl) to return a list of relative paths for all the locales.
 
 
 ### `getAbsoluteLocaleUrlList()` 
 
-`getAbsoluteLocaleUrlList(path?: string, options?: GetLocaleOptions): string[]`
+<p>
+
+**Type:** `(path?: string, options?: GetLocaleOptions) => string[]`
+</p>
 
 Use this like [`getAbsoluteLocaleUrl`](/en/guides/internationalization/#custom-locale-paths) to return a list of absolute paths for all the locales.
 
 ### `getPathByLocale()` 
 
-`getPathByLocale(locale: string): string`
+<p>
+
+**Type:** `(locale: string) => string`
+</p>
 
 A function that returns the `path` associated to one or more `codes` when [custom locale paths](/en/guides/internationalization/#custom-locale-paths) are configured.
 
@@ -1553,9 +1903,12 @@ getPathByLocale("fr-CA"); // returns "french"
 ---
 ```
 
-### `getLocaleByPath`
+### `getLocaleByPath()`
 
- `getLocaleByPath(path: string): string`
+<p>
+
+**Type:** `(path: string) => string`
+</p>
 
 A function that returns the `code` associated to a locale `path`.
 
@@ -1578,9 +1931,11 @@ getLocaleByPath("french"); // returns "fr" because that's the first code configu
 
 ### `redirectToDefaultLocale()`
 
-`redirectToDefaultLocale(context: APIContext, statusCode?: ValidRedirectStatus): Promise<Response>`
+<p>
 
-<p><Since v="4.6.0" /></p>
+**Type:** `(context: APIContext, statusCode?: ValidRedirectStatus) => Promise<Response>`<br />
+<Since v="4.6.0" />
+</p>
 
 :::note
 Available only when `i18n.routing` is set to `"manual"`
@@ -1603,9 +1958,11 @@ export const onRequest = defineMiddleware((context, next) => {
 
 ### `redirectToFallback()`
 
-`redirectToFallback(context: APIContext, response: Response): Promise<Response>`
+<p>
 
-<p><Since v="4.6.0" /></p>
+**Type:** `(context: APIContext, response: Response) => Promise<Response>`<br />
+<Since v="4.6.0" />
+</p>
 
 :::note
 Available only when `i18n.routing` is set to `"manual"`
@@ -1628,9 +1985,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
 ### `notFound()`
 
-`notFound(context: APIContext, response: Response): Promise<Response>`
+<p>
 
-<p><Since v="4.6.0" /></p>
+**Type:** `(context: APIContext, response?: Response) => Promise<Response> | undefined`<br />
+<Since v="4.6.0" />
+</p>
 
 :::note
 Available only when `i18n.routing` is set to `"manual"`
@@ -1657,9 +2016,11 @@ export const onRequest = defineMiddleware((context, next) => {
 
 ### `middleware()`
 
-`middleware(options: { prefixDefaultLocale: boolean, redirectToDefaultLocale: boolean })`
+<p>
 
-<p><Since v="4.6.0" /></p>
+**Type:** `(options: { prefixDefaultLocale: boolean, redirectToDefaultLocale: boolean }) => MiddlewareHandler`<br />
+<Since v="4.6.0" />
+</p>
 
 :::note
 Available only when `i18n.routing` is set to `"manual"`
@@ -1690,9 +2051,11 @@ export const onRequest = sequence(customLogic, middleware({
 
 ### `requestHasLocale()`
 
-`requestHasLocale(context: APIContext): boolean`
+<p>
 
-<p><Since v="4.6.0" /></p>
+**Type:** `(context: APIContext) => boolean`<br />
+<Since v="4.6.0" />
+</p>
 
 :::note
 Available only when `i18n.routing` is set to `"manual"`
@@ -1747,13 +2110,13 @@ This component **does not** inherit the settings from your [Shiki configuration]
 
 <p><Since v="4.11.0" /></p>
 
-[Shiki transformers](https://shiki.style/packages/transformers#shikijs-transformers) can optionally be applied to code by passing them in through the `transformers` property as an array:
+[Shiki transformers](https://shiki.style/packages/transformers#shikijs-transformers) can optionally be applied to code by passing them in through the `transformers` property as an array. Since Astro v4.14.0, you can also provide a string for [Shiki's `meta` attribute](https://shiki.style/guide/transformers#meta) to pass options to transformers.
 
 Note that `transformers` only applies classes and you must provide your own CSS rules to target the elements of your code block.
 
-```astro
+```astro title="src/pages/index.astro" {12-13}
 ---
-import { transformerNotationFocus } from '@shikijs/transformers'
+import { transformerNotationFocus, transformerMetaHighlight } from '@shikijs/transformers'
 import { Code } from 'astro:components'
 const code = `const foo = 'hello'
 const bar = ' world'
@@ -1763,7 +2126,8 @@ console.log(foo + bar) // [!code focus]
 <Code
   code={code}
   lang="js"
-  transformers={[transformerNotationFocus()]} />
+  transformers={[transformerMetaHighlight()]}
+  meta="{1,3}" />
   
   <style is:global>
     pre.has-focused .line:not(.focused) {
@@ -1925,6 +2289,8 @@ const { Content } = await entry.render();
 ```
 
 ### `<ViewTransitions />`
+
+<p><Since v="2.9.0" /></p>
 
 Opt in to using view transitions on individual pages by importing and adding the `<ViewTransitions />` routing component to `<head>` on every desired page.
 
