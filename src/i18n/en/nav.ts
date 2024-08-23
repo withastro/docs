@@ -48,7 +48,6 @@ export default [
 		key: 'guides/content-collections',
 	},
 	{ text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
-	{ text: 'Connect Hosted Media or DAM', slug: 'guides/media', key: 'guides/media' },
 	{ text: 'Add an RSS feed', slug: 'guides/rss', key: 'guides/rss' },
 
 	{ text: 'Routes and Navigation', header: true, type: 'learn', key: 'routes' },
@@ -67,6 +66,7 @@ export default [
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
+	{ text: 'Connect Hosted Media or DAM', slug: 'guides/media', key: 'guides/media' },
 
 	{ text: 'Connect Your Data', header: true, type: 'learn', key: 'data' },
 	{ text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
