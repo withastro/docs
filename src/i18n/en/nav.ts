@@ -48,6 +48,7 @@ export default [
 		key: 'guides/content-collections',
 	},
 	{ text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
+	{ text: 'Connect Hosted Media or DAM', slug: 'guides/media', key: 'guides/media' },
 	{ text: 'Add an RSS feed', slug: 'guides/rss', key: 'guides/rss' },
 
 	{ text: 'Routes and Navigation', header: true, type: 'learn', key: 'routes' },
