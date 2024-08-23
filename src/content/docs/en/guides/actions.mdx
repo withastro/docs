@@ -15,14 +15,14 @@ Astro Actions allow you to define and call backend functions with type-safety. A
 Use actions instead of API endpoints for seamless communication between your client and server code and to:
 
 - Automatically validate JSON and form data inputs using [Zod validaton](https://zod.dev/?id=primitives).
-- Generate type-safe functions to call your backend from the client and even [from server forms](#call-actions-from-an-html-form-action). No need for manual `fetch()` calls.
+- Generate type-safe functions to call your backend from the client and even [from HTML form actions](#call-actions-from-an-html-form-action). No need for manual `fetch()` calls.
 - Standardize backend errors with the `ActionError` object.
 
 ## Basic usage
 
 Actions are defined in a `server` object exported from `src/actions/index.ts`:
 
-```ts title="src/actions/index.ts" "myAction"
+```ts title="src/actions/index.ts"
 import { defineAction } from 'astro:actions';
 import { z } from 'astro:schema';
 
@@ -31,11 +31,11 @@ export const server = {
 }
 ```
 
-Your actions are available as functions from the `actions` object. You can call these actions client-side within a [UI framework component](/en/guides/framework-components/), [a form POST request](#call-actions-from-an-html-form-action), or by using a `<script>` tag in an Astro component.
+Your actions are available as functions from the `astro:actions` module. Import `actions` and call them client-side within a [UI framework component](/en/guides/framework-components/), [a form POST request](#call-actions-from-an-html-form-action), or by using a `<script>` tag in an Astro component.
 
-Actions return an object with either `data` containing the JSON-serialized result, or `error` containing thrown errors.
+When you call an action, it returns an object with either `data` containing the JSON-serialized result, or `error` containing thrown errors.
 
-```astro title="src/pages/index.astro" "actions" "myAction"
+```astro title="src/pages/index.astro"
 ---
 ---
 
@@ -62,19 +62,19 @@ Follow these steps to define an action and call it in a `script` tag in your Ast
     }
     ```
 
-2. Import the `defineAction()` utility from `astro:actions`, and the `z` object from `astro:schema`. These allow you to create the action `getGreeting` and define its inputs.
+2. Import the `defineAction()` utility from `astro:actions`, and the `z` object from `astro:schema`.
 
     ```ts ins={1-2} title="src/actions/index.ts"
     import { defineAction } from 'astro:actions';
     import { z } from 'astro:schema';
 
      export const server = {
-      getGreeting: defineAction({})
+      // action declarations
     }
 
-3. Provide `defineAction()` both a `handler()` function with the backend logic to run on the server, and an `input` object to validate input parameters with [Zod](https://zod.dev).
+3. Use the `defineAction()` utility to define a `getGreeting` action. The `input` property will be used to validate input parameters with a [Zod](https://zod.dev) schema and the `handler()` function includes the backend logic to run on the server.
 
-    ```ts ins={6-11} title="src/actions/index.ts" "input:" "handler:"
+    ```ts ins={5-12} title="src/actions/index.ts" "input:" "handler:"
     import { defineAction } from 'astro:actions';
     import { z } from 'astro:schema';
 
@@ -90,9 +90,25 @@ Follow these steps to define an action and call it in a `script` tag in your Ast
     }
     ```
 
-4. To access your action from client code, import `actions` from `astro:actions`. This object contains all functions exported by the `server` object. Call `actions.getGreeting()` on a button press using a `<script>` tag, and display a pop-up alert with the type-safe result:
+4. Create an Astro component with a button that will fetch a greeting using your `getGreeting` action when clicked.
 
-    ```astro title="src/pages/index.astro" {7, 10}
+    ```astro title="src/pages/index.astro"
+    ---
+    ---
+
+    <button>Get greeting</button>
+
+    <script>
+    const button = document.querySelector('button');
+    button?.addEventListener('click', async () => {
+      // Show alert pop-up with greeting from action
+    });
+    </script>
+    ```
+
+5. To use your action, import `actions` from `astro:actions` and then call `actions.getGreeting()` in the click handler. The `name` option will be sent to your action’s `handler()` on the server and, if there are no errors, the result will be available as the `data` property.
+
+    ```astro title="src/pages/index.astro" ins={7, 12-13}
     ---
     ---
 
@@ -101,12 +117,11 @@ Follow these steps to define an action and call it in a `script` tag in your Ast
     <script>
     import { actions } from 'astro:actions';
 
-    document.querySelector('button')?.addEventListener('click', async () => {
+    const button = document.querySelector('button');
+    button?.addEventListener('click', async () => {
+      // Show alert pop-up with greeting from action
       const { data, error } = await actions.getGreeting({ name: "Houston" });
-      if (!error) {
-        alert(data);
-        // Show alert pop-up with "Hello, Houston!"
-      }
+      if (!error) alert(data);
     })
     </script>
     ```
