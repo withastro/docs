@@ -40,6 +40,7 @@ export default NavDictionary({
 	'guides/styling': 'Styles & CSS',
 	'guides/images': 'Images',
 	'guides/fonts': 'Polices de caractères',
+	'guides/media': 'Connecter un média hébergé ou un DAM',
 
 	data: 'Connecter vos Données',
 	'guides/data-fetching': 'Récupération de Données',
