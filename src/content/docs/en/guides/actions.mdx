@@ -74,7 +74,7 @@ Follow these steps to define an action and call it in a `script` tag in your Ast
 
 3. Use the `defineAction()` utility to define a `getGreeting` action. The `input` property will be used to validate input parameters with a [Zod](https://zod.dev) schema and the `handler()` function includes the backend logic to run on the server.
 
-    ```ts ins={5-12} title="src/actions/index.ts" "input:" "handler:"
+    ```ts ins={5-12} title="src/actions/index.ts"
     import { defineAction } from 'astro:actions';
     import { z } from 'astro:schema';
 
@@ -132,9 +132,9 @@ Follow these steps to define an action and call it in a `script` tag in your Ast
 
 ## Organizing actions
 
-All actions in your project are exported from the `server` object. You can define actions directly inside your `src/actions/index.ts` file, or you can move action definitions to separate files and import them. You can even group related functions in nested objects.
+All actions in your project must be exported from the `server` object in the `src/actions/index.ts` file. You can define actions inline or you can move action definitions to separate files and import them. You can even group related functions in nested objects.
 
-For example, to collocate all of your user actions, you can create the file `src/actions/user.ts` and nest the definitions of both `getUser` and `createUser` inside a single `user` object.
+For example, to colocate all of your user actions, you can create a `src/actions/user.ts` file and nest the definitions of both `getUser` and `createUser` inside a single `user` object.
 
 ```ts
 // src/actions/user.ts
@@ -183,13 +183,13 @@ if (error) {
 
 ### Accessing `data` directly without an error check
 
-For simpler actions, you can instead skip an error check and allow unexpected errors to throw.
+If you want to skip error handling while prototyping, or are using a library that will catch errors for you, you can use the `.orThrow()` property on your action call. With `.orThrow()`, unexpected errors will be thrown and the action’s `data` will be returned directly.
 
-Use the `.orThrow()` property on your action call to access `data` directly. This example calls a `likePost()` action that returns the updated number of likes as a `number` from the action `handler`:
+This example calls a `likePost()` action that returns the updated number of likes as a `number` from the action `handler`:
 
 ```ts ins="orThrow"
 const updatedLikes = await actions.likePost.orThrow({ postId: 'example' });
-// type: number
+//    ^ type: number
 ```
 
 ### Handling backend errors in your action
@@ -230,7 +230,7 @@ export const server = {
 
 #### Handling an `ActionError`
 
-To handle this error, you can call the action from your application and check whether an `error` property is present. This property will be of type `ActionError`, and both your code and message will be available to access.
+To handle this error, you can call the action from your application and check whether an `error` property is present. This property will be of type `ActionError` and contain your `code` and `message`.
 
 In the following example, a `LikeButton.tsx` component calls the `likePost()` action when clicked. If an authentication error occurs, the `error.code` attribute is used to determine whether to display a login link:
 
@@ -261,23 +261,22 @@ export function LikeButton({ postId }: { postId: string }) {
 
 ### Handling client redirects
 
-You may need to redirect to a new page when an action succeeds. When calling actions from the client, you can integrate with a client-side library like `react-router` or you can use Astro's own client-side navigation utilities. `astro:transitions/client` exposes [the `navigate()` function](/en/guides/view-transitions/#trigger-navigation) to redirect to a new page, which applies a nice fade transition [when view transitions are enabled](/en/guides/view-transitions/#adding-view-transitions-to-a-page).
+You may need to redirect to a new page when an action succeeds. When calling actions from the client, you can integrate with a client-side library like `react-router`, you can use Astro's [`navigate()` function](/en/guides/view-transitions/#trigger-navigation) when view transitions are enabled, or you can use standard JavaScript methods to redirect to a new page.
 
 This example navigates to the homepage after a `logout` action returns successfully:
 
 ```tsx title=src/pages/LogoutButton.tsx
 import { actions } from 'astro:actions';
-import { navigate } from 'astro:transitions/client';
 
 export function LogoutButton() {
   return (
     <button onClick={async () => {
       const { error } = await actions.logout();
-      if (!error) navigate('/');
+      if (!error) window.location = '/';
     }}>
       Logout
     </button>
-  )
+  );
 }
 ```
 
