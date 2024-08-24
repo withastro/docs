@@ -1,0 +1,87 @@
+---
+title: 使用 Sentry 监控你的 Astro 站点
+description: 如何使用 Sentry 监控你的 Astro 站点
+type: backend
+service: Sentry
+stub: false
+i18nReady: true
+---
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+[Sentry](https://sentry.io) 提供了完善的应用监控和错误跟踪服务，帮助开发者及时发现、分析并解决问题。
+
+在我们的博客上阅读有关 [Astro 与 Sentry 的合作](https://astro.build/blog/sentry-official-monitoring-partner/) 的更多信息，以及 Sentry 的 Spotlight 开发工具栏应用，它可以在开发环境中为你的 Astro 应用提供强大的调试界面。Spotlight 可以在本地开发时直接在浏览器中显示报错、堆栈和重要上下文。
+
+Sentry 的 Astro SDK 能够自动上报错误，并且追踪你的 Astro 应用中的数据。
+
+## 项目配置
+
+在 [Sentry 的 Astro 指南](https://docs.sentry.io/platforms/javascript/guides/astro/#prerequisites) 中列出了完整的准备工作列表。
+
+## 安装
+
+Sentry 在应用运行时通过 SDK 来捕获数据。
+
+在 Astro CLI 中使用以下命令安装 SDK 包，选择你喜欢的包管理器：
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add @sentry/astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add @sentry/astro
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add @sentry/astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Astro CLI 会安装 SDK 包，并将 Sentry 集成添加到 `astro.config.mjs` 文件中。
+
+## 配置
+
+要配置 Sentry 集成，需要在 `astro.config.mjs` 文件中提供以下凭据。
+
+1. **客户端秘钥 (DSN)** - 在 Sentry 项目设置中的 *Client Keys (DSN)* 下找到 DSN。
+2. **项目名称** - 在 Sentry 项目设置中的 *General Settings* 下找到项目名称。
+3. **认证令牌** - 在 Sentry 组织设置中的 *Auth Tokens* 下创建认证令牌。
+
+:::note
+创建新的 Sentry 项目时，请选择 Astro 作为你的平台，以获取配置 SDK 所需的所有信息。
+:::
+
+```js title="astro.config.mjs" ins={2, 6-12}
+import { defineConfig } from 'astro/config';
+import sentry from '@sentry/astro';
+
+export default defineConfig({
+  integrations: [
+    sentry({
+      dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0',
+      sourceMapsUploadOptions: {
+        project: 'example-project',
+        authToken: process.env.SENTRY_AUTH_TOKEN,
+      },
+    }),
+  ],
+});
+```
+当你配置好 `sourceMapsUploadOptions` 并添加了 `dsn` 后，SDK 将自动捕获并发送错误和性能事件到 Sentry。
+
+## 测试配置
+
+在某个 `.astro` 页面中添加以下 `<button>` 元素。这样就可以手动触发报错，以便测试错误上报流程。
+
+```astro title="src/pages/index.astro"
+<button onclick="throw new Error('这是一条测试报错')">抛出测试错误</button>
+```
+
+登录到 [sentry.io](https://sentry.io/) 并打开你的项目，即可查看和解决记录的错误。

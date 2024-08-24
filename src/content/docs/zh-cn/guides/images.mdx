@@ -4,7 +4,6 @@ description: 了解如何在 Astro 中使用图像。
 i18nReady: true
 ---
 import Since from '~/components/Since.astro';
-import Badge from '~/components/Badge.astro';
 import RecipeLinks from "~/components/RecipeLinks.astro";
 import { Steps } from '@astrojs/starlight/components'
 
@@ -94,7 +93,7 @@ import myImage from '../assets/my_image.png'; // Image is 1600x900
 
 图像文件的 `src` 值的格式取决于图像文件的位置：
 
-- **`src/` 中的本地图像** - 你必须**同时导入图像**，使用相对文件路径或配置并使用 [导入别名](/zh-cn/guides/aliases/)。然后使用导入名称作为 `src` 值：
+- **`src/` 中的本地图像** - 你必须**同时导入图像**，使用相对文件路径或配置并使用 [导入别名](/zh-cn/guides/imports/#别名)。然后使用导入名称作为 `src` 值：
 
   ```astro title="src/pages/index.astro" "myImportedImage" "{myImportedImage}"
   ---
@@ -142,7 +141,7 @@ import myImage from '../assets/my_image.png'; // Image is 1600x900
 
 这些属性定义了要用于图像的尺寸。
 
-当使用保持原始宽高比的图像时，`width` 和 `height` 是可选的。这些尺寸可以自动从位于 `src/` 中的图像文件和设置了 [`inferSize` 设置为 `true`](#infersize) 的远程图像中推断出来。
+当使用保持原始宽高比的图像时，`width` 和 `height` 是可选的。这些尺寸可以自动从位于 `src/` 中的图像文件自动推断出来。而对于远程图像，请将 `<Image />` 或 `<Picture />` 组件上的 [`inferSize` 属性设置为 `true`](#infersize)，或使用 [`inferRemoteSize()`](#inferremotesize) 函数。
 
 但是，对于存储在你的 `public/` 文件夹中的图像，这两个属性都是必需的，因为 Astro 无法分析这些文件。
 
@@ -265,6 +264,17 @@ import { Image } from 'astro:assets';
 ```
 
 `inferSize` 能够获取来自未经授权域的[远程图片的尺寸](#授权远程图像)，但图片本身将保持未处理状态。
+
+###### inferRemoteSize()
+
+<p><Since v="4.12.0" /></p>
+
+推断远程图像​​尺寸的函数。它可以作为传递 `inferSize` 属性的替代方法。
+
+```ts
+import { inferRemoteSize } from 'astro:assets';
+const {width, height} = await inferRemoteSize("https://example.com/cat.png");
+```
 
 ##### 附加属性
 
@@ -402,7 +412,7 @@ import myImage from "../my_image.png"; // 图像分辨率为 1600x900
 
 #### `src/` 中的本地图像
 
-本地图像必须从现有的 `.astro` 文件的相对路径**导入**，或者配置并使用 [导入别名](/zh-cn/guides/aliases/)。然后，你可以访问图像的 `src` 和其他属性，以在 `<img>` 标签中使用。
+本地图像必须从现有的 `.astro` 文件的相对路径**导入**，或者配置并使用 [导入别名](/zh-cn/guides/imports/#别名)。然后，你可以访问图像的 `src` 和其他属性，以在 `<img>` 标签中使用。
 
 例如，使用图像自己的 `height` 和 `width` 属性，以避免布局位移累计 CLS 并改善核心 Web 性能指标。
 
@@ -739,220 +749,3 @@ export default defineConfig({
 ## 社区集成
 
 这里有几个第三方 [社区图像集成](https://astro.build/integrations?search=images)，用于优化和处理 Astro 项目中的图像。
-
-## 从 v2.x 升级到 v3.0
-
-`astro:assets` 不再是 Astro v3.0 中的实验性标志。
-
-`<Image />` 现在是内置组件，之前的 `@astrojs/image` 集成已被删除。
-
-当你从早期版本升级你的 Astro 项目时，这些和其他伴随的更改，可能会导致一些破坏性的变化。
-
-请根据需要按照以下说明将 Astro v2.x 项目升级到 v3.0。
-
-### 从 `experimental.assets` 升级
-
-如果你之前启用了 `astro:assets` 的实验性标志，你需要更新你的项目到 Astro v3.0，它现在默认包含了 assets 功能。
-
-#### 移除 `experimental.assets` 标志
-
-移除实验性标志：
-
-```js title="astro.config.mjs" del={4-6}
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  experimental: {
-    assets: true
-  }
-});
-```
-
-如果需要，还可以更新你的 `src/env.d.ts` 文件，将 `astro/client-image` 引用替换为 `astro/client`：
-
-```ts title="src/env.d.ts" del={1} ins={2}
-/// <reference types="astro/client-image" />
-/// <reference types="astro/client" />
-```
-
-#### 移除`~/assets` 导入别名
-
-这个导入别名不再默认包含在 `astro:assets` 中。如果你之前使用这个别名，你必须将它们转换为相对文件路径，或者 [创建你自己的导入别名](/zh-cn/guides/aliases/)。
-
-```astro title="src/pages/posts/post-1.astro" del={2} ins={3}
----
-import rocket from '~/assets/rocket.png';
-import rocket from '../../assets/rocket.png';
----
-```
-
-#### 为 Cloudflare, Deno, Vercel Edge 和 Netlify Edge 添加简单的资源支持
-
-  Astro v3.0 允许 `astro:assets` 在 Cloudflare、Deno、Vercel Edge 和 Netlify Edge 中无错误地工作，这些环境不支持 Astro 的内置 Squoosh 和 Sharp 图像优化。请注意，Astro 不会在这些环境中执行任何图像转换和处理。但是，你仍然可以享受使用 `astro:assets` 的其他好处，包括没有累积布局移位（CLS）、强制执行的 `alt` 属性和一致的创作体验。
-
-  如果你之前因为这些限制而避免使用 `astro:assets`，现在你可以在没有问题的情况下使用它们。你可以配置无操作图像服务来显式地选择这种行为：
-  
-  ```js title="astro.config.mjs" ins={4-8}
-  import { defineConfig } from 'astro/config';
-
-  export default defineConfig({
-    image: {
-      service: {
-        entrypoint: 'astro/assets/services/noop'
-      }
-    }
-  });
-  ```
-
-### 决定在哪里存储你的图像
-
-请参阅 [图像指南](#在哪里存储图像) 来帮助你决定在哪里存储你的图像。你可能希望利用 `astro:assets` 带来的灵活性，来存储你的图像的新选项。例如，现在可以使用标准的 Markdown `![alt](src)` 语法，在 Markdown、MDX 和 Markdoc 中引用项目 `src/` 中的相对图像。
-
-### 更新现有的 `<img>` 标签
-
-以前，导入图像将返回一个简单的 `string`，其中包含图像的路径。现在，导入的图像资源与以下签名相匹配：
-
-```ts
-interface ImageMetadata {
-  src: string;
-  width: number;
-  height: number;
-  format: string;
-}
-```
-
-你必须更新任何现有 `<img>` 标签的 `src` 属性（包括任何 [UI 框架组件中的图像](#框架组件中的图像)），你也可以更新从导入的图像中获得的其他属性。
-
-```astro title="src/components/MyComponent.astro" ".src" ".width" ".height" del={4} ins={6}
----
-import rocket from '../images/rocket.svg';
----
-<img src={rocket} width="250" height="250" alt="太空中的火箭飞船。" />
-
-<img src={rocket.src} width={rocket.width} height={rocket.height} alt="太空中的火箭飞船。" />
-```
-
-### 更新你的 Markdown, MDX, 和 Markdoc 文件
-
-现在可以使用标准的 Markdown `![alt](src)` 语法，在 Markdown、MDX 和 Markdoc 中引用项目 `src/` 中的相对图像。
-
-这允许你将图像从 `public/` 目录移动到你的项目 `src/`，它们现在将被处理和优化。你现有的 `public/` 中的图像和远程图像仍然有效，但不会被 Astro 的构建过程优化。
-
-```md title="src/pages/posts/post-1.md" "/_astro" ".hash" "../../assets/"
-# 我的 Markdown 页面
-
-<!-- 现在可以使用本地图像 -->
-![繁星点点的夜空](../../images/stars.png)
-
-<!-- 将你的图像放在你的内容旁边！ -->
-![繁星点点的夜空](./stars.png)
-```
-
-如果你需要对图像属性做更多的控制，我们建议使用 `.mdx` 文件格式，除了 Markdown 语法，你还可以使用 Astro 的 `<Image />` 组件或 JSX `<img />` 标签。使用 [MDX 集成](/zh-cn/guides/integrations-guide/mdx/) 为 Astro 添加对 MDX 的支持。
-
-### 移除 `@astrojs/image`
-
-
-如果你在 Astro v2.x 中使用了图像集成，请完成以下步骤：
-
-<Steps>
-1. 移除 `@astrojs/image` 集成。
-
-    你必须通过卸载并从你的 `astro.config.mjs` 文件中删除它，来 [移除集成](/zh-cn/guides/integrations-guide/#移除集成)。
-
-    ```js del={3,7}
-    // astro.config.mjs
-    import { defineConfig } from 'astro/config';
-    import image from '@astrojs/image';
-
-    export default defineConfig({
-      integrations: [
-        image(),
-      ]
-    })
-    ```
-2. 更新类型（如果需要的话）。
-
-    如果你在 `src/env.d.ts` 中为 `@astrojs/image` 配置了特殊类型，并且如果你的升级到 v3 却没有完成这一步，你可能需要将它们改回 Astro 的默认类型。
-
-		```ts title="src/env.d.ts" del={1} ins={2}
-		 /// <reference types="@astrojs/image/client" />
-		 /// <reference types="astro/client" />
-		```
-
-    同样地，如果需要的话，更新 `tsconfig.json`：
-
-		```json title="tsconfig.json" del={3} ins={4}
-		{
-			"compilerOptions": {
-			  "types": ["@astrojs/image/client"]
-			  "types": ["astro/client"]
-			}
-		}
-		```
-
-3. 迁移任何现有的 `<Image />` 组件。
-
-    将所有 `import` 语句从 `@astrojs/image/components` 更改为 `astro:assets`，以便使用新的内置 `<Image />` 组件。
-
-    移除任何当前不[支持的图像属性](/zh-cn/guides/images/#属性)。
-
-    例如，`aspectRatio` 不再支持，因为它现在可以从 `width` 和 `height` 属性中自动推断出来。
-
-      ```astro title="src/components/MyComponent.astro" del= {2,11} ins={3}
-      ---
-      import { Image } from '@astrojs/image/components';
-      import { Image } from 'astro:assets';
-      import localImage from '../assets/logo.png';
-      const localAlt = 'The Astro Logo';
-      ---
-
-      <Image
-        src={localImage}
-        width={300}
-        aspectRatio="16:9"
-        alt={localAlt}
-      />
-      ```
-
-4. 选择一个默认图像服务。
-
-    [Sharp](https://github.com/lovell/sharp) 现在是 `astro:assets` 的默认图像服务。如果你想使用 Sharp，无需任何配置。
-
-    如果你想使用 [Squoosh](https://github.com/GoogleChromeLabs/squoosh) 来转换你的图像，请使用下面的 `image.service` 选项更新你的配置：
-
-    ```js title="astro.config.mjs" ins={4-6}
-    import { defineConfig, squooshImageService } from 'astro/config';
-
-    export default defineConfig({
-      image: {
-        service: squooshImageService(),
-      },
-    });
-    ```
-</Steps>
-
-### 更新内容集合结构
-
-你现在可以在 frontmatter 中声明一个与内容集合条目相关联的图像，例如博客文章的封面图像，使用相对于当前文件夹的路径：
-
-内容集合中新的 `image` 助手可让你使用 Zod 验证图像元数据。了解更多关于 [如何在内容集合中使用图像](/zh-cn/guides/images/#内容集合中的图像) 的内容。
-
-### 在 Astro v3.0 中导航图像导入
-
-在 Astro v3.0 中，如果你需要保留旧的图像导入方式，并要求图像的 URL 以字符串表示，你可以在导入图像时在图像路径的末尾添加 `?url`。例如：
-
-```astro title="src/pages/blog/MyImages.astro"
----
-import Sprite from '../assets/logo.svg?url';
----
-<svg>
-  <use xlink:href={Sprite + '#cart'} />
-</svg>
-```
-
-这种方法可以确保获得 URL 字符串。请记住，在开发过程中，Astro 使用 `src/` 路径，但在构建过程中，它会生成类似于 `/_astro/cat.a6737dd3.png` 的哈希路径。
-
-如果你更喜欢直接使用图像对象本身，你可以访问 `.src` 属性。这种方法非常适合用于管理图像尺寸以适应 Core Web Vitals 指标和避免 CLS。
-
-如果你正在过渡到新的导入方式，将 `?url` 和 `.src` 方法结合起来可能是一种无缝处理图像的正确方法。

@@ -1,0 +1,164 @@
+---
+title: Effettua il deploy del tuo sito Astro su Zerops
+description: Come effettuare il deploy del tuo sito Astro usando Zerops.
+type: deploy
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { Steps } from '@astrojs/starlight/components';
+
+[Zerops](https://zerops.io/) è una piattaforma cloud oriantata agli sviluppatori che può essere usata per eseguire il deploy del tuo sito SSR Astro.
+
+Questa guida ti accompagnerà nel processo di deployment di un sito Astro su Zerops utilizzando l'adattatore specifico per Node.js.
+
+## Prerequisiti
+
+- **Un progetto Astro che usa [l'adattatore `@astrojs/node` per il SSR](/it/guides/integrations-guide/node/)** 
+- **Un account Zerops** - Se non ne hai già uno, puoi [creare il tuo account Zerops](https://zerops.io/) gratuitamente.
+
+:::tip[Iniziamo da un template]
+Il [Zerops per Astro - esempio per Node.js](https://github.com/zeropsio/recipe-astro-nodejs) può essere importato direttamente nella tua [Dashboard di Zerops](https://app.zerops.io/dashboard/projects), e distribuito con un clic!
+
+```yaml
+project:
+  name: astro
+services:
+  - hostname: astronode
+    type: nodejs@20
+    buildFromGit: https://github.com/zeropsio/recipe-astro-nodejs
+    ports:
+      - port: 4321
+        httpSupport: true
+    enableSubdomainAccess: true
+    minContainers: 1
+```
+:::
+
+## Creare un progetto Zerops con Node.js
+
+Puoi creare un servizio Node.js per il tuo sito Astro attraverso il [Zerops `project add` wizard](https://app.zerops.io/dashboard/project-add), o importando un sito Astro usando il `.yaml`.
+
+La struttura dello YAML sottostante servirà per creare un progetto chiamato `my-astro-sites` con Node.js v20 con l'hostname `hellothere`. Un progetto Zerops può contenere più siti Astro.
+
+```yaml
+project:
+  name: my-astro-sites
+services:
+  - hostname: hellothere
+    type: nodejs@20
+    ports:
+      - port: 4321
+        httpSupport: true
+    minContainers: 1
+```
+
+
+## Creare e distribuire la tua app su Zerops
+
+Ora che abbiamo creato un servizio Node.js su Zerops, ti servirà creare il file `zerops.yml` nella directory principale del tuo progetto in modo da far avviare il processo di build e deploy alla pipeline di Zerops.
+
+L'esempio sottostante mostra una configurazione che richiede alcune operazioni per il progetto example con l'hostname `hellothere`:
+
+  <PackageManagerTabs>
+    <Fragment slot="npm">
+    ```yaml title="zerops.yml"
+      zerops:
+        - setup: hellothere
+          build:
+            base: nodejs@20
+            buildCommands:
+              - npm i
+              - npm run build
+            deploy:
+              - dist
+              - package.json
+              - node_modules
+            cache:
+              - node_modules
+              - package-lock.json
+          run:
+            start: node dist/server/entry.mjs
+          envVariables:
+            HOST: 0.0.0.0
+            NODE_ENV: production
+    ```
+    </Fragment>
+    <Fragment slot="pnpm">
+    ```yaml title="zerops.yml"
+      zerops:
+        - setup: hellothere
+          build:
+            base: nodejs@20
+            buildCommands:
+              - pnpm i
+              - pnpm run build
+            deploy:
+              - dist
+              - package.json
+              - node_modules
+            cache:
+              - node_modules
+              - pnpm-lock.yaml
+          run:
+            start: node dist/server/entry.mjs
+          envVariables:
+            HOST: 0.0.0.0
+            NODE_ENV: production
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```yaml title="zerops.yml"
+      zerops:
+        - setup: astronode
+          build:
+            base: nodejs@20
+            buildCommands:
+              - yarn
+              - yarn build
+            deploy:
+              - dist
+              - package.json
+              - node_modules
+            cache:
+              - node_modules
+              - yarn.lock
+          run:
+            start: node dist/server/entry.mjs
+          envVariables:
+            HOST: 0.0.0.0
+            NODE_ENV: production
+    ```
+    </Fragment>
+  </PackageManagerTabs>
+
+### Attivare il processo di build e deploy usando GitHub / GitLab
+Per configurare il processo di build e deploy quando si fa un push a un branch o si crea una nuova release, vai al tuo servizio di Node.js e connetti il servizio di Zerops a una repository GitHub o GitLab.
+
+
+### Attivare il processo di build e deploy usando la CLI di Zerops (zcli)
+
+<Steps>
+1. Installa la CLI di Zerops.
+		```shell
+		# Per scaricare il binario zcli direttamente,
+		# usa https://github.com/zeropsio/zcli/releases
+		npm i -g @zerops/zcli
+		```
+
+2. Vai su [`Settings > Access Token Management`](https://app.zerops.io/settings/token-management) nell'app di Zerops e genera un nuovo token per accedere.
+
+3. Effetua il login usando il tuo access token usando il comando seguente:
+		```shell
+		zcli login <token>
+		```
+
+4. Vai alla directory principale del tuo progetto (dove si trova il `zerops.yml`) e avvia il seguente comando per iniziare il deploy:
+		```shell
+		zcli push
+		```
+</Steps>
+
+## Risorse
+
+- [Deploy di un sito Astro su Zerops in 3 minuti](https://medium.com/@arjunaditya/how-to-deploy-astro-to-zerops-4230816a62b4)
+- [Guida dettagliata su come creare un servizio Node.js su Zerops](https://docs.zerops.io/nodejs/how-to/create)

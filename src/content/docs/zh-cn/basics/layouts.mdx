@@ -13,6 +13,8 @@ import ReadMore from '~/components/ReadMore.astro'
 
 但是，布局组件没有什么特别的！它们可以像任何其他 Astro 组件一样[接受 props](/zh-cn/basics/astro-components/#组件参数)和[导入和使用其他组件](/zh-cn/basics/astro-components/#组件概述)。它们可以包含[UI 框架组件](/zh-cn/guides/framework-components/)和[客户端脚本](/zh-cn/guides/client-side-scripts/)。它们甚至不必提供完整的页面外壳，而是可以用作部分 UI 模板。
 
+然而，如果布局组件确实包含页面外壳，那么它的 `<html>` 元素必须是该组件中所有其他元素的父元素。所有 [`<style>`](/zh-cn/guides/styling/#在-astro-进行设计) 或 [`<script>`](/zh-cn/guides/client-side-scripts/#在-astro-中使用-script) 元素必须包含在 `<html>` 标签内。
+
 布局组件通常放置在项目中的 `src/layouts` 目录中，但这不是必须的。你可以选择将它们放置在项目中的任何位置。你甚至可以通过[在布局组件名称前面加上“_”](/zh-cn/guides/routing/#排除页面)将布局组件与页面放在同一个文件夹中。
 
 ## 示例布局
@@ -42,6 +44,11 @@ const { title } = Astro.props;
     </article>
     <Footer />
   </body>
+  <style>
+    h1 {
+      font-size: 2rem;
+    }
+  </style>
 </html>
 ```
 
@@ -223,22 +230,35 @@ const { title, fancyJsHelper } = Astro.props;
 
 <ReadMore>了解更多关于 Astro 的 Markdown 和 MDX 支持，请参阅 [Markdown/MDX 指南](/zh-cn/guides/markdown-content/)。</ReadMore>
 
-## 对 `.md`, `.mdx`, 和 `.astro` 使用一个布局
+### 在布局中使用 TypeScript
 
-一个 Astro 布局可以编写以接收 `.md` 和 `.mdx` 文件中的 `frontmatter` 对象，以及从 `.astro` 文件传递的任何命名 props。
+任何 Astro 布局都可以通过提供 props 类型来引入类型安全和自动补全功能：
 
-在下面的示例中，布局将从 frontmatter YAML `title` 属性或 Astro 组件传递的 `title` 属性中显示页面标题：
 
-```astro /{?title}?/ /Astro.props[.a-z]*/
+```astro ins={2-7} title="src/components/MyLayout.astro"
 ---
-// src/components/MyLayout.astro
-const { title } = Astro.props.frontmatter || Astro.props;
+interface Props { 
+	title: string;
+  description: string;
+  publishDate: string;
+  viewCount: number;
+}
+const { title, description, publishDate, viewCount } = Astro.props;
 ---
-<html>
-  <head></head>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="description" content={description}>
+    <title>{title}</title>
+  </head>
   <body>
-    <h1>{title}</h1>
-    <slot />
+    <header>
+      <p>Published on {publishDate}</p>
+      <p>Viewed by {viewCount} folks</p>
+    </header>
+    <main>
+      <slot />
+    </main>
   </body>
 </html>
 ```

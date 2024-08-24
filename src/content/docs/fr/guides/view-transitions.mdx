@@ -146,7 +146,7 @@ Cela vous permet de contrôler si les props d'une île doivent ou non être cons
 
 Par défaut, lorsque vous ajoutez `transition:persist` à une île, l'état est conservé lors de la navigation, mais votre composant sera re-rendu avec de nouveaux props. Ceci est utile, par exemple, lorsqu'un composant reçoit des props spécifiques à une page, comme le `title` de la page courante.
 
-Vous pouvez surcharger ce comportement avec `transition:persist-props`. L'ajout de cette directive conservera les props existants d'une île (sans les rendre avec de nouvelles valeurs) en plus de maintenir son état existant.
+Vous pouvez modifier ce comportement en définissant `transition:persist-props` en plus de `transition:persist`. L'ajout de cette directive conservera les props existants d'une île (sans les rendre avec de nouvelles valeurs) en plus de maintenir son état existant.
 
 ### Directives d'animation intégrées
 
@@ -221,33 +221,71 @@ export interface TransitionDirectionalAnimations {
 }
 ```
 
-L'exemple suivant montre toutes les propriétés nécessaires pour définir une animation `fade` personnalisée :
 
-```astro
+L'exemple suivant montre toutes les propriétés nécessaires pour définir une animation `bump` personnalisée à l'intérieur d'une balise `<style is:global>` dans votre fichier de mise en page racine :
+
+
+```astro title="src/layouts/Layout.astro"
+---
+import { ViewTransitions } from 'astro:transitions';
+---
+
+<html lang="en">
+  <head>
+    <ViewTransitions />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  @keyframes bump {
+    0% {
+      opacity: 0;
+      transform: scale(1) translateX(200px);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(1.1);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateX(0);
+    }
+  }
+</style>
+
+```
+
+Le comportement de l'animation doit être défini dans le frontmatter de chaque composant utilisant l'animation :
+
+```astro title="src/pages/index.astro"
 ---
 const anim = {
   old: {
-    name: 'fadeIn',
-    duration: '0.2s',
-    easing: 'linear',
-    fillMode: 'forwards',
+    name: 'bump',
+    duration: '0.5s',
+    easing: 'ease-in',
+    direction: 'reverse',
   },
   new: {
-    name: 'fadeOut',
-    duration: '0.3s',
-    easing: 'linear',
-    fillMode: 'backwards',
-  }
+    name: 'bump',
+    duration: '0.5s',
+    easing: 'ease-in-out',
+  },
 };
 
-const myFade = {
-	forwards: anim,
-	backwards: anim,
+const customTransition = {
+  forwards: anim,
+  backwards: anim,
 };
 ---
 
-<header transition:animate={myFade}> ... </header>
+<header transition:animate={customTransition}> ... </header>
 ```
+
+Vous disposez d'une grande flexibilité pour définir des animations personnalisées. Pour obtenir le résultat souhaité, vous pouvez envisager des combinaisons inhabituelles, telles qu'utiliser des objets différents pour les propriétés `forwards` et `backwards`, ou fournir des étapes d'animations distinctes pour les propriétés `old` et `new`.
 
 ## Contrôle du routeur
 
@@ -626,14 +664,14 @@ Un événement qui se déclenche à la fin de la navigation de la page, après q
 
 Le composant `<ViewTransitions />` déclenche cet événement à la fois lors de la navigation initiale sur une page pré-rendue et lors de toute navigation ultérieure, que ce soit en avant ou en arrière.
 
-Vous pouvez utiliser cet événement pour exécuter du code à chaque navigation de page, ou seulement une fois par jour :
+Vous pouvez utiliser cet événement pour exécuter du code à chaque navigation de page, par exemple pour configurer des écouteurs d'événements qui autrement seraient perdus pendant la navigation.
 
-```astro "{ once: true }"
+```astro
 <script>
   document.addEventListener('astro:page-load', () => {
-    // Cette opération n'est exécutée qu'une seule fois.
-    setupStuff();
-  }, { once: true });
+    // Cette opération s'exécute lors du premier chargement de la page et après chaque navigation.
+    setupStuff(); // par exemple, ajouter des écouteurs d'événements
+  });
 </script>
 ```
 
@@ -659,101 +697,4 @@ Nous vous recommandons vivement de toujours inclure un `<title>` dans chaque pag
 
 ### `prefers-reduced-motion`
 
-Le composant `<ViewTransitions />` d'Astro inclut une requête média CSS qui désactive *toutes* les animations de transition de vue, y compris l'animation de repli, lorsque le paramètre [`prefer-reduced-motion`](https://developer.mozilla.org/fr/docs/Web/CSS/@media/prefers-reduced-motion) est détecté. À la place, le navigateur échangera simplement les éléments DOM sans animation.
-
-## Mise à jour de la v2.x vers la v3.0
-
-Les Transitions de Vues ne sont plus derrière un paramètre expérimental dans Astro v3.0.
-
-Si vous n'aviez pas activé ce paramètre expérimental dans Astro 2.x, il n'y aura pas de changement majeur dans votre projet. La nouvelle API de Transitions de Vues n'a aucun effet sur votre code existant.
-
-Si vous utilisiez auparavant des Transitions de Vue expérimentales, il se peut que vous ayez à effectuer des changements lors de la mise à jour de votre projet Astro à partir d'une version antérieure.
-
-Veuillez suivre les instructions ci-dessous pour mettre à jour **un projet Astro v2.x configuré avec `experimental.viewTransitions : true`** vers la v3.0.
-
-### Mise à jour de `experimental.viewTransitions`
-
-Si vous aviez précédemment activé le paramètre expérimental pour les Transitions de Vue, vous devriez mettre à jour votre projet pour la version 3.0 d'Astro qui autorise désormais les Transitions de Vue par défaut.
-
-#### Supprimer le paramètre `experimental.viewTransitions`.
-
-Supprimer le paramètre expérimental :
-
-```js title="astro.config.mjs" del={4-6}
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  experimental: {
-   viewTransitions: true
-  }
-});
-```
-
-#### Mise à jour de la source d'importation
-
-Le composant `<ViewTransitions />` a été déplacé de `astro:components` vers `astro:transitions`. Mettez à jour la source d'importation pour toutes les occurrences dans votre projet.
-
-```astro title="src/layouts/BaseLayout.astro" del="astro:components" ins="astro:transitions"
----
-import { ViewTransitions } from "astro:components astro:transitions"
----
-<html lang="fr">
-  <head>
-    <title>Ma page d'accueil</title>
-    <ViewTransitions />
-  </head>
-  <body>
-    <h1>Bienvenue sur mon site web !</h1>
-  </body>
-</html>
-```
-
-#### Mise à jour des directives `transition:animate`.
-
-**Modifié :** La valeur `transition:animate` `morph` a été renommée en `initial`. De plus, ce n'est plus l'animation par défaut. Si aucune directive `transition:animate` n'est spécifiée, vos animations seront maintenant par défaut `fade`.
-
-1. Renommer toutes les animations `morph` en `initial`.
- ```astro title="src/components/MyComponent.astro" del="morph" ins="initial"
- <div transition:name="name" transition:animate="morph initial" />
-    ```
-2. Pour conserver toutes les animations qui utilisaient précédemment `morph` par défaut, ajoutez explicitement `transition:animate="initial"`
-
- ```astro title="src/components/MyComponent.astro" ins='transition:animate="initial"'
- <div transition:name="name" transition:animate="initial" />
-    ```
-3. Vous pouvez en toute sécurité supprimer toutes les animations explicitement réglées sur `fade`. C'est maintenant le comportement par défaut :
-
- ```astro title="src/components/MyComponent.astro" del="transition:animate=\"fade\""
- <div transition:name="name" transition:animate="fade" />
-    ```
-
-**Ajouté :** Astro supporte également une nouvelle valeur de `transition:animate`, `none`. Cette valeur peut être utilisée sur l'élément `<html>` d'une page pour désactiver les transitions pleine page animées sur une page entière. Cela ne remplacera que le comportement d'animation par **défaut** sur les éléments de la page sans directive d'animation. Vous pouvez toujours définir des animations sur des éléments individuels, et ces animations spécifiques se produiront.
-
-4. Vous pouvez désormais désactiver toutes les transitions par défaut sur une page individuelle, en animant uniquement les éléments qui utilisent explicitement une directive `transition:animate` :
-
- ```astro ins="transition:animate=\"none\""
- <html transition:animate="none">
-   <head></head>
-   <body>
-     <h1>Bonjour le monde !</h1>
-   </body>
- </html>
-    ```
-
-#### Mise à jour des noms d'événements
-
-L'événement `astro:load` a été renommé en `astro:page-load`. Renommez toutes les occurrences dans votre projet.
-
-```astro title="src/components/MyComponent.astro" del="astro:load" ins="astro:page-load"
-<script>
-document.addEventListener('astro:load astro:page-load', runSetupLogic);
-</script>
-```
-
-L'événement `astro:beforeload` a été renommé en `astro:after-swap`. Renommez toutes les occurrences dans votre projet.
-
-```astro title="src/components/MyComponent.astro" del="astro:beforeload" ins="astro:after-swap"
-<script>
-document.addEventListener('astro:beforeload astro:after-swap', setDarkMode);
-</script>
-```
+Le composant `<ViewTransitions />` d'Astro inclut une requête média CSS qui désactive *toutes* les animations de transition de vue, y compris l'animation de secours, lorsque le paramètre [`prefer-reduced-motion`](https://developer.mozilla.org/fr/docs/Web/CSS/@media/prefers-reduced-motion) est détecté. À la place, le navigateur échangera simplement les éléments DOM sans animation.

@@ -7,135 +7,195 @@ i18nReady: true
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import { Steps } from '@astrojs/starlight/components';
 
-[Zerops](https://zerops.io/)는 SSR Astro 사이트를 배포하는 데 사용할 수 있는 개발 우선 클라우드 플랫폼입니다.
+[Zerops](https://zerops.io/)는 Static 및 SSR Astro 사이트를 배포하는 데 사용할 수 있는 개발 우선 클라우드 플랫폼입니다.
 
-이 가이드는 Node.js 어댑터를 사용하여 Astro 프로젝트를 Zerops에 배포하는 과정을 안내합니다.
+이 가이드는 Zerops에서 Static 및 SSR Astro 사이트를 설정하고 배포하는 과정을 안내합니다.
 
-## 전제조건
+:::tip[Astro x Zerops 빠르게 시작하기]
 
-- **[`@astrojs/node` SSR 어댑터](/ko/guides/integrations-guide/node/)를 사용하는 Astro 프로젝트**
-- **Zerops 계정** - 아직 계정이 없다면 무료로 [Zerops 계정을 생성](https://zerops.io/)할 수 있습니다.
+아무것도 설치하거나 설정하지 않고 Zerops에서 Astro 실행을 테스트하고 싶나요? [Zerops x Astro - Static](https://github.com/zeropsio/recipe-astro-static) 또는 [Zerops x Astro - Node.js SSR](https://github.com/zeropsio/recipe-astro-nodejs) 저장소를 사용하면 예시 Astro 사이트를 클릭 한 번으로 배포할 수 있습니다.
 
-:::tip[템플릿으로 시작]
-[Zerops x Astro - Node.js 예시 앱](https://github.com/zeropsio/recipe-astro-nodejs)을 [Zerops 대시보드](https://app.zerops.io/dashboard/projects)로 직접 가져와 한 번의 클릭으로 배포할 수 있습니다!
-
-```yaml
-project:
-  name: astro
-services:
-  - hostname: astronode
-    type: nodejs@20
-    buildFromGit: https://github.com/zeropsio/recipe-astro-nodejs
-    ports:
-      - port: 4321
-        httpSupport: true
-    enableSubdomainAccess: true
-    minContainers: 1
-```
 :::
 
-## Zerops Node.js 프로젝트 생성
+Zerops에서 앱을 실행하려면 다음 두 단계가 필요합니다.
+1. 프로젝트 생성
+2. 빌드 및 배포 파이프라인 트리거
 
-[Zerops `project add` 마법사](https://app.zerops.io/dashboard/project-add)를 통해 또는 `.yaml`을 사용하여 Astro 사이트를 가져와 Astro 사이트를 위한 Node.js 서비스를 만들 수 있습니다.
+:::note
+하나의 Zerops 프로젝트에는 여러 Astro 사이트가 포함될 수 있습니다.
+:::
 
-다음 YAML 구조는 `hellothere`라는 Node.js v20 서비스를 사용하여 `my-astro-sites`라는 프로젝트를 설정합니다. 하나의 Zerops 프로젝트에는 여러 Astro 앱이 포함될 수 있습니다.
+## Zerops의 Astro Static 사이트
+
+### Astro Static용 프로젝트 및 서비스 만들기
+프로젝트와 서비스는 [`Project add`](https://app.zerops.io/dashboard/project-add) 마법사를 통해 추가하거나 다음 yaml 구조를 사용하여 가져올 수 있습니다.
 
 ```yaml
+# 전체 참조를 확인하기 위해 https://docs.zerops.io/references/import 를 방문하세요.
 project:
-  name: my-astro-sites
+  name: recipe-astro
 services:
-  - hostname: hellothere
-    type: nodejs@20
-    ports:
-      - port: 4321
-        httpSupport: true
-    minContainers: 1
+  - hostname: app
+    type: static
 ```
 
+그러면 `app`이라는 Zerops Static 서비스를 사용하여 `recipe-astro`라는 프로젝트가 생성됩니다.
 
-## Zerops에 앱 빌드 및 배포
+### Astro Static 사이트 배포
 
-이제 Zerops에서 Node.js 서비스를 준비했으므로 프로젝트 루트에 `zerops.yml` 파일을 생성하여 Zerops에서 파이프라인 빌드 및 배포를 트리거해야 합니다.
-
-다음 예시에서는 호스트 이름이 `hellothere`인 예시 프로젝트에 필요한 빌드 및 실행 작업을 구성하는 방법을 보여줍니다.
+Zerops에게 사이트 빌드 및 실행 방법을 알려주려면 'zerops.yml'을 저장소에 추가하세요.
 
   <PackageManagerTabs>
     <Fragment slot="npm">
     ```yaml title="zerops.yml"
-      zerops:
-        - setup: hellothere
-          build:
-            base: nodejs@20
-            buildCommands:
-              - npm i
-              - npm run build
-            deploy:
-              - dist
-              - package.json
-              - node_modules
-            cache:
-              - node_modules
-              - package-lock.json
-          run:
-            start: node dist/server/entry.mjs
-          envVariables:
-            HOST: 0.0.0.0
-            NODE_ENV: production
+    # 전체 참조를 확인하기 위해 https://docs.zerops.io/references/zeropsyml 를 방문하세요.
+    zerops:
+      - setup: app
+        build:
+          base: nodejs@20
+          buildCommands:
+            - npm i
+            - npm build
+          deployFiles:
+            - dist/~
+        run:
+          base: static
     ```
     </Fragment>
     <Fragment slot="pnpm">
     ```yaml title="zerops.yml"
-      zerops:
-        - setup: hellothere
-          build:
-            base: nodejs@20
-            buildCommands:
-              - pnpm i
-              - pnpm run build
-            deploy:
-              - dist
-              - package.json
-              - node_modules
-            cache:
-              - node_modules
-              - pnpm-lock.yaml
-          run:
-            start: node dist/server/entry.mjs
-          envVariables:
-            HOST: 0.0.0.0
-            NODE_ENV: production
+    # 전체 참조를 확인하기 위해 https://docs.zerops.io/references/zeropsyml 를 방문하세요.
+    zerops:
+      - setup: app
+        build:
+          base: nodejs@20
+          buildCommands:
+            - pnpm i
+            - pnpm build
+          deployFiles:
+            - dist/~
+        run:
+          base: static
     ```
     </Fragment>
     <Fragment slot="yarn">
     ```yaml title="zerops.yml"
-      zerops:
-        - setup: astronode
-          build:
-            base: nodejs@20
-            buildCommands:
-              - yarn
-              - yarn build
-            deploy:
-              - dist
-              - package.json
-              - node_modules
-            cache:
-              - node_modules
-              - yarn.lock
-          run:
-            start: node dist/server/entry.mjs
-          envVariables:
-            HOST: 0.0.0.0
-            NODE_ENV: production
+    # 전체 참조를 확인하기 위해 https://docs.zerops.io/references/zeropsyml 를 방문하세요.
+    zerops:
+      - setup: app
+        build:
+          base: nodejs@20
+          buildCommands:
+            - yarn
+            - yarn build
+          deployFiles:
+            - dist/~
+        run:
+          base: static
     ```
     </Fragment>
   </PackageManagerTabs>
 
-### GitHub / GitLab을 사용하는 파이프라인 트리거
-브랜치 푸시 또는 새 릴리스에 대한 지속적인 배포를 설정하려면 Node.js 서비스 세부 정보로 이동하여 Zerops 서비스를 GitHub 또는 GitLab 저장소와 연결하세요.
+이제 [Zerops CLI를 사용](#zerops-cli-zcli를-사용하는-파이프라인-트리거)하거나 서비스 세부 세부 사항에서 [GitHub](https://docs.zerops.io/references/github-integration/) / [GitLab](https://docs.zerops.io/references/gitlab-integration) 저장소와 `app` 서비스를 연결하여 빌드 및 배포 파이프라인을 트리거할 수 있습니다.
 
+## Zerops의 Astro SSR 사이트
 
-### Zerops CLI (zcli)를 사용하는 파이프라인 트리거
+### Astro SSR (Node.js)용 프로젝트 및 서비스 만들기
+프로젝트와 서비스는 [`Project add`](https://app.zerops.io/dashboard/project-add) 마법사를 통해 추가하거나 다음 yaml 구조를 사용하여 가져올 수 있습니다.
+
+```yaml
+# 전체 참조를 확인하기 위해 https://docs.zerops.io/references/import 를 방문하세요.
+project:
+  name: recipe-astro
+services:
+  - hostname: app
+    type: nodejs@20
+```
+
+그러면 `app`이라는 Zerops Node.js 서비스를 사용하여 `recipe-astro`라는 프로젝트가 생성됩니다.
+
+### Astro SSR 사이트 배포
+
+`standalone` 모드에서 공식 [Astro Node.js 어댑터](/ko/guides/integrations-guide/node/)를 사용하여 사이트를 빌드하고 실행하는 방법을 Zerops에게 알리려면 저장소에 `zerops.yml` 파일을 추가하세요.
+
+  <PackageManagerTabs>
+    <Fragment slot="npm">
+    ```yaml title="zerops.yml"
+    # 전체 참조를 확인하기 위해 https://docs.zerops.io/references/zeropsyml 를 방문하세요.
+      - setup: app
+        build:
+          base: nodejs@20
+          buildCommands:
+            - npm i
+            - npm run build
+          deployFiles:
+            - dist
+            - package.json
+            - node_modules
+        run:
+          base: nodejs@20
+          ports:
+            - port: 3000
+              httpSupport: true
+          envVariables:
+            PORT: 3000
+            HOST: 0.0.0.0
+          start: npm start
+    ```
+    </Fragment>
+    <Fragment slot="pnpm">
+    ```yaml title="zerops.yml"
+    # 전체 참조를 확인하기 위해 https://docs.zerops.io/references/zeropsyml 를 방문하세요.
+      - setup: app
+        build:
+          base: nodejs@20
+          buildCommands:
+            - pnpm i
+            - pnpm run build
+          deployFiles:
+            - dist
+            - package.json
+            - node_modules
+        run:
+          base: nodejs@20
+          ports:
+            - port: 3000
+              httpSupport: true
+          envVariables:
+            PORT: 3000
+            HOST: 0.0.0.0
+          start: pnpm start
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```yaml title="zerops.yml"
+    # 전체 참조를 확인하기 위해 https://docs.zerops.io/references/zeropsyml 를 방문하세요.
+      - setup: app
+        build:
+          base: nodejs@20
+          buildCommands:
+            - yarn
+            - yarn build
+          deployFiles:
+            - dist
+            - package.json
+            - node_modules
+        run:
+          base: nodejs@20
+          ports:
+            - port: 3000
+              httpSupport: true
+          envVariables:
+            PORT: 3000
+            HOST: 0.0.0.0
+          start: yarn start
+    ```
+    </Fragment>
+  </PackageManagerTabs>
+
+이제 [Zerops CLI를 사용](#zerops-cli-zcli를-사용하는-파이프라인-트리거)하거나 서비스 세부 세부 사항에서 [GitHub](https://docs.zerops.io/references/github-integration/) / [GitLab](https://docs.zerops.io/references/gitlab-integration) 저장소와 `app` 서비스를 연결하여 빌드 및 배포 파이프라인을 트리거할 수 있습니다.
+
+## Zerops CLI (zcli)를 사용하는 파이프라인 트리거
 
 <Steps>
 1. Zerops CLI를 설치합니다.
@@ -158,7 +218,14 @@ services:
 		```
 </Steps>
 
-## Resources
+## 리소스
+### 공식
 
+- [Zerops 계정 생성](https://app.zerops.io/registration)
+- [Zerops 문서](https://docs.zerops.io)
+- [Zerops Astro 레시피](https://app.zerops.io/recipe/astro)
+
+### 커뮤니티
 - [3분 안에 Astro를 Zerops에 배포](https://medium.com/@arjunaditya/how-to-deploy-astro-to-zerops-4230816a62b4)
-- [Zerops Node.js 서비스 생성에 대한 자세한 가이드](https://docs.zerops.io/nodejs/how-to/create)
+- [원클릭 배포로 Zerops에서 Node.js를 사용하여 Astro SSG 배포](https://youtu.be/-4KTa4VWtBE)
+- [원클릭 배포로 Zerops에서 Node.js를 사용하여 Astro SSR 배포](https://youtu.be/eR6b_JnDH6g)

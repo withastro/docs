@@ -8,14 +8,17 @@ import RecipeLinks from "~/components/RecipeLinks.astro"
 import Since from '~/components/Since.astro'
 import ReadMore from '~/components/ReadMore.astro'
 
-Astro utilise un **routage basé sur les fichiers** pour générer vos URLs de construction en fonctionde la disposition des fichiers dans le répertoire `src/pages/` de votre projet. Lorsqu'un fichier est ajouté au répertoire `src/pages` de votre projet, il est automatiquement disponible en tant que route basée sur son nom de fichier.
+Astro utilise **le routage basé sur les fichiers** pour générer vos URLs de construction en fonction de la disposition des fichiers dans le répertoire `src/pages/` de votre projet.
 
 ## Naviguer entre les pages
 
-Astro utilise des éléments HTML standard [`<a>` elements](https://developer.mozilla.org/fr-FR/docs/Web/HTML/Element/a) pour naviguer entre les itinéraires. Il n'y a pas de composant `<Link>` spécifique au cadre de travail.
+Astro utilise des éléments HTML standard [`<a>`](https://developer.mozilla.org/fr-FR/docs/Web/HTML/Element/a) pour naviguer entre les itinéraires. Il n'y a pas de composant `<Link>` spécifique au cadre de travail.
 
 ```astro title="src/pages/index.astro"
-<p>En savoir plus <a href="/about/">a propos</a> d'Astro!</p>
+<p>En savoir plus <a href="/about/">about</a> Astro !</p>
+
+<!-- Avec `base: "/docs"` de configuré  -->
+<p>Apprenez-en plus dans notre section <a href="/docs/reference/">référence</a> !</p> 
 ```
 
 ## Routes Statiques
@@ -127,7 +130,7 @@ Dans cet exemple, une requête pour `/withastro/astro/tree/main/docs/public/favi
 
 #### Exemple : Pages dynamiques à plusieurs niveaux
 
-Ici, nous utilisons un paramètre REST (`[...slug]`) et la fonctionnalité [`props`](/fr/reference/api-reference/#data-passing-with-props) de `getStaticPaths()` pour générer des pages pour des slugs de différentes profondeurs.
+Ici, nous utilisons un paramètre REST (`[...slug]`) et la fonctionnalité [`props`](/fr/reference/api-reference/#transfert-de-données-avec-props) de `getStaticPaths()` pour générer des pages pour des slugs de différentes profondeurs.
 
 ```astro title="src/pages/[...slug].astro"
 ---
@@ -243,7 +246,9 @@ export default defineConfig({
 });
 ```
 
-Ces redirections suivent les mêmes règles que les routes basées sur des fichiers. Les routes dynamiques sont autorisées tant que les nouvelles et les anciennes routes contiennent les mêmes paramètres, par exemple :
+Ces redirections suivent [les mêmes règles de priorité que les routes basées sur des fichiers](#ordre-de-priorité-des-routes) et auront toujours une priorité inférieure à celle d'une page existante ayant le même nom dans votre projet. Par exemple, `/ancienne-page` ne redirigera pas vers `/nouvelle-page` si votre projet contient le fichier `src/pages/ancienne-page.astro`.
+
+Les routes dynamiques sont autorisées tant que les nouvelles et les anciennes routes contiennent les mêmes paramètres, par exemple :
 
 ```js
 {
@@ -290,6 +295,68 @@ if (!isLoggedIn(cookie)) {
 </html>
 ```
 
+## Réécritures
+
+<p><Since v="4.13.0" /></p>
+
+Une réécriture vous permet de servir une route différente sans rediriger le navigateur vers une page différente. Le navigateur affichera l'adresse originale dans la barre d'URL, mais il affichera à la place le contenu de l'URL fournie à [`Astro.rewrite()`](/fr/reference/api-reference/#astrorewrite).
+
+:::tip
+Pour un contenu qui a été déplacé de façon permanente, ou pour diriger l'utilisateur vers une page différente avec une nouvelle URL (par exemple, le tableau de bord d'un utilisateur après sa connexion), utilisez plutôt une [redirection](#redirections).
+:::
+
+Les réécritures peuvent être utiles pour afficher le même contenu sur plusieurs chemins (par exemple, `/products/shoes/men/` et `/products/men/shoes/`) sans avoir à maintenir deux fichiers sources différents.
+
+Les réécritures sont également utiles à des fins de référencement et d'expérience utilisateur. Elles vous permettent d'afficher un contenu qui, autrement, nécessiterait de rediriger votre visiteur vers une autre page ou renverrait un statut 404. Une utilisation courante des réécritures consiste à afficher le même contenu localisé pour différentes variantes d'une langue.
+
+L'exemple suivant utilise une réécriture pour afficher la version `/es/` d'une page lorsque le chemin URL `/es-CU/` (espagnol cubain) est visité. Lorsqu'un visiteur se rend à l'URL `/es-cu/articles/introduction`, Astro affiche le contenu généré par le fichier `src/pages/es/articles/introduction.astro`.
+
+```astro title="src/pages/es-cu/articles/introduction.astro"
+---
+return Astro.rewrite("/es/articles/introduction")
+---
+```
+
+Utilisez `context.rewrite()` dans vos fichiers de destination pour rediriger vers une autre page :
+
+```js title="src/pages/api.js"
+export function GET(context) {
+  if (!context.locals.allowed) {
+    return context.rewrite("/")
+  }
+}
+```
+
+Si l'URL passée à `Astro.rewrite()` émet une erreur d'exécution, Astro affichera l'erreur en superposition dans le cadre du développement et renverra un code d'état 500 dans le cadre de la production. Si l'URL n'existe pas dans votre projet, un code d'état 404 sera retourné.
+
+Vous pouvez intentionnellement créer une réécriture pour afficher votre page `/404`, par exemple pour indiquer qu'un produit de votre boutique e-commerce n'est plus disponible :
+
+```astro title="src/pages/[item].astro"
+---
+const { item } = Astro.params;
+if (!itemExists(item)) {
+  return Astro.rewrite("/404")
+}
+---
+<div>...</div>
+``` 
+
+Vous pouvez également procéder à une réécriture conditionnelle sur la base d'un statut de réponse HTTP, par exemple pour afficher une certaine page de votre site lorsque vous visitez une URL qui n'existe pas :
+
+```js title="src/middleware.mjs"
+export const onRequest = async (context, next) => {
+  const response = await next();
+  if (response.status === 404) {
+    return context.rewrite("/");
+  }
+  return response;
+}
+``` 
+
+Avant d'afficher le contenu du chemin de réécriture spécifié, la fonction `Astro.rewrite()` déclenche une nouvelle phase complète d'affichage. Celle-ci ré-exécute tout middleware pour la nouvelle route/demande.
+
+<ReadMore>Voir la référence de l'API [`Astro.rewrite()`](/fr/reference/api-reference/#astrorewrite) pour plus d'informations.</ReadMore>
+
 ## Ordre de Priorité des Routes
 
 Il est possible que plusieurs routes définies tentent de construire le même chemin d'URL. Par exemple, toutes ces routes pourraient construire `/posts/create` :
@@ -311,6 +378,7 @@ Astro a besoin de savoir quelle route doit être utilisée pour construire la pa
 - Les routes dynamiques utilisant des paramètres nommés sont prioritaires sur les paramètres restants. Par exemple, `/posts/[page].astro` est prioritaire sur `/posts/[...slug].astro`.
 - Les routes dynamiques pré-rendues ont la priorité sur les routes dynamiques du serveur.
 - Les points de terminaison ont la priorité sur les pages.
+- Les routes basées sur des fichiers ont priorité sur les redirections.
 - Si aucune des règles ci-dessus ne décide de l'ordre, les routes sont triées par ordre alphabétique en fonction de la "locale" par défaut de votre installation Node.
 
 Dans l'exemple ci-dessus, voici quelques exemples de la manière dont les règles feront correspondre une URL demandée à la route utilisée pour construire le code HTML ::
@@ -401,20 +469,26 @@ interface Page<T = any> {
 	total: number;
 	/** Numéro de la page actuelle, à partir de 1 */
 	currentPage: number;
-	/** Nombre d'éléments par page (par défaut : 25) */
+	/** Nombre d'éléments par page (par défaut : 10) */
 	size: number;
 	/** Nombre de la dernière page */
 	lastPage: number;
 	url: {
 		/** URL de la page actuelle */
 		current: string;
-		/** URL de la page précédente (si il y en a une) */
+		/** URL de la page précédente (s'il y en a une) */
 		prev: string | undefined;
-		/** URL de la page suivante (si il y en a une) */
+		/** URL de la page suivante (s'il y en a une) */
 		next: string | undefined;
+		/** url de la première page (si la page actuelle n'est pas la première page) */
+		first: string | undefined;
+		/** url de la dernière page (si la page actuelle n'est pas la dernière) */
+		last: string | undefined;
 	};
 }
 ```
+
+<ReadMore>En savoir plus sur [la prop `page` de pagination](/fr/reference/api-reference/#la-propriété-page-de-pagination).</ReadMore>
 
 ### Pagination Imbriquée
 

@@ -10,11 +10,13 @@ import ReadMore from '~/components/ReadMore.astro'
 
 **Las plantillas** son [componentes de Astro](/es/basics/astro-components/) para proporcionar una estructura reutilizable, como una plantilla de página.
 
-Convencionalmente usamos el término "plantilla" para proporcional elementos compartidos en la interfaz del usuario por medio de de páginas, como encabezados, barras de navegación y pies de página. Una plantilla proporciona a [Astro, Markdown o páginas MDX](/es/basics/astro-pages/) con:
+Convencionalmente usamos el término "plantilla" para proporcional elementos compartidos en la interfaz del usuario por medio de páginas, como encabezados, barras de navegación y pies de página. Una plantilla proporciona a [Astro, Markdown o páginas MDX](/es/basics/astro-pages/) con:
 - una **página shell** (con estiquetas  `<html>`, `<head>` y `<body>`)
 - un [**`<slot/>`**](/es/basics/astro-components/#slots) para especificar dónde colocar el contenido de la página.
 
 Pero, ¡no hay nada especial acerca de los componentes plantilla! Pueden [aceptar props](/es/basics/astro-components/#props-de-componentes) e [importar y usar otros componentes](/es/basics/astro-components/#estructura-de-un-componente) como cualquier otro componente de Astro. Pueden incluir [componentes de framework](/es/guides/framework-components/) y [scripts de lado del cliente](/es/guides/client-side-scripts/). Ni siquiera tienen que proporcionar un plantilla entera, en su lugar se pueden utilizar como plantillas parciales.
+
+Sin embargo, si un componente de plantilla contiene una página shell, su elemento `<html>` debe ser el padre de todos los demás elementos en el componente. Todos los elementos [`<style>`](/es/guides/styling/#estilando-en-astro) o [`<script>`](/es/guides/client-side-scripts/#usando-script-en-astro) deben estar encerrados por las etiquetas `<html>`.
 
 Los componentes de plantilla se colocan comúnmente en la carpeta `src/layouts` en tu proyecto, pero esto no es un requisito; puedes elegir ubicarlos en cualquier lugar de tu proyecto. Incluso puedes colocar las plantillas junto a tus páginas mediante [el uso de un prefijo `_` en los nombres de las plantillas](/es/guides/routing/#excluyendo-páginas).
 
@@ -45,6 +47,11 @@ const { title } = Astro.props;
     </article>
     <Footer />
   </body>
+  <style>
+    h1 {
+      font-size: 2rem;
+    }
+  </style>
 </html>
 ```
 
@@ -229,22 +236,33 @@ const { title, fancyJsHelper } = Astro.props;
 
 <ReadMore>Aprende más sobre el soporte de Markdown y MDX de Astro en nuestra [guía de Markdown/MDX](/es/guides/markdown-content/).</ReadMore>
 
-## Usando una plantilla para `.md`, `.mdx` y `.astro`
+### Usando TypeScript con plantillas
 
-Una sola plantilla Astro puede ser escrita para recibir el objeto `frontmatter` de archivos `.md` y `.mdx`, así como cualquier propiedad nombrada pasada desde archivos `.astro`.
+Cualquier plantilla de astro puede ser modificada para introducir seguridad de tipos y autocompletado proporcionando los tipos para tus props:
 
-En el ejemplo a continuación, la plantilla mostrará el título de la página ya sea desde una propiedad YAML `title` del frontmatter o desde un componente Astro que pasa un atributo `title`:
-
-```astro /{?title}?/ /Astro.props[.a-z]*/
+```astro ins={2-7} title="src/components/MyLayout.astro"
 ---
-// src/components/MyLayout.astro
-const { title } = Astro.props.frontmatter || Astro.props;
+interface Props { 
+	title: string;
+  description: string;
+  publishDate: string;
+  viewCount: number;
+}
+const { title, description, publishDate, viewCount } = Astro.props;
 ---
-<html>
-  <head></head>
-  <body>
-    <h1>{title}</h1>
-    <slot />
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="description" content={description}>
+    <title>{title}</title>
+  </head>
+    <header>
+      <p>Published on {publishDate}</p>
+      <p>Viewed by {viewCount} folks</p>
+    </header>
+    <main>
+      <slot />
+    </main>
   </body>
 </html>
 ```

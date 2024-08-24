@@ -20,7 +20,7 @@ Statamic est livré avec une [API REST](https://statamic.dev/rest-api) et une [A
 Pour commencer, vous devez disposer des éléments suivants :
 
 1. Les API REST et GraphQL ne sont disponibles que dans la version pro de Statamic. Vous pouvez essayer la version Pro gratuitement sur votre [machine locale](https://statamic.dev/tips/how-to-enable-statamic-pro#trial-mode).
-2. **Un projet Astro** - Si vous avez besoin d'un projet Astro, notre [Guide d'installation](/fr/install/auto/) vous permettra d'être rapidement opérationnel.
+2. **Un projet Astro** - Si vous avez besoin d'un projet Astro, notre [Guide d'installation](/fr/install-and-setup/) vous permettra d'être rapidement opérationnel.
 3. **Un site Statamic** - Si vous avez besoin d'un site Statamic, [ce guide](https://statamic.dev/quick-start-guide) vous aidera à démarrer.
 N'oubliez pas d'activer l'[API REST](https://statamic.dev/rest-api#enable-the-api) ou l'[API GraphQL](https://statamic.dev/graphql#enable-graphql) en ajoutant `STATAMIC_API_ENABLED=true` ou `STATAMIC_GRAPHQL_ENABLED=true` dans le fichier `.env` et d'activer les ressources nécessaires dans le fichier de configuration de l'API.
 
@@ -63,28 +63,45 @@ Par exemple, pour afficher une liste de titres et leur contenu à partir d'une [
 
 ```astro title="src/pages/index.astro
 ---
-const res = await fetch("https://[YOUR-SITE]/graphql/",
-  {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({
-      query: `
-        posts: entries(collection: "posts", sort: "date desc") {
-          data {
-            title
-            ... on Entry_Posts_Post {
+const graphqlQuery = {
+  query: `
+    query Entries($page: Int, $locale: String) {
+      entries(
+        collection: "posts"
+        sort: "date asc"
+        limit: 20
+        page: $page
+        filter: { locale: $locale }
+      ) {
+        current_page
+        has_more_pages
+        data {
+          title
+          ... on Entry_Posts_Post {
               content
             }
-          }
         }
-      `
-    }),
-  });
-const entries = await res.json()
+      }
+    }
+  `,
+  variables: {
+    page: page,
+    locale: locale,
+  },
+};
+
+const res = await fetch("https://[YOUR-SITE]/graphql", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(graphqlQuery),
+})
+
+const { data } = await res.json();
+const entries = data?.entries;
 ---
 <h1>Astro + Statamic 🚀</h1>
 {
-  entries.data.posts.data.map((post) => (
+  entries.data.map((post) => (
       <h2 set:html={post.title} />
       <p set:html={post.content} />
   ))

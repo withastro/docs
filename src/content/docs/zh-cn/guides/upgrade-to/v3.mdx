@@ -68,8 +68,8 @@ export default defineConfig({
 
 这些特性现在默认可用：
 
-- 视图过渡动画用于动画页面过渡和持久化组件。如果你使用此实验性标志，请查看 [视图过渡动画 API 重大更改及升级建议](/zh-cn/guides/view-transitions/#从-v2x-升级到-v30)。
-- 新的图像服务 API `astro:assets` 用于在 Astro 中使用图像，包括新的 `<Image />` 组件和 `getImage()` 函数。**无论你是否使用此实验性标志**，请阅读详细的 [图像升级建议](/zh-cn/guides/images/#从-v2x-升级到-v30) ，以了解这可能如何影响你的项目。
+- 视图过渡动画用于动画页面过渡和持久化组件。如果你使用此实验性标志，请查看 [视图过渡动画 API 重大更改及升级建议](#升级视图过渡动画到-v3)。
+- 新的图像服务 API `astro:assets` 用于在 Astro 中使用图像，包括新的 `<Image />` 组件和 `getImage()` 函数。**无论你是否使用此实验性标志**，请阅读详细的 [图像升级建议](#升级图像到-v3) ，以了解这可能如何影响你的项目。
 
 在 [3.0 博客文章](https://astro.build/blog/astro-3/) 阅读更多关于这两个令人兴奋的功能和更多其他内容！
 
@@ -129,9 +129,9 @@ Astro v3.0 完全从代码库中删除了这个集成。Astro 图像的新解决
 
 移除 `@astrojs/image` 集成。你不仅需要卸载集成，还需要更新或删除任何导入语句和现有的 `<Image />` 和 `<Picture />` 组件。你可能还需要配置一个首选的默认图像处理服务。
 
-你可以在我们的 [图像指南](/zh-cn/guides/images/#移除-astrojsimage) 中找到完整的、逐步的删除旧图像集成的说明。
+你可以在我们的图像指南中找到 [完整的、逐步的删除旧图像集成的说明](#移除-astrojsimage)。
 
-迁移 `astro:assets` 还将带来一些你现在可能希望使用的新的图像选项和功能。请参阅完整的 [v3.0 图像升级建议](/zh-cn/guides/images/#从-v2x-升级到-v30) 了解完整的详情！
+迁移 `astro:assets` 还将带来一些你现在可能希望使用的新的图像选项和功能。请参阅完整的 [v3.0 图像升级建议](#升级图像到-v3) 了解完整的详情！
 
 ```js del={3,7}
 // astro.config.mjs
@@ -196,7 +196,7 @@ Astro v3.0 完全删除了这个导出。
 
 #### 我应该怎么做？
 
-如果你正在使用 `astro:content` 中废弃的 `image()`，请删除它，因为它已经不存在了。请通过 [来自 `schema` 的 `image` 帮助程序](/zh-cn/guides/images/#更新内容集合结构) 来验证图像。
+如果你正在使用 `astro:content` 中废弃的 `image()`，请删除它，因为它已经不存在了。请通过 [来自 `schema` 的 `image` 帮助程序](#更新内容集合结构) 来验证图像。
 
  ```ts title="src/content/config.ts" del={1} ins={2} "({ image })"
 import { defineCollection, z, image } from "astro:content";
@@ -553,9 +553,9 @@ Astro v3.0 使用大写函数名称，使用 `DELETE` 而不是 `del`。
 - `all` 改为 `ALL`
 - `del` 改为 `DELETE`
 
-```js title="endpoint.ts" del={1} ins={2}
-export function get() {
-export function GET() {
+```diff lang="js" title="endpoint.ts"
+-export function get() {
++export function GET() {
     return new Response(JSON.stringify({ "title": "Bob's blog" }));
 }
 ```
@@ -666,6 +666,319 @@ const result = await transform(source, {
   internalURL: 'astro/compiler-runtime',
   // ...
 });
+```
+## 功能升级
+
+### 升级图像到 v3
+
+`astro:assets` 不再是 Astro v3.0 中的实验性标志。
+
+`<Image />` 现在是内置组件，之前的 `@astrojs/image` 集成已被删除。
+
+当你从早期版本升级你的 Astro 项目时，这些和其他伴随的更改，可能会导致一些破坏性的变化。
+
+请根据需要按照以下说明将 Astro v2.x 项目升级到 v3.0。
+
+#### 从 `experimental.assets` 升级
+
+如果你之前启用了 `astro:assets` 的实验性标志，你需要更新你的项目到 Astro v3.0，它现在默认包含了 assets 功能。
+
+##### 移除 `experimental.assets` 标志
+
+移除实验性标志：
+
+```js title="astro.config.mjs" del={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    assets: true
+  }
+});
+```
+
+如果需要，还可以更新你的 `src/env.d.ts` 文件，将 `astro/client-image` 引用替换为 `astro/client`：
+
+```ts title="src/env.d.ts" del={1} ins={2}
+/// <reference types="astro/client-image" />
+/// <reference types="astro/client" />
+```
+
+##### 移除`~/assets` 导入别名
+
+这个导入别名不再默认包含在 `astro:assets` 中。如果你之前使用这个别名，你必须将它们转换为相对文件路径，或者 [创建你自己的导入别名](/zh-cn/guides/imports/#别名)。
+
+```astro title="src/pages/posts/post-1.astro" del={2} ins={3}
+---
+import rocket from '~/assets/rocket.png';
+import rocket from '../../assets/rocket.png';
+---
+```
+
+##### 为 Cloudflare, Deno, Vercel Edge 和 Netlify Edge 添加简单的资源支持
+
+  Astro v3.0 允许 `astro:assets` 在 Cloudflare、Deno、Vercel Edge 和 Netlify Edge 中无错误地工作，这些环境不支持 Astro 的内置 Squoosh 和 Sharp 图像优化。请注意，Astro 不会在这些环境中执行任何图像转换和处理。但是，你仍然可以享受使用 `astro:assets` 的其他好处，包括没有累积布局移位（CLS）、强制执行的 `alt` 属性和一致的创作体验。
+
+  如果你之前因为这些限制而避免使用 `astro:assets`，现在你可以在没有问题的情况下使用它们。你可以配置无操作图像服务来显式地选择这种行为：
+  
+  ```js title="astro.config.mjs" ins={4-8}
+  import { defineConfig } from 'astro/config';
+
+  export default defineConfig({
+    image: {
+      service: {
+        entrypoint: 'astro/assets/services/noop'
+      }
+    }
+  });
+  ```
+
+#### 决定在哪里存储你的图像
+
+请参阅 [图像指南](/zh-cn/guides/images/#在哪里存储图像) 来帮助你决定在哪里存储你的图像。你可能希望利用 `astro:assets` 带来的灵活性，来存储你的图像的新选项。例如，现在可以使用标准的 Markdown `![alt](src)` 语法，在 Markdown、MDX 和 Markdoc 中引用项目 `src/` 中的相对图像。
+
+#### 更新现有的 `<img>` 标签
+
+以前，导入图像将返回一个简单的 `string`，其中包含图像的路径。现在，导入的图像资源与以下签名相匹配：
+
+```ts
+interface ImageMetadata {
+  src: string;
+  width: number;
+  height: number;
+  format: string;
+}
+```
+
+你必须更新任何现有 `<img>` 标签的 `src` 属性（包括任何 [UI 框架组件中的图像](/zh-cn/guides/images/#框架组件中的图像)），你也可以更新从导入的图像中获得的其他属性。
+
+```astro title="src/components/MyComponent.astro" ".src" ".width" ".height" del={4} ins={6}
+---
+import rocket from '../images/rocket.svg';
+---
+<img src={rocket} width="250" height="250" alt="太空中的火箭飞船。" />
+
+<img src={rocket.src} width={rocket.width} height={rocket.height} alt="太空中的火箭飞船。" />
+```
+
+#### 更新你的 Markdown, MDX, 和 Markdoc 文件
+
+现在可以使用标准的 Markdown `![alt](src)` 语法，在 Markdown、MDX 和 Markdoc 中引用项目 `src/` 中的相对图像。
+
+这允许你将图像从 `public/` 目录移动到你的项目 `src/`，它们现在将被处理和优化。你现有的 `public/` 中的图像和远程图像仍然有效，但不会被 Astro 的构建过程优化。
+
+```md title="src/pages/posts/post-1.md" "/_astro" ".hash" "../../assets/"
+# 我的 Markdown 页面
+
+<!-- 现在可以使用本地图像 -->
+![繁星点点的夜空](../../images/stars.png)
+
+<!-- 将你的图像放在你的内容旁边！ -->
+![繁星点点的夜空](./stars.png)
+```
+
+如果你需要对图像属性做更多的控制，我们建议使用 `.mdx` 文件格式，除了 Markdown 语法，你还可以使用 Astro 的 `<Image />` 组件或 JSX `<img />` 标签。使用 [MDX 集成](/zh-cn/guides/integrations-guide/mdx/) 为 Astro 添加对 MDX 的支持。
+
+#### 移除 `@astrojs/image`
+
+如果你在 Astro v2.x 中使用了图像集成，请完成以下步骤：
+
+<Steps>
+1. 移除 `@astrojs/image` 集成。
+
+    你必须通过卸载并从你的 `astro.config.mjs` 文件中删除它，来 [移除集成](/zh-cn/guides/integrations-guide/#移除集成)。
+
+    ```js del={3,7}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import image from '@astrojs/image';
+
+    export default defineConfig({
+      integrations: [
+        image(),
+      ]
+    })
+    ```
+2. 更新类型（如果需要的话）。
+
+    如果你在 `src/env.d.ts` 中为 `@astrojs/image` 配置了特殊类型，并且如果你的升级到 v3 却没有完成这一步，你可能需要将它们改回 Astro 的默认类型。
+
+		```ts title="src/env.d.ts" del={1} ins={2}
+		 /// <reference types="@astrojs/image/client" />
+		 /// <reference types="astro/client" />
+		```
+
+    同样地，如果需要的话，更新 `tsconfig.json`：
+
+		```json title="tsconfig.json" del={3} ins={4}
+		{
+			"compilerOptions": {
+			  "types": ["@astrojs/image/client"]
+			  "types": ["astro/client"]
+			}
+		}
+		```
+
+3. 迁移任何现有的 `<Image />` 组件。
+
+    将所有 `import` 语句从 `@astrojs/image/components` 更改为 `astro:assets`，以便使用新的内置 `<Image />` 组件。
+
+    移除任何当前不[支持的图像属性](/zh-cn/guides/images/#属性)。
+
+    例如，`aspectRatio` 不再支持，因为它现在可以从 `width` 和 `height` 属性中自动推断出来。
+
+      ```astro title="src/components/MyComponent.astro" del= {2,11} ins={3}
+      ---
+      import { Image } from '@astrojs/image/components';
+      import { Image } from 'astro:assets';
+      import localImage from '../assets/logo.png';
+      const localAlt = 'The Astro Logo';
+      ---
+
+      <Image
+        src={localImage}
+        width={300}
+        aspectRatio="16:9"
+        alt={localAlt}
+      />
+      ```
+
+4. 选择一个默认图像服务。
+
+    [Sharp](https://github.com/lovell/sharp) 现在是 `astro:assets` 的默认图像服务。如果你想使用 Sharp，无需任何配置。
+
+    如果你想使用 [Squoosh](https://github.com/GoogleChromeLabs/squoosh) 来转换你的图像，请使用下面的 `image.service` 选项更新你的配置：
+
+    ```js title="astro.config.mjs" ins={4-6}
+    import { defineConfig, squooshImageService } from 'astro/config';
+
+    export default defineConfig({
+      image: {
+        service: squooshImageService(),
+      },
+    });
+    ```
+</Steps>
+
+#### 更新内容集合结构
+
+你现在可以在 frontmatter 中声明一个与内容集合条目相关联的图像，例如博客文章的封面图像，使用相对于当前文件夹的路径：
+
+内容集合中新的 `image` 助手可让你使用 Zod 验证图像元数据。了解更多关于 [如何在内容集合中使用图像](/zh-cn/guides/images/#内容集合中的图像) 的内容。
+
+#### 在 Astro v3.0 中导航图像导入
+
+在 Astro v3.0 中，如果你需要保留旧的图像导入方式，并要求图像的 URL 以字符串表示，你可以在导入图像时在图像路径的末尾添加 `?url`。例如：
+
+```astro title="src/pages/blog/MyImages.astro"
+---
+import Sprite from '../assets/logo.svg?url';
+---
+<svg>
+  <use xlink:href={Sprite + '#cart'} />
+</svg>
+```
+
+这种方法可以确保获得 URL 字符串。请记住，在开发过程中，Astro 使用 `src/` 路径，但在构建过程中，它会生成类似于 `/_astro/cat.a6737dd3.png` 的哈希路径。
+
+如果你更喜欢直接使用图像对象本身，你可以访问 `.src` 属性。这种方法非常适合用于管理图像尺寸以适应 Core Web Vitals 指标和避免 CLS。
+
+如果你正在过渡到新的导入方式，将 `?url` 和 `.src` 方法结合起来可能是一种无缝处理图像的正确方法。
+
+### 升级视图过渡动画到 v3
+
+在 Astro v3.0 中，视图过渡动画不再是实验性的。
+
+如果你 **没有** 在 Astro 2.x 中启用此实验性标志，则不会对你的项目造成任何破坏性的更改。新的视图过渡动画 API 不会影响你现有的代码。
+
+如果你之前使用了实验性的视图过渡动画，那么从早期版本升级你的 Astro 项目时可能会有一些破坏性的更改。
+
+请根据以下说明适当地升级 **使用 `experimental.viewTransitions: true` 配置的 Astro v2.x 项目** 到 v3.0。
+
+#### 从 `experimental.viewTransitions` 升级
+
+如果你之前启用了视图过渡动画的实验性标志，那么你需要更新你的项目到 Astro v3.0，因为现在 Astro 默认支持视图过渡动画。
+
+##### 移除 `experimental.viewTransitions` 标志
+
+移除实验性标志：
+
+```js title="astro.config.mjs" del={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+   viewTransitions: true
+  }
+});
+```
+
+##### 更新导入来源
+
+`<ViewTransitions />` 组件被从 `astro:components` 移动到了 `astro:transitions`。请在你的项目中更新导入来源。
+
+```astro title="src/layouts/BaseLayout.astro" del="astro:components" ins="astro:transitions"
+---
+import { ViewTransitions } from "astro:components astro:transitions"
+---
+<html lang="en">
+  <head>
+    <title>My Homepage</title>
+    <ViewTransitions />
+  </head>
+  <body>
+    <h1>Welcome to my website!</h1>
+  </body>
+</html>
+```
+
+##### 更新 `transition:animate` 指令
+
+**改变：** `transition:animate` 的值 `morph` 已重命名为 `initial`。此外，这不再是默认的动画。如果没有指定 `transition:animate` 指令，则你的动画现在默认为 `fade`。
+
+1. 重命名任何 `morph` 动画为 `initial`。
+    ```astro title="src/components/MyComponent.astro" del="morph" ins="initial"
+    <div transition:name="name" transition:animate="morph initial" />
+    ```
+2. 为了保持任何以前默认使用 `morph` 的动画，显式添加 `transition:animate="initial"`。
+
+    ```astro title="src/components/MyComponent.astro" ins='transition:animate="initial"'
+    <div transition:name="name" transition:animate="initial" />
+    ```
+3. 你可以安全地删除任何显式设置为 `fade` 的动画。这是现在的默认行为：
+    ```astro title="src/components/MyComponent.astro" del="transition:animate=\"fade\""
+    <div transition:name="name" transition:animate="fade" />
+    ```
+
+**添加：** Astro 还支持一个新的 `transition:animate` 值，`none`。这个值可以在页面的 `<html>` 元素上使用，以禁用整个页面上的动画过渡。这只会覆盖页面元素上**默认的动画行为**，而不是动画指令。你仍然可以在单个元素上设置动画，这些特定的动画将会发生。
+
+4. 你现在可以在单个页面上禁用所有默认的过渡动画，只对显式使用 `transition:animate` 指令的元素进行动画：
+
+    ```astro ins="transition:animate=\"none\""
+    <html transition:animate="none">
+      <head></head>
+      <body>
+        <h1>Hello world!</h1>
+      </body>
+    </html>
+    ```
+
+##### 更新事件名称
+
+事件 `astro:load` 已重命名为 `astro:page-load`。在你的项目中重命名所有 `astro:load` 出现的地方。
+
+```astro title="src/components/MyComponent.astro" del="astro:load" ins="astro:page-load"
+<script>
+document.addEventListener('astro:load astro:page-load', runSetupLogic);
+</script>
+```
+
+事件 `astro:beforeload` 已重命名为 `astro:after-swap`。在你的项目中重命名所有 `astro:beforeload` 出现的地方。
+
+```astro title="src/components/MyComponent.astro" del="astro:beforeload" ins="astro:after-swap"
+<script>
+document.addEventListener('astro:beforeload astro:after-swap', setDarkMode);
+</script>
 ```
 
 ## 社区资源

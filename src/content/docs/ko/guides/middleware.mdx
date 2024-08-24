@@ -5,8 +5,9 @@ i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import { Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro';
 
-**미들웨어**를 사용하면 페이지나 엔드포인트가 렌더링될 때마다 요청과 응답을 가로채고 동작을 동적으로 추가할 수 있습니다. 이 렌더링은 사전 렌더링된 모든 페이지에 대해서는 빌드 시 발생하지만 요청 시 렌더링되는 페이지에 대해서는 경로가 요청될 때 발생합니다.
+**미들웨어**를 사용하면 페이지나 엔드포인트가 렌더링될 때마다 요청과 응답을 가로채고 동작을 동적으로 추가할 수 있습니다. 이 렌더링은 사전 렌더링된 모든 페이지에 대해 빌드 시 발생하지만, 요청 시 렌더링된 페이지에 대해 경로가 요청될 때 발생하므로 [쿠키 및 헤더와 같은 추가 SSR 기능](/ko/guides/server-side-rendering/#주문형-렌더링-기능)을 사용할 수 있습니다.
 
 또한 미들웨어를 사용하면 모든 Astro 컴포넌트 및 API 엔드포인트에서 사용할 수 있는 `locals` 객체를 변경하여 엔드포인트와 페이지 전반에 걸쳐 요청별 정보를 설정하고 공유할 수 있습니다. 이 객체는 빌드 시 이 미들웨어가 실행되는 경우에도 사용할 수 있습니다.
 
@@ -140,7 +141,8 @@ export const onRequest = (context, next) => {
 `.astro` 파일과 미들웨어 코드에서 자동 완성 기능을 제공하는 `Astro.locals`의 데이터에 타입 정보를 제공하려면 `env.d.ts` 파일에 전역 네임스페이스를 선언하세요.
 
 ```ts title="src/env.d.ts"
-/// <reference types="astro/client" />
+/// <reference path="../.astro/types.d.ts" />
+
 declare namespace App {
     interface Locals {
         user: {
@@ -194,6 +196,79 @@ greeting 요청
 greeting 응답
 auth 응답
 validation 응답
+```
+
+## 리라이팅
+
+<p><Since v="4.13.0" /></p>
+
+`APIContext`는 `rewrite()`라는 메서드를 노출하는데, 이는 [Astro.rewrite](/ko/guides/routing/#리라이트)와 동일한 방식으로 작동합니다.
+
+방문자를 새 페이지로 [리디렉션](/ko/guides/routing/#동적-리디렉션)하지 않고 다른 페이지의 콘텐츠를 표시하려면 미들웨어에서 `context.rewrite()`를 사용하세요. 이렇게 하면 새 렌더링 단계가 트리거되어 모든 미들웨어가 다시 실행됩니다.
+
+```js title="src/middleware.js"
+import { isLoggedIn } from "~/auth.js"
+export function onRequest (context, next) {
+  if (!isLoggedIn(context)) {
+    // 사용자가 로그인하지 않은 경우 `/login` 경로를 렌더링하도록 요청을 업데이트하고
+    // 로그인 성공 후 사용자에게 전송할 위치를 나타내는 헤더를 추가합니다.
+    // 미들웨어를 다시 실행합니다.
+    return context.rewrite(new Request("/login", {
+      headers: {
+        "x-redirect-to": context.url.pathname
+      }
+    }));
+  }
+
+  return next();
+};
+```
+
+또한 `next()` 함수에 선택적 URL 경로 매개변수를 전달하여 새 렌더링 단계를 다시 트리거하지 않고 현재 `Request`를 리라이트할 수 있습니다. 리라이트 경로의 위치는 문자열, URL 또는 `Request`로 제공할 수 있습니다:
+
+```js title="src/middleware.js"
+import { isLoggedIn } from "~/auth.js"
+export function onRequest (context, next) {
+  if (!isLoggedIn(context)) {
+    // 사용자가 로그인하지 않은 경우 `/login` 경로를 렌더링하도록 요청을 업데이트하고
+    // 로그인 성공 후 사용자에게 전송할 위치를 나타내는 헤더를 추가합니다.
+    // 다음 미들웨어에 새 `context`를 반환합니다.
+    return next(new Request("/login", {
+      headers: {
+        "x-redirect-to": context.url.pathname
+      }
+    }));
+  }
+
+  return next();
+};
+```
+
+`next()` 함수는 [`Astro.rewrite()` 함수](/ko/reference/api-reference/#astrorewrite)와 동일한 페이로드를 전달받습니다. 리라이트 경로의 위치는 문자열, URL 또는 `Request`로 제공할 수 있습니다.
+
+[sequence()](#미들웨어-체이닝)를 통해 여러 미들웨어 함수가 체인으로 연결된 경우, `next()`에 경로를 제출하면 `Request`가 제자리에 리라이트되고 미들웨어가 다시 실행되지 않습니다. 체인의 다음 미들웨어 함수는 업데이트된 `context`와 함께 새 `Request`를 받게 됩니다:
+
+```js title="src/middleware.js"
+// 현재 URL은 https://example.com/blog
+
+// 첫 미들웨어 함수
+async function first(_, next) {
+  console.log(context.url.pathname) // "/blog"가 기록됩니다.
+  // 새 경로와 홈페이지가 리라이트됩니다.
+  // 다음 함수에 전달되는 업데이트된 `context`를 반환합니다.
+  return next("/")
+}
+
+// 현재 URL은 여전히 https://example.com/blog
+
+// 두 번째 미들웨어 함수
+async function second(context, next) {
+  // 업데이트된 `context`를 전달받습니다.
+  console.log(context.url.pathname) // "/"가 기록됩니다.
+  return next()
+}
+
+export const onRequest = sequence(first, second);
 ```
 
 ## 오류 페이지

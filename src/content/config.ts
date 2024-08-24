@@ -46,6 +46,12 @@ export const integrationSchema = baseSchema.extend({
 	githubIntegrationURL: z.string().url(),
 });
 
+export const mediaSchema = baseSchema.extend({
+	type: z.literal('media'),
+	stub: z.boolean().default(false),
+	service: z.string(),
+});
+
 export const migrationSchema = baseSchema.extend({
 	type: z.literal('migration'),
 	framework: z.string(),
@@ -60,6 +66,7 @@ export const tutorialSchema = baseSchema.extend({
 export const recipeSchema = baseSchema.extend({
 	type: z.literal('recipe'),
 	description: z.string(),
+	altTitle: z.string().optional(),
 });
 
 export const docsCollectionSchema = z.union([
@@ -67,6 +74,7 @@ export const docsCollectionSchema = z.union([
 	backendSchema,
 	cmsSchema,
 	integrationSchema,
+	mediaSchema,
 	migrationSchema,
 	tutorialSchema,
 	deploySchema,
@@ -108,6 +116,8 @@ export const isCmsEntry = createIsDocsEntry('cms');
 export const isIntegrationEntry = createIsDocsEntry('integration');
 
 export const isTutorialEntry = createIsDocsEntry('tutorial');
+
+export const isMediaEntry = createIsDocsEntry('media');
 
 export const isMigrationEntry = createIsDocsEntry('migration');
 

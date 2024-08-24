@@ -15,10 +15,9 @@ Les types de fichiers suivants sont pris en charge par Astro :
 - Composants Astro (`.astro`)
 - Markdown (`.md`, `.markdown`, etc.)
 - JavaScript (`.js`, `.mjs`)
-- TypeScript (`.ts`, `.tsx`)
+- TypeScript (`.ts`)
 - Paquets NPM
 - JSON (`.json`)
-- JSX (`.jsx`, `.tsx`)
 - CSS (`.css`)
 - Modules CSS (`.module.css`)
 - Images et actifs (`.svg`, `.jpg`, `.png`, etc.)
@@ -40,6 +39,13 @@ import { getUser } from './user.js';
 ```
 
 JavaScript peut être importé en utilisant la syntaxe normale d'importation et d'exportation d'ESM.
+
+:::note[Importer des fichiers JSX]
+
+Un [framework UI](/fr/guides/framework-components/) approprié ([React](/fr/guides/integrations-guide/react/), [Preact](/fr/guides/integrations-guide/preact/) ou [Solid](/fr/guides/integrations-guide/solid-js/)) est requis pour restituer les fichiers JSX/TSX.
+Utilisez les extensions `.jsx`/`.tsx` le cas échéant, car Astro ne prend pas en charge JSX dans les fichiers `.js`/`.ts`.
+
+:::
 
 ## TypeScript
 
@@ -64,20 +70,6 @@ import MyComponent from "./MyComponent"; // MyComponent.tsx
 
 <ReadMore>Lire la suite [Prise en charge de TypeScript dans Astro](/fr/guides/typescript/).</ReadMore>
 
-
-## JSX / TSX
-
-```js
-import { MyComponent } from './MyComponent.jsx';
-```
-
-Astro inclut un support intégré pour les fichiers JSX (`*.jsx` et `*.tsx`) dans votre projet. La syntaxe JSX est automatiquement transposée en JavaScript.
-
-Bien qu'Astro comprenne la syntaxe JSX dans sa version standard, vous devrez inclure une intégration de framework pour rendre correctement des frameworks tels que React, Preact et Solid. Consultez notre guide [Utilisation des intégrations](/fr/guides/integrations-guide/) pour en savoir plus.
-
-:::note
-**Astro ne supporte pas JSX dans les fichiers `.js`/`.ts`.** JSX ne sera géré qu'à l'intérieur des fichiers qui se terminent par les extensions `.jsx` et `.tsx`.
-:::
 
 ## Paquets NPM
 
@@ -146,6 +138,50 @@ Il peut également être utile de placer des images dans le dossier `public/` co
 L'ajout d'un texte **alt** aux balises `<img>` est encouragé pour des raisons d'accessibilité ! N'oubliez pas d'ajouter un attribut `alt="a helpful description"` à vos éléments d'image. Vous pouvez laisser l'attribut vide si l'image est purement décorative.
 :::
 
+## Alias
+
+Un **alias** est une façon de créer des raccourcis pour vos imports.
+
+Les alias peuvent aider à améliorer l'expérience de développement dans les codebases avec de nombreux dossiers ou importations relatives.
+
+```astro title="src/pages/about/company.astro" del="../../components" del="../../assets"
+---
+import Button from '../../components/controls/Button.astro';
+import logoUrl from '../../assets/logo.png?url';
+---
+```
+
+Dans cet exemple, un développeur devra comprendre la relation de l'arborescente entre `src/pages/about/company.astro`, `src/components/controls/Button.astro`, et `src/assets/logo.png`. Et si le fichier `company.astro` devait être déplacé, ces importations devraient également être mises à jour.
+
+Vous pouvez ajouter des alias d'importation dans `tsconfig.json`.
+
+```json title="tsconfig.json" ins={5-6}
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@components/*": ["src/components/*"],
+      "@assets/*": ["src/assets/*"]
+    }
+  }
+}
+```
+
+:::note
+Assurez-vous que `compilerOptions.baseUrl` est défini pour que les chemins aliasés puissent être résolus.
+:::
+
+Le serveur de développement redémarrera automatiquement après ce changement de configuration. Vous pouvez maintenant importer en utilisant les alias n'importe où dans votre projet :
+
+```astro title="src/pages/about/company.astro" ins="@components" ins="@assets"
+---
+import Button from '@components/controls/Button.astro';
+import logoUrl from '@assets/logo.png?url';
+---
+```
+
+Ces alias sont également intégrés automatiquement dans [VS Code](https://code.visualstudio.com/docs/languages/jsconfig) et d'autres éditeurs de code.
+
 ## `Astro.glob()`
 
 [`Astro.glob()`](/fr/reference/api-reference/#astroglob) est un moyen d'importer plusieurs fichiers à la fois.
@@ -169,7 +205,7 @@ const posts = await Astro.glob('../pages/post/*.md');
 </div>
 ```
 
-Les composants Astro importés avec `Astro.glob` sont de type [`AstroInstance`](/fr/reference/api-reference/#astro-files). Vous pouvez effectuer le rendu de chaque instance de composant en utilisant sa propriété `default` :
+Les composants Astro importés avec `Astro.glob` sont de type [`AstroInstance`](/fr/reference/api-reference/#fichiers-astro). Vous pouvez effectuer le rendu de chaque instance de composant en utilisant sa propriété `default` :
 
 ```astro title="src/pages/component-library.astro" {8}
 ---

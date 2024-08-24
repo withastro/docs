@@ -5,7 +5,6 @@ i18nReady: true
 ---
 import Since from '~/components/Since.astro';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
-import Badge from '~/components/Badge.astro';
 import RecipeLinks from "~/components/RecipeLinks.astro";
 import { Steps } from '@astrojs/starlight/components'
 
@@ -96,7 +95,7 @@ import myImage from '../assets/my_image.png'; // Image is 1600x900
 
 The format of the `src` value of your image file depends on where your image file is located:
 
-- **Local images in `src/`** - you must **also import the image** using a relative file path or configure and use an [import alias](/en/guides/aliases/). Then use the import name as the `src` value:
+- **Local images in `src/`** - you must **also import the image** using a relative file path or configure and use an [import alias](/en/guides/imports/#aliases). Then use the import name as the `src` value:
 
   ```astro title="src/pages/index.astro" "myImportedImage" "{myImportedImage}"
   ---
@@ -130,7 +129,7 @@ The format of the `src` value of your image file depends on where your image fil
     src="https://example.com/remote-image.jpg"
     alt="descriptive text"
     width="200"
-    height="150" 
+    height="150"
   />
   ```
 
@@ -144,7 +143,7 @@ If an image is merely decorative (i.e. doesn't contribute to the understanding o
 
 These properties define the dimensions to use for the image.
 
-When using images in their original aspect ratio, `width` and `height` are optional. These dimensions can be automatically inferred from image files located in `src/` and from remote images with [`inferSize` set to `true`](#infersize).
+When using images in their original aspect ratio, `width` and `height` are optional. These dimensions can be automatically inferred from image files located in `src/`. For remote images, add [the `inferSize` attribute set to `true`](#infersize) on the `<Image />` or `<Picture />` component or use [`inferRemoteSize()` function](#inferremotesize).
 
 However, both of these properties are required for images stored in your `public/` folder as Astro is unable to analyze these files.
 
@@ -266,6 +265,17 @@ import { Image } from 'astro:assets';
 ```
 
 `inferSize` can fetch the dimensions of a [remote image from a domain that has not been authorized](#authorizing-remote-images), however the image itself will remain unprocessed.
+
+###### inferRemoteSize()
+
+<p><Since v="4.12.0" /></p>
+
+A function to infer the dimensions of remote images. This can be used as an alternative to passing the `inferSize` property.
+
+```ts
+import { inferRemoteSize } from 'astro:assets';
+const {width, height} = await inferRemoteSize("https://example.com/cat.png");
+```
 
 ##### Additional properties
 
@@ -406,7 +416,7 @@ It accepts all HTML `<img>` tag properties, and the only required property is `s
 
 #### Local images in `src/`
 
-Local images must be **imported from the relative path** from the existing `.astro` file, or configure and use an [import alias](/en/guides/aliases/). Then, you can access the image's `src` and other properties to use in the `<img>` tag.
+Local images must be **imported from the relative path** from the existing `.astro` file, or configure and use an [import alias](/en/guides/imports/#aliases). Then, you can access the image's `src` and other properties to use in the `<img>` tag.
 
 For example, use the image's own `height` and `width` properties to avoid CLS and improve Core Web Vitals.
 
@@ -744,222 +754,3 @@ export default defineConfig({
 ## Community Integrations
 
 There are several third-party [community image integrations](https://astro.build/integrations?search=images) for optimizing and working with images in your Astro project.
-
-## Upgrade to v3.0 from v2.x
-
-`astro:assets` is no longer behind an experimental flag in Astro v3.0.
-
-`<Image />` is now a built-in component and the previous `@astrojs/image` integration has been removed.
-
-These and other accompanying changes to using images in Astro may cause some breaking changes when you upgrade your Astro project from an earlier version.
-
-Please follow the instructions below as appropriate to upgrade an Astro v2.x project to v3.0.
-
-### Upgrade from `experimental.assets`
-
-If you had previously enabled the experimental flag for `astro:assets`, you will need to update your project for Astro v3.0 which now includes assets features by default.
-
-#### Remove `experimental.assets` flag
-
-Remove the experimental flag:
-
-```js title="astro.config.mjs" del={4-6}
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  experimental: {
-    assets: true
-  }
-});
-```
-
-If necessary, also update your `src/env.d.ts` file to replace the `astro/client-image` reference with `astro/client`:
-
-```ts title="src/env.d.ts" del={1} ins={2}
-/// <reference types="astro/client-image" />
-/// <reference types="astro/client" />
-```
-
-#### Remove the `~/assets` import alias
-
-This import alias is no longer included by default with `astro:assets`. If you were using this alias with experimental assets, you must convert them to relative file paths, or [create your own import aliases](/en/guides/aliases/).
-
-```astro title="src/pages/posts/post-1.astro" del={2} ins={3}
----
-import rocket from '~/assets/rocket.png';
-import rocket from '../../assets/rocket.png';
----
-```
-
-#### Add simple asset support for Cloudflare, Deno, Vercel Edge and Netlify Edge
-
- Astro v3.0 allows `astro:assets` to work without errors in Cloudflare, Deno, Vercel Edge and Netlify Edge, which do not support Astro's built-in Squoosh and Sharp image optimization. Note that Astro does not perform any image transformation and processing in these environments. However, you can still enjoy the other benefits of using `astro:assets`, including no Cumulative Layout Shift (CLS), the enforced `alt` attribute, and a consistent authoring experience.
-
- If you previously avoided using `astro:assets` because of these constraints, you can now use them without issues. You can configure the no-op image service to explicitly opt-in to this behavior:
-
-```js title="astro.config.mjs" ins={4-8}
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  image: {
-    service: {
-      entrypoint: 'astro/assets/services/noop'
-    }
-  }
-});
-```
-
-### Decide where to store your images
-
-See the Images guide to help you decide [where to store your images](#where-to-store-images). You may wish to take advantage of new options for storing your images with the added flexibility `astro:assets` brings. For example, relative images from your project `src/` can now be referenced in Markdown, MDX, and Markdoc using standard Markdown `![alt](src)` syntax.
-
-### Update existing `<img>` tags
-
-Previously, importing an image would return a simple `string` with the path of the image. Now, imported image assets match the following signature:
-
-```ts
-interface ImageMetadata {
-  src: string;
-  width: number;
-  height: number;
-  format: string;
-}
-```
-
-You must update the `src` attribute of any existing `<img>` tags (including any [images in UI framework components](#images-in-ui-framework-components)) and you may also update other attributes that are now available to you from the imported image.
-
-```astro title="src/components/MyComponent.astro" ".src" ".width" ".height" del={4} ins={6}
----
-import rocket from '../images/rocket.svg';
----
-<img src={rocket} width="250" height="250" alt="A rocketship in space." />
-
-<img src={rocket.src} width={rocket.width} height={rocket.height} alt="A rocketship in space." />
-```
-
-### Update your Markdown, MDX, and Markdoc files
-
-Relative images from your project `src/` can now be referenced in Markdown, MDX, and Markdoc using standard Markdown `![alt](src)` syntax.
-
-This allows you to move your images from the `public/` directory to your project `src/` where they will now be processed and optimized. Your existing images in `public/` and remote images are still valid but are not optimized by Astro's build process.
-
-```md title="src/pages/posts/post-1.md" "/_astro" ".hash" "../../assets/"
-# My Markdown Page
-
-<!-- Local images now possible! -->
-![A starry night sky.](../../images/stars.png)
-
-<!-- Keep your images next to your content! -->
-![A starry night sky.](./stars.png)
-```
-
-If you require more control over your image attributes, we recommend using the `.mdx` file format, which allows you to include Astro's `<Image />` component or a JSX `<img />` tag in addition to the Markdown syntax. Use the [MDX integration](/en/guides/integrations-guide/mdx/) to add support for MDX to Astro.
-
-### Remove `@astrojs/image`
-
-
-If you were using the image integration in Astro v2.x, complete the following steps:
-
-<Steps>
-1. Remove the `@astrojs/image` integration.
-
-    You must [remove the integration](/en/guides/integrations-guide/#removing-an-integration) by uninstalling and then removing it from your `astro.config.mjs` file.
-
-    ```js del={3,7}
-    // astro.config.mjs
-    import { defineConfig } from 'astro/config';
-    import image from '@astrojs/image';
-
-    export default defineConfig({
-      integrations: [
-        image(),
-      ]
-    })
-    ```
-
-2. Update types (if required).
-
-		If you had special types configured for `@astrojs/image` in `src/env.d.ts`, you may need to change them back to the default Astro types if your upgrade to v3 did not complete this step for you.
-
-		```ts title="src/env.d.ts" del={1} ins={2}
-		 /// <reference types="@astrojs/image/client" />
-		 /// <reference types="astro/client" />
-		```
-
-		Similarly, update `tsconfig.json` if necessary:
-
-		```json title="tsconfig.json" del={3} ins={4}
-		{
-			"compilerOptions": {
-			  "types": ["@astrojs/image/client"]
-			  "types": ["astro/client"]
-			}
-		}
-		```
-
-3. Migrate any existing `<Image />` components.
-
-    Change all `import` statements from `@astrojs/image/components` to `astro:assets` in order to use the new built-in `<Image />` component.
-
-    Remove any component attributes that are not [currently supported image asset properties](/en/guides/images/#properties).
-
-    For example, `aspectRatio` is no longer supported, as it is now automatically inferred from the `width` and `height` attributes.
-
-      ```astro title="src/components/MyComponent.astro" del= {2,11} ins={3}
-      ---
-      import { Image } from '@astrojs/image/components';
-      import { Image } from 'astro:assets';
-      import localImage from '../assets/logo.png';
-      const localAlt = 'The Astro Logo';
-      ---
-
-      <Image
-        src={localImage}
-        width={300}
-        aspectRatio="16:9"
-        alt={localAlt}
-      />
-      ```
-
-4. Choose a default image service.
-
-    [Sharp](https://github.com/lovell/sharp) is now the default image service used for `astro:assets`. If you would like to use Sharp, no configuration is required.
-
-    If you would prefer to use [Squoosh](https://github.com/GoogleChromeLabs/squoosh) to transform your images, update your config with the following `image.service` option:
-
-    ```js title="astro.config.mjs" ins={4-6}
-    import { defineConfig, squooshImageService } from 'astro/config';
-
-    export default defineConfig({
-      image: {
-        service: squooshImageService(),
-      },
-    });
-    ```
-</Steps>
-
-### Update Content Collections schemas
-
-You can now declare an associated image for a content collections entry, such as a blog post's cover image, in your frontmatter using its path relative to the current folder.
-
-The new `image` helper for content collections lets you validate the image metadata using Zod. Learn more about [how to use images in content collections](/en/guides/images/#images-in-content-collections)
-
-### Navigating Image Imports in Astro v3.0
-
-In Astro v3.0, if you have to preserve the old import behavior for images and require a string representation of the image's URL, append `?url` to the end of your image path when importing it. For example:
-
-```astro title="src/pages/blog/MyImages.astro"
----
-import Sprite from '../assets/logo.svg?url';
----
-
-<svg>
-  <use xlink:href={Sprite + '#cart'} />
-</svg>
-```
-
-This approach ensures you obtain the URL string. Keep in mind that during development, Astro uses a `src/` path, but upon building, it generates hashed paths like `/_astro/cat.a6737dd3.png`.
-
-If you prefer to work directly with the image object itself, you can access the `.src` property. This approach is best for tasks like managing image dimensions for Core Web Vitals metrics and preventing CLS.
-
-If you are transitioning into the new import behavior, combining `?url` and `.src` methods might be the right method for seamless image handling.

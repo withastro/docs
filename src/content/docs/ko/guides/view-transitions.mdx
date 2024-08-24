@@ -144,7 +144,7 @@ Astro는 이전 페이지와 새 페이지 모두에서 발견된 해당 요소�
 
 기본적으로 `transition:persist`를 아일랜드에 추가하면 탐색 시 상태가 유지되지만 컴포넌트는 새 props로 다시 렌더링됩니다. 예를 들어 컴포넌트가 현재 페이지의 `title`과 같은 페이지별 props를 수신할 때 유용합니다.
 
-`transition:persist-props`를 사용하여 이 동작을 재정의할 수 있습니다. 이 지시어를 추가하면 아일랜드의 기존 상태를 유지하는 것 외에도 아일랜드의 기존 props (새 값으로 다시 렌더링하지 않음)도 유지됩니다.
+`transition:persist` 외에 `transition:persist-props`를 설정하여 이 동작을 재정의할 수 있습니다. 이 지시어를 추가하면 아일랜드의 기존 상태를 유지하는 것 외에도 아일랜드의 기존 props (새 값으로 다시 렌더링하지 않음)도 유지됩니다.
 
 ### 내장 애니메이션 지시어
 
@@ -219,33 +219,68 @@ export interface TransitionDirectionalAnimations {
 }
 ```
 
-다음 예시에서는 맞춤 `fade` 애니메이션을 정의하는 데 필요한 모든 속성을 보여줍니다.
+다음 예시는 루트 레이아웃 파일의 `<style is:global>` 태그 안에 사용자 정의 `bump` 애니메이션을 정의하는 데 필요한 모든 속성을 보여줍니다:
 
-```astro
+```astro title="src/layouts/Layout.astro"
+---
+import { ViewTransitions } from 'astro:transitions';
+---
+
+<html lang="en">
+  <head>
+    <ViewTransitions />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  @keyframes bump {
+    0% {
+      opacity: 0;
+      transform: scale(1) translateX(200px);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(1.1);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateX(0);
+    }
+  }
+</style>
+```
+
+애니메이션의 동작은 애니메이션을 사용하는 모든 컴포넌트의 프런트매터에 정의되어야 합니다:
+
+```astro title="src/pages/index.astro"
 ---
 const anim = {
   old: {
-    name: 'fadeIn',
-    duration: '0.2s',
-    easing: 'linear',
-    fillMode: 'forwards',
+    name: 'bump',
+    duration: '0.5s',
+    easing: 'ease-in',
+    direction: 'reverse',
   },
   new: {
-    name: 'fadeOut',
-    duration: '0.3s',
-    easing: 'linear',
-    fillMode: 'backwards',
-  }
+    name: 'bump',
+    duration: '0.5s',
+    easing: 'ease-in-out',
+  },
 };
 
-const myFade = {
-	forwards: anim,
-	backwards: anim,
+const customTransition = {
+  forwards: anim,
+  backwards: anim,
 };
 ---
 
-<header transition:animate={myFade}> ... </header>
+<header transition:animate={customTransition}> ... </header>
 ```
+
+사용자 정의 애니메이션은 매우 유연하게 정의할 수 있습니다. 원하는 결과를 얻기 위해 forward 및 backward를 위한 다른 객체를 사용하거나 old 및 new를 위한 키프레임 애니메이션을 별도로 제공하는 등 특이한 조합을 고려할 수 있습니다.
 
 ## 라우터 제어
 
@@ -630,14 +665,14 @@ document.addEventListener('astro:after-swap',
 
 `<ViewTransitions />` 컴포넌트는 사전 렌더링된 페이지의 초기 페이지 탐색과 앞으로 또는 뒤로 진행되는 후속 탐색 모두에서 이 이벤트를 실행합니다.
 
-이 이벤트를 사용하여 모든 페이지 탐색에서 코드를 실행하거나 한 번만 실행할 수 있습니다.
+이 이벤트를 사용하여 모든 페이지 탐색에서 코드를 실행할 수 있습니다. 예를 들어 탐색 중에 손실될 수 있는 이벤트 리스너를 설정할 수 있습니다.
 
-```astro "{ once: true }"
+```astro
 <script>
   document.addEventListener('astro:page-load', () => {
-    // 이것은 한 번만 실행됩니다.
-    setupStuff();
-  }, { once: true });
+    // 이는 첫 페이지 로딩 시, 모든 탐색 후에 실행됩니다.
+    setupStuff(); // 예: 이벤트 리스너 추가
+  });
 </script>
 ```
 
@@ -664,102 +699,3 @@ document.addEventListener('astro:after-swap',
 ### `prefers-reduced-motion`
 
 Astro의 `<ViewTransitions />` 컴포넌트에는 [`prefer-reduced-motion`](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion) 설정이 감지될 때마다 대체 애니메이션을 포함한 *모든* view transition 애니메이션을 비활성화하는 CSS 미디어 쿼리가 포함되어 있습니다. 대신 브라우저는 애니메이션 없이 DOM 요소를 간단히 교체합니다.
-
-## v2.x에서 v3.0으로 업그레이드
-
-Astro v3.0에서는 View transitions이 더 이상 실험적 플래그에 있지 않습니다.
-
-Astro 2.x에서 이 실험적 플래그를 활성화하지 **않았다**면 프로젝트에 큰 변화가 발생하지 않습니다. 새로운 View Transitions API는 기존 코드에 영향을 주지 않습니다.
-
-이전에 실험적인 view transitions을 사용했다면 Astro 프로젝트를 이전 버전에서 업그레이드할 때 몇 가지 주요 변경 사항이 있을 수 있습니다.
-
-**`experimental.viewTransitions: true`로 구성된 Astro v2.x 프로젝트**를 v3.0으로 업그레이드하려면 아래 지침을 적절하게 따르십시오.
-
-### `experimental.viewTransitions`에서 업그레이드
-
-이전에 view transitions에 대한 실험적 플래그를 활성화한 경우 이제 기본적으로 view transitions을 허용하는 Astro v3.0용으로 프로젝트를 업데이트해야 합니다.
-
-#### `experimental.viewTransitions` 플래그 제거
-
-실험적 플래그를 제거합니다.
-
-```js title="astro.config.mjs" del={4-6}
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  experimental: {
-   viewTransitions: true
-  }
-});
-```
-
-#### 가져오기 소스 업데이트
-
-`<ViewTransitions />` 컴포넌트가 `astro:components`에서 `astro:transitions`로 이동되었습니다. 프로젝트의 모든 항목에서 가져오기 소스를 업데이트합니다.
-
-```astro title="src/layouts/BaseLayout.astro" del="astro:components" ins="astro:transitions"
----
-import { ViewTransitions } from "astro:components astro:transitions"
----
-<html lang="ko">
-  <head>
-    <title>내 홈페이지</title>
-    <ViewTransitions />
-  </head>
-  <body>
-    <h1>내 홈페이지에 오신 것을 환영합니다!</h1>
-  </body>
-</html>
-```
-
-#### `transition:animate` 지시어 업데이트
-
-**변경됨:** `transition:animate` 값 `morph`의 이름이 `initial`로 변경되었습니다. 또한 이는 더 이상 기본 애니메이션이 아닙니다. `transition:animate` 지시어가 지정되지 않으면 이제 애니메이션이 기본적으로 `fade`로 설정됩니다.
-
-1. `morph` 애니메이션의 이름을 `initial`로 바꿉니다.
-
-    ```astro title="src/components/MyComponent.astro" del="morph" ins="initial"
-    <div transition:name="name" transition:animate="morph initial" />
-    ```
-
-2. 이전에 기본적으로 `morph`를 사용했던 애니메이션을 유지하려면 `transition:animate="initial"`을 명시적으로 추가하세요.
-
-    ```astro title="src/components/MyComponent.astro" ins='transition:animate="initial"'
-    <div transition:name="name" transition:animate="initial" />
-    ```
-3. 명시적으로 `fade`로 설정된 애니메이션은 안전하게 제거할 수 있습니다. 이제 이것이 기본 동작입니다.
-
-    ```astro title="src/components/MyComponent.astro" del="transition:animate=\"fade\""
-    <div transition:name="name" transition:animate="fade" />
-    ```
-
-**추가됨:** Astro는 새로운 `transition:animate` 값 `none`도 지원합니다. 이 값은 페이지의 `<html>` 요소에 사용되어 전체 페이지에서 전체 페이지 전환 애니메이션을 비활성화할 수 있습니다. 이는 애니메이션 지시어가 없는 페이지 요소의 **기본 애니메이션 동작**만 재정의합니다. 개별 요소에 애니메이션을 설정할 수 있으며 이러한 특정 애니메이션이 발생합니다.
-
-4. 이제 개별 페이지에서 모든 기본 전환을 비활성화하여 `transition:animate` 지시어을 명시적으로 사용하는 요소에만 애니메이션을 적용할 수 있습니다.
-
-    ```astro ins="transition:animate=\"none\""
-    <html transition:animate="none">
-      <head></head>
-      <body>
-        <h1>안녕하세요!</h1>
-      </body>
-    </html>
-    ```
-
-#### 이벤트 이름 업데이트
-
-`astro:load` 이벤트의 이름이 `astro:page-load`로 변경되었습니다. 프로젝트의 모든 항목 이름을 바꿉니다.
-
-```astro title="src/components/MyComponent.astro" del="astro:load" ins="astro:page-load"
-<script>
-document.addEventListener('astro:load astro:page-load', runSetupLogic);
-</script>
-```
-
-`astro:beforeload` 이벤트의 이름이 `astro:after-swap`으로 변경되었습니다. 프로젝트의 모든 항목 이름을 바꿉니다.
-
-```astro title="src/components/MyComponent.astro" del="astro:beforeload" ins="astro:after-swap"
-<script>
-document.addEventListener('astro:beforeload astro:after-swap', setDarkMode);
-</script>
-```

@@ -327,6 +327,42 @@ Utilizar `'class'` es útil cuando quieres asegurar que los selectores de elemen
 Utilizar `'where'` te brinda más control sobre la especificidad, pero requiere que utilices selectores de mayor especificidad, capas y otras herramientas para controlar qué selectores se aplican.
 Utilizar `'attribute'` es útil cuando estás manipulando el atributo `class` de elementos y necesitas evitar conflictos entre tu lógica de estilo y la aplicación de estilos de Astro.
 
+### security
+
+<p>
+**Tipo:** `boolean`<br />
+**Por defecto:** `{}`<br />
+<Since v="4.9.0" />
+</p>
+
+Activa medidas de seguridad para un sitio web Astro.
+
+Estas funciones solo existen para páginas renderizadas bajo demanda (SSR) usando el modo `server` o páginas que optan por no prerrenderizarse en modo `hybrid`.
+
+```js
+// astro.config.mjs
+export default defineConfig({
+  output: "server",
+  security: {
+    checkOrigin: true
+  }
+})
+```
+
+#### security.checkOrigin
+
+<p>
+**Tipo:** `boolean`<br />
+**Por defecto:** 'false'<br />
+<Since v="4.9.0" />
+</p>
+
+Cuando está habilitado, realiza una verificación para asegurar que el encabezado "origin", que es automáticamente proporcionado por todos los navegadores modernos, coincida con la URL enviada por cada `Request`. Esto se utiliza para proporcionar protección contra Cross-Site Request Forgery (CSRF).
+La verificación del encabezado "origin" se ejecuta únicamente para páginas renderizadas bajo demanda, y solo para las solicitudes `POST`, `PATCH`, `DELETE` y `PUT` que 
+utilicen uno de los siguientes encabezados `content-type`: `'application/x-www-form-urlencoded'`, `'multipart/form-data'`, `'text/plain'`.
+
+Si el encabezado "origin" no coincide con el `pathname` de la solicitud, Astro devolverá un código de estado 403 y no renderizará la página.
+
 ### vite
 
 <p>
@@ -458,7 +494,7 @@ Especifica el directorio en la salida de compilación donde los activos generado
 ### build.assetsPrefix
 
 <p>
-**Type:** `string | Record.<string, string>`<br />
+**Tipo:** `string | Record.<string, string>`<br />
 **Por defecto:** `undefined`<br />
 <Since v="2.2.0" />
 </p>
@@ -846,19 +882,6 @@ Puedes usar comodines para definir los valores `hostname` y `pathname` permitido
   - Terminar con '/**' para permitir todas las sub-rutas ('startsWith').
   - Terminar con '/*' para permitir solo un nivel de sub-ruta.
 
-## Opciones de la barra de herramientas de desarrollo
-
-### devToolbar.enabled
-
-<p>
-**Tipo:** `boolean`<br />
-**Por defecto:** `true`
-</p>
-
-Si deseas activar la barra de herramientas de Astro Dev. Esta barra de herramientas te permite inspeccionar las islas de tu página, ver auditorías útiles sobre rendimiento y accesibilidad, y mucho más.
-
-Esta opción se aplica a todo el proyecto, para desactivar la barra de herramientas sólo para ti, ejecuta `npm run astro preferences disable devToolbar`. Para desactivar la barra de herramientas para todos tus proyectos de Astro, ejecuta `npm run astro preferences disable devToolbar --global`.
-
 ## Opciones de Markdown
 
 ### markdown.shikiConfig
@@ -1101,6 +1124,30 @@ export default defineConfig({
 })
 ```
 
+#### i18n.routing.manual
+
+<p>
+
+**Tipo:** `string`<br />
+<Since v="4.6.0" />
+</p>
+
+Cuando esta opción está habilitada, Astro **desactivará** su  middleware de internacionalización (i18n) para que puedas implementar tu propia lógica. No se pueden configurar otras opciones de `routing` (Ejemplo: `prefixDefaultLocale`) cuando se utiliza `routing: "manual"`.
+
+Serás responsable de escribir tu propia lógica de enrutamiento o ejecutar manualmente el middleware de internacionalización (i18n) de Astro junto con tu propia implementación.
+
+```js
+export default defineConfig({
+	i18n: {
+		defaultLocale: "en",
+		locales: ["en", "fr", "pt-br", "es"],
+		routing: {
+			prefixDefaultLocale: true,
+		}
+	}
+})
+```
+
 ## Banderas legacy
 
 Para ayudar a algunos usuarios a migrar entre versiones de Astro, ocasionalmente introducimos banderas `legacy`.
@@ -1137,6 +1184,106 @@ Esta opción se activará por defecto en Astro 5.0.
   },
 }
 ```
+
+### experimental.actions
+
+<p>
+
+**Tipo:** `boolean`<br />
+**Por defecto:** `false`<br />
+<Since v="4.8.0" />
+</p>
+
+Las Acciones te ayudan a escribir funciones de backend seguras que puedes llamar desde cualquier lugar. Habilita el renderizado en servidor [usando la propiedad `output`](/es/basics/rendering-modes/#renderizado-bajo-demanda) y añade la bandera `actions` al objeto `experimental`:
+
+```js
+{
+  output: 'hybrid', // or 'server'
+  experimental: {
+    actions: true,
+  },
+}
+```
+
+Declara todas tus acciones en `src/actions/index.ts`. Este archivo es el manejador global de acciones.
+
+Declara una acción utilizando `defineAction()` del módulo `astro:actions`. Una acción acepta la propiedad `handler` para definir tu manejador en el lado del servidor. Si tu acción acepta argumentos, aplica la propiedad `input` para validar los parámetros con Zod.
+
+Este ejemplo define dos acciones: `like` y `comment`. La acción `like` acepta un objeto JSON con una cadena `postId`, mientras que la acción `comment` acepta un objeto [FormData](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest_API/Using_FormData_Objects) con las cadenas `postId`, `author`, y `body`. Cada `handler` actualiza tu base de datos y devuelve una respuesta de tipo segura.
+
+```ts
+// src/actions/index.ts
+import { defineAction, z } from "astro:actions";
+
+export const server = {
+  like: defineAction({
+    input: z.object({ postId: z.string() }),
+    handler: async ({ postId }) => {
+      // actualiza likes en la base de datos
+
+      return likes;
+    },
+  }),
+  comment: defineAction({
+    accept: 'form',
+    input: z.object({
+      postId: z.string(),
+      author: z.string(),
+      body: z.string(),
+    }),
+    handler: async ({ postId }) => {
+      // añade comentarios en la base de datos
+
+      return comment;
+    },
+  }),
+};
+```
+
+Luego, llama a una acción desde los componentes cliente usando el objeto `actions` del módulo `astro:actions`. Puedes pasar un objeto de tipo seguro cuando uses JSON,o un objeto [FormData](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest_API/Using_FormData_Objects) cuando uses `accept: 'form'` en la definición de tu acción.
+
+Este ejemplo llama a las acciones `like` y `comment`desde un componente de React:
+
+```tsx "actions"
+// src/components/blog.tsx
+import { actions } from "astro:actions";
+import { useState } from "react";
+
+export function Like({ postId }: { postId: string }) {
+  const [likes, setLikes] = useState(0);
+  return (
+    <button
+      onClick={async () => {
+        const newLikes = await actions.like({ postId });
+        setLikes(newLikes);
+      }}
+    >
+      {likes} likes
+    </button>
+  );
+}
+
+export function Comment({ postId }: { postId: string }) {
+  return (
+    <form
+      onSubmit={async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target as HTMLFormElement);
+        const result = await actions.blog.comment(formData);
+        // manejar el resultado
+      }}
+    >
+      <input type="hidden" name="postId" value={postId} />
+      <label htmlFor="author">Author</label>
+      <input id="author" type="text" name="author" />
+      <textarea rows={10} name="body"></textarea>
+      <button type="submit">Post</button>
+    </form>
+  );
+}
+```
+
+Para obtener una visión completa, y proporcionar comentarios sobre esta API experimental, consulta [Actions RFC](https://github.com/withastro/roadmap/blob/actions/proposals/0046-actions.md).
 
 ### experimental.contentCollectionCache
 
@@ -1269,42 +1416,162 @@ Con `experimental.globalRoutingPriority` habilitado (en lugar del orden de prior
 
 En caso de colisión de rutas, cuando dos rutas con la misma prioridad intentan construir la misma URL, Astro registrará una advertencia identificando las rutas en conflicto.
 
-### experimental.i18nDomains
+### experimental.rewriting
 
 <p>
 
 **Tipo:** `boolean`<br />
 **Por defecto:** `false`<br />
-<Since v="4.3.0" />
+<Since v="4.8.0" />
 </p>
 
-Habilita el soporte de dominios para la [estrategia de enrutamiento `domains` experimental](/es/guides/internationalization/#domains-experimental) que te permite configurar el patrón de URL de uno o más idiomas admitidos para usar un dominio personalizado (o subdominio).
-
-Cuando un idioma se asigna a un dominio, no se utilizará un prefijo de ruta `/[locale]/`. Sin embargo, las carpetas localizadas dentro de `src/pages/` siguen siendo necesarias, incluido tu `defaultLocale` configurado.
-
-Cualquier otro idioma no configurado se asignará a una URL basada en la ruta localizada según tu estrategia `prefixDefaultLocale` (p. ej. `https://example.com/[locale]/blog`).
+Habilita una característica de enrutamiento para reescribir solicitudes en páginas de Astro, puntos finales y middleware de Astro, brindándote control programático sobre tus rutas.
 
 ```js
-//astro.config.mjs
-export default defineConfig({
-	site: "https://example.com",
-  output: "server", // requerido, sin páginas prerenderizadas
-	adapter: node({
-		mode: 'standalone',
-	}),
-	i18n: {
-		defaultLocale: "en",
-		locales: ["en", "fr", "pt-br", "es"],
-		prefixDefaultLocale: false,
-		domains: {
-			fr: "https://fr.example.com",
-			es: "https://example.es",
-		},
-	},
-	experimental: {
-		i18nDomains: true,
-	},
-});
+{
+  experimental: {
+    rewriting: true,
+  },
+}
 ```
-Ambas rutas de página construidas y URLs devueltas por las funciones auxiliares `astro:i18n` `getAbsoluteLocaleUrl()` y `getAbsoluteLocaleUrlList()` utilizarán las opciones establecidas en `i18n.domains`.
-Ver la [Guía de Internacionalización](/es/guides/internationalization/#domains-experimental) para más detalles, incluyendo las limitaciones de esta característica experimental.
+
+Usa `Astro.rewrite` en tus archivos `.astro` para redireccionar a una página diferente:
+
+```astro "rewrite"
+---
+// src/pages/dashboard.astro
+if (!Astro.props.allowed) {
+	return Astro.rewrite("/")
+}
+---
+```
+
+Usa `context.rewrite` en tus archivos de puntos finales para redirigir a una página diferente:
+
+```js
+// src/pages/api.js
+export function GET(ctx) {
+	if (!ctx.locals.allowed) {
+		return ctx.rewrite("/")
+	}
+}
+```
+
+Usa `next("/")` en tus archivos de middleware para redirigir a una página diferente, y luego llama a la siguiente función de middleware:
+
+```js
+// src/middleware.js
+export function onRequest(ctx, next) {
+	if (!ctx.cookies.get("allowed")) {
+		return next("/") // new signature
+	}
+	return next();
+}
+```
+
+Para obtener una visión completa, y proporcionar comentarios sobre esta API experimental, consulta [Rerouting RFC](https://github.com/withastro/roadmap/blob/feat/reroute/proposals/0047-rerouting.md).
+
+### experimental.env
+
+<p>
+
+**Tipo:** `object`<br />
+**Por defecto:** `undefined`<br />
+<Since v="4.10.0" />
+</p>
+
+Habilita las características experimentales de `astro:env`.
+
+La API `astro:env` te permite configurar un esquema seguro para tus variables de entorno, y especificar si deben estar disponibles en el servidor o en el cliente. Importa y utiliza sus variables definidas desde el módulo `/client` o `/server` correspondiente:
+
+```astro
+---
+import { APP_ID } from "astro:env/client"
+import { API_URL, API_TOKEN, getSecret } from "astro:env/server"
+const NODE_ENV = getSecret("NODE_ENV")
+
+const data = await fetch(`${API_URL}/users`, {
+	method: "POST",
+	headers: {
+		"Content-Type": "application/json",
+		"Authorization": `Bearer ${API_TOKEN}`
+	},
+	body: JSON.stringify({ appId: APP_ID, nodeEnv: NODE_ENV })
+})
+---
+```
+
+Para definir el tipo de datos y las propiedades de tus variables de entorno, declara un esquema en la configuración de Astro en `experimental.env.schema`. El ayudante `envField` te permite definir tu variable como una cadena (string), número (number), o booleano (boolean) y pasar propiedades en un objeto:
+
+```js
+// astro.config.mjs
+import { defineConfig, envField } from "astro/config"
+
+export default defineConfig({
+    experimental: {
+        env: {
+            schema: {
+                API_URL: envField.string({ context: "client", access: "public", optional: true }),
+                PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+                API_SECRET: envField.string({ context: "server", access: "secret" }),
+            }
+        }
+    }
+})
+```
+
+Actualmente, hay cuatro tipos de datos compatibles: cadenas (strings), números (numbers), booleanos (booleans) y enumeraciones (enums).
+
+Hay tres tipos de variables de entorno, determinadas por la combinación de las configuraciones `context` (cliente o servidor) y `access` (secreto o público) definidas en tu [`env.schema`](#experimentalenvschema):
+
+- **Variables públicas del cliente**: Estas variables terminan en los paquetes finales tanto del cliente como del servidor, y pueden ser accedidas desde ambos a través del módulo `astro:env/client`:
+
+    ```js
+    import { API_URL } from "astro:env/client"
+    ```
+
+- **Variables públicas del servidor**: Estas variables terminan en tu paquete final del servidor y pueden ser accedidas en el servidor a través del módulo `astro:env/server`:
+
+    ```js
+    import { PORT } from "astro:env/server"
+    ```
+
+- **Variables secretas del servidor**: Estas variables no forman parte de tu paquete final y pueden ser accedidas en el servidor a través del módulo `astro:env/server`. La función auxiliar `getSecret()` puede ser utilizada para recuperar secretos que no están especificados en el esquema:
+
+    ```js
+    import { API_SECRET, getSecret } from "astro:env/server"
+
+    const SECRET_NOT_IN_SCHEMA = getSecret("SECRET_NOT_IN_SCHEMA") // string | undefined
+    ```
+
+**Nota:** Las variables secretas del cliente no son compatibles porque no hay una manera segura de enviar estos datos al cliente. Por lo tanto, no es posible configurar tanto `context: "client"` como `access: "secret"` en tu esquema.
+
+Para obtener una visión completa y proporcionar comentarios sobre esta API experimental, consulta [Astro Env RFC](https://github.com/withastro/roadmap/blob/main/proposals/0049-astro-env.md).
+
+#### experimental.env.schema
+
+<p>
+
+**Tipo:** `EnvSchema`<br />
+**Por defecto:** `undefined`<br />
+<Since v="4.10.0" />
+</p>
+
+Un objeto que usa `envField` para definir el tipo de datos (`string`, `number`, or `boolean`) y las propiedades de tus variables de entorno: `context` (cliente o servidor), `access` (pública o secreta), un valor `default` a  utilizar, y si esta variable de entorno es `optional` (opcional) o no (por defecto es `false`).
+```js
+// astro.config.mjs
+import { defineConfig, envField } from "astro/config"
+
+export default defineConfig({
+  experimental: {
+    env: {
+      schema: {
+        API_URL: envField.string({ context: "client", access: "public", optional: true }),
+        PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+        API_SECRET: envField.string({ context: "server", access: "secret" }),
+      }
+    }
+  }
+})
+```
+

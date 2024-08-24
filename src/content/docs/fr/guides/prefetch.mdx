@@ -51,7 +51,6 @@ Chaque stratégie est finement ajustée pour ne précharger que lorsque c'est n�
 
 - Si un visiteur utilise le [mode d'économie de données](https://developer.mozilla.org/fr/docs/Web/API/NetworkInformation/saveData) ou dispose d'une [connexion lente](https://developer.mozilla.org/fr/docs/Web/API/NetworkInformation/effectiveType), la stratégie de préchargement sera remplacée par la stratégie `tap`.
 - Un survol ou un défilement rapide des liens ne les récupérera pas.
-- Les liens qui utilisent la stratégie `viewport` ou `load` ont une priorité plus faible pour éviter d'encombrer le réseau.
 
 ### Stratégie de prefetch par défaut
 
@@ -106,17 +105,6 @@ Comme certaines navigations n'apparaissent pas toujours comme des liens `<a />` 
 </script>
 ```
 
-Vous pouvez également configurer la priorité du préchargement en passant l'option `with` :
-
-```js
-// Prefetch avec `fetch()`, qui a une priorité plus élevée.
-prefetch('/about', { with: 'fetch' });
-
-// Prefetch avec `<link rel="prefetch">`, qui a une priorité plus faible
-// et programmé manuellement par le navigateur. (par défaut)
-prefetch('/about', { with: 'link' });
-```
-
 L'API `prefetch()` inclut la même détection de [mode d'économie de données](https://developer.mozilla.org/fr/docs/Web/API/NetworkInformation/saveData) et de [connexion lente](https://developer.mozilla.org/fr/docs/Web/API/NetworkInformation/effectiveType) de façon à ce qu'elle ne prenne en compte que ce qui est nécessaire.
 
 Pour ignorer la détection de connexion lente, vous pouvez utiliser l'option `ignoreSlowConnection` :
@@ -153,6 +141,38 @@ export default defineConfig({
   }
 });
 ```
+
+## Prise en charge du navigateur
+
+Astro utilise [`<link rel="prefetch">`](https://developer.mozilla.org/fr/docs/Web/HTML/Attributes/rel/prefetch) si le navigateur le supporte, et revient à l'API [`fetch()`](https://developer.mozilla.org/fr/docs/Web/API/Fetch_API) dans le cas contraire.
+
+Les navigateurs les plus courants prennent en charge le système de préchargement d'Astro avec des différences subtiles :
+
+### Chrome
+
+Chrome supporte `<link rel="prefetch">`. La fonctionnalité "prefetch" fonctionne comme prévu.
+
+### Firefox
+
+Firefox supporte `<link rel="prefetch">` mais peut afficher des erreurs ou échouer complètement :
+
+- Sans un en-tête de cache explicite (par exemple [`Cache-Control`](https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Cache-Control) ou [`Expires`](https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Expires)), le prefetch se terminera par une erreur `NS_BINDING_ABORTED`.
+- Même en cas d'erreur, si la réponse contient un en-tête [`ETag`](https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/ETag) correct, il sera réutilisé pour la navigation.
+- Dans le cas contraire, s'il n'y a pas d'autres en-têtes de cache, le prefetch ne fonctionnera pas.
+
+### Safari
+
+Safari ne prend pas en charge `<link rel="prefetch">` et se rabattra sur l'API `fetch()` qui nécessite que les en-têtes de cache (par exemple [`Cache-Control`](https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Cache-Control), [`Expires`](https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Expires), et [`ETag`](https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/ETag)) soient définis. Dans le cas contraire, le prefetch ne fonctionnera pas.
+
+**Edge case :** Les en-têtes `ETag` ne fonctionnent pas dans les fenêtres privées.
+
+### Recommendations
+
+Pour une meilleure prise en charge de tous les navigateurs, assurez-vous que vos pages ont les bons en-têtes de cache.
+
+Pour les pages statiques ou pré-rendues, l'en-tête `ETag` est souvent défini automatiquement par la plateforme de déploiement et est censé fonctionner dès le départ.
+
+Pour les pages dynamiques et affiché côté serveur, définissez vous-même les en-têtes de cache appropriés en fonction du contenu de la page. Consultez la [documentation MDN sur la mise en cache HTTP](https://developer.mozilla.org/fr/docs/Web/HTTP/Caching) pour plus d'informations.
 
 ## Migration depuis `@astrojs/prefetch`
 
