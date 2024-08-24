@@ -6,7 +6,7 @@ import { getPageCategory } from './getPageCategory';
 export function removeSubPageSegment(path: string) {
 	// Include new pages with sub-pages as part of this regex.
 	const regex =
-		/(?:install|deploy|integrations-guide|tutorial|migrate-to-astro|recipes|cms|backend)\//;
+		/(?:install|deploy|integrations-guide|tutorial|migrate-to-astro|recipes|cms|media|backend)\//;
 	const matches = regex.exec(path);
 
 	if (matches) {
