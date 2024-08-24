@@ -51,6 +51,8 @@ export default UIDictionary({
 	'deploy.staticTag': '靜態',
 	// CMS Guides vocabulary
 	'cms.navTitle': '更多 CMS 指南',
+	// Media Guides voccabulary
+	'media.navTitle': '更多 DAM 指南',
 	// Migration Guides vocabulary
 	'migration.navTitle': '更多遷移指南',
 	// Recipes vocabulary
