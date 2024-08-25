@@ -37,7 +37,7 @@ export default UIDictionary({
 	'articleNav.nextPage': '下一頁',
 	'articleNav.prevPage': '返回',
 	// Used in `<Since>`: Added in: v0.24.0 [NEW]
-	'since.addedIn': '添加於：',
+	'since.addedIn': '新增於：',
 	'since.new': '新',
 	'since.beta': 'Beta',
 	// Installation Guide
