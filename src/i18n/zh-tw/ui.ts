@@ -88,7 +88,7 @@ export default UIDictionary({
 	// Multiple Choice component
 	'multipleChoice.defaultCorrect': '正確！',
 	'multipleChoice.defaultIncorrect': '再試一次！',
-	'multipleChoice.submitLabel': '提交',
+	'multipleChoice.submitLabel': '送出',
 	// Tutorial Progress
 	'progress.todo': '待辦',
 	'progress.done': '完成',
