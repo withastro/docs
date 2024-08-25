@@ -128,7 +128,7 @@ export default UIDictionary({
 	'stub.description.cms': '知道更多在 Astro 使用此 CMS 的資訊？',
 	'stub.description.backend': '知道更多在 Astro 使用此後端服務的資訊？',
 	// Starlight banner
-	'starlight.title': '想要創建自己的文件嗎？',
+	'starlight.title': '想要建立自己的文件嗎？',
 	'starlight.description': '獲取此模版即可開始。',
 	// `<StudioHeading>` component
 	'studioHeading.label': 'Studio 功能',
