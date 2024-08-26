@@ -52,6 +52,8 @@ export default UIDictionary({
 	'deploy.staticTag': 'Static',
 	// CMS Guides vocabulary
 	'cms.navTitle': '더 많은 CMS 안내서',
+	// Media Guides voccabulary
+	'media.navTitle': '더 많은 DAM 안내서',
 	// Migration Guides vocabulary
 	'migration.navTitle': '더 많은 전환 안내서',
 	// Recipes vocabulary
