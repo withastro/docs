@@ -475,23 +475,24 @@ if (result && !result.error) {
 
 ### Handle form action errors
 
-Astro avoids redirecting to your `action` route when an action fails. Instead, the current page is re-rendered with any errors the action returned.
+Astro avoids redirecting to your `action` route when an action fails. Instead, the current page is reloaded with any errors the action returned.
 
 Check for errors by using the `error` object returned by `Astro.getActionResult()`. This example displays a general message when a `newsletter` action fails:
 
-```astro title="src/pages/index.astro" ins={4,7}
+```astro title="src/pages/index.astro" {4,7-9}
 ---
 import { actions } from 'astro:actions';
 
 const result = Astro.getActionResult(actions.newsletter);
 ---
 
-{result?.error && <p class="error">Unable to sign up. Please try again later.</p>}
+{result?.error && (
+  <p class="error">Unable to sign up. Please try again later.</p>
+)}
 <form method="POST" action={'/confirmation' + actions.newsletter}>
-  <input required type="email" name="email" />
   <label>
-    <input required type="checkbox" name="promo" />
-    Receive occasional promo emails
+    E-mail
+    <input required type="email" name="email" />
   </label>
   <button>Sign up</button>
 </form>
@@ -499,9 +500,8 @@ const result = Astro.getActionResult(actions.newsletter);
 
 You can [use the `isInputError()` utility](#displaying-form-input-errors) to check whether an error is caused by invalid input. This example renders an error banner under the `email` input when an invalid email is submitted:
 
-```astro title="src/pages/index.astro" ins={6,11}
+```astro title="src/pages/index.astro" ins={5,13} ins='aria-describedby="error"'
 ---
-// src/pages/index.astro
 import { actions, isInputError } from 'astro:actions';
 
 const result = Astro.getActionResult(actions.newsletter);
@@ -509,10 +509,12 @@ const inputErrors = isInputError(result?.error) ? result.error.fields : {};
 ---
 
 <form method="POST" action={'/confirmation' + actions.newsletter}>
-  <input required type="email" name="email" />
-  {inputErrors.email && <p class="error">{inputErrors.email.join(',')}</p>}
-
-  <!--...-->
+  <label>
+    E-mail
+    <input required type="email" name="email" aria-describedby="error" />
+  </label>
+  {inputErrors.email && <p id="error">{inputErrors.email.join(',')}</p>}
+  <button>Sign up</button>
 </form>
 ```
 
@@ -536,7 +538,7 @@ The result returned by `Astro.getActionResult()` is single-use, and will reset t
 If you need a result to be displayed across page refreshes, consider storing the result in a database or [in a cookie](/en/reference/api-reference/#astrocookies).
 :::
 
-Call `Astro.getActionResult()` with a given action function, and use the `data` property to render any temporary UI you want to display. This example uses the `productName` property returned by an `addToCart` action to show a success message:
+Pass an action to `Astro.getActionResult()` and use the returned `data` property to render any temporary UI you want to display. This example uses the `productName` property returned by an `addToCart` action to show a success message:
 
 ```astro title="src/pages/products/[slug].astro"
 ---
