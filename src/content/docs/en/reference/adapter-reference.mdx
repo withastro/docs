@@ -394,3 +394,51 @@ function createEdgeMiddleware(middlewareEntryPoint) {
     // emit a new physical file using your bundler
 }
 ```
+
+### envGetSecret
+
+To support [`astro:env` secrets](/en/guides/environment-variables/#getsecret), you need to update the `envGetSecret` adapter feature. Additionally, the `astro/env/setup` module allows you to provide an implementation for `getSecret()`. In your server entrypoint, call `setGetEnv()` as soon as possible:
+
+```js ins={2,4}
+import { App } from 'astro/app';
+import { setGetEnv } from "astro/env/setup"
+
+setGetEnv((key) => process.env[key])
+
+export function createExports(manifest) {
+  const app = new App(manifest);
+
+  const handler = (event, context) => {
+    // ...
+  };
+
+  return { handler };
+}
+```
+
+If you support secrets, calling `getSecret()` until `setGetEnv()` is called will throw a runtime error. This is important to keep in mind if your environment variables are tied to the request:
+
+```js ins={3,14}
+import type { SSRManifest } from 'astro';
+import { App } from 'astro/app';
+import { setGetEnv } from 'astro/env/setup';
+import { createGetEnv } from '../utils/env.js';
+
+type Env = {
+	[key: string]: unknown;
+};
+
+export function createExports(manifest: SSRManifest) {
+	const app = new App(manifest);
+
+	const fetch = async (request: Request, env: Env) => {
+		setGetEnv(createGetEnv(env));
+
+		const response = await app.render(request);
+
+		return response;
+	};
+
+	return { default: { fetch } };
+}
+```

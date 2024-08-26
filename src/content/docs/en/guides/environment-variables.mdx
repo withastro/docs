@@ -3,15 +3,38 @@ title: Using environment variables
 description: Learn how to use environment variables in an Astro project.
 i18nReady: true
 ---
+
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import ReadMore from '~/components/ReadMore.astro';
 
 Astro supports 2 main ways for handling environment variables: the `astro:env` module and Vite's built-in support.
 
 ## `astro:env`
 
-`astro:env` lets you configure a type-safe schema for your environment variables, and indicate whether they should be available on the server or the client.
+The `astro:env` API lets you configure a type-safe schema for your environment variables, and indicate whether they should be available on the server or the client. Import and use your defined variables from the appropriate `/client` or `/server` module:
 
-To configure a schema, add the `env` option to your Astro config and define your client and server variables:
+```astro
+---
+import { API_URL } from "astro:env/client"
+import { API_SECRET_TOKEN } from "astro:env/server"
+
+const data = await fetch(`${API_URL}/users`, {
+	method: "GET",
+	headers: {
+		"Content-Type": "application/json",
+		"Authorization": `Bearer ${API_SECRET_TOKEN}`
+	},
+})
+---
+
+<script>
+import { API_URL } from "astro:env/client"
+
+fetch(`${API_URL}/ping`)
+</script>
+```
+
+To define the data type and properties of your environment variables, declare a schema in your Astro config in `experimental.env.schema`. The `envField` helper allows you define your variable as a string, number, or boolean and pass properties in an object:
 
 ```js title="astro.config.mjs" ins={4-10}
 import { defineConfig, envField } from 'astro/config'
@@ -27,28 +50,7 @@ export default defineConfig({
 })
 ```
 
-You can import and use your defined variables from the appropriate `/client` or `/server` module:
-
-```astro
----
-import { API_URL } from "astro:env/client"
-import { API_SECRET_TOKEN } from "astro:env/server"
-const data = await fetch(`${API_URL}/users`, {
-  method: "GET",
-  headers: {
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${API_SECRET_TOKEN}`
-  },
-});
----
-
-<script>
-import { API_URL } from "astro:env/client"
-fetch(`${API_URL}/ping`)
-</script>
-```
-
-**TODO: where to talk about integrations & adapters?**
+<ReadMore>See how to [make an adapter compatible with `astro:env`](/en/reference/adapter-reference/#envgetsecret).</ReadMore>
 
 ### Define your schema
 
@@ -113,55 +115,29 @@ There are three kinds of environment variables, determined by the combination of
 
 **Note:** Secret client variables are not supported because there is no safe way to send this data to the client. Therefore, it is not possible to configure both `context: "client"` and `access: "secret"` in your schema.
 
-### Data types
-
-There are currently four data types supported:
-
-#### String
+There are currently four data types supported: strings, numbers, booleans and enums:
 
 ```js
+import { envField } from "astro/config"
+
 envField.string({
    // context & access
    optional: true,
    default: "foo",
-   max: 20,
-   min: 1,
-   length: 13,
-   url: true,
-   includes: "oo",
-   startsWith: "f",
-   endsWith: "o",
 })
-```
 
-#### Number
-
-```js
 envField.number({
    // context & access
    optional: true,
    default: 15,
-   gt: 2,
-   min: 1,
-   lt: 3,
-   max: 4,
-   int: true,
 })
-```
 
-#### Boolean
-
-```js
 envField.boolean({
    // context & access
    optional: true,
    default: true,
 })
-```
 
-#### Enum
-
-```js
 envField.enum({
    // context & access
    values: ['foo', 'bar', 'baz'],
@@ -169,6 +145,8 @@ envField.enum({
    default: 'baz',
 })
 ```
+
+Some of them come with more optional validation rules, check out the [source](https://github.com/withastro/astro/blob/main/packages/astro/src/env/schema.ts#L3-L45) to learn more.
 
 ### `getSecret()`
 
