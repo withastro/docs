@@ -52,6 +52,8 @@ export default UIDictionary({
 	'deploy.staticTag': 'Statique',
 	// CMS Guides vocabulary
 	'cms.navTitle': 'Plus de guides sur les CMS',
+	// Media Guides vocabulary
+	'media.navTitle': 'Plus de guides sur les DAM',
 	// Migration Guides vocabulary
 	'migration.navTitle': 'Plus de guides sur les migrations',
 	// Recipes vocabulary
