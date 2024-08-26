@@ -665,9 +665,16 @@ To connecto Astro DB to a LibSQL instead of Studio, set the following environmen
 - `ASTRO_DB_REMOTE_URL`: the connection URL to your LibSQL server
 - `ASTRO_DB_APP_TOKEN`: the auth token to your LibSQL server
 
-The environment variables have to be set during `astro build`, `astro db push --remote` and during runtime if your project use Astro DB on SSR pages.
+While developing locally on a project using LibSQL, Astro DB can't use your user credential from `astro login` to authenticate to the database. So contrary to Astro Studio where the app token only needs to be set on your deployed environment, both environment variables also need to be set locally when running commands with the `--remote` option like `astro build` and `astro db push`.
 
-Details of the LibSQL connection can be configured using the connection URL.
+Details of the LibSQL connection (e.g. encryption key, replication, sync interval) can be configured as query parameters in the remote connection URL.
+
+For example, to have a local file work as an embedded replica to an encrypted LibSQL server, you can set the following environment variables:
+
+```env title=".env"
+ASTRO_DB_REMOTE_URL=file://local-copy.db?encryptionKey=your-encryption-key&syncInterval=60&syncUrl=libsql%3A%2F%2Fyour.server.io
+ASTRO_DB_APP_TOKEN=token-to-your-remote-url
+```
 
 ### URL scheme and host
 
@@ -676,15 +683,16 @@ LibSQL supports both HTTP and WebSockets as the transport protocol for for a rem
 - `memory:` will use an in-memory DB. Host must be empty in this case.
 - `file:` will use a local file. The host is the path to the file (`file:path/to/file.db`).
 - `libsql:` will use a remote server through the protocol preferred by the library (this might be different across versions). The host is the address of the server (`libsql://your.server.io`).
-- `libsql+http:` will use a remote server through HTTP. `libsql+https:` can be used to enable a secure connection. The host is the same as for `libsql:`.
-- `ws:` will use a remote server through WebSockets. `wss` can be used to enable a secure connection. The host is the same as for `libsql:`.
+- `http:` will use a remote server through HTTP. `https:` can be used to enable a secure connection. The host is the same as for `libsql:`.
+- `ws:` will use a remote server through WebSockets. `wss:` can be used to enable a secure connection. The host is the same as for `libsql:`.
 
 ### `encryptionKey`
 
 LibSQL has native support for encrypted databases. Passing this search parameter will enable encryption using the given key:
 
-- `file:path/to/file.db?encryptionKey=your-encryption-key`
-- `libsql://your.server.io?encryptionKey=your-encryption-key`
+```env title=".env"
+ASTRO_DB_REMOTE_URL=file:path/to/file.db?encryptionKey=your-encryption-key
+```
 
 ### `syncUrl`
 
@@ -692,11 +700,22 @@ Embedded replicas are a feature of LibSQL clients that enables a full synchroniz
 
 Use this property to pass a separate connection URL to turn the DB into an embedded replica of another of another database. This should only be used with the schemes `file:` and `memory:`. The parameter must be URL encoded.
 
-For example, to have an in-memory embedded replica of a database on `libsql://your.server.io`, you can set the connection URL to `memory:?syncUrl=libsql%3A%2F%2Fyour.server.io`.
+For example, to have an in-memory embedded replica of a database on `libsql://your.server.io`, you can set the connection URL as such:
+
+```env title=".env"
+ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io
+```
 
 ### `syncInterval`
 
 Interval between embedded replicas synchronizations in seconds. By default it only synchronizes on startup and after writes.
+
+This property is only used when `syncUrl` is also set. For example, to set an in-memory empbedded replica to synchronize every minute set the following environment variable:
+
+```env title=".env"
+ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io&syncInterval=60
+```
+
 
 ## Building Astro DB integrations
 
