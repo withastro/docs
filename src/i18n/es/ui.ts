@@ -51,7 +51,7 @@ export default UIDictionary({
 	'deploy.filterLabel': 'Filtrar por tipo de implementación',
 	'deploy.ssrTag': 'SSR',
 	'deploy.staticTag': 'Estático',
-	// Vocabulario de guías de DAM (Digital Asset Management) 
+	// Vocabulario de guías de DAM (Digital Asset Management)
 	'media.navTitle': 'Más guías de DAM',
 	// Vocabulario de guías de CMS
 	'cms.navTitle': 'Más guías de CMS',
