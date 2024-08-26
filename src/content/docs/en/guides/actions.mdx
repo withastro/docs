@@ -381,13 +381,14 @@ To retrieve input errors, use the `isInputError()` utility to check whether an e
 
 The following example checks the error with `isInputError()`, then checks whether the error is in the email field, before finally creating a message from the errors. You can use JavaScript DOM manipulation or your preferred UI framework to display this message to users.
 
-```js /isInputError(?= )/ {5-11}
+```js /isInputError(?= )/ {5-12}
 import { actions, isInputError } from 'astro:actions';
 
 const form = document.querySelector('form');
 const formData = new FormData(form);
 const { error } = await actions.newsletter(formData);
 if (isInputError(error)) {
+  // Handle input errors.
   if (error.fields.email) {
     const message = error.fields.email.join(', ');
   }
@@ -397,48 +398,45 @@ if (isInputError(error)) {
 ## Call actions from an HTML form action
 
 :::note
-Pages must be server rendered when calling actions using a form action. [Ensure prerendering is disabled on the page](/en/guides/server-side-rendering/#opting-out-of-pre-rendering-in-hybrid-mode) before using this API.
+Pages must be on-demand rendered when calling actions using a form action. [Ensure prerendering is disabled on the page](/en/guides/server-side-rendering/#opting-out-of-pre-rendering-in-hybrid-mode) before using this API.
 :::
 
-You may want to pass `FormData` using a standard HTML form as well. This is useful as a fallback for client forms during slow internet connections or older devices. You may also prefer to handle forms entirely from the server using an Astro component.
+You may want to support form submissions without client-side JavaScript. This is useful both as a fallback for when JavaScript fails to load or if you prefer to handle forms entirely from the server.
 
-To use a standard form request, add `method="POST"` as a form attribute to any `<form>` element. Then, apply action function directly to the form's `action` property (example: `action={actions.logout}`). This will apply the function name as a query string to be handled by the server automatically.
+Enable zero-JS form submissions with standard attributes on any `<form>` element. Add `method="POST"` to your `<form>`, then set the form's `action` attribute using your action, for example `action={actions.logout}`. This will set the `action` attribute to use a query string that is handled by the server automatically.
 
-This example calls the `logout` action from a form using an Astro component, and re-renders the current page when it is complete:
+For example, this Astro component calls the `logout` action when the button is clicked and reloads the current page:
 
-```astro title="src/pages/index.astro"
+```astro title="src/components/LogoutButton.astro"
 ---
 import { actions } from 'astro:actions';
 ---
 
 <form method="POST" action={actions.logout}>
-  <!--output: action="?_astroAction=logout"-->
   <button>Log out</button>
 </form>
 ```
 
-You can also prepend a route you want to navigate if the action is successful. For example, `action={'/confirmation' + actions.newsletter}` will navigate to `/confirmation` when the `newsletter` action succeeds:
+### Redirect on action success
 
-```astro title="src/pages/index.astro"
+If you want to navigate to a different page when an action is successful, you can prepend a path in the `action` attribute. For example, `action={'/confirmation' + actions.newsletter}` will navigate to `/confirmation` when the `newsletter` action succeeds:
+
+```astro title="src/components/NewsletterSignup.astro" /action=\{[^\{\}]+\}/
 ---
 import { actions } from 'astro:actions';
 ---
 
 <form method="POST" action={'/confirmation' + actions.newsletter}>
-  <input required type="email" name="email" />
-  <label>
-    <input required type="checkbox" name="promo" />
-    Receive occasional promo emails
-  </label>
+  <label>E-mail <input required type="email" name="email" /></label>
   <button>Sign up</button>
 </form>
 ```
 
-### Redirect to a constructed route on success
+### Dynamic redirect on action success
 
-You may need to use the result of an action to construct a redirect path. This is common when creating a product record and redirecting to that product's page (example: `/products/[id]`).
+If you need to decide where to redirect to dynamically, you can use an action’s result on the server. A common example is creating a product record and redirecting to the new product's page, e.g. `/products/[id]`.
 
-For example, say you have a `createProduct()` action that returns the generated product id:
+For example, say you have a `createProduct` action that returns the generated product id:
 
 ```ts title="src/actions/index.ts" mark={10}
 import { defineAction } from 'astro:actions';
@@ -449,18 +447,18 @@ export const server = {
     accept: 'form',
     input: z.object({ /* ... */ }),
     handler: async (input) => {
-      // persist product to database
-      return { id: "example" };
+      const product = await persistToDatabase(input);
+      return { id: product.id };
     },
   })
 }
 ```
 
-If the action succeeded, retrieve the action result from your Astro component by calling `Astro.getActionResult()`. This returns a `data` or `error` object when an action is called, or `undefined` if no request was received.
+You can retrieve the action result from your Astro component by calling `Astro.getActionResult()`. This returns an object containing `data` or `error` properties when an action is called, or `undefined` if the action was not called during this request.
 
-Use the `data` property to construct a URL and return a `redirect` response with `Astro.redirect()`:
+Use the `data` property to construct a URL to use with `Astro.redirect()`:
 
-```astro title="src/pages/products/create.astro" ins={5-7}
+```astro title="src/pages/products/create.astro" {4-7}
 ---
 import { actions } from 'astro:actions';
 
