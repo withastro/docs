@@ -1364,53 +1364,6 @@ export function Comment({ postId }: { postId: string }) {
 }
 ```
 
-### experimental.contentCollectionJsonSchema
-
-<p>
-
-**类型：** `boolean`<br />
-**默认值：** `false`<br />
-<Since v="4.5.0" />
-</p>
-
-此功能将为 `type: 'data'` 的内容集合自动生成一个 JSON 模式，该模式可用作 VSCode 等工具中 TypeScript 风格的自动完成/提示的 `$schema` 值。
-
-要启用此功能，请添加实验性标志：
-
-```diff
-import { defineConfig } from 'astro/config';
-export default defineConfig({
-	experimental: {
-+		contentCollectionJsonSchema: true
-	}
-});
-```
-
-此实验性实现要求你在内容集合的每个数据条目文件中手动引用模式：
-
-```diff
-// src/content/test/entry.json
-{
-+  "$schema": "../../../.astro/collections/test.schema.json",
-	"test": "test"
-}
-```
-
-或者，你也可以在你的 [VSCode `json.schemas` 设置](https://code.visualstudio.com/docs/languages/json#_json-schemas-and-settings)中进行配置：
-
-```diff
-"json.schemas": [
-	{
-		"fileMatch": [
-			"/src/content/test/**"
-		],
-		"url": "./.astro/collections/test.schema.json"
-	}
-]
-```
-
-请注意，这个初始实现使用了一个库，该库对于高级 Zod 模式有[已知的问题](https://github.com/StefanTerdell/zod-to-json-schema#known-issues)，因此在启用实验性标志之前，你可能希望查阅这些限制。
-
 ### experimental.clientPrerender
 
 <p>
@@ -1546,18 +1499,21 @@ export function onRequest(ctx, next) {
 
 ```astro
 ---
-import { APP_ID } from "astro:env/client"
-import { API_URL, API_TOKEN, getSecret } from "astro:env/server"
-const NODE_ENV = getSecret("NODE_ENV")
+import { API_URL } from "astro:env/client"
+import { API_SECRET_TOKEN } from "astro:env/server"
 const data = await fetch(`${API_URL}/users`, {
-	method: "POST",
+	method: "GET",
 	headers: {
 		"Content-Type": "application/json",
-		"Authorization": `Bearer ${API_TOKEN}`
+		"Authorization": `Bearer ${API_SECRET_TOKEN}`
 	},
-	body: JSON.stringify({ appId: APP_ID, nodeEnv: NODE_ENV })
 })
 ---
+<script>
+import { API_URL } from "astro:env/client"
+
+fetch(`${API_URL}/ping`)
+</script>
 ```
 
 要定义环境变量的数据类型和属性，请在你的 Astro 配置中用 `experimental.env.schema` 声明一个 schema。`envField` 助手函数允许你将变量定义为字符串、数字或布尔值，并在一个对象中传递属性：
@@ -1595,7 +1551,7 @@ export default defineConfig({
     import { PORT } from "astro:env/server"
     ```
 
-- **秘密服务端变量**：这些变量不会包含在你的最终包中，可以通过 `astro:env/server` 模块提供的 `getSecret()` 助手函数在服务端访问：
+- **秘密服务端变量**：这些变量不会包含在你的最终包中，可以通过 `astro:env/server` 模块提供的 `getSecret()` 助手函数在服务端访问。它的实现由你的适配器提供，默认为 `process.env`：
 
     ```js
     import { API_SECRET, getSecret } from "astro:env/server"
@@ -1605,7 +1561,7 @@ export default defineConfig({
 
 **注意：** 因为没有方式可以将数据安全地发送到客户端，所以不支持秘密客户端变量。因此，在你的 schema 中不能同时配置 `context: "client"` 和 `access: "secret"`。
 
-要完整了解此实验性 API 并提供反馈，请查看 [Astro Env RFC](https://github.com/withastro/roadmap/blob/feat/astro-env-rfc/proposals/0046-astro-env.md)。
+要完整了解此实验性 API 并提供反馈，请查看 [Astro Env RFC](https://github.com/withastro/roadmap/blob/main/proposals/0049-astro-env.md)。
 
 #### experimental.env.schema
 
@@ -1725,3 +1681,223 @@ const user = await getUser(Astro.locals.userId);
 ```
 
 要全面了解并对这个实验性 API 提供反馈，请查看 [服务器群岛 RFC](https://github.com/withastro/roadmap/pull/963)。
+
+### experimental.contentIntellisense
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `false`<br />
+<Since v="4.14.0" />
+</p>
+
+在兼容的编辑器中，启用此功能将为你的内容集合条目提供 Intellisense 智能提示功能（例如代码补全、快速提示）。
+
+启用后，此功能将生成并添加 JSON 模式到你项目的 `.astro` 目录中。这些文件可以被 Astro 语言服务器使用，以在内容文件（`.md`、`.mdx`、`.mdoc`）中提供智能提示。
+
+```js
+{
+  experimental: {
+    contentIntellisense: true,
+  },
+}
+```
+
+要将此功能与 Astro VS Code 扩展一起使用，你还必须在 VS Code 设置中启用 `astro.content-intellisense` 选项。对于直接使用 Astro 语言服务器的编辑器，传递 `contentIntellisense: true` 初始化参数以启用此功能。
+
+### experimental.contentLayer
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `false`<br />
+<Since v="4.14.0" />
+</p>
+
+Content Layer API 是一种新的处理 Astro 中内容和数据的方式。它类似于 [内容集合](/zh-cn/guides/content-collections/) 并构建在内容集合之上，将其从 `src/content/` 中的本地文件扩展到允许你通过为你的集合添加 `loader` 来从任何地方获取内容，包括远程 API。
+
+只需要一点小改动，你就可以将现有的内容集合 [迁移到 Content Layer API](#迁移现有内容集合以使用-content-layer-api)。但是，不需要一次性更新所有集合来添加一个由 Content Layer API 提供支持的新集合。你可以在 `src/content/config.ts` 中同时定义使用现有的和新 API 的集合。
+
+Content Layer API 为更强大和更高性能的网站设计，帮助网站扩展到数千个页面。数据在构建之间进行缓存，并进行增量更新。Markdown 解析速度也提高了 5-10 倍，内存使用量也减少了相似的规模，MDX 的速度也提高了 2-3 倍。
+
+要启用该功能，请在你的 Astro 配置中的 `experimental` 对象中添加 `contentLayer` 标志：
+
+```js
+// astro.config.mjs
+{
+	experimental: {
+		contentLayer: true,
+	}
+}
+```
+
+#### 使用 `loader` 请求数据
+
+Content Layer API 允许你从 `src/content/` 文件夹之外（无论是在你的项目中本地存储还是远程存储）获取内容，并使用 `loader` 属性来检索数据。
+
+`loader` 在集合的 schema 中定义，并返回一个条目数组。Astro 提供了两个内置的 loader 函数（`glob()` 和 `file()`）用于获取你的本地内容，以及让你[构建自己的 loader 并获取远程数据](#创建-loader) 的 API。
+
+`glob()` loader 从文件系统上的任何地方的 Markdown、MDX、Markdoc 或 JSON 文件目录中创建条目。它接受一个匹配条目文件的 `pattern`，以及你的文件所在的 `base` 文件路径。当每个条目对于一个文件时使用此选项。
+
+`file` loader 从单个本地文件中创建多个条目。当你的所有条目都存储在对象数组中时使用。
+
+```ts  {3,8,19}
+// src/content/config.ts
+import { defineCollection, z } from 'astro:content';
+import { glob, file } from 'astro/loaders';
+
+const blog = defineCollection({
+  // 默认情况下，ID 是从相对于
+  // `base` 的文件路径生成的 slug
+  loader: glob({ pattern: "**\/*.md", base: "./src/data/blog" }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
+  })
+});
+
+const dogs = defineCollection({
+  // 该路径是相对于项目根目录，或者是绝对路径。
+  loader: file("src/data/dogs.json"),
+  schema: z.object({
+    id: z.string(),
+    breed: z.string(),
+    temperament: z.array(z.string()),
+  }),
+});
+
+export const collections = { blog, dogs };
+```
+
+:::note
+Loader 不会自动[排除以 `_` 开头的文件](/zh-cn/guides/routing/#排除页面)。在你的 loader 中使用正则表达式，例如 `pattern: '**\/[^_]*.md'` 来忽略这些文件。
+:::
+
+#### 使用 Content Layer API 查询和渲染
+
+可以使用 [与内容集合相同的方式查询集合](/zh-cn/guides/content-collections/#查询集合)：
+
+```ts
+// src/pages/index.astro
+import { getCollection, getEntry } from 'astro:content';
+
+// 获取集合中的所有条目。
+// 需要集合的名字作为参数。
+const allBlogPosts = await getCollection('blog');
+
+// 从集合中获取单个条目。
+// 需要集合的名字和条目的 ID 作为参数。
+const labradorData = await getEntry('dogs', 'labrador-retriever');
+```
+
+从 Markdown、MDX 或 Markdoc 生成的条目可以直接使用 `render()` 函数渲染到页面上。
+
+:::note
+渲染集合条目的语法与当前内容集合的语法不同。
+:::
+
+```astro title="src/pages/[slug].astro"
+---
+import { getEntry, render } from 'astro:content';
+
+const post = await getEntry('blog', Astro.params.slug);
+
+const { Content, headings } = await render(post);
+---
+
+<Content />
+```
+
+#### 创建 loader
+
+使用 Content Layer API，你可以构建 loader 来从任何地方加载或生成内容。
+
+例如，你可以创建一个 loader，从远程 API 获取集合条目。
+
+```ts
+// src/content/config.ts
+const countries = defineCollection({
+  loader: async () => {
+    const response = await fetch("https://restcountries.com/v3.1/all");
+    const data = await response.json();
+    // 必须返回具有 id 属性的条目数组，
+    // 或具有 ID 作为键和条目作为值的对象
+    return data.map((country) => ({
+      id: country.cca3,
+      ...country,
+    }));
+  },
+  // 可选择添加 schema
+  // schema: z.object...
+});
+
+export const collections = { countries };
+```
+
+对于更高级的加载逻辑，你可以定义一个 loader 对象。这允许增量更新和条件加载，同时还可以完全访问数据存储。请查看 [Content Layer API RFC](https://github.com/withastro/roadmap/blob/content-layer/proposals/0047-content-layer.md#loaders) 中的 API。
+
+#### 迁移现有内容集合以使用 Content Layer API
+
+你可以将一个现有的包含 Markdown、MDX、Markdoc 或 JSON 条目的内容集合转换为使用 Content Layer API。
+
+1. **将集合文件夹移出 `src/content/`** (例如移到 `src/data/`)。位于 `src/content/` 文件夹中的所有集合将使用现有的内容集合 API。
+
+    **不要移动已存在的 `src/content/config.ts` 文件**。此文件应该包含所有集合的定义，包括使用 Content Layer API 的集合。
+
+2. **编辑集合定义**。更新后的集合需要一个 `loader`，并且 选择集合类型的 `type`不再可用。
+
+    ```ts ins={3,8} del={7}
+    // src/content/config.ts
+    import { defineCollection, z } from 'astro:content';
+    import { glob } from 'astro/loaders';
+
+    const blog = defineCollection({
+      // content layer 不需要定义 `type`
+      type: 'content',
+      loader: glob({ pattern: '**\/[^_]*.md', base: "./src/data/blog" }),
+      schema: z.object({
+        title: z.string(),
+        description: z.string(),
+        pubDate: z.coerce.date(),
+        updatedDate: z.coerce.date().optional(),
+      }),
+    });
+    ```
+
+3. **将引用从 `slug` 改成 `id`**。Content layer 集合不需要 `slug` 字段。作为替代，所有集合都使用 `id` 字段。
+    ```astro ins={7} del={6}
+    // src/pages/index.astro
+    ---
+    export async function getStaticPaths() {
+      const posts = await getCollection('blog');
+      return posts.map((post) => ({
+        params: { slug: post.slug },
+        params: { slug: post.id },
+        props: post,
+      }));
+    }
+    ---
+    ```
+
+4. **切换到新的 `render()` 函数**。条目本身不再具备 `render()` 方法，因为它们是可序列化的普通对象。 从 `astro:content` 中导入 `render()` 函数替代。
+
+    ```astro ins={4,9} del={3,8}
+    // src/pages/index.astro
+    ---
+    import { getEntry } from 'astro:content';
+    import { getEntry, render } from 'astro:content';
+
+    const post = await getEntry('blog', params.slug);
+
+    const { Content, headings } = await post.render();
+    const { Content, headings } = await render(post);
+    ---
+
+    <Content />
+    ```
+
+#### 了解更多
+
+要全面了解并 [对这个实验性 API 提供反馈](https://github.com/withastro/roadmap/pull/982)，请查看 [Content Layer API RFC](https://github.com/withastro/roadmap/blob/content-layer/proposals/0047-content-layer.md)。
