@@ -208,7 +208,7 @@ To throw an error, import the `ActionError()` class from the `astro:actions` mod
 
 This example throws an error from a `likePost` action when a user is not logged in, after checking a hypothetical "user-session" cookie for authentication:
 
-```ts title="src/actions/index.ts" ins="ActionError" ins={9-12}
+```ts title="src/actions/index.ts" ins=/ActionError(?= )/ ins={9-12}
 import { defineAction, ActionError } from "astro:actions";
 import { z } from "astro:schema";
 
@@ -283,9 +283,9 @@ export function LogoutButton() {
 
 ## Accepting form data from an action
 
-Actions accept JSON data by default. If you are using an HTML form, you can switch an action to accept form data by adding the `accept: 'form'` parameter to your `defineAction()` call:
+Actions accept JSON data by default. If you are using an HTML form, you can switch an action to accept form data by setting `accept: 'form'` in your `defineAction()` call:
 
-```ts title="src/actions/index.ts" ins="accept: 'form'"
+```ts title="src/actions/index.ts" ins={6}
 import { defineAction } from 'astro:actions';
 import { z } from 'astro:schema';
 
@@ -300,101 +300,98 @@ export const server = {
 
 ### Validating form data
 
-Astro will smartly parse form data to an object, mapping each form input based on the input `name`. Your action's `input` property will validate these values using the `z.object()` validator. You can also omit the `input` property to receive the raw `FormData` object in your action handler.
+Actions will parse submitted form data to an object, using the value of each input’s `name` attribute as the object keys. For example, a form containing `<input name="search">` will be parsed to an object like `{ search: 'user input' }`. Your action's `input` schema will be used to validate this object.
 
-This example creates a validated newsletter form that accepts a user's email and requires a "terms of service" agreement checkbox. First, provide an appropriate `name` for each input:
+To receive the raw `FormData` object in your action handler instead of a parsed object, omit the `input` property in your action definition.
 
-```astro title="src/components/Newsletter.astro 'name="email"' 'name="terms"'
-<form>
-  <input required type="email" name="email" />
-  <label>
-    <input required type="checkbox" name="terms">
-    I agree to the terms of service
-  </label>
-  <button>Sign up</button>
-</form>
-```
+The following example shows a validated newsletter registration form that accepts a user's email and requires a "terms of service" agreement checkbox.
 
-Then, create a `newsletter()` action to handle the `email` and `terms` provided. Validate the `email` field using the `z.string().email()` validator, and the `terms` checkbox using `z.boolean()`:
+<Steps>
 
-```ts title="src/actions/index.ts" ins={7-10}
-import { defineAction } from 'astro:actions';
-import { z } from 'astro:schema';
+1. Create an HTML form component with unique `name` attributes on each input:
 
-export const server = {
-  newsletter: defineAction({
-    accept: 'form',
-    input: z.object({
-      email: z.string().email(),
-      terms: z.boolean(),
-    }),
-    handler: async ({ email, terms }) => { /* ... */ },
-  })
-}
-```
+    ```astro title="src/components/Newsletter.astro" /name="\w+"/
+    <form>
+      <label for="email">E-mail</label>
+      <input id="email" required type="email" name="email" />
+      <label>
+        <input required type="checkbox" name="terms">
+        I agree to the terms of service
+      </label>
+      <button>Sign up</button>
+    </form>
+    ```
 
-<ReadMore>[Check the `input` API reference](/en/reference/api-reference/#input-validator) for all available form validators.</ReadMore>
+2. Define a `newsletter` action to handle the submitted form. Validate the `email` field using the `z.string().email()` validator, and the `terms` checkbox using `z.boolean()`:
 
-You can then submit a form request using either client code or an [HTML form action](#call-actions-from-an-html-form-action). This example overrides the form's default `onSubmit()` behavior to call `actions.newsletter()`, and redirects to `/confirmation` using the `navigate()` function:
+    ```ts title="src/actions/index.ts" ins={5-12}
+    import { defineAction } from 'astro:actions';
+    import { z } from 'astro:schema';
 
-```astro title=src/components/Newsletter.astro ins={11-20}
-<form>
-  <input required type="email" name="email" />
-  <label>
-    <input required type="checkbox" name="terms">
-    I agree to terms of service
-  </label>
-  <button>Sign up</button>
-</form>
+    export const server = {
+      newsletter: defineAction({
+        accept: 'form',
+        input: z.object({
+          email: z.string().email(),
+          terms: z.boolean(),
+        }),
+        handler: async ({ email, terms }) => { /* ... */ },
+      })
+    }
+    ```
 
-<script>
-  import { actions } from 'astro:actions';
-  import { navigate } from 'astro:transitions/client';
+    <ReadMore>See the [`input` API reference](/en/reference/api-reference/#input-validator) for all available form validators.</ReadMore>
 
-  const form = document.querySelector('form') as HTMLFormElement;
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = new FormData(form);
-    const { error } = await actions.newsletter(formData);
-    if (!error) navigate('/confirmation');
-  })
-</script>
-```
+3. Add a `<script>` to the HTML form to submit the user input. This example overrides the form's default submit behavior to call `actions.newsletter()`, and redirects to `/confirmation` using the `navigate()` function:
+
+    ```astro title=src/components/Newsletter.astro ins={12-23} collapse={2-9}
+    <form>
+      <label for="email">E-mail</label>
+      <input id="email" required type="email" name="email" />
+      <label>
+        <input required type="checkbox" name="terms">
+        I agree to the terms of service
+      </label>
+      <button>Sign up</button>
+    </form>
+
+    <script>
+      import { actions } from 'astro:actions';
+      import { navigate } from 'astro:transitions/client';
+
+      const form = document.querySelector('form');
+      form?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+        const { error } = await actions.newsletter(formData);
+        if (!error) navigate('/confirmation');
+      })
+    </script>
+    ```
+
+    <ReadMore>See [“Call actions from an HTML form action”](#call-actions-from-an-html-form-action) for an alternative way to submit form data.</ReadMore>
+
+</Steps>
 
 ### Displaying form input errors
 
-You can validate form inputs before submission [using native HTML form validation attributes](https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation#using_built-in_form_validation) like `required`, `type="email"`, and `pattern`. Still, you may have more complex `input` validation on the backend that you need to surface to the user.
+You can validate form inputs before submission using [native HTML form validation attributes](https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation#using_built-in_form_validation) like `required`, `type="email"`, and `pattern`. Nevertheless, you may have more complex `input` validation on the backend that you need to communicate to users.
 
-To retrieve input errors, use the `isInputError()` utility to check whether an `error` was caused by invalid input. If so, `error` will contain a `fields` object with error messages for each input name that failed to validate. These messages can then be displayed to prompt your user to correct their submission.
+To retrieve input errors, use the `isInputError()` utility to check whether an error was caused by invalid input. Input errors contain a `fields` object with messages for each input name that failed to validate. You can use these messages to prompt your user to correct their submission.
 
-This example renders an error banner under the `email` input when an invalid email is submitted:
+The following example checks the error with `isInputError()`, then checks whether the error is in the email field, before finally creating a message from the errors. You can use JavaScript DOM manipulation or your preferred UI framework to display this message to users.
 
-```astro title=src/components/Newsletter.astro ins="isInputError" ins={18}
-<form>
-  <input required type="email" name="email" />
-  <!--...--->
-</form>
+```js /isInputError(?= )/ {5-11}
+import { actions, isInputError } from 'astro:actions';
 
-<script>
-  import { actions, isInputError } from 'astro:actions';
-  import { navigate } from 'astro:transitions/client';
-
-  const form = document.querySelector('form') as HTMLFormElement;
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = new FormData(form);
-    const { error } = await actions.newsletter(formData);
-    if (!error) navigate('/confirmation');
-
-    if (isInputError(error)) {
-      const errorMessages = error.fields.email?.join(', ') ?? '';
-      const banner = document.createElement('p');
-      banner.textContent = errorMessages;
-      const input = form.querySelector('input[name="email"]');
-      input?.insertAdjacentElement('afterend', banner);
-    }
-  })
-</script>
+const form = document.querySelector('form');
+const formData = new FormData(form);
+const { error } = await actions.newsletter(formData);
+if (isInputError(error)) {
+  if (error.fields.email) {
+    const message = error.fields.email.join(', ');
+  }
+}
 ```
 
 ## Call actions from an HTML form action
