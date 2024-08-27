@@ -16,7 +16,7 @@ Use actions instead of API endpoints for seamless communication between your cli
 
 - Automatically validate JSON and form data inputs using [Zod validaton](https://zod.dev/?id=primitives).
 - Generate type-safe functions to call your backend from the client and even [from HTML form actions](#call-actions-from-an-html-form-action). No need for manual `fetch()` calls.
-- Standardize backend errors with the `ActionError` object.
+- Standardize backend errors with the [`ActionError`](/en/reference/api-reference/#actionerror) object.
 
 ## Basic usage
 
@@ -169,7 +169,7 @@ Actions return an object containing either `data` with the type-safe return valu
 
 ### Checking for errors
 
-It's best to check if an `error` is present before using the `data` property. This allows you to handle errors up-front and ensures `data` is defined without an `undefined` check.
+It's best to check if an `error` is present before using the `data` property. This allows you to handle errors in advance and ensures `data` is defined without an `undefined` check.
 
 ```ts
 const { data, error } = await actions.example();
@@ -183,7 +183,7 @@ if (error) {
 
 ### Accessing `data` directly without an error check
 
-If you want to skip error handling while prototyping, or are using a library that will catch errors for you, you can use the `.orThrow()` property on your action call. With `.orThrow()`, unexpected errors will be thrown and the action’s `data` will be returned directly.
+To skip error handling, for example while prototyping or using a library that will catch errors for you, use the `.orThrow()` property on your action call to throw errors instead of returning an `error`. This will return the action's `data` directly.
 
 This example calls a `likePost()` action that returns the updated number of likes as a `number` from the action `handler`:
 
@@ -194,9 +194,8 @@ const updatedLikes = await actions.likePost.orThrow({ postId: 'example' });
 
 ### Handling backend errors in your action
 
-You may need to throw an error from your action `handler()`, such as "not found" errors when a database entry is missing, or "unauthorized" errors when a user is not logged in.
+You can use the provided `ActionError` to throw an error from your action `handler()`, such as "not found" when a database entry is missing, or "unauthorized" when a user is not logged in. This has two main benefits over returning `undefined`:
 
-Instead of returning `undefined` in these cases, you can throw errors using the provided `ActionError` object. This has two main benefits:
 
 - You can set a status code like `404 - Not found` or `401 - Unauthorized`. This improves debugging errors in both development and in production by letting you see the status code of each request.
 
@@ -230,7 +229,7 @@ export const server = {
 
 #### Handling an `ActionError`
 
-To handle this error, you can call the action from your application and check whether an `error` property is present. This property will be of type `ActionError` and contain your `code` and `message`.
+To handle this error, you can call the action from your application and check whether an `error` property is present. This property will be of type `ActionError` and will contain your `code` and `message`.
 
 In the following example, a `LikeButton.tsx` component calls the `likePost()` action when clicked. If an authentication error occurs, the `error.code` attribute is used to determine whether to display a login link:
 
@@ -261,7 +260,7 @@ export function LikeButton({ postId }: { postId: string }) {
 
 ### Handling client redirects
 
-You may need to redirect to a new page when an action succeeds. When calling actions from the client, you can integrate with a client-side library like `react-router`, or you can use Astro's [`navigate()` function](/en/guides/view-transitions/#trigger-navigation) to redirect to a new page.
+When calling actions from the client, you can integrate with a client-side library like `react-router`, or you can use Astro's [`navigate()` function](/en/guides/view-transitions/#trigger-navigation) to redirect to a new page when an action succeeds.
 
 This example navigates to the homepage after a `logout` action returns successfully:
 
@@ -283,7 +282,7 @@ export function LogoutButton() {
 
 ## Accepting form data from an action
 
-Actions accept JSON data by default. If you are using an HTML form, you can switch an action to accept form data by setting `accept: 'form'` in your `defineAction()` call:
+Actions accept JSON data by default. To accept form data from an HTML form, set `accept: 'form'` in your `defineAction()` call:
 
 ```ts title="src/actions/index.ts" ins={6}
 import { defineAction } from 'astro:actions';
@@ -375,7 +374,7 @@ The following example shows a validated newsletter registration form that accept
 
 ### Displaying form input errors
 
-You can validate form inputs before submission using [native HTML form validation attributes](https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation#using_built-in_form_validation) like `required`, `type="email"`, and `pattern`. Nevertheless, you may have more complex `input` validation on the backend that you need to communicate to users.
+You can validate form inputs before submission using [native HTML form validation attributes](https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation#using_built-in_form_validation) like `required`, `type="email"`, and `pattern`. For more complex `input` validation on the backend, you can use the provided [`isInputError()`](/en/reference/api-reference/#isinputerror) utility function.
 
 To retrieve input errors, use the `isInputError()` utility to check whether an error was caused by invalid input. Input errors contain a `fields` object with messages for each input name that failed to validate. You can use these messages to prompt your user to correct their submission.
 
@@ -401,9 +400,11 @@ if (isInputError(error)) {
 Pages must be on-demand rendered when calling actions using a form action. [Ensure prerendering is disabled on the page](/en/guides/server-side-rendering/#opting-out-of-pre-rendering-in-hybrid-mode) before using this API.
 :::
 
-You may want to support form submissions without client-side JavaScript. This is useful both as a fallback for when JavaScript fails to load or if you prefer to handle forms entirely from the server.
+You can enable zero-JS form submissions with standard attributes on any `<form>` element.  Form submissions without client-side JavaScript may be useful both as a fallback for when JavaScript fails to load, or if you prefer to handle forms entirely from the server.
 
-Enable zero-JS form submissions with standard attributes on any `<form>` element. Add `method="POST"` to your `<form>`, then set the form's `action` attribute using your action, for example `action={actions.logout}`. This will set the `action` attribute to use a query string that is handled by the server automatically.
+Calling [Astro.getActionResult()](/en/reference/api-reference/#astrogetactionresult) on the server returns the result of your form submission (`data` or `error`), and can be used to dynamically redirect, handle form errors, update the UI, and more.
+
+To call an action from an HTML form, add `method="POST"` to your `<form>`, then set the form's `action` attribute using your action, for example `action={actions.logout}`. This will set the `action` attribute to use a query string that is handled by the server automatically.
 
 For example, this Astro component calls the `logout` action when the button is clicked and reloads the current page:
 
@@ -419,7 +420,9 @@ import { actions } from 'astro:actions';
 
 ### Redirect on action success
 
-If you want to navigate to a different page when an action is successful, you can prepend a path in the `action` attribute. For example, `action={'/confirmation' + actions.newsletter}` will navigate to `/confirmation` when the `newsletter` action succeeds:
+To navigate to a different page when an action is successful without client-side JavaScript, you can prepend a path in the `action` attribute.
+
+For example, `action={'/confirmation' + actions.newsletter}` will navigate to `/confirmation` when the `newsletter` action succeeds:
 
 ```astro title="src/components/NewsletterSignup.astro" /action=\{[^\{\}]+\}/
 ---
@@ -432,7 +435,7 @@ import { actions } from 'astro:actions';
 </form>
 ```
 
-### Dynamic redirect on action success
+#### Dynamic redirect on action success
 
 If you need to decide where to redirect to dynamically, you can use an action’s result on the server. A common example is creating a product record and redirecting to the new product's page, e.g. `/products/[id]`.
 
@@ -475,9 +478,9 @@ if (result && !result.error) {
 
 ### Handle form action errors
 
-Astro avoids redirecting to your `action` route when an action fails. Instead, the current page is reloaded with any errors the action returned.
+Astro will not redirect to your `action` route when an action fails. Instead, the current page is reloaded with any errors the action returned. Calling `Astro.getActionResult()` in the Astro component containing your form gives you access to the `error` object for custom error handling.
 
-Check for errors by using the `error` object returned by `Astro.getActionResult()`. This example displays a general message when a `newsletter` action fails:
+The following example displays a general failure message when a `newsletter` action fails:
 
 ```astro title="src/pages/index.astro" {4,7-9}
 ---
@@ -498,7 +501,9 @@ const result = Astro.getActionResult(actions.newsletter);
 </form>
 ```
 
-You can [use the `isInputError()` utility](#displaying-form-input-errors) to check whether an error is caused by invalid input. This example renders an error banner under the `email` input when an invalid email is submitted:
+For more customization, you can [use the `isInputError()` utility](#displaying-form-input-errors) to check whether an error is caused by invalid input.
+
+The following example renders an error banner under the `email` input field when an invalid email is submitted:
 
 ```astro title="src/pages/index.astro" ins={5,13} ins='aria-describedby="error"'
 ---
