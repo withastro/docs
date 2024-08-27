@@ -41,6 +41,7 @@ export default NavDictionary({
 	'guides/styling': 'CSS & 스타일링',
 	'guides/images': '이미지',
 	'guides/fonts': '글꼴',
+	'guides/media': '미디어',
 
 	data: '데이터 연결',
 	'guides/data-fetching': '데이터 가져오기',
