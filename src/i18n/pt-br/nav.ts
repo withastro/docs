@@ -41,6 +41,7 @@ export default NavDictionary({
 	'guides/styling': 'Estilização e CSS',
 	'guides/images': 'Imagens',
 	'guides/fonts': 'Fontes',
+	'guides/media': 'Conecte Mídia Hospedada ou DAM',
 
 	data: 'Conecte seus Dados',
 	'guides/data-fetching': 'Busca de Dados',
