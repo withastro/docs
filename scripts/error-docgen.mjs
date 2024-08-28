@@ -104,22 +104,20 @@ export async function run() {
 	const deprecatedErrors = alreadyDocumentedErrors.filter(
 		(error) => !documentedErrors.includes(error)
 	);
-	if (deprecatedErrors.length > 0) {
-		for (const error of deprecatedErrors) {
-			const filePath = `src/content/docs/en/reference/errors/${error}`;
-			const currentContent = fs.readFileSync(filePath, 'utf8');
+	for (const error of deprecatedErrors) {
+		const filePath = `src/content/docs/en/reference/errors/${error}`;
+		const currentContent = fs.readFileSync(filePath, 'utf8');
 
-			// If the error got removed without a deprecation, add a deprecation notice
-			if (!currentContent.includes(':::caution[Deprecated]')) {
-				fs.writeFileSync(
-					filePath,
-					currentContent.replace(
-						'<DontEditWarning />',
-						['<DontEditWarning />', '', getDeprecatedText(true)].join('\n')
-					),
-					'utf8'
-				);
-			}
+		// If the error got removed without a deprecation, add a deprecation notice
+		if (!currentContent.includes(':::caution[Deprecated]')) {
+			fs.writeFileSync(
+				filePath,
+				currentContent.replace(
+					'<DontEditWarning />',
+					['<DontEditWarning />', '', getDeprecatedText(true)].join('\n')
+				),
+				'utf8'
+			);
 		}
 	}
 
