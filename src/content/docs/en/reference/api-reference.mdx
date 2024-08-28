@@ -764,6 +764,44 @@ This property is only available when building for SSR (server-side rendering) an
 
 The locale computed from the current URL, using the syntax specified in your `locales` configuration. If the URL does not contain a `/[locale]/` prefix, then the value will default to `i18n.defaultLocale`.
 
+### `Astro.getActionResult()`
+
+<p>
+**Type:** `(action: TAction) => ActionReturnType<TAction> | undefined`<br />
+<Since v="4.15.0" />
+</p>
+
+`Astro.getActionResult()` is a function that returns the result of an [Action](/en/guides/actions/) submission. This accepts an action function as an argument (e.g. `actions.logout`) and returns a `data` or `error` object when a submission is received. Otherwise, it will return `undefined`.
+
+```astro title="src/pages/index.astro"
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.logout);
+---
+
+<form action={actions.logout}>
+  <button type="submit">Log out</button>
+</form>
+{result?.error && <p>Failed to log out. Please try again.</p>}
+```
+
+### `Astro.callAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`Astro.callAction()` is a function used to call an Action handler directly from your Astro component. This function accepts an Action function as the first argument (e.g. `actions.logout`) and any input that action receives as the second argument. It returns the result of the action as a promise.
+
+```astro title="src/pages/index.astro"
+---
+import { actions } from 'astro:actions';
+
+const { data, error } = await Astro.callAction(actions.logout, { userId: '123' });
+---
+```
+
 ## Endpoint Context
 
 [Endpoint functions](/en/guides/endpoints/) receive a context object as the first parameter. It mirrors many of the `Astro` global properties.
@@ -1027,6 +1065,42 @@ export function GET({ locals }: APIContext) {
 ```
 
 See also: [`Astro.locals`](#astrolocals)
+
+### `context.getActionResult()`
+
+<p>
+
+**Type:** `(action: TAction) => ActionReturnType<TAction> | undefined`<br />
+<Since v="4.15.0" />
+</p>
+
+`context.getActionResult()` is a function that returns the result of an [Action](/en/guides/actions/) submission. This accepts an action function as an argument (e.g. `actions.logout`), and returns a `data` or `error` object when a submission is received. Otherwise, it will return `undefined`.
+
+
+See also [`Astro.getActionResult()`](#astrogetactionresult)
+
+### `context.callAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`context.callAction()` is a function used to call an Action handler directly from your Astro component. This function accepts an Action function as the first argument (e.g. `actions.logout`) and any input that action receives as the second argument. It returns the result of the action as a promise.
+
+
+See also [`Astro.callAction()`](#astrocallaction)
+
+## Endpoint Context
+
+[Endpoint functions](/en/guides/endpoints/) receive a context object as the first parameter. It mirrors many of the `Astro` global properties.
+
+```ts title="endpoint.json.ts"
+import type { APIContext } from 'astro';
+
+export function GET(context: APIContext) {
+  // ...
+}
+```
 
 ## `getStaticPaths()`
 
@@ -2074,6 +2148,118 @@ export const onRequest = defineMiddleware(async (context, next) => {
   return new Response("Not found", { status: 404 });
 })
 ```
+
+## Actions (astro:actions)
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+Actions are backend functions used for type-safe server-to-client communication. All utilities to define and call actions are exposed by the `astro:actions` module. For examples and usage instructions, [see the Actions guide](/en/guides/actions/).
+
+### `defineAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+The `defineAction()` utility is used to define new actions from the `src/actions/index.ts` file. This accepts a `handler()` function containing the server logic to run, and an optional `input` property to validate input parameters at runtime.
+
+```ts
+export const server = {
+    getGreeting: defineAction({
+    input: z.object({
+      name: z.string(),
+    }),
+    handler: async (input) => {
+      return `Hello, ${input.name}!`
+    }
+  })
+}
+```
+
+#### `handler()` property
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`defineAction()` accepts a `handler()` function containing the server logic to run when the action is called. This function can return data that is automatically serialized and sent to the caller.
+
+Return values are parsed using the [devalue library](https://github.com/Rich-Harris/devalue). This supports JSON values, along with instances of `Date()`, `Map()`, `Set()`, or `URL()`.
+
+#### `input` validator
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+The optional `input` property accepts a Zod validator to validate handler inputs at runtime. If the action fails to validate, [a `BAD_REQUEST` error](#actionerror) is returned and the `handler` is not called.
+
+If used with `accept: 'form'`, `input` must use the `z.object()` validator.
+
+Extension functions including `.refine()`, `.transform()`, and `.pipe()` are also supported on this object. The following validators are supported for form data fields:
+
+- Inputs of type `number` can be validated using `z.number()`
+- Inputs of type `checkbox` can be validated using `z.boolean()`
+- Inputs of type `file` can be validated using `z.instanceof(File)`
+- Multiple inputs of the same `name` can be validated using `z.array(/* validator */)`
+- All other inputs can be validated using `z.string()`
+
+### `isInputError()`
+
+<p>
+
+**Type:** <code>(error?: unknown | <a href="#actionerror">ActionError</a>) => boolean</code><br/>
+<Since v="4.15.0" />
+</p>
+
+The `isInputError()` utility is used to check whether an `ActionError` is an input validation error. When the `input` validator is a `z.object()`, input errors include a `fields` object with error messages grouped by name.
+
+<ReadMore>See the [form input errors guide](/en/guides/actions/#displaying-form-input-errors) for more on using `isInputError()`.</ReadMore>
+
+### `ActionError`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+The `ActionError()` constructor is used to create errors thrown by an action `handler`. This accepts a `code` property describing the error that occurred (example: `"UNAUTHORIZED"`), and an optional `message` property with further details.
+
+#### `code`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+The `code` property accepts human-readable versions of all HTTP status codes. The following codes are supported:
+
+- `BAD_REQUEST` (400): The client sent invalid input. This error is thrown when an action `input` validator fails to validate.
+- `UNAUTHORIZED` (401): The client lacks valid authentication credentials.
+- `FORBIDDEN` (403): The client is not authorized to access a resource.
+- `NOT_FOUND` (404): The server cannot find the requested resource.
+- `METHOD_NOT_SUPPORTED` (405): The server does not support the requested method.
+- `TIMEOUT` (408): The server timed out while processing the request.
+- `CONFLICT` (409): The server cannot update a resource due to a conflict.
+- `PRECONDITION_FAILED` (412): The server does not meet a precondition of the request.
+- `PAYLOAD_TOO_LARGE` (413): The server cannot process the request because the payload is too large.
+- `UNSUPPORTED_MEDIA_TYPE` (415): The server does not support the request's media type. Note: Actions already check [the `Content-Type` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) for JSON and form requests, so you likely won't need to raise this code manually.
+- `UNPROCESSABLE_CONTENT` (422): The server cannot process the request due to semantic errors.
+- `TOO_MANY_REQUESTS` (429): The server has exceeded a specified rate limit.
+- `CLIENT_CLOSED_REQUEST` (499): The client closed the request before the server could respond.
+- `INTERNAL_SERVER_ERROR` (500): The server failed unexpectedly.
+- `NOT_IMPLEMENTED` (501): The server does not support the requested feature.
+- `BAD_GATEWAY` (502): The server received an invalid response from an upstream server.
+- `SERVICE_UNAVAILABLE` (503): The server is temporarily unavailable.
+- `GATEWAY_TIMEOUT` (504): The server received a timeout from an upstream server.
+
+#### `message`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+The `message` property accepts a string. (e.g. "User must be logged in.")
 
 ## Built-in Components
 
