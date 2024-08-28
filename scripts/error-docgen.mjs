@@ -108,16 +108,23 @@ export async function run() {
 		const filePath = `src/content/docs/en/reference/errors/${error}`;
 		const currentContent = fs.readFileSync(filePath, 'utf8');
 
-		// If the error got removed without a deprecation, add a deprecation notice
-		if (!currentContent.includes(':::caution[Deprecated]')) {
-			fs.writeFileSync(
-				filePath,
-				currentContent.replace(
-					'<DontEditWarning />',
-					['<DontEditWarning />', '', getDeprecatedText(true)].join('\n')
-				),
-				'utf8'
-			);
+			// If the error got removed without a deprecation, add a deprecation notice
+			if (!currentContent.includes(':::caution[Deprecated]')) {
+				fs.writeFileSync(
+					filePath,
+					currentContent.replace(
+						'<DontEditWarning />',
+						[
+							'<DontEditWarning />',
+							'',
+							getDeprecatedText(
+								'This error is from an older version of Astro and is no longer in use. If you are unable to upgrade your project to a more recent version, then you can consult [unmaintained snapshots of older documentation](/en/upgrade-astro/#older-docs-unmaintained) for assistance.'
+							),
+						].join('\n')
+					),
+					'utf8'
+				);
+			}
 		}
 	}
 
