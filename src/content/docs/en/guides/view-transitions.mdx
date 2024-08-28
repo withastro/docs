@@ -328,8 +328,8 @@ The following example shows an Astro component that navigates a visitor to anoth
   import { navigate } from 'astro:transitions/client';
 
   // Navigate to the selected option automatically.
-  document.querySelector('select').onchange = (ev) => {
-    let href = ev.target.value;
+  document.querySelector('select').onchange = (event) => {
+    let href = event.target.value;
     navigate(href);
   };
 </script>
@@ -572,9 +572,9 @@ Here is an example of using the `astro:before-preparation` event to load a spinn
 
 ```js
 <script is:inline>
-  document.addEventListener('astro:before-preparation', ev => {
-    const originalLoader = ev.loader;
-    ev.loader = async function() {
+  document.addEventListener('astro:before-preparation', event => {
+    const originalLoader = event.loader;
+    event.loader = async function() {
       const { startSpinner } = await import('./spinner.js');
       const stop = startSpinner();
       await originalLoader();
@@ -621,9 +621,9 @@ This event can be used to make changes before the swap occurs. The `newDocument`
 
   setDarkMode(document);
 
-  document.addEventListener('astro:before-swap', ev => {
+  document.addEventListener('astro:before-swap', event => {
     // Pass the incoming document to set the theme on it
-    setDarkMode(ev.newDocument);
+    setDarkMode(event.newDocument);
   });
 </script>
 ```
@@ -634,13 +634,43 @@ At this point of the lifecycle, you could choose to define your own swap impleme
 
 ```astro
 <script is:inline>
-  document.addEventListener('astro:before-swap', ev => {
-    ev.swap = () => {
-      diff(document, ev.newDocument);
+  document.addEventListener('astro:before-swap', event => {
+    event.swap = () => {
+      diff(document, event.newDocument);
     };
   });
 </script>
 ```
+
+#### Building a custom swap function
+
+<p><Since v="4.15.0" /></p>
+
+The `swapFunction` object of the `astro:transitions/client` module provides five utility functions that handle specific swap-related tasks, including handling document attributes, page elements, and script execution. These functions can be used directly to define a custom swap implementation.
+
+The following example demonstrates how to use these functions to recreate Astro's built-in swap implementation:
+
+```astro
+<script>
+import { swapFunctions } from 'astro:transitions/client';
+
+// substitutes window.document with doc
+function mySwap(doc: Document) {
+  swapFunctions.deselectScripts(doc);
+  swapFunctions.swapRootAttributes(doc);
+  swapFunctions.swapHeadElements(doc);
+  const restoreFocusFunction = swapFunctions.saveFocus();
+  swapFunctions.swapBodyElement(doc.body, document.body);
+  restoreFocusFunction();
+};
+
+...
+  event.swap = () => mySwap(event.newDocument);
+...
+<script>
+```
+Custom swap implementations can start with this template and add or replace individual steps with custom logic as needed.
+
 
 ### `astro:after-swap`
 
