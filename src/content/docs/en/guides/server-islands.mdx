@@ -1,0 +1,91 @@
+---
+title: Server islands
+description: Enable more fine-grained control over page load performance with Server islands.
+i18nReady: true
+---
+
+Astro allows you to break apart parts of your page into separate server-rendered parts with **Server islands**. With server islands you can prerender or server-render your page while allowing dynamic and personalized content within it to be rendered on-demand.
+
+## Using Server islands
+
+Server islands are best used on [Astro components](/en/basics/astro-components/). Add the `server:defer` directive to any component on your page in order to turn it into its own island:
+
+```astro
+---
+import Avatar from '../components/Avatar.astro';
+---
+
+<Avatar server:defer />
+```
+
+The page will be rendered without the contents of the island, and the contents will instead be fetched on the client. Within the island you have a normal Astro component and can do anything you normally would, such as fetching content, and access cookies.
+
+```astro
+---
+import { getUserAvatar } from '../sessions';
+
+const userSession = Astro.cookies.get('session');
+const avatarURL = await getUserAvatar(userSession);
+---
+
+<img alt="User avatar" src={avatarURL} />
+```
+
+### Fallback slot
+
+In order to provide good user experience it's recommended to include fallback content for your islands. Fallback is content that is rendered instead of the island when the page is rendered. This content can be things like:
+
+- A generic avatar instead of the user's.
+- Placeholder UI
+- Loading indicators
+
+Which type of fallback to use depends on the type of content your building and how much you want to highlight that content while the island loads.
+
+To add fallback, use the fallback slot:
+
+```astro
+---
+import Avatar from '../components/Avatar.astro';
+import GenericAvatar from '../components/GenericAvatar.astro';
+---
+
+<Avatar server:defer>
+  <GenericAvatar slot="fallback" />
+</Avatar>
+```
+
+### Accessing the URL
+
+Server islands generate their own routes, so when they run on the server the URL is 
+
+Server islands run in their own isolated context outside of the page request. If you check `Astro.url` or `Astro.request.url` you'll get a URL that looks like `/_server-islands/Avatar`. 
+
+If you need to access information from the page's URL such as query parameter you can do so by checking the [Referer](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer) header, which will be the page that is loading the island in a browser.
+
+```astro
+---
+const referer = Astro.request.headers.get('Referer');
+const url = new URL(referer);
+
+const productId = url.searchParams.get('product');
+---
+```
+
+In most cases you can get information about the page from passing props like in normal components. However if you are prerendering the page you will not have access to query parameters in order to pass as props, in which case this method is preferred.
+
+## Why use Server islands?
+
+Server islands allow you to render the more highly dynamic parts of your page on the fly, thus allowing the outer shell and main content to be more aggressively cached, providing faster performance.
+
+![diagram showing a page where the shell is prerendered with different parts of personal content that are rendered as islands](../../../../assets/dark-mode-server-islands-diag.webp)
+
+
+Take for example an e-commerce site where the content changes infrequently. The page does have some dynamic pieces however:
+
+- The user's avatar in the heading.
+- Special deals and sales for the product.
+- User reviews.
+
+Using server islands each of these dynamic pieces can be dynamically rendered without sacrificing the performance of the rest of the page. This means the user will see the most important part, the product content, immediately, with personalized parts are brought in immediately after.
+
+Server islands are optimized and load quickly. Before the browser has even painted the page it is able to start loading the islands in most cases. Coupled with smart use of fallback content, the user gets an optimal experience.
