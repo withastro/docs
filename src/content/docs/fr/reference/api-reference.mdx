@@ -764,6 +764,44 @@ Cette propriété n'est disponible que pour l'affichage côté serveur (SSR) et 
 
 La locale calculée à partir de l'URL courante, en utilisant la syntaxe spécifiée dans votre configuration `locales`. Si l'URL ne contient pas de préfixe `/[locale]/`, alors la valeur sera par défaut `i18n.defaultLocale`.
 
+### `Astro.getActionResult()`
+
+<p>
+**Type :** `(action: TAction) => ActionReturnType<TAction> | undefined`<br />
+<Since v="4.15.0" />
+</p>
+
+`Astro.getActionResult()` est une fonction qui renvoie le résultat d'une soumission d'[Action](/fr/guides/actions/). Celle-ci accepte une fonction d'action comme argument (par exemple, `actions.logout`) et renvoie un objet `data` ou `error` lorsqu'une soumission est reçue. Sinon, elle renverra `undefined`.
+
+```astro title="src/pages/index.astro"
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.logout);
+---
+
+<form action={actions.logout}>
+  <button type="submit">Se déconnecter</button>
+</form>
+{result?.error && <p>Échec de la déconnexion. Veuillez réessayer.</p>}
+```
+
+### `Astro.callAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`Astro.callAction()` est une fonction utilisée pour appeler un gestionnaire d'Action directement depuis votre composant Astro. Celle-ci accepte une fonction Action comme premier argument (par exemple `actions.logout`) et toute entrée que l'action reçoit comme deuxième argument. Elle renvoie le résultat de l'action sous forme de promesse.
+
+```astro title="src/pages/index.astro"
+---
+import { actions } from 'astro:actions';
+
+const { data, error } = await Astro.callAction(actions.logout, { userId: '123' });
+---
+```
+
 ## Contexte du point de terminaison
 
 Les [fonctions de points de terminaisons](/fr/guides/endpoints/) reçoivent un objet contextuel comme premier paramètre. Il reflète la plupart des propriétés globales de `Astro`.
@@ -1027,6 +1065,30 @@ export function GET({ locals }: APIContext) {
 ```
 
 Voir aussi : [`Astro.locals`](#astrolocals)
+
+### `context.getActionResult()`
+
+<p>
+
+**Type :** `(action: TAction) => ActionReturnType<TAction> | undefined`<br />
+<Since v="4.15.0" />
+</p>
+
+`context.getActionResult()` est une fonction qui renvoie le résultat d'une soumission d'[Action](/fr/guides/actions/). Celle-ci accepte une fonction d'action comme argument (par exemple `actions.logout`) et renvoie un objet `data` ou `error` lorsqu'une soumission est reçue. Sinon, elle renverra `undefined`.
+
+
+Voir aussi [`Astro.getActionResult()`](#astrogetactionresult)
+
+### `context.callAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`context.callAction()` est une fonction utilisée pour appeler un gestionnaire d'action directement depuis votre composant Astro. Celle-ci accepte une fonction Action comme premier argument (par exemple `actions.logout`) et toute entrée reçue par l'action comme deuxième argument. Elle renvoie le résultat de l'action sous forme de promesse.
+
+
+Voir aussi [`Astro.callAction()`](#astrocallaction)
 
 ## `getStaticPaths()`
 
@@ -2074,6 +2136,118 @@ export const onRequest = defineMiddleware(async (context, next) => {
   return new Response("Not found", { status: 404 });
 })
 ```
+
+## Actions (`astro:actions`)
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+Les actions vous aident à créer un backend avec sécurité de types que vous pouvez appeler à partir du code client et des formulaires HTML. Tous les utilitaires permettant de définir et d'appeler des actions sont exposés par le module `astro:actions`. Pour des exemples et des instructions d'utilisation, [consultez le guide Actions](/fr/guides/actions/).
+
+### `defineAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+L'utilitaire `defineAction()` est utilisé pour définir de nouvelles actions à partir du fichier `src/actions/index.ts`. Il accepte une fonction `handler()` contenant la logique du serveur à exécuter et une propriété facultative `input` pour valider les paramètres d'entrée lors de l'exécution.
+
+```ts
+export const server = {
+    getGreeting: defineAction({
+    input: z.object({
+      name: z.string(),
+    }),
+    handler: async (input) => {
+      return `Bonjour, ${input.name} !`
+    }
+  })
+}
+```
+
+#### Propriété `handler()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`defineAction()` accepte une fonction `handler()` contenant la logique du serveur à exécuter lorsque l'action est appelée. Cette fonction peut renvoyer des données qui sont automatiquement sérialisées et envoyées à l'appelant.
+
+Les valeurs de retour sont analysées à l'aide de la [bibliothèque devalue](https://github.com/Rich-Harris/devalue). Celle-ci prend en charge les valeurs JSON, ainsi que les instances de `Date()`, `Map()`, `Set()` ou `URL()`.
+
+#### Validateur de saisie (`input`)
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+La propriété facultative `input` accepte un validateur Zod pour vérifier les entrées du gestionnaire lors de l'exécution. Si l'action échoue à la validation, [une erreur `BAD_REQUEST`](#actionerror) est renvoyée et le `handler` n'est pas appelé.
+
+S'il est utilisé avec `accept: 'form'`, `input` doit utiliser le validateur `z.object()`.
+
+Les fonctions d'extension, notamment `.refine()`, `.transform()` et `.pipe()`, sont également prises en charge sur cet objet. Les validateurs suivants sont pris en charge pour les champs de données de formulaire :
+
+- Les entrées de type `number` peuvent être validées à l'aide de `z.number()`
+- Les entrées de type `checkbox` peuvent être validées à l'aide de `z.boolean()`
+- Les entrées de type `file` peuvent être validées à l'aide de `z.instanceof(File)`
+- Plusieurs entrées du même nom (`name`) peuvent être validées à l'aide de `z.array(/* validateur */)`
+- Toutes les autres entrées peuvent être validées à l'aide de `z.string()`
+
+### `isInputError()`
+
+<p>
+
+**Type :** <code>(error?: unknown | <a href="#actionerror">ActionError</a>) => boolean</code><br/>
+<Since v="4.15.0" />
+</p>
+
+L'utilitaire `isInputError()` permet de vérifier si une `ActionError` est une erreur de validation d'entrée. Lorsque le validateur utilisé pour `input` correspond à `z.object()`, les erreurs d'entrée incluent un objet `fields` avec des messages d'erreur regroupés par nom.
+
+<ReadMore>Consultez le [guide des erreurs de saisie de formulaire](/fr/guides/actions/#displaying-form-input-errors) pour en savoir plus sur l'utilisation de `isInputError()`.</ReadMore>
+
+### `ActionError`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+Le constructeur `ActionError()` est utilisé pour créer des erreurs générées par un `handler` d'action. Il accepte une propriété `code` décrivant l'erreur qui s'est produite (exemple : `"UNAUTHORIZED"`), et une propriété facultative `message` contenant plus de détails.
+
+#### `code`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+La propriété `code` accepte les versions lisibles par l'homme de tous les codes d'état HTTP. Les codes suivants sont pris en charge :
+
+- `BAD_REQUEST` (400) : Le client a envoyé une entrée non valide. Cette erreur est générée lorsqu'un validateur d'entrée d'action (`input`) ne parvient pas à valider.
+- `UNAUTHORIZED` (401) : Le client ne dispose pas d’informations d’authentification valides.
+- `FORBIDDEN` (403) : Le client n'est pas autorisé à accéder à une ressource.
+- `NOT_FOUND` (404) : Le serveur ne trouve pas la ressource demandée.
+- `METHOD_NOT_SUPPORTED` (405) : Le serveur ne prend pas en charge la méthode demandée.
+- `TIMEOUT` (408) : Le serveur a expiré lors du traitement de la demande.
+- `CONFLICT` (409) : Le serveur ne peut pas mettre à jour une ressource en raison d'un conflit.
+- `PRECONDITION_FAILED` (412) : Le serveur ne répond pas à une condition préalable de la requête.
+- `PAYLOAD_TOO_LARGE` (413) : Le serveur ne peut pas traiter la demande car la charge utile est trop importante.
+- `UNSUPPORTED_MEDIA_TYPE` (415) : Le serveur ne prend pas en charge le type de média de la requête. Remarque : les actions vérifient déjà [l'en-tête `Content-Type`](https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Content-Type) pour les requêtes JSON et de formulaire. Vous n'aurez donc probablement pas besoin de générer ce code manuellement.
+- `UNPROCESSABLE_CONTENT` (422) : Le serveur ne peut pas traiter la demande en raison d'erreurs sémantiques.
+- `TOO_MANY_REQUESTS` (429) : Le serveur a dépassé une limite de débit spécifiée.
+- `CLIENT_CLOSED_REQUEST` (499) : Le client a fermé la demande avant que le serveur puisse répondre.
+- `INTERNAL_SERVER_ERROR` (500) : Le serveur est tombé en panne de manière inattendue.
+- `NOT_IMPLEMENTED` (501) : Le serveur ne prend pas en charge la fonctionnalité demandée.
+- `BAD_GATEWAY` (502) : Le serveur a reçu une réponse non valide d’un serveur en amont.
+- `SERVICE_UNAVAILABLE` (503) : Le serveur est temporairement indisponible.
+- `GATEWAY_TIMEOUT` (504) : Le serveur a reçu un délai d'attente d'un serveur en amont.
+
+#### `message`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+La propriété `message` accepte une chaîne de caractères. (par exemple, « L'utilisateur doit être connecté. »)
 
 ## Composants intégrés
 
