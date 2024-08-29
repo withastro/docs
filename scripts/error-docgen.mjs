@@ -1,6 +1,6 @@
-import fs from 'fs';
 import jsdoc from 'jsdoc-api';
 import fetch from 'node-fetch';
+import fs from 'node:fs';
 import ts from 'typescript';
 
 const sourceBranch = process.env.SOURCE_BRANCH || 'main';
@@ -29,12 +29,16 @@ import DontEditWarning from '~/components/DontEditWarning.astro'
 The following reference is a complete list of the errors you may encounter while using Astro. For additional assistance, including common pitfalls, please also see our [Troubleshooting Guide](/en/guides/troubleshooting/).
 `;
 
-const FOOTER = ``;
+const FOOTER = '';
 
 export async function run() {
 	const astroErrorData = await getAstroErrorsData();
 
 	// TODO: Implement compiler errors
+
+	const alreadyDocumentedErrors = fs.readdirSync('src/content/docs/en/reference/errors');
+
+	const documentedErrors = [];
 
 	let astroResult = '';
 	for (const comment of astroErrorData.jsdoc) {
@@ -42,7 +46,7 @@ export async function run() {
 		if (comment.kind === 'heading') {
 			astroResult += `\n## ${comment.name}\n\n`;
 			if (comment.description) {
-				astroResult += comment.description.trim() + '\n\n';
+				astroResult += `${comment.description.trim()}\n\n`;
 			}
 			continue;
 		}
@@ -61,7 +65,7 @@ export async function run() {
 		const completeReferenceEntry = [
 			// Errors can be deprecated, as such we add a little "deprecated" caution to errors that needs it
 			getDeprecatedText(comment.deprecated),
-			``,
+			'',
 			// Get the error message and print it in a blockquote
 			getMessage(
 				comment.name,
@@ -70,12 +74,12 @@ export async function run() {
 			),
 			// Show the error's description under a header
 			comment.description && `## What went wrong?\n${comment.description.trim()}`,
-			``,
+			'',
 			// List @see entries
 			comment.see
 				? `**See Also:**\n${comment.see.map((s) => `- ${s.replace('-', '')}`.trim()).join('\n')}`
 				: undefined,
-			`\n\n`,
+			'\n\n',
 		]
 			.filter((l) => l !== undefined)
 			.join('\n')
@@ -83,10 +87,10 @@ export async function run() {
 			.replace(/https\\?:\/\/docs\.astro\.build\//g, '/');
 
 		const fileName = getKebabFilename(comment.name);
-		fs.writeFileSync(
-			`src/content/docs/en/reference/errors/${fileName}.mdx`,
-			getErrorReferenceEntryHeader(errorTitle) + completeReferenceEntry
-		);
+		const filePath = `src/content/docs/en/reference/errors/${fileName}.mdx`;
+		fs.writeFileSync(filePath, getErrorReferenceEntryHeader(errorTitle) + completeReferenceEntry);
+
+		documentedErrors.push(`${fileName}.mdx`);
 
 		// Build string for error reference list
 		astroResult += [
@@ -94,6 +98,34 @@ export async function run() {
 		]
 			.filter((l) => l !== undefined)
 			.join('\n');
+	}
+
+	// Add deprecation notice for errors that are no longer emitted
+	const deprecatedErrors = alreadyDocumentedErrors.filter(
+		(error) => !documentedErrors.includes(error)
+	);
+
+	for (const error of deprecatedErrors) {
+		const filePath = `src/content/docs/en/reference/errors/${error}`;
+		const currentContent = fs.readFileSync(filePath, 'utf8');
+
+		// If the error got removed without a deprecation, add a deprecation notice
+		if (!currentContent.includes(':::caution[Deprecated]')) {
+			fs.writeFileSync(
+				filePath,
+				currentContent.replace(
+					'<DontEditWarning />',
+					[
+						'<DontEditWarning />',
+						'',
+						getDeprecatedText(
+							'This error is from an older version of Astro and is no longer in use. If you are unable to upgrade your project to a more recent version, then you can consult [unmaintained snapshots of older documentation](/en/upgrade-astro/#older-docs-unmaintained) for assistance.'
+						),
+					].join('\n')
+				),
+				'utf8'
+			);
+		}
 	}
 
 	fs.writeFileSync(
@@ -124,7 +156,7 @@ export async function run() {
 		}
 
 		if (resultMessage) {
-			return resultMessage + '\n';
+			return `${resultMessage}\n`;
 		}
 
 		return undefined;
@@ -139,7 +171,7 @@ export async function run() {
 		}
 
 		return [
-			``,
+			'',
 			':::caution[Deprecated]',
 			typeof deprecateMention === 'string'
 				? deprecateMention
@@ -160,11 +192,15 @@ async function getAstroErrorsData() {
 	const inputBuffer = STUB || (await fetch(errorURL).then((r) => r.text()));
 
 	const compiledResult = ts.transpileModule(inputBuffer, {
-		compilerOptions: { module: 'esnext', target: 'esnext', removeComments: false },
+		compilerOptions: {
+			module: 'esnext',
+			target: 'esnext',
+			removeComments: false,
+		},
 	}).outputText;
 
 	const encodedJs = encodeURIComponent(compiledResult);
-	const dataUri = 'data:text/javascript;charset=utf-8,' + encodedJs;
+	const dataUri = `data:text/javascript;charset=utf-8,${encodedJs}`;
 
 	/**
 	 * @type {{AstroErrorData: Object.<string, {code: number, message: string, hint: string, name: string}>}
@@ -176,7 +212,7 @@ async function getAstroErrorsData() {
 	 */
 	const jsDocComments = jsdoc
 		.explainSync({ source: compiledResult })
-		.filter((data) => data.tags && data.tags.some((tag) => tag.title === 'docs'));
+		.filter((data) => data.tags?.some((tag) => tag.title === 'docs'));
 
 	return {
 		errors: data,
@@ -190,7 +226,7 @@ async function getAstroErrorsData() {
  * @returns {string}
  */
 function getErrorReferenceEntryHeader(errorTitle) {
-	errorTitle = errorTitle.replaceAll('`', '');
+	const sanitizedTitle = errorTitle.replaceAll('`', '');
 	return `
 ---
 # NOTE: This file is auto-generated from 'scripts/error-docgen.mjs'
@@ -198,7 +234,7 @@ function getErrorReferenceEntryHeader(errorTitle) {
 # Instead, change this file: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
 # Translators, please remove this note and the <DontEditWarning/> component.
 
-title: ${errorTitle}
+title: ${sanitizedTitle}
 i18nReady: true
 githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
 ---
@@ -241,7 +277,7 @@ function sanitizeString(message) {
 	return message
 		.replaceAll(/\\`/gm, '`')
 		.replaceAll(/`?(client:[\w]+(="\(.+\)")?)`?/g, '`$1`')
-		.replaceAll(/([^`\\])</gm, `$1\\<`)
+		.replaceAll(/([^`\\])</gm, '$1\\<')
 		.replaceAll(/>([^`\\])/gm, '\\$1>')
 		.replaceAll('\\n', '<br/>');
 }
