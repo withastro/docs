@@ -6,7 +6,7 @@ i18nReady: true
 ---
 import { Steps } from '@astrojs/starlight/components';
 
-Puedes usar [GitLab Pages](https://pages.gitlab.io/) para alojar un proyecto de Astro para tu proyecto, grupo, o cuenta de usuario en [GitLab](https://about.gitlab.com/).
+Puedes usar [GitLab Pages](https://docs.gitlab.com/ee/user/project/pages/) para alojar un proyecto de Astro para tu proyecto, grupo, o cuenta de usuario en [GitLab](https://about.gitlab.com/).
 
 :::tip[¿Buscas un ejemplo?]
 ¡Revisa [el proyecto de ejemplo de Astro en GitLab Pages](https://gitlab.com/pages/astro)!
@@ -14,31 +14,80 @@ Puedes usar [GitLab Pages](https://pages.gitlab.io/) para alojar un proyecto de 
 
 ## Cómo desplegar
 
+Puede desplegar un sitio de Astro en GitLab Pages usando GitLab CI/CD para construir y desplegar automáticamente tu sitio. Para hacer esto, tu código fuente debe estar alojado en GitLab y necesitas hacer los siguientes cambios en tu proyecto de Astro:
+
 <Steps>
-1. Establece el `site` correcto en `astro.config.mjs`.
+1. Establece las opciones [`site`](/es/reference/configuration-reference/#site) y [`base`](/es/reference/configuration-reference/#base) en `astro.config.mjs`.
 
-2. Renombra el directorio `public/` a `static`.
+    ```js title="astro.config.mjs" ins={4-5}
+    import { defineConfig } from 'astro/config';
 
-3. Establece `outDir:public` en `astro.config.mjs`. Este ajuste le indica a Astro que coloque la salida de archivos estáticos al compilar en una carpeta llamada `public`, la cual es requerida por GitLab Pages para los archivos expuestos.
+    export default defineConfig({
+      site: 'https://<username>.gitlab.io',
+      base: '/<my-repo>',
+      outDir: 'public',
+      publicDir: 'static',
+    });
+    ```
+
+    `site`
+
+    El valor para `site` debe ser uno de los siguientes:
+
+    - El siguiente URL basado en el nombre de tu grupo: `https://<groupname>.gitlab.io`
+    - El siguiente URL basado en tu nombre de usuario: `https://<username>.gitlab.io`
+    - Tu dominio personalizado si lo tienes configurado en la configuración de tu proyecto de GitLab: `https://example.com`
+
+    Para instancias auto-alojadas de GitLab, reemplaza `gitlab.io` con el dominio de Pages de tu instancia.
+
+    `base`
+
+    Un valor para `base` puede ser requerido para que Astro trate el nombre de tu repositorio (por ejemplo, `/mi-repo`) como la raíz de tu sitio web.
+
+    :::note
+      No establezcas un parámetro `base` si tu página se sirve desde la carpeta raíz.
+    :::
+
+    El valor para `base` debe ser el nombre de tu repositorio comenzando con una barra diagonal, por ejemplo `/mi-blog`. Esto es para que Astro entienda que la raíz de tu sitio web es `/mi-repo`, en lugar de la raíz predeterminada `/`.
+
+    :::caution
+        Cuando este valor está configurado, todos los enlaces internos de tus páginas deben tener el prefijo de tu valor `base`:
+
+      ```astro ins="/my-repo"
+      <a href="/my-repo/about">Acerca</a>
+      ```
+
+    Ver más sobre [configurar un valor `base`](/es/reference/configuration-reference/#base)
+    :::
+
+2. Renombra el directorio `public/` a `static/`.
+
+3. Establece `outDir: 'public'` en `astro.config.mjs`. Esta configuración indica a Astro que coloque la salida de la compilación estática en una carpeta llamada `public`, que es la carpeta requerida por GitLab Pages para los archivos expuestos.
 
    Si estás usando el [directorio `public/`](/es/basics/project-structure/#public) como fuente de archivos estáticos en tu proyecto de Astro, renombralo y usa ese nuevo nombre del directorio en `astro.config.mjs` para el valor de `publicDir`.
 
    Por ejemplo, estos son los ajustes correctos de `astro.config.mjs` cuando el directorio `public/` es renombrado a `static/`:
 
-   ```js
+   ```js title="astro.config.mjs" ins={4-5}
    import { defineConfig } from 'astro/config';
 
    export default defineConfig({
-     site: 'https://<user>.gitlab.io',
-     base: '/<project-name>',
      outDir: 'public',
      publicDir: 'static',
    });
    ```
 
-4. Crea un archivo llamado `.gitlab-ci.yml` en la raíz de tu proyecto con el siguiente contenido. Esto compilará y desplegará tu proyecto cada vez que realices cambios en el contenido:
+4. Cambia la salida de la compilación en `.gitignore`. En nuestro ejemplo necesitamos cambiar `dist/` a `public/`:
 
-   ```yaml
+    ```diff  title=".gitignore"
+    # build output
+    -dist/
+    +public/
+    ```
+
+5. Crea un archivo llamado `.gitlab-ci.yml` en la raíz de tu proyecto con el contenido a continuación. Esto construirá y desplegará tu sitio cada vez que hagas cambios en tu contenido:
+
+   ```yaml title=".gitlab-ci.yml"
    pages:
      # La imagen de Docker que se usará para construir tu app
      image: node:lts
@@ -61,4 +110,11 @@ Puedes usar [GitLab Pages](https://pages.gitlab.io/) para alojar un proyecto de 
        # rama(s) a continuación
        - main
    ```
+
+6. Haz un commit de tus cambios y súbelos a GitLab.
+
+7. En GitLab, ve al menú **Deploy** de tu repositorio y selecciona **Pages**. Aquí verás la URL completa de tu sitio web de GitLab Pages. Para asegurarte de que estás usando el formato de URL `https://username.gitlab.io/my-repo`, desmarca la configuración **Use unique domain** en esta página.
+
 </Steps>
+
+¡Tu sitio debería estar publicado! Cuando hagas cambios en tu repositorio de proyecto de Astro, el pipeline CI/CD de GitLab los desplegará automáticamente para ti. 

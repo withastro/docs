@@ -1,4 +1,5 @@
 import starlight from '@astrojs/starlight';
+import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections';
 import { defineConfig, sharpImageService } from 'astro/config';
 import { makeLocalesConfig } from './config/locales';
 import { makeSidebar } from './config/sidebar';
@@ -23,6 +24,9 @@ export default defineConfig({
 		starlight({
 			title: 'Docs',
 			customCss: ['./src/styles/custom.css'],
+			expressiveCode: {
+				plugins: [pluginCollapsibleSections()],
+			},
 			components: {
 				EditLink: './src/components/starlight/EditLink.astro',
 				Head: './src/components/starlight/Head.astro',
@@ -32,9 +36,11 @@ export default defineConfig({
 				TableOfContents: './src/components/starlight/TableOfContents.astro',
 				PageSidebar: './src/components/starlight/PageSidebar.astro',
 				Pagination: './src/components/starlight/Pagination.astro',
+				Footer: './src/components/starlight/Footer.astro',
 				SiteTitle: './src/components/starlight/SiteTitle.astro',
 				Search: './src/components/starlight/Search.astro',
 				Sidebar: './src/components/starlight/Sidebar.astro',
+				MobileMenuFooter: './src/components/starlight/MobileMenuFooter.astro',
 				PageTitle: './src/components/starlight/PageTitle.astro',
 			},
 			editLink: {
