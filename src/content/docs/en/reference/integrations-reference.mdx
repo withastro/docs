@@ -56,10 +56,10 @@ interface AstroIntegration {
     'astro:build:generated'?: (options: { dir: URL; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:build:ssr'?: (options: {
         manifest: SerializedSSRManifest;
-        entryPoints: Map<RouteData, URL>;
+        entryPoints: Map<IntegrationRouteData, URL>;
         logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
-    'astro:build:done'?: (options: { dir: URL; routes: RouteData[]; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:build:done'?: (options: { dir: URL; routes: IntegrationRouteData[]; logger: AstroIntegrationLogger; }) => void | Promise<void>;
 
     // ... any custom hooks from integrations
   };
@@ -561,7 +561,7 @@ The address, family and port number supplied by the [Node.js Net module](https:/
 ```js
 'astro:build:ssr'?: (options: {
     manifest: SerializedSSRManifest,
-    entryPoints: Map<RouteData, URL>,
+    entryPoints: Map<IntegrationRouteData, URL>,
     middlewareEntryPoint: URL
 }) => void | Promise<void>;
 ```
@@ -575,7 +575,7 @@ The address, family and port number supplied by the [Node.js Net module](https:/
 **Why:** To access generated routes and assets for extension (ex. copy content into the generated `/assets` directory). If you plan to transform generated assets, we recommend exploring the [Vite Plugin API](https://vitejs.dev/guide/api-plugin.html) and [configuring via `astro:config:setup`](#updateconfig-option) instead.
 
 ```js
-'astro:build:done'?: (options: { dir: URL; routes: RouteData[], pages: { pathname: string }[] }) => void | Promise<void>;
+'astro:build:done'?: (options: { dir: URL; routes: IntegrationRouteData[], pages: { pathname: string }[] }) => void | Promise<void>;
 ```
 
 #### `dir` option
@@ -604,7 +604,7 @@ export default function myIntegration() {
 
 #### `routes` option
 
-**Type:** [`RouteData[]`](#routedata-type-reference)
+**Type:** [`IntegrationRouteData[]`](#routedata-type-reference)
 
 A list of all generated routes alongside their associated metadata.
 
@@ -613,12 +613,19 @@ You can reference the full `RouteData` type below, but the most common propertie
 - `component` - the input file path relative to the project root
 - `pathname` - the output file URL (undefined for routes using `[dynamic]` and `[...spread]` params)
 
-##### `RouteData` type reference
+##### `IntegrationRouteData` type reference
 
 ```ts
-interface RouteData {
-  /** Whether a given route is an HTML page or non-HTML endpoint */
-  type: 'page' | 'endpoint';
+interface IntegrationRouteData {
+	/**
+	 * The type of the route. It can be:
+   * 
+	 * - `page`: a route that lives in the file system, usually an Astro component
+	 * - `endpoint`: a route that lives in the file system, usually a JS file that exposes endpoints methods
+	 * - `redirect`: a route points to another route that lives in the file system
+	 * - `fallback`: a route that doesn't exist in the file system that needs to be handled with other means, usually the middleware
+	 */
+  type: 'page' | 'endpoint' | 'redirect' | 'fallback';
   /** Source component URL */
   component: string;
   /**
@@ -644,10 +651,37 @@ interface RouteData {
    */
   segments: { content: string; dynamic: boolean; spread: boolean; }[][];
   /**
-   * Function to render component in-place from a set of input data.
+	 * @param {any} data The optional parameters of the route
+	 * 
+	 * @description
+	 * A function that accepts a list of params, interpolates them with the route pattern, and returns the path name of the route.
+	 * 
+	 * ## Example
+	 * 
+	 * For a route such as `/blog/[...id].astro`, the `generate` function would return something like this:
+	 * 
+	 * ```js
+	 * console.log(generate({ id: 'presentation' })) // will log `/blog/presentation` 
+	 * ```
    * This is typically for internal use, so call with caution!
-   */
+	 */
   generate: (data?: any) => string;
+  /**
+	 * Whether the route is prerendered or not
+	 */
+	prerender: boolean;
+  /**
+	 * The paths of the physical files emitted by this route. When a route **isn't** prerendered, the value is either `undefined` or an empty array.
+	 */
+	distURL?: URL[];
+  	/**
+	 * The route to redirect to. It holds information regarding the status code and its destination.
+	 */
+	redirect?: RedirectConfig;
+	/**
+	 * The `IntegrationRouteData` to redirect to. It's present when `RouteData.type` is `redirect`.
+	 */
+	redirectRoute?: IntegrationRouteData;
 }
 ```
 
