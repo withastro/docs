@@ -160,7 +160,7 @@ export default defineConfig({
           - index.astro
     </FileTree>
 
-- 로케일 접두사가 없는 URL (예: `example.com/about/`)은 [대체 전략](#fallback)을 지정하지 않는 한 404 (찾을 수 없음) 상태 코드를 반환합니다.
+- 로케일 접두사가 없는 URL (예: `example.com/about/`)은 [대체 전략](#대체하기)을 지정하지 않는 한 404 (찾을 수 없음) 상태 코드를 반환합니다.
 
 ### `redirectToDefaultLocale`
 
@@ -283,26 +283,36 @@ export default defineConfig({
 
 위 URL은 `getAbsoluteLocaleUrl()` 및 `getAbsoluteLocaleUrlList()` 함수에서도 반환됩니다.
 
-## `fallback`
+## 대체하기 
 
-Astro의 i18n 라우팅을 사용하면 **대체 라우팅 전략**을 구성할 수 있습니다. 한 언어로 된 페이지가 존재하지 않는 경우 (예: 아직 번역되지 않은 페이지) 404 페이지를 표시하는 대신 언어별로 사용자를 한 언어에서 다른 언어로 리디렉션할 수 있습니다. 이는 아직 모든 경로에 대한 페이지가 없지만 방문자에게 일부 콘텐츠를 제공하려는 경우에 유용합니다.
+한 언어로 된 페이지가 존재하지 않는 경우 (예: 아직 번역되지 않은 페이지), 404 페이지를 표시하는 대신 언어별로 다른 `locale`의 대체 콘텐츠를 표시하도록 선택할 수 있습니다. 이는 아직 모든 경로에 대한 페이지가 없지만 방문자에게 일부 콘텐츠를 제공하려는 경우에 유용합니다.
 
-예를 들어 아래 구성은 누락된 `fr` 경로에 대한 대체 언어로 `es`를 설정합니다. 이는 `src/pages/fr/my-page.astro` 파일이 존재하지 않을때 `example.com/fr/my-page/`에 방문한 사용자가 404 페이지로 이동하지 않고 `example.com/es/my-page/`로 리디렉션되어 콘텐츠를 볼 수 있다는 것을 의미합니다.
+대체 전략은 두 부분으로 구성됩니다. 어떤 언어를 다른 언어로 대체할지 선택하는 것 ([`i18n.fallback`](/ko/reference/configuration-reference/#i18nfallback))과 대체 콘텐츠 (Astro v4.15.0에서 추가된 [`i18n.routing.fallbackType`](/ko/reference/configuration-reference/#i18nroutingfallbacktype))를 표시하기 위해 [리디렉션](/ko/guides/routing/#리디렉션)을 수행할지 아니면 [리라이트](/ko/guides/routing/#리라이트)를 수행할지 선택하는 것입니다.
 
-```js title="astro.config.mjs" ins={6-8}
-import { defineConfig } from 'astro/config';
+예를 들어, `i18n.fallback: { fr: "es" }`를 구성하면, Astro는 `src/pages/es/`에 존재하는 모든 페이지에 대해 `src/pages/fr/`에 페이지가 빌드되도록 합니다.
+
+페이지가 아직 존재하지 않으면 `fallbackType`에 따라 페이지가 생성됩니다:
+
+- 해당 `es` 경로로 리디렉션합니다 (기본 동작).
+- `/es/` 페이지의 콘텐츠 (`i18n.routing.fallbackType: "rewrite"`)를 사용합니다.
+
+예를 들어, 아래 구성은 누락된 `fr` 경로에 대한 대체 로케일로 `es`를 설정합니다. 즉, `example.com/fr/my-page/`를 방문하는 사용자는 `src/pages/fr/my-page.astro`가 없는 경우 404 페이지로 이동하는 대신 리디렉션되지 않고 `example.com/es/my-page/`의 콘텐츠를 보게 됩니다.
+
+```js title="astro.config.mjs" ins={6-8,10} 
+import { defineConfig } from "astro/config"
 export default defineConfig({
   i18n: {
-    defaultLocale: 'en',
-    locales: ['es', 'en', 'fr'],
+    defaultLocale: "en",
+    locales: ["es", "en", "fr"],
     fallback: {
-      fr: 'es',
+      fr: "es"  
     },
-  },
-});
+    routing: {
+      fallbackType: "rewrite"
+    }
+  }
+})
 ```
-
-Astro는 `src/pages/es/`에 존재하는 모든 페이지에 대해 `src/pages/fr/`에 페이지가 빌드되었는지 확인합니다. 페이지가 아직 존재하지 않으면 해당 `es` 경로로 리디렉션되는 페이지가 생성됩니다.
 
 ## 사용자 정의 로케일 경로
 
