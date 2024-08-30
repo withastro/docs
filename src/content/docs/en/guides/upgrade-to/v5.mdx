@@ -508,7 +508,11 @@ Note that `src/env.d.ts` is only necessary if you have added custom or if you're
 
 <SourcePR number="11825" title="Refactor createShikiHighlighter"/>
 
-shiki syntax highlighting
+Updates internal Shiki rehype plugin to highlight code blocks as hast (using Shiki's `codeToHast()` API). This allows a more direct markdown and MDX processing, and improves the performance when building the project.
+
+However, a caveat with `codeToHast()` is that Shiki transformers' `postprocess` hook will now not run on code blocks in `.md` and `.mdx` files (also [documented in Shiki](https://shiki.style/guide/transformers#transformer-hooks)). Make sure the Shiki transformers passed to `markdown.shikiConfig.transformers` do not use the `postprocess` hook to avoid issues with the HTML output.
+
+Code blocks in `.mdoc` files and `<Code />` component will still work the same and shouldn't need any changes as they do not use the internal Shiki rehype plugin.
 
 #### What should I do?
 
@@ -519,7 +523,14 @@ Stuff!
 
 <SourcePR number="11861" title="Clean up Astro metadata in vfile.data"/>
 
-- (PLT-1897) Move `__astroHeadings` and `imagePaths` into `vfile.data.astro`
+Cleans up Astro-specfic metadata attached to `vfile.data` in Remark and Rehype plugins. Previously, the metadata is attached in different locations with inconsistent names. The metadata is now renamed as below:
+
+- `vfile.data.__astroHeadings` -> `vfile.data.astro.headings`
+- `vfile.data.imagePaths` -> `vfile.data.astro.imagePaths`
+
+The types of `imagePaths` has also been updated from `Set<string>` to `string[]`. The `vfile.data.astro.frontmatter` metadata is left unchanged.
+
+While we don't consider these APIs public, it can be accessed by Remark and Rehype plugins that wants to re-use Astro's metadata. If you are using these APIs, make sure to access them in the new locations.
 
 #### What should I do?
 
@@ -529,7 +540,23 @@ Stuff!
 
 <SourcePR number="11864" title="send `IntegrationRouteData` to integrations"/>
 
-- (PLT-2338) Expose `RouteData[]` to integrations
+### [changed]: `entryPoint` type inside the hook `astro:build:ssr`
+In Astro v4.x, the `entryPoint` type was `RouteData`.
+
+Astro v5.0 the `entryPoint` type is `IntegrationRouteData`, which contains a subset of the `RouteData` type. The fields `isIndex` and `fallbackRoutes` were removed. 
+
+#### What should I do?
+Update your adapter to change the type of `entryPoint` from `RouteData` to `IntegrationRouteData`.
+
+```diff
+-import type {RouteData} from 'astro';
++import type {IntegrationRouteData} from "astro"
+
+-function useRoute(route: RouteData) {
++function useRoute(route: IntegrationRouteData) {
+
+}
+```
 
 #### What should I do?
 
@@ -545,12 +572,6 @@ Stuff!
 
 Stuff!
 
-### Changed: Where ts `include` and `exclude` config is set (PLT2479)
-
-<SourcePR number="11859" title="better tsconfig"/>
-
-it's now in a different place
-
 #### What should I do?
 
 Stuff!
@@ -559,11 +580,15 @@ Stuff!
 
 <SourcePR number="11819" title="Set external: true when loading astro config"/>
 
-To consider - set `ssr.external: true` when using Vite to load configs
+Updates the Astro config loading flow to ignore processing locally-linked dependencies with Vite (e.g. `npm link`, in a monorepo, etc). Instead, they will be normally imported by the Node.js runtime the same way as other dependencies from `node_modules`.
+
+Previously, Astro would process locally-linked dependencies when they were able to use Vite features like TypeScript when imported by the Astro config file. 
+	
+However, this caused confusion as integration authors may test against a package that worked locally, but not when published. This method also restricts using CJS-only dependencies because Vite requires the code to be ESM. Therefore, Astro's behaviour is now changed to ignore processing any type of dependencies by Vite.
 
 #### What should I do?
 
-Stuff!
+In most cases, make sure your locally-linked dependencies are built to JS before running the Astro project, and the config loading should work as before.
 
 ### Changed: auto-inject `<meta charset="utf-8">` by default for every astro/md/mdx/html (PLT1057)
 
