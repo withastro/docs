@@ -382,6 +382,50 @@ Astro v5.0 moves this responsibility tohandle and render JSX and MDX the `@astro
 
 If your project includes `.mdx` files, you must upgrade `@astrojs/mdx` to the latest version so that your JSX can be handled properly by the integration and no longer relies on these removed entrypoints.
 
+### Changed: route priority order (PLT2087 - alpha.1)
+
+<SourcePR number="11798" title="Remove legacy route prioritization"/>
+
+In Astro v4.x, `experimental.globalRoutePriority` was an optional flag which ensured that injected routes, file-based routes, and redirects were all prioritized using the [route priority order rules for all routes](/en/guides/routing/#route-priority-order). This allowed more control over routing in your project by not automatically prioritizing certain kinds of routes, and standardizing the route priority order.
+
+Astro v5.0 removes this experimental flag and makes this the new default behavior in Astro: redirects and injected routes are now prioritized equally alongside file-based project routes.
+
+Note that this was already the default behavior in Starlight, and should not affect updated Starlight projects.
+
+#### What should I do?
+
+If your project includes injected routes or redirects, please check that your routes are building page URLs as expected. An example of the new expected behavior is shown below.
+
+In a project containing the following routes:
+
+- File-based route: `/blog/post/[pid]`
+- File-based route: `/[page]`
+- Injected route: `/blog/[...slug]`
+- Redirect: `/blog/tags/[tag] -> /[tag]`
+- Redirect: `/posts -> /blog`
+
+The following URLs will be built (instead of following the route priority order of Astro v4.x):
+
+- `/blog/tags/astro` is built by the redirect to `/tags/[tag]` (instead of the injected route `/blog/[...slug]`)
+- `/blog/post/0` is built by the file-based route `/blog/post/[pid]` (instead of the injected route `/blog/[...slug]`)
+- `/posts` is built by the redirect to `/blog` (instead of the file-based route `/[page]`)
+
+In the event of route collisions, where two routes of equal route priority attempt to build the same URL, Astro will log a warning identifying the conflicting routes.
+
+### Changed: default `<script>` behavior (PLT2086 - alpha.2)
+
+<SourcePR number="11791" title="Make directRenderScript the default"/>
+
+In Astro v4.x, `experimental.directRenderScript` was an optional flag to directly render `<scripts>` as declared in `.astro` files (including existing features like TypeScript, importing `node_modules`, and deduplicating scripts). This strategy prevented scripts from being executed in places where they were not used.
+
+Astro 5.0 removes this experimental flag and makes this the new default behavior in Astro: scripts are no longer hoisted to the `<head>`, multiple scripts on a page are no longer bundled together, and a `<script>` tag may interfere with CSS styling.
+
+#### What should I do?
+
+Please review your `<script>` tags and ensure they behave as desired.
+
+#### What should I do?
+
 ### Changed: add base to `paginate` (PLT2204 - alpha.2)
 
 <SourcePR number="11253" title="Add base to paginate"/>
