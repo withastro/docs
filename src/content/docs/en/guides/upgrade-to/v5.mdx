@@ -5,6 +5,7 @@ i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import { Steps } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro'
 
 
 ## LINEAR ISSUES WITH NO UPGRADE GUIDE BREAKING PLACEHOLDER ENTRY
@@ -144,7 +145,6 @@ Read about these exciting features and more in [the v5.0-beta Blog post](https:/
 
 ## Upgrades
 
-
 ### Node Support
 
 The minimum supported version of Node.js in Astro v5.0 is `v18.17.1`
@@ -200,8 +200,58 @@ Astro v5.0 refactors this file to [remove outdated and internal types](https://g
 
 Remove any types that now cause errors in your project as you no longer have access to them. These will be mostly previously deprecated and removed APIs, but may also include types that are now internal.
 
+<ReadMore>[Source](https://github.com/withastro/astro/pull/11715)</ReadMore>
 
-### Changed: CSRF protection is now set by default (PLT2262)
+### Changed: Correctly render non-boolean HTML attribute values (PLT2279 - alpha.0)
+
+In Astro v4.0, non-[boolean HTML attributes](https://developer.mozilla.org/en-US/docs/Glossary/Boolean/HTML) may not have included their values when rendered to HTML.
+
+Astro v5.0 renders the values explicitly as `="true"` or `="false"`, matching proper attribute handling in browsers.
+
+In the following `.astro` examples, only `allowfullscreen` is a boolean attribute:
+
+```astro
+<!-- src/pages/index.astro -->
+<!-- `allowfullscreen` is a boolean attribute -->
+<p allowfullscreen={true}></p>
+<p allowfullscreen={false}></p>
+<!-- `inherit` is *not* a boolean attribute -->
+<p inherit={true}></p>
+<p inherit={false}></p>
+<!-- `data-*` attributes are not boolean attributes -->
+<p data-light={true}></p>
+<p data-light={false}></p>
+```
+
+Astro v5.0 now preserves the full data attribute with its value when rendering the HTML of non-boolean attributes:
+
+```diff lang="astro"
+  <p allowfullscreen></p>
+  <p></p>
+
+  <p inherit="true"></p>
+- <p inherit></p>
++ <p inherit="false"></p>
+
+- <p data-light></p>
++ <p data-light="true"></p>
+- <p></p>
++ <p data-light="false"></p>
+```
+
+#### What should I do?
+
+If you rely on attribute values, for example to locate elements or to conditionally render, update your code to match the new non-boolean attribute values:
+
+```diff lang="js"
+- el.getAttribute('inherit') === ''
++ el.getAttribute('inherit') === 'false'
+
+- el.hasAttribute('data-light')
++ el.dataset.light === 'true'
+```
+
+### Changed: CSRF protection is now set by default (PLT2262 - alpha.1)
 
 In Astro v4.0, The default value of `security.checkOrigin` was `false`. Previously, you had to explicitly set this value to `true` to enable Cross-Site Request Forgery (CSRF) protection.
 
@@ -221,6 +271,84 @@ export default defineConfig({
   }
 })
 ```
+
+### Removed: top level await in `vite-plugin-markdown`'s `astro:assets` (PLT1323 - alpha.1)
+
+In Astro 4.x, included top level await in Markdown modules. This caused some issues with custom image services and images inside Markdown, causing Node to suddenly exit with no error message.
+
+Astro 5.0 makes the `compiledContent()` property on Markdown imports an async function, requiring an `await` to resolve the content.
+
+#### What should I do?
+
+Update your code to use `await` when calling `compiledContent()`.
+
+```diff lang="astro
+---
+import * as myPost from "../post.md";
+
+- const content = myPost.compiledContent();
++ const content = await myPost.compiledContent();
+---
+
+<Fragment set:html={content} />
+```
+
+### Removed: Squoosh image service from core repo (PLT1380 - alpha.1)
+
+In Astro 4.0, you could configure `image.service: squooshImageService()` to use Squoosh to transform your images instead of Sharp. However, the underlying library `libsquoosh` is no longer maintained and has memory and performance issues.
+
+Astro 5.0 removes the Squoosh image optimization service entirely.
+
+#### What should I do?
+
+To switch to the built-in Sharp image service, remove the `squooshImageService` import from your Astro config. By default, you will use Sharp for `astro:assets`.
+
+```ts title="astro.config.mjs" del={1, 5-7}
+import { squooshImageService } from "astro/config";
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+ image: {
+   service: squooshImageService()
+ }
+});
+```
+
+If you are using a strict package manager like `pnpm`, you may need to install the `sharp` package manually to use the Sharp image service, even though it is built-in to Astro by default.
+
+If your adapter for server or hybrid mode does not support Astro's built-in Sharp image optimization, you can [configure a no-op image service](/en/guides/images/#configure-no-op-passthrough-service) to allow you to use the `<Image />` and `<Picture />` components.
+
+Alternatively, you may wish to consider [a community-maintained Squoosh image service](https://github.com/Princesseuh/astro-image-service-squoosh) if you are unable to use the Sharp image service.
+
+
+##### For adapters
+
+If your adapter previously precised its compatibility status with Squoosh, you should now remove this information from your adapter configuration.
+
+```diff lang="ts" title="my-adapter.mjs"
+supportedAstroFeatures: {
+  assets: {
+--    isSquooshCompatible: true,
+  },
+}
+```
+
+### Removed: Internal JSX exports entrypoints (PLT1935 - alpha.1)
+
+In Astro v4.0, Astro performed internal JSX handling for the `@astrojs/mdx` integration.
+
+Astro v5.0 moves this responsibility tohandle and render JSX and MDX the `@astrojs/mdx` package directly, and removes the following exports:
+
+- `astro/jsx/babel.js`
+ - `astro/jsx/component.js`
+ - `astro/jsx/index.js`
+ - `astro/jsx/renderer.js`
+ - `astro/jsx/server.js`
+ - `astro/jsx/transform-options.js`
+
+#### What should I do?
+
+If your project includes `.mdx` files, you must upgrade `@astrojs/mdx` to the latest version so that your JSX can be handled properly by the integration and no longer relies on these removed entrypoints.
 
 ### Changed: `--mode` usage (PLT2220)
 
@@ -383,134 +511,6 @@ You can perform a global find and replace in your project to migrate to the new 
 }
 ```
 
-### Changed: Correctly render non-boolean HTML attribute values (PLT2279 - alpha.0)
-
-In Astro v4.0, non-[boolean HTML attributes](https://developer.mozilla.org/en-US/docs/Glossary/Boolean/HTML) may not have included their values when rendered to HTML.
-
-Astro v5.0 renders the values explicitly as `="true"` or `="false"`, matching proper attribute handling in browsers.
-
-In the following `.astro` examples, only `allowfullscreen` is a boolean attribute:
-
-```astro
-<!-- src/pages/index.astro -->
-<!-- `allowfullscreen` is a boolean attribute -->
-<p allowfullscreen={true}></p>
-<p allowfullscreen={false}></p>
-<!-- `inherit` is *not* a boolean attribute -->
-<p inherit={true}></p>
-<p inherit={false}></p>
-<!-- `data-*` attributes are not boolean attributes -->
-<p data-light={true}></p>
-<p data-light={false}></p>
-```
-
-Astro v5.0 now preserves the full data attribute with its value when rendering the HTML of non-boolean attributes:
-
-```diff lang="astro"
-  <p allowfullscreen></p>
-  <p></p>
-
-  <p inherit="true"></p>
-- <p inherit></p>
-+ <p inherit="false"></p>
-
-- <p data-light></p>
-+ <p data-light="true"></p>
-- <p></p>
-+ <p data-light="false"></p>
-```
-
-#### What should I do?
-
-
-If you rely on attribute values, for example to locate elements or to conditionally render, update your code to match the new non-boolean attribute values:
-
-```diff lang="js"
-- el.getAttribute('inherit') === ''
-+ el.getAttribute('inherit') === 'false'
-
-- el.hasAttribute('data-light')
-+ el.dataset.light === 'true'
-```
-
-### Removed: top level await in `vite-plugin-markdown`'s `astro:assets` (PLT1323 - alpha.1)
-
-In Astro 4.x, included top level await in Markdown modules. This caused some issues with custom image services and images inside Markdown, causing Node to suddenly exit with no error message.
-
-Astro 5.0 makes the `compiledContent()` property on Markdown imports an async function, requiring an `await` to resolve the content.
-
-#### What should I do?
-
-Update your code to use `await` when calling `compiledContent()`.
-
-```diff lang="astro
----
-import * as myPost from "../post.md";
-
-- const content = myPost.compiledContent();
-+ const content = await myPost.compiledContent();
----
-
-<Fragment set:html={content} />
-```
-
-### Removed: Squoosh image service from core repo (PLT1380 - alpha.1)
-
-In Astro 4.0, you could configure `image.service: squooshImageService()` to use Squoosh to transform your images instead of Sharp. However, the underlying library `libsquoosh` is no longer maintained and has memory and performance issues.
-
-Astro 5.0 removes the Squoosh image optimization service entirely.
-
-#### What should I do?
-
-To switch to the built-in Sharp image service, remove the `squooshImageService` import from your Astro config. By default, you will use Sharp for `astro:assets`.
-
-```ts title="astro.config.mjs" del={1, 5-7}
-import { squooshImageService } from "astro/config";
-import { defineConfig } from "astro/config";
-
-export default defineConfig({
- image: {
-   service: squooshImageService()
- }
-});
-```
-
-If you are using a strict package manager like `pnpm`, you may need to install the `sharp` package manually to use the Sharp image service, even though it is built-in to Astro by default.
-
-If your adapter for server or hybrid mode does not support Astro's built-in Sharp image optimization, you can [configure a no-op image service](/en/guides/images/#configure-no-op-passthrough-service) to allow you to use the `<Image />` and `<Picture />` components.
-
-Alternatively, you may wish to consider [a community-maintained Squoosh image service](https://github.com/Princesseuh/astro-image-service-squoosh) if you are unable to use the Sharp image service.
-
-
-##### For adapters
-
-If your adapter previously precised its compatibility status with Squoosh, you should now remove this information from your adapter configuration.
-
-```diff lang="ts" title="my-adapter.mjs"
-supportedAstroFeatures: {
-  assets: {
---    isSquooshCompatible: true,
-  },
-}
-```
-
-### Removed: Internal JSX exports entrypoints (PLT1935 - alpha.1)
-
-In Astro v4.0, Astro performed internal JSX handling for the `@astrojs/mdx` integration.
-
-Astro v5.0 moves this responsibility tohandle and render JSX and MDX the `@astrojs/mdx` package directly, and removes the following exports:
-
-- `astro/jsx/babel.js`
- - `astro/jsx/component.js`
- - `astro/jsx/index.js`
- - `astro/jsx/renderer.js`
- - `astro/jsx/server.js`
- - `astro/jsx/transform-options.js`
-
-#### What should I do?
-
-If your project includes `.mdx` files, you must upgrade `@astrojs/mdx` to the latest version so that your JSX can be handled properly by the integration and no longer relies on these removed entrypoints.
-
 ## Deprecated
 
 The following deprecated features are no longer supported and are no longer documented. Please update your project accordingly.
@@ -530,9 +530,6 @@ replace with `import.meta.glob`
 In Astro v4.x, you could opt in to creating a separate file for each route defined in the project, mirroring your `src/pages/` directory in the build folder. By default, Astro emitted a single `entry.mjs` file, which was responsible for emitting the rendered page on each request.
 
 Astro v5.0 removes the option to opt out of the default behavior. This behavior is now standard, and non-configurable.
-
-
-
 
 Remove the `functionPerRoute` property from your `adapterFeatures` configuration. It is no longer available.
 
