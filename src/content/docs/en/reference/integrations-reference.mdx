@@ -19,6 +19,8 @@ The official Astro integrations can act as reference for you as you go to build 
 ## Quick API Reference
 
 ```ts
+import { HookParameters } from 'astro';
+
 interface AstroIntegration {
   name: string;
   hooks: {
@@ -35,31 +37,31 @@ interface AstroIntegration {
       injectScript: (stage: InjectedScriptStage, content: string) => void;
       injectRoute: (injectedRoute: { pattern: string, entrypoint: string }) => void;
       logger: AstroIntegrationLogger;
-    }) => void | Promise<void>;
+    }: HookParameters<'astro:config:setup'>) => void | Promise<void>;
     'astro:config:done'?: (options: {
       config: AstroConfig;
       setAdapter: (adapter: AstroAdapter) => void;
       injectTypes: (injectedType: { filename: string; content: string }) => URL;
       logger: AstroIntegrationLogger;
-      }) => void | Promise<void>;
-    'astro:route:setup'?: (options: { route: RouteOptions; logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:server:setup'?: (options: { server: vite.ViteDevServer; logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:server:start'?: (options: { address: AddressInfo; logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:server:done'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:build:start'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    }: HookParameters<'astro:config:done'>) => void | Promise<void>;
+    'astro:route:setup'?: (options: { route: RouteOptions; logger: AstroIntegrationLogger; }: HookParameters<'astro:route:setup'>) => void | Promise<void>;
+    'astro:server:setup'?: (options: { server: vite.ViteDevServer; logger: AstroIntegrationLogger; }: HookParameters<'astro:server:setup'>) => void | Promise<void>;
+    'astro:server:start'?: (options: { address: AddressInfo; logger: AstroIntegrationLogger; }: HookParameters<'astro:server:start'>) => void | Promise<void>;
+    'astro:server:done'?: (options: { logger: AstroIntegrationLogger; }: HookParameters<'astro:server:done'>) => void | Promise<void>;
+    'astro:build:start'?: (options: { logger: AstroIntegrationLogger; }: HookParameters<'astro:build:start'>) => void | Promise<void>;
     'astro:build:setup'?: (options: {
       vite: ViteConfigWithSSR;
       pages: Map<string, PageBuildData>;
       target: 'client' | 'server';
       logger: AstroIntegrationLogger;
-    }) => void | Promise<void>;
-    'astro:build:generated'?: (options: { dir: URL; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    }: HookParameters<'astro:build:setup'>) => void | Promise<void>;
+    'astro:build:generated'?: (options: { dir: URL; logger: AstroIntegrationLogger; }: HookParameters<'astro:build:generated'>) => void | Promise<void>;
     'astro:build:ssr'?: (options: {
         manifest: SerializedSSRManifest;
         entryPoints: Map<RouteData, URL>;
         logger: AstroIntegrationLogger;
-    }) => void | Promise<void>;
-    'astro:build:done'?: (options: { dir: URL; routes: RouteData[]; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    }: HookParameters<'astro:build:ssr'>) => void | Promise<void>;
+    'astro:build:done'?: (options: { dir: URL; routes: RouteData[]; logger: AstroIntegrationLogger; }: HookParameters<'astro:build:done'>) => void | Promise<void>;
 
     // ... any custom hooks from integrations
   };
@@ -81,6 +83,7 @@ The following hooks are built in to Astro:
 **Why:** To extend the project config. This includes updating the [Astro config](/en/reference/configuration-reference/), applying [Vite plugins](https://vitejs.dev/guide/api-plugin.html), adding component renderers, and injecting scripts onto the page.
 
 ```ts
+import {HookParameters} from "astro"; 
 'astro:config:setup'?: (options: {
   config: AstroConfig;
   command: 'dev' | 'build' | 'preview' | 'sync';
@@ -94,7 +97,7 @@ The following hooks are built in to Astro:
   injectScript: (stage: InjectedScriptStage, content: string) => void;
   injectRoute: ({ pattern: string, entrypoint: string }) => void;
   logger: AstroIntegrationLogger;
-}) => void | Promise<void>;
+}: HookParameters<'astro:config:setup'>) => void | Promise<void>;
 ```
 
 #### `config` option
@@ -393,13 +396,13 @@ The **`stage`** denotes how this script (the `content`) should be inserted. Some
 
 **Why:** To retrieve the final config for use in other hooks.
 
-```js
+```ts
 'astro:config:done'?: (options: {
   config: AstroConfig;
   setAdapter: (adapter: AstroAdapter) => void;
   injectTypes: (injectedType: { filename: string; content: string }) => URL;
   logger: AstroIntegrationLogger;
-}) => void | Promise<void>;
+}: HookParameters<'astro:config:done'>) => void | Promise<void>;
 ```
 
 #### `config` option
@@ -446,8 +449,8 @@ console.log(path) // URL
 
 **Why:** To update Vite server options and middleware.
 
-```js
-'astro:server:setup'?: (options: { server: vite.ViteDevServer }) => void | Promise<void>;
+```ts
+'astro:server:setup'?: (options: { server: vite.ViteDevServer }: HookParameters<'astro:server:setup'>) => void | Promise<void>;
 ```
 
 #### `server` option
@@ -481,8 +484,8 @@ export default {
 
 **Why:** To intercept network requests at the specified address. If you intend to use this address for middleware, consider using `astro:server:setup` instead.
 
-```js
-'astro:server:start'?: (options: { address: AddressInfo }) => void | Promise<void>;
+```ts
+'astro:server:start'?: (options: { address: AddressInfo }: HookParameters<'astro:server:start'>) => void | Promise<void>;
 ```
 
 #### `address` option
@@ -499,8 +502,8 @@ The address, family and port number supplied by the [Node.js Net module](https:/
 
 **Why:** To run any cleanup events you may trigger during the `astro:server:setup` or `astro:server:start` hooks.
 
-```js
-'astro:server:done'?: () => void | Promise<void>;
+```ts
+'astro:server:done'?: ({ logger }: HookParameters<'astro:server:done'>) => void | Promise<void>;
 ```
 
 ### `astro:build:start`
@@ -513,8 +516,8 @@ The address, family and port number supplied by the [Node.js Net module](https:/
 
 **Why:** To set up any global objects or clients needed during a production build. This can also extend the build configuration options in the [adapter API](/en/reference/adapter-reference/).
 
-```js
-'astro:build:start'?: () => void | Promise<void>;
+```ts
+'astro:build:start'?: ({ logger }: HookParameters<'astro:build:start'>) => void | Promise<void>;
 ```
 
 ### `astro:build:setup`
@@ -527,13 +530,12 @@ The address, family and port number supplied by the [Node.js Net module](https:/
 
 **Why:** At this point, the Vite config for the build has been completely constructed, this is your final chance to modify it. This can be useful for example to overwrite some defaults. If you're not sure whether you should use this hook or `astro:build:start`, use `astro:build:start` instead.
 
-```js
+```ts
 'astro:build:setup'?: (options: {
   vite: ViteConfigWithSSR;
   pages: Map<string, PageBuildData>;
   target: 'client' | 'server';
-}) => void | Promise<void>;
-
+}: HookParameters<'astro:build:setup'>) => void | Promise<void>;
 ```
 
 ### `astro:build:generated`
@@ -544,8 +546,8 @@ The address, family and port number supplied by the [Node.js Net module](https:/
 
 **Why:** To access generated routes and assets **before** build artifacts are cleaned up. This is a very uncommon use case. We recommend using [`astro:build:done`](#astrobuilddone) unless you really need to access the generated files before cleanup.
 
-```js
-'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
+```ts
+'astro:build:generated'?: (options: { dir: URL }: HookParameters<'astro:build:generated'>) => void | Promise<void>;
 ```
 
 ### `astro:build:ssr`
@@ -558,12 +560,12 @@ The address, family and port number supplied by the [Node.js Net module](https:/
 - `entryPoints` maps a page route to the physical file emitted after the build;
 - `middlewareEntryPoint` is the file system path of the middleware file;
 
-```js
+```ts
 'astro:build:ssr'?: (options: {
     manifest: SerializedSSRManifest,
     entryPoints: Map<RouteData, URL>,
     middlewareEntryPoint: URL
-}) => void | Promise<void>;
+}: HookParameters<'astro:build:ssr'>) => void | Promise<void>;
 ```
 
 ### `astro:build:done`
@@ -574,8 +576,8 @@ The address, family and port number supplied by the [Node.js Net module](https:/
 
 **Why:** To access generated routes and assets for extension (ex. copy content into the generated `/assets` directory). If you plan to transform generated assets, we recommend exploring the [Vite Plugin API](https://vitejs.dev/guide/api-plugin.html) and [configuring via `astro:config:setup`](#updateconfig-option) instead.
 
-```js
-'astro:build:done'?: (options: { dir: URL; routes: RouteData[], pages: { pathname: string }[] }) => void | Promise<void>;
+```ts
+'astro:build:done'?: (options: { dir: URL; routes: RouteData[], pages: { pathname: string }[] }: HookParameters<'astro:build:done'>) => void | Promise<void>;
 ```
 
 #### `dir` option
@@ -667,8 +669,8 @@ A list of all generated pages. It is an object with one property.
 
 **Why:** To set options for a route at build or request time, such as enabling [on-demand server rendering](/en/guides/server-side-rendering/#opting-in-to-pre-rendering-in-server-mode).
 
-```js
-'astro:route:setup'?: (options: { route: RouteOptions }) => void | Promise<void>;
+```ts
+'astro:route:setup'?: (options: { route: RouteOptions }: HookParameters<'astro:route:setup'>) => void | Promise<void>;
 ```
 
 #### `route` option
