@@ -324,8 +324,8 @@ const customTransition = {
   import { navigate } from 'astro:transitions/client';
 
   // 선택한 옵션으로 자동으로 이동합니다.
-  document.querySelector('select').onchange = (ev) => {
-      let href = ev.target.value;
+  document.querySelector('select').onchange = (event) => {
+      let href = event.target.value;
       navigate(href);
   };
 </script>
@@ -571,9 +571,9 @@ Astro의 View Transition API 수명 주기 이벤트는 다음과 같습니다.
 
 ```js
 <script is:inline>
-  document.addEventListener('astro:before-preparation', ev => {
-    const originalLoader = ev.loader;
-    ev.loader = async function() {
+  document.addEventListener('astro:before-preparation', event => {
+    const originalLoader = event.loader;
+    event.loader = async function() {
       const { startSpinner } = await import('./spinner.js');
       const stop = startSpinner();
       await originalLoader();
@@ -621,9 +621,9 @@ Astro의 View Transition API 수명 주기 이벤트는 다음과 같습니다.
 
   setDarkMode(document);
 
-  document.addEventListener('astro:before-swap', ev => {
+  document.addEventListener('astro:before-swap', event => {
     // 수신 문서를 전달하여 테마를 설정하세요.
-    setDarkMode(ev.newDocument);
+    setDarkMode(event.newDocument);
   });
 </script>
 ```
@@ -634,13 +634,42 @@ Astro의 View Transition API 수명 주기 이벤트는 다음과 같습니다.
 
 ```astro
 <script is:inline>
-  document.addEventListener('astro:before-swap', ev => {
-    ev.swap = () => {
-      diff(document, ev.newDocument);
+  document.addEventListener('astro:before-swap', event => {
+    event.swap = () => {
+      diff(document, event.newDocument);
     };
   });
 </script>
 ```
+
+#### 사용자 정의 스왑 함수 구현
+
+<p><Since v="4.15.0" /></p>
+
+`astro:transitions/client` 모듈의 `swapFunction` 객체는 문서 속성, 페이지 요소 처리, 스크립트 실행 등 특정 스왑 관련 작업을 처리하는 5가지 유틸리티 함수를 제공합니다. 이러한 함수는 사용자 정의 스왑 구현을 정의하기 위해 직접 사용될 수 있습니다.
+
+다음 예시는 이러한 함수를 사용하여 Astro의 내장 스왑 구현을 다시 만드는 방법을 보여줍니다:
+
+```astro
+<script>
+import { swapFunctions } from 'astro:transitions/client';
+
+// window.document를 doc로 대체합니다.
+function mySwap(doc: Document) {
+  swapFunctions.deselectScripts(doc);
+  swapFunctions.swapRootAttributes(doc);
+  swapFunctions.swapHeadElements(doc);
+  const restoreFocusFunction = swapFunctions.saveFocus();
+  swapFunctions.swapBodyElement(doc.body, document.body);
+  restoreFocusFunction();
+};
+
+...
+  event.swap = () => mySwap(event.newDocument);
+...
+<script>
+```
+사용자 정의 스왑 구현은 이 템플릿으로 시작하여 필요에 따라 개별 단계를 사용자 지정 로직으로 추가하거나 바꿀 수 있습니다.
 
 ### `astro:after-swap`
 
@@ -665,14 +694,14 @@ document.addEventListener('astro:after-swap',
 
 `<ViewTransitions />` 컴포넌트는 사전 렌더링된 페이지의 초기 페이지 탐색과 앞으로 또는 뒤로 진행되는 후속 탐색 모두에서 이 이벤트를 실행합니다.
 
-이 이벤트를 사용하여 모든 페이지 탐색에서 코드를 실행하거나 한 번만 실행할 수 있습니다.
+이 이벤트를 사용하여 모든 페이지 탐색에서 코드를 실행할 수 있습니다. 예를 들어 탐색 중에 손실될 수 있는 이벤트 리스너를 설정할 수 있습니다.
 
-```astro "{ once: true }"
+```astro
 <script>
   document.addEventListener('astro:page-load', () => {
-    // 이것은 한 번만 실행됩니다.
-    setupStuff();
-  }, { once: true });
+    // 이는 첫 페이지 로딩 시, 모든 탐색 후에 실행됩니다.
+    setupStuff(); // 예: 이벤트 리스너 추가
+  });
 </script>
 ```
 
