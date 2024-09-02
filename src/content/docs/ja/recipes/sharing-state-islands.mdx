@@ -1,0 +1,848 @@
+---
+title: アイランド間で状態を共有する
+description: Nano Storesを使用してフレームワークのコンポーネント間で状態を共有する方法を学びます。
+i18nReady: true
+type: recipe
+---
+
+import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
+import LoopingVideo from '~/components/LoopingVideo.astro'
+import JavascriptFlavorTabs from '~/components/tabs/JavascriptFlavorTabs.astro'
+import RecipeLinks from "~/components/RecipeLinks.astro"
+
+Astroのウェブサイトを [アイランドアーキテクチャ / パーシャルハイドレーション](/ja/concepts/islands/) で構築する際に、 **「コンポーネント間で状態を共有したい」** という問題に直面することがあります。
+
+ReactやVueなどのUIフレームワークは、他のコンポーネントなどの [「コンテキスト」プロバイダー](https://react.dev/learn/passing-data-deeply-with-context) の利用を奨励する場合があります。   
+ただし、AstroやMarkdown内で [コンポーネントを部分的にハイドレート](/ja/guides/framework-components/#インタラクティブなコンポーネント) する場合、これらのコンテキスト ラッパーを使用することはできません。
+
+Astroは、クライアント側の共有ストレージに別のソリューション ([Nano Stores](https://github.com/nanostores/nanostores)) を推奨しています。
+
+<RecipeLinks slugs={["ja/recipes/sharing-state"]} />
+
+## なぜNano Storesなのか？
+
+[Nano Stores](https://github.com/nanostores/nanostores)ライブラリを使用すると、任意のコンポーネントが相互作用できるストアを作成できます。   
+Nano Storesを推奨する理由は次の通りです。
+- **軽量です。** Nano Storesは必要最低限のJS（1KB未満）を依存関係なしで提供します。
+- **フレームワークに依存しません。** これにより、フレームワーク間での状態共有がシームレスになります！Astroは柔軟性を重視しているため、どのフレームワークを使用しても同様の開発者体験を提供するソリューションが好きです。
+
+それでも、あなたが探せる選択肢はいくつもあります。   
+選択肢はには次のものが含まれます。
+- [Svelteの組み込みストア](https://svelte.dev/tutorial/writable-stores)
+- コンポーネントコンテキスト外での[Solidシグナル](https://www.solidjs.com/docs/latest)
+- [VueのリアクティビティAPI](https://vuejs.org/guide/scaling-up/state-management.html#simple-state-management-with-reactivity-api)
+- コンポーネント間での[カスタムブラウザイベントの送信](https://developer.mozilla.org/en-US/docs/Web/Events/Creating_and_triggering_events)
+
+:::note[FAQ]
+
+<details>
+<summary>**🙋 Nano Storesを`.astro`ファイルや他のサーバーサイドコンポーネントで使用できますか？**</summary>
+Nano Storesは `<script>` タグ内で [`.astro` コンポーネント間での状態を共有する](/ja/recipes/sharing-state/) ことができます。   
+ただし、次の制限があるため、サーバーサイドコンポーネントのフロントマターでNano Storesを使用することは推奨されません。
+
+- `.astro`ファイルや [ノンハイドレート コンポーネント](/ja/guides/framework-components/#インタラクティブなコンポーネント) からストアに書き込んでも、 [クライアントサイドコンポーネント](/ja/reference/directives-reference/#クライアントディレクティブ) が受け取る値には影響しません。
+- Nano Storeをクライアントサイドコンポーネントに "prop"として渡すことはできません。
+- Astroコンポーネントは再レンダリングされないため、`.astro`ファイルからの変更を保存するようにサブスクライブすることはできません。
+
+これらの制限を理解した上で使用する必要がある場合は、Nano Storesを試してみてください！   
+Nano Storesは **クライアント** の変更に反応するように構築されているので注意してください。
+
+</details>
+
+<details>
+<summary>**🙋 SvelteストアはNano Storesとどう比較されますか？**</summary>
+
+**Nano Storesと[Svelteストア](https://svelte.dev/tutorial/writable-stores)は非常に似ています！** 実際、[Nano StoresはSvelteストアで使用されるのと同じ`$`ショートカット](https://github.com/nanostores/nanostores#svelte)をサブスクリプションに使用できます。
+
+サードパーティのライブラリを避けたい場合は、[Svelteストア](https://svelte.dev/tutorial/writable-stores)が優れたアイランド間のコミュニケーションツールになります。
+
+それでも、次のような理由であれば、Nano Storesの方がいいかもしれません。   
+a) ["objects"](https://github.com/nanostores/nanostores#maps)や[async state](https://github.com/nanostores/nanostores#lazy-stores)用のアドオンが好きな場合   
+b) Svelteと他のUIフレームワーク（PreactやVueなど）間で通信したい場合
+
+</details>
+
+<details>
+<summary>**🙋 SolidシグナルはNano Storesとどう比較されますか？**</summary>
+
+Solidを使用した際に、[signals](https://www.solidjs.com/docs/latest#createsignal)や[stores](https://www.solidjs.com/docs/latest#createstore)をコンポーネントの外に移動してみたことがあるかもしれません。
+これは、Solidのアイランド間で状態を共有する素晴らしい方法です！
+共有ファイルからシグナルをエクスポートしてみましょう。
+
+```js
+// sharedStore.js
+import { createSignal } from 'solid-js';
+
+export const sharedCount = createSignal(0);
+```
+...そして、この`sharedCount`をインポートするすべてのコンポーネントは同じ状態を共有します。
+この方法はうまく機能しますが、次のような理由であれば、Nano Storesの方がいいかもしれません。   
+a) ["objects"](https://github.com/nanostores/nanostores#maps)や[async state](https://github.com/nanostores/nanostores#lazy-stores)用のアドオンが好きな場合   
+b) Solidと他のUIフレームワーク（PreactやVueなど）間で通信したい場合
+</details>
+:::
+
+## Nano Storesのインストール
+
+使い始めるには、Nano Storesと、お好みのUIフレームワーク用のヘルパーパッケージをインストールしてください。
+
+<UIFrameworkTabs>
+  <Fragment slot="preact">
+  ```shell
+  npm install nanostores @nanostores/preact
+  ```
+  </Fragment>
+  <Fragment slot="react">
+  ```shell
+  npm install nanostores @nanostores/react
+  ```
+  </Fragment>
+  <Fragment slot="solid">
+  ```shell
+  npm install nanostores @nanostores/solid
+  ```
+  </Fragment>
+  <Fragment slot="svelte">
+  ```shell
+  npm install nanostores
+  ```
+  :::note
+  ヘルパーパッケージはありません！Nano Storesは標準的なSvelteストアと同様に使用できます。
+  :::
+  </Fragment>
+  <Fragment slot="vue">
+  ```shell
+  npm install nanostores @nanostores/vue
+  ```
+  </Fragment>
+  <Fragment slot="lit">
+  ```shell
+  npm install nanostores @nanostores/lit
+  ```
+  </Fragment>
+</UIFrameworkTabs>
+
+ここから[Nano Stores使用ガイド](https://github.com/nanostores/nanostores#guide)に遷移するか、以下の例に従って進めてください！
+
+## 使用例 - eコマースのカートフライアウト
+
+簡単なeコマースインターフェースを構築するとしましょう。   
+以下の3つのインタラクティブな要素があります。
+- 「カートに追加」送信フォーム
+- カートに追加されたアイテムを表示するフライアウトメニュー
+- カートフライアウトメニューのトグル
+
+<LoopingVideo sources={[{ src: '/videos/stores-example.mp4', type: 'video/mp4' }]} />
+
+_[**完成した例**](https://github.com/withastro/astro/tree/main/examples/with-nanostores) をあなたのマシンやオンラインでStackBlitzを介して試してみてください。_
+
+あなたの基本的なAstroファイルは次のようになります。
+
+```astro
+---
+// src/pages/index.astro
+import CartFlyoutToggle from '../components/CartFlyoutToggle';
+import CartFlyout from '../components/CartFlyout';
+import AddToCartForm from '../components/AddToCartForm';
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>...</head>
+<body>
+  <header>
+    <nav>
+      <a href="/">Astro storefront</a>
+      <CartFlyoutToggle client:load />
+    </nav>
+  </header>
+  <main>
+    <AddToCartForm client:load>
+    <!-- ... -->
+    </AddToCartForm>
+  </main>
+  <CartFlyout client:load />
+</body>
+</html>
+```
+
+### 「atoms」を使用する
+
+`CartFlyoutToggle`がクリックされたときに`CartFlyout`を開くようにしましょう。
+
+まず、新しいJSまたはTSファイルを作成して、ストアを含めます。   
+このために["atoms"](https://github.com/nanostores/nanostores#atoms)を使用します。
+
+```js
+// src/cartStore.js
+import { atom } from 'nanostores';
+
+export const isCartOpen = atom(false);
+```
+
+次に、このストアを読み取りや書き込みが必要なファイルにインポートします。   
+まず、`CartFlyoutToggle`を接続します。
+
+<UIFrameworkTabs>
+<Fragment slot="preact">
+```jsx
+// src/components/CartFlyoutToggle.jsx
+import { useStore } from '@nanostores/preact';
+import { isCartOpen } from '../cartStore';
+
+export default function CartButton() {
+  // `useStore`フックでストアの値を読み取る
+  const $isCartOpen = useStore(isCartOpen);
+  // インポートされたストアに`.set`を使って書き込む
+  return (
+    <button onClick={() => isCartOpen.set(!$isCartOpen)}>Cart</button>
+  )
+}
+```
+</Fragment>
+<Fragment slot="react">
+```jsx
+// src/components/CartFlyoutToggle.jsx
+import { useStore } from '@nanostores/react';
+import { isCartOpen } from '../cartStore';
+
+export default function CartButton() {
+  // `useStore`フックでストアの値を読み取る
+  const $isCartOpen = useStore(isCartOpen);
+  // インポートされたストアに`.set`を使って書き込む
+  return (
+    <button onClick={() => isCartOpen.set(!$isCartOpen)}>Cart</button>
+  )
+}
+```
+</Fragment>
+<Fragment slot="solid">
+```jsx
+// src/components/CartFlyoutToggle.jsx
+import { useStore } from '@nanostores/solid';
+import { isCartOpen } from '../cartStore';
+
+export default function CartButton() {
+  // `useStore`フックでストアの値を読み取る
+  const $isCartOpen = useStore(isCartOpen);
+  // インポートされたストアに`.set`を使って書き込む
+  return (
+    <button onClick={() => isCartOpen.set(!$isCartOpen())}>Cart</button>
+  )
+}
+```
+</Fragment>
+<Fragment slot="svelte">
+```svelte
+<!--src/components/CartFlyoutToggle.svelte-->
+<script>
+  import { isCartOpen } from '../cartStore';
+</script>
+
+<!-- "$"を使用してストアの値を読み取る -->
+<button on:click={() => isCartOpen.set(!$isCartOpen)}>Cart</button>
+```
+</Fragment>
+<Fragment slot="vue">
+```vue
+<!--src/components/CartFlyoutToggle.vue-->
+<template>
+  <!-- インポートされたストアに`.set`を使って書き込む -->
+  <button @click="isCartOpen.set(!$isCartOpen)">Cart</button>
+</template>
+
+<script setup>
+  import { isCartOpen } from '../cartStore';
+  import { useStore } from '@nanostores/vue';
+
+  // `useStore`フックでストアの値を読み取る
+  const $isCartOpen = useStore(isCartOpen);
+</script>
+```
+</Fragment>
+<Fragment slot="lit">
+```ts
+// src/components/CartFlyoutToggle.ts
+import { LitElement, html } from 'lit';
+import { isCartOpen } from '../cartStore';
+
+export class CartFlyoutToggle extends LitElement {
+  handleClick() {
+    isCartOpen.set(!isCartOpen.get());
+  }
+
+  render() {
+    return html`
+      <button @click="${this.handleClick}">Cart</button>
+    `;
+  }
+}
+
+customElements.define('cart-flyout-toggle', CartFlyoutToggle);
+```
+</Fragment>
+</UIFrameworkTabs>
+
+次に、`CartFlyout`コンポーネントから`isCartOpen`を読み取ります。
+
+<UIFrameworkTabs>
+<Fragment slot="preact">
+```jsx
+// src/components/CartFlyout.jsx
+import { useStore } from '@nanostores/preact';
+import { isCartOpen } from '../cartStore';
+
+export default function CartFlyout() {
+  const $isCartOpen = useStore(isCartOpen);
+
+  return $isCartOpen ? <aside>...</aside> : null;
+}
+```
+</Fragment>
+<Fragment slot="react">
+```jsx
+// src/components/CartFlyout.jsx
+import { useStore } from '@nanostores/react';
+import { isCartOpen } from '../cartStore';
+
+export default function CartFlyout() {
+  const $isCartOpen = useStore(isCartOpen);
+
+  return $isCartOpen ? <aside>...</aside> : null;
+}
+```
+</Fragment>
+<Fragment slot="solid">
+```jsx
+// src/components/CartFlyout.jsx
+import { useStore } from '@nanostores/solid';
+import { isCartOpen } from '../cartStore';
+
+export default function CartFlyout() {
+  const $isCartOpen = useStore(isCartOpen);
+
+  return $isCartOpen() ? <aside>...</aside> : null;
+}
+```
+</Fragment>
+<Fragment slot="svelte">
+```svelte
+<!--src/components/CartFlyout.svelte-->
+<script>
+  import { isCartOpen } from '../cartStore';
+</script>
+
+{#if $isCartOpen}
+<aside>...</aside>
+{/if}
+```
+</Fragment>
+<Fragment slot="vue">
+```vue
+<!--src/components/CartFlyout.vue-->
+<template>
+  <aside v-if="$isCartOpen">...</aside>
+</template>
+
+<script setup>
+  import { isCartOpen } from '../cartStore';
+  import { useStore } from '@nanostores/vue';
+
+  const $isCartOpen = useStore(isCartOpen);
+</script>
+```
+</Fragment>
+<Fragment slot="lit">
+```ts
+// src/components/CartFlyout.ts
+import { isCartOpen } from '../cartStore';
+import { LitElement, html } from 'lit';
+import { StoreController } from '@nanostores/lit';
+
+export class CartFlyout extends LitElement {
+  private cartOpen = new StoreController(this, isCartOpen);
+
+  render() {
+    return this.cartOpen.value ? html`<aside>...</aside>` : null;
+  }
+}
+
+customElements.define('cart-flyout', CartFlyout);
+
+```
+</Fragment>
+</UIFrameworkTabs>
+
+### 「maps」を使用する
+
+:::tip
+**[maps](https://github.com/nanostores/nanostores#maps)は、定期的にオブジェクトに書き込みを行う場合に最適な選択肢です！**   
+標準の`atom`が提供する`get()`および`set()`ヘルパーに加えて、個々のオブジェクトキーを効率的に更新するための`.setKey()`関数も使用できます。
+:::
+
+では、カート内のアイテムを追跡してみましょう。   
+重複を避け、「数量」を追跡するために、アイテムのIDをキーとしてカートをオブジェクトとして保存できます。   
+これに[maps](https://github.com/nanostores/nanostores#maps)を使用します。
+
+先ほどの`cartStore.js`に`cartItem`ストアを追加しましょう。   
+型を定義したい場合はTypeScriptファイルに切り替えることもできます。
+
+<JavascriptFlavorTabs>
+  <Fragment slot="js">
+  ```js
+  // src/cartStore.js
+  import { atom, map } from 'nanostores';
+
+  export const isCartOpen = atom(false);
+
+  /**
+   * @typedef {Object} CartItem
+   * @property {string} id
+   * @property {string} name
+   * @property {string} imageSrc
+   * @property {number} quantity
+   */
+
+  /** @type {import('nanostores').MapStore<Record<string, CartItem>>} */
+  export const cartItems = map({});
+  ```
+  </Fragment>
+  <Fragment slot="ts">
+  ```ts
+  // src/cartStore.ts
+  import { atom, map } from 'nanostores';
+
+  export const isCartOpen = atom(false);
+
+  export type CartItem = {
+    id: string;
+    name: string;
+    imageSrc: string;
+    quantity: number;
+  }
+
+  export const cartItems = map<Record<string, CartItem>>({});
+  ```
+  </Fragment>
+</JavascriptFlavorTabs>
+
+次に、コンポーネントが使用できるように`addCartItem`ヘルパーをエクスポートします。
+- **アイテムがカートに存在しない場合**、数量1でアイテムを追加します。
+- **アイテムがカートに存在する場合**、数量を1つ増やします。
+
+<JavascriptFlavorTabs>
+  <Fragment slot="js">
+  ```js
+  // src/cartStore.js
+  ...
+  export function addCartItem({ id, name, imageSrc }) {
+    const existingEntry = cartItems.get()[id];
+    if (existingEntry) {
+      cartItems.setKey(id, {
+        ...existingEntry,
+        quantity: existingEntry.quantity + 1,
+      })
+    } else {
+      cartItems.setKey(
+        id,
+        { id, name, imageSrc, quantity: 1 }
+      );
+    }
+  }
+  ```
+  </Fragment>
+  <Fragment slot="ts">
+  ```ts
+  // src/cartStore.ts
+  ...
+  type ItemDisplayInfo = Pick<CartItem, 'id' | 'name' | 'imageSrc'>;
+  export function addCartItem({ id, name, imageSrc }: ItemDisplayInfo) {
+    const existingEntry = cartItems.get()[id];
+    if (existingEntry) {
+      cartItems.setKey(id, {
+        ...existingEntry,
+        quantity: existingEntry.quantity + 1,
+      });
+    } else {
+      cartItems.setKey(
+        id,
+        { id, name, imageSrc, quantity: 1 }
+      );
+    }
+  }
+  ```
+  </Fragment>
+</JavascriptFlavorTabs>
+
+:::note
+<details>
+
+<summary>**🙋 なぜここで `useStore` ヘルパーではなく `.get()` を使用するのですか？**</summary>
+
+ここで、React / Preact / Solid / Vue の例で使用した `useStore` ヘルパーの代わりに、`cartItems.get()` を呼び出していることに気づいたかと思います。   
+これは、**useStoreはコンポーネントの再レンダリングをトリガーするためのもの**だからです。言い換えると、ストアの値がUIにレンダリングされるときはいつでも `useStore` を使用する必要があります。   
+**イベント**（この場合は `addToCart`）がトリガーされたときに値を読み込んでおり、その値をレンダリングしようとしているわけではないので、ここでは `useStore` は必要ありません。
+</details>
+:::
+
+ストアを設置すれば、フォームが送信されるたびに `AddToCartForm` 内でこの関数を呼び出すことができます。   
+また、カートのフライアウトメニューを開き、カートの全体の概要を表示できるようにします。
+
+<UIFrameworkTabs>
+<Fragment slot="preact">
+```jsx
+// src/components/AddToCartForm.jsx
+import { addCartItem, isCartOpen } from '../cartStore';
+
+export default function AddToCartForm({ children }) {
+  // わかりやすくするためにアイテム情報をハードコーディングします！
+  const hardcodedItemInfo = {
+    id: 'astronaut-figurine',
+    name: 'Astronaut Figurine',
+    imageSrc: '/images/astronaut-figurine.png',
+  }
+
+  function addToCart(e) {
+    e.preventDefault();
+    isCartOpen.set(true);
+    addCartItem(hardcodedItemInfo);
+  }
+
+  return (
+    <form onSubmit={addToCart}>
+      {children}
+    </form>
+  )
+}
+```
+</Fragment>
+<Fragment slot="react">
+```jsx
+// src/components/AddToCartForm.jsx
+import { addCartItem, isCartOpen } from '../cartStore';
+
+export default function AddToCartForm({ children }) {
+  // わかりやすくするためにアイテム情報をハードコーディングします！
+  const hardcodedItemInfo = {
+    id: 'astronaut-figurine',
+    name: 'Astronaut Figurine',
+    imageSrc: '/images/astronaut-figurine.png',
+  }
+
+  function addToCart(e) {
+    e.preventDefault();
+    isCartOpen.set(true);
+    addCartItem(hardcodedItemInfo);
+  }
+
+  return (
+    <form onSubmit={addToCart}>
+      {children}
+    </form>
+  )
+}
+```
+</Fragment>
+<Fragment slot="solid">
+```jsx
+// src/components/AddToCartForm.jsx
+import { addCartItem, isCartOpen } from '../cartStore';
+
+export default function AddToCartForm({ children }) {
+  // わかりやすくするためにアイテム情報をハードコーディングします！
+  const hardcodedItemInfo = {
+    id: 'astronaut-figurine',
+    name: 'Astronaut Figurine',
+    imageSrc: '/images/astronaut-figurine.png',
+  }
+
+  function addToCart(e) {
+    e.preventDefault();
+    isCartOpen.set(true);
+    addCartItem(hardcodedItemInfo);
+  }
+
+  return (
+    <form onSubmit={addToCart}>
+      {children}
+    </form>
+  )
+}
+```
+</Fragment>
+<Fragment slot="svelte">
+```svelte
+<!--src/components/AddToCartForm.svelte-->
+<form on:submit|preventDefault={addToCart}>
+  <slot></slot>
+</form>
+
+<script>
+  import { addCartItem, isCartOpen } from '../cartStore';
+
+  // わかりやすくするためにアイテム情報をハードコーディングします！
+  const hardcodedItemInfo = {
+    id: 'astronaut-figurine',
+    name: 'Astronaut Figurine',
+    imageSrc: '/images/astronaut-figurine.png',
+  }
+
+  function addToCart() {
+    isCartOpen.set(true);
+    addCartItem(hardcodedItemInfo);
+  }
+</script>
+```
+</Fragment>
+<Fragment slot="vue">
+```vue
+<!--src/components/AddToCartForm.vue-->
+<template>
+  <form @submit="addToCart">
+    <slot></slot>
+  </form>
+</template>
+
+<script setup>
+  import { addCartItem, isCartOpen } from '../cartStore';
+
+  // わかりやすくするためにアイテム情報をハードコーディングします！
+  const hardcodedItemInfo = {
+    id: 'astronaut-figurine',
+    name: 'Astronaut Figurine',
+    imageSrc: '/images/astronaut-figurine.png',
+  }
+
+  function addToCart(e) {
+    e.preventDefault();
+    isCartOpen.set(true);
+    addCartItem(hardcodedItemInfo);
+  }
+</script>
+```
+</Fragment>
+<Fragment slot="lit">
+```ts
+// src/components/AddToCartForm.ts
+import { LitElement, html } from 'lit';
+import { isCartOpen, addCartItem } from '../cartStore';
+
+export class AddToCartForm extends LitElement {
+  static get properties() {
+    return {
+      item: { type: Object },
+    };
+  }
+
+  constructor() {
+    super();
+    this.item = {};
+  }
+
+  addToCart(e) {
+    e.preventDefault();
+    isCartOpen.set(true);
+    addCartItem(this.item);
+  }
+
+  render() {
+    return html`
+      <form @submit="${this.addToCart}">
+
+
+        <slot></slot>
+      </form>
+    `;
+  }
+}
+customElements.define('add-to-cart-form', AddToCartForm);
+```
+</Fragment>
+</UIFrameworkTabs>
+
+最後に、カートアイテムを `CartFlyout` 内にレンダリングします。
+
+<UIFrameworkTabs>
+<Fragment slot="preact">
+```jsx
+// src/components/CartFlyout.jsx
+import { useStore } from '@nanostores/preact';
+import { isCartOpen, cartItems } from '../cartStore';
+
+export default function CartFlyout() {
+  const $isCartOpen = useStore(isCartOpen);
+  const $cartItems = useStore(cartItems);
+
+  return $isCartOpen ? (
+    <aside>
+      {Object.values($cartItems).length ? (
+        <ul>
+          {Object.values($cartItems).map(cartItem => (
+            <li>
+              <img src={cartItem.imageSrc} alt={cartItem.name} />
+              <h3>{cartItem.name}</h3>
+              <p>Quantity: {cartItem.quantity}</p>
+            </li>
+          ))}
+        </ul>
+      ) : <p>Your cart is empty!</p>}
+    </aside>
+  ) : null;
+}
+```
+</Fragment>
+<Fragment slot="react">
+```jsx
+// src/components/CartFlyout.jsx
+import { useStore } from '@nanostores/react';
+import { isCartOpen, cartItems } from '../cartStore';
+
+export default function CartFlyout() {
+  const $isCartOpen = useStore(isCartOpen);
+  const $cartItems = useStore(cartItems);
+
+  return $isCartOpen ? (
+    <aside>
+      {Object.values($cartItems).length ? (
+        <ul>
+          {Object.values($cartItems).map(cartItem => (
+            <li>
+              <img src={cartItem.imageSrc} alt={cartItem.name} />
+              <h3>{cartItem.name}</h3>
+              <p>Quantity: {cartItem.quantity}</p>
+            </li>
+          ))}
+        </ul>
+      ) : <p>Your cart is empty!</p>}
+    </aside>
+  ) : null;
+}
+```
+</Fragment>
+<Fragment slot="solid">
+```jsx
+// src/components/CartFlyout.jsx
+import { useStore } from '@nanostores/solid';
+import { isCartOpen, cartItems } from '../cartStore';
+
+export default function CartFlyout() {
+  const $isCartOpen = useStore(isCartOpen);
+  const $cartItems = useStore(cartItems);
+
+  return $isCartOpen() ? (
+    <aside>
+      {Object.values($cartItems()).length ? (
+        <ul>
+          {Object.values($cartItems()).map(cartItem => (
+            <li>
+              <img src={cartItem.imageSrc} alt={cartItem.name} />
+              <h3>{cartItem.name}</h3>
+              <p>Quantity: {cartItem.quantity}</p>
+            </li>
+          ))}
+        </ul>
+      ) : <p>Your cart is empty!</p>}
+    </aside>
+  ) : null;
+}
+```
+</Fragment>
+<Fragment slot="svelte">
+```svelte
+<!--src/components/CartFlyout.svelte-->
+<script>
+  import { isCartOpen, cartItems } from '../cartStore';
+</script>
+
+{#if $isCartOpen}
+  {#if Object.values($cartItems).length}
+    <aside>
+      {#each Object.values($cartItems) as cartItem}
+      <li>
+        <img src={cartItem.imageSrc} alt={cartItem.name} />
+        <h3>{cartItem.name}</h3>
+        <p>Quantity: {cartItem.quantity}</p>
+      </li>
+      {/each}
+    </aside>
+  {:else}
+    <p>Your cart is empty!</p>
+  {/if}
+{/if}
+```
+</Fragment>
+<Fragment slot="vue">
+```vue
+<!--src/components/CartFlyout.vue-->
+<template>
+  <aside v-if="$isCartOpen">
+    <ul v-if="Object.values($cartItems).length">
+      <li v-for="cartItem in Object.values($cartItems)" v-bind:key="cartItem.name">
+        <img :src=cartItem.imageSrc :alt=cartItem.name />
+        <h3>{{cartItem.name}}</h3>
+        <p>Quantity: {{cartItem.quantity}}</p>
+      </li>
+    </ul>
+    <p v-else>Your cart is empty!</p>
+  </aside>
+</template>
+
+<script setup>
+  import { cartItems, isCartOpen } from '../cartStore';
+  import { useStore } from '@nanostores/vue';
+
+  const $isCartOpen = useStore(isCartOpen);
+  const $cartItems = useStore(cartItems);
+</script>
+```
+</Fragment>
+<Fragment slot="lit">
+```ts
+// src/components/CartFlyout.ts
+import { LitElement, html } from 'lit';
+import { isCartOpen, cartItems } from '../cartStore';
+import { StoreController } from '@nanostores/lit';
+
+export class CartFlyoutLit extends LitElement {
+  private cartOpen = new StoreController(this, isCartOpen);
+  private getCartItems = new StoreController(this, cartItems);
+
+  renderCartItem(cartItem) {
+    return html`
+      <li>
+        <img src="${cartItem.imageSrc}" alt="${cartItem.name}" />
+        <h3>${cartItem.name}</h3>
+        <p>Quantity: ${cartItem.quantity}</p>
+      </li>
+    `;
+  }
+
+  render() {
+    return this.cartOpen.value
+      ? html`
+          <aside>
+            ${
+              Object.values(this.getCartItems.value).length
+                ? html`
+                  <ul>
+                    ${Object.values(this.getCartItems.value).map((cartItem) =>
+                      this.renderCartItem(cartItem)
+                    )}
+                  </ul>
+                `
+                : html`<p>Your cart is empty!</p>`
+            }
+          </aside>
+        `
+      : null;
+  }
+}
+
+customElements.define('cart-flyout', CartFlyoutLit);
+```
+</Fragment>
+</UIFrameworkTabs>
+
+これで、銀河系で最小のJSバンドルを持つ完全にインタラクティブなeコマースのサンプルが完成しました 🚀
+
+[**完成した例を試してみてください**](https://github.com/withastro/astro/tree/main/examples/with-nanostores) 自分のマシンまたはStackBlitzでオンラインで試してみましょう！
