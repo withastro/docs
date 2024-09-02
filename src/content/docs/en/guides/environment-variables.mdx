@@ -7,15 +7,143 @@ i18nReady: true
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import ReadMore from '~/components/ReadMore.astro';
 
-Environment variables allow you to configure your app with different values in different environments. But this often comes with a great deal of complexity as some variables are needed on the client, and some only on the server. Some environment variables are secrets, like API keys. Some environment variables are required, while others are optional. You may even have environment variables defined in your shell, a `.env` file, or in build configuration.
+Astro gives you access to [Vite's built-in environment variable support](#vites-built-in-support) and includes some [default environment variables for your project](#default-environment-variables) that allow you to access configuration values for your current project (e.g. `site`, `base`), whether your project is running in development or production, and more.
 
-Astro provides a [built-in `astro:env` module](/en/reference/configuration-reference/#env) to provide more control and structure over your environment variables, managed with a schema in your Astro configuration.
+Astro also provides [a virtual `astro:env` module](/en/reference/configuration-reference/#env) to use and organize your environment variables with type safety. It is available for use inside the Astro context (e.g. Astro components, routes and endpoints; UI framework components; middleware), and [managed with a schema in your Astro configuration](#astroenv).
 
-Additionally, Astro also gives you access to [Vite's built-in  environment variable support](#vites-built-in-support).
+## Vite's built-in support
 
-## `astro:env`
+Astro uses Vite's built-in support for environment variables, which are statically replaced at build time, and lets you [use any of its methods](https://vitejs.dev/guide/env-and-mode.html) to work with them.
 
-The `astro:env` API lets you configure a type-safe schema for your environment variables, and indicate whether they should be available on the server or the client. Import and use your defined variables from the appropriate `/client` or `/server` module:
+Note that while _all_ environment variables are available in server-side code, only environment variables prefixed with `PUBLIC_` are available in client-side code for security purposes.
+
+```ini title=".env"
+SECRET_PASSWORD=password123
+PUBLIC_ANYBODY=there
+```
+
+In this example, `PUBLIC_ANYBODY` (accessible via `import.meta.env.PUBLIC_ANYBODY`) will be available in server or client code, while `SECRET_PASSWORD` (accessible via `import.meta.env.SECRET_PASSWORD`) will be server-side only.
+
+:::caution
+`.env` files are not loaded inside [configuration files](/en/guides/configuring-astro/#environment-variables). 
+:::
+
+## Default environment variables
+
+Astro includes a few environment variables out-of-the-box:
+
+- `import.meta.env.MODE`: The mode your site is running in. This is `development` when running `astro dev` and `production` when running `astro build`.
+- `import.meta.env.PROD`: `true` if your site is running in production; `false` otherwise.
+- `import.meta.env.DEV`: `true` if your site is running in development; `false` otherwise. Always the opposite of `import.meta.env.PROD`.
+- `import.meta.env.BASE_URL`: The base url your site is being served from. This is determined by the [`base` config option](/en/reference/configuration-reference/#base).
+- `import.meta.env.SITE`: This is set to [the `site` option](/en/reference/configuration-reference/#site) specified in your project's `astro.config`.
+- `import.meta.env.ASSETS_PREFIX`: The prefix for Astro-generated asset links if the [`build.assetsPrefix` config option](/en/reference/configuration-reference/#buildassetsprefix) is set. This can be used to create asset links not handled by Astro.
+
+Use them like any other environment variable.
+
+```ts utils.ts
+const isProd = import.meta.env.PROD;
+const isDev = import.meta.env.DEV;
+```
+
+## Setting environment variables
+
+### `.env` files
+Environment variables can be loaded from `.env` files in your project directory.
+
+You can also attach a mode (either `production` or `development`) to the filename, like `.env.production` or `.env.development`, which makes the environment variables only take effect in that mode.
+
+Just create a `.env` file in the project directory and add some variables to it.
+
+```ini title=".env"
+# This will only be available when run on the server!
+DB_PASSWORD="foobar"
+# This will be available everywhere!
+PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
+```
+
+For more on `.env` files, [see the Vite documentation](https://vitejs.dev/guide/env-and-mode.html#env-files).
+
+### Using the CLI
+You can also add environment variables as you run your project:
+
+<PackageManagerTabs>
+ <Fragment slot="yarn">
+    ```shell
+    PUBLIC_POKEAPI=https://pokeapi.co/api/v2 yarn run dev
+    ```
+ </Fragment>
+ <Fragment slot="npm">
+    ```shell
+    PUBLIC_POKEAPI=https://pokeapi.co/api/v2 npm run dev
+    ```
+ </Fragment>
+ <Fragment slot="pnpm">
+    ```shell
+    PUBLIC_POKEAPI=https://pokeapi.co/api/v2 pnpm run dev
+    ```
+ </Fragment>
+</PackageManagerTabs>
+
+## Getting environment variables
+
+Environment variables in Astro are accessed with import.meta.env, using the [import.meta feature added in ES2020](https://tc39.es/ecma262/2020/#prod-ImportMeta), instead of process.env.
+
+For example, use `import.meta.env.PUBLIC_POKEAPI` to get the `PUBLIC_POKEAPI` environment variable.
+
+```js /(?<!//.*)import.meta.env.[A-Z_]+/
+// When import.meta.env.SSR === true
+const data = await db(import.meta.env.DB_PASSWORD);
+
+// When import.meta.env.SSR === false
+const data = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
+```
+
+When using SSR, environment variables can be accessed at runtime based on the SSR adapter being used. With most adapters you can access environment variables with `process.env`, but some adapters work differently. For the Deno adapter, you will use `Deno.env.get()`. See how to [access the Cloudflare runtime](/en/guides/integrations-guide/cloudflare/#cloudflare-runtime) to handle environment variables when using the Cloudflare adapter. Astro will first check the server environment for variables, and if they don't exist, Astro will look for them in .env files.
+
+## Type safe environment variables
+
+The `astro:env` API lets you configure a type-safe schema for [environment variables you have set](#setting-environment-variables). This allows you to indicate whether they should be available on the server or the client, and define their data type and additional properties.
+
+### Basic Usage
+
+#### Define your schema
+
+To configure a schema, add the `env.schema` option to your Astro config:
+
+```js title="astro.config.mjs" ins={4-8}
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  env: {
+    schema: {
+      // ...
+    }
+  }
+})
+```
+
+You can then [register variables as a string, number, or boolean](#data-types) using the `envField` helper. Define the [kind of environment variable](#variable-types) by providing a `context` (client or server) and `access` (secret or public) for each variable, and pass any additional properties such as `optional` or `default` in an object:
+
+```js title="astro.config.mjs" ins="envField"
+import { defineConfig, envField } from 'astro/config'
+
+export default defineConfig({
+  env: {
+    schema: {
+      API_URL: envField.string({ context: "client", access: "public", optional: true }),
+      PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+      API_SECRET: envField.string({ context: "server", access: "secret" }),
+    }
+  }
+})
+```
+
+Types will be generated for you when running `astro dev` or `astro build`, but you can run `astro sync` to generate types only.
+
+#### Use variables from your schema
+
+Import and use your defined variables from the appropriate `/client` or `/server` module:
 
 ```astro
 ---
@@ -38,62 +166,7 @@ fetch(`${API_URL}/ping`)
 </script>
 ```
 
-To define the data type and properties of your environment variables, declare a schema in your Astro config in `experimental.env.schema`. The `envField` helper allows you define your variable as a string, number, or boolean and pass properties in an object:
-
-```js title="astro.config.mjs" ins={4-10}
-import { defineConfig, envField } from 'astro/config'
-
-export default defineConfig({
-  env: {
-    schema: {
-      API_URL: envField.string({ context: "client", access: "public", optional: true }),
-      PORT: envField.number({ context: "server", access: "public", default: 4321 }),
-      API_SECRET: envField.string({ context: "server", access: "secret" }),
-    }
-  }
-})
-```
-
-<ReadMore>See how to [make an adapter compatible with `astro:env`](/en/reference/adapter-reference/#envgetsecret).</ReadMore>
-
-### Define your schema
-
-To configure a schema, add the `env.schema` option to your Astro config:
-
-```js title="astro.config.mjs" ins={4-8}
-import { defineConfig } from 'astro/config'
-
-export default defineConfig({
-  env: {
-    schema: {
-      // ...
-    }
-  }
-})
-```
-
-You can then register variables using the `envField` helper:
-
-```js title="astro.config.mjs" ins={3,9-11}
-import {
-   defineConfig,
-   envField
-} from 'astro/config'
-
-export default defineConfig({
-  env: {
-    schema: {
-      API_URL: envField.string({ context: "client", access: "public", optional: true }),
-      PORT: envField.number({ context: "server", access: "public", default: 4321 }),
-      API_SECRET: envField.string({ context: "server", access: "secret" }),
-    }
-  }
-})
-```
-
-Types will be generated for you when running `astro dev` or `astro build`, but you can run `astro sync` to generate types only.
-
-### Variables types
+### Variable types
 
 There are three kinds of environment variables, determined by the combination of `context` (client or server) and `access` (secret or public) settings defined in your schema:
 
@@ -115,9 +188,13 @@ There are three kinds of environment variables, determined by the combination of
    import { API_SECRET } from "astro:env/server"
    ```
 
-   Worth nothing that by default, secrets are only validated at runtime. To validate secrets on start, check [validateSecrets](#validatesecrets-option).
+   By default, secrets are only validated at runtime. You can enable validating private variables on start by [configuring `validateSecrets: true`](/en/reference/configuration-reference/#envvalidatesecrets).
 
-**Note:** Secret client variables are not supported because there is no safe way to send this data to the client. Therefore, it is not possible to configure both `context: "client"` and `access: "secret"` in your schema.
+:::note
+**Secret client variables** are not supported because there is no safe way to send this data to the client. Therefore, it is not possible to configure both `context: "client"` and `access: "secret"` in your schema.
+:::
+
+### Data types
 
 There are currently four data types supported: strings, numbers, booleans and enums:
 
@@ -152,47 +229,8 @@ envField.enum({
 
 Some of them come with more optional validation rules, check out the [source](https://github.com/withastro/astro/blob/main/packages/astro/src/env/schema.ts#L3-L45) to learn more.
 
-### `getSecret()`
 
-The `getSecret()` helper function can be used for several things:
-
-1. **Get the raw value of a secret defined in your schema**: if you define a variable `FOO` of type boolean, using `getSecret()` will allow you to get the value as string:
-
-   ```js
-   import {
-      FOO, // boolean
-      getSecret
-   } from 'astro:env/server'
-
-   getSecret('FOO') // string | undefined
-   ```
-
-2. **Retrieve secrets not specified in your schema**: that can be useful if you need to get a secret depending on dynamic data, eg. a database or API.
-
-   :::note
-   If you need to use environment variables, we recommend you use `getSecret()` instead of `process.env` (or equivalent) because its implementation is provided by your adapter: It means you won't need to update all your calls if you switch adapters. It defaults to `process.env` in dev and build.
-   :::
-
-### validateSecrets option
-
-By default, only public variables are validated on the server when starting the dev server or a build, and private variables are validated at runtime only. If enabled, private variables will also be checked on start. This is useful in some continuous integration (CI) pipelines to make sure all your secrets are correctly set before deploying.
-
-```js title="astro.config.mjs" ins={9}
-import { defineConfig, envField } from "astro/config"
-
-export default defineConfig({
-  experimental: {
-    env: {
-      schema: {
-        // ...
-      },
-      validateSecrets: true
-    }
-  }
-})
-```
-
-### Limitations
+### Limitations - how much of this can be covered just in intro vs separate heading?
 
 1. `astro:env` is a virtual module which means it can only be used inside Astro context. For example, you can use it in:
 
@@ -226,97 +264,7 @@ export default defineConfig({
    })
    ```
 
-## Vite's built-in support
-
-Astro uses Vite's built-in support for environment variables, which are statically replaced at build time, and lets you [use any of its methods](https://vitejs.dev/guide/env-and-mode.html) to work with them.
-
-Note that while _all_ environment variables are available in server-side code, only environment variables prefixed with `PUBLIC_` are available in client-side code for security purposes.
-
-```ini title=".env"
-SECRET_PASSWORD=password123
-PUBLIC_ANYBODY=there
-```
-
-In this example, `PUBLIC_ANYBODY` (accessible via `import.meta.env.PUBLIC_ANYBODY`) will be available in server or client code, while `SECRET_PASSWORD` (accessible via `import.meta.env.SECRET_PASSWORD`) will be server-side only.
-
-:::caution
-`.env` files are not loaded inside [configuration files](/en/guides/configuring-astro/#environment-variables). 
-:::
-
-### Default environment variables
-
-Astro includes a few environment variables out-of-the-box:
-
-- `import.meta.env.MODE`: The mode your site is running in. This is `development` when running `astro dev` and `production` when running `astro build`.
-- `import.meta.env.PROD`: `true` if your site is running in production; `false` otherwise.
-- `import.meta.env.DEV`: `true` if your site is running in development; `false` otherwise. Always the opposite of `import.meta.env.PROD`.
-- `import.meta.env.BASE_URL`: The base url your site is being served from. This is determined by the [`base` config option](/en/reference/configuration-reference/#base).
-- `import.meta.env.SITE`: This is set to [the `site` option](/en/reference/configuration-reference/#site) specified in your project's `astro.config`.
-- `import.meta.env.ASSETS_PREFIX`: The prefix for Astro-generated asset links if the [`build.assetsPrefix` config option](/en/reference/configuration-reference/#buildassetsprefix) is set. This can be used to create asset links not handled by Astro.
-
-Use them like any other environment variable.
-
-```ts utils.ts
-const isProd = import.meta.env.PROD;
-const isDev = import.meta.env.DEV;
-```
-
-### Setting environment variables
-
-#### `.env` files
-Environment variables can be loaded from `.env` files in your project directory.
-
-You can also attach a mode (either `production` or `development`) to the filename, like `.env.production` or `.env.development`, which makes the environment variables only take effect in that mode.
-
-Just create a `.env` file in the project directory and add some variables to it.
-
-```ini title=".env"
-# This will only be available when run on the server!
-DB_PASSWORD="foobar"
-# This will be available everywhere!
-PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
-```
-
-For more on `.env` files, [see the Vite documentation](https://vitejs.dev/guide/env-and-mode.html#env-files).
-
-#### Using the CLI
-You can also add environment variables as you run your project:
-
-<PackageManagerTabs>
- <Fragment slot="yarn">
-    ```shell
-    PUBLIC_POKEAPI=https://pokeapi.co/api/v2 yarn run dev
-    ```
- </Fragment>
- <Fragment slot="npm">
-    ```shell
-    PUBLIC_POKEAPI=https://pokeapi.co/api/v2 npm run dev
-    ```
- </Fragment>
- <Fragment slot="pnpm">
-    ```shell
-    PUBLIC_POKEAPI=https://pokeapi.co/api/v2 pnpm run dev
-    ```
- </Fragment>
-</PackageManagerTabs>
-
-### Getting environment variables
-
-Environment variables in Astro are accessed with import.meta.env, using the [import.meta feature added in ES2020](https://tc39.es/ecma262/2020/#prod-ImportMeta), instead of process.env.
-
-For example, use `import.meta.env.PUBLIC_POKEAPI` to get the `PUBLIC_POKEAPI` environment variable.
-
-```js /(?<!//.*)import.meta.env.[A-Z_]+/
-// When import.meta.env.SSR === true
-const data = await db(import.meta.env.DB_PASSWORD);
-
-// When import.meta.env.SSR === false
-const data = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
-```
-
-When using SSR, environment variables can be accessed at runtime based on the SSR adapter being used. With most adapters you can access environment variables with `process.env`, but some adapters work differently. For the Deno adapter, you will use `Deno.env.get()`. See how to [access the Cloudflare runtime](/en/guides/integrations-guide/cloudflare/#cloudflare-runtime) to handle environment variables when using the Cloudflare adapter. Astro will first check the server environment for variables, and if they don't exist, Astro will look for them in .env files.
-
-### IntelliSense for TypeScript
+## IntelliSense for TypeScript
 
 By default, Astro provides type definition for `import.meta.env` in `astro/client.d.ts`. 
 
@@ -335,3 +283,30 @@ interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 ```
+
+## API reference needed for this ?
+
+### `getSecret()`
+
+The `getSecret()` helper function can be used for several things:
+
+1. **Get the raw value of a secret defined in your schema**: if you define a variable `FOO` of type boolean, using `getSecret()` will allow you to get the value as string:
+
+   ```js
+   import {
+      FOO, // boolean
+      getSecret
+   } from 'astro:env/server'
+
+   getSecret('FOO') // string | undefined
+   ```
+
+2. **Retrieve secrets not specified in your schema**: that can be useful if you need to get a secret depending on dynamic data, eg. a database or API.
+
+   :::note
+   If you need to use environment variables, we recommend you use `getSecret()` instead of `process.env` (or equivalent) because its implementation is provided by your adapter: It means you won't need to update all your calls if you switch adapters. It defaults to `process.env` in dev and build.
+   :::
+
+### Where to put re: adapters ?
+
+<ReadMore>See how to [make an adapter compatible with `astro:env`](/en/reference/adapter-reference/#envgetsecret).</ReadMore>
