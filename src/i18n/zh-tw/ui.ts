@@ -19,15 +19,15 @@ export default UIDictionary({
 	'rightSidebar.a11yTitle': '目錄',
 	'rightSidebar.onThisPage': '本頁內容',
 	'rightSidebar.overview': '概要',
-	'rightSidebar.community': 'Community',
+	'rightSidebar.community': '社群',
 	'rightSidebar.joinDiscord': '加入我們的 Discord',
 	'rightSidebar.readBlog': '瀏覽我們的部落格',
 	'rightSidebar.openCollective': '我們的 Open Collective',
-	'rightSidebar.contribute': 'Contribute',
+	'rightSidebar.contribute': '貢獻',
 	'rightSidebar.contributorGuides': '貢獻者指南',
 	'rightSidebar.editPage': '編輯此頁',
 	'rightSidebar.translatePage': '翻譯此頁',
-	'rightSidebar.github': 'GitHub 上的 Astro 文檔',
+	'rightSidebar.github': 'GitHub 上的 Astro 文件',
 	// Footer
 	'footer.privacyPolicy': '隱私權政策',
 	// `<ThemeToggleButton>` acessibility labels
@@ -37,7 +37,7 @@ export default UIDictionary({
 	'articleNav.nextPage': '下一頁',
 	'articleNav.prevPage': '返回',
 	// Used in `<Since>`: Added in: v0.24.0 [NEW]
-	'since.addedIn': '添加於：',
+	'since.addedIn': '新增於：',
 	'since.new': '新',
 	'since.beta': 'Beta',
 	// Installation Guide
@@ -51,6 +51,8 @@ export default UIDictionary({
 	'deploy.staticTag': '靜態',
 	// CMS Guides vocabulary
 	'cms.navTitle': '更多 CMS 指南',
+	// Media Guides voccabulary
+	'media.navTitle': '更多 DAM 指南',
 	// Migration Guides vocabulary
 	'migration.navTitle': '更多遷移指南',
 	// Recipes vocabulary
@@ -86,7 +88,7 @@ export default UIDictionary({
 	// Multiple Choice component
 	'multipleChoice.defaultCorrect': '正確！',
 	'multipleChoice.defaultIncorrect': '再試一次！',
-	'multipleChoice.submitLabel': '提交',
+	'multipleChoice.submitLabel': '送出',
 	// Tutorial Progress
 	'progress.todo': '待辦',
 	'progress.done': '完成',
@@ -96,10 +98,10 @@ export default UIDictionary({
 	// Tutorial
 	'tutorial.getReady': '準備好……',
 	// Feedback Fish widget
-	'feedback.button': '給予我們反饋',
-	'feedback.a11yLabel': '反饋表單',
+	'feedback.button': '給予我們回饋',
+	'feedback.a11yLabel': '回饋表單',
 	'feedback.formTitle': '你有哪些想法？',
-	'feedback.categoryGroupLabel': '選擇反饋類型',
+	'feedback.categoryGroupLabel': '選擇回饋類型',
 	'feedback.issue': '問題',
 	'feedback.createIssue': '建立 GitHub Issue',
 	'feedback.createIssue.description': '向我們的團隊發出問題警報的最快方法。',
@@ -109,9 +111,9 @@ export default UIDictionary({
 	'feedback.other': '其它',
 	'feedback.messageA11yLabel': '留言',
 	'feedback.placeholder': '你想讓我們知道甚麼？',
-	'feedback.submit': '提交反饋',
-	'feedback.close': '關閉反饋表單',
-	'feedback.success': '謝謝！我們收到了你的反饋。',
+	'feedback.submit': '送出回饋',
+	'feedback.close': '關閉回饋表單',
+	'feedback.success': '謝謝！我們收到了你的回饋。',
 	// Code snippet vocabulary
 	'expressiveCode.terminalWindowFallbackTitle': '終端機視窗',
 	'expressiveCode.copyButtonTooltip': '複製到剪貼簿',
@@ -126,6 +128,8 @@ export default UIDictionary({
 	'stub.description.cms': '知道更多在 Astro 使用此 CMS 的資訊？',
 	'stub.description.backend': '知道更多在 Astro 使用此後端服務的資訊？',
 	// Starlight banner
-	'starlight.title': '想要創建自己的文檔嗎？',
+	'starlight.title': '想要建立自己的文件嗎？',
 	'starlight.description': '獲取此模版即可開始。',
+	// `<StudioHeading>` component
+	'studioHeading.label': 'Studio 功能',
 });
