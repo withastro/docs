@@ -9,7 +9,7 @@ import ReadMore from '~/components/ReadMore.astro';
 
 Astro gives you access to [Vite's built-in environment variable support](#vites-built-in-support) and includes some [default environment variables for your project](#default-environment-variables) that allow you to access configuration values for your current project (e.g. `site`, `base`), whether your project is running in development or production, and more.
 
-Astro also provides [a virtual `astro:env` module](/en/reference/configuration-reference/#env) to use and organize your environment variables with type safety. It is available for use inside the Astro context (e.g. Astro components, routes and endpoints; UI framework components; middleware), and [managed with a schema in your Astro configuration](#astroenv).
+Astro also provides [a virtual `astro:env` module](/en/reference/configuration-reference/#env) to use and organize your environment variables with type safety. It is available for use inside the Astro context (e.g. Astro components, routes and endpoints; UI framework components; middleware), and [managed with a schema in your Astro configuration](#define-your-schema).
 
 ## Vite's built-in support
 
@@ -27,6 +27,26 @@ In this example, `PUBLIC_ANYBODY` (accessible via `import.meta.env.PUBLIC_ANYBOD
 :::caution
 `.env` files are not loaded inside [configuration files](/en/guides/configuring-astro/#environment-variables). 
 :::
+
+### IntelliSense for TypeScript
+
+By default, Astro provides type definition for `import.meta.env` in `astro/client.d.ts`. 
+
+While you can define more custom env variables in `.env.[mode]` files, you may want to get TypeScript IntelliSense for user-defined env variables which are prefixed with `PUBLIC_`.
+
+To achieve this, you can create an `env.d.ts` in `src/` and configure `ImportMetaEnv` like this:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly DB_PASSWORD: string;
+  readonly PUBLIC_POKEAPI: string;
+  // more env variables...
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
 
 ## Default environment variables
 
@@ -104,6 +124,8 @@ When using SSR, environment variables can be accessed at runtime based on the SS
 ## Type safe environment variables
 
 The `astro:env` API lets you configure a type-safe schema for [environment variables you have set](#setting-environment-variables). This allows you to indicate whether they should be available on the server or the client, and define their data type and additional properties.
+
+<ReadMore>Developing an adapter? See how to [make an adapter compatible with `astro:env`](/en/reference/adapter-reference/#envgetsecret).</ReadMore>
 
 ### Basic Usage
 
@@ -229,8 +251,22 @@ envField.enum({
 
 Some of them come with more optional validation rules, check out the [source](https://github.com/withastro/astro/blob/main/packages/astro/src/env/schema.ts#L3-L45) to learn more.
 
+### Retrieving secrets dynamically
 
-### Limitations - how much of this can be covered just in intro vs separate heading?
+Despite defining your schema, you may want to retrieve the raw value of a given secret or to retrieve secrets not defined in your schema. In this case, you can use `getSecret()` exported from `astro:env/server`:
+
+```js
+import {
+   FOO, // boolean
+   getSecret
+} from 'astro:env/server'
+
+getSecret('FOO') // string | undefined
+```
+
+<ReadMore>Learn more in [the API reference](/en/reference/api-reference/#getsecret).</ReadMore>
+
+### Limitations
 
 1. `astro:env` is a virtual module which means it can only be used inside Astro context. For example, you can use it in:
 
@@ -263,50 +299,3 @@ Some of them come with more optional validation rules, check out the [source](ht
       return next()
    })
    ```
-
-## IntelliSense for TypeScript
-
-By default, Astro provides type definition for `import.meta.env` in `astro/client.d.ts`. 
-
-While you can define more custom env variables in `.env.[mode]` files, you may want to get TypeScript IntelliSense for user-defined env variables which are prefixed with `PUBLIC_`.
-
-To achieve this, you can create an `env.d.ts` in `src/` and configure `ImportMetaEnv` like this:
-
-```ts title="src/env.d.ts"
-interface ImportMetaEnv {
-  readonly DB_PASSWORD: string;
-  readonly PUBLIC_POKEAPI: string;
-  // more env variables...
-}
-
-interface ImportMeta {
-  readonly env: ImportMetaEnv;
-}
-```
-
-## API reference needed for this ?
-
-### `getSecret()`
-
-The `getSecret()` helper function can be used for several things:
-
-1. **Get the raw value of a secret defined in your schema**: if you define a variable `FOO` of type boolean, using `getSecret()` will allow you to get the value as string:
-
-   ```js
-   import {
-      FOO, // boolean
-      getSecret
-   } from 'astro:env/server'
-
-   getSecret('FOO') // string | undefined
-   ```
-
-2. **Retrieve secrets not specified in your schema**: that can be useful if you need to get a secret depending on dynamic data, eg. a database or API.
-
-   :::note
-   If you need to use environment variables, we recommend you use `getSecret()` instead of `process.env` (or equivalent) because its implementation is provided by your adapter: It means you won't need to update all your calls if you switch adapters. It defaults to `process.env` in dev and build.
-   :::
-
-### Where to put re: adapters ?
-
-<ReadMore>See how to [make an adapter compatible with `astro:env`](/en/reference/adapter-reference/#envgetsecret).</ReadMore>
