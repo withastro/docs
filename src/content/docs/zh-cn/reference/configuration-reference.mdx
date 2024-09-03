@@ -1201,7 +1201,7 @@ export default defineConfig({
 
 当 `i18n.routing.fallback: "rewrite"` 配置时，Astro 将创建页面，将回退页面的内容重写到原始请求的 URL 上。
 
-使用以下配置，如果你有 `src/pages/en/about.astro` 但不是 `src/pages/fr/about.astro`，`astro build` 命令将生成 `dist/fr/about.html` 与 `dist/en/index.html` 页面相同的内容。
+使用以下配置，如果你有 `src/pages/en/about.astro` 但不是 `src/pages/fr/about.astro`，`astro build` 命令将生成 `dist/fr/about.html` 与 `dist/en/about.html` 页面相同的内容。
 你的网站访问者将在 `https://example.com/fr/about/` 看到页面的英文版本  ，而不会被重定向。
 
 ```js
@@ -1279,106 +1279,6 @@ Astro 提供了实验性标志，以便用户提前使用新功能。这些标�
   },
 }
 ```
-
-### experimental.actions
-
-<p>
-
-**类型：** `boolean`<br />
-**默认值：** `false`<br />
-<Since v="4.8.0" />
-</p>
-
-Actions 可以帮助你编写可从任何地方调用的类型安全的后端函数。[使用 `output` 属性](/zh-cn/basics/rendering-modes/#按需渲染) 启用服务端渲染并在 `experimental` 对象中添加 `actions` 标志：
-
-```js
-{
-  output: 'hybrid', // 或 'server'
-  experimental: {
-    actions: true,
-  },
-}
-```
-
-在 `src/actions/index.ts` 中声明所有的 action。这个文件是全局的 action 处理函数。
-
-使用 `astro:actions` 模块中的 `defineAction()` 工具定义一个 action。Action 接受 `handler` 属性来定义你的服务端请求处理函数。如果你的 action 接受参数，使用 `input` 属性通过 Zod 对参数进行校验。
-
-此示例定义了两个 action：`like` 和 `comment`。`like` 接受一个包含 `postId` 字符串的 JSON 对象，而 `comment` 接受包含 `postId`、`author` 和 `body` 字符串的 [FormData](https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest_API/Using_FormData_Objects)。每个 `handler` 更新你的数据库并返回一个类型安全的响应。
-
-```ts
-// src/actions/index.ts
-import { defineAction, z } from "astro:actions";
-
-export const server = {
-  like: defineAction({
-    input: z.object({ postId: z.string() }),
-    handler: async ({ postId }) => {
-      // 更新数据库中的点赞
-
-      return likes;
-    },
-  }),
-  comment: defineAction({
-		 accept: 'form',
-    input: z.object({
-      postId: z.string(),
-      author: z.string(),
-      body: z.string(),
-    }),
-    handler: async ({ postId }) => {
-      // 在数据库中插入评论
-
-      return comment;
-    },
-  }),
-};
-```
-
-然后，使用来自 `astro:actions` 的 `actions` 对象从你的客户端组件调用一个 action。当使用 JSON 时，你可以传递一个类型安全的对象，或者当在你的 action 定义中使用 `accept: 'form'` 时，传递一个 [FormData](https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest_API/Using_FormData_Objects) 对象：
-
-这个例子展示了如何从 React 组件中调用`like` 和 `comment` action：
-
-```tsx "actions"
-// src/components/blog.tsx
-import { actions } from "astro:actions";
-import { useState } from "react";
-
-export function Like({ postId }: { postId: string }) {
-  const [likes, setLikes] = useState(0);
-  return (
-    <button
-      onClick={async () => {
-        const newLikes = await actions.like({ postId });
-        setLikes(newLikes);
-      }}
-    >
-      {likes} likes
-    </button>
-  );
-}
-
-export function Comment({ postId }: { postId: string }) {
-  return (
-    <form
-      onSubmit={async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target as HTMLFormElement);
-        const result = await actions.blog.comment(formData);
-        // 处理结果
-      }}
-    >
-      <input type="hidden" name="postId" value={postId} />
-      <label htmlFor="author">Author</label>
-      <input id="author" type="text" name="author" />
-      <textarea rows={10} name="body"></textarea>
-      <button type="submit">Post</button>
-    </form>
-  );
-}
-```
-
-要全面了解并对这个实验性 API 提供反馈，请查看 [Actions RFC](https://github.com/withastro/roadmap/blob/actions/proposals/0046-actions.md)。
 
 ### experimental.contentCollectionCache
 
