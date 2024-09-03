@@ -773,6 +773,44 @@ const orders = Array.from(Astro.locals.orders.entries());
 
 从当前 URL 使用你的 `locales` 配置中指定的语法计算出的语言环境。如果 URL 不包含 `/[locale]/` 前缀，则该值将默认为 `i18n.defaultLocale`。
 
+
+### `Astro.getActionResult()`
+
+<p>
+**类型：**`(action: TAction) => ActionReturnType<TAction> | undefined`<br />
+<Since v="4.15.0" />
+</p>
+
+`Astro.getActionResult()` 是一个返回 [Action](/zh-cn/guides/actions/) 提交结果的函数。这个函数接受一个 Action 函数作为参数（例如 `actions.logout`），当接收到提交时返回一个 `data` 或 `error` 对象。否则，它将返回 `undefined`。
+
+
+```astro title="src/pages/index.astro"
+---
+import { actions } from 'astro:actions';
+const result = Astro.getActionResult(actions.logout);
+---
+<form action={actions.logout}>
+  <button type="submit">退出登录</button>
+</form>
+{result?.error && <p>退出登录失败。请再试一次。</p>}
+```
+
+### `Astro.callAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`Astro.callAction()` 是一个直接从你的 Astro 组件中调用 Action 处理程序的函数。这个函数接受一个 Action 函数作为第一个参数（例如 `actions.logout`），以及该 Action 接收的任何输入作为第二个参数。它返回 Action 的结果作为 Promise。
+
+
+```astro title="src/pages/index.astro"
+---
+import { actions } from 'astro:actions';
+const { data, error } = await Astro.callAction(actions.logout, { userId: '123' });
+---
+```
+
 ## 端点上下文
 
 [端点函数](/zh-cn/guides/endpoints/)接收一个上下文对象作为第一个参数。它与许多 `Astro` 全局属性相似。
@@ -1038,6 +1076,28 @@ export function get({ locals }: APIContext) {
 ```
 
 另见：[`Astro.locals`](#astrolocals)
+
+### `context.getActionResult()`
+
+<p>
+
+**类型：** `(action: TAction) => ActionReturnType<TAction> | undefined`<br />
+<Since v="4.15.0" />
+</p>
+
+`context.getActionResult()` 是一个函数，用于从你的 Astro 组件中返回 [Action](/zh-cn/guides/actions/) 提交结果。这个函数接受一个 Action 函数作为参数（例如 `actions.logout`），当接收到提交时返回一个 `data` 或 `error` 对象。否则，它将返回 `undefined`。
+
+另见：[`Astro.getActionResult()`](#astrogetactionresult)
+
+### `context.callAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`context.callAction()` 是一个直接从你的 Astro 组件中调用 Action 处理程序的函数。这个函数接受一个 Action 函数作为第一个参数（例如 `actions.logout`），以及该 Action 接收的任何输入作为第二个参数。它返回 Action 的结果作为 Promise。
+
+另见：[`Astro.callAction()`](#astrocallaction)
 
 ## `getStaticPaths()`
 
@@ -2074,6 +2134,122 @@ export const onRequest = defineMiddleware(async (context, next) => {
   return new Response("Not found", { status: 404 });
 })
 ```
+
+## Actions (`astro:actions`)
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+Action 帮助你构建一个类型安全的后端，你可以从客户端代码和 HTML 表单中调用它。所有用于定义和调用 Action 的工具函数都由 `astro:actions` 模块暴露。有关示例和使用说明，请参阅 [Actions 指南](/zh-cn/guides/actions/)。
+
+### `defineAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`defineAction()` 函数接受一个 [`handler()`](#handler-属性) 函数，其中包含在调用 Action 时要运行的服务器逻辑，以及一个可选的 [`input`](#input-验证器) 属性，用于在运行时验证输入参数。
+
+```ts
+export const server = {
+    getGreeting: defineAction({
+    input: z.object({
+      name: z.string(),
+    }),
+    handler: async (input, context) => {
+      return `Hello, ${input.name}!`
+    }
+  })
+}
+```
+
+#### `handler()` 属性
+
+<p>
+
+**类型：**`(input, context) => any`
+</p>
+
+`defineAction()` 函数接受一个 `handler()` 函数，其中包含在调用 Action 时要运行的服务器逻辑。此函数可以返回数据，这些数据将自动序列化并发送给调用者。
+
+返回值被 [devalue 库](https://github.com/Rich-Harris/devalue) 解析。这支持 JSON 值，以及 `Date()`, `Map()`, `Set()`, 或 `URL()` 的实例。
+
+#### `input` 验证器
+
+<p>
+
+**类型：**`ZodObject | undefined`
+</p>
+
+可选的 `input` 属性接受一个 Zod 验证器，用于在运行时验证处理程序的输入。如果 action 验证失败，将返回 [`BAD_REQUEST` 错误](#actionerror) 并跳过 `handler`。
+
+如果使用 `accept: 'form'`，则 `input` 必须使用 `z.object()` 验证器。
+
+此对象中支持的扩展函数包括 `.refine()`, `.transform()`, 和 `.pipe()`。表单数据字段支持以下验证器：
+
+- 使用 `z.number()` 验证类型为 `number` 的输入
+- 使用 `z.boolean()` 验证类型为 `checkbox` 的输入
+- 使用 `z.instanceof(File)` 验证类型为 `file` 的输入
+- 使用 `z.array(/* validator */)` 验证相同 `name` 的多个输入
+- 使用 `z.string()` 验证所有其他输入
+
+### `isInputError()`
+
+<p>
+
+**类型：**<code>(error?: unknown | <a href="#actionerror">ActionError</a>) => boolean</code><br/>
+<Since v="4.15.0" />
+</p>
+
+`isInputError()` 函数常用于检查 `ActionError` 是否是输入验证错误。当 `input` 验证器是 `z.object()` 时，输入错误包括一个 `fields` 对象，其中错误消息按名称分组。
+
+<ReadMore> 
+更多关于使用 `isInputError()` 的信息，请参见 [表单输入错误指南](/zh-cn/guides/actions/#displaying-form-input-errors)。
+</ReadMore>
+
+### `ActionError`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`ActionError` 构造函数常用于在 `handler()` 函数中抛出错误。它接受一个 `code` 属性，描述发生的错误（例如：`"UNAUTHORIZED"`），以及一个可选的 `message` 属性，提供进一步的细节。
+
+#### `code`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`code` 属性接受所有 HTTP 状态码的人类可读版本。以下是支持的 code：
+
+- `BAD_REQUEST` (400): 客户端发送了无效的输入。当 action `input` 验证器验证失败时会抛出此错误。
+- `UNAUTHORIZED` (401): 客户端缺乏有效的身份验证凭据。
+- `FORBIDDEN` (403): 客户端无权访问资源。
+- `NOT_FOUND` (404): 服务器找不到请求的资源。
+- `METHOD_NOT_SUPPORTED` (405): 服务器不支持请求的方法。
+- `TIMEOUT` (408): 服务器在处理请求时超时。
+- `CONFLICT` (409): 服务器无法更新资源，因为存在冲突。
+- `PRECONDITION_FAILED` (412): 服务器不满足请求的前提条件。
+- `PAYLOAD_TOO_LARGE` (413): 服务器无法处理请求，因为负载过大。
+- `UNSUPPORTED_MEDIA_TYPE` (415): 服务器不支持请求的媒体类型。注意：Actions 已经检查了 JSON 和表单请求的 [`Content-Type` 标头](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Content-Type)，所以你可能不需要手动引发此代码。
+- `UNPROCESSABLE_CONTENT` (422): 服务器无法处理请求，因为存在语义错误。
+- `TOO_MANY_REQUESTS` (429): 服务器已超出指定的速率限制。
+- `CLIENT_CLOSED_REQUEST` (499): 客户端在服务器响应之前关闭了请求。
+- `INTERNAL_SERVER_ERROR` (500): 服务器意外失败。
+- `NOT_IMPLEMENTED` (501): 服务器不支持请求的功能。
+- `BAD_GATEWAY` (502): 服务器从上游服务器接收到无效响应。
+- `SERVICE_UNAVAILABLE` (503): 服务器暂时不可用。
+- `GATEWAY_TIMEOUT` (504): 服务器从上游服务器接收到超时。
+
+#### `message`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`message` 属性接受一个字符串。（例如："用户必须登录。"）
 
 ## 内置组件
 
