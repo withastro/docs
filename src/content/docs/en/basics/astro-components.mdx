@@ -6,11 +6,13 @@ i18nReady: true
 
 **Astro components** are the basic building blocks of any Astro project. They are HTML-only templating components with no client-side runtime. You can spot an Astro component by its file extension: `.astro`.
 
-Astro components are extremely flexible. Often, an Astro component will contain some **reusable UI on the page**, like a header or a profile card. At other times, an Astro component may contain a smaller snippet of HTML, like a collection of common `<meta>` tags that make SEO easy to work with. Astro components can even contain an entire page layout.
+Astro components are extremely flexible. An Astro component can be as small as a snippet of HTML, like a collection of common `<meta>` tags that make SEO easy to work with. Components can be reusable UI elements, like a header or a profile card. Astro components can even contain an entire page layout or, when located in the special `src/pages/` folder, be an entire page itself.
 
-The most important thing to know about Astro components is that they **don't render on the client**. They render to HTML either at build-time or on-demand using [server-side rendering (SSR)](/en/guides/server-side-rendering/). You can include JavaScript code inside of your component frontmatter, and all of it will be stripped from the final page sent to your users' browsers. The result is a faster site, with zero JavaScript footprint added by default.
+The most important thing to know about Astro components is that they **don't render on the client**. They render to HTML at build time by default. You can include JavaScript code inside of your component frontmatter which runs only to build your component. Then, all of it will be stripped from the final page sent to your users' browsers. The result is a faster site, with zero JavaScript footprint added by default.
 
-When your Astro component does need client-side interactivity, you can add [standard HTML `<script>` tags](/en/guides/client-side-scripts/) or [UI Framework components](/en/guides/framework-components/#hydrating-interactive-components).
+Within a page, you can defer the rendering of individual components by adding a [server directive](/en/reference/directives-reference/#server-directives). These "server islands" allow your page to wait for personalized or dynamic content rendered on demand, without delaying the entire page load.
+
+When your Astro component does need client-side interactivity, you can add [standard HTML `<script>` tags](/en/guides/client-side-scripts/) or [UI Framework components](/en/guides/framework-components/#hydrating-interactive-components) as "client islands".
 
 
 ## Component Structure
@@ -69,6 +71,7 @@ However, [Astro's component template syntax](/en/basics/astro-syntax/) also supp
 ---
 // Your component script here!
 import Banner from '../components/Banner.astro';
+import Avatar from '../components/Avatar.astro';
 import ReactPokemonComponent from '../components/ReactPokemonComponent.jsx';
 const myFavoritePokemon = [/* ... */];
 const { title } = Astro.props;
@@ -81,6 +84,11 @@ const { title } = Astro.props;
 
 <!-- Use props and other variables from the component script: -->
 <p>{title}</p>
+
+<!-- Delay component rendering and provide fallback loading content: -->
+<Avatar server:defer>
+  <svg slot="fallback" class="generic-avatar" transition:name="avatar">...</svg>
+</Avatar>
 
 <!-- Include other UI framework components with a `client:` directive to hydrate: -->
 <ReactPokemonComponent client:visible />
@@ -371,6 +379,78 @@ import HomeLayout from '../layouts/HomeLayout.astro';
 </HomeLayout>
 ```
 
+## Server island components
+
+Server islands allow you to prerender or server-render a page shell while allowing individual, dynamic, personalized "islands" of content within it to be rendered on-demand. This allows your visitors to see the most critical parts of your page sooner, and allows your main content to be more aggressively cached, providing faster performance.
+
+A server island component is a normal Astro component that is directed to delay rendering and display placeholder fallback content until its own content is ready. These components can do anything you normally would in an on-demand rendered page, such as fetch content, and access cookies.
+
+```astro title="src/components/Avatar.astro"
+---
+import { getUserAvatar } from '../sessions';
+
+const userSession = Astro.cookies.get('session');
+const avatarURL = await getUserAvatar(userSession);
+---
+
+<img alt="User avatar" src={avatarURL} />
+```
+
+### Creating a server island on a page
+
+Add [the `server:defer` directive](/en/reference/directives-reference/#server-directives) to any component imported and rendered on your page in order to turn it into its own island:
+
+```astro title="src/pages/index.astro" "server:defer"
+---
+import Avatar from '../components/Avatar.astro';
+---
+
+<Avatar server:defer />
+```
+
+The page will be rendered without the contents of the island, and the island component's contents will instead be fetched on the client.
+
+### Server island fallback content
+
+When using the `server:defer` attribute on a component to delay its rendering, you can "slot" in default loading content using the included named `"fallback"` slot.
+
+Your fallback content will be rendered along with the rest of the page initially on page load, and will be replaced with your component's own content when it is available.
+
+This fallback content can be things like:
+
+- A generic avatar instead of the user's own
+- Placeholder UI such as custom messages
+- Loading indicators such as spinners or progress bars
+
+To add fallback content, add `slot="fallback"` on a child (other components or HTML elements) passed to your server island component:
+
+```astro
+---
+import Avatar from '../components/Avatar.astro';
+import GenericAvatar from '../components/GenericAvatar.astro';
+---
+
+<Avatar server:defer>
+  <GenericAvatar slot="fallback" />
+</Avatar>
+```
+
+### Accessing the page URL
+
+In most cases you, can get information about the page rendering your server island by [passing props](#component-props) like in normal components. 
+
+However, server islands run in their own isolated context outside of the page request. `Astro.url` and `Astro.request.url` in a server island component both return a URL that looks like `/_server-islands/Avatar` instead of the current page's URL in the browser. Additionally, if you are prerendering the page you will not have access to information such as query parameters in order to pass as props.
+
+To access information from the page's URL, you can check the [Referer](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer) header, which will contain the address of the page that is loading the island in the browser:
+
+```astro
+---
+const referer = Astro.request.headers.get('Referer');
+const url = new URL(referer);
+
+const productId = url.searchParams.get('product');
+---
+```
 
 ## HTML Components
 
