@@ -232,7 +232,7 @@ const components = Object.values(await import.meta.glob('../components/*.astro',
 ))}
 ```
 
-#### Supported Values
+### Supported Values
 
 Vite's `import.meta.glob()` function only supports static string literals. It does not support dynamic variables and string interpolation.
 
@@ -253,6 +253,76 @@ const myFeaturedPost = posts.find(post => post.file.includes(pathToMyFeaturedPos
 </p>
 ```
 
+### Import type utilities
+
+#### Markdown files
+
+Markdown files loaded with `import.meta.glob()` return the following `MarkdownInstance` interface:
+
+```ts
+export interface MarkdownInstance<T extends Record<string, any>> {
+  /* Any data specified in this file's YAML frontmatter */
+	frontmatter: T;
+  /* The absolute file path of this file */
+	file: string;
+  /* The rendered path of this file */
+	url: string | undefined;
+  /* Astro Component that renders the contents of this file */
+	Content: AstroComponentFactory;
+  /** (Markdown only) Raw Markdown file content, excluding layout HTML and YAML frontmatter */
+	rawContent(): string;
+  /** (Markdown only) Markdown file compiled to HTML, excluding layout HTML */
+	compiledContent(): string;
+  /* Function that returns an array of the h1...h6 elements in this file */
+	getHeadings(): Promise<{ depth: number; slug: string; text: string }[]>;
+	default: AstroComponentFactory;
+}
+```
+
+You can optionally provide a type for the `frontmatter` variable using a TypeScript generic.
+
+```astro
+---
+interface Frontmatter {
+    title: string;
+    description?: string;
+}
+
+const posts = import.meta.glob<MarkdownInstance<Frontmatter>>('./posts/**/*.md');
+---
+
+<ul>
+  {posts.map(post => <li>{post.frontmatter.title}</li>)}
+</ul>
+```
+
+#### Astro files
+
+Astro files have the following interface:
+
+```ts
+export interface AstroInstance {
+  /* The file path of this file */
+  file: string;
+  /* The URL for this file (if it is in the pages directory) */
+	url: string | undefined;
+	default: AstroComponentFactory;
+}
+```
+
+#### Other files
+
+Other files may have various different interfaces, but `import.meta.glob()` accepts a TypeScript generic if you know exactly what an unrecognized file type contains.
+
+```ts
+---
+interface CustomDataFile {
+  default: Record<string, any>;
+}
+const data = await import.meta.glob<CustomDataFile>('../data/**/*.js');
+---
+```
+
 ### Glob Patterns
 
 A glob pattern is a file path that supports special wildcard characters. This is used to reference multiple files in your project at once.
@@ -270,7 +340,7 @@ Additionally, glob patterns must begin with one of the following:
  
 [Read more about the glob pattern syntax](https://github.com/mrmlnc/fast-glob#pattern-syntax).
 
-#### `import.meta.glob()` vs `getCollection()`
+### `import.meta.glob()` vs `getCollection()`
 
 [Content collections](/en/guides/content-collections/) provide a [`getCollection()` API](/en/reference/api-reference/#getcollection) for loading multiple collection entries instead of `import.meta.glob()`. If your files exist in a collection, use `getCollection()` to [query a collection](/en/guides/content-collections/#querying-collections) and return content entries.
 
