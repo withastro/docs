@@ -211,15 +211,16 @@ Visit the [MDX website](https://mdxjs.com/table-of-components/) for a full list 
 
 You can import Markdown and MDX files directly into your Astro files. This gives you access to their Markdown content, as well as other properties such as frontmatter values that can be used within Astro's JSX-like expressions.
 
-You can import one specific page with an `import` statement, or multiple pages with [`Astro.glob()`](/en/guides/imports/#astroglob).
+You can import one specific page with an `import` statement, or multiple pages with [`import.meta.glob()`](/en/guides/imports/#importmetaglob).
 
 ```astro title="src/pages/index.astro"
 ---
 // Import a single file
 import * as myPost from '../pages/post/my-post.md';
 
-// Import multiple files with Astro.glob
-const posts = await Astro.glob('../pages/post/*.md');
+// Import multiple files with import.meta.glob
+const matches = await import.meta.glob('../pages/post/*.md', { eager: true });
+const posts = Object.values(posts);
 ---
 ```
 
@@ -238,7 +239,7 @@ Here is my _great_ post!
 ---
 import * as greatPost from '../pages/post/great-post.md';
 
-const posts = await Astro.glob('../pages/post/*.md');
+const posts = Object.values(await import.meta.glob('../pages/post/*.md', { eager: true }));
 ---
 
 <p>{greatPost.frontmatter.title}</p>
@@ -272,30 +273,13 @@ import * as greatPost from '../pages/post/mdx-post.mdx';
 <p>{greatPost.description}</p>
 ```
 
-You can optionally provide a type for the `frontmatter` variable using a TypeScript generic:
-
-```astro title="src/pages/index.astro" ins={2-5} ins="<Frontmatter>"
----
-interface Frontmatter {
-  title: string;
-  description?: string;
-}
-const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
----
-
-<ul>
-  {posts.map(post => <li>{post.frontmatter.title}</li>)}
-  <!-- post.frontmatter.title will be `string`! -->
-</ul>
-```
-
 ### Exported Properties
 
 :::note[Using an Astro layout?]
 See the [properties exported to an Astro layout component](/en/basics/layouts/#markdown-layout-props) when using Astro's special [frontmatter layout](#frontmatter-layout).
 :::
 
-The following properties are available to a `.astro` component when using an `import` statement or `Astro.glob()`:
+The following properties are available to a `.astro` component when using an `import` statement or `import.meta.glob()`:
 
 - **`file`** - The absolute file path (e.g. `/home/user/projects/.../file.md`).
 - **`url`** - If it's a page, the URL of the page (e.g. `/en/guides/markdown-content`).
@@ -329,7 +313,8 @@ To access your Markdown content, pass the `<Content/>` component through the Ast
 ```astro title="src/pages/[slug].astro" {9-11} "Content" "Astro.props.post"
 ---
 export async function getStaticPaths() {
-  const posts = await Astro.glob('../posts/**/*.md')
+  const matches = await import.meta.glob('../posts/**/*.md', { eager: true })
+  const posts = Object.values(matches);
 
   return posts.map(post => ({
     params: {
@@ -359,12 +344,13 @@ For example, you can export a `title` field from an MDX page or component.
 export const title = 'My first MDX post'
 ```
 
-This `title` will be accessible from `import` and [Astro.glob()](/en/reference/api-reference/#astroglob) statements:
+This `title` will be accessible from `import` and [import.meta.glob()](/en/guides/imports/#importmetaglob) statements:
 
 ```astro
 ---
 // src/pages/index.astro
-const posts = await Astro.glob('./*.mdx');
+const matches = await import.meta.glob('./*.mdx', { eager: true });
+const posts = Object.values(posts);
 ---
 
 {posts.map(post => <p>{post.title}</p>)}
