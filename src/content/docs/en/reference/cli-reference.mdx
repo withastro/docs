@@ -480,9 +480,9 @@ interface AstroInlineConfig extends AstroUserConfig {
 
 A custom path to the Astro config file.
 
-If this value is undefined (default) or unset, Astro will search for an `astro.config.(js,mjs,ts)` file relative to the `root` and load the config file if found.
+If this value is undefined (default) or unset, Astro will search for an `astro.config.(js,mjs,ts,mts)` file relative to the `root` and load the config file if found.
 
-If a relative path is set, it will resolve based on the current working directory.
+If a relative path is set, it will resolve based on the `root` option.
 
 Set to `false` to disable loading any config files.
 
@@ -516,7 +516,7 @@ The logging level to filter messages logged by Astro.
 
 ### `dev()`
 
-**Type:** `(inlineConfig: AstroInlineConfig) => AstroDevServer`
+**Type:** `(inlineConfig: AstroInlineConfig) => Promise<DevServer>`
 
 Similar to [`astro dev`](#astro-dev), it runs Astro's development server.
 
@@ -531,9 +531,40 @@ const devServer = await dev({
 await devServer.stop();
 ```
 
+#### `DevServer`
+
+```ts
+export interface DevServer {
+	address: AddressInfo;
+	handle: (req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>) => void;
+	watcher: vite.FSWatcher;
+	stop(): Promise<void>;
+}
+```
+
+##### `address`
+
+The address the dev server is listening on.
+
+The semantics for this address are as defined by Node's [net.Server `address` method](https://nodejs.org/api/net.html#serveraddress).
+
+##### `handle`
+
+A handle for raw Node HTTP requests. It receives an [`http.IncomingMessage`](https://nodejs.org/api/http.html#class-httpincomingmessage) and an [`http.ServerResponse`](https://nodejs.org/api/http.html#class-httpserverresponse) in the same state as expected for a [listener to `request` events](https://nodejs.org/api/http.html#event-request).
+
+##### `watcher`
+
+The [Chokidar file watcher](https://github.com/paulmillr/chokidar#getting-started) as exposed by [Vite's development server](https://vitejs.dev/guide/api-javascript#vitedevserver).
+
+##### `stop`
+
+Stops the development server, closing all idle connection and stop listening to new connection.
+
+Returns a Promise that resolves once all pending requests have been fulfilled and all idle connections have been closed.
+
 ### `build()`
 
-**Type:** `(inlineConfig: AstroInlineConfig) => void`
+**Type:** `(inlineConfig: AstroInlineConfig) => Promise<void>`
 
 Similar to [`astro build`](#astro-build), it builds your site for deployment.
 
@@ -547,9 +578,12 @@ await build({
 
 ### `preview()`
 
-**Type:** `(inlineConfig: AstroInlineConfig) => AstroPreviewServer`
+**Type:** `(inlineConfig: AstroInlineConfig) => Promise<PreviewServer>`
 
-Similar to [`astro preview`](#astro-preview), it starts a local server to serve your static `dist/` directory.
+Similar to [`astro preview`](#astro-preview), it starts a local server to serve your build output.
+
+If no adapter is set in the configuration, the preview server will only serve the built static files.
+If an adapter is set in the configuration, the preview server is provided by the adapter. Adapters are not required to provide a preview server, so this feature may not be available depending on your adapter of choice.
 
 ```js
 import { preview } from "astro";
@@ -562,20 +596,57 @@ const previewServer = await preview({
 await previewServer.stop();
 ```
 
+#### `PreviewServer`
+
+```ts
+export interface PreviewServer {
+	host?: string;
+	port: number;
+	closed(): Promise<void>;
+	stop(): Promise<void>;
+}
+```
+
+##### `host`
+
+The host where the server is listening on.
+
+Adapters are allowed to leave this field unset, the semantics of that are implementation-specific.
+
+##### `port`
+
+The port where the server is listening on.
+
+##### `closed`
+
+Returns a Promise that will resolve once the server is closed and reject if an error happens on the server.
+
+##### `stop`
+
+Signals the preview server to close, stop accepting requests and drop idle connections.
+
+The returned promise resolves when that signal is sent.
+
+:::caution
+Contrary to the [`DevServer`](#devserver), awaiting the promise returned by this `stop()` method does not ensure that the server has completely closed. The adapter in use _may_ provide that guarantee, but it is not required. Instead the equivalent of calling `await devServer.stop()` is:
+```ts
+await previewServer.stop();
+await previewServer.closed();
+```
+:::
+
 ### `sync()`
 
-**Type:** `(inlineConfig: AstroInlineConfig) => number`
+**Type:** `(inlineConfig: AstroInlineConfig) => Promise<void>`
 
-Similar to [`astro sync`](#astro-sync), it generates TypeScript types for all Astro modules
+Similar to [`astro sync`](#astro-sync), it generates TypeScript types for all Astro modules.
 
 ```js
 import { sync } from "astro";
 
-const exitCode = await sync({
+await sync({
   root: "./my-project",
 });
-
-process.exit(exitCode)
 ```
 
 ## Astro Studio CLI
