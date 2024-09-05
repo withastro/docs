@@ -27,7 +27,7 @@ export default [
 
 	{ text: 'Core Concepts', header: true, type: 'learn', key: 'coreConcepts' },
 	{ text: 'Why Astro?', slug: 'concepts/why-astro', key: 'concepts/why-astro' },
-	{ text: 'Astro Islands', slug: 'concepts/islands', key: 'concepts/islands' },
+	{ text: 'Island Architecture', slug: 'concepts/islands', key: 'concepts/islands' },
 
 	{ text: 'Learn the Basics', header: true, type: 'learn', key: 'basics' },
 	{ text: 'Project Structure', slug: 'basics/project-structure', key: 'basics/project-structure' },
