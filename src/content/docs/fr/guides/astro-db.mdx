@@ -7,6 +7,7 @@ i18nReady: true
 import { FileTree } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
 import StudioHeading from '~/components/StudioHeading.astro';
 import { Steps } from '@astrojs/starlight/components';
 
@@ -38,7 +39,7 @@ Si vous préférez, vous pouvez [installer `@astrojs/db` manuellement](/fr/guide
 
 ## Définir votre base de données
 
-Astro DB est une solution complète pour configurer, développer et consulter vos données. Une base de données locale est créée chaque fois que vous lancez `astro dev`, utilisant LibSQL pour gérer vos données sans avoir besoin de Docker ou d'une connexion réseau.
+Astro DB est une solution complète pour configurer, développer et consulter vos données. Une base de données locale est créée chaque fois que vous lancez `astro dev`, utilisant libSQL pour gérer vos données sans avoir besoin de Docker ou d'une connexion réseau.
 
 L'installation de `@astrojs/db` avec la commande `astro add` créera un fichier `db/config.ts` dans votre projet où vous définirez les tables de votre base de données :
 
@@ -161,7 +162,7 @@ Vous pouvez interroger votre base de données depuis n'importe quelle [page Astr
 
 ### Drizzle ORM
 
-```
+```ts
 import { db } from 'astro:db';
 ```
 
@@ -653,6 +654,68 @@ Pour utiliser une connexion à distance, vous aurez besoin d'un jeton d'applicat
   Lorsque vous êtes prêt à déployer, consultez notre guide [Déployer avec une connexion Studio](#déployer-avec-une-connexion-studio).
 
 </ReadMore>
+
+## libSQL
+
+<p><Since pkg="@astrojs/db" v="0.14.0" /></p>
+
+Astro DB peut se connecter à n'importe quel serveur libSQL à partir de n'importe quelle plate-forme qui expose le protocole distant libSQL du serveur, ou peut être auto-hébergé.
+
+Pour connecter Astro DB à une base de données libSQL, définissez les variables d'environnement suivantes :
+- `ASTRO_DB_REMOTE_URL` : l'URL de connexion à votre serveur libSQL
+- `ASTRO_DB_APP_TOKEN` : le jeton d'authentification de votre serveur libSQL
+
+Les [commandes de déploiement et d'envoi des modifications](#déployer-avec-une-connexion-studio) vers votre base de données sont les mêmes lorsque vous utilisez libSQL que lors de la connexion à une base de données hébergée par Astro Studio. Cependant, vos deux variables d'environnement doivent être définies localement lors de l'exécution de commandes avec l'option `--remote` comme `astro build` et `astro db push`.
+
+Les détails de la connexion libSQL (par exemple, la clé de chiffrement, la réplication, l'intervalle de synchronisation) peuvent être configurés comme paramètres de requête dans l'URL de connexion à distance.
+
+Par exemple, pour qu'un fichier local fonctionne comme une réplique intégrée sur un serveur libSQL chiffré, vous pouvez définir les variables d'environnement suivantes :
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=file://copie-locale.db?encryptionKey=votre-clé-de-chiffrement&syncInterval=60&syncUrl=libsql%3A%2F%2Fvotre.serveur.io
+ASTRO_DB_APP_TOKEN=jeton-vers-votre-url-distante
+```
+
+### Schéma d'URL et hôte
+
+libSQL prend en charge HTTP et WebSockets comme protocole de transport pour un serveur distant. Il prend également en charge l'utilisation d'un fichier local ou d'une base de données en mémoire. Ceux-ci peuvent être configurés à l'aide des schémas d'URL suivants dans l'URL de connexion :
+
+- `memory:` utilisera une base de données en mémoire. L'hôte doit être vide dans ce cas.
+- `file:` utilisera un fichier local. L'hôte est le chemin d'accès au fichier (`file:chemin/vers/fichier.db`).
+- `libsql:` utilisera un serveur distant via le protocole préféré par la bibliothèque (cela peut être différent selon les versions). L'hôte est l'adresse du serveur (`libsql://votre.serveur.io`).
+- `http:` utilisera un serveur distant via HTTP. `https:` peut être utilisé pour activer une connexion sécurisée. L'hôte est le même que celui utilisé pour `libsql:`.
+- `ws:` utilisera un serveur distant via WebSockets. `wss:` peut être utilisé pour activer une connexion sécurisée. L'hôte est le même que celui utilisé pour `libsql:`.
+
+### `encryptionKey`
+
+libSQL prend en charge nativement les bases de données chiffrées. La transmission de ce paramètre de recherche activera le chiffrement à l'aide de la clé donnée :
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=file:chemin/vers/fichier.db?encryptionKey=votre-clé-de-chiffrement
+```
+
+### `syncUrl`
+
+Les répliques intégrées sont une fonctionnalité des clients libSQL qui permet une copie synchronisée complète de votre base de données sur un fichier local ou en mémoire pour des lectures ultra-rapides. Les écritures sont envoyées vers une base de données distante définie sur `syncUrl` et synchronisées avec la copie locale.
+
+Utilisez cette propriété pour transmettre une URL de connexion distincte afin de transformer la base de données en une réplique intégrée d'une autre base de données. Cela ne doit être utilisé qu'avec les schémas `file:` et `memory:`. Le paramètre doit être codé au format URL.
+
+Par exemple, pour avoir une réplique intégrée en mémoire d'une base de données sur `libsql://votre.serveur.io`, vous pouvez définir l'URL de connexion comme suit :
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fvotre.serveur.io
+```
+
+### `syncInterval`
+
+Intervalle en secondes entre les synchronisations des répliques intégrées. Par défaut, la synchronisation se fait uniquement au démarrage et après les écritures.
+
+Cette propriété n'est utilisée que lorsque `syncUrl` est également définie. Par exemple, pour configurer une réplique intégrée en mémoire afin qu'elle se synchronise toutes les minutes, définissez la variable d'environnement suivante :
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fvotre.serveur.io&syncInterval=60
+```
+
 
 ## Construire des intégrations Astro DB
 
