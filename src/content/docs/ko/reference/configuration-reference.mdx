@@ -1239,6 +1239,41 @@ export default defineConfig({
 });
 ```
 
+#### i18n.routing.fallbackType
+
+<p>
+
+**타입:** `"redirect" | "rewrite"`<br />
+**기본값:** `"redirect"`<br />
+<Since v="4.15.0" />
+</p>
+
+누락된 페이지 경로에 대해 404 페이지를 표시하지 않도록 [`i18n.fallback`](#i18nfallback)을 구성한 경우 이 옵션은 대체 페이지로 [리디렉션](/ko/guides/routing/#리디렉션)할 것인지 아니면 대체 페이지의 콘텐츠를 그대로 [리라이트](/ko/guides/routing/#리라이트)할 것인지 제어합니다.
+
+기본적으로 Astro의 i18n 라우팅은 대체 구성에 따라 방문자를 새 목적지로 리디렉션하는 페이지를 생성합니다. 브라우저가 새로고침되고 URL 표시줄에 목적지 주소가 표시됩니다.
+
+`i18n.routing.fallback: "rewrite"`이 구성되면 Astro는 요청된 원본 URL에 대체 페이지의 콘텐츠를 렌더링하는 페이지를 생성합니다.
+
+다음 구성의 경우, `src/pages/en/about.astro` 파일은 있지만 `src/pages/fr/about.astro`가 없는 경우 `astro build` 명령은 `dist/en/about.html` 페이지와 동일한 내용의 `dist/fr/about.html`을 생성합니다.
+사이트 방문자는 `https://example.com/fr/about/`에서 영문 버전의 페이지를 볼 수 있으며 리디렉션되지 않습니다.
+
+```js
+//astro.config.mjs
+export default defineConfig({
+	 i18n: {
+    defaultLocale: "en",
+    locales: ["en", "fr"],
+    routing: {
+    	prefixDefaultLocale: false,
+    	fallbackType: "rewrite",
+    },
+    fallback: {
+    	fr: "en",
+    }
+  },
+})
+```
+
 #### i18n.routing.manual
 
 <p>
@@ -1298,106 +1333,6 @@ Astro는 사용자가 새로운 기능에 조기에 액세스할 수 있도록 e
   },
 }
 ```
-
-### experimental.actions
-
-<p>
-
-**타입:** `boolean`<br />
-**기본값:** `false`<br />
-<Since v="4.8.0" />
-</p>
-
-액션은 어디에서나 호출할 수 있는 타입 안정성을 갖춘 백엔드 함수를 작성하는 데 도움이 됩니다. [`output` 속성을 사용하여](/ko/basics/rendering-modes/#요청-시-렌더링) 서버 렌더링을 활성화하고 `experimental` 객체에 `actions` 플래그를 추가합니다.
-
-```js
-{
-  output: 'hybrid', // 또는 'server'
-  experimental: {
-    actions: true,
-  },
-}
-```
-
-`src/actions/index.ts` 파일에서 모든 액션을 선언합니다. 이 파일은 전역 액션 핸들러입니다.
-
-`astro:actions` 모듈의 `defineAction()` 유틸리티를 사용하여 액션을 정의합니다. 이 액션은 서버 측 요청 핸들러를 정의하기 위해 `handler` 속성을 허용합니다. 액션이 인수를 허용하는 경우 `input` 속성을 적용하여 Zod로 매개변수를 검증하세요.
-
-이 예시에서는 `like`와 `comment`라는 두 가지 액션을 정의합니다. `like` 액션은 `postId` 문자열이 포함된 JSON 객체를 허용하는 반면, `comment` 액션은 `postId`, `author` 및 `body` 문자열을 포함하는 [FormData](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest_API/Using_FormData_Objects)를 허용합니다. 각 `handler`는 데이터베이스를 업데이트하고 타입 안정성을 갖춘 응답을 반환합니다.
-
-```ts
-// src/actions/index.ts
-import { defineAction, z } from "astro:actions";
-
-export const server = {
-  like: defineAction({
-    input: z.object({ postId: z.string() }),
-    handler: async ({ postId }) => {
-      // db에서 likes 업데이트
-
-      return likes;
-    },
-  }),
-  comment: defineAction({
-    accept: 'form',
-    input: z.object({
-      postId: z.string(),
-      author: z.string(),
-      body: z.string(),
-    }),
-    handler: async ({ postId }) => {
-      // db에 comment 삽입
-
-      return comment;
-    },
-  }),
-};
-```
-
-그런 다음 `astro:actions`의 `actions` 객체를 사용하여 클라이언트 컴포넌트에서 액션을 호출합니다. JSON을 사용할 때는 타입 안정성을 갖춘 객체를 전달할 수 있고, 액션 정의에서 `accept: 'form'`을 사용할 때는 [FormData](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest_API/Using_FormData_Objects) 객체를 전달할 수 있습니다.
-
-이 예시는 React 컴포넌트에서 `like` 및 `comment` 액션을 호출합니다.
-
-```tsx "actions"
-// src/components/blog.tsx
-import { actions } from "astro:actions";
-import { useState } from "react";
-
-export function Like({ postId }: { postId: string }) {
-  const [likes, setLikes] = useState(0);
-  return (
-    <button
-      onClick={async () => {
-        const newLikes = await actions.like({ postId });
-        setLikes(newLikes);
-      }}
-    >
-      {likes} likes
-    </button>
-  );
-}
-
-export function Comment({ postId }: { postId: string }) {
-  return (
-    <form
-      onSubmit={async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target as HTMLFormElement);
-        const result = await actions.blog.comment(formData);
-        // result 핸들링
-      }}
-    >
-      <input type="hidden" name="postId" value={postId} />
-      <label htmlFor="author">Author</label>
-      <input id="author" type="text" name="author" />
-      <textarea rows={10} name="body"></textarea>
-      <button type="submit">Post</button>
-    </form>
-  );
-}
-```
-
-전체 개요를 확인하고 이 실험적 API에 대한 피드백을 제공하려면 [Actions RFC](https://github.com/withastro/roadmap/blob/actions/proposals/0046-actions.md)를 참조하세요.
 
 ### experimental.contentCollectionCache
 

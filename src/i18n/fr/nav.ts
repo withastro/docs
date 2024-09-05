@@ -31,6 +31,7 @@ export default NavDictionary({
 	routes: 'Routes et Navigation',
 	'guides/routing': 'Routage',
 	'guides/endpoints': 'Points de terminaison',
+	'guides/actions': 'Actions',
 	'guides/prefetch': 'Préchargement',
 	'guides/middleware': 'Middleware',
 	'guides/internationalization': 'Internationalisation',
