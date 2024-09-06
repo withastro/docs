@@ -773,6 +773,47 @@ const orders = Array.from(Astro.locals.orders.entries());
 
 从当前 URL 使用你的 `locales` 配置中指定的语法计算出的语言环境。如果 URL 不包含 `/[locale]/` 前缀，则该值将默认为 `i18n.defaultLocale`。
 
+
+### `Astro.getActionResult()`
+
+<p>
+**类型：**`(action: TAction) => ActionReturnType<TAction> | undefined`<br />
+<Since v="4.15.0" />
+</p>
+
+`Astro.getActionResult()` 是一个返回 [Action](/zh-cn/guides/actions/) 提交结果的函数。它接受一个 Action 函数作为参数（例如 `actions.logout`），当接收到提交时返回一个 `data` 或 `error` 对象。否则，它将返回 `undefined`。
+
+
+```astro title="src/pages/index.astro"
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.logout);
+---
+
+<form action={actions.logout}>
+  <button type="submit">退出登录</button>
+</form>
+{result?.error && <p>退出登录失败。请再试一次。</p>}
+```
+
+### `Astro.callAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`Astro.callAction()` 是一个直接从你的 Astro 组件中调用 Action 处理程序的函数。它接受一个 Action 函数作为第一个参数（例如 `actions.logout`），以及该 Action 接收的任何输入作为第二个参数。它返回 Action 的结果作为 Promise。
+
+
+```astro title="src/pages/index.astro"
+---
+import { actions } from 'astro:actions';
+
+const { data, error } = await Astro.callAction(actions.logout, { userId: '123' });
+---
+```
+
 ## 端点上下文
 
 [端点函数](/zh-cn/guides/endpoints/)接收一个上下文对象作为第一个参数。它与许多 `Astro` 全局属性相似。
@@ -1038,6 +1079,28 @@ export function get({ locals }: APIContext) {
 ```
 
 另见：[`Astro.locals`](#astrolocals)
+
+### `context.getActionResult()`
+
+<p>
+
+**类型：** `(action: TAction) => ActionReturnType<TAction> | undefined`<br />
+<Since v="4.15.0" />
+</p>
+
+`context.getActionResult()` 是一个函数，用于从你的 Astro 组件中返回 [Action](/zh-cn/guides/actions/) 提交结果。它接受一个 Action 函数作为参数（例如 `actions.logout`），当接收到提交时返回一个 `data` 或 `error` 对象。否则，它将返回 `undefined`。
+
+另见：[`Astro.getActionResult()`](#astrogetactionresult)
+
+### `context.callAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`context.callAction()` 是一个直接从你的 Astro 组件中调用 Action 处理程序的函数。它接受一个 Action 函数作为第一个参数（例如 `actions.logout`），以及该 Action 接收的任何输入作为第二个参数。它返回 Action 的结果作为 Promise。
+
+另见：[`Astro.callAction()`](#astrocallaction)
 
 ## `getStaticPaths()`
 
@@ -2074,6 +2137,468 @@ export const onRequest = defineMiddleware(async (context, next) => {
   return new Response("Not found", { status: 404 });
 })
 ```
+
+## 视图过渡客户端 API (`astro:transitions/client`)
+
+<p><Since v="3.2.0" /></p>
+
+此模块提供了一些函数，用于控制和与视图过渡 API 和客户端路由进行交互。
+
+对于功能和使用示例，[请参阅我们的视图过渡指南](/zh-cn/guides/view-transitions/)。
+
+### `navigate()`
+
+<p>
+
+**类型：**`(href: string, options?: Options) => void`<br />
+<Since v="3.2.0" />
+</p>
+
+一个使用视图过渡 API 导航到给定 `href` 的函数。
+
+此函数签名基于 [浏览器 Navigation API 中的 `navigate` 函数](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate)。虽然基于 Navigation API，但此函数是在 [History API](https://developer.mozilla.org/zh-CN/docs/Web/API/History_API) 之上实现的，以允许在不重新加载页面的情况下进行导航。
+
+#### `history` 选项
+
+<p>
+
+**类型：**`'auto' | 'push' | 'replace'`<br />
+**默认值：**`'auto'`<br />
+<Since v="3.2.0" />
+</p>
+
+定义了如何将此导航添加到浏览器历史记录中。
+
+- `'push'`：路由将使用 `history.pushState` 在浏览器历史记录中创建一个新条目。
+- `'replace'`：路由将使用 `history.replaceState` 更新 URL，而不会在导航中添加新条目。
+- `'auto'`（默认）：路由将尝试 `history.pushState`，但如果无法进行过渡，则当前 URL 将保持不变，浏览器历史记录不会发生变化。
+
+此选项遵循浏览器 Navigation API 中的 [`history` 选项](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate#history)，但简化了在 Astro 项目中可能发生的情况。
+
+#### `formData` 选项
+
+<p>
+
+**类型：**`FormData`<br />
+<Since v="3.5.0" />
+</p>
+
+一个 `FormData` 对象，用于 `POST` 请求。
+
+当提供此选项时，导航目标页面的请求将以 `POST` 请求的形式发送，内容为表单数据对象。
+
+当提交一个带有视图过渡的 HTML 表单时，将使用此方法代替默认的页面重新加载导航。调用此方法允许以编程方式触发相同的行为。
+
+#### `info` 选项
+
+<p>
+
+**类型：**`any`<br />
+<Since v="3.6.0" />
+</p>
+
+与导航相关的 `astro:before-preparation` 和 `astro:before-swap` 事件中包含的任意数据。
+
+此选项模仿了浏览器 Navigation API 中的 [`info` 选项](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate#info)。
+
+#### `state` 选项
+
+<p>
+
+**类型：**`any`<br />
+<Since v="3.6.0" />
+</p>
+
+与导航相关的 `NavitationHistoryEntry` 对象中关联的任意数据。此数据可以通过 [`history.getState` 函数](https://developer.mozilla.org/en-US/docs/Web/API/NavigationHistoryEntry/getState) 从 History API 中检索。
+
+此选项模仿了浏览器 Navigation API 中的 [`state` 选项](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate#state)。
+
+#### `sourceElement` 选项
+
+<p>
+
+**类型：**`Element`<br />
+<Since v="3.6.0" />
+</p>
+
+此导航的触发元素，如果有的话。此元素将在以下事件中可用：
+- `astro:before-preparation`
+- `astro:before-swap`
+
+### `supportsViewTransitions`
+
+<p>
+
+**类型：**`boolean`<br />
+<Since v="3.2.0" />
+</p>
+
+当前浏览器是否支持并启用视图过渡。
+
+### `transitionEnabledOnThisPage`
+
+<p>
+
+**类型：**`boolean`<br />
+<Since v="3.2.0" />
+</p>
+
+当前页面是否启用了视图过渡以进行客户端导航。这可以用于使组件在视图过渡页面上的行为有所不同。
+
+### `getFallback`
+
+<p>
+
+**类型：**`() => 'none' | 'animate' | 'swap'`<br />
+<Since v="3.6.0" />
+</p>
+
+返回在浏览器不支持视图过渡时使用的回退策略。
+
+有关如何选择和配置回退行为的详细信息，请参阅 [回退控制](/zh-cn/guides/view-transitions/#回退控制) 指南。
+
+
+### `astro:before-preparation` 事件
+
+在视图过渡中导航开始时触发的事件。此事件发生在任何请求之前，并且不会更改任何浏览器状态。
+
+此事件具有以下属性：
+- [`info`](#info)
+- [`sourceElement`](#sourceelement)
+- [`navigationType`](#navigationtype)
+- [`direction`](#direction)
+- [`from`](#from)
+- [`to`](#to)
+- [`formData`](#formdata)
+- [`loader`](#loader)
+
+有关如何使用此事件的详细信息，请参阅 [视图过渡指南](/zh-cn/guides/view-transitions/#astrobefore-preparation).
+
+### `astro:after-preparation` 事件
+
+使用视图过渡加载导航中的下一个页面后触发的事件。
+
+此事件没有属性。
+
+有关如何使用此事件的详细信息，请参阅 [视图过渡指南](/zh-cn/guides/view-transitions/#astroafter-preparation).
+
+### `astro:before-swap` 事件
+
+在视图过渡中导航的下一个页面解析、准备并链接到 document 后，但在任何内容在 document 之间交换之前触发的事件。
+
+此事件不能取消。调用 `preventDefault()` 是无效的。
+
+此事件具有以下属性：
+- [`info`](#info)
+- [`sourceElement`](#sourceelement)
+- [`navigationType`](#navigationtype)
+- [`direction`](#direction)
+- [`from`](#from)
+- [`to`](#to)
+- [`viewTransition`](#viewtransition)
+- [`swap`](#swap)
+
+有关如何使用此事件的详细信息，请参阅 [视图过渡指南](/zh-cn/guides/view-transitions/#astrobefore-swap).
+
+### `astro:after-swap` 事件
+
+在视图过渡中导航的下一个页面内容交换后，但在视图过渡结束之前触发的事件。
+
+在触发此事件时，历史记录条目和滚动位置已经更新。
+
+### `astro:page-load` 事件
+
+在页面完成加载后触发的事件，无论是通过视图过渡导航还是浏览器原生导航。
+
+当视图过渡在页面上启用时，通常在 `DOMContentLoaded` 上执行的代码应更改为在此事件上执行。
+
+### 视图过渡事件属性
+
+<p><Since v="3.6.0" /></p>
+
+#### `info`
+
+<p>
+
+**类型：**`URL`
+</p>
+
+在导航期间定义的任意数据。
+
+这是在 [`navigate()` 函数](#navigate) 的 [`info` 选项](#info-选项) 中传递的文字值。
+
+#### `sourceElement`
+
+<p>
+
+**类型：**`Element | undefined`
+</p>
+
+触发导航的元素。例如，这可以是点击的 `<a>` 元素。
+
+当使用 [`navigate()` 函数](#navigate) 时，这将是调用中指定的元素。
+
+#### `newDocument`
+
+<p>
+
+**类型：**`Document`
+</p>
+
+导航中下一个页面的 document。此 document 的内容将替换当前 document 的内容。
+
+#### `navigationType`
+
+<p>
+
+**类型：**`'push' | 'replace' | 'traverse'`
+</p>
+
+正在发生的导航类型。
+- `push`: 正在为新页面创建一个新的 `NavigationHistoryEntry`。
+- `replace`: 当前的 `NavigationHistoryEntry` 正在被新页面的条目替换。
+- `traverse`: 没有创建 `NavigationHistoryEntry`。历史记录中的位置正在改变。
+  遍历的方向由 [`direction` 属性](#direction) 给出
+
+#### `direction`
+
+<p>
+
+**类型：**`Direction`
+</p>
+
+过渡的方向。
+- `forward`: 在历史记录中导航到下一个页面或新页面。
+- `back`: 在历史记录中导航到前一个页面。
+- 其他监听器可能设置的任何其他内容。
+
+#### `from`
+
+<p>
+
+**类型：**`URL`
+</p>
+
+正在导航的页面的 URL。
+
+#### `to`
+
+<p>
+
+**类型：**`URL`
+</p>
+
+正在导航的页面的 URL。此属性可以修改，在生命周期结束时使用的值将是下一个页面的 `NavigationHistoryEntry` 的值。
+
+#### `formData`
+
+<p>
+
+**类型：**`FormData | undefined`
+</p>
+
+一个用于 `POST` 请求的 `FormData` 对象。
+
+当此属性设置时，将使用给定的表单数据对象作为内容发送 `POST` 请求到 [`to` URL](#to)，而不是正常的 `GET` 请求。
+
+当提交一个带有视图过渡的 HTML 表单时，此字段会自动设置为表单中的数据。当使用 [`navigate()` 函数](#navigate) 时，此值与给定的选项相同。
+
+#### `loader`
+
+<p>
+
+**类型：**`() => Promise<void>`
+</p>
+
+在导航过程中下个阶段的实现（加载下一个页面）。此实现可以覆盖以添加额外的行为。
+
+#### `viewTransition`
+
+<p>
+
+**类型：**[`ViewTransition`](https://developer.mozilla.org/en-US/docs/Web/API/ViewTransition)
+</p>
+
+在导航过程中使用的视图过渡对象。在浏览器不支持 [视图过渡 API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API) 的情况下，这是一个对象，实现了相同的 API 以方便使用，但没有 DOM 集成。
+
+#### `swap`
+
+<p>
+
+**类型：**`() => void`
+</p>
+
+document 交换逻辑的实现。
+
+有关如何构建自定义交换函数的详细信息，请参阅 [视图过渡指南](/zh-cn/guides/view-transitions/#构建自定义交换函数).
+
+默认情况下，此实现将按顺序调用以下函数：
+
+##### `deselectScripts()`
+
+<p>
+
+**类型：**`(newDocument: Document) => void`
+</p>
+
+标记在新的 document 中不应执行的脚本。这些脚本已经在当前 document 中，并且没有使用 [`data-astro-rerun`](/zh-cn/guides/view-transitions/#data-astro-rerun) 标记为重新执行。
+
+##### `swapRootAttributes()`
+
+<p>
+
+**类型：**`(newDocument: Document) => void`
+</p>
+
+在 document 根节点之间交换属性，如 `lang` 属性。这也包括 Astro 注入的内部属性，如 `data-astro-transition`，这使得过渡方向可用于 Astro 生成的 CSS 规则。
+
+在构建自定义交换函数时，重要的是调用此函数，以避免破坏视图过渡的动画。
+
+##### `swapHeadElements()`
+
+<p>
+
+**类型：**`(newDocument: Document) => void`
+</p>
+
+从当前 document 的 `<head>` 中删除所有未持久化到新 document 的元素。然后将新 document 的 `<head>` 中的所有新元素附加到当前 document 的 `<head>`。
+
+##### `saveFocus()`
+
+<p>
+
+**类型：**`() => () => void`
+</p>
+
+在当前页面上存储聚焦的元素，并返回一个函数，当调用时，如果聚焦的元素被持久化，则将焦点返回给该元素。
+
+
+##### `swapBodyElements()`
+
+<p>
+
+**类型：**`(newBody: Element, oldBody: Element) => void`
+</p>
+
+用新 document 的 body 替换旧的 body。然后，遍历旧 body 中应持久化的每个元素，并在新 body 中找到匹配的元素，将旧元素交换回原位。
+
+## Actions (`astro:actions`)
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+Action 帮助你构建一个类型安全的后端，你可以从客户端代码和 HTML 表单中调用它。所有用于定义和调用 Action 的工具函数都由 `astro:actions` 模块暴露。有关示例和使用说明，请参阅 [Actions 指南](/zh-cn/guides/actions/)。
+
+### `defineAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`defineAction()` 函数接受一个 [`handler()`](#handler-属性) 函数，其中包含在调用 Action 时要运行的服务器逻辑，以及一个可选的 [`input`](#input-验证器) 属性，用于在运行时验证输入参数。
+
+```ts
+export const server = {
+    getGreeting: defineAction({
+    input: z.object({
+      name: z.string(),
+    }),
+    handler: async (input, context) => {
+      return `Hello, ${input.name}!`
+    }
+  })
+}
+```
+
+#### `handler()` 属性
+
+<p>
+
+**类型：**`(input, context) => any`
+</p>
+
+`defineAction()` 函数接受一个 `handler()` 函数，其中包含在调用 Action 时要运行的服务器逻辑。此函数可以返回数据，这些数据将自动序列化并发送给调用者。
+
+`handler()` 函数被调用时，接受用户输入作为其第一个参数。如果设置了 [`input`](#input-验证器) 验证器，那么用户输入将在传递给 `handler()` 前进行验证。第二个参数是一个 `context` 对象，包含大多数 Astro 的 [标准端点上下文](#端点上下文)，不包括 `getActionResult()`, `callAction()`, 和 `redirect()`。
+
+返回值使用 [devalue 库](https://github.com/Rich-Harris/devalue) 进行解析。它支持 JSON 值，以及 `Date()`, `Map()`, `Set()`, 或 `URL()` 的实例。
+
+#### `input` 验证器
+
+<p>
+
+**类型：**`ZodObject | undefined`
+</p>
+
+可选的 `input` 属性接受一个 Zod 验证器，用于在运行时验证处理程序的输入。如果 action 验证失败，将返回 [`BAD_REQUEST` 错误](#actionerror) 并跳过 `handler`。
+
+如果与 `accept: 'form'` 一起使用，则 `input` 必须使用 `z.object()` 验证器。
+
+此对象中支持的扩展函数包括 `.refine()`, `.transform()`, 和 `.pipe()`。表单数据字段支持以下验证器：
+
+- 使用 `z.number()` 验证类型为 `number` 的输入
+- 使用 `z.boolean()` 验证类型为 `checkbox` 的输入
+- 使用 `z.instanceof(File)` 验证类型为 `file` 的输入
+- 使用 `z.array(/* validator */)` 验证相同 `name` 的多个输入
+- 使用 `z.string()` 验证所有其他输入
+
+### `isInputError()`
+
+<p>
+
+**类型：**<code>(error?: unknown | <a href="#actionerror">ActionError</a>) => boolean</code><br/>
+<Since v="4.15.0" />
+</p>
+
+`isInputError()` 函数常用于检查 `ActionError` 是否是输入验证错误。当 `input` 验证器是 `z.object()` 时，输入错误包括一个 `fields` 对象，其中错误消息按名称分组。
+
+<ReadMore> 
+更多关于使用 `isInputError()` 的信息，请参见 [表单输入错误指南](/zh-cn/guides/actions/#displaying-form-input-errors)。
+</ReadMore>
+
+### `ActionError`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`ActionError` 构造函数常用于在 `handler()` 函数中抛出错误。它接受一个 `code` 属性，描述发生的错误（例如：`"UNAUTHORIZED"`），以及一个可选的 `message` 属性，提供进一步的细节。
+
+#### `code`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`code` 属性接受所有 HTTP 状态码的人类可读版本。以下是支持的 code：
+
+- `BAD_REQUEST` (400): 客户端发送了无效的输入。当 action `input` 验证器验证失败时会抛出此错误。
+- `UNAUTHORIZED` (401): 客户端缺乏有效的身份验证凭据。
+- `FORBIDDEN` (403): 客户端无权访问资源。
+- `NOT_FOUND` (404): 服务器找不到请求的资源。
+- `METHOD_NOT_SUPPORTED` (405): 服务器不支持请求的方法。
+- `TIMEOUT` (408): 服务器在处理请求时超时。
+- `CONFLICT` (409): 服务器无法更新资源，因为存在冲突。
+- `PRECONDITION_FAILED` (412): 服务器不满足请求的前提条件。
+- `PAYLOAD_TOO_LARGE` (413): 服务器无法处理请求，因为负载过大。
+- `UNSUPPORTED_MEDIA_TYPE` (415): 服务器不支持请求的媒体类型。注意：Actions 已经检查了 JSON 和表单请求的 [`Content-Type` 标头](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Content-Type)，所以你可能不需要手动引发此代码。
+- `UNPROCESSABLE_CONTENT` (422): 服务器无法处理请求，因为存在语义错误。
+- `TOO_MANY_REQUESTS` (429): 服务器已超出指定的速率限制。
+- `CLIENT_CLOSED_REQUEST` (499): 客户端在服务器响应之前关闭了请求。
+- `INTERNAL_SERVER_ERROR` (500): 服务器意外失败。
+- `NOT_IMPLEMENTED` (501): 服务器不支持请求的功能。
+- `BAD_GATEWAY` (502): 服务器从上游服务器接收到无效响应。
+- `SERVICE_UNAVAILABLE` (503): 服务器暂时不可用。
+- `GATEWAY_TIMEOUT` (504): 服务器从上游服务器接收到超时。
+
+#### `message`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`message` 属性接受一个字符串。（例如："用户必须登录。"）
 
 ## 内置组件
 
