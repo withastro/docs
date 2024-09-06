@@ -41,7 +41,11 @@ Individual collections are defined using `defineCollection()` to define:
 
 The Content Layer API allows you to fetch your content from outside of the `src/content/` folder (whether stored locally in your project or remotely) and uses a `loader` property to retrieve your data. Collections stored inside `src/content/` will be treated as legacy collections that do not use a loader to fetch content.
 
-The `loader` is defined in the collection's schema and returns an array of entries. Astro provides two built-in loader functions (`glob()` and `file()`) for fetching your local content, as well as access to the API to construct your own loader and fetch remote data.
+The `loader` is defined in the collection's schema and returns an array of entries.
+
+#### Built-in loaders
+
+Astro provides two built-in loader functions (`glob()` and `file()`) for fetching your local content, as well as access to the API to construct your own loader and fetch remote data.
 
 The `glob()` loader creates entries from directories of Markdown, MDX, Markdoc, or JSON files from anywhere on the filesystem. It accepts a `pattern` of entry files to match, and a `base` file path of where your files are located. Use this when you have one file per entry.
 
@@ -63,6 +67,46 @@ const dogs = defineCollection({
 
 export const collections = { blog, dogs };
 ```
+#### Building a custom loader 
+
+You can build a custom loader to fetch remote content from any data source, such as a CMS, a database, or an API endpoint.
+
+It's better than just using `fetch()` because you get collection-specific API helpers such as `getCollection()` and `render()` to query and display your data.
+
+:::tip
+Find community-built and third party loaders somewhere!
+:::
+
+##### Inline loaders
+
+At its simplest, the loader can be an async function that returns an array of entries.
+
+This is useful for loaders that don't need to manually control how the data is loaded and stored. Whenever the loader is called, it will clear the store and reload all the entries.
+
+```ts title="src/content/config.ts"
+const countries = defineCollection({
+  loader: async () => {
+    const response = await fetch("https://restcountries.com/v3.1/all");
+    const data = await response.json();
+    // Must return an array of entries with an id property, or an object with IDs as keys and entries as values
+    return data.map((country) => ({
+      id: country.cca3,
+      ...country,
+    }));
+  },
+  schema: /* ... */
+});
+```
+
+The returned entries are stored in the collection, and can be queried using the getCollection() and getEntry() functions.
+
+##### Loader objects
+
+For more control over the loading process, you can use the Loader API to create a loader object. For example, with access to the `load` method directly, you can create a loader that allows entries to be updated incrementally, or clears the store only when necessary.
+
+Similar to creating an Astro integration or Vite plugin, you can distribute your loader as a package that others can use in their projects.
+
+<ReadMore>See the full [Loader API](/en/reference/loader-reference/) and examples of how to build your own loader.</ReadMore>
 
 ### Defining the collection schema
 

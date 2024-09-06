@@ -42,10 +42,9 @@ export default [
 	{ text: 'Work with your Content', header: true, type: 'learn', key: 'work-content' },
 	{ text: 'Markdown', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 	{ text: 'MDX', slug: 'guides/mdx-content', key: 'guides/mdx-content' },
-	{ text: 'Collections', slug: 'guides/collections', key: 'guides/collections' },
-	{ text: 'Defining Collections', slug: 'guides/defining-collections', key: 'guides/defining-collections' },
-	{ text: 'Collection Loaders', slug: 'guides/collection-loaders', key: 'guides/collection-loaders' },
-	{ text: 'Collection Queries', slug: 'guides/collection-queries', key: 'guides/collection-queries' },
+	{ text: 'Organizing with collections', slug: 'guides/collections', key: 'guides/collections' },
+	{ text: 'Defining collections', slug: 'guides/defining-collections', key: 'guides/defining-collections' },
+	{ text: 'Querying and rendering collections', slug: 'guides/collection-queries', key: 'guides/collection-queries' },
 	{ text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
 
 	{ text: 'Manage Your Content', header: true, type: 'learn', key: 'content' },
@@ -139,6 +138,11 @@ export default [
 		text: 'Dev Toolbar App API',
 		slug: 'reference/dev-toolbar-app-reference',
 		key: 'reference/dev-toolbar-app-reference',
+	},
+	{
+		text: 'Loader API',
+		slug: 'reference/loader-reference',
+		key: 'reference/loader-reference',
 	},
 	{
 		text: 'Container API (Experimental)',
