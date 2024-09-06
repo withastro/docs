@@ -4,6 +4,7 @@ import { z } from 'astro:content';
 const LogoCheck = <T extends Record<string, { file: string; padding: string }>>(logos: T) => logos;
 
 export const logos = LogoCheck({
+	azion: { file: 'azion.svg', padding: '.1875em' },
 	alpinejs: { file: 'alpine-js.svg', padding: '.1875em' },
 	aws: { file: 'aws.svg', padding: '.1875em' },
 	buddy: { file: 'buddy.svg', padding: '.1625em' },
