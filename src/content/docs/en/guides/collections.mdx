@@ -4,19 +4,19 @@ description: >-
   Learn about Astro's content collections.
 i18nReady: true
 ---
-import { FileTree } from '@astrojs/starlight/components';
+import { FileTree, Steps } from '@astrojs/starlight/components';
 import Since from '~/components/Since.astro'
 import RecipeLinks from "~/components/RecipeLinks.astro"
 import Badge from "~/components/Badge.astro"
 
 <p><Since v="2.0.0" /></p>
 
-**Content collections** are the best way to manage sets of content in any Astro project. Collections help to organize and query your documents, validate your metadata, and provide automatic TypeScript type-safety for all of your content.
+**Content collections** are the best way to manage sets of content in any Astro project. Collections help to organize and query your documents, enable Intellisense and type checking in your editor, and provide automatic TypeScript type-safety for all of your content.
 
-Astro v5.0 introduced the Content Layer API for querying content collections. This performant, scalable API provides built-in content loaders for your local collections, and use third-party or community loaders to fetch remote content. You can even create your own custom loader and pull in your data from any source.
+Astro v5.0 introduced the Content Layer API for querying content collections. This performant, scalable API provides built-in content loaders for your local collections. For remote content, you can use third-party and community-built loaders or create your own custom loader and pull in your data from any source.
 
 :::note
-Projects may continue using the legacy Content Collections API introduced in Astro v2.0. However, we encourage you to [update any existing collections](#migrating-from-an-existing-collection) when you are able.
+Projects may continue using the legacy Content Collections API introduced in Astro v2.0. However, we encourage you to [update any existing collections](#updating-existing-collections) when you are able.
 :::
 
 ## What are Content Collections?
@@ -44,15 +44,15 @@ You can [create a collection](/en/guides/defining-collections/) any time you hav
 Much of the benefit of using collections comes from:
 
 - Defining a common data shape to validate that an individual entry is "correct" or "complete", avoiding errors in production.
-- Content-focused APIs designed to make querying intuitive (e.g. `getCollection()` instead of `import.meta.glob()`).
+- Content-focused APIs designed to make querying intuitive (e.g. `getCollection()` instead of `import.meta.glob()`) when importing and rendering content on your pages.
 - A Loader API for retrieving your content that provides both built-in loaders and access to the low-level API. There are several third-party and community-built loaders available, and you can build your own custom loader to fetch data from anywhere.
 - Performance and scalability. The Content Layer API allows data to be cached between builds and is suitable for tens of thousands of content entries.
 
 [Define your data](/en/guides/defining-collections/) as a collection when:
 
-- You have multiple files or data to organize that share the same overall structure (e.g. blog posts written in Markdown).
-- You have existing content stored remotely, such as in a CMS, and want to take advantage of the Content Layer API instead of relying on `fetch()` or SDKs.
-- You need to fetch (tens of) thousands of related pieces of data, and need a querying method that handles at scale.
+- You have multiple files or data to organize that share the same overall structure (e.g. blog posts written in Markdown which all have the same frontmatter properties).
+- You have existing content stored remotely, such as in a CMS, and want to take advantage of the collections helper functions and Content Layer API instead of using `fetch()` or SDKs.
+- You need to fetch (tens of) thousands of related pieces of data, and need a querying and caching method that handles at scale.
 
 ### When not to create a collection
 
@@ -60,17 +60,40 @@ Collections provide excellent structure, safety, and organization when you have 
 
 Collections may not be your solution if:
 
-- You have only one or a small number of pages. Consider [making individual page components](/en/basics/astro-pages/) at `src/pages/my-page.astro` instead.
+- You have only one or a small number of different pages. Consider [making individual page components](/en/basics/astro-pages/) such as `src/pages/about.astro` with your content directly instead.
 - Your data is not stored in a supported format, such as TOML. Use other methods of [importing files](/en/guides/imports/#import-statements) or [fetching data](/en/guides/data-fetching/) instead.
-- You are displaying files that should not be processed by Astro, such as PDFs. Place these static assets in the [`public/` directory](/en/basics/project-structure/#public) of your project instead.
+- You are displaying files that are not processed by Astro, such as PDFs. Place these static assets in the [`public/` directory](/en/basics/project-structure/#public) of your project instead.
 
-## Updating an existing project to use the Content Layer API
+## TypeScript configuration for collections
 
-### Migrating from an existing collection
+Content collections rely on TypeScript to provide Zod validation, Intellisense and type checking in your editor. If you are not extending one of Astro's  `strict` or `strictest` TypeScript settings, you will need to ensure the following `compilerOptions` are set in your `tsconfig.json`:
+
+```json title="tsconfig.json" ins={5} {6}
+{
+  // Included with "astro/tsconfigs/strict" or "astro/tsconfigs/strictest"
+  "extends": "astro/tsconfigs/base",
+  "compilerOptions": {
+    "strictNullChecks": true, // add if using `base` template
+    "allowJs": true // required, and included with all Astro templates
+  }
+}
+```
+
+## Collections using the previous API
+
+Existing content and data collections using the original Content Collections API will continue to function alongside collections using the Content Layer API for a transition period. No change to your existing collections is necessary until you decide to update them. You can even have both kinds of collections defined in your content configuration file at the same time.
+
+You can find complete documentation for collections using the original API in this unmaintained snapshot of v4.x docs. No updates will be made to how these collections are used, and you can rely on that documentation until these collections are no longer supported.
+
+We recommend updating any existing collections as soon as you are able, and making any new collections using the Content Layer API.
+
+### Updating existing collections
 
 You can convert an existing content collection with Markdown, MDX, Markdoc, or JSON entries to use the Content Layer API.
 
-1. **Move the collection folder out of `src/content/`** (e.g. to `src/data/`). All collections located in the `src/content/` folder will use the existing Content Collections API.
+<Steps>
+
+1. **Move the collection folder out of `src/content/`** (e.g. to `src/data/`). All collections located in the `src/content/` folder will use the existing Content Collections API. This is a temporary restriction necessary during the transition period where both types of collections are allowed.
 
     **Do not move the existing `src/content/config.ts` file**. This file will define all collections, using either API.
 
@@ -112,10 +135,8 @@ You can convert an existing content collection with Markdown, MDX, Markdoc, or J
 
 4. **Switch to the new `render()` function**. Entries no longer have a `render()` method, as they are now serializable plain objects. Instead, import the `render()` function from `astro:content`.
 
-    ```astro ins={4,9} del={3,8}
-    // src/pages/index.astro
+    ```astro title="src/pages/index.astro" ins=", render" del={6} ins={7}
     ---
-    import { getEntry } from 'astro:content';
     import { getEntry, render } from 'astro:content';
 
     const post = await getEntry('blog', params.slug);
@@ -123,9 +144,9 @@ You can convert an existing content collection with Markdown, MDX, Markdoc, or J
     const { Content, headings } = await post.render();
     const { Content, headings } = await render(post);
     ---
-
     <Content />
     ```
+</Steps>
 
 ### Migrating from File-Based Routing
 
