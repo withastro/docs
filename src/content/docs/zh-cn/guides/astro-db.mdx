@@ -38,7 +38,7 @@ Astro DB 是一款专为 Astro 设计的全托管 SQL 数据库。你可以在�
 
 ## 定义你的数据库
 
-Astro DB 是一个用于配置、开发和查询你的数据的完整解决方案。每当你运行 `astro dev` 时，都会创建一个本地数据库，并使用 LibSQL 来管理你的数据，而无需 Docker 或网络连接。
+Astro DB 是一个用于配置、开发和查询你的数据的完整解决方案。每当你运行 `astro dev` 时，都会创建一个本地数据库，并使用 libSQL 来管理你的数据，而无需 Docker 或网络连接。
 
 使用 `astro add` 命令安装 `@astrojs/db` 将在你的项目中创建一个 `db/config.ts` 文件，你将在其中定义你的数据库表：
 
@@ -652,6 +652,67 @@ astro dev --remote
 当你准备好部署时，参见我们的 [使用 Studio 连接进行部署指南](#使用-studio-连接进行部署)。
 
 </ReadMore>
+
+## libSQL
+
+<p><Since pkg="@astrojs/db" v="0.14.0" /></p>
+
+Astro DB 可以从任何公开 libSQL 服务器远程协议的平台，连接到任何 libSQL 服务器，或者也可以自托管。
+
+要将 Astro DB 连接到 libSQL 数据库，需要设置以下环境变量：
+- `ASTRO_DB_REMOTE_URL`: libSQL 服务器的连接 URL
+- `ASTRO_DB_APP_TOKEN`: libSQL 服务器的身份验证令牌
+
+使用 libSQL 时和连接到 Astro Studio 托管数据库时，[部署和推送更改](#使用-studio-连接进行部署)到数据库的命令是相同的。不过，当使用 `--remote` 选项运行命令，如 `astro build` 和 `astro db Push` 时，都需要在本地设置环境变量。
+
+libSQL 连接的详细信息（例如加密密钥、备份、同步间隔）可以配置为远程连接 URL 中的查询参数。
+
+例如，要让本地文件作为加密 libSQL 服务器的嵌入式副本，你可以设置以下环境变量：
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=file://local-copy.db?encryptionKey=your-encryption-key&syncInterval=60&syncUrl=libsql%3A%2F%2Fyour.server.io
+ASTRO_DB_APP_TOKEN=token-to-your-remote-url
+```
+
+### URL 方案和 host
+
+libSQL 同时支持 HTTP 和 WebSockets 作为远程服务器的传输协议。它还支持使用本地文件或内存数据库。这些都可以在连接 URL 中使用以下 URL 方案来进行配置：
+
+- `memory:` 将使用内存数据库。在这种情况下，host 必须为空。
+- `file:` 将使用本地文件。host 是文件的路径（file:path/to/file.db）。
+- `libsql:` will use a remote server through the protocol preferred by the library (this might be different across versions). The host is the address of the server (`libsql://your.server.io`).
+- `http:` will use a remote server through HTTP. `https:` can be used to enable a secure connection. The host is the same as for `libsql:`.
+- `ws:` will use a remote server through WebSockets. `wss:` can be used to enable a secure connection. The host is the same as for `libsql:`.
+
+### `encryptionKey`
+
+libSQL has native support for encrypted databases. Passing this search parameter will enable encryption using the given key:
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=file:path/to/file.db?encryptionKey=your-encryption-key
+```
+
+### `syncUrl`
+
+Embedded replicas are a feature of libSQL clients that enables a full synchronized copy of your database on a local file or in memory for ultra-fast reads. Writes are sent to a remote database defined on the `syncUrl` and synchronized with the local copy.
+
+Use this property to pass a separate connection URL to turn the DB into an embedded replica of another database. This should only be used with the schemes `file:` and `memory:`. The parameter must be URL encoded.
+
+For example, to have an in-memory embedded replica of a database on `libsql://your.server.io`, you can set the connection URL as such:
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io
+```
+
+### `syncInterval`
+
+Interval between embedded replicas synchronizations in seconds. By default it only synchronizes on startup and after writes.
+
+This property is only used when `syncUrl` is also set. For example, to set an in-memory embedded replica to synchronize every minute set the following environment variable:
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io&syncInterval=60
+```
 
 ## 构建 Astro DB 集成
 
