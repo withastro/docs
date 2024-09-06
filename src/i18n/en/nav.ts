@@ -41,22 +41,24 @@ export default [
 
 	{ text: 'Work with your Content', header: true, type: 'learn', key: 'work-content' },
 	{ text: 'Markdown', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
-	{ text: 'MDX', slug: 'guides/mdx-content', key: 'guides/mdx-content' },
 	{ text: 'Organizing with collections', slug: 'guides/collections', key: 'guides/collections' },
 	{ text: 'Defining collections', slug: 'guides/defining-collections', key: 'guides/defining-collections' },
 	{ text: 'Querying and rendering collections', slug: 'guides/collection-queries', key: 'guides/collection-queries' },
 	{ text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
-
-	{ text: 'Manage Your Content', header: true, type: 'learn', key: 'content' },
-	{ text: 'Authoring Content', slug: 'guides/content', key: 'guides/content' },
-	{ text: 'Markdown', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
-	{
-		text: 'Content Collections',
-		slug: 'guides/content-collections',
-		key: 'guides/content-collections',
-	},
-	{ text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
 	{ text: 'Add an RSS feed', slug: 'guides/rss', key: 'guides/rss' },
+
+	// { text: 'Manage Your Content', header: true, type: 'learn', key: 'content' },
+
+	// { text: 'Authoring Content', slug: 'guides/content', key: 'guides/content' },
+	// { text: 'Markdown', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
+	// { text: 'MDX', slug: 'guides/mdx-content', key: 'guides/mdx-content' },
+	// {
+	// 	text: 'Content Collections',
+	// 	slug: 'guides/content-collections',
+	// 	key: 'guides/content-collections',
+	// },
+	// { text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
+	// { text: 'Add an RSS feed', slug: 'guides/rss', key: 'guides/rss' },
 
 	{ text: 'Routes and Navigation', header: true, type: 'learn', key: 'routes' },
 	{ text: 'Routing', slug: 'guides/routing', key: 'guides/routing' },
