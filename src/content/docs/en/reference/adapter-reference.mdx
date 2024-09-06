@@ -58,9 +58,6 @@ export interface AstroAdapterFeatures {
 	 * Creates an edge function that will communicate with the Astro middleware.
 	 */
 	edgeMiddleware: boolean;
-	/**
-	 * SSR only. Each route becomes its own function/file.
-	 */
 }
 
 export type SupportsKind = 'unsupported' | 'stable' | 'experimental' | 'deprecated';
@@ -82,6 +79,10 @@ export type AstroFeatureMap = {
    * The adapter can emit static assets
    */
   assets?: AstroAssetsFeature;
+  /**
+   * The adapter supports `astro:env` secrets
+   */
+  envGetSecret?: SupportsKind;
 };
 
 export interface AstroAssetsFeature {
@@ -392,5 +393,76 @@ export default function createIntegration() {
 
 function createEdgeMiddleware(middlewareEntryPoint) {
     // emit a new physical file using your bundler
+}
+```
+
+### envGetSecret
+
+This is a feature to allow your adapter to retrieve secrets configured by users in `env.schema`.
+
+Enable the feature by passing any valid `SupportsKind` value to the adapter:
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          adapterFeatures: {
+              envGetSectret: 'stable'
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+The `astro/env/setup` module allows you to provide an implementation for `getSecret()`. In your server entrypoint, call `setGetEnv()` as soon as possible:
+
+```js ins={2,4}
+import { App } from 'astro/app';
+import { setGetEnv } from "astro/env/setup"
+
+setGetEnv((key) => process.env[key])
+
+export function createExports(manifest) {
+  const app = new App(manifest);
+
+  const handler = (event, context) => {
+    // ...
+  };
+
+  return { handler };
+}
+```
+
+If you support secrets, be sure to call `setGetEnv()` before `getSecret()` when your environment variables are tied to the request:
+
+```js ins={3,14}
+import type { SSRManifest } from 'astro';
+import { App } from 'astro/app';
+import { setGetEnv } from 'astro/env/setup';
+import { createGetEnv } from '../utils/env.js';
+
+type Env = {
+	[key: string]: unknown;
+};
+
+export function createExports(manifest: SSRManifest) {
+	const app = new App(manifest);
+
+	const fetch = async (request: Request, env: Env) => {
+		setGetEnv(createGetEnv(env));
+
+		const response = await app.render(request);
+
+		return response;
+	};
+
+	return { default: { fetch } };
 }
 ```
