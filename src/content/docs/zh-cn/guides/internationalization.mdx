@@ -60,7 +60,7 @@ export default defineConfig({
 
 ### 创建链接
 
-配置了 i18n 路由后，你现在可以使用诸如 [`astro:i18n` 模块](/zh-cn/reference/api-reference/#国际化astroi18n) 中提供的 [`getRelativeLocaleURL()`](/zh-cn/reference/api-reference/#getrelativelocaleurl) 辅助函数来计算站点内页面的链接。这些生成的链接将始终提供正确的、本地化的路由，并且可以帮助你正确地使用或检查站点上的 URL。
+配置了 i18n 路由后，你现在可以使用诸如 [`astro:i18n` 模块](/zh-cn/reference/api-reference/#国际化astroi18n) 中提供的 [`getRelativeLocaleUrl()`](/zh-cn/reference/api-reference/#getrelativelocaleurl) 辅助函数来计算站点内页面的链接。这些生成的链接将始终提供正确的、本地化的路由，并且可以帮助你正确地使用或检查站点上的 URL。
 
 你也可以选择手动编写链接。
 
@@ -165,7 +165,7 @@ export default defineConfig({
           - about.astro
           - index.astro
     </FileTree>
-- 没有区域前缀的 URL（例如 `example.com/about/`）将返回 404（未找到）状态码，除非你指定了一个[回退策略](#fallback)。
+- 没有区域前缀的 URL（例如 `example.com/about/`）将返回 404（未找到）状态码，除非你指定了一个[回退策略](#回退)。
 
 ### `redirectToDefaultLocale`
 
@@ -285,13 +285,22 @@ export default defineConfig({
 
 上述 URL 也将通过 `getAbsoluteLocaleUrl()` 和 `getAbsoluteLocaleUrlList()` 函数返回。
 
-## `fallback`
+## 回退
 
-Astro 的 i18n 路由允许你配置一个**回退路由策略**。当一个页面在某种语言下不存在时（例如，一个尚未翻译的页面），你可以基于每种语言将用户从一个语言环境重定向到另一个语言环境，而不是显示 404 页面。这在你还没有为每个路由准备好页面，但仍想为访客提供一些内容时非常有用。
+当一种语言的页面不存在时（例如尚未翻译的页面），你可以选择显示来自另一个 `locale` 的回退内容，而不是显示 404 页面。这在你还没有为每个路由创建页面，但仍想为访问者提供一些内容时很有用。
 
-例如，下面的配置为任何缺失的 `fr` 路由设置 `es` 作为回退语言环境。这意味着，当 `src/pages/fr/my-page.astro` 不存在时，访问 `example.com/fr/my-page/` 的用户将被重定向到 `example.com/es/my-page/` 并显示那里的内容，而不是被带到 404 页面。
+你的回退策略包含两个部分：选择哪些语言应该回退到哪些其他语言（[`i18n.fallback`](/zh-cn/reference/configuration-reference/#i18nfallback)）以及选择是执行[重定向](/zh-cn/guides/routing/#重定向)还是[重写](/zh-cn/guides/routing/#重写)来显示回退内容（[`i18n.routing.fallbackType`](/zh-cn/reference/configuration-reference/#i18nroutingfallbacktype) 在 Astro v4.15.0 中新增）。
 
-```js title="astro.config.mjs" ins={6-8} 
+例如，当你配置 `i18n.fallback: { fr: "es" }` 时，Astro 将确保在 `src/pages/fr/` 中为 `src/pages/es/` 中存在的每个页面构建一个页面。
+
+如果任何页面不存在，那么将根据你的 `fallbackType` 创建一个页面：
+
+- 重定向到相应的 `es` 路由（默认行为）。
+- 使用 `/es/` 页面的内容（`i18n.routing.fallbackType: "rewrite"`）。
+
+例如，下面的配置将 `es` 设置为任何缺失的 `fr` 路由的回退语言环境。这意味着当 `src/pages/fr/my-page.astro` 不存在时，访问 `example.com/fr/my-page/` 的用户将看到 `example.com/es/my-page/` 的内容（而不会被重定向），而不是被带到 404 页面。
+
+```js title="astro.config.mjs" ins={6-8,10} 
 import { defineConfig } from "astro/config"
 export default defineConfig({
   i18n: {
@@ -299,12 +308,13 @@ export default defineConfig({
     locales: ["es", "en", "fr"],
     fallback: {
       fr: "es"  
+    },
+    routing: {
+      fallbackType: "rewrite"
     }
   }
 })
 ```
-
-Astro 会确保 `src/pages/es/` 中的每个页面都在 `src/pages/fr` 中构建一个对应页面。如果页面尚未存在，那么将创建一个页面，并将其重定向到相应的 `es` 路由。
 
 ## 自定义语言环境路径
 
