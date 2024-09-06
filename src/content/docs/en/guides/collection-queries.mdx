@@ -14,7 +14,10 @@ import ReadMore from '~/components/ReadMore.astro'
 
 Astro provides helper functions to query a collection and return one (or more) content entries.
 
-Use [`getCollection()`](/en/reference/api-reference/#getcollection) to query your entire collection, and [`getEntry()`](/en/reference/api-reference/#getentry) to query a single entry. These return a unique `id`, a `data` object with all defined properties, and a `body` containing the raw, uncompiled body of a Markdown/MDX document.
+- [`getCollection()`](/en/reference/api-reference/#getcollection) fetches an entire collection and returns an array of entries.
+- [`getEntry()`](/en/reference/api-reference/#getentry) fetches a single entry from a collection.
+
+These return entries with a unique `id`, a `data` object with all defined properties, and will also return a `body` containing the raw, uncompiled body of a Markdown, MDX, or Markdoc document.
 
 ```js
 import { getCollection, getEntry } from 'astro:content';
@@ -33,18 +36,18 @@ const poodleData = await getEntry('dogs', 'poodle');
 
 ## Using content in Astro templates
 
-Once you have queried your collection entries, you can access each entry directly inside of your Astro component template. For example, you can create a list of links to your blog posts, displaying information from your entry's frontmatter using the `data` property.
+After querying your collections, you can access each entry's content directly inside of your Astro component template. For example, you can create a list of links to your blog posts, displaying information from your entry's frontmatter using the `data` property.
 
 
-```astro
+```astro title="src/pages/index.astro"
 ---
-// src/pages/index.astro
 import { getCollection } from 'astro:content';
 const posts = await getCollection('blog');
 ---
+<h1>My posts</h1>
 <ul>
   {posts.map(post => (
-    <li><a href={`/my-blog-url/${post.id}`}>{post.data.title}</a></li>
+    <li><a href={`/blog/${post.id}`}>{post.data.title}</a></li>
   ))}
 </ul>
 ```
@@ -65,13 +68,12 @@ const { Content, headings } = await render();
 
 ### Passing content as props
 
-A component can also pass an entire collection entry as a prop. 
+A component can also pass an entire collection entry as a prop.
 
-If you do this, you can use the [`CollectionEntry`](/en/reference/api-reference/#collection-entry-type) utility to correctly type your components props using TypeScript.  This utility takes a string argument that matches the name of your collection schema, and will inherit all of the properties of that collection's schema.
+You can use the [`CollectionEntry`](/en/reference/api-reference/#collection-entry-type) utility to correctly type your components props using TypeScript.  This utility takes a string argument that matches the name of your collection schema, and will inherit all of the properties of that collection's schema.
 
-```astro /CollectionEntry(?:<.+>)?/
+```astro title="src/components/BlogCard.astro" /CollectionEntry(?:<.+>)?/
 ---
-// src/components/BlogCard.astro
 import type { CollectionEntry } from 'astro:content';
 interface Props {
   post: CollectionEntry<'blog'>;
@@ -86,7 +88,7 @@ const { post } = Astro.props;
 
 Content collections are stored outside of the `src/pages/` directory. This means that no pages or routes are generated for your collection items by default.
 
-You will need to manually create a new [dynamic route](/en/guides/routing/#dynamic-routes) if you want to generate HTML pages for each of your collection entries, such as individual blog posts. Your dynamic route will map the incoming request param (ex: `Astro.params.slug` in `src/pages/blog/[...slug].astro`) to fetch the correct entry for each page.
+You will need to manually create a new [dynamic route](/en/guides/routing/#dynamic-routes) if you want to generate HTML pages for each of your collection entries, such as individual blog posts. Your dynamic route will map the incoming request param (e.g. `Astro.params.slug` in `src/pages/blog/[...slug].astro`) to fetch the correct entry for each page.
 
 The exact method for generating routes will depend on whether your pages are prerendered (default) or rendered on demand by a server.
 
@@ -96,28 +98,29 @@ If you are building a static website (Astro's default behavior), use the [`getSt
 
 Call `getCollection()` inside of `getStaticPaths()` to have your collection data available for building static routes. Then, create the individual URL paths using the `id` property of each content entry. Each page is passed the entire collection entry as a prop for [use in your page template](#using-content-in-astro-templates).
 
-```astro title="src/pages/posts/[slug].astro" "{ slug: post.id }"
+```astro title="src/pages/posts/[slug].astro" "{ slug: post.id }" "{ post }"
 ---
 import { getCollection } from 'astro:content';
 // 1. Generate a new path for every collection entry
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
   return posts.map(post => ({
-    params: { slug: post.id }, props: { post },
+    params: { slug: post.id },
+    props: { post },
   }));
 }
 // 2. For your template, you can get the entry directly from the prop
 const { post } = Astro.props;
-const { Content } = await render();
+const { Content } = await render(post);
 ---
 <h1>{post.data.title}</h1>
 <Content />
 ```
 
-This will generate a new page for every entry in the `blog` collection. For example, an entry at `src/blog/hello-world.md` will have an `id` of `hello-world`, and therefore its final URL will be `/posts/hello-world/`.
+This will generate a page route for every entry in the `blog` collection. For example, an entry at `src/blog/hello-world.md` will have an `id` of `hello-world`, and therefore its final URL will be `/posts/hello-world/`.
 
 :::note
-If your custom slugs contain the `/` character to produce URLs with multiple path segments, you must use a [rest parameter (`[...slug]`)](/en/guides/routing/#rest-parameters) in the `.astro` filename for this dynamic routing page.
+If your custom slugs contain the `/` character to produce URLs with multiple path segments, you must use a [rest parameter (e.g. `[...slug]`)](/en/guides/routing/#rest-parameters) in the `.astro` filename for this dynamic routing page.
 :::
 
 ### Building for server output (SSR)
@@ -186,7 +189,7 @@ const englishDocsEntries = await getCollection('docs', ({ id }) => {
 
 ## Accessing referenced data
 
-Any [references defined in your schema](#defining-collection-references) must be queried separately after first querying your collection entry. You can use the `getEntry()` function again, or `getEntries()` which receives multiple collection entries, to retrieve the referenced entry from the returned `data` object. 
+Any [references defined in your schema](#defining-collection-references) must be queried separately after first querying your collection entry. You can use the `getEntry()` function to return a single referenced item, or `getEntries()` to retrieve multiple referenced entries from the returned `data` object. 
 
 ```astro title="src/pages/blog/welcome.astro"
 ---
@@ -206,7 +209,7 @@ const relatedPosts = await getEntries(blogPost.data.relatedPosts);
 <!-- ... -->
 
 <h2>You might also like:</h2>
-{relatedPosts.map(p => (
-  <a href={p.slug}>{p.data.title}</a>
+{relatedPosts.map(post => (
+  <a href={post.id}>{post.data.title}</a>
 ))}
 ```
