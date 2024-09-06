@@ -47,6 +47,10 @@ export default [
 		slug: 'guides/content-collections',
 		key: 'guides/content-collections',
 	},
+	{ text: 'Collections', slug: 'guides/collections', key: 'guides/collections' },
+	{ text: 'Defining Collections', slug: 'guides/defining-collections', key: 'guides/defining-collections' },
+	{ text: 'Collection Loaders', slug: 'guides/collection-loaders', key: 'guides/collection-loaders' },
+	{ text: 'Collection Queries', slug: 'guides/collection-queries', key: 'guides/collection-queries' },
 	{ text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
 	{ text: 'Add an RSS feed', slug: 'guides/rss', key: 'guides/rss' },
 

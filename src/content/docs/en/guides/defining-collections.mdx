@@ -1,0 +1,251 @@
+---
+title: Defining Collection Schemas
+description: >-
+  Type-check your frontmatter with collection schemas.
+i18nReady: true
+---
+import { FileTree } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro'
+import RecipeLinks from "~/components/RecipeLinks.astro"
+import Badge from "~/components/Badge.astro"
+
+
+## The collection config file
+
+To define collections, you must create a `src/content/config.ts` file in your project (`.js` and `.mjs` extensions are also supported.) This is a special file that Astro will use to configure your content collections based on the following structure:
+
+```ts title="src/content/config.ts"
+// 1. Import utilities from `astro:content`
+import { defineCollection, z } from 'astro:content';
+
+// 2. Import loader(s)
+import { glob, file } from 'astro/loaders'; // Not available with legacy API
+
+// 3. Define your collection(s)
+const blog = defineCollection({ /* ... */ });
+const dogs = defineCollection({ /* ... */ });
+
+// 4. Export a single `collections` object to register your collection(s)
+//    This key should match your collection directory name in "src/content"
+export const collections = { blog, dogs };
+```
+
+## Defining a collection
+
+Individual collections are defined using `defineCollection()` which must define a `loader` and a `schema`.
+
+### Defining the collection `loader`
+
+The Content Layer API allows you to fetch your content from outside of the `src/content/` folder (whether stored locally in your project or remotely) and uses a `loader` property to retrieve your data. Collections stored inside `src/content/` will be treated as legacy collections that do not use a loader to fetch content.
+
+The `loader` is defined in the collection's schema and returns an array of entries. Astro provides two built-in loader functions (`glob()` and `file()`) for fetching your local content, as well as access to the API to construct your own loader and fetch remote data.
+
+The `glob()` loader creates entries from directories of Markdown, MDX, Markdoc, or JSON files from anywhere on the filesystem. It accepts a `pattern` of entry files to match, and a `base` file path of where your files are located. Use this when you have one file per entry.
+
+The `file()` loader creates multiple entries from a single local file. Use this when all your entries are stored in an array of objects.
+
+```ts  title="src/content/config.ts" {5,9}
+import { defineCollection, z } from 'astro:content';
+import { glob, file } from 'astro/loaders'; // Not available with legacy API
+
+const blog = defineCollection({
+  loader: glob({ pattern: "**\/*.md", base: "./src/data/blog" }), // Not available with legacy API
+  schema: /* ... */ 
+});
+const dogs = defineCollection({
+  loader: file("src/data/dogs.json"), // Not available with legacy API
+  schema: /* ... */ 
+  }),
+});
+
+export const collections = { blog, dogs };
+```
+
+### Defining the collection schema
+
+Schemas enforce consistent frontmatter or entry data within a collection through Zod validation. A schema **guarantees** that this data exists in a predictable form when you need to reference or query it. If any file violates its collection schema, Astro will provide a helpful error to let you know.
+
+Schemas also power Astro's automatic TypeScript typings for your content. When you define a schema for your collection, Astro will automatically generate and apply a TypeScript interface to it. The result is full TypeScript support when you query your collection, including property autocompletion and type-checking.
+
+Every frontmatter or metadata property of your collection entries must be defined using a Zod data type:
+
+```ts title="src/content/config.ts"
+import { defineCollection, z } from 'astro:content';
+import { glob, file } from 'astro/loaders'; // Not available with legacy API
+
+const blog = defineCollection({
+  loader: glob({ pattern: "**\/*.md", base: "./src/data/blog" }), // Not available with legacy API
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
+  })
+});
+const dogs = defineCollection({
+  loader: file("src/data/dogs.json"), // Not available with legacy API
+  schema: z.object({
+    id: z.string(),
+    breed: z.string(),
+    temperament: z.array(z.string()),
+  }),
+});
+
+export const collections = { blog, dogs };
+```
+
+## Using third-party collection schemas - STILL TRUE??
+
+You can import collection schemas from anywhere, including external npm packages. This can be useful when working with themes and libraries that provide their own collection schemas for you to use.
+
+
+```ts title="src/content/config.ts"
+import { blogSchema } from 'my-blog-theme';
+const blog = defineCollection({ loader: /* ... */, schema: blogSchema });
+
+// Export the blog collection, using an external schema from 'my-blog-theme'
+export const collections = { blog };
+```
+
+## Defining datatypes with Zod
+
+Astro uses [Zod](https://github.com/colinhacks/zod) to power its content schemas. With Zod, Astro is able to validate every file's frontmatter within a collection *and* provide automatic TypeScript types when you go to query content from inside your project.
+
+To use Zod in Astro, import the `z` utility from `"astro:content"`. This is a re-export of the Zod library, and it supports all of the features of Zod. See [Zod’s README](https://github.com/colinhacks/zod) for complete documentation on how Zod works and what features are available.
+
+
+```ts
+// Example: A cheatsheet of many common Zod datatypes
+import { z, defineCollection } from 'astro:content';
+
+defineCollection({
+  schema: z.object({
+    isDraft: z.boolean(),
+    title: z.string(),
+    sortOrder: z.number(),
+    image: z.object({
+      src: z.string(),
+      alt: z.string(),
+    }),
+    author: z.string().default('Anonymous'),
+    language: z.enum(['en', 'es']),
+    tags: z.array(z.string()),
+    // An optional frontmatter property. Very common!
+    footnote: z.string().optional(),
+    // In frontmatter, dates written without quotes around them are interpreted as Date objects
+    publishDate: z.date(),
+    // You can also transform a date string (e.g. "2022-07-08") to a Date object
+    // publishDate: z.string().transform((str) => new Date(str)),
+    // Advanced: Validate that the string is also an email
+    authorContact: z.string().email(),
+    // Advanced: Validate that the string is also a URL
+    canonicalURL: z.string().url(),
+  })
+})
+```
+
+## Defining collection references
+
+Collection entries can also "reference" other related entries. 
+
+With the `reference()` function from the Collections API, you can define a property in a collection schema as an entry from another collection. For example, you can require that every `space-shuttle` entry includes a `pilot` property which uses the `pilot` collection's own schema for type checking, autocomplete, and validation.
+
+A common example is a blog post that references reusable author profiles stored as JSON, or related post URLs stored in the same collection:
+
+```ts
+import { defineCollection, reference, z } from 'astro:content';
+
+const blog = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    // Reference a single author from the `authors` collection by `id`
+    author: reference('authors'),
+    // Reference an array of related posts from the `blog` collection by `slug`
+    relatedPosts: z.array(reference('blog')),
+  })
+});
+
+const authors = defineCollection({
+  type: 'data',
+  schema: z.object({
+    name: z.string(),
+    portfolio: z.string().url(),
+  })
+});
+
+export const collections = { blog, authors };
+```
+
+This example blog post specifies the `slug`s of related posts and the `id` of the post author:
+
+```yaml title="src/content/blog/welcome.md"
+---
+title: "Welcome to my blog"
+author: ben-holmes # references `src/content/authors/ben-holmes.json`
+relatedPosts:
+- about-me # references `src/content/blog/about-me.md`
+- my-year-in-review # references `src/content/blog/my-year-in-review.md`
+---
+```
+
+## Setting up TypeScript
+
+If you **do not** already extend Astro's `strict` or `strictest` recommended TypeScript settings in your `tsconfig.json` file, you may need to update your `tsconfig.json` to enable `strictNullChecks`.
+
+```json title="tsconfig.json" ins={5}
+{
+  // Note: No change needed if you use "astro/tsconfigs/strict" or "astro/tsconfigs/strictest"
+  "extends": "astro/tsconfigs/base",
+  "compilerOptions": {
+    "strictNullChecks": true
+  }
+}
+```
+
+
+### WE MIGHT ALREADY HAVE ALLOWJS TRUE AS A DEFAULT???
+
+If you use `.js` or `.mjs` files in an Astro project, you can enable IntelliSense and type checking in your editor by enabling `allowJs` in your `tsconfig.json`:
+```json title="tsconfig.json" ins={6}
+{
+  // Note: No change needed if you use "astro/tsconfigs/strict" or "astro/tsconfigs/strictest"
+  "extends": "astro/tsconfigs/base",
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "allowJs": true
+  }
+}
+```
+
+
+## Enabling JSON Schema Generation -- HOW DOES THIS WORK IN CONTENT LAYER LAND???
+
+<p><Since v="4.13.0" /></p>
+
+If you are working with collections of type `data`, Astro will auto-generate JSON schema files for your editor to get IntelliSense and type-checking. A separate file will be created for each data collection in your project based on your collections defined in `src/content/config.ts` using a library called [`zod-to-json-schema`](https://github.com/StefanTerdell/zod-to-json-schema#known-issues).
+
+This feature requires you to manually set your schema's file path as the value for `$schema` in each data entry file of the collection:
+
+```json title="src/content/authors/armand.json" ins={2}
+{
+  "$schema": "../../../.astro/collections/authors.schema.json",
+  "name": "Armand",
+  "skills": ["Astro", "Starlight"]
+}
+```
+
+Alternatively, you can set this value in your editor settings. For example, to set this value in [VSCode's `json.schemas` setting](https://code.visualstudio.com/docs/languages/json#_json-schemas-and-settings), provide the path of files to match and the location of your JSON schema:
+
+```json
+{
+  "json.schemas": [
+    {
+      "fileMatch": [
+        "/src/content/authors/**"
+      ],
+      "url": "./.astro/collections/authors.schema.json"
+    }
+  ]
+}
+```

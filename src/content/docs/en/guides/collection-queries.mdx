@@ -1,0 +1,216 @@
+---
+title: Collection Routes
+description: >-
+  Generating routes from your collection entries.
+i18nReady: true
+---
+import { FileTree } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro'
+import RecipeLinks from "~/components/RecipeLinks.astro"
+import Badge from "~/components/Badge.astro"
+import ReadMore from '~/components/ReadMore.astro'
+
+## Querying Collections
+
+Astro provides helper functions to query a collection and return one (or more) content entries.
+
+Use [`getCollection()`](/en/reference/api-reference/#getcollection) to query your entire collection, and [`getEntry()`](/en/reference/api-reference/#getentry) to query a single entry. These return a `data` object containing each entry's frontmatter, a `body` containing the raw, uncompiled body of the Markdown/MDX document, and more.
+
+```js
+import { getCollection, getEntry } from 'astro:content';
+
+// Get all entries from a collection.
+// Requires the name of the collection as an argument.
+const allBlogPosts = await getCollection('blog');
+
+// Get a single entry from a collection.
+// Requires the name of the collection and `id`
+const poodleData = await getEntry('dogs', 'poodle');
+
+
+```
+<ReadMore>See the full list of properties returned by the [`CollectionEntry` type](/en/reference/api-reference/#collection-entry-type).</ReadMore>
+
+## Using content in Astro templates
+
+Once you have queried your collection entries, you can access each entry directly inside of your Astro component template. For example, you can create a list of links to your blog posts, displaying information from your entry's frontmatter using the `data` property.
+
+
+```astro
+---
+// src/pages/index.astro
+import { getCollection } from 'astro:content';
+const posts = await getCollection('blog');
+---
+<ul>
+  {posts.map(post => (
+    <li><a href={`/my-blog-url/${post.id}`}>{post.data.title}</a></li>
+  ))}
+</ul>
+```
+### Rendering body content 
+
+Once queried, you can render Markdown and MDX entries to HTML using the `render()` function property. Calling this function gives you access to rendered content and metadata, including both a `<Content />` component and a list of all rendered headings.
+
+```astro title="src/pages/blog/post-1.astro" {5,8}
+---
+import { getEntry, render } from 'astro:content';
+
+const entry = await getEntry('blog', 'post-1');
+const { Content, headings } = await render();
+---
+<p>Published on: {entry.data.published.toDateString()}</p>
+<Content />
+```
+
+### Passing content as props
+
+A component can also pass an entire content entry as a prop. 
+
+If you do this, you can use the [`CollectionEntry`](/en/reference/api-reference/#collection-entry-type) utility to correctly type your components props using TypeScript.  This utility takes a string argument that matches the name of your collection schema, and will inherit all of the properties of that collection's schema.
+
+```astro /CollectionEntry(?:<.+>)?/
+---
+// src/components/BlogCard.astro
+import type { CollectionEntry } from 'astro:content';
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+// `post` will match your 'blog' collection schema type
+const { post } = Astro.props;
+---
+```
+
+## Generating Routes from Content
+
+Content collections are stored outside of the `src/pages/` directory. This means that no routes are generated for your collection items by default. You will need to manually create a new [dynamic route](/en/guides/routing/#dynamic-routes) to generate HTML pages from your collection entries. Your dynamic route will map the incoming request param (ex: `Astro.params.slug` in `src/pages/blog/[...slug].astro`) to fetch the correct entry inside a collection.
+
+The exact method for generating routes will depend on your build [`output`](/en/reference/configuration-reference/#output) mode: 'static' (the default) or 'server' (for SSR).
+
+### Building for static output (default)
+
+If you are building a static website (Astro's default behavior), you would use the [`getStaticPaths()`](/en/reference/api-reference/#getstaticpaths) function to create multiple pages from a single `src/pages/` component during your build.
+
+Call `getCollection()` inside of `getStaticPaths()` to have your collection data available for building static routes. Then, create the URL paths using the `id` property of each content entry.
+
+```astro "{ slug: post.id }"
+---
+// src/pages/posts/[...slug].astro
+import { getCollection } from 'astro:content';
+// 1. Generate a new path for every collection entry
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map(post => ({
+    params: { slug: post.id }, props: { entry },
+  }));
+}
+// 2. For your template, you can get the entry directly from the prop
+const { post } = Astro.props;
+const { Content } = await render();
+---
+<h1>{post.data.title}</h1>
+<Content />
+```
+
+This will generate a new page for every entry in the `blog` collection. For example, an entry at `src/blog/hello-world.md` will have an `id` of `hello-world`, and therefore its final URL will be `/posts/hello-world/`.
+
+:::note
+If your custom slugs contain the `/` character to produce URLs with multiple path segments, you must use a [rest parameter (`[...slug]`)](/en/guides/routing/#rest-parameters) in the `.astro` filename for this dynamic routing page.
+:::
+
+### Building for server output (SSR)
+
+If you are building a dynamic website (using Astro's SSR support), you are not expected to generate any paths ahead of time during the build. Instead, your page should examine the request (using `Astro.request` or `Astro.params`) to find the `id` on-demand, and then fetch it using [`getEntry()`](/en/reference/api-reference/#getentry).
+
+
+```astro
+---
+// src/pages/posts/[...slug].astro
+import { getEntry } from "astro:content";
+// 1. Get the slug from the incoming server request
+const { id } = Astro.params;
+if (id === undefined) {
+	throw new Error("id is required");
+}
+// 2. Query for the entry directly using the request slug
+const post = await getEntry("blog", id);
+// 3. Redirect if the entry does not exist
+if (post === undefined) {
+	return Astro.redirect("/404");
+}
+// 4. Render the entry to HTML in the template
+const { Content } = await render();
+---
+<h1>{post.data.title}</h1>
+<Content />
+```
+
+:::tip
+Explore the `src/pages/` folder of the [blog tutorial demo code on GitHub](https://github.com/withastro/blog-tutorial-demo/tree/content-collections/src/pages) or [open it in StackBlitz](https://stackblitz.com/github/withastro/blog-tutorial-demo/tree/content-collections?file=src/pages/blog.astro) to see full examples of creating pages from your collections for blog features like a list of blog posts, tags pages, and more!
+:::
+
+## Filtering collection queries
+
+`getCollection()` takes an optional "filter" callback that allows you to filter your query based on an entry's `id` or `data` (frontmatter) properties. For collections of `type: 'content'`, you can also filter based on `slug`.
+
+:::note
+The `slug` property is specific to content collections, and will not be available when filtering collections of JSON or YAML.
+:::
+
+You can use this to filter by any content criteria you like. For example, you can filter by properties like `draft` to prevent any draft blog posts from publishing to your blog:
+
+```js
+// Example: Filter out content entries with `draft: true`
+import { getCollection } from 'astro:content';
+const publishedBlogEntries = await getCollection('blog', ({ data }) => {
+  return data.draft !== true;
+});
+```
+
+You can also create draft pages that are available when running the dev server, but not built in production:
+
+```js
+// Example: Filter out content entries with `draft: true` only when building for production
+import { getCollection } from 'astro:content';
+const blogEntries = await getCollection('blog', ({ data }) => {
+  return import.meta.env.PROD ? data.draft !== true : true;
+});
+```
+
+The filter argument also supports filtering by nested directories within a collection. Since the `id` includes the full nested path, you can filter by the start of each `id` to only return items from a specific nested directory:
+
+```js
+// Example: Filter entries by sub-directory in the collection
+import { getCollection } from 'astro:content';
+const englishDocsEntries = await getCollection('docs', ({ id }) => {
+  return id.startsWith('en/');
+});
+```
+
+## Accessing referenced data
+
+Any [references defined in your schema](#defining-collection-references) must be queried separately after first querying your collection entry. You can use the `getEntry()` function again, or `getEntries()` which receives multiple collection entries, to retrieve the referenced entry from the returned `data` object. 
+
+```astro title="src/pages/blog/welcome.astro"
+---
+import { getEntry, getEntries } from 'astro:content';
+
+const blogPost = await getEntry('blog', 'welcome');
+
+// Resolve a singular reference
+const author = await getEntry(blogPost.data.author);
+// Resolve an array of references
+const relatedPosts = await getEntries(blogPost.data.relatedPosts);
+---
+
+<h1>{blogPost.data.title}</h1>
+<p>Author: {author.data.name}</p>
+
+<!-- ... -->
+
+<h2>You might also like:</h2>
+{relatedPosts.map(p => (
+  <a href={p.slug}>{p.data.title}</a>
+))}
+```
