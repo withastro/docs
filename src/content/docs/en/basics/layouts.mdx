@@ -62,18 +62,49 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 </MySiteLayout>
 ```
 
-
 <ReadMore>Learn more about [slots](/en/basics/astro-components/#slots).</ReadMore>
 
-## Markdown/MDX Layouts
+## Using TypeScript with layouts
 
-Page layouts are especially useful for [Markdown and MDX pages](/en/guides/markdown-content/#markdown-and-mdx-pages) which otherwise would not have any page formatting. 
+Any Astro layout can be modified to introduce typesafety & autocompletion by providing the types for your props:
 
-Astro provides a special `layout` frontmatter property to specify which `.astro` component to use as the page layout.
+```astro ins={2-7} title="src/components/MyLayout.astro"
+---
+interface Props { 
+  title: string;
+  description: string;
+  publishDate: string;
+  viewCount: number;
+}
+const { title, description, publishDate, viewCount } = Astro.props;
+---
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="description" content={description}>
+    <title>{title}</title>
+  </head>
+  <body>
+    <header>
+      <p>Published on {publishDate}</p>
+      <p>Viewed by {viewCount} folks</p>
+    </header>
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>
+```
+
+## Markdown Layouts
+
+Page layouts are especially useful for individual Markdown pages which otherwise would not have any page formatting. 
+
+Astro provides a special `layout` frontmatter property to specify which `.astro` component to use as the page layout. By default, this specified component can automatically access data from the Markdown file.
 
 ```markdown title="src/pages/page.md" {2} 
 ---
-layout: ../layouts/BaseLayout.astro
+layout: ../layouts/BlogPostLayout.astro
 title: "Hello, World!"
 author: "Matthew Phillips"
 date: "09 Aug 2022"
@@ -82,18 +113,17 @@ All frontmatter properties are available as props to an Astro layout component.
 
 The `layout` property is the only special one provided by Astro.
 
-You can use it in both Markdown and MDX files located within `src/pages/`.
+You can use it in Markdown files located within `src/pages/`.
 
 ```
 
-A typical layout for Markdown or MDX pages includes:
+A typical layout for a Markdown page includes:
 
-1. The `frontmatter` prop to access the Markdown or MDX page's frontmatter and other data. 
-2. A default [`<slot />`](/en/basics/astro-components/#slots) to indicate where the page's Markdown/MDX content should be rendered.
+1. The `frontmatter` prop to access the Markdown page's frontmatter and other data. 
+2. A default [`<slot />`](/en/basics/astro-components/#slots) to indicate where the page's Markdown content should be rendered.
 
-```astro /(?<!//.*){?frontmatter(?:\\.\w+)?}?/ "<slot />"
+```astro title="src/layouts/BlogPostLayout.astro" /(?<!//.*){?frontmatter(?:\\.\w+)?}?/ "<slot />"
 ---
-// src/layouts/BaseLayout.astro
 // 1. The frontmatter prop gives access to frontmatter and other data
 const { frontmatter } = Astro.props;
 ---
@@ -112,9 +142,9 @@ const { frontmatter } = Astro.props;
 </html>
 ```
 
-You can set a layout’s [`Props` type](/en/guides/typescript/#component-props) with the `MarkdownLayoutProps` or `MDXLayoutProps` helper:
+You can set a layout’s [`Props` type](/en/guides/typescript/#component-props) with the `MarkdownLayoutProps` helper:
 
-```astro title="src/layouts/BaseLayout.astro" ins={2,4-9}
+```astro title="src/layouts/BlogPostLayout.astro" ins={2,4-9}
 ---
 import type { MarkdownLayoutProps } from 'astro';
 
@@ -144,66 +174,31 @@ const { frontmatter, url } = Astro.props;
 
 ### Markdown Layout Props
 
-A Markdown/MDX layout will have access to the following information via `Astro.props`:
+A Markdown layout will have access to the following information via `Astro.props`:
 
 - **`file`** - The absolute path of this file (e.g. `/home/user/projects/.../file.md`).
-- **`url`** - If it's a page, the URL of the page (e.g. `/en/guides/markdown-content`).
-- **`frontmatter`** - all frontmatter from the Markdown or MDX document.
+- **`url`** - The URL of the page (e.g. `/en/guides/markdown-content`).
+- **`frontmatter`** - All frontmatter from the Markdown or MDX document.
   - **`frontmatter.file`** - The same as the top-level `file` property.
   - **`frontmatter.url`** - The same as the top-level `url` property.
 - **`headings`** - A list of headings (`h1 -> h6`) in the Markdown or MDX document with associated metadata. This list follows the type: `{ depth: number; slug: string; text: string }[]`.
-- **(Markdown only) `rawContent()`** - A function that returns the raw Markdown document as a string.
-- **(Markdown only) `compiledContent()`** - A function that returns the Markdown document compiled to an HTML string.
-
-An example Markdown blog post may pass the following `Astro.props` object to its layout:
-
-```js
-Astro.props = {
-  file: "/home/user/projects/.../file.md",
-  url: "/en/guides/markdown-content/",
-  frontmatter: {
-    /** Frontmatter from a blog post */
-    title: "Astro 0.18 Release",
-    date: "Tuesday, July 27 2021",
-    author: "Matthew Phillips",
-    description: "Astro 0.18 is our biggest release since Astro launch.",
-    /** Generated values */
-    file: "/home/user/projects/.../file.md",
-    url: "/en/guides/markdown-content/"
-  },
-  headings: [
-    {
-      "depth": 1,
-      "text": "Astro 0.18 Release",
-      "slug": "astro-018-release"
-    },
-    {
-      "depth": 2,
-      "text": "Responsive partial hydration",
-      "slug": "responsive-partial-hydration"
-    }
-    /* ... */
-  ],
-
-  /** Available in Markdown only */
-  rawContent: () => "# Astro 0.18 Release\nA little over a month ago, the first public beta [...]",
-  compiledContent: () => "<h1>Astro 0.18 Release</h1>\n<p>A little over a month ago, the first public beta [...]</p>",
-}
-```
+- **`rawContent()`** - A function that returns the raw Markdown document as a string.
+- **`compiledContent()`** - A function that returns the Markdown document compiled to an HTML string.
 
 :::note
-A Markdown/MDX layout will have access to all its file's [exported properties](/en/guides/markdown-content/#exported-properties) from `Astro.props` **with some key differences:**
+A Markdown layout will have access to all the Markdown file's [available properties](/en/guides/markdown-content/#exported-properties) from `Astro.props` **with two key differences:**
 
 *   Heading information (i.e. `h1 -> h6` elements) is available via the `headings` array, rather than a `getHeadings()` function.
 
 *   `file` and `url` are *also* available as nested `frontmatter` properties (i.e. `frontmatter.url` and `frontmatter.file`).
 
-*   Values defined outside of frontmatter (e.g. `export` statements in MDX) are not available. Consider [importing a layout](#importing-layouts-manually-mdx) instead.
 :::
 
 ### Importing Layouts Manually (MDX)
 
-You may need to pass information to your MDX layout that does not (or cannot) exist in your frontmatter. In this case, you can instead import and use a [`<Layout />` component](/en/basics/layouts/) and pass it props like any other component:
+You can also use the special Markdown layout property in the frontmatter of MDX files to pass `frontmatter` and `headings` props directly to a specified layout component in the same way. 
+
+To pass information to your MDX layout that does not (or cannot) exist in your frontmatter, you can instead import and use a `<Layout />` component. This works like any other Astro component, and will not receive any props automatically. Pass it any necessary props directly:
 
 ```mdx title="src/pages/posts/first-post.mdx" ins={6} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/
 ---
@@ -224,9 +219,8 @@ export function fancyJsHelper() {
 
 Then, your values are available to you through `Astro.props` in your layout, and your MDX content will be injected into the page where your `<slot />` component is written:
 
-```astro /{?title}?/ "fancyJsHelper" "{fancyJsHelper()}"
+```astro title="src/layouts/BaseLayout.astro" /{?title}?/ "fancyJsHelper" "{fancyJsHelper()}"
 ---
-// src/layouts/BaseLayout.astro
 const { title, fancyJsHelper } = Astro.props;
 ---
 <!-- -->
@@ -236,39 +230,7 @@ const { title, fancyJsHelper } = Astro.props;
 <!-- -->
 ```
 
-<ReadMore>Learn more about Astro’s Markdown and MDX support in our [Markdown/MDX guide](/en/guides/markdown-content/).</ReadMore>
-
-### Using TypeScript with layouts
-
-Any astro layout can be modified to introduce typesafety & autocompletion by providing the types for your props:
-
-```astro ins={2-7} title="src/components/MyLayout.astro"
----
-interface Props { 
-	title: string;
-  description: string;
-  publishDate: string;
-  viewCount: number;
-}
-const { title, description, publishDate, viewCount } = Astro.props;
----
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="description" content={description}>
-    <title>{title}</title>
-  </head>
-  <body>
-    <header>
-      <p>Published on {publishDate}</p>
-      <p>Viewed by {viewCount} folks</p>
-    </header>
-    <main>
-      <slot />
-    </main>
-  </body>
-</html>
-```
+<ReadMore>Learn more about Astro’s Markdown and MDX support in our [Markdown guide](/en/guides/markdown-content/).</ReadMore>
 
 ## Nesting Layouts
 
