@@ -44,7 +44,6 @@ export default [
 	{ text: 'Content collections', slug: 'guides/content-collections', key: 'guides/content-collections' },
 	{ text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
 	{ text: 'Add an RSS feed', slug: 'guides/rss', key: 'guides/rss' },
-	// { text: 'MDX', slug: 'guides/mdx-content', key: 'guides/mdx-content' },
 
 	{ text: 'Routes and Navigation', header: true, type: 'learn', key: 'routes' },
 	{ text: 'Routing', slug: 'guides/routing', key: 'guides/routing' },
