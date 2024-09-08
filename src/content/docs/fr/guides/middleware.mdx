@@ -7,16 +7,16 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import { Steps } from '@astrojs/starlight/components';
 import Since from '~/components/Since.astro';
 
-**Middleware** vous permet d'intercepter les demandes et les réponses et d'injecter des comportements de manière dynamique chaque fois qu'une page ou un point de terminaison est sur le point d'être rendu. Ce rendu a lieu au moment de la construction pour toutes les pages pré-rendues, mais il a lieu lorsque la route est demandée pour les pages rendues à la demande, rendant disponible [des fonctionnalités SSR supplémentaires telles que les cookies et les en-têtes](/fr/guides/server-side-rendering/#fonctions-de-rendu-à-la-demande).
+**Middleware** vous permet d'intercepter les demandes et les réponses et d'injecter des comportements de manière dynamique chaque fois qu'une page ou un point de terminaison est sur le point d'être rendu. Ce rendu a lieu au moment de la construction pour toutes les pages pré-rendues, mais il a lieu lorsque la route est demandée pour les pages rendues à la demande, rendant disponible [des fonctionnalités SSR supplémentaires telles que les cookies et les en-têtes](/fr/guides/server-side-rendering/#on-demand-rendering-features).
 
 Le middleware vous permet également de définir et de partager des informations spécifiques aux requêtes entre les points de terminaison et les pages en modifiant un objet `locals` disponible dans tous les composants Astro et les points de terminaison de l'API. Cet objet est disponible même lorsque ce middleware s'exécute au moment de la construction.
 
-## Utilisation basique
+## Utilisation basique \{#basic-usage\}
 
 <Steps>
 1. Créez `src/middleware.js|ts` (Alternativement, vous pouvez créer `src/middleware/index.js|ts`.)
 
-2. Dans ce fichier, exportez une fonction [`onRequest()`](/fr/reference/api-reference/#onrequest) à laquelle on peut passer un objet [`context`](#objet-context) et une fonction `next()`. Il ne doit pas s'agir d'une exportation par défaut.
+2. Dans ce fichier, exportez une fonction [`onRequest()`](/fr/reference/api-reference/#onrequest) à laquelle on peut passer un objet [`context`](#the-context-object) et une fonction `next()`. Il ne doit pas s'agir d'une exportation par défaut.
 
     ```js title="src/middleware.js"
     export function onRequest (context, next) {
@@ -40,13 +40,13 @@ Le middleware vous permet également de définir et de partager des informations
     ```
 </Steps>
 
-### Objet `context`
+### Objet `context` \{#the-context-object\}
 
-L'objet [`context`](/fr/reference/api-reference/#contexte-du-point-de-terminaison) inclut des informations à mettre à disposition d'autres middleware, routes API et routes `.astro` pendant le processus de rendu.
+L'objet [`context`](/fr/reference/api-reference/#endpoint-context) inclut des informations à mettre à disposition d'autres middleware, routes API et routes `.astro` pendant le processus de rendu.
 
 C'est un argument optionnel passé à `onRequest()` qui peut contenir l'objet `locals` ainsi que toutes les propriétés additionnelles à partager pendant le rendu.Par exemple, l'objet `context` peut inclure les cookies utilisés pour l'authentification.
 
-### Stocker des données dans `context.locals`
+### Stocker des données dans `context.locals` \{#storing-data-in-contextlocals\}
 
 `context.locals` est un objet pouvant être manipulé dans le middleware. 
 
@@ -94,7 +94,7 @@ const orders = Array.from(Astro.locals.orders.entries());
 La valeur de `locals` ne peut pas être modifiée à l'exécution. Cela risquerait d'effacer toutes les informations stockées par l'utilisateur.  En mode `dev`, Astro effectue des vérifications et lèvera une erreur si `locals` est surchargé.
 :::
 
-### Exemple : Supprimer des informations sensibles
+### Exemple : Supprimer des informations sensibles \{#example-redacting-sensitive-information\}
 
 L'exemple ci-dessous utilise un middleware pour remplacer "PRIVATE INFO" par le mot "REDACTED" afin de vous permettre d'afficher le code HTML modifié sur votre page :
 
@@ -111,7 +111,7 @@ export const onRequest = async (context, next) => {
 };
 ```
 
-### Type de middleware
+### Type de middleware \{#middleware-types\}
 
 Vous pouvez importer et utiliser la fonction utilitaire `defineMiddleware()` pour bénéficier de la sécurité de type :
 
@@ -155,7 +155,7 @@ declare namespace App {
 
 Ensuite, dans le fichier du middleware, vous pouvez tirer parti de l'autocomplétion et de la sécurité des types.
 
-## Enchaînement middleware
+## Enchaînement middleware \{#chaining-middleware\}
 
 Plusieurs intergiciels peuvent être reliés dans un ordre précis à l'aide de [`séquence()`](/fr/reference/api-reference/#sequence) :
 
@@ -197,13 +197,13 @@ auth response
 validation response
 ```
 
-## Réécriture
+## Réécriture \{#rewriting\}
 
 <p><Since v="4.13.0" /></p>
 
-L'`APIContext` expose une méthode appelée `rewrite()` qui fonctionne de la même manière que [Astro.rewrite](/fr/guides/routing/#réécritures).
+L'`APIContext` expose une méthode appelée `rewrite()` qui fonctionne de la même manière que [Astro.rewrite](/fr/guides/routing/#rewrites).
 
-Utilisez `context.rewrite()` dans un middleware pour afficher le contenu d'une autre page sans [rediriger](/fr/guides/routing/#redirections-dynamiques) votre visiteur vers une nouvelle page. Cela déclenchera une nouvelle phase d'affichage, entraînant la ré-exécution de tout middleware.
+Utilisez `context.rewrite()` dans un middleware pour afficher le contenu d'une autre page sans [rediriger](/fr/guides/routing/#dynamic-redirects) votre visiteur vers une nouvelle page. Cela déclenchera une nouvelle phase d'affichage, entraînant la ré-exécution de tout middleware.
 
 ```js title="src/middleware.js"
 import { isLoggedIn } from "~/auth.js"
@@ -245,7 +245,7 @@ export function onRequest (context, next) {
 
 La fonction `next()` accepte la même charge utile que [la fonction `Astro.rewrite()`](/fr/reference/api-reference/#astrorewrite). L'emplacement du chemin de réécriture peut être fourni sous la forme d'une chaîne, d'une URL ou d'une `Request`.
 
-Quand vous avez plusieurs fonctions middleware enchaînées via [sequence()](#enchaînement-middleware), soumettre un chemin à `next()` réécrira la `Request` en place et le middleware ne s'exécutera pas à nouveau. Le middleware suivant dans la chaîne recevra la nouvelle `Request` avec son `context` mis à jour :
+Quand vous avez plusieurs fonctions middleware enchaînées via [sequence()](#chaining-middleware), soumettre un chemin à `next()` réécrira la `Request` en place et le middleware ne s'exécutera pas à nouveau. Le middleware suivant dans la chaîne recevra la nouvelle `Request` avec son `context` mis à jour :
 
 ```js title="src/middleware.js"
 // L'URL actuel est https://example.com/blog
@@ -270,7 +270,7 @@ async function second(context, next) {
 export const onRequest = sequence(first, second);
 ```
 
-## Pages d'erreur
+## Pages d'erreur \{#error-pages\}
 
 Le middleware tentera de s'exécuter pour toutes les pages rendues à la demande, même lorsqu'un itinéraire correspondant ne peut être trouvé. Cela inclut la page 404 par défaut (vide) d'Astro et toutes les pages 404 personnalisées. Cependant, c'est à l'[adaptateur](/fr/guides/server-side-rendering/) de décider si ce code s'exécute. Certains adaptateurs peuvent servir une page d'erreur spécifique à la plate-forme à la place.
 

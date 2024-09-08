@@ -7,16 +7,16 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import { Steps } from '@astrojs/starlight/components';
 import Since from '~/components/Since.astro';
 
-**中间件**允许你拦截请求和响应，并在即将渲染页面或端点时动态注入行为。对于所有预渲染的页面，这种渲染发生在构建时，但对于按需渲染的页面，这种渲染发生在请求路由时，这时可以使用 [额外的 SSR 功能如 cookie 和标头](/zh-cn/guides/server-side-rendering/#按需渲染功能特性)。
+**中间件**允许你拦截请求和响应，并在即将渲染页面或端点时动态注入行为。对于所有预渲染的页面，这种渲染发生在构建时，但对于按需渲染的页面，这种渲染发生在请求路由时，这时可以使用 [额外的 SSR 功能如 cookie 和标头](/zh-cn/guides/server-side-rendering/#on-demand-rendering-features)。
 
 这也允许你通过修改在所有 Astro 组件和 API 端点中可用的 `locals` 对象，设置和共享跨端点和页面的请求特定信息。即使在构建时运行这个中间件时，这个对象也是可用的。
 
-## 基本用法
+## 基本用法 \{#basic-usage\}
 
 <Steps>
 1. 创建 `src/middleware.js|ts`（或者，你也可以创建 `src/middleware/index.js|ts`）
 
-2. 在这个文件中，导出一个接收 [`context` 对象](#context-对象) 的 [`onRequest()`](/zh-cn/reference/api-reference/#onrequest) 函数。注意这里不能是默认导出。
+2. 在这个文件中，导出一个接收 [`context` 对象](#the-context-object) 的 [`onRequest()`](/zh-cn/reference/api-reference/#onrequest) 函数。注意这里不能是默认导出。
 
     ```js title="src/middleware.js"
     export function onRequest (context, next) {
@@ -40,17 +40,17 @@ import Since from '~/components/Since.astro';
     ```
 </Steps>
 
-### `context` 对象
+### `context` 对象 \{#the-context-object\}
 
-[`context`](/zh-cn/reference/api-reference/#端点上下文) 对象包含需要对其他中间件、API 路由和 `.astro` 路由在渲染过程中可用的信息。
+[`context`](/zh-cn/reference/api-reference/#endpoint-context) 对象包含需要对其他中间件、API 路由和 `.astro` 路由在渲染过程中可用的信息。
 
 它是一个传入 `onRequest()` 的可选参数，可能包含 `locals` 对象以及其他在渲染期间共享的任何属性。例如，`context` 对象可能包含用于认证的 cookies。
 
-### 在 `context.locals` 中存储数据
+### 在 `context.locals` 中存储数据 \{#storing-data-in-contextlocals\}
 
 `context.locals` 是一个可以在中间件中操作、包含来自 `Response` 的数据的对象。
 
-这个 `locals` 对象在请求处理过程中被传递，并作为 [`APIContext`](/zh-cn/reference/api-reference/#端点上下文) 和 [`AstroGlobal`](/zh-cn/reference/api-reference/#astrolocals) 的属性可用。这使得中间件，API 路由和 `.astro` 页面之间可以共享数据。这对于在渲染步骤中存储请求特定的数据（例如用户数据）很有用。
+这个 `locals` 对象在请求处理过程中被传递，并作为 [`APIContext`](/zh-cn/reference/api-reference/#endpoint-context) 和 [`AstroGlobal`](/zh-cn/reference/api-reference/#astrolocals) 的属性可用。这使得中间件，API 路由和 `.astro` 页面之间可以共享数据。这对于在渲染步骤中存储请求特定的数据（例如用户数据）很有用。
 
 :::tip[集成属性]
 [集成](/zh-cn/guides/integrations-guide/)可能会在 `locals` 对象中设置属性和提供一些功能。如果你在使用一个集成，检查它的文档并确认你没有覆盖掉它的属性或者在做重复的工作。
@@ -94,7 +94,7 @@ const orders = Array.from(Astro.locals.orders.entries());
 `locals` 的值不能在运行时被覆盖。这样做会有清除用户存储的所有信息的风险。在 `dev` 模式下 Astro 会进行检查，如果 `locals` 被覆盖将会抛出错误。
 :::
 
-## 示例：删除敏感信息
+## 示例：删除敏感信息 \{#example-redacting-sensitive-information\}
 
 下面的示例使用中间件将"私人信息"替换为"已删除"，以便你在页面上渲染修改后的 HTML：
 
@@ -111,7 +111,7 @@ export const onRequest = async (context, next) => {
 };
 ```
 
-## 中间件类型
+## 中间件类型 \{#middleware-types\}
 
 你可以导入并使用 `defineMiddleware()` 实用函数来提供类型安全：
 
@@ -156,7 +156,7 @@ declare namespace App {
 
 然后，在中间件中，你就可以使用自动补全和类型安全了。
 
-## 中间件链式调用
+## 中间件链式调用 \{#chaining-middleware\}
 
 可以使用 [`sequence()`](/zh-cn/reference/api-reference/#sequence) 按指定顺序连接多个中间件：
 
@@ -198,13 +198,13 @@ export const onRequest = sequence(validation, auth, greeting);
 验证响应
 ```
 
-## 重写
+## 重写 \{#rewriting\}
 
 <p><Since v="4.13.0" /></p>
 
-`APIContext` 中暴露了一个名为 `rewrite()` 的方法，它的工作方式与 [Astro.rewrite](/zh-cn/guides/routing/#重写) 相同。
+`APIContext` 中暴露了一个名为 `rewrite()` 的方法，它的工作方式与 [Astro.rewrite](/zh-cn/guides/routing/#rewrites) 相同。
 
-使用 `context.rewrite()` 在中间件中显示不同页面的内容，而不会将访问者 [重定向](/zh-cn/guides/routing/#动态重定向) 到新页面。这将触发一个新的渲染阶段，导致任何中间件被重新执行。
+使用 `context.rewrite()` 在中间件中显示不同页面的内容，而不会将访问者 [重定向](/zh-cn/guides/routing/#dynamic-redirects) 到新页面。这将触发一个新的渲染阶段，导致任何中间件被重新执行。
 
 ```js title="src/middleware.js"
 import { isLoggedIn } from "~/auth.js"
@@ -246,7 +246,7 @@ export function onRequest (context, next) {
 
 `next` 函数接受与 [`Astro.rewrite()` 函数](/zh-cn/reference/api-reference/#astrorewrite) 相同的参数。重写路径的位置可以作为字符串、URL 或 `Request` 提供。
 
-当你有多个通过 [sequence()](#中间件链式调用) 链接的中间件函数时，向 `next()` 提交一个路径将在原地重写 `Request`，并且中间件不会再次执行。链中的下一个中间件函数将接收具有其更新的 `context` 的新 `Request`：
+当你有多个通过 [sequence()](#chaining-middleware) 链接的中间件函数时，向 `next()` 提交一个路径将在原地重写 `Request`，并且中间件不会再次执行。链中的下一个中间件函数将接收具有其更新的 `context` 的新 `Request`：
 
 ```js title="src/middleware.js"
 // 当前 URL 是 https://example.com/blog
@@ -271,7 +271,7 @@ async function second(context, next) {
 export const onRequest = sequence(first, second);
 ```
 
-## 错误页面
+## 错误页面 \{#error-pages\}
 
 即使找不到匹配的路由，中间件也会尝试为所有按需渲染的页面运行。这包括 Astro 的默认（空白）404 页面和任何自定义 404 页面。然而，是否运行该代码取决于[适配器](/zh-cn/guides/server-side-rendering/)。一些适配器可能会提供特定平台的错误页面。
 
