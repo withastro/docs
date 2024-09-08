@@ -6,6 +6,7 @@ import remarkHeadingId from 'remark-heading-id';
 import { visit } from 'unist-util-visit';
 import Slugger from 'github-slugger';
 import MagicString from 'magic-string';
+import glob from 'fast-glob';
 
 const lunariaStatus = JSON.parse(await fs.promises.readFile('dist/lunaria/status.json', 'utf8'));
 
@@ -159,8 +160,11 @@ async function updateLinks(fileName, selfName) {
 	}
 }
 
+const linksToUpdate = await glob('src/content/docs/**/*.{md,mdx}');
+
 await Promise.all(
-	[...translatedFiles].map(async ([fileName, link]) => {
-		await updateLinks(fileName, link.local);
+	linksToUpdate.map(async (fileName) => {
+		const link = fileName.slice('src/content/docs'.length, fileName.lastIndexOf('.')) + '/';
+		await updateLinks(fileName, link);
 	})
 );
