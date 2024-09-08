@@ -1,0 +1,300 @@
+---
+title: On-demand Rendering
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+import RecipeLinks from '~/components/RecipeLinks.astro';
+import IntegrationsNav from '~/components/IntegrationsNav.astro';
+
+Astro allows you to choose **on-demand rendering** for some, or all of your pages and endpoints. 
+
+Generating HTML pages on the server when requested and sending them to the client is also known as **server-side rendering (SSR)**. An **adapter** is used to run your project on the server and handle these requests.
+
+## Official Adapters
+
+Astro maintains official adapters for [Node.js](https://nodejs.org/), [Vercel](https://vercel.com/), [Netlify](https://www.netlify.com/), and [Cloudflare](https://www.cloudflare.com/). 
+
+Find even more [community-maintained adapters](https://astro.build/integrations/?search=&categories%5B%5D=adapters) (e.g. Deno, SST, AWS) in our integrations directory. 
+
+<IntegrationsNav category="adapter"/>
+
+### Add an Adapter
+
+To render any of your pages on demand, for any `output` mode, you need to add an **adapter**.
+
+Each adapter allows Astro to output a script that runs your project on a specific *runtime* (e.g. Netlify, Cloudflare): the environment that runs code on the server to generate pages when they are requested.
+
+You can find both [official and community adapters in our integrations directory](https://astro.build/integrations/?search=&categories%5B%5D=adapters). Choose the one that corresponds to your [deployment environment](/en/guides/deploy/).
+
+#### `astro add` install
+
+You can add any of the [official adapters maintained by Astro](/en/guides/integrations-guide/#official-integrations) with the following `astro add` command. This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step. 
+
+For example, to install the Netlify adapter, run:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add net
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+#### Manual Install
+
+You can also add an adapter manually by installing the package and updating `astro.config.mjs` yourself.
+
+For example, to install the Netlify adapter manually:
+
+<Steps>
+1. Install the adapter to your project dependencies using your preferred package manager:
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm install @astrojs/netlify
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm add @astrojs/netlify
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn add @astrojs/netlify
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+2. [Add the adapter](/en/reference/configuration-reference/#adapter) to your `astro.config.mjs` file's import and default export, along with your desired `output` mode:
+
+    ```js ins={3,7} {6}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import netlify from '@astrojs/netlify';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: netlify(),
+    });
+    ```
+
+    Note that different adapters may also have different configuration settings. Read each adapter's documentation, and apply any necessary config options to your chosen adapter in `astro.config.mjs`
+</Steps>
+
+
+## Opting out of prerendering in `static` mode
+
+For a mostly static site configured as `output: static` (Astro's default), add `export const prerender = false` to any files that should be server-rendered on demand:
+
+```js title="src/pages/randomnumber.js" {1}
+export const prerender = false;
+
+export async function GET() {
+  let number = Math.random();
+  return new Response(
+    JSON.stringify({
+      number,
+      message: `Here's a random number: ${number}`,
+    }),
+  );
+}
+```
+
+## Opting in to prerendering in `server` mode
+
+With `output: server` configured, add `export const prerender = true` to any page or route to prerender a static page or endpoint:
+
+```astro title="src/pages/mypage.astro" {2}
+---
+export const prerender = true;
+// ...
+---
+<html>
+  <!-- Static, pre-rendered page here... -->
+</html>
+```
+
+```mdx title="src/pages/mypage.mdx" {5}
+---
+layout: '../layouts/markdown.astro'
+title: 'My page'
+---
+export const prerender = true;
+
+# This is my static, pre-rendered page
+```
+
+```js title="src/pages/myendpoint.js" {1}
+export const prerender = true;
+
+export async function GET() {
+  return new Response(
+    JSON.stringify({
+      message: `This is my static endpoint`,
+    }),
+  );
+}
+```
+
+## On-demand rendering features
+
+### HTML streaming
+
+With HTML streaming, a document is broken up into chunks, sent over the network in order, and rendered on the page in that order. Astro uses HTML streaming in on-demand rendering to send each component to the browser as it renders them. This makes sure the user sees your HTML as fast as possible, although network conditions can cause large documents to be downloaded slowly, and waiting for data fetches can block page rendering.
+
+<RecipeLinks slugs={["en/recipes/streaming-improve-page-performance"]}/>
+
+:::caution
+Features that modify the [Response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header) are only available at the **page level**. (You can't use them inside of components, including layout components.) By the time Astro runs your component code, it has already sent the Response headers and they cannot be modified.
+
+:::
+
+### Cookies
+
+A page or API endpoint rendered on demand can check, set, get, and delete cookies.
+
+The example below updates the value of a cookie for a page view counter:
+
+```astro title="src/pages/index.astro" {6,7,11}
+---
+export const prerender = false; // Not needed in 'server' mode
+
+let counter = 0
+
+if (Astro.cookies.has("counter")) {
+  const cookie = Astro.cookies.get("counter")
+	counter = cookie.number() + 1
+}
+
+Astro.cookies.set("counter",counter)
+---
+<html>
+  <h1>Counter = {counter}</h1>
+</html>
+```
+
+See more details about [`Astro.cookies` and the `AstroCookie` type](/en/reference/api-reference/#astrocookies) in the API reference.
+
+### `Response`
+
+[`Astro.response`](/en/reference/api-reference/#astroresponse) is a standard [`ResponseInit`](https://developer.mozilla.org/en-US/docs/Web/API/Response/Response#options) object. It can be used to set the response status and headers.
+
+The example below sets a response status and status text for a product listing page when the product does not exist:
+
+```astro title="src/pages/my-product.astro" {10,11}
+---
+export const prerender = false; // Not needed in 'server' mode
+
+import { getProduct } from '../api';
+
+const product = await getProduct(Astro.params.id);
+
+// No product found
+if (!product) {
+  Astro.response.status = 404;
+  Astro.response.statusText = 'Not found';
+}
+---
+<html>
+  <!-- Page here... -->
+</html>
+```
+
+#### `Astro.response.headers`
+
+You can set headers using the `Astro.response.headers` object:
+
+```astro title="src/pages/index.astro" {4}
+---
+export const prerender = false; // Not needed in 'server' mode
+
+Astro.response.headers.set('Cache-Control', 'public, max-age=3600');
+---
+<html>
+  <!-- Page here... -->
+</html>
+```
+
+#### Return a `Response` object
+
+You can also return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object directly from any page using on-demand rendering. 
+
+The example below returns a 404 on a dynamic page after looking up an id in the database:
+
+```astro title="src/pages/[id].astro" {10-13}
+---
+export const prerender = false; // Not needed in 'server' mode
+
+import { getProduct } from '../api';
+
+const product = await getProduct(Astro.params.id);
+
+// No product found
+if (!product) {
+  return new Response(null, {
+    status: 404,
+    statusText: 'Not found'
+  });
+}
+---
+<html>
+  <!-- Page here... -->
+</html>
+```
+
+### `Request`
+
+`Astro.request` is a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request.
+
+You can access additional information from this object for pages that are not statically-generated.
+
+#### `Astro.request.headers`
+
+The headers for the request are available on `Astro.request.headers`. This works like the browser's [`Request.headers`](https://developer.mozilla.org/en-US/docs/Web/API/Request/headers). It is a [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers) object where you can retrieve headers such as the cookie.
+
+```astro title="src/pages/index.astro" {4}
+---
+export const prerender = false; // Not needed in 'server' mode
+
+const cookie = Astro.request.headers.get('cookie');
+// ...
+---
+<html>
+  <!-- Page here... -->
+</html>
+```
+
+#### `Astro.request.method`
+
+The HTTP method used in the request is available as `Astro.request.method`. This works like the browser's [`Request.method`](https://developer.mozilla.org/en-US/docs/Web/API/Request/method). It returns the string representation of the HTTP method used in the request.
+
+```astro title="src/pages/index.astro" {4}
+---
+export const prerender = false; // Not needed in 'server' mode
+
+console.log(Astro.request.method) // GET (when navigated to in the browser)
+---
+```
+
+See more details about [`Astro.request`](/en/reference/api-reference/#astrorequest) in the API reference.
+
+### Server Endpoints
+
+A server endpoint, also known as an **API route**, is a special function exported from a `.js` or `.ts` file within the `src/pages/` folder. A powerful feature of server-side rendering on demand, API routes are able to securely execute code on the server.
+
+The function takes an [endpoint context](/en/reference/api-reference/#endpoint-context) and returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response). 
+
+To learn more, see our [Endpoints Guide](/en/guides/endpoints/#server-endpoints-api-routes).

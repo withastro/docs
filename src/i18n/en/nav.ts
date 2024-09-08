@@ -35,7 +35,7 @@ export default [
 	{ text: 'Pages', slug: 'basics/astro-pages', key: 'basics/astro-pages' },
 	{ text: 'Layouts', slug: 'basics/layouts', key: 'basics/layouts' },
 	{ text: 'Astro Template Syntax', slug: 'basics/astro-syntax', key: 'basics/astro-syntax' },
-	{ text: 'Rendering Modes', slug: 'basics/rendering-modes', key: 'basics/rendering-modes' },
+	{ text: 'Rendering Modes', slug: 'basics/rendering', key: 'basics/rendering' },
 	{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
 	{ text: 'Integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
 
