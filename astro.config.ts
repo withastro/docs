@@ -6,6 +6,7 @@ import { makeSidebar } from './config/sidebar';
 
 import rehypeSlug from 'rehype-slug';
 import remarkSmartypants from 'remark-smartypants';
+import remarkHeadingId from 'remark-heading-id';
 
 import { sitemap } from './integrations/sitemap';
 import { rehypeAutolink } from './plugins/rehype-autolink';
@@ -79,6 +80,7 @@ export default defineConfig({
 			[remarkSmartypants, { dashes: false }],
 			// Add our custom plugin that marks links to fallback language pages
 			remarkFallbackLang(),
+			remarkHeadingId,
 		],
 		rehypePlugins: [
 			rehypeSlug,
