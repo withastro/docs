@@ -14,7 +14,7 @@ import Since from '~/components/Since.astro'
 
 ## 为什么是 MDX？
 
-MDX 允许你在 Astro 项目的 [Markdown 内容中使用变量、JSX 表达式和组件](/zh-cn/guides/markdown-content/#mdx-独有特性)。如果你有现有的用 MDX 编写的内容，这个集成允许你把这些文件带到你的 Astro 项目中。
+MDX 允许你在 Astro 项目的 Markdown 内容中使用变量、JSX 表达式和组件。如果你有现有的用 MDX 编写的内容，这个集成允许你把这些文件带到你的 Astro 项目中。
 
 ## 安装
 
@@ -83,13 +83,126 @@ export default defineConfig({
 
 ## 使用
 
-通过 Astro MDX 集成，你可以在你的 `src/pages/` 目录下添加 `.mdx` 文件来[添加 MDX 页面到你的项目](/zh-cn/guides/markdown-content/#markdown-和-mdx-页面)。你也可以[导入 `.mdx` 文件](/zh-cn/guides/markdown-content/#导入-markdown)到 `.astro` 文件。
-
-Astro 的 MDX 集成为标准的 MDX 增加了额外的功能，包括 Markdown 风格的 frontmatter。这允许你使用大部分 Astro 的内置 Markdown 功能，比如一个[特殊的 frontmatter`layout` 属性](/zh-cn/guides/markdown-content/#frontmatter-layout)。
-
-在我们的 [Markdown & MDX 指南](/zh-cn/guides/markdown-content/)中可以看到 MDX 在 Astro 中的工作原理和例子。
-
 访问 [MDX 文档](https://mdxjs.com/docs/what-is-mdx/)，了解使用标准 MDX 功能的情况。
+
+## Astro 中的 MDX
+
+添加 MDX 集成可以使用 JSX 变量、表达式和组件来增强你的 Markdown 编写体验。
+
+它还为标准 MDX 添加了额外的功能，包括对 MDX 中 Markdown 风格的 frontmatter 的支持。这允许你使用大部分 [Astro 内置的 Markdown 功能](/zh-cn/guides/markdown-content/)。
+
+`.mdx` 文件必须使用 [MDX 语法](https://mdxjs.com/docs/what-is-mdx/#mdx-syntax) 而不能使用像 Astro 那样类 HTML 的语法编写。
+
+### 在 MDX 中使用导出的变量
+
+MDX 支持使用 `export` 语句将变量添加到 MDX 内容，或者将数据导出给需要引入它的组件。
+
+例如，你可以从 MDX 页面或组件导出 `title` 字段以用作 `{JSX 表达式}` 的标题：
+
+```mdx title="/src/pages/posts/post-1.mdx"
+export const title = '我的第一篇 MDX 文章'
+
+# {title}
+```
+
+或者，你可以使用 `import` 和 `import.meta.glob()` 语句在页面中使用导出的 `title`：
+
+```astro title="src/pages/index.astro"
+---
+const matches = await import.meta.glob('./posts/*.mdx', { eager: true });
+const posts = Object.values(posts);
+---
+
+{posts.map(post => <p>{post.title}</p>)}
+```
+
+#### 导出的属性
+
+当使用 `import` 语句或 `import.meta.glob()` 时，`.astro` 组件可以使用以下属性：
+
+- **`file`** - 文件的绝对路径（例如：`/home/user/projects/.../file.mdx`）。
+- **`url`** - 页面的 URL（例如：`/zh-cn/guides/markdown-content`）。
+- **`frontmatter`** - 包含了文件的 YAML frontmatter 中所指定的任何数据。
+- **`getHeadings()`** - 一个异步函数，用于返回文件中所有标题（`<h1>` 到 `<h6>`）的数组，类型为：`{ depth: number; slug: string; text: string }[]`。每个标题的 `slug` 都对应了给定标题生成的 ID，可用于锚链接。
+- **`<Content />`** - 返回文件完整渲染内容的组件。
+- **（任意的 `export` 值）** - MDX 文件还可以使用 `export` 语句以导出数据。
+
+### 在 MDX 中使用 Frontmatter 变量
+
+Astro MDX 集成默认支持在 MDX 中使用 frontmatter。在 Markdown 文件中添加 frontmatter 属性，这些变量可在模板中以及在导入文件时以命名属性的形式访问。
+
+```mdx title="/src/pages/posts/post-1.mdx"
+---
+layout: '../../layouts/BlogPostLayout.astro'
+title: '我的第一篇 MDX 文章'
+---
+
+# {frontmatter.title}
+```
+
+### 在 MDX 中使用组件
+
+安装 MDX 集成后，你可以在 MDX (`.mdx`) 文件中导入并使用 [Astro 组件](/zh-cn/basics/astro-components/)和 [UI 框架组件](/zh-cn/guides/framework-components/#使用框架组件)。就像在任何其他 Astro 组件中使用它们一样。
+
+别忘了在你的 UI 框架组件上添加 `client:directive`，如果需要的话！
+
+在 [MDX 文档](https://mdxjs.com/docs/what-is-mdx/#esm)中查看有关使用导入和导出语句的更多示例。
+
+```mdx title="src/pages/about.mdx" {5-6} /<.+\/>/
+---
+layout: ../layouts/BaseLayout.astro
+title: 关于我
+---
+import Button from '../components/Button.astro';
+import ReactCounter from '../components/ReactCounter.jsx';
+
+我住在 **火星** 上，但是随时可以 <Button title="联系我" />。
+
+这是我的计数器组件，它在 MDX 中工作：
+
+<ReactCounter client:load />
+```
+
+#### 使用导入的 MDX 自定义组件
+
+渲染导入的 MDX 内容时，可以通过 `components` 属性传递 [自定义组件](#将自定义组件分配给-HTML-元素)。
+
+```astro title="src/pages/page.astro" "components={{...components, h1: Heading }}"
+---
+import { Content, components } from '../content.mdx';
+import Heading from '../Heading.astro';
+---
+<!-- Creates a custom <h1> for the # syntax, _and_ applies any custom components defined in `content.mdx` -->
+<Content components={{...components, h1: Heading }} />
+```
+
+:::note
+Custom components defined and exported in an MDX file must be imported and then passed back to the `<Content />` component via the `components` property.
+:::
+
+#### Assigning Custom Components to HTML elements
+
+With MDX, you can map Markdown syntax to custom components instead of their standard HTML elements. This allows you to write in standard Markdown syntax, but apply special component styling to selected elements.
+
+Import your custom component into your `.mdx` file, then export a `components` object that maps the standard HTML element to your custom component:
+
+```mdx title="src/pages/about.mdx"
+import Blockquote from '../components/Blockquote.astro';
+export const components = {blockquote: Blockquote}
+
+> This quote will be a custom Blockquote
+```
+
+```astro title="src/components/Blockquote.astro"
+---
+const props = Astro.props;
+---
+<blockquote {...props} class="bg-blue-50 p-4">
+  <span class="text-4xl text-blue-600 mb-2">“</span>
+  <slot /> <!-- Be sure to add a `<slot/>` for child content! -->
+</blockquote>
+```
+Visit the [MDX website](https://mdxjs.com/table-of-components/) for a full list of HTML elements that can be overwritten as custom components.
 
 ## 配置
 
