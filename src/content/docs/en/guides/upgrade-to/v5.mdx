@@ -18,9 +18,6 @@ If completed, would any of these cause a breaking change and need adding below?
 - (PLT-1938) Refactor Astro Compiler
 - (PLT-1961) Go through TODOs in the codebase
 - (PLT-1993) Allow new URL in integration APIs
-- (PLT-2149) Allow customizing the redirect page
-- (PLT-2151) Redesign 404 / 500 special-cased components
-- (PLT-2171) Make `build.client` and `build.server` predictable
 - (PLT-2315) Remove collection item types
 - (PLT-2342) prerender on `RouteData` is weird
 
@@ -525,9 +522,51 @@ Astro 5 updates the Astro config loading flow to ignore processing locally-linke
 
 This change was made as the previous behaviour caused confusion among integration authors who test against a package that worked locally, but not when published. It also restricted using CJS-only dependencies because Vite required the code to be ESM. Therefore, Astro's behaviour is now changed to ignore processing any type of dependencies by Vite.
 
+### Changed: TypeScript configuration (PLT2479 - alpha.4)
+
+<SourcePR number="11859" title="better tsconfig"/>
+
+In Astro v4.x, Astro relied on a `src/env.d.ts` file for type inferencing and defining modules for features that relied on generated types.
+
+Astro 5.0 instead uses a `.astro/types/d.ts` file for type inferencing, and now recommends setting `include` and `exclude` in `tsconfig.json` to benefit from Astro types and avoid checking built files. Running `astro sync` no longer creates, nor updates, `src/env.d.ts` as it is not required for type-checking standard Astro projects.
+
+#### What should I do?
+
+To update your project to Astro's recommended TypeScript settings, please add the following `include` and `exclude` properties to your existing `tsconfig.json`:
+
+```ts ins={3,4} title="tsconfig.json"
+{
+  "extends": "astro/tsconfigs/base",
+  "include": ["**/*", ".astro/types.d.ts"],
+  "exclude": ["dist"]
+}
+```
+
+Note that `src/env.d.ts` is only necessary if you have added custom or if you're not using a `tsconfig.json` file.
+
 #### What should I do?
 
 In most cases, make sure your locally-linked dependencies are built to JS before running the Astro project, and the config loading should work as before.
+
+### Changed: `build.client` and `build.server` resolve behaviour  (PLT2171 - alpha.5)
+
+<SourcePR number="11916" title="rework supportedAstroFeatures"/>
+
+In Astro v4.x, the `build.client` and `build.server` options were documented to resolve relatively from the `outDir` option, but it didn't always work as expected.
+
+Astro 5.0 fixes the behaviour to correctly resolve from the `outDir` option. For example, if `outDir` is set to `./dist/nested/`, then by default:
+
+- `build.client` will resolve to `<root>/dist/nested/client/`
+- `build.server` will resolve to `<root>/dist/nested/server/`
+
+Previously the values were incorrectly resolved:
+
+- `build.client` was resolved to `<root>/dist/nested/dist/client/`
+- `build.server` was resolved to `<root>/dist/nested/dist/server/`
+
+#### What should I do?
+
+If you were relying on the previous build paths, make sure that your project code is updated to the new build paths.
 
 ### Changed: `entryPoints` type inside the hook `astro:build:ssr` (PLT2338)
 
@@ -577,28 +616,15 @@ if (route.distURL) {
 }
 ```
 
-### Changed: TypeScript configuration (PLT2479)
+### Changed: Merge `static` and `hybrid` (PLT2434)
 
-<SourcePR number="11859" title="better tsconfig"/>
+<SourcePR number="11824" title="rework supportedAstroFeatures"/>
 
-In Astro v4.x, Astro relied on a `src/env.d.ts` file for type inferencing and defining modules for features that relied on generated types.
-
-Astro 5.0 instead uses a `.astro/types/d.ts` file for type inferencing, and now recommends setting `include` and `exclude` in `tsconfig.json` to benefit from Astro types and avoid checking built files. Running `astro sync` no longer creates, nor updates, `src/env.d.ts` as it is not required for type-checking standard Astro projects.
+Static and hybrid have been merged
 
 #### What should I do?
 
-To update your project to Astro's recommended TypeScript settings, please add the following `include` and `exclude` properties to your existing `tsconfig.json`:
-
-```ts ins={3,4} title="tsconfig.json"
-{
-  "extends": "astro/tsconfigs/base",
-  "include": ["**/*", ".astro/types.d.ts"],
-  "exclude": ["dist"]
-}
-```
-
-Note that `src/env.d.ts` is only necessary if you have added custom or if you're not using a `tsconfig.json` file.
-
+Stuff!
 
 ### Changed: Rework `supportedAstroFeatures.assets` (PLT-989) 
 
@@ -610,21 +636,9 @@ Note that `src/env.d.ts` is only necessary if you have added custom or if you're
 
 Stuff!
 
-#### What should I do?
-
-Stuff!
-
 ### Changed: auto-inject `<meta charset="utf-8">` by default for every astro/md/mdx/html (PLT1057)
 
 Decide if charset=utf-8 should not be set for md/mdx pages by default
-
-#### What should I do?
-
-Stuff!
-
-### Changed: Merge `static` and `hybrid` (PLT2434)
-
-Static and hybrid have been merged
 
 #### What should I do?
 
@@ -706,17 +720,6 @@ export default function createIntegration() {
 }
 
 ```
-
-### Deprecated: `define:vars` (core) (PLT2145)
-
-In Astro v4.x,
-
-Astro v5.0 removes the directive
-
-
-#### What should I do?
-
-Choose a different value
 
 ## Removed
 
