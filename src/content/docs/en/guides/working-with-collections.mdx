@@ -60,7 +60,7 @@ Once queried, you can render Markdown and MDX entries to HTML using the `render(
 import { getEntry, render } from 'astro:content';
 
 const entry = await getEntry('blog', 'post-1');
-const { Content, headings } = await render();
+const { Content, headings } = await render(entry);
 ---
 <p>Published on: {entry.data.published.toDateString()}</p>
 <Content />
@@ -70,7 +70,7 @@ const { Content, headings } = await render();
 
 A component can also pass an entire collection entry as a prop.
 
-You can use the [`CollectionEntry`](/en/reference/api-reference/#collection-entry-type) utility to correctly type your components props using TypeScript.  This utility takes a string argument that matches the name of your collection schema, and will inherit all of the properties of that collection's schema.
+You can use the [`CollectionEntry`](/en/reference/api-reference/#collection-entry-type) utility to correctly type your components props using TypeScript. This utility takes a string argument that matches the name of your collection schema, and will inherit all of the properties of that collection's schema.
 
 ```astro title="src/components/BlogCard.astro" /CollectionEntry(?:<.+>)?/
 ---
@@ -98,14 +98,14 @@ If you are building a static website (Astro's default behavior), use the [`getSt
 
 Call `getCollection()` inside of `getStaticPaths()` to have your collection data available for building static routes. Then, create the individual URL paths using the `id` property of each content entry. Each page is passed the entire collection entry as a prop for [use in your page template](#using-content-in-astro-templates).
 
-```astro title="src/pages/posts/[slug].astro" "{ slug: post.id }" "{ post }"
+```astro title="src/pages/posts/[id].astro" "{ id: post.id }" "{ post }"
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 // 1. Generate a new path for every collection entry
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
   return posts.map(post => ({
-    params: { slug: post.id },
+    params: { id: post.id },
     props: { post },
   }));
 }
@@ -128,13 +128,13 @@ If your custom slugs contain the `/` character to produce URLs with multiple pat
 If you are building a dynamic website (using Astro's SSR support), you are not expected to generate any paths ahead of time during the build. Instead, your page should examine the request (using `Astro.request` or `Astro.params`) to find the `id` on-demand, and then fetch it using [`getEntry()`](/en/reference/api-reference/#getentry).
 
 
-```astro title="src/pages/posts/[slug].astro"
+```astro title="src/pages/posts/[id].astro"
 ---
-import { getEntry } from "astro:content";
+import { getEntry, render } from "astro:content";
 // 1. Get the slug from the incoming server request
 const { id } = Astro.params;
 if (id === undefined) {
-	throw new Error("id is required");
+	return Astro.redirect("/404");
 }
 // 2. Query for the entry directly using the request slug
 const post = await getEntry("blog", id);
