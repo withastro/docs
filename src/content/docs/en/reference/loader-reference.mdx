@@ -215,7 +215,7 @@ return {
 #### `refreshContextData`
 **Type**: `Record<string, unknown>`
 
-If the loader has been triggered by an integration, this may optionally contain extra data set by that integration. It is only set when the loader is triggered by an integration. See [integration support](#integration-support) for more information.
+If the loader has been triggered by an integration, this may optionally contain extra data set by that integration. It is only set when the loader is triggered by an integration. See the [`astro:server:setup`](/en/reference/integrations-reference/#astroserversetup) hook reference for more information.
 
 ```ts title=loader.ts {5-8}
 export function myLoader(options: { url: string }): Loader {
@@ -324,50 +324,3 @@ Clear all entries from the collection.
 **Type**: `(key: string) => boolean`
 
 Check if an entry exists in the store by its ID.
-
-
-## Integration support
-
-An integration can trigger an update to the content layer during `astro dev` using the `refreshContent` function passed to the [`astro:server:setup`](/en/reference/integrations-reference/#astroserversetup) hook. This can be used, for example, to register a webhook endpoint during dev, or to open a socket to a CMS to listen for changes.
-
-By default, `refreshContent` will refresh all collections. You can optionally pass a `loaders` property, which is an array of loader names. If provided, only collections that use those loaders will be refreshed. For example, A CMS integration could use this property to only refresh its own collections.
-
-You can also pass a `context` object to the loaders. This can be used to pass arbitrary data, such as the webhook body, or an event from the websocket. This data will be available in the loader's `refreshContextData` property.
-
-```ts title=my-integration.ts {19-22}
- {
-    name: 'my-integration',
-    hooks: {
-        'astro:server:setup': async ({ server, refreshContent }) => {
-            // Register a dev server webhook endpoint
-            server.middlewares.use('/_refresh', async (req, res) => {
-                if(req.method !== 'POST') {
-                  res.statusCode = 405
-                  res.end('Method Not Allowed');
-                  return
-                }
-                let body = '';
-                req.on('data', chunk => {
-                    body += chunk.toString();
-                });
-                req.on('end', async () => {
-                    try {
-                        const webhookBody = JSON.parse(body);
-                        await refreshContent({
-                          context: { webhookBody },
-                          loaders: ['my-loader']
-                        });
-                        res.writeHead(200, { 'Content-Type': 'application/json' });
-                        res.end(JSON.stringify({ message: 'Content refreshed successfully' }));
-                    } catch (error) {
-                        res.writeHead(500, { 'Content-Type': 'application/json' });
-                        res.end(JSON.stringify({ error: 'Failed to refresh content: ' + error.message }));
-                    }
-                });
-            });
-        }
-    }
-}
-```
-
-The loader can then access the `refreshContextData` property to get the webhook body. See the [`refreshContextData`](#refreshcontextdata) property for more information.
