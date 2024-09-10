@@ -14,7 +14,7 @@ import { Steps } from '@astrojs/starlight/components';
 **Content collections** are a powerful way to manage groups of similar content, such as blog posts. Collections help to organize your documents, validate your YAML frontmatter, and provide automatic TypeScript type-safety for all of your content (even if you don't write any TypeScript yourself).
 
 <PreCheck>
-  - Move your folder of blog posts into `src/content/`
+  - Move your folder of blog posts into `src/blog/`
   - Create a schema to define your blog post frontmatter
   - Use `getCollection()` to get blog post content and metadata
 </PreCheck>
@@ -38,11 +38,11 @@ To create your first blog post at `https://example.com/posts/post-1/`, you creat
 
 ## Pages vs Collections
 
-Even when using content collections, you will still use the `src/pages/` folder for individual pages, such as your About Me page. But, moving your blog posts to the special `src/content/` folder will allow you to use more powerful and performant APIs to generate your blog post index and display your individual blog posts.
+Even when using content collections, you will still use the `src/pages/` folder for individual pages, such as your About Me page. But, moving your blog posts outside of ths special folder will allow you to use more powerful and performant APIs to generate your blog post index and display your individual blog posts.
 
-At the same time, you'll receive better guidance and autocompletion in your code editor because you will have a **[schema](/en/guides/content-collections/#defining-a-collection-schema)** to define a common structure for each post that Astro will help you enforce. In your schema, you can specify when frontmatter properties are required, such as a description or an author, and which data type each property must be, such as a string or an array. This leads to catching many mistakes sooner, with descriptive error messages telling you exactly what the problem is.
+At the same time, you'll receive better guidance and autocompletion in your code editor because you will have a **[schema](/en/guides/defining-collections/#defining-the-collection-schema)** to define a common structure for each post that Astro will help you enforce. In your schema, you can specify when frontmatter properties are required, such as a description or an author, and which data type each property must be, such as a string or an array. This leads to catching many mistakes sooner, with descriptive error messages telling you exactly what the problem is.
 
-Read more about [Astro's content collections](/en/guides/content-collections/) in our guide, or get started with the instructions below to convert a basic blog from `src/pages/posts/` to `src/content/posts/`.
+Read more about [Astro's content collections](/en/guides/content-collections/) in our guide, or get started with the instructions below to convert a basic blog from `src/pages/posts/` to `src/data/blog/`.
 
 <Box icon="question-mark">
 ### Test your knowledge
@@ -102,48 +102,34 @@ The steps below show you how to extend the final product of the Build a Blog tut
     <PackageManagerTabs>
       <Fragment slot="npm">
       ```shell
-      # Upgrade to Astro v4.x
-      npm install astro@latest
-
-      # Example: upgrade the blog tutorial Preact integration
-      npm install @astrojs/preact@latest
+      # Upgrade Astro and official integrations together
+      npx @astrojs/upgrade
       ```
       </Fragment>
       <Fragment slot="pnpm">
       ```shell
-      # Upgrade to Astro v4.x
-      pnpm add astro@latest
-
-    # Example: upgrade the blog tutorial Preact integration
-      pnpm add @astrojs/preact@latest
+      # Upgrade Astro and official integrations together
+      pnpm dlx @astrojs/upgrade
       ```
       </Fragment>
       <Fragment slot="yarn">
       ```shell
-      # Upgrade to Astro v4.x
-      yarn add astro@latest
-
-    # Example: upgrade the blog tutorial Preact integration
-      yarn add @astrojs/preact@latest
+      # Upgrade Astro and official integrations together
+      yarn dlx @astrojs/upgrade
       ```
       </Fragment>
     </PackageManagerTabs>
 
-    :::tip
-    If you are using your own project, then be sure to update any dependencies you have installed. The example blog tutorial codebase only uses the Preact integration.
-    :::
-
-2. The blog tutorial uses the `base` (least strict) TypeScript setting. In order to use content collections, you must [set up TypeScript](/en/guides/content-collections/#setting-up-typescript) for content collections **either** by using the `strict` or `strictest` setting, **or** by adding two options in `tsconfig.json`.
+2. The blog tutorial uses the `base` (least strict) TypeScript setting. In order to use content collections, you must [set up TypeScript](/en/guides/content-collections/#typescript-configuration-for-collections) for content collections **either** by using the `strict` or `strictest` setting, **or** by adding an option in `tsconfig.json`.
 
     In order to use content collections without writing TypeScript in the rest of the blog tutorial example, add the following two TypeScript configuration options to the config file:
 
-    ```json title="tsconfig.json" ins={5,6}
+    ```json title="tsconfig.json" ins={5}
     {
       // Note: No change needed if you use "astro/tsconfigs/strict" or "astro/tsconfigs/strictest"
       "extends": "astro/tsconfigs/base",
       "compilerOptions": {
         "strictNullChecks": true,
-        "allowJs": true
       }
     }
     ```
@@ -152,18 +138,18 @@ The steps below show you how to extend the final product of the Build a Blog tut
 ### Create a collection for your blog posts
 
 <Steps>
-3. Create a new **collection** (folder) called `src/content/posts/`. 
+3. Create a new **collection** (folder) called `src/data/blog/`. 
 
 4. Move all your existing blog posts (`.md` files) from `src/pages/posts/` into this new collection.
 
-5. Create a `src/content/config.ts` file to [define a schema](/en/guides/content-collections/#defining-a-collection-schema) for your `postsCollection`. For the existing blog tutorial code, add the following contents to the file to define all the frontmatter properties used in its blog posts:
+5. Create a `src/content/config.ts` file to [define a schema](/en/guides/defining-collections/#defining-the-collection-schema) for your `postsCollection`. For the existing blog tutorial code, add the following contents to the file to define all the frontmatter properties used in its blog posts:
 
     ```ts title="src/content/config.ts"
     // Import utilities from `astro:content`
     import { z, defineCollection } from "astro:content";
-    // Define a `type` and `schema` for each collection
-    const postsCollection = defineCollection({
-        type: 'content',
+    // Define a `loader` and `schema` for each collection
+    const blog = defineCollection({
+        loader: glob({ pattern: '**\/[^_]*.md', base: "./src/data/blog" }),
         schema: z.object({
           title: z.string(),
           pubDate: z.date(),
@@ -177,12 +163,10 @@ The steps below show you how to extend the final product of the Build a Blog tut
         })
     });
     // Export a single `collections` object to register your collection(s)
-    export const collections = {
-      posts: postsCollection,
-    };
+    export const collections = { blog };
     ```
 
-6. In order for Astro to recognize your schema, quit the dev server (`CTRL + C`) and run the following command: [`npx astro sync`](/en/reference/cli-reference/#astro-sync). This will define the `astro:content` module for the Content Collections API. Restart the dev server to continue with the tutorial.
+6. In order for Astro to recognize your schema, quit the dev server (`CTRL + C`) and run the following command: [`npx astro sync`](/en/reference/cli-reference/#astro-sync). This will define the `astro:content` module. Restart the dev server to continue with the tutorial.
 </Steps>
 
 ### Generate pages from a collection
@@ -190,7 +174,7 @@ The steps below show you how to extend the final product of the Build a Blog tut
 <Steps>
 7. Create a page file called `src/pages/posts/[...slug].astro`. Your Markdown and MDX files no longer automatically become pages using Astro's file-based routing when they are inside a collection, so you must create a page responsible for generating each individual blog post.
 
-8. Add the following code to [query your collection](/en/guides/content-collections/#querying-collections) to make each blog post's slug and page content available to each page it will generate:
+8. Add the following code to [query your collection](/en/guides/working-with-collections/#querying-collections) to make each blog post's slug and page content available to each page it will generate:
 
     ```astro title="src/pages/posts/[...slug].astro"
     ---
@@ -198,14 +182,14 @@ The steps below show you how to extend the final product of the Build a Blog tut
     import MarkdownPostLayout from '../../layouts/MarkdownPostLayout.astro';
 
     export async function getStaticPaths() {
-      const blogEntries = await getCollection('posts');
-      return blogEntries.map(entry => ({
-        params: { slug: entry.slug }, props: { entry },
+      const posts = await getCollection('blog');
+      return posts.map(post => ({
+        params: { slug: post.id }, props: { post },
       }));
     }
 
-    const { entry } = Astro.props;
-    const { Content } = await entry.render();
+    const { post } = Astro.props;
+    const { Content } = await render(post);
     ---
     ```
 
@@ -217,16 +201,16 @@ The steps below show you how to extend the final product of the Build a Blog tut
     import MarkdownPostLayout from '../../layouts/MarkdownPostLayout.astro';
 
     export async function getStaticPaths() {
-      const blogEntries = await getCollection('posts');
-      return blogEntries.map(entry => ({
-        params: { slug: entry.slug }, props: { entry },
+      const posts = await getCollection('posts');
+      return posts.map(post => ({
+        params: { slug: post.id }, props: { post },
       }));
     }
 
     const { entry } = Astro.props;
-    const { Content } = await entry.render();
+    const { Content } = await render(post );
     ---
-    <MarkdownPostLayout frontmatter={entry.data}>
+    <MarkdownPostLayout frontmatter={post.data}>
       <Content />
     </MarkdownPostLayout>
     ```
@@ -248,7 +232,7 @@ The steps below show you how to extend the final product of the Build a Blog tut
 <Steps>
 11. Anywhere you have a list of blog posts, like the tutorial's Blog page (`src/pages/blog.astro/`), you will need to replace `import.meta.glob()` with [`getCollection()`](/en/reference/api-reference/#getcollection) as the way to fetch content and metadata from your Markdown files.
 
-    ```astro title="src/pages/blog.astro" "post.data" "getCollection(\"posts\")" "/posts/${post.slug}/" del={7} ins={2,8}
+    ```astro title="src/pages/blog.astro" "post.data" "getCollection(\"blog\")" "/posts/${post.id}/" del={7} ins={2,8}
     ---
     import { getCollection } from "astro:content";
     import BaseLayout from "../layouts/BaseLayout.astro";
@@ -256,20 +240,20 @@ The steps below show you how to extend the final product of the Build a Blog tut
 
     const pageTitle = "My Astro Learning Blog";
     const allPosts = Object.values(await import.meta.glob("../pages/posts/*.md", { eager: true }));
-    const allPosts = await getCollection("posts");
+    const allPosts = await getCollection("blog");
     ---
     ```
 
 12. You will also need to update references to the data returned for each `post`. You will now find your frontmatter values on the `data` property of each object. Also, when using collections each `post` object will have a page `slug`, not a full URL.
 
-    ```astro title="src/pages/blog.astro" "data" "/posts/$\{post.slug\}/" del={14} ins={15}
+    ```astro title="src/pages/blog.astro" "data" "/posts/$\{post.id\}/" del={14} ins={15}
     ---
     import { getCollection } from "astro:content";
     import BaseLayout from "../layouts/BaseLayout.astro";
     import BlogPost from "../components/BlogPost.astro";
 
     const pageTitle = "My Astro Learning Blog";
-    const allPosts = await getCollection("posts");
+    const allPosts = await getCollection("blog");
     ---
     <BaseLayout pageTitle={pageTitle}>
       <p>This is where I will post about my journey learning Astro.</p>
@@ -277,7 +261,7 @@ The steps below show you how to extend the final product of the Build a Blog tut
         {
           allPosts.map((post) => (
             <BlogPost url={post.url} title={post.frontmatter.title} />)}
-            <BlogPost url={`/posts/${post.slug}/`} title={post.data.title} />
+            <BlogPost url={`/posts/${post.id}/`} title={post.data.title} />
           ))
         }
       </ul>
@@ -288,20 +272,20 @@ The steps below show you how to extend the final product of the Build a Blog tut
    
           Apply the same changes as above to these two files:
       
-          - fetch data about all your blog posts using `getCollection("posts")` instead of using `import.meta.glob()`
+          - fetch data about all your blog posts using `getCollection("blog")` instead of using `import.meta.glob()`
           - access all frontmatter values using `data` instead of `frontmatter`
           - create a page URL by adding the post's `slug` to the `/posts/` path
         
         The page that generates individual tag pages now becomes:
 
-        ```astro title="src/pages/tags/[tag].astro" "post.data.tags" "getCollection(\"posts\")" "post.data.title" ins={2} "/posts/${post.slug}/"
+        ```astro title="src/pages/tags/[tag].astro" "post.data.tags" "getCollection(\"blog\")" "post.data.title" ins={2} "/posts/${post.id}/"
         ---
         import { getCollection } from "astro:content";
         import BaseLayout from "../../layouts/BaseLayout.astro";
         import BlogPost from "../../components/BlogPost.astro";
 
         export async function getStaticPaths() {
-          const allPosts = await getCollection("posts");
+          const allPosts = await getCollection("blog");
           const uniqueTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
 
           return uniqueTags.map((tag) => {
@@ -322,7 +306,7 @@ The steps below show you how to extend the final product of the Build a Blog tut
         <BaseLayout pageTitle={tag}>
           <p>Posts tagged with {tag}</p>
           <ul>
-            { posts.map((post) => <BlogPost url={`/posts/${post.slug}/`} title={post.data.title} />) }
+            { posts.map((post) => <BlogPost url={`/posts/${post.id}/`} title={post.data.title} />) }
           </ul>
         </BaseLayout>
         ```
@@ -334,11 +318,11 @@ The steps below show you how to extend the final product of the Build a Blog tut
 
           <details>
           <summary>Show me the code.</summary>
-          ```astro title="src/pages/tags/index.astro" "post.data" "getCollection(\"posts\")" ins={2}
+          ```astro title="src/pages/tags/index.astro" "post.data" "getCollection(\"blog\")" ins={2}
           ---
           import { getCollection } from "astro:content";
           import BaseLayout from "../../layouts/BaseLayout.astro";     
-          const allPosts = await getCollection("posts");
+          const allPosts = await getCollection("blog");
           const tags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
           const pageTitle = "Tag Index";
           ---
@@ -380,7 +364,7 @@ The steps below show you how to extend the final product of the Build a Blog tut
     import { getCollection } from 'astro:content';
 
     export async function GET(context) {
-      const posts = await getCollection("posts");
+      const posts = await getCollection("blog");
       return rss({
         title: 'Astro Learner | Blog',
         description: 'My journey learning Astro',
@@ -390,7 +374,7 @@ The steps below show you how to extend the final product of the Build a Blog tut
           title: post.data.title,
           pubDate: post.data.pubDate,
           description: post.data.description,
-          link: `/posts/${post.slug}/`,
+          link: `/posts/${post.id}/`,
         })),
         customData: `<language>en-us</language>`,
       })
@@ -398,4 +382,4 @@ The steps below show you how to extend the final product of the Build a Blog tut
     ```
 </Steps>
 
-For the full example of the blog tutorial using content collections, see the [Content Collections branch](https://github.com/withastro/blog-tutorial-demo/tree/content-collections) of the tutorial repo.
+For the full example of the blog tutorial using content collections, see the [Content Collections branch](https://github.com/withastro/blog-tutorial-demo/tree/content-layer) of the tutorial repo.
