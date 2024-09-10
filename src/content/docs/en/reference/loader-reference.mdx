@@ -3,6 +3,371 @@ title: Astro Loader API
 i18nReady: true
 ---
 import Since from '~/components/Since.astro';
-import { FileTree } from '@astrojs/starlight/components';
 
-[publish your loader to NPM as a package](/en/reference/publish-to-npm/) to share with others and be included in our integrations library.
+Astro content collections help you organize and load data into your Astro project. This guide explains how to define a loader, and the API that loaders use to interact with the content layer.
+
+## What is a loader?
+
+Astro loaders allow you load data into [content collections](/en/reference/content-collections/), which can then be used in pages and components. The [built-in `glob()` and `file()` loaders](/en/guides/defining-collections/#built-in-loaders) are used to load content from the file system, and you can create your own loaders to load content from other sources. You can define a loader inline in your project's `src/content/config.ts` file, share one loader between multiple collections, or even [publish your loader to NPM as a package](/en/reference/publish-to-npm/) to share with others and be included in our integrations library.
+
+## Loader types
+
+Loaders can be defined either as a simple function that returns an array of entries, or with the more powerful object loader API.
+
+### Inline loaders
+An inline loader is an async function that returns an array or object containing entries. Use this for simple loaders, particularly those that are defined inline in the `src/content/config.ts` file. The function can be async, and must return either an array of entries that each contain a unique `id` field, or an object where each key is a unique ID and each value is the entry. Whenever the loader is invoked, it will clear the store and reload all the entries. 
+
+```ts
+const countries = defineCollection({
+  loader: async () => {
+    const response = await fetch("https://restcountries.com/v3.1/all");
+    const data = await response.json();
+    // Must return an array of entries with an id property
+    // or an object with IDs as keys and entries as values
+    return data.map((country) => ({
+      id: country.cca3,
+      ...country,
+    }));
+  },
+});
+```
+
+### Object loaders
+
+If a loader needs more control over the loading process it can use the object loader API. The loader is defined as an object with a `load()` method that is called at build time to fetch data and update the data store. It allows entries to be updated incrementally, or for the store to be cleared only when necessary. It can also define a schema for the entries, which can be used to validate the data and generate static types. 
+
+The recommended pattern is to define a function that accepts configuration options and returns the loader object, in the same way that you would normally define an Astro integration or Vite plugin. 
+
+
+```ts title=loader.ts
+
+import type { Loader, LoaderContext } from 'astro/loaders';
+
+// Define any options that the loader needs
+export function myLoader(options: { url: string }): Loader {
+  // Configure the loader 
+  const feedUrl = new URL(options.url);
+  // Return a loader object
+  return {
+    name: "my-loader";
+    // Called when updating the collection.
+    load: async (context: LoaderContext): Promise<void> => {
+      // Load data and update the store
+    }
+    // Optionally, define the schema of an entry. 
+    // It will be overridden by user-defined schema. 
+    schema: async () => z.object({
+      // ...
+    })
+  };
+}
+```
+
+## Loader API
+
+The API for [inline loaders](#inline-loaders) is very simple, and is shown above. This section shows the API for defining an object loader.
+
+### The `Loader` object
+
+The loader object has the following properties:
+
+#### `name`
+**Type**: `string`
+
+A unique name for the loader, used in logs and [for conditional loading](#integration-support).
+
+#### `load`
+**Type**: `(context: LoaderContext) => Promise<void>`
+
+An async function that is called at build time to load data and update the store. See [`LoaderContext`](#loadercontext) for more information.
+
+#### `schema`
+**Type**: `ZodSchema | Promise<ZodSchema> | (() => ZodSchema | Promise<ZodSchema>)`
+
+An optional [Zod schema](/en/guides/defining-collections/#defining-datatypes-with-zod) that defines the shape of the entries. It is used to both validate the data, and also to generate TypeScript types for the collection. If a function is provided, it will be called at build time before `load()` to generate the schema. You can use this to dynamically generate the schema based on the configuration options or by introspecting an API. 
+
+### `LoaderContext`
+This object is passed to the `load()` method of the loader, and contains the following properties:
+
+#### `collection`
+**Type**: `string`
+
+The unique name of the collection. This is the key in the `collections` object in the `src/content/config.ts` file.
+
+#### `store`
+**Type**: [`DataStore`](#datastore)
+
+A database to store the actual data. Use this to update the store with new entries. See [`DataStore`](#datastore) for more information.
+
+#### `meta`
+**Type**: `MetaStore`
+
+A simple KV store, designed for things like sync tokens and last-modified times. Use this to store metadata about the collection. The data is persisted between builds, but is only available inside the loader.
+
+```ts
+const lastModified = meta.get("lastModified");
+// ...
+meta.set("lastModified", new Date().toISOString());
+```
+
+#### `logger`
+**Type**: [`AstroIntegrationLogger`](/en/reference/integrations-reference/#astrointegrationlogger)
+
+A logger that can be used to log messages to the console. It is recommended to use this instead of `console.log` to ensure that logs are displayed correctly in the Astro UI. It will include the loader name in the log message. See [`AstroIntegrationLogger`](/en/reference/integrations-reference/#astrointegrationlogger) for more information.
+
+#### `config`
+**Type**: `AstroConfig`
+
+The full, resolved Astro configuration object with all defaults applied. See [the configuration reference](/en/reference/configuration-reference/) for more information.
+
+#### `parseData`
+**Type**: `(props: ParseDataOptions<TData>) => Promise<TData>`
+
+Validates and parses the data according to the collection schema. Pass data to this function to validate and parse it before storing it in the data store.
+
+```ts title=loader.ts {14-17}
+import type { Loader } from "astro/loaders";
+import { loadFeed } from "./feed.js";
+
+export function feedLoader({ url }): Loader {
+  const feedUrl = new URL(url);
+  return {
+    name: "feed-loader",
+    load: async ({ store, logger, parseData, meta, generateDigest }) => {
+      logger.info("Loading posts");
+      const feed = loadFeed(feedUrl);
+      store.clear();
+
+      for (const item of feed.items) {
+        const data = await parseData({
+          id: item.guid,
+          data: item,
+        });
+        store.set({
+          id,
+          data,
+        });
+      }
+    },
+  };
+}
+```
+
+#### `generateDigest`
+**Type**: `(data: Record<string, unknown> | string) => string`
+
+Generates a non-cryptographic content digest. This can be used to check if the data has changed. 
+
+```ts title=loader.ts {19,24}
+import type { Loader } from "astro/loaders";
+import { loadFeed } from "./feed.js";
+
+export function feedLoader({ url }): Loader {
+  const feedUrl = new URL(url);
+  return {
+    name: "feed-loader",
+    load: async ({ store, logger, parseData, meta, generateDigest }) => {
+      logger.info("Loading posts");
+      const feed = loadFeed(feedUrl);
+      store.clear();
+
+      for (const item of feed.items) {
+        const data = await parseData({
+          id: item.guid,
+          data: item,
+        });
+
+        const digest = generateDigest(data);
+
+        store.set({
+          id,
+          data,
+          digest,
+        });
+      }
+    },
+  };
+}
+```
+
+#### `watcher`
+**Type**: `FSWatcher`
+
+When running in dev mode, this is a filesystem watcher that can be used to trigger updates. See [`ViteDevServer`](https://vitejs.dev/guide/api-javascript.html#vitedevserver) for more information.
+
+```ts title="Extract from the file() loader" {8-13}
+return {
+  name: 'file-loader',
+  load: async ({ config, store, watcher }) => {
+    const url = new URL(fileName, config.root);
+    const filePath = fileURLToPath(url);
+    await syncData(filePath, store);
+
+    watcher?.on('change', async (changedPath) => {
+      if (changedPath === filePath) {
+        logger.info(`Reloading data from ${fileName}`);
+        await syncData(filePath, store);
+      }
+    });
+  },
+};
+```
+#### `refreshContextData`
+**Type**: `Record<string, unknown>`
+
+If the loader has been triggered by an integration, this may optionally contain extra data set by that integration. It is only set when the loader is triggered by an integration. See [integration support](#integration-support) for more information.
+
+```ts title=loader.ts {5-8}
+export function myLoader(options: { url: string }): Loader {
+  return {
+    name: "my-loader",
+    load: async ({ refreshContextData, store, logger }) => {
+      if(refreshContextData?.webhookBody) {
+        logger.info("Webhook triggered with body");
+        processWebhook(store, refreshContextData.webhookBody);
+      }
+      // ...
+    },
+  };
+}
+```
+
+### `DataStore`
+The data store is a loader's interface to the content collection data. It is a key value store, scoped to the collection, so a loader can only access the data for its own collection.
+
+#### `get`
+**Type**: `(key: string) => DataEntry | undefined`
+
+Get an entry from the store by its ID. Returns `undefined` if the entry does not exist. 
+
+```ts
+const existingEntry = store.get("my-entry");
+```
+
+The returned object has the following properties:
+```ts
+interface DataEntry<TData extends Record<string, unknown>> {
+	/** The ID of the entry. Unique per collection. */
+	id: string;
+	/** The parsed entry data */
+	data: TData;
+	/** The file path of the content, if applicable. Relative to the site root. */
+	filePath?: string;
+	/** The raw body of the content, if applicable. */
+	body?: string;
+	/** An optional content digest, to check if the content has changed. */
+	digest?: number | string;
+	/** The rendered content of the entry, if applicable. */
+	rendered?: RenderedContent;
+}
+```
+
+#### `set`
+
+**Type**: `(opts: Opts) => boolean`
+
+The main method to update the store with new entries. It takes an object with the following properties:
+
+- `id: string`: The ID of the entry. Must be unique per collection. If the ID already exists in the store, the entry will be replaced.
+- `data`: The data to store. This will be stored unchanged, so if it needs to be parsed or validated then it should be done before calling `set()`.
+- `body?: string`: The raw body of the content, if applicable. This is mostly relevant for file-based loaders, or those that also store rendered content.
+- `filePath?: string`: The file path of the content, if applicable. This only applies to file-based loaders, and is used to resolve paths such as images or other assets.
+- `digest?: string`: An optional content digest, to check if the content has changed. It is an opaque value, so you can use any method to generate it, but we recommended using the `generateDigest()` function. If provided it will be checked against the existing entry, and if it matches then the entry will not be updated and `set` will return false.
+- `rendered?: { html?: string, metadata?: Record<string, unknown> }`: The rendered HTML content of the entry, if applicable. If provided, users will be able to use the `<Content />` component to render the HTML. The metadata object is used for things like frontmatter or other metadata extracted from the content.
+
+Returns `true` if the entry was set. If `digest` was passed and matched an existing entry with the same ID, it will return `false` and not update the entry.
+
+```ts title=loader.ts {7-14}
+    for (const item of feed.items) {
+      const data = await parseData({
+        id: item.guid,
+        data: item,
+      });
+      const digest = generateDigest(data);
+      store.set({
+        id,
+        data,
+        rendered: {
+          html: data.description ?? "",
+        },
+        digest,
+      });
+    }
+```
+
+#### `entries`
+**Type**: `() => Array<[id: string, DataEntry]>`
+
+Get all entries in the collection as an array of key-value pairs.
+
+#### `keys`
+**Type**: `() => Array<string>`
+
+Get all the keys of the entries in the collection.
+
+#### `values`
+**Type**: `() => Array<DataEntry>`
+
+Get all entries in the collection as an array.
+
+#### `delete`
+**Type**: `(key: string) => void`
+
+Delete an entry from the store by its ID.
+
+#### `clear`
+**Type**: `() => void`
+
+Clear all entries from the collection.
+
+#### `has`
+**Type**: `(key: string) => boolean`
+
+Check if an entry exists in the store by its ID.
+
+
+## Integration support
+
+An integration can trigger an update to the content layer during `astro dev` using the `refreshContent` function passed to the [`astro:server:setup`](/en/reference/integrations-reference/#astroserversetup) hook. This can be used, for example, to register a webhook endpoint during dev, or to open a socket to a CMS to listen for changes.
+
+By default, `refreshContent` will refresh all collections. You can optionally pass a `loaders` property, which is an array of loader names. If provided, only collections that use those loaders will be refreshed. For example, A CMS integration could use this property to only refresh its own collections.
+
+You can also pass a `context` object to the loaders. This can be used to pass arbitrary data, such as the webhook body, or an event from the websocket. This data will be available in the loader's `refreshContextData` property.
+
+```ts title=my-integration.ts {19-22}
+ {
+    name: 'my-integration',
+    hooks: {
+        'astro:server:setup': async ({ server, refreshContent }) => {
+            // Register a dev server webhook endpoint
+            server.middlewares.use('/_refresh', async (req, res) => {
+                if(req.method !== 'POST') {
+                  res.statusCode = 405
+                  res.end('Method Not Allowed');
+                  return
+                }
+                let body = '';
+                req.on('data', chunk => {
+                    body += chunk.toString();
+                });
+                req.on('end', async () => {
+                    try {
+                        const webhookBody = JSON.parse(body);
+                        await refreshContent({
+                          context: { webhookBody },
+                          loaders: ['my-loader']
+                        });
+                        res.writeHead(200, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ message: 'Content refreshed successfully' }));
+                    } catch (error) {
+                        res.writeHead(500, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: 'Failed to refresh content: ' + error.message }));
+                    }
+                });
+            });
+        }
+    }
+}
+```
+
+The loader can then access the `refreshContextData` property to get the webhook body. See the [`refreshContextData`](#refreshcontextdata) property for more information.
