@@ -27,7 +27,7 @@ export default [
 
 	{ text: 'Core Concepts', header: true, type: 'learn', key: 'coreConcepts' },
 	{ text: 'Why Astro?', slug: 'concepts/why-astro', key: 'concepts/why-astro' },
-	{ text: 'Astro Islands', slug: 'concepts/islands', key: 'concepts/islands' },
+	{ text: 'Island Architecture', slug: 'concepts/islands', key: 'concepts/islands' },
 
 	{ text: 'Learn the Basics', header: true, type: 'learn', key: 'basics' },
 	{ text: 'Project Structure', slug: 'basics/project-structure', key: 'basics/project-structure' },
@@ -40,7 +40,6 @@ export default [
 	{ text: 'Integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
 
 	{ text: 'Manage Your Content', header: true, type: 'learn', key: 'content' },
-	{ text: 'Authoring Content', slug: 'guides/content', key: 'guides/content' },
 	{ text: 'Markdown', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
 	{
 		text: 'Content Collections',
@@ -53,6 +52,7 @@ export default [
 	{ text: 'Routes and Navigation', header: true, type: 'learn', key: 'routes' },
 	{ text: 'Routing', slug: 'guides/routing', key: 'guides/routing' },
 	{ text: 'Endpoints', slug: 'guides/endpoints', key: 'guides/endpoints' },
+	{ text: 'Server Islands', slug: 'guides/server-islands', key: 'guides/server-islands' },
 	{ text: 'Actions', slug: 'guides/actions', key: 'guides/actions' },
 	{ text: 'Prefetch', slug: 'guides/prefetch', key: 'guides/prefetch' },
 	{ text: 'Middleware', slug: 'guides/middleware', key: 'guides/middleware' },
