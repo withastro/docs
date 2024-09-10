@@ -35,17 +35,13 @@ export default [
 	{ text: 'Pages', slug: 'basics/astro-pages', key: 'basics/astro-pages' },
 	{ text: 'Layouts', slug: 'basics/layouts', key: 'basics/layouts' },
 	{ text: 'Astro Template Syntax', slug: 'basics/astro-syntax', key: 'basics/astro-syntax' },
-	{ text: 'Rendering Modes', slug: 'basics/rendering-modes', key: 'basics/rendering-modes' },
+	{ text: 'Rendering Modes', slug: 'basics/rendering', key: 'basics/rendering' },
 	{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
 	{ text: 'Integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
 
-	{ text: 'Manage Your Content', header: true, type: 'learn', key: 'content' },
+	{ text: 'Manage your Content', header: true, type: 'learn', key: 'work-content' },
 	{ text: 'Markdown', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
-	{
-		text: 'Content Collections',
-		slug: 'guides/content-collections',
-		key: 'guides/content-collections',
-	},
+	{ text: 'Content collections', slug: 'guides/content-collections', key: 'guides/content-collections' },
 	{ text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
 	{ text: 'Add an RSS feed', slug: 'guides/rss', key: 'guides/rss' },
 
@@ -130,6 +126,11 @@ export default [
 		text: 'Dev Toolbar App API',
 		slug: 'reference/dev-toolbar-app-reference',
 		key: 'reference/dev-toolbar-app-reference',
+	},
+	{
+		text: 'Loader API',
+		slug: 'reference/loader-reference',
+		key: 'reference/loader-reference',
 	},
 	{
 		text: 'Container API (Experimental)',

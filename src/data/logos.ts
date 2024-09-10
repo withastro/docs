@@ -60,7 +60,6 @@ export const logos = LogoCheck({
 	sitecore: { file: 'sitecore.svg', padding: '.15em' },
 	storyblok: { file: 'storyblok.svg', padding: '.3em .25em .25em' },
 	spinal: { file: 'spinal.svg', padding: '.15em .15em' },
-	space: { file: 'space.svg', padding: '.10em .10em' },
 	wordpress: { file: 'wordpress.svg', padding: '.2em' },
 	kinsta: { file: 'kinsta.svg', padding: '0' },
 	gatsby: { file: 'gatsby.svg', padding: '0' },
