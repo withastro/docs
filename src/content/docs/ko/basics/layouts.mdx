@@ -64,15 +64,47 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 <ReadMore>[슬롯](/ko/basics/astro-components/#슬롯)에 대해 자세히 알아보세요.</ReadMore>
 
-## Markdown/MDX 레이아웃
+## 레이아웃에 TypeScript 사용
 
-페이지 레이아웃은 페이지 형식이 없는 [Markdown 및 MDX 페이지](/ko/guides/markdown-content/#markdown-및-mdx-페이지)에 특히 유용합니다.
+모든 Astro 레이아웃이 props의 타입을 제공하도록 수정되면 타입 안전 및 자동 완성 기능을 도입할 수 있습니다:
 
-Astro는 페이지 레이아웃으로 사용할 `.astro` 컴포넌트를 지정하기 위해 특별한 `layout` 프런트매터 속성을 제공합니다.
+```astro ins={2-7} title="src/components/MyLayout.astro"
+---
+interface Props { 
+  title: string;
+  description: string;
+  publishDate: string;
+  viewCount: number;
+}
+const { title, description, publishDate, viewCount } = Astro.props;
+---
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="description" content={description}>
+    <title>{title}</title>
+  </head>
+  <body>
+    <header>
+      <p>Published on {publishDate}</p>
+      <p>Viewed by {viewCount} folks</p>
+    </header>
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>
+```
+
+## Markdown 레이아웃
+
+페이지 레이아웃은 페이지 형식이 없는 개별 Markdown 페이지에 특히 유용합니다.
+
+Astro는 페이지 레이아웃으로 사용할 `.astro` 컴포넌트를 지정하기 위해 특별한 `layout` 프런트매터 속성을 제공합니다. 기본적으로 이 지정된 컴포넌트는 Markdown 파일의 데이터에 자동으로 액세스할 수 있습니다.
 
 ```markdown title="src/pages/page.md" {2} 
 ---
-layout: ../layouts/BaseLayout.astro
+layout: ../layouts/BlogPostLayout.astro
 title: "안녕하세요!"
 author: "Matthew Phillips"
 date: "09 Aug 2022"
@@ -81,18 +113,17 @@ date: "09 Aug 2022"
 
 `layout` 속성은 Astro에서 제공하는 유일한 특수 속성입니다.
 
-`src/pages/` 디렉터리에 있는 Markdown 및 MDX 파일 모두에서 사용할 수 있습니다.
+이는 `src/pages/` 디렉터리에 있는 Markdown 파일에서 사용할 수 있습니다.
 
 ```
 
-Markdown 또는 MDX 페이지의 일반적인 레이아웃은 다음과 같습니다.
+Markdown 페이지의 일반적인 레이아웃은 다음과 같습니다.
 
-1. Markdown 또는 MDX 페이지의 프런트매터 및 기타 데이터를 사용하기 위한 `frontmatter` prop.
-2. 페이지의 Markdown/MDX 콘텐츠가 렌더링되어야 하는 위치를 나타내는 기본 [`<slot />`](/ko/basics/astro-components/#슬롯).
+1. Markdown 페이지의 프런트매터 및 기타 데이터를 사용하기 위한 `frontmatter` prop.
+2. 페이지의 Markdown 콘텐츠가 렌더링되어야 하는 위치를 나타내는 기본 [`<slot />`](/ko/basics/astro-components/#슬롯).
 
-```astro /(?<!//.*){?frontmatter(?:\\.\w+)?}?/ "<slot />"
+```astro title="src/layouts/BlogPostLayout.astro" /(?<!//.*){?frontmatter(?:\\.\w+)?}?/ "<slot />"
 ---
-// src/layouts/BaseLayout.astro
 // 1. 프런트매터 prop을 통해 프런트매터 및 기타 데이터를 사용할 수 있습니다.
 const { frontmatter } = Astro.props;
 ---
@@ -111,11 +142,9 @@ const { frontmatter } = Astro.props;
 </html>
 ```
 
+`MarkdownLayoutProps` 도우미를 사용하여 레이아웃의 [`Props` 타입](/ko/guides/typescript/#컴포넌트-props)을 설정할 수 있습니다.
 
-`MarkdownLayoutProps` 또는 `MDXLayoutProps` 도우미를 사용하여 레이아웃의 [`Props` 타입](/ko/guides/typescript/#컴포넌트-props)을 설정할 수 있습니다.
-
-
-```astro title="src/layouts/BaseLayout.astro" ins={2,4-9}
+```astro title="src/layouts/BlogPostLayout.astro" ins={2,4-9}
 ---
 import type { MarkdownLayoutProps } from 'astro';
 
@@ -144,66 +173,31 @@ const { frontmatter, url } = Astro.props;
 
 ### Markdown 레이아웃 Props
 
-Markdown/MDX 레이아웃은 `Astro.props`를 통해 다음 정보를 사용할 수 있습니다.
+Markdown 레이아웃은 `Astro.props`를 통해 다음 정보를 사용할 수 있습니다.
 
-- **`file`** - 이 파일의 절대 경로(예: `/home/user/projects/.../file.md`).
-- **`url`** - 페이지인 경우 해당 페이지의 URL(예: `/en/guides/markdown-content`).
+- **`file`** - 이 파일의 절대 경로 (예: `/home/user/projects/.../file.md`).
+- **`url`** - 해당 페이지의 URL (예: `/en/guides/markdown-content`).
 - **`frontmatter`** - Markdown 또는 MDX 문서의 모든 프런트매터.
   - **`frontmatter.file`** - 최상위 `file` 속성과 동일합니다.
   - **`frontmatter.url`** - 최상위 `url` 속성과 동일합니다.
 - **`headings`** - 관련 메타데이터가 있는 Markdown 또는 MDX 문서의 제목(`h1 -> h6`)들의 목록입니다. 이 목록은 다음 타입을 따릅니다: `{ depth: number; slug: string; text: string }[]`
-- **(Markdown만 해당) `rawContent()`** - 원시 Markdown 문서를 문자열로 반환하는 함수입니다.
-- **(Markdown만 해당) `compiledContent()`** - HTML 문자열로 컴파일된 Markdown 문서를 반환하는 함수입니다.
-
-Markdown 블로그 게시물의 예는 다음과 같은 `Astro.props` 객체를 레이아웃에 전달할 수 있습니다.
-
-```js
-Astro.props = {
-  file: "/home/user/projects/.../file.md",
-  url: "/en/guides/markdown-content/",
-  frontmatter: {
-    /** 블로그 게시물의 프런트매터 */
-    title: "Astro 0.18 릴리스",
-    date: "Tuesday, July 27 2021",
-    author: "Matthew Phillips",
-    description: "Astro 0.18은 Astro 출시 이후 가장 큰 릴리스입니다.",
-    /** 생성된 값 */
-    file: "/home/user/projects/.../file.md",
-    url: "/en/guides/markdown-content/"
-  },
-  headings: [
-    {
-      "depth": 1,
-      "text": "Astro 0.18 릴리스",
-      "slug": "astro-018-릴리스"
-    },
-    {
-      "depth": 2,
-      "text": "반응성 부분 수화",
-      "slug": "반응성-부분-수화"
-    }
-    /* ... */
-  ],
-
-  /** Markdown에서만 사용 가능 */
-  rawContent: () => "# Astro 0.18 릴리스\n한 달 남짓 전에 첫 번째 공개 베타가 시작되었습니다. [...]",
-  compiledContent: () => "<h1>Astro 0.18 릴리스</h1>\n<p>한 달 남짓 전에 첫 번째 공개 베타가 시작되었습니다. [...]</p>",
-}
-```
+- **`rawContent()`** - 원시 Markdown 문서를 문자열로 반환하는 함수입니다.
+- **`compiledContent()`** - HTML 문자열로 컴파일된 Markdown 문서를 반환하는 함수입니다.
 
 :::note
-Markdown/MDX 레이아웃은 `Astro.props`를 통해 모든 파일에서 [내보낸 속성들](/ko/guides/markdown-content/#내보낸-속성)을 사용할 수 있지만 **몇 가지 차이점이 있습니다**.
+Markdown 레이아웃은 `Astro.props`를 통해 모든 Markdown 파일에서 [사용 가능한 속성들](/ko/guides/markdown-content/#내보낸-속성)을 사용할 수 있지만 **두 가지 차이점이 있습니다**.
 
 * 제목 정보(예: `h1 -> h6` 요소)는 `getHeadings()` 함수가 아닌 `headings` 배열을 통해 사용할 수 있습니다.
 
 * *또한* `file` 및 `url`은  중첩된 `frontmatter` 속성(예: `frontmatter.url` 및 `frontmatter.file`)으로 사용할 수도 있습니다.
 
-* 프런트매터 외부에 정의된 값(예: MDX의 `export` 문)은 사용할 수 없습니다. 대신 [레이아웃 가져오기](#수동으로-레이아웃-가져오기-mdx)를 고려해 보세요.
 :::
 
 ### 수동으로 레이아웃 가져오기 (MDX)
 
-프런트매터에 존재하지 않거나 존재할 수 없는 정보를 MDX 레이아웃에 전달해야 할 수도 있습니다. 이 경우 대신 [`<Layout />` 컴포넌트](/ko/basics/layouts/)를 가져와 사용하고 다른 컴포넌트처럼 props를 전달할 수 있습니다.
+또한 같은 방식으로, MDX 파일의 프런트매터에 있는 특수 Markdown layout 속성을 사용하여 `frontmatter` 및 `headings` props를 지정된 레이아웃 컴포넌트에 직접 전달할 수도 있습니다. 
+
+프런트매터에 존재하지 않거나 존재할 수 없는 정보를 MDX 레이아웃에 전달하려면 대신 `<Layout />` 컴포넌트를 가져와 사용할 수 있습니다. 이는 다른 Astro 컴포넌트처럼 작동하며 props를 자동으로 받지 않습니다. 필요한 props는 직접 전달하세요:
 
 ```mdx title="src/pages/posts/first-post.mdx" ins={6} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/
 ---
@@ -224,9 +218,8 @@ export function fancyJsHelper() {
 
 그러면 레이아웃의 `Astro.props`를 통해 값을 사용할 수 있으며 MDX 콘텐츠는 `<slot />` 컴포넌트가 작성된 페이지에 삽입됩니다.
 
-```astro /{?title}?/ "fancyJsHelper" "{fancyJsHelper()}"
+```astro title="src/layouts/BaseLayout.astro" /{?title}?/ "fancyJsHelper" "{fancyJsHelper()}"
 ---
-// src/layouts/BaseLayout.astro
 const { title, fancyJsHelper } = Astro.props;
 ---
 <!-- -->
@@ -237,38 +230,6 @@ const { title, fancyJsHelper } = Astro.props;
 ```
 
 <ReadMore>[Markdown/MDX 안내서](/ko/guides/markdown-content/)에서 Astro의 Markdown 및 MDX 지원에 대해 자세히 알아보세요.</ReadMore>
-
-### 레이아웃에서 TypeScript 사용하기
-
-모든 Astro 레이아웃의 props로 타입을 제공하여 타입 안정성 및 자동 완성 기능을 추가할 수 있습니다.
-
-```astro ins={2-7} title="src/components/MyLayout.astro"
----
-interface Props { 
-	title: string;
-  description: string;
-  publishDate: string;
-  viewCount: number;
-}
-const { title, description, publishDate, viewCount } = Astro.props;
----
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="description" content={description}>
-    <title>{title}</title>
-  </head>
-  <body>
-    <header>
-      <p>Published on {publishDate}</p>
-      <p>Viewed by {viewCount} folks</p>
-    </header>
-    <main>
-      <slot />
-    </main>
-  </body>
-</html>
-```
 
 ## 중첩 레이아웃
 

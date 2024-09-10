@@ -24,7 +24,7 @@ interface AstroIntegration {
   hooks: {
     'astro:config:setup'?: (options: {
       config: AstroConfig;
-      command: 'dev' | 'build' | 'preview';
+      command: 'dev' | 'build' | 'preview' | 'sync';
       isRestart: boolean;
       updateConfig: (newConfig: DeepPartial<AstroConfig>) => AstroConfig;
       addRenderer: (renderer: AstroRenderer) => void;
@@ -33,10 +33,16 @@ interface AstroIntegration {
       addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
       addDevToolbarApp: (pluginEntrypoint: string) => void;
       injectScript: (stage: InjectedScriptStage, content: string) => void;
-      injectRoute: ({ pattern: string, entrypoint: string }) => void;
+      injectRoute: (injectedRoute: { pattern: string, entrypoint: string }) => void;
       logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
-    'astro:config:done'?: (options: { config: AstroConfig; setAdapter: (adapter: AstroAdapter) => void; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:config:done'?: (options: {
+      config: AstroConfig;
+      setAdapter: (adapter: AstroAdapter) => void;
+      injectTypes: (injectedType: { filename: string; content: string }) => URL;
+      logger: AstroIntegrationLogger;
+      }) => void | Promise<void>;
+      'astro:route:setup'?: (options: { route: RouteOptions; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:server:setup'?: (options: { server: vite.ViteDevServer; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:server:start'?: (options: { address: AddressInfo; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:server:done'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
@@ -77,7 +83,7 @@ Astro 内置了以下钩子：
 ```ts
 'astro:config:setup'?: (options: {
   config: AstroConfig;
-  command: 'dev' | 'build' | 'preview';
+  command: 'dev' | 'build' | 'preview' | 'sync';
   isRestart: boolean;
   updateConfig: (newConfig: DeepPartial<AstroConfig>) => AstroConfig;
   addRenderer: (renderer: AstroRenderer) => void;
@@ -99,11 +105,12 @@ Astro 内置了以下钩子：
 
 #### `command` 选项
 
-**类型**：`'dev' | 'build' | 'preview'`
+**类型：** `'dev' | 'build' | 'preview' | 'sync'`
 
 - `dev` - 项目执行 `astro dev`
 - `build` - 项目执行 `astro build`
 - `preview` - 项目执行 `astro preview`
+- `sync` - 项目执行 `astro sync`
 
 #### `isRestart` 选项
 
@@ -389,15 +396,47 @@ injectRoute({
 **原因**：检索最终的配置，以便在其他钩子中使用。
 
 ```js
-'astro:config:done'?: (options: { config: AstroConfig }) => void | Promise<void>;
+'astro:config:done'?: (options: {
+  config: AstroConfig;
+  setAdapter: (adapter: AstroAdapter) => void;
+  injectTypes: (injectedType: { filename: string; content: string }) => URL;
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
 ```
 
 #### `config` 选项
 
-**类型**：`AstroConfig`
+**类型：**`AstroConfig`
 
 用户提供的 [Astro 配置](/zh-cn/reference/configuration-reference/)的只读副本。这在其他集成运行后进行解析。
 
+#### `setAdapter` 选项
+
+**类型：**`(adapter: AstroAdapter) => void;`
+
+使集成成为适配器。在[适配器 API](/zh-cn/reference/adapter-reference/)中阅读更多内容。
+
+#### `injectTypes` 选项
+
+<p><Since v="4.14.0" /></p>
+
+**类型：**`(injectedType: { filename: string; content: string }) => URL`
+
+允许你通过添加一个新的 `*.d.ts` 文件将类型注入到用户的项目中。
+
+`filename` 属性将用于在 `/.astro/integrations/<normalized_integration_name>/<normalized_filename>.d.ts` 生成文件，必须以 `".d.ts"` 结尾。
+
+`content` 属性将用于在文件中生成内容，必须是有效的 TypeScript。
+
+此外，`injectTypes()` 返回一个 URL，指向规范化路径，以便稍后覆盖其内容，或以任何你想要的方式操作它。
+
+```js
+const path = injectTypes({
+  filename: "types.d.ts",
+  content: "declare module 'virtual:integration' {}"
+})
+console.log(path) // URL
+```
 ### `astro:server:setup`
 
 **上一个钩子**：[`astro:config:done`](#astroconfigdone)
@@ -565,9 +604,9 @@ export default function myIntegration() {
 }
 ```
 
-#### `routes` option
+#### `routes` 选项
 
-**类型**：[`RouteData[]`](#routedata-类型参考)
+**类型：**[`RouteData[]`](#routedata-类型参考)
 
 所有生成的路由及其相关元数据的列表。
 
@@ -621,6 +660,59 @@ interface RouteData {
 生成的所有页面的列表是一个包含一个属性的对象。
 
 -  `pathname` - 页面的最终路径。
+
+### `astro:route:setup`
+
+<p><Since v="4.14.0" /></p>
+
+**时机：** 在 `astro dev` 中，每当请求一个路由时。在 `astro build` 中，当打包和转换路由文件时。
+
+**原因：** 在构建或请求时为路由设置选项，例如启用[按需服务器渲染](/zh-cn/guides/server-side-rendering/#在-server-模式中选择加入预渲染)。
+
+```js
+'astro:route:setup'?: (options: { route: RouteOptions }) => void | Promise<void>;
+```
+
+#### `route` 选项
+
+**类型：**`RouteOptions`
+
+具有 `component` 属性的对象用于标识路由，以及以下附加值，以允许你配置生成的路由：`prerender`。
+
+`component` 属性是一个相对于项目根目录的只读字符串路径，例如 `"src/pages/blog/[slug].astro"`。
+
+##### `route.prerender`
+
+<p>
+**类型：**`boolean`<br />
+**默认值：**`undefined`<br />
+<Since v="4.14.0" />
+</p>
+
+`prerender` 属性用于配置[按需服务器渲染](/zh-cn/guides/server-side-rendering/#在-server-模式中选择加入预渲染)的路由。如果路由文件包含一个显式的 `export const prerender` 值，该值将被用作默认值，而不是 `undefined`。
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  integrations: [setPrerender()],
+});
+
+function setPrerender() {
+  return {
+    name: 'set-prerender',
+    hooks: {
+      'astro:route:setup': ({ route }) => {
+        if (route.component.endsWith('/blog/[slug].astro')) {
+          route.prerender = true;
+        }
+      },
+    },
+  };
+}
+```
+
+如果在运行所有钩子后的最终值是 `undefined`，路由将根据 [`output` 选项](/zh-cn/reference/configuration-reference/#output) 回退到预渲染的默认值：`hybrid` 模式下预渲染，`server` 模式下按需渲染。
 
 ### 自定义钩子
 

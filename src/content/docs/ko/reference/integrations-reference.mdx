@@ -25,7 +25,7 @@ interface AstroIntegration {
   hooks: {
     'astro:config:setup'?: (options: {
       config: AstroConfig;
-      command: 'dev' | 'build' | 'preview';
+      command: 'dev' | 'build' | 'preview' | 'sync';
       isRestart: boolean;
       updateConfig: (newConfig: DeepPartial<AstroConfig>) => AstroConfig;
       addRenderer: (renderer: AstroRenderer) => void;
@@ -34,13 +34,16 @@ interface AstroIntegration {
       addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
       addDevToolbarApp: (pluginEntrypoint: string) => void;
       injectScript: (stage: InjectedScriptStage, content: string) => void;
-      injectRoute: ({ pattern: string, entrypoint: string }) => void;
+      injectRoute: (injectedRoute: { pattern: string, entrypoint: string }) => void;
       logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
     'astro:config:done'?: (options: {
       config: AstroConfig;
+      setAdapter: (adapter: AstroAdapter) => void;
+      injectTypes: (injectedType: { filename: string; content: string }) => URL;
       logger: AstroIntegrationLogger;
-    }) => void | Promise<void>;
+      }) => void | Promise<void>;
+    'astro:route:setup'?: (options: { route: RouteOptions; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:server:setup'?: (options: {
       server: vite.ViteDevServer;
       logger: AstroIntegrationLogger;
@@ -94,7 +97,7 @@ Astro는 통합이 Astro의 특정 수명 주기 동안 실행할 수 있도록 
 ```ts
 'astro:config:setup'?: (options: {
   config: AstroConfig;
-  command: 'dev' | 'build' | 'preview';
+  command: 'dev' | 'build' | 'preview' | 'sync';
   isRestart: boolean;
   updateConfig: (newConfig: DeepPartial<AstroConfig>) => AstroConfig;
   addRenderer: (renderer: AstroRenderer) => void;
@@ -116,11 +119,12 @@ Astro는 통합이 Astro의 특정 수명 주기 동안 실행할 수 있도록 
 
 #### `command` 옵션
 
-**타입:** `'dev' | 'build' | 'preview'`
+**타입:** `'dev' | 'build' | 'preview' | 'sync'`
 
 - `dev` - 프로젝트는 `astro dev`로 실행됩니다.
 - `build` - 프로젝트는 `astro build`로 실행됩니다.
 - `preview` - 프로젝트는 `astro preview`로 실행됩니다.
+- `sync` - 프로젝트는 `astro sync`로 실행됩니다. 
 
 #### `isRestart` 옵션
 
@@ -412,7 +416,12 @@ injectRoute({
 **사용 목적:** 다른 후크에서 사용하기 위한 최종 구성을 검색하기 위해.
 
 ```js
-'astro:config:done'?: (options: { config: AstroConfig }) => void | Promise<void>;
+'astro:config:done'?: (options: {
+  config: AstroConfig;
+  setAdapter: (adapter: AstroAdapter) => void;
+  injectTypes: (injectedType: { filename: string; content: string }) => URL;
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
 ```
 
 #### `config` 옵션
@@ -420,6 +429,34 @@ injectRoute({
 **타입:** `AstroConfig`
 
 사용자 제공 [Astro 구성](/ko/reference/configuration-reference/)의 읽기 전용 복사본입니다. 이 문제는 다른 통합이 실행된 _후_ 해결됩니다.
+
+#### `setAdapter` 옵션
+
+**타입:** `(adapter: AstroAdapter) => void;`
+
+통합을 어댑터로 만듭니다. 자세한 내용은 [어댑터 API](/ko/reference/adapter-reference/)에서 확인하세요.
+
+#### `injectTypes` 옵션
+
+<p><Since v="4.14.0" /></p>
+
+**타입:** `(injectedType: { filename: string; content: string }) => URL`
+
+새 `*.d.ts` 파일을 추가하여 사용자 프로젝트에 타입을 삽입할 수 있습니다.
+
+`filename` 속성은 `/.astro/integrations/<normalized_integration_name>/<normalized_filename>.d.ts`에 파일을 생성하는 데 사용되며, `".d.ts"`로 끝나야 합니다.
+
+`content` 속성은 파일 본문을 생성하며 유효한 TypeScript여야 합니다.
+
+또한 `injectTypes()`는 정규화된 경로에 대한 URL을 반환하므로 나중에 해당 내용을 덮어쓰거나 원하는 방식으로 조작할 수 있습니다.
+
+```js
+const path = injectTypes({
+  filename: "types.d.ts",
+  content: "declare module 'virtual:integration' {}"
+})
+console.log(path) // URL
+```
 
 ### `astro:server:setup`
 
@@ -642,6 +679,59 @@ interface RouteData {
 생성된 모든 페이지의 목록입니다. 하나의 속성을 갖는 객체입니다.
 
 - `pathname` - 페이지의 최종 경로.
+
+### `astro:route:setup`
+
+<p><Since v="4.14.0" /></p>
+
+**동작 시기:** `astro dev`에서 경로가 요청될 때마다. `astro build`에서 경로 파일을 번들링하고 변환하는 동안.
+
+**사용 목적:** 빌드 시 또는 요청 시 경로에 대한 옵션을 설정하기 위해. 예: [주문형 서버 렌더링](/ko/guides/server-side-rendering/#server-모드에서-사전-렌더링-선택) 활성화
+
+```js
+'astro:route:setup'?: (options: { route: RouteOptions }) => void | Promise<void>;
+```
+
+#### `route` 옵션
+
+**타입:** `RouteOptions`
+
+경로를 식별하는 `component` 속성과 생성된 경로를 구성할 수 있는 추가 값인 `prerender`가 있는 객체입니다.
+
+`component` 속성은 프로젝트 루트를 기준으로 한 읽기 전용 문자열 경로입니다. 예: `"src/pages/blog/[slug].astro"`.
+
+##### `route.prerender`
+
+<p>
+**타입:** `boolean`<br />
+**기본값:** `undefined`<br />
+<Since v="4.14.0" />
+</p>
+
+`prerender` 속성은 경로에 대한 [주문형 서버 렌더링](/ko/guides/server-side-rendering/#server-모드에서-사전-렌더링-선택)을 구성하는 데 사용됩니다. 경로 파일에 명시적인 `export const prerender` 값이 포함되어 있으면 `undefined` 대신 해당 값이 기본값으로 사용됩니다.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  integrations: [setPrerender()],
+});
+
+function setPrerender() {
+  return {
+    name: 'set-prerender',
+    hooks: {
+      'astro:route:setup': ({ route }) => {
+        if (route.component.endsWith('/blog/[slug].astro')) {
+          route.prerender = true;
+        }
+      },
+    },
+  };
+}
+```
+
+모든 훅을 실행한 후 최종 값이 `undefined`인 경우, 경로는 [`output` 옵션](/ko/reference/configuration-reference/#output)에 따라 프리렌더의 기본값으로 돌아갑니다: `hybrid` 모드에서는 사전 렌더링되며, `server` 모드에서는 주문형으로 렌더링됩니다.
 
 ### 사용자 정의 후크
 

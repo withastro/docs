@@ -31,6 +31,7 @@ export default NavDictionary({
 	routes: 'Routes et Navigation',
 	'guides/routing': 'Routage',
 	'guides/endpoints': 'Points de terminaison',
+	'guides/actions': 'Actions',
 	'guides/prefetch': 'Préchargement',
 	'guides/middleware': 'Middleware',
 	'guides/internationalization': 'Internationalisation',
@@ -40,6 +41,7 @@ export default NavDictionary({
 	'guides/styling': 'Styles & CSS',
 	'guides/images': 'Images',
 	'guides/fonts': 'Polices de caractères',
+	'guides/media': 'Connecter un média hébergé ou un DAM',
 
 	data: 'Connecter vos Données',
 	'guides/data-fetching': 'Récupération de Données',
