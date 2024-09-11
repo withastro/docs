@@ -8,17 +8,21 @@ Astro content collections help you organize and load data into your Astro projec
 
 ## What is a loader?
 
-Astro loaders allow you load data into [content collections](/en/reference/content-collections/), which can then be used in pages and components. The [built-in `glob()` and `file()` loaders](/en/guides/defining-collections/#built-in-loaders) are used to load content from the file system, and you can create your own loaders to load content from other sources. You can define a loader inline in your project's `src/content/config.ts` file, share one loader between multiple collections, or even [publish your loader to NPM as a package](/en/reference/publish-to-npm/) to share with others and be included in our integrations library.
+Astro loaders allow you load data into [content collections](/en/reference/content-collections/), which can then be used in pages and components. The [built-in `glob()` and `file()` loaders](/en/guides/defining-collections/#built-in-loaders) are used to load content from the file system, and you can create your own loaders to load content from other sources.
+
+Each collection needs [a loader defined in its schema](/en/guides/defining-collections/#defining-the-collection-loader). You can define a loader inline in your project's `src/content/config.ts` file, share one loader between multiple collections, or even [publish your loader to NPM as a package](/en/reference/publish-to-npm/) to share with others and be included in our integrations library.
 
 ## Loader types
 
-Loaders can be defined either as a simple function that returns an array of entries, or with the more powerful object loader API.
+Loaders can be defined either as a simple function that returns an array of entries, or with the more powerful object loader API for more control over the loading process. 
 
 ### Inline loaders
 
-An inline loader is an async function that returns an array or object containing entries. Use this for simple loaders, particularly those that are defined inline in the `src/content/config.ts` file. The function can be async, and must return either an array of entries that each contain a unique `id` field, or an object where each key is a unique ID and each value is the entry. Whenever the loader is invoked, it will clear the store and reload all the entries. 
+An inline loader is an async function that returns an array or object containing entries. Use this for simple loaders, particularly those that are defined inline in the `src/content/config.ts` file.
 
-```ts
+The function can be async, and must return either an array of entries that each contain a unique `id` field, or an object where each key is a unique ID and each value is the entry. Whenever the loader is invoked, it will clear the store and reload all the entries. 
+
+```ts title="src/content/config.ts"
 const countries = defineCollection({
   loader: async () => {
     const response = await fetch("https://restcountries.com/v3.1/all");
@@ -30,12 +34,13 @@ const countries = defineCollection({
       ...country,
     }));
   },
+  schema: /* ... */
 });
 ```
 
 ### Object loaders
 
-If a loader needs more control over the loading process it can use the object loader API. The loader is defined as an object with a `load()` method that is called at build time to fetch data and update the data store. It allows entries to be updated incrementally, or for the store to be cleared only when necessary. It can also define a schema for the entries, which can be used to validate the data and generate static types. 
+A loader returns an object with a `load()` method that is called at build time to fetch data and update the data store. It allows entries to be updated incrementally, or for the store to be cleared only when necessary. It can also define a schema for the entries, which can be used to validate the data and generate static types. 
 
 The recommended pattern is to define a function that accepts configuration options and returns the loader object, in the same way that you would normally define an Astro integration or Vite plugin. 
 
@@ -97,7 +102,9 @@ An async function that is called at build time to load data and update the store
 **Type**: `ZodSchema | Promise<ZodSchema> | (() => ZodSchema | Promise<ZodSchema>)`
 </p>
 
-An optional [Zod schema](/en/guides/defining-collections/#defining-datatypes-with-zod) that defines the shape of the entries. It is used to both validate the data, and also to generate TypeScript types for the collection. If a function is provided, it will be called at build time before `load()` to generate the schema. You can use this to dynamically generate the schema based on the configuration options or by introspecting an API. 
+An optional [Zod schema](/en/guides/defining-collections/#defining-datatypes-with-zod) that defines the shape of the entries. It is used to both validate the data, and also to generate TypeScript types for the collection.
+
+If a function is provided, it will be called at build time before `load()` to generate the schema. You can use this to dynamically generate the schema based on the configuration options or by introspecting an API. 
 
 ### `LoaderContext`
 
@@ -285,7 +292,7 @@ export function myLoader(options: { url: string }): Loader {
 
 ### `DataStore`
 
-The data store is a loader's interface to the content collection data. It is a key value store, scoped to the collection, so a loader can only access the data for its own collection.
+The data store is a loader's interface to the content collection data. It is a key-value (KV) store, scoped to the collection, and therefore a loader can only access the data for its own collection.
 
 #### `get`
 
@@ -403,7 +410,9 @@ An identifier for the entry, which must be unique within the collection. This is
 **Type**: `Record<string, unknown>`
 </p>
 
-The actual data for the entry. When a user accesses the collection, this will have TypeScript types generated according to the collection schema. It the responsibility of the loader to use [`parseData`](#parsedata) to validate and parse the data before storing it in the data store: no validation is done when getting or setting the data.
+The actual data for the entry. When a user accesses the collection, this will have TypeScript types generated according to the collection schema.
+
+It the loader's responsibility to use [`parseData`](#parsedata) to validate and parse the data before storing it in the data store: no validation is done when getting or setting the data.
 
 #### `filePath`
 
@@ -412,7 +421,9 @@ The actual data for the entry. When a user accesses the collection, this will ha
 **Type**: `string | undefined`
 </p>
 
-A path to the file that is the source of this entry, relative to the root of the site. This only applies to file-based loaders, and is used to resolve paths such as images or other assets. If not set, then any fields in the schema that use [the `image()` helper](/en/guides/images/#images-in-content-collections) will be treated as [public paths](/en/guides/images/#where-to-store-images) and not transformed.
+A path to the file that is the source of this entry, relative to the root of the site. This only applies to file-based loaders, and is used to resolve paths such as images or other assets.
+
+If not set, then any fields in the schema that use [the `image()` helper](/en/guides/images/#images-in-content-collections) will be treated as [public paths](/en/guides/images/#where-to-store-images) and not transformed.
 
 #### `body`
 
