@@ -62,18 +62,49 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 </MySiteLayout>
 ```
 
-
 <ReadMore>Apprenez-en plus sur [les Slots](/fr/basics/astro-components/#les-emplacements-slots).</ReadMore>
 
-## Mises en page Markdown/MDX
+## Utiliser TypeScript avec des mises en page
 
-Les composants de mise en page sont particulièrement utiles pour [les pages Markdown et MDX](/fr/guides/markdown-content/#pages-markdown-et-mdx) qui, autrement, n'auraient pas de formatage de page.
+Toute présentation Astro peut être modifiée pour introduire la sécurité des types et l'autocomplétion en fournissant les types de vos propriétés :
 
-Astro fournit une propriété spéciale `layout` frontmatter pour spécifier le composant `.astro` à utiliser comme mise en page.
+```astro ins={2-7} title="src/components/MyLayout.astro"
+---
+interface Props { 
+  title: string;
+  description: string;
+  publishDate: string;
+  viewCount: number;
+}
+const { title, description, publishDate, viewCount } = Astro.props;
+---
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="description" content={description}>
+    <title>{title}</title>
+  </head>
+  <body>
+    <header>
+      <p>Publié le {publishDate}</p>
+      <p>Vu par {viewCount} personnes</p>
+    </header>
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>
+```
+
+## Mises en page Markdown
+
+Les mises en page sont particulièrement utiles pour les pages Markdown individuelles qui, autrement, n'auraient pas de formatage de page.
+
+Astro fournit une propriété spéciale `layout` frontmatter pour spécifier le composant `.astro` à utiliser comme mise en page. Par défaut, ce composant spécifié peut accéder automatiquement aux données du fichier Markdown.
 
 ```markdown title="src/pages/page.md" {2} 
 ---
-layout: ../layouts/BaseLayout.astro
+layout: ../layouts/BlogPostLayout.astro
 title: "Hello, World!"
 author: "Matthew Phillips"
 date: "09 Aug 2022"
@@ -86,14 +117,13 @@ Vous pouvez l'utiliser dans les fichiers Markdown et MDX situés dans `src/pages
 
 ```
 
-Une mise en page typique pour les pages Markdown ou MDX inclut :
+Une mise en page typique pour les pages Markdown inclut :
 
-1. La propriété `frontmatter` pour accéder au frontmatter et aux autres données de la page Markdown ou MDX.
-2. Un [`<slot />`](/fr/basics/astro-components/#les-emplacements-slots) par défaut pour indiquer où le contenu Markdown/MDX de la page doit être rendu.
+1. La propriété `frontmatter` pour accéder au frontmatter et aux autres données de la page Markdown.
+2. Un [`<slot />`](/fr/basics/astro-components/#les-emplacements-slots) par défaut pour indiquer où le contenu Markdown de la page doit être rendu.
 
-```astro /(?<!//.*){?frontmatter(?:\\.\w+)?}?/ "<slot />"
+```astro title="src/layouts/BlogPostLayout.astro" /(?<!//.*){?frontmatter(?:\\.\w+)?}?/ "<slot />"
 ---
-// src/layouts/BaseLayout.astro
 // 1. La propriété frontmatter vous donne accès au frontmatter et aux autres données
 const { frontmatter } = Astro.props;
 ---
@@ -112,9 +142,9 @@ const { frontmatter } = Astro.props;
 </html>
 ```
 
-Vous pouvez définir le [type `Props`](/fr/guides/typescript/#les-paramètres-de-composants) d'une mise en page, avec l'helper `MarkdownLayoutProps` ou `MDXLayoutProps` :
+Vous pouvez définir le [type `Props`](/fr/guides/typescript/#les-paramètres-de-composants) d'une mise en page, avec l'helper `MarkdownLayoutProps` :
 
-```astro title="src/layouts/BaseLayout.astro" ins={2,4-9}
+```astro title="src/layouts/BlogPostLayout.astro" ins={2,4-9}
 ---
 import type { MarkdownLayoutProps } from 'astro';
 
@@ -144,66 +174,31 @@ const { frontmatter, url } = Astro.props;
 
 ### Propriétés de mise en page Markdown
 
-Une mise en page Markdown/MDX aura accès aux informations suivantes via `Astro.props` :
+Une mise en page Markdown aura accès aux informations suivantes via `Astro.props` :
 
 - **`file`** - Le chemin absolu de ce fichier (exemple : `/home/user/projects/.../file.md`).
-- **`url`** - Si c'est une page, l'URL de cette page (exemple : `/fr/guides/markdown-content`).
+- **`url`** - L'URL de cette page (exemple : `/fr/guides/markdown-content`).
 - **`frontmatter`** - Tous les éléments frontmatter du document Markdown ou MDX.
   - **`frontmatter.file`** - Identique à la propriété `file` de premier niveau.
   - **`frontmatter.url`** - Identique à la propriété `url` de premier niveau.
 - **`headings`** - Une liste de titre (`h1 -> h6`) dans le document Markdown ou MDX avec les métadonnées associées. Cette liste suit le type : `{ depth: number; slug: string; text: string }[]`.
-- **(Markdown only) `rawContent()`** - Une fonction qui renvoie le document Markdown brut sous forme de chaine de caractères.
-- **(Markdown only) `compiledContent()`** - Une fonction qui renvoie le document Markdown compilé en tant que chaine de caractères HTML.
-
-Un exemple de billet de blog en format Markdown peut transmettre l'objet `Astro.props` suivant à sa mise en page :
-
-```js
-Astro.props = {
-  file: "/home/user/projects/.../file.md",
-  url: "/fr/guides/markdown-content/",
-  frontmatter: {
-    /** Frontmatter depuis un article de blog */
-    title: "Astro 0.18 Release",
-    date: "Tuesday, July 27 2021",
-    author: "Matthew Phillips",
-    description: "Astro 0.18 is our biggest release since Astro launch.",
-    /** Valeurs générées */
-    file: "/home/user/projects/.../file.md",
-    url: "/fr/guides/markdown-content/"
-  },
-  headings: [
-    {
-      "depth": 1,
-      "text": "Astro 0.18 Release",
-      "slug": "astro-018-release"
-    },
-    {
-      "depth": 2,
-      "text": "Responsive partial hydration",
-      "slug": "responsive-partial-hydration"
-    }
-    /* ... */
-  ],
-
-  /** Disponible en Markdown uniquement */
-  rawContent: () => "# Astro 0.18 Release\nIl y a un peu plus d'un mois, la première bêta publique [...]",
-  compiledContent: () => "<h1>Astro 0.18 Release</h1>\n<p>Il y a un peu plus d'un mois, la première bêta publique [...]</p>",
-}
-```
+- **`rawContent()`** - Une fonction qui renvoie le document Markdown brut sous forme de chaine de caractères.
+- **`compiledContent()`** - Une fonction qui renvoie le document Markdown compilé en tant que chaine de caractères HTML.
 
 :::note
-Une mise en page Markdown/MDX aura accès à toutes les [propriétés exportées de son fichier](/fr/guides/markdown-content/#propriétés-exportées) depuis `Astro.props` **avec quelques différences essentielles :**
+Une mise en page Markdown aura accès à toutes les [propriétés disponibles](/fr/guides/markdown-content/#propriétés-disponibles) du fichier Markdown depuis `Astro.props` **avec deux différences essentielles :**
 
 *   Informations sur l'en-tête (c.-à-d. les éléments `h1 -> h6`) sont disponibles via le tableau `headings`, plutôt qu'une fonction `getHeadings()`.
 
 *   `file` et `url` sont *aussi* disponibles comme propriétés `frontmatter` imbriquées (c.-à-d. `frontmatter.url` et `frontmatter.file`).
 
-*   Valeurs définies en dehors de frontmatter (par exemple la déclaration `export` en MDX) ne sont pas disponibles. Pensez à [importer une mise en page](#importation-manuelle-de-mises-en-page-mdx) à la place.
 :::
 
 ### Importation manuelle de mises en page (MDX)
 
-Vous pouvez avoir besoin de transmettre à votre mise en page MDX des informations qui n'existent pas (ou ne peuvent pas exister) dans votre frontmatter. Dans ce cas, vous pouvez à la place importer et utiliser un [composant `<Layout />`](/fr/basics/layouts/) et lui passer des propriétés comme n'importe quel autre composant :
+Vous pouvez également utiliser la propriété spéciale Markdown layout dans le frontmatter des fichiers MDX pour transmettre les propriétés `frontmatter` et `headings` directement à un composant de mise en page spécifié de la même manière.
+
+Pour passer à votre layout MDX des informations qui n'existent pas (ou ne peuvent pas exister) dans votre frontmatter, vous pouvez importer et utiliser un composant `<Layout />`. Ce composant fonctionne comme n'importe quel autre composant Astro, et ne recevra pas de props automatiquement. Passez-lui directement les propriétés nécessaires :
 
 ```mdx title="src/pages/posts/first-post.mdx" ins={6} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/
 ---
@@ -224,7 +219,7 @@ export function fancyJsHelper() {
 
 Ensuite, vos valeurs sont disponibles à travers `Astro.props` dans votre mise en page, et votre contenu MDX va être injecté dans la page où votre composant `<slot />` est écrit : 
 
-```astro /{?title}?/ "fancyJsHelper" "{fancyJsHelper()}"
+```astro title="src/layouts/BaseLayout.astro" /{?title}?/ "fancyJsHelper" "{fancyJsHelper()}"
 ---
 // src/layouts/BaseLayout.astro
 const { title, fancyJsHelper } = Astro.props;
@@ -236,45 +231,13 @@ const { title, fancyJsHelper } = Astro.props;
 <!-- -->
 ```
 
-<ReadMore>Pour en savoir plus sur la prise en charge de Markdown et de MDX par Astro, consultez notre [guide Markdown/MDX](/fr/guides/markdown-content/).</ReadMore>
-
-## Utilisation de TypeScript avec des mises en page
-
-Toute mise en page Astro peut être modifiée pour introduire la sécurité des types et la saisie semi-automatique en fournissant les types pour vos propriétés :
-
-```astro ins={2-7} title="src/components/MyLayout.astro"
----
-interface Props { 
-	title: string;
-  description: string;
-  publishDate: string;
-  viewCount: number;
-}
-const { title, description, publishDate, viewCount } = Astro.props;
----
-<html lang="fr">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="description" content={description}>
-    <title>{title}</title>
-  </head>
-  <body>
-    <header>
-      <p>Publié le {publishDate}</p>
-      <p>Consulté par {viewCount} personnes</p>
-    </header>
-    <main>
-      <slot />
-    </main>
-  </body>
-</html>
-```
+<ReadMore>Pour en savoir plus sur la prise en charge de Markdown et de MDX par Astro, consultez notre [guide Markdown](/fr/guides/markdown-content/).</ReadMore>
 
 ## Imbrication de mises en page
 
-Les composants de mises en pages ne doivent pas nécessairement contenir une page entière de HTML. Vous pouvez décomposer vos mises en page en composants plus petits et combiner des composants de mises en page pour créer des templates de page encore plus flexibles. Ce modèle est utile lorsque vous souhaitez partager du code entre plusieurs mises en page.
+Les composants de mise en page ne doivent pas nécessairement contenir une page entière de code HTML. Vous pouvez diviser vos mises en page en composants plus petits et combiner les composants de mise en page pour créer des modèles de page encore plus flexibles. Ce modèle est utile lorsque vous souhaitez partager du code entre plusieurs mises en page.
 
-Par exemple, un composant de mise en page `BlogPostLayout.astro` peut styliser le titre, la date et l'auteur d'un article. Ensuite, un `BaseLayout.astro` pour tout le site pourrait gérer le reste de votre template de page, comme la navigation, les pieds de page, les balises méta SEO, les styles globaux, et les polices de caractères. Vous pouvez également transmettre les propriétés reçues de votre message à une autre mise en page, comme tout autre composant imbriqué.
+Par exemple, un composant de mise en page `BlogPostLayout.astro` pourrait styliser le titre, la date et l'auteur d'un article. Ensuite, un `BaseLayout.astro` au niveau du site pourrait gérer le reste de votre modèle de page, comme la navigation, les pieds de page, les balises méta SEO, les styles globaux et les polices de caractères. Vous pouvez également passer les propriétés reçus de votre article à un autre layout, comme n'importe quel autre composant imbriqué.
 
 ```astro {3} /</?BaseLayout>/ /</?BaseLayout url={frontmatter.url}>/
 ---
@@ -284,7 +247,7 @@ const { frontmatter } = Astro.props;
 ---
 <BaseLayout url={frontmatter.url}>
   <h1>{frontmatter.title}</h1>
-  <h2>Auteur du billet : {frontmatter.author}</h2>
+  <h2>Auteur de l'article : {frontmatter.author}</h2>
   <slot />
 </BaseLayout>
 ```
