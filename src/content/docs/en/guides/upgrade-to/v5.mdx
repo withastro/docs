@@ -106,18 +106,17 @@ See [the changelog](https://github.com/withastro/astro/blob/main/packages/astro/
 
 ## Astro v5.0 Experimental Flags Removed
 
-The following features are no longer experimental in Astro v5.0:
+The following experimental flags have been removed in Astro v5.0 and these features are available for use:
 
-- [`env`]()
-- [`serverIslands`]()
-- [`contentLayer`]()
+- `env`
+- `serverIslands`
 
-Additionally, the following experimental flags have been removed and **are now the default behavior in Astro v5.0**. 
 
-- `directRenderScript`
-- `globalRoutePriority`
+Additionally, the following experimental flags have been removed and **are now the default or recommended behavior in Astro v5.0**. 
 
-Please see below for breaking changes to [default `<script>` behavior]() and [default route priority order]()
+- `directRenderScript` (See below for breaking changes to [default `<script>` behavior](#changed-default-script-behavior-plt2086---alpha2).)
+- `globalRoutePriority` (See below for breaking changes to [default route priority order](#changed-route-priority-order-plt2087---alpha1).)
+- `contentLayer` (See below for [upgrading existing content collections](#legacy-content-collections-using-the-original-api) to the new, preferred Content Layer API.)
 
 Remove these experimental flags if you were previously using them, and move your `env` configuration to the root of your Astro config:
 
@@ -675,6 +674,84 @@ The view transitions component has been renamed
 #### What should I do?
 
 Stuff!
+
+## Legacy
+
+The following features are considered legacy features. They should function normally but are no longer recommended and are in maintenance mode. They will see no future improvements and documentation will not be updated. These features will eventually be deprecated, then removed entirely.
+
+### Legacy: Content collections using the original API
+
+In Astro 4.x, content collections were defined, queried, and rendered using the original API first introduced in Astro v2.0.
+
+Astro 5.0 introduces a new version of content collections using the Content Layer API which brings several performance improvements and added capabilities.
+
+#### What should I do?
+
+We recommend updating any existing collections as soon as you are able, and making any new collections using the Content Layer API.
+
+<ReadMore>Please see the updated [content collections guide](/en/guides/content-collections/) to see how to use the new collections.</ReadMore>
+
+##### Updating existing collections
+
+You can convert an existing content collection with Markdown, MDX, Markdoc, or JSON entries to use the Content Layer API.
+
+<Steps>
+
+1. **Move the collection folder out of `src/content/`** (e.g. to `src/data/`). All collections located in the `src/content/` folder will use the existing Content Collections API. This is a temporary restriction necessary during the transition period where both types of collections are allowed.
+
+    **Do not move the existing `src/content/config.ts` file**. This file will define all collections, using either API.
+
+2. **Edit the collection definition**. Your updated collection requires a `loader`, and the option to select a collection `type` is no longer available.
+
+    ```ts ins={3,8} del={7}
+    // src/content/config.ts
+    import { defineCollection, z } from 'astro:content';
+    import { glob } from 'astro/loaders';
+
+    const blog = defineCollection({
+      // For content layer you no longer define a `type`
+      type: 'content',
+      loader: glob({ pattern: '**\/[^_]*.md', base: "./src/data/blog" }),
+      schema: z.object({
+        title: z.string(),
+        description: z.string(),
+        pubDate: z.coerce.date(),
+        updatedDate: z.coerce.date().optional(),
+      }),
+    });
+    ```
+
+3. **Change references from `slug` to `id`**. Content layer collections do not have a `slug` field. Instead, all updated collections will have an `id`.
+
+    ```astro ins={7} del={6}
+    // src/pages/[slug].astro
+    ---
+    export async function getStaticPaths() {
+      const posts = await getCollection('blog');
+      return posts.map((post) => ({
+        params: { slug: post.slug },
+        params: { slug: post.id },
+        props: post,
+      }));
+    }
+    ---
+    ```
+
+4. **Switch to the new `render()` function**. Entries no longer have a `render()` method, as they are now serializable plain objects. Instead, import the `render()` function from `astro:content`.
+
+    ```astro title="src/pages/index.astro" ins=", render" del={6} ins={7}
+    ---
+    import { getEntry, render } from 'astro:content';
+
+    const post = await getEntry('blog', params.slug);
+
+    const { Content, headings } = await post.render();
+    const { Content, headings } = await render(post);
+    ---
+    <Content />
+    ```
+</Steps>
+
 
 ## Deprecated
 
