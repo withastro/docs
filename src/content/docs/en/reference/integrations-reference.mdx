@@ -444,12 +444,17 @@ console.log(path) // URL
 
 **When:** Just after the Vite server is created in "dev" mode, but before the `listen()` event is fired. [See Vite's createServer API](https://vitejs.dev/guide/api-javascript.html#createserver) for more.
 
-**Why:** To update Vite server options and middleware.
+**Why:** To update Vite server options and middleware, or enable support for refreshing the content layer.
 
 ```js
-'astro:server:setup'?: (options: { server: vite.ViteDevServer }) => void | Promise<void>;
+'astro:server:setup'?: (options: {
+  server: vite.ViteDevServer;
+  refreshContent: (options: {
+    loaders?: Array<string>;
+    context?: Record<string, any>;
+  }) => Promise<void>;
+}) => void | Promise<void>;
 ```
-
 #### `server` option
 
 **Type:** [`ViteDevServer`](https://vitejs.dev/guide/api-javascript.html#vitedevserver)
@@ -470,6 +475,59 @@ export default {
   }
 }
 ```
+
+#### `refreshContent` option
+
+<p>
+
+**Type:** `(options: { loaders?: Array<string>; context?: Record<string, any>; }) => Promise<void>`<br />
+<Since v="5.0.0" />
+</p>
+
+A function for integrations to trigger an update to the content layer during `astro dev`. This can be used, for example, to register a webhook endpoint during dev, or to open a socket to a CMS to listen for changes.
+
+By default, `refreshContent` will refresh all collections. You can optionally pass a `loaders` property, which is an array of loader names. If provided, only collections that use those loaders will be refreshed. For example, A CMS integration could use this property to only refresh its own collections.
+
+You can also pass a `context` object to the loaders. This can be used to pass arbitrary data such as the webhook body, or an event from the websocket. 
+
+```ts title=my-integration.ts {19-22}
+ {
+    name: 'my-integration',
+    hooks: {
+        'astro:server:setup': async ({ server, refreshContent }) => {
+            // Register a dev server webhook endpoint
+            server.middlewares.use('/_refresh', async (req, res) => {
+                if(req.method !== 'POST') {
+                  res.statusCode = 405
+                  res.end('Method Not Allowed');
+                  return
+                }
+                let body = '';
+                req.on('data', chunk => {
+                    body += chunk.toString();
+                });
+                req.on('end', async () => {
+                    try {
+                        const webhookBody = JSON.parse(body);
+                        await refreshContent({
+                          context: { webhookBody },
+                          loaders: ['my-loader']
+                        });
+                        res.writeHead(200, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ message: 'Content refreshed successfully' }));
+                    } catch (error) {
+                        res.writeHead(500, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: 'Failed to refresh content: ' + error.message }));
+                    }
+                });
+            });
+        }
+    }
+}
+```
+
+The loader can then access the `refreshContextData` property to get the webhook body. See the [`refreshContextData`](/en/reference/loader-reference/#refreshcontextdata) property for more information.
+
 
 ### `astro:server:start`
 
