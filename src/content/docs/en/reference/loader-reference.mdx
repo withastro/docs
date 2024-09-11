@@ -193,7 +193,7 @@ export function feedLoader({ url }): Loader {
 **Type**: `(data: Record<string, unknown> | string) => string`
 </p>
 
-Generates a non-cryptographic content digest. This can be used to check if the data has changed. 
+Generates a non-cryptographic content digest of an object or string. This can be used to track if the data has changed by setting [the `digest` field](#digest) of an entry.
 
 ```ts title=loader.ts {19,24}
 import type { Loader } from "astro/loaders";
@@ -286,7 +286,7 @@ The data store is a loader's interface to the content collection data. It is a k
 
 <p>
 
-**Type**: `(key: string) => DataEntry | undefined`
+**Type**: <code>(key: string) => <a href="#dataentry">DataEntry</a> | undefined</code>
 </p>
 
 Get an entry from the store by its ID. Returns `undefined` if the entry does not exist. 
@@ -295,38 +295,16 @@ Get an entry from the store by its ID. Returns `undefined` if the entry does not
 const existingEntry = store.get("my-entry");
 ```
 
-The returned object has the following properties:
-```ts
-interface DataEntry<TData extends Record<string, unknown>> {
-	/** The ID of the entry. Unique per collection. */
-	id: string;
-	/** The parsed entry data */
-	data: TData;
-	/** The file path of the content, if applicable. Relative to the site root. */
-	filePath?: string;
-	/** The raw body of the content, if applicable. */
-	body?: string;
-	/** An optional content digest, to check if the content has changed. */
-	digest?: number | string;
-	/** The rendered content of the entry, if applicable. */
-	rendered?: RenderedContent;
-}
-```
+The returned object is a [`DataEntry`](#dataentry) object.
 
 #### `set`
 
-**Type**: `(opts: Opts) => boolean`
+<p>
 
-The main method to update the store with new entries. It takes an object with the following properties:
+**Type**: <code>(entry: <a href="#dataentry">DataEntry</a>) => boolean</code>
+</p>
 
-- `id: string`: The ID of the entry. Must be unique per collection. If the ID already exists in the store, the entry will be replaced.
-- `data`: The data to store. This will be stored unchanged, so if it needs to be parsed or validated then it should be done before calling `set()`.
-- `body?: string`: The raw body of the content, if applicable. This is mostly relevant for file-based loaders, or those that also store rendered content.
-- `filePath?: string`: The file path of the content, if applicable. This only applies to file-based loaders, and is used to resolve paths such as images or other assets.
-- `digest?: string`: An optional content digest, to check if the content has changed. It is an opaque value, so you can use any method to generate it, but we recommended using the `generateDigest()` function. If provided it will be checked against the existing entry, and if it matches then the entry will not be updated and `set` will return false.
-- `rendered?: { html?: string, metadata?: Record<string, unknown> }`: The rendered HTML content of the entry, if applicable. If provided, users will be able to use the `<Content />` component to render the HTML. The metadata object is used for things like frontmatter or other metadata extracted from the content.
-
-Returns `true` if the entry was set. If `digest` was passed and matched an existing entry with the same ID, it will return `false` and not update the entry.
+Adds an entry to the store, returning `true` if the entry was set. If `digest` was passed and matched an existing entry with the same ID, it will return `false` and not update the entry. See [`DataEntry`](#dataentry) for more information on the fields to pass. The entry should have been parsed using `parseData` before being stored. As well as applying any validations and transforms in the schema, this will also ensure that any images are correctly processed.
 
 ```ts title=loader.ts {7-14}
     for (const item of feed.items) {
@@ -395,3 +373,80 @@ Clear all entries from the collection.
 </p>
 
 Check if an entry exists in the store by its ID.
+
+### `DataEntry`
+
+This is the type of the object that is stored in the data store. It has the following properties:
+
+#### `id`
+
+<p>
+
+**Type**: `string`
+</p>
+
+An identifier for the entry, which must be unique within the collection. This is used to look up the entry in the store, and is the key used with `getEntry` for that collection. 
+
+#### `data`
+
+<p>
+
+**Type**: `Record<string, unknown>`
+</p>
+
+The actual data for the entry. When a user accesses the collection, this will have TypeScript types generated according to the collection schema. It the responsibility of the loader to use [`parseData`](#parsedata) to validate and parse the data before storing it in the data store: no validation is done when getting or setting the data.
+
+#### `filePath`
+
+<p>
+
+**Type**: `string | undefined`
+</p>
+
+A path to the file that is the source of this entry, relative to the root of the site. This only applies to file-based loaders, and is used to resolve paths such as images or other assets. If not set, then any fields in the schema that use [the `image()` helper](/en/guides/images/#images-in-content-collections) will be treated as [public paths](/en/guides/images/#where-to-store-images) and not transformed.
+
+#### `body`
+
+<p>
+
+**Type**: `string | undefined`
+</p>
+
+The raw body of the entry, if applicable. If the entry includes [rendered content](#rendered), then this field can be used to store the raw source. This is optional, and is not used internally.
+
+#### `digest`
+
+<p>
+
+**Type**: `string | undefined`
+</p>
+
+An optional content digest for the entry. This can be used to check if the data has changed. If the digest is passed when setting an entry, it will only update the entry if the digest does not match the existing entry. The format of the digest is up to the loader, but it should be a string that changes when the data changes. The [`generateDigest`](#generatedigest) function can be used for this.
+
+#### `rendered`
+
+<p>
+
+**Type**: `RenderedContent | undefined`
+</p>
+
+If the entry has been rendered to HTML, this field can be used to store an object with the rendered content and metadata. This can be used to store the rendered content of a markdown entry, for example, or HTML from a CMS. This field is optional, but if provided then the user can use [the `render()` function and `<Content />` component](/en/guides/working-with-collections/#rendering-body-content) to render the entry in a page.
+
+The format of the `RenderedContent` object is:
+
+```ts
+{
+	/** Rendered HTML string. If present then `render(entry)` will return a component that renders this HTML. */
+	html: string;
+	metadata?: {
+		/** Any images that are present in this entry. Relative to the {@link DataEntry} filePath. */
+		imagePaths?: Array<string>;
+		/** Any headings that are present in this file. Returned as `headings` from `render()` */
+		headings?: MarkdownHeading[];
+		/** Raw frontmatter, parsed parsed from the file. This may include data from remark plugins. */
+		frontmatter?: Record<string, any>;
+		/** Any other metadata that is present in this file. */
+		[key: string]: unknown;
+	};
+}
+```
