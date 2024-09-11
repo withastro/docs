@@ -29,9 +29,11 @@ export default NavDictionary({
 	'guides/cms': 'Conectar un CMS',
 	'guides/rss': 'Agregar un feed RSS',
 	'guides/view-transitions': 'Transiciones de vista',
+
 	routes: 'Rutas y Navegación',
 	'guides/routing': 'Enrutamiento',
 	'guides/endpoints': 'Endpoints',
+	'guides/actions': 'Acciones',
 	'guides/prefetch': 'Precarga',
 	'guides/middleware': 'Middleware',
 	'guides/internationalization': 'Internacionalización',
@@ -40,6 +42,7 @@ export default NavDictionary({
 	'guides/styling': 'Estilos y CSS',
 	'guides/images': 'Imágenes',
 	'guides/fonts': 'Fuentes',
+	'guides/media': 'Conectar un medio alojado o un DAM',
 
 	data: 'Conecta Tus Datos',
 	'guides/data-fetching': 'Obtención de Datos',
