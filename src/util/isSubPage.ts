@@ -32,8 +32,6 @@ const parentIndex: Record<string, string> = {
 	'editor-setup': 'install-and-setup',
 	'guides/dev-toolbar': 'install-and-setup',
 	'guides/server-side-rendering': 'guides/integrations-guide',
-	'guides/collection-queries': 'guides/content-collections/',
-	'guides/defining-collections': 'guides/content-collections/',
 };
 
 /** Slugs of pages that appear at the top level even though they are in a sub-category. */

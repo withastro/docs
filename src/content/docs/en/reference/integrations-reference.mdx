@@ -12,7 +12,7 @@ This reference page is for anyone writing their own integration. To learn how to
 
 The official Astro integrations can act as reference for you as you go to build your own integrations.
 
-- **Renderers:** [`lit`](/en/guides/integrations-guide/lit/), [`svelte`](/en/guides/integrations-guide/svelte/), [`react`](/en/guides/integrations-guide/react/), [`preact`](/en/guides/integrations-guide/preact/), [`vue`](/en/guides/integrations-guide/vue/), [`solid`](/en/guides/integrations-guide/solid-js/)
+- **Renderers:** [`svelte`](/en/guides/integrations-guide/svelte/), [`react`](/en/guides/integrations-guide/react/), [`preact`](/en/guides/integrations-guide/preact/), [`vue`](/en/guides/integrations-guide/vue/), [`solid`](/en/guides/integrations-guide/solid-js/)
 - **Libraries:** [`tailwind`](/en/guides/integrations-guide/tailwind/), [`partytown`](/en/guides/integrations-guide/partytown/)
 - **Features:** [`sitemap`](/en/guides/integrations-guide/sitemap/)
 
@@ -146,7 +146,7 @@ export default {
 #### `addRenderer` option
 
 **Type:** `(renderer:` [`AstroRenderer`](https://github.com/withastro/astro/blob/fdd607c5755034edf262e7b275732519328a33b2/packages/astro/src/%40types/astro.ts#L872-L883) `) => void;`
-**Examples:** [`lit`](https://github.com/withastro/astro/blob/main/packages/integrations/lit/src/index.ts), [`svelte`](https://github.com/withastro/astro/blob/main/packages/integrations/svelte/src/index.ts), [`react`](https://github.com/withastro/astro/blob/main/packages/integrations/react/src/index.ts), [`preact`](https://github.com/withastro/astro/blob/main/packages/integrations/preact/src/index.ts), [`vue`](https://github.com/withastro/astro/blob/main/packages/integrations/vue/src/index.ts), [`solid`](https://github.com/withastro/astro/blob/main/packages/integrations/solid/src/index.ts)
+**Examples:** [`svelte`](https://github.com/withastro/astro/blob/main/packages/integrations/svelte/src/index.ts), [`react`](https://github.com/withastro/astro/blob/main/packages/integrations/react/src/index.ts), [`preact`](https://github.com/withastro/astro/blob/main/packages/integrations/preact/src/index.ts), [`vue`](https://github.com/withastro/astro/blob/main/packages/integrations/vue/src/index.ts), [`solid`](https://github.com/withastro/astro/blob/main/packages/integrations/solid/src/index.ts)
 
 A callback function to add a component framework renderer (i.e. React, Vue, Svelte, etc). You can browse the examples and type definition above for more advanced options, but here are the 2 main options to be aware of:
 
@@ -444,12 +444,17 @@ console.log(path) // URL
 
 **When:** Just after the Vite server is created in "dev" mode, but before the `listen()` event is fired. [See Vite's createServer API](https://vitejs.dev/guide/api-javascript.html#createserver) for more.
 
-**Why:** To update Vite server options and middleware.
+**Why:** To update Vite server options and middleware, or enable support for refreshing the content layer.
 
 ```js
-'astro:server:setup'?: (options: { server: vite.ViteDevServer }) => void | Promise<void>;
+'astro:server:setup'?: (options: {
+  server: vite.ViteDevServer;
+  refreshContent: (options: {
+    loaders?: Array<string>;
+    context?: Record<string, any>;
+  }) => Promise<void>;
+}) => void | Promise<void>;
 ```
-
 #### `server` option
 
 **Type:** [`ViteDevServer`](https://vitejs.dev/guide/api-javascript.html#vitedevserver)
@@ -470,6 +475,59 @@ export default {
   }
 }
 ```
+
+#### `refreshContent` option
+
+<p>
+
+**Type:** `(options: { loaders?: Array<string>; context?: Record<string, any>; }) => Promise<void>`<br />
+<Since v="5.0.0" />
+</p>
+
+A function for integrations to trigger an update to the content layer during `astro dev`. This can be used, for example, to register a webhook endpoint during dev, or to open a socket to a CMS to listen for changes.
+
+By default, `refreshContent` will refresh all collections. You can optionally pass a `loaders` property, which is an array of loader names. If provided, only collections that use those loaders will be refreshed. For example, A CMS integration could use this property to only refresh its own collections.
+
+You can also pass a `context` object to the loaders. This can be used to pass arbitrary data such as the webhook body, or an event from the websocket. 
+
+```ts title=my-integration.ts {19-22}
+ {
+    name: 'my-integration',
+    hooks: {
+        'astro:server:setup': async ({ server, refreshContent }) => {
+            // Register a dev server webhook endpoint
+            server.middlewares.use('/_refresh', async (req, res) => {
+                if(req.method !== 'POST') {
+                  res.statusCode = 405
+                  res.end('Method Not Allowed');
+                  return
+                }
+                let body = '';
+                req.on('data', chunk => {
+                    body += chunk.toString();
+                });
+                req.on('end', async () => {
+                    try {
+                        const webhookBody = JSON.parse(body);
+                        await refreshContent({
+                          context: { webhookBody },
+                          loaders: ['my-loader']
+                        });
+                        res.writeHead(200, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ message: 'Content refreshed successfully' }));
+                    } catch (error) {
+                        res.writeHead(500, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: 'Failed to refresh content: ' + error.message }));
+                    }
+                });
+            });
+        }
+    }
+}
+```
+
+The loader can then access the `refreshContextData` property to get the webhook body. See the [`refreshContextData`](/en/reference/loader-reference/#refreshcontextdata) property for more information.
+
 
 ### `astro:server:start`
 
@@ -758,6 +816,18 @@ declare global {
 ```
 
 Astro reserves the `astro:` prefix for future built-in hooks. Please choose a different prefix when naming your custom hook.
+
+### `HookParameters`
+
+You can get the type of a hook’s arguments by passing the hook’s name to the `HookParameters` utility type. In the following example, a function’s `options` argument is typed to match the parameters of the `astro:config:setup` hook:
+
+```ts /HookParameters(?:<.+>)?/
+import type { HookParameters } from 'astro';
+
+function mySetup(options: HookParameters<'astro:config:setup'>) {
+  options.updateConfig({ /* ... */ });
+}
+```
 
 ## Allow installation with `astro add`
 

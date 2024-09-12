@@ -9,7 +9,7 @@ import ReadMore from '~/components/ReadMore.astro'
 import SourcePR from '~/components/SourcePR.astro'
 
 
-## LINEAR ISSUES WITH NO UPGRADE GUIDE BREAKING PLACEHOLDER ENTRY
+{/* ## LINEAR ISSUES WITH NO UPGRADE GUIDE BREAKING PLACEHOLDER ENTRY
 
 If completed, would any of these cause a breaking change and need adding below?
 
@@ -21,11 +21,11 @@ If completed, would any of these cause a breaking change and need adding below?
 - (PLT-2315) Remove collection item types
 - (PLT-2342) prerender on `RouteData` is weird
 
-## Main page starts here 
+## Main page starts here  */}
 
 This guide will help you migrate from Astro v4 to Astro v5.
 
-Need to upgrade an older project to v4? See our [older migration guide](/en/guides/upgrade-to/v4/).
+Need to upgrade an older project to v4 first? See our [older migration guide](/en/guides/upgrade-to/v4/).
 
 {/* Need to see the v4 docs? Visit this [older version of the docs site (unmaintained v3.6 snapshot)](https://docs-git-v3-docs-unmaintained-astrodotbuild.vercel.app/). */}
 
@@ -98,26 +98,365 @@ After upgrading Astro, you may not need to make any changes to your project at a
 But, if you notice errors or unexpected behavior, please check below for what has changed that might need updating in your project.
 :::
 
-Astro v5.0 includes [potentially breaking changes](#breaking-changes), as well as the removal of some previously deprecated features.
+Astro v5.0 includes [potentially breaking changes](#breaking-changes), as well as the removal and deprecation of some features.
 
 If your project doesn't work as expected after upgrading to v5.0, check this guide for an overview of all breaking changes and instructions on how to update your codebase.
 
-See [the changelog](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md) for full release notes.
+See [the 5.0 beta changelog](https://github.com/withastro/astro/blob/next/packages/astro/CHANGELOG.md) for full release notes.
 
-## Astro v5.0 Experimental Flags Removed
+## Dependency Upgrades
 
-The following features are no longer experimental in Astro v5.0:
+### Node Support
 
-- [`env`]()
-- [`serverIslands`]()
-- [`contentLayer`]()
+The minimum supported version of Node.js in Astro v5.0 is `v18.17.1`
 
-Additionally, the following experimental flags have been removed and **are now the default behavior in Astro v5.0**. 
+#### What should I do?
 
-- `directRenderScript`
-- `globalRoutePriority`
+ Check that both your development environment and your deployment environment are using **Node `18.17.1` or higher**.
 
-Please see below for breaking changes to [default `<script>` behavior]() and [default route priority order]()
+<Steps>
+1. Check your local version of Node using:
+
+    ```sh
+    node -v
+    ```
+
+2. Check your [deployment environment's](/en/guides/deploy/) own documentation to verify that they support this version of Node.
+
+    You can specify Node `18.17.1` for your Astro project either in a dashboard configuration setting or a `.nvmrc` file.
+
+    ```bash title=".nvmrc"
+    18.17.1
+    ```
+</Steps>
+
+### `@astrojs/mdx`
+
+<SourcePR number="11741" title="Cleanup unused JSX code"/>
+
+In Astro v4.x, Astro performed internal JSX handling for the `@astrojs/mdx` integration.
+
+Astro v5.0 moves this responsibility to handle and render JSX and MDX to the `@astrojs/mdx` package directly. This means that Astro 5.0 is no longer compatible with older versions of the MDX integration.
+
+#### What should I do?
+
+If your project includes `.mdx` files, you must upgrade `@astrojs/mdx` to the latest version (v4.0.0) so that your JSX can be handled properly by the integration.
+
+<ReadMore>Learn more about [using MDX in your project](/en/guides/integrations-guide/mdx/).</ReadMore>
+
+{/*
+// THESE ARE FOR DEPENDENCY UPGRADES
+
+Any major upgrades to Astro's dependencies may cause breaking changes in your project.
+
+### Upgraded: Vite 5.0
+
+Placeholder
+
+#### What should I do?
+
+If you are using Vite-specific plugins, configuration, or APIs, check the [Vite migration guide](https://vitejs.dev/guide/migration) for their breaking changes and upgrade your project as needed. There are no breaking changes to Astro itself.
+
+*/}
+
+## Legacy
+
+The following features are considered legacy features. They should function normally but are no longer recommended and are in maintenance mode. They will see no future improvements and documentation will not be updated. These features will eventually be deprecated, then removed entirely.
+
+### Legacy: v2.0 Content Collections API
+
+In Astro 4.x, content collections were defined, queried, and rendered using [the Content Collections API first introduced in Astro v2.0](https://astro.build/blog/introducing-content-collections/).
+
+Astro 5.0 introduces a new version of content collections using the Content Layer API which brings several performance improvements and added capabilities.
+
+#### What should I do?
+
+We recommend updating any existing collections as soon as you are able, and making any new collections using the Content Layer API.
+
+<ReadMore>Learn more about the updated [content collections](/en/guides/content-collections/).</ReadMore>
+
+##### Updating existing collections
+
+See the instructions below for updating an existing content collection with Markdown, MDX, Markdoc, or JSON entries.
+
+<details>
+<summary>Convert an existing content collection to use the Content Layer API.</summary>
+
+<Steps>
+
+1. **Move the collection folder out of `src/content/`** (e.g. to `src/data/`). All collections located in the `src/content/` folder will use the existing Content Collections API. This is a temporary restriction necessary during the transition period where both types of collections are allowed.
+
+    **Do not move the existing `src/content/config.ts` file**. This file will define all collections, using either API.
+
+2. **Edit the collection definition**. Your updated collection requires a `loader`, and the option to select a collection `type` is no longer available.
+
+    ```ts ins={3,8} del={7}
+    // src/content/config.ts
+    import { defineCollection, z } from 'astro:content';
+    import { glob } from 'astro/loaders';
+
+    const blog = defineCollection({
+      // For content layer you no longer define a `type`
+      type: 'content',
+      loader: glob({ pattern: '**\/[^_]*.md', base: "./src/data/blog" }),
+      schema: z.object({
+        title: z.string(),
+        description: z.string(),
+        pubDate: z.coerce.date(),
+        updatedDate: z.coerce.date().optional(),
+      }),
+    });
+    ```
+
+3. **Change references from `slug` to `id`**. Content layer collections do not have a `slug` field. Instead, all updated collections will have an `id`.
+
+    ```astro ins={7} del={6}
+    // src/pages/[slug].astro
+    ---
+    export async function getStaticPaths() {
+      const posts = await getCollection('blog');
+      return posts.map((post) => ({
+        params: { slug: post.slug },
+        params: { slug: post.id },
+        props: post,
+      }));
+    }
+    ---
+    ```
+
+4. **Switch to the new `render()` function**. Entries no longer have a `render()` method, as they are now serializable plain objects. Instead, import the `render()` function from `astro:content`.
+
+    ```astro title="src/pages/index.astro" ins=", render" del={6} ins={7}
+    ---
+    import { getEntry, render } from 'astro:content';
+
+    const post = await getEntry('blog', params.slug);
+
+    const { Content, headings } = await post.render();
+    const { Content, headings } = await render(post);
+    ---
+    <Content />
+    ```
+</Steps>
+
+</details>
+
+## Deprecated
+
+The following deprecated features are no longer supported and are no longer documented. Please update your project accordingly.
+
+Some deprecated features may temporarily continue to function until they are completely removed. Others may silently have no effect, or throw an error prompting you to update your code.
+
+### Deprecated: `Astro.glob`
+
+<SourcePR number="11826" title="Deprecate glob"/>
+
+In Astro v4.x, you could use `Astro.glob` in your `.astro` components to query multiple files in your project. This had some limitations (where it could be used, performance, etc.) and using querying functions from the Content Collections API or Vite's own `import.meta.glob` often provided more function and flexibility.
+
+Astro 5.0 deprecates `Astro.glob()` in favour of using `getCollection()` to query your collections, and `import.meta.glob` to query other source files in your project.
+
+#### What should I do?
+
+Replace all use of `Astro.glob()` with `import.meta.glob()`. In most cases, this should work as a direct substitution. You should not require any updates to your [glob patterns](/en/guides/imports/#glob-patterns).
+
+```astro title="src/pages/blog.astro" del={2} ins={3}
+---
+const posts = Astro.glob('./posts/*.md');
+const posts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));
+---
+
+{posts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+```
+
+Where appropriate, consider using [content collections](/en/guides/content-collections/) to organize your content, which has its own newer, more performant querying functions.
+
+You may also wish to consider using glob packages from NPM, such as [`fast-glob`](https://www.npmjs.com/package/fast-glob).
+
+<ReadMore>Learn more about [importing files with `import.meta.glob(/en/guides/imports/#importmetaglob)`](/en/guides/content-collections/).</ReadMore>
+ 
+### Deprecated: `functionPerRoute` (Adapter API)
+
+<SourcePR number="11714" title="Remove functionPerRoute option"/>
+
+In Astro v4.x, you could opt in to creating a separate file for each route defined in the project, mirroring your `src/pages/` directory in the build folder. By default, Astro emitted a single `entry.mjs` file, which was responsible for emitting the rendered page on each request.
+
+Astro v5.0 removes the option to opt out of the default behavior. This behavior is now standard, and non-configurable.
+
+Remove the `functionPerRoute` property from your `adapterFeatures` configuration. It is no longer available.
+
+```js title="my-adapter.mjs" del={10}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          adapterFeatures: {
+              functionPerRoute: true
+          }
+        });
+      },
+    },
+  };
+}
+
+```
+
+<ReadMore>Learn more about [the Adapter API](/en/reference/adapter-reference/) for building adapter integrations.</ReadMore>
+
+## Removed
+
+The following features have now been entirely removed from the code base and can no longer be used. Some of these features may have continued to work in your project even after deprecation. Others may have silently had no effect.
+
+Projects now containing these removed features will be unable to build, and there will no longer be any supporting documentation prompting you to remove these features.
+
+### Removed: The Lit integration
+
+<SourcePR number="11680" title="Remove `@astrojs/lit`"/>
+
+In Astro v4.x, [Lit](https://lit.dev/) was a core-maintained framework library through the `@astrojs/lit` package.
+
+Astro v5.0 removes the integration and it will not receive further updates for compatibility with 5.x and above.
+
+
+#### What should I do?
+
+You can continue to use Lit for client components simply by adding a client-side script tag. For example:
+
+```astro
+<script>
+  import "../components/MyTabs";
+</script>
+
+<my-tabs title="These are my tabs">...</my-tabs>
+```
+
+If you're interested in maintaining a Lit integration yourself, you may wish to use the [last published version of `@astrojs/lit`](https://github.com/withastro/astro/tree/astro%404.13.0/packages/integrations/lit) as a starting point and upgrade the relevant packages.
+
+<ReadMore>Learn more about [Astro's official integrations](/en/guides/integrations-guide/).</ReadMore>
+
+### Removed: `hybrid` rendering mode
+
+<SourcePR number="11824" title="Merge output:hybrid and output:static" />
+
+In Astro v4.x, Astro provided three rendering `output` rendering modes: `'static'`, `'hybrid'`, and `'server'`
+
+Astro v5.0 merges the `output: 'hybrid'` and `output: 'static'` configurations into one single configuration (now called 'static') that works the same way as the previous hybrid option.
+
+It is no longer necessary to specify `output: 'hybrid'` in your Astro config to use server-rendered pages. The new `output: 'static'` has this capability included. Astro will now automatically provide the ability to opt out of prerendering in your static site with no change to your output configuration required. Any page route or endpoint can include `export const prerender = false` to be server-rendered on demand, while the rest of your site is statically-generated.
+
+#### What should I do?
+
+If your project used hybrid rendering, you must now remove the output: 'hybrid' option from your Astro config as it no longer exists. However, no other changes to your project are required, and you should have no breaking changes. The previous 'hybrid' behavior is now the default, under a new name 'static'.
+
+```js title="astro.config.mjs" del={5}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  output: 'hybrid',
+});
+```
+
+If you were using the output: 'static' (default) option, you can continue to use it as before. By default, all of your pages will continue to be prerendered and you will have a completely static site. You should have no breaking changes to your project.
+
+An adapter is still required to deploy an Astro project with any server-rendered pages. Failure to include an adapter will result in a warning in development and an error at build time.
+
+<ReadMore>Learn more about [Astro's rendering modes](/en/basics/rendering/).</ReadMore>
+
+### Removed: Squoosh image service
+
+<SourcePR number="11770" title="remove the squoosh image service"/>
+
+In Astro 4.x, you could configure `image.service: squooshImageService()` to use Squoosh to transform your images instead of Sharp. However, the underlying library `libsquoosh` is no longer maintained and has memory and performance issues.
+
+Astro 5.0 removes the Squoosh image optimization service entirely.
+
+#### What should I do?
+
+To switch to the built-in Sharp image service, remove the `squooshImageService` import from your Astro config. By default, you will use Sharp for `astro:assets`.
+
+```ts title="astro.config.mjs" del={1, 5-7}
+import { squooshImageService } from "astro/config";
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+ image: {
+   service: squooshImageService()
+ }
+});
+```
+
+If you are using a strict package manager like `pnpm`, you may need to install the `sharp` package manually to use the Sharp image service, even though it is built-in to Astro by default.
+
+If your adapter does not support Astro's built-in Sharp image optimization, you can [configure a no-op image service](/en/guides/images/#configure-no-op-passthrough-service) to allow you to use the `<Image />` and `<Picture />` components.
+
+Alternatively, you may wish to consider [a community-maintained Squoosh image service](https://github.com/Princesseuh/astro-image-service-squoosh) if you are unable to use the Sharp image service.
+
+<ReadMore>Read more about [configuring your default image service](/en/guides/images/#default-image-service).</ReadMore>
+
+##### For adapters
+
+If your adapter previously precised its compatibility status with Squoosh, you should now remove this information from your adapter configuration.
+
+```diff lang="ts" title="my-adapter.mjs"
+supportedAstroFeatures: {
+  assets: {
+--    isSquooshCompatible: true,
+  },
+}
+```
+
+### Removed: `prerender` option in `injectRoute` (Integrations API)
+
+IN PROGRESS NEES UPDATING HERE
+
+<SourcePR number="11770" title="remove the squoosh image service"/>
+
+In Astro v4.x the `injectRoute` integration function accepted `prerender: true` as an option, which would cause the route to be prerendered at build time.
+
+Astro v5.0 removes this option and it should no longer be used.
+
+#### What should I do?
+
+In your injected route, add the `prerender` export like you would for routes defined in the `pages` directory:
+
+```astro
+---
+export const prerender = true
+---
+```
+
+<ReadMore>Read more about [the `injectRoute` option](/en/reference/integrations-reference/#injectroute-option) in the Integrations API.</ReadMore>
+
+### Removed: some public-facing types
+
+<SourcePR number="11715" title="Refactor/types"/>
+
+In Astro v4.x, `@types/astro.ts` exposed all types publicly to users, whether or not they were still actively used or only intended for internal use.
+
+Astro v5.0 refactors this file to [remove outdated and internal types](https://github.com/withastro/astro/pull/11715). This refactor brings improvements to your editor (e.g. faster completions, lower memory use, more relevant completion options). However, this refactor may cause errors in some projects that have been relying on types that are no longer available to the public.
+
+#### What should I do?
+
+Remove any types that now cause errors in your project as you no longer have access to them. These will be mostly previously deprecated and removed APIs, but may also include types that are now internal.
+
+<ReadMore>See the [public types exposed for use](https://github.com/withastro/astro/tree/next/packages/astro/src/types/public).</ReadMore>
+
+### Experimental Flags
+
+The following experimental flags have been removed in Astro v5.0 and these features are available for use:
+
+- `env`
+- `serverIslands`
+
+
+Additionally, the following experimental flags have been removed and **are now the default or recommended behavior in Astro v5.0**. 
+
+- `directRenderScript` (See below for breaking changes to [default `<script>` behavior](#script-tags-are-rendered-directly-as-declared).)
+- `globalRoutePriority` (See below for breaking changes to [default route priority order](#route-priority-order-for-injected-routes-and-redirects).)
+- `contentLayer` (See below for [upgrading existing content collections](#legacy-v20-content-collections-api) to the new, preferred Content Layer API.)
 
 Remove these experimental flags if you were previously using them, and move your `env` configuration to the root of your Astro config:
 
@@ -144,66 +483,92 @@ These features are all available by default in Astro v5.0. Only `astro:env` requ
 
 {/* Read about these exciting features and more in [the v5.0-beta Blog post](https://astro.build/blog/astro-4/). */}
 
-## Upgrades
+<ReadMore>See Astro's current [experimental features](/en/reference/configuration-reference/#expermental-flags).</ReadMore>
 
-### Node Support
+## Changed Defaults
 
-The minimum supported version of Node.js in Astro v5.0 is `v18.17.1`
+Some default behavior has changed in Astro v5.0 and your project may need updating to account for these changes.
 
-#### What should I do?
+In most cases, the only action needed is to review your existing project's deployment and ensure that it continues to function as you expect, making necessary updates to your code as necessary. In some cases, there may be a configuration setting to allow you to continue to use the previous default behavior.
 
- Check that both your development environment and your deployment environment are using **Node `18.17.1` or higher**.
+### CSRF protection is now set by default
 
-<Steps>
-1. Check your local version of Node using:
+<SourcePR number="11788" title="change default value of checkOrigin"/>
 
-    ```sh
-    node -v
-    ```
+In Astro v4.x, The default value of `security.checkOrigin` was `false`. Previously, you had to explicitly set this value to `true` to enable Cross-Site Request Forgery (CSRF) protection.
 
-2. Check your [deployment environment's](/en/guides/deploy/) own documentation to verify that they support this version of Node.
-
-    You can specify Node `18.17.1` for your Astro project either in a dashboard configuration setting or a `.nvmrc` file.
-
-    ```bash title=".nvmrc"
-    18.17.1
-    ```
-</Steps>
-
-{/*
-// THESE ARE FOR DEPENDENCY UPGRADES
-
-Any major upgrades to Astro's dependencies may cause breaking changes in your project.
-
-### Upgraded: Vite 5.0
-
-Placeholder
+Astro v5.0 changes the default value  of this option to `true`, and will automatically check that the "origin" header matches the URL sent by each request in on-demand rendered pages.
 
 #### What should I do?
 
-If you are using Vite-specific plugins, configuration, or APIs, check the [Vite migration guide](https://vitejs.dev/guide/migration) for their breaking changes and upgrade your project as needed. There are no breaking changes to Astro itself.
+If you had previously configured `security.checkOrigin: true`, you no longer need this line in your Astro config. This is now the default.
 
-*/}
+To disable this behaviour, you must explicitly set  `security.checkOrigin: false`.
+
+```js title="astro.config.mjs" del={3-5}
+export default defineConfig({
+  output: "server",
+  security: {
+    checkOrigin: true
+  }
+})
+```
+
+<ReadMore>Read more about [security configuration options](/en/reference/configuration-reference/#security)</ReadMore>
+
+### Route priority order for injected routes and redirects
+
+<SourcePR number="11798" title="Remove legacy route prioritization"/>
+
+In Astro v4.x, `experimental.globalRoutePriority` was an optional flag which ensured that injected routes, file-based routes, and redirects were all prioritized using the [route priority order rules for all routes](/en/guides/routing/#route-priority-order). This allowed more control over routing in your project by not automatically prioritizing certain kinds of routes, and standardizing the route priority order.
+
+Astro v5.0 removes this experimental flag and makes this the new default behavior in Astro: redirects and injected routes are now prioritized equally alongside file-based project routes.
+
+Note that this was already the default behavior in Starlight, and should not affect updated Starlight projects.
+
+#### What should I do?
+
+If your project includes injected routes or redirects, please check that your routes are building page URLs as expected. An example of the new expected behavior is shown below.
+
+In a project containing the following routes:
+
+- File-based route: `/blog/post/[pid]`
+- File-based route: `/[page]`
+- Injected route: `/blog/[...slug]`
+- Redirect: `/blog/tags/[tag] -> /[tag]`
+- Redirect: `/posts -> /blog`
+
+The following URLs will be built (instead of following the route priority order of Astro v4.x):
+
+- `/blog/tags/astro` is built by the redirect to `/tags/[tag]` (instead of the injected route `/blog/[...slug]`)
+- `/blog/post/0` is built by the file-based route `/blog/post/[pid]` (instead of the injected route `/blog/[...slug]`)
+- `/posts` is built by the redirect to `/blog` (instead of the file-based route `/[page]`)
+
+In the event of route collisions, where two routes of equal route priority attempt to build the same URL, Astro will log a warning identifying the conflicting routes.
+
+<ReadMore>Read more about the new [route priority order rules for all routes](/en/guides/routing/#route-priority-order).</ReadMore>
+
+### `<script>` tags are rendered directly as declared
+
+<SourcePR number="11791" title="Make directRenderScript the default"/>
+
+In Astro v4.x, `experimental.directRenderScript` was an optional flag to directly render `<scripts>` as declared in `.astro` files (including existing features like TypeScript, importing `node_modules`, and deduplicating scripts). This strategy prevented scripts from being executed in places where they were not used.
+
+Astro 5.0 removes this experimental flag and makes this the new default behavior in Astro: scripts are no longer hoisted to the `<head>`, multiple scripts on a page are no longer bundled together, and a `<script>` tag may interfere with CSS styling.
+
+#### What should I do?
+
+Please review your `<script>` tags and ensure they behave as desired.
+
+<ReadMore>Read more about [using `script` tags in Astro](/en/guides/client-side-scripts/#using-script-in-astro).</ReadMore>
 
 ## Breaking Changes
 
-The following changes are considered breaking changes in Astro v5.0. Breaking changes may or may not provide temporary backwards compatibility.
+The following changes are considered breaking changes in Astro v5.0. Breaking changes may or may not provide temporary backwards compatibility. If you were using these features, you may have to update your code as recommended in each entry.
 
 {/* If you need to refer to the documentation for a v4.x project, you can browse this [(unmaintained) snapshot of the docs from before v5.0 was released](https://docs-git-v3-docs-unmaintained-astrodotbuild.vercel.app/). */}
 
-### Removed: some public-facing types (PLT844 - alpha.0)
-
-<SourcePR number="11715" title="Refactor/types"/>
-
-In Astro v4.x, `@types/astro.ts` exposed all types publicly to users, whether or not they were still actively used or only intended for internal use.
-
-Astro v5.0 refactors this file to [remove outdated and internal types](https://github.com/withastro/astro/pull/11715). This refactor brings improvements to your editor (e.g. faster completions, lower memory use, more relevant completion options). However, this refactor may cause errors in some projects that have been relying on types that are no longer available to the public.
-
-#### What should I do?
-
-Remove any types that now cause errors in your project as you no longer have access to them. These will be mostly previously deprecated and removed APIs, but may also include types that are now internal.
-
-### Changed: Correctly render non-boolean HTML attribute values (PLT2279 - alpha.0)
+### Changed: non-boolean HTML attribute values
 
 <SourcePR number="11660" title="Fix attribute rendering for boolean values (take 2)"/>
 
@@ -254,7 +619,9 @@ If you rely on attribute values, for example to locate elements or to conditiona
 + el.dataset.light === 'true'
 ```
 
-### Changed: Shiki `css-variables` theme color token names (PLT1626 - alpha.0)
+<ReadMore>Read more about [using HTML attributes in Astro](/en/basics/astro-syntax/#dynamic-attributes).</ReadMore>
+
+### Changed: Shiki `css-variables` theme color token names
 
 <SourcePR number="11661" title="Update to new shiki token names"/>
 
@@ -275,30 +642,9 @@ You can perform a global find and replace in your project to migrate to the new 
 }
 ```
 
-### Changed: CSRF protection is now set by default (PLT2262 - alpha.1)
+<ReadMore>Read more about [syntax highlighting in Astro](/en/guides/markdown-content/#syntax-highlighting).</ReadMore>
 
-<SourcePR number="11788" title="change default value of checkOrigin"/>
-
-In Astro v4.x, The default value of `security.checkOrigin` was `false`. Previously, you had to explicitly set this value to `true` to enable Cross-Site Request Forgery (CSRF) protection.
-
-Astro v5.0 changes the default value  of this option to `true`, and will automatically check that the "origin" header matches the URL sent by each request in on-demand rendered pages.
-
-#### What should I do?
-
-If you had previously configured `security.checkOrigin: true`, you no longer need this line in your Astro config. This is now the default.
-
-To disable this behaviour, you must explicitly set  `security.checkOrigin: false`.
-
-```js title="astro.config.mjs" del={3-5}
-export default defineConfig({
-  output: "server",
-  security: {
-    checkOrigin: true
-  }
-})
-```
-
-### Removed: top level await in `vite-plugin-markdown`'s `astro:assets` (PLT1323 - alpha.1)
+### Changed: `compiledContent()` is now an async function
 
 <SourcePR number="11782" title="Remove TLA by making compiledContent async"/>
 
@@ -321,108 +667,128 @@ import * as myPost from "../post.md";
 <Fragment set:html={content} />
 ```
 
-### Removed: Squoosh image service from core repo (PLT1380 - alpha.1)
+<ReadMore>Read more about the [`compiledContent()` function](/en/guides/markdown-content/#importing-markdown) for returning compiled Markdown.</ReadMore>
 
-<SourcePR number="11770" title="remove the squoosh image service"/>
+### Changed: `astro:content` can no longer be used on the client (PLT2118 - alpha.2)
 
-In Astro 4.x, you could configure `image.service: squooshImageService()` to use Squoosh to transform your images instead of Sharp. However, the underlying library `libsquoosh` is no longer maintained and has memory and performance issues.
+<SourcePR number="11827" title="Prevent usage of `astro:content` in the client "/>
 
-Astro 5.0 removes the Squoosh image optimization service entirely.
+The `astro:content` module can no longer be used on the client. It was never intentionally exposed for client usage, leading to some developers to use it without realizing the limitations and bloat to client bundles.
 
 #### What should I do?
 
-To switch to the built-in Sharp image service, remove the `squooshImageService` import from your Astro config. By default, you will use Sharp for `astro:assets`.
+If currently using in the client, consider instead passing the data you need through properties to your client components:
 
-```ts title="astro.config.mjs" del={1, 5-7}
-import { squooshImageService } from "astro/config";
-import { defineConfig } from "astro/config";
+```astro
+---
+import { getCollection } from 'astro:content';
+import ClientComponent from '../components/ClientComponent';
 
-export default defineConfig({
- image: {
-   service: squooshImageService()
- }
-});
+const posts = await getCollection('blog');
+const postsData = posts.map(post => post.data);
+---
+
+<ClientComponent posts={postsData} />
 ```
 
-If you are using a strict package manager like `pnpm`, you may need to install the `sharp` package manually to use the Sharp image service, even though it is built-in to Astro by default.
+<ReadMore></ReadMore>
 
-If your adapter does not support Astro's built-in Sharp image optimization, you can [configure a no-op image service](/en/guides/images/#configure-no-op-passthrough-service) to allow you to use the `<Image />` and `<Picture />` components.
+### Changed: Fix shiki syntax highlighting to output hast for performance (PLT1946 - alpha.3) 
 
-Alternatively, you may wish to consider [a community-maintained Squoosh image service](https://github.com/Princesseuh/astro-image-service-squoosh) if you are unable to use the Sharp image service.
+<SourcePR number="11825" title="Refactor createShikiHighlighter"/>
 
+In Astro 4.x, its internal Shiki rehype plugin highlighted code blocks as HTML.
 
-##### For adapters
+Astro 5.0 updates its internal Shiki rehype plugin to highlight code blocks as hast. This allows a more direct Markdown and MDX processing, and improves the performance when building the project, but may cause issues with existing Shiki transformers.
 
-If your adapter previously precised its compatibility status with Squoosh, you should now remove this information from your adapter configuration.
+#### What should I do?
 
-```diff lang="ts" title="my-adapter.mjs"
-supportedAstroFeatures: {
-  assets: {
---    isSquooshCompatible: true,
-  },
+If you are using Shiki transformers passed to `markdown.shikiConfig.transformers`, you must make sure they do not use the `postprocess` hook as it no longer runs on code blocks in `.md` and `.mdx` files. (See [the Shiki documentation on transformer hooks](https://shiki.style/guide/transformers#transformer-hooks) for more information). 
+
+Code blocks in `.mdoc` files and `<Code />` component do not use the internal Shiki rehype plugin and are unaffected.
+
+<ReadMore></ReadMore>
+
+### Changed: Astro-specfic metadata attached to `vfile.data` in Remark and Rehype plugins (PLT-1897 - alpha.3) 
+
+<SourcePR number="11861" title="Clean up Astro metadata in vfile.data"/>
+
+In Astro 4.x, the Astro-specific metadata attached to `vfile.data` in Remark and Rehype plugins was attached in different locations with inconsistent names.
+
+Astro 5 cleans up the API and the metadata is now renamed as below:
+
+ - `vfile.data.__astroHeadings` -> `vfile.data.astro.headings`
+ - `vfile.data.imagePaths` -> `vfile.data.astro.imagePaths`
+
+The types of `imagePaths` has also been updated from `Set<string>` to `string[]`. The `vfile.data.astro.frontmatter` metadata is left unchanged.
+
+#### What should I do?
+
+While we don't consider these APIs public, they can be accessed by Remark and Rehype plugins that want to re-use Astro's metadata. If you are using these APIs, make sure to access them in the new locations.
+
+<ReadMore></ReadMore>
+
+### Changed: set `ssr.external: true` when using Vite to load configs (PLT1631 - alpha.3)
+
+<SourcePR number="11819" title="Set external: true when loading astro config"/>
+
+In Astro 4.x, locally-linked dependencies (e.g. `npm link`, in a monorepo, etc) were able to use Vite features like TypeScript when imported by the Astro config file.
+
+Astro 5 updates the Astro config loading flow to ignore processing locally-linked dependencies with Vite. Instead, they will be normally imported by the Node.js runtime the same way as other dependencies from `node_modules`.
+
+This change was made as the previous behaviour caused confusion among integration authors who test against a package that worked locally, but not when published. It also restricted using CJS-only dependencies because Vite required the code to be ESM. Therefore, Astro's behaviour is now changed to ignore processing any type of dependencies by Vite.
+
+<ReadMore></ReadMore>
+
+### Changed: `build.client` and `build.server` resolve behaviour  (PLT2171 - alpha.5)
+
+<SourcePR number="11916" title="Fix build.client and build.server resolve behaviour" />
+
+In Astro v4.x, the `build.client` and `build.server` options were documented to resolve relatively from the `outDir` option, but it didn't always work as expected.
+
+Astro 5.0 fixes the behaviour to correctly resolve from the `outDir` option. For example, if `outDir` is set to `./dist/nested/`, then by default:
+
+- `build.client` will resolve to `<root>/dist/nested/client/`
+- `build.server` will resolve to `<root>/dist/nested/server/`
+
+Previously the values were incorrectly resolved:
+
+- `build.client` was resolved to `<root>/dist/nested/dist/client/`
+- `build.server` was resolved to `<root>/dist/nested/dist/server/`
+
+#### What should I do?
+
+If you were relying on the previous build paths, make sure that your project code is updated to the new build paths.
+
+<ReadMore></ReadMore>
+
+### Changed: TypeScript configuration
+
+<SourcePR number="11859" title="better tsconfig"/>
+
+In Astro v4.x, Astro relied on a `src/env.d.ts` file for type inferencing and defining modules for features that relied on generated types.
+
+Astro 5.0 instead uses a `.astro/types/d.ts` file for type inferencing, and now recommends setting `include` and `exclude` in `tsconfig.json` to benefit from Astro types and avoid checking built files. Running `astro sync` no longer creates, nor updates, `src/env.d.ts` as it is not required for type-checking standard Astro projects.
+
+#### What should I do?
+
+To update your project to Astro's recommended TypeScript settings, please add the following `include` and `exclude` properties to your existing `tsconfig.json`:
+
+```ts ins={3,4} title="tsconfig.json"
+{
+  "extends": "astro/tsconfigs/base",
+  "include": ["**/*", ".astro/types.d.ts"],
+  "exclude": ["dist"]
 }
 ```
 
-### Removed: Internal JSX exports entrypoints (PLT1935 - alpha.1)
-
-<SourcePR number="11741" title="Cleanup unused JSX code"/>
-
-In Astro v4.x, Astro performed internal JSX handling for the `@astrojs/mdx` integration.
-
-Astro v5.0 moves this responsibility tohandle and render JSX and MDX the `@astrojs/mdx` package directly, and removes the following exports:
-
-- `astro/jsx/babel.js`
- - `astro/jsx/component.js`
- - `astro/jsx/index.js`
- - `astro/jsx/renderer.js`
- - `astro/jsx/server.js`
- - `astro/jsx/transform-options.js`
+Note that `src/env.d.ts` is only necessary if you have added custom configurations, or if you're not using a `tsconfig.json` file.
 
 #### What should I do?
 
-If your project includes `.mdx` files, you must upgrade `@astrojs/mdx` to the latest version so that your JSX can be handled properly by the integration and no longer relies on these removed entrypoints.
+In most cases, make sure your locally-linked dependencies are built to JS before running the Astro project, and the config loading should work as before.
 
-### Changed: route priority order (PLT2087 - alpha.1)
-
-<SourcePR number="11798" title="Remove legacy route prioritization"/>
-
-In Astro v4.x, `experimental.globalRoutePriority` was an optional flag which ensured that injected routes, file-based routes, and redirects were all prioritized using the [route priority order rules for all routes](/en/guides/routing/#route-priority-order). This allowed more control over routing in your project by not automatically prioritizing certain kinds of routes, and standardizing the route priority order.
-
-Astro v5.0 removes this experimental flag and makes this the new default behavior in Astro: redirects and injected routes are now prioritized equally alongside file-based project routes.
-
-Note that this was already the default behavior in Starlight, and should not affect updated Starlight projects.
-
-#### What should I do?
-
-If your project includes injected routes or redirects, please check that your routes are building page URLs as expected. An example of the new expected behavior is shown below.
-
-In a project containing the following routes:
-
-- File-based route: `/blog/post/[pid]`
-- File-based route: `/[page]`
-- Injected route: `/blog/[...slug]`
-- Redirect: `/blog/tags/[tag] -> /[tag]`
-- Redirect: `/posts -> /blog`
-
-The following URLs will be built (instead of following the route priority order of Astro v4.x):
-
-- `/blog/tags/astro` is built by the redirect to `/tags/[tag]` (instead of the injected route `/blog/[...slug]`)
-- `/blog/post/0` is built by the file-based route `/blog/post/[pid]` (instead of the injected route `/blog/[...slug]`)
-- `/posts` is built by the redirect to `/blog` (instead of the file-based route `/[page]`)
-
-In the event of route collisions, where two routes of equal route priority attempt to build the same URL, Astro will log a warning identifying the conflicting routes.
-
-### Changed: default `<script>` behavior (PLT2086 - alpha.2)
-
-<SourcePR number="11791" title="Make directRenderScript the default"/>
-
-In Astro v4.x, `experimental.directRenderScript` was an optional flag to directly render `<scripts>` as declared in `.astro` files (including existing features like TypeScript, importing `node_modules`, and deduplicating scripts). This strategy prevented scripts from being executed in places where they were not used.
-
-Astro 5.0 removes this experimental flag and makes this the new default behavior in Astro: scripts are no longer hoisted to the `<head>`, multiple scripts on a page are no longer bundled together, and a `<script>` tag may interfere with CSS styling.
-
-#### What should I do?
-
-Please review your `<script>` tags and ensure they behave as desired.
+<ReadMore></ReadMore>
 
 ### Changed: add base to `paginate` (PLT2204 - alpha.2)
 
@@ -458,141 +824,7 @@ const prev = page.url.prev;
 <a id="prev" href={prev}>Back</a>
 ```
 
-### Changed: `astro:content` can no longer be used on the client (PLT2118 - alpha.2)
-
-<SourcePR number="11827" title="Prevent usage of `astro:content` in the client "/>
-
-The `astro:content` module can no longer be used on the client. It was never intentionally exposed for client usage, leading to some developers to use it without realizing the limitations and bloat to client bundles.
-
-#### What should I do?
-
-If currently using in the client, consider instead passing the data you need through properties to your client components:
-
-```astro
----
-import { getCollection } from 'astro:content';
-import ClientComponent from '../components/ClientComponent';
-
-const posts = await getCollection('blog');
-const postsData = posts.map(post => post.data);
----
-
-<ClientComponent posts={postsData} />
-```
-
-### Changed: Fix shiki syntax highlighting to output hast for performance (PLT1946 - alpha.3) 
-
-<SourcePR number="11825" title="Refactor createShikiHighlighter"/>
-
-In Astro 4.x, its internal Shiki rehype plugin highlighted code blocks as HTML.
-
-Astro 5.0 updates its internal Shiki rehype plugin to highlight code blocks as hast. This allows a more direct Markdown and MDX processing, and improves the performance when building the project, but may cause issues with existing Shiki transformers.
-
-#### What should I do?
-
-If you are using Shiki transformers passed to `markdown.shikiConfig.transformers`, you must make sure they do not use the `postprocess` hook as it no longer runs on code blocks in `.md` and `.mdx` files. (See [the Shiki documentation on transformer hooks](https://shiki.style/guide/transformers#transformer-hooks) for more information). 
-
-Code blocks in `.mdoc` files and `<Code />` component do not use the internal Shiki rehype plugin and are unaffected.
-
-
-### Changed: Astro-specfic metadata attached to `vfile.data` in Remark and Rehype plugins (PLT-1897 - alpha.3) 
-
-<SourcePR number="11861" title="Clean up Astro metadata in vfile.data"/>
-
-In Astro 4.x, the Astro-specific metadata attached to `vfile.data` in Remark and Rehype plugins was attached in different locations with inconsistent names.
-
-Astro 5 cleans up the API and the metadata is now renamed as below:
-
- - `vfile.data.__astroHeadings` -> `vfile.data.astro.headings`
- - `vfile.data.imagePaths` -> `vfile.data.astro.imagePaths`
-
-The types of `imagePaths` has also been updated from `Set<string>` to `string[]`. The `vfile.data.astro.frontmatter` metadata is left unchanged.
-
-#### What should I do?
-
-While we don't consider these APIs public, they can be accessed by Remark and Rehype plugins that want to re-use Astro's metadata. If you are using these APIs, make sure to access them in the new locations.
-
-### Changed: set `ssr.external: true` when using Vite to load configs (PLT1631 - alpha.3)
-
-<SourcePR number="11819" title="Set external: true when loading astro config"/>
-
-In Astro 4.x, locally-linked dependencies (e.g. `npm link`, in a monorepo, etc) were able to use Vite features like TypeScript when imported by the Astro config file.
-
-Astro 5 updates the Astro config loading flow to ignore processing locally-linked dependencies with Vite. Instead, they will be normally imported by the Node.js runtime the same way as other dependencies from `node_modules`.
-
-This change was made as the previous behaviour caused confusion among integration authors who test against a package that worked locally, but not when published. It also restricted using CJS-only dependencies because Vite required the code to be ESM. Therefore, Astro's behaviour is now changed to ignore processing any type of dependencies by Vite.
-
-### Changed: TypeScript configuration (PLT2479 - alpha.4)
-
-<SourcePR number="11859" title="better tsconfig"/>
-
-In Astro v4.x, Astro relied on a `src/env.d.ts` file for type inferencing and defining modules for features that relied on generated types.
-
-Astro 5.0 instead uses a `.astro/types/d.ts` file for type inferencing, and now recommends setting `include` and `exclude` in `tsconfig.json` to benefit from Astro types and avoid checking built files. Running `astro sync` no longer creates, nor updates, `src/env.d.ts` as it is not required for type-checking standard Astro projects.
-
-#### What should I do?
-
-To update your project to Astro's recommended TypeScript settings, please add the following `include` and `exclude` properties to your existing `tsconfig.json`:
-
-```ts ins={3,4} title="tsconfig.json"
-{
-  "extends": "astro/tsconfigs/base",
-  "include": ["**/*", ".astro/types.d.ts"],
-  "exclude": ["dist"]
-}
-```
-
-Note that `src/env.d.ts` is only necessary if you have added custom configurations, or if you're not using a `tsconfig.json` file.
-
-#### What should I do?
-
-In most cases, make sure your locally-linked dependencies are built to JS before running the Astro project, and the config loading should work as before.
-
-### Changed: `build.client` and `build.server` resolve behaviour  (PLT2171 - alpha.5)
-
-<SourcePR number="11916" title="rework supportedAstroFeatures"/>
-
-In Astro v4.x, the `build.client` and `build.server` options were documented to resolve relatively from the `outDir` option, but it didn't always work as expected.
-
-Astro 5.0 fixes the behaviour to correctly resolve from the `outDir` option. For example, if `outDir` is set to `./dist/nested/`, then by default:
-
-- `build.client` will resolve to `<root>/dist/nested/client/`
-- `build.server` will resolve to `<root>/dist/nested/server/`
-
-Previously the values were incorrectly resolved:
-
-- `build.client` was resolved to `<root>/dist/nested/dist/client/`
-- `build.server` was resolved to `<root>/dist/nested/dist/server/`
-
-#### What should I do?
-
-If you were relying on the previous build paths, make sure that your project code is updated to the new build paths.
-
-### Changed: Merge `static` and `hybrid` (PLT2434 - alpha.6)
-
-<SourcePR number="11824" title="rework supportedAstroFeatures"/>
-
-In Astro v4.x, Astro provided three rendering `output` rendering modes: `'static'`, `'hybrid'`, and `'server'`
-
-Astro v5.0 merges the `output: 'hybrid'` and `output: 'static'` configurations into one single configuration (now called 'static') that works the same way as the previous hybrid option.
-
-It is no longer necessary to specify `output: 'hybrid'` in your Astro config to use server-rendered pages. The new `output: 'static'` has this capability included. Astro will now automatically provide the ability to opt out of prerendering in your static site with no change to your output configuration required. Any page route or endpoint can include `export const prerender = false` to be server-rendered on demand, while the rest of your site is statically-generated.
-
-#### What should I do?
-
-If your project used hybrid rendering, you must now remove the output: 'hybrid' option from your Astro config as it no longer exists. However, no other changes to your project are required, and you should have no breaking changes. The previous 'hybrid' behavior is now the default, under a new name 'static'.
-
-```js title="astro.config.mjs" del={5}
-import { defineConfig } from "astro/config";
-
-export default defineConfig({
-  output: 'hybrid',
-});
-```
-
-If you were using the output: 'static' (default) option, you can continue to use it as before. By default, all of your pages will continue to be prerendered and you will have a completely static site. You should have no breaking changes to your project.
-
-An adapter is still required to deploy an Astro project with any server-rendered pages. Failure to include an adapter will result in a warning in development and an error at build time.
+<ReadMore></ReadMore>
 
 ### Changed: `entryPoints` type inside the hook `astro:build:ssr` (PLT2338)
 
@@ -616,6 +848,8 @@ Update your adapter to change the type of `entryPoints` from `RouteData` to `Int
 ```
 
 Please see the [API reference for `IntegrationRouteData`](/en/reference/integrations-reference/#integrationroutedata-type-reference) for full details of the fields now available.
+
+<ReadMore></ReadMore>
 
 ### Changed: `RouteData.distURL` is now an array (PLT2338)
 
@@ -642,6 +876,8 @@ if (route.distURL) {
 }
 ```
 
+<ReadMore></ReadMore>
+
 ### Changed: Rework `supportedAstroFeatures.assets` (PLT-989) 
 
 <SourcePR number="11806" title="rework supportedAstroFeatures"/>
@@ -652,6 +888,8 @@ if (route.distURL) {
 
 Stuff!
 
+<ReadMore></ReadMore>
+
 ### Changed: auto-inject `<meta charset="utf-8">` by default for every astro/md/mdx/html (PLT1057)
 
 Decide if charset=utf-8 should not be set for md/mdx pages by default
@@ -659,6 +897,8 @@ Decide if charset=utf-8 should not be set for md/mdx pages by default
 #### What should I do?
 
 Stuff!
+
+<ReadMore></ReadMore>
 
 ### Changed: `--mode` usage (PLT2220)
 
@@ -668,6 +908,8 @@ Rethink `--mode` and internal mode usage
 
 Stuff!
 
+<ReadMore></ReadMore>
+
 ### Changed: Renamed `<ViewTransitions>` component (PLT2423)
 
 The view transitions component has been renamed
@@ -676,112 +918,7 @@ The view transitions component has been renamed
 
 Stuff!
 
-## Deprecated
-
-The following deprecated features are no longer supported and are no longer documented. Please update your project accordingly.
-
-Some deprecated features may temporarily continue to function until they are completely removed. Others may silently have no effect, or throw an error prompting you to update your code.
-
-### Deprecated: `Astro.glob` (PLT2436 - alpha.2)
-
-<SourcePR number="11826" title="Deprecate glob"/>
-
-In Astro v4.x, you could use `Astro.glob` in your `.astro` components to query multiple files in your project. This had some limitations (where it could be used, performance, etc.) and using querying functions from the Content Collections API or Vite's own `import.meta.glob` often provided more function and flexibility.
-
-Astro 5.0 deprecates `Astro.glob()` in favour of using `getCollection()` to query your collections, and `import.meta.glob` to query other source files in your project.
-
-#### What should I do?
-
-Replace all use of `Astro.glob()` with `import.meta.glob()`. In most cases, this should work as a direct substitution. You should not require any updates to your [glob patterns](/en/guides/imports/#glob-patterns).
-
-```astro title="src/pages/blog.astro" del={2} ins={3}
----
-const posts = Astro.glob('./posts/*.md');
-const posts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));
----
-
-{posts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
-```
-
-Where appropriate, consider using [content collections](/en/guides/content-collections/) to organize your content, which has its own newer, more performant querying functions.
-
-You may also wish to consider using glob packages from NPM, such as [`fast-glob`](https://www.npmjs.com/package/fast-glob).
- 
-### Deprecated: `functionPerRoute` (Adapter API) (PLT2150 - alpha.0)
-
-<SourcePR number="11714" title="Remove functionPerRoute option"/>
-
-In Astro v4.x, you could opt in to creating a separate file for each route defined in the project, mirroring your `src/pages/` directory in the build folder. By default, Astro emitted a single `entry.mjs` file, which was responsible for emitting the rendered page on each request.
-
-Astro v5.0 removes the option to opt out of the default behavior. This behavior is now standard, and non-configurable.
-
-Remove the `functionPerRoute` property from your `adapterFeatures` configuration. It is no longer available.
-
-```js title="my-adapter.mjs" del={10}
-export default function createIntegration() {
-  return {
-    name: '@matthewp/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@matthewp/my-adapter',
-          serverEntrypoint: '@matthewp/my-adapter/server.js',
-          adapterFeatures: {
-              functionPerRoute: true
-          }
-        });
-      },
-    },
-  };
-}
-
-```
-
-## Removed
-
-The following features have now been entirely removed from the code base and can no longer be used. Some of these features may have continued to work in your project even after deprecation. Others may have silently had no effect.
-
-Projects now containing these removed features will be unable to build, and there will no longer be any supporting documentation prompting you to remove these features.
-
-### Removed: The Lit integration (integrations) (PLT2146)
-
-<SourcePR number="11680" title="Remove `@astrojs/lit`"/>
-
-In Astro v4.x, [Lit](https://lit.dev/) was a core-maintained framework library through the `@astrojs/lit` package.
-
-Astro v5.0 removes the integration and it will not receive further updates for compatibility with 5.x and above.
-
-
-#### What should I do?
-
-You can continue to use Lit for client components simply by adding a client-side script tag. For example:
-
-```astro
-<script>
-  import "../components/MyTabs";
-</script>
-
-<my-tabs title="These are my tabs">...</my-tabs>
-```
-
-If you're interested in maintaining a Lit integration yourself, you may wish to use the [last published version of `@astrojs/lit`](https://github.com/withastro/astro/tree/astro%404.13.0/packages/integrations/lit) as a starting point and upgrade the relevant packages.
-
-
-### Removed: `prerender` option in `injectRoute` (PLT2342)
-
-In Astro v4.x the `injectRoute` integration function accepted `prerender: true` as an option, which would cause the route to be prerendered at build time.
-
-Astro v5.0 removes this option and it should no longer be used.
-
-#### What should I do?
-
-In your injected route, add the `prerender` export like you would for routes defined in the `pages` directory:
-
-```astro
----
-export const prerender = true
----
-```
+<ReadMore></ReadMore>
 
 ## Community Resources
 
