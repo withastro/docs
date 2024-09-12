@@ -57,7 +57,7 @@ export default [
 		key: 'guides/internationalization',
 	},
 	{ text: 'View Transitions', slug: 'guides/view-transitions', key: 'guides/view-transitions' },
-
+	{ text: 'Server Islands', slug: 'guides/server-islands', key: 'guides/server-islands' },
 	{ text: 'Assets', header: true, type: 'learn', key: 'assets' },
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
