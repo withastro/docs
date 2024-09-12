@@ -365,29 +365,7 @@ An adapter is still required to deploy an Astro project with any server-rendered
 
 <ReadMore>Learn more about [Astro's rendering modes](/en/basics/rendering/).</ReadMore>
 
-### Removed: `prerender` option in `injectRoute` (Integrations API)
-
-IN PROGRESS NEES UPDATING HERE
-
-<SourcePR number="11770" title="remove the squoosh image service"/>
-
-In Astro v4.x the `injectRoute` integration function accepted `prerender: true` as an option, which would cause the route to be prerendered at build time.
-
-Astro v5.0 removes this option and it should no longer be used.
-
-#### What should I do?
-
-In your injected route, add the `prerender` export like you would for routes defined in the `pages` directory:
-
-```astro
----
-export const prerender = true
----
-```
-
-<ReadMore>Read more about [the `injectRoute` option](/en/reference/integrations-reference/#injectroute-option) in the Integrations API.</ReadMore>
-
-### Removed: Squoosh image service from core repo (PLT1380 - alpha.1)
+### Removed: Squoosh image service
 
 <SourcePR number="11770" title="remove the squoosh image service"/>
 
@@ -417,6 +395,7 @@ If your adapter does not support Astro's built-in Sharp image optimization, you 
 Alternatively, you may wish to consider [a community-maintained Squoosh image service](https://github.com/Princesseuh/astro-image-service-squoosh) if you are unable to use the Sharp image service.
 
 <ReadMore>Read more about [configuring your default image service](/en/guides/images/#default-image-service).</ReadMore>
+
 ##### For adapters
 
 If your adapter previously precised its compatibility status with Squoosh, you should now remove this information from your adapter configuration.
@@ -428,6 +407,28 @@ supportedAstroFeatures: {
   },
 }
 ```
+
+### Removed: `prerender` option in `injectRoute` (Integrations API)
+
+IN PROGRESS NEES UPDATING HERE
+
+<SourcePR number="11770" title="remove the squoosh image service"/>
+
+In Astro v4.x the `injectRoute` integration function accepted `prerender: true` as an option, which would cause the route to be prerendered at build time.
+
+Astro v5.0 removes this option and it should no longer be used.
+
+#### What should I do?
+
+In your injected route, add the `prerender` export like you would for routes defined in the `pages` directory:
+
+```astro
+---
+export const prerender = true
+---
+```
+
+<ReadMore>Read more about [the `injectRoute` option](/en/reference/integrations-reference/#injectroute-option) in the Integrations API.</ReadMore>
 
 ### Removed: some public-facing types
 
@@ -482,6 +483,84 @@ These features are all available by default in Astro v5.0. Only `astro:env` requ
 
 {/* Read about these exciting features and more in [the v5.0-beta Blog post](https://astro.build/blog/astro-4/). */}
 
+<ReadMore>See Astro's current [experimental features](/en/reference/configuration-reference/#expermental-flags).</ReadMore>
+
+## Changed Defaults
+
+Some default behavior has changed in Astro v5.0 and your project may need updating to account for these changes.
+
+In most cases, the only action needed is to review your existing project's deployment and ensure that it continues to function as you expect, making necessary updates to your code as necessary. In some cases, there may be a configuration setting to allow you to continue to use the previous default behavior.
+
+### CSRF protection is now set by default
+
+<SourcePR number="11788" title="change default value of checkOrigin"/>
+
+In Astro v4.x, The default value of `security.checkOrigin` was `false`. Previously, you had to explicitly set this value to `true` to enable Cross-Site Request Forgery (CSRF) protection.
+
+Astro v5.0 changes the default value  of this option to `true`, and will automatically check that the "origin" header matches the URL sent by each request in on-demand rendered pages.
+
+#### What should I do?
+
+If you had previously configured `security.checkOrigin: true`, you no longer need this line in your Astro config. This is now the default.
+
+To disable this behaviour, you must explicitly set  `security.checkOrigin: false`.
+
+```js title="astro.config.mjs" del={3-5}
+export default defineConfig({
+  output: "server",
+  security: {
+    checkOrigin: true
+  }
+})
+```
+
+<ReadMore>Read more about [security configuration options](/en/reference/configuration-reference/#security)</ReadMore>
+
+### Route priority order for injected routes and redirects
+
+<SourcePR number="11798" title="Remove legacy route prioritization"/>
+
+In Astro v4.x, `experimental.globalRoutePriority` was an optional flag which ensured that injected routes, file-based routes, and redirects were all prioritized using the [route priority order rules for all routes](/en/guides/routing/#route-priority-order). This allowed more control over routing in your project by not automatically prioritizing certain kinds of routes, and standardizing the route priority order.
+
+Astro v5.0 removes this experimental flag and makes this the new default behavior in Astro: redirects and injected routes are now prioritized equally alongside file-based project routes.
+
+Note that this was already the default behavior in Starlight, and should not affect updated Starlight projects.
+
+#### What should I do?
+
+If your project includes injected routes or redirects, please check that your routes are building page URLs as expected. An example of the new expected behavior is shown below.
+
+In a project containing the following routes:
+
+- File-based route: `/blog/post/[pid]`
+- File-based route: `/[page]`
+- Injected route: `/blog/[...slug]`
+- Redirect: `/blog/tags/[tag] -> /[tag]`
+- Redirect: `/posts -> /blog`
+
+The following URLs will be built (instead of following the route priority order of Astro v4.x):
+
+- `/blog/tags/astro` is built by the redirect to `/tags/[tag]` (instead of the injected route `/blog/[...slug]`)
+- `/blog/post/0` is built by the file-based route `/blog/post/[pid]` (instead of the injected route `/blog/[...slug]`)
+- `/posts` is built by the redirect to `/blog` (instead of the file-based route `/[page]`)
+
+In the event of route collisions, where two routes of equal route priority attempt to build the same URL, Astro will log a warning identifying the conflicting routes.
+
+<ReadMore>Read more about the new [route priority order rules for all routes](/en/guides/routing/#route-priority-order).</ReadMore>
+
+### `<script>` tags are rendered directly as declared
+
+<SourcePR number="11791" title="Make directRenderScript the default"/>
+
+In Astro v4.x, `experimental.directRenderScript` was an optional flag to directly render `<scripts>` as declared in `.astro` files (including existing features like TypeScript, importing `node_modules`, and deduplicating scripts). This strategy prevented scripts from being executed in places where they were not used.
+
+Astro 5.0 removes this experimental flag and makes this the new default behavior in Astro: scripts are no longer hoisted to the `<head>`, multiple scripts on a page are no longer bundled together, and a `<script>` tag may interfere with CSS styling.
+
+#### What should I do?
+
+Please review your `<script>` tags and ensure they behave as desired.
+
+<ReadMore>Read more about [using `script` tags in Astro](/en/guides/client-side-scripts/#using-script-in-astro).</ReadMore>
 
 ## Breaking Changes
 
@@ -561,104 +640,6 @@ You can perform a global find and replace in your project to migrate to the new 
 }
 ```
 
-### Changed: CSRF protection is now set by default (PLT2262 - alpha.1)
-
-<SourcePR number="11788" title="change default value of checkOrigin"/>
-
-In Astro v4.x, The default value of `security.checkOrigin` was `false`. Previously, you had to explicitly set this value to `true` to enable Cross-Site Request Forgery (CSRF) protection.
-
-Astro v5.0 changes the default value  of this option to `true`, and will automatically check that the "origin" header matches the URL sent by each request in on-demand rendered pages.
-
-#### What should I do?
-
-If you had previously configured `security.checkOrigin: true`, you no longer need this line in your Astro config. This is now the default.
-
-To disable this behaviour, you must explicitly set  `security.checkOrigin: false`.
-
-```js title="astro.config.mjs" del={3-5}
-export default defineConfig({
-  output: "server",
-  security: {
-    checkOrigin: true
-  }
-})
-```
-
-### Changed: route priority order (PLT2087 - alpha.1)
-
-<SourcePR number="11798" title="Remove legacy route prioritization"/>
-
-In Astro v4.x, `experimental.globalRoutePriority` was an optional flag which ensured that injected routes, file-based routes, and redirects were all prioritized using the [route priority order rules for all routes](/en/guides/routing/#route-priority-order). This allowed more control over routing in your project by not automatically prioritizing certain kinds of routes, and standardizing the route priority order.
-
-Astro v5.0 removes this experimental flag and makes this the new default behavior in Astro: redirects and injected routes are now prioritized equally alongside file-based project routes.
-
-Note that this was already the default behavior in Starlight, and should not affect updated Starlight projects.
-
-#### What should I do?
-
-If your project includes injected routes or redirects, please check that your routes are building page URLs as expected. An example of the new expected behavior is shown below.
-
-In a project containing the following routes:
-
-- File-based route: `/blog/post/[pid]`
-- File-based route: `/[page]`
-- Injected route: `/blog/[...slug]`
-- Redirect: `/blog/tags/[tag] -> /[tag]`
-- Redirect: `/posts -> /blog`
-
-The following URLs will be built (instead of following the route priority order of Astro v4.x):
-
-- `/blog/tags/astro` is built by the redirect to `/tags/[tag]` (instead of the injected route `/blog/[...slug]`)
-- `/blog/post/0` is built by the file-based route `/blog/post/[pid]` (instead of the injected route `/blog/[...slug]`)
-- `/posts` is built by the redirect to `/blog` (instead of the file-based route `/[page]`)
-
-In the event of route collisions, where two routes of equal route priority attempt to build the same URL, Astro will log a warning identifying the conflicting routes.
-
-### Changed: default `<script>` behavior (PLT2086 - alpha.2)
-
-<SourcePR number="11791" title="Make directRenderScript the default"/>
-
-In Astro v4.x, `experimental.directRenderScript` was an optional flag to directly render `<scripts>` as declared in `.astro` files (including existing features like TypeScript, importing `node_modules`, and deduplicating scripts). This strategy prevented scripts from being executed in places where they were not used.
-
-Astro 5.0 removes this experimental flag and makes this the new default behavior in Astro: scripts are no longer hoisted to the `<head>`, multiple scripts on a page are no longer bundled together, and a `<script>` tag may interfere with CSS styling.
-
-#### What should I do?
-
-Please review your `<script>` tags and ensure they behave as desired.
-
-### Changed: add base to `paginate` (PLT2204 - alpha.2)
-
-<SourcePR number="11253" title="Add base to paginate"/>
-
-In Astro v4.x, the URL returned by `paginate()` (e.g. `page.url.next`, `page.url.first`, etc.) did not include the value set for `base` in your Astro config. You had to manually prepend your configured value for `base` to the URL path.
-
-Astro 5.0 automatically includes the `base` value in `page.url`.
-
-#### What should I do?
-
-If you are using the `paginate()` function for "previous" and "next" URLs, remove any existing `base` value as it is now added for you:
-
-```astro del={16} ins={17}
----
-export async function getStaticPaths({ paginate }) {
-  const astronautPages = [{
-    astronaut: 'Neil Armstrong',
-  }, {
-    astronaut: 'Buzz Aldrin',
-  }, {
-    astronaut: 'Sally Ride',
-  }, {
-    astronaut: 'John Glenn',
-  }];
-  return paginate(astronautPages, { pageSize: 1 });
-}
-const { page } = Astro.props;
-// `base: /'docs'` configured in `astro.config.mjs`
-const prev = "/docs" + page.url.prev;
-const prev = page.url.prev;
----
-<a id="prev" href={prev}>Back</a>
-```
 ### Changed: `compiledContent()` is now an async function
 
 <SourcePR number="11782" title="Remove TLA by making compiledContent async"/>
@@ -746,7 +727,26 @@ Astro 5 updates the Astro config loading flow to ignore processing locally-linke
 
 This change was made as the previous behaviour caused confusion among integration authors who test against a package that worked locally, but not when published. It also restricted using CJS-only dependencies because Vite required the code to be ESM. Therefore, Astro's behaviour is now changed to ignore processing any type of dependencies by Vite.
 
-### Changed: TypeScript configuration (PLT2479 - alpha.4)
+### Changed: `build.client` and `build.server` resolve behaviour  (PLT2171 - alpha.5)
+
+<SourcePR number="11916" title="Fix build.client and build.server resolve behaviour" />
+
+In Astro v4.x, the `build.client` and `build.server` options were documented to resolve relatively from the `outDir` option, but it didn't always work as expected.
+
+Astro 5.0 fixes the behaviour to correctly resolve from the `outDir` option. For example, if `outDir` is set to `./dist/nested/`, then by default:
+
+- `build.client` will resolve to `<root>/dist/nested/client/`
+- `build.server` will resolve to `<root>/dist/nested/server/`
+
+Previously the values were incorrectly resolved:
+
+- `build.client` was resolved to `<root>/dist/nested/dist/client/`
+- `build.server` was resolved to `<root>/dist/nested/dist/server/`
+
+#### What should I do?
+
+If you were relying on the previous build paths, make sure that your project code is updated to the new build paths.
+### Changed: TypeScript configuration
 
 <SourcePR number="11859" title="better tsconfig"/>
 
@@ -772,25 +772,41 @@ Note that `src/env.d.ts` is only necessary if you have added custom configuratio
 
 In most cases, make sure your locally-linked dependencies are built to JS before running the Astro project, and the config loading should work as before.
 
-### Changed: `build.client` and `build.server` resolve behaviour  (PLT2171 - alpha.5)
 
-<SourcePR number="11916" title="Fix build.client and build.server resolve behaviour" />
+### Changed: add base to `paginate` (PLT2204 - alpha.2)
 
-In Astro v4.x, the `build.client` and `build.server` options were documented to resolve relatively from the `outDir` option, but it didn't always work as expected.
+<SourcePR number="11253" title="Add base to paginate"/>
 
-Astro 5.0 fixes the behaviour to correctly resolve from the `outDir` option. For example, if `outDir` is set to `./dist/nested/`, then by default:
+In Astro v4.x, the URL returned by `paginate()` (e.g. `page.url.next`, `page.url.first`, etc.) did not include the value set for `base` in your Astro config. You had to manually prepend your configured value for `base` to the URL path.
 
-- `build.client` will resolve to `<root>/dist/nested/client/`
-- `build.server` will resolve to `<root>/dist/nested/server/`
-
-Previously the values were incorrectly resolved:
-
-- `build.client` was resolved to `<root>/dist/nested/dist/client/`
-- `build.server` was resolved to `<root>/dist/nested/dist/server/`
+Astro 5.0 automatically includes the `base` value in `page.url`.
 
 #### What should I do?
 
-If you were relying on the previous build paths, make sure that your project code is updated to the new build paths.
+If you are using the `paginate()` function for "previous" and "next" URLs, remove any existing `base` value as it is now added for you:
+
+```astro del={16} ins={17}
+---
+export async function getStaticPaths({ paginate }) {
+  const astronautPages = [{
+    astronaut: 'Neil Armstrong',
+  }, {
+    astronaut: 'Buzz Aldrin',
+  }, {
+    astronaut: 'Sally Ride',
+  }, {
+    astronaut: 'John Glenn',
+  }];
+  return paginate(astronautPages, { pageSize: 1 });
+}
+const { page } = Astro.props;
+// `base: /'docs'` configured in `astro.config.mjs`
+const prev = "/docs" + page.url.prev;
+const prev = page.url.prev;
+---
+<a id="prev" href={prev}>Back</a>
+```
+
 
 ### Changed: `entryPoints` type inside the hook `astro:build:ssr` (PLT2338)
 
