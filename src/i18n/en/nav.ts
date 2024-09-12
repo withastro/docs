@@ -48,7 +48,6 @@ export default [
 	{ text: 'Routes and Navigation', header: true, type: 'learn', key: 'routes' },
 	{ text: 'Routing', slug: 'guides/routing', key: 'guides/routing' },
 	{ text: 'Endpoints', slug: 'guides/endpoints', key: 'guides/endpoints' },
-	{ text: 'Server Islands', slug: 'guides/server-islands', key: 'guides/server-islands' },
 	{ text: 'Actions', slug: 'guides/actions', key: 'guides/actions' },
 	{ text: 'Prefetch', slug: 'guides/prefetch', key: 'guides/prefetch' },
 	{ text: 'Middleware', slug: 'guides/middleware', key: 'guides/middleware' },
@@ -58,6 +57,7 @@ export default [
 		key: 'guides/internationalization',
 	},
 	{ text: 'View Transitions', slug: 'guides/view-transitions', key: 'guides/view-transitions' },
+	{ text: 'Server Islands', slug: 'guides/server-islands', key: 'guides/server-islands' },
 
 	{ text: 'Assets', header: true, type: 'learn', key: 'assets' },
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
