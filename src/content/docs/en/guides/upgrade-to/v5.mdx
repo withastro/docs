@@ -73,7 +73,7 @@ Update your project's version of Astro and all official integrations to the late
 
 
 {/* For beta version, only show upgrade command!
-You can also [upgrade your Astro integrations manually](/en/guides/integrations-guide/#manual-upgrading) if needed, and you may also need to upgrade other dependencies in your project. 
+You can also [upgrade your Astro integrations manually](/en/guides/integrations-guide/#manual-upgrading) if needed, and you may also need to upgrade other dependencies in your project.
 
 Update your project's version of Astro to the latest beta version using your package manager:
 
@@ -298,7 +298,7 @@ Where appropriate, consider using [content collections](/en/guides/content-colle
 You may also wish to consider using glob packages from NPM, such as [`fast-glob`](https://www.npmjs.com/package/fast-glob).
 
 <ReadMore>Learn more about [importing files with `import.meta.glob(/en/guides/imports/#importmetaglob)`](/en/guides/content-collections/).</ReadMore>
- 
+
 ### Deprecated: `functionPerRoute` (Adapter API)
 
 <SourcePR number="11714" title="Remove functionPerRoute option"/>
@@ -457,7 +457,7 @@ The following experimental flags have been removed in Astro v5.0 and these featu
 - `serverIslands`
 
 
-Additionally, the following experimental flags have been removed and **are now the default or recommended behavior in Astro v5.0**. 
+Additionally, the following experimental flags have been removed and **are now the default or recommended behavior in Astro v5.0**.
 
 - `directRenderScript` (See below for breaking changes to [default `<script>` behavior](#script-tags-are-rendered-directly-as-declared).)
 - `globalRoutePriority` (See below for breaking changes to [default route priority order](#route-priority-order-for-injected-routes-and-redirects).)
@@ -573,17 +573,49 @@ The following changes are considered breaking changes in Astro v5.0. Breaking ch
 
 {/* If you need to refer to the documentation for a v4.x project, you can browse this [(unmaintained) snapshot of the docs from before v5.0 was released](https://docs-git-v3-docs-unmaintained-astrodotbuild.vercel.app/). */}
 
+### Renamed: `<ViewTransitions />` component
+
+<SourcePR number="11980" title="Rename the ViewTransitions component to ClientRouter"/>
+
+In Astro 4.x, Astro's View Transitions API included a `<ViewTransitions />` router component to enable client-side routing, page transitions, and more.
+
+Astro 5.0 renames this component to `<ClientRouter />` to clarify the role of the component within the API. This makes it more clear that the features you get from Astro's `<ClientRouter />` routing component are slightly different fromthe native CSS-based MPA router.
+
+No functionality has changed. This component has only changed its name.
+
+#### What should I do?
+
+Replace all occurances of the `ViewTransitions` import and component with `ClientRouter`:
+
+```astro title="src/layouts/MyLayout.astro" del={1,7} ins={2,8}
+import { ViewTransitions } from 'astro:transitions';
+import { ClientRouter } from 'astro:transitions';
+
+<html>
+  <head>
+    ...
+   <ViewTransitions />
+   <ClientRouter />
+  </head>
+</html>
+```
+
+<ReadMore>Read more about [view transitions and client-side routing in Astro](/en/guides/view-transitions/).</ReadMore>
+
+
 ### Changed: TypeScript configuration
 
 <SourcePR number="11859" title="better tsconfig"/>
 
 In Astro v4.x, Astro relied on a `src/env.d.ts` file for type inferencing and defining modules for features that relied on generated types.
 
-Astro 5.0 instead uses a `.astro/types/d.ts` file for type inferencing, and now recommends setting `include` and `exclude` in `tsconfig.json` to benefit from Astro types and avoid checking built files. Running `astro sync` no longer creates, nor updates, `src/env.d.ts` as it is not required for type-checking standard Astro projects.
+Astro 5.0 instead uses a `.astro/types/d.ts` file for type inferencing, and now recommends setting `include` and `exclude` in `tsconfig.json` to benefit from Astro types and avoid checking built files.
+
+Running `astro sync` no longer creates, nor updates, `src/env.d.ts` as it is not required for type-checking standard Astro projects.
 
 #### What should I do?
 
-To update your project to Astro's recommended TypeScript settings, please add the following `include` and `exclude` properties to your existing `tsconfig.json`:
+To update your project to Astro's recommended TypeScript settings, add the following `include` and `exclude` properties to your existing `tsconfig.json`:
 
 ```ts ins={3,4} title="tsconfig.json"
 {
@@ -595,56 +627,13 @@ To update your project to Astro's recommended TypeScript settings, please add th
 
 Note that `src/env.d.ts` is only necessary if you have added custom configurations, or if you're not using a `tsconfig.json` file.
 
-#### What should I do?
-
-In most cases, make sure your locally-linked dependencies are built to JS before running the Astro project, and the config loading should work as before.
-
 <ReadMore>Read more about [TypeScript configuration in Astro](/en/guides/typescript/#setup).</ReadMore>
-
-### Changed: Shiki `css-variables` theme color token names
-
-<SourcePR number="11661" title="Update to new shiki token names"/>
-
-In Astro v4.x, the Shiki `css-variables` theme uses the `--astro-code-color-text` and `--astro-code-color-background` tokens for styling the foreground and background colors of code blocks respectively.
-
-Astro v5.0 renames them to `--astro-code-foreground` and `--astro-code-background` tokens respectively to better align with the Shiki v1 defaults.
-
-#### What should I do?
-
-You can perform a global find and replace in your project to migrate to the new token names.
-
-```diff lang="css"
-:root {
--  --astro-code-color-text: #000;
--  --astro-code-color-background: #fff;
-+  --astro-code-foreground: #000;
-+  --astro-code-background: #fff;
-}
-```
-
-<ReadMore>Read more about [syntax highlighting in Astro](/en/guides/markdown-content/#syntax-highlighting).</ReadMore>
-
-### Changed: Shiki internal rehype plugin for highlighting code blocks
-
-<SourcePR number="11825" title="Refactor createShikiHighlighter"/>
-
-In Astro 4.x, its internal Shiki rehype plugin highlighted code blocks as HTML.
-
-Astro 5.0 updates its internal Shiki rehype plugin to highlight code blocks as hast. This allows a more direct Markdown and MDX processing and improves the performance when building the project, but may cause issues with existing Shiki transformers.
-
-#### What should I do?
-
-If you are using Shiki transformers passed to `markdown.shikiConfig.transformers`, you must make sure they do not use the `postprocess` hook as it no longer runs on code blocks in `.md` and `.mdx` files. (See [the Shiki documentation on transformer hooks](https://shiki.style/guide/transformers#transformer-hooks) for more information). 
-
-Code blocks in `.mdoc` files and in the `<Code />` component do not use the internal Shiki rehype plugin and are unaffected.
-
-<ReadMore>Read more about [syntax highlighting in Astro](/en/guides/markdown-content/#syntax-highlighting).</ReadMore>
 
 ### Changed: `compiledContent()` is now an async function
 
 <SourcePR number="11782" title="Remove TLA by making compiledContent async"/>
 
-In Astro 4.x, included top level await in Markdown modules. This caused some issues with custom image services and images inside Markdown, causing Node to suddenly exit with no error message.
+In Astro 4.x, top level await was included in Markdown modules. This caused some issues with custom image services and images inside Markdown, causing Node to suddenly exit with no error message.
 
 Astro 5.0 makes the `compiledContent()` property on Markdown import an async function, requiring an `await` to resolve the content.
 
@@ -652,12 +641,12 @@ Astro 5.0 makes the `compiledContent()` property on Markdown import an async fun
 
 Update your code to use `await` when calling `compiledContent()`.
 
-```diff lang="astro"
+```astro title="src/pages/post.astro" del={4} ins={5}
 ---
-import * as myPost from "../post.md";
+import * as myPost from "../blog/post.md";
 
-- const content = myPost.compiledContent();
-+ const content = await myPost.compiledContent();
+const content = myPost.compiledContent();
+const content = await myPost.compiledContent();
 ---
 
 <Fragment set:html={content} />
@@ -669,13 +658,15 @@ import * as myPost from "../post.md";
 
 <SourcePR number="11827" title="Prevent usage of `astro:content` in the client "/>
 
-The `astro:content` module can no longer be used on the client. It was never intentionally exposed for client usage, leading to some developers to use it without realizing the limitations and bloat to client bundles.
+In Astro 4.x, it was possible to access the `astro:client` module on the client.
+
+Astro 5.0 removes this access as it was never intentionally exposed for client use. Using `astro:content` this way had limitations and bloated client bundles.
 
 #### What should I do?
 
-If currently using in the client, consider instead passing the data you need through properties to your client components:
+If you are currently currently using `astro:content` in the client, pass the data you need through props to your client components instead:
 
-```astro
+```astro title="src/pages/blog.astro"
 ---
 import { getCollection } from 'astro:content';
 import ClientComponent from '../components/ClientComponent';
@@ -689,12 +680,50 @@ const postsData = posts.map(post => post.data);
 
 <ReadMore>Read more about [the `astro:content` API](/en/reference/api-reference/#content-collections-astrocontent).</ReadMore>
 
+### Renamed: Shiki `css-variables` theme color token names
 
-### Changed: Astro-specific metadata attached in Remark and Rehype plugins
+<SourcePR number="11661" title="Update to new shiki token names"/>
+
+In Astro v4.x, the Shiki `css-variables` theme used the `--astro-code-color-text` and `--astro-code-color-background` tokens for styling the foreground and background colors of code blocks respectively.
+
+Astro v5.0 renames them to `--astro-code-foreground` and `--astro-code-background` respectively to better align with the Shiki v1 defaults.
+
+#### What should I do?
+
+You can perform a global find and replace in your project to migrate to the new token names.
+
+```css title="src/styles/global.css" del={1,2} ins={3,4}
+:root {
+  --astro-code-color-text: #000;
+  --astro-code-color-background: #fff;
+  --astro-code-foreground: #000;
+  --astro-code-background: #fff;
+}
+```
+
+<ReadMore>Read more about [syntax highlighting in Astro](/en/guides/markdown-content/#syntax-highlighting).</ReadMore>
+
+### Changed: internal Shiki rehype plugin for highlighting code blocks
+
+<SourcePR number="11825" title="Refactor createShikiHighlighter"/>
+
+In Astro 4.x, Astro's internal Shiki rehype plugin highlighted code blocks as HTML.
+
+Astro 5.0 updates this plugin to highlight code blocks as hast. This allows a more direct Markdown and MDX processing and improves the performance when building the project. However, this may cause issues with existing Shiki transformers.
+
+#### What should I do?
+
+If you are using Shiki transformers passed to `markdown.shikiConfig.transformers`, you must make sure they do not use the `postprocess` hook. This hook no longer runs on code blocks in `.md` and `.mdx` files. (See [the Shiki documentation on transformer hooks](https://shiki.style/guide/transformers#transformer-hooks) for more information).
+
+Code blocks in `.mdoc` files and Astro's built-in `<Code />` component do not use the internal Shiki rehype plugin and are unaffected.
+
+<ReadMore>Read more about [syntax highlighting in Astro](/en/guides/markdown-content/#syntax-highlighting).</ReadMore>
+
+### Changed: Astro-specific metadata attached in remark and rehype plugins
 
 <SourcePR number="11861" title="Clean up Astro metadata in vfile.data"/>
 
-In Astro 4.x, the Astro-specific metadata attached to `vfile.data` in Remark and Rehype plugins was attached in different locations with inconsistent names.
+In Astro 4.x, the Astro-specific metadata attached to `vfile.data` in remark and rehype plugins was attached in different locations with inconsistent names.
 
 Astro 5 cleans up the API and the metadata is now renamed as below:
 
@@ -705,15 +734,41 @@ The types of `imagePaths` has also been updated from `Set<string>` to `string[]`
 
 #### What should I do?
 
-While we don't consider these APIs public, they can be accessed by Remark and Rehype plugins that want to re-use Astro's metadata. If you are using these APIs, make sure to access them in the new locations.
+While we don't consider these APIs public, they can be accessed by remark and rehype plugins that want to re-use Astro's metadata. If you are using these APIs, make sure to access them in the new locations.
 
 <ReadMore>Read more about [using Markdown plugins in Astro](/en/guides/markdown-content/#markdown-plugins).</ReadMore>
 
+### Changed: image endpoint configuration
 
+<SourcePR number="11908" title="Allow customising the route of the image endpoint"/>
+
+In Astro 4.x, you could set an endpoint in your `image` configuration to use for image optimization.
+
+Astro 5.0 allows you to customize a `route` and `entrypoint` of the `image.endpoint` config. This can be useful in niche situations where the default route `/_image` conflicts with an existing route or your local server setup.
+
+#### What should I do?
+
+If you had previously customized `image.endpoint`, move this endpoint to the new `endpoint.entrypoint` property. Optionally, you may customize a `route`:
+
+```js title="astro.config.mjs" del={5} ins={6-9}
+import { defineConfig } from "astro/config";
+
+defineConfig({
+  image: {
+    endpoint: './src/image-endpoint.ts',
+    endpoint: {
+      route: "/image",
+      entrypoint: "./src/image_endpoint.ts"
+    }
+  },
+})
+```
+
+<ReadMore>Read more about [setting an endpoint to use for image optimization](/en/reference/configuration-reference/#imageendpoint).</ReadMore>
 
 ### Changed: `build.client` and `build.server` resolve behavior
 
-<SourcePR number="11916" title="Fix build.client and build.server resolve behavior" />
+<SourcePR number="11916" title="Fix build.client and build.server resolve behaviour" />
 
 In Astro v4.x, the `build.client` and `build.server` options were documented to resolve relatively from the `outDir` option, but it didn't always work as expected.
 
@@ -741,7 +796,7 @@ In Astro 4.x, locally-linked dependencies (e.g. `npm link`, in a monorepo, etc) 
 
 Astro 5 updates the Astro config loading flow to ignore processing locally-linked dependencies with Vite. Instead, these dependencies will be normally imported by the Node.js runtime the same way as other dependencies from `node_modules`.
 
-This change was made as the previous behaviour caused confusion among integration authors who tested against a package that worked locally, but not when published. It also restricted using CJS-only dependencies because Vite required the code to be ESM. Therefore, Astro's behaviour has now changed to ignore processing any type of dependencies by Vite.
+This change was made as the previous behavior caused confusion among integration authors who tested against a package that worked locally, but not when published. It also restricted using CJS-only dependencies because Vite required the code to be ESM. Therefore, Astro's behavior has now changed to ignore processing any type of dependencies by Vite.
 
 #### What should I do?
 
@@ -810,70 +865,90 @@ In the following `.astro` examples, only `allowfullscreen` is a boolean attribut
 
 Astro v5.0 now preserves the full data attribute with its value when rendering the HTML of non-boolean attributes:
 
-```diff lang="astro"
-  <p allowfullscreen></p>
-  <p></p>
+```astro del={5,8,10} ins={6,9,11}
+<p allowfullscreen></p>
+<p></p>
 
-  <p inherit="true"></p>
-- <p inherit></p>
-+ <p inherit="false"></p>
+<p inherit="true"></p>
+<p inherit></p>
+<p inherit="false"></p>
 
-- <p data-light></p>
-+ <p data-light="true"></p>
-- <p></p>
-+ <p data-light="false"></p>
+<p data-light></p>
+<p data-light="true"></p>
+<p></p>
+<p data-light="false"></p>
 ```
 
 #### What should I do?
 
 If you rely on attribute values, for example, to locate elements or to conditionally render, update your code to match the new non-boolean attribute values:
 
-```diff lang="js"
-- el.getAttribute('inherit') === ''
-+ el.getAttribute('inherit') === 'false'
+```js del={1,4} ins={2,5}
+el.getAttribute('inherit') === ''
+el.getAttribute('inherit') === 'false'
 
-- el.hasAttribute('data-light')
-+ el.dataset.light === 'true'
+el.hasAttribute('data-light')
+el.dataset.light === 'true'
 ```
 
 <ReadMore>Read more about [using HTML attributes in Astro](/en/basics/astro-syntax/#dynamic-attributes).</ReadMore>
 
-### Changed: `entryPoints` type inside the hook `astro:build:ssr` (PLT2338)
+### Changed: adding values to `context.locals`
+
+<SourcePR number="11987" title="TODOs"/>
+
+In Astro 4.x, it was possible to completely replace the entire `locals` object in middleware, API endpoints, and pages when adding new values.
+
+Astro 5.0 requires you to append values to the existing `locals` object without deleting it. Locals in middleware, API endpoints, and pages, can no longer be completely overridden.
+
+#### What should I do?
+
+Where you previously were overwriting the object, you must now instead assign values to it:
+
+```js title="src/middleware.js" del={1,5} ins={2,6}
+ctx.locals = {
+Object.assign(ctx.locals, {
+  one: 1,
+  two: 2
+}
+})
+```
+<ReadMore>See more about [storing data in `context.locals`](/en/guides/middleware/#storing-data-in-contextlocals).</ReadMore>
+
+### Changed: `RouteData` type replaced by `IntegrationsRouteData` (Integrations API)
 
 <SourcePR number="11864" title="send `IntegrationRouteData` to integrations"/>
 
-In Astro v4.x, the `entryPoints` type was `RouteData`.
+In Astro v4.x, the `entryPoints` type inside the `astro:build:ssr` and `astro.build.done` hooks was `RouteData`.
 
-Astro v5.0 the `entryPoints` type is `IntegrationRouteData`, which contains a subset of the `RouteData` type. The fields `isIndex` and `fallbackRoutes` were removed. 
+Astro v5.0 the `entryPoints` type is now `IntegrationRouteData`, which contains a subset of the `RouteData` type. The fields `isIndex` and `fallbackRoutes` were removed.
 
 #### What should I do?
 
 Update your adapter to change the type of `entryPoints` from `RouteData` to `IntegrationRouteData`.
 
-```diff
--import type {RouteData} from 'astro';
-+import type {IntegrationRouteData} from "astro"
+```js del={1,4} ins={2,5}
+import type {RouteData} from 'astro';
+import type {IntegrationRouteData} from "astro"
 
--function useRoute(route: RouteData) {
-+function useRoute(route: IntegrationRouteData) {
+function useRoute(route: RouteData) {
+function useRoute(route: IntegrationRouteData) {
 }
 ```
 
-Please see the [API reference for `IntegrationRouteData`](/en/reference/integrations-reference/#integrationroutedata-type-reference) for full details of the fields now available.
+<ReadMore>See the [API reference for `IntegrationRouteData`](/en/reference/integrations-reference/#integrationroutedata-type-reference).</ReadMore>
 
-<ReadMore></ReadMore>
-
-### Changed: `RouteData.distURL` is now an array (PLT2338)
+### Changed: `distURL` is now an array (Integrations API)
 
 <SourcePR number="11864" title="send `IntegrationRouteData` to integrations"/>
 
 In Astro v4.x, `RouteData.distURL` was `undefined` or a `URL`
 
-Astro v5.0, `RouteData.distURL` is `undefined` or an array of `URL`. This was a bug, because a route can generate multiple files on disk, especially when using dynamic routes such as `[slug]` or `[...slug]`.
+Astro v5.0, `IntegrationRouteData.distURL` is `undefined` or an array of `URL`. This was a bug, because a route can generate multiple files on disk, especially when using dynamic routes such as `[slug]` or `[...slug]`.
 
 #### What should I do?
 
-Update your code to handle `RouteData.distURL` as an array.
+Update your code to handle `IntegrationRouteData.distURL` as an array.
 
 ```diff
 if (route.distURL) {
@@ -888,98 +963,46 @@ if (route.distURL) {
 }
 ```
 
-<ReadMore></ReadMore>
+<ReadMore>See the [API reference for `IntegrationRouteData`](/en/reference/integrations-reference/#integrationroutedata-type-reference).</ReadMore>
 
-### Changed: Rework `supportedAstroFeatures.assets` (PLT-989)
+### Changed: Arguments passed to `app.render()` (Adapter API)
+
+<SourcePR number="11987" title="TODOs"/>
+
+In Astro 4.x, The Adapter API method `app.render()` could receive three arguments: a mandatory `request`, an object of options or a `routeData` object, and `locals`.
+
+Astro 5.0 combines these last two arguments into a single options argument named `renderOptions`.
+
+#### What should I do?
+
+Pass an object as the second argument to `app.render()`, which can include `routeData` and `locals` as properties.
+
+```js del={1} ins={2}
+const response = await app.render(request, routeData, locals);
+const response = await app.render(request, {routeData, locals});
+```
+
+<ReadMore>See the [Adapter API reference for `renderOptions`](/en/reference/adapter-reference/#renderoptions).</ReadMore>
+
+### Changed: Properties on `supportedAstroFeatures` (Adapter API)
 
 <SourcePR number="11806" title="rework supportedAstroFeatures"/>
 
-`supportedAstroFeatures.assets` was a bit unclear, as an adapter cannot fundamentally not support the concept of "assets". Often, what was meant was that the adapter did not support the built-in image service, particularly the Sharp one. As such, the entire `assets` property has been removed in favor of a more explicit `supportedAstroFeatures.sharpImageService` property
+In Astro 4.x, `supportedAstroFeatures`, which allows adapter authors to specify which features their integration supports, included an underused `assets` property.
+
+Astro 5.0 replaces this property with a dedicated `sharpImageService` property, used to determine whether the adapter is compatible with the built-in sharp image service.
+
+5.0 also adds a new `limited` value for the different properties of `supportedAstroFeatures` for adapters, which indicates that the adapter is compatible with the feature, but with some limitations. This is useful for adapters that support a feature, but not in all cases or with all options.
+
+Additionally, the value of the different properties on `supportedAstroFeatures` for adapters can now be objects, with `support` and `message` properties. The content of the `message` property will show a helpful message in the Astro CLI when the adapter is not compatible with a feature. This is notably useful with the new `limited` value, to explain to the user why support is limited.
 
 #### What should I do?
 
-If your adapter previously precised its compatibility status with assets through the `assets` property, you should now use the `sharpImageService` property instead.
+If you were using the `assets` property, remove this as it is no longer available. To specify that your adapter supports the built-in sharp image service, replace this with `sharpImageService`.
 
-```diff lang="ts" title="my-adapter.mjs"
-supportedAstroFeatures: {
--  assets: {
--    supportKind: "stable",
--    isSharpCompatible: true,
--    isSquooshCompatible: true,
--  },
-+ sharpImageService: true,
-}
-```
+You may also wish to update your supported features with the new `limited` option and include a message about your adapter's support.
 
-<ReadMore></ReadMore>
-
-### Changed: auto-inject `<meta charset="utf-8">` by default for every astro/md/mdx/html (PLT1057)
-
-Decide if charset=utf-8 should not be set for md/mdx pages by default
-
-#### What should I do?
-
-Stuff!
-
-<ReadMore></ReadMore>
-
-### Changed: `--mode` usage (PLT2220)
-
-Rethink `--mode` and internal mode usage
-
-#### What should I do?
-
-Stuff!
-
-<ReadMore></ReadMore>
-
-### Changed: Renamed `<ViewTransitions />` component (PLT2423)
-
-The view transitions component has been renamed to `<ClientRouter />`. No functionality has changed, it has only changed it's name.
-
-#### What should I do?
-
-Where you import the `ViewTransitions` component, such as within a layout component, replace it with `ClientRouter`:
-
-```diff
--import { ViewTransitions } from 'astro:transitions';
-+import { ClientRouter } from 'astro:transitions';
-
-<html>
-  <head>
-    ...
--    <ViewTransitions />
-+    <ClientRouter />
-  </head>
-</html>
-```
-
-<ReadMore></ReadMore>
-
-### Changed: Locals can no longer be reassigned
-
-Locals, in middleware, API endpoints, and pages, can no longer be completely overridden. Previously it was possible to replace the entire object with a new one, but now you must append values to the existing object.
-
-#### What should I do?
-
-Where you previously were overwriting the object, now instead assign values to it:
-
-```diff
--ctx.locals = {
-+Object.assign(ctx.locals, {
-  one: 1,
-  two: 2
--}
-+})
-```
-
-### Changed: App class now takes renderOptions as 2nd argument.
-
-In Astro 4 for adapters, `app.render()` had 3 arguments, with the 2nd being either an object of options or a `routeData` object, and the 3rd argument being `locals`. These have been combined into an options argument named `renderOptions`.
-
-#### What should I do?
-
-Pass an object as the second argument, with `routeData` and/or `locals` as one of the properties, depending on what you were using this for.
+<ReadMore>Read more about [specifying supported Astro features in an adapter](/en/reference/adapter-reference/#astro-features).</ReadMore>
 
 ## Community Resources
 
@@ -988,3 +1011,8 @@ Know a good resource for Astro v5.0? [Edit this page](https://github.com/withast
 ## Known Issues
 
 Please check [Astro's issues on GitHub](https://github.com/withastro/astro/issues/) for any reported issues, or to file an issue yourself.
+
+
+#### What should I do?
+
+In most cases, ensuring that your locally-linked dependencies are built to JS before running the Astro project, the config loading should work as before.
