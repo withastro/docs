@@ -19,6 +19,7 @@
  */
 export default [
 	{ text: 'Welcome, World!', header: true, type: 'learn', key: 'welcomeWorld' },
+	{ text: 'Upgrade to v5-beta', slug: '/guides/upgrade-to/v5/', key: '/guides/upgrade-to/v5/' },
 	{ text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },
 	{ text: 'Installation and Setup', slug: 'install-and-setup', key: 'install-and-setup' },
 	{ text: 'Deploy Your Site', slug: 'guides/deploy', key: 'guides/deploy' },
