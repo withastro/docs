@@ -32,7 +32,7 @@ export default function createIntegration() {
           serverEntrypoint: '@matthewp/my-adapter/server.js',
           supportedAstroFeatures: {
               staticOutput: 'stable'
-          }  
+          }
         });
       },
     },
@@ -62,41 +62,34 @@ export interface AstroAdapterFeatures {
 
 export type SupportsKind = 'unsupported' | 'stable' | 'experimental' | 'deprecated';
 
+export type AdapterSupportWithMessage = {
+	support: Exclude<SupportsKind, 'stable'>;
+	message: string;
+};
+
+export type AdapterSupport = SupportsKind | AdapterSupportWithMessage;
+
 export type AstroFeatureMap = {
   /**
    * The adapter is able to serve static pages
    */
-  staticOutput?: SupportsKind;
+  staticOutput?: AdapterSupport;
   /**
    * The adapter is able to serve pages that are static or rendered via server
    */
-  hybridOutput?: SupportsKind;
+  hybridOutput?: AdapterSupport;
   /**
    * The adapter is able to serve SSR pages
    */
-  serverOutput?: SupportsKind;
+  serverOutput?: AdapterSupport;
   /**
-   * The adapter can emit static assets
+   * The adapter supports the Sharp image service
    */
-  assets?: AstroAssetsFeature;
-  /**
+  sharpImageService?: AdapterSupport;
    * The adapter supports `astro:env` secrets
    */
-  envGetSecret?: SupportsKind;
+  envGetSecret?: AdapterSupport;
 };
-
-export interface AstroAssetsFeature {
-  supportKind?: SupportsKind;
-  /**
-   * Whether this adapter deploys files in an environment that is compatible with the library `sharp`
-   */
-  isSharpCompatible?: boolean;
-  /**
-   * Whether this adapter deploys files in an environment that is compatible with the library `squoosh`
-   */
-  isSquooshCompatible?: boolean;
-}
-
 ```
 
 The properties are:
@@ -290,7 +283,7 @@ Once you [publish your adapter to npm](https://docs.npmjs.com/cli/v8/commands/np
 
 <p><Since v="3.0.0" /></p>
 
-Astro features are a way for an adapter to tell Astro whether they are able to support a feature, and also the adapter's level of support.  
+Astro features are a way for an adapter to tell Astro whether they are able to support a feature, and also the adapter's level of support. 
 
 When using these properties, Astro will:
 - run specific validation; 
@@ -298,7 +291,7 @@ When using these properties, Astro will:
 
 These operations are run based on the features supported or not supported, their level of support, and the configuration that the user uses.
 
-The following configuration tells Astro that this adapter has experimental support for assets, but the adapter is not compatible with the built-in services Sharp and Squoosh:
+The following configuration tells Astro that this adapter has experimental support for the Sharp-powered built-in image service:
 
 ```js title="my-adapter.mjs" ins={9-15}
 export default function createIntegration() {
@@ -310,12 +303,8 @@ export default function createIntegration() {
           name: '@matthewp/my-adapter',
           serverEntrypoint: '@matthewp/my-adapter/server.js',
           supportedAstroFeatures: {
-            assets: {
-              supportKind: "experimental",
-              isSharpCompatible: false,
-              isSquooshCompatible: false
-            }
-          }  
+            sharpImageService: 'experimental'
+          } 
         });
       },
     },
@@ -329,10 +318,34 @@ Astro will log a **warning** to the terminal:
 [@matthewp/my-adapter] The feature is experimental and subject to issues or changes.
 ```
 
-and an error if the service used for assets is not compatible with the adapter:
+and an error if the Sharp image service is used and is not compatible with the adapter:
 
 ```
 [@matthewp/my-adapter] The currently selected adapter `@matthewp/my-adapter` is not compatible with the service "Sharp". Your project will NOT be able to build.
+```
+
+A message can additionally be provided to give more context to the user:
+
+```js title="my-adapter.mjs" ins={9-15}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          supportedAstroFeatures: {
+            sharpImageService: {
+              support: 'limited',
+              message: 'This adapter has limited support for Sharp, certain features may not work as expected.'
+            }
+          } 
+        });
+      },
+    },
+  };
+}
 ```
 
 ## Adapter features
@@ -412,7 +425,7 @@ export default function createIntegration() {
           name: '@matthewp/my-adapter',
           serverEntrypoint: '@matthewp/my-adapter/server.js',
           adapterFeatures: {
-              envGetSectret: 'stable'
+              envGetSecret: 'stable'
           } 
         });
       },
@@ -464,5 +477,28 @@ export function createExports(manifest: SSRManifest) {
 	};
 
 	return { default: { fetch } };
+}
+```
+
+### buildOutput
+
+This property allows you to force a specific output shape for the build. This can be useful for adapters that only work with a specific output type, for instance, your adapter might expect a static website, but uses an adapter to create host-specific files. Defaults to `server` if not specified.
+
+```js title="my-adapter.mjs" ins={9-15}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          adapterFeatures: {
+            buildOutput: 'static'
+          } 
+        });
+      },
+    },
+  };
 }
 ```
