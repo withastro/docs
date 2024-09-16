@@ -261,7 +261,7 @@ const anim = {
     name: 'bump',
     duration: '0.5s',
     easing: 'ease-in',
-    direction: 'reverse,
+    direction: 'reverse',
   },
   new: {
     name: 'bump',
@@ -319,8 +319,8 @@ const customTransition = {
 <script>
   import { navigate } from 'astro:transitions/client';
   // 自动导航到所选选项
-  document.querySelector('select').onchange = (ev) => {
-    let href = ev.target.value;
+  document.querySelector('select').onchange = (event) => {
+    let href = event.target.value;
     navigate(href);
   };
 </script>
@@ -564,9 +564,9 @@ Astro 的视图过渡动画 API 生命周期事件顺序如下：
 
 ```js
 <script is:inline>
-  document.addEventListener('astro:before-preparation', ev => {
-    const originalLoader = ev.loader;
-    ev.loader = async function() {
+  document.addEventListener('astro:before-preparation', event => {
+    const originalLoader = event.loader;
+    event.loader = async function() {
       const { startSpinner } = await import('./spinner.js');
       const stop = startSpinner();
       await originalLoader();
@@ -613,9 +613,9 @@ Astro 的视图过渡动画 API 生命周期事件顺序如下：
 
   setDarkMode(document);
 
-  document.addEventListener('astro:before-swap', ev => {
-    // Pass the incoming document to set the theme on it
-    setDarkMode(ev.newDocument);
+  document.addEventListener('astro:before-swap', event => {
+    // 传入新文档以设置主题
+    setDarkMode(event.newDocument);
   });
 </script>
 ```
@@ -626,13 +626,42 @@ Astro 的视图过渡动画 API 生命周期事件顺序如下：
 
 ```astro
 <script is:inline>
-  document.addEventListener('astro:before-swap', ev => {
-    ev.swap = () => {
-      diff(document, ev.newDocument);
+  document.addEventListener('astro:before-swap', event => {
+    event.swap = () => {
+      diff(document, event.newDocument);
     };
   });
 </script>
 ```
+
+#### 构建自定义交换函数
+
+<p><Since v="4.15.0" /></p>
+
+`astro:transitions/client` 模块的 `swapFunctions` 对象提供了五个处理特定交换相关任务的工具函数，包括处理文档属性、页面元素和脚本执行。这些函数可以直接用于定义自定义的交换实现。
+
+以下示例演示了如何使用这些函数重新创建 Astro 的内置交换实现：
+
+```astro
+<script>
+import { swapFunctions } from 'astro:transitions/client';
+
+// 用 doc 替换 window.document
+function mySwap(doc: Document) {
+  swapFunctions.deselectScripts(doc);
+  swapFunctions.swapRootAttributes(doc);
+  swapFunctions.swapHeadElements(doc);
+  const restoreFocusFunction = swapFunctions.saveFocus();
+  swapFunctions.swapBodyElement(doc.body, document.body);
+  restoreFocusFunction();
+};
+
+...
+  event.swap = () => mySwap(event.newDocument);
+...
+<script>
+```
+自定义交换实现可以从这个模板开始，并根据需要添加或替换单个步骤的自定义逻辑。
 
 ### `astro:after-swap`
 

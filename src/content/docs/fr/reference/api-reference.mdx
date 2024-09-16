@@ -134,7 +134,7 @@ import Heading from '../components/Heading.astro';
 <Heading title="Mon tout premier article" date="09 Août 2022" />
 ```
 
-<ReadMore>En savoir plus sur la façon dont les [Mises en page Markdown et MDX](/fr/guides/markdown-content/#frontmatter-layout) gèrent les propriétés.</ReadMore>
+<ReadMore>En savoir plus sur la façon dont les [Mises en page Markdown et MDX](/fr/guides/markdown-content/#propriété-layout-du-frontmatter) gèrent les propriétés.</ReadMore>
 
 <ReadMore>Apprenez à ajouter des [définitions de type TypeScript pour vos props](/fr/guides/typescript/#type-componentprops).</ReadMore>
 
@@ -496,6 +496,8 @@ Un objet [URL](https://developer.mozilla.org/fr/docs/Web/API/URL) construit à p
 
 Equivalent à `new URL(Astro.request.url)`.
 
+`Astro.url` aura pour valeur `localhost` en mode dev pour les sites statiques quand [site](/fr/reference/configuration-reference/#site) n'est pas configuré et pour les sites rendus à la demande utilisant la sortie `server` ou `hybrid`.
+
 ```astro
 <h1>L'URL actuelle est : {Astro.url}</h1>
 <h1>Le chemin d'accès à l'URL actuelle est : {Astro.url.pathname}</h1>
@@ -762,6 +764,44 @@ Cette propriété n'est disponible que pour l'affichage côté serveur (SSR) et 
 
 La locale calculée à partir de l'URL courante, en utilisant la syntaxe spécifiée dans votre configuration `locales`. Si l'URL ne contient pas de préfixe `/[locale]/`, alors la valeur sera par défaut `i18n.defaultLocale`.
 
+### `Astro.getActionResult()`
+
+<p>
+**Type :** `(action: TAction) => ActionReturnType<TAction> | undefined`<br />
+<Since v="4.15.0" />
+</p>
+
+`Astro.getActionResult()` est une fonction qui renvoie le résultat d'une soumission d'[Action](/fr/guides/actions/). Celle-ci accepte une fonction d'action comme argument (par exemple, `actions.logout`) et renvoie un objet `data` ou `error` lorsqu'une soumission est reçue. Sinon, elle renverra `undefined`.
+
+```astro title="src/pages/index.astro"
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.logout);
+---
+
+<form action={actions.logout}>
+  <button type="submit">Se déconnecter</button>
+</form>
+{result?.error && <p>Échec de la déconnexion. Veuillez réessayer.</p>}
+```
+
+### `Astro.callAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`Astro.callAction()` est une fonction utilisée pour appeler un gestionnaire d'Action directement depuis votre composant Astro. Celle-ci accepte une fonction Action comme premier argument (par exemple `actions.logout`) et toute entrée que l'action reçoit comme deuxième argument. Elle renvoie le résultat de l'action sous forme de promesse.
+
+```astro title="src/pages/index.astro"
+---
+import { actions } from 'astro:actions';
+
+const { data, error } = await Astro.callAction(actions.logout, { userId: '123' });
+---
+```
+
 ## Contexte du point de terminaison
 
 Les [fonctions de points de terminaisons](/fr/guides/endpoints/) reçoivent un objet contextuel comme premier paramètre. Il reflète la plupart des propriétés globales de `Astro`.
@@ -1025,6 +1065,30 @@ export function GET({ locals }: APIContext) {
 ```
 
 Voir aussi : [`Astro.locals`](#astrolocals)
+
+### `context.getActionResult()`
+
+<p>
+
+**Type :** `(action: TAction) => ActionReturnType<TAction> | undefined`<br />
+<Since v="4.15.0" />
+</p>
+
+`context.getActionResult()` est une fonction qui renvoie le résultat d'une soumission d'[Action](/fr/guides/actions/). Celle-ci accepte une fonction d'action comme argument (par exemple `actions.logout`) et renvoie un objet `data` ou `error` lorsqu'une soumission est reçue. Sinon, elle renverra `undefined`.
+
+
+Voir aussi [`Astro.getActionResult()`](#astrogetactionresult)
+
+### `context.callAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`context.callAction()` est une fonction utilisée pour appeler un gestionnaire d'action directement depuis votre composant Astro. Celle-ci accepte une fonction Action comme premier argument (par exemple `actions.logout`) et toute entrée reçue par l'action comme deuxième argument. Elle renvoie le résultat de l'action sous forme de promesse.
+
+
+Voir aussi [`Astro.callAction()`](#astrocallaction)
 
 ## `getStaticPaths()`
 
@@ -1614,8 +1678,8 @@ Une chaîne de caractères contenant le corps brut et non compilé du document M
 Une fonction pour compiler un document Markdown ou MDX donné à afficher. Cela renvoie les propriétés suivantes :
 
 - `<Content />` - Un composant utilisé pour restituer le contenu du document dans un fichier Astro.
-- `headings` - Une liste générée de titres, [reflétant l'utilitaire `getHeadings()` d'Astro](/fr/guides/markdown-content/#propriétés-exportées) sur les importations Markdown et MDX.
-- `remarkPluginFrontmatter` - L'objet frontmatter modifié après [l'application de plugins Remark or Rehype](/fr/guides/markdown-content/#modifier-le-frontmatter-par-un-programme). Définit sur le type `any`.
+- `headings` - Une liste générée de titres, [reflétant l'utilitaire `getHeadings()` d'Astro](/fr/guides/markdown-content/#propriétés-disponibles) sur les importations Markdown et MDX.
+- `remarkPluginFrontmatter` - L'objet frontmatter modifié après [l'application de plugins Remark or Rehype](/fr/guides/markdown-content/#modification-programmatique-du-frontmatter). Définit sur le type `any`.
 
 ```astro
 ---
@@ -2073,9 +2137,467 @@ export const onRequest = defineMiddleware(async (context, next) => {
 })
 ```
 
+## API client de Transitions de Vue (`astro:transitions/client`)
+
+<p><Since v="3.2.0" /></p>
+
+Ce module fournit des fonctions pour contrôler et interagir avec l'API Transitions de Vue et le routeur côté client.
+
+Pour des fonctionnalités et des exemples d'utilisation, [consultez notre guide sur les Transitions de Vue](/fr/guides/view-transitions/).
+
+### `navigate()`
+
+<p>
+
+**Type :** `(href: string, options?: Options) => void`<br />
+<Since v="3.2.0" />
+</p>
+
+Une fonction qui exécute une navigation vers le `href` donné à l'aide de l'API Transitions de Vue.
+
+Cette signature de fonction est basée sur la fonction [`navigate` de l'API Navigation du navigateur](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate). Bien que basée sur l'API Navigation, cette fonction est implémentée sur l'[API History](https://developer.mozilla.org/fr/docs/Web/API/History_API) pour permettre la navigation sans recharger la page.
+
+#### Option `history`
+
+<p>
+
+**Type :** `'auto' | 'push' | 'replace'`<br />
+**Par défaut :** `'auto'`<br />
+<Since v="3.2.0" />
+</p>
+
+Définit la manière dont cette navigation doit être ajoutée à l'historique du navigateur.
+
+- `'push'` : le routeur utilisera `history.pushState` pour créer une nouvelle entrée dans l'historique du navigateur.
+- `'replace'` : le routeur utilisera `history.replaceState` pour mettre à jour l'URL sans ajouter de nouvelle entrée dans la navigation.
+- `'auto'` (par défaut) : le routeur tentera `history.pushState`, mais si l'URL ne peut pas être transférée, l'URL actuelle restera sans modification de l'historique du navigateur.
+
+Cette option suit l'[option `history`](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate#history) de l'API Navigation du navigateur mais simplifiée pour les cas qui peuvent survenir sur un projet Astro.
+
+#### Option `formData`
+
+<p>
+
+**Type :** `FormData`<br />
+<Since v="3.5.0" />
+</p>
+
+Un objet `FormData` pour les requêtes `POST`.
+
+Lorsque cette option est fournie, les requêtes vers la page cible de navigation seront envoyées sous forme de requête `POST` avec l'objet de données du formulaire comme contenu.
+
+L'envoi d'un formulaire HTML avec les transitions de vue activées utilisera cette méthode au lieu de la navigation par défaut avec rechargement de page. L'appel de cette méthode permet de déclencher le même comportement par programmation.
+
+#### Option `info`
+
+<p>
+
+**Type :** `any`<br />
+<Since v="3.6.0" />
+</p>
+
+Données arbitraires à inclure dans les événements `astro:before-preparation` et `astro:before-swap` provoqués par cette navigation.
+
+Cette option imite l'[option `info`](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate#info) de l'API Navigation du navigateur.
+
+#### Option `state`
+
+<p>
+
+**Type :** `any`<br />
+<Since v="3.6.0" />
+</p>
+
+Données arbitraires à associer à l'objet `NavitationHistoryEntry` créé par cette navigation. Ces données peuvent ensuite être récupérées à l'aide de la fonction [`history.getState`](https://developer.mozilla.org/en-US/docs/Web/API/NavigationHistoryEntry/getState) de l'API History.
+
+Cette option imite l'[option `state`](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate#state) de l'API Navigation du navigateur.
+
+#### Option `sourceElement`
+
+<p>
+
+**Type :** `Element`<br />
+<Since v="3.6.0" />
+</p>
+
+L'élément qui a déclenché cette navigation, le cas échéant. Cet élément sera disponible dans les événements suivants :
+- `astro:before-preparation`
+- `astro:before-swap`
+
+### `supportsViewTransitions`
+
+<p>
+
+**Type :** `boolean`<br />
+<Since v="3.2.0" />
+</p>
+
+Indique si les transitions de vue sont prises en charge et activées dans le navigateur actuel.
+
+### `transitionEnabledOnThisPage`
+
+<p>
+
+**Type :** `boolean`<br />
+<Since v="3.2.0" />
+</p>
+
+Indique si la page actuelle comporte ou non des transitions d'affichage activées pour la navigation côté client. Cela peut être utilisé pour créer des composants qui se comportent différemment lorsqu'ils sont utilisés sur des pages avec des transitions de vue.
+
+### `getFallback`
+
+<p>
+
+**Type :** `() => 'none' | 'animate' | 'swap'`<br />
+<Since v="3.6.0" />
+</p>
+
+Renvoie la stratégie de secours à utiliser dans les navigateurs qui ne prennent pas en charge les transitions de vue.
+
+Voir le guide sur la [Gestion de solution de secours](/fr/guides/view-transitions/#gestion-de-solution-de-secours) pour savoir comment choisir et configurer le comportement de repli.
+
+
+### Événement `astro:before-preparation`
+
+Un événement déclenché au début d'une navigation à l'aide de Transitions de Vue. Cet événement se produit avant toute demande et tout changement d'état du navigateur.
+
+Cet événement possède les attributs suivants :
+- [`info`](#info)
+- [`sourceElement`](#sourceelement)
+- [`navigationType`](#navigationtype)
+- [`direction`](#direction)
+- [`from`](#from)
+- [`to`](#to)
+- [`formData`](#formdata)
+- [`loader`](#loader)
+
+Pour en savoir plus sur l'utilisation de cet événement, consultez le [Guide des Transitions de Vue](/fr/guides/view-transitions/#astrobefore-preparation).
+
+### Événement `astro:after-preparation`
+
+Un événement envoyé après le chargement de la page suivante dans une navigation utilisant des Transitions de Vue.
+
+Cet événement n'a aucun attribut.
+
+Pour en savoir plus sur l'utilisation de cet événement, consultez le [Guide des Transitions de Vue](/fr/guides/view-transitions/#astroafter-preparation).
+
+### Événement `astro:before-swap`
+
+Un événement envoyé après que la page suivante est analysée, préparée et liée à un document en prévision de la transition, mais avant que tout contenu ne soit échangé entre les documents.
+
+Cet événement ne peut pas être annulé. L'appel de `preventDefault()` est une opération interdite.
+
+Cet événement possède les attributs suivants :
+- [`info`](#info)
+- [`sourceElement`](#sourceelement)
+- [`navigationType`](#navigationtype)
+- [`direction`](#direction)
+- [`from`](#from)
+- [`to`](#to)
+- [`viewTransition`](#viewtransition)
+- [`swap`](#swap)
+
+Pour en savoir plus sur l'utilisation de cet événement, consultez le [Guide des Transitions de Vue](/fr/guides/view-transitions/#astrobefore-swap).
+
+### Événement `astro:after-swap`
+
+Un événement envoyé après que le contenu de la page a été échangé mais avant la fin de la transition de vue.
+
+L'entrée de l'historique et la position de défilement ont déjà été mises à jour lorsque cet événement est déclenché.
+
+### Événement `astro:page-load`
+
+Un événement envoyé une fois le chargement d'une page terminé, qu'il s'agisse d'une navigation utilisant des transitions de vue ou native du navigateur.
+
+Lorsque les transitions de vue sont activées sur la page, le code qui s'exécuterait normalement sur `DOMContentLoaded` doit être modifié pour s'exécuter sur cet événement.
+
+### Attributs des événements de Transitions de Vue
+
+<p><Since v="3.6.0" /></p>
+
+#### `info`
+
+<p>
+
+**Type :** `URL`
+</p>
+
+Données arbitraires définies lors de la navigation.
+
+Il s'agit de la valeur littérale transmise à l'[option `info`](#option-info) de la [fonction `navigate()`](#navigate).
+
+#### `sourceElement`
+
+<p>
+
+**Type :** `Element | undefined`
+</p>
+
+L'élément qui a déclenché la navigation. Il peut s'agir, par exemple, d'un élément `<a>` sur lequel on a cliqué.
+
+Lors de l'utilisation de la [fonction `navigate()`](#navigate), ce sera l'élément spécifié dans l'appel.
+
+#### `newDocument`
+
+<p>
+
+**Type :** `Document`
+</p>
+
+Le document de la page suivante dans la navigation. Le contenu de ce document sera échangé à la place du contenu du document actuel.
+
+#### `navigationType`
+
+<p>
+
+**Type :** `'push' | 'replace' | 'traverse'`
+</p>
+
+Quel type de navigation dans l'historique est en cours.
+- `push`: une nouvelle `NavigationHistoryEntry` est en cours de création pour la nouvelle page.
+- `replace`: l'actuelle `NavigationHistoryEntry` est remplacée par une entrée pour la nouvelle page.
+- `traverse`: aucune `NavigationHistoryEntry` n'est créée. La position dans l'historique change.
+  La direction du parcours est donnée sur l'[attribut `direction`](#direction)
+
+#### `direction`
+
+<p>
+
+**Type :** `Direction`
+</p>
+
+La direction de la transition.
+- `forward` : naviguer vers la page suivante de l'historique ou vers une nouvelle page.
+- `back` : naviguer vers la page précédente de l'historique.
+- Tout ce qu’un autre écouteur d'événement aurait pu définir.
+
+#### `from`
+
+<p>
+
+**Type :** `URL`
+</p>
+
+L'URL de la page initiant la navigation.
+
+#### `to`
+
+<p>
+
+**Type :** `URL`
+</p>
+
+L'URL de la page vers laquelle on navigue. Cette propriété peut être modifiée, la valeur à la fin du cycle de vie sera utilisée dans le `NavigationHistoryEntry` pour la page suivante.
+
+#### `formData`
+
+<p>
+
+**Type :** `FormData | undefined`
+</p>
+
+Un objet `FormData` pour les requêtes `POST`.
+
+Lorsque cet attribut est défini, une requête `POST` sera envoyée à l'[URL`to`](#to) avec l'objet de données de formulaire donné comme contenu au lieu de la requête `GET` normale.
+
+Lors de la soumission d'un formulaire HTML avec les transitions de vue activées, ce champ est automatiquement défini sur les données du formulaire. Lorsque vous utilisez la [fonction `navigate()`](#navigate), cette valeur est la même que celle donnée dans les options.
+
+#### `loader`
+
+<p>
+
+**Type :** `() => Promise<void>`
+</p>
+
+Implémentation de la phase suivante dans la navigation (chargement de la page suivante). Cette implémentation peut être surchargée pour ajouter un comportement supplémentaire.
+
+#### `viewTransition`
+
+<p>
+
+**Type :** [`ViewTransition`](https://developer.mozilla.org/en-US/docs/Web/API/ViewTransition)
+</p>
+
+L'objet de transition de vue utilisé dans cette navigation. Sur les navigateurs qui ne prennent pas en charge l'[API de Transitions de Vue](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API), il s'agit d'un objet implémentant la même API pour plus de commodité, mais sans l'intégration DOM.
+
+#### `swap`
+
+<p>
+
+**Type :** `() => void`
+</p>
+
+Mise en place de la logique d'échange de documents.
+
+Apprenez-en davantage sur la façon de [créer votre propre fonction d'échange personnalisée](/fr/guides/view-transitions/#créer-une-fonction-déchange-personnalisée) dans le guide Transitions de Vue.
+
+Par défaut, cette implémentation appellera les fonctions suivantes dans l’ordre :
+
+##### `deselectScripts()`
+
+<p>
+
+**Type :** `(newDocument: Document) => void`
+</p>
+
+Marque les scripts du nouveau document qui ne doivent pas être exécutés. Ces scripts sont déjà présents dans le document actuel et ne sont pas signalés pour une réexécution à l'aide de [`data-astro-rerun`](/fr/guides/view-transitions/#data-astro-rerun).
+
+##### `swapRootAttributes()`
+
+<p>
+
+**Type :** `(newDocument: Document) => void`
+</p>
+
+Échange les attributs entre les racines du document, comme l'attribut `lang`. Cela inclut également les attributs internes injectés par Astro comme `data-astro-transition`, qui rendent la direction de transition disponible pour les règles CSS générées par Astro.
+
+Lors de la création d'une fonction d'échange personnalisée, il est important d'appeler cette fonction afin de ne pas interrompre les animations de transition de vue.
+
+##### `swapHeadElements()`
+
+<p>
+
+**Type :** `(newDocument: Document) => void`
+</p>
+
+Supprime tous les éléments présents dans la balise `<head>` du document actuel qui ne sont pas conservés dans le nouveau document. Ajoute ensuite tous les nouveaux éléments présents dans la balise `<head>` du nouveau document dans celle du document courant.
+
+##### `saveFocus()`
+
+<p>
+
+**Type :** `() => () => void`
+</p>
+
+Stocke l'élément focalisé sur la page actuelle et renvoie une fonction qui, lorsqu'elle est appelée, si l'élément focalisé a été conservé, renvoie le focus sur celui-ci.
+
+
+##### `swapBodyElements()`
+
+<p>
+
+**Type :** `(newBody: Element, oldBody: Element) => void`
+</p>
+
+Remplace l'ancien corps par le nouveau. Ensuite, il passe en revue chaque élément de l'ancien corps qui doit être conservé et qui possède un élément correspondant dans le nouveau corps avant de remplacer l'ancien élément en place.
+
+## Actions (`astro:actions`)
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+Les actions vous aident à créer un backend avec sécurité de types que vous pouvez appeler à partir du code client et des formulaires HTML. Tous les utilitaires permettant de définir et d'appeler des actions sont exposés par le module `astro:actions`. Pour des exemples et des instructions d'utilisation, [consultez le guide Actions](/fr/guides/actions/).
+
+### `defineAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+L'utilitaire `defineAction()` est utilisé pour définir de nouvelles actions à partir du fichier `src/actions/index.ts`. Il accepte une fonction [`handler()`](#propriété-handler) contenant la logique du serveur à exécuter et une propriété facultative [`input`](#validateur-de-saisie-input) pour valider les paramètres d'entrée lors de l'exécution.
+
+```ts
+export const server = {
+  getGreeting: defineAction({
+    input: z.object({
+      name: z.string(),
+    }),
+    handler: async (input, context) => {
+      return `Bonjour, ${input.name} !`
+    }
+  })
+}
+```
+
+#### Propriété `handler()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`defineAction()` accepte une fonction `handler()` contenant la logique du serveur à exécuter lorsque l'action est appelée. Cette fonction peut renvoyer des données qui sont automatiquement sérialisées et envoyées à l'appelant.
+
+Les valeurs de retour sont analysées à l'aide de la [bibliothèque devalue](https://github.com/Rich-Harris/devalue). Celle-ci prend en charge les valeurs JSON, ainsi que les instances de `Date()`, `Map()`, `Set()` ou `URL()`.
+
+#### Validateur de saisie (`input`)
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+La propriété facultative `input` accepte un validateur Zod pour vérifier les entrées du gestionnaire lors de l'exécution. Si l'action échoue à la validation, [une erreur `BAD_REQUEST`](#actionerror) est renvoyée et la fonction `handler` n'est pas appelée.
+
+S'il est utilisé avec `accept: 'form'`, `input` doit utiliser le validateur `z.object()`.
+
+Les fonctions d'extension, notamment `.refine()`, `.transform()` et `.pipe()`, sont également prises en charge sur cet objet. Les validateurs suivants sont pris en charge pour les champs de données de formulaire :
+
+- Les entrées de type `number` peuvent être validées à l'aide de `z.number()`
+- Les entrées de type `checkbox` peuvent être validées à l'aide de `z.boolean()`
+- Les entrées de type `file` peuvent être validées à l'aide de `z.instanceof(File)`
+- Plusieurs entrées du même nom (`name`) peuvent être validées à l'aide de `z.array(/* validateur */)`
+- Toutes les autres entrées peuvent être validées à l'aide de `z.string()`
+
+### `isInputError()`
+
+<p>
+
+**Type :** <code>(error?: unknown | <a href="#actionerror">ActionError</a>) => boolean</code><br/>
+<Since v="4.15.0" />
+</p>
+
+L'utilitaire `isInputError()` permet de vérifier si une `ActionError` est une erreur de validation d'entrée. Lorsque le validateur utilisé pour `input` correspond à `z.object()`, les erreurs d'entrée incluent un objet `fields` avec des messages d'erreur regroupés par nom.
+
+<ReadMore>Consultez le [guide des erreurs de saisie de formulaire](/fr/guides/actions/#affichage-des-erreurs-de-saisie-du-formulaire) pour en savoir plus sur l'utilisation de `isInputError()`.</ReadMore>
+
+### `ActionError`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+Le constructeur `ActionError()` est utilisé pour créer des erreurs générées par un gestionnaire d'action (`handler`). Il accepte une propriété `code` décrivant l'erreur qui s'est produite (exemple : `"UNAUTHORIZED"`), et une propriété facultative `message` contenant plus de détails.
+
+#### `code`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+La propriété `code` accepte les versions lisibles par l'homme de tous les codes d'état HTTP. Les codes suivants sont pris en charge :
+
+- `BAD_REQUEST` (400) : Le client a envoyé une entrée non valide. Cette erreur est générée lorsqu'un validateur d'entrée d'action (`input`) ne parvient pas à valider.
+- `UNAUTHORIZED` (401) : Le client ne dispose pas d’informations d’authentification valides.
+- `FORBIDDEN` (403) : Le client n'est pas autorisé à accéder à une ressource.
+- `NOT_FOUND` (404) : Le serveur ne trouve pas la ressource demandée.
+- `METHOD_NOT_SUPPORTED` (405) : Le serveur ne prend pas en charge la méthode demandée.
+- `TIMEOUT` (408) : Le serveur a expiré lors du traitement de la demande.
+- `CONFLICT` (409) : Le serveur ne peut pas mettre à jour une ressource en raison d'un conflit.
+- `PRECONDITION_FAILED` (412) : Le serveur ne répond pas à une condition préalable de la requête.
+- `PAYLOAD_TOO_LARGE` (413) : Le serveur ne peut pas traiter la demande car la charge utile est trop importante.
+- `UNSUPPORTED_MEDIA_TYPE` (415) : Le serveur ne prend pas en charge le type de média de la requête. Remarque : les actions vérifient déjà [l'en-tête `Content-Type`](https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Content-Type) pour les requêtes JSON et de formulaire. Vous n'aurez donc probablement pas besoin de générer ce code manuellement.
+- `UNPROCESSABLE_CONTENT` (422) : Le serveur ne peut pas traiter la demande en raison d'erreurs sémantiques.
+- `TOO_MANY_REQUESTS` (429) : Le serveur a dépassé une limite de débit spécifiée.
+- `CLIENT_CLOSED_REQUEST` (499) : Le client a fermé la demande avant que le serveur puisse répondre.
+- `INTERNAL_SERVER_ERROR` (500) : Le serveur est tombé en panne de manière inattendue.
+- `NOT_IMPLEMENTED` (501) : Le serveur ne prend pas en charge la fonctionnalité demandée.
+- `BAD_GATEWAY` (502) : Le serveur a reçu une réponse non valide d’un serveur en amont.
+- `SERVICE_UNAVAILABLE` (503) : Le serveur est temporairement indisponible.
+- `GATEWAY_TIMEOUT` (504) : Le serveur a reçu un délai d'attente d'un serveur en amont.
+
+#### `message`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+La propriété `message` accepte une chaîne de caractères. (par exemple, « L'utilisateur doit être connecté. »)
+
 ## Composants intégrés
 
 Astro comprend plusieurs composants intégrés que vous pouvez utiliser dans vos projets. Tous les composants intégrés sont disponibles dans les fichiers `.astro` via `import {} from 'astro:components';`.
+
+Vous pouvez référencer les `Props` de ces composants à l'aide de l'utilitaire [`ComponentProp`](/fr/guides/typescript/#type-componentprops).
 
 ### `<Code />`
 

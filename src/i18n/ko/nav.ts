@@ -32,6 +32,7 @@ export default NavDictionary({
 	routes: '경로 및 탐색',
 	'guides/routing': '라우팅',
 	'guides/endpoints': '엔드포인트',
+	'guides/actions': '액션',
 	'guides/prefetch': '프리페치',
 	'guides/middleware': '미들웨어',
 	'guides/internationalization': '국제화',
@@ -41,6 +42,7 @@ export default NavDictionary({
 	'guides/styling': 'CSS & 스타일링',
 	'guides/images': '이미지',
 	'guides/fonts': '글꼴',
+	'guides/media': '미디어',
 
 	data: '데이터 연결',
 	'guides/data-fetching': '데이터 가져오기',

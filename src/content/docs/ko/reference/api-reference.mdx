@@ -134,7 +134,7 @@ import Heading from '../components/Heading.astro';
 <Heading title="My First Post" date="09 Aug 2022" />
 ```
 
-<ReadMore>[Markdown 및 MDX 레이아웃](/ko/guides/markdown-content/#프런트매터-layout)이 props를 처리하는 방법에 대해 자세히 알아보세요.</ReadMore>
+<ReadMore>[Markdown 및 MDX 레이아웃](/ko/guides/markdown-content/#프런트매터-layout-속성)이 props를 처리하는 방법에 대해 자세히 알아보세요.</ReadMore>
 
 <ReadMore>[props에 대한 TypeScript 타입 정의](/ko/guides/typescript/#컴포넌트-props)를 추가하는 방법을 알아보세요.</ReadMore>
 
@@ -495,6 +495,8 @@ return Astro.rewrite(new Request(new URL("../", Astro.url), {
 
 `new URL(Astro.request.url)`을 수행하는 것과 동일합니다.
 
+정적 사이트 및 `server` 또는 `hybrid` 출력을 사용하는 주문형 렌더링 사이트에서 [site](/ko/reference/configuration-reference/#site)가 구성되지 않은 경우 개발 모드에서 `Astro.url`은 `localhost`가 됩니다.
+
 ```astro
 <h1>The current URL is: {Astro.url}</h1>
 <h1>The current URL pathname is: {Astro.url.pathname}</h1>
@@ -760,6 +762,44 @@ const orders = Array.from(Astro.locals.orders.entries());
 
 `locales` 구성에 지정된 구문을 사용하여 현재 URL에서 계산된 언어입니다. URL에 `/[locale]/` 접두사가 포함되어 있지 않으면 값은 기본적으로 `i18n.defaultLocale`이 됩니다.
 
+### `Astro.getActionResult()`
+
+<p>
+**타입:** `(action: TAction) => ActionReturnType<TAction> | undefined`<br />
+<Since v="4.15.0" />
+</p>
+
+`Astro.getActionResult()`는 [액션](/ko/guides/actions/) 제출의 결과를 반환하는 함수입니다. 이 함수는 액션 함수를 인수로 받아 (예: `actions.logout`) 제출이 수신되면 `data` 또는 `error` 객체를 반환합니다. 그렇지 않으면 `undefined`를 반환합니다.
+
+```astro title="src/pages/index.astro"
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.logout);
+---
+
+<form action={actions.logout}>
+  <button type="submit">Log out</button>
+</form>
+{result?.error && <p>Failed to log out. Please try again.</p>}
+```
+
+### `Astro.callAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`Astro.callAction()`은 Astro 컴포넌트에서 액션 핸들러를 직접 호출하는 데 사용되는 함수입니다. 이 함수는 액션 함수를 첫 번째 인수 (예: `actions.logout`)로 받고 액션이 수신하는 모든 입력을 두 번째 인수로 받습니다. 이 함수는 액션의 결과를 프로미스로 반환합니다.
+
+```astro title="src/pages/index.astro"
+---
+import { actions } from 'astro:actions';
+
+const { data, error } = await Astro.callAction(actions.logout, { userId: '123' });
+---
+```
+
 ## 엔드포인트 Context
 
 [엔드포인트 함수](/ko/guides/endpoints/)는 첫 번째 매개변수로 context 객체를 받습니다. 이는 `Astro` global 속성의 많은 부분을 반영합니다.
@@ -1022,6 +1062,30 @@ export function GET({ locals }: APIContext) {
 ```
 
 함께 보기: [`Astro.locals`](#astrolocals)
+
+### `context.getActionResult()`
+
+<p>
+
+**타입:** `(action: TAction) => ActionReturnType<TAction> | undefined`<br />
+<Since v="4.15.0" />
+</p>
+
+`context.getActionResult()`는 [액션](/ko/guides/actions/) 제출의 결과를 반환하는 함수입니다. 이 함수는 액션 함수를 인수 (예: `actions.logout`)로 받고, 제출이 수신되면 `data` 또는 `error` 객체를 반환합니다. 그렇지 않으면 `undefined`를 반환합니다.
+
+
+[`Astro.getActionResult()`](#astrogetactionresult)도 확인하세요.
+
+### `context.callAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`context.callAction()`은 Astro 컴포넌트에서 액션 핸들러를 직접 호출하는 데 사용되는 함수입니다. 이 함수는 액션 함수를 첫 번째 인수로 받고 (예: `actions.logout`), 액션이 수신하는 모든 입력을 두 번째 인수로 받습니다. 이 함수는 액션의 결과를 프로미스로 반환합니다.
+
+
+[`Astro.callAction()`](#astrocallaction)도 확인하세요.
 
 ## `getStaticPaths()`
 
@@ -1608,7 +1672,7 @@ Markdown 또는 MDX 문서의 컴파일되지 않은 원시 본문을 포함하�
 렌더링을 위해 지정된 Markdown 또는 MDX 문서를 컴파일하는 기능입니다. 그러면 다음 속성이 반환됩니다.
 
 - `<Content />` - Astro 파일에서 문서의 내용을 렌더링하는 데 사용되는 컴포넌트입니다.
-- `headings` - Markdown 및 MDX 가져오기에 대해 생성된 제목 목록, [Astro의 `getHeadings()` 유틸리티 미러링](/ko/guides/markdown-content/#내보낸-속성).
+- `headings` - Markdown 및 MDX 가져오기에 대해 생성된 제목 목록, [Astro의 `getHeadings()` 유틸리티 미러링](/ko/guides/markdown-content/#사용-가능한-속성).
 - `remarkPluginFrontmatter ` - [remark 또는 rehype 플러그인이 적용된 후](/ko/guides/markdown-content/#프로그래밍-방식으로-프런트매터-수정하기) 수정된 frontmatter 객체. `any` 타입으로 설정합니다.
 
 ```astro
@@ -2056,9 +2120,471 @@ export const onRequest = defineMiddleware(async (context, next) => {
 })
 ```
 
+## View Transitions 클라이언트 API (`astro:transitions/client`)
+
+<p><Since v="3.2.0" /></p>
+
+이 모듈은 View Transitions API 및 클라이언트 측 라우터를 제어하고 상호 작용하는 함수를 제공합니다.
+
+기능 및 사용 예시는 [View Transitions 가이드](/ko/guides/view-transitions/)를 참조하세요.
+
+### `navigate()`
+
+<p>
+
+**타입:** `(href: string, options?: Options) => void`<br />
+<Since v="3.2.0" />
+</p>
+
+View Transitions API를 사용하여 지정된 `href`로 탐색을 실행하는 함수입니다.
+
+이 함수 시그니처는 [브라우저 Navigation API의 `navigate`](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate) 함수를 기반으로 합니다. 이 함수는 Navigation API를 기반으로 하지만, 페이지를 다시 로드하지 않고 탐색할 수 있도록 [History API](https://developer.mozilla.org/ko/docs/Web/API/History_API) 위에 구현되어 있습니다.
+
+#### `history` 옵션
+
+<p>
+
+**타입:** `'auto' | 'push' | 'replace'`<br />
+**기본값:** `'auto'`<br />
+<Since v="3.2.0" />
+</p>
+
+이 탐색을 브라우저 기록에 추가하는 방법을 정의합니다.
+
+- `'push'`: 라우터는 `history.pushState`를 사용하여 브라우저 기록에 새 항목을 생성합니다.
+- `'replace'`: 라우터는 `history.replaceState`를 사용하여 탐색에 새 항목을 추가하지 않고 URL을 업데이트합니다.
+- `'auto'` (기본값): 라우터는 `history.pushState`를 시도하지만, URL을 전환할 수 없는 경우 현재 URL은 브라우저 기록을 변경하지 않고 그대로 유지됩니다.
+
+이 옵션은 브라우저 Navigation API의 [`history` 옵션](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate#history)을 따르지만, Astro 프로젝트에서 발생할 수 있는 경우를 위해 단순화되었습니다.
+
+#### `formData` 옵션
+
+<p>
+
+**타입:** `FormData`<br />
+<Since v="3.5.0" />
+</p>
+
+`POST` 요청을 위한 `FormData` 객체입니다.
+
+이 옵션을 제공하면 탐색 대상 페이지에 대한 요청이 양식 데이터 객체를 콘텐츠로 하는 `POST` 요청으로 전송됩니다.
+
+view transitions가 활성화된 HTML 양식을 제출하면 페이지 새로 고침이 있는 기본 탐색 대신 이 메서드가 사용됩니다. 이 메서드를 호출하면 프로그래밍 방식으로 동일한 동작을 트리거할 수 있습니다.
+
+#### `info` 옵션
+
+<p>
+
+**타입:** `any`<br />
+<Since v="3.6.0" />
+</p>
+
+이 탐색으로 인해 발생하는 `astro:before-preparation` 및 `astro:before-swap` 이벤트에 포함될 임의의 데이터입니다.
+
+이 옵션은 브라우저 Navigation API의 [`info` 옵션](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate#info)을 모방합니다.
+
+#### `state` 옵션
+
+<p>
+
+**타입:** `any`<br />
+<Since v="3.6.0" />
+</p>
+
+이 탐색에서 생성된 `NavitationHistoryEntry` 객체에 연결할 임의의 데이터입니다. 이 데이터는 History API의 [`history.getState` 함수](https://developer.mozilla.org/en-US/docs/Web/API/NavigationHistoryEntry/getState)를 사용하여 검색할 수 있습니다.
+
+이 옵션은 브라우저 Navigation API의 [`state` 옵션](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate#state)을 모방합니다.
+
+#### `sourceElement` 옵션
+
+<p>
+
+**타입:** `Element`<br />
+<Since v="3.6.0" />
+</p>
+
+이 탐색을 트리거한 요소 (있는 경우)입니다. 이 요소는 다음 이벤트에서 사용할 수 있습니다:
+- `astro:before-preparation`
+- `astro:before-swap`
+
+### `supportsViewTransitions`
+
+<p>
+
+**타입:** `boolean`<br />
+<Since v="3.2.0" />
+</p>
+
+현재 브라우저에서 view transitions가 지원되고 활성화되어 있는지 여부입니다.
+
+### `transitionEnabledOnThisPage`
+
+<p>
+
+**타입:** `boolean`<br />
+<Since v="3.2.0" />
+</p>
+
+현재 페이지에 클라이언트 측 탐색을 위한 view transitions가 활성화되어 있는지 여부입니다. view transitions가 있는 페이지에서 사용할 때 다르게 동작하는 컴포넌트를 만드는 데 사용할 수 있습니다.
+
+### `getFallback`
+
+<p>
+
+**타입:** `() => 'none' | 'animate' | 'swap'`<br />
+<Since v="3.6.0" />
+</p>
+
+view transitions를 지원하지 않는 브라우저에서 사용할 대체 전략을 반환합니다.
+
+대체 동작을 선택하고 구성하는 방법은 [대체 제어](/ko/guides/view-transitions/#대체-제어) 가이드를 참조하세요.
+
+
+### `astro:before-preparation` 이벤트
+
+View Transitions를 사용하여 탐색을 시작할 때 전송되는 이벤트입니다. 이 이벤트는 요청이 이루어지고 브라우저 상태가 변경되기 전에 발생합니다.
+
+이 이벤트에는 속성이 있습니다:
+- [`info`](#info)
+- [`sourceElement`](#sourceelement)
+- [`navigationType`](#navigationtype)
+- [`direction`](#direction)
+- [`from`](#from)
+- [`to`](#to)
+- [`formData`](#formdata)
+- [`loader`](#loader)
+
+이 이벤트의 사용 방법에 대한 자세한 내용은 [View Transitions 가이드](/ko/guides/view-transitions/#astrobefore-preparation)에서 확인하세요.
+
+### `astro:after-preparation` 이벤트
+
+View Transitions를 사용하는 탐색에서 다음 페이지가 로드된 후에 전송되는 이벤트입니다.
+
+이 이벤트에는 속성이 없습니다.
+
+이 이벤트의 사용 방법에 대한 자세한 내용은 [View Transitions 가이드](/ko/guides/view-transitions/#astroafter-preparation)에서 확인하세요.
+
+### `astro:before-swap` 이벤트
+
+다음 페이지가 구문 분석되고, 준비되고, 트랜지션을 준비하면서 문서에 링크된 후, 문서 간 콘텐츠가 교환되기 전에 전송되는 이벤트입니다.
+
+이 이벤트는 취소할 수 없습니다. `preventDefault()`를 호출하는 것은 아무 작업도 하지 않습니다.
+
+이 이벤트에는 속성이 있습니다:
+- [`info`](#info)
+- [`sourceElement`](#sourceelement)
+- [`navigationType`](#navigationtype)
+- [`direction`](#direction)
+- [`from`](#from)
+- [`to`](#to)
+- [`viewTransition`](#viewtransition)
+- [`swap`](#swap)
+
+이 이벤트의 사용 방법에 대한 자세한 내용은 [View Transitions 가이드](/ko/guides/view-transitions/#astrobefore-swap)에서 확인하세요.
+
+### `astro:after-swap` 이벤트 
+
+페이지의 콘텐츠가 교체된 후, view transition이 끝나기 전에 전달되는 이벤트입니다.
+
+이 이벤트가 트리거될 때는, 이미 기록 항목과 스크롤 위치가 업데이트된 후입니다.
+
+### `astro:page-load` 이벤트 
+
+view transitions을 사용한 탐색이나 브라우저의 기본 기능으로 페이지 로드가 완료된 후 전달되는 이벤트입니다.
+
+페이지에서 view transitions가 활성화되면 일반적으로 `DOMContentLoaded`에서 실행되는 코드가 이 이벤트에서 실행되도록 변경되어야 합니다.
+
+### View Transitions 이벤트 속성 
+
+<p><Since v="3.6.0" /></p>
+
+#### `info`
+
+<p>
+
+**타입:** `URL`
+</p>
+
+탐색 중에 정의된 임의의 데이터입니다.
+
+이는 [`navigate()` 함수](#navigate)의 [`info` 옵션](#info-옵션)에 전달된 리터럴 값입니다.
+
+#### `sourceElement`
+
+<p>
+
+**타입:** `Element | undefined`
+</p>
+
+탐색을 트리거한 요소입니다. 예를 들어 클릭된 `<a>` 요소가 될 수 있습니다.
+
+[`navigate()` 함수](#navigate)를 사용할 때, 이는 호출에서 지정된 요소가 됩니다.
+
+#### `newDocument`
+
+<p>
+
+**타입:** `Document`
+</p>
+
+탐색의 다음 페이지에 대한 문서입니다. 이 문서의 내용은 현재 문서의 내용 대신 교체됩니다.
+
+#### `navigationType`
+
+<p>
+
+**타입:** `'push' | 'replace' | 'traverse'`
+</p>
+
+어떤 종류의 기록 탐색이 일어나고 있나요.
+- `push`: 새 페이지에 대한 새 `NavigationHistoryEntry`가 만들어지고 있습니다.
+- `replace`: 현재 `NavigationHistoryEntry`가 새 페이지의 항목으로 대체됩니다.
+- `traverse`: `NavigationHistoryEntry`이 생성되지 않습니다. 히스토리 내 위치가 변경됩니다.
+  순회 방향은 [`direction` 속성](#direction)에 지정됩니다.
+
+#### `direction`
+
+<p>
+
+**타입:** `Direction`
+</p>
+
+트랜지션 방향입니다.
+- `forward`: 기록의 다음 페이지 또는 새 페이지로 이동합니다.
+- `back`: 기록의 이전 페이지로 이동합니다.
+- 다른 리스너가 설정했을 수 있는 기타 모든 항목.
+
+#### `from`
+
+<p>
+
+**타입:** `URL`
+</p>
+
+탐색을 시작하는 페이지의 URL입니다.
+
+#### `to`
+
+<p>
+
+**타입:** `URL`
+</p>
+
+탐색 중인 페이지의 URL입니다. 이 속성은 수정할 수 있으며, 라이프사이클이 끝날 때의 값이 다음 페이지의 `NavigationHistoryEntry`에 사용됩니다.
+
+#### `formData`
+
+<p>
+
+**타입:** `FormData | undefined`
+</p>
+
+`POST` 요청을 위한 `FormData` 객체입니다.
+
+이 속성을 설정하면 일반적인 `GET` 요청 대신 지정된 양식 데이터 객체를 콘텐츠로 하는 `POST` 요청이 [`to` URL](#to)로 전송됩니다.
+
+view transitions가 활성화된 HTML 양식을 제출할 때 이 필드는 양식의 데이터로 자동 설정됩니다. [`navigate()` 함수](#navigate)를 사용하는 경우 이 값은 옵션에 지정된 것과 동일합니다.
+
+#### `loader`
+
+<p>
+
+**타입:** `() => Promise<void>`
+</p>
+
+탐색에서 다음 단계 (다음 페이지 로딩)를 구현합니다. 이 구현을 재정의하여 동작을 추가할 수 있습니다.
+
+#### `viewTransition`
+
+<p>
+
+**타입:** [`ViewTransition`](https://developer.mozilla.org/en-US/docs/Web/API/ViewTransition)
+</p>
+
+이 탐색에 사용된 view transition 객체입니다. [View Transitions API](https://developer.mozilla.org/ko/docs/Web/API/View_Transitions_API)를 지원하지 않는 브라우저에서는 편의를 위해 동일한 API를 구현하지만 DOM 통합이 없는 객체입니다.
+
+#### `swap`
+
+<p>
+
+**타입:** `() => void`
+</p>
+
+문서 스왑 로직 구현.
+
+[나만의 사용자 지정 스왑 함수](/ko/guides/view-transitions/#사용자-정의-스왑-함수-구현)를 구축하는 방법에 대한 자세한 내용은 View Transitions 가이드를 참조하세요.
+
+기본적으로 이 구현은 다음 함수를 순서대로 호출합니다:
+
+##### `deselectScripts()`
+
+<p>
+
+**타입:** `(newDocument: Document) => void`
+</p>
+
+새 문서에서 실행해서는 안 되는 스크립트를 표시합니다. 이러한 스크립트는 이미 현재 문서에 있으며 [`data-astro-rerun`](/ko/guides/view-transitions/#data-astro-rerun)을 사용하여 다시 실행하도록 플래그가 지정되지 않습니다.
+
+##### `swapRootAttributes()`
+
+<p>
+
+**타입:** `(newDocument: Document) => void`
+</p>
+
+`lang` 속성과 같은 문서 루트 간 속성을 스왑합니다. 여기에는 `data-astro-transition`과 같은 Astro에서 삽입한 내부 속성도 포함되어 있어, 트랜지션 방향을 Astro에서 생성된 CSS 규칙에 사용할 수 있습니다.
+
+사용자 지정 스왑 함수를 만들 때, view transition의 애니메이션이 깨지지 않도록 이 함수를 호출하는 것이 중요합니다.
+
+##### `swapHeadElements()`
+
+<p>
+
+**타입:** `(newDocument: Document) => void`
+</p>
+
+현재 문서의 `<head>`에서 새 문서에 유지되지 않는 모든 요소를 제거합니다. 그런 다음 새 문서의 `<head>`에 있는 모든 새 요소를 현재 문서의 `<head>`에 추가합니다.
+
+##### `saveFocus()`
+
+<p>
+
+**타입:** `() => () => void`
+</p>
+
+현재 페이지에서 초점이 맞춰진 요소를 저장하고 호출 시 초점이 맞춰진 요소가 유지된 경우 해당 요소에 초점을 반환하는 함수를 반환합니다.
+
+
+##### `swapBodyElements()`
+
+<p>
+
+**타입:** `(newBody: Element, oldBody: Element) => void`
+</p>
+
+이전 body를 새 body로 교체합니다. 그런 다음 이전 body에서 유지되어야 하는 모든 요소를 검토하고 새 body에서 일치하는 요소를 찾아 이전 요소를 다시 제자리로 바꿉니다.
+
+## 액션 (`astro:actions`)
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+액션을 사용하면 클라이언트 코드 및 HTML 양식에서 호출할 수 있는 타입 안정성을 갖춘 백엔드를 구축할 수 있습니다. 액션을 정의하고 호출하는 모든 유틸리티는 `astro:actions` 모듈에 의해 노출됩니다. 예시 및 사용 지침은 [액션 가이드](/ko/guides/actions/)를 참조하세요.
+
+### `defineAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`defineAction()` 유틸리티는 `src/actions/index.ts` 파일에서 새 액션을 정의하는 데 사용됩니다. 이 함수는 실행할 서버 로직이 포함된 [`handler()`](#handler-속성) 함수와 런타임에 입력 매개변수를 검사하는 선택적인 [`input`](#input-유효성-검사기) 속성을 받습니다.
+
+```ts
+export const server = {
+  getGreeting: defineAction({
+    input: z.object({
+      name: z.string(),
+    }),
+    handler: async (input, context) => {
+      return `Hello, ${input.name}!`
+    }
+  })
+}
+```
+
+#### `handler()` 속성
+
+<p>
+
+**타입:** `(input, context) => any`
+</p>
+
+`defineAction()`에는 액션이 호출될 때 실행할 서버 로직이 포함된 `handler()` 함수가 필요합니다. 핸들러에서 반환된 데이터는 자동으로 직렬화되어 호출자에게 전송됩니다.
+
+`handler()`는 사용자 입력을 첫 번째 인수로 받아 호출됩니다. [`input`](#input-유효성-검사기) 유효성 검사기가 설정되어 있으면 사용자 입력은 핸들러로 전달되기 전에 유효성이 검사됩니다. 두 번째 인수는 `getActionResult()`, `callAction()` 및 `redirect()`를 제외한 대부분의 Astro [표준 엔드포인트 컨텍스트](#엔드포인트-context)를 포함하는 `context` 객체입니다.
+
+반환 값은 [devalue 라이브러리](https://github.com/Rich-Harris/devalue)를 사용하여 구문 분석됩니다. 이 라이브러리는 `Date()`, `Map()`, `Set()` 및 `URL()`의 인스턴스와 JSON 값을 지원합니다.
+
+#### `input` 유효성 검사기
+
+<p>
+
+**타입:** `ZodObject | undefined`
+</p>
+
+선택적 `input` 속성은 런타임에 핸들러 입력의 유효성을 검사하기 위해 Zod 유효성 검사기를 전달받습니다. 액션이 유효성 검사에 실패하면 [`BAD_REQUEST` 오류](#actionerror)가 반환되고 `handler`가 호출되지 않습니다.
+
+`accept: 'form'`과 함께 사용되는 경우 `input`은 `z.object()` 유효성 검사기를 사용해야 합니다.
+
+`.refine()`, `.transform()`, `.pipe()`를 포함한 확장 함수도 이 객체에서 지원됩니다. 양식 데이터 필드에는 다음 유효성 검사기가 지원됩니다:
+
+- `number` 유형의 입력은 `z.number()`를 사용하여 검증할 수 있습니다.
+- `checkbox` 유형의 입력은 `z.boolean()`을 사용하여 검증할 수 있습니다.
+- `file` 유형의 입력은 `z.instanceof(File)`을 사용하여 검증할 수 있습니다.
+- 동일한 `name`의 여러 입력은 `z.array(/* validator */)`를 사용하여 검증할 수 있습니다.
+- 다른 모든 입력은 `z.string()`을 사용하여 검증할 수 있습니다.
+
+### `isInputError()`
+
+<p>
+
+**타입:** <code>(error?: unknown | <a href="#actionerror">ActionError</a>) => boolean</code><br/>
+<Since v="4.15.0" />
+</p>
+
+`isInputError()` 유틸리티는 `ActionError`가 입력 유효성 검사 오류인지 확인하는 데 사용됩니다. `input` 유효성 검사기가 `z.object()`인 경우 입력 오류에는 이름별로 그룹화된 오류 메시지가 있는 `fields` 객체가 포함됩니다.
+
+<ReadMore>[양식 입력 오류 가이드](/ko/guides/actions/#양식-입력-오류-표시)에서 `isInputError()` 사용에 대한 자세한 내용을 참조하세요.</ReadMore>
+
+### `ActionError`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+액션 `handler`가 던지는 오류를 생성하는 데 `ActionError()` 생성자가 사용됩니다. 이는 발생한 오류 (예: `"UNAUTHORIZED"`)를 설명하는 `code` 속성과 추가 세부정보가 포함된 선택적 `message` 속성을 허용합니다.
+
+#### `code`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`code` 속성은 모든 HTTP 상태 코드의 사람이 읽을 수 있는 버전을 허용합니다. 지원되는 코드는 다음과 같습니다:
+
+- `BAD_REQUEST` (400): 클라이언트가 잘못된 입력을 보냈습니다. 이 오류는 액션 `input` 유효성 검사기가 유효성 검사에 실패할 때 발생합니다.
+- `UNAUTHORIZED` (401): 클라이언트에 유효한 인증 자격 증명이 없습니다.
+- `FORBIDDEN` (403): 클라이언트가 리소스에 액세스할 수 있는 권한이 없습니다.
+- `NOT_FOUND` (404): 서버가 요청된 리소스를 찾을 수 없습니다.
+- `METHOD_NOT_SUPPORTED` (405): 서버가 요청된 메서드를 지원하지 않습니다.
+- `TIMEOUT` (408):  서버가 요청을 처리하는 동안 시간 초과가 발생했습니다.
+- `CONFLICT` (409): 충돌로 인해 서버에서 리소스를 업데이트할 수 없습니다.
+- `PRECONDITION_FAILED` (412): 서버가 요청의 전제 조건을 충족하지 않습니다.
+- `PAYLOAD_TOO_LARGE` (413): 페이로드가 너무 커서 서버가 요청을 처리할 수 없습니다.
+- `UNSUPPORTED_MEDIA_TYPE` (415): 서버가 요청의 미디어 유형을 지원하지 않습니다. 참고: 액션은 이미 JSON 및 양식 요청에 대해 [`Content-Type` 헤더](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/Content-Type)를 확인하므로 이 코드를 수동으로 사용할 필요가 없을 것입니다.
+- `UNPROCESSABLE_CONTENT` (422): 시멘틱 오류로 인해 서버가 요청을 처리할 수 없습니다.
+- `TOO_MANY_REQUESTS` (429): 서버가 지정된 속도 제한을 초과했습니다.
+- `CLIENT_CLOSED_REQUEST` (499): 서버가 응답하기 전에 클라이언트가 요청을 종료했습니다.
+- `INTERNAL_SERVER_ERROR` (500): 서버가 예기치 않게 실패했습니다.
+- `NOT_IMPLEMENTED` (501): 서버가 요청된 기능을 지원하지 않습니다.
+- `BAD_GATEWAY` (502): 서버가 업스트림 서버로부터 잘못된 응답을 받았습니다.
+- `SERVICE_UNAVAILABLE` (503): 서버를 일시적으로 사용할 수 없습니다.
+- `GATEWAY_TIMEOUT` (504): 서버가 업스트림 서버로부터 시간 초과를 받았습니다.
+
+#### `message`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`message` 속성은 문자열을 받습니다. (예: "사용자는 로그인해야 합니다.")
+
 ## 내장 컴포넌트
 
 Astro에는 프로젝트에 사용할 수 있는 여러 내장 컴포넌트가 포함되어 있습니다. 모든 내장 컴포넌트는 `import {} from 'astro:components';`를 통해 `.astro` 파일에서 사용할 수 있습니다.
+
+[`ComponentProp` 타입](/ko/guides/typescript/#컴포넌트-props) 유틸리티를 사용하여 이 컴포넌트의 `Props`를 참조할 수 있습니다.
 
 ### `<Code />`
 
