@@ -54,7 +54,7 @@ export default NavDictionary({
 
 	clientSide: 'Интерактивность на стороне клиента',
 	'guides/framework-components': 'UI-фреймворки',
-	'guides/server-side-rendering': 'Адаптеры SSR',
+	'guides/client-side-scripts': 'Скрипты и обработка событий',
 
 	maintain: 'Обслуживание вашего проекта',
 	'upgrade-astro': 'Обновление Astro',
