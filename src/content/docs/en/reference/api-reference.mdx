@@ -2560,15 +2560,54 @@ Return values are parsed using the [devalue library](https://github.com/Rich-Har
 
 The optional `input` property accepts a Zod validator (e.g. Zod object, Zod discriminated union) to validate handler inputs at runtime. If the action fails to validate, [a `BAD_REQUEST` error](#actionerror) is returned and the `handler` is not called.
 
-If used with `accept: 'form'`, `input` must use the `z.object()` validator.
+If `input` is omitted, the `handler` will receive an input of type `unknown` for JSON requests and type `FormData` for form requests.
 
-Extension functions including `.refine()`, `.transform()`, and `.pipe()` are also supported on this object. The following validators are supported for form data fields:
+##### Use with `accept: 'form'`
+
+If your action accepts form inputs, use the `z.object()` validator to automatically parse form data to a typed object. The following validators are supported for form data fields:
 
 - Inputs of type `number` can be validated using `z.number()`
 - Inputs of type `checkbox` can be validated using `z.boolean()`
 - Inputs of type `file` can be validated using `z.instanceof(File)`
 - Multiple inputs of the same `name` can be validated using `z.array(/* validator */)`
 - All other inputs can be validated using `z.string()`
+
+Extension functions including `.refine()`, `.transform()`, and `.pipe()` are also supported on the `z.object()` validator.
+
+To apply a union of different validators, use the `z.discriminatedUnion()` wrapper to narrow the type based on a specific form field. This example accepts a form submission to either "create" or "update" a user, using the form field with the name `type` to determine which object to validate against:
+
+```ts
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  changeUser: defineAction({
+    accept: 'form',
+    input: z.discriminatedUnion('type', [
+      z.object({
+        // Matches when the `type` field has the value `create`
+        type: z.literal('create'),
+        name: z.string(),
+        email: z.string().email(),
+      }),
+      z.object({
+        // Matches when the `type` field has the value `update`
+        type: z.literal('update'),
+        id: z.number(),
+        name: z.string(),
+        email: z.string().email(),
+      }),
+    ]),
+    async handler(input) {
+      if (input.type === 'create') {
+        // input is { type: 'create', name: string, email: string }
+      } else {
+        // input is { type: 'update', id: number, name: string, email: string }
+      }
+    },
+  }),
+};
+```
 
 ### `isInputError()`
 
