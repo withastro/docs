@@ -41,6 +41,7 @@ export default NavDictionary({
 	'guides/styling': 'CSS 样式',
 	'guides/images': '图像',
 	'guides/fonts': '字体',
+	'guides/media': '连接托管媒体或 DAM',
 
 	data: '连接你的数据',
 	'guides/data-fetching': '数据请求',

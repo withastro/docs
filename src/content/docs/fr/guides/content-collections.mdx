@@ -1,7 +1,11 @@
 ---
 title: Collections de contenus
-description: Les collections de contenu permettent d'organiser votre Markdown et de vérifier la typographie de votre contenu avec des schémas.
+description: >-
+  Les collections de contenu permettent d'organiser votre Markdown et de
+  vérifier les types dans votre frontmatter à l'aide de schémas.
 i18nReady: true
+banner:
+  content: Vous souhaitez essayer les nouvelles collections de contenu ? <a href="https://5-0-0-beta.docs.astro.build/fr/guides/upgrade-to/v5/">Passez à la bêta de la v5</a> !
 ---
 import { FileTree } from '@astrojs/starlight/components';
 import Since from '~/components/Since.astro'
@@ -36,10 +40,6 @@ Le répertoire `.astro` sera mis à jour automatiquement chaque fois que vous la
 
 :::tip
 Si vous utilisez Git pour le contrôle de version, nous vous recommandons d'ignorer le répertoire `.astro` en ajoutant `.astro` à votre `.gitignore`. Cela indique à Git d'ignorer ce répertoire et tous les fichiers qu'il contient.
-
-```bash
-echo "\n.astro" >> .gitignore
-```
 :::
 
 
@@ -343,7 +343,7 @@ const allBlogPosts = await getCollection('blog');
 const graceHopperProfile = await getEntry('authors', 'grace-hopper');
 ```
 
-Les deux fonctions renvoient des entrées de contenu telles que définies par le type [`CollectionEntry`](/fr/reference/api-reference/#collection-entry-type).
+Les deux fonctions renvoient des entrées de contenu telles que définies par le type [`CollectionEntry`](/fr/reference/api-reference/#type-des-entrées-de-collection).
 
 ### Accès aux données référencées
 
@@ -438,7 +438,7 @@ const blogEntries = await getCollection('blog');
 
 Un composant peut également passer une entrée de contenu entière en tant que propriété. 
 
-Si vous faites cela, vous pouvez utiliser l'utilitaire [`CollectionEntry`](/fr/reference/api-reference/#collection-entry-type) pour taper correctement les propriétés de vos composants en utilisant TypeScript. Cet utilitaire prend un argument de type chaîne qui correspond au nom du schéma de votre collection, et hérite de toutes les propriétés du schéma de cette collection.
+Si vous faites cela, vous pouvez utiliser l'utilitaire [`CollectionEntry`](/fr/reference/api-reference/#type-des-entrées-de-collection) pour taper correctement les propriétés de vos composants en utilisant TypeScript. Cet utilitaire prend un argument de type chaîne qui correspond au nom du schéma de votre collection, et hérite de toutes les propriétés du schéma de cette collection.
 
 ```astro /CollectionEntry(?:<.+>)?/
 ---
@@ -539,7 +539,38 @@ Explorez le dossier `src/pages/` présent dans la [base de code du tutoriel Cons
 
 Si vous avez un projet Astro existant, comme un blog, qui utilise des fichiers Markdown ou MDX dans les sous-dossiers de `src/pages/`, envisagez de migrer le contenu associé ou les fichiers de données vers des collections de contenus. 
  
-Voyez comment convertir un exemple de blog basique de `src/pages/posts/` à `src/content/posts` dans notre [tutoriel étape par étape](/fr/tutorials/add-content-collections/) qui utilise la base de code du [projet fini du tutoriel Construire un blog](https://github.com/withastro/blog-tutorial-demo).
+Regardez comment convertir un exemple de blog basique de `src/pages/posts/` à `src/content/posts` dans notre [tutoriel étape par étape](/fr/tutorials/add-content-collections/) qui utilise la base de code du [projet fini du tutoriel Construire un blog](https://github.com/withastro/blog-tutorial-demo).
+
+## Activation de la génération de schémas JSON
+
+<p><Since v="4.13.0" /></p>
+
+Si vous travaillez avec des collections de type `data`, Astro générera automatiquement des fichiers de schéma JSON pour votre éditeur afin d'obtenir IntelliSense et la vérification des types. Un fichier séparé sera créé pour chaque collection de données dans votre projet basé sur vos collections définies dans `src/content/config.ts` en utilisant une bibliothèque appelée [`zod-to-json-schema`](https://github.com/StefanTerdell/zod-to-json-schema#known-issues).
+
+Cette fonctionnalité nécessite que vous définissiez manuellement le chemin d'accès au fichier de votre schéma comme valeur de `$schema` dans chaque fichier de saisie de données de la collection :
+
+```json title="src/content/authors/armand.json" ins={2}
+{
+  "$schema": "../../../.astro/collections/authors.schema.json",
+  "name": "Armand",
+  "skills": ["Astro", "Starlight"]
+}
+```
+
+Vous pouvez également définir cette valeur dans les paramètres de votre éditeur. Par exemple, pour définir cette valeur dans [le paramètre `json.schemas` de VSCode](https://code.visualstudio.com/docs/languages/json#_json-schemas-and-settings), indiquez le chemin des fichiers à faire correspondre et l'emplacement de votre schéma JSON :
+
+```json
+{
+  "json.schemas": [
+    {
+      "fileMatch": [
+        "/src/content/authors/**"
+      ],
+      "url": "./.astro/collections/authors.schema.json"
+    }
+  ]
+}
+```
 
 ## Activation de la mise en cache de la construction
 
@@ -562,7 +593,7 @@ npm run astro build -- --force
 **Déconseillé.** Les plugins Remark et rehype accèdent au _raw_ du frontmatter du document Markdown ou MDX. Cela signifie que le document `remarkPluginFrontmatter` est traité séparément de votre `schema` sécurisé, et ne reflétera pas les changements ou les valeurs par défaut appliqués par Astro. Utilisez-le à vos risques et périls !
 :::
 
-Astro supporte les plugins remark ou rehype qui [modifient votre frontmatter directement](/fr/guides/markdown-content/#modifier-le-frontmatter-par-un-programme). Vous pouvez accéder à ce frontmatter modifié à l'intérieur d'un contenu en utilisant la propriété `remarkPluginFrontmatter` renvoyée par `render()` :
+Astro supporte les plugins remark ou rehype qui [modifient votre frontmatter directement](/fr/guides/markdown-content/#modification-programmatique-du-frontmatter). Vous pouvez accéder à ce frontmatter modifié à l'intérieur d'un contenu en utilisant la propriété `remarkPluginFrontmatter` renvoyée par `render()` :
 
 ```astro "{ remarkPluginFrontmatter }"
 ---
