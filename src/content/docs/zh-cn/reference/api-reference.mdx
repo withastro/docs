@@ -2528,20 +2528,59 @@ export const server = {
 
 <p>
 
-**类型：**`ZodObject | undefined`
+**类型：**`ZodType | undefined`
 </p>
 
 可选的 `input` 属性接受一个 Zod 验证器，用于在运行时验证处理程序的输入。如果 action 验证失败，将返回 [`BAD_REQUEST` 错误](#actionerror) 并跳过 `handler`。
 
-如果与 `accept: 'form'` 一起使用，则 `input` 必须使用 `z.object()` 验证器。
+如果省略 `input`，则 `handler` 将接收 JSON 请求的 `unknown` 类型的输入，以及表单请求的 `FormData` 类型。
 
-此对象中支持的扩展函数包括 `.refine()`, `.transform()`, 和 `.pipe()`。表单数据字段支持以下验证器：
+##### 与 `accept: 'form'` 一起使用
+
+如果你的 action 接受表单输入，请使用 `z.object()` 验证器将表单数据自动解析为类型化对象。表单数据字段支持以下验证器：
 
 - 使用 `z.number()` 验证类型为 `number` 的输入
 - 使用 `z.boolean()` 验证类型为 `checkbox` 的输入
 - 使用 `z.instanceof(File)` 验证类型为 `file` 的输入
 - 使用 `z.array(/* validator */)` 验证相同 `name` 的多个输入
 - 使用 `z.string()` 验证所有其他输入
+
+`z.object()` 验证器还支持包括 `.refine()`, `.transform()`, 和 `.pipe()` 在内的扩展函数。
+
+要搭配应用不同验证器的组合，请使用 `z.discriminatedUnion()` 包装器根据特定表单字段缩小类型范围。此示例接受表单提交以 “create（创建）” 或 “update（更新）” 用户，使用具有名为 `type` 的表单字段来确定要验证的对象：
+
+```ts
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  changeUser: defineAction({
+    accept: 'form',
+    input: z.discriminatedUnion('type', [
+      z.object({
+        // 当 `type` 字段中的值含有 `create` 时匹配
+        type: z.literal('create'),
+        name: z.string(),
+        email: z.string().email(),
+      }),
+      z.object({
+        // 当 `type` 字段中的值含有 `update` 时匹配
+        type: z.literal('update'),
+        id: z.number(),
+        name: z.string(),
+        email: z.string().email(),
+      }),
+    ]),
+    async handler(input) {
+      if (input.type === 'create') {
+        // input 为 { type: 'create', name: string, email: string }
+      } else {
+        // input 为 { type: 'update', id: number, name: string, email: string }
+      }
+    },
+  }),
+};
+```
 
 ### `isInputError()`
 
