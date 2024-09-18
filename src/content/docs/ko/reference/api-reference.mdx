@@ -134,7 +134,7 @@ import Heading from '../components/Heading.astro';
 <Heading title="My First Post" date="09 Aug 2022" />
 ```
 
-<ReadMore>[Markdown 및 MDX 레이아웃](/ko/guides/markdown-content/#프런트매터-layout)이 props를 처리하는 방법에 대해 자세히 알아보세요.</ReadMore>
+<ReadMore>[Markdown 및 MDX 레이아웃](/ko/guides/markdown-content/#프런트매터-layout-속성)이 props를 처리하는 방법에 대해 자세히 알아보세요.</ReadMore>
 
 <ReadMore>[props에 대한 TypeScript 타입 정의](/ko/guides/typescript/#컴포넌트-props)를 추가하는 방법을 알아보세요.</ReadMore>
 
@@ -1672,7 +1672,7 @@ Markdown 또는 MDX 문서의 컴파일되지 않은 원시 본문을 포함하�
 렌더링을 위해 지정된 Markdown 또는 MDX 문서를 컴파일하는 기능입니다. 그러면 다음 속성이 반환됩니다.
 
 - `<Content />` - Astro 파일에서 문서의 내용을 렌더링하는 데 사용되는 컴포넌트입니다.
-- `headings` - Markdown 및 MDX 가져오기에 대해 생성된 제목 목록, [Astro의 `getHeadings()` 유틸리티 미러링](/ko/guides/markdown-content/#내보낸-속성).
+- `headings` - Markdown 및 MDX 가져오기에 대해 생성된 제목 목록, [Astro의 `getHeadings()` 유틸리티 미러링](/ko/guides/markdown-content/#사용-가능한-속성).
 - `remarkPluginFrontmatter ` - [remark 또는 rehype 플러그인이 적용된 후](/ko/guides/markdown-content/#프로그래밍-방식으로-프런트매터-수정하기) 수정된 frontmatter 객체. `any` 타입으로 설정합니다.
 
 ```astro
@@ -2510,20 +2510,59 @@ export const server = {
 
 <p>
 
-**타입:** `ZodObject | undefined`
+**타입:** `ZodType | undefined`
 </p>
 
 선택적 `input` 속성은 런타임에 핸들러 입력의 유효성을 검사하기 위해 Zod 유효성 검사기를 전달받습니다. 액션이 유효성 검사에 실패하면 [`BAD_REQUEST` 오류](#actionerror)가 반환되고 `handler`가 호출되지 않습니다.
 
-`accept: 'form'`과 함께 사용되는 경우 `input`은 `z.object()` 유효성 검사기를 사용해야 합니다.
+`input`을 생략하면 `handler`는 JSON 요청의 경우 `unknown` 타입의 입력을, 양식 요청의 경우 `FormData` 타입의 입력을 받습니다.
 
-`.refine()`, `.transform()`, `.pipe()`를 포함한 확장 함수도 이 객체에서 지원됩니다. 양식 데이터 필드에는 다음 유효성 검사기가 지원됩니다:
+##### `accept: 'form'`과 함께 사용
+
+액션이 양식 입력을 전달받는 경우 `z.object()` 유효성 검사기를 사용하여 양식 데이터를 타입이 정해진 객체로 자동 구문 분석합니다. 양식 데이터 필드에 지원되는 유효성 검사기는 다음과 같습니다:
 
 - `number` 유형의 입력은 `z.number()`를 사용하여 검증할 수 있습니다.
 - `checkbox` 유형의 입력은 `z.boolean()`을 사용하여 검증할 수 있습니다.
 - `file` 유형의 입력은 `z.instanceof(File)`을 사용하여 검증할 수 있습니다.
 - 동일한 `name`의 여러 입력은 `z.array(/* validator */)`를 사용하여 검증할 수 있습니다.
 - 다른 모든 입력은 `z.string()`을 사용하여 검증할 수 있습니다.
+
+`.refine()`, `.transform()`, `.pipe()`를 포함한 확장 함수도 `z.object()` 유효성 검사기에서 지원됩니다.
+
+서로 다른 유효성 검사기의 조합을 적용하려면 `z.discriminatedUnion()` 래퍼를 사용하여 특정 양식 필드를 기준으로 타입을 좁히세요. 이 예시는 사용자 "생성" 또는 "업데이트" 중 하나로 양식 제출을 처리하며, `type`이라는 이름의 양식 필드를 사용하여 어떤 객체에 대해 유효성 검사를 수행할지 결정합니다.
+
+```ts
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  changeUser: defineAction({
+    accept: 'form',
+    input: z.discriminatedUnion('type', [
+      z.object({
+        // `type` 필드에 `create` 값이 있을 때 일치합니다.
+        type: z.literal('create'),
+        name: z.string(),
+        email: z.string().email(),
+      }),
+      z.object({
+        // `type` 필드에 `update` 값이 있을 때 일치합니다.
+        type: z.literal('update'),
+        id: z.number(),
+        name: z.string(),
+        email: z.string().email(),
+      }),
+    ]),
+    async handler(input) {
+      if (input.type === 'create') {
+        // input은 { type: 'create', name: string, email: string }
+      } else {
+        // input은 { type: 'update', id: number, name: string, email: string }
+      }
+    },
+  }),
+};
+```
 
 ### `isInputError()`
 
