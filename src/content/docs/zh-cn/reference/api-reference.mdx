@@ -47,20 +47,25 @@ const posts = await Astro.glob('../pages/post/*.md'); // 返回位于 ./src/page
 
 #### Markdown 文件
 
-Markdown 文件有以下接口：
+使用 `Astro.glob()` 加载的 Markdown 文件返回以下 `MarkdownInstance` 接口：
 
 ```ts
 export interface MarkdownInstance<T extends Record<string, any>> {
   /* 在此文件的 YAML frontmatter 中指定的任何数据 */
  frontmatter: T;
-  /* 该文件的文件路径 */
+  /* 该文件的文件绝对路径 */
  file: string;
   /* 该文件的渲染路径 */
  url: string | undefined;
   /* 渲染此文件内容的 Astro 组件 */
- Content: AstroComponent;
-  /* 返回该文件中 h1...h6 元素数组的函数 */
+ Content: AstroComponentFactory;
+ /** (仅限 Markdown) Markdown 文件的原始内容，不包括布局 HTML 和 YAML frontmatter */
+ rawContent(): string;
+ /* (仅限 Markdown) Markdown 文件编译后的 HTML，不包括布局 HTML */
+ compiledContent(): string;
+ /* 返回该文件中 h1...h6 元素数组的函数 */
  getHeadings(): Promise<{ depth: number; slug: string; text: string }[]>;
+ default: AstroComponentFactory;
 }
 ```
 
@@ -90,7 +95,7 @@ export interface AstroInstance {
   file: string;
   /* 此文件的 URL（如果它在 pages 目录中）*/
 	url: string | undefined;
-	default: AstroComponent;
+	default: AstroComponentFactory;
 }
 ```
 
@@ -130,11 +135,9 @@ import Heading from '../components/Heading.astro';
 <Heading title="我的第一篇文章" date="09 Aug 2022" />
 ```
 
-<ReadMore>进一步了解关于 [Markdown 和 MDX 布局](/zh-cn/guides/markdown-content/#frontmatter-layout) 如何处理 props 的内容。</ReadMore>
+<ReadMore>进一步了解关于 [Markdown 和 MDX 布局](/zh-cn/guides/markdown-content/#frontmatter-layout-属性) 如何处理 props 的内容。</ReadMore>
 
 <ReadMore>了解如何为你的 props 添加 [TypeScript 类型定义](/zh-cn/guides/typescript/#组件参数) 的内容。</ReadMore>
-
-
 
 ### `Astro.params`
 
@@ -163,6 +166,11 @@ const { id } = Astro.params;
 
 ### `Astro.request`
 
+<p>
+
+**类型：**`Request`
+</p>
+
 `Astro.request` 是标准的 [Request](https://developer.mozilla.org/zh-CN/docs/Web/API/Request) 对象。它可以用来获取请求的 `url`、`headers`、`method`，甚至是 `body`。可以使用 `new URL(Astro.request.url)` 来获得链接对象。
 
 ```astro
@@ -177,6 +185,11 @@ const { id } = Astro.params;
 :::
 
 ### `Astro.response`
+
+<p>
+
+**类型：**`ResponseInit & { readonly headers: Headers }`
+</p>
 
 `Astro.response` 是标准的 [ResponseInit](https://developer.mozilla.org/zh-CN/docs/Web/API/Response/Response#init) 对象，它具有以下结构：
 
@@ -205,14 +218,19 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 
 ### `Astro.cookies`
 
-<p><Since v="1.4.0" /></p>
+<p>
+
+**类型：**`AstroCookies`<br />
+<Since v="1.4.0" />
+</p>
 
 `Astro.cookies` 包含用于在[服务端渲染](/zh-cn/guides/server-side-rendering/)模式下读取和操作 cookie 的工具方法。
 
 ##### `get`
 
 <p>
-**类型：** `(key: string, options?: CookieGetOptions) => AstroCookie`
+
+**类型：**<code>(key: string, options?: <a href="#astrocookiegetoptions">AstroCookieGetOptions</a>) => <a href="#astrocookie">AstroCookie</a> | undefined</code>
 </p>
 
 获取 [`AstroCookie`](#astrocookie) 对象形式的 cookie，该对象包含`value`和用于将 cookie 转换为非字符串类型的工具方法。
@@ -220,7 +238,8 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 ##### `has`
 
 <p>
-**类型：** `(key: string) => boolean`
+
+**类型：**<code>(key: string, options?: <a href="#astrocookiegetoptions">AstroCookieGetOptions</a>) => boolean</code>
 </p>
 
 用于判断 cookie 是否存在。如果这个 cookie 已经通过`Astro.cookies.set()`设置，这将返回 true，否则它将检查 `Astro.request` 中的 cookies。
@@ -228,7 +247,8 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 ##### `set`
 
 <p>
-**类型：** `(key: string, value: string | number | boolean | object, options?: CookieSetOptions) => void`
+
+**类型：**<code>(key: string, value: string | object, options?: <a href="#astrocookiesetoptions">AstroCookieSetOptions</a>) => void</code>
 </p>
 
 将 cookie `key` 设置为给定的值。这将试图把 cookie 的值转换为一个字符串。选项提供了设置 [cookie 功能](https://www.npmjs.com/package/cookie#options-1)的方法，例如 `maxAge` 或 `httpOnly`。
@@ -236,17 +256,28 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 ##### `delete`
 
 <p>
-**类型：** `(key: string, options?: CookieDeleteOptions) => void`
+
+**类型：**`(key: string, options?: AstroCookieDeleteOptions) => void`
 </p>
 
 通过设置过去的到期日期（Unix 时间为 0）使 cookie 失效。
 
 一旦 Cookie 被“删除”（过期），`Astro.cookies.has()` 将返回 `false`，`Astro.cookies.get()` 将返回一个 `value` 为 `undefined` 的 [`AstroCookie`](#astrocookie)。删除 Cookie 时可用的选项包括：`domain`、`path`、`httpOnly`、`sameSite` 和 `secure`。
 
+##### `merge`
+
+<p>
+
+**类型：**`(cookies: AstroCookies) => void`
+</p>
+
+将新的 `AstroCookies` 实例合并到当前实例中。任何新的 cookie 将被添加到当前实例中，任何具有相同名称的 cookie 将覆盖现有值。
+
 ##### `headers`
 
 <p>
-**类型：** `() => Iterator<string>`
+
+**类型：**`() => Iterator<string>`
 </p>
 
 获取将与响应一起发送的 `Set-Cookie` 的 header 的值。
@@ -258,7 +289,8 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 ##### `value`
 
 <p>
-**类型：** `string | undefined`
+
+**类型：**`string`
 </p>
 
 cookie 的原始字符串值。
@@ -266,7 +298,8 @@ cookie 的原始字符串值。
 ##### `json`
 
 <p>
-**类型：** `() => Record<string, any>`
+
+**类型：**`() => Record<string, any>`
 </p>
 
 通过 `JSON.parse()` 解析 cookie 值，返回一个对象。如果 cookie 值不是有效的 JSON，则抛出异常。
@@ -274,7 +307,8 @@ cookie 的原始字符串值。
 ##### `number`
 
 <p>
-**类型：** `() => number`
+
+**类型：**`() => number`
 </p>
 
 将 cookie 值解析为数字。如果不是有效数字，则返回 NaN。
@@ -282,53 +316,62 @@ cookie 的原始字符串值。
 ##### `boolean`
 
 <p>
-**类型：** `() => boolean`
+
+**类型：**`() => boolean`
 </p>
 
 转换 cookie 的值为 boolean 类型。
 
-#### `CookieGetOptions`
+#### `AstroCookieGetOptions`
 
-<p><Since v="4.1.0"/></p>
+<p>
 
-获取 cookie 允许通过 `CookieGetOptions` 接口指定选项：
+<Since v="4.1.0"/>
+</p>
+
+获取 cookie 允许通过 `AstroCookieGetOptions` 接口指定选项：
 
 ##### `decode`
 
 <p>
-**类型：** `(value: string) => string`
+
+**类型：**`(value: string) => string`
 </p>
 
 允许自定义如何将 cookie 反序列化为值。
 
-#### `CookieSetOptions`
+#### `AstroCookieSetOptions`
 
-<p><Since v="4.1.0"/></p>
+<p>
 
-通过 `Astro.cookies.set()` 设置 cookie，允许传入 `CookieSetOptions` 来自定义 cookie 如何被序列化。
+<Since v="4.1.0"/>
+</p>
+
+通过 `Astro.cookies.set()` 设置 cookie，允许传入 `AstroCookieSetOptions` 来自定义 cookie 如何被序列化。
 
 ##### `domain`
 
 <p>
-**类型：** `string`
-</p>
 
- Specifies the domain. If no domain is set, most clients will interpret to apply to the current domain.
+**类型：**`string`
+</p>
 
  指定域。如果未设置域，则大多数客户端将解释为应用于当前域。
 
- ##### `expires`
+##### `expires`
 
- <p>
- **类型：** `Date`
- </p>
+<p>
+
+**类型：**`Date`
+</p>
 
 指定 cookie 过期日期。
 
 ##### `httpOnly`
 
 <p>
-**类型：** `boolean`
+
+**类型：**`boolean`
 </p>
 
 如果为 true，则客户端将无法访问该 Cookie。
@@ -336,7 +379,8 @@ cookie 的原始字符串值。
 ##### `maxAge`
 
 <p>
-**类型：** `number`
+
+**类型：**`number`
 </p>
 
 以秒为单位指定 cookie 有效的时间。
@@ -344,7 +388,8 @@ cookie 的原始字符串值。
 ##### `path`
 
 <p>
-**类型：** `string`
+
+**类型：**`string`
 </p>
 
 指定应用 cookie 的域的子路径。
@@ -352,7 +397,8 @@ cookie 的原始字符串值。
 ##### `sameSite`
 
 <p>
-**类型：** `boolean | 'lax' | 'none' | 'strict'`
+
+**类型：**`boolean | 'lax' | 'none' | 'strict'`
 </p>
 
 指定 [SameSite](https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-rfc6265bis-09#section-5.4.7) cookie header 的值。 
@@ -360,7 +406,8 @@ cookie 的原始字符串值。
 ##### `secure`
 
 <p>
-**类型：** `boolean`
+
+**类型：**`boolean`
 </p>
 
 如果为 true，则该 Cookie 仅在 https 网站上设置。
@@ -368,14 +415,18 @@ cookie 的原始字符串值。
 ##### `encode`
 
 <p>
-**类型：** `(value: string) => string`
+
+**类型：**`(value: string) => string`
 </p>
 
 允许自定义 cookie 序列化方式。
 
 ### `Astro.redirect()`
 
-**类型：** `(path: string, status?: number) => Response`
+<p>
+
+**类型：**`(path: string, status?: number) => Response`
+</p>
 
 允许你重定向到另一个页面，并可选地提供一个 [HTTP 响应状态码](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Status#redirection_messages) 作为第二个参数。
 
@@ -400,21 +451,61 @@ if (!isLoggedIn(cookie)) {
 ---
 ```
 
-### `Astro.canonicalURL`
+### `Astro.rewrite()`
 
-:::caution[废弃]
-使用 [`Astro.url`](#astrourl) 来构建你自己的标准链接。
-:::
+<p>
 
-当前页面的[标准链接][canonical]。
+**类型：**`(rewritePayload: string | URL | Request) => Promise<Response>`<br />
+<Since v="4.13.0" />
+</p>
+
+
+
+允许你从不同的 URL 或路径提供内容，而不会将浏览器重定向到新页面。
+
+该方法接受字符串、`URL` 或 `Request` 作为路径的位置。
+
+使用字符串提供一个明确的路径：
+
+```astro title="src/pages/index.astro"
+---
+return Astro.rewrite("/login")
+---
+```
+
+当你需要构造重写的 URL 路径时，使用 `URL` 类型。以下示例通过从相对路径 `"../"` 创建一个新的 URL 来呈现页面的父路径：
+
+```astro title="src/pages/blog/index.astro"
+---
+return Astro.rewrite(new URL("../", Astro.url))
+---
+```
+
+使用 `Request` 类型完全控制发送到新路径的 `Request`。以下示例发送一个请求来渲染父页面，同时提供标头：
+
+```astro title="src/pages/blog/index.astro"
+---
+return Astro.rewrite(new Request(new URL("../", Astro.url), {
+  headers: {
+    "x-custom-header": JSON.stringify(Astro.locals.someValue)
+  }
+}))
+---
+```
 
 ### `Astro.url`
 
-<p><Since v="1.0.0-rc" /></p>
+<p>
 
-[URL](https://developer.mozilla.org/zh-CN/docs/Web/API/URL )对象，由当前 `Astro.request.url` 的链接字符串值构成。对于与请求的链接的个别属性进行交互是有用的，如路径名和起源。
+**类型：**`URL`<br />
+<Since v="1.0.0-rc" />
+</p>
 
-相当于做 `new URL(Astro.request.url)`。
+由当前 `Astro.request.url` 的链接字符串值构造的 [URL](https://developer.mozilla.org/zh-CN/docs/Web/API/URL )对象。对于与请求链接的某些属性进行交互很有用，例如 pathname 和 origin。
+
+相当于 `new URL(Astro.request.url)`。
+
+如果 [site](/zh-cn/reference/configuration-reference/#site) 未配置为静态站点或者使用 `server` 或 `hybrid` 输出的按需渲染站点，`Astro.url` 在开发模式下将是 `localhost`。
 
 ```astro
 <h1>当前链接是：{Astro.url}</h1>
@@ -437,7 +528,11 @@ const socialImageURL = new URL('/images/preview.png', Astro.url);
 
 ### `Astro.clientAddress`
 
-<p><Since v="1.0.0-rc" /></p>
+<p>
+
+**类型：**`string`<br />
+<Since v="1.0.0-rc" />
+</p>
 
 指定请求的 [IP 地址](https://en.wikipedia.org/wiki/IP_address)。这个属性只在为 SSR（服务器端渲染）构建时可用，不应该用于静态网站。
 
@@ -451,11 +546,20 @@ const ip = Astro.clientAddress;
 
 ### `Astro.site`
 
+<p>
+
+**类型：**`URL | undefined`
+</p>
+
 `Astro.site` 返回根据 Astro 配置中的 `site` 生成的 `URL`。如果未定义 Astro 配置中的 `site`，`Astro.site` 也不会被定义。
 
 ### `Astro.generator`
 
-<p><Since v="1.0.0" /></p>
+<p>
+
+**类型：**`string`<br />
+<Since v="1.0.0" />
+</p>
 
 `Astro.generator` 是个便捷方法，它可以添加与你当前 Astro 版本一致的 [`<meta name="generator">`](https://html.spec.whatwg.org/multipage/semantics.html#meta-generator) 标签。它遵循的格式是 `"Astro v1.x.x"`。
 
@@ -478,7 +582,10 @@ const ip = Astro.clientAddress;
 
 #### `Astro.slots.has()`
 
+<p>
+
 **类型：**`(slotName: string) => boolean`
+</p>
 
 你可以使用 `Astro.slots.has()` 检查特定插槽名称的内容是否存在。当你想要包装插槽内容，但只想在使用插槽时呈现包装器元素时，这会很有用。
 
@@ -497,7 +604,10 @@ const ip = Astro.clientAddress;
 
 #### `Astro.slots.render()`
 
+<p>
+
 **类型：**`(slotName: string, args?: any[]) => Promise<string>`
+</p>
 
 你可以使用 `Astro.slots.render()` 将插槽的内容异步渲染为 HTML 字符串。
 
@@ -539,6 +649,18 @@ import Shout from "../components/Shout.astro";
 
 <!-- 渲染成 <div>SLOTS!</div> -->
 ```
+
+回调函数可以传递给带有 `slot` 属性并包装着 HTML 元素标签的具名插槽。这个元素仅用于将回调传递给具名插槽，而不会被渲染到页面上。
+
+```astro
+<Shout message="slots!">
+  <fragment slot="message">
+    {(message) => <div>{message}</div>}
+  </fragment>
+</Shout>
+```
+
+使用标准的 HTML 元素作为包装标签，或者使用任何小写标签（例如 `<fragment>` 而不是 `<Fragment />`），这些标签不会被解释为组件。不要使用 HTML 的 `<slot>` 元素，因为它会被解释为 Astro 插槽。
 
 ### `Astro.self`
 
@@ -590,6 +712,11 @@ import NestedList from './NestedList.astro';
 
 ### `Astro.locals`
 
+<p>
+
+<Since v="2.4.0" />
+</p>
+
 `Astro.locals` 是一个对象，包含来自中间件的 [`context.locals`](#contextlocals)对象的任何值。使用该对象可访问中间件在你的 `.astro` 文件中返回的数据。
 
 ```astro title="src/pages/Orders.astro"
@@ -607,6 +734,13 @@ const orders = Array.from(Astro.locals.orders.entries());
 
 ### `Astro.preferredLocale`
 
+<p>
+
+**类型：**`string | undefined`<br />
+<Since v="3.5.0" />
+</p>
+
+
 `Astro.preferredLocale` 是一个代表当前用户的首选语言环境的计算出的值。
 
 它是通过检查 `i18n.locales` 数组中配置的语言环境和用户浏览器通过头部 `Accept-Language` 指定的语言环境来计算的。如果不存在匹配项则该值为 `undefined`。
@@ -614,6 +748,12 @@ const orders = Array.from(Astro.locals.orders.entries());
 这个属性只在为 SSR（服务器端渲染）构建时可用，不应该用于静态网站。
 
 ### `Astro.preferredLocaleList`
+
+<p>
+
+**类型：**`string[] | undefined`<br />
+<Since v="3.5.0" />
+</p>
 
 `Astro.preferredLocaleList` 是一个同时被浏览器请求并且你的网站也支持的语言环境的数组。它是一个由你的网站和你的访客共同支持的语言环境的列表。
 
@@ -625,7 +765,54 @@ const orders = Array.from(Astro.locals.orders.entries());
 
 ### `Astro.currentLocale`
 
+<p>
+
+**类型：**`string | undefined`<br />
+<Since v="3.5.6" />
+</p>
+
 从当前 URL 使用你的 `locales` 配置中指定的语法计算出的语言环境。如果 URL 不包含 `/[locale]/` 前缀，则该值将默认为 `i18n.defaultLocale`。
+
+
+### `Astro.getActionResult()`
+
+<p>
+**类型：**`(action: TAction) => ActionReturnType<TAction> | undefined`<br />
+<Since v="4.15.0" />
+</p>
+
+`Astro.getActionResult()` 是一个返回 [Action](/zh-cn/guides/actions/) 提交结果的函数。它接受一个 Action 函数作为参数（例如 `actions.logout`），当接收到提交时返回一个 `data` 或 `error` 对象。否则，它将返回 `undefined`。
+
+
+```astro title="src/pages/index.astro"
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.logout);
+---
+
+<form action={actions.logout}>
+  <button type="submit">退出登录</button>
+</form>
+{result?.error && <p>退出登录失败。请再试一次。</p>}
+```
+
+### `Astro.callAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`Astro.callAction()` 是一个直接从你的 Astro 组件中调用 Action 处理程序的函数。它接受一个 Action 函数作为第一个参数（例如 `actions.logout`），以及该 Action 接收的任何输入作为第二个参数。它返回 Action 的结果作为 Promise。
+
+
+```astro title="src/pages/index.astro"
+---
+import { actions } from 'astro:actions';
+
+const { data, error } = await Astro.callAction(actions.logout, { userId: '123' });
+---
+```
 
 ## 端点上下文
 
@@ -670,6 +857,11 @@ export function GET({ params }: APIContext) {
 
 ### `context.props`
 
+<p>
+
+<Since v="1.5.0" />
+</p>
+
 `context.props` 是一个对象，其中包含从 `getStaticPaths()` 传递的任何 `props`。由于在为 SSR 构建时不使用 `getStaticPaths()`，因此 `context.props` 仅在静态构建中可用。
 
 ```ts title="src/pages/posts/[id].json.ts"
@@ -694,6 +886,11 @@ export function GET({ props }: APIContext) {
 
 ### `context.request`
 
+<p>
+
+**类型：**`Request`
+</p>
+
 一个标准的 [Request](https://developer.mozilla.org/zh-CN/docs/Web/API/Request) 对象。它可以用来获取请求的 `url`、`headers`、`method` 甚至是 `body`。
 
 ```ts
@@ -708,17 +905,34 @@ export function GET({ request }: APIContext) {
 
 ### `context.cookies`
 
+<p>
+
+**类型：**`AstroCookies`
+</p>
+
 `context.cookies` 包含用于读取和操作 cookie 的工具。
 
 另见：[Astro.cookies](#astrocookies)
 
 ### `context.url`
 
+<p>
+
+**类型：**`URL`<br />
+<Since v="1.5.0" />
+</p>
+
 `context.url` 是一个 [URL](https://developer.mozilla.org/zh-CN/docs/Web/API/URL) 对象，它是从当前 `context.request.url` URL 字符串值构造的。
 
 另见：[Astro.url](#astrourl)
 
 ### `context.clientAddress`
+
+<p>
+
+**类型：**`string`<br />
+<Since v="1.5.0" />
+</p>
 
 指定请求的 [IP 地址](https://en.wikipedia.org/wiki/IP_address)。此属性仅在构建 SSR（服务器端渲染）时可用，不应用于静态站点。
 
@@ -735,11 +949,23 @@ export function GET({ clientAddress }: APIContext) {
 
 ### `context.site`
 
+<p>
+
+**类型：**`URL | undefined`<br />
+<Since v="1.5.0" />
+</p>
+
 `context.site` 返回一个由 Astro 配置中的 `site` 生成的 `URL`。如果未定义，则将返回从 `localhost` 生成的 URL。
 
 另见：[Astro.site](#astrosite)
 
 ### `context.generator`
+
+<p>
+
+**类型：**`string`<br />
+<Since v="1.5.0" />
+</p>
 
 `context.generator` 是一个方便的方法，用于指示项目正在运行的 Astro 版本。它遵循 `"Astro v1.x.x"` 的格式。
 
@@ -757,6 +983,12 @@ export function GET({ generator, site }: APIContext) {
 
 ### `context.redirect()`
 
+<p>
+
+**类型：**`(path: string, status?: number) => Response`<br />
+<Since v="1.5.0" />
+</p>
+
 `context.redirect()` 返回一个 [Response](https://developer.mozilla.org/zh-CN/docs/Web/API/Response) 对象，允许你重定向到另一个页面。此函数仅在构建 SSR（服务器端渲染）时可用，不应用于静态站点。
 
 ```ts
@@ -769,7 +1001,57 @@ export function GET({ redirect }: APIContext) {
 
 另见：[`Astro.redirect()`](#astroredirect)
 
+### `context.rewrite()`
+
+<p>
+
+**类型：**`(rewritePayload: string | URL | Request) => Promise<Response>`<br />
+<Since v="4.13.0" />
+</p>
+
+允许你从不同的 URL 或路径提供内容，而不会将浏览器重定向到新页面。
+
+该方法接受字符串、`URL` 或 `Request` 作为路径的位置。
+
+使用字符串提供一个明确的路径：
+
+```ts
+import type { APIContext } from 'astro';
+
+export function GET({ rewrite }: APIContext) {
+  return rewrite('/login');
+}
+```
+
+当你需要构造重写的 URL 路径时，使用 `URL` 类型。以下示例通过从相对路径 `"../"` 创建一个新的 URL 来呈现页面的父路径：
+
+```ts
+import type { APIContext } from 'astro';
+
+export function GET({ rewrite }: APIContext) {
+  return rewrite(new URL("../", Astro.url));
+}
+```
+
+使用 `Request` 类型完全控制发送到新路径的 `Request`。以下示例发送一个请求来渲染父页面，同时提供标头：
+
+```ts
+import type { APIContext } from 'astro';
+
+export function GET({ rewrite }: APIContext) {
+  return rewrite(new Request(new URL("../", Astro.url), {
+   headers: {
+     "x-custom-header": JSON.stringify(Astro.locals.someValue)
+   }
+ }));
+}
+```
+
+另见：[`Astro.rewrite()`](#astrorewrite)
+
 ### `context.locals`
+
+<p><Since v="2.4.0" /></p>
 
 `context.locals` 是一个对象，用于在请求的生命周期内存储和访问任意信息。
 
@@ -798,7 +1080,31 @@ export function get({ locals }: APIContext) {
 
 另见：[`Astro.locals`](#astrolocals)
 
+### `context.getActionResult()`
+
+<p>
+
+**类型：** `(action: TAction) => ActionReturnType<TAction> | undefined`<br />
+<Since v="4.15.0" />
+</p>
+
+`context.getActionResult()` 是一个函数，用于从你的 Astro 组件中返回 [Action](/zh-cn/guides/actions/) 提交结果。它接受一个 Action 函数作为参数（例如 `actions.logout`），当接收到提交时返回一个 `data` 或 `error` 对象。否则，它将返回 `undefined`。
+
+另见：[`Astro.getActionResult()`](#astrogetactionresult)
+
+### `context.callAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`context.callAction()` 是一个直接从你的 Astro 组件中调用 Action 处理程序的函数。它接受一个 Action 函数作为第一个参数（例如 `actions.logout`），以及该 Action 接收的任何输入作为第二个参数。它返回 Action 的结果作为 Promise。
+
+另见：[`Astro.callAction()`](#astrocallaction)
+
 ## `getStaticPaths()`
+
+**类型：**`(options: GetStaticPathsOptions) => Promise<GetStaticPathsResult> | GetStaticPathsResult`
 
 如果页面在文件名中使用动态参数，该组件将需要导出一个 `getStaticPaths()` 函数。
 
@@ -821,7 +1127,7 @@ export async function getStaticPaths() {
 `getStaticPaths()` 函数应该返回对象数组，以确定哪些路径会被 Astro 预渲染。
 
 :::caution
-`getStaticPaths()` 函数在会任何页面加载之前，在它自己的隔离范围内执行一次。因此，除了文件导入之外，你不能从它的父作用域中引用任何东西。如果你违反了这个要求，编译器会发出警告。
+`getStaticPaths()` 函数会在任何页面加载之前，在它自己的隔离范围内执行一次。因此，除了文件导入之外，你不能从它的父作用域中引用任何东西。如果你违反了这个要求，编译器会发出警告。
 :::
 
 ### `params`
@@ -927,7 +1233,7 @@ const { page } = Astro.props;
 `/posts/3` 等链接。
 
 `paginate()` 函数具有以下参数：
--  `pageSize` - 每页显示的项目数
+-  `pageSize` - 每页显示的项目数（默认为 `10`）
 -  `params` - 用于创建动态路由的附加参数
 -  `props` - 在每个页面上可用的附加属性
 
@@ -938,7 +1244,8 @@ const { page } = Astro.props;
 ##### `page.data`
 
 <p>
-**类型：** `Array`
+
+**类型：**`Array`
 </p>
 
 从 `data()` 中返回当前页面数据数组。
@@ -946,7 +1253,8 @@ const { page } = Astro.props;
 ##### `page.start`
 
 <p>
-**类型：** `number`
+
+**类型：**`number`
 </p>
 
 当前页第一个项目的索引，从 `0` 开始（例如，如果 `pageSize: 25`，第一页该值未 `0`，第二页为`25`，以此类推）。
@@ -954,7 +1262,8 @@ const { page } = Astro.props;
 ##### `page.end`
 
 <p>
-**类型：** `number`
+
+**类型：**`number`
 </p>
 
 当前页面最后一条数据的索引。
@@ -962,7 +1271,9 @@ const { page } = Astro.props;
 ##### `page.size`
 
 <p>
-**类型：** `number`
+
+**类型：**`number`
+**默认值：**`10`
 </p>
 
 每个页面有多少条数据。
@@ -970,7 +1281,8 @@ const { page } = Astro.props;
 ##### `page.total`
 
 <p>
-**类型：** `number`
+
+**类型：**`number`
 </p>
 
 所有数据的总数量。
@@ -978,7 +1290,8 @@ const { page } = Astro.props;
 ##### `page.currentPage`
 
 <p>
-**类型：** `number`
+
+**类型：**`number`
 </p>
 
 当前页码，从 `1` 开始。
@@ -986,7 +1299,8 @@ const { page } = Astro.props;
 ##### `page.lastPage`
 
 <p>
-**类型：** `number`
+
+**类型：**`number`
 </p>
 
 总页数。
@@ -994,7 +1308,8 @@ const { page } = Astro.props;
 ##### `page.url.current`
 
 <p>
-**类型：** `string`
+
+**类型：**`string`
 </p>
 
 获取当前页面的链接（对规范链接很有用）。
@@ -1002,7 +1317,8 @@ const { page } = Astro.props;
 ##### `page.url.prev`
 
 <p>
-**类型：** `string | undefined`
+
+**类型：**`string | undefined`
 </p>
 
 获取上一页链接（如果在首页，将是`undefined`）。如果为 [`base`](/zh-cn/reference/configuration-reference/#base) 设置了值，那么需要将 base 路径拼接到链接前面。
@@ -1010,7 +1326,8 @@ const { page } = Astro.props;
 ##### `page.url.next`
 
 <p>
-**类型：** `string | undefined`
+
+**类型：**`string | undefined`
 </p>
 
 获取下一页链接（如果没有更多的页面，将是`undefined`）。如果为 [`base`](/zh-cn/reference/configuration-reference/#base) 设置了值，那么需要将 base 路径拼接到链接前面。
@@ -1018,7 +1335,9 @@ const { page } = Astro.props;
 ##### `page.url.first`
 
 <p>
-**类型：** `string | undefined`
+
+**类型：**`string | undefined`<br />
+<Since v="4.12.0" />
 </p>
 
 获取第一页链接（如果在首页，将是`undefined`）。 如果为 [`base`](/zh-cn/reference/configuration-reference/#base) 设置了值，那么需要将 base 路径拼接到链接前面。
@@ -1026,7 +1345,9 @@ const { page } = Astro.props;
 ##### `page.url.last`
 
 <p>
-**类型：** `string | undefined`
+
+**类型：**`string | undefined`<br />
+<Since v="4.12.0" />
 </p>
 
 获取最后一页链接（如果在最后一页，将是`undefined`）。如果为 [`base`](/zh-cn/reference/configuration-reference/#base) 设置了值，那么需要将 base 路径拼接到链接前面。
@@ -1047,6 +1368,11 @@ export default function () {
 
 ### `getImage()`
 
+<p>
+
+**类型：**`(options: UnresolvedImageTransform) => Promise<GetImageResult>`
+</p>
+
 :::caution
 `getImage()` 依赖于仅在服务器上可用的 API，当在客户端使用时会导致构建失败。
 :::
@@ -1064,13 +1390,24 @@ const optimizedBackground = await getImage({src: myBackground, format: 'avif'})
 <div style={`background-image: url(${optimizedBackground.src});`}></div>
 ```
 
-它返回了一个包含了如下属性的对象：
+它返回了一个具有以下类型的对象：
 
 ```js
-{
-  options: {...} // 被传递的原始参数
-  src: "https//..." // 生成图片的路径
-  attributes: {...} // 额外的 HTML 属性，用于渲染图像（如宽度、高度、样式等）
+type GetImageResult = {
+  /* 渲染图像所需的附加 HTML 属性（宽度、高度、样式等） */
+  attributes: Record<string, any>;
+  /* 已通过校验的参数 */
+  options: ImageTransform;
+  /* 传递的原始参数 */
+  rawOptions: ImageTransform;
+  /* 生成图像的路径 */
+  src: string;
+  srcSet: {
+    /* 为 srcset 生成值，每个条目都有一个 url 和一个 size */
+    values: SrcSetValue[];
+    /* 准备在`srcset`属性中使用的值 */
+    attribute: string;
+  };
 }
 ```
 
@@ -1081,6 +1418,11 @@ const optimizedBackground = await getImage({src: myBackground, format: 'avif'})
 内容集合提供了 API 来配置和查询 `src/content/` 中的 Markdown 或 MDX 文档。有关功能和用法示例，请参考[内容集合指南](/zh-cn/guides/content-collections/)。
 
 ### `defineCollection()`
+
+<p>
+
+**类型：**`(input: CollectionConfig) => CollectionConfig`
+</p>
 
 `defineCollection()` 是一个用于在 `src/content/config.*` 文件中配置集合的工具函数。
 
@@ -1103,10 +1445,12 @@ export const collections = { blog };
 这个函数接受以下属性：
 #### `type`
 
-<p><Since v="2.5.0" /></p>
+<p>
 
-**类型：** `'content' | 'data'`  
-**默认：** `'content'`
+**类型：**`'content' | 'data'`<br />
+**默认：**`'content'`<br />
+<Since v="2.5.0" />
+</p>
 
 `type` 是一个字符串，用于定义存储在集合中的条目的类型：
 
@@ -1119,7 +1463,7 @@ export const collections = { blog };
 
 #### `schema`
 
-**类型：**`TSchema extends ZodType`
+**类型：**<code>ZodType | (context: <a href="#schemacontext">SchemaContext</a>) => ZodType</code>
 
 `schema` 是一个可选的 Zod 对象，用于配置集合的文档 frontmatter 的类型和形状。每个值必须使用 [Zod 验证器](https://github.com/colinhacks/zod)
 
@@ -1127,7 +1471,11 @@ export const collections = { blog };
 
 ### `reference()`
 
-**Type：** `(collection: string) => ZodEffects<ZodString, { collection, id: string } | { collection, slug: string }>`
+<p>
+
+**类型：**`(collection: string) => ZodEffects<ZodString, { collection, id: string } | { collection, slug: string }>`<br />
+<Since v="2.5.0" />
+</p>
 
 在内容配置中使用 `reference()` 函数来定义从一个集合到另一个集合的关系或 "引用"。该函数接受一个集合名称，并验证内容前置事项或数据文件中指定的条目标识符。
 
@@ -1158,7 +1506,10 @@ export const collections = { blog, authors };
 
 ### `getCollection()`
 
+<p>
+
 **类型：**`(collection: string, filter?: (entry: CollectionEntry<collection>) => boolean) => CollectionEntry<collection>[]`
+</p>
 
 `getCollection()` 是一个函数，用于通过集合名称检索内容集合条目列表。
 
@@ -1184,7 +1535,7 @@ const draftBlogPosts = await getCollection('blog', ({ data }) => {
 
 <p><Since v="2.5.0" /></p>
 
-**Types：**
+**类型：**
 
 - `(collection: string, contentSlugOrDataId: string) => CollectionEntry<collection>`
 - `({ collection: string, id: string }) => CollectionEntry<collection>`
@@ -1213,7 +1564,7 @@ const enterpriseCaptainProfile = await getEntry(enterprisePost.data.captain);
 
 <p><Since v="2.5.0" /></p>
 
-**Types：**
+**类型：**
 
 - `(Array<{ collection: string, id: string }>) => Array<CollectionEntry<collection>>`
 - `(Array<{ collection: string, slug: string }>) => Array<CollectionEntry<collection>>`
@@ -1231,11 +1582,14 @@ const enterpriseRelatedPosts = await getEntries(enterprisePost.data.relatedPosts
 ---
 ```
 
-
 ### `getEntryBySlug()`
 
+<p>
+
 **类型：**`(collection: string, slug: string) => CollectionEntry<collection>`
-:::caution[已停用]
+</p>
+
+:::caution[已废弃]
 使用 [`getEntry()`函数](#getentry) 查询内容条目。该函数接受与 `getEntryBySlug()` 相同的参数，并支持通过 `id` 查询 JSON 或 YAML 集合。
 :::
 
@@ -1249,6 +1603,27 @@ const enterprise = await getEntryBySlug('blog', 'enterprise');
 ---
 ```
 有关示例请[参考 `内容集合`指南](/zh-cn/guides/content-collections/#查询集合) 以获取示例用法。
+
+### `getDataEntryById()`
+
+<p>
+
+**类型：**`(collection: string, id: string) => Promise<CollectionEntry<collection>>`<br />
+<Since v="2.5.0" />
+</p>
+
+:::caution[已废弃]
+使用 [`getEntry()`函数](#getentry) 查询数据条目。该函数接受与 `getDataEntryById()` 相同的参数，并支持通过 `slug` 查询 Markdown 等内容创作格式的条目。
+:::
+
+`getDataEntryById()` 是一个用于通过集合名称和条目 `id` 检索单个集合条目的函数。
+
+```astro
+---
+import { getDataEntryById } from 'astro:content';
+const picardProfile = await getDataEntryById('captains', 'picard');
+---
+```
 
 ### 集合条目类型
 
@@ -1265,8 +1640,8 @@ import type { CollectionEntry } from 'astro:content';
 **适用于：** `type: 'content'` and `type: 'data'` 集合
 
 **示例类型：**
-  - content collections: `'entry-1.md' | 'entry-2.md' | ...`
-  - data collections: `'author-1' | 'author-2' | ...`
+  - 内容集合: `'entry-1.md' | 'entry-2.md' | ...`
+  - 数据集合: `'author-1' | 'author-2' | ...`
 
 一个使用相对于 `src/content/[collection]` 的文件路径的唯一 ID。根据集合条目文件路径枚举所有可能的字符串值。请注意，[`类型: 'content'`](#type) 的集合在其 ID 中包含文件扩展名，而定义为 `type: 'data'` 的集合则不包含。
 
@@ -1276,7 +1651,7 @@ import type { CollectionEntry } from 'astro:content';
 
 **示例类型：** `'blog' | 'authors' | ...`
 
-src/content/` 下顶级文件夹的名称，条目位于该文件夹中。该名称用于在模式和查询函数中引用集合。
+`src/content/` 下顶级文件夹的名称，条目位于该文件夹中。该名称用于在模式和查询函数中引用集合。
 
 
 #### `data`
@@ -1310,7 +1685,7 @@ src/content/` 下顶级文件夹的名称，条目位于该文件夹中。该名
 一个用于编译给定的 Markdown 或 MDX 文档以进行渲染的函数。它返回以下属性：
 
 - `<Content />` - 用于在 Astro 文件中渲染文档内容的组件。
-- `headings` - 生成的标题列表，[与 Astro 的 `getHeadings()` 工具函数相同](/zh-cn/guides/markdown-content/#导出的属性) 在 Markdown 和 MDX 导入中。
+- `headings` - 生成的标题列表，[与 Astro 的 `getHeadings()` 工具函数相同](/zh-cn/guides/markdown-content/#可用属性) 在 Markdown 和 MDX 导入中。
 - `remarkPluginFrontmatter ` - 在应用 [remark 或 rehype 插件](/zh-cn/guides/markdown-content/#以编程方式修改-frontmatter)后修改后的 frontmatter 对象。设置为类型 `any`。
 
 ```astro
@@ -1330,6 +1705,8 @@ const { Content, headings, remarkPluginFrontmatter } = await entry.render();
 
 #### `CollectionKey`
 
+<p><Since v="3.1.0" /></p>
+
 这是一个在 `src/content/config.*` 文件中定义的所有集合名称的字符串联合类型。当定义一个可以接受任何集合名称的通用函数时，这个类型很有用。
 
 ```ts
@@ -1342,9 +1719,13 @@ async function getCollection(collection: CollectionKey) {
 
 #### `ContentCollectionKey`
 
+<p><Since v="3.1.0" /></p>
+
 一个在 `src/content/config.*` 文件中定义的所有 `type: 'content'` 集合名称的字符串联合类型。
 
 #### `DataCollectionKey`
+
+<p><Since v="3.1.0" /></p>
 
 一个在 `src/content/config.*` 文件中定义的所有 `type: 'data'` 集合名称的字符串联合类型。
 
@@ -1383,7 +1764,12 @@ const blog = defineCollection({
 
 ### `onRequest()`
 
-一个在 `src/middleware.js` 里的必须导出的函数，它将在每次渲染页面或端点时被调用。它接受两个可选参数：[context](#contextlocals) 和 [next()](#next)。`onRequest()` 必须返回一个 `Response`：要么直接返回，要么通过调用 `next()` 返回。
+<p>
+
+**类型：**`(context: APIContext, next: MiddlewareNext) => Promise<Response> | Response | Promise<void> | void`
+</p>
+
+一个在 `src/middleware.js` 里的必须导出的函数，它将在每次渲染页面或端点时被调用。它接受两个参数：[context](#context) 和 [next()](#next)。`onRequest()` 必须返回一个 `Response`：要么直接返回，要么通过调用 `next()` 返回。
 
     ```js title="src/middleware.js"
     export function onRequest (context, next) {
@@ -1394,13 +1780,34 @@ const blog = defineCollection({
     };
     ```
 
-### `next()`
+#### `context`
 
-一个拦截（读取和修改）一个 `Request` 的 `Response` 或调用链中的“下一个（next）”中间件并返回一个 `Response` 的函数。例如，这个函数可以修改响应的 HTML 主体。
+<p>
 
-这是 `onRequest()` 的可选参数，并且可能会提供中间件返回的所需 `Response`。
+**类型：**`APIContext`
+</p>
+
+`onRequest()` 的第一个参数是一个上下文对象。它反映了许多 `Astro` 全局属性。
+
+<ReadMore>有关更多信息，请参阅 [端点上下文](#端点上下文)。</ReadMore>
+
+#### `next()`
+
+<p>
+
+**类型：**`(rewritePayload?: string | URL | Request) => Promise<Response>`<br />
+</p>
+
+`onRequest()` 的第二个参数是一个调用链中的所有后续中间件，并返回一个 `Response` 的函数。例如，其他中间件可以修改响应的 HTML 主体，等待 `next()` 的结果将允许你的中间件响应这些更改。
+
+自从 Astro v4.13.0，`next()` 接受一个可选的 URL 路径参数，形式为字符串、`URL` 或 `Request`，用于[重写](/zh-cn/guides/routing/#重写)当前请求而不重新触发新的渲染阶段。
 
 ### `sequence()`
+
+<p>
+
+**类型：**`(...handlers: MiddlewareHandler[]) => MiddlewareHandler`
+</p>
 
 一个接受中间件函数作为参数的函数，它将按照它们传递的顺序执行它们。
 
@@ -1416,11 +1823,23 @@ export const onRequest = sequence(validation, auth, greeting);
 
 ### `createContext()`
 
+<p>
+
+**类型：**`(context: CreateContext) => APIContext`<br />
+<Since v="2.8.0" />
+</p>
+
 一个底层 API，用于创建一个 [`APIContext`](#端点上下文) 以传递给 Astro 中间件的 `onRequest()` 函数。
 
 此函数可以由集成/适配器用于执行 Astro 中间件。
 
 ### `trySerializeLocals()`
+
+<p>
+
+**类型：**`(value: unknown) => string`<br />
+<Since v="2.8.0" />
+</p>
 
 一个底层 API，它接受任何值并尝试返回它的序列化版本（一个字符串）。如果该值无法序列化，该函数将抛出一个运行时错误。
 
@@ -1442,6 +1861,11 @@ export const onRequest = sequence(validation, auth, greeting);
 有关功能和使用示例，请参阅[我们的 i18n 路由指南](/zh-cn/guides/internationalization/)。
 
 ### `getRelativeLocaleUrl()` 
+
+<p>
+
+**类型：**`(locale: string, path?: string,  options?: GetLocaleOptions) => string`
+</p>
 
 `getRelativeLocaleUrl(locale: string, path?: string,  options?: GetLocaleOptions): string`
 
@@ -1467,9 +1891,12 @@ getRelativeLocaleUrl("fr_CA", "getting-started", {
 ---
 ```
 
-### `getAbsoluteLocaleUrl()` 
+### `getAbsoluteLocaleUrl()`
 
-`getAbsoluteLocaleUrl(locale: string, path: string, options?: GetLocaleOptions): string` 
+<p>
+
+**类型：**`(locale: string, path: string, options?: GetLocaleOptions) => string`
+</p>
 
 当 [`site`] 配置了值时，使用这个函数来检索一个语言环境的绝对路径。如果 [`site`] 没有被配置，该函数将返回一个相对 URL。如果语言环境不存在，Astro 会抛出一个错误。
 
@@ -1495,21 +1922,30 @@ getAbsoluteLocaleUrl("fr_CA", "getting-started", {
 ---
 ```
 
-### `getRelativeLocaleUrlList()` 
+### `getRelativeLocaleUrlList()`
 
-`getRelativeLocaleUrlList(path?: string, options?: GetLocaleOptions): string[]`
+<p>
+
+**类型：**`(path?: string, options?: GetLocaleOptions) => string[]`
+</p>
 
 像使用 [`getRelativeLocaleUrl`](#getrelativelocaleurl) 那样使用此函数，返回所有语言环境的相对路径列表。
 
 ### `getAbsoluteLocaleUrlList()` 
 
-`getAbsoluteLocaleUrlList(path?: string, options?: GetLocaleOptions): string[]`
+<p>
+
+**类型：**`(path?: string, options?: GetLocaleOptions) => string[]`
+</p>
 
 像使用 [`getAbsoluteLocaleUrl`](/zh-cn/guides/internationalization/#自定义语言环境路径) 那样使用此函数，返回所有语言环境的绝对路径列表。
 
 ### `getPathByLocale()` 
 
-`getPathByLocale(locale: string): string`
+<p>
+
+**类型：**`(locale: string) => string`
+</p>
 
 当配置了[自定义语言环境路径](/zh-cn/guides/internationalization/#自定义语言环境路径)时，此函数返回与一个或多个 `codes` 关联的 `path`。
 
@@ -1531,9 +1967,12 @@ getPathByLocale("fr-CA"); // 返回 "french"
 ---
 ```
 
-### `getLocaleByPath`
+### `getLocaleByPath()`
 
- `getLocaleByPath(path: string): string`
+<p>
+
+**类型：**`(path: string) => string`
+</p>
 
 此函数返回与语言环境 `path` 关联的 `code`。
 
@@ -1556,9 +1995,11 @@ getLocaleByPath("french"); // 返回 "fr"，因为这是首个配置的代码
 
 ### `redirectToDefaultLocale()`
 
-`redirectToDefaultLocale(context: APIContext, statusCode?: ValidRedirectStatus): Promise<Response>`
+<p>
 
-<p><Since v="4.6.0" /></p>
+**类型：**`(context: APIContext, statusCode?: ValidRedirectStatus) => Promise<Response>`<br />
+<Since v="4.6.0" />
+</p>
 
 :::note
 仅当 `i18n.routing` 设置为 `"manual"` 时可用。
@@ -1581,9 +2022,11 @@ export const onRequest = defineMiddleware((context, next) => {
 
 ### `redirectToFallback()`
 
-`redirectToFallback(context: APIContext, response: Response): Promise<Response>`
+<p>
 
-<p><Since v="4.6.0" /></p>
+**类型：**`(context: APIContext, response: Response) => Promise<Response>`<br />
+<Since v="4.6.0" />
+</p>
 
 :::note
 仅当 `i18n.routing` 设置为 `"manual"` 时可用。
@@ -1606,9 +2049,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
 ### `notFound()`
 
-`notFound(context: APIContext, response: Response): Promise<Response>`
+<p>
 
-<p><Since v="4.6.0" /></p>
+**类型：**`(context: APIContext, response?: Response) => Promise<Response> | undefined`<br />
+<Since v="4.6.0" />
+</p>
 
 :::note
 仅当 `i18n.routing` 设置为 `"manual"` 时可用。
@@ -1635,9 +2080,11 @@ export const onRequest = defineMiddleware((context, next) => {
 
 ### `middleware()`
 
-`middleware(options: { prefixDefaultLocale: boolean, redirectToDefaultLocale: boolean })`
+<p>
 
-<p><Since v="4.6.0" /></p>
+**类型：**`(options: { prefixDefaultLocale: boolean, redirectToDefaultLocale: boolean }) => MiddlewareHandler`<br />
+<Since v="4.6.0" />
+</p>
 
 :::note
 仅当 `i18n.routing` 设置为 `"manual"` 时可用。
@@ -1667,9 +2114,11 @@ export const onRequest = sequence(customLogic, middleware({
 
 ### `requestHasLocale()`
 
-`requestHasLocale(context: APIContext): boolean`
+<p>
 
-<p><Since v="4.6.0" /></p>
+**类型：**`(context: APIContext) => boolean`<br />
+<Since v="4.6.0" />
+</p>
 
 :::note
 仅当 `i18n.routing` 设置为 `"manual"` 时可用。
@@ -1689,9 +2138,473 @@ export const onRequest = defineMiddleware(async (context, next) => {
 })
 ```
 
+## 视图过渡客户端 API (`astro:transitions/client`)
+
+<p><Since v="3.2.0" /></p>
+
+此模块提供了一些函数，用于控制和与视图过渡 API 和客户端路由进行交互。
+
+对于功能和使用示例，[请参阅我们的视图过渡指南](/zh-cn/guides/view-transitions/)。
+
+### `navigate()`
+
+<p>
+
+**类型：**`(href: string, options?: Options) => void`<br />
+<Since v="3.2.0" />
+</p>
+
+一个使用视图过渡 API 导航到给定 `href` 的函数。
+
+此函数签名基于 [浏览器 Navigation API 中的 `navigate` 函数](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate)。虽然基于 Navigation API，但此函数是在 [History API](https://developer.mozilla.org/zh-CN/docs/Web/API/History_API) 之上实现的，以允许在不重新加载页面的情况下进行导航。
+
+#### `history` 选项
+
+<p>
+
+**类型：**`'auto' | 'push' | 'replace'`<br />
+**默认值：**`'auto'`<br />
+<Since v="3.2.0" />
+</p>
+
+定义了如何将此导航添加到浏览器历史记录中。
+
+- `'push'`：路由将使用 `history.pushState` 在浏览器历史记录中创建一个新条目。
+- `'replace'`：路由将使用 `history.replaceState` 更新 URL，而不会在导航中添加新条目。
+- `'auto'`（默认）：路由将尝试 `history.pushState`，但如果无法进行过渡，则当前 URL 将保持不变，浏览器历史记录不会发生变化。
+
+此选项遵循浏览器 Navigation API 中的 [`history` 选项](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate#history)，但简化了在 Astro 项目中可能发生的情况。
+
+#### `formData` 选项
+
+<p>
+
+**类型：**`FormData`<br />
+<Since v="3.5.0" />
+</p>
+
+一个 `FormData` 对象，用于 `POST` 请求。
+
+当提供此选项时，导航目标页面的请求将以 `POST` 请求的形式发送，内容为表单数据对象。
+
+当提交一个带有视图过渡的 HTML 表单时，将使用此方法代替默认的页面重新加载导航。调用此方法允许以编程方式触发相同的行为。
+
+#### `info` 选项
+
+<p>
+
+**类型：**`any`<br />
+<Since v="3.6.0" />
+</p>
+
+与导航相关的 `astro:before-preparation` 和 `astro:before-swap` 事件中包含的任意数据。
+
+此选项模仿了浏览器 Navigation API 中的 [`info` 选项](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate#info)。
+
+#### `state` 选项
+
+<p>
+
+**类型：**`any`<br />
+<Since v="3.6.0" />
+</p>
+
+与导航相关的 `NavitationHistoryEntry` 对象中关联的任意数据。此数据可以通过 [`history.getState` 函数](https://developer.mozilla.org/en-US/docs/Web/API/NavigationHistoryEntry/getState) 从 History API 中检索。
+
+此选项模仿了浏览器 Navigation API 中的 [`state` 选项](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate#state)。
+
+#### `sourceElement` 选项
+
+<p>
+
+**类型：**`Element`<br />
+<Since v="3.6.0" />
+</p>
+
+此导航的触发元素，如果有的话。此元素将在以下事件中可用：
+- `astro:before-preparation`
+- `astro:before-swap`
+
+### `supportsViewTransitions`
+
+<p>
+
+**类型：**`boolean`<br />
+<Since v="3.2.0" />
+</p>
+
+当前浏览器是否支持并启用视图过渡。
+
+### `transitionEnabledOnThisPage`
+
+<p>
+
+**类型：**`boolean`<br />
+<Since v="3.2.0" />
+</p>
+
+当前页面是否启用了视图过渡以进行客户端导航。这可以用于使组件在视图过渡页面上的行为有所不同。
+
+### `getFallback`
+
+<p>
+
+**类型：**`() => 'none' | 'animate' | 'swap'`<br />
+<Since v="3.6.0" />
+</p>
+
+返回在浏览器不支持视图过渡时使用的回退策略。
+
+有关如何选择和配置回退行为的详细信息，请参阅 [回退控制](/zh-cn/guides/view-transitions/#回退控制) 指南。
+
+
+### `astro:before-preparation` 事件
+
+在视图过渡中导航开始时触发的事件。此事件发生在任何请求之前，并且不会更改任何浏览器状态。
+
+此事件具有以下属性：
+- [`info`](#info)
+- [`sourceElement`](#sourceelement)
+- [`navigationType`](#navigationtype)
+- [`direction`](#direction)
+- [`from`](#from)
+- [`to`](#to)
+- [`formData`](#formdata)
+- [`loader`](#loader)
+
+有关如何使用此事件的详细信息，请参阅 [视图过渡指南](/zh-cn/guides/view-transitions/#astrobefore-preparation).
+
+### `astro:after-preparation` 事件
+
+使用视图过渡加载导航中的下一个页面后触发的事件。
+
+此事件没有属性。
+
+有关如何使用此事件的详细信息，请参阅 [视图过渡指南](/zh-cn/guides/view-transitions/#astroafter-preparation).
+
+### `astro:before-swap` 事件
+
+在视图过渡中导航的下一个页面解析、准备并链接到 document 后，但在任何内容在 document 之间交换之前触发的事件。
+
+此事件不能取消。调用 `preventDefault()` 是无效的。
+
+此事件具有以下属性：
+- [`info`](#info)
+- [`sourceElement`](#sourceelement)
+- [`navigationType`](#navigationtype)
+- [`direction`](#direction)
+- [`from`](#from)
+- [`to`](#to)
+- [`viewTransition`](#viewtransition)
+- [`swap`](#swap)
+
+有关如何使用此事件的详细信息，请参阅 [视图过渡指南](/zh-cn/guides/view-transitions/#astrobefore-swap).
+
+### `astro:after-swap` 事件
+
+在视图过渡中导航的下一个页面内容交换后，但在视图过渡结束之前触发的事件。
+
+在触发此事件时，历史记录条目和滚动位置已经更新。
+
+### `astro:page-load` 事件
+
+在页面完成加载后触发的事件，无论是通过视图过渡导航还是浏览器原生导航。
+
+当视图过渡在页面上启用时，通常在 `DOMContentLoaded` 上执行的代码应更改为在此事件上执行。
+
+### 视图过渡事件属性
+
+<p><Since v="3.6.0" /></p>
+
+#### `info`
+
+<p>
+
+**类型：**`URL`
+</p>
+
+在导航期间定义的任意数据。
+
+这是在 [`navigate()` 函数](#navigate) 的 [`info` 选项](#info-选项) 中传递的文字值。
+
+#### `sourceElement`
+
+<p>
+
+**类型：**`Element | undefined`
+</p>
+
+触发导航的元素。例如，这可以是点击的 `<a>` 元素。
+
+当使用 [`navigate()` 函数](#navigate) 时，这将是调用中指定的元素。
+
+#### `newDocument`
+
+<p>
+
+**类型：**`Document`
+</p>
+
+导航中下一个页面的 document。此 document 的内容将替换当前 document 的内容。
+
+#### `navigationType`
+
+<p>
+
+**类型：**`'push' | 'replace' | 'traverse'`
+</p>
+
+正在发生的导航类型。
+- `push`: 正在为新页面创建一个新的 `NavigationHistoryEntry`。
+- `replace`: 当前的 `NavigationHistoryEntry` 正在被新页面的条目替换。
+- `traverse`: 没有创建 `NavigationHistoryEntry`。历史记录中的位置正在改变。
+  遍历的方向由 [`direction` 属性](#direction) 给出
+
+#### `direction`
+
+<p>
+
+**类型：**`Direction`
+</p>
+
+过渡的方向。
+- `forward`: 在历史记录中导航到下一个页面或新页面。
+- `back`: 在历史记录中导航到前一个页面。
+- 其他监听器可能设置的任何其他内容。
+
+#### `from`
+
+<p>
+
+**类型：**`URL`
+</p>
+
+正在导航的页面的 URL。
+
+#### `to`
+
+<p>
+
+**类型：**`URL`
+</p>
+
+正在导航的页面的 URL。此属性可以修改，在生命周期结束时使用的值将是下一个页面的 `NavigationHistoryEntry` 的值。
+
+#### `formData`
+
+<p>
+
+**类型：**`FormData | undefined`
+</p>
+
+一个用于 `POST` 请求的 `FormData` 对象。
+
+当此属性设置时，将使用给定的表单数据对象作为内容发送 `POST` 请求到 [`to` URL](#to)，而不是正常的 `GET` 请求。
+
+当提交一个带有视图过渡的 HTML 表单时，此字段会自动设置为表单中的数据。当使用 [`navigate()` 函数](#navigate) 时，此值与给定的选项相同。
+
+#### `loader`
+
+<p>
+
+**类型：**`() => Promise<void>`
+</p>
+
+在导航过程中下个阶段的实现（加载下一个页面）。此实现可以覆盖以添加额外的行为。
+
+#### `viewTransition`
+
+<p>
+
+**类型：**[`ViewTransition`](https://developer.mozilla.org/en-US/docs/Web/API/ViewTransition)
+</p>
+
+在导航过程中使用的视图过渡对象。在浏览器不支持 [视图过渡 API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API) 的情况下，这是一个对象，实现了相同的 API 以方便使用，但没有 DOM 集成。
+
+#### `swap`
+
+<p>
+
+**类型：**`() => void`
+</p>
+
+document 交换逻辑的实现。
+
+有关如何构建自定义交换函数的详细信息，请参阅 [视图过渡指南](/zh-cn/guides/view-transitions/#构建自定义交换函数).
+
+默认情况下，此实现将按顺序调用以下函数：
+
+##### `deselectScripts()`
+
+<p>
+
+**类型：**`(newDocument: Document) => void`
+</p>
+
+标记在新的 document 中不应执行的脚本。这些脚本已经在当前 document 中，并且没有使用 [`data-astro-rerun`](/zh-cn/guides/view-transitions/#data-astro-rerun) 标记为重新执行。
+
+##### `swapRootAttributes()`
+
+<p>
+
+**类型：**`(newDocument: Document) => void`
+</p>
+
+在 document 根节点之间交换属性，如 `lang` 属性。这也包括 Astro 注入的内部属性，如 `data-astro-transition`，这使得过渡方向可用于 Astro 生成的 CSS 规则。
+
+在构建自定义交换函数时，重要的是调用此函数，以避免破坏视图过渡的动画。
+
+##### `swapHeadElements()`
+
+<p>
+
+**类型：**`(newDocument: Document) => void`
+</p>
+
+从当前 document 的 `<head>` 中删除所有未持久化到新 document 的元素。然后将新 document 的 `<head>` 中的所有新元素附加到当前 document 的 `<head>`。
+
+##### `saveFocus()`
+
+<p>
+
+**类型：**`() => () => void`
+</p>
+
+在当前页面上存储聚焦的元素，并返回一个函数，当调用时，如果聚焦的元素被持久化，则将焦点返回给该元素。
+
+
+##### `swapBodyElements()`
+
+<p>
+
+**类型：**`(newBody: Element, oldBody: Element) => void`
+</p>
+
+用新 document 的 body 替换旧的 body。然后，遍历旧 body 中应持久化的每个元素，并在新 body 中找到匹配的元素，将旧元素交换回原位。
+
+## Actions (`astro:actions`)
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+Action 帮助你构建一个类型安全的后端，你可以从客户端代码和 HTML 表单中调用它。所有用于定义和调用 Action 的工具函数都由 `astro:actions` 模块暴露。有关示例和使用说明，请参阅 [Actions 指南](/zh-cn/guides/actions/)。
+
+### `defineAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`defineAction()` 函数接受一个 [`handler()`](#handler-属性) 函数，其中包含在调用 Action 时要运行的服务器逻辑，以及一个可选的 [`input`](#input-验证器) 属性，用于在运行时验证输入参数。
+
+```ts
+export const server = {
+    getGreeting: defineAction({
+    input: z.object({
+      name: z.string(),
+    }),
+    handler: async (input, context) => {
+      return `Hello, ${input.name}!`
+    }
+  })
+}
+```
+
+#### `handler()` 属性
+
+<p>
+
+**类型：**`(input, context) => any`
+</p>
+
+`defineAction()` 函数接受一个 `handler()` 函数，其中包含在调用 Action 时要运行的服务器逻辑。此函数可以返回数据，这些数据将自动序列化并发送给调用者。
+
+`handler()` 函数被调用时，接受用户输入作为其第一个参数。如果设置了 [`input`](#input-验证器) 验证器，那么用户输入将在传递给 `handler()` 前进行验证。第二个参数是一个 `context` 对象，包含大多数 Astro 的 [标准端点上下文](#端点上下文)，不包括 `getActionResult()`, `callAction()`, 和 `redirect()`。
+
+返回值使用 [devalue 库](https://github.com/Rich-Harris/devalue) 进行解析。它支持 JSON 值，以及 `Date()`, `Map()`, `Set()`, 或 `URL()` 的实例。
+
+#### `input` 验证器
+
+<p>
+
+**类型：**`ZodObject | undefined`
+</p>
+
+可选的 `input` 属性接受一个 Zod 验证器，用于在运行时验证处理程序的输入。如果 action 验证失败，将返回 [`BAD_REQUEST` 错误](#actionerror) 并跳过 `handler`。
+
+如果与 `accept: 'form'` 一起使用，则 `input` 必须使用 `z.object()` 验证器。
+
+此对象中支持的扩展函数包括 `.refine()`, `.transform()`, 和 `.pipe()`。表单数据字段支持以下验证器：
+
+- 使用 `z.number()` 验证类型为 `number` 的输入
+- 使用 `z.boolean()` 验证类型为 `checkbox` 的输入
+- 使用 `z.instanceof(File)` 验证类型为 `file` 的输入
+- 使用 `z.array(/* validator */)` 验证相同 `name` 的多个输入
+- 使用 `z.string()` 验证所有其他输入
+
+### `isInputError()`
+
+<p>
+
+**类型：**<code>(error?: unknown | <a href="#actionerror">ActionError</a>) => boolean</code><br/>
+<Since v="4.15.0" />
+</p>
+
+`isInputError()` 函数常用于检查 `ActionError` 是否是输入验证错误。当 `input` 验证器是 `z.object()` 时，输入错误包括一个 `fields` 对象，其中错误消息按名称分组。
+
+<ReadMore> 
+更多关于使用 `isInputError()` 的信息，请参见 [表单输入错误指南](/zh-cn/guides/actions/#displaying-form-input-errors)。
+</ReadMore>
+
+### `ActionError`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`ActionError` 构造函数常用于在 `handler()` 函数中抛出错误。它接受一个 `code` 属性，描述发生的错误（例如：`"UNAUTHORIZED"`），以及一个可选的 `message` 属性，提供进一步的细节。
+
+#### `code`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`code` 属性接受所有 HTTP 状态码的人类可读版本。以下是支持的 code：
+
+- `BAD_REQUEST` (400): 客户端发送了无效的输入。当 action `input` 验证器验证失败时会抛出此错误。
+- `UNAUTHORIZED` (401): 客户端缺乏有效的身份验证凭据。
+- `FORBIDDEN` (403): 客户端无权访问资源。
+- `NOT_FOUND` (404): 服务器找不到请求的资源。
+- `METHOD_NOT_SUPPORTED` (405): 服务器不支持请求的方法。
+- `TIMEOUT` (408): 服务器在处理请求时超时。
+- `CONFLICT` (409): 服务器无法更新资源，因为存在冲突。
+- `PRECONDITION_FAILED` (412): 服务器不满足请求的前提条件。
+- `PAYLOAD_TOO_LARGE` (413): 服务器无法处理请求，因为负载过大。
+- `UNSUPPORTED_MEDIA_TYPE` (415): 服务器不支持请求的媒体类型。注意：Actions 已经检查了 JSON 和表单请求的 [`Content-Type` 标头](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Content-Type)，所以你可能不需要手动引发此代码。
+- `UNPROCESSABLE_CONTENT` (422): 服务器无法处理请求，因为存在语义错误。
+- `TOO_MANY_REQUESTS` (429): 服务器已超出指定的速率限制。
+- `CLIENT_CLOSED_REQUEST` (499): 客户端在服务器响应之前关闭了请求。
+- `INTERNAL_SERVER_ERROR` (500): 服务器意外失败。
+- `NOT_IMPLEMENTED` (501): 服务器不支持请求的功能。
+- `BAD_GATEWAY` (502): 服务器从上游服务器接收到无效响应。
+- `SERVICE_UNAVAILABLE` (503): 服务器暂时不可用。
+- `GATEWAY_TIMEOUT` (504): 服务器从上游服务器接收到超时。
+
+#### `message`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`message` 属性接受一个字符串。（例如："用户必须登录。"）
+
 ## 内置组件
 
 Astro 包括几个内置的组件供你在你的项目中使用。在 `.astro` 文件中可以通过 `import {} from 'astro:components';` 引用所有的内置组件。
+
+你可以使用 [`ComponentProp` 类型](/zh-cn/guides/typescript/#componentprops-类型) 工具函数来引用这些组件的 `Props`。
 
 ### `<Code />`
 
@@ -1725,13 +2638,13 @@ import { Code } from 'astro:components';
 
 <p><Since v="4.11.0" /></p>
 
-[Shiki 转换器](https://shiki.tmrs.site/packages/transformers#shikijs-transformers) 可以通过将其作为数组传递到 `transformers` 属性中，来选择性地应用于代码。
+[Shiki 转换器](https://shiki.tmrs.site/packages/transformers#shikijs-transformers) 可以通过将其作为数组传递到 `transformers` 属性中，来选择性地应用于代码。从 Astro v4.14.0 开始，你还可以为 [Shiki 的 `meta` 属性](https://shiki.style/guide/transformers#meta) 提供一个字符串，以将选项传递给转换器。
 
 注意，`transformers` 只能用于类，同时你必须提供自己的 CSS 规则来针对代码块的元素。
 
-```astro
+```astro title="src/pages/index.astro" {12-13}
 ---
-import { transformerNotationFocus } from '@shikijs/transformers'
+import { transformerNotationFocus, transformerMetaHighlight } from '@shikijs/transformers'
 import { Code } from 'astro:components'
 const code = `const foo = 'hello'
 const bar = ' world'
@@ -1741,7 +2654,8 @@ console.log(foo + bar) // [!code focus]
 <Code
   code={code}
   lang="js"
-  transformers={[transformerNotationFocus()]} />
+  transformers={[transformerMetaHighlight()]}
+  meta="{1,3}" />
   
   <style is:global>
     pre.has-focused .line:not(.focused) {
@@ -1903,6 +2817,8 @@ const { Content } = await entry.render();
 ```
 
 ### `<ViewTransitions />`
+
+<p><Since v="2.9.0" /></p>
 
 在每个希望应用视图过渡动画的页面上，通过导入并将 `<ViewTransitions />` 路由组件添加到 `<head>` 中，来选择使用单个页面上的视图过渡动画。
 

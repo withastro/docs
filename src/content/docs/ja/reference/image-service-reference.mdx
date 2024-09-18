@@ -1,0 +1,257 @@
+---
+title: 画像サービスAPI
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+
+`astro:assets` は、どんな画像最適化サービスでも簡単にAstro上に構築できるように設計されています。
+
+## 画像サービスとは？
+
+Astroには、ローカルと外部の2種類の画像サービスがあります。
+
+- **ローカルサービス**は、静的サイトのビルド時や、開発モードとSSRの実行時に直接画像を変換します。多くの場合、Sharp、ImageMagick、Squooshなどのライブラリをラップしたものです。開発モードとSSRでは、APIエンドポイントを使って画像変換を行います。
+- **外部サービス**は、URLを指定して使います。Cloudinary、Vercel、その他の[RIAPI](https://github.com/riapi/riapi)に準拠したサーバーなどのサービスをサポートできます。
+
+## 画像サービスAPIを使ったサービスの構築
+
+サービスの定義は、エクスポートされたデフォルトオブジェクトの形を取り、いくつかの必須メソッド（「フック」と呼ばれます）を含みます。
+
+外部サービスは、最終的な `<img>` タグの `src` を指定する `getURL()` を提供します。
+
+ローカルサービスは、画像変換を行う `transform()` メソッドと、開発モードとSSRでエンドポイントを使うための `getURL()` と `parseURL()` メソッドを提供します。
+
+どちらのタイプのサービスも、出力される `<img>` の他の属性を決定する `getHTMLAttributes()` や、渡されたオプションを検証・拡張する `validateOptions()` を提供できます。
+
+### 外部サービス
+
+外部サービスは、最終的な `<img>` タグの `src` 属性として使われるリモートURLを指定します。このリモートURLが、画像のダウンロード、変換、返送を担当します。
+
+```js
+import type { ExternalImageService, ImageTransform, AstroConfig } from "astro";
+
+const service: ExternalImageService = {
+  validateOptions(options: ImageTransform, imageConfig: AstroConfig['image']) {
+    const serviceConfig = imageConfig.service.config;
+
+    // ユーザー設定の最大幅を強制します。
+    if (options.width > serviceConfig.maxWidth) {
+      console.warn(`画像幅${options.width}は最大幅${serviceConfig.maxWidth}を超えています。最大幅にフォールバックします。`);
+      options.width = serviceConfig.maxWidth;
+    }
+
+    return options;
+  },
+  getURL(options, imageConfig) {
+    return `https://mysupercdn.com/${options.src}?q=${options.quality}&w=${options.width}&h=${options.height}`;
+  },
+  getHTMLAttributes(options, imageConfig) {
+    const { src, format, quality, ...attributes } = options;
+    return {
+      ...attributes,
+      loading: options.loading ?? 'lazy',
+      decoding: options.decoding ?? 'async',
+    };
+  }
+};
+
+export default service;
+```
+
+### ローカルサービス
+
+独自のローカルサービスを作るには、[Astroに組み込まれているエンドポイント](https://github.com/withastro/astro/blob/main/packages/astro/src/assets/endpoint/generic.ts)（`/_image`）を使うか、サービスのメソッドを呼び出せる独自のエンドポイントを新たに作成することができます。
+
+```js
+import type { LocalImageService, AstroConfig } from "astro";
+
+const service: LocalImageService = {
+  getURL(options: ImageTransform, imageConfig: AstroConfig['image']) {
+    const searchParams = new URLSearchParams();
+    searchParams.append('href', typeof options.src === "string" ? options.src : options.src.src);
+    options.width && searchParams.append('w', options.width.toString());
+    options.height && searchParams.append('h', options.height.toString());
+    options.quality && searchParams.append('q', options.quality.toString());
+    options.format && searchParams.append('f', options.format);
+    return `/my_custom_endpoint_that_transforms_images?${searchParams}`;
+    // または組み込みのエンドポイントを使用し、parseURLおよびtransform関数を呼び出します。
+    // return `/_image?${searchParams}`;
+  },
+  parseURL(url: URL, imageConfig) {
+    return {
+      src: params.get('href')!,
+      width: params.has('w') ? parseInt(params.get('w')!) : undefined,
+      height: params.has('h') ? parseInt(params.get('h')!) : undefined,
+      format: params.get('f'),
+      quality: params.get('q'),
+    };
+  },
+  transform(buffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig): { data: Uint8Array, format: OutputFormat } {
+    const { buffer } = mySuperLibraryThatEncodesImages(options);
+    return {
+      data: buffer,
+      format: options.format,
+    };
+  },
+  getHTMLAttributes(options, imageConfig) {
+    let targetWidth = options.width;
+    let targetHeight = options.height;
+    if (typeof options.src === "object") {
+      const aspectRatio = options.src.width / options.src.height;
+
+      if (targetHeight && !targetWidth) {
+        targetWidth = Math.round(targetHeight * aspectRatio);
+      } else if (targetWidth && !targetHeight) {
+        targetHeight = Math.round(targetWidth / aspectRatio);
+      }
+    }
+
+    const { src, width, height, format, quality, ...attributes } = options;
+
+    return {
+      ...attributes,
+      width: targetWidth,
+      height: targetHeight,
+      loading: attributes.loading ?? 'lazy',
+      decoding: attributes.decoding ?? 'async',
+    };
+  }
+};
+export default service;
+```
+
+静的サイトや事前レンダリングされたルートをビルドする際、`<Image />` と `getImage(options)` はどちらも `transform()` 関数を呼び出します。オプションは、それぞれコンポーネントの属性や `options` 引数を通じて渡されます。変換された画像は `dist/_astro` フォルダに出力されます。
+
+開発モードやSSRモードでは、Astroはどの画像を最適化すべきか事前にわかりません。そのため、実行時に画像を処理するためのGETエンドポイント（デフォルトは `/_image`）を使います。`<Image />` と `getImage()` は、それぞれのオプションを `getURL()` に渡してエンドポイントのURLを取得します。その後、エンドポイントが `parseURL()` を呼び出し、得られたプロパティを `transform()` に渡します。
+
+#### getConfiguredImageServiceとimageConfig
+
+Astroのエンドポイントとして独自のエンドポイントを実装する場合、`getConfiguredImageService` と `imageConfig` を使って、サービスの `parseURL` と `transform` メソッドを呼び出し、画像の設定を提供できます。
+
+画像サービスの設定（[`image.service.config`](/ja/reference/configuration-reference/#imageservice)）にアクセスするには、`imageConfig.service.config` を使います。
+
+```ts title="src/api/my_custom_endpoint_that_transforms_images.ts"
+import type { APIRoute } from "astro";
+import { getConfiguredImageService, imageConfig } from 'astro:assets';
+
+export const GET: APIRoute = async ({ request }) => {
+  const imageService = await getConfiguredImageService();
+
+  const imageTransform = imageService.parseURL(new URL(request.url), imageConfig);
+  // ... imageTransform.srcから画像を取得し、inputBufferに格納
+  const { data, format } = await imageService.transform(inputBuffer, imageTransform, imageConfig);
+  return new Response(data, {
+      status: 200,
+      headers: {
+        'Content-Type': mime.getType(format) || ''
+      }
+    }
+  );
+}
+```
+
+詳しい例は、[Astroに組み込まれているエンドポイントのコード](https://github.com/withastro/astro/blob/main/packages/astro/src/assets/endpoint/generic.ts)をご覧ください。
+
+## フック
+
+### `getURL()`
+
+**ローカルサービスと外部サービスの両方に必須**
+
+`getURL(options: ImageTransform, imageConfig: AstroConfig['image']): string`
+
+ローカルサービスの場合、このフックは画像を生成するエンドポイントのURLを返します（SSRと開発モードで使用）。ビルド時には使われません。`getURL()`が指すローカルエンドポイントは、`parseURL()`と`transform()`の両方を呼び出すことがあります。
+
+外部サービスの場合、このフックは画像の最終的なURLを返します。
+
+どちらのサービスタイプでも、`options`はユーザーが`<Image />`コンポーネントの属性や`getImage()`のオプションとして渡したプロパティです。
+
+```ts
+export type ImageTransform = {
+    // ESM imported images | remote/public image paths
+    src: ImageMetadata | string;
+    width?: number;
+    height?: number;
+    widths?: number[] | undefined;
+    densities?: (number | `${number}x`)[] | undefined;
+    quality?: ImageQuality;
+    format?: OutputFormat;
+    alt?: string;
+    [key: string]: any;
+};
+```
+
+### `parseURL()`
+
+**ローカルサービスのみ必須（外部サービスでは使用不可）**
+
+`parseURL(url: URL, imageConfig: AstroConfig['image']): { src: string, [key: string]: any}`
+
+このフックは、`getURL()`で生成されたURLを、`transform`で使用するためのプロパティを持つオブジェクトに変換します（SSRと開発モードで使用）。ビルド時には使われません。
+
+### `transform()`
+
+**ローカルサービスのみ必須（外部サービスでは使用不可）**
+
+`transform(buffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig: AstroConfig['image']): { data: Uint8Array, format: OutputFormat }`
+
+このフックは画像を変換し、最終的なアセットファイルを作成するためにビルド時に呼び出されます。
+
+SSRと開発モードでは、適切なMIMEタイプをユーザーに提供するために`format`を返す必要があります。
+
+### `getHTMLAttributes()`
+
+**ローカルサービスと外部サービスの両方でオプション**
+
+`getHTMLAttributes(options: ImageTransform, imageConfig: AstroConfig['image']): Record<string, any>`
+
+このフックは、ユーザーが渡したパラメータ（`options`）に基づいて、画像をHTMLとしてレンダリングする際に使用される追加の属性をすべて返します。
+
+### `getSrcSet()`
+
+<p><Since v="3.3.0" /></p>
+
+**ローカルサービスと外部サービスの両方でオプション**
+
+`getSrcSet?: (options: ImageTransform, imageConfig: AstroConfig['image']): SrcSetValue[] | Promise<SrcSetValue[]>;`
+
+このフックは、指定された画像の複数のバリエーションを生成します。例えば、`<img>`や`<picture>`の`srcset`属性を生成するのに使います。
+
+このフックは、特定のプロパティを持つオブジェクトの配列を返します。
+
+```ts
+export type SrcSetValue = {
+	transform: ImageTransform;
+	descriptor?: string;
+	attributes?: Record<string, any>;
+};
+```
+
+### `validateOptions()`
+
+**ローカルサービスと外部サービスの両方でオプション**
+
+`validateOptions(options: ImageTransform, imageConfig: AstroConfig['image']): ImageTransform`
+
+このフックを使うと、ユーザーが渡したオプションを検証したり拡張したりできます。デフォルトのオプションを設定したり、必須のパラメータをユーザーに知らせたりするのに便利です。
+
+[Astroの組み込みサービスで`validateOptions()`がどう使われているかはこちらを参照してください](https://github.com/withastro/astro/blob/0ab6bad7dffd413c975ab00e545f8bc150f6a92f/packages/astro/src/assets/services/service.ts#L124)。
+
+## ユーザー設定
+
+使用する画像サービスは`astro.config.mjs`で設定します。設定は以下の形式になります。
+
+```js title="astro.config.mjs"
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  image: {
+    service: {
+      entrypoint: "your-entrypoint", // 'astro/assets/services/squoosh' | 'astro/assets/services/sharp' | string,
+      config: {
+        // ... サービス固有の設定。任意。
+      }
+    }
+  },
+});
+```

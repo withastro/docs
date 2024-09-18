@@ -221,33 +221,71 @@ export interface TransitionDirectionalAnimations {
 }
 ```
 
-L'exemple suivant montre toutes les propriétés nécessaires pour définir une animation `fade` personnalisée :
 
-```astro
+L'exemple suivant montre toutes les propriétés nécessaires pour définir une animation `bump` personnalisée à l'intérieur d'une balise `<style is:global>` dans votre fichier de mise en page racine :
+
+
+```astro title="src/layouts/Layout.astro"
+---
+import { ViewTransitions } from 'astro:transitions';
+---
+
+<html lang="en">
+  <head>
+    <ViewTransitions />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  @keyframes bump {
+    0% {
+      opacity: 0;
+      transform: scale(1) translateX(200px);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(1.1);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateX(0);
+    }
+  }
+</style>
+
+```
+
+Le comportement de l'animation doit être défini dans le frontmatter de chaque composant utilisant l'animation :
+
+```astro title="src/pages/index.astro"
 ---
 const anim = {
   old: {
-    name: 'fadeIn',
-    duration: '0.2s',
-    easing: 'linear',
-    fillMode: 'forwards',
+    name: 'bump',
+    duration: '0.5s',
+    easing: 'ease-in',
+    direction: 'reverse',
   },
   new: {
-    name: 'fadeOut',
-    duration: '0.3s',
-    easing: 'linear',
-    fillMode: 'backwards',
-  }
+    name: 'bump',
+    duration: '0.5s',
+    easing: 'ease-in-out',
+  },
 };
 
-const myFade = {
-	forwards: anim,
-	backwards: anim,
+const customTransition = {
+  forwards: anim,
+  backwards: anim,
 };
 ---
 
-<header transition:animate={myFade}> ... </header>
+<header transition:animate={customTransition}> ... </header>
 ```
+
+Vous disposez d'une grande flexibilité pour définir des animations personnalisées. Pour obtenir le résultat souhaité, vous pouvez envisager des combinaisons inhabituelles, telles qu'utiliser des objets différents pour les propriétés `forwards` et `backwards`, ou fournir des étapes d'animations distinctes pour les propriétés `old` et `new`.
 
 ## Contrôle du routeur
 
@@ -604,6 +642,36 @@ L'événement `astro:before-swap` peut aussi être utilisé pour changer l'*impl
 </script>
 ```
 
+#### Créer une fonction d'échange personnalisée
+
+<p><Since v="4.15.0" /></p>
+
+L'objet `swapFunctions` du module `astro:transitions/client` fournit cinq fonctions utilitaires qui gèrent des tâches spécifiques liées à l'échange, notamment la gestion des attributs de document, des éléments de page et l'exécution de scripts. Ces fonctions peuvent être utilisées directement pour définir une implémentation d'échange personnalisée.
+
+L'exemple suivant montre comment utiliser ces fonctions pour recréer l'implémentation d'échange intégrée d'Astro :
+
+```astro
+<script>
+import { swapFunctions } from 'astro:transitions/client';
+
+// remplace window.document par doc
+function mySwap(doc: Document) {
+  swapFunctions.deselectScripts(doc);
+  swapFunctions.swapRootAttributes(doc);
+  swapFunctions.swapHeadElements(doc);
+  const restoreFocusFunction = swapFunctions.saveFocus();
+  swapFunctions.swapBodyElement(doc.body, document.body);
+  restoreFocusFunction();
+};
+
+...
+  event.swap = () => mySwap(event.newDocument);
+...
+<script>
+```
+Les implémentations d'échange personnalisées peuvent commencer avec ce modèle et ajouter ou remplacer des étapes individuelles par une logique personnalisée selon les besoins.
+
+
 ### `astro:after-swap`
 
 Un événement qui se déclenche immédiatement après que la nouvelle page ait remplacé l'ancienne. Vous pouvez écouter cet événement sur `document` et déclencher des actions qui se produiront avant le rendu des éléments DOM de la nouvelle page et l'exécution des scripts.
@@ -626,14 +694,14 @@ Un événement qui se déclenche à la fin de la navigation de la page, après q
 
 Le composant `<ViewTransitions />` déclenche cet événement à la fois lors de la navigation initiale sur une page pré-rendue et lors de toute navigation ultérieure, que ce soit en avant ou en arrière.
 
-Vous pouvez utiliser cet événement pour exécuter du code à chaque navigation de page, ou seulement une fois par jour :
+Vous pouvez utiliser cet événement pour exécuter du code à chaque navigation de page, par exemple pour configurer des écouteurs d'événements qui autrement seraient perdus pendant la navigation.
 
-```astro "{ once: true }"
+```astro
 <script>
   document.addEventListener('astro:page-load', () => {
-    // Cette opération n'est exécutée qu'une seule fois.
-    setupStuff();
-  }, { once: true });
+    // Cette opération s'exécute lors du premier chargement de la page et après chaque navigation.
+    setupStuff(); // par exemple, ajouter des écouteurs d'événements
+  });
 </script>
 ```
 

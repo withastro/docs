@@ -7,6 +7,7 @@ i18nReady: true
 import { FileTree } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
 import StudioHeading from '~/components/StudioHeading.astro';
 import { Steps } from '@astrojs/starlight/components';
 
@@ -38,7 +39,7 @@ Astro DB는 Astro 전용으로 설계된 완전 관리형 SQL 데이터베이스
 
 ## 데이터베이스 정의
 
-Astro DB는 데이터 구성, 개발 및 쿼리를 위한 완벽한 솔루션입니다. Docker나 네트워크 연결 없이 LibSQL을 사용하여 데이터를 관리하는 `astro dev`를 실행할 때마다 로컬 데이터베이스가 생성됩니다.
+Astro DB는 데이터 구성, 개발 및 쿼리를 위한 완벽한 솔루션입니다. Docker나 네트워크 연결 없이 libSQL을 사용하여 데이터를 관리하는 `astro dev`를 실행할 때마다 로컬 데이터베이스가 생성됩니다.
 
 `astro add` 명령으로 `@astrojs/db`를 설치하면 데이터베이스 테이블을 정의할 프로젝트에 `db/config.ts` 파일이 생성됩니다.
 
@@ -138,7 +139,7 @@ const Comment = defineTable({
 다음 예시에서는 `Comment` 테이블에 대한 개발 데이터의 두 행을 정의합니다.
 
 ```ts title="db/seed.ts"
-import { db, Comment } from 'astro:db';
+import { db, Comment, Author } from 'astro:db';
 
 export default async function() {
   await db.insert(Author).values([
@@ -161,7 +162,7 @@ export default async function() {
 
 ### Drizzle ORM
 
-```
+```ts
 import { db } from 'astro:db';
 ```
 
@@ -341,6 +342,12 @@ export default async function () {
 <StudioHeading>
 ## Astro Studio
 </StudioHeading>
+
+:::caution
+[Astro Studio를 종료합니다](https://astro.build/blog/goodbye-astro-studio/). 따라서 2024년 10월 1일 이후에는 더 이상 데이터베이스를 만들 수 없습니다.
+
+대신 [기존 Studio 데이터베이스를 Turso로 마이그레이션](#astro-studio에서-turso로-마이그레이션)하거나 [Astro DB를 libSQL 서버에 연결](#libsql)하는 것을 권장합니다.
+:::
 
 Astro DB는 Astro Studio 플랫폼을 연결하여 호스팅된 데이터베이스를 프로젝트에 빠르게 추가할 수 있습니다. Astro Studio 대시보드에서 새로운 호스팅 데이터베이스를 확인하고, 관리하고, 배포할 수 있습니다.
 
@@ -650,6 +657,96 @@ astro dev --remote
 배포할 준비가 되면 [Studio 연결 및 배포 가이드](#studio-연결을-사용하여-배포)를 확인하세요.
 
 </ReadMore>
+
+### Astro Studio에서 Turso로 마이그레이션
+
+<Steps>
+
+1. [Studio 대시보드](https://studio.astro.build/)에서 마이그레이션하려는 프로젝트로 이동합니다. settings 탭에서 "Export Database" 버튼을 사용해 데이터베이스 덤프를 다운로드합니다.
+2. 공식 지침에 따라 [Turso CLI를 설치](https://docs.turso.tech/cli/installation)하고, Turso 계정의 [가입 또는 로그인](https://docs.turso.tech/cli/authentication)을 진행합니다.
+3. 1단계에서 다운로드한 `.sql` 덤프를 사용하여 새 데이터베이스를 만듭니다.
+   ```sh
+   turso db create [database-name] --from-dump ./path/to/dump.sql
+   ```
+4. Turso CLI를 사용하여 데이터베이스 URL을 가져와서 환경 변수 `ASTRO_DB_REMOTE_URL`로 사용합니다.
+   ```sh
+   turso db show [database-name]
+   ```
+   ```env
+   ASTRO_DB_REMOTE_URL=[your-database-url]
+   ```
+5. 데이터베이스에 액세스할 수 있는 토큰을 생성하고 환경 변수 `ASTRO_DB_APP_TOKEN`으로 사용합니다.
+   ```sh
+   turso db tokens create [database-name]
+   ```
+   ```env
+   ASTRO_DB_APP_TOKEN=[your-app-token]
+   ```
+6. 프로젝트가 새 데이터베이스에 연결되었음을 확인했으면 Astro Studio에서 프로젝트를 안전하게 삭제할 수 있습니다.
+
+</Steps>
+
+## libSQL
+
+<p><Since pkg="@astrojs/db" v="0.14.0" /></p>
+
+Astro DB는 서버의 libSQL 원격 프로토콜을 노출하는 모든 플랫폼에서 모든 libSQL 서버에 연결하거나 자체 호스팅할 수 있습니다.
+
+Astro DB를 libSQL 데이터베이스에 연결하려면 다음 환경 변수를 설정하세요:
+- `ASTRO_DB_REMOTE_URL`: libSQL 서버에 대한 연결 URL
+- `ASTRO_DB_APP_TOKEN`: libSQL 서버에 대한 인증 토큰
+
+데이터베이스에 [변경 사항을 배포하고 푸시하는 명령](#studio-연결을-사용하여-배포)은 libSQL을 사용할 때 Astro Studio에서 호스팅하는 데이터베이스에 연결할 때와 동일합니다. 그러나 `--remote` 옵션이 있는 `astro build` 및 `astro db push`와 같은 명령을 실행할 때는 두 환경 변수를 모두 로컬로 설정해야 합니다.
+
+libSQL 연결의 세부 정보 (예: 암호화 키, 복제, 동기화 간격)는 원격 연결 URL에서 쿼리 매개변수로 구성될 수 있습니다.
+
+예를 들어 로컬 파일이 암호화된 libSQL 서버에 포함된 복제본으로 작동하도록 하려면 다음 환경 변수를 설정할 수 있습니다.
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=file://local-copy.db?encryptionKey=your-encryption-key&syncInterval=60&syncUrl=libsql%3A%2F%2Fyour.server.io
+ASTRO_DB_APP_TOKEN=token-to-your-remote-url
+```
+
+### URL 스킴 및 호스트
+
+libSQL은 원격 서버의 전송 프로토콜로 HTTP와 WebSockets을 모두 지원합니다. 또한 로컬 파일이나 인메모리 DB 사용도 지원합니다. 이러한 프로토콜은 연결 URL에서 다음 URL 스킴을 사용하여 구성할 수 있습니다:
+
+- `memory:` 인메모리 DB를 사용합니다. 이 경우 호스트는 비어 있어야 합니다.
+- `file:` 로컬 파일을 사용합니다. 호스트는 파일 경로입니다 (`file:path/to/file.db`).
+- `libsql:` 라이브러리에서 선호하는 프로토콜을 통해 원격 서버를 사용합니다 (버전에 따라 다를 수 있음). 호스트는 서버의 주소 (`libsql://your.server.io`)입니다.
+- `http:` HTTP를 통해 원격 서버를 사용합니다. 보안 연결을 사용하려면 `https:`를 사용할 수 있습니다. 호스트는 `libsql:`와 동일합니다.
+- `ws:` WebSockets을 통해 원격 서버를 사용합니다. `wss:`를 사용하여 보안 연결을 활성화할 수 있습니다. 호스트는 `libsql:`와 동일합니다.
+
+### `encryptionKey`
+
+libSQL은 암호화된 데이터베이스를 기본적으로 지원합니다. 이 검색 매개변수를 전달하면 지정된 키를 사용하여 암호화를 활성화합니다:
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=file:path/to/file.db?encryptionKey=your-encryption-key
+```
+
+### `syncUrl`
+
+임베디드 복제본은 초고속 읽기를 위해 로컬 파일이나 메모리에 데이터베이스의 전체 동기화 복사본을 저장할 수 있는 libSQL 클라이언트의 기능입니다. 쓰기는 `syncUrl`에 정의된 원격 데이터베이스로 전송되어 로컬 복사본과 동기화됩니다.
+
+이 속성을 사용하여 별도의 연결 URL을 전달하여 DB를 다른 데이터베이스의 임베디드 복제본으로 전환합니다. 이 속성은 `file:` 및 `memory:` 스킴에서만 사용해야 합니다. 매개변수는 URL로 인코딩되어야 합니다.
+
+예를 들어 데이터베이스의 인메모리 임베디드 복제본을 `libsql://your.server.io`에 만들려면 연결 URL을 다음과 같이 설정할 수 있습니다.
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io
+```
+
+### `syncInterval`
+
+임베디드 복제본 동기화 간격 (초)입니다. 기본적으로 시작 시와 쓰기 후에만 동기화됩니다.
+
+이 속성은 `syncUrl`도 설정된 경우에만 사용됩니다. 예를 들어 인메모리 임베디드 복제본이 매분 동기화되도록 설정하려면 다음 환경 변수를 설정합니다:
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io&syncInterval=60
+```
+
 
 ## Astro DB 통합 구축
 
