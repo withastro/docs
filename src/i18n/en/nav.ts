@@ -111,6 +111,11 @@ export default [
 		slug: 'reference/directives-reference',
 		key: 'reference/directives-reference',
 	},
+	{
+		text: 'Built-in components',
+		slug: 'reference/components-reference',
+		key: 'reference/components-reference',
+	},
 	{ text: 'TypeScript Reference', slug: 'guides/typescript', key: 'guides/typescript' },
 	{ text: 'Error Reference', slug: 'reference/error-reference', key: 'reference/error-reference' },
 
