@@ -34,6 +34,7 @@ interface AstroIntegration {
       addDevToolbarApp: (pluginEntrypoint: string) => void;
       injectScript: (stage: InjectedScriptStage, content: string) => void;
       injectRoute: (injectedRoute: { pattern: string; entrypoint: string; prerender?: boolean }) => void;
+      createCodegenDir: () => URL;
       logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
     'astro:config:done'?: (options: {
@@ -92,7 +93,8 @@ The following hooks are built in to Astro:
   addDevToolbarApp: (pluginEntrypoint: string) => void;
   addWatchFile: (path: URL | string) => void;
   injectScript: (stage: InjectedScriptStage, content: string) => void;
-  injectRoute: ({ pattern: string; entrypoint: string; prerender?: boolean }) => void;
+  injectRoute: (injectedRoute: { pattern: string; entrypoint: string; prerender?: boolean }) => void;
+  createCodegenDir: () => URL;
   logger: AstroIntegrationLogger;
 }) => void | Promise<void>;
 ```
@@ -385,6 +387,28 @@ The **`stage`** denotes how this script (the `content`) should be inserted. Some
     ```js
     injectScript('page-ssr', 'import "global-styles.css";');
     ```
+
+#### `createCodegenDir`
+
+**Type:** `() => URL;`
+
+A function that creates the `<root>/.astro/integrations/<normalized_integration_name>` folder and returns its path.
+
+It allows you to have a dedicated folder, avoiding conflicts with another integration or Astro itself. This directory is created by calling this function so it's safe to write files to it directly:
+
+```js
+import { writeFileSync } from 'node:fs'
+
+const integration = {
+    name: 'my-integration',
+    hooks: {
+        'astro:config:setup': ({ createCodegenDir }) => {
+            const codegenDir = createCodegenDir()
+            writeFileSync(new URL('cache.json', codegenDir), '{}', 'utf-8')
+        }
+    }
+}
+```
 
 ### `astro:config:done`
 
