@@ -96,6 +96,7 @@ export const logos = LogoCheck({
 	db: { file: 'db.svg', padding: '.1em' },
 	sentry: { file: 'sentry.svg', padding: '.1em' },
 	umbraco: { file: 'umbraco.svg', padding: '.05em' },
+	'clever-cloud': { file: 'clever-cloud.svg', padding: '.09em' },
 });
 
 export type LogoKey = keyof typeof logos;
