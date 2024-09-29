@@ -1,0 +1,135 @@
+---
+import { cachedFetch } from '~/util-server';
+import Badge from './Badge.astro';
+import { useTranslations } from '~/i18n/util';
+
+export interface Props {
+	cli?: string;
+	default?: string;
+	pkg?: string;
+	version?: string;
+}
+
+const { cli, default: defaultValue, pkg = 'astro', version } = Astro.props;
+const type = await Astro.slots.render('default');
+
+/**
+ * Removes `<p>...</p>` tag around the given string.
+ *
+ * It seems the return type of `Astro.slots.render` is wrong, it can return
+ * `undefined`. So we need to accept an undefined argument or to check earlier
+ * if the value exist.
+ */
+const removeParagraphWrapper = (str: string | undefined) => {
+	if (!str) return str;
+	let updatedType = str;
+	// We only remove `p` tag when both match to avoid invalid HTML
+	if (str.startsWith('<p>') && str.endsWith('</p>')) {
+		updatedType = updatedType.replace('<p>', '');
+		updatedType = updatedType.replace(new RegExp('</p>$'), '');
+	}
+	return updatedType;
+};
+
+const trimmedType = removeParagraphWrapper(type);
+
+/**
+ * Replaces each pair of backticks with `<code>...</code>` tags.
+ */
+const replaceBackticksWithCodeTags = (str: string) => {
+	const backtickPattern = /`(.*?)`/g;
+	return str.replace(backtickPattern, '<code>$1</code>');
+};
+
+const formattedDefault = defaultValue ? replaceBackticksWithCodeTags(defaultValue) : null;
+
+/**
+ * Split a semantic version string like `0.23.3` into a tuple of `[major, minor, patch]`.
+ */
+const parseSemVer = (semver: string) =>
+	semver.split('.').map((part) => parseInt(part.replace(/[^0-9]/g, ''), 10));
+
+/**
+ * Decide a feature is “new” if it was added in the latest minor version.
+ * For example, `@version 0.24.0` will be new as long as `astro@latest` is 0.24.x
+ */
+const getFeatureStatus = async (sinceVersion: string): Promise<'beta' | 'new' | 'current'> => {
+	const astroInfo = await cachedFetch(`https://registry.npmjs.org/${pkg}/latest`).then((res) =>
+		res.json()
+	);
+	const latestAstroVersion = astroInfo.version;
+	const [sinceMajor, sinceMinor] = parseSemVer(sinceVersion);
+	const [latestMajor, latestMinor] = parseSemVer(latestAstroVersion);
+	if (sinceMajor > latestMajor) {
+		return 'beta';
+	}
+	if (sinceMajor === latestMajor) {
+		if (sinceMinor > latestMinor) return 'beta';
+		if (sinceMinor === latestMinor) return 'new';
+	}
+	return 'current';
+};
+
+const featureStatus = version ? await getFeatureStatus(version) : null;
+const t = useTranslations(Astro);
+---
+
+<dl>
+	{
+		trimmedType ? (
+			<div class="meta-item">
+				<dt class="meta-label">{t('meta.type')}</dt>
+				<dd class="meta-value" set:html={trimmedType} />
+			</div>
+		) : null
+	}
+	{
+		cli ? (
+			<div class="meta-item">
+				<dt class="meta-label">{t('meta.cli')}</dt>
+				<dd class="meta-value">{cli}</dd>
+			</div>
+		) : null
+	}
+	{
+		formattedDefault ? (
+			<div class="meta-item">
+				<dt class="meta-label">{t('meta.default')}</dt>
+				<dd class="meta-value" set:html={formattedDefault} />
+			</div>
+		) : null
+	}
+	{
+		version ? (
+			<div class="meta-item">
+				<dt class="meta-label">{t('meta.addedIn')}</dt>
+				{/* Prettier adds extra spaces while formatting `<code>` */}
+				{/* prettier-ignore */}
+				<dd class="meta-value"><code>{pkg}@{version}</code>
+					{featureStatus === 'new' && <Badge text={t('meta.badge.new')} />}
+					{featureStatus === 'beta' && <Badge text={t('meta.badge.beta')} />}
+				</dd>
+			</div>
+		) : null
+	}
+</dl>
+
+<style>
+	:global(.sl-markdown-content) .meta-item {
+		margin: 0;
+	}
+
+	.meta-label,
+	.meta-value {
+		display: inline;
+	}
+
+	.meta-label {
+		margin-inline-end: 0.25ch;
+	}
+
+	:global(.sl-markdown-content) .meta-value {
+		margin: 0;
+		padding: 0;
+	}
+</style>

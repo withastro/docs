@@ -39,6 +39,13 @@ export default {
 	'since.addedIn': 'Added in:',
 	'since.new': 'New',
 	'since.beta': 'Beta',
+	// Used in `<Meta>`
+	'meta.addedIn': 'Added in:',
+	'meta.badge.new': 'New',
+	'meta.badge.beta': 'Beta',
+	'meta.cli': 'CLI:',
+	'meta.default': 'Default:',
+	'meta.type': 'Type:',
 	// Installation Guide
 	'install.autoTab': 'Automatic CLI',
 	'install.manualTab': 'Manual Setup',
@@ -50,7 +57,7 @@ export default {
 	'deploy.staticTag': 'Static',
 	// CMS Guides vocabulary
 	'cms.navTitle': 'More CMS guides',
-	// Media Guides voccabulary
+	// Media Guides vocabulary
 	'media.navTitle': 'More DAM guides',
 	// Migration Guides vocabulary
 	'migration.navTitle': 'More migration guides',
