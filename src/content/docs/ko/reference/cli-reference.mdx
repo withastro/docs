@@ -68,7 +68,7 @@ Commands
              docs  Open documentation in your web browser.
              info  List info about your current Astro setup.
           preview  Preview your build locally.
-             sync  Generate content collection types.
+             sync  Generate TypeScript types for all Astro modules.
       preferences  Configure user preferences.
         telemetry  Configure telemetry settings.
 
@@ -250,6 +250,10 @@ check 명령을 실행할 다른 루트 디렉터리를 지정합니다. 기본�
 
 감시 모드에서 check 사이의 출력을 지우지 않도록 지정합니다.
 
+#### `--noSync`
+
+프로젝트를 검사하기 전에 `astro sync`를 실행하지 않도록 지정합니다.
+
 <ReadMore>[Astro의 타입 검사](/ko/guides/typescript/#타입-검사)에 대해 자세히 알아보세요.</ReadMore>
 
 ## `astro sync`
@@ -264,6 +268,8 @@ check 명령을 실행할 다른 루트 디렉터리를 지정합니다. 기본�
 
 - `astro:content` [콘텐츠 컬렉션 API](/ko/guides/content-collections/)를 위한 모듈
 - `astro:db` [Astro DB](/ko/guides/astro-db/)를 위한 모듈
+- [실험적 Astro Env](/ko/reference/configuration-reference/#experimentalenv)를 위한 `astro:env` 모듈
+- [Astro Actions](/ko/guides/actions/)를 위한 `astro:actions` 모듈
 
 ## `astro add`
 
@@ -474,9 +480,9 @@ interface AstroInlineConfig extends AstroUserConfig {
 
 Astro 구성 파일의 사용자 정의 경로입니다.
 
-이 값이 undefined이거나 (기본값) 설정되지 않은 경우 Astro는 `root`를 기준으로 `astro.config.(js,mjs,ts)` 파일을 검색하고 발견되면 구성 파일을 로드합니다.
+이 값이 undefined이거나 (기본값) 설정되지 않은 경우 Astro는 `root`를 기준으로 `astro.config.(js,mjs,ts,mts)` 파일을 검색하고 발견되면 구성 파일을 로드합니다.
 
-상대 경로가 설정되면 현재 작업 디렉터리를 기반으로 확인됩니다.
+상대 경로가 설정되면 `root` 옵션을 기반으로 확인됩니다.
 
 구성 파일 로드를 비활성화하려면 `false`로 설정하세요.
 
@@ -510,7 +516,7 @@ Astro가 기록한 메시지를 필터링하는 로깅 수준입니다.
 
 ### `dev()`
 
-**타입:** `(inlineConfig: AstroInlineConfig) => AstroDevServer`
+**타입:** `(inlineConfig: AstroInlineConfig) => Promise<DevServer>`
 
 [`astro dev`](#astro-dev)와 유사하게 Astro의 개발 서버를 실행합니다.
 
@@ -525,9 +531,40 @@ const devServer = await dev({
 await devServer.stop();
 ```
 
+#### `DevServer`
+
+```ts
+export interface DevServer {
+	address: AddressInfo;
+	handle: (req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>) => void;
+	watcher: vite.FSWatcher;
+	stop(): Promise<void>;
+}
+```
+
+##### `address`
+
+개발 서버가 수신 대기 중인 주소입니다.
+
+이 속성에는 Node의 [`net.Server#address()` 메서드](https://nodejs.org/api/net.html#serveraddress)가 반환한 값이 포함되어 있습니다.
+
+##### `handle()`
+
+원시 Node HTTP 요청에 대한 핸들입니다. 네트워크를 통해 요청을 보내는 대신 [`http.IncomingMessage`](https://nodejs.org/api/http.html#class-httpincomingmessage) 및 [`http.ServerResponse`](https://nodejs.org/api/http.html#class-httpserverresponse)를 사용하여 `handle()`을 호출할 수 있습니다.
+
+##### `watcher`
+
+[Vite의 개발 서버](https://ko.vitejs.dev/guide/api-javascript#vitedevserver)에서 노출되는 [Chokidar 파일 감시기](https://github.com/paulmillr/chokidar#getting-started)입니다.
+
+##### `stop()`
+
+개발 서버를 중지합니다. 그러면 모든 유휴 연결이 닫히고 새 연결에 대한 수신이 중지됩니다.
+
+보류 중인 모든 요청이 완료되고 모든 유휴 연결이 닫히면 해결되는 `Promise`를 반환합니다.
+
 ### `build()`
 
-**타입:** `(inlineConfig: AstroInlineConfig) => void`
+**타입:** `(inlineConfig: AstroInlineConfig) => Promise<void>`
 
 [`astro build`](#astro-build)와 유사하게 배포용 사이트를 빌드합니다.
 
@@ -541,9 +578,12 @@ await build({
 
 ### `preview()`
 
-**타입:** `(inlineConfig: AstroInlineConfig) => AstroPreviewServer`
+**타입:** `(inlineConfig: AstroInlineConfig) => Promise<PreviewServer>`
 
-[`astro preview`](#astro-preview)와 유사하게, 정적 `dist/` 디렉터리를 제공하기 위해 로컬 서버를 시작합니다.
+[`astro preview`](#astro-preview)와 유사하게 로컬 서버를 시작하여 빌드 출력을 제공합니다.
+
+구성에 어댑터가 설정되어 있지 않으면 미리보기 서버는 빌드된 정적 파일만 제공합니다.
+구성에 어댑터가 설정되어 있으면 어댑터에서 미리보기 서버를 제공합니다. 미리 보기 서버를 제공하기 위해 어댑터가 필요하지 않으므로, 선택한 어댑터에 따라 이 기능을 사용하지 못할 수도 있습니다.
 
 ```js
 import { preview } from "astro";
@@ -556,20 +596,49 @@ const previewServer = await preview({
 await previewServer.stop();
 ```
 
+#### `PreviewServer`
+
+```ts
+export interface PreviewServer {
+	host?: string;
+	port: number;
+	closed(): Promise<void>;
+	stop(): Promise<void>;
+}
+```
+
+##### `host`
+
+서버가 연결을 수신 대기 중인 호스트입니다.
+
+어댑터는 이 필드를 설정하지 않은 상태로 둘 수 있습니다. `host` 값은 구현에 따라 다릅니다.
+
+##### `port`
+
+서버가 연결을 수신 대기 중인 포트입니다.
+
+##### `stop()`
+
+미리보기 서버를 닫고, 요청 수신을 중지하고, 유휴 연결을 삭제하도록 요청합니다.
+
+반환된 `Promise`은 닫기 요청이 전송되면 해결됩니다. 이것은 아직 서버가 닫혔다는 것을 의미하지 않습니다. 서버가 완전히 닫혔는지 확인하려면 [`closed()`](#closed) 메서드를 사용하세요.
+
+##### `closed()`
+
+서버가 닫히면 해결하고 서버에서 오류가 발생하면 거부하는 `Promise`를 반환합니다.
+
 ### `sync()`
 
-**타입:** `(inlineConfig: AstroInlineConfig) => number`
+**타입:** `(inlineConfig: AstroInlineConfig) => Promise<void>`
 
 [`astro sync`](#astro-sync)와 유사하게 모든 Astro 모듈에 대해 TypeScript 타입을 생성합니다.
 
 ```js
 import { sync } from "astro";
 
-const exitCode = await sync({
+await sync({
   root: "./my-project",
 });
-
-process.exit(exitCode)
 ```
 
 ## Astro Studio CLI

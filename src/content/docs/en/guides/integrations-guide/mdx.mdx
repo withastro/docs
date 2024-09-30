@@ -14,7 +14,7 @@ This **[Astro integration][astro-integration]** enables the usage of [MDX](https
 
 ## Why MDX?
 
-MDX allows you to [use variables, JSX expressions and components within Markdown content](/en/guides/markdown-content/#mdx-only-features) in Astro. If you have existing content authored in MDX, this integration allows you to bring those files to your Astro project.
+MDX allows you to use variables, JSX expressions and components within Markdown content in Astro. If you have existing content authored in MDX, this integration allows you to bring those files to your Astro project.
 
 ## Installation
 
@@ -84,13 +84,126 @@ For other editors, use the [MDX language server](https://github.com/mdx-js/mdx-a
 
 ## Usage
 
-With the Astro MDX integration, you can [add MDX pages to your project](/en/guides/markdown-content/#markdown-and-mdx-pages) by adding `.mdx` files within your `src/pages/` directory. You can also [import `.mdx` files](/en/guides/markdown-content/#importing-markdown) into `.astro` files.
-
-Astro's MDX integration adds extra features to standard MDX, including Markdown-style frontmatter. This allows you to use most of Astro's built-in Markdown features like a [special frontmatter `layout` property](/en/guides/markdown-content/#frontmatter-layout).
-
-See how MDX works in Astro with examples in our [Markdown & MDX guide](/en/guides/markdown-content/).
-
 Visit the [MDX docs](https://mdxjs.com/docs/what-is-mdx/) to learn about using standard MDX features.
+
+## MDX in Astro
+
+Adding the MDX integration enhances your Markdown authoring with JSX variables, expressions and components.
+
+It also adds extra features to standard MDX, including support for Markdown-style frontmatter in MDX. This allows you to use most of [Astro's built-in Markdown features](/en/guides/markdown-content/).
+
+`.mdx` files must be written in [MDX syntax](https://mdxjs.com/docs/what-is-mdx/#mdx-syntax) rather than Astro’s HTML-like syntax.
+
+### Using Exported Variables in MDX
+
+MDX supports using `export` statements to add variables to your MDX content or to export data to a component that imports it.
+
+For example, you can export a `title` field from an MDX page or component to use as a heading with `{JSX expressions}`:
+
+```mdx title="/src/blog/posts/post-1.mdx"
+export const title = 'My first MDX post'
+
+# {title}
+```
+
+Or you can use that exported `title` in your page using `import` and `import.meta.glob()` statements:
+
+```astro title="src/pages/index.astro"
+---
+const matches = await import.meta.glob('./posts/*.mdx', { eager: true });
+const posts = Object.values(posts);
+---
+
+{posts.map(post => <p>{post.title}</p>)}
+```
+
+#### Exported Properties
+
+The following properties are available to a `.astro` component when using an `import` statement or `import.meta.glob()`:
+
+- **`file`** - The absolute file path (e.g. `/home/user/projects/.../file.mdx`).
+- **`url`** - The URL of the page (e.g. `/en/guides/markdown-content`).
+- **`frontmatter`** - Contains any data specified in the file’s YAML frontmatter.
+- **`getHeadings()`** - An async function that returns an array of all headings (`<h1>` to `<h6>`) in the file with the type: `{ depth: number; slug: string; text: string }[]`. Each heading’s `slug` corresponds to the generated ID for a given heading and can be used for anchor links.
+- **`<Content />`** - A component that returns the full, rendered contents of the file.
+- **(any `export` value)** - MDX files can also export data with an `export` statement.
+
+### Using Frontmatter Variables in MDX
+
+The Astro MDX integration includes support for using frontmatter in MDX by default. Add frontmatter properties just as you would in Markdown files, and these variables are available to use in the template, and as named properties when importing the file somewhere else.
+
+```mdx title="/src/blog/posts/post-1.mdx"
+---
+title: 'My first MDX post'
+author: 'Houston'
+---
+
+# {frontmatter.title}
+
+Written by: {frontmatter.author}
+```
+
+### Using Components in MDX
+
+After installing the MDX integration, you can import and use both [Astro components](/en/basics/astro-components/) and [UI framework components](/en/guides/framework-components/#using-framework-components) in MDX (`.mdx`) files just as you would use them in any other Astro component.
+
+Don't forget to include a `client:directive` on your UI framework components, if necessary!
+
+See more examples of using import and export statements in the [MDX docs](https://mdxjs.com/docs/what-is-mdx/#esm).
+
+```mdx title="src/blog/post-1.mdx" {4,9}
+---
+title: My first post
+---
+import ReactCounter from '../components/ReactCounter.jsx';
+
+I just started my new Astro blog! 
+
+Here is my counter component, working in MDX:
+<ReactCounter client:load />
+```
+
+#### Custom components with imported MDX
+
+When rendering imported MDX content, [custom components](#assigning-custom-components-to-html-elements) can be passed via the `components` prop.
+
+```astro title="src/pages/page.astro" "components={{...components, h1: Heading }}"
+---
+import { Content, components } from '../content.mdx';
+import Heading from '../Heading.astro';
+---
+<!-- Creates a custom <h1> for the # syntax, _and_ applies any custom components defined in `content.mdx` -->
+<Content components={{...components, h1: Heading }} />
+```
+
+:::note
+Custom components defined and exported in an MDX file must be imported and then passed back to the `<Content />` component via the `components` property.
+:::
+
+#### Assigning Custom Components to HTML elements
+
+With MDX, you can map Markdown syntax to custom components instead of their standard HTML elements. This allows you to write in standard Markdown syntax, but apply special component styling to selected elements.
+
+Import your custom component into your `.mdx` file, then export a `components` object that maps the standard HTML element to your custom component:
+
+```mdx title="src/blog/posts/post-1.mdx"
+import Blockquote from '../components/Blockquote.astro';
+export const components = {blockquote: Blockquote}
+
+> This quote will be a custom Blockquote
+```
+
+
+```astro title="src/components/Blockquote.astro"
+---
+const props = Astro.props;
+---
+<blockquote {...props} class="bg-blue-50 p-4">
+  <span class="text-4xl text-blue-600 mb-2">“</span>
+  <slot /> <!-- Be sure to add a `<slot/>` for child content! -->
+</blockquote>
+```
+Visit the [MDX website](https://mdxjs.com/table-of-components/) for a full list of HTML elements that can be overwritten as custom components.
 
 ## Configuration
 
@@ -111,7 +224,7 @@ All [`markdown` configuration options](/en/reference/configuration-reference/#ma
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import remarkToc from 'remark-toc';
-import rehypeMinifyHtml from 'rehype-minify-html';
+import rehypePresetMinify from 'rehype-preset-minify';
 
 export default defineConfig({
   // ...
@@ -120,7 +233,7 @@ export default defineConfig({
       syntaxHighlight: 'shiki',
       shikiConfig: { theme: 'dracula' },
       remarkPlugins: [remarkToc],
-      rehypePlugins: [rehypeMinifyHtml],
+      rehypePlugins: [rehypePresetMinify],
       remarkRehype: { footnoteLabel: 'Footnotes' },
       gfm: false,
     }),
@@ -224,7 +337,7 @@ export default defineConfig({
 <p><Since pkg="@astrojs/mdx" v="3.0.0" /></p>
 Previously known as `customComponentNames`.
 
-An optional property of `optimize` to prevent the MDX optimizer from handling certain element names, like [custom components passed to imported MDX content via the components prop](/en/guides/markdown-content/#custom-components-with-imported-mdx).
+An optional property of `optimize` to prevent the MDX optimizer from handling certain element names, like [custom components passed to imported MDX content via the components prop](/en/guides/integrations-guide/mdx/#custom-components-with-imported-mdx).
 
 You will need to exclude these components from optimization as the optimizer eagerly converts content into a static string, which will break custom components that needs to be dynamically rendered.
 
@@ -258,7 +371,7 @@ export default defineConfig({
 });
 ```
 
-Note that if your MDX file [configures custom components using `export const components = { ... }`](/en/guides/markdown-content/#assigning-custom-components-to-html-elements), then you do not need to manually configure this option. The optimizer will automatically detect them.
+Note that if your MDX file [configures custom components using `export const components = { ... }`](/en/guides/integrations-guide/mdx/#assigning-custom-components-to-html-elements), then you do not need to manually configure this option. The optimizer will automatically detect them.
 
 ## Examples
 

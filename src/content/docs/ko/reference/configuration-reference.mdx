@@ -370,7 +370,7 @@ Astro 컴포넌트의 요소 선택기가 전역 스타일 기본값 (예: 전�
 
 <p>
 
-**타입:** `boolean`<br />
+**타입:** `object`<br />
 **기본값:** `{}`<br />
 <Since v="4.9.0" />
 </p>
@@ -394,7 +394,7 @@ export default defineConfig({
 <p>
 
 **타입:** `boolean`<br />
-**기본값:** 'false'<br />
+**기본값:** `false`<br />
 <Since v="4.9.0" />
 </p>
 
@@ -653,7 +653,7 @@ SSR로 빌드할 때 서버 엔트리포인트의 파일 이름을 지정합니�
 ```js
 {
 	build: {
-		inlineStylesheets: `never`,
+		inlineStylesheets: 'never',
 	},
 }
 ```
@@ -664,7 +664,7 @@ SSR로 빌드할 때 서버 엔트리포인트의 파일 이름을 지정합니�
 
 ```js
 {
-  server: { port: 1234, host: true}
+  server: { port: 1234, host: true }
 }
 ```
 
@@ -904,8 +904,7 @@ Sharp 이미지 서비스의 기본 이미지 크기 제한을 우회하고 큰 
 <p>
 
 **타입:** `Array.<string>`<br />
-**기본값:** `{domains: []}`<br />
-
+**기본값:** `[]`<br />
 <Since v="2.10.10" />
 </p>
 
@@ -1016,7 +1015,7 @@ Shiki 구성 옵션. 사용법은 [Markdown 구성 문서](/ko/guides/markdown-c
 import remarkToc from 'remark-toc';
 {
   markdown: {
-    remarkPlugins: [ [remarkToc, { heading: "contents"} ] ]
+    remarkPlugins: [ [remarkToc, { heading: "contents" }] ]
   }
 }
 ```
@@ -1094,7 +1093,7 @@ Astro는 기본적으로 [SmartyPants 포매터](https://daringfireball.net/proj
 {
   markdown: {
     // 예: 각주 텍스트를 다른 언어로 번역합니다. 기본 영어 값은 다음과 같습니다.
-    remarkRehype: { footnoteLabel: "Footnotes", footnoteBackLabel: "Back to reference 1"},
+    remarkRehype: { footnoteLabel: "Footnotes", footnoteBackLabel: "Back to reference 1" },
   },
 };
 ```
@@ -1239,6 +1238,41 @@ export default defineConfig({
 });
 ```
 
+#### i18n.routing.fallbackType
+
+<p>
+
+**타입:** `"redirect" | "rewrite"`<br />
+**기본값:** `"redirect"`<br />
+<Since v="4.15.0" />
+</p>
+
+누락된 페이지 경로에 대해 404 페이지를 표시하지 않도록 [`i18n.fallback`](#i18nfallback)을 구성한 경우 이 옵션은 대체 페이지로 [리디렉션](/ko/guides/routing/#리디렉션)할 것인지 아니면 대체 페이지의 콘텐츠를 그대로 [리라이트](/ko/guides/routing/#리라이트)할 것인지 제어합니다.
+
+기본적으로 Astro의 i18n 라우팅은 대체 구성에 따라 방문자를 새 목적지로 리디렉션하는 페이지를 생성합니다. 브라우저가 새로고침되고 URL 표시줄에 목적지 주소가 표시됩니다.
+
+`i18n.routing.fallback: "rewrite"`이 구성되면 Astro는 요청된 원본 URL에 대체 페이지의 콘텐츠를 렌더링하는 페이지를 생성합니다.
+
+다음 구성의 경우, `src/pages/en/about.astro` 파일은 있지만 `src/pages/fr/about.astro`가 없는 경우 `astro build` 명령은 `dist/en/about.html` 페이지와 동일한 내용의 `dist/fr/about.html`을 생성합니다.
+사이트 방문자는 `https://example.com/fr/about/`에서 영문 버전의 페이지를 볼 수 있으며 리디렉션되지 않습니다.
+
+```js
+//astro.config.mjs
+export default defineConfig({
+	 i18n: {
+    defaultLocale: "en",
+    locales: ["en", "fr"],
+    routing: {
+    	prefixDefaultLocale: false,
+    	fallbackType: "rewrite",
+    },
+    fallback: {
+    	fr: "en",
+    }
+  },
+})
+```
+
 #### i18n.routing.manual
 
 <p>
@@ -1299,106 +1333,6 @@ Astro는 사용자가 새로운 기능에 조기에 액세스할 수 있도록 e
 }
 ```
 
-### experimental.actions
-
-<p>
-
-**타입:** `boolean`<br />
-**기본값:** `false`<br />
-<Since v="4.8.0" />
-</p>
-
-액션은 어디에서나 호출할 수 있는 타입 안정성을 갖춘 백엔드 함수를 작성하는 데 도움이 됩니다. [`output` 속성을 사용하여](/ko/basics/rendering-modes/#요청-시-렌더링) 서버 렌더링을 활성화하고 `experimental` 객체에 `actions` 플래그를 추가합니다.
-
-```js
-{
-  output: 'hybrid', // 또는 'server'
-  experimental: {
-    actions: true,
-  },
-}
-```
-
-`src/actions/index.ts` 파일에서 모든 액션을 선언합니다. 이 파일은 전역 액션 핸들러입니다.
-
-`astro:actions` 모듈의 `defineAction()` 유틸리티를 사용하여 액션을 정의합니다. 이 액션은 서버 측 요청 핸들러를 정의하기 위해 `handler` 속성을 허용합니다. 액션이 인수를 허용하는 경우 `input` 속성을 적용하여 Zod로 매개변수를 검증하세요.
-
-이 예시에서는 `like`와 `comment`라는 두 가지 액션을 정의합니다. `like` 액션은 `postId` 문자열이 포함된 JSON 객체를 허용하는 반면, `comment` 액션은 `postId`, `author` 및 `body` 문자열을 포함하는 [FormData](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest_API/Using_FormData_Objects)를 허용합니다. 각 `handler`는 데이터베이스를 업데이트하고 타입 안정성을 갖춘 응답을 반환합니다.
-
-```ts
-// src/actions/index.ts
-import { defineAction, z } from "astro:actions";
-
-export const server = {
-  like: defineAction({
-    input: z.object({ postId: z.string() }),
-    handler: async ({ postId }) => {
-      // db에서 likes 업데이트
-
-      return likes;
-    },
-  }),
-  comment: defineAction({
-    accept: 'form',
-    input: z.object({
-      postId: z.string(),
-      author: z.string(),
-      body: z.string(),
-    }),
-    handler: async ({ postId }) => {
-      // db에 comment 삽입
-
-      return comment;
-    },
-  }),
-};
-```
-
-그런 다음 `astro:actions`의 `actions` 객체를 사용하여 클라이언트 컴포넌트에서 액션을 호출합니다. JSON을 사용할 때는 타입 안정성을 갖춘 객체를 전달할 수 있고, 액션 정의에서 `accept: 'form'`을 사용할 때는 [FormData](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest_API/Using_FormData_Objects) 객체를 전달할 수 있습니다.
-
-이 예시는 React 컴포넌트에서 `like` 및 `comment` 액션을 호출합니다.
-
-```tsx "actions"
-// src/components/blog.tsx
-import { actions } from "astro:actions";
-import { useState } from "react";
-
-export function Like({ postId }: { postId: string }) {
-  const [likes, setLikes] = useState(0);
-  return (
-    <button
-      onClick={async () => {
-        const newLikes = await actions.like({ postId });
-        setLikes(newLikes);
-      }}
-    >
-      {likes} likes
-    </button>
-  );
-}
-
-export function Comment({ postId }: { postId: string }) {
-  return (
-    <form
-      onSubmit={async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target as HTMLFormElement);
-        const result = await actions.blog.comment(formData);
-        // result 핸들링
-      }}
-    >
-      <input type="hidden" name="postId" value={postId} />
-      <label htmlFor="author">Author</label>
-      <input id="author" type="text" name="author" />
-      <textarea rows={10} name="body"></textarea>
-      <button type="submit">Post</button>
-    </form>
-  );
-}
-```
-
-전체 개요를 확인하고 이 실험적 API에 대한 피드백을 제공하려면 [Actions RFC](https://github.com/withastro/roadmap/blob/actions/proposals/0046-actions.md)를 참조하세요.
-
 ### experimental.contentCollectionCache
 
 <p>
@@ -1418,53 +1352,6 @@ export function Comment({ postId }: { postId: string }) {
 	},
 }
 ```
-
-### experimental.contentCollectionJsonSchema
-
-<p>
-
-**타입:** `boolean`<br />
-**기본값:** `false`<br />
-<Since v="4.5.0" />
-</p>
-
-이 기능은 VSCode와 같은 도구에서 TypeScript 스타일 자동 완성/힌트에 대한 `$schema` 값으로 사용할 수 있는 `type: 'data'` 콘텐츠 컬렉션에 대한 JSON 스키마를 자동으로 생성합니다.
-
-이 기능을 활성화하려면 experimental 플래그를 추가하세요.
-
-```diff
-import { defineConfig } from 'astro/config';
-export default defineConfig({
-	experimental: {
-+		contentCollectionJsonSchema: true
-	}
-});
-```
-
-이 실험적 구현에서는 컬렉션의 각 데이터 항목 파일에 있는 스키마를 수동으로 참조해야 합니다.
-
-```diff
-// src/content/test/entry.json
-{
-+  "$schema": "../../../.astro/collections/test.schema.json",
-	"test": "test"
-}
-```
-
-또는 [VSCode `json.schemas` 설정](https://code.visualstudio.com/docs/languages/json#_json-schemas-and-settings)에서 이를 설정할 수 있습니다.
-
-```diff
-"json.schemas": [
-	{
-		"fileMatch": [
-			"/src/content/test/**"
-		],
-		"url": "../../../.astro/collections/test.schema.json"
-	}
-]
-```
-
-이 초기 구현은 [고급 Zod 스키마에 대해 알려진 문제](https://github.com/StefanTerdell/zod-to-json-schema#known-issues)가 있는 라이브러리를 사용하므로 실험적 플래그를 활성화하기 전에 이러한 제한 사항을 참조하는 것이 좋습니다.
 
 ### experimental.clientPrerender
 
@@ -1533,61 +1420,6 @@ export default defineConfig({
 
 경로 우선순위가 동일한 두 경로가 동일한 URL을 빌드하려고 시도하는 경로 충돌이 발생하는 경우 Astro는 충돌하는 경로를 식별하는 경고를 기록합니다.
 
-### experimental.rewriting
-
-<p>
-
-**타입:** `boolean`<br />
-**기본값:** `false`<br />
-<Since v="4.8.0" />
-</p>
-
-Astro 페이지, 엔드포인트 및 Astro 미들웨어에서 요청을 리라이팅하기 위한 라우팅 기능을 활성화하여 경로를 프로그래밍 방식으로 제어할 수 있습니다.
-
-```js
-{
-  experimental: {
-    rewriting: true,
-  },
-}
-```
-
-다른 페이지로 다시 라우팅하려면 `.astro` 파일에서 `Astro.rewrite`를 사용합니다.
-
-```astro "rewrite"
----
-// src/pages/dashboard.astro
-if (!Astro.props.allowed) {
-	return Astro.rewrite("/")
-}
----
-```
-
-다른 페이지로 다시 라우팅하려면 엔드포인트 파일에서 `context.rewrite`를 사용합니다.
-
-```js
-// src/pages/api.js
-export function GET(ctx) {
-	if (!ctx.locals.allowed) {
-		return ctx.rewrite("/")
-	}
-}
-```
-
-미들웨어 파일에서 `next("/")`를 사용하여 다른 페이지로 다시 라우팅한 후 다음 미들웨어 함수를 호출합니다.
-
-```js
-// src/middleware.js
-export function onRequest(ctx, next) {
-	if (!ctx.cookies.get("allowed")) {
-		return next("/") // 새 시그니처
-	}
-	return next();
-}
-```
-
-전체 개요를 확인하고 이 실험적 API에 대한 피드백을 제공하려면 [RFC 리라우팅](https://github.com/withastro/roadmap/blob/feat/reroute/proposals/0047-rerouting.md)을 참조하세요.
-
 ### experimental.env
 
 <p>
@@ -1603,19 +1435,24 @@ export function onRequest(ctx, next) {
 
 ```astro
 ---
-import { APP_ID } from "astro:env/client"
-import { API_URL, API_TOKEN, getSecret } from "astro:env/server"
-const NODE_ENV = getSecret("NODE_ENV")
+import { API_URL } from "astro:env/client"
+import { API_SECRET_TOKEN } from "astro:env/server"
 
 const data = await fetch(`${API_URL}/users`, {
-	method: "POST",
+	method: "GET",
 	headers: {
 		"Content-Type": "application/json",
-		"Authorization": `Bearer ${API_TOKEN}`
+		"Authorization": `Bearer ${API_SECRET_TOKEN}`
 	},
 	body: JSON.stringify({ appId: APP_ID, nodeEnv: NODE_ENV })
 })
 ---
+
+<script>
+import { API_URL } from "astro:env/client"
+
+fetch(`${API_URL}/ping`)
+</script>
 ```
 
 환경 변수의 데이터 타입과 속성을 정의하려면 `experimental.env.schema` Astro 구성에 스키마를 선언하세요. `envField` 도우미를 사용하면 변수를 문자열, 숫자 또는 부울로 정의하고 객체에 속성을 전달할 수 있습니다.
@@ -1653,7 +1490,7 @@ export default defineConfig({
     import { PORT } from "astro:env/server"
     ```
 
-- **비밀 서버 변수**: 이 변수는 최종 번들의 일부가 아니며 `astro:env/server` 모듈을 통해 서버에서 액세스할 수 있습니다. `getSecret()` 도우미 함수를 사용하면 스키마에 지정되지 않은 비밀을 검색할 수 있습니다.
+- **비밀 서버 변수**: 이 변수는 최종 번들의 일부가 아니며 `astro:env/server` 모듈을 통해 서버에서 액세스할 수 있습니다. `getSecret()` 도우미 함수를 사용하면 스키마에 지정되지 않은 비밀을 검색할 수 있습니다. 이 구현은 어댑터에서 제공되며, 기본값은 `process.env`입니다:
 
     ```js
     import { API_SECRET, getSecret } from "astro:env/server"
@@ -1663,7 +1500,7 @@ export default defineConfig({
 
 **참고:** 이 데이터를 클라이언트에 보내는 안전한 방법이 없기 때문에 비밀 클라이언트 변수는 지원되지 않습니다. 따라서 스키마에서 `context: "client"`와 `access: "secret"`을 모두 구성하는 것은 불가능합니다.
 
-전체 개요를 확인하고 이 실험적 API에 대한 피드백을 제공하려면 [Astro Env RFC](https://github.com/withastro/roadmap/blob/feat/astro-env-rfc/proposals/0046-astro-env.md)를 참조하세요.
+전체 개요를 확인하고 이 실험적 API에 대한 피드백을 제공하려면 [Astro Env RFC](https://github.com/withastro/roadmap/blob/main/proposals/0049-astro-env.md)를 참조하세요.
 
 #### experimental.env.schema
 
@@ -1721,3 +1558,287 @@ export default defineConfig({
   }
 })
 ```
+
+### experimental.serverIslands
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `false`<br />
+<Since v="4.12.0" />
+</p>
+
+실험적인 서버 아일랜드 기능을 활성화합니다.
+서버 아일랜드는 페이지가 이미 렌더링된 후, 비동기적으로 렌더링되도록 컴포넌트를 지연시키는 기능을 제공합니다.
+
+활성화하려면 어댑터를 사용하여 [주문형 서버 렌더링 `output` 모드](/ko/basics/rendering-modes/#요청-시-렌더링)를 구성하고 `experimental` 객체에 `serverIslands` 플래그를 추가합니다
+
+```js
+{
+  output: 'hybrid', // 또는 'server'
+  adapter: nodejs({ mode: 'standalone' }),
+  experimental: {
+    serverIslands: true,
+  },
+}
+```
+
+Astro 컴포넌트에서 `server:defer` 지시어를 사용하면 초기 렌더링을 지연시킬 수 있습니다:
+
+```astro "server:defer"
+---
+import Avatar from '~/components/Avatar.astro';
+---
+<Avatar server:defer />
+```
+
+외부 페이지는 빌드 타임 (`hybrid`) 또는 런타임(`server`)에 아일랜드 콘텐츠가 생략되고 그 자리에 `<script>` 태그가 포함된 상태로 렌더링됩니다.
+
+브라우저에서 페이지가 로드된 후 스크립트 태그는 요청을 통해 아일랜드 콘텐츠로 교체됩니다.
+
+모든 Astro 컴포넌트는 `server: defer` 속성을 지정하여 렌더링을 지연시킬 수 있습니다. 특별한 API는 없으며 평소처럼 `.astro` 코드를 작성하면 됩니다.
+
+```astro
+---
+import { getUser } from '../api';
+
+const user = await getUser(Astro.locals.userId);
+---
+<img class="avatar" src={user.imageUrl}>
+```
+
+#### 서버 아일랜드 대체 콘텐츠
+
+컴포넌트가 페이지의 나머지 부분과 함께 렌더링되지 않으므로 일반 콘텐츠 (예: 로딩 메시지)를 추가하여 임시로 그 자리에 표시할 수 있습니다. 이 콘텐츠는 페이지가 처음 렌더링되고 아일랜드가 로드되기 전에 나타납니다.
+
+`slot="fallback"` 속성을 가진 자리 표시자 콘텐츠를 Astro 컴포넌트의 자식으로 추가합니다. 아일랜드 콘텐츠를 사용할 수 있게 되면 대체 콘텐츠가 교체됩니다.
+
+아래 예시에서는 일반 아바타를 대체 콘텐츠로 표시한 다음, view transitions를 사용하여 개인화된 아바타로 애니메이션을 표시합니다.
+
+```astro
+<Avatar server:defer>
+  <svg slot="fallback" class="generic-avatar" transition:name="avatar">...</svg>
+</Avatar>
+```
+
+전체 개요를 보거나 이 실험적인 API에 대한 피드백을 제공하려면 [서버 아일랜드 RFC](https://github.com/withastro/roadmap/pull/963)를 참조하세요.
+
+### experimental.contentIntellisense
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `false`<br />
+<Since v="4.14.0" />
+</p>
+
+호환되는 편집기에서 콘텐츠 컬렉션 항목에 대한 Intellisense 기능 (예: 코드 완성, 빠른 힌트)을 사용하도록 설정합니다.
+
+이 기능을 활성화하면 프로젝트의 `.astro` 디렉터리에 JSON 스키마가 생성되어 추가됩니다. Astro 언어 서버는 내부 콘텐츠 파일 (`.md`, `.mdx`, `.mdoc`)에서 Intellisense를 제공하기 위해 이러한 파일을 사용할 수 있습니다.
+
+```js
+{
+  experimental: {
+    contentIntellisense: true,
+  },
+}
+```
+
+Astro VS Code 확장 프로그램에서 이 기능을 사용하려면 VS Code 설정에서 `astro.content-intellisense` 옵션도 활성화해야 합니다. Astro 언어 서버를 직접 사용하는 편집기에서 이 기능을 활성화하려면 `contentIntellisense: true` 초기화 매개 변수를 전달하세요.
+
+### experimental.contentLayer
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `false`<br />
+<Since v="4.14.0" />
+</p>
+
+Content Layer API는 Astro에서 콘텐츠와 데이터를 처리하는 새로운 방법입니다. 이는 [콘텐츠 컬렉션](/ko/guides/content-collections/)과 유사하며 이를 기반으로 `src/content/`의 로컬 파일을 넘어 컬렉션에 `loader`를 추가하여 원격 API를 포함한 모든 곳에서 콘텐츠를 가져올 수 있도록 합니다.
+
+기존 콘텐츠 컬렉션은 몇 가지 작은 변경을 통해 [Content Layer API로 마이그레이션](#content-layer-api를-사용하기-위해-기존-콘텐츠-컬렉션-마이그레이션하기)할 수 있습니다. 그러나 Content Layer API로 구동되는 새 컬렉션을 추가하기 위해 모든 컬렉션을 한 번에 업데이트할 필요는 없습니다. `src/content/config.ts`에 정의된 기존 API와 새 API를 동시에 사용하는 컬렉션을 가질 수 있습니다.
+
+Content Layer API는 더욱 강력하고 성능이 뛰어나도록 설계되어 사이트가 수천 페이지로 확장할 수 있도록 지원합니다. 데이터는 빌드 간 캐시되고 점진적으로 업데이트됩니다. 비슷한 크기의 메모리 감소로 Markdown 구문 분석은 5-10배 빨라지고, MDX는 2-3배 더 빨라집니다.
+
+활성화하려면 Astro 구성의 `experimental` 객체에 `contentLayer` 플래그를 추가하세요:
+
+```js
+// astro.config.mjs
+{
+	experimental: {
+		contentLayer: true,
+	}
+}
+```
+
+#### `loader`를 사용하여 데이터 가져오기
+
+Content Layer API를 사용하면 (프로젝트에 로컬로 저장하든 원격으로 저장하든) `src/content/` 폴더 외부에서 콘텐츠를 가져올 수 있으며, `loader` 속성을 사용하여 데이터를 검색할 수 있습니다.
+
+`loader`는 컬렉션의 스키마에 정의되어 있으며 항목의 배열을 반환합니다. Astro는 로컬 콘텐츠를 가져오기 위한 두 가지 내장 로더 함수 (`glob()` 및 `file()`)와 [자체 로더를 구성하고 원격 데이터를 가져오기 위한](#로더-만들기) API 액세스를 제공합니다.
+
+`glob()` 로더는 파일 시스템 어디에서나 Markdown, MDX, Markdoc 또는 JSON 파일 디렉터리에서 항목을 만듭니다. 일치시킬 항목 파일인 `pattern`과 파일이 있는 위치를 나타내는 파일 경로인 `base`를 인자로 전달받습니다. 항목당 파일이 하나씩 있을 때 이 옵션을 사용하세요.
+
+`file()` 로더는 단일 로컬 파일에서 여러 항목을 생성합니다. 모든 항목이 객체 배열에 저장되어 있을 때 이 방법을 사용합니다.
+
+```ts  {3,8,19}
+// src/content/config.ts
+import { defineCollection, z } from 'astro:content';
+import { glob, file } from 'astro/loaders';
+
+const blog = defineCollection({
+  // 기본적으로 ID는 `base`를 기준으로
+  // 파일 경로에서 생성된 슬러그입니다.
+  loader: glob({ pattern: "**\/*.md", base: "./src/data/blog" }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
+  })
+});
+
+const dogs = defineCollection({
+  // 경로는 프로젝트 루트에 대한 상대 경로 또는 절대 경로입니다.
+  loader: file("src/data/dogs.json"),
+  schema: z.object({
+    id: z.string(),
+    breed: z.string(),
+    temperament: z.array(z.string()),
+  }),
+});
+
+export const collections = { blog, dogs };
+```
+
+:::note
+로더는 [`_`로 시작하는 파일을 자동으로 제외](/ko/guides/routing/#페이지-제외)하지 않습니다. 이러한 파일을 제외하려면 `pattern: '**\/[^_]*.md'`와 같은 정규 표현식을 사용하세요.
+:::
+
+#### Content Layer API로 쿼리 및 렌더링하기
+
+컬렉션은 [콘텐츠 컬렉션과 동일한 방식으로 쿼리](/ko/guides/content-collections/#컬렉션-쿼리)할 수 있습니다:
+
+```ts
+// src/pages/index.astro
+import { getCollection, getEntry } from 'astro:content';
+
+// 컬렉션에서 모든 항목을 가져옵니다.
+// 컬렉션의 이름을 인수로 요구합니다.
+const allBlogPosts = await getCollection('blog');
+
+// 컬렉션에서 단일 항목을 가져옵니다.
+// 컬렉션의 이름과 ID가 필요합니다.
+const labradorData = await getEntry('dogs', 'labrador-retriever');
+```
+
+Markdown, MDX 또는 Markdoc에서 생성된 항목은 `render()` 함수를 사용하여 페이지에 직접 렌더링할 수 있습니다.
+
+:::note
+컬렉션 항목을 렌더링하는 구문은 현재 콘텐츠 컬렉션 구문과 다릅니다.
+:::
+
+```astro title="src/pages/[slug].astro"
+---
+import { getEntry, render } from 'astro:content';
+
+const post = await getEntry('blog', Astro.params.slug);
+
+const { Content, headings } = await render(post);
+---
+
+<Content />
+```
+
+#### 로더 만들기
+
+Content Layer API를 사용하면 어디에서나 콘텐츠를 로드하거나 생성하는 로더를 빌드할 수 있습니다.
+
+예를 들어 원격 API에서 컬렉션 항목을 가져오는 로더를 만들 수 있습니다.
+
+```ts
+// src/content/config.ts
+const countries = defineCollection({
+  loader: async () => {
+    const response = await fetch("https://restcountries.com/v3.1/all");
+    const data = await response.json();
+    // id 속성이 있는 항목 배열 또는 ID를 키로, 항목을 값으로 하는 객체를 반환해야 합니다.
+    return data.map((country) => ({
+      id: country.cca3,
+      ...country,
+    }));
+  },
+  // 선택적으로 스키마 추가
+  // schema: z.object...
+});
+
+export const collections = { countries };
+```
+
+더 복잡한 로딩 로직을 위해 객체 로더를 정의할 수 있습니다. 이를 통해 증분 업데이트와 조건부 로딩이 가능해지며, 데이터 저장소에 대한 전체 액세스 권한도 부여할 수 있습니다. [Content Layer API RFC](https://github.com/withastro/roadmap/blob/content-layer/proposals/0050-content-layer.md#loaders)에서 API를 참조하세요.
+
+#### Content Layer API를 사용하기 위해 기존 콘텐츠 컬렉션 마이그레이션하기
+
+기존 콘텐츠 컬렉션을 Markdown, MDX, Markdoc, 또는 JSON 항목으로 변환하여 Content Layer API를 사용할 수 있습니다.
+
+1. **컬렉션 폴더를 `src/content/`** 외부로 이동합니다 (예: `src/data/`로). `src/content/` 폴더에 있는 모든 컬렉션은 기존 콘텐츠 컬렉션 API를 사용합니다.
+
+    **기존 `src/content/config.ts` 파일을 이동하지 마세요**. 이 파일은 두 API를 사용하여 모든 컬렉션을 정의합니다.
+
+2. **컬렉션 정의를 수정합니다**. 업데이트된 컬렉션에는 `loader`가 필요하며, 컬렉션 `type`을 선택하는 옵션은 더 이상 사용할 수 없습니다.
+
+    ```ts ins={3,8} del={7}
+    // src/content/config.ts
+    import { defineCollection, z } from 'astro:content';
+    import { glob } from 'astro/loaders';
+
+    const blog = defineCollection({
+      // 콘텐츠 레이어의 경우 더 이상 `type`을 정의하지 않습니다.
+      type: 'content',
+      loader: glob({ pattern: '**\/[^_]*.md', base: "./src/data/blog" }),
+      schema: z.object({
+        title: z.string(),
+        description: z.string(),
+        pubDate: z.coerce.date(),
+        updatedDate: z.coerce.date().optional(),
+      }),
+    });
+    ```
+
+3. **참조를 `slug`에서 `id`로 변경합니다**. 콘텐츠 레이어 컬렉션에는 `slug` 필드가 없습니다. 대신 업데이트된 모든 컬렉션에는 `id`가 있습니다.
+
+    ```astro ins={7} del={6}
+    // src/pages/index.astro
+    ---
+    export async function getStaticPaths() {
+      const posts = await getCollection('blog');
+      return posts.map((post) => ({
+        params: { slug: post.slug },
+        params: { slug: post.id },
+        props: post,
+      }));
+    }
+    ---
+    ```
+
+4. **새 `render()` 함수로 전환합니다**. 이제 항목은 직렬화 가능한 일반 객체이므로 더 이상 `render()` 메서드를 가지지 않습니다. 대신 `astro:content`에서 `render()` 함수를 가져옵니다.
+
+    ```astro ins={4,9} del={3,8}
+    // src/pages/index.astro
+    ---
+    import { getEntry } from 'astro:content';
+    import { getEntry, render } from 'astro:content';
+
+    const post = await getEntry('blog', params.slug);
+
+    const { Content, headings } = await post.render();
+    const { Content, headings } = await render(post);
+    ---
+
+    <Content />
+    ```
+
+#### 더 알아보기
+
+전체 개요와 전체 API 참조는 [Content Layer API RFC](https://github.com/withastro/roadmap/blob/content-layer/proposals/0050-content-layer.md)를 확인하고 [피드백을 공유하세요](https://github.com/withastro/roadmap/pull/982).

@@ -7,6 +7,7 @@ i18nReady: true
 import { FileTree } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
 import StudioHeading from '~/components/StudioHeading.astro';
 import { Steps } from '@astrojs/starlight/components';
 
@@ -38,7 +39,7 @@ Astro DB 是一款专为 Astro 设计的全托管 SQL 数据库。你可以在�
 
 ## 定义你的数据库
 
-Astro DB 是一个用于配置、开发和查询你的数据的完整解决方案。每当你运行 `astro dev` 时，都会创建一个本地数据库，并使用 LibSQL 来管理你的数据，而无需 Docker 或网络连接。
+Astro DB 是一个用于配置、开发和查询你的数据的完整解决方案。每当你运行 `astro dev` 时，都会创建一个本地数据库，并使用 libSQL 来管理你的数据，而无需 Docker 或网络连接。
 
 使用 `astro add` 命令安装 `@astrojs/db` 将在你的项目中创建一个 `db/config.ts` 文件，你将在其中定义你的数据库表：
 
@@ -140,7 +141,7 @@ const Comment = defineTable({
 以下例子为 `Comment` 表定义了两行开发数据：
 
 ```ts title="db/seed.ts"
-import { db, Comment } from 'astro:db';
+import { db, Comment, Author } from 'astro:db';
 
 export default async function() {
   await db.insert(Author).values([
@@ -163,7 +164,7 @@ export default async function() {
 
 ### Drizzle ORM
 
-```
+```ts
 import { db } from 'astro:db';
 ```
 
@@ -342,6 +343,12 @@ export default async function () {
 <StudioHeading>
 ## Astro Studio
 </StudioHeading>
+
+:::caution
+我们 [即将关闭 Astro Studio](https://astro.build/blog/goodbye-astro-studio/)。因此，2024 年 10 月 1 日之后，用户将无法再创建数据库。
+
+我们建议 [将现有 Studio 数据库迁移到 Turso](#从-astro-studio-迁移到-turso)，或 [将 Astro DB 连接到任何 libSQL 服务器](#libsql) 来代替。
+:::
 
 Astro DB 可以连接到 Astro Studio 平台，快速为你的项目添加一个托管数据库。你可以从 Astro Studio 仪表盘上查看、管理和部署新的托管数据库。
 
@@ -652,6 +659,95 @@ astro dev --remote
 当你准备好部署时，参见我们的 [使用 Studio 连接进行部署指南](#使用-studio-连接进行部署)。
 
 </ReadMore>
+
+### 从 Astro Studio 迁移到 Turso
+
+<Steps>
+
+1. 在 [Studio 仪表板](https://studio.astro.build/) 中，导航到你要迁移的项目。在设置选项卡中，使用 “Export Database（导出数据库）” 按钮下载数据库的转储。
+2. 按照官方说明 [安装 Turso CLI](https://docs.turso.tech/cli/installation) 并 [注册或登录](https://docs.turso.tech/cli/authentication) 你的 Turso 帐户。
+3. 使用你在步骤 1 中下载的 `.sql` 转储创建一个新数据库。
+   ```sh
+   turso db create [database-name] --from-dump ./path/to/dump.sql
+   ```
+4. 使用 Turso CLI 获取数据库 URL，并将其配置为环境变量 `ASTRO_DB_REMOTE_URL`。
+   ```sh
+   turso db show [database-name]
+   ```
+   ```env
+   ASTRO_DB_REMOTE_URL=[your-database-url]
+   ```
+5. 创建一个令牌来访问你的数据库，并将其配置为环境变量 `ASTRO_DB_APP_TOKEN`。
+   ```sh
+   turso db tokens create [database-name]
+   ```
+   ```env
+   ASTRO_DB_APP_TOKEN=[your-app-token]
+   ```
+6. 一旦确认你的项目连接到新数据库，你就可以安全地从 Astro Studio 中删除该项目了。
+
+</Steps>
+
+## libSQL
+
+<p><Since pkg="@astrojs/db" v="0.14.0" /></p>
+
+Astro DB 可以从任何公开 libSQL 服务器远程协议的平台，连接到任何 libSQL 服务器，或者也可以自托管。
+
+要将 Astro DB 连接到 libSQL 数据库，需要设置以下环境变量：
+- `ASTRO_DB_REMOTE_URL`: libSQL 服务器的连接 URL
+- `ASTRO_DB_APP_TOKEN`: libSQL 服务器的身份验证令牌
+
+使用 libSQL 时和连接到 Astro Studio 托管数据库时，[部署和推送更改](#使用-studio-连接进行部署)到数据库的命令是相同的。不过，当使用 `--remote` 选项运行命令，如 `astro build` 和 `astro db push` 时，都需要在本地设置环境变量。
+
+libSQL 连接的详细信息（例如加密密钥、备份、同步间隔）可以配置为远程连接 URL 中的查询参数。
+
+例如，要让本地文件作为加密 libSQL 服务器的嵌入式副本，你可以设置以下环境变量：
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=file://local-copy.db?encryptionKey=your-encryption-key&syncInterval=60&syncUrl=libsql%3A%2F%2Fyour.server.io
+ASTRO_DB_APP_TOKEN=token-to-your-remote-url
+```
+
+### URL 方案和 host
+
+libSQL 同时支持 HTTP 和 WebSockets 作为远程服务器的传输协议。它还支持使用本地文件或内存数据库。这些都可以在连接 URL 中使用以下 URL 方案来进行配置：
+
+- `memory:` 将使用内存数据库。在这种情况下，host 必须为空。
+- `file:` 将使用本地文件。host 是文件的路径（`file:path/to/file.db`）。
+- `libsql:` 将通过库首选的协议使用远程服务器（可能因版本而异）。host 是服务器的地址（`libsql://your.server.io`）。
+- `http:` 将通过 HTTP 使用远程服务器。`https:` 可用于启用安全连接。host 和 `libsql` 相同。
+- `ws:` 将通过 WebSockets 使用远程服务器。`wss:` 可用于启用安全连接。 host 和 `libsql` 相同。
+
+### `encryptionKey`
+
+libSQL 对加密数据库具有原生支持。传递此搜索参数将使用给定密钥的加密：
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=file:path/to/file.db?encryptionKey=your-encryption-key
+```
+
+### `syncUrl`
+
+嵌入式副本是 libSQL 客户端的一项功能，可在本地文件或内存中实现数据库的完整同步副本，以实现超快读取。写入将发送到在 `syncUrl` 上定义的远程数据库并与本地副本同步。
+
+使用此属性来传递单独的连接 URL，并将 DB 转换为另一个数据库的嵌入式副本。此属性只应与 `file:` 和 `memory:` 方案来一起使用。该参数必须经过 URL 编码。
+
+例如，要在 `libsql://your.server.io` 上拥有数据库的内存嵌入式副本，你可以按如下方式设置连接 URL：
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io
+```
+
+### `syncInterval`
+
+嵌入式副本同步之间的时间间隔（以秒为单位）。默认情况下，它仅在启动时和写入后同步。
+
+此属性仅在同时设置了 `syncUrl` 时才生效。例如，要将内存中嵌入式副本设置为每分钟同步，请设置以下环境变量：
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io&syncInterval=60
+```
 
 ## 构建 Astro DB 集成
 

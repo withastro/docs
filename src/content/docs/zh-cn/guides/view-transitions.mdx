@@ -220,33 +220,65 @@ export interface TransitionDirectionalAnimations {
 }
 ```
 
-下面的示例展示了定义自定义 `fade` 动画所需的所有必要属性：
+下面的示例展示了在根布局文件中的 `<style is:global>` 标签内，定义自定义 `bump` 动画的所有必要属性：
 
-```astro
+```astro title="src/layouts/Layout.astro"
+---
+import { ViewTransitions } from 'astro:transitions';
+---
+<html lang="en">
+  <head>
+    <ViewTransitions />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+<style is:global>
+  @keyframes bump {
+    0% {
+      opacity: 0;
+      transform: scale(1) translateX(200px);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(1.1);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateX(0);
+    }
+  }
+</style>
+```
+
+动画的行为必须在每个使用动画的组件中，定义在 frontmatter 里：
+
+```astro title="src/pages/index.astro"
 ---
 const anim = {
   old: {
-    name: 'fadeIn',
-    duration: '0.2s',
-    easing: 'linear',
-    fillMode: 'forwards',
+    name: 'bump',
+    duration: '0.5s',
+    easing: 'ease-in',
+    direction: 'reverse',
   },
   new: {
-    name: 'fadeOut',
-    duration: '0.3s',
-    easing: 'linear',
-    fillMode: 'backwards',
-  }
+    name: 'bump',
+    duration: '0.5s',
+    easing: 'ease-in-out',
+  },
 };
-
-const myFade = {
-	forwards: anim,
-	backwards: anim,
+const customTransition = {
+  forwards: anim,
+  backwards: anim,
 };
 ---
-
-<header transition:animate={myFade}> ... </header>
+<header transition:animate={customTransition}> ... </header>
 ```
+
+当定义一个自定义动画时，你具有很强大的灵活性。为了实现渴望的效果，或许你得考虑一些不那么寻常的动画组合，例如针对不同的对象使用不同的样式应用，或是为它们提供不同的关键帧动画。
+
 ## 路由器控制
 
 `<ViewTransitions />` 路由器通过监听以下事件来处理导航：
@@ -287,8 +319,8 @@ const myFade = {
 <script>
   import { navigate } from 'astro:transitions/client';
   // 自动导航到所选选项
-  document.querySelector('select').onchange = (ev) => {
-    let href = ev.target.value;
+  document.querySelector('select').onchange = (event) => {
+    let href = event.target.value;
     navigate(href);
   };
 </script>
@@ -532,9 +564,9 @@ Astro 的视图过渡动画 API 生命周期事件顺序如下：
 
 ```js
 <script is:inline>
-  document.addEventListener('astro:before-preparation', ev => {
-    const originalLoader = ev.loader;
-    ev.loader = async function() {
+  document.addEventListener('astro:before-preparation', event => {
+    const originalLoader = event.loader;
+    event.loader = async function() {
       const { startSpinner } = await import('./spinner.js');
       const stop = startSpinner();
       await originalLoader();
@@ -581,9 +613,9 @@ Astro 的视图过渡动画 API 生命周期事件顺序如下：
 
   setDarkMode(document);
 
-  document.addEventListener('astro:before-swap', ev => {
-    // Pass the incoming document to set the theme on it
-    setDarkMode(ev.newDocument);
+  document.addEventListener('astro:before-swap', event => {
+    // 传入新文档以设置主题
+    setDarkMode(event.newDocument);
   });
 </script>
 ```
@@ -594,13 +626,42 @@ Astro 的视图过渡动画 API 生命周期事件顺序如下：
 
 ```astro
 <script is:inline>
-  document.addEventListener('astro:before-swap', ev => {
-    ev.swap = () => {
-      diff(document, ev.newDocument);
+  document.addEventListener('astro:before-swap', event => {
+    event.swap = () => {
+      diff(document, event.newDocument);
     };
   });
 </script>
 ```
+
+#### 构建自定义交换函数
+
+<p><Since v="4.15.0" /></p>
+
+`astro:transitions/client` 模块的 `swapFunctions` 对象提供了五个处理特定交换相关任务的工具函数，包括处理文档属性、页面元素和脚本执行。这些函数可以直接用于定义自定义的交换实现。
+
+以下示例演示了如何使用这些函数重新创建 Astro 的内置交换实现：
+
+```astro
+<script>
+import { swapFunctions } from 'astro:transitions/client';
+
+// 用 doc 替换 window.document
+function mySwap(doc: Document) {
+  swapFunctions.deselectScripts(doc);
+  swapFunctions.swapRootAttributes(doc);
+  swapFunctions.swapHeadElements(doc);
+  const restoreFocusFunction = swapFunctions.saveFocus();
+  swapFunctions.swapBodyElement(doc.body, document.body);
+  restoreFocusFunction();
+};
+
+...
+  event.swap = () => mySwap(event.newDocument);
+...
+<script>
+```
+自定义交换实现可以从这个模板开始，并根据需要添加或替换单个步骤的自定义逻辑。
 
 ### `astro:after-swap`
 

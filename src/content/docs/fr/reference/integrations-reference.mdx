@@ -24,7 +24,7 @@ interface AstroIntegration {
   hooks: {
     'astro:config:setup'?: (options: {
       config: AstroConfig;
-      command: 'dev' | 'build' | 'preview';
+      command: 'dev' | 'build' | 'preview' | 'sync';
       isRestart: boolean;
       updateConfig: (newConfig: DeepPartial<AstroConfig>) => AstroConfig;
       addRenderer: (renderer: AstroRenderer) => void;
@@ -33,10 +33,16 @@ interface AstroIntegration {
       addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
       addDevToolbarApp: (pluginEntrypoint: string) => void;
       injectScript: (stage: InjectedScriptStage, content: string) => void;
-      injectRoute: ({ pattern: string, entrypoint: string }) => void;
+      injectRoute: (injectedRoute: { pattern: string, entrypoint: string }) => void;
       logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
-    'astro:config:done'?: (options: { config: AstroConfig; setAdapter: (adapter: AstroAdapter) => void; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:config:done'?: (options: {
+      config: AstroConfig;
+      setAdapter: (adapter: AstroAdapter) => void;
+      injectTypes: (injectedType: { filename: string; content: string }) => URL;
+      logger: AstroIntegrationLogger;
+      }) => void | Promise<void>;
+    'astro:route:setup'?: (options: { route: RouteOptions; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:server:setup'?: (options: { server: vite.ViteDevServer; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:server:start'?: (options: { address: AddressInfo; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:server:done'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
@@ -54,11 +60,17 @@ interface AstroIntegration {
         logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
     'astro:build:done'?: (options: { dir: URL; routes: RouteData[]; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+
+    // ... tous les hooks personnalisés provenant des intégrations
   };
 }
 ```
 
 ## Hooks
+
+Astro fournit des hooks que les intégrations peuvent implémenter pour s'exécuter pendant certaines parties du cycle de vie d'Astro. Les hooks Astro sont définis dans l'interface `IntegrationHooks`, qui fait partie de l'espace de noms global `Astro`.
+
+Les hooks suivants sont intégrés à Astro :
 
 ### `astro:config:setup`
 
@@ -71,7 +83,7 @@ interface AstroIntegration {
 ```ts
 'astro:config:setup'?: (options: {
   config: AstroConfig;
-  command: 'dev' | 'build' | 'preview';
+  command: 'dev' | 'build' | 'preview' | 'sync';
   isRestart: boolean;
   updateConfig: (newConfig: DeepPartial<AstroConfig>) => AstroConfig;
   addRenderer: (renderer: AstroRenderer) => void;
@@ -93,11 +105,12 @@ Une copie en lecture seule de la [configuration Astro](/fr/reference/configurati
 
 #### Option `command`
 
-**Type :** `'dev' | 'build' | 'preview'`
+**Type:** `'dev' | 'build' | 'preview' | 'sync'`
 
 - `dev` - Le projet est exécuté avec `astro dev`
-- `build` - Le projet est executé avec `astro build`
-- `preview` - Le projet est executé avec `astro preview`
+- `build` - Le projet est exécuté avec `astro build`
+- `preview` - Le projet est exécuté avec `astro preview`
+- `sync` - Le projet est exécuté avec `astro sync`
 
 #### Option `isRestart`
 
@@ -224,7 +237,7 @@ declare module 'astro' {
 
 <p><Since v="3.4.0" /></p>
 
-**Type:** `(pluginEntrypoint: string) => void;`
+**Type :** `(pluginEntrypoint: string) => void;`
 
 Ajoute une [application de barre d'outils de développement personnalisée](/fr/reference/dev-toolbar-app-reference/).
 
@@ -382,7 +395,12 @@ La principale utilisation de l'étape `page-ssr` est l'injection d'un `import` C
 **Pourquoi :** Pour récupérer la configuration finale afin de l'utiliser dans d'autres hooks.
 
 ```js
-'astro:config:done'?: (options: { config: AstroConfig }) => void | Promise<void>;
+'astro:config:done'?: (options: {
+  config: AstroConfig;
+  setAdapter: (adapter: AstroAdapter) => void;
+  injectTypes: (injectedType: { filename: string; content: string }) => URL;
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
 ```
 
 #### Option `config`
@@ -390,6 +408,34 @@ La principale utilisation de l'étape `page-ssr` est l'injection d'un `import` C
 **Type :** `AstroConfig`
 
 Une copie en lecture seule de la [configuration Astro](/fr/reference/configuration-reference/) fournie par l'utilisateur. Ce problème est résolu _après_ l'exécution des autres intégrations.
+
+#### Option `setAdapter`
+
+**Type :** `(adapter: AstroAdapter) => void;`
+
+Transforme l'intégration en adaptateur. Pour en savoir plus, consultez l'[API de l'adaptateur](/fr/reference/adapter-reference/).
+
+#### Options `injectTypes`
+
+<p><Since v="4.14.0" /></p>
+
+**Type :** `(injectedType: { filename: string; content: string }) => URL`
+
+Permet d'injecter des types dans le projet de votre utilisateur en ajoutant un nouveau fichier `*.d.ts`.
+
+La propriété `filename` sera utilisée pour générer un fichier dans `/.astro/integrations/<normalized_integration_name>/<normalized_filename>.d.ts` et doit se terminer par `".d.ts"`.
+
+La propriété `content` créera le corps du fichier et doit utiliser une syntaxe TypeScript valide.
+
+De plus, `injectTypes()` renvoie une URL vers le chemin normalisé afin que vous puissiez écraser son contenu ultérieurement ou le manipuler comme vous le souhaitez.
+
+```js
+const path = injectTypes({
+  filename: "types.d.ts",
+  content: "declare module 'virtual:integration' {}"
+})
+console.log(path) // URL
+```
 
 ### `astro:server:setup`
 
@@ -613,6 +659,87 @@ interface RouteData {
 Une liste de toutes les pages générées. Il s'agit d'un objet avec une propriété.
 
 - `pathname` - le chemin finalisé de la page.
+
+### `astro:route:setup`
+
+<p><Since v="4.14.0" /></p>
+
+**Quand :** Dans `astro dev`, chaque fois qu'une route est demandée. Dans `astro build`, tout en regroupant et en transformant un fichier de route.
+
+**Pourquoi :** Pour définir les options d'une route au moment de la construction ou de la demande, comme l'activation du [rendu du serveur à la demande](/fr/guides/server-side-rendering/#accepter-le-pré-rendu-en-mode-server).
+
+```js
+'astro:route:setup'?: (options: { route: RouteOptions }) => void | Promise<void>;
+```
+
+#### Option `route`
+
+**Type :** `RouteOptions`
+
+Un objet avec une propriété `component` pour identifier la route et les valeurs supplémentaires suivantes pour vous permettre de configurer la route générée : `prerender`.
+
+La propriété `component` est un chemin en lecture seule relatif à la racine du projet, par exemple `"src/pages/blog/[slug].astro"`.
+
+##### `route.prerender`
+
+<p>
+**Type :** `boolean`<br />
+**Par défaut :** `undefined`<br />
+<Since v="4.14.0" />
+</p>
+
+La propriété `prerender` est utilisée pour configurer [le rendu du serveur à la demande](/fr/guides/server-side-rendering/#accepter-le-pré-rendu-en-mode-server) pour une route. Si le fichier de route contient une valeur explicite `export const prerender`, la valeur sera utilisée comme valeur par défaut au lieu de `undefined`.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  integrations: [setPrerender()],
+});
+
+function setPrerender() {
+  return {
+    name: 'set-prerender',
+    hooks: {
+      'astro:route:setup': ({ route }) => {
+        if (route.component.endsWith('/blog/[slug].astro')) {
+          route.prerender = true;
+        }
+      },
+    },
+  };
+}
+```
+ 
+Si la valeur finale après l'exécution de tous les hooks est `undefined`, la route reviendra à une valeur par défaut de pré-rendu basée sur l'[option `output`](/fr/reference/configuration-reference/#output) : pré-rendu pour le mode `hybrid` et rendu à la demande pour le mode `server`.
+
+### Hooks personnalisés
+
+Des hooks personnalisés peuvent être ajoutés aux intégrations en étendant l'interface `IntegrationHooks` via [augmentation globale](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#global-augmentation).
+
+```ts
+declare global {
+  namespace Astro {
+    export interface IntegrationHook {
+      'your:hook': (params: YourHookParameters) => Promise<void>
+    }
+  }
+}
+```
+
+Astro réserve le préfixe `astro:` pour les futurs hooks intégrés. Veuillez choisir un préfixe différent lorsque vous nommez votre hook personnalisé.
+
+### `HookParameters`
+
+Vous pouvez obtenir le type des arguments d'un hook en transmettant le nom du hook à l'utilitaire de typage `HookParameters`. Dans l'exemple suivant, l'argument `options` d'une fonction est typé pour correspondre aux paramètres du hook `astro:config:setup` :
+
+```ts /HookParameters(?:<.+>)?/
+import type { HookParameters } from 'astro';
+
+function mySetup(options: HookParameters<'astro:config:setup'>) {
+  options.updateConfig({ /* ... */ });
+}
+```
 
 ## Autoriser l'installation avec `astro add`
 
