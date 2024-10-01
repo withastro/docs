@@ -43,6 +43,7 @@ export default {
 	'meta.addedIn': 'Added in:',
 	'meta.badge.new': 'New',
 	'meta.badge.beta': 'Beta',
+	'meta.availableFor': 'Available for:',
 	'meta.cli': 'CLI:',
 	'meta.default': 'Default:',
 	'meta.type': 'Type:',
