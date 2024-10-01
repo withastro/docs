@@ -21,3 +21,7 @@
 
 <!-- If you are a member of the Astro Discord, please add your username in the description so we can welcome you there! -->
 <!-- https://astro.build/chat -->
+
+___
+_TAKING PART IN HACKTOBERFEST? LET US KNOW!_
+<!-- See https://contribute.docs.astro.build/guides/hacktoberfest/ for more details. -->
