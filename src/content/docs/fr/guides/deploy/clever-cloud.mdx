@@ -1,0 +1,126 @@
+---
+title: Déployez votre site Astro sur Clever Cloud
+description: Comment déployer votre site Astro sur le web avec Clever Cloud.
+type: deploy
+i18nReady: true
+---
+import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
+
+[Clever Cloud](https://clever-cloud.com) est une plateforme cloud européenne qui fournit des services automatisés et évolutifs.
+
+## Configuration du projet
+
+Vous pouvez déployer à la fois des projets Astro entièrement statiques ou rendus à la demande sur Clever Cloud. Quel que soit votre mode de sortie ([pré-rendu ou à la demande](/fr/basics/rendering-modes/)), vous pouvez choisir de déployer en tant qu'**application statique** qui s'exécute à l'aide d'un hook de post-construction, ou en tant qu'application **Node.js**, qui fonctionne immédiatement avec votre fichier `package.json`.
+
+### Port et hôte
+
+Les applications sur Clever Cloud écoutent sur le port **8080**. Si votre projet nécessite cette configuration, définissez votre port et votre hôte dans Astro à l'un des deux emplacements suivants :
+
+1. Dans les scripts `package.json` :
+
+    ```json title="package.json" "astro preview --host 0.0.0.0 --port 8080"
+    "scripts": {
+      "dev": "astro dev",
+      "start": "astro dev",
+      "build": "astro check && astro build",
+      "preview": "astro preview --host 0.0.0.0 --port 8080",
+      "astro": "astro"
+    } 
+    ```
+
+2. Dans `astro.config.mjs` :
+
+    ```javascript title="astro.config.mjs"
+    import { defineConfig } from 'astro/config';
+
+    export default defineConfig({
+      server: {
+        port: 8080,
+        host: true
+      }
+    });
+    ```
+
+
+## Déployer Astro depuis la console
+
+Pour déployer votre projet Astro sur Clever Cloud, vous devez **créer une nouvelle application**. L'assistant d'application vous guidera tout au long des étapes de configuration nécessaires.
+
+<Steps>
+
+1. Dans la barre de menu latérale, cliquez sur **Créer** > **Une application**
+2. Choisissez comment déployer :
+
+    - **Créer une toute nouvelle application** : pour déployer à partir d'un dépôt local avec Git
+    
+    ou
+    
+    - **Sélectionnez un dépôt GitHub** : pour déployer à partir de GitHub
+
+3. Sélectionnez une application **Node.js** ou une application **statique**.
+4. Définissez la taille minimale de votre instance et les options d'évolutivité. Les sites Astro peuvent généralement être déployés à l'aide de l'instance **Nano**. En fonction des spécifications et des dépendances de votre projet, vous devrez peut-être effectuer des ajustements en conséquence lorsque vous consultez les métriques de la page **Présentation**.
+5. Sélectionnez une **région** pour déployer votre instance.
+6. Ignorez [la connexion des **modules complémentaires** à votre application Clever](https://developers.clever-cloud.com/doc/addons/) sauf si vous utilisez une base de données ou Keycloak.
+7. Injectez des **variables d’environnement** :
+
+    - Pour **Node.js**, aucune variable d'environnement spécifique n'est nécessaire pour déployer Astro si vous utilisez **npm**. Si vous utilisez **yarn** ou **pnpm**, définissez les variables d'environnement suivantes :
+
+    <Tabs>
+      <TabItem label="pnpm">
+      ```shell
+    CC_NODE_BUILD_TOOL="custom"
+    CC_PRE_BUILD_HOOK="npm install -g pnpm && pnpm install"
+    CC_CUSTOM_BUILD_TOOL="pnpm run astro telemetry disable && pnpm build"
+    CC_RUN_COMMAND="pnpm run preview"
+      ```
+      </TabItem>
+      <TabItem label="yarn">
+      ```shell
+      CC_NODE_BUILD_TOOL="yarn"
+      CC_PRE_BUILD_HOOK="yarn && yarn run astro telemetry disable && yarn build"
+      CC_RUN_COMMAND="yarn run preview"
+      ```
+      </TabItem>
+    </Tabs>
+
+    - Pour une application **statique**, ajoutez ces variables :
+
+    <Tabs>
+      <TabItem label="npm">
+      ```shell
+    CC_POST_BUILD_HOOK="npm run build"
+    CC_PRE_BUILD_HOOK="npm install && npm run astro telemetry disable"
+    CC_WEBROOT="/dist"
+    ```
+      </TabItem>
+      <TabItem label="pnpm">
+      ```shell
+    CC_POST_BUILD_HOOK="pnpm build"
+    CC_PRE_BUILD_HOOK="npm install -g pnpm && pnpm install && pnpm run astro telemetry disable"
+    CC_WEBROOT="/dist"
+      ```
+      </TabItem>
+      <TabItem label="yarn">
+      ```shell
+      CC_POST_BUILD_HOOK="yarn build"
+      CC_PRE_BUILD_HOOK="yarn && yarn run astro telemetry disable"
+      CC_WEBROOT="/dist"
+      ```
+      </TabItem>
+    </Tabs>
+
+
+8. **Déployer !** Si vous effectuez un déploiement à partir de **GitHub**, votre déploiement doit démarrer automatiquement. Si vous utilisez **Git**, copiez le dépôt distant et effectuez un push sur la branche **master**.
+
+</Steps>
+
+:::tip[Autres branches]
+Pour déployer à partir de branches autres que `master`, utilisez `git push clever <branch>:master`.
+
+Par exemple, si vous souhaitez déployer votre branche locale `main` sans la renommer, utilisez `git push clever main:master`.
+:::
+
+
+## Ressources officielles
+- [Documentation Clever Cloud pour déployer une application Node.js](https://developers.clever-cloud.com/doc/applications/javascript/nodejs/)
+- [Documentation Clever Cloud pour le déploiement d'Astro en tant qu'application statique](https://developers.clever-cloud.com/guides/astro/)
