@@ -1,0 +1,175 @@
+---
+title: Składnia Astro
+description: Wstęp do składni .astro komponentów.
+i18nReady: true
+---
+
+**Jeśli znasz HTML'a to wiesz już wystarczająco dużo, aby napisać swój pierwszy komponent Astro.**
+
+Składnia komponentu Astro jest nadzbiorem HTML. Została ona [zaprojektowana, aby ktokolwiek piszący HTML'a bądź JSX'a czuł się jak w domu](#różnice-między-astro-a-jsx), oraz aby wspierać dodawanie komentarzy w kodzie JavaScript.
+
+
+## Wyrażenia JSX-o Podobne
+
+Możesz zdefiniować zmienne lokalne JavaScript w środku skryptu modułu frontmatter pomiędzy dwiema furtkami kodu komponentu Astro (`---`). You can then inject these variables into the component's HTML template using JSX-like expressions! Możesz wstrzyknąć te zmienne do szablonu HTML komponentu za pomocą wyrażeń JSX-o podobnych!
+
+:::note[Dynamiczne vs reaktywne]
+Używając tego podejścia, możesz włączyć **dynamiczne** wartości, które są obliczane w frontmatter. Ale raz zawarte, te wartości nie są **reaktywne** i nigdy się nie zmienią. Komponenty Astro to szablony, które uruchamiają się tylko raz, podczas renderowania.
+
+Poniżej zobaczysz więcej przykładów [różnic między Astro a JSX](#różnice-między-astro-a-jsx).
+:::
+
+### Zmienne
+
+Zmienne lokalne mogą zostać dodane do kodu HTML poprzez użycie składni nawiasów klamrowych:
+
+```astro title="src/components/Variables.astro" "{name}"
+---
+const name = "Astro";
+---
+<div>
+  <h1>Witaj {name}!</h1>  <!-- Wydrukuje się <h1>Witaj Astro!</h1> -->
+</div>
+```
+
+### Atrybuty Dynamiczne
+Zmienne lokalne mogą być użyte w nawiasach klamrowych do przekazywania wartości atrybutów zarówno do elementów HTML jak i komponentów:
+
+```astro title="src/components/DynamicAttributes.astro" "{name}" "${name}"
+---
+const name = "Astro";
+---
+<h1 class={name}>Wyrażenia atrybutów są wspierane</h1>
+
+<MyComponent templateLiteralNameAttribute={`MyNameIs${name}`} />
+```
+
+:::caution
+Atrybuty HTML zostaną przekonwertowane na stringi, więc nie jest możliwe przekazywanie funkcji i obiektów do elementów HTML.
+Na przykład, nie możesz przypisać obsługi zdarzeń do elementu HTML w komponencie Astro:
+
+```astro title="tego-nie-rob.astro"
+---
+function handleClick () {
+    console.log("Przycisk kliknął!");
+}
+---
+<!-- ❌ To nie zadziała! ❌ -->
+<button onClick={handleClick}>Nic się nie stanie gdy mnie klikniesz!</button>
+```
+
+Zamiast tego, użyj skryptu po stronie klienta, aby dodać obsługę zdarzeń. Zupełnie jak byś to zrobił w czystym JavaScript:
+
+```astro title="lepiej-zrob-to-tak.astro"
+---
+---
+<button id="button">Click Me</button>
+<script>
+  function handleClick () {
+    console.log("Przycisk kliknął!");
+  }
+  document.getElementById("button").addEventListener("click", handleClick);
+</script>
+```
+:::
+
+### Dynamiczny HTML
+
+Zmienne lokalne mogą zostać użyte w funkcjach JSX-o podobnych do stworzenia dynamicznie generowanych elementów HTML: 
+
+```astro title="src/components/DynamicHtml.astro" "{item}"
+---
+const items = ["Pies", "Kot", "Dziobak"];
+---
+<ul>
+  {items.map((item) => (
+    <li>{item}</li>
+  ))}
+</ul>
+```
+
+Astro może warunkowo wyświetlać HTML używając operatorów logicznych JSX oraz wyrażeń ternarnych.
+
+```astro title="src/components/ConditionalHtml.astro" "visible"
+---
+const visible = true;
+---
+{visible && <p>Pokaż mi!</p>}
+
+{visible ? <p>Pokaż mi!</p> : <p>Również mi pokaż!</p>}
+```
+
+### Dynamiczne Tagi
+
+Możesz również używać dynamicznych tagów przypisując nazwę tagu HTML do zmiennej lub poprzez ponowne przypisanie importu komponentu:
+
+```astro title="src/components/DynamicTags.astro" /Element|(?<!My)Component/
+---
+import MyComponent from "./MyComponent.astro";
+const Element = 'div'
+const Component = MyComponent;
+---
+<Element>Cześć!</Element> <!-- renderuje się jako <div>Cześć!</div> -->
+<Component /> <!-- renderuje się jako <MyComponent /> -->
+```
+
+Kiedy używasz dynamicznych tagów, pamiętaj o kilku rzeczach:
+
+- **Nazwy zmiennych pisz z dużej litery.** Na przykład, użyj `Elementu`, a nie `elementu`. W przeciwnym razie Astro wyrenderuje Twoją nazwę zmiennej jako zwykły tag HTML.
+{/* TODO: Gdy pojawi się tłumaczenie trzeba zmienić ścieżkę */}
+- **Dyrektywy nawadniania nie są wspierane** Jeśli korzystasz z [dyrektyw nawadniania `client:*`](/en/guides/framework-components/#hydrating-interactive-components), Astro musi wiedzieć, który komponent zapakować na produkcję, a wzór dynamicznego tagu zapobiega jemu działaniu.
+
+- **[Dyrektywa define:vars](/en/reference/directives-reference/#definevars) nie jest wspierana.** Jeśli nie możesz zawrzeć pochodnych za pomocą dodatkowego elementu (n.p. `<div>`), to możesz ręcznie dodać ``style={`--mojaZmienna:${wartosc}`}`` do Twojego Elementu. 
+
+### Fragmenty
+
+Astro wspiera używanie `<Fragment> </Fragment>` bądź skróconej formy `<> </>`.
+
+Fragmenty mogą być użyte do uniknięcia dodawania elementów otaczających, kiedy dodajesz [dyrektywy `set:*`](/en/reference/directives-reference/#sethtml), jak w poniższym przykładzie:
+
+```astro title="src/components/SetHtml.astro" "Fragment"
+---
+const htmlString = '<p>Surowa zawartość HTML</p>';
+---
+<Fragment set:html={htmlString} />
+```
+
+### Różnice Między Astro a JSX
+
+Składnia komponentu Astro jest nadzbiorem HTML. Została ona zaprojektowana, aby ktokolwiek piszący HTML'a bądź JSX'a czuł się jak w domu, ale istnieje kilka kluczowych różnic między plikami `.astro` a JSX.
+
+#### Atrybuty
+
+W Astro używasz standardowego formatu `kebab-case` dla wszystkich atrybutów HTML zamiast `camelCase` używanego w JSX. Działa to nawet dla `klas`, które nie są obsługiwane przez React.
+
+```jsx del={1} ins={2} title="example.astro"
+<div className="box" dataValue="3" />
+<div class="box" data-value="3" />
+```
+
+#### Wiele Elementów
+
+Szablon komponentu Astro może renderować wiele elementów bez potrzeby zawarcie wszystkiego w jednym tagu `<div>` lub `<>`, inaczej niż w JavaScript czy JSX.
+
+```astro title="src/components/RootElements.astro"
+---
+// Szabon z wieloma elementami
+---
+<p>Nie ma potrzeby zawierania elementów w jednym kontenerze.</p>
+<p>Astro wspiera wiele elementów korzeni w szablonie.</p>
+```
+
+#### Komentarze
+
+W Astro możesz używać standardowych komentarzy HTML lub komentarzy w stylu JavaScript.
+
+```astro title="example.astro"
+---
+---
+<!-- Składnia komentarzu HTML jest prawidłowa dla plików .astro -->
+{/* Tak samo jak i składnia JS */}
+```
+
+:::caution
+Komentarze w stylu HTML zostaną dołączone do DOM przeglądarki, podczas gdy te w stylu JS zostaną pominięte. Aby zostawić wiadomości TODO lub inne wyjaśnienia tylko dla deweloperów, możesz użyć komentarzy w stylu JavaScript.
+:::
