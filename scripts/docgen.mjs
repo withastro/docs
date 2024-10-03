@@ -12,14 +12,14 @@ const HEADER = `---
 # NOTE: This file is auto-generated from 'scripts/docgen.mjs'
 # Do not make edits to it directly, they will be overwritten.
 # Instead, change this file: https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts
-# Translators, please remove this note and the <DontEditWarning/> component. 
+# Translators, please remove this note and the <DontEditWarning/> component.
 
 title: Configuration Reference
 i18nReady: true
 githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts
 ---
 
-import Since from '~/components/Since.astro'
+import Meta from '~/components/Meta.astro'
 import DontEditWarning from '~/components/DontEditWarning.astro'
 
 <DontEditWarning />
@@ -82,7 +82,7 @@ export async function run() {
 		result += [
 			getHeading(comment),
 			getDeprecatedAside(comment.deprecated),
-			getCommentProperties(comment),
+			getMetaComponent(comment),
 			comment.description?.trim() || undefined,
 			comment.see
 				? `**See Also:**\n${comment.see.map((/** @type {any} */ s) => `- ${s}`.trim()).join('\n')}`
@@ -148,10 +148,26 @@ function getDeprecatedAside(tag) {
 }
 
 /**
- * Get block of type, CLI command, default value, and version added in for the current comment.
+ * Retrieve the Meta component props as a string from the given data.
+ * @param {{ cli?: string; defaultValue?: string; version?: string }} data
+ */
+function getMetaComponentProps(data) {
+	const props = [];
+	if (data.cli) props.push('cli="`' + data.cli + '`"');
+	if (data.defaultValue) props.push(`default="${data.defaultValue.replaceAll('"', '&quot;')}"`);
+	if (data.version) props.push(`version="${data.version}"`);
+	/* We add an extra element to the array to be sure there is space before
+	 * the first prop. */
+	if (props.length) props.unshift('');
+
+	return props.join(' ');
+}
+
+/**
+ * Get a Meta component with children for type and props for CLI command, default value, and version added in for the current comment.
  * @param {{ tags: { title: string; text: string }[]; kind: string; type?: { names: string [] }; defaultvalue?: string; version?: string }} comment
  */
-function getCommentProperties(comment) {
+function getMetaComponent(comment) {
 	const cliFlag = comment.tags.find((f) => f.title === 'cli');
 	const typerawFlag = comment.tags.find((f) => f.title === 'typeraw');
 
@@ -162,16 +178,17 @@ function getCommentProperties(comment) {
 		? typerawFlag.text.replace(/\{(.*)\}/, '$1')
 		: comment.type?.names.join(' | ');
 
-	const properties = [
-		typesFormatted ? `**Type:** \`${typesFormatted}\`` : undefined,
-		cliFlag ? `**CLI:** \`${cliFlag.text}\`` : undefined,
-		comment.defaultvalue ? `**Default:** ${comment.defaultvalue}` : undefined,
-		comment.version ? `<Since v="${comment.version}" />` : undefined,
-	]
-		.filter((l) => l !== undefined)
-		.join('<br />\n');
+	const metaProps = getMetaComponentProps({
+		cli: cliFlag?.text,
+		defaultValue: comment.defaultvalue,
+		version: comment.version,
+	});
 
-	return properties.length ? ['<p>', '', properties, '</p>', ''].join('\n') : undefined;
+	if (!typesFormatted && !metaProps) return undefined;
+
+	return typesFormatted
+		? `<Meta${metaProps}>\n` + '`' + typesFormatted + '`' + '\n</Meta>\n'
+		: `<Meta${metaProps}/>\n`;
 }
 
 run();
