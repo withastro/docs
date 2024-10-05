@@ -112,7 +112,7 @@ export default [
 		key: 'reference/directives-reference',
 	},
 	{
-		text: 'Built-in components',
+		text: 'Built-in Components',
 		slug: 'reference/components-reference',
 		key: 'reference/components-reference',
 	},
