@@ -130,4 +130,6 @@ export default {
 	// Starlight banner
 	'starlight.title': 'Want to build your own Docs?',
 	'starlight.description': 'Grab this template to get started.',
+	// `<StudioHeading>` component
+	'studioHeading.label': 'Studio feature',
 };
