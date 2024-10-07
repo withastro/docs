@@ -33,7 +33,7 @@ const posts = await Astro.glob('../pages/post/*.md'); // ./src/pages/post/*.md �
 
 `.glob()`은 하나의 매개변수, 즉 가져오려는 로컬 파일의 상대 URL glob만 사용합니다. 비동기식이며 일치하는 파일에서 내보내기 배열을 반환합니다.
 
-`.glob()`은 정적으로 분석할 수 없기 때문에 이를 보간하는 변수나 문자열을 사용할 수 없습니다. (해결 방법은 [문제 해결 안내서](/ko/guides/troubleshooting/#지원되는-값)를 참조하세요.) 이는 `Astro.glob()`이 Vite의 [`import.meta.glob()`의 래퍼이기 때문입니다.](https://ko.vitejs.dev/guide/features.html#glob-import).
+`.glob()`은 정적으로 분석할 수 없기 때문에 이를 보간하는 변수나 문자열을 사용할 수 없습니다. (해결 방법은 [문제 해결 안내서](/ko/guides/troubleshooting/#지원되는-값)를 참조하세요.) 이는 `Astro.glob()`이 Vite의 [`import.meta.glob()`의 래퍼이기 때문입니다.](https://ko.vite.dev/guide/features.html#glob-import).
 
 :::note
 Astro 프로젝트에서 `import.meta.glob()` 자체를 사용할 수도 있습니다. 다음과 같은 경우에 이 작업을 수행할 수 있습니다.
@@ -42,7 +42,7 @@ Astro 프로젝트에서 `import.meta.glob()` 자체를 사용할 수도 있습�
 - 각 파일의 경로에 접근하고 싶을 때 사용할 수 있습니다. `import.meta.glob()`은 파일의 콘텐츠 경로 맵을 반환하는 반면 `Astro.glob()`은 콘텐츠 목록을 반환합니다.
 - 여러 패턴을 전달하고 싶을 때 사용할 수 있습니다. 예를 들어 특정 파일을 필터링하는 "부정 패턴"을 추가하려고 합니다. `import.meta.glob()`은 선택적으로 단일 문자열이 아닌 glob 문자열 배열을 취할 수 있습니다.
 
-[Vite 문서](https://ko.vitejs.dev/guide/features.html#glob-import)에서 자세한 내용을 읽어보세요.
+[Vite 문서](https://ko.vite.dev/guide/features.html#glob-import)에서 자세한 내용을 읽어보세요.
 :::
 #### Markdown 파일
 
@@ -1340,7 +1340,7 @@ const { page } = Astro.props;
 
 ## `import.meta`
 
-모든 ESM 모듈에는 `import.meta` 속성이 포함되어 있습니다. Astro는 [Vite](https://ko.vitejs.dev/guide/env-and-mode.html)를 통해 `import.meta.env`를 추가합니다.
+모든 ESM 모듈에는 `import.meta` 속성이 포함되어 있습니다. Astro는 [Vite](https://ko.vite.dev/guide/env-and-mode.html)를 통해 `import.meta.env`를 추가합니다.
 
 **`import.meta.env.SSR`** 을 사용하면 서버에서 렌더링할 때 알 수 있습니다. 때로는 클라이언트에서만 렌더링되어야 하는 컴포넌트와 같은 다른 로직을 원할 수도 있습니다.
 
@@ -2510,20 +2510,59 @@ export const server = {
 
 <p>
 
-**타입:** `ZodObject | undefined`
+**타입:** `ZodType | undefined`
 </p>
 
 선택적 `input` 속성은 런타임에 핸들러 입력의 유효성을 검사하기 위해 Zod 유효성 검사기를 전달받습니다. 액션이 유효성 검사에 실패하면 [`BAD_REQUEST` 오류](#actionerror)가 반환되고 `handler`가 호출되지 않습니다.
 
-`accept: 'form'`과 함께 사용되는 경우 `input`은 `z.object()` 유효성 검사기를 사용해야 합니다.
+`input`을 생략하면 `handler`는 JSON 요청의 경우 `unknown` 타입의 입력을, 양식 요청의 경우 `FormData` 타입의 입력을 받습니다.
 
-`.refine()`, `.transform()`, `.pipe()`를 포함한 확장 함수도 이 객체에서 지원됩니다. 양식 데이터 필드에는 다음 유효성 검사기가 지원됩니다:
+##### `accept: 'form'`과 함께 사용
+
+액션이 양식 입력을 전달받는 경우 `z.object()` 유효성 검사기를 사용하여 양식 데이터를 타입이 정해진 객체로 자동 구문 분석합니다. 양식 데이터 필드에 지원되는 유효성 검사기는 다음과 같습니다:
 
 - `number` 유형의 입력은 `z.number()`를 사용하여 검증할 수 있습니다.
 - `checkbox` 유형의 입력은 `z.boolean()`을 사용하여 검증할 수 있습니다.
 - `file` 유형의 입력은 `z.instanceof(File)`을 사용하여 검증할 수 있습니다.
 - 동일한 `name`의 여러 입력은 `z.array(/* validator */)`를 사용하여 검증할 수 있습니다.
 - 다른 모든 입력은 `z.string()`을 사용하여 검증할 수 있습니다.
+
+`.refine()`, `.transform()`, `.pipe()`를 포함한 확장 함수도 `z.object()` 유효성 검사기에서 지원됩니다.
+
+서로 다른 유효성 검사기의 조합을 적용하려면 `z.discriminatedUnion()` 래퍼를 사용하여 특정 양식 필드를 기준으로 타입을 좁히세요. 이 예시는 사용자 "생성" 또는 "업데이트" 중 하나로 양식 제출을 처리하며, `type`이라는 이름의 양식 필드를 사용하여 어떤 객체에 대해 유효성 검사를 수행할지 결정합니다.
+
+```ts
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  changeUser: defineAction({
+    accept: 'form',
+    input: z.discriminatedUnion('type', [
+      z.object({
+        // `type` 필드에 `create` 값이 있을 때 일치합니다.
+        type: z.literal('create'),
+        name: z.string(),
+        email: z.string().email(),
+      }),
+      z.object({
+        // `type` 필드에 `update` 값이 있을 때 일치합니다.
+        type: z.literal('update'),
+        id: z.number(),
+        name: z.string(),
+        email: z.string().email(),
+      }),
+    ]),
+    async handler(input) {
+      if (input.type === 'create') {
+        // input은 { type: 'create', name: string, email: string }
+      } else {
+        // input은 { type: 'update', id: number, name: string, email: string }
+      }
+    },
+  }),
+};
+```
 
 ### `isInputError()`
 
