@@ -1,0 +1,126 @@
+---
+title: Astro 사이트를 Clever Cloud에 배포하기
+description: Clever Cloud로 웹에 Astro 사이트를 배포하는 방법.
+type: deploy
+i18nReady: true
+---
+import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
+
+[Clever Cloud](https://clever-cloud.com)는 자동화되고 확장 가능한 서비스를 제공하는 유럽의 클라우드 플랫폼입니다.
+
+## 프로젝트 구성
+
+완전히 정적인 프로젝트 및 주문형으로 렌더링된 Astro 프로젝트를 모두 Clever Cloud에 배포할 수 있습니다. `output` 모드 ([사전 렌더링 또는 주문형](/ko/basics/rendering-modes/))에 관계없이 포스트 빌드 훅을 사용하여 실행되는 **정적 애플리케이션**으로 배포하거나 `package.json`과 함께 즉시 작동하는 **Node.js** 애플리케이션으로 배포할 수 있습니다.
+
+### 포트 및 호스트
+
+Clever Cloud의 애플리케이션은 **8080** 포트에서 수신을 대기합니다. 프로젝트에 이 구성이 필요한 경우, 다음 두 위치 중 하나에서 Astro의 포트와 호스트를 설정하세요:
+
+1. `package.json` 스크립트에서:
+
+    ```json title="package.json" "astro preview --host 0.0.0.0 --port 8080"
+    "scripts": {
+      "dev": "astro dev",
+      "start": "astro dev",
+      "build": "astro check && astro build",
+      "preview": "astro preview --host 0.0.0.0 --port 8080",
+      "astro": "astro"
+    }
+    ```
+
+2. `astro.config.mjs`에서:
+
+    ```javascript title="astro.config.mjs"
+    import { defineConfig } from 'astro/config';
+
+    export default defineConfig({
+      server: {
+        port: 8080,
+        host: true
+      }
+    });
+    ```
+
+
+## 콘솔에서 Astro 배포
+
+Astro 프로젝트를 Clever Cloud에 배포하려면 **새 애플리케이션을 생성**해야 합니다. 애플리케이션 마법사가 필요한 구성 단계를 안내합니다.
+
+<Steps>
+
+1. 측면 메뉴 표시줄에서 **Create** > **An application**을 클릭합니다.
+2. 배포 방법을 선택합니다:
+
+    - **Create a brand new app**: Git을 사용하여 로컬 저장소로 배포하기 위해
+
+    또는
+
+    - **Select a GitHub repository**: GitHub로 배포하기 위해
+
+3. **Node.js** 애플리케이션 또는 **static** 애플리케이션을 선택합니다.
+4. 인스턴스 및 확장성 옵션의 최소 크기를 설정합니다. Astro 사이트는 일반적으로 **Nano** 인스턴스를 사용하여 배포할 수 있습니다. 프로젝트의 사양과 종속성에 따라 **Overview** 페이지에서 메트릭을 보면서 적절히 조정해야 할 수도 있습니다.
+5. 인스턴스를 배포할 **region**을 선택합니다.
+6. 데이터베이스나 Keycloak를 사용하지 않는 한 [Clever 애플리케이션에 **Add-ons** 연결하기](https://developers.clever-cloud.com/doc/addons/)를 건너뛰세요.
+7. **environment variables**를 삽입합니다:
+
+    - **Node.js**의 경우, **npm**을 사용한다면 Astro를 배포하는 데 특정 환경 변수가 필요하지 않습니다. **yarn** 또는 **pnpm**을 사용하는 경우, 다음 환경 변수를 설정하세요:
+
+    <Tabs>
+      <TabItem label="pnpm">
+      ```shell
+    CC_NODE_BUILD_TOOL="custom"
+    CC_PRE_BUILD_HOOK="npm install -g pnpm && pnpm install"
+    CC_CUSTOM_BUILD_TOOL="pnpm run astro telemetry disable && pnpm build"
+    CC_RUN_COMMAND="pnpm run preview"
+      ```
+      </TabItem>
+      <TabItem label="yarn">
+      ```shell
+      CC_NODE_BUILD_TOOL="yarn"
+      CC_PRE_BUILD_HOOK="yarn && yarn run astro telemetry disable && yarn build"
+      CC_RUN_COMMAND="yarn run preview"
+      ```
+      </TabItem>
+    </Tabs>
+
+    - **static** 애플리케이션의 경우, 다음 변수를 추가합니다:
+
+    <Tabs>
+      <TabItem label="npm">
+      ```shell
+    CC_POST_BUILD_HOOK="npm run build"
+    CC_PRE_BUILD_HOOK="npm install && npm run astro telemetry disable"
+    CC_WEBROOT="/dist"
+    ```
+      </TabItem>
+      <TabItem label="pnpm">
+      ```shell
+    CC_POST_BUILD_HOOK="pnpm build"
+    CC_PRE_BUILD_HOOK="npm install -g pnpm && pnpm install && pnpm run astro telemetry disable"
+    CC_WEBROOT="/dist"
+      ```
+      </TabItem>
+      <TabItem label="yarn">
+      ```shell
+      CC_POST_BUILD_HOOK="yarn build"
+      CC_PRE_BUILD_HOOK="yarn && yarn run astro telemetry disable"
+      CC_WEBROOT="/dist"
+      ```
+      </TabItem>
+    </Tabs>
+
+
+8. **배포!** **GitHub**에서 배포하는 경우 배포가 자동으로 시작됩니다. **Git**을 사용하는 경우, 원격 저장소를 복사하여 **master** 브랜치에 푸시하세요.
+
+</Steps>
+
+:::tip[기타 브랜치]
+`master`가 아닌 브랜치에서 배포하기 위해서는 `git push clever <branch>:master`를 사용하세요.
+
+예를 들어 로컬 `main` 브랜치를 이름을 바꾸지 않고 배포하려면 `git push clever main:master`를 사용하세요.
+:::
+
+
+## 공식 리소스
+- [Node.js 애플리케이션을 배포하기 위한 Clever Cloud 문서](https://developers.clever-cloud.com/doc/applications/javascript/nodejs/)
+- [Astro를 정적 애플리케이션으로 배포하기 위한 Clever Cloud 문서](https://developers.clever-cloud.com/guides/astro/)
