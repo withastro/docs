@@ -133,9 +133,9 @@ export default [
 		key: 'reference/dev-toolbar-app-reference',
 	},
 	{
-		text: 'Loader API',
-		slug: 'reference/loader-reference',
-		key: 'reference/loader-reference',
+		text: 'Content Loader API',
+		slug: 'reference/content-loader-reference',
+		key: 'reference/content-loader-reference',
 	},
 	{
 		text: 'Container API (Experimental)',
