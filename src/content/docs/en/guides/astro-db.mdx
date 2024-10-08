@@ -159,7 +159,7 @@ export default async function() {
 
 Your development server will automatically restart your database whenever this file changes, regenerating your types and seeding your development data from `seed.ts`.
 
-## Connecting a libSQL database for production
+## Connect a libSQL database for production
 
 Astro DB can connect to any libSQL server from any platform that exposes the libSQL remote protocol of the server, or can be self-hosted.
 
@@ -168,16 +168,65 @@ To connect Astro DB to a libSQL database, set the following environment variable
 - `ASTRO_DB_REMOTE_URL`: the connection URL to your libSQL server
 - `ASTRO_DB_APP_TOKEN`: the auth token to your libSQL server
 
-Details of the libSQL connection (e.g. encryption key, replication, sync interval) can be configured as query parameters in the remote connection URL.
+The way you get these values varies between services, but the next paragraph will show you how can you get started with [Turso](https://turso.tech), a fully managed database platform that uses libSQL.
 
-For example, to have a local file work as an embedded replica to an encrypted libSQL server, you can set the following environment variables:
+### Getting started with Turso
 
-```dotenv title=".env"
-ASTRO_DB_REMOTE_URL=file://local-copy.db?encryptionKey=your-encryption-key&syncInterval=60&syncUrl=libsql%3A%2F%2Fyour.server.io
-ASTRO_DB_APP_TOKEN=token-to-your-remote-url
-```
+You can either use the CLI or the web interface to create and rethrieve the values we need.
+The steps that are shown below will walk you through the process of installing the Turso CLI, logging in (or signing up), creating a new database, getting the two values we need and pushing our schema to the remote database.
 
-<ReadMore>See all available [remote URL configuration options](#remote-url-configuration-options)</ReadMore>
+<Steps>
+
+1. Install the [Turso CLI](https://docs.turso.tech/cli/installation).
+
+2. [Login or signup](https://docs.turso.tech/cli/authentication) to Turso. For this example the username for the account will be Houston.
+
+3. Let's create a new database. In this case the database name is `andromeda`, but you can change it to any other name.
+
+   ```sh "andromeda"
+   turso db create andromeda
+   ```
+
+4. Now we are going to get the database URL of the newly created database.
+
+   ```sh "andromeda"
+   turso db show andromeda
+   ```
+
+    Use the value in the row `URL:` as the environment variable for `ASTRO_DB_REMOTE_URL`.
+
+   ```env title=".env" "libsql://andromeda-houston.turso.io"
+   ASTRO_DB_REMOTE_URL=libsql://andromeda-houston.turso.io
+   ```
+
+5. To get the second value that we need, let's create a bearer token to authenticate requests to the database.
+
+   ```sh "andromeda"
+   turso db tokens create andromeda
+   ```
+
+    Use the output of the command as the environment variable for `ASTRO_DB_APP_TOKEN`
+
+   ```env title=".env" add={2} "eyJhbGciOiJF...3ahJpTkKDw"
+   ASTRO_DB_REMOTE_URL=libsql://andromeda-houston.turso.io
+   ASTRO_DB_APP_TOKEN=eyJhbGciOiJF...3ahJpTkKDw
+   ```
+
+6. Push your DB schema and metadata to the new Turso database.
+
+   ```sh
+   astro db push --remote
+   ```
+
+7. Congratulations, now you have a database connected! Give yourself a break.
+
+   ```sh
+   turso relax
+   ```
+
+</Steps>
+
+To explore more features of Turso, check out the [Turso docs](https://docs.turso.tech).
 
 ### Deploy your project with a live connection
 
@@ -227,6 +276,15 @@ libSQL supports both HTTP and WebSockets as the transport protocol for a remote 
 - `http:` will use a remote server through HTTP. `https:` can be used to enable a secure connection. The host is the same as for `libsql:`.
 - `ws:` will use a remote server through WebSockets. `wss:` can be used to enable a secure connection. The host is the same as for `libsql:`.
 
+Details of the libSQL connection (e.g. encryption key, replication, sync interval) can be configured as query parameters in the remote connection URL.
+
+For example, to have a local file work as an embedded replica to an encrypted libSQL server, you can set the following environment variables:
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=file://local-copy.db?encryptionKey=your-encryption-key&syncInterval=60&syncUrl=libsql%3A%2F%2Fyour.server.io
+ASTRO_DB_APP_TOKEN=token-to-your-remote-url
+```
+
 :::caution
 
 Using a database file is an advanced feature, and care should be taken when deploying to prevent overriding your database and losing your production data.
@@ -265,7 +323,7 @@ This property is only used when `syncUrl` is also set. For example, to set an in
 ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io&syncInterval=60
 ```
 
-## Self-hosted production deployment
+### Self-hosted deployment
 
 Set the `ASTRO_DATABASE_FILE` environment variable to a path pointing to your `.db` file within the host environment during your build:
 
