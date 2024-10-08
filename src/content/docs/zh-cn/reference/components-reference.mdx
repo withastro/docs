@@ -1,0 +1,264 @@
+---
+title: 内置组件参考
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 2
+---
+import Since from '~/components/Since.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+Astro 包括几个内置的组件供你在你的项目中使用。所有内置组件都可以在 `.astro` 文件中使用，并且可能需要导入语句。
+
+你可以使用 [`ComponentProp` 类型](/zh-cn/guides/typescript/#componentprops-类型) 工具函数来引用这些组件的 `Props`。
+
+### `<Code />`
+
+```astro 'theme="dark-plus"' /wrap\b/ /(inline) \/>/
+---
+import { Code } from 'astro:components';
+---
+<!-- 使用语法凸显部分 JavaScript 代码-->
+<Code code={`const foo = 'bar';`} lang="js" />
+<!-- 可选：定制你的主题 -->
+<Code code={`const foo = 'bar';`} lang="js" theme="dark-plus" />
+<!-- 可选：启用文字包装 -->
+<Code code={`const foo = 'bar';`} lang="js" wrap />
+<!-- 可选：输出内联代码 -->
+<p>
+  <Code code={`const foo = 'bar';`} lang="js" inline />
+  will be rendered inline.
+</p>
+<!-- 可选: defaultColor -->
+<Code code={`const foo = 'bar';`} lang="js" defaultColor={false} />
+```
+
+该组件在构建时为代码块提供语法高亮（不包括客户端 JavaScript）。该组件由 Shiki 内部驱动，它支持所有流行的 [主题](https://shiki.style/themes)和 [语言](https://shiki.style/languages)。另外，你可以通过将自定义主题、语言、[转换器](#转换器) 和 [默认配色](https://shiki.style/guide/dual-themes#without-default-color) 分别传递给 `theme`、`lang`、`transformers` 和 `defaultColor` 属性以添加它们。
+
+:::note
+该组件 **不会** 继承你在 [Shiki 配置](/zh-cn/guides/markdown-content/#shiki-配置) 中的设置。你必须使用组件属性来设置它们。
+:::
+
+#### 转换器
+
+
+<p><Since v="4.11.0" /></p>
+
+[Shiki 转换器](https://shiki.tmrs.site/packages/transformers#shikijs-transformers) 可以通过将其作为数组传递到 `transformers` 属性中，来选择性地应用于代码。从 Astro v4.14.0 开始，你还可以为 [Shiki 的 `meta` 属性](https://shiki.style/guide/transformers#meta) 提供一个字符串，以将选项传递给转换器。
+
+注意，`transformers` 只能用于类，同时你必须提供自己的 CSS 规则来针对代码块的元素。
+
+```astro title="src/pages/index.astro" {12-13}
+---
+import { transformerNotationFocus, transformerMetaHighlight } from '@shikijs/transformers'
+import { Code } from 'astro:components'
+const code = `const foo = 'hello'
+const bar = ' world'
+console.log(foo + bar) // [!code focus]
+`
+---
+<Code
+  code={code}
+  lang="js"
+  transformers={[transformerMetaHighlight()]}
+  meta="{1,3}" />
+  
+  <style is:global>
+    pre.has-focused .line:not(.focused) {
+      filter: blur(1px);
+    }
+  </style>
+```
+
+### `<Fragment />`
+
+一个与 [`set:*` 指令](/zh-cn/reference/directives-reference/#sethtml) 一起使用的组件，用于渲染 HTML 内容而不添加任何额外的包裹元素。
+
+```astro title="src/components/SetHtml.astro" "Fragment"
+---
+const htmlString = '<p>Raw HTML content</p>';
+---
+<Fragment set:html={htmlString} />
+```
+
+请参见在 Astro 语法中使用[片段](/zh-cn/basics/astro-syntax/#片段)的更多信息。
+
+### `<Prism />`
+
+
+要安装 `Prism` 高亮器组件，需要**先安装** `@astrojs/prism` 包：
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm i @astrojs/prism
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm i @astrojs/prism
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/prism
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+
+```astro
+---
+import { Prism } from '@astrojs/prism';
+---
+<Prism lang="js" code={`const foo = 'bar';`} />
+```
+
+这个组件通过应用 Prism 的 CSS 类为代码块提供特定语言的语法高亮。注意，**你需要提供 Prism 的 CSS 样式表**（或用自己的），以启用语法高亮！参见 [Prism 配置部分](/zh-cn/guides/markdown-content/#prism-配置)了解更多细节。
+
+参见 [Prism 支持的语言列表](https://prismjs.com/#supported-languages)，在那里你可以找到一种语言的对应别名。而且，你也可以用 `lang="astro"` 来展示 Astro 代码块！
+
+### `<Image />`
+
+```astro title="src/components/MyComponent.astro"
+---
+// 导入图像组件和图片
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // Image is 1600x900
+---
+<!-- `alt` 在 Image 组件中是必需的属性 -->
+<Image src={myImage} alt="A description of my image." />
+```
+
+```html
+<!-- 输出 -->
+<!-- Image 组件已经过优化，并且对应的属性也被强制使用。 -->
+<img
+  src="/_astro/my_image.hash.webp"
+  width="1600"
+  height="900"
+  decoding="async"
+  loading="lazy"
+  alt="A description of my image."
+/>
+```
+#### 属性
+
+- src（必需的）
+- alt（必需的）
+- width 和 height（对 `public/` 和远程图像而言是必需的）
+- format
+- quality
+- densities
+- widths
+
+除了上述属性之外，`<Image />` 组件还接受 HTML `<img>` 标签接受的所有属性。
+
+详见[图像指南](/zh-cn/guides/images/#image--astroassets)。
+
+### `<Picture />`
+
+<p><Since v="3.3.0" /></p>
+
+使用内置的 `<Picture />` Astro 组件来展示具有多种格式和（或）尺寸的响应式图像。
+
+```astro title="src/pages/index.astro"
+---
+import { Picture } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // 图像的分辨率为 1600x900
+---
+<!-- 在图片组件上 `alt` 属性是必需的 -->
+<Picture src={myImage} formats={['avif', 'webp']} alt="A description of my image." />
+```
+
+```html
+<!-- 输出 -->
+<picture>
+  <source srcset="/_astro/my_image.hash.avif" type="image/avif" />
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.png"
+    width="1600"
+    height="900"
+    decoding="async"
+    loading="lazy"
+    alt="A description of my image."
+  />
+</picture>
+```
+
+详见[图像指南](/zh-cn/guides/images/#picture-)。
+
+#### 属性
+
+`<Picture />` 接受 `<Image />` 组件的所有属性，以及以下属性：
+
+##### `formats`
+
+一个图像格式的数组，用于 `<source>` 标签。默认情况下，它被设置为 `['webp']`。
+
+##### `fallbackFormat`
+
+用于作为 `<img>` 标签的回退值的格式。对于静态图像，默认为 `.png`；对于动画图像，默认为 `.gif`；对于 SVG 文件，默认为 `.svg`。
+
+##### `pictureAttributes`
+
+一个被添加到 `<picture>` 标签的属性对象。使用该属性可将属性应用于外部的 `<picture>` 元素本身。除了用于图像转换的属性外，直接应用于 `<Picture />` 组件的属性将应用于内部的 `<img>` 元素。
+
+### `<Content />`
+
+一个通用组件，用于呈现 [内容集合条目](/zh-cn/guides/content-collections/#什么是内容集合) 的内容。
+
+首先，使用 `getCollection()` 或 `getEntry()` 查询一个或多个条目。然后，`entry.render()` 函数可以返回 `<Content />` 组件，以供在 `.astro` 文件模板中使用。
+
+```astro title="src/pages/render-example.astro" {4, 7}
+---
+import { getEntry } from 'astro:content';
+const entry = await getEntry('blog', 'post-1');
+const { Content } = await entry.render();
+---
+<p>Published on: {entry.data.published.toDateString()}</p>
+<Content />
+```
+
+### `<ViewTransitions />`
+
+<p><Since v="2.9.0" /></p>
+
+在每个希望应用视图过渡动画的页面上，通过导入并将 `<ViewTransitions />` 路由组件添加到 `<head>` 中，来选择使用单个页面上的视图过渡动画。
+
+```astro title="src/pages/index.astro" ins={2,7}
+---
+import { ViewTransitions } from 'astro:transitions';
+---
+<html lang="en">
+  <head>
+    <title>My Homepage</title>
+    <ViewTransitions />
+  </head>
+  <body>
+    <h1>Welcome to my website!</h1>
+  </body>
+</html>
+```
+
+查看更多关于如何[控制路由器](/zh-cn/guides/view-transitions/#路由器控制)和向页面元素和组件添加[过渡动画指令](/zh-cn/guides/view-transitions/#过渡动画指令)的信息。
+
+### `<Debug />`
+
+```astro
+---
+import { Debug } from 'astro:components';
+const serverObject = {
+  a: 0,
+  b: "string",
+  c: {
+    nested: "object"
+  }
+}
+---
+<Debug {serverObject} />
+```
+
+这个组件提供了无需 JavaScript 在客户端检查数值的方法。
