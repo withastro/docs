@@ -12,7 +12,7 @@ import { Steps } from '@astrojs/starlight/components';
 
 Astro DB is a fully-managed SQL database designed for the Astro ecosystem: develop locally in Astro and deploy to any libSQL-compatible database.
 
-Astro DB is a complete solution to configuring, developing and querying your data. A local database is created in the `.astro` directory whenever you run `astro dev` to manage your data without the need for Docker or a network connection.
+Astro DB is a complete solution to configuring, developing and querying your data. A local database is created in `.astro/content.db` whenever you run `astro dev` to manage your data without the need for Docker or a network connection.
 
 ## Installation
 
@@ -137,7 +137,7 @@ In development, Astro will use your DB config to generate local types according 
 
 You will not have access to production data during development unless you [seed from your remote database](#seed-from-your-remote-database). This protects your data while allowing you to test and develop with type-safety using simulated data.
 
-To seed development data for testing and debugging into your Astro project, create a `db/seed.ts` file. Import both the `db` object and any configured table from `astro:db`. Use the `db.insert()` function to provide an array of table row data objects. This development data should match the form of your database schema and production data.
+To seed development data for testing and debugging into your Astro project, create a `db/seed.ts` file. Import both the `db` object and any configured table from `astro:db`. Use the `db` handle (the same as given to your application) to insert the initial data into the development DB. This development data should match the form of your database schema and production data.
 
 The following example defines two rows of development data for a `Comment` table:
 
@@ -161,51 +161,51 @@ Your development server will automatically restart your database whenever this f
 
 ## Connect a libSQL database for production
 
-Astro DB can connect to any libSQL server from any platform that exposes the libSQL remote protocol of the server, or can be self-hosted.
+Astro DB can connect to any local libSQL database or to any server that exposes the libSQL remote protocol, whether managed or self-hosted.
 
 To connect Astro DB to a libSQL database, set the following environment variables:
 
-- `ASTRO_DB_REMOTE_URL`: the connection URL to your libSQL server
+- `ASTRO_DB_REMOTE_URL`: the connection URL to your libSQL DB
 - `ASTRO_DB_APP_TOKEN`: the auth token to your libSQL server
 
 The way you get these values varies between services, but the next paragraph will show you how can you get started with [Turso](https://turso.tech), a fully managed database platform that uses libSQL.
 
 ### Getting started with Turso
 
-You can either use the CLI or the web interface to create and rethrieve the values we need.
+You can either use the CLI or the web interface to create and retrieve the values you need.
 The steps that are shown below will walk you through the process of installing the Turso CLI, logging in (or signing up), creating a new database, getting the two values we need and pushing our schema to the remote database.
 
 <Steps>
 
 1. Install the [Turso CLI](https://docs.turso.tech/cli/installation).
 
-2. [Login or signup](https://docs.turso.tech/cli/authentication) to Turso. For this example the username for the account will be Houston.
+2. [Login or signup](https://docs.turso.tech/cli/authentication) to Turso.
 
-3. Let's create a new database. In this case the database name is `andromeda`, but you can change it to any other name.
+3. Next, create a new database. In this example the database name is `andromeda`, but you can change it to any other name.
 
    ```sh "andromeda"
    turso db create andromeda
    ```
 
-4. Now we are going to get the database URL of the newly created database.
+4. You can see the information about the newly created DB with the following command:
 
    ```sh "andromeda"
    turso db show andromeda
    ```
 
-    Use the value in the row `URL:` as the environment variable for `ASTRO_DB_REMOTE_URL`.
+   Use the value from the row `URL:` as the environment variable `ASTRO_DB_REMOTE_URL`.
 
    ```env title=".env" "libsql://andromeda-houston.turso.io"
    ASTRO_DB_REMOTE_URL=libsql://andromeda-houston.turso.io
    ```
 
-5. To get the second value that we need, let's create a bearer token to authenticate requests to the database.
+5. To authenticate requests to the database, create a new token for it:
 
    ```sh "andromeda"
    turso db tokens create andromeda
    ```
 
-    Use the output of the command as the environment variable for `ASTRO_DB_APP_TOKEN`
+   Use the output of the command as the environment variable `ASTRO_DB_APP_TOKEN`
 
    ```env title=".env" add={2} "eyJhbGciOiJF...3ahJpTkKDw"
    ASTRO_DB_REMOTE_URL=libsql://andromeda-houston.turso.io
@@ -278,7 +278,7 @@ libSQL supports both HTTP and WebSockets as the transport protocol for a remote 
 
 Details of the libSQL connection (e.g. encryption key, replication, sync interval) can be configured as query parameters in the remote connection URL.
 
-For example, to have a local file work as an embedded replica to an encrypted libSQL server, you can set the following environment variables:
+For example, to have an encrypted local file work as an embedded replica to a libSQL server, you can set the following environment variables:
 
 ```dotenv title=".env"
 ASTRO_DB_REMOTE_URL=file://local-copy.db?encryptionKey=your-encryption-key&syncInterval=60&syncUrl=libsql%3A%2F%2Fyour.server.io
