@@ -32,6 +32,7 @@ export default NavDictionary({
 	routes: '路由和导航',
 	'guides/routing': '路由',
 	'guides/endpoints': 'API 端点',
+	'guides/action': 'Actions',
 	'guides/prefetch': '预获取',
 	'guides/middleware': '中间件',
 	'guides/internationalization': '国际化',
