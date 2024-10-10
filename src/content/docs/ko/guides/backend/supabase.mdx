@@ -298,39 +298,46 @@ if (accessToken && refreshToken) {
 </Layout>
 ```
 
-`dashboard.astro` 파일에는 인증된 사용자만 엑세스할 수 있는 페이지가 포함되어 있습니다. 엑세스 토큰 및 리프레시 토큰이 있는지 확인하고 존재하지 않는 경우 로그인 페이지로 리디렉션됩니다.
+`dashboard.astro` 파일에는 인증된 사용자만 엑세스할 수 있는 페이지가 포함되어 있습니다. 엑세스 토큰 및 리프레시 토큰이 있는지 확인하고 존재하지 않거나 유효하지 않은 경우 로그인 페이지로 리디렉션됩니다.
 
 ```astro title="src/pages/dashboard.astro"
 ---
 import Layout from "../layouts/Layout.astro";
 import { supabase } from "../lib/supabase";
 
-const { cookies, redirect } = Astro;
-
-const accessToken = cookies.get("sb-access-token");
-const refreshToken = cookies.get("sb-refresh-token");
+const accessToken = Astro.cookies.get("sb-access-token");
+const refreshToken = Astro.cookies.get("sb-refresh-token");
 
 if (!accessToken || !refreshToken) {
+  return Astro.redirect("/signin");
+}
+
+let session;
+try {
+  session = await supabase.auth.setSession({
+    refresh_token: refreshToken.value,
+    access_token: accessToken.value,
+  });
+  if (session.error) {
+    Astro.cookies.delete("sb-access-token", {
+      path: "/",
+    });
+    Astro.cookies.delete("sb-refresh-token", {
+      path: "/",
+    });
+    return Astro.redirect("/signin");
+  }
+} catch (error) {
+  Astro.cookies.delete("sb-access-token", {
+    path: "/",
+  });
+  Astro.cookies.delete("sb-refresh-token", {
+    path: "/",
+  });
   return redirect("/signin");
 }
 
-const { data, error } = await supabase.auth.setSession({
-  refresh_token: refreshToken.value,
-  access_token: accessToken.value,
-});
-
-if (error) {
-  cookies.delete("sb-access-token", {
-    path: "/",
-  });
-  cookies.delete("sb-refresh-token", {
-    path: "/",
-  });
-
-  return redirect("/signin");
-}
-
-const email = data?.user?.email;
+const email = session.data.user?.email;
 ---
 <Layout title="dashboard">
   <h1>Welcome {email}</h1>
