@@ -300,39 +300,46 @@ if (accessToken && refreshToken) {
 </Layout>
 ```
 
-`dashboard.astro` 包含一个只有经过身份验证的用户才能访问的页面。它检查是否存在访问信息和刷新令牌。如果它们不存在，它将重定向到登录页面。
+`dashboard.astro` 包含一个只有经过身份验证的用户才能访问的页面。它检查是否存在访问信息和刷新令牌。如果它们不存在或者无效，它将重定向到登录页面。
 
 ```astro title="src/pages/dashboard.astro"
 ---
 import Layout from "../layouts/Layout.astro";
 import { supabase } from "../lib/supabase";
 
-const { cookies, redirect } = Astro;
-
-const accessToken = cookies.get("sb-access-token");
-const refreshToken = cookies.get("sb-refresh-token");
+const accessToken = Astro.cookies.get("sb-access-token");
+const refreshToken = Astro.cookies.get("sb-refresh-token");
 
 if (!accessToken || !refreshToken) {
-  return redirect("/signin");
+  return Astro.redirect("/signin");
 }
 
-const { data, error } = await supabase.auth.setSession({
-  refresh_token: refreshToken.value,
-  access_token: accessToken.value,
-});
-
-if (error) {
-  cookies.delete("sb-access-token", {
+let session;
+try {
+  session = await supabase.auth.setSession({
+    refresh_token: refreshToken.value,
+    access_token: accessToken.value,
+  });
+  if (session.error) {
+    Astro.cookies.delete("sb-access-token", {
+      path: "/",
+    });
+    Astro.cookies.delete("sb-refresh-token", {
+      path: "/",
+    });
+    return Astro.redirect("/signin");
+  }
+} catch (error) {
+  Astro.cookies.delete("sb-access-token", {
     path: "/",
   });
-  cookies.delete("sb-refresh-token", {
+  Astro.cookies.delete("sb-refresh-token", {
     path: "/",
   });
-
-  return redirect("/signin");
+  return Astro.redirect("/signin");
 }
 
-const email = data.user?.email;
+const email = session.data.user?.email;
 ---
 <Layout title="控制台">
   <h1>欢迎 {email}</h1>
