@@ -221,7 +221,7 @@ Criar dicionários de termos para traduzir as labels dos elementos de UI em todo
     ```
 
     :::note[Você percebeu?]
-    No passo 1, a string `nav.twitter` não foi traduzida para o francês. Você pode não querer traduzir todos os termos, como nomes próprios ou termos comuns da indústria. A função `useTranslations` irá retornar o valor da língua padrão se uma chave não for traduzida. Neste exemplo, os usuários franceses também verão “Twitter” na barra de navegação.
+    No passo 1, a string `nav.twitter` não foi traduzida para o francês. Você pode não querer traduzir todos os termos, como nomes próprios ou termos comuns da indústria. A função auxiliar `useTranslations` retornará o valor da língua padrão se uma chave não for traduzida. Neste exemplo, os usuários franceses também verão “Twitter” na barra de navegação.
     :::
     
 3. Importe os auxiliadores onde necessário e use-os para escolher a string de UI que corresponde a língua atual. Por exemplo, um componente de navegação pode ser assim: 
@@ -443,58 +443,58 @@ Traduza as rotas das suas páginas para cada língua.
     }
     ```
 
-2. Atualize a função `usarCaminhoTraduzido` no arquivo `src/i18n/utils.ts` para adicionar a lógica de tradução de roteamento.
+2. Atualize a função auxiliar `usarCaminhoTraduzido` no arquivo `src/i18n/utils.ts` para adicionar a lógica de tradução de roteamento.
 
-  ```js
-  // src/i18n/utils.ts
-  import { ui, linguaPadrao, mostrarLinguaPadrao, rotas } from './ui';
+    ```js
+    // src/i18n/utils.ts
+    import { ui, linguaPadrao, mostrarLinguaPadrao, rotas } from './ui';
 
-  export function usarCaminhoTraduzido(lang: keyof typeof ui) {
-    return function traduzirCaminho(caminho: string, l: string = lang) {
-      const nomeCaminho = caminho.replaceAll('/', '')
-      const temTraducao = linguaPadrao !== l && rotas[l] !== undefined && rotas[l][nomeCaminho] !== undefined
-      const caminhoTraduzido = temTraducao ? '/' + rotas[l][nomeCaminho] : path
+    export function usarCaminhoTraduzido(lang: keyof typeof ui) {
+      return function traduzirCaminho(caminho: string, l: string = lang) {
+        const nomeCaminho = caminho.replaceAll('/', '')
+        const temTraducao = linguaPadrao !== l && rotas[l] !== undefined && rotas[l][nomeCaminho] !== undefined
+        const caminhoTraduzido = temTraducao ? '/' + rotas[l][nomeCaminho] : path
 
-      return !mostrarCaminhoTraduzido && l === linguaPadrao ? caminhoTraduzido : `/${l}${caminhoTraduzido}`
+        return !mostrarCaminhoTraduzido && l === linguaPadrao ? caminhoTraduzido : `/${l}${caminhoTraduzido}`
+      }
     }
-  }
-  ```
+    ```
 
 3. Crie uma função auxiliar para obter a rota, se ela existir baseada na URL atual, em `src/i18n/utils.ts`:
 
-  ```js
-  // src/i18n/utils.ts
-  import { ui, linguaPadrao, mostrarLinguaPadrao, rotas } from './ui';
+    ```js
+    // src/i18n/utils.ts
+    import { ui, linguaPadrao, mostrarLinguaPadrao, rotas } from './ui';
 
-  export function pegarRotaDeUrl(url: URL): string | undefined {
-    const nomeCaminho = new URL(url).pathname
-    const partes = nomeCaminho?.split('/')
-    const caminho = partes.pop() || partes.pop()
+    export function pegarRotaDeUrl(url: URL): string | undefined {
+      const nomeCaminho = new URL(url).pathname
+      const partes = nomeCaminho?.split('/')
+      const caminho = partes.pop() || partes.pop()
 
-    if (caminho === undefined) {
+      if (caminho === undefined) {
+        return undefined
+      }
+
+      const linguaAtual = pegarLangDeURL(url);
+
+      if (linguaPadrao === linguaAtual) {
+        const rota = Object.values(rotas)[0];
+        return rota[caminho] !== undefined ? rota[caminho] : undefined
+      }
+
+      const pegarChavePeloValor = (obj: Record<string, string>, valor: string): string | undefined  => {
+          return Object.keys(obj).find((chave) => obj[chave] === valor)
+      }
+
+      const chaveRevertida = pegarChavePeloValor(rotas[linguaAtual], caminho)
+
+      if (chaveRevertida !== undefined) {
+        return chaveRevertida
+      }
+
       return undefined
     }
-
-    const linguaAtual = pegarLangDeURL(url);
-
-    if (linguaPadrao === linguaAtual) {
-      const rota = Object.values(rotas)[0];
-      return rota[caminho] !== undefined ? rota[caminho] : undefined
-    }
-
-    const pegarChavePeloValor = (obj: Record<string, string>, valor: string): string | undefined  => {
-        return Object.keys(obj).find((chave) => obj[chave] === valor)
-    }
-
-    const chaveRevertida = pegarChavePeloValor(rotas[linguaAtual], caminho)
-
-    if (chaveRevertida !== undefined) {
-      return chaveRevertida
-    }
-
-    return undefined
-  }
-  ```
+    ```
 
 4. A função auxiliar pode ser usada para obter uma rota traduzida. Por exemplo, quando nenhuma rota traduzida é definida, o usuário será redirecionado para sua página inicial:
 
