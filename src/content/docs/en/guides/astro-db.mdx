@@ -16,7 +16,7 @@ Astro DB is a complete solution to configuring, developing, and querying your da
 
 ## Installation
 
-Add Astro DB to a new or existing Astro project (requires `astro@4.5` or later) with the [`@astrojs/db` integration](/en/guides/integrations-guide/db/) (`v0.8.1` or later). Astro includes a built-in `astro add` command to automate this setup process for you.
+Install the [`@astrojs/db` integration](/en/guides/integrations-guide/db/) using the built-in `astro add` command:
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -36,8 +36,6 @@ Add Astro DB to a new or existing Astro project (requires `astro@4.5` or later) 
   </Fragment>
 </PackageManagerTabs>
 
-If you prefer, you can [install `@astrojs/db` manually](/en/guides/integrations-guide/db/#manual-installation) instead.
-
 ## Define your database
 
 Installing `@astrojs/db` with the `astro add` command will automatically create a `db/config.ts` file in your project where you will define your database tables:
@@ -54,17 +52,11 @@ export default defineDb({
 
 Data in Astro DB is stored using SQL tables. Tables structure your data into rows and columns, where columns enforce the type of each row value.
 
-Define your tables in your `db/config.ts` file by providing the structure of the data in your existing libSQL database, or the data you will collect in a new database.
+Define your tables in your `db/config.ts` file by providing the structure of the data in your existing libSQL database, or the data you will collect in a new database. This will allow Astro to generate a TypeScript interface to query that table from your project. The result is full TypeScript support when you access your data with property autocompletion and type-checking.
 
-When you define a table, Astro will generate a TypeScript interface to query that table from your project. The result is full TypeScript support when you access your data with property autocompletion and type-checking.
-
-To configure a database table, import and use the `defineTable()` and `column` utilities from `astro:db`.
+To configure a database table, import and use the `defineTable()` and `column` utilities from `astro:db`. Then, create a name (case-sensitive) for your table and define the type of data in each column.
 
 This example configures a `Comment` table with required text columns for `author` and `body`. Then, makes it available to your project through the `defineDb()` export.
-
-:::caution
-Table names in Astro DB are case-sensitive. Using a different case (e.g., `comment` instead of `Comment`) would result in creating a new, separate table rather than referencing the existing one.
-:::
 
 ```ts title="db/config.ts" "Comment"
 import { defineDb, defineTable, column } from 'astro:db';
@@ -139,11 +131,11 @@ const Comment = defineTable({
 
 In development, Astro will use your DB config to generate local types according to your schemas. These will be generated fresh from your seed file each time the dev server is started, and will allow you to query and work with the shape of your data with type safety and autocompletion.
 
-You will not have access to production data during development unless you [specify it yourself](#connecting-to-remote-databases). This protects your data while allowing you to test and develop with type-safety using simulated data.
+You will not have access to production data during development unless you [connect to a remote database](#connecting-to-remote-databases) during development. This protects your data while allowing you to test and develop with type-safety using simulated data.
 
-To seed development data for testing and debugging into your Astro project, create a `db/seed.ts` file. Import both the `db` object and any configured table from `astro:db`. Use the `db` handle (the same as given to your application) to insert the initial data into the development DB. This development data should match the form of your database schema and production data.
+To seed development data for testing and debugging into your Astro project, create a `db/seed.ts` file. Import both the `db` object and your tables defined in `astro:db`. `insert` some initial data into each table. This development data should match the form of both your database schema and production data.
 
-The following example defines two rows of development data for a `Comment` table:
+The following example defines two rows of development data for a `Comment` table, and an `Author` table:
 
 ```ts title="db/seed.ts"
 import { db, Comment, Author } from 'astro:db';
@@ -161,24 +153,23 @@ export default async function() {
 }
 ```
 
-Your development server will automatically restart your database whenever this file changes, regenerating your types and seeding your development data from `seed.ts`.
+Your development server will automatically restart your database whenever this file changes, regenerating your types and seeding this development data from `seed.ts` fresh each time.
 
 ## Connect a libSQL database for production
 
 Astro DB can connect to any local libSQL database or to any server that exposes the libSQL remote protocol, whether managed or self-hosted.
 
-To connect Astro DB to a libSQL database, set the following environment variables:
+To connect Astro DB to a libSQL database, set the following environment variables obtained from your database provider:
 
-- `ASTRO_DB_REMOTE_URL`: the connection URL to your libSQL DB
-- `ASTRO_DB_APP_TOKEN`: the auth token to your libSQL server. This is required for remote databases, not needed for [local DBs like files or in-memory](#url-scheme-and-host) databases
+- `ASTRO_DB_REMOTE_URL`: the connection URL to the location of your local or remote libSQL DB. This may include [URL configuration options](#remote-url-configuration-options) such as sync and encryption as paramaters.
+- `ASTRO_DB_APP_TOKEN`: the auth token to your libSQL server. This is required for remote databases, and not needed for [local DBs like files or in-memory](#url-scheme-and-host) databases
 
-The way you get these values varies between services, but the next section will show you how you can get started with [Turso](https://turso.tech).
-
-Turso is the company behind [libSQL](https://github.com/tursodatabase/libsql), the open-source fork of SQLite that powers Astro DB. They created and maintain the libSQL project, making them the perfect choice to provide a fully managed libSQL database platform.
+Depending on your service, you may have access to a CLI or web UI to retrieve these values. The following section will demonstrate connecting to Turso and setting these values as an example, but you are free to use any provider. 
 
 ### Getting started with Turso
 
-You can either use the CLI or the web interface to create and retrieve the values you need.
+Turso is the company behind [libSQL](https://github.com/tursodatabase/libsql), the open-source fork of SQLite that powers Astro DB. They provide a fully managed libSQL database platform and are fully compatible with Astro.
+
 The steps below will guide you through the process of installing the Turso CLI, logging in (or signing up), creating a new database, getting the required environmental variables, and pushing the schema to the remote database.
 
 <Steps>
@@ -187,35 +178,32 @@ The steps below will guide you through the process of installing the Turso CLI, 
 
 2. [Login or signup](https://docs.turso.tech/cli/authentication) to Turso.
 
-3. Next, create a new database. In this example the database name is `andromeda`, but you can change it to any other name.
+3. Create a new database. In this example the database name is `andromeda`.
 
    ```sh "andromeda"
    turso db create andromeda
    ```
 
-4. You can see the information about the newly created DB with the following command:
+4. Run the `show` command to see information about the newly created database:
 
    ```sh "andromeda"
    turso db show andromeda
    ```
 
-   Use the value from the row `URL:` as the environment variable `ASTRO_DB_REMOTE_URL`.
+   Copy the `URL` value and set it as the value for `ASTRO_DB_REMOTE_URL`.
    
-   :::tip
-   To read more about .env files and environment variables, check out the [Using environment variables](/en/guides/environment-variables/) guide.
-   :::
 
    ```env title=".env" "libsql://andromeda-houston.turso.io"
    ASTRO_DB_REMOTE_URL=libsql://andromeda-houston.turso.io
    ```
 
-5. To authenticate requests to the database, create a new token for it:
+5. Create a new token to authenticate requests to the database:
 
    ```sh "andromeda"
    turso db tokens create andromeda
    ```
 
-   Use the output of the command as the environment variable `ASTRO_DB_APP_TOKEN`
+   Copy the output of the command and set it as the value for `ASTRO_DB_APP_TOKEN`.
 
    ```env title=".env" add={2} "eyJhbGciOiJF...3ahJpTkKDw"
    ASTRO_DB_REMOTE_URL=libsql://andromeda-houston.turso.io
@@ -317,7 +305,7 @@ ASTRO_DB_REMOTE_URL=file:path/to/file.db?encryptionKey=your-encryption-key
 
 Embedded replicas are a feature of libSQL clients that creates a full synchronized copy of your database on a local file or in memory for ultra-fast reads. Writes are sent to a remote database defined on the `syncUrl` and synchronized with the local copy.
 
-Use this property to pass a separate connection URL to turn the DB into an embedded replica of another database. This should only be used with the schemes `file:` and `memory:`. The parameter must be URL encoded.
+Use this property to pass a separate connection URL to turn the database into an embedded replica of another database. This should only be used with the schemes `file:` and `memory:`. The parameter must be URL encoded.
 
 For example, to have an in-memory embedded replica of a database on `libsql://your.server.io`, you can set the connection URL as such:
 
@@ -411,20 +399,7 @@ const comments = await db.select().from(Comment);
 <!-- Render `comments` -->
 ```
 
-You can also query your database from an API endpoint. This example deletes a row from a `Comment` table by the `id` parameter:
-
-```ts
-// src/pages/api/comments/[id].ts
-import type { APIRoute } from "astro";
-import { db, Comment, eq } from 'astro:db';
-
-export const DELETE: APIRoute = async (ctx) => {
-  await db.delete(Comment).where(eq(Comment.id, ctx.params.id ));
-  return new Response(null, { status: 204 });
-}
-```
-
-The [Actions feature](/en/guides/actions/) provides a more straightforward approach for inserting data into Astro DB. Here's an example of how to perform a database insert using Actions:
+You can also use [Astro actions](/en/guides/actions/) to insert data into an Astro DB table. The following example inserts a row into a `Comment` table using an action:
 
 ```ts
 // src/actions/index.ts
@@ -454,6 +429,27 @@ export const server = {
 <ReadMore>
 
 See the [Drizzle `insert()` API reference](https://orm.drizzle.team/docs/insert) for a complete overview.
+
+</ReadMore>
+
+### Delete
+
+You can also query your database from an API endpoint. This example deletes a row from a `Comment` table by the `id` parameter:
+
+```ts
+// src/pages/api/comments/[id].ts
+import type { APIRoute } from "astro";
+import { db, Comment, eq } from 'astro:db';
+
+export const DELETE: APIRoute = async (ctx) => {
+  await db.delete(Comment).where(eq(Comment.id, ctx.params.id ));
+  return new Response(null, { status: 204 });
+}
+```
+
+<ReadMore>
+
+See the [Drizzle `delete()` API reference](https://orm.drizzle.team/docs/delete) for a complete overview.
 
 </ReadMore>
 
