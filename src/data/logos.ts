@@ -52,6 +52,7 @@ export const logos = LogoCheck({
 	cosmic: { file: 'cosmic.svg', padding: '.24em' },
 	hygraph: { file: 'hygraph.svg', padding: '.1em .125em .1em .1em' },
 	directus: { file: 'directus.svg', padding: '0 .1em' },
+	drupal: { file: 'drupal.svg', padding: '.12em' },
 	ghost: { file: 'ghost.png', padding: '.125em' },
 	'decap-cms': { file: 'decap-cms.svg', padding: '0 .225em 0 .26em' },
 	'tina-cms': { file: 'tina-cms.svg', padding: '.15em' },
