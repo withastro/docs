@@ -133,12 +133,12 @@ export default [
 
 	{ text: 'Astro API Reference', header: true, type: 'api', key: 'api-reference' },
 	{ text: 'The Astro Global', slug: 'reference/api-reference', key: 'reference/api-reference' },
-	{ text: 'astro:actions', slug: 'reference/modules/actions-api-reference', key: 'reference/modules/actions-api-reference' },
-	{ text: 'astro:assets', slug: 'reference/modules/assets-api-reference', key: 'reference/modules/assets-api-reference' },
-	{ text: 'astro:content', slug: 'reference/modules/content-api-reference', key: 'reference/modules/content-api-reference' },
-	{ text: 'astro:i18n', slug: 'reference/modules/i18n-api-reference', key: 'reference/modules/i18n-api-reference' },
-	{ text: 'astro:middleware', slug: 'reference/modules/middleware-api-reference', key: 'reference/modules/middleware-api-reference' },
-	{ text: 'astro:view-transitions', slug: 'reference/modules/view-transitions-api-reference', key: 'reference/modules/view-transitions-api-reference' },
+	{ text: 'astro:actions', slug: 'reference/modules/astro-actions', key: 'reference/modules/astro-actions' },
+	{ text: 'astro:assets', slug: 'reference/modules/astro-assets', key: 'reference/modules/astro-assets' },
+	{ text: 'astro:content', slug: 'reference/modules/astro-content', key: 'reference/modules/astro-content' },
+	{ text: 'astro:i18n', slug: 'reference/modules/astro-i18n', key: 'reference/modules/astro-i18n' },
+	{ text: 'astro:middleware', slug: 'reference/modules/astro-middleware', key: 'reference/modules/astro-middleware' },
+	{ text: 'astro:view-transitions', slug: 'reference/modules/astro-transitions', key: 'reference/modules/astro-transitions' },
 
 
 	{ text: 'Other Development APIs', header: true, type: 'api', key: 'dev' },
