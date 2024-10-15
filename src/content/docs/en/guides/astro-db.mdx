@@ -8,14 +8,15 @@ import { FileTree } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import ReadMore from '~/components/ReadMore.astro';
 import Since from '~/components/Since.astro';
-import StudioHeading from '~/components/StudioHeading.astro';
 import { Steps } from '@astrojs/starlight/components';
 
-Astro DB is a fully-managed SQL database designed exclusively for Astro. Develop locally or connect to a hosted database managed on our [Astro Studio](#astro-studio) platform.
+Astro DB is a fully-managed SQL database designed for the Astro ecosystem. Develop locally in Astro and deploy to any libSQL-compatible database.
+
+Astro DB is a complete solution to configuring, developing, and querying your data. A local database is created in `.astro/content.db` whenever you run `astro dev` to manage your data without the need for Docker or a network connection.
 
 ## Installation
 
-Add Astro DB to a new or existing Astro project (requires `astro@4.5` or later) with the [`@astrojs/db` integration](/en/guides/integrations-guide/db/) (`v0.8.1` or later). Astro includes a built-in `astro add` command to automate this setup process for you.
+Install the [`@astrojs/db` integration](/en/guides/integrations-guide/db/) using the built-in `astro add` command:
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -35,13 +36,9 @@ Add Astro DB to a new or existing Astro project (requires `astro@4.5` or later) 
   </Fragment>
 </PackageManagerTabs>
 
-If you prefer, you can [install `@astrojs/db` manually](/en/guides/integrations-guide/db/#manual-installation) instead.
-
 ## Define your database
 
-Astro DB is a complete solution to configuring, developing and querying your data. A local database is created whenever you run `astro dev`, using libSQL to manage your data without the need for Docker or a network connection.
-
-Installing `@astrojs/db` with the `astro add` command will create a `db/config.ts` file in your project where you will define your databases tables:
+Installing `@astrojs/db` with the `astro add` command will automatically create a `db/config.ts` file in your project where you will define your database tables:
 
 ```ts title="db/config.ts"
 import { defineDb } from 'astro:db';
@@ -55,11 +52,11 @@ export default defineDb({
 
 Data in Astro DB is stored using SQL tables. Tables structure your data into rows and columns, where columns enforce the type of each row value.
 
-When you define a table, Astro will generate a TypeScript interface to query that table from your project. The result is full TypeScript support when you access your data with property autocompletion and type-checking.
+Define your tables in your `db/config.ts` file by providing the structure of the data in your existing libSQL database, or the data you will collect in a new database. This will allow Astro to generate a TypeScript interface to query that table from your project. The result is full TypeScript support when you access your data with property autocompletion and type-checking.
 
-To configure a database table, import and use the `defineTable()` and `column` utilities from `astro:db`.
+To configure a database table, import and use the `defineTable()` and `column` utilities from `astro:db`. Then, define a name (case-sensitive) for your table and the type of data in each column.
 
-This example configures a `Comment` table with required text columns for `author` and `body`. Then, make it available to your project through the `defineDb()` export.
+This example configures a `Comment` table with required text columns for `author` and `body`. Then, makes it available to your project through the `defineDb()` export.
 
 ```ts title="db/config.ts" "Comment"
 import { defineDb, defineTable, column } from 'astro:db';
@@ -130,13 +127,15 @@ const Comment = defineTable({
 });
 ```
 
-## Seed your database
+## Seed your database for development
 
-In development, Astro will use your DB config to generate local types according to your schemas. These will be generated fresh each time the dev server is started, and will allow you to query and work with the shape of your data with type safety and autocompletion.
+In development, Astro will use your DB config to generate local types according to your schemas. These will be generated fresh from your seed file each time the dev server is started, and will allow you to query and work with the shape of your data with type safety and autocompletion.
 
-To seed development data for testing and debugging into your Astro project, create a `db/seed.ts` file. Import both the `db` object and any configured table from `astro:db`. Use the `db.insert()` function to provide an array of table row data objects.
+You will not have access to production data during development unless you [connect to a remote database](#connecting-to-remote-databases) during development. This protects your data while allowing you to test and develop with a working database with type-safety.
 
-The following example defines two rows of development data for a `Comment` table:
+To seed development data for testing and debugging into your Astro project, create a `db/seed.ts` file. Import both the `db` object and your tables defined in `astro:db`. `insert` some initial data into each table. This development data should match the form of both your database schema and production data.
+
+The following example defines two rows of development data for a `Comment` table, and an `Author` table:
 
 ```ts title="db/seed.ts"
 import { db, Comment, Author } from 'astro:db';
@@ -154,11 +153,179 @@ export default async function() {
 }
 ```
 
-Your development server will automatically restart your database whenever this file changes, regenerating your types and seeding your development data from `seed.ts`.
+Your development server will automatically restart your database whenever this file changes, regenerating your types and seeding this development data from `seed.ts` fresh each time.
+
+## Connect a libSQL database for production
+
+Astro DB can connect to any local libSQL database or to any server that exposes the libSQL remote protocol, whether managed or self-hosted.
+
+To connect Astro DB to a libSQL database, set the following environment variables obtained from your database provider:
+
+- `ASTRO_DB_REMOTE_URL`: the connection URL to the location of your local or remote libSQL DB. This may include [URL configuration options](#remote-url-configuration-options) such as sync and encryption as paramaters.
+- `ASTRO_DB_APP_TOKEN`: the auth token to your libSQL server. This is required for remote databases, and not needed for [local DBs like files or in-memory](#url-scheme-and-host) databases
+
+Depending on your service, you may have access to a CLI or web UI to retrieve these values. The following section will demonstrate connecting to Turso and setting these values as an example, but you are free to use any provider. 
+
+### Getting started with Turso
+
+Turso is the company behind [libSQL](https://github.com/tursodatabase/libsql), the open-source fork of SQLite that powers Astro DB. They provide a fully managed libSQL database platform and are fully compatible with Astro.
+
+The steps below will guide you through the process of installing the Turso CLI, logging in (or signing up), creating a new database, getting the required environmental variables, and pushing the schema to the remote database.
+
+<Steps>
+
+1. Install the [Turso CLI](https://docs.turso.tech/cli/installation).
+
+2. [Login or signup](https://docs.turso.tech/cli/authentication) to Turso.
+
+3. Create a new database. In this example the database name is `andromeda`.
+
+   ```sh "andromeda"
+   turso db create andromeda
+   ```
+
+4. Run the `show` command to see information about the newly created database:
+
+   ```sh "andromeda"
+   turso db show andromeda
+   ```
+
+   Copy the `URL` value and set it as the value for `ASTRO_DB_REMOTE_URL`.
+   
+
+   ```env title=".env" "libsql://andromeda-houston.turso.io"
+   ASTRO_DB_REMOTE_URL=libsql://andromeda-houston.turso.io
+   ```
+
+5. Create a new token to authenticate requests to the database:
+
+   ```sh "andromeda"
+   turso db tokens create andromeda
+   ```
+
+   Copy the output of the command and set it as the value for `ASTRO_DB_APP_TOKEN`.
+
+   ```env title=".env" add={2} "eyJhbGciOiJF...3ahJpTkKDw"
+   ASTRO_DB_REMOTE_URL=libsql://andromeda-houston.turso.io
+   ASTRO_DB_APP_TOKEN=eyJhbGciOiJF...3ahJpTkKDw
+   ```
+
+6. Push your DB schema and metadata to the new Turso database.
+
+   ```sh
+   astro db push --remote
+   ```
+
+7. Congratulations, now you have a database connected! Give yourself a break. 👾
+
+   ```sh
+   turso relax
+   ```
+
+</Steps>
+
+To explore more features of Turso, check out the [Turso docs](https://docs.turso.tech).
+
+### Connecting to remote databases
+
+Astro DB allows you to connect to both local and remote databases. By default, Astro uses a local database file for `dev` and `build` commands, recreating tables and inserting development seed data each time.
+
+To connect to a hosted remote database, use the `--remote` flag. This flag enables both readable and writable access to your remote database, allowing you to [accept and persist user data](#insert) in production environments.
+
+:::note
+While remote connections are generally possible with any deployment platform using static or server rendering mode, there are currently some limitations. Non-Node runtimes like Cloudflare and Deno don't currently support DB on server-rendered routes when using libSQL. Support for these platforms is planned for future implementation.
+:::
+
+Configure your build command to use the `--remote` flag:
+
+```json title="package.json" "--remote"
+{
+  "scripts": {
+    "build": "astro build --remote"
+  }
+}
+```
+
+You can also use the flag directly in the command line:
+
+```bash
+# Build with a remote connection
+astro build --remote
+
+# Develop with a remote connection
+astro dev --remote
+```
+
+:::caution
+Be careful when using `--remote` in development. This connects to your live production database, and all changes (inserts, updates, deletions) will be persisted.
+:::
+
+The `--remote` flag uses the connection to the remote DB both locally during the build and on the server. Ensure you set the necessary environment variables in both your local development environment and your deployment platform.
+
+When deploying your Astro DB project, make sure your deployment platform's build command is set to `npm run build` (or the equivalent for your package manager) to utilize the `--remote` flag configured in your `package.json`.
+
+### Remote URL configuration options
+
+The `ASTRO_DB_REMOTE_URL` environment variable configures the location of your database as well as other options like sync and encryption. 
+
+#### URL scheme and host
+
+libSQL supports both HTTP and WebSockets as the transport protocol for a remote server. It also supports using a local file or an in-memory DB. Those can be configured using the following URL schemes in the connection URL:
+
+- `memory:` will use an in-memory DB. The host must be empty in this case.
+- `file:` will use a local file. The host is the path to the file (`file:path/to/file.db`).
+- `libsql:` will use a remote server through the protocol preferred by the library (this might be different across versions). The host is the address of the server (`libsql://your.server.io`).
+- `http:` will use a remote server through HTTP. `https:` can be used to enable a secure connection. The host is the same as for `libsql:`.
+- `ws:` will use a remote server through WebSockets. `wss:` can be used to enable a secure connection. The host is the same as for `libsql:`.
+
+Details of the libSQL connection (e.g. encryption key, replication, sync interval) can be configured as query parameters in the remote connection URL.
+
+For example, to have an encrypted local file work as an embedded replica to a libSQL server, you can set the following environment variables:
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=file://local-copy.db?encryptionKey=your-encryption-key&syncInterval=60&syncUrl=libsql%3A%2F%2Fyour.server.io
+ASTRO_DB_APP_TOKEN=token-to-your-remote-url
+```
+
+:::caution
+Using a database file is an advanced feature, and care should be taken when deploying to prevent overriding your database and losing your production data.
+
+Additionally, this method will not work in serverless deployments, as the file system is not persisted in those environments.
+:::
+
+#### `encryptionKey`
+
+libSQL has native support for encrypted databases. Passing this search parameter will enable encryption using the given key:
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=file:path/to/file.db?encryptionKey=your-encryption-key
+```
+
+#### `syncUrl`
+
+Embedded replicas are a feature of libSQL clients that creates a full synchronized copy of your database on a local file or in memory for ultra-fast reads. Writes are sent to a remote database defined on the `syncUrl` and synchronized with the local copy.
+
+Use this property to pass a separate connection URL to turn the database into an embedded replica of another database. This should only be used with the schemes `file:` and `memory:`. The parameter must be URL encoded.
+
+For example, to have an in-memory embedded replica of a database on `libsql://your.server.io`, you can set the connection URL as such:
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io
+```
+
+#### `syncInterval`
+
+Interval between embedded replica synchronizations in seconds. By default it only synchronizes on startup and after writes.
+
+This property is only used when `syncUrl` is also set. For example, to set an in-memory embedded replica to synchronize every minute set the following environment variable:
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io&syncInterval=60
+```
 
 ## Query your database
 
-You can query your database from any [Astro page](/en/basics/astro-pages/#astro-pages) or [endpoint](/en/guides/endpoints/) in your project using the provided `db` ORM and query builder.
+You can query your database from any [Astro page](/en/basics/astro-pages/#astro-pages), [endpoint](/en/guides/endpoints/), or [action](/en/guides/actions/) in your project using the provided `db` ORM and query builder.
 
 ### Drizzle ORM
 
@@ -166,8 +333,7 @@ You can query your database from any [Astro page](/en/basics/astro-pages/#astro-
 import { db } from 'astro:db';
 ```
 
-Astro DB includes a built-in [Drizzle ORM](https://orm.drizzle.team/) client. There is no setup or manual configuration required to use the client. The Astro DB `db` client is automatically configured to talk to your database (local or remote) when you run Astro. It uses your exact database schema definition for type-safe SQL queries with TypeScript errors when you reference a column or table that doesn't exist.
-
+Astro DB includes a built-in [Drizzle ORM](https://orm.drizzle.team/) client. There is no setup or manual configuration required to use the client. The Astro DB `db` client is automatically configured to communicate with your database (local or remote) when you run Astro. It uses your exact database schema definition for type-safe SQL queries with TypeScript errors when you reference a column or table that doesn't exist.
 
 ### Select 
 
@@ -196,7 +362,7 @@ const comments = await db.select().from(Comment);
 
 ### Insert
 
-To accept user input, such as handling form requests and inserting data into your remote hosted database, configure your Astro project for [on-demand rendering](/en/basics/rendering/#on-demand-rendered-routes) and [add an SSR adapter](/en/guides/on-demand-rendering/#official-adapters) for your deployment environment.
+To accept user input, such as handling form requests and inserting data into your remote hosted database, configure your Astro project for [on-demand rendering](/en/guides/on-demand-rendering/) and [add an adapter](/en/guides/on-demand-rendering/#add-an-adapter) for your deployment environment.
 
 This example inserts a row into a `Comment` table based on a parsed form POST request:
 
@@ -206,17 +372,17 @@ This example inserts a row into a `Comment` table based on a parsed form POST re
 import { db, Comment } from 'astro:db';
 
 if (Astro.request.method === 'POST') {
-  // parse form data
+  // Parse form data
   const formData = await Astro.request.formData();
   const author = formData.get('author');
-  const content = formData.get('content');
-  if (typeof author === 'string' && typeof content === 'string') {
-    // insert form data into the Comment table
-    await db.insert(Comment).values({ author, content });
+  const body = formData.get('body');
+  if (typeof author === 'string' && typeof body === 'string') {
+    // Insert form data into the Comment table
+    await db.insert(Comment).values({ author, body });
   }
 }
 
-// render the new list of comments on each request
+// Render the new list of comments on each request
 const comments = await db.select().from(Comment);
 ---
 
@@ -224,16 +390,51 @@ const comments = await db.select().from(Comment);
 	<label for="author">Author</label>
 	<input id="author" name="author" />
 
-	<label for="content">Content</label>
-	<textarea id="content" name="content"></textarea>
+	<label for="body">Body</label>
+	<textarea id="body" name="body"></textarea>
 
 	<button type="submit">Submit</button>
 </form>
 
-<!--render `comments`-->
+<!-- Render `comments` -->
 ```
 
-You can also query your database from an API endpoint. This example deletes a row from a `Comment` table by the `id` param:
+You can also use [Astro actions](/en/guides/actions/) to insert data into an Astro DB table. The following example inserts a row into a `Comment` table using an action:
+
+```ts
+// src/actions/index.ts
+import { db, Comment } from 'astro:db';
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  addComment: defineAction({
+    // Actions include type safety with Zod, removing the need
+    // to check if typeof {value} === 'string' in your pages
+    input: z.object({
+      author: z.string(),
+      body: z.string(),
+    }),
+    handler: async (input) => {
+      const updatedComments = await db
+        .insert(Comment)
+        .values(input)
+        .returning(); // Return the updated comments
+      return updatedComments;
+    },
+  }),
+};
+```
+
+<ReadMore>
+
+See the [Drizzle `insert()` API reference](https://orm.drizzle.team/docs/insert) for a complete overview.
+
+</ReadMore>
+
+### Delete
+
+You can also query your database from an API endpoint. This example deletes a row from a `Comment` table by the `id` parameter:
 
 ```ts
 // src/pages/api/comments/[id].ts
@@ -248,7 +449,7 @@ export const DELETE: APIRoute = async (ctx) => {
 
 <ReadMore>
 
-See the [Drizzle `insert()` API reference](https://orm.drizzle.team/docs/insert) for a complete overview.
+See the [Drizzle `delete()` API reference](https://orm.drizzle.team/docs/delete) for a complete overview.
 
 </ReadMore>
 
@@ -341,155 +542,15 @@ See the [Drizzle `db.batch()`](https://orm.drizzle.team/docs/batch-api) docs for
 
 </ReadMore>
 
-<StudioHeading>
-## Astro Studio
-</StudioHeading>
+## Pushing changes to your database
 
-:::caution
-We are [winding down Astro Studio](https://astro.build/blog/goodbye-astro-studio/). As a result, users will no longer be able to create databases after October 1, 2024.
+You can push changes made during development to your database.
 
-We recommend [migrating your existing Studio databases to Turso](#migrate-from-astro-studio-to-turso), or [connecting Astro DB to any libSQL server](#libsql) instead.
-:::
-
-Astro DB can connect to the Astro Studio platform to quickly add a hosted database to your project. You can view, manage and deploy new hosted databases all from the Astro Studio dashboard.
-
-The [Astro Studio web portal](http://studio.astro.build) allows you to connect to and manage your remote hosted Astro DB databases through a web interface or using [CLI commands](/en/reference/cli-reference/#astro-studio-cli).
-
-From your Studio dashboard, you have access to account management, help articles and a support message console.
-
-Visit [Astro Studio](http://studio.astro.build) to sign up or log in.
-
-<StudioHeading>
-### Create a new Studio project
-</StudioHeading>
-
-There are two ways to create a project in Astro Studio:
-
-1. [**Use the Astro Studio web UI**](https://studio.astro.build) to create from a new or existing GitHub repository.
-
-    To get started, click the "create project" button in the header and follow the instructions. Astro Studio will connect to your GitHub repository and create a new hosted database for your project.
-
-2. **Use the Astro Studio CLI** to create from any local Astro project. You can run the following commands to get started:
-
-    <PackageManagerTabs>
-    <Fragment slot="npm">
-    ```shell
-    # Log in to Astro Studio with your GitHub account
-    npx astro login
-
-    # Link to a new project by following the prompts
-    npx astro link
-
-    # (Optional) Push your local db configuration to the remote database
-    npx astro db push
-    ```
-    </Fragment>
-    <Fragment slot="pnpm">
-    ```shell
-    # Log in to Astro Studio with your GitHub account
-    pnpm astro login
-
-    # Link to a new project by following the prompts
-    pnpm astro link
-
-    # (Optional) Push your local db configuration to the remote database
-    pnpm astro db push
-    ```
-    </Fragment>
-    <Fragment slot="yarn">
-    ```shell
-    # Log in to Astro Studio with your GitHub account
-    yarn astro login
-
-    # Link to a new project by following the prompts
-    yarn astro link
-
-    # (Optional) Push your local db configuration to the remote database
-    yarn astro db push
-    ```
-    </Fragment>
-    </PackageManagerTabs>
-
-    Once you are logged in and linked successfully, you can run all Astro DB commands to manage your remote database. 
-
-    <ReadMore>See [the Astro DB CLI reference](/en/guides/integrations-guide/db/#astro-db-cli-reference) for all available commands.</ReadMore>
-
-<StudioHeading>
-### Deploy with a Studio connection
-</StudioHeading>
-
-You can deploy your Astro DB project with a live connection to your Studio database. This is possible with any deployment platform using static builds or an [SSR adapter](/en/guides/on-demand-rendering/).
-
-First, configure your build command to connect with Studio using the `--remote` flag. This example applies the flag to a `"build"` script in your project's `package.json`. If your deployment platform accepts a build command, ensure this is set to `npm run build`.
-
-```json title="package.json" "--remote"
-{
-  "scripts": {
-    "build": "astro build --remote"
-  }
-}
-```
-<StudioHeading>
-#### Create a Studio app token
-</StudioHeading>
-
-You need to create an app token to access your Studio database from a production deploy. You can create an app token from your Studio project dashboard by navigating to the **Settings** tab and selecting **Tokens**. 
-
-Copy the generated token and apply as an environment variable / environment secret in your deployment platform using the name `ASTRO_STUDIO_APP_TOKEN`. 
-
-<StudioHeading>
-### Set up the GitHub CI Action
-</StudioHeading>
-
-You can automatically push schema changes to your Studio database with the Studio CI action. This verifies changes can be made safely, and keeps your configuration up-to-date whenever you merge to `main`.
-
-[Follow GitHub's documentation](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions#creating-secrets-for-a-repository) to configure a new secret in your repository with the name `ASTRO_STUDIO_APP_TOKEN` and your Studio app token as the value for the secret.
-
-Once your secret is configured, create a new GitHub Actions workflow file in your project's `.github/workflows` directory to checkout the repository and install Node.js as steps, and use the `withastro/action-studio` action to sync schema changes. 
-
-The action will run `astro db verify` on all [event triggers](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows) to ensure schema changes can be applied safely. If you add the **[push](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#push)** trigger specifically, the action will push those changes to your Studio database.
-
-This example GitHub Action `_studio.yml` pushes changes whenever the `main` branch is updated:
-
-```yaml title=".github/workflows/_studio.yml"
-name: Astro Studio
-
-env:
-  ASTRO_STUDIO_APP_TOKEN: ${{secrets.ASTRO_STUDIO_APP_TOKEN }}
-
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    types: [opened, reopened, synchronize]
-
-jobs:
-  DB:
-    permissions:
-      contents: read
-      actions: read
-      pull-requests: write
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - uses: jaid/action-npm-install@v1.2.1
-      - uses: withastro/action-studio@main
-```
-
-<StudioHeading>
 ### Pushing table schemas
-</StudioHeading>
 
+Your table schema may change over time as your project grows. You can safely test configuration changes locally and push to your remote database when you deploy.
 
-Your table schema will change over time as your project grows. You can safely test configuration changes locally and push to your Studio database when you deploy.
-
-When [creating a Studio project from the dashboard](#astro-studio), you will have the option to create a GitHub CI action. This will automatically migrate schema changes when merging with your repository's main branch.
-
-You can also push your local schema changes to Astro Studio via the CLI using the `astro db push --remote` command:
+You can push your local schema changes to your remote database via the CLI using the `astro db push --remote` command:
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -517,7 +578,7 @@ This command will verify that your local changes can be made without data loss a
 __This will destroy your database__. Only perform this command if you do not need your production data.
 :::
 
-If you must change your table schema in a way that is incompatible with your existing data hosted at Astro Studio, you will need to reset your production database.
+If you must change your table schema in a way that is incompatible with your existing data hosted on your remote database, you will need to reset your production database.
 
 To push a table schema update that includes a breaking change, add the `--force-reset` flag to reset all production data:
 
@@ -539,15 +600,13 @@ To push a table schema update that includes a breaking change, add the `--force-
   </Fragment>
 </PackageManagerTabs>
 
-<StudioHeading>
 ### Renaming tables
-</StudioHeading>
 
-It is possible to rename a table after pushing your schema to Astro Studio.
+It is possible to rename a table after pushing your schema to your remote database.
 
 If you **do not have any important production data**, then you can [reset your database](#pushing-breaking-schema-changes) using the `--force-reset` flag. This flag will drop all of the tables in the database and create new ones so that it matches your current schema exactly.
 
-To rename a table while preserving your production data, you must perform a series of non-breaking changes to push your local schema to Astro studio safely.
+To rename a table while preserving your production data, you must perform a series of non-breaking changes to push your local schema to your remote database safely.
 
 The following example renames a table from `Comment` to `Feedback`:
 
@@ -575,7 +634,6 @@ The following example renames a table from `Comment` to `Feedback`:
     		body: column.text(),
   		}
     });
-
 	  const Feedback = defineTable({
         columns: {
           author: column.text(),
@@ -583,7 +641,8 @@ The following example renames a table from `Comment` to `Feedback`:
         }
     });
     ```
-3. [Push to Astro Studio](#pushing-table-schemas) with `astro db push --remote`. This will add the new table and mark the old as deprecated.
+
+3. [Push to your remote database](#pushing-table-schemas) with `astro db push --remote`. This will add the new table and mark the old as deprecated.
 4. Update any of your local project code to use the new table instead of the old table. You might need to migrate data to the new table as well.
 5. Once you are confident that the old table is no longer used in your project, you can remove the schema from your `config.ts`:
 		```ts title="db/config.ts" del={1-7}
@@ -602,14 +661,12 @@ The following example renames a table from `Comment` to `Feedback`:
           }
     });
     ```
-6. Push to Astro Studio again with `astro db push --remote`. The old table will be dropped, leaving only the new, renamed table.
+6. Push to your remote database again with `astro db push --remote`. The old table will be dropped, leaving only the new, renamed table.
 </Steps>
 
-<StudioHeading>
-### Pushing data 
-</StudioHeading>
+### Pushing table data 
 
-You may need to push data to your Studio database for seeding or data migrations. You can author a `.ts` file with the `astro:db` module to write type-safe queries. Then, execute the file against your Studio database using the command `astro db execute <file-path> --remote`:
+You may need to push data to your remote database for seeding or data migrations. You can author a `.ts` file with the `astro:db` module to write type-safe queries. Then, execute the file against your remote database using the command `astro db execute <file-path> --remote`:
 
 The following Comments can be seeded using the command `astro db execute db/seed.ts --remote`:
 
@@ -630,134 +687,6 @@ export default async function () {
 See the [CLI reference](/en/guides/integrations-guide/db/#astro-db-cli-reference) for a complete list of commands.
 
 </ReadMore>
-
-<StudioHeading>
-### Connect to Astro Studio
-</StudioHeading>
-
-By default, Astro will use a local database file whenever you run the `dev` or `build` commands. Tables are recreated from scratch when each command is run, and development seed data will be inserted.
-
-To connect to your hosted Studio database, you can add the `--remote` flag. Use this flag for production deploys to have both readable and writable access to your Studio database. This will allow you to [accept and persist user data](#insert).
-
-```bash
-# Build with a remote connection
-astro build --remote
-
-# Develop with a remote connection
-astro dev --remote
-```
-
-:::caution
-
-Be careful using `--remote` in development. This will connect to a live production database, and all inserts, updates, or deletions will be persisted.
-
-:::
-
-To use a remote connection, you will need an app token to authenticate with Studio. Visit the Studio dashboard for token creation and setup instructions.
-
-<ReadMore>
-
-When you're ready to deploy, see our [Deploy with a Studio Connection guide](#deploy-with-a-studio-connection).
-
-</ReadMore>
-
-### Migrate from Astro Studio to Turso
-
-<Steps>
-
-1. In the [Studio dashboard](https://studio.astro.build/), navigate to the project you wish to migrate. In the settings tab, use the "Export Database" button to download a dump of your database.
-2. Follow the official instructions to [install the Turso CLI](https://docs.turso.tech/cli/installation) and [sign up or log in](https://docs.turso.tech/cli/authentication) to your Turso account.
-3. Create a new database on Turso using the `turso db create` command.
-   ```sh
-   turso db create [database-name]
-   ```
-4. Fetch the database URL using the Turso CLI, and use it as the environment variable `ASTRO_DB_REMOTE_URL`.
-   ```sh
-   turso db show [database-name]
-   ```
-   ```env
-   ASTRO_DB_REMOTE_URL=[your-database-url]
-   ```
-5. Create a token to access your database, and use it as the environment variable `ASTRO_DB_APP_TOKEN`.
-   ```sh
-   turso db tokens create [database-name]
-   ```
-   ```env
-   ASTRO_DB_APP_TOKEN=[your-app-token]
-   ```
-6. Push your DB schema and metadata to the new Turso database.
-   ```sh
-   astro db push --remote
-   ```
-7. Import the database dump from step 1 into your new Turso DB.
-   ```sh
-   turso db shell [database-name] < ./path/to/dump.sql
-   ```
-8. Once you have confirmed your project connects to the new database, you can safely delete the project from Astro Studio.
-
-</Steps>
-
-## libSQL
-
-<p><Since pkg="@astrojs/db" v="0.14.0" /></p>
-
-Astro DB can connect to any libSQL server from any platform that exposes the libSQL remote protocol of the server, or can be self-hosted.
-
-To connect Astro DB to a libSQL database, set the following environment variables:
-- `ASTRO_DB_REMOTE_URL`: the connection URL to your libSQL server
-- `ASTRO_DB_APP_TOKEN`: the auth token to your libSQL server
-
-The [commands for deploying and pushing changes](#deploy-with-a-studio-connection) to your database are the same when using libSQL as when connecting to an Astro Studio hosted database. However, both of your environment variables need to be set locally when running commands with the `--remote` option like `astro build` and `astro db push`.
-
-Details of the libSQL connection (e.g. encryption key, replication, sync interval) can be configured as query parameters in the remote connection URL.
-
-For example, to have a local file work as an embedded replica to an encrypted libSQL server, you can set the following environment variables:
-
-```dotenv title=".env"
-ASTRO_DB_REMOTE_URL=file://local-copy.db?encryptionKey=your-encryption-key&syncInterval=60&syncUrl=libsql%3A%2F%2Fyour.server.io
-ASTRO_DB_APP_TOKEN=token-to-your-remote-url
-```
-
-### URL scheme and host
-
-libSQL supports both HTTP and WebSockets as the transport protocol for a remote server. It also supports using a local file or an in-memory DB. Those can be configured using the following URL schemes in the connection URL:
-
-- `memory:` will use an in-memory DB. The host must be empty in this case.
-- `file:` will use a local file. The host is the path to the file (`file:path/to/file.db`).
-- `libsql:` will use a remote server through the protocol preferred by the library (this might be different across versions). The host is the address of the server (`libsql://your.server.io`).
-- `http:` will use a remote server through HTTP. `https:` can be used to enable a secure connection. The host is the same as for `libsql:`.
-- `ws:` will use a remote server through WebSockets. `wss:` can be used to enable a secure connection. The host is the same as for `libsql:`.
-
-### `encryptionKey`
-
-libSQL has native support for encrypted databases. Passing this search parameter will enable encryption using the given key:
-
-```dotenv title=".env"
-ASTRO_DB_REMOTE_URL=file:path/to/file.db?encryptionKey=your-encryption-key
-```
-
-### `syncUrl`
-
-Embedded replicas are a feature of libSQL clients that enables a full synchronized copy of your database on a local file or in memory for ultra-fast reads. Writes are sent to a remote database defined on the `syncUrl` and synchronized with the local copy.
-
-Use this property to pass a separate connection URL to turn the DB into an embedded replica of another database. This should only be used with the schemes `file:` and `memory:`. The parameter must be URL encoded.
-
-For example, to have an in-memory embedded replica of a database on `libsql://your.server.io`, you can set the connection URL as such:
-
-```dotenv title=".env"
-ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io
-```
-
-### `syncInterval`
-
-Interval between embedded replicas synchronizations in seconds. By default it only synchronizes on startup and after writes.
-
-This property is only used when `syncUrl` is also set. For example, to set an in-memory embedded replica to synchronize every minute set the following environment variable:
-
-```dotenv title=".env"
-ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io&syncInterval=60
-```
-
 
 ## Building Astro DB integrations
 
@@ -786,7 +715,7 @@ export default function MyIntegration() {
 }
 ```
 
-Integration [config](#define-your-database) and [seed](#seed-your-database) files follow the same format as their user-defined equivalents.
+Integration [config](#define-your-database) and [seed](#seed-your-database-for-development) files follow the same format as their user-defined equivalents.
 
 ### Type safe operations in integrations
 
@@ -830,30 +759,41 @@ export default async function() {
 The value returned by `asDrizzleTable('Pets', Pets)` is equivalent to `import { Pets } from 'astro:db'`, but is available even when Astro’s type generation can’t run.
 You can use it in any integration code that needs to query or insert into the database.
 
-## Self-hosted production deployment
 
-If you deploy your site to a self-managed host such as a [virtual private server](https://en.wikipedia.org/wiki/Virtual_private_server), you can choose to use a database file instead of connecting to a database hosted at Astro Studio.
 
-:::caution
-Using a database file is an advanced feature, and care should be taken when deploying to prevent overriding your database and losing your production data.
 
-Additionally, this method will not work in serverless deployments, as the file system is not persisted in those environments.
+## Migrate from Astro Studio to Turso
 
-For a fully managed solution, [connect to databases hosted on the Astro Studio platform](#astro-studio) instead.
-:::
+<Steps>
 
-If you are comfortable with the risks, and can manage deployment yourself, you can use a database file instead of connecting to Studio. 
+1. In the [Studio dashboard](https://studio.astro.build/), navigate to the project you wish to migrate. In the settings tab, use the "Export Database" button to download a dump of your database.
+2. Follow the official instructions to [install the Turso CLI](https://docs.turso.tech/cli/installation) and [sign up or log in](https://docs.turso.tech/cli/authentication) to your Turso account.
+3. Create a new database on Turso using the `turso db create` command.
+   ```sh
+   turso db create [database-name]
+   ```
+4. Fetch the database URL using the Turso CLI, and use it as the environment variable `ASTRO_DB_REMOTE_URL`.
+   ```sh
+   turso db show [database-name]
+   ```
+   ```env
+   ASTRO_DB_REMOTE_URL=[your-database-url]
+   ```
+5. Create a token to access your database, and use it as the environment variable `ASTRO_DB_APP_TOKEN`.
+   ```sh
+   turso db tokens create [database-name]
+   ```
+   ```env
+   ASTRO_DB_APP_TOKEN=[your-app-token]
+   ```
+6. Push your DB schema and metadata to the new Turso database.
+   ```sh
+   astro db push --remote
+   ```
+7. Import the database dump from step 1 into your new Turso DB.
+   ```sh
+   turso db shell [database-name] < ./path/to/dump.sql
+   ```
+8. Once you have confirmed your project connects to the new database, you can safely delete the project from Astro Studio.
 
-Set the `ASTRO_DATABASE_FILE` environment variable to a path pointing to your `.db` file within the host environment during your build:
-
-```shell
-ASTRO_DATABASE_FILE=/srv/files/database.db astro build
-```
-
-The build will statically compile with this path as your production database. When you deploy and launch your server it will connect to the file at this path on the production host.
-
-Additionally, [pushing any table schema changes](#pushing-table-schemas) (also known as "schema migrations") must be managed manually using this environment variable.
-
-:::danger
-If you override your `.db` file on deployment, you will lose your production data. Follow the deployment method process for your host carefully to prevent data loss.
-:::
+</Steps>

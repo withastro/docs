@@ -36,7 +36,6 @@ export default [
 	{ text: 'Pages', slug: 'basics/astro-pages', key: 'basics/astro-pages' },
 	{ text: 'Layouts', slug: 'basics/layouts', key: 'basics/layouts' },
 	{ text: 'Astro Template Syntax', slug: 'basics/astro-syntax', key: 'basics/astro-syntax' },
-	{ text: 'Rendering Modes', slug: 'basics/rendering', key: 'basics/rendering' },
 	{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
 	{ text: 'Integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
 
@@ -59,6 +58,8 @@ export default [
 	},
 	{ text: 'View Transitions', slug: 'guides/view-transitions', key: 'guides/view-transitions' },
 	{ text: 'Server Islands', slug: 'guides/server-islands', key: 'guides/server-islands' },
+	{ text: 'On-demand rendering', slug: 'guides/on-demand-rendering', key: 'guides/on-demand-rendering' },
+
 	{ text: 'Assets', header: true, type: 'learn', key: 'assets' },
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
