@@ -207,11 +207,11 @@ Astro.response.headers.set('Cache-Control', 'public, max-age=3600');
 
 #### Return a `Response` object
 
-You can also return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object directly from any page using on-demand rendering. 
+You can also return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object directly from any page using on-demand rendering either manually or with [`Astro.redirect`](/en/reference/api-reference/#astroredirect). 
 
-The example below returns a 404 on a dynamic page after looking up an ID in the database:
+The example below looks up an ID in the database on a dynamic page and either it returns a 404 if the product does not exist, or it redirects the user to another page if the product is no longer available, or it displays the product:
 
-```astro title="src/pages/product/[id].astro" {10-13}
+```astro title="src/pages/product/[id].astro" {10-13, 18}
 ---
 export const prerender = false; // Not needed in 'server' mode
 
@@ -226,27 +226,10 @@ if (!product) {
     statusText: 'Not found'
   });
 }
----
-<html>
-  <!-- Page here... -->
-</html>
-```
 
-#### Redirect to another page
-
-Instead of returning a `Response` object, you can also redirect the user to another page using `Astro.redirect`:
-
-```astro title="src/pages/product/[id].astro" {10}
----
-export const prerender = false; // Not needed in 'server' mode
-
-import { getProduct } from '../api';
-
-const product = await getProduct(Astro.params.id);
-
-// No product found
-if (!product) {
-  return Astro.redirect('/404', 404);
+// The product is no longer available
+if (!product.isAvailable) {
+  return Astro.redirect("/products", 301);
 }
 ---
 <html>
