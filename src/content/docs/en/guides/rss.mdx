@@ -5,13 +5,14 @@ i18nReady: true
 ---
 import Since from '~/components/Since.astro';
 import { Steps } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
 Astro supports fast, automatic RSS feed generation for blogs and other content websites. RSS feeds provide an easy way for users to subscribe to your content.
 
 ## Setting up `@astrojs/rss`
 
-The package [`@astrojs/rss`](https://github.com/withastro/astro/tree/main/packages/astro-rss) provides helpers for generating RSS feeds using [API endpoints](/en/guides/endpoints/#static-file-endpoints). This unlocks both static builds _and_ on-demand generation when using an [SSR adapter](/en/guides/server-side-rendering/).
+The package [`@astrojs/rss`](https://github.com/withastro/astro/tree/main/packages/astro-rss) provides helpers for generating RSS feeds using [API endpoints](/en/guides/endpoints/#static-file-endpoints). This unlocks both static builds _and_ on-demand generation when using an [SSR adapter](/en/guides/on-demand-rendering/).
 
 <Steps>
 1. Install `@astrojs/rss` using your preferred package manager:
@@ -66,18 +67,21 @@ The package [`@astrojs/rss`](https://github.com/withastro/astro/tree/main/packag
     ```
 </Steps>
 
+<ReadMore>See the [`@astrojs/rss` README](https://github.com/withastro/astro/tree/main/packages/astro-rss) for the full configuration reference.</ReadMore>
+
 ## Generating `items`
 
-The `items` field accepts a list of RSS feed objects, which can be generated from content collections entries using `getCollection()` or from your page files using `pagesGlobToRssItems()`. 
+The `items` field accepts a list of RSS feed objects, which can be generated from content collections entries using `getCollection()` or from your page files using `pagesGlobToRssItems()`.
 
-The RSS feed standard format includes the following values for each published item:
+The RSS feed standard format includes metadata for each published item, including values such as:
 
 - `title`: The title of the entry. Optional only if a `description` is set. Otherwise, required.
 - `description`: A short excerpt from or describing the entry. Optional only if a `title` is set. Otherwise, required.
 - `link`: A URL to the original source of the entry. (optional)
 - `pubDate`: The date of publication of the entry. (optional)
 - `content`: The full content of your post. (optional)
-- `customData`: A field for including any extra data, such as other frontmatter properties from your blog posts.
+
+<ReadMore>See the [`items` configuration reference](https://github.com/withastro/astro/tree/main/packages/astro-rss#items) for a complete list of options.</ReadMore>
 
 ### Using content collections
 
@@ -97,7 +101,6 @@ export async function GET(context) {
       title: post.data.title,
       pubDate: post.data.pubDate,
       description: post.data.description,
-      customData: post.data.customData,
       // Compute RSS link from post `slug`
       // This example assumes all posts are rendered as `/blog/[slug]` routes
       link: `/blog/${post.slug}/`,
@@ -199,7 +202,7 @@ import rss from '@astrojs/rss';
 import sanitizeHtml from 'sanitize-html';
 
 export function GET(context) {
-  const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true }); 
+  const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true });
   const posts = Object.values(postImportResult);
   return rss({
     title: 'Buzz’s Blog',
@@ -207,7 +210,7 @@ export function GET(context) {
     site: context.site,
     items: posts.map((post) => ({
       link: post.url,
-      content: sanitizeHtml(post.compiledContent()),
+      content: sanitizeHtml((await post.compiledContent())),
       ...post.frontmatter,
     })),
   });
@@ -217,7 +220,7 @@ export function GET(context) {
 ## Removing trailing slashes
 
 Astro's RSS feed produces links with a trailing slash by default, no matter what value you have configured for `trailingSlash`. This means that your RSS links may not match your post URLs exactly.
- 
+
 If you have set `trailingSlash: "never"` on your `astro.config.mjs`, set `trailingSlash: false` in the `rss()` helper so that your feed matches your project configuration.
 
 ```ts title="src/pages/rss.xml.js" ins={9}

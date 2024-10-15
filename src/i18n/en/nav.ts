@@ -19,6 +19,7 @@
  */
 export default [
 	{ text: 'Welcome, World!', header: true, type: 'learn', key: 'welcomeWorld' },
+	{ text: 'Upgrade to v5-beta', slug: '/guides/upgrade-to/v5/', key: '/guides/upgrade-to/v5/' },
 	{ text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },
 	{ text: 'Installation and Setup', slug: 'install-and-setup', key: 'install-and-setup' },
 	{ text: 'Deploy Your Site', slug: 'guides/deploy', key: 'guides/deploy' },
@@ -35,18 +36,12 @@ export default [
 	{ text: 'Pages', slug: 'basics/astro-pages', key: 'basics/astro-pages' },
 	{ text: 'Layouts', slug: 'basics/layouts', key: 'basics/layouts' },
 	{ text: 'Astro Template Syntax', slug: 'basics/astro-syntax', key: 'basics/astro-syntax' },
-	{ text: 'Rendering Modes', slug: 'basics/rendering-modes', key: 'basics/rendering-modes' },
 	{ text: 'Imports', slug: 'guides/imports', key: 'guides/imports' },
 	{ text: 'Integrations', slug: 'guides/integrations-guide', key: 'guides/integrations-guide' },
 
-	{ text: 'Manage Your Content', header: true, type: 'learn', key: 'content' },
-	{ text: 'Authoring Content', slug: 'guides/content', key: 'guides/content' },
+	{ text: 'Manage your Content', header: true, type: 'learn', key: 'work-content' },
 	{ text: 'Markdown', slug: 'guides/markdown-content', key: 'guides/markdown-content' },
-	{
-		text: 'Content Collections',
-		slug: 'guides/content-collections',
-		key: 'guides/content-collections',
-	},
+	{ text: 'Content collections', slug: 'guides/content-collections', key: 'guides/content-collections' },
 	{ text: 'Connect a CMS', slug: 'guides/cms', key: 'guides/cms' },
 	{ text: 'Add an RSS feed', slug: 'guides/rss', key: 'guides/rss' },
 
@@ -62,6 +57,8 @@ export default [
 		key: 'guides/internationalization',
 	},
 	{ text: 'View Transitions', slug: 'guides/view-transitions', key: 'guides/view-transitions' },
+	{ text: 'Server Islands', slug: 'guides/server-islands', key: 'guides/server-islands' },
+	{ text: 'On-demand rendering', slug: 'guides/on-demand-rendering', key: 'guides/on-demand-rendering' },
 
 	{ text: 'Assets', header: true, type: 'learn', key: 'assets' },
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
@@ -135,6 +132,11 @@ export default [
 		text: 'Dev Toolbar App API',
 		slug: 'reference/dev-toolbar-app-reference',
 		key: 'reference/dev-toolbar-app-reference',
+	},
+	{
+		text: 'Content Loader API',
+		slug: 'reference/content-loader-reference',
+		key: 'reference/content-loader-reference',
 	},
 	{
 		text: 'Container API (Experimental)',
