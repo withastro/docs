@@ -188,6 +188,110 @@ const session = await getSession(Astro.request);
 - [`auth-astro` on GitHub](https://github.com/nowaythatworked/auth-astro?tab=readme-ov-file#auth-astro)
 - [Auth.js documentation](https://authjs.dev/)
 
+## Better Auth
+
+Better Auth is framework-agnostic authentication (and authorization) framework for TypeScript. It provides a comprehensive set of features out of the box and includes a plugin ecosystem that simplifies adding advanced functionalities.
+
+It supports astro out of the box, and you can use it to add authentication to your astro project.
+
+### Installation
+
+```shell
+npm install better-auth
+```
+
+For detailed setup instructions, check out the [Installtion Guide](https://www.better-auth.com/docs/installation).
+
+### Configuration
+
+Once you have installed and configured Better Auth in your project, you'll need to mount Better Auth handler in your Astro project.
+
+```ts title="page/api/auth/[...all].ts"
+import { auth } from "~/auth"; // import your Better Auth instance
+import type { APIRoute } from "astro";
+ 
+export const ALL: APIRoute = async (ctx) => {
+	return auth.handler(ctx.request);
+};
+```
+
+Follow [Better Auth Astro Guide](https://www.better-auth.com/docs/integrations/astro) to learn more.
+
+### Usage
+
+Better Auth offers clients for various frameworks, including Vanilla JS, React, Vue, Svelte, and Solid. To create a client for your chosen framework:
+
+```ts title="src/lib/auth-client.ts"
+import { createAuthClient } from 'better-auth/client';
+
+export const authClient = createAuthClient({
+  // your configuration
+});
+
+export const { signIn, signOut } = authClient;
+```
+
+Once your client is set up, you can use it to authenticate users in your Astro components or any framework-specific files.
+
+
+```astro title="src/pages/index.astro"
+---
+import Layout from 'src/layouts/Base.astro';
+---
+<Layout>
+  <button id="login">Login</button>
+  <button id="logout">Logout</button>
+
+  <script>
+    const { signIn, signOut } = await import("./lib/auth-client")
+    document.querySelector("#login").onclick = () => signIn.social({
+      provider: "github",
+      callbackURL: "/dashboard",
+    })
+    document.querySelector("#logout").onclick = () => signOut()
+  </script>
+</Layout>
+```
+
+You can then use the `auth` object to get the user's session in your server-side code.
+
+```astro title="src/pages/index.astro"
+---
+import { auth } from "@/auth"; // import your Better Auth instance
+ 
+const session = await auth.api.getSession({
+	headers: Astro.request.headers,
+});
+---
+
+<p>{session.user?.name}</p>
+```
+
+And you can use the `auth` object to protect your routes as well.
+
+```ts title="src/middleware.ts"
+import { auth } from "@/auth";
+import { defineMiddleware } from "astro:middleware";
+ 
+export const onRequest = defineMiddleware(async (context, next) => {
+	const isAuthed = await auth.api
+		.getSession({
+			headers: context.request.headers,
+		})
+	if (context.url.pathname === "/dashboard" && !isAuthed) {
+		return context.redirect("/");
+	}
+	return next();
+});
+```
+
+### Next Steps
+
+- [Better Auth Astro Guide](https://www.better-auth.com/docs/integrations/astro)
+- [Better Auth Astro Example](https://github.com/better-auth/better-auth/tree/main/examples/astro-example)
+- [Better Auth Documentation](https://www.better-auth.com/docs)
+- [Better Auth GitHub Repository](https://github.com/better-auth/better-auth)
+
 ## Clerk
 
 Clerk is a complete suite of embeddable UIs, flexible APIs, and admin dashboards to authenticate and manage your users. An [official Clerk SDK for Astro](https://clerk.com/docs/references/astro/overview) is available.
