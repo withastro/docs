@@ -10,11 +10,11 @@ import ReadMore from '~/components/ReadMore.astro';
 
 <p><Since v="4.15" /></p>
 
-Astro Actions 允许你定义和调用具有类型安全性的后端函数。Actions 为你执行数据获取、JSON 解析和输入验证。与使用 [API 端点](/zh-cn/guides/endpoints/) 相比，这可以大大减少所需的样板代码量。
+Astro Actions 允许你定义和调用具有类型安全性的后端函数。Actions 为你执行数据请求、JSON 解析和输入验证。与使用 [API 端点](/zh-cn/guides/endpoints/) 相比，这可以大大减少所需的样板代码量。
 
 使用 actions 而不是 API 端点，以实现客户端和服务器代码之间的无缝通信，并且可以：
 
-- 使用 [Zod 校验](https://zod.dev/README_ZH?id=原始类型)自动校验 JSON 和表单数据输入。
+- 使用 [Zod](https://zod.dev/?id=primitives) 自动校验 JSON 和表单数据输入。
 - 生成类型安全的函数，以便从客户端调用后端，甚至可以[从 HTML 表单操作](#从-html-表单操作调用-action)中调用。无需手动 `fetch()` 调用。
 - 使用 [`ActionError`](/zh-cn/reference/api-reference/#actionerror) 对象标准化后端错误。
 
@@ -73,7 +73,7 @@ async () => {
     }
     ```
 
-3. 使用 `defineAction()` 工具定义一个 `getGreeting` action。`input` 属性将使用 [Zod](https://zod.dev/README_ZH) scheme 验证输入参数，`handler()` 函数包含要在服务器上运行的后端逻辑。
+3. 使用 `defineAction()` 工具定义一个 `getGreeting` action。`input` 属性将使用 [Zod](https://zod.dev) scheme 验证输入参数，`handler()` 函数包含要在服务器上运行的后端逻辑。
 
     ```ts ins={5-12} title="src/actions/index.ts"
     import { defineAction } from 'astro:actions';
@@ -85,7 +85,7 @@ async () => {
           name: z.string(),
         }),
         handler: async (input) => {
-          return `Hello, ${input.name}!`
+          return `你好，${input.name}!`
         }
       })
     }
@@ -97,12 +97,12 @@ async () => {
     ---
     ---
 
-    <button>Get greeting</button>
+    <button>获取问候语</button>
 
     <script>
     const button = document.querySelector('button');
     button?.addEventListener('click', async () => {
-      // Show alert pop-up with greeting from action
+      // 通过 action 弹出带有问候语的弹窗
     });
     </script>
     ```
@@ -113,14 +113,14 @@ async () => {
     ---
     ---
 
-    <button>Get greeting</button>
+    <button>获取问候语</button>
 
     <script>
     import { actions } from 'astro:actions';
 
     const button = document.querySelector('button');
     button?.addEventListener('click', async () => {
-      // Show alert pop-up with greeting from action
+      // 通过 action 弹出带有问候语的弹窗
       const { data, error } = await actions.getGreeting({ name: "Houston" });
       if (!error) alert(data);
     })
@@ -190,7 +190,7 @@ if (error) {
 
 ```ts ins="orThrow"
 const updatedLikes = await actions.likePost.orThrow({ postId: 'example' });
-//    ^ 类型：number
+//    ^ type：number
 ```
 
 ### 在 action 中处理后端错误
@@ -205,7 +205,7 @@ const updatedLikes = await actions.likePost.orThrow({ postId: 'example' });
 
 为了抛出一个错误，从 `astro:actions` 模块中导入 `ActionError()` 类。传递一个人类可读的状态 `code`（例如 `"NOT_FOUND"` 或 `"BAD_REQUEST"`），以及一个可选的 `message` 以提供有关错误的更多信息。
 
-这个例子在 `likePost` action 中抛出一个错误，当用户未登录时，通过检查一个假设的 “user-session” cookie 进行身份验证：
+当用户并未登录，且在检查了假设的 “use-session” cookie 进行身份验证后，这个例子从 `likePost` action 抛出一个错误：
 
 ```ts title="src/actions/index.ts" ins=/ActionError(?= )/ ins={9-12}
 import { defineAction, ActionError } from "astro:actions";
@@ -221,7 +221,7 @@ export const server = {
           message: "User must be logged in.",
         });
       }
-      // Otherwise, like the post
+      // 否则，点赞成功
     },
   }),
 };
@@ -242,16 +242,16 @@ export function LikeButton({ postId }: { postId: string }) {
   return (
     <>
       {
-        showLogin && <a href="/signin">Log in to like a post.</a>
+        showLogin && <a href="/signin">登录后点赞文章。</a>
       }
       <button onClick={async () => {
         const { data, error } = await actions.likePost({ postId });
         if (error?.code === 'UNAUTHORIZED') setShowLogin(true);
-        // Early return for unexpected errors
+        // 因意外错误而提前终止
         else if (error) return;
-        // update likes
+        // 更新点赞数
       }}>
-        Like
+        点赞
       </button>
     </>
   )
@@ -274,7 +274,7 @@ export function LogoutButton() {
       const { error } = await actions.logout();
       if (!error) navigate('/');
     }}>
-      Logout
+      退出登录
     </button>
   );
 }
@@ -303,7 +303,7 @@ Actions 将解析提交的表单数据为一个对象，使用每个输入的 `n
 
 为了接收原始的 `FormData` 对象，而不是解析后的对象，可以在 action 定义中省略 `input` 属性。
 
-下面的示例显示了一个验证过的 newsletter 注册表单，接受用户的电子邮件并要求“服务条款”复选框的同意。
+下面的示例显示了一个验证过的 newsletter 注册表单，它接受用户的电子邮件并要求勾选“服务条款”复选框以同意。
 
 <Steps>
 
@@ -315,9 +315,9 @@ Actions 将解析提交的表单数据为一个对象，使用每个输入的 `n
       <input id="email" required type="email" name="email" />
       <label>
         <input required type="checkbox" name="terms">
-        I agree to the terms of service
+        我已同意服务条款
       </label>
-      <button>Sign up</button>
+      <button>注册</button>
     </form>
     ```
 
@@ -349,9 +349,9 @@ Actions 将解析提交的表单数据为一个对象，使用每个输入的 `n
       <input id="email" required type="email" name="email" />
       <label>
         <input required type="checkbox" name="terms">
-        I agree to the terms of service
+        我已同意服务条款
       </label>
-      <button>Sign up</button>
+      <button>注册</button>
     </form>
 
     <script>
@@ -368,7 +368,7 @@ Actions 将解析提交的表单数据为一个对象，使用每个输入的 `n
     </script>
     ```
 
-    <ReadMore>请参阅 [“从 HTML 表单操作调用 action”](#从-html-表单操作调用-action) 了解提交表单数据的另一种方法</ReadMore>
+    <ReadMore>请参阅 [“从 HTML 表单操作调用 action”](#从-html-表单操作调用-action) 以了解提交表单数据的另一种方法。</ReadMore>
 
 </Steps>
 
@@ -376,7 +376,7 @@ Actions 将解析提交的表单数据为一个对象，使用每个输入的 `n
 
 你可以在提交前校验表单输入，使用原生 HTML 表单校验属性，例如 `required`、`type="email"` 和 `pattern`。对于后端的更复杂的 `input` 校验，你可以使用 [`isInputError()`](/zh-cn/reference/api-reference/#isinputerror) 工具函数。
 
-为了检索输入错误，使用 `isInputError()` 工具函数检查错误是否由无效输入引起。输入错误包含一个 `fields` 对象，其中包含每个未能验证的输入名称的消息。你可以使用这些消息提示用户纠正他们的提交。
+要检索输入错误，可以使用 `isInputError()` 工具函数来检查错误是否是由无效输入而引起的。输入错误包含一个 `fields` 对象，其中包含每个验证失败的输入名称的消息。你可以使用这些消息提示用户以纠正他们的提交。
 
 下面的示例使用 `isInputError()` 检查错误，然后检查错误是否在电子邮件字段中，最后从错误中创建消息。你可以使用 JavaScript DOM 操作或你喜欢的 UI 框架将此消息显示给用户。
 
@@ -387,7 +387,7 @@ const form = document.querySelector('form');
 const formData = new FormData(form);
 const { error } = await actions.newsletter(formData);
 if (isInputError(error)) {
-  // Handle input errors.
+  // 处理输入错误。
   if (error.fields.email) {
     const message = error.fields.email.join(', ');
   }
@@ -400,11 +400,11 @@ if (isInputError(error)) {
 页面必须在使用表单操作调用 actions 时进行按需渲染。在使用此 API 之前，请[确保页面上已禁用预渲染](/zh-cn/guides/server-side-rendering/#在-hybrid-模式中选择退出预渲染)。
 :::
 
-你可以在任何 `<form>` 元素上使用标准属性启用零 JS 表单提交。无需客户端 JavaScript 的表单提交可能对于 JavaScript 加载失败时的回退，或者如果你更喜欢完全从服务器处理表单时很有用。
+你可以在任何 `<form>` 元素上使用标准属性启用零 JS 表单提交。无论是作为 JavaScript 加载失败时的回退，又或者你更喜欢仅从服务器来处理表单时，无需客户端 JavaScript 的表单提交都非常有用。
 
-调用 [Astro.getActionResult()](/zh-cn/reference/api-reference/#astrogetactionresult) 在服务器上返回表单提交的结果（`data` 或 `error`），可以用于动态重定向、处理表单错误、更新 UI 等。
+在服务器上调用 [Astro.getActionResult()](/zh-cn/reference/api-reference/#astrogetactionresult) 会返回表单提交的结果（`data` 或 `error`），并且可以用于动态重定向、处理表单错误、更新 UI 等。
 
-调用一个 action 时，Astro 会自动处理表单提交，并将结果返回给你的页面。这使得你可以在表单提交后更新 UI，重定向到一个新页面，或者处理任何错误。
+要从 HTML 表单调用 action，可以为 `<form>` 添加 `method="POST"`，并设置表单的 `action` 属性使用你的 action，例如 `action={actions.logout}`。这会将 `action` 属性设置为使用服务器自动处理的查询字符串。
 
 例如，这个 Astro 组件在点击按钮时调用 `logout` action 并重新加载当前页面：
 
@@ -420,7 +420,7 @@ import { actions } from 'astro:actions';
 
 ### 在 action 成功时重定向
 
-为了在一个 action 成功时导航到一个不同的页面，你可以在 `action` 属性中添加一个路径。
+要在没有客户端 JavaScript 且 action 成功时导航到一个不同的页面，你可以在 `action` 属性中添加一个路径。
 
 例如，当 `newsletter` action 成功时，`action={'/confirmation' + actions.newsletter}` 将导航到 `/confirmation`：
 
@@ -476,7 +476,7 @@ if (result && !result.error) {
 </form>
 ```
 
-### 处理表单操作错误
+### 处理表单 action 错误
 
 Astro 在 action 失败时不会重定向到你的 `action` 路由。相反，当前页面将重新加载，并显示 action 返回的任何错误。在包含表单的 Astro 组件中调用 `Astro.getActionResult()`，可以访问 `error` 对象以进行自定义错误处理。
 
@@ -535,9 +535,9 @@ Astro 会使用一个单次使用的 cookie 持久化 action `data` 和 `error`�
 <input transition:persist required type="email" name="email" />
 ```
 
-### 使用表单操作结果更新 UI
+### 使用表单的 action 结果以更新 UI
 
-由 `Astro.getActionResult()` 返回的结果是一次性的，每当页面刷新时都会重置为 `undefined`。这对于[处理表单操作错误](#处理表单操作错误)和在成功时向用户显示临时通知非常理想。
+由 `Astro.getActionResult()` 返回的结果是一次性的，每当页面刷新时都会重置为 `undefined`。这对于[处理表单操作错误](#处理表单-action-错误)和在成功时向用户显示临时通知非常理想。
 
 :::tip
 如果你需要在页面刷新时显示结果，请考虑将结果存储在数据库中或[在 cookie 中](/zh-cn/reference/api-reference/#astrocookies)。
@@ -568,7 +568,7 @@ Action 数据使用一个持久化 cookie 传递。**这个 cookie 没有加密*
 import { defineAction } from 'astro:actions';
 
 export const server = {
-  addToCard: defineAction({
+  addToCart: defineAction({
     handler: async () => {
       /* ... */
       return product;
