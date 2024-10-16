@@ -138,7 +138,7 @@ export default [
 	{ text: 'astro:content', slug: 'reference/modules/astro-content', key: 'reference/modules/astro-content' },
 	{ text: 'astro:i18n', slug: 'reference/modules/astro-i18n', key: 'reference/modules/astro-i18n' },
 	{ text: 'astro:middleware', slug: 'reference/modules/astro-middleware', key: 'reference/modules/astro-middleware' },
-	{ text: 'astro:view-transitions', slug: 'reference/modules/astro-transitions', key: 'reference/modules/astro-transitions' },
+	{ text: 'astro:transitions', slug: 'reference/modules/astro-transitions', key: 'reference/modules/astro-transitions' },
 
 
 	{ text: 'Other Development APIs', header: true, type: 'api', key: 'dev' },
