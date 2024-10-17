@@ -144,8 +144,6 @@ import Heading from '../components/Heading.astro';
 
 Dans les versions statiques, il s'agira des `params` renvoyés par `getStaticPaths()` utilisés pour le pré-rendu [des routes dynamiques](/fr/guides/routing/#routes-dynamiques).
 
-Dans les versions SSR, il peut s'agir de n'importe quelle valeur correspondant aux segments de chemin dans le modèle de route dynamique.
-
 ```astro title="src/pages/posts/[id].astro"
 ---
 export function getStaticPaths() {
@@ -159,6 +157,24 @@ export function getStaticPaths() {
 const { id } = Astro.params;
 ---
 <h1>{id}</h1>
+```
+
+Dans les versions SSR, il peut s'agir de n'importe quelle valeur correspondant aux segments de chemin dans le modèle de route dynamique.
+
+```astro title="src/pages/posts/[id].astro"
+---
+import { getPost } from '../api';
+
+const post = await getPost(Astro.params.id);
+
+// No posts found with this ID
+if (!post) {
+  Astro.redirect("/404")
+}
+---
+<html>
+  <h1>{post.name}</h1>
+</html>
 ```
 
 Voir aussi : [`params`](#params)
@@ -1116,6 +1132,10 @@ La fonction `getStaticPaths()` doit renvoyer un tableau d'objets pour détermine
 
 Elle peut également être utilisée dans les points de terminaison de fichiers statiques pour le [routage dynamique](/fr/guides/endpoints/#params-et-routage-dynamique).
 
+:::tip
+Lorsque vous utilisez TypeScript, utilisez l'utilitaire de type [`GetStaticPaths`](/fr/guides/typescript/#inférer-les-types-getstaticpaths) pour garantir la sûreté du typage de `params` et `props`.
+:::
+
 :::caution
 La fonction `getStaticPaths()` s'exécute dans sa propre portée isolée une seule fois, avant le chargement de toute page. Par conséquent, vous ne pouvez pas faire référence à quoi que ce soit à partir de sa portée parentale, à l'exception des importations de fichiers. Le compilateur vous avertira si vous ne respectez pas cette exigence.
 :::
@@ -1217,17 +1237,24 @@ export async function getStaticPaths({ paginate }) {
 const { page } = Astro.props;
 ```
 
+`paginate()` a les arguments suivants :
+- `data` - tableau contenant les données de la page transmises à la fonction `paginate()`
+- `options` - Objet facultatif avec les propriétés suivantes :
+  - `pageSize` - Nombre d'éléments affichés par page (`10` par défaut)
+  - `params` - Envoi de paramètres supplémentaires pour la création de routes dynamiques
+  - `props` - Envoi de props supplémentaires pour qu'elles soient disponibles sur chaque page
+
 `paginate()` suppose un nom de fichier `[page].astro` ou `[...page].astro`. Le paramètre `page` devient le numéro de page dans votre URL :
 
 - `/posts/[page].astro` générerait les URL suivants `/posts/1`, `/posts/2`, `/posts/3`, etc.
 - `/posts/[...page].astro` générerait les URL suivants `/posts`, `/posts/2`, `/posts/3`, etc.
 
-`paginate()` a les arguments suivants :
-- `pageSize` - Nombre d'éléments affichés par page (`10` par défaut)
-- `params` - Envoi de paramètres supplémentaires pour la création de routes dynamiques
-- `props` - Envoi de props supplémentaires pour qu'elles soient disponibles sur chaque page
-
 #### La propriété `page` de pagination
+
+<p>
+
+**Type :** `Page<TData>`
+</p>
 
 La pagination va passer une propriété `page` à chaque page affichée qui représente une seule page de données dans la collection paginée. Cela inclut les données que vous avez paginées (`page.data`) ainsi que les métadonnées de la page (`page.url`, `page.start`, `page.end`, `page.total`, etc). Ces métadonnées sont utiles pour des choses comme un bouton « Page suivante » ou un message « Pages 1-10 sur 100 ».
 
@@ -1235,10 +1262,10 @@ La pagination va passer une propriété `page` à chaque page affichée qui repr
 
 <p>
 
-**Type :** `Array`
+**Type :** `Array<TData>`
 </p>
 
-Tableau des données renvoyées par `data()` pour la page en cours.
+Tableau des données renvoyées par la fonction `paginate()` pour la page en cours.
 
 ##### `page.start`
 
@@ -1504,7 +1531,7 @@ export const collections = { blog, authors };
 
 <p>
 
-**Type :** `(collection: string, filter?: (entry: CollectionEntry<collection>) => boolean) => CollectionEntry<collection>[]`
+**Type :** `(collection: string, filter?: (entry: CollectionEntry<TCollectionName>) => boolean) => CollectionEntry<TCollectionName>[]`
 </p>
 
 `getCollection()` est une fonction qui récupère une liste d'entrées de collection de contenu par nom de collection.
@@ -1532,9 +1559,9 @@ const draftBlogPosts = await getCollection('blog', ({ data }) => {
 <p><Since v="2.5.0" /></p>
 
 **Types :**
-- `(collection: string, contentSlugOrDataId: string) => CollectionEntry<collection>`
-- `({ collection: string, id: string }) => CollectionEntry<collection>`
-- `({ collection: string, slug: string }) => CollectionEntry<collection>`
+- `(collection: string, contentSlugOrDataId: string) => CollectionEntry<TCollectionName>`
+- `({ collection: string, id: string }) => CollectionEntry<TCollectionName>`
+- `({ collection: string, slug: string }) => CollectionEntry<TCollectionName>`
 
 `getEntry()` est une fonction qui récupère une seule entrée de collection en utilisant le nom de la collection et soit l'entrée `id` (pour les collections utilisant `type: 'data'`) soit l'entrée `slug` (pour les collections utilisant `type: 'content'`). `getEntry()` peut également être utilisée pour obtenir des entrées référencées pour accéder aux propriétés `data`, `body` ou `render()` :
 
@@ -1560,8 +1587,8 @@ Consultez le guide Collections de contenu pour des exemples d'[interrogation des
 <p><Since v="2.5.0" /></p>
 
 **Types :**
-- `(Array<{ collection: string, id: string }>) => Array<CollectionEntry<collection>>`
-- `(Array<{ collection: string, slug: string }>) => Array<CollectionEntry<collection>>`
+- `(Array<{ collection: string, id: string }>) => CollectionEntry<TCollectionName>[]`
+- `(Array<{ collection: string, slug: string }>) => CollectionEntry<TCollectionName>[]`
 
 `getEntries()` est une fonction qui récupère plusieurs entrées dans une même collection. Ceci est utile pour [renvoyer un tableau d'entrées référencées](/fr/guides/content-collections/#définition-des-références-de-collection) pour accéder à leurs propriétés `data`, `body` et `render()` associées.
 
@@ -1580,7 +1607,7 @@ const enterpriseRelatedPosts = await getEntries(enterprisePost.data.relatedPosts
 
 <p>
 
-**Type :** `(collection: string, slug: string) => Promise<CollectionEntry<collection>>`
+**Type :** `(collection: string, slug: string) => Promise<CollectionEntry<TCollectionName>>`
 </p>
 
 :::caution[Obsolète]
@@ -1604,7 +1631,7 @@ const enterprise = await getEntryBySlug('blog', 'enterprise');
 
 <p>
 
-**Type :** `(collection: string, id: string) => Promise<CollectionEntry<collection>>`<br />
+**Type :** `(collection: string, id: string) => Promise<CollectionEntry<TCollectionName>>`<br />
 <Since v="2.5.0" />
 </p>
 
