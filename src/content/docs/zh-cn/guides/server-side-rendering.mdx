@@ -224,26 +224,71 @@ Astro.cookies.set('counter', String(counter))
 
 ### `Response`
 
-你也可以从使用按需渲染的任何页面返回一个 [响应](https://developer.mozilla.org/zh-CN/docs/Web/API/Response)。
+[`Astro.response`](/zh-cn/reference/api-reference/#astroresponse) 是一个标准 [`ResponseInit`](https://developer.mozilla.org/zh-CN/docs/Web/API/Response/Response#options) 对象。它可用于设置响应状态和标头。
 
-下面的例子在数据库中查找 id 后在动态页面上返回 404：
+下面的示例设置了当产品不存在时，产品列表页面的响应状态和状态文本：
 
-```astro title="src/pages/[id].astro" {8-11}
+```astro title="src/pages/product/[id].astro" {10,11}
 ---
+export const prerender = false; // Not needed in 'server' mode
+
 import { getProduct } from '../api';
 
 const product = await getProduct(Astro.params.id);
 
-// 没有找到任何记录
+// 没有找到任何产品
 if(!product) {
+  Astro.response.status = 404;
+  Astro.response.statusText = 'Not found';
+}
+---
+<html>
+  <!-- 你的页面... -->
+</html>
+```
+
+#### `Astro.response.headers`
+
+你可以使用 `Astro.response.headers` 对象以设置标题：
+
+```astro title="src/pages/index.astro" {2}
+---
+Astro.response.headers.set('Cache-Control', 'public, max-age=3600');
+---
+<html>
+  <!-- 你的页面... -->
+</html>
+```
+
+#### 返回一个 `Response` 对象
+
+你可以手动或使用 [`Astro.redirect`](/zh-cn/reference/api-reference/#astroredirect) 来通过按需渲染，直接从任何页面返回 [Response](https://developer.mozilla.org/zh-CN/docs/Web/API/Response) 对象`](/zh-cn/reference/api-reference/#astroredirect)。
+
+下面的示例在动态页面上的数据库中查找 ID，如果产品不存在，则返回 404；如果产品不再可用，则将用户重定向到另一个页面，或者显示产品：
+
+```astro title="src/pages/[id].astro" {10-13, 18}
+---
+export const prerender = false; // 无需在 `server` 模式下
+
+import { getProduct } from '../api';
+
+const product = await getProduct(Astro.params.id);
+
+// 没有找到任何产品
+if (!product) {
   return new Response(null, {
     status: 404,
     statusText: 'Not found'
   });
 }
+
+// 该商品不再可用
+if (!product.isAvailable) {
+  return Astro.redirect("/products", 301);
+}
 ---
 <html>
-  <!-- 你的页面 -->
+  <!-- 你的页面... -->
 </html>
 ```
 
@@ -268,7 +313,7 @@ const cookie = Astro.request.headers.get('cookie');
 </html>
 ```
 
-### `Astro.request.method`
+#### `Astro.request.method`
 
 请求中使用的 HTTP 方法可用作 `Astro.request.method`。这就像浏览器的 [`Request.method`](https://developer.mozilla.org/zh-CN/docs/Web/API/Request/method) 一样。它返回请求中使用的 HTTP 方法的字符串表示形式。
 
