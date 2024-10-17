@@ -1,0 +1,547 @@
+---
+title: Drupal 与 Astro
+description: 使用 Drupal 作为 CMS 将内容添加到你的 Astro 项目
+type: cms
+service: Drupal
+i18nReady: true
+stub: true
+---
+import { FileTree, Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+[Drupal](https://www.drupal.org/) 是一个开源的内容管理工具。
+
+## 先决条件
+
+首先，你需要具备以下条件：
+
+1. **一个 Astro 项目** - 如果你还没有 Astro 项目，我们的 [安装指南](/zh-cn/install-and-setup/) 能够帮助你快速启动并运行。
+
+2. **一个 Drupal 站点** - 如果你还没有设置 Drupal 站点，可以按照官方指南 [安装 Drupal](https://www.drupal.org/docs/getting-started/installing-drupal)。
+
+## 将 Drupal 与 Astro 集成
+
+### 安装 Drupal 的 JSON:API 模块
+
+为了能够从 Drupal 获取内容，你需要启用 [Drupal JSON:API 模块](https://www.drupal.org/docs/core-modules-and-themes/core-modules/jsonapi-module)。
+
+1. 通过 Manage administrative（用户管理）菜单导航到扩展页面 `admin/modules`
+2. 找到 JSON:API 模块并勾选它旁边的框
+3. 点击 Install（安装）以安装新模块
+
+现在你可以通过 JSON:API 向你的 Drupal 应用程序发出 `GET` 请求。
+
+### 在 `.env` 中添加 Drupal URL
+
+要将 Drupal URL 添加到 Astro，请在项目的根目录中创建一个 `.env` 文件（如果尚不存在）并添加以下变量：
+
+```ini title=".env"
+DRUPAL_BASE_URL="https://drupal.ddev.site/"
+```
+
+重新启动开发服务器以在 Astro 项目中使用此环境变量。
+
+### 设置凭据
+
+默认情况下，Drupal JSON:API 端点可用于外部数据获取请求，而无需身份验证。这允许你无需凭据即可获取 Astro 项目的数据，但不允许用户修改你的数据或站点设置。
+
+但是，如果你希望限制访问并需要身份验证，Drupal 提供了 [几种身份验证的方法](https://www.drupal.org/docs/contributed-modules/api-authentication)，包括：
+
+- [基本身份验证](https://www.drupal.org/docs/contributed-modules/api-authentication/setup-basic-authentication)
+- [基于 API 密钥的身份验证](https://www.drupal.org/docs/contributed-modules/api-authentication/api-key-authentication)
+- [基于访问令牌/OAuth 的身份验证](https://www.drupal.org/docs/contributed-modules/api-authentication/setup-access-token-oauth-based-authentication)
+- [基于 JWT 令牌的身份验证](https://www.drupal.org/docs/contributed-modules/api-authentication/jwt-authentication)
+- [第三方供应商令牌身份验证](https://www.drupal.org/docs/contributed-modules/api-authentication/rest-api-authentication-using-external-identity-provider)
+
+你可以将凭据添加到 `.env` 文件中。
+
+```ini title=".env"
+DRUPAL_BASIC_USERNAME="editor"
+DRUPAL_BASIC_PASSWORD="editor"
+DRUPAL_JWT_TOKEN="abc123"
+...
+```
+
+<ReadMore>阅读有关 Astro 中的 [使用环境变量](/zh-cn/guides/environment-variables/) 和 `.env` 文件的更多信息。</ReadMore>
+
+你的根目录现在应该包含以下新文件：
+
+<FileTree title="Project Structure">
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### 安装依赖
+
+JSON：API 请求和响应通常很复杂且嵌套很深。为了简化它们的使用，你可以使用两个 npm 包来简化请求和响应的处理：
+- [`JSONA`](https://www.npmjs.com/package/jsona)：JSON API v1.0 用于服务器和浏览器的规范序列化工具和反序列化工具。
+- [`Drupal JSON-API Params`](https://www.npmjs.com/package/drupal-jsonapi-params)：该模块提供了一个辅助类来创建所需的查询。在此过程中，它还会尽可能的通过缩写的方式来优化查询。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install jsona drupal-jsonapi-params
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add jsona drupal-jsonapi-params
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add jsona drupal-jsonapi-params
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## 从 Drupal 请求数据
+
+你的内容是从 JSON:API URL 中获取的。
+
+### Drupal JSON:API URL 的结构
+
+基本的 URL 结构为：`/jsonapi/{entity_type_id}/{bundle_id}`
+
+URL 始终以 `jsonapi` 为前缀
+- `entity_type_id` 指实体类型，例如节点、块、用户等。
+- `bundle_id` 指的是实体包。对于 Node 实体类型来说，捆绑包可以是文章。
+- 在本例中，要获取所有文章的列表，URL 应该会是 `[DRUPAL_BASE_URL]/jsonapi/node/article`。
+
+要检索单个实体，URL 结构将为 `/jsonapi/{entity_type_id}/{bundle_id}/{uuid}`，其中的 uuid 是实体的 UUID。例如，要获取特定文章的 URL 则会是这样的格式 `/jsonapi/node/article/2ee9f0ef-1b25-4bbe-a00f-8649c68b1f7e`。
+
+#### 仅检索特定字段
+
+通过将查询字符串字段添加到请求中来仅检索特定字段。
+
+GET 请求： `/jsonapi/{entity_type_id}/{bundle_id}?field[entity_type]=field_list`
+
+例如：
+- `/jsonapi/node/article?fields[node--article]=title,created`
+- `/jsonapi/node/article/2ee9f0ef-1b25-4bbe-a00f-8649c68b1f7e?fields[node--article]=title,created,body`
+
+#### 过滤
+
+通过添加过滤器查询字符串来向你的请求添加过滤器。
+
+最简单、最常见的过滤器是键值过滤器：
+
+GET 请求： `/jsonapi/{entity_type_id}/{bundle_id}?filter[field_name]=value&filter[field_other]=value`
+
+例如：
+- `/jsonapi/node/article?filter[title]=Testing JSON:API&filter[status]=1`
+- `/jsonapi/node/article/2ee9f0ef-1b25-4bbe-a00f-8649c68b1f7e?fields[node--article]=title&filter[title]=Testing JSON:API`
+
+你可以在 [JSON:API 文档](https://www.drupal.org/docs/core-modules-and-themes/core-modules/jsonapi-module) 中找到更多查询选项。
+
+### 构建 Drupal 查询
+
+Astro 组件可以使用 `drupal-jsonapi-params` 包从 Drupal 站点获取数据来构建查询。
+
+以下示例显示了一个包含 “article” 内容类型查询的组件，该组件具有用于标题的文本字段和用于内容的富文本字段：
+
+```astro
+---
+import {Jsona} from "jsona";
+import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
+
+// 获取 Drupal 的根 URL。
+export const baseUrl: string = import.meta.env.DRUPAL_BASE_URL;
+
+// 生成 JSON:API 查询。获取所有已发布文章的标题和正文。
+const params: DrupalJsonApiParams = new DrupalJsonApiParams();
+params.addFields("node--article", [
+        "title",
+        "body",
+    ])
+    .addFilter("status", "1");
+// 生成查询字符串。
+const path: string = params.getQueryString();
+const url: string = baseUrl + '/jsonapi/node/article?' + path;
+
+// 获取文章。
+const request: Response = await fetch(url);
+const json: string | TJsonApiBody = await request.json();
+// 初始化 Jsona。
+const dataFormatter: Jsona = new Jsona();
+// 对响应进行反序列化。
+const articles = dataFormatter.deserialize(json);
+---
+<body>
+ {articles?.length ? articles.map((article: any) => (
+    <section>
+      <h2>{article.title}</h2>
+      <article set:html={article.body.value}></article>
+    </section>
+ )): <div><h1>没有找到内容</h1></div> }
+</body>
+```
+
+你可以在 [Drupal JSON：API 文档](https://www.drupal.org/docs/core-modules-and-themes/core-modules/jsonapi-module/jsonapi) 中找到更多查询选项。
+
+## 使用 Astro 和 Drupal 制作博客
+
+经过上述的设置，你现在可以创建一个使用 Drupal 作为 CMS 的博客了。 
+
+### 先决条件
+
+1. **一个 Astro 项目** 且安装了 [`JSONA`](https://www.npmjs.com/package/jsona) 和 [`Drupal JSON-API Params`](https://www.npmjs.com/package/drupal-jsonapi-params)。
+
+2. **至少有一个条目的 Drupal 站点** - 对于本教程，我们建议从标准安装的新 Drupal 站点开始。
+
+    在 Drupal 站点的 **Content（内容）** 部分中，通过单击 **Add（添加）** 按钮创建一个新条目。然后，选择文章并填写字段：
+
+    - **Title:** `My first article for Astro!`
+    - **Alias:** `/articles/first-article-for astro`
+    - **Description:** `This is my first Astro article! Let's see what it will look like!`
+
+    单击 **Save（保存）** 创建你的第一篇文章。请随意添加任意数量的文章。
+
+### 显示文章列表
+
+<Steps>
+
+1. 如果 `src/types.ts` 尚不存在的话，请创建一个，并使用以下代码来添加两个名为 `DrupalNode` 和 `Path` 的新接口。这些界面将与 Drupal 中文章内容类型的字段和路径字段相匹配。你将使用它来输入你的文章条目响应。
+
+    ```ts title="src/types.ts"
+
+    export interface Path {
+        alias: string
+        pid: number
+        langcode: string
+    }
+
+    export interface DrupalNode extends Record<string, any> {
+        id: string
+        type: string
+        langcode: string
+        status: boolean
+        drupal_internal__nid: number
+        drupal_internal__vid: number
+        changed: string
+        created: string
+        title: string
+        default_langcode: boolean
+        sticky: boolean
+        path: Path
+    }
+    ```
+
+    你的 src 目录现在应该包含新的文件了：
+
+    <FileTree title="Project Structure">
+    - .env
+    - astro.config.mjs
+    - package.json
+    - src/
+      - **types.ts**
+    </FileTree>
+
+2. 在 `src/api` 下创建一个名为 `drupal.ts` 的新文件并添加以下代码：
+
+    ```ts title="src/api/drupal.ts"
+    import {Jsona} from "jsona";
+    import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+    import type {DrupalNode} from "../types.ts";
+    import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
+
+    // 获取 Drupal 的根 URL。
+    export const baseUrl: string = import.meta.env.DRUPAL_BASE_URL;
+    ```
+
+    这一步将导入所需的库，例如用于反序列化响应的 `Jsona`、用于格式化请求 URL、Node 和 Jsona 类型的 `DrupalJsonApiParams`。它还将从 `.env` 文件中获取 `baseUrl`。
+
+    你的 src 目录现在应该包含新的文件了：
+
+    <FileTree title="Project Structure">
+    - .env
+    - astro.config.mjs
+    - package.json
+    - src/
+      - api/
+        - **drupal.ts**
+      - types.ts
+    </FileTree>
+
+3. 在同一文件中，创建 `fetchUrl` 函数来获取请求并反序列化响应。
+
+    ```ts title="src/api/drupal.ts" ins={9-23}
+    import {Jsona} from "jsona";
+    import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+    import type {DrupalNode} from "../types.ts";
+    import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
+
+    // 获取 Drupal 的根 URL。
+    export const baseUrl: string = import.meta.env.DRUPAL_BASE_URL;
+
+    /**
+     * 从 Drupal 获取 url。
+     *
+     * @param url
+     *
+     * @return Promise<TJsonaModel | TJsonaModel[]> as Promise<any>
+     */
+    export const fetchUrl = async (url: string): Promise<any> => {
+        const request: Response = await fetch(url);
+        const json: string | TJsonApiBody = await request.json();
+        const dataFormatter: Jsona = new Jsona();
+        return dataFormatter.deserialize(json);
+    }
+    ```
+
+4. 创建 `getArticles()` 函数来获取所有已发布的文章。
+
+    ```ts title="src/api/drupal.ts" ins={23-40}
+    import {Jsona} from "jsona";
+    import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+    import type {DrupalNode} from "../types.ts";
+    import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
+
+    // 获取 Drupal 的根 URL。
+    export const baseUrl: string = import.meta.env.DRUPAL_BASE_URL;
+
+    /**
+     * 从 Drupal 获取 url。
+     *
+     * @param url
+     *
+     * @return Promise<TJsonaModel | TJsonaModel[]> as Promise<any>
+     */
+    export const fetchUrl = async (url: string): Promise<any> => {
+        const request: Response = await fetch(url);
+        const json: string | TJsonApiBody = await request.json();
+        const dataFormatter: Jsona = new Jsona();
+        return dataFormatter.deserialize(json);
+    }
+
+    /**
+     * 获取所有已发布的文章。
+     *
+     * @return Promise<DrupalNode[]>
+     */
+    export const getArticles = async (): Promise<DrupalNode[]> => {
+        const params: DrupalJsonApiParams = new DrupalJsonApiParams();
+        params
+            .addFields("node--article", [
+                "title",
+                "path",
+                "body",
+                "created",
+            ])
+            .addFilter("status", "1");
+        const path: string = params.getQueryString();
+        return await fetchUrl(baseUrl + '/jsonapi/node/article?' + path);
+    }
+    ```
+
+    现在，你可以使用 `.astro` 组件中的函数 `getArticles()` 来获取所有已发布的文章，以及每个标题、正文、路径和创建日期的数据。
+
+5. 转至 Astro 页面，你将从 Drupal 获取数据。以下示例在 `src/pages/articles/index.astro` 处创建了一个文章落地页。
+
+    导入必要的依赖项，并使用 `getArticles()` 从 Drupal 获取内容类型为 `article` 的所有条目，同时传递 `DrupalNode` 接口来键入你的响应。
+
+    ```astro title="src/pages/articles/index.astro"
+    ---
+    import {Jsona} from "jsona";
+    import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+    import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
+
+    import type { DrupalNode } from "../../types";
+    import {getArticles} from "../../api/drupal";
+
+    // 获取所有已发布的文章。
+    const articles = await getArticles();
+    ---
+    ```
+
+    使用 getArticles() 的请求调用将返回一个类型化数组，该数组可在页面模板中使用。
+
+    如果你使用相同的页面文件，你的 `src/pages/` 目录现在应该包含新文件：
+    <FileTree title="Project Structure">
+    - .env
+    - astro.config.mjs
+    - package.json
+    - src/
+      - api/
+        - drupal.ts
+      - pages/
+        - articles/
+          - **index.astro**
+      - types.ts
+    </FileTree>
+
+6. 向页面添加内容，例如标题。使用 `articles.map()` 将你的 Drupal 条目显示为列表中的一行。
+
+    ```astro title="src/pages/articles/index.astro" ins={12-29}
+    ---
+    import {Jsona} from "jsona";
+    import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+    import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
+
+    import type { DrupalNode } from "../types";
+    import {getArticles} from "../api/drupal";
+
+    // 获取所有已发布的文章。
+    const articles = await getArticles();
+    ---
+    <html lang="en">
+      <head>
+        <title>我的新网站</title>
+      </head>
+      <body>
+        <h1>我的新网站</h1>
+        <ul>
+          {articles.map((article: DrupalNode) => (
+            <li>
+              <a href={article.path.alias.replace("internal:en/", "")}>
+                <h2>{article.title}</h2>
+                <p>发布于 {article.created}</p>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </body>
+    </html>
+    ```
+
+</Steps>
+
+### 生成单个博客文章
+
+使用与上面相同的方法从 Drupal 获取数据，但这一次，是在给每篇文章创建唯一的页面路由的页面上。
+
+此示例使用 Astro 的默认静态模式，并使用 `getStaticPaths()` 函数创建 [动态路由页面文件](/zh-cn/guides/routing/#动态路由)。该函数将在构建时被调用，以生成成为页面的路径列表。
+
+<Steps>
+
+1. 创建一个新文件 `src/pages/articles/[path].astro` 并从 `src/api/drupal.ts` 导入 `DrupalNode` 接口和 `getArticle()`。在 `getStaticPaths()` 函数中获取数据，为你的博客创建路由。
+
+    ```astro title="src/pages/articles/[path].astro"
+    ---
+    import {Jsona} from "jsona";
+    import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+    import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
+
+    import type { DrupalNode } from "../../types";
+    import {getArticles} from "../../api/drupal";
+
+    // 获取所有已发布的文章。
+    export async function getStaticPaths() {
+      const articles = await getArticles();
+    }
+    ---
+    ```
+
+    你的 src/pages/articles 目录现在应该包含新文件：
+    <FileTree title="Project Structure">
+    - .env
+    - astro.config.mjs
+    - package.json
+    - src/
+      - api/
+        - drupal.ts
+      - pages/
+        - articles/
+          - index.astro
+          - **[path].astro**
+      - types.ts
+    </FileTree>
+
+2. 在同一文件中，将每个 Drupal 条目映射到具有 `params` 和 `props` 属性的对象。`params` 属性将用于生成页面的 URL，而 `props` 值将作为 props 传递给页面组件。
+
+    ```astro title="src/pages/articles/[path].astro" ins={12-33}
+    ---
+    import {Jsona} from "jsona";
+    import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+    import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
+
+    import type { DrupalNode } from "../../types";
+    import {getArticles} from "../../api/drupal";
+
+    // 获取所有已发布的文章。
+    export async function getStaticPaths() {
+        const articles = await getArticles();
+        return articles.map((article: DrupalNode) => {
+            return {
+                params: {
+                    // 选择 `path` 以匹配 `[path]` 路由值
+                    path: article.path.alias.split('/')[2]
+                },
+                props: {
+                    title: article.title,
+                    body: article.body,
+                    date: new Date(article.created).toLocaleDateString('en-EN', {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric"
+                    })
+                }
+            }
+        });
+    }
+    ---
+    ```
+
+    `params` 内的属性必须与动态路由的名称匹配。由于文件名是 `[path].astro`，因此传递给 `params` 的属性名称必须是 `path`。
+
+    在我们的示例中，`props` 对象将三个属性传递给页面：
+    - `title`：字符串，代表你文章的标题。
+    - `body`：字符串，代表你文章的内容。
+    - `created`：时间戳，基于你文件的创建日期。
+
+3. 使用页面的 `props` 来显示你的博客文章。
+
+    ```astro title="src/pages/articles/[path].astro" ins={30, 32-42}
+    ---
+    import {Jsona} from "jsona";
+    import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+    import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
+
+    import type { DrupalNode } from "../../types";
+    import {getArticles} from "../../api/drupal";
+
+    // 获取所有已发布的文章。
+    export async function getStaticPaths() {
+        const articles = await getArticles();
+        return articles.map((article: DrupalNode) => {
+            return {
+                params: {
+                    path: article.path.alias.split('/')[2]
+                },
+                props: {
+                    title: article.title,
+                    body: article.body,
+                    date: new Date(article.created).toLocaleDateString('en-EN', {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric"
+                    })
+                }
+            }
+        });
+    }
+
+    const {title, created, body} = Astro.props;
+    ---
+    <html lang="en">
+      <head>
+        <title>{title}</title>
+      </head>
+      <body>
+        <h1>{title}</h1>
+        <time>{date}</time>
+        <article set:html={body.value} />
+      </body>
+    </html>
+    ```
+
+4. 导航到你的开发服务器预览，并单击你的一篇文章以确保你的动态路由正常工作。
+
+</Steps>
+
+### 发布你的网站
+
+要部署你的网站，请访问我们的 [部署指南](/zh-cn/guides/deploy/) 并按照你首选的托管供应商说明进行操作。
