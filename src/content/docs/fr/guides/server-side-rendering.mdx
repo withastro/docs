@@ -226,10 +226,14 @@ Voir plus de détails sur [`Astro.cookies` et le type `AstroCookie`](/fr/referen
 
 L'exemple ci-dessous définit un état de réponse et un texte d'état pour une page de liste de produits lorsque le produit n'existe pas :
 
-```astro title="src/pages/my-product.astro" {8-9}
+```astro title="src/pages/product/[id].astro" {10,11}
 ---
+export const prerender = false; // Pas nécessaire en mode `server`
+
 import { getProduct } from '../api';
+
 const product = await getProduct(Astro.params.id);
+
 // Aucun produit trouvé
 if (!product) {
   Astro.response.status = 404;
@@ -256,12 +260,14 @@ Astro.response.headers.set('Cache-Control', 'public, max-age=3600');
 
 #### Renvoyer un objet `Response`.
 
-Vous pouvez également renvoyer un objet [Response](https://developer.mozilla.org/fr/docs/Web/API/Response) directement à partir de n'importe quelle page en utilisant l'affichage à la demande.
+Vous pouvez également renvoyer un objet [Response](https://developer.mozilla.org/fr/docs/Web/API/Response) directement à partir de n'importe quelle page en utilisant l'affichage à la demande soit manuellement ou avec [`Astro.redirect`](/fr/reference/api-reference/#astroredirect). 
 
-L'exemple ci-dessous renvoie un message 404 sur une page dynamique après avoir recherché un identifiant dans la base de données :
+L'exemple ci-dessous recherche un identifiant dans la base de données sur une page dynamique et soit il renvoie une erreur 404 quand le produit n'existe pas, soit il redirige l'utilisateur vers une autre page lorsque le produit n'est plus disponible, soit il affiche le produit :
 
-```astro title="src/pages/[id].astro" {8-11}
+```astro title="src/pages/[id].astro" {10-13, 18}
 ---
+export const prerender = false; // Pas nécessaire en mode `server`
+
 import { getProduct } from '../api';
 
 const product = await getProduct(Astro.params.id);
@@ -272,6 +278,11 @@ if (!product) {
     status: 404,
     statusText: 'Non trouvé'
   });
+}
+
+// Le produit n'est plus disponible
+if (!product.isAvailable) {
+  return Astro.redirect("/products", 301);
 }
 ---
 <html>
