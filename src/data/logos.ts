@@ -52,6 +52,7 @@ export const logos = LogoCheck({
 	cosmic: { file: 'cosmic.svg', padding: '.24em' },
 	hygraph: { file: 'hygraph.svg', padding: '.1em .125em .1em .1em' },
 	directus: { file: 'directus.svg', padding: '0 .1em' },
+	drupal: { file: 'drupal.svg', padding: '.12em' },
 	ghost: { file: 'ghost.png', padding: '.125em' },
 	'decap-cms': { file: 'decap-cms.svg', padding: '0 .225em 0 .26em' },
 	'tina-cms': { file: 'tina-cms.svg', padding: '.15em' },
@@ -97,6 +98,7 @@ export const logos = LogoCheck({
 	sentry: { file: 'sentry.svg', padding: '.1em' },
 	umbraco: { file: 'umbraco.svg', padding: '.05em' },
 	'clever-cloud': { file: 'clever-cloud.svg', padding: '.09em' },
+	neon: { file: 'neon.svg', padding: '.2em' },
 });
 
 export type LogoKey = keyof typeof logos;

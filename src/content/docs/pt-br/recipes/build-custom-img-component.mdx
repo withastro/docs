@@ -1,0 +1,131 @@
+---
+title: Construa um componente de imagem personalizado
+description: Aprenda a construir um componente de imagem personalizado que suporta media queries usando a função getImage.
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+
+Astro fornece dois componentes integrados que você pode usar para exibir e otimizar suas imagens. O componente `<Picture>` permite que você exiba imagens responsivas e trabalhe com diferentes formatos e tamanhos. O componente `<Image>` otimiza suas imagens e permite que você passe diferentes propriedades de formatos e de qualidade.
+
+Quando você precisar de opções que os componentes `<Picture>` e `<Image>` não suportam atualmente, você pode usar a função `getImage()` para criar um componente personalizado.
+
+Nesta receita, você usará a [função `getImage()`](/pt-br/guides/images/#gerando-imagens-com-getimage) para criar seu próprio componente de imagem personalizado que exibe arquivos de imagens diferentes com base em media queries.
+
+## Receita
+
+<Steps>
+1. Crie um novo componente Astro e importe a função `getImage()`
+
+    ```astro title="src/components/MyCustomImageComponent.astro" 
+    ---
+     import { getImage } from "astro:assets";
+    ---
+
+    ```
+
+2. Crie um novo componente para sua imagem personalizada. `MyCustomComponent.astro` receberá três `props` de `Astro.props`. As propriedades `mobileImgUrl` e `desktopImgUrl` são usadas para criar sua imagem em diferentes tamanhos de _viewport_. A propriedade `alt` é usada para o texto alternativo da imagem. Essas propriedades serão passadas onde quer que você renderize seus componentes de imagem personalizados. Adicione as seguintes importações e defina as propriedades que você usará no seu componente. Você também pode usar TypeScript para tipar as propriedades.
+
+    ```astro title="src/components/MyCustomImageComponent.astro" ins={3, 11}
+    ---
+    import type { ImageMetadata } from "astro";
+    import { getImage } from "astro:assets";
+
+    interface Props {
+        mobileImgUrl: string | ImageMetadata;
+        desktopImgUrl: string | ImageMetadata;
+        alt: string;
+    }
+
+    const { mobileImgUrl, desktopImgUrl, alt } = Astro.props;
+    ---
+
+    ```
+
+3. Defina cada uma de suas imagens responsivas chamando a função `getImage()` com as propriedades desejadas.
+
+    ```astro title="src/components/MyCustomImageComponent.astro" ins={13-18, 20-25}
+    ---
+    import type { ImageMetadata } from "astro";
+    import { getImage } from "astro:assets";
+
+    interface Props {
+        mobileImgUrl: string | ImageMetadata;
+        desktopImgUrl: string | ImageMetadata;
+        alt: string;
+    }
+
+    const { mobileImgUrl, desktopImgUrl, alt } = Astro.props;
+
+    const mobileImg = await getImage({
+        src: mobileImgUrl,
+        format: "webp",
+        width: 200,
+        height: 200,
+    });
+
+    const desktopImg = await getImage({
+        src: desktopImgUrl,
+        format: "webp",
+        width: 800,
+        height: 200,
+    });
+    ---
+
+    ```
+
+4. Crie um elemento `<picture>` que gera um `srcset` com suas diferentes imagens baseado nas media queries desejadas.
+
+    ```astro title="src/components/MyCustomImageComponent.astro" ins={28-32}
+    ---
+    import type { ImageMetadata } from "astro";
+    import { getImage } from "astro:assets";
+
+    interface Props {
+        mobileImgUrl: string | ImageMetadata;
+        desktopImgUrl: string | ImageMetadata;
+        alt: string;
+    }
+
+    const { mobileImgUrl, desktopImgUrl, alt } = Astro.props;
+
+    const mobileImg = await getImage({
+        src: mobileImgUrl,
+        format: "webp",
+        width: 200,
+        height: 200,
+    });
+
+    const desktopImg = await getImage({
+        src: desktopImgUrl,
+        format: "webp",
+        width: 800,
+        height: 200,
+    });
+    ---
+
+    <picture>
+        <source media="(max-width: 799px)" srcset={mobileImg.src} />
+        <source media="(min-width: 800px)" srcset={desktopImg.src} />
+        <img src={desktopImg.src} alt={alt} />
+    </picture>
+
+    ```
+
+5. Importe e use `<MyCustomImageComponent />` em qualquer arquivo `.astro`. Certifique-se de passar as props necessárias para gerar duas imagens diferentes em diferentes tamanhos de _viewport_:
+
+    ```astro title="src/pages/index.astro" 
+    ---
+    import MyCustomImageComponent from "../components/MyCustomImageComponent.astro";
+    import mobileImage from "../images/mobile-profile-image.jpg";
+    import desktopImage from "../images/desktop-profile-image.jpg";
+    ---
+
+    <MyCustomImageComponent
+        mobileImgUrl={mobileImage}
+        desktopImgUrl={desktopImage}
+        alt="imagem de perfil do usuário"
+    />
+
+    ```
+</Steps>

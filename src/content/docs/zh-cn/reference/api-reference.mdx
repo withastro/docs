@@ -143,9 +143,7 @@ import Heading from '../components/Heading.astro';
 
 `Astro.params` 是一个包含与此请求匹配的动态路由段的值的对象。
 
-在静态构建中，这将是 `getStaticPaths()` 返回的`params`，用于预渲染[动态路由](/zh-cn/guides/routing/#动态路由).。
-
-在 SSR 构建中，这可以是与动态路由模式中的路径段匹配的任何值。
+在静态构建中，这将是 `getStaticPaths()` 返回的`params`，用于预渲染 [动态路由](/zh-cn/guides/routing/#动态路由)。
 
 ```astro title="src/pages/posts/[id].astro"
 ---
@@ -160,6 +158,24 @@ export function getStaticPaths() {
 const { id } = Astro.params;
 ---
 <h1>{id}</h1>
+```
+
+在 SSR 构建中，这可以是与动态路由模式中的路径段匹配的任何值。
+
+```astro title="src/pages/posts/[id].astro"
+---
+import { getPost } from '../api';
+
+const post = await getPost(Astro.params.id);
+
+// 找不到使用此 ID 的文章
+if (!post) {
+  Astro.redirect("/404")
+}
+---
+<html>
+  <h1>{post.name}</h1>
+</html>
 ```
 
 另见：[`params`](#params)
@@ -1126,6 +1142,10 @@ export async function getStaticPaths() {
 
 `getStaticPaths()` 函数应该返回对象数组，以确定哪些路径会被 Astro 预渲染。
 
+:::tip
+使用 TypeScript 时，请使用 [`GetStaticPaths`](/zh-cn/guides/typescript/#推断-getstaticpaths-的类型) 类型工具来确保对 `params` 和 `props` 进行类型安全的获取。
+:::
+
 :::caution
 `getStaticPaths()` 函数会在任何页面加载之前，在它自己的隔离范围内执行一次。因此，除了文件导入之外，你不能从它的父作用域中引用任何东西。如果你违反了这个要求，编译器会发出警告。
 :::
@@ -1226,18 +1246,25 @@ export async function getStaticPaths({ paginate }) {
 const { page } = Astro.props;
 ```
 
+`paginate()` 函数具有以下参数：
+- `data` - 数组，包含了传递给 `paginate()` 函数的页面数据片段
+- `options` - 具有以下属性的可选对象：
+  -  `pageSize` - 每页显示的项目数（默认为 `10`）
+  -  `params` - 用于创建动态路由的附加参数
+  -  `props` - 在每个页面上可用的附加属性
+
 `paginate()`：假定文件名为 `[page].astro` 或 `[...page].astro`。`page` 参数将是链接中的页数。
 
 - `/posts/[page].astro`：会产生 `/posts/1`、`/posts/2`、`/posts/3` 等链接。
 - `/posts/[...page].astro`：将产生 `/posts`、`/posts/2`
 `/posts/3` 等链接。
 
-`paginate()` 函数具有以下参数：
--  `pageSize` - 每页显示的项目数（默认为 `10`）
--  `params` - 用于创建动态路由的附加参数
--  `props` - 在每个页面上可用的附加属性
-
 #### `page` 分页参数
+
+<p>
+
+**类型：** `Page<TData>`
+</p>
 
 分页会给每个渲染的页面传递 `page` 参数，代表分页集合中的单页数据。这包括你分页的数据（`page.data`）以及该页的元数据（`page.url`、`page.start`、`page.end`、`page.total` 等）。这些元数据对诸如“下一页”按钮或“显示 100 个中前十个”的信息很有用。
 
@@ -1245,10 +1272,10 @@ const { page } = Astro.props;
 
 <p>
 
-**类型：**`Array`
+**类型：** `Array<TData>`
 </p>
 
-从 `data()` 中返回当前页面数据数组。
+从 `paginate()` 函数中返回当前页面数据的数组。
 
 ##### `page.start`
 
@@ -1508,7 +1535,7 @@ export const collections = { blog, authors };
 
 <p>
 
-**类型：**`(collection: string, filter?: (entry: CollectionEntry<collection>) => boolean) => CollectionEntry<collection>[]`
+**类型：** `(collection: string, filter?: (entry: CollectionEntry<TCollectionName>) => boolean) => CollectionEntry<TCollectionName>[]`
 </p>
 
 `getCollection()` 是一个函数，用于通过集合名称检索内容集合条目列表。
@@ -1537,9 +1564,9 @@ const draftBlogPosts = await getCollection('blog', ({ data }) => {
 
 **类型：**
 
-- `(collection: string, contentSlugOrDataId: string) => CollectionEntry<collection>`
-- `({ collection: string, id: string }) => CollectionEntry<collection>`
-- `({ collection: string, slug: string }) => CollectionEntry<collection>`
+- `(collection: string, contentSlugOrDataId: string) => CollectionEntry<TCollectionName>`
+- `({ collection: string, id: string }) => CollectionEntry<TCollectionName>`
+- `({ collection: string, slug: string }) => CollectionEntry<TCollectionName>`
 
 `getEntry()` 是一个函数，可通过集合名称和条目 `id` （对于 `type: 'data'` 集合）或条目 `slug` （对于 `type: 'content'` 集合）检索单个集合条目。`getEntry()`也可用于获取引用条目，以访问`data`、`body`或`render()`属性：
 
@@ -1566,8 +1593,8 @@ const enterpriseCaptainProfile = await getEntry(enterprisePost.data.captain);
 
 **类型：**
 
-- `(Array<{ collection: string, id: string }>) => Array<CollectionEntry<collection>>`
-- `(Array<{ collection: string, slug: string }>) => Array<CollectionEntry<collection>>`
+- `(Array<{ collection: string, id: string }>) => CollectionEntry<TCollectionName>[]`
+- `(Array<{ collection: string, slug: string }>) => CollectionEntry<TCollectionName>[]`
 
 `getEntries()` 是一个从同一集合中检索多个集合条目的函数。这对于[返回引用条目的数组](/zh-cn/guides/content-collections/#定义集合引用)访问其关联的`data`、`body`和`render()`属性非常有用。
 
@@ -1586,7 +1613,7 @@ const enterpriseRelatedPosts = await getEntries(enterprisePost.data.relatedPosts
 
 <p>
 
-**类型：**`(collection: string, slug: string) => CollectionEntry<collection>`
+**类型：** `(collection: string, slug: string) => Promise<CollectionEntry<TCollectionName>>`
 </p>
 
 :::caution[已废弃]
@@ -1608,7 +1635,7 @@ const enterprise = await getEntryBySlug('blog', 'enterprise');
 
 <p>
 
-**类型：**`(collection: string, id: string) => Promise<CollectionEntry<collection>>`<br />
+**类型：** `(collection: string, id: string) => Promise<CollectionEntry<TCollectionName>>`<br />
 <Since v="2.5.0" />
 </p>
 
@@ -2593,7 +2620,7 @@ export const server = {
 `isInputError()` 函数常用于检查 `ActionError` 是否是输入验证错误。当 `input` 验证器是 `z.object()` 时，输入错误包括一个 `fields` 对象，其中错误消息按名称分组。
 
 <ReadMore> 
-更多关于使用 `isInputError()` 的信息，请参见 [表单输入错误指南](/zh-cn/guides/actions/#displaying-form-input-errors)。
+更多关于使用 `isInputError()` 的信息，请参见 [表单输入错误指南](/zh-cn/guides/actions/#展示表单输入错误)。
 </ReadMore>
 
 ### `ActionError`
