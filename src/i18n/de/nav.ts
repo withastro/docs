@@ -46,7 +46,7 @@ export default NavDictionary({
 
 	data: 'Verbinde deine Daten',
 	'guides/data-fetching': 'Daten abrufen',
-	'guides/astro-db': 'Astro-DB',
+	'guides/astro-db': 'Astro DB',
 	'guides/backend': 'Backend-Dienste hinzufügen',
 	'guides/ecommerce': 'E-Commerce',
 	'guides/authentication': 'Authentifizierung',
