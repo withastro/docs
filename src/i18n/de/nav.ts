@@ -12,7 +12,7 @@ export default NavDictionary({
 	'concepts/why-astro': 'Warum Astro?',
 	'concepts/islands': 'Astro-Inseln',
 
-	basics: 'Grundlagen',
+	basics: 'Lerne die Grundlagen',
 	'basics/project-structure': 'Projektstruktur',
 	'basics/astro-components': 'Komponenten',
 	'basics/astro-pages': 'Seiten',
