@@ -4,7 +4,7 @@ export default NavDictionary({
 	welcomeWorld: 'Willkommen, Welt!',
 	'getting-started': 'Erste Schritte',
 	'install-and-setup': 'Installation und Konfiguration',
-	'guides/deploy': 'Deine Website einrichten',
+	'guides/deploy': 'Deine Website veröffentlichen',
 	'guides/migrate-to-astro': 'Zu Astro migrieren',
 	'blog-tutorial': 'Tutorial: Baue einen Blog',
 
