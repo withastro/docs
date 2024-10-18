@@ -1,6 +1,5 @@
 import { NavDictionary } from '../translation-checkers';
 
-
 export default NavDictionary({
 	welcomeWorld: '欢迎世界！',
 	'getting-started': '开始',
