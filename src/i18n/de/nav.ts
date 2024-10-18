@@ -36,7 +36,7 @@ export default NavDictionary({
 	'guides/prefetch': 'Vorladen',
 	'guides/middleware': 'Middleware',
 	'guides/internationalization': 'Internationalisierung',
-	'guides/view-transitions': 'Übergänge von Ansichten',
+	'guides/view-transitions': 'Ansichtsübergänge',
 
 	assets: 'Ressourcen',
 	'guides/styling': 'CSS & Styling',
