@@ -229,8 +229,10 @@ API 참조에서 [`Astro.cookies` 및 `AstroCookie` 타입](/ko/reference/api-re
 
 아래 예시에서는 제품이 존재하지 않는 경우 제품 목록 페이지에 대한 응답 상태 및 상태 텍스트를 설정합니다.
 
-```astro title="src/pages/my-product.astro" {8-9}
+```astro title="src/pages/product/[id].astro" {10,11}
 ---
+export const prerender = false; // 'server' 모드에서는 필요하지 않습니다.
+
 import { getProduct } from '../api';
 const product = await getProduct(Astro.params.id);
 
@@ -260,22 +262,29 @@ Astro.response.headers.set('Cache-Control', 'public, max-age=3600');
 
 #### `Response` 객체 반환
 
-주문형 렌더링을 사용하면 모든 페이지에서 직접 [Response](https://developer.mozilla.org/ko/docs/Web/API/Response) 객체를 반환할 수도 있습니다.
+주문형 렌더링을 사용하여 모든 페이지에서 직접 [Response](https://developer.mozilla.org/ko/docs/Web/API/Response) 객체를 수동으로 반환하거나 [`Astro.redirect`](/ko/reference/api-reference/#astroredirect)를 사용하여 반환할 수도 있습니다. 
 
-아래 예시는 데이터베이스에서 id를 조회한 후 동적 페이지에 404를 반환합니다.
+아래 예시는 동적 페이지에서 데이터베이스의 ID를 조회하여 제품이 존재하지 않으면 404를 반환하거나 제품을 더 이상 사용할 수 없는 경우 사용자를 다른 페이지로 리디렉션하거나 제품을 표시합니다:
 
-```astro title="src/pages/[id].astro" {8-11}
+```astro title="src/pages/[id].astro" {10-13, 18}
 ---
+export const prerender = false; // 'server' 모드에서는 필요하지 않습니다.
+
 import { getProduct } from '../api';
 
 const product = await getProduct(Astro.params.id);
 
-// product를 찾지 못함
+// 제품을 찾을 수 없는 경우
 if (!product) {
   return new Response(null, {
     status: 404,
     statusText: '찾을 수 없음'
   });
+}
+
+// 제품을 더 이상 사용할 수 없는 경우
+if (!product.isAvailable) {
+  return Astro.redirect("/products", 301);
 }
 ---
 <html>
