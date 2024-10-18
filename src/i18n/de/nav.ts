@@ -25,7 +25,7 @@ export default NavDictionary({
 	content: 'Verwalte deine Inhalte',
 	'guides/content': 'Inhalte verfassen',
 	'guides/markdown-content': 'Markdown',
-	'guides/content-collections': 'Sammlungen von Inhalten',
+	'guides/content-collections': 'Inhalts-Sammlungen',
 	'guides/cms': 'Ein CMS verbinden',
 	'guides/rss': 'Einen RSS-Feed hinzufügen',
 
