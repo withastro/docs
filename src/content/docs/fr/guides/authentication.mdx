@@ -5,6 +5,7 @@ i18nReady: true
 ---
 
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
 import ReadMore from '~/components/ReadMore.astro'
 
 L'authentification et l'autorisation sont deux processus de sécurité qui gèrent l'accès à votre site web ou à votre application. L'authentification permet de vérifier l'identité d'un visiteur, tandis que l'autorisation permet d'accéder à des zones et des ressources protégées.
@@ -187,6 +188,157 @@ const session = await getSession(Astro.request);
 
 - [`auth-astro` sur GitHub](https://github.com/nowaythatworked/auth-astro?tab=readme-ov-file#auth-astro)
 - [Documentation Auth.js](https://authjs.dev/)
+
+## Better Auth
+
+Better Auth est un framework indépendant d'authentification (et d'autorisation) pour TypeScript. Il fournit un ensemble complet de fonctionnalités prêtes à l'emploi et comprend un écosystème de plugins qui simplifie l'ajout de fonctionnalités avancées.
+
+Il prend en charge Astro dès le départ et vous pouvez l'utiliser pour ajouter une authentification à votre projet Astro.
+
+### Installation
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install better-auth
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add better-auth
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add better-auth
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Pour des instructions de configuration détaillées, consultez le [Guide d'installation de Better Auth](https://www.better-auth.com/docs/installation).
+
+### Configuration
+
+Configurez votre table de base de données pour stocker les données utilisateur et vos méthodes d'authentification préférées comme décrit dans le [Guide d'installation de Better Auth](https://www.better-auth.com/docs/installation#configure-database). Ensuite, vous devrez monter le gestionnaire Better Auth dans votre projet Astro.
+
+```ts title="page/api/auth/[...all].ts"
+import { auth } from "../../../lib/auth"; // importe votre instance Better Auth
+import type { APIRoute } from "astro";
+ 
+export const ALL: APIRoute = async (ctx) => {
+	return auth.handler(ctx.request);
+};
+```
+
+Suivez le [guide Astro de Better Auth](https://www.better-auth.com/docs/integrations/astro) pour en savoir plus.
+
+### Utilisation
+
+Better Auth propose un assistant `createAuthClient` pour divers frameworks, dont Vanilla JS, React, Vue, Svelte et Solid.
+
+Par exemple, pour créer un client pour React, importez l'assistant depuis `'better-auth/react'` :
+
+
+
+<UIFrameworkTabs>
+  <Fragment slot="react">
+   ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/react';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+  <Fragment slot="solid">
+  ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/solid';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+  <Fragment slot="svelte">
+   ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/svelte';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+  <Fragment slot="vue">
+  ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/vue';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+</UIFrameworkTabs>
+
+Une fois votre client configuré, vous pouvez l'utiliser pour authentifier les utilisateurs dans vos composants Astro ou dans tout fichier spécifique au framework. L'exemple suivant ajoute la possibilité de se connecter ou de se déconnecter avec vos fonctions configurées `signIn()` et `signOut()`.
+
+
+```astro title="src/pages/index.astro"
+---
+import Layout from 'src/layouts/Base.astro';
+---
+<Layout>
+  <button id="login">Se connecter</button>
+  <button id="logout">Se déconnecter</button>
+
+  <script>
+    const { signIn, signOut } = await import("./lib/auth-client")
+    document.querySelector("#login").onclick = () => signIn.social({
+      provider: "github",
+      callbackURL: "/dashboard",
+    })
+    document.querySelector("#logout").onclick = () => signOut()
+  </script>
+</Layout>
+```
+
+Vous pouvez ensuite utiliser l'objet `auth` pour obtenir les données de session de l'utilisateur dans votre code côté serveur. L'exemple suivant personnalise le contenu de la page en affichant le nom d'un utilisateur authentifié :
+
+```astro title="src/pages/index.astro"
+---
+import { auth } from "../../../lib/auth"; // importe votre instance Better Auth
+ 
+const session = await auth.api.getSession({
+	headers: Astro.request.headers,
+});
+---
+
+<p>{session.user?.name}</p>
+```
+
+Vous pouvez également utiliser l'objet `auth` pour protéger vos routes à l'aide d'un middleware. L'exemple suivant vérifie si un utilisateur essayant d'accéder à une route de tableau de bord connectée est authentifié et le redirige vers la page d'accueil dans le cas contraire.
+
+```ts title="src/middleware.ts"
+import { auth } from "../../../auth"; // importe votre instance Better Auth
+import { defineMiddleware } from "astro:middleware";
+ 
+export const onRequest = defineMiddleware(async (context, next) => {
+	const isAuthed = await auth.api
+		.getSession({
+			headers: context.request.headers,
+		})
+	if (context.url.pathname === "/dashboard" && !isAuthed) {
+		return context.redirect("/");
+	}
+	return next();
+});
+```
+
+### Prochaines étapes
+
+- [Guide Astro de Better Auth](https://www.better-auth.com/docs/integrations/astro)
+- [Exemple d'utilisation d'Astro avec Better Auth](https://github.com/better-auth/better-auth/tree/main/examples/astro-example)
+- [Documentation Better Auth](https://www.better-auth.com/docs)
+- [Dépôt Github de Better Auth](https://github.com/better-auth/better-auth)
 
 ## Clerk
 
