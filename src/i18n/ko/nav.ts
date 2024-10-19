@@ -1,5 +1,6 @@
 import { NavDictionary } from '../translation-checkers';
 
+
 export default NavDictionary({
 	welcomeWorld: '환영합니다!',
 	'getting-started': '개요',
