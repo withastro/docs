@@ -65,8 +65,9 @@ export default NavDictionary({
 	'reference/api-reference': "API d'Exécution",
 	'reference/cli-reference': "CLI d'Astro",
 	'reference/directives-reference': 'Utilisation des Directives',
-	'reference/typescript': 'Référence TypeScript',
 	'reference/error-reference': 'Référence des erreurs',
+	'reference/components-reference': 'Composants Intégrés',
+	'guides/typescript': 'Référence TypeScript',
 
 	dev: 'Autres APIs de Développement',
 	'reference/integrations-reference': "API d'Intégration",
