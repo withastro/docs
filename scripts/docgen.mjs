@@ -153,8 +153,8 @@ function getDeprecatedAside(tag) {
  */
 function getMetaComponentProps(data) {
 	const props = [];
-	if (data.cli) props.push('cli="`' + data.cli + '`"');
-	if (data.defaultValue) props.push(`default="${data.defaultValue.replaceAll('"', '&quot;')}"`);
+	if (data.cli) props.push(`cli="${data.cli}"`);
+	if (data.defaultValue) props.push(`default={${JSON.stringify(data.defaultValue)}}`);
 	if (data.version) props.push(`version="${data.version}"`);
 	/* We add an extra element to the array to be sure there is space before
 	 * the first prop. */
