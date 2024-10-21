@@ -17,6 +17,7 @@
  * `src/i18n/en/nav.ts`: `{ text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },`
  * `src/i18n/ja/nav.ts`: `'getting-started': 'はじめに',`
  */
+
 export default [
 	{ text: 'Welcome, World!', header: true, type: 'learn', key: 'welcomeWorld' },
 	{ text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },

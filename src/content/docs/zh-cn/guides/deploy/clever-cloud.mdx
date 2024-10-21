@@ -1,0 +1,126 @@
+---
+title: 将你的 Astro 网站部署到 Clever Cloud
+description: 如何使用 Clever Cloud 将你的 Astro 网站部署到网络。
+type: deploy
+i18nReady: true
+---
+import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
+
+[Clever Cloud](https://clever-cloud.com) 是一个欧洲云平台，它提供自动化、可扩展的服务。
+
+## 项目配置
+
+你可以在 Clever Cloud 上部署完全静态和按需渲染的 Astro 项目。无论你的 `output` 模式如何（[预渲染或按需](/zh-cn/basics/rendering-modes/)），你都可以选择，是部署为使用构建后挂钩运行的 **静态应用程序**，或者是部署为使用 `package.json` 开箱即用的 **Node.js** 应用程序。
+
+### 端口和主机
+
+Clever Cloud 上的应用程序监听端口 **8080**。如果你的项目需要此配置，请在 Astro 中的以下两个位置之一设置端口和主机：
+
+1. 在 `package.json` 脚本中：
+
+    ```json title="package.json" "astro preview --host 0.0.0.0 --port 8080"
+    "scripts": {
+      "dev": "astro dev",
+      "start": "astro dev",
+      "build": "astro check && astro build",
+      "preview": "astro preview --host 0.0.0.0 --port 8080",
+      "astro": "astro"
+    } 
+    ```
+
+2. 在 `astro.config.mjs` 中：
+
+    ```javascript title="astro.config.mjs"
+    import { defineConfig } from 'astro/config';
+
+    export default defineConfig({
+      server: {
+        port: 8080,
+        host: true
+      }
+    });
+    ```
+
+
+## 从控制台部署 Astro
+
+要将你的 Astro 项目部署到 Clever Cloud，你需要 **创建一个新的应用程序**。应用程序向导将引导你完成必要的配置步骤。
+
+<Steps>
+
+1. 从侧面菜单栏中，单击 **Create（创建）** > **An application（应用程序）**
+2. 选择如何部署：
+
+    - **Create a brand new app（创建一个全新的应用程序）**：使用 Git 从本地存储库进行部署
+    
+    或是
+    
+    - **Select a GitHub repository（选择一个 GitHub 存储库）** ：从 GitHub 部署
+
+3. 选择 **Node.js** 应用程序或 **static（静态）** 应用程序。
+4. 设置实例的最小大小和可扩展性选项。 Astro 站点通常可以使用 **Nano** 实例进行部署。根据项目的规范和依赖关系，你在从 **Overview（概述）** 页面查看指标时，可能需要进行相应的调整。
+5. 选择一个 **region（地区）** 来部署你的实例。
+6. 除非你正在使用数据库或 Keycloak，否则请跳过 [将 **Add-ons（附加组件）** 连接到 Clever 应用程序](https://developers.clever-cloud.com/doc/addons/)。
+7. 注入 **environment variables（环境变量）**：
+
+    - 对于 **Node.js**，如果你使用 npm，则不需要特定的环境变量来部署 Astro。如果你使用 **yarn** 或 **pnpm**，请设置以下环境变量：
+
+    <Tabs>
+      <TabItem label="pnpm">
+      ```shell
+    CC_NODE_BUILD_TOOL="custom"
+    CC_PRE_BUILD_HOOK="npm install -g pnpm && pnpm install"
+    CC_CUSTOM_BUILD_TOOL="pnpm run astro telemetry disable && pnpm build"
+    CC_RUN_COMMAND="pnpm run preview"
+      ```
+      </TabItem>
+      <TabItem label="yarn">
+      ```shell
+      CC_NODE_BUILD_TOOL="yarn"
+      CC_PRE_BUILD_HOOK="yarn && yarn run astro telemetry disable && yarn build"
+      CC_RUN_COMMAND="yarn run preview"
+      ```
+      </TabItem>
+    </Tabs>
+
+    - 对于 **static（静态）** 应用程序，添加以下变量：
+
+    <Tabs>
+      <TabItem label="npm">
+      ```shell
+    CC_POST_BUILD_HOOK="npm run build"
+    CC_PRE_BUILD_HOOK="npm install && npm run astro telemetry disable"
+    CC_WEBROOT="/dist"
+    ```
+      </TabItem>
+      <TabItem label="pnpm">
+      ```shell
+    CC_POST_BUILD_HOOK="pnpm build"
+    CC_PRE_BUILD_HOOK="npm install -g pnpm && pnpm install && pnpm run astro telemetry disable"
+    CC_WEBROOT="/dist"
+      ```
+      </TabItem>
+      <TabItem label="yarn">
+      ```shell
+      CC_POST_BUILD_HOOK="yarn build"
+      CC_PRE_BUILD_HOOK="yarn && yarn run astro telemetry disable"
+      CC_WEBROOT="/dist"
+      ```
+      </TabItem>
+    </Tabs>
+
+
+8. **部署完成！** 如果你从 **GitHub** 进行部署，你的部署应该会自动开始。如果你正在使用 **Git**，请复制远程仓库并推送到 **master** 分支。
+
+</Steps>
+
+:::tip[其他分支]
+要从 `master` 以外的分支进行部署，请使用 `git push smart <branch>:master`。
+
+例如，如果你想部署本地的 `main` 分支而不重命名它，可以使用 `git push smart main:master`。
+:::
+
+
+## 官方资源
+- [用于部署 Node.js 应用程序的 Clever Cloud 文档](https://developers.clever-cloud.com/doc/applications/javascript/nodejs/)
+- [用于将 Astro 部署为静态应用程序的 Clever Cloud 文档](https://developers.clever-cloud.com/guides/astro/)

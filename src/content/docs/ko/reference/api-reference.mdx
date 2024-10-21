@@ -144,8 +144,6 @@ import Heading from '../components/Heading.astro';
 
 정적 빌드에서 이 객체는 [동적 경로](/ko/guides/routing/#동적-경로) 사전 렌더링에 사용되는 `getStaticPaths()`에서 반환하는 `params`입니다.
 
-SSR 빌드에서는 동적 경로 패턴의 경로 세그먼트와 일치하는 모든 값이 될 수 있습니다.
-
 ```astro title="src/pages/posts/[id].astro"
 ---
 export function getStaticPaths() {
@@ -159,6 +157,24 @@ export function getStaticPaths() {
 const { id } = Astro.params;
 ---
 <h1>{id}</h1>
+```
+
+SSR 빌드에서는 동적 경로 패턴의 경로 세그먼트와 일치하는 모든 값이 될 수 있습니다.
+
+```astro title="src/pages/posts/[id].astro"
+---
+import { getPost } from '../api';
+
+const post = await getPost(Astro.params.id);
+
+// 이 ID로 게시물을 찾을 수 없습니다.
+if (!post) {
+  Astro.redirect("/404")
+}
+---
+<html>
+  <h1>{post.name}</h1>
+</html>
 ```
 
 함께 보기: [`params`](#params)
@@ -1113,6 +1129,10 @@ export async function getStaticPaths() {
 
 [동적 라우팅](/ko/guides/endpoints/#params-및-동적-라우팅)을 위한 정적 파일 엔드포인트에서도 사용할 수 있습니다.
 
+:::tip
+TypeScript를 사용하는 경우, [`GetStaticPaths`](/ko/guides/typescript/#getstaticpaths-타입-추론) 타입 유틸리티를 사용하여 `params` 및 `props`의 타입 안전 액세스를 보장하세요.
+:::
+
 :::caution
 `getStaticPaths()` 함수는 페이지가 로드되기 전에 격리된 범위에서 한 번 실행됩니다. 따라서 파일 가져오기 외에는 상위 범위에서 어떤 것도 참조할 수 없습니다. 이 요구 사항을 위반하면 컴파일러에서 경고합니다.
 :::
@@ -1213,17 +1233,24 @@ export async function getStaticPaths({ paginate }) {
 const { page } = Astro.props;
 ```
 
+`paginate()`에는 다음 인수가 있습니다:
+- `data` - `paginate()` 함수로 전달한 페이지의 데이터를 포함하는 배열
+- `options` - 다음 속성을 가진 선택적 객체입니다:
+  - `pageSize` - 페이지당 표시되는 항목 수 (기본값은 `10`)
+  - `params` - 동적 경로 생성을 위한 추가 매개변수 보내기
+  - `props` - 각 페이지에서 사용할 수 있도록 추가 props 보내기
+  
 `paginate()`는 `[page].astro` 또는 `[...page].astro`라는 파일 이름을 가정합니다. `page` 매개변수는 URL의 페이지 번호가 됩니다.
 
 - `/posts/[page].astro`는 `/posts/1`, `/posts/2`, `/posts/3` 등의 URL을 생성합니다.
 - `/posts/[...page].astro`는 `/posts`, `/posts/2`, `/posts/3` 등의 URL을 생성합니다.
 
-`paginate()`에는 다음 인수가 있습니다:
-- `pageSize` - 페이지당 표시되는 항목 수 (기본값은 `10`)
-- `params` - 동적 경로 생성을 위한 추가 매개변수 보내기
-- `props` - 각 페이지에서 사용할 수 있도록 추가 props 보내기
-
 #### 페이지네이션의 `page` prop
+
+<p>
+
+**타입:** `Page<TData>`
+</p>
 
 페이지네이션은 페이지 컬렉션의 단일 데이터 페이지를 나타내는 모든 렌더링된 페이지에 `page` prop을 전달합니다. 여기에는 페이지를 매긴 데이터 (`page.data`)와 페이지의 메타데이터 (`page.url`, `page.start`, `page.end`, `page.total` 등)가 포함됩니다. 이 메타데이터는 "다음 페이지" 버튼이나 "100개 중 1-10개 표시" 메시지 등을 표시하는데 유용합니다.
 
@@ -1231,10 +1258,10 @@ const { page } = Astro.props;
 
 <p>
 
-**타입:** `Array`
+**타입:** `Array<TData>`
 </p>
 
-현재 페이지에 대해 `data()`에서 반환된 데이터 배열입니다.
+현재 페이지에 대해 `paginate()` 함수에서 반환된 데이터 배열입니다.
 
 ##### `page.start`
 
@@ -1500,7 +1527,7 @@ export const collections = { blog, authors };
 
 <p>
 
-**타입:** `(collection: string, filter?: (entry: CollectionEntry<collection>) => boolean) => CollectionEntry<collection>[]`
+**타입:** `(collection: string, filter?: (entry: CollectionEntry<TCollectionName>) => boolean) => CollectionEntry<TCollectionName>[]`
 </p>
 
 `getCollection()`은 컬렉션 이름별로 콘텐츠 컬렉션 항목 목록을 검색하는 함수입니다.
@@ -1528,9 +1555,9 @@ const draftBlogPosts = await getCollection('blog', ({ data }) => {
 <p><Since v="2.5.0" /></p>
 
 **타입:**
-- `(collection: string, contentSlugOrDataId: string) => CollectionEntry<collection>`
-- `({ collection: string, id: string }) => CollectionEntry<collection>`
-- `({ collection: string, slug: string }) => CollectionEntry<collection>`
+- `(collection: string, contentSlugOrDataId: string) => CollectionEntry<TCollectionName>`
+- `({ collection: string, id: string }) => CollectionEntry<TCollectionName>`
+- `({ collection: string, slug: string }) => CollectionEntry<TCollectionName>`
 
 `getEntry()`는 컬렉션 이름과 항목 `id` (`type: 'data'` 컬렉션의 경우) 또는 항목 `slug` (`type: 'content'` 컬렉션의 경우)로 단일 컬렉션 항목을 검색하는 함수입니다. `getEntry()`는 `data`, `body`, `render()` 속성에 액세스하기 위해 참조된 항목을 가져오는 데에도 사용할 수 있습니다.
 
@@ -1556,8 +1583,8 @@ const enterpriseCaptainProfile = await getEntry(enterprisePost.data.captain);
 <p><Since v="2.5.0" /></p>
 
 **타입:**
-- `(Array<{ collection: string, id: string }>) => Array<CollectionEntry<collection>>`
-- `(Array<{ collection: string, slug: string }>) => Array<CollectionEntry<collection>>`
+- `(Array<{ collection: string, id: string }>) => CollectionEntry<TCollectionName>[]`
+- `(Array<{ collection: string, slug: string }>) => CollectionEntry<TCollectionName>[]`
 
 `getEntries()`는 동일한 컬렉션에서 여러 컬렉션 항목을 검색하는 함수입니다. 이는 [참조된 항목의 배열을 반환](/ko/guides/content-collections/#컬렉션-참조-정의하기)하여 관련 `data`, `body`, `render()` 속성에 액세스하는 데 유용합니다.
 
@@ -1576,7 +1603,7 @@ const enterpriseRelatedPosts = await getEntries(enterprisePost.data.relatedPosts
 
 <p>
 
-**타입:** `(collection: string, slug: string) => Promise<CollectionEntry<collection>>`
+**타입:** `(collection: string, slug: string) => Promise<CollectionEntry<TCollectionName>>`
 </p>
 
 :::caution[Deprecated]
@@ -1599,7 +1626,7 @@ const enterprise = await getEntryBySlug('blog', 'enterprise');
 
 <p>
 
-**타입:** `(collection: string, id: string) => Promise<CollectionEntry<collection>>`<br />
+**타입:** `(collection: string, id: string) => Promise<CollectionEntry<TCollectionName>>`<br />
 <Since v="2.5.0" />
 </p>
 
