@@ -17,6 +17,7 @@
  * `src/i18n/en/nav.ts`: `{ text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },`
  * `src/i18n/ja/nav.ts`: `'getting-started': 'はじめに',`
  */
+
 export default [
 	{ text: 'Welcome, World!', header: true, type: 'learn', key: 'welcomeWorld' },
 	{ text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },
@@ -110,6 +111,11 @@ export default [
 		text: 'Directives Reference',
 		slug: 'reference/directives-reference',
 		key: 'reference/directives-reference',
+	},
+	{
+		text: 'Built-in Components',
+		slug: 'reference/components-reference',
+		key: 'reference/components-reference',
 	},
 	{ text: 'TypeScript Reference', slug: 'guides/typescript', key: 'guides/typescript' },
 	{ text: 'Error Reference', slug: 'reference/error-reference', key: 'reference/error-reference' },
