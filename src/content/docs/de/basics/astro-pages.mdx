@@ -3,6 +3,8 @@ title: Seiten
 description: Eine Einführung in die Astro-Seiten
 ---
 
+import Since from '~/components/Since.astro';
+
 **Seiten** sind Dateien, die sich im Unterverzeichnis `src/pages/` deines Astro-Projekts befinden. Sie sind verantwortlich für das Routing, das Laden von Daten und das gesamte Seitenlayout für jede HTML-Seite in deiner Website.
 
 ## Unterstützte Seitendateien
@@ -43,7 +45,6 @@ Astro-Seiten verwenden die Dateierweiterung `.astro` und unterstützen die gleic
 ---
 // Beispiel: src/pages/index.astro
 ---
-
 <html lang="de">
   <head>
     <title>Meine Homepage</title>
@@ -54,6 +55,8 @@ Astro-Seiten verwenden die Dateierweiterung `.astro` und unterstützen die gleic
 </html>
 ```
 
+Eine Seite muss ein vollständiges HTML-Dokument erzeugen. Wenn nicht explizit angegeben, fügt Astro die notwendige `<! DOCTYPE html>`-Deklaration und den `<head>`-Inhalt zu jeder `.astro`-Komponente, die sich innerhalb von `src/pages/` befindet, hinzu. Du kannst dieses Verhalten für jede einzelne Komponente deaktivieren, indem du sie als [partielle](#partielle-seiten) Seite markierst.
+
 Um zu vermeiden, dass sich dieselben HTML-Elemente auf jeder Seite wiederholen, kannst du gemeinsame `<head>`- und `<body>`-Elemente in ihre eigenen [Layout-Komponenten](/de/basics/layouts/) verschieben. Du kannst so viele oder so wenige Layout-Komponenten verwenden, wie du möchtest.
 
 ```astro {3} /</?MeinLayout>/
@@ -61,7 +64,6 @@ Um zu vermeiden, dass sich dieselben HTML-Elemente auf jeder Seite wiederholen, 
 // Beispiel: src/pages/index.astro
 import MeinLayout from '../layouts/MeinLayout.astro';
 ---
-
 <MeinLayout>
   <p>Mein Seiteninhalt, umgeben von einem Layout!</p>
 </MeinLayout>
@@ -81,7 +83,6 @@ Seitenlayouts sind besonders nützlich für [Markdown-Dateien](#markdownmdx-seit
 layout: '../layouts/MeinLayout.astro'
 title: 'Meine Markdown-Seite'
 ---
-
 # Titel
 
 Das hier ist meine Seite, geschrieben in **Markdown.**
@@ -98,3 +99,75 @@ Dateien mit der Dateierweiterung `.html` können im Verzeichnis `src/pages/` abg
 Für eine benutzerdefinierte 404-Fehlerseite kannst du eine Datei namens `404.astro` oder `404.md` in `/src/pages` erstellen.
 
 Aus dieser wird die Seite `404.html` erstellt. Die meisten [Hosting-Anbieter](/de/guides/deploy/) werden sie finden und verwenden.
+
+## Partielle Seiten
+
+<Since v="3.4.0" />
+
+:::caution
+Partielle Seiten sind für die Verwendung in Verbindung mit einer Front-End-Bibliothek wie [htmx](https://htmx.org/) oder [Unpoly](https://unpoly.com/) gedacht. Du kannst sie auch verwenden, wenn du mit dem Schreiben von Low-Level-JavaScript im Frontend vertraut bist. Aus diesem Grund sind sie ein fortgeschrittenes Feature.
+
+Außerdem sollten partielle Seiten nicht verwendet werden, wenn die Komponente Scoped Styles (auf Komponenten begrenzte lokale CSS-Stile) oder Skripte enthält, da diese Elemente aus der HTML-Ausgabe entfernt werden. Wenn du Scoped Styles brauchst, ist es besser, reguläre, nicht-partielle Seiten zusammen mit einer Frontend-Bibliothek zu verwenden, die weiß, wie man den Inhalt in den Head einfügt.
+:::
+
+Partielle Seiten sind Seitenkomponenten, die sich in `src/pages/` befinden und nicht als vollständige Seiten dargestellt werden sollen.
+Wie Komponenten, die sich außerhalb dieses Ordners befinden, enthalten diese Dateien nicht automatisch die `<! DOCTYPE html>`-Deklaration und auch keinen `<head>`-Inhalt, wie z. B. skalierte Stile und Skripte.
+
+Da sie sich jedoch in dem speziellen Verzeichnis `src/pages/` befinden, ist das erzeugte HTML unter einer URL verfügbar, die dem Dateipfad entspricht. So kann eine Rendering-Bibliothek (z. B. htmx, Stimulus, jQuery) auf dem Client darauf zugreifen und HTML-Abschnitte dynamisch auf eine Seite laden, ohne dass der Browser aktualisiert werden muss oder eine Seitennavigation erforderlich ist.
+
+Partielle Seiten bieten in Kombination mit einer Rendering-Bibliothek eine Alternative zu [Astro-Inseln](/de/concepts/islands/) und [`<script>`-Tags](/de/guides/client-side-scripts/), um dynamische Inhalte in Astro zu erstellen.
+
+Seitendateien, die einen Wert exportieren können (z.B. `.astro` , `.mdx`), können als partielle Seiten markiert werden.
+Konfiguriere eine Datei im Verzeichnis `src/pages/` als partielle Seite, indem du den folgenden Export hinzufügst:
+
+```astro title="src/pages/partial.astro" ins={2}
+---
+export const partial = true;
+---
+
+<li>Ich bin partiell!</li>
+```
+
+Die `export const partial` muss statisch identifizierbar sein. Sie kann den Wert von haben:
+
+- Den booleschen Wert **`true`**.
+- Eine Umgebungsvariable mit import.meta.env wie `import.meta.env.USE_PARTIALS`.
+
+### Verwendung mit einer Bibliothek
+
+Partielle Seiten werden verwendet, um einen Abschnitt einer Seite mit einer Bibliothek wie [htmx](https://htmx.org/) dynamisch zu aktualisieren.
+Das folgende Beispiel zeigt ein `hx-post`-Attribut, das auf die URL einer partielle Seite gesetzt ist. Der Inhalt der partielle Seite wird verwendet, um das gewünschte HTML-Element auf dieser Seite zu aktualisieren.
+
+```astro title="src/pages/index.astro" 'hx-post="/partials/clicked/"'
+<html>
+  <head>
+    <title>Meine Seite</title>
+    <script
+      src="https://unpkg.com/htmx.org@1.9.6"
+      integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni"
+      crossorigin="anonymous"></script>
+  </head>
+</html>
+<section>
+  <div id="parent-div">Ziel hierher</div>
+  <button
+    hx-post="/partials/clicked/"
+    hx-trigger="click"
+    hx-target="#parent-div"
+    hx-swap="innerHTML"
+  >
+    Klick mich!
+  </button>
+</section>
+```
+
+Die .`astro`-partielle Seite muss unter dem entsprechenden Dateipfad existieren und einen Export enthalten, der die Seite als partielle Seite definiert:
+
+```astro title="src/pages/partials/clicked.astro" {2}
+---
+export const partial = true;
+---
+<div>Ich wurde angeklickt!</div>
+```
+
+In der [htmx-Dokumentation](https://htmx.org/docs/) findest du weitere Details zur Verwendung von htmx.
