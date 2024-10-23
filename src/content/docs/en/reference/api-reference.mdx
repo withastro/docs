@@ -144,8 +144,6 @@ import Heading from '../components/Heading.astro';
 
 In static builds, this will be the `params` returned by `getStaticPaths()` used for prerendering [dynamic routes](/en/guides/routing/#dynamic-routes).
 
-In SSR builds, this can be any value matching the path segments in the dynamic route pattern.
-
 ```astro title="src/pages/posts/[id].astro"
 ---
 export function getStaticPaths() {
@@ -159,6 +157,24 @@ export function getStaticPaths() {
 const { id } = Astro.params;
 ---
 <h1>{id}</h1>
+```
+
+In SSR builds, this can be any value matching the path segments in the dynamic route pattern.
+
+```astro title="src/pages/posts/[id].astro"
+---
+import { getPost } from '../api';
+
+const post = await getPost(Astro.params.id);
+
+// No posts found with this ID
+if (!post) {
+  Astro.redirect("/404")
+}
+---
+<html>
+  <h1>{post.name}</h1>
+</html>
 ```
 
 See also: [`params`](#params)
@@ -1116,6 +1132,10 @@ The `getStaticPaths()` function should return an array of objects to determine w
 
 It can also be used in static file endpoints for [dynamic routing](/en/guides/endpoints/#params-and-dynamic-routing).
 
+:::tip
+When using TypeScript, use the [`GetStaticPaths`](/en/guides/typescript/#infer-getstaticpaths-types) type utility to ensure type-safe access of your `params` and `props`.
+:::
+
 :::caution
 The `getStaticPaths()` function executes in its own isolated scope once, before any page loads. Therefore you can't reference anything from its parent scope, other than file imports. The compiler will warn if you break this requirement.
 :::
@@ -1217,17 +1237,24 @@ export async function getStaticPaths({ paginate }) {
 const { page } = Astro.props;
 ```
 
+`paginate()` has the following arguments:
+- `data` - array containing the page’s data passed to the `paginate()` function
+- `options` - Optional object with the following properties:
+  - `pageSize` - The number of items shown per page (`10` by default)
+  - `params` - Send additional parameters for creating dynamic routes
+  - `props` - Send additional props to be available on each page
+
 `paginate()` assumes a file name of `[page].astro` or `[...page].astro`. The `page` param becomes the page number in your URL:
 
 - `/posts/[page].astro` would generate the URLs `/posts/1`, `/posts/2`, `/posts/3`, etc.
 - `/posts/[...page].astro` would generate the URLs `/posts`, `/posts/2`, `/posts/3`, etc.
 
-`paginate()` has the following arguments:
-- `pageSize` - The number of items shown per page (`10` by default)
-- `params` - Send additional parameters for creating dynamic routes
-- `props` - Send additional props to be available on each page
-
 #### The pagination `page` prop
+
+<p>
+
+**Type:** `Page<TData>`
+</p>
 
 Pagination will pass a `page` prop to every rendered page that represents a single page of data in the paginated collection. This includes the data that you've paginated (`page.data`) as well as metadata for the page (`page.url`, `page.start`, `page.end`, `page.total`, etc). This metadata is useful for things like a "Next Page" button or a "Showing 1-10 of 100" message.
 
@@ -1235,10 +1262,10 @@ Pagination will pass a `page` prop to every rendered page that represents a sing
 
 <p>
 
-**Type:** `Array`
+**Type:** `Array<TData>`
 </p>
 
-Array of data returned from `data()` for the current page.
+Array of data returned from the `paginate()` function for the current page.
 
 ##### `page.start`
 
@@ -1504,7 +1531,7 @@ export const collections = { blog, authors };
 
 <p>
 
-**Type:** `(collection: string, filter?: (entry: CollectionEntry<collection>) => boolean) => CollectionEntry<collection>[]`
+**Type:** `(collection: string, filter?: (entry: CollectionEntry<TCollectionName>) => boolean) => CollectionEntry<TCollectionName>[]`
 </p>
 
 `getCollection()` is a function that retrieves a list of content collection entries by collection name.
@@ -1532,9 +1559,9 @@ const draftBlogPosts = await getCollection('blog', ({ data }) => {
 <p><Since v="2.5.0" /></p>
 
 **Types:**
-- `(collection: string, contentSlugOrDataId: string) => CollectionEntry<collection>`
-- `({ collection: string, id: string }) => CollectionEntry<collection>`
-- `({ collection: string, slug: string }) => CollectionEntry<collection>`
+- `(collection: string, contentSlugOrDataId: string) => CollectionEntry<TCollectionName>`
+- `({ collection: string, id: string }) => CollectionEntry<TCollectionName>`
+- `({ collection: string, slug: string }) => CollectionEntry<TCollectionName>`
 
 `getEntry()` is a function that retrieves a single collection entry by collection name and either the entry `id` (for `type: 'data'` collections) or entry `slug` (for `type: 'content'` collections). `getEntry()` can also be used to get referenced entries to access the `data`, `body`, or `render()` properties:
 
@@ -1560,8 +1587,8 @@ See the `Content Collections` guide for examples of [querying collection entries
 <p><Since v="2.5.0" /></p>
 
 **Types:**
-- `(Array<{ collection: string, id: string }>) => Array<CollectionEntry<collection>>`
-- `(Array<{ collection: string, slug: string }>) => Array<CollectionEntry<collection>>`
+- `(Array<{ collection: string, id: string }>) => CollectionEntry<TCollectionName>[]`
+- `(Array<{ collection: string, slug: string }>) => CollectionEntry<TCollectionName>[]`
 
 `getEntries()` is a function that retrieves multiple collection entries from the same collection. This is useful for [returning an array of referenced entries](/en/guides/content-collections/#defining-collection-references) to access their associated `data`, `body`, and `render()` properties.
 
@@ -1580,7 +1607,7 @@ const enterpriseRelatedPosts = await getEntries(enterprisePost.data.relatedPosts
 
 <p>
 
-**Type:** `(collection: string, slug: string) => Promise<CollectionEntry<collection>>`
+**Type:** `(collection: string, slug: string) => Promise<CollectionEntry<TCollectionName>>`
 </p>
 
 :::caution[Deprecated]
@@ -1604,7 +1631,7 @@ const enterprise = await getEntryBySlug('blog', 'enterprise');
 
 <p>
 
-**Type:** `(collection: string, id: string) => Promise<CollectionEntry<collection>>`<br />
+**Type:** `(collection: string, id: string) => Promise<CollectionEntry<TCollectionName>>`<br />
 <Since v="2.5.0" />
 </p>
 
