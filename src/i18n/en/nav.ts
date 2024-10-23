@@ -133,7 +133,7 @@ export default [
 	{ text: 'Error Reference', slug: 'reference/error-reference', key: 'reference/error-reference' },
 
 	{ text: 'Astro API Reference', header: true, type: 'api', key: 'api-reference' },
-	{ text: 'The Astro Global', slug: 'reference/api-reference', key: 'reference/api-reference' },
+	{ text: 'Astro Runtime API', slug: 'reference/api-reference', key: 'reference/api-reference' },
 	{ text: 'astro:actions', slug: 'reference/modules/astro-actions', key: 'reference/modules/astro-actions' },
 	{ text: 'astro:assets', slug: 'reference/modules/astro-assets', key: 'reference/modules/astro-assets' },
 	{ text: 'astro:content', slug: 'reference/modules/astro-content', key: 'reference/modules/astro-content' },
