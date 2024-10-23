@@ -66,6 +66,7 @@ export default NavDictionary({
 	'reference/api-reference': 'Astro 런타임 API',
 	'reference/cli-reference': 'Astro CLI',
 	'reference/directives-reference': '지시어 참조',
+	'reference/components-reference': '기본 제공 컴포넌트',
 	'guides/typescript': 'TypeScript 참조',
 	'reference/error-reference': '오류 참조',
 
