@@ -145,7 +145,7 @@ Astro 会自动为在旧页面和新页面中找到的相应元素并分配一�
 
 默认情况下，当你向岛屿添加 `transition:persist` 时，状态会在导航时保持，但你的组件将会使用新的 props 重新渲染。例如，当一个组件接收到特定于页面的 props，如当前页面的 `title` 时，这是很有用的。
 
-你可以使用 `transition:persist-props` 覆盖这种行为。添加这个指令将会保持岛屿现有的 props（不使用新值重新渲染）并维持其现有状态。
+除了 `transition:persist` 之外，你也可以使用 `transition:persist-props` 覆盖这种行为。添加这个指令将会保持岛屿现有的 props（不使用新值重新渲染）并维持其现有状态。
 
 ### 内置动画指令
 
@@ -220,33 +220,65 @@ export interface TransitionDirectionalAnimations {
 }
 ```
 
-下面的示例展示了定义自定义 `fade` 动画所需的所有必要属性：
+下面的示例展示了在根布局文件中的 `<style is:global>` 标签内，定义自定义 `bump` 动画的所有必要属性：
 
-```astro
+```astro title="src/layouts/Layout.astro"
+---
+import { ViewTransitions } from 'astro:transitions';
+---
+<html lang="en">
+  <head>
+    <ViewTransitions />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+<style is:global>
+  @keyframes bump {
+    0% {
+      opacity: 0;
+      transform: scale(1) translateX(200px);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(1.1);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateX(0);
+    }
+  }
+</style>
+```
+
+动画的行为必须在每个使用动画的组件中，定义在 frontmatter 里：
+
+```astro title="src/pages/index.astro"
 ---
 const anim = {
   old: {
-    name: 'fadeIn',
-    duration: '0.2s',
-    easing: 'linear',
-    fillMode: 'forwards',
+    name: 'bump',
+    duration: '0.5s',
+    easing: 'ease-in',
+    direction: 'reverse',
   },
   new: {
-    name: 'fadeOut',
-    duration: '0.3s',
-    easing: 'linear',
-    fillMode: 'backwards',
-  }
+    name: 'bump',
+    duration: '0.5s',
+    easing: 'ease-in-out',
+  },
 };
-
-const myFade = {
-	forwards: anim,
-	backwards: anim,
+const customTransition = {
+  forwards: anim,
+  backwards: anim,
 };
 ---
-
-<header transition:animate={myFade}> ... </header>
+<header transition:animate={customTransition}> ... </header>
 ```
+
+当定义一个自定义动画时，你具有很强大的灵活性。为了实现渴望的效果，或许你得考虑一些不那么寻常的动画组合，例如针对不同的对象使用不同的样式应用，或是为它们提供不同的关键帧动画。
+
 ## 路由器控制
 
 `<ViewTransitions />` 路由器通过监听以下事件来处理导航：
@@ -287,8 +319,8 @@ const myFade = {
 <script>
   import { navigate } from 'astro:transitions/client';
   // 自动导航到所选选项
-  document.querySelector('select').onchange = (ev) => {
-    let href = ev.target.value;
+  document.querySelector('select').onchange = (event) => {
+    let href = event.target.value;
     navigate(href);
   };
 </script>
@@ -472,6 +504,18 @@ Astro 不会模拟 `initial` 浏览器动画。因此，任何使用此动画的
 
 与打包的模块脚本不同，[内联脚本](/zh-cn/guides/client-side-scripts/#选择退出处理) 在用户访问网站期间，如果它们存在于被多次访问的页面上，就有可能被重新执行。当访客导航到一个没有该脚本的页面，然后再回到一个有该脚本的页面时，内联脚本也可能会重新执行。
 
+通过视图过渡，某些脚本可能不再像浏览器整页刷新那样，在页面导航后重新运行。你可以监听多个 [客户端路由期间的事件](#生命周期事件)，并在事件发生时触发事件。你可以将现有脚本包装在事件监听器中，以确保它在导航周期中的正确时间运行。
+
+```js title="src/scripts/menu.js" ins={2,6}
+<script>
+document.addEventListener('astro:page-load', () => {
+  document.querySelector('.hamburger').addEventListener('click', () => {
+    document.querySelector('.nav-links').classList.toggle('expanded');
+  });
+});
+</script>
+```
+
 #### `data-astro-rerun`
 
 <p><Since v="4.5.0" /></p>
@@ -532,9 +576,9 @@ Astro 的视图过渡动画 API 生命周期事件顺序如下：
 
 ```js
 <script is:inline>
-  document.addEventListener('astro:before-preparation', ev => {
-    const originalLoader = ev.loader;
-    ev.loader = async function() {
+  document.addEventListener('astro:before-preparation', event => {
+    const originalLoader = event.loader;
+    event.loader = async function() {
       const { startSpinner } = await import('./spinner.js');
       const stop = startSpinner();
       await originalLoader();
@@ -581,9 +625,9 @@ Astro 的视图过渡动画 API 生命周期事件顺序如下：
 
   setDarkMode(document);
 
-  document.addEventListener('astro:before-swap', ev => {
-    // Pass the incoming document to set the theme on it
-    setDarkMode(ev.newDocument);
+  document.addEventListener('astro:before-swap', event => {
+    // 传入新文档以设置主题
+    setDarkMode(event.newDocument);
   });
 </script>
 ```
@@ -594,13 +638,42 @@ Astro 的视图过渡动画 API 生命周期事件顺序如下：
 
 ```astro
 <script is:inline>
-  document.addEventListener('astro:before-swap', ev => {
-    ev.swap = () => {
-      diff(document, ev.newDocument);
+  document.addEventListener('astro:before-swap', event => {
+    event.swap = () => {
+      diff(document, event.newDocument);
     };
   });
 </script>
 ```
+
+#### 构建自定义交换函数
+
+<p><Since v="4.15.0" /></p>
+
+`astro:transitions/client` 模块的 `swapFunctions` 对象提供了五个处理特定交换相关任务的工具函数，包括处理文档属性、页面元素和脚本执行。这些函数可以直接用于定义自定义的交换实现。
+
+以下示例演示了如何使用这些函数重新创建 Astro 的内置交换实现：
+
+```astro
+<script>
+import { swapFunctions } from 'astro:transitions/client';
+
+// 用 doc 替换 window.document
+function mySwap(doc: Document) {
+  swapFunctions.deselectScripts(doc);
+  swapFunctions.swapRootAttributes(doc);
+  swapFunctions.swapHeadElements(doc);
+  const restoreFocusFunction = swapFunctions.saveFocus();
+  swapFunctions.swapBodyElement(doc.body, document.body);
+  restoreFocusFunction();
+};
+
+...
+  event.swap = () => mySwap(event.newDocument);
+...
+<script>
+```
+自定义交换实现可以从这个模板开始，并根据需要添加或替换单个步骤的自定义逻辑。
 
 ### `astro:after-swap`
 

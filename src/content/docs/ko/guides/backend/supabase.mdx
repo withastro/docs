@@ -121,7 +121,7 @@ Supabase는 즉시 인증을 제공합니다. GitHub, Google, Kakao 및 기타 �
 - `POST /api/auth/signin`: 사용자를 로그인합니다.
 - `GET /api/auth/signout`: 사용자를 로그아웃합니다.
 
-프로젝트에 `src/pages/api/auth` 디렉터리에 이러한 엔드포인트를 생성합니다. 이제 프로젝트에는 다음과 같은 새 파일이 포함되어야 합니다.
+프로젝트의 `src/pages/api/auth` 디렉터리에 이러한 엔드포인트를 생성합니다. `hybrid` 렌더링 모드를 사용하는 경우, 각 파일 상단에 `export const prerender = false`를 지정해야 요청에 따라 이러한 엔드포인트를 렌더링할 수 있습니다. 이제 프로젝트에 이러한 새 파일이 포함되어야 합니다.
 
 <FileTree title="Project Structure">
 - src/
@@ -142,6 +142,8 @@ Supabase는 즉시 인증을 제공합니다. GitHub, Google, Kakao 및 기타 �
 `register.ts` 파일은 Supabase에서 새 사용자를 생성합니다. 이메일과 비밀번호가 포함된 `POST` 요청을 수락하고 Supabase SDK를 사용하여 새 사용자를 생성합니다.
 
 ```ts title="src/pages/api/auth/register.ts"
+// `output: 'hybrid'`가 구성된 경우:
+// export const prerender = false;
 import type { APIRoute } from "astro";
 import { supabase } from "../../../lib/supabase";
 
@@ -170,6 +172,8 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 `signin.ts` 파일은 사용자를 로그인시킵니다. 이메일과 비밀번호가 포함된 `POST` 요청을 수락하고 Supabase SDK를 사용하여 사용자를 로그인합니다.
 
 ```ts title="src/pages/api/auth/signin.ts"
+// `output: 'hybrid'`가 구성된 경우:
+// export const prerender = false;
 import type { APIRoute } from "astro";
 import { supabase } from "../../../lib/supabase";
 
@@ -205,6 +209,8 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 `signout.ts` 파일은 사용자를 로그아웃시킵니다. `GET` 요청을 수락하고 사용자의 엑세스 토큰 및 리프레시 토큰을 제거합니다.
 
 ```ts title="src/pages/api/auth/signout.ts"
+// `output: 'hybrid'`가 구성된 경우:
+// export const prerender = false;
 import type { APIRoute } from "astro";
 
 export const GET: APIRoute = async ({ cookies, redirect }) => {
@@ -292,39 +298,46 @@ if (accessToken && refreshToken) {
 </Layout>
 ```
 
-`dashboard.astro` 파일에는 인증된 사용자만 엑세스할 수 있는 페이지가 포함되어 있습니다. 엑세스 토큰 및 리프레시 토큰이 있는지 확인하고 존재하지 않는 경우 로그인 페이지로 리디렉션됩니다.
+`dashboard.astro` 파일에는 인증된 사용자만 엑세스할 수 있는 페이지가 포함되어 있습니다. 엑세스 토큰 및 리프레시 토큰이 있는지 확인하고 존재하지 않거나 유효하지 않은 경우 로그인 페이지로 리디렉션됩니다.
 
 ```astro title="src/pages/dashboard.astro"
 ---
 import Layout from "../layouts/Layout.astro";
 import { supabase } from "../lib/supabase";
 
-const { cookies, redirect } = Astro;
-
-const accessToken = cookies.get("sb-access-token");
-const refreshToken = cookies.get("sb-refresh-token");
+const accessToken = Astro.cookies.get("sb-access-token");
+const refreshToken = Astro.cookies.get("sb-refresh-token");
 
 if (!accessToken || !refreshToken) {
+  return Astro.redirect("/signin");
+}
+
+let session;
+try {
+  session = await supabase.auth.setSession({
+    refresh_token: refreshToken.value,
+    access_token: accessToken.value,
+  });
+  if (session.error) {
+    Astro.cookies.delete("sb-access-token", {
+      path: "/",
+    });
+    Astro.cookies.delete("sb-refresh-token", {
+      path: "/",
+    });
+    return Astro.redirect("/signin");
+  }
+} catch (error) {
+  Astro.cookies.delete("sb-access-token", {
+    path: "/",
+  });
+  Astro.cookies.delete("sb-refresh-token", {
+    path: "/",
+  });
   return redirect("/signin");
 }
 
-const { data, error } = await supabase.auth.setSession({
-  refresh_token: refreshToken.value,
-  access_token: accessToken.value,
-});
-
-if (error) {
-  cookies.delete("sb-access-token", {
-    path: "/",
-  });
-  cookies.delete("sb-refresh-token", {
-    path: "/",
-  });
-
-  return redirect("/signin");
-}
-
-const email = data?.user?.email;
+const email = session.data.user?.email;
 ---
 <Layout title="dashboard">
   <h1>Welcome {email}</h1>

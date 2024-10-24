@@ -1,0 +1,583 @@
+---
+title: 액션
+description: 어디서나 호출할 수 있는 타입이 안전한 서버 함수를 만드는 방법을 알아보세요.
+i18nReady: true
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="4.15" /></p>
+
+Astro 액션을 사용하면 타입 안전성을 갖춘 백엔드 함수를 정의하고 호출할 수 있습니다. 액션은 데이터 가져오기, JSON 구문 분석, 입력 유효성 검사를 수행합니다. 이렇게 하면 [API 엔드포인트](/ko/guides/endpoints/)를 사용할 때보다 필요한 상용구의 양을 크게 줄일 수 있습니다.
+
+클라이언트와 서버 코드 간의 원활한 통신을 위해 API 엔드포인트 대신 액션을 사용하세요:
+
+- [Zod 유효성 검사](https://zod.dev/?id=primitives)를 사용하여 JSON 및 양식 데이터 입력의 유효성을 자동으로 검사하세요.
+- 클라이언트는 물론 [HTML 양식 액션에서도](#html-양식-액션에서-액션-호출) 백엔드를 호출할 수 있는 타입이 안전한 함수를 생성하세요. 수동 `fetch()` 호출이 필요 없습니다.
+- [`ActionError`](/ko/reference/api-reference/#actionerror) 객체로 백엔드 오류를 표준화하세요.
+
+## 기본 사용법
+
+액션은 `src/actions/index.ts`에서 내보낸 `server` 객체에 정의됩니다:
+
+```ts title="src/actions/index.ts"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  myAction: defineAction({ /* ... */ })
+}
+```
+
+액션은 `astro:actions` 모듈에서 함수로 사용할 수 있습니다. `actions`를 가져와서 [UI 프레임워크 컴포넌트](/ko/guides/framework-components/), [양식 POST 요청](#html-양식-액션에서-액션-호출) 또는 Astro 컴포넌트에서 `<script>` 태그를 사용하여 클라이언트 측에서 호출합니다.
+
+액션을 호출하면 JSON 직렬화된 결과가 포함된 `data` 또는 발생한 오류가 포함된 `error`가 포함된 객체를 반환합니다.
+
+```astro title="src/pages/index.astro"
+---
+---
+
+<script>
+import { actions } from 'astro:actions';
+
+async () => {
+  const { data, error } = await actions.myAction({ /* ... */ });
+}
+</script>
+```
+
+### 첫 번째 액션 작성하기
+
+다음 단계에 따라 액션을 정의하고 Astro 페이지의 `script` 태그에서 호출합니다.
+
+<Steps>
+
+1. `src/actions/index.ts` 파일을 만들고 `server` 객체를 내보냅니다.
+
+    ```ts title="src/actions/index.ts"
+    export const server = {
+      // 액션 정의 
+    }
+    ```
+
+2. `astro:actions`에서 `defineAction()` 유틸리티를, `astro:schema`에서 `z` 객체를 가져옵니다.
+
+    ```ts ins={1-2} title="src/actions/index.ts"
+    import { defineAction } from 'astro:actions';
+    import { z } from 'astro:schema';
+
+     export const server = {
+      // 액션 정의 
+    }
+    ```
+
+3. `defineAction()` 유틸리티를 사용하여 `getGreeting` 액션을 정의합니다. `input` 속성은 [Zod](https://zod.dev) 스키마로 입력 매개변수의 유효성을 검사하는 데 사용되며 `handler()` 함수에는 서버에서 실행할 백엔드 로직이 포함되어 있습니다.
+
+    ```ts ins={5-12} title="src/actions/index.ts"
+    import { defineAction } from 'astro:actions';
+    import { z } from 'astro:schema';
+
+    export const server = {
+      getGreeting: defineAction({
+        input: z.object({
+          name: z.string(),
+        }),
+        handler: async (input) => {
+          return `Hello, ${input.name}!`
+        }
+      })
+    }
+    ```
+
+4. 클릭 시 `getGreeting` 액션을 사용하여 인사말을 가져오는 버튼이 있는 Astro 컴포넌트를 만듭니다.
+
+    ```astro title="src/pages/index.astro"
+    ---
+    ---
+
+    <button>Get greeting</button>
+
+    <script>
+    const button = document.querySelector('button');
+    button?.addEventListener('click', async () => {
+      // 액션 인사말이 포함된 알림 팝업 표시
+    });
+    </script>
+    ```
+
+5. 액션을 사용하려면 `astro:actions`에서 `actions`를 가져온 다음, 클릭 핸들러에서 `actions.getGreeting()`을 호출합니다. `name` 옵션이 서버의 액션의 `handler()`로 전송되며, 오류가 없는 경우 `data` 속성으로 결과를 사용할 수 있습니다.
+
+    ```astro title="src/pages/index.astro" ins={7, 12-13}
+    ---
+    ---
+
+    <button>Get greeting</button>
+
+    <script>
+    import { actions } from 'astro:actions';
+
+    const button = document.querySelector('button');
+    button?.addEventListener('click', async () => {
+      // 액션 인사말이 포함된 알림 팝업 표시
+      const { data, error } = await actions.getGreeting({ name: "Houston" });
+      if (!error) alert(data);
+    })
+    </script>
+    ```
+
+</Steps>
+
+<ReadMore>[`defineAction()`](/ko/reference/api-reference/#defineaction) 및 해당 속성에 대한 자세한 내용은 전체 액션 API 설명서를 참조하세요.</ReadMore>
+
+## 액션 조직화
+
+프로젝트의 모든 액션은 `src/actions/index.ts` 파일의 `server` 객체에서 내보내져야 합니다. 액션을 인라인으로 정의하거나 액션 정의를 별도의 파일로 이동하여 가져올 수 있습니다. 중첩된 객체에서 관련 함수를 그룹화할 수도 있습니다.
+
+예를 들어 모든 사용자 액션을 한 곳에 배치하려면 `src/actions/user.ts` 파일을 만들고 단일 `user` 객체 안에 `getUser`와 `createUser`의 정의를 모두 중첩하면 됩니다.
+
+```ts
+// src/actions/user.ts
+import { defineAction } from 'astro:actions';
+
+export const user = {
+  getUser: defineAction(/* ... */),
+  createUser: defineAction(/* ... */),
+}
+```
+
+그런 다음 이 `user` 객체를 `src/actions/index.ts` 파일로 가져와 다른 액션과 함께 `server` 객체에 최상위 키로 추가할 수 있습니다:
+
+```ts title="src/actions/index.ts" ins={1,5}
+import { user } from './user';
+
+export const server = {
+  myAction: defineAction({ /* ... */ }),
+  user,
+}
+```
+
+이제 모든 사용자 액션을 `actions.user` 객체에서 호출할 수 있습니다:
+
+- `actions.user.getUser()`
+- `actions.user.createUser()`
+
+
+## 반환된 데이터 처리
+
+액션은 `handler()`의 타입이 안전한 반환값이 포함된 `data` 또는 백엔드 오류가 있는 `error`를 포함하는 객체를 반환합니다. 오류는 `input` 속성의 유효성 검사 오류 또는 `handler()`에서 발생한 오류로 인해 발생할 수 있습니다.
+
+### 오류 확인
+
+`data` 속성을 사용하기 전에 `error`가 있는지 확인하는 것이 가장 좋습니다. 이렇게 하면 오류를 미리 처리할 수 있고 `data`가 `undefined`인지 확인하지 않고 정의되도록 할 수 있습니다.
+
+```ts
+const { data, error } = await actions.example();
+
+if (error) {
+  // 오류 처리 케이스
+  return;
+}
+// `data` 사용 
+```
+
+### 오류 확인 없이 `data`에 직접 접근하기
+
+예를 들어 프로토타입을 만들거나 오류를 잡아주는 라이브러리를 사용할 때, 오류 처리를 건너뛰려면 액션 호출에 `.orThrow()` 속성을 사용하여 `error`를 반환하는 대신 오류를 던지세요. 그러면 액션의 `data`가 직접 반환됩니다.
+
+이 예시에서는 `handler` 액션에서 업데이트된 '좋아요' 수를 `number`로 반환하는 `likePost()` 액션을 호출합니다:
+
+```ts ins="orThrow"
+const updatedLikes = await actions.likePost.orThrow({ postId: 'example' });
+//    ^ type: number
+```
+
+### 액션에서 백엔드 오류 처리
+
+제공된 `ActionError`를 사용하여 액션 `handler()`에서 데이터베이스 항목이 누락된 경우 "찾을 수 없음", 사용자가 로그인하지 않은 경우 "권한 없음"과 같은 오류를 발생시킬 수 있습니다. 이는 `undefined`를 반환하는 것보다 두 가지 주요 이점이 있습니다:
+
+
+- `404 - Not found` 또는 `401 - Unauthorized`와 같은 상태 코드를 설정할 수 있습니다. 이렇게 하면 각 요청의 상태 코드를 확인할 수 있어 개발과 프로덕션 모두에서 디버깅 오류를 개선할 수 있습니다.
+
+- 애플리케이션 코드에서 모든 오류는 액션 결과의 `error` 객체에 전달됩니다. 이렇게 하면 데이터가 `undefined`인지 검사를 할 필요가 없으며, 무엇이 잘못되었는지에 따라 사용자에게 맞춤형 피드백을 표시할 수 있습니다.
+
+#### `ActionError` 만들기 
+
+오류를 발생시키려면 `astro:actions` 모듈에서 `ActionError()` 클래스를 가져옵니다. 사람이 읽을 수 있는 상태 `code` (예: `"NOT_FOUND"` 또는 `"BAD_REQUEST"`)와 오류에 대한 추가 정보를 제공하기 위한 선택적 `message`를 전달합니다.
+
+이 예시에서는 사용자가 로그인하지 않은 경우, 가상의 "user-session" 쿠키를 확인하여 인증을 수행한 후 `likePost` 액션에서 오류를 발생시킵니다:
+
+```ts title="src/actions/index.ts" ins=/ActionError(?= )/ ins={9-12}
+import { defineAction, ActionError } from "astro:actions";
+import { z } from "astro:schema";
+
+export const server = {
+  likePost: defineAction({
+    input: z.object({ postId: z.string() }),
+    handler: async (input, ctx) => {
+      if (!ctx.cookies.has('user-session')) {
+        throw new ActionError({
+          code: "UNAUTHORIZED",
+          message: "User must be logged in.",
+        });
+      }
+      // 그렇지 않으면, 게시글에 좋아요를 추가합니다.
+    },
+  }),
+};
+```
+
+#### `ActionError` 처리하기
+
+이 오류를 처리하려면 애플리케이션에서 액션을 호출하고 `error` 프로퍼티가 있는지 확인할 수 있습니다. 이 프로퍼티는 `ActionError` 타입이며 `code`와 `message`를 포함합니다.
+
+다음 예시에서 `LikeButton.tsx` 컴포넌트를 클릭하면 `likePost()` 액션이 호출됩니다. 인증 오류가 발생하면 `error.code` 속성을 사용하여 로그인 링크를 표시할지 여부를 결정합니다:
+
+```tsx title=src/components/LikeButton.tsx ins="if (error.code === 'UNAUTHORIZED') setShowLogin(true);"
+import { actions } from 'astro:actions';
+import { useState } from 'preact/hooks';
+
+export function LikeButton({ postId }: { postId: string }) {
+  const [showLogin, setShowLogin] = useState(false);
+  return (
+    <>
+      {
+        showLogin && <a href="/signin">Log in to like a post.</a>
+      }
+      <button onClick={async () => {
+        const { data, error } = await actions.likePost({ postId });
+        if (error?.code === 'UNAUTHORIZED') setShowLogin(true);
+        // 예상치 못한 오류에 대해 조기 반환을 수행합니다.
+        else if (error) return;
+        // 좋아요 수 업데이트
+      }}>
+        Like
+      </button>
+    </>
+  )
+}
+```
+
+### 클라이언트 리디렉션 처리하기 
+
+클라이언트에서 액션을 호출할 때 `react-router`와 같은 클라이언트 측 라이브러리와 통합하거나, 액션이 성공하면 새 페이지로 리디렉션하는 Astro의 [`navigate()` 함수](/ko/guides/view-transitions/#트리거-탐색)를 사용할 수 있습니다.
+
+이 예시는 `logout` 액션이 성공적으로 반환된 후 홈페이지로 이동합니다:
+
+```tsx title=src/pages/LogoutButton.tsx {2,7-8}
+import { actions } from 'astro:actions';
+import { navigate } from 'astro:transitions/client';
+
+export function LogoutButton() {
+  return (
+    <button onClick={async () => {
+      const { error } = await actions.logout();
+      if (!error) navigate('/');
+    }}>
+      Logout
+    </button>
+  );
+}
+```
+
+## 액션에서 양식 데이터 수신하기 
+
+액션은 기본적으로 JSON 데이터를 수신합니다. HTML 양식의 양식 데이터를 수신하려면 `defineAction()` 호출에서 `accept: 'form'`을 설정하세요:
+
+```ts title="src/actions/index.ts" ins={6}
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  comment: defineAction({
+    accept: 'form',
+    input: z.object(/* ... */),
+    handler: async (input) => { /* ... */ },
+  })
+}
+```
+
+### 양식 데이터 검증하기
+
+액션은 각 입력의 `name` 속성 값을 객체 키로 사용하여 제출된 양식 데이터를 객체로 구문 분석합니다. 예를 들어, `<input name="search">`이 포함된 양식은 `{ search: 'user input' }`과 같이 객체로 구문 분석됩니다. 액션의 `input` 스키마는 이 객체의 유효성을 검사하는 데 사용됩니다.
+
+액션 핸들러에서 구문 분석된 객체 대신 원시 `FormData` 객체를 받으려면 액션 정의에서 `input` 속성을 생략하세요.
+
+다음 예시는 사용자의 이메일을 입력받고 "서비스 약관" 동의 체크박스를 요구하는 검증된 뉴스레터 등록 양식을 보여줍니다.
+
+<Steps>
+
+1. 각 입력에 고유한 `name` 속성을 가진 HTML 양식 컴포넌트를 만듭니다:
+
+    ```astro title="src/components/Newsletter.astro" /name="\w+"/
+    <form>
+      <label for="email">E-mail</label>
+      <input id="email" required type="email" name="email" />
+      <label>
+        <input required type="checkbox" name="terms">
+        I agree to the terms of service
+      </label>
+      <button>Sign up</button>
+    </form>
+    ```
+
+2. 제출된 양식을 처리할 `newsletter` 액션을 정의합니다. `z.string().email()` 유효성 검사기를 사용하여 `email` 필드의 유효성을 검사하고 `z.boolean()`을 사용하여 `terms` 체크박스의 유효성을 검사합니다:
+
+    ```ts title="src/actions/index.ts" ins={5-12}
+    import { defineAction } from 'astro:actions';
+    import { z } from 'astro:schema';
+
+    export const server = {
+      newsletter: defineAction({
+        accept: 'form',
+        input: z.object({
+          email: z.string().email(),
+          terms: z.boolean(),
+        }),
+        handler: async ({ email, terms }) => { /* ... */ },
+      })
+    }
+    ```
+
+    <ReadMore>사용 가능한 모든 양식 유효성 검사기는 [`input` API 참조](/ko/reference/api-reference/#input-유효성-검사기)를 확인하세요.</ReadMore>
+    
+3. HTML 양식에 `<script>`를 추가하여 사용자 입력을 제출합니다. 이 예시에서는 양식의 기본 제출 동작을 재정의하여 `actions.newsletter()`를 호출하고 `navigate()` 함수를 사용하여 `/confirmation`으로 리디렉션합니다:
+
+    ```astro title=src/components/Newsletter.astro ins={12-23} collapse={2-8}
+    <form>
+      <label for="email">E-mail</label>
+      <input id="email" required type="email" name="email" />
+      <label>
+        <input required type="checkbox" name="terms">
+        I agree to the terms of service
+      </label>
+      <button>Sign up</button>
+    </form>
+
+    <script>
+      import { actions } from 'astro:actions';
+      import { navigate } from 'astro:transitions/client';
+
+      const form = document.querySelector('form');
+      form?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+        const { error } = await actions.newsletter(formData);
+        if (!error) navigate('/confirmation');
+      })
+    </script>
+    ```
+
+    <ReadMore>양식 데이터를 제출하는 다른 방법은 [“HTML 양식 액션에서 액션 호출”](#html-양식-액션에서-액션-호출)을 참조하세요.</ReadMore>
+    
+</Steps>
+
+### 양식 입력 오류 표시
+
+`required`, `type="email"`, `pattern`과 같은 [기본 HTML 양식 유효성 검사 속성](https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation#using_built-in_form_validation)을 사용하여 제출 전에 양식 입력의 유효성을 검사할 수 있습니다. 백엔드에서 더 복잡한 `input` 유효성 검사를 수행하려면 제공된 [`isInputError()`](/ko/reference/api-reference/#isinputerror) 유틸리티 함수를 사용할 수 있습니다.
+
+입력 오류를 검색하려면 `isInputError()` 유틸리티를 사용하여 잘못된 입력으로 인해 오류가 발생했는지 확인합니다. 입력 오류에는 유효성 검사에 실패한 각 입력 이름에 대한 메시지가 포함된 `fields` 객체가 포함됩니다. 이러한 메시지를 사용하여 사용자에게 제출물을 수정하라는 메시지를 표시할 수 있습니다.
+
+다음 예시는 `isInputError()`로 오류를 확인하고 이메일 필드에 오류가 있는지 확인한 다음 오류로부터 메시지를 생성합니다. JavaScript DOM 조작 또는 원하는 UI 프레임워크를 사용하여 이 메시지를 사용자에게 표시할 수 있습니다.
+
+```js /isInputError(?= )/ {5-12}
+import { actions, isInputError } from 'astro:actions';
+
+const form = document.querySelector('form');
+const formData = new FormData(form);
+const { error } = await actions.newsletter(formData);
+if (isInputError(error)) {
+  // 입력 오류를 처리합니다.
+  if (error.fields.email) {
+    const message = error.fields.email.join(', ');
+  }
+}
+```
+
+## HTML 양식 액션에서 액션 호출
+
+:::note
+양식 액션을 사용하여 액션을 호출할 때는 페이지가 주문형으로 렌더링되어야 합니다. 이 API를 사용하기 전에 [페이지에서 사전 렌더링이 비활성화되어 있는지 확인](/ko/guides/server-side-rendering/#hybrid-모드에서-사전-렌더링-선택-해제)하세요.
+:::
+
+모든 `<form>` 요소에서 표준 속성을 사용하여 JS 없이 양식 제출을 활성화할 수 있습니다.  클라이언트 측 JavaScript가 없는 양식 제출은 JavaScript가 로드되지 않을 때를 대비하거나 양식을 완전히 서버에서 처리하려는 경우 유용할 수 있습니다.
+
+서버에서 [Astro.getActionResult()](/ko/reference/api-reference/#astrogetactionresult)를 호출하면 양식 제출 결과 (`data` 또는 `error`)가 반환되며, 동적 리디렉션, 양식 오류 처리, UI 업데이트 등에 사용할 수 있습니다.
+
+HTML 양식에서 액션을 호출하려면 `<form>`에 `method="POST"`를 추가한 다음, 액션을 사용하여 양식의 `action` 속성을 설정합니다 (예: `action={actions.logout}`). 이렇게 하면 서버에서 자동으로 처리되는 쿼리 문자열을 사용하도록 `action` 속성이 설정됩니다.
+
+예를 들어, 이 Astro 컴포넌트는 버튼을 클릭하면 `logout` 액션을 호출하고 현재 페이지를 다시 로드합니다:
+
+```astro title="src/components/LogoutButton.astro"
+---
+import { actions } from 'astro:actions';
+---
+
+<form method="POST" action={actions.logout}>
+  <button>Log out</button>
+</form>
+```
+
+### 액션 성공 시 리디렉션
+
+클라이언트 측 JavaScript 없이 액션이 성공했을 때 다른 페이지로 이동하려면 `action` 속성에 경로를 추가하면 됩니다.
+
+예를 들어, `action={'/confirmation' + actions.newsletter}`는 `newsletter` 액션이 성공하면 `/confirmation`으로 이동합니다:
+
+```astro title="src/components/NewsletterSignup.astro" /action=\{[^\{\}]+\}/
+---
+import { actions } from 'astro:actions';
+---
+
+<form method="POST" action={'/confirmation' + actions.newsletter}>
+  <label>E-mail <input required type="email" name="email" /></label>
+  <button>Sign up</button>
+</form>
+```
+
+#### 액션 성공 시 동적으로 리디렉션
+
+동적으로 리디렉션할 위치를 결정해야 하는 경우 서버에서 액션의 결과를 사용할 수 있습니다. 일반적인 예는 제품 레코드를 생성하고 새 제품 페이지로 리디렉션하는 것입니다 (예: `/products/[id]`).
+
+예를 들어 생성된 제품 ID를 반환하는 `createProduct` 액션이 있다고 가정해 보겠습니다:
+
+```ts title="src/actions/index.ts" mark={10}
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  createProduct: defineAction({
+    accept: 'form',
+    input: z.object({ /* ... */ }),
+    handler: async (input) => {
+      const product = await persistToDatabase(input);
+      return { id: product.id };
+    },
+  })
+}
+```
+
+Astro 컴포넌트에서 `Astro.getActionResult()`를 호출하여 액션 결과를 검색할 수 있습니다. 액션이 호출되면 `data` 또는 `error` 속성이 포함된 객체를 반환하고, 이 요청 중에 액션이 호출되지 않은 경우 `undefined`를 반환합니다.
+
+`data` 속성을 사용하여 `Astro.redirect()`와 함께 사용할 URL을 구성합니다:
+
+```astro title="src/pages/products/create.astro" {4-7}
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.createProduct);
+if (result && !result.error) {
+  return Astro.redirect(`/products/${result.data.id}`);
+}
+---
+
+<form method="POST" action={actions.createProduct}>
+  <!--...-->
+</form>
+```
+
+### 양식 액션 오류 처리
+
+Astro는 액션이 실패할 때 `action` 경로로 리디렉션하지 않습니다. 대신 액션이 반환한 모든 오류와 함께 현재 페이지가 다시 로드됩니다. 양식이 포함된 Astro 컴포넌트에서 `Astro.getActionResult()`를 호출하면 사용자 정의 오류 처리를 위해 `error` 객체에 액세스할 수 있습니다.
+
+다음 예시는 `newsletter` 액션이 실패할 때 일반적인 실패 메시지를 표시합니다:
+
+```astro title="src/pages/index.astro" {4,7-9}
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.newsletter);
+---
+
+{result?.error && (
+  <p class="error">Unable to sign up. Please try again later.</p>
+)}
+<form method="POST" action={'/confirmation' + actions.newsletter}>
+  <label>
+    E-mail
+    <input required type="email" name="email" />
+  </label>
+  <button>Sign up</button>
+</form>
+```
+
+더 많은 사용자 지정이 필요한 경우 [`isInputError()` 유틸리티를 사용](#양식-입력-오류-표시)하여 잘못된 입력으로 인해 오류가 발생했는지 확인할 수 있습니다.
+
+다음 예시는 잘못된 이메일이 제출된 경우 `email` 입력 필드 아래에 오류 배너를 렌더링합니다:
+
+```astro title="src/pages/index.astro" ins={5,13} ins='aria-describedby="error"'
+---
+import { actions, isInputError } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.newsletter);
+const inputErrors = isInputError(result?.error) ? result.error.fields : {};
+---
+
+<form method="POST" action={'/confirmation' + actions.newsletter}>
+  <label>
+    E-mail
+    <input required type="email" name="email" aria-describedby="error" />
+  </label>
+  {inputErrors.email && <p id="error">{inputErrors.email.join(',')}</p>}
+  <button>Sign up</button>
+</form>
+```
+
+:::note
+Astro는 일회용 쿠키로 액션 `data`와 `error`를 유지합니다. 즉, `getActionResult()`는 첫 번째 _요청에만_ 결과를 반환하고 페이지를 다시 방문할 때는 `undefined`를 반환합니다.
+:::
+
+#### 오류 시 입력값 유지
+
+입력값은 양식이 제출될 때마다 지워집니다. 입력 값을 유지하려면 페이지에서 [view transitions을 활성화](/ko/guides/view-transitions/#페이지에-view-transitions-추가)하고 각 입력에 `transition:persist` 지시문을 적용하면 됩니다:
+
+```astro ins="transition:persist"
+<input transition:persist required type="email" name="email" />
+```
+
+### 양식 액션 결과로 UI 업데이트
+
+`Astro.getActionResult()`가 반환하는 결과는 일회용이며 페이지를 새로고침할 때마다 `undefined`로 재설정됩니다. 이는 [입력 오류 표시](#양식-액션-오류-처리)와 성공 시 사용자에게 임시 알림을 표시하는 데 이상적입니다.
+
+:::tip
+페이지를 새로 고칠 때마다 같은 결과를 표시해야 하는 경우, 결과를 데이터베이스 또는 [쿠키에](/ko/reference/api-reference/#astrocookies)에 저장하는 것이 좋습니다.
+:::
+
+`Astro.getActionResult()`에 액션을 전달하고 반환된 `data` 속성을 사용하여 표시하려는 임시 UI를 렌더링합니다. 이 예시에서는 `addToCart` 액션에서 반환된 `productName` 속성을 사용하여 성공 메시지를 표시합니다:
+
+```astro title="src/pages/products/[slug].astro"
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.addToCart);
+---
+
+{result && !result.error && (
+  <p class="success">Added {result.data.productName} to cart</p>
+)}
+
+<!--...-->
+```
+
+:::caution
+액션 데이터는 영구 쿠키를 사용하여 전달됩니다. **이 쿠키는 암호화되지 않으며** 크기가 4KB로 제한되지만, 정확한 제한은 브라우저마다 다를 수 있습니다.
+
+일반적으로 취약점을 피하기 위해 액션 `handler`에서 필요한 최소한의 정보만 반환하고 다른 민감한 정보는 데이터베이스에 보존하는 것이 좋습니다.
+
+예를 들어, 전체 `product` 객체를 반환하는 대신 `addToCart` 액션에서 제품 이름을 반환할 수 있습니다:
+
+```ts title="src/actions/index.ts" del={7} ins={8}
+import { defineAction } from 'astro:actions';
+
+export const server = {
+  addToCart: defineAction({
+    handler: async () => {
+      /* ... */
+      return product;
+      return { productName: product.name };
+    }
+  })
+}
+```
+:::

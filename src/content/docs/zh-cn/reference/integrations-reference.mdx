@@ -24,7 +24,7 @@ interface AstroIntegration {
   hooks: {
     'astro:config:setup'?: (options: {
       config: AstroConfig;
-      command: 'dev' | 'build' | 'preview';
+      command: 'dev' | 'build' | 'preview' | 'sync';
       isRestart: boolean;
       updateConfig: (newConfig: DeepPartial<AstroConfig>) => AstroConfig;
       addRenderer: (renderer: AstroRenderer) => void;
@@ -33,10 +33,16 @@ interface AstroIntegration {
       addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
       addDevToolbarApp: (pluginEntrypoint: string) => void;
       injectScript: (stage: InjectedScriptStage, content: string) => void;
-      injectRoute: ({ pattern: string, entrypoint: string }) => void;
+      injectRoute: (injectedRoute: { pattern: string, entrypoint: string }) => void;
       logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
-    'astro:config:done'?: (options: { config: AstroConfig; setAdapter: (adapter: AstroAdapter) => void; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:config:done'?: (options: {
+      config: AstroConfig;
+      setAdapter: (adapter: AstroAdapter) => void;
+      injectTypes: (injectedType: { filename: string; content: string }) => URL;
+      logger: AstroIntegrationLogger;
+      }) => void | Promise<void>;
+      'astro:route:setup'?: (options: { route: RouteOptions; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:server:setup'?: (options: { server: vite.ViteDevServer; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:server:start'?: (options: { address: AddressInfo; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:server:done'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
@@ -54,24 +60,30 @@ interface AstroIntegration {
         logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
     'astro:build:done'?: (options: { dir: URL; routes: RouteData[]; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+
+    // ...任何来自集成的自定义钩子
   };
 }
 ```
 
 ## 钩子
 
+Astro 提供了集成可以实现的钩子，以便在 Astro 生命周期的某些部分执行。Astro 钩子被定义在 `IntegrationHooks` 接口中，该接口是全局 `Astro` 命名空间的一部分。
+
+Astro 内置了以下钩子：
+
 ### `astro:config:setup`
 
 **下一个钩子**：[`astro:config:done`](#astroconfigdone)
 
-**时机**：初始化时，在 [Vite](https://vitejs.dev/config/) 或[Astro 配置](/zh-cn/reference/configuration-reference/) 解析前。
+**时机**：初始化时，在 [Vite](https://cn.vite.dev/config/) 或[Astro 配置](/zh-cn/reference/configuration-reference/) 解析前。
 
-**用途**：扩展项目配置。包括更新 [Astro 配置](/zh-cn/reference/configuration-reference/)、应用 [Vite 插件](https://vitejs.dev/guide/api-plugin.html)、添加组件渲染器，以及向页面注入脚本。
+**用途**：扩展项目配置。包括更新 [Astro 配置](/zh-cn/reference/configuration-reference/)、应用 [Vite 插件](https://cn.vite.dev/guide/api-plugin)、添加组件渲染器，以及向页面注入脚本。
 
 ```ts
 'astro:config:setup'?: (options: {
   config: AstroConfig;
-  command: 'dev' | 'build' | 'preview';
+  command: 'dev' | 'build' | 'preview' | 'sync';
   isRestart: boolean;
   updateConfig: (newConfig: DeepPartial<AstroConfig>) => AstroConfig;
   addRenderer: (renderer: AstroRenderer) => void;
@@ -93,11 +105,12 @@ interface AstroIntegration {
 
 #### `command` 选项
 
-**类型**：`'dev' | 'build' | 'preview'`
+**类型：** `'dev' | 'build' | 'preview' | 'sync'`
 
 - `dev` - 项目执行 `astro dev`
 - `build` - 项目执行 `astro build`
 - `preview` - 项目执行 `astro preview`
+- `sync` - 项目执行 `astro sync`
 
 #### `isRestart` 选项
 
@@ -111,7 +124,7 @@ interface AstroIntegration {
 
 用来更新用户提供的[Astro 配置](/zh-cn/reference/configuration-reference/)的回调函数。你提供的任何配置**将与用户配置 + 其他集成配置的更新合并**，所以你可以随意省略键名！
 
-例如，假设你需要在项目使用 [Vite](https://vitejs.dev/) 插件：
+例如，假设你需要在项目使用 [Vite](https://cn.vite.dev/) 插件：
 
 ```js
 import bananaCSS from '@vitejs/official-banana-css-plugin';
@@ -359,7 +372,7 @@ injectRoute({
 
 回调函数，在每个页面上注入 JavaScript 内容。
 
-**`stage`** 表示这个脚本（`content`）应该如何插入。有些阶段允许不加修改地插入脚本，而有些阶段允许在 [Vite 的捆绑步骤](https://vitejs.dev/guide/build.html)中进行压缩：
+**`stage`** 表示这个脚本（`content`）应该如何插入。有些阶段允许不加修改地插入脚本，而有些阶段允许在 [Vite 的捆绑步骤](https://cn.vite.dev/guide/build)中进行压缩：
 
 - `head-inline`：注入每个页面的 `<head>` 中的脚本标签。**不**由 Vite 压缩或解析。
 - `before-hydration`：在激活脚本运行之前导入客户端。由 Vite 优化和解决。
@@ -383,22 +396,54 @@ injectRoute({
 **原因**：检索最终的配置，以便在其他钩子中使用。
 
 ```js
-'astro:config:done'?: (options: { config: AstroConfig }) => void | Promise<void>;
+'astro:config:done'?: (options: {
+  config: AstroConfig;
+  setAdapter: (adapter: AstroAdapter) => void;
+  injectTypes: (injectedType: { filename: string; content: string }) => URL;
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
 ```
 
 #### `config` 选项
 
-**类型**：`AstroConfig`
+**类型：**`AstroConfig`
 
 用户提供的 [Astro 配置](/zh-cn/reference/configuration-reference/)的只读副本。这在其他集成运行后进行解析。
 
+#### `setAdapter` 选项
+
+**类型：**`(adapter: AstroAdapter) => void;`
+
+使集成成为适配器。在[适配器 API](/zh-cn/reference/adapter-reference/)中阅读更多内容。
+
+#### `injectTypes` 选项
+
+<p><Since v="4.14.0" /></p>
+
+**类型：**`(injectedType: { filename: string; content: string }) => URL`
+
+允许你通过添加一个新的 `*.d.ts` 文件将类型注入到用户的项目中。
+
+`filename` 属性将用于在 `/.astro/integrations/<normalized_integration_name>/<normalized_filename>.d.ts` 生成文件，必须以 `".d.ts"` 结尾。
+
+`content` 属性将用于在文件中生成内容，必须是有效的 TypeScript。
+
+此外，`injectTypes()` 返回一个 URL，指向规范化路径，以便稍后覆盖其内容，或以任何你想要的方式操作它。
+
+```js
+const path = injectTypes({
+  filename: "types.d.ts",
+  content: "declare module 'virtual:integration' {}"
+})
+console.log(path) // URL
+```
 ### `astro:server:setup`
 
 **上一个钩子**：[`astro:config:done`](#astroconfigdone)
 
 **下一个钩子**：[`astro:server:start`](#astroserverstart)
 
-**时机**：在开发模式下创建 Vite 服务器后，但在 `listen()` 事件触发前。详见[Vite 的 createServer API](https://vitejs.dev/guide/api-javascript.html#createserver)。
+**时机**：在开发模式下创建 Vite 服务器后，但在 `listen()` 事件触发前。详见[Vite 的 createServer API](https://cn.vite.dev/guide/api-javascript#createserver)。
 
 **用途**：更新 Vite 服务端选项和中间件。
 
@@ -408,7 +453,7 @@ injectRoute({
 
 #### `server` 选项
 
-**类型**：[`ViteDevServer`](https://vitejs.dev/guide/api-javascript.html#vitedevserver)
+**类型**：[`ViteDevServer`](https://cn.vite.dev/guide/api-javascript#vitedevserver)
 
 在开发模式下使用的 Vite 服务器的可变实例。例如，[在 Partytown 集成中使用](/zh-cn/guides/integrations-guide/partytown/)，以注入 Partytown 服务器作为中间件。
 
@@ -419,7 +464,7 @@ export default {
     'astro:server:setup': ({ server }) => {
       server.middlewares.use(
         function middleware(req, res, next) {
-          // handle requests
+          // 处理请求
         }
       );
     }
@@ -529,10 +574,10 @@ export default {
 
 **时机**：在生产构建（SSG 或 SSR）完成后。
 
-**用途**：访问生成的路由和资产进行扩展（例如，将内容复制到生成的 `/assets` 目录）。如果你打算转换生成的资源，我们建议探索 [Vite 插件 API](https://vitejs.dev/guide/api-plugin.html) 和[通过 `astro:config:setup` 进行配置](#updateconfig-选项)来代替。
+**用途**：访问生成的路由和资产进行扩展（例如，将内容复制到生成的 `/assets` 目录）。如果你打算转换生成的资源，我们建议探索 [Vite 插件 API](https://cn.vite.dev/guide/api-plugin) 和[通过 `astro:config:setup` 进行配置](#updateconfig-选项)来代替。
 
 ```js
-'astro:build:done'?: (options: { dir: URL; routes: RouteData[] }) => void | Promise<void>;
+'astro:build:done'?: (options: { dir: URL; routes: RouteData[], pages: { pathname: string }[] }) => void | Promise<void>;
 ```
 
 #### `dir` option
@@ -559,9 +604,9 @@ export default function myIntegration() {
 }
 ```
 
-#### `routes` option
+#### `routes` 选项
 
-**类型**：[`RouteData[]`](#routedata-类型参考)
+**类型：**[`RouteData[]`](#routedata-类型参考)
 
 所有生成的路由及其相关元数据的列表。
 
@@ -615,6 +660,87 @@ interface RouteData {
 生成的所有页面的列表是一个包含一个属性的对象。
 
 -  `pathname` - 页面的最终路径。
+
+### `astro:route:setup`
+
+<p><Since v="4.14.0" /></p>
+
+**时机：** 在 `astro dev` 中，每当请求一个路由时。在 `astro build` 中，当打包和转换路由文件时。
+
+**原因：** 在构建或请求时为路由设置选项，例如启用[按需服务器渲染](/zh-cn/guides/server-side-rendering/#在-server-模式中选择加入预渲染)。
+
+```js
+'astro:route:setup'?: (options: { route: RouteOptions }) => void | Promise<void>;
+```
+
+#### `route` 选项
+
+**类型：**`RouteOptions`
+
+具有 `component` 属性的对象用于标识路由，以及以下附加值，以允许你配置生成的路由：`prerender`。
+
+`component` 属性是一个相对于项目根目录的只读字符串路径，例如 `"src/pages/blog/[slug].astro"`。
+
+##### `route.prerender`
+
+<p>
+**类型：**`boolean`<br />
+**默认值：**`undefined`<br />
+<Since v="4.14.0" />
+</p>
+
+`prerender` 属性用于配置[按需服务器渲染](/zh-cn/guides/server-side-rendering/#在-server-模式中选择加入预渲染)的路由。如果路由文件包含一个显式的 `export const prerender` 值，该值将被用作默认值，而不是 `undefined`。
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  integrations: [setPrerender()],
+});
+
+function setPrerender() {
+  return {
+    name: 'set-prerender',
+    hooks: {
+      'astro:route:setup': ({ route }) => {
+        if (route.component.endsWith('/blog/[slug].astro')) {
+          route.prerender = true;
+        }
+      },
+    },
+  };
+}
+```
+
+如果在运行所有钩子后的最终值是 `undefined`，路由将根据 [`output` 选项](/zh-cn/reference/configuration-reference/#output) 回退到预渲染的默认值：`hybrid` 模式下预渲染，`server` 模式下按需渲染。
+
+### 自定义钩子
+
+通过 [全局增强](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#global-augmentation) 来扩展 `IntegrationHooks` 接口，可以将自定义钩子添加到集成中。
+
+```ts
+declare global {
+  namespace Astro {
+    export interface IntegrationHook {
+      'your:hook': (params: YourHookParameters) => Promise<void>
+    }
+  }
+}
+```
+
+Astro 为未来的内置钩子保留了 `astro:` 前缀。请在命名时，为自定义钩子选择不同的前缀。
+
+### `HookParameters`
+
+你可以通过将钩子的名称传递给 `HookParameters` 实用工具类型来获取钩子参数的类型。在以下示例中，输入了函数的 `options` 参数后，匹配到了 `astro:config:setup` 挂钩的参数：
+
+```ts /HookParameters(?:<.+>)?/
+import type { HookParameters } from 'astro';
+
+function mySetup(options: HookParameters<'astro:config:setup'>) {
+  options.updateConfig({ /* ... */ });
+}
+```
 
 ## 使用 `astro add` 安装
 

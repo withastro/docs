@@ -123,7 +123,7 @@ Dans l'exemple ci-dessous, l'état interne du compteur du composant ne sera pas 
 Tous les états ne peuvent pas être préservés de cette manière. Le redémarrage des animations CSS et le rechargement des iframes ne peuvent être évités lors des transitions de vue, même en utilisant `transition:persist`.
 :::
 
-Vous pouvez également [identifier manuellement les éléments correspondants](#nommer-une-transition) si l'île/l'élément se trouve dans une composante différente entre les deux pages.
+Vous pouvez également [identifier manuellement les éléments correspondants](#nommer-une-transition) si l'île/l'élément se trouve dans un composant différent entre les deux pages.
 
 ```astro title="src/pages/old-page.astro" "Video" 'transition:name="media-player"'
 <Video controls="" autoplay="" transition:name="media-player" transition:persist />
@@ -142,11 +142,11 @@ Comme raccourci pratique, `transition:persist` peut aussi prendre un nom de tran
 #### `transition:persist-props`
 <p><Since v="4.5.0" /></p>
 
-Cela vous permet de contrôler si les props d'une île doivent ou non être conservés lors de la navigation.
+Cela vous permet de contrôler si les props d'une île doivent ou non être conservées lors de la navigation.
 
-Par défaut, lorsque vous ajoutez `transition:persist` à une île, l'état est conservé lors de la navigation, mais votre composant sera re-rendu avec de nouveaux props. Ceci est utile, par exemple, lorsqu'un composant reçoit des props spécifiques à une page, comme le `title` de la page courante.
+Par défaut, lorsque vous ajoutez `transition:persist` à une île, l'état est conservé lors de la navigation, mais votre composant sera re-rendu avec de nouvelles props. Ceci est utile, par exemple, lorsqu'un composant reçoit des props spécifiques à une page, comme le `title` de la page courante.
 
-Vous pouvez surcharger ce comportement avec `transition:persist-props`. L'ajout de cette directive conservera les props existants d'une île (sans les rendre avec de nouvelles valeurs) en plus de maintenir son état existant.
+Vous pouvez modifier ce comportement en définissant `transition:persist-props` en plus de `transition:persist`. L'ajout de cette directive conservera les props existantes d'une île (sans les rendre avec de nouvelles valeurs) en plus de maintenir son état existant.
 
 ### Directives d'animation intégrées
 
@@ -221,33 +221,71 @@ export interface TransitionDirectionalAnimations {
 }
 ```
 
-L'exemple suivant montre toutes les propriétés nécessaires pour définir une animation `fade` personnalisée :
 
-```astro
+L'exemple suivant montre toutes les propriétés nécessaires pour définir une animation `bump` personnalisée à l'intérieur d'une balise `<style is:global>` dans votre fichier de mise en page racine :
+
+
+```astro title="src/layouts/Layout.astro"
+---
+import { ViewTransitions } from 'astro:transitions';
+---
+
+<html lang="en">
+  <head>
+    <ViewTransitions />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  @keyframes bump {
+    0% {
+      opacity: 0;
+      transform: scale(1) translateX(200px);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(1.1);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateX(0);
+    }
+  }
+</style>
+
+```
+
+Le comportement de l'animation doit être défini dans le frontmatter de chaque composant utilisant l'animation :
+
+```astro title="src/pages/index.astro"
 ---
 const anim = {
   old: {
-    name: 'fadeIn',
-    duration: '0.2s',
-    easing: 'linear',
-    fillMode: 'forwards',
+    name: 'bump',
+    duration: '0.5s',
+    easing: 'ease-in',
+    direction: 'reverse',
   },
   new: {
-    name: 'fadeOut',
-    duration: '0.3s',
-    easing: 'linear',
-    fillMode: 'backwards',
-  }
+    name: 'bump',
+    duration: '0.5s',
+    easing: 'ease-in-out',
+  },
 };
 
-const myFade = {
-	forwards: anim,
-	backwards: anim,
+const customTransition = {
+  forwards: anim,
+  backwards: anim,
 };
 ---
 
-<header transition:animate={myFade}> ... </header>
+<header transition:animate={customTransition}> ... </header>
 ```
+
+Vous disposez d'une grande flexibilité pour définir des animations personnalisées. Pour obtenir le résultat souhaité, vous pouvez envisager des combinaisons inhabituelles, telles qu'utiliser des objets différents pour les propriétés `forwards` et `backwards`, ou fournir des étapes d'animations distinctes pour les propriétés `old` et `new`.
 
 ## Contrôle du routeur
 
@@ -377,7 +415,7 @@ L'attribut `data-astro-history` peut être défini avec les trois mêmes valeurs
 
 L'exemple suivant navigue vers la page `/main` mais n'ajoute pas une nouvelle entrée à l'historique de navigation. Au lieu de cela, il réutilise l'entrée actuelle dans l'historique (`/confirmation`) et l'écrase.
 
-```astro title="src//confirmation.astro"
+```astro title="src/pages/confirmation.astro"
 <a href="/main" data-astro-history="replace">
 ```
 
@@ -473,6 +511,18 @@ Lorsque l'on navigue entre les pages avec le composant `<ViewTransitions />`, le
 Les [scripts des modules intégrés](/fr/guides/client-side-scripts/#regroupement-de-script), qui sont les scripts par défaut dans Astro, ne sont exécutés qu'une seule fois. Après l'exécution initiale, ils seront ignorés, même si le script existe sur la nouvelle page après une transition.
 
 Contrairement aux scripts de modules intégrés, les scripts [inline](/fr/guides/client-side-scripts/#inclure-des-fichiers-javascript-dans-la-page) peuvent être réexécutés au cours de la visite d'un utilisateur sur un site s'ils se trouvent sur une page visitée plusieurs fois. Les scripts en ligne peuvent également être réexécutés lorsqu'un visiteur navigue vers une page sans script, puis de nouveau vers une page avec le script.
+
+Avec les transitions de vue, certains scripts peuvent ne plus être réexécutés après la navigation vers une nouvelle page comme c'est le cas avec les actualisations complètes du navigateur. Il existe plusieurs [événements pendant le routage côté client que vous pouvez écouter](#événements-du-cycle-de-vie) et déclencher des événements lorsqu'ils se produisent. Vous pouvez encapsuler un script existant dans un écouteur d'événements pour garantir qu'il s'exécute au bon moment dans le cycle de navigation.
+
+```js title="src/scripts/menu.js" ins={2,6}
+<script>
+document.addEventListener('astro:page-load', () => {
+  document.querySelector('.hamburger').addEventListener('click', () => {
+    document.querySelector('.nav-links').classList.toggle('expanded');
+  });
+});
+</script>
+```
 
 #### `data-astro-rerun`
 
@@ -604,6 +654,36 @@ L'événement `astro:before-swap` peut aussi être utilisé pour changer l'*impl
 </script>
 ```
 
+#### Créer une fonction d'échange personnalisée
+
+<p><Since v="4.15.0" /></p>
+
+L'objet `swapFunctions` du module `astro:transitions/client` fournit cinq fonctions utilitaires qui gèrent des tâches spécifiques liées à l'échange, notamment la gestion des attributs de document, des éléments de page et l'exécution de scripts. Ces fonctions peuvent être utilisées directement pour définir une implémentation d'échange personnalisée.
+
+L'exemple suivant montre comment utiliser ces fonctions pour recréer l'implémentation d'échange intégrée d'Astro :
+
+```astro
+<script>
+import { swapFunctions } from 'astro:transitions/client';
+
+// remplace window.document par doc
+function mySwap(doc: Document) {
+  swapFunctions.deselectScripts(doc);
+  swapFunctions.swapRootAttributes(doc);
+  swapFunctions.swapHeadElements(doc);
+  const restoreFocusFunction = swapFunctions.saveFocus();
+  swapFunctions.swapBodyElement(doc.body, document.body);
+  restoreFocusFunction();
+};
+
+...
+  event.swap = () => mySwap(event.newDocument);
+...
+<script>
+```
+Les implémentations d'échange personnalisées peuvent commencer avec ce modèle et ajouter ou remplacer des étapes individuelles par une logique personnalisée selon les besoins.
+
+
 ### `astro:after-swap`
 
 Un événement qui se déclenche immédiatement après que la nouvelle page ait remplacé l'ancienne. Vous pouvez écouter cet événement sur `document` et déclencher des actions qui se produiront avant le rendu des éléments DOM de la nouvelle page et l'exécution des scripts.
@@ -626,14 +706,14 @@ Un événement qui se déclenche à la fin de la navigation de la page, après q
 
 Le composant `<ViewTransitions />` déclenche cet événement à la fois lors de la navigation initiale sur une page pré-rendue et lors de toute navigation ultérieure, que ce soit en avant ou en arrière.
 
-Vous pouvez utiliser cet événement pour exécuter du code à chaque navigation de page, ou seulement une fois par jour :
+Vous pouvez utiliser cet événement pour exécuter du code à chaque navigation de page, par exemple pour configurer des écouteurs d'événements qui autrement seraient perdus pendant la navigation.
 
-```astro "{ once: true }"
+```astro
 <script>
   document.addEventListener('astro:page-load', () => {
-    // Cette opération n'est exécutée qu'une seule fois.
-    setupStuff();
-  }, { once: true });
+    // Cette opération s'exécute lors du premier chargement de la page et après chaque navigation.
+    setupStuff(); // par exemple, ajouter des écouteurs d'événements
+  });
 </script>
 ```
 

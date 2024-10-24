@@ -50,7 +50,7 @@ En savoir plus sur les [variables d'environnement](/fr/guides/environment-variab
 
 Votre projet doit maintenant inclure ces fichiers :
 
-<FileTree title="Project Structure">
+<FileTree title="Structure du projet">
 - src/
   - **env.d.ts**
 - **.env**
@@ -95,7 +95,7 @@ export const supabase = createClient(
 
 Votre projet doit maintenant inclure ces fichiers :
 
-<FileTree title="Project Structure">
+<FileTree title="Structure du projet">
 - src/
   - lib/
     - **supabase.ts**
@@ -122,9 +122,9 @@ Pour ajouter l'authentification à votre projet, vous devrez créer quelques poi
 - `POST /api/auth/signin` : pour enregistrer un utilisateur.
 - `GET /api/auth/signout` : pour déconnecter un utilisateur.
 
-Créez ces points de terminaison dans le répertoire `src/pages/api/auth` de votre projet. Votre projet devrait maintenant inclure ces nouveaux fichiers :
+Créez ces points de terminaison dans le répertoire `src/pages/api/auth` de votre projet. Si vous utilisez le mode de rendu `hybrid`, vous devez spécifier `export const prerender = false` en haut de chaque fichier pour restituer ces points de terminaison à la demande. Votre projet devrait maintenant inclure ces nouveaux fichiers :
 
-<FileTree title="Project Structure">
+<FileTree title="Structure du projet">
 - src/
   - lib/
     - supabase.ts
@@ -143,6 +143,8 @@ Créez ces points de terminaison dans le répertoire `src/pages/api/auth` de vot
 `register.ts` crée un nouvel utilisateur dans Supabase. Il accepte une requête `POST` avec l'email et le mot de passe. Il utilise ensuite le SDK de Supabase pour créer un nouvel utilisateur.
 
 ```ts title="src/pages/api/auth/register.ts"
+// Avec `output: 'hybrid'` configuré :
+// export const prerender = false;
 import type { APIRoute } from "astro";
 import { supabase } from "../../../lib/supabase";
 
@@ -171,6 +173,8 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 `signin.ts` crée un nouvel utilisateur dans Supabase. Il accepte une requête `POST` avec l'email et le mot de passe. Il utilise ensuite le SDK de Supabase pour créer un nouvel utilisateur
 
 ```ts title="src/pages/api/auth/signin.ts"
+// Avec `output: 'hybrid'` configuré :
+// export const prerender = false;
 import type { APIRoute } from "astro";
 import { supabase } from "../../../lib/supabase";
 
@@ -206,6 +210,8 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 `signout.ts` permet à un utilisateur de se déconnecter. Il accepte une requête `GET` et supprime les jetons d'accès et de rafraîchissement de l'utilisateur.
 
 ```ts title="src/pages/api/auth/signout.ts"
+// Avec `output: 'hybrid'` configuré :
+// export const prerender = false;
 import type { APIRoute } from "astro";
 
 export const GET: APIRoute = async ({ cookies, redirect }) => {
@@ -225,7 +231,7 @@ Maintenant que vous avez créé vos points d'accès au serveur, créez les pages
 
 Créez ces pages dans le répertoire `src/pages`. Votre projet devrait maintenant inclure ces nouveaux fichiers :
 
-<FileTree title="Project Structure">
+<FileTree title="Structure du projet">
 - src/
   - lib/
     - supabase.ts
@@ -293,39 +299,46 @@ if (accessToken && refreshToken) {
 </Layout>
 ```
 
-`dashboard.astro` contient une page qui n'est accessible qu'aux utilisateurs authentifiés. Elle vérifie la présence des jetons d'accès et de rafraîchissement. S'ils ne sont pas présents, elle redirige vers la page de connexion.
+`dashboard.astro` contient une page qui n'est accessible qu'aux utilisateurs authentifiés. Elle vérifie la présence des jetons d'accès et de rafraîchissement. S'ils ne sont pas présents ou sont invalides, elle redirige vers la page de connexion.
 
 ```astro title="src/pages/dashboard.astro"
 ---
 import Layout from "../layouts/Layout.astro";
 import { supabase } from "../lib/supabase";
 
-const { cookies, redirect } = Astro;
-
-const accessToken = cookies.get("sb-access-token");
-const refreshToken = cookies.get("sb-refresh-token");
+const accessToken = Astro.cookies.get("sb-access-token");
+const refreshToken = Astro.cookies.get("sb-refresh-token");
 
 if (!accessToken || !refreshToken) {
-  return redirect("/signin");
+  return Astro.redirect("/signin");
 }
 
-const { data, error } = await supabase.auth.setSession({
-  refresh_token: refreshToken.value,
-  access_token: accessToken.value,
-});
-
-if (error) {
-  cookies.delete("sb-access-token", {
+let session;
+try {
+  session = await supabase.auth.setSession({
+    refresh_token: refreshToken.value,
+    access_token: accessToken.value,
+  });
+  if (session.error) {
+    Astro.cookies.delete("sb-access-token", {
+      path: "/",
+    });
+    Astro.cookies.delete("sb-refresh-token", {
+      path: "/",
+    });
+    return Astro.redirect("/signin");
+  }
+} catch (error) {
+  Astro.cookies.delete("sb-access-token", {
     path: "/",
   });
-  cookies.delete("sb-refresh-token", {
+  Astro.cookies.delete("sb-refresh-token", {
     path: "/",
   });
-
-  return redirect("/signin");
+  return Astro.redirect("/signin");
 }
 
-const email = data.user?.email;
+const email = session.data.user?.email;
 ---
 <Layout title="dashboard">
   <h1>Bienvenue {email}</h1>
@@ -476,7 +489,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 
 Après avoir créé le point d'accès OAuth et modifié la page de connexion et le point d'accès au serveur, votre projet devrait avoir la structure de fichier suivante :
 
-<FileTree title="Project Structure">
+<FileTree title="Structure du projet">
 - src/
   - lib/
     - supabase.ts

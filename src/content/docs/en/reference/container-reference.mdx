@@ -68,7 +68,11 @@ For each official Astro integration, import and use the `getContainerRenderer()`
 
 For renderer packages outside the `@astrojs` npm org, look in their documentation for `getContainerRenderer()` or a similar function provided.
 
-When using `vite` (`vitest`, Astro integrations, etc.), the renderers are loaded with the function `loadRenderers()` from the virtual module `astro:container`. Outside `vite`, you'll have to load the renderers manually.
+When using `vite` (`vitest`, Astro integrations, etc.), the renderers are loaded with the function `loadRenderers()` from the virtual module `astro:container`.
+ 
+:::caution
+Outside `vite` or for on-demand usage, you'll have to [load the renderers manually](#adding-a-renderer-manually).
+:::
 
 The following example provides the necessary object to render an Astro component that renders a React component and a Svelte component: 
 
@@ -86,9 +90,13 @@ const result = await container.renderToString(ReactWrapper);
 
 #### Adding a renderer manually
 
-When the container is called at runtime, or inside other "shells", the `astro:container` virtual module's helper functions are not available. Import the necessary server renderer manually and store it inside the container using `experimental_Astro.Container.addServerRenderer`.
+When the container is called at runtime, or inside other "shells", the `astro:container` virtual module's helper functions are not available.  You must import the necessary server and client renderers manually and store them inside the container using `addServerRenderer` and `addClientRenderer`.
 
-The following example manually imports the server renderers for React and Vue components, and MDX for `.mdx` pages. 
+Server renderers are required to build your project, and must be stored in the container for every framework used. Client renderers are additionally needed to any hydrate client-side components using [`client:*` directives](/en/reference/directives-reference/#client-directives).
+
+Only one import statement is needed per framework. Importing a renderer makes both the server and client renderers available to your container. However, **server renderers must be added to your container before client renderers**. This allows your entire container to render first, and then hydrate any interactive components.
+
+The following example manually imports the necessary server renderers to be able to display static Vue components and `.mdx` pages. It additionally adds both server and client renderers for interactive React components.
 
 ```js
 import reactRenderer from "@astrojs/react/server.js";
@@ -96,9 +104,11 @@ import vueRenderer from "@astrojs/vue/server.js";
 import mdxRenderer from "astro/jsx/server.js";
 
 const container = await experimental_AstroContainer.create();
-container.addServerRenderer({renderer: reactRenderer});
 container.addServerRenderer({renderer: vueRenderer});
 container.addServerRenderer({renderer: mdxRenderer});
+
+container.addServerRenderer({ renderer: reactRenderer });
+container.addClientRenderer({ name: "@astrojs/react", entrypoint: "@astrojs/react/client.js" });
 ```
 
 ## `renderToString()`
@@ -160,7 +170,7 @@ If your Astro component renders one default slot, pass an object with `default` 
 import Card from "../src/components/Card.astro";
 
 const result = await container.renderToString(Card, { 
-  slots: { default: "Some value"}
+  slots: { default: "Some value" }
 });
 ```
 
@@ -179,7 +189,10 @@ If your component renders named slots, use the slot names as the object keys:
 import Card from "../src/components/Card.astro";
 
 const result = await container.renderToString(Card, { 
-  slots: { "header": "Header content", "footer": "Footer" }
+  slots: {
+    header: "Header content",
+    footer: "Footer"
+  }
 });
 ```
 
@@ -201,8 +214,8 @@ import CardFooter from "../src/components/CardFooter.astro";
 
 const result = await container.renderToString(Card, { 
   slots: { 
-    "header": await container.renderToString(CardHeader), 
-    "footer":  await container.renderToString(CardFooter),
+    header: await container.renderToString(CardHeader), 
+    footer:  await container.renderToString(CardFooter)
   }
 });
 ```
@@ -217,7 +230,7 @@ An option to pass [properties](/en/basics/astro-components/#component-props) for
 import Card from "../src/components/Card.astro";
 
 const result = await container.renderToString(Card, { 
-  props: { name: "Hello, world!" },
+  props: { name: "Hello, world!" }
 });
 ```
 
@@ -251,7 +264,7 @@ import Card from "../src/components/Card.astro";
 const result = await container.renderToString(Card, { 
   request: new Request("https://example.com/blog", {
     headers: {
-      "X-some-secret-header": "test-value"
+      "x-some-secret-header": "test-value"
     }
   })
 });
@@ -305,23 +318,23 @@ import Card from "../src/components/Card.astro";
 test("User is in", async () => {
   const result = await container.renderToString(Card, { 
     locals: {
-      checkAuth() { return true }
+      checkAuth() { return true; }
     }
   });
   
   // assert result contains "You're in"
-})
+});
 
 
 test("User is out", async () => {
   const result = await container.renderToString(Card, { 
     locals: {
-      checkAuth() { return false }
+      checkAuth() { return false; }
     }
   });
   
   // assert result contains "You're out"
-})
+});
 ```
 
 ### `routeType` option
@@ -358,8 +371,30 @@ import * as Endpoint from "../src/pages/api/endpoint.js";
 const response = await container.renderToResponse(Endpoint, { 
     routeType: "endpoint",
     request: new Request("https://example.com", {
-      method: "POST" //
+      method: "POST" // Specify POST method for testing
     })
 });
 const json = await response.json();
+```
+
+### `partial` option
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `true`<br/>
+<Since v="4.16.6" />
+</p>
+
+Whether or not the Container API renders components as if they were [page partials](/en/basics/astro-pages/#page-partials). This is usually the behavior you want when rendering `components.boolean` so you can render components without a full page shell.
+
+To render a component as a full Astro page, including `<!DOCTYPE html>`, you can opt-out of this behavior by setting `partial` to `false`:
+
+```js name="Card.test.js" ins={4}
+import Blog from "../src/pages/Blog.astro";
+
+const result = await container.renderToString(Card, {
+    partial: false 
+});
+console.log(result) // includes `<!DOCTYPE html>` at the beginning of the HTML
 ```

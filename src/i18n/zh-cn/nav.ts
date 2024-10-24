@@ -32,6 +32,7 @@ export default NavDictionary({
 	routes: '路由和导航',
 	'guides/routing': '路由',
 	'guides/endpoints': 'API 端点',
+	'guides/action': 'Actions',
 	'guides/prefetch': '预获取',
 	'guides/middleware': '中间件',
 	'guides/internationalization': '国际化',
@@ -41,6 +42,7 @@ export default NavDictionary({
 	'guides/styling': 'CSS 样式',
 	'guides/images': '图像',
 	'guides/fonts': '字体',
+	'guides/media': '连接托管媒体或 DAM',
 
 	data: '连接你的数据',
 	'guides/data-fetching': '数据请求',
@@ -64,6 +66,7 @@ export default NavDictionary({
 	'reference/api-reference': 'Astro 运行时 API',
 	'reference/cli-reference': 'Astro 命令行',
 	'reference/directives-reference': '指令参考',
+	'reference/components-reference': '内置组件',
 	'guides/typescript': 'TypeScript 参考',
 	'reference/error-reference': '错误参考',
 

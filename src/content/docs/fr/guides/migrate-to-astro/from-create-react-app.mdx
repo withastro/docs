@@ -1,0 +1,373 @@
+---
+title: Migration depuis Create React App (CRA)
+description: Conseils pour migrer un projet Create React App existant vers Astro
+type: migration
+stub: true
+framework: Create React App
+i18nReady: true
+---
+import AstroJSXTabs from '~/components/tabs/AstroJSXTabs.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { FileTree } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
+import Badge from "~/components/Badge.astro"
+
+L'[intégration React d'Astro](/fr/guides/integrations-guide/react/) permet d'[utiliser des composants React dans les composants Astro](/fr/guides/framework-components/), y compris des applications React entières comme Create React App (CRA) !
+
+```astro title="src/pages/index.astro"
+---
+// Importation du composant racine de l'application
+import App from '../cra-project/App.jsx';
+---
+<!-- Utilisation d'une directive client pour charger votre application -->
+<App client:load />
+```
+
+<ReadMore>Voir comment [Construire une application à page unique (SPA) avec Astro](https://logsnag.com/blog/react-spa-with-astro) <Badge text="Externe" /> en utilisant React Router.</ReadMore>
+
+De nombreuses applications fonctionneront comme des applications React complètes si vous les ajoutez directement à votre projet Astro avec l'intégration React installée. C'est un excellent moyen de rendre votre projet opérationnel immédiatement et de maintenir votre application fonctionnelle pendant que vous migrez vers Astro.
+
+Au fil du temps, vous pouvez convertir votre structure pièce par pièce en une combinaison de composants `.astro` et `.jsx`. Vous découvrirez probablement que vous avez besoin de moins de composants React que vous ne le pensez !
+
+Voici quelques concepts clés et stratégies de migration pour vous aider à démarrer. Utilisez le reste de notre documentation et notre [communauté sur Discord](https://astro.build/chat) pour continuer !
+
+## Principales similitudes entre CRA et Astro
+
+- La [syntaxe des fichiers `.astro` est similaire à celle de JSX](/fr/basics/astro-syntax/#différences-entre-astro-et-jsx). L'écriture d'Astro devrait vous sembler familière.
+
+- Astro utilise un routage basé sur les fichiers et [permet à des pages spécialement nommées de créer des routes dynamiques](/fr/guides/routing/#routes-dynamiques).
+
+- Astro est [basé sur des composants](/fr/basics/astro-components/), et votre structure de balisage sera similaire avant et après votre migration.
+
+- Astro a [des intégrations officielles pour React, Preact, et Solid](/fr/guides/integrations-guide/react/) pour que vous puissiez utiliser vos composants JSX existants. Notez que dans Astro, ces fichiers **doivent** avoir une extension `.jsx` ou `.tsx`.
+
+- Astro supporte [l'installation de paquets NPM](/fr/guides/imports/#paquets-npm), y compris les bibliothèques React. La plupart de vos dépendances existantes fonctionneront dans Astro.
+
+## Principales différences entre CRA et Astro
+
+Lorsque vous reconstruisez votre site CRA dans Astro, vous remarquerez quelques différences importantes :
+
+- CRA est une application à page unique qui utilise `index.js` comme racine de votre projet. Astro est un site multi-pages, et `index.astro` est votre page d'accueil.
+
+- Les composants [`.astro`](/fr/basics/astro-components/) ne sont pas écrits comme des fonctions exportées qui renvoient un modèle de page. Au lieu de cela, vous diviserez votre code en une « barrière de code » pour votre JavaScript et un corps exclusivement pour le HTML que vous générez.
+
+- [Axé sur le contenu](/fr/concepts/why-astro/#axé-sur-le-contenu) : Astro a été conçu pour mettre en valeur votre contenu et vous permettre d'opter pour l'interactivité uniquement en cas de besoin. Une application CRA existante peut être construite pour une grande interactivité côté client et peut nécessiter des techniques Astro avancées pour inclure des éléments qui sont plus difficiles à reproduire en utilisant des composants `.astro`, tels que des tableaux de bord.
+
+## Ajouter votre CRA à Astro
+
+Votre application existante peut être affichée directement dans un nouveau projet Astro, souvent sans modification du code de votre application.
+
+### Créer un nouveau projet Astro
+
+Utilisez la commande `create astro` de votre gestionnaire de paquets pour lancer l'assistant CLI d'Astro et sélectionner un nouveau projet Astro « vide ».
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn create astro@latest
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Ajouter les intégrations et les dépendances
+Ajoutez l'intégration React en utilisant la commande `astro add` de votre gestionnaire de paquets. Si votre application utilise Tailwind ou MDX, vous pouvez ajouter plusieurs intégrations Astro en utilisant la même commande :
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add react
+  npx astro add react tailwind mdx
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add react
+  pnpm astro add react tailwind mdx
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add react
+  yarn astro add react tailwind mdx
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Si votre CRA nécessite des dépendances (par exemple des paquets NPM), installez-les individuellement en utilisant la ligne de commande ou en les ajoutant manuellement au `package.json` de votre nouveau projet Astro, puis en lançant une commande d'installation. Notez que beaucoup de dépendances React, mais pas toutes, fonctionneront dans Astro.
+
+### Ajouter vos fichiers d'application existants
+
+Copiez les fichiers sources et les dossiers de votre projet Create React App (CRA) (par exemple `components`, `hooks`, `styles`, etc.) dans un nouveau dossier à l'intérieur de `src/`, en conservant sa structure de fichiers pour que votre application continue à fonctionner. Notez que toutes les extensions de fichiers `.js` doivent être renommées en `.jsx` ou `.tsx`.
+
+N'incluez aucun fichier de configuration. Vous utiliserez les propres fichiers d'Astro `astro.config.mjs`, `package.json`, et `tsconfig.json`.
+
+Déplacez le contenu du dossier `public/` de votre application (par exemple les actifs statiques) dans le dossier `public/` d'Astro.
+
+<FileTree>
+- public/
+  - logo.png
+  - favicon.ico
+  - ...
+- src/
+  - cra-project/
+    - App.jsx
+    - ...
+  - pages/
+    - index.astro
+- astro.config.mjs
+- package.json
+- tsconfig.json
+</FileTree>
+
+### Afficher votre application
+
+Importez le composant racine de votre application dans la section frontmatter de `index.astro`, puis affichez le composant `<App />` dans votre modèle de page :
+
+```astro title="src/pages/index.astro"
+---
+import App from '../cra-project/App.jsx';
+---
+<App client:load />
+```
+
+:::note[Directives client]
+Votre application a besoin d'une [directive client](/fr/reference/directives-reference/#directives-client) pour l'interactivité. Astro affichera votre application React en HTML statique jusqu'à ce que vous optiez pour le JavaScript côté client.
+
+Utilisez `client:load` pour vous assurer que votre application se charge immédiatement depuis le serveur, ou `client:only="react"` pour ignorer le rendu côté serveur et exécuter votre application entièrement côté client.
+:::
+
+Voir notre guide pour [configurer Astro](/fr/guides/configuring-astro/) pour plus de détails et les options disponibles.
+
+## Convertir votre CRA en Astro
+
+Après avoir [ajouté votre application existante à Astro](#ajouter-votre-cra-à-astro), vous voudrez probablement convertir votre application elle-même à Astro !
+
+Vous reproduirez un schéma similaire basé sur des composants [en utilisant une mise en page HTML dans des composants Astro pour votre structure de base](/fr/basics/astro-components/) tout en important et en incluant des composants React individuels (qui peuvent eux-mêmes être des applications entières !) pour des îlots d'interactivité.
+
+Chaque migration sera différente et peut être effectuée de manière incrémentale sans perturber votre application de travail. Transformez des éléments individuels à votre propre rythme afin que de plus en plus de votre application soit alimentée par des composants Astro au fil du temps.
+
+Lors de la conversion de votre application React, vous déciderez quels composants React vous allez [réécrire en composants Astro](#conversion-des-fichiers-jsx-en-fichiers-astro). La seule restriction est que les composants Astro peuvent importer des composants React, alors que les composants React ne peuvent importer que d'autres composants React :
+
+```astro title="src/pages/static-components.astro" ins={2,7}
+---
+import MyReactComponent from '../components/MyReactComponent.jsx';
+---
+<html>
+  <body>
+    <h1>Utilisez les composants React directement dans Astro !</h1>
+    <MyReactComponent />
+  </body>
+</html>
+```
+
+Au lieu d'importer des composants Astro dans des composants React, vous pouvez imbriquer des composants React dans un seul composant Astro :
+
+```astro title="src/pages/nested-components.astro" {2,3,5,8,10}
+---
+import MyReactSidebar from '../components/MyReactSidebar.jsx';
+import MyReactButton from '../components/MyReactButton.jsx';
+---
+<MyReactSidebar>
+  <p>Voici une barre latérale avec du texte et un bouton.</p>
+  <div slot="actions">
+    <MyReactButton client:idle />
+  </div>
+</MyReactSidebar>
+```
+
+
+Il peut être utile de se familiariser avec les [îles Astro](/fr/concepts/islands/) et les [composants Astro](/fr/basics/astro-components/) avant de restructurer votre CRA en projet Astro.
+
+
+### Comparaison : JSX vs Astro
+
+Comparez le composant CRA suivant et le composant Astro correspondant :
+
+<AstroJSXTabs>
+  <Fragment slot="jsx">
+    ```jsx title="StarCount.jsx"
+    import React, { useState, useEffect } from 'react';
+    import Header from './Header';
+    import Footer from './Footer';
+    
+    const Component = () => {
+        const [stars, setStars] = useState(0);
+        const [message, setMessage] = useState('');
+    
+        useEffect(() => {
+            const fetchData = async () => {
+                const res = await fetch('https://api.github.com/repos/withastro/astro');
+                const json = await res.json();
+    
+                setStars(json.stargazers_count || 0);
+                setMessage(json.message);
+            };
+    
+            fetchData();
+        }, []);
+    
+        return (
+            <>
+                <Header />
+                <p style={{
+                    backgroundColor: `#f4f4f4`,
+                    padding: `1em 1.5em`,
+                    textAlign: `center`,
+                    marginBottom: `1em`
+                }}>Astro has {stars} 🧑‍🚀</p>
+                <Footer />
+            </>
+        )
+    };
+    
+    export default Component;
+        ```
+      </Fragment>
+      <Fragment slot="astro">
+        ```astro title="StarCount.astro"
+        ---
+        import Header from './Header.astro';
+        import Footer from './Footer.astro';
+        import './layout.css';
+        const res = await fetch('https://api.github.com/repos/withastro/astro')
+        const json = await res.json();
+        const message = json.message;
+        const stars = json.stargazers_count || 0;
+        ---
+        <Header />
+        <p class="banner">Astro has {stars} 🧑‍🚀</p>
+        <Footer />
+        <style>
+          .banner {
+            background-color: #f4f4f4; 
+            padding: 1em 1.5em;
+            text-align: center;
+            margin-bottom: 1em;
+          }
+        <style>
+        ```
+  </Fragment>
+</AstroJSXTabs>
+
+
+### Conversion des fichiers JSX en fichiers `.astro`
+
+Voici quelques conseils pour convertir un composant CRA `.js` en un composant `.astro` :
+
+1. Utilisez le JSX renvoyé de la fonction du composant CRA existant comme base de votre modèle HTML.
+
+2. Changez toute [syntaxe CRA ou JSX en Astro](#référence--convertir-la-syntaxe-cra-en-astro) ou aux standards web HTML. Cela inclut `{children}` et `className`, par exemple.
+
+3. Déplacez tout JavaScript nécessaire, y compris les instructions d'importation, dans une [« barrière de code » (`---`)](/fr/basics/astro-components/#le-script-du-composant). Remarque : le JavaScript pour [afficher le contenu de manière conditionnelle](/fr/basics/astro-syntax/#html-dynamique) est souvent écrit à l'intérieur du modèle HTML directement dans Astro.
+
+4. Utilisez [`Astro.props`](/fr/reference/api-reference/#astroprops) pour accéder à toutes les props supplémentaires qui ont été précédemment transmises à votre fonction CRA.
+
+5. Décidez si les composants importés doivent également être convertis en Astro. Vous pouvez les garder en tant que composants React pour le moment, ou pour toujours. Mais vous pouvez éventuellement vouloir les convertir en composants `.astro`, surtout s'ils n'ont pas besoin d'être interactifs !
+
+6. Remplacez `useEffect()` par des déclarations d'importation ou [`Astro.glob()`](/fr/reference/api-reference/#astroglob) pour interroger vos fichiers locaux. Utilisez `fetch()` pour récupérer des données externes.
+
+### Tests de migration
+
+Comme Astro produit du HTML brut, il est possible d'écrire des tests de bout en bout en utilisant le résultat de l'étape de construction. Tous les tests de bout en bout écrits précédemment peuvent fonctionner prêts à l'emploi si vous avez été en mesure de faire correspondre le balisage de votre site avec CRA. Les bibliothèques de test telles que Jest et React Testing Library peuvent être importées et utilisées dans Astro pour tester vos composants React.
+
+Voir le [guide des tests](/fr/guides/testing/) d'Astro pour plus d'informations.
+
+## Référence : Convertir la syntaxe CRA en Astro
+
+### Importations CRA vers Astro
+
+Mettez à jour tous les [imports de fichiers](/fr/guides/imports/) pour qu'ils fassent exactement référence à des chemins d'accès relatifs. Cela peut être fait en utilisant [des alias d'importation](/fr/guides/typescript/#alias-dimportation), ou en écrivant un chemin relatif en entier.
+
+Notez que `.astro` et plusieurs autres types de fichiers doivent être importés avec leur extension complète.
+
+```astro title="src/pages/authors/Fred.astro"
+---
+import Card from '../../components/Card.astro';
+---
+<Card />
+```
+
+### Les props d'enfants de CRA à Astro
+
+Convertit toutes les instances de `{children}` en un `<slot />` Astro. Ce dernier n'a pas besoin de recevoir `{children}` en tant que propriété de fonction et affichera automatiquement le contenu des enfants dans un `<slot />`.
+
+```astro title="src/components/MyComponent.astro" del={3-9} ins={11-13}
+---
+---
+export default function MyComponent(props) { 
+    return (
+      <div>
+        {props.children}
+      </div>
+    );  
+}
+
+<div>
+  <slot />
+</div>
+```
+
+Les composants React qui passent plusieurs ensembles d'enfants peuvent être migrés vers un composant Astro en utilisant des [slots nommés](/fr/basics/astro-components/#les-emplacements-slots-nommés).
+
+En savoir plus sur [l'utilisation spécifique de `<slot />` dans Astro](/fr/basics/astro-components/#les-emplacements-slots).
+
+### Récupération de données de CRA à Astro
+
+La récupération de données dans un composant Create React App est similaire à Astro, avec quelques légères différences.
+
+Vous devrez supprimer toutes les instances d'un crochet d'effet secondaire (`useEffect`) pour `Astro.glob()` ou `getCollection()`/`getEntryBySlug()` pour accéder aux données depuis d'autres fichiers dans la source de votre projet.
+
+Pour [récupérer des données distantes](/fr/guides/data-fetching/), utilisez `fetch()`.
+
+Ces requêtes de données sont effectuées dans la partie avant du composant Astro et utilisent des attentes de premier niveau.
+
+```astro title="src/pages/index.astro"
+---
+import { getCollection } from 'astro:content';
+
+// Obtention de toutes les entrées `src/content/blog/`
+const allBlogPosts = await getCollection('blog');
+
+// Obtention de toutes les entrées `src/pages/posts/`
+const allPosts = await Astro.glob('../pages/posts/*.md');
+
+// Récupération des données à distance
+const response = await fetch('https://randomuser.me/api/');
+const data = await response.json();
+const randomUser = data.results[0];
+---
+```
+
+En savoir plus sur [l'importation de fichiers locaux avec `Astro.glob()`](/fr/guides/imports/#astroglob), [l'interrogation à l'aide de l'API Collections](/fr/guides/content-collections/#interroger-les-collections) ou [la récupération de données distantes](/fr/guides/data-fetching/).
+
+### Le style de CRA à Astro
+
+Il se peut que vous deviez remplacer les [bibliothèques CSS-in-JS](https://github.com/withastro/astro/issues/4432) (par exemple, `styled-components`) par d'autres options CSS disponibles dans Astro.
+
+Si nécessaire, convertissez les objets de style en ligne (`style={{ fontWeight: "bold" }}`) en attributs de style HTML en ligne (`style="font-weight:bold ;"`). Vous pouvez également utiliser une balise [Astro `<style>`](/fr/guides/styling/#styliser-avec-astro) pour les styles CSS étendus.
+
+```astro title="src/components/Card.astro" del={1} ins={2}
+<div style={{backgroundColor: `#f4f4f4`, padding: `1em`}}>{message}</div>
+<div style="background-color: #f4f4f4; padding: 1em;">{message}</div>
+```
+
+Tailwind est pris en charge après l'installation de l'intégration [Tailwind](/fr/guides/integrations-guide/tailwind/). Aucune modification de votre code Tailwind existant n'est nécessaire !
+
+En savoir plus sur [les styles dans Astro](/fr/guides/styling/).
+
+
+## Dépannage
+
+Votre CRA pourrait « simplement fonctionner » dans Astro ! Mais il se peut que vous deviez procéder à des ajustements mineurs pour reproduire les fonctionnalités et/ou les styles de votre application existante.
+
+Si vous ne trouvez pas les réponses à vos questions dans ces documents, visitez le [serveur Discord d'Astro](https://astro.build/chat) et posez vos questions dans notre forum d'assistance !

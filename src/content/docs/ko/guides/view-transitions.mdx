@@ -144,7 +144,7 @@ Astro는 이전 페이지와 새 페이지 모두에서 발견된 해당 요소�
 
 기본적으로 `transition:persist`를 아일랜드에 추가하면 탐색 시 상태가 유지되지만 컴포넌트는 새 props로 다시 렌더링됩니다. 예를 들어 컴포넌트가 현재 페이지의 `title`과 같은 페이지별 props를 수신할 때 유용합니다.
 
-`transition:persist-props`를 사용하여 이 동작을 재정의할 수 있습니다. 이 지시어를 추가하면 아일랜드의 기존 상태를 유지하는 것 외에도 아일랜드의 기존 props (새 값으로 다시 렌더링하지 않음)도 유지됩니다.
+`transition:persist` 외에 `transition:persist-props`를 설정하여 이 동작을 재정의할 수 있습니다. 이 지시어를 추가하면 아일랜드의 기존 상태를 유지하는 것 외에도 아일랜드의 기존 props (새 값으로 다시 렌더링하지 않음)도 유지됩니다.
 
 ### 내장 애니메이션 지시어
 
@@ -219,33 +219,68 @@ export interface TransitionDirectionalAnimations {
 }
 ```
 
-다음 예시에서는 맞춤 `fade` 애니메이션을 정의하는 데 필요한 모든 속성을 보여줍니다.
+다음 예시는 루트 레이아웃 파일의 `<style is:global>` 태그 안에 사용자 정의 `bump` 애니메이션을 정의하는 데 필요한 모든 속성을 보여줍니다:
 
-```astro
+```astro title="src/layouts/Layout.astro"
+---
+import { ViewTransitions } from 'astro:transitions';
+---
+
+<html lang="en">
+  <head>
+    <ViewTransitions />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  @keyframes bump {
+    0% {
+      opacity: 0;
+      transform: scale(1) translateX(200px);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(1.1);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateX(0);
+    }
+  }
+</style>
+```
+
+애니메이션의 동작은 애니메이션을 사용하는 모든 컴포넌트의 프런트매터에 정의되어야 합니다:
+
+```astro title="src/pages/index.astro"
 ---
 const anim = {
   old: {
-    name: 'fadeIn',
-    duration: '0.2s',
-    easing: 'linear',
-    fillMode: 'forwards',
+    name: 'bump',
+    duration: '0.5s',
+    easing: 'ease-in',
+    direction: 'reverse',
   },
   new: {
-    name: 'fadeOut',
-    duration: '0.3s',
-    easing: 'linear',
-    fillMode: 'backwards',
-  }
+    name: 'bump',
+    duration: '0.5s',
+    easing: 'ease-in-out',
+  },
 };
 
-const myFade = {
-	forwards: anim,
-	backwards: anim,
+const customTransition = {
+  forwards: anim,
+  backwards: anim,
 };
 ---
 
-<header transition:animate={myFade}> ... </header>
+<header transition:animate={customTransition}> ... </header>
 ```
+
+사용자 정의 애니메이션은 매우 유연하게 정의할 수 있습니다. 원하는 결과를 얻기 위해 forward 및 backward를 위한 다른 객체를 사용하거나 old 및 new를 위한 키프레임 애니메이션을 별도로 제공하는 등 특이한 조합을 고려할 수 있습니다.
 
 ## 라우터 제어
 
@@ -289,8 +324,8 @@ const myFade = {
   import { navigate } from 'astro:transitions/client';
 
   // 선택한 옵션으로 자동으로 이동합니다.
-  document.querySelector('select').onchange = (ev) => {
-      let href = ev.target.value;
+  document.querySelector('select').onchange = (event) => {
+      let href = event.target.value;
       navigate(href);
   };
 </script>
@@ -477,6 +512,18 @@ Astro의 기본 스크립트인 번들 [모듈 스크립트](/ko/guides/client-s
 
 번들 모듈 스크립트와 달리 여러 번 방문한 페이지에 [인라인 스크립트](/ko/guides/client-side-scripts/#처리-거부)가 존재하는 경우 사용자가 사이트를 방문하는 동안 다시 실행될 가능성이 있습니다. 인라인 스크립트는 방문자가 스크립트 없는 페이지를 탐색한 다음 스크립트가 있는 페이지로 돌아갈 때 다시 실행될 수도 있습니다.
 
+view transitions를 사용하면 일부 스크립트는 전체 페이지 브라우저 새로 고침과 같은 페이지 탐색 후 더 이상 다시 실행되지 않을 수 있습니다. [클라이언트 측 라우팅 중에 수신 대기할 수 있는 몇 가지 이벤트](#수명-주기-이벤트)가 있으며, 이벤트가 발생하면 이벤트를 실행합니다. 기존 스크립트를 이벤트 리스너에 래핑하여 탐색 주기의 적절한 시점에 실행되도록 할 수 있습니다.
+
+```js title="src/scripts/menu.js" ins={2,6}
+<script>
+document.addEventListener('astro:page-load', () => {
+  document.querySelector('.hamburger').addEventListener('click', () => {
+    document.querySelector('.nav-links').classList.toggle('expanded');
+  });
+});
+</script>
+```
+
 #### `data-astro-rerun`
 
 <p><Since v="4.5.0" /></p>
@@ -536,9 +583,9 @@ Astro의 View Transition API 수명 주기 이벤트는 다음과 같습니다.
 
 ```js
 <script is:inline>
-  document.addEventListener('astro:before-preparation', ev => {
-    const originalLoader = ev.loader;
-    ev.loader = async function() {
+  document.addEventListener('astro:before-preparation', event => {
+    const originalLoader = event.loader;
+    event.loader = async function() {
       const { startSpinner } = await import('./spinner.js');
       const stop = startSpinner();
       await originalLoader();
@@ -586,9 +633,9 @@ Astro의 View Transition API 수명 주기 이벤트는 다음과 같습니다.
 
   setDarkMode(document);
 
-  document.addEventListener('astro:before-swap', ev => {
+  document.addEventListener('astro:before-swap', event => {
     // 수신 문서를 전달하여 테마를 설정하세요.
-    setDarkMode(ev.newDocument);
+    setDarkMode(event.newDocument);
   });
 </script>
 ```
@@ -599,13 +646,42 @@ Astro의 View Transition API 수명 주기 이벤트는 다음과 같습니다.
 
 ```astro
 <script is:inline>
-  document.addEventListener('astro:before-swap', ev => {
-    ev.swap = () => {
-      diff(document, ev.newDocument);
+  document.addEventListener('astro:before-swap', event => {
+    event.swap = () => {
+      diff(document, event.newDocument);
     };
   });
 </script>
 ```
+
+#### 사용자 정의 스왑 함수 구현
+
+<p><Since v="4.15.0" /></p>
+
+`astro:transitions/client` 모듈의 `swapFunction` 객체는 문서 속성, 페이지 요소 처리, 스크립트 실행 등 특정 스왑 관련 작업을 처리하는 5가지 유틸리티 함수를 제공합니다. 이러한 함수는 사용자 정의 스왑 구현을 정의하기 위해 직접 사용될 수 있습니다.
+
+다음 예시는 이러한 함수를 사용하여 Astro의 내장 스왑 구현을 다시 만드는 방법을 보여줍니다:
+
+```astro
+<script>
+import { swapFunctions } from 'astro:transitions/client';
+
+// window.document를 doc로 대체합니다.
+function mySwap(doc: Document) {
+  swapFunctions.deselectScripts(doc);
+  swapFunctions.swapRootAttributes(doc);
+  swapFunctions.swapHeadElements(doc);
+  const restoreFocusFunction = swapFunctions.saveFocus();
+  swapFunctions.swapBodyElement(doc.body, document.body);
+  restoreFocusFunction();
+};
+
+...
+  event.swap = () => mySwap(event.newDocument);
+...
+<script>
+```
+사용자 정의 스왑 구현은 이 템플릿으로 시작하여 필요에 따라 개별 단계를 사용자 지정 로직으로 추가하거나 바꿀 수 있습니다.
 
 ### `astro:after-swap`
 
@@ -630,14 +706,14 @@ document.addEventListener('astro:after-swap',
 
 `<ViewTransitions />` 컴포넌트는 사전 렌더링된 페이지의 초기 페이지 탐색과 앞으로 또는 뒤로 진행되는 후속 탐색 모두에서 이 이벤트를 실행합니다.
 
-이 이벤트를 사용하여 모든 페이지 탐색에서 코드를 실행하거나 한 번만 실행할 수 있습니다.
+이 이벤트를 사용하여 모든 페이지 탐색에서 코드를 실행할 수 있습니다. 예를 들어 탐색 중에 손실될 수 있는 이벤트 리스너를 설정할 수 있습니다.
 
-```astro "{ once: true }"
+```astro
 <script>
   document.addEventListener('astro:page-load', () => {
-    // 이것은 한 번만 실행됩니다.
-    setupStuff();
-  }, { once: true });
+    // 이는 첫 페이지 로딩 시, 모든 탐색 후에 실행됩니다.
+    setupStuff(); // 예: 이벤트 리스너 추가
+  });
 </script>
 ```
 
@@ -664,4 +740,3 @@ document.addEventListener('astro:after-swap',
 ### `prefers-reduced-motion`
 
 Astro의 `<ViewTransitions />` 컴포넌트에는 [`prefer-reduced-motion`](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion) 설정이 감지될 때마다 대체 애니메이션을 포함한 *모든* view transition 애니메이션을 비활성화하는 CSS 미디어 쿼리가 포함되어 있습니다. 대신 브라우저는 애니메이션 없이 DOM 요소를 간단히 교체합니다.
-

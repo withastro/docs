@@ -81,69 +81,33 @@ export default defineConfig({
 
 ## 使用
 
-`@astrojs/sitemap` 需要一个部署 / 站点 URL 用于生成。在 `astro.config.*` 中使用 `site` 属性添加你的网站 URL。这个 URL 必须以 `http:` 或 `https:` 开头。
+`@astrojs/sitemap` 需要知道你站点的部署 URL 才能生成站点地图。
 
-```js title="astro.config.mjs" "'https://stargazers.club'"
+将你站点的 URL 添加到 `astro.config.mjs` 中的 [site](/zh-cn/reference/configuration-reference/#site) 选项。且这个 URL 必须以 `http://` 或 `https://` 开头。
+
+```js title="astro.config.mjs" {5}
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
 export default defineConfig({
-  // ...
   site: 'https://stargazers.club',
   integrations: [sitemap()],
+  // ...
 });
 ```
 
-请注意，与其他配置选项不同，`site` 是在根 `defineConfig` 对象中设置的，而不是在 `sitemap()` 调用内部。
+配置站点地图集成后，在构建站点时，`sitemap-index.xml` 和 `sitemap-0.xml` 文件将添加到你的输出目录中。
 
-现在，通过 `astro build` 命令[构建你的生产网站](/zh-cn/reference/cli-reference/#astro-build)。你会在 `dist/` 目录（或者你所设定的自定义[构建目录](/zh-cn/reference/configuration-reference/#outdir)）下找到两个文件：`sitemap-index.xml` 和 `sitemap-0.xml`。
+`sitemap-index.xml` 链接到所有编号的站点地图文件。
+`sitemap-0.xml` 列出了你网站上的页面。
+对于非常大的站点，可能还存在其他编号文件，例如 `sitemap-1.xml` 和 `sitemap-2.xml`。
 
-:::caution
-如果忘记添加 `site`，在构建时会收到友好的警告，并且不会生成 `sitemap-index.xml` 文件。
-:::
-
-验证网站地图已经生成后，你可以将它们添加到网站的 `<head>` 和爬虫读取的 `robots.txt` 文件中。
-
-```html title="src/layouts/Layout.astro" ins={2}
-<head>
-  <link rel="sitemap" href="/sitemap-index.xml" />
-</head>
-```
-
-```txt ins={5}
-# public/robots.txt
-User-agent: *
-Allow: /
-
-Sitemap: https://<YOUR SITE>/sitemap-index.xml
-```
-
-要动态生成 `robots.txt`，请添加一个名为 `robots.txt.ts` 的文件，并添加以下代码：
-
-```ts title="src/pages/robots.txt.ts"
-import type { APIRoute } from 'astro';
-
-const robotsTxt = `
-User-agent: *
-Allow: /
-Sitemap: ${new URL('sitemap-index.xml', import.meta.env.SITE).href}
-`.trim();
-
-export const GET: APIRoute = () => {
-  return new Response(robotsTxt, {
-    headers: {
-      'Content-Type': 'text/plain; charset=utf-8',
-    },
-  });
-};
-
-```
-
-### 一个包含两个页面的网站生成文件的示例
+<details>
+<summary>一个包含两个页面的网站生成文件的示例</summary>
 
 ```xml title="sitemap-index.xml"
 <?xml version="1.0" encoding="UTF-8"?>
-<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap>
     <loc>https://stargazers.club/sitemap-0.xml</loc>
   </sitemap>
@@ -161,10 +125,55 @@ export const GET: APIRoute = () => {
   </url>
 </urlset>
 ```
+</details>
+
+### 站点地图的抓取
+
+你可以通过网站的 `<head>` 和 `robots.txt` 文件中的链接让抓取工具更轻松地找到你的站点地图。
+
+#### `<head>` 中的站点地图链接
+
+将 `<link rel="sitemap">` 元素添加到站点的 `<head>` 中，指向站点地图索引文件：
+
+```html title="src/layouts/Layout.astro" ins={2}
+<head>
+  <link rel="sitemap" href="/sitemap-index.xml" />
+</head>
+```
+
+#### `robots.txt` 中的站点地图链接
+
+如果你的网站有 `robots.txt`，那么你可以添加站点地图索引的 URL 以帮助抓取工具：
+
+```txt ins={5}
+# public/robots.txt
+User-agent: *
+Allow: /
+
+Sitemap: https://<YOUR SITE>/sitemap-index.xml
+```
+
+如果你想再次利用 `astro.config.mjs` 中的 `site`，以动态生成 `robots.txt` 的话。
+则不要使用 `public/` 目录中的静态文件，而是创建 `src/pages/robots.txt.ts` 文件并添加以下代码：
+
+```ts title="src/pages/robots.txt.ts"
+import type { APIRoute } from 'astro';
+
+const getRobotsTxt = (sitemapURL: URL) => `
+User-agent: *
+Allow: /
+Sitemap: ${sitemapURL.href}
+`;
+
+export const GET: APIRoute = ({ site }) => {
+  const sitemapURL = new URL('sitemap-index.xml', site);
+  return new Response(getRobotsTxt(sitemapURL));
+};
+```
 
 ## 配置
 
-要配置这个集成，请给 `astro.config.mjs` 中的 `sitemap()` 传入一个对象。
+要配置这个集成，请给 `astro.config.mjs` 中的 `sitemap()` 函数传入一个对象。
 
 ```js title="astro.config.mjs" {6-8}
 import { defineConfig } from 'astro/config';
@@ -389,6 +398,26 @@ export default defineConfig({
     <xhtml:link rel="alternate" hreflang="en-US" href="https://stargazers.club/second-page/"/>
   </url>
 ...
+```
+
+### xslURL
+
+该 URL 是用于设计和美化站点地图 XSL 样式表的。
+
+该 URL 设置的值可以是相对于本地样式表配置的站点 URL 的路径，也可以是指向外部样式表的绝对 URL 链接。
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  site: 'https://example.com',
+  integrations: [
+    sitemap({
+      xslURL: '/sitemap.xsl'
+    }),
+  ],
+});
 ```
 
 ## 示例

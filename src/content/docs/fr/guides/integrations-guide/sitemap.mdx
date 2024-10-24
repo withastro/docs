@@ -12,7 +12,7 @@ Cette **[intégration Astro][astro-integration]** génère un sitemap basé sur 
 
 ## Pourquoi Astro Sitemap ?
 
-Un plan du site est un fichier XML qui décrit toutes les pages, vidéos et fichiers de votre site. Les moteurs de recherche comme Google lisent ce fichier pour explorer votre site plus efficacement. [Pour en savoir plus, consultez les conseils de Google sur les sitemaps (https://developers.google.com/search/docs/advanced/sitemaps/overview).
+Un plan du site est un fichier XML qui décrit toutes les pages, vidéos et fichiers de votre site. Les moteurs de recherche comme Google lisent ce fichier pour explorer votre site plus efficacement. [Pour en savoir plus, consultez les conseils de Google sur les sitemaps](https://developers.google.com/search/docs/advanced/sitemaps/overview).
 
 Il est recommandé d'utiliser un fichier sitemap pour les grands sites multipages. Si vous n'utilisez pas de sitemap, la plupart des moteurs de recherche seront toujours en mesure de lister les pages de votre site, mais un sitemap est un excellent moyen de s'assurer que votre site est aussi convivial que possible pour les moteurs de recherche.
 
@@ -82,70 +82,33 @@ export default defineConfig({
 
 ## Utilisation
 
-`@astrojs/sitemap` nécessite une URL de déploiement / site pour la génération. Ajoutez l'URL de votre site dans votre `astro.config.*` en utilisant la propriété `site`. Celle-ci doit commencer par `http:` ou `https:`.
+`@astrojs/sitemap` a besoin de connaître l'URL déployée de votre site pour générer un sitemap.
 
-```js title="astro.config.mjs" "'https://stargazers.club'"
+Ajoutez l'URL de votre site comme option [`site`](/fr/reference/configuration-reference/#site) dans `astro.config.mjs`. Elle doit commencer par `http://` ou `https://`.
+
+```js title="astro.config.mjs" {5}
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
 export default defineConfig({
-  // ...
   site: 'https://stargazers.club',
   integrations: [sitemap()],
+  // ...
 });
 ```
 
-Notez que contrairement aux autres options de configuration, `site` est défini dans l'objet racine `defineConfig`, plutôt que dans l'appel à `sitemap()`.
+Avec l'intégration du sitemap configurée, les fichiers `sitemap-index.xml` et `sitemap-0.xml` seront ajoutés à votre répertoire de sortie lors de la construction de votre site.
 
-Maintenant, [construisez votre site pour la production](/fr/reference/cli-reference/#astro-build) via la commande `astro build`. Vous trouverez `sitemap-index.xml` et `sitemap-0.xml` dans le dossier `dist/` (ou dans votre [répertoire de sortie](/fr/reference/configuration-reference/#outdir) si vous l'avez défini).
+`sitemap-index.xml` renvoie à tous les fichiers sitemap numérotés.
+`sitemap-0.xml` liste les pages de votre site.
+Pour les sites de très grande taille, il peut y avoir des fichiers numérotés supplémentaires comme `sitemap-1.xml` et `sitemap-2.xml`.
 
-:::caution
-Si vous oubliez d'ajouter un `site`, vous recevrez un avertissement amical lors de la construction, et le fichier `sitemap-index.xml` ne sera pas généré.
-:::
-
-Après avoir vérifié que les sitemaps sont construits, vous pouvez les ajouter au fichier `<head>` de votre site et au fichier `robots.txt` pour que les robots d'indexation les récupèrent.
-
-```html title="src/layouts/Layout.astro" ins={2}
-<head>
-  <link rel="sitemap" href="/sitemap-index.xml" />
-</head>
-```
-
-```txt ins={5}
-# public/robots.txt
-User-agent: *
-Allow: /
-
-Sitemap: https://<VOTRE SITE>/sitemap-index.xml
-```
-
-Pour générer `robots.txt` dynamiquement, ajoutez un fichier nommé `robots.txt.ts` avec le code suivant :
-
-```ts title="src/pages/robots.txt.ts"
-import type { APIRoute } from 'astro';
-
-const robotsTxt = `
-User-agent: *
-Allow: /
-
-Sitemap: ${new URL('sitemap-index.xml', import.meta.env.SITE).href}
-`.trim();
-
-export const GET: APIRoute = () => {
-  return new Response(robotsTxt, {
-    headers: {
-      'Content-Type': 'text/plain; charset=utf-8',
-    },
-  });
-};
-
-```
-
-### Exemple de fichiers générés pour un site web de deux pages
+<details>
+<summary>Exemple de fichiers générés pour un site web de deux pages</summary>
 
 ```xml title="sitemap-index.xml"
 <?xml version="1.0" encoding="UTF-8"?>
-  <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap>
     <loc>https://stargazers.club/sitemap-0.xml</loc>
   </sitemap>
@@ -163,10 +126,56 @@ export const GET: APIRoute = () => {
   </url>
 </urlset>
 ```
+</details>
+
+### Découverte du plan du site
+
+Vous pouvez faciliter la recherche de votre sitemap par les robots d'indexation en insérant des liens dans `<head>` et dans le fichier `robots.txt` de votre site.
+
+#### Lien vers le plan du site dans l'élément `<head>`
+
+Ajoutez un élément `<link rel="sitemap">` dans le `<head>` de votre site qui pointe vers le fichier index du sitemap :
+
+```html title="src/layouts/Layout.astro" ins={2}
+<head>
+  <link rel="sitemap" href="/sitemap-index.xml" />
+</head>
+```
+
+#### Lien vers le plan du site dans le fichier `robots.txt`
+
+Si vous avez un fichier `robots.txt` pour votre site web, vous pouvez ajouter l'URL de l'index du sitemap pour aider les robots d'indexation :
+
+```txt ins={5}
+# public/robots.txt
+User-agent: *
+Allow: /
+
+Sitemap: https://<VOTRE SITE>/sitemap-index.xml
+```
+
+Si vous voulez réutiliser la valeur `site` de `astro.config.mjs`, vous pouvez aussi générer `robots.txt` dynamiquement.
+Au lieu d'utiliser un fichier statique dans le répertoire `public/`, créez un fichier `src/pages/robots.txt.ts` et ajoutez le code suivant :
+
+```ts title="src/pages/robots.txt.ts"
+import type { APIRoute } from 'astro';
+
+const getRobotsTxt = (sitemapURL: URL) => `
+User-agent: *
+Allow: /
+
+Sitemap: ${sitemapURL.href}
+`;
+
+export const GET: APIRoute = ({ site }) => {
+  const sitemapURL = new URL('sitemap-index.xml', site);
+  return new Response(getRobotsTxt(sitemapURL));
+};
+```
 
 ## Configuration
 
-Pour configurer cette intégration, passez un objet à l'appel de la fonction `sitemap()` dans `astro.config.mjs`.
+Pour configurer cette intégration, passez un objet à la fonction `sitemap()` dans `astro.config.mjs`.
 
 ```js title="astro.config.mjs" {6-8}
 import { defineConfig } from 'astro/config';
@@ -390,6 +399,26 @@ Le plan du site qui en résulte ressemble à ceci :
     <xhtml:link rel="alternate" hreflang="en-US" href="https://stargazers.club/second-page/"/>
   </url>
 ...
+```
+
+### xslURL
+
+L'URL d'une feuille de style XSL pour styliser et embellir votre sitemap.
+
+La valeur définie peut être soit un chemin relatif à l'URL configurée pour votre `site` dans le cas d'une feuille de style locale, soit une URL absolue vers une feuille de style externe.
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  site: 'https://example.com',
+  integrations: [
+    sitemap({
+      xslURL: '/sitemap.xsl'
+    }),
+  ],
+});
 ```
 
 ## Exemples

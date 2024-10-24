@@ -138,11 +138,13 @@ Astroでは、`class`のようなHTML属性は子コンポーネントには自�
 
 その代わり、子コンポーネントで`class`プロパティを受け取り、それをルート要素に適用します。`class`はJavaScriptの[予約語](https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Lexical_grammar#reserved_words)なので、分割代入を利用して名前を変更する必要があります。
 
+デフォルト設定でスコープ付きスタイルを使用する場合は、`data-astro-cid-*`属性も渡す必要があります。これは、Propsの残り(`...rest`)をコンポーネントに渡すことで行うことができます。`scopedStyleStrategy`を`class`または`where`に変更した場合は、`...rest`Props は必要ありません。
+
 ```astro title="src/components/MyComponent.astro" {2,4}
 ---
-const { class: className } = Astro.props;
+const { class: className, ...rest } = Astro.props;
 ---
-<div class={className}>
+<div class={className} {...rest}>
   <slot/>
 </div>
 ```
@@ -159,10 +161,8 @@ import MyComponent from "../components/MyComponent.astro"
 <MyComponent class="red">This will be red!</MyComponent>
 ```
 
-このパターンでは、子コンポーネントに直接スタイルを設定できます。Astroは、親のスコープ付きクラス名（例：`astro-hhnqfkh6`）を`class`プロパティを通して自動的に渡し、その子を親のスコープに含めます。
-
 :::note[親コンポーネントからスコープされたクラス]
-`class`プロパティは親のスコープに子を含むので、親から子へスタイルがカスケードされる可能性があります。このような意図しない副作用を避けるには、子コンポーネントでユニークなクラス名を使用するようにします。
+`data-astro-cid-*`属性は親のスコープに子を含むため、親から子へスタイルがカスケードされる可能性があります。 これが意図しない副作用をもたらすのを避けるには、子コンポーネントで一意なクラス名を使用するようにしてください。
 :::
 
 ### インラインスタイル
@@ -215,7 +215,7 @@ import 'package-name/styles.css';
 
 パッケージが**ファイル拡張子の使用を推奨していない**場合(例: `package-name/styles`)は、まずAstroの設定を更新する必要があります！
 
-`package-name`から`normalize`という名前のCSSファイルをインポートしているとします(ファイル拡張子は省略されています)。ページを正しくプリレンダリングするために、`package-name`を[`vite.ssr.noExternal`配列](https://vitejs.dev/config/#ssr-noexternal)に追加してください。
+`package-name`から`normalize`という名前のCSSファイルをインポートしているとします(ファイル拡張子は省略されています)。ページを正しくプリレンダリングするために、`package-name`を[`vite.ssr.noExternal`配列](https://vite.dev/config/#ssr-noexternal)に追加してください。
 
 ```js ins={7}
 // astro.config.mjs
@@ -231,7 +231,7 @@ export default defineConfig({
 ```
 
 :::note
-これは[Vite固有の設定](https://vitejs.dev/config/#ssr-noexternal)であり、[Astro SSR](/ja/guides/server-side-rendering/)とは関係がありません。
+これは[Vite固有の設定](https://vite.dev/config/#ssr-noexternal)であり、[Astro SSR](/ja/guides/server-side-rendering/)とは関係がありません。
 :::
 
 これで、`package-name/normalize`を自由にインポートできるようになりました。これは、他のローカルスタイルシートと同様に、Astroによってバンドルされ、最適化されます。
@@ -516,7 +516,7 @@ export default defineConfig({
 
 ## PostCSS
 
-Astroには、[Vite](https://vitejs.dev/guide/features.html#postcss)の一部としてPostCSSが同梱されています。プロジェクトにPostCSSを設定するには、プロジェクトルートに`postcss.config.cjs`ファイルを作成します。プラグインは`require()`を使ってインポートできます。
+Astroには、[Vite](https://vite.dev/guide/features.html#postcss)の一部としてPostCSSが同梱されています。プロジェクトにPostCSSを設定するには、プロジェクトルートに`postcss.config.cjs`ファイルを作成します。プラグインは`require()`を使ってインポートできます。
 
 ```js title="postcss.config.cjs" ins={3-4}
 module.exports = {
@@ -553,7 +553,7 @@ Astro内のSvelteも期待通りに動作します。[Svelte Styling Docs][svelt
 
 ## Markdownのスタイル
 
-Astroのスタイル方法は、[Markdownレイアウトコンポーネント](/ja/basics/layouts/#markdownとmdxのレイアウト)で利用可能ですが、それぞれの方法には異なったスタイリングへの影響があります。
+Astroのスタイル方法は、[Markdownレイアウトコンポーネント](/ja/basics/layouts/#markdownのレイアウト)で利用可能ですが、それぞれの方法には異なったスタイリングへの影響があります。
 
 ページコンテンツを包むレイアウトに[インポートしたスタイルシート](/ja/guides/styling/#外部スタイル)を追加することで、Markdownコンテンツにグローバルスタイルを適用できます。
 また、レイアウトコンポーネントに、[`<style is:global>`タグ](/ja/guides/styling/#グローバルスタイル)がついたMarkdownでスタイルを追加することも可能です。追加されたスタイルは、[アストロのカスケード順序
@@ -618,7 +618,7 @@ import rawStylesCSS from '../styles/main.css?raw';
 <style is:inline set:html={rawStylesCSS}></style>
 ```
 
-詳しくは[Viteのドキュメント](https://vitejs.dev/guide/assets.html#importing-asset-as-url)をご覧ください。
+詳しくは[Viteのドキュメント](https://vite.dev/guide/assets.html#importing-asset-as-url)をご覧ください。
 
 ### `?url` CSSインポート
 
@@ -627,7 +627,7 @@ import rawStylesCSS from '../styles/main.css?raw';
 これはほとんどのユーザーにはおすすめできません。代わりに、CSSファイルを`public/`内に配置し、一貫したURLの参照を得られるようにしましょう。
 
 :::caution
-`?url`を指定して小さいCSSファイルをインポートすると、Base64でエンコードされたCSSファイルの内容がデータURLとして返されることがありますが、これは最終的なビルドのときだけです。エンコードされたデータURL(`data:text/css;base64,...`)をサポートするようにコードを書くか、この機能を無効にするために[`vite.build.assetsInlineLimit`](https://vitejs.dev/config/#build-assetsinlinelimit)設定オプションを `0`にセットする必要があります。
+`?url`を指定して小さいCSSファイルをインポートすると、Base64でエンコードされたCSSファイルの内容がデータURLとして返されることがありますが、これは最終的なビルドのときだけです。エンコードされたデータURL(`data:text/css;base64,...`)をサポートするようにコードを書くか、この機能を無効にするために[`vite.build.assetsInlineLimit`](https://vite.dev/config/#build-assetsinlinelimit)設定オプションを `0`にセットする必要があります。
 :::
 
 ```astro
@@ -639,7 +639,7 @@ import stylesUrl from '../styles/main.css?url';
 <link rel="stylesheet" href={stylesUrl}>
 ```
 
-詳しくは[Viteのドキュメント](https://vitejs.dev/guide/assets.html#importing-asset-as-url)をご覧ください。
+詳しくは[Viteのドキュメント](https://vite.dev/guide/assets.html#importing-asset-as-url)をご覧ください。
 
 
 [less]: https://lesscss.org/
@@ -647,6 +647,6 @@ import stylesUrl from '../styles/main.css?url';
 [stylus]: https://stylus-lang.com/
 [svelte-style]: https://svelte.dev/docs#component-format-style
 [tailwind]: /ja/guides/integrations-guide/tailwind/
-[vite-preprocessors]: https://vitejs.dev/guide/features.html#css-pre-processors
+[vite-preprocessors]: https://vite.dev/guide/features.html#css-pre-processors
 [vue-css-modules]: https://vue-loader.vuejs.org/guide/css-modules.html
 [vue-scoped]: https://vue-loader.vuejs.org/guide/scoped-css.html

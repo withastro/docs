@@ -108,10 +108,10 @@ Les étapes ci-dessous vous montrent comment enrichir le produit final du tutori
     <PackageManagerTabs>
       <Fragment slot="npm">
         ```shell
-        # Upgrade to Astro v4.x
+        # Mise à niveau vers Astro v4.x
         npm install astro@latest
     
-        # Exemple: mettre à jour le tutoriel du blog intégration de Preact
+        # Exemple : mettre à jour le tutoriel du blog intégration de Preact
         npm install @astrojs/preact@latest
         ```
       </Fragment>
@@ -120,7 +120,7 @@ Les étapes ci-dessous vous montrent comment enrichir le produit final du tutori
         # Mise à niveau vers Astro v4.x
         pnpm add astro@latest
     
-        # Exemple: mettre à jour le tutoriel du blog intégration de Preact
+        # Exemple : mettre à jour le tutoriel du blog intégration de Preact
         pnpm add @astrojs/preact@latest
         ```
       </Fragment>
@@ -129,7 +129,7 @@ Les étapes ci-dessous vous montrent comment enrichir le produit final du tutori
         # Mise à niveau vers Astro v4.x
         yarn add astro@latest
     
-        # Exemple: mettre à jour le tutoriel du blog intégration de Preact
+        # Exemple : mettre à jour le tutoriel du blog intégration de Preact
         yarn add @astrojs/preact@latest
         ```
       </Fragment>
@@ -184,6 +184,7 @@ Les étapes ci-dessous vous montrent comment enrichir le produit final du tutori
     Affichez l'aperçu de votre site **à une taille d'écran plus petite**, et essayez d'utiliser le menu hamburger pour naviguer entre les pages. Remarquez que votre menu ne fonctionnera plus après le chargement de la première page.
 
 </Steps>
+
 ### Mise à jour des scripts
 
 Avec les transitions de vue, certains scripts peuvent ne plus se réexécuter après la navigation dans la page, comme c'est le cas lors de l'actualisation complète du navigateur. Il existe plusieurs [événements au cours du routage côté client que vous pouvez écouter](/fr/guides/view-transitions/#événements-du-cycle-de-vie), et déclencher des événements lorsqu'ils se produisent. Les scripts de votre projet devront maintenant s'accrocher à deux événements pour s'exécuter au bon moment pendant la navigation dans la page : [`astro:page-load`](/fr/guides/view-transitions/#astropage-load) et [`astro:after-swap`](/fr/guides/view-transitions/#astroafter-swap).
@@ -207,7 +208,7 @@ Avec les transitions de vue, certains scripts peuvent ne plus se réexécuter ap
 
     Mettez à jour la balise script existante pour que votre fonction s'exécute en réponse à l'événement `astro:page-load`, rendant ainsi votre thème interactif une fois que la nouvelle page est entièrement chargée et visible par l'utilisateur :
     
-    ```astro title="src/components/ThemeIcon.astro" ins={8,38} del="is:inline"
+    ```astro title="src/components/ThemeIcon.astro" ins={8,36} del="is:inline"
     ---
     ---
     <button id="themeToggle"> /* ... */ </button>
@@ -242,9 +243,7 @@ Avec les transitions de vue, certains scripts peuvent ne plus se réexécuter ap
           localStorage.setItem("theme", isDark ? "dark" : "light");
         };
     
-        document
-          .getElementById("themeToggle")
-          .addEventListener("click", handleToggleClick);
+        document.getElementById("themeToggle").onclick = handleToggleClick;
       });
     </script>
     ```
@@ -254,28 +253,31 @@ Avec les transitions de vue, certains scripts peuvent ne plus se réexécuter ap
 
     Le changement de thème fonctionne sur chaque page, mais son script est chargé à la fin du processus de navigation, **après le chargement complet de la nouvelle page dans le navigateur**. Il peut y avoir un flash de la version à thème léger du site avant que le script de basculement de thème ne s'exécute et ne vérifie quel thème il doit utiliser sur la page.
   
-    Pour vérifier et, si nécessaire, définir le mode sombre plus tôt dans le processus de navigation, créez une fonction qui s'exécutera en réponse à l'événement `astro:after-swap`. La fonction suivante, qui vérifie le `localStorage` du navigateur pour le thème sombre, sera exécutée **immédiatement après que la nouvelle page soit remplacée par l'ancienne**, avant que les éléments du DOM ne soient peints à l'écran.
+    Pour vérifier et, si nécessaire, définir le mode sombre plus tôt dans le processus de navigation, créez une fonction qui s'exécutera en réponse à l'événement `astro:after-swap`. La fonction suivante, qui vérifie le `localStorage` du navigateur pour le thème sombre, sera exécutée quand la première page est consultée et **immédiatement après que la nouvelle page soit remplacée par l'ancienne**, avant que les éléments du DOM ne soient peints à l'écran.
   
     Ajoutez ce nouveau script au composant `<ThemeIcon />`, en plus du script qui contrôle le basculement du thème.
     
-    ```astro title="src/components/ThemeIcon.astro" ins={3-9}
-    <script> ... <script>
+    ```astro title="src/components/ThemeIcon.astro" ins={3-12}
+    <script> ... </script>
     
-    <script>
-      document.addEventListener('astro:after-swap', () => {
-      localStorage.theme === 'dark'
-        ? document.documentElement.classList.add("dark")
-        : document.documentElement.classList.remove("dark");
-    });
+    <script is:inline>
+      function applyTheme() {
+        localStorage.theme === 'dark' 
+          ? document.documentElement.classList.add("dark")
+          : document.documentElement.classList.remove("dark");
+      }
+
+      document.addEventListener('astro:after-swap', applyTheme);
+      applyTheme();
     </script>
     ```
 
 </Steps>
     Désormais, chaque changement de page **qui utilise le routeur `<ViewTransitions />` pour la navigation côté client** (et donc l'accès à l'événement `astro:after-swap`) sera en mesure de détecter `theme : dark` à partir du `localStorage` du navigateur et de mettre à jour la page actuelle en conséquence avant que la page ne soit rendue pour l'observateur.
-    
+
     <Box icon="question-mark">
       ### Testez vos connaissances
-      
+
       Quel est l'ordre correct des événements après qu'un visiteur a cliqué sur un lien pour accéder à une nouvelle page lors de la navigation côté client ?
 
           <MultipleChoice>
@@ -341,7 +343,7 @@ Avec les transitions de vue, certains scripts peuvent ne plus se réexécuter ap
 </Steps>
 
     Dans l'aperçu de votre navigateur, vous verrez maintenant les titres de la page glisser sur l'écran, tandis que d'autres éléments tels que le corps du texte continuent à s'effacer.
-    
+
     <Box icon="puzzle-piece">
       ### Essayez-le vous-même - Faites glisser les liens de navigation à l'intérieur
 
@@ -397,7 +399,7 @@ Avec les transitions de vue, certains scripts peuvent ne plus se réexécuter ap
 
     Il peut arriver que vous souhaitiez que le navigateur soit entièrement rechargé lorsque les visiteurs cliquent sur un certain lien. Par exemple, vous pouvez créer un lien vers une page qui n'utilise pas le routeur `<ViewTransitions />`, ou vers un fichier directement, comme un `.pdf`.
 
-    Pour que votre navigateur se rafraîchisse à chaque fois que vous cliquez sur le lien de navigation pour aller à votre page "About", ajoutez l'attribut `data-astro-reload` à la balise `<a>` de votre composant `<Navigation />`. Cela remplacera entièrement le routeur `<ViewTransitions />`, et toutes les animations de transition de vue, pour ce seul lien.
+    Pour que votre navigateur se rafraîchisse à chaque fois que vous cliquez sur le lien de navigation pour aller à votre page "À propos", ajoutez l'attribut `data-astro-reload` à la balise `<a>` de votre composant `<Navigation />`. Cela remplacera entièrement le routeur `<ViewTransitions />`, et toutes les animations de transition de vue, pour ce seul lien.
     
     ```astro title="src/components/Navigation.astro" ins='data-astro-reload'
     ---

@@ -1,0 +1,626 @@
+---
+title: API de la barre d'outils Dev
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+
+import RecipeLinks from "~/components/RecipeLinks.astro";
+
+L'API de la barre d'outils Dev d'Astro vous permet de créer des [Intégrations Astro](/fr/reference/integrations-reference/) qui ajoutent des applications à la barre d'outils Astro Dev. Cela vous permet d'ajouter de nouvelles fonctionnalités et des intégrations avec des services tiers.
+
+<RecipeLinks slugs={["fr/recipes/making-toolbar-apps"]} />
+
+## Configuration de l'intégration des applications dans la barre d'outils
+
+Les intégrations peuvent ajouter des applications à la barre d'outils de développement dans [le hook `astro:config:setup`](/fr/reference/integrations-reference/#astroconfigsetup).
+
+```ts title="my-integration.js" {8-13}
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "my-integration",
+  hooks: {
+    "astro:config:setup": ({ addDevToolbarApp }) => {
+      addDevToolbarApp({
+        id: "my-app",
+        name: "Mon app",
+        icon: "<svg>...</svg>",
+        entrypoint: "./my-app.js",
+      });
+    },
+  },
+});
+```
+
+### `addDevToolbarApp()`
+
+Une fonction disponible pour [le hook `astro:config:setup`](/fr/reference/integrations-reference/#astroconfigsetup) qui ajoute les applications de la barre d'outils de développement. Elle prend un objet avec les propriétés suivantes pour définir l'application de la barre d'outils : [`id`](#id), [`name`](#name), [`icon`](#icon), et [`entrypoint`](#entrypoint).
+
+### `id`
+
+Un identifiant unique pour l'application. Il sera utilisé pour identifier l'application de manière unique dans les hooks et les événements.
+
+```ts title="my-integration.js" {2}
+{
+  id: 'my-app',
+  // ...
+}
+```
+
+### `name`
+
+Le nom de l'application. Il sera affiché aux utilisateurs chaque fois que l'application devra être référencée à l'aide d'un nom lisible par l'humain.
+
+```ts title="my-integration.js" {3}
+{
+  // ...
+  name: 'My App',
+  // ...
+}
+```
+
+### `icon`
+
+L'icône utilisée pour afficher l'application dans la barre d'outils. Il peut s'agir d'une icône de [la liste des icônes](#icônes), ou d'une chaîne de caractères contenant le balisage SVG de l'icône.
+
+```ts title="my-integration.js" {3}
+{
+  // ...
+  icon: '<svg>...</svg>', // ou, par exemple 'astro:logo'
+  // ...
+}
+```
+
+### `entrypoint`
+
+Chemin d'accès au fichier qui exporte l'application de la barre d'outils de développement.
+
+```ts title="my-integration.js" {3}
+{
+  // ...
+  entrypoint: './my-app.js',
+}
+```
+
+## Structure d'une application pour la barre d'outils de développement
+
+Une application de barre d'outils de développement est un fichier `.js` ou `.ts` qui exporte par défaut un objet en utilisant la fonction [`defineToolbarApp()`](#definetoolbarapp) disponible dans le module `astro/toolbar`.
+
+```ts title="src/my-app.js"
+import { defineToolbarApp } from "astro/toolbar";
+
+export default defineToolbarApp({
+  init(canvas) {
+    const text = document.createTextNode('Hello World!');
+    canvas.appendChild(text);
+  },
+  beforeTogglingOff() {
+    const confirmation = window.confirm('Really exit?');
+    return confirmation;
+  } 
+});
+```
+### `defineToolbarApp()`
+
+<p><Since v="4.7.0" /></p>
+
+Une fonction qui définit la logique de votre application de barre d'outils lorsqu'elle est chargée et désactivée.
+
+Cette fonction prend un objet avec une fonction [`init()`](#init) qui sera appelée lorsque l'application de la barre d'outils sera chargée. Elle peut également prendre une fonction [`beforeTogglingOff()`](#beforetogglingoff) qui s'exécutera lorsque l'application de la barre d'outils sera cliquée pour désactiver son statut actif.
+
+### `init()`
+
+**Signature :** `init(canvas: ShadowRoot, app: ToolbarAppEventTarget, server: ToolbarServerHelpers) => void`
+
+Bien que cela ne soit pas obligatoire, la plupart des applications utiliseront cette fonction pour définir le comportement de base de l'application. Cette fonction ne sera appelée qu'une seule fois lors du chargement de l'application, soit lorsque le navigateur est inactif, soit lorsque l'utilisateur clique sur l'application dans l'interface utilisateur, selon ce qui se produit en premier.
+
+La fonction reçoit trois arguments pour définir la logique de votre application : [`canvas`](#canvas) (pour afficher les éléments à l'écran), [`app`](#app) (pour envoyer et recevoir des événements côté client depuis la barre d'outils de développement), et [`server`](#server) (pour communiquer avec le serveur).
+
+#### `canvas`
+
+Un [ShadowRoot](https://developer.mozilla.org/fr/docs/Web/API/ShadowRoot) standard que l'application peut utiliser pour afficher son interface utilisateur. Les éléments peuvent être créés et ajoutés au ShadowRoot à l'aide des API DOM standard.
+
+Chaque application reçoit son propre ShadowRoot dédié pour afficher son interface utilisateur. De plus, l'élément parent est positionné en utilisant `position : absolute;` afin que l'interface utilisateur de l'application n'affecte pas la mise en page d'une page Astro.
+
+```ts title="src/my-app.js" {3}
+export default defineToolbarApp({
+	init(canvas) {
+    canvas.appendChild(document.createTextNode('Bonjour le monde !'))
+  }
+});
+```
+
+#### `app`
+
+<p><Since v="4.7.0" /></p>
+
+Une interface [`EventTarget`](https://developer.mozilla.org/fr/docs/Web/API/EventTarget) standard avec quelques [aides pour les événements côté client](#sur-le-client) supplémentaires qui peuvent être utilisés pour envoyer et recevoir des événements depuis la barre d'outils Dev.
+
+```ts title="src/my-app.js" {3-6}
+export default defineToolbarApp({
+  init(canvas, app) {
+    app.onToggled(({ state }) => {
+      const text = document.createTextNode(
+        `Cette application est ${state ? "activée" : "désactivée"} !`,
+      );
+      canvas.appendChild(text);
+    });
+  },
+});
+```
+
+#### `server`
+
+<p><Since v="4.7.0" /></p>
+
+Un objet qui peut être utilisé pour [communiquer avec le serveur](#communication-client-serveur).
+
+```ts title="src/my-app.js" {3-7}
+export default defineToolbarApp({
+  init(canvas, app, server) {
+    server.send('my-message', { message: 'Hello!' });
+
+    server.on('server-message', (data) => {
+      console.log(data.message);
+    });
+  },
+});
+```
+
+### `beforeTogglingOff()`
+
+**Signature :** `beforeTogglingOff(canvas: ShadowRoot): boolean | void`
+<Since v="4.7.0" /><br/>
+
+Cette fonction facultative est appelée lorsque l'utilisateur clique sur l'icône de l'application dans l'interface utilisateur pour la désactiver. Cette fonction peut être utilisée, par exemple, pour effectuer des opérations de nettoyage ou pour demander à l'utilisateur une confirmation avant de désactiver l'application.
+
+Si une valeur fausse est renvoyée, la désactivation sera annulée et l'application restera activée.
+
+```ts title="src/my-app.js" {3-6}
+export default defineToolbarApp({
+  // ...
+  beforeTogglingOff() {
+    const confirmation = window.confirm('Êtes-vous sûr de vouloir désactiver cette application ?');
+    return confirmation;
+  }
+});
+```
+
+#### canvas
+
+Le ShadowRoot de l'application, peut être utilisé pour afficher toute interface utilisateur nécessaire avant la fermeture. Identique à l'argument [`canvas` de la fonction `init`](#canvas).
+
+## Événements côté client
+
+En plus des méthodes standards d'une `EventTarget` ([`addEventListener`](https://developer.mozilla.org/fr/docs/Web/API/EventTarget), [`dispatchEvent`](https://developer.mozilla.org/fr/docs/Web/API/EventTarget/dispatchEvent), [`removeEventListener`](https://developer.mozilla.org/fr/docs/Web/API/EventTarget/removeEventListener), etc.), l'objet [`app`](#app) possède aussi les méthodes suivantes :
+
+### `onToggled()`
+
+**Signature :** `onToggled(callback: (options: {state: boolean})) => void`
+<Since v="4.7.0" /><br/>
+
+Enregistre un rappel à appeler lorsque l'utilisateur clique sur l'icône de l'application dans l'interface utilisateur pour activer ou désactiver l'application.
+
+```ts title="src/my-app.js"
+app.onToggled((options) => {
+  console.log(`L'application est maintenant ${options.state ? 'activée' : 'désactivée'} !`);
+});
+```
+
+### `onToolbarPlacementUpdated()`
+
+**Signature :** `onToolbarPlacementUpdated(callback: (options: {placement: 'bottom-left' | 'bottom-center' | 'bottom-right'})) => void`
+<Since v="4.7.0" /><br/>
+
+Cet événement est déclenché lorsque l'utilisateur modifie l'emplacement de la barre d'outils de développement. Il peut, par exemple, être utilisé pour repositionner l'interface utilisateur de l'application lorsque la barre d'outils est déplacée.
+
+```ts title="src/my-app.js"
+app.onToolbarPlacementUpdated((options) => {
+  console.log(`La barre d'outils est maintenant placée à ${options.placement}!`);
+});
+```
+
+### `toggleState()`
+
+**Signature :** `toggleState(options: {state: boolean}) => void`
+<Since v="4.7.0" /><br/>
+
+Modifie l'état de l'application. Cela peut être utilisé pour activer ou désactiver l'application de manière programmatique, par exemple, lorsque l'utilisateur clique sur un bouton dans l'interface utilisateur de l'application.
+
+```ts title="src/my-app.js"
+app.toggleState({ state: false });
+```
+
+### `toggleNotification()`
+
+**Signature :** `toggleNotification(options: {state?: boolean, level?: 'error' | 'warning' | 'info'}) => void`
+<Since v="4.7.0" /><br/>
+
+Permet d'afficher une notification sur l'icône de l'application. Elle peut être utilisée pour informer l'utilisateur que l'application requiert son attention ou pour supprimer la notification en cours.
+
+```ts title="src/my-app.js"
+app.toggleNotification({
+  state: true,
+  level: 'warning',
+});
+```
+
+#### `state: boolean`
+
+Indique si l'application a une notification pour l'utilisateur. Lorsque `true`, l'icône de l'application sera mise en évidence. Inversement, lorsque `false`, la mise en évidence sera supprimée. Si cette propriété n'est pas spécifiée, `true` sera pris en compte.
+
+#### `level: 'error' | 'warning' | 'info'`
+
+Indique le niveau de la notification. Il sera utilisé pour déterminer la couleur et la forme (cercle rose foncé, triangle doré ou carré bleu) de la surbrillance sur l'icône de l'application. Si cette propriété n'est pas spécifiée, `'error'` sera pris en compte.
+
+## Communication client-serveur
+
+En utilisant les [méthodes de communication client-serveur de Vite](https://vite.dev/guide/api-plugin.html#client-server-communication), les applications de la barre d'outils Dev et le serveur peuvent communiquer entre eux. Afin de faciliter l'envoi et la réception de messages personnalisés, des méthodes d'aide sont fournies pour être utilisées à la fois dans votre application de barre d'outils (sur le client) et dans votre intégration (sur le serveur).
+
+### Sur le client
+
+Dans votre application, utilisez l'objet [`server` sur le hook `init()`](#server) pour envoyer et recevoir des messages vers et depuis le serveur.
+
+```ts title="src/my-app.js" {3-7} "server"
+export default defineToolbarApp({
+  init(canvas, app, server) {
+    server.send('my-message', { message: 'Bonjour !' });
+
+    server.on('server-message', (data) => {
+      console.log(data.message);
+    });
+  },
+});
+```
+
+#### `send()`
+
+**Signature :** `send<T>(event: stringify, data: T) => void`
+<Since v="4.7.0" />
+
+Envoie des données au serveur à partir de la logique définie dans l'application de la barre d'outils.
+
+```ts title="src/my-app.js"
+init(canvas, app, server) {
+  server.send('my-app:my-message', { message: 'Bonjour !' });
+}
+```
+
+Lors de l'envoi de messages du client au serveur, il est conseillé de préfixer le nom de l'événement avec l'identifiant de l'application ou d'autres espaces de noms afin d'éviter les conflits avec d'autres applications ou d'autres intégrations qui pourraient être à l'écoute de messages.
+
+#### `on()`
+
+**Signature :** `on<T>(event: string, callback: (data: T) => void) => void`
+<Since v="4.7.0" /><br/>
+
+Enregistre un rappel à appeler lorsque le serveur envoie un message avec l'événement spécifié.
+
+```ts title="src/my-app.js"
+init(canvas, app, server) {
+  server.on('server-message', (data) => {
+    console.log(data.message);
+  });
+}
+```
+
+### Sur le serveur
+
+Dans une intégration, telle que [l'intégration qui ajoute votre application de barre d'outils](#configuration-de-lintégration-des-applications-dans-la-barre-doutils), utilisez le [hook `astro:server:setup`](/fr/reference/integrations-reference/#astroserversetup) pour accéder à l'objet `toolbar` afin d'envoyer et de recevoir des messages vers et à partir de vos applications.
+
+```ts title="my-integration.js" {5}
+export default () => ({
+  name: "my-integration",
+  hooks: {
+    "astro:config:setup": ({ addDevToolbarApp }) => {},
+    "astro:server:setup": ({ toolbar }) => {},
+  },
+});
+```
+
+#### `send()`
+
+**Signature :** `send<T>(event: string, data: T) => void`
+<Since v="4.7.0" /><br/>
+
+Envoie des données au client.
+
+```ts title="my-integration.js"
+'astro:server:setup': ({ toolbar }) => {
+  toolbar.send('server-message', { message: 'Bonjour !' });
+},
+```
+
+#### `on()`
+
+**Signature :** `on<T>(event: string, callback: (data: T) => void) => void`
+<Since v="4.7.0" /><br/>
+
+Enregistre un callback qui sera appelé lorsque le client enverra un message avec l'événement spécifié.
+
+```ts title="my-integration.js"
+'astro:server:setup': ({ toolbar }) => {
+  toolbar.on('my-app:my-message', (data) => {
+    console.log(data.message);
+  });
+},
+```
+
+#### `onInitialized()`
+
+**Signature :** `onInitialized(appId: string, callback: () => void) => void`
+<Since v="4.7.0" /><br/>
+
+Enregistre un callback qui sera appelé lors de l'initialisation de l'application.
+
+```ts title="my-integration.js"
+'astro:server:setup': ({ toolbar }) => {
+  toolbar.onInitialized('my-app', () => {
+    console.log("L'application est maintenant initialisée !");
+  });
+},
+```
+
+:::note
+L'événement intégré `connection` de Vite se déclenche **avant** que les applications de la barre d'outils Dev ne soient initialisées et ne peut donc pas être utilisé directement par les applications. Utilisez la méthode `onInitialized` pour vous assurer que l'application est complètement initialisée avant de lui envoyer des messages.
+:::
+
+#### `onAppToggled()`
+
+**Signature :** `onAppToggled(appId: string, callback: (options: {state: boolean}) => void) => void`
+<Since v="4.7.0" /><br/>
+
+Enregistre une fonction de rappel à appeler lorsque l'utilisateur clique sur l'icône de l'application dans l'interface utilisateur pour activer ou désactiver l'application.
+
+```ts title="my-integration.js"
+'astro:server:setup': ({ toolbar }) => {
+  toolbar.onAppToggled('my-app', ({ state }) => {
+    console.log(`L'application est maintenant ${state ? 'activée' : 'désactivée'} !`);
+  });
+},
+```
+
+## Bibliothèque de composants
+
+La barre d'outils Dev comprend un ensemble de composants web qui peuvent être utilisés pour créer des applications avec une apparence et une convivialité cohérentes.
+
+### `astro-dev-toolbar-window`
+
+Affiche une fenêtre.
+
+Le slot du composant sera utilisé comme contenu de la fenêtre.
+
+```html
+<astro-dev-toolbar-window>
+  <p>Mon contenu</p>
+</astro-dev-toolbar-window>
+```
+
+Lors de la construction d'une fenêtre à l'aide de JavaScript, le contenu des slots doit être placé à l'intérieur du DOM allégé du composant.
+
+```js
+const myWindow = document.createElement('astro-dev-toolbar-window');
+const myContent = document.createElement('p');
+myContent.textContent = 'Mon contenu';
+
+// utilise appendChild directement sur `window`, et non sur `myWindow.shadowRoot`
+myWindow.appendChild(myContent);
+```
+
+### `astro-dev-toolbar-button`
+
+Affiche un bouton.
+
+L'emplacement du composant sera utilisé comme contenu du bouton.
+
+```js
+const myButton = document.createElement('astro-dev-toolbar-button');
+myButton.textContent = 'Cliquez sur moi !';
+myButton.buttonStyle = "purple";
+myButton.size = "medium";
+
+myButton.addEventListener('click', () => {
+  console.log('Cliqué !');
+});
+```
+
+#### `size`
+
+La taille du bouton (`small`, `medium`, `large`).
+
+#### `button-style`
+
+Le style du bouton (`ghost`, `outline`, `purple`, `gray`, `red`, `green`, `yellow`, `blue`). En utilisant `ghost`, le bouton lui-même est invisible et seul le contenu du bouton est affiché.
+
+En JavaScript, définissez cette propriété en utilisant la propriété `buttonStyle` pour éviter tout conflit avec la propriété native `style`.
+
+#### `button-border-radius`
+
+<p><Since v="4.8.0" /></p>
+
+Le rayon de la bordure du bouton (`normal`, `rounded`). Si vous utilisez `rounded`, le bouton aura des coins arrondis et un rembourrage uniforme sur tous les côtés.
+
+En JavaScript, définissez cette propriété à l'aide de la propriété `buttonBorderRadius`.
+
+### `astro-dev-toolbar-badge`
+
+Affiche un badge.
+
+L'emplacement du composant sera utilisé comme contenu du badge.
+
+```html
+<astro-dev-toolbar-badge>Mon badge</astro-dev-toolbar-badge>
+```
+
+#### `size`
+
+La taille du badge (`small`, `large`).
+
+#### `badge-style`
+
+Le style (couleur) du badge (`purple`, `gray`, `red`, `green`, `yellow`, `blue`).
+
+En JavaScript, définissez cette propriété en utilisant la propriété `badgeStyle` pour éviter tout conflit avec la propriété native `style`.
+
+### `astro-dev-toolbar-card`
+
+Montre une carte. Spécifiez un attribut `link` facultatif pour que la carte agisse comme un élément `<a>`.
+
+Lors de la création d'une carte à l'aide de JavaScript, une propriété `clickAction` peut être spécifiée pour que la carte se comporte comme un élément `<button>`.
+
+L'emplacement du composant sera utilisé comme contenu de la carte.
+
+```html
+<astro-dev-toolbar-card icon="astro:logo" link="https://github.com/withastro/astro/issues/new/choose">Signaler un problème</astro-dev-toolbar-card>
+```
+
+#### `card-style`
+
+Le style de la carte (`purple`, `gray`, `red`, `green`, `yellow`, `blue`). La couleur n'est appliquée au bord de la carte qu'au survol.
+
+En JavaScript, définissez cette propriété à l'aide de `cardStyle`.
+
+### `astro-dev-toolbar-toggle`
+
+Affiche un élément à bascule, agissant comme une case à cocher. Cet élément est une simple enveloppe autour de l'élément natif `<input type="checkbox">`. L'élément checkbox est accessible à l'aide de la propriété `input`.
+
+```ts
+const toggle = document.createElement('astro-dev-toolbar-toggle');
+
+toggle.input.addEventListener('change', (evt) => {
+  console.log(`La bascule est maintenant ${evt.currentTarget.checked ? 'activée' : 'désactivée'} !`);
+});
+```
+
+### `astro-dev-toolbar-radio-checkbox`
+
+<p><Since v="4.8.0" /></p>
+
+Affiche une case à cocher de type radio. Similaire au composant `astro-dev-toolbar-toggle`, cet élément est une simple enveloppe autour d'un élément natif `<input type="radio">`. L'élément radio est accessible à l'aide de la propriété `input`.
+
+```ts
+const radio = document.createElement('astro-dev-toolbar-radio-checkbox');
+
+radio.input.addEventListener('change', (evt) => {
+  console.log(`La radio est maintenant ${evt.currentTarget.checked ? 'activée' : 'désactivée'} !`);
+});
+```
+
+#### `toggle-style`
+
+Le style du menu déroulant (`purple`, `gray`, `red`, `green`, `yellow`, `blue`).
+
+En JavaScript, définissez cette propriété à l'aide de la propriété `toggleStyle`.
+
+### `astro-dev-toolbar-highlight`
+
+Peut être utilisé pour mettre en évidence un élément sur la page. Dans la plupart des cas, vous devrez positionner et redimensionner cet élément en utilisant les propriétés CSS `top`, `left`, `width` et `height` pour qu'il corresponde à l'élément que vous souhaitez mettre en évidence.
+
+```html
+<!-- Mise en évidence de la page entière -->
+<astro-dev-toolbar-highlight style="top: 0; left: 0; width: 100%; height: 100%;"></astro-dev-toolbar-highlight>
+```
+
+```ts
+const elementToHighlight = document.querySelector('h1');
+const rect = elementToHighlight.getBoundingClientRect();
+
+const highlight = document.createElement('astro-dev-toolbar-highlight');
+
+highlight.style.top = `${Math.max(rect.top + window.scrollY - 10, 0)}px`;
+highlight.style.left = `${Math.max(rect.left + window.scrollX - 10, 0)}px`;
+highlight.style.width = `${rect.width + 15}px`;
+highlight.style.height = `${rect.height + 15}px`;
+highlight.icon = 'astro:logo';
+```
+
+#### `style`
+
+Le style de la mise en évidence (`purple`, `gray`, `red`, `green`, `yellow`, `blue`).
+
+#### `icon`
+
+Une [icône](#icônes) à afficher dans le coin supérieur droit de la surbrillance.
+
+### `astro-dev-toolbar-tooltip`
+
+Affiche une infobulle avec différentes sections. Ce composant est réglé sur `display : none;` par défaut et peut être rendu visible en utilisant l'attribut `data-show="true"`.
+
+Les sections sont définies à l'aide de la propriété `sections`. Cette propriété est un tableau d'objets ayant la forme suivante :
+
+```ts
+{
+	title?: string; // Titre de la section
+	inlineTitle?: string; // Titre de la section, affiché en ligne à côté du titre
+	icon?: Icon; // Icône de la section
+	content?: string; // Contenu de la section
+	clickAction?: () => void | Promise<void>; // Action à effectuer en cliquant sur la section
+	clickDescription?: string; // Description de l'action à effectuer en cliquant sur la section
+}
+```
+
+```ts
+const tooltip = document.createElement('astro-dev-toolbar-tooltip');
+
+tooltip.sections = [{
+  title: 'Ma section',
+  icon: 'astro:logo',
+  content: 'Mon contenu',
+  clickAction: () => {
+    console.log('Cliqué !')
+  },
+  clickDescription: 'Cliquez-moi dessus !'
+}]
+```
+
+Ce composant est souvent combiné avec le composant `astro-dev-toolbar-highlight` pour afficher une infobulle au survol d'un élément mis en évidence :
+
+```ts
+const highlight = document.createElement('astro-dev-toolbar-highlight');
+
+// Positionne la mise en évidence...
+
+const tooltip = document.createElement('astro-dev-toolbar-tooltip');
+
+// Ajoute des sections à l'infobulle...
+
+highlight.addEventListener('mouseover', () => {
+  tooltip.dataset.show = 'true';
+});
+
+highlight.addEventListener('mouseout', () => {
+  tooltip.dataset.show = 'false';
+});
+```
+
+### `astro-dev-toolbar-icon`
+
+Affiche une icône. Une icône de [la liste des icônes](#icônes) peut être spécifiée en utilisant l'attribut `icon`, ou le balisage SVG d'une icône peut être passé en tant que slot.
+
+```html
+<astro-dev-toolbar-icon icon="astro:logo" />
+```
+
+```html
+<astro-dev-toolbar-icon>
+  <svg>...</svg>
+</astro-dev-toolbar-icon>
+```
+
+#### Icônes
+
+Les icônes suivantes sont actuellement disponibles et peuvent être utilisées dans tout composant acceptant une icône :
+
+- `astro:logo`
+- `warning`
+- `arrow-down`
+- `bug`
+- `file-search`
+- `check-circle`
+- `gear`
+- `lightbulb`
+- `checkmark`
+- `dots-three`
+- `copy`
+
+Toutes les icônes ci-dessus utilisent `fill="currentColor"` par défaut et héritent de la couleur de l'élément parent.

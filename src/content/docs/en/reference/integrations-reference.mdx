@@ -24,7 +24,7 @@ interface AstroIntegration {
   hooks: {
     'astro:config:setup'?: (options: {
       config: AstroConfig;
-      command: 'dev' | 'build' | 'preview';
+      command: 'dev' | 'build' | 'preview' | 'sync';
       isRestart: boolean;
       updateConfig: (newConfig: DeepPartial<AstroConfig>) => AstroConfig;
       addRenderer: (renderer: AstroRenderer) => void;
@@ -33,10 +33,16 @@ interface AstroIntegration {
       addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
       addDevToolbarApp: (pluginEntrypoint: string) => void;
       injectScript: (stage: InjectedScriptStage, content: string) => void;
-      injectRoute: ({ pattern: string, entrypoint: string }) => void;
+      injectRoute: (injectedRoute: { pattern: string, entrypoint: string }) => void;
       logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
-    'astro:config:done'?: (options: { config: AstroConfig; setAdapter: (adapter: AstroAdapter) => void; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:config:done'?: (options: {
+      config: AstroConfig;
+      setAdapter: (adapter: AstroAdapter) => void;
+      injectTypes: (injectedType: { filename: string; content: string }) => URL;
+      logger: AstroIntegrationLogger;
+      }) => void | Promise<void>;
+    'astro:route:setup'?: (options: { route: RouteOptions; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:server:setup'?: (options: { server: vite.ViteDevServer; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:server:start'?: (options: { address: AddressInfo; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:server:done'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
@@ -54,24 +60,30 @@ interface AstroIntegration {
         logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
     'astro:build:done'?: (options: { dir: URL; routes: RouteData[]; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+
+    // ... any custom hooks from integrations
   };
 }
 ```
 
 ## Hooks
 
+Astro provides hooks that integrations can implement to execute during certain parts of Astro's lifecycle. Astro hooks are defined in the `IntegrationHooks` interface, which is part of the global `Astro` namespace.
+
+The following hooks are built in to Astro:
+
 ### `astro:config:setup`
 
 **Next hook:** [`astro:config:done`](#astroconfigdone)
 
-**When:** On initialization, before either the [Vite](https://vitejs.dev/config/) or [Astro config](/en/reference/configuration-reference/) have resolved.
+**When:** On initialization, before either the [Vite](https://vite.dev/config/) or [Astro config](/en/reference/configuration-reference/) have resolved.
 
-**Why:** To extend the project config. This includes updating the [Astro config](/en/reference/configuration-reference/), applying [Vite plugins](https://vitejs.dev/guide/api-plugin.html), adding component renderers, and injecting scripts onto the page.
+**Why:** To extend the project config. This includes updating the [Astro config](/en/reference/configuration-reference/), applying [Vite plugins](https://vite.dev/guide/api-plugin.html), adding component renderers, and injecting scripts onto the page.
 
 ```ts
 'astro:config:setup'?: (options: {
   config: AstroConfig;
-  command: 'dev' | 'build' | 'preview';
+  command: 'dev' | 'build' | 'preview' | 'sync';
   isRestart: boolean;
   updateConfig: (newConfig: DeepPartial<AstroConfig>) => AstroConfig;
   addRenderer: (renderer: AstroRenderer) => void;
@@ -93,11 +105,12 @@ A read-only copy of the user-supplied [Astro config](/en/reference/configuration
 
 #### `command` option
 
-**Type:** `'dev' | 'build' | 'preview'`
+**Type:** `'dev' | 'build' | 'preview' | 'sync'`
 
 - `dev` - Project is executed with `astro dev`
 - `build` - Project is executed with `astro build`
 - `preview` - Project is executed with `astro preview`
+- `sync` - Project is executed with `astro sync`
 
 #### `isRestart` option
 
@@ -111,7 +124,7 @@ A read-only copy of the user-supplied [Astro config](/en/reference/configuration
 
 A callback function to update the user-supplied [Astro config](/en/reference/configuration-reference/). Any config you provide **will be merged with the user config + other integration config updates,** so you are free to omit keys!
 
-For example, say you need to supply a [Vite](https://vitejs.dev/) plugin to the user's project:
+For example, say you need to supply a [Vite](https://vite.dev/) plugin to the user's project:
 
 ```js
 import bananaCSS from '@vitejs/official-banana-css-plugin';
@@ -358,7 +371,7 @@ When publishing your package (`@fancy/dashboard`, in this case) to npm, you must
 
 A callback function to inject a string of JavaScript content onto every page.
 
-The **`stage`** denotes how this script (the `content`) should be inserted. Some stages allow inserting scripts without modification, while others allow optimization during [Vite's bundling step](https://vitejs.dev/guide/build.html):
+The **`stage`** denotes how this script (the `content`) should be inserted. Some stages allow inserting scripts without modification, while others allow optimization during [Vite's bundling step](https://vite.dev/guide/build.html):
 
 - `"head-inline"`: Injected into a script tag in the `<head>` of every page. **Not** optimized or resolved by Vite.
 - `"before-hydration"`: Imported client-side, before the hydration script runs. Optimized and resolved by Vite.
@@ -381,7 +394,12 @@ The **`stage`** denotes how this script (the `content`) should be inserted. Some
 **Why:** To retrieve the final config for use in other hooks.
 
 ```js
-'astro:config:done'?: (options: { config: AstroConfig }) => void | Promise<void>;
+'astro:config:done'?: (options: {
+  config: AstroConfig;
+  setAdapter: (adapter: AstroAdapter) => void;
+  injectTypes: (injectedType: { filename: string; content: string }) => URL;
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
 ```
 
 #### `config` option
@@ -390,13 +408,41 @@ The **`stage`** denotes how this script (the `content`) should be inserted. Some
 
 A read-only copy of the user-supplied [Astro config](/en/reference/configuration-reference/). This is resolved _after_ other integrations have run.
 
+#### `setAdapter` option
+
+**Type:** `(adapter: AstroAdapter) => void;`
+
+Makes the integration an adapter. Read more in the [adapter API](/en/reference/adapter-reference/).
+
+#### `injectTypes` options
+
+<p><Since v="4.14.0" /></p>
+
+**Type:** `(injectedType: { filename: string; content: string }) => URL`
+
+Allows you to inject types into your user's project by adding a new `*.d.ts` file.
+
+The `filename` property will be used to generate a file at `/.astro/integrations/<normalized_integration_name>/<normalized_filename>.d.ts` and must end with `".d.ts"`.
+
+The `content` property will create the body of the file and must be valid TypeScript.
+
+Additionally, `injectTypes()` returns a URL to the normalized path so you can overwrite its content later on, or manipulate it in any way you want.
+
+```js
+const path = injectTypes({
+  filename: "types.d.ts",
+  content: "declare module 'virtual:integration' {}"
+})
+console.log(path) // URL
+```
+
 ### `astro:server:setup`
 
 **Previous hook:** [`astro:config:done`](#astroconfigdone)
 
 **Next hook:** [`astro:server:start`](#astroserverstart)
 
-**When:** Just after the Vite server is created in "dev" mode, but before the `listen()` event is fired. [See Vite's createServer API](https://vitejs.dev/guide/api-javascript.html#createserver) for more.
+**When:** Just after the Vite server is created in "dev" mode, but before the `listen()` event is fired. [See Vite's createServer API](https://vite.dev/guide/api-javascript.html#createserver) for more.
 
 **Why:** To update Vite server options and middleware.
 
@@ -406,7 +452,7 @@ A read-only copy of the user-supplied [Astro config](/en/reference/configuration
 
 #### `server` option
 
-**Type:** [`ViteDevServer`](https://vitejs.dev/guide/api-javascript.html#vitedevserver)
+**Type:** [`ViteDevServer`](https://vite.dev/guide/api-javascript.html#vitedevserver)
 
 A mutable instance of the Vite server used in "dev" mode. For instance, this is [used by our Partytown integration](/en/guides/integrations-guide/partytown/) to inject the Partytown server as middleware:
 
@@ -526,7 +572,7 @@ The address, family and port number supplied by the [Node.js Net module](https:/
 
 **When:** After a production build (SSG or SSR) has completed.
 
-**Why:** To access generated routes and assets for extension (ex. copy content into the generated `/assets` directory). If you plan to transform generated assets, we recommend exploring the [Vite Plugin API](https://vitejs.dev/guide/api-plugin.html) and [configuring via `astro:config:setup`](#updateconfig-option) instead.
+**Why:** To access generated routes and assets for extension (ex. copy content into the generated `/assets` directory). If you plan to transform generated assets, we recommend exploring the [Vite Plugin API](https://vite.dev/guide/api-plugin.html) and [configuring via `astro:config:setup`](#updateconfig-option) instead.
 
 ```js
 'astro:build:done'?: (options: { dir: URL; routes: RouteData[], pages: { pathname: string }[] }) => void | Promise<void>;
@@ -612,6 +658,87 @@ interface RouteData {
 A list of all generated pages. It is an object with one property.
 
 - `pathname` - the finalized path of the page.
+
+### `astro:route:setup`
+
+<p><Since v="4.14.0" /></p>
+
+**When:** In `astro dev`, whenever a route is requested. In `astro build`, while bundling and transforming a route file.
+
+**Why:** To set options for a route at build or request time, such as enabling [on-demand server rendering](/en/guides/server-side-rendering/#opting-in-to-pre-rendering-in-server-mode).
+
+```js
+'astro:route:setup'?: (options: { route: RouteOptions }) => void | Promise<void>;
+```
+
+#### `route` option
+
+**Type:** `RouteOptions`
+
+An object with a `component` property to identify the route and the following additional values to allow you to configure the generated route: `prerender`.
+
+The `component` property is a readonly string path relative to the project root, e.g `"src/pages/blog/[slug].astro"`.
+
+##### `route.prerender`
+
+<p>
+**Type:** `boolean`<br />
+**Default:** `undefined`<br />
+<Since v="4.14.0" />
+</p>
+
+The `prerender` property is used to configure [on-demand server rendering](/en/guides/server-side-rendering/#opting-in-to-pre-rendering-in-server-mode) for a route. If the route file contains an explicit `export const prerender` value, the value will be used as the default instead of `undefined`.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  integrations: [setPrerender()],
+});
+
+function setPrerender() {
+  return {
+    name: 'set-prerender',
+    hooks: {
+      'astro:route:setup': ({ route }) => {
+        if (route.component.endsWith('/blog/[slug].astro')) {
+          route.prerender = true;
+        }
+      },
+    },
+  };
+}
+```
+ 
+If the final value after running all the hooks is `undefined`, the route will fall back to a prerender default based on the [`output` option](/en/reference/configuration-reference/#output): prerendered for `hybrid` mode, and on-demand rendered for `server` mode.
+
+### Custom hooks
+
+Custom hooks can be added to integrations by extending the `IntegrationHooks` interface through [global augmentation](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#global-augmentation).
+
+```ts
+declare global {
+  namespace Astro {
+    export interface IntegrationHook {
+      'your:hook': (params: YourHookParameters) => Promise<void>
+    }
+  }
+}
+```
+
+Astro reserves the `astro:` prefix for future built-in hooks. Please choose a different prefix when naming your custom hook.
+
+### `HookParameters`
+
+You can get the type of a hook’s arguments by passing the hook’s name to the `HookParameters` utility type. In the following example, a function’s `options` argument is typed to match the parameters of the `astro:config:setup` hook:
+
+```ts /HookParameters(?:<.+>)?/
+import type { HookParameters } from 'astro';
+
+function mySetup(options: HookParameters<'astro:config:setup'>) {
+  options.updateConfig({ /* ... */ });
+}
+```
 
 ## Allow installation with `astro add`
 

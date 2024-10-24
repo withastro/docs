@@ -123,7 +123,7 @@ Supabase 提供了开箱即用的身份验证功能。它支持电子邮件（�
 - `POST /api/auth/signin`: 用户登录。
 - `GET /api/auth/signout`: 用户退出登录。
 
-在新建目录 `src/pages/api/auth/` 下，创建与身份验证相关的三个端点：`signin.ts`、`signout.ts` 和 `register.ts`。
+在项目的 `src/pages/api/auth/` 目录下，创建这些端点。如果你正在使用 `hybrid` 渲染模式，则必须在每个文件的顶部指定 `export const prerender = false` 以按需渲染这些端点。你的项目现在应该包含这些新文件：
 
 <FileTree title="Project Structure">
 - src/
@@ -144,6 +144,8 @@ Supabase 提供了开箱即用的身份验证功能。它支持电子邮件（�
 `register.ts` 文件包含使用 Supabase 注册用户的代码逻辑。它接受带有一个电子邮箱和密码信息的 `POST` 请求。然后它将使用 Supabase SDK 创建一个新用户。
 
 ```ts title="src/pages/api/auth/register.ts"
+// 使用 `output: 'hybrid'` 渲染模式时，需添加的配置：
+// export const prerender = false;
 import type { APIRoute } from "astro";
 import { supabase } from "../../../lib/supabase";
 
@@ -172,6 +174,8 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 `signin.ts` 文件包含使用 Supabase 执行用户登录的代码逻辑。它接受一个带有电子邮箱和密码信息的 `POST` 请求。然后它将使用 Supabase SDK 登录用户。
 
 ```ts title="src/pages/api/auth/signin.ts"
+// 使用 `output: 'hybrid'` 渲染模式时，需添加的配置：
+// export const prerender = false;
 import type { APIRoute } from "astro";
 import { supabase } from "../../../lib/supabase";
 
@@ -207,6 +211,8 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 `signout.ts` 文件包含使用 Supabase 执行用户退出登录的代码逻辑。它接受一个 `GET` 请求并且删除用户的访问信息和刷新令牌。
 
 ```ts title="src/pages/api/auth/signout.ts"
+// 使用 `output: 'hybrid'` 渲染模式时，需添加的配置：
+// export const prerender = false;
 import type { APIRoute } from "astro";
 
 export const GET: APIRoute = async ({ cookies, redirect }) => {
@@ -294,39 +300,46 @@ if (accessToken && refreshToken) {
 </Layout>
 ```
 
-`dashboard.astro` 包含一个只有经过身份验证的用户才能访问的页面。它检查是否存在访问信息和刷新令牌。如果它们不存在，它将重定向到登录页面。
+`dashboard.astro` 包含一个只有经过身份验证的用户才能访问的页面。它检查是否存在访问信息和刷新令牌。如果它们不存在或者无效，它将重定向到登录页面。
 
 ```astro title="src/pages/dashboard.astro"
 ---
 import Layout from "../layouts/Layout.astro";
 import { supabase } from "../lib/supabase";
 
-const { cookies, redirect } = Astro;
-
-const accessToken = cookies.get("sb-access-token");
-const refreshToken = cookies.get("sb-refresh-token");
+const accessToken = Astro.cookies.get("sb-access-token");
+const refreshToken = Astro.cookies.get("sb-refresh-token");
 
 if (!accessToken || !refreshToken) {
-  return redirect("/signin");
+  return Astro.redirect("/signin");
 }
 
-const { data, error } = await supabase.auth.setSession({
-  refresh_token: refreshToken.value,
-  access_token: accessToken.value,
-});
-
-if (error) {
-  cookies.delete("sb-access-token", {
+let session;
+try {
+  session = await supabase.auth.setSession({
+    refresh_token: refreshToken.value,
+    access_token: accessToken.value,
+  });
+  if (session.error) {
+    Astro.cookies.delete("sb-access-token", {
+      path: "/",
+    });
+    Astro.cookies.delete("sb-refresh-token", {
+      path: "/",
+    });
+    return Astro.redirect("/signin");
+  }
+} catch (error) {
+  Astro.cookies.delete("sb-access-token", {
     path: "/",
   });
-  cookies.delete("sb-refresh-token", {
+  Astro.cookies.delete("sb-refresh-token", {
     path: "/",
   });
-
-  return redirect("/signin");
+  return Astro.redirect("/signin");
 }
 
-const email = data.user?.email;
+const email = session.data.user?.email;
 ---
 <Layout title="控制台">
   <h1>欢迎 {email}</h1>

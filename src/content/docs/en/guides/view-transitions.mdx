@@ -146,7 +146,7 @@ This allows you to control whether or not an island's props should be persisted 
 
 By default, when you add `transition:persist` to an island, the state is retained upon navigation, but your component will re-render with new props. This is useful, for example, when a component receives page-specific props such as the current page's `title`.
 
-You can override this behavior with `transition:persist-props`. Adding this directive will keep an island's existing props (not re-render with new values) in addition to maintaining its existing state.
+You can override this behavior by setting `transition:persist-props` in addition to `transition:persist`. Adding this directive will keep an island's existing props (not re-render with new values) in addition to maintaining its existing state.
 
 ### Built-in Animation Directives
 
@@ -221,33 +221,71 @@ export interface TransitionDirectionalAnimations {
 }
 ```
 
-The following example shows all the necessary properties to define a custom `fade` animation:
 
-```astro
+The following example shows all the necessary properties to define a custom `bump` animation inside a `<style is:global>` tag in your root layout file:
+
+
+```astro title="src/layouts/Layout.astro"
+---
+import { ViewTransitions } from 'astro:transitions';
+---
+
+<html lang="en">
+  <head>
+    <ViewTransitions />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  @keyframes bump {
+    0% {
+      opacity: 0;
+      transform: scale(1) translateX(200px);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(1.1);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateX(0);
+    }
+  }
+</style>
+
+```
+
+The animation's behavior must be defined in the frontmatter of every component using the animation:
+
+```astro title="src/pages/index.astro"
 ---
 const anim = {
   old: {
-    name: 'fadeIn',
-    duration: '0.2s',
-    easing: 'linear',
-    fillMode: 'forwards',
+    name: 'bump',
+    duration: '0.5s',
+    easing: 'ease-in',
+    direction: 'reverse',
   },
   new: {
-    name: 'fadeOut',
-    duration: '0.3s',
-    easing: 'linear',
-    fillMode: 'backwards',
-  }
+    name: 'bump',
+    duration: '0.5s',
+    easing: 'ease-in-out',
+  },
 };
 
-const myFade = {
-	forwards: anim,
-	backwards: anim,
+const customTransition = {
+  forwards: anim,
+  backwards: anim,
 };
 ---
 
-<header transition:animate={myFade}> ... </header>
+<header transition:animate={customTransition}> ... </header>
 ```
+
+You have great flexibility when defining custom animations. To achieve your desired result, you may wish to consider unusual combinations such as using different objects for forward and backward, or providing separate keyframe animations for old and new.
 
 ## Router control
 
@@ -290,8 +328,8 @@ The following example shows an Astro component that navigates a visitor to anoth
   import { navigate } from 'astro:transitions/client';
 
   // Navigate to the selected option automatically.
-  document.querySelector('select').onchange = (ev) => {
-    let href = ev.target.value;
+  document.querySelector('select').onchange = (event) => {
+    let href = event.target.value;
     navigate(href);
   };
 </script>
@@ -472,7 +510,19 @@ When navigating between pages with the `<ViewTransitions />` component, scripts 
 
 [Bundled module scripts](/en/guides/client-side-scripts/#script-processing), which are the default scripts in Astro, are only ever executed once. After initial execution they will be ignored, even if the script exists on the new page after a transition.
 
-Unlike bundled module scripts, [inline scripts](/en/guides/client-side-scripts/#opting-out-of-processing) have the potential to be re-executed during a user's visit to a site if they exist on a page that is visited multiple times. Inline scripts might also re-execute when a visitor navigates to a page without the script, and then back to one with the script.
+Unlike bundled module scripts, [inline scripts](/en/guides/client-side-scripts/#opting-out-of-processing) have the potential to be re-executed during a user’s visit to a site if they exist on a page that is visited multiple times. Inline scripts might also re-execute when a visitor navigates to a page without the script, and then back to one with the script.
+
+With view transitions, some scripts may no longer re-run after page navigation like they do with full-page browser refreshes. There are several [events during client-side routing that you can listen for](#lifecycle-events), and fire events when they occur. You can wrap an existing script in an event listener to ensure it runs at the proper time in the navigation cycle.
+
+```js title="src/scripts/menu.js" ins={2,6}
+<script>
+document.addEventListener('astro:page-load', () => {
+  document.querySelector('.hamburger').addEventListener('click', () => {
+    document.querySelector('.nav-links').classList.toggle('expanded');
+  });
+});
+</script>
+```
 
 #### `data-astro-rerun`
 
@@ -534,9 +584,9 @@ Here is an example of using the `astro:before-preparation` event to load a spinn
 
 ```js
 <script is:inline>
-  document.addEventListener('astro:before-preparation', ev => {
-    const originalLoader = ev.loader;
-    ev.loader = async function() {
+  document.addEventListener('astro:before-preparation', event => {
+    const originalLoader = event.loader;
+    event.loader = async function() {
       const { startSpinner } = await import('./spinner.js');
       const stop = startSpinner();
       await originalLoader();
@@ -583,9 +633,9 @@ This event can be used to make changes before the swap occurs. The `newDocument`
 
   setDarkMode(document);
 
-  document.addEventListener('astro:before-swap', ev => {
+  document.addEventListener('astro:before-swap', event => {
     // Pass the incoming document to set the theme on it
-    setDarkMode(ev.newDocument);
+    setDarkMode(event.newDocument);
   });
 </script>
 ```
@@ -596,13 +646,43 @@ At this point of the lifecycle, you could choose to define your own swap impleme
 
 ```astro
 <script is:inline>
-  document.addEventListener('astro:before-swap', ev => {
-    ev.swap = () => {
-      diff(document, ev.newDocument);
+  document.addEventListener('astro:before-swap', event => {
+    event.swap = () => {
+      diff(document, event.newDocument);
     };
   });
 </script>
 ```
+
+#### Building a custom swap function
+
+<p><Since v="4.15.0" /></p>
+
+The `swapFunctions` object of the `astro:transitions/client` module provides five utility functions that handle specific swap-related tasks, including handling document attributes, page elements, and script execution. These functions can be used directly to define a custom swap implementation.
+
+The following example demonstrates how to use these functions to recreate Astro's built-in swap implementation:
+
+```astro
+<script>
+import { swapFunctions } from 'astro:transitions/client';
+
+// substitutes window.document with doc
+function mySwap(doc: Document) {
+  swapFunctions.deselectScripts(doc);
+  swapFunctions.swapRootAttributes(doc);
+  swapFunctions.swapHeadElements(doc);
+  const restoreFocusFunction = swapFunctions.saveFocus();
+  swapFunctions.swapBodyElement(doc.body, document.body);
+  restoreFocusFunction();
+};
+
+...
+  event.swap = () => mySwap(event.newDocument);
+...
+<script>
+```
+Custom swap implementations can start with this template and add or replace individual steps with custom logic as needed.
+
 
 ### `astro:after-swap`
 
@@ -626,14 +706,14 @@ An event that fires at the end of page navigation, after the new page is visible
 
 The `<ViewTransitions />` component fires this event both on initial page navigation for a pre-rendered page and on any subsequent navigation, either forwards or backwards.
 
-You can use this event to run code on every page navigation, or only once ever:
+You can use this event to run code on every page navigation, for example to set up event listeners that would otherwise be lost during navigation.
 
-```astro "{ once: true }"
+```astro
 <script>
   document.addEventListener('astro:page-load', () => {
-    // This only runs once.
-    setupStuff();
-  }, { once: true });
+    // This runs on first page load and after every navigation.
+    setupStuff(); // e.g. add event listeners
+  });
 </script>
 ```
 

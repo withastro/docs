@@ -50,6 +50,8 @@ export default {
 	'deploy.staticTag': 'Static',
 	// CMS Guides vocabulary
 	'cms.navTitle': 'More CMS guides',
+	// Media Guides voccabulary
+	'media.navTitle': 'More DAM guides',
 	// Migration Guides vocabulary
 	'migration.navTitle': 'More migration guides',
 	// Recipes vocabulary

@@ -17,6 +17,7 @@
  * `src/i18n/en/nav.ts`: `{ text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },`
  * `src/i18n/ja/nav.ts`: `'getting-started': 'はじめに',`
  */
+
 export default [
 	{ text: 'Welcome, World!', header: true, type: 'learn', key: 'welcomeWorld' },
 	{ text: 'Getting Started', slug: 'getting-started', key: 'getting-started' },
@@ -53,6 +54,7 @@ export default [
 	{ text: 'Routes and Navigation', header: true, type: 'learn', key: 'routes' },
 	{ text: 'Routing', slug: 'guides/routing', key: 'guides/routing' },
 	{ text: 'Endpoints', slug: 'guides/endpoints', key: 'guides/endpoints' },
+	{ text: 'Actions', slug: 'guides/actions', key: 'guides/actions' },
 	{ text: 'Prefetch', slug: 'guides/prefetch', key: 'guides/prefetch' },
 	{ text: 'Middleware', slug: 'guides/middleware', key: 'guides/middleware' },
 	{
@@ -66,6 +68,7 @@ export default [
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
+	{ text: 'Connect Hosted Media or DAM', slug: 'guides/media', key: 'guides/media' },
 
 	{ text: 'Connect Your Data', header: true, type: 'learn', key: 'data' },
 	{ text: 'Data Fetching', slug: 'guides/data-fetching', key: 'guides/data-fetching' },
@@ -108,6 +111,11 @@ export default [
 		text: 'Directives Reference',
 		slug: 'reference/directives-reference',
 		key: 'reference/directives-reference',
+	},
+	{
+		text: 'Built-in Components',
+		slug: 'reference/components-reference',
+		key: 'reference/components-reference',
 	},
 	{ text: 'TypeScript Reference', slug: 'guides/typescript', key: 'guides/typescript' },
 	{ text: 'Error Reference', slug: 'reference/error-reference', key: 'reference/error-reference' },

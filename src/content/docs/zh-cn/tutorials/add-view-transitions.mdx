@@ -181,6 +181,7 @@ import ReadMore from '~/components/ReadMore.astro'
 
     在**较小的屏幕尺寸**上查看站点预览，并尝试使用汉堡菜单在页面之间进行导航。请注意，在第一次页面加载后，菜单将不再起作用。
 </Steps>
+
 ### 更新你的脚本
 
 使用视图过渡后，部分脚本可能在页面导航后不再像在完整页面浏览器刷新时那样重新运行。在客户端路由期间，有几个[事件可以监听](/zh-cn/guides/view-transitions/#生命周期事件)，并在发生时触发事件。你项目中的脚本现在需要连接到两个事件，以在页面导航期间的适当时间运行：[`astro:page-load`](/zh-cn/guides/view-transitions/#astropage-load)和[`astro:after-swap`](/zh-cn/guides/view-transitions/#astroafter-swap)。
@@ -204,7 +205,7 @@ import ReadMore from '~/components/ReadMore.astro'
 
     更新现有的 `<script>` 标签，使你的函数在 `astro:page-load` 事件发生时运行，确保在新页面完全加载并对用户可见后主题切换器可用：
 
-    ```astro title="src/components/ThemeIcon.astro" ins={8,38} del="is:inline"
+    ```astro title="src/components/ThemeIcon.astro" ins={8,36} del="is:inline"
     ---
     ---
     <button id="themeToggle"> /* ... */ </button>
@@ -239,9 +240,7 @@ import ReadMore from '~/components/ReadMore.astro'
           localStorage.setItem("theme", isDark ? "dark" : "light");
         };
 
-        document
-          .getElementById("themeToggle")
-          .addEventListener("click", handleToggleClick);
+        document.getElementById("themeToggle").onclick = handleToggleClick;
       });
     </script>
     ```
@@ -251,19 +250,22 @@ import ReadMore from '~/components/ReadMore.astro'
 
     虽然主题切换器在每个页面上正常工作，但它的脚本是在导航过程的最后加载的，**新页面在浏览器中完全加载之后**。主题切换器运行并检查页面应该使用哪个主题之前，网站可能会在瞬间闪过其浅色主题。
 
-    为了在导航过程的早期检查并在必要时设置深色模式，请创建一个函数，该函数将在 `astro:after-swap` 事件发生时运行。下面的函数将会在**新页面替代旧页面之后立即运行**，在 DOM 元素被绘制到屏幕上之前。该函数将检查浏览器的 `localStorage` 以确定是否使用深色主题。
+    为了在导航过程的早期检查并在必要时设置深色模式，请创建一个函数，该函数将在 `astro:after-swap` 事件发生时运行。下面的函数将会在新页面被访问时，或者说是**新页面替代旧页面之后立即运行**，即在 DOM 元素被绘制到屏幕上之前。该函数将检查浏览器的 `localStorage` 以确定是否使用深色主题。
 
     将这个新的脚本添加到`<ThemeIcon />`组件中，作为控制主题切换的脚本的补充。
 
-    ```astro title="src/components/ThemeIcon.astro" ins={3-9}
-    <script> ... <script>
+    ```astro title="src/components/ThemeIcon.astro" ins={3-12}
+    <script> ... </script>
 
-    <script>
-      document.addEventListener('astro:after-swap', () => {
+    <script is:inline>
+      function applyTheme() {
         localStorage.theme === 'dark' 
-        ? document.documentElement.classList.add("dark")
-        : document.documentElement.classList.remove("dark");
-      }); 
+          ? document.documentElement.classList.add("dark")
+          : document.documentElement.classList.remove("dark");
+      }
+    
+      document.addEventListener('astro:after-swap', applyTheme);
+      applyTheme(); 
     </script>
     ```
 </Steps>

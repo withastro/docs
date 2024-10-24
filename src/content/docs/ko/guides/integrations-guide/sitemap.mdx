@@ -83,65 +83,29 @@ export default defineConfig({
 
 ## 사용하기
 
-`@astrojs/sitemap`을 생성하려면 배포/사이트 URL이 필요합니다. `site` 속성을 사용하여 `astro.config.*` 파일 아래에 사이트 URL을 추가하세요. 이는 `http:` 또는 `https:`로 시작해야 합니다.
+사이트맵을 생성하려면 `@astrojs/sitemap`이 사이트의 배포된 URL을 알아야 합니다.
 
-```js title="astro.config.mjs" "'https://stargazers.club'"
+사이트 URL을 `astro.config.mjs` 파일의 [`site`](/ko/reference/configuration-reference/#site) 옵션으로 추가합니다. 반드시 `http://` 또는 `https://`로 시작해야 합니다.
+
+```js title="astro.config.mjs" {5}
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
 export default defineConfig({
-  // ...
   site: 'https://stargazers.club',
   integrations: [sitemap()],
+  // ...
 });
 ```
 
-다른 구성 옵션과 달리 `site`는 `sitemap()` 호출 내부가 아닌 루트 `defineConfig` 객체에 설정됩니다.
+사이트맵 통합을 구성하면 사이트를 빌드할 때 `sitemap-index.xml` 및 `sitemap-0.xml` 파일이 출력 디렉터리에 추가됩니다.
 
-이제 `astro build` 명령을 통해 [프로덕션용 사이트를 빌드](/ko/reference/cli-reference/#astro-build)하세요. `dist/` 폴더 (또는 설정된 경우 사용자 정의 [출력 디렉터리](/ko/reference/configuration-reference/#outdir))에서 `sitemap-index.xml`과 `sitemap-0.xml`을 모두 찾을 수 있습니다.
+`sitemap-index.xml`은 번호가 매겨진 모든 사이트맵 파일을 연결합니다.
+`sitemap-0.xml`은 사이트의 페이지를 나열합니다.
+매우 큰 사이트의 경우 `sitemap-1.xml` 및 `sitemap-2.xml`과 같은 번호가 매겨진 파일이 추가로 존재할 수도 있습니다.
 
-:::caution
-`site` 추가를 잊어버린 경우 빌드할 때 경고가 표시되고 `sitemap-index.xml` 파일이 생성되지 않습니다.
-:::
-
-사이트맵이 빌드되었는지 확인한 후 이를 사이트의 `<head>` 및 크롤러가 선택할 수 있는 `robots.txt` 파일에 추가할 수 있습니다.
-
-```html title="src/layouts/Layout.astro" ins={2}
-<head>
-  <link rel="sitemap" href="/sitemap-index.xml" />
-</head>
-```
-
-```txt ins={5}
-# public/robots.txt
-User-agent: *
-Allow: /
-
-Sitemap: https://<YOUR SITE>/sitemap-index.xml
-```
-
-`robots.txt`를 동적으로 생성하려면 다음 코드를 사용하여 `robots.txt.ts`라는 파일을 추가하세요.
-
-```ts title="src/pages/robots.txt.ts"
-import type { APIRoute } from 'astro';
-
-const robotsTxt = `
-User-agent: *
-Allow: /
-Sitemap: ${new URL('sitemap-index.xml', import.meta.env.SITE).href}
-`.trim();
-
-export const GET: APIRoute = () => {
-  return new Response(robotsTxt, {
-    headers: {
-      'Content-Type': 'text/plain; charset=utf-8',
-    },
-  });
-};
-
-```
-
-### 두 페이지로 구성된 웹사이트용으로 생성된 파일의 예시
+<details>
+<summary>두 페이지의 웹사이트에 대해 생성된 파일 예시</summary>
 
 ```xml title="sitemap-index.xml"
 <?xml version="1.0" encoding="UTF-8"?>
@@ -163,10 +127,56 @@ export const GET: APIRoute = () => {
   </url>
 </urlset>
 ```
+</details>
+
+### 사이트맵 검색
+
+사이트 `<head>`의 링크 및 `robots.txt` 파일을 사용하여 크롤러가 사이트맵을 더 쉽게 찾을 수 있도록 만들 수 있습니다.
+
+#### `<head>` 내 사이트맵 링크
+
+사이트의 `<head>`에 사이트맵 인덱스 파일을 가리키는 `<link rel="sitemap">` 요소를 추가합니다:
+
+```html title="src/layouts/Layout.astro" ins={2}
+<head>
+  <link rel="sitemap" href="/sitemap-index.xml" />
+</head>
+```
+
+#### `robots.txt` 내 사이트맵 링크
+
+웹사이트에 `robots.txt`가 있는 경우 크롤러를 돕기 위해 사이트맵 인덱스의 URL을 추가할 수 있습니다:
+
+```txt ins={5}
+# public/robots.txt
+User-agent: *
+Allow: /
+
+Sitemap: https://<YOUR SITE>/sitemap-index.xml
+```
+
+`astro.config.mjs`의 `site` 값을 재사용하려는 경우 `robots.txt`를 동적으로 생성할 수도 있습니다.
+`public/` 디렉터리에서 정적 파일을 사용하는 대신 `src/pages/robots.txt.ts` 파일을 생성하고 다음 코드를 추가합니다:
+
+```ts title="src/pages/robots.txt.ts"
+import type { APIRoute } from 'astro';
+
+const getRobotsTxt = (sitemapURL: URL) => `
+User-agent: *
+Allow: /
+
+Sitemap: ${sitemapURL.href}
+`;
+
+export const GET: APIRoute = ({ site }) => {
+  const sitemapURL = new URL('sitemap-index.xml', site);
+  return new Response(getRobotsTxt(sitemapURL));
+};
+```
 
 ## 구성
 
-이 통합을 구성하려면 `astro.config.mjs` 파일의 `sitemap()` 함수 호출에 객체를 전달하세요.
+이 통합을 구성하려면 `astro.config.mjs`의 `sitemap()` 함수에 객체를 전달하세요.
 
 ```js title="astro.config.mjs" {6-8}
 import { defineConfig } from 'astro/config';
@@ -390,6 +400,26 @@ export default defineConfig({
     <xhtml:link rel="alternate" hreflang="en-US" href="https://stargazers.club/second-page/"/>
   </url>
 ...
+```
+
+### xslURL
+
+사이트맵의 스타일을 지정하고 예쁘게 꾸밀 수 있는 XSL 스타일시트의 URL입니다. 
+
+설정된 값은 로컬 스타일시트에 대해 구성된 `site` URL에 상대적인 경로이거나 외부 스타일시트에 대한 절대 URL 링크일 수 있습니다.
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  site: 'https://example.com',
+  integrations: [
+    sitemap({
+      xslURL: '/sitemap.xsl'
+    }),
+  ],
+});
 ```
 
 ## 예시

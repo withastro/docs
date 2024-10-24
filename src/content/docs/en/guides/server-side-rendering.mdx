@@ -205,16 +205,17 @@ In `server` and `hybrid` modes, a page or API endpoint can check, set, get, and 
 
 The example below updates the value of a cookie for a page view counter:
 
-```astro title="src/pages/index.astro" {4,5,9}
+```astro title="src/pages/index.astro" {4,5,10}
 ---
 let counter = 0
 
-if (Astro.cookies.has("counter")) {
-  const cookie = Astro.cookies.get("counter")
-	counter = cookie.number() + 1
+if (Astro.cookies.has('counter')) {
+	const cookie = Astro.cookies.get('counter')
+	const value = cookie?.number()
+	if (value !== undefined && !isNaN(value)) counter = value + 1
 }
 
-Astro.cookies.set("counter",counter)
+Astro.cookies.set('counter', String(counter))
 ---
 <html>
   <h1>Counter = {counter}</h1>
@@ -229,8 +230,10 @@ See more details about [`Astro.cookies` and the `AstroCookie` type](/en/referenc
 
 The example below sets a response status and status text for a product listing page when the product does not exist:
 
-```astro title="src/pages/my-product.astro" {8-9}
+```astro title="src/pages/product/[id].astro" {10,11}
 ---
+export const prerender = false; // Not needed in 'server' mode
+
 import { getProduct } from '../api';
 
 const product = await getProduct(Astro.params.id);
@@ -261,12 +264,14 @@ Astro.response.headers.set('Cache-Control', 'public, max-age=3600');
 
 #### Return a `Response` object
 
-You can also return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object directly from any page using on-demand rendering. 
+You can also return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object directly from any page using on-demand rendering either manually or with [`Astro.redirect`](/en/reference/api-reference/#astroredirect). 
 
-The example below returns a 404 on a dynamic page after looking up an id in the database:
+The example below looks up an ID in the database on a dynamic page and either it returns a 404 if the product does not exist, or it redirects the user to another page if the product is no longer available, or it displays the product:
 
-```astro title="src/pages/[id].astro" {8-11}
+```astro title="src/pages/[id].astro" {10-13, 18}
 ---
+export const prerender = false; // Not needed in 'server' mode
+
 import { getProduct } from '../api';
 
 const product = await getProduct(Astro.params.id);
@@ -277,6 +282,11 @@ if (!product) {
     status: 404,
     statusText: 'Not found'
   });
+}
+
+// The product is no longer available
+if (!product.isAvailable) {
+  return Astro.redirect("/products", 301);
 }
 ---
 <html>
@@ -323,5 +333,3 @@ A server endpoint, also known as an **API route**, is a special function exporte
 The function takes an [endpoint context](/en/reference/api-reference/#endpoint-context) and returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response). 
 
 To learn more, see our [Endpoints Guide](/en/guides/endpoints/#server-endpoints-api-routes).
-
-
