@@ -146,7 +146,7 @@ You can install and run the project locally using [pnpm](https://pnpm.io/). Head
 ```shell
 pnpm install
 
-pnpm start
+pnpm run dev
 ```
 
 If you’re copying these instructions, remember to [configure this project as a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/configuring-a-remote-repository-for-a-fork).
