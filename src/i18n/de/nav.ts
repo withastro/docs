@@ -1,94 +1,82 @@
 import { NavDictionary } from '../translation-checkers';
 
 export default NavDictionary({
-	// Start Here
-	startHere: 'Beginne hier',
+	welcomeWorld: 'Willkommen, Welt!',
 	'getting-started': 'Erste Schritte',
-	install: 'Installation',
-	'editor-setup': 'Editor-Einrichtung',
-	'upgrade-astro': 'Upgrade Astro',
+	'install-and-setup': 'Installation und Konfiguration',
+	'guides/deploy': 'Deine Website veröffentlichen',
+	'guides/migrate-to-astro': 'Zu Astro migrieren',
+	'blog-tutorial': 'Tutorial: Baue einen Blog',
 
-	// Core Concepts
 	coreConcepts: 'Kernkonzepte',
-	'concepts/why-astro': 'Warum Astro',
+	'concepts/why-astro': 'Warum Astro?',
 	'concepts/islands': 'Astro-Inseln',
 
-	// Tutorials
-	tutorials: 'Tutorials',
-	'blog-tutorial': 'Baue einen Blog',
-	'add-collections-tutorial': 'Erweitere mit Content-Sammlungen',
-	'add-transitions-tutorial': 'Erweitere mit View-Transitions',
-
-	// Basics
-	basics: 'Grundlagen',
+	basics: 'Lerne die Grundlagen',
 	'basics/project-structure': 'Projektstruktur',
 	'basics/astro-components': 'Komponenten',
 	'basics/astro-pages': 'Seiten',
 	'basics/layouts': 'Layouts',
 	'basics/astro-syntax': 'Astro-Syntax',
 	'basics/rendering-modes': 'Rendermodi',
+	'guides/imports': 'Importe',
+	'guides/integrations-guide': 'Integrationen',
 
-	// Built-ins
-	builtins: 'Eingebaute Funktionen',
-	'guides/content-collections': 'Content-Sammlungen',
-	'guides/view-transitions': 'View-Transitions',
-	'guides/prefetch': 'Vorabladen',
-	'guides/dev-toolbar': 'Dev Toolbar',
-
-	// Integrations
-	addons: 'Integrationen',
-	'guides/integrations-guide': 'Integrationen hinzufügen',
-	'guides/framework-components': 'UI-Frameworks',
-	'guides/server-side-rendering': 'Serverseitiges Rendern (SSR)',
-	'guides/astro-db': 'Astro DB',
-
-	// Recipes
-	examples: 'Anleitungen',
-	'guides/migrate-to-astro': 'Zu Astro migrieren',
+	content: 'Verwalte deine Inhalte',
+	'guides/content': 'Inhalte verfassen',
+	'guides/markdown-content': 'Markdown',
+	'guides/content-collections': 'Inhalts-Sammlungen',
 	'guides/cms': 'Ein CMS verbinden',
-	'guides/backend': 'Backend-Dienste hinzufügen',
-	'guides/deploy': 'Website veröffentlichen',
-	'guides/recipes': 'Mehr Anleitungen',
+	'guides/rss': 'Einen RSS-Feed hinzufügen',
 
-	// Guides
-	features: 'Themenbereiche',
+	routes: 'Routen und Navigation',
 	'guides/routing': 'Routing',
-	'guides/markdown-content': 'Markdown & MDX',
-	'guides/client-side-scripts': 'Skripte & Ereignisbehandlung',
+	'guides/endpoints': 'Endpunkte',
+	'guides/actions': 'Aktionen',
+	'guides/prefetch': 'Vorladen',
+	'guides/middleware': 'Middleware',
+	'guides/internationalization': 'Internationalisierung',
+	'guides/view-transitions': 'Ansichtsübergänge',
+
+	assets: 'Ressourcen',
 	'guides/styling': 'CSS & Styling',
 	'guides/images': 'Bilder',
 	'guides/fonts': 'Schriftarten',
-	'guides/imports': 'Importe',
-	'guides/endpoints': 'Endpunkte',
-	'guides/data-fetching': 'Abrufen von Daten',
-	'guides/internationalization': 'Internationalisierung',
-	'guides/middleware': 'Middleware',
-	'guides/ecommerce': 'E-Commerce',
-	'guides/testing': 'Testen',
-	'guides/authentication': 'Authentifizierung',
-	'guides/troubleshooting': 'Fehlerbehebung',
+	'guides/media': 'Hosted Media oder DAM verbinden',
 
-	// Configuration
-	configuration: 'Konfiguration',
-	'guides/configuring-astro': 'Die Astro-Konfigurationsdatei',
-	'guides/typescript': 'TypeScript',
-	'guides/aliases': 'Import-Aliasnamen',
+	data: 'Verbinde deine Daten',
+	'guides/data-fetching': 'Daten abrufen',
+	'guides/astro-db': 'Astro DB',
+	'guides/backend': 'Backend-Dienste hinzufügen',
+	'guides/ecommerce': 'E-Commerce',
+	'guides/authentication': 'Authentifizierung',
 	'guides/environment-variables': 'Umgebungsvariablen',
 
-	// Reference
+	clientSide: 'Client-seitige Interaktivität',
+	'guides/framework-components': 'UI-Frameworks',
+	'guides/client-side-scripts': 'Skripte & Ereignisbehandlung',
+
+	maintain: 'Halte dein Projekt am Laufen',
+	'upgrade-astro': 'Astro aktualisieren',
+	'guides/testing': 'Tests',
+	'guides/troubleshooting': 'Fehlerbehebung',
+
 	reference: 'Referenz',
 	'reference/configuration-reference': 'Konfiguration',
-	'reference/api-reference': 'Laufzeit-API',
-	'reference/integrations-reference': 'Integrationen-API',
+	'reference/api-reference': 'Astro Laufzeit-API',
+	'reference/cli-reference': 'Astro-CLI',
+	'reference/directives-reference': 'Richtlinien-Referenz',
+	'reference/components-reference': 'Eingebaute Komponenten',
+	'guides/typescript': 'TypeScript-Referenz',
+	'reference/error-reference': 'Fehlerreferenz',
+
+	dev: 'Andere Entwicklungs-APIs',
+	'reference/integrations-reference': 'Integrations-API',
 	'reference/adapter-reference': 'Adapter-API',
 	'reference/image-service-reference': 'Bilderdienst-API',
 	'reference/dev-toolbar-app-reference': 'Entwickler-Toolbar-App-API',
-	'reference/directives-reference': 'Vorlagen-Richtlinien',
-	'reference/cli-reference': 'Befehlszeilenschnittstelle (CLI)',
-	'reference/error-reference': 'Fehler-Referenz',
-	'guides/publish-to-npm': 'NPM-Paketformat',
+	'reference/container-reference': 'Container-API',
 
-	// Community Resources
 	communityResources: 'Community-Ressourcen',
 	'community-resources/content': 'Kurse, Anleitungen & Beispiele',
 	'community-resources/talks': 'Vorträge, Interviews & Streams',
