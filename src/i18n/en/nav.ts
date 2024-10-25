@@ -117,7 +117,7 @@ export default [
 		slug: 'reference/configuration-reference',
 		key: 'reference/configuration-reference',
 	},
-	
+
 	{ text: 'Astro CLI', slug: 'reference/cli-reference', key: 'reference/cli-reference' },
 	{
 		text: 'Directives Reference',
@@ -134,13 +134,32 @@ export default [
 
 	{ text: 'Astro API Reference', header: true, type: 'api', key: 'api-reference' },
 	{ text: 'Astro Runtime API', slug: 'reference/api-reference', key: 'reference/api-reference' },
-	{ text: 'astro:actions', slug: 'reference/modules/astro-actions', key: 'reference/modules/astro-actions' },
-	{ text: 'astro:assets', slug: 'reference/modules/astro-assets', key: 'reference/modules/astro-assets' },
-	{ text: 'astro:content', slug: 'reference/modules/astro-content', key: 'reference/modules/astro-content' },
+	{
+		text: 'astro:actions',
+		slug: 'reference/modules/astro-actions',
+		key: 'reference/modules/astro-actions',
+	},
+	{
+		text: 'astro:assets',
+		slug: 'reference/modules/astro-assets',
+		key: 'reference/modules/astro-assets',
+	},
+	{
+		text: 'astro:content',
+		slug: 'reference/modules/astro-content',
+		key: 'reference/modules/astro-content',
+	},
 	{ text: 'astro:i18n', slug: 'reference/modules/astro-i18n', key: 'reference/modules/astro-i18n' },
-	{ text: 'astro:middleware', slug: 'reference/modules/astro-middleware', key: 'reference/modules/astro-middleware' },
-	{ text: 'astro:transitions', slug: 'reference/modules/astro-transitions', key: 'reference/modules/astro-transitions' },
-
+	{
+		text: 'astro:middleware',
+		slug: 'reference/modules/astro-middleware',
+		key: 'reference/modules/astro-middleware',
+	},
+	{
+		text: 'astro:transitions',
+		slug: 'reference/modules/astro-transitions',
+		key: 'reference/modules/astro-transitions',
+	},
 
 	{ text: 'Other Development APIs', header: true, type: 'api', key: 'dev' },
 	{
