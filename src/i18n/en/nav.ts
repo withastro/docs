@@ -146,6 +146,11 @@ export default [
 		slug: 'reference/modules/astro-content',
 		key: 'reference/modules/astro-content',
 	},
+	{
+		text: 'astro:env',
+		slug: 'reference/modules/astro-env',
+		key: 'reference/modules/astro-env',
+	},
 	{ text: 'astro:i18n', slug: 'reference/modules/astro-i18n', key: 'reference/modules/astro-i18n' },
 	{
 		text: 'astro:middleware',
