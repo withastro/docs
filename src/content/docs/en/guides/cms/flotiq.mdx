@@ -1,0 +1,237 @@
+---
+title: Flotiq & Astro
+description: Add content to your Astro project using Flotiq as a CMS
+type: cms
+service: Flotiq
+i18nReady: true
+---
+
+[Flotiq](https://flotiq.com) is a headless CMS designed for various frontends, such as static sites, mobile, and web applications. Developers and content creators manage and deliver content through REST and GraphQL-based APIs.
+
+## Integrating with Astro
+
+In this tutorial, you'll learn how to use the Flotiq headless CMS API within an Astro project to display content on your website.
+
+### Prerequisites
+
+To get started, you will need:
+
+1. **An Astro project** - This project assumes you are using the empty template, created via `npm create astro@latest` command.
+2. **A Flotiq account** - If you don't have an account, [sign up for free](https://editor.flotiq.com/register).
+3. **Flotiq read-only API key** - Find out [how to obtain your key](https://flotiq.com/docs/API/).
+
+### Defining a Content Type in Flotiq
+
+First, you need to define example [Content Type Definition](https://flotiq.com/docs/panel/content-types/) in Flotiq to store data.
+
+We'll use an example Blog Post type. Log in to your Flotiq account and create a Content Type Definition with the following configuration:
+- **Label**: Blog Post
+- **API Name**: blogpost
+- **Fields**:
+  - **Title**: text, required
+  - **Slug**: text, required
+  - **Content**: rich text, required
+
+Once the Content Type is set, create one or more example [Content Objects](https://flotiq.com/docs/panel/content-objects/) using this `Blog Post` type.
+
+### Setting up the Environment variables
+
+Add the read-only API key from your Flotiq account to the `.env` file in the root of your Astro project:
+
+```ini title=".env"
+FLOTIQ_API_KEY=__YOUR_FLOTIQ_API_KEY__
+```
+
+### Installing the Flotiq TypeScript SDK
+
+To connect your project with Flotiq, install the [Flotiq SDK](https://github.com/flotiq/flotiq-api-ts)
+
+```bash
+yarn add flotiq-api-ts
+```
+
+Next, configure the SDK using your credentials. Create a new file named `flotiq.ts` inside the `src/lib` directory of your project:
+
+```ts title="src/lib/flotiq.ts"
+import { FlotiqApi } from "flotiq-api-ts";
+
+export const flotiq = new FlotiqApi(import.meta.env.FLOTIQ_API_KEY);
+```
+
+This configuration can now be reused throughout your project.
+
+### Fetching Data from Flotiq
+
+In this example, we’ll display blog posts from Flotiq on the Astro home page.
+
+First, fetch the Blog Post data:
+
+```astro title="src/pages/index.astro"
+---
+import { flotiq } from "../lib/flotiq";
+
+const posts = await flotiq.BlogPostAPI.list();
+---
+```
+
+Then, display the content:
+
+```astro title="src/pages/index.astro" ins={6-21}
+---
+import { flotiq } from "../lib/flotiq";
+
+const posts = await flotiq.BlogPostAPI.list();
+---
+<html lang="en">
+	<head>
+		<title>Astro</title>
+	</head>
+	<body>
+		{posts.data?.map((post) => (
+			<section>
+				<a href={`/posts/${post.slug}`}>
+				  <h2>{post.title}</h2>
+        </a>
+				<div>{post.internal?.createdAt}</div>
+				<div set:html={post.content}/>
+			</section>
+		))}
+	</body>
+</html>
+```
+Now, on the homepage at `http://localhost:4321`, you should see a list of blog posts. To enable navigation to individual posts, we still need to generate a dedicated page for each one.
+
+### Generating Individual Pages
+
+In the previous steps, we displayed a list of posts from Flotiq. Next, we'll create a separate page for each blog post.
+
+#### Static Site Generation
+
+If you're using Static Site Generation (SSG) mode, we’ll use the `getStaticPaths()` method to fetch all possible blog post paths from Flotiq.
+
+Create a new file `[slug].astro` in the `/src/pages/posts/` directory. Fetch all blog posts and return them within the `getStaticPaths()` method:
+
+```astro title="src/pages/posts/[slug].astro" 
+---
+import type { Blogpost } from "flotiq-api-ts";
+import { flotiq } from "../../lib/flotiq";
+
+export async function getStaticPaths() {
+  const posts = await flotiq.BlogPostAPI.list();
+  return posts.data?.map((post) => ({
+    params: { slug: post.slug },
+    props: post
+  })) || []
+}
+---
+```
+
+Next, add the logic to display a single post:
+
+```astro title="src/pages/posts/[slug].astro" ins={12-20}
+---
+import type { Blogpost } from "flotiq-api-ts";
+import { flotiq } from "../../lib/flotiq";
+
+export async function getStaticPaths() {
+  const posts = await flotiq.BlogPostAPI.list();
+  return posts.data?.map((post) => ({
+    params: { slug: post.slug },
+    props: post
+  })) || []
+}
+const post: Blogpost = Astro.props;
+---
+<html lang="en">
+  <title>{post.title}</title>
+  <body>
+    <h1>{post.title}</h1>
+    <div set:html={post.content}/>
+  </body>
+</html>
+```
+
+Visit `http://localhost:4321` and click on a blog post. You should be redirected to the individual post's page.
+
+#### Server-Side Rendering
+
+If you are using [SSR](/en/guides/server-side-rendering/) mode, you will need to fetch a single post based on its `slug`.
+
+Create a new file `[slug].astro` in the `/src/pages/posts/` directory. Fetch the post by its `slug` field:
+
+```astro title="src/pages/posts/[slug].astro"
+---
+import type { Blogpost } from "flotiq-api-ts";
+import { flotiq } from "../../lib/flotiq";
+
+const { slug } = Astro.params;
+let post: Blogpost;
+
+const blogpostList = await flotiq.BlogPostAPI.list({
+  filters: JSON.stringify({
+    slug: {
+      type: 'equals',
+      filter: slug,
+    }
+  }),
+  limit: 1
+});
+
+if (blogpostList.data?.[0]) {
+  post = blogpostList.data[0]
+} else {
+  return Astro.redirect('/404');
+}
+---
+```
+
+Next, add the logic to display a single post:
+
+```astro title="src/pages/posts/[slug].astro" ins={24-30}
+---
+import type { Blogpost } from "flotiq-api-ts";
+import { flotiq } from "../../lib/flotiq";
+
+const { slug } = Astro.params;
+let post: Blogpost;
+
+const blogpostList = await flotiq.BlogPostAPI.list({
+  filters: JSON.stringify({
+    slug: {
+      type: 'equals',
+      filter: slug,
+    }
+  }),
+  limit: 1
+});
+
+if (blogpostList.data?.[0]) {
+  post = blogpostList.data[0]
+} else {
+  return Astro.redirect('/404');
+}
+---
+<html lang="en">
+  <title>{post.title}</title>
+  <body>
+    <h1>{post.title}</h1>
+    <div set:html={post.content}/>
+  </body>
+</html>
+```
+
+Go to `http://localhost:4321` and click on the selected post. You should see the individual post's page.
+
+## Publishing Your Site
+
+To deploy your website, visit Astro's [deployment guides](/en/guides/deploy/) and follow the instructions for your preferred hosting provider.
+
+### Rebuild on Flotiq Changes
+
+If you're using Static Site Generation (SSG) mode (the default in Astro), the typical approach is to send a webhook from your Headless CMS to the hosting provider to trigger a rebuild.
+
+In Flotiq, simply add a new Webhook, define which Content Type and events it should trigger on, and configure it accordingly. You can find more information in the [Flotiq Webhooks documentation](https://flotiq.com/docs/panel/webhooks/async-co-webhook/).
+
+## Official Resources
+
+- See the [Flotiq documentation](https://flotiq.com/docs)
