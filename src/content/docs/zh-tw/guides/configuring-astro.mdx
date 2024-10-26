@@ -1,0 +1,171 @@
+---
+title: 設定 Astro
+i18nReady: true
+---
+import ReadMore from '~/components/ReadMore.astro'
+
+要自訂 Astro 怎麽運作，可以在專案加入 `astro.config.mjs` 檔案。這是 Astro 專案常見的檔案，所有官方的範例模板和主題預設都帶有一個。
+
+<ReadMore>閱讀 Astro 的 [API 設定參考](/zh-tw/reference/configuration-reference/)以完整了解所有支援的設定選項。</ReadMore>
+
+## Astro 設定檔
+
+Astro 設定檔案必須使用 `default` export 匯出設定。建議搭配 `defineConfig` 輔助函式：
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // 這邊放你的設定選項...
+  // https://docs.astro.build/zh-tw/reference/configuration-reference/
+})
+```
+
+我們推薦使用 `defineConfig()`，這樣你的 IDE 會自動顯示型別提示，不過這不是必須的。最低限度的有效設定檔案看起來像這樣：
+
+```js title="astro.config.mjs"
+// 範例：最低限度的空設定檔案
+export default {}
+```
+
+## 支援的設定檔類型
+
+Astro 的 JavaScript 設定檔支援幾個格式：`astro.config.js`、`astro.config.mjs`、`astro.config.cjs` 以及 `astro.config.ts`。我們推薦在多數情況下使用 `.mjs`，如果你想要用 TypeScript 的話就用 `.ts`。
+
+TypeScript 設定檔的載入是透過 [`tsm`](https://github.com/lukeed/tsm) 處理的，它會遵循專案的 tsconfig 選項。
+
+## 解析設定檔的位置
+
+Astro 會自動嘗試在專案根目錄解析名稱是 `astro.config.mjs` 的設定檔。如果在專案根目錄找不到設定檔，則會使用 Astro 的預設選項。
+
+```bash
+# 範例：從 ./astro.config.mjs 讀取設定
+astro build
+```
+
+如果要明確指定設定檔，可以使用 `--config` 這個 CLI 選項。它總是會以相對於你執行 `astro` CLI 指令的工作目錄的路徑進行解析。
+
+```bash
+# 範例：從這個檔案讀取設定
+astro build --config my-config-file.js
+```
+
+## 設定的 IntelliSense
+
+Astro 推薦在設定檔中使用 `defineConfig()` 輔助函式。`defineConfig()` 提供 IDE 的自動 IntelliSense 功能。就算你的設定檔案不是用 TypeScript 寫的，VSCode 之類的編輯器依然能夠讀取 Astro 的 TypeScript 型別定義，並提供自動的 jsdoc 型別提示。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // 這邊放你的設定選項...
+  // https://docs.astro.build/zh-tw/reference/configuration-reference/
+})
+```
+
+你也可以透過 JSDoc 標註，手動提供 VSCode 型別定義：
+
+```js
+// astro.config.mjs
+export default /** @type {import('astro').AstroUserConfig} */ {
+  // 這邊放你的設定選項...
+  // https://docs.astro.build/zh-tw/reference/configuration-reference/
+}
+```
+
+## 用相對路徑指定檔案
+
+如果提供相對路徑到 `root` 或 `--root` CLI 選項，Astro 會解析該相對路徑，而非執行 `astro` CLI 指令的工作目錄。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // 解析到現在工作目錄下的 "./foo" 資料夾
+  root: 'foo'
+})
+```
+
+Astro 會將所有其他檔案和資料夾的相對路徑字串，解析為相對於專案根目錄：
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // 解析到現在工作目錄下的 "./foo" 資料夾
+  root: 'foo',
+  // 解析到現在工作目錄下的 "./foo/public" 資料夾
+  publicDir: 'public',
+})
+```
+
+要用相對於設定檔的路徑指定檔案或資料夾，請使用 `import.meta.url`（除非你是在寫 common.js 格式的 `astro.config.cjs` 檔案）。
+
+```js "import.meta.url"
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // 解析到相對於這個設定檔案的 "./foo" 資料夾
+  root: new URL("./foo", import.meta.url).toString(),
+  // 解析到相對於這個設定檔案的 "./public" 資料夾
+  publicDir: new URL("./public", import.meta.url).toString(),
+})
+```
+
+:::note 
+設定檔內無法存取 Vite 特有的 `import.meta` 屬性（例如：`import.meta.env` 或 `import.meta.glob`）。針對這些個別案例，我們推薦用 [dotenv](https://github.com/motdotla/dotenv) 或是 [fast-glob](https://github.com/mrmlnc/fast-glob) 之類的替代品。此外，[tsconfig 的路徑別名](https://www.typescriptlang.org/tsconfig#paths)不會被解析，在這個檔案請使用相對路徑引入模組。
+:::
+
+## 自訂輸出檔名
+
+對於 Astro 處理的程式碼，像是引入的 JavaScript 或 CSS 檔案，只要在 `astro.config.*` 檔案的 `vite.build.rollupOptions` 條目使用 [`entryFileNames`](https://rollupjs.org/configuration-options/#output-entryfilenames)、[`chunkFileNames`](https://rollupjs.org/configuration-options/#output-chunkfilenames) 和 [`assetFileNames`](https://rollupjs.org/configuration-options/#output-assetfilenames)，就可以自訂它們的輸出檔名。
+
+```js ins={9-11}
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          entryFileNames: 'entry.[hash].mjs',
+          chunkFileNames: 'chunks/chunk.[hash].mjs',
+          assetFileNames: 'assets/asset.[hash][extname]',
+        },
+      },
+    },
+  },
+})
+```
+
+如果你的程式檔有可能因為名稱而受到廣告攔截器影響（如 `ads.js` 或 `google-tag-manager.js`），這可能會有幫助。
+
+## 環境變數
+
+Astro 會在載入其他檔案前評估設定檔，因此你不能使用 `import.meta.env` 存取在 `.env` 檔設定的環境變數。
+
+你可以在設定檔使用 `process.env` 存取其他環境變數，像是由 CLI 設下的。
+
+也可以使用 [Vite 的 `loadEnv` 輔助函式](https://main.vite.dev/config/#using-environment-variables-in-config)手動載入 `.env` 檔。
+
+:::note
+`pnpm` 不允許引入沒在專案中直接安裝的模組。如果你用的是 `pnpm`，則需要安裝 `vite` 才能使用 `loadEnv` 輔助函式。
+```sh
+pnpm add vite --save-dev
+```
+:::
+
+```js title="astro.config.mjs"
+import { loadEnv } from "vite";
+const { SECRET_PASSWORD } = loadEnv(process.env.NODE_ENV, process.cwd(), "");
+```
+
+## 設定參考
+
+<ReadMore>閱讀 Astro 的 [API 設定參考](/zh-tw/reference/configuration-reference/)以完整了解所有支援的設定選項。</ReadMore>
