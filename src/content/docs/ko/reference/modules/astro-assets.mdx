@@ -1,0 +1,159 @@
+---
+title: 자산 API 참조
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="3.0.0" /></p>
+
+ Astro는 최적화된 이미지를 표시하기 위한 기본 컴포넌트와 도우미 함수를 제공합니다. 기능 및 사용 예시는 [이미지 가이드](/ko/guides/content-collections/)를 참조하세요.
+
+## `astro:assets`에서 가져오기
+
+```js
+import {
+  Image,
+  Picture,
+  getImage,
+ } from 'astro:assets';
+```
+
+### `<Image />`
+
+```astro title="src/components/MyComponent.astro"
+---
+// Image 컴포넌트 및 이미지 가져오기
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // 1600x900의 이미지
+---
+
+<!-- Image 컴포넌트에서는 'alt'가 필수입니다. -->
+<Image src={myImage} alt="A description of my image." />
+```
+
+```html
+<!-- 결과 -->
+<!-- 이미지가 최적화되었으며 적절한 속성이 적용되었습니다. -->
+<img
+  src="/_astro/my_image.hash.webp"
+  width="1600"
+  height="900"
+  decoding="async"
+  loading="lazy"
+  alt="A description of my image."
+/>
+```
+#### 속성
+
+- src (필수)
+- alt (필수)
+- width 및 height (`public/` 및 원격 이미지를 사용하는 경우 필수)
+- format
+- quality
+- densities
+- widths
+
+위 속성 외에도 `<Image />` 컴포넌트는 HTML `<img>` 태그에서 허용하는 모든 속성을 허용합니다.
+
+[이미지 가이드](/ko/guides/images/#image--astroassets)에서 자세한 내용을 확인하세요.
+
+### `<Picture />`
+
+<p><Since v="3.3.0" /></p>
+
+다양한 형식 및/또는 크기로 반응형 이미지를 표시하려면 Astro의 `<Picture />` 컴포넌트를 사용하세요.
+
+```astro title="src/pages/index.astro"
+---
+import { Picture } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // 1600x900의 이미지
+---
+
+<!-- Picture 컴포넌트에서는 'alt'가 필수입니다. -->
+<Picture src={myImage} formats={['avif', 'webp']} alt="A description of my image." />
+```
+
+```html
+<!-- 결과 -->
+<picture>
+  <source srcset="/_astro/my_image.hash.avif" type="image/avif" />
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.png"
+    width="1600"
+    height="900"
+    decoding="async"
+    loading="lazy"
+    alt="A description of my image."
+  />
+</picture>
+```
+
+[이미지 안내서](/ko/guides/images/#picture-)에서 자세한 내용을 확인하세요.
+
+#### 속성
+
+`<Picture />`는 `<Image />` 컴포넌트의 모든 속성과 함께 다음을 허용합니다.
+
+##### `formats`
+
+`<source>` 태그에 사용할 이미지 형식의 배열입니다. 기본적으로 `['webp']`로 설정되어 있습니다.
+
+##### `fallbackFormat`
+
+`<img>` 태그에 대한 대체 값으로 사용할 형식입니다. 정적 이미지의 경우 기본값은 `.png`, 애니메이션 이미지의 경우 `.gif`, SVG 파일의 경우 `.svg`입니다.
+
+##### `pictureAttributes`
+
+`<picture>` 태그에 추가될 속성의 객체입니다. 이 속성을 사용하여 외부 `<picture>` 요소 자체에 속성을 적용합니다. `<Picture />` 컴포넌트에 직접 적용된 속성은 이미지 변환에 사용되는 속성을 제외하고 내부 `<img>` 요소에 적용됩니다.
+
+### `getImage()`
+
+<p>
+
+**타입:** `(options: UnresolvedImageTransform) => Promise<GetImageResult>`
+</p>
+
+:::caution
+`getImage()`는 서버 전용 API에 의존하며 클라이언트에서 사용될 때 빌드를 중단합니다.
+:::
+
+`getImage()` 함수는 HTML이 아닌 다른 곳 (예: [API 경로](/ko/guides/endpoints/#서버-엔드포인트-api-라우트))에서 사용할 이미지를 생성하기 위한 것입니다. 또한 사용자 정의 `<Image />` 컴포넌트를 만들 수도 있습니다.
+
+`getImage()`는 [Image 컴포넌트와 동일한 속성](/ko/reference/components-reference/#속성)을 가진 옵션 객체를 사용합니다 (`alt` 제외).
+
+```astro
+---
+import { getImage } from "astro:assets";
+import myBackground from "../background.png"
+
+const optimizedBackground = await getImage({src: myBackground, format: 'avif'})
+---
+
+<div style={`background-image: url(${optimizedBackground.src});`}></div>
+```
+
+다음 타입을 가진 객체를 반환합니다.
+
+```ts
+type GetImageResult = {
+  /* 이미지 렌더링에 필요한 추가 HTML 속성 (width, height, style 등) */
+  attributes: Record<string, any>;
+  /* 검증된 매개변수 전달 */
+  options: ImageTransform;
+  /* 원본 매개변수 전달 */
+  rawOptions: ImageTransform;
+  /* 생성된 이미지의 경로 */
+  src: string;
+  srcSet: {
+    /* 생성된 srcset의 값, 각 항목에는 URL과 크기 설명자가 있습니다. */
+    values: SrcSetValue[];
+    /* `srcset` 속성에서 사용할 수 있는 값 */
+    attribute: string;
+  };
+}
+```
