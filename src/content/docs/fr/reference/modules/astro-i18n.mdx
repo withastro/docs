@@ -1,0 +1,337 @@
+---
+title: Référence de l'API d'internationalisation
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="3.5.0" /></p>
+
+Ce module fournit des fonctions pour vous aider à créer des URL à l'aide des paramètres régionaux configurés de votre projet.
+
+La création de routes pour votre projet avec le routeur i18n dépendra de certaines valeurs de configuration que vous avez définies et qui affectent les routes de vos pages. Lorsque vous créez des routes avec ces fonctions, veillez à prendre en compte vos paramètres individuels pour :
+
+- [`base`](/fr/reference/configuration-reference/#base)
+- [`trailingSlash`](/fr/reference/configuration-reference/#trailingslash)
+- [`build.format`](/fr/reference/configuration-reference/#buildformat)
+- [`site`](/fr/reference/configuration-reference/#site)
+
+Notez également que les URL renvoyées créées par ces fonctions pour votre `defaultLocale` refléteront votre configuration `i18n.routing`.
+
+Pour les fonctionnalités et les exemples d'utilisation, [consultez notre guide de routage i18n](/fr/guides/internationalization/).
+
+## Importations depuis `astro:i18n`
+
+```js
+import { 
+  getRelativeLocaleUrl,
+  getAbsoluteLocaleUrl,
+  getRelativeLocaleUrlList,
+  getAbsoluteLocaleUrlList,
+  getPathByLocale,
+  getLocaleByPath,
+  redirectToDefaultLocale,
+  redirectToFallback,
+  notFound,
+  middleware,
+  requestHasLocale,
+ } from 'astro:i18n';
+```
+
+### `getRelativeLocaleUrl()` 
+
+<p>
+
+**Type :** `(locale: string, path?: string,  options?: GetLocaleOptions) => string`
+</p>
+
+Utilisez cette fonction pour récupérer un chemin relatif pour des paramètres régionaux. Si les paramètres régionaux n'existent pas, Astro renvoie une erreur.
+
+```astro
+---
+import { getRelativeLocaleUrl } from 'astro:i18n';
+
+getRelativeLocaleUrl("fr");
+// renvoie /fr
+
+getRelativeLocaleUrl("fr", "");
+// renvoie /fr
+
+getRelativeLocaleUrl("fr", "getting-started");
+// renvoie /fr/getting-started
+
+getRelativeLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog"
+}); 
+// renvoie /blog/fr-ca/getting-started
+
+getRelativeLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog",
+  normalizeLocale: false
+}); 
+// renvoie /blog/fr_CA/getting-started
+---
+```
+
+### `getAbsoluteLocaleUrl()` 
+
+<p>
+
+**Type :** `(locale: string, path: string, options?: GetLocaleOptions) => string`
+</p>
+
+Utilisez cette fonction pour récupérer un chemin absolu pour des paramètres régionaux lorsque [`site`] a une valeur. Si [`site`] n'est pas configuré, la fonction renvoie une URL relative. Si les paramètres régionaux n'existent pas, Astro renvoie une erreur.
+
+
+```astro title="src/pages/index.astro"
+---
+import { getAbsoluteLocaleUrl } from 'astro:i18n';
+
+// Si `site` est défini sur `https://example.com`
+
+getAbsoluteLocaleUrl("fr"); 
+// renvoie https://example.com/fr
+
+getAbsoluteLocaleUrl("fr", ""); 
+// renvoie https://example.com/fr
+
+getAbsoluteLocaleUrl("fr", "getting-started"); 
+// renvoie https://example.com/fr/getting-started
+
+getAbsoluteLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog"
+}); 
+// renvoie https://example.com/blog/fr-ca/getting-started
+
+getAbsoluteLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog",
+  normalizeLocale: false
+}); 
+// renvoie https://example.com/blog/fr_CA/getting-started
+---
+```
+ 
+### `getRelativeLocaleUrlList()` 
+
+<p>
+
+**Type :** `(path?: string, options?: GetLocaleOptions) => string[]`
+</p>
+
+Utilisez cette fonction de la même manière que [`getRelativeLocaleUrl`](#getrelativelocaleurl) pour renvoyer une liste de chemins relatifs pour tous les paramètres régionaux.
+
+
+### `getAbsoluteLocaleUrlList()` 
+
+<p>
+
+**Type :** `(path?: string, options?: GetLocaleOptions) => string[]`
+</p>
+
+Utilisez cette fonction de la même manière que [`getAbsoluteLocaleUrl`](/fr/guides/internationalization/#chemins-daccès-aux-paramètres-régionaux-personnalisés) pour renvoyer une liste de chemins absolus pour tous les paramètres régionaux.
+
+### `getPathByLocale()` 
+
+<p>
+
+**Type :** `(locale: string) => string`
+</p>
+
+Une fonction qui renvoie le chemin (`path`) associé à un ou plusieurs `codes` lorsque les [chemins de paramètres régionaux personnalisés](/fr/guides/internationalization/#chemins-daccès-aux-paramètres-régionaux-personnalisés) sont configurés.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  i18n: {
+    locales: ["es", "en", {
+      path: "french",
+      codes: ["fr", "fr-BR", "fr-CA"]
+    }]
+  }
+})
+```
+
+```astro title="src/pages/index.astro"
+---
+import { getPathByLocale } from 'astro:i18n';
+
+getPathByLocale("fr"); // renvoie "french"
+getPathByLocale("fr-CA"); // renvoie "french"
+---
+```
+
+### `getLocaleByPath()`
+
+<p>
+
+**Type :** `(path: string) => string`
+</p>
+
+Une fonction qui renvoie le `code` associé à un chemin (`path`) de paramètres régionaux.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  i18n: {
+    locales: ["es", "en", {
+      path: "french",
+      codes: ["fr", "fr-BR", "fr-CA"]
+    }]
+  }
+})
+```
+
+```astro title="src/pages/index.astro"
+---
+import { getLocaleByPath } from 'astro:i18n';
+
+getLocaleByPath("french"); // renvoie "fr" car c'est le premier code configuré
+---
+```
+
+### `redirectToDefaultLocale()`
+
+<p>
+
+**Type :** `(context: APIContext, statusCode?: ValidRedirectStatus) => Promise<Response>`<br />
+<Since v="4.6.0" />
+</p>
+
+:::note
+Disponible uniquement lorsque `i18n.routing` est défini sur `"manual"`
+:::
+
+Une fonction qui renvoie une `Response` qui redirige vers les paramètres régionaux utilisés par défaut (`defaultLocale`). Il accepte un code d’état de redirection valide facultatif.
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { redirectToDefaultLocale } from "astro:i18n";
+
+export const onRequest = defineMiddleware((context, next) => {
+  if (context.url.pathname.startsWith("/about")) {
+    return next();
+  } else {
+    return redirectToDefaultLocale(context, 302);
+  }
+})
+```
+
+### `redirectToFallback()`
+
+<p>
+
+**Type :** `(context: APIContext, response: Response) => Promise<Response>`<br />
+<Since v="4.6.0" />
+</p>
+
+:::note
+Disponible uniquement lorsque `i18n.routing` est défini sur `"manual"`
+:::
+
+Une fonction qui vous permet d'utiliser votre [configuration `i18n.fallback`](/fr/reference/configuration-reference/#i18nfallback) dans votre propre middleware.
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { redirectToFallback } from "astro:i18n";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const response = await next();
+  if (response.status >= 300) {
+    return redirectToFallback(context, response)
+  }
+  return response;
+})
+```
+
+### `notFound()`
+
+<p>
+
+**Type :** `(context: APIContext, response?: Response) => Promise<Response> | undefined`<br />
+<Since v="4.6.0" />
+</p>
+
+:::note
+Disponible uniquement lorsque `i18n.routing` est défini sur `"manual"`
+:::
+
+Utilisez cette fonction dans votre middleware de routage pour renvoyer une 404 lorsque :
+- le chemin actuel n'est pas une racine, par exemple `/` ou `/<base>`
+- l'URL ne contient pas de paramètres régionaux
+
+Lorsqu'une `Response` est transmise, la nouvelle `Response` émise par cette fonction contiendra les mêmes en-têtes que la réponse d'origine.
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { notFound } from "astro:i18n";
+
+export const onRequest = defineMiddleware((context, next) => {
+  const pathNotFound = notFound(context);
+  if (pathNotFound) {
+    return pathNotFound;
+  }
+  return next();
+})
+```
+
+### `middleware()`
+
+<p>
+
+**Type :** `(options: { prefixDefaultLocale: boolean, redirectToDefaultLocale: boolean }) => MiddlewareHandler`<br />
+<Since v="4.6.0" />
+</p>
+
+:::note
+Disponible uniquement lorsque `i18n.routing` est défini sur `"manual"`
+:::
+
+Une fonction qui vous permet de créer par programmation le middleware i18n d'Astro.
+
+Ceci est utile lorsque vous souhaitez utiliser la logique i18n par défaut tout en ajoutant quelques exceptions pour votre site.
+
+```js title="middleware.js"
+import { middleware } from "astro:i18n";
+import { sequence, defineMiddleware } from "astro:middleware";
+
+const customLogic = defineMiddleware(async (context, next) => {
+  const response = await next();
+
+  // Logique personnalisée après résolution de la réponse.
+  // Il est possible de capter la réponse provenant du middleware i18n d'Astro.
+
+  return response;
+});
+
+export const onRequest = sequence(customLogic, middleware({
+	prefixDefaultLocale: true,
+	redirectToDefaultLocale: false
+}))
+```
+
+### `requestHasLocale()`
+
+<p>
+
+**Type :** `(context: APIContext) => boolean`<br />
+<Since v="4.6.0" />
+</p>
+
+:::note
+Disponible uniquement lorsque `i18n.routing` est défini sur `"manual"`
+:::
+
+Vérifie si l'URL actuelle contient des paramètres régionaux configurés. En interne, cette fonction utilisera `APIContext#url.pathname`.
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { requestHasLocale } from "astro:i18n";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  if (requestHasLocale(context)) {
+    return next();
+  }
+  return new Response("Not found", { status: 404 });
+})
+```
