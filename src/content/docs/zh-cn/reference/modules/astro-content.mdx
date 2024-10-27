@@ -1,0 +1,378 @@
+---
+title: 内容集合 API 参考
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="2.0.0" /></p>
+
+内容集合提供了 API 来配置和查询 `src/content/` 中的 Markdown 或 MDX 文档。有关功能和用法示例，请参考[内容集合指南](/zh-cn/guides/content-collections/)。
+
+## 从 `astro:content` 导入
+
+```js
+import { 
+  z,
+  defineCollection,
+  getCollection,
+  getEntry,
+  getEntries,
+  reference,
+ } from 'astro:content';
+```
+
+### `defineCollection()`
+
+<p>
+
+**类型：**`(input: CollectionConfig) => CollectionConfig`
+</p>
+
+`defineCollection()` 是一个用于在 `src/content/config.*` 文件中配置集合的工具函数。
+
+```ts
+// src/content/config.ts
+import { z, defineCollection } from 'astro:content';
+const blog = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    permalink: z.string().optional(),
+  }),
+});
+
+// 将定义的集合公开给 Astro
+// 通过 `collections` 导出
+export const collections = { blog };
+```
+
+这个函数接受以下属性：
+
+#### `type`
+
+<p>
+
+**类型：**`'content' | 'data'`<br />
+**默认：**`'content'`<br />
+<Since v="2.5.0" />
+</p>
+
+`type` 是一个字符串，用于定义存储在集合中的条目的类型：
+
+- `'content'` - 用于内容创作格式，如 Markdown (`.md`)、MDX (`.mdx`) 或 Markdoc (`.mdoc`)
+- `'data'` - 用于 JSON (`.json`) 或 YAML (`.yaml`) 等纯数据格式
+
+:::tip
+这意味着集合**不能**存储内容和数据格式的混合。你必须按类型将这些条目分割成单独的集合。
+:::
+
+#### `schema`
+
+<p>
+
+**类型：**<code>ZodType | (context: <a href="#schemacontext">SchemaContext</a>) => ZodType</code>
+</p>
+
+`schema` 是一个可选的 Zod 对象，用于配置集合的文档 frontmatter 的类型和形状。每个值必须使用 [Zod 验证器](https://github.com/colinhacks/zod)
+
+有关示例请 [参考 `内容集合`指南](/zh-cn/guides/content-collections/#定义集合模式)。
+
+### `reference()`
+
+<p>
+
+**类型：**`(collection: string) => ZodEffects<ZodString, { collection, id: string } | { collection, slug: string }>`<br />
+<Since v="2.5.0" />
+</p>
+
+在内容配置中使用 `reference()` 函数来定义从一个集合到另一个集合的关系或 "引用"。该函数接受一个集合名称，并验证内容前置事项或数据文件中指定的条目标识符。
+
+此示例定义了从博客作者到 "作者 "集合的引用，以及到同一 "博客 "集合的相关文章数组的引用：
+
+```ts
+import { defineCollection, reference, z } from 'astro:content';
+
+const blog = defineCollection({
+  type: 'content',
+  schema: z.object({
+    // 通过 "id "从 "作者 "集合中引用单个作者
+    author: reference('authors'),
+    // 按 "slug "从 "blog "集合中引用相关帖子数组
+    relatedPosts: z.array(reference('blog')),
+  })
+});
+
+const authors = defineCollection({
+  type: 'data',
+  schema: z.object({ /* ... */ })
+});
+
+export const collections = { blog, authors };
+```
+
+有关示例请 [参考 `内容集合`指南](/zh-cn/guides/content-collections/#定义集合引用)。
+
+### `getCollection()`
+
+<p>
+
+**类型：** `(collection: string, filter?: (entry: CollectionEntry<TCollectionName>) => boolean) => CollectionEntry<TCollectionName>[]`
+</p>
+
+`getCollection()` 是一个函数，用于通过集合名称检索内容集合条目列表。
+
+默认情况下，它返回集合中的所有项目，并接受可选的 `filter` 函数来缩小条目属性。这允许你根据 `id`、`slug` 或 frontmatter 值（通过 `data` 对象）查询集合中的某些项目。
+
+```astro
+---
+import { getCollection } from 'astro:content';
+
+// 获取 `src/content/blog/` 中的所有条目
+const allBlogPosts = await getCollection('blog');
+
+// 仅返回 frontmatter 中 `draft: true` 的条目
+const draftBlogPosts = await getCollection('blog', ({ data }) => {
+  return data.draft === true;
+});
+---
+```
+
+有关示例请 [参考 `内容集合`指南](/zh-cn/guides/content-collections/#查询集合) 以获取示例用法。
+
+### `getEntry()`
+
+<p><Since v="2.5.0" /></p>
+
+**类型：**
+
+- `(collection: string, contentSlugOrDataId: string) => CollectionEntry<TCollectionName>`
+- `({ collection: string, id: string }) => CollectionEntry<TCollectionName>`
+- `({ collection: string, slug: string }) => CollectionEntry<TCollectionName>`
+
+`getEntry()` 是一个函数，可通过集合名称和条目 `id` （对于 `type: 'data'` 集合）或条目 `slug` （对于 `type: 'content'` 集合）检索单个集合条目。`getEntry()`也可用于获取引用条目，以访问`data`、`body`或`render()`属性：
+
+```astro
+---
+import { getEntry } from 'astro:content';
+
+// 得到 `src/content/blog/enterprise.md`
+const enterprisePost = await getEntry('blog', 'enterprise');
+
+// 得到 `src/content/captains/picard.yaml`
+const picardProfile = await getEntry('captains', 'picard');
+
+// 得到 the profile referenced by `data.captain`
+const enterpriseCaptainProfile = await getEntry(enterprisePost.data.captain);
+---
+```
+
+有关`内容集合`的示例，请参考 [查询集合条目](/zh-cn/guides/content-collections/#查询集合)。
+
+### `getEntries()`
+
+<p><Since v="2.5.0" /></p>
+
+**类型：**
+
+- `(Array<{ collection: string, id: string }>) => CollectionEntry<TCollectionName>[]`
+- `(Array<{ collection: string, slug: string }>) => CollectionEntry<TCollectionName>[]`
+
+`getEntries()` 是一个从同一集合中检索多个集合条目的函数。这对于[返回引用条目的数组](/zh-cn/guides/content-collections/#定义集合引用)访问其关联的`data`、`body`和`render()`属性非常有用。
+
+```astro
+---
+import { getEntries } from 'astro:content';
+
+const enterprisePost = await getEntry('blog', 'enterprise');
+
+// 获取由 `data.relatedPosts` 引用的相关帖子
+const enterpriseRelatedPosts = await getEntries(enterprisePost.data.relatedPosts);
+---
+```
+
+### `getEntryBySlug()`
+
+<p>
+
+**类型：** `(collection: string, slug: string) => Promise<CollectionEntry<TCollectionName>>`
+</p>
+
+:::caution[已废弃]
+使用 [`getEntry()`函数](#getentry) 查询内容条目。该函数接受与 `getEntryBySlug()` 相同的参数，并支持通过 `id` 查询 JSON 或 YAML 集合。
+:::
+
+`getEntryBySlug()` 是一个函数，用于通过集合名称和条目 `slug` 检索单个集合条目。
+
+```astro
+---
+import { getEntryBySlug } from 'astro:content';
+
+const enterprise = await getEntryBySlug('blog', 'enterprise');
+---
+```
+
+有关示例请 [参考`内容集合`指南](/zh-cn/guides/content-collections/#查询集合) 以获取示例用法。
+
+### `getDataEntryById()`
+
+<p>
+
+**类型：** `(collection: string, id: string) => Promise<CollectionEntry<TCollectionName>>`<br />
+<Since v="2.5.0" />
+</p>
+
+:::caution[已废弃]
+使用 [`getEntry()`函数](#getentry) 查询数据条目。该函数接受与 `getDataEntryById()` 相同的参数，并支持通过 `slug` 查询 Markdown 等内容创作格式的条目。
+:::
+
+`getDataEntryById()` 是一个用于通过集合名称和条目 `id` 检索单个集合条目的函数。
+
+```astro
+---
+import { getDataEntryById } from 'astro:content';
+
+const picardProfile = await getDataEntryById('captains', 'picard');
+---
+```
+
+## `astro:content` 类型
+
+```ts
+import type {
+  CollectionEntry,
+  CollectionKey,
+  ContentCollectionKey,
+  DataCollectionKey,
+  SchemaContext,
+ } from 'astro:content';
+```
+
+### `CollectionEntry`
+
+查询函数包括 [`getCollection()`](#getcollection)、[`getEntry()`](#getentry) 和 [`getEntries()`](#getentries)，每个函数都会返回 `CollectionEntry` 类型的条目。这种类型可以作为 `astro:content` 中的实用程序使用：
+
+```ts
+import type { CollectionEntry } from 'astro:content';
+```
+
+`CollectionEntry` 是一个泛型类型。将其与你正在查询的集合的名称一起使用。
+例如，`blog` 集合中的条目的类型为 `CollectionEntry<'blog'>`。
+
+每个 `CollectionEntry` 都是一个具有以下值的对象：
+
+#### `id`
+
+**适用于：** `type: 'content'` and `type: 'data'` 集合
+**示例类型：**
+  - 内容集合: `'entry-1.md' | 'entry-2.md' | ...`
+  - 数据集合: `'author-1' | 'author-2' | ...`
+
+一个使用相对于 `src/content/[collection]` 的文件路径的唯一 ID。根据集合条目文件路径枚举所有可能的字符串值。
+请注意，[`类型: 'content'`](#type) 的集合在其 ID 中包含文件扩展名，而定义为 `type: 'data'` 的集合则不包含。
+
+#### `collection`
+
+**适用于：** `type: 'content'` and `type: 'data'` 集合 
+**示例类型：** `'blog' | 'authors' | ...`
+
+`src/content/` 下顶级文件夹的名称，条目位于该文件夹中。该名称用于在 schema 和查询函数中引用集合。
+
+#### `data`
+
+**适用于：** `type: 'content'` and `type: 'data'` 集合 
+**类型：**`CollectionSchema<TCollectionName>`
+
+一个从集合模式推断出的 frontmatter 属性对象（[参考 `defineCollection()`](#definecollection)）。如果没有配置模式，则默认为 `any`。
+
+#### `slug`
+
+**适用于：** 仅仅 `type: 'content'` 集合
+**示例类型：** `'entry-1' | 'entry-2' | ...`
+
+可用于 Markdown 或 MDX 文档的 URL 标头。默认为不含文件扩展名的 "id"，但可以通过在文件的 frontmatter 中设置[`slug`属性](/zh-cn/guides/content-collections/#定义自定义-slugs)来覆盖。
+
+#### `body`
+
+**适用于：** 仅 `type: 'content'` 集合
+**类型：**`string`
+
+一个包含 Markdown 或 MDX 文档原始未编译的 body 的字符串。
+
+#### `render()`
+
+**适用于：** 仅 `type: 'content'` 集合
+**类型：**`() => Promise<RenderedEntry>`
+
+一个用于编译给定的 Markdown 或 MDX 文档以进行渲染的函数。它返回以下属性：
+
+- `<Content />` - 用于在 Astro 文件中渲染文档内容的组件。
+- `headings` - 生成的标题列表，[与 Astro 的 `getHeadings()` 工具函数相同](/zh-cn/guides/markdown-content/#可用属性) 在 Markdown 和 MDX 导入中。
+- `remarkPluginFrontmatter ` - 在应用 [remark 或 rehype 插件](/zh-cn/guides/markdown-content/#以编程方式修改-frontmatter)后修改后的 frontmatter 对象。设置为类型 `any`。
+
+```astro
+---
+import { getEntryBySlug } from 'astro:content';
+const entry = await getEntryBySlug('blog', 'entry-1');
+
+const { Content, headings, remarkPluginFrontmatter } = await entry.render();
+---
+```
+
+有关示例请 [参考 `内容集合`指南](/zh-cn/guides/content-collections/#将内容渲染成-html) 以获取示例用法。
+
+### `CollectionKey`
+
+<p><Since v="3.1.0" /></p>
+
+这是一个在 `src/content/config.*` 文件中定义的所有集合名称的字符串联合类型。当定义一个可以接受任何集合名称的通用函数时，这个类型很有用。
+
+```ts
+import { type CollectionKey, getCollection } from 'astro:content';
+
+async function getCollection(collection: CollectionKey) {
+  return getCollection(collection);
+}
+```
+
+### `ContentCollectionKey`
+
+<p><Since v="3.1.0" /></p>
+
+一个在 `src/content/config.*` 文件中定义的所有 `type: 'content'` 集合名称的字符串联合类型。
+
+### `DataCollectionKey`
+
+<p><Since v="3.1.0" /></p>
+
+一个在 `src/content/config.*` 文件中定义的所有 `type: 'data'` 集合名称的字符串联合类型。
+
+### `SchemaContext`
+
+即 `defineCollection` 在 `schema` 函数形状中所使用的 `context` 对象。当为多个集合构建可重用的模式时，这个类型很有用。
+
+它包括了以下属性：
+
+- `image` - `image()` schema 辅助工具允许你 [在内容集合中使用本地图片](/zh-cn/guides/images/#内容集合中的图像)。
+
+```ts
+import type { SchemaContext } from 'astro:content';
+
+export const imageSchema = ({ image }: SchemaContext) =>
+    z.object({
+        image: image(),
+        description: z.string().optional(),
+    });
+
+const blog = defineCollection({
+  type: 'content',
+  schema: ({ image }) => z.object({
+    title: z.string(),
+    permalink: z.string().optional(),
+    image: imageSchema({ image })
+  }),
+});
+```
