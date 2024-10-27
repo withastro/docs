@@ -1,0 +1,157 @@
+---
+title: 资源 API 参考
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="3.0.0" /></p>
+
+Astro 提供了内置组件和辅助函数来优化和显示图像。有关功能和使用示例，[请参阅我们的图像指南](/zh-cn/guides/images/)。
+
+## 从 `astro:assets` 导入
+
+```js
+import { 
+  Image,
+  Picture,
+  getImage,
+ } from 'astro:assets';
+```
+
+### `<Image />`
+
+```astro title="src/components/MyComponent.astro"
+---
+// 导入图像组件和图片
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // Image is 1600x900
+---
+
+<!-- `alt` 在 Image 组件中是必需的属性 -->
+<Image src={myImage} alt="A description of my image." />
+```
+
+```html
+<!-- 输出 -->
+<!-- Image 组件已经过优化，并且对应的属性也被强制使用。 -->
+<img
+  src="/_astro/my_image.hash.webp"
+  width="1600"
+  height="900"
+  decoding="async"
+  loading="lazy"
+  alt="A description of my image."
+/>
+```
+
+#### 属性
+
+- src（必需的）
+- alt（必需的）
+- width 和 height（对 `public/` 和远程图像而言是必需的）
+- format
+- quality
+- densities
+- widths
+
+除了上述属性之外，`<Image />` 组件还接受 HTML `<img>` 标签接受的所有属性。
+
+详见 [图像指南](/zh-cn/guides/images/#image--astroassets)。
+
+### `<Picture />`
+
+<p><Since v="3.3.0" /></p>
+
+使用内置的 `<Picture />` Astro 组件来展示具有多种格式和（或）尺寸的响应式图像。
+
+```astro title="src/pages/index.astro"
+---
+import { Picture } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // 图像的分辨率为 1600x900
+---
+<!-- 在图片组件上 `alt` 属性是必需的 -->
+<Picture src={myImage} formats={['avif', 'webp']} alt="A description of my image." />
+```
+
+```html
+<!-- 输出 -->
+<picture>
+  <source srcset="/_astro/my_image.hash.avif" type="image/avif" />
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.png"
+    width="1600"
+    height="900"
+    decoding="async"
+    loading="lazy"
+    alt="A description of my image."
+  />
+</picture>
+```
+
+详见 [图像指南](/zh-cn/guides/images/#picture-)。
+
+#### 属性
+
+`<Picture />` 接受 `<Image />` 组件的所有属性，以及以下属性：
+
+##### `formats`
+
+一个图像格式的数组，用于 `<source>` 标签。默认情况下，它被设置为 `['webp']`。
+
+##### `fallbackFormat`
+
+用于作为 `<img>` 标签的回退值的格式。对于静态图像，默认为 `.png`；对于动画图像，默认为 `.gif`；对于 SVG 文件，默认为 `.svg`。
+
+##### `pictureAttributes`
+
+一个被添加到 `<picture>` 标签的属性对象。使用该属性可将属性应用于外部的 `<picture>` 元素本身。除了用于图像转换的属性外，直接应用于 `<Picture />` 组件的属性将应用于内部的 `<img>` 元素。
+
+### `getImage()`
+
+<p>
+
+**类型：**`(options: UnresolvedImageTransform) => Promise<GetImageResult>`
+</p>
+
+:::caution
+`getImage()` 依赖于仅在服务器上可用的 API，当在客户端使用时会导致构建失败。
+:::
+
+`getImage()`函数旨在生成用于在 HTML 之外的其他地方所使用的图像，例如在 [API 路由](/zh-cn/guides/endpoints/#服务器端点api-路由) 中。它还允许你创建自定义的 `<Image />` 组件。
+
+`getImage()` 函数接受一个选项对象，其中包含与 [Image 组件相同的属性](/zh-cn/reference/components-reference/#属性)（除了 `alt`）。
+
+```astro
+---
+import { getImage } from "astro:assets";
+import myBackground from "../background.png"
+const optimizedBackground = await getImage({src: myBackground, format: 'avif'})
+---
+<div style={`background-image: url(${optimizedBackground.src});`}></div>
+```
+
+它返回了一个具有以下类型的对象：
+
+```js
+type GetImageResult = {
+  /* 渲染图像所需的附加 HTML 属性（宽度、高度、样式等） */
+  attributes: Record<string, any>;
+  /* 已通过校验的参数 */
+  options: ImageTransform;
+  /* 传递的原始参数 */
+  rawOptions: ImageTransform;
+  /* 生成图像的路径 */
+  src: string;
+  srcSet: {
+    /* 为 srcset 生成值，每个条目都有一个 url 和一个 size */
+    values: SrcSetValue[];
+    /* 准备在`srcset`属性中使用的值 */
+    attribute: string;
+  };
+}
+```
