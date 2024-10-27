@@ -4,7 +4,7 @@ i18nReady: true
 ---
 import Since from '~/components/Since.astro';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
-
+import ReadMore from '~/components/ReadMore.astro'
 
 
 Astro が提供するコマンドラインインターフェイス（CLI）を使用して、ターミナルウィンドウからプロジェクトの開発、ビルド、およびプレビューができます。
@@ -69,7 +69,8 @@ Commands
              docs  Open documentation in your web browser.
              info  List info about your current Astro setup.
           preview  Preview your build locally.
-             sync  Generate content collection types.
+             sync  Generate TypeScript types for all Astro modules.
+      preferences  Configure user preferences.
         telemetry  Configure telemetry settings.
 
 Global Flags
@@ -196,38 +197,17 @@ If you started your project using [the `create astro` wizard](/en/install-and-se
 
 Astroの開発サーバーを起動します。これはアセットをバンドルしないローカルのHTTPサーバーです。ホットモジュールリプレースメント（HMR）を使用して、エディターで変更を保存した際にブラウザを更新します。
 
-<h3>フラグ</h3>
-
-Astroの開発サーバーの動作をカスタマイズするために以下のフラグを使用してください。他のAstroのコマンドと共通しているフラグについては、下記の[共通のフラグ](#共通のフラグ)を確認してください。
-
-#### `--port <ポート番号>`
-
-どのポートで起動するかを指定します。デフォルト値は`4321`です。
-
-#### `--host [オプションのホストアドレス]`
-
-開発サーバーがリッスンするネットワークIPアドレス、たとえばlocalhost以外のIPアドレスなどを設定します。これは開発時に携帯電話などのローカルの端末でプロジェクトをテストする際に便利です。
-
-- `--host` - LANやパブリックのアドレスを含むすべてのアドレスでリッスンします
-- `--host <カスタムアドレス>` - `<カスタムアドレス>`のネットワークIPアドレスで公開します
-
-:::caution
-本番環境で開発サーバーを公開するために`--host`フラグを使用しないでください。開発サーバーはサイト開発時にローカルで使用する場合のみを想定して設計されています。
-:::
-
 ## `astro build`
 
 サイトをデプロイ用にビルドします。デフォルトでは、静的ファイルを生成し`dist/`ディレクトリに配置します。[SSRが有効な場合](/ja/guides/server-side-rendering/)には、サイトに必要なサーバーのファイルを生成します。
 
-<h3>フラグ</h3>
-
-ビルドをカスタマイズするために以下のフラグを使用してください。他のAstroのコマンドと共通しているフラグについては、下記の[共通のフラグ](#共通のフラグ)を確認してください。
+下記の[共通のフラグ](#共通のフラグ)と組み合わせられます。
 
 ## `astro preview`
 
-静的な`dist/`ディレクトリを配信するためのローカルサーバーを起動します。
+`astro build`の実行により作成される静的ディレクトリ（デフォルトでは`dist/`）のコンテンツを配信するためのローカルサーバーを起動します。
 
-このコマンドはデプロイ前に静的ビルドをローカルでプレビューする際に便利です。本番環境で実行するようには設計されていません。本番環境のホスティングについて知りたい場合は、[Astroウェブサイトをデプロイする](/ja/guides/deploy/)ためのガイドを確認してください。
+このコマンドにより、サイトを[ビルド後](#astro-build)にローカルでプレビューし、デプロイ前にビルド出力のエラーを見つけられます。本番環境で実行するようには設計されていません。本番環境のホスティングについて知りたい場合は、[Astroウェブサイトをデプロイする](/ja/guides/deploy/)ためのガイドを確認してください。
 
 Astro 1.5.0から、アダプターがサポートしている場合はSSRビルドに対しても`astro preview`を使えます。現在、[Nodeアダプター](/ja/guides/integrations-guide/node/)のみ`astro preview`をサポートしています。
 
@@ -245,25 +225,52 @@ Astro 1.5.0から、アダプターがサポートしている場合はSSRビル
 
 #### `--watch`
 
-`.astro`ファイルへの変更を監視し、エラーを報告します。
+プロジェクトの変更を監視し、エラーを報告します。
 
-:::note
-このコマンドは`.astro`ファイル内の型チェックのみを実行します。
-:::
+#### `--root <path-to-dir>`
 
-📚 詳しくは[AstroのTypeScriptサポート](/ja/guides/typescript/)を確認してください。
+異なるルートディレクトリを指定します。デフォルトでは現在の作業ディレクトリを使用します。
+
+#### `--tsconfig <path-to-file>`
+
+手動で`tsconfig.json`ファイルを指定します。指定しない場合、Astroは設定を探すか、プロジェクトの設定を自動的に推測します。
+
+#### `--minimumFailingSeverity <error|warning|hint>`
+
+コマンドを終了するために必要な最小の重要度を指定します。デフォルトは`error`です。
+
+たとえば`astro check --minimumFailingSeverity warning`を実行すると、警告が検出された場合にコマンドがエラーで終了します。
+
+#### `--minimumSeverity <error|warning|hint>`
+
+出力される最小の重要度を指定します。デフォルトは`hint`です。
+
+たとえば`astro check --minimumSeverity warning`を実行すると、エラーと警告が表示されますが、ヒントは表示されません。
+
+#### `--preserveWatchOutput`
+
+ウォッチモードでチェックしている間、出力をクリアしないように指定します。
+
+#### `--noSync`
+
+プロジェクトをチェックする前に`astro sync`を実行しないように指定します。
+
+<ReadMore>詳しくは[Astroの型チェック](/ja/guides/typescript/#型チェック)を確認してください。</ReadMore>
 
 ## `astro sync`
 
-<p>
-  <Since v="2.0.0" />
-</p>
+<p><Since v="2.0.0" /></p>
 
 :::tip
 `astro dev`、`astro build`、または`astro check`を実行すると、`sync`コマンドも実行されます。
 :::
 
-すべてのAstroモジュールに対してTypeScriptの型を生成します。これにより、型推論に使用する[`src/env.d.ts`ファイル](/ja/guides/typescript/#準備)が設定され、[コンテンツコレクションAPI](/ja/guides/content-collections/)のための`astro:content`モジュールが定義されます。
+すべてのAstroモジュールに対してTypeScriptの型を生成します。これにより、型推論に使用する[`src/env.d.ts`ファイル](/ja/guides/typescript/#準備)が設定され、生成される型に依存する機能のモジュールが定義されます。
+- [コンテンツコレクションAPI](/ja/guides/content-collections/)のための`astro:content`モジュール
+- [Astro DB](/ja/guides/astro-db/)のための`astro:db`モジュール
+- [実験的なAstro Env](/ja/reference/configuration-reference/)のための`astro:env`モジュール
+- [Astroアクション](/ja/guides/actions/)のための`astro:actions`モジュール
+{/* TODO: Envのパスを /ja/reference/configuration-reference/#experimentalenv に変更する */}
 
 ## `astro add`
 
@@ -293,9 +300,61 @@ Adapter                  @astrojs/vercel/serverless
 Integrations             none
 ```
 
+## `astro preferences`
+
+ユーザー設定は`astro preferences`コマンドで管理します。ユーザーの設定はAstroの個々のユーザーに固有です。プロジェクトで作業するすべての人に影響する`astro.config.mjs`ファイルとは異なります。
+
+ユーザー設定はデフォルトで現在のプロジェクトにスコープされ、ローカルの`.astro/settings.json`ファイルに保存されます。
+
+`--global`フラグを使用すると、ユーザー設定を現在のマシン上のすべてのAstroプロジェクトに適用できます。グローバルユーザー設定は、オペレーティングシステム固有の場所に保存されます。
+
+<h3>設定可能な値</h3>
+
+- `devToolbar` — ブラウザ内の開発ツールバーを有効化または無効化します。（デフォルトは`true`）
+- `checkUpdates` — Astro CLIの自動更新チェックを有効化または無効化します。（デフォルトは`true`）
+
+`list`コマンドは、設定可能なすべてのユーザー設定の現在値を出力します。機械可読な`--json`出力もサポートしています。
+
+```shell
+astro preferences list
+```
+
+ターミナル出力の例:
+
+| 設定                     | 値 |
+| ------------------------ | ----- |
+| devToolbar.enabled       | true  <tr></tr>|
+| checkUpdates.enabled     | true  |
+
+設定を`enable`、`disable`、またはデフォルト値に`reset`できます。
+
+たとえば、特定のAstroプロジェクトで開発ツールバーを無効にするには以下のようにします。
+
+```shell
+astro preferences disable devToolbar
+```
+
+現在のマシン上のすべてのAstroプロジェクトで開発ツールバーを無効にするには以下のようにします。
+
+```shell
+astro preferences disable --global devToolbar
+```
+
+あとで開発ツールバーを有効にするには以下のようにします。
+
+```shell
+astro preferences enable devToolbar
+```
+
+`reset`コマンドは設定をデフォルト値にリセットします。
+
+```shell
+astro preferences reset devToolbar
+```
+
 ## `astro telemetry`
 
-現在のCLIのユーザーに対してテレメトリーの設定をおこないます。テレメトリーは、Astroのどの機能がもっともよく使われているかをAstroチームに提供するための匿名のデータです。
+現在のCLIのユーザーに対してテレメトリーの設定をおこないます。テレメトリーは、Astroのどの機能がもっともよく使われているかをAstroチームに提供するための匿名のデータです。詳しくは[Astroのテレメトリーページ](https://astro.build/telemetry/)を確認してください。
 
 テレメトリーは以下のCLIコマンドで無効にできます。
 
@@ -309,10 +368,10 @@ astro telemetry disable
 astro telemetry enable
 ```
 
-`clear`コマンドはテレメトリーのデータをリセットします。
+`reset`コマンドはテレメトリーのデータをリセットします。
 
 ```shell
-astro telemetry clear
+astro telemetry reset
 ```
 
 :::tip[CI環境でテレメトリーを無効にしたいですか？]
@@ -339,15 +398,36 @@ astro --root myRootFolder/myProjectFolder dev
 astro --config config/astro.config.mjs dev
 ```
 
+### `--outDir <path>`
+
+<p><Since v="3.3.0" /></p>
+
+プロジェクトの[`outDir`](/ja/reference/configuration-reference/#outdir)を設定します。このフラグを渡すと、`astro.config.mjs`ファイルの`outDir`の値が上書きされます。
+
 ### `--site <url>`
 
 プロジェクトの[`site`](/ja/reference/configuration-reference/#site)を設定します。このフラグを渡すと、`astro.config.mjs`ファイルの`site`の値が上書きされます。
 
 ### `--base <pathname>`
 
-<Since v="1.4.1" />
+<p><Since v="1.4.1" /></p>
 
 プロジェクトの[`base`](/ja/reference/configuration-reference/#base)を設定します。このフラグを渡すと、`astro.config.mjs`ファイルの`base`の値が上書きされます。
+
+### `--port <ポート番号>`
+
+どのポートで開発サーバーとプレビューサーバーを起動するかを指定します。デフォルト値は`4321`です。
+
+### `--host [オプションのホストアドレス]`
+
+開発サーバーとプレビューサーバーがリッスンするネットワークIPアドレス、たとえばlocalhost以外のIPアドレスなどを設定します。これは開発時に携帯電話などのローカルの端末でプロジェクトをテストする際に便利です。
+
+- `--host` - LANやパブリックのアドレスを含むすべてのアドレスでリッスンします
+- `--host <カスタムアドレス>` - `<カスタムアドレス>`のネットワークIPアドレスで公開します
+
+:::caution
+本番環境で開発サーバーとプレビューサーバーを公開するために`--host`フラグを使用しないでください。サーバーはサイト開発時にローカルで使用する場合のみを想定して設計されています。
+:::
 
 ### `--verbose`
 
@@ -367,7 +447,7 @@ Astroのバージョン番号を出力し、終了します。
 
 ### `--open`
 
-サーバーの起動時に自動的にブラウザでアプリを開きます。
+サーバーの起動時に自動的にブラウザでアプリを開きます。開く対象のURLを指定するために、完全なURL文字列（たとえば`--open http://example.com`）またはpathname（たとえば`--open /about`）を指定できます。
 
 ### `--help`
 
@@ -401,9 +481,9 @@ interface AstroInlineConfig extends AstroUserConfig {
 
 Astro設定ファイルへのカスタムパスです。
 
-この値がundefind（デフォルト）であるか設定されていない場合、Astroは`root`を起点として`astro.config.(js,mjs,ts)`ファイルを検索し、設定ファイルが見つかればそれを読み込みます。
+この値がundefind（デフォルト）であるか設定されていない場合、Astroは`root`を起点として`astro.config.(js,mjs,ts,mts)`ファイルを検索し、設定ファイルが見つかればそれを読み込みます。
 
-相対パスが設定されている場合、現在の作業ディレクトリを基準として解決されます。
+相対パスが設定されている場合、`root`オプションを基準として解決されます。
 
 設定ファイルの読み込みを無効にするには`false`を設定します。
 
@@ -437,7 +517,7 @@ Astroが出力するログメッセージをフィルタリングするための
 
 ### `dev()`
 
-**データ型:** `(inlineConfig: AstroInlineConfig) => AstroDevServer`
+**データ型:** `(inlineConfig: AstroInlineConfig) => Promise<DevServer>`
 
 [`astro dev`](#astro-dev)と同様に、Astroの開発サーバーを実行します。
 
@@ -452,9 +532,40 @@ const devServer = await dev({
 await devServer.stop();
 ```
 
+#### `DevServer`
+
+```ts
+export interface DevServer {
+	address: AddressInfo;
+	handle: (req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>) => void;
+	watcher: vite.FSWatcher;
+	stop(): Promise<void>;
+}
+```
+
+##### `address`
+
+開発サーバーがリッスンしているアドレスです。
+
+このプロパティには、Nodeの[`net.Server#address()`メソッド](https://nodejs.org/api/net.html#serveraddress)によって返される値が含まれます。
+
+##### `handle()`
+
+生のNode HTTPリクエストのハンドルです。ネットワークを介してリクエストを送信する代わりに、`handle()`を[`http.IncomingMessage`](https://nodejs.org/api/http.html#class-httpincomingmessage)と[`http.ServerResponse`](https://nodejs.org/api/http.html#class-httpserverresponse)と共に呼び出すことができます。
+
+##### `watcher`
+
+[Viteの開発サーバー](https://ja.vite.dev/guide/api-javascript#vitedevserver)によって公開される[Chokidarのファイルウォッチャー](https://github.com/paulmillr/chokidar#getting-started)です。
+
+##### `stop()`
+
+開発サーバーを停止します。すべてのアイドル状態の接続を閉じ、新しい接続のリッスンを停止します。
+
+保留中のリクエストがすべてfullfillされ、すべてのアイドル状態の接続が閉じられると解決する`Promise`を返します。
+
 ### `build()`
 
-**データ型:** `(inlineConfig: AstroInlineConfig) => void`
+**データ型:** `(inlineConfig: AstroInlineConfig) => Promise<void>`
 
 [`astro build`](#astro-build)と同様に、サイトをデプロイ用にビルドします。
 
@@ -468,9 +579,11 @@ await build({
 
 ### `preview()`
 
-**データ型:** `(inlineConfig: AstroInlineConfig) => AstroPreviewServer`
+**データ型:** `(inlineConfig: AstroInlineConfig) => Promise<PreviewServer>`
 
-[`astro preview`](#astro-preview)と同様に、静的な`dist/`ディレクトリを配信するためのローカルサーバーを起動します。
+[`astro preview`](#astro-preview)と同様に、ビルド出力を配信するためのローカルサーバーを起動します。
+
+アダプターが設定されていない場合、プレビューサーバーはビルドされた静的ファイルのみを配信します。アダプターが設定されている場合、プレビューサーバーはアダプターによって提供されます。アダプターはプレビューサーバーを提供する必要はないため、選択したアダプターによってはこの機能が利用できない場合があります。
 
 ```js
 import { preview } from "astro";
@@ -483,18 +596,47 @@ const previewServer = await preview({
 await previewServer.stop();
 ```
 
+#### `PreviewServer`
+
+```ts
+export interface PreviewServer {
+	host?: string;
+	port: number;
+	closed(): Promise<void>;
+	stop(): Promise<void>;
+}
+```
+
+##### `host`
+
+サーバーが接続をリッスンしているホストです。
+
+アダプターはこのフィールドを設定しない場合があります。`host`の値は実装に依存します。
+
+##### `port`
+
+サーバーが接続をリッスンしているポートです。
+
+##### `stop()`
+
+プレビューサーバーをクローズし、リクエストの受け入れを停止し、アイドル状態の接続を切断するように要求します。
+
+返される`Promise`は、クローズリクエストが送信されると解決します。これはサーバーがクローズしたことを意味しません。サーバーが完全にクローズされたことを確認する必要がある場合は、[`closed()`](#closed)メソッドを使用してください。
+
+##### `closed()`
+
+サーバーがクローズされると解決し、サーバーでエラーが発生した場合はリジェクトする`Promise`を返します。
+
 ### `sync()`
 
-**データ型:** `(inlineConfig: AstroInlineConfig) => number`
+**データ型:** `(inlineConfig: AstroInlineConfig) => Promise<void>`
 
 [`astro sync`](#astro-sync)と同様に、すべてのAstroモジュールに対してTypeScriptの型を生成します。
 
 ```js
 import { sync } from "astro";
 
-const exitCode = await sync({
+await sync({
   root: "./my-project",
 });
-
-process.exit(exitCode)
 ```
