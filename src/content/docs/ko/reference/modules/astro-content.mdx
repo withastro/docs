@@ -1,0 +1,373 @@
+---
+title: 콘텐츠 컬렉션 API 참조
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="2.0.0" /></p>
+
+콘텐츠 컬렉션은 `src/content/`에서 Markdown 또는 MDX 문서를 구성하고 쿼리하는 API를 제공합니다. 기능 및 사용 예시는 [콘텐츠 컬렉션 안내서를 참조하세요](/ko/guides/content-collections/).
+
+## `astro:content`에서 가져오기
+
+```js
+import {
+  z,
+  defineCollection,
+  getCollection,
+  getEntry,
+  getEntries,
+  reference,
+ } from 'astro:content';
+```
+### `defineCollection()`
+
+<p>
+
+**타입:** `(input: CollectionConfig) => CollectionConfig`
+</p>
+
+`defineCollection()`은 `src/content/config.*` 파일에 컬렉션을 구성하는 유틸리티입니다.
+
+```ts
+// src/content/config.ts
+import { z, defineCollection } from 'astro:content';
+const blog = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    permalink: z.string().optional(),
+  }),
+});
+
+// `collections` 내보내기를 통해 정의된 컬렉션을 Astro에 노출합니다.
+export const collections = { blog };
+```
+
+이 함수는 다음 속성을 허용합니다.
+
+#### `type`
+
+<p>
+
+**타입:** `'content' | 'data'`<br />
+**기본값:** `'content'`<br />
+<Since v="2.5.0" />
+</p>
+
+`type`은 컬렉션에 저장된 항목의 형식을 정의하는 문자열입니다.
+
+- `'content'` - Markdown (`.md`), MDX (`.mdx`), Markdoc (`.mdoc`)와 같은 콘텐츠 작성 형식
+- `'data'` - JSON (`.json`) 또는 YAML (`.yaml`)과 같은 데이터 전용 형식의 경우
+
+:::tip
+즉, 컬렉션은 콘텐츠와 데이터 형식을 혼합하여 저장할 수 **없습니다**. 이러한 항목을 유형별로 별도의 컬렉션으로 분할해야 합니다.
+:::
+
+#### `schema`
+
+<p>
+
+**타입:** <code>ZodType | (context: <a href="#schemacontext">SchemaContext</a>) => ZodType</code>
+</p>
+
+`schema`는 컬렉션에 대한 문서 프런트매터의 타입과 모양을 구성하는 선택적 Zod 객체입니다. 각 값은 [Zod 유효성 검사기](https://github.com/colinhacks/zod)를 사용해야 합니다.
+
+사용 예시는 [`콘텐츠 컬렉션` 안내서를 참조하세요](/ko/guides/content-collections/#컬렉션-스키마-정의).
+
+### `reference()`
+
+<p>
+
+**타입:** `(collection: string) => ZodEffects<ZodString, { collection, id: string } | { collection, slug: string }>`<br />
+<Since v="2.5.0" />
+</p>
+
+`reference()` 함수는 콘텐츠 구성에서 한 컬렉션에서 다른 컬렉션으로의 관계 또는 "reference"를 정의하는 데 사용됩니다. 이는 컬렉션 이름을 전달받고 콘텐츠 프런트매터 또는 데이터 파일에 지정된 항목 식별자의 유효성을 검사합니다.
+
+이 예시에서는 `authors` 컬렉션에 대한 블로그 작성자의 참조와 동일한 `blog` 컬렉션에 대한 관련 게시물 배열을 정의합니다.
+
+```ts
+import { defineCollection, reference, z } from 'astro:content';
+
+const blog = defineCollection({
+  type: 'content',
+  schema: z.object({
+    // `id`로 `authors` 컬렉션에서 단일 저자 참조
+    author: reference('authors'),
+    // `slug`의 `blog` 컬렉션에서 관련 게시물 배열을 참조하세요.
+    relatedPosts: z.array(reference('blog')),
+  })
+});
+
+const authors = defineCollection({
+  type: 'data',
+  schema: z.object({ /* ... */ })
+});
+
+export const collections = { blog, authors };
+```
+
+사용 예시는 [`콘텐츠 컬렉션` 안내서를 참조하세요](/ko/guides/content-collections/#컬렉션-참조-정의하기).
+
+### `getCollection()`
+
+<p>
+
+**타입:** `(collection: string, filter?: (entry: CollectionEntry<TCollectionName>) => boolean) => CollectionEntry<TCollectionName>[]`
+</p>
+
+`getCollection()`은 컬렉션 이름별로 콘텐츠 컬렉션 항목 목록을 검색하는 함수입니다.
+
+기본적으로 컬렉션의 모든 항목을 반환하고 항목 속성별로 범위를 좁힐 수 있는 선택적 `filter` 함수를 허용합니다. 이를 통해 `data` 객체를 통해 `id`, `slug` 또는 프런트매터 값을 기반으로 컬렉션의 일부 항목만 쿼리할 수 있습니다.
+
+```astro
+---
+import { getCollection } from 'astro:content';
+
+// 모든 `src/content/blog/` 항목을 가져옵니다.
+const allBlogPosts = await getCollection('blog');
+
+// 프런트매터에 `draft: true`가 포함된 게시물만 반환합니다.
+const draftBlogPosts = await getCollection('blog', ({ data }) => {
+  return data.draft === true;
+});
+---
+```
+
+사용 예시는 [`콘텐츠 컬렉션` 안내서를 참조하세요](/ko/guides/content-collections/#컬렉션-쿼리).
+
+### `getEntry()`
+
+<p><Since v="2.5.0" /></p>
+
+**타입:**
+- `(collection: string, contentSlugOrDataId: string) => CollectionEntry<TCollectionName>`
+- `({ collection: string, id: string }) => CollectionEntry<TCollectionName>`
+- `({ collection: string, slug: string }) => CollectionEntry<TCollectionName>`
+
+`getEntry()`는 컬렉션 이름과 항목 `id` (`type: 'data'` 컬렉션의 경우) 또는 항목 `slug` (`type: 'content'` 컬렉션의 경우)로 단일 컬렉션 항목을 검색하는 함수입니다. `getEntry()`는 `data`, `body`, `render()` 속성에 액세스하기 위해 참조된 항목을 가져오는 데에도 사용할 수 있습니다.
+
+```astro
+---
+import { getEntry } from 'astro:content';
+
+// `src/content/blog/enterprise.md` 가져오기
+const enterprisePost = await getEntry('blog', 'enterprise');
+
+// `src/content/captains/picard.yaml` 가져오기
+const picardProfile = await getEntry('captains', 'picard');
+
+// `data.captain`이 참조하는 프로필 가져오기
+const enterpriseCaptainProfile = await getEntry(enterprisePost.data.captain);
+---
+```
+
+[컬렉션 항목 쿼리](/ko/guides/content-collections/#컬렉션-쿼리)의 예시는 `콘텐츠 컬렉션` 가이드를 참조하세요.
+
+### `getEntries()`
+
+<p><Since v="2.5.0" /></p>
+
+**타입:**
+- `(Array<{ collection: string, id: string }>) => CollectionEntry<TCollectionName>[]`
+- `(Array<{ collection: string, slug: string }>) => CollectionEntry<TCollectionName>[]`
+
+`getEntries()`는 동일한 컬렉션에서 여러 컬렉션 항목을 검색하는 함수입니다. 이는 [참조된 항목의 배열을 반환](/ko/guides/content-collections/#컬렉션-참조-정의하기)하여 관련 `data`, `body`, `render()` 속성에 액세스하는 데 유용합니다.
+
+```astro
+---
+import { getEntries } from 'astro:content';
+
+const enterprisePost = await getEntry('blog', 'enterprise');
+
+// `data.relatedPosts`에 의해 참조되는 관련 게시물 가져오기
+const enterpriseRelatedPosts = await getEntries(enterprisePost.data.relatedPosts);
+---
+```
+
+### `getEntryBySlug()`
+
+<p>
+
+**타입:** `(collection: string, slug: string) => Promise<CollectionEntry<TCollectionName>>`
+</p>
+
+:::caution[사용되지 않음]
+콘텐츠 항목을 쿼리하려면 [`getEntry()` 함수](#getentry)를 사용하세요. 이는 `getEntryBySlug()`와 동일한 인수를 허용하며 JSON 또는 YAML 컬렉션에 대해 `id`를 통한 쿼리를 지원합니다.
+:::
+
+`getEntryBySlug()`는 컬렉션 이름과 항목 `slug`로 단일 컬렉션 항목을 검색하는 함수입니다.
+
+```astro
+---
+import { getEntryBySlug } from 'astro:content';
+
+const enterprise = await getEntryBySlug('blog', 'enterprise');
+---
+```
+
+사용 예시는 [`콘텐츠 컬렉션` 가이드를 참조하세요](/ko/guides/content-collections/#컬렉션-쿼리).
+
+### `getDataEntryById()`
+
+<p>
+
+**타입:** `(collection: string, id: string) => Promise<CollectionEntry<TCollectionName>>`<br />
+<Since v="2.5.0" />
+</p>
+
+:::caution[사용되지 않음]
+데이터 항목을 쿼리하려면 [`getEntry()` 함수](#getentry)를 사용합니다. 이 함수는 `getDataEntryById()`와 동일한 인수를 전달받으며, Markdown과 같은 콘텐츠 작성 형식의 경우 `slug`로 쿼리할 수 있습니다.
+:::
+
+`getDataEntryById()`는 컬렉션 이름과 항목 `id`로 단일 컬렉션 항목을 검색하는 함수입니다.
+
+```astro
+---
+import { getDataEntryById } from 'astro:content';
+
+const picardProfile = await getDataEntryById('captains', 'picard');
+---
+```
+
+## `astro:content` 타입
+
+```ts
+import type {
+  CollectionEntry,
+  CollectionKey,
+  ContentCollectionKey,
+  DataCollectionKey,
+  SchemaContext,
+ } from 'astro:content';
+```
+
+### `CollectionEntry`
+
+[`getCollection()`](#getcollection), [`getEntry()`](#getentry), [`getEntries()`](#getentries)를 포함한 쿼리 함수는 각각 `CollectionEntry` 타입의 항목을 반환합니다. 이 타입은 `astro:content`에서 유틸리티로 사용할 수 있습니다.
+
+```ts
+import type { CollectionEntry } from 'astro:content';
+```
+
+`CollectionEntry`는 제네릭 타입입니다. 이 타입을 쿼리하려는 컬렉션의 이름과 함께 사용하세요.
+예를 들어, `blog` 컬렉션의 항목은 `CollectionEntry<'blog'>`와 같은 타입을 가질 것입니다.
+
+각 `CollectionEntry`는 다음 값을 가지는 객체입니다.
+
+#### `id`
+
+**사용 가능 대상:** `type: 'content'` 및 `type: 'data'` 컬렉션
+**타입 예시:**
+  - 콘텐츠 컬렉션: `'entry-1.md' | 'entry-2.md' | ...`
+  - 데이터 컬렉션: `'author-1' | 'author-2' | ...`
+
+`src/content/[collection]`에 상대적인 파일 경로를 사용하는 고유 ID입니다. 컬렉션 항목 파일 경로를 기반으로 가능한 모든 문자열 값을 열거합니다. [`type: 'content'`로 정의된](#type) 컬렉션은 ID에 파일 확장자를 포함하지만 `type: 'data'`로 정의된 컬렉션은 포함하지 않습니다.
+
+#### `collection`
+
+**사용 가능 대상:** `type: 'content'` 및 `type: 'data'` 컬렉션
+**타입 예시:** `'blog' | 'authors' | ...`
+
+항목이 위치한 `src/content/` 아래의 최상위 폴더 이름입니다. 이는 스키마 및 쿼리 함수에서 컬렉션을 참조하는 데 사용되는 이름입니다.
+
+#### `data`
+
+**사용 가능 대상:** `type: 'content'` 및 `type: 'data'` 컬렉션
+**타입:** `CollectionSchema<TCollectionName>`
+
+컬렉션 스키마에서 추론된 프런트매터 속성의 객체입니다 ([`defineCollection()` 참조를 확인하세요](#definecollection)). 스키마가 구성되지 않은 경우 기본값은 `any`입니다.
+
+#### `slug`
+
+**사용 가능 대상:** `type: 'content'` 컬렉션 전용
+**타입 예시:** `'entry-1' | 'entry-2' | ...`
+
+Markdown 또는 MDX 문서용 URL 지원 슬러그입니다. 파일 확장자가 없는 `id`가 기본값이지만 파일의 프런트매터에서 [`slug` 속성](/ko/guides/content-collections/#사용자-정의-슬러그-정의)을 설정하여 재정의할 수 있습니다.
+
+#### `body`
+
+**사용 가능 대상:** `type: 'content'` 컬렉션 전용
+**타입:** `string`
+
+Markdown 또는 MDX 문서의 컴파일되지 않은 원시 본문을 포함하는 문자열입니다.
+
+#### `render()`
+
+**사용 가능 대상:** `type: 'content'` 컬렉션 전용
+**타입:** `() => Promise<RenderedEntry>`
+
+렌더링을 위해 지정된 Markdown 또는 MDX 문서를 컴파일하는 함수입니다. 이 함수는 다음 속성을 반환합니다.
+
+- `<Content />` - Astro 파일에서 문서의 내용을 렌더링하는 데 사용되는 컴포넌트입니다.
+- `headings` - Markdown 및 MDX 가져오기에 대해 생성된 제목 목록, [Astro의 `getHeadings()` 유틸리티 미러링](/ko/guides/markdown-content/#사용-가능한-속성).
+- `remarkPluginFrontmatter ` - [remark 또는 rehype 플러그인이 적용된 후](/ko/guides/markdown-content/#프로그래밍-방식으로-프런트매터-수정하기) 수정된 frontmatter 객체. `any` 타입으로 설정됩니다.
+
+```astro
+---
+import { getEntryBySlug } from 'astro:content';
+const entry = await getEntryBySlug('blog', 'entry-1');
+
+const { Content, headings, remarkPluginFrontmatter } = await entry.render();
+---
+```
+
+사용 예시는 [`콘텐츠 컬렉션` 가이드를 참조하세요](/ko/guides/content-collections/#콘텐츠를-html로-렌더링).
+
+### `CollectionKey`
+
+<p><Since v="3.1.0" /></p>
+
+`src/content/config.*` 파일에 정의된 모든 컬렉션 이름의 문자열 유니언 타입입니다. 이 타입은 모든 컬렉션 이름을 허용하는 일반 함수를 정의할 때 유용할 수 있습니다.
+
+```ts
+import { type CollectionKey, getCollection } from 'astro:content';
+
+async function getCollection(collection: CollectionKey) {
+  return getCollection(collection);
+}
+```
+
+### `ContentCollectionKey`
+
+<p><Since v="3.1.0" /></p>
+
+`src/content/config.*` 파일에 정의된 `type: 'content'` 컬렉션의 모든 이름에 대한 문자열 유니언 타입입니다.
+
+### `DataCollectionKey`
+
+<p><Since v="3.1.0" /></p>
+
+`src/content/config.*` 파일에 정의된 `type: 'data'` 컬렉션의 모든 이름에 대한 문자열 유니언 타입입니다.
+
+### `SchemaContext`
+
+`defineCollection`이 `schema`의 함수 모양을 위해 사용하는 `context` 객체입니다. 이 타입은 여러 컬렉션에 대해 재사용 가능한 스키마를 구축할 때 유용할 수 있습니다.
+
+여기에는 다음 속성이 포함됩니다.
+
+- `image` - [콘텐츠 컬렉션에서 로컬 이미지를 사용](/ko/guides/images/#콘텐츠-컬렉션의-이미지)할 수 있게 해주는 `image()` 스키마 도우미
+
+```ts
+import type { SchemaContext } from 'astro:content';
+
+export const imageSchema = ({ image }: SchemaContext) =>
+    z.object({
+        image: image(),
+        description: z.string().optional(),
+    });
+
+const blog = defineCollection({
+  type: 'content',
+  schema: ({ image }) => z.object({
+    title: z.string(),
+    permalink: z.string().optional(),
+    image: imageSchema({ image })
+  }),
+});
+```
