@@ -1,0 +1,177 @@
+---
+title: Actions API 参考
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+Action 帮助你构建一个类型安全的后端，你可以从客户端代码和 HTML 表单中调用它。所有用于定义和调用 Action 的工具函数都由 `astro:actions` 模块暴露。有关示例和使用说明，请参阅 [Actions 指南](/zh-cn/guides/actions/)。
+
+## 从 `astro:actions` 导入
+
+```js
+import { 
+  actions,
+  defineAction,
+  isInputError,
+  ActionError,
+ } from 'astro:actions';
+```
+
+### `defineAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`defineAction()` 函数接受一个 [`handler()`](#handler-属性) 函数，其中包含在调用 Action 时要运行的服务器逻辑，以及一个可选的 [`input`](#input-验证器) 属性，用于在运行时验证输入参数。
+
+```ts
+export const server = {
+    getGreeting: defineAction({
+    input: z.object({
+      name: z.string(),
+    }),
+    handler: async (input, context) => {
+      return `Hello, ${input.name}!`
+    }
+  })
+}
+```
+
+#### `handler()` 属性
+
+<p>
+
+**类型：**`(input, context) => any`
+</p>
+
+`defineAction()` 函数接受一个 `handler()` 函数，其中包含在调用 Action 时要运行的服务器逻辑。此函数可以返回数据，这些数据将自动序列化并发送给调用者。
+
+`handler()` 函数被调用时，接受用户输入作为其第一个参数。如果设置了 [`input`](#input-验证器) 验证器，那么用户输入将在传递给 `handler()` 前进行验证。第二个参数是一个 `context` 对象，包含大多数 Astro 的 [标准端点上下文](/zh-cn/reference/api-reference/#端点上下文)，不包括 `getActionResult()`, `callAction()`, 和 `redirect()`。
+
+返回值使用 [devalue 库](https://github.com/Rich-Harris/devalue) 进行解析。它支持 JSON 值，以及 `Date()`, `Map()`, `Set()`, 或 `URL()` 的实例。
+
+#### `input` 验证器
+
+<p>
+
+**类型：**`ZodType | undefined`
+</p>
+
+可选的 `input` 属性接受一个 Zod 验证器，用于在运行时验证处理程序的输入。如果 action 验证失败，将返回 [`BAD_REQUEST` 错误](#actionerror) 并跳过 `handler`。
+
+如果省略 `input`，则 `handler` 将接收 JSON 请求的 `unknown` 类型的输入，以及表单请求的 `FormData` 类型。
+
+##### 与 `accept: 'form'` 一起使用
+
+如果你的 action 接受表单输入，请使用 `z.object()` 验证器将表单数据自动解析为类型化对象。表单数据字段支持以下验证器：
+
+- 使用 `z.number()` 验证类型为 `number` 的输入
+- 使用 `z.boolean()` 验证类型为 `checkbox` 的输入
+- 使用 `z.instanceof(File)` 验证类型为 `file` 的输入
+- 使用 `z.array(/* validator */)` 验证相同 `name` 的多个输入
+- 使用 `z.string()` 验证所有其他输入
+
+`z.object()` 验证器还支持包括 `.refine()`, `.transform()`, 和 `.pipe()` 在内的扩展函数。
+
+要搭配应用不同验证器的组合，请使用 `z.discriminatedUnion()` 包装器，它根据表单的特定字段以缩小类型范围。此示例通过接受表单提交以判断是 “创建(create)” 或是 “更新(update)” 了一名用户信息，判断时使用表单域的 `type` 属性字段来确定要验证的对象：
+
+```ts
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  changeUser: defineAction({
+    accept: 'form',
+    input: z.discriminatedUnion('type', [
+      z.object({
+        // 当 `type` 字段中的值含有 `create` 时匹配
+        type: z.literal('create'),
+        name: z.string(),
+        email: z.string().email(),
+      }),
+      z.object({
+        // 当 `type` 字段中的值含有 `update` 时匹配
+        type: z.literal('update'),
+        id: z.number(),
+        name: z.string(),
+        email: z.string().email(),
+      }),
+    ]),
+    async handler(input) {
+      if (input.type === 'create') {
+        // input 为 { type: 'create', name: string, email: string }
+      } else {
+        // input 为 { type: 'update', id: number, name: string, email: string }
+      }
+    },
+  }),
+};
+```
+
+### `isInputError()`
+
+<p>
+
+**类型：**<code>(error?: unknown | <a href="#actionerror">ActionError</a>) => boolean</code><br/>
+<Since v="4.15.0" />
+</p>
+
+`isInputError()` 函数常用于检查 `ActionError` 是否是输入验证错误。当 `input` 验证器是 `z.object()` 时，输入错误包括一个 `fields` 对象，其中错误消息按名称分组。
+
+<ReadMore> 
+更多关于使用 `isInputError()` 的信息，请参见 [表单输入错误指南](/zh-cn/guides/actions/#展示表单输入错误)。
+</ReadMore>
+
+### `ActionError`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`ActionError` 构造函数常用于在 `handler()` 函数中抛出错误。它接受一个 `code` 属性，描述发生的错误（例如：`"UNAUTHORIZED"`），以及一个可选的 `message` 属性，提供进一步的细节。
+
+#### `code`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`code` 属性接受所有 HTTP 状态码的人类可读版本。以下是支持的 code：
+
+- `BAD_REQUEST` (400): 客户端发送了无效的输入。当 action `input` 验证器验证失败时会抛出此错误。
+- `UNAUTHORIZED` (401): 客户端缺乏有效的身份验证凭据。
+- `FORBIDDEN` (403): 客户端无权访问资源。
+- `NOT_FOUND` (404): 服务器找不到请求的资源。
+- `METHOD_NOT_SUPPORTED` (405): 服务器不支持请求的方法。
+- `TIMEOUT` (408): 服务器在处理请求时超时。
+- `CONFLICT` (409): 服务器无法更新资源，因为存在冲突。
+- `PRECONDITION_FAILED` (412): 服务器不满足请求的前提条件。
+- `PAYLOAD_TOO_LARGE` (413): 服务器无法处理请求，因为负载过大。
+- `UNSUPPORTED_MEDIA_TYPE` (415): 服务器不支持请求的媒体类型。注意：Actions 已经检查了 JSON 和表单请求的 [`Content-Type` 标头](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Content-Type)，所以你可能不需要手动引发此代码。
+- `UNPROCESSABLE_CONTENT` (422): 服务器无法处理请求，因为存在语义错误。
+- `TOO_MANY_REQUESTS` (429): 服务器已超出指定的速率限制。
+- `CLIENT_CLOSED_REQUEST` (499): 客户端在服务器响应之前关闭了请求。
+- `INTERNAL_SERVER_ERROR` (500): 服务器意外失败。
+- `NOT_IMPLEMENTED` (501): 服务器不支持请求的功能。
+- `BAD_GATEWAY` (502): 服务器从上游服务器接收到无效响应。
+- `SERVICE_UNAVAILABLE` (503): 服务器暂时不可用。
+- `GATEWAY_TIMEOUT` (504): 服务器从上游服务器接收到超时。
+
+#### `message`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`message` 属性接受一个字符串。（例如："用户必须登录。"）
+
+[canonical]: https://en.wikipedia.org/wiki/Canonical_link_element
