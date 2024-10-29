@@ -64,7 +64,7 @@ export default NavDictionary({
 	communityResources: '社区资源',
 	'community-resources/content': '课程、指南和方案',
 	'community-resources/talks': '演讲、访谈和直播',
-	
+
 	reference: '参考',
 	'reference/configuration-reference': '配置',
 	'reference/cli-reference': 'Astro 命令行',
@@ -72,7 +72,7 @@ export default NavDictionary({
 	'reference/components-reference': '内置组件',
 	'guides/typescript': 'TypeScript 参考',
 	'reference/error-reference': '错误参考',
-	
+
 	'api-reference': 'Astro API 参考',
 	'reference/api-reference': 'Astro 运行时 API',
 	'reference/modules/astro-actions': 'astro:actions',
