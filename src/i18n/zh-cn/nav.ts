@@ -73,7 +73,7 @@ export default NavDictionary({
 	'guides/typescript': 'TypeScript 参考',
 	'reference/error-reference': '错误参考',
 	
-	'api-reference': 'API 参考',
+	'api-reference': 'Astro API 参考',
 	'reference/api-reference': 'Astro 运行时 API',
 	'reference/modules/astro-actions': 'astro:actions',
 	'reference/modules/astro-assets': 'astro:assets',
