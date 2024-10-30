@@ -19,6 +19,7 @@ import {
   Image,
   Picture,
   getImage,
+  inferRemoteSize,
  } from 'astro:assets';
 ```
 
@@ -44,23 +45,225 @@ import myImage from "../assets/my_image.png"; // Image is 1600x900
   height="900"
   decoding="async"
   loading="lazy"
-  alt="A description of my image."
+  alt="一段关于我图片的描述。"
 />
 ```
 
-#### 属性
+#### Image 属性
 
-- src（必需的）
-- alt（必需的）
-- width 和 height（对 `public/` 和远程图像而言是必需的）
-- format
-- quality
-- densities
-- widths
+除了下面描述的属性之外，`<Image />` 组件还接受 HTML `<img>` 标签接受的所有属性。
 
-除了上述属性之外，`<Image />` 组件还接受 HTML `<img>` 标签接受的所有属性。
+##### src (必须)
 
-详见 [图像指南](/zh-cn/guides/images/#image--astroassets)。
+<p>
+
+**类型：** `ImageMetadata | string | Promise<{ default: ImageMetadata }>`
+</p>
+
+图像文件的 `src` 值的格式取决于图像文件的位置：
+
+- **`src/` 中的本地图像** - 你必须**同时导入图像**，使用相对文件路径或配置并使用 [导入别名](/zh-cn/guides/imports/#别名)。然后使用导入名称作为 `src` 值：
+
+  ```astro title="src/pages/index.astro" "myImportedImage" "{myImportedImage}"
+  ---
+  import { Image } from 'astro:assets';
+  import myImportedImage from '../assets/my-local-image.png';
+  ---
+  <Image src={myImportedImage} alt="descriptive text" />
+  ```
+
+- **`public/` 文件夹中的图像** - 使用图像相对于 `public` 文件夹的**文件路径**作为属性值：
+
+  ```astro title="src/pages/index.astro" '"/images/my-public-image.png"'
+  ---
+  import { Image } from 'astro:assets';
+  ---
+  <Image 
+    src="/images/my-public-image.png"
+    alt="descriptive text"
+    width="200"
+    height="150" 
+  />
+  ```
+
+- **远程图像** - 使用图像的**完整 URL**作为属性值：
+
+  ```astro title="src/pages/index.astro" '"https://example.com/remote-image.jpg"'
+  ---
+  import { Image } from 'astro:assets';
+  ---
+  <Image 
+    src="https://example.com/remote-image.jpg"
+    alt="descriptive text"
+    width="200"
+    height="150"
+  />
+  ```
+
+##### alt (必须)
+
+<p>
+
+**类型：** `string`
+</p>
+
+不是所有用户都能以相同的方式看到图像，因此在使用图像时，无障碍性尤为重要。使用 `alt` 属性为图像提供 [描述性的 alt 文本](https://www.w3.org/WAI/tutorials/images/)。
+
+如果图像仅仅是装饰性的（即不会对页面的理解有所贡献），请设置 `alt=""` 以便屏幕阅读器和其他辅助技术知道忽略该图像。
+
+##### width 和 height（对于 `public/` 中的图像是必须的）
+
+<p>
+
+**类型：** `number | undefined`
+</p>
+
+这些属性定义了要用于图像的尺寸。
+
+当使用保持原始宽高比的图像时，`width` 和 `height` 是可选的。这些尺寸可以自动从位于 `src/` 中的图像文件自动推断出来。而对于远程图像，请将 `<Image />` 或 `<Picture />` 组件上的 [`inferSize` 属性设置为 `true`](#infersize)，或使用 [`inferRemoteSize()`](#inferremotesize) 函数。
+
+但是，对于存储在你的 `public/` 文件夹中的图像，这两个属性都是必需的，因为 Astro 无法分析这些文件。
+
+##### densities
+
+<p>
+
+**类型：** ``(number | `${number}x`)[] | undefined``<br />
+<Since v="3.3.0" />
+</p>
+
+为图像生成的像素密度列表。
+
+如果提供了该值，将会在 `<img>` 标签上生成一个 `srcset` 属性。在使用此值时，请不要提供 `widths` 的值。
+
+与原始图像相同或大于原始图像宽度的像素密度会被忽略，以避免放大图像。
+
+```astro title="src/components/MyComponent.astro"
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image 
+  src={myImage}
+  width={myImage.width / 2}
+  densities={[1.5, 2]}
+  alt="我的图片描述"
+/>
+```
+
+```html
+<!-- 输出 -->
+<img
+  src="/_astro/my_image.hash.webp"
+  srcset="
+    /_astro/my_image.hash.webp 1.5x
+    /_astro/my_image.hash.webp 2x
+  "
+  alt="我的图片描述"
+  width="800"
+  height="450"
+  loading="lazy"
+  decoding="async"
+/>
+```
+
+##### widths
+
+<p>
+
+**类型：** `number[] | undefined`<br />
+<Since v="3.3.0" />
+</p>
+
+为图像生成的宽度列表。
+
+如果提供了该值，将会在 `<img>` 标签上生成一个 `srcset` 属性。但还需提供一个 [`sizes` 属性](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/sizes)。
+
+在使用该值时，请不要提供 `densities` 的值。这两个值只能选择一个来生成 `srcset` 属性。
+
+将忽略大于原始图像宽度的宽度值，以避免对图像进行放大。
+
+```astro title="src/components/MyComponent.astro"
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png'; // Image is 1600x900
+---
+<Image
+  src={myImage}
+  widths={[240, 540, 720, myImage.width]}
+  sizes={`(max-width: 360px) 240px, (max-width: 720px) 540px, (max-width: 1600px) 720px, ${myImage.width}px`}
+  alt="我的图片描述"
+/>
+```
+
+```html
+<!-- 输出 -->
+<img
+  src="/_astro/my_image.hash.webp"
+  srcset="
+    /_astro/my_image.hash.webp 240w,
+    /_astro/my_image.hash.webp 540w,
+    /_astro/my_image.hash.webp 720w,
+		/_astro/my_image.hash.webp 1600w
+  "
+  sizes="
+    (max-width: 360px) 240px,
+    (max-width: 720px) 540px,
+    (max-width: 1600px) 720px,
+    1600px
+  "
+  alt="我的图片描述"
+  width="1600"
+  height="900"
+  loading="lazy"
+  decoding="async"
+/>
+```
+
+##### format
+
+<p>
+
+**类型：** `ImageOutputFormat | undefined`
+</p>
+
+你可以选择指定要使用的 [图像文件类型](https://developer.mozilla.org/zh-CN/docs/Web/Media/Formats/Image_types#common_image_file_types) 输出。
+
+默认情况下，`<Image />` 组件将生成 `.webp` 文件。
+
+##### quality
+
+<p>
+
+**类型：** `ImageQuality | undefined`
+</p>
+
+`quality` 是一个可选属性，可以是：
+- 一个预设值（`low`、`mid`、`high`、`max`），可以在不同格式之间自动标准化。
+- 一个从 `0` 到 `100` 的数字（在格式之间有不同的解释）。
+
+##### inferSize
+
+<p>
+
+**类型：** `boolean`<br />
+<Since v="4.4.0" />
+</p>
+
+允许你自动设置远程图像的原始 `width` 和 `height`。
+
+默认情况下，这个值被设置为 `false`，你必须手动指定远程图片的宽度和高度。
+
+在 `<Image />` 组件中添加 `inferSize`（或者在 `getImage()` 中添加 `inferSize: true`），以便在获取时从图片内容中推断这些值。如果你不知道远程图片的尺寸，或者这些尺寸可能会变化，这个属性对你会很有帮助：
+
+```astro mark="inferSize"
+---
+import { Image } from 'astro:assets';
+---
+<Image src="https://example.com/cat.png" inferSize alt="一只猫在阳光下睡觉。" />
+```
+
+`inferSize` 能够获取来自未经授权域的 [远程图片的尺寸](/zh-cn/guides/images/#授权远程图片)，但图片本身将保持未处理状态。
 
 ### `<Picture />`
 
@@ -73,6 +276,7 @@ import myImage from "../assets/my_image.png"; // Image is 1600x900
 import { Picture } from 'astro:assets';
 import myImage from "../assets/my_image.png"; // 图像的分辨率为 1600x900
 ---
+
 <!-- 在图片组件上 `alt` 属性是必需的 -->
 <Picture src={myImage} formats={['avif', 'webp']} alt="A description of my image." />
 ```
@@ -93,23 +297,66 @@ import myImage from "../assets/my_image.png"; // 图像的分辨率为 1600x900
 </picture>
 ```
 
-详见 [图像指南](/zh-cn/guides/images/#picture-)。
+#### Picture 属性
 
-#### 属性
-
-`<Picture />` 接受 `<Image />` 组件的所有属性，以及以下属性：
+`<Picture />` 接受 [`<Image />` 组件](#image-属性) 的所有属性，以及以下属性：
 
 ##### `formats`
 
-一个图像格式的数组，用于 `<source>` 标签。默认情况下，它被设置为 `['webp']`。
+<p>
+
+**类型：** `ImageOutputFormat[]`
+</p>
+
+一个图像格式的数组，用于 `<source>` 标签。条目将按照列出的顺序添加为 `<source>` 元素，并且此顺序决定显示哪种格式。为了获得最佳性能，请首先列出最现代的格式（例如 `webp` 或 `avif`）。默认情况下，它被设置为 `['webp']`。
 
 ##### `fallbackFormat`
 
-用于作为 `<img>` 标签的回退值的格式。对于静态图像，默认为 `.png`；对于动画图像，默认为 `.gif`；对于 SVG 文件，默认为 `.svg`。
+<p>
+
+**类型：** `ImageOutputFormat`
+</p>
+
+用于作为 `<img>` 标签的回退值的格式。对于静态图像，默认为 `.png`（如果图像是 JPG，则默认为 `.jpg`）；对于动画图像，默认为 `.gif`；对于 SVG 文件，默认为 `.svg`。
 
 ##### `pictureAttributes`
 
-一个被添加到 `<picture>` 标签的属性对象。使用该属性可将属性应用于外部的 `<picture>` 元素本身。除了用于图像转换的属性外，直接应用于 `<Picture />` 组件的属性将应用于内部的 `<img>` 元素。
+<p>
+
+**类型：** `HTMLAttributes<'picture'>`
+</p>
+
+一个被添加到 `<picture>` 标签的属性对象。
+
+使用该属性可将属性应用于外部的 `<picture>` 元素本身。除了用于图像转换的属性外，直接应用于 `<Picture />` 组件的属性将应用于内部的 `<img>` 元素。
+
+```astro title="src/components/MyComponent.astro"
+---
+import { Picture } from "astro:assets";
+import myImage from "../my_image.png"; // Image 为 1600x900
+---
+
+<Picture
+  src={myImage}
+  alt="我的图片描述。"
+  pictureAttributes={{ style: "background-color: red;" }}
+/>
+```
+
+```html
+<!-- 输出 -->
+<picture style="background-color: red;">
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.png"
+    alt="我的图片描述。"
+    width="1600"
+    height="900"
+    loading="lazy"
+    decoding="async"
+  />
+</picture>
+```
 
 ### `getImage()`
 
@@ -124,7 +371,7 @@ import myImage from "../assets/my_image.png"; // 图像的分辨率为 1600x900
 
 `getImage()`函数旨在生成用于在 HTML 之外的其他地方所使用的图像，例如在 [API 路由](/zh-cn/guides/endpoints/#服务器端点api-路由) 中。它还允许你创建自定义的 `<Image />` 组件。
 
-`getImage()` 函数接受一个选项对象，其中包含与 [Image 组件相同的属性](/zh-cn/reference/components-reference/#属性)（除了 `alt`）。
+`getImage()` 函数接受一个选项对象，其中包含与 [Image 组件相同的属性](#Image-属性)（除了 `alt`）。
 
 ```astro
 ---
@@ -156,4 +403,19 @@ type GetImageResult = {
     attribute: string;
   };
 }
+```
+
+### inferRemoteSize()
+
+<p>
+
+**类型：** `(url: string) => Promise<Omit<ImageMetadata, 'src' | 'fsPath'>>`<br />
+<Since v="4.12.0" />
+</p>
+
+推断远程图像​​尺寸的函数。它可以作为传递 `inferSize` 属性的替代方法。
+
+```ts
+import { inferRemoteSize } from 'astro:assets';
+const {width, height} = await inferRemoteSize("https://example.com/cat.png");
 ```
