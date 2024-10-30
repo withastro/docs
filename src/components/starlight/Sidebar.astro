@@ -4,31 +4,24 @@ import Default from '@astrojs/starlight/components/Sidebar.astro';
 import type { SidebarEntry } from 'node_modules/@astrojs/starlight/utils/navigation';
 
 import Sponsors from '../LeftSidebar/Sponsors.astro';
-import { stripLangFromSlug } from '~/util';
-import { isSubPage } from '~/util/isSubPage';
 import { getEntry } from 'astro:content';
 import { stripLeadingAndTrailingSlashes } from 'node_modules/@astrojs/starlight/utils/path';
 
-let { sidebar, slug } = Astro.props;
+let { sidebar } = Astro.props;
 
-async function remap(i: SidebarEntry) {
+async function markFallbackEntries(i: SidebarEntry) {
 	if (i.type === 'group') {
-		i.entries = await Promise.all(i.entries.map(remap));
+		i.entries = await Promise.all(i.entries.map(markFallbackEntries));
 		return i;
 	}
 
 	const itemSlug = stripLeadingAndTrailingSlashes(i.href);
-	// @ts-expect-error i.href is not defined as a page slug, even though we know it is
-	const itemSlugWithoutLang = stripLangFromSlug(itemSlug);
-
 	const fallback = (await getEntry('docs', itemSlug)) ? undefined : true;
-
-	i.isCurrent = isSubPage(slug, itemSlugWithoutLang);
 	i.attrs.class = fallback ? 'fallback' : undefined;
 	return i;
 }
 
-sidebar = await Promise.all(sidebar.map(remap));
+sidebar = await Promise.all(sidebar.map(markFallbackEntries));
 ---
 
 <Default {...Astro.props} sidebar={sidebar}><slot /></Default>
