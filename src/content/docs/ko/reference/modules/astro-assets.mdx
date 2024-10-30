@@ -19,6 +19,7 @@ import {
   Image,
   Picture,
   getImage,
+  inferRemoteSize,
  } from 'astro:assets';
 ```
 
@@ -47,19 +48,221 @@ import myImage from "../assets/my_image.png"; // 1600x900의 이미지
   alt="A description of my image."
 />
 ```
-#### 속성
 
-- src (필수)
-- alt (필수)
-- width 및 height (`public/` 및 원격 이미지를 사용하는 경우 필수)
-- format
-- quality
-- densities
-- widths
+#### Image 속성
 
-위 속성 외에도 `<Image />` 컴포넌트는 HTML `<img>` 태그에서 허용하는 모든 속성을 허용합니다.
+`<Image />` 컴포넌트는 아래에 설명된 속성 외에도 HTML `<img>` 태그의 모든 속성을 허용합니다.
 
-[이미지 가이드](/ko/guides/images/#image--astroassets)에서 자세한 내용을 확인하세요.
+##### src (필수)
+
+<p>
+
+**타입:** `ImageMetadata | string | Promise<{ default: ImageMetadata }>`
+</p>
+
+이미지 파일의 `src` 값 형식은 이미지 파일의 위치에 따라 다릅니다.
+
+- **`src/`의 로컬 이미지** - 상대 파일 경로를 사용하여 **이미지도 가져오거나** [가져오기 별칭](/ko/guides/imports/#별칭)을 구성하고 사용해야 합니다. 그런 다음 가져오기 이름을 `src` 값으로 사용합니다.
+
+  ```astro title="src/pages/index.astro" "myImportedImage" "{myImportedImage}"
+  ---
+  import { Image } from 'astro:assets';
+  import myImportedImage from '../assets/my-local-image.png';
+  ---
+  <Image src={myImportedImage} alt="descriptive text" />
+  ```
+
+- **`public/` 폴더의 이미지** - 이미지의 **public 폴더에 상대적인 파일 경로** 사용:
+
+  ```astro title="src/pages/index.astro" '"/images/my-public-image.png"'
+  ---
+  import { Image } from 'astro:assets';
+  ---
+  <Image
+    src="/images/my-public-image.png"
+    alt="descriptive text"
+    width="200"
+    height="150"
+  />
+  ```
+
+- **원격 이미지** - 이미지의 **전체 URL**을 속성 값으로 사용합니다.
+
+  ```astro title="src/pages/index.astro" '"https://example.com/remote-image.jpg"'
+  ---
+  import { Image } from 'astro:assets';
+  ---
+  <Image
+    src="https://example.com/remote-image.jpg"
+    alt="descriptive text"
+    width="200"
+    height="150"
+  />
+  ```
+
+##### alt (필수)
+
+<p>
+
+**타입:** `string`
+</p>
+
+이미지에 대한 [설명 대체 텍스트](https://www.w3.org/WAI/tutorials/images/) 문자열을 제공하려면 필수 `alt` 속성을 사용하세요.
+
+이미지가 단지 장식용인 경우 (즉, 페이지 이해에 도움이 되지 않는 경우) `alt=""`를 설정하여 화면 판독기 및 기타 보조 기술이 이미지를 무시하도록 알립니다.
+
+##### width 및 height (`public/`의 이미지에 필요)
+
+<p>
+
+**타입:** `number | undefined`
+</p>
+
+이러한 속성은 이미지에 사용할 크기를 정의합니다.
+
+이미지를 원본 가로세로 비율로 사용하는 경우 `width` 및 `height`는 선택사항입니다. 이러한 치수는 `src/`에 있는 이미지 파일에서 자동으로 유추할 수 있습니다. 원격 이미지의 경우 `<Image />` 또는 `<Picture />` 컴포넌트의 [`inferSize` 속성을 `true`로 설정](#infersize)하거나 [`inferRemoteSize()` 함수](#inferremotesize)를 사용하세요.
+
+그러나 Astro는 이러한 파일을 분석할 수 없으므로 `public/` 폴더에 저장된 이미지에는 이 두 속성이 모두 필요합니다.
+
+##### densities
+
+<p>
+
+**타입:** ``(number | `${number}x`)[] | undefined``<br />
+<Since v="3.3.0" />
+</p>
+
+이미지에 대해 생성할 픽셀 밀도 목록입니다.
+
+제공된 경우 이 값은 `<img>` 태그에 `srcset` 속성을 생성하는 데 사용됩니다. 이 값을 사용할 때 `widths` 값을 제공하지 마세요.
+
+이미지 크기가 커지는 것을 방지하기 위해 원본 이미지보다 더 큰 너비와 동일한 밀도는 무시됩니다.
+
+```astro title="src/components/MyComponent.astro"
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image
+  src={myImage}
+  width={myImage.width / 2}
+  densities={[1.5, 2]}
+  alt="A description of my image."
+/>
+```
+
+```html
+<!-- 출력 -->
+<img
+  src="/_astro/my_image.hash.webp"
+  srcset="
+    /_astro/my_image.hash.webp 1.5x
+    /_astro/my_image.hash.webp 2x
+  "
+  alt="A description of my image."
+  width="800"
+  height="450"
+  loading="lazy"
+  decoding="async"
+/>
+```
+##### widths
+
+<p>
+
+**타입:** `number[] | undefined`<br />
+<Since v="3.3.0" />
+</p>
+
+이미지에 대해 생성할 너비 목록입니다.
+
+제공된 경우 이 값은 `<img>` 태그에 `srcset` 속성을 생성하는 데 사용됩니다. [`sizes` 속성](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/sizes)도 제공해야 합니다.
+
+이 값을 사용할 때는 `densities` 값을 제공하지 마세요. 이 두 값 중 하나만 사용하여 `srcset`을 생성할 수 있습니다.
+
+이미지 크기가 커지는 것을 방지하기 위해 원본 이미지보다 큰 너비는 무시됩니다.
+
+```astro
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png'; // 1600x900의 이미지
+---
+<Image
+  src={myImage}
+  widths={[240, 540, 720, myImage.width]}
+  sizes={`(max-width: 360px) 240px, (max-width: 720px) 540px, (max-width: 1600px) 720px, ${myImage.width}px`}
+  alt="A description of my image."
+/>
+```
+
+```html
+<!-- 출력 -->
+<img
+  src="/_astro/my_image.hash.webp"
+  srcset="
+    /_astro/my_image.hash.webp 240w,
+    /_astro/my_image.hash.webp 540w,
+    /_astro/my_image.hash.webp 720w,
+		/_astro/my_image.hash.webp 1600w
+  "
+  sizes="
+    (max-width: 360px) 240px,
+    (max-width: 720px) 540px,
+    (max-width: 1600px) 720px,
+    1600px
+  "
+  alt="A description of my image."
+  width="1600"
+  height="900"
+  loading="lazy"
+  decoding="async"
+/>
+```
+
+##### format
+
+<p>
+
+**타입:** `ImageOutputFormat | undefined`
+</p>
+
+선택적으로 사용할 [이미지 파일 형식](https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types#common_image_file_types) 출력을 명시할 수 있습니다.
+
+기본적으로 `<Image />` 컴포넌트는 `.webp` 파일을 생성합니다.
+
+##### quality
+
+<p>
+
+**타입:** `ImageQuality | undefined`
+</p>
+
+`quality`는 다음 중 하나일 수 있는 선택적 속성입니다.
+- 형식 간 자동으로 표준화되는 사전 설정 (`low`, `mid`, `high`, `max`)입니다.
+- `0`부터 `100`까지의 숫자 (형식에 따라 다르게 해석됨)
+
+##### inferSize
+
+<p>
+
+**타입:** `boolean`<br />
+<Since v="4.4.0" />
+</p>
+
+원격 이미지의 원래 `width` 및 `height`를 자동으로 설정할 수 있습니다.
+
+기본적으로 이 값은 `false`로 설정되어 있어 원격 이미지에 두 크기를 모두 수동으로 지정해야 합니다.
+
+`<Image />` 컴포넌트에 `inferSize`를 추가하거나 `getImage()`에 `inferSize: true`를 추가하여 가져올 때 이미지 콘텐츠에서 이러한 값을 추론합니다. 이는 원격 이미지의 크기를 모르거나 변경될 수 있는 경우에 유용합니다.
+
+```astro mark="inferSize"
+---
+import { Image } from 'astro:assets';
+---
+<Image src="https://example.com/cat.png" inferSize alt="A cat sleeping in the sun." />
+```
+
+`inferSize`는 [승인되지 않은 도메인의 원격 이미지](/ko/guides/images/#원격-이미지-승인)의 크기를 가져올 수 있지만 이미지 자체는 처리되지 않은 상태로 유지됩니다.
 
 ### `<Picture />`
 
@@ -93,23 +296,66 @@ import myImage from "../assets/my_image.png"; // 1600x900의 이미지
 </picture>
 ```
 
-[이미지 안내서](/ko/guides/images/#picture-)에서 자세한 내용을 확인하세요.
+#### Picture 속성
 
-#### 속성
-
-`<Picture />`는 `<Image />` 컴포넌트의 모든 속성과 함께 다음을 허용합니다.
+`<Picture />`는 [`<Image />` 컴포넌트](#image-속성)의 모든 속성과 함께 다음을 허용합니다.
 
 ##### `formats`
 
-`<source>` 태그에 사용할 이미지 형식의 배열입니다. 기본적으로 `['webp']`로 설정되어 있습니다.
+<p>
+
+**타입:** `ImageOutputFormat[]`
+</p>
+
+`<source>` 태그에 사용할 이미지 형식의 배열입니다. 항목은 나열된 순서대로 `<source>` 요소로 추가되며, 이 순서에 따라 표시되는 형식이 결정됩니다. 최상의 성능을 얻으려면 가장 최신 형식 (예: `webp` 또는 `avif`)을 먼저 나열하세요. 기본적으로 `['webp']`로 설정되어 있습니다.
 
 ##### `fallbackFormat`
 
-`<img>` 태그에 대한 대체 값으로 사용할 형식입니다. 정적 이미지의 경우 기본값은 `.png`, 애니메이션 이미지의 경우 `.gif`, SVG 파일의 경우 `.svg`입니다.
+<p>
+
+**타입:** `ImageOutputFormat`
+</p>
+
+`<img>` 태그에 대한 대체 값으로 사용할 형식입니다. 정적 이미지의 기본값은 `.png` (또는 이미지가 JPG인 경우 `.jpg`), 애니메이션 이미지의 경우 `.gif`, SVG 파일의 경우 `.svg`입니다.
 
 ##### `pictureAttributes`
 
-`<picture>` 태그에 추가될 속성의 객체입니다. 이 속성을 사용하여 외부 `<picture>` 요소 자체에 속성을 적용합니다. `<Picture />` 컴포넌트에 직접 적용된 속성은 이미지 변환에 사용되는 속성을 제외하고 내부 `<img>` 요소에 적용됩니다.
+<p>
+
+**타입:** `HTMLAttributes<'picture'>`
+</p>
+
+`<picture>` 태그에 추가될 속성의 객체입니다.
+
+이 속성을 사용하여 외부 `<picture>` 요소 자체에 속성을 적용합니다. `<Picture />` 컴포넌트에 직접 적용된 속성은 이미지 변환에 사용되는 속성을 제외하고 내부 `<img>` 요소에 적용됩니다.
+
+```astro title="src/components/MyComponent.astro"
+---
+import { Picture } from "astro:assets";
+import myImage from "../my_image.png"; // 1600x900의 이미지
+---
+
+<Picture
+  src={myImage}
+  alt="A description of my image."
+  pictureAttributes={{ style: "background-color: red;" }}
+/>
+```
+
+```html
+<!-- 결과 -->
+<picture style="background-color: red;">
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.png"
+    alt="A description of my image."
+    width="1600"
+    height="900"
+    loading="lazy"
+    decoding="async"
+  />
+</picture>
+```
 
 ### `getImage()`
 
@@ -124,7 +370,7 @@ import myImage from "../assets/my_image.png"; // 1600x900의 이미지
 
 `getImage()` 함수는 HTML이 아닌 다른 곳 (예: [API 경로](/ko/guides/endpoints/#서버-엔드포인트-api-라우트))에서 사용할 이미지를 생성하기 위한 것입니다. 또한 사용자 정의 `<Image />` 컴포넌트를 만들 수도 있습니다.
 
-`getImage()`는 [Image 컴포넌트와 동일한 속성](/ko/reference/components-reference/#속성)을 가진 옵션 객체를 사용합니다 (`alt` 제외).
+`getImage()`는 [Image 컴포넌트와 동일한 속성](#image-속성)을 가진 옵션 객체를 사용합니다 (`alt` 제외).
 
 ```astro
 ---
@@ -156,4 +402,19 @@ type GetImageResult = {
     attribute: string;
   };
 }
+```
+
+### inferRemoteSize()
+
+<p>
+
+**타입:** `(url: string) => Promise<Omit<ImageMetadata, 'src' | 'fsPath'>>`<br />
+<Since v="4.12.0" />
+</p>
+
+원격 이미지의 크기를 유추하는 함수입니다. 이 함수는 `inferSize` 프로퍼티를 전달하는 대신 사용할 수 있습니다.
+
+```ts
+import { inferRemoteSize } from 'astro:assets';
+const {width, height} = await inferRemoteSize("https://example.com/cat.png");
 ```
