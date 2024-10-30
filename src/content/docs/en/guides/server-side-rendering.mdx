@@ -294,6 +294,44 @@ if (!product.isAvailable) {
 </html>
 ```
 
+#### Throw an `Error` with `Response` object
+
+Sometimes multiple pages in the project include identical code to check for a condition and return a specific `Response`. You can reduce such code repetition and bypass these checks in pages with the help of exceptions. Create a subclass of `Error` which contains a `Response`. Catch this exception in your middleware and return the `Response` instance from it.  Now you can throw this exception in your function instead of returning `null` or `undefined`.
+
+```astro title="src/ResponseError.js"
+export class ResponseError extends Error {
+  constructor(response) {
+    super(response.statusText)
+    this.response = response
+  }
+}
+```
+
+```astro title="src/middleware.js" {5}
+export async function onRequest(context, next) {
+  try {
+    return await next()
+  } catch (exception) {
+    if (exception instanceof ResponseError) return exception.response
+    throw exception
+  }
+}
+```
+
+```astro title="src/api.js" {5-7}
+export async function getProducts() {
+  try {
+    // get products
+  } catch (exception) {
+    throw new ResponseError(
+      new Response(null, { status: 301, headers: { Location: '/' } })
+    )
+  }
+}
+```
+
+While technically you can throw and catch even the `Response` itself, the best practice is to only throw `Error` objects.
+
 ### `Request`
 
 `Astro.request` is a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request.
