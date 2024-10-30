@@ -19,6 +19,7 @@ import {
   Image,
   Picture,
   getImage,
+  inferRemoteSize,
  } from 'astro:assets';
 ```
 
@@ -47,19 +48,222 @@ import myImage from "../assets/mon_image.png"; // Image a une résolution de 160
   alt="Une description de mon image."
 />
 ```
-#### Propriétés
 
-- src (requis)
-- alt (requis)
-- width et height (requis pour les images dans `public/` et celles distantes)
-- format
-- quality
-- densities
-- widths
+#### Propriétés d'Image
 
-En plus des propriétés ci-dessus, le composant `<Image />` accepte toutes les propriétés acceptées par la balise HTML `<img>`.
+Le composant `<Image />` accepte toutes les propriétés acceptées par la balise HTML `<img>` en plus des propriétés décrites ci-dessous.
 
-Pour en savoir plus, consultez le [Guide des images](/fr/guides/images/#image--astroassets).
+##### src (obligatoire)
+
+<p>
+
+**Type :** `ImageMetadata | string | Promise<{ default: ImageMetadata }>`
+</p>
+
+Le format de la valeur `src` de votre fichier image dépend de l'emplacement de votre fichier image :
+
+- **Images locales dans `src/`** - vous devez **également importer l'image** en utilisant un chemin de fichier relatif ou configurer et utiliser un [alias d'importation](/fr/guides/imports/#alias). Utilisez ensuite le nom de l'importation comme valeur dans `src` :
+
+  ```astro title="src/pages/index.astro" "myImportedImage" "{myImportedImage}"
+  ---
+  import { Image } from 'astro:assets';
+  import myImportedImage from '../assets/my-local-image.png';
+  ---
+  <Image src={myImportedImage} alt="texte descriptif" />
+  ```
+
+- **Images dans le dossier `public/`** -  utilisez le **chemin d'accès au fichier de l'image par rapport au dossier public :
+
+  ```astro title="src/pages/index.astro" '"/images/my-public-image.png"'
+  ---
+  import { Image } from 'astro:assets';
+  ---
+  <Image
+    src="/images/my-public-image.png"
+    alt="texte descriptif"
+    width="200"
+    height="150"
+  />
+  ```
+
+- **Images distantes** - utilisez l'**URL complète** de l'image comme valeur de propriété :
+
+  ```astro title="src/pages/index.astro" '"https://example.com/remote-image.jpg"'
+  ---
+  import { Image } from 'astro:assets';
+  ---
+  <Image
+    src="https://example.com/remote-image.jpg"
+    alt="texte descriptif"
+    width="200"
+    height="150"
+  />
+  ```
+
+##### alt (obligatoire)
+
+<p>
+
+**Type :** `string`
+</p>
+
+Utilisez l'attribut `alt` requis pour fournir un [texte alternatif descriptif](https://www.w3.org/WAI/tutorials/images/) pour les images.
+
+Si une image est simplement décorative (c'est-à-dire qu'elle ne contribue pas à la compréhension de la page), définissez `alt=""` pour que les lecteurs d'écran et autres technologies d'assistance sachent qu'il faut ignorer l'image.
+
+##### width et height (obligatoire pour les images dans `public/`)
+
+<p>
+
+**Type :** `number | undefined`
+</p>
+
+Ces propriétés définissent les dimensions à utiliser pour l'image.
+
+Lorsque vous utilisez des images dans leur rapport hauteur/largeur d'origine, `width` et `height` sont facultatives. Ces dimensions peuvent être automatiquement déduites des fichiers image situés dans `src/`. Pour les images distantes, ajoutez [l'attribut `inferSize` défini sur `true`](#infersize) sur les composants `<Image />` ou `<Picture />` ou utilisez [la fonction `inferRemoteSize()`](#inferremotesize).
+
+Cependant, ces deux propriétés sont requises pour les images stockées dans votre dossier `public/` car Astro n'est pas en mesure d'analyser ces fichiers.
+
+##### densities
+
+<p>
+
+**Type :** ``(number | `${number}x`)[] | undefined``<br />
+<Since v="3.3.0" />
+</p>
+
+Une liste de densités de pixels à générer pour l'image.
+
+Si elle est fournie, cette valeur sera utilisée pour générer un attribut `srcset` sur la balise `<img>`. Ne fournissez pas de valeur pour `widths` lorsque vous utilisez cette valeur.
+
+Les densités égales à des largeurs supérieures à celles de l'image d'origine seront ignorées pour éviter de mettre à l'échelle l'image.
+
+```astro title="src/components/MyComponent.astro"
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image
+  src={myImage}
+  width={myImage.width / 2}
+  densities={[1.5, 2]}
+  alt="Une description de mon image."
+/>
+```
+
+```html
+<!-- Sortie -->
+<img
+  src="/_astro/my_image.hash.webp"
+  srcset="
+    /_astro/my_image.hash.webp 1.5x
+    /_astro/my_image.hash.webp 2x
+  "
+  alt="Une description de mon image."
+  width="800"
+  height="450"
+  loading="lazy"
+  decoding="async"
+/>
+```
+
+##### widths
+
+<p>
+
+**Type :** `number[] | undefined`<br />
+<Since v="3.3.0" />
+</p>
+
+Une liste de largeurs à générer pour l'image.
+
+Si elle est fournie, cette valeur sera utilisée pour générer un attribut `srcset` sur la balise `<img>`. Une [propriété `sizes`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/sizes) doit également être fournie.
+
+Ne fournissez pas de valeur pour `densities` lorsque vous utilisez cette valeur. Une seule de ces deux valeurs peut être utilisée pour générer un `srcset`.
+
+Les largeurs supérieures à l'image d'origine seront ignorées pour éviter de mettre à l'échelle l'image.
+
+```astro
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png'; // La résolution de l'image est de 1600x900
+---
+<Image
+  src={myImage}
+  widths={[240, 540, 720, myImage.width]}
+  sizes={`(max-width: 360px) 240px, (max-width: 720px) 540px, (max-width: 1600px) 720px, ${myImage.width}px`}
+  alt="A description of my image."
+/>
+```
+
+```html
+<!-- Sortie -->
+<img
+  src="/_astro/my_image.hash.webp"
+  srcset="
+    /_astro/my_image.hash.webp 240w,
+    /_astro/my_image.hash.webp 540w,
+    /_astro/my_image.hash.webp 720w,
+		/_astro/my_image.hash.webp 1600w
+  "
+  sizes="
+    (max-width: 360px) 240px,
+    (max-width: 720px) 540px,
+    (max-width: 1600px) 720px,
+    1600px
+  "
+  alt="A description of my image."
+  width="1600"
+  height="900"
+  loading="lazy"
+  decoding="async"
+/>
+```
+
+##### format
+
+<p>
+
+**Type :** `ImageOutputFormat | undefined`
+</p>
+
+Vous pouvez éventuellement indiquer le [type de fichier image](https://developer.mozilla.org/fr/docs/Web/Media/Formats/Image_types#types_de_fichiers_dimages_communs) de sortie à utiliser.
+
+Par défaut, le composant `<Image />` produira un fichier `.webp`.
+
+##### quality
+
+<p>
+
+**Type :** `ImageQuality | undefined`
+</p>
+
+`quality` est une propriété facultative qui peut être :
+- un préréglage (`low`, `mid`, `high`, `max`) qui est automatiquement normalisé entre les formats.
+- un nombre compris entre `0` et `100` (interprété différemment selon les formats).
+
+##### inferSize
+
+<p>
+
+**Type :** `boolean`<br />
+<Since v="4.4.0" />
+</p>
+
+Vous permet de définir automatiquement la largeur (`width`) et la hauteur (`height`) d'origine d'une image distante.
+
+Par défaut, cette valeur est définie sur `false` et vous devez spécifier manuellement les deux dimensions de votre image distante.
+
+Ajoutez `inferSize` au composant `<Image />` (ou `inferSize: true` à `getImage()`) pour déduire ces valeurs du contenu de l'image lors de la récupération. Cela est utile si vous ne connaissez pas les dimensions de l'image distante ou si elles peuvent changer :
+
+```astro mark="inferSize"
+---
+import { Image } from 'astro:assets';
+---
+<Image src="https://example.com/cat.png" inferSize alt="Un chat qui dort au soleil." />
+```
+
+`inferSize` peut récupérer les dimensions d'une [image distante d'un domaine qui n'a pas été autorisé](/fr/guides/images/#autoriser-les-images-distantes), , cependant l'image elle-même restera non traitée.
 
 ### `<Picture />`
 
@@ -93,23 +297,66 @@ import myImage from "../assets/mon_image.png"; // La résolution de l'image est 
 </picture>
 ```
 
-Pour en savoir plus, consultez le [Guide des images](/fr/guides/images/#picture-).
+#### Propriétés de Picture
 
-#### Propriétés
-
-`<Picture />` accepte toutes les propriétés du composant `<Image />` en plus des suivantes :
+`<Picture />` accepte toutes les propriétés du [composant `<Image />`](#propriétés-dimage) en plus des suivantes :
 
 ##### `formats`
 
-Un tableau de formats d'image à utiliser pour les balises `<source>`. Par défaut, il est défini sur `['webp']`.
+<p>
+
+**Type :** `ImageOutputFormat[]`
+</p>
+
+Un tableau de formats d'image à utiliser pour les balises `<source>`. Les entrées seront ajoutées en tant qu'éléments `<source>` dans l'ordre dans lequel elles sont répertoriées, et cet ordre détermine le format affiché. Pour de meilleures performances, indiquez d'abord le format le plus moderne (par exemple `webp` ou `avif`). Par défaut, ce paramètre est défini sur `['webp']`.
 
 ##### `fallbackFormat`
 
-Format à utiliser comme valeur de repli pour la balise `<img>`. La valeur par défaut est `.png` pour les images statiques, `.gif` pour les images animées et `.svg` pour les fichiers SVG.
+<p>
+
+**Type :** `ImageOutputFormat`
+</p>
+
+Format à utiliser comme valeur de secours pour la balise `<img>`. La valeur par défaut est `.png` pour les images statiques (ou `.jpg` si l'image est au format JPG), `.gif` pour les images animées et `.svg` pour les fichiers SVG.
 
 ##### `pictureAttributes`
 
-Un objet d'attributs à ajouter à la balise `<picture>`. Utilisez cette propriété pour appliquer des attributs à l'élément externe `<picture>` lui-même. Les attributs appliqués directement au composant `<Picture />` s'appliqueront à l'élément interne `<img>`, à l'exception de ceux utilisés pour la transformation d'image.
+<p>
+
+**Type :** `HTMLAttributes<'picture'>`
+</p>
+
+Un objet d'attributs à ajouter à la balise `<picture>`.
+
+Utilisez cette propriété pour appliquer des attributs à l'élément externe `<picture>` lui-même. Les attributs appliqués directement au composant `<Picture />` s'appliqueront à l'élément interne `<img>`, à l'exception de ceux utilisés pour la transformation d'image.
+
+```astro title="src/components/MyComponent.astro"
+---
+import { Picture } from "astro:assets";
+import myImage from "../my_image.png"; // La résolution de l'image est de 1600x900
+---
+
+<Picture
+  src={myImage}
+  alt="Une description de mon image."
+  pictureAttributes={{ style: "background-color: red;" }}
+/>
+```
+
+```html
+<!-- Sortie -->
+<picture style="background-color: red;">
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.png"
+    alt="Une description de mon image."
+    width="1600"
+    height="900"
+    loading="lazy"
+    decoding="async"
+  />
+</picture>
+```
 
 ### `getImage()`
 
@@ -124,7 +371,7 @@ Un objet d'attributs à ajouter à la balise `<picture>`. Utilisez cette propri�
 
 La fonction `getImage()` est prévue pour générer des images destinées à être utilisées ailleurs que directement en HTML, par exemple dans une [route d'API](/fr/guides/endpoints/#points-de-terminaison-du-serveur-routes-api). Elle vous permet également de créer votre propre composant `<Image />` personnalisé.
 
-`getImage()` prend un objet d'options avec les [mêmes propriétés que le composant Image](/fr/reference/components-reference/#propriétés) (à l'exception de `alt`).
+`getImage()` prend un objet d'options avec les [mêmes propriétés que le composant Image](#propriétés-dimage) (à l'exception de `alt`).
 
 ```astro
 ---
@@ -156,4 +403,19 @@ type GetImageResult = {
     attribute: string;
   };
 }
+```
+
+### inferRemoteSize()
+
+<p>
+
+**Type :** `(url: string) => Promise<Omit<ImageMetadata, 'src' | 'fsPath'>>`<br />
+<Since v="4.12.0" />
+</p>
+
+Une fonction permettant de déduire les dimensions des images distantes. Elle peut être utilisée comme alternative à la transmission de la propriété `inferSize`.
+
+```ts
+import { inferRemoteSize } from 'astro:assets';
+const {width, height} = await inferRemoteSize("https://example.com/cat.png");
 ```
