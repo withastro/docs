@@ -1,4 +1,4 @@
-import { docsSchema } from '@astrojs/starlight/schema';
+import { docsSchema, i18nSchema } from '@astrojs/starlight/schema';
 import { defineCollection, z, type CollectionEntry } from 'astro:content';
 
 export const baseSchema = z.object({
@@ -132,4 +132,141 @@ export const isKoreanEntry = createIsLangEntry('ko');
 
 export const collections = {
 	docs: defineCollection({ schema: docsSchema({ extend: docsCollectionSchema }) }),
+	i18n: defineCollection({
+		type: 'data',
+		schema: i18nSchema({
+			extend: z.object({
+				'a11y.skipLink': z.string().optional(),
+				'a11y.sectionLink': z.string().optional(),
+				'navbar.a11yTitle': z.string().optional(),
+				// Site settings
+				'site.title': z.string().optional(),
+				'site.description': z.string().optional(),
+				'site.og.imageSrc': z.string().optional(),
+				'site.og.imageAlt': z.string().optional(),
+				// Left Sidebar
+				'leftSidebar.a11yTitle': z.string().optional(),
+				'leftSidebar.learnTab': z.string().optional(),
+				'leftSidebar.referenceTab': z.string().optional(),
+				'leftSidebar.viewInEnglish': z.string().optional(),
+				'leftSidebar.sponsoredBy': z.string().optional(),
+				// Right Sidebar
+				'rightSidebar.a11yTitle': z.string().optional(),
+				'rightSidebar.onThisPage': z.string().optional(),
+				'rightSidebar.overview': z.string().optional(),
+				'rightSidebar.community': z.string().optional(),
+				'rightSidebar.joinDiscord': z.string().optional(),
+				'rightSidebar.readBlog': z.string().optional(),
+				'rightSidebar.openCollective': z.string().optional(),
+				'rightSidebar.contribute': z.string().optional(),
+				'rightSidebar.contributorGuides': z.string().optional(),
+				'rightSidebar.editPage': z.string().optional(),
+				'rightSidebar.translatePage': z.string().optional(),
+				'rightSidebar.github': z.string().optional(),
+				// Footer
+				'footer.privacyPolicy': z.string().optional(),
+				// `<ThemeToggleButton>` acessibility labels
+				'themeToggle.useLight': z.string().optional(),
+				'themeToggle.useDark': z.string().optional(),
+				// Used in previous/next page links at the bottom of pages
+				'articleNav.nextPage': z.string().optional(),
+				'articleNav.prevPage': z.string().optional(),
+				// Used in `<Since>`: Added in: v0.24.0 [NEW]
+				'since.addedIn': z.string().optional(),
+				'since.new': z.string().optional(),
+				'since.beta': z.string().optional(),
+				// Installation Guide
+				'install.autoTab': z.string().optional(),
+				'install.manualTab': z.string().optional(),
+				// `<DeployGuidesNav>` vocabulary
+				'deploy.sectionTitle': z.string().optional(),
+				'deploy.altSectionTitle': z.string().optional(),
+				'deploy.filterLabel': z.string().optional(),
+				'deploy.ssrTag': z.string().optional(),
+				'deploy.staticTag': z.string().optional(),
+				// CMS Guides vocabulary
+				'cms.navTitle': z.string().optional(),
+				// Media Guides voccabulary
+				'media.navTitle': z.string().optional(),
+				// Migration Guides vocabulary
+				'migration.navTitle': z.string().optional(),
+				// Recipes vocabulary
+				'recipes.navTitle': z.string().optional(),
+				// `<RecipeLinks>` vocabulary
+				'recipesLink.singular': z.string().optional(),
+				'recipesLink.plural': z.string().optional(),
+				// `<ContributorList>` fallback text
+				'contributors.seeAll': z.string().optional(),
+				// Fallback content notice shown when a page is not yet translated
+				'fallbackContent.notice': z.string().optional(),
+				'fallbackContent.linkText': z.string().optional(),
+				// 404 Page
+				'404.title': z.string().optional(),
+				'404.content': z.string().optional(),
+				'404.linkText': z.string().optional(),
+				// Aside component default labels
+				'aside.note': z.string().optional(),
+				'aside.tip': z.string().optional(),
+				'aside.caution': z.string().optional(),
+				'aside.danger': z.string().optional(),
+				// `<LanguageSelect>` vocabulary
+				'languageSelect.label': z.string().optional(),
+				// Integrations vocabulary
+				'integrations.changelog': z.string().optional(),
+				'integrations.footerTitle': z.string().optional(),
+				'integrations.renderers': z.string().optional(),
+				'integrations.adapters': z.string().optional(),
+				'integrations.others': z.string().optional(),
+				'integrations.more': z.string().optional(),
+				// Checklist component
+				'checklist.or': z.string().optional(),
+				// Multiple Choice component
+				'multipleChoice.defaultCorrect': z.string().optional(),
+				'multipleChoice.defaultIncorrect': z.string().optional(),
+				'multipleChoice.submitLabel': z.string().optional(),
+				// Tutorial Progress
+				'progress.todo': z.string().optional(),
+				'progress.done': z.string().optional(),
+				// Tutorial Navigation
+				'tutorial.trackerLabel': z.string().optional(),
+				'tutorial.unit': z.string().optional(),
+				// Tutorial
+				'tutorial.getReady': z.string().optional(),
+				// Feedback Fish widget
+				'feedback.button': z.string().optional(),
+				'feedback.a11yLabel': z.string().optional(),
+				'feedback.formTitle': z.string().optional(),
+				'feedback.categoryGroupLabel': z.string().optional(),
+				'feedback.issue': z.string().optional(),
+				'feedback.createIssue': z.string().optional(),
+				'feedback.createIssue.description': z.string().optional(),
+				'feedback.sendFeedback': z.string().optional(),
+				'feedback.sendFeedback.description': z.string().optional(),
+				'feedback.idea': z.string().optional(),
+				'feedback.other': z.string().optional(),
+				'feedback.messageA11yLabel': z.string().optional(),
+				'feedback.placeholder': z.string().optional(),
+				'feedback.submit': z.string().optional(),
+				'feedback.close': z.string().optional(),
+				'feedback.success': z.string().optional(),
+				// Code snippet vocabulary
+				'expressiveCode.terminalWindowFallbackTitle': z.string().optional(),
+				'expressiveCode.copyButtonTooltip': z.string().optional(),
+				'expressiveCode.copyButtonCopied': z.string().optional(),
+				// Backend Guides vocabulary
+				'backend.navTitle': z.string().optional(),
+				// Stubs vocabulary
+				'stub.title': z.string().optional(),
+				'stub.subtitle': z.string().optional(),
+				'stub.description.migration': z.string().optional(),
+				'stub.description.cms': z.string().optional(),
+				'stub.description.backend': z.string().optional(),
+				// Starlight banner
+				'starlight.title': z.string().optional(),
+				'starlight.description': z.string().optional(),
+				// `<StudioHeading>` component
+				'studioHeading.label': z.string().optional(),
+			}),
+		}),
+	}),
 };
