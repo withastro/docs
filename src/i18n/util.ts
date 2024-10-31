@@ -43,9 +43,6 @@ export function getDocSearchStrings(Astro: AstroGlobal): DocSearchTranslation {
 /**
  * Create a helper function for getting translated strings.
  *
- * Within an Astro component, prefer the `UIString` component,
- * which only needs the key as it has access to the global Astro object.
- *
  * However, you can’t pass an Astro component as a prop to a framework component,
  * so this function creates a look-up method to get the string instead:
  *
