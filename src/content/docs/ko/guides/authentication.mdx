@@ -5,6 +5,7 @@ i18nReady: true
 ---
 
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
 import ReadMore from '~/components/ReadMore.astro'
 
 인증 및 승인은 웹사이트 또는 앱에 대한 액세스를 관리하는 두 가지 보안 프로세스입니다. 인증은 방문자의 신원을 확인하는 반면, 승인은 보호 구역 및 자원에 대한 접근 권한을 부여합니다.
@@ -187,6 +188,162 @@ const session = await getSession(Astro.request);
 
 - [GitHub의 `auth-astro`](https://github.com/nowaythatworked/auth-astro?tab=readme-ov-file#auth-astro)
 - [Auth.js 문서](https://authjs.dev/)
+
+### 다음 단계
+
+- [`auth-astro` on GitHub](https://github.com/nowaythatworked/auth-astro?tab=readme-ov-file#auth-astro)
+- [Auth.js documentation](https://authjs.dev/)
+
+## Better Auth
+
+Better Auth는 프레임워크에 구애받지 않는 TypeScript용 인증 (및 권한 부여) 프레임워크입니다. 기본적으로 포괄적인 기능 세트를 제공하며 고급 기능을 간편하게 추가할 수 있는 플러그인 생태계가 포함되어 있습니다.
+
+Astro를 즉시 지원하며, 이를 사용하여 Astro 프로젝트에 인증을 추가할 수 있습니다.
+
+### 설치
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install better-auth
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add better-auth
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add better-auth
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+자세한 설정 지침은 [Better Auth 설치 가이드](https://www.better-auth.com/docs/installation)를 참조하세요.
+
+### 구성
+
+[Better Auth 설치 가이드](https://www.better-auth.com/docs/installation#configure-database)에 설명된 대로 사용자 데이터와 선호하는 인증 방법을 저장하도록 데이터베이스 테이블을 구성합니다. 그런 다음 Astro 프로젝트에 Better Auth 핸들러를 마운트해야 합니다.
+
+```ts title="page/api/auth/[...all].ts"
+import { auth } from "../../../lib/auth"; // Better Auth 인스턴스를 가져옵니다.
+import type { APIRoute } from "astro";
+ 
+export const ALL: APIRoute = async (ctx) => {
+	return auth.handler(ctx.request);
+};
+```
+
+자세한 내용은 [Better Auth Astro 가이드](https://www.better-auth.com/docs/integrations/astro)를 참조하세요.
+
+
+### 사용
+
+Better Auth는 Vanilla JS, React, Vue, Svelte, Solid를 포함한 다양한 프레임워크를 위한 `createAuthClient` 헬퍼를 제공합니다. 
+
+예를 들어, React용 클라이언트를 생성하려면 `better-auth/react`에서 헬퍼를 가져옵니다:
+
+
+<UIFrameworkTabs>
+  <Fragment slot="react">
+   ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/react';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+  <Fragment slot="solid">
+  ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/solid';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+  <Fragment slot="svelte">
+   ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/svelte';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+  <Fragment slot="vue">
+  ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/vue';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+</UIFrameworkTabs>
+
+클라이언트가 설정되면 이를 사용하여 Astro 컴포넌트 또는 프레임워크별 파일에서 사용자를 인증할 수 있습니다. 다음 예시에서는 구성된 `signIn()` 및 `signOut()` 함수를 사용하여 로그인 또는 로그아웃 기능을 추가합니다.
+
+
+```astro title="src/pages/index.astro"
+---
+import Layout from 'src/layouts/Base.astro';
+---
+<Layout>
+  <button id="login">Login</button>
+  <button id="logout">Logout</button>
+
+  <script>
+    const { signIn, signOut } = await import("./lib/auth-client")
+    document.querySelector("#login").onclick = () => signIn.social({
+      provider: "github",
+      callbackURL: "/dashboard",
+    })
+    document.querySelector("#logout").onclick = () => signOut()
+  </script>
+</Layout>
+```
+
+그런 다음 `auth` 객체를 사용하여 서버 측 코드에서 사용자의 세션 데이터를 가져올 수 있습니다. 다음 예시는 인증된 사용자의 이름을 표시하여 페이지 콘텐츠를 개인화합니다:
+
+```astro title="src/pages/index.astro"
+---
+import { auth } from "../../../lib/auth"; // Better Auth 인스턴스를 가져옵니다.
+ 
+const session = await auth.api.getSession({
+	headers: Astro.request.headers,
+});
+---
+
+<p>{session.user?.name}</p>
+```
+
+미들웨어와 `auth` 객체를 사용하여 경로를 보호할 수도 있습니다. 다음 예시는 로그인한 대시보드 경로에 액세스하려는 사용자가 인증되었는지 확인하고 인증되지 않은 경우 홈 페이지로 리디렉션합니다.
+
+```ts title="src/middleware.ts"
+import { auth } from "../../../auth"; // Better Auth 인스턴스를 가져옵니다.
+import { defineMiddleware } from "astro:middleware";
+ 
+export const onRequest = defineMiddleware(async (context, next) => {
+	const isAuthed = await auth.api
+		.getSession({
+			headers: context.request.headers,
+		})
+	if (context.url.pathname === "/dashboard" && !isAuthed) {
+		return context.redirect("/");
+	}
+	return next();
+});
+```
+
+### 다음 단계
+
+- [Better Auth Astro Guide](https://www.better-auth.com/docs/integrations/astro)
+- [Better Auth Astro Example](https://github.com/better-auth/better-auth/tree/main/examples/astro-example)
+- [Better Auth Documentation](https://www.better-auth.com/docs)
+- [Better Auth GitHub Repository](https://github.com/better-auth/better-auth)
 
 ## Clerk
 
