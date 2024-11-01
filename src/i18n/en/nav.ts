@@ -99,17 +99,19 @@ export default [
 	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
 	{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
 
-	{ text: 'Community Resources', header: true, type: 'learn', key: 'communityResources' },
+	{ text: 'Recipes and Resources', header: true, type: 'learn', key: 'communityResources' },
+
+	{ text: 'How-to Recipes', slug: 'recipes', key: 'recipes' },
 	{
-		text: 'Courses, Guides, and Recipes',
+		text: 'Community Resources',
 		slug: 'community-resources/content',
 		key: 'community-resources/content',
 	},
-	{
-		text: 'Talks, Interviews, and Streams',
-		slug: 'community-resources/talks',
-		key: 'community-resources/talks',
-	},
+	// {
+	// 	text: 'Talks, Interviews, and Streams',
+	// 	slug: 'community-resources/talks',
+	// 	key: 'community-resources/talks',
+	// },
 
 	{ text: 'Reference', header: true, type: 'api', key: 'reference' },
 	{
