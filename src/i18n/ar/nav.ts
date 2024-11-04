@@ -66,6 +66,7 @@ export default NavDictionary({
 	'reference/api-reference': 'API زمن التنفيذ',
 	'reference/cli-reference': 'واجهة سطر الأوامر (CLI) لأسترو',
 	'reference/directives-reference': 'مرجع التعليمات',
+	'reference/components-reference': 'المكونات المدمجة',
 	'guides/typescript': 'مرجع TypeScript',
 	'reference/error-reference': 'مرجع الأخطاء',
 
