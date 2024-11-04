@@ -8,14 +8,15 @@ import { FileTree } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import ReadMore from '~/components/ReadMore.astro';
 import Since from '~/components/Since.astro';
-import StudioHeading from '~/components/StudioHeading.astro';
 import { Steps } from '@astrojs/starlight/components';
 
-Astro DB 是一款专为 Astro 设计的全托管 SQL 数据库。你可以在本地开发或者连接到我们 [Astro Studio](#astro-studio) 平台上托管的数据库。
+Astro DB 是一款专为 Astro 设计的全托管 SQL 数据库。在 Astro 中进行本地开发并部署到任何与 libSQL 兼容的数据库。
+
+Astro DB 是一种配置、开发和查询数据的完整解决方案。每当你运行`astro dev`时，都会在`.astro/content.db`中创建一个本地数据库来管理数据，而无需 Docker 或网络连接。
 
 ## 安装
 
-使用 [`@astrojs/db` 集成](/zh-cn/guides/integrations-guide/db/)（`v0.8.1` 或更高版本）来将 Astro DB 添加到新的或现有的 Astro 项目中（需要 `astro@4.5` 或更高版本）。Astro 包含一个内置的 `astro add` 命令能帮你自动化设置此过程。
+使用内置的 `astro add` 命令安装 [`@astrojs/db` 集成](/zh-cn/guides/integrations-guide/db/)：
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -35,13 +36,9 @@ Astro DB 是一款专为 Astro 设计的全托管 SQL 数据库。你可以在�
   </Fragment>
 </PackageManagerTabs>
 
-如果你愿意，也可以[手动安装 `@astrojs/db`](/zh-cn/guides/integrations-guide/db/#手动安装)。
-
 ## 定义你的数据库
 
-Astro DB 是一个用于配置、开发和查询你的数据的完整解决方案。每当你运行 `astro dev` 时，都会创建一个本地数据库，并使用 libSQL 来管理你的数据，而无需 Docker 或网络连接。
-
-使用 `astro add` 命令安装 `@astrojs/db` 将在你的项目中创建一个 `db/config.ts` 文件，你将在其中定义你的数据库表：
+使用 `astro add` 命令安装 `@astrojs/db` 将自动在你的项目中创建一个 `db/config.ts` 文件，你可以在其中定义你的数据库表：
 
 ```ts title="db/config.ts"
 import { defineDb } from 'astro:db';
@@ -51,15 +48,13 @@ export default defineDb({
 })
 ```
 
-
-
 ### 表
 
 Astro DB 中的数据是通过 SQL 表存储的。表将你的数据结构化为行和列，其中列强制每行值的类型。
 
-当你定义一个表时，Astro 将为你的项目生成一个 TypeScript 接口来查询该表。这意味着当你访问数据时，将获得完整的 TypeScript 支持，包括属性自动完成和类型检查。
+通过提供现有 libSQL 数据库中的数据结构或将在新数据库中收集的数据，在 `db/config.ts` 文件中定义表。这将允许 Astro 为你的项目生成一个 TypeScript 接口来查询该表。这意味着当你访问数据时，将获得完整的 TypeScript 支持，包括属性自动完成和类型检查。
 
-要配置数据库表，应从 `astro:db` 导入并使用 `defineTable()` 和 `column` 工具。
+要配置数据库表，应从 `astro:db` 导入并使用 `defineTable()` 和 `column` 工具。然后，为表定义一个名称（区分大小写）以及每列的数据类型。
 
 这个例子配置了一个 `Comment` 表，它有 `author` 和 `body` 的必需文本列。然后，通过 `defineDb()` 导出使其在你的项目中可用。
 
@@ -89,15 +84,15 @@ import { defineTable, column } from 'astro:db';
 
 const Comment = defineTable({
   columns: {
-    // A string of text.
+    // 文本字符串。
     author: column.text(),
-    // A whole integer value.
+    // 整数值。
     likes: column.number(),
-    // A true or false value.
+    // 布尔值。
     flagged: column.boolean(),
-    // Date/time values queried as JavaScript Date objects.
+    // 作为 JavaScript Date 对象查询的日期/时间值。
     published: column.date(),
-    // An untyped JSON object.
+    // 未经类型化的 JSON 对象。
     metadata: column.json(),
   }
 });
@@ -132,13 +127,15 @@ const Comment = defineTable({
 });
 ```
 
-## 为你的数据库填充数据
+## 为你的开发数据库填充数据
 
-在开发过程中，Astro 将使用你的 DB 配置并根据你的架构生成本地类型。这些内容将在每次启动开发服务器时重新生成，并允许你使用类型安全和自动补全来查询和处理你的数据样例。
+在开发过程中，Astro 将使用你的 DB 配置并根据你的架构生成本地类型。这些内容将在每次启动开发服务器时从你的 seed 文件重新生成，并允许你使用类型安全和自动补全来查询和处理你的数据样例。
 
-要为你的 Astro 项目填充开发数据进行测试和调试，你需要创建一个 `db/seed.ts` 文件。从 `astro:db` 导入 `db` 对象和任何配置的表，然后使用 `db.insert()` 函数提供一个表行数据对象的数组。
+你将无法在开发过程中访问生产数据，除非你在开发过程中 [连接到远程数据库](#连接到远程数据库)。这样可以保护你的数据，同时允许你使用类型安全的工作数据库进行测试和开发。
 
-以下例子为 `Comment` 表定义了两行开发数据：
+要为你的 Astro 项目填充开发数据进行测试和调试，你需要创建一个 `db/seed.ts` 文件。导入 `db` 对象和 `astro:db` 中定义的表。`insert`一些初始数据到每一个表中。这些开发数据应该与数据库模式和生产数据的结构相匹配。
+
+以下例子为 `Comment` 表和 `Author` 表定义了两行开发数据：
 
 ```ts title="db/seed.ts"
 import { db, Comment, Author } from 'astro:db';
@@ -156,11 +153,179 @@ export default async function() {
 }
 ```
 
-你的开发服务器将在此文件更改时自动重启你的数据库，然后重新生成你的类型并从 `seed.ts` 填充你的开发数据。
+你的开发服务器将在此文件更改时自动重启你的数据库，并每次重新生成类型并从 `seed.ts` 填充新的开发数据。
+
+## 连接一个 libSQL 数据库用于生产
+
+Astro DB 可以连接到任何本地 libSQL 数据库或任何暴露 libSQL 远程协议的托管或自托管服务器。
+
+要连接 Astro DB 到 libSQL 数据库，设置以下从你的数据库提供商获取的环境变量：
+
+- `ASTRO_DB_REMOTE_URL`：连接到本地或远程 libSQL DB 的位置的连接 URL。这可能包括 [URL 配置选项](#远程-url-配置选项) 如 sync 和 encryption 作为参数。
+- `ASTRO_DB_APP_TOKEN`：你的 libSQL 服务器的认证 token。这对远程数据库是必须的，对 [本地 DB 如 文件或内存](#url-scheme-和-host) 数据库不是必须的。
+
+根据你的服务，你可能会访问到一个 CLI 或 web UI 来获取这些值。以下部分将演示连接到 Turso 并设置这些值，但你也可以使用任何提供商。
+
+### 开始使用 Turso
+
+Turso 是 [libSQL](https://github.com/tursodatabase/libsql) 背后的公司，libSQL 是 Astro DB 的底层数据库。他们提供了一个完全托管的 libSQL 数据库平台，并与 Astro 完全兼容。
+
+以下步骤将引导你完成安装 Turso CLI、登录（或注册）、创建一个新数据库、获取所需的认证环境变量，并将模式推送到远程数据库的过程。
+
+<Steps>
+
+1. 安装 [Turso CLI](https://docs.turso.tech/cli/installation)。
+
+2. [登录或注册](https://docs.turso.tech/cli/authentication) Turso。
+
+3. 创建一个新数据库。在这个例子中，数据库名称为 `andromeda`。
+
+   ```sh "andromeda"
+   turso db create andromeda
+   ```
+
+4. 运行 `show` 命令查看新创建数据库的信息：
+
+   ```sh "andromeda"
+   turso db show andromeda
+   ```
+
+   复制 `URL` 值并将其设置为 `ASTRO_DB_REMOTE_URL` 的值。
+   
+
+   ```dotenv title=".env" "libsql://andromeda-houston.turso.io"
+   ASTRO_DB_REMOTE_URL=libsql://andromeda-houston.turso.io
+   ```
+
+5. 创建一个新 token 认证请求到数据库：
+
+   ```sh "andromeda"
+   turso db tokens create andromeda
+   ```
+
+   复制命令的输出并将其设置为 `ASTRO_DB_APP_TOKEN` 的值。
+
+   ```dotenv title=".env" add={2} "eyJhbGciOiJF...3ahJpTkKDw"
+   ASTRO_DB_REMOTE_URL=libsql://andromeda-houston.turso.io
+   ASTRO_DB_APP_TOKEN=eyJhbGciOiJF...3ahJpTkKDw
+   ```
+
+6. 将你的 DB schema 和 metadata 推送到新的 Turso 数据库。
+
+   ```sh
+   astro db push --remote
+   ```
+
+7. 恭喜，现在你已经连接了一个数据库！给自己一个奖励。 👾
+
+   ```sh
+   turso relax
+   ```
+
+</Steps>
+
+要探索更多 Turso 的功能，请查看 [Turso 文档](https://docs.turso.tech)。
+
+### 连接到远程数据库
+
+Astro DB 允许你连接到本地和远程数据库。默认情况下，Astro 使用一个本地数据库文件用于 `dev` 和 `build` 命令，每次重新创建表并插入开发 seed 数据。
+
+要连接到一个托管的远程数据库，使用 `--remote` 标志。这个标志允许你访问远程数据库，允许你 [接受和持久化用户数据](#插入) 在生产环境中。
+
+:::note
+虽然远程连接在任何使用静态或服务器渲染模式的部署平台上都是可能的，但目前存在一些限制。非 Node 运行时（如 Cloudflare 和 Deno）不支持在 libSQL 上使用服务器渲染路由时使用 DB。对于这些平台的支持，计划将在未来中实现。
+:::
+
+配置你的 build 命令使用 `--remote` 标志：
+
+```json title="package.json" "--remote"
+{
+  "scripts": {
+    "build": "astro build --remote"
+  }
+}
+```
+
+你也可以直接在命令行中使用该标志：
+
+```bash
+# 使用远程连接构建
+astro build --remote
+
+# 使用远程连接开发
+astro dev --remote
+```
+
+:::caution
+在开发过程中使用 `--remote` 时请小心。这会连接到你的生产数据库，所有更改（插入、更新、删除）都会被持久化。
+:::
+
+`--remote` 标志在本地构建期间和服务器上都使用远程数据库连接。确保在本地开发环境和部署平台中都设置了必要的环境变量。
+
+当你部署你的 Astro DB 项目时，确保你的部署平台的 build 命令设置为 `npm run build`（或你包管理器的等效命令）以使用在 `package.json` 中配置的 `--remote` 标志。
+
+### 远程 URL 配置选项
+
+`ASTRO_DB_REMOTE_URL` 环境变量配置了数据库的位置以及同步和加密等其他选项。
+
+#### URL scheme 和 host
+
+libSQL 支持 HTTP 和 WebSockets 作为远程服务器的传输协议。它还支持使用本地文件或内存数据库。可以使用以下 URL 方案在连接 URL 中进行配置：
+
+- `memory:` 将使用内存数据库。在这种情况下，主机必须为空。
+- `file:` 将使用本地文件。主机是文件的路径 (`file:path/to/file.db`).
+- `libsql:` 将通过 libSQL 库首选的协议使用远程服务器（这可能因版本而异）。主机是服务器的地址 (`libsql://your.server.io`).
+- `http:` 通过 HTTP 使用远程服务器。`https:` 可以用来启用安全连接。主机与 `libsql:` 相同。
+- `ws:` 通过 WebSockets 使用远程服务器。`wss:` 可以用来启用安全连接。主机与 `libsql:` 相同。
+
+libSQL 连接的详细信息（例如加密密钥、复制、同步间隔）可以在远程连接 URL 中作为查询参数进行配置。
+
+例如，要将一个加密的本地文件设置为 libSQL 服务器的嵌入式副本，可以设置以下环境变量：
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=file://local-copy.db?encryptionKey=your-encryption-key&syncInterval=60&syncUrl=libsql%3A%2F%2Fyour.server.io
+ASTRO_DB_APP_TOKEN=token-to-your-remote-url
+```
+
+:::caution
+使用数据库文件是一个高级特性，在部署时应该小心，以防止覆盖你的数据库并丢失你的生产数据。
+
+此外，这种方法在无服务器部署中将无法工作，因为这些环境中没有持久化的文件系统。
+:::
+
+#### `encryptionKey`
+
+libSQL 对加密数据库有原生支持。传递这个搜索参数将使用给定的密钥启用加密：
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=file:path/to/file.db?encryptionKey=your-encryption-key
+```
+
+#### `syncUrl`
+
+嵌入式副本是 libSQL 客户端的一个特性，它会在本地文件或内存中创建一个完整同步的副本，以实现超快的读取。写入发送到在 `syncUrl` 上定义的远程数据库，并与本地副本同步。
+
+使用此属性传递一个单独的连接 URL 将数据库转换为另一个数据库的嵌入式副本。这应该仅与 `file:` 和 `memory:` 方案一起使用。该参数必须进行 URL 编码。
+
+例如，要将一个数据库设置为 `libsql://your.server.io` 的内存嵌入式副本，可以设置连接 URL 如下：
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io
+```
+
+#### `syncInterval`
+
+嵌入式副本之间同步的间隔时间，单位为秒。默认情况下，它仅在启动时和写入后同步。
+
+此属性仅在设置 `syncUrl` 时使用。例如，要将内存嵌入式副本设置为每分钟同步，请设置以下环境变量：
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io&syncInterval=60
+```
 
 ## 查询你的数据库
 
-你可以从项目中的任何 [Astro 页面](/zh-cn/basics/astro-pages/#astro-页面) 或 [端点](/zh-cn/guides/endpoints/) 使用提供的 `db` ORM 和查询构建器来查询你的数据库。
+你可以从项目中的任何 [Astro 页面](/zh-cn/basics/astro-pages/#astro-页面)，[端点](/zh-cn/guides/endpoints/) 或 [action](/zh-cn/guides/actions/) 使用提供的 `db` ORM 和查询构建器来查询你的数据库。
 
 ### Drizzle ORM
 
@@ -210,10 +375,10 @@ if (Astro.request.method === 'POST') {
   // 解析表单数据
   const formData = await Astro.request.formData();
   const author = formData.get('author');
-  const content = formData.get('content');
-  if (typeof author === 'string' && typeof content === 'string') {
+  const body = formData.get('body');
+  if (typeof author === 'string' && typeof body === 'string') {
     // 将表单数据插入到 Comment 表中
-    await db.insert(Comment).values({ author, content });
+    await db.insert(Comment).values({ author, body });
   }
 }
 
@@ -225,8 +390,8 @@ const comments = await db.select().from(Comment);
 	<label for="author">Author</label>
 	<input id="author" name="author" />
 
-	<label for="content">Content</label>
-	<textarea id="content" name="content"></textarea>
+	<label for="body">Content</label>
+	<textarea id="body" name="body"></textarea>
 
 	<button type="submit">Submit</button>
 </form>
@@ -234,13 +399,46 @@ const comments = await db.select().from(Comment);
 <!--渲染 `comments`-->
 ```
 
-你也可以从 API 端点查询你的数据库。这个例子通过 `id` 参数从 `Comment` 表中删除一行：
+你也可以使用 [Astro actions](/zh-cn/guides/actions/) 向 Astro DB 表中插入数据。以下例子使用一个 action 向 `Comment` 表中插入一行：
+
+```ts
+// src/actions/index.ts
+import { db, Comment } from 'astro:db';
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+export const server = {
+  addComment: defineAction({
+    // Actions 用 Zod 保证类型安全，不需要再
+    // 在页面中检查 typeof {value} === 'string'
+    input: z.object({
+      author: z.string(),
+      body: z.string(),
+    }),
+    handler: async (input) => {
+      const updatedComments = await db
+        .insert(Comment)
+        .values(input)
+        .returning(); // 返回更新后的评论
+      return updatedComments;
+    },
+  }),
+};
+```
+
+<ReadMore>
+
+查看 [Drizzle `insert()` API 参考](https://orm.drizzle.team/docs/insert) 以获取完整概述。
+
+</ReadMore>
+
+### 删除
+
+你也可以从 API 端点查询你的数据库。这个例子通过 `id` 参数删除 `Comment` 表中的一行：
 
 ```ts
 // src/pages/api/comments/[id].ts
 import type { APIRoute } from "astro";
 import { db, Comment, eq } from 'astro:db';
-
 export const DELETE: APIRoute = async (ctx) => {
   await db.delete(Comment).where(eq(Comment.id, ctx.params.id ));
   return new Response(null, { status: 204 });
@@ -248,9 +446,7 @@ export const DELETE: APIRoute = async (ctx) => {
 ```
 
 <ReadMore>
-
-查看 [Drizzle `insert()` API 参考](https://orm.drizzle.team/docs/insert) 以获取完整概述。
-
+查看 [Drizzle `delete()` API 参考](https://orm.drizzle.team/docs/delete) 以获取完整概述。
 </ReadMore>
 
 ### 过滤
@@ -340,155 +536,15 @@ export default async function () {
 
 </ReadMore>
 
-<StudioHeading>
-## Astro Studio
-</StudioHeading>
+## 将更改推送到你的数据库
 
-:::caution
-我们 [即将关闭 Astro Studio](https://astro.build/blog/goodbye-astro-studio/)。因此，2024 年 10 月 1 日之后，用户将无法再创建数据库。
+你可以将开发期间所做的更改推送到你的数据库。
 
-我们建议 [将现有 Studio 数据库迁移到 Turso](#从-astro-studio-迁移到-turso)，或 [将 Astro DB 连接到任何 libSQL 服务器](#libsql) 来代替。
-:::
-
-Astro DB 可以连接到 Astro Studio 平台，快速为你的项目添加一个托管数据库。你可以从 Astro Studio 仪表盘上查看、管理和部署新的托管数据库。
-
-[Astro Studio 网页门户](http://studio.astro.build) 允许你通过网页界面或使用 [CLI 命令](/zh-cn/reference/cli-reference/#astro-studio-cli) 连接并管理你的远程托管的 [Astro DB 数据库](/zh-cn/guides/astro-db/)。
-
-在你的 Studio 仪表板，你可以访问账号管理、帮助文章和支持消息控制台等。
-
-访问 [Astro Studio](http://studio.astro.build) 进行注册或登录。
-
-<StudioHeading>
-### 创建新的 Studio 项目
-</StudioHeading>
-
-在 Astro Studio 中有两种方式创建项目:
-
-1. [**使用 Astro Studio 网页界面**](https://studio.astro.build)从新的或现有的 GitHub 仓库创建。
-
-    点击页头中的 "create project" 按钮并按照说明开始操作。Astro Studio 将连接到你的 GitHub 仓库，并为你的项目创建一个新的托管数据库。
-
-2. **使用 Astro Studio CLI** 从任何本地 Astro 项目创建。你可以运行以下命令开始:
-
-    <PackageManagerTabs>
-    <Fragment slot="npm">
-    ```shell
-    # 使用你的 GitHub 账号登录到 Astro Studio
-    npx astro login
-
-    # 根据提示链接到一个新的项目
-    npx astro link
-
-    # (可选) 将你的本地数据库配置推送到远程数据库
-    npx astro db push
-    ```
-    </Fragment>
-    <Fragment slot="pnpm">
-    ```shell
-    # 使用你的 GitHub 账号登录到 Astro Studio
-    pnpm astro login
-
-    # 根据提示链接到一个新的项目
-    pnpm astro link
-
-    # (可选) 将你的本地数据库配置推送到远程数据库
-    pnpm astro db push
-    ```
-    </Fragment>
-    <Fragment slot="yarn">
-    ```shell
-    # 使用你的 GitHub 账号登录到 Astro Studio
-    yarn astro login
-
-    # 根据提示链接到一个新的项目
-    yarn astro link
-
-    # (可选) 将你的本地数据库配置推送到远程数据库
-    yarn astro db push
-    ```
-    </Fragment>
-    </PackageManagerTabs>
-
-    一旦你已经成功登录并链接，你就可以运行所有的 Astro DB 命令来管理你的远程数据库。
-
-    <ReadMore>查看 [Astro DB CLI 参考](/zh-cn/guides/integrations-guide/db/#astro-db-cli-参考) 获取所有可用命令。</ReadMore>
-
-
-<StudioHeading>
-### 使用 Studio 连接进行部署
-</StudioHeading>
-
-你可以使用与你的 Studio 数据库的实时连接来部署你的 Astro DB 项目。这可以在任何使用静态构建或 [SSR 适配器](/zh-cn/guides/server-side-rendering/) 的部署平台上实现。
-
-首先，配置你的构建命令以使用 `--remote` 标志与 Studio 连接。这个示例将该标志应用到你项目 `package.json` 中的 `"build"` 脚本。如果你的部署平台接受构建命令，确保这被设置成 `npm run build`。
-
-```json title="package.json" "--remote"
-{
-  "scripts": {
-    "build": "astro build --remote"
-  }
-}
-```
-
-#### 创建一个 Studio 应用令牌
-
-你需要创建一个应用令牌来从生产部署访问你的 Studio 数据库。你可以通过导航到 **Settings** 标签页并选择 **Tokens** 从你的 Studio 项目仪表板创建一个应用令牌。
-
-复制生成的令牌并在你的部署平台中使用名称 `ASTRO_STUDIO_APP_TOKEN` 作为环境变量 / 环境秘钥。
-
-<StudioHeading>
-### 设置 GitHub CI Action
-</StudioHeading>
-
-你可以使用 Studio CI 流水线自动推送模式更改到你的 Studio 数据库。每当你合并到 `main` 时，这将会校验更改是否可以安全地进行，并且都会保持你的配置更新。
-
-[按照 GitHub 的文档](https://docs.github.com/zh/actions/security-guides/using-secrets-in-github-actions#creating-secrets-for-a-repository) 在你的仓库中配置一个新的秘钥，名称为 `ASTRO_STUDIO_APP_TOKEN`，并将你的 Studio 应用令牌作为秘钥的值。
-
-一旦你的秘钥配置好，就在你的项目的 `.github/workflows` 目录中创建一个新的 GitHub Actions 工作流文件，将检出仓库和安装 Node.js 作为步骤，并使用 `withastro/action-studio` 动作来同步模式更改。
-
-该动作会在所有 [事件触发器](https://docs.github.com/zh/actions/using-workflows/events-that-trigger-workflows) 上运行 `astro db verify`，以确保架构更改可以安全地应用。如果你特别添加了 **[push](https://docs.github.com/zh/actions/using-workflows/events-that-trigger-workflows#push)** 触发器，那么该动作会将这些更改推送到你的 Studio 数据库。
-
-这个示例 GitHub Action `_studio.yml` 在 `main` 分支更新时推送更改：
-
-```yaml title=".github/workflows/_studio.yml"
-name: Astro Studio
-
-env:
-  ASTRO_STUDIO_APP_TOKEN: ${{secrets.ASTRO_STUDIO_APP_TOKEN }}
-
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    types: [opened, reopened, synchronize]
-
-jobs:
-  DB:
-    permissions:
-      contents: read
-      actions: read
-      pull-requests: write
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - uses: jaid/action-npm-install@v1.2.1
-      - uses: withastro/action-studio@main
-```
-
-<StudioHeading>
 ### 推送表架构
-</StudioHeading>
 
+你的表架构可能会随着项目的增长而变化。你可以在本地安全地测试配置更改，并在部署时推送到你的远程数据库。
 
-随着你项目的增长，你的表架构也会随着时间的推移而改变。你可以在本地安全地测试配置更改，并在部署时推送到你的 Studio 数据库。
-
-在[从仪表板创建 Studio 项目](#astro-studio)时，你将有创建 GitHub CI 流水线的选项。这将在与你的仓库的主分支合并时自动迁移架构更改。
-
-你也可以通过 CLI 使用 `astro db push --remote` 命令将本地架构更改推送到 Astro Studio：
+你可以通过 CLI 使用 `astro db push --remote` 命令将本地架构更改推送到远程数据库：
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -513,10 +569,10 @@ jobs:
 #### 推送破坏性架构更改
 
 :::caution
-__这将销毁你的数据库__。仅在你不需要你的生产数据时执行此命令。
+__这将销毁你的数据库__。仅在你不需要生产数据时执行此命令。
 :::
 
-如果你必须以一种与 Astro Studio 托管的现有数据不兼容的方式更改你的表架构，你将需要重置你的生产数据库。
+如果必须以与现有数据不兼容的方式更改表架构，则需要重置生产数据库。
 
 要推送包含破坏性更改的表架构更新，请添加 `--force-reset` 标志以重置所有生产数据：
 
@@ -538,17 +594,15 @@ __这将销毁你的数据库__。仅在你不需要你的生产数据时执行�
   </Fragment>
 </PackageManagerTabs>
 
-<StudioHeading>
 ### 重命名表
-</StudioHeading>
 
-在将你的架构推送到 Astro Studio 之后，可以重命名一个表。
+在将架构推送到远程数据库后，可以重命名表。
 
-如果你**没有任何重要的生产数据**，那么你可以使用 `--force-reset` 标志[重置你的数据库](#推送破坏性架构更改)。这个标志将会删除数据库中的所有表，并创建新的表，以便它完全匹配你当前的架构。
+如果 **没有重要的生产数据**，则可以使用 `--force-reset` 标志 [重置你的数据库](#推送破坏性架构更改)。此标志将删除数据库中的所有表并创建新的表，以匹配当前的架构。
 
-为了在保留你的生产数据的同时重命名一个表，你必须执行一系列非破坏性更改，以安全地将你的本地架构推送到 Astro Studio。
+为了在保留你的生产数据的同时重命名一个表，你必须执行一系列非破坏性更改，以安全地将本地架构推送到远程数据库。
 
-以下示例将一个表从 `Comment` 重命名为 `Feedback`：
+以下示例将表从 `Comment` 重命名为 `Feedback`：
 
 <Steps>
 
@@ -566,7 +620,7 @@ __这将销毁你的数据库__。仅在你不需要你的生产数据时执行�
 
 2. 添加一个新的表架构（完全匹配现有表的属性）并使用新名称：
 
-	  ```ts title="db/config.ts" ins={9-14}
+	  ```ts title="db/config.ts" ins={8-14}
     const Comment = defineTable({
         deprecated: true,
     	columns: {
@@ -574,7 +628,6 @@ __这将销毁你的数据库__。仅在你不需要你的生产数据时执行�
     		body: column.text(),
   		}
     });
-
 	  const Feedback = defineTable({
         columns: {
           author: column.text(),
@@ -582,9 +635,10 @@ __这将销毁你的数据库__。仅在你不需要你的生产数据时执行�
         }
     });
     ```
-3. 使用 `astro db push --remote` [推送到 Astro Studio](#推送表架构)。这将添加新表并将旧表标记为已弃用。
+
+3. 使用 `astro db push --remote`[将架构推送到远程数据库](#推送表架构) 。这将添加新表并将旧表标记为已弃用。
 4. 更新你的本地项目代码以使用新表而不是旧表。你可能还需要将数据迁移到新表。
-5. 当你确信旧表不再被你的项目使用时，可以从你的 `config.ts` 中移除该架构：
+5. 一旦你确信旧表在你的项目中不再使用，你可以从 `config.ts` 中删除旧表的架构：
 		```ts title="db/config.ts" del={1-7}
     const Comment = defineTable({
           deprecated: true,
@@ -601,14 +655,12 @@ __这将销毁你的数据库__。仅在你不需要你的生产数据时执行�
           }
     });
     ```
-6. 再次使用 `astro db push --remote` 命令推送到 Astro Studio。旧表将被删除，只留下新的、重命名的表。
+6. 再次使用 `astro db push --remote`推送到远程数据库。旧表将被删除，只留下新的、重命名的表。
 </Steps>
 
-<StudioHeading>
-### 推送数据 
-</StudioHeading>
+### 推送表数据
 
-你可能需要将数据推送到你的 Studio 数据库进行填充或数据迁移。你可以使用 `astro:db` 模块创建一个 `.ts` 文件来编写类型安全的查询。然后，使用命令 `astro db execute <file-path> --remote` 执行该文件对你的 Studio 数据库：
+你可能需要将数据推送到远程数据库以进行填充或数据迁移。你可以编写一个 `.ts` 文件并使用 `astro:db` 模块来编写类型安全的查询。然后，使用命令 `astro db execute <file-path> --remote` 对远程数据库执行该文件：
 
 以下评论可以使用命令 `astro db execute db/seed.ts --remote` 进行填充：
 
@@ -626,128 +678,9 @@ export default async function () {
 
 <ReadMore>
 
-查看 [CLI 参考](/zh-cn/guides/integrations-guide/db/#astro-db-cli-参考) 获取完整的命令列表。
+查看 [CLI 参考](/zh-cn/guides/integrations-guide/db/#astro-db-cli-参考) 以获取完整的命令列表。
 
 </ReadMore>
-
-<StudioHeading>
-### 连接 Astro Studio
-</StudioHeading>
-
-默认情况下，当你运行 `dev` 或 `build` 命令时，Astro 将使用本地数据库文件。每次运行命令时，表都会从头开始重新创建，并插入开发的样例数据。
-
-要连接到你的托管 Studio 数据库，你可以添加 `--remote` 参数。使用此参数进行生产部署，以便对你的 Studio 数据库拥有可读写权限。这将允许你 [接受并持久化用户数据](#插入)。
-
-```bash
-# 使用远程连接进行构建
-astro build --remote
-
-# 使用远程连接进行开发
-astro dev --remote
-```
-
-:::caution
-
-在开发中使用 `--remote` 时要小心。这将连接到实时生产数据库，所有的插入、更新或删除都将被持久化。
-
-:::
-
-要使用远程连接，你需要一个应用令牌来进行 Studio 认证。请访问 Studio 控制面板获取令牌创建和设置指南。
-
-<ReadMore>
-
-当你准备好部署时，参见我们的 [使用 Studio 连接进行部署指南](#使用-studio-连接进行部署)。
-
-</ReadMore>
-
-### 从 Astro Studio 迁移到 Turso
-
-<Steps>
-
-1. 在 [Studio 仪表板](https://studio.astro.build/) 中，导航到你要迁移的项目。在设置选项卡中，使用 “Export Database（导出数据库）” 按钮下载数据库的转储。
-2. 按照官方说明 [安装 Turso CLI](https://docs.turso.tech/cli/installation) 并 [注册或登录](https://docs.turso.tech/cli/authentication) 你的 Turso 帐户。
-3. 使用你在步骤 1 中下载的 `.sql` 转储创建一个新数据库。
-   ```sh
-   turso db create [database-name] --from-dump ./path/to/dump.sql
-   ```
-4. 使用 Turso CLI 获取数据库 URL，并将其配置为环境变量 `ASTRO_DB_REMOTE_URL`。
-   ```sh
-   turso db show [database-name]
-   ```
-   ```env
-   ASTRO_DB_REMOTE_URL=[your-database-url]
-   ```
-5. 创建一个令牌来访问你的数据库，并将其配置为环境变量 `ASTRO_DB_APP_TOKEN`。
-   ```sh
-   turso db tokens create [database-name]
-   ```
-   ```env
-   ASTRO_DB_APP_TOKEN=[your-app-token]
-   ```
-6. 一旦确认你的项目连接到新数据库，你就可以安全地从 Astro Studio 中删除该项目了。
-
-</Steps>
-
-## libSQL
-
-<p><Since pkg="@astrojs/db" v="0.14.0" /></p>
-
-Astro DB 可以从任何公开 libSQL 服务器远程协议的平台，连接到任何 libSQL 服务器，或者也可以自托管。
-
-要将 Astro DB 连接到 libSQL 数据库，需要设置以下环境变量：
-- `ASTRO_DB_REMOTE_URL`: libSQL 服务器的连接 URL
-- `ASTRO_DB_APP_TOKEN`: libSQL 服务器的身份验证令牌
-
-使用 libSQL 时和连接到 Astro Studio 托管数据库时，[部署和推送更改](#使用-studio-连接进行部署)到数据库的命令是相同的。不过，当使用 `--remote` 选项运行命令，如 `astro build` 和 `astro db push` 时，都需要在本地设置环境变量。
-
-libSQL 连接的详细信息（例如加密密钥、备份、同步间隔）可以配置为远程连接 URL 中的查询参数。
-
-例如，要让本地文件作为加密 libSQL 服务器的嵌入式副本，你可以设置以下环境变量：
-
-```dotenv title=".env"
-ASTRO_DB_REMOTE_URL=file://local-copy.db?encryptionKey=your-encryption-key&syncInterval=60&syncUrl=libsql%3A%2F%2Fyour.server.io
-ASTRO_DB_APP_TOKEN=token-to-your-remote-url
-```
-
-### URL 方案和 host
-
-libSQL 同时支持 HTTP 和 WebSockets 作为远程服务器的传输协议。它还支持使用本地文件或内存数据库。这些都可以在连接 URL 中使用以下 URL 方案来进行配置：
-
-- `memory:` 将使用内存数据库。在这种情况下，host 必须为空。
-- `file:` 将使用本地文件。host 是文件的路径（`file:path/to/file.db`）。
-- `libsql:` 将通过库首选的协议使用远程服务器（可能因版本而异）。host 是服务器的地址（`libsql://your.server.io`）。
-- `http:` 将通过 HTTP 使用远程服务器。`https:` 可用于启用安全连接。host 和 `libsql` 相同。
-- `ws:` 将通过 WebSockets 使用远程服务器。`wss:` 可用于启用安全连接。 host 和 `libsql` 相同。
-
-### `encryptionKey`
-
-libSQL 对加密数据库具有原生支持。传递此搜索参数将使用给定密钥的加密：
-
-```dotenv title=".env"
-ASTRO_DB_REMOTE_URL=file:path/to/file.db?encryptionKey=your-encryption-key
-```
-
-### `syncUrl`
-
-嵌入式副本是 libSQL 客户端的一项功能，可在本地文件或内存中实现数据库的完整同步副本，以实现超快读取。写入将发送到在 `syncUrl` 上定义的远程数据库并与本地副本同步。
-
-使用此属性来传递单独的连接 URL，并将 DB 转换为另一个数据库的嵌入式副本。此属性只应与 `file:` 和 `memory:` 方案来一起使用。该参数必须经过 URL 编码。
-
-例如，要在 `libsql://your.server.io` 上拥有数据库的内存嵌入式副本，你可以按如下方式设置连接 URL：
-
-```dotenv title=".env"
-ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io
-```
-
-### `syncInterval`
-
-嵌入式副本同步之间的时间间隔（以秒为单位）。默认情况下，它仅在启动时和写入后同步。
-
-此属性仅在同时设置了 `syncUrl` 时才生效。例如，要将内存中嵌入式副本设置为每分钟同步，请设置以下环境变量：
-
-```dotenv title=".env"
-ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io&syncInterval=60
-```
 
 ## 构建 Astro DB 集成
 
@@ -776,7 +709,7 @@ export default function MyIntegration() {
 }
 ```
 
-集成的 [配置](#定义你的数据库) 和 [填充](#为你的数据库填充数据) 文件遵循与其用户定义的等效项相同的格式。
+集成的 [配置](#定义你的数据库) 和 [填充](#为你的开发数据库填充数据) 文件遵循与其用户定义的等效项相同的格式。
 
 ### 在集成中进行类型安全操作
 
@@ -820,30 +753,39 @@ export default async function() {
 `asDrizzleTable('Pets', Pets)` 返回的值等同于 `import { Pets } from 'astro:db'`，但即使 Astro 的类型生成无法运行时也可用。
 你可以在任何需要查询或插入数据库的集成代码中使用它。
 
-## 自托管生产部署
 
-如果你将网站部署到自管理的主机上，例如 [虚拟私人服务器](https://en.wikipedia.org/wiki/Virtual_private_server)，你可以选择使用数据库文件，而不是连接到 Astro Studio 托管的数据库。
+## 从 Astro Studio 迁移到 Turso
 
-:::caution
-使用数据库文件是一项高级功能，在部署时需要小心，以防覆盖你的数据库并丢失你的生产数据。
+<Steps>
 
-此外，这种方法不适用于无服务器（serverless）部署，因为在这些环境中文件系统不会持久化。
+1. 在 [Studio 仪表板](https://studio.astro.build/) 中，导航到你要迁移的项目。在设置选项卡中，使用 “Export Database（导出数据库）” 按钮下载数据库的转储。
+2. 按照官方说明 [安装 Turso CLI](https://docs.turso.tech/cli/installation) 并 [注册或登录](https://docs.turso.tech/cli/authentication) 你的 Turso 帐户。
+3. 使用 `turso db create` 命令在 Turso 上创建一个新数据库。
+   ```sh
+   turso db create [database-name]
+   ```
+4. 使用 Turso CLI 获取数据库 URL，并将其配置为环境变量 `ASTRO_DB_REMOTE_URL`。
+   ```sh
+   turso db show [database-name]
+   ```
+   ```dotenv
+   ASTRO_DB_REMOTE_URL=[your-database-url]
+   ```
+5. 创建一个令牌来访问你的数据库，并将其配置为环境变量 `ASTRO_DB_APP_TOKEN`。
+   ```sh
+   turso db tokens create [database-name]
+   ```
+   ```dotenv
+   ASTRO_DB_APP_TOKEN=[your-app-token]
+   ```
+6. 将你的 DB 架构和元数据推送到新的 Turso 数据库。
+   ```sh
+   astro db push --remote
+   ```
+7. 将步骤 1 中的数据库转储导入到新的 Turso DB 中。
+   ```sh
+   turso db shell [database-name] < ./path/to/dump.sql
+   ```
+8. 确认你的项目连接到新数据库后，你就可以安全地从 Astro Studio 中删除该项目了。
 
-对于全托管的解决方案，建议[连接到 Astro Studio 平台上托管的数据库](#astro-studio)。
-:::
-
-如果你能够接受这些风险，并且能够自己管理部署，你可以使用数据库文件，而不是连接到 Studio。
-
-在构建过程中，设置 `ASTRO_DATABASE_FILE` 环境变量，将其指向宿主环境中你的 `.db` 文件的路径：
-
-```shell
-ASTRO_DATABASE_FILE=/srv/files/database.db astro build
-```
-
-构建过程会将此路径静态编译为你的生产数据库。当你部署并启动你的服务器时，它将连接到生产主机上此路径的文件。
-
-此外，[推送任何表架构更改](#推送表架构)（也称为“架构迁移”）必须使用此环境变量手动管理。
-
-:::danger
-如果你在部署时覆盖了你的 `.db` 文件，你将会丢失你的生产数据。请仔细遵循你的主机的部署方法流程，以防止数据丢失。
-:::
+</Steps>
