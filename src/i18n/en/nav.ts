@@ -107,11 +107,6 @@ export default [
 		slug: 'community-resources/content',
 		key: 'community-resources/content',
 	},
-	// {
-	// 	text: 'Talks, Interviews, and Streams',
-	// 	slug: 'community-resources/talks',
-	// 	key: 'community-resources/talks',
-	// },
 
 	{ text: 'Reference', header: true, type: 'api', key: 'reference' },
 	{
