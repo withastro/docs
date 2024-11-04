@@ -52,6 +52,8 @@ export default UIDictionary({
 	'deploy.staticTag': 'ثابت',
 	// CMS Guides vocabulary
 	'cms.navTitle': 'المزيد من أدلة أنظمة إدارة المحتوى',
+	// Media Guides voccabulary
+	'media.navTitle': 'المزيد من أدلة أنظمة إدارة الأصول الرقمية',
 	// Migration Guides vocabulary
 	'migration.navTitle': 'المزيد من أدلة التحويل',
 	// Recipes vocabulary
