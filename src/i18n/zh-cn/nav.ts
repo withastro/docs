@@ -32,6 +32,7 @@ export default NavDictionary({
 	routes: '路由和导航',
 	'guides/routing': '路由',
 	'guides/endpoints': 'API 端点',
+	'guides/action': 'Actions',
 	'guides/prefetch': '预获取',
 	'guides/middleware': '中间件',
 	'guides/internationalization': '国际化',
@@ -60,13 +61,26 @@ export default NavDictionary({
 	'guides/testing': '测试',
 	'guides/troubleshooting': '故障排除',
 
+	communityResources: '社区资源',
+	'community-resources/content': '课程、指南和方案',
+	'community-resources/talks': '演讲、访谈和直播',
+
 	reference: '参考',
 	'reference/configuration-reference': '配置',
-	'reference/api-reference': 'Astro 运行时 API',
 	'reference/cli-reference': 'Astro 命令行',
 	'reference/directives-reference': '指令参考',
+	'reference/components-reference': '内置组件',
 	'guides/typescript': 'TypeScript 参考',
 	'reference/error-reference': '错误参考',
+
+	'api-reference': 'Astro API 参考',
+	'reference/api-reference': 'Astro 运行时 API',
+	'reference/modules/astro-actions': 'astro:actions',
+	'reference/modules/astro-assets': 'astro:assets',
+	'reference/modules/astro-content': 'astro:content',
+	'reference/modules/astro-i18n': 'astro:i18n',
+	'reference/modules/astro-middleware': 'astro:middleware',
+	'reference/modules/astro-transitions': 'astro:transitions',
 
 	dev: '其他开发 API',
 	'reference/integrations-reference': '集成 API',
@@ -74,8 +88,4 @@ export default NavDictionary({
 	'reference/image-service-reference': '图像服务 API',
 	'reference/dev-toolbar-app-reference': '开发工具栏应用 API',
 	'reference/container-reference': '容器 API（实验性）',
-
-	communityResources: '社区资源',
-	'community-resources/content': '课程、指南和方案',
-	'community-resources/talks': '演讲、访谈和直播',
 });

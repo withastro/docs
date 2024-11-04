@@ -19,7 +19,7 @@ Astro는 표준 HTML [`<a>` 요소](https://developer.mozilla.org/ko/docs/Web/HT
 <p>Read more <a href="/about/">about</a> Astro!</p>
 
 <!-- `base: "/docs"`가 구성된 경우 -->
-<p>Learn more in our <a href="/docs/reference/">reference</a> section!</p> 
+<p>Learn more in our <a href="/docs/reference/">reference</a> section!</p>
 ```
 
 ## 정적 경로
@@ -342,7 +342,7 @@ if (!itemExists(item)) {
 }
 ---
 <div>...</div>
-``` 
+```
 
 예를 들어, 존재하지 않는 URL을 방문할 때 사이트의 특정 페이지를 표시하는 등 HTTP 응답 상태에 따라 조건부로 리라이트할 수도 있습니다:
 
@@ -354,7 +354,7 @@ export const onRequest = async (context, next) => {
   }
   return response;
 }
-``` 
+```
 
 지정된 리라이트 경로의 콘텐츠를 표시하기 전에 `Astro.rewrite()` 함수는 새롭고 완전한 렌더링 단계를 트리거합니다. 그러면 새 경로/요청에 대한 모든 미들웨어가 다시 실행됩니다.
 
@@ -376,6 +376,7 @@ export const onRequest = async (context, next) => {
 
 Astro는 페이지를 빌드하는 데 어떤 경로를 사용해야 하는지 알아야 합니다. 이를 위해 다음 규칙에 따라 순서대로 정렬합니다.
 
+- Astro [예약된 경로](#예약된-경로)
 - 더 많은 경로 세그먼트를 가진 경로가 덜 구체적인 경로보다 우선합니다. 위 예시에서 `/posts/` 아래의 모든 경로는 루트의 `/[...slug].astro`보다 우선합니다.
 - 경로 매개변수가 없는 정적 경로는 동적 경로보다 우선합니다. 예: `/posts/create.astro`는 예시의 다른 모든 경로보다 우선합니다.
 - 명명된 매개변수를 사용하는 동적 경로는 나머지 매개변수보다 우선합니다. 예: `/posts/[page].astro`는 `/posts/[...slug].astro`보다 우선합니다.
@@ -391,6 +392,14 @@ Astro는 페이지를 빌드하는 데 어떤 경로를 사용해야 하는지 �
 - `pages/posts/[page].astro` - `/posts/1`, `/posts/2` 등을 빌드하지만 `/posts/create`, `/posts/abc`, `/posts/xyz`는 빌드하지 않습니다.
 - `pages/posts/[...slug].astro` - `/posts/1/2`, `/posts/a/b/c` 등을 빌드하지만 `/posts/create`, `/posts/1`, `/posts/abc` 등은 빌드하지 않습니다.
 - `pages/[...slug].astro` - `/abc`, `/xyz`, `/abc/xyz` 등을 빌드하지만 `/posts/create`, `/posts/1`, `/posts/abc` 등은 빌드하지 않습니다.
+
+### 예약된 경로
+
+내부 경로는 Astro 기능이 작동하는 데 필요하므로 사용자 정의 또는 통합 정의 경로보다 우선합니다. 다음은 Astro의 예약된 경로입니다:
+
+- `_astro/`: CSS 문서, 번들링된 클라이언트 스크립트, 최적화된 이미지, 모든 Vite 자산을 포함한 모든 정적 자산을 클라이언트에 제공합니다.
+- `_server_islands/`: [서버 아일랜드](/ko/reference/configuration-reference/#experimentalserverislands)에 지연된 동적 컴포넌트를 제공합니다.
+- `_actions/`: 정의된 모든 [액션](/ko/guides/actions/)을 제공합니다.
 
 ## 페이지네이션
 
@@ -434,36 +443,13 @@ const { page } = Astro.props;
 
 ### `page` prop
 
-`paginate()` 함수를 사용하면 각 페이지는 `page` prop을 통해 데이터가 전달됩니다. `page` prop에는 유용한 속성이 많이 있지만 주요 내용은 다음과 같습니다.
-
-- **page.data** - `paginate()` 함수에 전달한 페이지의 데이터 조각을 포함하는 배열
-- **page.url.next** - 세트의 다음 페이지에 대한 링크
-- **page.url.prev** - 세트의 이전 페이지에 대한 링크
-- **page.url.first** - 세트의 첫 페이지에 대한 링크
-- **page.url.last** - 세트의 마지막 페이지에 대한 링크
-
-```astro /(?<=const.*)(page)/ /page\\.[a-zA-Z]+(?:\\.(?:prev|next|first|last))?/
----
-// src/pages/astronauts/[page].astro
-// 이전 예시와 동일한 { astronaut } 객체 목록에 페이지를 매깁니다.
-export async function getStaticPaths({ paginate }) { /* ... */ }
-const { page } = Astro.props;
----
-<h1>Page {page.currentPage}</h1>
-<ul>
-  {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
-</ul>
-{page.url.first ? <a href={page.url.first}>First</a> : null}
-{page.url.prev ? <a href={page.url.prev}>Previous</a> : null}
-{page.url.next ? <a href={page.url.next}>Next</a> : null}
-{page.url.last ? <a href={page.url.last}>Last</a> : null}
-```
+`paginate()` 함수를 사용하면 각 페이지는 `page` prop을 통해 데이터가 전달됩니다. `page` 속성에는 페이지와 페이지 간 링크를 만드는 데 사용할 수 있는 유용한 속성이 많이 있습니다:
 
 #### 완전한 API 참조
 
 ```ts
 interface Page<T = any> {
-	/** result */
+	/** paginate () 함수로 전달한 페이지의 데이터 슬라이스가 포함 된 배열 */
 	data: T[];
 	/** 메타데이터 */
 	/** 0부터 시작하는 페이지의 첫 번째 항목 수 */
@@ -491,6 +477,25 @@ interface Page<T = any> {
 		last: string | undefined;
 	};
 }
+```
+
+다음 예시에서는 페이지의 현재 정보와 페이지 간 이동할 수 있는 링크를 표시합니다:
+
+```astro /(?<=const.*)(page)/ /page\\.[a-zA-Z]+(?:\\.(?:prev|next|first|last))?/
+---
+// src/pages/astronauts/[page].astro
+// 이전 예시와 동일한 { astronaut } 객체 목록에 페이지를 매깁니다.
+export async function getStaticPaths({ paginate }) { /* ... */ }
+const { page } = Astro.props;
+---
+<h1>Page {page.currentPage}</h1>
+<ul>
+  {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
+</ul>
+{page.url.first ? <a href={page.url.first}>First</a> : null}
+{page.url.prev ? <a href={page.url.prev}>Previous</a> : null}
+{page.url.next ? <a href={page.url.next}>Next</a> : null}
+{page.url.last ? <a href={page.url.last}>Last</a> : null}
 ```
 
 <ReadMore>[페이지네이션의 `page` prop](/ko/reference/api-reference/#페이지네이션의-page-prop)에 대해 알아보세요.</ReadMore>
