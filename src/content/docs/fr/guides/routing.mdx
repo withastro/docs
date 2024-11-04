@@ -376,6 +376,7 @@ Il est possible que plusieurs routes définies tentent de construire le même ch
 
 Astro a besoin de savoir quelle route doit être utilisée pour construire la page. Pour ce faire, il les trie dans l'ordre selon les règles suivantes :
 
+- Les [routes réservées](#routes-réservées) dans Astro
 - Les routes avec plus de segments de chemin seront prioritaires sur les itinéraires moins spécifiques. Dans l'exemple ci-dessus, toutes les routes sous `/posts/` sont prioritaires sur `/[...slug].astro` à la racine.
 - Les routes statiques sans paramètres de chemin sont prioritaires sur les routes dynamiques. Par exemple, `/posts/create.astro` est prioritaire sur toutes les autres routes de l'exemple.
 - Les routes dynamiques utilisant des paramètres nommés sont prioritaires sur les paramètres restants. Par exemple, `/posts/[page].astro` est prioritaire sur `/posts/[...slug].astro`.
@@ -391,6 +392,14 @@ Dans l'exemple ci-dessus, voici quelques exemples de la manière dont les règle
 - `pages/posts/[page].astro` - Construira `/posts/1`, `/posts/2`, etc. Mais pas `/posts/create`, `/posts/abc` ni `/posts/xyz`.
 - `pages/post/[...slug].astro` - Construira `/post/1/2`, `/post/a/b/c`, etc. Mais pas `/post/create`, `/post/1`, `/post/abc` etc.
 - `pages/[...slug].astro` - Construira `/abc`, `/xyz`, `/abc/xyz`, etc. Mais pas `/posts/create`, `/posts/1`, `/posts/abc`, etc.
+
+### Routes réservées
+
+Les routes internes ont la priorité sur les routes définies par l'utilisateur ou par l'intégration, car elles sont nécessaires au déroulement des fonctionnalités d'Astro. Les routes réservées d'Astro sont les suivantes :
+
+- `_astro/` : Fournit toutes les ressources statiques au client, y compris les documents CSS, les scripts client intégrés, les images optimisées et toutes les ressources Vite.
+- `_server_islands/` : Sert les composants dynamiques différés dans une [Île de serveur](/fr/reference/configuration-reference/#experimentalserverislands);
+- `_actions/` : Sert toutes les [actions](/fr/guides/actions/) définies.
 
 ## Pagination
 
@@ -435,36 +444,11 @@ Cela génère les pages suivantes, avec deux éléments par page :
 
 ### La propriété `page`
 
-Lorsque vous utilisez la fonction `paginate()`, chaque page reçoit ses données via une propriété `page`. Celle-ci a beaucoup de propriétés utiles, mais voici les principales :
-- **page.data** - Tableau contenant la portion de données de page que vous avez passé dans la fonction `paginate()`
-- **page.url.next** - Lien vers la page suivante dans la collection
-- **page.url.prev** - Lien vers la page précédente dans la collection
-- **page.url.first** - Lien vers la première page dans la collection
-- **page.url.last** - Lien vers la dernière page dans la collection
-
-```astro /(?<=const.*)(page)/ /page\\.[a-zA-Z]+(?:\\.(?:prev|next|first|last))?/
----
-// src/pages/astronauts/[page].astro
-// Paginons la même liste d'objets { astronaut } que l'exemple précédent
-export async function getStaticPaths({ paginate }) { /* ... */ }
-const { page } = Astro.props;
----
-<h1>Page {page.currentPage}</h1>
-<ul>
-  {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
-</ul>
-{page.url.first ? <a href={page.url.first}>Début</a> : null}
-{page.url.prev ? <a href={page.url.prev}>Précédent</a> : null}
-{page.url.next ? <a href={page.url.next}>Suivant</a> : null}
-{page.url.last ? <a href={page.url.last}>Fin</a> : null}
-```
-
-
-#### Référence Complète de l'API
+Lorsque vous utilisez la fonction `paginate()`, chaque page recevra ses données via une propriété `page`. Celle-ci possède de nombreuses propriétés utiles que vous pouvez utiliser pour créer des pages et des liens entre elles :
 
 ```ts
 interface Page<T = any> {
-	/** Résultat */
+	/** Tableau contenant la tranche de données de la page que vous avez transmise à la fonction paginate() */
 	data: T[];
 	/** Métadonnées */
 	/** Nombre du premier élément de la page, à partir de 0 */
@@ -494,6 +478,25 @@ interface Page<T = any> {
 }
 ```
 
+L'exemple suivant affiche les informations actuelles de la page ainsi que des liens pour naviguer entre les pages :
+
+```astro /(?<=const.*)(page)/ /page\\.[a-zA-Z]+(?:\\.(?:prev|next|first|last))?/
+---
+// src/pages/astronauts/[page].astro
+// Paginons la même liste d'objets { astronaut } que l'exemple précédent
+export async function getStaticPaths({ paginate }) { /* ... */ }
+const { page } = Astro.props;
+---
+<h1>Page {page.currentPage}</h1>
+<ul>
+  {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
+</ul>
+{page.url.first ? <a href={page.url.first}>Début</a> : null}
+{page.url.prev ? <a href={page.url.prev}>Précédent</a> : null}
+{page.url.next ? <a href={page.url.next}>Suivant</a> : null}
+{page.url.last ? <a href={page.url.last}>Fin</a> : null}
+```
+
 <ReadMore>En savoir plus sur [la propriété `page` de pagination](/fr/reference/api-reference/#la-propriété-page-de-pagination).</ReadMore>
 
 ### Pagination Imbriquée
@@ -518,8 +521,8 @@ export function getStaticPaths({paginate}) {
   const allTags = ['red', 'blue', 'green'];
   const allPosts = await Astro.glob('../../posts/*.md');
   // Pour chaque tag, retourne un résultat paginate().
-  // Assurez-vous que vous passez "{params: {tag}}" à la fonction "paginate()"
-  // Assurez-vous qu'Astro connaît les tags du résultat
+  // Assurez-vous de passer `{params: {tag}}` à la fonction `paginate()`
+  // afin qu'Astro sache à quel groupe de tags le résultat est destiné.
   return allTags.map((tag) => {
     const filteredPosts = allPosts.filter((post) => post.frontmatter.tag === tag);
     return paginate(filteredPosts, {
