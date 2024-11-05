@@ -68,7 +68,7 @@ export default [
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
-	{ text: 'Code Syntax Highlighting', slug: 'guides/syntax-highlighting', key: 'guides/syntax-highlighting' },
+	{ text: 'Syntax Highlighting', slug: 'guides/syntax-highlighting', key: 'guides/syntax-highlighting' },
 	{ text: 'Connect Hosted Media or DAM', slug: 'guides/media', key: 'guides/media' },
 
 	{ text: 'Connect Your Data', header: true, type: 'learn', key: 'data' },
