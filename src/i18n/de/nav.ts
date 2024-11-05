@@ -61,14 +61,26 @@ export default NavDictionary({
 	'guides/testing': 'Tests',
 	'guides/troubleshooting': 'Fehlerbehebung',
 
+	communityResources: 'Community-Ressourcen',
+	'community-resources/content': 'Kurse, Anleitungen & Beispiele',
+	'community-resources/talks': 'Vorträge, Interviews & Streams',
+
 	reference: 'Referenz',
 	'reference/configuration-reference': 'Konfiguration',
-	'reference/api-reference': 'Astro Laufzeit-API',
 	'reference/cli-reference': 'Astro-CLI',
 	'reference/directives-reference': 'Richtlinien-Referenz',
 	'reference/components-reference': 'Eingebaute Komponenten',
 	'guides/typescript': 'TypeScript-Referenz',
 	'reference/error-reference': 'Fehlerreferenz',
+
+	'api-reference': 'Astro API-Referenz',
+	'reference/api-reference': 'Astro Laufzeit-API',
+	'reference/modules/astro-actions': 'astro:actions',
+	'reference/modules/astro-assets': 'astro:assets',
+	'reference/modules/astro-content': 'astro:content',
+	'reference/modules/astro-i18n': 'astro:i18n',
+	'reference/modules/astro-middleware': 'astro:middleware',
+	'reference/modules/astro-transitions': 'astro:transitions',
 
 	dev: 'Andere Entwicklungs-APIs',
 	'reference/integrations-reference': 'Integrations-API',
@@ -76,8 +88,4 @@ export default NavDictionary({
 	'reference/image-service-reference': 'Bilderdienst-API',
 	'reference/dev-toolbar-app-reference': 'Entwickler-Toolbar-App-API',
 	'reference/container-reference': 'Container-API',
-
-	communityResources: 'Community-Ressourcen',
-	'community-resources/content': 'Kurse, Anleitungen & Beispiele',
-	'community-resources/talks': 'Vorträge, Interviews & Streams',
 });
