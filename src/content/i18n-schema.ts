@@ -28,7 +28,7 @@ export const AstroDocsI18nSchema = z
 		'deploy.staticTag': z.string(),
 		// CMS Guides vocabulary
 		'cms.navTitle': z.string(),
-		// Media Guides voccabulary
+		// Media Guides vocabulary
 		'media.navTitle': z.string(),
 		// Migration Guides vocabulary
 		'migration.navTitle': z.string(),
