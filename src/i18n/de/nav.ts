@@ -41,7 +41,7 @@ export default NavDictionary({
 	assets: 'Ressourcen',
 	'guides/styling': 'CSS & Styling',
 	'guides/images': 'Bilder',
-	'guides/fonts': 'Schriftarten',	
+	'guides/fonts': 'Schriftarten',
 	'guides/syntax-highlighting': 'Syntaxhervorhebung',
 	'guides/media': 'Hosted Media oder DAM verbinden',
 
