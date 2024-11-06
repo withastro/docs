@@ -69,7 +69,6 @@ export default NavDictionary({
 	'reference/configuration-reference': '구성',
 	'reference/cli-reference': 'Astro CLI',
 	'reference/directives-reference': '지시어 참조',
-	'reference/components-reference': '기본 제공 컴포넌트',
 	'guides/typescript': 'TypeScript 참조',
 	'reference/error-reference': '오류 참조',
 

@@ -69,7 +69,6 @@ export default NavDictionary({
 	'reference/configuration-reference': 'Konfiguration',
 	'reference/cli-reference': 'Astro-CLI',
 	'reference/directives-reference': 'Richtlinien-Referenz',
-	'reference/components-reference': 'Eingebaute Komponenten',
 	'guides/typescript': 'TypeScript-Referenz',
 	'reference/error-reference': 'Fehlerreferenz',
 
