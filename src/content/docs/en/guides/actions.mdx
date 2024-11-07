@@ -524,10 +524,6 @@ const inputErrors = isInputError(result?.error) ? result.error.fields : {};
 </form>
 ```
 
-:::note
-Astro persists action `data` and `error` with a single-use cookie. This means `getActionResult()` will return a result on the first request _only_, and `undefined` when revisiting the page.
-:::
-
 #### Preserve input values on error
 
 Inputs will be cleared whenever a form is submitted. To persist input values, you can [enable view transitions](/en/guides/view-transitions/#adding-view-transitions-to-a-page) on the page and apply the `transition:persist` directive to each input:
@@ -538,13 +534,7 @@ Inputs will be cleared whenever a form is submitted. To persist input values, yo
 
 ### Update the UI with a form action result
 
-The result returned by `Astro.getActionResult()` is single-use, and will reset to `undefined` whenever the page is refreshed. This is ideal for [displaying input errors](#handle-form-action-errors) and showing temporary notifications to the user on success.
-
-:::tip
-If you need a result to be displayed across page refreshes, consider storing the result in a database or [in a cookie](/en/reference/api-reference/#astrocookies).
-:::
-
-Pass an action to `Astro.getActionResult()` and use the returned `data` property to render any temporary UI you want to display. This example uses the `productName` property returned by an `addToCart` action to show a success message:
+You may want to use an action's return value to display a notification to the user on success. Pass an action to `Astro.getActionResult()` and use the returned `data` property to render the UI you want to display. This example uses the `productName` property returned by an `addToCart` action to show a success message.
 
 ```astro title="src/pages/products/[slug].astro"
 ---
@@ -560,24 +550,99 @@ const result = Astro.getActionResult(actions.addToCart);
 <!--...-->
 ```
 
-:::caution
-Action data is passed using a persisted cookie. **This cookie is not encrypted** and is limited to 4 KB in size, although the exact limit may vary between browsers. 
+### Advanced: Persist action results with a session
 
-In general, we recommend returning the minimum information required from your action `handler` to avoid vulnerabilities, and persist other sensitive information in a database.
+Action results are displayed as a POST submission. This means that the result will be reset to `undefined` when a user closes and revisits the page. The user will also see a "confirm form resubmission?" dialog if they attempt to refresh the page.
 
-For example, you might return the name of a product in an `addToCart` action, rather than returning the entire `product` object:
+To customize this behavior, you can add middleware to handle the result of the action manually. You may choose the persist the action result using a cookie or session storage.
 
-```ts title="src/actions/index.ts" del={7} ins={8}
-import { defineAction } from 'astro:actions';
+Start by [creating a middleware file](https://docs.astro.build/en/guides/middleware/) and importing the `getActionContext()` utility from `astro:actions`. This function returns an `action` object with information about the incoming action request, including the action handler and whether the action was called from an HTML form. `getActionContext()` also returns a `setActionResult()` function to programmatically set the value returned by `Astro.getActionResult()`:
 
-export const server = {
-  addToCart: defineAction({
-    handler: async () => {
-      /* ... */
-      return product;
-      return { productName: product.name };
-    }
-  })
-}
+```ts {2,5}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult } = getActionContext(context);
+  if (action?.calledFrom === 'form') {
+    const result = await action.handler();
+    // ... handle the action result
+  }
+});
 ```
+
+A common practice to persist HTML form results is the [POST / Redirect / GET pattern](https://en.wikipedia.org/wiki/Post/Redirect/Get). This approach removes "confirm form resubmission?" dialog when a user refreshes by using a redirect, and gives you the option to persist action results throughout the user's session.
+
+This example applies the POST / Redirect / GET pattern to all form submissions using session storage. Action results are written to a session store using [Netlify Blob](https://docs.netlify.com/blobs/overview/), and retrieved after a redirect using a session ID:
+
+:::note
+This example requires the [Netlify server adapter](https://docs.astro.build/en/guides/integrations-guide/netlify/) to run. Feel free to adapt this example to your storage platform of choice.
 :::
+
+```ts
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+import { randomUUID } from "node:crypto";
+import { getStore } from "@netlify/blobs";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  // Skip requests for prerendered pages
+  if (context.isPrerendered) return next();
+  
+  const { action, setActionResult, serializeActionResult } =
+    getActionContext(context);
+  // Create a Blob store to persist action results with Netlify Blob
+  const actionStore = getStore("action-session");
+  
+  // If an action result was forwarded as a cookie, set the result
+  // to be accessible from `Astro.getActionResult()`
+  const sessionId = context.cookies.get("action-session-id")?.value;
+  const session = sessionId
+    ? await actionStore.get(sessionId, {
+        type: "json",
+      })
+    : undefined;
+  
+  if (session) {
+    setActionResult(session.actionName, session.actionResult);
+  
+    // Optional: delete the session after the page is rendered.
+    // Feel free to implement your own persistence strategy
+    await actionStore.delete(sessionId);
+    ctx.cookies.delete("action-session-id");
+    return next();
+  }
+  
+  // If an action was called from an HTML form action,
+  // call the action handler and redirect to the destination page
+  if (action?.calledFrom === "form") {
+    const actionResult = await action.handler();
+  
+    // Persist the action result using session storage
+    const sessionId = randomUUID();
+    await actionStore.setJSON(sessionId, {
+      actionName: action.name,
+      actionResult: serializeActionResult(actionResult),
+    });
+  
+    // Pass the session ID as a cookie
+    // to be retrieved after redirecting to the page
+    context.cookies.set("action-session-id", sessionId);
+  
+    // Redirect back to the previous page on error
+    if (actionResult.error) {
+      const referer = context.request.headers.get("Referer");
+      if (!referer) {
+        throw new Error(
+          "Internal: Referer unexpectedly missing from Action POST request.",
+        );
+      }
+      return context.redirect(referer);
+    }
+    // Redirect to the destination page on success
+    return context.redirect(context.originPathname);
+  }
+  
+  return next();
+});
+```
