@@ -1,0 +1,227 @@
+---
+title: 语法高亮
+description: 学习如何在 Astro 中高亮你的代码块。
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+Astro 内置了对 [Shiki](https://shiki.style/) 和 [Prism](https://prismjs.com/) 的支持。这为以下内容提供了语法高亮：
+
+- 所有在 Markdown 或 MDX 文件中使用的 [代码围栏 (\`\`\`)](#markdown-代码块)。
+- `.astro` 文件中使用 [内置的 `<Code />` 组件](#code-)（由 Shiki 提供支持）的内容。
+- `.astro` 文件中使用 [`<Prism />` 组件](#prism-)（由 Prism 提供支持）的内容。
+
+添加 [社区集成，如 Expressive Code](https://astro.build/integrations/?search=syntax+highlight) ，以便在代码块中获取更多的文本标记和注解选项。
+
+## Markdown 代码块
+
+Markdown 代码块由开头和结尾处的三个反引号 \`\`\` 表示。你可以在开头的反引号后面指定正在使用的编程语言，以指示如何为代码添加颜色和样式，使其更易于阅读。
+
+``````markdown
+```js
+// 带有语法高亮的 JavaScript 代码。
+var fun = function lang(l) {
+  dateformat.i18n = require('./lang/' + l);
+  return true;
+};
+```
+``````
+
+Astro 的 Markdown 代码块默认由 Shiki 进行样式设置，预配置了 `github-dark` 主题。编译后的输出将仅限于内联 `style`，不包含任何额外的 CSS 类、样式表或客户端 JS。
+
+你可以 [添加 Prism 样式表并切换到 Prism 的高亮显示](#添加-prism-样式表)，或使用 [`markdown.syntaxHighlighting`](/zh-cn/reference/configuration-reference/#markdownsyntaxhighlight) 配置选项完全禁用 Astro 的语法高亮。
+
+<ReadMore>查看完整的[`markdown.shikiConfig` 参考](/zh-cn/reference/configuration-reference/#markdownshikiconfig)，了解使用 Shiki 时可用的 Markdown 语法高亮选项。</ReadMore>
+
+### 设置默认 Shiki 主题
+
+你可以在 Astro 配置中为 Markdown 代码块配置任何[内置 Shiki 主题](https://shiki.style/themes)：
+
+```js title="astro.config.mjs" {6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: {
+      theme: 'dracula',
+    },
+  },
+});
+```
+<ReadMore>查看完整的 [Shiki 配置参考](/zh-cn/reference/configuration-reference/#markdownshikiconfig)，了解 Markdown 代码块选项的完整设置。</ReadMore>
+
+### 设置明暗模式主题
+
+你可以在 Astro 配置中为明暗模式指定双重 Shiki 主题：
+
+```js title="astro.config.mjs" {6-9}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: {
+      themes: {
+        light: 'github-light',
+        dark: 'github-dark',
+      },
+    },
+  },
+});
+```
+
+然后，[通过媒体查询或类添加 Shiki 的黑暗模式 CSS 变量](https://shiki.style/guide/dual-themes#query-based-dark-mode) 来应用于所有默认的 Markdown 代码块。将示例中 Shiki 文档中的 `.shiki` 类替换为 `.astro-code`：
+
+```css title="src/styles/global.css" del={2,3} ins={4,5}
+@media (prefers-color-scheme: dark) {
+  .shiki,
+  .shiki span {
+  .astro-code,
+  .astro-code span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+    /* 可选，如果你还需要字体样式 */
+    font-style: var(--shiki-dark-font-style) !important;
+    font-weight: var(--shiki-dark-font-weight) !important;
+    text-decoration: var(--shiki-dark-text-decoration) !important;
+  }
+}
+```
+
+<ReadMore>查看完整的 [Shiki 配置参考](/zh-cn/reference/configuration-reference/#markdownshikiconfig)，了解使用 Shiki 时可用的 Markdown 代码块选项的完整设置。</ReadMore>
+
+### 添加你的自己的 Shiki 主题
+
+你可以从本地文件导入自定义 Shiki 主题，而不是使用 Shiki 的预定义主题。
+
+```js title="astro.config.mjs" ins={2,7}
+import { defineConfig } from 'astro/config';
+import customTheme from './my-shiki-theme.json';
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: { 
+      theme: customTheme,
+    },
+  },
+});
+```
+
+### 自定义 Shiki 主题
+
+你可以跟随 [Shiki 的主题文档](https://shiki.style/themes) 了解更多关于主题、明暗模式切换或通过 CSS 变量进行样式设置的自定义选项。
+
+Astro 代码块使用 `.astro-code` 类进行样式设置，因此你需要将示例中的 `.shiki` 类替换为 `.astro-code`。
+
+## 代码块组件
+
+有两个 Astro 组件可用于渲染代码块：[`<Code />`](#code-) 和 [`<Prism />`](#prism-)。
+
+你可以使用 [`ComponentProps` 类型](/zh-cn/guides/typescript/#componentprops-类型)工具函数来获取这些组件的 `Props` 类型。
+
+### `<Code />`
+
+该组件由 Shiki 提供支持。它支持所有流行的 Shiki 主题和语言，以及其他一些 Shiki 选项，如自定义主题、语言、[转换器](#转换器) 和默认颜色。
+
+这些值分别由 `theme`、`lang`、`transformers` 和 `defaultColor` 属性作为 props 传递给 `<Code />` 组件。`<Code />` 组件不会继承你的 Markdown 代码块的 `shikiConfig` 设置。
+
+```astro 'theme="dark-plus"' /wrap\b/ /(inline) \/>/ 'defaultColor={false}'
+---
+import { Code } from 'astro:components';
+---
+<!-- 使用语法凸显部分 JavaScript 代码-->
+<Code code={`const foo = 'bar';`} lang="js" />
+<!-- 可选：定制你的主题 -->
+<Code code={`const foo = 'bar';`} lang="js" theme="dark-plus" />
+<!-- 可选：启用文字包装 -->
+<Code code={`const foo = 'bar';`} lang="js" wrap />
+<!-- 可选：输出内联代码 -->
+<p>
+  <Code code={`const foo = 'bar';`} lang="js" inline />
+  will be rendered inline.
+</p>
+<!-- 可选: defaultColor -->
+<Code code={`const foo = 'bar';`} lang="js" defaultColor={false} />
+```
+
+#### 转换器
+
+<p><Since v="4.11.0" /></p>
+
+[Shiki 转换器](https://shiki.tmrs.site/packages/transformers#shikijs-transformers) 可以通过将其作为数组传递到 `transformers` 属性中，来选择性地应用于代码。从 Astro v4.14.0 开始，你还可以为 [Shiki 的 `meta` 属性](https://shiki.style/guide/transformers#meta) 提供一个字符串，以将选项传递给转换器。
+
+注意，`transformers` 只能用于类，同时你必须提供自己的 CSS 规则来针对代码块的元素。
+
+```astro title="src/pages/index.astro" {12-13}
+---
+import { transformerNotationFocus, transformerMetaHighlight } from '@shikijs/transformers'
+import { Code } from 'astro:components'
+const code = `const foo = 'hello'
+const bar = ' world'
+console.log(foo + bar) // [!code focus]
+`
+---
+<Code
+  code={code}
+  lang="js"
+  transformers={[transformerMetaHighlight()]}
+  meta="{1,3}"
+/>
+  
+<style is:global>
+  pre.has-focused .line:not(.focused) {
+    filter: blur(1px);
+  }
+</style>
+```
+
+### `<Prism />`
+
+此组件通过应用 Prism 的 CSS 类为代码块提供特定语言的语法高亮。请注意，你必须[提供 Prism CSS 样式表](#添加-prism-样式表)（或者提供自己的）来为这些类设置样式。
+
+要安装 `Prism` 高亮器组件，需要先安装 `@astrojs/prism` 包：
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @astrojs/prism
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @astrojs/prism
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/prism
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+然后，你可以像使用其他 Astro 组件一样导入和使用 `<Prism />` 组件，传递语言和要渲染的代码。
+
+```astro
+---
+import { Prism } from '@astrojs/prism';
+---
+<Prism lang="js" code={`const foo = 'bar';`} />
+```
+
+除了 [Prism 支持的语言列表](https://prismjs.com/#supported-languages) 外，你还可以使用 `lang="astro"` 来显示 Astro 代码块。
+
+## 添加 Prism 样式表
+
+如果你选择使用 Prism（通过配置 `markdown.syntaxHighlighting: 'prism'` 或使用 `<Prism />` 组件），Astro 将会使用 Prism 的 CSS 类而不是 Shiki 的类来为你的代码添加样式。你需要提供自己的 CSS 样式表来实现语法高亮。
+
+<Steps>
+1. 从可用的 [Prism 主题](https://github.com/PrismJS/prism-themes) 中选择一个预制样式表。
+
+2. 添加此样式表到 [你的项目的 `public/` 文件夹](/zh-cn/basics/project-structure/#public)。
+
+3. 在 [布局组件](/zh-cn/basics/layouts/) 中通过 `<link>` 标签将其加载到页面的 `<head>` 中。 （参见 [Prism 基本用法](https://prismjs.com/#basic-usage)。）
+</Steps>
+
+你还可以访问 [Prism 支持的语言列表](https://prismjs.com/#supported-languages) 了解选项和用法。
