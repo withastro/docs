@@ -662,6 +662,66 @@ Note that `src/env.d.ts` is only necessary if you have added custom configuratio
 
 <ReadMore>Read more about [TypeScript configuration in Astro](/en/guides/typescript/#setup).</ReadMore>
 
+### Changed: Actions submitted by HTML forms no longer use cookies
+
+In Astro 4.x, actions called from an HTML form would trigger a redirect with the result forwarded using cookies. This caused issues for large form errors and return values that exceeded the 4 KB limit of cookie-based storage.
+
+Astro 5.0 now renders the result of an action as a POST result without any forwarding. This reintroduces the "confirm form resubmission?" dialog when a user attempts to refresh the page, and will not persist action results across sessions.
+
+If you need to customize this behavior, we've introduced the `getActionContext()` utility to handle action results from middleware however you choose. You can reimplement the cookie forwarding behavior of Astro 4.X, or implement your own session storage to avoid the 4 KB size limit and persist results across session. 
+
+<ReadMore>See the [advanced sessions guide](/en/guides/actions/#advanced-persist-action-results-with-a-session) for a sample implementation using Netlify Blob.</ReadMore>
+
+#### What should I do?
+
+You can use the new default without any changes to your code. If you accept the 4 KB size limit and prefer the cookie forwarding behavior from 4.X, you can implement redirects using middleware as shown in this sample snippet:
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware((context, next) => {
+  // Skip requests for prerendered pages
+  if (context.isPrerendered) return next();
+
+	const { action, setActionResult, serializeActionResult } = getActionContext(context);
+
+	// If an action result was forwarded as a cookie, set the result
+	// to be accessible from `Astro.getActionResult()`
+	const payload = context.cookies.get('ACTION_PAYLOAD');
+	if (payload) {
+		const { actionName, actionResult } = payload.json();
+		setActionResult(actionName, actionResult);
+		context.cookies.delete('ACTION_PAYLOAD');
+		return next();
+	}
+
+	// If an action was called from an HTML form action,
+	// call the action handler and redirect with the result as a cookie.
+	if (action?.calledFrom === 'form') {
+		const actionResult = await action.handler();
+
+		context.cookies.set('ACTION_PAYLOAD', {
+			actionName: action.name,
+			actionResult: serializeActionResult(actionResult),
+		});
+
+		if (actionResult.error) {
+		// Redirect back to the previous page on error
+			const referer = context.request.headers.get('Referer');
+			if (!referer) {
+				throw new Error('Internal: Referer unexpectedly missing from Action POST request.');
+			}
+			return context.redirect(referer);
+		}
+		// Redirect to the destination page on success
+		return context.redirect(context.originPathname);
+	}
+
+	return next();
+})
+```
+
 ### Changed: `compiledContent()` is now an async function
 
 <SourcePR number="11782" title="Remove TLA by making compiledContent async"/>
