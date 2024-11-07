@@ -558,18 +558,20 @@ Action results are displayed as a POST submission. This means that the result wi
 
 To customize this behavior, you can add middleware to handle the result of the action manually. You may choose the persist the action result using a cookie or session storage.
 
-Start by [creating a middleware file](https://docs.astro.build/en/guides/middleware/) and importing the `getActionContext()` utility from `astro:actions`. This function returns an `action` object with information about the incoming action request, including the action handler and whether the action was called from an HTML form. `getActionContext()` also returns a `setActionResult()` function to programmatically set the value returned by `Astro.getActionResult()`:
+Start by [creating a middleware file](https://docs.astro.build/en/guides/middleware/) and importing [the `getActionContext()` utility](/en/reference/modules/astro-actions/#getactioncontext) from `astro:actions`. This function returns an `action` object with information about the incoming action request, including the action handler and whether the action was called from an HTML form. `getActionContext()` also returns the `setActionResult()` and `serializeActionResult()` functions to programmatically set the value returned by `Astro.getActionResult()`:
 
-```ts {2,5}
+```ts title="src/middleware.ts" {2,5}
 import { defineMiddleware } from 'astro:middleware';
 import { getActionContext } from 'astro:actions';
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  const { action, setActionResult } = getActionContext(context);
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
   if (action?.calledFrom === 'form') {
     const result = await action.handler();
     // ... handle the action result
+    setActionResult(action.name, serializeActionResult(result));
   }
+  return next();
 });
 ```
 
@@ -581,7 +583,7 @@ This example applies the POST / Redirect / GET pattern to all form submissions u
 This example requires the [Netlify server adapter](https://docs.astro.build/en/guides/integrations-guide/netlify/) to run. Feel free to adapt this example to your storage platform of choice.
 :::
 
-```ts
+```ts title="src/middleware.ts"
 import { defineMiddleware } from 'astro:middleware';
 import { getActionContext } from 'astro:actions';
 import { randomUUID } from "node:crypto";
