@@ -174,3 +174,96 @@ The `code` property accepts human-readable versions of all HTTP status codes. Th
 </p>
 
 The `message` property accepts a string. (e.g. "User must be logged in.")
+
+### `getActionContext()`
+
+<p>
+<Since v="5.0.0" />
+</p>
+
+You may choose to customize how action results are handled. `getActionContext()` lets you programmatically get and set action results using middleware, allowing you to:
+
+- Persist action results from HTML forms using cookies or session storage.
+- Gate action requests with added security checks.
+- Forward action errors to logging services.
+
+Call `getActionContext()` from your middleware handler to retrieve information about inbound action requests. This function returns an `action` object with information about the request, and the `setActionResult()` and `serializeActionResult()` functions to programmically set the value returned by `Astro.getActionResult()`:
+
+```ts title="src/middleware.ts" {5}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action?.calledFrom === 'form') {
+    const result = await action.handler();
+    setActionResult(action.name, serializeActionResult(result));
+  }
+  return next();
+});
+```
+
+#### `action`
+
+<p>
+
+**Type:** `{ calledFrom: 'rpc' | 'form', name: string, handler: () => Promise<SafeResult<any, any>> } | undefined`
+</p>
+
+`action` exposes information about an inbound action request. When an action is called, `action` will contain the action name, handler, and whether the action was called from an client-side RPC function (example: `actions.newsletter()`) or an HTML form action.
+
+```ts title="src/middleware.ts" {6}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action?.calledFrom === 'rpc' && action.name.startsWith('private')) {
+    // Check for a valid session token
+  }
+  // ...
+});
+```
+
+#### `setActionResult()`
+
+<p>
+
+**Type:** `(actionName: string, actionResult: SerializedActionResult) => void`
+</p>
+
+`setActionResult()` will programmatically set the value returned by `Astro.getActionResult()`. This is useful when calling actions from an HTML form to persist and load results from a session.
+
+<ReadMore>See the [advanced sessions guide](/en/guides/actions/#advanced-persist-action-results-with-a-session) for a sample implementation.</ReadMore>
+
+#### `serializeActionResult()`
+
+<p>
+
+**Type:** `(result: SafeResult<any, any>) => SerializedActionResult`
+</p>
+
+`serializeActionResult()` will serialize an action result to JSON for persistence. This is required to properly handle non-JSON return values like `Map` or `Date` as well as the `ActionError` object. Be sure to call this function when serializing an action result to be passed to `setActionResult()`:
+
+```ts title="src/middleware.ts" {8}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action) {
+    const result = await action.handler();
+    setActionResult(action.name, serializeActionResult(result));
+  }
+  // ...
+});
+```
+
+#### `deserializeActionResult()`
+
+<p>
+
+**Type:** `(result: SerializedActionResult) => SafeResult<any, any>`
+</p>
+
+`deserializeActionResult()` will deserialize an action result serialized using `serializeActionResult()`.
