@@ -63,7 +63,7 @@ export default NavDictionary({
 	'guides/troubleshooting': '故障排除',
 
 	communityResources: '方案和资源',
-	'recipes': '方案实践',
+	recipes: '方案实践',
 	'community-resources/content': '社区资源',
 
 	reference: '参考',
