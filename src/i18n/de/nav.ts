@@ -63,7 +63,7 @@ export default NavDictionary({
 	'guides/troubleshooting': 'Fehlerbehebung',
 
 	communityResources: 'Beispiele und Ressourcen',
-	'recipes': 'Praktische Beispiele',
+	recipes: 'Praktische Beispiele',
 	'community-resources/content': 'Community-Ressourcen',
 
 	reference: 'Referenz',
