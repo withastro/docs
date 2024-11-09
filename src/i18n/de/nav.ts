@@ -42,6 +42,7 @@ export default NavDictionary({
 	'guides/styling': 'CSS & Styling',
 	'guides/images': 'Bilder',
 	'guides/fonts': 'Schriftarten',
+	'guides/syntax-highlighting': 'Syntaxhervorhebung',
 	'guides/media': 'Hosted Media oder DAM verbinden',
 
 	data: 'Verbinde deine Daten',
@@ -61,9 +62,9 @@ export default NavDictionary({
 	'guides/testing': 'Tests',
 	'guides/troubleshooting': 'Fehlerbehebung',
 
-	communityResources: 'Community-Ressourcen',
-	'community-resources/content': 'Kurse, Anleitungen & Beispiele',
-	'community-resources/talks': 'Vorträge, Interviews & Streams',
+	communityResources: 'Beispiele und Ressourcen',
+	'recipes': 'Praktische Beispiele',
+	'community-resources/content': 'Community-Ressourcen',
 
 	reference: 'Referenz',
 	'reference/configuration-reference': 'Konfiguration',
