@@ -524,10 +524,6 @@ const inputErrors = isInputError(result?.error) ? result.error.fields : {};
 </form>
 ```
 
-:::note
-Astro persists action `data` and `error` with a single-use cookie. This means `getActionResult()` will return a result on the first request _only_, and `undefined` when revisiting the page.
-:::
-
 #### Preserve input values on error
 
 Inputs will be cleared whenever a form is submitted. To persist input values, you can [enable view transitions](/en/guides/view-transitions/#adding-view-transitions-to-a-page) on the page and apply the `transition:persist` directive to each input:
@@ -538,13 +534,9 @@ Inputs will be cleared whenever a form is submitted. To persist input values, yo
 
 ### Update the UI with a form action result
 
-The result returned by `Astro.getActionResult()` is single-use, and will reset to `undefined` whenever the page is refreshed. This is ideal for [displaying input errors](#handle-form-action-errors) and showing temporary notifications to the user on success.
+To use an action's return value to display a notification to the user on success, pass the action to `Astro.getActionResult()`. Use the returned `data` property to render the UI you want to display.
 
-:::tip
-If you need a result to be displayed across page refreshes, consider storing the result in a database or [in a cookie](/en/reference/api-reference/#astrocookies).
-:::
-
-Pass an action to `Astro.getActionResult()` and use the returned `data` property to render any temporary UI you want to display. This example uses the `productName` property returned by an `addToCart` action to show a success message:
+This example uses the `productName` property returned by an `addToCart` action to show a success message.
 
 ```astro title="src/pages/products/[slug].astro"
 ---
@@ -560,24 +552,153 @@ const result = Astro.getActionResult(actions.addToCart);
 <!--...-->
 ```
 
-:::caution
-Action data is passed using a persisted cookie. **This cookie is not encrypted** and is limited to 4 KB in size, although the exact limit may vary between browsers. 
+### Advanced: Persist action results with a session
 
-In general, we recommend returning the minimum information required from your action `handler` to avoid vulnerabilities, and persist other sensitive information in a database.
+<p><Since v="5.0.0" /></p>
 
-For example, you might return the name of a product in an `addToCart` action, rather than returning the entire `product` object:
+Action results are displayed as a POST submission. This means that the result will be reset to `undefined` when a user closes and revisits the page. The user will also see a "confirm form resubmission?" dialog if they attempt to refresh the page.
 
-```ts title="src/actions/index.ts" del={7} ins={8}
-import { defineAction } from 'astro:actions';
+To customize this behavior, you can add middleware to handle the result of the action manually. You may choose to persist the action result using a cookie or session storage.
+
+Start by [creating a middleware file](/en/guides/middleware/) and importing [the `getActionContext()` utility](/en/reference/modules/astro-actions/#getactioncontext) from `astro:actions`. This function returns an `action` object with information about the incoming action request, including the action handler and whether the action was called from an HTML form. `getActionContext()` also returns the `setActionResult()` and `serializeActionResult()` functions to programmatically set the value returned by `Astro.getActionResult()`:
+
+```ts title="src/middleware.ts" {2,5}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action?.calledFrom === 'form') {
+    const result = await action.handler();
+    // ... handle the action result
+    setActionResult(action.name, serializeActionResult(result));
+  }
+  return next();
+});
+```
+
+A common practice to persist HTML form results is the [POST / Redirect / GET pattern](https://en.wikipedia.org/wiki/Post/Redirect/Get). This redirect removes the "confirm form resubmission?" dialog when the page is refreshed, and allows action results to be persisted throughout the user's session.
+
+This example applies the POST / Redirect / GET pattern to all form submissions using session storage with the [Netlify server adapter](/en/guides/integrations-guide/netlify/) installed. Action results are written to a session store using [Netlify Blob](https://docs.netlify.com/blobs/overview/), and retrieved after a redirect using a session ID:
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+import { randomUUID } from "node:crypto";
+import { getStore } from "@netlify/blobs";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  // Skip requests for prerendered pages
+  if (context.isPrerendered) return next();
+  
+  const { action, setActionResult, serializeActionResult } =
+    getActionContext(context);
+  // Create a Blob store to persist action results with Netlify Blob
+  const actionStore = getStore("action-session");
+  
+  // If an action result was forwarded as a cookie, set the result
+  // to be accessible from `Astro.getActionResult()`
+  const sessionId = context.cookies.get("action-session-id")?.value;
+  const session = sessionId
+    ? await actionStore.get(sessionId, {
+        type: "json",
+      })
+    : undefined;
+  
+  if (session) {
+    setActionResult(session.actionName, session.actionResult);
+  
+    // Optional: delete the session after the page is rendered.
+    // Feel free to implement your own persistence strategy
+    await actionStore.delete(sessionId);
+    ctx.cookies.delete("action-session-id");
+    return next();
+  }
+  
+  // If an action was called from an HTML form action,
+  // call the action handler and redirect to the destination page
+  if (action?.calledFrom === "form") {
+    const actionResult = await action.handler();
+  
+    // Persist the action result using session storage
+    const sessionId = randomUUID();
+    await actionStore.setJSON(sessionId, {
+      actionName: action.name,
+      actionResult: serializeActionResult(actionResult),
+    });
+  
+    // Pass the session ID as a cookie
+    // to be retrieved after redirecting to the page
+    context.cookies.set("action-session-id", sessionId);
+  
+    // Redirect back to the previous page on error
+    if (actionResult.error) {
+      const referer = context.request.headers.get("Referer");
+      if (!referer) {
+        throw new Error(
+          "Internal: Referer unexpectedly missing from Action POST request.",
+        );
+      }
+      return context.redirect(referer);
+    }
+    // Redirect to the destination page on success
+    return context.redirect(context.originPathname);
+  }
+  
+  return next();
+});
+```
+
+## Security when using actions
+
+Actions are accessible as public endpoints based on the name of the action. For example, the action `blog.like()` will be accessible from `/_actions/blog.like`. This is useful for unit testing action results and debugging production errors. However, this means you **must** use same authorization checks that you would consider for API endpoints and on-demand rendered pages.
+
+### Authorize users from an action handler
+
+To authorize action requests, add an authentication check to your action handler. You may want to use [an authentication library](/en/guides/authentication/) to handle session management and user information.
+
+Actions expose the full `APIContext` object to access properties passed from middleware using `context.locals`. When a user is not authorized, you can raise an `ActionError` with the `UNAUTHORIZED` code:
+
+```ts title="src/actions/index.ts" {6-8}
+import { defineAction, ActionError } from 'astro:actions';
 
 export const server = {
-  addToCart: defineAction({
-    handler: async () => {
-      /* ... */
-      return product;
-      return { productName: product.name };
+  getUserSettings: defineAction({
+    handler: async (_input, context) => {
+      if (!context.locals.user) {
+        throw new ActionError({ code: 'UNAUTHORIZED' });
+      }
+      return { /* data on success */ };
     }
   })
 }
 ```
-:::
+
+### Gate actions from middleware
+
+<p><Since v="5.0.0" /></p>
+
+Astro recommends authorizing user sessions from your action handler to respect permission levels and rate-limiting on a per-action basis. However, you can also gate requests to all actions (or a subset of actions) from middleware.
+
+Use the `getActionContext()` function from your middleware to retrieve information about any inbound action requests. This includes the action name and whether that action was called using a client-side remote procedure call (RPC) function (e.g. `actions.blog.like()`) or an HTML form.
+
+The following example rejects all action requests that do not have a valid session token. If the check fails, a "Forbidden" response is returned. Note: this method ensures that actions are only accessible when a session is present, but is _not_ a substitute for secure authorization.
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action } = getActionContext(context);
+  // Check if the action was called from a client-side function
+  if (action?.calledFrom === 'rpc') {
+    // If so, check for a user session token
+    if (context.cookies.has('user-session')) {
+      return new Response('Forbidden', { status: 403 });
+    }
+  }
+  
+  context.cookies.set('user-session', /* session token */);
+  return next();
+});
+```
