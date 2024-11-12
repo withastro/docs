@@ -294,8 +294,10 @@ export const ContentDetailsLinks = (
 		)},
 		${Link(
 			links.history(
-				localization.path,
-				'git' in localization ? localization.git.latestTrackedChange.date : undefined
+				fileStatus.source.path,
+				'git' in localization
+					? new Date(localization.git.latestTrackedChange.date).toISOString()
+					: undefined
 			),
 			'source change history'
 		)})
