@@ -1,45 +1,171 @@
 ---
-import type { Props } from '@astrojs/starlight/props';
+import { Icon } from '@astrojs/starlight/components';
 import Default from '@astrojs/starlight/components/Sidebar.astro';
-import type { SidebarEntry } from 'node_modules/@astrojs/starlight/utils/navigation';
-
-import Sponsors from '../LeftSidebar/Sponsors.astro';
+import type { Props } from '@astrojs/starlight/props';
 import { getEntry } from 'astro:content';
+import type { SidebarEntry } from 'node_modules/@astrojs/starlight/utils/navigation';
 import { stripLeadingAndTrailingSlashes } from 'node_modules/@astrojs/starlight/utils/path';
+import Sponsors from '../LeftSidebar/Sponsors.astro';
+import TabbedContent from '../tabs/TabbedContent.astro';
+import TabListItem from '../tabs/TabListItem.astro';
+import TabPanel from '../tabs/TabPanel.astro';
 
-let { sidebar } = Astro.props;
+const { sidebar } = Astro.props;
 
+// Recursively add a fallback class to entries in the sidebar that don’t exist in the current language.
 async function markFallbackEntries(i: SidebarEntry) {
 	if (i.type === 'group') {
 		i.entries = await Promise.all(i.entries.map(markFallbackEntries));
 		return i;
 	}
-
 	const itemSlug = stripLeadingAndTrailingSlashes(i.href);
 	const fallback = (await getEntry('docs', itemSlug)) ? undefined : true;
 	i.attrs.class = fallback ? 'fallback' : undefined;
 	return i;
 }
+await Promise.all(sidebar.map(markFallbackEntries));
 
-sidebar = await Promise.all(sidebar.map(markFallbackEntries));
+// Make sure all top-level items in the sidebar are groups.
+type Group = Extract<SidebarEntry, { type: 'group' }>;
+function assertGroups(sidebar: SidebarEntry[]): asserts sidebar is Group[] {
+	for (const entry of sidebar) {
+		if (entry.type !== 'group') {
+			throw new Error('Top-level links are not permitted in the docs sidebar.');
+		}
+	}
+}
+assertGroups(sidebar);
+
+/** Convert a group label to an `id` we can use to identify tab panels. */
+const makeId = (label: string) => label.toLowerCase().replace(/\s+/, '-');
+
+/** Get the icon for a group. Update the icon names in the array to change the icons associated with a group. */
+const getIcon = (index: number) =>
+	(['rocket', 'open-book', 'information', 'puzzle', 'setting'] as const)[index];
+
+/** Determine if an array of sidebar items contains the current page.  */
+const isCurrent = (sidebar: SidebarEntry[]): boolean =>
+	sidebar
+		.map((entry) => (entry.type === 'link' ? entry.isCurrent : isCurrent(entry.entries)))
+		.some((entry) => entry === true);
 ---
 
-<Default {...Astro.props} sidebar={sidebar}><slot /></Default>
+<TabbedContent class="tabbed-sidebar">
+	<Fragment slot="tab-list">
+		{
+			sidebar.map(({ label, entries }, index) => (
+				<TabListItem id={makeId(label)} initial={isCurrent(entries)} class="tab-item">
+					<Icon class="icon" name={getIcon(index)} /> {label}
+				</TabListItem>
+			))
+		}
+	</Fragment>
+	{
+		sidebar.map(({ label, entries }) => (
+			<TabPanel id={makeId(label)} initial={isCurrent(entries)}>
+				<Default {...Astro.props} sidebar={entries} />
+			</TabPanel>
+		))
+	}
+</TabbedContent>
 
 <div class="sl-hidden md:sl-block">
 	<Sponsors />
 </div>
 
 <style>
-	p {
-		color: var(--sl-color-gray-3);
-		font-family: 'Courier New', Courier, monospace;
-	}
-
+	/** Add "EN" to the end of sidebar items with the `fallback` class. */
 	:global(.fallback)::after {
 		content: 'EN';
 		vertical-align: super;
 		font-size: 0.75em;
 		font-weight: 700;
+	}
+
+	/** Always show the scrollbar gutter. */
+	:global(.sidebar-pane) {
+		overflow-y: scroll;
+	}
+
+	/* Styles for the custom tab switcher. */
+	.tabbed-sidebar {
+		/* Layout variables */
+		--tab-switcher-border-width: 1px;
+		--tab-switcher-padding: calc(0.25rem - var(--tab-switcher-border-width));
+		--tab-item-border-radius: 0.5rem;
+		--tab-switcher-border-radius: calc(
+			var(--tab-item-border-radius) + var(--tab-switcher-padding) + var(--tab-switcher-border-width)
+		);
+
+		/* Color variables */
+		--tab-switcher-border-color: var(--sl-color-hairline-light);
+		--tab-switcher-background-color: var(--sl-color-gray-7, var(--sl-color-gray-6));
+		--tab-switcher-text-color: var(--sl-color-gray-3);
+		--tab-switcher-text-color--active: var(--sl-color-white);
+		--tab-switcher-icon-color: var(--sl-color-gray-4);
+		--tab-switcher-icon-color--active: var(--sl-color-text-accent);
+		--tab-item-background-color--hover: var(--sl-color-gray-6);
+		--tab-item-background-color--active: var(--sl-color-black);
+	}
+	/* Dark theme variations */
+	:global([data-theme='dark']) .tabbed-sidebar {
+		--tab-switcher-text-color: var(--sl-color-gray-2);
+		--tab-switcher-icon-color: var(--sl-color-gray-3);
+		--tab-item-background-color--hover: var(--sl-color-gray-5);
+	}
+
+	@media (min-width: 50rem) {
+		/* Dark theme variations with the desktop sidebar visible */
+		:global([data-theme='dark']) .tabbed-sidebar {
+			--tab-switcher-background-color: var(--sl-color-black);
+			--tab-item-background-color--hover: var(--sl-color-gray-6);
+			--tab-item-background-color--active: var(--sl-color-gray-6);
+		}
+	}
+
+	.tabbed-sidebar.tab-list {
+		border: var(--tab-switcher-border-width) solid var(--tab-switcher-border-color);
+		border-radius: var(--tab-switcher-border-radius);
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		padding: var(--tab-switcher-padding);
+		background-color: var(--tab-switcher-background-color);
+		margin-bottom: 1.5rem;
+	}
+
+	.tab-item :global(a) {
+		border: var(--tab-switcher-border-width) solid transparent;
+		border-radius: var(--tab-item-border-radius);
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: calc(0.5rem - var(--tab-switcher-border-width));
+		background-clip: padding-box;
+		line-height: var(--sl-line-height-headings);
+		text-decoration: none;
+		color: var(--tab-switcher-text-color);
+		font-weight: 600;
+	}
+
+	.tab-item :global(a:hover) {
+		color: var(--tab-switcher-text-color--active);
+		background-color: var(--tab-item-background-color--hover);
+	}
+	.tab-item :global(a[aria-selected='true']) {
+		border-color: var(--tab-switcher-border-color);
+		color: var(--tab-switcher-text-color--active);
+		background-color: var(--tab-item-background-color--active);
+	}
+
+	.icon {
+		margin: 0.25rem;
+		color: var(--tab-switcher-icon-color);
+	}
+	.tab-item :global(a:hover) .icon {
+		color: inherit;
+	}
+	.tab-item :global(a[aria-selected='true']) .icon {
+		color: var(--tab-switcher-icon-color--active);
 	}
 </style>
