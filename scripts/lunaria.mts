@@ -1,6 +1,6 @@
 import { createLunaria } from '@lunariajs/core';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { Page } from '../lunaria/components.ts';
-import { writeFileSync, mkdirSync } from 'node:fs';
 
 const lunaria = await createLunaria();
 const status = await lunaria.getFullStatus();
