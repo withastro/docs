@@ -189,7 +189,7 @@ export default defineConfig({
 					],
 				},
 				{
-					label: 'Add integrations',
+					label: 'Integrations',
 					items: [
 						'guides/integrations-guide',
 						{
@@ -226,7 +226,7 @@ export default defineConfig({
 					],
 				},
 				{
-					label: 'Connect to third-party tools',
+					label: 'Third-party services',
 					items: [
 						{
 							label: 'Content management systems',
