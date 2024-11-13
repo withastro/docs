@@ -7,6 +7,7 @@ import rehypeSlug from 'rehype-slug';
 import remarkSmartypants from 'remark-smartypants';
 
 import { sidebar } from './astro.sidebar';
+import { devServerFileWatcher } from './integrations/dev-server-file-watcher';
 import { sitemap } from './integrations/sitemap';
 import { starlightPluginAutolinkHeadings } from './plugins/rehype-autolink';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
@@ -21,6 +22,9 @@ const site = NETLIFY_PREVIEW_SITE || 'https://docs.astro.build/';
 export default defineConfig({
 	site,
 	integrations: [
+		devServerFileWatcher([
+			'./astro.sidebar.ts', // Sidebar configuration file
+		]),
 		starlight({
 			title: 'Docs',
 			customCss: ['./src/styles/custom.css'],
