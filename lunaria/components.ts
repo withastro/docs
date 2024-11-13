@@ -16,12 +16,7 @@ export function html(strings: TemplateStringsArray, ...values: (string | string[
 type LunariaInstance = Awaited<ReturnType<typeof createLunaria>>;
 
 function collapsePath(path: string) {
-	const basesToHide = [
-		'src/content/docs/en/',
-		'src/i18n/en/',
-		'src/content/docs/',
-		'src/content/i18n/',
-	];
+	const basesToHide = ['src/content/docs/en/', 'src/i18n/en/', 'src/content/docs/', 'src/content/'];
 
 	for (const base of basesToHide) {
 		const newPath = path.replace(base, '');
@@ -193,7 +188,7 @@ export const OutdatedFiles = (
 											${localization.missingKeys.map((key) => html`<li>${key}</li>`)}
 										</ul>
 									</details>
-							  `
+								`
 							: html` ${ContentDetailsLinks(file, lang, lunaria)} `}
 					</li>
 				`;
@@ -254,23 +249,10 @@ export const TableContentStatus = (
 	lunaria: LunariaInstance
 ): string => {
 	const localization = localizations.find((localization) => localization.lang === lang)!;
-	const isMissingKeys =
-		localization.status !== 'missing' &&
-		'missingKeys' in localization &&
-		localization.missingKeys.length > 0;
-
-	const status = localization.status;
+	const isMissingKeys = 'missingKeys' in localization && localization.missingKeys.length > 0;
+	const status = isMissingKeys ? 'outdated' : localization.status;
 	const links = lunaria.gitHostingLinks();
-
-	return html`
-		<td>
-			${status === 'missing'
-				? EmojiFileLink(links.create(localization.path), localization.status)
-				: status === 'outdated' || isMissingKeys
-				  ? EmojiFileLink(links.source(localization.path), localization.status)
-				  : EmojiFileLink(links.source(localization.path), localization.status)}
-		</td>
-	`;
+	return html`<td>${EmojiFileLink(links.create(localization.path), status)}</td>`;
 };
 
 export const ContentDetailsLinks = (
@@ -323,10 +305,10 @@ export const EmojiFileLink = (
 	return href
 		? html`<a href="${href}" title="${statusTextOpts[type]}">
 				<span aria-hidden="true">${statusEmojiOpts[type]}</span>
-		  </a>`
+			</a>`
 		: html`<span title="${statusTextOpts[type]}">
 				<span aria-hidden="true">${statusEmojiOpts[type]}</span>
-		  </span>`;
+			</span>`;
 };
 
 export const Link = (href: string, text: string): string => {

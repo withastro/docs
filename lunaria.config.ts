@@ -106,8 +106,8 @@ export default defineConfig({
 	],
 	files: [
 		{
-			include: ['src/i18n/en/(ui|docsearch).ts'],
-			pattern: 'src/i18n/@lang/@path',
+			include: ['src/content/i18n/en.yml'],
+			pattern: 'src/content/i18n/@tag.yml',
 			type: 'dictionary',
 		},
 		{
