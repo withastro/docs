@@ -188,7 +188,7 @@ export const OutdatedFiles = (
 											${localization.missingKeys.map((key) => html`<li>${key}</li>`)}
 										</ul>
 									</details>
-							  `
+								`
 							: html` ${ContentDetailsLinks(file, lang, lunaria)} `}
 					</li>
 				`;
@@ -307,10 +307,10 @@ export const EmojiFileLink = (
 	return href
 		? html`<a href="${href}" title="${statusTextOpts[type]}">
 				<span aria-hidden="true">${statusEmojiOpts[type]}</span>
-		  </a>`
+			</a>`
 		: html`<span title="${statusTextOpts[type]}">
 				<span aria-hidden="true">${statusEmojiOpts[type]}</span>
-		  </span>`;
+			</span>`;
 };
 
 export const Link = (href: string, text: string): string => {
