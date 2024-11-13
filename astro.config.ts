@@ -52,11 +52,6 @@ export default defineConfig({
 					label: 'Start',
 					items: [
 						'getting-started',						
-						// 'guides/upgrade-to/v5',
-						// 'guides/deploy',
-						// 'guides/migrate-to-astro',
-						
-						
 						{
 							label: 'Welcome, World!',
 							items: [
@@ -70,13 +65,12 @@ export default defineConfig({
 							items: [
 								'install-and-setup',
 								'basics/project-structure',
-								'develop-and-build',
 							],
 						},
 						{
 							label: 'Configuration',
 							items: [
-								'guides/configuring-astro', // 'project-basics'
+								'guides/configuring-astro',
 								'editor-setup',
 								'guides/typescript',
 								'guides/environment-variables',
@@ -168,8 +162,6 @@ export default defineConfig({
 							label: 'Configuration',
 							items: [
 								'reference/configuration-reference',
-								'reference/cli-reference',
-								'reference/error-reference',
 							],
 						},
 						{
@@ -189,24 +181,6 @@ export default defineConfig({
 							label: 'CLI',
 							items: [
 								'reference/cli-reference',
-								'reference/cli-advanced-reference',
-								
-							],
-						},
-						{
-							label: 'Feature Flags',
-							items: [
-								'reference/feature-flags',
-								{
-									label: 'Experimental Flags',
-									collapsed: true,
-									autogenerate: { directory: 'reference/flags/experimental' },
-								},
-								{
-									label: 'Legacy Flags',
-									collapsed: true,
-									autogenerate: { directory: 'reference/flags/legacy' },
-								},
 							],
 						},
 						{
