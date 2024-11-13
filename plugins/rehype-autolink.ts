@@ -1,4 +1,3 @@
-import type { StarlightPlugin } from '@astrojs/starlight/types';
 import type { AstroIntegration } from 'astro';
 import type { Root } from 'hast';
 import { toString } from 'hast-util-to-string';
