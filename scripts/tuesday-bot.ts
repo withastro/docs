@@ -1,48 +1,45 @@
 import { setOutput } from '@actions/core';
-import { lunaria } from '@lunariajs/core';
-import { readFileSync } from 'node:fs';
-import languages from '../src/i18n/languages';
+import { createLunaria } from '@lunariajs/core';
 
 await setDiscordMessage();
 
 async function setDiscordMessage() {
-	const config = JSON.parse(readFileSync('./lunaria.config.json', 'utf-8'));
-	const status = await lunaria(config);
+	const lunaria = await createLunaria();
+	const status = await lunaria.getFullStatus();
+	const allLanguages = [lunaria.config.sourceLocale, ...lunaria.config.locales].map((l) => l.lang);
+	const githubLinks = lunaria.gitHostingLinks();
 
 	if (!status) return;
 
 	const toTranslate = status.filter(
 		(s) =>
-			new Date(s.sourceFile.git.lastMajorChange) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+			new Date(s.source.git.latestTrackedChange.date) >
+			new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
 	);
 
 	const list = toTranslate
 		.filter(
 			(s) =>
-				Object.keys(s.localizations).filter((l) => {
-					const localization = s.localizations[l];
-					return localization.isMissing || (!localization.isMissing && localization.isOutdated);
+				s.localizations.filter((localization) => {
+					return localization.status === 'missing' || localization.status === 'outdated';
 				}).length > 0
 		)
 		.map((s) => {
-			const langs =
-				Object.keys(s.localizations).filter((l) => {
-					const localization = s.localizations[l];
-					return localization.isMissing || (!localization.isMissing && localization.isOutdated);
-				}).length ===
-				Object.keys(languages).length - 1
-					? ['all']
-					: Object.keys(s.localizations);
-			return `- [\`${s.sharedPath}\`](<${s.sourceFile.gitHostingFileURL}>) (${
+			const outdatedLangs = s.localizations
+				.filter((localization) => {
+					return localization.status === 'missing' || localization.status === 'outdated';
+				})
+				.map((localization) => localization.lang);
+
+			const langs = outdatedLangs.length === allLanguages.length - 1 ? ['all'] : outdatedLangs;
+			return `- [\`${s.source.path}\`](<${githubLinks.source(s.source.path)}>) (${
 				langs[0] === 'all'
 					? 'all'
 					: langs
 							.filter((lang) => {
 								if (lang === 'en') return false;
-								const localization = s.localizations[lang];
-								return (
-									localization.isMissing || (!localization.isMissing && localization.isOutdated)
-								);
+								const localization = s.localizations.find((l) => l.lang === lang);
+								return localization?.status === 'missing' || localization?.status === 'outdated';
 							})
 							.join(', ')
 			})`;
