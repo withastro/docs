@@ -11,7 +11,6 @@ export const AstroDocsI18nSchema = z
 		'footer.community': z.string(),
 		'footer.contribute': z.string(),
 		'footer.translatePage': z.string(),
-		'footer.privacyPolicy': z.string(),
 		// Used in `<Since>`: Added in: v0.24.0 [NEW]
 		'since.addedIn': z.string(),
 		'since.new': z.string(),
@@ -75,6 +74,7 @@ export const AstroDocsI18nSchema = z
 		'feedback.submit': z.string(),
 		'feedback.close': z.string(),
 		'feedback.success': z.string(),
+		'feedback.privacyPolicy': z.string(),
 		// Code snippet vocabulary
 		'expressiveCode.terminalWindowFallbackTitle': z.string(),
 		'expressiveCode.copyButtonTooltip': z.string(),
