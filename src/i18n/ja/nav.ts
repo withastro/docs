@@ -70,7 +70,6 @@ export default NavDictionary({
 	'reference/api-reference': 'ランタイムAPI',
 	'reference/cli-reference': 'Astro CLI',
 	'reference/directives-reference': 'テンプレートディレクティブ',
-	'reference/components-reference': '組み込みのコンポーネント',
 	'guides/typescript': 'TypeScript',
 	'reference/error-reference': 'エラーリファレンス',
 
