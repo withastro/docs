@@ -8,7 +8,7 @@ import remarkSmartypants from 'remark-smartypants';
 
 import { sidebar } from './astro.sidebar';
 import { sitemap } from './integrations/sitemap';
-import { rehypeAutolink } from './plugins/rehype-autolink';
+import { starlightPluginAutolinkHeadings } from './plugins/rehype-autolink';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
 
@@ -66,6 +66,7 @@ export default defineConfig({
 				},
 			],
 			disable404Route: true,
+			plugins: [starlightPluginAutolinkHeadings()],
 		}),
 		sitemap(),
 	],
@@ -82,8 +83,6 @@ export default defineConfig({
 		],
 		rehypePlugins: [
 			rehypeSlug,
-			// This adds links to headings
-			...rehypeAutolink(),
 			// Tweak GFM task list syntax
 			rehypeTasklistEnhancer(),
 		],

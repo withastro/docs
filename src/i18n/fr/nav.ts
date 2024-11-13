@@ -41,6 +41,7 @@ export default NavDictionary({
 	'guides/styling': 'Styles & CSS',
 	'guides/images': 'Images',
 	'guides/fonts': 'Polices de caractères',
+	'guides/syntax-highlighting': 'Coloration syntaxique',
 	'guides/media': 'Connecter un média hébergé ou un DAM',
 
 	data: 'Connecter vos Données',
@@ -60,15 +61,14 @@ export default NavDictionary({
 	'guides/testing': 'Tests',
 	'guides/troubleshooting': 'Dépannage',
 
-	communityResources: 'Ressources communautaires',
-	'community-resources/content': 'Cours, Guides et Recettes',
-	'community-resources/talks': 'Entretiens, Interviews et Streams',
+	communityResources: 'Recettes et ressources',
+	recipes: 'Recettes pratiques',
+	'community-resources/content': 'Ressources communautaires',
 
 	reference: 'Référence',
 	'reference/configuration-reference': 'Configuration',
 	'reference/cli-reference': "CLI d'Astro",
 	'reference/directives-reference': 'Utilisation des Directives',
-	'reference/components-reference': 'Composants Intégrés',
 	'guides/typescript': 'Référence TypeScript',
 	'reference/error-reference': 'Référence des erreurs',
 

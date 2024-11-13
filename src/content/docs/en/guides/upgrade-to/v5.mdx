@@ -642,7 +642,7 @@ import { ClientRouter } from 'astro:transitions';
 
 In Astro v4.x, Astro relied on a `src/env.d.ts` file for type inferencing and defining modules for features that relied on generated types.
 
-Astro 5.0 instead uses a `.astro/types/d.ts` file for type inferencing, and now recommends setting `include` and `exclude` in `tsconfig.json` to benefit from Astro types and avoid checking built files.
+Astro 5.0 instead uses a `.astro/types.d.ts` file for type inferencing, and now recommends setting `include` and `exclude` in `tsconfig.json` to benefit from Astro types and avoid checking built files.
 
 Running `astro sync` no longer creates, nor updates, `src/env.d.ts` as it is not required for type-checking standard Astro projects.
 
@@ -661,6 +661,66 @@ To update your project to Astro's recommended TypeScript settings, add the follo
 Note that `src/env.d.ts` is only necessary if you have added custom configurations, or if you're not using a `tsconfig.json` file.
 
 <ReadMore>Read more about [TypeScript configuration in Astro](/en/guides/typescript/#setup).</ReadMore>
+
+### Changed: Actions submitted by HTML forms no longer use cookies
+
+<SourcePR number="12373" title="Actions middleware"/>
+
+In Astro 4.x, actions called from an HTML form would trigger a redirect with the result forwarded using cookies. This caused issues for large form errors and return values that exceeded the 4 KB limit of cookie-based storage.
+
+Astro 5.0 now renders the result of an action as a POST result without any forwarding. This will introduce a "confirm form resubmission?" dialog when a user attempts to refresh the page, though it no longer imposes a 4 KB limit on action return value.
+
+#### What should I do?
+
+You can use the new default without any changes to your code. If you prefer to address the "confirm form resubmission?" dialog on refresh, or to preserve action results across sessions, you can now [customize action result handling from middleware](/en/guides/actions/#advanced-persist-action-results-with-a-session).
+
+We recommend using a session storage provider [as described in our Netlify Blob example](/en/guides/actions/#advanced-persist-action-results-with-a-session). However, if you prefer the cookie forwarding behavior from 4.X and accept the 4 KB size limit, you can implement the pattern as shown in this sample snippet:
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  // Skip requests for prerendered pages
+  if (context.isPrerendered) return next();
+
+	const { action, setActionResult, serializeActionResult } = getActionContext(context);
+
+	// If an action result was forwarded as a cookie, set the result
+	// to be accessible from `Astro.getActionResult()`
+	const payload = context.cookies.get('ACTION_PAYLOAD');
+	if (payload) {
+		const { actionName, actionResult } = payload.json();
+		setActionResult(actionName, actionResult);
+		context.cookies.delete('ACTION_PAYLOAD');
+		return next();
+	}
+
+	// If an action was called from an HTML form action,
+	// call the action handler and redirect with the result as a cookie.
+	if (action?.calledFrom === 'form') {
+		const actionResult = await action.handler();
+
+		context.cookies.set('ACTION_PAYLOAD', {
+			actionName: action.name,
+			actionResult: serializeActionResult(actionResult),
+		});
+
+		if (actionResult.error) {
+		// Redirect back to the previous page on error
+			const referer = context.request.headers.get('Referer');
+			if (!referer) {
+				throw new Error('Internal: Referer unexpectedly missing from Action POST request.');
+			}
+			return context.redirect(referer);
+		}
+		// Redirect to the destination page on success
+		return context.redirect(context.originPathname);
+	}
+
+	return next();
+})
+```
 
 ### Changed: `compiledContent()` is now an async function
 
@@ -734,7 +794,7 @@ You can perform a global find and replace in your project to migrate to the new 
 }
 ```
 
-<ReadMore>Read more about [syntax highlighting in Astro](/en/guides/markdown-content/#syntax-highlighting).</ReadMore>
+<ReadMore>Read more about [syntax highlighting in Astro](/en/guides/syntax-highlighting/).</ReadMore>
 
 ### Changed: internal Shiki rehype plugin for highlighting code blocks
 
@@ -750,7 +810,7 @@ If you are using Shiki transformers passed to `markdown.shikiConfig.transformers
 
 Code blocks in `.mdoc` files and Astro's built-in `<Code />` component do not use the internal Shiki rehype plugin and are unaffected.
 
-<ReadMore>Read more about [syntax highlighting in Astro](/en/guides/markdown-content/#syntax-highlighting).</ReadMore>
+<ReadMore>Read more about [syntax highlighting in Astro](/en/guides/syntax-highlighting/).</ReadMore>
 
 ### Changed: Automatic `charset=utf-8` behavior for Markdown and MDX pages
 
