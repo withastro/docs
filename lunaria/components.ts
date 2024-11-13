@@ -188,7 +188,7 @@ export const OutdatedFiles = (
 											${localization.missingKeys.map((key) => html`<li>${key}</li>`)}
 										</ul>
 									</details>
-								`
+							  `
 							: html` ${ContentDetailsLinks(file, lang, lunaria)} `}
 					</li>
 				`;
@@ -252,7 +252,9 @@ export const TableContentStatus = (
 	const isMissingKeys = 'missingKeys' in localization && localization.missingKeys.length > 0;
 	const status = isMissingKeys ? 'outdated' : localization.status;
 	const links = lunaria.gitHostingLinks();
-	return html`<td>${EmojiFileLink(links.create(localization.path), status)}</td>`;
+	const link =
+		status === 'missing' ? links.create(localization.path) : links.source(localization.path);
+	return html`<td>${EmojiFileLink(link, status)}</td>`;
 };
 
 export const ContentDetailsLinks = (
@@ -305,10 +307,10 @@ export const EmojiFileLink = (
 	return href
 		? html`<a href="${href}" title="${statusTextOpts[type]}">
 				<span aria-hidden="true">${statusEmojiOpts[type]}</span>
-			</a>`
+		  </a>`
 		: html`<span title="${statusTextOpts[type]}">
 				<span aria-hidden="true">${statusEmojiOpts[type]}</span>
-			</span>`;
+		  </span>`;
 };
 
 export const Link = (href: string, text: string): string => {
