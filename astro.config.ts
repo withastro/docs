@@ -51,27 +51,20 @@ export default defineConfig({
 				{
 					label: 'Start',
 					items: [
-						'getting-started',
-						'guides/upgrade-to/v5',
-						'concepts/why-astro',
+						'getting-started',						
 						{
-							label: 'Getting Started',
+							label: 'Welcome, World!',
 							items: [
-								'install-and-setup',
-								'basics/project-structure',
-								'guides/deploy',
-								'guides/migrate-to-astro',
+								'concepts/why-astro',
+								'concepts/islands',
 								'tutorial/0-introduction',
 							],
 						},
 						{
-							label: 'Core Concepts',
+							label: 'Start a new project',
 							items: [
-								'concepts/islands',
-								'basics/astro-components',
-								'basics/astro-pages',
-								'basics/layouts',
-								'basics/astro-syntax',
+								'install-and-setup',
+								'basics/project-structure',
 							],
 						},
 						{
@@ -84,12 +77,25 @@ export default defineConfig({
 								'guides/dev-toolbar',
 							],
 						},
+						{
+							label: 'Migrate to Astro',
+							collapsed: true,
+							autogenerate: { directory: 'guides/migrate-to-astro' },
+						},
 					],
 				},
 				{
 					label: 'Guides and Recipes',
 					items: [
-						'upgrade-astro',
+						{
+							label: 'Work with components',
+							items: [
+								'basics/astro-components',
+								'guides/imports',
+								'basics/astro-syntax',
+								'reference/directives-reference',
+							],
+						},
 						{
 							label: 'Add content to your site',
 							items: [
@@ -103,49 +109,49 @@ export default defineConfig({
 						{
 							label: 'Build your UI',
 							items: [
+								'basics/layouts',
 								'guides/styling',
 								'guides/fonts',
 								'guides/client-side-scripts',
 								'guides/framework-components',
-								'reference/components-reference',
 							],
 						},
 						{
 							label: 'Routing and Navigation',
 							items: [
+								'basics/astro-pages',
 								'guides/routing',
 								'guides/endpoints',
+								'guides/middleware',
+								'guides/internationalization',
 								'guides/prefetch',
 								'guides/view-transitions',
-								'guides/internationalization',
 							],
 						},
 						{
 							label: 'Server rendering',
 							items: [
 								'guides/on-demand-rendering',
-								'guides/actions',
 								'guides/server-islands',
-								'guides/middleware',
+								'guides/actions',
+							],
+						},
+						{
+							label: 'Upgrade',
+							items: [
+								'upgrade-astro',
+								{
+								label: 'Content management systems',
+								collapsed: true,
+								autogenerate: { directory: 'guides/upgrade-to' },
+								},
 							],
 						},
 						'guides/troubleshooting',
 						{
 							label: 'How-to recipes',
-							items: [
-								{
-									label: 'Popular recipes',
-									items: [
-										'recipes/dynamically-importing-images',
-										'recipes/sharing-state-islands',
-										'recipes/i18n',
-										'guides/rss',
-										'recipes/docker',
-										'recipes/tailwind-rendered-markdown',
-									],
-								},
-								'community-resources/content',
-							],
+							collapsed: true,
+							autogenerate: { directory: 'recipes' },
 						},
 					],
 				},
@@ -153,17 +159,13 @@ export default defineConfig({
 					label: 'Reference',
 					items: [
 						{
-							label: 'User Reference',
+							label: 'Configuration',
 							items: [
 								'reference/configuration-reference',
-								'reference/cli-reference',
-								'reference/directives-reference',
-								'guides/imports',
-								'reference/error-reference',
 							],
 						},
 						{
-							label: 'Astro Modules',
+							label: 'Runtime API',
 							items: [
 								'reference/api-reference',
 								'reference/modules/astro-actions',
@@ -176,14 +178,31 @@ export default defineConfig({
 							],
 						},
 						{
+							label: 'CLI',
+							items: [
+								'reference/cli-reference',
+							],
+						},
+						{
+							label: 'Errors',
+							items: [
+								'reference/error-reference',
+								{
+								label: 'Error messages',
+								collapsed: true,
+								autogenerate: { directory: 'reference/errors' },
+								},
+							],
+						},
+						{
 							label: 'Other Development APIs',
 							items: [
 								'reference/integrations-reference',
+								'reference/adapter-reference',
+								'reference/content-loader-reference',
 								'reference/image-service-reference',
 								'reference/dev-toolbar-app-reference',
-								'reference/content-loader-reference',
 								'reference/container-reference',
-								'reference/publish-to-npm',
 							],
 						},
 					],
@@ -223,11 +242,17 @@ export default defineConfig({
 								'guides/integrations-guide/tailwind',
 							],
 						},
+						'reference/publish-to-npm',
 					],
 				},
 				{
 					label: 'Third-party services',
 					items: [
+						{
+							label: 'Deployment Guides',
+							collapsed: true,
+							autogenerate: { directory: 'guides/deploy' },
+						},
 						{
 							label: 'Content management systems',
 							collapsed: true,
