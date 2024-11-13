@@ -34,12 +34,27 @@ export const sidebar = [
 		label: 'Guides and Recipes',
 		items: [
 			{
-				label: 'Work with components',
+				label: 'Routing and Navigation',
+				items: [
+					'basics/astro-pages',
+					'guides/routing',
+					'guides/endpoints',
+					'guides/middleware',
+					'guides/internationalization',
+					'guides/prefetch',
+					'guides/view-transitions',
+				],
+			},
+			{
+				label: 'Build your UI',
 				items: [
 					'basics/astro-components',
-					'guides/imports',
 					'basics/astro-syntax',
-					'reference/directives-reference',
+					'basics/layouts',
+					'guides/styling',
+					'guides/fonts',
+					'guides/client-side-scripts',
+					'guides/framework-components',
 				],
 			},
 			{
@@ -50,28 +65,6 @@ export const sidebar = [
 					'guides/images',
 					'guides/data-fetching',
 					'guides/astro-db',
-				],
-			},
-			{
-				label: 'Build your UI',
-				items: [
-					'basics/layouts',
-					'guides/styling',
-					'guides/fonts',
-					'guides/client-side-scripts',
-					'guides/framework-components',
-				],
-			},
-			{
-				label: 'Routing and Navigation',
-				items: [
-					'basics/astro-pages',
-					'guides/routing',
-					'guides/endpoints',
-					'guides/middleware',
-					'guides/internationalization',
-					'guides/prefetch',
-					'guides/view-transitions',
 				],
 			},
 			{
@@ -108,6 +101,8 @@ export const sidebar = [
 				label: 'Runtime API',
 				items: [
 					'reference/api-reference',
+					'reference/directives-reference',
+					'guides/imports',
 					'reference/modules/astro-actions',
 					'reference/modules/astro-assets',
 					'reference/modules/astro-content',
