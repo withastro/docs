@@ -16,12 +16,7 @@ export function html(strings: TemplateStringsArray, ...values: (string | string[
 type LunariaInstance = Awaited<ReturnType<typeof createLunaria>>;
 
 function collapsePath(path: string) {
-	const basesToHide = [
-		'src/content/docs/en/',
-		'src/i18n/en/',
-		'src/content/docs/',
-		'src/content/i18n/',
-	];
+	const basesToHide = ['src/content/docs/en/', 'src/i18n/en/', 'src/content/docs/', 'src/content/'];
 
 	for (const base of basesToHide) {
 		const newPath = path.replace(base, '');
