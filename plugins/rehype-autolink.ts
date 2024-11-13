@@ -1,4 +1,5 @@
-import type { RehypePlugins } from 'astro';
+import type { StarlightPlugin } from '@astrojs/starlight/types';
+import type { AstroIntegration } from 'astro';
 import type { Root } from 'hast';
 import { toString } from 'hast-util-to-string';
 import { h } from 'hastscript';
@@ -7,8 +8,7 @@ import { resolve as nodeResolve } from 'node:path';
 import rehypeAutolinkHeadings, { type Options as AutolinkOptions } from 'rehype-autolink-headings';
 import type { Transformer } from 'unified';
 import { visit } from 'unist-util-visit';
-import type { UILanguageKeys } from '../src/i18n/translation-checkers';
-import { useTranslationsForLang } from '../src/i18n/util';
+import { createTranslationSystemFromFs } from '../node_modules/@astrojs/starlight/utils/translations-fs';
 import { getLanguageCodeFromPathname, mdFilePathToUrl } from './remark-fallback-lang';
 
 const AnchorLinkIcon = h(
@@ -24,30 +24,35 @@ const AnchorLinkIcon = h(
 	)
 );
 
-const createSROnlyLabel = (text: string) => {
-	const t = useTranslationsForLang('en');
-	return h(
-		'span',
-		{ 'is:raw': true, class: 'sr-only' },
-		`${t('a11y.sectionLink')} ${escape(text)}`
-	);
-};
-
 /**
  * Configuration for the `rehype-autolink-headings` plugin.
  * This set-up was informed by https://amberwilson.co.uk/blog/are-your-anchor-links-accessible/
  */
-const autolinkConfig: AutolinkOptions = {
-	properties: { class: 'anchor-link' },
-	behavior: 'after',
-	group: ({ tagName }) => h('div', { tabIndex: -1, class: `heading-wrapper level-${tagName}` }),
-	content: (heading) => [AnchorLinkIcon, createSROnlyLabel(toString(heading))],
+const makeAutolinkConfig = (
+	useTranslationsForLang: ReturnType<typeof createTranslationSystemFromFs>
+): AutolinkOptions => {
+	const t = useTranslationsForLang('en');
+	return {
+		properties: { class: 'anchor-link' },
+		behavior: 'after',
+		group: ({ tagName }) => h('div', { tabIndex: -1, class: `heading-wrapper level-${tagName}` }),
+		content: (heading) => [
+			AnchorLinkIcon,
+			h(
+				'span',
+				{ 'is:raw': true, class: 'sr-only' },
+				`${t('a11y.sectionLink')} ${escape(toString(heading))}`
+			),
+		],
+	};
 };
 
 /**
  * Rehype plugin to translate the headings' anchors according to the currently selected language.
  */
-function rehypei18nAutolinkHeadings() {
+function rehypei18nAutolinkHeadings(
+	useTranslationsForLang: ReturnType<typeof createTranslationSystemFromFs>
+) {
 	const pageSourceDir = nodeResolve('./src/content/docs');
 	const baseUrl = 'https://docs.astro.build/';
 
@@ -62,7 +67,7 @@ function rehypei18nAutolinkHeadings() {
 				// Find a11y text labels
 				visit(node, 'text', (text) => {
 					const heading = text.value.replace(englishText!, '');
-					const t = useTranslationsForLang(pageLang as UILanguageKeys);
+					const t = useTranslationsForLang(pageLang);
 					const title = t('a11y.sectionLink') || englishText;
 
 					text.value = title + heading;
@@ -76,11 +81,41 @@ function rehypei18nAutolinkHeadings() {
 	};
 }
 
-/**
- * Configure heading anchor links.
- * Spread this into Astro’s `markdown.rehypePlugins` option.
- */
-export const rehypeAutolink = (): RehypePlugins => [
-	[rehypeAutolinkHeadings, autolinkConfig],
-	rehypei18nAutolinkHeadings(),
-];
+type TranslationSystemLocales = Parameters<typeof createTranslationSystemFromFs>[0]['locales'];
+
+export const starlightPluginAutolinkHeadings = () =>
+	({
+		name: 'starlight-plugin-autolink-headings' as const,
+		hooks: {
+			setup({ config, astroConfig, addIntegration }) {
+				// TODO: Replace this hack with Starlight’s own translation system once it’s exposed here.
+				const useTranslationsForLang = createTranslationSystemFromFs(
+					{
+						defaultLocale: { lang: 'en', locale: 'en', dir: 'ltr', label: 'English' },
+						// In theory user-configured locales might not include `dir` properties (or be undefined).
+						// But we provide `locales` and always set `dir` currently.
+						locales: config.locales as TranslationSystemLocales,
+					},
+					astroConfig,
+					{}
+				);
+				/** Integration to add the required rehype plugins. */
+				const astroIntegrationAutolinkHeadings: AstroIntegration = {
+					name: 'astro-integration-autolink-headings',
+					hooks: {
+						'astro:config:setup'({ updateConfig }) {
+							updateConfig({
+								markdown: {
+									rehypePlugins: [
+										[rehypeAutolinkHeadings, makeAutolinkConfig(useTranslationsForLang)],
+										rehypei18nAutolinkHeadings(useTranslationsForLang),
+									],
+								},
+							});
+						},
+					},
+				};
+				addIntegration(astroIntegrationAutolinkHeadings);
+			},
+		},
+	}) satisfies StarlightPlugin;
