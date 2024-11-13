@@ -83,7 +83,7 @@ export const sidebar = [
 				items: [
 					'upgrade-astro',
 					{
-						label: 'Content management systems',
+						label: 'Major upgrade guides',
 						collapsed: true,
 						autogenerate: { directory: 'guides/upgrade-to' },
 					},
