@@ -7,12 +7,10 @@ export const AstroDocsI18nSchema = z
 		'site.title': z.string(),
 		// Left Sidebar
 		'leftSidebar.sponsoredBy': z.string(),
-		// Right Sidebar
-		'rightSidebar.community': z.string(),
-		'rightSidebar.joinDiscord': z.string(),
-		'rightSidebar.contribute': z.string(),
-		'rightSidebar.translatePage': z.string(),
 		// Footer
+		'footer.community': z.string(),
+		'footer.contribute': z.string(),
+		'footer.translatePage': z.string(),
 		'footer.privacyPolicy': z.string(),
 		// Used in `<Since>`: Added in: v0.24.0 [NEW]
 		'since.addedIn': z.string(),
