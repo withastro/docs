@@ -1,20 +1,17 @@
 import type { StarlightUserConfig } from '@astrojs/starlight/types';
+import { group } from './config/sidebar';
 
 export const sidebar = [
-	{
-		label: 'Start',
+	group('start', {
 		items: [
 			'getting-started',
-			{
-				label: 'Welcome, World!',
+			group('start.welcome', {
 				items: ['concepts/why-astro', 'concepts/islands', 'tutorial/0-introduction'],
-			},
-			{
-				label: 'Start a new project',
+			}),
+			group('start.newProject', {
 				items: ['install-and-setup', 'basics/project-structure'],
-			},
-			{
-				label: 'Configuration',
+			}),
+			group('start.config', {
 				items: [
 					'guides/configuring-astro',
 					'editor-setup',
@@ -22,19 +19,16 @@ export const sidebar = [
 					'guides/environment-variables',
 					'guides/dev-toolbar',
 				],
-			},
-			{
-				label: 'Migrate to Astro',
+			}),
+			group('start.migrate', {
 				collapsed: true,
 				autogenerate: { directory: 'guides/migrate-to-astro' },
-			},
+			}),
 		],
-	},
-	{
-		label: 'Guides and Recipes',
+	}),
+	group('guides', {
 		items: [
-			{
-				label: 'Routing and Navigation',
+			group('guides.routing', {
 				items: [
 					'basics/astro-pages',
 					'guides/routing',
@@ -44,9 +38,8 @@ export const sidebar = [
 					'guides/prefetch',
 					'guides/view-transitions',
 				],
-			},
-			{
-				label: 'Build your UI',
+			}),
+			group('guides.ui', {
 				items: [
 					'basics/astro-components',
 					'basics/astro-syntax',
@@ -56,9 +49,8 @@ export const sidebar = [
 					'guides/client-side-scripts',
 					'guides/framework-components',
 				],
-			},
-			{
-				label: 'Add content to your site',
+			}),
+			group('guides.content', {
 				items: [
 					'guides/markdown-content',
 					'guides/content-collections',
@@ -66,37 +58,28 @@ export const sidebar = [
 					'guides/data-fetching',
 					'guides/astro-db',
 				],
-			},
-			{
-				label: 'Server rendering',
+			}),
+			group('guides.serverRendering', {
 				items: ['guides/on-demand-rendering', 'guides/server-islands', 'guides/actions'],
-			},
-			{
-				label: 'Upgrade',
+			}),
+			group('guides.upgrade', {
 				items: [
 					'upgrade-astro',
-					{
-						label: 'Major upgrade guides',
+					group('guides.upgrade.major', {
 						collapsed: true,
 						autogenerate: { directory: 'guides/upgrade-to' },
-					},
+					}),
 				],
-			},
+			}),
 			'guides/troubleshooting',
-			{
-				label: 'How-to recipes',
-				collapsed: true,
-				autogenerate: { directory: 'recipes' },
-			},
+			group('guides.recipes', { collapsed: true, autogenerate: { directory: 'recipes' } }),
 		],
-	},
-	{
-		label: 'Reference',
+	}),
+	group('reference', {
 		items: [
-			{
-				label: 'Configuration',
+			group('reference.configuration', {
 				items: ['reference/configuration-reference'],
-			},
+			}),
 			{
 				label: 'Runtime API',
 				items: [
@@ -139,7 +122,7 @@ export const sidebar = [
 				],
 			},
 		],
-	},
+	}),
 	{
 		label: 'Integrations',
 		items: [
