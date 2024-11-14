@@ -1,52 +1,41 @@
 import type starlight from '@astrojs/starlight';
-import { normalizeLangTag } from '../src/i18n/bcp-normalize';
-import type { NavDict } from '../src/i18n/translation-checkers';
-import { navTranslations } from '../src/i18n/util';
-
-/** For an item in our sidebar, get translations of its label. */
-function getTranslations(item: NavDict[number]): Record<string, string> | undefined {
-	return Object.fromEntries(
-		Object.entries(navTranslations)
-			.map(([lang, translations]) => {
-				const translation = translations.find((t) => t.key === item.key);
-				return [
-					normalizeLangTag(lang),
-					translation && translation.text !== item.text ? translation?.text : '',
-				] as const;
-			})
-			.filter(([, text]) => Boolean(text))
-	);
-}
+import enLabels from '../src/content/nav/en';
 
 type StarlightSidebarConfig = NonNullable<Parameters<typeof starlight>[0]['sidebar']>;
+type StarlightSidebarEntry = StarlightSidebarConfig[number];
+type StarlightManualSidebarGroup = Extract<StarlightSidebarEntry, { items: any[] }>;
+type StarlightAutoSidebarGroup = Extract<StarlightSidebarEntry, { autogenerate: any }>;
 
-/** Generate a Starlight sidebar config object from our existing `nav.ts` files. */
-export function makeSidebar(): StarlightSidebarConfig {
-	let currentSubGroup: Extract<StarlightSidebarConfig[number], { items: StarlightSidebarConfig }>;
-	return navTranslations.en.reduce((sidebar, item) => {
-		if ('header' in item) {
-			const newGroup = {
-				label: item.text,
-				translations: getTranslations(item),
-				items: [],
-				collapsed: item.collapsed,
-			};
-			if (item.nested) {
-				const parentGroup = sidebar.at(-1);
-				if (parentGroup && typeof parentGroup !== 'string' && 'items' in parentGroup) {
-					parentGroup.items.push(newGroup);
-				}
-			} else {
-				sidebar.push(newGroup);
+type NavKey = keyof typeof enLabels;
+type NavDict = Record<NavKey, string>;
+
+const translations = Object.entries(
+	import.meta.glob<{ default: NavDict }>('../src/content/nav/*.ts', { eager: true })
+)
+	.map(([path, mod]) => [path.split('/').pop()!.replace('.ts', ''), mod.default] as const)
+	.reduce(
+		(translations, [lang, dict]) => {
+			for (const _k in dict) {
+				const key = _k as NavKey;
+				translations[key] ??= {};
+				translations[key][lang] = dict[key];
 			}
-			currentSubGroup = newGroup;
-		} else {
-			currentSubGroup.items.push({
-				label: item.text,
-				link: item.slug,
-				translations: getTranslations(item),
-			});
-		}
-		return sidebar;
-	}, [] as StarlightSidebarConfig);
+			return translations;
+		},
+		{} as Record<NavKey, Record<string, string>>
+	);
+
+/**
+ * Create a Starlight sidebar group config entry that uses labels and translations from
+ * `src/content/nav/*` files.
+ */
+export function group(
+	key: NavKey,
+	group: Omit<StarlightManualSidebarGroup, 'label'> | Omit<StarlightAutoSidebarGroup, 'label'>
+): StarlightManualSidebarGroup | StarlightAutoSidebarGroup {
+	return {
+		label: enLabels[key],
+		translations: translations[key],
+		...group,
+	};
 }
