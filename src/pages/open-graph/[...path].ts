@@ -1,7 +1,7 @@
 import { OGImageRoute } from 'astro-og-canvas';
 import { allPages } from '~/content';
 import { rtlLanguages } from '~/languages';
-import { getLangFromSlug } from '~/util';
+import { getLangFromSlug } from '~/util/path-utils';
 import { fetchBrandFont } from './_fetchFont';
 
 type OGImageOptions = Awaited<ReturnType<Parameters<typeof OGImageRoute>[0]['getImageOptions']>>;
