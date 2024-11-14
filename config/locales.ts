@@ -1,6 +1,6 @@
 import type starlight from '@astrojs/starlight';
 import { normalizeLangTag } from '../src/util/normalizeLangTag';
-import languages, { rtlLanguages } from '../src/i18n/languages';
+import languages, { rtlLanguages } from '../src/languages';
 
 type StarlightLocalesConfig = NonNullable<Parameters<typeof starlight>[0]['locales']>;
 

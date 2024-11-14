@@ -1,6 +1,6 @@
 import { OGImageRoute } from 'astro-og-canvas';
 import { allPages } from '~/content';
-import { rtlLanguages } from '~/i18n/languages';
+import { rtlLanguages } from '~/languages';
 import { getLangFromSlug } from '~/util';
 import { fetchBrandFont } from './_fetchFont';
 
