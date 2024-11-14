@@ -1,4 +1,4 @@
-import { cachedFetch } from '~/util-server';
+import { cachedFetch } from '~/util/cachedFetch';
 
 export interface Contributor {
 	login: string;
