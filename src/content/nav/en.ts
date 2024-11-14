@@ -22,5 +22,14 @@ export default {
 	'reference.errors.messages': 'Error messages',
 	'reference.other': 'Other development APIs',
 
-	integrations: 'integrations',
+	integrations: 'Integrations',
+	'integrations.ui': 'UI frameworks',
+	'integrations.adapters': 'Adapters',
+	'integrations.other': 'Other official integrations',
+
+	thirdParty: 'Third-party services',
+	'thirdParty.deployment': 'Deployment guides',
+	'thirdParty.cms': 'Content management systems',
+	'thirdParty.backend': 'Backend services',
+	'thirdParty.media': 'Hosted media & DAM',
 };

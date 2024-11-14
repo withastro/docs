@@ -80,8 +80,7 @@ export const sidebar = [
 			group('reference.configuration', {
 				items: ['reference/configuration-reference'],
 			}),
-			{
-				label: 'Runtime API',
+			group('reference.runtime', {
 				items: [
 					'reference/api-reference',
 					'reference/directives-reference',
@@ -94,24 +93,20 @@ export const sidebar = [
 					'reference/modules/astro-middleware',
 					'reference/modules/astro-transitions',
 				],
-			},
-			{
-				label: 'CLI',
+			}),
+			group('reference.cli', {
 				items: ['reference/cli-reference'],
-			},
-			{
-				label: 'Errors',
+			}),
+			group('reference.errors', {
 				items: [
 					'reference/error-reference',
-					{
-						label: 'Error messages',
+					group('reference.errors.messages', {
 						collapsed: true,
 						autogenerate: { directory: 'reference/errors' },
-					},
+					}),
 				],
-			},
-			{
-				label: 'Other Development APIs',
+			}),
+			group('reference.other', {
 				items: [
 					'reference/integrations-reference',
 					'reference/adapter-reference',
@@ -120,15 +115,13 @@ export const sidebar = [
 					'reference/dev-toolbar-app-reference',
 					'reference/container-reference',
 				],
-			},
+			}),
 		],
 	}),
-	{
-		label: 'Integrations',
+	group('integrations', {
 		items: [
 			'guides/integrations-guide',
-			{
-				label: 'UI frameworks',
+			group('integrations.ui', {
 				items: [
 					'guides/integrations-guide/alpinejs',
 					'guides/integrations-guide/preact',
@@ -137,18 +130,16 @@ export const sidebar = [
 					'guides/integrations-guide/svelte',
 					'guides/integrations-guide/vue',
 				],
-			},
-			{
-				label: 'Adapters',
+			}),
+			group('integrations.adapters', {
 				items: [
 					'guides/integrations-guide/cloudflare',
 					'guides/integrations-guide/netlify',
 					'guides/integrations-guide/node',
 					'guides/integrations-guide/vercel',
 				],
-			},
-			{
-				label: 'Other official integrations',
+			}),
+			group('integrations.other', {
 				items: [
 					'guides/integrations-guide/db',
 					'guides/integrations-guide/markdoc',
@@ -157,36 +148,31 @@ export const sidebar = [
 					'guides/integrations-guide/sitemap',
 					'guides/integrations-guide/tailwind',
 				],
-			},
+			}),
 			'reference/publish-to-npm',
 		],
-	},
-	{
-		label: 'Third-party services',
+	}),
+	group('thirdParty', {
 		items: [
-			{
-				label: 'Deployment Guides',
+			group('thirdParty.deployment', {
 				collapsed: true,
 				autogenerate: { directory: 'guides/deploy' },
-			},
-			{
-				label: 'Content management systems',
+			}),
+			group('thirdParty.cms', {
 				collapsed: true,
 				autogenerate: { directory: 'guides/cms' },
-			},
-			{
-				label: 'Backend services',
+			}),
+			group('thirdParty.backend', {
 				collapsed: true,
 				autogenerate: { directory: 'guides/backend' },
-			},
-			{
-				label: 'Hosted media & DAM',
+			}),
+			group('thirdParty.media', {
 				collapsed: true,
 				autogenerate: { directory: 'guides/media' },
-			},
+			}),
 			'guides/ecommerce',
 			'guides/authentication',
 			'guides/testing',
 		],
-	},
+	}),
 ] satisfies StarlightUserConfig['sidebar'];
