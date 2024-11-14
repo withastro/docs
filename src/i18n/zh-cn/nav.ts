@@ -42,6 +42,7 @@ export default NavDictionary({
 	'guides/styling': 'CSS 样式',
 	'guides/images': '图像',
 	'guides/fonts': '字体',
+	'guides/syntax-highlighting': '语法高亮',
 	'guides/media': '连接托管媒体或 DAM',
 
 	data: '连接你的数据',
@@ -61,9 +62,9 @@ export default NavDictionary({
 	'guides/testing': '测试',
 	'guides/troubleshooting': '故障排除',
 
-	communityResources: '社区资源',
-	'community-resources/content': '课程、指南和方案',
-	'community-resources/talks': '演讲、访谈和直播',
+	communityResources: '方案和资源',
+	recipes: '方案实践',
+	'community-resources/content': '社区资源',
 
 	reference: '参考',
 	'reference/configuration-reference': '配置',
