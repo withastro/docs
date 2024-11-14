@@ -24,6 +24,7 @@ export default defineConfig({
 	integrations: [
 		devServerFileWatcher([
 			'./astro.sidebar.ts', // Sidebar configuration file
+			'./src/content/nav/*.ts', // Sidebar labels
 		]),
 		starlight({
 			title: 'Docs',
