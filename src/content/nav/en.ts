@@ -1,12 +1,12 @@
 export default {
 	start: 'Start',
-	'start.welcome': 'Welcome, World!',
+	'start.welcome': 'Welcome, world!',
 	'start.newProject': 'Start a new project',
 	'start.config': 'Configuration',
 	'start.migrate': 'Migrate to Astro',
 
-	guides: 'Guides and Recipes',
-	'guides.routing': 'Routing and Navigation',
+	guides: 'Guides and recipes',
+	'guides.routing': 'Routing and navigation',
 	'guides.ui': 'Build your UI',
 	'guides.content': 'Add content to your site',
 	'guides.serverRendering': 'Server rendering',
