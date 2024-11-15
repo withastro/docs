@@ -14,10 +14,12 @@ import TabPanel from '../tabs/TabPanel.astro';
 
 const { sidebar, slug } = Astro.props;
 
-// Recursively add a fallback class to entries in the sidebar that don’t exist in the current language.
-async function markFallbackEntries(i: SidebarEntry) {
+// Recursively tweaks properties of sidebar entries.
+// - Adds a fallback class to entries in the sidebar that don’t exist in the current language.
+// - Marks pages as “current” if they parents of pages that don’t appear in the sidebar.
+async function markEntries(i: SidebarEntry) {
 	if (i.type === 'group') {
-		i.entries = await Promise.all(i.entries.map(markFallbackEntries));
+		i.entries = await Promise.all(i.entries.map(markEntries));
 		return i;
 	}
 	const itemSlug = stripLeadingAndTrailingSlashes(i.href);
@@ -26,7 +28,7 @@ async function markFallbackEntries(i: SidebarEntry) {
 	i.isCurrent ||= isSubPage(slug, stripLangFromSlug(itemSlug));
 	return i;
 }
-await Promise.all(sidebar.map(markFallbackEntries));
+await Promise.all(sidebar.map(markEntries));
 
 // Make sure all top-level items in the sidebar are groups.
 type Group = Extract<SidebarEntry, { type: 'group' }>;
