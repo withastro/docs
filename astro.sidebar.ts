@@ -91,6 +91,7 @@ export const sidebar = [
 	group('reference', {
 		items: [
 			'reference/configuration-reference',
+			'reference/cli-reference',
 			group('reference.runtime', {
 				items: [
 					'reference/api-reference',
@@ -105,8 +106,6 @@ export const sidebar = [
 					'reference/modules/astro-transitions',
 				],
 			}),
-			'reference/cli-reference',
-			'reference/error-reference',
 			group('reference.other', {
 				items: [
 					'reference/integrations-reference',
@@ -117,6 +116,7 @@ export const sidebar = [
 					'reference/container-reference',
 				],
 			}),
+			'reference/error-reference',
 		],
 	}),
 
