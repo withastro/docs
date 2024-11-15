@@ -8,7 +8,7 @@ import { resolve as nodeResolve } from 'node:path';
 import rehypeAutolinkHeadings, { type Options as AutolinkOptions } from 'rehype-autolink-headings';
 import type { Transformer } from 'unified';
 import { visit } from 'unist-util-visit';
-import { createTranslationSystemFromFs } from '../node_modules/@astrojs/starlight/utils/translations-fs';
+import { createTranslationSystemFromFs } from '../../node_modules/@astrojs/starlight/utils/translations-fs';
 import { getLanguageCodeFromPathname, mdFilePathToUrl } from './remark-fallback-lang';
 
 const AnchorLinkIcon = h(

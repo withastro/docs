@@ -7,11 +7,11 @@ import rehypeSlug from 'rehype-slug';
 import remarkSmartypants from 'remark-smartypants';
 
 import { sidebar } from './astro.sidebar';
-import { devServerFileWatcher } from './integrations/dev-server-file-watcher';
-import { sitemap } from './integrations/sitemap';
-import { starlightPluginAutolinkHeadings } from './plugins/rehype-autolink';
-import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
-import { remarkFallbackLang } from './plugins/remark-fallback-lang';
+import { devServerFileWatcher } from './config/integrations/dev-server-file-watcher';
+import { sitemap } from './config/integrations/sitemap';
+import { starlightPluginAutolinkHeadings } from './config/plugins/rehype-autolink';
+import { rehypeTasklistEnhancer } from './config/plugins/rehype-tasklist-enhancer';
+import { remarkFallbackLang } from './config/plugins/remark-fallback-lang';
 
 /* https://docs.netlify.com/configure-builds/environment-variables/#read-only-variables */
 const NETLIFY_PREVIEW_SITE = process.env.CONTEXT !== 'production' && process.env.DEPLOY_PRIME_URL;

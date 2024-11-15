@@ -1,7 +1,7 @@
 import AstroSitemap from '@astrojs/sitemap';
 import type { AstroIntegration } from 'astro';
-import { normalizeLangTag } from '../src/util/normalizeLangTag';
-import languages from '../src/languages';
+import { normalizeLangTag } from '../../src/util/normalizeLangTag';
+import languages from '../../src/languages';
 
 const langTags = Object.keys(languages);
 
