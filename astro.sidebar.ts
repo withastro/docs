@@ -53,7 +53,6 @@ export const sidebar = [
 			group('guides.ui', {
 				items: [
 					'basics/astro-components',
-					'basics/astro-syntax',
 					'basics/layouts',
 					'guides/styling',
 					'guides/fonts',
@@ -90,12 +89,18 @@ export const sidebar = [
 	// Reference tab
 	group('reference', {
 		items: [
+			
+			group('reference.syntax', {
+				items: [
+					'basics/astro-syntax',
+					'reference/directives-reference',
+				],
+			}),
 			'reference/configuration-reference',
 			'reference/cli-reference',
 			group('reference.runtime', {
 				items: [
 					'reference/api-reference',
-					'reference/directives-reference',
 					'guides/imports',
 					'reference/modules/astro-actions',
 					'reference/modules/astro-assets',
