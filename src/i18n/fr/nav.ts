@@ -41,6 +41,7 @@ export default NavDictionary({
 	'guides/styling': 'Styles & CSS',
 	'guides/images': 'Images',
 	'guides/fonts': 'Polices de caractères',
+	'guides/syntax-highlighting': 'Coloration syntaxique',
 	'guides/media': 'Connecter un média hébergé ou un DAM',
 
 	data: 'Connecter vos Données',
@@ -60,14 +61,25 @@ export default NavDictionary({
 	'guides/testing': 'Tests',
 	'guides/troubleshooting': 'Dépannage',
 
+	communityResources: 'Recettes et ressources',
+	recipes: 'Recettes pratiques',
+	'community-resources/content': 'Ressources communautaires',
+
 	reference: 'Référence',
 	'reference/configuration-reference': 'Configuration',
-	'reference/api-reference': "API d'Exécution",
 	'reference/cli-reference': "CLI d'Astro",
 	'reference/directives-reference': 'Utilisation des Directives',
-	'reference/components-reference': 'Composants Intégrés',
 	'guides/typescript': 'Référence TypeScript',
 	'reference/error-reference': 'Référence des erreurs',
+
+	'api-reference': "Référence de l'API d'Astro",
+	'reference/api-reference': "API d'Exécution d'Astro",
+	'reference/modules/astro-actions': 'astro:actions',
+	'reference/modules/astro-assets': 'astro:assets',
+	'reference/modules/astro-content': 'astro:content',
+	'reference/modules/astro-i18n': 'astro:i18n',
+	'reference/modules/astro-middleware': 'astro:middleware',
+	'reference/modules/astro-transitions': 'astro:transitions',
 
 	dev: 'Autres APIs de Développement',
 	'reference/integrations-reference': "API d'Intégration",
@@ -75,8 +87,4 @@ export default NavDictionary({
 	'reference/image-service-reference': "API du Service d'Images",
 	'reference/dev-toolbar-app-reference': "API de la barre d'outils Dev",
 	'reference/container-reference': 'API de Conteneur',
-
-	communityResources: 'Ressources communautaires',
-	'community-resources/content': 'Cours, Guides et Recettes',
-	'community-resources/talks': 'Entretiens, Interviews et Streams',
 });
