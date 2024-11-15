@@ -6,6 +6,7 @@ i18nReady: true
 ---
 import ReadMore from '~/components/ReadMore.astro';
 import { Steps } from '@astrojs/starlight/components';
+import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro';
 
 전 세계 엣지에서 JavaScript, TypeScript 및 WebAssembly를 실행하는 분산 시스템인 [Deno Deploy](https://deno.com/deploy)에 서버 측 렌더링된 Astro 사이트를 배포할 수 있습니다.
 
@@ -17,9 +18,11 @@ import { Steps } from '@astrojs/starlight/components';
 
 ## 프로젝트 구성
 
-이 페이지에서는 Astro 프로젝트를 서버 측 렌더링 사이트 (SSR)로 [Deno Deploy](https://deno.com/deploy)에 배포하기 위한 지침을 제공합니다.
+[Deno Deploy](https://deno.com/deploy)에 Astro 프로젝트를 정적 사이트 또는 서버 측 렌더링 사이트 (SSR)로 배포할 수 있습니다.
 
-정적 사이트를 배포하려면 [Deno 정적 사이트 배포 튜토리얼](https://docs.deno.com/deploy/tutorials/static-site)을 참조하세요.
+### 정적 사이트
+
+Astro 프로젝트는 기본적으로 정적 사이트입니다. 정적 Astro 사이트를 Deno Deploy에 배포하기 위해 추가 구성이 필요하지 않습니다.
 
 ### SSR용 어댑터
 
@@ -76,7 +79,7 @@ npx astro add deno
     ```
 </Steps>
 
-## SSR Astro 사이트를 배포하는 방법
+## 배포하는 방법
 
 GitHub Actions 또는 Deno Deploy의 CLI (명령줄 인터페이스)를 사용하여 Deno Deploy에 배포할 수 있습니다.
 
@@ -93,37 +96,81 @@ GitHub Actions 또는 Deno Deploy의 CLI (명령줄 인터페이스)를 사용�
 
 4. Astro 프로젝트에서 `.github/workflows/deploy.yml`에 새 파일을 생성하고 아래 YAML에 붙여넣습니다. 이는 Astro 사이트에 필요한 추가 단계가 포함된 Deno Deploy에서 제공하는 YAML과 유사합니다.
 
-    ```yaml
-    name: Deploy
-    on: [push]
-
-    jobs:
-      deploy:
+    <StaticSsrTabs>
+      <Fragment slot="static">
+        ```yaml
+        ---
+        // .github/workflows/deploy.yml
+        ---
         name: Deploy
-        runs-on: ubuntu-latest
-        permissions:
-          id-token: write # Deno Deploy를 통한 인증에 필요
-          contents: read # 저장소를 복제하는 데 필요
+        on: [push]
 
-        steps:
-          - name: Clone repository
-            uses: actions/checkout@v4
+        jobs:
+          deploy:
+            name: Deploy
+            runs-on: ubuntu-latest
+            permissions:
+              id-token: write # Deno Deploy 인증에 필요
+              contents: read # 저장소를 복제하는 데 필요
 
-          # npm을 사용하지 않나요? `npm ci`를 `yarn install` 또는 `pnpm i`로 변경하세요.
-          - name: Install dependencies
-            run: npm ci
-    
-          # npm을 사용하지 않나요? `npm run build`를 `yarn build` 또는 `pnpm run build`로 변경하세요.
-          - name: Build Astro
-            run: npm run build
+            steps:
+              - name: Clone repository
+                uses: actions/checkout@v4
 
-          - name: Upload to Deno Deploy
-            uses: denoland/deployctl@v1
-            with:
-              project: my-deno-project # TODO: Deno Deploy 프로젝트 이름으로 교체
-              entrypoint: server/entry.mjs
-              root: dist
-    ```
+              # npm을 사용하지 않나요? `npm ci`를 `yarn install` 또는 `pnpm i`로 변경하세요.
+              - name: Install dependencies
+                run: npm ci
+
+              # npm을 사용하지 않나요? `npm run build`를 `yarn build` 또는 `pnpm run build`로 변경하세요.
+              - name: Build Astro
+                run: npm run build
+
+              - name: Upload to Deno Deploy
+                uses: denoland/deployctl@v1
+                with:
+                  project: my-deno-project # TODO: Deno Deploy 프로젝트 이름으로 변경
+                  entrypoint: jsr:@std/http/file-server
+                  root: dist
+        ```
+      </Fragment>
+      
+      <Fragment slot="ssr">
+        ```yaml
+        ---
+        // .github/workflows/deploy.yml
+        ---
+        name: Deploy
+        on: [push]
+
+        jobs:
+          deploy:
+            name: Deploy
+            runs-on: ubuntu-latest
+            permissions:
+              id-token: write # Deno Deploy 인증에 필요
+              contents: read # 저장소를 복제하는 데 필요
+
+            steps:
+              - name: Clone repository
+                uses: actions/checkout@v4
+
+              # npm을 사용하지 않나요? `npm ci`를 `yarn install` 또는 `pnpm i`로 변경하세요.
+              - name: Install dependencies
+                run: npm ci
+
+              # npm을 사용하지 않나요? `npm run build`를 `yarn build` 또는 `pnpm run build`로 변경하세요.
+              - name: Build Astro
+                run: npm run build
+
+              - name: Upload to Deno Deploy
+                uses: denoland/deployctl@v1
+                with:
+                  project: my-deno-project # TODO: Deno Deploy 프로젝트 이름으로 변경
+                  entrypoint: server/entry.mjs
+                  root: dist
+        ```
+      </Fragment>
+    </StaticSsrTabs>
 
 5. 이 YAML 파일을 커밋하고 구성된 배포 브랜치에서 GitHub로 푸시하면 배포가 자동으로 시작됩니다!
 
@@ -136,7 +183,7 @@ GitHub Actions 또는 Deno Deploy의 CLI (명령줄 인터페이스)를 사용�
 1. [Deno Deploy CLI](https://docs.deno.com/deploy/manual/deployctl)를 설치합니다.
 
     ```bash
-    deno install --allow-read --allow-write --allow-env --allow-net --allow-run --no-check -r -f https://deno.land/x/deploy/deployctl.ts
+    deno install -gArf jsr:@deno/deployctl
     ```
 
 2. Astro 빌드 단계를 실행합니다.
@@ -149,14 +196,41 @@ GitHub Actions 또는 Deno Deploy의 CLI (명령줄 인터페이스)를 사용�
 
     아래 명령에서 `<ACCESS-TOKEN>`을 [Personal Access Token](https://dash.deno.com/account#access-tokens)으로 바꾸고 `<MY-DENO-PROJECT>`를 Deno Deploy 프로젝트 이름으로 바꿉니다.
 
-    ```bash
-    DENO_DEPLOY_TOKEN=<ACCESS-TOKEN> deployctl deploy --project=<MY-DENO-PROJECT> --no-static --include=./dist ./dist/server/entry.mjs
-    ```
+    <StaticSsrTabs>
+      <Fragment slot="static">
+        ```bash
+        cd dist && DENO_DEPLOY_TOKEN=<ACCESS-TOKEN> deployctl deploy --project=<MY-DENO-PROJECT> jsr:@std/http/file-server
+        ```
+      </Fragment>
+      
+      <Fragment slot="ssr">
+        ```bash
+        DENO_DEPLOY_TOKEN=<ACCESS-TOKEN> deployctl deploy --project=<MY-DENO-PROJECT> --no-static --include=./dist ./dist/server/entry.mjs
+        ```
+      </Fragment>
+    </StaticSsrTabs>
     
     [Deno Deploy](https://dash.deno.com)에서 모든 배포를 추적할 수 있습니다.
 
 4. (선택 사항) 빌드를 단순화하고 하나의 명령으로 배포하려면 `package.json` 파일에 `deploy-deno` 스크립트를 추가하세요.
 
+    <StaticSsrTabs>
+      <Fragment slot="static">
+        ```json ins={9}
+        // package.json
+        {
+          // ...
+          "scripts": {
+          "dev": "astro dev",
+          "start": "astro dev",
+          "build": "astro build",
+          "preview": "astro preview",
+          "deno-deploy": "npm run build && cd dist && deployctl deploy --project=<MY-DENO-PROJECT> jsr:@std/http/file-server"
+          }
+        }
+        ```
+      </Fragment>
+      <Fragment slot="ssr">
     ```json ins={9}
     // package.json
     {
@@ -170,6 +244,8 @@ GitHub Actions 또는 Deno Deploy의 CLI (명령줄 인터페이스)를 사용�
       }
     }
     ```
+      </Fragment>
+    </StaticSsrTabs>
     
     그런 다음 이 명령을 사용하여 Astro 사이트를 한 단계로 빌드하고 배포할 수 있습니다.
     
@@ -177,7 +253,5 @@ GitHub Actions 또는 Deno Deploy의 CLI (명령줄 인터페이스)를 사용�
     DENO_DEPLOY_TOKEN=<ACCESS-TOKEN> npm run deno-deploy
     ```
 </Steps>
-
-<ReadMore>[Astro의 SSR](/ko/guides/server-side-rendering/)에 대해 자세히 알아보세요.</ReadMore>
 
 [Deno adapter]: https://github.com/denoland/deno-astro-adapter
