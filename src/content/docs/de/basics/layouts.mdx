@@ -190,8 +190,63 @@ Ein Markdown-Layout hat Zugriff auf alle [verfügbaren Eigenschaften](/de/guides
 
 * Die Überschrifteninformationen (d.h. die Elemente `h1 -> h6`) sind über das Array `headings` verfügbar und nicht über die Funktion `getHeadings()`.
 
-*   `file` and `url` are *also* available as nested `frontmatter` properties (i.e. `frontmatter.url` and `frontmatter.file`).
+* `file` and `url` are *also* available as nested `frontmatter` properties (i.e. `frontmatter.url` and `frontmatter.file`).
 
 :::
 
+### Manuelles Importieren von Layouts (MDX)
 
+Du kannst auch die spezielle Markdown-Layout-Eigenschaft im Frontmatter von MDX-Dateien verwenden, um die Eigenschaften `frontmatter` und `headings` auf die gleiche Weise direkt an eine bestimmte Layoutkomponente zu übergeben. 
+
+Um Informationen an dein MDX-Layout zu übergeben, die in deinem Frontmatter nicht vorhanden sind (oder sein können), kannst du stattdessen eine `<Layout />`-Komponente importieren und verwenden. Diese funktioniert wie jede andere Astro-Komponente und erhält nicht automatisch Eigenschaften. Übergib ihr alle notwendigen Eigenschaften direkt:
+
+```mdx title="src/pages/posts/first-post.mdx" ins={6} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/
+---
+layout: ../../layouts/BaseLayout.astro
+title: 'Mein erster MDX Beitrag'
+publishDate: '21. September 2022'
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export function fancyJsHelper() {
+  return "Versuch das mal mit YAML zu machen!";
+}
+
+<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>
+  Willkommen auf meinem neuen Astro-Blog, der MDX verwendet!
+</BaseLayout>
+```
+
+Dann stehen dir deine Werte über `Astro.props` in deinem Layout zur Verfügung, und dein MDX-Inhalt wird in die Seite injiziert, in der deine `<Slot />`-Komponente geschrieben wird:
+
+```astro title="src/layouts/BaseLayout.astro" /{?title}?/ "fancyJsHelper" "{fancyJsHelper()}"
+---
+const { title, fancyJsHelper } = Astro.props;
+---
+<!-- -->
+<h1>{title}</h1>
+<slot /> <!-- dein Inhalt wird hier eingefügt -->
+<p>{fancyJsHelper()}</p>
+<!-- -->
+```
+
+<ReadMore>Erfahre mehr über die Markdown- und MDX-Unterstützung von Astro in unserem [Markdown-Leitfaden](/de/guides/markdown-content/).</ReadMore>
+
+## Verschachtelte Layouts
+ 
+Layout-Komponenten müssen nicht unbedingt eine ganze Seite mit HTML enthalten. Du kannst deine Layouts in kleinere Komponenten aufteilen und Layoutkomponenten kombinieren, um noch flexiblere Seitenvorlagen zu erstellen. Dieses Muster ist nützlich, wenn du einen Teil des Codes für mehrere Layouts verwenden willst.
+
+Eine Layoutkomponente `BlogPostLayout.astro` könnte zum Beispiel den Titel, das Datum und den Autor eines Beitrags gestalten. Ein seitenweites `BaseLayout.astro` könnte dann den Rest deiner Seitenvorlage übernehmen, wie Navigation, Fußzeilen, SEO-Meta-Tags, globale Stile und Schriftarten. Du kannst auch Requisiten, die du von deinem Beitrag erhalten hast, an ein anderes Layout weitergeben, genau wie jede andere verschachtelte Komponente.
+
+```astro {3} /</?BaseLayout>/ /</?BaseLayout url={frontmatter.url}>/
+---
+// src/layouts/BlogPostLayout.astro
+import BaseLayout from './BaseLayout.astro';
+const { frontmatter } = Astro.props;
+---
+<BaseLayout url={frontmatter.url}>
+  <h1>{frontmatter.title}</h1>
+  <h2>Beitragsautor: {frontmatter.author}</h2>
+  <slot />
+</BaseLayout>
+```
