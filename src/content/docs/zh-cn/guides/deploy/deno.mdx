@@ -6,6 +6,7 @@ i18nReady: true
 ---
 import ReadMore from '~/components/ReadMore.astro';
 import { Steps } from '@astrojs/starlight/components';
+import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro';
 
 你可以将一个使用服务器端渲染的 Astro 网站部署到 Deno Deploy，它是一个在全球范围边的边缘服务上运行 JavaScript、TypeScript 和 WebAssembly 的分布式系统。
 
@@ -17,9 +18,11 @@ import { Steps } from '@astrojs/starlight/components';
 
 ## 项目配置
 
-本页面提供了将你的 Astro 项目作为服务端渲染（SSR）站点部署到 [Deno Deploy](https://deno.com/deploy) 的指南。
+你的 Astro 项目可以作为静态站点或服务器端渲染站点（SSR）部署到 [Deno Deploy](https://deno.com/deploy)。
 
-要部署静态站点，请参阅 [Deno 部署静态站点教程](https://docs.deno.com/deploy/tutorials/static-site)。
+### 静态站点
+
+你的 Astro 项目默认是一个静态站点。你不需要任何额外的配置就可以将静态 Astro 站点部署到 Deno Deploy。
 
 ### SSR 适配器
 
@@ -74,7 +77,7 @@ npx astro add deno
     ```
 </Steps>
 
-## 如何部署 SSR Astro 站点
+## 如何部署
 
 你可以通过 GitHub Actions 或使用 Deno Deploy 的命令行界面（CLI）将项目部署到 Deno Deploy。
 
@@ -91,37 +94,71 @@ npx astro add deno
 
 4. 在你的 Astro 项目中，创建一个名为 `.github/workflows/deploy.yml` 的新文件，并粘贴下面的 YAML 内容。这类似于 Deno Deploy 提供的 YAML，但还包括你的 Astro 站点所需的其他步骤。
 
-    ```yaml
-    name: Deploy
-    on: [push]
-
-    jobs:
-      deploy:
+    <StaticSsrTabs>
+      <Fragment slot="static">
+        ```yaml
+        ---
+        // .github/workflows/deploy.yml
+        ---
         name: Deploy
-        runs-on: ubuntu-latest
-        permissions:
-          id-token: write # 用于 Deno Deploy 身份认证
-          contents: read # 用于克隆仓库
-
-        steps:
-          - name: Clone repository
-            uses: actions/checkout@v4
-
-          # 没有使用 npm？请将 `npm ci` 修改为 `yarn install` 或 `pnpm i`
-          - name: Install dependencies
-            run: npm ci
-
-          # 没有使用 npm？请将 `npm run build` 修改为 `yarn build` 或 `pnpm run build`
-          - name: Build Astro
-            run: npm run build
-
-          - name: Upload to Deno Deploy
-            uses: denoland/deployctl@v1
-            with:
-              project: my-deno-project # TODO: 替换为 Deno Deploy 项目的名称
-              entrypoint: server/entry.mjs
-              root: dist
-    ```
+        on: [push]
+        jobs:
+          deploy:
+            name: Deploy
+            runs-on: ubuntu-latest
+            permissions:
+              id-token: write # 使用 Deno Deploy 进行身份验证时需要
+              contents: read # 需要克隆仓库
+            steps:
+              - name: Clone repository
+                uses: actions/checkout@v4
+              # 没有在使用 npm？将 `npm ci` 更改为 `yarn install` 或 `pnpm i`
+              - name: Install dependencies
+                run: npm ci
+              # 没有在使用 npm？将 `npm run build` 更改为 `yarn build` 或 `pnpm run build`
+              - name: Build Astro
+                run: npm run build
+              - name: Upload to Deno Deploy
+                uses: denoland/deployctl@v1
+                with:
+                  project: my-deno-project # TODO：替换为 Deno Deploy 项目名称
+                  entrypoint: jsr:@std/http/file-server
+                  root: dist
+        ```
+      </Fragment>
+      
+      <Fragment slot="ssr">
+        ```yaml
+        ---
+        // .github/workflows/deploy.yml
+        ---
+        name: Deploy
+        on: [push]
+        jobs:
+          deploy:
+            name: Deploy
+            runs-on: ubuntu-latest
+            permissions:
+              id-token: write # 使用 Deno Deploy 进行身份验证时需要
+              contents: read # 需要克隆仓库
+            steps:
+              - name: Clone repository
+                uses: actions/checkout@v4
+              # 没有在使用 npm？将 `npm ci` 更改为 `yarn install` 或 `pnpm i`
+              - name: Install dependencies
+                run: npm ci
+              # 没有在使用 npm？将 `npm run build` 更改为 `yarn build` 或 `pnpm run build`
+              - name: Build Astro
+                run: npm run build
+              - name: Upload to Deno Deploy
+                uses: denoland/deployctl@v1
+                with:
+                  project: my-deno-project # TODO：替换为 Deno Deploy 项目名称
+                  entrypoint: server/entry.mjs
+                  root: dist
+        ```
+      </Fragment>
+    </StaticSsrTabs>
 
 5. 提交此 YAML 文件，然后推送到你配置的部署分支后，将会自动开始部署！
 
@@ -134,7 +171,7 @@ npx astro add deno
 1. 安装 [Deno Deploy CLI](https://docs.deno.com/deploy/manual/deployctl)。
 
     ```bash
-    deno install --allow-read --allow-write --allow-env --allow-net --allow-run --no-check -r -f https://deno.land/x/deploy/deployctl.ts
+    deno install -gArf jsr:@deno/deployctl
     ```
 
 2. 运行 Astro 的构建步骤。
@@ -147,14 +184,41 @@ npx astro add deno
 
    在下面的命令中，将 `<ACCESS-TOKEN>` 替换为你的 [个人访问令牌](https://dash.deno.com/account#access-tokens)，将 `<MY-DENO-PROJECT>` 替换为你的 Deno Deploy 项目名称。
 
-    ```bash
-    DENO_DEPLOY_TOKEN=<ACCESS-TOKEN> deployctl deploy --project=<MY-DENO-PROJECT> --no-static --include=./dist ./dist/server/entry.mjs
-    ```
+    <StaticSsrTabs>
+      <Fragment slot="static">
+        ```bash
+        cd dist && DENO_DEPLOY_TOKEN=<ACCESS-TOKEN> deployctl deploy --project=<MY-DENO-PROJECT> jsr:@std/http/file-server
+        ```
+      </Fragment>
+      
+      <Fragment slot="ssr">
+        ```bash
+        DENO_DEPLOY_TOKEN=<ACCESS-TOKEN> deployctl deploy --project=<MY-DENO-PROJECT> --no-static --include=./dist ./dist/server/entry.mjs
+        ```
+      </Fragment>
+    </StaticSsrTabs>
 
     你可以在 [Deno Deploy](https://dash.deno.com) 上跟踪所有部署。
 
 4. (可选) 为了将构建和部署简化为一个命令，可以在 `package.json` 中添加一个 `deploy-deno` 脚本。
 
+    <StaticSsrTabs>
+      <Fragment slot="static">
+        ```json ins={9}
+        // package.json
+        {
+          // ...
+          "scripts": {
+          "dev": "astro dev",
+          "start": "astro dev",
+          "build": "astro build",
+          "preview": "astro preview",
+          "deno-deploy": "npm run build && cd dist && deployctl deploy --project=<MY-DENO-PROJECT> jsr:@std/http/file-server"
+          }
+        }
+        ```
+      </Fragment>
+      <Fragment slot="ssr">
     ```json ins={9}
     // package.json
     {
@@ -168,6 +232,8 @@ npx astro add deno
       }
     }
     ```
+      </Fragment>
+    </StaticSsrTabs>
 
     然后你可以使用以下命令一步构建和部署你的 Astro 站点。
 
@@ -175,7 +241,5 @@ npx astro add deno
     DENO_DEPLOY_TOKEN=<ACCESS-TOKEN> npm run deno-deploy
     ```
 </Steps>
-
-<ReadMore>了解更多关于 [Astro 中的 SSR](/zh-cn/guides/server-side-rendering/) 的内容。</ReadMore>
 
 [Deno adapter]: https://github.com/denoland/deno-astro-adapter
