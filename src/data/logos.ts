@@ -17,6 +17,7 @@ export const logos = LogoCheck({
 	deno: { file: 'deno.svg', padding: '0' },
 	edgio: { file: 'edgio.svg', padding: '.1625em' },
 	fleek: { file: 'fleek.svg', padding: '0.1000em' },
+	flotiq: { file: 'flotiq.svg', padding: '.05em' },
 	flyio: { file: 'flyio.svg', padding: '.1625em' },
 	github: { file: 'github.svg', padding: '0.125em 0.125em 0.1375em' },
 	gitlab: { file: 'gitlab.svg', padding: '0' },
