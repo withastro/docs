@@ -1,14 +1,12 @@
 import starlight from '@astrojs/starlight';
 import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections';
 import { defineConfig, sharpImageService } from 'astro/config';
-import { makeLocalesConfig } from './config/locales';
-
 import rehypeSlug from 'rehype-slug';
 import remarkSmartypants from 'remark-smartypants';
-
 import { sidebar } from './astro.sidebar';
 import { devServerFileWatcher } from './config/integrations/dev-server-file-watcher';
 import { sitemap } from './config/integrations/sitemap';
+import { makeLocalesConfig } from './config/locales';
 import { starlightPluginAutolinkHeadings } from './config/plugins/rehype-autolink';
 import { rehypeTasklistEnhancer } from './config/plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './config/plugins/remark-fallback-lang';
