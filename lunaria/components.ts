@@ -252,7 +252,9 @@ export const TableContentStatus = (
 	const isMissingKeys = 'missingKeys' in localization && localization.missingKeys.length > 0;
 	const status = isMissingKeys ? 'outdated' : localization.status;
 	const links = lunaria.gitHostingLinks();
-	return html`<td>${EmojiFileLink(links.create(localization.path), status)}</td>`;
+	const link =
+		status === 'missing' ? links.create(localization.path) : links.source(localization.path);
+	return html`<td>${EmojiFileLink(link, status)}</td>`;
 };
 
 export const ContentDetailsLinks = (
