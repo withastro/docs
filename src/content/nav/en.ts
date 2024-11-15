@@ -17,9 +17,6 @@ export default {
 	reference: 'Reference',
 	'reference.configuration': 'Configuration',
 	'reference.runtime': 'Runtime API',
-	'reference.cli': 'CLI',
-	'reference.errors': 'Errors',
-	'reference.errors.messages': 'Error messages',
 	'reference.other': 'Other development APIs',
 
 	integrations: 'Integrations',

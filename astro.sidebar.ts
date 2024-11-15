@@ -107,18 +107,8 @@ export const sidebar = [
 					'reference/modules/astro-transitions',
 				],
 			}),
-			group('reference.cli', {
-				items: ['reference/cli-reference'],
-			}),
-			group('reference.errors', {
-				items: [
-					'reference/error-reference',
-					group('reference.errors.messages', {
-						collapsed: true,
-						autogenerate: { directory: 'reference/errors' },
-					}),
-				],
-			}),
+			'reference/cli-reference',
+			'reference/error-reference',
 			group('reference.other', {
 				items: [
 					'reference/integrations-reference',
