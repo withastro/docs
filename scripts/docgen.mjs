@@ -68,9 +68,9 @@ export async function run() {
 		.filter((c) => c.includes('* @docs'))
 		.join('\n\n');
 
-	const allParsedComments = jsdoc
-		.explainSync({ source: allCommentsInput })
-		.filter((/** @type {any} */ data) => data.tags);
+	const allParsedComments = (await jsdoc.explain({ source: allCommentsInput })).filter(
+		(/** @type {any} */ data) => data.tags
+	);
 
 	let result = ``;
 
