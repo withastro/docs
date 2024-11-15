@@ -6,14 +6,14 @@ export default NavDictionary({
 	'install-and-setup': 'インストールとセットアップ',
 	'guides/deploy': 'サイトのデプロイ',
 	'guides/migrate-to-astro': 'Astroへの移行',
-	'blog-tutorial': 'ブログを作る',
+	'blog-tutorial': 'チュートリアル： ブログを作る',
 
 	coreConcepts: 'コアコンセプト',
 	'concepts/why-astro': 'Astroを選ぶ理由',
 	'concepts/islands': 'Astroアイランド',
 
 	basics: '基本',
-	'basics/project-structure': 'ディレクトリ構成',
+	'basics/project-structure': 'プロジェクトの構成',
 	'basics/astro-components': 'コンポーネント',
 	'basics/astro-pages': 'ページ',
 	'basics/layouts': 'レイアウト',
@@ -42,6 +42,7 @@ export default NavDictionary({
 	'guides/styling': 'CSSとスタイル',
 	'guides/images': '画像',
 	'guides/fonts': 'フォント',
+	'guides/syntax-highlighting': 'シンタックスハイライト',
 	'guides/media': 'ホストされたメディアやDAMの接続',
 
 	data: 'データ接続',
@@ -61,19 +62,19 @@ export default NavDictionary({
 	'guides/testing': 'テスト',
 	'guides/troubleshooting': 'トラブルシューティング',
 
-	communityResources: 'コミュニティリソース',
-	'community-resources/content': 'コース、ガイド、レシピ',
-	'community-resources/talks': 'トーク、インタビュー、配信',
+	communityResources: 'レシピとリソース',
+	recipes: 'レシピの活用',
+	'community-resources/content': 'コミュニティリソース',
 
 	reference: 'リファレンス',
 	'reference/configuration-reference': '設定方法',
-	'reference/api-reference': 'ランタイムAPI',
 	'reference/cli-reference': 'Astro CLI',
 	'reference/directives-reference': 'テンプレートディレクティブ',
 	'guides/typescript': 'TypeScript',
 	'reference/error-reference': 'エラーリファレンス',
 
 	'api-reference': 'Astro APIリファレンス',
+	'reference/api-reference': 'ランタイムAPI',
 	'reference/modules/astro-actions': 'astro:actions',
 	'reference/modules/astro-assets': 'astro:assets',
 	'reference/modules/astro-content': 'astro:content',
