@@ -2,9 +2,9 @@
 import { Icon } from '@astrojs/starlight/components';
 import Default from '@astrojs/starlight/components/Sidebar.astro';
 import type { Props } from '@astrojs/starlight/props';
-import { getEntry } from 'astro:content';
 import type { SidebarEntry } from 'node_modules/@astrojs/starlight/utils/navigation';
 import { stripLeadingAndTrailingSlashes } from 'node_modules/@astrojs/starlight/utils/path';
+import { allPages } from '~/content';
 import { isSubPage } from '~/util/isSubPage';
 import { stripLangFromSlug } from '~/util/path-utils';
 import Sponsors from '../LeftSidebar/Sponsors.astro';
@@ -17,18 +17,19 @@ const { sidebar, slug } = Astro.props;
 // Recursively tweaks properties of sidebar entries.
 // - Adds a fallback class to entries in the sidebar that don’t exist in the current language.
 // - Marks pages as “current” if they parents of pages that don’t appear in the sidebar.
-async function markEntries(i: SidebarEntry) {
+function markEntries(i: SidebarEntry) {
 	if (i.type === 'group') {
-		i.entries = await Promise.all(i.entries.map(markEntries));
-		return i;
+		i.entries.forEach(markEntries);
+	} else {
+		const itemSlug = stripLeadingAndTrailingSlashes(i.href);
+		// @ts-expect-error — `itemSlug` is not typed as a page slug, even though we know it is
+		const itemSlugWithoutLang = stripLangFromSlug(itemSlug);
+		const isFallback = !allPages.some((entry) => entry.slug === itemSlug);
+		if (isFallback) i.attrs.class = 'fallback';
+		i.isCurrent ||= isSubPage(slug, itemSlugWithoutLang);
 	}
-	const itemSlug = stripLeadingAndTrailingSlashes(i.href);
-	const fallback = (await getEntry('docs', itemSlug)) ? undefined : true;
-	i.attrs.class = fallback ? 'fallback' : undefined;
-	i.isCurrent ||= isSubPage(slug, stripLangFromSlug(itemSlug));
-	return i;
 }
-await Promise.all(sidebar.map(markEntries));
+sidebar.forEach(markEntries);
 
 // Make sure all top-level items in the sidebar are groups.
 type Group = Extract<SidebarEntry, { type: 'group' }>;
