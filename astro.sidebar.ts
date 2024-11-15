@@ -90,9 +90,7 @@ export const sidebar = [
 	// Reference tab
 	group('reference', {
 		items: [
-			group('reference.configuration', {
-				items: ['reference/configuration-reference'],
-			}),
+			'reference/configuration-reference',
 			group('reference.runtime', {
 				items: [
 					'reference/api-reference',

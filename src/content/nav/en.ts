@@ -15,7 +15,6 @@ export default {
 	'guides.recipes': 'How-to recipes',
 
 	reference: 'Reference',
-	'reference.configuration': 'Configuration',
 	'reference.runtime': 'Runtime API',
 	'reference.other': 'Other development APIs',
 
