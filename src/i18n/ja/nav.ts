@@ -6,7 +6,7 @@ export default NavDictionary({
 	'install-and-setup': 'インストールとセットアップ',
 	'guides/deploy': 'サイトのデプロイ',
 	'guides/migrate-to-astro': 'Astroへの移行',
-	'blog-tutorial': 'チュートリアル： ブログを作る',
+	'blog-tutorial': 'チュートリアル: ブログを作る',
 
 	coreConcepts: 'コアコンセプト',
 	'concepts/why-astro': 'Astroを選ぶ理由',
