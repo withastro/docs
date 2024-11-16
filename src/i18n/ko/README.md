@@ -77,6 +77,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 | frontmatter         | 프런트매터    |
 | guide               | 가이드        |
 | header              | 헤더        |
+| hook                | 훅          |
 | hydration           | 하이드레이션   |
 | integration         | 통합          |
 | island              | 아일랜드      |
