@@ -80,6 +80,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 | hydration           | 하이드레이션   |
 | integration         | 통합          |
 | island              | 아일랜드      |
+| on-demand           | 온디맨드      |
 | production          | 프로덕션      |
 | release             | 릴리스        |
 | resources           | 리소스        |
