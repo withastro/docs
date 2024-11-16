@@ -62,7 +62,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 | 원문                | 번역          |
 | :------------------ | :------------ |
-| actions           | 액션     |
+| actions             | 액션     |
 | changelog           | 변경 로그     |
 | client-side         | 클라이언트 측 |
 | component           | 컴포넌트      |
@@ -81,9 +81,9 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 | integration         | 통합          |
 | island              | 아일랜드      |
 | on-demand           | 온디맨드      |
+| prerender           | 사전 렌더링    |
 | production          | 프로덕션      |
 | release             | 릴리스        |
 | resources           | 리소스        |
 | server-side         | 서버 측       |
-| syntax              | 구문          |
 | troubleshooting     | 문제 해결     |
