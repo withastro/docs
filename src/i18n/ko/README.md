@@ -86,6 +86,7 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 | production          | 프로덕션      |
 | release             | 릴리스        |
 | resources           | 리소스        |
+| rewrite             | 리라이트   |
 | route               | 라우트        |
 | server-side         | 서버 측       |
 | troubleshooting     | 문제 해결     |
