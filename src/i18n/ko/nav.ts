@@ -29,7 +29,7 @@ export default NavDictionary({
 	'guides/cms': 'CMS 연결',
 	'guides/rss': 'RSS 피드 추가',
 
-	routes: '경로 및 탐색',
+	routes: '라우트 및 탐색',
 	'guides/routing': '라우팅',
 	'guides/endpoints': '엔드포인트',
 	'guides/actions': '액션',
