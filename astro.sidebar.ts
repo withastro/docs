@@ -119,6 +119,7 @@ export const sidebar = [
 					'reference/image-service-reference',
 					'reference/dev-toolbar-app-reference',
 					'reference/container-reference',
+					'reference/programmatic-reference',
 				],
 			}),
 			'reference/error-reference',
