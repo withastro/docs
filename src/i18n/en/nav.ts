@@ -187,6 +187,11 @@ export default [
 		slug: 'reference/container-reference',
 		key: 'reference/container-reference',
 	},
+	{
+		text: 'Programmatic Astro API (Experimental)',
+		slug: 'reference/programmatic-reference',
+		key: 'reference/programmatic-reference',
+	},
 
 	// { text: 'Configuration', header: true, type: 'learn', key: 'configuration' },
 	// {
