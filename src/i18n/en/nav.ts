@@ -193,28 +193,6 @@ export default [
 		key: 'reference/programmatic-reference',
 	},
 
-	{ text: 'Feature Flags', header: true, type: 'api', key: 'feat' },
-	{
-		text: 'Feature flag overview',
-		slug: 'reference/feature-flags',
-		key: 'reference/feature-flags',
-	},
-	{
-		text: 'clientPrerender (experimental)',
-		slug: 'reference/feature-flags/experimental-client-prerender',
-		key: 'reference/feature-flags/experimental-client-prerender',
-	},
-	{
-		text: 'contentIntellisense (experimental)',
-		slug: 'reference/feature-flags/experimental-content-intellisense',
-		key: 'reference/feature-flags/experimental-content-intellisense',
-	},
-	{
-		text: 'collections (legacy)',
-		slug: 'reference/feature-flags/legacy-collections',
-		key: 'reference/feature-flags/legacy-collections',
-	},
-
 	// { text: 'Configuration', header: true, type: 'learn', key: 'configuration' },
 	// {
 	// 	text: 'The Astro Config File',
