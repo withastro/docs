@@ -27,7 +27,6 @@ export default defineConfig({
 		]),
 		starlight({
 			title: 'Docs',
-			customCss: ['./src/styles/custom.css'],
 			expressiveCode: {
 				plugins: [pluginCollapsibleSections()],
 			},
