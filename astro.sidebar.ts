@@ -89,19 +89,15 @@ export const sidebar = [
 	// Reference tab
 	group('reference', {
 		items: [
-			
 			group('reference.syntax', {
-				items: [
-					'basics/astro-syntax',
-					'reference/directives-reference',
-				],
+				items: ['basics/astro-syntax', 'reference/directives-reference'],
 			}),
 			'reference/configuration-reference',
 			'reference/cli-reference',
+			'guides/imports',
 			group('reference.runtime', {
 				items: [
 					'reference/api-reference',
-					'guides/imports',
 					'reference/modules/astro-actions',
 					'reference/modules/astro-assets',
 					'reference/modules/astro-content',
