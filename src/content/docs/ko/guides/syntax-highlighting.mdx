@@ -1,0 +1,228 @@
+---
+title: 구문 강조
+description: Astro에서 코드 블록을 강조 표시하는 방법을 알아봅니다.
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+Astro는 기본적으로 [Shiki](https://shiki.style/) 및 [Prism](https://prismjs.com/)을 지원합니다. 이를 통해 구문 강조 표시를 제공합니다:
+
+- Markdown 또는 MDX 파일에서 사용되는 모든 [코드 펜스 (\`\`\`)](#markdown-코드-블록).
+- `.astro` 파일의 [내장 `<Code />` 컴포넌트](#code-) (Shiki 제공) 내 콘텐츠.
+- `.astro` 파일의 [`<Prism />` 컴포넌트](#prism-) (Prism 제공) 내 콘텐츠.
+
+[Expressive Code와 같은 커뮤니티 통합](https://astro.build/integrations/?search=syntax+highlight)을 추가하면 코드 블록에서 더 많은 텍스트 표시 및 주석 옵션을 사용할 수 있습니다.
+
+## Markdown 코드 블록
+
+Markdown 코드 블록은 시작과 끝에 백틱 세 개 (\`\`\`)가 있는 블록으로 표시됩니다. 시작 백틱 뒤에 사용 중인 프로그래밍 언어를 표시하면 코드의 색상과 스타일을 지정하여 읽기 쉽게 만들 수 있습니다.
+
+``````markdown
+```js
+// 구문 강조를 사용하는 Javascript 코드
+var fun = function lang(l) {
+  dateformat.i18n = require('./lang/' + l);
+  return true;
+};
+```
+``````
+
+Astro의 Markdown 코드 블록은 기본적으로 Shiki에 의해 스타일이 지정되며, `github-dark` 테마로 미리 구성됩니다. 컴파일된 출력은 불필요한 CSS 클래스, 스타일시트 또는 클라이언트 측 JS가 없는 인라인 `스타일`로 제한됩니다.
+
+[Prism 스타일시트를 추가하여 Prism의 강조 표시로 전환](#prism-스타일시트-추가)하거나, [`markdown.syntaxHighlighting`](/ko/reference/configuration-reference/#markdownsyntaxhighlight) 구성 옵션을 사용하여 Astro의 구문 강조 표시를 완전히 비활성화할 수 있습니다.
+
+<ReadMore>Shiki와 함께 사용할 수 있는 Markdown 구문 강조 옵션의 전체 목록은 [`markdown.shikiConfig` 참조](/ko/reference/configuration-reference/#markdownshikiconfig)를 확인하세요.</ReadMore>
+
+### Shiki의 기본 테마 설정
+
+Astro 구성에서 Markdown 코드 블록에 대한 [기본 Shiki 테마](https://shiki.style/themes)를 구성할 수 있습니다:
+
+```js title="astro.config.mjs" {6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: {
+      theme: 'dracula',
+    },
+  },
+});
+```
+<ReadMore>Markdown 코드 블록 옵션의 전체 목록은 [Shiki 구성 참조](/ko/reference/configuration-reference/#markdownshikiconfig)를 확인하세요.</ReadMore>
+
+### 라이트 및 다크 모드 테마 설정
+
+Astro 구성에서 라이트 및 다크 모드를 위한 두 개의 Shiki 테마를 지정할 수 있습니다:
+
+```js title="astro.config.mjs" {6-9}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: {
+      themes: {
+        light: 'github-light',
+        dark: 'github-dark',
+      },
+    },
+  },
+});
+```
+
+그런 다음 [미디어 쿼리 또는 클래스를 통해 Shiki의 다크 모드 CSS 변수를 추가](https://shiki.style/guide/dual-themes#query-based-dark-mode)하여 모든 Markdown 코드 블록에 기본값으로 적용합니다. Shiki 문서 예시의 `.shiki` 클래스를 `.astro-code`로 바꿉니다:
+
+```css title="src/styles/global.css" del={2,3} ins={4,5}
+@media (prefers-color-scheme: dark) {
+  .shiki,
+  .shiki span {
+  .astro-code,
+  .astro-code span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+    /* 선택적으로, 글꼴 스타일을 원하면 사용하세요. */
+    font-style: var(--shiki-dark-font-style) !important;
+    font-weight: var(--shiki-dark-font-weight) !important;
+    text-decoration: var(--shiki-dark-text-decoration) !important;
+  }
+}
+```
+
+<ReadMore>Markdown 코드 블록 옵션의 전체 목록은 [Shiki 구성 참조](/ko/reference/configuration-reference/#markdownshikiconfig)를 확인하세요.</ReadMore>
+
+### 나만의 Shiki 테마 추가
+
+Shiki의 사전 정의된 테마 중 하나를 사용하는 대신 로컬 파일에서 사용자 정의 Shiki 테마를 가져올 수 있습니다.
+
+```js title="astro.config.mjs" ins={2,7}
+import { defineConfig } from 'astro/config';
+import customTheme from './my-shiki-theme.json';
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: { 
+      theme: customTheme,
+    },
+  },
+});
+```
+
+### Shiki 테마 사용자 정의
+
+[Shiki의 테마 문서](https://shiki.style/themes)에서 테마, 라이트 및 다크 모드 토글 또는 CSS 변수를 통한 스타일링에 대한 더 많은 사용자 정의 옵션을 확인할 수 있습니다.
+
+Astro 코드 블록은 `.astro-code` 클래스를 사용하여 스타일이 지정되므로 예시의 `.shiki` 클래스를 `.astro-code`로 바꿔야 합니다.
+
+## 코드 블록 컴포넌트
+
+코드 블록을 렌더링하기 위해 `.astro` 및 `.mdx` 파일에서 사용할 수 있는 두 가지 Astro 컴포넌트가 있습니다: [`<Code />`](#code-) 및 [`<Prism />`](#prism-).
+
+이러한 컴포넌트의 `Props`는 [`ComponentProps` 타입](/ko/guides/typescript/#componentprops-타입) 유틸리티를 사용하여 참조할 수 있습니다.
+
+### `<Code />`
+
+이 컴포넌트는 내부적으로 Shiki에 의해 구동됩니다. 인기 있는 모든 Shiki 테마와 언어뿐만 아니라 사용자 지정 테마, 언어, [트랜스포머](#transformers), 기본 색상 등 여러 다양한 Shiki 옵션을 지원합니다.
+
+이러한 값은 각각 `theme`, `lang`, `transformers`, `defaultColor` 속성을 사용하여 `<Code />` 컴포넌트에 props로 전달됩니다. `<Code />` 컴포넌트는 Markdown 코드 블록에 대한 `shikiConfig` 설정을 상속하지 않습니다.
+
+```astro 'theme="dark-plus"' /wrap\b/ /(inline) \/>/ 'defaultColor={false}'
+---
+import { Code } from 'astro:components';
+---
+<!-- 일부 JavaScript 코드에 구문 강조 표시. -->
+<Code code={`const foo = 'bar';`} lang="js" />
+<!-- 선택 사항: 테마 사용자 정의. -->
+<Code code={`const foo = 'bar';`} lang="js" theme="dark-plus" />
+<!-- 선택 사항: 줄바꿈 활성화. -->
+<Code code={`const foo = 'bar';`} lang="js" wrap />
+<!-- 선택 사항: 인라인 코드 출력. -->
+<p>
+  <Code code={`const foo = 'bar';`} lang="js" inline />
+  will be rendered inline.
+</p>
+<!-- 선택 사항: defaultColor (기본 색상) -->
+<Code code={`const foo = 'bar';`} lang="js" defaultColor={false} />
+```
+
+#### Transformers
+
+<p><Since v="4.11.0" /></p>
+
+`transformers` 속성에 트랜스포머로 구성된 배열을 전달하여 선택적으로 [Shiki 트랜스포머](https://shiki.style/packages/transformers#shikijs-transformers)를 코드에 적용할 수 있습니다. Astro v4.14.0부터는 [Shiki의 `meta` 속성](https://shiki.style/guide/transformers#meta)에 문자열을 제공하여 트랜스포머에 옵션을 전달할 수도 있습니다.
+
+`트랜스포머`는 클래스만 적용하므로 코드 블록의 요소를 타겟팅하려면 고유한 CSS 규칙을 제공해야 합니다.
+
+```astro title="src/pages/index.astro" {12-13}
+---
+import { transformerNotationFocus, transformerMetaHighlight } from '@shikijs/transformers'
+import { Code } from 'astro:components'
+const code = `const foo = 'hello'
+const bar = ' world'
+console.log(foo + bar) // [!code focus]
+`
+---
+<Code
+  code={code}
+  lang="js"
+  transformers={[transformerMetaHighlight()]}
+  meta="{1,3}"
+/>
+  
+<style is:global>
+  pre.has-focused .line:not(.focused) {
+    filter: blur(1px);
+  }
+</style>
+```
+
+### `<Prism />`
+
+이 컴포넌트는 Prism의 CSS 클래스를 적용하여 코드 블록에 언어별 구문 강조 표시를 제공합니다. 클래스의 스타일을 지정하려면 [Prism CSS 스타일시트를 제공](#prism-스타일시트-추가) (또는 직접 가져오기)해야 합니다.
+
+`Prism` 구문 강조 컴포넌트를 사용하려면 `@astrojs/prism` 패키지를 설치해야 합니다:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @astrojs/prism
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @astrojs/prism
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/prism
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+그런 다음 언어와 렌더링할 코드를 전달하여 다른 Astro 컴포넌트와 마찬가지로 `<Prism />` 컴포넌트를 가져와 사용할 수 있습니다.
+
+```astro
+---
+import { Prism } from '@astrojs/prism';
+---
+<Prism lang="js" code={`const foo = 'bar';`} />
+```
+
+[Prism에서 지원하는 언어 목록](https://prismjs.com/#supported-languages) 외에도 `lang="astro"`를 사용하여 Astro 코드 블록을 표시할 수도 있습니다.
+
+## Prism 스타일시트 추가
+
+Prism을 사용하기로 했다면 (`markdown.syntaxHighlighting: 'prism'`을 구성하거나 `<Prism />` 컴포넌트를 사용하여) Astro는 코드에 Shiki 대신 Prism의 CSS 클래스를 적용합니다. 구문 강조를 표시하려면 자체 CSS 스타일시트를 가져와야 합니다.
+
+<Steps>
+1. 사용 가능한 [Prism 테마](https://github.com/PrismJS/prism-themes)에서 미리 만들어진 스타일시트를 선택합니다.
+
+2. 이 스타일시트를 [프로젝트의 `public/` 디렉터리](/ko/basics/project-structure/#public)에 추가합니다.
+
+3. `<link>` 태그를 통해 [레이아웃 컴포넌트](/ko/basics/layouts/)의 페이지 `<head>`에 로드합니다. ([Prism 기본 사용법](https://prismjs.com/#basic-usage)을 확인하세요.)
+
+</Steps>
+
+[Prism에서 지원하는 언어 목록](https://prismjs.com/#supported-languages)에서 옵션과 사용법을 확인할 수도 있습니다.

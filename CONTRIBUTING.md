@@ -44,8 +44,6 @@ Submitting an Issue is usually the first step to making a change. After an Issue
 
 Larger contributions to the docs are encouraged after participating in Issues and Discussions, as unsolicited material may not fit into our existing plans.
 
-**Participating in Hacktoberfest?** See how you can get recognized for your translation PRs and PR reviews in our [Hacktoberfest guide](https://contribute.docs.astro.build/guides/hacktoberfest/).
-
 ### Examples of Helpful GitHub New Issues
 
 - a particular explanation is confusing (with explanation)
