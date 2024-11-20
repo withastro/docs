@@ -118,6 +118,14 @@ export const sidebar = [
 					'reference/programmatic-reference',
 				],
 			}),
+			group('reference.experimental', {
+				items: [
+					'reference/experimental-flags',
+					'reference/experimental-flags/client-prerender',
+					'reference/experimental-flags/content-intellisense',
+				],
+			}),
+			'reference/legacy-flags',
 			'reference/error-reference',
 		],
 	}),
