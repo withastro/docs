@@ -107,24 +107,6 @@ export const sidebar = [
 					'reference/modules/astro-transitions',
 				],
 			}),
-			group('reference.flags', {
-				items: [
-					'reference/feature-flags',
-					group('reference.experimental', {
-						items: [
-							'reference/feature-flags/experimental-client-prerender',
-							'reference/feature-flags/experimental-content-intellisense',
-						],
-					}),
-					group('reference.legacy', {
-						items: [
-							'reference/feature-flags/legacy-collections',
-						],
-					}),
-				],
-			}),
-			
-			
 			group('reference.other', {
 				items: [
 					'reference/integrations-reference',
@@ -136,6 +118,14 @@ export const sidebar = [
 					'reference/programmatic-reference',
 				],
 			}),
+			group('reference.experimental', {
+				items: [
+					'reference/experimental-flags',
+					'reference/experimental-flags/client-prerender',
+					'reference/experimental-flags/content-intellisense',
+				],
+			}),
+			'reference/legacy-flags',
 			'reference/error-reference',
 		],
 	}),
