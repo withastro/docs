@@ -39,6 +39,10 @@ interface AstroIntegration {
       createCodegenDir: () => URL;
       logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
+    'astro:routes:resolved'?: (options: {
+      routes: IntegrationResolvedRoute[];
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
     'astro:config:done'?: (options: {
       config: AstroConfig;
       setAdapter: (adapter: AstroAdapter) => void;
@@ -62,7 +66,13 @@ interface AstroIntegration {
         entryPoints: Map<IntegrationRouteData, URL>;
         logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
-    'astro:build:done'?: (options: { dir: URL; routes: IntegrationRouteData[]; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:build:done'?: (options: {
+      dir: URL;
+      /** @deprecated Use the `assets` map and the new `astro:routes:resolved` hook */
+      routes: IntegrationRouteData[];
+      assets: Map<string, URL[]>;
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
 
     // ... any custom hooks from integrations
   };
@@ -452,9 +462,142 @@ const integration = {
 }
 ```
 
-### `astro:config:done`
+### `astro:routes:resolved`
+
+<Since v="5.0.0" />
 
 **Previous hook:** [`astro:config:setup`](#astroconfigsetup)
+
+**Next hook:** [`astro:config:done`](#astroconfigdone)
+
+**When:** In `astro dev`, it also runs if a file based route changes (added/removed/updated).
+
+**Why:** To access routes and their metadata
+
+```js
+'astro:routes:resolved'?: (options: {
+  routes: IntegrationResolvedRoute[];
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
+```
+
+#### `routes` option
+
+**Type:** [`IntegrationResolvedRoute[]`](#integrationresolvedroute-type-reference)
+
+A list of all routes alongside their associated metadata.
+
+You can reference the full `IntegrationResolvedRoute` type below, but the most common properties are:
+
+- `entrypoint` - the input file path relative to the project root
+- `pathname` - the output file URL (undefined for routes using `[dynamic]` and `[...spread]` params)
+
+##### `IntegrationResolvedRoute` type reference
+
+```ts
+interface IntegrationResolvedRoute {
+	/**
+	 * The current **pattern** of the route. For example:
+	 * - `src/pages/index.astro` has a pattern of `/`
+	 * - `src/pages/blog/[...slug].astro` has a pattern of `/blog/[...slug]`
+	 * - `src/pages/site/[blog]/[...slug].astro` has a pattern of `/site/[blog]/[...slug]`
+	 */
+	pattern: RouteData['route'];
+
+	/**
+	 *
+	 * regex used for matching an input URL against a requested route
+	 * ex. "[fruit]/about.astro" will generate the pattern: /^\/([^/]+?)\/about\/?$/
+	 * where pattern.test("banana/about") is "true"
+	 *
+	 * ## Example
+	 *
+	 * ```js
+	 * if (route.pattern.test('/blog')) {
+	 *  // do something
+	 * }
+	 * ```
+	 */
+	patternRegex: RouteData['pattern'];
+
+	/**
+	 *  Source component URL
+	 */
+	entrypoint: RouteData['component'];
+
+	/**
+	 * Whether the route is prerendered or not
+	 */
+	isPrerendered: RouteData['prerender'];
+
+	/**
+	 * The {@link IntegrationResolvedRoute} to redirect to. It's present when `IntegrationResolvedRoute.type` is `redirect`.
+	 */
+	redirectRoute?: IntegrationResolvedRoute;
+
+  /**
+	 * @param {any} data The optional parameters of the route
+	 *
+	 * @description
+	 * A function that accepts a list of params, interpolates them with the route pattern, and returns the path name of the route.
+	 *
+	 * ## Example
+	 *
+	 * For a route such as `/blog/[...id].astro`, the `generate` function would return something like this:
+	 *
+	 * ```js
+	 * console.log(generate({ id: 'presentation' })) // will log `/blog/presentation`
+	 * ```
+	 */
+	generate: (data?: any) => string;
+
+  /**
+	 * Dynamic and spread route params
+	 * ex. "/pages/[lang]/[...slug].astro" will output the params ['lang', '...slug']
+	 */
+	params: string[];
+
+  /**
+	 * Output URL pathname where this route will be served
+	 * note: will be undefined for [dynamic] and [...spread] routes
+	 */
+	pathname?: string;
+
+  /**
+	 * Similar to the "params" field, but with more associated metadata. For example, for `/site/[blog]/[...slug].astro`, the segments are:
+	 *
+	 * 1. `{ content: 'site', dynamic: false, spread: false }`
+	 * 2. `{ content: 'blog', dynamic: true, spread: false }`
+	 * 3. `{ content: '...slug', dynamic: true, spread: true }`
+	 */
+	segments: RoutePart[][];
+
+  /**
+	 *
+	 * The type of the route. It can be:
+	 * - `page`: a route that lives in the file system, usually an Astro component
+	 * - `endpoint`: a route that lives in the file system, usually a JS file that exposes endpoints methods
+	 * - `redirect`: a route points to another route that lives in the file system
+	 * - `fallback`: a route that doesn't exist in the file system that needs to be handled with other means, usually the middleware
+	 */
+	type: RouteType;
+
+  /**
+	 * The route to redirect to. It holds information regarding the status code and its destination.
+	 */
+	redirect?: RedirectConfig;
+
+  /**
+	 * Whether the route comes from Astro core, an integration or the user's project
+	 */
+	origin: 'internal' | 'external' | 'project';
+}
+```
+
+
+### `astro:config:done`
+
+**Previous hook:** [`astro:config:setup`](#astroroutesresolved)
 
 **Next hook:** [`astro:server:setup`](#astroserversetup) when running in "dev" mode, or [`astro:build:start`](#astrobuildstart) during production builds
 
@@ -702,7 +845,13 @@ The address, family and port number supplied by the [Node.js Net module](https:/
 **Why:** To access generated routes and assets for extension (ex. copy content into the generated `/assets` directory). If you plan to transform generated assets, we recommend exploring the [Vite Plugin API](https://vite.dev/guide/api-plugin.html) and [configuring via `astro:config:setup`](#updateconfig-option) instead.
 
 ```js
-'astro:build:done'?: (options: { dir: URL; routes: IntegrationRouteData[], pages: { pathname: string }[] }) => void | Promise<void>;
+'astro:build:done'?: (options: {
+  dir: URL;
+  /** @deprecated Use the `assets` map and the new `astro:routes:resolved` hook */
+  routes: IntegrationRouteData[];
+  assets: Map<string, URL[]>;
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
 ```
 
 #### `dir` option
@@ -730,6 +879,10 @@ export default function myIntegration() {
 ```
 
 #### `routes` option
+
+:::caution
+This property is deprecated since v5.0. Check the [migration guide](/en/guides/upgrade-to/v5/#deprecated-routes-on-astrobuilddone-hook-integration-api).
+:::
 
 **Type:** [`IntegrationRouteData[]`](#integrationroutedata-type-reference)
 
@@ -808,6 +961,14 @@ interface IntegrationRouteData {
 	redirectRoute?: IntegrationRouteData;
 }
 ```
+
+#### `assets` option
+
+<Since v="5.0.0" />
+
+**Type:** `Map<string, URL[]>`
+
+Contains URLs to output files paths, grouped by [`IntegrationResolvedRoute`](#integrationresolvedroute-type-reference) `pattern` property.
 
 #### `pages` option
 
