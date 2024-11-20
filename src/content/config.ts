@@ -1,6 +1,7 @@
-import { docsSchema, i18nSchema } from '@astrojs/starlight/schema';
+import { glob } from 'astro/loaders';
+// import { docsSchema, i18nSchema } from '@astrojs/starlight/schema';
 import { defineCollection, z, type CollectionEntry } from 'astro:content';
-import { AstroDocsI18nSchema } from './i18n-schema';
+// import { AstroDocsI18nSchema } from './i18n-schema';
 
 export const baseSchema = z.object({
 	type: z.literal('base').optional().default('base'),
@@ -132,9 +133,14 @@ export const isEnglishEntry = createIsLangEntry('en');
 export const isKoreanEntry = createIsLangEntry('ko');
 
 export const collections = {
-	docs: defineCollection({ schema: docsSchema({ extend: docsCollectionSchema }) }),
-	i18n: defineCollection({
-		type: 'data',
-		schema: i18nSchema({ extend: AstroDocsI18nSchema }),
+	docs: defineCollection({
+		loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/docs' }),
+		schema: z.object({
+			title: z.string(),
+		}),
 	}),
+	// i18n: defineCollection({
+	// 	type: 'data',
+	// 	schema: i18nSchema({ extend: AstroDocsI18nSchema }),
+	// }),
 };
