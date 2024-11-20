@@ -361,6 +361,42 @@ export default function createIntegration() {
 
 <ReadMore>Learn more about [the Adapter API](/en/reference/adapter-reference/) for building adapter integrations.</ReadMore>
 
+### Deprecated: `routes` on `astro:build:done` hook (Integration API)
+
+<SourcePR number="12329" title="feat(next): astro:routes:resolved"/>
+
+In Astro v4.x, you could only get routes in an integration from the `astro:build:done` hook.
+
+Astro v5.0 deprecates the `routes` array passed to this hook. Instead, it exposes a new `astro:routes:resolved` hook that runs before `astro:config:done`, and whenever a route changes in development. It has all the same properties of the deprecated `routes` list, except `distURL` which is only available during build. For this, you can use the newly exposed `assets` map:
+
+```js title="my-integration.mjs" ins={2,6-8,11,13-18} del={10}
+const integration = () => {
+    let routes
+    return {
+        name: 'my-integration',
+        hooks: {
+            'astro:routes:resolved': (params) => {
+                routes = params.routes
+            },
+            'astro:build:done': ({
+                routes
+                assets
+            }) => {
+                for (const route of routes) {
+                    const distURL = assets.get(route.pattern)
+                    if (distURL) {
+                        Object.assign(route, { distURL })
+                    }
+                }
+                console.log(routes)
+            }
+        }
+    }
+}
+```
+
+<ReadMore>Learn more about [the Integration API](/en/reference/integrations-reference/) for building integrations.</ReadMore>
+
 ## Removed
 
 The following features have now been entirely removed from the code base and can no longer be used. Some of these features may have continued to work in your project even after deprecation. Others may have silently had no effect.
