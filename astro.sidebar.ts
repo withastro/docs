@@ -18,7 +18,7 @@ export const sidebar = [
 				items: ['concepts/why-astro', 'concepts/islands', 'tutorial/0-introduction'],
 			}),
 			group('start.newProject', {
-				items: ['install-and-setup', 'basics/project-structure'],
+				items: ['install-and-setup', 'basics/project-structure', 'develop-and-build',],
 			}),
 			group('start.config', {
 				items: [
