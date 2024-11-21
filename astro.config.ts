@@ -19,6 +19,10 @@ const site = NETLIFY_PREVIEW_SITE || 'https://docs.astro.build/';
 
 // https://astro.build/config
 export default defineConfig({
+	legacy: {
+		//  Uncomment to use v4-style collections
+		// collections: true,
+	},
 	site,
 	integrations: [
 		// devServerFileWatcher([

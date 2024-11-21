@@ -134,7 +134,8 @@ export const isKoreanEntry = createIsLangEntry('ko');
 
 export const collections = {
 	docs: defineCollection({
-		loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/docs' }),
+		// Uncomment to use the glob loader rather than emulation
+		// loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/docs' }),
 		schema: z.object({
 			title: z.string(),
 		}),
