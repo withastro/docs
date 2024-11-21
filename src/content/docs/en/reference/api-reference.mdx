@@ -75,8 +75,8 @@ See also: [Data Passing with `props`](/en/reference/routing-reference/#data-pass
 
 In static builds, this will be the `params` returned by `getStaticPaths()` used for prerendering [dynamic routes](/en/guides/routing/#dynamic-routes).
 
-<Tabs syncKey="context">
-  <TabItem label="Astro global">
+<Tabs>
+  <TabItem label="Astro.params">
     ```astro title="src/pages/posts/[id].astro" "Astro.params"
     ---
     export function getStaticPaths() {
@@ -91,7 +91,7 @@ In static builds, this will be the `params` returned by `getStaticPaths()` used 
     <h1>{id}</h1>
     ```
   </TabItem>
-  <TabItem label="endpoint context">
+  <TabItem label="context.params">
     ```ts title="src/pages/posts/[id].json.ts" "params.id"
     import type { APIContext } from 'astro';
 
@@ -133,7 +133,7 @@ if (!post) {
 
 See also: [`params`](/en/reference/routing-reference/#params)
 
-### `Astro.url`
+### `url`
 
 <p>
 
@@ -166,7 +166,7 @@ const socialImageURL = new URL('/images/preview.png', Astro.url);
 <meta property="og:image" content={socialImageURL} />
 ```
 
-### `Astro.site`
+### `site`
 
 <p>
 
@@ -177,7 +177,7 @@ const socialImageURL = new URL('/images/preview.png', Astro.url);
 
 `context.site` returns a `URL` made from `site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
 
-### `Astro.clientAddress`
+### `clientAddress`
 
 <p>
 
@@ -187,25 +187,30 @@ const socialImageURL = new URL('/images/preview.png', Astro.url);
 
 `clientAddress` specifies the [IP address](https://en.wikipedia.org/wiki/IP_address) of the request. This property is only available for routes rendered on demand and cannot be used on prerendered pages.
 
-```astro
----
-export const prerender = false;
-const ip = Astro.clientAddress;
----
+<Tabs>
+  <TabItem label="Astro.clientAddress">
+    ```astro
+    ---
+    export const prerender = false;
+    const ip = Astro.clientAddress;
+    ---
 
-<div>Your IP address is: <span class="address">{ ip }</span></div>
-```
+    <div>Your IP address is: <span class="address">{ ip }</span></div>
+    ```
+  </TabItem>
+  <TabItem label="context.clientAddress">
+    ```ts
+    export const prerender = false;
+    import type { APIContext } from 'astro';
 
-```ts
-export const prerender = false;
-import type { APIContext } from 'astro';
+    export function GET({ clientAddress }: APIContext) {
+      return new Response(`Your IP address is: ${clientAddress}`);
+    }
+    ```
+  </TabItem>
+</Tabs>
 
-export function GET({ clientAddress }: APIContext) {
-  return new Response(`Your IP address is: ${clientAddress}`);
-}
-```
-
-### `Astro.generator`
+### `generator`
 
 <p>
 
@@ -215,29 +220,34 @@ export function GET({ clientAddress }: APIContext) {
 
 `generator` provides the current version of Astro your project is running. This is a convenient way to add a [`<meta name="generator">`](https://html.spec.whatwg.org/multipage/semantics.html#meta-generator) tag with your current version of Astro. It follows the format `"Astro v5.x.x"`.
 
-```astro mark="Astro.generator"
-<html>
-  <head>
-    <meta name="generator" content={Astro.generator} />
-  </head>
-  <body>
-    <footer>
-      <p>Built with <a href="https://astro.build">{Astro.generator}</a></p>
-    </footer>
-  </body>
-</html>
-```
+<Tabs>
+  <TabItem label="Astro.generator">
+    ```astro mark="Astro.generator"
+    <html>
+      <head>
+        <meta name="generator" content={Astro.generator} />
+      </head>
+      <body>
+        <footer>
+          <p>Built with <a href="https://astro.build">{Astro.generator}</a></p>
+        </footer>
+      </body>
+    </html>
+    ```
+  </TabItem>
+  <TabItem label="context.generator">
+    ```ts title="src/pages/site-info.json.ts"
+    import type { APIContext } from 'astro';
 
-```ts title="src/pages/site-info.json.ts"
-import type { APIContext } from 'astro';
+    export function GET({ generator, site }: APIContext) {
+      const body = JSON.stringify({ generator, site });
+      return new Response(body);
+    }
+    ```
+  </TabItem>
+</Tabs>
 
-export function GET({ generator, site }: APIContext) {
-  const body = JSON.stringify({ generator, site });
-  return new Response(body);
-}
-```
-
-### `Astro.request`
+### `request`
 
 <p>
 
@@ -246,25 +256,30 @@ export function GET({ generator, site }: APIContext) {
 
 `request` is a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object. It can be used to get the `url`, `headers`, `method`, and even body of the request. 
 
-```astro wrap title="src/pages/index.astro" "Astro.request"
-<p>Received a {Astro.request.method} request to "{Astro.request.url}".</p>
-<p>Received request headers:</p>
-<p><code>{JSON.stringify(Object.fromEntries(Astro.request.headers))}</code></p>
-```
+<Tabs>
+  <TabItem label="Astro.request">
+    ```astro wrap title="src/pages/index.astro" "Astro.request"
+    <p>Received a {Astro.request.method} request to "{Astro.request.url}".</p>
+    <p>Received request headers:</p>
+    <p><code>{JSON.stringify(Object.fromEntries(Astro.request.headers))}</code></p>
+    ```
+  </TabItem>
+  <TabItem label="context.request">
+    ```ts "request"
+    import type { APIContext } from 'astro';
 
-```ts "request"
-import type { APIContext } from 'astro';
-
-export function GET({ request }: APIContext) {
-  return new Response(`Hello ${request.url}`);
-}
-```
+    export function GET({ request }: APIContext) {
+      return new Response(`Hello ${request.url}`);
+    }
+    ```
+  </TabItem>
+</Tabs>
 
 :::note
 On prerendered pages, `request.url` does not contain search parameters, like `?foo=bar`, as it's not possible to determine them ahead of time during static builds. However, `request.url` does contain search parameters for pages rendered on-demand as they can be determined from a server request.
 :::
 
-### `Astro.response`
+### `response`
 
 <p>
 
@@ -296,6 +311,255 @@ Or to set a header:
 Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 ---
 ```
+
+### `redirect()`
+
+<p>
+
+**Type:** `(path: string, status?: number) => Response`
+<Since v="1.5.0" />
+</p>
+
+`redirect()` returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object that allows you to redirect to another page, and optionally provide an [HTTP response status code](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages) as a second parameter.
+
+A page (and not a child component) must `return` the result of `Astro.redirect()` for the redirect to occur.
+
+For statically-generated sites, this will produce a client redirect using a [`<meta http-equiv="refresh">` tag](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#http-equiv) and does not support status codes.
+
+When using an on-demand rendering mode, status codes are supported. Astro will serve redirected requests with a default HTTP response status of `302` unless another code is specified.
+
+The following example redirects a user to a login page:
+
+<Tabs>
+  <TabItem label="Astro.redirect()">
+    ```astro title="src/pages/account.astro" {8}
+    ---
+    import { isLoggedIn } from '../utils';
+
+    const cookie = Astro.request.headers.get('cookie');
+
+    // If the user is not logged in, redirect them to the login page
+    if (!isLoggedIn(cookie)) {
+      return Astro.redirect('/login');
+    }
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.redirect()">
+    ```ts
+    import type { APIContext } from 'astro';
+
+    export function GET({ redirect }: APIContext) {
+      return redirect('/login', 302);
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+
+### `rewrite()`
+
+<p>
+
+**Type:** `(rewritePayload: string | URL | Request) => Promise<Response>`<br />
+<Since v="4.13.0" />
+</p>
+
+`rewrite()` allows you to serve content from a different URL or path without redirecting the browser to a new page. 
+
+The method accepts either a string, a `URL`, or a `Request` for the location of the path.
+
+Use a string to provide an explicit path:
+
+<Tabs>
+  <TabItem label="Astro.rewrite()">
+    ```astro title="src/pages/index.astro"
+    ---
+    return Astro.rewrite("/login")
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.rewrite()">
+    ```ts
+    import type { APIContext } from 'astro';
+
+    export function GET({ rewrite }: APIContext) {
+      return rewrite('/login');
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+Use a `URL` type when you need to construct the URL path for the rewrite. The following example renders a page's parent path by creating a new URL from the relative  `"../"` path:
+
+<Tabs>
+  <TabItem label="Astro.rewrite()">
+    ```astro title="src/pages/blog/index.astro"
+    ---
+    return Astro.rewrite(new URL("../", Astro.url))
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.rewrite()">
+    ```ts
+    import type { APIContext } from 'astro';
+
+    export function GET({ rewrite }: APIContext) {
+      return rewrite(new URL("../", Astro.url));
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+Use a `Request` type for complete control of the `Request` sent to the server for the new path. The following example sends a request to render the parent page while also providing headers:
+
+<Tabs>
+  <TabItem label="Astro.rewrite()">
+    ```astro title="src/pages/blog/index.astro"
+    ---
+    return Astro.rewrite(new Request(new URL("../", Astro.url), {
+      headers: {
+        "x-custom-header": JSON.stringify(Astro.locals.someValue)
+      }
+    }))
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.rewrite()">
+    ```ts
+    import type { APIContext } from 'astro';
+
+    export function GET({ rewrite }: APIContext) {
+      return rewrite(new Request(new URL("../", Astro.url), {
+      headers: {
+        "x-custom-header": JSON.stringify(Astro.locals.someValue)
+      }
+    }));
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+### `locals`
+
+<p>
+
+<Since v="2.4.0" />
+</p>
+
+`locals` is an  object used to store and access arbitrary information during the lifecycle of a request. `Astro.locals` is an object containing any values from the `context.locals` object from a middleware. Use this to access data returned by middleware in your `.astro` files.
+
+Middleware functions can read and write the values of `context.locals`:
+
+```ts title="src/middleware.ts"
+import type { MiddlewareHandler } from 'astro';
+
+export const onRequest: MiddlewareHandler = ({ locals }, next) => {
+  if (!locals.title) {
+    locals.title = "Default Title";
+  }
+  return next();
+}
+```
+
+`Astro.locals` is read only for Astro components and `context.locals` is read only for API endpoints:
+
+<Tabs>
+  <TabItem label="Astro.locals">
+    ```astro title="src/pages/Orders.astro"
+    ---
+    const title = Astro.locals.welcomeTitle();
+    const orders = Array.from(Astro.locals.orders.entries());
+    ---
+    <h1>{title}</h1>
+    <ul>
+        {orders.map(order => {
+            return <li>{/* do something with each order */}</li>
+        })}
+    </ul>
+    ```
+  </TabItem>
+  <TabItem label="context.locals">
+    ```ts title="src/pages/hello.ts"
+    import type { APIContext } from 'astro';
+
+    export function GET({ locals }: APIContext) {
+      return new Response(locals.title); // "Default Title"
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+
+### `getActionResult()`
+
+<p>
+**Type:** `(action: TAction) => ActionReturnType<TAction> | undefined`<br />
+<Since v="4.15.0" />
+</p>
+
+`getActionResult()` is a function that returns the result of an [Action](/en/guides/actions/) submission. This accepts an action function as an argument (e.g. `actions.logout`) and returns a `data` or `error` object when a submission is received. Otherwise, it will return `undefined`.
+
+```astro title="src/pages/index.astro"
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.logout);
+---
+
+<form action={actions.logout}>
+  <button type="submit">Log out</button>
+</form>
+{result?.error && <p>Failed to log out. Please try again.</p>}
+```
+
+### `callAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`callAction()` is a function used to call an Action handler directly from your Astro component. This function accepts an Action function as the first argument (e.g. `actions.logout`) and any input that action receives as the second argument. It returns the result of the action as a promise.
+
+```astro title="src/pages/index.astro"
+---
+import { actions } from 'astro:actions';
+
+const { data, error } = await Astro.callAction(actions.logout, { userId: '123' });
+---
+```
+
+### `routePattern`
+
+<p>
+
+**Type**: `string`<br />
+<Since v="5.0.0" />
+</p>
+
+The route pattern responsible for generating the current page or route. In file-based routing, this resembles the file path in your project used to create the route. When integrations create routes for your project, `context.routePattern` is identical to the value for `injectRoute.pattern`.
+
+The value will start with a leading slash and look similar to the path of a page component relative to your `srcDir/pages/` folder without a file extension.
+
+For example, the file `src/pages/en/blog/[slug].astro` will return `/en/blog/[slug]` for `context.routePattern`. Every page on your site generated by that file (e.g. `/en/blog/post-1/`, `/en/blog/post-2/`, etc.) shares the same value for `context.routePattern`. In the case of `index.*` routes, the route pattern will not include the word "index." For example, `src/pages/index.astro` will return `/`.
+
+You can use this property to understand which route is rendering your component. This allows you to target or analyze similarly-generated page URLs together. For example, you can use it to conditionally render certain information, or collect metrics about which routes are slower.
+
+### `isPrerendered`
+
+<p>
+
+**Type**: `boolean`<br />
+<Since v="5.0.0" />
+</p>
+
+A boolean representing whether or not the current page is prerendered.
+
+You can use this property to run conditional logic in middleware, for example, to avoid accessing headers in prerendered pages.
+
+## WIP 1
+
+The `cookies` entry is minimal in `context` docs and this is very heavily skewed towards `Astro.cookies` (e.g. types). How to generalize?
 
 ### `Astro.cookies`
 
@@ -497,159 +761,9 @@ If true, the cookie is only set on https sites.
 
 Allows customizing how the cookie is serialized.
 
-### `Astro.redirect()`
+## WIP 2
 
-<p>
-
-**Type:** `(path: string, status?: number) => Response`
-<Since v="1.5.0" />
-</p>
-
-`redirect()` returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object that allows you to redirect to another page, and optionally provide an [HTTP response status code](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages) as a second parameter.
-
-A page (and not a child component) must `return` the result of `Astro.redirect()` for the redirect to occur.
-
-For statically-generated sites, this will produce a client redirect using a [`<meta http-equiv="refresh">` tag](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#http-equiv) and does not support status codes.
-
-When using an on-demand rendering mode, status codes are supported. Astro will serve redirected requests with a default HTTP response status of `302` unless another code is specified.
-
-The following example redirects a user to a login page:
-
-```astro title="src/pages/account.astro" {8}
----
-import { isLoggedIn } from '../utils';
-
-const cookie = Astro.request.headers.get('cookie');
-
-// If the user is not logged in, redirect them to the login page
-if (!isLoggedIn(cookie)) {
-  return Astro.redirect('/login');
-}
----
-```
-
-```ts
-import type { APIContext } from 'astro';
-
-export function GET({ redirect }: APIContext) {
-  return redirect('/login', 302);
-}
-```
-
-
-### `Astro.rewrite()`
-
-<p>
-
-**Type:** `(rewritePayload: string | URL | Request) => Promise<Response>`<br />
-<Since v="4.13.0" />
-</p>
-
-`rewrite()` allows you to serve content from a different URL or path without redirecting the browser to a new page. 
-
-The method accepts either a string, a `URL`, or a `Request` for the location of the path.
-
-Use a string to provide an explicit path:
-
-```astro title="src/pages/index.astro"
----
-return Astro.rewrite("/login")
----
-```
-
-```ts
-import type { APIContext } from 'astro';
-
-export function GET({ rewrite }: APIContext) {
-  return rewrite('/login');
-}
-```
-
-Use a `URL` type when you need to construct the URL path for the rewrite. The following example renders a page's parent path by creating a new URL from the relative  `"../"` path:
-
-```astro title="src/pages/blog/index.astro"
----
-return Astro.rewrite(new URL("../", Astro.url))
----
-```
-
-```ts
-import type { APIContext } from 'astro';
-
-export function GET({ rewrite }: APIContext) {
-  return rewrite(new URL("../", Astro.url));
-}
-```
-
-Use a `Request` type for complete control of the `Request` sent to the server for the new path. The following example sends a request to render the parent page while also providing headers:
-
-```astro title="src/pages/blog/index.astro"
----
-return Astro.rewrite(new Request(new URL("../", Astro.url), {
-  headers: {
-    "x-custom-header": JSON.stringify(Astro.locals.someValue)
-  }
-}))
----
-```
-```ts
-import type { APIContext } from 'astro';
-
-export function GET({ rewrite }: APIContext) {
-  return rewrite(new Request(new URL("../", Astro.url), {
-   headers: {
-     "x-custom-header": JSON.stringify(Astro.locals.someValue)
-   }
- }));
-}
-```
-
-
-### `Astro.locals`
-
-<p>
-
-<Since v="2.4.0" />
-</p>
-
-`locals` is an  object used to store and access arbitrary information during the lifecycle of a request. `Astro.locals` is an object containing any values from the `context.locals` object from a middleware. Use this to access data returned by middleware in your `.astro` files.
-
-Middleware functions can read and write the values of `context.locals`:
-
-```ts title="src/middleware.ts"
-import type { MiddlewareHandler } from 'astro';
-
-export const onRequest: MiddlewareHandler = ({ locals }, next) => {
-  if (!locals.title) {
-    locals.title = "Default Title";
-  }
-  return next();
-}
-```
-
-API endpoints can only read information from `context.locals`:
-
-```ts title="src/pages/hello.ts"
-import type { APIContext } from 'astro';
-
-export function GET({ locals }: APIContext) {
-  return new Response(locals.title); // "Default Title"
-}
-```
-
-Astro components can only read information from `context.locals`:
-```astro title="src/pages/Orders.astro"
----
-const title = Astro.locals.welcomeTitle();
-const orders = Array.from(Astro.locals.orders.entries());
----
-<h1>{title}</h1>
-<ul>
-    {orders.map(order => {
-        return <li>{/* do something with each order */}</li>
-    })}
-</ul>
-```
+These do not have corresponding `context` entries in current docs
 
 ### `Astro.preferredLocale`
 
@@ -691,71 +805,9 @@ This property is only available when building for SSR (server-side rendering) an
 
 The locale computed from the current URL, using the syntax specified in your `locales` configuration. If the URL does not contain a `/[locale]/` prefix, then the value will default to `i18n.defaultLocale`.
 
-### `Astro.getActionResult()`
+## WIP 3
 
-<p>
-**Type:** `(action: TAction) => ActionReturnType<TAction> | undefined`<br />
-<Since v="4.15.0" />
-</p>
-
-`getActionResult()` is a function that returns the result of an [Action](/en/guides/actions/) submission. This accepts an action function as an argument (e.g. `actions.logout`) and returns a `data` or `error` object when a submission is received. Otherwise, it will return `undefined`.
-
-```astro title="src/pages/index.astro"
----
-import { actions } from 'astro:actions';
-
-const result = Astro.getActionResult(actions.logout);
----
-
-<form action={actions.logout}>
-  <button type="submit">Log out</button>
-</form>
-{result?.error && <p>Failed to log out. Please try again.</p>}
-```
-
-## `Astro.callAction()`
-
-<p>
-<Since v="4.15.0" />
-</p>
-
-`callAction()` is a function used to call an Action handler directly from your Astro component. This function accepts an Action function as the first argument (e.g. `actions.logout`) and any input that action receives as the second argument. It returns the result of the action as a promise.
-
-```astro title="src/pages/index.astro"
----
-import { actions } from 'astro:actions';
-
-const { data, error } = await Astro.callAction(actions.logout, { userId: '123' });
----
-```
-
-### `Astro.routePattern`
-
-<p>
-
-**Type**: `string`<br />
-<Since v="5.0.0" />
-</p>
-
-The route pattern responsible for generating the current page or route. In file-based routing, this resembles the file path in your project used to create the route. When integrations create routes for your project, `context.routePattern` is identical to the value for `injectRoute.pattern`.
-
-The value will start with a leading slash and look similar to the path of a page component relative to your `srcDir/pages/` folder without a file extension.
-
-For example, the file `src/pages/en/blog/[slug].astro` will return `/en/blog/[slug]` for `context.routePattern`. Every page on your site generated by that file (e.g. `/en/blog/post-1/`, `/en/blog/post-2/`, etc.) shares the same value for `context.routePattern`. In the case of `index.*` routes, the route pattern will not include the word "index." For example, `src/pages/index.astro` will return `/`.
-
-You can use this property to understand which route is rendering your component. This allows you to target or analyze similarly-generated page URLs together. For example, you can use it to conditionally render certain information, or collect metrics about which routes are slower.
-
-### `Astro.isPrerendered`
-
-<p>
-
-**Type**: `boolean`<br />
-<Since v="5.0.0" />
-</p>
-
-A boolean representing whether or not the current page is prerendered.
-
-You can use this property to run conditional logic in middleware, for example, to avoid accessing headers in prerendered pages.
+This one is fine; will be deprecated. Stick it at the end when we're done.
 
 ### `Astro.glob()`
 
