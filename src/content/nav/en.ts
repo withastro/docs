@@ -18,6 +18,7 @@ export default {
 	'reference.runtime': 'Runtime API',
 	'reference.other': 'Other development APIs',
 	'reference.syntax': 'Astro Template Syntax',
+	'reference.experimental': 'Experimental features',
 
 	integrations: 'Integrations',
 	'integrations.ui': 'UI frameworks',
