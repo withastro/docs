@@ -1,12 +1,12 @@
 ---
-title: Astro Runtime API
+title: Astro render context
 i18nReady: true
 tableOfContents:
   minHeadingLevel: 2
   maxHeadingLevel: 4
 ---
 import Since from '~/components/Since.astro';
-import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 import ReadMore from '~/components/ReadMore.astro';
 
 When rendering a page, Astro provides a runtime API specific to the current render. This includes useful information such as the current page URL as well as APIs to perform actions like redirecting to another page.
@@ -17,9 +17,11 @@ Some properties are only available for pages rendered on demand, or may have lim
 
 The `Astro` global object is available to all `.astro` files. Use the `context` object in [endpoint functions](/en/guides/endpoints/) to serve static or live server endpoints and in [middleware](/en/guides/middleware/) to inject behavior when a page or end point is about to be rendered.
 
-## Context object
+## The context object
 
-### `Astro.props`
+The following items are available on the `Astro` global (e.g. `Astro.props`, `Astro.redirect()`) and most are also available on an endpoint context object (e.g. `context.props`, `context.redirect()`).
+
+### `props`
 
 `props` is an object containing any values that have been passed as [component attributes](/en/basics/astro-components/#component-props). Layout components for `.md` and `.mdx` files receive frontmatter values as props.
 
@@ -65,47 +67,51 @@ export function GET({ props }: APIContext) {
 }
 ```
 
-See also: [Data Passing with `props`](#data-passing-with-props)
+See also: [Data Passing with `props`](/en/reference/routing-reference/#data-passing-with-props)
 
-### `Astro.params`
+### `params`
 
 `params` is an object containing the values of dynamic route segments matched for this request.
 
 In static builds, this will be the `params` returned by `getStaticPaths()` used for prerendering [dynamic routes](/en/guides/routing/#dynamic-routes).
 
-```astro title="src/pages/posts/[id].astro" "Astro.params"
----
-export function getStaticPaths() {
-  return [
-    { params: { id: '1' } },
-    { params: { id: '2' } },
-    { params: { id: '3' } }
-  ];
-}
+<Tabs syncKey="context">
+  <TabItem label="Astro global">
+    ```astro title="src/pages/posts/[id].astro" "Astro.params"
+    ---
+    export function getStaticPaths() {
+      return [
+        { params: { id: '1' } },
+        { params: { id: '2' } },
+        { params: { id: '3' } }
+      ];
+    }
+    const { id } = Astro.params;
+    ---
+    <h1>{id}</h1>
+    ```
+  </TabItem>
+  <TabItem label="endpoint context">
+    ```ts title="src/pages/posts/[id].json.ts" "params.id"
+    import type { APIContext } from 'astro';
 
-const { id } = Astro.params;
----
-<h1>{id}</h1>
-```
+    export function getStaticPaths() {
+      return [
+        { params: { id: '1' } },
+        { params: { id: '2' } },
+        { params: { id: '3' } }
+      ];
+    }
 
+    export function GET({ params }: APIContext) {
+      return new Response(
+        JSON.stringify({ id: params.id }),
+      );
+    }
+    ```
+  </TabItem>
+</Tabs>
 
-```ts title="src/pages/posts/[id].json.ts" "params.id"
-import type { APIContext } from 'astro';
-
-export function getStaticPaths() {
-  return [
-    { params: { id: '1' } },
-    { params: { id: '2' } },
-    { params: { id: '3' } }
-  ];
-}
-
-export function GET({ params }: APIContext) {
-	return new Response(
-    JSON.stringify({ id: params.id }),
-  );
-}
-```
 
 In SSR builds, this can be any value matching the path segments in the dynamic route pattern.
 
@@ -125,7 +131,7 @@ if (!post) {
 </html>
 ```
 
-See also: [`params`](#params)
+See also: [`params`](/en/reference/routing-reference/#params)
 
 ### `Astro.url`
 
