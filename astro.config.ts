@@ -1,4 +1,5 @@
 import starlight from '@astrojs/starlight';
+import mdx from '@astrojs/mdx';
 import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections';
 import { defineConfig, sharpImageService } from 'astro/config';
 import { makeLocalesConfig } from './config/locales';
@@ -68,6 +69,7 @@ export default defineConfig({
 			disable404Route: true,
 			plugins: [starlightPluginAutolinkHeadings()],
 		}),
+		mdx(),
 		sitemap(),
 	],
 	trailingSlash: 'always',
@@ -91,8 +93,11 @@ export default defineConfig({
 		domains: ['avatars.githubusercontent.com'],
 		service: sharpImageService(),
 	},
-	experimental: {
-		contentCollectionCache: false,
-		directRenderScript: true,
+	legacy: {
+		collections: true,
 	},
+	// experimental: {
+	// 	contentCollectionCache: false,
+	// 	directRenderScript: true,
+	// },
 });
