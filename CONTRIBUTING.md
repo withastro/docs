@@ -8,7 +8,7 @@ We welcome contributions of any size and contributors of any skill level. As an 
 >
 > There, you'll find all the information below, and so much more!
 
-This document is has some basic information to get you started, but we encourage you to visit our [dedicated site for contributing to Astro docs](https://contribute.docs.astro.build) for all the information you need!
+This document has some basic information to get you started, but we encourage you to visit our [dedicated site for contributing to Astro docs](https://contribute.docs.astro.build) for all the information you need!
 
 There, you will find a writing and style guide, instructions on how to make changes and open PRs, guidance for translating the docs, and even information about how to help review Astro Docs PRs. 
 
