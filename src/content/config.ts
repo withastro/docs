@@ -1,5 +1,6 @@
-import { docsSchema } from '@astrojs/starlight/schema';
+import { docsSchema, i18nSchema } from '@astrojs/starlight/schema';
 import { defineCollection, z, type CollectionEntry } from 'astro:content';
+import { AstroDocsI18nSchema } from './i18n-schema';
 
 export const baseSchema = z.object({
 	type: z.literal('base').optional().default('base'),
@@ -132,4 +133,8 @@ export const isKoreanEntry = createIsLangEntry('ko');
 
 export const collections = {
 	docs: defineCollection({ schema: docsSchema({ extend: docsCollectionSchema }) }),
+	i18n: defineCollection({
+		type: 'data',
+		schema: i18nSchema({ extend: AstroDocsI18nSchema }),
+	}),
 };
