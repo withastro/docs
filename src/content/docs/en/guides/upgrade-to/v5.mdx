@@ -683,7 +683,7 @@ Note that `src/env.d.ts` is only necessary if you have added custom configuratio
 
 <ReadMore>Read more about [TypeScript configuration in Astro](/en/guides/typescript/#setup).</ReadMore>
 
-### Changed: Actions submitted by HTML forms no longer use cookies
+### Changed: Actions submitted by HTML forms no longer use cookie redirects
 
 <SourcePR number="12373" title="Actions middleware"/>
 
@@ -693,7 +693,33 @@ Astro 5.0 now renders the result of an action as a POST result without any forwa
 
 #### What should I do?
 
-You can use the new default without any changes to your code. If you prefer to address the "confirm form resubmission?" dialog on refresh, or to preserve action results across sessions, you can now [customize action result handling from middleware](/en/guides/actions/#advanced-persist-action-results-with-a-session).
+You should update handling for action results that relies on redirects, and optionally address the "confirm form resubmission?" dialog with middleware.
+
+##### To redirect to the previous route on error
+
+If your HTML form action is directed to a different route (i.e. `action={"/success-page" + actions.name}`), Astro will no longer redirect to the previous route on error. You can implement this behavior manually using redirects from your Astro component. This example instead redirects to a new route on success, and handles errors on the current page otherwise:
+
+```astro title="src/pages/newsletter.astro" ins={4-9} del="'/confirmation' + "
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.newsletter);
+if (!result?.error) {
+  // Embed relevant result data in the URL if needed
+  // example: redirect(`/confirmation?email=${result.data.email}`);
+  return redirect('/confirmation');
+}
+---
+
+<form method="POST" action={'/confirmation' + actions.newsletter}>
+  <label>E-mail <input required type="email" name="email" /></label>
+  <button>Sign up</button>
+</form>
+```
+
+##### (Optional) To remove the confirm dialog on refresh
+
+To address the "confirm form resubmission?" dialog on refresh, or to preserve action results across sessions, you can now [customize action result handling from middleware](/en/guides/actions/#advanced-persist-action-results-with-a-session).
 
 We recommend using a session storage provider [as described in our Netlify Blob example](/en/guides/actions/#advanced-persist-action-results-with-a-session). However, if you prefer the cookie forwarding behavior from 4.X and accept the 4 KB size limit, you can implement the pattern as shown in this sample snippet:
 
