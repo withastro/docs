@@ -6,6 +6,7 @@ i18nReady: true
 ---
 import ReadMore from '~/components/ReadMore.astro';
 import { Steps } from '@astrojs/starlight/components';
+import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro';
 
 You can deploy a server-side rendered Astro site to [Deno Deploy](https://deno.com/deploy), a distributed system that runs JavaScript, TypeScript, and WebAssembly at the edge, worldwide.
 
@@ -17,9 +18,10 @@ This guide assumes you already have [Deno](https://deno.com/) installed.
 
 ## Project Configuration
 
-This page provides instructions for deploying your Astro project to [Deno Deploy](https://deno.com/deploy) as a server-side rendered site (SSR).
+Your Astro project can be deployed to [Deno Deploy](https://deno.com/deploy) as a static site, or as a server-side rendered site (SSR).
 
-To deploy a static site, see [the Deno deploy static site tutorial](https://docs.deno.com/deploy/tutorials/static-site).
+### Static Site
+Your Astro project is a static site by default. You don’t need any extra configuration to deploy a static Astro site to Deno Deploy.
 
 ### Adapter for SSR
 
@@ -76,7 +78,7 @@ If you prefer to install the adapter manually instead, complete the following tw
     ```
 </Steps>
 
-## How to deploy an SSR Astro site
+## How to deploy
 
 You can deploy to Deno Deploy through GitHub Actions or using Deno Deploy’s CLI (command line interface).
 
@@ -93,37 +95,81 @@ If your project is stored on GitHub, the [Deno Deploy website](https://dash.deno
    
 4. In your Astro project, create a new file at `.github/workflows/deploy.yml` and paste in the YAML below. This is similar to the YAML given by Deno Deploy, with the additional steps needed for your Astro site.
 
-    ```yaml
-    name: Deploy
-    on: [push]
-
-    jobs:
-      deploy:
+    <StaticSsrTabs>
+      <Fragment slot="static">
+        ```yaml
+        ---
+        // .github/workflows/deploy.yml
+        ---
         name: Deploy
-        runs-on: ubuntu-latest
-        permissions:
-          id-token: write # Needed for auth with Deno Deploy
-          contents: read # Needed to clone the repository
+        on: [push]
 
-        steps:
-          - name: Clone repository
-            uses: actions/checkout@v4
+        jobs:
+          deploy:
+            name: Deploy
+            runs-on: ubuntu-latest
+            permissions:
+              id-token: write # Needed for auth with Deno Deploy
+              contents: read # Needed to clone the repository
 
-          # Not using npm? Change `npm ci` to `yarn install` or `pnpm i`
-          - name: Install dependencies
-            run: npm ci
-    
-          # Not using npm? Change `npm run build` to `yarn build` or `pnpm run build`
-          - name: Build Astro
-            run: npm run build
+            steps:
+              - name: Clone repository
+                uses: actions/checkout@v4
 
-          - name: Upload to Deno Deploy
-            uses: denoland/deployctl@v1
-            with:
-              project: my-deno-project # TODO: replace with Deno Deploy project name
-              entrypoint: server/entry.mjs
-              root: dist
-    ```
+              # Not using npm? Change `npm ci` to `yarn install` or `pnpm i`
+              - name: Install dependencies
+                run: npm ci
+
+              # Not using npm? Change `npm run build` to `yarn build` or `pnpm run build`
+              - name: Build Astro
+                run: npm run build
+
+              - name: Upload to Deno Deploy
+                uses: denoland/deployctl@v1
+                with:
+                  project: my-deno-project # TODO: replace with Deno Deploy project name
+                  entrypoint: jsr:@std/http/file-server
+                  root: dist
+        ```
+      </Fragment>
+      
+      <Fragment slot="ssr">
+        ```yaml
+        ---
+        // .github/workflows/deploy.yml
+        ---
+        name: Deploy
+        on: [push]
+
+        jobs:
+          deploy:
+            name: Deploy
+            runs-on: ubuntu-latest
+            permissions:
+              id-token: write # Needed for auth with Deno Deploy
+              contents: read # Needed to clone the repository
+
+            steps:
+              - name: Clone repository
+                uses: actions/checkout@v4
+
+              # Not using npm? Change `npm ci` to `yarn install` or `pnpm i`
+              - name: Install dependencies
+                run: npm ci
+
+              # Not using npm? Change `npm run build` to `yarn build` or `pnpm run build`
+              - name: Build Astro
+                run: npm run build
+
+              - name: Upload to Deno Deploy
+                uses: denoland/deployctl@v1
+                with:
+                  project: my-deno-project # TODO: replace with Deno Deploy project name
+                  entrypoint: server/entry.mjs
+                  root: dist
+        ```
+      </Fragment>
+    </StaticSsrTabs>
 
 5. After committing this YAML file, and pushing to GitHub on your configured deploy branch, the deploy should begin automatically!
 
@@ -136,7 +182,7 @@ If your project is stored on GitHub, the [Deno Deploy website](https://dash.deno
 1. Install the [Deno Deploy CLI](https://docs.deno.com/deploy/manual/deployctl).
 
     ```bash
-    deno install --allow-read --allow-write --allow-env --allow-net --allow-run --no-check -r -f https://deno.land/x/deploy/deployctl.ts
+    deno install -gArf jsr:@deno/deployctl
     ```
 
 2. Run your Astro build step.
@@ -148,15 +194,42 @@ If your project is stored on GitHub, the [Deno Deploy website](https://dash.deno
 3. Run `deployctl` to deploy!
 
    In the command below, replace `<ACCESS-TOKEN>` with your [Personal Access Token](https://dash.deno.com/account#access-tokens) and `<MY-DENO-PROJECT>` with your Deno Deploy project name.
-
-    ```bash
-    DENO_DEPLOY_TOKEN=<ACCESS-TOKEN> deployctl deploy --project=<MY-DENO-PROJECT> --no-static --include=./dist ./dist/server/entry.mjs
-    ```
+  
+    <StaticSsrTabs>
+      <Fragment slot="static">
+        ```bash
+        cd dist && DENO_DEPLOY_TOKEN=<ACCESS-TOKEN> deployctl deploy --project=<MY-DENO-PROJECT> jsr:@std/http/file-server
+        ```
+      </Fragment>
+      
+      <Fragment slot="ssr">
+        ```bash
+        DENO_DEPLOY_TOKEN=<ACCESS-TOKEN> deployctl deploy --project=<MY-DENO-PROJECT> --no-static --include=./dist ./dist/server/entry.mjs
+        ```
+      </Fragment>
+    </StaticSsrTabs>
     
     You can track all your deploys on [Deno Deploy](https://dash.deno.com).
 
 4. (Optional) To simplify the build and deploy into one command, add a `deploy-deno` script in `package.json`.
 
+    <StaticSsrTabs>
+      <Fragment slot="static">
+        ```json ins={9}
+        // package.json
+        {
+          // ...
+          "scripts": {
+          "dev": "astro dev",
+          "start": "astro dev",
+          "build": "astro build",
+          "preview": "astro preview",
+          "deno-deploy": "npm run build && cd dist && deployctl deploy --project=<MY-DENO-PROJECT> jsr:@std/http/file-server"
+          }
+        }
+        ```
+      </Fragment>
+      <Fragment slot="ssr">
     ```json ins={9}
     // package.json
     {
@@ -170,6 +243,8 @@ If your project is stored on GitHub, the [Deno Deploy website](https://dash.deno
       }
     }
     ```
+      </Fragment>
+    </StaticSsrTabs>
     
     Then you can use this command to build and deploy your Astro site in one step.
     
@@ -177,7 +252,5 @@ If your project is stored on GitHub, the [Deno Deploy website](https://dash.deno
     DENO_DEPLOY_TOKEN=<ACCESS-TOKEN> npm run deno-deploy
     ```
 </Steps>
-
-<ReadMore>Read more about [SSR in Astro](/en/guides/server-side-rendering/).</ReadMore>
 
 [Deno adapter]: https://github.com/denoland/deno-astro-adapter

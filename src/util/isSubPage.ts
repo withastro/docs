@@ -19,7 +19,7 @@ export function removeSubPageSegment(path: string) {
 }
 
 const typeIndexes: Partial<Record<CollectionEntry<'docs'>['data']['type'], string>> = {
-	recipe: 'community-resources/content',
+	recipe: 'recipes',
 };
 
 const categoryIndex: Partial<Record<ReturnType<typeof getPageCategory>, string>> = {
