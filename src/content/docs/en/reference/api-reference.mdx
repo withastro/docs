@@ -231,6 +231,19 @@ AN EXAMPLE WOULD BE NICE
   </TabItem>
 </Tabs>
 
+
+### `isPrerendered`
+
+<p>
+
+**Type**: `boolean`<br />
+<Since v="5.0.0" />
+</p>
+
+A boolean representing whether or not the current page is prerendered.
+
+You can use this property to run conditional logic in middleware, for example, to avoid accessing headers in prerendered pages.
+
 ### `generator`
 
 <p>
@@ -605,18 +618,6 @@ For example, the file `src/pages/en/blog/[slug].astro` will return `/en/blog/[sl
 
 You can use this property to understand which route is rendering your component. This allows you to target or analyze similarly-generated page URLs together. For example, you can use it to conditionally render certain information, or collect metrics about which routes are slower.
 
-### `isPrerendered`
-
-<p>
-
-**Type**: `boolean`<br />
-<Since v="5.0.0" />
-</p>
-
-A boolean representing whether or not the current page is prerendered.
-
-You can use this property to run conditional logic in middleware, for example, to avoid accessing headers in prerendered pages.
-
 ### `cookies`
 
 <p>
@@ -817,11 +818,10 @@ If true, the cookie is only set on https sites.
 
 Allows customizing how the cookie is serialized.
 
-## WIP 3
 
-This one is fine; will be deprecated. Stick it at the end when we're done.
+### Deprecated object properties
 
-### `Astro.glob()`
+#### `Astro.glob()`
 
 :::caution[Deprecated in v5.0]
 Use [Vite's `import.meta.glob`](https://vite.dev/guide/features.html#glob-import) to query project files. 
@@ -866,7 +866,7 @@ You can also use `import.meta.glob()` itself in your Astro project. You may want
 Read more in the [Vite documentation](https://vite.dev/guide/features.html#glob-import).
 :::
 
-#### Markdown Files
+##### Markdown Files
 
 Markdown files loaded with `Astro.glob()` return the following `MarkdownInstance` interface:
 
@@ -906,7 +906,7 @@ const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 </ul>
 ```
 
-#### Astro Files
+##### Astro Files
 
 Astro files have the following interface:
 
@@ -920,7 +920,7 @@ export interface AstroInstance {
 }
 ```
 
-#### Other Files
+##### Other Files
 
 Other files may have various different interfaces, but `Astro.glob()` accepts a TypeScript generic if you know exactly what an unrecognized file type contains.
 
@@ -932,141 +932,3 @@ interface CustomDataFile {
 const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
 ---
 ```
-
-## Component syntax
-
-### `Astro.slots`
-
-`Astro.slots` contains utility functions for modifying an Astro component's slotted children.
-
-#### `Astro.slots.has()`
-
-<p>
-
-**Type:** `(slotName: string) => boolean`
-</p>
-
-You can check whether content for a specific slot name exists with `Astro.slots.has()`. This can be useful when you want to wrap slot contents, but only want to render the wrapper elements when the slot is being used.
-
-```astro  title="src/pages/index.astro"
----
----
-<slot />
-
-{Astro.slots.has('more') && (
-  <aside>
-    <h2>More</h2>
-    <slot name="more" />
-  </aside>
-)}
-```
-
-#### `Astro.slots.render()`
-
-<p>
-
-**Type:** `(slotName: string, args?: any[]) => Promise<string>`
-</p>
-
-You can asynchronously render the contents of a slot to a string of HTML using `Astro.slots.render()`.
-
-```astro
----
-const html = await Astro.slots.render('default');
----
-<Fragment set:html={html} />
-```
-
-:::note
-This is for advanced use cases! In most circumstances, it is simpler to render slot contents with [the `<slot />` element](/en/basics/astro-components/#slots).
-:::
-
-`Astro.slots.render()` optionally accepts a second argument: an array of parameters that will be forwarded to any function children. This can be useful for custom utility components.
-
-For example, this `<Shout />` component converts its `message` prop to uppercase and passes it to the default slot:
-
-```astro title="src/components/Shout.astro" "await Astro.slots.render('default', [message])"
----
-const message = Astro.props.message.toUpperCase();
-let html = '';
-if (Astro.slots.has('default')) {
-  html = await Astro.slots.render('default', [message]);
-}
----
-<Fragment set:html={html} />
-```
-
-A callback function passed as `<Shout />`’s child will receive the all-caps `message` parameter:
-
-```astro title="src/pages/index.astro"
----
-import Shout from "../components/Shout.astro";
----
-<Shout message="slots!">
-  {(message) => <div>{message}</div>}
-</Shout>
-
-<!-- renders as <div>SLOTS!</div> -->
-```
-
-Callback functions can be passed to named slots inside a wrapping HTML element tag with a `slot` attribute. This element is only used to transfer the callback to a named slot and will not be rendered onto the page.
-
-```astro
-<Shout message="slots!">
-  <fragment slot="message">
-    {(message) => <div>{message}</div>}
-  </fragment>
-</Shout>
-```
-
-Use a standard HTML element for the wrapping tag, or any lower case tag (e.g. `<fragment>` instead of `<Fragment />`) that will not be interpreted as a component.  Do not use the HTML `<slot>` element as this will be interpreted as an Astro slot.
-
-### `Astro.self`
-
-`Astro.self` allows Astro components to be recursively called. This behaviour lets you render an Astro component from within itself by using `<Astro.self>` in the component template. This can be helpful for iterating over large data stores and nested data-structures.
-
-```astro
----
-// NestedList.astro
-const { items } = Astro.props;
----
-<ul class="nested-list">
-  {items.map((item) => (
-    <li>
-      <!-- If there is a nested data-structure we render `<Astro.self>` -->
-      <!-- and can pass props through with the recursive call -->
-      {Array.isArray(item) ? (
-        <Astro.self items={item} />
-      ) : (
-        item
-      )}
-    </li>
-  ))}
-</ul>
-```
-
-This component could then be used like this:
-
-```astro
----
-import NestedList from './NestedList.astro';
----
-<NestedList items={['A', ['B', 'C'], 'D']} />
-```
-
-And would render HTML like this:
-
-```html
-<ul class="nested-list">
-  <li>A</li>
-  <li>
-    <ul class="nested-list">
-      <li>B</li>
-      <li>C</li>
-    </ul>
-  </li>
-  <li>D</li>
-</ul>
-```
-
------
