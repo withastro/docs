@@ -23,7 +23,7 @@ The following items are available on the `Astro` global (e.g. `Astro.props`, `As
 
 ### `props`
 
-`props` is an object containing any values that have been passed as [component attributes](/en/basics/astro-components/#component-props). Layout components for `.md` and `.mdx` files receive frontmatter values as props.
+`props` is an object containing any values that have been passed as [component attributes](/en/basics/astro-components/#component-props).
 
 ```astro {3}
 ---
@@ -36,7 +36,8 @@ const { title, date } = Astro.props;
 </div>
 ```
 
-```astro /title=".+"/ /date=".+"/
+{/* ```astro /title=".+"/ /date=".+"/ */}
+```astro "title=" "date="
 ---
 // src/pages/index.astro
 import Heading from '../components/Heading.astro';
@@ -47,37 +48,57 @@ import Heading from '../components/Heading.astro';
 <ReadMore>Learn more about how [Markdown and MDX Layouts](/en/guides/markdown-content/#frontmatter-layout-property) handle props.</ReadMore>
 
 
-`context.props` is an object containing any `props` passed from `getStaticPaths()`. Because `getStaticPaths()` is not used when building for SSR (server-side rendering), `context.props` is only available in static builds.
+The `props` object also contains any `props` passed from `getStaticPaths()` when rendering static routes.
 
-```ts title="src/pages/posts/[id].json.ts"
-import type { APIContext } from 'astro';
+<Tabs>
+  <TabItem label="Astro.props">
+    ```astro title="src/pages/posts/[id].astro" "props:" {11}
+    ---
+    export function getStaticPaths() {
+      return [
+        { params: { id: '1' }, props: { author: 'Blu' } },
+        { params: { id: '2' }, props: { author: 'Erika' } },
+        { params: { id: '3' }, props: { author: 'Matthew' } }
+      ];
+    }
 
-export function getStaticPaths() {
-  return [
-    { params: { id: '1' }, props: { author: 'Blu' } },
-    { params: { id: '2' }, props: { author: 'Erika' } },
-    { params: { id: '3' }, props: { author: 'Matthew' } }
-  ];
-}
+    const { id } = Astro.params;
+    const { author } = Astro.props;
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.props">
+    ```ts title="src/pages/posts/[id].json.ts" "props:" {11-14}
+    import type { APIContext } from 'astro';
 
-export function GET({ props }: APIContext) {
-	return new Response(
-    JSON.stringify({ author: props.author }),
-  );
-}
-```
+    export function getStaticPaths() {
+      return [
+        { params: { id: '1' }, props: { author: 'Blu' } },
+        { params: { id: '2' }, props: { author: 'Erika' } },
+        { params: { id: '3' }, props: { author: 'Matthew' } }
+      ];
+    }
 
+    export function GET({ props }: APIContext) {
+      return new Response(
+        JSON.stringify({ author: props.author }),
+      );
+    }
+    ```
+  </TabItem>
+
+</Tabs>
 See also: [Data Passing with `props`](/en/reference/routing-reference/#data-passing-with-props)
 
 ### `params`
 
-`params` is an object containing the values of dynamic route segments matched for this request.
+`params` is an object containing the values of dynamic route segments matched for a route request. Its keys must match the [dynamic route parameters](/en/guides/routing/#dynamic-routes) from the the page file or endpoint route.
 
-In static builds, this will be the `params` returned by `getStaticPaths()` used for prerendering [dynamic routes](/en/guides/routing/#dynamic-routes).
+In static builds, this will be the `params` returned by `getStaticPaths()` used for prerendering [dynamic routes](/en/guides/routing/#dynamic-routes):
 
 <Tabs>
   <TabItem label="Astro.params">
-    ```astro title="src/pages/posts/[id].astro" "Astro.params"
+    ```astro title="src/pages/posts/[id].astro" {9} "params:"
     ---
     export function getStaticPaths() {
       return [
@@ -92,7 +113,7 @@ In static builds, this will be the `params` returned by `getStaticPaths()` used 
     ```
   </TabItem>
   <TabItem label="context.params">
-    ```ts title="src/pages/posts/[id].json.ts" "params.id"
+    ```ts title="src/pages/posts/[id].json.ts" "params:" {11-14}
     import type { APIContext } from 'astro';
 
     export function getStaticPaths() {
@@ -113,7 +134,7 @@ In static builds, this will be the `params` returned by `getStaticPaths()` used 
 </Tabs>
 
 
-In SSR builds, this can be any value matching the path segments in the dynamic route pattern.
+When pages are rendered on demand, `params` can be any value matching the path segments in the dynamic route pattern.
 
 ```astro title="src/pages/posts/[id].astro" "Astro.params"
 ---
@@ -141,13 +162,13 @@ See also: [`params`](/en/reference/routing-reference/#params)
 <Since v="1.0.0" />
 </p>
 
-`url` is a [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) object constructed from the current `request.url` URL string value. Useful for interacting with individual properties of the request URL, like pathname and origin. 
+`url` is a [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) object constructed from the current `request.url` URL string value. It is useful for interacting with individual properties of the request URL, like pathname and origin. 
 
-Equivalent to doing `new URL(Astro.request.url)`.
+`Astro.url` is equivalent to doing `new URL(Astro.request.url)`.
 
-`url` will be `localhost` in dev mode if [`site`](/en/reference/configuration-reference/#site) is not configured for static sites, and for on-demand rendered sites using `server` or `hybrid` output.
+`url` will be `localhost` in dev mode for all on-demand rendered routes, and for prerendered routes when [`site`](/en/reference/configuration-reference/#site) is not configured.
 
-```astro
+```astro title="src/pages/index.astro"
 <h1>The current URL is: {Astro.url}</h1>
 <h1>The current URL pathname is: {Astro.url.pathname}</h1>
 <h1>The current URL origin is: {Astro.url.origin}</h1>
@@ -173,9 +194,9 @@ const socialImageURL = new URL('/images/preview.png', Astro.url);
 **Type:** `URL | undefined`
 </p>
 
-`Astro.site` returns a `URL` made from `site` in your Astro config. If `site` in your Astro config isn't defined, `Astro.site` won't be defined.
+`site` returns a `URL` made from `site` in your Astro config. It returns `undefined` if you have not set a value for [`site`](/en/reference/configuration-reference/#site) in your Astro config.
 
-`context.site` returns a `URL` made from `site` in your Astro config. If undefined, this will return a URL generated from `localhost`.
+AN EXAMPLE WOULD BE NICE
 
 ### `clientAddress`
 
@@ -189,9 +210,9 @@ const socialImageURL = new URL('/images/preview.png', Astro.url);
 
 <Tabs>
   <TabItem label="Astro.clientAddress">
-    ```astro
+    ```astro title="src/pages/ip-address.astro"
     ---
-    export const prerender = false;
+    export const prerender = false; // Not needed in 'server' mode
     const ip = Astro.clientAddress;
     ---
 
@@ -199,8 +220,8 @@ const socialImageURL = new URL('/images/preview.png', Astro.url);
     ```
   </TabItem>
   <TabItem label="context.clientAddress">
-    ```ts
-    export const prerender = false;
+    ```ts title="src/pages/ip-address.ts"
+    export const prerender = false; // Not needed in 'server' mode
     import type { APIContext } from 'astro';
 
     export function GET({ clientAddress }: APIContext) {
@@ -222,7 +243,7 @@ const socialImageURL = new URL('/images/preview.png', Astro.url);
 
 <Tabs>
   <TabItem label="Astro.generator">
-    ```astro mark="Astro.generator"
+    ```astro title="src/pages/site-info.astro" "Astro.generator"
     <html>
       <head>
         <meta name="generator" content={Astro.generator} />
@@ -236,7 +257,7 @@ const socialImageURL = new URL('/images/preview.png', Astro.url);
     ```
   </TabItem>
   <TabItem label="context.generator">
-    ```ts title="src/pages/site-info.json.ts"
+    ```ts title="src/pages/site-info.json.ts" "generator"
     import type { APIContext } from 'astro';
 
     export function GET({ generator, site }: APIContext) {
@@ -276,7 +297,7 @@ const socialImageURL = new URL('/images/preview.png', Astro.url);
 </Tabs>
 
 :::note
-On prerendered pages, `request.url` does not contain search parameters, like `?foo=bar`, as it's not possible to determine them ahead of time during static builds. However, `request.url` does contain search parameters for pages rendered on-demand as they can be determined from a server request.
+On prerendered pages, `request.url` does not contain search parameters, like `?type=new`, as it's not possible to determine them ahead of time during static builds. However, `request.url` does contain search parameters for pages rendered on-demand as they can be determined from a server request.
 :::
 
 ### `response`
@@ -449,7 +470,7 @@ Use a `Request` type for complete control of the `Request` sent to the server fo
 
 `locals` is an  object used to store and access arbitrary information during the lifecycle of a request. `Astro.locals` is an object containing any values from the `context.locals` object from a middleware. Use this to access data returned by middleware in your `.astro` files.
 
-Middleware functions can read and write the values of `context.locals`:
+Middleware functions can both read and write the values of `context.locals`:
 
 ```ts title="src/middleware.ts"
 import type { MiddlewareHandler } from 'astro';
@@ -541,7 +562,7 @@ The route pattern responsible for generating the current page or route. In file-
 
 The value will start with a leading slash and look similar to the path of a page component relative to your `srcDir/pages/` folder without a file extension.
 
-For example, the file `src/pages/en/blog/[slug].astro` will return `/en/blog/[slug]` for `context.routePattern`. Every page on your site generated by that file (e.g. `/en/blog/post-1/`, `/en/blog/post-2/`, etc.) shares the same value for `context.routePattern`. In the case of `index.*` routes, the route pattern will not include the word "index." For example, `src/pages/index.astro` will return `/`.
+For example, the file `src/pages/en/blog/[slug].astro` will return `/en/blog/[slug]` for `routePattern`. Every page on your site generated by that file (e.g. `/en/blog/post-1/`, `/en/blog/post-2/`, etc.) shares the same value for `routePattern`. In the case of `index.*` routes, the route pattern will not include the word "index." For example, `src/pages/index.astro` will return `/`.
 
 You can use this property to understand which route is rendering your component. This allows you to target or analyze similarly-generated page URLs together. For example, you can use it to conditionally render certain information, or collect metrics about which routes are slower.
 
