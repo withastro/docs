@@ -56,6 +56,7 @@ export const sidebar = [
 					'basics/layouts',
 					'guides/styling',
 					'guides/fonts',
+					'guides/syntax-highlighting',
 					'guides/client-side-scripts',
 					'guides/framework-components',
 				],
@@ -83,6 +84,7 @@ export const sidebar = [
 			}),
 			'guides/troubleshooting',
 			group('guides.recipes', { collapsed: true, autogenerate: { directory: 'recipes' } }),
+			'contribute',
 		],
 	}),
 
