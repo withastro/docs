@@ -92,7 +92,7 @@ export const sidebar = [
 	group('reference', {
 		items: [
 			group('reference.syntax', {
-				items: ['basics/astro-syntax', 'reference/directives-reference'],
+				items: ['reference/astro-syntax', 'reference/directives-reference'],
 			}),
 			'reference/configuration-reference',
 			'reference/cli-reference',
