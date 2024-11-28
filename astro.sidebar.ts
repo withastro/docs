@@ -97,9 +97,9 @@ export const sidebar = [
 			'reference/configuration-reference',
 			'reference/cli-reference',
 			'guides/imports',
+			'reference/routing-reference',
 			group('reference.runtime', {
 				items: [
-					'reference/routing-reference',
 					'reference/api-reference',
 					'reference/modules/astro-actions',
 					'reference/modules/astro-assets',
