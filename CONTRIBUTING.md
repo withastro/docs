@@ -8,7 +8,7 @@ We welcome contributions of any size and contributors of any skill level. As an 
 >
 > There, you'll find all the information below, and so much more!
 
-This document is has some basic information to get you started, but we encourage you to visit our [dedicated site for contributing to Astro docs](https://contribute.docs.astro.build) for all the information you need!
+This document has some basic information to get you started, but we encourage you to visit our [dedicated site for contributing to Astro docs](https://contribute.docs.astro.build) for all the information you need!
 
 There, you will find a writing and style guide, instructions on how to make changes and open PRs, guidance for translating the docs, and even information about how to help review Astro Docs PRs. 
 
@@ -43,8 +43,6 @@ We provide new content and rework existing content _in response to GitHub Issues
 Submitting an Issue is usually the first step to making a change. After an Issue has been considered by the community, we often reach out to community members to encourage them to submit PRs based on existing Issues.
 
 Larger contributions to the docs are encouraged after participating in Issues and Discussions, as unsolicited material may not fit into our existing plans.
-
-**Participating in Hacktoberfest?** See how you can get recognized for your translation PRs and PR reviews in our [Hacktoberfest guide](https://contribute.docs.astro.build/guides/hacktoberfest/).
 
 ### Examples of Helpful GitHub New Issues
 

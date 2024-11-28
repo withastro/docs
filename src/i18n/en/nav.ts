@@ -68,6 +68,11 @@ export default [
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
+	{
+		text: 'Syntax Highlighting',
+		slug: 'guides/syntax-highlighting',
+		key: 'guides/syntax-highlighting',
+	},
 	{ text: 'Connect Hosted Media or DAM', slug: 'guides/media', key: 'guides/media' },
 
 	{ text: 'Connect Your Data', header: true, type: 'learn', key: 'data' },
@@ -99,16 +104,13 @@ export default [
 	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
 	{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
 
-	{ text: 'Community Resources', header: true, type: 'learn', key: 'communityResources' },
+	{ text: 'Recipes and Resources', header: true, type: 'learn', key: 'communityResources' },
+
+	{ text: 'How-to Recipes', slug: 'recipes', key: 'recipes' },
 	{
-		text: 'Courses, Guides, and Recipes',
+		text: 'Community Resources',
 		slug: 'community-resources/content',
 		key: 'community-resources/content',
-	},
-	{
-		text: 'Talks, Interviews, and Streams',
-		slug: 'community-resources/talks',
-		key: 'community-resources/talks',
 	},
 
 	{ text: 'Reference', header: true, type: 'api', key: 'reference' },
@@ -123,11 +125,6 @@ export default [
 		text: 'Directives Reference',
 		slug: 'reference/directives-reference',
 		key: 'reference/directives-reference',
-	},
-	{
-		text: 'Built-in Components',
-		slug: 'reference/components-reference',
-		key: 'reference/components-reference',
 	},
 	{ text: 'TypeScript Reference', slug: 'guides/typescript', key: 'guides/typescript' },
 	{ text: 'Error Reference', slug: 'reference/error-reference', key: 'reference/error-reference' },
