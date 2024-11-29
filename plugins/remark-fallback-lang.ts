@@ -30,8 +30,8 @@ export function remarkFallbackLang(): Plugin<[], Root> {
 			if (linkSourceFileName) return;
 
 			link.children.push({
-				type: 'html',
-				value: `&nbsp;(EN)`,
+				type: 'text',
+				value: `\u00A0(EN)`,
 			});
 		});
 	};
