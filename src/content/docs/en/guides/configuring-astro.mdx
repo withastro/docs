@@ -4,6 +4,8 @@ i18nReady: true
 ---
 import ReadMore from '~/components/ReadMore.astro'
 
+Here are some common new project configuration steps for your new Astro site.
+
 ## The Astro Config File
 
 The [Astro config file](/en/reference/configuration-reference/) at the root of your project is used to your Astro project:
@@ -16,41 +18,32 @@ export default defineConfig({
   // your configuration options here...
 })
 ```
+A JavaScript configuration file is included in every starter project created with our CLI wizard `create astro`. It is only required if you have something to configure, but most projects will use this file.
 
-<ReadMore>Read Astro's [Configuration reference](/en/reference/configuration-reference/) for a full overview of all supported configuration options.</ReadMore>
+We recommend using the default file format `.mjs` in most cases or `.ts` if you want to write TypeScript in your config file. However, `astro.config.js` and `astro.config.cjs` are also supported.
 
-### Supported config file types
+### Add your deployment domain
 
-Astro supports several file formats for its JavaScript configuration file: `astro.config.js`, `astro.config.mjs`, `astro.config.cjs` and `astro.config.ts`. We recommend using `.mjs` in most cases or `.ts` if you want to write TypeScript in your config file.
+For generating your sitemap and creating canonical URLs, configure your deployment URL in the [`site`](/en/reference/configuration-reference/#site) option. If you are deploying to a path (e.g. `www.example/docs`), you can also configure a [`base`](/en/reference/configuration-reference/#base) for the root of your project.
 
-## Other config files
+Additionally, different deployment hosts may have different behavior regarding trailing slashes at the end of your URLs. (e.g. `example.com/about` vs `example.com/about/`). Once your site is deployed, you may need to configure your [`trailingSlash`](/en/reference/configuration-reference/#trailingslash) preference.
 
-Some Astro features are configured in their own config files.
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
 
-### TypeScript
+export default defineConfig({
+  site: 'https://www.example.com',
+  base: '/docs',
+  trailingSlash: 'always',
+})
+```
 
-You can configure TS
-
-### Content Collections
-
-there is a `content.config` file. 
 
 
-## Things you'll probably want to configure
+<ReadMore>Read Astro's [configuration reference](/en/reference/configuration-reference/) for a full overview of all supported configuration options.</ReadMore>
 
-Some of the first things you'll do with a new Astro project.
-
-### Add your domain / URL
-
-If you have a custom domain to deploy your site, enter it in `site`
-
-### Do other things with a brand new project
-
-You might also want to do this
-
-## Stuff on this page - should it be?
-
-### Referencing Relative Files
+### Reference relative Files
 
 If you provide a relative path to `root` or the `--root` CLI flag, Astro will resolve it against the current working directory where you ran the `astro` CLI command.
 
@@ -96,7 +89,7 @@ export default defineConfig({
 Vite-specific `import.meta` properties, like `import.meta.env` or `import.meta.glob`, are _not_ accessible from your configuration file. We recommend alternatives like [dotenv](https://github.com/motdotla/dotenv) or [fast-glob](https://github.com/mrmlnc/fast-glob) for these respective use cases. In addition, [tsconfig path aliases](https://www.typescriptlang.org/tsconfig#paths) will not be resolved. Use relative paths for module imports in this file.
 :::
 
-### Customising Output Filenames
+### Customize output filenames
 
 For code that Astro processes, like imported JavaScript or CSS files, you can customise output filenames using [`entryFileNames`](https://rollupjs.org/configuration-options/#output-entryfilenames), [`chunkFileNames`](https://rollupjs.org/configuration-options/#output-chunkfilenames), and [`assetFileNames`](https://rollupjs.org/configuration-options/#output-assetfilenames) in a `vite.build.rollupOptions` entry in your `astro.config.*` file.
 
@@ -121,24 +114,51 @@ export default defineConfig({
 
 This can be helpful if you have scripts with names that might be impacted by ad blockers (e.g. `ads.js` or `google-tag-manager.js`).
 
-### Environment Variables
+## Add site metadata
 
-Astro evaluates configuration files before it loads your other files. As such, you can't use `import.meta.env` to access environment variables that were set in `.env` files. 
+Astro does not use its configuration file for common SEO or meta data. Instead, this is added to your page `<head>` in HTML `<link>` and `<meta>` tags.
 
-You can use `process.env` in a configuration file to access other environment variables, like those [set by the CLI](/en/guides/environment-variables/#using-the-cli).
+One common pattern for Astro sites is to create a `<Head />` [`.astro` component](/en/basics/astro-components/) that can be added to a common [layout component](/en/basics/layout/) so it can apply to all your pages.
 
-You can also use [Vite's `loadEnv` helper](https://main.vite.dev/config/#using-environment-variables-in-config) to manually load `.env` files.
-
-:::note
-`pnpm` does not allow you to import modules that are not directly installed in your project. If you are using `pnpm`, you will need to install `vite` to use the `loadEnv` helper.
-```sh
-pnpm add vite --save-dev
+```astro title="src/components/MainLayout.astro"
+---
+import Head from './Head.astro';
+const { ...props } = Astro.props;
+---
+<html>
+  <head>
+    <meta charset="utf-8">
+    <Head />
+    <!-- -->
+  </head>
+  <body><!-- --></body>
+</html>
 ```
-:::
 
-```js title="astro.config.mjs"
-import { loadEnv } from "vite";
-const { SECRET_PASSWORD } = loadEnv(process.env.NODE_ENV, process.cwd(), "");
+Because `Head.astro` is just a regular Astro component, you can import files and receive props passed from other components, such as a specific page title.
+
+```astro title="src/components/Head.astro"
+---
+import Favicon from '../assets/Favicon.astro';
+import SomeOtherTags from './SomeOtherTags.astro';
+const { title = 'My Astro Website', ...props } = Astro.props;
+---
+<link rel="sitemap" href="/sitemap-index.xml">
+<title>{title}</title>
+<meta name="description" content="Welcome to my new Astro site!">
+
+<!-- Web analytics -->
+<script data-goatcounter="https://my-account.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+<!-- Open Graph tags -->
+<meta property="og:title" content="My New Astro Website" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="http://www.example.com/" />
+<meta property="og:description" content="Welcome to my new Astro site!" />
+<meta property="og:image" content="https://www.example.com/_astro/seo-banner.BZD7kegZ.webp">
+<meta property="og:image:alt" content="">
+
+<SomeOtherTags />
+
+<Favicon />
 ```
-
-
