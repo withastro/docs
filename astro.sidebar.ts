@@ -18,7 +18,7 @@ export const sidebar = [
 				items: ['concepts/why-astro', 'concepts/islands', 'tutorial/0-introduction'],
 			}),
 			group('start.newProject', {
-				items: ['install-and-setup', 'basics/project-structure'],
+				items: ['install-and-setup', 'basics/project-structure', 'develop-and-build',],
 			}),
 			group('start.config', {
 				items: [
@@ -56,6 +56,7 @@ export const sidebar = [
 					'basics/layouts',
 					'guides/styling',
 					'guides/fonts',
+					'guides/syntax-highlighting',
 					'guides/client-side-scripts',
 					'guides/framework-components',
 				],
@@ -83,6 +84,7 @@ export const sidebar = [
 			}),
 			'guides/troubleshooting',
 			group('guides.recipes', { collapsed: true, autogenerate: { directory: 'recipes' } }),
+			'contribute',
 		],
 	}),
 
@@ -118,6 +120,16 @@ export const sidebar = [
 					'reference/programmatic-reference',
 				],
 			}),
+			group('reference.experimental', {
+				items: [
+					'reference/experimental-flags',
+					'reference/experimental-flags/responsive-images',
+					'reference/experimental-flags/svg',
+					'reference/experimental-flags/client-prerender',
+					'reference/experimental-flags/content-intellisense',
+				],
+			}),
+			'reference/legacy-flags',
 			'reference/error-reference',
 		],
 	}),

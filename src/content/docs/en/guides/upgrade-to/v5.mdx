@@ -123,40 +123,13 @@ See [the Astro changelog](https://github.com/withastro/astro/blob/main/packages/
 
 ## Dependency Upgrades
 
-### Node Support
-
-The minimum supported version of Node.js in Astro v5.0 is `v18.17.1`
-
-#### What should I do?
-
- Check that both your development environment and your deployment environment are using **Node `18.17.1` or higher**.
-
-<Steps>
-1. Check your local version of Node using:
-
-    ```sh
-    node -v
-    ```
-
-2. Check your [deployment environment's](/en/guides/deploy/) own documentation to verify that they support this version of Node.
-
-    You can specify Node `18.17.1` for your Astro project either in a dashboard configuration setting or a `.nvmrc` file.
-
-    ```bash title=".nvmrc"
-    18.17.1
-    ```
-</Steps>
-
 ### Vite 6.0
 
-Astro 5.0-beta updates to Vite 6.0-beta as the development server and production bundler. Note: Astro v5 will remain in beta until Vite v6 has been released as stable. During this period, The Vite version is pinned and upgraded by Astro manually to prevent unhandled breaking changes.
+Astro v5.0 updates to Vite v6.0 as the development server and production bundler.
 
 #### What should I do?
 
-If you are using Vite-specific plugins, configuration, or APIs, check the [Vite CHANGELOG](https://github.com/vitejs/vite/blob/main/packages/vite/CHANGELOG.md#600-beta0-2024-09-12) for their breaking changes and upgrade your project as needed.
-
-Vite's current beta release has no breaking changes for Astro at this time.
-
+If you are using Vite-specific plugins, configuration, or APIs, check the [Vite migration guide](https://vite.dev/guide/migration.html) for their breaking changes and upgrade your project as needed.
 
 ### `@astrojs/mdx`
 
@@ -223,10 +196,12 @@ See the instructions below for converting an existing content collection with Ma
 
 <Steps>
 
-1. **Edit the collection definition**. Your updated collection requires a `loader`, and the option to select a collection `type` is no longer available.
+1. **Move the content config file**. This file no longer lives within the `src/content/` folder. This file should now exist at `src/content.config.ts`.
+
+2. **Edit the collection definition**. Your updated collection requires a `loader`, and the option to select a collection `type` is no longer available.
 
     ```ts ins={3,8} del={7}
-    // src/content/config.ts
+    // src/content.config.ts
     import { defineCollection, z } from 'astro:content';
     import { glob } from 'astro/loaders';
 
@@ -243,7 +218,7 @@ See the instructions below for converting an existing content collection with Ma
     });
     ```
 
-2. **Change references from `slug` to `id`**. Content layer collections do not have a `slug` field. Instead, all updated collections will have an `id`. You may also need to update your file name to match an updated getStaticPaths() parameter:
+3. **Change references from `slug` to `id`**. Content layer collections do not have a `slug` field. Instead, all updated collections will have an `id`. You may also need to update your file name to match an updated getStaticPaths() parameter:
 
     ```astro ins={7} del={6}
     // src/pages/[id].astro
@@ -259,7 +234,7 @@ See the instructions below for converting an existing content collection with Ma
     ---
     ```
 
-3. **Switch to the new `render()` function**. Entries no longer have a `render()` method, as they are now serializable plain objects. Instead, import the `render()` function from `astro:content`.
+4. **Switch to the new `render()` function**. Entries no longer have a `render()` method, as they are now serializable plain objects. Instead, import the `render()` function from `astro:content`.
 
     ```astro title="src/pages/index.astro" ins=", render" del={6} ins={7}
     ---
@@ -282,9 +257,11 @@ See the instructions below for converting an existing content collection with Ma
 
 By default, collections that use the old types (`content` or `data`) and do not define a `loader` are now implemented under the hood using the Content Layer API's built-in `glob()` loader, with extra backward-compatibility handling.
 
-While this backwards compatibility implementation is able to emulate most of the features of legacy collections, **there are some differences and limitations that may cause breaking changes to existing collections**:
+Additionally, temporary backwards compatibility exists for keeping the content config file in its original location of `src/content/config.ts`.
 
-  - In previous versions of Astro, collections would be generated for all folders in `src/content/`, even if they were not defined in `src/content/config.ts`. This behavior is now deprecated, and collections should always be defined in `src/content/config.ts`. For existing collections, these can just be empty declarations (e.g. `const blog = defineCollection({})`) and Astro will implicitly define your legacy collection for you in a way that is compatible with the new loading behavior.
+While this backwards compatibility implementation is able to emulate most of the features of legacy collections, allowing many legacy collections to continue to work even without updating your code, **there are some differences and limitations that may cause breaking changes to existing collections**:
+
+  - In previous versions of Astro, collections would be generated for all folders in `src/content/`, even if they were not defined in `src/content/config.ts`. This behavior is now deprecated, and collections should always be defined in `src/content.config.ts`. For existing collections, these can just be empty declarations (e.g. `const blog = defineCollection({})`) and Astro will implicitly define your legacy collection for you in a way that is compatible with the new loading behavior.
   - The special `layout` field is not supported in Markdown collection entries. This property is intended only for standalone page files located in `src/pages/` and not likely to be in your collection entries. However, if you were using this property, you must now create dynamic routes that include your page styling.
   - Sort order of generated collections is non-deterministic and platform-dependent. This means that if you are calling `getCollection()`, the order in which entries are returned may be different than before. If you need a specific order, you should sort the collection entries yourself.
   - `image().refine()` is not supported. If you need to validate the properties of an image you will need to do this at runtime in your page or component.
@@ -294,7 +271,7 @@ While this backwards compatibility implementation is able to emulate most of the
 
 <SourcePR number="11976" title="Implement legacy collections using glob" />
 
-If you are not yet ready to update your existing collections, you can enable the [`legacy.collections`](/en/reference/configuration-reference/#legacycollections) flag and your existing collections will continue to function as before.
+If you are not yet ready to update your existing collections, you can enable the [`legacy.collections`](/en/reference/legacy-flags/) flag and your existing collections will continue to function as before.
 
 ## Deprecated
 
@@ -360,6 +337,46 @@ export default function createIntegration() {
 ```
 
 <ReadMore>Learn more about [the Adapter API](/en/reference/adapter-reference/) for building adapter integrations.</ReadMore>
+
+### Deprecated: `routes` on `astro:build:done` hook (Integration API)
+
+<SourcePR number="12329" title="feat(next): astro:routes:resolved"/>
+
+In Astro v4.x, integrations accessed routes from the `astro:build:done` hook.
+
+Astro v5.0 deprecates the `routes` array passed to this hook. Instead, it exposes a new `astro:routes:resolved` hook that runs before `astro:config:done`, and whenever a route changes in development. It has all the same properties of the deprecated `routes` list, except `distURL` which is only available during build. 
+
+#### What should I do?
+
+Remove any instance of `routes` passed to `astro:build:done` and replace it with the new `astro:routes:resolved` hook. Access `distURL` on the newly exposed `assets` map:
+
+```js title="my-integration.mjs" ins={2,6-8,11,13-18} del={10}
+const integration = () => {
+    let routes
+    return {
+        name: 'my-integration',
+        hooks: {
+            'astro:routes:resolved': (params) => {
+                routes = params.routes
+            },
+            'astro:build:done': ({
+                routes
+                assets
+            }) => {
+                for (const route of routes) {
+                    const distURL = assets.get(route.pattern)
+                    if (distURL) {
+                        Object.assign(route, { distURL })
+                    }
+                }
+                console.log(routes)
+            }
+        }
+    }
+}
+```
+
+<ReadMore>Learn more about [the Integration API `astro:routes:resolved` hook](/en/reference/integrations-reference/#astroroutesresolved) for building integrations.</ReadMore>
 
 ## Removed
 
@@ -523,7 +540,7 @@ These features are all available by default in Astro v5.0.
 
 {/* Read about these exciting features and more in [the v5.0-beta Blog post](https://astro.build/blog/astro-4/). */}
 
-<ReadMore>See Astro's current [experimental features](/en/reference/configuration-reference/#experimental-flags).</ReadMore>
+<ReadMore>See Astro's current [experimental features](/en/reference/experimental-flags/).</ReadMore>
 
 ## Changed Defaults
 
@@ -664,7 +681,7 @@ Note that `src/env.d.ts` is only necessary if you have added custom configuratio
 
 <ReadMore>Read more about [TypeScript configuration in Astro](/en/guides/typescript/#setup).</ReadMore>
 
-### Changed: Actions submitted by HTML forms no longer use cookies
+### Changed: Actions submitted by HTML forms no longer use cookie redirects
 
 <SourcePR number="12373" title="Actions middleware"/>
 
@@ -674,7 +691,33 @@ Astro 5.0 now renders the result of an action as a POST result without any forwa
 
 #### What should I do?
 
-You can use the new default without any changes to your code. If you prefer to address the "confirm form resubmission?" dialog on refresh, or to preserve action results across sessions, you can now [customize action result handling from middleware](/en/guides/actions/#advanced-persist-action-results-with-a-session).
+You should update handling for action results that relies on redirects, and optionally address the "confirm form resubmission?" dialog with middleware.
+
+##### To redirect to the previous route on error
+
+If your HTML form action is directed to a different route (i.e. `action={"/success-page" + actions.name}`), Astro will no longer redirect to the previous route on error. You can implement this behavior manually using redirects from your Astro component. This example instead redirects to a new route on success, and handles errors on the current page otherwise:
+
+```astro title="src/pages/newsletter.astro" ins={4-9} del="'/confirmation' + "
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.newsletter);
+if (!result?.error) {
+  // Embed relevant result data in the URL if needed
+  // example: redirect(`/confirmation?email=${result.data.email}`);
+  return redirect('/confirmation');
+}
+---
+
+<form method="POST" action={'/confirmation' + actions.newsletter}>
+  <label>E-mail <input required type="email" name="email" /></label>
+  <button>Sign up</button>
+</form>
+```
+
+##### (Optional) To remove the confirm dialog on refresh
+
+To address the "confirm form resubmission?" dialog on refresh, or to preserve action results across sessions, you can now [customize action result handling from middleware](/en/guides/actions/#advanced-persist-action-results-with-a-session).
 
 We recommend using a session storage provider [as described in our Netlify Blob example](/en/guides/actions/#advanced-persist-action-results-with-a-session). However, if you prefer the cookie forwarding behavior from 4.X and accept the 4 KB size limit, you can implement the pattern as shown in this sample snippet:
 
@@ -899,19 +942,19 @@ If you were relying on the previous build paths, make sure that your project cod
 
 <ReadMore>Read more about [`build` configuration options in Astro](/en/reference/configuration-reference/#build-options).</ReadMore>
 
-### Changed: Dependencies are no longer processed by Vite
+### Changed: JS dependencies in config file are no longer processed by Vite
 
 <SourcePR number="11819" title="Set external: true when loading astro config"/>
 
-In Astro 4.x, locally-linked dependencies (e.g. `npm link`, in a monorepo, etc) were able to use Vite features like TypeScript when imported by the Astro config file.
+In Astro 4.x, locally-linked JS dependencies (e.g. `npm link`, in a monorepo, etc) were able to use Vite features like `import.meta.glob` when imported by the Astro config file.
 
-Astro 5 updates the Astro config loading flow to ignore processing locally-linked dependencies with Vite. Instead, these dependencies will be normally imported by the Node.js runtime the same way as other dependencies from `node_modules`.
+Astro 5 updates the Astro config loading flow to ignore processing locally-linked JS dependencies with Vite. Dependencies exporting raw TypeScript files are unaffected. Instead, these JS dependencies will be normally imported by the Node.js runtime the same way as other dependencies from `node_modules`.
 
-This change was made as the previous behavior caused confusion among integration authors who tested against a package that worked locally, but not when published. It also restricted using CJS-only dependencies because Vite required the code to be ESM. Therefore, Astro's behavior has now changed to ignore processing any type of dependencies by Vite.
+This change was made as the previous behavior caused confusion among integration authors who tested against a package that worked locally, but not when published. It also restricted using CJS-only dependencies because Vite required the code to be ESM. While this change only affects JS dependencies, it's also recommended for packages to export JavaScript instead of raw TypeScript where possible to prevent accidental Vite-specific usage as it's an implementation detail of Astro's config loading flow.
 
 #### What should I do?
 
-Make sure your locally-linked dependencies are built to JS before running your Astro project. Then, the config loading should work as before.
+Make sure your locally-linked JS dependencies are built before running your Astro project. Then, the config loading should work as before.
 
 <ReadMore>Read more about [Vite configuration settings in Astro](/en/reference/configuration-reference/#vite).</ReadMore>
 
