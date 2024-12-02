@@ -68,6 +68,11 @@ export default [
 	{ text: 'CSS & Styling', slug: 'guides/styling', key: 'guides/styling' },
 	{ text: 'Images', slug: 'guides/images', key: 'guides/images' },
 	{ text: 'Fonts', slug: 'guides/fonts', key: 'guides/fonts' },
+	{
+		text: 'Syntax Highlighting',
+		slug: 'guides/syntax-highlighting',
+		key: 'guides/syntax-highlighting',
+	},
 	{ text: 'Connect Hosted Media or DAM', slug: 'guides/media', key: 'guides/media' },
 
 	{ text: 'Connect Your Data', header: true, type: 'learn', key: 'data' },
@@ -99,26 +104,59 @@ export default [
 	{ text: 'Testing', slug: 'guides/testing', key: 'guides/testing' },
 	{ text: 'Troubleshooting', slug: 'guides/troubleshooting', key: 'guides/troubleshooting' },
 
+	{ text: 'Recipes and Resources', header: true, type: 'learn', key: 'communityResources' },
+
+	{ text: 'How-to Recipes', slug: 'recipes', key: 'recipes' },
+	{
+		text: 'Community Resources',
+		slug: 'community-resources/content',
+		key: 'community-resources/content',
+	},
+
 	{ text: 'Reference', header: true, type: 'api', key: 'reference' },
 	{
 		text: 'Configuration',
 		slug: 'reference/configuration-reference',
 		key: 'reference/configuration-reference',
 	},
-	{ text: 'Astro Runtime API', slug: 'reference/api-reference', key: 'reference/api-reference' },
+
 	{ text: 'Astro CLI', slug: 'reference/cli-reference', key: 'reference/cli-reference' },
 	{
 		text: 'Directives Reference',
 		slug: 'reference/directives-reference',
 		key: 'reference/directives-reference',
 	},
-	{
-		text: 'Built-in Components',
-		slug: 'reference/components-reference',
-		key: 'reference/components-reference',
-	},
 	{ text: 'TypeScript Reference', slug: 'guides/typescript', key: 'guides/typescript' },
 	{ text: 'Error Reference', slug: 'reference/error-reference', key: 'reference/error-reference' },
+
+	{ text: 'Astro API Reference', header: true, type: 'api', key: 'api-reference' },
+	{ text: 'Astro Runtime API', slug: 'reference/api-reference', key: 'reference/api-reference' },
+	{
+		text: 'astro:actions',
+		slug: 'reference/modules/astro-actions',
+		key: 'reference/modules/astro-actions',
+	},
+	{
+		text: 'astro:assets',
+		slug: 'reference/modules/astro-assets',
+		key: 'reference/modules/astro-assets',
+	},
+	{
+		text: 'astro:content',
+		slug: 'reference/modules/astro-content',
+		key: 'reference/modules/astro-content',
+	},
+	{ text: 'astro:i18n', slug: 'reference/modules/astro-i18n', key: 'reference/modules/astro-i18n' },
+	{
+		text: 'astro:middleware',
+		slug: 'reference/modules/astro-middleware',
+		key: 'reference/modules/astro-middleware',
+	},
+	{
+		text: 'astro:transitions',
+		slug: 'reference/modules/astro-transitions',
+		key: 'reference/modules/astro-transitions',
+	},
 
 	{ text: 'Other Development APIs', header: true, type: 'api', key: 'dev' },
 	{
@@ -141,18 +179,6 @@ export default [
 		text: 'Container API (Experimental)',
 		slug: 'reference/container-reference',
 		key: 'reference/container-reference',
-	},
-
-	{ text: 'Community Resources', header: true, type: 'learn', key: 'communityResources' },
-	{
-		text: 'Courses, Guides, and Recipes',
-		slug: 'community-resources/content',
-		key: 'community-resources/content',
-	},
-	{
-		text: 'Talks, Interviews, and Streams',
-		slug: 'community-resources/talks',
-		key: 'community-resources/talks',
 	},
 
 	// { text: 'Configuration', header: true, type: 'learn', key: 'configuration' },

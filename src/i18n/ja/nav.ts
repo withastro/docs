@@ -6,14 +6,14 @@ export default NavDictionary({
 	'install-and-setup': 'インストールとセットアップ',
 	'guides/deploy': 'サイトのデプロイ',
 	'guides/migrate-to-astro': 'Astroへの移行',
-	'blog-tutorial': 'ブログを作る',
+	'blog-tutorial': 'チュートリアル: ブログを作る',
 
 	coreConcepts: 'コアコンセプト',
 	'concepts/why-astro': 'Astroを選ぶ理由',
 	'concepts/islands': 'Astroアイランド',
 
 	basics: '基本',
-	'basics/project-structure': 'ディレクトリ構成',
+	'basics/project-structure': 'プロジェクトの構成',
 	'basics/astro-components': 'コンポーネント',
 	'basics/astro-pages': 'ページ',
 	'basics/layouts': 'レイアウト',
@@ -23,15 +23,16 @@ export default NavDictionary({
 	'guides/integrations-guide': 'インテグレーションの追加',
 
 	content: 'コンテンツ管理',
-	'guides/content': 'コンテンツのオーサリング',
+	'guides/content': 'コンテンツの執筆',
 	'guides/markdown-content': 'Markdown',
 	'guides/content-collections': 'コンテンツコレクション',
 	'guides/cms': 'CMSとの接続',
-	'guides/rss': 'RSSフィードを追加する',
+	'guides/rss': 'RSSフィードの追加',
 
 	routes: 'ルートとナビゲーション',
 	'guides/routing': 'ルーティング',
 	'guides/endpoints': 'エンドポイント',
+	'guides/actions': 'アクション',
 	'guides/prefetch': 'プリフェッチ',
 	'guides/middleware': 'ミドルウェア',
 	'guides/internationalization': '国際化',
@@ -41,6 +42,8 @@ export default NavDictionary({
 	'guides/styling': 'CSSとスタイル',
 	'guides/images': '画像',
 	'guides/fonts': 'フォント',
+	'guides/syntax-highlighting': 'シンタックスハイライト',
+	'guides/media': 'ホストされたメディアやDAMの接続',
 
 	data: 'データ接続',
 	'guides/data-fetching': 'データフェッチ',
@@ -54,18 +57,29 @@ export default NavDictionary({
 	'guides/framework-components': 'UIフレームワーク',
 	'guides/client-side-scripts': 'スクリプトとイベントハンドリング',
 
-	maintain: 'プロジェクト維持',
+	maintain: 'プロジェクトの保守',
 	'upgrade-astro': 'Astroのアップグレード',
 	'guides/testing': 'テスト',
 	'guides/troubleshooting': 'トラブルシューティング',
 
+	communityResources: 'レシピとリソース',
+	recipes: 'レシピの活用',
+	'community-resources/content': 'コミュニティリソース',
+
 	reference: 'リファレンス',
 	'reference/configuration-reference': '設定方法',
-	'reference/api-reference': 'ランタイムAPI',
 	'reference/cli-reference': 'Astro CLI',
 	'reference/directives-reference': 'テンプレートディレクティブ',
 	'guides/typescript': 'TypeScript',
 	'reference/error-reference': 'エラーリファレンス',
+
+	'api-reference': 'Astro APIリファレンス',
+	'reference/api-reference': 'ランタイムAPI',
+	'reference/modules/astro-actions': 'astro:actions',
+	'reference/modules/astro-assets': 'astro:assets',
+	'reference/modules/astro-content': 'astro:content',
+	'reference/modules/astro-i18n': 'astro:i18n',
+	'reference/modules/astro-transitions': 'astro:transitions',
 
 	dev: 'その他の開発API',
 	'reference/integrations-reference': 'インテグレーションAPI',
@@ -73,8 +87,4 @@ export default NavDictionary({
 	'reference/image-service-reference': '画像サービスAPI',
 	'reference/dev-toolbar-app-reference': '開発ツールバーアプリAPI',
 	'reference/container-reference': 'コンテナAPI (実験的)',
-
-	communityResources: 'コミュニティリソース',
-	'community-resources/content': 'コース、ガイド、レシピ',
-	'community-resources/talks': 'トーク、インタビュー、配信',
 });

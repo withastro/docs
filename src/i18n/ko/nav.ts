@@ -42,6 +42,7 @@ export default NavDictionary({
 	'guides/styling': 'CSS & 스타일링',
 	'guides/images': '이미지',
 	'guides/fonts': '글꼴',
+	'guides/syntax-highlighting': '구문 강조',
 	'guides/media': '미디어',
 
 	data: '데이터 연결',
@@ -61,14 +62,25 @@ export default NavDictionary({
 	'guides/testing': '테스팅',
 	'guides/troubleshooting': '문제 해결',
 
+	communityResources: '레시피 및 리소스',
+	recipes: '활용 레시피',
+	'community-resources/content': '커뮤니티 리소스',
+
 	reference: '참조',
 	'reference/configuration-reference': '구성',
-	'reference/api-reference': 'Astro 런타임 API',
 	'reference/cli-reference': 'Astro CLI',
 	'reference/directives-reference': '지시어 참조',
-	'reference/components-reference': '기본 제공 컴포넌트',
 	'guides/typescript': 'TypeScript 참조',
 	'reference/error-reference': '오류 참조',
+
+	'api-reference': 'Astro API 참조',
+	'reference/api-reference': 'Astro 런타임 API',
+	'reference/modules/astro-actions': 'astro:actions',
+	'reference/modules/astro-assets': 'astro:assets',
+	'reference/modules/astro-content': 'astro:content',
+	'reference/modules/astro-i18n': 'astro:i18n',
+	'reference/modules/astro-middleware': 'astro:middleware',
+	'reference/modules/astro-transitions': 'astro:transitions',
 
 	dev: '기타 개발 API',
 	'reference/integrations-reference': '통합 API',
@@ -76,8 +88,4 @@ export default NavDictionary({
 	'reference/image-service-reference': '이미지 서비스 API',
 	'reference/dev-toolbar-app-reference': '개발 툴바 앱 API',
 	'reference/container-reference': '컨테이너 API (실험적 기능)',
-
-	communityResources: '커뮤니티 리소스',
-	'community-resources/content': '강의, 가이드, 레시피',
-	'community-resources/talks': '강연, 인터뷰, 스트림',
 });

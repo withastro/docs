@@ -16,7 +16,7 @@ Le middleware vous permet également de définir et de partager des informations
 <Steps>
 1. Créez `src/middleware.js|ts` (Alternativement, vous pouvez créer `src/middleware/index.js|ts`.)
 
-2. Dans ce fichier, exportez une fonction [`onRequest()`](/fr/reference/api-reference/#onrequest) à laquelle on peut passer un objet [`context`](#objet-context) et une fonction `next()`. Il ne doit pas s'agir d'une exportation par défaut.
+2. Dans ce fichier, exportez une fonction [`onRequest()`](/fr/reference/modules/astro-middleware/#onrequest) à laquelle on peut passer un objet [`context`](#objet-context) et une fonction `next()`. Il ne doit pas s'agir d'une exportation par défaut.
 
     ```js title="src/middleware.js"
     export function onRequest (context, next) {
@@ -138,10 +138,11 @@ export const onRequest = (context, next) => {
 };
 ```
 
-Pour taper l'information dans `Astro.locals`, ce qui vous donne l'autocomplétion dans les fichiers `.astro` et le code middleware, déclarez un espace de noms global dans le fichier `env.d.ts` :
+Pour activer les types pour les informations contenues dans `Astro.locals`, ce qui vous donne l'autocomplétion dans les fichiers `.astro` et le code middleware, déclarez un espace de noms global dans le fichier `env.d.ts` :
 
 ```ts title="src/env.d.ts"
 /// <reference path="../.astro/types.d.ts" />
+
 declare namespace App {
     interface Locals {
         user: {
@@ -157,7 +158,7 @@ Ensuite, dans le fichier du middleware, vous pouvez tirer parti de l'autocomplé
 
 ## Enchaînement middleware
 
-Plusieurs intergiciels peuvent être reliés dans un ordre précis à l'aide de [`séquence()`](/fr/reference/api-reference/#sequence) :
+Plusieurs middlewares peuvent être reliés dans un ordre précis à l'aide de [`séquence()`](/fr/reference/modules/astro-middleware/#sequence) :
 
 ```js title="src/middleware.js"
 import { sequence } from "astro/middleware";
@@ -246,6 +247,8 @@ export function onRequest (context, next) {
 La fonction `next()` accepte la même charge utile que [la fonction `Astro.rewrite()`](/fr/reference/api-reference/#astrorewrite). L'emplacement du chemin de réécriture peut être fourni sous la forme d'une chaîne, d'une URL ou d'une `Request`.
 
 Quand vous avez plusieurs fonctions middleware enchaînées via [sequence()](#enchaînement-middleware), soumettre un chemin à `next()` réécrira la `Request` en place et le middleware ne s'exécutera pas à nouveau. Le middleware suivant dans la chaîne recevra la nouvelle `Request` avec son `context` mis à jour :
+
+L'appel de `next()` avec cette signature créera un nouvel objet `Request` en utilisant l'ancien `ctx.request`. Cela signifie que toute tentative de consommation de `Request.body`, avant ou après cette réécriture, générera une erreur d'exécution. Cette erreur est souvent générée avec [les actions Astro qui utilisent des formulaires HTML](/fr/guides/actions/#appeler-des-actions-depuis-une-action-de-formulaire-html). Dans ces cas, nous vous recommandons de gérer les réécritures de vos modèles Astro à l'aide de `Astro.rewrite()` au lieu d'utiliser un middleware.
 
 ```js title="src/middleware.js"
 // L'URL actuel est https://example.com/blog

@@ -4,22 +4,25 @@ description: Astroでのミドルウェアの使い方を学びます。
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro';
 
-**ミドルウェア**により、リクエストとレスポンスをインターセプトし、ページやエンドポイントがレンダリングされる直前に動的に振る舞いを注入できます。こうしたレンダリングは、ページが事前レンダリングされる場合にはビルド時におこなわれますが、オンデマンドにレンダリングされるページの場合は、ルートへのリクエスト時におこなわれます。
+**ミドルウェア**により、リクエストとレスポンスをインターセプトし、ページやエンドポイントがレンダリングされる直前に動的に振る舞いを注入できます。こうしたレンダリングは、ページが事前レンダリングされる場合にはビルド時におこなわれますが、オンデマンドにレンダリングされるページの場合はルートへのリクエスト時におこなわれ、[クッキーやヘッダーなどの追加のSSR機能](/ja/guides/server-side-rendering/#オンデマンドレンダリングの機能)が利用できます。
 
 また、ミドルウェアを使って、すべてのAstroコンポーネントとAPIエンドポイントで利用可能な`locals`オブジェクトを変更し、リクエスト固有の情報を各エンドポイントとページで設定・共有することもできます。このオブジェクトは、このミドルウェアがビルド時に実行される場合でも利用できます。
 
 ## 基本的な使い方
 
+<Steps>
 1. `src/middleware.js|ts` というファイルを作成します。（あるいは、`src/middleware/index.js|ts` を作成しても構いません。）
 
-2. このファイルの中で、[`context`オブジェクト](#contextオブジェクト)と`next()`関数を受け取る[`onRequest()`](/ja/reference/api-reference/#onrequest)関数をエクスポートします。これをデフォルトエクスポートにしてはいけません。
+2. このファイルの中で、[`context`オブジェクト](#contextオブジェクト)と`next()`関数を受け取る[`onRequest()`](/ja/reference/modules/astro-middleware/#onrequest)関数をエクスポートします。これをデフォルトエクスポートにしてはいけません。
 
     ```js title="src/middleware.js"
-    export function onRequest ({ locals, request }, next) {
+    export function onRequest (context, next) {
         // リクエストからデータをインターセプトします
         // 必要に応じて、`locals`内のプロパティを改変します
-        locals.title = "新しいタイトル";
+        context.locals.title = "新しいタイトル";
 
         // Responseか`next()`の結果を返します
         return next();
@@ -35,6 +38,7 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
     <h1>{data.title}</h1>
     <p>この{data.property}はミドルウェアで設定しました。</p>
     ```
+</Steps>
 
 ### `context`オブジェクト
 
@@ -55,11 +59,11 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 `locals`には、文字列、数値、さらには関数やマップといった複雑なデータ型など、どんな型のデータでも格納できます。
 
 ```js title="src/middleware.js"
-export function onRequest ({ locals, request }, next) {
+export function onRequest (context, next) {
     // リクエストからデータをインターセプトします
     // 必要に応じて、`locals`内のプロパティを改変します
-    locals.user.name = "John Wick";
-    locals.welcomeTitle = () => {
+    context.locals.user.name = "John Wick";
+    context.locals.welcomeTitle = () => {
         return "おかえりなさい " + locals.user.name;
     };
 
@@ -137,7 +141,8 @@ export const onRequest = (context, next) => {
 `Astro.locals`内の情報に型を付け、`.astro`ファイルとミドルウェアの両コードで自動補完を有効化するには、`env.d.ts`ファイルでグローバル名前空間を宣言します。
 
 ```ts title="src/env.d.ts"
-/// <reference types="astro/client" />
+/// <reference path="../.astro/types.d.ts" />
+
 declare namespace App {
     interface Locals {
         user: {
@@ -153,7 +158,7 @@ declare namespace App {
 
 ## ミドルウェアを連結する
 
-[`sequence()`](/ja/reference/api-reference/#sequence)を使用して、複数のミドルウェアを指定した順序で連結できます。
+[`sequence()`](/ja/reference/modules/astro-middleware/#sequence)を使用して、複数のミドルウェアを指定した順序で連結できます。
 
 ```js title="src/middleware.js"
 import { sequence } from "astro:middleware";
@@ -191,6 +196,71 @@ greetingリクエスト
 greetingレスポンス
 authレスポンス
 validationレスポンス
+```
+
+## リライト
+
+<p><Since v="4.13.0" /></p>
+
+{/* TODO: routing.mdx の修正時に #rewrites を追加する */}
+`APIContext`は、[Astro.rewrite](/ja/guides/routing/)と同じように動作する`rewrite()`メソッドを公開しています。
+
+ページ閲覧者を新しいページにリダイレクトすることなく異なるページコンテンツを表示するには、ミドルウェア内で`context.rewrite()`を使用します。これにより新しいレンダリングフェーズがトリガーされ、ミドルウェアが再実行されます。
+```js title="src/middleware.js"
+import { isLoggedIn } from "~/auth.js"
+export function onRequest (context, next) {
+  if (!isLoggedIn(context)) {
+    // ユーザーがログインしていない場合、`/login`ルートをレンダリングするようにRequestを更新し、
+    // ログイン成功後にユーザーをどこに送り返すかを示すヘッダーを追加します。
+    // ミドルウェアは再実行されます。
+    return context.rewrite(new Request("/login", {
+      headers: {
+        "x-redirect-to": context.url.pathname
+      }
+    }));
+  }
+  return next();
+};
+```
+また、`next()`関数にオプションのURLパスパラメータを渡すことで、新しいレンダリングフェーズを再トリガーすることなく、現在の`Request`を書き換えることができます。リライト先のパスは、文字列、URL、または`Request`として与えます。
+```js title="src/middleware.js"
+import { isLoggedIn } from "~/auth.js"
+export function onRequest (context, next) {
+  if (!isLoggedIn(context)) {
+    // ユーザーがログインしていない場合、`/login`ルートをレンダリングするようにRequestを更新し、
+    // ログイン成功後にユーザーをどこに送り返すかを示すヘッダーを追加します。
+    // 後続のミドルウェアに新しい`context`を返します。
+    return next(new Request("/login", {
+      headers: {
+        "x-redirect-to": context.url.pathname
+      }
+    }));
+  }
+  return next();
+};
+```
+`next()`関数には、[Astro.rewrite()関数](/ja/reference/api-reference/#astrorewrite)と同じペイロードを渡せます。リライト先のパスは、文字列、URL、または`Request`として与えます。[sequence()](#ミドルウェアを連結する)により複数のミドルウェア関数を連結している場合、`next()`にパスを渡すと`Request`はその場で書き換えられ、ミドルウェアは再実行されません。チェーン内の次のミドルウェア関数は、更新された`context`をもつ新しい`Request`を受け取ります。
+```js title="src/middleware.js"
+// 現在のURLは https://example.com/blog です
+
+// 最初のミドルウェア関数
+async function first(_, next) {
+  console.log(context.url.pathname) // これは"/blog"をログに出力します
+  // 新しいルートであるホームページにリライトします
+  // 次の関数に渡される、更新された`context`を返します
+  return next("/")
+}
+
+// 現在のURLはまだ https://example.com/blog です
+
+// 2番目のミドルウェア関数
+async function second(context, next) {
+  // 更新された`context`を受け取ります
+  console.log(context.url.pathname) // これは"/"をログに出力します
+  return next()
+}
+
+export const onRequest = sequence(first, second);
 ```
 
 ## エラーページ
