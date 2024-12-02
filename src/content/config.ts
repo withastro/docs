@@ -3,6 +3,11 @@ import { defineCollection, z, type CollectionEntry } from 'astro:content';
 import { AstroDocsI18nSchema } from './i18n-schema';
 
 export const baseSchema = z.object({
+	// ADD A SITE-WIDE BANNER TO SHOW THESE ARE OLD DOCS.
+	banner: z.object({ content: z.string() }).default({
+		content:
+			'This is an unmaintained snapshot of the Astro v4 docs. <a href="https://docs.astro.build/">View the latest docs.</a>',
+	}),
 	type: z.literal('base').optional().default('base'),
 	i18nReady: z.boolean().default(false),
 	githubURL: z.string().url().optional(),
