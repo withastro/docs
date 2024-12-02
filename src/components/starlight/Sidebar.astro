@@ -1,6 +1,7 @@
 ---
 import { Icon } from '@astrojs/starlight/components';
-import Default from '@astrojs/starlight/components/Sidebar.astro';
+import SidebarPersister from '@astrojs/starlight/components/SidebarPersister.astro';
+import SidebarSublist from '@astrojs/starlight/components/SidebarSublist.astro';
 import type { Props } from '@astrojs/starlight/props';
 import type { SidebarEntry } from 'node_modules/@astrojs/starlight/utils/navigation';
 import { stripLeadingAndTrailingSlashes } from 'node_modules/@astrojs/starlight/utils/path';
@@ -11,6 +12,7 @@ import Sponsors from '../LeftSidebar/Sponsors.astro';
 import TabbedContent from '../tabs/TabbedContent.astro';
 import TabListItem from '../tabs/TabListItem.astro';
 import TabPanel from '../tabs/TabPanel.astro';
+import MobileMenuFooter from './MobileMenuFooter.astro';
 
 const { sidebar, slug } = Astro.props;
 
@@ -56,26 +58,32 @@ const isCurrent = (sidebar: SidebarEntry[]): boolean =>
 		.some((entry) => entry === true);
 ---
 
-<TabbedContent class="tabbed-sidebar">
-	<Fragment slot="tab-list">
+<SidebarPersister {...Astro.props}>
+	<TabbedContent class="tabbed-sidebar">
+		<Fragment slot="tab-list">
+			{
+				sidebar.map(({ label, entries }, index) => (
+					<TabListItem id={makeId(label)} initial={isCurrent(entries)} class="tab-item">
+						<Icon class="icon" name={getIcon(index)} /> {label}
+					</TabListItem>
+				))
+			}
+		</Fragment>
 		{
-			sidebar.map(({ label, entries }, index) => (
-				<TabListItem id={makeId(label)} initial={isCurrent(entries)} class="tab-item">
-					<Icon class="icon" name={getIcon(index)} /> {label}
-				</TabListItem>
+			sidebar.map(({ label, entries }) => (
+				<TabPanel id={makeId(label)} initial={isCurrent(entries)}>
+					<SidebarSublist sublist={entries} />
+				</TabPanel>
 			))
 		}
-	</Fragment>
-	{
-		sidebar.map(({ label, entries }) => (
-			<TabPanel id={makeId(label)} initial={isCurrent(entries)}>
-				<Default {...Astro.props} sidebar={entries} />
-			</TabPanel>
-		))
-	}
-</TabbedContent>
+	</TabbedContent>
+</SidebarPersister>
 
-<div class="sl-hidden md:sl-block">
+<div class="md:sl-hidden">
+	<MobileMenuFooter {...Astro.props} />
+</div>
+
+<div class="desktop-footer sl-hidden md:sl-block">
 	<Sponsors />
 </div>
 
@@ -86,6 +94,11 @@ const isCurrent = (sidebar: SidebarEntry[]): boolean =>
 		vertical-align: super;
 		font-size: 0.75em;
 		font-weight: 700;
+	}
+
+	/** Align sponsors at sidebar bottom when there is room. */
+	.desktop-footer {
+		margin-top: auto;
 	}
 
 	/** Always show the scrollbar gutter. */
