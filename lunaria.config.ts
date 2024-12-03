@@ -111,9 +111,9 @@ export default defineConfig({
 			type: 'dictionary',
 		},
 		{
-			include: ['src/i18n/en/nav.ts'],
-			pattern: 'src/i18n/@lang/@path',
-			type: 'universal',
+			include: ['src/content/nav/en.ts'],
+			pattern: 'src/content/nav/@tag.ts',
+			type: 'dictionary',
 		},
 		{
 			include: ['src/content/docs/en/**/*.(md|mdx)'],
