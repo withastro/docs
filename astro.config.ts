@@ -47,7 +47,7 @@ export default defineConfig({
 				PageTitle: './src/components/starlight/PageTitle.astro',
 			},
 			editLink: {
-				baseUrl: 'https://github.com/withastro/docs/edit/5.0.0-beta',
+				baseUrl: 'https://github.com/withastro/docs/edit/main',
 			},
 			defaultLocale: 'en',
 			locales: makeLocalesConfig(),
