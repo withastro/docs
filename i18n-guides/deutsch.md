@@ -39,6 +39,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 | page                        | die Seite                            | Eine einzelne (HTML-)Seite. Wir vermeiden die längere Form "Webseite", um Verwechslungen mit "Website" zu vermeiden.
 | partial hydration           | die partielle Hydratation            | Falsch hingegen wäre "Hydrierung".
 | project root (directory)    | das Projektstamm&shy;verzeichnis     | Aufgrund der Wortlänge wird die Aufnahme eines weichen Bindestrichs empfohlen: `Projektstamm&shy;verzeichnis`
+| recipe                      | das Beispiel                         |
 | repository                  | das Repository                       | Wird nicht übersetzt (gängiger Domänenbegriff).
 | request                     | die Anfrage                          |
 | script                      | das Skript                           |
