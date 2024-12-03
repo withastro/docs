@@ -78,7 +78,7 @@ export const sidebar = [
 					'upgrade-astro',
 					group('guides.upgrade.major', {
 						collapsed: true,
-						autogenerate: { directory: 'guides/upgrade-to' },
+						items: [ 'guides/upgrade-to/v5', 'guides/upgrade-to/v4', 'guides/upgrade-to/v3', 'guides/upgrade-to/v2', 'guides/upgrade-to/v1', ],
 					}),
 				],
 			}),
