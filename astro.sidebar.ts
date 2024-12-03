@@ -18,7 +18,7 @@ export const sidebar = [
 				items: ['concepts/why-astro', 'concepts/islands', 'tutorial/0-introduction'],
 			}),
 			group('start.newProject', {
-				items: ['install-and-setup', 'basics/project-structure', 'develop-and-build',],
+				items: ['install-and-setup', 'basics/project-structure', 'develop-and-build'],
 			}),
 			group('start.config', {
 				items: [
@@ -78,7 +78,13 @@ export const sidebar = [
 					'upgrade-astro',
 					group('guides.upgrade.major', {
 						collapsed: true,
-						items: [ 'guides/upgrade-to/v5', 'guides/upgrade-to/v4', 'guides/upgrade-to/v3', 'guides/upgrade-to/v2', 'guides/upgrade-to/v1', ],
+						items: [
+							'guides/upgrade-to/v5',
+							'guides/upgrade-to/v4',
+							'guides/upgrade-to/v3',
+							'guides/upgrade-to/v2',
+							'guides/upgrade-to/v1',
+						],
 					}),
 				],
 			}),
