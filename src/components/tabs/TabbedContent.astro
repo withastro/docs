@@ -9,13 +9,17 @@ export interface Props {
 	 * inside a `<Fragment slot="tab-list">`.
 	 */
 	tabs?: { label: string; id: string; initial?: boolean }[];
+	/** Enable default styles for the tab list and panels. */
+	styled?: boolean;
+	/** Additional class names to apply to `.tab-list` and `.panels`. */
+	class?: string;
 }
 
-const { tabs } = Astro.props as Props;
+const { tabs, styled } = Astro.props as Props;
 ---
 
 <tabbed-content>
-	<ul class="tab-list">
+	<ul class:list={['tab-list', Astro.props.class, { 'tab-list--styled': styled }]}>
 		<slot name="tab-list">
 			{
 				tabs?.map((tab) => (
@@ -27,35 +31,33 @@ const { tabs } = Astro.props as Props;
 		</slot>
 	</ul>
 
-	<div class="panels">
+	<div class:list={['panels', Astro.props.class, { 'panels--styled': styled }]}>
 		<slot />
 	</div>
 </tabbed-content>
 
 <style>
 	.tab-list {
-		display: flex;
 		list-style: none;
 		padding: 0;
+	}
+	.tab-list--styled {
+		display: flex;
 		margin-top: -1px;
 		overflow-x: auto;
 		overflow-y: hidden;
 	}
 	@media (min-width: 72em) {
-		.tab-list {
+		.tab-list--styled {
 			justify-content: space-between;
 			margin-top: 0;
 			padding: 1px;
 		}
 	}
 
-	.panels {
+	.panels--styled {
 		padding-left: 1px;
 		padding-right: 1px;
-	}
-
-	.panels :global(a) {
-		text-decoration: none;
 	}
 </style>
 
@@ -70,7 +72,7 @@ const { tabs } = Astro.props as Props;
 			super();
 
 			// Get relevant elements and collections
-			const panels = this.querySelectorAll<HTMLElement>('.panels > section');
+			const panels = this.querySelectorAll<HTMLElement>('.panels > [id]');
 			const tablist = this.querySelector('.tab-list')!;
 			const tabs = tablist.querySelectorAll('a');
 
@@ -90,13 +92,15 @@ const { tabs } = Astro.props as Props;
 				if ('initial' in tab.dataset && tab.dataset.initial !== 'false') initialTab = i;
 
 				// Handle clicking of tabs for mouse users
-				tab.addEventListener('click', (e) => {
+				const onClick = (e: MouseEvent) => {
 					e.preventDefault();
 					const currentTab = tablist.querySelector('[aria-selected]');
 					if (e.currentTarget !== currentTab) {
 						this.switchTab(e.currentTarget as HTMLElement, i);
 					}
-				});
+				};
+				tab.addEventListener('click', onClick);
+				tab.addEventListener('auxclick', onClick);
 
 				// Handle keydown events for keyboard users
 				tab.addEventListener('keydown', (e) => {
@@ -109,18 +113,14 @@ const { tabs } = Astro.props as Props;
 							? index - 1
 							: e.key === 'ArrowRight'
 								? index + 1
-								: e.key === 'ArrowDown'
-									? 'down'
-									: null;
+								: e.key === 'Home'
+									? 0
+									: e.key === 'End'
+										? tabs.length - 1
+										: null;
 					if (dir !== null) {
 						e.preventDefault();
-						// If the down key is pressed, move focus to the open panel,
-						// otherwise switch to the adjacent tab
-						dir === 'down'
-							? panels[i].focus()
-							: tabs[dir]
-								? this.switchTab(tabs[dir], dir)
-								: void 0;
+						if (tabs[dir]) this.switchTab(tabs[dir], dir);
 					}
 				});
 			});
