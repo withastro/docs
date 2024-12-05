@@ -6,7 +6,7 @@ import jsdoc from 'jsdoc-api';
 import fetch from 'node-fetch';
 
 // Fill this in to test a response locally, with fetching.
-const STUB = ``; // fs.readFileSync('/PATH/TO/MONOREPO/astro/packages/astro/src/@types/astro.ts', {encoding: 'utf-8'});
+const STUB = ``; // fs.readFileSync('/PATH/TO/MONOREPO/astro/packages/astro/src/types/public/config.ts', {encoding: 'utf-8'});
 
 const HEADER = `---
 # NOTE: This file is auto-generated from 'scripts/docgen.mjs'
@@ -46,7 +46,7 @@ export async function run() {
 	const sourceBranch = process.env.SOURCE_BRANCH || 'main';
 	const sourceRepo = process.env.SOURCE_REPO || 'withastro/astro';
 
-	let task = 'Fetch `@types/astro.ts` from ' + sourceRepo + '#' + sourceBranch;
+	let task = 'Fetch `src/types/public/config.ts` from ' + sourceRepo + '#' + sourceBranch;
 	console.time(task);
 
 	const inputBuffer =
