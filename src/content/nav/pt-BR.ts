@@ -1,5 +1,35 @@
 import { navDictionary } from '../../util/navDictionary';
 
 export default navDictionary({
-	// Add translations of English labels here
+	start: 'Início',
+	'start.welcome': 'Olá, mundo!',
+	'start.newProject': 'Comece um novo projeto',
+	'start.config': 'Configuração',
+	'start.migrate': 'Migre para Astro',
+
+	guides: 'Guias e receitas',
+	'guides.routing': 'Roteamento e navegação',
+	'guides.ui': 'Construa sua UI',
+	'guides.content': 'Adicione conteúdo ao seu site',
+	'guides.serverRendering': 'Interpretação no servidor',
+	'guides.upgrade': 'Atualize',
+	'guides.upgrade.major': 'Guias de atualizações principais',
+	'guides.recipes': 'Receitas passo-a-passo',
+
+	reference: 'Referência',
+	'reference.runtime': 'Runtime API',
+	'reference.other': 'Outras APIs de desenvolvimento',
+	'reference.syntax': 'Sintaxe de Modelo Astro',
+	'reference.experimental': 'Funcionalidades experimentais',
+
+	integrations: 'Integrações',
+	'integrations.ui': 'Frameworks UI',
+	'integrations.adapters': 'Adaptadores',
+	'integrations.other': 'Outras integrações oficiais',
+
+	thirdParty: 'Serviços de Terceiros',
+	'thirdParty.deployment': 'Guias de implantação',
+	'thirdParty.cms': 'Sistemas de gerenciamendo de conteúdo',
+	'thirdParty.backend': 'Serviços backend',
+	'thirdParty.media': 'Mídia hospedada & DAM',
 });
