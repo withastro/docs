@@ -1,17 +1,21 @@
 ---
-title: Abrufen von Daten
-description: 'Erfahre, wie Astro mithilfe der Fetch-API Remote-Daten abrufen kann.'
+title: Daten abrufen
+description: Hier erfährst du, wie du mit der Fetch-API Ferndaten mit Astro abrufen kannst.
+i18nReady: true
 ---
 
-`.astro`-Dateien können während des Erstellungsvorgangs Remote-Daten abrufen, um die Generierung deiner Seiten zu unterstützen.
+`.astro`-Dateien können Daten aus der Ferne abrufen, um dir bei der Erstellung deiner Seiten zu helfen.
 
 ## `fetch()` in Astro
 
-Jede [Astro-Komponente](/de/basics/astro-components/) hat Zugriff auf die [globale `fetch()`-Funktion](https://developer.mozilla.org/en-US/docs/Web/API/fetch) in ihrem Komponentenskript, um HTTP-Requests an APIs zu senden. Dieser fetch-Aufruf wird zur Erstellungszeit ausgeführt und die Daten sind in der Komponentenvorlage für eine dynamische HTML-Generierung verfügbar.
+Alle [Astro-Komponenten](/de/basics/astro-components/) haben Zugriff auf die [globale Funktion `fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/fetch) in ihrem Komponentenskript, um HTTP-Anfragen an APIs unter Verwendung der vollständigen URL (z. B. https://example.com/api) zu stellen.
+Außerdem kannst du mit `new URL("/api", Astro.url)` eine URL zu den Seiten und Endpunkten deines Projekts konstruieren, die bei Bedarf auf dem Server gerendert werden.
+
+Dieser Fetch-Aufruf wird zur Erstellungszeit ausgeführt, und die Daten stehen der Komponentenvorlage für die Erzeugung von dynamischem HTML zur Verfügung. Wenn der Modus [SSR](/de/guides/on-demand-rendering/) aktiviert ist, werden alle Fetch-Aufrufe zur Laufzeit ausgeführt.
 
 💡 Nutze die Vorteile von [**Top-Level Await**](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await#top_level_await) in deinem Astro-Komponentenskript.
 
-💡 Übergebe die abgerufenen Daten als Eigenschaften an Astro- als auch an Framework-Komponenten.
+💡 Übergib die abgerufenen Daten als Eigenschaften an Astro- als auch an Framework-Komponenten.
 
 ```astro /await fetch\\(.*?\\)/
 ---
@@ -45,7 +49,6 @@ Die `fetch()`-Funktion ist auch global in jeder [Framework-Komponente](/de/guide
 
 ```tsx title="src/components/Movies.tsx" /await fetch\\(.*?\\)/
 import type { FunctionalComponent } from 'preact';
-import { h } from 'preact';
 
 const data = await fetch('https://example.com/movies.json').then((response) =>
   response.json()
@@ -63,109 +66,45 @@ const Movies: FunctionalComponent = () => {
 export default Movies;
 ```
 
-
 ## GraphQL-Abfragen
 
 Astro kann auch `fetch()` nutzen, um GraphQL-Server mit einer beliebigen gültigen GraphQL-Anfrage anzufragen.
 
-```astro title="src/components/Weather.astro" "await fetch"
+```astro title="src/components/Film.astro" "await fetch"
 ---
-const response = await fetch("https://graphql-weather-api.herokuapp.com",
+const response = await fetch("https://swapi-graphql.netlify.app/.netlify/functions/index",
   {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({
       query: `
-        query getWeather($name:String!) {
-            getCityByName(name: $name){
-              name
-              country
-              weather {
-                summary {
-                    description
-                }
-              }
-            }
+        query getFilm ($id:ID!) {
+          film(id: $id) {
+            title
+            releaseDate
           }
-        `,
+        }
+      `,
       variables: {
-          name: "Toronto",
+        id: "ZmlsbXM6MQ==",
       },
     }),
   });
 
 const json = await response.json();
-const weather = json.data;
+const { film } = json.data;
 ---
-<h1>Abruf des Wetters zur Erstellungszeit</h1>
-<h2>{weather.getCityByName.name}, {weather.getCityByName.country}</h2>
-<p>Wetter: {weather.getCityByName.weather.summary.description}</p>
+<h1>Informationen über Star Wars: Eine neue Hoffnung abrufen</h1>
+<h2>Titel: {film.title}</h2>
+<p>Jahr: {film.releaseDate}</p>
 ```
 
 ## Abfragen von einem Headless-CMS
 
-Lade Remote-Inhalte von deinem bevorzugten CMS, z.B. Storyblok oder WordPress!
+Astro-Komponenten können Daten aus deinem bevorzugten CMS abrufen und sie dann als Seiteninhalt wiedergeben. Mit [dynamischen Routen](/de/guides/routing/#dynamic-routes) können die Komponenten sogar Seiten auf der Grundlage deiner CMS-Inhalte erstellen.
 
-Astro-Komponenten könnten Daten von deinem CMS abrufen und in deinen Seiteninhalt rendern. Mit [dynamischen Routen](/de/guides/routing/#dynamische-routen) können Komponenten sogar Seiten auf der Basis deiner CMS-Inhalte generieren.
+In unseren [CMS Guides](/de/guides/cms/) findest du alle Details zur Integration von Astro in Headless CMS wie Storyblok, Contentful und WordPress.
 
-Nachfolgend zeigen wir dir einige Beispiele, wie die Datenabfrage in Astro aussieht. Links zu den vollständigen Tutorials findest du jeweils darunter.
+## Community-Ressourcen
 
-### Beispiel: Storyblok-API
-
-```astro
----
-// src/pages/index.astro
-// Abrufen einer Liste deiner Storyblok-Seitenlinks mit @storyblok/js
-import BaseLayout from '../layouts/BaseLayout.astro';
-import { storyblokInit, apiPlugin } from "@storyblok/js";
-
-const { storyblokApi } = storyblokInit({
-  accessToken: "MEIN_STORYBLOK_ACCESS_TOKEN",
-  use: [apiPlugin],
-});
-
-const { data } = await storyblokApi.get('cdn/links');
-const links = Object.values(data.links);
----
-<BaseLayout>
-  <h1>Astro + Storyblok</h1>
-  <ul>
-    {links.map(link => (
-      <li><a href={link.slug}>{link.name}</a></li>
-    ))}
-  </ul>
-</BaseLayout>
-```
-Sieh dir das vollständige Tutorial [Hinzufügen eines Headless-CMS zu Astro in 5 Minuten](https://www.storyblok.com/tp/add-a-headless-cms-to-astro-in-5-minutes) an, um Storyblok zu Astro hinzuzufügen!
-
-### Beispiel: WordPress + GraphQL
-
-```astro
----
-// src/pages/about.astro
-// Abrufen des Seiteninhalts deiner "Über mich"-Seite von der WordPress API
-
-import BaseLayout from '../../layouts/BaseLayout.astro';
-
-const slug = 'ueber-mich';
-const response = await fetch(import.meta.env.WORDPRESS_API_URL, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: `
-    {
-      page(id:"${slug}", idType:URI) {
-        title 
-        content 
-      }
-    }
-  `
-});
-const data = await response.json();
----
-<BaseLayout>
-  <h1>{data.title}</h1>
-  <article set:html={data.content} />
-</BaseLayout>
-```
-
-Sieh dir das vollständige Tutorial [Erstellen einer Astro-Website mit WordPress als Headless-CMS](https://blog.openreplay.com/building-an-astro-website-with-wordpress-as-a-headless-cms) an, um WordPress zu deinem Astro-Projekt hinzuzufügen! 
+- [Erstellen einer Fullstack-App mit Astro + GraphQL](https://robkendal.co.uk/blog/how-to-build-astro-site-with-graphql/)
