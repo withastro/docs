@@ -12,12 +12,12 @@ export default navDictionary({
 	'guides.ui': 'Construa sua UI',
 	'guides.content': 'Adicione conteúdo ao seu site',
 	'guides.serverRendering': 'Interpretação no servidor',
-	'guides.upgrade': 'Atualize',
+	'guides.upgrade': 'Atualização',
 	'guides.upgrade.major': 'Guias de atualizações principais',
 	'guides.recipes': 'Receitas passo-a-passo',
 
 	reference: 'Referência',
-	'reference.runtime': 'Runtime API',
+	'reference.runtime': 'API de Runtime',
 	'reference.other': 'Outras APIs de desenvolvimento',
 	'reference.syntax': 'Sintaxe de Modelo Astro',
 	'reference.experimental': 'Funcionalidades experimentais',
@@ -27,7 +27,7 @@ export default navDictionary({
 	'integrations.adapters': 'Adaptadores',
 	'integrations.other': 'Outras integrações oficiais',
 
-	thirdParty: 'Serviços de Terceiros',
+	thirdParty: 'Serviços de terceiros',
 	'thirdParty.deployment': 'Guias de implantação',
 	'thirdParty.cms': 'Sistemas de gerenciamendo de conteúdo',
 	'thirdParty.backend': 'Serviços backend',
