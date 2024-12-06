@@ -168,6 +168,10 @@ Désormais, toutes vos actions utilisateur peuvent être appelées à partir de 
 
 Les actions renvoient un objet contenant soit `data` qui contient la valeur de retour de votre fonction `handler()` avec sûreté du typage, soit `error` qui contient les erreurs du backend. Ces dernières peuvent provenir d'erreurs de validation sur la propriété `input` ou d'erreurs générées dans la fonction `handler()`.
 
+Les actions renvoient un format de données personnalisé qui peut gérer les Dates, les Maps, les Sets et les URL [à l'aide de la bibliothèque Devalue](https://github.com/Rich-Harris/devalue). Par conséquent, vous ne pouvez pas facilement inspecter la réponse du réseau comme vous le pouvez avec du JSON classique. Pour le débogage, vous pouvez plutôt inspecter l'objet `data` renvoyé par les actions.
+
+<ReadMore>[Consultez la référence de l'API `handler()`](/fr/reference/modules/astro-actions/#propriété-handler) pour plus de détails.</ReadMore>
+
 ### Vérification des erreurs
 
 Il est préférable de vérifier si une erreur (`error`) est présente avant d'utiliser la propriété `data`. Cela vous permet à la fois de gérer les erreurs à l'avance et d'être certain que `data` est définie sans vérification additionnelle pour `undefined`.
@@ -398,7 +402,7 @@ if (isInputError(error)) {
 ## Appeler des actions depuis une action de formulaire HTML
 
 :::note
-Les pages doivent être rendues à la demande lors de l'appel d'actions à l'aide d'une action de formulaire. [Assurez-vous que le prérendu est désactivé sur la page](/fr/guides/server-side-rendering/#désactiver-le-pré-rendu-en-mode-hybrid) avant d'utiliser cette API.
+Les pages doivent être rendues à la demande lors de l'appel d'actions à l'aide d'une action de formulaire. [Assurez-vous que le prérendu est désactivé sur la page](/fr/guides/on-demand-rendering/#enabling-on-demand-rendering) avant d'utiliser cette API.
 :::
 
 Vous pouvez activer les soumissions de formulaires zéro-JS avec des attributs standard sur n'importe quel élément `<form>`. Les soumissions de formulaires sans JavaScript côté client peuvent être utiles à la fois comme solution de secours en cas d'échec du chargement de JavaScript ou si vous préférez gérer les formulaires entièrement à partir du serveur.
@@ -421,24 +425,7 @@ import { actions } from 'astro:actions';
 
 ### Redirection en cas de réussite de l'action
 
-Pour accéder à une page différente lorsqu'une action réussit sans JavaScript côté client, vous pouvez ajouter un chemin dans l'attribut `action`.
-
-Par exemple, `action={'/confirmation' + actions.newsletter}` naviguera vers `/confirmation` lorsque l'action `newsletter` réussit :
-
-```astro title="src/components/NewsletterSignup.astro" /action=\{[^\{\}]+\}/
----
-import { actions } from 'astro:actions';
----
-
-<form method="POST" action={'/confirmation' + actions.newsletter}>
-  <label>E-mail <input required type="email" name="email" /></label>
-  <button>S'inscrire</button>
-</form>
-```
-
-#### Redirection dynamique en cas de réussite de l'action
-
-Si vous devez décider vers où rediriger de manière dynamique, vous pouvez utiliser le résultat d'une action sur le serveur. Un exemple courant est la création d'un enregistrement de produit et la redirection vers la page du nouveau produit, par exemple `/products/[id]`.
+Si vous devez rediriger vers une nouvelle route en cas de succès, vous pouvez utiliser le résultat d'une action sur le serveur. Un exemple courant est la création d'un enregistrement de produit et la redirection vers la page du nouveau produit, par exemple `/products/[id]`.
 
 Par exemple, supposons que vous ayez une action `createProduct` qui renvoie l'identifiant du produit généré :
 
@@ -479,7 +466,7 @@ if (result && !result.error) {
 
 ### Gérer les erreurs d'action du formulaire
 
-Astro ne redirige pas vers votre route `action` lorsqu'une action échoue. Au lieu de cela, la page actuelle est rechargée avec toutes les erreurs renvoyées par l'action. L'appel de `Astro.getActionResult()` dans le composant Astro contenant votre formulaire vous donne accès à l'objet `error` pour une gestion personnalisée des erreurs.
+L'appel de `Astro.getActionResult()` dans le composant Astro contenant votre formulaire vous donne accès aux objets `data` et `error` pour la gestion personnalisée des erreurs.
 
 L'exemple suivant affiche un message d'échec général lorsqu'une action `newsletter` échoue :
 
@@ -493,7 +480,7 @@ const result = Astro.getActionResult(actions.newsletter);
 {result?.error && (
   <p class="error">Impossible de s'inscrire. Veuillez réessayer ultérieurement.</p>
 )}
-<form method="POST" action={'/confirmation' + actions.newsletter}>
+<form method="POST" action={actions.newsletter}>
   <label>
     E-mail
     <input required type="email" name="email" />
@@ -524,10 +511,6 @@ const inputErrors = isInputError(result?.error) ? result.error.fields : {};
 </form>
 ```
 
-:::note
-Astro conserve les données (`data`) et erreurs (`error`) de l'action avec un cookie à usage unique. Cela signifie que `getActionResult()` renverra un résultat sur la première requête _uniquement_, et `undefined` lors de la nouvelle consultation de la page.
-:::
-
 #### Conserver les valeurs d'entrée en cas d'erreur
 
 Les entrées seront effacées à chaque fois qu'un formulaire sera soumis. Pour conserver les valeurs d'entrée, vous pouvez [activer les transitions de vue](/fr/guides/view-transitions/#ajouter-des-transitions-de-vue-à-une-page) sur la page et appliquer la directive `transition:persist` à chaque entrée :
@@ -538,13 +521,9 @@ Les entrées seront effacées à chaque fois qu'un formulaire sera soumis. Pour 
 
 ### Mettre à jour l'interface utilisateur avec un résultat d'action de formulaire
 
-Le résultat renvoyé par `Astro.getActionResult()` est à usage unique et sera réinitialisé à `undefined` à chaque actualisation de la page. Ceci est idéal pour [afficher les erreurs de saisie](#gérer-les-erreurs-daction-du-formulaire) et afficher des notifications temporaires à l'utilisateur en cas de réussite.
+Pour utiliser la valeur de retour d'une action pour afficher une notification à l'utilisateur en cas de réussite, transmettez l'action à `Astro.getActionResult()`. Utilisez la propriété `data` renvoyée pour restituer l'interface utilisateur que vous souhaitez afficher.
 
-:::tip
-Si vous avez besoin d'afficher un résultat lors des actualisations de page, envisagez de stocker le résultat dans une base de données ou [dans un cookie](/fr/reference/api-reference/#astrocookies).
-:::
-
-Transmettez une action à `Astro.getActionResult()` et utilisez la propriété `data` renvoyée pour restituer n'importe quelle interface utilisateur temporaire que vous souhaitez afficher. Cet exemple utilise la propriété `productName` renvoyée par une action `addToCart` pour afficher un message de réussite :
+Cet exemple utilise la propriété `productName` renvoyée par une action `addToCart` pour afficher un message de réussite.
 
 ```astro title="src/pages/products/[slug].astro"
 ---
@@ -560,31 +539,160 @@ const result = Astro.getActionResult(actions.addToCart);
 <!--...-->
 ```
 
-:::caution
-Les données d'action sont transmises à l'aide d'un cookie persistant. **Ce cookie n'est pas chiffré** et sa taille est limitée à 4 Ko, bien que la limite exacte puisse varier d'un navigateur à l'autre.
+### Avancé : Persistance des résultats d'action avec une session
 
-En général, nous recommandons de renvoyer le minimum d'informations nécessaires à votre gestionnaire d'actions (`handler`) pour éviter les vulnérabilités, et de conserver les autres informations sensibles dans une base de données.
+<p><Since v="5.0.0" /></p>
 
-Par exemple, vous pouvez renvoyer le nom d'un produit dans une action `addToCart`, plutôt que de renvoyer l'intégralité de l'objet `product` :
+Les résultats de l'action sont affichés sous forme de soumission POST. Cela signifie que le résultat sera réinitialisé sur `undefined` lorsqu'un utilisateur fermera et revisitera la page. L'utilisateur verra également une boîte de dialogue « Confirmer la nouvelle soumission du formulaire ?» s'il tente d'actualiser la page.
 
-```ts title="src/actions/index.ts" del={7} ins={8}
-import { defineAction } from 'astro:actions';
+Pour personnaliser ce comportement, vous pouvez ajouter un middleware pour gérer manuellement le résultat de l'action. Vous pouvez choisir de conserver le résultat de l'action à l'aide d'un cookie ou d'un stockage de session.
+
+Commencez par [créer un fichier middleware](/fr/guides/middleware/) et par importer [l'utilitaire `getActionContext()`](/fr/reference/modules/astro-actions/#getactioncontext) depuis `astro:actions`. Cette fonction renvoie un objet `action` avec des informations sur la demande d'action entrante, y compris le gestionnaire d'action et si l'action a été appelée à partir d'un formulaire HTML. `getActionContext()` renvoie également les fonctions `setActionResult()` et `serializeActionResult()` pour définir par programmation la valeur renvoyée par `Astro.getActionResult()` :
+
+```ts title="src/middleware.ts" {2,5}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action?.calledFrom === 'form') {
+    const result = await action.handler();
+    // ... gérer le résultat de l'action
+    setActionResult(action.name, serializeActionResult(result));
+  }
+  return next();
+});
+```
+
+Une pratique courante pour conserver les résultats des formulaires HTML est le [modèle POST / Redirect / GET](https://fr.wikipedia.org/wiki/Post-redirect-get). Cette redirection supprime la boîte de dialogue « Confirmer la nouvelle soumission du formulaire ?» lorsque la page est actualisée et permet aux résultats de l'action d'être conservés tout au long de la session de l'utilisateur.
+
+Cet exemple applique le modèle POST / Redirect / GET à toutes les soumissions de formulaire utilisant le stockage de session avec [l'adaptateur de serveur Netlify](/fr/guides/integrations-guide/netlify/) installé. Les résultats de l'action sont écrits dans un magasin de sessions à l'aide de [Netlify Blob](https://docs.netlify.com/blobs/overview/) et récupérés après une redirection à l'aide d'un ID de session :
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+import { randomUUID } from "node:crypto";
+import { getStore } from "@netlify/blobs";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  // Ignorer les demandes de pages pré-rendues
+  if (context.isPrerendered) return next();
+  
+  const { action, setActionResult, serializeActionResult } =
+    getActionContext(context);
+  // Créer un magasin Blob pour conserver les résultats des actions avec Netlify Blob
+  const actionStore = getStore("action-session");
+  
+  // Si un résultat d'action a été transmis sous forme de cookie, définir le
+  // résultat pour qu'il soit accessible à partir de `Astro.getActionResult()`
+  const sessionId = context.cookies.get("action-session-id")?.value;
+  const session = sessionId
+    ? await actionStore.get(sessionId, {
+        type: "json",
+      })
+    : undefined;
+  
+  if (session) {
+    setActionResult(session.actionName, session.actionResult);
+  
+    // Facultatif : supprimer la session une fois la page rendue.
+    // N'hésitez pas à mettre en œuvre votre propre stratégie de persistance
+    await actionStore.delete(sessionId);
+    ctx.cookies.delete("action-session-id");
+    return next();
+  }
+  
+  // Si une action a été appelée à partir d'une action de formulaire HTML,
+  // appeler le gestionnaire d'action et rediriger vers la page de destination
+  if (action?.calledFrom === "form") {
+    const actionResult = await action.handler();
+  
+    // Conserver le résultat de l'action à l'aide du stockage de session
+    const sessionId = randomUUID();
+    await actionStore.setJSON(sessionId, {
+      actionName: action.name,
+      actionResult: serializeActionResult(actionResult),
+    });
+  
+    // Transmettre l'ID de session sous forme de cookie
+    // à récupérer après la redirection vers la page
+    context.cookies.set("action-session-id", sessionId);
+  
+    // Rediriger vers la page précédente en cas d'erreur
+    if (actionResult.error) {
+      const referer = context.request.headers.get("Referer");
+      if (!referer) {
+        throw new Error(
+          "Internal: Referer unexpectedly missing from Action POST request.",
+        );
+      }
+      return context.redirect(referer);
+    }
+    // Rediriger vers la page de destination en cas de succès
+    return context.redirect(context.originPathname);
+  }
+  
+  return next();
+});
+```
+
+## Sécurité lors de l'utilisation des actions
+
+Les actions sont accessibles en tant que points de terminaison publics en fonction du nom de l'action. Par exemple, l'action `blog.like()` sera accessible depuis `/_actions/blog.like`. Cela est utile pour tester les résultats des actions et déboguer les erreurs de production. Cependant, cela signifie que vous **devez** utiliser les mêmes contrôles d'autorisation que ceux que vous envisageriez pour les points de terminaison d'API et les pages rendues à la demande.
+
+### Autoriser les utilisateurs à partir d'un gestionnaire d'actions
+
+Pour autoriser les demandes d'action, ajoutez une vérification d'authentification à votre gestionnaire d'actions. Vous souhaiterez peut-être utiliser [une bibliothèque d'authentification](/fr/guides/authentication/) pour gérer la gestion des sessions et les informations utilisateur.
+
+Les actions exposent l'objet `APIContext` complet pour accéder aux propriétés transmises par le middleware à l'aide de `context.locals`. Lorsqu'un utilisateur n'est pas autorisé, vous pouvez générer une `ActionError` avec le code `UNAUTHORIZED` :
+
+```ts title="src/actions/index.ts" {6-8}
+import { defineAction, ActionError } from 'astro:actions';
 
 export const server = {
-  addToCart: defineAction({
-    handler: async () => {
-      /* ... */
-      return product;
-      return { productName: product.name };
+  getUserSettings: defineAction({
+    handler: async (_input, context) => {
+      if (!context.locals.user) {
+        throw new ActionError({ code: 'UNAUTHORIZED' });
+      }
+      return { /* les données en cas de réussite */ };
     }
   })
 }
 ```
-:::
+
+### Limiter les actions depuis le middleware
+
+<p><Since v="5.0.0" /></p>
+
+Astro recommande d'autoriser les sessions utilisateur à partir de votre gestionnaire d'actions pour respecter les niveaux d'autorisation et la limitation de débit par action. Cependant, vous pouvez également limiter les demandes à toutes les actions (ou à un sous-ensemble d'actions) à partir du middleware.
+
+Utilisez la fonction `getActionContext()` de votre middleware pour récupérer des informations sur les demandes d'action entrantes. Cela inclut le nom de l'action et si cette action a été appelée à l'aide d'une fonction d'appel de procédure à distance (RPC) côté client (par exemple, `actions.blog.like()`) ou d'un formulaire HTML.
+
+L'exemple suivant rejette toutes les demandes d'action qui ne disposent pas d'un jeton de session valide. Si la vérification échoue, une réponse « Interdit » est renvoyée. Remarque : cette méthode garantit que les actions ne sont accessibles que lorsqu'une session est présente, mais ne remplace _pas_ une autorisation sécurisée.
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action } = getActionContext(context);
+  // Vérifier si l'action a été appelée à partir d'une fonction côté client
+  if (action?.calledFrom === 'rpc') {
+    // Si tel est le cas, rechercher un jeton de session utilisateur
+    if (context.cookies.has('user-session')) {
+      return new Response('Forbidden', { status: 403 });
+    }
+  }
+  
+  context.cookies.set('user-session', /* jeton de session */);
+  return next();
+});
+```
 
 ## Appeler des actions à partir des composants Astro et des points de terminaison du serveur
 
-Vous pouvez appeler des actions directement à partir des scripts de composants Astro en utilisant le wrapper `Astro.callAction()` (ou `context.callAction()` lors de l'utilisation d'un [point de terminaison de serveur](/fr/guides/endpoints/#points-de-terminaison-du-serveur-routes-api)). Il est courant de réutiliser la logique de vos actions dans un autre code serveur.
+Vous pouvez appeler des actions directement à partir des scripts de composants Astro en utilisant l'enveloppe `Astro.callAction()` (ou `context.callAction()` lors de l'utilisation d'un [point de terminaison de serveur](/fr/guides/endpoints/#points-de-terminaison-du-serveur-routes-api)). Il est courant de réutiliser la logique de vos actions dans un autre code serveur.
 
 Transmettez l'action comme premier argument et tous les paramètres d'entrée comme deuxième argument. Cela renvoie les mêmes objets `data` et `error` que vous recevez lors de l'appel d'actions sur le client :
 
