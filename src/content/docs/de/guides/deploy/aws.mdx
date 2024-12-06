@@ -1,28 +1,59 @@
 ---
 title: Veröffentliche deine Astro-Seite auf AWS
 description: Wie du deine Astro-Website mit AWS im Internet bereitstellst.
+sidebar:
+  label: AWS
 type: deploy
 i18nReady: true
 ---
 
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
 [AWS](https://aws.amazon.com/) ist eine umfangreiche Web-App-Hosting-Plattform, die für die Bereitstellung einer Astro-Seite verwendet werden kann.
 
-Für die Bereitstellung deines Projekts bei AWS musst du die [AWS-Konsole](https://aws.amazon.com/console/) verwenden. (Die meisten dieser Aktionen können auch mit der [AWS CLI](https://aws.amazon.com/cli/) durchgeführt werden). Diese Anleitung führt dich durch die Schritte zur Bereitstellung deiner Website bei AWS und beginnt mit der einfachsten Methode. Anschließend wird gezeigt, wie du zusätzliche Services hinzufügen kannst, um die Kosteneffizienz und Leistung zu verbessern.
+Für die Bereitstellung deines Projekts bei AWS musst du die [AWS-Konsole](https://aws.amazon.com/console/) verwenden. (Die meisten dieser Aktionen können auch mit der [AWS CLI](https://aws.amazon.com/cli/) durchgeführt werden). Diese Anleitung führt dich durch die Schritte zur Bereitstellung deiner Website bei AWS mit [AWS Amplify](https://aws.amazon.com/amplify/), [S3 static website hosting](https://aws.amazon.com/s3/) und [CloudFront](https://aws.amazon.com/cloudfront/).
 
 ## AWS Amplify 
 
 AWS Amplify ist eine Reihe von speziell entwickelten Tools und Funktionen, mit denen Frontend-Web- und Mobilentwickler schnell und einfach Full-Stack-Anwendungen auf AWS erstellen können.
 
+<Steps>
 1. Erstelle ein neues Amplify Hosting Projekt.
-2. Verbinde dein Repository mit Amplify.
-3. Ändere dein Build-Ausgabeverzeichnis `baseDirectory` in `/dist`.
 
+2. Verbinde dein Repository mit Amplify.
+
+3. Ändere deine Build-Einstellungen, um sie an den Build-Prozess deines Projekts anzupassen.
+
+    <PackageManagerTabs>
+    <Fragment slot="pnpm">
     ```yaml
     version: 1
     frontend:
       phases:
         preBuild:
-          # Du benutzt kein npm? Ändere `npm ci` in `yarn install` oder `pnpm i`
+          commands:
+            - npm i -g pnpm
+            - pnpm config set store-dir .pnpm-store
+            - pnpm i
+        build:
+          commands:
+            - pnpm run build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - .pnpm-store/**/*
+    ```
+    </Fragment>
+    <Fragment slot="npm">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
           commands:
             - npm ci
         build:
@@ -35,8 +66,30 @@ AWS Amplify ist eine Reihe von speziell entwickelten Tools und Funktionen, mit d
       cache:
         paths:
           - node_modules/**/*
-
     ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - yarn install
+        build:
+          commands:
+            - yarn build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    ```
+    </Fragment>
+    </PackageManagerTabs>
+</Steps>
 
 Amplify stellt deine Website automatisch bereit und aktualisiert sie, wenn du einen Commit an dein Repository sendest.
 
@@ -44,6 +97,7 @@ Amplify stellt deine Website automatisch bereit und aktualisiert sie, wenn du ei
 
 S3 ist der Startpunkt jeder Anwendung. Hier werden deine Projektdateien und andere Assets gespeichert. S3 berechnet Gebühren für die Speicherung von Dateien und die Anzahl der Anfragen. Weitere Informationen über S3 findest du in der [AWS-Dokumentation](https://aws.amazon.com/s3/).
 
+<Steps>
 1. Erstelle einen S3-Bucket mit dem Namen deines Projekts.
 
     :::tip
@@ -51,6 +105,7 @@ S3 ist der Startpunkt jeder Anwendung. Hier werden deine Projektdateien und ande
     :::
 
 2. Deaktiviere **"Blockieren des gesamten öffentlichen Zugriffs"**. Standardmäßig werden alle Buckets von AWS als privat eingestuft. Um sie öffentlich zu machen, musst du das Kontrollkästchen "Blockieren des gesamten öffentlichen Zugriffs" in den Berechtigungen des Buckets deaktivieren.
+
 3. Lade deine erstellten Dateien, die sich in `dist` befinden, in S3 hoch. Du kannst dies manuell in der Konsole tun oder die AWS CLI verwenden. Wenn du die AWS CLI verwendest, kannst du nach der [Authentifizierung mit deinen AWS-Anmeldeinformationen](https://docs.aws.amazon.com/de_de/cli/latest/userguide/cli-configure-files.html) folgenden Befehl verwenden:
 
     ```
@@ -83,90 +138,29 @@ S3 ist der Startpunkt jeder Anwendung. Hier werden deine Projektdateien und ande
     :::note
     Wenn du eine Single-Page-Anwendung (SPA) bereitstellst, setze dein Fehlerdokument auf `index.html`.
     :::
+</Steps>
 
 ## S3 mit CloudFront
 
-CloudFront ist ein Webservice, der Content Delivery Network (CDN)-Funktionen bietet. Er wird verwendet, um Inhalte eines Webservers zwischenzuspeichern und an die Endnutzer zu verteilen. CloudFront erhebt Gebühren für die übertragene Datenmenge. Wenn du CloudFront zu deinem S3-Bucket hinzufügst, ist das kostengünstiger und ermöglicht eine schnellere Bereitstellung.
+CloudFront ist ein Webservice, der Content Delivery Network (CDN)-Funktionen bietet. Er wird verwendet, um Inhalte eines Webservers zwischenzuspeichern und an Endnutzer zu verteilen. CloudFront erhebt Gebühren für die übertragene Datenmenge. Wenn du CloudFront zu deinem S3-Bucket hinzufügst, ist das kostengünstiger und ermöglicht eine schnellere Bereitstellung.
 
-Wir werden CloudFront nutzen, um unseren S3-Bucket zu verlinken und die Dateien unseres Projekts über das globale CDN-Netzwerk von Amazon bereitzustellen. Dadurch werden die Kosten für die Bereitstellung der Projektdateien gesenkt und die Leistung deiner Website erhöht.
+Um S3 mit Cloudfront zu verbinden, erstellst du eine CloudFront-Distribution mit den folgenden Werten:
 
-### S3-Einrichtung
+- **Ursprungsdomäne:** Der Endpunkt deiner statischen Website im S3-Bucket. Du findest deinen Endpunkt in den **Eigenschaften > Statisches Website-Hosting** deines S3-Buckets. Alternativ kannst du deinen S3-Bucket auswählen und auf das Callout klicken, um die Bucket-Adresse durch deinen statischen Bucket-Endpunkt zu ersetzen.
+- **Viewer-Protokollrichtlinie:** „Zu HTTPS umleiten“
 
-1. Erstelle einen S3-Bucket mit dem Namen deines Projekts.
+Mit dieser Konfiguration wird deine Website über das Cloudfront CDN-Netzwerk bereitgestellt. Die URL deiner CloudFront-Distribution findest du im Bucket unter **Distributionen > Domainname**.
 
-    :::tip
-    Der Bucket-Name sollte weltweit eindeutig sein. Wir empfehlen eine Kombination aus deinem Projektnamen und dem Domainnamen deiner Website.
-    :::
-2. Lade deine erstellten Dateien, die sich in `dist` befinden, in S3 hoch. Du kannst dies manuell in der Konsole tun oder die AWS CLI verwenden. Wenn du die AWS CLI verwendest, kannst du nach der [Authentifizierung mit deinen AWS-Anmeldeinformationen](https://docs.aws.amazon.com/de_de/cli/latest/userguide/cli-configure-files.html) folgenden Befehl verwenden:
-
-    ```
-    aws s3 cp dist/ s3://<BUCKET_NAME>/ --recursive
-    ```
-
-3. Aktualisiere deine Bucket-Richtlinie, um **CloudFront Access** zu erlauben. Du findest diese Einstellung unter **Berechtigungen > Bucket-Richtlinie** des Buckets.
-
-    ```json
-    {
-      "Version": "2012-10-17",
-      "Statement": [{
-        "Effect": "Allow",
-        "Principal": {
-          "AWS": "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity <CLOUDFRONT_OAI_ID>"
-        },
-        "Action": "s3:GetObject",
-        "Resource": "arn:aws:s3:::astro-aws/*"
-      }]
-    }
-    ```
-
-    :::caution
-    Vergiss nicht, `<CLOUDFRONT_OAI_ID>` durch den Namen deiner CloudFront Origin Access Identity ID zu ersetzen. Du findest die CloudFront Origin Access Identity ID nach der Einrichtung von CloudFront unter **CloudFront > Origin access identities**.
-    :::
-
-### CloudFront-Einrichtung
-
-1. Erstelle eine CloudFront-Veröffentlichung mit den folgenden Werten:
-    * **Origin domain:** Dein S3-Bucket
-    * **S3 bucket access:** "Ja, OAI verwenden (Bucket kann den Zugriff nur auf CloudFront beschränken)" 
-    * **Origin access identity:** Eine neue Identität für den Ursprungszugang erstellen
-    * **Viewer - Bucket policy:** "Nein, ich werde die Eimerpolitik aktualisieren"
-    * **Viewer protocol policy:** "Zu HTTPS umleiten"
-    * **Default root object:** `index.html`
-
-Mit dieser Konfiguration wird der Zugriff auf deinen S3-Bucket aus dem öffentlichen Internet blockiert und deine Website über das globale CDN-Netzwerk bereitgestellt. Die URL deiner CloudFront-Distribution findest du im Bucket unter **Distributionen > Domain name**.
-
-### Einrichtung von CloudFront-Funktionen
-
-Leider unterstützt CloudFront standardmäßig kein mehrseitiges `Sub-folder/Index`-Routing. Um es zu konfigurieren, verwenden wir CloudFront-Funktionen, um die Anfrage auf das gewünschte Objekt in S3 zu richten.
-
-1. Erstelle eine neue CloudFront-Funktion mit dem folgenden Codeschnipsel. Du findest CloudFront-Funktionen unter **CloudFront > Functions**.
-
-    ```js
-    function handler(event) {
-      var request = event.request;
-      var uri = request.uri;
-
-      // Prüfe, ob in der URI ein Dateiname fehlt.
-      if (uri.endsWith('/')) {
-        request.uri += 'index.html';
-      } 
-      // Prüfe, ob der URI eine Dateierweiterung fehlt.
-      else if (!uri.includes('.')) {
-        request.uri += '/index.html';
-      }
-
-      return request;
-    }
-    ```
-  2. Verknüpfe deine Funktion mit der CloudFront-Distribution. Du findest diese Option in den **Settings > Behaviors > Edit > Function associations** deiner CloudFront-Distribution.
-        * **Viewer request - Function type:** CloudFront-Funktion.
-        * **Viewer request - Function ARN:** Wähle die Funktion aus, die du im vorherigen Schritt erstellt hast.
+:::note
+Wenn du CloudFront mit einem Endpunkt für eine statische S3-Website verbindest, verlässt du dich bei der Zugriffskontrolle auf die S3-Bucket-Richtlinien. Im Abschnitt [S3 Hosting statischer Websites](#statisches-website-hosting-mit-s3) findest du weitere Informationen zu Bucket-Richtlinien.
+:::
 
 ## Kontinuierliche Bereitstellung mit GitHub-Actions
 
-Es gibt viele Möglichkeiten, die kontinuierliche Bereitstellung für AWS einzurichten. Eine Möglichkeit für Code, der auf GitHub gehostet wird, ist die Verwendung von [GitHub Actions](https://github.com/features/actions), um deine Website bei jeder Übertragung bereitzustellen.
+Es gibt viele Möglichkeiten, die kontinuierliche Bereitstellung für AWS einzurichten. Eine Möglichkeit für Code, der auf GitHub gehostet wird, ist die Verwendung von [GitHub Actions](https://github.com/features/actions), um deine Website bei jedem Commit bereitzustellen.
 
-1. Erstelle in deinem AWS-Konto mit [IAM](https://aws.amazon.com/iam/) eine neue Richtlinie mit den folgenden Berechtigungen. Mit dieser Richtlinie kannst du erstellte Dateien in deinen S3-Bucket hochladen und die CloudFront-Veröffentlichungs-Dateien ungültig machen, wenn du eine Übertragung durchführst.
+<Steps>
+1. Erstelle in deinem AWS-Konto mit [IAM](https://aws.amazon.com/iam/) eine neue Richtlinie mit den folgenden Berechtigungen. Mit dieser Richtlinie kannst du erstellte Dateien in deinen S3-Bucket hochladen und die CloudFront-Verteilungsdateien ungültig machen, wenn du einen Commit durchführst.
 
     ```json
     {
@@ -178,6 +172,7 @@ Es gibt viele Möglichkeiten, die kontinuierliche Bereitstellung für AWS einzur
               "Action": [
                   "s3:PutObject",
                   "s3:ListBucket",
+                  "s3:DeleteObject",
                   "cloudfront:CreateInvalidation"
               ],
               "Resource": [
@@ -191,7 +186,7 @@ Es gibt viele Möglichkeiten, die kontinuierliche Bereitstellung für AWS einzur
     ```
 
     :::caution
-    Vergiss nicht, `<DISTRIBUTION_ARN>` und `<BUCKET_NAME>` zu ersetzen. Du findest den ARN in **CloudFront > Distributions > Details**.
+    Vergiss nicht, `<DISTRIBUTION_ARN>` und `<BUCKET_NAME>` zu ersetzen. Du findest den DISTRIBUTION_ARN in **CloudFront > Distributions > Details**.
     :::
 
 2. Erstelle einen neuen IAM-Benutzer und füge die Richtlinie an den Benutzer an. So erhältst du deinen `AWS_SECRET_ACCESS_KEY` und deine `AWS_ACCESS_KEY_ID`.
@@ -223,7 +218,7 @@ Es gibt viele Möglichkeiten, die kontinuierliche Bereitstellung für AWS einzur
           - name: Build application
             run: npm run build
           - name: Deploy to S3
-            run: aws s3 sync ./dist/ s3://${{ secrets.BUCKET_ID }}
+            run: aws s3 sync --delete ./dist/ s3://${{ secrets.BUCKET_ID }}
           - name: Create CloudFront invalidation
             run: aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
     ```
@@ -231,3 +226,10 @@ Es gibt viele Möglichkeiten, die kontinuierliche Bereitstellung für AWS einzur
     :::note
     Deine `BUCKET_ID` ist der Name deines S3-Buckets. Deine `DISTRIBUTION_ID` ist die ID deiner CloudFront-Distribution. Du findest deine CloudFront-Veröffentlichungs-ID unter **CloudFront > Distributions> ID**
     :::
+</Steps>
+
+## Community-Ressourcen
+
+- [Bereitstellung von Astro für AWS Amplify](https://www.launchfa.st/blog/deploy-astro-aws-amplify)
+- [Bereitstellung von Astro auf AWS Elastic Beanstalk](https://www.launchfa.st/blog/deploy-astro-aws-elastic-beanstalk)
+- [Bereitstellung von Astro für Amazon ECS auf AWS Fargate](https://www.launchfa.st/blog/deploy-astro-aws-fargate)
