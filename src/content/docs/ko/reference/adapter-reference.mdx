@@ -1,16 +1,18 @@
 ---
 title: Astro 어댑터 API
+sidebar:
+  label: 어댑터 API
 i18nReady: true
 ---
 
 import Since from '~/components/Since.astro';
 import { FileTree } from '@astrojs/starlight/components';
 
-Astro는 SSR (서버 측 렌더링)을 위해 모든 클라우드 제공업체에 쉽게 배포할 수 있도록 설계되었습니다. 이 기능은 [통합](/ko/reference/integrations-reference/)으로 제공되는 __어댑터__ 를 통해 사용할 수 있습니다. 기존 어댑터를 사용하는 방법을 알아보려면 [SSR 가이드](/ko/guides/on-demand-rendering/)를 참조하세요.
+Astro는 서버 측 렌더링(SSR)으로 알려진 요청 시 렌더링을 위해 모든 클라우드 제공업체에 쉽게 배포할 수 있도록 설계되었습니다. 이 기능은 [통합](/ko/reference/integrations-reference/)으로 제공되는 __어댑터__ 를 통해 사용할 수 있습니다. 기존 어댑터를 사용하는 방법을 알아보려면 [요청 시 렌더링 가이드](/ko/guides/on-demand-rendering/)를 참조하세요.
 
 ## 어댑터란 무엇입니까?
 
-어댑터는 서버 측 렌더링을 위한 엔트리포인트 제공하는 특별한 종류의 [통합](/ko/reference/integrations-reference/)입니다. 어댑터는 두 가지 작업을 수행합니다.
+어댑터는 요청 시 서버 렌더링을 위한 엔트리포인트 제공하는 특별한 종류의 [통합](/ko/reference/integrations-reference/)입니다. 어댑터는 두 가지 작업을 수행합니다.
 
 - 요청 처리를 위한 호스트별 API를 구현합니다.
 - 호스트 규칙에 따라 빌드를 구성합니다.
@@ -48,7 +50,7 @@ interface AstroAdapter {
   serverEntrypoint?: string;
   exports?: string[];
   adapterFeatures: AstroAdapterFeatures;
-  supportedAstroFeatures: AstroFeatureMap;
+  supportedAstroFeatures: AstroAdapterFeatureMap;
 }
 
 export interface AstroAdapterFeatures {
@@ -57,49 +59,52 @@ export interface AstroAdapterFeatures {
 	 */
 	edgeMiddleware: boolean;
 	/**
-	 * SSR 전용입니다. 각 경로는 자체 함수/파일이 됩니다.
+	 * 어댑터가 의도하는 빌드 출력 유형을 결정합니다. 기본값은 `server`입니다.
 	 */
-	functionPerRoute: boolean;
+		buildOutput?: 'static' | 'server';
 }
 
-export type SupportsKind = 'unsupported' | 'stable' | 'experimental' | 'deprecated';
+export type AdapterSupportsKind = 'unsupported' | 'stable' | 'experimental' | 'deprecated' | 'limited';
 
-export type AstroFeatureMap = {
+export type AdapterSupportWithMessage = {
+	support: Exclude<AdapterSupportsKind, 'stable'>;
+	message: string;
+};
+
+export type AdapterSupport = AdapterSupportsKind | AdapterSupportWithMessage;
+
+export type AstroAdapterFeatureMap = {
   /**
    * 어댑터는 정적 페이지를 제공할 수 있습니다.
    */
-  staticOutput?: SupportsKind;
+  staticOutput?: AdapterSupport;
   /**
    * 어댑터는 정적이거나 서버를 통해 렌더링되는 페이지를 제공할 수 있습니다.
    */
-  hybridOutput?: SupportsKind;
+  hybridOutput?: AdapterSupport;
   /**
-   * 어댑터는 SSR 페이지를 제공할 수 있습니다.
+   * 어댑터는 요청 시 렌더링되는 페이지를 제공할 수 있습니다.
    */
-  serverOutput?: SupportsKind;
+   serverOutput?: AdapterSupport;
   /**
-   * 어댑터는 정적 자산을 내보낼 수 있습니다.
+	 * 어댑터는 i18n 도메인을 지원할 수 있습니다.
+	 */
+	i18nDomains?: AdapterSupport;
+	/**
+	 * 어댑터는 `astro:env/server`에서 내보낸 `getSecret`을 지원할 수 있습니다.
+	 */
+	envGetSecret?: AdapterSupport;
+  /**
+   * 어댑터는 Sharp 이미지 서비스를 지원합니다.
    */
-  assets?: AstroAssetsFeature;
+  sharpImageService?: AdapterSupport;
 };
-
-export interface AstroAssetsFeature {
-  supportKind?: SupportsKind;
-  /**
-   * 이 어댑터가 'sharp' 라이브러리와 호환되는 환경에 파일을 배포하는지 여부
-   */
-  isSharpCompatible?: boolean;
-  /**
-   * 이 어댑터가 'squoosh' 라이브러리와 호환되는 환경에 파일을 배포하는지 여부
-   */
-  isSquooshCompatible?: boolean;
-}
 ```
 
 속성은 다음과 같습니다.
 
 * __name__: 로깅에 사용되는 어댑터의 고유 이름입니다.
-* __serverEntrypoint__: 서버 측 렌더링의 엔트리포인트입니다.
+* __serverEntrypoint__: 요청 시 서버 렌더링의 엔트리포인트입니다.
 * __exports__: `createExports`와 함께 사용되는 경우 명명된 내보내기 배열입니다 (아래 설명 참조).
 * __adapterFeatures__: 어댑터에서 지원해야 하는 특정 기능을 활성화하는 객체입니다.
   이러한 기능은 빌드된 출력을 변경하며 어댑터는 다양한 출력을 처리하기 위해 적절한 로직을 구현해야 합니다.
@@ -191,7 +196,12 @@ export function start(manifest) {
 
 다음과 같은 메서드가 제공됩니다.
 
-##### `app.render(request: Request, options?: RenderOptions)`
+##### `app.render()`
+
+<p>
+
+**타입:** `(request: Request, options?: RenderOptions) => Promise<Response>`
+</p>
 
 이 메서드는 요청과 일치하는 Astro 페이지를 호출하고 렌더링한 후 [Response](https://developer.mozilla.org/ko/docs/Web/API/Response) 객체에 Promise를 반환합니다. 이는 페이지를 렌더링하지 않는 API 경로에도 적용됩니다.
 
@@ -201,9 +211,20 @@ const response = await app.render(request);
 
 ##### `RenderOptions`
 
+<p>
+
+**타입:** `{addCookieHeader?: boolean; clientAddress?: string; locals?: object; routeData?: RouteData;}`
+</p>
+
 `app.render()` 메서드는 필수 `request` 인수와 [`addCookieHeader`](#addcookieheader), [`clientAddress`](#clientaddress), [`locals`](#locals), [`routeData`](#routedata)에 대한 선택적 `RenderOptions` 객체를 허용합니다.
 
 ###### `addCookieHeader`
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `false`
+</p>
 
 `Astro.cookie.set()`이 작성한 모든 쿠키를 응답 헤더에 자동으로 추가할지 여부입니다.
 
@@ -215,7 +236,13 @@ const response = await app.render(request, { addCookieHeader: true });
 
 ###### `clientAddress`
 
-페이지에서는 [`Astro.clientAddress`](/ko/reference/api-reference/#astroclientaddress)로, API 경로 및 미들웨어에서는 `ctx.clientAddress`로 사용할 수 있는 클라이언트 IP 주소입니다.
+<p>
+
+**타입:** `string`<br />
+**기본값:** `request[Symbol.for("astro.clientAddress")]`
+</p>
+
+페이지에서는 [`Astro.clientAddress`](/ko/reference/api-reference/#clientaddress)로, API 경로 및 미들웨어에서는 `ctx.clientAddress`로 사용할 수 있는 클라이언트 IP 주소입니다.
 
 아래 예시에서는 `x-forwarded-for` 헤더를 읽고 이를 `clientAddress`로 전달합니다. 이 값은 사용자가 `Astro.clientAddress`로 사용할 수 있게 됩니다.
 
@@ -226,7 +253,12 @@ const response = await app.render(request, { clientAddress });
 
 ###### `locals`
 
-요청 수명 주기 동안 정보를 저장하고 액세스하는 데 사용되는 [`context.locals` 객체](/ko/reference/api-reference/#contextlocals)입니다.
+<p>
+
+**타입:** `object`
+</p>
+
+요청 수명 주기 동안 정보를 저장하고 액세스하는 데 사용되는 [`context.locals` 객체](/ko/reference/api-reference/#locals)입니다.
 
 아래 예시에서는 `x-private-header`라는 헤더를 읽고 이를 객체로 구문 분석한 후 `locals`에 전달하려고 시도합니다. 그런 다음 [미들웨어 함수](/ko/guides/middleware/)에 전달될 수 있습니다.
 
@@ -244,7 +276,13 @@ try {
 
 ###### `routeData`
 
-렌더링할 경로를 이미 알고 있는 경우 [`routeData`](/ko/reference/integrations-reference/#routedata-타입-참조)에 대한 값을 제공하세요. 그렇게 하면 렌더링할 경로를 결정하기 위해 [`app.match`](#appmatchrequest)에 대한 내부 호출을 우회하게 됩니다.
+<p>
+
+**타입:** `RouteData`<br />
+**기본값:** `app.match(request)`
+</p>
+
+렌더링할 경로를 이미 알고 있는 경우 [`integrationRouteData`](/ko/reference/integrations-reference/#integrationroutedata-타입-참조)에 대한 값을 제공하세요. 그렇게 하면 렌더링할 경로를 결정하기 위해 [`app.match`](#appmatch)에 대한 내부 호출을 우회하게 됩니다.
 
 ```js "routeData"
 const routeData = app.match(request);
@@ -256,7 +294,12 @@ if (routeData) {
 }
 ```
 
-##### `app.match(request)`
+##### `app.match()`
+
+<p>
+
+**타입:** `(request: Request) => RouteData | undefined`
+</p>
 
 이 메서드는 요청이 Astro 앱의 라우팅 규칙과 일치하는지 확인하는 데 사용됩니다.
 
@@ -293,67 +336,7 @@ Astro 기능은 어댑터가 Astro에 기능을 지원할 수 있는지 여부�
 
 이러한 작업은 지원되거나 지원되지 않는 기능, 지원 수준 및 사용자가 사용하는 구성을 기반으로 실행됩니다.
 
-다음 구성은 Astro에 이 어댑터가 자산에 대한 실험적 지원을 제공하지만, 어댑터가 내장 서비스 Sharp 및 Squoosh와 호환되지 않음을 알려줍니다.
-
-```js title="my-adapter.mjs" ins={9-15}
-export default function createIntegration() {
-  return {
-    name: '@matthewp/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@matthewp/my-adapter',
-          serverEntrypoint: '@matthewp/my-adapter/server.js',
-          supportedAstroFeatures: {
-            assets: {
-              supportKind: "experimental",
-              isSharpCompatible: false,
-              isSquooshCompatible: false
-            }
-          }  
-        });
-      },
-    },
-  };
-}
-```
-
-Astro는 터미널에 **경고**를 기록합니다.
-
-```
-[@matthewp/my-adapter] The feature is experimental and subject to issues or changes.
-```
-
-자산에 사용되는 서비스가 어댑터와 호환되지 않으면 오류가 발생합니다.
-
-```
-[@matthewp/my-adapter] The currently selected adapter `@matthewp/my-adapter` is not compatible with the service "Sharp". Your project will NOT be able to build.
-```
-
-## 어댑터 기능
-
-내보낸 파일의 출력을 변경하는 기능 세트입니다. 어댑터가 이러한 기능을 선택하면 특정 후크에서 추가 정보를 얻게 됩니다.
-
-### `functionPerRoute`
-
-SSR만을 사용하는 경우에만 활성화되는 기능입니다. 기본적으로 Astro는 각 요청마다 렌더링된 페이지를 내보내는 역할을 하는 단일 `entry.mjs` 파일을 내보냅니다.
-
-`functionPerRoute`가 `true`인 경우, Astro는 대신 프로젝트에 정의된 각 경로에 대해 별도의 파일을 생성합니다.
-
-내보낸 각 파일은 한 페이지만 렌더링합니다. 페이지는 `dist/pages/` 디렉터리 (또는 [`outDir`](/ko/reference/configuration-reference/#outdir)에 지정된 디렉터리의 `/pages/` 디렉터리 아래)에 생성됩니다. 내보낸 파일은 `src/pages/` 디렉터리의 동일한 파일 경로를 유지합니다.
-
-빌드의 `pages/` 디렉터리에 있는 파일은 `src/pages/`에 있는 페이지 파일의 디렉터리 구조를 미러링합니다. 예를 들면 다음과 같습니다.
-
-<FileTree>
-- dist/
-    - pages/
-        - blog/
-            - entry.\_slug\_.astro.mjs
-            - entry.about.astro.mjs
-        - entry.index.astro.mjs
-</FileTree>
-
-어댑터에 `true`를 전달하여 기능을 활성화합니다.
+다음 구성은 이 어댑터가 Sharp 기반의 내장 이미지 서비스에 대한 실험적 지원을 가지고 있음을 Astro에 알려줍니다.
 
 ```js title="my-adapter.mjs" ins={9-11}
 export default function createIntegration() {
@@ -364,8 +347,8 @@ export default function createIntegration() {
         setAdapter({
           name: '@matthewp/my-adapter',
           serverEntrypoint: '@matthewp/my-adapter/server.js',
-          adapterFeatures: {
-              functionPerRoute: true
+          supportedAstroFeatures: {
+            sharpImageService: 'experimental'
           } 
         });
       },
@@ -374,9 +357,17 @@ export default function createIntegration() {
 }
 ```
 
-그런 다음 [`astro:build:ssr`](/ko/reference/integrations-reference/#astrobuildssr) 후크를 사용하면 빌드 후 내보낸 실제 파일에 페이지 경로를 매핑하는 `entryPoints` 객체가 제공됩니다.
+Sharp 이미지 서비스가 사용되는 경우, Astro는 어댑터의 지원 상태에 따라 터미널에 경고와 오류를 기록할 것입니다.
 
-```js title="my-adapter.mjs" ins={15-19}
+```
+[@matthewp/my-adapter] The feature is experimental and subject to issues or changes.
+
+[@matthewp/my-adapter] The currently selected adapter `@matthewp/my-adapter` is not compatible with the service "Sharp". Your project will NOT be able to build.
+```
+
+사용자에게 더 많은 맥락을 제공하기 위해 추가적인 메시지를 제공할 수 있습니다:
+
+```js title="my-adapter.mjs" ins={9-14}
 export default function createIntegration() {
   return {
     name: '@matthewp/my-adapter',
@@ -385,43 +376,33 @@ export default function createIntegration() {
         setAdapter({
           name: '@matthewp/my-adapter',
           serverEntrypoint: '@matthewp/my-adapter/server.js',
-          adapterFeatures: {
-              functionPerRoute: true
+          supportedAstroFeatures: {
+            sharpImageService: {
+              support: 'limited',
+              message: 'This adapter has limited support for Sharp, certain features may not work as expected.'
+            }
           } 
         });
       },
-
-      'astro:build:ssr': ({ entryPoints }) => {
-          for (const [route, entryFile] of entryPoints) {
-              // route 및 entryFile로 작업을 시작하세요.
-          }
-      }  
     },
   };
 }
 ```
 
-:::caution
-`entryFile`은 `URL` 타입이며 파일 시스템에 있는 파일의 실제 경로를 나타냅니다. 즉, 코드가 실행되는 OS에 따라 경로가 변경됩니다.
-:::
+## 어댑터 기능
 
-#### 서버리스 환경
-
-서버리스 환경에서 `functionPerRoute: true`를 설정하면 각 경로에 대한 JavaScript 파일 (핸들러)이 생성됩니다. 핸들러는 호스팅 플랫폼 (lambda, function, page, 등)에 따라 다른 이름을 가질 수 있습니다.
-
-이러한 각 경로는 핸들러가 실행될 때 [콜드 스타트](https://azure.microsoft.com/en-us/blog/understanding-serverless-cold-start/)가 발생하여 약간의 지연이 발생할 수 있습니다. 이 지연은 다양한 요인의 영향을 받습니다.
-
-`functionPerRoute: false`를 사용하면 모든 경로 렌더링을 담당하는 단일 핸들러만 존재합니다. 이 핸들러가 처음 트리거되면 콜드 스타트가 발생합니다. 그러면 다른 모든 경로가 지연 없이 작동해야 합니다. 그러나 `functionPerRoute: true`가 제공하는 코드 분할의 이점을 잃게 됩니다.
-
-:::note
-프로젝트에 적합한 `functionPerRoute` 구성을 선택하려면 호스팅 플랫폼과 작동 방식을 이해하는 것이 중요합니다.
-:::
+내보낸 파일의 출력을 변경하는 기능 세트입니다. 어댑터가 이러한 기능을 선택하면 특정 후크에서 추가 정보를 얻게 됩니다.
 
 ### `edgeMiddleware`
 
-빌드 시 SSR 미들웨어 코드를 번들링할지 여부를 정의합니다.
+<p>
 
-활성화되면 미들웨어 코드가 빌드 중에 모든 페이지에서 번들링되고 가져오는 것을 방지합니다.
+**타입:** `boolean`
+</p>
+
+요청 시 렌더링되는 미들웨어 코드가 빌드 타임에 번들링될지 여부를 정의합니다.
+
+활성화되면, 이는 빌드 타임에 모든 페이지에서 미들웨어 코드가 번들링되고 가져와지는 것을 방지합니다:
 
 ```js title="my-adapter.mjs" ins={9-11}
 export default function createIntegration() {
@@ -442,9 +423,9 @@ export default function createIntegration() {
 }
 ```
 
-그런 다음 후크 [`astro:build:ssr`](/ko/reference/integrations-reference/#astrobuildssr)를 사용하면 파일 시스템의 실제 파일에 대한 `middlewareEntryPoint`, `URL`을 제공합니다.
+그런 다음, 파일 시스템의 실제 파일에 대한 `URL`인 `middlewareEntryPoint`를 제공하는 [`astro:build:ssr`](/ko/reference/integrations-reference/#astrobuildssr) 훅을 사용합니다.
 
-```js title="my-adapter.mjs" ins={15-19}
+```js title="my-adapter.mjs" ins={15-20}
 export default function createIntegration() {
   return {
     name: '@matthewp/my-adapter',
@@ -460,7 +441,7 @@ export default function createIntegration() {
       },
 
       'astro:build:ssr': ({ middlewareEntryPoint }) => {
-          // 이 속성이 존재하는지 확인하세요. 어댑터가 해당 기능을 선택하지 않으면 'undefined'가 됩니다.
+          // 이 속성이 존재하는지 확인하는 것을 잊지 마세요. 어댑터가 이 기능을 사용하도록 설정하지 않은 경우 `undefined`가 될 것입니다.
           if (middlewareEntryPoint) {
              createEdgeMiddleware(middlewareEntryPoint)
           }
@@ -470,6 +451,110 @@ export default function createIntegration() {
 }
 
 function createEdgeMiddleware(middlewareEntryPoint) {
-    // 번들러를 사용하여 새로운 실제 파일을 내보냅니다.
+    // 번들러를 사용하여 새로운 물리적 파일을 생성하세요.
+}
+```
+
+### envGetSecret
+
+<p>
+
+**타입:** `AdapterSupportsKind`
+</p>
+
+이는 어댑터가 `env.schema`에서 사용자가 구성한 비밀을 검색할 수 있도록 하는 기능입니다.
+
+어댑터에 유효한 `AdapterSupportsKind` 값을 전달하여 기능을 활성화하세요:
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          adapterFeatures: {
+            envGetSecret: 'stable'
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+`astro/env/setup` 모듈을 통해 `getSecret()` 구현을 제공할 수 있습니다. 서버 엔트리포인트에서 가능한 한 빨리 `setGetEnv()`를 호출하세요:
+
+```js ins={2,4}
+import { App } from 'astro/app';
+import { setGetEnv } from "astro/env/setup"
+
+setGetEnv((key) => process.env[key])
+
+export function createExports(manifest) {
+  const app = new App(manifest);
+  const handler = (event, context) => {
+    // ...
+  };
+  
+  return { handler };
+}
+```
+
+비밀을 지원하는 경우, 환경 변수가 요청에 연결되어 있을 때 `getSecret()` 전에 `setGetEnv()`를 호출해야 합니다:
+
+```js ins={3,14}
+import type { SSRManifest } from 'astro';
+import { App } from 'astro/app';
+import { setGetEnv } from 'astro/env/setup';
+import { createGetEnv } from '../utils/env.js';
+
+type Env = {
+	[key: string]: unknown;
+};
+
+export function createExports(manifest: SSRManifest) {
+	const app = new App(manifest);
+	
+	const fetch = async (request: Request, env: Env) => {
+		setGetEnv(createGetEnv(env));
+		
+		const response = await app.render(request);
+		
+		return response;
+	};
+	
+	return { default: { fetch } };
+}
+```
+
+### buildOutput
+
+<p>
+
+**타입:** `'static' | 'server'`<br />
+<Since v="5.0.0" />
+</p>
+
+이 속성을 사용하면 빌드의 특정 출력 형태를 강제할 수 있습니다. 이는 특정 출력 유형에서만 작동하는 어댑터에 유용할 수 있습니다. 예를 들어, 어댑터가 정적 웹사이트를 기대하지만 호스트별 파일을 생성하기 위해 어댑터를 사용하는 경우가 있습니다. 지정하지 않으면 기본값은 `server`입니다.
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          adapterFeatures: {
+            buildOutput: 'static'
+          } 
+        });
+      },
+    },
+  };
 }
 ```
