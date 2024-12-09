@@ -1,0 +1,295 @@
+---
+title: Flotiq 与 Astro
+description: 使用 Flotiq 作为 CMS 向你的 Astro 项目添加内容
+type: cms
+service: Flotiq
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+[Flotiq](https://flotiq.com) 是专为各种前端设计的无头 CMS，例如静态网站，移动端以及 web 应用。开发人员和内容创作者们通过 REST 和基于 GraphQL 的 API 管理和交付内容。
+
+## 与 Astro 集成
+
+本指南将使用 Flotiq 无头 CMS API 和 Astro 项目在你的网站上显示内容。
+
+### 前提条件
+
+要开始集成，你需要具备以下条件：
+
+1. **一个 Astro 项目** - 你可以使用 `npm create astro@latest` 命令以创建一个新项目。
+2. **一个 Flotiq 账户** - 如果你还没有账户，可以[免费注册](https://editor.flotiq.com/register)一个。
+3. **Flotiq 的只读 API 秘钥** - 查看[如何获取你的秘钥](https://flotiq.com/docs/API/)。
+
+### 配置环境变量
+
+将 Flotiq 账户中的只读 API 密钥添加到 Astro 项目根目录下的 `.env` 文件中：
+
+```ini title=".env"
+FLOTIQ_API_KEY=__YOUR_FLOTIQ_API_KEY__
+```
+
+### 在 Flotiq 中定义内容类型
+
+首先，你需要在 Flotiq 中定义一个示例[内容类型定义](https://flotiq.com/docs/panel/content-types/)来存储数据。
+
+登录你的 Flotiq 账户并且使用如下的 `Blog Post` 配置项来创建一个自定义的内容类型定义：
+- **Label**: Blog Post
+- **API Name**: blogpost
+- **Fields**:
+  - **Title**: text, required
+  - **Slug**: text, required
+  - **Content**: rich text, required
+
+然后，使用此 `Blog Post` 类型创建一个或多个示例[内容对象](https://flotiq.com/docs/panel/content-objects/)。
+
+### 安装 Flotiq TypeScript SDK
+
+要将你的项目与 Flotiq 连接，请使用你选择的包管理器安装 [Flotiq SDK](https://github.com/flotiq/flotiq-api-ts)：
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```sh
+    npm install flotiq-api-ts
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```sh
+    pnpm add flotiq-api-ts
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```sh
+    yarn add flotiq-api-ts
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+接下来，使用你的凭证配置 SDK。在项目的 `src/lib` 目录中创建一个名为 `flotiq.ts` 的新文件：
+
+```ts title="src/lib/flotiq.ts"
+import { FlotiqApi } from "flotiq-api-ts";
+
+export const flotiq = new FlotiqApi(import.meta.env.FLOTIQ_API_KEY);
+```
+
+现在，此配置可以在整个项目中使用。
+
+### 从 Flotiq 获取和显示数据
+
+<Steps>
+
+1. 在 Astro 页面上使用内容的自定义 API `BlogpostAPI` 来获取 `Blog Post` 数据：
+
+    ```astro title="src/pages/index.astro"
+    ---
+    import { flotiq } from "../lib/flotiq";
+    
+    const posts = await flotiq.BlogpostAPI.list();
+    ---
+    ```
+
+2. 显示 Astro 模板中的内容。你将可以访问到文章的 `title`、`slug` 和 `content` 以及其他的 `internal` 文章数据：
+
+    ```astro title="src/pages/index.astro" ins={6-21}
+    ---
+    import { flotiq } from "../lib/flotiq";
+    
+    const posts = await flotiq.BlogpostAPI.list();
+    ---
+    <html lang="en">
+    	<head>
+    		<title>Astro</title>
+    	</head>
+    	<body>
+    		{posts.data?.map((post) => (
+    			<section>
+    				<a href={`/posts/${post.slug}`}>
+    				  <h2>{post.title}</h2>
+            </a>
+    				<div>{post.internal?.createdAt}</div>
+    				<div set:html={post.content}/>
+    			</section>
+    		))}
+    	</body>
+    </html>
+    ```
+
+3. 启动开发服务器并访问位于 `http://localhost:4321` 的页面预览以查看你的博客文章列表。每个帖子都将链接到一个尚不存在的页面。这些将会在下一步中创建。
+
+</Steps>
+
+### 生成独立的页面
+
+Astro 既支持提前预渲染所有页面，也支持在请求时按需创建路由。你可以按照[静态站点生成](#静态站点生成)或[按需渲染](#按需渲染)的说明为你的博客文章构建页面路由。
+
+#### 静态站点生成
+
+在静态站点生成（SSG）的模式下，你可以使用 `getStaticPaths()` 方法从 Flotiq 获取所有可能的博客文章路径。
+
+<Steps>
+
+1. 在 `/src/pages/posts/` 目录下，创建一个名为 `[slug].astro` 的新文件。通过 `getStaticPaths()` 方法来获取所有博客文章并返回：
+
+    ```astro title="src/pages/posts/[slug].astro" 
+    ---
+    import type { Blogpost } from "flotiq-api-ts";
+    import { flotiq } from "../../lib/flotiq";
+    
+    export async function getStaticPaths() {
+      const posts = await flotiq.BlogpostAPI.list();
+      return posts.data?.map((post) => ({
+        params: { slug: post.slug },
+        props: post
+      })) || []
+    }
+    ---
+    ```
+
+2. 导入模板以显示独立的文章：
+
+    ```astro title="src/pages/posts/[slug].astro" ins={12-20}
+    ---
+    import type { Blogpost } from "flotiq-api-ts";
+    import { flotiq } from "../../lib/flotiq";
+    
+    export async function getStaticPaths() {
+      const posts = await flotiq.BlogpostAPI.list();
+      return posts.data?.map((post) => ({
+        params: { slug: post.slug },
+        props: post
+      })) || []
+    }
+    const post: Blogpost = Astro.props;
+    ---
+    <html lang="en">
+      <title>{post.title}</title>
+      <body>
+        <h1>{post.title}</h1>
+        <div set:html={post.content}/>
+      </body>
+    </html>
+    ```
+
+3. 访问 `http://localhost:4321` 并单击列表中所链接到的博客文章。你现在可以导航到每个文章的各自页面了。
+
+</Steps>
+
+#### 按需渲染
+
+如果你正在使用 [SSR](/zh-cn/guides/on-demand-rendering/) 模式，那么你将需要通过每篇文章各自的 `slug` 来获取它们。
+
+<Steps>
+
+1. 在 `/src/pages/posts/` 目录下，创建一个名为 `[slug].astro` 的新文件。通过 文章的 `slug` 字段来获取它，同时还需包含当路由不存在时展示 404 页面的逻辑：
+
+    ```astro title="src/pages/posts/[slug].astro"
+    ---
+    import type { Blogpost } from "flotiq-api-ts";
+    import { flotiq } from "../../lib/flotiq";
+    
+    const { slug } = Astro.params;
+    let post: Blogpost;
+    
+    const blogpostList = await flotiq.BlogpostAPI.list({
+      filters: JSON.stringify({
+        slug: {
+          type: 'equals',
+          filter: slug,
+        }
+      }),
+      limit: 1
+    });
+    
+    if (blogpostList.data?.[0]) {
+      post = blogpostList.data[0]
+    } else {
+      return Astro.redirect('/404');
+    }
+    ---
+    ```
+
+2. 导入模板以显示独立的文章：
+
+    ```astro title="src/pages/posts/[slug].astro" ins={24-30}
+    ---
+    import type { Blogpost } from "flotiq-api-ts";
+    import { flotiq } from "../../lib/flotiq";
+    
+    const { slug } = Astro.params;
+    let post: Blogpost;
+    
+    const blogpostList = await flotiq.BlogpostAPI.list({
+      filters: JSON.stringify({
+        slug: {
+          type: 'equals',
+          filter: slug,
+        }
+      }),
+      limit: 1
+    });
+    
+    if (blogpostList.data?.[0]) {
+      post = blogpostList.data[0]
+    } else {
+      return Astro.redirect('/404');
+    }
+    ---
+    <html lang="en">
+      <title>{post.title}</title>
+      <body>
+        <h1>{post.title}</h1>
+        <div set:html={post.content}/>
+      </body>
+    </html>
+    ```
+
+3. 访问 `http://localhost:4321` 并单击列表中所链接到的博客文章。你现在可以导航到每个文章的各自页面了。
+
+</Steps>
+
+### 内容类型更改后刷新 SDK
+
+当使用 Flotiq TypeScript SDK（`flotiq-api-ts`）时，你的所有数据类型都会被准确地映射到 Astro 项目中。
+
+如果你更改了内容类型的结构（例如添加新字段或修改现有字段），则需要刷新 SDK，以确保你的项目反映了更新后最新的模型。
+
+要完成这一点，通过你的包管理工具来运行重构建指令：
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```sh
+    npm rebuild flotiq-api-ts
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```sh
+    pnpm rebuild flotiq-api-ts
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```sh
+    yarn rebuild flotiq-api-ts 
+    // for yarn v1 (Classic):
+    // yarn add flotiq-api-ts
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+这一步将会更新 SDK，对齐对象类型、字段以及你现有的数据模型的 API 方法。
+
+## 发布站点
+
+要部署你的站点，请参阅 Astro 的[部署指南](/zh-cn/guides/deploy/) 并按照你首选的托管服务提供商说明进行操作。
+
+### 在 Flotiq 上重新部署更改
+
+要更新你发布的站点，请将 Flotiq 配置为向托管服务提供商发送 webhook，以便在你的内容发生更改时触发重建。
+
+在 Flotiq 中，你可以定义它应该触发的内容类型和事件，并相应地对其进行配置。有关更多详细信息，请参阅 [Flotiq Webhooks 文档](https://flotiq.com/docs/panel/webhooks/async-co-webhook/)。
+
+## 官方资源
+
+- [Flotiq 文档](https://flotiq.com/docs)
