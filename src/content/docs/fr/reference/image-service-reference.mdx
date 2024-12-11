@@ -10,7 +10,7 @@ import Since from '~/components/Since.astro';
 
 Astro propose deux types de services d'images : Local et Externe.
 
-- **Les services locaux** gèrent les transformations d'images directement lors de la construction pour les sites statiques, ou lors de l'exécution en mode développement et SSR. Ce sont souvent des enveloppes autour de bibliothèques comme Sharp, ImageMagick, ou Squoosh. En mode développement et en SSR, les services locaux utilisent un point de terminaison de l'API pour effectuer la transformation.
+- **Les services locaux** gèrent les transformations d'image directement lors de la création pour les sites statiques, ou lors de l'exécution, à la fois en mode développement et pour le rendu à la demande. Il s'agit souvent de wrappers autour de bibliothèques telles que Sharp, ImageMagick ou Squoosh. En mode développement et dans les routes de production rendues à la demande, les services locaux utilisent un point de terminaison API pour effectuer la transformation.
 - Les **services externes** pointent vers des URL et peuvent ajouter la prise en charge de services tels que Cloudinary, Vercel ou tout autre serveur conforme à [RIAPI](https://github.com/riapi/riapi).
 
 ## Construire à l'aide de l'API d'un service d'image
@@ -19,7 +19,7 @@ Les définitions de service prennent la forme d'un objet par défaut exporté av
 
 Les services externes fournissent un `getURL()` qui pointe vers le `src` de la balise `<img>` de sortie.
 
-Les services locaux fournissent une méthode `transform()` pour effectuer des transformations sur votre image, et les méthodes `getURL()` et `parseURL()` pour utiliser un point de terminaison pour le mode dev et SSR.
+Les services locaux fournissent une méthode `transform()` pour effectuer des transformations sur votre image, et les méthodes `getURL()` et `parseURL()` pour utiliser un point de terminaison pour le mode dev et lors du rendu à la demande.
 
 Les deux types de services peuvent fournir `getHTMLAttributes()` pour déterminer les autres attributs de la sortie `<img>` et `validateOptions()` pour valider et augmenter les options passées.
 
@@ -124,7 +124,7 @@ export default service;
 
 Au moment de la construction des sites statiques et des routes pré-rendues, `<Image />` et `getImage(options)` appellent la fonction `transform()`. Ces derniers transmettent les options soit par les attributs du composant, soit par un argument `options`, respectivement. Les images transformées seront compilées dans un dossier `dist/_astro`. Leurs noms de fichiers contiendront un hachage des propriétés passées à `propertiesToHash`. Cette propriété est optionnelle et sera par défaut `['src', 'width', 'height', 'format', 'quality']`. Si votre service d'image personnalisé a plus d'options qui modifient les images générées, ajoutez-les dans le tableau.
 
-En mode dev et en mode SSR, Astro ne sait pas à l'avance quelles images doivent être optimisées. Astro utilise un point d'accès GET (par défaut, `/_image`) pour traiter les images au moment de l'exécution. `<Image />` et `getImage()` transmettent leurs options à `getURL()`, qui renvoie l'URL du point d'accès. Ensuite, le point d'accès appelle `parseURL()` et transmet les propriétés résultantes à `transform()`.
+En mode développement et lors de l'utilisation d'un adaptateur pour effectuer le rendu à la demande, Astro ne sait pas à l'avance quelles images doivent être optimisées. Astro utilise un point d'accès GET (par défaut, `/_image`) pour traiter les images au moment de l'exécution. `<Image />` et `getImage()` transmettent leurs options à `getURL()`, qui renvoie l'URL du point d'accès. Ensuite, le point d'accès appelle `parseURL()` et transmet les propriétés résultantes à `transform()`.
 
 #### getConfiguredImageService & imageConfig
 
@@ -163,7 +163,7 @@ export const GET: APIRoute = async ({ request }) => {
 
 `getURL(options: ImageTransform, imageConfig: AstroConfig['image']): string`
 
-Pour les services locaux, ce hook renvoie l'URL du point d'accès qui génère votre image (en mode SSR et dev). Il n'est pas utilisé pendant la construction. Le point d'accès local vers lequel `getURL()` pointe peut appeler à la fois `parseURL()` et `transform()`.
+Pour les services locaux, ce hook renvoie l'URL du point de terminaison qui génère votre image (pour le rendu à la demande et en mode dev). Il n'est pas utilisé pendant la construction. Le point d'accès local vers lequel `getURL()` pointe peut appeler à la fois `parseURL()` et `transform()`.
 
 Pour les services externes, ce hook renvoie l'URL finale de l'image.
 
@@ -201,7 +201,7 @@ Ce hook analyse les URLs générées par `getURL()` en un objet avec les différ
 
 Ce hook transforme et renvoie l'image et est appelé pendant la construction pour créer les fichiers d'actifs finaux.
 
-Vous devez retourner un `format` pour vous assurer que le bon type MIME est servi aux utilisateurs en mode SSR et développement.
+Vous devez renvoyer un `format` pour garantir que le type MIME approprié est fourni aux utilisateurs pour le rendu à la demande et le mode de développement.
 
 ### `getHTMLAttributes()`
 
@@ -251,7 +251,7 @@ import { defineConfig } from "astro/config";
 export default defineConfig({
   image: {
     service: {
-      entrypoint: "votre-point-d’entrée", // 'astro/assets/services/squoosh' | 'astro/assets/services/sharp' | string,
+      entrypoint: "votre-point-d’entrée", // 'astro/assets/services/sharp' | string,
       config: {
         // ... configuration spécifique au service. En option.
       }
