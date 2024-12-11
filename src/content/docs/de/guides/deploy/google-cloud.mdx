@@ -1,9 +1,13 @@
 ---
 title: Veröffentliche deine Astro-Website auf Google Cloud
 description: Wie du deine Astro-Website auf Google Cloud im Internet veröffentlichst.
+sidebar:
+  label: Google Cloud
 type: deploy
 i18nReady: true
 ---
+
+import { Steps } from '@astrojs/starlight/components';
 
 [Google Cloud](https://cloud.google.com/) ist eine voll ausgestattete Web-App-Hosting-Plattform, die für die Veröffentlichung einer Astro-Website verwendet werden kann.
 
@@ -11,6 +15,7 @@ i18nReady: true
 
 ### Cloud Storage (nur statisch)
 
+<Steps>
 1. [Erstelle ein neues GCP-Projekt](https://console.cloud.google.com/projectcreate) oder wähle ein bereits vorhandenes Projekt aus.
 
 2. Erstelle einen neuen Bucket unter [Cloud Storage](https://cloud.google.com/storage).
@@ -22,6 +27,7 @@ i18nReady: true
 5. Aktiviere den öffentlichen Zugriff, indem du `allUsers` eine neue Berechtigung namens `Storage Object Viewer` hinzufügst.
 
 6. Bearbeite die Website-Konfiguration und füge `ìndex.html` als Einstiegspunkt und `404.html` als Fehlerseite hinzu.
+</Steps>
 
 ### Cloud Run (SSR und statisch)
 
@@ -29,113 +35,57 @@ Cloud Run ist eine serverlose Plattform, die es dir ermöglicht, einen Container
 
 #### Bereite den Dienst vor
 
+<Steps>
 1. [Erstelle ein neues GCP-Projekt](https://console.cloud.google.com/projectcreate) oder wähle ein bereits vorhandenes Projekt aus.
 
 2. Stelle sicher, dass die [Cloud Run API](https://console.cloud.google.com/apis/library/run.googleapis.com) aktiviert ist.
 
 3. Erstelle einen neuen Dienst.
+</Steps>
 
-#### Die Dockerdatei erstellen
+#### Dockerfile erstellen & Container bauen
 
-##### Dockerfile für statische Websites (Beispiel)
+Bevor du deine Astro-Website in Cloud Run bereitstellen kannst, musst du ein Dockerfile erstellen, mit dem du den Container bauen kannst. Weitere Informationen über [wie du Docker mit Astro verwendest](/de/recipes/docker/#creating-a-dockerfile) findest du in unseren Beispielen.
 
-Das folgende Dockerfile erstellt deine Website und stellt sie mit Apache HTTPD (Standardkonfiguration) auf Port `80` bereit.
+Sobald das Dockerfile erstellt ist, erstellst du ein Image und schiebst es zu Google Cloud. Es gibt mehrere Möglichkeiten, dies zu tun:
 
-```docker title="Dockerfile"
-FROM node:lts AS build
-WORKDIR /app
-COPY . .
-RUN npm i
-RUN npm run build
+**Lokal mit Docker bauen**:
 
-FROM httpd:2.4 AS runtime
-COPY --from=build /app/dist /usr/local/apache2/htdocs/
-EXPOSE 80
-```
-
-:::note
-Wenn du einen anderen Paketmanager als `npm` verwendest, musst du die Befehle ändern:
-
-```docker title="Dockerfile" add={4} "pnpm"
-FROM node:lts AS build
-WORKDIR /app
-COPY . .
-RUN npm i -g pnpm@latest
-RUN pnpm i
-RUN pnpm run build
-# ...
-```
-:::
-
-##### Dockerfile für SSR-Websites (Beispiel)
-
-Das folgende Dockerfile erstellt deine Website und stellt sie mit Node.js (SSR-Adapter) auf Port `4321` bereit.
-
-```docker title="Dockerfile"
-FROM node:lts AS runtime
-WORKDIR /app
-
-COPY . .
-
-RUN npm install
-RUN npm run build
-
-ENV HOST=0.0.0.0
-ENV PORT=4321
-EXPOSE 4321
-CMD node ./dist/server/entry.mjs
-```
-
-:::tip[Bitte bedenke Folgendes:]
-Dies sind nur Beispiele für Dockerdateien. Du kannst sie an deine Bedürfnisse anpassen. Du könntest zum Beispiel ein anderes Docker-Image wie `node:lts-alpine` verwenden.
-
-```docker title="Dockerfile" del={1} add={2}
-FROM node:lts AS runtime
-FROM node:lts-alpine AS runtime
-```
-:::
-
-#### Erstelle den Container
-
-Sobald das Dockerfile erstellt ist, erstellst du ein Image und überträgst es zu Google Cloud. Es gibt mehrere Möglichkeiten, dies zu tun:
-
-**Lokale Erstellung mit Docker**:
-
-Verwende den Befehl `docker build`, um das Image zu erstellen, `docker tag`, um ihm einen Tag zu geben, und dann `docker push`, um es an eine Registry zu übergeben. Im Fall von Google Cloud ist [Google Cloud Registry](https://cloud.google.com/container-registry/docs/pushing-and-pulling#add-registry) die einfachste Option, aber du kannst auch [Docker Hub](https://hub.docker.com/) verwenden.
+Verwende den Befehl `docker build`, um das Image zu erstellen, `docker tag`, um ihm ein Tag zu geben, und dann `docker push`, um es in eine Registry zu pushen. Im Fall von Google Cloud ist [`Artifact Registry`] (https://cloud.google.com/artifact-registry/docs/docker/pushing-and-pulling) die einfachste Option, aber du kannst auch [Docker Hub](https://hub.docker.com/) verwenden.
 
 ```bash
-# Erstelle deinen Container
+# Baue deinen Container
 docker build .
 
 docker tag SOURCE_IMAGE HOSTNAME/PROJECT-ID/TARGET-IMAGE:TAG
 
-# Übertrage dein Image in eine Registry
+# Push dein Image in ein Registry
 docker push HOSTNAME/PROJECT-ID/IMAGE:TAG
 ```
 
 Ändere die folgenden Werte in den obigen Befehlen, damit sie zu deinem Projekt passen:
 
-- `SOURCE_IMAGE`: Der lokalen Image-Namen oder die Image-ID.
-- `HOSTNAME`: Der Registry-Host (`gcr.io`, `eu.gcr.io`, `asia.gcr.io`, `us.gcr.io`).
-- `PROJECT`: Deine Google Cloud Projekt-ID.
-- `TARGET-IMAGE`: Der Name für das Image, wenn es in der Registry gespeichert wird.
-- `TAG` Die Version, die mit dem Image verknüpft ist
 
+- `SOURCE_IMAGE`: der lokale Imagename oder die Image-ID.
+- `HOSTNAME`: der Registry-Host (`gcr.io`, `eu.gcr.io`, `asia.gcr.io`, `us.gcr.io`).
+- `PROJECT`: deine Google Cloud Projekt-ID.
+- `TARGET-IMAGE`: Der Name für das Image, wenn es in das Registry gespeichert wird.
+- `TAG` ist die Version, die mit dem Image verknüpft ist.
 
-[Erfahre mehr in der Google-Cloud-Dokumentation](https://cloud.google.com/container-registry/docs/pushing-and-pulling)
+[Lies mehr in der Google Cloud-Dokumentation] (https://cloud.google.com/artifact-registry/docs/docker/pushing-and-pulling)
 
-**Ein anderes Tool verwenden**:
+**Ein anderes Werkzeug verwenden**:
 
 Du kannst ein CI/CD-Tool verwenden, das Docker unterstützt, z.B. [GitHub Actions](https://github.com/marketplace/actions/push-to-gcr-github-action).
 
-**Erstelle mit [Cloud Build](https://cloud.google.com/build)**:
+**Baue mit [Cloud Build](https://cloud.google.com/build)**:
 
-Anstatt die Dockerdatei lokal zu erstellen, kannst du Google Cloud anweisen, das Image per Fernzugriff zu erstellen. Siehe dazu die [Google Cloud Build-Dokumentation](https://cloud.google.com/build/docs/build-push-docker-image).
+Anstatt die Dockerdatei lokal zu erstellen, kannst du Google Cloud anweisen, das Image per Fernzugriff zu erstellen. Siehe die [Google Cloud Build-Dokumentation hier](https://cloud.google.com/build/docs/build-push-docker-image).
 
-#### Den Container erstellen
+#### Den Container veröffentlichen
 
-Das Deployment kann manuell in deinem Terminal [mit `gcloud`](https://cloud.google.com/run/docs/deploying#service) oder automatisch mit [Cloud Build](https://cloud.google.com/build) oder einem anderen CI/CD-System durchgeführt werden.
+Die Bereitstellung kann manuell in deinem Terminal [mit `gcloud`](https://cloud.google.com/run/docs/deploying#service) oder automatisch mit [Cloud Build](https://cloud.google.com/build) oder einem anderen CI/CD-System erfolgen.
 
-:::note[Benötigst du öffentlichen Zugang?]
-Vergiss nicht, die Berechtigung `Cloud Run Invoker` zur Gruppe `allUsers` in den Cloud Run-Berechtigungseinstellungen hinzuzufügen!
+:::note[Du brauchst öffentlichen Zugang?]
+Vergiss nicht, die Berechtigung `Cloud Run Invoker` zur Gruppe `allUsers` in den Cloud Run Berechtigungseinstellungen hinzuzufügen!
 :::
