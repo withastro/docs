@@ -1,5 +1,7 @@
 import { createLunaria } from '@lunariajs/core';
 import { unlinkSync } from 'node:fs';
+import { yellow, blue, red } from 'kleur/colors';
+
 // Set the amount of days between the last update in the source file
 // and a translation to be considered an old translation. Default: 180 (6 months)
 // Can be set by passing a number as the first argument when running the script.
@@ -31,7 +33,7 @@ for (const { source, localizations } of status) {
 				unlinkSync(localization.path);
 			}
 			outdatedLog.push(
-				`- ${localization.path} (${daysSinceLastUpdate} days) ${REMOVE_OUTDATED_FILES ? '[removed]' : ''}`
+				`- ${blue(localization.path)} (${yellow(daysSinceLastUpdate)} days) ${REMOVE_OUTDATED_FILES ? red('[REMOVED]') : ''}`
 			);
 		}
 	}
@@ -39,11 +41,11 @@ for (const { source, localizations } of status) {
 
 if (outdatedLog.length > 0) {
 	console.log(
-		`Found ${outdatedLog.length} translations that haven't been updated in ${DAYS_TO_OUTDATED_MARK} days:`
+		`Found ${yellow(outdatedLog.length)} translations that haven't been updated in ${yellow(DAYS_TO_OUTDATED_MARK)} days or more:`
 	);
 	outdatedLog.forEach((log) => console.log(log));
 } else {
 	console.log(
-		`Found no translations that haven't been updated in less than ${DAYS_TO_OUTDATED_MARK} days!`
+		`Found no translations that haven't been updated in ${yellow(DAYS_TO_OUTDATED_MARK)} days or more!`
 	);
 }
