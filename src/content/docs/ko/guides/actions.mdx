@@ -168,6 +168,10 @@ export const server = {
 
 액션은 `handler()`의 타입이 안전한 반환값이 포함된 `data` 또는 백엔드 오류가 있는 `error`를 포함하는 객체를 반환합니다. 오류는 `input` 속성의 유효성 검사 오류 또는 `handler()`에서 발생한 오류로 인해 발생할 수 있습니다.
 
+액션은 [Devalue 라이브러리를 사용하여](https://github.com/Rich-Harris/devalue) Date, Map, Set, URL을 처리할 수 있는 사용자 정의 데이터 형식을 반환합니다. 따라서 일반 JSON처럼 네트워크에서 응답을 쉽게 검사할 수 없습니다. 대신 디버깅을 위해 액션이 반환하는 `data` 객체를 검사할 수 있습니다.
+
+<ReadMore>자세한 내용은 [`handler()` API 참조를 확인하세요](/ko/reference/modules/astro-actions/#handler-속성).</ReadMore>
+
 ### 오류 확인
 
 `data` 속성을 사용하기 전에 `error`가 있는지 확인하는 것이 가장 좋습니다. 이렇게 하면 오류를 미리 처리할 수 있고 `data`가 `undefined`인지 확인하지 않고 정의되도록 할 수 있습니다.
@@ -398,12 +402,12 @@ if (isInputError(error)) {
 ## HTML 양식 액션에서 액션 호출
 
 :::note
-양식 액션을 사용하여 액션을 호출할 때는 페이지가 주문형으로 렌더링되어야 합니다. 이 API를 사용하기 전에 [페이지에서 사전 렌더링이 비활성화되어 있는지 확인](/ko/guides/server-side-rendering/#hybrid-모드에서-사전-렌더링-선택-해제)하세요.
+양식 액션을 사용하여 액션을 호출할 때는 페이지가 주문형으로 렌더링되어야 합니다. 이 API를 사용하기 전에 [페이지에서 사전 렌더링이 비활성화되어 있는지 확인](/ko/guides/on-demand-rendering/#요청-시-렌더링-활성화)하세요.
 :::
 
 모든 `<form>` 요소에서 표준 속성을 사용하여 JS 없이 양식 제출을 활성화할 수 있습니다.  클라이언트 측 JavaScript가 없는 양식 제출은 JavaScript가 로드되지 않을 때를 대비하거나 양식을 완전히 서버에서 처리하려는 경우 유용할 수 있습니다.
 
-서버에서 [Astro.getActionResult()](/ko/reference/api-reference/#astrogetactionresult)를 호출하면 양식 제출 결과 (`data` 또는 `error`)가 반환되며, 동적 리디렉션, 양식 오류 처리, UI 업데이트 등에 사용할 수 있습니다.
+서버에서 [Astro.getActionResult()](/ko/reference/api-reference/#getactionresult)를 호출하면 양식 제출 결과 (`data` 또는 `error`)가 반환되며, 동적 리디렉션, 양식 오류 처리, UI 업데이트 등에 사용할 수 있습니다.
 
 HTML 양식에서 액션을 호출하려면 `<form>`에 `method="POST"`를 추가한 다음, 액션을 사용하여 양식의 `action` 속성을 설정합니다 (예: `action={actions.logout}`). 이렇게 하면 서버에서 자동으로 처리되는 쿼리 문자열을 사용하도록 `action` 속성이 설정됩니다.
 
@@ -421,24 +425,7 @@ import { actions } from 'astro:actions';
 
 ### 액션 성공 시 리디렉션
 
-클라이언트 측 JavaScript 없이 액션이 성공했을 때 다른 페이지로 이동하려면 `action` 속성에 경로를 추가하면 됩니다.
-
-예를 들어, `action={'/confirmation' + actions.newsletter}`는 `newsletter` 액션이 성공하면 `/confirmation`으로 이동합니다:
-
-```astro title="src/components/NewsletterSignup.astro" /action=\{[^\{\}]+\}/
----
-import { actions } from 'astro:actions';
----
-
-<form method="POST" action={'/confirmation' + actions.newsletter}>
-  <label>E-mail <input required type="email" name="email" /></label>
-  <button>Sign up</button>
-</form>
-```
-
-#### 액션 성공 시 동적으로 리디렉션
-
-동적으로 리디렉션할 위치를 결정해야 하는 경우 서버에서 액션의 결과를 사용할 수 있습니다. 일반적인 예는 제품 레코드를 생성하고 새 제품 페이지로 리디렉션하는 것입니다 (예: `/products/[id]`).
+성공 시 새로운 라우트로 리디렉션해야 하는 경우, 서버에서 액션의 결과를 사용할 수 있습니다. 일반적인 예시로는 제품 기록을 생성하고 새로운 제품의 페이지(예: `/products/[id]`)로 리디렉션하는 것이 있습니다.
 
 예를 들어 생성된 제품 ID를 반환하는 `createProduct` 액션이 있다고 가정해 보겠습니다:
 
@@ -479,7 +466,7 @@ if (result && !result.error) {
 
 ### 양식 액션 오류 처리
 
-Astro는 액션이 실패할 때 `action` 경로로 리디렉션하지 않습니다. 대신 액션이 반환한 모든 오류와 함께 현재 페이지가 다시 로드됩니다. 양식이 포함된 Astro 컴포넌트에서 `Astro.getActionResult()`를 호출하면 사용자 정의 오류 처리를 위해 `error` 객체에 액세스할 수 있습니다.
+양식이 포함된 Astro 컴포넌트에서 `Astro.getActionResult()`를 호출하면 사용자 정의 오류 처리를 위해 `data` 및 `error` 객체에 액세스할 수 있습니다.
 
 다음 예시는 `newsletter` 액션이 실패할 때 일반적인 실패 메시지를 표시합니다:
 
@@ -493,7 +480,7 @@ const result = Astro.getActionResult(actions.newsletter);
 {result?.error && (
   <p class="error">Unable to sign up. Please try again later.</p>
 )}
-<form method="POST" action={'/confirmation' + actions.newsletter}>
+<form method="POST" action={actions.newsletter}>
   <label>
     E-mail
     <input required type="email" name="email" />
@@ -524,10 +511,6 @@ const inputErrors = isInputError(result?.error) ? result.error.fields : {};
 </form>
 ```
 
-:::note
-Astro는 일회용 쿠키로 액션 `data`와 `error`를 유지합니다. 즉, `getActionResult()`는 첫 번째 _요청에만_ 결과를 반환하고 페이지를 다시 방문할 때는 `undefined`를 반환합니다.
-:::
-
 #### 오류 시 입력값 유지
 
 입력값은 양식이 제출될 때마다 지워집니다. 입력 값을 유지하려면 페이지에서 [view transitions을 활성화](/ko/guides/view-transitions/#페이지에-view-transitions-추가)하고 각 입력에 `transition:persist` 지시문을 적용하면 됩니다:
@@ -538,13 +521,9 @@ Astro는 일회용 쿠키로 액션 `data`와 `error`를 유지합니다. 즉, `
 
 ### 양식 액션 결과로 UI 업데이트
 
-`Astro.getActionResult()`가 반환하는 결과는 일회용이며 페이지를 새로고침할 때마다 `undefined`로 재설정됩니다. 이는 [입력 오류 표시](#양식-액션-오류-처리)와 성공 시 사용자에게 임시 알림을 표시하는 데 이상적입니다.
+성공 시 사용자에게 알림을 표시하기 위해 액션의 반환 값을 사용하려면, 액션을 `Astro.getActionResult()`에 전달하세요. 반환된 `data` 속성을 사용하여 표시하고자 하는 UI를 렌더링하세요.
 
-:::tip
-페이지를 새로 고칠 때마다 같은 결과를 표시해야 하는 경우, 결과를 데이터베이스 또는 [쿠키에](/ko/reference/api-reference/#astrocookies)에 저장하는 것이 좋습니다.
-:::
-
-`Astro.getActionResult()`에 액션을 전달하고 반환된 `data` 속성을 사용하여 표시하려는 임시 UI를 렌더링합니다. 이 예시에서는 `addToCart` 액션에서 반환된 `productName` 속성을 사용하여 성공 메시지를 표시합니다:
+이 예시는 `addToCart` 액션이 반환한 `productName` 속성을 사용하여 성공 메시지를 보여줍니다.
 
 ```astro title="src/pages/products/[slug].astro"
 ---
@@ -560,27 +539,155 @@ const result = Astro.getActionResult(actions.addToCart);
 <!--...-->
 ```
 
-:::caution
-액션 데이터는 영구 쿠키를 사용하여 전달됩니다. **이 쿠키는 암호화되지 않으며** 크기가 4KB로 제한되지만, 정확한 제한은 브라우저마다 다를 수 있습니다.
+### 고급: 세션으로 액션 결과 유지하기
 
-일반적으로 취약점을 피하기 위해 액션 `handler`에서 필요한 최소한의 정보만 반환하고 다른 민감한 정보는 데이터베이스에 보존하는 것이 좋습니다.
+<p><Since v="5.0.0" /></p>
 
-예를 들어, 전체 `product` 객체를 반환하는 대신 `addToCart` 액션에서 제품 이름을 반환할 수 있습니다:
+액션 결과는 POST 제출로 표시됩니다. 이는 사용자가 페이지를 닫고 다시 방문할 때 결과가 `undefined`로 재설정된다는 것을 의미합니다. 또한 사용자가 페이지를 새로고침하려고 하면 "양식 다시 제출 확인" 대화상자가 표시됩니다.
 
-```ts title="src/actions/index.ts" del={7} ins={8}
-import { defineAction } from 'astro:actions';
+이 동작을 사용자 정의하기 위해 미들웨어를 추가하여 액션의 결과를 수동으로 처리할 수 있습니다. 쿠키나 세션 스토리지를 사용하여 액션 결과를 유지하도록 선택할 수 있습니다.
+
+[미들웨어 파일을 생성](/ko/guides/middleware/)하고 `astro:actions`에서 [`getActionContext()` 유틸리티](/ko/reference/modules/astro-actions/#getactioncontext)를 가져오는 것부터 시작하세요. 이 함수는 액션 핸들러와 액션이 HTML 양식에서 호출되었는지 여부를 포함한 액션 요청에 대한 정보가 있는 `action` 객체를 반환합니다. `getActionContext()`는 또한 `Astro.getActionResult()`에 의해 반환되는 값을 프로그래밍 방식으로 설정하는 `setActionResult()`와 `serializeActionResult()` 함수를 반환합니다:
+
+```ts title="src/middleware.ts" {2,5}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action?.calledFrom === 'form') {
+    const result = await action.handler();
+    // ... 액션 결과 처리
+    setActionResult(action.name, serializeActionResult(result));
+  }
+  return next();
+});
+```
+
+HTML 양식 결과를 유지하는 일반적인 방법은 [POST / Redirect / GET 패턴](https://en.wikipedia.org/wiki/Post/Redirect/Get)입니다. 이 리디렉션은 페이지가 새로고침될 때 "양식 다시 제출 확인" 대화상자를 제거하고, 사용자 세션 전체에서 액션 결과가 유지되도록 합니다.
+
+이 예시는 [Netlify 서버 어댑터](/ko/guides/integrations-guide/netlify/)가 설치된 세션 스토리지를 사용하여 모든 양식 제출에 POST / Redirect / GET 패턴을 적용합니다. 액션 결과는 [Netlify Blob](https://docs.netlify.com/blobs/overview/)을 사용하여 세션 스토어에 기록되고, 세션 ID를 사용하여 리디렉션 후에 검색됩니다:
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+import { randomUUID } from "node:crypto";
+import { getStore } from "@netlify/blobs";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  // 사전 렌더링된 페이지에 대한 요청 건너뛰기
+  if (context.isPrerendered) return next();
+  
+  const { action, setActionResult, serializeActionResult } =
+    getActionContext(context);
+  // Netlify Blob으로 액션 결과를 유지하는 Blob 스토어 만들기
+  const actionStore = getStore("action-session");
+  
+  // 액션 결과가 쿠키로 전달되었다면,
+  // `Astro.getActionResult()`에서 접근할 수 있도록 결과를 설정하세요
+  const sessionId = context.cookies.get("action-session-id")?.value;
+  const session = sessionId
+    ? await actionStore.get(sessionId, {
+        type: "json",
+      })
+    : undefined;
+  
+  if (session) {
+    setActionResult(session.actionName, session.actionResult);
+  
+    // 선택 사항: 페이지가 렌더링된 후 세션을 삭제합니다.
+    // 원하는 대로 자신만의 유지 전략을 구현하세요
+    await actionStore.delete(sessionId);
+    context.cookies.delete("action-session-id");
+    return next();
+  }
+  
+  // HTML 양식 액션에서 액션이 호출된 경우, 
+  // 액션 핸들러를 호출하고 목적 페이지로 리디렉션합니다
+  if (action?.calledFrom === "form") {
+    const actionResult = await action.handler();
+  
+    // 세션 스토리지를 사용하여 액션 결과 유지하기
+    const sessionId = randomUUID();
+    await actionStore.setJSON(sessionId, {
+      actionName: action.name,
+      actionResult: serializeActionResult(actionResult),
+    });
+  
+    // 페이지로 리디렉션한 후 검색하기 위해 
+    // 세션 ID를 쿠키로 전달
+    context.cookies.set("action-session-id", sessionId);
+  
+    // 오류 발생 시 이전 페이지로 리디렉션
+    if (actionResult.error) {
+      const referer = context.request.headers.get("Referer");
+      if (!referer) {
+        throw new Error(
+          "Internal: Referer unexpectedly missing from Action POST request.",
+        );
+      }
+      return context.redirect(referer);
+    }
+    // 성공 시 목적 페이지로 리디렉션
+    return context.redirect(context.originPathname);
+  }
+  
+  return next();
+});
+```
+
+## 액션 사용 시 보안
+
+액션은 액션의 이름을 기반으로 한 공개 엔드포인트로 접근할 수 있습니다. 예를 들어, `blog.like()` 액션은 `/_actions/blog.like`에서 접근할 수 있습니다. 이는 액션 결과의 단위 테스트와 프로덕션 오류 디버깅에 유용합니다. 하지만 이는 API 엔드포인트와 요청 시 렌더링되는 페이지에서 고려해야 할 동일한 인증 검사를 **반드시** 사용해야 한다는 것을 의미합니다.
+
+### 액션 핸들러에서 사용자 인증
+
+액션 요청을 인증하기 위해 액션 핸들러에 인증 검사를 추가하세요. [인증 라이브러리](/ko/guides/authentication/)를 사용하여 세션 관리와 사용자 정보를 처리할 수 있습니다.
+
+액션은 `context.locals`를 사용하여 미들웨어에서 전달된 속성에 접근하기 위한 전체 `APIContext` 객체를 노출합니다. 사용자가 인증되지 않은 경우 `UNAUTHORIZED` 코드와 함께 `ActionError`를 발생시킬 수 있습니다:
+
+```ts title="src/actions/index.ts" {6-8}
+import { defineAction, ActionError } from 'astro:actions';
 
 export const server = {
-  addToCart: defineAction({
-    handler: async () => {
-      /* ... */
-      return product;
-      return { productName: product.name };
+  getUserSettings: defineAction({
+    handler: async (_input, context) => {
+      if (!context.locals.user) {
+        throw new ActionError({ code: 'UNAUTHORIZED' });
+      }
+      return { /* 성공 시 데이터 */ };
     }
   })
 }
 ```
-:::
+### 미들웨어에서 액션 제한
+
+<p><Since v="5.0.0" /></p>
+
+Astro는 권한 수준과 액션별 속도 제한을 존중하기 위해 액션 핸들러에서 사용자 세션을 인증하는 것을 권장합니다. 하지만 미들웨어에서 모든 액션(또는 액션의 하위 집합)에 대한 요청을 제한할 수도 있습니다.
+
+미들웨어에서 `getActionContext()` 함수를 사용하여 들어오는 액션 요청에 대한 정보를 검색할 수 있습니다. 여기에는 액션 이름과 해당 액션이 클라이언트 측 원격 프로시저 호출(RPC) 함수(예: `actions.blog.like()`) 또는 HTML 양식을 사용하여 호출되었는지 여부가 포함됩니다.
+
+다음 예시는 유효한 세션 토큰이 없는 모든 액션 요청을 거부합니다. 검사가 실패하면 "Forbidden" 응답이 반환됩니다. 참고: 이 방법은 세션이 있을 때만 액션에 접근할 수 있도록 보장하지만, 안전한 인증을 *대체하지는* 않습니다.
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action } = getActionContext(context);
+  // 액션이 클라이언트 측 함수에서 호출되었는지 확인
+  if (action?.calledFrom === 'rpc') {
+    // 그렇다면, 사용자 세션 토큰을 확인
+    if (context.cookies.has('user-session')) {
+      return new Response('Forbidden', { status: 403 });
+    }
+  }
+  
+  context.cookies.set('user-session', /* 세션 토큰 */);
+  return next();
+});
+```
 
 ## Astro 컴포넌트 및 서버 엔드포인트에서 액션 호출
 

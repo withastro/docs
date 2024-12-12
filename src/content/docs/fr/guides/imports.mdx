@@ -1,6 +1,6 @@
 ---
-title: Imports
-description: Apprendre comment importer différents types de contenu avec Astro.
+title: Référence des importations
+description: Découvrez comment importer différents types de fichiers dans votre projet Astro.
 i18nReady: true
 ---
 import RecipeLinks from "~/components/RecipeLinks.astro";
@@ -22,11 +22,21 @@ Les types de fichiers suivants sont pris en charge par Astro :
 - Modules CSS (`.module.css`)
 - Images et actifs (`.svg`, `.jpg`, `.png`, etc.)
 
-De plus, vous pouvez étendre Astro pour ajouter le support de différents [Frameworks UI](/fr/guides/framework-components/) comme React, Svelte et Vue. Vous pouvez également installer l'[intégration Astro MDX](/fr/guides/integrations-guide/mdx/) et utiliser les fichiers `.mdx` dans votre projet.
+De plus, vous pouvez étendre Astro pour ajouter le support de différents [Frameworks UI](/fr/guides/framework-components/) comme React, Svelte et Vue. Vous pouvez également installer l'[intégration Astro MDX](/fr/guides/integrations-guide/mdx/) ou l'[intégration Astro Markdoc](/fr/guides/integrations-guide/markdoc/) pour utiliser les fichiers `.mdx` ou `.mdoc` dans votre projet.
 
 ### Les fichiers dans `public/`
 
-Vous pouvez placer n'importe quelle ressource statique dans le répertoire [`public/`](/fr/basics/project-structure/#public) de votre projet, et Astro le copiera directement dans votre version finale sans y toucher. Les fichiers dans le répertoire `public/` ne sont pas construits ou regroupés par Astro, ce qui signifie que n'importe quel type de fichier est supporté. Vous pouvez référencer un fichier `public/` par un chemin d'URL directement dans vos modèles HTML.
+Vous pouvez placer n'importe quelle ressource statique dans le répertoire [`public/`](/fr/basics/project-structure/#public) de votre projet, et Astro le copiera directement dans votre version finale sans y toucher. Les fichiers dans le répertoire `public/` ne sont pas construits ou regroupés par Astro, ce qui signifie que n'importe quel type de fichier est supporté.
+
+Vous pouvez référencer un fichier `public/` par un chemin d'URL directement dans vos modèles HTML.
+
+```astro
+// Pour faire un lien vers /public/reports/annual/2024.pdf
+Télécharger la <a href="/reports/annual/2024.pdf">déclaration annuelle 2024 en PDF</a>.
+
+// Pour afficher /public/assets/cats/ginger.jpg
+<img src="/assets/cats/ginger.jpg" alt="Un chat orange dort sur un lit.">
+```
 
 ## Déclarations d'importation
 
@@ -54,7 +64,7 @@ import { getUser } from './user.ts';
 import type { UserType } from './user.ts';
 ```
 
-Astro comprend un support intégré pour [TypeScript] (https://www.typescriptlang.org/). Vous pouvez importer des fichiers `.ts` et `.tsx` directement dans votre projet Astro, et même écrire du code TypeScript directement dans votre [script de composant Astro](/fr/basics/astro-components/#le-script-du-composant) et n'importe quelle [balise de scripts](/fr/guides/client-side-scripts/).
+Astro comprend un support intégré pour [TypeScript] (https://www.typescriptlang.org/). Vous pouvez importer des fichiers `.ts` et `.tsx` directement dans votre projet Astro, et même écrire du code TypeScript directement dans votre [script de composant Astro](/fr/basics/astro-components/#le-script-du-composant) et dans n'importe quelle [balise de scripts](/fr/guides/client-side-scripts/).
 
 **Astro n'effectue aucune vérification de type lui-même.** La vérification de type doit être prise en charge en dehors d'Astro, soit par votre IDE, soit par un script séparé. Pour vérifier le type des fichiers Astro, la commande [`astro check`](/fr/reference/cli-reference/#astro-check) est fournie.
 
@@ -187,16 +197,17 @@ import logoUrl from '@assets/logo.png?url';
 Ces alias sont également intégrés automatiquement dans [VS Code](https://code.visualstudio.com/docs/languages/jsconfig) et d'autres éditeurs de code.
 
 
-## `Astro.glob()`
+## `import.meta.glob()`
 
-[`Astro.glob()`](/fr/reference/api-reference/#astroglob) est un moyen d'importer plusieurs fichiers à la fois.
+L'utilitaire [`import.meta.glob()` de Vite](https://vite.dev/guide/features.html#glob-import) est un moyen d'importer plusieurs fichiers à la fois en utilisant des modèles glob pour trouver des chemins de fichiers correspondants.
 
-`Astro.glob()` ne prend qu'un seul paramètre : un [pattern global](/fr/guides/imports/) relatif correspondant aux fichiers locaux que vous souhaitez importer. Il est asynchrone et renvoie un tableau des exportations de chaque fichier correspondant.
+`import.meta.glob()` prend un [modèle glob relatif](#patterns-globaux) correspondant aux fichiers locaux que vous souhaitez importer comme paramètre. Il renvoie un tableau des exportations de chaque fichier correspondant. Pour charger tous les modules correspondants à l'avance, passez `{ eager: true }` comme deuxième argument :
 
-```astro title="src/components/my-component.astro"
+```astro title="src/components/my-component.astro" {3,4}
 ---
 // importe tous les fichiers qui se terminent par `.md` dans `./src/pages/post/`
-const posts = await Astro.glob('../pages/post/*.md'); 
+const matches = import.meta.glob('../pages/post/*.md', { eager: true }); 
+const posts = Object.values(matches);
 ---
 <!-- Rend un <article> pour les 5 premiers articles du blog -->
 <div>
@@ -204,18 +215,18 @@ const posts = await Astro.glob('../pages/post/*.md');
   <article>
     <h2>{post.frontmatter.title}</h2>
     <p>{post.frontmatter.description}</p>
-    <a href={post.url}>Lire plus</a>
+    <a href={post.url}>Lire la suite</a>
   </article>
 ))}
 </div>
 ```
 
-Les composants Astro importés avec `Astro.glob` sont de type [`AstroInstance`](/fr/reference/api-reference/#fichiers-astro). Vous pouvez effectuer le rendu de chaque instance de composant en utilisant sa propriété `default` :
+Les composants Astro importés avec `import.meta.glob` sont de type [`AstroInstance`](#fichiers-astro). Vous pouvez effectuer le rendu de chaque instance de composant en utilisant sa propriété `default` :
 
 ```astro title="src/pages/component-library.astro" {8}
 ---
 // importe tous les fichiers qui se terminent par `.astro` dans `./src/components/`
-const components = await Astro.glob('../components/*.astro');
+const components = Object.values(import.meta.glob('../components/*.astro', { eager: true }));
 ---
 <!-- Affiche tous nos composants -->
 {components.map((component) => (
@@ -225,6 +236,97 @@ const components = await Astro.glob('../components/*.astro');
 ))}
 ```
 
+### Valeurs prises en charge
+
+La fonction `import.meta.glob()` de Vite ne prend en charge que les chaînes littérales statiques. Elle ne prend pas en charge les variables dynamiques ni l'interpolation de chaîne de caractères.
+
+Une solution de contournement courante consiste à importer un ensemble de fichiers plus grand qui inclut tous les fichiers dont vous avez besoin, puis à les filtrer :
+
+```astro {6-7}
+---
+// src/components/featured.astro
+const { postSlug } = Astro.props;
+const pathToMyFeaturedPost = `src/pages/blog/${postSlug}.md`;
+
+const posts = Object.values(import.meta.glob("../pages/blog/*.md", { eager: true }));
+const myFeaturedPost = posts.find(post => post.file.includes(pathToMyFeaturedPost));
+---
+
+<p>
+  Jetez un oeil à mon article préféré, <a href={myFeaturedPost.url}>{myFeaturedPost.frontmatter.title}</a>!
+</p>
+```
+
+### Utilitaires de type d'importation
+
+#### Fichiers Markdown
+
+Les fichiers Markdown chargés avec `import.meta.glob()` renvoient l'interface `MarkdownInstance` suivante :
+
+```ts
+export interface MarkdownInstance<T extends Record<string, any>> {
+  /* Toutes les données spécifiées dans le frontmatter YAML de ce fichier */
+	frontmatter: T;
+  /* Le chemin d'accès absolu de ce fichier */
+	file: string;
+  /* Le chemin rendu de ce fichier */
+	url: string | undefined;
+  /* Composant Astro qui restitue le contenu de ce fichier */
+	Content: AstroComponentFactory;
+  /** (Markdown seulement) Contenu du fichier Markdown brut, à l'exclusion de la mise en page HTML et du frontmat YAML */
+	rawContent(): string;
+  /** (Markdown seulement) Fichier Markdown compilé en HTML, à l'exclusion de la mise en page HTML */
+	compiledContent(): string;
+  /* Fonction qui renvoie un tableau des éléments h1...h6 dans ce fichier */
+	getHeadings(): Promise<{ depth: number; slug: string; text: string }[]>;
+	default: AstroComponentFactory;
+}
+```
+
+Vous pouvez éventuellement fournir un type pour la variable `frontmatter` à l'aide d'un générique TypeScript.
+
+```astro
+---
+import type { MarkdownInstance } from 'astro';
+interface Frontmatter {
+    title: string;
+    description?: string;
+}
+
+const posts = Object.values(import.meta.glob<MarkdownInstance<Frontmatter>>('./posts/**/*.md', { eager: true }));
+---
+
+<ul>
+  {posts.map(post => <li>{post.frontmatter.title}</li>)}
+</ul>
+```
+
+#### Fichiers Astro
+
+Les fichiers Astro ont l'interface suivante :
+
+```ts
+export interface AstroInstance {
+  /* Le chemin d'accès de ce fichier */
+  file: string;
+  /* L'URL de ce fichier (s'il se trouve dans le répertoire des pages) */
+	url: string | undefined;
+	default: AstroComponentFactory;
+}
+```
+
+#### Autres fichiers
+
+D'autres fichiers peuvent avoir différentes interfaces, mais `import.meta.glob()` accepte un générique TypeScript si vous savez exactement ce que contient un type de fichier non reconnu.
+
+```ts
+---
+interface CustomDataFile {
+  default: Record<string, any>;
+}
+const data = import.meta.glob<CustomDataFile>('../data/**/*.js');
+---
+```
 
 ### Patterns globaux
 
@@ -234,19 +336,18 @@ Par exemple, le pattern global `./pages/**/*.{md,mdx}` commence dans le sous-ré
 
 #### Patterns globaux dans Astro
 
-Pour être utilisé avec `Astro.glob()`, le pattern global doit être une chaîne littérale et ne peut pas contenir de variables. Voir [le guide de dépannage](/fr/guides/troubleshooting/#astroglob---no-matches-found) pour une solution de contournement.
+Pour être utilisé avec `import.meta.glob()`, le modèle glob doit être une chaîne littérale et ne peut contenir aucune variable.
 
 En outre, les motifs globaux doivent commencer par l'un des éléments suivants :
 - `./` (pour commencer dans le répertoire actuel)
 - `../` (pour démarrer dans le répertoire parent)
 - `/` (pour démarrer à la racine du projet)
- 
 
 [En savoir plus sur la syntaxe des motifs globaux](https://github.com/mrmlnc/fast-glob#pattern-syntax).
 
-#### `Astro.glob()` vs `getCollection()`
+#### `import.meta.glob()` vs `getCollection()`
 
-[Les collections de contenu](/fr/guides/content-collections/) fournissent une [API `getCollection()`](/fr/reference/modules/astro-content/#getcollection) pour charger plusieurs fichiers au lieu de `Astro.glob()`. Si vos fichiers de contenu (par exemple Markdown, MDX, Markdoc) sont situés dans des collections dans le répertoire `src/content/`, utilisez `getCollection()` pour [interroger une collection](/fr/guides/content-collections/#interroger-les-collections) et retourner les entrées de la collection.
+[Les collections de contenu](/fr/guides/content-collections/) fournissent une [API `getCollection()`](/fr/reference/modules/astro-content/#getcollection) pour charger plusieurs fichiers au lieu de `import.meta.glob()`. Si vos fichiers de contenu (par exemple Markdown, MDX, Markdoc) sont situés dans des collections dans le répertoire `src/content/`, utilisez `getCollection()` pour [interroger une collection](/fr/guides/content-collections/#interroger-les-collections) et retourner les entrées de la collection.
 
 ## WASM
 
@@ -260,7 +361,7 @@ Astro permet de charger des fichiers WASM directement dans votre application en 
 
 ## Node Builtins
 
-Nous encourageons les utilisateurs d'Astro à éviter les "Built-in" Node.js (`fs`, `path`, etc.) dans la mesure du possible. Astro est compatible avec de nombreux moteurs d'exécution utilisant des [adaptateurs](/fr/guides/server-side-rendering/). Cela inclut [Deno](https://github.com/denoland/deno-astro-adapter) et [Cloudflare Workers](/fr/guides/integrations-guide/cloudflare/) qui ne supportent pas les modules intégrés de Node tels que `fs`.
+Nous encourageons les utilisateurs d'Astro à éviter les "Built-in" Node.js (`fs`, `path`, etc.) dans la mesure du possible. Astro est compatible avec de nombreux moteurs d'exécution utilisant des [adaptateurs](/fr/guides/on-demand-rendering/). Cela inclut [Deno](https://github.com/denoland/deno-astro-adapter) et [Cloudflare Workers](/fr/guides/integrations-guide/cloudflare/) qui ne supportent pas les modules intégrés de Node tels que `fs`.
 
 Notre objectif est de fournir des alternatives Astro aux composants Node.js les plus courants. Cependant, aucune alternative de ce type n'existe aujourd'hui. Donc, si vous avez _vraiment_ besoin d'utiliser ces modules Built-in, nous ne voulons pas vous en empêcher. Astro supporte les modules Built-in de Node.js en utilisant le préfixe `node:` de Node. Si vous voulez lire un fichier, par exemple, vous pouvez le faire comme ceci :
 

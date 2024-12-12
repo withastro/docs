@@ -87,8 +87,21 @@ This will generate `/en-v1/info` and `/fr-v2/info`.
 
 Parameters can be included in separate parts of the path. For example, the file `src/pages/[lang]/[version]/info.astro` with the same `getStaticPaths()` above will generate the routes `/en/v1/info` and `/fr/v2/info`.
 
-<ReadMore>Learn more about [`getStaticPaths()`](/en/reference/api-reference/#getstaticpaths).</ReadMore>
+#### Decoding `params`
 
+The `params` provided to the function `getStaticPaths()` function are not decoded. Use the function [`decodeURI`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURI) when you need to decode parameter values.
+
+```astro title="src/pages/[slug].astro"
+--- 
+export function getStaticPaths() {
+  return [
+    { params: { slug: decodeURI("%5Bpage%5D") } }, // decodes to "[page]"
+  ]
+}
+---
+```
+
+<ReadMore>Learn more about [`getStaticPaths()`](/en/reference/routing-reference/#getstaticpaths).</ReadMore>
 
 <RecipeLinks slugs={["en/recipes/i18n"]} />
 
@@ -131,7 +144,7 @@ In this example, a request for `/withastro/astro/tree/main/docs/public/favicon.s
 
 #### Example: Dynamic pages at multiple levels
 
-In the following example, a rest parameter (`[...slug]`) and the [`props`](/en/reference/api-reference/#data-passing-with-props) feature of `getStaticPaths()` generate pages for slugs of different depths.
+In the following example, a rest parameter (`[...slug]`) and the [`props`](/en/reference/routing-reference/#data-passing-with-props) feature of `getStaticPaths()` generate pages for slugs of different depths.
 
 ```astro title="src/pages/[...slug].astro"
 ---
@@ -175,7 +188,7 @@ const { title, text } = Astro.props;
 ```
 
 ### Server (SSR) Mode
-In [SSR mode](/en/guides/server-side-rendering/), dynamic routes are defined the same way: include `[param]` or `[...path]` brackets in your file names to match arbitrary strings or paths. But because the routes are no longer built ahead of time, the page will be served to any matching route. Since these are not "static" routes, `getStaticPaths` should not be used.
+In [SSR mode](/en/guides/on-demand-rendering/), dynamic routes are defined the same way: include `[param]` or `[...path]` brackets in your file names to match arbitrary strings or paths. But because the routes are no longer built ahead of time, the page will be served to any matching route. Since these are not "static" routes, `getStaticPaths` should not be used.
 
 ```astro title="src/pages/resources/[resource]/[id].astro"
 ---
@@ -300,7 +313,7 @@ if (!isLoggedIn(cookie)) {
 
 <p><Since v="4.13.0" /></p>
 
-A rewrite allows you to serve a different route without redirecting the browser to a different page. The browser will show the original address in the URL bar, but will instead display the content of the URL provided to [`Astro.rewrite()`](/en/reference/api-reference/#astrorewrite).
+A rewrite allows you to serve a different route without redirecting the browser to a different page. The browser will show the original address in the URL bar, but will instead display the content of the URL provided to [`Astro.rewrite()`](/en/reference/api-reference/#rewrite).
 
 :::tip
 For content that has permanently moved, or to direct your user to a different page with a new URL (e.g. a user dashboard after logging in), use a [redirect](#redirects) instead.
@@ -358,7 +371,7 @@ export const onRequest = async (context, next) => {
 
 Before displaying the content from the specified rewrite path, the function `Astro.rewrite()` will trigger a new, complete rendering phase. This re-executes any middleware for the new route/request.
 
-<ReadMore>See the [`Astro.rewrite()` API reference](/en/reference/api-reference/#astrorewrite) for more information.</ReadMore>
+<ReadMore>See the [`Astro.rewrite()` API reference](/en/reference/api-reference/#rewrite) for more information.</ReadMore>
 
 ## Route Priority Order
 
@@ -398,7 +411,7 @@ Given the example above, here are a few examples of how the rules will match a r
 Internal routes take priority over any user-defined or integration-defined routes as they are required for Astro features to work. The following are Astro's reserved routes:
 
 - `_astro/`: Serves all of the static assets to the client, including CSS documents, bundled client scripts, optimized images, and any Vite assets.
-- `_server_islands/`: Serves the dynamic components deferred into a [server island](/en/reference/configuration-reference/#experimentalserverislands).
+- `_server_islands/`: Serves the dynamic components deferred into a [server island](/en/guides/server-islands/).
 - `_actions/`: Serves any defined [actions](/en/guides/actions/).
 
 ## Pagination
@@ -497,7 +510,7 @@ const { page } = Astro.props;
 {page.url.last ? <a href={page.url.last}>Last</a> : null}
 ```
 
-<ReadMore>Learn more about [the pagination `page` prop](/en/reference/api-reference/#the-pagination-page-prop).</ReadMore>
+<ReadMore>Learn more about [the pagination `page` prop](/en/reference/routing-reference/#the-pagination-page-prop).</ReadMore>
 
 ### Nested Pagination
 
@@ -519,7 +532,7 @@ In the following example, we will implement nested pagination to build the URLs 
 // src/pages/[tag]/[page].astro
 export async function getStaticPaths({ paginate }) {
   const allTags = ['red', 'blue', 'green'];
-  const allPosts = await Astro.glob('../../posts/*.md');
+  const allPosts = Object.values(import.meta.glob('../pages/post/*.md', { eager: true }));
   // For every tag, return a paginate() result.
   // Make sure that you pass `{params: {tag}}` to `paginate()`
   // so that Astro knows which tag grouping the result is for.

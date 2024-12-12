@@ -1,5 +1,7 @@
 ---
 title: Actions API Reference
+sidebar:
+  label: 'astro:actions'
 i18nReady: true
 tableOfContents:
   minHeadingLevel: 2
@@ -59,7 +61,7 @@ export const server = {
 
 `defineAction()` requires a `handler()` function containing the server logic to run when the action is called. Data returned from the handler is automatically serialized and sent to the caller.
 
-The `handler()` is called with user input as its first argument. If an [`input`](#input-validator) validator is set, the user input will be validated before being passed to the handler. The second argument is a `context` object containing most of Astro’s [standard endpoint context](/en/reference/api-reference/#endpoint-context), excluding  `getActionResult()`, `callAction()`, and `redirect()`.
+The `handler()` is called with user input as its first argument. If an [`input`](#input-validator) validator is set, the user input will be validated before being passed to the handler. The second argument is a `context` object containing most of Astro’s [standard endpoint context](/en/reference/api-reference/), excluding  `getActionResult()`, `callAction()`, and `redirect()`.
 
 Return values are parsed using the [devalue library](https://github.com/Rich-Harris/devalue). This supports JSON values and instances of `Date()`, `Map()`, `Set()`, and `URL()`.
 
@@ -70,7 +72,7 @@ Return values are parsed using the [devalue library](https://github.com/Rich-Har
 **Type:** `ZodType | undefined`
 </p>
 
-The optional `input` property accepts a Zod validator to validate handler inputs at runtime. If the action fails to validate, [a `BAD_REQUEST` error](#actionerror) is returned and the `handler` is not called.
+The optional `input` property accepts a Zod validator (e.g. Zod object, Zod discriminated union) to validate handler inputs at runtime. If the action fails to validate, [a `BAD_REQUEST` error](#actionerror) is returned and the `handler` is not called.
 
 If `input` is omitted, the `handler` will receive an input of type `unknown` for JSON requests and type `FormData` for form requests.
 
@@ -186,3 +188,116 @@ The `code` property accepts human-readable versions of all HTTP status codes. Th
 </p>
 
 The `message` property accepts a string. (e.g. "User must be logged in.")
+
+### `getActionContext()`
+
+<p>
+
+**Type:** `(context: APIContext) => ActionMiddlewareContext`
+<Since v="5.0.0" />
+</p>
+
+`getActionContext()` is a function called from your middleware handler to retrieve information about inbound action requests. 
+
+This function returns an `action` object with information about the request, and the `setActionResult()` and `serializeActionResult()` functions to programmatically set the value returned by `Astro.getActionResult()`.
+
+`getActionContext()` lets you programmatically get and set action results using middleware, allowing you to persist action results from HTML forms, gate action requests with added security checks, and more.
+
+```ts title="src/middleware.ts" {5}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action?.calledFrom === 'form') {
+    const result = await action.handler();
+    setActionResult(action.name, serializeActionResult(result));
+  }
+  return next();
+});
+```
+
+#### `action`
+
+<p>
+
+**Type:** `{ calledFrom: 'rpc' | 'form', name: string, handler: () => Promise<SafeResult<any, any>> } | undefined`
+</p>
+
+`action` is an object containing information about an inbound action request.
+
+ It is available from `getActionContext()`, and provides the action name, handler, and whether the action was called from an client-side RPC function (e.g. `actions.newsletter()`) or an HTML form action.
+
+```ts title="src/middleware.ts" {6}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action?.calledFrom === 'rpc' && action.name.startsWith('private')) {
+    // Check for a valid session token
+  }
+  // ...
+});
+```
+
+#### `setActionResult()`
+
+<p>
+
+**Type:** `(actionName: string, actionResult: SerializedActionResult) => void`
+</p>
+
+`setActionResult()` is a function to programmatically set the value returned by `Astro.getActionResult()` in middleware. It is passed the action name and an action result serialized by [`serializeActionResult()`](#serializeactionresult).
+
+This is useful when calling actions from an HTML form to persist and load results from a session.
+
+```ts title="src/middleware.ts" {8}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action?.calledFrom === 'form') {
+    const result = await action.handler();
+    // ... handle the action result
+    setActionResult(action.name, serializeActionResult(result));
+  }
+  return next();
+});
+```
+
+<ReadMore>See the [advanced sessions guide](/en/guides/actions/#advanced-persist-action-results-with-a-session) for a sample implementation using Netlify Blob.</ReadMore>
+
+#### `serializeActionResult()`
+
+<p>
+
+**Type:** `(result: SafeResult<any, any>) => SerializedActionResult`
+</p>
+
+`serializeActionResult()` will serialize an action result to JSON for persistence. This is required to properly handle non-JSON return values like `Map` or `Date` as well as the `ActionError` object.
+
+Call this function when serializing an action result to be passed to `setActionResult()`:
+
+```ts title="src/middleware.ts" {8}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action) {
+    const result = await action.handler();
+    setActionResult(action.name, serializeActionResult(result));
+  }
+  // ...
+});
+```
+
+#### `deserializeActionResult()`
+
+<p>
+
+**Type:** `(result: SerializedActionResult) => SafeResult<any, any>`
+</p>
+
+`deserializeActionResult()` will reverse the effect of `serializeActionResult()` and return an action result to its original state. This is useful to access the `data` and `error` objects on a serialized action result.
