@@ -1,6 +1,8 @@
 ---
 title: Markdown
-description: Apprenez à créer du contenu en utilisant Markdown avec Astro.
+sidebar:
+  label: Markdown
+description: Découvrez la prise en charge intégrée d'Astro pour Markdown.
 i18nReady: true
 ---
 import Since from '~/components/Since.astro';
@@ -19,13 +21,13 @@ Pour des fonctionnalités supplémentaires, telles que l'inclusion de composants
 
 ## Organiser les fichiers Markdown
 
-Vos fichiers Markdown locaux peuvent être conservés n'importe où dans votre répertoire `src/`. Ils peuvent être importés dans les composants `.astro` en utilisant une instruction `import` pour un seul fichier et `import.meta.glob()` de Vite pour interroger plusieurs fichiers à la fois.
+Vos fichiers Markdown locaux peuvent être conservés n'importe où dans votre répertoire `src/`. Ils peuvent être importés dans les composants `.astro` en utilisant une instruction `import` pour un seul fichier et [`import.meta.glob()` de Vite](/fr/guides/imports/#importmetaglob) pour interroger plusieurs fichiers à la fois.
 
 Si vous avez des groupes de fichiers Markdown apparentés, envisagez de les [définir comme des collections](/fr/guides/content-collections/). Cela présente plusieurs avantages, notamment la possibilité de stocker les fichiers Markdown n'importe où sur votre système de fichiers ou à distance.
 
 Les collections vous permettent également d'utiliser une API optimisée et spécifique au contenu pour interroger et afficher votre contenu. Les collections sont destinées aux ensembles de données qui partagent la même structure, tels que les articles de blog ou les pages de produits. Lorsque vous définissez cette forme dans un schéma, vous bénéficiez en outre de la validation, de la sécurité des types et de l'Intellisense dans votre éditeur.
 
-{/* <ReadMore>En savoir plus sur [quand utiliser les collections de contenu](/fr/guides/content-collections/#quand-créer-une-collection) au lieu des importations de fichiers.</ReadMore> */}
+<ReadMore>En savoir plus sur [quand utiliser les collections de contenu](/fr/guides/content-collections/#quand-créer-une-collection) au lieu des importations de fichiers.</ReadMore>
 
 ## Expressions dynamiques de type JSX
 
@@ -43,7 +45,7 @@ Voici mon _incroyable_ billet !
 ```astro title="src/pages/my-posts.astro"
 ---
 import * as greatPost from '../posts/great-post.md';
-const posts = Object.values(await import.meta.glob('../posts/*.md', { eager: true }));
+const posts = Object.values(import.meta.glob('../posts/*.md', { eager: true }));
 ---
 
 <p>{greatPost.frontmatter.title}</p>
@@ -72,7 +74,7 @@ Les propriétés exportées suivantes sont disponibles dans votre composant `.as
 - **`frontmatter`** - Contient toutes les données spécifiées dans le frontmatter YAML du fichier.
 - **`<Content />`** - Un composant qui renvoie le contenu complet et affiché du fichier.
 - **`RawContent()`** - Une fonction qui renvoie le document Markdown brut sous forme de chaîne de caractères.
-- **`compiledContent()`** - Une fonction qui retourne le document Markdown compilé en une chaîne HTML.
+- **`compiledContent()`** - Une fonction asynchrone qui retourne le document Markdown compilé en une chaîne HTML.
 - **`getHeadings()`** - Une fonction asynchrone qui retourne un tableau de tous les titres (`<h1>` à `<h6>`) dans le fichier avec le type : `{ depth: number ; slug: string ; text: string }[]`. Le `slug` de chaque titre correspond à l'identifiant généré pour un titre donné et peut être utilisé pour les liens d'ancrage.
 
 Un exemple de billet de blog en Markdown peut passer l'objet `Astro.props` suivant :
@@ -103,7 +105,7 @@ Astro.props = {
 
 Le composant `<Content />` est disponible en important `Content` à partir d'un fichier Markdown. Ce composant renvoie le contenu complet du fichier, affiché en HTML. Vous pouvez optionnellement renommer `Content` en n'importe quel nom de composant que vous préférez.
 
-Vous pouvez également [rendre le contenu HTML d'une entrée de collection Markdown](/fr/guides/content-collections/#rendre-le-contenu-en-html) en affichant un composant `<Content />`.
+Vous pouvez également [rendre le contenu HTML d'une entrée de collection Markdown](/fr/guides/content-collections/#restitution-du-contenu) en affichant un composant `<Content />`.
 
 ```astro title="src/pages/content.astro" "Content"
 ---
@@ -114,7 +116,7 @@ import {Content as PromoBanner} from '../components/promoBanner.md';
 import { getEntry, render } from 'astro:content';
 
 const product = await getEntry('products', 'shirt');
-const { Content } = await render();
+const { Content } = await render(product);
 ---
 <h2>Promotion du jour</h2>
 <PromoBanner />
@@ -326,7 +328,7 @@ Les [collections de contenu](/fr/guides/content-collections/) et l'[importation 
 
 Astro traite [tout fichier supporté dans le répertoire `/src/pages/`](/fr/basics/astro-pages/#fichiers-de-page-pris-en-charge) comme une page, y compris `.md` et d'autres types de fichiers Markdown.
 
-Placer un fichier dans ce répertoire, ou n'importe quel sous-répertoire, construira automatiquement une route de page en utilisant le nom de chemin du fichier et affichera le contenu Markdown affiché en HTML.
+Placer un fichier dans ce répertoire, ou n'importe quel sous-répertoire, construira automatiquement une route de page en utilisant le nom de chemin du fichier et affichera le contenu Markdown affiché en HTML. Astro ajoutera automatiquement une balise `<meta charset="utf-8">` ​​à votre page pour permettre une création plus facile de contenu non ASCII.
 
 ```markdown title="src/pages/page-1.md"
 ---
@@ -347,7 +349,9 @@ Il n'est probablement pas très stylé, mais Markdown prend en charge :
 
 ### Propriété `layout` du frontmatter
 
-Pour aider avec la fonctionnalité limitée des pages Markdown, Astro fournit une propriété frontmatter `layout` spéciale qui est un chemin relatif vers un [composant de mise en page Markdown](/fr/basics/layouts/#mises-en-page-markdown). Si votre fichier Markdown est situé dans `src/pages/`, créez un composant de mise en page et ajoutez-le dans cette propriété de mise en page pour fournir une enveloppe de page autour de votre contenu Markdown.
+Pour aider avec les fonctionnalités limitées des pages Markdown individuelles, Astro fournit une propriété de frontmatter spéciale nommée `layout` qui est un chemin relatif vers un [composant Astro de mise en page Markdown](/fr/basics/layouts/#mises-en-page-markdown). `layout` n'est pas une propriété spéciale lors de l'utilisation de [collections de contenu](/fr/guides/content-collections/) pour interroger et restituer votre contenu Markdown, et il n'est pas garanti qu'elle soit prise en charge en dehors de son cas d'utilisation prévu.
+
+Si votre fichier Markdown est situé dans `src/pages/`, créez un composant de mise en page et ajoutez-le dans cette propriété de mise en page pour fournir une enveloppe de page autour de votre contenu Markdown.
 
 ```markdown title="src/pages/posts/post-1.md" {2}
 ---
@@ -366,24 +370,28 @@ Ce composant de mise en page est un composant Astro normal avec [des propriété
 const {frontmatter} = Astro.props;
 ---
 <html>
+  <head>
+    <!-- ... -->
+    <meta charset="utf-8"> // n'est plus ajouté par défaut
+  </head>
   <!-- ... -->
   <h1>{frontmatter.title}</h1>
-  <h2>Post author: {frontmatter.author}</h2>
+  <h2>Auteur de l'article : {frontmatter.author}</h2>
   <p>{frontmatter.description}</p>
   <slot /> <!-- Le contenu Markdown est injecté ici -->
   <!-- ... -->
 </html>
 ```
 
-Vous pouvez également [styliser votre Markdown](/fr/guides/styling/#style-markdown) dans votre composant de mise en page.
+Lorsque vous utilisez la propriété frontmatter `layout`, vous devez inclure la balise `<meta charset="utf-8">` dans votre mise en page car Astro ne l'ajoutera plus automatiquement. Vous pouvez désormais également [styliser votre Markdown](/fr/guides/styling/#style-markdown) dans votre composant de mise en page.
 
 <ReadMore>En savoir plus sur les [Mises en page Markdown](/fr/basics/layouts/#mises-en-page-markdown).</ReadMore>
 
 ## Récupérer du Markdown à distance
 
-**Astro n'inclut pas de support intégré pour le Markdown à distance en dehors des [collections de contenu expérimentales](/fr/reference/configuration-reference/#experimentalcontentlayer) !**
+Astro n'inclut pas de support intégré pour Markdown à distance en dehors des [collections de contenu](/fr/guides/content-collections/).
 
-Pour récupérer directement du Markdown distant et le rendre au format HTML, vous devrez installer et configurer votre propre interpréteur de Markdown à partir de NPM. Celui-ci **n'héritera pas** des paramètres Markdown intégrés d'Astro que vous avez configurés.
+Pour récupérer directement du Markdown distant et le rendre au format HTML, vous devrez installer et configurer votre propre interpréteur de Markdown à partir de NPM. Celui-ci n'héritera pas des paramètres Markdown intégrés d'Astro que vous avez configurés.
 
 Assurez-vous de bien comprendre ces limitations avant d'implémenter ceci dans votre projet, et envisagez de récupérer votre Markdown distant en utilisant un chargeur de collections de contenu à la place.
 
