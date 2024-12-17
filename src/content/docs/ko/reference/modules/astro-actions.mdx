@@ -1,5 +1,7 @@
 ---
 title: 액션 API 참조
+sidebar:
+  label: 'astro:actions'
 i18nReady: true
 tableOfContents:
   minHeadingLevel: 2
@@ -54,12 +56,12 @@ export const server = {
 
 <p>
 
-**Type:** `(input, context) => any`
+**타입:** `(input, context) => any`
 </p>
 
 `defineAction()`에는 액션이 호출될 때 실행할 서버 로직이 포함된 `handler()` 함수가 필요합니다. 핸들러에서 반환된 데이터는 자동으로 직렬화되어 호출자에게 전송됩니다.
 
-`handler()`는 사용자 입력을 첫 번째 인수로 받아 호출됩니다. [`input`](#input-유효성-검사기) 유효성 검사기가 설정되어 있으면 사용자 입력은 핸들러로 전달되기 전에 유효성이 검사됩니다. 두 번째 인수는 `getActionResult()`, `callAction()` 및 `redirect()`를 제외한 대부분의 Astro [표준 엔드포인트 컨텍스트](/ko/reference/api-reference/#엔드포인트-context)를 포함하는 `context` 객체입니다.
+`handler()`는 사용자 입력을 첫 번째 인수로 받아 호출됩니다. [`input`](#input-유효성-검사기) 유효성 검사기가 설정되어 있으면 사용자 입력은 핸들러로 전달되기 전에 유효성이 검사됩니다. 두 번째 인수는 `getActionResult()`, `callAction()` 및 `redirect()`를 제외한 대부분의 Astro [표준 엔드포인트 컨텍스트](/ko/reference/api-reference/)를 포함하는 `context` 객체입니다.
 
 반환 값은 [devalue 라이브러리](https://github.com/Rich-Harris/devalue)를 사용하여 구문 분석됩니다. 이 라이브러리는 `Date()`, `Map()`, `Set()`, `URL()`의 인스턴스와 JSON 값을 지원합니다.
 
@@ -67,10 +69,10 @@ export const server = {
 
 <p>
 
-**Type:** `ZodType | undefined`
+**타입:** `ZodType | undefined`
 </p>
 
-선택적 `input` 속성은 런타임에 핸들러 입력의 유효성을 검사하기 위해 Zod 유효성 검사기를 전달받습니다. 액션이 유효성 검사에 실패하면 [`BAD_REQUEST` 오류](#actionerror)가 반환되고 `handler`가 호출되지 않습니다.
+선택적 `input` 속성은 런타임에 핸들러 입력의 유효성을 검사하기 위해 Zod 유효성 검사기 (예: Zod 객체, Zod 구별된 유니온)를 전달받습니다. 액션이 유효성 검사에 실패하면 [`BAD_REQUEST` 오류](#actionerror)가 반환되고 `handler`가 호출되지 않습니다.
 
 `input`을 생략하면 `handler`는 JSON 요청의 경우 `unknown` 타입의 입력을, 양식 요청의 경우 `FormData` 타입의 입력을 받습니다.
 
@@ -125,7 +127,7 @@ export const server = {
 
 <p>
 
-**Type:** <code>(error?: unknown | <a href="#actionerror">ActionError</a>) => boolean</code><br/>
+**타입:** <code>(error?: unknown | <a href="#actionerror">ActionError</a>) => boolean</code><br/>
 <Since v="4.15.0" />
 </p>
 
@@ -186,3 +188,116 @@ export const server = {
 </p>
 
 `message` 속성은 문자열을 받습니다. (예: "사용자는 로그인해야 합니다.")
+
+### `getActionContext()`
+
+<p>
+
+**타입:** `(context: APIContext) => ActionMiddlewareContext`
+<Since v="5.0.0" />
+</p>
+
+`getActionContext()`는 인바운드 액션 요청에 대한 정보를 검색하기 위해 미들웨어 핸들러에서 호출되는 함수입니다.
+
+이 함수는 요청에 대한 정보가 포함된 `action` 객체와 `Astro.getActionResult()`에서 반환되는 값을 프로그래밍 방식으로 설정하는 `setActionResult()` 및 `serializeActionResult()` 함수를 반환합니다.
+
+`getActionContext()`를 사용하면 미들웨어를 통해 액션 결과를 프로그래밍 방식으로 가져와 설정할 수 있어, HTML 양식의 액션 결과를 유지하고 보안 검사를 추가하여 액션 요청을 제한하는 등의 작업이 가능합니다.
+
+```ts title="src/middleware.ts" {5}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action?.calledFrom === 'form') {
+    const result = await action.handler();
+    setActionResult(action.name, serializeActionResult(result));
+  }
+  return next();
+});
+```
+
+#### `action`
+
+<p>
+
+**타입:** `{ calledFrom: 'rpc' | 'form', name: string, handler: () => Promise<SafeResult<any, any>> } | undefined`
+</p>
+ 
+ `action`은 인바운드 액션 요청에 대한 정보를 포함하는 객체입니다.
+ 
+ 이것은 `getActionContext()`를 통해 사용할 수 있으며, 액션 이름, 핸들러, 그리고 해당 액션이 클라이언트 측 RPC 함수(예: `actions.newsletter()`)에서 호출되었는지 또는 HTML 양식 액션에서 호출되었는지에 대한 정보를 제공합니다.
+
+```ts title="src/middleware.ts" {6}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action?.calledFrom === 'rpc' && action.name.startsWith('private')) {
+    // 유효한 세션 토큰 검사
+  }
+  // ...
+});
+```
+
+#### `setActionResult()`
+
+<p>
+
+**타입:** `(actionName: string, actionResult: SerializedActionResult) => void`
+</p>
+
+`setActionResult()`는 미들웨어에서 `Astro.getActionResult()`가 반환하는 값을 프로그래밍 방식으로 설정하는 함수입니다. 이 함수에는 액션 이름과 [`serializeActionResult()`](#serializeactionresult)로 직렬화된 액션 결과가 전달됩니다.
+
+이는 HTML 양식에서 액션을 호출하여 세션에서 결과를 유지하고 로드할 때 유용합니다.
+
+```ts title="src/middleware.ts" {8}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action?.calledFrom === 'form') {
+    const result = await action.handler();
+    // ... 액션 결과 처리
+    setActionResult(action.name, serializeActionResult(result));
+  }
+  return next();
+});
+```
+
+<ReadMore>구현 예시를 보려면 Netlify Blob을 사용한 [고급 세션 가이드](/ko/guides/actions/#고급-세션으로-액션-결과-유지하기)를 참조하세요.</ReadMore>
+
+#### `serializeActionResult()`
+
+<p>
+
+**타입:** `(result: SafeResult<any, any>) => SerializedActionResult`
+</p>
+
+`serializeActionResult()`는 지속성을 위해 액션 결과를 JSON으로 직렬화합니다. 이는 `Map`이나 `Date`와 같은 JSON이 아닌 반환 값과 `ActionError` 객체를 올바르게 처리하기 위해 필요합니다.
+
+`setActionResult()`에 전달할 액션 결과를 직렬화할 때 이 함수를 호출하세요:
+
+```ts title="src/middleware.ts" {8}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action) {
+    const result = await action.handler();
+    setActionResult(action.name, serializeActionResult(result));
+  }
+  // ...
+});
+```
+
+#### `deserializeActionResult()`
+
+<p>
+
+**타입:** `(result: SerializedActionResult) => SafeResult<any, any>`
+</p>
+
+`deserializeActionResult()`는 `serializeActionResult()`의 효과를 반대로 하여 액션 결과를 원래 상태로 되돌립니다. 이는 직렬화된 액션 결과에서 `data`와 `error` 객체에 접근할 때 유용합니다.

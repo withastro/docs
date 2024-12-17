@@ -1,10 +1,15 @@
 ---
 title: Veröffentliche deine Astro-Website mit GitLab Pages
 description: Anleitung zur Veröffentlichung deiner Astro-Website mittels GitLab Pages.
+sidebar:
+  label: GitLab Pages
 type: deploy
+i18nReady: true
 ---
 
-[GitLab Pages](https://pages.gitlab.io/) ermöglichen es dir eine Astro-Website für deine [GitLab](https://about.gitlab.com/) Projekte, Gruppen oder Benutzerkonten bereitzustellen.
+import { Steps } from '@astrojs/starlight/components';
+
+[GitLab Pages](https://docs.gitlab.com/ee/user/project/pages/) ermöglichen es dir eine Astro-Website für deine [GitLab](https://about.gitlab.com/) Projekte, Gruppen oder Benutzerkonten bereitzustellen.
 
 :::tip[Auf der Suche nach einem Beispiel?]
 Schau dir [das offizielle Astro-Beispiel für GitLab Pages an](https://gitlab.com/pages/astro)!
@@ -12,30 +17,108 @@ Schau dir [das offizielle Astro-Beispiel für GitLab Pages an](https://gitlab.co
 
 ## So funktioniert die Veröffentlichung
 
-1. Setze den Parameter `.site` in `astro.config.mjs` auf den benötigten Wert.
-2. Setze den Parameter `dist` in `astro.config.mjs` auf den Wert `public` und den Parameter `public` in `astro.config.mjs` auf einen neu benannten Ordner, der alles enthält, was sich derzeit in `public` befindet. Der Grund dafür ist, dass `public` ein zweiter Quellordner in Astro ist. Damit du Dateien von `public` veröffentlichen kannst, musst du die entsprechenden Dateien aus einem anderen Ordner holen. Ihre "astro.config.mjs" könnte damit so aussehen:
+Du kannst eine Astro-Site auf GitLab Pages bereitstellen, indem du GitLab CI/CD nutzt, um deine Site automatisch zu erstellen und bereitzustellen. Dazu muss dein Quellcode auf GitLab gehostet werden und du musst die folgenden Änderungen an deinem Astro-Projekt vornehmen:
 
-   ```js
+<Steps>
+
+1. Richte die Optionen [`site`](/de/reference/configuration-reference/#site) und [`base`](/de/reference/configuration-reference/#base) in `astro.config.mjs` ein.
+
+    ```js title="astro.config.mjs" ins={4-5}
+    import { defineConfig } from 'astro/config';
+
+    export default defineConfig({
+      site: 'https://<benutzername>.gitlab.io',
+      base: '/<mein-repo>',
+      outDir: 'public',
+      publicDir: 'static',
+    });
+    ```
+
+    `site`
+
+    Der Wert für `site` muss einer der folgenden sein:
+
+    - Die folgende URL basiert auf deinem Benutzernamen: `https://<benutzername>.gitlab.io`
+    - Die folgende URL basiert auf deinem Gruppennamen: `https://<gruppenname>.gitlab.io`
+    - Deine benutzerdefinierte Domain, wenn du sie in den Einstellungen deines GitLab-Projekts konfiguriert hast: `https://example.com`
+
+    Bei selbstverwalteten GitLab-Instanzen ersetze „gitlab.io“ durch die Pages-Domäne deiner Instanz.
+
+    `base`
+
+    Ein Wert für `base` kann erforderlich sein, damit Astro deinen Repository-Namen (z.B. `/mein-repo`) als Stammverzeichnis deiner Website behandelt.
+
+    :::note
+      Setze keinen `base`-Parameter, wenn deine Seite aus dem Stammverzeichnis veröffentlicht wird.
+    :::
+
+    Der Wert für `base` sollte der Name deines Repositorys sein, der mit einem Schrägstrich beginnt, zum Beispiel `/mein-blog`. Damit Astro weiß, dass das Stammverzeichnis deiner Website `/mein-repo` ist und nicht der Standardwert `/`.
+
+    :::caution
+      Wenn dieser Wert konfiguriert ist, muss allen deinen internen Seitenlinks dein `base`-Wert vorangestellt werden:
+
+      ```astro ins="/mein-repo"
+      <a href="/mein-repo/about">Über uns</a>
+      ```
+
+    Siehe mehr über [einen `base`-Wert konfigurieren](/de/reference/configuration-reference/#base).
+    :::
+
+2. Benenne das Verzeichnis `public/` in `static/` um.
+
+3. Setze `outDir: 'public'` in `astro.config.mjs`. Diese Einstellung weist Astro an, die statische Build-Ausgabe in einem Ordner namens `public` abzulegen, der von GitLab Pages für exponierte Dateien benötigt wird.
+
+   Wenn du das Verzeichnis [`public/`](/de/basics/project-structure/#public) als Quelle für statische Dateien in deinem Astro-Projekt verwendet hast, benenne es um und verwende diesen neuen Ordnernamen in `astro.config.mjs` für den Wert von `publicDir`.
+
+   Hier sind zum Beispiel die richtigen Einstellungen für `astro.config.mjs`, wenn das Verzeichnis `public/` in `static/` umbenannt wird:
+
+   ```js title="astro.config.mjs" ins={4-5}
+   import { defineConfig } from 'astro/config';
+   
    export default defineConfig({
-     sitemap: true,
-     site: 'https://astro.build/',
+     outDir: 'public',
+     publicDir: 'static',
    });
    ```
 
-3. Erstelle eine Datei namens `.gitlab-ci.yml` im Stammverzeichnis deines Projekts mit folgendem Inhalt. Sobald du Änderungen an den Inhalten deiner Seite durchführst wird deine Website damit neu gebaut und veröffentlicht:
+4. Ändere die Build-Ausgabe in `.gitignore`. In unserem Beispiel müssen wir `dist/` in `public/` ändern:
 
-   ```yaml
-   image: node:14
+    ```diff  title=".gitignore"
+    # build output
+    -dist/
+    +public/
+    ```
+
+5. Erstelle im Stammverzeichnis deines Projekts eine Datei namens `.gitlab-ci.yml` mit dem folgenden Inhalt. Damit wird deine Website erstellt und bereitgestellt, sobald du Änderungen an deinen Inhalten vornimmst:
+
+   ```yaml title=".gitlab-ci.yml"
    pages:
-     cache:
-       paths:
-         - node_modules/
+     # Das Docker-Image, das für die Erstellung deiner App verwendet wird
+     image: node:lts
+
+     before_script:
+       - npm ci
+
      script:
-       - npm install
+       # Gib hier die Schritte an, die zur Erstellung deiner App nötig sind
        - npm run build
+
      artifacts:
        paths:
+         # Der Ordner, der die zu veröffentlichenden Dateien enthält.
+         # Dies muss „public“ genannt werden.
          - public
+
      only:
+       # Löse einen neuen Build aus und setze ihn nur dann ein,
+       # wenn es einen Push auf den/die Branch(es) unten gibt
        - main
    ```
+
+6. Commite deine Änderungen und pushe sie zu GitLab.
+
+7. Gehe auf GitLab in das Menü **Deploy** deines Repositorys und wähle **Pages**. Hier siehst du die vollständige URL deiner GitLab Pages Website. Um sicherzustellen, dass du das URL-Format `https://benutzername.gitlab.io/mein-repo` verwendest, deaktiviere die Einstellung **Einzigartige Domain verwenden** auf dieser Seite.
+
+</Steps>
+
+Deine Website sollte jetzt veröffentlicht sein! Wenn du Änderungen am Repository deines Astro-Projekts vornimmst, werden sie von der GitLab CI/CD-Pipeline automatisch für dich veröffentlicht.
