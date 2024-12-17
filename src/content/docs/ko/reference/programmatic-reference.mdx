@@ -1,0 +1,249 @@
+---
+title: 프로그래밍 방식의 Astro API (실험적)
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+
+Astro를 실행할 때 더 많은 제어가 필요한 경우, `"astro"` 패키지는 CLI 명령어를 프로그래밍 방식으로 실행할 수 있는 API를 제공합니다.
+
+이러한 API는 실험적이며 API 시그니처가 변경될 수 있습니다. 모든 업데이트는 [Astro 변경 로그](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)에 언급될 것이며, 아래의 정보는 항상 현재의 최신 정보를 보여줄 것입니다.
+
+## `AstroInlineConfig`
+
+`AstroInlineConfig` 타입은 아래의 모든 명령어 API에서 사용되며, 사용자 [Astro 구성](/ko/reference/configuration-reference/) 타입을 확장합니다:
+
+```ts
+interface AstroInlineConfig extends AstroUserConfig {
+	configFile?: string | false;
+	mode?: string;
+	logLevel?: "debug" | "info" | "warn" | "error" | "silent";
+}
+```
+
+### `configFile`
+
+<p>
+
+**타입:** `string | false`<br />
+**기본값:** `undefined`
+</p>
+
+Astro 구성 파일의 사용자 지정 경로입니다.
+
+이 값이 undefined(기본값) 또는 설정되지 않은 경우, Astro는 `root`를 기준으로 `astro.config.(js,mjs,ts,mts)` 파일을 검색하여 발견되면 해당 구성 파일을 로드합니다.
+
+상대 경로가 설정된 경우, `root` 옵션을 기준으로 경로를 찾습니다.
+
+구성 파일 로드를 비활성화하려면 `false`로 설정하세요.
+
+이 객체에 전달된 인라인 구성은 로드된 사용자 구성과 병합할 때 가장 높은 우선순위를 갖습니다.
+
+### `mode`
+
+<p>
+
+**타입:** `string`<br />
+**기본값:**  `astro dev`를 실행할 때는 `"development"`,  `astro build`를 실행할 때는 `"production"`<br />
+<Since v="5.0.0" />
+</p>
+
+사이트를 개발하거나 빌드할 때 사용되는 모드입니다(예: `"production"`, `"testing"`).
+
+이 값은 `astro build` 또는 `astro dev` 명령어가 실행될 때 [--mode 플래그](/ko/reference/cli-reference/#--mode-string)를 통해 Vite에 전달되어 `import.meta.env.MODE` 값을 결정합니다. 또한 어떤 `.env` 파일이 로드될지와 그에 따른 `astro:env` 값을 결정합니다. 자세한 내용은 [환경 변수 페이지](/ko/guides/environment-variables/)를 참조하세요.
+
+개발용 빌드를 출력하려면 [`--devOutput` 플래그](/ko/reference/cli-reference/#--devoutput)와 함께 `astro build`를 실행할 수 있습니다.
+
+### `logLevel`
+
+<p>
+
+**타입:** `"debug" | "info" | "warn" | "error" | "silent"`<br />
+**기본값:** `"info"`
+</p>
+
+Astro가 기록하는 메시지를 필터링하는 로깅 레벨입니다.
+
+- `"debug"`: 상세한 디버깅 진단을 포함한 모든 것을 기록합니다.
+- `"info"`: 정보성 메시지, 경고 및 오류를 기록합니다.
+- `"warn"`: 경고와 오류를 기록합니다.
+- `"error"`: 오류만 기록합니다.
+- `"silent"`: 로깅하지 않습니다.
+
+## `dev()`
+
+<p>
+
+**타입:** `(inlineConfig: AstroInlineConfig) => Promise<DevServer>`
+</p>
+
+[`astro dev`](/ko/reference/cli-reference/#astro-dev)와 유사하게, Astro의 개발 서버를 실행합니다.
+
+```js
+import { dev } from "astro";
+
+const devServer = await dev({
+  root: "./my-project",
+});
+
+// 필요한 경우 서버를 중지합니다.
+await devServer.stop();
+```
+
+### `DevServer`
+
+```ts
+export interface DevServer {
+	address: AddressInfo;
+	handle: (req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>) => void;
+	watcher: vite.FSWatcher;
+	stop(): Promise<void>;
+}
+```
+
+#### `address`
+
+<p>
+
+**타입:** `AddressInfo`
+</p>
+
+개발 서버가 수신 대기 중인 주소입니다.
+
+이 속성은 Node의 [`net.Server#address()` 메서드](https://nodejs.org/api/net.html#serveraddress)가 반환하는 값을 포함합니다.
+
+#### `handle()`
+
+<p>
+
+**타입:** `(req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>) => void`
+</p>
+
+원시 Node HTTP 요청을 위한 핸들러입니다. 네트워크를 통해 요청을 전송하는 대신 [`http.IncomingMessage`](https://nodejs.org/api/http.html#class-httpincomingmessage)와 [`http.ServerResponse`](https://nodejs.org/api/http.html#class-httpserverresponse)를 사용하여 `handle()`을 호출할 수 있습니다.
+
+#### `watcher`
+
+<p>
+
+**타입:** `vite.FSWatcher`
+</p>
+
+[Vite의 개발 서버](https://ko.vite.dev/guide/api-javascript#vitedevserver)가 노출하는 [Chokidar 파일 감시자](https://github.com/paulmillr/chokidar#getting-started)입니다.
+
+#### `stop()`
+
+<p>
+
+**타입:** `Promise<void>`
+</p>
+
+개발 서버를 중지합니다. 이는 모든 유휴 연결을 종료하고 새로운 연결에 대한 수신을 중단합니다.
+
+모든 대기 중인 요청이 처리되고 모든 유휴 연결이 종료되면 해결되는 `Promise`를 반환합니다.
+
+## `build()`
+
+<p>
+
+**타입:** `(inlineConfig: AstroInlineConfig) => Promise<void>`
+</p>
+
+[`astro build`](/ko/reference/cli-reference/#astro-build)와 유사하게, 배포를 위해 사이트를 빌드합니다.
+
+```js
+import { build } from "astro";
+
+await build({
+  root: "./my-project",
+});
+```
+
+## `preview()`
+
+<p>
+
+**타입:** `(inlineConfig: AstroInlineConfig) => Promise<PreviewServer>`
+</p>
+
+[`astro preview`](/ko/reference/cli-reference/#astro-preview)와 유사하게, 빌드 결과물을 제공하기 위한 로컬 서버를 시작합니다.
+
+구성에 어댑터가 설정되어 있지 않은 경우, 미리보기 서버는 빌드된 정적 파일만 제공합니다.
+구성에 어댑터가 설정되어 있는 경우, 미리보기 서버는 어댑터에 의해 제공됩니다. 어댑터는 미리보기 서버를 제공할 필요가 없으므로, 선택한 어댑터에 따라 이 기능을 사용하지 못할 수 있습니다.
+
+```js
+import { preview } from "astro";
+
+const previewServer = await preview({
+  root: "./my-project",
+});
+
+// 필요한 경우 서버를 중지합니다.
+await previewServer.stop();
+```
+
+### `PreviewServer`
+
+```ts
+export interface PreviewServer {
+	host?: string;
+	port: number;
+	closed(): Promise<void>;
+	stop(): Promise<void>;
+}
+```
+
+#### `host`
+
+<p>
+
+**타입:** `string`
+</p>
+
+서버가 연결을 수신 대기하는 호스트입니다.
+
+어댑터는 이 필드를 설정하지 않을 수 있습니다. `host`의 값은 구현에 따라 다릅니다.
+
+#### `port`
+
+<p>
+
+**타입:** `number`
+</p>
+
+서버가 연결을 수신 대기하는 포트입니다.
+
+#### `stop()`
+
+<p>
+
+**타입:** `Promise<void>`
+</p>
+
+미리보기 서버를 닫고, 요청 수락을 중지하며, 유휴 연결을 끊도록 요청합니다.
+
+반환된 `Promise`는 종료 요청이 전송되었을 때 해결됩니다. 이는 서버가 아직 완전히 종료되지 않았음을 의미할 수 있습니다. 서버가 완전히 종료되었는지 확인해야 하는 경우 [`closed()`](#closed) 메서드를 사용하세요.
+
+#### `closed()`
+
+<p>
+
+**타입:** `Promise<void>`
+</p>
+
+서버가 종료되면 해결되고 서버에서 오류가 발생하면 거부되는 `Promise`를 반환합니다.
+
+## `sync()`
+
+<p>
+
+**타입:** `(inlineConfig: AstroInlineConfig) => Promise<void>`
+</p>
+
+[`astro sync`](/ko/reference/cli-reference/#astro-sync)와 유사하게, 모든 Astro 모듈에 대한 TypeScript 타입을 생성합니다.
+
+```js
+import { sync } from "astro";
+
+await sync({
+  root: "./my-project",
+});
+```
