@@ -56,7 +56,7 @@ Le paquet [`@astrojs/rss`](https://github.com/withastro/astro/tree/main/packages
         // Champ `<description>` dans le fichier xml de sortie
         description: "Le guide des étoiles d'un humble astronaute",
         // Extraire la propriété "site" de votre projet dans le contexte du point de terminaison.
-        // https://docs.astro.build/fr/reference/api-reference/#contextsite
+        // https://docs.astro.build/fr/reference/api-reference/#site
         site: context.site,
         // Tableau des `<item>`s dans la sortie xml
         // Voir la section "Génération d'éléments" pour des exemples utilisant des collections de contenu et des importations globales.
@@ -102,9 +102,9 @@ export async function GET(context) {
       title: post.data.title,
       pubDate: post.data.pubDate,
       description: post.data.description,
-      // Calculer le lien RSS à partir de l'article `slug`
-      // Cet exemple suppose que tous les articles sont rendus sous forme de routes `/blog/[slug]`.
-      link: `/blog/${post.slug}/`,
+      // Calculer le lien RSS à partir de l'`id` de l'article
+      // Cet exemple suppose que tous les articles sont rendus sous forme de routes `/blog/[id]`.
+      link: `/blog/${post.id}/`,
     })),
   });
 }
@@ -114,7 +114,7 @@ Facultatif : remplacez votre schéma de collection de blogs existant pour appliq
 
 Pour vous assurer que chaque entrée de blog produise un élément de flux RSS valide, vous pouvez éventuellement importer et appliquer `rssSchema` au lieu de définir chaque propriété individuelle de votre schéma.
 
-```js title="src/content/config.ts" "rssSchema"
+```js title="src/content.config.ts" "rssSchema"
 import { defineCollection } from 'astro:content';
 import { rssSchema } from '@astrojs/rss';
 
@@ -185,7 +185,7 @@ export async function GET(context) {
     description: "Le guide des étoiles d'un humble astronaute",
     site: context.site,
     items: blog.map((post) => ({
-      link: `/blog/${post.slug}/`,
+      link: `/blog/${post.id}/`,
       // Note : ceci ne traitera pas les composants ou les expressions JSX dans les fichiers MDX.
       content: sanitizeHtml(parser.render(post.body), {
         allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img'])
@@ -203,7 +203,7 @@ import rss from '@astrojs/rss';
 import sanitizeHtml from 'sanitize-html';
 
 export function GET(context) {
-  const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true }); 
+  const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true });
   const posts = Object.values(postImportResult);
   return rss({
     title: 'Blog de Buzz',
@@ -211,7 +211,7 @@ export function GET(context) {
     site: context.site,
     items: posts.map((post) => ({
       link: post.url,
-      content: sanitizeHtml(post.compiledContent()),
+      content: sanitizeHtml((await post.compiledContent())),
       ...post.frontmatter,
     })),
   });
