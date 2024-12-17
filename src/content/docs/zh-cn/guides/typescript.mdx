@@ -1,11 +1,12 @@
 ---
 title: TypeScript
 description: 了解如何使用 Astro 内置的 TypeScript 支持。
+i18nReady: true
 ---
 import Since from '~/components/Since.astro'
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
-Astro 内置了对 [TypeScript](https://www.typescriptlang.org/) 的支持。你可以在 Astro 项目中导入 `.ts` 和 `.tsx` 文件，甚至可以直接在 [Astro 组件](/zh-cn/basics/astro-components/#组件脚本) 中编写 TypeScript 代码。如果你愿意，你甚至可以使用 [`astro.config.ts`](/zh-cn/guides/configuring-astro/#astro-配置文件)。
+Astro 内置了对 [TypeScript](https://www.typescriptlang.org/) 的支持。你可以在 Astro 项目中导入 `.ts` 和 `.tsx` 文件，甚至可以直接在 [Astro 组件](/zh-cn/basics/astro-components/#组件脚本) 中编写 TypeScript 代码。如果你愿意，你甚至可以使用 [`astro.config.ts`](/zh-cn/guides/configuring-astro/#astro-配置文件) 文件进行 Astro 配置。
 
 使用 TypeScript，你可以通过约束代码中对象和组件的类型来防止运行时的错误。例如，如果你使用了 TypeScript 来[定义组件参数](#组件参数)；而如果你在使用时不小心传入了一个与之不匹配的参数，编辑器将会报错。
 
@@ -17,7 +18,7 @@ Astro 的开发服务器不会进行任何类型检查，但你可以编辑 [`pa
 
 Astro 入门项目在你的项目中包含一个名为 `tsconfig.json` 的文件。即使你不编写 TypeScript 代码，这个文件也很重要；通过这个文件，可以让 Astro 和 VSCode 等工具知道应当如何理解你的项目。如果没有 `tsconfig.json` 文件，编辑器将不能对某些功能提供完整支持（比如 npm 包导入）。如果你手动安装的 Astro，请务必自己创建此文件。
 
-### TypeScript 模板
+### TSConfig 模板
 
 Astro 中包含三个可扩展的 `tsconfig.json` 模板：`base`、`strict` 和 `strictest`。`base` 模板开启了对现代 JavaScript 的相关特性的支持，也可用作其他模板的基础。但如果你打算在项目中编写 TypeScript，我们建议使用 `strict` 或 `strictest`。你可以在 [astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/) 中查看和比较这三个配置模板。
 
@@ -29,16 +30,29 @@ Astro 中包含三个可扩展的 `tsconfig.json` 模板：`base`、`strict` 和
 }
 ```
 
-此外，我们的模板在 `src` 文件夹中包含一个名为 `env.d.ts` 的文件，它为你的项目提供 [Vite 的客户端类型](https://cn.vite.dev/guide/features.html#client-types)：
+此外，我们建议按如下方式来设置 `include` 和 `exclude`，以受益于 Astro 类型并避免检查构建文件：
 
-```typescript title="env.d.ts"
+```json title="tsconfig.json" ins={3-4}
+{
+  "extends": "astro/tsconfigs/base",
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist"]
+}
+```
+
+你可以创建 `src/env.d.ts` 作为添加自定义类型声明的约定，或者如果你没有 `tsconfig.json`，则可以从 Astro 类型中受益：
+
+```ts title="src/env.d.ts"
+// 自定义类型声明
+declare var myString: string;
+
+// Astro 类型，如果你已经有 tsconfig.json，则不需要
 /// <reference path="../.astro/types.d.ts" />
 ```
 
 ### TypeScript 编辑器插件
 
 当你不使用[官方 Astro VS Code 扩展](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode)时，可以单独安装 [Astro TypeScript 插件](https://www.npmjs.com/package/@astrojs/ts-plugin)。该插件由 VSCode 扩展自动安装和配置，你无需同时安装两者。
-
 该插件仅在编辑器中运行。在终端中运行 `tsc` 时，`.astro` 文件将被完全忽略。相反，你可以使用 [CLI 命令的 `astro check`](/zh-cn/reference/cli-reference/#astro-check) 来检查 `.astro` 和 `.ts` 文件。该插件还支持从 `.ts` 文件导入 `.astro` 文件（这对于重新导出很有用）。
 
 <PackageManagerTabs>
@@ -125,7 +139,7 @@ import Layout from '@layouts/Layout.astro';
 
 你可能需要在全局对象中添加一项属性。可以通过在 `env.d.ts` 文件中使用 `declare` 关键字添加顶级声明来实现这一点：
 
-```ts title="env.d.ts"
+```ts title="src/env.d.ts"
 declare var myString: string;
 declare function myFunction(): boolean;
 ```
@@ -136,7 +150,7 @@ declare function myFunction(): boolean;
 
 如果你只想为 `window` 对象中的一个属性提供类型注释，可以提供一个 `Window` 接口来实现：
 
-```ts title="env.d.ts"
+```ts title="src/env.d.ts"
 interface Window {
 	myFunction(): boolean;
 }
@@ -262,9 +276,9 @@ const { as: Tag, ...props } = Astro.props;
 
 Astro 中有帮助你处理动态路由 [`getStaticPaths()`](/zh-cn/reference/api-reference/#getstaticpaths) 函数返回类型的类型。
 
-你可以使用 `InferGetStaticParamsType` 和 `InferGetStaticPropsType` 来获取 [`Astro.params`](/zh-cn/reference/api-reference/#astroparams) 和 [`Astro.props`](/zh-cn/reference/api-reference/#astroprops) 的类型。
+你可以使用 `InferGetStaticParamsType` 和 `InferGetStaticPropsType` 来获取 [`Astro.params`](/zh-cn/reference/api-reference/#params) 和 [`Astro.props`](/zh-cn/reference/routing-reference/#props) 的类型。
 
-```astro title="src/pages/posts/[...slug].astro" {2,14-15}
+```astro title="src/pages/posts/[...id].astro" {2,14-15}
 ---
 import type { InferGetStaticParamsType, InferGetStaticPropsType, GetStaticPaths } from 'astro';
 
@@ -272,7 +286,7 @@ export const getStaticPaths = (async () => {
   const posts = await getCollection('blog');
   return posts.map((post) => {
     return {
-      params: { slug: post.slug },
+      params: { id: post.id },
       props: { draft: post.data.draft, title: post.data.title },
     };
   });
@@ -281,8 +295,8 @@ export const getStaticPaths = (async () => {
 type Params = InferGetStaticParamsType<typeof getStaticPaths>;
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 
-const { slug } = Astro.params as Params;
-//               			 ^? { slug: string; }
+const { id } = Astro.params as Params;
+//               		 ^? { id: string; }
 const { title } = Astro.props;
 //                			^? { draft: boolean; title: string; }
 ---
