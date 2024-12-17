@@ -1,0 +1,127 @@
+---
+title: 실험적 반응형 이미지
+sidebar:
+  label: 반응형 이미지
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `false`<br />
+<Since v="5.0.0" />
+</p>
+
+프로젝트에서 자동 반응형 이미지 지원을 활성화합니다.
+
+```js title="astro.config.mjs"
+{
+  experimental: {
+    responsiveImages: true,
+  },
+}
+```
+
+이 플래그가 활성화되면 모든 `<Image />` 또는 `<Picture />` 컴포넌트에 `layout` prop을 전달하여 반응형 이미지를 생성할 수 있습니다.
+
+레이아웃이 설정되면, 이미지는 이미지의 크기와 레이아웃 타입을 기반으로 자동 생성된 `srcset`과 `sizes` 속성을 갖게 됩니다. `responsive`와 `full-width` 레이아웃을 가진 이미지들은 컨테이너에 따라 크기가 조정되도록 스타일이 적용됩니다.
+
+```astro title=MyComponent.astro
+---
+import { Image, Picture } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image src={myImage} alt="A description of my image." layout='responsive' width={800} height={600} />
+<Picture src={myImage} alt="A description of my image." layout='full-width' formats={['avif', 'webp', 'jpeg']} />
+```
+
+이 `<Image />` 컴포넌트는 다음과 같은 HTML 출력을 생성할 것입니다:
+
+```html
+<img
+  src="/_astro/my_image.hash3.webp"
+  srcset="/_astro/my_image.hash1.webp 640w,
+      /_astro/my_image.hash2.webp 750w,
+      /_astro/my_image.hash3.webp 800w,
+      /_astro/my_image.hash4.webp 828w,
+      /_astro/my_image.hash5.webp 1080w,
+      /_astro/my_image.hash6.webp 1280w,
+      /_astro/my_image.hash7.webp 1600w"
+  alt="A description of my image"
+  sizes="(min-width: 800px) 800px, 100vw"
+  loading="lazy"
+  decoding="async"
+  fetchpriority="auto"
+  width="800"
+  height="600"
+  style="--w: 800; --h: 600; --fit: cover; --pos: center;"
+  data-astro-image="responsive"
+>
+```
+
+이미지들이 올바른 크기로 자동 조정되도록 하기 위해 다음의 스타일들이 적용됩니다:
+
+```css title="Responsive Image Styles"
+[data-astro-image] {
+  width: 100%;
+  height: auto;
+  object-fit: var(--fit);
+  object-position: var(--pos);
+  aspect-ratio: var(--w) / var(--h)
+}
+
+[data-astro-image=responsive] {
+  max-width: calc(var(--w) * 1px);
+  max-height: calc(var(--h) * 1px)
+}
+
+[data-astro-image=fixed] {
+  width: calc(var(--w) * 1px);
+  height: calc(var(--h) * 1px)
+}
+```
+
+## 반응형 이미지 속성
+
+반응형 이미지가 활성화되었을 때 `<Image />` 및 `<Picture />` 컴포넌트에서 사용할 수 있는 추가 속성들입니다:
+
+- `layout`: 이미지의 레이아웃 타입입니다. `responsive`, `fixed`, `full-width` 또는 `none`이 될 수 있습니다. 기본값은 [`image.experimentalLayout`](/ko/reference/configuration-reference/#imageexperimentallayout)의 값입니다.
+- `fit`: 종횡비가 변경될 때 이미지를 어떻게 자를지 정의합니다. CSS `object-fit`의 값들과 일치합니다. 기본값은 `cover`이며, [`image.experimentalObjectFit`](/ko/reference/configuration-reference/#imageexperimentalobjectfit)이 설정된 경우 해당 값이 사용됩니다.
+- `position`: 종횡비가 변경될 때 이미지 자르기 위치를 정의합니다. CSS `object-position`의 값들과 일치합니다. 기본값은 `center`이며, [`image.experimentalObjectPosition`](/ko/reference/configuration-reference/#imageexperimentalobjectposition)이 설정된 경우 해당 값이 사용됩니다.
+- `priority`: 설정된 경우, 이미지를 즉시 로드합니다. 그렇지 않으면 이미지는 지연 로드됩니다. 첫 화면에서 가장 큰 이미지에 이 속성을 사용하세요. 기본값은 `false`입니다.
+
+`widths`와 `sizes` 속성은 이미지의 크기와 레이아웃 타입을 기반으로 자동 생성되며, 대부분의 경우 수동으로 설정할 필요가 없습니다. `responsive`와 `full-width` 이미지에 대해 생성된 `sizes` 속성은 뷰포트가 이미지 너비보다 작을 때 이미지가 화면 전체 너비에 가깝게 표시된다는 가정을 기반으로 합니다. 만약 이것이 상당히 다른 경우(예: 작은 화면에서 다중 열 레이아웃인 경우) 최상의 결과를 위해 `sizes` 속성을 수동으로 조정해야 할 수 있습니다.
+
+`densities` 속성은 반응형 이미지와 호환되지 않으며 설정하더라도 무시됩니다.
+
+## 반응형 이미지 구성 설정
+
+[`image.experimentalLayout`](/ko/reference/configuration-reference/#imageexperimentallayout)을 기본값으로 설정하여 모든 `<Image />` 및 `<Picture />` 컴포넌트에 대해 반응형 이미지를 활성화할 수 있습니다. 이 설정은 각 컴포넌트의 `layout` prop으로 재정의할 수 있습니다.
+
+```js title="astro.config.mjs"
+{
+  image: {
+    // 재정의되지 않는 한 모든 `<Image />` 및 `<Picture />` 컴포넌트에 사용됩니다
+    experimentalLayout: 'responsive',
+     },
+  experimental: {
+    responsiveImages: true,
+  },
+}
+```
+
+`responsive`를 기본 레이아웃으로 설정한 경우, 개별 이미지의 `layout` 속성을 재정의할 수 있습니다:
+
+```astro
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image src={myImage} alt="This will use responsive layout" width={800} height={600} />
+<Image src={myImage} alt="This will use full-width layout" layout="full-width" />
+<Image src={myImage} alt="This will disable responsive images" layout="none" />
+```
+
+전체 개요를 확인하고 이 실험적 API에 대한 피드백을 제공하려면, [반응형 이미지 RFC](https://github.com/withastro/roadmap/blob/responsive-images/proposals/0053-responsive-images.md)를 참조하세요.
