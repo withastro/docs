@@ -1,17 +1,14 @@
 ---
-title: Syntaxe d'Astro
-description: Une introduction à la syntaxe des composants .astro.
+title: Référence des expressions de modèle
 i18nReady: true
 ---
 
-**Si vous connaissez le HTML, vous en savez déjà assez pour écrire votre premier composant Astro.**
-
-La syntaxe des composants Astro est un surensemble de HTML. Elle a été [conçue pour être familière à toute personne ayant l'habitude d'écrire du HTML ou du JSX](#différences-entre-astro-et-jsx), et elle permet d'inclure des composants et des expressions JavaScript.
+La syntaxe des composants Astro est un sur-ensemble de HTML. La syntaxe a été conçue pour être familière à toute personne expérimentée dans l'écriture HTML ou JSX, et ajoute la prise en charge de l'inclusion de composants et d'expressions JavaScript.
 
 
 ## Expressions type JSX
 
-Vous pouvez définir des variables JavaScript locales à l'intérieur du script du composant frontmatter, entre les deux séparations de code (`---`) d'un composant Astro.
+Vous pouvez définir des variables JavaScript locales à l'intérieur du script du composant frontmatter entre les deux barrières de code (`---`) d'un composant Astro. Vous pouvez ensuite injecter ces variables dans le modèle HTML du composant à l'aide d'expressions de type JSX !
 
 :::note[Dynamique vs réactif]
 En utilisant cette approche, vous pouvez inclure des valeurs **dynamiques** qui sont calculées dans le frontmatter. Mais une fois incluses, ces valeurs ne sont pas **réactives** et ne changeront jamais. Les composants Astro sont des templates qui ne s’exécutent qu’une seule fois, au moment de la compilation.
@@ -174,3 +171,140 @@ Avec Astro, vous pouvez utiliser des commentaires HTML standards ou des commenta
 :::caution
 Les commentaires de type HTML seront inclus dans le DOM du navigateur, tandis que ceux en JS seront ignorés. Pour laisser des messages TODO ou d'autres explications réservées au développement, il vaut mieux utiliser des commentaires de type JavaScript.
 :::
+
+
+## Component utilities
+
+### `Astro.slots`
+
+`Astro.slots` contient des fonctions utilitaires pour modifier les enfants passés en tant que slots d'un composant Astro.
+
+#### `Astro.slots.has()`
+
+<p>
+
+**Type :** `(slotName: string) => boolean`
+</p>
+
+Vous pouvez vérifier si le contenu d'un slot spécifique existe avec `Astro.slots.has()`. Cela peut être utile lorsque vous souhaitez encapsuler le contenu d'un slot, mais que vous souhaitez uniquement afficher les éléments d'encapsulation lorsque ce slot est utilisé.
+
+```astro  title="src/pages/index.astro"
+---
+---
+<slot />
+
+{Astro.slots.has('more') && (
+  <aside>
+    <h2>Plus d'informations</h2>
+    <slot name="more" />
+  </aside>
+)}
+```
+
+#### `Astro.slots.render()`
+
+<p>
+
+**Type :** `(slotName: string, args?: any[]) => Promise<string>`
+</p>
+
+Vous pouvez restituer de manière asynchrone le contenu d'un emplacement dans une chaîne HTML à l'aide de `Astro.slots.render()`.
+
+```astro
+---
+const html = await Astro.slots.render('default');
+---
+<Fragment set:html={html} />
+```
+
+:::note
+Ceci est destiné aux cas d'utilisation avancés ! Dans la plupart des cas, il est plus simple de restituer le contenu des emplacements avec [l'élément `<slot />`](/fr/basics/astro-components/#les-emplacements-slots).
+:::
+
+`Astro.slots.render()` accepte éventuellement un second argument : un tableau de paramètres qui seront transmis à tous les enfants de la fonction. Cela peut être utile pour les composants utilitaires personnalisés.
+
+Par exemple, ce composant `<Shout />` convertit sa propriété `message` en majuscules et la transmet à l'emplacement par défaut :
+
+```astro title="src/components/Shout.astro" "await Astro.slots.render('default', [message])"
+---
+const message = Astro.props.message.toUpperCase();
+let html = '';
+if (Astro.slots.has('default')) {
+  html = await Astro.slots.render('default', [message]);
+}
+---
+<Fragment set:html={html} />
+```
+
+Une fonction de rappel transmise en tant qu'enfant de `<Shout />` recevra le paramètre `message` tout en majuscules :
+
+```astro title="src/pages/index.astro"
+---
+import Shout from "../components/Shout.astro";
+---
+<Shout message="slots!">
+  {(message) => <div>{message}</div>}
+</Shout>
+
+<!-- rendu en tant que <div>SLOTS!</div> -->
+```
+
+Les fonctions de rappel peuvent être transmises à des emplacements nommés à l'intérieur d'une balise d'élément HTML enveloppante avec un attribut `slot`. Cet élément est uniquement utilisé pour transférer la fonction de rappel à un emplacement nommé et ne sera pas rendu sur la page.
+
+```astro
+<Shout message="slots!">
+  <fragment slot="message">
+    {(message) => <div>{message}</div>}
+  </fragment>
+</Shout>
+```
+
+Utilisez un élément HTML standard pour la balise d'encapsulation ou toute balise en minuscules (par exemple `<fragment>` au lieu de `<Fragment />`) qui ne sera pas interprété comme un composant. N'utilisez pas l'élément HTML `<slot>` car il sera interprété comme un slot Astro.
+
+### `Astro.self`
+
+`Astro.self` permet aux composants Astro d'être appelés de manière récursive. Ce comportement vous permet de restituer un composant Astro à partir de lui-même en utilisant `<Astro.self>` dans le modèle de composant. Cela peut aider à parcourir de grands magasins de données et des structures de données imbriquées.
+
+```astro
+---
+// NestedList.astro
+const { items } = Astro.props;
+---
+<ul class="nested-list">
+  {items.map((item) => (
+    <li>
+      <!-- S'il existe une structure de données imbriquée, nous rendons `<Astro.self>` -->
+      <!-- et pouvons transmettre des props avec l'appel récursif -->
+      {Array.isArray(item) ? (
+        <Astro.self items={item} />
+      ) : (
+        item
+      )}
+    </li>
+  ))}
+</ul>
+```
+
+Ce composant pourrait alors être utilisé comme ceci :
+
+```astro
+---
+import NestedList from './NestedList.astro';
+---
+<NestedList items={['A', ['B', 'C'], 'D']} />
+```
+
+Et il restituerait le code HTML suivant :
+
+```html
+<ul class="nested-list">
+  <li>A</li>
+  <li>
+    <ul class="nested-list">
+      <li>B</li>
+      <li>C</li>
+    </ul>
+  </li>
+  <li>D</li>
+</ul>
+```
