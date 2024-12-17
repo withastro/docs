@@ -104,7 +104,7 @@ We recommend [converting any existing collections to the new Content Layer API](
 
 If you are unable to convert your collections, then please consult the [legacy collections breaking changes](#breaking-changes-to-legacy-content-and-data-collections) to see whether your existing collections are affected and require updating.
 
-If you are unable to make any changes to your collections at this time, you can [enable the `legacy.collections` flag](#enabling-the-legacycollections-flag) which will allow you to keep your colletions in their current state until the legacy flag is no longer supported.
+If you are unable to make any changes to your collections at this time, you can [enable the `legacy.collections` flag](#enabling-the-legacycollections-flag) which will allow you to keep your collections in their current state until the legacy flag is no longer supported.
 
 <ReadMore>Learn more about the updated [content collections](/en/guides/content-collections/).</ReadMore>
 
@@ -129,7 +129,7 @@ See the instructions below for updating an existing content collection (`type: '
     const blog = defineCollection({
       // For content layer you no longer define a `type`
       type: 'content',
-      loader: glob({ pattern: '**\/[^_]*.md', base: "./src/data/blog" }),
+      loader: glob({ pattern: '**/[^_]*.md', base: "./src/data/blog" }),
       schema: z.object({
         title: z.string(),
         description: z.string(),
@@ -186,7 +186,8 @@ This backwards compatibility implementation is able to emulate most of the featu
   - The special `layout` field is not supported in Markdown collection entries. This property is intended only for standalone page files located in `src/pages/` and not likely to be in your collection entries. However, if you were using this property, you must now create dynamic routes that include your page styling.
   - Sort order of generated collections is non-deterministic and platform-dependent. This means that if you are calling `getCollection()`, the order in which entries are returned may be different than before. If you need a specific order, you must sort the collection entries yourself.
   - `image().refine()` is not supported. If you need to validate the properties of an image you will need to do this at runtime in your page or component.
-  - the `key` argument of `getEntry(collection, key)` is typed as `string`, rather than having types for every entry.
+  - The `key` argument of `getEntry(collection, key)` is typed as `string`, rather than having types for every entry.
+  - Previously when calling `getEntry(collection, key)` with a static string as the key, the return type was not nullable. The type now includes `undefined` so you must check if the entry is defined before using the result or you will have type errors.
 
 ##### Enabling the `legacy.collections` flag
 
@@ -415,7 +416,7 @@ Astro v5.0 refactors this file to remove outdated and internal types. This refac
 
 Remove any types that now cause errors in your project as you no longer have access to them. These are mostly APIs that have previously been deprecated and removed, but may also include types that are now internal.
 
-<ReadMore>See the [public types exposed for use](https://github.com/withastro/astro/tree/next/packages/astro/src/types/public).</ReadMore>
+<ReadMore>See the [public types exposed for use](https://github.com/withastro/astro/tree/main/packages/astro/src/types/public).</ReadMore>
 
 ### Experimental Flags
 
@@ -556,7 +557,7 @@ No functionality has changed. This component has only changed its name.
 
 #### What should I do?
 
-Replace all occurances of the `ViewTransitions` import and component with `ClientRouter`:
+Replace all occurences of the `ViewTransitions` import and component with `ClientRouter`:
 
 ```astro title="src/layouts/MyLayout.astro" del={1,7} ins={2,8}
 import { ViewTransitions } from 'astro:transitions';
@@ -721,7 +722,7 @@ Astro 5.0 removes this access as it was never intentionally exposed for client u
 
 #### What should I do?
 
-If you are currently currently using `astro:content` in the client, pass the data you need through props to your client components instead:
+If you are currently using `astro:content` in the client, pass the data you need through props to your client components instead:
 
 ```astro title="src/pages/blog.astro"
 ---
@@ -986,6 +987,7 @@ Object.assign(ctx.locals, {
 }
 })
 ```
+
 <ReadMore>See more about [storing data in `context.locals`](/en/guides/middleware/#storing-data-in-contextlocals).</ReadMore>
 
 ### Changed: `params` no longer decoded
@@ -1014,7 +1016,7 @@ const { id } = Astro.params;
 ---
 ```
 
-Note that the use of [`decodeURIComponent`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURIComponent)) is discouraged for `getStaticPaths` because it decodes more characters than it should, for example `/`, `?`, `#` and more.
+Note that the use of [`decodeURIComponent`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURIComponent) is discouraged for `getStaticPaths` because it decodes more characters than it should, for example `/`, `?`, `#` and more.
 
 <ReadMore>Read more about [creating dynamic routes with `params`](/en/guides/routing/#static-ssg-mode).</ReadMore>
 
@@ -1045,7 +1047,7 @@ function useRoute(route: IntegrationRouteData) {
 
 <SourcePR number="11864" title="send `IntegrationRouteData` to integrations"/>
 
-In Astro v4.x, `RouteData.distURL` was `undefined` or a `URL`
+In Astro v4.x, `RouteData.distURL` was `undefined` or a `URL`.
 
 Astro v5.0 updates the shape of `IntegrationRouteData.distURL` to be `undefined` or an array of `URL`s. This fixes a previous error because a route can generate multiple files on disk, especially when using dynamic routes such as `[slug]` or `[...slug]`.
 
@@ -1158,6 +1160,41 @@ export default {
 ```
 
 <ReadMore>Read more about [developing a dev toolbar app for Astro using the Dev Toolbar API](/en/reference/dev-toolbar-app-reference/).</ReadMore>
+
+### Removed: configuring Typescript during `create-astro`
+
+<SourcePR number="12083" title="create-astro updates"/>
+
+In Astro v4.x, it was possible to choose between Astro's three TypeScript settings when creating a new project using `create astro`, either by answering a question or by passing an associated `--typescript` flag with the desired TypeScript setting. 
+
+Astro 5.0 updates the `create astro` CLI command to remove the TypeScript question and its associated `--typescript` flag. The "strict" preset is now the default for all new projects created with the command line and it is no longer possible to customize this at that time. However, the TypeScript template can still be changed manually in `tsconfig.json`.
+
+#### What should I do?
+
+If you were using the `--typescript` flag with `create-astro`, remove it from your command.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```diff lang=shell
+  -npm create astro@latest -- --template <example-name> --typescript strict
+  +npm create astro@latest -- --template <example-name>
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```diff lang=shell
+  -pnpm create astro@latest --template <example-name> --typescript strict
+  +pnpm create astro@latest --template <example-name>
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```diff lang=shell
+  -yarn create astro --template <example-name> --typescript strict
+  +yarn create astro --template <example-name>
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+<ReadMore>See [all the available `create astro` command flags](https://github.com/withastro/astro/blob/main/packages/create-astro/README.md)</ReadMore>
 
 ## Community Resources
 
