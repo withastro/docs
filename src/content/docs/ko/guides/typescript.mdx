@@ -7,7 +7,7 @@ i18nReady: true
 import Since from '~/components/Since.astro';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
-Astro는 [TypeScript](https://www.typescriptlang.org/)에 대한 기본 지원을 제공합니다. Astro 프로젝트에 `.ts` 및 `.tsx` 파일을 가져올 수 있으며, [Astro 컴포넌트](/ko/basics/astro-components/#컴포넌트-스크립트)에서 직접 TypeScript 코드를 작성할 수도 있습니다. 원한다면 [`astro.config.ts`](/ko/guides/configuring-astro/#astro-구성-파일) 파일을 사용해 구성 파일을 TypeScript로 작성할 수도 있습니다.
+Astro는 [TypeScript](https://www.typescriptlang.org/)에 대한 기본 지원을 제공합니다. Astro 프로젝트에 `.ts` 및 `.tsx` 파일을 가져올 수 있으며, [Astro 컴포넌트](/ko/basics/astro-components/#컴포넌트-스크립트)에서 직접 TypeScript 코드를 작성할 수도 있습니다. 원한다면 Astro 구성을 위한 [`astro.config.ts`](/ko/guides/configuring-astro/#astro-구성-파일) 파일을 사용해 구성 파일을 TypeScript로 작성할 수도 있습니다.
 
 TypeScript를 사용해 객체와 컴포넌트의 형태를 정의하여 런타임 오류를 방지할 수 있습니다. 예를 들어 TypeScript로 [컴포넌트 props 타입을 정의](#컴포넌트-props)하면 컴포넌트가 허용하지 않는 props를 전달했을 때 편집기에서 오류가 발생합니다.
 
@@ -19,21 +19,34 @@ Astro 개발 서버는 타입 검사를 수행하지 않지만 명령줄에서 �
 
 Astro 시작 템플릿에는 `tsconfig.json` 파일이 포함되어 있습니다. 이 파일은 Astro 및 VS Code와 같은 도구가 프로젝트를 이해하는 방법을 제공하기 때문에 TypeScript 코드를 작성하지 않더라도 중요합니다. `tsconfig.json` 파일이 없으면 일부 기능(예: npm 패키지 가져오기)이 편집기에서 완전히 지원되지 않습니다. Astro를 수동으로 설치하면 이 파일을 직접 생성해야 합니다.
 
-### TypeScript 템플릿
+### TSConfig 템플릿
 
 Astro에는 확장 가능한 세 가지의 `tsconfig.json` 템플릿 (`base`, `strict` 및 `strictest`)이 포함되어 있습니다. `base` 템플릿은 최신 JavaScript 기능을 지원하며 다른 템플릿의 기반으로도 사용됩니다. 프로젝트에 TypeScript를 작성하려는 경우 `strict` 또는 `strictest`를 사용하는 것이 좋습니다. [astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/)에서 세 가지 템플릿 구성을 보고 비교할 수 있습니다.
 
 템플릿 중 하나를 상속하려면 [`extends` 설정](https://www.typescriptlang.org/tsconfig#extends)을 사용하세요.
-
 ```json title="tsconfig.json"
 {
   "extends": "astro/tsconfigs/base"
 }
 ```
 
-또한, 시작 템플릿의 `src` 디렉터리에는 프로젝트에 [Vite 클라이언트 타입](https://ko.vite.dev/guide/features.html#client-types)을 제공하기 위한 `env.d.ts` 파일이 포함되어 있습니다.
+추가로, Astro 타입의 이점을 얻고 빌드된 파일을 검사하지 않도록 하기 위해 다음과 같이 `include`와 `exclude`를 설정하는 것을 권장합니다:
 
-```typescript title="env.d.ts"
+```json title="tsconfig.json" ins={3-4}
+{
+  "extends": "astro/tsconfigs/base",
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist"]
+}
+```
+
+`src/env.d.ts` 파일은 사용자 정의 타입 선언을 추가하기 위한 관례로서, 또는 `tsconfig.json`이 없는 경우 Astro 타입을 활용하기 위해 생성할 수 있습니다.
+
+```ts title="src/env.d.ts"
+// 사용자 정의 타입 선언
+declare var myString: string;
+
+// Astro 타입이며, tsconfig.json이 이미 있다면 필요하지 않음
 /// <reference path="../.astro/types.d.ts" />
 ```
 
@@ -130,7 +143,7 @@ import Layout from '@layouts/Layout.astro';
 
 `env.d.ts` 파일에서 `declare` 키워드를 사용해 최상위 선언을 추가하여 전역 객체에 속성을 추가할 수 있습니다.
 
-```ts title="env.d.ts"
+```ts title="src/env.d.ts"
 declare var myString: string;
 declare function myFunction(): boolean;
 ```
@@ -141,7 +154,7 @@ declare function myFunction(): boolean;
 
 `window` 객체의 속성에만 타입을 추가하려면 `Window` 인터페이스를 사용하세요.
 
-```ts title="env.d.ts"
+```ts title="src/env.d.ts"
 interface Window {
   myFunction(): boolean;
 }
@@ -267,11 +280,11 @@ const { as: Tag, ...props } = Astro.props;
 
 <p><Since v="2.1.0" /></p>
 
-Astro에는 동적 경로를 생성하기 위해 사용되는 [`getStaticPaths()`](/ko/reference/api-reference/#getstaticpaths) 함수가 존재합니다. Astro에는 이 함수에서 반환된 값의 타입을 추론할 수 있는 도우미가 포함되어 있습니다.
+Astro에는 동적 경로를 생성하기 위해 사용되는 [`getStaticPaths()`](/ko/reference/routing-reference/#getstaticpaths) 함수가 존재합니다. Astro에는 이 함수에서 반환된 값의 타입을 추론할 수 있는 도우미가 포함되어 있습니다.
 
-`InferGetStaticParamsType`를 사용하여 [`Astro.params`](/ko/reference/api-reference/#astroparams)의 타입을 얻을 수 있으며, `InferGetStaticPropsType`를 사용하여 [`Astro.props`](/ko/reference/api-reference/#astroprops)의 타입을 얻을 수 있습니다.
+`InferGetStaticParamsType`를 사용하여 [`Astro.params`](/ko/reference/api-reference/#params)의 타입을 얻을 수 있으며, `InferGetStaticPropsType`를 사용하여 [`Astro.props`](/ko/reference/api-reference/#props)의 타입을 얻을 수 있습니다.
 
-```astro title="src/pages/posts/[...slug].astro" {2,14-15}
+```astro title="src/pages/posts/[...id].astro" {2,14-15}
 ---
 import type { InferGetStaticParamsType, InferGetStaticPropsType, GetStaticPaths } from 'astro';
 
@@ -279,7 +292,7 @@ export const getStaticPaths = (async () => {
   const posts = await getCollection('blog');
   return posts.map((post) => {
     return {
-      params: { slug: post.slug },
+      params: { id: post.id },
       props: { draft: post.data.draft, title: post.data.title },
     };
   });
@@ -288,10 +301,10 @@ export const getStaticPaths = (async () => {
 type Params = InferGetStaticParamsType<typeof getStaticPaths>;
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 
-const { slug } = Astro.params as Params;
-//               			 ^? { slug: string; }
+const { id } = Astro.params as Params;
+//                   ^? { id: string; }
 const { title } = Astro.props;
-//                			^? { draft: boolean; title: string; }
+//                      ^? { draft: boolean; title: string; }
 ---
 ```
 
