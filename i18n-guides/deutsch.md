@@ -28,6 +28,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 | configuration option        | die Konfigurations&shy;option        | Wenn klar ist, dass es um die Konfiguration geht, kann auch nur "Option" verwendet werden. Bei der Langversion wird die Aufnahme eines weichen Bindestrichs empfohlen: `Konfigurations&shy;option`
 | deployment provider         | der Hosting-Anbieter                 |
 | to deploy                   | veröffentlichen                      | Wir vermeiden "ausliefern" aufgrund der Zweideutigkeit.
+| dev toolbar                 | die Entwicklungswerkzeugleiste       | Aufgrund der Wortlänge wird die Aufnahme eines weichen Bindestrichs empfohlen: `Entwicklungs&shy;werkzeugleiste`
 | directory                   | das Verzeichnis                      |
 | domain                      | die Domäne                           |
 | frontmatter                 | das Frontmatter                      | Wird nicht übersetzt (gängiger Domänenbegriff).
@@ -39,6 +40,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 | page                        | die Seite                            | Eine einzelne (HTML-)Seite. Wir vermeiden die längere Form "Webseite", um Verwechslungen mit "Website" zu vermeiden.
 | partial hydration           | die partielle Hydratation            | Falsch hingegen wäre "Hydrierung".
 | project root (directory)    | das Projektstamm&shy;verzeichnis     | Aufgrund der Wortlänge wird die Aufnahme eines weichen Bindestrichs empfohlen: `Projektstamm&shy;verzeichnis`
+| recipe                      | das Beispiel                         |
 | repository                  | das Repository                       | Wird nicht übersetzt (gängiger Domänenbegriff).
 | request                     | die Anfrage                          |
 | script                      | das Skript                           |
