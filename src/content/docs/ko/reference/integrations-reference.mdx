@@ -1,5 +1,7 @@
 ---
 title: Astro 통합 API
+sidebar:
+  label: 통합 API
 i18nReady: true
 ---
 
@@ -13,7 +15,7 @@ import Since from '~/components/Since.astro';
 
 공식 Astro 통합은 여러분이 자신만의 통합을 구축할 때 참조 역할을 할 수 있습니다.
 
-- **렌더러:** [`lit`](/ko/guides/integrations-guide/lit/), [`svelte`](/ko/guides/integrations-guide/svelte/), [`react`](/ko/guides/integrations-guide/react/), [`preact`](/ko/guides/integrations-guide/preact/), [`vue`](/ko/guides/integrations-guide/vue/), [`solid`](/ko/guides/integrations-guide/solid-js/)
+- **렌더러:** [`svelte`](/ko/guides/integrations-guide/svelte/), [`react`](/ko/guides/integrations-guide/react/), [`preact`](/ko/guides/integrations-guide/preact/), [`vue`](/ko/guides/integrations-guide/vue/), [`solid`](/ko/guides/integrations-guide/solid-js/)
 - **라이브러리:** [`tailwind`](/ko/guides/integrations-guide/tailwind/), [`partytown`](/ko/guides/integrations-guide/partytown/)
 - **기능:** [`sitemap`](/ko/guides/integrations-guide/sitemap/)
 
@@ -34,7 +36,12 @@ interface AstroIntegration {
       addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
       addDevToolbarApp: (pluginEntrypoint: string) => void;
       injectScript: (stage: InjectedScriptStage, content: string) => void;
-      injectRoute: (injectedRoute: { pattern: string, entrypoint: string }) => void;
+      injectRoute: (injectedRoute: { pattern: string; entrypoint: string; prerender?: boolean }) => void;
+      createCodegenDir: () => URL;
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:routes:resolved'?: (options: {
+      routes: IntegrationResolvedRoute[];
       logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
     'astro:config:done'?: (options: {
@@ -44,51 +51,45 @@ interface AstroIntegration {
       logger: AstroIntegrationLogger;
       }) => void | Promise<void>;
     'astro:route:setup'?: (options: { route: RouteOptions; logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:server:setup'?: (options: {
-      server: vite.ViteDevServer;
-      logger: AstroIntegrationLogger;
-    }) => void | Promise<void>;
-    'astro:server:start'?: (options: {
-      address: AddressInfo;
-      logger: AstroIntegrationLogger;
-    }) => void | Promise<void>;
-    'astro:server:done'?: (options: { logger: AstroIntegrationLogger }) => void | Promise<void>;
-    'astro:build:start'?: (options: { logger: AstroIntegrationLogger }) => void | Promise<void>;
+    'astro:server:setup'?: (options: { server: vite.ViteDevServer; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:server:start'?: (options: { address: AddressInfo; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:server:done'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:build:start'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:build:setup'?: (options: {
-      vite: ViteConfigWithSSR;
+      vite: vite.InlineConfig;
       pages: Map<string, PageBuildData>;
       target: 'client' | 'server';
+      updateConfig: (newConfig: vite.InlineConfig) => void;
       logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
-    'astro:build:generated'?: (options: {
-      dir: URL;
-      logger: AstroIntegrationLogger;
-    }) => void | Promise<void>;
+    'astro:build:generated'?: (options: { dir: URL; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:build:ssr'?: (options: {
-      manifest: SerializedSSRManifest;
-      entryPoints: Map<RouteData, URL>;
-      logger: AstroIntegrationLogger;
+        manifest: SerializedSSRManifest;
+        entryPoints: Map<IntegrationRouteData, URL>;
+        logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
     'astro:build:done'?: (options: {
       dir: URL;
-      routes: RouteData[];
+      /** @deprecated 새로운 `astro:routes:resolved` 훅과 `assets` 맵을 사용하세요. */
+      routes: IntegrationRouteData[];
+      assets: Map<string, URL[]>;
       logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
 
-    // ... 통합의 모든 사용자 정의 후크
+    // ... 통합의 모든 커스텀 훅
   };
 }
 ```
 
-## 후크
+## 훅
 
-Astro는 통합이 Astro의 특정 수명 주기 동안 실행할 수 있도록 구현할 수 있는 후크를 제공합니다. Astro 후크는 글로벌 `Astro` 네임스페이스의 일부인 `IntegrationHooks` 인터페이스에 정의되어 있습니다.
+Astro는 통합이 Astro의 특정 수명 주기 동안 실행할 수 있도록 구현할 수 있는 훅을 제공합니다. Astro 훅는 글로벌 `Astro` 네임스페이스의 일부인 `IntegrationHooks` 인터페이스에 정의되어 있습니다.
 
-다음 후크는 Astro에 내장되어 있습니다.
+다음 훅는 Astro에 내장되어 있습니다.
 
 ### `astro:config:setup`
 
-**다음 후크:** [`astro:config:done`](#astroconfigdone)
+**다음 훅:** [`astro:config:done`](#astroconfigdone)
 
 **동작 시기:** 초기화 시, [Vite](https://ko.vite.dev/config/) 또는 [Astro 구성](/ko/reference/configuration-reference/)이 해결되기 전.
 
@@ -106,7 +107,8 @@ Astro는 통합이 Astro의 특정 수명 주기 동안 실행할 수 있도록 
   addDevToolbarApp: (pluginEntrypoint: string) => void;
   addWatchFile: (path: URL | string) => void;
   injectScript: (stage: InjectedScriptStage, content: string) => void;
-  injectRoute: ({ pattern: string, entrypoint: string }) => void;
+  injectRoute: (injectedRoute: { pattern: string; entrypoint: string; prerender?: boolean }) => void;
+  createCodegenDir: () => URL;
   logger: AstroIntegrationLogger;
 }) => void | Promise<void>;
 ```
@@ -115,7 +117,7 @@ Astro는 통합이 Astro의 특정 수명 주기 동안 실행할 수 있도록 
 
 **타입:** `AstroConfig`
 
-사용자가 제공한 [Astro 구성](/ko/reference/configuration-reference/)의 읽기 전용 복사본입니다. 이는 다른 통합이 실행되기 _전에_ 해결되었습니다. 모든 통합이 구성 업데이트를 완료한 후 구성 복사본이 필요한 경우 [`astro:config:done` 후크를 참조](#astroconfigdone)하세요.
+사용자가 제공한 [Astro 구성](/ko/reference/configuration-reference/)의 읽기 전용 복사본입니다. 이는 다른 통합이 실행되기 _전에_ 해결되었습니다. 모든 통합이 구성 업데이트를 완료한 후 구성 복사본이 필요한 경우 [`astro:config:done` 훅을 참조](#astroconfigdone)하세요.
 
 #### `command` 옵션
 
@@ -161,12 +163,16 @@ export default {
 
 **타입:** `(renderer:` [`AstroRenderer`](https://github.com/withastro/astro/blob/fdd607c5755034edf262e7b275732519328a33b2/packages/astro/src/%40types/astro.ts#L872-L883) `) => void;`
 
-**예:** [`lit`](https://github.com/withastro/astro/blob/main/packages/integrations/lit/src/index.ts), [`svelte`](https://github.com/withastro/astro/blob/main/packages/integrations/svelte/src/index.ts), [`react`](https://github.com/withastro/astro/blob/main/packages/integrations/react/src/index.ts), [`preact`](https://github.com/withastro/astro/blob/main/packages/integrations/preact/src/index.ts), [`vue`](https://github.com/withastro/astro/blob/main/packages/integrations/vue/src/index.ts), [`solid`](https://github.com/withastro/astro/blob/main/packages/integrations/solid/src/index.ts)
+**예:** [`svelte`](https://github.com/withastro/astro/blob/main/packages/integrations/svelte/src/index.ts), [`react`](https://github.com/withastro/astro/blob/main/packages/integrations/react/src/index.ts), [`preact`](https://github.com/withastro/astro/blob/main/packages/integrations/preact/src/index.ts), [`vue`](https://github.com/withastro/astro/blob/main/packages/integrations/vue/src/index.ts), [`solid`](https://github.com/withastro/astro/blob/main/packages/integrations/solid/src/index.ts)
 
 컴포넌트 프레임워크 렌더러 (예: React, Vue, Svelte 등)를 추가하는 콜백 함수입니다. 고급 옵션을 보려면 위 예시와 타입 정의를 찾아볼 수 있지만, 알아야 할 두 가지 주요 옵션은 다음과 같습니다.
 
 - `clientEntrypoint` - 컴포넌트가 사용될 때마다 클라이언트에서 실행되는 파일의 경로입니다. 이는 주로 JS를 사용하여 컴포넌트를 렌더링하거나 수화하는 데 사용됩니다.
-- `serverEntrypoint` - 컴포넌트가 사용될 때마다, 서버 측 요청 또는 정적 빌드 중에 실행되는 파일의 경로입니다. 이는 해당되는 경우 수화를 위한 후크를 사용하여 컴포넌트를 정적 마크업으로 렌더링해야 합니다. [React의 `renderToString` 콜백](https://ko.react.dev/reference/react-dom/server/renderToString)이 전형적인 예시입니다.
+- `serverEntrypoint` - 컴포넌트가 사용될 때마다, 서버 측 요청 또는 정적 빌드 중에 실행되는 파일의 경로입니다. 이는 해당되는 경우 수화를 위한 훅을 사용하여 컴포넌트를 정적 마크업으로 렌더링해야 합니다. [React의 `renderToString` 콜백](https://ko.react.dev/reference/react-dom/server/renderToString)이 전형적인 예시입니다.
+
+<p><Since v="5.0.0" /></p>
+
+`clientEntrypoint`와 `serverEntrypoint` 함수는 `URL`을 매개변수로 받습니다.
 
 #### `addWatchFile` 옵션
 
@@ -344,9 +350,30 @@ export const onRequest = defineMiddleware(async (context, next) => {
 });
 ```
 
+<p><Since v="5.0.0" /></p>
+
+이 함수는 `entrypoint`에 대한 `URL`도 매개변수로 받습니다:
+
+```js title="@my-package/integration.js" ins={9}
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "my-middleware-package",
+  hooks: {
+    "astro:config:setup": ({ addMiddleware }) => {
+        addMiddleware({
+          entrypoint: new URL('./middleware.js', import.meta.url),
+          order: 'pre'
+        });
+    },
+  },
+});
+```
+
 #### `injectRoute` 옵션
 
-**타입:** `({ pattern: string, entrypoint: string }) => void;`
+**타입:** `({ pattern: string; entrypoint: string; pattern?: boolean }) => void;`
 
 Astro 프로젝트에 경로를 삽입하는 콜백 함수입니다. 주입된 경로는 [`.astro` 페이지](/ko/basics/astro-pages/) 또는 [`.js` 및 `.ts` 경로 처리기](/ko/guides/endpoints/#정적-파일-엔드포인트)일 수 있습니다.
 
@@ -354,6 +381,7 @@ Astro 프로젝트에 경로를 삽입하는 콜백 함수입니다. 주입된 �
 
 - `pattern` - 경로는 브라우저에 출력되어야 합니다 (예: `/foo/bar`). `pattern`은 동적 경로를 표시하기 위해 Astro의 파일 경로 구문을 사용할 수 있습니다 (예: `/foo/[bar]` 또는 `/foo/[...bar]`). `pattern`에는 파일 확장자가 필요하지 **않습니다**.
 - `entrypoint` - `.astro` 페이지 또는 `pattern`에 표시된 경로를 처리하는 `.js`/`.ts` 경로 처리기를 가리키는 베어 모듈 지정자입니다.
+- `prerender` - Astro가 `prerender` 내보내기를 감지할 수 없을 때 설정할 수 있는 불리언 값입니다.
 
 ##### 사용 예
 
@@ -363,6 +391,8 @@ injectRoute({
   pattern: '/subfolder/[dynamic]',
   // 로컬 경로에는 상대 경로 구문을 사용합니다.
   entrypoint: './src/dynamic-page.astro',
+  // Astro가 prerender 내보내기를 감지할 수 없을 때만 사용하세요.
+  prerender: false
 });
 ```
 
@@ -386,6 +416,17 @@ injectRoute({
 }
 ```
 
+<p><Since v="5.0.0" /></p>
+
+이 함수는 `entrypoint`에 대한 `URL`도 매개변수로 받습니다:
+
+```js "new URL('./dashboard.astro', import.meta.url)"
+injectRoute({
+  pattern: '/fancy-dashboard',
+  entrypoint: new URL('./dashboard.astro', import.meta.url)
+});
+```
+
 #### `injectScript` 옵션
 
 **타입:** `(stage: InjectedScriptStage, content: string) => void;`
@@ -404,16 +445,186 @@ injectRoute({
   ```js
   injectScript('page-ssr', 'import "global-styles.css";');
   ```
+  
+#### `createCodegenDir`
+
+<p>
+
+**타입:** `() => URL;`<br />
+<Since v="5.0.0" />
+</p>
+
+`<root>/.astro/integrations/<normalized_integration_name>` 폴더를 생성하고 해당 경로를 반환하는 함수입니다.
+
+이 함수를 사용하면 다른 통합이나 Astro와의 충돌을 피하면서 전용 폴더를 가질 수 있습니다. 이 디렉터리는 이 함수를 호출하여 생성되므로 직접 파일을 쓰는 것이 안전합니다:
+
+```ts title="my-integration.ts"
+import { writeFileSync } from 'node:fs'
+
+const integration = {
+    name: 'my-integration',
+    hooks: {
+        'astro:config:setup': ({ createCodegenDir }) => {
+            const codegenDir = createCodegenDir()
+            writeFileSync(new URL('cache.json', codegenDir), '{}', 'utf-8')
+        }
+    }
+}
+```
+
+### `astro:routes:resolved`
+
+<Since v="5.0.0" />
+
+**이전 훅:** [`astro:config:setup`](#astroconfigsetup)
+
+**다음 훅:** [`astro:config:done`](#astroconfigdone)
+
+**동작 시기:** `astro dev` 명령 실행 시. 파일 기반 라우트가 변경될 때도(추가/제거/업데이트) 실행됩니다.
+
+**사용 목적:** 라우트와 해당 메타데이터에 접근하기 위해
+
+```js
+'astro:routes:resolved'?: (options: {
+  routes: IntegrationResolvedRoute[];
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
+```
+
+#### `routes` 옵션
+
+**타입:** [`IntegrationResolvedRoute[]`](#integrationresolvedroute-타입-참조)
+
+모든 라우트와 관련 메타데이터의 목록입니다.
+
+사용 예시:
+
+```js title="my-integration.mjs"
+const integration = () => {
+    return {
+        name: 'my-integration',
+        hooks: {
+            'astro:routes:resolved': ({ routes }) => {
+                const projectRoutes = routes.filter(r => r.origin === 'project').map(r => r.pattern)
+                
+                console.log(projectRoutes)
+            },
+        }
+    }
+}
+```
+
+##### `IntegrationResolvedRoute` 타입 참조
+
+```ts
+interface IntegrationResolvedRoute {
+	/**
+	 * 현재 라우트의 **패턴**입니다. 예시:
+	 * - `src/pages/index.astro`는 `/`의 패턴을 가집니다.
+	 * - `src/pages/blog/[...slug].astro`는 `/blog/[...slug]`의 패턴을 가집니다.
+	 * - `src/pages/site/[blog]/[...slug].astro`는 `/site/[blog]/[...slug]`의 패턴을 가집니다.
+	 */
+	pattern: RouteData['route'];
+
+	/**
+	 *
+	 * URL을 요청된 라우트와 대조하기 위해 사용되는 정규표현식입니다.
+	 * 예: "[fruit]/about.astro"는 다음 패턴을 생성합니다: /^\/([^/]+?)\/about\/?$/
+	 * pattern.test("banana/about")는 "true" 입니다.
+	 *
+	 * ## 예시
+	 *
+	 * ```js
+	 * if (route.pattern.test('/blog')) {
+	 *  // 작업 수행
+	 * }
+	 * ```
+	 */
+	patternRegex: RouteData['pattern'];
+
+	/**
+	 *  소스 컴포넌트 URL
+	 */
+	entrypoint: RouteData['component'];
+
+	/**
+	 * 해당 라우트의 사전 렌더링 여부
+	 */
+	isPrerendered: RouteData['prerender'];
+
+	/**
+	 * 리디렉션할 {@link IntegrationResolvedRoute}입니다. `IntegrationResolvedRoute.type`이 `redirect`일 때 존재합니다.
+	 */
+	redirectRoute?: IntegrationResolvedRoute;
+
+  /**
+	 * @param {any} data 라우트의 선택적 매개변수입니다
+	 *
+	 * @description
+	 * 매개변수 목록을 받아서 라우트 패턴과 보간한 다음, 해당 라우트의 경로명을 반환하는 함수입니다.
+	 *
+	 * ## 예시
+	 *
+	 * `/blog/[...id].astro`와 같은 라우트의 경우, `generate` 함수는 다음과 같은 것을 반환합니다:
+	 *
+	 * ```js
+	 * console.log(generate({ id: 'presentation' })) // `/blog/presentation`가 기록됩니다.
+	 * ```
+	 */
+	generate: (data?: any) => string;
+
+  /**
+	 * 동적 및 스프레드 라우트 매개변수
+	 * 예시: "/pages/[lang]/[...slug].astro"는 ['lang', '...slug'] 매개변수를 출력합니다.
+	 */
+	params: string[];
+
+  /**
+	 * 이 라우트가 제공될 출력 URL 경로명
+	 * 참고: [dynamic] 및 [...spread] 라우트의 경우 undefined가 됩니다
+	 */
+	pathname?: string;
+
+  /**
+	 * "params" 필드와 유사하지만 더 많은 관련 메타데이터를 포함합니다. 예를 들어, `/site/[blog]/[...slug].astro`의 세그먼트들은 다음과 같습니다:
+	 *
+	 * 1. `{ content: 'site', dynamic: false, spread: false }`
+	 * 2. `{ content: 'blog', dynamic: true, spread: false }`
+	 * 3. `{ content: '...slug', dynamic: true, spread: true }`
+	 */
+	segments: RoutePart[][];
+
+  /**
+	 *
+	 * 라우트의 타입입니다. 다음 중 하나일 수 있습니다:
+	 * - `page`: 파일 시스템에 존재하는 라우트로, 일반적으로 Astro 컴포넌트입니다
+	 * - `endpoint`: 파일 시스템에 존재하는 라우트로, 일반적으로 엔드포인트 메서드를 노출하는 JS 파일입니다
+	 * - `redirect`: 파일 시스템에 존재하는 다른 라우트를 가리키는 라우트입니다
+	 * - `fallback`: 미들웨어 또는 다른 방식으로 처리되어야 하는, 파일 시스템에 존재하지 않는 라우트입니다
+	 */
+	type: RouteType;
+
+  /**
+	 * 리디렉션할 라우트입니다. 상태 코드와 목적지에 대한 정보를 포함합니다.
+	 */
+	redirect?: RedirectConfig;
+
+  /**
+	 * 해당 라우트가 Astro 코어, 통합 또는 사용자의 프로젝트 중 어디에서 왔는지를 나타냅니다.
+	 */
+	origin: 'internal' | 'external' | 'project';
+}
+```
 
 ### `astro:config:done`
 
-**이전 후크:** [`astro:config:setup`](#astroconfigsetup)
+**이전 훅:** [`astro:config:setup`](#astroroutesresolved)
 
-**다음 후크:** "dev" 모드에서 실행 중인 경우 [`astro:server:setup`](#astroserversetup) 또는 프로덕션 빌드 중 [`astro:build:start`](#astrobuildstart)
+**다음 훅:** "dev" 모드에서 실행 중인 경우 [`astro:server:setup`](#astroserversetup) 또는 프로덕션 빌드 중 [`astro:build:start`](#astrobuildstart)
 
-**동작 시기:** Astro 구성이 해결되고 다른 통합이 `astro:config:setup` 후크를 실행한 후.
+**동작 시기:** Astro 구성이 해결되고 다른 통합이 `astro:config:setup` 훅을 실행한 후.
 
-**사용 목적:** 다른 후크에서 사용하기 위한 최종 구성을 검색하기 위해.
+**사용 목적:** 다른 훅에서 사용하기 위한 최종 구성을 검색하기 위해.
 
 ```js
 'astro:config:done'?: (options: {
@@ -460,16 +671,22 @@ console.log(path) // URL
 
 ### `astro:server:setup`
 
-**이전 후크:** [`astro:config:done`](#astroconfigdone)
+**이전 훅:** [`astro:config:done`](#astroconfigdone)
 
-**다음 후크:** [`astro:server:start`](#astroserverstart)
+**다음 훅:** [`astro:server:start`](#astroserverstart)
 
 **동작 시기:** Vite 서버가 "dev" 모드에서 생성된 직후, `listen()` 이벤트가 시작되기 전입니다. 자세한 내용은 [Vite의 createServer API](https://ko.vite.dev/guide/api-javascript.html#createserver)를 참조하세요.
 
-**사용 목적:** Vite 서버 옵션 및 미들웨어를 업데이트하기 위해.
+**사용 목적:** Vite 서버 옵션과 미들웨어를 업데이트하거나, 콘텐츠 레이어 새로고침 지원을 활성화하기 위해
 
 ```js
-'astro:server:setup'?: (options: { server: vite.ViteDevServer }) => void | Promise<void>;
+'astro:server:setup'?: (options: {
+  server: vite.ViteDevServer;
+  refreshContent: (options: {
+    loaders?: Array<string>;
+    context?: Record<string, any>;
+  }) => Promise<void>;
+}) => void | Promise<void>;
 ```
 
 #### `server` 옵션
@@ -491,11 +708,63 @@ export default {
 };
 ```
 
+#### `refreshContent` 옵션
+
+<p>
+
+**타입:** `(options: { loaders?: Array<string>; context?: Record<string, any>; }) => Promise<void>`<br />
+<Since v="5.0.0" />
+</p>
+
+통합이 `astro dev` 동안 콘텐츠 레이어 업데이트를 트리거하기 위한 함수입니다. 예를 들어, 개발 중에 웹훅 엔드포인트를 등록하거나 변경 사항을 수신하기 위해 CMS에 소켓을 열 때 사용할 수 있습니다.
+
+기본적으로 `refreshContent`는 모든 컬렉션을 새로고침합니다. 선택적으로 로더 이름의 배열인 `loaders` 속성을 전달할 수 있습니다. 이 속성이 제공되면 해당 로더들을 사용하는 컬렉션만 새로고침됩니다. 예를 들어, CMS 통합은 이 속성을 사용하여 자체 컬렉션만 새로고침할 수 있습니다.
+
+로더에 `context` 객체도 전달할 수 있습니다. 이는 웹훅 본문이나 웹소켓의 이벤트와 같은 임의의 데이터를 전달하는 데 사용할 수 있습니다.
+
+```ts title=my-integration.ts {19-22}
+ {
+    name: 'my-integration',
+    hooks: {
+        'astro:server:setup': async ({ server, refreshContent }) => {
+            // 개발 서버 웹훅 엔드포인트 등록
+            server.middlewares.use('/_refresh', async (req, res) => {
+                if(req.method !== 'POST') {
+                  res.statusCode = 405
+                  res.end('Method Not Allowed');
+                  return
+                }
+                let body = '';
+                req.on('data', chunk => {
+                    body += chunk.toString();
+                });
+                req.on('end', async () => {
+                    try {
+                        const webhookBody = JSON.parse(body);
+                        await refreshContent({
+                          context: { webhookBody },
+                          loaders: ['my-loader']
+                        });
+                        res.writeHead(200, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ message: 'Content refreshed successfully' }));
+                    } catch (error) {
+                        res.writeHead(500, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: 'Failed to refresh content: ' + error.message }));
+                    }
+                });
+            });
+        }
+    }
+}
+```
+
+그런 다음 로더는 `refreshContextData` 속성을 사용하여 웹훅 본문에 접근할 수 있습니다. 자세한 내용은 [`refreshContextData`](/ko/reference/content-loader-reference/#refreshcontextdata) 속성을 참조하세요.
+
 ### `astro:server:start`
 
-**이전 후크:** [`astro:server:setup`](#astroserversetup)
+**이전 훅:** [`astro:server:setup`](#astroserversetup)
 
-**다음 후크:** [`astro:server:done`](#astroserverdone)
+**다음 훅:** [`astro:server:done`](#astroserverdone)
 
 **동작 시기:** 서버의 `listen()` 이벤트가 발생한 직후입니다.
 
@@ -513,11 +782,11 @@ export default {
 
 ### `astro:server:done`
 
-**이전 후크:** [`astro:server:start`](#astroserverstart)
+**이전 훅:** [`astro:server:start`](#astroserverstart)
 
 **동작 시기:** 개발서버가 종료된 직후입니다.
 
-**사용 목적:** `astro:server:setup` 또는 `astro:server:start` 후크 중에 트리거할 수 있는 클린업 이벤트를 실행하기 위해.
+**사용 목적:** `astro:server:setup` 또는 `astro:server:start` 훅 중에 트리거할 수 있는 클린업 이벤트를 실행하기 위해.
 
 ```js
 'astro:server:done'?: () => void | Promise<void>;
@@ -525,9 +794,9 @@ export default {
 
 ### `astro:build:start`
 
-**이전 후크:** [`astro:config:done`](#astroconfigdone)
+**이전 훅:** [`astro:config:done`](#astroconfigdone)
 
-**다음 후크:** [`astro:build:setup`](#astrobuildsetup)
+**다음 훅:** [`astro:build:setup`](#astrobuildsetup)
 
 **동작 시기:** `astro:config:done` 이벤트 이후, 프로덕션 빌드가 시작되기 전.
 
@@ -539,26 +808,28 @@ export default {
 
 ### `astro:build:setup`
 
-**이전 후크:** [`astro:build:start`](#astrobuildstart)
+**이전 훅:** [`astro:build:start`](#astrobuildstart)
 
-**다음 후크:** [`astro:build:ssr`](#astrobuildssr)
+**다음 훅:** [`astro:build:ssr`](#astrobuildssr)
 
-**동작 시기:** `astro:build:start` 후크 뒤, 빌드 직전에 실행됩니다.
+**동작 시기:** `astro:build:start` 훅 뒤, 빌드 직전에 실행됩니다.
 
-**사용 목적:** 이 시점에서 빌드를 위한 Vite 구성이 완전히 구성되었으므로 이를 수정할 수 있는 마지막 기회입니다. 예를 들어 일부 기본값을 덮어쓰는 데 유용할 수 있습니다. 이 후크를 사용해야 할지 `astro:build:start`를 사용해야 할지 확실하지 않은 경우 대신 `astro:build:start`를 사용하세요.
+**사용 목적:** 이 시점에서 빌드를 위한 Vite 구성이 완전히 구성되었으므로 이를 수정할 수 있는 마지막 기회입니다. 예를 들어 일부 기본값을 덮어쓰는 데 유용할 수 있습니다. 이 훅을 사용해야 할지 `astro:build:start`를 사용해야 할지 확실하지 않은 경우 대신 `astro:build:start`를 사용하세요.
 
 ```js
 'astro:build:setup'?: (options: {
-  vite: ViteConfigWithSSR;
+  vite: vite.InlineConfig;
   pages: Map<string, PageBuildData>;
   target: 'client' | 'server';
+  updateConfig: (newConfig: vite.InlineConfig) => void;
+  logger: AstroIntegrationLogger;
 }) => void | Promise<void>;
 
 ```
 
 ### `astro:build:generated`
 
-**이전 후크:** [`astro:build:setup`](#astrobuildsetup)
+**이전 훅:** [`astro:build:setup`](#astrobuildsetup)
 
 **동작 시기:** 정적 프로덕션 빌드가 경로 및 자산 생성을 완료한 후.
 
@@ -570,7 +841,7 @@ export default {
 
 ### `astro:build:ssr`
 
-**이전 후크:** [`astro:build:setup`](#astrobuildsetup)
+**이전 훅:** [`astro:build:setup`](#astrobuildsetup)
 
 **동작 시기:** 프로덕션 SSR 빌드가 완료된 후.
 
@@ -582,21 +853,27 @@ export default {
 ```js
 'astro:build:ssr'?: (options: {
     manifest: SerializedSSRManifest,
-    entryPoints: Map<RouteData, URL>,
+    entryPoints: Map<IntegrationRouteData, URL>,
     middlewareEntryPoint: URL
 }) => void | Promise<void>;
 ```
 
 ### `astro:build:done`
 
-**이전 후크:** [`astro:build:ssr`](#astrobuildssr)
+**이전 훅:** [`astro:build:ssr`](#astrobuildssr)
 
 **동작 시기:** 프로덕션 빌드(SSG 또는 SSR)가 완료된 후.
 
 **사용 목적:** 확장을 위해 생성된 경로 및 자산에 액세스하기 위해 (예: 생성된 `/assets` 디렉터리에 콘텐츠 복사). 생성된 자산을 변환하려는 경우 대신 [Vite 플러그인 API](https://ko.vite.dev/guide/api-plugin.html)를 탐색하고 [`astro:config:setup`을 통해 구성](#updateconfig-옵션)하는 것이 좋습니다.
 
 ```js
-'astro:build:done'?: (options: { dir: URL; routes: RouteData[], pages: { pathname: string }[] }) => void | Promise<void>;
+'astro:build:done'?: (options: {
+  dir: URL;
+  /** @deprecated 새로운 `astro:routes:resolved` 훅과 `assets` 맵을 사용하세요. */
+  routes: IntegrationRouteData[];
+  assets: Map<string, URL[]>;
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
 ```
 
 #### `dir` 옵션
@@ -625,21 +902,32 @@ export default function myIntegration() {
 
 #### `routes` 옵션
 
-**타입:** [`RouteData[]`](#routedata-타입-참조)
+:::caution
+이 속성은 v5.0부터 더 이상 사용되지 않습니다. [마이그레이션 가이드](/ko/guides/upgrade-to/v5/#더-이상-사용되지-않음-astrobuilddone-훅의-routes-통합-api)를 확인하세요.
+:::
+
+**타입:** [`IntegrationRouteData[]`](#integrationroutedata-타입-참조)
 
 연관된 메타데이터와 함께 생성된 모든 경로의 목록입니다.
 
-아래에서 전체 `RouteData` 타입을 참조할 수 있지만 가장 일반적인 속성은 다음과 같습니다.
+아래에서 전체 `IntegrationRouteData` 타입을 참조할 수 있지만 가장 일반적인 속성은 다음과 같습니다.
 
 - `component` - 프로젝트 루트를 기준으로 한 입력 파일 경로
 - `pathname` - 출력 파일 URL (`[dynamic]` 및 `[...spread]` 매개변수를 사용하는 경로에 대해서는 undefined)
 
-##### `RouteData` 타입 참조
+##### `IntegrationRouteData` 타입 참조
 
 ```ts
-interface RouteData {
-  /** 지정된 경로가 HTML 페이지인지 HTML이 아닌 엔드포인트인지 여부 */
-  type: 'page' | 'endpoint';
+interface IntegrationRouteData {
+	/**
+	 * 라우트의 타입입니다. 다음 중 하나일 수 있습니다:
+   * 
+	 * - `page`: 파일 시스템에 존재하는 라우트로, 일반적으로 Astro 컴포넌트입니다
+	 * - `endpoint`: 파일 시스템에 존재하는 라우트로, 일반적으로 엔드포인트 메서드를 노출하는 JS 파일입니다
+	 * - `redirect`: 파일 시스템에 존재하는 다른 라우트를 가리키는 라우트입니다
+	 * - `fallback`: 파일 시스템에 존재하지 않고 미들웨어나 다른 방식으로 처리되어야 하는 라우트입니다
+	 */
+  type: 'page' | 'endpoint' | 'redirect' | 'fallback';
   /** 소스 컴포넌트 URL */
   component: string;
   /**
@@ -665,12 +953,44 @@ interface RouteData {
    */
   segments: { content: string; dynamic: boolean; spread: boolean }[][];
   /**
-   * 입력 데이터 세트에서 컴포넌트를 내부에 렌더링하는 기능입니다.
+	 * A function that accepts a list of params, interpolates them with the route pattern, and returns the path name of the route.
+	 * 
+	 * ## Example
+	 * 
+	 * `/blog/[...id].astro`와 같은 라우트의 경우, `generate` 함수는 다음과 같이 반환합니다:
+	 * 
+	 * ```js
+	 * console.log(generate({ id: 'presentation' })) // will log `/blog/presentation` 
+	 * ```
    * 이는 일반적으로 내부용이므로 주의해서 호출하세요!
    */
   generate: (data?: any) => string;
+  /**
+	 * 해당 라우트의 사전 렌더링 여부입니다.
+	 */
+	prerender: boolean;
+  /**
+	 * 이 라우트에 의해 생성된 실제 파일들의 경로입니다. 라우트가 미리 렌더링 **되지 않은** 경우, 값은 `undefined` 또는 빈 배열입니다.
+	 */
+	distURL?: URL[];
+  /**
+	 * 리디렉션할 라우트입니다. 상태 코드와 목적지에 대한 정보를 포함합니다.
+	 */
+	redirect?: RedirectConfig;
+	/**
+	 * `RouteData.type`이 `redirect`일 때 존재하는 리디렉션할 `IntegrationRouteData`입니다.
+	 */
+	redirectRoute?: IntegrationRouteData;
 }
 ```
+
+#### `assets` 옵션
+
+<Since v="5.0.0" />
+
+**타입:** `Map<string, URL[]>`
+
+출력 파일 경로의 URL들을 [`IntegrationResolvedRoute`](#integrationresolvedroute-타입-참조)의 `pattern` 속성으로 그룹화하여 포함합니다.
 
 #### `pages` 옵션
 
@@ -686,7 +1006,7 @@ interface RouteData {
 
 **동작 시기:** `astro dev`에서 경로가 요청될 때마다. `astro build`에서 경로 파일을 번들링하고 변환하는 동안.
 
-**사용 목적:** 빌드 시 또는 요청 시 경로에 대한 옵션을 설정하기 위해. 예: [주문형 서버 렌더링](/ko/guides/on-demand-rendering/) 활성화
+**사용 목적:** 빌드 시 또는 요청 시 경로에 대한 옵션을 설정하기 위해. 예: [요청 시 서버 렌더링](/ko/guides/on-demand-rendering/#요청-시-렌더링-활성화) 활성화
 
 ```js
 'astro:route:setup'?: (options: { route: RouteOptions }) => void | Promise<void>;
@@ -708,7 +1028,7 @@ interface RouteData {
 <Since v="4.14.0" />
 </p>
 
-`prerender` 속성은 경로에 대한 [주문형 서버 렌더링](/ko/guides/on-demand-rendering/)을 구성하는 데 사용됩니다. 경로 파일에 명시적인 `export const prerender` 값이 포함되어 있으면 `undefined` 대신 해당 값이 기본값으로 사용됩니다.
+`prerender` 속성은 경로에 대한 [요청 시 서버 렌더링](/ko/guides/on-demand-rendering/#요청-시-렌더링-활성화)을 구성하는 데 사용됩니다. 경로 파일에 명시적인 `export const prerender` 값이 포함되어 있으면 `undefined` 대신 해당 값이 기본값으로 사용됩니다.
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
@@ -731,11 +1051,11 @@ function setPrerender() {
 }
 ```
 
-모든 훅을 실행한 후 최종 값이 `undefined`인 경우, 경로는 [`output` 옵션](/ko/reference/configuration-reference/#output)에 따라 프리렌더의 기본값으로 돌아갑니다: `hybrid` 모드에서는 사전 렌더링되며, `server` 모드에서는 주문형으로 렌더링됩니다.
+모든 훅을 실행한 후 최종 값이 `undefined`인 경우, 경로는 [`output` 옵션](/ko/reference/configuration-reference/#output)에 따라 프리렌더의 기본값으로 돌아갑니다: `static` 모드에서는 사전 렌더링되며, `server` 모드에서는 요청 시 렌더링됩니다.
 
-### 사용자 정의 후크
+### 커스텀 훅
 
-[global augmentation](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#global-augmentation)을 통해 `IntegrationHooks` 인터페이스를 확장하여 사용자 정의 후크를 통합에 추가할 수 있습니다.
+[global augmentation](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#global-augmentation)을 통해 `IntegrationHooks` 인터페이스를 확장하여 커스텀 훅을 통합에 추가할 수 있습니다.
 
 ```ts
 declare global {
@@ -747,11 +1067,11 @@ declare global {
 }
 ```
 
-향후 내장 후크에 `astro:` 접두사를 사용할 수 있습니다. 사용자 정의 후크의 이름을 지정할 때는 다른 접두사를 선택하세요.
+향후 내장 훅에 `astro:` 접두사를 사용할 수 있습니다. 커스텀 훅의 이름을 지정할 때는 다른 접두사를 선택하세요.
 
 ### `HookParameters`
 
-후크의 이름을 `HookParameters` 유틸리티 타입에 전달하여 후크 인수의 타입을 가져올 수 있습니다. 다음 예시에서는 함수의 `options` 인수의 타입이 `astro:config:setup` 후크의 매개변수와 일치하도록 설정되었습니다:
+훅의 이름을 `HookParameters` 유틸리티 타입에 전달하여 훅 인수의 타입을 가져올 수 있습니다. 다음 예시에서는 함수의 `options` 인수의 타입이 `astro:config:setup` 훅의 매개변수와 일치하도록 설정되었습니다:
 
 ```ts /HookParameters(?:<.+>)?/
 import type { HookParameters } from 'astro';
