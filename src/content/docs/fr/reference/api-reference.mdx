@@ -1,122 +1,31 @@
 ---
-title: API d'exécution d'Astro
+title: Contexte de rendu d'Astro
+sidebar:
+  label: Contexte de rendu
 i18nReady: true
 tableOfContents:
   minHeadingLevel: 2
   maxHeadingLevel: 4
 ---
 import Since from '~/components/Since.astro';
-import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 import ReadMore from '~/components/ReadMore.astro';
 
-## `Astro` global
+Lors du rendu d'une page, Astro fournit une API d'exécution spécifique au rendu actuel. Cela inclut des informations utiles telles que l'URL de la page actuelle ainsi que des API permettant d'effectuer des actions telles que la redirection vers une autre page.
 
-Le global `Astro` est disponible dans tous les contextes des fichiers `.astro`. Il a les fonctions suivantes :
+Dans les composants `.astro`, ce contexte est disponible à partir de l'objet global `Astro`. Les fonctions de point de terminaison sont également appelées avec ce même objet de contexte comme premier argument, dont les propriétés reflètent les propriétés globales d'Astro.
 
-### `Astro.glob()`
+Certaines propriétés ne sont disponibles que pour les routes rendues à la demande ou peuvent avoir des fonctionnalités limitées sur les pages pré-rendues.
 
-`Astro.glob()` est un moyen de charger de nombreux fichiers locaux dans votre site statique.
+L'objet global `Astro` est disponible pour tous les fichiers `.astro`. Utilisez l'objet `context` dans les [fonctions de point de terminaison](/fr/guides/endpoints/) pour servir les points de terminaison de serveur statique ou en direct et dans le [middleware](/fr/guides/middleware/) pour injecter un comportement lorsqu'une page ou un point de terminaison est sur le point d'être rendu.
 
-```astro
----
-// src/components/my-component.astro
-const posts = await Astro.glob('../pages/post/*.md'); // renvoie un tableau de publications qui se trouvent à l'adresse ./src/pages/post/*.md
----
+## L'objet de contexte
 
-<div>
-{posts.slice(0, 3).map((post) => (
-  <article>
-    <h2>{post.frontmatter.title}</h2>
-    <p>{post.frontmatter.description}</p>
-    <a href={post.url}>En savoir plus</a>
-  </article>
-))}
-</div>
-```
+Les propriétés suivantes sont disponibles sur le global `Astro` (par exemple `Astro.props`, `Astro.redirect()`) et sont également disponibles sur l'objet de contexte (par exemple `context.props`, `context.redirect()`) passé aux fonctions de point de terminaison et au middleware.
 
-`.glob()` ne prend qu'un seul paramètre : une URL relative globale des fichiers locaux que vous souhaitez importer. Il est asynchrone et renvoie un tableau des exportations des fichiers correspondants.
+### `props`
 
-`.glob()` ne peut pas prendre des variables ou des chaînes qui les interpolent, car elles ne sont pas statiquement analysables. (Voir [le guide de dépannage](/fr/guides/troubleshooting/#astroglob---no-matches-found) pour une solution de contournement). Ceci est dû au fait que `Astro.glob()` est une enveloppe de [`import.meta.glob()`](https://vite.dev/guide/features.html#glob-import) de Vite.
-
-:::note
-Vous pouvez également utiliser `import.meta.glob()` dans votre projet Astro. Vous pouvez faire cela dans les cas suivants :
-- Vous avez besoin de cette fonctionnalité dans un fichier qui n'est pas `.astro`, comme une route d'API. `Astro.glob()` n'est disponible que dans les fichiers `.astro`, alors que `import.meta.glob()` est disponible n'importe où dans le projet.
-- Vous ne voulez pas charger chaque fichier immédiatement. `import.meta.glob()` peut retourner des fonctions qui importent le contenu du fichier, plutôt que de retourner le contenu lui-même. Notez que cette importation inclut tous les styles et les scripts pour tous les fichiers importés. Ceux-ci seront regroupés et ajoutés à la page, qu'un fichier soit réellement utilisé ou non, car c'est l'analyse statique qui en décide, et non l'exécution.
-- Vous voulez avoir accès au chemin de chaque fichier. `import.meta.glob()` renvoie une carte du chemin d'un fichier à son contenu, tandis que `Astro.glob()` renvoie une liste de contenu.
-- Vous voulez passer plusieurs motifs ; par exemple, vous voulez ajouter un « motif négatif » qui filtre certains fichiers. `import.meta.glob()` peut optionnellement prendre un tableau de chaînes globales, plutôt qu'une seule chaîne.
-
-Pour en savoir plus, consultez la [documentation de Vite](https://vite.dev/guide/features.html#glob-import).
-:::
-#### Fichiers Markdown
-
-Les fichiers Markdown chargés avec `Astro.glob()` renvoient l'interface `MarkdownInstance` suivante :
-
-```ts
-export interface MarkdownInstance<T extends Record<string, any>> {
-  /* Toutes les données spécifiées dans le frontmatter YAML de ce fichier. */
-	frontmatter: T;
-  /* Le chemin d'accès absolu de ce fichier */
-	file: string;
-  /* Le chemin affiché de ce fichier */
-	url: string | undefined;
-  /* Composant Astro qui affiche le contenu de ce fichier */
-	Content: AstroComponentFactory;
-  /** (Markdown uniquement) Contenu du fichier Markdown brut excepté la mise en page HTML et le frontmatter YAML */
-	rawContent(): string;
-  /** (Markdown uniquement) Fichier Markdown compilé en HTML excluant la mise en page HTML */
-	compiledContent(): string;
-  /* Fonction qui renvoie un tableau des éléments h1...h6 de ce fichier */
-	getHeadings(): Promise<{ depth: number; slug: string; text: string }[]>;
-  default: AstroComponentFactory;
-}
-```
-
-Vous pouvez optionnellement fournir un type pour la variable `frontmatter` en utilisant un générique TypeScript.
-
-```astro
----
-interface Frontmatter {
-  title: string;
-  description?: string;
-}
-const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
----
-
-<ul>
-  {posts.map(post => <li>{post.frontmatter.title}</li>)}
-</ul>
-```
-
-#### Fichiers Astro
-
-Les fichiers Astro ont l'interface suivante :
-
-```ts
-export interface AstroInstance {
-  /* Le chemin d'accès à ce fichier */
-  file: string;
-  /* L'URL de ce fichier (s'il se trouve dans le répertoire des pages) */
-	url: string | undefined;
-	default: AstroComponentFactory;
-}
-```
-
-#### Autres fichiers
-
-D'autres fichiers peuvent avoir des interfaces différentes, mais `Astro.glob()` accepte un générique TypeScript si vous savez exactement ce que contient un type de fichier non reconnu.
-
-```ts
----
-interface CustomDataFile {
-  default: Record<string, any>;
-}
-const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
----
-```
-
-### `Astro.props`
-
-`Astro.props` est un objet contenant toutes les valeurs qui ont été transmises en tant qu'[attributs de composant](/fr/basics/astro-components/#props-de-composant). Les composants de mise en page pour les fichiers `.md` et `.mdx` reçoivent les valeurs de frontmatter comme props.
+`props` est un objet contenant toutes les valeurs qui ont été transmises en tant qu'[attributs de composant](/fr/basics/astro-components/#props-de-composant).
 
 ```astro {3}
 ---
@@ -139,40 +48,104 @@ import Heading from '../components/Heading.astro';
 
 <ReadMore>En savoir plus sur la façon dont les [Mises en page Markdown et MDX](/fr/guides/markdown-content/#propriété-layout-du-frontmatter) gèrent les propriétés.</ReadMore>
 
-<ReadMore>Apprenez à ajouter des [définitions de type TypeScript pour vos props](/fr/guides/typescript/#type-componentprops).</ReadMore>
 
-### `Astro.params`
+L'objet `props` contient également tous les `props` transmis depuis `getStaticPaths()` lors du rendu des routes statiques.
 
-`Astro.params` est un objet contenant les valeurs des segments de routes dynamiques correspondant à cette requête.
+<Tabs>
+  <TabItem label="Astro.props">
+    ```astro title="src/pages/posts/[id].astro" "props:" {11}
+    ---
+    export function getStaticPaths() {
+      return [
+        { params: { id: '1' }, props: { author: 'Blu' } },
+        { params: { id: '2' }, props: { author: 'Erika' } },
+        { params: { id: '3' }, props: { author: 'Matthew' } }
+      ];
+    }
+
+    const { id } = Astro.params;
+    const { author } = Astro.props;
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.props">
+    ```ts title="src/pages/posts/[id].json.ts" "props:" {11-15}
+    import type { APIContext } from 'astro';
+
+    export function getStaticPaths() {
+      return [
+        { params: { id: '1' }, props: { author: 'Blu' } },
+        { params: { id: '2' }, props: { author: 'Erika' } },
+        { params: { id: '3' }, props: { author: 'Matthew' } }
+      ];
+    }
+
+    export function GET({ props }: APIContext) {
+      return new Response(
+        JSON.stringify({ author: props.author }),
+      );
+    }
+    ```
+  </TabItem>
+
+</Tabs>
+Voir aussi : [Transmission de données avec `props`](/fr/reference/routing-reference/#data-passing-with-props)
+
+### `params`
+
+`params` est un objet contenant les valeurs des segments de route dynamiques correspondant à une requête. Ses clés doivent correspondre aux [paramètres](/fr/guides/routing/#routes-dynamiques) du chemin d'accès à la page ou au fichier de point de terminaison.
 
 Dans les versions statiques, il s'agira des `params` renvoyés par `getStaticPaths()` utilisés pour le pré-rendu [des routes dynamiques](/fr/guides/routing/#routes-dynamiques).
 
-```astro title="src/pages/posts/[id].astro"
----
-export function getStaticPaths() {
-  return [
-    { params: { id: '1' } },
-    { params: { id: '2' } },
-    { params: { id: '3' } }
-  ];
-}
+<Tabs>
+  <TabItem label="Astro.params">
+    ```astro title="src/pages/posts/[id].astro" {9} "params:"
+    ---
+    export function getStaticPaths() {
+      return [
+        { params: { id: '1' } },
+        { params: { id: '2' } },
+        { params: { id: '3' } }
+      ];
+    }
+    const { id } = Astro.params;
+    ---
+    <h1>{id}</h1>
+    ```
+  </TabItem>
+  <TabItem label="context.params">
+    ```ts title="src/pages/posts/[id].json.ts" "params:" {11-15}
+    import type { APIContext } from 'astro';
 
-const { id } = Astro.params;
----
-<h1>{id}</h1>
-```
+    export function getStaticPaths() {
+      return [
+        { params: { id: '1' } },
+        { params: { id: '2' } },
+        { params: { id: '3' } }
+      ];
+    }
 
-Dans les versions SSR, il peut s'agir de n'importe quelle valeur correspondant aux segments de chemin dans le modèle de route dynamique.
+    export function GET({ params }: APIContext) {
+      return new Response(
+        JSON.stringify({ id: params.id }),
+      );
+    }
+    ```
+  </TabItem>
+</Tabs>
 
-```astro title="src/pages/posts/[id].astro"
+
+Lorsque les routes sont rendues à la demande, `params` peut être n'importe quelle valeur correspondant aux segments de chemin dans le modèle de route dynamique.
+
+```astro title="src/pages/posts/[id].astro" "Astro.params"
 ---
 import { getPost } from '../api';
 
 const post = await getPost(Astro.params.id);
 
-// No posts found with this ID
+// Aucun article trouvé avec cet identifiant
 if (!post) {
-  Astro.redirect("/404")
+  return Astro.redirect("/404")
 }
 ---
 <html>
@@ -180,9 +153,142 @@ if (!post) {
 </html>
 ```
 
-Voir aussi : [`params`](#params)
+Voir aussi : [`params`](/fr/reference/routing-reference/#params)
 
-### `Astro.request`
+### `url`
+
+<p>
+
+**Type :** `URL`<br />
+<Since v="1.0.0" />
+</p>
+
+`url` est un objet [URL](https://developer.mozilla.org/fr/docs/Web/API/URL) construit à partir de la valeur actuelle de `request.url`. Il est utile pour interagir avec les propriétés individuelles de l'URL de la requête, comme le chemin d'accès et l'origine. 
+
+`Astro.url` équivaut à faire `new URL(Astro.request.url)`.
+
+`url` sera une URL `localhost` en mode dev. Lors de la création d'un site, les routes pré-rendues recevront une URL basée sur les options [`site`](/fr/reference/configuration-reference/#site) et [`base`](/fr/reference/configuration-reference/#base). Si `site` n'est pas configuré, les pages pré-rendues recevront également une URL `localhost` pendant la construction.
+
+```astro title="src/pages/index.astro" "Astro.url"
+<h1>L'URL actuelle est : {Astro.url}</h1>
+<h1>Le chemin d'accès actuel de l'URL est : {Astro.url.pathname}</h1>
+<h1>L'origine de l'URL actuelle est : {Astro.url.origin}</h1>
+```
+
+Vous pouvez également utiliser `url` pour créer de nouvelles URL en le passant comme argument à [`new URL()`](https://developer.mozilla.org/fr/docs/Web/API/URL/URL).
+
+```astro title="src/pages/index.astro" "Astro.url"
+---
+// Exemple : créer une URL canonique à l'aide de votre domaine de production
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+// Exemple : créez une URL pour les balises méta SEO en utilisant votre domaine actuel
+const socialImageURL = new URL('/images/preview.png', Astro.url);
+---
+<link rel="canonical" href={canonicalURL} />
+<meta property="og:image" content={socialImageURL} />
+```
+
+### `site`
+
+<p>
+
+**Type :** `URL | undefined`
+</p>
+
+`site` renvoie une `URL` créée à partir du `site` défini dans votre configuration Astro. Il renvoie `undefined` si vous n'avez pas défini de valeur pour [`site`](/fr/reference/configuration-reference/#site) dans votre configuration Astro.
+
+```astro title="src/pages/index.astro" "Astro.site"
+<link
+    rel="alternate"
+    type="application/rss+xml"
+    title="Le titre de votre site"
+    href={new URL("rss.xml", Astro.site)}
+/>
+```
+
+### `clientAddress`
+
+<p>
+
+**Type :** `string`<br />
+<Since v="1.0.0" />
+</p>
+
+`clientAddress` spécifie l'[adresse IP](https://fr.wikipedia.org/wiki/Adresse_IP) de la requête. Cette propriété est uniquement disponible pour les routes rendues à la demande et ne peut pas être utilisée sur les pages pré-rendues.
+
+<Tabs>
+  <TabItem label="Astro.clientAddress">
+    ```astro title="src/pages/ip-address.astro" "Astro.clientAddress"
+    ---
+    export const prerender = false; // Pas nécessaire en mode `server`
+    ---
+
+    <div>Votre adresse IP est : <span class="address">{Astro.clientAddress}</span></div>
+    ```
+  </TabItem>
+  <TabItem label="context.clientAddress">
+    ```ts title="src/pages/ip-address.ts" "clientAddress"
+    export const prerender = false; // Pas nécessaire en mode `server`
+    import type { APIContext } from 'astro';
+
+    export function GET({ clientAddress }: APIContext) {
+      return new Response(`Votre adresse IP est : ${clientAddress}`);
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+
+### `isPrerendered`
+
+<p>
+
+**Type** : `boolean`<br />
+<Since v="5.0.0" />
+</p>
+
+Un booléen indiquant si la page actuelle est pré-rendue ou non.
+
+Vous pouvez utiliser cette propriété pour exécuter une logique conditionnelle dans un middleware, par exemple, pour éviter d'accéder aux en-têtes dans les pages pré-rendues.
+
+### `generator`
+
+<p>
+
+**Type :** `string`<br />
+<Since v="1.0.0" />
+</p>
+
+`generator` fournit la version actuelle d'Astro que votre projet exécute. C'est un moyen pratique d'ajouter une balise [`<meta name="generator">`](https://html.spec.whatwg.org/multipage/semantics.html#meta-generator) avec votre version actuelle d'Astro. Il suit le format `"Astro v5.x.x"`.
+
+<Tabs>
+  <TabItem label="Astro.generator">
+    ```astro title="src/pages/site-info.astro" "Astro.generator"
+    <html>
+      <head>
+        <meta name="generator" content={Astro.generator} />
+      </head>
+      <body>
+        <footer>
+          <p>Construit avec <a href="https://astro.build">{Astro.generator}</a></p>
+        </footer>
+      </body>
+    </html>
+    ```
+  </TabItem>
+  <TabItem label="context.generator">
+    ```ts title="src/pages/site-info.json.ts" "generator"
+    import type { APIContext } from 'astro';
+
+    export function GET({ generator, site }: APIContext) {
+      const body = JSON.stringify({ generator, site });
+      return new Response(body);
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+### `request`
 
 <p>
 
@@ -191,29 +297,41 @@ Voir aussi : [`params`](#params)
 
 `Astro.request` est un objet [Request](https://developer.mozilla.org/fr/docs/Web/API/Request) standard. Il peut être utilisé pour obtenir les propriétés `url`, `headers`, `method`, et même le corps de la requête.
 
-```astro
-<p>Réception d'une requête {Astro.request.method} depuis "{Astro.request.url}".</p>
-<p>En-têtes de requête reçus : <code>{JSON.stringify(Object.fromEntries(Astro.request.headers))}</code>
-```
+<Tabs>
+  <TabItem label="Astro.request">
+    ```astro wrap title="src/pages/index.astro" "Astro.request"
+    <p>Réception d'une requête {Astro.request.method} à "{Astro.request.url}".</p>
+    <p>En-têtes de requête reçus :</p>
+    <p><code>{JSON.stringify(Object.fromEntries(Astro.request.headers))}</code></p>
+    ```
+  </TabItem>
+  <TabItem label="context.request">
+    ```ts "request"
+    import type { APIContext } from 'astro';
 
-Voir aussi : [`Astro.url`](#astrourl)
+    export function GET({ request }: APIContext) {
+      return new Response(`Hello ${request.url}`);
+    }
+    ```
+  </TabItem>
+</Tabs>
 
 :::note
-Avec l'option par défaut `output: 'static'`, `Astro.request.url` ne contient pas de paramètres de recherche, comme `?foo=bar`, car il n'est pas possible de les déterminer à l'avance lors des constructions statiques. Cependant, en mode `output: 'server'`, `Astro.request.url` contient les paramètres de recherche car ils peuvent être déterminés à partir d'une requête du serveur.
+Sur les pages pré-rendues, `request.url` ne contient pas de paramètres de recherche, comme `?type=new`, car il n'est pas possible de les déterminer à l'avance lors des constructions statiques. Cependant, `request.url` contient des paramètres de recherche pour les pages rendues à la demande car ils peuvent être déterminés à partir d'une requête serveur.
 :::
 
-### `Astro.response`
+### `response`
 
 <p>
 
 **Type :** `ResponseInit & { readonly headers: Headers }`
 </p>
 
-`Astro.response` est un objet `ResponseInit` standard. Il a la structure suivante.
+`response` est un objet `ResponseInit` standard. Il a la structure suivante.
 
- - `status` : Le code de statut numérique de la réponse, par exemple `200`.
- - `statusText` : Le message de statut associé au code de statut, par exemple `'OK'`.
- - `headers` : Une instance [`Headers`](https://developer.mozilla.org/fr/docs/Web/API/Headers) que vous pouvez utiliser pour définir les en-têtes HTTP de la réponse.
+ - `status` : Le code de statut numérique de la réponse, par exemple `200`.
+ - `statusText` : Le message de statut associé au code de statut, par exemple `'OK'`.
+ - `headers` : Une instance [`Headers`](https://developer.mozilla.org/fr/docs/Web/API/Headers) que vous pouvez utiliser pour définir les en-têtes HTTP de la réponse.
 
 `Astro.response` est utilisé pour définir le `status`, le `statusText` et les `headers` de la réponse d'une page.
 
@@ -227,7 +345,7 @@ if(condition) {
 ---
 ```
 
-Ou de définir un en-tête :
+Ou de définir un en-tête :
 
 ```astro
 ---
@@ -235,7 +353,280 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 ---
 ```
 
-### `Astro.cookies`
+### `redirect()`
+
+<p>
+
+**Type :** `(path: string, status?: number) => Response`
+<Since v="1.5.0" />
+</p>
+
+`redirect()` renvoie un objet [Response](https://developer.mozilla.org/fr/docs/Web/API/Response) qui vous permet de rediriger vers une autre page et éventuellement de fournir un [code d'état de réponse HTTP](https://developer.mozilla.org/fr/docs/Web/HTTP/Status#messages_de_redirection) comme deuxième paramètre.
+
+Une page (et non un composant enfant) doit renvoyer le résultat de `Astro.redirect()` pour que la redirection se produise.
+
+Pour les routes générées de manière statique, cela produira une redirection client à l'aide d'une balise [`<meta http-equiv="refresh">`](https://developer.mozilla.org/fr/docs/Web/HTML/Element/meta#http-equiv) et ne prend pas en charge les codes d'état.
+
+Pour les routes rendues à la demande, la définition d'un code d'état personnalisé est prise en charge lors de la redirection. S'il n'est pas spécifié, les redirections seront servies avec un code d'état `302`.
+
+L'exemple suivant redirige un utilisateur vers une page de connexion :
+
+<Tabs>
+  <TabItem label="Astro.redirect()">
+    ```astro title="src/pages/account.astro" {8} "Astro.redirect"
+    ---
+    import { isLoggedIn } from '../utils';
+
+    const cookie = Astro.request.headers.get('cookie');
+
+    // Si l'utilisateur n'est pas connecté, redirigez-le vers la page de connexion
+    if (!isLoggedIn(cookie)) {
+      return Astro.redirect('/login');
+    }
+    ---
+    
+    <p>Informations de l'utilisateur</p>
+    ```
+  </TabItem>
+  <TabItem label="context.redirect()">
+    ```ts "redirect"
+    import type { APIContext } from 'astro';
+
+    export function GET({ redirect, request }: APIContext) {
+      const cookie = request.headers.get('cookie');
+      if (!isLoggedIn(cookie)) {
+        return redirect('/login', 302);
+      } else {
+        // renvoyer les informations de l'utilisateur
+      }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+
+### `rewrite()`
+
+<p>
+
+**Type :** `(rewritePayload: string | URL | Request) => Promise<Response>`<br />
+<Since v="4.13.0" />
+</p>
+
+`rewrite()` vous permet de diffuser du contenu à partir d'une URL ou d'un chemin différent sans rediriger le navigateur vers une nouvelle page.
+
+La méthode accepte soit une chaîne de caractères, une `URL` ou un objet `Request` pour l'emplacement du chemin.
+
+Utilisez une chaîne de caractères pour fournir un chemin explicite :
+
+<Tabs syncKey="rewrite">
+  <TabItem label="Astro.rewrite()">
+    ```astro title="src/pages/index.astro" "Astro.rewrite"
+    ---
+    return Astro.rewrite("/login")
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.rewrite()">
+    ```ts "rewrite"
+    import type { APIContext } from 'astro';
+
+    export function GET({ rewrite }: APIContext) {
+      return rewrite('/login');
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+Utilisez un type `URL` lorsque vous devez construire le chemin de l'URL pour la réécriture. L'exemple suivant affiche le chemin parent d'une page en créant une nouvelle URL à partir du chemin relatif `"../"` :
+
+<Tabs syncKey="rewrite">
+  <TabItem label="Astro.rewrite()">
+    ```astro title="src/pages/blog/index.astro"
+    ---
+    return Astro.rewrite(new URL("../", Astro.url))
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.rewrite()">
+    ```ts
+    import type { APIContext } from 'astro';
+
+    export function GET({ rewrite }: APIContext) {
+      return rewrite(new URL("../", Astro.url));
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+Utilisez un type `Request` pour un contrôle complet de la `Request` envoyée au serveur pour le nouveau chemin. L'exemple suivant envoie une requête pour afficher la page parent tout en fournissant des en-têtes :
+
+<Tabs syncKey="rewrite">
+  <TabItem label="Astro.rewrite()">
+    ```astro title="src/pages/blog/index.astro"
+    ---
+    return Astro.rewrite(new Request(new URL("../", Astro.url), {
+      headers: {
+        "x-custom-header": JSON.stringify(Astro.locals.someValue)
+      }
+    }))
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.rewrite()">
+    ```ts
+    import type { APIContext } from 'astro';
+
+    export function GET({ rewrite }: APIContext) {
+      return rewrite(new Request(new URL("../", Astro.url), {
+        headers: {
+          "x-custom-header": JSON.stringify(Astro.locals.someValue)
+        }
+      }));
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+### `locals`
+
+<p>
+
+<Since v="2.4.0" />
+</p>
+
+`locals` est un objet utilisé pour stocker et accéder à des informations arbitraires pendant le cycle de vie d'une requête. `Astro.locals` est un objet contenant toutes les valeurs de l'objet `context.locals` défini par le middleware. Utilisez-le pour accéder aux données renvoyées par le middleware dans vos fichiers `.astro`.
+
+Les fonctions middleware peuvent à la fois lire et écrire les valeurs de `context.locals` :
+
+```ts title="src/middleware.ts" "locals"
+import type { MiddlewareHandler } from 'astro';
+
+export const onRequest: MiddlewareHandler = ({ locals }, next) => {
+  if (!locals.title) {
+    locals.title = "Titre par défaut";
+  }
+  return next();
+}
+```
+
+Les composants Astro et les points de terminaison de l'API peuvent lire les valeurs depuis `locals` lorsqu'elles s'affichent :
+
+<Tabs>
+  <TabItem label="Astro.locals">
+    ```astro title="src/pages/Orders.astro" "Astro.locals"
+    ---
+    const title = Astro.locals.title;
+    ---
+    <h1>{title}</h1>
+    ```
+  </TabItem>
+  <TabItem label="context.locals">
+    ```ts title="src/pages/hello.ts" "locals"
+    import type { APIContext } from 'astro';
+
+    export function GET({ locals }: APIContext) {
+      return new Response(locals.title); // "Titre par défaut"
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+### `preferredLocale`
+
+<p>
+
+**Type :** `string | undefined`<br />
+<Since v="3.5.0" />
+</p>
+
+`preferredLocale` est une valeur calculée pour trouver la meilleure correspondance entre les préférences linguistiques du navigateur de votre visiteur et les paramètres régionaux pris en charge par votre site.
+
+Elle est calculée en vérifiant les paramètres régionaux configurés dans votre tableau [`i18n.locales`](/fr/reference/configuration-reference/#i18nlocales) et les paramètres régionaux pris en charge par le navigateur de l'utilisateur via l'en-tête `Accept-Language`. Cette valeur a pour valeur `undefined` si aucune correspondance de ce type n'existe.
+
+Cette propriété est uniquement disponible pour les routes rendues à la demande et ne peut pas être utilisée sur des pages statiques pré-rendues.
+
+### `preferredLocaleList`
+
+<p>
+
+**Type :** `string[] | undefined`<br />
+<Since v="3.5.0" />
+</p>
+
+`preferredLocaleList` représente le tableau de tous les paramètres régionaux demandés par le navigateur et pris en charge par votre site web. Cela génère une liste de toutes les langues compatibles entre votre site et votre visiteur.
+
+Si aucune des langues demandées par le navigateur n'est trouvée dans votre tableau locales, alors la valeur est `[]`. Cela se produit lorsque vous ne prenez en charge aucun des paramètres régionaux préférés de vos visiteurs.
+
+Si le navigateur ne spécifie aucune langue préférée, alors cette valeur sera celle de [`i18n.locales`](/fr/reference/configuration-reference/#i18nlocales) : tous vos paramètres régionaux pris en charge seront considérés comme également préférés par un visiteur sans préférences.
+
+Cette propriété n'est disponible que pour l'affichage côté serveur (SSR) et ne doit pas être utilisée pour les sites statiques.
+
+### `currentLocale`
+
+<p>
+
+**Type :** `string | undefined`<br />
+<Since v="3.5.6" />
+</p>
+
+Les paramètres régionaux calculés à partir de l'URL actuelle, en utilisant la syntaxe spécifiée dans votre configuration `locales`. Si l'URL ne contient pas de préfixe `/[locale]/`, la valeur par défaut sera [`i18n.defaultLocale`](/fr/reference/configuration-reference/#i18ndefaultlocale).
+
+### `getActionResult()`
+
+<p>
+**Type :** `(action: TAction) => ActionReturnType<TAction> | undefined`<br />
+<Since v="4.15.0" />
+</p>
+
+`getActionResult()` est une fonction qui renvoie le résultat d'une soumission d'[Action](/fr/guides/actions/). Celle-ci accepte une fonction d'action comme argument (par exemple, `actions.logout`) et renvoie un objet `data` ou `error` lorsqu'une soumission est reçue. Sinon, elle renverra `undefined`.
+
+```astro title="src/pages/index.astro" "Astro.getActionResult"
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.logout);
+---
+
+<form action={actions.logout}>
+  <button type="submit">Se déconnecter</button>
+</form>
+{result?.error && <p>Échec de la déconnexion. Veuillez réessayer.</p>}
+```
+
+### `callAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`callAction()` est une fonction utilisée pour appeler un gestionnaire d'Action directement depuis votre composant Astro. Celle-ci accepte une fonction Action comme premier argument (par exemple `actions.logout`) et toute entrée que l'action reçoit comme deuxième argument. Elle renvoie le résultat de l'action sous forme de promesse.
+
+```astro title="src/pages/index.astro" "Astro.callAction"
+---
+import { actions } from 'astro:actions';
+
+const { data, error } = await Astro.callAction(actions.logout, { userId: '123' });
+---
+```
+
+### `routePattern`
+
+<p>
+
+**Type** : `string`<br />
+<Since v="5.0.0" />
+</p>
+
+Le modèle de route chargé de générer la page ou la route actuelle. Dans le routage basé sur des fichiers, cela ressemble au chemin d'accès au fichier de votre projet utilisé pour créer la route. Lorsque les intégrations créent des routes pour votre projet, `context.routePattern` est identique à la valeur de `injectRoute.pattern`.
+
+La valeur commencera par une barre oblique et ressemblera au chemin d'un composant de page par rapport à votre dossier `src/pages/` sans extension de fichier.
+
+Par exemple, le fichier `src/pages/en/blog/[slug].astro` renverra `/en/blog/[slug]` pour `routePattern`. Chaque page de votre site générée par ce fichier (par exemple `/en/blog/post-1/`, `/en/blog/post-2/`, etc.) partage la même valeur pour `routePattern`. Dans le cas des routes `index.*`, le modèle de route n'inclura pas le mot « index ». Par exemple, `src/pages/index.astro` renverra `/`.
+
+Vous pouvez utiliser cette propriété pour comprendre quelle route effectue le rendu de votre composant. Cela vous permet de cibler ou d'analyser ensemble les URL de pages générées de manière similaire. Par exemple, vous pouvez l'utiliser pour restituer certaines informations de manière conditionnelle ou collecter des mesures sur les routes les plus lentes.
+
+### `cookies`
 
 <p>
 
@@ -243,18 +634,20 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
 <Since v="1.4.0" />
 </p>
 
-`Astro.cookies` contient des utilitaires pour lire et manipuler les cookies en mode [rendu à la demande](/fr/guides/on-demand-rendering/).
+`cookies` contient des utilitaires pour lire et manipuler les cookies pour les [routes rendues à la demande](/fr/guides/on-demand-rendering/).
 
-##### `get`
+#### Utilitaires de cookies
+
+##### `cookies.get()`
 
 <p>
 
-**Type :** <code>(key: string, options?: <a href="#astrocookiegetoptions">AstroCookieGetOptions</a>) => <a href="#astrocookie">AstroCookie</a> | undefined</code>
+**Type :** <code>(key: string, options?: <a href="#astrocookiegetoptions">AstroCookieGetOptions</a>) => <a href="#type-astrocookie">AstroCookie</a> | undefined</code>
 </p>
 
-Obtient le cookie sous la forme d'un objet [`AstroCookie`](#astrocookie), qui contient la `value` et des fonctions utilitaires pour convertir le cookie en types autres que des chaînes de caractères.
+Obtient le cookie sous la forme d'un objet [`AstroCookie`](#type-astrocookie), qui contient la `value` et des fonctions utilitaires pour convertir le cookie en types autres que des chaînes de caractères.
 
-##### `has`
+##### `cookies.has()`
 
 <p>
 
@@ -263,16 +656,16 @@ Obtient le cookie sous la forme d'un objet [`AstroCookie`](#astrocookie), qui co
 
 Détermine si ce cookie existe. Si le cookie a été défini via `Astro.cookies.set()` cela retournera `true`, sinon cela vérifiera les cookies dans `Astro.request`.
 
-##### `set`
+##### `cookies.set()`
 
 <p>
 
 **Type :** <code>(key: string, value: string | object, options?: <a href="#astrocookiesetoptions">AstroCookieSetOptions</a>) => void</code>
 </p>
 
-Fixe le cookie `key` à la valeur donnée. Ceci tentera de convertir la valeur du cookie en une chaîne de caractères. Les options permettent de définir les [caractéristiques du cookie](https://www.npmjs.com/package/cookie#options-1), comme `maxAge` ou `httpOnly`.
+Définit la clé du cookie (`key`) sur la valeur donnée. Cela tentera de convertir la valeur du cookie en une chaîne de caractères. Les options permettent de définir les [caractéristiques du cookie](https://www.npmjs.com/package/cookie#options-1), comme `maxAge` ou `httpOnly`.
 
-##### `delete`
+##### `cookies.delete()`
 
 <p>
 
@@ -281,9 +674,9 @@ Fixe le cookie `key` à la valeur donnée. Ceci tentera de convertir la valeur d
 
 Invalide un cookie en fixant la date d'expiration dans le passé (0 en temps Unix).
 
-Une fois qu'un cookie est "supprimé" (expiré), `Astro.cookies.has()` retournera `false` et `Astro.cookies.get()` retournera un [`AstroCookie`](#astrocookie) avec une `valeur` de `undefined`. Les options disponibles lors de la suppression d'un cookie sont : `domain`, `path`, `httpOnly`, `sameSite`, et `secure`.
+Une fois qu'un cookie est « supprimé » (expiré), `Astro.cookies.has()` retournera `false` et `Astro.cookies.get()` retournera un [`AstroCookie`](#type-astrocookie) avec une `valeur` de `undefined`. Les options disponibles lors de la suppression d'un cookie sont : `domain`, `path`, `httpOnly`, `sameSite`, et `secure`.
 
-##### `merge`
+##### `cookies.merge()`
 
 <p>
 
@@ -292,7 +685,7 @@ Une fois qu'un cookie est "supprimé" (expiré), `Astro.cookies.has()` retourner
 
 Fusionne une nouvelle instance `AstroCookies` dans l'instance actuelle. Tous les nouveaux cookies seront ajoutés à l'instance actuelle et tous les cookies portant le même nom remplaceront les valeurs existantes.
 
-##### `headers`
+##### `cookies.headers()`
 
 <p>
 
@@ -301,9 +694,9 @@ Fusionne une nouvelle instance `AstroCookies` dans l'instance actuelle. Tous les
 
 Obtient les valeurs de l'en-tête `Set-Cookie` qui seront envoyées avec la réponse.
 
-#### `AstroCookie`
+#### Type `AstroCookie`
 
-L'obtention d'un cookie via `Astro.cookies.get()` renvoie un type `AstroCookie`. Il a la structure suivante.
+Le type renvoyé après l'obtention d'un cookie via `Astro.cookies.get()`. Il a la structure suivante :
 
 ##### `value`
 
@@ -345,12 +738,12 @@ Convertit la valeur du cookie en un booléen.
 
 <p><Since v="4.1.0"/></p>
 
-L'obtention d'un cookie permet également de spécifier des options via l'interface `AstroCookieGetOptions` :
+L'interface `AstroCookieGetOption` vous permet de spécifier des options lorsque vous recevez un cookie.
 
 ##### `decode`
 
 <p>
-**Type :** `(value: string) => string`
+**Type :** `(value: string) => string`
 </p>
 
 Permet de personnaliser la manière dont un cookie est désérialisé en une valeur.
@@ -359,7 +752,7 @@ Permet de personnaliser la manière dont un cookie est désérialisé en une val
 
 <p><Since v="4.1.0"/></p>
 
-La définition d'un cookie via `Astro.cookies.set()` permet de passer un `AstroCookieSetOptions` pour personnaliser la façon dont le cookie est sérialisé.
+`AstroCookieSetOptions` est un objet qui peut être transmis à `Astro.cookies.set()` lors de la définition d'un cookie pour personnaliser la manière dont le cookie est sérialisé.
 
 ##### `domain`
 
@@ -433,953 +826,117 @@ Si c'est vrai, le cookie n'est défini que sur les sites https.
 
 Permet de personnaliser la façon dont le cookie est sérialisé.
 
-### `Astro.redirect()`
 
-<p>
+### Propriétés d'objet obsolètes
 
-**Type :** `(path: string, status?: number) => Response`
-</p>
+#### `Astro.glob()`
 
-Permet de rediriger vers une autre page, et optionnellement de fournir un [code de réponse avec un statut HTTP](https://developer.mozilla.org/fr/docs/Web/HTTP/Status#messages_de_redirection) comme second paramètre.
+:::caution[Obsolète depuis la version 5.0]
+Utilisez [`import.meta.glob` de Vite](https://vite.dev/guide/features.html#glob-import) pour interroger les fichiers de projet.
 
-Une page (et non un composant enfant) doit retourner le résultat de `Astro.redirect()` pour que la redirection ait lieu.
+`Astro.glob('../pages/post/*.md')` peut être remplacé par :
 
-Pour les sites générés statiquement, cela produira une redirection client utilisant une balise [`<meta http-equiv="refresh">`](https://developer.mozilla.org/fr/docs/Web/HTML/Element/meta) et ne prend pas en charge les codes d'état.
+`Object.values(import.meta.glob('../pages/post/*.md', { eager: true }));`
 
-Lors de l'utilisation d'un mode d'affichage à la demande, les codes d'état sont pris en charge. Astro servira les requêtes redirigées avec un statut de réponse HTTP par défaut de `302` à moins qu'un autre code ne soit spécifié.
+Consultez le [guide d'importation](/fr/guides/imports/#importmetaglob) pour plus d'informations et d'utilisation.
+:::
 
-L'exemple suivant redirige un utilisateur vers une page de connexion :
-
-```astro title="src/pages/account.astro" {8}
----
-import { isLoggedIn } from '../utils';
-
-const cookie = Astro.request.headers.get('cookie');
-
-// Si l'utilisateur n'est pas connecté, le rediriger vers la page de connexion.
-if (!isLoggedIn(cookie)) {
-  return Astro.redirect('/login');
-}
----
-```
-
-### `Astro.rewrite()`
-
-<p>
-
-**Type :** `(rewritePayload: string | URL | Request) => Promise<Response>`<br />
-<Since v="4.13.0" />
-</p>
-
-Permet de servir du contenu à partir d'une URL ou d'un chemin différent sans rediriger le navigateur vers une nouvelle page.
-
-La méthode accepte soit une chaîne de caractères, soit une `URL`, soit une `Request` pour l'emplacement du chemin.
-
-Utilisez une chaîne de caractères pour fournir un chemin explicite :
-
-```astro title="src/pages/index.astro"
----
-return Astro.rewrite("/login")
----
-```
-
-Utilisez un type `URL` lorsque vous devez construire le chemin de l'URL pour la réécriture. L'exemple suivant affiche le chemin parent d'une page en créant une nouvelle URL à partir du chemin relatif `"../"` :
-
-```astro title="src/pages/blog/index.astro"
----
-return Astro.rewrite(new URL("../", Astro.url))
----
-```
-
-Utilisez un type `Request` pour un contrôle complet de la `Request` envoyée au serveur pour le nouveau chemin. L'exemple suivant envoie une requête pour afficher la page parent tout en fournissant des en-têtes :
-
-```astro title="src/pages/blog/index.astro"
----
-return Astro.rewrite(new Request(new URL("../", Astro.url), {
-  headers: {
-    "x-custom-header": JSON.stringify(Astro.locals.someValue)
-  }
-}))
----
-```
-
-### `Astro.url`
-
-<p>
-
-**Type :** `URL`<br />
-<Since v="1.0.0-rc" />
-</p>
-
-Un objet [URL](https://developer.mozilla.org/fr/docs/Web/API/URL) construit à partir de la chaîne d'URL courante `Astro.request.url`. Utile pour interagir avec les propriétés individuelles de l'URL de la requête, comme le chemin et l'origine.
-
-Equivalent à `new URL(Astro.request.url)`.
-
-`Astro.url` aura pour valeur `localhost` en mode dev pour les sites statiques quand [site](/fr/reference/configuration-reference/#site) n'est pas configuré et pour les sites rendus à la demande utilisant la sortie `server` ou `hybrid`.
-
-```astro
-<h1>L'URL actuelle est : {Astro.url}</h1>
-<h1>Le chemin d'accès à l'URL actuelle est : {Astro.url.pathname}</h1>
-<h1>L'origine de l'URL actuelle est : {Astro.url.origin}</h1>
-```
-
-Vous pouvez également utiliser `Astro.url` pour créer de nouvelles URL en le passant comme argument à [`new URL()`] (https://developer.mozilla.org/fr/docs/Web/API/URL).
-
-```astro title="src/pages/index.astro"
----
-// Exemple : Construire une URL canonique en utilisant votre domaine de production
-const canonicalURL = new URL(Astro.url.pathname, Astro.site);
-// Exemple : Construire une URL pour les méta-tags SEO en utilisant votre domaine actuel
-const socialImageURL = new URL('/images/preview.png', Astro.url);
----
-<link rel="canonical" href={canonicalURL} />
-<meta property="og:image" content={socialImageURL} />
-```
-
-### `Astro.clientAddress`
-
-<p>
-
-**Type :** `string`<br />
-<Since v="1.0.0-rc" />
-</p>
-
-Spécifie l'[adresse IP](https://fr.wikipedia.org/wiki/Adresse_IP) de la requête. Cette propriété n'est disponible que lors de la construction pour SSR (server-side rendering) et ne doit pas être utilisée pour les sites statiques.
+`Astro.glob()` est un moyen de charger de nombreux fichiers locaux dans la configuration de votre site statique.
 
 ```astro
 ---
-const ip = Astro.clientAddress;
+// src/components/my-component.astro
+const posts = await Astro.glob('../pages/post/*.md'); // renvoie un tableau d'articles qui se trouvent dans ./src/pages/post/*.md
 ---
 
-<div>Votre adresse IP est : <span class="address">{ ip }</span></div>
+<div>
+{posts.slice(0, 3).map((post) => (
+  <article>
+    <h2>{post.frontmatter.title}</h2>
+    <p>{post.frontmatter.description}</p>
+    <a href={post.url}>Lire la suite</a>
+  </article>
+))}
+</div>
 ```
 
-### `Astro.site`
+`.glob()` ne prend qu'un seul paramètre : une URL relative glob des fichiers locaux que vous souhaitez importer. Elle est asynchrone et renvoie un tableau des exportations des fichiers correspondants.
 
-<p>
-
-**Type :** `URL | undefined`
-</p>
-
-`Astro.site` retourne une `URL` faite à partir de `site` dans votre configuration Astro. Si `site` n'est pas défini dans votre configuration Astro, `Astro.site` ne sera pas défini.
-
-### `Astro.generator`
-
-<p>
-
-**Type :** `string`<br />
-<Since v="1.0.0" />
-</p>
-
-`Astro.generator` est un moyen pratique d'ajouter une balise [`<meta name="generator">`](https://html.spec.whatwg.org/multipage/semantics.html#meta-generator) avec votre version actuelle d'Astro. Elle suit le format `"Astro v1.x.x"`.
-
-```astro mark="Astro.generator"
-<html>
-  <head>
-    <meta name="generator" content={Astro.generator} />
-  </head>
-  <body>
-    <footer>
-      <p>Généré avec <a href="https://astro.build">{Astro.generator}</a></p>
-    </footer>
-  </body>
-</html>
-```
-
-### `Astro.slots`
-  
-`Astro.slots` contient des fonctions utilitaires pour modifier les enfants d'un composant Astro.
-
-#### `Astro.slots.has()`
-
-<p>
-
-**Type :** `(slotName: string) => boolean`
-</p>
-
-Vous pouvez vérifier si le contenu d'un slot spécifique existe avec `Astro.slots.has()`. Cela peut être utile lorsque vous voulez envelopper le contenu d'un slot, mais que vous ne voulez afficher les éléments de l'enveloppe que lorsque le slot est utilisé.
-
-```astro  title="src/pages/index.astro"
----
----
-<slot />
-
-{Astro.slots.has('more') && (
-  <aside>
-    <h2>Plus d'informations</h2>
-    <slot name="more" />
-  </aside>
-)}
-```
-
-#### `Astro.slots.render()`
-
-<p>
-
-**Type :** `(slotName: string, args?: any[]) => Promise<string>`
-</p>
-
-Vous pouvez afficher de manière asynchrone le contenu d'un slot en une chaîne de caractères HTML en utilisant `Astro.slots.render()`.
-
-```astro
----
-const html = await Astro.slots.render('default');
----
-<Fragment set:html={html} />
-```
+`.glob()` ne peut pas prendre de variables ou de chaînes de caractères qui les interpolent, car elles ne sont pas analysables statiquement. (Consultez [le guide d'importation](/fr/guides/imports/#valeurs-prises-en-charge) pour une solution de contournement.) Ceci est dû au fait que `Astro.glob()` est un wrapper de [`import.meta.glob()`](https://vite.dev/guide/features.html#glob-import) de Vite.
 
 :::note
-Ceci est pour les cas d'utilisation avancés ! Dans la plupart des cas, il est plus simple d'afficher le contenu des slots avec [l'élément `<slot />`](/fr/basics/astro-components/#les-emplacements-slots).
+Vous pouvez également utiliser `import.meta.glob()` lui-même dans votre projet Astro. Vous pouvez le faire lorsque :
+- Vous avez besoin de cette fonctionnalité dans un fichier autre que `.astro`, comme une route API. `Astro.glob()` n'est disponible que dans les fichiers `.astro`, tandis que `import.meta.glob()` est disponible n'importe où dans le projet.
+- Vous ne souhaitez pas charger chaque fichier immédiatement. `import.meta.glob()` peut renvoyer des fonctions qui importent le contenu du fichier, plutôt que de renvoyer le contenu lui-même. Notez que cette importation inclut tous les styles et scripts de tous les fichiers importés. Ceux-ci seront regroupés et ajoutés à la page, qu'un fichier soit réellement utilisé ou non, car cela est décidé par une analyse statique, et non au moment de l'exécution.
+- Vous souhaitez accéder au chemin de chaque fichier. `import.meta.glob()` renvoie une association du chemin d'un fichier et de son contenu, tandis que `Astro.glob()` renvoie une liste de contenu.
+- Vous souhaitez transmettre plusieurs modèles ; par exemple, vous souhaitez ajouter un « modèle négatif » qui filtre certains fichiers. `import.meta.glob()` peut éventuellement prendre un tableau de chaînes glob, plutôt qu'une seule chaîne de caractères.
+
+En savoir plus dans la [documentation de Vite](https://vite.dev/guide/features.html#glob-import).
 :::
 
-`Astro.slots.render()` accepte optionnellement un second argument : un tableau de paramètres qui sera transmis à tous les enfants de la fonction. Cela peut être utile pour les composants utilitaires personnalisés.
+##### Fichiers Markdown
 
-Par exemple, ce composant `<Shout />` convertit sa propriété `message` en majuscules et le transmet au slot par défaut :
+Les fichiers Markdown chargés avec `Astro.glob()` renvoient l'interface `MarkdownInstance` suivante :
 
-```astro title="src/components/Shout.astro" "await Astro.slots.render('default', [message])"
----
-const message = Astro.props.message.toUpperCase();
-let html = '';
-if (Astro.slots.has('default')) {
-  html = await Astro.slots.render('default', [message]);
+```ts
+export interface MarkdownInstance<T extends Record<string, any>> {
+  /* Toutes les données spécifiées dans le frontmatter YAML de ce fichier */
+	frontmatter: T;
+  /* Le chemin d'accès absolu de ce fichier */
+	file: string;
+  /* Le chemin rendu de ce fichier */
+	url: string | undefined;
+  /* Composant Astro qui restitue le contenu de ce fichier */
+	Content: AstroComponentFactory;
+  /** (Markdown uniquement) Contenu du fichier Markdown brut, à l'exclusion de la mise en page HTML et du frontmat YAML */
+	rawContent(): string;
+  /** (Markdown uniquement) Fichier Markdown compilé en HTML, à l'exclusion de la mise en page HTML */
+	compiledContent(): string;
+  /* Fonction qui renvoie un tableau des éléments h1...h6 dans ce fichier */
+	getHeadings(): Promise<{ depth: number; slug: string; text: string }[]>;
+	default: AstroComponentFactory;
 }
----
-<Fragment set:html={html} />
 ```
 
-Une fonction de callback passée comme un enfant de `<Shout />` recevra le paramètre `message` tout en majuscules :
-
-```astro title="src/pages/index.astro"
----
-import Shout from "../components/Shout.astro";
----
-<Shout message="slots!">
-  {(message) => <div>{message}</div>}
-</Shout>
-
-<!-- s'affiche comme <div>SLOTS!</div> -->
-```
-
-Les fonctions de rappel peuvent être transmises à des emplacements nommés à l'intérieur d'une balise d'élément HTML enveloppante avec un attribut `slot`. Cet élément est uniquement utilisé pour transférer la fonction de rappel à un emplacement nommé et ne sera pas rendu sur la page.
-
-```astro
-<Shout message="slots!">
-  <fragment slot="message">
-    {(message) => <div>{message}</div>}
-  </fragment>
-</Shout>
-```
-
-Utilisez un élément HTML standard pour la balise d'encapsulation ou toute balise en minuscules (par exemple `<fragment>` au lieu de `<Fragment />`) qui ne sera pas interprété comme un composant. N'utilisez pas l'élément HTML `<slot>` car il sera interprété comme un slot Astro.
-
-### `Astro.self`
-
-`Astro.self` permet aux composants Astro d'être appelés de manière récursive. Ce comportement vous permet d'afficher un composant Astro à partir de lui-même en utilisant `<Astro.self>` dans le modèle du composant. Cela peut être utile pour itérer sur de grands magasins de données et des structures de données imbriquées.
+Vous pouvez éventuellement fournir un type pour la variable `frontmatter` à l'aide d'un générique TypeScript.
 
 ```astro
 ---
-// NestedList.astro
-const { items } = Astro.props;
+interface Frontmatter {
+  title: string;
+  description?: string;
+}
+const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
 ---
-<ul class="nested-list">
-  {items.map((item) => (
-    <li>
-      <!-- S'il y a une structure de données imbriquée, nous affichons `<Astro.self>` -->
-      <!-- et pouvons passer des props avec l'appel récursif -->
-      {Array.isArray(item) ? (
-        <Astro.self items={item} />
-      ) : (
-        item
-      )}
-    </li>
-  ))}
-</ul>
-```
 
-Ce composant pourrait alors être utilisé comme suit :
-
-```astro
----
-import NestedList from './NestedList.astro';
----
-<NestedList items={['A', ['B', 'C'], 'D']} />
-```
-
-Et afficherait le code HTML comme suit :
-
-```html
-<ul class="nested-list">
-  <li>A</li>
-  <li>
-    <ul class="nested-list">
-      <li>B</li>
-      <li>C</li>
-    </ul>
-  </li>
-  <li>D</li>
-</ul>
-```
-
-
-### `Astro.locals`
-
-<p>
-
-<Since v="2.4.0" />
-</p>
-
-`Astro.locals` est un objet contenant toutes les valeurs de l'objet [`context.locals`](#contextlocals) d'un middleware. Utilisez-le pour accéder aux données retournées par le middleware dans vos fichiers `.astro`.
-
-```astro title="src/pages/Orders.astro"
----
-const title = Astro.locals.welcomeTitle();
-const orders = Array.from(Astro.locals.orders.entries());
----
-<h1>{title}</h1>
 <ul>
-    {orders.map(order => {
-        return <li>{/* fait quelque chose avec chaque `order` */}</li>
-    })}
+  {posts.map(post => <li>{post.frontmatter.title}</li>)}
 </ul>
 ```
 
-### `Astro.preferredLocale`
+##### Fichiers Astro
 
-<p>
-
-**Type :** `string | undefined`<br />
-<Since v="3.5.0" />
-</p>
-
-`Astro.preferredLocale` est une valeur calculée qui représente la locale préférée de l'utilisateur.
-
-Elle est calculée en vérifiant les locales configurées dans votre tableau `i18n.locales` et les locales supportées par le navigateur de l'utilisateur via l'en-tête `Accept-Language`. Cette valeur est `undefined` si aucune correspondance n'existe.
-
-Cette propriété n'est disponible que lors de la construction pour SSR (server-side rendering) et ne devrait pas être utilisée pour les sites statiques.
-
-### `Astro.preferredLocaleList`
-
-<p>
-
-**Type :** `string[] | undefined`<br />
-<Since v="3.5.0" />
-</p>
-
-`Astro.preferredLocaleList` représente le tableau de toutes les locales qui sont à la fois demandées par le navigateur et supportées par votre site web. Cela produit une liste de toutes les langues compatibles entre votre site et votre visiteur.
-
-Si aucune des langues demandées par le navigateur n'est trouvée dans votre tableau de langues, la valeur est `[]` : vous ne supportez aucune des langues préférées de votre visiteur.
-
-Si le navigateur ne spécifie aucune langue préférée, alors cette valeur sera [`i18n.locales`](/fr/reference/configuration-reference/#i18nlocales) : toutes les langues supportées seront considérées comme préférées par un visiteur qui n'a pas de préférences.
-
-Cette propriété n'est disponible que pour l'affichage côté serveur (SSR) et ne doit pas être utilisée pour les sites statiques.
-
-### `Astro.currentLocale`
-
-<p>
-
-**Type :** `string | undefined`<br />
-<Since v="3.5.6" />
-</p>
-
-La locale calculée à partir de l'URL courante, en utilisant la syntaxe spécifiée dans votre configuration `locales`. Si l'URL ne contient pas de préfixe `/[locale]/`, alors la valeur sera par défaut `i18n.defaultLocale`.
-
-### `Astro.getActionResult()`
-
-<p>
-**Type :** `(action: TAction) => ActionReturnType<TAction> | undefined`<br />
-<Since v="4.15.0" />
-</p>
-
-`Astro.getActionResult()` est une fonction qui renvoie le résultat d'une soumission d'[Action](/fr/guides/actions/). Celle-ci accepte une fonction d'action comme argument (par exemple, `actions.logout`) et renvoie un objet `data` ou `error` lorsqu'une soumission est reçue. Sinon, elle renverra `undefined`.
-
-```astro title="src/pages/index.astro"
----
-import { actions } from 'astro:actions';
-
-const result = Astro.getActionResult(actions.logout);
----
-
-<form action={actions.logout}>
-  <button type="submit">Se déconnecter</button>
-</form>
-{result?.error && <p>Échec de la déconnexion. Veuillez réessayer.</p>}
-```
-
-### `Astro.callAction()`
-
-<p>
-<Since v="4.15.0" />
-</p>
-
-`Astro.callAction()` est une fonction utilisée pour appeler un gestionnaire d'Action directement depuis votre composant Astro. Celle-ci accepte une fonction Action comme premier argument (par exemple `actions.logout`) et toute entrée que l'action reçoit comme deuxième argument. Elle renvoie le résultat de l'action sous forme de promesse.
-
-```astro title="src/pages/index.astro"
----
-import { actions } from 'astro:actions';
-
-const { data, error } = await Astro.callAction(actions.logout, { userId: '123' });
----
-```
-
-## Contexte du point de terminaison
-
-Les [fonctions de points de terminaisons](/fr/guides/endpoints/) reçoivent un objet contextuel comme premier paramètre. Il reflète la plupart des propriétés globales de `Astro`.
-
-```ts title="endpoint.json.ts"
-import type { APIContext } from 'astro';
-
-export function GET(context: APIContext) {
-  // ...
-}
-```
-
-### `context.params`
-
-`context.params` est un objet contenant les valeurs des segments de routes dynamiques correspondant à cette requête.
-
-Dans les versions statiques, il s'agira des `params` retournés par `getStaticPaths()` utilisés pour le pré-rendement des [routes dynamiques](/fr/guides/routing/#routes-dynamiques).
-
-Dans les versions SSR, il peut s'agir de n'importe quelle valeur correspondant aux segments de chemin dans le modèle de route dynamique.
-
-```ts title="src/pages/posts/[id].json.ts"
-import type { APIContext } from 'astro';
-
-export function getStaticPaths() {
-  return [
-    { params: { id: '1' } },
-    { params: { id: '2' } },
-    { params: { id: '3' } }
-  ];
-}
-
-export function GET({ params }: APIContext) {
-	return new Response(
-    JSON.stringify({ id: params.id }),
-  );
-}
-```
-
-Voir aussi : [`params`](#params)
-
-### `context.props`
-
-<p>
-
-<Since v="1.5.0" />
-</p>
-
-`context.props` est un objet contenant toutes les propriétés (`props`) transmises par `getStaticPaths()`. Comme `getStaticPaths()` n'est pas utilisé lors de la construction pour SSR (rendu côté serveur), `context.props` n'est disponible que dans les constructions statiques.
-
-```ts title="src/pages/posts/[id].json.ts"
-import type { APIContext } from 'astro';
-
-export function getStaticPaths() {
-  return [
-    { params: { id: '1' }, props: { author: 'Blu' } },
-    { params: { id: '2' }, props: { author: 'Erika' } },
-    { params: { id: '3' }, props: { author: 'Matthew' } }
-  ];
-}
-
-export function GET({ props }: APIContext) {
-	return new Response(
-    JSON.stringify({ author: props.author }),
-  );
-}
-```
-
-Voir aussi : [Transfert de données avec `props`](#transfert-de-données-avec-props)
-
-### `context.request`
-
-<p>
-
-**Type :** `Request`
-</p>
-
-Un objet [Request](https://developer.mozilla.org/fr/docs/Web/API/Request) standard. Il peut être utilisé pour obtenir les propriétés `url`, `headers`, `method`, et même le corps de la requête.
+Les fichiers Astro ont l'interface suivante :
 
 ```ts
-import type { APIContext } from 'astro';
-
-export function GET({ request }: APIContext) {
-  return new Response(`Hello ${request.url}`);
+export interface AstroInstance {
+  /* Le chemin d'accès de ce fichier */
+  file: string;
+  /* L'URL de ce fichier (s'il se trouve dans le répertoire des pages) */
+	url: string | undefined;
+	default: AstroComponentFactory;
 }
 ```
 
-Voir aussi : [Astro.request](#astrorequest)
+##### Autres fichiers
 
-### `context.cookies`
-
-<p>
-
-**Type :** `AstroCookies`
-</p>
-
-`context.cookies` contient des utilitaires pour lire et manipuler les cookies.
-
-Voir aussi : [Astro.cookies](#astrocookies)
-
-### `context.url`
-
-<p>
-
-**Type :** `URL`<br />
-<Since v="1.5.0" />
-</p>
-
-Un objet [URL](https://developer.mozilla.org/fr/docs/Web/API/URL) construit à partir de la valeur de la chaîne URL `context.request.url` actuelle.
-
-Voir aussi : [Astro.url](#astrourl)
-
-### `context.clientAddress`
-
-<p>
-
-**Type :** `string`<br />
-<Since v="1.5.0" />
-</p>
-
-Spécifie l'[adresse IP](https://fr.wikipedia.org/wiki/Adresse_IP) de la requête. Cette propriété n'est disponible que lors de la construction pour SSR (rendu côté serveur) et ne doit pas être utilisée pour les sites statiques.
+D'autres fichiers peuvent avoir différentes interfaces, mais `Astro.glob()` accepte un générique TypeScript si vous savez exactement ce que contient un type de fichier non reconnu.
 
 ```ts
-import type { APIContext } from 'astro';
-
-export function GET({ clientAddress }: APIContext) {
-  return new Response(`Votre adresse IP est : ${clientAddress}`);
-}
-```
-
-Voir aussi : [Astro.clientAddress](#astroclientaddress)
-
-
-### `context.site`
-
-<p>
-
-**Type :** `URL | undefined`<br />
-<Since v="1.5.0" />
-</p>
-
-`context.site` renvoie une `URL` générée à partir de `site` dans votre configuration Astro. Si elle n'est pas définie, elle retournera une URL générée à partir de `localhost`.
-
-Voir aussi : [Astro.site](#astrosite)
-
-### `context.generator`
-
-<p>
-
-**Type :** `string`<br />
-<Since v="1.5.0" />
-</p>
-
-`context.generator` est un moyen pratique d'indiquer la version d'Astro que votre projet utilise. Il suit le format `"Astro v1.x.x"`.
-
-```ts title="src/pages/site-info.json.ts"
-import type { APIContext } from 'astro';
-
-export function GET({ generator, site }: APIContext) {
-  const body = JSON.stringify({ generator, site });
-  return new Response(body);
-}
-```
-
-Voir aussi : [Astro.generator](#astrogenerator)
-
-### `context.redirect()`
-
-<p>
-
-**Type :** `(path: string, status?: number) => Response`<br />
-<Since v="1.5.0" />
-</p>
-
-`context.redirect()` renvoie un objet [Response](https://developer.mozilla.org/fr/docs/Web/API/Response) qui vous permet de rediriger vers une autre page. Cette fonction n'est disponible que lors de la construction pour SSR (rendu côté serveur) et ne doit pas être utilisée pour les sites statiques.
-
-```ts
-import type { APIContext } from 'astro';
-
-export function GET({ redirect }: APIContext) {
-  return redirect('/login', 302);
-}
-```
-
-Voir aussi : [`Astro.redirect()`](#astroredirect)
-
-### `context.rewrite()`
-
-<p>
-
-**Type :** `(rewritePayload: string | URL | Request) => Promise<Response>`<br />
-<Since v="4.13.0" />
-</p>
-
-Permet de servir du contenu à partir d'une URL ou d'un chemin différent sans rediriger le navigateur vers une nouvelle page.
-
-La méthode accepte soit une chaîne de caractères, soit une `URL`, soit une `Request` pour l'emplacement du chemin.
-
-Utilisez une chaîne de caractères pour fournir un chemin explicite :
-
-```ts
-import type { APIContext } from 'astro';
-
-export function GET({ rewrite }: APIContext) {
-  return rewrite('/login');
-}
-```
-
-Utilisez un type `URL` lorsque vous devez construire le chemin de l'URL pour la réécriture. L'exemple suivant affiche le chemin parent d'une page en créant une nouvelle URL à partir du chemin relatif `"../"` :
-
-```ts
-import type { APIContext } from 'astro';
-
-export function GET({ rewrite }: APIContext) {
-  return rewrite(new URL("../", Astro.url));
-}
-```
-
-Utilisez un type `Request` pour un contrôle complet de la `Request` envoyée au serveur pour le nouveau chemin. L'exemple suivant envoie une requête pour afficher la page parent tout en fournissant des en-têtes :
-
-```ts
-import type { APIContext } from 'astro';
-
-export function GET({ rewrite }: APIContext) {
-  return rewrite(new Request(new URL("../", Astro.url), {
-   headers: {
-     "x-custom-header": JSON.stringify(Astro.locals.someValue)
-   }
- }));
-}
-```
-
-Voir aussi : [`Astro.rewrite()`](#astrorewrite)
-
-### `context.locals`
-
-<p><Since v="2.4.0" /></p>
-
-`context.locals` est un objet utilisé pour stocker et accéder à des informations arbitraires pendant le cycle de vie d'une requête.
-
-Les fonctions du middleware peuvent lire et écrire les valeurs de `context.locals` :
-
-```ts title="src/middleware.ts"
-import type { MiddlewareHandler } from 'astro';
-
-export const onRequest: MiddlewareHandler = ({ locals }, next) => {
-  if (!locals.title) {
-    locals.title = "Titre par défaut";
-  }
-  return next();
-}
-```
-
-Les points de terminaison de l'API ne peuvent lire que des informations provenant de `context.locals` :
-
-```ts title="src/pages/hello.ts"
-import type { APIContext } from 'astro';
-
-export function GET({ locals }: APIContext) {
-  return new Response(locals.title); // "Titre par défaut"
-}
-```
-
-Voir aussi : [`Astro.locals`](#astrolocals)
-
-### `context.getActionResult()`
-
-<p>
-
-**Type :** `(action: TAction) => ActionReturnType<TAction> | undefined`<br />
-<Since v="4.15.0" />
-</p>
-
-`context.getActionResult()` est une fonction qui renvoie le résultat d'une soumission d'[Action](/fr/guides/actions/). Celle-ci accepte une fonction d'action comme argument (par exemple `actions.logout`) et renvoie un objet `data` ou `error` lorsqu'une soumission est reçue. Sinon, elle renverra `undefined`.
-
-
-Voir aussi [`Astro.getActionResult()`](#astrogetactionresult)
-
-### `context.callAction()`
-
-<p>
-<Since v="4.15.0" />
-</p>
-
-`context.callAction()` est une fonction utilisée pour appeler un gestionnaire d'action directement depuis votre composant Astro. Celle-ci accepte une fonction Action comme premier argument (par exemple `actions.logout`) et toute entrée reçue par l'action comme deuxième argument. Elle renvoie le résultat de l'action sous forme de promesse.
-
-
-Voir aussi [`Astro.callAction()`](#astrocallaction)
-
-## `getStaticPaths()`
-
-**Type :** `(options: GetStaticPathsOptions) => Promise<GetStaticPathsResult> | GetStaticPathsResult`
-
-Si une page utilise des paramètres dynamiques dans le nom de fichier, ce composant devra exporter une fonction `getStaticPaths()`.
-
-Cette fonction est nécessaire car Astro est un constructeur de sites statiques. Cela signifie que l'ensemble de votre site est construit à l'avance. Si Astro ne sait pas générer une page au moment de la construction, vos utilisateurs ne la verront pas lorsqu'ils visiteront votre site.
-
-```astro
 ---
-export async function getStaticPaths() {
-  return [
-    { params: { /* requis */ }, props: { /* optionnel */ } },
-    { params: { ... } },
-    { params: { ... } },
-    // ...
-  ];
+interface CustomDataFile {
+  default: Record<string, any>;
 }
+const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
 ---
-<!-- Votre modèle HTML ici. -->
-```
-
-La fonction `getStaticPaths()` doit renvoyer un tableau d'objets pour déterminer les chemins qui seront pré-rendus par Astro.
-
-Elle peut également être utilisée dans les points de terminaison de fichiers statiques pour le [routage dynamique](/fr/guides/endpoints/#params-et-routage-dynamique).
-
-:::tip
-Lorsque vous utilisez TypeScript, utilisez l'utilitaire de type [`GetStaticPaths`](/fr/guides/typescript/#inférer-les-types-getstaticpaths) pour garantir la sûreté du typage de `params` et `props`.
-:::
-
-:::caution
-La fonction `getStaticPaths()` s'exécute dans sa propre portée isolée une seule fois, avant le chargement de toute page. Par conséquent, vous ne pouvez pas faire référence à quoi que ce soit à partir de sa portée parentale, à l'exception des importations de fichiers. Le compilateur vous avertira si vous ne respectez pas cette exigence.
-:::
-
-### `params`
-
-La clé `params` de chaque objet retourné indique à Astro les routes à construire. Les paramètres retournés doivent correspondre aux paramètres dynamiques et aux paramètres de repos définis dans le chemin de fichier de votre composant.
-
-Les `params` sont encodés dans l'URL, donc seules les chaînes de caractères sont supportées comme valeurs. La valeur de chaque objet `params` doit correspondre aux paramètres utilisés dans le nom de la page.
-
-Par exemple, supposons que vous ayez une page à `src/pages/posts/[id].astro`. Si vous exportez `getStaticPaths` depuis cette page et que vous renvoyez les chemins suivants :
-
-```astro
----
-export async function getStaticPaths() {
-  return [
-    { params: { id: '1' } },
-    { params: { id: '2' } },
-    { params: { id: '3' } }
-  ];
-}
-
-const { id } = Astro.params;
----
-<h1>{id}</h1>
-```
-
-Astro générera alors statiquement `posts/1`, `posts/2`, et `posts/3` au moment de la construction.
-
-### Transfert de données avec `props`
-
-Pour passer des données supplémentaires à chaque page générée, vous pouvez également définir une valeur `props` sur chaque objet path retourné. Contrairement à `params`, `props` n'est pas encodé dans l'URL et n'est donc pas limité à des chaînes de caractères.
-
-Par exemple, supposons que vous génériez des pages basées sur des données récupérées à partir d'une API distante. Vous pouvez passer l'objet de données complet au composant page à l'intérieur de `getStaticPaths` :
-
-```astro
----
-export async function getStaticPaths() {
-  const data = await fetch('...').then(response => response.json());
-
-  return data.map((post) => {
-    return {
-      params: { id: post.id },
-      props: { post },
-    };
-  });
-}
-
-const { id } = Astro.params;
-const { post } = Astro.props;
----
-<h1>{id} : {post.name}</h1>
-```
-
-Vous pouvez également passer un tableau régulier, ce qui peut être utile pour générer ou créer une liste connue d'itinéraires.
-
-```astro
----
-export async function getStaticPaths() {
-  const posts = [
-    {id: '1', category: "astro", title: "Référence API"},
-    {id: '2', category: "react", title: "Créer un compteur React !"}
-  ];
-  return posts.map((post) => {
-    return {
-      params: { id: post.id },
-      props: { post }
-    };
-  });
-}
-const {id} = Astro.params;
-const {post} = Astro.props;
----
-<body>
-  <h1>{id} : {post.title}</h1>
-  <h2>Catégorie : {post.category}</h2>
-</body>
-```
-
-Astro va alors générer statiquement `posts/1` et `posts/2` au moment de la construction en utilisant le composant page dans `pages/posts/[id].astro`. La page peut référencer ces données en utilisant `Astro.props` :
-
-### `paginate()`
-
-La pagination est un cas d'utilisation courant pour les sites web qu'Astro supporte nativement via la fonction `paginate()`. La fonction `paginate()` génère automatiquement le tableau à renvoyer par `getStaticPaths()` qui crée une URL pour chaque page de la collection paginée. Le numéro de page sera passé en tant que paramètre, et les données de la page seront passées en tant que propriété `page`.
-
-```js
-export async function getStaticPaths({ paginate }) {
-  // Chargez vos données avec fetch(), Astro.glob(), etc.
-  const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=150`);
-  const result = await response.json();
-  const allPokemon = result.results;
-
-  // Retourne une collection indexée de chemins d'accès pour tous les articles.
-  return paginate(allPokemon, { pageSize: 10 });
-}
-
-// Si la configuration est correcte, la propriété page contient maintenant tout ce dont
-// vous avez besoin pour afficher une seule page (voir la section suivante).
-const { page } = Astro.props;
-```
-
-`paginate()` a les arguments suivants :
-- `data` - tableau contenant les données de la page transmises à la fonction `paginate()`
-- `options` - Objet facultatif avec les propriétés suivantes :
-  - `pageSize` - Nombre d'éléments affichés par page (`10` par défaut)
-  - `params` - Envoi de paramètres supplémentaires pour la création de routes dynamiques
-  - `props` - Envoi de props supplémentaires pour qu'elles soient disponibles sur chaque page
-
-`paginate()` suppose un nom de fichier `[page].astro` ou `[...page].astro`. Le paramètre `page` devient le numéro de page dans votre URL :
-
-- `/posts/[page].astro` générerait les URL suivants `/posts/1`, `/posts/2`, `/posts/3`, etc.
-- `/posts/[...page].astro` générerait les URL suivants `/posts`, `/posts/2`, `/posts/3`, etc.
-
-#### La propriété `page` de pagination
-
-<p>
-
-**Type :** `Page<TData>`
-</p>
-
-La pagination va passer une propriété `page` à chaque page affichée qui représente une seule page de données dans la collection paginée. Cela inclut les données que vous avez paginées (`page.data`) ainsi que les métadonnées de la page (`page.url`, `page.start`, `page.end`, `page.total`, etc). Ces métadonnées sont utiles pour des choses comme un bouton « Page suivante » ou un message « Pages 1-10 sur 100 ».
-
-##### `page.data`
-
-<p>
-
-**Type :** `Array<TData>`
-</p>
-
-Tableau des données renvoyées par la fonction `paginate()` pour la page en cours.
-
-##### `page.start`
-
-<p>
-
-**Type :** `number`
-</p>
-
-Index du premier élément de la page courante, en commençant par `0`. (par exemple, si `pageSize : 25`, ce sera `0` sur la page 1, `25` sur la page 2, etc.)
-
-##### `page.end`
-
-<p>
-
-**Type :** `number`
-</p>
-
-Index du dernier élément de la page en cours.
-
-##### `page.size`
-
-<p>
-
-**Type :** `number`<br />
-**Par défaut :** `10`
-</p>
-
-Nombre d'éléments par page.
-
-##### `page.total`
-
-<p>
-
-**Type :** `number`
-</p>
-
-Le nombre total d'éléments sur toutes les pages.
-
-##### `page.currentPage`
-
-<p>
-
-**Type :** `number`
-</p>
-
-Le numéro de la page actuelle, en commençant par `1`.
-
-##### `page.lastPage`
-
-<p>
-
-**Type :** `number`
-</p>
-
-Le nombre total de pages.
-
-##### `page.url.current`
-
-<p>
-
-**Type :** `string`
-</p>
-
-Obtenir l'URL de la page actuelle (utile pour les URL canoniques).
-
-##### `page.url.prev`
-
-<p>
-
-**Type :** `string | undefined`
-</p>
-
-Récupère l'URL de la page précédente (sera `undefined` si à la page 1). Si une valeur est définie pour [`base`](/fr/reference/configuration-reference/#base), le chemin de la base est ajouté à l'URL.
-
-##### `page.url.next`
-
-<p>
-
-**Type :** `string | undefined`
-</p>
-
-Récupère l'URL de la page suivante (sera `undefined` s'il n'y a plus de pages). Si une valeur est définie pour [`base`](/fr/reference/configuration-reference/#base), le chemin de la base est ajouté à l'URL.
-
-##### `page.url.first`
-
-<p>
-
-**Type :** `string | undefined`<br />
-<Since v="4.12.0" />
-</p>
-
-Récupère l'URL de la première page (sera `undefined` si c'est la page 1). Si une valeur est définie pour [`base`](/fr/reference/configuration-reference/#base), le chemin de la base est ajouté à l'URL.
-
-##### `page.url.last`
-
-<p>
-
-**Type :** `string | undefined`<br />
-<Since v="4.12.0" />
-</p>
-
-Récupère l'URL de la dernière page (sera `undefined` s'il n'y a plus de pages). Si une valeur est définie pour [`base`](/fr/reference/configuration-reference/#base), le chemin de la base est ajouté à l'URL.
-
-## `import.meta`
-
-Tous les modules ESM incluent une propriété `import.meta`. Astro ajoute `import.meta.env` via [Vite](https://vite.dev/guide/env-and-mode.html).
-
-**`import.meta.env.SSR`** peut être utilisée pour identifier si le rendu se fait côté serveur. Parfois, vous souhaiterez peut-être une logique différente, comme un composant qui ne doit être restitué que dans le client :
-
-```jsx
-export default function () {
-  return import.meta.env.SSR ? <div class="spinner"></div> : <FancyComponent />;
-}
 ```
