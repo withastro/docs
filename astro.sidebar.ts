@@ -134,6 +134,7 @@ export const sidebar = [
 					'reference/experimental-flags/svg',
 					'reference/experimental-flags/client-prerender',
 					'reference/experimental-flags/content-intellisense',
+					'reference/experimental-flags/sessions',
 				],
 			}),
 			'reference/legacy-flags',
