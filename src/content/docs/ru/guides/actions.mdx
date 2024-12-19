@@ -1,0 +1,582 @@
+---
+title: Actions
+description: Узнайте, как использовать Actions в Astro.
+i18nReady: true
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="4.15" /></p>
+
+Astro Actions позволяют вам определять и безопасно вызывать серверные функции с проверкой типов. Actions выполняют получение данных, разбор JSON и проверку ввода за вас. Это может значительно сократить количество шаблонного кода по сравнению с использованием [API endpoint](/ru/guides/endpoints/).
+
+Используйте Actions вместо API endpoint для бесшовной связи между вашим клиентским и серверным кодом и для:
+
+- Автоматической проверки JSON и данных формы с использованием [Zod validation](https://zod.dev/?id=primitives).
+- Генерации type-safe функций для вызова вашего бэкенда с клиента и даже [из действий HTML формы](#call-actions-from-an-html-form-action). Нет необходимости в ручных вызовах `fetch()`.
+- Стандартизации ошибок бэкенда с помощью объекта [`ActionError`](/ru/reference/modules/astro-actions/#actionerror).
+
+## Типовое использование
+
+Actions определяются в объекте `server`, экспортируемом из `src/actions/index.ts`:
+
+```ts title="src/actions/index.ts"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  myAction: defineAction({ /* ... */ })
+}
+```
+
+Ваши Actions доступны как функции из модуля `astro:actions`. Импортируйте `actions` и вызывайте их на стороне клиента в [компоненте UI фреймворка](/ru/guides/framework-components/), [запросе формы POST](#call-actions-from-an-html-form-action) или с помощью тега `<script>` в компоненте Astro.
+
+Когда вы вызываете действие, оно возвращает объект с `data`, содержащим результат в формате JSON, или `error`, содержащим возникшие ошибки.
+
+```astro title="src/pages/index.astro"
+---
+---
+
+<script>
+import { actions } from 'astro:actions';
+
+async () => {
+  const { data, error } = await actions.myAction({ /* ... */ });
+}
+</script>
+```
+
+### Напишите свое первое Action
+
+Следуйте этим шагам, чтобы определить Action и вызвать его в теге `script` на вашей странице Astro.
+
+<Steps>
+
+1. Создайте файл `src/actions/index.ts` и экспортируйте объект `server`.
+
+    ```ts title="src/actions/index.ts"
+    export const server = {
+      // объявления Actions
+    }
+    ```
+
+2. Импортируйте утилиту `defineAction()` из `astro:actions` и объект `z` из `astro:schema`.
+
+    ```ts ins={1-2} title="src/actions/index.ts"
+    import { defineAction } from 'astro:actions';
+    import { z } from 'astro:schema';
+
+     export const server = {
+      // объявления Actions
+    }
+    ```
+
+3. Используйте утилиту `defineAction()`, чтобы определить Action `getGreeting`. Свойство `input` будет использоваться для проверки входных параметров с помощью [Zod](https://zod.dev), а функция `handler()` включает логику бэкенда для выполнения на сервере.
+
+    ```ts ins={5-12} title="src/actions/index.ts"
+    import { defineAction } from 'astro:actions';
+    import { z } from 'astro:schema';
+
+    export const server = {
+      getGreeting: defineAction({
+        input: z.object({
+          name: z.string(),
+        }),
+        handler: async (input) => {
+          return `Hello, ${input.name}!`
+        }
+      })
+    }
+    ```
+
+4. Создайте компонент Astro с кнопкой, которая будет получать приветствие с использованием вашего Action `getGreeting` при нажатии.
+
+    ```astro title="src/pages/index.astro"
+    ---
+    ---
+
+    <button>Получить приветствие</button>
+
+    <script>
+    const button = document.querySelector('button');
+    button?.addEventListener('click', async () => {
+      // Показать всплывающее окно с приветствием от Action
+    });
+    </script>
+    ```
+
+5. Чтобы использовать ваше Action, импортируйте `actions` из `astro:actions` и вызовите `actions.getGreeting()` в обработчике клика. Опция `name` будет отправлена в функцию `handler()` вашего Action на сервере, и если ошибок нет, результат будет доступен как свойство `data`.
+
+    ```astro title="src/pages/index.astro" ins={7, 12-13}
+    ---
+    ---
+
+    <button>Получить приветствие</button>
+
+    <script>
+    import { actions } from 'astro:actions';
+
+    const button = document.querySelector('button');
+    button?.addEventListener('click', async () => {
+      // Показать всплывающее окно с приветствием от Action
+      const { data, error } = await actions.getGreeting({ name: "Houston" });
+      if (!error) alert(data);
+    })
+    </script>
+    ```
+
+</Steps>
+
+<ReadMore>См. полную документацию по API Actions для подробностей о [`defineAction()`](/ru/reference/modules/astro-actions/#defineaction) и его свойствах.</ReadMore>
+
+## Организация Actions
+
+Все Actions в вашем проекте должны быть экспортированы из объекта `server` в файле `src/actions/index.ts`. Вы можете определять Action в строке или перемещать определения Actions в отдельные файлы и импортировать их. Вы даже можете группировать связанные функции в вложенные объекты.
+
+Например, чтобы разместить все ваши Actions пользователя, вы можете создать файл `src/actions/user.ts` и вложить определения `getUser` и `createUser` в один объект `user`.
+
+```ts
+// src/actions/user.ts
+import { defineAction } from 'astro:actions';
+
+export const user = {
+  getUser: defineAction(/* ... */),
+  createUser: defineAction(/* ... */),
+}
+```
+
+Затем вы можете импортировать этот объект `user` в ваш файл `src/actions/index.ts` и добавить его в качестве ключа верхнего уровня в объект `server` наряду с любыми другими Actions:
+
+```ts title="src/actions/index.ts" ins={1,5}
+import { user } from './user';
+
+export const server = {
+  myAction: defineAction({ /* ... */ }),
+  user,
+}
+```
+
+Теперь все ваши Actions пользователя доступны из объекта `actions.user`:
+
+- `actions.user.getUser()`
+- `actions.user.createUser()`
+
+
+## Обработка возвращаемых данных
+
+Actions возвращают объект, содержащий либо `data` с типизированным значением, возвращаемым вашей функцией `handler()`, либо `error` с любыми ошибками бэкенда. Ошибки могут возникать из-за ошибок проверки на свойстве `input` или возвращаемых ошибок внутри функции `handler()`.
+
+### Проверка на ошибки
+
+Лучше всего проверить наличие `error` перед использованием свойства `data`. Это позволяет вам заранее обрабатывать ошибки и гарантирует, что `data` определено без проверки на `undefined`.
+
+```ts
+const { data, error } = await actions.example();
+
+if (error) {
+  // обработка ошибок
+  return;
+}
+// использование `data`
+```
+
+### Доступ к `data` напрямую без проверки на ошибки
+
+Чтобы пропустить обработку ошибок, например, при прототипировании или использовании библиотеки, которая будет перехватывать ошибки за вас, используйте свойство `.orThrow` при вызове Action, чтобы выбрасывать ошибки вместо возврата `error`. Это вернет `data` Action напрямую.
+
+В этом примере вызывается Action `likePost()`, которое возвращает обновленное количество лайков в виде `number` из функции `handler` Action:
+
+```ts ins="orThrow"
+const updatedLikes = await actions.likePost.orThrow({ postId: 'example' });
+//    ^ тип: number
+```
+
+### Обработка ошибок бэкенда в вашем Action
+
+Вы можете использовать предоставленный `ActionError`, чтобы выбросить ошибку из функции `handler()` вашего Action, например, "не найдено", когда запись в базе данных отсутствует, или "не авторизован", когда пользователь не вошел в систему. Это имеет два основных преимущества по сравнению с возвратом `undefined`:
+
+- Вы можете установить код состояния, например, `404 - Not found` или `401 - Unauthorized`. Это улучшает отладку ошибок как в разработке, так и в производстве, позволяя вам видеть код состояния каждого запроса.
+
+- В вашем коде приложения все ошибки передаются в объект `error` на результате Action. Это исключает необходимость проверки на `undefined` для данных и позволяет вам отображать целенаправленную обратную связь пользователю в зависимости от того, что пошло не так.
+
+#### Создание `ActionError`
+
+Чтобы выбросить ошибку, импортируйте класс `ActionError()` из модуля `astro:actions`. Передайте ему человекочитаемый статус `code` (например, `"NOT_FOUND"` или `"BAD_REQUEST"`) и необязательное сообщение `message`, чтобы предоставить дополнительную информацию об ошибке.
+
+В этом примере выбрасывается ошибка из Action `likePost`, когда пользователь не вошел в систему, после проверки гипотетического cookie "user-session" для аутентификации:
+
+```ts title="src/actions/index.ts" ins=/ActionError(?= )/ ins={9-12}
+import { defineAction, ActionError } from "astro:actions";
+import { z } from "astro:schema";
+
+export const server = {
+  likePost: defineAction({
+    input: z.object({ postId: z.string() }),
+    handler: async (input, ctx) => {
+      if (!ctx.cookies.has('user-session')) {
+        throw new ActionError({
+          code: "UNAUTHORIZED",
+          message: "User must be logged in.",
+        });
+      }
+      // В противном случае, лайкнуть пост
+    },
+  }),
+};
+```
+
+#### Обработка `ActionError`
+
+Чтобы обработать эту ошибку, вы можете вызвать Action из вашего приложения и проверить, присутствует ли свойство `error`. Это свойство будет типа `ActionError` и будет содержать ваш `code` и `message`.
+
+В следующем примере компонент `LikeButton.tsx` вызывает Action `likePost()` при нажатии. Если возникает ошибка аутентификации, атрибут `error.code` используется для определения, следует ли отображать ссылку на вход в систему:
+
+```tsx title=src/components/LikeButton.tsx ins="if (error.code === 'UNAUTHORIZED') setShowLogin(true);"
+import { actions } from 'astro:actions';
+import { useState } from 'preact/hooks';
+
+export function LikeButton({ postId }: { postId: string }) {
+  const [showLogin, setShowLogin] = useState(false);
+  return (
+    <>
+      {
+        showLogin && <a href="/signin">Войти, чтобы лайкнуть пост.</a>
+      }
+      <button onClick={async () => {
+        const { data, error } = await actions.likePost({ postId });
+        if (error?.code === 'UNAUTHORIZED') setShowLogin(true);
+        // Для неожиданных ошибок
+        else if (error) return;
+        // обновить лайки
+      }}>
+        Лайк
+      </button>
+    </>
+  )
+}
+```
+
+### Обработка перенаправлений клиента
+
+При вызове Actions с клиента вы можете интегрироваться с библиотекой на стороне клиента, такой как `react-router`, или использовать функцию Astro [`navigate()`](/ru/guides/view-transitions/#trigger-navigation), чтобы перенаправить на новую страницу при успешном выполнении Action.
+
+В этом примере выполняется навигация на главную страницу после успешного возврата Action `logout`:
+
+```tsx title=src/pages/LogoutButton.tsx {2,7-8}
+import { actions } from 'astro:actions';
+import { navigate } from 'astro:transitions/client';
+
+export function LogoutButton() {
+  return (
+    <button onClick={async () => {
+      const { error } = await actions.logout();
+      if (!error) navigate('/');
+    }}>
+      Выйти
+    </button>
+  );
+}
+```
+
+## Прием данных формы от Action
+
+Actions по умолчанию принимают данные в формате JSON. Чтобы принимать данные формы из HTML-формы, установите `accept: 'form'` в вашем вызове `defineAction()`:
+
+```ts title="src/actions/index.ts" ins={6}
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  comment: defineAction({
+    accept: 'form',
+    input: z.object(/* ... */),
+    handler: async (input) => { /* ... */ },
+  })
+}
+```
+
+### Проверка данных формы
+
+Actions будут разбирать отправленные данные формы в объект, используя значение атрибута `name` каждого ввода в качестве ключей объекта. Например, форма, содержащая `<input name="search">`, будет разобрана в объект вида `{ search: 'user input' }`. Схема `input` вашего Action будет использоваться для проверки этого объекта.
+
+Чтобы получить необработанный объект `FormData` в вашем обработчике Actions вместо разобранного объекта, опустите свойство `input` в определении вашего Action.
+
+Следующий пример показывает проверенную форму регистрации на рассылку, которая принимает электронную почту пользователя и требует флажок "согласие с условиями обслуживания".
+
+<Steps>
+
+1. Создайте компонент HTML-формы с уникальными атрибутами `name` на каждом вводе:
+
+    ```astro title="src/components/Newsletter.astro" /name="\w+"/
+    <form>
+      <label for="email">E-mail</label>
+      <input id="email" required type="email" name="email" />
+      <label>
+        <input required type="checkbox" name="terms">
+        Я согласен с условиями обслуживания
+      </label>
+      <button>Зарегистрироваться</button>
+    </form>
+    ```
+
+2. Определите Action `newsletter` для обработки отправленной формы. Проверьте поле `email` с помощью валидатора `z.string().email()`, а флажок `terms` с помощью `z.boolean()`:
+
+    ```ts title="src/actions/index.ts" ins={5-12}
+    import { defineAction } from 'astro:actions';
+    import { z } from 'astro:schema';
+
+    export const server = {
+      newsletter: defineAction({
+        accept: 'form',
+        input: z.object({
+          email: z.string().email(),
+          terms: z.boolean(),
+        }),
+        handler: async ({ email, terms }) => { /* ... */ },
+      })
+    }
+    ```
+
+    <ReadMore>См. справочник по API [`input`](/ru/reference/modules/astro-actions/#input-validator) для всех доступных валидаторов формы.</ReadMore>
+
+3. Добавьте `<script>` в HTML-форму для отправки пользовательского ввода. В этом примере переопределяется поведение формы по умолчанию для вызова `actions.newsletter()` и перенаправления на `/confirmation` с использованием функции `navigate()`:
+
+    ```astro title=src/components/Newsletter.astro ins={12-23} collapse={2-8}
+    <form>
+      <label for="email">E-mail</label>
+      <input id="email" required type="email" name="email" />
+      <label>
+        <input required type="checkbox" name="terms">
+        Я согласен с условиями обслуживания
+      </label>
+      <button>Зарегистрироваться</button>
+    </form>
+
+    <script>
+      import { actions } from 'astro:actions';
+      import { navigate } from 'astro:transitions/client';
+
+      const form = document.querySelector('form');
+      form?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+        const { error } = await actions.newsletter(formData);
+        if (!error) navigate('/confirmation');
+      })
+    </script>
+    ```
+
+    <ReadMore>См. [“Вызов Actions из Action HTML-формы”](#call-actions-from-an-html-form-action) для альтернативного способа отправки данных формы.</ReadMore>
+
+</Steps>
+
+### Отображение ошибок ввода формы
+
+Вы можете проверить ввод формы перед отправкой, используя [атрибуты проверки встроенной формы HTML](https://developer.mozilla.org/ru/docs/Learn/Forms/Form_validation#using_built-in_form_validation), такие как `required`, `type="email"` и `pattern`. Для более сложной проверки `input` на стороне сервера вы можете использовать предоставленную утилиту [`isInputError()`](/ru/reference/modules/astro-actions/#isinputerror).
+
+Чтобы получить ошибки ввода, используйте утилиту `isInputError()`, чтобы проверить, была ли ошибка вызвана недопустимым вводом. Ошибки ввода содержат объект `fields` с сообщениями для каждого имени ввода, которое не прошло проверку. Вы можете использовать эти сообщения, чтобы предложить пользователю исправить их отправку.
+
+Следующий пример проверяет ошибку с помощью `isInputError()`, затем проверяет, находится ли ошибка в поле email, и, наконец, создает сообщение из ошибок. Вы можете использовать манипуляции с DOM JavaScript или предпочитаемый вами UI фреймворк для отображения этого сообщения пользователям.
+
+```js /isInputError(?= )/ {5-12}
+import { actions, isInputError } from 'astro:actions';
+
+const form = document.querySelector('form');
+const formData = new FormData(form);
+const { error } = await actions.newsletter(formData);
+if (isInputError(error)) {
+  // Обработка ошибок ввода.
+  if (error.fields.email) {
+    const message = error.fields.email.join(', ');
+  }
+}
+```
+
+## Вызов Actions из Action HTML-формы
+
+:::note
+Страницы должны быть рендерены по запросу при вызове Actions с использованием Action формы. [Убедитесь, что предварительный рендеринг отключен на странице](/ru/guides/server-side-rendering/#opting-out-of-pre-rendering-in-hybrid-mode) перед использованием этого API.
+:::
+
+Вы можете включить отправку форм без JS с помощью стандартных атрибутов на любом элементе `<form>`. Отправка форм без клиентского JavaScript может быть полезна как резервный вариант, когда JavaScript не загружается, или если вы предпочитаете обрабатывать формы полностью на сервере.
+
+Вызов [Astro.getActionResult()](/ru/reference/api-reference/#astrogetactionresult) на сервере возвращает результат вашей отправки формы (`data` или `error`) и может использоваться для динамического перенаправления, обработки ошибок формы, обновления UI и многого другого.
+
+Чтобы вызвать Action из HTML-формы, добавьте `method="POST"` к вашей `<form>`, затем установите атрибут `action` формы, используя ваше Action, например `action={actions.logout}`. Это установит атрибут `action` для использования строки запроса, которая обрабатывается сервером автоматически.
+
+Например, этот компонент Astro вызывает Action `logout` при нажатии кнопки и перезагружает текущую страницу:
+
+```astro title="src/components/LogoutButton.astro"
+---
+import { actions } from 'astro:actions';
+---
+
+<form method="POST" action={actions.logout}>
+  <button>Выйти</button>
+</form>
+```
+
+### Перенаправление при успешном выполнении Action
+
+Чтобы перейти на другую страницу при успешном выполнении Action без клиентского JavaScript, вы можете добавить путь в атрибут `action`.
+
+Например, `action={'/confirmation' + actions.newsletter}` перейдет на `/confirmation` при успешном выполнении Action `newsletter`:
+
+```astro title="src/components/NewsletterSignup.astro" /action=\{[^\{\}]+\}/
+---
+import { actions } from 'astro:actions';
+---
+
+<form method="POST" action={'/confirmation' + actions.newsletter}>
+  <label>E-mail <input required type="email" name="email" /></label>
+  <button>Зарегистрироваться</button>
+</form>
+```
+
+#### Динамическое перенаправление при успешном выполнении Action
+
+Если вам нужно динамически решать, куда перенаправлять, вы можете использовать результат Action на сервере. Общий пример - создание записи продукта и перенаправление на страницу нового продукта, например, `/products/[id]`.
+
+Например, предположим, у вас есть Action `createProduct`, которое возвращает сгенерированный идентификатор продукта:
+
+```ts title="src/actions/index.ts" mark={10}
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  createProduct: defineAction({
+    accept: 'form',
+    input: z.object({ /* ... */ }),
+    handler: async (input) => {
+      const product = await persistToDatabase(input);
+      return { id: product.id };
+    },
+  })
+}
+```
+
+Вы можете получить результат Action из вашего компонента Astro, вызвав `Astro.getActionResult()`. Это возвращает объект, содержащий свойства `data` или `error`, когда Action вызывается, или `undefined`, если Action не было вызвано во время этого запроса.
+
+Используйте свойство `data`, чтобы создать URL для использования с `Astro.redirect()`:
+
+```astro title="src/pages/products/create.astro" {4-7}
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.createProduct);
+if (result && !result.error) {
+  return Astro.redirect(`/products/${result.data.id}`);
+}
+---
+
+<form method="POST" action={actions.createProduct}>
+  <!--...-->
+</form>
+```
+
+### Обработка ошибок Action формы
+
+Astro не будет перенаправлять на ваш маршрут `action`, когда Action не удается. Вместо этого текущая страница перезагружается с любыми ошибками, возвращенными Action. Вызов `Astro.getActionResult()` в компоненте Astro, содержащем вашу форму, дает вам доступ к объекту `error` для пользовательской обработки ошибок.
+
+Следующий пример отображает общее сообщение об ошибке при неудачном выполнении Action `newsletter`:
+
+```astro title="src/pages/index.astro" {4,7-9}
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.newsletter);
+---
+
+{result?.error && (
+  <p class="error">Не удалось зарегистрироваться. Пожалуйста, попробуйте позже.</p>
+)}
+<form method="POST" action={'/confirmation' + actions.newsletter}>
+  <label>
+    E-mail
+    <input required type="email" name="email" />
+  </label>
+  <button>Зарегистрироваться</button>
+</form>
+```
+
+Для большей настройки вы можете [использовать утилиту `isInputError()`](#displaying-form-input-errors), чтобы проверить, была ли ошибка вызвана недопустимым вводом.
+
+Следующий пример отображает баннер ошибки под полем ввода `email`, когда отправляется недопустимый email:
+
+```astro title="src/pages/index.astro" ins={5,13} ins='aria-describedby="error"'
+---
+import { actions, isInputError } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.newsletter);
+const inputErrors = isInputError(result?.error) ? result.error.fields : {};
+---
+
+<form method="POST" action={'/confirmation' + actions.newsletter}>
+  <label>
+    E-mail
+    <input required type="email" name="email" aria-describedby="error" />
+  </label>
+  {inputErrors.email && <p id="error">{inputErrors.email.join(',')}</p>}
+  <button>Зарегистрироваться</button>
+</form>
+```
+
+:::note
+Astro сохраняет данные Actions и ошибки с помощью одноразового cookie. Это означает, что `getActionResult()` вернет результат только при первом запросе и `undefined` при повторном посещении страницы.
+:::
+
+#### Сохранение значений ввода при ошибке
+
+Вводы будут очищены при каждом отправке формы. Чтобы сохранить значения ввода, вы можете [включить переходы представлений](/ru/guides/view-transitions/#adding-view-transitions-to-a-page) на странице и применить директиву `transition:persist` к каждому вводу:
+
+```astro ins="transition:persist"
+<input transition:persist required type="email" name="email" />
+```
+
+### Обновление UI с результатом Action формы
+
+Результат, возвращаемый `Astro.getActionResult()`, одноразовый и сбрасывается в `undefined` при каждом обновлении страницы. Это идеально подходит для [отображения ошибок ввода](#handle-form-action-errors) и показа временных уведомлений пользователю при успешном выполнении.
+
+:::tip
+Если вам нужно, чтобы результат отображался при обновлении страницы, рассмотрите возможность сохранения результата в базе данных или [в cookie](/ru/reference/api-reference/#astrocookies).
+:::
+
+Передайте Action в `Astro.getActionResult()` и используйте возвращаемое свойство `data`, чтобы отобразить любой временный UI, который вы хотите показать. В этом примере используется свойство `productName`, возвращаемое Action `addToCart`, чтобы показать сообщение об успешном выполнении:
+
+```astro title="src/pages/products/[slug].astro"
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.addToCart);
+---
+
+{result && !result.error && (
+  <p class="success">Добавлено {result.data.productName} в корзину</p>
+)}
+
+<!--...-->
+```
+
+:::caution
+Данные Actions передаются с использованием сохраненного cookie. **Этот cookie не зашифрован** и ограничен размером 4 КБ, хотя точный лимит может варьироваться в зависимости от браузера.
+
+В общем, мы рекомендуем возвращать минимальную необходимую информацию из вашего обработчика Actions, чтобы избежать уязвимостей, и сохранять другую конфиденциальную информацию в базе данных.
+
+Например, вы можете вернуть имя продукта в Action `addToCart`, а не возвращать весь объект `product`:
+
+```ts title="src/actions/index.ts" del={7} ins={8}
+import { defineAction } from 'astro:actions';
+
+export const server = {
+  addToCart: defineAction({
+    handler: async () => {
+      /* ... */
+      return product;
+      return { productName: product.name };
+    }
+  })
+}
+```
+:::
