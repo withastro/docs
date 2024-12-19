@@ -92,6 +92,22 @@ const { lang, version } = Astro.params;
 
 <ReadMore>了解更多关于 [`getStaticPaths()`](/zh-cn/reference/api-reference/#getstaticpaths) 的内容。</ReadMore>
 
+#### 解码 `params`
+
+提供给 `getStaticPaths()` 函数的 `params` 不会被解码。当你需要解码参数值时，请使用 [`decodeURI`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/decodeURI) 函数。
+
+```astro title="src/pages/[slug].astro"
+--- 
+export function getStaticPaths() {
+  return [
+    { params: { slug: decodeURI("%5Bpage%5D") } }, // 解码成 "[page]"
+  ]
+}
+---
+```
+
+<ReadMore>了解更多关于 [`getStaticPaths()` 的内容](/zh-cn/reference/routing-reference/#getstaticpaths).</ReadMore>
+
 <RecipeLinks slugs={["zh-cn/recipes/i18n"]} />
 
 #### 剩余参数
@@ -134,7 +150,7 @@ const { path } = Astro.params;
 
 #### 示例：多级动态页面
 
-在下面的示例中， 剩余参数（`[...slug]`）和 `getStaticPaths()` 的 [`props`](/zh-cn/reference/api-reference/#通过-props-传递数据) 为不同深度的 slug 生成页面。
+在下面的示例中， 剩余参数（`[...slug]`）和 `getStaticPaths()` 的 [`props`](/zh-cn/reference/routing-reference/#data-passing-with-props) 为不同深度的 slug 生成页面。
 
 ```astro title="src/pages/[...slug].astro"
 ---
@@ -304,7 +320,7 @@ if (!isLoggedIn(cookie)) {
 
 <p><Since v="4.13.0" /></p>
 
-重写允许你提供不同的路由，而无需将浏览器重定向到不同的页面。浏览器将在 URL 栏中显示原始地址，但实际上会显示 [`Astro.rewrite()`](/zh-cn/reference/api-reference/#astrorewrite) 提供的 URL 的内容。
+重写允许你提供不同的路由，而无需将浏览器重定向到不同的页面。浏览器将在 URL 栏中显示原始地址，但实际上会显示 [`Astro.rewrite()`](/zh-cn/reference/api-reference/#rewrite) 提供的 URL 的内容。
 
 :::tip
 对于永久性移动的内容，或者将用户重定向到具有新 URL 的不同页面（例如登录后的用户仪表盘），请使用 [重定向](#重定向)。
@@ -361,7 +377,7 @@ export const onRequest = async (context, next) => {
 
 显示指定重写路径的内容之前，`Astro.rewrite()` 函数将触发一个新的完整渲染阶段。这将为新的路由/请求重新执行任何中间件。
 
-<ReadMore>有关更多信息，请查阅 [`Astro.rewrite()` API 参考](/zh-cn/reference/api-reference/#astrorewrite)</ReadMore>
+<ReadMore>有关更多信息，请查阅 [`Astro.rewrite()` API 参考](/zh-cn/reference/api-reference/#rewrite)</ReadMore>
 
 ## 路由优先级顺序
 
@@ -401,7 +417,7 @@ Astro 需要知道哪个路由应该被用来构建页面。为此，它会按�
 内部路由优先于任何用户定义或集成定义的路由，因为 Astro 功能需要它们才能工作。以下是 Astro 的预留路由：
 
 - `_astro/`: 向客户端提供所有静态资源，包括 CSS 文档、打包的客户端脚本、优化后的图像和任何 Vite 资源。
-- `_server_islands/`: 为延迟渲染的 [服务器群岛](/zh-cn/reference/configuration-reference/#experimentalserverislands) 动态组件提供服务。
+- `_server_islands/`: 为延迟渲染的 [服务器群岛](/zh-cn/guides/server-islands/) 动态组件提供服务。
 - `_actions/`: 服务于任何已定义的 [action](/zh-cn/guides/actions/)。
 
 ## 分页
@@ -500,7 +516,7 @@ const { page } = Astro.props;
 {page.url.last ? <a href={page.url.last}>Last</a> : null}
 ```
 
-<ReadMore>了解更多关于 [page 分页参数](/zh-cn/reference/api-reference/#page-分页参数) 的内容。</ReadMore>
+<ReadMore>了解更多关于 [page 分页参数](/zh-cn/reference/routing-reference/#the-pagination-page-prop) 的内容。</ReadMore>
 
 ### 嵌套分页
 
@@ -522,7 +538,7 @@ const { page } = Astro.props;
 // src/pages/[tag]/[page].astro
 export async function getStaticPaths({paginate}) {
   const allTags = ['red', 'blue', 'green'];
-  const allPosts = await Astro.glob('../../posts/*.md');
+  const allPosts = Object.values(import.meta.glob('../pages/post/*.md', { eager: true }));
   // 每个标签都会返回 paginate() 结果。
   // 确保将 `{params: {tag}}` 传递给 `paginate()`
   // 这样 Astro 才知道怎么把这些结果进行分组
