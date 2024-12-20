@@ -9,32 +9,16 @@ export default tseslint.config(
 		ignores: ['**/dist', '**/node_modules', '**/.astro', '**/.github', '**/.changeset'],
 	},
 
+	// Global config
+	// JavaScript
 	eslint.configs.recommended,
+	// TypeScript
 	...tseslint.configs.recommended,
-
 	{
-		languageOptions: {
-			ecmaVersion: 'latest',
-			sourceType: 'module',
-			parser: tseslint.parser,
-		},
-		plugins: {
-			'@typescript-eslint': tseslint.plugin,
-		},
 		rules: {
-			'no-mixed-spaces-and-tabs': 'off',
-			'@typescript-eslint/no-unused-vars': [
-				'error',
-				{
-					argsIgnorePattern: '^_',
-					destructuredArrayIgnorePattern: '^_',
-				},
-			],
-			'@typescript-eslint/no-non-null-assertion': 'off',
 			'@typescript-eslint/no-explicit-any': 'off',
 		},
 	},
-
 	// Allow triple-slash references in `*.d.ts` files.
 	{
 		files: ['**/*.d.ts'],
