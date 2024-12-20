@@ -1,12 +1,9 @@
 ---
-title: Astro 语法
-description: .astro 组件语法简介。
+title: 模板表达式参考
 i18nReady: true
 ---
 
-**如果你了解 HTML，那么你已经有能力编写第一个 Astro 组件了。**
-
-Astro 组件语法是 HTML 的超集。这个语法[旨在让任何有编写 HTML 或 JSX 经验的人都感到熟悉](#astro-和-jsx-间的差异) ，并增加了对组件和 JavaScript 表达式的支持。
+Astro 组件语法是 HTML 的超集。这个语法旨在让任何有编写 HTML 或 JSX 经验的人都感到熟悉，并增加了对组件和 JavaScript 表达式的支持。
 
 ## 类 JSX 表达式
 
@@ -175,3 +172,139 @@ Astro 组件的语法是 HTML 的超集。它的设计使得任何有 HTML 或 J
 :::caution
 HTML 风格的注释将包含在浏览器 DOM 中，而 JS 注释将被跳过。为了保留 TODO 消息或其他仅限于开发的解释，你可能希望使用 JavaScript 样式的注释。
 :::
+
+## 组件工具函数
+
+### `Astro.slots`
+
+`Astro.slots` 包含用于修改 Astro 组件的插槽子元素的工具函数。
+
+#### `Astro.slots.has()`
+
+<p>
+
+**类型：** `(slotName: string) => boolean`
+</p>
+
+你可以使用 `Astro.slots.has()` 检查特定插槽名称的内容是否存在。当你想要包装插槽内容但只想在插槽被使用时渲染包装元素时，这可能很有用。
+
+```astro  title="src/pages/index.astro"
+---
+---
+<slot />
+
+{Astro.slots.has('more') && (
+  <aside>
+    <h2>More</h2>
+    <slot name="more" />
+  </aside>
+)}
+```
+
+#### `Astro.slots.render()`
+
+<p>
+
+**类型：** `(slotName: string, args?: any[]) => Promise<string>`
+</p>
+
+你可以使用 `Astro.slots.render()` 异步地将插槽的内容渲染为 HTML 字符串。
+
+```astro
+---
+const html = await Astro.slots.render('default');
+---
+<Fragment set:html={html} />
+```
+
+:::note
+这是针对高级用例的！在大多数情况下，使用 [`<slot />` 元素](/zh-cn/basics/astro-components/#插槽) 渲染插槽内容更简单。
+:::
+
+`Astro.slots.render()` 可以接受一个可选的第二个参数：一个将被转发给任何函数子元素的参数数组。这对于自定义工具组件可能很有用。
+
+例如，`<Shout />` 组件将其 `message` 属性转换为大写，并将其传递给默认插槽：
+
+```astro title="src/components/Shout.astro" "await Astro.slots.render('default', [message])"
+---
+const message = Astro.props.message.toUpperCase();
+let html = '';
+if (Astro.slots.has('default')) {
+  html = await Astro.slots.render('default', [message]);
+}
+---
+<Fragment set:html={html} />
+```
+
+作为 `<Shout />` 的子元素传递的回调函数将接收全大写的 `message` 参数：
+
+```astro title="src/pages/index.astro"
+---
+import Shout from "../components/Shout.astro";
+---
+<Shout message="slots!">
+  {(message) => <div>{message}</div>}
+</Shout>
+
+<!-- 渲染为 <div>SLOTS!</div> -->
+```
+
+回调函数可以通过带有 `slot` 属性的包装 HTML 元素标签传递到命名插槽中。这个元素只用于将回调传递到命名插槽中，不会被渲染到页面上。
+
+```astro
+<Shout message="slots!">
+  <fragment slot="message">
+    {(message) => <div>{message}</div>}
+  </fragment>
+</Shout>
+```
+
+使用标准的 HTML 元素作为包装标签，或者使用任何小写标签（例如 `<fragment>` 而不是 `<Fragment />`），这样就不会被解释为组件。不要使用 HTML `<slot>` 元素，因为这会被解释为 Astro 插槽。
+
+### `Astro.self`
+
+`Astro.self` 允许递归调用 Astro 组件。这种行为允许你在组件模板中使用 `<Astro.self>` 从内部渲染 Astro 组件。这有助于迭代大型数据存储和嵌套数据结构。
+
+```astro
+---
+// NestedList.astro
+const { items } = Astro.props;
+---
+<ul class="nested-list">
+  {items.map((item) => (
+    <li>
+      <!-- 如果存在嵌套数据结构，我们将渲染 `<Astro.self>` -->
+      <!-- 并且可以通过递归调用传递 props -->
+      {Array.isArray(item) ? (
+        <Astro.self items={item} />
+      ) : (
+        item
+      )}
+    </li>
+  ))}
+</ul>
+```
+
+然后可以像这样使用该组件：
+
+```astro
+---
+import NestedList from './NestedList.astro';
+---
+<NestedList items={['A', ['B', 'C'], 'D']} />
+```
+
+将会渲染出这样的 HTML：
+
+```html
+<ul class="nested-list">
+  <li>A</li>
+  <li>
+    <ul class="nested-list">
+      <li>B</li>
+      <li>C</li>
+    </ul>
+  </li>
+  <li>D</li>
+</ul>
+```
