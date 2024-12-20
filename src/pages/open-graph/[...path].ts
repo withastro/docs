@@ -1,3 +1,4 @@
+import type { CollectionEntry } from 'astro:content';
 import { OGImageRoute } from 'astro-og-canvas';
 import { allPages } from '~/content';
 import { rtlLanguages } from '~/languages';
@@ -12,22 +13,24 @@ const brandFont = await fetchBrandFont();
 const paths = process.env.SKIP_OG ? [] : allPages;
 
 /** An object mapping file paths to file metadata. */
-const pages = Object.fromEntries(paths.map(({ id, slug, data }) => [id, { data, slug }]));
+const pages = Object.fromEntries(
+	paths.map(
+		({ filePath, id, data }) =>
+			[filePath, { data, id }] as [string, Pick<CollectionEntry<'docs'>, 'data' | 'id'>]
+	)
+);
 
 export const { getStaticPaths, GET } = OGImageRoute({
 	param: 'path',
 
 	pages,
 
-	getSlug(path) {
-		path = path.replace(/^\/src\/pages\//, '');
-		path = path.replace(/\.[^.]*$/, '') + '.webp';
-		path = path.replace(/\/index\.webp$/, '.webp');
-		return path;
+	getSlug(_, page: (typeof pages)[string]) {
+		return page.id + '.webp';
 	},
 
-	getImageOptions: async (_, { data, slug }: (typeof pages)[string]): Promise<OGImageOptions> => {
-		const isRtl = rtlLanguages.has(getLangFromSlug(slug));
+	getImageOptions: async (_, { data, id }: (typeof pages)[string]): Promise<OGImageOptions> => {
+		const isRtl = rtlLanguages.has(getLangFromSlug(id));
 		return {
 			format: 'WEBP',
 			quality: 90,
