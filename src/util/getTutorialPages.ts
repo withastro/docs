@@ -1,5 +1,5 @@
 import path from 'node:path';
-import type { TutorialEntry } from '~/content/config';
+import type { TutorialEntry } from '~/content.config';
 import { stripLangFromSlug } from '~/util/path-utils';
 import { groupPagesByLang } from './groupPagesByLang';
 
