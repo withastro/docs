@@ -94,8 +94,4 @@ export default defineConfig({
 		domains: ['avatars.githubusercontent.com'],
 		service: sharpImageService(),
 	},
-	experimental: {
-		contentCollectionCache: false,
-		directRenderScript: true,
-	},
 });
