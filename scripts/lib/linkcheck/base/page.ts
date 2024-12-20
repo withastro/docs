@@ -137,7 +137,7 @@ export class HtmlPage {
 		let el: Element | null = start;
 		while (el) {
 			if (test(el)) return el;
-			el = DomUtils.getParent(el);
+			el = DomUtils.getParent(el) as Element;
 		}
 		return null;
 	}
