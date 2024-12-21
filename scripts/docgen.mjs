@@ -3,7 +3,6 @@
 import fs from 'fs';
 // @ts-expect-error — Untyped npm package
 import jsdoc from 'jsdoc-api';
-import fetch from 'node-fetch';
 
 // Fill this in to test a response locally, with fetching.
 const STUB = ``; // fs.readFileSync('/PATH/TO/MONOREPO/astro/packages/astro/src/types/public/config.ts', {encoding: 'utf-8'});
