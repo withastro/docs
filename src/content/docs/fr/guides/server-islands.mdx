@@ -71,6 +71,30 @@ Chaque îlot est chargé indépendamment des autres. Cela signifie qu'un îlot p
 
 Ce modèle de rendu a été conçu pour être portable. Il ne dépend d'aucune infrastructure de serveur et fonctionnera donc avec n'importe quel hôte, qu'il s'agisse d'un serveur Node.js dans un conteneur Docker ou du fournisseur sans serveur de votre choix.
 
+## Mise en cache
+
+Les données pour les îlots de serveurs sont récupérées via une requête `GET`, en passant les props sous forme de chaîne chiffrée dans la requête URL. Cela permet de mettre en cache les données avec l'en-tête HTTP [`Cache-Control`](https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Cache-Control) en utilisant des directives `Cache-Control` standard.
+
+Cependant, [le navigateur limite les URL à une longueur maximale de 2048 octets](https://chromium.googlesource.com/chromium/src/+/master/docs/security/url_display_guidelines/url_display_guidelines.md#url-length) pour des raisons pratiques et pour éviter de causer des problèmes de déni de service. Si votre chaîne de requête fait dépasser cette limite à votre URL, Astro enverra plutôt une requête `POST` qui contient toutes les propriétés dans le corps.
+
+Les requêtes `POST` ne sont pas mises en cache par les navigateurs, car elles sont utilisées pour soumettre des données, et pourraient causer des problèmes d'intégrité ou de sécurité des données. Par conséquent, toute logique de mise en cache existante dans votre projet sera cassée. Dans la mesure du possible, ne transmettez que les propriétés nécessaires à vos îlots de serveurs et évitez d'envoyer des objets de données et des tableaux entiers pour garder votre requête petite.
+
+## Accéder à l'URL de la page dans un îlot de serveurs
+
+Dans la plupart des cas, votre composant d'îlot serveur peut obtenir des informations sur la page qui le rend en [passant des propriétés](/fr/basics/astro-components/#props-de-composant) comme dans les composants normaux.
+
+Cependant, les îlots de serveurs fonctionnent dans leur propre contexte isolé en dehors de la requête de la page. `Astro.url` et `Astro.request.url` dans un composant d'îlot serveur renvoient tous deux une URL qui ressemble à `/_server-islands/Avatar` au lieu de l'URL de la page courante dans le navigateur. De plus, si vous effectuez un pré-rendu de la page, vous n'aurez pas accès à des informations telles que les paramètres de la requête à passer en tant que propriétés.
+
+Pour accéder aux informations de l'URL de la page, vous pouvez vérifier l'en-tête [Referer](https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Referer), qui contiendra l'adresse de la page qui charge l'île dans le navigateur :
+
+```astro
+---
+const referer = Astro.request.headers.get('Referer');
+const url = new URL(referer);
+const productId = url.searchParams.get('product');
+---
+```
+
 ## Accéder à l'URL de la page dans un îlot de serveurs
 
 Dans la plupart des cas, votre composant d'îlot serveur peut obtenir des informations sur la page qui le rend en [passant des props](/fr/basics/astro-components/#props-de-composant) comme dans les composants normaux.
