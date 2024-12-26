@@ -1,241 +1,265 @@
 ---
 title: 内容集合
 description: >-
-  内容集合有助于组织你的 Markdown 文件以及通过 schema 使用带有类型检查的 frontmatter。
-banner:
-  content: 想要升级到 Astro 5 的 beta 版本吗？阅读我们的 <a href="https://5-0-0-beta.docs.astro.build/zh-cn/guides/upgrade-to/v5/">v5 升级指南</a>！
+  类型安全的管理你的内容。
 i18nReady: true
 ---
-import { FileTree } from '@astrojs/starlight/components';
+import { FileTree, CardGrid, LinkCard, Steps } from '@astrojs/starlight/components';
 import Since from '~/components/Since.astro'
 import RecipeLinks from "~/components/RecipeLinks.astro"
 import Badge from "~/components/Badge.astro"
+import ReadMore from "~/components/ReadMore.astro"
 
 <p><Since v="2.0.0" /></p>
 
-在任何 Astro 项目中，**内容集合**是使用 Markdown 和 MDX 的最佳方式。内容集合帮助管理你的文档，校验 frontmatter，并为所有内容提供自动 TypeScript 类型安全。
+**内容集合（Content collections）** 是在任何 Astro 项目中管理内容集的最佳方式。集合有助于组织和查询文档，为你的编辑器启用智能提示和类型检查，并为所有内容提供自动的 TypeScript 类型安全。
+
+Astro 5.0 引入了内容层（Content Layer）API，用于定义和查询内容集。这个高性能、可扩展的 API 为本地集合提供了内置的内容加载器（content loaders）。对于远程内容，你可以使用第三方和社区构建的加载器，或者创建自己的自定义加载器，从任何来源拉取数据。
+
+:::note
+项目可以继续使用 Astro v2.0 中引入的传统内容集合 API。但是，我们鼓励尽可能 [更新任何现有集合](/zh-cn/guides/upgrade-to/v5/#legacy-v20-content-collections-api)。
+:::
 
 ## 什么是内容集合？
 
-一个**内容集合**是保留在 `src/content` 目录中的任何顶级目录，比如 `src/content/newsletter` 和 `src/content/authors` 。内容集合只允许在 `src/content` 目录中。此目录不能用于其他用处。
+你可以从结构相似的数据集中定义一个**集合**。这可以是一个博客文章的目录，一个产品项目的 JSON 文件，或者任何代表相同形状的多个项目的数据。
 
-一个**内容条目**是存储在内容集合目录中的任何内容片段。内容条目存储在 Markdown (`.md`) 或 MDX (`.mdx`) 文件中。条目可以使用内容文件的格式，包括 Markdown (`.md`) 和 MDX (`.mdx` 使用 [MDX 集成](/zh-cn/guides/integrations-guide/mdx/)) 或者被支持的二者之一的数据格式：YAML (`.yaml`) 和 JSON (`.json`)。你可以使用任何想用的文件名，但是我们建议使用一致的命名方案 (小写，破折号而不是空格) ，以便更容易地查找和组织内容。你还可以通过在文件名前添加下划线 (_) 来[从构建中排除条目](/zh-cn/guides/routing/#排除页面)。
-
-<FileTree>
-- src/content/
-  - **newsletter/** "newsletter" 集合
-    - week-1.md 一个集合条目
-    - week-2.md 一个集合条目
-    - week-3.md 一个集合条目
-</FileTree>
-
-一旦有了一个集合，你就可以使用 Astro 的内置内容 API 开始[查询集合](#查询集合)。
-
-### ".astro" 目录
-
-Astro 将内容集合的重要元数据存储在项目中的 `.astro` 目录。你不需要采取任何措施来维护或更新此目录。我们希望你在项目中完全忽略它。
-
-只要运行[`astro dev`](/zh-cn/reference/cli-reference/#astro-dev)，[`astro build`](/zh-cn/reference/cli-reference/#astro-build)命令，`.astro` 目录就会自动更新。你可以随时运行[`astro sync`](/zh-cn/reference/cli-reference/#astro-sync)来手动更新 `.astro` 目录。
-
-:::tip
-如果你正在使用 Git 进行版本控制，我们建议通过在 `.gitignore` 文件中添加 `.astro` 来忽略 `.astro` 目录。这告诉 Git 忽略这个目录及其中的任何文件。
-:::
-
-
-
-### 组织多个集合
-
-如果两个文件表示不同类型的内容（例如，一篇博客文章和一个作者描述文件），那么它们很可能应属于不同的集合。这一点非常重要，因为许多特性（frontmatter 验证、自动 TypeScript 类型安全）要求集合中的所有条目共享相似的结构。
-
-如果你发现自己正在处理不同类型的内容，则应该创建多个集合来表示每种类型。你可以在项目中创建任意多个不同的集合。
+本地存储在项目中或文件系统上的集合可以包含 Markdown、MDX、Markdoc 或 JSON 文件的条目：
 
 <FileTree>
-- src/content/
-  - **newsletter/** 
-    - week-1.md
-    - week-2.md
-  - **blog/**
-    - post-1.md
-    - post-2.md
-  - **authors/**
-    - grace-hopper.json
-    - alan-turing.json
+- src/
+- **newsletter/** "newsletter" 集合
+  - week-1.md 一个集合条目
+  - week-2.md 一个集合条目
+  - week-3.md 一个集合条目
+- **authors/** "author" 集合
+  - authors.json 包含所有集合条目的单个文件
 </FileTree>
 
+使用对应的集合加载器，你可以从任何外部来源获取远程数据，比如 CMS、数据库或无头支付系统。
 
+## 集合的 TypeScript 配置
 
-### 使用子目录进行组织
+内容集合依靠 TypeScript 为你的编辑器提供 Zod 验证、智能提示和类型检查。如果你没有扩展 Astro 的 `strict` 或 `strictest` TypeScript 设置，你需要确保在 `tsconfig.json` 中设置以下 `compilerOptions`：
 
-内容集合始终是 `src/content/` 目录中的顶级文件夹。你不能将一个集合嵌套在另一个集合中。不过，你可以使用子目录来组织集合中的内容。
-
-例如，可以使用以下目录结构在单个 `docs` 集合中组织 i18n 翻译。当查询这个集合时，你将能够使用文件路径按语言过滤结果。
-
-<FileTree>
-- src/content/
-  - docs/ 此集合使用子目录按语言进行组织
-    - **en/**
-    - **es/**
-    - **de/**
-</FileTree>
+```json title="tsconfig.json" ins={5} {6}
+{
+  // 包括在 "astro/tsconfigs/strict" 或 "astro/tsconfigs/strictest" 中
+  "extends": "astro/tsconfigs/base",
+  "compilerOptions": {
+    "strictNullChecks": true, // 使用 `base` 模板需要添加
+    "allowJs": true // 必需，包含在所有 Astro 模板中
+  }
+}
+```
 
 ## 定义集合
 
-:::note
-`src/content/config.ts` 文件是可选的。但是，选择不定义集合将禁用它们的一些最佳特性，如 frontmatter schema 验证或自动 TypeScript 类型。
-:::
+单个集合使用 `defineCollection()` 配置：
 
-要充分利用内容集合，请在项目中创建一个 `src/content/config.ts` 文件（也支持 `.js` 和 `.mjs`）。这是一个特殊的文件，Astro 将自动加载并使用它来配置你的内容集合。
+- 一个 `loader` 用于数据源（必需）
+- 一个 `schema` 用于类型安全（可选，但强烈推荐！）
 
-```ts
-// src/content/config.ts
-// 1. 从 `astro:content` 导入
-import { defineCollection } from 'astro:content';
-// 2. 定义集合
-const blogCollection = defineCollection({ /* ... */ });
-// 3. 导出一个 `collections` 对象来注册集合
-//    这个键应该与 `src/content` 中的集合目录名匹配
-export const collections = {
-  'blog': blogCollection,
-};
+### 集合配置文件
+
+要定义集合，你必须在项目中创建一个 `src/content.config.ts` 文件（也支持 `.js` 和 `.mjs` 扩展名）。这是一个特殊的文件，Astro 将根据以下结构使用它来配置你的内容集合：
+
+```ts title="src/content.config.ts"
+// 1. 从 `astro:content` 导入工具函数
+import { defineCollection, z } from 'astro:content';
+
+// 2. 导入加载器
+import { glob, file } from 'astro/loaders';
+
+// 3. 定义你的集合
+const blog = defineCollection({ /* ... */ });
+const dogs = defineCollection({ /* ... */ });
+
+// 4. 导出一个 `collections` 对象来注册你的集合
+export const collections = { blog, dogs };
 ```
 
+### 定义集合 `loader`
 
-### 设置 TypeScript
+内容层 API 允许你从任何地方获取你的内容（无论是本地存储在项目中还是远程存储），并使用 `loader` 属性来检索你的数据。
 
-如果你**尚未**在 `tsconfig.json` 文件中扩展 Astro 推荐的 `strict` 或 `strictest` 的 TypeScript 设置，你可能需要更新 `tsconfig.json` 来启用 `strictNullChecks`。
+#### 内置的加载器
 
-```json title="tsconfig.json" ins={5}
-{
-  // 注意：如果使用 `astro/tsconfigs/strict` 或 `astro/tsconfigs/strictest`，则不需要更改
-  "extends": "astro/tsconfigs/base",
-  "compilerOptions": {
-    "strictNullChecks": true
-  }
-}
-```
+Astro 提供了两个内置的加载器函数（`glob()` 和 `file()`）用于获取本地内容，也可以通过 API 来构建自己的加载器并请求远程数据。
 
-如果在 Astro 项目中使用 `.js` 或者 `.mjs` 文件，你可以启用 IntelliSense，并在编辑器中通过在 `tsconfig.json` 中启用 `allowJs` 来进行类型检查：
-```json title="tsconfig.json" ins={6}
-{
-  // 注意：如果使用 `astro/tsconfigs/strict` 或 `astro/tsconfigs/strictest`，则不需要更改
-  "extends": "astro/tsconfigs/base",
-  "compilerOptions": {
-    "strictNullChecks": true,
-    "allowJs": true
-  }
-}
-```
+`glob()` 加载器可以从文件系统的任何地方创建 Markdown、MDX、Markdoc 或 JSON 文件的目录条目。它接受一个匹配条目文件的 `pattern`，以及你的文件所在的 `base` 文件路径。每个条目的 `id` 将从其文件名自动生成。当每个条目对应一个文件时，请使用此加载器。
 
-### 定义集合模式
+`file()` 加载器从单个本地文件创建多个条目。文件中的每个条目必须有一个唯一的 `id` 键属性。它接受一个 相对你的文件的 `base` 文件路径，以及一个可选的 [`parser` 函数](#parser-函数) 用于它无法自动解析的数据文件。当你的数据文件可以解析为对象数组时，请使用此加载器。
 
-schema 在集合中强制执行一致的 frontmatter。schema **保证**当你需要引用或查询它时，你的 frontmatter 以可预测的形式存在。如果任何文件违反了它的集合 schema，Astro 将提供一个有用的错误让你知道。
+```ts  title="src/content.config.ts" {5,9}
+import { defineCollection, z } from 'astro:content';
+import { glob, file } from 'astro/loaders'; // 不适用于旧版 API
 
-schema 还使 Astro 能为内容自动生成 TypeScript 类型。为集合定义 schema 时，Astro 将自动生成并向其应用 TypeScript 接口。查询集合时，结果是完全支持 TypeScript，包括属性自动完成和类型检查。
-
-要定义你的第一个内容 schema，如果该文件不存在的话，新建一个 `src/content/config.ts` 文件（`.js` 和 `.mjs` 后缀也是支持的）。此文件应该：
-
-1. 从 `astro:content` **导入适当的工具**。
-2. **定义要验证的每个集合**。这包括一个 `type` (Astro v2.5.0 中引入) 指定集合是否包含像 Markdown (`type: 'content'`) 的内容创作格式或是像 JSON 及 YAML (`type: 'data'`) 的数据格式。同样包含一个用来定义 frontmatter 形式或条目数据的 `schema`。
-3. **导出一个 `collections` 对象**来注册你的集合。
-
-```ts
-// src/content/config.ts
-// 1. 从 `astro:content` 导入适当的工具。
-import { z, defineCollection } from 'astro:content';
-
-// 2. 定义要用 schema 验证的每个集合。
-const blogCollection = defineCollection({
-  type: 'content', // v2.5.0 及之后
-  schema: z.object({
-    title: z.string(),
-    tags: z.array(z.string()),
-    image: z.string().optional(),
+const blog = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
+  schema: /* ... */ 
+});
+const dogs = defineCollection({
+  loader: file("src/data/dogs.json"),
+  schema: /* ... */ 
   }),
 });
 
-// 3. 导出一个 `collections` 对象来注册你的集合。
-export const collections = {
-  'blog': blogCollection,
-};
+const probes = defineCollection({
+  // `loader` 可以接受多个模式的数组以及字符串模式"
+  // 加载 space-probes 目录中的所有 Markdown 文件，以 "voyager-" 开头的文件除外
+  loader: glob({ pattern: ['*.md', '!voyager-*'], base: 'src/data/space-probes' }),
+  schema: z.object({
+    name: z.string(),
+    type: z.enum(['Space Probe', 'Mars Rover', 'Comet Lander']),
+    launch_date: z.date(),
+    status: z.enum(['Active', 'Inactive', 'Decommissioned']),
+    destination: z.string(),
+    operator: z.string(),
+    notable_discoveries: z.array(z.string()),
+  }),
+});
+
+export const collections = { blog, dogs, probes };
 ```
 
-### 定义多个集合
+##### `parser` 函数
 
-你可以多次使用 `defineCollection()` 创建多个 schema。所有集合必须从这个 `collections` 对象中导出。
+`file()` 加载器接受一个第二个参数，定义了一个 `parser` 函数。这允许你指定一个自定义解析器（例如 `toml.parse` 或 `csv-parse`）来从文件内容创建一个集合。
 
-```ts
-// src/content/config.ts
-const blogCollection = defineCollection({
-  type: 'content',
-  schema: z.object({ /* ... */ })
-});
-const newsletter = defineCollection({
-  type: 'content',
-  schema: z.object({ /* ... */ })
-});
-const authors = defineCollection({
-  type: 'data',
-  schema: z.object({ /* ... */ })
-});
+`file()` 加载器将自动检测和解析 JSON 和 YAML 文件中的单个对象数组（基于它们的文件扩展名），无需 `parser`，除非你有一个[嵌套的 JSON 文件](#嵌套的-json-文件)。要使用其他文件，例如 `.toml` 和 `.csv`，你需要创建一个解析器函数。
 
-export const collections = {
-  'blog': blogCollection,
-  'newsletter': newsletter,
-  'authors': authors,
-};
+以下示例使用 `.toml` 文件定义了一个内容集合 `dogs`：
+
+```toml title="src/data/dogs.toml"
+[[dogs]]
+id = "..."
+age = "..."
+
+[[dogs]]
+id = "..."
+age = "..."
 ```
 
-随着项目的增长，你还可以自由地重新组织代码库，并将逻辑移出 `src/content/config.ts` 文件。分别定义 schema 对于跨多个集合重用 schema 和与项目的其他部分共享 schema 非常有用。
+导入 TOML 解析器后，你可以通过将文件路径和 `parser` 函数传递给 `file()` 加载器来将 `dogs` 集合加载到你的项目中。类似的过程可以用来从 `.csv` 文件定义 `cats` 集合：
 
-```ts
-// src/content/config.ts
-// 1. 导入你的实用工具和 schema
-import { defineCollection } from 'astro:content';
-import { blogSchema, authorSchema } from '../schemas';
+```typescript title="src/content.config.ts"
+import { defineCollection } from "astro:content";
+import { file } from "astro/loaders";
+import { parse as parseToml } from "toml";
+import { parse as parseCsv } from "csv-parse/sync";
 
-// 2. 定义你的集合
-const blogCollection = defineCollection({
-  type: 'content',
-  schema: blogSchema,
+const dogs = defineCollection({
+  loader: file("src/data/dogs.toml", { parser: (text) => parseToml(text).dogs }),
+  schema: /* ... */
+})
+
+const cats = defineCollection({
+  loader: file("src/data/cats.csv", { parser: (text) => parseCsv(text, { columns: true, skipEmptyLines: true })})
 });
-const authorCollection = defineCollection({
-  type: 'data',
-  schema: authorSchema,
-});
-
-// 3. 导出多个集合以注册它们
-export const collections = {
-  'blog': blogCollection,
-  'authors': authorCollection,
-};
 ```
 
-### 使用第三方集合 schema
+###### 嵌套的 `.json` 文件
 
-你可以从任何地方导入集合 schema，包括外部 npm 包。这在使用提供了它们自己的集合 schema 的主题和库时非常有用。
+`parser` 参数还允许你从嵌套的 JSON 文档中加载单个集合。例如，这个 JSON 文件包含了多个集合：
 
-
-```ts
-// src/content/config.ts
-import { blogSchema } from 'my-blog-theme';
-const blogCollection = defineCollection({ type: 'content', schema: blogSchema });
-
-// 导出从 'my-blog-theme' 导入的 schema 为 `blog` 集合
-export const collections = {
-  'blog': blogCollection,
-};
+```json title="src/data/pets.json"
+{"dogs": [{}], "cats": [{}]}
 ```
 
+你可以通过为每个集合传递一个自定义的 `parser` 来将这些集合分开：
 
-### 用 Zod 定义数据类型
+```typescript title="src/content.config.ts"
+const dogs = defineCollection({
+  loader: file("src/data/pets.json", { parser: (text) => JSON.parse(text).dogs })
+});
+const cats = defineCollection({
+  loader: file("src/data/pets.json", { parser: (text) => JSON.parse(text).cats })
+});
+```
 
-Astro 使用 [Zod](https://github.com/colinhacks/Zod) 驱动其内容 schema。Astro 使用 Zod 能够验证集合中每个文件的 frontmatter，并在从项目内部查询内容时提供自动的 TypeScript 类型。
+#### 构建一个自定义加载器
 
-要在 Astro 中使用 Zod，请从 `"astro:content"` 中导入 `z`。这是 Zod 库的重新导出，它支持 Zod 的所有特性。查看[Zod 的 README](https://github.com/colinhacks/Zod) 获得关于 Zod 如何工作以及可用特性的完整文档。
+你可以构建一个自定义加载器来从任何数据源（如 CMS、数据库或 API 端点）获取远程内容。
 
+使用加载器请求数据将自动从远程数据创建一个集合。这为你提供了所有本地集合的好处，例如集合特定的 API 助手，如 `getCollection()` 和 `render()` 来查询和显示你的数据，以及模式验证。
+
+:::tip
+在 [Astro 集成目录](https://astro.build/integrations/?search=&categories%5B%5D=loaders) 中查找社区构建和第三方加载器。
+:::
+
+##### 内联加载器
+
+你可以在集合内部定义一个内联加载器，作为一个返回条目数组的异步函数。
+
+这对不需要手动控制数据如何加载和存储的加载器非常有用。每当调用加载器时，它都会清除存储并重新加载所有条目。
+
+```ts title="src/content.config.ts"
+const countries = defineCollection({
+  loader: async () => {
+    const response = await fetch("https://restcountries.com/v3.1/all");
+    const data = await response.json();
+    // 必须返回具有 id 属性的条目数组，或以 ID 作为键、条目作为值的对象
+    return data.map((country) => ({
+      id: country.cca3,
+      ...country,
+    }));
+  },
+  schema: /* ... */
+});
+```
+
+返回的条目将存储在集合中，并可以使用 `getCollection()` 和 `getEntry()` 函数进行查询。
+
+##### 加载器对象
+
+为了更好的控制加载过程，你可以使用内容加载器 API 来创建一个加载器对象。例如，通过直接访问 `load` 方法，你可以创建一个加载器，允许条目逐步更新或仅在必要时清除存储。
+
+与创建 Astro 集成或 Vite 插件类似，你可以将你的加载器 [作为 NPM 包分发](/zh-cn/reference/publish-to-npm/)，供他人在他们的项目中使用。
+
+<ReadMore>更多关于构建你自己的加载器的例子，请参考完整的 [内容加载器 API](/zh-cn/reference/content-loader-reference/)。</ReadMore>
+
+### 定义集合模式（Schema）
+
+模式通过 Zod 验证强制执行集合中的一致的 frontmatter 或条目数据。模式 **保证** 了当你需要引用或查询数据时，这些数据以可预测的形式存在。如果任何文件违反了其集合模式，Astro 将提供一个有用的错误提示。
+
+模式还为 Astro 的内容自动 TypeScript 类型提供了支持。当你为集合定义模式时，Astro 将自动生成并应用一个 TypeScript 接口。结果是当你查询集合时，完整的 TypeScript 支持，包括属性自动补全和类型检查。
+
+集合条目的每个 frontmatter 或数据属性都必须使用 Zod 数据类型定义：
+
+```ts title="src/content.config.ts" {6-11,15-19}
+import { defineCollection, z } from 'astro:content';
+import { glob, file } from 'astro/loaders'; // 不适用于旧版 API
+
+const blog = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
+  })
+});
+const dogs = defineCollection({
+  loader: file("src/data/dogs.json"),
+  schema: z.object({
+    id: z.string(),
+    breed: z.string(),
+    temperament: z.array(z.string()),
+  }),
+});
+
+export const collections = { blog, dogs };
+```
+
+#### 使用 Zod 定义数据类型
+
+Astro 使用 [Zod](https://github.com/colinhacks/zod) 来支持其内容模式。使用 Zod，Astro 能够验证集合中每个文件的数据，并在你查询内容时提供自动的 TypeScript 类型。
+
+要在 Astro 中使用 Zod，请从 `"astro:content"` 导入 `z` 工具函数。这是 Zod 库的重新导出，支持 Zod 的所有功能。
 
 ```ts
-// 例子：许多常见 Zod 数据类型的备忘单
+// 示例：许多常见 Zod 数据类型的备忘单
 import { z, defineCollection } from 'astro:content';
 
 defineCollection({
@@ -250,44 +274,50 @@ defineCollection({
     author: z.string().default('Anonymous'),
     language: z.enum(['en', 'es']),
     tags: z.array(z.string()),
-    // 一个可选的 frontmatter 属性。非常普遍！
     footnote: z.string().optional(),
-    // 在 frontmatter 中，周围没有引号的日期被解释为 Date 对象
-    publishDate: z.date(),
-    // 可以将日期字符串 (例如 "2022-07-08") 转换为 Date 对象
-    // publishDate: z.string().transform((str) => new Date(str)),
-    //Advanced: 验证字符串是否也是电子邮件
+
+    // 在 YAML 中，不带引号的日期被解释为 Date 对象
+    publishDate: z.date(), // 例如 2024-09-17
+
+    // 将日期字符串（例如 “2022-07-08”）转换为 Date 对象
+    updatedDate: z.string().transform((str) => new Date(str)),
+
     authorContact: z.string().email(),
-    // Advanced: 验证该字符串也是一个 URL
     canonicalURL: z.string().url(),
   })
 })
 ```
 
-### 定义集合引用
+<ReadMore>有关 Zod 如何工作及其可用功能的完整文档，请参阅 [Zod 的 README](https://github.com/colinhacks/zod)。</ReadMore>
 
-集合条目也可以"引用"其他相关条目。
+##### Zod 模式方法
 
-使用集合 API 中的 `reference()` 函数，可以将集合 schema 中的属性定义为另一个集合中的条目。例如，你可以要求每个 `space-shuttle` 条目都包含一个 `pilot` 属性，该属性使用 `pilot` 集合自己的 schema 进行类型检查、自动填充和验证。
+所有 [Zod 模式方法](https://zod.dev/?id=schema-methods)（例如 `.parse()`、`.transform()`）都可用，但有一些限制。特别是，使用 `image().refine()` 对图像执行自定义验证检查是不支持的。
 
-一个常见的示例是引用以 JSON 形式存储的可重用作者个人资料或存储在同一集合中的相关帖子 URL 的博客文章：
+#### 定义集合引用
 
-```ts
+集合条目还可以“引用”其他相关条目。这对于在集合模式中定义属性引用其他集合的条目非常有用。
+
+使用集合 API 中的 `reference()` 函数，你可以将集合模式中的属性定义为来自另一个集合的条目。例如，你可以要求每个 `space-shuttle` 条目都包含一个 `pilot` 属性，该属性使用 `pilot` 集合自己的模式进行类型检查、自动补全和验证。
+
+一个常见的例子是一个引用存储为 JSON 的可重用作者配置文件的博客文章，或者存储在同一集合中的相关文章 URL：
+
+```ts title="src/content.config.ts"
 import { defineCollection, reference, z } from 'astro:content';
 
 const blog = defineCollection({
-  type: 'content',
+  loader: glob({ pattern: '**/[^_]*.md', base: "./src/data/blog" }),
   schema: z.object({
     title: z.string(),
-    // 通过 `id` 引用 `authors` 集合中的单个作者
+    // 通过 `id` 从 `authors` 集合引用单个作者
     author: reference('authors'),
-    // 通过 `slug` 引用 `blog` 集合中的相关帖子数组
+    // 通过 `slug` 从 `blog` 集合引用相关文章数组
     relatedPosts: z.array(reference('blog')),
   })
 });
 
 const authors = defineCollection({
-  type: 'data',
+  loader: glob({ pattern: '**/[^_]*.json', base: "./src/data/authors" }),
   schema: z.object({
     name: z.string(),
     portfolio: z.string().url(),
@@ -297,56 +327,150 @@ const authors = defineCollection({
 export const collections = { blog, authors };
 ```
 
-此示例博客文章指定相关帖子的 `slug` 和帖子作者的 `id`：
+这个博客文章示例指定了相关文章的 `id` 和作者的 `id`：
 
-```yaml title="src/content/blog/welcome.md"
+```yaml title="src/data/blog/welcome.md"
 ---
 title: "Welcome to my blog"
-author: ben-holmes # 引用 `src/content/authors/ben-holmes.json`
+author: ben-holmes # references `src/data/authors/ben-holmes.json` 
 relatedPosts:
-- about-me # 引用 `src/content/blog/about-me.md`
-- my-year-in-review # 引用 `src/content/blog/my-year-in-review.md`
+- about-me # references `src/data/blog/about-me.md`
+- my-year-in-review # references `src/data/blog/my-year-in-review.md`
 ---
 ```
 
-### 定义自定义 slugs
+### 定义自定义 ID
 
-当使用 `type: 'content'` 时，每个内容条目从它的[文件 `id`](/zh-cn/reference/modules/astro-content/#id) 生成一个 URL 友好的 `slug` 属性。slug 用于直接从集合中查询条目。在根据内容创建新页面和 URL 时，它也很有用。
+当将 Markdown、MDX、Markdoc 或 JSON 文件与 `glob()` 加载器一起使用时，每个内容条目的 [`id`](/zh-cn/reference/modules/astro-content/#id) 将根据内容文件名自动生成一个 URL 友好的格式。`id` 用于直接从你的集合中查询条目。它还在从内容创建新页面和 URL 时非常有用。
 
-你可以通过将自己的 `slug` 属性添加到文件 frontmatter 来覆盖条目生成的 slug。这类似于其他 Web 框架的 "permalink" 特性。`"slug"` 是一个特殊的保留属性名称，不允许出现在自定义集合 `schema` 中，也不会出现在条目的 `data` 属性中。
+你可以通过在文件的 frontmatter 或 JSON 文件的数据对象中添加自己的 `slug` 属性来覆盖条目生成的 `id`。这类似于其他 Web 框架的 “permalink” 功能。
 
-```md {3}
+```md title="src/blog/1.md" {3}
 ---
-title: 我的博客文章
-slug: my-custom-slug/supports/slashes
+title: My Blog Post
+slug: my-custom-id/supports/slashes
 ---
-你的博客文章内容在这里。
+Your blog post content here.
+```
+
+```json title="src/categories/1.json" {3}
+{
+  "title": "My Category",
+  "slug": "my-custom-id/supports/slashes",
+  "description": "Your category description here."
+}
 ```
 
 ## 查询集合
 
-Astro 提供了两个函数来查询一个集合并返回一个（或多个）内容条目：[`getCollection()`](/zh-cn/reference/modules/astro-content/#getcollection) 和 [`getEntry()`](/zh-cn/reference/modules/astro-content/#getentry)。
+Astor 提供辅助函数来查询集合并返回一个（或多个）内容条目。
+
+- [`getCollection()`](/zh-cn/reference/modules/astro-content/#getcollection) 获取整个集合并返回一个条目数组。
+- [`getEntry()`](/zh-cn/reference/modules/astro-content/#getentry) 从集合中获取单个条目。
+
+它们返回具有唯一 `id`、包含所有定义属性的 `data` 对象，并且还将返回一个 `body`，其中包含 Markdown、MDX 或 Markdoc 文档的原始、未编译的正文。
 
 ```js
 import { getCollection, getEntry } from 'astro:content';
 
 // 获取集合中的所有条目。
 // 需要集合的名称作为参数。
-// 示例：检索 `src/content/blog/**`
 const allBlogPosts = await getCollection('blog');
 
 // 从集合中获取单个条目。
-// 需要集合的名称以及
-// 条目 `slug`（内容集合）或 `id`（数据集合）
-// 示例：检索 `src/content/authors/grace-hopper.json`
-const graceHopperProfile = await getEntry('authors', 'grace-hopper');
+// 需要集合的名称和 `id`
+const poodleData = await getEntry('dogs', 'poodle');
+
+
+```
+<ReadMore>请参阅 [`CollectionEntry` 类型](/zh-cn/reference/modules/astro-content/#collectionentry) 返回的完整属性列表。</ReadMore>
+
+### 在 Astro 模板中使用内容
+
+查询集合后，你可以直接在 Astro 组件模板中访问每个条目的内容。例如，你可以创建一个链接列表，显示条目的 frontmatter 信息，使用 `data` 属性。
+
+```astro title="src/pages/index.astro"
+---
+import { getCollection } from 'astro:content';
+const posts = await getCollection('blog');
+---
+<h1>My posts</h1>
+<ul>
+  {posts.map(post => (
+    <li><a href={`/blog/${post.id}`}>{post.data.title}</a></li>
+  ))}
+</ul>
+```
+#### 渲染正文内容
+
+查询后，你可以使用 `render()` 函数属性将 Markdown 和 MDX 条目渲染为 HTML。调用此函数将使你可以访问渲染的 HTML 内容，包括 `<Content />` 组件和所有已渲染标题的列表。
+
+```astro title="src/pages/blog/post-1.astro" {5,8}
+---
+import { getEntry, render } from 'astro:content';
+
+const entry = await getEntry('blog', 'post-1');
+const { Content, headings } = await render(entry);
+---
+<p>Published on: {entry.data.published.toDateString()}</p>
+<Content />
 ```
 
-这两个函数都返回由 [`CollectionEntry`](/zh-cn/reference/modules/astro-content/#collectionentry) 类型定义的内容条目。
+#### 将内容作为 props 传递
 
-### 使用引用的数据
+组件还可以将整个集合条目作为 prop 传递。
 
-首次查询集合条目后，必须再单独查询 [schema 中定义的引用](#定义集合引用)。你可以再次使用 `getEntry()` 函数或 `getEntries()` 从返回的 `data` 对象中检索引用的条目。
+你可以使用 [`CollectionEntry`](/zh-cn/reference/modules/astro-content/#collectionentry) 工具函数来使用 TypeScript 正确地为组件的 props 添加类型。此函数接受一个字符串参数，该参数与你的集合模式的名称匹配，并将继承该集合模式的所有属性。
+
+```astro title="src/components/BlogCard.astro" /CollectionEntry(?:<.+>)?/
+---
+import type { CollectionEntry } from 'astro:content';
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+// `post` 将匹配你的 'blog' 集合模式类型
+const { post } = Astro.props;
+---
+```
+
+### 过滤集合查询
+
+`getCollection()` 采用一个可选的 "filter" 回调，允许你根据条目的 `id` 或 `data` 属性过滤查询。
+
+你可以使用它来根据你喜欢的任何内容标准进行过滤。例如，你可以通过 `draft` 属性来过滤，以防止任何草稿博客文章发布到你的博客：
+
+```js
+// 示例：使用 `draft: true` 过滤掉内容条目
+import { getCollection } from 'astro:content';
+const publishedBlogEntries = await getCollection('blog', ({ data }) => {
+  return data.draft !== true;
+});
+```
+
+你也可以创建在运行开发服务器时可用但不在生产中构建的草稿页面。
+
+```js
+// 示例：仅在为生产构建时过滤掉带有 `draft: true` 的内容条目
+import { getCollection } from 'astro:content';
+const blogEntries = await getCollection('blog', ({ data }) => {
+  return import.meta.env.PROD ? data.draft !== true : true;
+});
+```
+
+过滤参数还支持按照集合中的嵌套目录进行过滤。由于 `id` 包含完整的嵌套路径，你可以通过每个 `id` 的开始来过滤，以仅返回特定嵌套目录中的条目：
+
+```js
+// 示例：按集合中的子目录过滤条目
+import { getCollection } from 'astro:content';
+const englishDocsEntries = await getCollection('docs', ({ id }) => {
+  return id.startsWith('en/');
+});
+```
+
+### 访问引用数据
+
+首次查询集合条目后，必须单独查询 [模式中定义的任何引用](/zh-cn/guides/content-collections/#定义集合引用)。你可以使用 `getEntry()` 函数返回单个引用项，或者使用 `getEntries()` 从返回的 `data` 对象中检索多个引用条目。
 
 ```astro title="src/pages/blog/welcome.astro"
 ---
@@ -354,288 +478,115 @@ import { getEntry, getEntries } from 'astro:content';
 
 const blogPost = await getEntry('blog', 'welcome');
 
-// 检索单一引用
+// 解析单一引用
 const author = await getEntry(blogPost.data.author);
-// 检索引用数组
+// 解析引用数组
 const relatedPosts = await getEntries(blogPost.data.relatedPosts);
 ---
 
 <h1>{blogPost.data.title}</h1>
-<p>作者：{author.data.name}</p>
+<p>Author: {author.data.name}</p>
 
 <!-- ... -->
 
-<h2>你可能也喜欢：</h2>
-{relatedPosts.map(p => (
-  <a href={p.slug}>{p.data.title}</a>
+<h2>You might also like:</h2>
+{relatedPosts.map(post => (
+  <a href={post.id}>{post.data.title}</a>
 ))}
 ```
 
-### 筛选集合查询
-
-`getCollection()` 接受一个可选的 "filter" 回调，它允许你基于条目的 `id`、`slug` 或 `data` (frontmatter) 属性对查询进行过滤。对于 `type: content` 的集合，你也可以通过 `slug` 来过滤。
-
-:::note
-`slug` 属性特定于内容集合，在过滤 JSON 或 YAML 集合时不可用。
-:::
-
-你可以使用它根据你喜欢的任何内容条件进行筛选。例如，你可以通过前端属性（如 `draft`）进行过滤，以防止任何博客文章草稿发布到你的博客上：
-
-```js 
-// 例子：使用 `draft: true` 过滤内容条目
-import { getCollection } from 'astro:content';
-const draftBlogEntries = await getCollection('blog', ({ data }) => {
-  return data.draft !== true;
-});
-```
-
-你还可以创建草稿页面，这些页面在运行开发服务器时可用，但在生产中不会构建：
-
-```js
-// 示例：仅当构建生产时，才过滤掉具有 `draft: true` 的内容条目
-import { getCollection } from 'astro:content';
-const blogEntries = await getCollection('blog', ({ data }) => {
-  return import.meta.env.PROD ? data.draft !== true : true;
-});
-```
-
-filter 参数还支持按集合中的嵌套目录进行筛选。由于 `id` 包含完整的嵌套路径，因此可以根据每个 `id` 的开头进行筛选，只返回特定嵌套目录中的项目：
-
-```js
-// 例子：按集合中的子目录筛选条目
-import { getCollection } from 'astro:content';
-const englishDocsEntries = await getCollection('docs', ({ id }) => {
-  return id.startsWith('en/');
-});
-```
-
-### 使用 Astro 模板中的内容
-
-查询完集合条目后，可以直接在 Astro 组件模板内访问每个条目。这使你可以呈现诸如内容链接（使用内容 `slug`）或关于内容的信息（使用 `data` 属性）之类的 HTML。
-
-有关将内容呈现为 HTML 的信息，请参见下面的[将内容渲染成 HTML](#将内容渲染成-html)。
-
-```astro
----
-// src/pages/index.astro
-import { getCollection } from 'astro:content';
-const blogEntries = await getCollection('blog');
----
-<ul>
-  {blogEntries.map(blogPostEntry => (
-    <li>
-      <a href={`/my-blog-url/${blogPostEntry.slug}`}>{blogPostEntry.data.title}</a>
-      <time datetime={blogPostEntry.data.publishedDate.toISOString()}>
-        {blogPostEntry.data.publishedDate.toDateString()}
-      </time>
-    </li>
-  ))}
-</ul>
-```
-
-### 将内容作为属性传递
-
-组件还可以将整个内容条目作为属性传递。
-
-如果这样做，你可以使用 [`CollectionEntry`](/zh-cn/reference/modules/astro-content/#collectionentry) 实用工具使用 TypeScript 正确地输入组件属性。此实用工具接受与集合 schema 名称匹配的字符串参数，并将继承该集合 schema 的所有属性。
-
-```astro /CollectionEntry(?:<.+>)?/
----
-// src/components/BlogCard.astro
-import type { CollectionEntry } from 'astro:content';
-interface Props {
-  post: CollectionEntry<'blog'>;
-}
-
-// `post` 将匹配 `blog` 集合 schema 类型
-const { post } = Astro.props;
----
-```
-
-### 将内容渲染成 HTML
-
-一旦查询，你可以使用 `render()` 函数属性将集合条目渲染为 HTML。调用此函数可以访问渲染的内容和元数据，包括 `<Content/>` 组件和所有呈现标题的列表。
-
-```astro {5}
----
-// src/pages/render-example.astro
-import { getEntry } from 'astro:content';
-const entry = await getEntry('blog', 'post-1');
-const { Content, headings } = await entry.render();
----
-<p>发布于：{entry.data.published.toDateString()}</p>
-<Content />
-```
-
-
 ## 从内容生成路由
 
-内容集合存储在 `src/pages/` 目录之外。这意味着默认情况下不为集合项生成路由。你将需要手动创建一个新的[动态路由](/zh-cn/guides/routing/#动态路由)，以便从集合条目生成 HTML 页面。动态路由将映射传入的请求参数（例如：在 `src/pages/blog/[...slug].astro` 中的 `Astro.params.slug`）获取集合中的正确条目。
+内容集合存储在 `src/pages/` 目录之外。这意味着默认情况下不会为集合条目生成页面或路由。
 
-生成路由的确切方法将取决于你的构建 [`output`](/zh-cn/reference/configuration-reference/#output) 模式：`static` (默认值) 或 `server` (针对 SSR)。
+如果你想要为每个集合条目生成 HTML 页面或路由，例如单独的博客文章，你需要手动创建一个新的 [动态路由](/zh-cn/guides/routing/#动态路由)。你的动态路由将把传入的请求参数（例如 `Astro.params.slug` 在 `src/pages/blog/[...slug].astro` 中）映射到每个页面的正确条目。
 
-### 构建为静态输出（默认）
+生成路由的确切方法取决于你的页面是预渲染的（默认）还是由服务器按需渲染的。
 
-如果你正在构建一个静态网站（Astro 的默认行为），你可以使用 [`getStaticPaths()`](/zh-cn/reference/api-reference/#getstaticpaths) 函数在构建过程中从一个 `src/pages/` 组件创建多个页面。
+### 构建静态输出（默认）
 
-在 `getStaticPaths()` 中调用 `getCollection()` 来[查询你的内容或数据集合](/zh-cn/guides/content-collections/#查询集合)。然后，使用每个内容条目的 `slug` 属性（内容集合）或 `id` 属性（数据集合）创建你的新 URL 路径。
+如果你正在构建一个静态网站（Astro 的默认行为），请使用 [`getStaticPaths()`](/zh-cn/reference/routing-reference/#getstaticpaths) 函数在构建期间从单个页面组件（例如 `src/pages/[slug]`）创建多个页面。
 
-```astro "{ slug: entry.slug }"
+在 `getStaticPaths()` 中调用 `getCollection()`，以便在构建静态路由时为你的集合数据提供支持。然后，使用每个内容条目的 `id` 属性创建单独的 URL 路径。每个页面都将整个集合条目作为 prop 传递，以便在 [页面模板中使用](#在-astro-模板中使用内容)。
+
+```astro title="src/pages/posts/[id].astro" "{ id: post.id }" "{ post }"
 ---
-// src/pages/posts/[...slug].astro
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 // 1. 为每个集合条目生成一个新路径
 export async function getStaticPaths() {
-  const blogEntries = await getCollection('blog');
-  return blogEntries.map(entry => ({
-    params: { slug: entry.slug }, props: { entry },
+  const posts = await getCollection('blog');
+  return posts.map(post => ({
+    params: { id: post.id },
+    props: { post },
   }));
 }
-// 2. 当渲染的时候，你可以直接从属性中得到条目
-const { entry } = Astro.props;
-const { Content } = await entry.render();
+// 2. 对于你的模板，你可以直接从 prop 获取条目
+const { post } = Astro.props;
+const { Content } = await render(post);
 ---
-<h1>{entry.data.title}</h1>
+<h1>{post.data.title}</h1>
 <Content />
 ```
 
-这将为 `blog` 集合中的每个条目生成一个新页面。例如，`src/content/blog/hello-world.md` 上的条目将有一个 `hello-world` 的 slug，因此它的最终 URL 将是 `post/hello-world/`。
+这将为 `blog` 集合中的每个条目生成一个页面路由。例如，`src/blog/hello-world.md` 中的条目将具有 `hello-world` 的 `id`，因此其最终 URL 将是 `/posts/hello-world/`。
 
 :::note
-如果你的自定义 slug 包含 `/` 字符来生成具有多个路径段的 URL，则必须使用 [rest 参数 (`[...slug]`)](/zh-cn/guides/routing/#剩余参数)在此动态路由页面的 `.astro` 文件名中。
+如果你的自定义 slug 包含 `/` 字符以生成具有多个路径段的 URL，你必须在 `.astro` 文件名中使用 [rest 参数（例如 `[...slug]`）](/zh-cn/guides/routing/#剩余参数) 用于这个动态路由页面。
 :::
 
-### 构建为服务器输出（SSR）
+### 构建服务器输出 (SSR)
 
-如果你正在构建一个动态网站（使用 Astro 的 SSR 支持），则不需要在构建期间提前生成任何路径。相反，你的页面应该检查请求（使用 `Astro.request` 或 `Astro.params`）以按需找到 `slug`，然后使用 [`getEntry()`](/zh-cn/reference/modules/astro-content/#getentry) 获取它。
+如果你正在构建动态网站（使用 Astro 的 SSR 支持），你不需要在构建期间提前生成任何路径。相反，你的页面应该在请求时检查请求（使用 `Astro.request` 或 `Astro.params`）以找到 `slug`，然后使用 [`getEntry()`](/zh-cn/reference/modules/astro-content/#getentry) 来按需请求它。
 
-
-```astro
+```astro title="src/pages/posts/[id].astro"
 ---
-// src/pages/posts/[...slug].astro
-import { getEntry } from 'astro:content';
+import { getEntry, render } from "astro:content";
 // 1. 从传入的服务器请求中获取 slug
-const { slug } = Astro.params;
-if (slug === undefined) {
-	throw new Error("Slug is required");
-}
-// 2. 直接使用请求 slug 查询条目
-const entry = await getEntry('blog', slug);
-// 3. 如果条目不存在，则重定向到 404
-if (entry === undefined) {
+const { id } = Astro.params;
+if (id === undefined) {
 	return Astro.redirect("/404");
 }
-// 4. （可选）在模板中将条目呈现为 HTML
-const { Content } = await entry.render();
+// 2. 直接使用请求 slug 查询条目
+const post = await getEntry("blog", id);
+// 3. 如果条目不存在则重定向
+if (post === undefined) {
+	return Astro.redirect("/404");
+}
+// 4. 将条​​目渲染为模板中的 HTML
+const { Content } = await render(post);
 ---
+<h1>{post.data.title}</h1>
+<Content />
 ```
 
 :::tip
-探索 [GitHub 上博客教程演示代码](https://github.com/withastro/blog-tutorial-demo/tree/content-collections/src/pages) 的 `src/pages/` 文件夹，或 [在 StackBlitz 中打开它](https://stackblitz.com/github/withastro/blog-tutorial-demo/tree/content-collections?file=src/pages/blog.astro)，以此来学习如何利用内容集合，为你的博客创建页面的完整示例，例如博客文章列表、标签页面等！
+探索 [GitHub 上博客教程演示代码的 `src/pages/` 文件夹](https://github.com/withastro/blog-tutorial-demo/tree/content-collections/src/pages) ，查看如何从你的集合创建页面，例如博客文章列表、标签页面等的完整示例！
 :::
 
-## 从基于文件的路由迁移
+## 何时创建集合
 
-如果你已经有了一个现成的 Astro 项目，比如一个博客，它使用 Markdown 或 MDX 文件在 `src/pages/` 内部的子文件夹中，可以考虑将相关内容或数据文件迁移到内容集合中。
+只要你拥有一组共享相同结构的相关数据或内容，你就可以[创建一个集合](#定义集合)。
 
-请参考我们的[手把手教程](/zh-cn/tutorial/6-islands/4/)中的示例，了解如何将位于 `src/pages/posts/` 的基本博客示例转换为 `src/content/posts` 目录下的示例。该教程使用了[构建博客教程的完整项目](https://github.com/withastro/blog-tutorial-demo)的代码库。
+使用集合的大部分好处来自于：
 
-## 启用 JSON Schema 生成
+- 定义通用数据形态，以验证单个条目是否 “正确” 或 “完整”，避免在生产中出现错误。
+- 以内容为中心的 API 旨在当在页面上导入和渲染内容时，使查询变得直观（例如 `getCollection()` 而不是 `import.meta.glob()`）。
+- 用于检索内容的 [内容加载器 API](/zh-cn/reference/content-loader-reference/)，提供了内置加载器和可用的底层 API。这里有一些第三方和社区构建的加载器可用，你可以构建自己的自定义加载器，从任何地方获取数据。
+- 性能和可扩展性。内容层 API 允许数据在构建之间缓存，并适用于数万条内容条目。
 
-<p><Since v="4.13.0" /></p>
+在以下情况下，将 [数据定义为集合](#定义集合)：
 
-如果你正在处理 `data` 的类型集合，Astro 将为你的编辑器生成 JSON schema 文件，以获取智能提示和类型检查。这使用了一个名为 [`zod-to-json-schema`](https://github.com/StefanTerdell/zod-to-json-schema#known-issues) 的库，基于你在 `src/content/config.ts` 中定义的集合生成项目中每个数据集合的单独文件。
+- 你有多个文件或数据需要组织，共享相同的整体结构（例如，使用 Markdown 编写的博客文章，这些文章都具有相同的 frontmatter 属性）。
+- 你有远程存储的现有内容，例如在 CMS 中，想要利用集合辅助函数和内容层 API，而不是使用 `fetch()` 或 SDK。
+- 你需要请求（数万）个相关数据，并且需要一个能够处理大规模查询和缓存的方法。
 
-此功能要求你手动将 schema 的文件路径设置为集合中每个数据条目文件的 `$schema` 值：
+### 什么时候不要使用集合
 
-```json title="src/content/authors/armand.json" ins={2}
-{
-  "$schema": "../../../.astro/collections/authors.schema.json",
-  "name": "Armand",
-  "skills": ["Astro", "Starlight"]
-}
-```
+当你有 **多个内容需要共享相同的属性** 时，集合提供了出色的结构、安全性和组织。
 
-或者，你可以在编辑器设置中设置这个值。例如，要在 [VSCode 的 `json.schemas` 设置](https://code.visualstudio.com/docs/languages/json#_json-schemas-and-settings)中设置这个值，请提供要匹配的文件路径和你的 JSON schema 的位置：
+以下情况，集合 **可能不是你的解决方案**：
 
-```json
-{
-  "json.schemas": [
-    {
-      "fileMatch": [
-        "/src/content/authors/**"
-      ],
-      "url": "./.astro/collections/authors.schema.json"
-    }
-  ]
-}
-```
-
-## 启用构建缓存
-
-<p><Since v="3.5.0" /><Badge class="neutral-badge" text="实验性" /></p>
-
-如果你正在处理大量的集合，你可能希望通过 [`experimental.contentCollectionCache`](/zh-cn/reference/configuration-reference/#experimentalcontentcollectioncache) 标志启用缓存的构建。这个实验性的功能优化了 Astro 的构建过程，使得未改变的集合能够在构建之间被存储和复用。
-
-在许多情况下，这可以导致显著的构建性能提升。
-
-虽然这个功能正在稳定中，但你也可能会遇到与存储缓存有关的问题。所以你始终可以通过运行以下命令重置你的构建缓存：
-
-```
-npm run astro build -- --force
-```
-
-
-## 用 Remark 修改 Frontmatter
-
-:::caution
-**不推荐**。Remark 和 rehyp 插件访问*原始* Markdown 或 MDX 文档的 frontmatter。这就意味着 `remarkPluginFrontmatter` 的 frontmatter 与类型安全的 `schema` 是分开处理的，并且不会反映通过 Astro 应用的任何更改或缺省值。使用风险自负！
-:::
-
-Astro 支持 remark 或者 rehype 插件[直接修改 frontmatter](/zh-cn/guides/markdown-content/#以编程方式修改-frontmatter)。你可以通过使用从 `render()` 返回的 `remarkPluginFrontmatter` 属性在一个内容条目中访问这个修改过的 Frontmatter:
-
-```astro "{ remarkPluginFrontmatter }"
----
-import { getEntry } from 'astro:content';
-const blogPost = await getEntry('blog', 'post-1');
-const { remarkPluginFrontmatter } = await blogPost.render();
----
-<p>{blogPost.data.title} — {remarkPluginFrontmatter.readingTime}</p>
-```
-
-<RecipeLinks slugs={["zh-cn/recipes/reading-time" ]}/>
-
-Remark 和 rehype pipeline 只在渲染内容时运行，这就解释了为什么只有在对内容条目调用 `render()` 之后才可以使用 `remarkPluginFrontmatter`。相比之下，`getCollection()` 和 `getEntry()` 无法直接返回这些值，因为它们不会渲染内容。
-
-## 在 frontmatter 中处理日期
-
-内容集合中可以使用多种日期格式，但你的集合 schema 必须匹配你在 Markdown 或 MDX YAML 中 frontmatter 所使用的格式。
-
-YAML 使用 [ISO-8601](https://www.iso.org/iso-8601-date-and-time-format.html) 标准来表示日期，其以 `yyyy-mm-dd` 格式（例如 `2021-07-28`）表示并配合 `z.date()` 的 schema 类型来使用：
-
-```markdown title="src/pages/posts/example-post.md"
----
-title: 我的博客文章
-pubDate: 2021-07-08
----
-```
-
-如果没有提供时区，日期格式将指定为 UTC 格式。如果你需要指定一个时区，你可以使用 [ISO 8601](https://zh.wikipedia.org/wiki/ISO_8601) 格式。
-
-```markdown title="src/pages/posts/example-post.md"
----
-title: 我的博客文章
-pubDate: 2021-07-08T12:00:00-04:00
----
-```
-
-想要仅渲染完整 UTC 时间戳中的 `YYYY-MM-DD`，可以使用 JavaScript 的 `slice` 方法来移除时间戳：
-
-```astro title="src/layouts/ExampleLayout.astro"
----
-const { frontmatter } = Astro.props;
----
-<h1>{frontmatter.title}</h1>
-<p>{frontmatter.pubDate.toISOString().slice(0,10)}</p>
-```
-要查看使用 `toLocaleDateString` 格式化日期、月份和年份的例子，请查看官方 Astro 博客模板中的 [`<FormattedDate />` 组件](https://github.com/withastro/astro/blob/latest/examples/blog/src/components/FormattedDate.astro)。
+- 你只有一个或少量不同的页面。考虑直接使用你的内容 [创建单独的页面组件](/zh-cn/basics/astro-pages/)，例如 `src/pages/about.astro`。
+- 你正在显示不由 Astro 处理的文件，例如 PDF。将这些静态资产放在项目的 [`public/` 目录](/zh-cn/basics/project-structure/#public)中。
+- 你的数据源有自己的 SDK/客户端库用于导入，与内容加载器不兼容或不提供内容加载器，并且你更喜欢直接使用它。
+- 你正在使用需要实时更新的 API。内容集合仅在构建时更新，因此如果你需要实时数据，请使用其他方法 [导入文件](/zh-cn/guides/imports/#import-statements) 或 使用 [按需渲染](/zh-cn/guides/on-demand-rendering/) 来 [请求数据](/zh-cn/guides/data-fetching/)。
