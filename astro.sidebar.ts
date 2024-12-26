@@ -197,6 +197,10 @@ export const sidebar = [
 				collapsed: true,
 				autogenerate: { directory: 'guides/media' },
 			}),
+			group('thirdParty.markdown', {
+				collapsed: true,
+				autogenerate: { directory: 'guides/markdown-editor' },
+			}),
 			'guides/ecommerce',
 			'guides/authentication',
 			'guides/testing',

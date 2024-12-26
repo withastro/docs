@@ -29,5 +29,6 @@ export default {
 	'thirdParty.deployment': 'Deployment guides',
 	'thirdParty.cms': 'Content management systems',
 	'thirdParty.backend': 'Backend services',
+	'thirdParty.markdown': 'Markdown editors',
 	'thirdParty.media': 'Hosted media & DAM',
 };

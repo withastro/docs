@@ -100,6 +100,10 @@ export const logos = LogoCheck({
 	umbraco: { file: 'umbraco.svg', padding: '.05em' },
 	'clever-cloud': { file: 'clever-cloud.svg', padding: '.09em' },
 	neon: { file: 'neon.svg', padding: '.2em' },
+	hackmd: { file: 'hackmd.svg', padding: '0.05em' },
+	stackedit: { file: 'stackedit.svg', padding: '0.04em' },
+	jekyllpad: { file: 'jekyllpad.svg', padding: '0.05em' },
+	dillinger: { file: 'dillinger.svg', padding: '0em' },
 });
 
 export type LogoKey = keyof typeof logos;
