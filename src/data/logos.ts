@@ -102,7 +102,6 @@ export const logos = LogoCheck({
 	neon: { file: 'neon.svg', padding: '.2em' },
 	hackmd: { file: 'hackmd.svg', padding: '0.05em' },
 	stackeditpro: { file: 'stackeditpro.svg', padding: '0.2em' },
-	jekyllpad: { file: 'jekyllpad.svg', padding: '0.05em' },
 	dillinger: { file: 'dillinger.svg', padding: '0em' },
 });
 
