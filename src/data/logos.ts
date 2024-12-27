@@ -101,7 +101,7 @@ export const logos = LogoCheck({
 	'clever-cloud': { file: 'clever-cloud.svg', padding: '.09em' },
 	neon: { file: 'neon.svg', padding: '.2em' },
 	hackmd: { file: 'hackmd.svg', padding: '0.05em' },
-	stackedit: { file: 'stackedit.svg', padding: '0.04em' },
+	stackeditpro: { file: 'stackeditpro.svg', padding: '0.2em' },
 	jekyllpad: { file: 'jekyllpad.svg', padding: '0.05em' },
 	dillinger: { file: 'dillinger.svg', padding: '0em' },
 });
