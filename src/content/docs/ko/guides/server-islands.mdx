@@ -14,7 +14,7 @@ i18nReady: true
 
 페이지는 지정된 [대체 콘텐츠를 플레이스홀더로](#서버-아일랜드-대체-콘텐츠) 사용하여 즉시 렌더링됩니다. 그런 다음 컴포넌트의 콘텐츠가 클라이언트에서 가져와져 사용 가능할 때 표시됩니다.
 
-페이지의 컴포넌트를 자체 아일랜드로 만들려면 [`server:defer` 지시어](/ko/reference/directives-reference/#서버-지시어)를 추가하세요:
+[어댑터가 설치된 상태](/ko/guides/on-demand-rendering/#서버-어댑터)에서 지연 렌더링을 수행하기 위해 페이지의 컴포넌트에 [`server:defer` 지시어](/ko/reference/directives-reference/#서버-지시어)를 추가하여 자체 아일랜드로 전환합니다:
 
 ```astro title="src/pages/index.astro" "server:defer"
 ---
@@ -23,7 +23,7 @@ import Avatar from '../components/Avatar.astro';
 <Avatar server:defer />
 ```
 
-이러한 컴포넌트는 콘텐츠를 가져오고 쿠키에 접근하는 등 [요청 시 렌더링되는 페이지에서 일반적으로 할 수 있는 모든 작업](/ko/guides/on-demand-rendering/#요청-시-렌더링-기능)을 수행할 수 있습니다:
+이러한 컴포넌트는 어댑터를 사용하여 콘텐츠를 가져오고 쿠키에 접근하는 등 [요청 시 렌더링되는 페이지에서 일반적으로 할 수 있는 모든 작업](/ko/guides/on-demand-rendering/#요청-시-렌더링-기능)을 수행할 수 있습니다:
 
 ```astro title="src/components/Avatar.astro"
 ---
@@ -70,6 +70,14 @@ import GenericAvatar from '../components/GenericAvatar.astro';
 각 아일랜드는 나머지와 독립적으로 로드됩니다. 이는 더 느린 아일랜드가 다른 개인화된 콘텐츠의 사용 가능성을 지연시키지 않는다는 것을 의미합니다.
 
 이 렌더링 패턴은 이식성을 고려하여 만들어졌습니다. 어떤 서버 인프라에도 의존하지 않기 때문에 Docker 컨테이너의 Node.js 서버부터 원하는 서버리스 제공업체까지 모든 호스트에서 작동합니다.
+
+## 캐싱
+
+서버 아일랜드의 데이터는 URL 쿼리에 암호화된 문자열 형태로 props를 전달하는 `GET` 요청을 통해 검색됩니다. 이를 통해 표준 `Cache-Control` 지시어를 사용하여 [`Cache-Control` HTTP 헤더](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/Cache-Control)로 데이터를 캐싱할 수 있습니다.
+
+하지만 브라우저는 실용적인 이유와 서비스 거부 문제를 방지하기 위해 [URL 길이를 최대 2048바이트로 제한합니다](https://chromium.googlesource.com/chromium/src/+/master/docs/security/url_display_guidelines/url_display_guidelines.md#url-length). 만약 쿼리 문자열로 인해 URL이 이 제한을 초과하게 되면, Astro는 대신 모든 props를 본문에 포함하는 `POST` 요청을 보냅니다.
+
+`POST` 요청은 데이터를 제출하는 데 사용되며 데이터 무결성이나 보안 문제를 일으킬 수 있기 때문에 브라우저에서 캐싱되지 않습니다. 따라서 프로젝트에 있는 기존의 캐싱 로직이 작동하지 않게 됩니다. 가능한 한 서버 아일랜드에 필요한 props만 전달하고, 쿼리를 작게 유지하기 위해 전체 데이터 객체와 배열을 보내는 것을 피하세요.
 
 ## 서버 아일랜드의 페이지 URL에 접근
 

@@ -168,6 +168,10 @@ export const server = {
 
 Actions 会返回一个对象，这个对象要么是具备 `handler()` 类型安全性的返回值 `data`，要么是包含着任何后端错误的 `error`。错误可能来自 `input` 属性上的验证错误，或者来自 `handler()` 中抛出的错误。
 
+Actions 可以返回 [使用 Devalue 库](https://github.com/Rich-Harris/devalue) 处理的自定义数据，如日期，Maps, Sets 和 URL。这意味着你不能像处理常规 JSON 一样轻松地检查网络响应。为了调试，你可以检查 actions 返回的 `data` 对象。
+
+<ReadMore>有关完整信息，请参阅 [`handler()` API 参考](/zh-cn/reference/modules/astro-actions/#handler-属性)。</ReadMore>
+
 ###  检查错误
 
 最好在使用 `data` 属性之前检查是否存在 `error`。这样可以提前处理错误，并确保 `data` 在没有 `undefined` 检查的情况下被定义。
@@ -201,7 +205,7 @@ const updatedLikes = await actions.likePost.orThrow({ postId: 'example' });
 
 - 在你的应用程序代码中，所有错误都会传递到 action 结果上的 `error` 对象。这避免了对数据进行 `undefined` 检查的需要，并允许你根据出现的问题来向用户展示更针对性的反馈。
 
-### 创建一个 `ActionError`
+#### 创建一个 `ActionError`
 
 为了抛出一个错误，从 `astro:actions` 模块中导入 `ActionError()` 类。传递一个人类可读的状态 `code`（例如 `"NOT_FOUND"` 或 `"BAD_REQUEST"`），以及一个可选的 `message` 以提供有关错误的更多信息。
 
@@ -402,7 +406,7 @@ if (isInputError(error)) {
 
 你可以在任何 `<form>` 元素上使用标准属性启用零 JS 表单提交。无论是作为 JavaScript 加载失败时的回退，又或者你更喜欢仅从服务器来处理表单时，无需客户端 JavaScript 的表单提交都非常有用。
 
-在服务器上调用 [Astro.getActionResult()](/zh-cn/reference/api-reference/#astrogetactionresult) 会返回表单提交的结果（`data` 或 `error`），并且可以用于动态重定向、处理表单错误、更新 UI 等。
+在服务器上调用 [Astro.getActionResult()](/zh-cn/reference/api-reference/#getactionresult) 会返回表单提交的结果（`data` 或 `error`），并且可以用于动态重定向、处理表单错误、更新 UI 等。
 
 要从 HTML 表单调用 action，可以为 `<form>` 添加 `method="POST"`，并设置表单的 `action` 属性使用你的 action，例如 `action={actions.logout}`。这会将 `action` 属性设置为使用服务器自动处理的查询字符串。
 
@@ -420,24 +424,7 @@ import { actions } from 'astro:actions';
 
 ### 在 action 成功时重定向
 
-要在没有客户端 JavaScript 且 action 成功时导航到一个不同的页面，你可以在 `action` 属性中添加一个路径。
-
-例如，当 `newsletter` action 成功时，`action={'/confirmation' + actions.newsletter}` 将导航到 `/confirmation`：
-
-```astro title="src/components/NewsletterSignup.astro" /action=\{[^\{\}]+\}/
----
-import { actions } from 'astro:actions';
----
-
-<form method="POST" action={'/confirmation' + actions.newsletter}>
-  <label>E-mail <input required type="email" name="email" /></label>
-  <button>注册</button>
-</form>
-```
-
-#### 在 action 成功时动态重定向
-
-如果你需要动态决定重定向到哪里，你可以在服务器上使用 action 的结果。一个常见的例子是创建一个产品记录并重定向到新产品的页面，例如 `/products/[id]`。
+如果你需要在成功时重定向到一个新的路由，你可以在服务器上使用 action 的结果。一个常见的例子是创建一个产品记录并重定向到新产品的页面，例如 `/products/[id]`。
 
 例如，假设你有一个 `createProduct` action，它返回生成的产品 id：
 
@@ -478,7 +465,7 @@ if (result && !result.error) {
 
 ### 处理表单 action 错误
 
-Astro 在 action 失败时不会重定向到你的 `action` 路由。相反，当前页面将重新加载，并显示 action 返回的任何错误。在包含表单的 Astro 组件中调用 `Astro.getActionResult()`，可以访问 `error` 对象以进行自定义错误处理。
+在 Astro 组件中调用 `Astro.getActionResult()`，可以让你访问 `data` 和 `error` 对象，以进行自定义错误处理。
 
 下面的例子在 `newsletter` action 失败时显示一个通用的失败消息：
 
@@ -492,7 +479,7 @@ const result = Astro.getActionResult(actions.newsletter);
 {result?.error && (
   <p class="error">无法注册。请稍后再试。</p>
 )}
-<form method="POST" action={'/confirmation' + actions.newsletter}>
+<form method="POST" action={actions.newsletter}>
   <label>
     E-mail
     <input required type="email" name="email" />
@@ -513,7 +500,7 @@ const result = Astro.getActionResult(actions.newsletter);
 const inputErrors = isInputError(result?.error) ? result.error.fields : {};
 ---
 
-<form method="POST" action={'/confirmation' + actions.newsletter}>
+<form method="POST" action={actions.newsletter}>
   <label>
     E-mail
     <input required type="email" name="email" aria-describedby="error" />
@@ -522,10 +509,6 @@ const inputErrors = isInputError(result?.error) ? result.error.fields : {};
   <button>注册</button>
 </form>
 ```
-
-:::note
-Astro 会使用一个单次使用的 cookie 持久化 action `data` 和 `error`。这意味着 `getActionResult()` 仅在第一次请求时返回结果，并在重新访问页面时返回 `undefined`。
-:::
 
 #### 在错误时保留输入值
 
@@ -537,13 +520,9 @@ Astro 会使用一个单次使用的 cookie 持久化 action `data` 和 `error`�
 
 ### 使用表单的 action 结果以更新 UI
 
-由 `Astro.getActionResult()` 返回的结果是一次性的，每当页面刷新时都会重置为 `undefined`。这对于[处理表单操作错误](#处理表单-action-错误)和在成功时向用户显示临时通知非常理想。
+要使用 action 的返回值在成功时向用户显示通知，将 action 传递给 `Astro.getActionResult()`。使用返回的 `data` 属性来渲染你想要显示的 UI。
 
-:::tip
-如果你需要在页面刷新时显示结果，请考虑将结果存储在数据库中或[在 cookie 中](/zh-cn/reference/api-reference/#astrocookies)。
-:::
-
-向 `Astro.getActionResult()` 传递一个 action，并使用返回的 `data` 属性来渲染你想要显示的任何临时 UI。这个例子使用 `addToCart` action 返回的 `productName` 属性来显示一个成功消息：
+这个例子使用 `addToCart` action 返回的 `productName` 属性来显示一个成功消息：
 
 ```astro title="src/pages/products/[slug].astro"
 ---
@@ -559,27 +538,156 @@ const result = Astro.getActionResult(actions.addToCart);
 <!--...-->
 ```
 
-:::caution
-Action 数据使用一个持久化 cookie 传递。**这个 cookie 没有加密** 并且限制大小为 4KB，但具体限制可能会因浏览器而异。
+### 高级：通过 session 持久化 action 结果
 
-通常，我们建议从你的 action `handler` 返回所需的最小信息，以避免漏洞，并将其他敏感信息持久化到数据库中。
+<p><Since v="5.0.0" /></p>
 
-例如，你可能在 `addToCart` action 中返回一个产品的名称，而不是返回整个 `product` 对象：
+Action 的结果显示为 POST 提交。这意味着当用户关闭并重新访问页面时，结果将重置为 `undefined`。如果用户尝试刷新页面，他们还将看到一个 "确认重新提交表单？" 对话框。
 
-```ts title="src/actions/index.ts" del={7} ins={8}
-import { defineAction } from 'astro:actions';
+要自定义此行为，你可以添加中间件来手动处理 action 结果。你可以选择使用 cookie 或会话存储来持久化 action 结果。
+
+首先 [创建一个中间件文件](/zh-cn/guides/middleware/)，并从 `astro:actions` 导入 [`getActionContext()` 工具](/zh-cn/reference/modules/astro-actions/#getactioncontext)。这个函数返回一个 `action` 对象，其中包含有关传入 action 请求的信息，包括 action 处理程序以及 action 是否是从 HTML 表单调用的。`getActionContext()` 还返回 `setActionResult()` 和 `serializeActionResult()` 函数，用于以编程方式设置 `Astro.getActionResult()` 返回的值：
+
+```ts title="src/middleware.ts" {2,5}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action?.calledFrom === 'form') {
+    const result = await action.handler();
+    // ... 处理 action 结果
+    setActionResult(action.name, serializeActionResult(result));
+  }
+  return next();
+});
+```
+
+保存 HTML 表单结果的常见做法是 [POST / Redirect / GET 模式](https://en.wikipedia.org/wiki/Post/Redirect/Get)。这个重定向会在页面刷新时移除 "确认重新提交表单？" 对话框，并允许 action 结果在用户会话期间持久化。
+
+此示例使用安装了 [Netlify 服务器适配器](/zh-cn/guides/integrations-guide/netlify/) 的 session 存储，将 POST / 重定向 / GET 模式应用于所有表单提交。使用 [Netlify Blob](https://docs.netlify.com/blobs/overview/) 将 action 结果写入 session 存储，并在重定向后使用 session ID 检索：
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+import { randomUUID } from "node:crypto";
+import { getStore } from "@netlify/blobs";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  // 跳过预渲染页面的请求
+  if (context.isPrerendered) return next();
+  
+  const { action, setActionResult, serializeActionResult } =
+    getActionContext(context);
+  // 创建 Blob 存储以使用 Netlify Blob 保存 action 结果
+  const actionStore = getStore("action-session");
+  
+  // 如果 action 结果作为 cookie 转发，则将 result
+  // 设置为可从 `Astro.getActionResult()` 访问
+  const sessionId = context.cookies.get("action-session-id")?.value;
+  const session = sessionId
+    ? await actionStore.get(sessionId, {
+        type: "json",
+      })
+    : undefined;
+  
+  if (session) {
+    setActionResult(session.actionName, session.actionResult);
+  
+    // 可选：页面渲染后删除 session。
+    // 随意实现你自己的持久化策略
+    await actionStore.delete(sessionId);
+    context.cookies.delete("action-session-id");
+    return next();
+  }
+  
+  // 如果从 HTML 表单操作调用 action，
+  // 调用 action handler 并重定向到目标页面
+  if (action?.calledFrom === "form") {
+    const actionResult = await action.handler();
+  
+    // 使用 session 存储保存 action 结果
+    const sessionId = randomUUID();
+    await actionStore.setJSON(sessionId, {
+      actionName: action.name,
+      actionResult: serializeActionResult(actionResult),
+    });
+  
+    // 将 session ID 作为 cookie 传递
+    // 重定向到页面后检索
+    context.cookies.set("action-session-id", sessionId);
+  
+    // 出错时重定向回上一页
+    if (actionResult.error) {
+      const referer = context.request.headers.get("Referer");
+      if (!referer) {
+        throw new Error(
+          "Internal: Referer unexpectedly missing from Action POST request.",
+        );
+      }
+      return context.redirect(referer);
+    }
+    // 成功则跳转到目标页面
+    return context.redirect(context.originPathname);
+  }
+  
+  return next();
+});
+```
+
+## 使用 actions 时的安全性
+
+可以根据 action 的名称作为公共端点访问 Action 。例如，action `blog.like()` 将可以从 `/_actions/blog.like` 访问。这对于单元测试 action 结果和调试生产错误非常有用。然而，这意味着你**必须**使用与 API 端点和按需渲染页面相同的授权检查。
+
+### 从 action handler 授权用户
+
+要授权 action 请求，请在 action handler 中添加身份验证检查。你可能希望使用 [身份验证库](/zh-cn/guides/authentication/) 来处理会话管理和用户信息。
+
+Action 公开完整的 APIContext 对象，以访问从中间件传递的属性，使用 `context.locals`。当用户未经授权时，你可以使用 `UNAUTHORIZED` 代码引发 `ActionError`：
+
+```ts title="src/actions/index.ts" {6-8}
+import { defineAction, ActionError } from 'astro:actions';
 
 export const server = {
-  addToCart: defineAction({
-    handler: async () => {
-      /* ... */
-      return product;
-      return { productName: product.name };
+  getUserSettings: defineAction({
+    handler: async (_input, context) => {
+      if (!context.locals.user) {
+        throw new ActionError({ code: 'UNAUTHORIZED' });
+      }
+      return { /* data on success */ };
     }
   })
 }
 ```
-:::
+
+### 中间件中的拦截器 actions
+
+<p><Since v="5.0.0" /></p>
+
+Astro 建议从 action handler 中授权用户会话，以遵从每个 action 的权限级别和速率限制。但是，你也可以从中间件中拦截所有 action 请求（或一组 action 请求）。
+
+使用 `getActionContext()` 函数从你的中间件中检索有关任何传入 action 请求的信息。这包括 action 名称以及该 action 是否是使用客户端远程过程调用（RPC）函数（例如 `actions.blog.like()`）或 HTML 表单调用的。
+
+以下示例拒绝所有没有有效会话令牌的 action 请求。如果检查失败，将返回一个 “Forbidden” 响应。注意：此方法确保只有在会话存在时才能访问 action，但不是安全授权的替代品。
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action } = getActionContext(context);
+  // 检查该 action 是否是从客户端函数调用的
+  if (action?.calledFrom === 'rpc') {
+    // 如果是，检查用户 session token
+    if (context.cookies.has('user-session')) {
+      return new Response('Forbidden', { status: 403 });
+    }
+  }
+  
+  context.cookies.set('user-session', /* session token */);
+  return next();
+});
+```
 
 ## 从 Astro 组件和服务器端点调用 action
 
@@ -593,7 +701,7 @@ import { actions } from 'astro:actions';
 
 const searchQuery = Astro.url.searchParams.get('search');
 if (searchQuery) {
-  const { data, error } = Astro.callAction(actions.findProduct, { query: searchQuery });
+  const { data, error } = await Astro.callAction(actions.findProduct, { query: searchQuery });
   // 处理结果
 }
 ---
