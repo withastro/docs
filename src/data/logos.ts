@@ -104,7 +104,6 @@ export const logos = LogoCheck({
 	stackeditpro: { file: 'stackeditpro.svg', padding: '0.2em' },
 	dillinger: { file: 'dillinger.svg', padding: '.2em' },
 	reprose: { file: 'reprose.svg', padding: '0.2em' },
-	holocron: { file: 'holocron.svg', padding: '0.2em' },
 });
 
 export type LogoKey = keyof typeof logos;
