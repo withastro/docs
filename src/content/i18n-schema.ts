@@ -32,6 +32,8 @@ export const AstroDocsI18nSchema = z
 		// `<RecipeLinks>` vocabulary
 		'recipesLink.singular': z.string(),
 		'recipesLink.plural': z.string(),
+		// `<MarkdownGuidesNav>` vocabulary
+		'markdown.navTitle': z.string(),
 		// 404 Page
 		'404.title': z.string(),
 		'404.content': z.string(),
