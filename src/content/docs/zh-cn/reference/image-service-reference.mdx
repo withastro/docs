@@ -10,7 +10,7 @@ import Since from '~/components/Since.astro';
 
 Astro 提供两种类型的图像服务：本地和外部。
 
-- **本地服务**在构建静态站点时直接处理图像转换，或者在运行时同时处理开发模式和 SSR 中的图像转换。这些通常是围绕 Sharp、ImageMagick 或 Squoosh 等库的封装。在开发模式和 SSR 中，本地服务使用 API 端点进行转换。
+- **本地服务**在构建静态站点时直接处理图像转换，或者在运行时同时处理开发模式和按需渲染中的图像转换。这些通常是围绕 Sharp、ImageMagick 或 Squoosh 等库的封装。在开发模式和按需渲染的生产路径中，本地服务使用 API 端点进行转换。
 - **外部服务**指向 URL，可以添加对 Cloudinary、Vercel 或任何符合 [RIAPI](https://github.com/riapi/riapi) 的服务器等服务的支持。
 
 ## 使用图像服务 API 构建
@@ -19,7 +19,7 @@ Astro 提供两种类型的图像服务：本地和外部。
 
 外部服务提供一个 `getURL()`，它指向输出 `＜img＞` 标记的 `src`。
 
-本地服务为开发模式和 SSR 提供 `transform()` 方法来对图像执行转换，并提供 `getURL()` 和 `parseURL()` 方法来使用端点。
+本地服务为开发模式和按需渲染提供 `transform()` 方法来对图像执行转换，并提供 `getURL()` 和 `parseURL()` 方法来使用端点。
 
 两种类型的服务都可以提供 `getHTMLAttributes()` 来确定输出 `<img>` 的其他属性，并提供 `validateOptions()` 来验证和增强传递的选项。
 
@@ -123,7 +123,7 @@ export default service;
 
 在构建静态站点和预渲染路由时，`<Image />` 和 `getImage(options)` 都会调用 `transform()` 函数。它们分别通过组件属性或 `options` 参数传递选项。转换后的图像将构建到 `dist/_astro` 文件夹中。它们的文件名将包含传递给 `propertiesToHash` 的属性的哈希值。此属性是可选的，默认为 `['src', 'width', 'height', 'format', 'quality']`。如果你的自定义图像服务有更多可以更改生成图像的选项，请将它们添加到数组中。
 
-在开发模式和 SSR 模式下，Astro 并不提前知道哪些图像需要优化。Astro 使用 GET 端点（默认情况下为 `/_image` ）在运行时处理图像。 `<Image />` 和 `getImage()` 将它们的选项传递给 `getURL()`，后者将返回端点 URL。然后，端点调用 `parseURL()` 并将结果属性传递给 `transform()`。
+在开发模式和使用适配器进行按需渲染时，Astro 并不提前知道哪些图像需要优化。Astro 使用 GET 端点（默认情况下为 `/_image` ）在运行时处理图像。 `<Image />` 和 `getImage()` 将它们的选项传递给 `getURL()`，后者将返回端点 URL。然后，端点调用 `parseURL()` 并将结果属性传递给 `transform()`。
 
 #### getConfiguredImageService 和 imageConfig
 
@@ -162,7 +162,7 @@ export const GET: APIRoute = async ({ request }) => {
 
 `getURL(options: ImageTransform, imageConfig: AstroConfig['image']): string`
 
-对于本地服务，该钩子返回生成图像的端点的 URL（在 SSR 和开发模式下）。在构建期间它不可用。 `getURL()` 指向的本地端点可以调用 `parseURL()` 和 `transform()`。
+对于本地服务，该钩子返回生成图像的端点的 URL（在按需渲染和开发模式下）。在构建期间它不可用。 `getURL()` 指向的本地端点可以调用 `parseURL()` 和 `transform()`。
 
 对于外部服务，该钩子返回图像的最终 URL。
 
@@ -190,7 +190,7 @@ export type ImageTransform = {
 
 `parseURL(url: URL, imageConfig: AstroConfig['image']): { src: string, [key: string]: any}`
 
-该钩子通过 `getURL()` 将生成的 URL 解析成一个对象，该对象具有可供 `transform` 使用的不同属性（在 SSR 和 dev 模式下）。在构建期间它不可用。
+该钩子通过 `getURL()` 将生成的 URL 解析成一个对象，该对象具有可供 `transform` 使用的不同属性（在按需渲染和开发模式下）。在构建期间它不可用。
 
 ### `transform()`
 
@@ -200,7 +200,7 @@ export type ImageTransform = {
 
 该钩子转换并返回图像，并在构建过程中被调用以创建最终的资源文件。
 
-你必须返回 `format` 以确保在 SSR 和开发模式下向用户提供正确的 MIME 类型。
+你必须返回 `format` 以确保在按需渲染和开发模式下向用户提供正确的 MIME 类型。
 
 ### `getHTMLAttributes()`
 
@@ -250,7 +250,7 @@ import { defineConfig } from "astro/config";
 export default defineConfig({
   image: {
     service: {
-      entrypoint: "your-entrypoint", // 'astro/assets/services/squoosh' | 'astro/assets/services/sharp' | string,
+      entrypoint: "your-entrypoint", // 'astro/assets/services/sharp' | string,
       config: {
         // 特定的服务配置，可选。
       }
