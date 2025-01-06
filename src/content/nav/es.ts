@@ -2,7 +2,7 @@ import { navDictionary } from '../../util/navDictionary';
 
 export default navDictionary({
 	start: 'Inicio',
-	'start.welcome': '!Bienvenidos, Mundo!',
+	'start.welcome': '¡Bienvenidos, Mundo!',
 	'start.newProject': 'Comienza un nuevo proyecto',
 	'start.config': 'Configuración',
 	'start.migrate': 'Migrar a Astro',
