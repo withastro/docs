@@ -1,0 +1,237 @@
+---
+title: Sessions (expérimental)
+sidebar:
+  label: Sessions
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p>
+
+**Type :** `SessionConfig`<br />
+**Par défaut :** `undefined`<br />
+
+<Since v="5.1.0" />
+</p>
+
+Les sessions sont utilisées pour stocker l'état de l'utilisateur entre les demandes de [pages rendues à la demande](/fr/guides/on-demand-rendering/).
+
+Cette fonctionnalité expérimentale vous permet de stocker et d'accéder à des éléments tels que le statut de connexion, le contenu du panier d'achat ou d'autres données spécifiques à l'utilisateur :
+
+```astro title="src/components/CartButton.astro" {3}
+---
+export const prerender = false; // Inutile en mode "serveur
+const cart = await Astro.session.get('cart');
+---
+
+<a href="/checkout">🛒 {cart?.length ?? 0} articles</a>
+```
+
+Les sessions s'appuient sur un [pilote de session configurable](#activation-des-sessions-expérimentales) pour stocker les données sur l'objet `session`. Un [cookie de session](#cookies) stocke un identifiant de session.
+
+L'objet [`session`](#api-sessions) vous permet d'interagir avec l'état de l'utilisateur stocké (par exemple, ajouter des articles à un panier d'achat) et l'identifiant de session (par exemple, supprimer le cookie d'identifiant de session lors de la déconnexion).
+
+
+## Activation des sessions expérimentales
+
+Dans cette première version de `experimental.sessions`, les adaptateurs de serveur officiels d'Astro n'ont pas encore été mis à jour pour fournir un pilote de session par défaut basé sur la fonctionnalité de stockage par défaut de la plate-forme. Jusqu'à ce qu'ils soient intégrés, vous devrez spécifier vous-même un `driver` dans l'objet de configuration `experimental.sessions` en plus d'[ajouter un adaptateur](/fr/guides/on-demand-rendering/#ajouter-un-adaptateur).
+
+Les sections suivantes montrent les pilotes recommandés pour chaque adaptateur. (Ceux-ci seront automatiquement configurés pour vous dans la version stable de cette fonctionnalité). Vous pouvez également spécifier [n'importe quel pilote pris en charge à partir d'unstorage](https://unstorage.unjs.io/drivers/).
+
+### Configuration de sessions avec l'adaptateur Node
+
+L'adaptateur Node est compatible avec le [pilote de système de fichiers](https://unstorage.unjs.io/drivers/fs). Notez qu'il ne peut pas être utilisé dans les environnements sans serveur, car ils n'ont pas de système de fichiers partagé.
+
+```js title="astro.config.mjs" ins={6}
+	{
+    adapter: node({ mode: 'standalone' }),
+		experimental: {
+      session: {
+        // Requis : le nom du pilote de unstorage
+        driver: "fs",
+      },
+    },
+	}
+```
+
+### Configuration d'un pilote de session pour d'autres adaptateurs
+
+Choisissez le [nom du `driver` d'unstorage](https://unstorage.unjs.io/drivers/) qui correspond à la fonction de stockage fournie par votre plateforme d'hébergement, comme le [pilote Netlify Blobs (`netlify-blobs`)](https://unstorage.unjs.io/drivers/netlify), le [pilote Cloudflare KV (`cloudflare-kv-binding`)](https://unstorage.unjs.io/drivers/cloudflare) ou le [pilote Deno KV (`deno-kv`)](https://unstorage.unjs.io/drivers/deno). Vous pouvez également utiliser un pilote multiplateforme tel que [Upstash](https://unstorage.unjs.io/drivers/upstash) ou [Redis](https://unstorage.unjs.io/drivers/redis).
+
+:::note
+Certains pilotes peuvent nécessiter l'installation de paquets supplémentaires. Par exemple, le pilote `netlify-blobs` nécessite le paquet `@netlify/blobs`, et Upstash nécessite le paquet `@upstash/redis`. Certains pilotes peuvent également nécessiter l'installation de variables d'environnement ou d'informations d'identification.
+
+<ReadMore>Voir [la documentation sur le pilote de d'unstorage](https://unstorage.unjs.io/drivers) pour plus d'informations.</ReadMore>
+:::
+
+### Options du pilote
+
+Vous pouvez également passer toutes les options disponibles au pilote d'unstorage dans un objet `session.options` séparé. L'exemple suivant configure le pilote [Netlify Blobs](https://unstorage.unjs.io/drivers/netlify) en fournissant un `name` et en spécifiant un mode de `consistency` :
+
+```js title="astro.config.mjs" ins={7-11}
+  {
+    experimental: {
+      adapter: netlify(),
+      session: {
+        // Le nom du pilote d'unstorage est camelCase
+        driver: "netlify-blobs",
+        options: {
+          name: 'astro-sessions',
+          // Les sessions ont besoin d'une forte cohérence
+          consistency: 'strong',
+        }
+      },
+    },
+  }
+```
+
+## Utilisation des sessions
+
+Une fois que vous avez configuré un pilote, vous pouvez utiliser l'objet `session` pour interagir avec la session. Cet objet est accessible en tant que `Astro.session` dans vos composants et pages Astro et sur l'objet `context` dans les points de terminaison de l'API, le middleware et les actions. L'API est la même dans tous les cas.
+
+Dans la plupart des cas, vous n'aurez besoin que d'utiliser [`Astro.session.get()`](#sessionget) et [`Astro.session.set()`](#sessionset). Pour les autres méthodes disponibles, voir la [section API](#api-sessions).
+
+### Composants et pages Astro
+
+Dans les composants et les pages `.astro`, vous pouvez accéder à l'objet session via l'objet global `Astro`. Par exemple, pour afficher le nombre d'articles dans un panier d'achat :
+
+```astro title="src/components/CartButton.astro" "Astro.session"
+---
+export const prerender = false; // Inutile en mode 'server'
+const cart = await Astro.session.get('cart');
+---
+
+<a href="/checkout">🛒 {cart?.length ?? 0} articles</a>
+```
+
+### Points d'accès à l'API
+
+Dans les points de terminaison de l'API, l'objet de session est disponible dans l'objet `context`. Par exemple, pour ajouter un article à un panier d'achat :
+
+```ts title="src/pages/api/addToCart.ts" "context.session"
+import type { APIContext } from "astro";
+
+export async function POST(req: Request, context: APIContext) {
+  const cart = await context.session.get("cart");
+  cart.push(req.body.item);
+  await context.session.set("cart", cart);
+  return Response.json(cart);
+}
+```
+
+### Actions
+
+Dans les actions, l'objet session est disponible dans l'objet `context`. Par exemple, pour ajouter un article à un panier d'achat :
+
+```ts title="src/actions/addToCart.ts" "context.session"
+import { defineAction } from "astro:actions";
+import { z } from "astro:schema";
+
+export const server = {
+  addToCart: defineAction({
+    input: z.object({ productId: z.string() }),
+    handler: async (input, context) => {
+      const cart = await context.session.get("cart");
+      cart.push(input.productId);
+      await context.session.set("cart", cart);
+      return cart;
+    },
+  }),
+};
+```
+
+### Middleware
+
+:::note
+Les sessions ne sont actuellement pas prises en charge par le middleware.
+:::
+
+Dans le middleware, l'objet session est disponible sur l'objet `context`. Par exemple, pour définir l'heure de la dernière visite dans la session :
+
+```ts title="src/middleware.ts" "context.session"
+import { defineMiddleware } from 'astro:middleware';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  context.session.set('lastVisit', new Date());
+  return next();
+});
+```
+
+## Cookies
+
+Les sessions sont générées lors du premier accès et un cookie d'identification de session est placé dans la réponse. Aucune donnée utilisateur n'est stockée dans le cookie, juste un identifiant utilisé pour identifier la session de l'utilisateur. La session peut être régénérée à tout moment avec [`Astro.session.regenerate()`](#sessionregenerate), et détruite avec [`Astro.session.destroy()`](#sessiondestroy).
+
+### `session.cookie`
+
+<p>
+
+**Type :** `string` | `object`<br />
+**Par défaut :** `undefined`<br />
+
+</p>
+
+Une propriété optionnelle pour définir les options du cookie. La propriété `cookie.name` peut être automatiquement définie en fournissant une chaîne de caractères. Pour configurer des options supplémentaires, il faut fournir un objet.
+
+```js title="astro.config.mjs" {5} ins={7-10}
+  {
+    experimental: {
+      session: {
+        // S'il s'agit d'une chaîne de caractères, elle sera utilisée comme nom de cookie.
+        // cookie : "my-session-id",
+        // S'il s'agit d'un objet, cela permettra de définir des options avancées.
+        cookie: {
+          name: "my-session-id"
+          sameSite: "Strict",
+        },
+      }
+    }
+  }
+```
+
+## API Sessions
+
+L'objet session est disponible dans tous les contextes Astro, y compris les composants, les actions et les points de terminaison API. Dans les composants, il est accessible via l'objet global `Astro`, et dans les actions et les points de terminaison d'API, il est disponible sur l'objet `context`. L'API est la même dans tous les cas.
+
+Les valeurs sont sérialisées et désérialisées en utilisant [devalue](https://github.com/Rich-Harris/devalue), qui est la même bibliothèque utilisée par la couche de contenu et les actions. Cela signifie que les types supportés sont les mêmes, et incluent les chaînes de caractères, les nombres, `Date`, `Map`, `Set`, `URL`, les tableaux et les objets simples.
+
+### `session.get()` 
+
+<p>
+
+**Type** : `(key: string) => Promise<any>`
+</p>
+
+Renvoie la valeur de la clé donnée dans la session. Si la clé n'existe pas, il renvoie `undefined`.
+
+### `session.set()`
+
+<p>
+
+**Type** : `(key: string, value: any, options?: { ttl: number }) => void`
+</p>
+
+Définit la valeur de la clé donnée dans la session. La valeur peut être de n'importe quel type sérialisable.
+
+### `session.regenerate()`
+
+<p>
+
+**Type** : `() => void`
+</p>
+
+Régénère l'identifiant de session. La meilleure pratique consiste à appeler cette fonction lorsqu'un utilisateur se connecte ou augmente ses privilèges, afin de prévenir les attaques par fixation de session.
+
+### `session.destroy()`
+
+<p>
+
+**Type** : `() => void`
+</p>
+
+Détruit la session, en supprimant le cookie et l'objet du backend. Elle doit être appelée lorsqu'un utilisateur se déconnecte ou que sa session est invalidée d'une autre manière.
+
+## Lecture complémentaire
+
+Pour plus de détails et pour donner votre avis sur cette API expérimentale, consultez [le RFC Sessions](https://github.com/withastro/roadmap/blob/sessions/proposals/0054-sessions.md).

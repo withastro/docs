@@ -137,7 +137,6 @@ Flags
 {
   "scripts": {
     "dev": "astro dev",
-    "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview"
   }
@@ -149,8 +148,8 @@ Flags
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```shell
-  # 使用 `package.json` 中的 `start` 脚本，以端口 8080 启动开发服务器
-  npm run start -- --port 8080
+  # 使用 `package.json` 中的 `dev` 脚本，以端口 8080 启动开发服务器
+  npm run dev -- --port 8080
 
   # 使用 `package.json` 中的 `build` 脚本，构建带有详细日志的网站
   npm run build -- --verbose
@@ -158,8 +157,8 @@ Flags
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
-  # 使用 `package.json` 中的 `start` 脚本，以端口 8080 启动开发服务器
-  pnpm start --port 8080
+  # 使用 `package.json` 中的 `dev` 脚本，以端口 8080 启动开发服务器
+  pnpm dev --port 8080
 
   # 使用 `package.json` 中的 `build` 脚本，构建带有详细日志的网站
   pnpm build --verbose
@@ -167,8 +166,8 @@ Flags
   </Fragment>
   <Fragment slot="yarn">
   ```shell
-  # 使用 `package.json` 中的 `start` 脚本，以端口 8080 启动开发服务器
-  yarn start --port 8080
+  # 使用 `package.json` 中的 `dev` 脚本，以端口 8080 启动开发服务器
+  yarn dev --port 8080
 
   # 使用 `package.json` 中的 `build` 脚本，构建带有详细日志的网站
   yarn build --verbose
@@ -182,10 +181,18 @@ Flags
 
 ## `astro build`
 
-构建你的网站以进行部署。默认情况下，这将生成静态文件并将它们放在 `dist/` 目录中。如果[SSR 被启用](/zh-cn/guides/on-demand-rendering/)，这将生成必要的服务器文件为你的网站提供服务。
+构建你的网站以进行部署。默认情况下，这将生成静态文件并将它们放在 `dist/` 目录中。如果有任何路由是[按需渲染](/zh-cn/guides/on-demand-rendering/)的，这将生成必要的服务器文件为你的网站提供服务。
 
+### 标志
 
-可以与下面记录的[通用标志](#通用标志)结合使用。
+该命令接受 [通用标志](#通用标志) 和以下额外标志：
+
+#### `--devOutput`
+
+<p><Since v="5.0.0" /></p>
+
+输出基于开发的构建，类似于在 `astro dev` 中转换的代码。这对于测试仅在构建时出现的问题并包含额外的调试信息非常有用。
+
 
 ## `astro preview`
 
@@ -193,7 +200,7 @@ Flags
 
 该命令允许你在部署之前[构建](#astro-build)本地预览你的网站，以便在构建输出中捕获任何错误。它不是为在生产环境中运行而设计的。有关生产托管的帮助，请查看我们的[部署 Astro 网站](/zh-cn/guides/deploy/)指南。
 
-从 Astro 1.5.0 开始，如果你使用支持它的适配器，`astro preview` 也适用于 SSR 构建。目前，只有 [Node 适配器](/zh-cn/guides/integrations-guide/node/)支持 `astro preview`。
+从 Astro 1.5.0 开始，[Node 适配器](/zh-cn/guides/integrations-guide/node/) 支持按需渲染构建生成的 `astro preview`。
 
 可以与下面文档的[通用标志](#通用标志)结合使用。
 
@@ -249,11 +256,11 @@ Flags
 运行 `astro dev`，`astro build`或者`astro check`也会运行`sync`命令。
 :::
 
-为所有 Astro 模块生成 TypeScript 类型。这会为类型推断设置一个[`src/env.d.ts`文件](/zh-cn/guides/typescript/#设置)，并为依赖于生成类型的特性定义模块：
+为所有 Astro 模块生成 TypeScript 类型。这会为类型推断设置一个[`.astro/types.d.ts`文件](/zh-cn/guides/typescript/#设置)，并为依赖于生成类型的特性定义模块：
 
 - `astro:content` 模块用于 [内容集合 API](/zh-cn/guides/content-collections/)。
 - `astro:db` 模块用于 [Astro DB](/zh-cn/guides/astro-db/)。
-- `astro:env` 模块用于 [实验性的 Astro Env](/zh-cn/reference/configuration-reference/#experimentalenv)。
+- `astro:env` 模块用于 [Astro Env](/zh-cn/guides/environment-variables/)。
 - `astro:actions` 模块用于 [Astro Actions](/zh-cn/guides/actions/)。
 
 ## `astro add`
@@ -381,6 +388,18 @@ astro --root myRootFolder/myProjectFolder dev
 astro --config config/astro.config.mjs dev
 ```
 
+### `--force <string>`
+
+<p><Since v="5.0.0" /></p>
+
+清除 [content layer 缓存](/zh-cn/guides/content-collections/#定义集合-loader)，强制重新编译。
+
+### `--mode <string>`
+
+<p><Since v="5.0.0" /></p>
+
+为你的项目配置 [`mode`](/zh-cn/reference/programmatic-reference/#mode) 行内配置。
+
 ### `--outDir <path>`
 
 <p><Since v="3.3.0" /></p>
@@ -436,193 +455,3 @@ astro --config config/astro.config.mjs dev
 ### `--help`
 
 打印帮助信息并退出。
-
-
-## 高级 API（实验性）
-
-如果你需要在运行 Astro 时获得更多的控制权，`"astro"` 包也导出了 API 来以编程方式运行 CLI 命令。
-
-这些 API 是实验性的，它们的 API 签名可能会改变。任何更新都将在 [Astro 更新日志](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md) 中提到，下面的信息将始终显示当前的、最新的信息。
-
-### `AstroInlineConfig`
-
-`AstroInlineConfig` 类型由下面所有的命令 API 使用。它继承了用户的 [Astro 配置](/zh-cn/reference/configuration-reference/) 类型：
-
-```ts
-interface AstroInlineConfig extends AstroUserConfig {
-	configFile?: string | false;
-	mode?: "development" | "production";
-	logLevel?: "debug" | "info" | "warn" | "error" | "silent";
-}
-```
-
-#### `configFile`
-
-<p>
-
-**类型：** `string | false`<br />
-**默认值：** `undefined`
-</p>
-
-一个自定义的 Astro 配置文件路径。
-
-如果这个值是 undefined 的（默认）或未设置的，Astro 将在 `root` 目录下搜索 `astro.config.(js,mjs,ts,mts)` 文件，并在找到时加载配置文件。
-
-如果设置了相对路径，它将基于 `root` 选项。
-
-设置为 `false` 以禁用加载任何配置文件。
-
-当与加载的用户配置合并时，传递给此对象的内联配置将具有最高优先级。
-
-#### `mode`
-
-<p>
-
-**类型：** `"development" | "production"`<br />
-**默认值：** 当运行 `astro dev` 时为 `"development"` , 当运行 `astro build` 时为 `"production"`
-</p>
-
-构建你的网站以生成“development”或“production”代码时使用的模式。
-
-#### `logLevel`
-
-<p>
-
-**类型：** `"debug" | "info" | "warn" | "error" | "silent"`<br />
-**默认值：** `"info"`
-</p>
-
-Astro 记录的消息的日志级别。
-
-- `"debug"`: 记录所有内容，包括干扰调试诊断。
-- `"info"`: 记录信息类型的消息，警告，和错误等日志。
-- `"warn"`: 记录警告和错误日志。
-- `"error"`: 只记录错误日志。
-- `"silent"`: 不开启日志。
-
-### `dev()`
-
-**类型：** `(inlineConfig: AstroInlineConfig) => Promise<DevServer>`
-
-和 [`astro dev`](#astro-dev) 类似，使用它来运行 Astro 的开发服务器。
-
-```js
-import { dev } from "astro";
-
-const devServer = await dev({
-  root: "./my-project",
-});
-
-// 在需要时停止服务器
-await devServer.stop();
-```
-
-#### `DevServer`
-
-```ts
-export interface DevServer {
-	address: AddressInfo;
-	handle: (req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>) => void;
-	watcher: vite.FSWatcher;
-	stop(): Promise<void>;
-}
-```
-
-##### `address`
-
-开发服务器正在监听的地址。
-
-该属性包含 Node 的 [`net.Server#address()` 方法](https://nodejs.org/api/net.html#serveraddress) 返回的值。
-
-##### `handle()`
-
-Node HTTP 原始请求的句柄。你可以使用 [`http.IncomingMessage`](https://nodejs.org/api/http.html#class-httpincomingmessage) 和 [`http.ServerResponse`](https://nodejs.org/api/http.html#class-httpserverresponse) 来调用 `handle()`，而不用通过网络发送请求。
-
-##### `watcher`
-
-[Vite 开发服务器](https://cn.vite.dev/guide/api-javascript#vitedevserver) 公开的 [Chokidar 文件监听器](https://github.com/paulmillr/chokidar#getting-started)。
-
-##### `stop()`
-
-停止开发服务器。这将关闭所有空闲连接并停止侦听新连接。
-
-返回一个 `Promise`，一旦所有挂起的请求都执行完毕且所有空闲连接都已关闭，该 `Promise` 就会解析。
-
-### `build()`
-
-**类型：** `(inlineConfig: AstroInlineConfig) => Promise<void>`
-
-和 [`astro build`](#astro-build) 类似，使用它来构建你的网站以进行部署。
-
-```js
-import { build } from "astro";
-
-await build({
-  root: "./my-project",
-});
-```
-
-### `preview()`
-
-**类型：** `(inlineConfig: AstroInlineConfig) => Promise<PreviewServer>`
-
-和 [`astro preview`](#astro-preview) 类似，它启动一个本地服务器来为你的构建输出提供服务。
-
-如果配置中未设置适配器，预览服务器将仅提供构建的静态文件。
-如果配置中设置了适配器，则预览服务器由该适配器提供。适配器不需要提供预览服务器，因此根据你选择的适配器，此功能可能不可用。
-
-```js
-import { preview } from "astro";
-
-const previewServer = await preview({
-  root: "./my-project",
-});
-
-// 在需要时停止服务器
-await previewServer.stop();
-```
-
-#### `PreviewServer`
-
-```ts
-export interface PreviewServer {
-	host?: string;
-	port: number;
-	closed(): Promise<void>;
-	stop(): Promise<void>;
-}
-```
-
-##### `host`
-
-服务器监听连接的主机。
-
-适配器可以不设置此字段。`host` 的值是特定于实现的。
-
-##### `port`
-
-服务器监听连接的端口。
-
-##### `stop()`
-
-要求预览服务器关闭、停止接受请求并删除空闲连接。
-
-当关闭请求发出后，返回的 `Promise` 就会解析。这并不意味着服务器已经关闭。如果需要确保服务器已完全关闭，请使用 [`close()`](#closed) 方法。
-
-##### `closed()`
-
-返回一个 `Promise`，一旦服务器关闭，该 Promise 就会解析；如果服务器发生错误，该 Promise 将被拒绝。
-
-### `sync()`
-
-**类型：** `(inlineConfig: AstroInlineConfig) => Promise<void>`
-
-和 [`astro sync`](#astro-sync) 类似，它为所有 Astro 模块生成 TypeScript 类型。
-
-```js
-import { sync } from "astro";
-
-await sync({
-  root: "./my-project",
-});
-```

@@ -1,5 +1,4 @@
 import jsdoc from 'jsdoc-api';
-import fetch from 'node-fetch';
 import fs from 'node:fs';
 import ts from 'typescript';
 
