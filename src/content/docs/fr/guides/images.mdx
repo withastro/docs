@@ -159,7 +159,6 @@ import myImage from '../assets/my_image.png'; // Image est de 1600x900
 
 <ReadMore>Consultez le détail des [propriétés du composant `<Picture />`](/fr/reference/modules/astro-assets/#propriétés-de-picture) dans la référence `astro:assets`.</ReadMore>
 
-
 ### Afficher les images non traitées avec la balise HTML `<img>`
 
 La [syntaxe de template Astro](/fr/reference/astro-syntax/) prend également en charge l'écriture directe d'une balise `<img>`, avec un contrôle total sur sa sortie finale. Ces images ne seront pas traitées ni optimisées. Elle accepte toutes les propriétés de balise HTML `<img>`, et la seule propriété requise est `src`.
@@ -349,17 +348,15 @@ coverAlt: "Photographie d'un coucher de soleil derrière une chaîne de montagne
 Ceci est un article de blog
 ```
 
-L'aide `image` pour le schéma des collections de contenu vous permet de valider les métadonnées de l'image en utilisant Zod.
+L'assistant `image` pour le schéma des collections de contenu vous permet de valider et d'importer l'image.
 
-```ts title="src/content/config.ts"
+```ts title="src/content.config.ts"
 import { defineCollection, z } from "astro:content";
 
 const blogCollection = defineCollection({
 	schema: ({ image }) => z.object({
 		title: z.string(),
-		cover: image().refine((img) => img.width >= 1080, {
-			message: "L'image de couverture doit avoir une largeur d'au moins 1080 pixels!",
-		}),
+		cover: image(),
 		coverAlt: z.string(),
 	}),
 });
@@ -396,7 +393,7 @@ const allBlogPosts = await getCollection("blog");
 
 Le composant `<Image />`, comme tout autre composant Astro, n'est pas disponible dans les composants de framework UI.
 
-Mais vous pouvez transmettre le contenu statique généré par `<Image />` à un composant de framework à l'intérieur d'un fichier `.astro` en tant qu'enfants ou en utilisant un [`<slot/>` nommé](/fr/guides/framework-components/#puis-je-utiliser-les-composants-astro-à-lintérieur-des-composants-de-mon-framework-) :
+Mais vous pouvez transmettre le contenu statique généré par `<Image />` à un composant de framework à l'intérieur d'un fichier `.astro` [en tant qu'enfants](/fr/guides/framework-components/#passer-des-enfants-à-des-composants-de-framework) ou en utilisant un [`<slot/>` nommé](/fr/guides/framework-components/#puis-je-utiliser-les-composants-astro-à-lintérieur-des-composants-de-mon-framework-) :
 
 
 ```astro title="src/components/ImageWrapper.astro"
@@ -462,25 +459,11 @@ pnpm add sharp
 ```
 :::
 
-### Configurer Squoosh
-
-Si vous préférez utiliser [Squoosh](https://github.com/GoogleChromeLabs/squoosh) pour transformer vos images, mettez à jour votre configuration avec ce qui suit :
-
-```js title="astro.config.mjs" ins={4-6}
-import { defineConfig, squooshImageService } from 'astro/config';
-
-export default defineConfig({
-  image: {
-    service: squooshImageService(),
-  },
-});
-```
-
 ### Configurer le service no-op passthrough
 
-Si votre [adaptateur pour le mode `serveur' ou `hybride'](https://astro.build/integrations/?search=&categories%5B%5D=adapters) ne supporte pas l'optimisation d'image Squoosh et Sharp intégrée à Astro (par exemple Deno, Cloudflare), vous pouvez configurer un service d'image no-op pour vous permettre d'utiliser les composants `<Image />` et `<Picture />`. Notez qu'Astro n'effectue aucune transformation ou traitement d'image dans ces environnements. Cependant, vous pouvez toujours profiter des autres avantages de l'utilisation de `astro:assets`, y compris l'absence de décalage cumulatif de la mise en page (CLS), l'application de l'attribut `alt`, et une expérience de création cohérente.
+Si votre [adaptateur](https://astro.build/integrations/?search=&categories%5B%5D=adapters) ne supporte pas l'optimisation d'image Sharp intégrée à Astro (par exemple Deno, Cloudflare), vous pouvez configurer un service d'image no-op pour vous permettre d'utiliser les composants `<Image />` et `<Picture />`. Notez qu'Astro n'effectue aucune transformation ou traitement d'image dans ces environnements. Cependant, vous pouvez toujours profiter des autres avantages de l'utilisation de `astro:assets`, y compris l'absence de décalage cumulatif de la mise en page (CLS), l'application de l'attribut `alt`, et une expérience de création cohérente.
 
-Configurez `passthroughImageService()` pour éviter les traitements d'image Squoosh et Sharp :
+Configurez `passthroughImageService()` pour éviter les traitements d'image Sharp :
 
 ```js title="astro.config.mjs" ins={4-6} "passthroughImageService"
 import { defineConfig, passthroughImageService } from 'astro/config';
@@ -491,6 +474,25 @@ export default defineConfig({
   }
 });
 ```
+
+## Mise en cache des ressources
+
+Astro stocke les images traitées dans un répertoire cache lors de la création du site, tant pour les images locales que pour les [images distantes provenant de sources autorisées](#autoriser-les-images-distantes). En préservant le répertoire de cache entre les constructions, les ressources traitées sont réutilisées, ce qui améliore le temps de construction et l'utilisation de la bande passante.
+
+Le répertoire de cache par défaut est `./node_modules/.astro`, mais il peut être modifié en utilisant le paramètre de configuration [`cacheDir`](/fr/reference/configuration-reference/#cachedir).
+
+### Images distantes
+
+Les images distantes dans le cache des ressources sont gérées sur la base de [HTTP Caching](https://developer.mozilla.org/fr/docs/Web/HTTP/Caching), et respectent l'[En-tête Cache-Control](https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Cache-Control) renvoyé par le serveur distant.
+Les images sont mises en cache si l'en-tête Cache-Control le permet et seront utilisées jusqu'à ce qu'elles ne soient plus [fraîches](https://developer.mozilla.org/fr/docs/Web/HTTP/Caching#fra%C3%AEcheur_freshness).
+
+#### Revalidation
+
+<p><Since v="5.1.0" /></p>
+
+La [Revalidation](https://developer.mozilla.org/fr/docs/Web/HTTP/Caching#validation_de_cache) réduit l'utilisation de la bande passante et le temps de construction en vérifiant auprès du serveur distant si une image mise en cache qui a expiré est toujours d'actualité. Si le serveur indique que l'image est encore fraîche, la version mise en cache est réutilisée, sinon l'image est téléchargée à nouveau.
+
+La revalidation nécessite que le serveur distant envoie des en-têtes [Last-Modified](https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Last-Modified) et/ou [Etag (entity tag)](https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/ETag) avec ses réponses. Cette fonction est disponible pour les serveurs distants qui prennent en charge les en-têtes [If-Modified-Since](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Modified-Since) et [If-None-Match](https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/If-None-Match).
 
 ## Intégrations communautaires
 

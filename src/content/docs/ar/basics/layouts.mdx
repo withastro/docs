@@ -1,0 +1,272 @@
+---
+title: التخطيطات
+description: مقدمة في التخطيطات في أسترو.
+i18nReady: true
+---
+
+import ReadMore from '~/components/ReadMore.astro'
+
+**التخطيطات** هي [مكونات أسترو](/ar/basics/astro-components/)، التي تُستخدم لتوفير هيكل واجهة مستخدم قابلة لإعادة الاستخدام، مثل قالب صفحة.
+
+نستخدم مصطلح "التخطيط" عادةً لمكونات أسترو التي توفر عناصر واجهة مستخدم مشتركة لجميع الصفحات، مثل الرأس، والتنقل، والتذييل. عادةً ما توفر مكون تخطيط أسترو [صفحات أسترو أو Markdown أو MDX](/ar/basics/astro-pages/) ما يلي:
+- **غطاء الصفحة** (`<html>`، `<head>`، و `<body>`)
+- [**`<Slot />`**](/ar/basics/astro-components/#المداخل) لتحديد المكان الذي يجب إدراج محتوى الصفحة فيه.
+
+{/* TODO: Link to /ar/guides/{framework-components, client-side-scripts, styling} (does not exist yet)*/}
+
+ومع ذلك، فإن مكونات التخطيط ليست شيئًا مميزًا! يمكنها [قبول الخصائص](/ar/basics/astro-components/#خاصيّات-المكوّن) و[استيراد واستخدام مكونات أخرى](/ar/basics/astro-components/#بُنية-المكوّن) مثل أي مكون أسترو آخر. يمكن أن تحتوي على [مكونات إطار عمل واجهة المستخدم](/ar/guides/framework-components/) و[برامج نصية من جانب العميل](/ar/guides/client-side-scripts/). ليست بحاجة لتوفير واجهة صفحة كاملة، بل يمكن استخدامها بدلاً من ذلك كقوالب واجهة مستخدم جزئية.
+
+ومع ذلك، إذا كانت مكونة التخطيط تحتوي على غطاء صفحة، يجب أن يكون عنصر `<html>` هو العنصر الأب لجميع العناصر الأخرى في المكون. يجب أن تكون جميع عناصر [`<style>`](/ar/guides/styling/#styling-in-astro) أو [`<script>`](/ar/guides/client-side-scripts/#using-script-in-astro) محاطة بعلامات `<html>`.
+
+عادةً ما يتم وضع مكونات التخطيط في دليل `src/layouts` في مشروعك، ولكن هذا ليس شرطًا؛ يمكنك وضعها في أي مكان داخل مشروعك. يمكنك حتى وضع مكونات التخطيط بجانب صفحاتك عن طريق إضافة `_` قبل اسم التخطيط.
+
+### التخطيط النموذجي
+
+```astro "<slot />" 
+---
+// src/layouts/MySiteLayout.astro
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+const { title } = Astro.props;
+---
+<html lang="ar">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <BaseHead title={title}/>
+  </head>
+  <body>
+    <nav>
+	<a href="#">الرئيسية</a>
+	<a href="#">المشاركات</a>
+	<a href="#">اتصال</a>
+    </nav>
+    <h1>{title}</h1>
+    <article>
+      <slot /> <!-- يتم إدراج المحتوى هنا -->
+    </article>
+    <Footer />
+  </body>
+  <style>
+    h1 {
+      font-size: 2rem;
+    }
+  </style>
+</html>
+```
+
+```astro title="src/pages/index.astro"
+---
+import MySiteLayout from '../layouts/MySiteLayout.astro';
+---
+<MySiteLayout title="الصفحة الرئيسية">
+  <p>محتوى الصفحة الخاصة بي، مغلف في تخطيط!</p>
+</MySiteLayout>
+```
+
+<ReadMore>تعرف على المزيد حول [الفتحات](/ar/basics/astro-components/#المداخل).</ReadMore>
+
+
+## استخدام TypeScript مع التخطيطات
+
+يمكن تعديل أي تخطيط في أسترو لإضافة أمان النوع وإكمال النصوص التلقائي عن طريق تقديم الأنواع لخصائصك:
+
+```astro ins={2-7} title="src/components/MyLayout.astro"
+---
+interface Props { 
+  title: string;
+  description: string;
+  publishDate: string;
+  viewCount: number;
+}
+const { title, description, publishDate, viewCount } = Astro.props;
+---
+<html lang="ar">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="الوصف" content={description}>
+    <title>{title}</title>
+  </head>
+  <body>
+    <header>
+      <p>تم النشر في {publishDate}</p>
+      <p>شوهد من قبل {viewCount} شخصًا</p>
+    </header>
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>
+```
+
+{/* TODO: Link to /ar/guides/content-collections/ (does not exist yet)*/}
+
+## التخطيطات باستخدام Markdown
+
+تعد التخطيطات الخاصة بالصفحات مفيدة بشكل خاص للصفحات الفردية من نوع Markdown التي لن تحتوي على تنسيق صفحة بشكل افتراضي.
+
+توفر Astro خاصية `layout` في الـ frontmatter، والتي تُستخدم لملفات `.md` الفردية الموجودة داخل `src/pages/` باستخدام التوجيه المعتمد على الملفات، لتحديد مكون `.astro` الذي سيتم استخدامه كـ تخطيط للصفحة. يسمح لك هذا المكون بتوفير محتوى `<head>` مثل العلامات الوصفية (مثل `<meta charset="utf-8">`) والأساليب لصفحة Markdown. بشكل افتراضي، يمكن لهذا المكون المحدد الوصول تلقائيًا إلى البيانات من ملف Markdown.
+
+لا يتم التعرف على هذه الخاصية كخاصية خاصة عند استخدام [مجموعات المحتوى](/ar/guides/content-collections/) للاستعلام عن المحتوى وعرضه.
+
+```markdown title="src/pages/page.md" {2} 
+---
+layout: ../layouts/BlogPostLayout.astro
+title: "مرحبًا، أيها العالم!"
+author: "احمد ناصر"
+date: "8 يناير 2025"
+---
+جميع خصائص الـ frontmatter متاحة كخصائص لمكون التخطيط في Astro.
+
+خاصية `layout` هي الوحيدة التي تعتبر خاصية خاصة مقدمة من Astro.
+
+يمكنك استخدامها في ملفات Markdown الموجودة داخل `src/pages/`.
+```
+
+تتضمن التخطيط النموذجي لصفحة Markdown ما يلي:
+
+1. خاصية `frontmatter` للوصول إلى frontmatter الخاص بصفحة Markdown والبيانات الأخرى.
+2. [`<slot />`] افتراضي لتحديد المكان الذي يجب أن يتم فيه عرض محتوى Markdown الخاص بالصفحة.
+
+```astro title="src/layouts/BlogPostLayout.astro"
+---
+// 1. خاصية frontmatter توفر الوصول إلى frontmatter والبيانات الأخرى
+const { frontmatter } = Astro.props;
+---
+<html>
+  <head>
+    <!-- إضافة عناصر Head أخرى هنا مثل الأنماط وعلامات الوصف. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <title>{frontmatter.title}</title>
+  </head>
+  <body>
+    <!-- إضافة مكونات واجهة المستخدم الأخرى هنا مثل الرؤوس والتذييلات المشتركة. -->
+    <h1>{frontmatter.title} بواسطة {frontmatter.author}</h1>
+    <!-- 2. سيتم تمرير HTML المعروض إلى الفتحة الافتراضية. -->
+    <slot />
+    <p>تم الكتابة في: {frontmatter.date}</p>
+  </body>
+</html>
+```
+
+{/* TODO: Link to /ar/guides/typescript (does not exist yet)*/}
+يمكنك تعيين نوع[`Props` type](/ar/guides/typescript/#component-props)  للتخطيط باستخدام مساعد `MarkdownLayoutProps`:
+
+```astro title="src/layouts/BlogPostLayout.astro" ins={2,4-9}
+---
+import type { MarkdownLayoutProps } from 'astro';
+
+type Props = MarkdownLayoutProps<{
+  // تعريف خصائص frontmatter هنا
+  title: string;
+  author: string;
+  date: string;
+}>;
+
+// الآن، يمكن الوصول إلى `frontmatter` و `url` وخصائص تخطيط Markdown الأخرى
+// مع أمان النوع
+const { frontmatter, url } = Astro.props;
+---
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="canonical" href={new URL(url, Astro.site).pathname}>
+    <title>{frontmatter.title}</title>
+  </head>
+  <body>
+    <h1>{frontmatter.title} بواسطة {frontmatter.author}</h1>
+    <slot />
+    <p>تم الكتابة في: {frontmatter.date}</p>
+  </body>
+</html>
+```
+
+### خصائص تخطيط Markdown
+
+سيكون لتخطيط Markdown الوصول إلى المعلومات التالية عبر `Astro.props`:
+
+- **`file`** - المسار الكامل لهذا الملف (على سبيل المثال: `/home/user/projects/.../file.md`).
+- **`url`** - عنوان URL للصفحة (على سبيل المثال: `/ar/guides/markdown-content`).
+- **`frontmatter`** - جميع بيانات الـ frontmatter من مستند Markdown أو MDX.
+  - **`frontmatter.file`** - نفس خاصية `file` على المستوى الأعلى.
+  - **`frontmatter.url`** - نفس خاصية `url` على المستوى الأعلى.
+- **`headings`** - قائمة بالعناوين (`h1 -> h6`) في مستند Markdown أو MDX مع البيانات الوصفية المرتبطة. تتبع هذه القائمة النوع: `{ depth: number; slug: string; text: string }[]`.
+- **`rawContent()`** - دالة تُعيد مستند Markdown الخام كسلسلة نصية.
+- **`compiledContent()`** - دالة غير متزامنة تُعيد مستند Markdown بعد تحويله إلى سلسلة HTML.
+
+{/* TODO: Link to /ar/guides/markdown-content (does not exist yet)*/}
+:::note
+سيكون لتخطيط Markdown الوصول إلى جميع خصائص ملف Markdown [المتاحة](/ar/guides/markdown-content/#available-properties) من `Astro.props` **مع فرقين رئيسيين:**
+
+*   معلومات العناوين (أي عناصر `h1 -> h6`) متاحة عبر مصفوفة `headings`، بدلاً من دالة `getHeadings()`.
+
+*   `file` و `url` متاحان *أيضًا* كخصائص متداخلة في `frontmatter` (أي: `frontmatter.url` و `frontmatter.file`).
+:::
+
+### استيراد التخطيطات يدويًا (MDX)
+
+يمكنك أيضًا استخدام خاصية تخطيط Markdown الخاصة في الـ frontmatter لملفات MDX لتمرير خصائص `frontmatter` و `headings` مباشرة إلى مكون التخطيط المحدد بنفس الطريقة.
+
+لتمرير المعلومات إلى تخطيط MDX لا يمكن أن توجد (أو لا توجد) في الـ frontmatter، يمكنك بدلاً من ذلك استيراد واستخدام مكون `<Layout />`. يعمل هذا مثل أي مكون آخر في Astro، ولن يتلقى أي خصائص تلقائيًا. مرر له أي خصائص ضرورية مباشرة:
+
+```mdx title="src/pages/posts/first-post.mdx"
+---
+layout: ../../layouts/BaseLayout.astro
+title: 'منشور MDX الأول'
+publishDate: '08 يناير 2025'
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export function fancyJsHelper() {
+  return "حاول فعل ذلك باستخدام YAML!";
+}
+
+<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>
+مرحبًا بكم في مدونتي الجديدة باستخدام Astro وMDX!  
+</BaseLayout>
+```
+
+ثم، ستكون القيم الخاصة بك متاحة لك من خلال `Astro.props` في التخطيط الخاص بك، وسيتم حقن محتوى MDX في الصفحة حيث يتم كتابة مكون `<slot />`:
+
+```astro title="src/layouts/BaseLayout.astro"
+---
+const { title, fancyJsHelper } = Astro.props;
+---
+<html>
+  <head>
+    <!-- -->
+    <meta charset="utf-8">
+  </head>
+  <body>
+    <!-- -->
+    <h1>{title}</h1>
+    <slot /> <!-- سيتم حقن المحتوى هنا -->
+    <p>{fancyJsHelper()}</p>
+    <!-- -->
+  </body>
+</html>
+```
+
+عند استخدام أي تخطيط (سواء من خلال خاصية `layout` في الـ frontmatter أو عن طريق استيراد تخطيط)، يجب عليك تضمين وسم `<meta charset="utf-8">` في تخطيطك حيث أن Astro لن تضيفه تلقائيًا إلى صفحة MDX الخاصة بك.
+{/* TODO: Link to /ar/guides/markdown-content (does not exist yet)*/}
+<ReadMore>تعرف أكثر عن دعم Astro لـ Markdown و MDX في [دليل Markdown](/ar/guides/markdown-content/).</ReadMore>
+
+## تركيب التخطيطات
+
+لا تحتاج مكونات التخطيط إلى احتواء صفحة كاملة من HTML. يمكنك تقسيم تخطيطاتك إلى مكونات أصغر، ودمج مكونات التخطيط لإنشاء قوالب صفحات أكثر مرونة. هذه الطريقة مفيدة عندما تريد مشاركة بعض الأكواد عبر تخطيطات متعددة.
+
+على سبيل المثال، يمكن أن يقوم مكون تخطيط `BlogPostLayout.astro` بتنسيق عنوان المقالة وتاريخ النشر والمؤلف. بعد ذلك، يمكن أن يتعامل تخطيط الموقع العام `BaseLayout.astro` مع بقية قالب الصفحة، مثل التنقل، والتذييل، ووسوم SEO، والأنماط العامة، والخطوط. يمكنك أيضًا تمرير الخصائص المستلمة من مقالك إلى تخطيط آخر، تمامًا كما تفعل مع أي مكون متداخل آخر.
+
+```astro {3} /</?BaseLayout>/ /</?BaseLayout url={frontmatter.url}>/
+---
+// src/layouts/BlogPostLayout.astro
+import BaseLayout from './BaseLayout.astro';
+const { frontmatter } = Astro.props;
+---
+<BaseLayout url={frontmatter.url}>
+  <h1>{frontmatter.title}</h1>
+  <h2>مؤلف المقال: {frontmatter.author}</h2>
+  <slot />
+</BaseLayout>
+```
