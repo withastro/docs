@@ -169,7 +169,7 @@ export default {
 
 <p><Since v="5.0.0" /></p>
 
-函数 `clientEntrypoint` 和 `serverEntrypoint` 接受一个 `URL`。
+函数 `clientEntrypoint` 和 `serverEntrypoint` 接收一个 `URL`。
 
 #### `addWatchFile` 选项
 
@@ -470,6 +470,148 @@ const integration = {
 
 **上一个钩子**：[`astro:config:setup`](#astroconfigsetup)
 
+**下一个钩子**：[`astro:config:done`](#astroconfigdone)
+
+**时机**：在 `astro dev` 中，如果基于文件的路由发生更改（添加/删除/更新），它也会运行。
+
+**用途**：为了读取路径及其元数据。
+
+```js
+'astro:routes:resolved'?: (options: {
+  routes: IntegrationResolvedRoute[];
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
+```
+
+#### `routes` 选项
+
+**类型**：[`IntegrationResolvedRoute[]`](#integrationresolvedroute-type-reference)
+
+一个包含了所有路由及其关联元数据的列表。
+
+使用示例：
+
+```js title="my-integration.mjs"
+const integration = () => {
+    return {
+        name: 'my-integration',
+        hooks: {
+            'astro:routes:resolved': ({ routes }) => {
+                const projectRoutes = routes.filter(r => r.origin === 'project').map(r => r.pattern)
+                
+                console.log(projectRoutes)
+            },
+        }
+    }
+}
+```
+
+##### `IntegrationResolvedRoute` 类型参考
+
+```ts
+interface IntegrationResolvedRoute {
+	/**
+	 * 路由当前的**格式（pattern）**。例如：
+	 * - `src/pages/index.astro` 具有这样的格式 `/`
+	 * - `src/pages/blog/[...slug].astro` 具有这样的格式 `/blog/[...slug]`
+	 * - `src/pages/site/[blog]/[...slug].astro` 具有这样的格式 `/site/[blog]/[...slug]`
+	 */
+	pattern: RouteData['route'];
+
+	/**
+	 *
+	 * 用于将输入 URL 与请求的路由进行匹配的正则表达式
+	 * 例如："[fruit]/about.astro" 将生成这样的格式：/^\/([^/]+?)\/about\/?$/
+	 * 如此，pattern.test("banana/about") 就会返回 "true"
+	 *
+	 * ## 示例
+	 *
+	 * ```js
+	 * if (route.pattern.test('/blog')) {
+	 *  // do something
+	 * }
+	 * ```
+	 */
+	patternRegex: RouteData['pattern'];
+
+	/**
+	 *  组件源码链接
+	 */
+	entrypoint: RouteData['component'];
+
+	/**
+	 * 路径是否被预渲染
+	 */
+	isPrerendered: RouteData['prerender'];
+
+	/**
+	 * 当 `IntegrationResolvedRoute.type` 为 `redirect` 时，要重定向到的 {@link IntegrationResolvedRoute} 就会出现。
+	 */
+	redirectRoute?: IntegrationResolvedRoute;
+
+  /**
+	 * @param {any} data 路由的可选参数
+	 *
+	 * @description
+	 * 该函数接受一列参数，使用路由的格式对它们进行插值，然后返回路由的路径名。
+	 *
+	 * ## 示例
+	 *
+	 * 对于诸如 `/blog/[...id].astro` 这样的路由，`generate` 函数将返回如下内容：
+	 *
+	 * ```js
+	 * console.log(generate({ id: 'presentation' })) // 将会打印 `/blog/presentation`
+	 * ```
+	 */
+	generate: (data?: any) => string;
+
+  /**
+	 * 动态和展开路径参数（params）
+	 * 例如："/pages/[lang]/[...slug].astro" 会输出参数 ['lang', '...slug']
+	 */
+	params: string[];
+
+  /**
+	 * 将使用的输出链接路径名（pathname）
+	 * 请注意：对于 [dynamic] 和 [...spread] 路径将会是 undefined。
+	 */
+	pathname?: string;
+
+  /**
+	 * 和 "params" 字段相似，但有着更多相关的元数据。例如，对于 `/site/[blog]/[...slug].astro` 来说，分段（segments）为：
+	 *
+	 * 1. `{ content: 'site', dynamic: false, spread: false }`
+	 * 2. `{ content: 'blog', dynamic: true, spread: false }`
+	 * 3. `{ content: '...slug', dynamic: true, spread: true }`
+	 */
+	segments: RoutePart[][];
+
+  /**
+	 *
+	 * 路由的类型（type）。共有如下几种：
+	 * - `page`：基于文件系统的路由，通常为 Astro 组件
+	 * - `endpoint`：基于文件系统的路径，通常为暴露了端点方法的 JS 文件
+	 * - `redirect`：一个指向另一个基于文件系统的路径
+	 * - `fallback`：一个不存在于文件系统中的路径并且需要其他方式来处理，通常是中间件
+	 */
+	type: RouteType;
+
+  /**
+	 * 要重定向到的路径。它携带了状态码和目的地。
+	 */
+	redirect?: RedirectConfig;
+
+  /**
+	 * 路径是否是来自 Astro 内核，或来自集成，或来自用户项目
+	 */
+	origin: 'internal' | 'external' | 'project';
+}
+```
+
+### `astro:config:done`
+
+**上一个钩子**：[`astro:config:setup`](#astroroutesresolved)
+
 **下一个钩子**：当在开发模式下运行时为 [`astro:server:setup`](#astroserversetup)，在生产构建时为 [astro:build:start](#astrobuildstart)
 
 **时机**：在 Astro 配置解析后，其他集成已经运行 `astro:config:setup` 钩子后。
@@ -526,10 +668,16 @@ console.log(path) // URL
 
 **时机**：在开发模式下创建 Vite 服务器后，但在 `listen()` 事件触发前。详见[Vite 的 createServer API](https://cn.vite.dev/guide/api-javascript#createserver)。
 
-**用途**：更新 Vite 服务端选项和中间件。
+**用途**：更新 Vite 服务端选项和中间件，或通过刷新以实现对 content layer 的支持。
 
 ```js
-'astro:server:setup'?: (options: { server: vite.ViteDevServer }) => void | Promise<void>;
+'astro:server:setup'?: (options: {
+  server: vite.ViteDevServer;
+  refreshContent: (options: {
+    loaders?: Array<string>;
+    context?: Record<string, any>;
+  }) => Promise<void>;
+}) => void | Promise<void>;
 ```
 
 #### `server` 选项
@@ -552,6 +700,58 @@ export default {
   }
 }
 ```
+
+#### `refreshContent` 选项
+
+<p>
+
+**类型**：`(options: { loaders?: Array<string>; context?: Record<string, any>; }) => Promise<void>`<br />
+<Since v="5.0.0" />
+</p>
+
+一个用于在 `astro dev` 时触发，以更新 content layer 的函数。可以这样使用，例如，要在开发时注册一个 webhook 端点，或者开启一个 socket 来监听 CMS 的改动。
+
+默认情况下，`refreshContent` 会刷新所有的集合。你可以选择性的提供一个 `loaders` 属性去传递，即一个包含着加载器（loader）名称的数组。如果提供的话，那么就只有使用了这些加载器的集合会被刷新。例如，一个 CMS 集成可以使用该属性来单独刷新它自己的集合。
+
+你也可以传递一个 `context` 对象给加载器。它可以用来传递任意数据，例如 webhook body，或者是来自 websocket 的事件。
+
+```ts title=my-integration.ts {19-22}
+ {
+    name: 'my-integration',
+    hooks: {
+        'astro:server:setup': async ({ server, refreshContent }) => {
+            // 注册一个开发服务器的 webhook 端点
+            server.middlewares.use('/_refresh', async (req, res) => {
+                if(req.method !== 'POST') {
+                  res.statusCode = 405
+                  res.end('Method Not Allowed');
+                  return
+                }
+                let body = '';
+                req.on('data', chunk => {
+                    body += chunk.toString();
+                });
+                req.on('end', async () => {
+                    try {
+                        const webhookBody = JSON.parse(body);
+                        await refreshContent({
+                          context: { webhookBody },
+                          loaders: ['my-loader']
+                        });
+                        res.writeHead(200, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ message: 'Content refreshed successfully' }));
+                    } catch (error) {
+                        res.writeHead(500, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: 'Failed to refresh content: ' + error.message }));
+                    }
+                });
+            });
+        }
+    }
+}
+```
+
+加载器稍后可以通过读取 `refreshContextData` 属性来获得 webhook body。更多信息请参阅 [`refreshContextData`](/zh-cn/reference/content-loader-reference/#refreshcontextdata) 属性。
 
 ### `astro:server:start`
 
@@ -644,7 +844,7 @@ export default {
 ```js
 'astro:build:ssr'?: (options: {
     manifest: SerializedSSRManifest,
-    entryPoints: Map<RouteData, URL>,
+    entryPoints: Map<IntegrationRouteData, URL>,
     middlewareEntryPoint: URL
 }) => void | Promise<void>;
 ```
@@ -658,10 +858,16 @@ export default {
 **用途**：访问生成的路由和资产进行扩展（例如，将内容复制到生成的 `/assets` 目录）。如果你打算转换生成的资源，我们建议探索 [Vite 插件 API](https://cn.vite.dev/guide/api-plugin) 和[通过 `astro:config:setup` 进行配置](#updateconfig-选项)来代替。
 
 ```js
-'astro:build:done'?: (options: { dir: URL; routes: RouteData[], pages: { pathname: string }[] }) => void | Promise<void>;
+'astro:build:done'?: (options: {
+  dir: URL;
+  /** @deprecated 使用 `assets` 映射以及新的 `astro:routes:resolved` 钩子 */
+  routes: IntegrationRouteData[];
+  assets: Map<string, URL[]>;
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
 ```
 
-#### `dir` option
+#### `dir` 选项
 
 **类型**：[`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL)
 
@@ -687,21 +893,32 @@ export default function myIntegration() {
 
 #### `routes` 选项
 
-**类型：**[`RouteData[]`](#routedata-类型参考)
+:::caution
+该属性自 v5.0 起已被弃用。查看 [迁移指南](/zh-cn/guides/upgrade-to/v5/#弃用astrobuilddone-钩子的-routes-选项集成-api)。
+:::
+
+**类型：**[`IntegrationRouteData[]`](#integrationroutedata-type-reference)
 
 所有生成的路由及其相关元数据的列表。
 
-你可以参考下面完整的 `RouteData` 类型，但最常见的属性是。
+你可以参考下面完整的 `IntegrationRouteData` 类型，但最常见的属性是。
 
 - `component` - 相对于项目根的输入文件路径
 - `pathname` - 输出文件的 URL（对于使用 `[dynamic]` 和 `[...spread]` 参数的路由未定义）。
 
-##### `RouteData` 类型参考
+##### `IntegrationRouteData` 类型参考
 
 ```ts
-interface RouteData {
-  /** 指定路由是 HTML 页面还是非 HTML 端点 */
-  type: 'page' | 'endpoint';
+interface IntegrationRouteData {
+	/**
+   * 路由的类型（type）。共有如下几种：
+   *
+	 * - `page`：基于文件系统的路由，通常为 Astro 组件
+	 * - `endpoint`：基于文件系统的路由，通常为暴露了端点方法的 JS 文件
+	 * - `redirect`：一个指向另一个基于文件系统的路由
+	 * - `fallback`：一个不存在于文件系统的路由并且需要其他方式来处理，通常是中间件
+	 */
+  type: 'page' | 'endpoint' | 'redirect' | 'fallback';
   /** 组件源码链接 */
   component: string;
   /**
@@ -727,12 +944,44 @@ interface RouteData {
    */
   segments: { content: string; dynamic: boolean; spread: boolean; }[][];
   /**
-   * 根据输入数据中就地渲染组件的函数。
+	 * 该函数接受一列参数，使用路由的格式对它们进行插值，然后返回路由的路径名。
+	 * 
+	 * ## 示例
+	 * 
+	 * 对于诸如 `/blog/[...id].astro` 这样的路由，`generate` 函数将返回如下内容：
+	 * 
+	 * ```js
+	 * console.log(generate({ id: 'presentation' })) // 将会打印 `/blog/presentation` 
+	 * ```
    * 这通常仅在内部使用，所以请谨慎调用！
-   */
+	 */
   generate: (data?: any) => string;
+  /**
+	 * 路由是否被预渲染。
+	 */
+	prerender: boolean;
+  /**
+	 * 文件的物理路径。当路径 **没有** 被预渲染时，该值可能为 `undefined` 或空数组。
+	 */
+	distURL?: URL[];
+  	/**
+	 * 要重定向到的路径。它携带了状态码和目的地。
+	 */
+	redirect?: RedirectConfig;
+	/**
+	 * 当 `RouteData.type` 为 `redirect` 时，要重定向到的 `IntegrationRouteData` 就会出现。
+	 */
+	redirectRoute?: IntegrationRouteData;
 }
 ```
+
+#### `assets` 选项
+
+<Since v="5.0.0" />
+
+**类型**：`Map<string, URL[]>`
+
+包含了输出文件路径的链接，被 [`IntegrationResolvedRoute`](#integrationresolvedroute-类型参考) 的 `pattern` 属性分组。
 
 #### `pages` 选项
 
@@ -748,7 +997,7 @@ interface RouteData {
 
 **时机：** 在 `astro dev` 中，每当请求一个路由时。在 `astro build` 中，当打包和转换路由文件时。
 
-**原因：** 在构建或请求时为路由设置选项，例如启用[按需服务器渲染](/zh-cn/guides/on-demand-rendering/)。
+**原因：** 在构建或请求时为路由设置选项，例如启用[按需服务器渲染](/zh-cn/guides/on-demand-rendering/#enabling-on-demand-rendering)。
 
 ```js
 'astro:route:setup'?: (options: { route: RouteOptions }) => void | Promise<void>;
@@ -770,7 +1019,7 @@ interface RouteData {
 <Since v="4.14.0" />
 </p>
 
-`prerender` 属性用于配置[按需服务器渲染](/zh-cn/guides/on-demand-rendering/)的路由。如果路由文件包含一个显式的 `export const prerender` 值，该值将被用作默认值，而不是 `undefined`。
+`prerender` 属性用于配置[按需服务器渲染](/zh-cn/guides/on-demand-rendering/#enabling-on-demand-rendering)的路由。如果路由文件包含一个显式的 `export const prerender` 值，该值将被用作默认值，而不是 `undefined`。
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
@@ -793,7 +1042,7 @@ function setPrerender() {
 }
 ```
 
-如果在运行所有钩子后的最终值是 `undefined`，路由将根据 [`output` 选项](/zh-cn/reference/configuration-reference/#output) 回退到预渲染的默认值：`hybrid` 模式下预渲染，`server` 模式下按需渲染。
+如果在运行所有钩子后的最终值是 `undefined`，路由将根据 [`output` 选项](/zh-cn/reference/configuration-reference/#output) 回退到预渲染的默认值：`static` 模式下预渲染，`server` 模式下按需渲染。
 
 ### 自定义钩子
 
