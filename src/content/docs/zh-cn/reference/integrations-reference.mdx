@@ -1,5 +1,7 @@
 ---
 title: Astro 集成 API
+sidebar:
+  label: 集成 API
 ---
 
 import Since from '~/components/Since.astro'
@@ -12,7 +14,7 @@ import Since from '~/components/Since.astro'
 
 当你创建自己的集成时，可以参考官方的 Astro 集成。
 
-- **渲染器**：[`lit`](/zh-cn/guides/integrations-guide/lit/)、[`svelte`](/zh-cn/guides/integrations-guide/svelte/)、[`react`](/zh-cn/guides/integrations-guide/react/)、[`preact`](/zh-cn/guides/integrations-guide/preact/)、[`vue`](/zh-cn/guides/integrations-guide/vue/)、[`solid`](/zh-cn/guides/integrations-guide/solid-js/)
+- **渲染器**：[`svelte`](/zh-cn/guides/integrations-guide/svelte/)、[`react`](/zh-cn/guides/integrations-guide/react/)、[`preact`](/zh-cn/guides/integrations-guide/preact/)、[`vue`](/zh-cn/guides/integrations-guide/vue/)、[`solid`](/zh-cn/guides/integrations-guide/solid-js/)
 - **库**：[`tailwind`](/zh-cn/guides/integrations-guide/tailwind/)、[`partytown`](/zh-cn/guides/integrations-guide/partytown/)
 - **功能**：[`sitemap`](/zh-cn/guides/integrations-guide/sitemap/)
 
@@ -33,7 +35,12 @@ interface AstroIntegration {
       addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
       addDevToolbarApp: (pluginEntrypoint: string) => void;
       injectScript: (stage: InjectedScriptStage, content: string) => void;
-      injectRoute: (injectedRoute: { pattern: string, entrypoint: string }) => void;
+      injectRoute: (injectedRoute: { pattern: string; entrypoint: string; prerender?: boolean }) => void;
+      createCodegenDir: () => URL;
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:routes:resolved'?: (options: {
+      routes: IntegrationResolvedRoute[];
       logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
     'astro:config:done'?: (options: {
@@ -56,10 +63,16 @@ interface AstroIntegration {
     'astro:build:generated'?: (options: { dir: URL; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:build:ssr'?: (options: {
         manifest: SerializedSSRManifest;
-        entryPoints: Map<RouteData, URL>;
+        entryPoints: Map<IntegrationRouteData, URL>;
         logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
-    'astro:build:done'?: (options: { dir: URL; routes: RouteData[]; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:build:done'?: (options: {
+      dir: URL;
+      /** @deprecated 使用 `assets` 映射和新的 `astro:routes:resolved` 钩子 */
+      routes: IntegrationRouteData[];
+      assets: Map<string, URL[]>;
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
 
     // ...任何来自集成的自定义钩子
   };
@@ -92,7 +105,8 @@ Astro 内置了以下钩子：
   addDevToolbarApp: (pluginEntrypoint: string) => void;
   addWatchFile: (path: URL | string) => void;
   injectScript: (stage: InjectedScriptStage, content: string) => void;
-  injectRoute: ({ pattern: string, entrypoint: string }) => void;
+  injectRoute: (injectedRoute: { pattern: string; entrypoint: string; prerender?: boolean }) => void;
+  createCodegenDir: () => URL;
   logger: AstroIntegrationLogger;
 }) => void | Promise<void>;
 ```
@@ -146,12 +160,16 @@ export default {
 #### `addRenderer` 选项
 
 **类型**：`(renderer:` [`AstroRenderer`](https://github.com/withastro/astro/blob/fdd607c5755034edf262e7b275732519328a33b2/packages/astro/src/%40types/astro.ts#L872-L883) `) => void;`  
-**示例**：[`lit`](https://github.com/withastro/astro/blob/main/packages/integrations/lit/src/index.ts)、[`svelte`](https://github.com/withastro/astro/blob/main/packages/integrations/svelte/src/index.ts)、[`react`](https://github.com/withastro/astro/blob/main/packages/integrations/react/src/index.ts)、[`preact`](https://github.com/withastro/astro/blob/main/packages/integrations/preact/src/index.ts)、[`vue`](https://github.com/withastro/astro/blob/main/packages/integrations/vue/src/index.ts)、[`solid`](https://github.com/withastro/astro/blob/main/packages/integrations/solid/src/index.ts)
+**示例**：[`svelte`](https://github.com/withastro/astro/blob/main/packages/integrations/svelte/src/index.ts)、[`react`](https://github.com/withastro/astro/blob/main/packages/integrations/react/src/index.ts)、[`preact`](https://github.com/withastro/astro/blob/main/packages/integrations/preact/src/index.ts)、[`vue`](https://github.com/withastro/astro/blob/main/packages/integrations/vue/src/index.ts)、[`solid`](https://github.com/withastro/astro/blob/main/packages/integrations/solid/src/index.ts)
 
 用于添加组件框架渲染器（即 React、Vue、Svelte 等）的回调函数。你可以浏览上面的例子和类型定义，了解更多的高级选项，但需要注意两个注意选项：
 
 - `clientEntrypoint` - 当组件被使用时，在客户端执行的文件的路径。这主要是为了使用 JS 渲染或填充你的组件。
 - `serverEntrypoint` - 文件路径，在服务器端请求或静态构建时，只要使用组件就会执行。这些文件应该将组件渲染成静态标记，并在适当的时候使用钩子进行激活。[React 的 `renderToString` 回调函数](https://react.dev/reference/react-dom/server/renderToString)是个典型例子。
+
+<p><Since v="5.0.0" /></p>
+
+函数 `clientEntrypoint` 和 `serverEntrypoint` 接受一个 `URL`。
 
 #### `addWatchFile` 选项
 
@@ -323,9 +341,30 @@ export const onRequest = defineMiddleware(async (context, next) => {
 });
 ```
 
+<p><Since v="5.0.0" /></p>
+
+该函数也接受 `URL` 作为 `entrypoint`：
+
+```js title="@my-package/integration.js" ins={9}
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "my-middleware-package",
+  hooks: {
+    "astro:config:setup": ({ addMiddleware }) => {
+        addMiddleware({
+          entrypoint: new URL('./middleware.js', import.meta.url),
+          order: 'pre'
+        });
+    },
+  },
+});
+```
+
 #### `injectRoute` 选项
 
-**类型**：`({ pattern: string, entrypoint: string }) => void;`
+**类型**：`({ pattern: string; entrypoint: string; pattern?: boolean }) => void;`
 
 用于向 Astro 项目注入路由的回调函数。注入的路由可以是 [`.astro`页面](/zh-cn/basics/astro-pages/) 或 [`.js`和`.ts`路由处理程序](/zh-cn/guides/endpoints/#静态文件端点)。
 
@@ -333,6 +372,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
 - `pattern` - 应该在浏览器中使用的路由，例如 `/foo/bar`。`pattern` 可以使用 Astro 的文件路径语法来表示动态路由，例如 `/foo/[bar]` 或 `/foo/[...bar]`。请注意，在 `pattern` 中**无需**文件扩展名。
 - `entrypoint` — 裸模块指定器，指向 `.astro` 页面或 `.js`/`.ts` 路由处理程序，处理`pattern` 中指定路由。
+- `prerender` - 如果 Astro 无法检测到你的 `prerender` 导出，则设置一个布尔值。
 
 ##### 使用示例
 
@@ -341,7 +381,9 @@ injectRoute({
   // 使用 Astro 语法模式来匹配动态路由
   pattern: '/subfolder/[dynamic]',
   // 使用相对路径语法来匹配本地路由
-  entrypoint: './src/dynamic-page.astro'
+  entrypoint: './src/dynamic-page.astro',
+  // 仅当 Astro 无法检测到你的预渲染导出时才使用
+  prerender: false
 });
 ```
 
@@ -366,6 +408,17 @@ injectRoute({
 }
 ```
 
+<p><Since v="5.0.0" /></p>
+
+该函数也接受 `URL` 作为 `entrypoint`：
+
+```js "new URL('./dashboard.astro', import.meta.url)"
+injectRoute({
+  pattern: '/fancy-dashboard',
+  entrypoint: new URL('./dashboard.astro', import.meta.url)
+});
+```
+
 #### `injectScript` 选项
 
 **类型**：`(stage: InjectedScriptStage, content: string) => void;`
@@ -385,7 +438,35 @@ injectRoute({
     injectScript('page-ssr', 'import "global-styles.css";');
     ```
 
-### `astro:config:done`
+#### `createCodegenDir`
+
+<p>
+
+**类型**：`() => URL;`<br />
+<Since v="5.0.0" />
+</p>
+
+一个函数，用于创建 `<root>/.astro/integrations/<normalized_integration_name>` 文件夹并返回其路径。
+
+它允许你拥有一个专用文件夹，避免与其他集成或 Astro 本身发生冲突。该目录是通过调用此函数创建的，因此可以安全地直接向其中写入文件：
+
+```ts title="my-integration.ts"
+import { writeFileSync } from 'node:fs'
+
+const integration = {
+    name: 'my-integration',
+    hooks: {
+        'astro:config:setup': ({ createCodegenDir }) => {
+            const codegenDir = createCodegenDir()
+            writeFileSync(new URL('cache.json', codegenDir), '{}', 'utf-8')
+        }
+    }
+}
+```
+
+### `astro:routes:resolved`
+
+<Since v="5.0.0" />
 
 **上一个钩子**：[`astro:config:setup`](#astroconfigsetup)
 
