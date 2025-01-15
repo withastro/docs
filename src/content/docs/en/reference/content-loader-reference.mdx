@@ -498,7 +498,7 @@ The format of the `RenderedContent` object is:
 
 ## Built-in loaders
 
-Astro provides two built-in loaders to help you fetch your collections without the need to create your own loader. Both offer options to suit a wide range of use cases.
+Astro provides two built-in loaders to help you fetch your collections. Both offer options to suit a wide range of use cases.
 
 ### `glob()` loader
 
@@ -508,7 +508,9 @@ Astro provides two built-in loaders to help you fetch your collections without t
 <Since v="5.0.0" />
 </p>
 
-The `glob()` loader creates entries from directories of files from anywhere on the filesystem. The supported file types are Markdown, MDX, Markdoc, and JSON files. Use this loader when you have one file per entry by providing an options object with a required `pattern` property and, optionally, a `base` and/or `generateId` property.
+The `glob()` loader creates entries from directories of files from anywhere on the filesystem. The supported file types are Markdown, MDX, Markdoc, and JSON files.
+
+This loader accepts an object with the following properties: `pattern`, `base` (optional), and `generateId` (optional).
 
 ```ts title="src/content.config.ts" {2,6,11,17-21}
 import { defineCollection } from 'astro:content';
@@ -543,7 +545,7 @@ const authors = defineCollection({
 **Type:** `string | string[]`
 </p>
 
-Accepts a pattern of entry files to match using glob patterns supported by [micromatch](https://github.com/micromatch/micromatch#matching-features). The pattern must be relative to the base directory.
+The `pattern` property accepts one or more patterns relative to the base directory of entry files to match. You can learn more about the syntax to use in the [micromatch documentation](https://github.com/micromatch/micromatch#matching-features).
 
 #### `base`
 
@@ -553,16 +555,23 @@ Accepts a pattern of entry files to match using glob patterns supported by [micr
 **Default:** `"."`
 </p>
 
-Defines the base directory to resolve the glob pattern from. It must be relative to the root directory, or an absolute file URL.
+A relative path or [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) to the base directory from which to resolve the glob pattern.
 
-#### `generateId`
+#### `generateId()`
 
 <p>
 
 **Type:** `(options: GenerateIdOptions) => string`
 </p>
 
-Returns a unique ID per collection for an entry. By default it generates a kebab-case slug from the entry path using [`github-slugger`](https://github.com/Flet/github-slugger).
+A callback function used to generate an ID for an entry. It accepts an object as parameter with the following properties:
+* `entry` - the path to the entry file, relative to the base directory
+* `base` - the base directory [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL)
+* `data` - the parsed, unvalidated data of the entry
+
+The function should return a unique string per entry in a collection.
+
+By default it uses [`github-slugger`](https://github.com/Flet/github-slugger) to generate a slug with [kebab-cased](https://developer.mozilla.org/en-US/docs/Glossary/Kebab_case) words.
 
 ### `file()` loader
 
@@ -572,7 +581,9 @@ Returns a unique ID per collection for an entry. By default it generates a kebab
 <Since v="5.0.0" />
 </p>
 
-The `file()` loader creates entries from a single file. The file must contain an array of objects that contain a unique `id` field, or an object with string keys. It supports JSON or YAML by default and you can provide a custom `parser` for data files it cannot parse automatically.
+The `file()` loader creates entries from a single file that contains an array of objects with a unique `id` field, or an object with string keys. It supports JSON or YAML, and you can provide a custom `parser` for data files it cannot parse by default.
+
+This loader accepts a `fileName` property and an optional object as second argument:
 
 ```ts title="src/content.config.ts" {2,6,11-13}
 import { defineCollection } from 'astro:content';
@@ -608,13 +619,13 @@ Sets the path to the file to load, relative to the content directory.
 **Type:** `FileOptions`
 </p>
 
-Provides additional options for the file loader. It is useful if you need a custom `parser` to process your file (e.g. `.toml` or `.csv`).
+An optional object to customize the behavior of the `file()` loader.
 
-##### `parser`
+##### `parser()`
 
 <p>
 
 **Type:** `(text: string) => Record<string, Record<string, unknown>> | Array<Record<string, unknown>>`
 </p>
 
-Allows you to specify a custom parser to create a collection from the contents of a file.
+A callback function to parse and create a collection from a file’s contents. Use it when you need to process file not supported by default (e.g. `.toml` or `.csv`) or when using [nested `.json` documents](/en/guides/content-collections/#nested-json-documents).
