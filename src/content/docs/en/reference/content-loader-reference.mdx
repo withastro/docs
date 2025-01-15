@@ -495,3 +495,126 @@ The format of the `RenderedContent` object is:
 	};
 }
 ```
+
+## Built-in loaders
+
+Astro provides two built-in loaders to help you fetch your collections without the need to create your own loader. Both offer options to suit a wide range of use cases.
+
+### `glob()` loader
+
+<p>
+
+**Type:** <code>(options: GlobOptions) => <a href="#the-loader-object">Loader</a></code><br />
+<Since v="5.0.0" />
+</p>
+
+The `glob()` loader creates entries from directories of files from anywhere on the filesystem. The supported file types are Markdown, MDX, Markdoc, and JSON files. Use this loader when you have one file per entry by providing an options object with a required `pattern` property and, optionally, a `base` and/or `generateId` property.
+
+```ts title="src/content.config.ts" {2,6,11,17-21}
+import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const pages = defineCollection({
+  /* Retrieve all Markdown files in your pages directory. */
+  loader: glob({ pattern: "**/*.md", base: "./src/data/pages" }),
+  schema: /* ... */
+});
+const blog = defineCollection({
+  /* Retrieve all Markdown and MDX files in your blog directory. */
+  loader: glob({ pattern: "**/*.(md|mdx)", base: "./src/data/blog" }),
+  schema: /* ... */
+});
+const authors = defineCollection({
+  /* Retrieve all JSON files in your authors directory while retaining
+   * uppercase letters in the ID. */
+  loader: glob({
+    pattern: '**/*.json',
+    base: "./src/data/authors",
+    generateId: ({ entry }) => entry.replace(/\.json$/, ''),
+  }),
+  schema: /* ... */
+});
+```
+
+#### `pattern`
+
+<p>
+
+**Type:** `string | string[]`
+</p>
+
+Accepts a pattern of entry files to match using glob patterns supported by [micromatch](https://github.com/micromatch/micromatch#matching-features). The pattern must be relative to the base directory.
+
+#### `base`
+
+<p>
+
+**Type:** `string | URL`<br />
+**Default:** `"."`
+</p>
+
+Defines the base directory to resolve the glob pattern from. It must be relative to the root directory, or an absolute file URL.
+
+#### `generateId`
+
+<p>
+
+**Type:** `(options: GenerateIdOptions) => string`
+</p>
+
+Returns a unique ID per collection for an entry. By default it generates a kebab-case slug from the entry path using [`github-slugger`](https://github.com/Flet/github-slugger).
+
+### `file()` loader
+
+<p>
+
+**Type:** <code>(fileName: string, options?: FileOptions) => <a href="#the-loader-object">Loader</a></code><br />
+<Since v="5.0.0" />
+</p>
+
+The `file()` loader creates entries from a single file. The file must contain an array of objects that contain a unique `id` field, or an object with string keys. It supports JSON or YAML by default and you can provide a custom `parser` for data files it cannot parse automatically.
+
+```ts title="src/content.config.ts" {2,6,11-13}
+import { defineCollection } from 'astro:content';
+import { file } from 'astro/loaders';
+
+const authors = defineCollection({
+  /* Retrieve all entries from a JSON file. */
+  loader: file("src/data/authors.json"),
+  schema: /* ... */
+});
+const products = defineCollection({
+  /* Retrieve all entries from a CSV file using a custom parser. */
+  loader: file("src/data/products.csv", {
+    parser: (fileContent) => { /* your parser logic */ },
+  }),
+  schema: /* ... */
+});
+```
+
+#### `fileName`
+
+<p>
+
+**Type:** `string`
+</p>
+
+Sets the path to the file to load, relative to the content directory.
+
+#### `options`
+
+<p>
+
+**Type:** `FileOptions`
+</p>
+
+Provides additional options for the file loader. It is useful if you need a custom `parser` to process your file (e.g. `.toml` or `.csv`).
+
+##### `parser`
+
+<p>
+
+**Type:** `(text: string) => Record<string, Record<string, unknown>> | Array<Record<string, unknown>>`
+</p>
+
+Allows you to specify a custom parser to create a collection from the contents of a file.
