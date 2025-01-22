@@ -21,11 +21,17 @@ For additional functionality, such as including components and JSX expressions i
 
 ## Organizing Markdown files
 
-Your local Markdown files can be kept anywhere within your `src/` directory. Local Markdown can be imported into `.astro` components using an `import` statement for a single file and [Vite's `import.meta.glob()`](/en/guides/imports/#importmetaglob) to query multiple files at once.
+Your local Markdown files can be kept anywhere within your `src/` directory. Markdown files located within `src/pages/` will automatically generate [Markdown pages on your site](#individual-markdown-pages).
+
+Your Markdown content and frontmatter properties are available to use in components through [local file imports](#importing-markdown) or when [queried and rendered from data fetched by a content collections helper function](#markdown-from-content-collections-queries).
+
+### File imports vs content collections queries
+
+Local Markdown can be imported into `.astro` components using an `import` statement for a single file and [Vite's `import.meta.glob()`](/en/guides/imports/#importmetaglob) to query multiple files at once. The [exported data from these Markdown files](#importing-markdown) can then be used in the `.astro` component.
 
 If you have groups of related Markdown files, consider [defining them as collections](/en/guides/content-collections/). This gives you several advantages, including the ability to store Markdown files anywhere on your filesystem or remotely.
 
-Collections also allow you to use content-specfic, optimized API for querying and rendering your content. Collections are intended for sets of data that share the same structure, such as blog posts or product items. When you define that shape in a schema, you additionally get validation, type safety, and Intellisense in your editor.
+Collections use content-specfic, optimized APIs for [querying and rendering your Markdown content](#markdown-from-content-collections-queries) instead of file imports. Collections are intended for sets of data that share the same structure, such as blog posts or product items. When you define that shape in a schema, you additionally get validation, type safety, and Intellisense in your editor.
 
 <ReadMore>See more about [when to use content collections](/en/guides/content-collections/#when-to-create-a-collection) instead of file imports.</ReadMore>
 
@@ -33,7 +39,7 @@ Collections also allow you to use content-specfic, optimized API for querying an
 
 After importing or querying Markdown files, you can write dynamic HTML templates in your `.astro` components that include frontmatter data and body content.
 
-```md title="src/posts/great-post.md"
+```md title="src/pages/posts/great-post.md"
 ---
 title: 'The greatest post of all time'
 author: 'Ben'
@@ -44,8 +50,8 @@ Here is my _great_ post!
 
 ```astro title="src/pages/my-posts.astro"
 ---
-import * as greatPost from '../posts/great-post.md';
-const posts = Object.values(await import.meta.glob('../posts/*.md', { eager: true }));
+import * as greatPost from './posts/great-post.md';
+const posts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));
 ---
 
 <p>{greatPost.frontmatter.title}</p>
@@ -59,11 +65,13 @@ const posts = Object.values(await import.meta.glob('../posts/*.md', { eager: tru
 
 ### Available Properties
 
-#### Querying collections
+#### Markdown from content collections queries
 
-When fetching data from your collections via helper functions, your Markdown's frontmatter properties are available on a `data` object (e.g. `post.data.title`). Additionally, `body` contains the raw, uncompiled body content as a string.
+When fetching data from your collections with the helper functions `getCollection()` or `getEntry()`, your Markdown's frontmatter properties are available on a `data` object (e.g. `post.data.title`). Additionally, `body` contains the raw, uncompiled body content as a string.
 
-<ReadMore>See the full [CollectionEntry type](/en/reference/modules/astro-content/#collectionentry).</ReadMore>
+The [`render()`](/en/reference/modules/astro-content/#render) function returns your Markdown body content, a generated list of headings, as well as a modified frontmatter object after any remark or rehype plugins have been applied.
+
+<ReadMore>Read more about [using content returned by a collections query](/en/guides/content-collections/#using-content-in-astro-templates).</ReadMore>
 
 #### Importing Markdown
 
@@ -116,7 +124,7 @@ import {Content as PromoBanner} from '../components/promoBanner.md';
 import { getEntry, render } from 'astro:content';
 
 const product = await getEntry('products', 'shirt');
-const { Content } = await render();
+const { Content } = await render(product);
 ---
 <h2>Today's promo</h2>
 <PromoBanner />
@@ -146,7 +154,7 @@ Astro generates heading `id`s based on `github-slugger`. You can find more examp
 
 ### Heading IDs and plugins
 
-Astro injects an `id` attribute into all heading elements (`<h1>` to `<h6>`) in Markdown and MDX files and provides a `getHeadings()` utility for retrieving these IDs in [Markdown exported properties](#available-properties).
+Astro injects an `id` attribute into all heading elements (`<h1>` to `<h6>`) in Markdown and MDX files. You can retrieve this data from the `getHeadings()` utility available as a [Markdown exported property](#available-properties) from an imported file, or from the `render()` function when [using Markdown returned from a content collections query](#markdown-from-content-collections-queries).
 
 You can customize these heading IDs by adding a rehype plugin that injects `id` attributes (e.g. `rehype-slug`). Your custom IDs, instead of Astro's defaults, will be reflected in the HTML output and the items returned by `getHeadings()`.
 

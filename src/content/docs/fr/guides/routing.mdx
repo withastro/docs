@@ -12,7 +12,7 @@ Astro utilise **le routage basé sur les fichiers** pour générer vos URLs de c
 
 ## Naviguer entre les pages
 
-Astro utilise des éléments HTML standard [`<a>`](https://developer.mozilla.org/fr-FR/docs/Web/HTML/Element/a) pour naviguer entre les itinéraires. Il n'y a pas de composant `<Link>` spécifique au cadre de travail.
+Astro utilise des éléments HTML standard [`<a>`](https://developer.mozilla.org/fr-FR/docs/Web/HTML/Element/a) pour naviguer entre les routes. Il n'y a pas de composant `<Link>` spécifique au framework.
 
 ```astro title="src/pages/index.astro"
 <p>En savoir plus <a href="/about/">about</a> Astro !</p>
@@ -23,10 +23,10 @@ Astro utilise des éléments HTML standard [`<a>`](https://developer.mozilla.org
 
 ## Routes Statiques
 
-Les composants Astro (`.astro`) et les fichiers Markdown (`.md`) dans le répertoire `src/pages` **deviendront automatiquement des pages de votre site web**. La route de chaque page correspond à son chemin et à son nom de fichier dans le répertoire `src/pages`.
+Les composants de page `.astro` ainsi que les fichiers Markdown et MDX (`.md`, `.mdx`) dans le répertoire `src/pages` **deviennent automatiquement des pages de votre site web**. La route de chaque page correspond à son chemin et à son nom de fichier dans le répertoire `src/pages`.
 
 ```diff
-# Exemple: Routes Statiques
+# Exemple : Routes Statiques
 src/pages/index.astro        -> mysite.com/
 src/pages/about.astro        -> mysite.com/about
 src/pages/about/index.astro  -> mysite.com/about
@@ -87,8 +87,21 @@ Cela va générer `/en-v1/info` et `/fr-v2/info`.
 
 Les paramètres peuvent être inclus dans des parties séparées du chemin, ainsi nous pourrions utiliser `src/pages/[lang]/[version]/info.astro` avec le même `getStaticPaths` pour générer `/en/v1/info` et `/fr/v2/info`.
 
-<ReadMore>En savoir plus sur [`getStaticPaths()`](/fr/reference/api-reference/#getstaticpaths).</ReadMore>
+#### Décodage de `params`
 
+Les `params` fournis à la fonction `getStaticPaths()` ne sont pas décodés. Utilisez la fonction [`decodeURI`](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Global_Objects/decodeURI) lorsque vous avez besoin de décoder les valeurs des paramètres.
+
+```astro title="src/pages/[slug].astro"
+--- 
+export function getStaticPaths() {
+  return [
+    { params: { slug: decodeURI("%5Bpage%5D") } }, // est décodé en "[page]"
+  ]
+}
+---
+```
+
+<ReadMore>En apprendre plus sur [`getStaticPaths()`](/fr/reference/routing-reference/#getstaticpaths).</ReadMore>
 
 <RecipeLinks slugs={["fr/recipes/i18n"]} />
 
@@ -131,7 +144,7 @@ Dans cet exemple, une requête pour `/withastro/astro/tree/main/docs/public/favi
 
 #### Exemple : Pages dynamiques à plusieurs niveaux
 
-Ici, nous utilisons un paramètre REST (`[...slug]`) et la fonctionnalité [`props`](/fr/reference/api-reference/#transfert-de-données-avec-props) de `getStaticPaths()` pour générer des pages pour des slugs de différentes profondeurs.
+Ici, nous utilisons un paramètre REST (`[...slug]`) et la fonctionnalité [`props`](/fr/reference/routing-reference/#transmission-de-données-avec-props) de `getStaticPaths()` pour générer des pages pour des slugs de différentes profondeurs.
 
 ```astro title="src/pages/[...slug].astro"
 ---
@@ -176,6 +189,8 @@ const { title, text } = Astro.props;
 
 ### Mode serveur (SSR)
 En [mode SSR](/fr/guides/on-demand-rendering/), les routes dynamiques sont définies de la même manière : incluez des crochets `[param]` ou `[...path]` dans vos noms de fichiers pour faire correspondre des chaînes ou des chemins arbitraires. Mais comme les routes ne sont plus construites à l'avance, la page sera servie à toute route correspondante. Comme il ne s'agit pas de routes « statiques », `getStaticPaths` ne doit pas être utilisé.
+
+Pour les routes rendues à la demande, un seul paramètre reste utilisant la syntaxe de décomposition peut être utilisé dans le nom de fichier (par exemple `src/pages/[locale]/[...slug].astro` ou `src/pages/[...locale]/[slug].astro`, mais pas `src/pages/[...locale]/[...slug].astro`).
 
 ```astro title="src/pages/resources/[resource]/[id].astro"
 ---
@@ -300,7 +315,7 @@ if (!isLoggedIn(cookie)) {
 
 <p><Since v="4.13.0" /></p>
 
-Une réécriture vous permet de servir une route différente sans rediriger le navigateur vers une page différente. Le navigateur affichera l'adresse originale dans la barre d'URL, mais il affichera à la place le contenu de l'URL fournie à [`Astro.rewrite()`](/fr/reference/api-reference/#astrorewrite).
+Une réécriture vous permet de servir une route différente sans rediriger le navigateur vers une page différente. Le navigateur affichera l'adresse originale dans la barre d'URL, mais il affichera à la place le contenu de l'URL fournie à [`Astro.rewrite()`](/fr/reference/api-reference/#rewrite).
 
 :::tip
 Pour un contenu qui a été déplacé de façon permanente, ou pour diriger l'utilisateur vers une page différente avec une nouvelle URL (par exemple, le tableau de bord d'un utilisateur après sa connexion), utilisez plutôt une [redirection](#redirections).
@@ -358,7 +373,7 @@ export const onRequest = async (context, next) => {
 
 Avant d'afficher le contenu du chemin de réécriture spécifié, la fonction `Astro.rewrite()` déclenche une nouvelle phase complète d'affichage. Celle-ci ré-exécute tout middleware pour la nouvelle route/demande.
 
-<ReadMore>Voir la référence de l'API [`Astro.rewrite()`](/fr/reference/api-reference/#astrorewrite) pour plus d'informations.</ReadMore>
+<ReadMore>Voir la référence de l'API [`Astro.rewrite()`](/fr/reference/api-reference/#rewrite) pour plus d'informations.</ReadMore>
 
 ## Ordre de Priorité des Routes
 
@@ -385,7 +400,7 @@ Astro a besoin de savoir quelle route doit être utilisée pour construire la pa
 - Les routes basées sur des fichiers ont priorité sur les redirections.
 - Si aucune des règles ci-dessus ne décide de l'ordre, les routes sont triées par ordre alphabétique en fonction des paramètres régionaux par défaut de votre installation Node.
 
-Dans l'exemple ci-dessus, voici quelques exemples de la manière dont les règles feront correspondre une URL demandée à la route utilisée pour construire le code HTML ::
+Dans l'exemple ci-dessus, voici quelques exemples de la manière dont les règles feront correspondre une URL demandée à la route utilisée pour construire le code HTML :
 
 - `pages/post/create.astro` - Ne construira que des `/post/create`.
 - `pages/post/[pid].ts` - Construira `/post/abc`, `/post/xyz`, etc. Mais pas `/post/create`.
@@ -398,7 +413,7 @@ Dans l'exemple ci-dessus, voici quelques exemples de la manière dont les règle
 Les routes internes ont la priorité sur les routes définies par l'utilisateur ou par l'intégration, car elles sont nécessaires au déroulement des fonctionnalités d'Astro. Les routes réservées d'Astro sont les suivantes :
 
 - `_astro/` : Fournit toutes les ressources statiques au client, y compris les documents CSS, les scripts client intégrés, les images optimisées et toutes les ressources Vite.
-- `_server_islands/` : Sert les composants dynamiques différés dans une [Île de serveur](/fr/reference/configuration-reference/#experimentalserverislands);
+- `_server_islands/` : Sert les composants dynamiques différés dans une [Île de serveur](/fr/guides/server-islands/).
 - `_actions/` : Sert toutes les [actions](/fr/guides/actions/) définies.
 
 ## Pagination
@@ -497,7 +512,7 @@ const { page } = Astro.props;
 {page.url.last ? <a href={page.url.last}>Fin</a> : null}
 ```
 
-<ReadMore>En savoir plus sur [la propriété `page` de pagination](/fr/reference/api-reference/#la-propriété-page-de-pagination).</ReadMore>
+<ReadMore>En savoir plus sur [la propriété `page` de pagination](/fr/reference/routing-reference/#la-propriété-de-pagination-page).</ReadMore>
 
 ### Pagination Imbriquée
 
@@ -519,7 +534,7 @@ Dans l'exemple suivant, nous allons implémenter la pagination imbriquée pour c
 // src/pages/[tag]/[page].astro
 export function getStaticPaths({paginate}) {
   const allTags = ['red', 'blue', 'green'];
-  const allPosts = await Astro.glob('../../posts/*.md');
+  const allPosts = Object.values(import.meta.glob('../pages/post/*.md', { eager: true }));
   // Pour chaque tag, retourne un résultat paginate().
   // Assurez-vous de passer `{params: {tag}}` à la fonction `paginate()`
   // afin qu'Astro sache à quel groupe de tags le résultat est destiné.
@@ -537,11 +552,11 @@ const params = Astro.params;
 
 ## Exclure des pages
 
-Vous pouvez exclure des pages, ou même des répertoires entiers, de la construction en préfixant leur nom par un trait de soulignement (`_`).
+Vous pouvez exclure des pages ou des répertoires dans `src/pages` de la construction en préfixant leurs noms par un trait de soulignement (`_`). Les fichiers avec le préfixe `_` ne seront pas reconnus par le routeur et ne seront pas placés dans le répertoire `dist/`.
 
 Cela vous permet de créer des pages privées, et aussi de placer les tests, les utilitaires et les composants dans les pages correspondantes, en les empêchant d'être construits dans des fichiers `.html` et placés dans le répertoire `dist/`.
 
-Dans cet exemple, seuls `src/pages/index.astro` et `src/pages/posts/post1.md` seront construits comme routes de pages et fichiers HTML.
+Dans cet exemple, seuls `src/pages/index.astro` et `src/pages/projects/project1.md` seront construits comme routes de pages et fichiers HTML.
 
 <FileTree>
 - src/pages/
@@ -550,8 +565,8 @@ Dans cet exemple, seuls `src/pages/index.astro` et `src/pages/posts/post1.md` se
     - page2.md
   - _page-cachée.astro
   - **index.astro**
-  - posts/
+  - projects/
     - _SomeComponent.astro
     - _utils.js
-    - **post1.md**
+    - **project1.md**
 </FileTree>

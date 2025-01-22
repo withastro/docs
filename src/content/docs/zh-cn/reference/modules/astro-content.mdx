@@ -1,5 +1,7 @@
 ---
 title: 内容集合 API 参考
+sidebar:
+  label: 'astro:content'
 i18nReady: true
 tableOfContents:
   minHeadingLevel: 2
@@ -30,15 +32,17 @@ import {
 <p>
 
 **类型：**`(input: CollectionConfig) => CollectionConfig`
+<Since v="2.0.0" />
 </p>
 
-`defineCollection()` 是一个用于在 `src/content/config.*` 文件中配置集合的工具函数。
+`defineCollection()` 是一个用于在 `src/content.config.*` 文件中配置集合的工具函数。
 
-```ts
-// src/content/config.ts
+```ts title="src/content/config.js"
 import { z, defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+
 const blog = defineCollection({
-  type: 'content',
+  loader: glob({ pattern: '**/*.md', base: './src/data/blog' }),
   schema: z.object({
     title: z.string(),
     permalink: z.string().optional(),
@@ -52,40 +56,35 @@ export const collections = { blog };
 
 这个函数接受以下属性：
 
-#### `type`
+#### `loader`
 
 <p>
 
-**类型：**`'content' | 'data'`<br />
-**默认：**`'content'`<br />
-<Since v="2.5.0" />
+**Type:** <code>() => Promise&lt;Array&lt;\{ id: string, [key: string]: any }&gt; | Record&lt;string, Record&lt;string, any&gt;&gt;&gt; | <a href="/zh-cn/reference/content-loader-reference/#object-loader-api">Loader</a></code>
+<Since v="5.0.0" />
 </p>
 
-`type` 是一个字符串，用于定义存储在集合中的条目的类型：
+`loader` 是一个对象或函数，允许你从任何源加载数据到内容集合中，无论是本地还是远程数据。
 
-- `'content'` - 用于内容创作格式，如 Markdown (`.md`)、MDX (`.mdx`) 或 Markdoc (`.mdoc`)
-- `'data'` - 用于 JSON (`.json`) 或 YAML (`.yaml`) 等纯数据格式
-
-:::tip
-这意味着集合**不能**存储内容和数据格式的混合。你必须按类型将这些条目分割成单独的集合。
-:::
+更多有关示例请 [参考 `内容集合`指南](/zh-cn/guides/content-collections/#定义集合-loader)。
 
 #### `schema`
 
 <p>
 
 **类型：**<code>ZodType | (context: <a href="#schemacontext">SchemaContext</a>) => ZodType</code>
+<Since v="2.0.0" />
 </p>
 
 `schema` 是一个可选的 Zod 对象，用于配置集合的文档 frontmatter 的类型和形状。每个值必须使用 [Zod 验证器](https://github.com/colinhacks/zod)
 
-有关示例请 [参考 `内容集合`指南](/zh-cn/guides/content-collections/#定义集合模式)。
+更多有关示例请 [参考 `内容集合`指南](/zh-cn/guides/content-collections/#定义集合模式schema)。
 
 ### `reference()`
 
 <p>
 
-**类型：**`(collection: string) => ZodEffects<ZodString, { collection, id: string } | { collection, slug: string }>`<br />
+**类型：**`(collection: string) => ZodEffects<ZodString, { collection, id: string }>`<br />
 <Since v="2.5.0" />
 </p>
 
@@ -95,9 +94,10 @@ export const collections = { blog };
 
 ```ts
 import { defineCollection, reference, z } from 'astro:content';
+import { glob, file } from 'astro/loaders';
 
 const blog = defineCollection({
-  type: 'content',
+  loader: glob({ pattern: '**/*.md', base: './src/data/blog' }),
   schema: z.object({
     // 通过 "id "从 "作者 "集合中引用单个作者
     author: reference('authors'),
@@ -107,25 +107,26 @@ const blog = defineCollection({
 });
 
 const authors = defineCollection({
-  type: 'data',
+  loader: file("src/data/authors.json"),
   schema: z.object({ /* ... */ })
 });
 
 export const collections = { blog, authors };
 ```
 
-有关示例请 [参考 `内容集合`指南](/zh-cn/guides/content-collections/#定义集合引用)。
+更多有关示例请 [参考 `内容集合`指南](/zh-cn/guides/content-collections/#定义集合引用)。
 
 ### `getCollection()`
 
 <p>
 
-**类型：** `(collection: string, filter?: (entry: CollectionEntry<TCollectionName>) => boolean) => CollectionEntry<TCollectionName>[]`
+**类型：** `(collection: string, filter?: (entry: CollectionEntry<collection>) => boolean) => CollectionEntry<collection>[]`
+<Since v="2.0.0" />
 </p>
 
 `getCollection()` 是一个函数，用于通过集合名称检索内容集合条目列表。
 
-默认情况下，它返回集合中的所有项目，并接受可选的 `filter` 函数来缩小条目属性。这允许你根据 `id`、`slug` 或 frontmatter 值（通过 `data` 对象）查询集合中的某些项目。
+默认情况下，它返回集合中的所有项目，并接受可选的 `filter` 函数来缩小条目属性。这允许你根据 `id` 或 frontmatter 值（通过 `data` 对象）查询集合中的某些项目。
 
 ```astro
 ---
@@ -141,19 +142,17 @@ const draftBlogPosts = await getCollection('blog', ({ data }) => {
 ---
 ```
 
-有关示例请 [参考 `内容集合`指南](/zh-cn/guides/content-collections/#查询集合) 以获取示例用法。
+更多有关示例请 [参考 `内容集合`指南](/zh-cn/guides/content-collections/#查询集合)。
 
 ### `getEntry()`
 
-<p><Since v="2.5.0" /></p>
+<p>
 
-**类型：**
+**Type:** `( collection: string, id: string ) => CollectionEntry<collection> | ({ collection: string, id: string }) => CollectionEntry<collection>`
+<Since v="2.5.0" />
+</p>
 
-- `(collection: string, contentSlugOrDataId: string) => CollectionEntry<TCollectionName>`
-- `({ collection: string, id: string }) => CollectionEntry<TCollectionName>`
-- `({ collection: string, slug: string }) => CollectionEntry<TCollectionName>`
-
-`getEntry()` 是一个函数，可通过集合名称和条目 `id` （对于 `type: 'data'` 集合）或条目 `slug` （对于 `type: 'content'` 集合）检索单个集合条目。`getEntry()`也可用于获取引用条目，以访问`data`、`body`或`render()`属性：
+`getEntry()` 是一个函数，通过集合名称和条目 `id` 检索单个集合条目。`getEntry()` 也可以用于获取引用条目以访问 `data` 或 `body` 属性：
 
 ```astro
 ---
@@ -162,7 +161,7 @@ import { getEntry } from 'astro:content';
 // 得到 `src/content/blog/enterprise.md`
 const enterprisePost = await getEntry('blog', 'enterprise');
 
-// 得到 `src/content/captains/picard.yaml`
+// 得到 `src/content/captains/picard.json`
 const picardProfile = await getEntry('captains', 'picard');
 
 // 得到 the profile referenced by `data.captain`
@@ -170,18 +169,17 @@ const enterpriseCaptainProfile = await getEntry(enterprisePost.data.captain);
 ---
 ```
 
-有关`内容集合`的示例，请参考 [查询集合条目](/zh-cn/guides/content-collections/#查询集合)。
+更多有关`内容集合`的示例，请参考 [查询集合条目](/zh-cn/guides/content-collections/#查询集合)。
 
 ### `getEntries()`
 
-<p><Since v="2.5.0" /></p>
+<p>
 
-**类型：**
+**类型：** `(Array<{ collection: string, id: string }>) => Array<CollectionEntry<collection>>`
+<Since v="2.5.0" />
+</p>
 
-- `(Array<{ collection: string, id: string }>) => CollectionEntry<TCollectionName>[]`
-- `(Array<{ collection: string, slug: string }>) => CollectionEntry<TCollectionName>[]`
-
-`getEntries()` 是一个从同一集合中检索多个集合条目的函数。这对于[返回引用条目的数组](/zh-cn/guides/content-collections/#定义集合引用)访问其关联的`data`、`body`和`render()`属性非常有用。
+`getEntries()` 是一个从同一集合中检索多个集合条目的函数。这对于 [返回引用条目的数组](/zh-cn/guides/content-collections/#定义集合引用) 访问其关联的`data` 和 `body` 属性非常有用。
 
 ```astro
 ---
@@ -194,50 +192,30 @@ const enterpriseRelatedPosts = await getEntries(enterprisePost.data.relatedPosts
 ---
 ```
 
-### `getEntryBySlug()`
+### `render()`
 
 <p>
 
-**类型：** `(collection: string, slug: string) => Promise<CollectionEntry<TCollectionName>>`
+**类型：** `() => Promise<RenderedEntry>`
+<Since v="5.0.0" />
 </p>
 
-:::caution[已废弃]
-使用 [`getEntry()`函数](#getentry) 查询内容条目。该函数接受与 `getEntryBySlug()` 相同的参数，并支持通过 `id` 查询 JSON 或 YAML 集合。
-:::
 
-`getEntryBySlug()` 是一个函数，用于通过集合名称和条目 `slug` 检索单个集合条目。
+一个用于编译给定的 Markdown 或 MDX 文档以进行渲染的函数。它返回以下属性：
+
+- `<Content />` - 用于在 Astro 文件中渲染文档内容的组件。
+- `headings` - 生成的标题列表，[与 Astro 的 `getHeadings()` 工具函数相同](/zh-cn/guides/markdown-content/#可用属性) 在 Markdown 和 MDX 导入中。
+- `remarkPluginFrontmatter ` - 在应用 [remark 或 rehype 插件](/zh-cn/guides/markdown-content/#以编程方式修改-frontmatter)后修改后的 frontmatter 对象。设置为类型 `any`。
 
 ```astro
 ---
-import { getEntryBySlug } from 'astro:content';
-
-const enterprise = await getEntryBySlug('blog', 'enterprise');
+import { getEntry, render } from 'astro:content';
+const entry = await getEntry('blog', 'entry-1');
+const { Content, headings, remarkPluginFrontmatter } = await render(entry);
 ---
 ```
 
-有关示例请 [参考`内容集合`指南](/zh-cn/guides/content-collections/#查询集合) 以获取示例用法。
-
-### `getDataEntryById()`
-
-<p>
-
-**类型：** `(collection: string, id: string) => Promise<CollectionEntry<TCollectionName>>`<br />
-<Since v="2.5.0" />
-</p>
-
-:::caution[已废弃]
-使用 [`getEntry()`函数](#getentry) 查询数据条目。该函数接受与 `getDataEntryById()` 相同的参数，并支持通过 `slug` 查询 Markdown 等内容创作格式的条目。
-:::
-
-`getDataEntryById()` 是一个用于通过集合名称和条目 `id` 检索单个集合条目的函数。
-
-```astro
----
-import { getDataEntryById } from 'astro:content';
-
-const picardProfile = await getDataEntryById('captains', 'picard');
----
-```
+更多有关示例请 [参考`内容集合`指南](/zh-cn/guides/content-collections/#渲染正文内容) 。
 
 ## `astro:content` 类型
 
@@ -253,7 +231,7 @@ import type {
 
 ### `CollectionEntry`
 
-查询函数包括 [`getCollection()`](#getcollection)、[`getEntry()`](#getentry) 和 [`getEntries()`](#getentries)，每个函数都会返回 `CollectionEntry` 类型的条目。这种类型可以作为 `astro:content` 中的实用程序使用：
+查询函数包括 [`getCollection()`](#getcollection)、[`getEntry()`](#getentry) 和 [`getEntries()`](#getentries)，每个函数都会返回 `CollectionEntry` 类型的条目。这种类型可以作为 `astro:content` 中的工具函数使用：
 
 ```ts
 import type { CollectionEntry } from 'astro:content';
@@ -267,68 +245,34 @@ import type { CollectionEntry } from 'astro:content';
 #### `id`
 
 **适用于：** `type: 'content'` 和 `type: 'data'` 集合  
-**示例类型：**
-  - 内容集合: `'entry-1.md' | 'entry-2.md' | ...`
-  - 数据集合: `'author-1' | 'author-2' | ...`
+**示例类型：** `'author-1' | 'author-2' | ...`
 
-一个使用相对于 `src/content/[collection]` 的文件路径的唯一 ID。根据集合条目文件路径枚举所有可能的字符串值。
-请注意，[`类型: 'content'`](#type) 的集合在其 ID 中包含文件扩展名，而定义为 `type: 'data'` 的集合则不包含。
+一个唯一的 ID。请注意，Astro 的内置 `glob()` 加载器中的所有 ID 都是 slug 化的。
 
 #### `collection`
 
 **适用于：** `type: 'content'` 和 `type: 'data'` 集合  
 **示例类型：** `'blog' | 'authors' | ...`
 
-`src/content/` 下顶级文件夹的名称，条目位于该文件夹中。该名称用于在 schema 和查询函数中引用集合。
+条目所在的集合的名称。该名称用于在 schema 和查询函数中引用集合。
 
 #### `data`
 
-**适用于：** `type: 'content'` 和 `type: 'data'` 集合  
 **类型：**`CollectionSchema<TCollectionName>`
 
 一个从集合模式推断出的 frontmatter 属性对象（[参考 `defineCollection()`](#definecollection)）。如果没有配置模式，则默认为 `any`。
 
-#### `slug`
-
-**适用于：** 仅仅 `type: 'content'` 集合  
-**示例类型：** `'entry-1' | 'entry-2' | ...`
-
-可用于 Markdown 或 MDX 文档的 URL 标头。默认为不含文件扩展名的 "id"，但可以通过在文件的 frontmatter 中设置[`slug`属性](/zh-cn/guides/content-collections/#定义自定义-slugs)来覆盖。
-
 #### `body`
 
-**适用于：** 仅 `type: 'content'` 集合  
 **类型：**`string`
 
 一个包含 Markdown 或 MDX 文档原始未编译的 body 的字符串。
-
-#### `render()`
-
-**适用于：** 仅 `type: 'content'` 集合  
-**类型：**`() => Promise<RenderedEntry>`
-
-一个用于编译给定的 Markdown 或 MDX 文档以进行渲染的函数。它返回以下属性：
-
-- `<Content />` - 用于在 Astro 文件中渲染文档内容的组件。
-- `headings` - 生成的标题列表，[与 Astro 的 `getHeadings()` 工具函数相同](/zh-cn/guides/markdown-content/#可用属性) 在 Markdown 和 MDX 导入中。
-- `remarkPluginFrontmatter ` - 在应用 [remark 或 rehype 插件](/zh-cn/guides/markdown-content/#以编程方式修改-frontmatter)后修改后的 frontmatter 对象。设置为类型 `any`。
-
-```astro
----
-import { getEntryBySlug } from 'astro:content';
-const entry = await getEntryBySlug('blog', 'entry-1');
-
-const { Content, headings, remarkPluginFrontmatter } = await entry.render();
----
-```
-
-有关示例请 [参考 `内容集合`指南](/zh-cn/guides/content-collections/#将内容渲染成-html) 以获取示例用法。
 
 ### `CollectionKey`
 
 <p><Since v="3.1.0" /></p>
 
-这是一个在 `src/content/config.*` 文件中定义的所有集合名称的字符串联合类型。当定义一个可以接受任何集合名称的通用函数时，这个类型很有用。
+这是一个在 `src/content.config.*` 文件中定义的所有集合名称的字符串联合类型。当定义一个可以接受任何集合名称的通用函数时，这个类型很有用。
 
 ```ts
 import { type CollectionKey, getCollection } from 'astro:content';
@@ -337,18 +281,6 @@ async function getCollection(collection: CollectionKey) {
   return getCollection(collection);
 }
 ```
-
-### `ContentCollectionKey`
-
-<p><Since v="3.1.0" /></p>
-
-一个在 `src/content/config.*` 文件中定义的所有 `type: 'content'` 集合名称的字符串联合类型。
-
-### `DataCollectionKey`
-
-<p><Since v="3.1.0" /></p>
-
-一个在 `src/content/config.*` 文件中定义的所有 `type: 'data'` 集合名称的字符串联合类型。
 
 ### `SchemaContext`
 
@@ -368,7 +300,7 @@ export const imageSchema = ({ image }: SchemaContext) =>
     });
 
 const blog = defineCollection({
-  type: 'content',
+  loader: /* ... */
   schema: ({ image }) => z.object({
     title: z.string(),
     permalink: z.string().optional(),

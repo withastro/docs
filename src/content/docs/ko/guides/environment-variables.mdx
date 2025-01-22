@@ -1,13 +1,19 @@
 ---
 title: 환경 변수 사용
+sidebar:
+  label: 환경 변수
 description: Astro 프로젝트에서 환경 변수를 사용하는 방법을 알아보세요.
 i18nReady: true
 ---
-import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
-:::tip[astro&#58;env를 찾고 계신가요?]
-타입 안정성을 갖춘 환경 변수를 위한 [실험적 `astro:env` API](/ko/reference/configuration-reference/#experimentalenv)에 대해 자세히 알아보세요!
-:::
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+Astro는 [Vite의 내장 환경 변수 지원](#vite의-내장-지원)에 접근할 수 있게 해주며, 현재 프로젝트의 구성 값(`site`, `base` 등), 프로젝트가 개발 환경인지 프로덕션 환경인지 여부 등을 확인할 수 있는 [프로젝트용 기본 환경 변수](#기본-환경-변수)를 포함합니다.
+
+Astro는 또한 [타입 안전성이 보장된 환경 변수를 사용하고 구성](#타입-안전-환경-변수)할 수 있는 방법을 제공합니다. 이는 Astro 컨텍스트(예: Astro 컴포넌트, 라우트 및 엔드포인트, UI 프레임워크 컴포넌트, 미들웨어)에서 사용할 수 있으며, [Astro 구성의 스키마](/ko/reference/configuration-reference/#env)를 통해 관리됩니다.
+
+## Vite의 내장 지원
 
 Astro는 빌드 시 정적으로 교체되는 Vite에 내장된 환경 변수 지원을 사용합니다. 이를 통해 [Vite가 제공하는 모든 방법](https://ko.vite.dev/guide/env-and-mode.html)을 사용하여 환경 변수를 관리할 수 있습니다.
 
@@ -21,8 +27,28 @@ PUBLIC_ANYBODY=there
 이 예에서 `PUBLIC_ANYBODY`(`import.meta.env.PUBLIC_ANYBODY`를 통해 사용 가능)는 서버 측 코드와 클라이언트 측 코드에서 모두 사용할 수 있는 반면, `SECRET_PASSWORD`(`import.meta.env.SECRET_PASSWORD`를 통해 사용 가능)는 서버 측 코드에서만 사용할 수 있습니다.
 
 :::caution
-`.env` 파일은 [구성 파일](/ko/guides/configuring-astro/#환경-변수)에서 불러올 수 없습니다.
+`.env` 파일은 [구성 파일](#astro-구성-파일)에서 불러올 수 없습니다.
 :::
+
+### TypeScript 자동 완성
+
+기본적으로 Astro는 `astro/client.d.ts`에서 `import.meta.env`에 대한 타입 정의를 제공합니다.
+
+`.env.[mode]` 파일에서 더 많은 사용자 정의 환경 변수를 정의할 수 있지만, `PUBLIC_` 접두사가 붙은 사용자 정의 환경 변수에 대한 TypeScript 자동 완성을 얻고 싶을 수 있습니다.
+
+이를 위해 `src/`에 `env.d.ts`를 생성하고 다음과 같이 `ImportMetaEnv`를 구성할 수 있습니다:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly DB_PASSWORD: string;
+  readonly PUBLIC_POKEAPI: string;
+  // 더 많은 환경 변수...
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
 
 ## 기본 환경 변수
 
@@ -48,8 +74,6 @@ const isDev = import.meta.env.DEV;
 
 환경 변수는 프로젝트 디렉터리의 `.env` 파일에서 불러올 수 있습니다.
 
-`.env.production` 또는 `.env.development`처럼 파일 이름에 모드(`production` 또는 `development`)를 추가할 수도 있습니다. 이렇게 하면 환경 변수가 해당 모드에서만 적용됩니다.
-
 프로젝트 디렉터리에 `.env` 파일을 생성하고 몇 가지 변수를 추가하세요.
 
 ```ini title=".env"
@@ -59,7 +83,44 @@ DB_PASSWORD="foobar"
 PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 ```
 
+`.env` 파일명에 `.production`, `.development` 또는 사용자 정의 모드 이름을 추가할 수도 있습니다(예: `.env.testing`, `.env.staging`). 이를 통해 서로 다른 시점에 서로 다른 환경 변수 세트를 사용할 수 있습니다.
+
+`astro dev`와 `astro build` 명령어는 각각 기본적으로 `"development"`와 `"production"` 모드를 사용합니다. 이러한 명령어를 [`--mode` 플래그](/ko/reference/cli-reference/#--mode-string)와 함께 실행하여 `mode`에 다른 값을 전달하고 해당하는 `.env` 파일을 로드할 수 있습니다.
+
+이를 통해 개발 서버를 실행하거나 서로 다른 API에 연결하여 사이트를 빌드할 수 있습니다:
+
+```bash
+# "staging" API에 연결된 개발 서버 실행
+astro dev --mode staging
+
+# 디버깅 정보가 포함된 "production" API를 연결하는 사이트 빌드
+astro build --devOutput
+
+# "testing" API를 연결하는 사이트 빌드
+astro build --mode testing
+```
+
 `.env` 파일에 대한 자세한 내용은 [Vite 문서](https://ko.vite.dev/guide/env-and-mode.html#env-files)를 참조하세요.
+
+### Astro 구성 파일
+
+Astro는 다른 파일들을 로드하기 전에 구성 파일을 평가합니다. 이는 `.env` 파일에 설정된 환경 변수에 접근하기 위해 `astro.config.mjs`에서 `import.meta.env`를 사용할 수 없다는 것을 의미합니다.
+
+[CLI에 의해 설정된 것들](#cli-사용)과 같은 다른 환경 변수에 접근하기 위해 구성 파일에서 `process.env`를 사용할 수 있습니다.
+
+또한 `.env` 파일을 수동으로 로드하기 위해 [Vite의 `loadEnv` 헬퍼](https://ko.vite.dev/config/#using-environment-variables-in-config)를 사용할 수 있습니다.
+
+```js title="astro.config.mjs"
+import { loadEnv } from "vite";
+const { SECRET_PASSWORD } = loadEnv(process.env.NODE_ENV, process.cwd(), "");
+```
+
+:::note
+`pnpm`은 프로젝트에 직접 설치되지 않은 모듈을 가져오는 것을 허용하지 않습니다. `pnpm`을 사용하는 경우, `loadEnv` 헬퍼를 사용하기 위해 `vite`를 설치해야 합니다.
+```sh
+pnpm add vite --save-dev
+```
+:::
 
 ### CLI 사용
 
@@ -103,22 +164,181 @@ const data = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
 
 SSR을 사용하는 경우, 사용 중인 SSR 어댑터를 통해 런타임 시 환경 변수를 사용할 수 있습니다. 대부분의 어댑터는 `process.env`를 통해 환경 변수를 사용하지만 일부 어댑터는 다르게 동작합니다. Deno 어댑터의 경우 `Deno.env.get()` 함수를 사용합니다. [Cloudflare 런타임 사용](/ko/guides/integrations-guide/cloudflare/#cloudflare-런타임)에서 Cloudflare 어댑터가 환경 변수를 처리하는 방법을 알아보세요. Astro는 먼저 서버 환경에서 변수를 확인하고 변수가 존재하지 않으면 .env 파일에서 해당 변수를 찾습니다.
 
-## TypeScript 자동 완성
+## 타입 안전 환경 변수
 
-기본적으로 Astro는 `astro/client.d.ts` 파일에서 `import.meta.env`에 대한 타입 정의를 제공합니다.
+`astro:env` API를 사용하면 [설정한 환경 변수](#환경-변수-설정)에 대한 타입 안전 스키마를 구성할 수 있습니다. 이를 통해 환경 변수가 서버 또는 클라이언트에서 사용 가능한지 여부를 지정하고, 데이터 타입과 추가 속성을 정의할 수 있습니다.
 
-`.env.[mode]` 파일에서 더 많은 사용자 정의 환경 변수를 정의할 수도 있지만, `PUBLIC_` 접두사를 사용하여 사용자 정의 환경 변수를 위한 TypeScript 자동 완성을 얻고 싶을 수도 있습니다.
+<ReadMore>어댑터를 개발하고 계신가요? [`astro:env`와 호환되는 어댑터를 만드는 방법](/ko/reference/adapter-reference/#envgetsecret)을 확인해보세요.</ReadMore>
 
-이를 위해 `src/` 디렉터리에 `env.d.ts` 파일을 생성하고 다음과 같이 `ImportMetaEnv` 인터페이스를 구성할 수 있습니다.
+### 기본 사용법
 
-```ts title="src/env.d.ts"
-interface ImportMetaEnv {
-  readonly DB_PASSWORD: string;
-  readonly PUBLIC_POKEAPI: string;
-  // 더 많은 환경변수 ...
-}
+#### 스키마 정의
 
-interface ImportMeta {
-  readonly env: ImportMetaEnv;
-}
+Astro 구성에 `env.schema` 옵션을 추가하여 스키마를 구성하세요:
+
+```js title="astro.config.mjs" ins={4-8}
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  env: {
+    schema: {
+      // ...
+    }
+  }
+})
 ```
+
+그런 다음 `envField` 헬퍼를 사용하여 [변수를 문자열, 숫자, 열거형, 부울로 등록](#데이터-타입)할 수 있습니다. 각 변수에 대해 `context`(클라이언트 또는 서버)와 `access`(비밀 또는 공개)를 제공하여 [환경 변수의 종류](#변수-타입)를 정의하고, `optional` 또는 `default`와 같은 추가 속성을 객체로 전달할 수 있습니다:
+
+```js title="astro.config.mjs" ins="envField"
+import { defineConfig, envField } from 'astro/config'
+
+export default defineConfig({
+  env: {
+    schema: {
+      API_URL: envField.string({ context: "client", access: "public", optional: true }),
+      PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+      API_SECRET: envField.string({ context: "server", access: "secret" }),
+    }
+  }
+})
+```
+
+`astro dev` 또는 `astro build`를 실행할 때 타입이 자동으로 생성되지만, `astro sync`를 실행하여 타입만 생성할 수도 있습니다.
+
+#### 스키마로부터 변수 사용
+
+적절한 `/client` 또는 `/server` 모듈에서 정의된 변수를 가져와 사용하세요:
+
+```astro
+---
+import { API_URL } from "astro:env/client"
+import { API_SECRET_TOKEN } from "astro:env/server"
+
+const data = await fetch(`${API_URL}/users`, {
+	method: "GET",
+	headers: {
+		"Content-Type": "application/json",
+		"Authorization": `Bearer ${API_SECRET_TOKEN}`
+	},
+})
+---
+
+<script>
+import { API_URL } from "astro:env/client"
+
+fetch(`${API_URL}/ping`)
+</script>
+```
+
+### 변수 타입
+
+스키마에 정의된 `context`(클라이언트 또는 서버)와 `access`(비밀 또는 공개) 설정의 조합에 따라 세 가지 종류의 환경 변수를 사용할 수 있습니다:
+
+- **공개 클라이언트 변수**: 이러한 변수들은 최종 클라이언트와 서버 번들 모두에 포함되며, `astro:env/client` 모듈을 통해 클라이언트와 서버 모두에서 접근할 수 있습니다:
+
+   ```js
+   import { API_URL } from "astro:env/client"
+   ```
+
+- **공개 서버 변수**: 이러한 변수들은 최종 서버 번들에 포함되며, `astro:env/server` 모듈을 통해 서버에서 접근할 수 있습니다:
+
+   ```js
+   import { PORT } from "astro:env/server"
+   ```
+
+- **비밀 서버 변수**: 이러한 변수들은 최종 번들에 포함되지 않으며, `astro:env/server` 모듈을 통해 서버에서 접근할 수 있습니다:
+
+   ```js
+   import { API_SECRET } from "astro:env/server"
+   ```
+
+   기본적으로 비밀은 런타임에만 검증됩니다. [`validateSecrets: true`를 구성](/ko/reference/configuration-reference/#envvalidatesecrets)하여 시작 시 비공개 변수 검증을 활성화할 수 있습니다.
+
+:::note
+**비밀 클라이언트 변수**는 이 데이터를 클라이언트에게 안전하게 전송할 방법이 없기 때문에 지원되지 않습니다. 따라서 스키마에서 `context: "client"`와 `access: "secret"`을 동시에 구성할 수 없습니다.
+:::
+
+### 데이터 타입
+
+현재 지원되는 데이터 타입은 문자열, 숫자, 열거형, 부울 네 가지입니다:
+
+```js
+import { envField } from "astro/config"
+
+envField.string({
+   // context & access
+   optional: true,
+   default: "foo",
+})
+
+envField.number({
+   // context & access
+   optional: true,
+   default: 15,
+})
+
+envField.boolean({
+   // context & access
+   optional: true,
+   default: true,
+})
+
+envField.enum({
+   // context & access
+   values: ['foo', 'bar', 'baz'],
+   optional: true,
+   default: 'baz',
+})
+```
+
+<ReadMore>검증 필드의 전체 목록은 [`envField` API 참조](/ko/reference/configuration-reference/#envschema)를 확인하세요.</ReadMore>
+
+### 동적으로 비밀 검색
+
+스키마를 정의했더라도 주어진 비밀의 원시 값을 검색하거나 스키마에 정의되지 않은 비밀을 검색하고 싶을 수 있습니다. 이 경우 `astro:env/server`에서 내보낸 `getSecret()`을 사용할 수 있습니다:
+
+```js
+import {
+   FOO, // boolean
+   getSecret
+} from 'astro:env/server'
+
+getSecret('FOO') // string | undefined
+```
+
+<ReadMore>[API 참조](/ko/reference/modules/astro-env/#getsecret)에서 자세히 알아보세요.</ReadMore>
+
+### 제한 사항
+
+1. `astro:env`는 가상 모듈이므로 Astro 컨텍스트에서만 사용할 수 있습니다. 예를 들어, 다음과 같은 곳에서 사용할 수 있습니다:
+
+   - 미들웨어
+   - Astro 라우트 및 엔드포인트
+   - Astro 컴포넌트
+   - 프레임워크 컴포넌트
+   - 모듈
+
+   다음과 같은 곳에서는 사용할 수 없으며 `process.env`를 사용해야 합니다:
+
+   - `astro.config.mjs`
+   - 스크립트
+
+2. [`@astrojs/cloudflare`](/ko/guides/integrations-guide/cloudflare/)는 다른 어댑터들과 약간 다릅니다. Node.js에서는 전역인 반면, 여기에서는 환경 변수가 요청에 대해 범위가 지정됩니다.
+
+   즉, 항상 요청 범위에서 비밀을 사용해야 합니다:
+
+   ```js title="src/middleware.ts"
+   import { defineMiddleware } from "astro:middleware"
+   import { FOO, getSecret } from "astro:env"
+
+   console.log(FOO) // undefined
+   console.log(getSecret("FOO")) // undefined
+
+   export const onRequest = defineMiddleware((context, next) => {
+      console.log(FOO) // boolean
+      console.log(getSecret("FOO")) // string
+
+      return next()
+   })
+   ```
