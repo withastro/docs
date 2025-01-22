@@ -1,0 +1,286 @@
+---
+title: Ajouter un flux RSS
+description: Ajoutez un flux RSS à votre site Astro pour permettre aux utilisateurs de s'abonner à votre contenu.
+i18nReady: true
+type: recipe
+---
+import Since from '~/components/Since.astro'
+import { Steps } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+Astro prend en charge la génération rapide et automatique de flux RSS pour les blogs et autres sites web de contenu. Les flux RSS permettent aux utilisateurs de s'abonner facilement à votre contenu.
+
+## Mise en place de `@astrojs/rss`
+
+Le paquet [`@astrojs/rss`](https://github.com/withastro/astro/tree/main/packages/astro-rss) fournit des aides pour générer des flux RSS en utilisant [des points de terminaison d'API](/fr/guides/endpoints/#points-de-terminaison-des-fichiers-statiques). Cela débloque à la fois les constructions statiques _et_ la génération à la demande lors de l'utilisation d'un [adaptateur SSR](/fr/guides/on-demand-rendering/).
+
+<Steps>
+1. Installez `@astrojs/rss` en utilisant votre gestionnaire de paquets préféré :
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm install @astrojs/rss
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm add @astrojs/rss
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn add @astrojs/rss
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+    :::tip
+    Assurez-vous d'avoir [configuré un `site`](/fr/reference/configuration-reference/#site) dans le `astro.config` de votre projet. Ce site sera utilisé pour générer des liens vers vos articles RSS.
+    :::
+
+2. Créez un fichier dans `src/pages/` avec un nom de votre choix et l'extension `.xml.js` qui sera utilisé comme URL de sortie pour votre flux. Certains noms d'URL de flux RSS courants sont `feed.xml` ou `rss.xml`.
+
+    Le fichier d'exemple ci-dessous `src/pages/rss.xml.js` créera un flux RSS à l'adresse `site/rss.xml`.
+
+3. Importez l'aide `rss()` depuis le paquet `@astrojs/rss` dans votre fichier `.xml.js` et exportez une fonction qui la retourne en utilisant les paramètres suivants :
+
+    ```js title="src/pages/rss.xml.js"
+    import rss from '@astrojs/rss';
+
+    export function GET(context) {
+      return rss({
+        // Champ `<title>` dans le fichier xml de sortie
+        title: 'Blog de Buzz',
+        // Champ `<description>` dans le fichier xml de sortie
+        description: "Le guide des étoiles d'un humble astronaute",
+        // Extraire la propriété "site" de votre projet dans le contexte du point de terminaison.
+        // https://docs.astro.build/fr/reference/api-reference/#site
+        site: context.site,
+        // Tableau des `<item>`s dans la sortie xml
+        // Voir la section "Génération d'éléments" pour des exemples utilisant des collections de contenu et des importations globales.
+        items: [],
+        // (optional) injecter du xml personnalisé
+        customData: `<language>fr-fr</language>`,
+      });
+    }
+    ```
+</Steps>
+
+<ReadMore>Consultez le [README de `@astrojs/rss`](https://github.com/withastro/astro/tree/main/packages/astro-rss) pour la référence de configuration complète.</ReadMore>
+
+## Générer des `items`
+
+Le champ `items` accepte une liste d'objets de flux RSS, qui peuvent être générés à partir des entrées des collections de contenu en utilisant `getCollection()` ou à partir des fichiers de vos pages en utilisant `pagesGlobToRssItems()`.
+
+Le format standard du flux RSS inclut des métadonnées pour chaque élément publié, y compris des valeurs telles que :
+
+- `title` : Le titre de l'entrée. Facultatif seulement si une `description` est définie. Sinon, obligatoire.
+- `description` : Un court extrait ou une description de l'entrée. Facultatif seulement si un `titre` est défini. Sinon, obligatoire.
+- `link` : Une URL vers la source originale de l'entrée. (optionnel)
+- `pubDate` : La date de publication de l'entrée. (optionnel)
+- `content` : Le contenu complet de l'article. (optionnel)
+
+<ReadMore>Consultez la [référence de configuration `items`](https://github.com/withastro/astro/tree/main/packages/astro-rss#items) pour une liste complète des options.</ReadMore>
+
+### Utilisation des collections de contenu
+
+Pour créer un flux RSS de pages gérées dans [les collections de contenu](/fr/guides/content-collections/), utilisez la fonction `getCollection()` pour récupérer les données nécessaires à votre tableau `items`. Vous devrez spécifier les valeurs de chaque propriété désirée (par exemple `title`, `description`) à partir des données retournées.
+
+```js title="src/pages/rss.xml.js" "items:" "const blog = await getCollection('blog');"
+import rss from '@astrojs/rss';
+import { getCollection } from 'astro:content';
+
+export async function GET(context) {
+  const blog = await getCollection('blog');
+  return rss({
+    title: 'Blog de Buzz',
+    description: "Le guide des étoiles d'un humble astronaute",
+    site: context.site,
+    items: blog.map((post) => ({
+      title: post.data.title,
+      pubDate: post.data.pubDate,
+      description: post.data.description,
+      // Calculer le lien RSS à partir de l'`id` de l'article
+      // Cet exemple suppose que tous les articles sont rendus sous forme de routes `/blog/[id]`.
+      link: `/blog/${post.id}/`,
+    })),
+  });
+}
+```
+
+Facultatif : remplacez votre schéma de collection de blogs existant pour appliquer les propriétés RSS attendues.
+
+Pour vous assurer que chaque entrée de blog produise un élément de flux RSS valide, vous pouvez éventuellement importer et appliquer `rssSchema` au lieu de définir chaque propriété individuelle de votre schéma.
+
+```js title="src/content.config.ts" "rssSchema"
+import { defineCollection } from 'astro:content';
+import { rssSchema } from '@astrojs/rss';
+
+const blog = defineCollection({
+  schema: rssSchema,
+});
+
+export const collections = { blog };
+```
+
+### Utilisation des importations globales
+
+<p><Since v="2.1.0" pkg="@astrojs/rss" /></p>
+
+Pour créer un flux RSS à partir des documents contenus dans `src/pages/`, utilisez l'aide `pagesGlobToRssItems()`. Elle accepte un résultat [`import.meta.glob`](https://vite.dev/guide/features.html#glob-import) et produit un tableau d'éléments de flux RSS valides (voir [plus d'informations sur l'écriture de motifs glob](/fr/guides/imports/#patterns-globaux) pour spécifier les pages à inclure).
+
+:::caution
+Cette fonction suppose, mais ne vérifie pas, que toutes les propriétés de flux nécessaires sont présentes dans le premier plan de chaque document. Si vous rencontrez des erreurs, vérifiez manuellement le recto de chaque page.
+:::
+
+```js title="src/pages/rss.xml.js" "pagesGlobToRssItems" "await pagesGlobToRssItems("
+import rss, { pagesGlobToRssItems } from '@astrojs/rss';
+
+export async function GET(context) {
+  return rss({
+    title: 'Blog de Buzz',
+    description: "Le guide des étoiles d'un humble astronaute",
+    site: context.site,
+    items: await pagesGlobToRssItems(
+      import.meta.glob('./blog/*.{md,mdx}'),
+    ),
+  });
+}
+```
+
+:::note[Vous utilisez une version plus ancienne ?]
+Dans les versions de `@astrojs/rss` antérieures à v2.1.0, passez le résultat de votre glob directement à `items` sans le wrapper `pagesGlobToRssItems()` :
+```js
+items: import.meta.glob('./blog/*.{md,mdx}'),
+```
+
+Cette méthode est obsolète pour toutes les versions d'Astro depuis la version 2.1.0, et ne peut pas être utilisée dans les projets modernes.
+:::
+
+### Inclure le contenu intégral de l'article
+
+<p><Since v="1.6.14" /></p>
+
+La clé `content` contient le contenu complet de l'article en HTML. Cela vous permet de mettre l'intégralité du contenu de votre article à la disposition des lecteurs de flux RSS.
+
+:::tip
+Un paquet comme [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) s'assurera que votre contenu est correctement assaini, échappé et encodé. Au cours de ce processus, un tel paquet peut également supprimer certains éléments et attributs inoffensifs. Veillez donc à vérifier le résultat et à configurer le paquet en fonction de vos besoins.
+:::
+
+Lorsque vous utilisez des collections de contenu, rendez le post `body` en utilisant un parseur Markdown standard comme [`markdown-it`](https://github.com/markdown-it/markdown-it) et assainissez le résultat, en incluant toutes les balises supplémentaires (par exemple `<img>`) nécessaires pour afficher votre contenu :
+
+```js title="src/pages/rss.xml.js" ins={3, 4, 5, 16}
+import rss from '@astrojs/rss';
+import { getCollection } from 'astro:content';
+import sanitizeHtml from 'sanitize-html';
+import MarkdownIt from 'markdown-it';
+const parser = new MarkdownIt();
+
+export async function GET(context) {
+  const blog = await getCollection('blog');
+  return rss({
+    title: 'Blog de Buzz',
+    description: "Le guide des étoiles d'un humble astronaute",
+    site: context.site,
+    items: blog.map((post) => ({
+      link: `/blog/${post.id}/`,
+      // Note : ceci ne traitera pas les composants ou les expressions JSX dans les fichiers MDX.
+      content: sanitizeHtml(parser.render(post.body), {
+        allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img'])
+      }),
+      ...post.data,
+    })),
+  });
+}
+```
+
+Lorsque vous utilisez des importations globales avec Markdown, vous pouvez utiliser l'aide `compiledContent()` pour récupérer le HTML rendu pour l'assainissement. Note : cette fonctionnalité n'est **pas** supportée pour les fichiers MDX.
+
+```js title="src/pages/rss.xml.js" ins={2, 13}
+import rss from '@astrojs/rss';
+import sanitizeHtml from 'sanitize-html';
+
+export function GET(context) {
+  const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true });
+  const posts = Object.values(postImportResult);
+  return rss({
+    title: 'Blog de Buzz',
+    description: "Le guide des étoiles d'un humble astronaute",
+    site: context.site,
+    items: posts.map((post) => ({
+      link: post.url,
+      content: sanitizeHtml((await post.compiledContent())),
+      ...post.frontmatter,
+    })),
+  });
+}
+```
+
+## Suppression des barres obliques
+
+Le flux RSS d'Astro produit des liens avec une barre oblique par défaut, quelle que soit la valeur configurée pour `trailingSlash`. Cela signifie que vos liens RSS peuvent ne pas correspondre exactement aux URLs de vos articles.
+
+Si vous avez configuré `trailingSlash : "never"` dans votre fichier `astro.config.mjs`, configurez `trailingSlash : false` dans l'aide `rss()` pour que votre flux corresponde à la configuration de votre projet.
+
+```ts title="src/pages/rss.xml.js" ins={9}
+import rss from '@astrojs/rss';
+
+export function GET(context) {
+  const posts = Object.values(postImportResult);
+  return rss({
+    title: 'Le blog de Buzz',
+    description: "Le guide des étoiles d'un humble astronaute",
+    site: context.site,
+    trailingSlash: false,
+    items: posts.map((post) => ({
+      link: post.url,
+      ...post.frontmatter,
+    })),
+  });
+}
+```
+
+## Ajouter une feuille de style
+
+Stylez votre flux RSS pour une expérience utilisateur plus agréable lorsque vous visualisez le fichier dans votre navigateur.
+
+Utilisez l'option `stylesheet` de la fonction `rss` pour spécifier un chemin absolu vers votre feuille de style.
+
+```js
+rss({
+  // ex. utilisez votre feuille de style depuis "public/rss/styles.xsl"
+  stylesheet: '/rss/styles.xsl',
+  // ...
+});
+```
+
+:::tip
+Si vous préférez ne pas créer votre propre feuille de style, vous pouvez utiliser une feuille de style préétablie comme la [Pretty Feed v3 default stylesheet](https://github.com/genmon/aboutfeeds/blob/main/tools/pretty-feed-v3.xsl). Téléchargez la feuille de style depuis GitHub et enregistrez-la dans le répertoire `public/` de votre projet.
+:::
+
+## Activation de la découverte automatique des flux RSS
+
+La [découverte automatique RSS](https://www.rssboard.org/rss-autodiscovery) permet aux navigateurs et autres logiciels de trouver automatiquement le flux RSS d'un site à partir de l'URL principale.
+
+Pour l'activer, ajoutez une balise `<link>` avec les attributs suivants à l'élément `head` de votre site :
+
+```jsx
+<link
+    rel="alternate"
+    type="application/rss+xml"
+    title="Votre titre de site"
+    href={new URL("rss.xml", Astro.site)}
+/>
+```
+
+Grâce à cette balise, les lecteurs de votre blog peuvent saisir l'URL de base de votre site dans leur lecteur RSS pour s'abonner à vos articles sans avoir besoin de l'URL spécifique de votre flux RSS.
+
+## Prochaines étapes
+
+Après avoir consulté votre flux dans le navigateur à l'adresse `votre-domaine.com/rss.xml` et confirmé que vous pouvez voir les données de chacun de vos articles, vous pouvez maintenant [promouvoir votre flux sur votre site web](https://medium.com/samsung-internet-dev/add-rss-feeds-to-your-website-to-keep-your-core-readers-engaged-3179dca9c91e#:~:text=com/~deno%2Drss-,Advertising%20your%20RSS%20feed,-Now%20you%20have). L'ajout de l'icône RSS standard sur votre site permet à vos lecteurs de savoir qu'ils peuvent s'abonner à vos articles dans leur propre lecteur de flux.
+
+## Ressources
+
+- [RSS Feeds](https://aboutfeeds.com/)

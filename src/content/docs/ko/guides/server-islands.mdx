@@ -1,0 +1,116 @@
+---
+title: 서버 아일랜드
+description: 고성능 정적 HTML을 동적 서버 렌더링 콘텐츠와 결합하세요.
+i18nReady: true
+---
+
+서버 아일랜드를 사용하면 페이지의 나머지 부분의 성능을 희생하지 않고도 동적이거나 개인화된 "아일랜드"를 개별적으로 요청 시 렌더링할 수 있습니다.
+
+이는 방문자가 페이지의 가장 중요한 부분을 더 빨리 볼 수 있게 하고, 메인 콘텐츠를 더 적극적으로 캐시할 수 있게 하여 더 빠른 성능을 제공합니다.
+
+## 서버 아일랜드 컴포넌트
+
+서버 아일랜드는 콘텐츠가 사용 가능할 때까지 렌더링을 지연하도록 지시된 일반적인 서버 렌더링 [Astro 컴포넌트](/ko/basics/astro-components/)입니다.
+
+페이지는 지정된 [대체 콘텐츠를 플레이스홀더로](#서버-아일랜드-대체-콘텐츠) 사용하여 즉시 렌더링됩니다. 그런 다음 컴포넌트의 콘텐츠가 클라이언트에서 가져와져 사용 가능할 때 표시됩니다.
+
+[어댑터가 설치된 상태](/ko/guides/on-demand-rendering/#서버-어댑터)에서 지연 렌더링을 수행하기 위해 페이지의 컴포넌트에 [`server:defer` 지시어](/ko/reference/directives-reference/#서버-지시어)를 추가하여 자체 아일랜드로 전환합니다:
+
+```astro title="src/pages/index.astro" "server:defer"
+---
+import Avatar from '../components/Avatar.astro';
+---
+<Avatar server:defer />
+```
+
+이러한 컴포넌트는 어댑터를 사용하여 콘텐츠를 가져오고 쿠키에 접근하는 등 [요청 시 렌더링되는 페이지에서 일반적으로 할 수 있는 모든 작업](/ko/guides/on-demand-rendering/#요청-시-렌더링-기능)을 수행할 수 있습니다:
+
+```astro title="src/components/Avatar.astro"
+---
+import { getUserAvatar } from '../sessions';
+const userSession = Astro.cookies.get('session');
+const avatarURL = await getUserAvatar(userSession);
+---
+<img alt="User avatar" src={avatarURL} />
+```
+
+## 서버 아일랜드 대체 콘텐츠
+
+컴포넌트의 렌더링을 지연시키기 위해 `server:defer` 속성을 사용할 때, 포함된 `"fallback"` 이름의 슬롯을 사용하여 기본 로딩 콘텐츠를 "슬롯"할 수 있습니다.
+
+대체 콘텐츠는 페이지 로드 초기에 페이지의 나머지 부분과 함께 렌더링되며, 컴포넌트의 콘텐츠가 사용 가능할 때 해당 콘텐츠로 교체됩니다.
+
+대체 콘텐츠를 추가하려면 서버 아일랜드 컴포넌트에 전달된 자식(다른 컴포넌트나 HTML 요소)에 `slot="fallback"`을 추가하세요:
+
+```astro
+---
+import Avatar from '../components/Avatar.astro';
+import GenericAvatar from '../components/GenericAvatar.astro';
+---
+<Avatar server:defer>
+  <GenericAvatar slot="fallback" />
+</Avatar>
+```
+
+이 대체 콘텐츠는 다음과 같은 것들이 될 수 있습니다:
+
+- 사용자의 아바타 대신 일반 아바타
+- 사용자 정의 메시지와 같은 플레이스홀더 UI
+- 스피너와 같은 로딩 표시기
+
+
+## 작동 방식
+
+서버 아일랜드 구현은 주로 빌드 타임에 이루어지며, 이때 컴포넌트 콘텐츠가 작은 스크립트로 교체됩니다.
+
+`server:defer`로 표시된 각 아일랜드는 런타임에 스크립트가 가져오는 자체 특수 라우트로 분리됩니다. Astro가 사이트를 빌드할 때 컴포넌트를 생략하고 그 자리에 스크립트와 `slot="fallback"`으로 표시한 콘텐츠를 주입합니다.
+
+브라우저에서 페이지가 로드될 때, 이러한 컴포넌트들은 이들을 렌더링하여 HTML을 반환하는 특수 엔드포인트로 요청됩니다. 이는 사용자가 페이지의 가장 중요한 부분을 즉시 볼 수 있다는 것을 의미합니다. 동적 아일랜드가 로드되기 전까지 짧은 시간 동안 대체 콘텐츠가 표시됩니다.
+
+각 아일랜드는 나머지와 독립적으로 로드됩니다. 이는 더 느린 아일랜드가 다른 개인화된 콘텐츠의 사용 가능성을 지연시키지 않는다는 것을 의미합니다.
+
+이 렌더링 패턴은 이식성을 고려하여 만들어졌습니다. 어떤 서버 인프라에도 의존하지 않기 때문에 Docker 컨테이너의 Node.js 서버부터 원하는 서버리스 제공업체까지 모든 호스트에서 작동합니다.
+
+## 캐싱
+
+서버 아일랜드의 데이터는 URL 쿼리에 암호화된 문자열 형태로 props를 전달하는 `GET` 요청을 통해 검색됩니다. 이를 통해 표준 `Cache-Control` 지시어를 사용하여 [`Cache-Control` HTTP 헤더](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/Cache-Control)로 데이터를 캐싱할 수 있습니다.
+
+하지만 브라우저는 실용적인 이유와 서비스 거부 문제를 방지하기 위해 [URL 길이를 최대 2048바이트로 제한합니다](https://chromium.googlesource.com/chromium/src/+/master/docs/security/url_display_guidelines/url_display_guidelines.md#url-length). 만약 쿼리 문자열로 인해 URL이 이 제한을 초과하게 되면, Astro는 대신 모든 props를 본문에 포함하는 `POST` 요청을 보냅니다.
+
+`POST` 요청은 데이터를 제출하는 데 사용되며 데이터 무결성이나 보안 문제를 일으킬 수 있기 때문에 브라우저에서 캐싱되지 않습니다. 따라서 프로젝트에 있는 기존의 캐싱 로직이 작동하지 않게 됩니다. 가능한 한 서버 아일랜드에 필요한 props만 전달하고, 쿼리를 작게 유지하기 위해 전체 데이터 객체와 배열을 보내는 것을 피하세요.
+
+## 서버 아일랜드의 페이지 URL에 접근
+
+대부분의 경우 서버 아일랜드 컴포넌트는 일반 컴포넌트처럼 [props를 전달](/ko/basics/astro-components/#컴포넌트-props)하여 렌더링하는 페이지에 대한 정보를 얻을 수 있습니다.
+
+하지만 서버 아일랜드는 페이지 요청 외부의 독립된 컨텍스트에서 실행됩니다. 서버 아일랜드 컴포넌트의 `Astro.url`과 `Astro.request.url`은 브라우저의 현재 페이지 URL 대신 `/_server-islands/Avatar`와 같은 URL을 반환합니다. 또한 페이지를 사전 렌더링하는 경우 props로 전달하기 위한 쿼리 매개변수와 같은 정보에 접근할 수 없습니다.
+
+페이지 URL의 정보에 접근하려면 브라우저에서 아일랜드를 로드하는 페이지의 주소가 포함된 [Referer](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/Referer) 헤더를 확인할 수 있습니다:
+
+```astro
+---
+const referer = Astro.request.headers.get('Referer');
+const url = new URL(referer);
+const productId = url.searchParams.get('product');
+---
+```
+
+## 암호화 키 재사용
+
+Astro는 [cryptography](https://developer.mozilla.org/en-US/docs/Glossary/Cryptography)를 사용하여 서버 아일랜드에 전달된 props를 암호화합니다. 이는 실수로 비밀이 유출되는 것을 방지합니다. props는 빌드 중에 생성된 키를 사용하여 암호화됩니다.
+
+대부분의 호스트의 경우, 이는 투명하게 처리되며 개발자가 별도로 할 일은 없습니다. Kubernetes와 같은 환경에서 롤링 배포를 사용하는 경우, 프런트엔드와 백엔드가 일시적으로 동기화되지 않고 키가 일치하지 않는 문제가 발생할 수 있습니다.
+
+이를 해결하기 위해 Astro CLI로 키를 생성한 다음 모든 배포에서 재사용할 수 있습니다. 이를 통해 각 사용자의 프런트엔드가 올바른 키를 가진 백엔드와 통신하도록 보장합니다.
+
+`astro create-key`를 사용하여 키를 생성하세요:
+
+```shell
+astro create-key
+```
+
+이는 `.env` 파일과 같이 호스팅 환경에서 필요로 하는 곳에 `ASTRO_KEY` 환경 변수로 설정할 수 있는 키를 생성합니다:
+
+```ini title=".env"
+ASTRO_KEY=zyM5c0qec+1Sgi4K+AejFX9ufbig7/7wIZjxOjti9Po=
+```

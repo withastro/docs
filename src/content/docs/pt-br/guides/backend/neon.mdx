@@ -1,0 +1,96 @@
+---
+title: Neon Postgres & Astro
+description: Adicione um banco de dados Postgres serverless em seu projeto Astro com Neon
+sidebar:
+  label: Neon
+type: backend
+service: Neon
+stub: false
+i18nReady: true
+---
+
+import ReadMore from '~/components/ReadMore.astro';
+
+[Neon](https://neon.tech) é um banco de dados Postgres serverless totalmente gerenciado. Ele separa armazenamento e computação para oferecer escalabilidade automática, ramificações e armazenamento _bottomless_. 
+
+## Adicionando Neon ao seu projeto Astro
+
+### Pré-requisitos
+
+- Uma conta [Neon](https://console.neon.tech/signup) com um projeto criado
+- String de conexão ao banco de dados Neon
+- Um projeto Astro com [renderização sob demanda (SSR)](/pt-br/guides/on-demand-rendering/) habilitado
+
+### Configuração de ambiente
+
+Para usar Neon com Astro, você precisará configurar uma variável de ambiente Neon. Crie ou edite seu arquivo `.env` na raiz do seu projeto, e adicione o seguinte código, substituindo com seus próprios detalhes de projeto:
+
+```ini title=".env"
+NEON_DATABASE_URL="postgresql://<user>:<password>@<endpoint_hostname>.neon.tech:<port>/<dbname>?sslmode=require"
+```
+
+Para melhor suporte TypeScript, defina variáveis de ambiente em um arquivo `src/env.d.ts`:
+
+```typescript title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly NEON_DATABASE_URL: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+<ReadMore>Saiba mais sobre [variáveis de ambiente](/pt-br/guides/environment-variables/) e arquivos `.env` no Astro.</ReadMore>
+
+### Instalando dependências
+
+Instale o pacote `@neondatabase/serverless` para se conectar ao Neon:
+
+```bash
+npm install @neondatabase/serverless
+```
+
+### Crie um cliente Neon
+
+Crie um novo arquivo `src/lib/neon.ts` com o código seguinte para inicializar seu cliente Neon:
+
+```typescript title="src/lib/neon.ts"
+import { neon } from '@neondatabase/serverless';
+
+export const sql = neon(import.meta.env.NEON_DATABASE_URL);
+```
+
+## Consultando seu banco de dados Neon
+
+Você agora pode usar o cliente Neon para consultar seu banco de dados de qualquer componente `.astro`. O exemplo seguinte obtém a hora atual do banco de dados Postgres:
+
+```astro title="src/pages/index.astro"
+---
+import { sql } from '../lib/neon';
+
+const response =  await  sql`SELECT NOW() as current_time`;
+const currentTime = response[0].current_time;
+---
+
+<h1>Hora Atual</h1>
+<p>A hora é: {currentTime}</p>
+```
+
+## Ramificação de banco de dados com Neon
+
+A funcionalidade de ramificação do Neon permite que você crie cópias do seu banco de dados para desenvolvimenot ou testes. Use isso em seu projeto Astro ao criar diferentes variáveis de ambiente para cada _branch_:
+
+```ini title=".env.development"
+NEON_DATABASE_URL=your_development_branch_url
+```
+
+```ini title=".env.production"
+NEON_DATABASE_URL=your_production_branch_url
+```
+
+## Recursos
+
+- [Documentação Neon](https://neon.tech/docs/introduction)
+- [Driver serverless GitHub Neon](https://github.com/neondatabase/serverless)
+- [Conecte um site ou aplicação Astro ao Neon Postgres](https://neon.tech/docs/guides/astro)

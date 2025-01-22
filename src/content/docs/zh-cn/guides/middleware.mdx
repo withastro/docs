@@ -7,7 +7,7 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import { Steps } from '@astrojs/starlight/components';
 import Since from '~/components/Since.astro';
 
-**中间件**允许你拦截请求和响应，并在即将渲染页面或端点时动态注入行为。对于所有预渲染的页面，这种渲染发生在构建时，但对于按需渲染的页面，这种渲染发生在请求路由时，这时可以使用 [额外的 SSR 功能如 cookie 和标头](/zh-cn/guides/server-side-rendering/#按需渲染功能特性)。
+**中间件**允许你拦截请求和响应，并在即将渲染页面或端点时动态注入行为。对于所有预渲染的页面，这种渲染发生在构建时，但对于按需渲染的页面，这种渲染发生在请求路由时，这时可以使用 [额外的 SSR 功能如 cookie 和标头](/zh-cn/guides/on-demand-rendering/)。
 
 这也允许你通过修改在所有 Astro 组件和 API 端点中可用的 `locals` 对象，设置和共享跨端点和页面的请求特定信息。即使在构建时运行这个中间件时，这个对象也是可用的。
 
@@ -42,7 +42,7 @@ import Since from '~/components/Since.astro';
 
 ### `context` 对象
 
-[`context`](/zh-cn/reference/api-reference/#端点上下文) 对象包含需要对其他中间件、API 路由和 `.astro` 路由在渲染过程中可用的信息。
+[`context`](/zh-cn/reference/api-reference/) 对象包含需要对其他中间件、API 路由和 `.astro` 路由在渲染过程中可用的信息。
 
 它是一个传入 `onRequest()` 的可选参数，可能包含 `locals` 对象以及其他在渲染期间共享的任何属性。例如，`context` 对象可能包含用于认证的 cookies。
 
@@ -50,7 +50,7 @@ import Since from '~/components/Since.astro';
 
 `context.locals` 是一个可以在中间件中操作、包含来自 `Response` 的数据的对象。
 
-这个 `locals` 对象在请求处理过程中被传递，并作为 [`APIContext`](/zh-cn/reference/api-reference/#端点上下文) 和 [`AstroGlobal`](/zh-cn/reference/api-reference/#astrolocals) 的属性可用。这使得中间件，API 路由和 `.astro` 页面之间可以共享数据。这对于在渲染步骤中存储请求特定的数据（例如用户数据）很有用。
+这个 `locals` 对象在请求处理过程中被传递，并作为 [`APIContext`](/zh-cn/reference/api-reference/#locals) 和 [`AstroGlobal`](/zh-cn/reference/api-reference/#locals) 的属性可用。这使得中间件，API 路由和 `.astro` 页面之间可以共享数据。这对于在渲染步骤中存储请求特定的数据（例如用户数据）很有用。
 
 :::tip[集成属性]
 [集成](/zh-cn/guides/integrations-guide/)可能会在 `locals` 对象中设置属性和提供一些功能。如果你在使用一个集成，检查它的文档并确认你没有覆盖掉它的属性或者在做重复的工作。
@@ -91,7 +91,7 @@ const orders = Array.from(Astro.locals.orders.entries());
 `locals` 是一个在单个 Astro 路由中创建和销毁的对象；当你的路由页面渲染完后，`locals` 将不再存在，并会创建一个新的。需要在多个页面请求之间保持的信息必须存储在其他地方。
 
 :::note
-`locals` 的值不能在运行时被覆盖。这样做会有清除用户存储的所有信息的风险。在 `dev` 模式下 Astro 会进行检查，如果 `locals` 被覆盖将会抛出错误。
+`locals` 的值不能在运行时被覆盖。这样做会有清除用户存储的所有信息的风险。Astro 会进行检查，如果 `locals` 被覆盖将会抛出错误。
 :::
 
 ## 示例：删除敏感信息
@@ -141,8 +141,6 @@ export const onRequest = (context, next) => {
 要给 `Astro.locals` 内的信息定义类型，也就是在 `.astro` 文件和中间件代码中能提供自动补全，在 `env.d.ts` 文件中声明一个全局命名空间：
 
 ```ts title="src/env.d.ts"
-/// <reference path="../.astro/types.d.ts" />
-
 declare namespace App {
     interface Locals {
         user: {
@@ -244,7 +242,7 @@ export function onRequest (context, next) {
 };
 ```
 
-`next` 函数接受与 [`Astro.rewrite()` 函数](/zh-cn/reference/api-reference/#astrorewrite) 相同的参数。重写路径的位置可以作为字符串、URL 或 `Request` 提供。
+`next` 函数接受与 [`Astro.rewrite()` 函数](/zh-cn/reference/api-reference/#rewrite) 相同的参数。重写路径的位置可以作为字符串、URL 或 `Request` 提供。
 
 当你有多个通过 [sequence()](#中间件链式调用) 链接的中间件函数时，向 `next()` 提交一个路径将在原地重写 `Request`，并且中间件不会再次执行。链中的下一个中间件函数将接收具有其更新的 `context` 的新 `Request`：
 
@@ -275,6 +273,6 @@ export const onRequest = sequence(first, second);
 
 ## 错误页面
 
-即使找不到匹配的路由，中间件也会尝试为所有按需渲染的页面运行。这包括 Astro 的默认（空白）404 页面和任何自定义 404 页面。然而，是否运行该代码取决于[适配器](/zh-cn/guides/server-side-rendering/)。一些适配器可能会提供特定平台的错误页面。
+即使找不到匹配的路由，中间件也会尝试为所有按需渲染的页面运行。这包括 Astro 的默认（空白）404 页面和任何自定义 404 页面。然而，是否运行该代码取决于[适配器](/zh-cn/guides/on-demand-rendering/)。一些适配器可能会提供特定平台的错误页面。
 
 在提供 500 错误页面之前，中间件也会尝试运行，包括自定义的 500 页面，除非服务器错误发生在中间件本身的执行中。如果你的中间件没有成功运行，那么你将无法访问 `Astro.locals` 来渲染你的 500 页面。

@@ -29,7 +29,7 @@ Astro가 이미지를 변환, 최적화, 번들링할 수 있도록 가능하면
 또한 [콘텐츠 관리 시스템 (CMS)](/ko/guides/cms/) 또는 [디지털 자산 관리 (DAM)](/ko/guides/media/) 플랫폼에 이미지를 원격으로 저장하도록 선택할 수도 있습니다.
 Astro는 API를 사용하여 원격으로 데이터를 가져오거나 전체 URL 경로를 이용하여 이미지를 표시할 수 있습니다.
 
- 외부 소스를 다룰 때 추가적인 보호를 위해 Astro의 이미지 컴포넌트와 도우미 함수는 [구성에서 지정한 승인된 이미지 소스](#원격-이미지-승인)의 이미지만 처리 (예: 최적화, 변환)합니다. 다른 소스의 원격 이미지는 처리하지 않고 표시됩니다.
+외부 소스를 다룰 때 추가적인 보호를 위해 Astro의 이미지 컴포넌트와 도우미 함수는 [구성에서 지정한 승인된 이미지 소스](#원격-이미지-승인)의 이미지만 처리 (예: 최적화, 변환)합니다. 다른 소스의 원격 이미지는 처리하지 않고 표시됩니다.
 
 ## `.astro` 파일의 이미지
 
@@ -168,7 +168,7 @@ import myImage from '../assets/my_image.png'; // 1600x900의 이미지
 
 ### HTML `<img>` 태그를 사용하여 처리되지 않은 이미지 표시
 
-[Astro 템플릿 구문](/ko/basics/astro-syntax/)은 최종 출력에 대한 완전한 제어를 위해 `<img>` 태그를 직접 작성하는 것도 지원합니다. 이러한 이미지는 처리 및 최적화되지 않습니다. 모든 HTML `<img>` 태그 속성을 허용하며, 필수 속성은 `src`뿐입니다.
+[Astro 템플릿 구문](/ko/reference/astro-syntax/)은 최종 출력에 대한 완전한 제어를 위해 `<img>` 태그를 직접 작성하는 것도 지원합니다. 이러한 이미지는 처리 및 최적화되지 않습니다. 모든 HTML `<img>` 태그 속성을 허용하며, 필수 속성은 `src`뿐입니다.
 
 로컬 이미지는 기존 `.astro` 파일의 상대 경로에서 가져오거나 [가져오기 별칭](/ko/guides/imports/#별칭)을 구성하여 사용할 수 있습니다. 그런 다음 이미지의 `src` 및 기타 속성에 액세스하여 `<img>` 태그에 사용할 수 있습니다.
 
@@ -355,17 +355,15 @@ coverAlt: "A photograph of a sunset behind a mountain range."
 This is a blog post
 ```
 
-콘텐츠 컬렉션 스키마의 `image` 도우미를 사용하면 Zod를 사용하여 이미지 메타데이터의 유효성을 검사할 수 있습니다.
+콘텐츠 컬렉션 스키마의 `image` 도우미를 사용하면 이미지를 검증하고 가져올 수 있습니다.
 
-```ts title="src/content/config.ts"
+```ts title="src/content.config.ts"
 import { defineCollection, z } from "astro:content";
 
 const blogCollection = defineCollection({
 	schema: ({ image }) => z.object({
 		title: z.string(),
-		cover: image().refine((img) => img.width >= 1080, {
-			message: "Cover image must be at least 1080 pixels wide!",
-		}),
+		cover: image(),
 		coverAlt: z.string(),
 	}),
 });
@@ -402,7 +400,7 @@ const allBlogPosts = await getCollection("blog");
 
 다른 Astro 컴포넌트와 마찬가지로 `<Image />` 컴포넌트는 UI 프레임워크 컴포넌트에서 사용할 수 없습니다.
 
-그러나 `<Image />`에서 생성된 정적 콘텐츠를 `.astro` 파일의 프레임워크 컴포넌트에 자식으로 전달하거나 [명명된 `<slot/>`](/ko/guides/framework-components/#프레임워크-컴포넌트에서-astro-컴포넌트를-사용할-수-있나요)]을 사용하여 전달할 수 있습니다:
+그러나 `<Image />`에서 생성된 정적 콘텐츠를 `.astro` 파일의 프레임워크 컴포넌트에 [자식으로](/ko/guides/framework-components/#프레임워크-컴포넌트에-자식-요소-전달) 전달하거나 [명명된 `<slot/>`](/ko/guides/framework-components/#프레임워크-컴포넌트에서-astro-컴포넌트를-사용할-수-있나요)]을 사용하여 전달할 수 있습니다:
 
 ```astro title="src/components/ImageWrapper.astro"
 ---
@@ -467,25 +465,11 @@ pnpm add sharp
 ```
 :::
 
-### Squoosh 구성
-
-[Squoosh](https://github.com/GoogleChromeLabs/squoosh)를 사용하여 이미지를 변환하려면 다음과 같이 구성을 업데이트하세요.
-
-```js title="astro.config.mjs" ins={4-6}
-import { defineConfig, squooshImageService } from 'astro/config';
-
-export default defineConfig({
-  image: {
-    service: squooshImageService(),
-  },
-});
-```
-
 ### 무작동 패스스루 서비스 구성
 
-[`server` 또는 `hybrid` 모드용 어댑터](https://astro.build/integrations/?search=&categories%5B%5D=adapters)가 Astro의 내장 Squoosh 및 Sharp 이미지 최적화를 지원하지 않는 경우 (예: Deno, Cloudflare) `<Image />` 및 `<Picture />` 컴포넌트를 사용할 수 있도록 무작동 이미지 서비스를 구성할 수 있습니다. Astro는 이러한 환경에서 이미지 변환 및 처리를 수행하지 않습니다. 그러나 CLS (Cumulative Layout Shift) 없음, 강제된 `alt` 속성 및 일관된 작성 환경을 포함하여 `astro:assets` 사용의 다른 이점을 계속 누릴 수 있습니다.
+[어댑터](https://astro.build/integrations/?search=&categories%5B%5D=adapters)가 Astro의 내장 Sharp 이미지 최적화를 지원하지 않는 경우 (예: Deno, Cloudflare) `<Image />` 및 `<Picture />` 컴포넌트를 사용할 수 있도록 무작동 이미지 서비스를 구성할 수 있습니다. Astro는 이러한 환경에서 이미지 변환 및 처리를 수행하지 않습니다. 그러나 CLS (Cumulative Layout Shift) 없음, 강제된 `alt` 속성 및 일관된 작성 환경을 포함하여 `astro:assets` 사용의 다른 이점을 계속 누릴 수 있습니다.
 
-Squoosh 및 Sharp 이미지 처리를 모두 방지하려면 `passthroughImageService()`를 구성하세요.
+Sharp의 이미지 처리를 방지하려면 `passthroughImageService()`를 구성하세요.
 
 ```js title="astro.config.mjs" ins={4-6} "passthroughImageService"
 import { defineConfig, passthroughImageService } from 'astro/config';
@@ -496,6 +480,25 @@ export default defineConfig({
   }
 });
 ```
+
+## 자산 캐싱
+
+Astro는 사이트 빌드 중에 로컬 이미지와 [승인된 소스의 원격 이미지](#원격-이미지-승인)에 대해 처리된 이미지 자산을 캐시 디렉터리에 저장합니다. 빌드 간에 캐시 디렉터리를 보존하면 처리된 자산이 재사용되어 빌드 시간과 대역폭 사용량이 개선됩니다.
+
+기본 캐시 디렉터리는 `./node_modules/.astro`이지만, [`cacheDir`](/ko/reference/configuration-reference/#cachedir) 구성 설정을 사용하여 변경할 수 있습니다.
+
+### 원격 이미지
+
+자산 캐시의 원격 이미지는 [HTTP 캐싱](https://developer.mozilla.org/ko/docs/Web/HTTP/Caching)을 기반으로 관리되며, 원격 서버가 반환하는 [Cache-Control 헤더](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/Cache-Control)를 준수합니다.
+이미지는 Cache-Control 헤더가 허용하는 경우 캐시되며, [fresh](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching#fresh_and_stale_based_on_age)가 유지되는 동안 사용됩니다.
+
+#### 재검증
+
+<p><Since v="5.1.0" /></p>
+
+[재검증](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching#validation)은 만료된 캐시 이미지가 여전히 최신 상태인지 원격 서버에 확인하여 대역폭 사용량과 빌드 시간을 줄입니다. 서버가 이미지를 여전히 신선하다고 표시하면 캐시된 버전이 재사용되고, 그렇지 않으면 이미지가 다시 다운로드됩니다.
+
+재검증을 위해서는 원격 서버가 응답과 함께 [Last-Modified](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/Last-Modified) 및/또는 [Etag (엔티티 태그)](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/ETag) 헤더를 전송해야 합니다. 이 기능은 [If-Modified-Since](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/If-Modified-Since)와 [If-None-Match](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/If-None-Match) 헤더를 지원하는 원격 서버에서 사용할 수 있습니다.
 
 ## 커뮤니티 통합
 

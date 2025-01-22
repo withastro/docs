@@ -1,0 +1,127 @@
+---
+title: 实验性响应式图像
+sidebar:
+  label: 响应式图像
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+
+**类型：** `boolean`<br />
+**默认：** `false`<br />
+<Since v="5.0.0" />
+</p>
+
+启用以在你的项目中支持自动化响应式图像。
+
+```js title="astro.config.mjs"
+{
+  experimental: {
+    responsiveImages: true,
+  },
+}
+```
+
+启用此标志后，你可以传入 `layout` 属性到任意 `<Image />` 或 `<Picture />` 组件以创建响应式图像。
+
+设置布局（layout）后，图像会根据图像的尺寸和布局类型自动生成 `srcset` 和 `size` 属性。具有 `responsive` 和 `full-width` 布局属性的图像将应用样式，以确保它们根据容器来调整大小。
+
+```astro title=MyComponent.astro
+---
+import { Image, Picture } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image src={myImage} alt="A description of my image." layout='responsive' width={800} height={600} />
+<Picture src={myImage} alt="A description of my image." layout='full-width' formats={['avif', 'webp', 'jpeg']} />
+```
+
+这个 `<Image />` 组件将生成以下 HTML 输出：
+
+```html
+<img
+  src="/_astro/my_image.hash3.webp"
+  srcset="/_astro/my_image.hash1.webp 640w,
+      /_astro/my_image.hash2.webp 750w,
+      /_astro/my_image.hash3.webp 800w,
+      /_astro/my_image.hash4.webp 828w,
+      /_astro/my_image.hash5.webp 1080w,
+      /_astro/my_image.hash6.webp 1280w,
+      /_astro/my_image.hash7.webp 1600w"
+  alt="A description of my image"
+  sizes="(min-width: 800px) 800px, 100vw"
+  loading="lazy"
+  decoding="async"
+  fetchpriority="auto"
+  width="800"
+  height="600"
+  style="--w: 800; --h: 600; --fit: cover; --pos: center;"
+  data-astro-image="responsive"
+>
+```
+
+为确保图像正确地调整大小将会采用以下样式：
+
+```css title="Responsive Image Styles"
+[data-astro-image] {
+  width: 100%;
+  height: auto;
+  object-fit: var(--fit);
+  object-position: var(--pos);
+  aspect-ratio: var(--w) / var(--h)
+}
+
+[data-astro-image=responsive] {
+  max-width: calc(var(--w) * 1px);
+  max-height: calc(var(--h) * 1px)
+}
+
+[data-astro-image=fixed] {
+  width: calc(var(--w) * 1px);
+  height: calc(var(--h) * 1px)
+}
+```
+
+## 响应式图像属性
+
+当启用响应式图像时，有这些可用于 `<Image />` 和 `<Picture />` 组件的附加属性：
+
+- `layout`：图片的布局类型。可设置为 `responsive`、`fixed`、`full-width` 或 `none`。默认为 [`image.experimentalLayout`](/zh-cn/reference/configuration-reference/#imageexperimentallayout) 的值。
+- `fit`：定义在宽高比更改时应如何裁剪图像。该值与 CSS `object-fit` 的值匹配。默认为 `cover` 或 [`image.experimentalObjectFit`](/zh-cn/reference/configuration-reference/#imageexperimentalobjectfit) 的值（如果设置）。
+- `position`：定义宽高比更改时图像裁剪的位置。该值与 CSS `object-position` 的值匹配。默认为 `center` 或 [`image.experimentalObjectPosition`](/zh-cn/reference/configuration-reference/#imageexperimentalobjectposition)（如果设置）。
+- `priority`：如果设置该项，则立即加载图像。否则图片将被懒加载。可将其用于最大的首屏图像。默认为 `false`。
+
+`widths` 和 `sizes` 属性是基于图片的尺寸和布局类型自动生成的，大部分情况下不应手动设置。针对于 `responsive` 和 `full-width` 图像而生成的 `sizes` 属性是基于这样的假设：当视口小于图像的宽度时，图像以接近屏幕的全宽显示。如果明显不同时（例如，如果它在小屏幕上采用多列布局），你可能需要手动调整 `size` 属性以获得最佳结果。
+
+`densities` 属性无法与响应式图像兼容，如果设置则会被忽略。
+
+## 响应式图像配置设置
+
+你可以通过设置 [`image.experimentalLayout`](/zh-cn/reference/configuration-reference/#imageexperimentallayout) 的默认值来为所有 `<Image />` 和 `<Picture />` 组件启用响应式图像。每个组件上的布局属性可以覆盖此设置。该设置可以被每个组件上 `layout` 的属性覆盖。
+
+```js title="astro.config.mjs"
+{
+  image: {
+    // 用于所有的 `<Image />` 和 `<Picture />` 组件，除非被覆盖
+    experimentalLayout: 'responsive',
+     },
+  experimental: {
+    responsiveImages: true,
+  },
+}
+```
+
+将 `responsive` 设置为默认布局后，你可以覆盖任何单个图像的 `layout` 属性：
+
+```astro
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image src={myImage} alt="This will use responsive layout" width={800} height={600} />
+<Image src={myImage} alt="This will use full-width layout" layout="full-width" />
+<Image src={myImage} alt="This will disable responsive images" layout="none" />
+```
+
+有关完整概述以及提供有关此实验性 API 的反馈，请参阅 [响应式图像 RFC](https://github.com/withastro/roadmap/blob/responsive-images/proposals/0053-responsive-images.md)。
