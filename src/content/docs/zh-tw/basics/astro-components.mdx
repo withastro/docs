@@ -1,17 +1,26 @@
 ---
 title: 元件
-description: .astro 元件語法簡介。
+description: Astro 元件語法簡介。
 i18nReady: true
 ---
 
-**Astro 元件**是 Astro 專案的基石，只包含 HTML 模板，不依賴客戶端運行環境。你可以從副檔名辨別它：`.astro`
+import ReadMore from '~/components/ReadMore.astro';
 
-Astro 元件極其彈性，能包含**共用 UI**（像是頁首、個人資訊卡）、一小段 HTML（例如跟 SEO 有關的 `<meta>` 標籤），甚至整個網頁版面。
+**Astro 元件**是 Astro 專案的基石，只包含 HTML 模板，不依賴客戶端運行環境，使用 `.astro` 副檔名。
 
-Astro 元件最重要的一點是：**不在客戶端算繪**。它們只在建置階段或[伺服器端算繪（SSR）](/zh-tw/guides/on-demand-rendering/)需要時轉換為 HTML。元件的 frontmatter 可放入 JavaScript 程式碼，它們不會送至使用者的瀏覽器。預設不包含任何 JavaScript 足跡，因此你的網站變得更快了。
+:::note
+如果你懂 HTML，你就有足夠的知識寫出你的第一個 Astro 元件了。
 
-如果需要客戶端的互動效果，可適時加入 [HTML `<script>` 標籤](/zh-tw/guides/client-side-scripts/)或 [UI 框架元件](/zh-tw/guides/framework-components/#hydrating-interactive-components)。
+<ReadMore>在 [Astro 語法參考](/zh-tw/reference/astro-syntax/)了解更多資訊。</ReadMore>
+:::
 
+Astro 元件極其彈性，Astro 元件能只有一小段 HTML（例如跟 SEO 有關的 `<meta>` 標籤），也可以是共用的 UI 元素，像是頁首、個人資訊卡。元件甚至能包含整個網頁版面，當元件在特殊的 `src/pages/` 資料夾時，元件可以就是整個網頁版面。
+
+Astro 元件最重要的一點是：**不在客戶端算繪**。它們只在建置階段或在需要時轉換為 HTML。元件的 frontmatter 可放入 JavaScript 程式碼，它們不會送至使用者的瀏覽器。預設不包含任何 JavaScript 足跡，因此你的網站變得更快了。
+
+如果需要客戶端的互動效果，可適時加入 [HTML `<script>` 標籤](/zh-tw/guides/client-side-scripts/)，或加入 [UI 框架元件](/zh-tw/guides/framework-components/#hydrating-interactive-components)做為「客戶端群島」。
+
+對於需要算繪個人化或動態內容的元件，你可以加入[伺服器端指令](/zh-tw/reference/directives-reference/#server-directives)延後元件的伺服器端算繪。這些「伺服器端群島」會在有空的時候才算繪內容，不會耽誤到整個頁面的載入。
 
 ## 元件架構
 
@@ -53,8 +62,10 @@ const data = await fetch('SOME_SECRET_API_URL/users').then(r => r.json());
 
 程式碼圍欄的設計理念是要「圍住」你寫的 JavaScript，確保它不會跑到前端應用程式、落入使用者手中。在圍欄裡可以安心地寫較耗資源或者敏感的程式碼（例如呼叫你的私有資料庫），不必擔心裡面的程式碼不小心出現在使用者的瀏覽器裡。
 
-:::tip
-元件腳本裡甚至可以寫 TypeScript！
+:::note
+Astro 元件腳本使用 TypeScript，這讓您可以為 JavaScript 增加額外的語法，以支援編輯器工具和錯誤檢查功能。
+
+<ReadMore>進一步了解 Astro [內建的 TypeScript 支援](/zh-tw/guides/typescript/)。</ReadMore>
 :::
 
 ### 元件模板
@@ -69,6 +80,7 @@ const data = await fetch('SOME_SECRET_API_URL/users').then(r => r.json());
 ---
 // 這裡是元件腳本！
 import Banner from '../components/Banner.astro';
+import Avatar from '../components/Avatar.astro';
 import ReactPokemonComponent from '../components/ReactPokemonComponent.jsx';
 const myFavoritePokemon = [/* ... */];
 const { title } = Astro.props;
@@ -81,6 +93,11 @@ const { title } = Astro.props;
 
 <!-- 使用 props 和元件腳本的變數： -->
 <p>{title}</p>
+
+<!-- 延後算繪元件並提供備用的載入中內容： -->
+<Avatar server:defer>
+  <svg slot="fallback" class="generic-avatar" transition:name="avatar">...</svg>
+</Avatar>
 
 <!-- 透過 `client:` 指令引入其他 UI 框架元件：-->
 <ReactPokemonComponent client:visible />
@@ -318,6 +335,10 @@ const { title } = Astro.props;
 </div>
 ```
 
+備用內容只會在沒有符合 slot="name" 屬性的元素被傳遞到具名插槽時顯示。
+
+當插槽元素存在，但是沒有內容可以傳遞時，Astro 會傳一個空插槽。備用內容不能當做傳遞空插槽進去時的預設值。備用內容只會在找不到插槽元素時顯示。
+
 ### 轉移插槽
 
 插槽可以轉移到其他元件。以建立巢狀版面為例：
@@ -367,8 +388,6 @@ import HomeLayout from '../layouts/HomeLayout.astro';
 </HomeLayout>
 ```
 
-
-
 ## HTML 元件
 
 Astro 支援將 `.html` 檔案匯入成元件，或放置到 `src/pages` 子目錄裡當作頁面。如果你想在不使用框架的前提下重複利用現有網站程式碼，或想確保元件沒有動態功能的話，可以考慮使用 HTML 元件。
@@ -384,7 +403,5 @@ HTML 元件裡的 [`<slot />` 元素](/zh-tw/basics/astro-components/#插槽)可
 :::
 
 ## 下一步
-
-import ReadMore from '~/components/ReadMore.astro';
 
 <ReadMore>繼續閱讀如何在 Astro 專案使用 [UI 框架元件](/zh-tw/guides/framework-components/)。</ReadMore>
