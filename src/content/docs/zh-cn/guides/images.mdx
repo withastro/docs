@@ -348,17 +348,15 @@ coverAlt: "一张山脉后面的日落照片。"
 这是一篇博客文章。
 ```
 
-内容集合 schema 中的 `image` 助手允许你使用 Zod 验证图像元数据。
+内容集合 schema 中的 `image` 助手允许你验证并导入图像。
 
-```ts title="src/content/config.ts"
+```ts title="src/content.config.ts"
 import { defineCollection, z } from "astro:content";
 
 const blogCollection = defineCollection({
 	schema: ({ image }) => z.object({
 		title: z.string(),
-		cover: image().refine((img) => img.width >= 1080, {
-			message: "封面图片必须至少 1080 像素宽！",
-		}),
+		cover: image(),
 		coverAlt: z.string(),
 	}),
 });
@@ -395,7 +393,7 @@ const allBlogPosts = await getCollection("blog");
 
 与任何其他 Astro 组件一样，`<Image />` 组件在 UI 框架组件内不可用。
 
-但是，你可以将 `<Image />` 生成的静态内容作为子项传递给 `.astro` 文件内的框架组件，或使用 [命名 `<slot/>`](/zh-cn/guides/framework-components/#我可以在我的框架组件中使用-astro-组件吗)：
+但是，你可以将 `<Image />` 生成的静态内容 [作为子项](/zh-cn/guides/framework-components/#向框架组件传递子组件) 传递给 `.astro` 文件内的框架组件，或使用 [命名 `<slot/>`](/zh-cn/guides/framework-components/#我可以在我的框架组件中使用-astro-组件吗)：
 
 ```astro title="src/components/ImageWrapper.astro"
 ---
@@ -478,25 +476,11 @@ pnpm add sharp
 ```
 :::
 
-### 配置 Squoosh
-
-如果你想使用 [Squoosh](https://github.com/GoogleChromeLabs/squoosh) 来转换你的图像，请使用以下配置更新你的配置：
-
-```js title="astro.config.mjs" ins={4-6}
-import { defineConfig, squooshImageService } from 'astro/config';
-
-export default defineConfig({
-  image: {
-    service: squooshImageService(),
-  },
-});
-```
-
 ### 配置 no-op 透传服务
 
-如果你的 [`server` 或 `hybrid` 模式适配器](https://astro.build/integrations/?search=&categories%5B%5D=adapters)不支持 Astro 内置的 Squoosh 和 Sharp 图片优化（如 Deno、Cloudflare），你可以配置一个 no-op 图像服务来使你可以使用 `<Image />` 和 `<Picture />` 组件。注意 Astro 在这些环境中不会执行任何图像转换和处理。不过你依旧可以享受使用 `astro:assets` 的其他好处，比如没有累积布局移位（CLS）、强制执行的 `alt` 属性和一致的创作体验。
+如果你的 [适配器](https://astro.build/integrations/?search=&categories%5B%5D=adapters) 不支持 Astro 内置的 Sharp 图片优化（如 Deno、Cloudflare），你可以配置一个 no-op 图像服务来使你可以使用 `<Image />` 和 `<Picture />` 组件。注意 Astro 在这些环境中不会执行任何图像转换和处理。不过你依旧可以享受使用 `astro:assets` 的其他好处，比如没有累积布局移位（CLS）、强制执行的 `alt` 属性和一致的创作体验。
 
-配置 `passthroughImageService()` 来避免 Squoosh 和 Sharp 图像处理：
+配置 `passthroughImageService()` 来避免 Sharp 图像处理：
 
 ```js title="astro.config.mjs" ins={4-6} "passthroughImageService"
 import { defineConfig, passthroughImageService } from 'astro/config';
@@ -507,6 +491,25 @@ export default defineConfig({
   }
 });
 ```
+
+## 资源缓存
+
+在站点构建期间，Astro 将本地和 [来自授权来源的远程图像](#授权远程图像) 的已处理的图像资源存储在缓存目录中。通过在构建之间保留缓存目录，可以复用已处理的资源，从而缩短构建时间并减少带宽使用。
+
+默认缓存目录是 `./node_modules/.astro`，但是可以使用 [`cacheDir`](/zh-cn/reference/configuration-reference/#cachedir) 配置设置来更改它。
+
+### 远程图像
+
+资源缓存中的远程图像基于 [HTTP 缓存](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Caching) 进行管理，并遵循 [Cache-Control 标头](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Cache-Control) 由远程服务器返回。
+如果 Cache-Control 标头允许，图像将被缓存，并且将被使用，直到它们不再 [fresh](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Caching#基于_age_的缓存策略)。
+
+#### 重新验证
+
+<p><Since v="5.1.0" /></p>
+
+[重新验证](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Caching#验证响应) 通过检查远程服务器之前缓存的过期图像是否有效来减少带宽使用和构建时间。如果服务器指示图像仍然是有效（fresh）的，则重新使用缓存的版本，否则重新下载图像。
+
+重新验证要求远程服务器发送 [Last-Modified](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Last-Modified) 和/或 [Etag（实体标签）]( https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/ETag) 标头及其响应。此功能适用于支持 [If-Modified-Since](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/If-Modified-Since) 和 [If-None-Match](https://developer.mozilla.org/-CN/docs/Web/HTTP/Headers/If-None-Match) 标头的远程服务器。
 
 ## 社区集成
 

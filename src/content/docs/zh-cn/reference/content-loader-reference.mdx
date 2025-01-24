@@ -1,0 +1,630 @@
+---
+title: Astro 内容加载器 API
+sidebar:
+  label: 内容加载器 API
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+
+Astro 的内容加载器（Content Loader）API 允许你从任意来源（本地或远程）载入数据，并与 Astro 的 content layer 交互以管理你的 [内容集合](/zh-cn/guides/content-collections/)。
+
+## 什么是加载器？
+
+Astro 加载器允许你将数据加载到 [内容集合](/zh-cn/guides/content-collections/) 中，以便可以在页面和组件中使用。[内置的 `glob()` 和 `file()` 加载器](/zh-cn/guides/content-collections/#内置的加载器) 用于从文件系统加载内容，而你也可以创建自己的加载器以从其他来源加载内容。
+
+每个集合都需要在 [其模式（schema）中定义一个加载器](/zh-cn/guides/content-collections/#定义集合-loader)。你可以在项目的 `src/content.config.ts` 文件中定义内联加载器，从而在多个集合之间共享一个加载器，甚至 [将你的加载器作为包发布到 NPM](/zh-cn/reference/publish-to-npm/) 以与其他人共享并包含在我们的集成库中。
+
+## 内置的加载器
+
+Astro 提供两种内置加载器以帮助你获取你的集合。两者都提供适合各种用例的选项。
+
+### `glob()` 加载器
+
+<p>
+
+**类型：** <code>(options: GlobOptions) => <a href="#loader-对象">Loader</a></code><br />
+<Since v="5.0.0" />
+</p>
+
+`glob()` 加载器从文件系统中任何位置的文件目录创建条目。支持的文件类型包括 Markdown、MDX、Markdoc、JSON 和 YAML 文件。
+
+该加载器接受具有以下属性的对象：`pattern`、`base`（可选）以及 `generateId`（可选）。
+
+```ts title="src/content.config.ts" {2,6,11,17-21}
+import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const pages = defineCollection({
+  /* 检索你 page 目录中的所有 Markdown 文件。 */
+  loader: glob({ pattern: "**/*.md", base: "./src/data/pages" }),
+  schema: /* ... */
+});
+const blog = defineCollection({
+  /* 检索你 blog 目录中的所有 Markdown 和 MDX 文件。 */
+  loader: glob({ pattern: "**/*.(md|mdx)", base: "./src/data/blog" }),
+  schema: /* ... */
+});
+const authors = defineCollection({
+  /* 检索你 authors 目录中的所有 JSON 文件，
+   * 同时保留 ID 中的大写字母。 */
+  loader: glob({
+    pattern: '**/*.json',
+    base: "./src/data/authors",
+    generateId: ({ entry }) => entry.replace(/\.json$/, ''),
+  }),
+  schema: /* ... */
+});
+```
+
+#### `pattern`
+
+<p>
+
+**类型：** `string | string[]`
+</p>
+
+`pattern` 属性接受使用全局匹配的字符串或字符串数​​组（例如通配符、双星号）。pattern 必须是相对于条目文件的 base 目录才能够匹配。
+
+你可以在 [micromatch 文档](https://github.com/micromatch/micromatch#matching-features) 中了解到有关应用语法的更多信息。你还可以使用像 [DigitalOcean Glob Tool](https://www.digitalocean.com/community/tools/glob) 这样的在线工具来验证 pattern 的有效性。
+
+#### `base`
+
+<p>
+
+**类型：** `string | URL`<br />
+**默认值：** `"."`
+</p>
+
+从中解析 `pattern` 目录的相对路径或 [URL](https://developer.mozilla.org/zh-CN/docs/Web/API/URL)。
+
+#### `generateId()`
+
+<p>
+
+**类型：** `(options: GenerateIdOptions) => string`
+</p>
+
+返回集合中每个条目的唯一字符串的回调函数。它接受具有以下属性的对象作为参数：
+* `entry` - 条目文件的路径，相对于 base 目录
+* `base` - base 目录的 [URL](https://developer.mozilla.org/zh-CN/docs/Web/API/URL)
+* `data` - 条目中已解析、未经验证的数据
+
+默认情况下，它使用 [`github-slugger`](https://github.com/Flet/github-slugger) 生成遵循 [烤串命名法](https://developer.mozilla.org/zh-CN/docs/Glossary/Kebab_case) 的 slug。
+
+### `file()` 加载器
+
+<p>
+
+**类型：** <code>(fileName: string, options?: FileOptions) => <a href="#loader-对象">Loader</a></code><br />
+<Since v="5.0.0" />
+</p>
+
+`file()` 加载器从单个文件创建条目，该文件包含具有唯一 `id` 字段的对象数组或具有字符串键的对象。它支持 JSON 或 YAML，你可以为默认情况下无法解析的数据文件提供一个自定义 `parser`。
+
+该加载器接受一个 `fileName` 属性和一个可选对象作为第二个参数：
+
+```ts title="src/content.config.ts" {2,6,11-13}
+import { defineCollection } from 'astro:content';
+import { file } from 'astro/loaders';
+
+const authors = defineCollection({
+  /* 从一个 JSON 文件中检索所有条目。 */
+  loader: file("src/data/authors.json"),
+  schema: /* ... */
+});
+const products = defineCollection({
+  /* 使用自定义 parser 从一个 CSV 文件中检索所有条目。 */
+  loader: file("src/data/products.csv", {
+    parser: (fileContent) => { /* 你的 parser 逻辑 */ },
+  }),
+  schema: /* ... */
+});
+```
+
+#### `fileName`
+
+<p>
+
+**Type:** `string`
+</p>
+
+设置要加载的文件的路径，相对于根目录。
+
+#### 选项
+
+<p>
+
+**类型：** `FileOptions`
+</p>
+
+具有以下属性的可选对象：
+
+##### `parser()`
+
+<p>
+
+**类型：** `(text: string) => Record<string, Record<string, unknown>> | Array<Record<string, unknown>>`
+</p>
+
+回调函数，用于从文件内容创建一个集合。当你需要处理默认情况下不支持的文件（例如 `.csv`）或使用 [嵌套的 `.json` 文档](/zh-cn/guides/content-collections/#嵌套的-json-文件) 时，请使用它。
+
+## 加载器类型
+
+加载器既可以定义为用于返回条目数组的简单函数，也可以定义为更强大的对象内容加载器 API，从而更好地控制加载过程。
+
+### 内联加载器
+
+内联加载器是一个异步函数，它返回包含条目的数组或对象。将其用于简单的加载器，特别是那些在 `src/content.config.ts` 文件中内联定义的加载器。
+
+该函数可以是异步的，它要么返回一个包含条目的数组，其中每个条目包含一个唯一的 `id` 字段，要么就返回一个对象，其中每个键都是一个唯一的 ID，而每个值都是条目。每当调用加载器时，它将清除存储并重新加载所有条目。
+
+```ts title="src/content.config.ts"
+const countries = defineCollection({
+  loader: async () => {
+    const response = await fetch("https://restcountries.com/v3.1/all");
+    const data = await response.json();
+    // 必须返回一个具有 id 属性的条目数组
+    // 或是一个以 ID 作为键、以条目作为值的对象
+    return data.map((country) => ({
+      id: country.cca3,
+      ...country,
+    }));
+  },
+  schema: /* ... */
+});
+```
+
+### 对象加载器
+
+加载器是一个具有 `load()` 方法的对象，该方法在构建时调用以获取数据并更新数据存储。它允许增量更新条目，或者仅在必要时清除存储。它还可以为条目定义模式，该模式可用于验证数据并生成静态类型。
+
+推荐做法是定义一个接受配置选项并返回加载器对象的函数，就像通常定义一个 Astro 集成或 Vite 插件一样。
+
+```ts title=loader.ts
+import type { Loader, LoaderContext } from 'astro/loaders';
+import { z } from 'astro:content';
+import { loadFeedData } from "./feed.js";
+
+// 定义加载器需要的任何选项
+export function myLoader(options: { url: string, apiKey: string }): Loader {
+  // 配置加载器
+  const feedUrl = new URL(options.url);
+  // 返回一个加载器对象
+  return {
+    name: "my-loader",
+    // 当集合更新时调用。
+    load: async (context: LoaderContext): Promise<void> => {
+      // 加载数据并更新存储
+      const response = await loadFeedData(feedUrl, options.apiKey);
+    },
+    // （可选）定义条目的模式。
+    // 它将被用户定义的模式覆盖。
+    schema: async () => z.object({
+      // ...
+    })
+  };
+}
+```
+
+然后就可以在定义集合时设置这些配置选项：
+
+```ts title="src/content.config.ts"  {2,5-8}  
+import { defineCollection, z } from 'astro:content';  
+import myLoader from '../../loader.ts';  
+
+const blog = defineCollection({  
+  loader: myLoader({
+    url: "https://api.example.com/posts",
+    apiKey: "my-secret",
+  }),  
+  schema: /* ... */  
+});  
+```
+
+## 对象加载器 API
+
+[内联加载器](#内联加载器) 的 API 非常简单，如上所示。本节展示用于定义对象加载器的 API。
+
+### `Loader` 对象
+
+加载器对象具有以下属性：
+
+#### `name`
+
+<p>
+
+**类型：** `string`
+</p>
+
+加载器的唯一名称，用于日志和 [条件性加载](/zh-cn/reference/integrations-reference/#refreshcontent-选项)。
+
+#### `load`
+
+<p>
+
+**类型：** <code>(context: <a href="#loadercontext">LoaderContext</a>) => Promise&lt;void&gt;</code>
+</p>
+
+在构建时调用的异步函数以加载数据并更新存储。有关更多信息，请参阅 [`LoaderContext`](#loadercontext)。
+
+#### `schema`
+
+<p>
+
+**类型：** `ZodSchema | Promise<ZodSchema> | (() => ZodSchema | Promise<ZodSchema>)`
+</p>
+
+一个可选的 [Zod 模式](/zh-cn/guides/content-collections/#定义集合模式schema)，用以定义条目的结构。它既可用于验证数据，也可用于为集合生成 TypeScript 类型。
+
+如果向其提供一个函数，它将在构建时在 `load()` 之前调用来生成模式。你可以使用这种方式根据配置选项或通过内省 API 动态地生成模式。
+
+### `LoaderContext`
+
+该对象将被传递给加载器的 `load()` 方法，并包含以下属性：
+
+#### `collection`
+
+<p>
+
+**类型：** `string`
+</p>
+
+集合的唯一名称。这是 `src/content.config.ts` 文件中 `collections` 对象的键。
+
+#### `store`
+
+<p>
+
+**类型：** [`DataStore`](#datastore)
+</p>
+
+存储实际数据的数据库。使用它可以用新条目更新存储部分。有关更多信息，请参阅 [`DataStore`](#datastore)。
+
+#### `meta`
+
+<p>
+
+**类型：** `MetaStore`
+</p>
+
+范围为集合的键值存储，专为同步令牌和上次修改时间等内容而设计。此元数据在构建之间与集合数据一起保留，但仅在加载器内部可用。
+
+```ts
+const lastModified = meta.get("lastModified");
+// ...
+meta.set("lastModified", new Date().toISOString());
+```
+
+#### `logger`
+
+<p>
+
+**类型：** [`AstroIntegrationLogger`](/zh-cn/reference/integrations-reference/#astrointegrationlogger)
+</p>
+
+可用于将日志记录到控制台的记录器。使用它而不是 `console.log` 来获取更有帮助的日志，日志消息将包含加载器名称。有关更多信息，请参阅 [`AstroIntegrationLogger`](/zh-cn/reference/integrations-reference/#astrointegrationlogger)。
+
+#### `config`
+
+<p>
+
+**类型：** `AstroConfig`
+</p>
+
+应用了所有默认值的完整、已解析的 Astro 配置对象。有关更多信息，请参阅 [配置参考](/zh-cn/reference/configuration-reference/)。
+
+#### `parseData`
+
+<p>
+
+**类型：** `(props: ParseDataOptions<TData>) => Promise<TData>`
+</p>
+
+根据集合模式验证和解析数据。将数据传递给该函数以在将其存储到数据存储中之前，对其进行验证和解析。
+
+```ts title=loader.ts {14-17}
+import type { Loader } from "astro/loaders";
+import { loadFeed } from "./feed.js";
+
+export function feedLoader({ url }): Loader {
+  const feedUrl = new URL(url);
+  return {
+    name: "feed-loader",
+    load: async ({ store, logger, parseData, meta, generateDigest }) => {
+      logger.info("Loading posts");
+      const feed = loadFeed(feedUrl);
+      store.clear();
+
+      for (const item of feed.items) {
+        const data = await parseData({
+          id: item.guid,
+          data: item,
+        });
+        store.set({
+          id,
+          data,
+        });
+      }
+    },
+  };
+}
+```
+
+#### `generateDigest`
+
+<p>
+
+**类型：** `(data: Record<string, unknown> | string) => string`
+</p>
+
+生成对象或字符串的非加密内容摘要。这可用于通过设置条目的 [`digest` 字段](#digest) 来跟踪数据是否已更改。
+
+```ts title=loader.ts {19,24}
+import type { Loader } from "astro/loaders";
+import { loadFeed } from "./feed.js";
+
+export function feedLoader({ url }): Loader {
+  const feedUrl = new URL(url);
+  return {
+    name: "feed-loader",
+    load: async ({ store, logger, parseData, meta, generateDigest }) => {
+      logger.info("Loading posts");
+      const feed = loadFeed(feedUrl);
+      store.clear();
+
+      for (const item of feed.items) {
+        const data = await parseData({
+          id: item.guid,
+          data: item,
+        });
+
+        const digest = generateDigest(data);
+
+        store.set({
+          id,
+          data,
+          digest,
+        });
+      }
+    },
+  };
+}
+```
+
+#### `watcher`
+
+<p>
+
+**类型：**: `FSWatcher`
+</p>
+
+当在开发模式下运行时，这是一个文件系统监听器，可用于触发更新。有关更多信息，请参阅 [`ViteDevServer`](https://cn.vite.dev/guide/api-javascript#vitedevserver)。
+
+```ts title="Extract from the file() loader" {8-13}
+return {
+  name: 'file-loader',
+  load: async ({ config, store, watcher }) => {
+    const url = new URL(fileName, config.root);
+    const filePath = fileURLToPath(url);
+    await syncData(filePath, store);
+
+    watcher?.on('change', async (changedPath) => {
+      if (changedPath === filePath) {
+        logger.info(`Reloading data from ${fileName}`);
+        await syncData(filePath, store);
+      }
+    });
+  },
+};
+```
+
+#### `refreshContextData`
+
+<p>
+
+**类型：** `Record<string, unknown>`
+</p>
+
+如果加载器已经由集成触发，则可以选择性地包含该由集成所设置的额外数据。仅当加载器是被集成触发时才会设置。有关更多信息，请参阅 [`astro:server:setup`](/zh-cn/reference/integrations-reference/#refreshcontent-选项) 钩子参考。
+
+```ts title=loader.ts {5-8}
+export function myLoader(options: { url: string }): Loader {
+  return {
+    name: "my-loader",
+    load: async ({ refreshContextData, store, logger }) => {
+      if(refreshContextData?.webhookBody) {
+        logger.info("Webhook triggered with body");
+        processWebhook(store, refreshContextData.webhookBody);
+      }
+      // ...
+    },
+  };
+}
+```
+
+### `DataStore`
+
+数据存储是内容集合数据的加载器接口。它是一个键值（KV）存储，范围仅限于集合，因此加载器只能访问其自己集合的数据。
+
+#### `get`
+
+<p>
+
+**类型：** <code>(key: string) => <a href="#dataentry">DataEntry</a> | undefined</code>
+</p>
+
+通过其 ID 从存储获取条目。如果条目不存在，则返回 `undefined`。
+
+```ts
+const existingEntry = store.get("my-entry");
+```
+
+返回的对象是一个 [`DataEntry`](#dataentry) 对象。
+
+#### `set`
+
+<p>
+
+**类型：** <code>(entry: <a href="#dataentry">DataEntry</a>) => boolean</code>
+</p>
+
+在数据被 [验证和解析](#parsedata) 之后使用，从而将条目添加到存储中。如果设置了条目则返回 `true`。当 [`digest`](#digest) 属性确定条目未更改且不应更新时，则返回 `false`。
+
+```ts title=loader.ts {7-14}
+    for (const item of feed.items) {
+      const data = await parseData({
+        id: item.guid,
+        data: item,
+      });
+      const digest = generateDigest(data);
+      store.set({
+        id,
+        data,
+        rendered: {
+          html: data.description ?? "",
+        },
+        digest,
+      });
+    }
+```
+
+#### `entries`
+
+<p>
+
+**类型：** `() => Array<[id: string, DataEntry]>`
+</p>
+
+获取集合中的所有条目作为键值对数组。
+
+#### `keys`
+
+<p>
+
+**类型：** `() => Array<string>`
+</p>
+
+获取集合中所有条目的键。
+
+#### `values`
+
+<p>
+
+**类型：** `() => Array<DataEntry>`
+</p>
+
+获取集合中的所有条目作为数组。
+
+#### `delete`
+
+<p>
+
+**类型：** `(key: string) => void`
+</p>
+
+通过条目的 ID 从存储中删除条目。
+
+#### `clear`
+
+<p>
+
+**类型：** `() => void`
+</p>
+
+清除集合中的所有条目。
+
+#### `has`
+
+<p>
+
+**类型：** `(key: string) => boolean`
+</p>
+
+通过条目的 ID 从存储中检查是否存在该条目。
+
+### `DataEntry`
+
+这是存储在数据存储中的对象的类型。它具有以下属性：
+
+#### `id`
+
+<p>
+
+**类型：** `string`
+</p>
+
+条目的标识符，在集合中必须是唯一的。它用于查找存储中的条目，同时也是与该集合的 `getEntry` 一起使用的键。
+
+#### `data`
+
+<p>
+
+**类型：** `Record<string, unknown>`
+</p>
+
+条目的实际数据。当用户访问集合时，将根据集合模式生成 TypeScript 类型。
+
+加载器的责任为在将数据存储到数据存储之前使用 [`parseData`](#parsedata) 来验证和解析数据：获取或设置数据时不进行验证。
+
+#### `filePath`
+
+<p>
+
+**类型：** `string | undefined`
+</p>
+
+作为此条目源的文件路径（相对于站点的根目录）。这仅适用于基于文件的加载器，并用于解析图像或其他资源等路径。
+
+如果未设置，则模式中使用 [`image()` 助手函数](/zh-cn/guides/images/#内容集合中的图像) 的任何字段都将被视为位于 [public 路径](/zh-cn/guides/images/#在哪里存储图像) 下而跳过图像优化。
+
+#### `body`
+
+<p>
+
+**类型：** `string | undefined`
+</p>
+
+条目的原始正文（如果适用的话）。如果条目包含了 [渲染内容](#rendered)，则该字段可用于存储原始源。该属性为可选项，内部不使用。
+
+#### `digest`
+
+<p>
+
+**类型：** `string | undefined`
+</p>
+
+条目的可选内容摘要。该属性可用于检查数据是否已更改。
+
+当 [添加条目](#set) 时，只有当摘要与具有相同 ID 的现有条目不匹配时，该条目才会更新。
+
+摘要的格式由加载器决定，但它必须是一个随数据变化而变化的字符串。这可以通过 [`generateDigest`](#generatedigest) 函数来完成。
+
+#### `rendered`
+
+<p>
+
+**类型：** `RenderedContent | undefined`
+</p>
+
+存储带有条目的渲染内容和元数据（如果已渲染为 HTML）的对象。例如，这可用于存储 Markdown 条目的渲染内容或 CMS 中的 HTML。
+
+如果提供此字段，则 [`render()` 函数和 `<Content />` 组件](/zh-cn/guides/content-collections/#渲染正文内容) 可用于在页面中渲染条目。
+
+`RenderedContent` 对象的格式为：
+
+```ts
+{
+	/** 渲染的 HTML 字符串。如果存在，则 `render(entry)` 将会返回渲染该 HTML 的组件。 */
+	html: string;
+	metadata?: {
+		/** 此条目中存在的任何图像。相对于 {@link DataEntry} 文件路径。 */
+		imagePaths?: Array<string>;
+		/** 此文件中存在的任何标题。从 `render()` 中作为 `headings` 返回。 */
+		headings?: MarkdownHeading[];
+		/** 从文件中解析的原始 frontmatter。其中可能包含来自 remark 插件的数据。 */
+		frontmatter?: Record<string, any>;
+		/** 此文件中存在的任何其他元数据。 */
+		[key: string]: unknown;
+	};
+}
+```

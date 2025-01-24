@@ -1,6 +1,6 @@
 ---
 title: 布局
-description: 布局简介——一种在页面中共享常用布局的 Astro 组件。
+description: Astro 中的布局介绍。
 ---
 
 import ReadMore from '~/components/ReadMore.astro'
@@ -13,7 +13,7 @@ import ReadMore from '~/components/ReadMore.astro'
 
 但是，布局组件没有什么特别的！它们可以像任何其他 Astro 组件一样[接受 props](/zh-cn/basics/astro-components/#组件参数)和[导入和使用其他组件](/zh-cn/basics/astro-components/#组件概述)。它们可以包含[UI 框架组件](/zh-cn/guides/framework-components/)和[客户端脚本](/zh-cn/guides/client-side-scripts/)。它们甚至不必提供完整的页面外壳，而是可以用作部分 UI 模板。
 
-然而，如果布局组件确实包含页面外壳，那么它的 `<html>` 元素必须是该组件中所有其他元素的父元素。所有 [`<style>`](/zh-cn/guides/styling/#在-astro-进行设计) 或 [`<script>`](/zh-cn/guides/client-side-scripts/#在-astro-中使用-script) 元素必须包含在 `<html>` 标签内。
+然而，如果布局组件确实包含页面外壳，那么它的 `<html>` 元素必须是该组件中所有其他元素的父元素。
 
 布局组件通常放置在项目中的 `src/layouts` 目录中，但这不是必须的。你可以选择将它们放置在项目中的任何位置。你甚至可以通过[在布局组件名称前面加上“_”](/zh-cn/guides/routing/#排除页面)将布局组件与页面放在同一个文件夹中。
 
@@ -99,7 +99,9 @@ const { title, description, publishDate, viewCount } = Astro.props;
 
 页面布局对于没有任何页面格式的 Markdown 页面尤为有用。
 
-Astro 提供了一个特殊的 `layout` frontmatter 属性，用于指定哪个 `.astro` 组件用作页面布局。默认情况下，这个指定的组件可以自动访问 Markdown 文件中的数据。
+Astro 提供了一个特殊的 `layout` frontmatter 属性，用于[在 `src/pages/` 目录中使用基于文件的路由的单个 `.md` 文件](/zh-cn/guides/markdown-content/#单独的-markdown-页面)来指定使用哪个 `.astro` 组件作为页面布局。这个组件允许你提供 `<head>` 内容，例如 meta 标签（例如 `<meta charset="utf-8">`）和样式，用于 Markdown 页面。默认情况下，指定的组件可以自动访问 Markdown 文件中的数据。
+
+这是一个特殊属性，当使用[内容集合](/zh-cn/guides/content-collections/)来查询和渲染你的内容时，不会被识别。
 
 ```markdown title="src/pages/page.md" {2} 
 ---
@@ -128,6 +130,8 @@ const { frontmatter } = Astro.props;
 <html>
   <head>
     <!-- 添加其他 Head 元素，例如样式和 meta 标签。 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
     <title>{frontmatter.title}</title>
   </head>
   <body>
@@ -159,6 +163,7 @@ const { frontmatter, url } = Astro.props;
 ---
 <html>
   <head>
+    <meta charset="utf-8">
     <link rel="canonical" href={new URL(url, Astro.site).pathname}>
     <title>{frontmatter.title}</title>
   </head>
@@ -181,7 +186,7 @@ const { frontmatter, url } = Astro.props;
   - **`frontmatter.url`** - 与顶级 `url` 属性相同。
 - **`headings`** - Markdown 或 MDX 文档中的标题（`h1 -> h6`）列表及其相关元数据。此列表遵循类型：`{ depth: number; slug: string; text: string }[]`。
 - **`rawContent()`** - 返回原始 Markdown 文档的字符串的函数。
-- **`compiledContent()`** - 返回 Markdown 文档编译为 HTML 字符串的函数。
+- **`compiledContent()`** - 返回 Markdown 文档编译为 HTML 字符串的异步函数。
 
 :::note
 Markdown 布局将通过 `Astro.props` 访问其文件的所有 [可用属性](/zh-cn/guides/markdown-content/#可用属性)，**但有两点关键区别：**
@@ -220,12 +225,21 @@ export function fancyJsHelper() {
 ---
 const { title, fancyJsHelper } = Astro.props;
 ---
-<!-- -->
-<h1>{title}</h1>
-<slot /> <!-- 你的内容会被插入到这里 -->
-<p>{fancyJsHelper()}</p>
-<!-- -->
+<html>
+  <head>
+    <!-- -->
+    <meta charset="utf-8">
+  </head>
+  <body>
+    <!-- -->
+    <h1>{title}</h1>
+    <slot /> <!-- 你的内容会被插入到这里 -->
+    <p>{fancyJsHelper()}</p>
+    <!-- -->
+  </body>
+</html>
 ```
+当使用任何布局（通过 frontmatter `layout` 属性或通过导入布局）时，你必须在布局中包含 `<meta charset="utf-8">` 标签，因为 Astro 不再会自动将其添加到你的 MDX 页面中。
 
 <ReadMore>了解更多关于 Astro 的 Markdown 和 MDX 支持，请参阅 [Markdown/MDX 指南](/zh-cn/guides/markdown-content/)。</ReadMore>
 
