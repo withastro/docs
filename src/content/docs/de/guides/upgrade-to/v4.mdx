@@ -1,0 +1,391 @@
+---
+title: Aktualisierung auf Astro v4
+description: So aktualisierst du dein Projekt auf die neueste Version von Astro (v4.0).
+sidebar:
+  label: v4.0
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+Dieser Leitfaden hilft dir bei der Migration von Astro v3 auf Astro v4.
+
+Du musst ein älteres Projekt auf v3 aktualisieren? Siehe unseren [older migration guide](/de/guides/upgrade-to/v3/).
+
+Willst du die v3-Dokumentation sehen? Besuche diese [ältere Version der Dokumentseite (nicht gepflegter v3.6 Snapshot)](https://docs-git-v3-docs-unmaintained-astrodotbuild.vercel.app/).
+
+## Astro aktualisieren
+
+Aktualisiere die Astro-Version deines Projekts und alle offiziellen Integrationen mit deinem Paketmanager auf die neuesten Versionen.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # Astro und offiziellen Integrationen zusammen aktualisieren
+  npx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # Astro und offiziellen Integrationen zusammen aktualisieren
+  pnpm dlx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # Astro und offiziellen Integrationen zusammen aktualisieren
+  yarn dlx @astrojs/upgrade
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Du kannst deine Astro-Integrationen auch [manuell aktualisieren](/de/guides/integrations-guide/#manuelle-aktualisierung), falls nötig, und du musst eventuell auch andere Abhängigkeiten in deinem Projekt aktualisieren.
+
+:::note[Muss ich fortfahren?]
+Nachdem du Astro auf die neueste Version aktualisiert hast, musst du vielleicht gar keine Änderungen an deinem Projekt vornehmen!
+
+Wenn du jedoch Fehler oder ein unerwartetes Verhalten feststellst, überprüfe bitte, was sich in deinem Projekt geändert hat und was du eventuell aktualisieren musst.
+:::
+
+Astro v4.0 enthält [potenziell bahnbrechende Änderungen](#bahnbrechende-änderungen) sowie die [Entfernung einiger zuvor veralteter Funktionen](#zuvor-veraltete-funktionen-wurden-nun-entfernt). 
+
+Wenn dein Projekt nach dem Upgrade auf Version 4.0 nicht wie erwartet funktioniert, findest du in diesem Leitfaden einen Überblick über alle wichtigen Änderungen und eine Anleitung, wie du deine Codebasis aktualisieren kannst.
+
+Siehe [das Änderungsprotokoll](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md) für die vollständigen Versionshinweise.
+
+## Astro v4.0 Experimentelle Flaggen wurden entfernt
+
+Entferne das experimentelle Flag `devOverlay` und verschiebe jede `i18n`-Konfiguration auf die oberste Ebene in `astro.config.mjs`.
+
+```js del={5-9} ins={11-14} title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    devOverlay: true,
+    i18n: {
+      locales: ["en", "fr", "pt-br", "es"],
+      defaultLocale: "en",
+    }
+  },
+  i18n: {
+    locales: ["en", "fr", "pt-br", "es"],
+    defaultLocale: "en",
+  },
+})
+```
+
+Diese Konfigurationen, `i18n` und die umbenannte `devToolbar`, sind jetzt in Astro v4.0 verfügbar.
+
+Lies mehr über diese beiden aufregenden Funktionen und mehr in [dem v4.0 Blogbeitrag](https://astro.build/blog/astro-4/)!
+
+## Aktualisierungen
+
+Jede größere Aktualisierung der Astro-Abhängigkeiten kann zu Änderungen in deinem Projekt führen.
+
+### Aktualisiert: Vite 5.0
+
+In Astro v3.0 wurde Vite 4 als Entwicklungsserver und Produktions-Bundler verwendet.
+
+Astro v4.0 führt ein Upgrade von Vite 4 auf Vite 5 durch.
+
+#### Was soll ich machen?
+
+Wenn du Vite-spezifische Plugins, Konfigurationen oder APIs verwendest, solltest du im [Vite-Migrationsleitfaden](https://vite.dev/guide/migration) nachsehen, ob es Änderungen gibt und dein Projekt bei Bedarf aktualisieren. An Astro selbst gibt es keine Änderungen.
+
+### Aktualisiert: unified, remark und rehype-Abhängigkeiten
+
+In Astro v3.x wurden unified v10 und die zugehörigen kompatiblen remark/rehype-Pakete verwendet, um Markdown und MDX zu verarbeiten.
+
+Astro v4.0 aktualisiert [unified auf v11](https://github.com/unifiedjs/unified/releases/tag/11.0.0) und die anderen remark/rehype-Pakete auf die neueste Version.
+
+#### Was soll ich machen?
+
+Wenn du benutzerdefinierte remark/rehype-Pakete verwendet hast, aktualisiere sie alle mit deinem Paketmanager auf die neueste Version, um sicherzustellen, dass sie unified v11 unterstützen. Die von dir verwendeten Pakete findest du in `astro.config.mjs`.
+
+Wenn du aktiv aktualisierte Pakete verwendest, sollte es keine wesentlichen Änderungen geben, aber einige Pakete sind möglicherweise noch nicht mit unified v11 kompatibel.
+
+Überprüfe deine Markdown/MDX-Seiten vor der Bereitstellung visuell, um sicherzustellen, dass deine Website wie vorgesehen funktioniert.
+
+## Bahnbrechende Änderungen
+
+Die folgenden Änderungen gelten als „Breaking Changes“ in Astro. Diese Änderungen können eine vorübergehende Abwärtskompatibilität bieten, müssen es aber nicht. Die gesamte Dokumentation wird aktualisiert und bezieht sich nur auf den aktuellen, unterstützten Code.
+
+Wenn du die Dokumentation für ein v3.x-Projekt benötigst, kannst du diesen [(nicht gepflegten) Snapshot der Dokumentation von vor der Veröffentlichung von v4.0](https://docs-git-v3-docs-unmaintained-astrodotbuild.vercel.app/) durchsuchen.
+
+### Umbenannt: `entrypoint` (Integrations API)
+
+In Astro v3.x hieß die Eigenschaft der `injectRoute`-Integrations-API, die den Einstiegspunkt der Route angab, `entryPoint`.
+
+Astro v4.0 benennt diese Eigenschaft in `entrypoint` um, um mit anderen Astro-APIs konsistent zu sein. Die Eigenschaft `entryPoint` ist veraltet, funktioniert aber weiterhin und gibt eine Warnung aus, die dich auffordert, deinen Code zu aktualisieren.
+
+#### Was soll ich machen?
+
+Wenn du Integrationen hast, die die API `injectRoute` verwenden, benenne die Eigenschaft `entryPoint` in `entrypoint` um. Wenn du als Bibliotheksautor sowohl Astro 3 als auch Astro 4 unterstützen willst, kannst du sowohl `entryPoint` als auch `entrypoint` angeben; in diesem Fall wird keine Warnung protokolliert.
+
+```js ins={4} del={3}
+injectRoute({
+  pattern: '/fancy-dashboard',
+  entryPoint: '@fancy/dashboard/dashboard.astro'
+  entrypoint: '@fancy/dashboard/dashboard.astro'
+});
+```
+
+### Geändert: `app.render` Signatur in der Integrations API
+
+In Astro v3.0 akzeptierte die Methode `app.render()` `routeData` und `locals` als separate, optionale Argumente.
+
+Astro v4.0 ändert die Signatur von `app.render()`. Diese beiden Eigenschaften sind jetzt in einem einzigen Objekt verfügbar. Sowohl das Objekt als auch diese beiden Eigenschaften sind weiterhin optional.
+
+#### Was soll ich machen?
+
+Wenn du einen Adapter wartest, wird die aktuelle Signatur bis zur nächsten Hauptversion weiter funktionieren. Um auf die neue Signatur umzusteigen, übergibst du `routeData` und `locals` als Eigenschaften eines Objekts und nicht als mehrere unabhängige Argumente.
+
+```diff lang="js"
+- app.render(request, routeData, locals)
++ app.render(request, { routeData, locals })
+```
+
+### Geändert: Adapter müssen jetzt unterstützte Funktionen angeben
+
+In Astro v3.x war es nicht erforderlich, dass die Adapter die von ihnen unterstützten Features angeben.
+
+In Astro v4.0 müssen Adapter die Eigenschaft `supportedAstroFeatures{}` übergeben, um eine Liste der von ihnen unterstützten Funktionen anzugeben. Diese Eigenschaft ist nicht mehr optional.
+
+#### Was soll ich machen?
+
+Adapterautoren müssen die Option `supportedAstroFeatures{}` übergeben, um eine Liste der von ihnen unterstützten Funktionen anzugeben.
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          supportedAstroFeatures: {
+              staticOutput: 'stable'
+          }
+        });
+      },
+    },
+  };
+}
+```
+
+### Entfernt: Eigenschaft `path` der Shiki-Sprache
+
+In Astro v3.x wurde eine Shiki-Sprache, die an `markdown.shikiConfig.langs` übergeben wurde, automatisch in eine Shikiji-kompatible Sprache umgewandelt. Shikiji ist das interne Tool, das von Astro für die Syntaxhervorhebung verwendet wird.
+
+In Astro v4.0 wurde die Unterstützung für die Eigenschaft `path` einer Shiki-Sprache entfernt, die bei der Konfiguration verwirrend war. Sie wird durch einen Import ersetzt, der direkt an `langs` übergeben werden kann.
+
+#### Was soll ich machen?
+
+Stattdessen sollte die JSON-Datei der Sprache importiert und an die Option übergeben werden.
+
+```diff lang="js"
+// astro.config.js
++ import customLang from './custom.tmLanguage.json'
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: {
+      langs: [
+-       { path: '../../custom.tmLanguage.json' },
++       customLang,
+      ],
+    },
+  },
+})
+```
+
+## Veraltet
+
+Die folgenden veralteten Funktionen werden nicht mehr unterstützt und sind nicht mehr dokumentiert. Bitte aktualisiere dein Projekt entsprechend.
+
+Einige veraltete Funktionen können vorübergehend weiter funktionieren, bis sie vollständig entfernt werden. Andere haben möglicherweise keine Wirkung mehr oder geben einen Fehler aus, der dich auffordert, deinen Code zu aktualisieren.
+
+### Veraltet: `handleForms` für View Transitions `submit` Ereignisse
+
+In Astro v3.x mussten Projekte, die die Komponente `<ViewTransitions />` verwendeten, die Behandlung von `submit`-Ereignissen für `form`-Elemente aktivieren. Dies geschah durch die Übergabe des Parameters `handleForms`.
+
+Astro v4.0 behandelt standardmäßig `submit`-Ereignisse für `form`-Elemente, wenn `<ViewTransitions />` verwendet werden. Der Prop `handleForms` ist veraltet und hat keine Wirkung mehr.
+
+#### Was soll ich machen?
+
+Entferne die Eigenschaft `handleForms` aus deiner Komponente `ViewTransitions`. Sie ist nicht mehr notwendig.
+
+```astro title="src/pages/index.astro" del="handleForms"
+---
+import { ViewTransitions } from "astro:transitions";
+---
+<html>
+  <head>
+    <ViewTransitions handleForms />
+  </head>
+  <body>
+    <!-- stuff here -->
+  </body>
+</html>
+```
+
+Um die Behandlung des `submit`-Ereignisses zu deaktivieren, füge das Attribut `data-astro-reload` zu den entsprechenden `form`-Elementen hinzu.
+
+```astro title="src/components/Form.astro" ins="data-astro-reload"
+<form action="/contact" data-astro-reload>
+  <!-- -->
+</form>
+```
+
+## Zuvor veraltete Funktionen wurden nun entfernt
+
+Die folgenden veralteten Funktionen wurden nun vollständig aus dem Code entfernt und können nicht mehr verwendet werden. Einige dieser Funktionen können in deinem Projekt auch nach der Ausmusterung noch funktionieren. Andere haben möglicherweise keine Wirkung mehr gezeigt.
+
+Projekte, die diese entfernten Funktionen enthalten, können nicht mehr gebaut werden, und es gibt keine unterstützende Dokumentation mehr, die dich auffordert, diese Funktionen zu entfernen.
+
+### Entfernt: Rückgabe einfacher Objekte von Endpunkten
+
+In Astro v3.x wurde die Rückgabe von einfachen Objekten von Endpunkten veraltet, wurde aber weiterhin unterstützt, um die Kompatibilität mit Astro v2 aufrechtzuerhalten. Ein `ResponseWithEncoding`-Dienstprogramm wurde ebenfalls bereitgestellt, um die Migration zu erleichtern.
+
+Astro v4.0 entfernt die Unterstützung für einfache Objekte und verlangt von den Endpunkten, dass sie immer eine `Response` zurückgeben. Auch das Dienstprogramm `ResponseWithEncoding` wurde zugunsten eines eigenen `Response`-Typs entfernt.
+
+#### Was soll ich machen?
+
+Aktualisiere deine Endpunkte so, dass sie direkt ein `Response`-Objekt zurückgeben.
+
+```diff lang="ts"
+  export async function GET() {
+-   return { body: { "title": "Bob's blog" }};
++   return new Response(JSON.stringify({ "title": "Bob's blog" }));
+  }
+```
+
+Um die Verwendung von `ResponseWithEncoding` zu vermeiden, überarbeite deinen Code, um stattdessen einen `ArrayBuffer` zu verwenden:
+
+```diff lang="ts"
+  export async function GET() {
+    const file = await fs.readFile('./bob.png');
+-   return new ResponseWithEncoding(file.toString('binary'), undefined, 'binary');
++   return new Response(file.buffer);
+  }
+```
+
+### Entfernt: `build.split` und `build.excludeMiddleware`
+
+In Astro v3.0 wurden die Build-Konfigurationsoptionen `build.split` und `build.excludeMiddleware` veraltet und durch [Adapter-Konfigurationsoptionen](/de/reference/adapter-reference/#adapter-features) ersetzt, die die gleichen Aufgaben erfüllen.
+
+Mit Astro v4.0 werden diese Eigenschaften vollständig entfernt.
+
+#### Was soll ich machen?
+
+Wenn du die veralteten `build.split` oder `build.excludeMiddleware` verwendest, musst du sie jetzt entfernen, da sie nicht mehr existieren.
+
+Bitte sieh dir den v3 Migrationsleitfaden zum [Aktualisieren dieser veralteten Middleware-Eigenschaften](/de/guides/upgrade-to/v3/#veraltet-buildexcludemiddleware-und-buildsplit) mit Adapterkonfigurationen an.
+
+### Entfernt: `Astro.request.params`
+
+In Astro v3.0 wurde die API `Astro.request.params` veraltet, aber aus Gründen der Abwärtskompatibilität beibehalten.
+
+Mit Astro v4.0 wird diese Option komplett entfernt.
+
+#### Was soll ich machen?
+
+Aktualisiere alle Vorkommen auf [`Astro.params`](/de/reference/api-reference/#params), was die unterstützte Ersetzung ist.
+
+```astro del={1} ins={2}
+const { id } = Astro.request.params;
+const { id } = Astro.params;
+```
+
+### Entfernt: `markdown.drafts`
+
+In Astro v3.0 wurde die Verwendung von `markdown.drafts` zur Steuerung der Erstellung von Beitragsentwürfen veraltet.
+
+Mit Astro v4.0 wurde diese Option komplett entfernt.
+
+#### Was soll ich machen?
+
+Wenn du die veraltete Version `markdown.drafts` verwendest, musst du sie jetzt entfernen, da sie nicht mehr existiert.
+
+Um einige Seiten in deinem Projekt weiterhin als Entwürfe zu kennzeichnen, [migriere zu Inhaltssammlungen](/de/guides/content-collections/) und filtere stattdessen manuell Seiten mit der Frontmatter-Eigenschaft `draft: true` heraus.
+
+### Entfernt: `getHeaders()`
+
+In Astro v3.0 wurde der Markdown-Export `getHeaders()` veraltet und durch `getHeadings()` ersetzt.
+
+Mit Astro v4.0 wurde diese Option komplett entfernt.
+
+#### Was soll ich machen?
+
+Wenn du das veraltete `getHeaders()` verwendest, musst du es jetzt entfernen, da es nicht mehr existiert. Ersetze alle Instanzen durch `getHeaders()`, das ist der unterstützte Ersatz.
+
+```js del={2} ins={3}
+const posts = await Astro.glob('../content/blog/*.mdx');
+const firstPostHeadings = posts.at(0).getHeaders();
+const firstPostHeadings = posts.at(0).getHeadings();
+```
+
+### Entfernt: Verwendung von `rss` in `getStaticPaths()`
+
+In Astro v3.0 führte die Verwendung des veralteten Hilfsmittels `rss` in `getStaticPaths()` zu einem Fehler.
+
+Mit Astro v4.0 wurde diese Option komplett entfernt.
+
+#### Was soll ich machen?
+
+Wenn du die nicht unterstützte Methode zur Erzeugung von RSS-Feeds verwendest, musst du jetzt die [`@astrojs/rss`-Integration](/de/recipes/rss/) für eine vollständige RSS-Einrichtung verwenden.
+
+### Entfernt: Kleinschreibung von HTTP-Methodennamen
+
+In Astro v3.0 wurde die Verwendung von klein geschriebenen Namen für HTTP-Anforderungsmethoden (`get`, `post`, `put`, `all`, `del`) veraltet.
+
+Astro v4.0 entfernt die Unterstützung für Kleinbuchstaben komplett. Alle HTTP-Anforderungsmethoden müssen jetzt in Großbuchstaben geschrieben werden.
+
+#### Was soll ich machen?
+
+Wenn du die veralteten Namen in Kleinbuchstaben verwendest, musst du sie jetzt durch ihre Entsprechungen in Großbuchstaben ersetzen.
+
+Bitte beachte den v3-Migrationsleitfaden [für Anleitungen zur Verwendung von HTTP-Anforderungsmethoden in Großbuchstaben](/de/guides/upgrade-to/v3/#geändert-groß--und-kleinschreibung-der-http-anforderungsmethoden).
+
+### Entfernt: 301-Weiterleitungen, wenn ein `base`-Präfix fehlt
+
+In Astro v3.x gab der Astro-Vorschauserver eine 301-Weiterleitung zurück, wenn auf öffentliche Verzeichnis-Assets ohne Basispfad zugegriffen wurde.
+
+Astro v4.0 gibt einen 404-Status ohne Basispfad-Präfix für öffentliche Verzeichnis-Assets zurück, wenn der Preview-Server läuft, was dem Verhalten des Dev-Servers entspricht.
+
+#### Was soll ich machen?
+
+Wenn du den Astro-Vorschau-Server verwendest, müssen alle statischen Asset-Importe und URLs aus dem öffentlichen Verzeichnis [den Basiswert](/de/reference/configuration-reference/#base) vor dem Pfad haben.
+
+Das folgende Beispiel zeigt das Attribut `src`, das benötigt wird, um ein Bild aus dem öffentlichen Ordner anzuzeigen, wenn `base: '/docs'` konfiguriert ist:
+
+```astro title="src/pages/index.astro" ins="/docs"
+// Um auf public/images/my-image.png zuzugreifen:
+
+<img src="/docs/images/my-image.png" alt="">
+```
+
+### Entfernt: `astro/client-image` automatische Konvertierung
+
+In Astro v3.x wurde der Typ `astro/client-image` (der für die veraltete Bildintegration verwendet wurde) entfernt, aber automatisch in den Standard-Astro-Typ `astro/client` konvertiert, wenn er in deiner `env.d.ts`-Datei gefunden wurde.
+
+Astro v4.0 ignoriert `astro/client-image` und aktualisiert die Datei `env.d.ts` nicht mehr automatisch für dich.
+
+#### Was soll ich machen?
+
+Wenn du Typen für `@astrojs/image` in `src/env.d.ts` konfiguriert hattest und das Upgrade auf v3.0 den Typ nicht automatisch für dich konvertiert hat, ersetze den Typ `astro/client-image` manuell durch `astro/client`.
+
+```ts title="src/env.d.ts" del={1} ins={2}
+  /// <reference types="astro/client-image" />
+  /// <reference types="astro/client" />
+```
+
+## Ressourcen der Community
+
+Kennst du eine gute Quelle für Astro v4.0? [Bearbeiten Sie diese Seite](https://github.com/withastro/docs/edit/main/src/content/docs/en/guides/upgrade-to/v4.mdx) und fügen Sie einen Link hinzu!
+
+## Bekannte Probleme
+
+Bitte prüfe [Astros Probleme auf GitHub](https://github.com/withastro/astro/issues/) auf gemeldete Probleme, oder melde selbst ein Problem.
