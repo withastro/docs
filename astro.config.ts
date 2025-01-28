@@ -22,7 +22,7 @@ export default defineConfig({
 	site,
 	integrations: [
 		devServerFileWatcher([
-			'./config/*', // Custom plugins and integrations
+			'./config/**', // Custom plugins and integrations
 			'./astro.sidebar.ts', // Sidebar configuration file
 			'./src/content/nav/*.ts', // Sidebar labels
 		]),
