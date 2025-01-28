@@ -1,7 +1,9 @@
 import starlightLlmsTxt from 'starlight-llms-txt';
 
-export default () =>
+/** Starlight plugin that sets up `starlight-llms-txt` with configuration for the Astro docs. */
+export const starlightPluginLlmsTxt = () =>
 	starlightLlmsTxt({
+		// Basic information about the docs and Astro to display in the main `llms.txt` entry file.
 		projectName: 'Astro',
 		description: 'Astro is an all-in-one web framework for building websites. ',
 		details: [
@@ -18,6 +20,8 @@ export default () =>
 				description: 'the latest news about Astro development',
 			},
 		],
+
+		// Control the order of pages in the `llms-full.txt` and `llms-small.txt` output files.
 		promote: [
 			'en/concepts/why-astro',
 			'en/concepts/islands',
@@ -26,6 +30,8 @@ export default () =>
 			'en/develop-and-build',
 			'en/guides/configuring-astro',
 		],
+
+		// Exclude pages from the abridged `llms-small.txt` file designed for smaller context windows.
 		exclude: [
 			'en/getting-started',
 			'en/contribute',
