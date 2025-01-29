@@ -172,7 +172,6 @@ export const sidebar = [
 					'guides/integrations-guide/mdx',
 					'guides/integrations-guide/partytown',
 					'guides/integrations-guide/sitemap',
-					'guides/integrations-guide/tailwind',
 				],
 			}),
 			'reference/publish-to-npm',
