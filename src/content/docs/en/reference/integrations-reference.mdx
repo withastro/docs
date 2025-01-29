@@ -39,17 +39,16 @@ interface AstroIntegration {
       createCodegenDir: () => URL;
       logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
+    'astro:routes:resolved'?: (options: {
+      routes: IntegrationResolvedRoute[];
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
     'astro:config:done'?: (options: {
       config: AstroConfig;
       setAdapter: (adapter: AstroAdapter) => void;
       injectTypes: (injectedType: InjectedType) => URL;
       logger: AstroIntegrationLogger;
       buildOutput: 'static' | 'server';
-      }) => void | Promise<void>;
-    'astro:route:setup'?: (options: { route: RouteOptions; logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:routes:resolved'?: (options: {
-      routes: IntegrationResolvedRoute[];
-      logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
     'astro:server:setup'?: (options: {
       server: vite.ViteDevServer;
@@ -57,9 +56,16 @@ interface AstroIntegration {
       toolbar: ReturnType<typeof getToolbarServerCommunicationHelpers>;
       refreshContent?: (options: RefreshContentOptions) => Promise<void>;
     }) => void | Promise<void>;
-    'astro:server:start'?: (options: { address: AddressInfo; logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:server:done'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:build:start'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:server:start'?: (options: {
+      address: AddressInfo;
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:server:done'?: (options: {
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:build:start'?: (options: {
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
     'astro:build:setup'?: (options: {
       vite: vite.InlineConfig;
       pages: Map<string, PageBuildData>;
@@ -67,12 +73,15 @@ interface AstroIntegration {
       updateConfig: (newConfig: vite.InlineConfig) => void;
       logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
-    'astro:build:generated'?: (options: { dir: URL; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:build:generated'?: (options: {
+      dir: URL;
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
     'astro:build:ssr'?: (options: {
-        manifest: SerializedSSRManifest;
-        entryPoints: Map<IntegrationRouteData, URL>;
-        middlewareEntryPoint: URL | undefined;
-        logger: AstroIntegrationLogger;
+      manifest: SerializedSSRManifest;
+      entryPoints: Map<IntegrationRouteData, URL>;
+      middlewareEntryPoint: URL | undefined;
+      logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
     'astro:build:done'?: (options: {
       pages: { pathname: string }[];
@@ -80,6 +89,10 @@ interface AstroIntegration {
       /** @deprecated Use the `assets` map and the new `astro:routes:resolved` hook */
       routes: IntegrationRouteData[];
       assets: Map<string, URL[]>;
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:route:setup'?: (options: {
+      route: RouteOptions;
       logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
 
@@ -799,7 +812,10 @@ The loader can then access the `refreshContextData` property to get the webhook 
 **Why:** To intercept network requests at the specified address. If you intend to use this address for middleware, consider using `astro:server:setup` instead.
 
 ```js
-'astro:server:start'?: (options: { address: AddressInfo }) => void | Promise<void>;
+'astro:server:start'?: (options: {
+  address: AddressInfo;
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
 ```
 
 #### `address` option
@@ -817,7 +833,9 @@ The address, family and port number supplied by the [Node.js Net module](https:/
 **Why:** To run any cleanup events you may trigger during the `astro:server:setup` or `astro:server:start` hooks.
 
 ```js
-'astro:server:done'?: () => void | Promise<void>;
+'astro:server:done'?: (options: {
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
 ```
 
 ### `astro:build:start`
@@ -831,7 +849,9 @@ The address, family and port number supplied by the [Node.js Net module](https:/
 **Why:** To set up any global objects or clients needed during a production build. This can also extend the build configuration options in the [adapter API](/en/reference/adapter-reference/).
 
 ```js
-'astro:build:start'?: () => void | Promise<void>;
+'astro:build:start'?: (options: {
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
 ```
 
 ### `astro:build:setup`
@@ -864,7 +884,10 @@ The address, family and port number supplied by the [Node.js Net module](https:/
 **Why:** To access generated routes and assets **before** build artifacts are cleaned up. This is a very uncommon use case. We recommend using [`astro:build:done`](#astrobuilddone) unless you really need to access the generated files before cleanup.
 
 ```js
-'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
+'astro:build:generated'?: (options: {
+  dir: URL;
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
 ```
 
 ### `astro:build:ssr`
@@ -879,9 +902,10 @@ The address, family and port number supplied by the [Node.js Net module](https:/
 
 ```js
 'astro:build:ssr'?: (options: {
-    manifest: SerializedSSRManifest,
-    entryPoints: Map<IntegrationRouteData, URL>,
-    middlewareEntryPoint: URL | undefined;
+  manifest: SerializedSSRManifest;
+  entryPoints: Map<IntegrationRouteData, URL>;
+  middlewareEntryPoint: URL | undefined;
+  logger: AstroIntegrationLogger;
 }) => void | Promise<void>;
 ```
 
@@ -1046,7 +1070,10 @@ A list of all generated pages. It is an object with one property.
 **Why:** To set options for a route at build or request time, such as enabling [on-demand server rendering](/en/guides/on-demand-rendering/#enabling-on-demand-rendering).
 
 ```js
-'astro:route:setup'?: (options: { route: RouteOptions }) => void | Promise<void>;
+'astro:route:setup'?: (options: {
+  route: RouteOptions;
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
 ```
 
 #### `route` option
