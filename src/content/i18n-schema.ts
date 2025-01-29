@@ -69,6 +69,8 @@ export const AstroDocsI18nSchema = z
 		'starlight.description': z.string(),
 		// `<StudioHeading>` component
 		'studioHeading.label': z.string(),
+		// Upgrade guide
+		'upgrade.implementationPR': z.string(),
 
 		// DocSearch component strings
 		// These two keys are Astro Docs-specific and apply to the search box in the header.
