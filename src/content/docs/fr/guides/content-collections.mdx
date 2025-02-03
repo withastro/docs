@@ -23,7 +23,7 @@ Les projets peuvent continuer à utiliser l'API de collections de contenu hérit
 
 Vous pouvez définir une **collection** à partir d'un ensemble de données structurellement similaires. Il peut s'agir d'un répertoire d'articles de blog, d'un fichier JSON de produits ou de toute donnée représentant plusieurs éléments de la même forme.
 
-Les collections stockées localement dans votre projet ou sur votre système de fichiers peuvent contenir des entrées de fichiers Markdown, MDX, Markdoc ou JSON :
+Les collections stockées localement dans votre projet ou sur votre système de fichiers peuvent contenir des entrées de fichiers Markdown, MDX, Markdoc, YAML ou JSON :
 
 <FileTree>
 - src/
@@ -83,11 +83,11 @@ L'API Content Layer vous permet de récupérer votre contenu (qu'il soit stocké
 
 #### Chargeurs intégrés
 
-Astro fournit deux fonctions de chargement intégrées (`glob()` et `file()`) pour récupérer votre contenu local, ainsi qu'un accès à l'API pour construire votre propre chargeur et récupérer des données distantes.
+Astro fournit [deux fonctions de chargement intégrées](/fr/reference/content-loader-reference/#types-de-chargeurs) (`glob()` et `file()`) pour récupérer votre contenu local, ainsi qu'un accès à l'API pour construire votre propre chargeur et récupérer des données distantes.
 
-Le chargeur `glob()` crée des entrées à partir de répertoires de fichiers Markdown, MDX, Markdoc ou JSON à partir de n'importe quel endroit du système de fichiers. Il accepte un `pattern` de fichiers d'entrée à faire correspondre et un chemin de fichier `base` indiquant où se trouvent vos fichiers. L'`id` de chaque entrée sera automatiquement généré à partir de son nom de fichier. Utilisez ce chargeur lorsque vous avez un fichier par entrée.
+Le [chargeur `glob()`](/fr/reference/content-loader-reference/#le-chargeur-glob) crée des entrées à partir de répertoires de fichiers Markdown, MDX, Markdoc, JSON, ou YAML à partir de n'importe quel endroit du système de fichiers. Il accepte un `pattern` de fichiers d'entrée à faire correspondre à l'aide de modèles glob pris en charge par [micromatch](https://github.com/micromatch/micromatch#matching-features) et un chemin de fichier `base` indiquant où se trouvent vos fichiers. L'`id` de chaque entrée sera automatiquement généré à partir de son nom de fichier. Utilisez ce chargeur lorsque vous avez un fichier par entrée.
 
-Le chargeur `file()` crée plusieurs entrées à partir d'un seul fichier local. Chaque entrée du fichier doit avoir une propriété de clé `id` unique. Il accepte un chemin de fichier `base` vers votre fichier et éventuellement une [fonction `parser`](#fonction-parser) pour les fichiers de données qu'il ne peut pas analyser automatiquement. Utilisez ce chargeur lorsque votre fichier de données peut être analysé comme un tableau d'objets.
+Le [chargeur `file()`](/fr/reference/content-loader-reference/#le-chargeur-file) crée plusieurs entrées à partir d'un seul fichier local. Chaque entrée du fichier doit avoir une propriété de clé `id` unique. Il accepte un chemin de fichier `base` vers votre fichier et éventuellement une [fonction `parser`](#fonction-parser) pour les fichiers de données qu'il ne peut pas analyser automatiquement. Utilisez ce chargeur lorsque votre fichier de données peut être analysé comme un tableau d'objets.
 
 ```ts  title="src/content.config.ts" {5,9}
 import { defineCollection, z } from 'astro:content';
@@ -402,13 +402,17 @@ const posts = await getCollection('blog');
 ```
 #### Restitution du contenu
 
-Une fois la requête effectuée, vous pouvez restituer les entrées Markdown et MDX en HTML à l'aide de la propriété de fonction `render()`. L'appel de cette fonction vous donne accès au contenu HTML restitué, y compris à la fois un composant `<Content />` et une liste de tous les titres restitués.
+Une fois la requête effectuée, vous pouvez restituer les entrées Markdown et MDX en HTML à l'aide de la propriété de fonction [`render()`](/fr/reference/modules/astro-content/#render). L'appel de cette fonction vous donne accès au contenu HTML restitué, y compris à la fois un composant `<Content />` et une liste de tous les titres restitués.
 
 ```astro title="src/pages/blog/post-1.astro" {5,8}
 ---
 import { getEntry, render } from 'astro:content';
 
 const entry = await getEntry('blog', 'post-1');
+if (!entry) {
+  // Traiter l'erreur, par exemple :
+  throw new Error('Could not find blog post 1');
+}
 const { Content, headings } = await render(entry);
 ---
 <p>Publié le : {entry.data.published.toDateString()}</p>
@@ -587,6 +591,6 @@ Les collections offrent une excellente structure, sécurité et organisation lor
 Les collections **ne sont peut-être pas votre solution** si :
 
 - Vous n'avez qu'une seule page ou un petit nombre de pages différentes. Envisagez plutôt de [créer des composants de page individuels](/fr/basics/astro-pages/) tels que `src/pages/about.astro` directement avec votre contenu.
-- Vos données ne sont pas stockées dans un format pris en charge, tel que TOML. Utilisez plutôt d'autres méthodes d'[importation de fichiers](/fr/guides/imports/#déclarations-dimportation) ou de [récupération de données](/fr/guides/data-fetching/).
 - Vous affichez des fichiers qui ne sont pas traités par Astro, comme des fichiers PDF. Placez plutôt ces ressources statiques dans le [répertoire `public/`](/fr/basics/project-structure/#public) de votre projet.
-- Vous utilisez des API qui doivent être mises à jour en temps réel. Les collections de contenu ne sont mises à jour qu'au moment de la création. Par conséquent, si vous avez besoin de données en direct, vous devez envisager [le rendu à la demande](/fr/guides/on-demand-rendering/).
+- Votre source de données possède sa propre bibliothèque SDK/client pour les importations qui est incompatible avec ou n'offre pas de chargeur de contenu et vous préférez l'utiliser directement.
+- Vous utilisez des API qui doivent être mises à jour en temps réel. Les collections de contenu ne sont mises à jour qu'au moment de la création. Par conséquent, si vous avez besoin de données en direct, utilisez d'autres méthodes d'[importation de fichiers](/fr/guides/imports/#déclarations-dimportation) ou de [récupération de données](/fr/guides/data-fetching/) avec le [rendu à la demande](/fr/guides/on-demand-rendering/).

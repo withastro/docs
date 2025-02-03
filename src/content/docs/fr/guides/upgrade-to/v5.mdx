@@ -94,9 +94,11 @@ Les fonctionnalités suivantes sont désormais considérées comme des fonctionn
 
 ### Héritage : API des Collections de Contenu v2.0
 
-Dans Astro 4.x, les collections de contenu étaient définies, interrogées et rendues en utilisant l'[API des Collections de Contenu introduite pour la première fois dans Astro v2.0](https://astro.build/blog/introducing-content-collections/).
+Dans Astro 4.x, les collections de contenu étaient définies, interrogées et rendues en utilisant l'[API des Collections de Contenu introduite pour la première fois dans Astro v2.0](https://astro.build/blog/introducing-content-collections/). Toutes les entrées de la collection étaient des fichiers locaux dans le dossier réservé `src/content/`. De plus, la [convention de nom de fichier d'Astro visant à exclure la création de pages individuelles](/fr/guides/routing/#exclure-des-pages) a été intégrée à l'API des collections de contenu.
 
 Astro 5.0 introduit une nouvelle version des collections de contenu utilisant l'API Content Layer qui apporte plusieurs améliorations de performance et des capacités supplémentaires. Bien que les anciennes collections (héritées) et les nouvelles (API Content Layer) puissent continuer à coexister dans cette version, il y a potentiellement des changements incompatibles pour les collections héritées existantes.
+
+Cette version supprime également l'option permettant de préfixer les noms de fichiers d'entrée de collection avec un trait de soulignement (`_`) pour empêcher la création d'une route.
 
 #### Que dois-je faire ?
 
@@ -117,9 +119,9 @@ Voir les instructions ci-dessous pour mettre à jour une collection de contenu e
 
 <Steps>
 
-1. **Déplacer le fichier de configuration du contenu**. Ce fichier ne se trouve plus dans le dossier `src/content/`. Ce fichier devrait maintenant exister dans `src/content.config.ts`.
+1. **Déplacez le fichier de configuration du contenu**. Ce fichier ne se trouve plus dans le dossier `src/content/`. Ce fichier devrait maintenant exister dans `src/content.config.ts`.
 
-2. **Éditez la définition de la collection**. Votre collection mise à jour nécessite un `loader`, et l'option pour sélectionner un `type` de collection n'est plus disponible.
+2. **Éditez la définition de la collection**. Votre collection mise à jour nécessite un `loader`, qui indique à la fois un dossier pour l'emplacement de votre collection (`base`) et un `pattern` (motif) définissant les noms de fichiers et les extensions des entrées de la collection à faire correspondre. (Vous devrez peut-être mettre à jour l'exemple ci-dessous en conséquence. Vous pouvez utiliser [globster.xyz](https://globster.xyz/) pour vérifier votre motif global). L'option pour sélectionner un `type` de collection n'est plus disponible.
 
     ```ts ins={3,8} del={7}
     // src/content.config.ts
@@ -129,7 +131,7 @@ Voir les instructions ci-dessous pour mettre à jour une collection de contenu e
     const blog = defineCollection({
       // Pour les couches de contenu, vous ne définissez plus de `type`.
       type: 'content',
-      loader: glob({ pattern: '**/[^_]*.md', base: "./src/data/blog" }),
+      loader: glob({ pattern: '**/[^_]*.{md,mdx}', base: "./src/data/blog" }),
       schema: z.object({
         title: z.string(),
         description: z.string(),
@@ -139,21 +141,22 @@ Voir les instructions ci-dessous pour mettre à jour une collection de contenu e
     });
     ```
 
-3. **Changer les références de `slug` à `id`**. Les collections de couches de contenu n'ont pas de champ `slug` réservé. À la place, toutes les collections mises à jour auront un `id`. Vous pouvez également avoir besoin de mettre à jour les noms des fichiers de routage dynamique pour correspondre à un paramètre getStaticPaths() modifié :
+3. **Changez les références de `slug` à `id`**. Les collections de couches de contenu n'ont pas de champ `slug` réservé. À la place, toutes les collections mises à jour auront un `id` :
 
     ```astro ins={7} del={6}
-    // src/pages/[id].astro
+    // src/pages/[slug].astro
     ---
     export async function getStaticPaths() {
       const posts = await getCollection('blog');
       return posts.map((post) => ({
         params: { slug: post.slug },
-        params: { id: post.id },
+        params: { slug: post.id },
         props: post,
       }));
     }
     ---
     ```
+    Vous pouvez également mettre à jour les noms de fichiers de routage dynamique pour qu'ils correspondent à la valeur du paramètre `getStaticPaths()` modifié.
 
 4. **Basculez vers la nouvelle fonction `render()`**. Les entrées n'ont plus de méthode `render()`, car elles sont maintenant des objets simples sérialisables. À la place, importez la fonction `render()` de `astro:content`.
 

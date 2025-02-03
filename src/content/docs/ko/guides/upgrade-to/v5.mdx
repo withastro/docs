@@ -94,9 +94,11 @@ import mdxRenderer from "@astrojs/mdx/server.js";
 
 ### 레거시: v2.0 콘텐츠 컬렉션 API
 
-Astro 4.x에서는 [Astro v2.0에서 처음 도입된 콘텐츠 컬렉션 API](https://astro.build/blog/introducing-content-collections/)를 사용하여 콘텐츠 컬렉션을 정의, 쿼리 및 렌더링했습니다.
+Astro 4.x에서는 [Astro v2.0에서 처음 도입된 콘텐츠 컬렉션 API](https://astro.build/blog/introducing-content-collections/)를 사용하여 콘텐츠 컬렉션을 정의, 쿼리 및 렌더링했습니다. 모든 컬렉션 항목은 예약된 `src/content/` 폴더의 로컬 파일입니다. 또한 Astro의 [개별 페이지 작성을 제외하기 위한 파일 이름 규칙](/ko/guides/routing/#페이지-제외)이 콘텐츠 컬렉션 API에 내장되어 있습니다.
 
 Astro 5.0은 여러 성능 향상과 추가 기능을 제공하는 콘텐츠 레이어 API를 사용하는 새로운 버전의 콘텐츠 컬렉션을 도입합니다. 이번 릴리스에서는 이전(레거시) 컬렉션과 새로운(콘텐츠 레이어 API) 컬렉션이 함께 존재할 수 있지만, 기존 레거시 컬렉션에 잠재적인 주요 변경 사항이 있을 수 있습니다.
+
+또한 이번 릴리스에서는 라우트 구축을 방지하기 위해 컬렉션 항목 파일 이름 앞에 밑줄(`_`)을 붙이는 옵션이 제거되었습니다.
 
 #### 무엇을 해야 하나요?
 
@@ -119,7 +121,7 @@ Astro 5.0은 여러 성능 향상과 추가 기능을 제공하는 콘텐츠 레
 
 1. **콘텐츠 설정 파일 이동하기**. 이 파일은 더 이상 `src/content/` 폴더에 있지 않습니다. 이제 이 파일은 `src/content.config.ts`에 위치해야 합니다.
 
-2. **컬렉션 정의 수정하기**. 업데이트된 컬렉션에는 `loader`가 필요하며, 컬렉션 `type`을 선택하는 옵션은 더 이상 사용할 수 없습니다.
+2. **컬렉션 정의 수정하기**. 업데이트된 컬렉션은 `loader`가 필요하며, 이는 컬렉션이 위치한 폴더인 `base`와 컬렉션 항목 파일들의 이름과 확장자를 매칭할 `pattern`을 지정합니다. (아래 예시를 상황에 맞게 수정해야 할 수 있습니다. [globster.xyz](https://globster.xyz/)에서 glob 패턴을 테스트해볼 수 있습니다.) 컬렉션을 선택하기 위한 `type` 옵션은 더 이상 제공되지 않습니다.
 
     ```ts ins={3,8} del={7}
     // src/content.config.ts
@@ -129,7 +131,7 @@ Astro 5.0은 여러 성능 향상과 추가 기능을 제공하는 콘텐츠 레
     const blog = defineCollection({
       // 콘텐츠 레이어에서는 더 이상 `type`을 정의하지 않습니다
       type: 'content',
-      loader: glob({ pattern: '**/[^_]*.md', base: "./src/data/blog" }),
+      loader: glob({ pattern: '**/[^_]*.{md,mdx}', base: "./src/data/blog" }),
       schema: z.object({
         title: z.string(),
         description: z.string(),
@@ -139,21 +141,22 @@ Astro 5.0은 여러 성능 향상과 추가 기능을 제공하는 콘텐츠 레
     });
     ```
     
-3. **`slug`를 `id`로 참조 변경하기**. 콘텐츠 레이어 컬렉션에는 예약된 `slug` 필드가 없습니다. 대신, 모든 업데이트된 컬렉션은 `id`를 가지게 됩니다. 변경된 getStaticPaths() 매개변수와 일치하도록 동적 라우팅 파일 이름도 업데이트해야 할 수 있습니다:
+3. **`slug`를 `id`로 참조 변경하기**. 콘텐츠 레이어 컬렉션에는 예약된 `slug` 필드가 없습니다. 대신, 모든 업데이트된 컬렉션은 `id`를 가지게 됩니다:
 
     ```astro ins={7} del={6}
-    // src/pages/[id].astro
+    // src/pages/[slug].astro
     ---
     export async function getStaticPaths() {
       const posts = await getCollection('blog');
       return posts.map((post) => ({
         params: { slug: post.slug },
-        params: { id: post.id },
+        params: { slug: post.id },
         props: post,
       }));
     }
     ---
     ```
+    변경된 `getStaticPaths()` 매개변수와 일치하도록 동적 라우팅 파일 이름도 업데이트 할 수 있습니다
 
 4. **새로운 `render()` 함수로 전환하기**. 이제 항목들이 직렬화 가능한 일반 객체이므로 더 이상 `render()` 메서드를 가지지 않습니다. 대신, `astro:content`에서 `render()` 함수를 가져와야 합니다.
 

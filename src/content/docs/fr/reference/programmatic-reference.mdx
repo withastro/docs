@@ -1,0 +1,249 @@
+---
+title: API programmatique d'Astro (expérimentale)
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+
+Si vous avez besoin de plus de contrôle lors de l'exécution d'Astro, le paquet `"astro"` exporte des API pour exécuter par programmation les commandes CLI.
+
+Ces API sont expérimentales et leur signature API peut changer. Toutes les mises à jour seront mentionnées dans le [journal des modifications d'Astro](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md) et les informations ci-dessous afficheront toujours les informations actuelles et à jour.
+
+## `AstroInlineConfig`
+
+Le type `AstroInlineConfig` est utilisé par toutes les API de commande ci-dessous. Il s'étend à partir du type de [configuration Astro](/fr/reference/configuration-reference/) de l'utilisateur :
+
+```ts
+interface AstroInlineConfig extends AstroUserConfig {
+	configFile?: string | false;
+	mode?: string;
+	logLevel?: "debug" | "info" | "warn" | "error" | "silent";
+}
+```
+
+### `configFile`
+
+<p>
+
+**Type :** `string | false`<br />
+**Par défaut :** `undefined`
+</p>
+
+Un chemin personnalisé vers le fichier de configuration Astro.
+
+Si cette valeur est indéfinie (par défaut) ou non définie, Astro recherchera un fichier `astro.config.(js,mjs,ts,mts)` par rapport à la racine (`root`) et chargera le fichier de configuration s'il est trouvé.
+
+Si un chemin relatif est défini, il sera résolu en fonction de l'option `root`.
+
+Définissez la valeur sur `false` pour désactiver le chargement des fichiers de configuration.
+
+La configuration en ligne transmise dans cet objet aura la priorité la plus élevée lors de la fusion avec la configuration utilisateur chargée.
+
+### `mode`
+
+<p>
+
+**Type :** `string`<br />
+**Par défaut :** `"development"` lors de l'exécution de `astro dev`, `"production"` lors de l'exécution de `astro build`<br />
+<Since v="5.0.0" />
+</p>
+
+Le mode utilisé lors du développement ou de la construction de votre site (par exemple `"production"`, `"test"`).
+
+Cette valeur est transmise à Vite à l'aide de [l'option `--mode`](/fr/reference/cli-reference/#--mode-string) lorsque les commandes `astro build` ou `astro dev` sont exécutées pour déterminer la valeur de `import.meta.env.MODE`. Cela détermine également quels fichiers `.env` sont chargés, et donc les valeurs de `astro:env`. Consultez la [page des variables d'environnement](/fr/guides/environment-variables/) pour plus de détails.
+
+Pour générer une version basée sur le développement, vous pouvez exécuter `astro build` avec l'[option `--devOutput`](/fr/reference/cli-reference/#--devoutput).
+
+### `logLevel`
+
+<p>
+
+**Type :** `"debug" | "info" | "warn" | "error" | "silent"`<br />
+**Par défaut :** `"info"`
+</p>
+
+Le niveau de journalisation pour filtrer les messages enregistrés par Astro.
+
+- `"debug"` : Enregistrer tout, y compris les diagnostics de débogage bruyants.
+- `"info"` : Enregistrer les messages d'information, les avertissements et les erreurs.
+- `"warn"` : Enregistrer les avertissements et les erreurs.
+- `"error"` : Enregistrer uniquement les erreurs.
+- `"silent"` : Aucune journalisation.
+
+## `dev()`
+
+<p>
+
+**Type :** `(inlineConfig: AstroInlineConfig) => Promise<DevServer>`
+</p>
+
+Similaire à [`astro dev`](/fr/reference/cli-reference/#astro-dev), il exécute le serveur de développement d'Astro.
+
+```js
+import { dev } from "astro";
+
+const devServer = await dev({
+  root: "./my-project",
+});
+
+// Arrête le serveur si nécessaire
+await devServer.stop();
+```
+
+### `DevServer`
+
+```ts
+export interface DevServer {
+	address: AddressInfo;
+	handle: (req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>) => void;
+	watcher: vite.FSWatcher;
+	stop(): Promise<void>;
+}
+```
+
+#### `address`
+
+<p>
+
+**Type :** `AddressInfo`
+</p>
+
+L'adresse sur laquelle le serveur de développement écoute.
+
+Cette propriété contient la valeur renvoyée par la [méthode `net.Server#address()`](https://nodejs.org/api/net.html#serveraddress) de Node.
+
+#### `handle()`
+
+<p>
+
+**Type :** `(req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>) => void`
+</p>
+
+Un gestionnaire pour les requêtes HTTP brutes de Node. Vous pouvez appeler `handle()` avec un [`http.IncomingMessage`](https://nodejs.org/api/http.html#class-httpincomingmessage) et un [`http.ServerResponse`](https://nodejs.org/api/http.html#class-httpserverresponse) au lieu d'envoyer une requête via le réseau.
+
+#### `watcher`
+
+<p>
+
+**Type :** `vite.FSWatcher`
+</p>
+
+L'[observateur de fichiers Chokidar](https://github.com/paulmillr/chokidar#getting-started) tel qu'il est exposé par [le serveur de développement de Vite](https://vite.dev/guide/api-javascript#vitedevserver).
+
+#### `stop()`
+
+<p>
+
+**Type :** `Promise<void>`
+</p>
+
+Arrête le serveur de développement. Cela ferme toutes les connexions inactives et arrête d'écouter les nouvelles connexions.
+
+Renvoie une `Promise` qui se résout une fois que toutes les demandes en attente ont été satisfaites et que toutes les connexions inactives ont été fermées.
+
+## `build()`
+
+<p>
+
+**Type :** `(inlineConfig: AstroInlineConfig) => Promise<void>`
+</p>
+
+Similaire à [`astro build`](/fr/reference/cli-reference/#astro-build), il construit votre site pour le déploiement.
+
+```js
+import { build } from "astro";
+
+await build({
+  root: "./my-project",
+});
+```
+
+## `preview()`
+
+<p>
+
+**Type :** `(inlineConfig: AstroInlineConfig) => Promise<PreviewServer>`
+</p>
+
+Similaire à [`astro preview`](/fr/reference/cli-reference/#astro-preview), il démarre un serveur local pour servir la sortie de votre construction.
+
+Si aucun adaptateur n'est défini dans la configuration, le serveur d'aperçu ne servira que les fichiers statiques créés.
+Si un adaptateur est défini dans la configuration, le serveur d'aperçu est fourni par l'adaptateur. Les adaptateurs ne sont pas tenus de fournir un serveur d'aperçu, cette fonctionnalité peut donc ne pas être disponible en fonction de l'adaptateur choisi.
+
+```js
+import { preview } from "astro";
+
+const previewServer = await preview({
+  root: "./mon-projet",
+});
+
+// Arrête le serveur si nécessaire
+await previewServer.stop();
+```
+
+### `PreviewServer`
+
+```ts
+export interface PreviewServer {
+	host?: string;
+	port: number;
+	closed(): Promise<void>;
+	stop(): Promise<void>;
+}
+```
+
+#### `host`
+
+<p>
+
+**Type :** `string`
+</p>
+
+L'hôte sur lequel le serveur écoute les connexions.
+
+Les adaptateurs sont autorisés à laisser ce champ non défini. La valeur de `host` est spécifique à l'implémentation.
+
+#### `port`
+
+<p>
+
+**Type :** `number`
+</p>
+
+Le port sur lequel le serveur écoute les connexions.
+
+#### `stop()`
+
+<p>
+
+**Type :** `Promise<void>`
+</p>
+
+Demande au serveur d'aperçu de fermer, d'arrêter d'accepter les demandes et de supprimer les connexions inactives.
+
+La `Promise` renvoyée est résolue lorsque la demande de fermeture a été envoyée. Cela ne signifie pas que le serveur est déjà fermé. Utilisez la méthode [`closed()`](#closed) si vous devez vous assurer que le serveur est complètement fermé.
+
+#### `closed()`
+
+<p>
+
+**Type :** `Promise<void>`
+</p>
+
+Renvoie une `Promise` qui sera résolue une fois le serveur fermé et rejetée si une erreur se produit sur le serveur.
+
+## `sync()`
+
+<p>
+
+**Type :** `(inlineConfig: AstroInlineConfig) => Promise<void>`
+</p>
+
+Similaire à [`astro sync`](/fr/reference/cli-reference/#astro-sync), il génère des types TypeScript pour tous les modules Astro.
+
+```js
+import { sync } from "astro";
+
+await sync({
+  root: "./mon-projet",
+});
+```

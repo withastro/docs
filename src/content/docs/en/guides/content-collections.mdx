@@ -23,7 +23,7 @@ Projects may continue using the legacy Content Collections API introduced in Ast
 
 You can define a **collection** from a set of data that is structurally similar. This can be a directory of blog posts, a JSON file of product items, or any data that represents multiple items of the same shape.
 
-Collections stored locally in your project or on your filesystem can have entries of Markdown, MDX, Markdoc, or JSON files:
+Collections stored locally in your project or on your filesystem can have entries of Markdown, MDX, Markdoc, YAML, or JSON files:
 
 <FileTree>
 - src/
@@ -83,11 +83,11 @@ The Content Layer API allows you to fetch your content (whether stored locally i
 
 #### Built-in loaders
 
-Astro provides two built-in loader functions (`glob()` and `file()`) for fetching your local content, as well as access to the API to construct your own loader and fetch remote data.
+Astro provides [two built-in loader functions](/en/reference/content-loader-reference/#built-in-loaders) (`glob()` and `file()`) for fetching your local content, as well as access to the API to construct your own loader and fetch remote data.
 
-The `glob()` loader creates entries from directories of Markdown, MDX, Markdoc, or JSON files from anywhere on the filesystem. It accepts a `pattern` of entry files to match, and a `base` file path of where your files are located. Each entry's `id` will be automatically generated from its file name. Use this loader when you have one file per entry.
+The [`glob()` loader](/en/reference/content-loader-reference/#glob-loader) creates entries from directories of Markdown, MDX, Markdoc, JSON, or YAML files from anywhere on the filesystem. It accepts a `pattern` of entry files to match using glob patterns supported by [micromatch](https://github.com/micromatch/micromatch#matching-features), and a base file path of where your files are located. Each entry's `id` will be automatically generated from its file name. Use this loader when you have one file per entry.
 
-The `file()` loader creates multiple entries from a single local file. Each entry in the file must have a unique `id` key property. It accepts a `base` file path to your file and optionally a [`parser` function](#parser-function) for data files it cannot parse automatically. Use this loader when your data file can be parsed as an array of objects.
+The [`file()` loader](/en/reference/content-loader-reference/#file-loader) creates multiple entries from a single local file. Each entry in the file must have a unique `id` key property. It accepts a `base` file path to your file and optionally a [`parser` function](#parser-function) for data files it cannot parse automatically. Use this loader when your data file can be parsed as an array of objects.
 
 ```ts  title="src/content.config.ts" {5,9}
 import { defineCollection, z } from 'astro:content';
@@ -165,7 +165,7 @@ The `parser` argument also allows you to load a single collection from a nested 
 {"dogs": [{}], "cats": [{}]}
 ```
 
-You can seperate these collections by passing a custom `parser` to the `file()` loader for each collection:
+You can separate these collections by passing a custom `parser` to the `file()` loader for each collection:
 
 ```typescript title="src/content.config.ts"
 const dogs = defineCollection({
@@ -402,13 +402,17 @@ const posts = await getCollection('blog');
 ```
 #### Rendering body content 
 
-Once queried, you can render Markdown and MDX entries to HTML using the `render()` function property. Calling this function gives you access to rendered HTML content, including both a `<Content />` component and a list of all rendered headings.
+Once queried, you can render Markdown and MDX entries to HTML using the [`render()`](/en/reference/modules/astro-content/#render) function property. Calling this function gives you access to rendered HTML content, including both a `<Content />` component and a list of all rendered headings.
 
 ```astro title="src/pages/blog/post-1.astro" {5,8}
 ---
 import { getEntry, render } from 'astro:content';
 
 const entry = await getEntry('blog', 'post-1');
+if (!entry) {
+  // Handle Error, for example:
+  throw new Error('Could not find blog post 1');
+}
 const { Content, headings } = await render(entry);
 ---
 <p>Published on: {entry.data.published.toDateString()}</p>
@@ -587,6 +591,6 @@ Collections provide excellent structure, safety, and organization when you have 
 Collections **may not be your solution** if:
 
 - You have only one or a small number of different pages. Consider [making individual page components](/en/basics/astro-pages/) such as `src/pages/about.astro` with your content directly instead.
-- Your data is not stored in a supported format, such as TOML. Use other methods of [importing files](/en/guides/imports/#import-statements) or [fetching data](/en/guides/data-fetching/) instead.
 - You are displaying files that are not processed by Astro, such as PDFs. Place these static assets in the [`public/` directory](/en/basics/project-structure/#public) of your project instead.
-- You are using APIs that need to be updated in real time. Content collections are only updated at build time, so if you need live data you should consider [on-demand rendering](/en/guides/on-demand-rendering/).
+- Your data source has its own SDK/client library for imports that is incompatible with or does not offer a content loader and you prefer to use it directly.
+- You are using APIs that need to be updated in real time. Content collections are only updated at build time, so if you need live data, use other methods of [importing files](/en/guides/imports/#import-statements) or [fetching data](/en/guides/data-fetching/) with [on-demand rendering](/en/guides/on-demand-rendering/).
