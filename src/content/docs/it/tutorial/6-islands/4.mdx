@@ -1,0 +1,358 @@
+---
+type: tutorial
+title: 'Facoltativo: Crea una raccolta di contenuti'
+description: |-
+  Tutorial: Crea il tuo primo blog Astro —
+  Converti il tuo blog da un routing basato su file a una raccolta di contenuti
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+import Option from '~/components/tutorial/Option.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+Ora che hai un blog che utilizza il [routing basato su file](/en/guides/routing/#static-routes) di Astro, lo aggiornerai per utilizzare una [raccolta di contenuti](/en/guides/content-collections/). Le raccolte di contenuti sono un modo potente per gestire gruppi di contenuti simili, come i post del blog.
+
+<PreCheck>
+  - Sposta la tua cartella di post del blog in `src/blog/`
+  - Crea uno schema per definire il frontmatter del tuo post del blog
+  - Usa `getCollection()` per ottenere i contenuti e i metadati dei post del blog
+</PreCheck>
+
+## Impara: Pagine vs Raccolte
+
+Anche quando usi le raccolte di contenuti, continuerai a usare la cartella `src/pages/` per le pagine individuali, come la pagina "Chi Sono". Tuttavia, spostando i tuoi post del blog fuori da questa cartella speciale, sarai in grado di usare API più potenti e performanti per generare l'indice dei tuoi post del blog e visualizzare i post singoli.
+
+Allo stesso tempo, otterrai un miglior completamento automatico e suggerimenti nel tuo editor di codice grazie alla presenza di uno **[schema](/en/guides/content-collections/#defining-the-collection-schema)** che definisce una struttura comune per ogni post, che Astro ti aiuterà a imporre tramite [Zod](https://zod.dev/), una libreria di dichiarazione e convalida degli schemi per TypeScript. Nel tuo schema, puoi specificare quando le proprietà del frontmatter sono obbligatorie, come la descrizione o l'autore, e quale tipo di dato ciascuna proprietà deve avere, come una stringa o un array. Questo porta a rilevare molti errori prima, con messaggi di errore descrittivi che ti dicono esattamente qual è il problema.
+
+Leggi di più su [Le raccolte di contenuti di Astro](/en/guides/content-collections/) nella nostra guida, o inizia con le istruzioni qui sotto per convertire un blog di base da `src/pages/posts/` a `src/blog/`.
+
+<Box icon="question-mark">
+### Testa le tue conoscenze
+
+1. Quale tipo di pagina probabilmente dovresti mantenere in `src/pages/`?
+
+    <MultipleChoice>
+      <Option>
+        Post del blog che contengono tutti la stessa struttura di base e i metadati
+      </Option>
+      <Option>
+        Pagine prodotto in un sito eCommerce
+      </Option>
+      <Option isCorrect>
+        Una pagina di contatto, perché non hai più pagine simili di questo tipo
+      </Option>
+    </MultipleChoice>
+
+2. Quale **non** è un vantaggio di spostare i post del blog in una raccolta di contenuti?
+
+    <MultipleChoice>
+      <Option isCorrect>
+         Le pagine vengono automaticamente create per ogni file
+      </Option>
+      <Option>
+        Migliori messaggi di errore, perché Astro sa di più su ogni file
+      </Option>
+      <Option>
+        Migliore recupero dei dati, con una funzione più performante
+      </Option>
+    </MultipleChoice>
+
+3. Le raccolte di contenuti utilizzano TypeScript . . .
+    <MultipleChoice>
+      <Option>
+        Per farmi sentire in colpa
+      </Option>
+      <Option isCorrect>
+        Per comprendere e convalidare le mie raccolte e fornire strumenti di supporto nell'editor
+      </Option>
+      <Option>
+        Solo se ho impostato la configurazione `strictest` in `tsconfig.json`
+      </Option>
+    </MultipleChoice>
+
+</Box>
+
+I passaggi qui sotto ti mostrano come estendere il prodotto finale del tutorial "Crea un blog" creando una raccolta di contenuti per i post del blog.
+
+## Aggiorna le dipendenze
+
+Aggiorna alla versione più recente di Astro e aggiorna tutte le integrazioni alle loro versioni più recenti eseguendo i seguenti comandi nel terminale:
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      # Aggiorna Astro e le integrazioni ufficiali insieme
+      npx @astrojs/upgrade
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      # Aggiorna Astro e le integrazioni ufficiali insieme
+      pnpm dlx @astrojs/upgrade
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      # Aggiorna Astro e le integrazioni ufficiali insieme
+      yarn dlx @astrojs/upgrade
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+## Crea una raccolta per i tuoi post
+
+<Steps>
+1. Crea una nuova **raccolta** (cartella) chiamata `src/blog/`. 
+
+2. Sposta tutti i tuoi post del blog esistenti (file `.md`) da `src/pages/posts/` in questa nuova raccolta.
+
+3. Crea un file `src/content.config.ts` per [definire uno schema](/en/guides/content-collections/#defining-the-collection-schema) per la tua `postsCollection`. Per il codice del tutorial esistente, aggiungi il seguente contenuto al file per definire tutte le proprietà del frontmatter utilizzate nei post del blog:
+
+    ```ts title="src/content.config.ts"
+    // Importa il glob loader
+    import { glob } from "astro/loaders";
+    // Importa le utility da `astro:content`
+    import { z, defineCollection } from "astro:content";
+    // Definisci un `loader` e uno `schema` per ogni raccolta
+    const blog = defineCollection({
+        loader: glob({ pattern: '**/[^_]*.md', base: "./src/blog" }),
+        schema: z.object({
+          title: z.string(),
+          pubDate: z.date(),
+          description: z.string(),
+          author: z.string(),
+          image: z.object({
+            url: z.string(),
+            alt: z.string()
+          }),
+          tags: z.array(z.string())
+        })
+    });
+    // Esporta un singolo oggetto `collections` per registrare le tue raccolte
+    export const collections = { blog };
+    ```
+
+4. Affinché Astro riconosca il tuo schema, esci (`CTRL + C`) e riavvia il server di sviluppo per continuare con il tutorial. Questo definirà il modulo `astro:content`.
+</Steps>
+
+## Genera pagine da una raccolta
+
+<Steps>
+1. Crea un file di pagina chiamato `src/pages/posts/[...slug].astro`. I tuoi file Markdown e MDX non diventeranno automaticamente delle pagine usando il routing basato su file di Astro quando si trovano in una raccolta, quindi dovrai creare una pagina responsabile della generazione di ogni singolo post del blog.
+
+2. Aggiungi il seguente codice per [interrogare la tua raccolta](/en/guides/content-collections/#querying-collections) in modo che ogni slug di post e il contenuto della pagina siano disponibili per ogni pagina che genererai:
+
+    ```astro title="src/pages/posts/[...slug].astro"
+    ---
+    import { getCollection, render } from 'astro:content';
+
+    export async function getStaticPaths() {
+      const posts = await getCollection('blog');
+      return posts.map(post => ({
+        params: { slug: post.id }, props: { post },
+      }));
+    }
+
+    const { post } = Astro.props;
+    const { Content } = await render(post);
+    ---
+    ```
+
+3. Renderizza il tuo post `<Content />` all'interno del layout per le pagine Markdown. Questo ti permette di specificare un layout comune per tutti i tuoi post.
+
+    ```astro title="src/pages/posts/[...slug].astro" ins={3,15-17}
+    ---
+    import { getCollection, render } from 'astro:content';
+    import MarkdownPostLayout from '../../layouts/MarkdownPostLayout.astro';
+
+    export async function getStaticPaths() {
+      const posts = await getCollection('blog');
+      return posts.map(post => ({
+        params: { slug: post.id }, props: { post },
+      }));
+    }
+
+    const { post } = Astro.props;
+    const { Content } = await render(post);
+    ---
+    <MarkdownPostLayout frontmatter={post.data}>
+      <Content />
+    </MarkdownPostLayout>
+    ```
+
+4. Rimuovi la definizione di `layout` nel frontmatter di ogni post individuale. Il tuo contenuto è ora racchiuso in un layout quando
+
+ viene renderizzato, e questa proprietà non è più necessaria.
+
+    ```md title="src/content/posts/post-1.md" del={2}
+    ---
+    layout: ../../layouts/MarkdownPostLayout.astro
+    title: 'My First Blog Post'
+    pubDate: 2022-07-01
+    ...
+    ---
+    ```
+</Steps>
+
+## Sostituisci `import.meta.glob()` con `getCollection()`
+
+<Steps>
+5. Ovunque tu abbia un elenco di post del blog, come nella pagina del Blog del tutorial (`src/pages/blog.astro/`), dovrai sostituire `import.meta.glob()` con [`getCollection()`](/en/reference/modules/astro-content/#getcollection) come metodo per recuperare contenuti e metadati dai tuoi file Markdown.
+
+    ```astro title="src/pages/blog.astro" "post.data" "getCollection(\"blog\")" "/posts/${post.id}/" del={7} ins={2,8}
+    ---
+    import { getCollection } from "astro:content";
+    import BaseLayout from "../layouts/BaseLayout.astro";
+    import BlogPost from "../components/BlogPost.astro";
+
+    const pageTitle = "My Astro Learning Blog";
+    const allPosts = Object.values(import.meta.glob("../pages/posts/*.md", { eager: true }));
+    const allPosts = await getCollection("blog");
+    ---
+    ```
+
+6. Dovrai anche aggiornare i riferimenti ai dati restituiti per ogni `post`. Ora troverai i valori del frontmatter sulla proprietà `data` di ogni oggetto. Inoltre, quando usi le raccolte, ogni oggetto `post` avrà uno `slug` di pagina, non un URL completo.
+
+    ```astro title="src/pages/blog.astro" "data" "/posts/$\{post.id\}/" del={14} ins={15}
+    ---
+    import { getCollection } from "astro:content";
+    import BaseLayout from "../layouts/BaseLayout.astro";
+    import BlogPost from "../components/BlogPost.astro";
+
+    const pageTitle = "My Astro Learning Blog";
+    const allPosts = await getCollection("blog");
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <p>This is where I will post about my journey learning Astro.</p>
+      <ul>
+        {
+          allPosts.map((post) => (
+            <BlogPost url={post.url} title={post.frontmatter.title} />)}
+            <BlogPost url={`/posts/${post.id}/`} title={post.data.title} />
+          ))
+        </ul>
+    </BaseLayout> 
+    ```
+
+7. Il progetto del blog del tutorial genera dinamicamente una pagina per ogni tag usando `src/pages/tags/[tag].astro` e visualizza un elenco di tag in `src/pages/tags/index.astro`. 
+
+          Applica gli stessi cambiamenti come sopra a questi due file:
+      
+          - recupera i dati su tutti i tuoi post del blog usando `getCollection("blog")` invece di `import.meta.glob()`
+          - accedi a tutti i valori del frontmatter usando `data` invece di `frontmatter`
+          - crea un URL della pagina aggiungendo lo `slug` del post al percorso `/posts/`
+      
+          La pagina che genera le pagine individuali dei tag diventa ora:
+
+          ```astro title="src/pages/tags/[tag].astro" "post.data.tags" "getCollection(\"blog\")" "post.data.title" ins={2} "/posts/${post.id}/"
+          ---
+          import { getCollection } from "astro:content";
+          import BaseLayout from "../../layouts/BaseLayout.astro";
+          import BlogPost from "../../components/BlogPost.astro";
+
+          export async function getStaticPaths() {
+            const allPosts = await getCollection("blog");
+            const uniqueTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
+
+            return uniqueTags.map((tag) => {
+              const filteredPosts = allPosts.filter((post) =>
+                post.data.tags.includes(tag)
+              );
+              return {
+                params: { tag },
+                props: { posts: filteredPosts },
+              };
+            });
+          }
+          
+          const { tag } = Astro.params;
+          const { posts } = Astro.props;
+          ---
+
+          <BaseLayout pageTitle={tag}>
+            <p>Posts tagged with {tag}</p>
+            <ul>
+              { posts.map((post) => <BlogPost url={`/posts/${post.id}/`} title={post.data.title} />) }
+            </ul>
+          </BaseLayout>
+          ```
+
+          <Box icon="puzzle-piece">
+            ### Provalo tu - Aggiorna la query nella pagina dell'indice dei tag
+
+            Importa e usa `getCollection` per recuperare i tag utilizzati nei post del blog su `src/pages/tags/index.astro`, seguendo gli stessi [passaggi di cui sopra](#replace-importmetaglob-with-getcollection).
+
+            <details>
+            <summary>Mostrami il codice.</summary>
+            ```astro title="src/pages/tags/index.astro" "post.data" "getCollection(\"blog\")" ins={2}
+            ---
+            import { getCollection } from "astro:content";
+            import BaseLayout from "../../layouts/BaseLayout.astro";     
+            const allPosts = await getCollection("blog");
+            const tags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
+            const pageTitle = "Tag Index";
+            ---
+            <!-- ... -->
+            ```
+            </details>
+        </Box>
+</Steps>
+
+## Aggiorna eventuali valori del frontmatter per farli corrispondere al tuo schema
+
+Se necessario, aggiorna qualsiasi valore del frontmatter in tutto il tuo progetto, come nel tuo layout, che non corrisponde allo schema delle tue raccolte.
+
+Nell'esempio del blog tutorial, `pubDate` era una stringa. Ora, secondo lo schema che definisce i tipi per il frontmatter del post, `pubDate` sarà un oggetto `Date`. Ora puoi sfruttare questo per usare i metodi disponibili per qualsiasi oggetto `Date` per formattare la data.
+
+Per visualizzare la data nel layout del post del blog, convertila in stringa usando il metodo `toLocaleDateString()`:
+
+```astro title="src/layouts/MarkdownPostLayout.astro" ins="toString()"
+<!-- ... -->
+<BaseLayout pageTitle={frontmatter.title}>
+    <p>{frontmatter.pubDate.toLocaleDateString()}</p>
+    <p><em>{frontmatter.description}</em></p>
+    <p>Written by: {frontmatter.author}</p>
+    <img src={frontmatter.image.url} width="300" alt={frontmatter.image.alt} />
+<!-- ... -->
+```
+
+## Aggiorna la funzione RSS
+
+Il progetto del blog del tutorial include un feed RSS. Questa funzione deve anche usare `getCollection()` per restituire le informazioni dai tuoi post del blog. Quindi, genererai gli elementi RSS usando l'oggetto `data` restituito.
+
+    ```js title="src/pages/rss.xml.js" del={2,11} ins={3,6,12-17}
+    import rss from '@astrojs/rss';
+    import { pagesGlobToRssItems } from '@astrojs/rss';
+    import { getCollection } from 'astro:content';
+
+    export async function GET(context) {
+      const posts = await getCollection("blog");
+      return rss({
+        title: 'Astro Learner | Blog',
+        description: 'Il mio percorso di apprendimento di Astro',
+        site: context.site,
+        items: await pagesGlobToRssItems(import.meta.glob('./**/*.md')),
+        items: posts.map((post) => ({
+          title: post.data.title,
+          pubDate: post.data.pubDate,
+          description: post.data.description,
+          link: `/posts/${post.id}/`,
+        })),
+        customData: `<language>en-us</language>`,
+      })
+    }
+    ```
+
+Per l'esempio completo del blog tutorial usando le raccolte di contenuti, consulta il [branch Content Collections](https://github.com/withastro/blog-tutorial-demo/tree/content-collections) del repository del tutorial.
+
+<Box icon="check-list">
+
+## Checklist
+<Checklist>
+- [ ] Posso usare le raccolte di contenuti per gestire gruppi di contenuti simili per migliori performance e organizzazione.
+</Checklist>
+</Box>
