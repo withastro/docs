@@ -1,0 +1,116 @@
+---
+title: 服务器群岛
+description: 将高性能静态 HTML 与服务器渲染的动态内容相结合。
+i18nReady: true
+---
+
+服务器群岛允许你单独按需渲染动态或个性化的 "群岛"，且无需牺牲页面其他部分的性能。
+
+这意味着你的访客将更快地看到你页面最重要的部分，并允许你的主要内容被更积极地缓存，从而提供更快的性能。
+
+## 服务器群岛组件
+
+服务器孤岛是一个普通的服务器渲染的 [Astro 组件](/zh-cn/basics/astro-components/)，它被指定为延迟渲染，直到其内容可用。
+
+你的页面将立即使用任何指定的 [回退内容作为占位](#服务器群岛回退内容) 来渲染。然后，在客户端上获取组件自己的内容，并在可用时显示。
+
+安装 [适配器](/zh-cn/guides/on-demand-rendering/#服务器适配器) 来执行延迟渲染后，将 ['server：defer' 指令](/zh-cn/reference/directives-reference/#服务器端指令) 添加到页面上的任意组件，来将其变成组件自己的岛屿：
+
+```astro title="src/pages/index.astro" "server:defer"
+---
+import Avatar from '../components/Avatar.astro';
+---
+<Avatar server:defer />
+```
+
+这些组件可以使用适配器执行 [你在按需渲染页面中通常执行的任何操作](/zh-cn/guides/on-demand-rendering/#按需渲染特性)，例如获取内容和访问 cookie：
+
+```astro title="src/components/Avatar.astro"
+---
+import { getUserAvatar } from '../sessions';
+const userSession = Astro.cookies.get('session');
+const avatarURL = await getUserAvatar(userSession);
+---
+<img alt="User avatar" src={avatarURL} />
+```
+
+## 服务器群岛回退内容
+
+当在组件上使用 `server：defer` 属性来延迟其渲染时，你可以在默认的载入内容中插入包含 `"fallback"` 的 "slot"。
+
+你的回退内容最初将在页面加载时与页面的其余部分一起渲染，并在可用时替换为组件的内容。
+
+要添加回退内容，请在传递给服务器岛屿组件的子组件（其他组件或 HTML 元素）上添加 `slot="fallback"`：
+
+```astro
+---
+import Avatar from '../components/Avatar.astro';
+import GenericAvatar from '../components/GenericAvatar.astro';
+---
+<Avatar server:defer>
+  <GenericAvatar slot="fallback" />
+</Avatar>
+```
+
+此回退内容可以是：
+
+- 一个通用头像，用以代替用户自己的头像。
+- 占位符 UI，例如自定义消息。
+- 加载进度提示，例如旋转加载样式。
+
+
+## 工作原理
+
+服务器孤岛的实现主要发生在构建时，那时组件内容会被转换成一个小脚本。
+
+每个被标记上 `server：defer` 的孤岛都被拆分为自己的特殊路由，脚本在运行时回获取该路由。当 Astro 构建你的网站时，它会略过该组件并在其位置注入一个脚本，以及你用 `slot="fallback"` 标记的任何内容。
+
+当页面在浏览器中加载时，这些组件将被请求到一个特殊端点，该端点渲染这些组件并返回 HTML。这意味着用户将立即看到页面最关键的部分。而在加载动态群岛之前，回退内容将在短时间内可见。
+
+每个岛屿都独立于其他岛屿进行加载。这意味着较慢的岛屿也不会拖累你其余个性化内容的加载。
+
+此渲染模式旨在实现可移植性。它不依赖于任何服务器基础设施，因此它可以与你拥有的任何主机配合使用，从 Docker 容器中的 Node.js 服务器到你选择的无服务器提供商。
+
+## 缓存
+
+服务器群岛的数据是通过 `GET` 请求检索的，在 URL 查询中将 props 作为加密字符串传递。这允许使用标准的 `Cache-Control` 指令通过 [`Cache-Control` HTTP 标头](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Cache-Control) 来缓存数据。
+
+但是，出于实际原因，[浏览器将 URL 限制为最大长度 2048 字节](https://chromium.googlesource.com/chromium/src/+/master/docs/security/url_display_guidelines/url_display_guidelines.md#url-length)，以避免导致服务被拒绝的问题。如果你的查询字符串导致你的 URL 超过这个限制，Astro 将发送一个 `POST` 请求，其中包含正文中的所有 props。
+
+浏览器不会缓存 `POST` 请求，因为它们是用于提交数据的，如果缓存则可能会导致数据完整性或安全问题。因此，项目中的任何现有缓存逻辑都将中断，尽可能只将必要的 props 传递给你的服务器群岛，而避免发送整个数据对象和数组，以保持你的查询字符串足够小。
+
+## 访问服务器岛屿中的页面 URL
+
+在大多数情况下，你的服务器岛屿组件可以通过 [传递 props](/zh-cn/basics/astro-components/#组件参数) 来获取有关渲染它的页面的信息，就像在普通组件中一样。
+
+但是，服务器群岛是在页面请求之外的、自己的隔离上下文中运行的。服务器岛屿组件中的 `Astro.url` 和 `Astro.request.url` 都会返回一个结构看起来像 `/_server-islands/Avatar` 的 URL，而不是浏览器中当前页面的 URL。此外，如果你正在预渲染页面，你将无法访问 query 参数等信息，以便其作为 props 传递。
+
+要从页面的 URL 访问信息，你可以检查 [Referer](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Referer) 标头，其中将会包含：在浏览器中加载该岛屿的页面的地址：
+
+```astro
+---
+const referer = Astro.request.headers.get('Referer');
+const url = new URL(referer);
+const productId = url.searchParams.get('product');
+---
+```
+
+## 复用加密密钥
+
+Astro 使用 [cryptography](https://developer.mozilla.org/zh-CN/docs/Glossary/Cryptography) 来加密传递给服务器岛屿的 prop，以防止私密意外泄露。prop 使用构建期间生成的密钥进行加密。
+
+对于大多数主机来说，过程都是透明的，而作为开发者来说，你也不需要做任何事情。如果你在 Kubernetes 等环境中使用滚动部署，则可能会遇到前端和后端暂时不同步且密钥不匹配的问题。
+
+要解决此问题，你可以使用 Astro CLI 创建一个密钥，然后将其用于所有部署。这可确保每个用户的前端都与具有正确密钥的后端通信。
+
+使用` astro create-key` 生成密钥：
+
+```shell
+astro create-key
+```
+
+该步骤将创建一个密钥，你可以在托管环境需要的任何位置（例如在 `.env` 文件中）将其设置为 `ASTRO_KEY` 环境变量：
+
+```ini title=".env"
+ASTRO_KEY=zyM5c0qec+1Sgi4K+AejFX9ufbig7/7wIZjxOjti9Po=
+```
