@@ -1,0 +1,63 @@
+---
+title: Configuration sérialisée expérimentale
+sidebar:
+  label: Configuration sérialisée
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+
+<p>
+
+  **Type :** `boolean`<br />
+  **Par défaut :** `false`<br />
+
+  <Since v="5.2.0" />
+</p>
+
+Cette fonctionnalité permet d'accéder au module virtuel `astro:config` qui expose une version non exhaustive, sérialisable et assurant la sûreté du typage de la configuration Astro à travers deux sous-modules.
+
+Pour un aperçu complet et pour donner votre avis sur cette API expérimentale, consultez la [RFC du manifeste sérialisé](https://github.com/withastro/roadmap/blob/feat/serialised-config/proposals/0051-serialized-manifest.md).
+
+Pour activer ce module virtuel, ajoutez l'option de fonctionnalité `experimental.serializeConfig` à votre configuration Astro :
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from "astro/config"
+
+export default defineConfig({
+  experimental: {
+    serializeConfig: true
+  }
+})
+```
+
+Ensuite, les valeurs de configuration peuvent être utilisées par n’importe quel fichier de votre projet Astro :
+```js title="src/utils.js" ins={1}
+import { trailingSlash } from "astro:config/client";
+
+function addForwardSlash(path) {
+  if (trailingSlash === "always") {
+    return path.endsWith("/") ? path : path + "/"
+  } else {
+    return path
+  }
+}
+```
+
+## Sous-modules
+
+Le module virtuel expose deux sous-modules permettant d'accéder à différents sous-ensembles de vos valeurs de configuration. Cela protège vos informations en ne mettant à disposition du client que certaines données.
+
+Toutes les valeurs de configuration disponibles sont accessibles depuis `astro:config/server`. Cependant, pour le code exécuté côté client, seules les valeurs exposées par `astro:config/client` seront disponibles.
+
+### `astro:config/client`
+
+Le sous-module client vous permet d'accéder à un sous-ensemble des valeurs de configuration dans `astro:config/server` qui peuvent être exposées en toute sécurité au navigateur, telles que `trailingSlash`, `build.format`, `i18n`, etc. Utilisez ce sous-module pour le code côté client qui est exécuté sur le client.
+
+Il s'agit d'une fonctionnalité en cours de développement. Pour obtenir une liste complète et à jour des valeurs de configuration disponibles dans `astro:config/client`, veuillez consulter [l'API proposée dans la RFC de la fonctionnalité](https://github.com/withastro/roadmap/blob/feat/serialised-config/proposals/0051-serialized-manifest.md#astroconfigclient)
+
+### `astro:config/server`
+
+Le sous-module serveur vous permet d'accéder à un ensemble non exhaustif de vos valeurs de configuration à partir de `astro.config.mjs`. Cela inclut les valeurs `astro:config/client` telles que `trailingSlash` et `i18n`, mais également des informations plus sensibles sur la configuration de votre système de fichiers qu'il n'est pas sûr d'exposer au client, telles que `srcDir`, `cacheDir`, `outDir`. Tenter de les utiliser côté client générera une erreur.
+
+Il s'agit d'une fonctionnalité en cours de développement. Pour obtenir une liste complète et à jour des valeurs de configuration disponibles dans `astro:config/server`, veuillez consulter [l'API proposée dans la RFC de la fonctionnalité](https://github.com/withastro/roadmap/blob/feat/serialised-config/proposals/0051-serialized-manifest.md#astroconfigserver).
