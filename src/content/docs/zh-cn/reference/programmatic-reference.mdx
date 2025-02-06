@@ -1,0 +1,249 @@
+---
+title: 编程式 Astro API（实验性）
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+
+如果你在运行 Astro 时需要进行更多的控制，可以使用 `"astro"` 包导出的 API 以编程方式运行 CLI 命令。
+
+这些 API 是实验性的，其 API 签名可能会更改。任何更新都会在 [Astro changelog](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md) 中提及，下面的信息将始终显示最新的信息。
+
+## `AstroInlineConfig`
+
+`AstroInlineConfig` 类型由以下的所有命令 API 使用。它继承自用户的 [Astro 配置](/zh-cn/reference/configuration-reference/) 类型：
+
+```ts
+interface AstroInlineConfig extends AstroUserConfig {
+	configFile?: string | false;
+	mode?: string;
+	logLevel?: "debug" | "info" | "warn" | "error" | "silent";
+}
+```
+
+### `configFile`
+
+<p>
+
+**类型：** `string | false`<br />
+**默认值：** `undefined`
+</p>
+
+Astro 配置文件的自定义路径。
+
+如果这个值为 undefined（默认值） 或 unset，那么 Astro 将尝试搜索一个相对 `root` 目录的 `astro.config.(js,mjs,ts,mts)` 文件，如果找到的话，则加载配置文件。
+
+如果设置了相对路径，它将根据 `root` 选项进行解析。
+
+设置为 `false` 将禁用加载任何配置文件。
+
+当与加载的用户配置并行时，此对象中传递的内联配置将具有最高优先级。
+
+### `mode`
+
+<p>
+
+**类型：** `string`<br />
+**默认值：** 运行 `astro dev` 时为 `"development"`，运行 `astro build` 时为 `"production"`<br />
+<Since v="5.0.0" />
+</p>
+
+开发或构建网站时使用的模式（例如，`"production"`，`"testing"`）。
+
+当运行 `astro build` 或 `astro dev` 命令时，这个值会使用 [`--mode` 标志](/zh-cn/reference/cli-reference/#--mode-string) 传递给 Vite，以确定 `import.meta.env.MODE` 的值。这也决定了加载哪些 `.env` 文件，从而决定了 `astro：env` 的值。有关更多详细信息，请参阅 [环境变量](/zh-cn/guides/environment-variables/) 页面。
+
+要输出基于开发的构建，你可以使用 [`--devOutput` 标志](/zh-cn/reference/cli-reference/#--devoutput) 运行 `astro build`。
+
+### `logLevel`
+
+<p>
+
+**类型：** `"debug" | "info" | "warn" | "error" | "silent"`<br />
+**默认值：** `"info"`
+</p>
+
+用于过滤 Astro 所记录的消息的日志记录级别。
+
+- `"debug"`：记录所有内容，包括嘈杂的调试诊断。
+- `"info"`：记录信息性消息、警告和错误。
+- `"warn"`：记录警告和错误。
+- `"error"`：仅记录错误。
+- `"silent"`：无日志记录。
+
+## `dev()`
+
+<p>
+
+**类型：** `(inlineConfig: AstroInlineConfig) => Promise<DevServer>`
+</p>
+
+与 [`astro dev`](/zh-cn/reference/cli-reference/#astro-dev) 相似，用于运行 Astro 的开发服务器。
+
+```js
+import { dev } from "astro";
+
+const devServer = await dev({
+  root: "./my-project",
+});
+
+// 如需停止服务器：
+await devServer.stop();
+```
+
+### `DevServer`
+
+```ts
+export interface DevServer {
+	address: AddressInfo;
+	handle: (req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>) => void;
+	watcher: vite.FSWatcher;
+	stop(): Promise<void>;
+}
+```
+
+#### `address`
+
+<p>
+
+**类型：** `AddressInfo`
+</p>
+
+开发服务器正在监听的地址。
+
+此属性包含 Node 的 [`net.Server#address()` 方法]（https://nodejs.org/api/net.html#serveraddress）。
+
+#### `handle()`
+
+<p>
+
+**类型：** `(req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>) => void`
+</p>
+
+原始 Node HTTP 请求的句柄。你可以用 [`http.IncomingMessage`](https://nodejs.org/api/http.html#class-httpincomingmessage) 和 [`http.ServerResponse`](https://nodejs.org/api/http.html#class-httpserverresponse) 来调用 `handle()`，而不是通过网络发送请求。
+
+#### `watcher`
+
+<p>
+
+**类型：** `vite.FSWatcher`
+</p>
+
+[Vite 的开发服务器](https://cn.vite.dev/guide/api-javascript#vitedevserver) 暴露的 [Chokidar 文件监视器](https://github.com/paulmillr/chokidar#getting-started)。
+
+#### `stop()`
+
+<p>
+
+**类型：** `Promise<void>`
+</p>
+
+停止开发服务器。这将关闭所有空闲连接并停止监听新连接。
+
+返回一个 `Promise`，该 Promise 在完成所有待处理请求并关闭所有空闲连接后结束。
+
+## `build()`
+
+<p>
+
+**类型：** `(inlineConfig: AstroInlineConfig) => Promise<void>`
+</p>
+
+与 [`astro build`](/zh-cn/reference/cli-reference/#astro-build) 相似，用于构建你的站点以进行部署。
+
+```js
+import { build } from "astro";
+
+await build({
+  root: "./my-project",
+});
+```
+
+## `preview()`
+
+<p>
+
+**类型：** `(inlineConfig: AstroInlineConfig) => Promise<PreviewServer>`
+</p>
+
+与 [`astro preview`](/zh-cn/reference/cli-reference/#astro-preview) 相似，用于启动一个本地服务器来提供你的构建输出。
+
+如果未在配置中设置适配器，则预览服务器将仅服务于构建中静态的文件。
+如果在配置中设置了适配器，则预览服务器将由适配器提供。适配器不需要提供预览服务器，因此该功能可能不可用，具体取决于你选择的适配器。
+
+```js
+import { preview } from "astro";
+
+const previewServer = await preview({
+  root: "./my-project",
+});
+
+// 如需停止服务器：
+await previewServer.stop();
+```
+
+### `PreviewServer`
+
+```ts
+export interface PreviewServer {
+	host?: string;
+	port: number;
+	closed(): Promise<void>;
+	stop(): Promise<void>;
+}
+```
+
+#### `host`
+
+<p>
+
+**类型：** `string`
+</p>
+
+服务器所监听连接的 host。
+
+允许适配器不设置此字段。`host` 的值通过特殊方式实现。
+
+#### `port`
+
+<p>
+
+**类型：** `number`
+</p>
+
+服务器所监听连接的端口。
+
+#### `stop()`
+
+<p>
+
+**类型：** `Promise<void>`
+</p>
+
+要求预览服务器关闭、停止接受请求并关闭空闲连接。
+
+返回的 `Promise` 在发送关闭请求后解析。这并不意味着服务器已经关闭。如果需要确保服务器已完全关闭，请使用 [`closed()`](#closed) 方法。
+
+#### `closed()`
+
+<p>
+
+**类型：** `Promise<void>`
+</p>
+
+返回一个 `Promise`，该 Promise 将在服务器关闭后结束，如果服务器上发生错误，则拒绝该 Promise。
+
+## `sync()`
+
+<p>
+
+**类型：** `(inlineConfig: AstroInlineConfig) => Promise<void>`
+</p>
+
+与 [`astro sync`](/zh-cn/reference/cli-reference/#astro-sync) 相似，用于为所有的 Astro 模块生成 TypeScript 类型。
+
+```js
+import { sync } from "astro";
+
+await sync({
+  root: "./my-project",
+});
+```
