@@ -1,0 +1,236 @@
+---
+title: 实验性 sessions
+sidebar:
+  label: Sessions
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p>
+
+**类型：** `SessionConfig`<br />
+**默认值：** `undefined`<br />
+
+<Since v="5.1.0" />
+</p>
+
+会话（session）是用于存储 [按需渲染页面](/zh-cn/guides/on-demand-rendering/) 在请求间的用户状态。
+
+该实验性功能允许你存储和读取诸如登录状态、购物车内容、或者是其他用户特定数据：
+
+```astro title="src/components/CartButton.astro" {3}
+---
+export const prerender = false; // 在 'server' 模式下不需要
+const cart = await Astro.session.get('cart');
+---
+
+<a href="/checkout">🛒 {cart?.length ?? 0} items</a>
+```
+
+会话依赖于一个 [可配置的会话 `driver`](#启用实验性-sessions) 来将数据存储在 `session` 对象上。一个 [会话 cookie](#cookies) 存储一个识别会话 ID。
+
+[`session` 对象](#会话-api) 允许你和存储的用户状态（例如：添加物品至购物车）和会话 ID（例如：当退出登录时删除会话 ID）进行交互。
+
+## 启用实验性 sessions
+
+目前位于 `experimental.sessions` 的早期版本中，Astro 的官方服务器适配器还尚未更新以提供基于平台默认存储功能的默认会话驱动。在这些驱动内置之前，除了 [添加适配器](/zh-cn/guides/on-demand-rendering/#添加适配器) 之外，你还必须在 `experimental.sessions` 配置对象中自己指定 `driver`。
+
+接下来的部分展示了每个适配器的推荐驱动。（这些驱动将在此功能的稳定版本中自动为你配置。）或者，你也可以指定 [unstorage 上任何支持的驱动](https://unstorage.unjs.io/drivers/) 。
+
+### 使用 Node 适配器来配置会话
+
+Node 适配器与 [文件系统驱动](https://unstorage.unjs.io/drivers/fs) 相兼容。请注意，该方式无法在无服务器环境中使用，因为它们没有共享文件系统。
+
+```js title="astro.config.mjs" ins={6}
+	{
+    adapter: node({ mode: 'standalone' }),
+		experimental: {
+      session: {
+        // 必需：unstorage 上的驱动名称
+        driver: "fs",
+      },
+    },
+	}
+```
+
+### 为其他适配器配置会话驱动
+
+选择与你的托管平台提供的存储功能相对应的 [unstorage `driver` 名称](https://unstorage.unjs.io/drivers/)，例如 [Netlify Blobs 驱动（`netlify-blobs`）](https://unstorage.unjs.io/drivers/netlify)、[Cloudflare KV 驱动（`cloudflare-kv-binding`）](https://unstorage.unjs.io/drivers/cloudflare) 或 [Deno KV 驱动程序（`deno-kv`）](https://unstorage.unjs.io/drivers/deno)。你还可以使用跨平台驱动，例如 [Upstash](https://unstorage.unjs.io/drivers/upstash) 或 [Redis](https://unstorage.unjs.io/drivers/redis)。
+
+:::note
+某些驱动可能会需要安装额外的包。例如 `netlify-blobs` 驱动需要安装 `@netlify/blobs` 包，而 Upstash 需要安装 `@upstash/redis` 包。某些驱动程序可能还需要设置环境变量或凭据。
+
+<ReadMore>有关更多信息，请参阅 [unstorage 驱动文档](https://unstorage.unjs.io/drivers)。</ReadMore>
+:::
+
+### 驱动选项
+
+你还可以将 `session.options` 单独以对象的形式将任意的可用选项传入 unstorage。以下示例配置了 [Netlify Blobs](https://unstorage.unjs.io/drivers/netlify) 驱动，同时还提供了 `name` 并指定为 `consistency` 模式：
+
+```js title="astro.config.mjs" ins={7-11}
+  {
+    adapter: netlify(),
+    experimental: {
+      session: {
+        // unstorage 驱动的名称遵循烤串命名法
+        driver: "netlify-blobs",
+        options: {
+          name: 'astro-sessions',
+          // 会话需要强一致性
+          consistency: 'strong',
+        }
+      },
+    },
+  }
+```
+
+## 使用会话
+
+配置好驱动后，你就可以使用 `session` 对象与会话进行交互了。该对象可作为 `Astro.session` 从 Astro 组件和页面中以及 API 端点、中间件和 action 中的 `context` 对象上被读取到。所有情况下的 API 都是相同的。
+
+在大多数情况下，你只需使用 [`Astro.session.get()`](#sessionget) 和 [`Astro.session.set()`](#sessionset)。有关其他可用方法，请参阅 [API 部分](#会话-api)。
+
+### Astro 组件和页面
+
+在 `.astro` 组件和页面中，你可以通过全局 `Astro` 对象读取到会话对象。例如，要显示购物车中的商品数量：
+
+```astro title="src/components/CartButton.astro" "Astro.session"
+---
+export const prerender = false; // 在 'server' 模式下不需要
+const cart = await Astro.session.get('cart');
+---
+
+<a href="/checkout">🛒 {cart?.length ?? 0} items</a>
+```
+
+### API 端点
+
+在 API 端点中，会话对象在 `context` 对象中可用。例如，要向购物车中添加一件商品：
+
+```ts title="src/pages/api/addToCart.ts" "context.session"
+import type { APIContext } from "astro";
+
+export async function POST(req: Request, context: APIContext) {
+  const cart = await context.session.get("cart");
+  cart.push(req.body.item);
+  await context.session.set("cart", cart);
+  return Response.json(cart);
+}
+```
+
+### Actions
+
+在 action 中，会话对象在 `context` 对象中可用。例如，要向购物车中添加一件商品：
+
+```ts title="src/actions/addToCart.ts" "context.session"
+import { defineAction } from "astro:actions";
+import { z } from "astro:schema";
+
+export const server = {
+  addToCart: defineAction({
+    input: z.object({ productId: z.string() }),
+    handler: async (input, context) => {
+      const cart = await context.session.get("cart");
+      cart.push(input.productId);
+      await context.session.set("cart", cart);
+      return cart;
+    },
+  }),
+};
+```
+
+### 中间件
+
+:::note
+edge middleware 目前暂不支持会话。
+:::
+
+在中间件中，会话对象在 `context` 对象中可用。例如，在会话中设置最后访问的时间：
+
+```ts title="src/middleware.ts" "context.session"
+import { defineMiddleware } from 'astro:middleware';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  context.session.set('lastVisit', new Date());
+  return next();
+});
+```
+
+## Cookies
+
+首次访问时会生成会话，并在响应中设置一个会话 ID cookie。Cookie 中不存储实际的用户数据，仅存储用于识别用户会话的 ID。会话可以随时使用 [`Astro.session.regenerate()`](#sessionregenerate) 重新生成，或使用 [`Astro.session.destroy()`](#sessiondestroy) 销毁。
+
+### `session.cookie`
+
+<p>
+
+**类型：** `string` | `object`<br />
+**默认值：** `undefined`<br />
+
+</p>
+
+一个用于设置 cookie 选项的可选属性。可以通过提供一个字符串来自动设置 `cookie.name` 属性。要配置其他选项，请提供一个对象。
+
+```js title="astro.config.mjs" {5} ins={7-10}
+  {
+    experimental: {
+      session: {
+        // 如果设置为一个字符串，则会将其用作 cookie name
+        // cookie: "my-session-id",
+        // 如果设置为一个对象，则允许配置高级选项
+        cookie: {
+          name: "my-session-id"
+          sameSite: "Strict",
+        },
+      }
+    }
+  }
+```
+
+## 会话 API
+
+会话对象在所有 Astro 上下文中都可用，包括组件、action 和 API 端点。在组件中，它是通过全局 `Astro` 对象来读取到的，在 action 和 API 端点中，它在 `context` 对象中可用。所有情况下的 API 都是相同的。
+
+使用 [devalue](https://github.com/Rich-Harris/devalue) 对值进行序列化和反序列化，该库与 content layer 和 action 使用的库相同。这意味着支持的类型是相同的，包括字符串、数字、`Date`、`Map`、`Set`、`URL`、数组和简单对象。
+
+### `session.get()` 
+
+<p>
+
+**类型：** `(key: string) => Promise<any>`
+</p>
+
+返回会话中给定键的值。如果该键不存在，则返回 `undefined`。
+
+### `session.set()`
+
+<p>
+
+**类型：** `(key: string, value: any, options?: { ttl: number }) => void`
+</p>
+
+设置会话中给定键的值。该值可以是任何可序列化类型。
+
+### `session.regenerate()`
+
+<p>
+
+**类型：** `() => void`
+</p>
+
+重新生成会话 ID。最佳实践是在用户登录或升级权限时调用此方法，以防止会话固定攻击。
+
+### `session.destroy()`
+
+<p>
+
+**类型：** `() => void`
+</p>
+
+销毁会话，从后端删除 cookie 和对象。当用户退出登录或会话无效时应调用此方法。
+
+## 延伸阅读
+
+有关此实验性 API 的完整详细信息和反馈，请参阅 [会话 RFC](https://github.com/withastro/roadmap/blob/sessions/proposals/0054-sessions.md)。
