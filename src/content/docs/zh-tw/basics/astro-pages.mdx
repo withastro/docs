@@ -1,6 +1,6 @@
 ---
 title: 頁面
-description: Astro 頁面簡介
+description: Astro 頁面簡介。
 i18nReady: true
 ---
 
@@ -71,11 +71,13 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 ## Markdown/MDX 頁面
 
-Astro 也會將任何 `src/pages/` 內的 Markdown（`.md`）檔作為你最後網站的頁面。如果你有[安裝 MDX 整合](/zh-tw/guides/integrations-guide/mdx/#installation)的話，它也會對 MDX（`.mdx`）檔做同樣的事。這普遍用於以文字為主的頁面，像是部落格文章和文件。
+Astro 也會將任何 `src/pages/` 內的 Markdown（`.md`）檔作為你最後網站的頁面。如果你有[安裝 MDX 整合](/zh-tw/guides/integrations-guide/mdx/#installation)的話，它也會對 MDX（`.mdx`）檔做同樣的事。
 
-此外，`src/content/` 的 [Markdown 或 MDX 頁面內容合集](/zh-tw/guides/content-collections/)可以[動態產生頁面](/zh-tw/guides/routing/#dynamic-routes)。
+:::tip
+對於包含結構相似且相關的 Markdown 檔（如部落格文章或商品項目）的資料夾，請考慮建立[內容合集](/zh-tw/guides/content-collections/)，而不是頁面。
+:::
 
-頁面版面在 [Markdown 檔](#markdownmdx-頁面)特別地有用。Markdown 檔可以使用特殊的 `layout` frontmatter 屬性指定 [版面元件](/zh-tw/basics/layouts/)，進而將 Markdown 內容包進完整的 `<html>...</html>` 頁面檔案裡。
+Markdown 檔可以使用特殊的 `layout` frontmatter 屬性指定 [版面元件](/zh-tw/basics/layouts/)，進而將 Markdown 內容包進完整的 `<html>...</html>` 頁面檔案裡。
 
 ```md {3}
 ---
@@ -96,9 +98,41 @@ title: '我的 Markdown 頁面'
 
 ## 自訂 404 錯誤頁面
 
-如要自訂 404 錯誤頁面，可以在 `/src/pages` 新增 `404.astro` 或 `404.md`。
+如要自訂 404 錯誤頁面，可以在 `src/pages` 新增 `404.astro` 或 `404.md`。
 
 建構時會產生 `404.html` 頁面，大多數的[部署服務](/zh-tw/guides/deploy/)會找到並使用該檔案。
+
+## 自訂 500 錯誤頁面
+
+要給[隨需算繪](/zh-tw/guides/on-demand-rendering/)的頁面顯示的自訂 500 錯誤頁面，請建立 `src/pages/500.astro` 檔案。這個自訂頁面不適用於預算繪的頁面，也不能被預算繪。
+
+如果算繪這個頁面時發生錯誤，會顯示主機預設的 500 錯誤頁面給訪客。
+
+<p><Since v="4.10.3" /></p>
+
+開發時，如果你有 `500.astro`，執行時丟出的錯誤會記錄在終端機，而不會顯示在錯誤頁面上。
+
+### `error`
+
+<p><Since v="4.11.0" /></p>
+
+`src/pages/500.astro` 是特殊頁面，會自動為所有在算繪時丟出的錯誤傳遞 `error` 參數。讓你可以用錯誤的詳細資訊（例如從頁面、從中介層等）向訪客顯示相關資訊。
+
+error 參數可以是任何一種資料型別，這可能會影響你在程式碼中怎麽定義這個值的型別，或是怎麽使用這個值：
+
+```astro title="src/pages/500.astro"
+---
+interface Props {
+    error: unknown
+}
+
+const { error } = Astro.props
+---
+
+<div>{error instanceof Error ? error.message : 'Unknown error'}</div>
+```
+
+為了避免敏感資訊在顯示來自 `error` 參數的內容時洩漏，請考慮先對錯誤求值，然後根據丟出的錯誤回傳合適的內容。比如說你應該避免顯示錯誤的堆疊，因為它包含程式在伺服器上的結構。
 
 ## 局部頁面
 
@@ -118,7 +152,7 @@ title: '我的 Markdown 頁面'
 
 局部頁面搭配算繪套件同樣能夠開發動態內容，是不使用 [Astro 群島](/zh-tw/concepts/islands/) 和 [`<script>` 標籤](/zh-tw/guides/client-side-scripts/) 時的替代方案。
 
-能夠匯出值（例：`.astro`、`.mdx`）的頁面檔案即可標記為局部頁面。
+能夠匯出給 [`partial`](/zh-tw/reference/routing-reference/#partial) 的值的頁面檔案（例如 `.astro` 和 `.mdx`，但不含 `.md`）即可標記為局部頁面。
 
 在 `src/pages/` 目錄下的檔案內匯出以下指定值，便可將檔案設定為局部頁面：
 
@@ -129,11 +163,6 @@ export const partial = true;
 
 <li>I'm a partial!</li>
 ```
-
-`export const partial` 要能夠靜態識別。合法的值為：
-
-- 布林值 __`true`__。
-- 透過 import.meta.env 存取的環境變數，例如 `import.meta.env.USE_PARTIALS`。
 
 ### 與套件搭配使用
 
