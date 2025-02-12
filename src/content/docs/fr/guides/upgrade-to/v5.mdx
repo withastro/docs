@@ -141,21 +141,22 @@ Voir les instructions ci-dessous pour mettre à jour une collection de contenu e
     });
     ```
 
-3. **Changez les références de `slug` à `id`**. Les collections de couches de contenu n'ont pas de champ `slug` réservé. À la place, toutes les collections mises à jour auront un `id`. Vous pouvez également avoir besoin de mettre à jour les noms des fichiers de routage dynamique pour correspondre à un paramètre getStaticPaths() modifié :
+3. **Changez les références de `slug` à `id`**. Les collections de couches de contenu n'ont pas de champ `slug` réservé. À la place, toutes les collections mises à jour auront un `id` :
 
     ```astro ins={7} del={6}
-    // src/pages/[id].astro
+    // src/pages/[slug].astro
     ---
     export async function getStaticPaths() {
       const posts = await getCollection('blog');
       return posts.map((post) => ({
         params: { slug: post.slug },
-        params: { id: post.id },
+        params: { slug: post.id },
         props: post,
       }));
     }
     ---
     ```
+    Vous pouvez également mettre à jour les noms de fichiers de routage dynamique pour qu'ils correspondent à la valeur du paramètre `getStaticPaths()` modifié.
 
 4. **Basculez vers la nouvelle fonction `render()`**. Les entrées n'ont plus de méthode `render()`, car elles sont maintenant des objets simples sérialisables. À la place, importez la fonction `render()` de `astro:content`.
 
@@ -531,15 +532,31 @@ En cas de collisions de routes, lorsque deux routes de même priorité tentent d
 
 <SourcePR number="11791" title="Faire de directRenderScript la valeur par défaut"/>
 
-Dans Astro v4.x, `experimental.directRenderScript` était un drapeau optionnel pour rendre directement les `<scripts>` tels que déclarés dans les fichiers `.astro` (y compris les fonctionnalités existantes comme TypeScript, l'importation de `node_modules`, et la déduplication des scripts). Cette stratégie empêchait les scripts d'être exécutés à des endroits où ils n'étaient pas utilisés.
+Dans Astro v4.x, `experimental.directRenderScript` était un drapeau optionnel pour rendre directement les `<scripts>` tels que déclarés dans les fichiers `.astro` (y compris les fonctionnalités existantes comme TypeScript, l'importation de `node_modules`, et la déduplication des scripts). Cette stratégie empêchait les scripts d'être exécutés à des endroits où ils n'étaient pas utilisés. De plus, les scripts rendus conditionnellement étaient auparavant implicitement intégrés sur place sans traitement par Astro, comme si une directive `is:inline` leur était automatiquement ajoutée.
 
-Astro 5.0 supprime ce drapeau expérimental et en fait le nouveau comportement par défaut d'Astro : les scripts ne sont plus placés dans le `<head>`, les scripts multiples sur une page ne sont plus regroupés, et une balise `<script>` peut interférer avec le stylisme CSS.
+Astro 5.0 supprime ce drapeau expérimental et en fait le nouveau comportement par défaut d'Astro : les scripts ne sont plus placés dans le `<head>`, les scripts multiples sur une page ne sont plus regroupés, et une balise `<script>` peut interférer avec le stylisme CSS. De plus, les scripts rendus conditionnellement ne sont plus implicitement intégrés sans traitement par Astro.
+
 
 #### Que dois-je faire ?
 
 Veuillez revoir vos balises `<script>` et vous assurer qu'elles se comportent comme vous le souhaitez.
 
-<ReadMore>En savoir plus sur [l'utilisation des balises `script' dans Astro](/fr/guides/client-side-scripts/#utilisation-du-script-dans-astro).</ReadMore>
+Si vous aviez auparavant des balises `<script>` rendues conditionnellement, vous devrez ajouter un attribut `is:inline` pour conserver le même fonctionnement qu'auparavant.
+
+```astro title="src/components/MyComponent.astro" ins="is:inline"
+---
+type Props = {
+  afficherAlerte: boolean
+}
+
+const { afficherAlerte } = Astro.props;
+---
+{
+  afficherAlerte && <script is:inline>alert("Notification très importante !")</script>
+}
+```
+
+<ReadMore>En savoir plus sur [l'utilisation des balises `script` dans Astro](/fr/guides/client-side-scripts/#utilisation-du-script-dans-astro).</ReadMore>
 
 ## Changements de rupture
 
@@ -1139,14 +1156,14 @@ Si vous utilisiez la forme obsolète, mettez à jour votre application de barre 
 
 ```js title="my-integration.mjs" del={1-2} ins={4-10}
 // Old shape
-addDevToolbarApp("./my-app.js");
+addDevToolbarApp("./my-dev-toolbar-app.mjs");
 
 // New shape
 addDevToolbarApp({
   id: "my-app",
   name: "My App",
   icon: "<svg>...</svg>",
-  entrypoint: "./my-app.js",
+  entrypoint: "./my-dev-toolbar-app.mjs",
 });
 ```
 
