@@ -1,0 +1,227 @@
+---
+title: Resaltado de Sintaxis
+description: Aprende como resaltar tus bloques de código en Astro.
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+Astro incluye soporte integrado para [Shiki](https://shiki.style/) y [Prism](https://prismjs.com/). Esto proporciona resaltado de sintaxis para:
+
+- las [secciones de código (\`\`\`)](#bloques-de-código-en-markdown ) utilizadas en archivos Markdown o MDX.
+- contenido dentro del [componente integrado `<Code />`](#code-) (impulsado por Shiki) en archivos `.astro`.
+- contenido dentro del [componente `<Prism />`](#prism-) (impulsado por Prism) en archivos `.astro`.
+
+Agrega [integraciones de la comunidad como Expressive Code](https://astro.build/integrations/?search=syntax+highlight) para obtener aún más opciones de marcado y anotación en tus bloques de código.
+
+## Bloques de código en Markdown
+
+Un bloque de código en Markdown se indica con tres acentos graves \`\`\` al inicio y al final. Puedes indicar el lenguaje de programación después de los acentos graves de apertura para definir cómo se coloreará y estilizará tu código, facilitando su lectura.
+
+``````markdown
+```js
+// Código Javascript con resaltado de sintaxis.
+var fun = function lang(l) {
+  dateformat.i18n = require('./lang/' + l);
+  return true;
+};
+```
+``````
+
+Los bloques de código en Markdown de Astro están estilizados por defecto con Shiki, preconfigurados con el tema `github-dark`. La salida compilada estará limitada a estilos en línea, sin clases CSS adicionales, hojas de estilo o JavaScript en el lado del cliente.
+
+Puedes [agregar una hoja de estilos de Prism y cambiar al resaltado de Prism](#agregar-una-hoja-de-estilos-de-prism), o desactivar por completo el resaltado de sintaxis de Astro mediante la opción de configuración [`markdown.syntaxHighlight`](/es/reference/configuration-reference/#markdownsyntaxhighlight).
+
+<ReadMore>Consulta la referencia completa de [`markdown.shikiConfig`](/es/reference/configuration-reference/#markdownshikiconfig) para ver todas las opciones de resaltado de sintaxis disponibles al usar Shiki.</ReadMore>
+
+### Configuración de un tema predeterminado en Shiki
+
+Puedes configurar cualquier [tema incorporado de Shiki](https://shiki.style/themes) para los bloques de código en Markdown en tu configuración de Astro:
+
+```js title="astro.config.mjs" {6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: {
+      theme: 'dracula',
+    },
+  },
+});
+```
+<ReadMore>Consulta la referencia completa de [configuración de Shiki](/es/reference/configuration-reference/#markdownshikiconfig) para ver todas las opciones disponibles para los bloques de código en Markdown.</ReadMore>
+
+### Configuración de temas para modo claro y oscuro
+
+Puedes especificar dos temas de Shiki, uno para el modo claro y otro para el modo oscuro, en tu configuración de Astro:
+
+```js title="astro.config.mjs" {6-9}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: {
+      themes: {
+        light: 'github-light',
+        dark: 'github-dark',
+      },
+    },
+  },
+});
+```
+
+Luego, [agrega las variables CSS de modo oscuro de Shiki mediante una media query o clases](https://shiki.style/guide/dual-themes#query-based-dark-mode) para aplicarlas por defecto a todos tus bloques de código en Markdown. Reemplaza la clase `.shiki` en los ejemplos de la documentación de Shiki por `.astro-code`:
+
+```css title="src/styles/global.css" del={2,3} ins={4,5}
+@media (prefers-color-scheme: dark) {
+  .shiki,
+  .shiki span {
+  .astro-code,
+  .astro-code span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+    /* Opcional, si también quieres estilos de fuente */
+    font-style: var(--shiki-dark-font-style) !important;
+    font-weight: var(--shiki-dark-font-weight) !important;
+    text-decoration: var(--shiki-dark-text-decoration) !important;
+  }
+}
+```
+
+<ReadMore>Consulta la referencia completa de [configuración de Shiki](/es/reference/configuration-reference/#markdownshikiconfig) para ver todas las opciones disponibles para los bloques de código en Markdown.</ReadMore>
+
+### Agregar tu propio tema de Shiki
+
+En lugar de usar uno de los temas predefinidos de Shiki, puedes importar un tema personalizado de Shiki desde un archivo local.
+
+```js title="astro.config.mjs" ins={2,7}
+import { defineConfig } from 'astro/config';
+import customTheme from './my-shiki-theme.json';
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: { 
+      theme: customTheme,
+    },
+  },
+});
+```
+
+### Personalización de temas en Shiki
+
+Puedes seguir la [documentación de temas de Shiki](https://shiki.style/themes) para más opciones de personalización, como alternar entre modo claro y oscuro o aplicar estilos mediante variables CSS.
+
+Los bloques de código en Astro están estilizados con la clase `.astro-code`, por lo que debes reemplazar la clase `.shiki` en los ejemplos con `.astro-code`.
+
+## Componentes para bloques de código
+
+Hay dos componentes de Astro disponibles para archivos `.astro` y `.mdx` que permiten renderizar bloques de código: [`<Code />`](#code-) y [`<Prism />`](#prism-).
+
+Puedes consultar las `Props` de estos componentes utilizando la utilidad de [tipo `ComponentProps`](/es/guides/typescript/#tipo-componentprops).
+
+### `<Code />`
+
+Este componente utiliza internamente Shiki. Es compatible con todos los temas y lenguajes populares de Shiki, además de varias opciones adicionales, como temas personalizados, lenguajes, [transformadores](#transformadores), y colores predeterminados.
+
+Estos valores se pasan al componente `<Code />` mediante los atributos `theme`, `lang`, `transformers`, y `defaultColor` respectivamente como props. El componente `<Code />` no heredará la configuración de `shikiConfig` aplicada a los bloques de código en Markdown.
+
+```astro 'theme="dark-plus"' /wrap\b/ /(inline) \/>/ 'defaultColor={false}'
+---
+import { Code } from 'astro:components';
+---
+<!-- Resaltar la sintaxis de un código en JavaScript. -->
+<Code code={`const foo = 'bar';`} lang="js" />
+<!-- Opcional: Personalizar tu tema. -->
+<Code code={`const foo = 'bar';`} lang="js" theme="dark-plus" />
+<!-- Opcional: Habilitar el ajuste de línea. -->
+<Code code={`const foo = 'bar';`} lang="js" wrap />
+<!-- Opcional: Renderizar el código en línea. -->
+<p>
+  <Code code={`const foo = 'bar';`} lang="js" inline />
+  será renderizado en línea.
+</p>
+<!-- Opcional: defaultColor -->
+<Code code={`const foo = 'bar';`} lang="js" defaultColor={false} />
+```
+
+#### Transformadores
+
+<p><Since v="4.11.0" /></p>
+
+Los [transformadores de Shiki](https://shiki.style/packages/transformers#shikijs-transformers) se pueden aplicar opcionalmente al código pasándolos a través de la propiedad `transformers` como un arreglo. Desde Astro v4.14.0, también puedes proporcionar una cadena de texto en el [atributo `meta` de Shiki](https://shiki.style/guide/transformers#meta) para pasar opciones a los transformadores.
+
+Ten en cuenta que `transformers` solo aplica clases, por lo que debes proporcionar tus propias reglas CSS para dar estilo a los elementos de tu bloque de código.
+
+```astro title="src/pages/index.astro" {12-13}
+---
+import { transformerNotationFocus, transformerMetaHighlight } from '@shikijs/transformers'
+import { Code } from 'astro:components'
+const code = `const foo = 'hello'
+const bar = ' world'
+console.log(foo + bar) // [!code focus]
+`
+---
+<Code
+  code={code}
+  lang="js"
+  transformers={[transformerMetaHighlight()]}
+  meta="{1,3}"
+/>
+  
+<style is:global>
+  pre.has-focused .line:not(.focused) {
+    filter: blur(1px);
+  }
+</style>
+```
+
+### `<Prism />`
+
+Este componente proporciona resaltado de sintaxis específico para cada lenguaje en los bloques de código aplicando las clases CSS de Prism. Ten en cuenta que debes [proporcionar una hoja de estilos CSS de Prism](#agregar-una-hoja-de-estilos-de-prism) (o usar una propia) para dar estilo a las clases.
+
+Para utilizar el componente de resaltado de `Prism`, debes instalar el paquete `@astrojs/prism`:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @astrojs/prism
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @astrojs/prism
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/prism
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Luego, puedes importar y utilizar el componente `<Prism />` como cualquier otro componente de Astro, pasando un lenguaje y el código a renderizar.
+
+```astro
+---
+import { Prism } from '@astrojs/prism';
+---
+<Prism lang="js" code={`const foo = 'bar';`} />
+```
+
+Además de la [lista de lenguajes compatibles con Prism](https://prismjs.com/#supported-languages), también puedes usar `lang="astro"` para mostrar bloques de código de Astro.
+
+## Agregar una hoja de estilos de Prism
+
+Si decides usar Prism (ya sea configurando `markdown.syntaxHighlight: 'prism'` o con el componente `<Prism />`), Astro aplicará las clases CSS de Prism en lugar de las de Shiki a tu código. Para que el resaltado de sintaxis funcione, necesitarás proporcionar tu propia de estilos de CSS.
+
+<Steps>
+1. Elige un tema predefinido desde la lista de [temas de Prism](https://github.com/PrismJS/prism-themes).
+
+2. Agrega la hoja de estilos elegida [en el directorio `public/` de tu proyecto](/es/basics/project-structure/#public).
+
+3. Carga la hoja de estilos en el `<head>` de tu página dentro de un [componente de layout](/es/basics/layouts/) usando una etiqueta `<link>`. (Consulta la [documentación de Prism](https://prismjs.com/#basic-usage).)
+</Steps>
+
+También puedes consultar la [lista de lenguajes compatibles con Prism](https://prismjs.com/#supported-languages) para más opciones y detalles de uso.
