@@ -1,0 +1,154 @@
+---
+title: 將您的Astro網站部署到GitHub Pages
+description: 如何透過GitHub Pages將您的Astro網站部署到網際網路上
+sidebar:
+  label: GitHub Pages
+type: deploy
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+
+你可以透過 [GitHub Pages](https://pages.github.com/) 直接從 [GitHub](https://github.com/) 的儲存庫中部署你的 Astro 網站。
+
+## 如何部署
+
+你可以透過 [GitHub Actions](https://github.com/features/actions) 將你的 Astro 網站自動搭建並部署到 GitHub Pages 網站上。為了這麼做，你應該將你的網站原始碼託管至 GitHub。
+
+Astro 維護了一個官方的 `withastro/action` 幫助你部署你的專案。按照下方的說明即可讓你快速將 Astro 網站部署進 GitHub pages，並請在需要更多資訊時，可以檢視[這個讀我檔案](https://github.com/withastro/action)。
+
+## 為 GitHub Pages 配置 Astro 專案
+
+為了將 Astro 網站部署至 GitHub Pages，我們需要先對原本的 Astro 配置文件做些許變更。按照下方的說明即可，如果你不知道自己該怎麼做的話。
+
+### 部署至一個 `github.io` 的網址
+
+請在`astro.config.mjs` 的配置文件中設定 [`site`](/en/reference/configuration-reference/#site) 與 [`base`](/en/reference/configuration-reference/#base) 兩個選項。
+    
+```js title="astro.config.mjs" ins={4-5}
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  site: 'https://astronaut.github.io',        // 你的 GitHub Pages 網址
+  base: 'my-repo',
+})
+```
+
+#### `site`
+
+請確保你的 `site` 值應為以下的其中之一：
+
+- 以你的使用者名稱產生的 GitHub.io 網址，如：`https://<username>.github.io`
+- 為 [GitHub 組織的專有頁面](https://docs.github.com/en/enterprise-cloud@latest/pages/getting-started-with-github-pages/changing-the-visibility-of-your-github-pages-site) 所產生的亂數網址，如：`https://<random-string>.pages.github.io/`
+
+#### `base`
+
+可能需要為 `base` 設定一個值，以便 Astro 將你的儲存庫名稱（例如 `/my-repo`）視為你網站的根目錄。
+
+:::note
+  如果你的情況符合以下其中之一，請不要為 `base` 參數設定值：
+
+- 如果你的頁面由根資料夾所提供。
+- 如果你的原始碼儲存庫在 `https://github.com/<USERNAME>/<USERNAME>.github.io`.
+:::
+
+`base` 的內容應該是你的儲存庫名稱，並以正斜線開頭，例如 `/my-blog`。這樣做是為了讓 Astro 理解你的網站根目錄是 `/my-repo`，而不是預設的 `/`。
+
+:::caution
+    當設定了這個值後，你所有的內部頁面連結都必須以你的 `base` 值作為前綴：
+
+```astro ins="/my-repo"
+<a href="/my-repo/about">關於本站</a>
+```
+
+你可以在 [設定 `base` 值](/en/reference/configuration-reference/#base) 中找到更多相關資訊。
+:::
+
+### 使用自定義網域名稱的 GitHub Pages
+
+:::tip[設定一個自訂網域]
+你可以透過在專案裝建立一個 `./public/CNAME` 檔案來設定自訂網域名稱：
+
+```js title="public/CNAME"
+sub.mydomain.com
+```
+
+這會將你的網站部署在你所指定的自訂網域名稱下，而非 `<YOUR_USERNAME>.github.io`。另外，絕對不要忘記在你的網域名稱供應商（如：GoDaddy、Namecheap 等）中設定一個 CNAME 記錄，如果需要詳細的資訊可以檢視 [為你的域名提供商設定 GitHub Pages](https://docs.github.com/cn/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-a-subdomain)。
+:::
+
+為了設定 Astro 在 GitHub Pages 上使用你的自訂網域，請將你的網域名稱設定成 `site` 的值。並請不要為 `base` 設定值：
+
+```js title="astro.config.mjs" ins={4}
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  site: 'https://example.com',
+})
+```
+
+## Configure a GitHub Action
+
+<Steps>
+1. Create a new file in your project at `.github/workflows/deploy.yml` and paste in the YAML below.
+
+    ```yaml title="deploy.yml"
+    name: Deploy to GitHub Pages
+
+    on:
+      # Trigger the workflow every time you push to the `main` branch
+      # Using a different branch name? Replace `main` with your branch’s name
+      push:
+        branches: [ main ]
+      # Allows you to run this workflow manually from the Actions tab on GitHub.
+      workflow_dispatch:
+      
+    # Allow this job to clone the repo and create a page deployment
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    jobs:
+      build:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout your repository using git
+            uses: actions/checkout@v4
+          - name: Install, build, and upload your site
+            uses: withastro/action@v3
+            # with:
+              # path: . # The root location of your Astro project inside the repository. (optional)
+              # node-version: 20 # The specific version of Node that should be used to build your site. Defaults to 20. (optional)
+              # package-manager: pnpm@latest # The Node package manager that should be used to install dependencies and build your site. Automatically detected based on your lockfile. (optional)
+
+      deploy:
+        needs: build
+        runs-on: ubuntu-latest
+        environment:
+          name: github-pages
+          url: ${{ steps.deployment.outputs.page_url }}
+        steps:
+          - name: Deploy to GitHub Pages
+            id: deployment
+            uses: actions/deploy-pages@v4
+    ```
+
+    :::note
+    The astro action takes a few optional inputs. These can be provided by uncommenting the `with:` line and the input you want to use.
+    :::
+    
+    :::caution
+    The official Astro [action](https://github.com/withastro/action) scans for a lockfile to detect your preferred package manager (`npm`, `yarn`, `pnpm`, or `bun`). You should commit your package manager's automatically generated `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, or `bun.lockb` file to your repository.
+    :::
+
+2. On GitHub, go to your repository’s **Settings** tab and find the **Pages** section of the settings.
+
+3. Choose **GitHub Actions** as the **Source** of your site.  
+
+4. Commit the new workflow file and push it to GitHub.  
+</Steps>
+  
+Your site should now be published! When you push changes to your Astro project’s repository, the GitHub Action will automatically deploy them for you.
+
+## Examples
+
+- [Github Pages Deployment](https://github.com/hkbertoson/github-pages)
