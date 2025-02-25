@@ -10,9 +10,142 @@ AstroのContent Loader APIを使用することで、ローカルまたはリモ
 
 ## ローダーとは？
 
-Astroのローダーを使用すると、[コンテンツコレクション](/ja/guides/content-collections/)にデータをロードでき、ページやコンポーネントで使用できます。[ビルトインの`glob()`および`file()`ローダー](/ja/guides/content-collections/#built-in-loaders)はファイルシステムからコンテンツをロードするために使用され、他のソースからコンテンツをロードするために独自のローダーを作成することもできます。
+Astroのローダーを使用すると、[コンテンツコレクション](/ja/guides/content-collections/)にデータをロードでき、ページやコンポーネントで使用できます。[ビルトインの`glob()`および`file()`ローダー](/en/guides/content-collections/#built-in-loaders)はファイルシステムからコンテンツをロードするために使用され、他のソースからコンテンツをロードするために独自のローダーを作成することもできます。
 
-各コレクションには[スキーマで定義されたローダー](/ja/guides/content-collections/#defining-the-collection-loader)が必要です。プロジェクトの`src/content.config.ts`ファイルにインラインでローダーを定義したり、複数のコレクション間で1つのローダーを共有したり、他の人と共有するために[NPMにパッケージとしてローダーを公開](/ja/reference/publish-to-npm/)して、統合ライブラリに含めることもできます。
+各コレクションには[スキーマで定義されたローダー](/en/guides/content-collections/#defining-the-collection-loader)が必要です。プロジェクトの`src/content.config.ts`ファイルにインラインでローダーを定義したり、複数のコレクション間で1つのローダーを共有したり、他の人と共有するために[NPMにパッケージとしてローダーを公開](/ja/reference/publish-to-npm/)して、統合ライブラリに含めることもできます。
+
+## ビルトインローダー
+
+Astroには、コレクションを取得するための2つのビルトインローダーが用意されています。どちらも幅広いユースケースに対応するオプションを提供しています。
+
+### `glob()` ローダー
+
+<p>
+
+**Type:** <code>(options: GlobOptions) => <a href="#the-loader-object">Loader</a></code><br />
+<Since v="5.0.0" />
+</p>
+
+`glob()`ローダーは、ファイルシステム上の任意のディレクトリからファイルのエントリを作成します。サポートされているファイルタイプは、Markdown、MDX、Markdoc、JSON、およびYAMLファイルです。
+
+このローダーは、`pattern`、`base`（オプショナル）、および`generateId`（オプショナル）のプロパティを持つをオブジェクトを受け入れます。
+
+```ts title="src/content.config.ts" {2,6,11,17-21}
+import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const pages = defineCollection({
+  /* pagesディレクトリにあるすべてのマークダウンファイルを取得する。 */
+  loader: glob({ pattern: "**/*.md", base: "./src/data/pages" }),
+  schema: /* ... */
+});
+const blog = defineCollection({
+  /* blogディレクトリにあるすべてのマークダウン、MDXファイルを取得する。 */
+  loader: glob({ pattern: "**/*.(md|mdx)", base: "./src/data/blog" }),
+  schema: /* ... */
+});
+const authors = defineCollection({
+  /* 大文字のIDを保持したまま、authorsディレクトリ内のすべてのJSONファイルを取得する。 */
+  loader: glob({
+    pattern: '**/*.json',
+    base: "./src/data/authors",
+    generateId: ({ entry }) => entry.replace(/\.json$/, ''),
+  }),
+  schema: /* ... */
+});
+```
+
+#### `pattern`
+
+<p>
+
+**Type:** `string | string[]`
+</p>
+
+`pattern`プロパティは、グロブマッチング（ワイルドカードなど）を使用して文字列または文字列の配列を受け入れます。パターンは、エントリファイルのベースディレクトリに対して相対的である必要があります。
+
+使用する構文の詳細については、[micromatchのドキュメント](https://github.com/micromatch/micromatch#matching-features)を参照してください。また、[DigitalOcean Glob Tool](https://www.digitalocean.com/community/tools/glob)のようなオンラインツールを使用してパターンの有効性を確認することもできます。
+
+#### `base`
+
+<p>
+
+**Type:** `string | URL`<br />
+**Default:** `"."`
+</p>
+
+`pattern`を解決するためのディレクトリへの相対パスまたは[URL](https://developer.mozilla.org/ja/docs/Web/API/URL)を指定します。
+
+#### `generateId()`
+
+<p>
+
+**Type:** `(options: GenerateIdOptions) => string`
+</p>
+
+エントリごとに一意の文字列を返すコールバック関数です。以下のプロパティを持つオブジェクトをパラメータとして受け取ります。
+* `entry` - ベースディレクトリに対するエントリファイルのパス
+* `base` - ベースディレクトリの[URL](https://developer.mozilla.org/ja/docs/Web/API/URL)
+* `data` - パースされた未検証のエントリデータ
+
+デフォルトでは、[`github-slugger`](https://github.com/Flet/github-slugger)を使用して、[ケバブケース](https://developer.mozilla.org/ja/docs/Glossary/Kebab_case)の単語でスラッグを生成します。
+
+### `file()` ローダー
+
+<p>
+
+**Type:** <code>(fileName: string, options?: FileOptions) => <a href="#the-loader-object">Loader</a></code><br />
+<Since v="5.0.0" />
+</p>
+
+`file()`ローダーは、ユニークな`id`フィールドを持つオブジェクトの配列、または文字列キーを持つオブジェクトを含む単一のファイルからエントリを作成します。JSONまたはYAMLをサポートしており、デフォルトでは解析できないデータファイルに対してカスタム`parser`を提供することができます。
+
+このローダーは、`fileName`プロパティとオプションのオブジェクトを第二引数として受け入れます。
+
+```ts title="src/content.config.ts" {2,6,11-13}
+import { defineCollection } from 'astro:content';
+import { file } from 'astro/loaders';
+
+const authors = defineCollection({
+  /* JSONファイルからすべてのエントリーを取得する。 */
+  loader: file("src/data/authors.json"),
+  schema: /* ... */
+});
+const products = defineCollection({
+  /* カスタムのパーサーを使って、CSVファイルからすべてのエントリーを取得する。 */
+  loader: file("src/data/products.csv", {
+    parser: (fileContent) => { /* パーサーのロジックを記述 */ },
+  }),
+  schema: /* ... */
+});
+```
+
+#### `fileName`
+
+<p>
+
+**Type:** `string`
+</p>
+
+ファイルをロードするためのパスを、ルートディレクトリからの相対パスで設定します。
+
+#### Options
+
+<p>
+
+**Type:** `FileOptions`
+</p>
+
+オプションのオブジェクトとして、次のプロパティを持ちます。
+
+##### `parser()`
+
+<p>
+
+**Type:** `(text: string) => Record<string, Record<string, unknown>> | Array<Record<string, unknown>>`
+</p>
+
+ファイルの内容からコレクションを作成するためのコールバック関数です。デフォルトでサポートされていないファイル（例：`.csv`）を処理する必要がある場合や、[ネストされた`.json`ドキュメント](/en/guides/content-collections/#nested-json-documents)を使用する場合に使用します。
 
 ## ローダータイプ
 
@@ -88,7 +221,7 @@ const blog = defineCollection({
 });  
 ```
 
-## ローダーAPI
+## オブジェクトローダーAPI
 
 [インラインローダー](#インラインローダー)のAPIは、上述の通り非常にシンプルです。このセクションでは、オブジェクトローダーを定義するためのAPIを示します。
 
