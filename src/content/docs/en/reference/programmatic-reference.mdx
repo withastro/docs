@@ -288,22 +288,57 @@ await sync({
 
 Imported from `astro/config`, merges a partial Astro configuration on top of an existing, valid, Astro configuration.
 
-- General options are overriden.
-- Integrations and remark plugins are appended to the existing list.
-- Vite options are merged using [Vite's own `mergeConfig` function](https://vite.dev/guide/api-javascript#mergeconfig) with default `isRoot` flag.
-- Lazy options passed as functions are wrapped into new functions that recursively merge the return values from both configurations with these same rules.
+The return value is a valid Astro config combining both values such that:
+
+- Arrays are concatenated (including integrations and remark plugins).
+- Objects are merged recursively.
+- Vite options are merged using [Vite's own `mergeConfig` function](https://vite.dev/guide/api-javascript#mergeconfig) with the default `isRoot` flag.
+- Options that can be provided as functions are wrapped into new functions that recursively merge the return values from both configurations with these same rules.
+- All other options override the existing config.
 
 ```ts
 import { mergeConfig } from "astro/config";
 
-const config = mergeConfig(
+mergeConfig(
   {
+    output: 'static',
+    site: 'https://example.com',
     integrations: [tailwind()],
+    server: ({command}) => ({
+      port: command === 'dev' ? 4321 : 1234,
+    }),
+	  build: {
+		  client: './custom-client',
+	  },
   },
   {
+    output: 'server',
+    base: '/astro',
     integrations: [mdx()],
+    server: ({command}) => ({
+      host: command === 'dev' ? 'localhost' : 'site.localhost',
+    }),
+	  build: {
+		  server: './custom-server',
+	  },
   }
 );
+
+// Result is equivalent to:
+{
+  output: 'server',
+  site: 'https://example.com',
+  base: '/astro',
+  integrations: [tailwind(), mdx()],
+  server: ({command}) => ({
+    port: command === 'dev' ? 4321 : 1234,
+    host: command === 'dev' ? 'localhost' : 'site.localhost',
+  }),
+	build: {
+		client: './custom-client',
+		server: './custom-server',
+	},
+}
 ```
 
 ## `validateConfig()`
