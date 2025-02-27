@@ -1,0 +1,289 @@
+---
+title: Renderizado bajo demanda
+description: Genera páginas y rutas renderizadas en el servidor bajo demanda con un adaptador.
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+import RecipeLinks from '~/components/RecipeLinks.astro';
+import IntegrationsNav from '~/components/IntegrationsNav.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+Tu código de proyecto en Astro debe ser **renderizado** a HTML para poder mostrarse en la web. 
+
+Por defecto, las páginas, rutas y endpoints de API en Astro se pre-renderizan en el momento de la compilación como páginas estáticas. Sin embargo, puedes optar por renderizar algunas o todas tus rutas bajo demanda mediante un servidor cuando se solicite una ruta.
+
+Las páginas y rutas renderizadas bajo demanda se generan en cada visita, y pueden personalizarse para cada usuario. Por ejemplo, una página renderizada bajo demanda puede mostrar a un usuario autenticado la información de su cuenta o mostrar datos actualizados sin necesidad de de reconstruir todo el sitio.
+
+El renderizado bajo demanda en el servidor en el momento de la solicitud también se conoce como **renderizado del lado del servidor (SSR)**.
+
+## Adaptadores de servidor
+
+Para renderizar cualquier página bajo demanda, necesitas agregar un **adaptador**. Cada adaptador permite que Astro genere un script que ejecuta tu proyecto en un **entorno** específico: el entorno que ejecuta código en el servidor para generar páginas cuando se solicitan (por ejemplo, Netlify, Cloudflare).
+
+También puedes agregar un adaptador incluso si tu sitio es completamente estático y no estás renderizando páginas bajo demanda. Por ejemplo, el [adaptador de Netlify](/es/guides/integrations-guide/netlify/) habilita la CDN de imágenes de Netlify, y [las islas de servidor](/es/guides/server-islands/) requieren un adaptador instalado para usar `server:defer` en un componente.
+
+<IntegrationsNav category="adapter"/>
+
+Astro mantiene adaptadores oficiales para [Node.js](https://nodejs.org/), [Netlify](https://www.netlify.com/), [Vercel](https://vercel.com/), y [Cloudflare](https://www.cloudflare.com/). Puedes encontrar tanto [adaptadores oficiales como de la comunidad en nuestro directorio de integraciones](https://astro.build/integrations/?search=&categories%5B%5D=adapters). Elige el que corresponda a tu [entorno de despliegue](/es/guides/deploy/).
+
+### Agrega un adaptador
+
+Puedes agregar cualquiera de las [integraciones oficiales de adaptadores mantenidas por Astro](/es/guides/integrations-guide/#integraciones-oficiales) con el siguiente comando `astro add`. Esto instalará el adaptador y realizará los cambios correspondientes en tu archivo `astro.config.mjs` en un solo paso. 
+
+Por ejemplo, para instalar el adaptador de Netlify, ejecuta:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add netlify
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+También puedes [agregar un adaptador manualmente instalando el paquete de NPM](/es/guides/integrations-guide/#instalando-un-paquete-npm) (por ejemplo, `@astrojs/netlify`) y actualizando tu archivo `astro.config.mjs` por tu cuenta.
+
+Ten en cuenta que los diferentes adaptadores pueden tener configuraciones distintas. Lee la documentación de cada adaptador y aplica las opciones de configuración necesarias en `astro.config.mjs`.
+
+## Habilitar el renderizado bajo demanda
+
+**Por defecto, todo tu sitio Astro será prerenderizado**, y se enviarán páginas HTML estáticas al navegador. Sin embargo, puedes excluir del prerenderizado aquellas rutas que requieran renderizado en el servidor, por ejemplo, una página que verifique cookies y muestre contenido personalizado.
+
+Primero, [agrega una integración de adaptador](#agrega-un-adaptador) para tu entorno de servidor para habilitar el renderizado bajo demanda en tu proyecto Astro.
+
+Luego, añade `export const prerender = false` en la parte superior de la página o endpoint que desea renderizar bajo demanda. El resto de tu sitio seguirá siendo estático:
+
+```astro title="src/pages/page-rendered-on-demand.astro" ins={2}
+---
+export const prerender = false
+---
+<html>
+<!--
+¡Este contenido se renderizará en el servidor bajo demanda!  
+Solo agrega una integración de adaptador para un entorno de servidor.  
+¡Todas las demás páginas se generan estáticamente en el momento de la compilación!
+-->
+<html>
+```
+
+El siguiente ejemplo muestra cómo excluirse del prerenderizado para mostrar un número aleatorio cada vez que se accede al endpoint:
+
+```js title="src/pages/randomnumber.js" ins={1}
+export const prerender = false;
+
+export async function GET() {
+  let number = Math.random();
+  return new Response(
+    JSON.stringify({
+      number,
+      message: `Aquí tienes un número aleatorio: ${number}`,
+    }),
+  );
+}
+```
+### Modo `'server'`
+
+Para una **aplicación altamente dinámica**, después de agregar un adaptador, puedes [configurar la salida de compilación con `output: 'server'`](/es/reference/configuration-reference/#output) para **renderizar todas tus páginas en el servidor por defecto**. Esto equivale a excluir el prerenderizado en cada página.
+
+Luego, si es necesario, puedes optar por prerenderizar páginas individuales que no requieran ejecución en el servidor, como una página de política de privacidad o una página "Acerca de".
+
+```astro title="src/pages/about-my-app.astro" ins={2}
+---
+export const prerender = true
+---
+<html>
+<!--
+`output: 'server' `está configurado, ¡pero esta página es estática!
+¡El resto de mi sitio se renderiza bajo demanda!
+-->
+<html>
+```
+
+Agrega `export const prerender = true` a cualquier página o ruta para prerenderizar una página estática o endpoint:
+
+```js title="src/pages/myendpoint.js" ins={1}
+export const prerender = true;
+
+export async function GET() {
+  return new Response(
+    JSON.stringify({
+      message: `Este es mi endpoint estático`,
+    }),
+  );
+}
+```
+
+:::tip
+Comienza con el modo predeterminado `'static'` hasta que estés seguro de que la **mayoría o todas** tus páginas se renderizarán bajo demanda! Esto garantiza que tu sitio sea lo más eficiente posible, sin depender de una función del servidor para renderizar contenido estático.
+
+El modo de salida `'server'` no agrega ninguna funcionalidad adicional. Solo cambia el comportamiento predeterminado de renderizado.
+:::
+
+<ReadMore>Consulta más sobre la [configuración `output`](/es/reference/configuration-reference/#output) en la referencia de configuración.</ReadMore>
+
+
+## Funciones de renderizado bajo demanda
+
+### Transmisión de HTML
+
+Con la transmisión de HTML, un documento se divide en fragmentos que se envían a través de la red en un orden específico y se renderizan en la página en ese mismo orden. Astro utiliza la transmisión de HTML en el renderizado bajo demanda para enviar cada componente al navegador a medida que se va renderizando. Esto garantiza que el usuario vea el HTML lo más rápido posible. Sin embargo, las condiciones de la red pueden hacer que los documentos grandes se descarguen lentamente, y la espera por la obtención de datos puede bloquear el renderizado de la página.
+
+<RecipeLinks slugs={["es/recipes/streaming-improve-page-performance"]}/>
+
+:::caution
+Las funciones que modifican las [cabeceras de respuesta](https://developer.mozilla.org/es/docs/Glossary/Response_header) solo están disponibles a **nivel de página**. (No puedes usarlas dentro de componentes, incluidos los componentes de layout.) Para cuando Astro ejecuta el código de tu componente, las cabeceras de respuesta ya se han enviado y no pueden ser modificados.
+
+:::
+
+### Cookies
+
+Una página o un endpoint de API renderizado bajo demanda puede verificar, establecer, obtener y eliminar cookies.
+
+El siguiente ejemplo actualiza el valor de una cookie para un contador de visitas a la página:
+
+```astro title="src/pages/index.astro" {6,7,12}
+---
+export const prerender = false; // No es necesario en el modo 'server'
+
+let counter = 0
+
+if (Astro.cookies.has('counter')) {
+  const cookie = Astro.cookies.get('counter')
+  const value = cookie?.number()
+  if (value !== undefined && !isNaN(value)) counter = value + 1
+}
+
+Astro.cookies.set('counter', String(counter))
+---
+<html>
+  <h1>Contador = {counter}</h1>
+</html>
+```
+
+<ReadMore>Consulta más detalles sobre [`Astro.cookies` y el tipo `AstroCookie`](/es/reference/api-reference/#astrocookies) en la referencia de la API.</ReadMore>
+
+### `Response`
+
+[`Astro.response`](/es/reference/api-reference/#astroresponse) es un objeto estándar de [`ResponseInit`](https://developer.mozilla.org/es/docs/Web/API/Response/Response#opciones). Se puede utilizar para establecer el estado y las cabeceras de la respuesta.
+
+El siguiente ejemplo establece un estado de respuesta y un texto de estado para una página de producto cuando el producto no existe:
+
+```astro title="src/pages/product/[id].astro" {10,11}
+---
+export const prerender = false; // No es necesario en el modo 'server'
+
+import { getProduct } from '../api';
+
+const product = await getProduct(Astro.params.id);
+
+// No se encontró ningún producto
+if (!product) {
+  Astro.response.status = 404;
+  Astro.response.statusText = 'Not found';
+}
+---
+<html>
+  <!-- Página aquí... -->
+</html>
+```
+
+#### `Astro.response.headers`
+
+Puedes establecer cabeceras utilizando el objeto `Astro.response.headers`:
+
+```astro title="src/pages/index.astro" {4}
+---
+export const prerender = false; // No es necesario en el modo 'server'
+
+Astro.response.headers.set('Cache-Control', 'public, max-age=3600');
+---
+<html>
+  <!-- Página aquí... -->
+</html>
+```
+
+#### Devuelve un objeto `Response`
+
+También puedes devolver un objeto [Response](https://developer.mozilla.org/es/docs/Web/API/Response) directamente desde cualquier página utilizando la renderización bajo demanda, ya sea manualmente o con [`Astro.redirect`](/es/reference/api-reference/#astroredirect). 
+
+El siguiente ejemplo busca un ID en la base de datos en una página dinámica y, o bien devuelve un error 404 si el producto no existe, o redirige al usuario a otra página si el producto ya no está disponible, o muestra el producto:
+
+```astro title="src/pages/product/[id].astro" {10-13, 18}
+---
+export const prerender = false; // No es necesario en el modo 'server'
+
+import { getProduct } from '../api';
+
+const product = await getProduct(Astro.params.id);
+
+// No se encontró ningún producto
+if (!product) {
+  return new Response(null, {
+    status: 404,
+    statusText: 'Not found'
+  });
+}
+
+// El producto ya no está disponible
+if (!product.isAvailable) {
+  return Astro.redirect("/products", 301);
+}
+---
+<html>
+  <!-- Página aquí... -->
+</html>
+```
+
+### `Request`
+
+`Astro.request` es un objeto [Request](https://developer.mozilla.org/es/docs/Web/API/Request) estándar. Se puede usar para obtener la `url`, los `headers`, el `method`, e incluso el cuerpo de la petición.
+
+Puedes acceder a información adicional de este objeto en las páginas que no se generan de forma estática.
+
+#### `Astro.request.headers`
+
+Las cabeceras de la solicitud están disponibles en `Astro.request.headers`. Esto funciona como las cabeceras de la solicitud en el navegador. [`Request.headers`](https://developer.mozilla.org/es/docs/Web/API/Request/headers). Es un objeto [Headers](https://developer.mozilla.org/es/docs/Web/API/Headers) donde puedes recuperar cabeceras como la cookie.
+
+```astro title="src/pages/index.astro" {4}
+---
+export const prerender = false; // No es necesario en el modo 'server'
+
+const cookie = Astro.request.headers.get('cookie');
+// ...
+---
+<html>
+  <!-- Página aquí... -->
+</html>
+```
+
+#### `Astro.request.method`
+
+El método HTTP utilizado en la solicitud está disponible como `Astro.request.method`. Esto funciona como [`Request.method`](https://developer.mozilla.org/es/docs/Web/API/Request/method) en el navegador. Devuelve la representación en cadena del método HTTP utilizado en la solicitud.
+
+```astro title="src/pages/index.astro" {4}
+---
+export const prerender = false; // No es necesario en el modo 'server'
+
+console.log(Astro.request.method) // GET (cuando se navega a esta ruta en el navegador)
+---
+```
+
+<ReadMore>Consulta más detalles sobre [`Astro.request`](/es/reference/api-reference/#astrorequest) en la referencia de la API.</ReadMore>
+
+### Endpoints del Servidor
+
+Un endpoint del servidor, también conocido como una **ruta API**, es una función especial exportada desde un archivo `.js` o `.ts` dentro de la carpeta `src/pages/`. Como una potente característica del renderizado en el servidor bajo demanda, las rutas de API pueden ejecutar código de forma segura en el servidor.
+
+La función recibe un [contexto de endpoint](/es/reference/api-reference/#contexto-del-endpoint) y devuelve una [Response](https://developer.mozilla.org/es/docs/Web/API/Response). 
+
+Para obtener más información, consulta nuestra [Guía de Endpoints](/es/guides/endpoints/#endpoints-del-servidor-rutas-de-api).
