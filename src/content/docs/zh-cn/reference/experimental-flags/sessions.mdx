@@ -10,8 +10,8 @@ import ReadMore from '~/components/ReadMore.astro';
 
 <p>
 
-**类型：** `SessionConfig`<br />
-**默认值：** `undefined`<br />
+**类型：** `boolean`<br />
+**默认值：** `false`<br />
 
 <Since v="5.1.0" />
 </p>
@@ -22,73 +22,142 @@ import ReadMore from '~/components/ReadMore.astro';
 
 ```astro title="src/components/CartButton.astro" {3}
 ---
-export const prerender = false; // 在 'server' 模式下不需要
+export const prerender = false; // 选用 'server' 输出时无需配置
 const cart = await Astro.session.get('cart');
 ---
 
 <a href="/checkout">🛒 {cart?.length ?? 0} items</a>
 ```
 
-会话依赖于一个 [可配置的会话 `driver`](#启用实验性-sessions) 来将数据存储在 `session` 对象上。一个 [会话 cookie](#cookies) 存储一个识别会话 ID。
+会话依赖于一个 [可配置的会话 `driver`](#启用实验性-sessions) 来将数据存储在 `session` 对象上。一个 [会话 cookie](#sessioncookie) 存储一个识别会话 ID。
 
 [`session` 对象](#会话-api) 允许你和存储的用户状态（例如：添加物品至购物车）和会话 ID（例如：当退出登录时删除会话 ID）进行交互。
 
 ## 启用实验性 sessions
 
-目前位于 `experimental.sessions` 的早期版本中，Astro 的官方服务器适配器还尚未更新以提供基于平台默认存储功能的默认会话驱动。在这些驱动内置之前，除了 [添加适配器](/zh-cn/guides/on-demand-rendering/#添加适配器) 之外，你还必须在 `experimental.sessions` 配置对象中自己指定 `driver`。
-
-接下来的部分展示了每个适配器的推荐驱动。（这些驱动将在此功能的稳定版本中自动为你配置。）或者，你也可以指定 [unstorage 上任何支持的驱动](https://unstorage.unjs.io/drivers/) 。
-
-### 使用 Node 适配器来配置会话
-
-Node 适配器与 [文件系统驱动](https://unstorage.unjs.io/drivers/fs) 相兼容。请注意，该方式无法在无服务器环境中使用，因为它们没有共享文件系统。
+要启用会话，请将 `experimental.session` 标志设置为 `true`。会话只会在按需渲染的页面上工作，所以你需要 [安装适配器](/zh-cn/guides/on-demand-rendering/#添加适配器) 以支持按需渲染，并确保每个使用会话的页面已经设置为 `prerender: false`，或是在 Astro 配置中将 `output` 选项设置为 `server`。
 
 ```js title="astro.config.mjs" ins={6}
-	{
-    adapter: node({ mode: 'standalone' }),
-		experimental: {
-      session: {
-        // 必需：unstorage 上的驱动名称
-        driver: "fs",
-      },
-    },
-	}
-```
-
-### 为其他适配器配置会话驱动
-
-选择与你的托管平台提供的存储功能相对应的 [unstorage `driver` 名称](https://unstorage.unjs.io/drivers/)，例如 [Netlify Blobs 驱动（`netlify-blobs`）](https://unstorage.unjs.io/drivers/netlify)、[Cloudflare KV 驱动（`cloudflare-kv-binding`）](https://unstorage.unjs.io/drivers/cloudflare) 或 [Deno KV 驱动程序（`deno-kv`）](https://unstorage.unjs.io/drivers/deno)。你还可以使用跨平台驱动，例如 [Upstash](https://unstorage.unjs.io/drivers/upstash) 或 [Redis](https://unstorage.unjs.io/drivers/redis)。
-
-:::note
-某些驱动可能会需要安装额外的包。例如 `netlify-blobs` 驱动需要安装 `@netlify/blobs` 包，而 Upstash 需要安装 `@upstash/redis` 包。某些驱动程序可能还需要设置环境变量或凭据。
-
-<ReadMore>有关更多信息，请参阅 [unstorage 驱动文档](https://unstorage.unjs.io/drivers)。</ReadMore>
-:::
-
-### 驱动选项
-
-你还可以将 `session.options` 单独以对象的形式将任意的可用选项传入 unstorage。以下示例配置了 [Netlify Blobs](https://unstorage.unjs.io/drivers/netlify) 驱动，同时还提供了 `name` 并指定为 `consistency` 模式：
-
-```js title="astro.config.mjs" ins={7-11}
   {
-    adapter: netlify(),
+    adapter: node({
+      mode: "standalone",
+    }),
     experimental: {
-      session: {
-        // unstorage 驱动的名称遵循烤串命名法
-        driver: "netlify-blobs",
-        options: {
-          name: 'astro-sessions',
-          // 会话需要强一致性
-          consistency: 'strong',
-        }
-      },
+      session: true,
     },
   }
 ```
 
+会话需要一个存储驱动来存储会话数据。Node 和 Netlify 适配器会自动为你配置一个默认的驱动，但其他的适配器目前仍需要你 [手动指定驱动](#配置会话驱动)。你可以使用 [unstorage 上任何支持的驱动](https://unstorage.unjs.io/drivers/)。
+
+### 配置会话驱动
+
+如果你目前正在使用的适配器并没有默认驱动，又或者你想选择一个不同的驱动，那么你可以使用 `session` 配置选项来完成配置：
+
+```js title="astro.config.mjs" ins={4}
+  {
+    adapter: vercel(),
+    session: {
+      driver: "upstash",
+    },
+    experimental: {
+      session: true,
+    },
+  }
+```
+
+使用与你的托管平台提供的存储功能相对应的 unstorage `driver` 名称来配置 `session.driver`，例如 [Cloudflare KV 驱动](https://unstorage.unjs.io/drivers/cloudflare) 或是 [Deno KV 驱动](https://unstorage.unjs.io/drivers/deno)。你也可以使用诸如 [Upstash](https://unstorage.unjs.io/drivers/upstash) 或是 [Redis](https://unstorage.unjs.io/drivers/redis) 这样跨平台的驱动。
+
+:::note
+某些驱动可能会需要安装额外的包。例如 Upstash 需要安装 `@upstash/redis` 包。某些驱动程序可能还需要设置环境变量或凭据。
+
+<ReadMore>有关每项驱动的更多信息，包括其 `driver` 名称、附加依赖项、使用方法等，请参阅 [unstorage 驱动文档](https://unstorage.unjs.io/drivers)。</ReadMore>
+:::
+
+### 驱动选项
+
+你还可以将 `session.options` 单独以对象的形式将任意的可用选项传入 unstorage 驱动。请参阅你选定驱动的文档以获取可用选项。
+
+下面的示例设置了一个 `base` 前缀（`"sessions"`），用于升级 Upstash 中的所有键：
+
+```js title="astro.config.mjs" ins={5-7}
+  {
+    adapter: vercel(),
+    session: {
+      driver: "upstash",
+      options: {
+        base: "sessions",
+      },
+    },
+    experimental: {
+      session: true,
+    },
+  }
+```
+
+### 其他会话选项
+
+你可以在 `session` 对象中为会话配置额外选项。
+
+#### `session.cookie`
+
+<p>
+
+**类型：** `string` | `object`<br />
+**默认值：** `astro-session`<br />
+
+</p>
+
+用于配置会话 cookie 的选项。生成会话时，将在响应中设置此 cookie。cookie 中没有实际的用户数据存储——只有用于识别用户会话的 ID。`session.cookie` 选项可用于为此 cookie 设置选项。你可以提供一个 `string`，该字符串将用作 cookie 的名称，也可以提供一个对象，该对象可用于配置其他额外选项：
+
+```js title="astro.config.mjs" {4} ins={6-9}
+  {
+    session: {
+      // 如果设置为一个字符串，则会将其用作 cookie 的名称
+      // cookie: "my-session-id",
+      // 如果设置为一个对象，则允许配置高级选项
+      cookie: {
+        name: "my-session-id"
+        sameSite: "Strict",
+      },
+    }
+  }
+```
+
+#### `session.ttl`
+
+<p>
+
+**类型：** `number`<br />
+**默认值：** `undefined`<br />
+
+</p>
+
+一个可选的默认选项，用于配置会话值直到过期的生存时间（以秒为单位）。
+
+默认情况下，会话值会一直存续直到它们被删除或是会话被销毁，并且由于特定的时间已经过去，因此它们也不会自动过期。通过设置 `session.ttl` 能为你的会话值添加一个默认的过期时间。将 `ttl` 选项传递给 [`session.set()`](#sessionset) 将覆盖该单个条目的全局默认值。
+
+```js title="astro.config.mjs" {3}
+  {
+    session: {
+      ttl: 60 * 60, // 1 个小时
+    }
+  }
+```
+
+:::note
+为会话值设置 `ttl` 不会在时间限制传入后自动从存储中将其删除。
+
+存储中的值只会在 `ttl` 时间过期后尝试访问它们时，才会被删除。而此时，会话值将会为 undefined，而直到这时会话值才会被删除。
+
+部分驱动程序同样支持 `ttl` 选项，该选项将在指定时间后自动删除会话。有关更多信息，请参阅你选定驱动的文档。
+:::
+
 ## 使用会话
 
 配置好驱动后，你就可以使用 `session` 对象与会话进行交互了。该对象可作为 `Astro.session` 从 Astro 组件和页面中以及 API 端点、中间件和 action 中的 `context` 对象上被读取到。所有情况下的 API 都是相同的。
+
+会话将在首次使用时自动生成，会话也可以随时使用 [`Astro.session.regenerate()`](#sessionregenerate) 重新生成，或使用 [`Astro.session.destroy()`](#sessiondestroy) 销毁。
 
 在大多数情况下，你只需使用 [`Astro.session.get()`](#sessionget) 和 [`Astro.session.set()`](#sessionset)。有关其他可用方法，请参阅 [API 部分](#会话-api)。
 
@@ -98,7 +167,7 @@ Node 适配器与 [文件系统驱动](https://unstorage.unjs.io/drivers/fs) 相
 
 ```astro title="src/components/CartButton.astro" "Astro.session"
 ---
-export const prerender = false; // 在 'server' 模式下不需要
+export const prerender = false; // 选用 'server' 输出时无需配置
 const cart = await Astro.session.get('cart');
 ---
 
@@ -110,12 +179,12 @@ const cart = await Astro.session.get('cart');
 在 API 端点中，会话对象在 `context` 对象中可用。例如，要向购物车中添加一件商品：
 
 ```ts title="src/pages/api/addToCart.ts" "context.session"
-import type { APIContext } from "astro";
+import type { APIContext } from 'astro';
 
 export async function POST(req: Request, context: APIContext) {
-  const cart = await context.session.get("cart");
+  const cart = await context.session.get('cart');
   cart.push(req.body.item);
-  await context.session.set("cart", cart);
+  await context.session.set('cart', cart);
   return Response.json(cart);
 }
 ```
@@ -125,16 +194,16 @@ export async function POST(req: Request, context: APIContext) {
 在 action 中，会话对象在 `context` 对象中可用。例如，要向购物车中添加一件商品：
 
 ```ts title="src/actions/addToCart.ts" "context.session"
-import { defineAction } from "astro:actions";
-import { z } from "astro:schema";
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
 
 export const server = {
   addToCart: defineAction({
     input: z.object({ productId: z.string() }),
     handler: async (input, context) => {
-      const cart = await context.session.get("cart");
+      const cart = await context.session.get('cart');
       cart.push(input.productId);
-      await context.session.set("cart", cart);
+      await context.session.set('cart', cart);
       return cart;
     },
   }),
@@ -158,48 +227,53 @@ export const onRequest = defineMiddleware(async (context, next) => {
 });
 ```
 
-## Cookies
+### 会话数据类型
 
-首次访问时会生成会话，并在响应中设置一个会话 ID cookie。Cookie 中不存储实际的用户数据，仅存储用于识别用户会话的 ID。会话可以随时使用 [`Astro.session.regenerate()`](#sessionregenerate) 重新生成，或使用 [`Astro.session.destroy()`](#sessiondestroy) 销毁。
+默认情况下，会话数据的类型是未被定义的，你可以将任意数据存储在任何 key 中。使用 [devalue](https://github.com/Rich-Harris/devalue) 对值进行序列化和反序列化，该库与 content layer 和 action 使用的库相同。这意味着支持的类型是相同的，包括字符串、数字、`Date`、`Map`、`Set`、`URL`、数组和简单对象。
 
-### `session.cookie`
+你可以通过创建 `src/env.d.ts` 文件并为 `App.SessionData` 添加类型，来选择性地为你的会话数据定义 TypeScript 类型：
 
-<p>
-
-**类型：** `string` | `object`<br />
-**默认值：** `undefined`<br />
-
-</p>
-
-一个用于设置 cookie 选项的可选属性。可以通过提供一个字符串来自动设置 `cookie.name` 属性。要配置其他选项，请提供一个对象。
-
-```js title="astro.config.mjs" {5} ins={7-10}
-  {
-    experimental: {
-      session: {
-        // 如果设置为一个字符串，则会将其用作 cookie name
-        // cookie: "my-session-id",
-        // 如果设置为一个对象，则允许配置高级选项
-        cookie: {
-          name: "my-session-id"
-          sameSite: "Strict",
-        },
-      }
-    }
+```ts title="src/env.d.ts"
+declare namespace App {
+  interface SessionData {
+    user: {
+      id: string;
+      name: string;
+    };
+    cart: string[];
   }
+}
 ```
+
+这将使你可以在编辑器中访问会话数据时，使用类型检查和自动补全：
+
+```ts title="src/components/CartButton.astro"
+---
+const cart = await Astro.session.get('cart');
+// const cart: string[] | undefined
+
+const something = await Astro.session.get('something');
+// const something: any
+
+Astro.session.set('user', { id: 1, name: 'Houston' });
+// 报错：类型的实参 '{ id: number; name: string }' 不能赋值给类型的形参 '{ id: string; name: string; }'。
+---
+```
+
+:::caution
+这仅用于类型检查，不会影响会话的运行时行为。如果你在用户使用会话来存储数据时更改了类型，请格外小心，因为这可能会导致运行时错误。
+:::
 
 ## 会话 API
 
-会话对象在所有 Astro 上下文中都可用，包括组件、action 和 API 端点。在组件中，它是通过全局 `Astro` 对象来读取到的，在 action 和 API 端点中，它在 `context` 对象中可用。所有情况下的 API 都是相同的。
-
-使用 [devalue](https://github.com/Rich-Harris/devalue) 对值进行序列化和反序列化，该库与 content layer 和 action 使用的库相同。这意味着支持的类型是相同的，包括字符串、数字、`Date`、`Map`、`Set`、`URL`、数组和简单对象。
+会话将在首次访问时自动创建。会话对象在所有 Astro 上下文中都可用，包括组件、action 和 API 端点。在组件中，它是通过全局 `Astro` 对象来读取到的，在 action 和 API 端点中，它在 `context` 对象中可用。所有情况下的 API 都是相同的。
 
 ### `session.get()` 
 
 <p>
 
 **类型：** `(key: string) => Promise<any>`
+
 </p>
 
 返回会话中给定键的值。如果该键不存在，则返回 `undefined`。
@@ -209,15 +283,17 @@ export const onRequest = defineMiddleware(async (context, next) => {
 <p>
 
 **类型：** `(key: string, value: any, options?: { ttl: number }) => void`
+
 </p>
 
-设置会话中给定键的值。该值可以是任何可序列化类型。
+设置会话中给定键的值。该值可以是任何可序列化类型。该方法是同步的，该值可立即用于检索，但是直到请求结束之前，该方法才能保存到后端。
 
 ### `session.regenerate()`
 
 <p>
 
 **类型：** `() => void`
+
 </p>
 
 重新生成会话 ID。最佳实践是在用户登录或升级权限时调用此方法，以防止会话固定攻击。
@@ -227,6 +303,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 <p>
 
 **类型：** `() => void`
+
 </p>
 
 销毁会话，从后端删除 cookie 和对象。当用户退出登录或会话无效时应调用此方法。
