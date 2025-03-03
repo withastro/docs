@@ -230,11 +230,45 @@ export const onRequest = defineMiddleware(async (context, next) => {
 });
 ```
 
+### Types des données de session
+
+Par défaut, les données de session ne sont pas typées et vous pouvez stocker des données arbitraires dans n'importe quelle clé. Les valeurs sont sérialisées et désérialisées à l'aide de [devalue](https://github.com/Rich-Harris/devalue), qui est la même bibliothèque utilisée dans les collections de contenu et les actions. Cela signifie que les types pris en charge sont les mêmes et incluent les chaînes de caractères, les nombres, `Date`, `Map`, `Set`, `URL`, les tableaux et les objets simples.
+
+Vous pouvez éventuellement définir des types TypeScript pour vos données de session en créant un fichier `src/env.d.ts` et en ajoutant une déclaration pour le type `App.SessionData` :
+
+```ts title="src/env.d.ts"
+declare namespace App {
+  interface SessionData {
+    user: {
+      id: string;
+      name: string;
+    };
+    cart: string[];
+  }
+}
+```
+
+Cela vous permettra d'accéder aux données de session avec vérification de type et saisie semi-automatique dans votre éditeur :
+
+```ts title="src/components/CartButton.astro"
+---
+const cart = await Astro.session.get('cart');
+// const cart: string[] | undefined
+
+const something = await Astro.session.get('something');
+// const something: any
+
+Astro.session.set('user', { id: 1, name: 'Houston' });
+// Error: Argument of type '{ id: number; name: string }' is not assignable to parameter of type '{ id: string; name: string; }'.
+---
+```
+
+:::caution
+Ceci est uniquement utilisé pour la vérification de type et n’affecte pas le comportement d’exécution de la session. Soyez particulièrement prudent si vous modifiez le type lorsque les utilisateurs ont stocké des données dans la session, car cela pourrait entraîner des erreurs d'exécution.
+:::
 ## API Sessions
 
 L'objet session est disponible dans tous les contextes Astro, y compris les composants, les actions et les points de terminaison API. Dans les composants, il est accessible via l'objet global `Astro`, et dans les actions et les points de terminaison d'API, il est disponible sur l'objet `context`. L'API est la même dans tous les cas.
-
-Les valeurs sont sérialisées et désérialisées en utilisant [devalue](https://github.com/Rich-Harris/devalue), qui est la même bibliothèque utilisée par la couche de contenu et les actions. Cela signifie que les types supportés sont les mêmes, et incluent les chaînes de caractères, les nombres, `Date`, `Map`, `Set`, `URL`, les tableaux et les objets simples.
 
 ### `session.get()` 
 
