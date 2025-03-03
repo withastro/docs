@@ -100,7 +100,7 @@ The following example sets a `base` prefix (`"sessions"`) to use for all keys in
 
 ### Other session options
 
-You can configure additional options for sessions in the `session` object. 
+You can configure additional options for sessions in the `session` object.
 
 #### `session.cookie`
 
@@ -111,7 +111,7 @@ You can configure additional options for sessions in the `session` object.
 
 </p>
 
-Configures the session cookie. This cookie is set in the response when a session is generated. No actual user data is stored in the cookie – just an ID that is used to identify a user's session. The `session.cookie` option can be used to set options for this cookie. You can either provide a `string`, which will be used as the cookie name, or an object which allows additional options: 
+Configures the session cookie. This cookie is set in the response when a session is generated. No actual user data is stored in the cookie – just an ID that is used to identify a user's session. The `session.cookie` option can be used to set options for this cookie. You can either provide a `string`, which will be used as the cookie name, or an object which allows additional options:
 
 ```js title="astro.config.mjs" {4} ins={6-9}
   {
@@ -151,14 +151,14 @@ By default, session values persist until they are deleted or the session is dest
 :::note
 Setting a value for `ttl` does not automatically delete the value from storage after the time limit has passed.
 
-Values from storage will only be deleted when there is an attempt to access them after the `ttl` period has expired. At this time, the session value will be undefined and only then will the value be deleted. 
+Values from storage will only be deleted when there is an attempt to access them after the `ttl` period has expired. At this time, the session value will be undefined and only then will the value be deleted.
 
 Individual drivers may also support a `ttl` option that will automatically delete sessions after the specified time. See your chosen driver's documentation for more information.
 :::
 
 ## Using sessions
 
-Once you have configured a driver, you can use the `session` object to interact with the session. The object is accessible as `Astro.session` in your Astro components and pages and on the `context` object in API endpoints, middleware and actions. The API is the same in all cases. 
+Once you have configured a driver, you can use the `session` object to interact with the session. The object is accessible as `Astro.session` in your Astro components and pages and on the `context` object in API endpoints, middleware and actions. The API is the same in all cases.
 
 The session is generated automatically when it is first used and can be regenerated at any time with [`Astro.session.regenerate()`](#sessionregenerate) or destroyed with [`Astro.session.destroy()`](#sessiondestroy).
 
@@ -191,6 +191,7 @@ export async function POST(req: Request, context: APIContext) {
   return Response.json(cart);
 }
 ```
+
 ### Actions
 
 In actions, the session object is available on the `context` object. For example, to add an item to a shopping cart:
@@ -229,11 +230,45 @@ export const onRequest = defineMiddleware(async (context, next) => {
 });
 ```
 
+### Session data types
+
+By default session data is untyped, and you can store arbitrary data in any key. Values are serialized and deserialized using [devalue](https://github.com/Rich-Harris/devalue), which is the same library used in content collections and actions. This means that supported types are the same, and include strings, numbers, `Date`, `Map`, `Set`, `URL`, arrays, and plain objects.
+
+You can optionally define TypeScript types for your session data by creating a `src/env.d.ts` file and adding a declaration for the `App.SessionData` type:
+
+```ts title="src/env.d.ts"
+declare namespace App {
+  interface SessionData {
+    user: {
+      id: string;
+      name: string;
+    };
+    cart: string[];
+  }
+}
+```
+
+This will allow you to access the session data with type-checking and auto-completion in your editor:
+
+```ts title="src/components/CartButton.astro"
+---
+const cart = await Astro.session.get('cart');
+// const cart: string[] | undefined
+
+const something = await Astro.session.get('something');
+// const something: any
+
+Astro.session.set('user', { id: 1, name: 'Houston' });
+// Error: Argument of type '{ id: number; name: string }' is not assignable to parameter of type '{ id: string; name: string; }'.
+---
+```
+
+:::caution
+This is only used for type-checking and does not affect the runtime behavior of the session. Take extra care if you change the type when users have stored data in the session, as this could cause runtime errors.
+:::
 ## Sessions API
 
 Sessions are automatically created when they are first accessed. The session object is available in all Astro contexts, including components, actions, and API endpoints. In components, it is accessed via the global `Astro` object, and in actions and API endpoints, it is available on the `context` object. The API is the same in all cases.
-
-Values are serialized and deserialized using [devalue](https://github.com/Rich-Harris/devalue), which is the same library used in content collections and actions. This means that supported types are the same, and include strings, numbers, `Date`, `Map`, `Set`, `URL`, arrays, and plain objects.
 
 ### `session.get()`
 
