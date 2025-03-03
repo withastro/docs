@@ -227,11 +227,46 @@ export const onRequest = defineMiddleware(async (context, next) => {
 });
 ```
 
+### 会话数据类型
+
+默认情况下，会话数据的类型是未被定义的，你可以将任意数据存储在任何 key 中。使用 [devalue](https://github.com/Rich-Harris/devalue) 对值进行序列化和反序列化，该库与 content layer 和 action 使用的库相同。这意味着支持的类型是相同的，包括字符串、数字、`Date`、`Map`、`Set`、`URL`、数组和简单对象。
+
+你可以通过创建 `src/env.d.ts` 文件并为 `App.SessionData` 添加类型，来选择性地为你的会话数据定义 TypeScript 类型：
+
+```ts title="src/env.d.ts"
+declare namespace App {
+  interface SessionData {
+    user: {
+      id: string;
+      name: string;
+    };
+    cart: string[];
+  }
+}
+```
+
+这将使你可以在编辑器中访问会话数据时，使用类型检查和自动补全：
+
+```ts title="src/components/CartButton.astro"
+---
+const cart = await Astro.session.get('cart');
+// const cart: string[] | undefined
+
+const something = await Astro.session.get('something');
+// const something: any
+
+Astro.session.set('user', { id: 1, name: 'Houston' });
+// 报错：类型的实参 '{ id: number; name: string }' 不能赋值给类型的形参 '{ id: string; name: string; }'。
+---
+```
+
+:::caution
+这仅用于类型检查，不会影响会话的运行时行为。如果你在用户使用会话来存储数据时更改了类型，请格外小心，因为这可能会导致运行时错误。
+:::
+
 ## 会话 API
 
 会话将在首次访问时自动创建。会话对象在所有 Astro 上下文中都可用，包括组件、action 和 API 端点。在组件中，它是通过全局 `Astro` 对象来读取到的，在 action 和 API 端点中，它在 `context` 对象中可用。所有情况下的 API 都是相同的。
-
-使用 [devalue](https://github.com/Rich-Harris/devalue) 对值进行序列化和反序列化，该库与 content layer 和 action 使用的库相同。这意味着支持的类型是相同的，包括字符串、数字、`Date`、`Map`、`Set`、`URL`、数组和简单对象。
 
 ### `session.get()` 
 
