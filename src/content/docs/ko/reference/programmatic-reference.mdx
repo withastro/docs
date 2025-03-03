@@ -144,7 +144,7 @@ export interface DevServer {
 
 <p>
 
-**타입:** `(inlineConfig: AstroInlineConfig) => Promise<void>`
+**타입:** `(inlineConfig: AstroInlineConfig, options?: BuildOptions) => Promise<void>`
 </p>
 
 [`astro build`](/ko/reference/cli-reference/#astro-build)와 유사하게, 배포를 위해 사이트를 빌드합니다.
@@ -156,6 +156,39 @@ await build({
   root: "./my-project",
 });
 ```
+
+### `BuildOptions`
+
+```ts
+export interface BuildOptions {
+	devOutput?: boolean;
+	teardownCompiler?: boolean;
+}
+```
+
+#### `devOutput`
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `false`
+<Since v="5.4.0" />
+</p>
+
+`astro dev`에서 변환된 코드와 유사한 개발 기반 빌드를 출력합니다. 추가 디버깅 정보가 포함된 빌드 전용 문제를 테스트하는 데 유용할 수 있습니다.
+
+#### `teardownCompiler`
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `true`
+<Since v="5.4.0" />
+</p>
+
+빌드 후 컴파일러 WASM 인스턴스를 해체합니다. 이렇게 하면 한 번 빌드할 때 성능을 향상시킬 수 있지만, 연속으로 여러 번 빌드할 경우 성능 저하가 발생할 수 있습니다.
+
+동일한 실행에서 여러 프로젝트를 빌드할 때 (예: 테스트 중), 이 옵션을 비활성화하면 지속적인 메모리 사용량이 증가하는 대신 성능이 크게 향상되고 최대 메모리 사용량이 줄어들 수 있습니다.
 
 ## `preview()`
 
@@ -246,4 +279,96 @@ import { sync } from "astro";
 await sync({
   root: "./my-project",
 });
+```
+
+## `mergeConfig()`
+
+<p>
+
+**타입:** `<T extends AstroConfig | AstroInlineConfig>(config: T, overrides: DeepPartial<T>) => T`
+<Since v="5.4.0" />
+</p>
+
+`astro/config`에서 가져오며, 기존의 유효한 Astro 구성 위에 부분적인 Astro 구성을 병합합니다.
+
+`mergeConfig()`는 Astro 구성 객체와 부분 구성 (유효한 Astro 구성 옵션의 모든 집합)을 받아 두 값을 결합한 유효한 Astro 구성을 반환하며, 이때 다음을 만족합니다.
+
+- 배열은 연결됩니다. (통합 및 remark 플러그인 포함)
+- 객체는 재귀적으로 병합됩니다.
+- Vite 옵션은 기본 `isRoot` 플래그와 함께 [Vite의 `mergeConfig` 함수](https://ko.vite.dev/guide/api-javascript#mergeconfig)를 사용하여 병합됩니다.
+- 함수로 제공될 수 있는 옵션은 이러한 동일한 규칙으로 두 구성의 반환 값을 재귀적으로 병합하는 새 함수로 래핑됩니다.
+- 다른 모든 옵션은 기존 구성을 재정의합니다.
+
+```ts
+import { mergeConfig } from "astro/config";
+
+mergeConfig(
+  {
+    output: 'static',
+    site: 'https://example.com',
+    integrations: [tailwind()],
+    server: ({command}) => ({
+      port: command === 'dev' ? 4321 : 1234,
+    }),
+	  build: {
+		  client: './custom-client',
+	  },
+  },
+  {
+    output: 'server',
+    base: '/astro',
+    integrations: [mdx()],
+    server: ({command}) => ({
+      host: command === 'dev' ? 'localhost' : 'site.localhost',
+    }),
+	  build: {
+		  server: './custom-server',
+	  },
+  }
+);
+
+// 결과는 다음과 같습니다.
+{
+  output: 'server',
+  site: 'https://example.com',
+  base: '/astro',
+  integrations: [tailwind(), mdx()],
+  server: ({command}) => ({
+    port: command === 'dev' ? 4321 : 1234,
+    host: command === 'dev' ? 'localhost' : 'site.localhost',
+  }),
+	build: {
+		client: './custom-client',
+		server: './custom-server',
+	},
+}
+```
+
+## `validateConfig()`
+
+<p>
+
+**타입:** `(userConfig: any, root: string, cmd: string): Promise<AstroConfig>`
+<Since v="5.4.0" />
+</p>
+
+`astro/config`에서 가져오며, 객체가 `astro.config.mjs`에서 내보내져 Astro에 의해 가져온 것처럼 유효성을 검사합니다.
+
+
+다음 인수를 사용합니다.
+- 유효성을 검사할 구성
+- 프로젝트의 루트 디렉터리
+- 실행 중인 Astro 명령어 (`build`, `dev`, `sync` 등)
+
+반환된 Promise는 제공된 Astro 명령어에 적합한 모든 기본값으로 채워진 유효성이 검사된 구성으로 확인됩니다.
+
+```ts
+import { validateConfig } from "astro/config";
+
+const config = await validateConfig({
+  integrations: [tailwind()],
+}, "./my-project", "build");
+
+// 기본값이 적용됩니다.
+await rm(config.outDir, { recursive: true, force: true });
 ```
