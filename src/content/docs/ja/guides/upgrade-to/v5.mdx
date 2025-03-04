@@ -1,0 +1,1219 @@
+---
+title: Astro v5へのアップグレード
+description: プロジェクトを Astro v5.0にアップグレードする方法。
+sidebar:
+  label: v5.0
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { Steps } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro'
+import SourcePR from '~/components/SourcePR.astro'
+
+このガイドでは、Astro v4からAstro v5への移行をサポートします。
+
+もし、古いプロジェクトをv4にアップグレードする必要がある場合は、[以前の移行ガイド](/ja/guides/upgrade-to/v4/) を見てください。
+
+v4 のドキュメントを見たい場合は、[過去のドキュメントサイト（v4.16のスナップショットはメンテナンスされていません）](https://v4.docs.astro.build/)にアクセスしてください。
+
+## Astro のアップグレード
+
+まずは、パッケージマネージャーを使って、プロジェクトの Astro を最新バージョンに更新しましょう。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # Astro と公式インテグレーションを一緒にアップグレードします
+  npx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # Astro と公式インテグレーションを一緒にアップグレードします
+  pnpm dlx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # Astro と公式インテグレーションを一緒にアップグレードします
+  yarn dlx @astrojs/upgrade
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+必要に応じて、[Astro インテグレーションを手動でアップグレード](/ja/guides/integrations-guide/#手動アップグレード) することもできます。また、プロジェクト内の他の依存関係をアップグレードする必要がある場合もあります。
+
+:::note[続行する必要がありますか？]
+Astro をアップグレードした後は、プロジェクトに変更を加える必要がない場合もあります。
+
+ただし、エラーや予期しない動作が発生した場合は、このガイドで変更点を確認して、プロジェクトを更新してください。
+:::
+
+Astro v5.0では、いくつかの[破壊的な変更](#breaking-changes)や、機能の削除、非推奨への変更などが行われています。
+
+v5.0にアップグレードした後、プロジェクトが期待通りに動作しない場合は、このガイドで変更点の概要とコードベースの更新方法を確認してください。
+
+リリースノートの全文については、[Astro の変更ログ](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md) をご覧ください。
+
+## 依存関係のアップグレード
+
+Astroの依存関係のメジャーアップグレードをすると、プロジェクトが壊れる可能性があります。
+
+### Vite 6.0
+
+Astro v5.0は、開発サーバーおよび本番バンドラーとしてViteをv6.0にアップグレードします。
+
+#### どうすればいいですか？
+
+Vite固有のプラグイン、構成、またはAPIを使用している場合は、[Vite移行ガイド](https://vite.dev/guide/migration.html) でそれらの変更点を確認し、必要に応じてプロジェクトをアップグレードしてください。
+
+### `@astrojs/mdx`
+
+<SourcePR number="11741" title="未使用のJSXコードをクリーンアップ(EN)"/>
+
+Astro v4.xでは、Astroは`@astrojs/mdx`インテグレーションの内部JSX処理を実行しました。
+
+Astro v5.0では、`JSX`と`MDX`を処理し、レンダリングする機能を `@astrojs/mdx` パッケージに直接移しました。これは、Astro 5.0が以前のバージョンのMDXインテグレーションと互換性がないことを意味します。
+
+#### どうすればいいですか？
+
+プロジェクトに `.mdx` ファイルが含まれている場合は、JSX がインテグレーションによって適切に処理されるために、`@astrojs/mdx` を最新バージョン (v4.0.0)にアップグレードする必要があります。
+
+実験的な [Astro Container API](/ja/reference/container-reference/) で MDX サーバーレンダラーを使用している場合は、新しい場所を反映するようにインポートを更新する必要があります。
+
+```ts del={1} ins={2}
+import mdxRenderer from "astro/jsx/server.js";
+import mdxRenderer from "@astrojs/mdx/server.js";
+```
+
+<ReadMore>プロジェクトでの [MDX の使用](/ja/guides/integrations-guide/mdx/)について詳しく学びましょう。</ReadMore>
+
+## 古い (レガシー) 機能
+
+以下の機能は、古い (レガシー) 機能と見なされるようになりました。これらは正常に機能するはずですが、推奨されなくなり、メンテナンスモードになっています。これらは将来の改善は見られず、ドキュメントは更新されません。これらの機能は最終的に非推奨になり、完全に削除されます。
+
+### Legacy: v2.0 コンテンツコレクション API
+
+Astro 4.xでは、コンテンツコレクションは、[Astro v2.0 で最初に導入されたコンテンツコレクション API](https://astro.build/blog/introducing-content-collections/) を使用して定義、クエリ、およびレンダリングされました。すべてのコレクションエントリは、確保済みの `src/content/` フォルダー内のローカルファイルでした。さらに、Astro の [個々のページのビルドを除外するためのファイル名規則](/ja/guides/routing/#ページの除外) は、コンテンツコレクション APIに組み込まれていました。
+
+Astro 5.0 は、コンテンツレイヤー API を使用した新しいバージョンのコンテンツコレクションを導入し、パフォーマンスの向上と機能の追加をもたらします。このリリースでは、古い (レガシー) コレクションと新しい (コンテンツレイヤー API) コレクションが共存できますが、既存のレガシーコレクションには破壊的な変更の可能性があります。
+
+このリリースでは、コレクションエントリファイル名の先頭にアンダースコア (`_`) を付けてルートのビルドを防ぐオプションも削除されました。
+
+#### どうすればいいですか？
+
+既存のコレクションは、できるだけ早く [新しいコンテンツレイヤー APIに変換](/ja/guides/upgrade-to/v5/#既存のコレクションの更新) し、新しいコレクションはコンテンツレイヤー API を使用して作成することをお勧めします。
+
+コレクションを変換できない場合は、[レガシーコレクションの変更点](/ja/guides/upgrade-to/v5/#レガシーの-content-および-data-コレクションに対する破壊的な変更点) を参照し、既存のコレクションが影響を受け、更新が必要かどうかを確認してください。
+
+現時点でコレクションに変更を加えることができない場合は、[`legacy.collections`フラグを有効にする](/ja/guides/upgrade-to/v5/#legacycollections-フラグの有効化)ことができます。これにより、レガシーフラグがサポートされなくなるまで、コレクションを現在の状態に保つことができます。
+
+<ReadMore>更新された[コンテンツコレクション](/ja/guides/content-collections/)について詳しく学びましょう。</ReadMore>
+
+##### 既存のコレクションの更新
+
+既存のコンテンツコレクション(`type: 'content'` または `type: 'data'`)を更新してコンテンツレイヤーAPIを使用するための手順を以下に示します。
+
+<details>
+<summary>コレクションを更新するための手順</summary>
+
+<Steps>
+
+1. **コンテンツ構成ファイルを移動します**。このファイルは、`src/content/` フォルダー内から居なくなり、`src/content.config.ts`に存在するようになりました。
+
+2. **コレクション定義を編集します**。更新されたコレクションには、コレクションの場所 (`base`) のフォルダーと、一致するコレクションエントリファイル名と拡張子を定義する `pattern` の両方を示す `loader` が必要です。(また、以下の例を更新する必要があるかもしれません。[globster.xyz](https://globster.xyz/) を使用すると、グロブ・パターンを確認できます。) コレクション `type` を選択するオプションは使用できなくなりました。
+
+    ```ts ins={3,8} del={7}
+    // src/content.config.ts
+    import { defineCollection, z } from 'astro:content';
+    import { glob } from 'astro/loaders';
+
+    const blog = defineCollection({
+      // コンテンツレイヤーでは、`type` を定義しなくなりました
+      type: 'content',
+      loader: glob({ pattern: '**/[^_]*.{md,mdx}', base: "./src/data/blog" }),
+      schema: z.object({
+        title: z.string(),
+        description: z.string(),
+        pubDate: z.coerce.date(),
+        updatedDate: z.coerce.date().optional(),
+      }),
+    });
+    ```
+
+3. **参照を `slug` から `id`に変更します**。コンテンツレイヤーコレクションには、予約済みの `slug` フィールドがありません。代わりに、更新されたすべてのコレクションに `id` があります。
+
+    ```astro ins={7} del={6}
+    // src/pages/[slug].astro
+    ---
+    export async function getStaticPaths() {
+      const posts = await getCollection('blog');
+      return posts.map((post) => ({
+        params: { slug: post.slug },
+        params: { slug: post.id },
+        props: post,
+      }));
+    }
+    ---
+    ```
+    変更された `getStaticPaths()` パラメーターの値と一致するように、動的ルーティングファイル名を更新することもできます。
+
+4. **新しい `render()` 関数に切り替えます**。エントリではシリアライズ可能なプレーンオブジェクトになったため、`render()` メソッドがなくなりました。代わりに、`astro:content` から `render()` 関数をインポートします。
+
+    ```astro title="src/pages/index.astro" ins=", render" del={6} ins={7}
+    ---
+    import { getEntry, render } from 'astro:content';
+
+    const post = await getEntry('blog', params.slug);
+
+    const { Content, headings } = await post.render();
+    const { Content, headings } = await render(post);
+    ---
+    <Content />
+    ```
+</Steps>
+
+</details>
+
+##### レガシーの `content` および `data` コレクションに対する破壊的な変更点
+
+<SourcePR number="11976" title="glob を使用してレガシーコレクションを実装する(EN)"/>
+
+デフォルトでは、古い `type` プロパティ (`content` または `data`) を使用し、`loader` を定義しないコレクションは、コンテンツレイヤー API の組み込み `glob()` ローダーを使用して内部で実装され、追加の下位互換性処理が行われます。
+
+さらに、コンテンツ構成ファイルを元の場所である `src/content/config.ts`に保持するための一時的な下位互換性が存在します。
+
+この下位互換性の実装は、レガシーコレクションのほとんどの機能をエミュレートすることができ、多くのレガシーコレクションはコードを更新しなくても動作し続けることができます。ただし、**いくつかの違いや制限があるため、既存のコレクションに変更を加える可能性があります。**
+
+  - 以前のバージョンの Astro では、`src/content/config.ts` が定義されていない場合でも、`src/content/` のすべてのフォルダーのコレクションが生成されていました。この動作は非推奨になり、コレクションでは常に `src/content/config.ts` を定義する必要があります。既存のコレクションについては、これらを空の宣言（例えば、`const blog = defineCollection({})`）にするだけで、Astroが暗黙的に新しい読み込み動作と互換性のある方法で、レガシーコレクションを定義してくれます。
+  - Markdown コレクションエントリでは、特別な `layout` フィールドはサポートされていません。このプロパティは、`src/pages/`にあるスタンドアロンページファイルのみを対象としており、コレクションエントリには含まれていない可能性があります。ただし、このプロパティを使用していた場合は、ページスタイルを含む動的ルートを作成する必要があります。
+  - 生成されたコレクションのソート順序は非決定的でプラットフォームに依存します。これは、`getCollection()` を呼び出すと、エントリが返される順序が以前と異なる場合があることを意味します。特定の順序が必要な場合は、コレクションエントリを自分でソートする必要があります。
+  - `image().refine()` はサポートされていません。画像のプロパティを検証する必要がある場合は、ページまたはコンポーネントでの実行時に行う必要があります。
+  - `getEntry(collection, key)` の `key` 引数は、すべてのエントリの型を持つのではなく、`string` として型指定されます。
+  - 以前は、静的文字列をキーとして `getEntry(collection, key)` を呼び出すと、戻り値の型が `null`にはなりませんでした。型に `undefined` が含まれるようになったので、結果を使用する前にエントリーが定義されているかどうかをチェックしなければいけません。
+
+##### `legacy.collections` フラグの有効化
+
+<SourcePR number="11976" title="glob を使用してレガシーコレクションを実装する(EN)"/>
+
+既存のコレクションをまだ更新する準備ができていない場合は、[`legacy.collections`](/ja/reference/legacy-flags/) フラグを有効にすることで、以前と同じように機能し続けます。
+
+## 非推奨の機能
+
+以下の非推奨の機能はサポートされなくなり、ドキュメント化もされなくなりました。それに応じてプロジェクトを更新してください。
+
+非推奨の機能の中には、完全に削除されるまで一時的に機能し続けるものがあります。また、何の効果もなかったり、コードを更新するよう促すエラーを返す場合もあります。
+
+### 非推奨: `Astro.glob()`
+
+<SourcePR number="11826" title="glob を非推奨にする(EN)"/>
+
+Astro v4.xでは、`.astro` コンポーネントで `Astro.glob()` を使用して、プロジェクト内の複数のファイルを照会できました。これにはいくつかの制限(使用可能な場所、パフォーマンスなど)があり、コンテンツコレクション APIからのクエリ関数やVite独自の `import.meta.glob()` を使用することで、より多くの機能と柔軟性が提供されました。
+
+Astro 5.0では、`Astro.glob()` が非推奨になり、 `getCollection()` を使用してコレクションを照会し、 `import.meta.glob()` を使用してプロジェクト内の他のソース・ファイルを照会するようになりました。
+
+#### どうすればいいですか？
+
+`Astro.glob()` の使用をすべて `import.meta.glob()`に置き換えます。`import.meta.glob()`は`Promise` を返さなくなったため、それに応じてコードを更新する必要がある場合があります。[glob パターン](/ja/guides/imports/#globパターン) を更新する必要はありません。
+
+```astro title="src/pages/blog.astro" del={2} ins={3}
+---
+const posts = await Astro.glob('./posts/*.md');
+const posts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));
+---
+
+{posts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+```
+
+該当する場合は、[コンテンツコレクション](/ja/guides/content-collections/) を使用してコンテンツの整理を検討してください。これには、より新しく、よりパフォーマンスの高い独自のクエリ関数があります。
+
+[`fast-glob`](https://www.npmjs.com/package/fast-glob) などの NPM の glob パッケージを使用することもできます。
+
+<ReadMore>`import.meta.glob` を使用した [ファイルのインポート](/en/guides/imports/#importmetaglob)について詳しく学びましょう。</ReadMore>
+
+### 非推奨: `functionPerRoute` (アダプター API)
+
+<SourcePR number="11714" title="functionPerRoute オプションを削除する(EN)"/>
+
+Astro v4.xでは、プロジェクトで定義されたルートごとに別々のファイルを作成し、ビルドフォルダーの `src/pages/` ディレクトリをミラーリングすることを選択できました。デフォルトでは、Astroは1つの `entry.mjs` ファイルを生成し、各リクエストでレンダリングされたページを生成する役割を担っていました。
+
+Astro v5.0では、オプトアウトする動作が標準搭載されたため、オプションから削除されました。設定はできません。
+
+`adapterFeatures` 構成から `functionPerRoute` プロパティを削除します。これは使用できなくなりました。
+
+```js title="my-adapter.mjs" del={10}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          adapterFeatures: {
+              functionPerRoute: true
+          }
+        });
+      },
+    },
+  };
+}
+
+```
+
+<ReadMore>アダプターインテグレーションを構築するための [アダプター API](/ja/reference/adapter-reference/)について詳しく学びましょう。</ReadMore>
+
+### 非推奨: `astro:build:done` フックの `routes` (インテグレーション API)
+
+<SourcePR number="12329" title="解決されたルートのための新しいフック(EN)"/>
+
+Astro v4.xでは、インテグレーションは `astro:build:done` フックからルートにアクセスしていました。
+
+Astro v5.0では、このフックに渡される `routes` 配列は非推奨にされました。このフックは `astro:config:done` の前に実行され、開発中にルートが変更されるたびに新しい `astro:routes:resolved` フックを実行し公開します。非推奨の `routes` リストと同じプロパティを持ちますが、ビルド時にのみ利用できる `distURL` を除きます。
+
+#### どうすればいいですか？
+
+`astro:build:done`に渡される `routes` のインスタンスを削除し、新しい `astro:routes:resolved` フックに置き換えます。新しく公開された `assets` マップで `distURL`にアクセスします。
+
+```js title="my-integration.mjs" ins={2,6-8,11,13-18} del={10}
+const integration = () => {
+    let routes
+    return {
+        name: 'my-integration',
+        hooks: {
+            'astro:routes:resolved': (params) => {
+                routes = params.routes
+            },
+            'astro:build:done': ({
+                routes
+                assets
+            }) => {
+                for (const route of routes) {
+                    const distURL = assets.get(route.pattern)
+                    if (distURL) {
+                        Object.assign(route, { distURL })
+                    }
+                }
+                console.log(routes)
+            }
+        }
+    }
+}
+```
+
+<ReadMore>インテグレーションを構築するための [インテグレーション API の `astro:routes:resolved` フック](/ja/reference/integrations-reference/#astroroutesresolved)について詳しく学びましょう。</ReadMore>
+
+## 削除された機能
+
+以下の機能はコードベースから完全に削除され、使用できなくなりました。これらの機能の中には、非推奨になった後もプロジェクトで動作し続けていたものや、静かに効果がなかったものがあります。
+
+これらの削除された機能を含むプロジェクトはビルドできなくなり、これらの機能を削除するように促すドキュメントもなくなります。
+
+### 削除: Lit インテグレーション
+
+<SourcePR number="11680" title="`@astrojs/lit`の削除(EN)"/>
+
+Astro v4.xでは、[Lit](https://lit.dev/)は`@astrojs/lit` パッケージを通じてコアでメンテナンスされているフレームワークライブラリでした。
+
+Astro v5.0では、このインテグレーションが削除され、5.x 以降との互換性のための更新は行われません。
+
+#### どうすればいいですか？
+
+クライアント側のスクリプトタグを追加することで、クライアントコンポーネントに Lit を引き続き使用できます。例えば、
+
+```astro
+<script>
+  import "../components/MyTabs";
+</script>
+
+<my-tabs title="These are my tabs">...</my-tabs>
+```
+
+Lit インテグレーションを自分でメンテナンスすることに関心がある場合は、[最後に公開された `@astrojs/lit` のバージョン]([[https://github.com/withastro/astro/tree/astro%404.13.0/packages/integrations/lit](https://github.com/withastro/astro/tree/astro%404.13.0/packages/integrations/lit)]\([https://github.com/withastro/astro/tree/astro%404.13.0/packages/integrations/lit](https://github.com/withastro/astro/tree/astro%404.13.0/packages/integrations/lit)\)) を出発点として、関連するパッケージをアップグレードすることをお勧めします。
+
+<ReadMore> [Astro の公式インテグレーション](/ja/guides/integrations-guide/)について詳しくはこちらをご覧ください。</ReadMore>
+
+### 削除: `hybrid` レンダリングモード
+
+<SourcePR number="11824" title="`hybrid`と`static`のレンダリングモードをマージ(EN)"/>
+
+Astro v4.xでは、`output`オプションで3つのレンダリングモード(`static`、`hybrid`、`server`)を提供していました。
+
+Astro v5.0では、`output: 'hybrid'`と`output: 'static'`の設定が、以前のハイブリッドオプションと同じように動作する単一の`'static'`と呼ばれている設定に統合されました。
+
+サーバーレンダリングされたページを使用するために Astro 設定で `output: 'hybrid'` を指定する必要はもうありません。新しい `output: 'static'`にはこの機能が含まれています。
+
+Astro は、出力設定を変更することなく、静的サイトで事前レンダリングをオプトアウトできるようになりました。ページルートまたはエンドポイントは、オンデマンドでサーバーレンダリングされるように `export const prerender = false` を含めることができ、サイトの残りの部分は静的に生成されます。
+
+#### どうすればいいですか？
+
+プロジェクトでハイブリッドレンダリングを使用していた場合は、`output: 'hybrid'` オプションは存在しなくなったため、Astro 設定から削除する必要があります。ただし、プロジェクトへのその他の変更は必要なく、破壊的な変更はないはずです。以前の `'hybrid'` の動作は、新しい名前 `'static'` でデフォルトになりました。
+
+```js title="astro.config.mjs" del={4}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  output: 'hybrid',
+});
+```
+
+`output: 'static'` (デフォルト) オプションを使用していた場合は、以前と同様に使用できます。デフォルトでは、すべてのページが引き続き事前レンダリングされ、完全に静的なサイトになります。プロジェクトに破壊的な変更はないはずです。
+
+プロジェクトがどの `output` モードを使用しているかに関係なく、サーバーレンダリングされたページを含む Astro プロジェクトをデプロイするには、アダプターが必要です。アダプターを含めないと、開発時に警告が表示され、ビルド時にエラーが発生します。
+
+<ReadMore> [Astro のオンデマンドレンダリング](/ja/guides/on-demand-rendering/)について詳しくはこちらをご覧ください。</ReadMore>
+
+### 削除: Squoosh 画像サービス
+
+<SourcePR number="11770" title="Squoosh画像サービスの削除(EN)"/>
+
+Astro 4.xでは、`image.service: squooshImageService()` を設定して、Sharp の代わりに Squoosh を使用して画像を変換することができました。ただし、基盤となるライブラリ `libsquoosh` はメンテナンスされておらず、メモリとパフォーマンスの問題があります。
+
+Astro 5.0では、Squoosh 画像最適化サービスが完全に削除されました。
+
+#### どうすればいいですか？
+
+組み込みの Sharp 画像サービスに切り替えるには、Astro 設定から `squooshImageService` インポートを削除します。デフォルトでは、`astro:assets`に Sharp が使用されます。
+
+```ts title="astro.config.mjs" del={1, 5-7}
+import { squooshImageService } from "astro/config";
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  image: {
+    service: squooshImageService()
+  }
+});
+```
+
+`pnpm` のような厳密なパッケージマネージャーを使用している場合は、Sharp 画像サービスを使用するために `sharp` パッケージを手動でインストールする必要がある場合があります (デフォルトで Astroに組み込まれています)。
+
+もしあなたのアダプターが Astro 内蔵の Sharp 画像最適化モジュールをサポートしていない場合は、[no-op 画像サービス (EN)](/en/guides/images/#configure-no-op-passthrough-service) を設定することで、`<Image />`と`<Picture />` コンポーネントを使用することができます。
+
+あるいは、Sharp 画像サービスを使用できない場合は、[コミュニティでメンテナンスされている Squoosh 画像サービス](https://github.com/Princesseuh/astro-image-service-squoosh) を検討することをお勧めします。
+
+##### アダプターの場合
+
+アダプターが以前に Squoosh との互換性ステータスを指定していた場合は、アダプター設定からこの情報を削除する必要があります。
+
+```js title="my-adapter.mjs" del={2-4}
+supportedAstroFeatures: {
+  assets: {
+    isSquooshCompatible: true
+  }
+}
+```
+
+<ReadMore> [デフォルト画像サービスの設定](https://www.google.com/url?sa=E&source=gmail&q=/ja/guides/images/#デフォルトの画像サービス)について詳しくはこちらをご覧ください。</ReadMore>
+
+### 削除: 一部の公開されている型
+
+<SourcePR number="11715" title="型の整理(EN)"/>
+
+Astro v4.xでは、`@types/astro.ts` は、まだアクティブに使用されているか、内部使用のみを目的としているかに関係なく、すべての型をユーザーに公開していました。
+
+Astro v5.0では、このファイルをリファクタリングして、古い型と内部型を削除しました。このリファクタリングにより、エディターが改善されます (例：補完の高速化、メモリ使用量の削減、より関連性の高い補完オプション)。ただし、このリファクタリングにより、公開されなくなった型に依存している一部のプロジェクトでエラーが発生する可能性があります。
+
+#### どうすればいいですか？
+
+プロジェクトでエラーが発生するようになった型は、アクセスできなくなったため、削除してください。これらは主に、以前に非推奨になって削除された API ですが、現在は内部になっている型も含まれる場合があります。
+
+<ReadMore> [使用のために公開されている型](https://github.com/withastro/astro/tree/main/packages/astro/src/types/public) を参照してください。</ReadMore>
+
+### 実験的なフラグ
+
+以下の実験的なフラグは Astro v5.0 で削除され、これらの機能は使用できるようになりました。
+
+- `env`
+- `serverIslands`
+
+さらに、以下の実験的なフラグが削除され、**Astro v5.0ではデフォルトまたは推奨される動作になりました**。
+
+- `directRenderScript` ([デフォルトの `<script>` 動作の破壊的な変更](#script-tags-are-rendered-directly-as-declared) を参照してください。)
+- `globalRoutePriority` ([注入されたルートとリダイレクトのデフォルトのルート優先順位の破壊的な変更](#route-priority-order-for-injected-routes-and-redirects) を参照してください。)
+- `contentLayer` (既存のコンテンツコレクションを新しい推奨されるコンテンツレイヤー APIに[アップグレードするためのガイダンス](https://www.google.com/url?sa=E&source=gmail&q=#legacy-v20-コンテンツコレクション-api) を参照してください。)
+
+以下の実験的なフラグが削除され、**対応する機能は Astro v5.0に含まれていません**。
+
+- `contentCollectionsCache`
+
+以前にこれらの実験的なフラグを使用していた場合は削除し、`env` 設定を Astro 設定のルートに移動します。
+
+```js del={5-12} ins={14-16} title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    directRenderScript: true,
+    globalRoutePriority: true,
+    contentLayer: true,
+    serverIslands: true,
+    contentCollectionsCache: true,
+    env: {
+      schema: {...}
+    }
+  },
+  env: {
+      schema: {...}
+  }
+})
+```
+
+これらの機能はすべて、Astro v5.0 でデフォルトで使用できます。
+
+<ReadMore>これらのエキサイティングな機能の詳細については、[v5.0 ブログ記事](https://astro.build/blog/astro-5/) をご覧ください。</ReadMore>
+
+## 変更されたデフォルト
+
+Astro v5.0では、一部のデフォルトの動作が変更されており、これらの変更に対応するためにプロジェクトコードを更新する必要がある場合があります。
+
+ほとんどの場合、必要なアクションは、既存のプロジェクトのデプロイを確認し、必要に応じてコードを更新して、期待どおりに機能し続けるようにすることだけです。場合によっては、以前のデフォルトの動作を引き続き使用できるようにするための設定がある場合があります。
+
+### CSRF 保護がデフォルトで設定されるようになりました
+
+<SourcePR number="11788" title="`checkOrigin`のデフォルト値の変更(EN)"/>
+
+Astro v4.xでは、`security.checkOrigin` のデフォルト値は `false` でした。以前は、クロスサイトリクエストフォージェリ (CSRF) 保護を有効にするには、この値を明示的に `true`に設定する必要がありました。
+
+Astro v5.0では、このオプションのデフォルト値が `true`に変更され、オンデマンドでレンダリングされたページの各リクエストで送信される URL と「origin」ヘッダーが一致するかどうかが自動的にチェックされます。
+
+#### どうすればいいですか？
+
+以前に `security.checkOrigin: true` を設定していた場合は、Astro 設定でこの行は必要なくなりました。これは現在デフォルトです。
+
+この動作を無効にするには、明示的に `security.checkOrigin: false` を設定する必要があります。
+
+```js title="astro.config.mjs" ins={3-5}
+export default defineConfig({
+  output: "server",
+  security: {
+    checkOrigin: false
+  }
+})
+```
+
+<ReadMore> [セキュリティ設定オプション (EN)](/en/reference/configuration-reference/#security)について詳しくはこちらをご覧ください。</ReadMore>。
+
+### 注入されたルートとリダイレクトのルート優先順位
+
+<SourcePR number="11798" title="従来のルート優先順位付けの削除(EN)"/>
+
+Astro v4.xでは、`experimental.globalRoutePriority` は、注入されたルート、ファイルベースのルート、およびリダイレクトがすべて [すべてのルートのルート優先順位ルール](https://www.google.com/url?sa=E&source=gmail&q=/ja/guides/routing/#ルーティングの優先順位) を使用して優先順位付けされるようにするオプションのフラグでした。これにより、特定の種類のルートを自動的に優先順位付けせず、ルート優先順位を標準化することで、プロジェクトのルーティングをより細かく制御できました。
+
+Astro v5.0では、この実験的なフラグが削除され、Astro の新しいデフォルトの動作になりました。リダイレクトと注入されたルートは、ファイルベースのプロジェクトルートと同様に優先順位付けされるようになりました。
+
+これは Starlight のデフォルトの動作であり、更新された Starlight プロジェクトには影響しません。
+
+#### どうすればいいですか？
+
+プロジェクトに注入されたルートまたはリダイレクトが含まれている場合は、ルートが期待どおりにページURLを構築していることを確認してください。新しい動作の例を以下に示します。
+
+次のルートを含むプロジェクトの場合、
+
+- ファイルベースのルート: `/blog/post/[pid]`
+- ファイルベースのルート: `/[page]`
+- 注入されたルート: `/blog/[...slug]`
+- リダイレクト: `/blog/tags/[tag] -> /[tag]`
+- リダイレクト: `/posts -> /blog`
+
+以下のURLは、Astrov4.xのルート優先順位に従わずに構築されます。
+
+- `/blog/tags/astro` は、リダイレクトによって `/tags/[tag]`に構築されます (注入されたルート `/blog/[...slug]` ではなく)
+- `/blog/post/0` は、ファイルベースのルート `/blog/post/[pid]`によって構築されます (注入されたルート `/blog/[...slug]` ではなく)
+- `/posts` は、リダイレクトによって `/blog`に構築されます (ファイルベースのルート `/[page]` ではなく)
+
+ルートの衝突が発生した場合、つまり、同じルート優先順位の 2 つのルートが同じ URL を構築しようとした場合、Astro は競合するルートを識別する警告をログに記録します。
+
+<ReadMore> [ルーティングの優先順位](https://www.google.com/url?sa=E&source=gmail&q=/ja/guides/routing/#ルーティングの優先順位)について詳しくはこちらをご覧ください。</ReadMore>
+
+### `<script>`タグは宣言どおりに直接レンダリングされるようになりました
+
+<SourcePR number="11791" title="`directRenderScript`をデフォルトにする(EN)"/>
+
+Astro v4.xでは、`experimental.directRenderScript`は、`.astro`ファイルで宣言された`<scripts>`を直接レンダリングするためのオプションのフラグでした(TypeScript、`node_modules` のインポート、スクリプトの重複排除などの既存の機能を含む)。この戦略により、スクリプトが使用されていない場所で実行されるのを防ぎました。さらに、条件付きでレンダリングされたスクリプトは、`is:inline`ディレクティブが自動的に追加されたかのように、暗黙的にインライン化されていました。
+
+Astro 5.0では、この実験的なフラグが削除され、Astro の新しいデフォルトの動作になりました。スクリプトは `<head>`にホイストされなくなり、ページ上の複数のスクリプトはバンドルされなくなり、`<script>` タグが CSS スタイルに干渉する可能性があります。さらに、条件付きでレンダリングされたスクリプトは暗黙的にインライン化されなくなりました。
+
+#### どうすればいいですか？
+
+`<script>` タグを確認し、期待どおりに動作することを確認してください。
+
+以前に条件付きでレンダリングされた `<script>` タグがあった場合は、以前と同じ動作を維持するために `is:inline` 属性を追加する必要があります。
+
+```astro title="src/components/MyComponent.astro" ins="is:inline"
+---
+type Props = {
+  showAlert: boolean
+}
+
+const { showAlert } = Astro.props;
+---
+{
+  showAlert && <script is:inline>alert("Some very important code!!")</script>
+}
+```
+
+<ReadMore> [Astro で `script` タグを使用する]([https://www.google.com/url?sa=E&source=gmail&q=/ja/guides/client-side-scripts/#astroでscriptを使用する](https://www.google.com/url?sa=E&source=gmail&q=/ja/guides/client-side-scripts/#astroでscriptを使用する))について詳しくはこちらをご覧ください。</ReadMore>
+
+## 破壊的な変更
+
+以下の変更は、Astro v5.0 の破壊的な変更と見なされます。破壊的な変更は、一時的な下位互換性を提供する場合と提供しない場合があります。これらの機能を使用していた場合は、各エントリで推奨されているようにコードを更新する必要がある場合があります。
+
+{/* v4.x プロジェクトのドキュメントを参照する必要がある場合は、[リリース前のドキュメントサイト（v5.0のスナップショットはメンテナンスされていません)](https://docs-git-v3-docs-unmaintained-astrodotbuild.vercel.app/) を参照してください。 */}
+
+### 名前変更: `<ViewTransitions />` コンポーネント
+
+<SourcePR number="11980" title="`<ViewTransitions />`コンポーネントを`<ClientRouter />`に名前変更(EN)"/>
+
+Astro 4.xでは、Astro の View Transitions APIには、クライアント側のルーティング、ページ遷移などを有効にする `<ViewTransitions />` ルーターコンポーネントが含まれていました。
+
+Astro 5.0では、API 内でのコンポーネントの役割を明確にするために、このコンポーネントの名前を `<ClientRouter />`に変更しました。これにより、Astro の `<ClientRouter />` ルーティングコンポーネントから得られる機能が、ネイティブの CSS ベースの MPA ルーターとは少し異なることがより明確になります。
+
+機能は変更されていません。このコンポーネントは名前が変更されただけです。
+
+#### どうすればいいですか？
+
+`ViewTransitions` インポートとコンポーネントのすべての出現箇所を `ClientRouter`に置き換えます。
+
+```astro title="src/layouts/MyLayout.astro" del={1,7} ins={2,8}
+import { ViewTransitions } from 'astro:transitions';
+import { ClientRouter } from 'astro:transitions';
+
+<html>
+  <head>
+    ...
+    <ViewTransitions />
+    <ClientRouter />
+  </head>
+</html>
+```
+
+<ReadMore> [Astro のビュー遷移とクライアント側のルーティング](/ja/guides/view-transitions/)について詳しくはこちらをご覧ください。</ReadMore>
+
+### 変更: TypeScript 設定
+
+<SourcePR number="11859" title="より良いtsconfig(EN)"/>
+
+Astro v4.xでは、Astroは型推論と、生成された型に依存する機能のモジュールを定義するために`src/env.d.ts`ファイルに依存していました。
+
+Astro 5.0では、型推論に`.astro/types.d.ts`ファイルを使用するようになり、Astro型の恩恵を受け、ビルド済みファイルのチェックを回避するために、`tsconfig.json`で`include`と`exclude`を設定することをお勧めします。
+
+`astro sync`を実行しても、標準のAstroプロジェクトの型チェックには必要ないため、`src/env.d.ts`は作成も更新もされなくなりました。
+
+#### どうすればいいですか？
+
+プロジェクトをAstroの推奨TypeScript設定に更新するには、既存の`tsconfig.json`に次の`include`プロパティと`exclude`プロパティを追加します。
+
+```ts ins={3,4} title="tsconfig.json"
+{
+  "extends": "astro/tsconfigs/base",
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist"]
+}
+```
+
+`src/env.d.ts`は、カスタム設定を追加した場合、または`tsconfig.json`ファイルを使用していない場合にのみ必要です。
+
+<ReadMore> [Astroにおける TypeScript の設定](https://www.google.com/url?sa=E&source=gmail&q=/ja/guides/typescript/#準備) の詳細はこちらをご覧ください。</ReadMore>
+
+### 変更: HTMLフォームによって送信されたアクションは、Cookieリダイレクトを使用しなくなりました
+
+<SourcePR number="12373" title="アクションミドルウェア(EN)"/>
+
+Astro 4.xでは、HTMLフォームから呼び出されたアクションは、Cookieを使用して結果を転送するリダイレクトをトリガーしていました。これは、大きなフォームエラーや、Cookieベースのストレージの4KBの制限を超える戻り値の問題を引き起こしていました。
+
+Astro 5.0では、アクションの結果は転送なしでPOST結果としてレンダリングされるようになりました。これにより、ユーザーがページを更新しようとすると「フォームの再送信を確認しますか？」というダイアログが表示されますが、アクションの戻り値に4KBの制限が課されることはなくなりました。
+
+#### どうすればいいですか？
+
+リダイレクトに依存するアクション結果の処理を更新し、オプションでミドルウェアを使用して「フォームの再送信を確認しますか？」というダイアログに対処する必要があります。
+
+##### エラー時に前のルートにリダイレクトするには
+
+HTMLフォームアクションが別のルート(つまり、`action={"/success-page" + actions.name}`)に向けられている場合、Astroはエラー時に前のルートにリダイレクトしなくなりました。Astroコンポーネントからのリダイレクトを使用して、この動作を手動で実装できます。この例では、成功時に新しいルートにリダイレクトし、それ以外の場合は現在のページでエラーを処理します。
+
+```astro title="src/pages/newsletter.astro" ins={4-9} del="'/confirmation' + "
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.newsletter);
+if (!result?.error) {
+  // 必要に応じて、関連する結果データをURLに埋め込みます
+  // 例： redirect(`/confirmation?email=${result.data.email}`);
+  return redirect('/confirmation');
+}
+---
+
+<form method="POST" action={'/confirmation' + actions.newsletter}>
+  <label>E-mail <input required type="email" name="email" /></label>
+  <button>Sign up</button>
+</form>
+```
+
+##### (オプション)更新時の確認ダイアログを削除するには
+
+更新時の「フォームの再送信を確認しますか？」というダイアログに対処したり、セッション間でアクションの結果を保持したりするために、[ミドルウェアからアクション結果の処理をカスタマイズ](/ja/guides/actions/#advanced-persist-action-results-with-a-session)できるようになりました。
+
+[Netlify Blobの例で説明されているように](/ja/guides/actions/#advanced-persist-action-results-with-a-session)、セッションストレージプロバイダーを使用することをお勧めします。ただし、4.XのCookie転送動作を好み、4KBのサイズ制限を受け入れる場合は、このサンプルスニペットに示すようにパターンを実装できます。
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  // 事前レンダリングされたページのリクエストをスキップします
+  if (context.isPrerendered) return next();
+
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+
+  // アクション結果がCookieとして転送された場合は、結果を設定します
+  // `Astro.getActionResult()`からアクセスできるようにします
+  const payload = context.cookies.get('ACTION_PAYLOAD');
+  if (payload) {
+    const { actionName, actionResult } = payload.json();
+    setActionResult(actionName, actionResult);
+    context.cookies.delete('ACTION_PAYLOAD');
+    return next();
+  }
+
+  // HTMLフォームアクションからアクションが呼び出された場合、
+  // アクションハンドラーを呼び出し、結果をCookieとしてリダイレクトします。
+  if (action?.calledFrom === 'form') {
+    const actionResult = await action.handler();
+
+    context.cookies.set('ACTION_PAYLOAD', {
+      actionName: action.name,
+      actionResult: serializeActionResult(actionResult),
+    });
+
+    if (actionResult.error) {
+    // エラー時に前のページにリダイレクトします
+      const referer = context.request.headers.get('Referer');
+      if (!referer) {
+        throw new Error('Internal: Referer unexpectedly missing from Action POST request.');
+      }
+      return context.redirect(referer);
+    }
+    // 成功時に宛先ページにリダイレクトします
+    return context.redirect(context.originPathname);
+  }
+
+  return next();
+})
+```
+
+### 変更: `compiledContent()`は非同期関数になりました
+
+<SourcePR number="11782" title="`compiledContent`をasyncにすることでTLAを削除(EN)"/>
+
+Astro 4.xでは、トップレベルのawaitがMarkdownモジュールに含まれていました。これは、カスタム画像サービスとMarkdown内の画像でいくつかの問題を引き起こし、Nodeがエラーメッセージなしで突然終了することがありました。
+
+Astro 5.0では、Markdownインポートの`compiledContent()`プロパティが非同期関数になり、コンテンツを解決するために`await`が必要になりました。
+
+#### どうすればいいですか？
+
+`compiledContent()`を呼び出すときに`await`を使用するようにコードを更新します。
+
+```astro title="src/pages/post.astro" del={4} ins={5}
+---
+import * as myPost from "../blog/post.md";
+
+const content = myPost.compiledContent();
+const content = await myPost.compiledContent();
+---
+
+<Fragment set:html={content} />
+```
+
+<ReadMore>コンパイルされたMarkdownを返すための[`compiledContent()` 関数 (EN)](/en/guides/markdown-content/#importing-markdown)について詳しくはこちらをご覧ください。</ReadMore>
+
+### 変更: `astro:content`はクライアントで使用できなくなりました
+
+<SourcePR number="11827" title="クライアントでの`astro:content`の使用を禁止(EN)"/>
+
+Astro 4.xでは、クライアントで`astro:content`モジュールにアクセスできました。
+
+Astro 5.0では、クライアントでの使用を意図していなかったため、このアクセスが削除されました。このように`astro:content`を使用すると、制限があり、クライアントバンドルが肥大化していました。
+
+#### どうすればいいですか？
+
+現在クライアントで`astro:content`を使用している場合は、代わりに必要なデータをprops経由でクライアントコンポーネントに渡します。
+
+```astro title="src/pages/blog.astro"
+---
+import { getCollection } from 'astro:content';
+import ClientComponent from '../components/ClientComponent';
+
+const posts = await getCollection('blog');
+const postsData = posts.map(post => post.data);
+---
+
+<ClientComponent posts={postsData} />
+```
+
+<ReadMore> [ `astro:content` API](/ja/reference/modules/astro-content/)について詳しくはこちらをご覧ください。</ReadMore>
+
+### 名前変更: Shiki `css-variables`テーマのカラーカラートークン名
+
+<SourcePR number="11661" title="新しいShikiトークン名に更新(EN)"/>
+
+Astro v4.xでは、Shiki`css-variables`テーマは、コードブロックの前景色と背景色のスタイルを設定するために、それぞれ`--astro-code-color-text`トークンと`--astro-code-color-background`トークンを使用していました。
+
+Astro v5.0では、Shiki v1のデフォルトとの整合性を高めるために、これらの名前をそれぞれ`--astro-code-foreground`と`--astro-code-background`に変更しました。
+
+#### どうすればいいですか？
+
+プロジェクトでグローバル検索と置換を実行して、新しいトークン名に移行できます。
+
+```css title="src/styles/global.css" del={2,3} ins={4,5}
+:root {
+  --astro-code-color-text: #000;
+  --astro-code-color-background: #fff;
+  --astro-code-foreground: #000;
+  --astro-code-background: #fff;
+}
+```
+
+<ReadMore> [Astro の構文ハイライト](/ja/guides/syntax-highlighting/)について詳しくはこちらをご覧ください。</ReadMore>
+
+### 変更: コードブロックをハイライトするための内部 Shiki rehype プラグイン
+
+<SourcePR number="11825" title="`createShikiHighlighter`のリファクタリング(EN)"/>
+
+Astro 4.xでは、Astro の内部 Shiki rehype プラグインは、コードブロックを HTML としてハイライトしていました。
+
+Astro 5.0では、このプラグインを更新して、コードブロックを hast としてハイライトするようになりました。これにより、より直接的な MarkdownとMDX の処理が可能になり、プロジェクトのビルド時のパフォーマンスが向上します。ただし、既存の Shiki 変換器で問題が発生する可能性があります。
+
+#### どうすればいいですか？
+
+`markdown.shikiConfig.transformers`に渡された Shiki 変換器を使用している場合は、`postprocess` フックを使用していないことを確認する必要があります。このフックは、`.md` ファイルと `.mdx` ファイルのコードブロックでは実行されなくなりました。(詳細については、[変換器フックに関する Shiki のドキュメント](https://shiki.style/guide/transformers#transformer-hooks) を参照してください)。
+
+`.mdoc` ファイルのコードブロックと Astro の組み込み `<Code />` コンポーネントは、内部 Shiki rehype プラグインを使用しないため、影響を受けません。
+
+<ReadMore> [Astro の構文ハイライト](/ja/guides/syntax-highlighting/)について詳しくはこちらをご覧ください。</ReadMore>
+
+### 変更: Markdown および MDX ページの自動 `charset=utf-8` 動作
+
+<SourcePR number="12231" title="md/mdxページの`charset=utf-8`content-typeを設定解除(EN)"/>
+
+Astro 4.0 では、Markdown および MDX ページ (`src/pages/`にある) は、`Content-Type` ヘッダーで `charset=utf-8` を使用して自動的に応答していました。これにより、ページに非 ASCII 文字をレンダリングできました。
+
+Astro 5.0では、代わりに `<meta charset="utf-8">` タグを追加するように動作が更新されました。これは、Astro の特別な `layout` frontmatter プロパティを使用していないページに対してのみです。同様に、MDX ページの場合、AstroはMDX コンテンツがラップ `Layout` コンポーネントをインポートしていない場合にのみタグを追加します。
+
+Markdown または MDX ページで `layout` frontmatter プロパティを使用している場合、または MDX ページコンテンツがラップ `Layout` コンポーネントをインポートしている場合は、HTML エンコーディングは指定されたレイアウトコンポーネントによって処理され、`<meta charset="utf-8">` タグはデフォルトでページに追加されません。
+
+#### どうすればいいですか？
+
+ページを正しくレンダリングするために `charset=utf-8` が必要な場合は、レイアウトコンポーネントに `<meta charset="utf-8">` タグが含まれていることを確認してください。まだ追加していない場合は、追加する必要がある場合があります。
+
+<ReadMore> [Markdown レイアウト](https://www.google.com/url?sa=E&source=gmail&q=/ja/basics/layouts/#markdownのレイアウト)について詳しくはこちらをご覧ください。</ReadMore>
+
+### 変更: remark および rehype プラグインで添付される Astro 固有のメタデータ
+
+<SourcePR number="11861" title="vfile.data内のAstroメタデータをクリーンアップ(EN)"/>
+
+Astro 4.xでは、remark および rehype プラグインの `vfile.data`に添付される Astro 固有のメタデータは、一貫性のない名前で異なる場所に添付されていました。
+
+Astro 5では API がクリーンアップされ、メタデータの名前が以下のように変更されました。
+
+  - `vfile.data.__astroHeadings` -\> `vfile.data.astro.headings`
+  - `vfile.data.imagePaths` -\> `vfile.data.astro.imagePaths`
+
+`imagePaths` の型も `Set<string>` から `string`に更新されました。`vfile.data.astro.frontmatter` メタデータは変更されていません。
+
+#### どうすればいいですか？
+
+これらの API は公開されているとは見なしていませんが、Astro のメタデータを再利用したい remark および rehype プラグインからアクセスできます。これらの API を使用している場合は、新しい場所でアクセスするようにしてください。
+
+<ReadMore> [Astro で Markdown プラグインを使用する (EN)](/en/guides/markdown-content/#markdown-plugins)について詳しくはこちらをご覧ください。</ReadMore>
+
+### 変更: 画像エンドポイント設定
+
+<SourcePR number="11908" title="画像エンドポイントのルートのカスタマイズを許可(EN)"/>
+
+Astro 4.xでは、画像の最適化に使用するエンドポイントを `image` 設定で設定できました。
+
+Astro 5.0では、`image.endpoint` 設定の `route`と`entrypoint` をカスタマイズできます。これは、デフォルトのルート `/_image` が既存のルートまたはローカルサーバーの設定と競合するニッチな状況で役立ちます。
+
+#### どうすればいいですか？
+
+以前に `image.endpoint` をカスタマイズしていた場合は、このエンドポイントを新しい `endpoint.entrypoint` プロパティに移動します。オプションで、`route` をカスタマイズできます。
+
+```js title="astro.config.mjs" del={5} ins={6-9}
+import { defineConfig } from "astro/config";
+
+defineConfig({
+  image: {
+    endpoint: './src/image-endpoint.ts',
+    endpoint: {
+      route: "/image",
+      entrypoint: "./src/image_endpoint.ts"
+    }
+  },
+})
+```
+
+<ReadMore> [画像の最適化に使用するエンドポイントの設定](/ja/reference/configuration-reference/#imageendpoint)について詳しくはこちらをご覧ください。</ReadMore>
+
+### 変更: `build.client` および `build.server` の解決動作
+
+<SourcePR number="11916" title="`build.client`と`build.server`の解決動作を修正(EN)"/>
+
+Astro v4.xでは、`build.client` オプションと `build.server` オプションは `outDir` オプションから相対的に解決されるとドキュメントに記載されていましたが、常に期待どおりに機能するとは限りませんでした。
+
+Astro 5.0では、`outDir` オプションから正しく解決されるように動作が修正されました。たとえば、`outDir` が `./dist/nested/`に設定されている場合、デフォルトでは、
+
+  - `build.client`は`<root>/dist/nested/client/`に解決されます
+  - `build.server`は`<root>/dist/nested/server/`に解決されます
+
+以前は、値が誤って解決されていました。
+
+  - `build.client`は`<root>/dist/nested/dist/client/`に解決されていました
+  - `build.server`は`<root>/dist/nested/dist/server/`に解決されていました
+
+#### どうすればいいですか？
+
+以前のビルドパスに依存していた場合は、プロジェクトコードが新しいビルドパスに更新されていることを確認してください。
+
+<ReadMore> [Astro の `build` 設定オプション]([https://www.google.com/url?sa=E&source=gmail&q=/ja/reference/configuration-reference/#ビルドのオプション](https://www.google.com/url?sa=E&source=gmail&q=/ja/reference/configuration-reference/#ビルドのオプション))について詳しくはこちらをご覧ください。</ReadMore>
+
+### 変更: 設定ファイルの JS 依存関係は Viteによって処理されなくなりました
+
+<SourcePR number="11819" title="astro設定の読み込み時に`external: true`を設定(EN)"/>
+
+Astro 4.xでは、ローカルにリンクされた JS 依存関係 (例： `npm link`、モノレポなど) は、Astro 設定ファイルによってインポートされたときに、`import.meta.glob` などの Vite 機能を使用できました。
+
+Astro 5では、Astro 設定の読み込みフローを更新して、Vite でローカルにリンクされた JS 依存関係の処理を無視するようになりました。生の TypeScript ファイルをエクスポートする依存関係は影響を受けません。代わりに、これらの JS 依存関係は、`node_modules` の他の依存関係と同じように、Node.js ランタイムによって通常どおりにインポートされます。
+
+この変更は、ローカルでは動作するが公開時には動作しないパッケージに対してテストを行ったインテグレーション作成者間で混乱が生じたために行われました。また、ViteはコードがESMであることを要求するため、CJSのみの依存関係の使用が制限されていました。この変更はJSの依存関係にのみ影響しますが、Vite固有の使用方法を誤って使用しないように、可能な場合はパッケージを生のTypeScriptではなくJavaScriptとしてエクスポートすることをお勧めします。これは、Astroの設定読み込みフローの実装の詳細であるためです。
+
+#### どうすればいいですか？
+
+Astroプロジェクトを実行する前に、ローカルにリンクされたJS依存関係がビルドされていることを確認してください。その後、設定の読み込みは以前と同様に機能するはずです。
+
+<ReadMore> [Astro の Vite 設定](/ja/reference/configuration-reference/#vite)について詳しくはこちらをご覧ください。</ReadMore>
+
+### 変更: `paginate()`によって返される URL
+
+<SourcePR number="11253" title="paginateにbaseを追加(EN)"/>
+
+Astro v4.xでは、`paginate()`によって返される URL (例： `page.url.next`、`page.url.first` など)には、Astro 設定で `base`に設定された値が含まれていませんでした。設定した `base` の値を URL パスに手動で追加する必要がありました。
+
+Astro 5.0では、`page.url`に `base` 値が自動的に含まれるようになりました。
+
+#### どうすればいいですか？
+
+これらのURLに`paginate()`関数を使用している場合は、既存の`base`値を削除してください。これは自動的に追加されるようになりました。
+
+```astro del={16} ins={17}
+---
+export async function getStaticPaths({ paginate }) {
+  const astronautPages = [{
+    astronaut: 'Neil Armstrong',
+  }, {
+    astronaut: 'Buzz Aldrin',
+  }, {
+    astronaut: 'Sally Ride',
+  }, {
+    astronaut: 'John Glenn',
+  }];
+  return paginate(astronautPages, { pageSize: 1 });
+}
+const { page } = Astro.props;
+// `base: /'docs'` を `astro.config.mjs` で設定する。
+const prev = "/docs" + page.url.prev;
+const prev = page.url.prev;
+---
+<a id="prev" href={prev}>Back</a>
+```
+
+<ReadMore> [Astro のページネーション](https://www.google.com/url?sa=E&source=gmail&q=/ja/guides/routing/#ページネーション)について詳しくはこちらをご覧ください。</ReadMore>
+
+### 変更: ブール値以外のHTML属性値
+
+<SourcePR number="11660" title="ブール値の属性レンダリングを修正(take 2)(EN)"/>
+
+Astro v4.xでは、[ブール値以外のHTML属性](https://developer.mozilla.org/en-US/docs/Glossary/Boolean/HTML)がHTMLにレンダリングされたときに値が含まれていない可能性があります。
+
+Astro v5.0では、ブラウザーでの適切な属性処理に合わせて、値を明示的に`="true"`または`="false"`としてレンダリングします。
+
+次の`.astro`の例では、`allowfullscreen`のみがブール値属性です。
+
+```astro
+<!-- src/pages/index.astro -->
+<!-- `allowfullscreen`はブール値属性です -->
+<p allowfullscreen={true}></p>
+<p allowfullscreen={false}></p>
+<!-- `inherit`はブール値属性*ではありません* -->
+<p inherit={true}></p>
+<p inherit={false}></p>
+<!-- `data-*`属性はブール値属性ではありません -->
+<p data-light={true}></p>
+<p data-light={false}></p>
+```
+
+Astro v5.0では、ブール値以外の属性のHTMLをレンダリングするときに、完全なデータ属性とその値が保持されるようになりました。
+
+```astro del={5,8,10} ins={6,9,11}
+<p allowfullscreen></p>
+<p></p>
+
+<p inherit="true"></p>
+<p inherit></p>
+<p inherit="false"></p>
+
+<p data-light></p>
+<p data-light="true"></p>
+<p></p>
+<p data-light="false"></p>
+```
+
+#### どうすればいいですか？
+
+たとえば、要素を検索したり条件付きでレンダリングしたりするために属性値に依存している場合は、新しいブール値以外の属性値と一致するようにコードを更新します。
+
+```js del={1,4} ins={2,5}
+el.getAttribute('inherit') === ''
+el.getAttribute('inherit') === 'false'
+
+el.hasAttribute('data-light')
+el.dataset.light === 'true'
+```
+
+<ReadMore> [Astro でのHTML 属性の使用方法](https://www.google.com/url?sa=E&source=gmail&q=/ja/reference/astro-syntax/#動的属性)について詳しくはこちらをご覧ください。</ReadMore>
+
+### 変更: `context.locals` への値の追加
+
+<SourcePR number="11987" title="TODOs(EN)"/>
+
+Astro 4.xでは、ミドルウェア、APIエンドポイント、およびページで新しい値を追加するときに、`locals`オブジェクト全体を完全に置き換えることができました。
+
+Astro 5.0では、既存の`locals`オブジェクトを削除せずに値を追加する必要があります。ミドルウェア、APIエンドポイント、およびページのローカルは、完全にオーバーライドできなくなりました。
+
+#### どうすればいいですか？
+
+以前はオブジェクトを上書きしていた場所で、代わりに値を割り当てる必要があります。
+
+```js title="src/middleware.js" del={1,5} ins={2,6}
+ctx.locals = {
+Object.assign(ctx.locals, {
+  one: 1,
+  two: 2
+}
+})
+```
+
+<ReadMore> [ `context.locals` へのデータの保存]([https://www.google.com/url?sa=E&source=gmail&q=/ja/guides/middleware/#contextlocalsにデータを保存する](https://www.google.com/url?sa=E&source=gmail&q=/ja/guides/middleware/#contextlocalsにデータを保存する))について詳しくはこちらをご覧ください。</ReadMore>
+
+### 変更: `params` はデコードされなくなりました
+
+<SourcePR number="12079" title="pathnameを早期にデコードし、paramsをデコードしない(EN)"/>
+
+Astro v4.xでは、`getStaticPath()`に渡された `params`は`decodeURIComponent` を使用して自動的にデコードされていました。
+
+Astro v5.0では、`getStaticPaths`に渡された `params` の値はデコードされなくなりました。必要に応じて、手動でデコードする必要があります。
+
+#### どうすればいいですか？
+
+以前は自動デコードに依存していた場合は、`params` を渡すときに `decodeURI` を使用してください。
+
+```astro title="src/pages/[id].astro" del={4} ins={5}
+---
+export function getStaticPaths() {
+  return [
+    { params: { id: "%5Bpage%5D" } },
+    { params: { id: decodeURI("%5Bpage%5D") } },
+  ]
+}
+
+const { id } = Astro.params;
+---
+```
+
+`getStaticPaths`に [`decodeURIComponent`]([[https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURIComponent](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURIComponent)]\([https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURIComponent](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURIComponent)\)) を使用することはお勧めしません。これは、`/`、`?`、`#` など、デコードする必要がある文字よりも多くの文字をデコードするためです。
+
+<ReadMore> [ `params` を使用した動的ルートの作成]([https://www.google.com/url?sa=E&source=gmail&q=/ja/guides/routing/#静的ssgモード](https://www.google.com/url?sa=E&source=gmail&q=/ja/guides/routing/#静的ssgモード))について詳しくはこちらをご覧ください。</ReadMore>
+
+### 変更: `RouteData` 型が `IntegrationsRouteData`に置き換えられました (Integrations API)
+
+<SourcePR number="11864" title="`IntegrationRouteData`をインテグレーションに送信(EN)"/>
+
+Astro v4.xでは、`astro:build:ssr` フックと `astro:build:done` フック内の `entryPoints` 型は `RouteData` でした。
+
+Astro v5.0では、`entryPoints` 型は `IntegrationRouteData`になりました。これは `RouteData` 型のサブセットです。`isIndex` フィールドと `fallbackRoutes` フィールドが削除されました。
+
+#### どうすればいいですか？
+
+`entryPoints` の型を `RouteData` から `IntegrationRouteData`に変更するようにアダプターを更新します。
+
+```js del={1,4} ins={2,5}
+import type {RouteData} from 'astro';
+import type {IntegrationRouteData} from "astro"
+
+function useRoute(route: RouteData) {
+function useRoute(route: IntegrationRouteData) {
+}
+```
+
+<ReadMore> [ `IntegrationRouteData` の API リファレンス](/ja/reference/integrations-reference/#integrationroutedata-type-reference) を参照してください。</ReadMore>
+
+### 変更: `distURL` は配列になりました (Integrations API)
+
+<SourcePR number="11864" title="`IntegrationRouteData`をインテグレーションに送信(EN)"/>
+
+Astro v4.xでは、`RouteData.distURL`は`undefined` または `URL` でした。
+
+Astro v5.0では、`IntegrationRouteData.distURL` の形状が `undefined` または `URL` の配列に更新されました。これは、ルートがディスク上に複数のファイルを生成できるため、特に `[slug]` や `[...slug]` などの動的ルートを使用する場合に、以前のエラーを修正します。
+
+#### どうすればいいですか？
+
+`IntegrationRouteData.distURL` を配列として処理するようにコードを更新します。
+
+```js del={2-4} ins={5-9}
+if (route.distURL) {
+  if (route.distURL.endsWith('index.html')) {
+    // 何かを実行します
+  }
+  for (const url of route.distURL) {
+    if (url.endsWith('index.html')) {
+      // 何かを実行します
+    }
+  }
+}
+```
+
+<ReadMore> [ `IntegrationRouteData` の API リファレンス](/ja/reference/integrations-reference/#integrationroutedata-type-reference) を参照してください。</ReadMore>
+
+### 変更: `app.render()`に渡される引数 (Adapter API)
+
+<SourcePR number="11987" title="TODOs(EN)"/>
+
+Astro 4.xでは、Adapter API メソッド `app.render()` は、必須の `request`、オプションのオブジェクトまたは `routeData` オブジェクト、および `locals` の 3 つの引数を受け取ることができました。
+
+Astro 5.0では、これらの最後の 2 つの引数を `renderOptions` という名前の単一のオプション引数に結合します。
+
+#### どうすればいいですか？
+
+`app.render()` の 2 番目の引数としてオブジェクトを渡します。これには、`routeData`と`locals` をプロパティとして含めることができます。
+
+```js del={1} ins={2}
+const response = await app.render(request, routeData, locals);
+const response = await app.render(request, {routeData, locals});
+```
+
+<ReadMore> [ `renderOptions` の Adapter API リファレンス]([https://www.google.com/url?sa=E&source=gmail&q=/ja/reference/adapter-reference/#サーバーエントリポイント](https://www.google.com/url?sa=E&source=gmail&q=/ja/reference/adapter-reference/#サーバーエントリポイント)) を参照してください。</ReadMore>
+
+### 変更: `supportedAstroFeatures` のプロパティ (Adapter API)
+
+<SourcePR number="11806" title="`supportedAstroFeatures`の見直し(EN)"/>
+
+Astro 4.xでは、アダプターの作成者がインテグレーションがサポートする機能を指定できるようにする `supportedAstroFeatures`には、サポートされている Astro の画像サービスを指定するための `assets` プロパティが含まれていました。
+
+Astro 5.0では、このプロパティが専用の `sharpImageService` プロパティに置き換えられました。これは、アダプターが組み込みの sharp 画像サービスと互換性があるかどうかを判断するために使用されます。
+
+v5.0では、アダプターの `supportedAstroFeatures` のさまざまなプロパティに新しい `limited` 値が追加されました。これは、アダプターが機能と互換性があるが、いくつかの制限があることを示します。これは、機能をサポートしているが、すべての場合またはすべてのオプションでサポートしているわけではないアダプターに役立ちます。
+
+さらに、アダプターの `supportedAstroFeatures` のさまざまなプロパティの値は、`support` プロパティと `message` プロパティを持つオブジェクトにすることができるようになりました。`message` プロパティの内容は、アダプターが機能と互換性がない場合に、Astro CLIに役立つメッセージを表示します。これは、新しい `limited` 値で特に役立ち、ユーザーにサポートが制限されている理由を説明します。
+
+#### どうすればいいですか？
+
+`assets` プロパティを使用していた場合は、これは使用できなくなったため削除してください。アダプターが組み込みの sharp 画像サービスをサポートしていることを指定するには、これを `sharpImageService`に置き換えます。
+
+また、サポートされている機能を新しい `limited` オプションで更新し、アダプターのサポートに関するメッセージを含めることもできます。
+
+```ts title="my-adapter.mjs" del={2-6} ins={7-10}
+supportedAstroFeatures: {
+  assets: {
+    supportKind: "stable",
+    isSharpCompatible: true,
+    isSquooshCompatible: true,
+  },
+  sharpImageService: {
+    support: "limited",
+    message: 'このアダプターは組み込みの sharp 画像サービスをサポートしていますが、いくつかの制限があります。'
+  }
+}
+```
+
+<ReadMore> [アダプターでサポートされる Astro 機能の指定](https://www.google.com/url?sa=E&source=gmail&q=/ja/reference/adapter-reference/#astroの機能について)については、こちらをお読みください。</ReadMore>
+
+### 削除: 非推奨の開発ツールバーアプリの定義形式 (Dev Toolbar API)
+
+<SourcePR number="11987" title="非推奨の開発ツールバーアプリの形式を削除(EN)"/>
+
+Astro 4.xでは、開発ツールバーアプリを構築するときに、以前に非推奨になった `addDevToolbarApp(string);` シグネチャを使用することがまだ可能でした。アプリを定義するための `id`、`title`、および `icon` プロパティは、アプリの `entrypoint` のデフォルトエクスポートを介して使用可能になりました。
+
+Astro 5.0では、インテグレーションで開発ツールバーアプリを定義するときに、より直感的で、ツールバーアプリが正しく読み込まれなかった場合に Astro がより適切なエラーを提供できる現在のオブジェクト形式を支持して、このオプションが完全に削除されました。
+
+#### どうすればいいですか？
+
+非推奨の形式を使用していた場合は、開発ツールバーアプリを更新して新しい形式を使用してください。
+
+```js title="my-integration.mjs" del={1-2} ins={4-10}
+// 古い形式
+addDevToolbarApp("./my-dev-toolbar-app.mjs");
+
+// 新しい形式
+addDevToolbarApp({
+  id: "my-app",
+  name: "My App",
+  icon: "<svg>...</svg>",
+  entrypoint: "./my-dev-toolbar-app.mjs",
+});
+```
+
+```js title="my-dev-toolbar-app.mjs" del={2-4}
+export default {
+  id: 'my-dev-toolbar-app',
+  title: 'My Dev Toolbar App',
+  icon: '🚀',
+  init() {
+    // ...
+  }
+}
+```
+
+<ReadMore> [Dev Toolbar API を使用した Astro 用の開発ツールバーアプリの開発](/ja/reference/dev-toolbar-app-reference/)について詳しくはこちらをご覧ください。</ReadMore>
+
+### 削除: `create-astro` 中の Typescript の設定
+
+<SourcePR number="12083" title="`create-astro`の更新(EN)"/>
+
+Astro v4.xでは、`create astro` を使用して新しいプロジェクトを作成するときに、質問に答えるか、関連する `--typescript` フラグに目的の TypeScript 設定を渡すことによって、Astro の 3 つの TypeScript 設定から選択することができました。
+
+Astro 5.0では、`create astro` CLI コマンドを更新して、TypeScript の質問とそれに関連する `--typescript` フラグを削除しました。「strict」プリセットは、コマンドラインで作成されたすべての新しいプロジェクトのデフォルトになり、その時点でカスタマイズすることはできなくなりました。ただし、TypeScript テンプレートは `tsconfig.json` で手動で変更できます。
+
+#### どうすればいいですか？
+
+`create-astro` で `--typescript` フラグを使用していた場合は、コマンドから削除してください。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```diff lang=shell
+  -npm create astro@latest -- --template <example-name> --typescript strict
+  +npm create astro@latest -- --template <example-name>
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```diff lang=shell
+  -pnpm create astro@latest --template <example-name> --typescript strict
+  +pnpm create astro@latest --template <example-name>
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```diff lang=shell
+  -yarn create astro --template <example-name> --typescript strict
+  +yarn create astro --template <example-name>
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+<ReadMore> [使用可能なすべての `create astro` コマンドフラグ]([https://github.com/withastro/astro/blob/main/packages/create-astro/README.md]\(https://github.com/withastro/astro/blob/main/packages/create-astro/README.md\)) を参照してください</ReadMore>
+
+## コミュニティリソース
+
+Astro v5.0に関する良い資料をご存知ですか？ [このページを編集](https://www.google.com/search?q=https://github.com/withastro/docs/edit/main/src/content/docs/ja/guides/upgrade-to/v5.mdx) し、以下にリンクを追加してください！
+
+## 既知の問題
+
+GitHub 上の [Astro の issue](https://github.com/withastro/astro/issues/) をチェックして、報告された問題を確認するか、自分で issue を提出してください。
