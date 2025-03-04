@@ -1,0 +1,116 @@
+---
+title: Islas de Servidor
+description: Combina HTML estático de alto rendimiento con contenido dinámico renderizado en el servidor.
+i18nReady: true
+---
+
+Las islas de servidor te permiten renderizar "islas" dinámicas o personalizadas bajo demanda de forma individual, sin sacrificar el rendimiento del resto de la página.
+
+Esto significa que tus visitantes verán las partes más importantes de tu página antes y permite que tu contenido principal se guarde en caché de manera más agresiva, ofreciendo así un rendimiento más rápido.
+
+## Componentes de Islas de Servidor
+
+Una isla de servidor es un [componente de Astro](/es/basics/astro-components/) al que se le indica retrasar la renderización hasta que su contenido esté disponible.
+
+Tu página se renderizará de inmediato con cualquier [contenido por defecto que hayas definido](#contenido-por-defecto-para-islas-de-servidor). Luego, el contenido real del componente se obtiene en el cliente y se muestra cuando esté disponible.
+
+Con [un adaptador instalado](/es/guides/on-demand-rendering/#adaptadores-de-servidor) para realizar la renderización diferida, agrega la [directiva `server:defer`](/es/reference/directives-reference/#directivas-del-servidor) a cualquier componente de tu página para convertirlo en su propia isla:
+
+```astro title="src/pages/index.astro" "server:defer"
+---
+import Avatar from '../components/Avatar.astro';
+---
+<Avatar server:defer />
+```
+
+Estos componentes pueden hacer [todo lo que normalmente harías en una página renderizada bajo demanda](/es/guides/on-demand-rendering/#funciones-de-renderizado-bajo-demanda) usando un adaptador, como obtener contenido y acceder a cookies:
+
+```astro title="src/components/Avatar.astro"
+---
+import { getUserAvatar } from '../sessions';
+const userSession = Astro.cookies.get('session');
+const avatarURL = await getUserAvatar(userSession);
+---
+<img alt="User avatar" src={avatarURL} />
+```
+
+## Contenido por defecto para Islas de Servidor
+
+Cuando utilices el atributo `server:defer` en un componente para retrasar su renderizado, puedes colocar contenido por defecto mediante el slot con nombre "fallback".
+
+Este contenido por defecto se renderizará inicialmente junto con el resto de la página al cargarla y será reemplazado por el contenido real de tu componente en cuanto esté disponible.
+
+Para añadir contenido por defecto, agrega `slot="fallback"` a un elemento secundario (otros componentes o elementos HTML) que le pases a tu componente de isla de servidor:
+
+```astro
+---
+import Avatar from '../components/Avatar.astro';
+import GenericAvatar from '../components/GenericAvatar.astro';
+---
+<Avatar server:defer>
+  <GenericAvatar slot="fallback" />
+</Avatar>
+```
+
+Este contenido por defecto puede incluir, por ejemplo:
+
+- Un avatar genérico en lugar del avatar propio del usuario.
+- Una UI de tipo placeholder, como mensajes personalizados.
+- Indicadores de carga, por ejemplo spinners.
+
+
+## Como funciona
+
+La implementación de las islas de servidor se realiza principalmente en el proceso de compilación, donde el contenido del componente se reemplaza por un script ligero.
+
+Cada una de las islas marcadas con `server:defer` se separa en su propia ruta especial, que el script recupera en tiempo de ejecución. Cuando Astro compila tu sitio, omite el componente e inyecta en su lugar un script y cualquier contenido que hayas marcado con `slot="fallback"`.
+
+Cuando la página se carga en el navegador, estos componentes se solicitan a un endpoint especial que los renderiza y devuelve el HTML. Esto significa que los usuarios verán al instante las partes más críticas de la página, mientras que el contenido por defecto estará visible brevemente antes de que se carguen las islas dinámicas.
+
+Cada isla se carga de forma independiente de las demás. Esto implica que, si alguna tarda más en cargarse, no retrasará el resto del contenido personalizado.
+
+Este patrón de renderizado fue diseñado para ser portátil, ya que no depende de ninguna infraestructura de servidor en particular. Funcionará con cualquier servicio de hosting que utilices, desde un servidor de Node.js en un contenedor de Docker hasta el proveedor serverless de tu elección.
+
+## Caché
+
+Los datos para las islas de servidor se obtienen mediante una solicitud `GET`, pasando las props como una cadena encriptada en la query de la URL. Esto permite almacenar los datos en caché con la [cabecera HTTP `Cache-Control`](https://developer.mozilla.org/es/docs/Web/HTTP/Headers/Cache-Control), utilizando directivas estándar de `Cache-Control`.
+
+Sin embargo, [el navegador limita las URLs a una longitud máxima de 2048 bytes](https://chromium.googlesource.com/chromium/src/+/master/docs/security/url_display_guidelines/url_display_guidelines.md#url-length) por razones prácticas y para evitar problemas de denegación de servicio (DoS). Si tu cadena de consulta hace que la URL supere este límite, Astro enviará en su lugar una solicitud `POST` que contiene todas las props en el cuerpo. 
+
+Las solicitudes `POST` no se almacenan en caché en los navegadores porque se utilizan para enviar datos, lo que podría causar problemas de integridad o seguridad de la información. Por lo tanto, cualquier lógica de caché existente en tu proyecto dejará de funcionar. Siempre que sea posible, pasa únicamente las props necesarias a tus islas de servidor y evita enviar objetos de datos o arreglos completos para mantener tu query lo más pequeña posible. 
+
+## Acceder a la URL de la página en una Isla de Servidor
+
+En la mayoría de los casos, tu componente de isla de servidor puede obtener información sobre la página que lo está renderizando [pasando props](/es/basics/astro-components/#props-de-componentes), igual que en los componentes normales. 
+
+No obstante, las islas de servidor se ejecutan en su propio contexto aislado, independiente de la solicitud de la página. Tanto `Astro.url` como `Astro.request.url` en un componente de isla de servidor devolverán una URL con el formato `/_server-islands/Avatar`, en lugar de la URL actual de la página en el navegador. Además, si estás pre-renderizando la página, no tendrás acceso a información como los parámetros de la query para pasarlos como props.
+
+Para acceder a la información de la URL de la página, puedes revisar la cabecera [Referer](https://developer.mozilla.org/es/docs/Web/HTTP/Headers/Referer) que contendrá la dirección de la página que está cargando la island en el navegador:
+
+```astro
+---
+const referer = Astro.request.headers.get('Referer');
+const url = new URL(referer);
+const productId = url.searchParams.get('product');
+---
+```
+
+## Reutilizar la clave de cifrado
+
+Astro utiliza [criptografía](https://developer.mozilla.org/es/docs/Glossary/Cryptography) para cifrar las props que se pasan a las islas de servidor, evitando así la filtración accidental de secretos. Estas props se cifran usando una clave que se genera durante el proceso de compilación.
+
+En la mayoría de los proveedores de hosting, esto sucede de manera transparente y no necesitas hacer nada como desarrollador. Sin embargo, si estás usando rolling deployments en un entorno como Kubernetes, podrías tener problemas cuando el frontend y el backend estén temporalmente fuera de sincronización y las claves no coincidan.
+
+Para resolverlo, puedes crear una clave con la CLI de Astro y reutilizarla en todos tus despliegues. Esto garantiza que el frontend de cada usuario se comunique con un backend que tenga la clave correcta.
+
+Genera una clave usando `astro create-key`:
+
+```shell
+astro create-key
+```
+
+Esto creará una clave que puedes configurar como la variable de entorno ASTRO_KEY donde tu entorno de hosting lo requiera, por ejemplo, en un archivo .env:
+
+```ini title=".env"
+ASTRO_KEY=zyM5c0qec+1Sgi4K+AejFX9ufbig7/7wIZjxOjti9Po=
+```
