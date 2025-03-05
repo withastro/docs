@@ -1,6 +1,8 @@
 ---
 title: Markdown in Astro
-description: Learn how to create content using Markdown in Astro
+sidebar:
+  label: Markdown
+description: Learn about Astro's built-in support for Markdown.
 i18nReady: true
 ---
 import Since from '~/components/Since.astro';
@@ -9,7 +11,7 @@ import RecipeLinks from "~/components/RecipeLinks.astro";
 import ReadMore from '~/components/ReadMore.astro';
 import { Steps } from '@astrojs/starlight/components';
 
-[Markdown](https://daringfireball.net/projects/markdown/) is commonly used to author text-heavy content like blog posts and documentation. Astro includes built-in support for Markdown files that can also include [frontmatter YAML](https://dev.to/paulasantamaria/introduction-to-yaml-125f) to define custom properties such as a title, description, and tags.
+[Markdown](https://daringfireball.net/projects/markdown/) is commonly used to author text-heavy content like blog posts and documentation. Astro includes built-in support for Markdown files that can also include [frontmatter YAML](https://dev.to/paulasantamaria/introduction-to-yaml-125f) (or [TOML](https://toml.io)) to define custom properties such as a title, description, and tags.
 
 In Astro, you can author content in [GitHub Flavored Markdown](https://github.github.com/gfm/), then render it in `.astro` components. This combines a familiar writing format designed for content with the flexibility of Astro's component syntax and architecture.
 
@@ -19,19 +21,25 @@ For additional functionality, such as including components and JSX expressions i
 
 ## Organizing Markdown files
 
-Your local Markdown files can be kept anywhere within your `src/` directory. Local Markdown can be imported into `.astro` components using an `import` statement for a single file and Vite's `import.meta.glob()` to query multiple files at once.
+Your local Markdown files can be kept anywhere within your `src/` directory. Markdown files located within `src/pages/` will automatically generate [Markdown pages on your site](#individual-markdown-pages).
+
+Your Markdown content and frontmatter properties are available to use in components through [local file imports](#importing-markdown) or when [queried and rendered from data fetched by a content collections helper function](#markdown-from-content-collections-queries).
+
+### File imports vs content collections queries
+
+Local Markdown can be imported into `.astro` components using an `import` statement for a single file and [Vite's `import.meta.glob()`](/en/guides/imports/#importmetaglob) to query multiple files at once. The [exported data from these Markdown files](#importing-markdown) can then be used in the `.astro` component.
 
 If you have groups of related Markdown files, consider [defining them as collections](/en/guides/content-collections/). This gives you several advantages, including the ability to store Markdown files anywhere on your filesystem or remotely.
 
-Collections also allow you to use content-specfic, optimized API for querying and rendering your content. Collections are intended for sets of data that share the same structure, such as blog posts or product items. When you define that shape in a schema, you additionally get validation, type safety, and Intellisense in your editor.
+Collections use content-specific, optimized APIs for [querying and rendering your Markdown content](#markdown-from-content-collections-queries) instead of file imports. Collections are intended for sets of data that share the same structure, such as blog posts or product items. When you define that shape in a schema, you additionally get validation, type safety, and Intellisense in your editor.
 
-{/* <ReadMore>See more about [when to use content collections](/en/guides/content-collections/#when-to-create-a-collection) instead of file imports.</ReadMore> */}
+<ReadMore>See more about [when to use content collections](/en/guides/content-collections/#when-to-create-a-collection) instead of file imports.</ReadMore>
 
 ## Dynamic JSX-like expressions
 
 After importing or querying Markdown files, you can write dynamic HTML templates in your `.astro` components that include frontmatter data and body content.
 
-```md title="src/posts/great-post.md"
+```md title="src/pages/posts/great-post.md"
 ---
 title: 'The greatest post of all time'
 author: 'Ben'
@@ -42,8 +50,8 @@ Here is my _great_ post!
 
 ```astro title="src/pages/my-posts.astro"
 ---
-import * as greatPost from '../posts/great-post.md';
-const posts = Object.values(await import.meta.glob('../posts/*.md', { eager: true }));
+import * as greatPost from './posts/great-post.md';
+const posts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));
 ---
 
 <p>{greatPost.frontmatter.title}</p>
@@ -57,11 +65,13 @@ const posts = Object.values(await import.meta.glob('../posts/*.md', { eager: tru
 
 ### Available Properties
 
-#### Querying collections
+#### Markdown from content collections queries
 
-When fetching data from your collections via helper functions, your Markdown's frontmatter properties are available on a `data` object (e.g. `post.data.title`). Additionally, `body` contains the raw, uncompiled body content as a string.
+When fetching data from your collections with the helper functions `getCollection()` or `getEntry()`, your Markdown's frontmatter properties are available on a `data` object (e.g. `post.data.title`). Additionally, `body` contains the raw, uncompiled body content as a string.
 
-<ReadMore>See the full [CollectionEntry type](/en/reference/modules/astro-content/#collectionentry).</ReadMore>
+The [`render()`](/en/reference/modules/astro-content/#render) function returns your Markdown body content, a generated list of headings, as well as a modified frontmatter object after any remark or rehype plugins have been applied.
+
+<ReadMore>Read more about [using content returned by a collections query](/en/guides/content-collections/#using-content-in-astro-templates).</ReadMore>
 
 #### Importing Markdown
 
@@ -69,10 +79,10 @@ The following exported properties are available in your `.astro` component when 
 
 - **`file`** - The absolute file path (e.g. `/home/user/projects/.../file.md`).
 - **`url`** - The URL of the page (e.g. `/en/guides/markdown-content`).
-- **`frontmatter`** - Contains any data specified in the file’s YAML frontmatter.
+- **`frontmatter`** - Contains any data specified in the file’s YAML (or TOML) frontmatter.
 - **`<Content />`** - A component that returns the full, rendered contents of the file.
 - **`rawContent()`** - A function that returns the raw Markdown document as a string.
-- **`compiledContent()`** - A function that returns the Markdown document compiled to an HTML string.
+- **`compiledContent()`** - An async function that returns the Markdown document compiled to an HTML string.
 - **`getHeadings()`** - An async function that returns an array of all headings (`<h1>` to `<h6>`) in the file with the type: `{ depth: number; slug: string; text: string }[]`. Each heading’s `slug` corresponds to the generated ID for a given heading and can be used for anchor links.
 
 An example Markdown blog post may pass the following `Astro.props` object:
@@ -103,7 +113,7 @@ Astro.props = {
 
 The `<Content />` component is available by importing `Content` from a Markdown file. This component returns the file's full body content, rendered to HTML. You can optionally rename `Content` to any component name you prefer.
 
-You can similarly [render the HTML content of a Markdown collection entry](/en/guides/content-collections/#rendering-content-to-html) by rendering a `<Content />` component.
+You can similarly [render the HTML content of a Markdown collection entry](/en/guides/content-collections/#rendering-body-content) by rendering a `<Content />` component.
 
 ```astro title="src/pages/content.astro" "Content"
 ---
@@ -114,7 +124,7 @@ import {Content as PromoBanner} from '../components/promoBanner.md';
 import { getEntry, render } from 'astro:content';
 
 const product = await getEntry('products', 'shirt');
-const { Content } = await render();
+const { Content } = await render(product);
 ---
 <h2>Today's promo</h2>
 <PromoBanner />
@@ -144,7 +154,7 @@ Astro generates heading `id`s based on `github-slugger`. You can find more examp
 
 ### Heading IDs and plugins
 
-Astro injects an `id` attribute into all heading elements (`<h1>` to `<h6>`) in Markdown and MDX files and provides a `getHeadings()` utility for retrieving these IDs in [Markdown exported properties](#available-properties).
+Astro injects an `id` attribute into all heading elements (`<h1>` to `<h6>`) in Markdown and MDX files. You can retrieve this data from the `getHeadings()` utility available as a [Markdown exported property](#available-properties) from an imported file, or from the `render()` function when [using Markdown returned from a content collections query](#markdown-from-content-collections-queries).
 
 You can customize these heading IDs by adding a rehype plugin that injects `id` attributes (e.g. `rehype-slug`). Your custom IDs, instead of Astro's defaults, will be reflected in the HTML output and the items returned by `getHeadings()`.
 
@@ -318,130 +328,6 @@ export default defineConfig({
 });
 ```
 
-## Syntax Highlighting
-
-Astro comes with built-in support for [Shiki](https://shiki.style/) and [Prism](https://prismjs.com/). This provides syntax highlighting for:
-
-- all code fences (\`\`\`) used in a Markdown or MDX file.
-- content within the [built-in `<Code />` component](/en/reference/components-reference/#code-) (powered by Shiki).
-- content within the [`<Prism />` component](/en/reference/components-reference/#prism-) (powered by Prism).
-
-Shiki is enabled by default, preconfigured with the `github-dark` theme. The compiled output will be limited to inline `style`s without any extraneous CSS classes, stylesheets, or client-side JS.
-
-### Shiki configuration
-
-Shiki is our default syntax highlighter. You can configure all options via the `shikiConfig` object like so:
-
-```js title="astro.config.mjs"
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  markdown: {
-    shikiConfig: {
-      // Choose from Shiki's built-in themes (or add your own)
-      // https://shiki.style/themes
-      theme: 'dracula',
-      // Alternatively, provide multiple themes
-      // See note below for using dual light/dark themes
-      themes: {
-        light: 'github-light',
-        dark: 'github-dark',
-      },
-      // Disable the default colors
-      // https://shiki.style/guide/dual-themes#without-default-color
-      // (Added in v4.12.0)
-      defaultColor: false,
-      // Add custom languages
-      // Note: Shiki has countless langs built-in, including .astro!
-      // https://shiki.style/languages
-      langs: [],
-      // Add custom aliases for languages
-      // Map an alias to a Shiki language ID: https://shiki.style/languages#bundled-languages
-      // https://shiki.style/guide/load-lang#custom-language-aliases
-      langAlias: {
-        cjs: "javascript"
-      },
-      // Enable word wrap to prevent horizontal scrolling
-      wrap: true,
-      // Add custom transformers: https://shiki.style/guide/transformers
-      // Find common transformers: https://shiki.style/packages/transformers
-      transformers: [],
-    },
-  },
-});
-```
-
-:::note[Customizing Shiki themes]
-Astro code blocks are styled using the `.astro-code` class. When following Shiki's documentation (e.g. to [customize light/dark dual or multiple themes](https://shiki.style/guide/dual-themes#query-based-dark-mode)), be sure to replace the `.shiki` class in the examples with `.astro-code`.
-:::
-
-#### Adding your own theme
-
-Instead of using one of Shiki’s predefined themes, you can import a custom theme from a local file.
-
-```js title="astro.config.mjs"
-import { defineConfig } from 'astro/config';
-import customTheme from './my-shiki-theme.json';
-
-export default defineConfig({
-  markdown: {
-    shikiConfig: { theme: customTheme },
-  },
-});
-```
-
-We also suggest reading [Shiki's own theme documentation](https://shiki.style/themes) to explore more about themes, light vs dark mode toggles, or styling via CSS variables.
-
-### Default Syntax Highlighter
-
-If you'd like to switch to `'prism'` by default, or disable syntax highlighting entirely, you can use the `markdown.syntaxHighlighting` config object:
-
-```js title="astro.config.mjs" ins={6}
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  markdown: {
-    // Can be 'shiki' (default), 'prism' or false to disable highlighting
-    syntaxHighlight: 'prism',
-  },
-});
-```
-
-#### Prism configuration
-
-If you opt to use Prism, Astro will apply Prism's CSS classes instead. Note that **you need to bring your own CSS stylesheet** for syntax highlighting to appear!
-
-<Steps>
-1. Choose a premade stylesheet from the available [Prism Themes](https://github.com/PrismJS/prism-themes).
-
-2. Add this stylesheet to [your project's `public/` directory](/en/basics/project-structure/#public).
-
-3. Load this into your page's `<head>` in a [layout component](/en/basics/layouts/) via a `<link>` tag. (See [Prism basic usage](https://prismjs.com/#basic-usage).)
-</Steps>
-
-You can also visit the [list of languages supported by Prism](https://prismjs.com/#supported-languages) for options and usage.
-
-## Fetching Remote Markdown
-
-**Astro does not include built-in support for remote Markdown outside of [experimental content collections](/en/reference/configuration-reference/#experimentalcontentlayer)!**
-
-To fetch remote Markdown directly and render it to HTML, you will need to install and configure your own Markdown parser from NPM. This **will not** inherit from any of Astro's built-in Markdown settings that you have configured.
-
-Be sure that you understand these limitations before implementing this in your project, and consider fetching your remote Markdown using a content collections loader instead.
-
-```astro title="src/pages/remote-example.astro"
----
-// Example: Fetch Markdown from a remote API
-// and render it to HTML, at runtime.
-// Using "marked" (https://github.com/markedjs/marked)
-import { marked } from 'marked';
-const response = await fetch('https://raw.githubusercontent.com/wiki/adam-p/markdown-here/Markdown-Cheatsheet.md');
-const markdown = await response.text();
-const content = marked.parse(markdown);
----
-<article set:html={content} />
-```
-
 ## Individual Markdown pages
 
 :::tip
@@ -450,7 +336,7 @@ const content = marked.parse(markdown);
 
 Astro treats [any supported file inside of the `/src/pages/` directory](/en/basics/astro-pages/#supported-page-files) as a page, including `.md` and other Markdown file types.
 
-Placing a file in this directory, or any sub-directory, will automatically build a page route using the pathname of the file and display the Markdown content rendered to HTML.
+Placing a file in this directory, or any sub-directory, will automatically build a page route using the pathname of the file and display the Markdown content rendered to HTML. Astro will automatically add a `<meta charset="utf-8">` tag to your page to allow easier authoring of non-ASCII content.
 
 ```markdown title="src/pages/page-1.md"
 ---
@@ -471,7 +357,9 @@ It probably isn't styled much, but Markdown does support:
 
 ### Frontmatter `layout` property
 
-To help with the limited functionality of Markdown pages, Astro provides a special frontmatter `layout` property which is a relative path to an Astro [Markdown layout component](/en/basics/layouts/#markdown-layouts). If your Markdown file is located within `src/pages/`, create a layout component and add it in this layout property to provide a page shell around your Markdown content.
+To help with the limited functionality of individual Markdown pages, Astro provides a special frontmatter `layout` property which is a relative path to an Astro [Markdown layout component](/en/basics/layouts/#markdown-layouts). `layout` is not a special property when using [content collections](/en/guides/content-collections/) to query and render your Markdown content, and is not guaranteed to be supported outside of its intended use case.
+
+If your Markdown file is located within `src/pages/`, create a layout component and add it in this layout property to provide a page shell around your Markdown content.
 
 ```markdown title="src/pages/posts/post-1.md" {2}
 ---
@@ -490,6 +378,10 @@ This layout component is a regular Astro component with [specific properties aut
 const {frontmatter} = Astro.props;
 ---
 <html>
+  <head>
+    <!-- ... -->
+    <meta charset="utf-8"> // no longer added by default
+  </head>
   <!-- ... -->
   <h1>{frontmatter.title}</h1>
   <h2>Post author: {frontmatter.author}</h2>
@@ -499,6 +391,27 @@ const {frontmatter} = Astro.props;
 </html>
 ```
 
-You can also [style your Markdown](/en/guides/styling/#markdown-styling) in your layout component.
+When using the frontmatter `layout` property, you must include the `<meta charset="utf-8">` tag in your layout as Astro will no longer add it automatically. You can now also [style your Markdown](/en/guides/styling/#markdown-styling) in your layout component.
 
 <ReadMore>Learn more about [Markdown Layouts](/en/basics/layouts/#markdown-layouts).</ReadMore>
+
+## Fetching Remote Markdown
+
+Astro does not include built-in support for remote Markdown outside of [content collections](/en/guides/content-collections/).
+
+To fetch remote Markdown directly and render it to HTML, you will need to install and configure your own Markdown parser from NPM. This will not inherit from any of Astro's built-in Markdown settings that you have configured.
+
+Be sure that you understand these limitations before implementing this in your project, and consider fetching your remote Markdown using a content collections loader instead.
+
+```astro title="src/pages/remote-example.astro"
+---
+// Example: Fetch Markdown from a remote API
+// and render it to HTML, at runtime.
+// Using "marked" (https://github.com/markedjs/marked)
+import { marked } from 'marked';
+const response = await fetch('https://raw.githubusercontent.com/wiki/adam-p/markdown-here/Markdown-Cheatsheet.md');
+const markdown = await response.text();
+const content = marked.parse(markdown);
+---
+<article set:html={content} />
+```

@@ -1,6 +1,6 @@
 ---
-title: 导入
-description: 学习如何在 Astro 中导入不同类型的内容。
+title: 导入参考
+description: 学习如何导入不同的文件类型到你的 Astro 项目中。
 i18nReady: true
 ---
 import RecipeLinks from "~/components/RecipeLinks.astro";
@@ -22,11 +22,21 @@ Astro 无需配置即支持大多数静态资源。你可以在项目的任何�
 - CSS 模块 (`.module.css`)
 - 图片和资源 (`.svg`，`.jpg`，`.png`，等等。)
 
-此外，你可以扩展 Astro 以添加对不同 [UI 框架](/zh-cn/guides/framework-components/)的支持，如 React、Svelte 和 Vue 组件。你还可以安装 [Astro MDX 集成](/zh-cn/guides/integrations-guide/mdx/)并在项目中使用 `.mdx` 文件。
+此外，你可以扩展 Astro 以添加对不同 [UI 框架](/zh-cn/guides/framework-components/)的支持，如 React、Svelte 和 Vue 组件。你还可以安装 [Astro MDX 集成](/zh-cn/guides/integrations-guide/mdx/) 或 [Astro Markdoc 集成](/zh-cn/guides/integrations-guide/markdoc/) 在项目中使用 `.mdx` 或者 `.mdoc` 文件。
 
 ### `public/` 中的文件
 
-你可以将任何静态资源放在项目的 [`public/` 目录](/zh-cn/basics/project-structure/#public)中，Astro 将直接将其复制到最终构建中，而不会对其进行任何处理。`public/` 文件不会被 Astro 构建或打包，这意味着支持任何类型的文件。你可以在 HTML 模板中直接通过 URL 路径引用 `public/` 文件。
+你可以将任何静态资源放在项目的 [`public/` 目录](/zh-cn/basics/project-structure/#public)中，Astro 将直接将其复制到最终构建中，而不会对其进行任何处理。`public/` 文件不会被 Astro 构建或打包，这意味着支持任何类型的文件。
+
+你可以直接在模板中通过 URL 路径引用 `public/` 文件。
+
+```astro
+// 链接到 /public/reports/annual/2024.pdf
+Download the <a href="/reports/annual/2024.pdf">2024 annual statement as a PDF</a>.
+
+// 显示 /public/assets/cats/ginger.jpg
+<img src="/assets/cats/ginger.jpg" alt="An orange cat sleeping on a bed.">
+```
 
 ## Import 语句
 
@@ -54,7 +64,7 @@ import { getUser } from './user';
 import type { UserType } from './user';
 ```
 
-Astro 内置对 [TypeScript](https://www.typescriptlang.org/) 的支持。你可以在 Astro 项目中直接导入 `.ts` 和 `.tsx` 文件，甚至可以直接在 [Astro 组件脚本](/zh-cn/basics/astro-components/#组件脚本)和任意 [hoisted script 标签](/zh-cn/guides/client-side-scripts/) 中编写 TypeScript 代码。
+Astro 内置对 [TypeScript](https://www.typescriptlang.org/) 的支持。你可以在 Astro 项目中直接导入 `.ts` 和 `.tsx` 文件，甚至可以直接在 [Astro 组件脚本](/zh-cn/basics/astro-components/#组件脚本)和任意 [script 标签](/zh-cn/guides/client-side-scripts/) 中编写 TypeScript 代码。
 
 **Astro 本身不进行任何类型检查**。类型检查应该在 Astro 之外进行或由 IDE 或通过一个单独的脚本来处理。[Astro VSCode 扩展](/zh-cn/editor-setup/) 会自动为打开的文件中提供 TypeScript 提示和错误警告。或使用 [`astro check` 命令](/zh-cn/reference/cli-reference/#astro-check) 检查 Astro 文件的类型。
 
@@ -185,16 +195,17 @@ import logoUrl from '@assets/logo.png?url';
 
 [VS Code](https://code.visualstudio.com/docs/languages/jsconfig) 或其他编辑器会自动集成这些别名。
 
-## `Astro.glob()`
+## `import.meta.glob()`
 
-[`Astro.glob()`](/zh-cn/reference/api-reference/#astroglob) 是一种一次性导入多个文件的方法。
+[Vite 的 `import.meta.glob()`](https://cn.vite.dev/guide/features.html#glob-import) 是一种使用 glob 模式一次导入多个文件来查找匹配文件路径的方法。
 
-`Astro.glob()` 只接受一个参数：一个相对的 [glob 模式](/zh-cn/guides/imports/#glob-模式) 匹配你想要导入的本地文件。它是异步的，并返回每个匹配文件的导出数组。
+`import.meta.glob()` 采用与你要导入的文件匹配的 [glob 模式](#glob-模式)，并返回每个匹配文件的导出的数组。要预先加载所有匹配的模块，请传递 `eager: true` 作为第二个参数。
 
-```astro title="src/components/my-component.astro"
+```astro title="src/components/my-component.astro" {3,4}
 ---
 // 导入`./src/pages/post/` 中所有以 `.md` 结尾的文件
-const posts = await Astro.glob('../pages/post/*.md');
+const matches = import.meta.glob('../pages/post/*.md', { eager: true }); 
+const posts = Object.values(matches);
 ---
 <!-- 把前 5 篇博客文章渲染成 <article> -->
 <div>
@@ -208,12 +219,12 @@ const posts = await Astro.glob('../pages/post/*.md');
 </div>
 ```
 
-使用 `Astro.glob` 导入的 Astro 组件的类型为 [`AstroInstance`](/zh-cn/reference/api-reference/#astro-文件)。你可以使用其 `default` 属性渲染每个组件实例：
+使用 `import.meta.glob` 导入的 Astro 组件的类型为 [`AstroInstance`](#astro-文件)。你可以使用其 `default` 属性渲染每个组件实例：
 
 ```astro title="src/pages/component-library.astro" {8}
 ---
 // 导入`./src/components/` 中所有以 `.astro` 结尾的文件
-const components = await Astro.glob('../components/*.astro');
+const components = Object.values(import.meta.glob('../components/*.astro', { eager: true }));
 ---
 <!-- 展示所有组件-->
 {components.map((component) => (
@@ -222,7 +233,97 @@ const components = await Astro.glob('../components/*.astro');
   </div>
 ))}
 ```
+### 支持的值
 
+Vite 的 `import.meta.glob()` 函数仅支持静态字符串字面量。它不支持动态变量和字符串插值。
+
+一种常见的解决方法是导入一个包含所有你需要的文件的更大的文件集，然后对它们进行过滤：
+
+```astro {6-7}
+---
+// src/components/featured.astro
+const { postSlug } = Astro.props;
+const pathToMyFeaturedPost = `src/pages/blog/${postSlug}.md`;
+
+const posts = Object.values(import.meta.glob("../pages/blog/*.md", { eager: true }));
+const myFeaturedPost = posts.find(post => post.file.includes(pathToMyFeaturedPost));
+---
+
+<p>
+  Take a look at my favorite post, <a href={myFeaturedPost.url}>{myFeaturedPost.frontmatter.title}</a>!
+</p>
+```
+
+### 导入类型工具函数
+
+#### Markdown 文件
+
+使用 `import.meta.glob()` 加载的 Markdown 文件返回以下 `MarkdownInstance` 接口：
+
+```ts
+export interface MarkdownInstance<T extends Record<string, any>> {
+  /* 该文件的 YAML/TOML frontmatter 中指定的任何数据 */
+	frontmatter: T;
+  /* 该文件的绝对文件路径 */
+	file: string;
+  /* 该文件的渲染路径 */
+	url: string | undefined;
+  /* 渲染此文件内容的 Astro 组件 */
+	Content: AstroComponentFactory;
+  /** （仅限 Markdown）原始 Markdown 文件内容，不包括布局 HTML 和 YAML/TOML frontmatter */
+	rawContent(): string;
+  /** （仅限 Markdown）将 Markdown 文件编译为 HTML，不包括布局 HTML */
+	compiledContent(): string;
+  /* 返回此文件中的 h1...h6 元素数组的函数 */
+	getHeadings(): Promise<{ depth: number; slug: string; text: string }[]>;
+	default: AstroComponentFactory;
+}
+```
+
+你可以选择使用 TypeScript 泛型为 `frontmatter` 变量提供类型。
+
+```astro
+---
+import type { MarkdownInstance } from 'astro';
+interface Frontmatter {
+    title: string;
+    description?: string;
+}
+
+const posts = Object.values(import.meta.glob<MarkdownInstance<Frontmatter>>('./posts/**/*.md', { eager: true }));
+---
+
+<ul>
+  {posts.map(post => <li>{post.frontmatter.title}</li>)}
+</ul>
+```
+
+#### Astro 文件
+
+Astro 文件具有以下接口：
+
+```ts
+export interface AstroInstance {
+  /* 该文件的文件路径 */
+  file: string;
+  /* 如果文件在 pages 目录中，则为此文件的 URL */
+	url: string | undefined;
+	default: AstroComponentFactory;
+}
+```
+
+#### 其他文件
+
+其他文件可能有各种不同的接口，但是如果你确切地知道一个未识别的文件类型包含什么，`import.meta.glob()` 接受一个 TypeScript 泛型。
+
+```ts
+---
+interface CustomDataFile {
+  default: Record<string, any>;
+}
+const data = import.meta.glob<CustomDataFile>('../data/**/*.js');
+---
+```
 
 ### Glob 模式
 
@@ -232,7 +333,7 @@ glob 模式是一个支持特殊通配符的文件路径。用于一次引用项
 
 #### Astro 中的 Glob 模式
 
-要与 `Astro.glob()` 一起使用，glob 模式必须是字符串字面量，并且不能包含任何变量。有关解决方法，请参阅[故障排除指南](/zh-cn/guides/troubleshooting/#astroglob---没有找到匹配项)。
+要与 `import.meta.glob()` 一起使用，glob 模式必须是字符串字面量，并且不能包含任何变量。
 
 此外，glob 模式必须以以下之一开头：
 - `./`（从当前目录开始）
@@ -242,9 +343,9 @@ glob 模式是一个支持特殊通配符的文件路径。用于一次引用项
 [阅读更多关于 glob 模式语法](https://github.com/mrmlnc/fast-glob#pattern-syntax)
 
 
-#### `Astro.glob()` vs `getCollection()`
+### `import.meta.glob()` vs `getCollection()`
 
-[内容集合](/zh-cn/guides/content-collections/) 提供用于加载多个文件的 [`getCollection()` API](/zh-cn/reference/modules/astro-content/#getcollection) 代替 `Astro.glob()`。如果你的内容文件 (例如 Markdown, MDX, Markdoc) 位于`src/content/` 目录内的集合中，使用 `getCollection()` [查询集合](/zh-cn/guides/content-collections/#查询集合)并返回内容条目。
+[内容集合](/zh-cn/guides/content-collections/) 提供用于加载多个文件的 [`getCollection()` API](/zh-cn/reference/modules/astro-content/#getcollection) 代替 `import.meta.glob()`。如果你的内容文件 (例如 Markdown, MDX, Markdoc) 位于`src/content/` 目录内的集合中，使用 `getCollection()` [查询集合](/zh-cn/guides/content-collections/#查询集合)并返回内容条目。
 
 ## WASM
 
@@ -257,7 +358,7 @@ Astro 支持使用浏览器的 [`WebAssembly`](https://developer.mozilla.org/en-
 
 ## Node 内置模块
 
-我们鼓励 Astro 用户尽可能避免使用 Node.js 内置模块（`fs`、`path` 等）。Astro 兼容多个运行时使用 [适配器](/zh-cn/guides/server-side-rendering/)。这包括 [Deno](https://github.com/denoland/deno-astro-adapter) 和 [Cloudflare Workers](/zh-cn/guides/integrations-guide/cloudflare/)，它们不支持 Node 内置模块，例如 `fs`。
+我们鼓励 Astro 用户尽可能避免使用 Node.js 内置模块（`fs`、`path` 等）。Astro 兼容多个运行时使用 [适配器](/zh-cn/guides/on-demand-rendering/)。这包括 [Deno](https://github.com/denoland/deno-astro-adapter) 和 [Cloudflare Workers](/zh-cn/guides/integrations-guide/cloudflare/)，它们不支持 Node 内置模块，例如 `fs`。
 
 我们致力于为常用的 Node.js 内置模块提供 Astro 化的替代品，不过现在还没有实现。因此，如果你**真的**需要，我们不会阻止你使用这些内置模块。Astro 支持使用较新 `node:` 前缀来支持 Node.js 内置模块。例如，如果你想读取一个文件，你可以这样做：
 

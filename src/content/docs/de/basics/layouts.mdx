@@ -1,41 +1,51 @@
 ---
 title: Layouts
-description: >-
-  Eine Einführung in Layouts - eine Astro-Komponenten-Art, mit der sich mehrere
-  Seiten eine gemeinsame Gestaltung teilen können.
+description: Eine Einführung in die Layouts in Astro.
+i18nReady: true
 ---
 
-**Layouts** sind besondere [Astro-Komponenten](/de/basics/astro-components/), die nützlich für die Erstellung wiederverwendbarer Seitenvorlagen sind.
+import ReadMore from '~/components/ReadMore.astro'
 
-Eine Layout-Komponente wird üblicherweise verwendet, um einer [`.astro`- oder `.md`-Seite](/de/basics/astro-pages/) sowohl ein **Seiten-Gerüst** (`<html>`, ` <head>` und `<body>`-Tags) als auch einen `<slot />` zur Verfügung zu stellen, der bestimmt, wo im Layout der Seiteninhalt eingefügt werden soll.
+**Layouts** sind [Astro-Komponenten](/de/basics/astro-components/), die verwendet werden, um eine wiederverwendbare UI-Struktur, wie z.B. eine Seitenvorlage, bereitzustellen.
 
-Wenn eine Layout-Komponente ein Seiten-Gerüst enthält sollte beachted werden, dass das `<html>`-Element das übergeordnete Element der Seite sein muss. Jegliche [`<style>`](/de/guides/styling/#styles-stile-in-astro)- oder [`<script>`](/de/guides/client-side-scripts/#client-seitige-skripte)-Elemente müssen vollständig vom `<html>`-Element umschlossen sein. 
+Wir verwenden den Begriff „Layout“ üblicherweise für Astro-Komponenten, die gemeinsame UI-Elemente für alle Seiten bereitstellen, wie z. B. Kopf-, Navigations- und Fußzeilen. Eine typische Astro-Layoutkomponente bietet [Astro-, Markdown- oder MDX-Seiten](/de/basics/astro-pages/) folgendes:
+- einer **Seitenhülle** (`<html>`, `<head>` und `<body>` Tags)
+- einen [**`<Slot />`**](/de/basics/astro-components/#slots), um festzulegen, wo einzelne Seiteninhalte eingefügt werden sollen.
 
-Layouts enthalten häufig gemeinsame `<head>`-Elemente und gemeinsame UI-Elemente der Website, z.B. Kopfzeilen, Navigationsleisten und Fußzeilen.
+Allerdings sind Layoutkomponenten nichts Besonderes! Sie können [Props akzeptieren](/de/basics/astro-components/#props-komponenteneigenschaften) und [andere Komponenten importieren und verwenden](/de/basics/astro-components/#komponentenstruktur) wie jede andere Astro-Komponente. Sie können [UI-Framework-Komponenten](/de/guides/framework-components/) und [client-seitige Skripte](/de/guides/client-side-scripts/) enthalten. Sie müssen nicht einmal eine vollständige Seitenoberfläche bereitstellen, sondern können stattdessen als partielle UI-Vorlagen verwendet werden.
 
-Layouts werden normalerweise im Verzeichnis `src/layouts` deines Projekts abgelegt.
+Wenn eine Layoutkomponente jedoch eine Seitenhülle enthält, muss ihr `<html>`-Element das übergeordnete Element aller anderen Elemente der Komponente sein. Alle [`<style>`](/de/guides/styling/#styles-stile-in-astro) oder [`<script>`](/de/guides/client-side-scripts/#verwendung-von-script-in-astro) Elemente müssen von den `<html>` Tags umschlossen sein.
+
+Layout-Komponenten werden normalerweise in einem `src/layouts`-Verzeichnis in deinem Projekt platziert, aber das ist keine Voraussetzung; du kannst sie überall in deinem Projekt platzieren. Du kannst Layout-Komponenten sogar neben deinen Seiten platzieren, indem du den Layout-Namen ein `_` voranstellst. 
+
+{/* TODO: Link to /de/guides/routing/#excluding-pages (does not exist yet)*/}
 
 ## Beispiel-Layout
 
-```astro
+```astro "<slot />" 
 ---
-// src/layouts/MeinLayout.astro
+// src/layouts/MySiteLayout.astro
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+const { title } = Astro.props;
 ---
-<html>
+<html lang="de">
   <head>
     <meta charset="utf-8">
-    <title>Meine coole Astro-Website</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <BaseHead title={title}/>
   </head>
   <body>
     <nav>
-      <a href="#">Startseite</a>
+      <a href="#">Home</a>
       <a href="#">Beiträge</a>
       <a href="#">Kontakt</a>
     </nav>
+    <h1>{title}</h1>
     <article>
-      <slot /> <!-- Dein Inhalt wird hier eingefügt -->
+      <slot /> <!-- dein Inhalt wird hier eingefügt -->
     </article>
+    <Footer />
   </body>
   <style>
     h1 {
@@ -45,65 +55,213 @@ Layouts werden normalerweise im Verzeichnis `src/layouts` deines Projekts abgele
 </html>
 ```
 
-```astro {3} /</?MeinLayout>/
+```astro title="src/pages/index.astro"
 ---
-// src/pages/index.astro
-import MeinLayout from '../layouts/MeinLayout.astro';
+import MySiteLayout from '../layouts/MySiteLayout.astro';
 ---
-<MeinLayout>
-  <p>Mein Seiteninhalt, umgeben von einem Layout!</p>
-</MeinLayout>
+<MySiteLayout title="Startseite">
+  <p>Mein Seiteninhalt, verpackt in ein Layout!</p>
+</MySiteLayout>
 ```
 
-📚 Lerne mehr über die Verwendung von [Slots](/de/basics/astro-components/#slots).
+<ReadMore>Erfahre mehr über [Slots](/de/basics/astro-components/#slots).</ReadMore>
 
-## Markdown-Layouts
+## TypeScript mit Layouts verwenden
 
-Seitenlayouts sind besonders nützlich für [Markdown-Dateien](/de/guides/markdown-content/). Markdown-Dateien können eine spezielle `layout`-Eigenschaft am Anfang des Frontmatters verwenden, um anzugeben, welche `.astro`-Komponente als Seitenlayout verwendet werden soll.
+Jedes Astro-Layout kann modifiziert werden, um Typensicherheit und Autovervollständigung einzuführen, indem die Typen für deine Eigenschaft bereitgestellt werden:
 
-```markdown {3}
+```astro ins={2-7} title="src/components/MyLayout.astro"
 ---
-# src/pages/posts/beitrag-1.md
-layout: ../../layouts/BlogBeitragsLayout.astro
-title: Blogbeitrag
-description: Mein erster Blogbeitrag!
+interface Props { 
+  title: string;
+  description: string;
+  publishDate: string;
+  viewCount: number;
+}
+const { title, description, publishDate, viewCount } = Astro.props;
 ---
-Dies ist ein Beitrag, der in Markdown geschrieben wurde.
-```
-
-Wenn eine Markdown-Seite ein Layout verwendet, übergibt sie eine `frontmatter`-Eigenschaft an die `.astro`-Komponente, die alle Frontmatter-Eigenschaften sowie die gerenderte HTML-Ausgabe der Seite enthält.
-
-```astro /frontmatter(?:.\w+)?/
----
-// src/layouts/BlogBeitragsLayout.astro
-const {frontmatter} = Astro.props;
----
-<html>
-   <!-- ... -->
-  <h1>{frontmatter.title}</h1>
-  <h2>Autor des Beitrags: {frontmatter.author}</h2>
-  <slot />
-   <!-- ... -->
+<html lang="de">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="description" content={description}>
+    <title>{title}</title>
+  </head>
+  <body>
+    <header>
+      <p>Veröffentlicht am {publishDate}</p>
+      <p>Gesehen von {viewCount} Leuten</p>
+    </header>
+    <main>
+      <slot />
+    </main>
+  </body>
 </html>
 ```
 
-📚 Erfahre mehr über Astros Markdown-Unterstützung in unserer [Markdown-Anleitung](/de/guides/markdown-content/).
+## Markdown Layouts
 
-## Verschachtelung von Layouts
+Seitenlayouts sind besonders nützlich für einzelne Markdown-Seiten, die sonst keine Seitenformatierung haben würden. 
 
-Layout-Komponenten müssen nicht eine ganze Seite im HTML-Format enthalten. Du kannst deine Layouts in kleinere Komponenten aufteilen und diese Komponenten dann wiederverwenden, um noch flexiblere, leistungsfähigere Layouts in deinem Projekt zu erstellen.
+Astro bietet eine spezielle `layout`-Frontmatter-Eigenschaft für [einzelne `.md`-Dateien, die sich innerhalb von `src/pages/` befinden und dateibasiertes Routing verwenden](/de/guides/markdown-content/#individual-markdown-pages), um anzugeben, welche `.astro`-Komponente als Seitenlayout verwendet werden soll. Diese Komponente ermöglicht es dir, `<head>`-Inhalte wie Meta-Tags (z.B. `<meta charset="utf-8">`) und Stile für die Markdown-Seite anzugeben. Standardmäßig kann die angegebene Komponente automatisch auf Daten aus der Markdown-Datei zugreifen.
 
-Beispielsweise könnte ein übliches Layout für Blogbeiträge einen Titel, ein Datum und einen Autor anzeigen. Eine `BlogBeitragsLayout.astro`-Layout-Komponente könnte diese Informationen zur Seite hinzufügen und für die Darstellung der restlichen Seitenelemente ein größeres, Website-weites Basis-Layout nutzen.
-
-```astro {3} /</?BasisLayout>/
+```markdown title="src/pages/page.md" {2} 
 ---
-// src/layouts/BlogBeitragsLayout.astro
-import BasisLayout from '../layouts/BasisLayout.astro'
-const {frontmatter} = Astro.props;
+layout: ../layouts/BlogPostLayout.astro
+title: "Hallo, Welt!"
+author: "Matthew Phillips"
+date: "09. August 2022"
 ---
-<BasisLayout>
+Alle Frontmatter-Eigenschaften sind als Eigenschaft für eine Astro-Layoutkomponente verfügbar.
+
+Die Eigenschaft `layout` ist die einzige spezielle Eigenschaft von Astro.
+
+Du kannst es in Markdown-Dateien verwenden, die sich in `src/pages/` befinden.
+
+```
+
+Ein typisches Layout für eine Markdown-Seite umfasst:
+
+1. Die Eigenschaft `frontmatter` für den Zugriff auf das Frontmatter der Markdown-Seite und andere Daten. 
+2. Ein Standard-[`<slot />`](/de/basics/astro-components/#slots), um anzugeben, wo der Markdown-Inhalt der Seite gerendert werden soll.
+
+```astro title="src/layouts/BlogPostLayout.astro" /(?<!//.*){?frontmatter(?:\\.\w+)?}?/ "<slot />"
+---
+// 1. Die Frontmatter-Eigenschaft ermöglicht den Zugriff auf Frontmatter und andere Daten
+const { frontmatter } = Astro.props;
+---
+<html>
+  <head>
+    <!-- Füge hier andere Head-Elemente wie Stile und Meta-Tags hinzu. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <title>{frontmatter.title}</title>
+  </head>
+  <body>
+    <!-- Füge hier andere UI-Komponenten hinzu, wie z.B. allgemeine Kopf- und Fußzeilen. -->
+    <h1>{frontmatter.title} by {frontmatter.author}</h1>
+    <!-- 2. Das gerenderte HTML wird in den Standard-Slot übertragen. -->
+    <slot />
+    <p>Geschrieben am: {frontmatter.date}</p>
+  </body>
+</html>
+```
+
+Du kannst den [`Props`-Typ](/de/guides/typescript/#komponenten-eigenschaften) eines Layouts mit dem `MarkdownLayoutProps`-Helper setzen:
+
+```astro title="src/layouts/BlogPostLayout.astro" ins={2,4-9}
+---
+import type { MarkdownLayoutProps } from 'astro';
+
+type Props = MarkdownLayoutProps<{
+  // Definiere hier Frontmatter-Requisiten
+  title: string;
+  author: string;
+  date: string;
+}>;
+
+// Jetzt sind `frontmatter`, `url` und andere Markdown-Layout-Eigenschaften
+// mit Typsicherheit zugänglich
+const { frontmatter, url } = Astro.props;
+---
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="canonical" href={new URL(url, Astro.site).pathname}>
+    <title>{frontmatter.title}</title>
+  </head>
+  <body>
+    <h1>{frontmatter.title} von {frontmatter.author}</h1>
+    <slot />
+    <p>Geschrieben am: {frontmatter.date}</p>
+  </body>
+</html>
+```
+
+### Markdown Layout Eigenschaften
+
+Ein Markdown-Layout hat über `Astro.props` Zugriff auf die folgenden Informationen:
+
+- **`file`** - Der absolute Pfad zu dieser Datei (z.B. `/home/user/projects/.../file.md`).
+- **`url`** - Die URL der Seite (z.B. `/de/guides/markdown-content`).
+- **`frontmatter`** - Alle Frontmatter aus dem Markdown- oder MDX-Dokument.
+  - **`frontmatter.file`** - Dasselbe wie die Top-Level-Eigenschaft „file“.
+  - **`frontmatter.url`** - Dasselbe wie die Eigenschaft `url` der obersten Ebene.
+- **`headings`** - Eine Liste von Überschriften (`h1 -> h6`) im Markdown- oder MDX-Dokument mit zugehörigen Metadaten. Diese Liste folgt dem Typ: `{ depth: number; slug: string; text: string }[]`.
+- **`rawContent()`** - Eine Funktion, die das rohe Markdown-Dokument als String zurückgibt.
+- **`compiledContent()`** - Eine asynchrone Funktion, die das Markdown-Dokument zu einem HTML-String kompiliert zurückgibt.
+
+:::note
+Ein Markdown-Layout hat Zugriff auf alle [verfügbaren Eigenschaften](/de/guides/markdown-content/#available-properties) der Markdown-Datei  aus `Astro.props` **mit zwei wesentlichen Unterschieden:**
+
+* Die Überschrifteninformationen (d.h. die Elemente `h1 -> h6`) sind über das Array `headings` verfügbar und nicht über die Funktion `getHeadings()`.
+
+* `file` and `url` are *also* available as nested `frontmatter` properties (i.e. `frontmatter.url` and `frontmatter.file`).
+
+:::
+
+### Manuelles Importieren von Layouts (MDX)
+
+Du kannst auch die spezielle Markdown-Layout-Eigenschaft im Frontmatter von MDX-Dateien verwenden, um die Eigenschaften `frontmatter` und `headings` auf die gleiche Weise direkt an eine bestimmte Layoutkomponente zu übergeben. 
+
+Um Informationen an dein MDX-Layout zu übergeben, die in deinem Frontmatter nicht vorhanden sind (oder sein können), kannst du stattdessen eine `<Layout />`-Komponente importieren und verwenden. Diese funktioniert wie jede andere Astro-Komponente und erhält nicht automatisch Eigenschaften. Übergib ihr alle notwendigen Eigenschaften direkt:
+
+```mdx title="src/pages/posts/first-post.mdx" ins={6} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/
+---
+layout: ../../layouts/BaseLayout.astro
+title: 'Mein erster MDX Beitrag'
+publishDate: '21. September 2022'
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export function fancyJsHelper() {
+  return "Versuch das mal mit YAML zu machen!";
+}
+
+<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>
+  Willkommen auf meinem neuen Astro-Blog, der MDX verwendet!
+</BaseLayout>
+```
+
+Dann stehen dir deine Werte über `Astro.props` in deinem Layout zur Verfügung, und dein MDX-Inhalt wird in die Seite injiziert, in der deine `<Slot />`-Komponente geschrieben wird:
+
+```astro title="src/layouts/BaseLayout.astro" /{?title}?/ "fancyJsHelper" "{fancyJsHelper()}"
+---
+const { title, fancyJsHelper } = Astro.props;
+---
+<html>
+  <head>
+    <!-- -->
+    <meta charset="utf-8">
+  </head>
+  <body>
+    <!-- -->
+    <h1>{title}</h1>
+    <slot /> <!-- dein Inhalt wird hier eingefügt -->
+    <p>{fancyJsHelper()}</p>
+    <!-- -->
+  </body>
+</html>
+```
+
+Wenn du ein Layout verwendest (entweder über die Frontmatter-Eigenschaft `layout` oder durch den Import eines Layouts), musst du den `<meta charset="utf-8">`-Tag in dein Layout einfügen, da Astro ihn nicht mehr automatisch in deine MDX-Seite einfügt.
+
+<ReadMore>Erfahre mehr über die Markdown- und MDX-Unterstützung von Astro in unserem [Markdown-Leitfaden](/de/guides/markdown-content/).</ReadMore>
+
+## Verschachtelte Layouts
+ 
+Layout-Komponenten müssen nicht unbedingt eine ganze Seite mit HTML enthalten. Du kannst deine Layouts in kleinere Komponenten aufteilen und Layoutkomponenten kombinieren, um noch flexiblere Seitenvorlagen zu erstellen. Dieses Muster ist nützlich, wenn du einen Teil des Codes für mehrere Layouts verwenden willst.
+
+Eine Layoutkomponente `BlogPostLayout.astro` könnte zum Beispiel den Titel, das Datum und den Autor eines Beitrags gestalten. Ein seitenweites `BaseLayout.astro` könnte dann den Rest deiner Seitenvorlage übernehmen, wie Navigation, Fußzeilen, SEO-Meta-Tags, globale Stile und Schriftarten. Du kannst auch Requisiten, die du von deinem Beitrag erhalten hast, an ein anderes Layout weitergeben, genau wie jede andere verschachtelte Komponente.
+
+```astro {3} /</?BaseLayout>/ /</?BaseLayout url={frontmatter.url}>/
+---
+// src/layouts/BlogPostLayout.astro
+import BaseLayout from './BaseLayout.astro';
+const { frontmatter } = Astro.props;
+---
+<BaseLayout url={frontmatter.url}>
   <h1>{frontmatter.title}</h1>
-  <h2>Autor des Beitrags: {frontmatter.author}</h2>
+  <h2>Beitragsautor: {frontmatter.author}</h2>
   <slot />
-</BasisLayout>
+</BaseLayout>
 ```

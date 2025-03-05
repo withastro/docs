@@ -90,7 +90,22 @@ const { lang, version } = Astro.params;
 
 参数也可以包含在路径的单独部分中。例如， `src/pages/[lang]/[version]/info.astro` 文件与上面相同的 `getStaticPaths()` 将生成路由 `/en/v1/info` 和 `/fr/v2/info`。
 
-<ReadMore>了解更多关于 [`getStaticPaths()`](/zh-cn/reference/api-reference/#getstaticpaths) 的内容。</ReadMore>
+
+#### 解码 `params`
+
+提供给 `getStaticPaths()` 函数的 `params` 不会被解码。当你需要解码参数值时，请使用 [`decodeURI`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/decodeURI) 函数。
+
+```astro title="src/pages/[slug].astro"
+--- 
+export function getStaticPaths() {
+  return [
+    { params: { slug: decodeURI("%5Bpage%5D") } }, // 解码成 "[page]"
+  ]
+}
+---
+```
+
+<ReadMore>了解更多关于 [`getStaticPaths()` 的内容](/zh-cn/reference/routing-reference/#getstaticpaths).</ReadMore>
 
 <RecipeLinks slugs={["zh-cn/recipes/i18n"]} />
 
@@ -134,7 +149,7 @@ const { path } = Astro.params;
 
 #### 示例：多级动态页面
 
-在下面的示例中， 剩余参数（`[...slug]`）和 `getStaticPaths()` 的 [`props`](/zh-cn/reference/api-reference/#通过-props-传递数据) 为不同深度的 slug 生成页面。
+在下面的示例中， 剩余参数（`[...slug]`）和 `getStaticPaths()` 的 [`props`](/zh-cn/reference/routing-reference/#通过-props-传递数据) 为不同深度的 slug 生成页面。
 
 ```astro title="src/pages/[...slug].astro"
 ---
@@ -178,7 +193,9 @@ const { title, text } = Astro.props;
 ```
 ### 服务器（SSR）模式
 
-在 [SSR](/zh-cn/guides/server-side-rendering/) 模式下，动态路由以相同的方式定义：在文件名中包含 `[param]` 或 `[...path]` 以匹配任意字符串或路径。但是由于不再提前构建路由，页面将提供给任何匹配的路由。由于这些路由不是“静态”的，因此不应使用 `getStaticPaths`。
+在 [SSR](/zh-cn/guides/on-demand-rendering/) 模式下，动态路由以相同的方式定义：在文件名中包含 `[param]` 或 `[...path]` 以匹配任意字符串或路径。但是由于不再提前构建路由，页面将提供给任何匹配的路由。由于这些路由不是“静态”的，因此不应使用 `getStaticPaths`。
+
+对于按需渲染路由，文件名中应该只使用一次对剩余参数的展开语法（例如应该使用 `src/pages/[locale]/[...slug].astro` 或 `src/pages/[...locale]/[slug].astro`，而不是 `src/pages/[...locale]/[...slug].astro`）
 
 ```astro title="src/pages/resources/[resource]/[id].astro"
 ---
@@ -239,14 +256,17 @@ const { title, text } = page;
 
 <p><Since v="2.9.0" /></p>
 
-在你的 Astro 配置中，你可以使用 `redirects` 值来指定永久重定向的映射关系。对于大多数重定向而言，通常是将旧路由映射到新路由：
+在你的 Astro 配置中，你可以使用 [`redirects`](/zh-cn/reference/configuration-reference/#redirects) 值来指定永久重定向的映射关系。
+
+对于内部重定向，这是旧路由路径到新路由的映射。从 Astro v5.2.0 开始，还可以重定向到以 `http` 或 `https` 开头的外部 URL，并且 [可以被解析](https://developer.mozilla.org/zh-CN/docs/Web/API/URL/canParse_static)：
 
 ```js title="astro.config.mjs" {4-6}
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   redirects: {
-    '/old-page': '/new-page'
+    '/old-page': '/new-page',
+    '/blog': 'https://example.com/blog'
   }
 });
 ```
@@ -271,6 +291,10 @@ export default defineConfig({
     '/old-page': {
       status: 302,
       destination: '/new-page'
+    },
+    '/news': {
+      status: 302,
+      destination: 'https://example.com/news'
     }
   }
 });
@@ -304,7 +328,7 @@ if (!isLoggedIn(cookie)) {
 
 <p><Since v="4.13.0" /></p>
 
-重写允许你提供不同的路由，而无需将浏览器重定向到不同的页面。浏览器将在 URL 栏中显示原始地址，但实际上会显示 [`Astro.rewrite()`](/zh-cn/reference/api-reference/#astrorewrite) 提供的 URL 的内容。
+重写允许你提供不同的路由，而无需将浏览器重定向到不同的页面。浏览器将在 URL 栏中显示原始地址，但实际上会显示 [`Astro.rewrite()`](/zh-cn/reference/api-reference/#rewrite) 提供的 URL 的内容。
 
 :::tip
 对于永久性移动的内容，或者将用户重定向到具有新 URL 的不同页面（例如登录后的用户仪表盘），请使用 [重定向](#重定向)。
@@ -361,7 +385,7 @@ export const onRequest = async (context, next) => {
 
 显示指定重写路径的内容之前，`Astro.rewrite()` 函数将触发一个新的完整渲染阶段。这将为新的路由/请求重新执行任何中间件。
 
-<ReadMore>有关更多信息，请查阅 [`Astro.rewrite()` API 参考](/zh-cn/reference/api-reference/#astrorewrite)</ReadMore>
+<ReadMore>有关更多信息，请查阅 [`Astro.rewrite()` API 参考](/zh-cn/reference/api-reference/#rewrite)</ReadMore>
 
 ## 路由优先级顺序
 
@@ -401,7 +425,7 @@ Astro 需要知道哪个路由应该被用来构建页面。为此，它会按�
 内部路由优先于任何用户定义或集成定义的路由，因为 Astro 功能需要它们才能工作。以下是 Astro 的预留路由：
 
 - `_astro/`: 向客户端提供所有静态资源，包括 CSS 文档、打包的客户端脚本、优化后的图像和任何 Vite 资源。
-- `_server_islands/`: 为延迟渲染的 [服务器群岛](/zh-cn/reference/configuration-reference/#experimentalserverislands) 动态组件提供服务。
+- `_server_islands/`: 为延迟渲染的 [服务器群岛](/zh-cn/guides/server-islands/) 动态组件提供服务。
 - `_actions/`: 服务于任何已定义的 [action](/zh-cn/guides/actions/)。
 
 ## 分页
@@ -500,7 +524,7 @@ const { page } = Astro.props;
 {page.url.last ? <a href={page.url.last}>Last</a> : null}
 ```
 
-<ReadMore>了解更多关于 [page 分页参数](/zh-cn/reference/api-reference/#page-分页参数) 的内容。</ReadMore>
+<ReadMore>了解更多关于 [page 分页参数](/zh-cn/reference/routing-reference/#page-分页参数) 的内容。</ReadMore>
 
 ### 嵌套分页
 
@@ -522,7 +546,7 @@ const { page } = Astro.props;
 // src/pages/[tag]/[page].astro
 export async function getStaticPaths({paginate}) {
   const allTags = ['red', 'blue', 'green'];
-  const allPosts = await Astro.glob('../../posts/*.md');
+  const allPosts = Object.values(import.meta.glob('../pages/post/*.md', { eager: true }));
   // 每个标签都会返回 paginate() 结果。
   // 确保将 `{params: {tag}}` 传递给 `paginate()`
   // 这样 Astro 才知道怎么把这些结果进行分组
@@ -540,11 +564,11 @@ const params = Astro.params;
 
 ## 排除页面
 
-你可以通过在文件名前加上下划线（`_`）来排除页面或目录的构建。带有 `_` 前缀的文件不会被路由识别，也不会被放入 `dist/` 目录。
+你可以通过在文件名前加上下划线（`_`）来排除 `src/pages` 中的页面或目录的构建。带有 `_` 前缀的文件不会被路由识别，也不会被放入 `dist/` 目录。
 
 你可以使用它来暂时禁用页面，并将测试、工具函数和组件放在与其相关页面同一个文件夹中。
 
-在这个例子中，只有 `src/pages/index.astro` 和 `src/pages/posts/post1.md` 将被构建为页面路由和 HTML 文件。
+在这个例子中，只有 `src/pages/index.astro` 和 `src/pages/projects/project1.md` 将被构建为页面路由和 HTML 文件。
 
 <FileTree>
 - src/pages/
@@ -553,8 +577,8 @@ const params = Astro.params;
     - page2.md
   - _hidden-page.astro
   - **index.astro**
-  - posts/
+  - projects/
     - _SomeComponent.astro
     - _utils.js
-    - **post1.md**
+    - **project1.md**
 </FileTree>

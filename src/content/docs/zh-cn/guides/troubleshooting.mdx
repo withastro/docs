@@ -29,11 +29,13 @@ Astro frontmatter 中的 `console.log()` 语句将始终输出到运行 Astro CL
 
 [框架组件](/zh-cn/guides/framework-components/)（如 React 和 Svelte）较为特殊。它们默认在服务器端渲染，这意味着 `console.log()` 的调试输出将显示到终端中。然而，它们也可能会在浏览器中被激活，导致你的调试日志也出现在浏览器中。
 
-这对于调试 SSR 输出和浏览器中的激活组件之间的差异非常有用。
+这对于调试服务器输出和浏览器中的激活组件之间的差异非常有用。
 
 ### Astro `<Debug />` 组件
 
-为了帮助你调试 Astro 组件，Astro 提供了内置的 [`<Debug />`](/zh-cn/reference/components-reference/#debug-) 组件，你可以用它把任意值直接渲染到你的 HTML 模板中。这对于在浏览器中进行快速调试是很有用的，而不必在终端和浏览器之间来回切换。
+为了帮助你调试 Astro 组件，Astro 提供了内置的 `<Debug />` 组件，你可以用它把任意值直接渲染到你的 HTML 模板中。
+
+此组件提供了一种在客户端检查值的方法，无需任何 JavaScript。它可以帮助你在浏览器中快速调试，而无需在终端和浏览器之间来回切换。
 
 ```astro {2,7}
 ---
@@ -65,7 +67,7 @@ const answer = sum(2, 4);
 
 ### Cannot use import statement outside a module（不能在模块外使用导入语句）
 
-在 Astro 组件中，`<script>` 标签会被挂起并默认作为 [JS 模块](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Modules)加载。如果你在标签中包含了 [`is:inline` 指令](/zh-cn/reference/directives-reference/#isinline)或任何其他属性，将不使用该行为。
+在 Astro 组件中，`<script>` 标签会被作为 [JS 模块](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Modules) 加载。如果你在标签中包含了 [`is:inline` 指令](/zh-cn/reference/directives-reference/#isinline)或任何其他属性，将不使用该行为。
 
 **解决方案**：如果你在 `<script>` 标签中添加了任何属性，你也必须添加 `type="module"` 属性，以便能够使用导入语句。
 
@@ -118,7 +120,7 @@ Astro 组件是在服务器上运行的，因此你不能在 frontmatter (代码
 
 - 你的导入链接到了错误的地方吗？（检查你的导入路径）
 
-- 你的导入与导入的组件有名称相同吗？（检查你的组件名称和它是否[遵循 `.astro` 语法](/zh-cn/basics/astro-syntax/#astro-和-jsx-间的差异)）
+- 你的导入与导入的组件有名称相同吗？（检查你的组件名称和它是否[遵循 `.astro` 语法](/zh-cn/reference/astro-syntax/#astro-和-jsx-间的差异)）
 
 - 你在导入时是否包含了扩展名？（检查你导入的文件是否包含扩展名。例如：`.astro`、`.md`、`.vue`、`.svelte`。注意：只有`.js(x)` 和 `.ts(x)` 文件**不需要**在导入语句中加入扩展名。）
 
@@ -144,39 +146,6 @@ npm install @astrojs/react react react-dom
 ```
 
 请参阅 [Astro 的集成指南](/zh-cn/guides/integrations-guide/)，了解关于向 Astro 添加框架渲染器、CSS 工具和其他包的说明。
-
-### `Astro.glob()` - 没有找到匹配项
-
-当使用`Astro.glob()`导入文件时，请确保使用正确的glob语法，以匹配所有你需要的文件。
-
-#### 文件路径
-
-例如，在 `src/pages/index.astro` 中使用 `.../components/**/*.js` 来导入以下两个文件：
-- `src/components/MyComponent.js`。
-- `src/components/includes/MyOtherComponent.js`。
-
-#### 支持的值
-
- `Astro.glob()` 不支持动态变量和字符串插值。
-
-这不是 Astro 的 bug。这是由于 [Vite 的 `import.meta.glob()` 函数](https://cn.vite.dev/guide/features.html#glob-import)的限制，它只支持静态字符串字面量。
-
-通常可以使用 `Astro.glob()` 导入包括所有你需要的文件集，然后对其进行过滤，以此来解决这个问题。
-
-```astro {6-7}
----
-// src/components/featured.astro
-const { postSlug } = Astro.props
-const pathToMyFeaturedPost = `src/pages/blog/${postSlug}.md`
-
-const posts = await Astro.glob('../pages/blog/*.md');
-const myFeaturedPost = posts.find(post => post.file.includes(pathToMyFeaturedPost));
----
-
-<p>
-    Take a look at my favorite post, <a href={myFeaturedPost.url}>{myFeaturedPost.frontmatter.title}</a>!
-</p>
-```
 
 ### 和 Yarn 2+（Berry）一起使用 Astro
 
@@ -211,11 +180,11 @@ export default defineConfig({
 
 在 Astro 中，使用 `<head>` 标签的方式与任何其他 HTML 标签相同：它不会移动到页面的顶部或与现有的 `<head>` 合并。因此，通常只需要在页面中包含一个 `<head>` 标签。我们建议在 [布局组件](/zh-cn/basics/layouts/) 中编写单个 `<head>` 和其内容。
 
-### 包含了意外的 `<script>` 或 `<style>` 标签
+### 包含了意外的 `<style>` 标签
 
-你可能会注意到，即使组件不出现在最终输出中，导入的组件的 `<script>` 或 `<style>` 标签也会包含在 HTML 源中。例如，这样的情况会发生在未展示的[条件渲染](/zh-cn/basics/astro-syntax/#动态-html)组件中。
+你可能会注意到，即使组件不出现在最终输出中，导入的组件的 `<style>` 标签也会包含在 HTML 源中。例如，这样的情况会发生在未展示的[条件渲染](/zh-cn/reference/astro-syntax/#动态-html)组件中。
 
-Astro 的构建过程是基于模块图的：一旦组件包含在模板中，它的 `<script>` 和 `<style>` 标签就会被处理、优化和打包，无论该组件是否出现在最终输出中。当使用 `is:inline` 指令时，该规则将不适用于脚本。
+Astro 的构建过程是基于模块图的：一旦组件包含在模板中，它的 `<style>` 标签就会被处理、优化和打包，无论该组件是否出现在最终输出中。
 
 ## 在 Markdown 中转义特殊字符
 
@@ -229,9 +198,9 @@ Astro 的构建过程是基于模块图的：一旦组件包含在模板中，�
 
 在我们的技术支持论坛寻求帮助时，分享一个最小化复现对于解决问题非常有帮助，并且这在向 Astro 提交错误报告时通常是必需的。
 
-### 创建一个 StackBlitz 通过 [astro.new](https://astro.new)
+### 创建一个 StackBlitz 通过 [astro.new](https://astro.new/repro)
 
-你可以使用 [astro.new](https://astro.new) 来一键创建一个新的 Astro 项目。对于最小化复现，我们强烈建议在 [StackBlitz](https://stackblitz.com) 上运行的最小（空白）示例开始，尽量少添加额外的代码。
+你可以使用 [astro.new](https://astro.new/repro) 来一键创建一个新的 Astro 项目。对于最小化复现，我们强烈建议在 [StackBlitz](https://stackblitz.com) 上运行的最小（空白）示例开始，尽量少添加额外的代码。
 
 StackBlitz 将在浏览器中运行这个 Astro 项目，而不是在你的本地环境中。它还会为你提供一个可分享的链接，这样任何 Astro 的维护者或支持团队成员都可以在他们自己的本地环境之外查看你的最小化复现。这意味着每个人查看的都是完全相同的项目，具有相同的配置和依赖。这使得其他人可以很容易帮助你排查代码。如果问题是可重现的，这还可以让你验证得出问题是在 Astro 代码内部产生的，让你能够自信地提交一个问题报告。
 

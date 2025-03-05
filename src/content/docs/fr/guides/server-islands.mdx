@@ -1,0 +1,116 @@
+---
+title: Îlots de serveur
+description: Combinez du HTML statique très performant avec du contenu dynamique rendu par le serveur.
+i18nReady: true
+---
+
+Les îlots de serveurs vous permettent de rendre à la demande des « îles » dynamiques ou personnalisées individuellement, sans sacrifier les performances du reste de la page.
+
+Cela signifie que votre visiteur verra les parties les plus importantes de votre page plus tôt, et permet à votre contenu principal d'être mis en cache de manière plus intensive, ce qui permet d'obtenir des performances plus rapides.
+
+## Composants d'île de serveur
+
+Un îlot de serveur est un [composant Astro](/fr/basics/astro-components/) normal rendu par le serveur, qui est chargé de différer le rendu jusqu'à ce que son contenu soit disponible.
+
+Votre page sera rendue immédiatement avec tout [contenu de secours](#contenu-de-secours-de-l%C3%AEle-du-serveur). Ensuite, le contenu du composant est récupéré sur le client et affiché lorsqu'il est disponible.
+
+Avec [un adaptateur installé](/fr/guides/on-demand-rendering/#adaptateurs-de-serveur) pour effectuer le rendu différé, ajoutez la directive [`server:defer`](/fr/reference/directives-reference/#directives-serveur) à n'importe quel composant de votre page pour le transformer en sa propre île :
+
+```astro title="src/pages/index.astro" "server:defer"
+---
+import Avatar from '../components/Avatar.astro';
+---
+<Avatar server:defer />
+```
+
+Ces composants peuvent faire [tout ce que vous feriez normalement dans une page rendue à la demande](/fr/guides/on-demand-rendering/#fonctionnalités-de-rendu-à-la-demande) à l'aide d'un adaptateur, comme récupérer du contenu et accéder aux cookies :
+
+```astro title="src/components/Avatar.astro"
+---
+import { getUserAvatar } from '../sessions';
+const userSession = Astro.cookies.get('session');
+const avatarURL = await getUserAvatar(userSession);
+---
+<img alt="Avatar de l'utilisateur" src={avatarURL} />
+```
+
+## Contenu de secours de l'île du serveur
+
+Lorsque vous utilisez l'attribut `server:defer` sur un composant pour retarder son rendu, vous pouvez « insérer » un contenu de chargement par défaut en utilisant le slot nommé `"fallback"` inclus.
+
+Votre contenu de repli sera rendu avec le reste de la page initialement au chargement de la page et sera remplacé par le contenu de votre composant lorsqu'il sera disponible.
+
+Pour ajouter un contenu de repli, ajoutez `slot="fallback"` sur un enfant (d'autres composants ou éléments HTML) transmis à votre composant de l'île du serveur :
+
+```astro
+---
+import Avatar from '../components/Avatar.astro';
+import GenericAvatar from '../components/GenericAvatar.astro';
+---
+<Avatar server:defer>
+  <GenericAvatar slot="fallback" />
+</Avatar>
+```
+
+Ce contenu de secours peut-être, par exemple, un avatar générique au lieu de celui de l'utilisateur :
+
+- Un avatar générique au lieu de celui de l'utilisateur.
+- Une interface utilisateur remplaçable, telle que des messages personnalisés.
+- Des indicateurs de chargement tels que des spinners.
+
+
+## Comment ça marche
+
+L'implémentation des îlots du serveur se fait principalement au moment de la construction, où le contenu des composants est remplacé par un petit script.
+
+Chacun des îlots marqués avec `server:defer` est divisé en sa propre route spéciale que le script récupère au moment de l'exécution. Quand Astro construit votre site, il omet le composant et injecte un script à sa place, ainsi que tout contenu que vous avez marqué avec `slot="fallback"`.
+
+Lorsque la page se charge dans le navigateur, ces composants sont demandés à un point de terminaison spécial qui les rend et renvoie le code HTML. Cela signifie que les utilisateurs verront instantanément les parties les plus importantes de la page. Le contenu de repli sera visible pendant un court laps de temps avant que les îlots dynamiques ne soient chargés.
+
+Chaque îlot est chargé indépendamment des autres. Cela signifie qu'un îlot plus lent ne retardera pas la disponibilité du reste de votre contenu personnalisé.
+
+Ce modèle de rendu a été conçu pour être portable. Il ne dépend d'aucune infrastructure de serveur et fonctionnera donc avec n'importe quel hôte, qu'il s'agisse d'un serveur Node.js dans un conteneur Docker ou du fournisseur sans serveur de votre choix.
+
+## Mise en cache
+
+Les données pour les îlots de serveurs sont récupérées via une requête `GET`, en passant les props sous forme de chaîne chiffrée dans la requête URL. Cela permet de mettre en cache les données avec l'en-tête HTTP [`Cache-Control`](https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Cache-Control) en utilisant des directives `Cache-Control` standard.
+
+Cependant, [le navigateur limite les URL à une longueur maximale de 2048 octets](https://chromium.googlesource.com/chromium/src/+/master/docs/security/url_display_guidelines/url_display_guidelines.md#url-length) pour des raisons pratiques et pour éviter de causer des problèmes de déni de service. Si votre chaîne de requête fait dépasser cette limite à votre URL, Astro enverra plutôt une requête `POST` qui contient toutes les props dans le corps.
+
+Les requêtes `POST` ne sont pas mises en cache par les navigateurs, car elles sont utilisées pour soumettre des données, et pourraient causer des problèmes d'intégrité ou de sécurité des données. Par conséquent, toute logique de mise en cache existante dans votre projet sera cassée. Dans la mesure du possible, ne transmettez que les props nécessaires à vos îlots de serveurs et évitez d'envoyer des objets de données et des tableaux entiers pour garder votre requête petite.
+
+## Accéder à l'URL de la page dans un îlot de serveurs
+
+Dans la plupart des cas, votre composant d'îlot serveur peut obtenir des informations sur la page qui le rend en [passant des props](/fr/basics/astro-components/#props-de-composant) comme dans les composants normaux.
+
+Cependant, les îlots de serveurs fonctionnent dans leur propre contexte isolé en dehors de la requête de la page. `Astro.url` et `Astro.request.url` dans un composant d'îlot serveur renvoient tous deux une URL qui ressemble à `/_server-islands/Avatar` au lieu de l'URL de la page courante dans le navigateur. De plus, si vous effectuez un pré-rendu de la page, vous n'aurez pas accès à des informations telles que les paramètres de la requête à passer en tant que props.
+
+Pour accéder aux informations de l'URL de la page, vous pouvez vérifier l'en-tête [Referer](https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Referer), qui contiendra l'adresse de la page qui charge l'île dans le navigateur :
+
+```astro
+---
+const referer = Astro.request.headers.get('Referer');
+const url = new URL(referer);
+const productId = url.searchParams.get('product');
+---
+```
+
+## Réutilisation de la clé de chiffrement
+
+Astro utilise la [cryptographie](https://developer.mozilla.org/fr/docs/Glossary/Cryptography) pour chiffrer les propriétés transmises aux îles du serveur afin d'éviter toute fuite accidentelle de secrets. Les props sont chiffrées à l'aide d'une clé générée lors de la construction.
+
+Pour la plupart des hôtes, cela se passe de manière transparente et vous n'avez rien à faire en tant que développeur. Si vous utilisez des déploiements continus dans un environnement tel que Kubernetes, vous pouvez rencontrer des problèmes lorsque le frontend et le backend sont temporairement désynchronisés et que les clés ne correspondent pas.
+
+Pour résoudre ce problème, vous pouvez créer une clé avec l'Astro CLI et la réutiliser pour tous vos déploiements. Cela permet de s'assurer que le frontend de chaque utilisateur parle à un backend qui a la bonne clé.
+
+Générez une clé en utilisant `astro create-key` :
+
+```shell
+astro create-key
+```
+
+Cela créera une clé que vous pourrez définir comme variable d'environnement `ASTRO_KEY` là où votre environnement d'hébergement le requiert, comme dans un fichier `.env` :
+
+```ini title=".env"
+ASTRO_KEY=zyM5c0qec+1Sgi4K+AejFX9ufbig7/7wIZjxOjti9Po=
+```

@@ -7,13 +7,13 @@ import RecipeLinks from "~/components/RecipeLinks.astro";
 
 Astro 允许你创建自定义端点来提供任何类型的数据。你可以使用它来生成图像、公开 RSS 文档或将它们用作 API 路由来为你的站点构建完整的 API。
 
-在静态生成的站点中，你的自定义端点在构建时被调用以生成静态文件。如果你选择启用 [SSR](/zh-cn/guides/server-side-rendering/) 模式，自定义端点会变成根据请求调用的实时服务器端点。静态和 SSR 端点的定义类似，但 SSR 端点支持附加额外的功能。
+在静态生成的站点中，你的自定义端点在构建时被调用以生成静态文件。如果你选择启用 [SSR](/zh-cn/guides/on-demand-rendering/) 模式，自定义端点会变成根据请求调用的实时服务器端点。静态和 SSR 端点的定义类似，但 SSR 端点支持附加额外的功能。
 
 ## 静态文件端点
 
 要想要创建自定义端点，请将 `.js` 或 `.ts` 文件添加到 `/pages` 目录。`.js` 或 `.ts` 这样的扩展名将在构建过程中被删除，因此文件名中应包含你要创建的数据的扩展名。例如，文件 `src/pages/data.json.ts` 将被构建为 API 端点 `/data.json`。
 
-端点导出一个 `GET` 函数（可选的以 `async` 导出），该函数接收具有类似于 `Astro` 全局属性的  [上下文对象](/zh-cn/reference/api-reference/#端点上下文)。在这里，它返回一个带有 `name` 和 `url` 的 Response 对象，Astro 将在构建时调用它并使用 `body` 中的内容来生成文件。
+端点导出一个 `GET` 函数（可选的以 `async` 导出），该函数接收具有类似于 `Astro` 全局属性的  [上下文对象](/zh-cn/reference/api-reference/)。在这里，它返回一个带有 `name` 和 `url` 的 Response 对象，Astro 将在构建时调用它并使用 `body` 中的内容来生成文件。
 
 ```js
 // 输出: /builtwith.json
@@ -46,7 +46,7 @@ export const GET: APIRoute = async ({ params, request }) => {...}
 
 ### `params` 和动态路由
 
-端点支持与页面相同的 [动态路由](/zh-cn/guides/routing/#动态路由) 功能。使用中括号包裹参数作为文件名，并导出 [`getStaticPaths()` 函数](/zh-cn/reference/api-reference/#getstaticpaths)。然后，你可以使用传递给 API 端点函数的 `params` 属性访问参数：
+端点支持与页面相同的 [动态路由](/zh-cn/guides/routing/#动态路由) 功能。使用中括号包裹参数作为文件名，并导出 [`getStaticPaths()` 函数](/zh-cn/reference/routing-reference/#getstaticpaths)。然后，你可以使用传递给 API 端点函数的 `params` 属性访问参数：
 
 ```ts title="src/pages/api/[id].json.ts"
 import type { APIRoute } from 'astro';
@@ -71,11 +71,11 @@ export function getStaticPaths () {
 }
 ```
 
-这将在构建时生成三个 JSON 端点：`/api/0.json`、`/api/1.json` 和 `/api/2.json`。带端点的动态路由与页面的工作方式相同，但由于端点是一个函数而不是组件，因此 [props](/zh-cn/reference/api-reference/#通过-props-传递数据) 是不被支持的。
+这将在构建时生成三个 JSON 端点：`/api/0.json`、`/api/1.json` 和 `/api/2.json`。带端点的动态路由与页面的工作方式相同，但由于端点是一个函数而不是组件，因此 [props](/zh-cn/reference/routing-reference/#通过-props-传递数据) 是不被支持的。
 
 ### `request`
 
-所有端点都会接收 `request` 属性，但在静态模式下，你只能访问 `request.url`。它将返回当前端点的完整 URL，其工作方式与 [Astro.request.url](/zh-cn/reference/api-reference/#astrorequest) 对页面的作用相同。
+所有端点都会接收 `request` 属性，但在静态模式下，你只能访问 `request.url`。它将返回当前端点的完整 URL，其工作方式与 [Astro.request.url](/zh-cn/reference/api-reference/#request) 对页面的作用相同。
 
 ```ts title="src/pages/request-path.json.ts"
 import type { APIRoute } from 'astro';
@@ -90,16 +90,16 @@ export const GET: APIRoute = ({ params, request }) => {
 
 ## 服务器端点（API 路由）
 
-[静态文件的端点](#静态文件端点) 部分中描述的所有内容均可以在 SSR 模式下使用：文件可以导出一个名为 `GET` 的函数，该函数接收具有类似于 `Astro` 全局属性的 [上下文对象](/zh-cn/reference/api-reference/#端点上下文)。
+[静态文件的端点](#静态文件端点) 部分中描述的所有内容均可以在 SSR 模式下使用：文件可以导出一个名为 `GET` 的函数，该函数接收具有类似于 `Astro` 全局属性的 [上下文对象](/zh-cn/reference/api-reference/)。
 
 但是，不同于 `static` 模式，当你使用路由的按需渲染模式时，端点将在请求时被构建。这解锁了在构建时不可用的新特性，并允许你构建 API 路由以监听请求，并在服务器上安全地执行代码。
 
-默认情况下，路由将在 `server` 模式被按需渲染。而在 `hybrid` 模式下，必须使用 `export const prerender = false` 来避免每个自定义端点的预渲染。
+默认情况下，路由将在 `server` 模式被按需渲染。而在 `static` 模式下，必须使用 `export const prerender = false` 来避免每个自定义端点的预渲染。
 
 <RecipeLinks slugs={["zh-cn/recipes/call-endpoints" ]}/>
 
 :::note
-在尝试这些示例之前，请务必确认已经 [启用了按需渲染模式](/zh-cn/guides/server-side-rendering/) 并且避免了 `hybrid` 模式下的预渲染。
+在尝试这些示例之前，请务必确认已经 [启用了按需渲染模式](/zh-cn/guides/on-demand-rendering/) 并且避免了 `static` 模式下的预渲染。
 :::
 
 服务器端点可以在不导出 `getStaticPaths` 的情况下访问 `params`。服务器端点可以返回一个 [`Response`](https://developer.mozilla.org/zh-CN/docs/Web/API/Response) 对象，其允许你为返回的数据设置状态码和标头：
@@ -178,6 +178,8 @@ export const ALL: APIRoute = ({ request }) => {
   )
 }
 ```
+
+如果你的定义了一个 `GET` 函数，但却没有定义 `HEAD` 函数，Astro 将通过调用 `GET` 函数来自动处理 `HEAD` 请求并从响应中剥离 body 部分。
 
 <RecipeLinks slugs={["zh-cn/recipes/captcha", "zh-cn/recipes/build-forms-api" ]}/>
 

@@ -13,7 +13,7 @@
 
 <!-- For a new/changed feature in an upcoming Astro release? -->
 <!-- 1. Uncomment the line below, update the minor version number if known, and include a PR link -->
-<!-- #### For Astro version: `4.x`. See astro PR [#](url). -->
+<!-- #### For Astro version: `5.x`. See astro PR [#](url). -->
 
 <!-- 2. Check that your PR includes `<p><Since v="4.x.0" /></p>` and imports the `<Since>` component, if necessary! -->
 
@@ -21,6 +21,3 @@
 
 <!-- If you are a member of the Astro Discord, please add your username in the description so we can welcome you there! -->
 <!-- https://astro.build/chat -->
-
-<!-- TAKING PART IN HACKTOBERFEST? LET US KNOW! -->
-<!-- See https://contribute.docs.astro.build/guides/hacktoberfest/ for more details. -->

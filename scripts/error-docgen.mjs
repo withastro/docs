@@ -1,5 +1,4 @@
 import jsdoc from 'jsdoc-api';
-import fetch from 'node-fetch';
 import fs from 'node:fs';
 import ts from 'typescript';
 
@@ -210,9 +209,9 @@ async function getAstroErrorsData() {
 	/**
 	 * Get all the JSDoc comments in the file marked with the tag `@docs`
 	 */
-	const jsDocComments = jsdoc
-		.explainSync({ source: compiledResult })
-		.filter((data) => data.tags?.some((tag) => tag.title === 'docs'));
+	const jsDocComments = (await jsdoc.explain({ source: compiledResult })).filter((data) =>
+		data.tags?.some((tag) => tag.title === 'docs')
+	);
 
 	return {
 		errors: data,

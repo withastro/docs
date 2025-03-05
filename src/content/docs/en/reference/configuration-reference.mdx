@@ -1,12 +1,12 @@
 ---
 # NOTE: This file is auto-generated from 'scripts/docgen.mjs'
 # Do not make edits to it directly, they will be overwritten.
-# Instead, change this file: https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts
+# Instead, change this file: https://github.com/withastro/astro/blob/main/packages/astro/src/types/public/config.ts
 # Translators, please remove this note and the <DontEditWarning/> component. 
 
 title: Configuration Reference
 i18nReady: true
-githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts
+githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/types/public/config.ts
 ---
 
 import Since from '~/components/Since.astro'
@@ -92,14 +92,15 @@ In the example below, the values of `import.meta.env.BASE_URL` and `config.base`
 **Default:** `'ignore'`
 </p>
 
-Set the route matching behavior of the dev server. Choose from the following options:
-  - `'always'` - Only match URLs that include a trailing slash (ex: "/foo/")
-  - `'never'` - Never match URLs that include a trailing slash (ex: "/foo")
-  - `'ignore'` - Match URLs regardless of whether a trailing "/" exists
+Set the route matching behavior for trailing slashes in the dev server and on-demand rendered pages. Choose from the following options:
+  - `'ignore'` - Match URLs regardless of whether a trailing "/" exists. Requests for "/about" and "/about/" will both match the same route.
+  - `'always'` - Only match URLs that include a trailing slash (e.g: "/about/"). In production, requests for on-demand rendered URLs without a trailing slash will be redirected to the correct URL for your convenience. However, in development, they will display a warning page reminding you that you have `always` configured.
+  - `'never'` - Only match URLs that do not include a trailing slash (e.g: "/about"). In production, requests for on-demand rendered URLs with a trailing slash will be redirected to the correct URL for your convenience. However, in development, they will display a warning page reminding you that you have `never` configured.
 
-Use this configuration option if your production host has strict handling of how trailing slashes work or do not work.
+When redirects occur in production for GET requests, the redirect will be a 301 (permanent) redirect. For all other request methods, it will be a 308 (permanent, and preserve the request method) redirect.
 
-You can also set this if you prefer to be more strict yourself, so that URLs with or without trailing slashes won't work during development.
+Trailing slashes on prerendered pages are handled by the hosting platform, and may not respect your chosen configuration.
+See your hosting platform's documentation for more information.
 
 ```js
 {
@@ -123,16 +124,21 @@ Specify a mapping of redirects where the key is the route to match
 and the value is the path to redirect to.
 
 You can redirect both static and dynamic routes, but only to the same kind of route.
-For example you cannot have a `'/article': '/blog/[...slug]'` redirect.
+For example, you cannot have a `'/article': '/blog/[...slug]'` redirect.
 
 
 ```js
-{
+export default defineConfig({
   redirects: {
-    '/old': '/new',
-    '/blog/[...slug]': '/articles/[...slug]',
-  }
-}
+   '/old': '/new',
+   '/blog/[...slug]': '/articles/[...slug]',
+   '/about': 'https://example.com/about',
+   '/news': {
+     status: 302,
+     destination: 'https://example.com/news'
+ 	}
+	}
+})
 ```
 
 
@@ -146,29 +152,28 @@ and use a status of `308` for any other request method.
 You can customize the [redirection status code](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages) using an object in the redirect config:
 
 ```js
-{
+export default defineConfig({
   redirects: {
     '/other': {
       status: 302,
       destination: '/place',
     },
   }
-}
+})
 ```
 
 ### output
 
 <p>
 
-**Type:** `'static' | 'server' | 'hybrid'`<br />
+**Type:** `'static' | 'server'`<br />
 **Default:** `'static'`
 </p>
 
 Specifies the output target for builds.
 
-- `'static'` - Building a static site to be deployed to any static host.
-- `'server'` - Building an app to be deployed to a host supporting SSR (server-side rendering).
-- `'hybrid'` - Building a static site with a few server-side rendered pages.
+- `'static'` - Prerender all your pages by default, outputting a completely static site if none of your pages opt out of prerendering.
+- `'server'` - Use server-side rendering (SSR) for all pages by default, always outputting a server-rendered site.
 
 ```js
 import { defineConfig } from 'astro/config';
@@ -189,7 +194,7 @@ export default defineConfig({
 
 Deploy to your favorite server, serverless, or edge host with build adapters. Import one of our first-party adapters for [Netlify](/en/guides/deploy/netlify/#adapter-for-ssr), [Vercel](/en/guides/deploy/vercel/#adapter-for-ssr), and more to engage Astro SSR.
 
-[See our Server-side Rendering guide](/en/guides/server-side-rendering/) for more on SSR, and [our deployment guides](/en/guides/deploy/) for a complete list of hosts.
+[See our On-demand Rendering guide](/en/guides/on-demand-rendering/) for more on SSR, and [our deployment guides](/en/guides/deploy/) for a complete list of hosts.
 
 ```js
 import netlify from '@astrojs/netlify';
@@ -214,10 +219,10 @@ Read our [Integrations Guide](/en/guides/integrations-guide/) for help getting s
 
 ```js
 import react from '@astrojs/react';
-import tailwind from '@astrojs/tailwind';
+import mdx from '@astrojs/mdx';
 {
-  // Example: Add React + Tailwind support to Astro
-  integrations: [react(), tailwind()]
+  // Example: Add React + MDX support to Astro
+  integrations: [react(), mdx()]
 }
 ```
 
@@ -230,7 +235,7 @@ import tailwind from '@astrojs/tailwind';
 **Default:** `"."` (current working directory)
 </p>
 
-You should only provide this option if you run the `astro` CLI commands in a directory other than the project root directory. Usually, this option is provided via the CLI instead of the [Astro config file](/en/guides/configuring-astro/#supported-config-file-types), since Astro needs to know your project root before it can locate your config file.
+You should only provide this option if you run the `astro` CLI commands in a directory other than the project root directory. Usually, this option is provided via the CLI instead of the Astro config file, since Astro needs to know your project root before it can locate your config file.
 
 If you provide a relative path (ex: `--root: './my-project'`) Astro will resolve it against your current working directory.
 
@@ -362,21 +367,25 @@ Using `'attribute'` is useful when you are manipulating the `class` attribute of
 
 <p>
 
-**Type:** `object`<br />
-**Default:** `{}`<br />
+**Type:** `Record.<"checkOrigin", boolean> | undefined`<br />
+**Default:** `{checkOrigin: true}`<br />
 <Since v="4.9.0" />
 </p>
 
 Enables security measures for an Astro website.
 
-These features only exist for pages rendered on demand (SSR) using `server` mode or pages that opt out of prerendering in `hybrid` mode.
+These features only exist for pages rendered on demand (SSR) using `server` mode or pages that opt out of prerendering in `static` mode.
+
+By default, Astro will automatically check that the “origin” header
+matches the URL sent by each request in on-demand rendered pages. You can
+disable this behavior by setting `checkOrigin` to `false`:
 
 ```js
 // astro.config.mjs
 export default defineConfig({
   output: "server",
   security: {
-    checkOrigin: true
+    checkOrigin: false
   }
 })
 ```
@@ -386,16 +395,45 @@ export default defineConfig({
 <p>
 
 **Type:** `boolean`<br />
-**Default:** `false`<br />
+**Default:** `true`<br />
 <Since v="4.9.0" />
 </p>
 
-When enabled, performs a check that the "origin" header, automatically passed by all modern browsers, matches the URL sent by each `Request`. This is used to provide Cross-Site Request Forgery (CSRF) protection.
+Performs a check that the "origin" header, automatically passed by all modern browsers, matches the URL sent by each `Request`. This is used to provide Cross-Site Request Forgery (CSRF) protection.
 
 The "origin" check is executed only for pages rendered on demand, and only for the requests `POST`, `PATCH`, `DELETE` and `PUT` with
 one of the following `content-type` headers: `'application/x-www-form-urlencoded'`, `'multipart/form-data'`, `'text/plain'`.
 
 If the "origin" header doesn't match the `pathname` of the request, Astro will return a 403 status code and will not render the page.
+
+### session
+
+<p>
+
+**Type:** `SessionConfig`<br />
+<Since v="5.3.0" />
+</p>
+
+Configures experimental session support by specifying a storage `driver` as well as any associated `options`.
+You must enable the `experimental.session` flag to use this feature.
+Some adapters may provide a default session driver, but you can override it with your own configuration.
+
+You can specify [any driver from Unstorage](https://unstorage.unjs.io/drivers) or provide a custom config which will override your adapter's default.
+
+See [the experimental session guide](/en/reference/experimental-flags/sessions/) for more information.
+
+```js title="astro.config.mjs"
+  {
+    session: {
+      // Required: the name of the Unstorage driver
+      driver: 'redis',
+      // The required options depend on the driver
+      options: {
+        url: process.env.REDIS_URL,
+      },
+    }
+  }
+```
 
 ### vite
 
@@ -459,8 +497,8 @@ Control the output file format of each page. This value may be set by an adapter
 
 #### Effect on Astro.url
 Setting `build.format` controls what `Astro.url` is set to during the build. When it is:
-- `directory` - The `Astro.url.pathname` will include a trailing slash to mimic folder behavior; ie `/foo/`.
-- `file` - The `Astro.url.pathname` will include `.html`; ie `/foo.html`.
+- `directory` - The `Astro.url.pathname` will include a trailing slash to mimic folder behavior. (e.g. `/foo/`)
+- `file` - The `Astro.url.pathname` will include `.html`. (e.g. `/foo.html`)
 
 This means that when you create relative URLs using `new URL('./relative', Astro.url)`, you will get consistent behavior between dev and build.
 
@@ -473,17 +511,17 @@ To prevent inconsistencies with trailing slash behaviour in dev, you can restric
 <p>
 
 **Type:** `string`<br />
-**Default:** `'./dist/client'`
+**Default:** `'./client'`
 </p>
 
-Controls the output directory of your client-side CSS and JavaScript when `output: 'server'` or `output: 'hybrid'` only.
+Controls the output directory of your client-side CSS and JavaScript when building a website with server-rendered pages.
 `outDir` controls where the code is built to.
 
 This value is relative to the `outDir`.
 
 ```js
 {
-  output: 'server', // or 'hybrid'
+  output: 'server',
   build: {
     client: './client'
   }
@@ -495,7 +533,7 @@ This value is relative to the `outDir`.
 <p>
 
 **Type:** `string`<br />
-**Default:** `'./dist/server'`
+**Default:** `'./server'`
 </p>
 
 Controls the output directory of server JavaScript when building to SSR.
@@ -637,7 +675,7 @@ Control whether project styles are sent to the browser in a separate css file or
 ```js
 {
 	build: {
-		inlineStylesheets: 'never',
+		inlineStylesheets: `never`,
 	},
 }
 ```
@@ -676,7 +714,7 @@ Customize the Astro dev server, used by both `astro dev` and `astro preview`.
 
 ```js
 {
-  server: { port: 1234, host: true }
+  server: { port: 1234, host: true}
 }
 ```
 
@@ -774,7 +812,7 @@ This option is scoped to the entire project, to only disable the toolbar for you
 </p>
 
 Enable prefetching for links on your site to provide faster page transitions.
-(Enabled by default on pages using the `<ViewTransitions />` router. Set `prefetch: false` to opt out of this behaviour.)
+(Enabled by default on pages using the `<ClientRouter />` router. Set `prefetch: false` to opt out of this behaviour.)
 
 This configuration automatically adds a prefetch script to every page in the project
 giving you access to the `data-astro-prefetch` attribute.
@@ -795,7 +833,7 @@ See the [Prefetch guide](/en/guides/prefetch/) for more information.
 </p>
 
 Enable prefetching for all links, including those without the `data-astro-prefetch` attribute.
-This value defaults to `true` when using the `<ViewTransitions />` router. Otherwise, the default value is `false`.
+This value defaults to `true` when using the `<ClientRouter />` router. Otherwise, the default value is `false`.
 
 ```js
 prefetch: {
@@ -837,20 +875,21 @@ You can override this default value and select a different strategy for any indi
 
 <p>
 
-**Type:** `string`<br />
-**Default:** `undefined`<br />
+**Type:** `Object`<br />
+**Default:** `{route: '/_image', entrypoint: undefined}`<br />
 <Since v="3.1.0" />
 </p>
 
-Set the endpoint to use for image optimization in dev and SSR. Set to `undefined` to use the default endpoint.
-
-The endpoint will always be injected at `/_image`.
+Set the endpoint to use for image optimization in dev and SSR. The `entrypoint` property can be set to `undefined` to use the default image endpoint.
 
 ```js
 {
   image: {
-    // Example: Use a custom image endpoint
-    endpoint: './src/image-endpoint.ts',
+    // Example: Use a custom image endpoint at `/custom_endpoint`
+    endpoint: {
+		 	route: '/custom_endpoint',
+		 	entrypoint: 'src/my_endpoint.ts',
+		},
   },
 }
 ```
@@ -902,7 +941,7 @@ Set `false` to bypass the default image size limit for the Sharp image service a
 <p>
 
 **Type:** `Array.<string>`<br />
-**Default:** `[]`<br />
+**Default:** `{domains: []}`<br />
 <Since v="2.10.10" />
 </p>
 
@@ -950,7 +989,6 @@ Defines a list of permitted image source URL patterns for remote image optimizat
 ```
 
 You can use wildcards to define the permitted `hostname` and `pathname` values as described below. Otherwise, only the exact values provided will be configured:
-
 `hostname`:
   - Start with '**.' to allow all subdomains ('endsWith').
   - Start with '*.' to allow only one level of subdomain.
@@ -958,6 +996,54 @@ You can use wildcards to define the permitted `hostname` and `pathname` values a
 `pathname`:
   - End with '/**' to allow all sub-routes ('startsWith').
   - End with '/*' to allow only one level of sub-route.
+
+### image.experimentalLayout
+
+<p>
+
+**Type:** `ImageLayout`<br />
+**Default:** `undefined`
+</p>
+
+The default layout type for responsive images. Can be overridden by the `layout` prop on the image component.
+Requires the `experimental.responsiveImages` flag to be enabled.
+- `responsive` - The image will scale to fit the container, maintaining its aspect ratio, but will not exceed the specified dimensions.
+- `fixed` - The image will maintain its original dimensions.
+- `full-width` - The image will scale to fit the container, maintaining its aspect ratio.
+
+### image.experimentalObjectFit
+
+<p>
+
+**Type:** `ImageFit`<br />
+**Default:** `"cover"`
+</p>
+
+The default object-fit value for responsive images. Can be overridden by the `fit` prop on the image component.
+Requires the `experimental.responsiveImages` flag to be enabled.
+
+### image.experimentalObjectPosition
+
+<p>
+
+**Type:** `string`<br />
+**Default:** `"center"`
+</p>
+
+The default object-position value for responsive images. Can be overridden by the `position` prop on the image component.
+Requires the `experimental.responsiveImages` flag to be enabled.
+
+### image.experimentalBreakpoints
+
+<p>
+
+**Type:** `Array.<number>`<br />
+**Default:** `[640, 750, 828, 1080, 1280, 1668, 2048, 2560] | [640, 750, 828, 960, 1080, 1280, 1668, 1920, 2048, 2560, 3200, 3840, 4480, 5120, 6016]`
+</p>
+
+The breakpoints used to generate responsive images. Requires the `experimental.responsiveImages` flag to be enabled. The full list is not normally used,
+but is filtered according to the source and output size. The defaults used depend on whether a local or remote image service is used. For remote services
+the more comprehensive list is used, because only the required sizes are generated. For local services, the list is shorter to reduce the number of images generated.
 
 ## Markdown Options
 
@@ -969,7 +1055,48 @@ You can use wildcards to define the permitted `hostname` and `pathname` values a
 **Type:** `Partial<ShikiConfig>`
 </p>
 
-Shiki configuration options. See [the Markdown configuration docs](/en/guides/markdown-content/#shiki-configuration) for usage.
+Shiki is our default syntax highlighter. You can configure all options via the `markdown.shikiConfig` object:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: {
+      // Choose from Shiki's built-in themes (or add your own)
+      // https://shiki.style/themes
+      theme: 'dracula',
+      // Alternatively, provide multiple themes
+      // See note below for using dual light/dark themes
+      themes: {
+        light: 'github-light',
+        dark: 'github-dark',
+      },
+      // Disable the default colors
+      // https://shiki.style/guide/dual-themes#without-default-color
+      // (Added in v4.12.0)
+      defaultColor: false,
+      // Add custom languages
+      // Note: Shiki has countless langs built-in, including .astro!
+      // https://shiki.style/languages
+      langs: [],
+      // Add custom aliases for languages
+      // Map an alias to a Shiki language ID: https://shiki.style/languages#bundled-languages
+      // https://shiki.style/guide/load-lang#custom-language-aliases
+      langAlias: {
+        cjs: "javascript"
+      },
+      // Enable word wrap to prevent horizontal scrolling
+      wrap: true,
+      // Add custom transformers: https://shiki.style/guide/transformers
+      // Find common transformers: https://shiki.style/packages/transformers
+      transformers: [],
+    },
+  },
+});
+```
+
+See the [code syntax highlighting guide](/en/guides/syntax-highlighting/) for usage and examples.
 
 ### markdown.syntaxHighlight
 
@@ -979,9 +1106,9 @@ Shiki configuration options. See [the Markdown configuration docs](/en/guides/ma
 **Default:** `shiki`
 </p>
 
-Which syntax highlighter to use, if any.
-- `shiki` - use the [Shiki](https://shiki.style) highlighter
-- `prism` - use the [Prism](https://prismjs.com/) highlighter
+Which syntax highlighter to use for Markdown code blocks (\`\`\`), if any. This determines the CSS classes that Astro will apply to your Markdown code blocks.
+- `shiki` - use the [Shiki](https://shiki.style) highlighter (`github-dark` theme configured by default)
+- `prism` - use the [Prism](https://prismjs.com/) highlighter and [provide your own Prism stylesheet](/en/guides/syntax-highlighting/#add-a-prism-stylesheet)
 - `false` - do not apply syntax highlighting.
 
 ```js
@@ -1006,7 +1133,7 @@ Pass [remark plugins](https://github.com/remarkjs/remark) to customize how your 
 import remarkToc from 'remark-toc';
 {
   markdown: {
-    remarkPlugins: [ [remarkToc, { heading: "contents" }] ]
+    remarkPlugins: [ [remarkToc, { heading: "contents"} ] ]
   }
 }
 ```
@@ -1080,7 +1207,7 @@ Pass options to [remark-rehype](https://github.com/remarkjs/remark-rehype#api).
 {
   markdown: {
     // Example: Translate the footnotes text to another language, here are the default English values
-    remarkRehype: { footnoteLabel: "Footnotes", footnoteBackLabel: "Back to reference 1" },
+    remarkRehype: { footnoteLabel: "Footnotes", footnoteBackLabel: "Back to reference 1"},
   },
 };
 ```
@@ -1097,18 +1224,6 @@ Configures i18n routing and allows you to specify some customization options.
 
 See our guide for more information on [internationalization in Astro](/en/guides/internationalization/)
 
-### i18n.defaultLocale
-
-<p>
-
-**Type:** `string`<br />
-<Since v="3.5.0" />
-</p>
-
-The default locale of your website/application. This is a required field.
-
-No particular language format or syntax is enforced, but we suggest using lower-case and hyphens as needed (e.g. "es", "pt-br") for greatest compatibility.
-
 ### i18n.locales
 
 <p>
@@ -1117,11 +1232,23 @@ No particular language format or syntax is enforced, but we suggest using lower-
 <Since v="3.5.0" />
 </p>
 
-A list of all locales supported by the website, including the `defaultLocale`. This is a required field.
+A list of all locales supported by the website. This is a required field.
 
 Languages can be listed either as individual codes (e.g. `['en', 'es', 'pt-br']`) or mapped to a shared `path` of codes (e.g.  `{ path: "english", codes: ["en", "en-US"]}`). These codes will be used to determine the URL structure of your deployed site.
 
 No particular language code format or syntax is enforced, but your project folders containing your content files must match exactly the `locales` items in the list. In the case of multiple `codes` pointing to a custom URL path prefix, store your content files in a folder with the same name as the `path` configured.
+
+### i18n.defaultLocale
+
+<p>
+
+**Type:** `string`<br />
+<Since v="3.5.0" />
+</p>
+
+The default locale of your website/application, that is one of the specified `locales`. This is a required field.
+
+No particular language format or syntax is enforced, but we suggest using lower-case and hyphens as needed (e.g. "es", "pt-br") for greatest compatibility.
 
 ### i18n.fallback
 
@@ -1277,242 +1404,91 @@ export default defineConfig({
 })
 ```
 
-## Legacy Flags
-
-To help some users migrate between versions of Astro, we occasionally introduce `legacy` flags.
-These flags allow you to opt in to some deprecated or otherwise outdated behavior of Astro
-in the latest version, so that you can continue to upgrade and take advantage of new Astro releases.
-
-## Experimental Flags
-
-Astro offers experimental flags to give users early access to new features.
-These flags are not guaranteed to be stable.
-
-### experimental.directRenderScript
-
-<p>
-
-**Type:** `boolean`<br />
-**Default:** `false`<br />
-<Since v="4.5.0" />
-</p>
-
-Enables a more reliable strategy to prevent scripts from being executed in pages where they are not used.
-
-Scripts will directly render as declared in Astro files (including existing features like TypeScript, importing `node_modules`,
-and deduplicating scripts). You can also now conditionally render scripts in your Astro file.
-However, this means scripts are no longer hoisted to the `<head>` and multiple scripts on a page are no longer bundled together.
-If you enable this option, you should check that all your `<script>` tags behave as expected.
-
-This option will be enabled by default in Astro 5.0.
-
-```js
-{
-  experimental: {
-    directRenderScript: true,
-  },
-}
-```
-
-### experimental.contentCollectionCache
-
-<p>
-
-**Type:** `boolean`<br />
-**Default:** `false`<br />
-<Since v="3.5.0" />
-</p>
-
-Enables a persistent cache for content collections when building in static mode.
-
-```js
-{
-	experimental: {
-		contentCollectionCache: true,
-	},
-}
-```
-
-### experimental.clientPrerender
-
-<p>
-
-**Type:** `boolean`<br />
-**Default:** `false`<br />
-<Since v="4.2.0" />
-</p>
-
-Enables pre-rendering your prefetched pages on the client in supported browsers.
-
-This feature uses the experimental [Speculation Rules Web API](https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API) and enhances the default `prefetch` behavior globally to prerender links on the client.
-You may wish to review the [possible risks when prerendering on the client](https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API#unsafe_prefetching) before enabling this feature.
-
-Enable client side prerendering in your `astro.config.mjs` along with any desired `prefetch` configuration options:
-
-```js
-// astro.config.mjs
-{
-  prefetch: {
-    prefetchAll: true,
-    defaultStrategy: 'viewport',
-  },
-	experimental: {
-		clientPrerender: true,
-	},
-}
-```
-
-Continue to use the `data-astro-prefetch` attribute on any `<a />` link on your site to opt in to prefetching.
-Instead of appending a `<link>` tag to the head of the document or fetching the page with JavaScript, a `<script>` tag will be appended with the corresponding speculation rules.
-
-Client side prerendering requires browser support. If the Speculation Rules API is not supported, `prefetch` will fallback to the supported strategy.
-
-See the [Prefetch Guide](/en/guides/prefetch/) for more `prefetch` options and usage.
-
-### experimental.globalRoutePriority
-
-<p>
-
-**Type:** `boolean`<br />
-**Default:** `false`<br />
-<Since v="4.2.0" />
-</p>
-
-Prioritizes redirects and injected routes equally alongside file-based project routes, following the same [route priority order rules](/en/guides/routing/#route-priority-order) for all routes.
-
-This allows more control over routing in your project by not automatically prioritizing certain types of routes, and standardizes the route priority ordering for all routes.
-
-The following example shows which route will build certain page URLs when file-based routes, injected routes, and redirects are combined as shown below:
-- File-based route: `/blog/post/[pid]`
-- File-based route: `/[page]`
-- Injected route: `/blog/[...slug]`
-- Redirect: `/blog/tags/[tag]` -> `/[tag]`
-- Redirect: `/posts` -> `/blog`
-
-With `experimental.globalRoutingPriority` enabled (instead of Astro 4.0 default route priority order):
-
-- `/blog/tags/astro` is built by the redirect to `/tags/[tag]` (instead of the injected route `/blog/[...slug]`)
-- `/blog/post/0` is built by the file-based route `/blog/post/[pid]` (instead of the injected route `/blog/[...slug]`)
-- `/posts` is built by the redirect to `/blog` (instead of the file-based route `/[page]`)
-
-
-In the event of route collisions, where two routes of equal route priority attempt to build the same URL, Astro will log a warning identifying the conflicting routes.
-
-### experimental.env
+## env
 
 <p>
 
 **Type:** `object`<br />
-**Default:** `undefined`<br />
-<Since v="4.10.0" />
+**Default:** `{}`<br />
+<Since v="5.0.0" />
 </p>
 
-Enables experimental `astro:env` features.
+Configuration options for type-safe environment variables.
 
-The `astro:env` API lets you configure a type-safe schema for your environment variables, and indicate whether they should be available on the server or the client. Import and use your defined variables from the appropriate `/client` or `/server` module:
+See our guide for more information on [environment variables in Astro](/en/guides/environment-variables/).
 
-```astro
----
-import { API_URL } from "astro:env/client"
-import { API_SECRET_TOKEN } from "astro:env/server"
-
-const data = await fetch(`${API_URL}/users`, {
-	method: "GET",
-	headers: {
-		"Content-Type": "application/json",
-		"Authorization": `Bearer ${API_SECRET_TOKEN}`
-	},
-})
----
-
-<script>
-import { API_URL } from "astro:env/client"
-
-fetch(`${API_URL}/ping`)
-</script>
-```
-
-To define the data type and properties of your environment variables, declare a schema in your Astro config in `experimental.env.schema`. The `envField` helper allows you define your variable as a string, number, or boolean and pass properties in an object:
-
-```js
-// astro.config.mjs
-import { defineConfig, envField } from "astro/config"
-
-export default defineConfig({
-    experimental: {
-        env: {
-            schema: {
-                API_URL: envField.string({ context: "client", access: "public", optional: true }),
-                PORT: envField.number({ context: "server", access: "public", default: 4321 }),
-                API_SECRET: envField.string({ context: "server", access: "secret" }),
-            }
-        }
-    }
-})
-```
-
-There are currently four data types supported: strings, numbers, booleans and enums.
-
-There are three kinds of environment variables, determined by the combination of `context` (client or server) and `access` (secret or public) settings defined in your [`env.schema`](#experimentalenvschema):
-
-- **Public client variables**: These variables end up in both your final client and server bundles, and can be accessed from both client and server through the `astro:env/client` module:
-
-    ```js
-    import { API_URL } from "astro:env/client"
-    ```
-
-- **Public server variables**: These variables end up in your final server bundle and can be accessed on the server through the `astro:env/server` module:
-
-    ```js
-    import { PORT } from "astro:env/server"
-    ```
-
-- **Secret server variables**: These variables are not part of your final bundle and can be accessed on the server through the `astro:env/server` module. The `getSecret()` helper function can be used to retrieve secrets not specified in the schema. Its implementation is provided by your adapter and defaults to `process.env`:
-
-    ```js
-    import { API_SECRET, getSecret } from "astro:env/server"
-
-    const SECRET_NOT_IN_SCHEMA = getSecret("SECRET_NOT_IN_SCHEMA") // string | undefined
-    ```
-
-**Note:** Secret client variables are not supported because there is no safe way to send this data to the client. Therefore, it is not possible to configure both `context: "client"` and `access: "secret"` in your schema.
-
-For a complete overview, and to give feedback on this experimental API, see the [Astro Env RFC](https://github.com/withastro/roadmap/blob/main/proposals/0049-astro-env.md).
-
-#### experimental.env.schema
+### env.schema
 
 <p>
 
 **Type:** `EnvSchema`<br />
-**Default:** `undefined`<br />
-<Since v="4.10.0" />
+**Default:** `{}`<br />
+<Since v="5.0.0" />
 </p>
 
-An object that uses `envField` to define the data type (`string`, `number`, or `boolean`) and properties of your environment variables: `context` (client or server), `access` (public or secret), a `default` value to use, and whether or not this environment variable is `optional` (defaults to `false`).
+An object that uses `envField` to define the data type and properties of your environment variables: `context` (client or server), `access` (public or secret), a `default` value to use, and whether or not this environment variable is `optional` (defaults to `false`).
 ```js
 // astro.config.mjs
 import { defineConfig, envField } from "astro/config"
 
 export default defineConfig({
-  experimental: {
-    env: {
-      schema: {
-        API_URL: envField.string({ context: "client", access: "public", optional: true }),
-        PORT: envField.number({ context: "server", access: "public", default: 4321 }),
-        API_SECRET: envField.string({ context: "server", access: "secret" }),
-      }
+  env: {
+    schema: {
+      API_URL: envField.string({ context: "client", access: "public", optional: true }),
+      PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+      API_SECRET: envField.string({ context: "server", access: "secret" }),
     }
   }
 })
 ```
 
-#### experimental.env.validateSecrets
+`envField` supports four data types: string, number, enum, and boolean. `context` and `access` are required properties for all data types. The following shows the complete list of properties available for each data type:
+
+```js
+import { envField } from "astro/config"
+
+envField.string({
+   // context & access
+   optional: true,
+   default: "foo",
+   max: 20,
+   min: 1,
+   length: 13,
+   url: true,
+   includes: "oo",
+   startsWith: "f",
+   endsWith: "o",
+})
+envField.number({
+   // context & access
+   optional: true,
+   default: 15,
+   gt: 2,
+   min: 1,
+   lt: 3,
+   max: 4,
+   int: true,
+})
+envField.boolean({
+   // context & access
+   optional: true,
+   default: true,
+})
+envField.enum({
+   // context & access
+   values: ['foo', 'bar', 'baz'], // required
+   optional: true,
+   default: 'baz',
+})
+```
+
+### env.validateSecrets
 
 <p>
 
 **Type:** `boolean`<br />
 **Default:** `false`<br />
-<Since v="4.11.6" />
+<Since v="5.0.0" />
 </p>
 
 Whether or not to validate secrets on the server when starting the dev server or running a build.
@@ -1524,299 +1500,12 @@ By default, only public variables are validated on the server when starting the 
 import { defineConfig, envField } from "astro/config"
 
 export default defineConfig({
-  experimental: {
-    env: {
-      schema: {
-        // ...
-      },
-      validateSecrets: true
-    }
+  env: {
+    schema: {
+      // ...
+    },
+    validateSecrets: true
   }
 })
 ```
-
-### experimental.serverIslands
-
-<p>
-
-**Type:** `boolean`<br />
-**Default:** `false`<br />
-<Since v="4.12.0" />
-</p>
-
-Enables experimental Server Island features.
-Server Islands offer the ability to defer a component to render asynchronously after the page has already rendered.
-
-To enable, configure an [on-demand server rendering `output` mode](/en/basics/rendering-modes/#on-demand-rendered) with an adapter, and add the `serverIslands` flag to the `experimental` object:
-
-```js
-{
-  output: 'hybrid', // or 'server'
-  adapter: nodejs({ mode: 'standalone' }),
-  experimental: {
-    serverIslands: true,
-  },
-}
-```
-
-Use the `server:defer` directive on any Astro component to delay initial rendering:
-
-```astro "server:defer"
----
-import Avatar from '~/components/Avatar.astro';
----
-<Avatar server:defer />
-```
-
-The outer page will be rendered, either at build time (`hybrid`) or at runtime (`server`) with the island content omitted and a `<script>` tag included in its place.
-
-After the page loads in the browser, the script tag will replace itself with the contents of the island by making a request.
-
-Any Astro component can be given the `server: defer` attribute to delay its rendering. There is no special API and you can write `.astro` code as normal:
-
-```astro
----
-import { getUser } from '../api';
-
-const user = await getUser(Astro.locals.userId);
----
-<img class="avatar" src={user.imageUrl}>
-```
-
-#### Server island fallback content
-
-Since your component will not render with the rest of the page, you may want to add generic content (e.g. a loading message) to temporarily show in its place. This content will be displayed when the page first renders but before the island has loaded.
-
-Add placeholder content as a child of your Astro component with the `slot="fallback"` attribute. When your island content is available, the fallback content will be replaced.
-
-The example below displays a generic avatar as fallback content, then animates into a personalized avatar using view transitions:
-
-```astro
-<Avatar server:defer>
-  <svg slot="fallback" class="generic-avatar" transition:name="avatar">...</svg>
-</Avatar>
-```
-
-For a complete overview, and to give feedback on this experimental API, see the [Server Islands RFC](https://github.com/withastro/roadmap/pull/963).
-
-### experimental.contentIntellisense
-
-<p>
-
-**Type:** `boolean`<br />
-**Default:** `false`<br />
-<Since v="4.14.0" />
-</p>
-
-Enables Intellisense features (e.g. code completion, quick hints) for your content collection entries in compatible editors.
-
-When enabled, this feature will generate and add JSON schemas to the `.astro` directory in your project. These files can be used by the Astro language server to provide Intellisense inside content files (`.md`, `.mdx`, `.mdoc`).
-
-```js
-{
-  experimental: {
-    contentIntellisense: true,
-  },
-}
-```
-
-To use this feature with the Astro VS Code extension, you must also enable the `astro.content-intellisense` option in your VS Code settings. For editors using the Astro language server directly, pass the `contentIntellisense: true` initialization parameter to enable this feature. See the [content Intellisense implementation PR](https://github.com/withastro/language-tools/pull/915) for more details about this early feature.
-
-### experimental.contentLayer
-
-<p>
-
-**Type:** `boolean`<br />
-**Default:** `false`<br />
-<Since v="4.14.0" />
-</p>
-
-The Content Layer API is a new way to handle content and data in Astro. It is similar to and builds upon [content collections](/en/guides/content-collections/), taking them beyond local files in `src/content/` and allowing you to fetch content from anywhere, including remote APIs, by adding a `loader` to your collection.
-
-Your existing content collections can be [migrated to the Content Layer API](#migrating-an-existing-content-collection-to-use-the-content-layer-api) with a few small changes. However, it is not necessary to update all your collections at once to add a new collection powered by the Content Layer API. You may have collections using both the existing and new APIs defined in `src/content/config.ts` at the same time.
-
-The Content Layer API is designed to be more powerful and more performant, helping sites scale to thousands of pages. Data is cached between builds and updated incrementally. Markdown parsing is also 5-10 times faster, with similar scale reductions in memory, and MDX is 2-3 times faster.
-
-To enable, add the `contentLayer` flag to the `experimental` object in your Astro config:
-
-```js
-// astro.config.mjs
-{
-	experimental: {
-		contentLayer: true,
-	}
-}
-```
-
-#### Fetching data with a `loader`
-
-The Content Layer API allows you to fetch your content from outside of the `src/content/` folder (whether stored locally in your project or remotely) and uses a `loader` property to retrieve your data.
-
-The `loader` is defined in the collection's schema and returns an array of entries. Astro provides two built-in loader functions (`glob()` and `file()`) for fetching your local content, as well as access to the API to [construct your own loader and fetch remote data](#creating-a-loader).
-
-The `glob()` loader creates entries from directories of Markdown, MDX, Markdoc, or JSON files from anywhere on the filesystem. It accepts a `pattern` of entry files to match, and a `base` file path of where your files are located. Use this when you have one file per entry.
-
-The `file()` loader creates multiple entries from a single local file. Use this when all your entries are stored in an array of objects.
-
-```ts  {3,8,19}
-// src/content/config.ts
-import { defineCollection, z } from 'astro:content';
-import { glob, file } from 'astro/loaders';
-
-const blog = defineCollection({
-  // By default the ID is a slug generated from
-  // the path of the file relative to `base`
-  loader: glob({ pattern: "**\/*.md", base: "./src/data/blog" }),
-  schema: z.object({
-    title: z.string(),
-    description: z.string(),
-    pubDate: z.coerce.date(),
-    updatedDate: z.coerce.date().optional(),
-  })
-});
-
-const dogs = defineCollection({
-  // The path is relative to the project root, or an absolute path.
-  loader: file("src/data/dogs.json"),
-  schema: z.object({
-    id: z.string(),
-    breed: z.string(),
-    temperament: z.array(z.string()),
-  }),
-});
-
-export const collections = { blog, dogs };
-```
-
-:::note
-Loaders will not automatically [exclude files prefaced with an `_`](/en/guides/routing/#excluding-pages). Use a regular expression such as `pattern: '**\/[^_]*.md'` in your loader to ignore these files.
-:::
-
-#### Querying and rendering with the Content Layer API
-
-The collection can be [queried in the same way as content collections](/en/guides/content-collections/#querying-collections):
-
-```ts
-// src/pages/index.astro
-import { getCollection, getEntry } from 'astro:content';
-
-// Get all entries from a collection.
-// Requires the name of the collection as an argument.
-const allBlogPosts = await getCollection('blog');
-
-// Get a single entry from a collection.
-// Requires the name of the collection and ID
-const labradorData = await getEntry('dogs', 'labrador-retriever');
-```
-
-Entries generated from Markdown, MDX, or Markdoc can be rendered directly to a page using the `render()` function.
-
-:::note
-The syntax for rendering collection entries is different from the current content collections syntax.
-:::
-
-```astro title="src/pages/[slug].astro"
----
-import { getEntry, render } from 'astro:content';
-
-const post = await getEntry('blog', Astro.params.slug);
-
-const { Content, headings } = await render(post);
----
-
-<Content />
-```
-
-#### Creating a loader
-
-With the Content Layer API, you can build loaders to load or generate content from anywhere.
-
-For example, you can create a loader that fetches collection entries from a remote API.
-
-```ts
-// src/content/config.ts
-const countries = defineCollection({
-  loader: async () => {
-    const response = await fetch("https://restcountries.com/v3.1/all");
-    const data = await response.json();
-    // Must return an array of entries with an id property,
-    // or an object with IDs as keys and entries as values
-    return data.map((country) => ({
-      id: country.cca3,
-      ...country,
-    }));
-  },
-  // optionally add a schema
-  // schema: z.object...
-});
-
-export const collections = { countries };
-```
-
-For more advanced loading logic, you can define an object loader. This allows incremental updates and conditional loading while also giving full access to the data store. See the API in [the Content Layer API RFC](https://github.com/withastro/roadmap/blob/content-layer/proposals/0050-content-layer.md#loaders).
-
-#### Migrating an existing content collection to use the Content Layer API
-
-You can convert an existing content collection with Markdown, MDX, Markdoc, or JSON entries to use the Content Layer API.
-
-1. **Move the collection folder out of `src/content/`** (e.g. to `src/data/`). All collections located in the `src/content/` folder will use the existing Content Collections API.
-
-    **Do not move the existing `src/content/config.ts` file**. This file will define all collections, using either API.
-
-2. **Edit the collection definition**. Your updated collection requires a `loader`, and the option to select a collection `type` is no longer available.
-
-    ```ts ins={3,8} del={7}
-    // src/content/config.ts
-    import { defineCollection, z } from 'astro:content';
-    import { glob } from 'astro/loaders';
-
-    const blog = defineCollection({
-      // For content layer you no longer define a `type`
-      type: 'content',
-      loader: glob({ pattern: '**\/[^_]*.md', base: "./src/data/blog" }),
-      schema: z.object({
-        title: z.string(),
-        description: z.string(),
-        pubDate: z.coerce.date(),
-        updatedDate: z.coerce.date().optional(),
-      }),
-    });
-    ```
-
-3. **Change references from `slug` to `id`**. Content layer collections do not have a `slug` field. Instead, all updated collections will have an `id`.
-
-    ```astro ins={7} del={6}
-    // src/pages/index.astro
-    ---
-    export async function getStaticPaths() {
-      const posts = await getCollection('blog');
-      return posts.map((post) => ({
-        params: { slug: post.slug },
-        params: { slug: post.id },
-        props: post,
-      }));
-    }
-    ---
-    ```
-
-4. **Switch to the new `render()` function**. Entries no longer have a `render()` method, as they are now serializable plain objects. Instead, import the `render()` function from `astro:content`.
-
-    ```astro ins={4,9} del={3,8}
-    // src/pages/index.astro
-    ---
-    import { getEntry } from 'astro:content';
-    import { getEntry, render } from 'astro:content';
-
-    const post = await getEntry('blog', params.slug);
-
-    const { Content, headings } = await post.render();
-    const { Content, headings } = await render(post);
-    ---
-
-    <Content />
-    ```
-
-#### Learn more
-
-For a complete overview and the full API reference, see [the Content Layer API RFC](https://github.com/withastro/roadmap/blob/content-layer/proposals/0050-content-layer.md) and [share your feedback](https://github.com/withastro/roadmap/pull/982).
 

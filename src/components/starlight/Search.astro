@@ -1,13 +1,39 @@
 ---
 import '@docsearch/css/dist/modal.css';
-import { getDocSearchStrings } from '~/i18n/util';
 import './Search/variables.css';
 
-const docSearchStrings = getDocSearchStrings(Astro);
+const docSearchStrings =
+	// 1. Load all translations strings
+	Object.entries(Astro.locals.t.all())
+		// 2. Select only those starting with `docsearch.`
+		.filter(([key]) => key.startsWith('docsearch.'))
+		// 3. Remove the `docsearch.` key prefix
+		.map(([key, value]) => [key.replace('docsearch.', ''), value])
+		// 4. Convert the long keys to nested objects (e.g. `modal.footer.closeText` => `modal: { footer: { closeText: "..." } }`)
+		.reduce((dict, [key, val]) => {
+			const segments = key.split('.');
+			let pointer = dict;
+			for (let i = 0; i < segments.length; i++) {
+				const segment = segments[i];
+				if (i < segments.length - 1) {
+					// Build up the tree structure
+					pointer[segment] ??= {};
+					pointer = pointer[segment];
+				} else {
+					// At the final node, set the leaf value.
+					pointer[segment] = val;
+				}
+			}
+			return dict;
+		}, {} as any);
 ---
 
 <sl-doc-search data-translations={JSON.stringify(docSearchStrings)}>
-	<button type="button" class="DocSearch DocSearch-Button" aria-label={docSearchStrings.button}>
+	<button
+		type="button"
+		class="DocSearch DocSearch-Button"
+		aria-label={Astro.locals.t('docsearch.button')}
+	>
 		<span class="DocSearch-Button-Container">
 			<svg width="20" height="20" class="DocSearch-Search-Icon" viewBox="0 0 20 20">
 				<path
@@ -18,7 +44,7 @@ const docSearchStrings = getDocSearchStrings(Astro);
 					stroke-linecap="round"
 					stroke-linejoin="round"></path>
 			</svg>
-			<span class="DocSearch-Button-Placeholder">{docSearchStrings.button}</span>
+			<span class="DocSearch-Button-Placeholder">{Astro.locals.t('docsearch.button')}</span>
 		</span>
 		<span class="DocSearch-Button-Keys"></span>
 	</button>
