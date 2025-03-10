@@ -39,7 +39,7 @@ Avec un chargeur de collection approprié, vous pouvez récupérer des données 
 
 ## Configuration TypeScript pour les collections
 
-Les collections de contenu s'appuient sur TypeScript pour fournir la validation Zod, Intellisense et la vérification de type dans votre éditeur. Si vous n'étendez pas l'un des paramètres TypeScript `strict` ou `strictest` d'Astro, vous devrez vous assurer que `compilerOptions` définisse les options suivantesdans votre fichier `tsconfig.json` :
+Les collections de contenu s'appuient sur TypeScript pour fournir la validation Zod, Intellisense et la vérification de type dans votre éditeur. Si vous n'étendez pas l'un des paramètres TypeScript `strict` ou `strictest` d'Astro, vous devrez vous assurer que `compilerOptions` définisse les options suivantes dans votre fichier `tsconfig.json` :
 
 ```json title="tsconfig.json" ins={5} {6}
 {
@@ -295,12 +295,13 @@ Toutes [les méthodes de schéma Zod](https://zod.dev/?id=schema-methods) (e.g. 
 
 Les entrées de collection peuvent également « faire référence » à d’autres entrées associées.
 
-Avec la fonction `reference()` de l'API Collections, vous pouvez définir une propriété dans un schéma de collection en tant qu'entrée d'une autre collection. Par exemple, vous pouvez exiger que chaque entrée `space-shuttle` inclue une propriété `pilot` qui utilise le schéma propre à la collection `pilot` pour la vérification du type, la saisie semi-automatique et la validation.
+Avec la [fonction `reference()`](/fr/reference/modules/astro-content/#reference) de l'API Collections, vous pouvez définir une propriété dans un schéma de collection en tant qu'entrée d'une autre collection. Par exemple, vous pouvez exiger que chaque entrée `space-shuttle` inclue une propriété `pilot` qui utilise le schéma propre à la collection `pilot` pour la vérification du type, la saisie semi-automatique et la validation.
 
 Un exemple courant est un article de blog qui fait référence à des profils d'auteur réutilisables stockés au format JSON ou à des URL d'articles associés stockées dans la même collection :
 
 ```ts title="src/content.config.ts"
 import { defineCollection, reference, z } from 'astro:content';
+import { glob } from 'astro/loaders';
 
 const blog = defineCollection({
   loader: glob({ pattern: '**/[^_]*.md', base: "./src/data/blog" }),
@@ -336,11 +337,13 @@ relatedPosts:
 ---
 ```
 
+Ces références seront transformées en objets contenant une clé `collection` et une clé `id`, vous permettant de [les interroger facilement dans vos modèles](/fr/guides/content-collections/#accès-aux-données-référencées).
+
 ### Définition d'identifiants personnalisés
 
 Lors de l'utilisation du chargeur `glob()` avec des fichiers Markdown, MDX, Markdoc ou JSON, chaque [`id`](/fr/reference/modules/astro-content/#id) d'entrée de contenu est automatiquement généré dans un format compatible URL basé sur le nom du fichier de contenu. L'`id` est utilisé pour interroger l'entrée directement à partir de votre collection. Il est également utile lors de la création de nouvelles pages et URL à partir de votre contenu.
 
-Vous pouvez remplacer l'identifiant généré par une entrée en ajoutant votre propre propriété slug à la page de garde du fichier ou à l'objet de données pour les fichiers JSON. Ceci est similaire à la fonctionnalité « permalien » d'autres frameworks Web.
+Vous pouvez remplacer l'`id` généré par une entrée en ajoutant votre propre propriété `slug` à la page de garde du fichier ou à l'objet de données pour les fichiers JSON. Ceci est similaire à la fonctionnalité « permalien » d'autres frameworks Web.
 
 ```md title="src/blog/1.md" {3}
 ---
@@ -472,7 +475,7 @@ const englishDocsEntries = await getCollection('docs', ({ id }) => {
 
 ### Accès aux données référencées
 
-Toutes [références définies dans votre schéma](/fr/guides/content-collections/#définition-des-références-de-collection) doivent être interrogées séparément après la première interrogation de votre entrée de collection. Vous pouvez utiliser la fonction `getEntry()` pour renvoyer un seul élément référencé ou `getEntries()` pour récupérer plusieurs entrées référencées à partir de l'objet `data` renvoyé.
+Toutes [références définies dans votre schéma](/fr/guides/content-collections/#définition-des-références-de-collection) doivent être interrogées séparément après la première interrogation de votre entrée de collection. Puisque la [fonction `reference()`](/fr/reference/modules/astro-content/#reference) transforme une référence en un objet avec `collection` et `id` comme clés, vous pouvez utiliser la fonction `getEntry()` pour renvoyer un seul élément référencé ou `getEntries()` pour récupérer plusieurs entrées référencées à partir de l'objet `data` renvoyé.
 
 ```astro title="src/pages/blog/welcome.astro"
 ---
@@ -480,9 +483,10 @@ import { getEntry, getEntries } from 'astro:content';
 
 const blogPost = await getEntry('blog', 'welcome');
 
-// Restituer une référence singulière
+// Restituer une référence singulière (p. ex. `{collection: "authors", id: "ben-holmes"}`)
 const author = await getEntry(blogPost.data.author);
 // Restituer un tableau de références
+// (p. ex. `[{collection: "blog", id: "about-me"}, {collection: "blog", id: "my-year-in-review"}]`)
 const relatedPosts = await getEntries(blogPost.data.relatedPosts);
 ---
 
