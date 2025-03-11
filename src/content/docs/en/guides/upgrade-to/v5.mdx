@@ -141,21 +141,22 @@ See the instructions below for updating an existing content collection (`type: '
     });
     ```
 
-3. **Change references from `slug` to `id`**. Content layer collections do not have a reserved `slug` field. Instead, all updated collections will have an `id`. You may also need to update dynamic routing file names to match a changed getStaticPaths() parameter:
+3. **Change references from `slug` to `id`**. Content layer collections do not have a reserved `slug` field. Instead, all updated collections will have an `id`:
 
     ```astro ins={7} del={6}
-    // src/pages/[id].astro
+    // src/pages/[slug].astro
     ---
     export async function getStaticPaths() {
       const posts = await getCollection('blog');
       return posts.map((post) => ({
         params: { slug: post.slug },
-        params: { id: post.id },
+        params: { slug: post.id },
         props: post,
       }));
     }
     ---
     ```
+    You can also update the dynamic routing file names to match the value of the changed `getStaticPaths()` parameter.
 
 4. **Switch to the new `render()` function**. Entries no longer have a `render()` method, as they are now serializable plain objects. Instead, import the `render()` function from `astro:content`.
 
@@ -531,13 +532,28 @@ In the event of route collisions, where two routes of equal route priority attem
 
 <SourcePR number="11791" title="Make directRenderScript the default"/>
 
-In Astro v4.x, `experimental.directRenderScript` was an optional flag to directly render `<scripts>` as declared in `.astro` files (including existing features like TypeScript, importing `node_modules`, and deduplicating scripts). This strategy prevented scripts from being executed in places where they were not used.
+In Astro v4.x, `experimental.directRenderScript` was an optional flag to directly render `<scripts>` as declared in `.astro` files (including existing features like TypeScript, importing `node_modules`, and deduplicating scripts). This strategy prevented scripts from being executed in places where they were not used. Additionally, conditionally rendered scripts were previously implicitly inlined, as if an `is:inline` directive was automatically added to them.
 
-Astro 5.0 removes this experimental flag and makes this the new default behavior in Astro: scripts are no longer hoisted to the `<head>`, multiple scripts on a page are no longer bundled together, and a `<script>` tag may interfere with CSS styling.
+Astro 5.0 removes this experimental flag and makes this the new default behavior in Astro: scripts are no longer hoisted to the `<head>`, multiple scripts on a page are no longer bundled together, and a `<script>` tag may interfere with CSS styling. Additionally, conditionally rendered scripts are no longer implicitly inlined.
 
 #### What should I do?
 
 Please review your `<script>` tags and ensure they behave as desired.
+
+If you previously had conditionally rendered `<script>` tags, you will need to add an `is:inline` attribute to preserve the same behavior as before:
+
+```astro title="src/components/MyComponent.astro" ins="is:inline"
+---
+type Props = {
+  showAlert: boolean
+}
+
+const { showAlert } = Astro.props;
+---
+{
+  showAlert && <script is:inline>alert("Some very important code!!")</script>
+}
+```
 
 <ReadMore>Read more about [using `script` tags in Astro](/en/guides/client-side-scripts/#using-script-in-astro).</ReadMore>
 
@@ -559,7 +575,7 @@ No functionality has changed. This component has only changed its name.
 
 #### What should I do?
 
-Replace all occurences of the `ViewTransitions` import and component with `ClientRouter`:
+Replace all occurrences of the `ViewTransitions` import and component with `ClientRouter`:
 
 ```astro title="src/layouts/MyLayout.astro" del={1,7} ins={2,8}
 import { ViewTransitions } from 'astro:transitions';
@@ -1139,14 +1155,14 @@ If you were using the deprecated shape, update your dev toolbar app to use the n
 
 ```js title="my-integration.mjs" del={1-2} ins={4-10}
 // Old shape
-addDevToolbarApp("./my-app.js");
+addDevToolbarApp("./my-dev-toolbar-app.mjs");
 
 // New shape
 addDevToolbarApp({
   id: "my-app",
   name: "My App",
   icon: "<svg>...</svg>",
-  entrypoint: "./my-app.js",
+  entrypoint: "./my-dev-toolbar-app.mjs",
 });
 ```
 

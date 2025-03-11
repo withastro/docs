@@ -14,6 +14,140 @@ Astro loaders allow you to load data into [content collections](/en/guides/conte
 
 Each collection needs [a loader defined in its schema](/en/guides/content-collections/#defining-the-collection-loader). You can define a loader inline in your project's `src/content.config.ts` file, share one loader between multiple collections, or even [publish your loader to NPM as a package](/en/reference/publish-to-npm/) to share with others and be included in our integrations library.
 
+## Built-in loaders
+
+Astro provides two built-in loaders to help you fetch your collections. Both offer options to suit a wide range of use cases.
+
+### `glob()` loader
+
+<p>
+
+**Type:** <code>(options: GlobOptions) => <a href="#the-loader-object">Loader</a></code><br />
+<Since v="5.0.0" />
+</p>
+
+The `glob()` loader creates entries from directories of files from anywhere on the filesystem. The supported file types are Markdown, MDX, Markdoc, JSON, and YAML files.
+
+This loader accepts an object with the following properties: `pattern`, `base` (optional), and `generateId` (optional).
+
+```ts title="src/content.config.ts" {2,6,11,17-21}
+import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const pages = defineCollection({
+  /* Retrieve all Markdown files in your pages directory. */
+  loader: glob({ pattern: "**/*.md", base: "./src/data/pages" }),
+  schema: /* ... */
+});
+const blog = defineCollection({
+  /* Retrieve all Markdown and MDX files in your blog directory. */
+  loader: glob({ pattern: "**/*.(md|mdx)", base: "./src/data/blog" }),
+  schema: /* ... */
+});
+const authors = defineCollection({
+  /* Retrieve all JSON files in your authors directory while retaining
+   * uppercase letters in the ID. */
+  loader: glob({
+    pattern: '**/*.json',
+    base: "./src/data/authors",
+    generateId: ({ entry }) => entry.replace(/\.json$/, ''),
+  }),
+  schema: /* ... */
+});
+```
+
+#### `pattern`
+
+<p>
+
+**Type:** `string | string[]`
+</p>
+
+The `pattern` property accepts a string or an array of strings using glob matching (e.g. wildcards, globstars). The patterns must be relative to the base directory of entry files to match.
+
+You can learn more about the syntax to use in the [micromatch documentation](https://github.com/micromatch/micromatch#matching-features). You can also verify the validity of your pattern using an online tool like the [DigitalOcean Glob Tool](https://www.digitalocean.com/community/tools/glob).
+
+#### `base`
+
+<p>
+
+**Type:** `string | URL`<br />
+**Default:** `"."`
+</p>
+
+A relative path or [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) to the directory from which to resolve the `pattern`.
+
+#### `generateId()`
+
+<p>
+
+**Type:** `(options: GenerateIdOptions) => string`
+</p>
+
+A callback function that returns a unique string per entry in a collection. It accepts an object as parameter with the following properties:
+* `entry` - the path to the entry file, relative to the base directory
+* `base` - the base directory [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL)
+* `data` - the parsed, unvalidated data of the entry
+
+By default it uses [`github-slugger`](https://github.com/Flet/github-slugger) to generate a slug with [kebab-cased](https://developer.mozilla.org/en-US/docs/Glossary/Kebab_case) words.
+
+### `file()` loader
+
+<p>
+
+**Type:** <code>(fileName: string, options?: FileOptions) => <a href="#the-loader-object">Loader</a></code><br />
+<Since v="5.0.0" />
+</p>
+
+The `file()` loader creates entries from a single file that contains an array of objects with a unique `id` field, or an object with IDs as keys and entries as values. It supports JSON or YAML, and you can provide a custom `parser` for data files it cannot parse by default.
+
+This loader accepts a `fileName` property and an optional object as second argument:
+
+```ts title="src/content.config.ts" {2,6,11-13}
+import { defineCollection } from 'astro:content';
+import { file } from 'astro/loaders';
+
+const authors = defineCollection({
+  /* Retrieve all entries from a JSON file. */
+  loader: file("src/data/authors.json"),
+  schema: /* ... */
+});
+const products = defineCollection({
+  /* Retrieve all entries from a CSV file using a custom parser. */
+  loader: file("src/data/products.csv", {
+    parser: (fileContent) => { /* your parser logic */ },
+  }),
+  schema: /* ... */
+});
+```
+
+#### `fileName`
+
+<p>
+
+**Type:** `string`
+</p>
+
+Sets the path to the file to load, relative to the root directory.
+
+#### Options
+
+<p>
+
+**Type:** `FileOptions`
+</p>
+
+An optional object with the following properties:
+
+##### `parser()`
+
+<p>
+
+**Type:** `(text: string) => Record<string, Record<string, unknown>> | Array<Record<string, unknown>>`
+</p>
+
+A callback function to create a collection from a file’s contents. Use it when you need to process file not supported by default (e.g. `.csv`) or when using [nested `.json` documents](/en/guides/content-collections/#nested-json-documents).
+
 ## Loader types
 
 Loaders can be defined either as a simple function that returns an array of entries or with the more powerful object Content Loader API for more control over the loading process. 
@@ -88,7 +222,7 @@ const blog = defineCollection({
 });  
 ```
 
-## Loader API
+## Object loader API
 
 The API for [inline loaders](#inline-loaders) is very simple, and is shown above. This section shows the API for defining an object loader.
 

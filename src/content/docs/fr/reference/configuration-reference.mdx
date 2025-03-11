@@ -84,14 +84,15 @@ Dans l'exemple ci-dessous, les valeurs de `import.meta.env.BASE_URL` et `config.
 **Par défaut :** `'ignore'`
 </p>
 
-Définissez le comportement de correspondance des routes pour le serveur de développement. Choisissez parmi les options suivantes :
-  - `'always'` - Faire correspondre uniquement les URL incluant une barre oblique finale (par exemple : « /foo/ »)
-  - `'never'` - Ne jamais faire correspondre les URL qui incluent une barre oblique finale (par exemple : « /foo »)
-  - `'ignore'` - Faire correspondre les URL, qu'il existe ou non une barre oblique finale (`/`)
+Définissez le comportement de correspondance de route pour les barres obliques finales dans le serveur de développement et les pages rendues à la demande. Choisissez parmi les options suivantes :
+  - `'ignore'` - Faire correspondre les URL, qu'il existe ou non une barre oblique finale (`/`). Les requêtes pour `/about` et `/about/` correspondront toutes deux à la même route.
+  - `'always'` - Faire correspondre uniquement les URL qui incluent une barre oblique finale (par exemple : `/about/`). En production, les requêtes d'URL rendues à la demande sans barre oblique finale seront redirigées vers l'URL correcte pour votre commodité. Cependant, en développement, elles afficheront une page d'avertissement vous rappelant que le paramètre configuré est `always`.
+  - `'never'` - Faire correspondre uniquement les URL qui n'incluent pas de barre oblique finale (par exemple : `/about`). En production, les requêtes d'URL rendues à la demande avec une barre oblique finale seront redirigées vers l'URL correcte pour votre commodité. Cependant, en développement, elles afficheront une page d'avertissement vous rappelant que le paramètre configuré est `never`.
 
-Utilisez cette option de configuration si votre hôte de production gère strictement le fonctionnement ou le non-fonctionnement des barres obliques finales.
+Lorsque des redirections se produisent en production pour les requêtes GET, la redirection sera une redirection 301 (permanente). Pour toutes les autres méthodes de requête, il s'agira d'une redirection 308 (permanente et conservant la méthode de requête).
 
-Vous pouvez également définir cela si vous préférez être plus strict vous-même, afin que les URL avec ou sans barres obliques finales ne fonctionnent pas pendant le développement.
+Les barres obliques finales sur les pages pré-rendues sont gérées par la plate-forme d'hébergement et peuvent ne pas respecter la configuration que vous avez choisie.
+Consultez la documentation de votre plateforme d'hébergement pour plus d'informations.
 
 ```js
 {
@@ -118,12 +119,17 @@ Par exemple, vous ne pouvez pas avoir de redirection `'/article': '/blog/[...slu
 
 
 ```js
-{
+export default defineConfig({
   redirects: {
-    '/ancien': '/nouveau',
-    '/blog/[...slug]': '/articles/[...slug]',
-  }
-}
+   '/ancien': '/nouveau',
+   '/blog/[...slug]': '/articles/[...slug]',
+   '/a-propos': 'https://example.com/a-propos',
+   '/nouvelles': {
+     status: 302,
+     destination: 'https://example.com/nouvelles'
+ 	}
+	}
+})
 ```
 
 
@@ -135,14 +141,14 @@ Astro servira les requêtes GET redirigées avec un statut `301` et utilisera un
 Vous pouvez personnaliser le [code d'état de redirection](https://developer.mozilla.org/fr/docs/Web/HTTP/Status#messages_de_redirection) à l'aide d'un objet dans la configuration de redirection :
 
 ```js
-{
+export default defineConfig({
   redirects: {
     '/autre': {
       status: 302,
       destination: '/endroit',
     },
   }
-}
+})
 ```
 
 ### output
@@ -202,10 +208,10 @@ Lisez notre [Guide sur les intégrations](/fr/guides/integrations-guide/) pour o
 
 ```js
 import react from '@astrojs/react';
-import tailwind from '@astrojs/tailwind';
+import mdx from '@astrojs/mdx';
 {
-  // Exemple : Ajouter la prise en charge de React et Tailwind dans Astro
-  integrations: [react(), tailwind()]
+  // Exemple : Ajouter la prise en charge de React et de MDX dans Astro
+  integrations: [react(), mdx()]
 }
 ```
 
@@ -386,6 +392,35 @@ Vérifie que l'en-tête « origin », automatiquement transmis par tous les navi
 La vérification de l'en-tête « origin » est exécutée uniquement pour les pages rendues à la demande, et uniquement pour les requêtes `POST`, `PATCH`, `DELETE` et `PUT` avec l'un des en-têtes `content-type` suivants :`'application/ x-www-form-urlencoded'`, `'multipart/form-data'`, `'text/plain'`.
 
 Si l'en-tête « origin » ne correspond pas au chemin d'accès de la requête (`pathname`), Astro renverra un code d'état 403 et n'affichera pas la page.
+
+### session
+
+<p>
+
+**Type :** `SessionConfig`<br />
+<Since v="5.3.0" />
+</p>
+
+Configure la prise en charge de session expérimentale en spécifiant un pilote de stockage (`driver`) ainsi que toutes les `options` associées.
+Vous devez activer l'option `experimental.session` pour utiliser cette fonctionnalité.
+Certains adaptateurs peuvent fournir un pilote de session par défaut, mais vous pouvez le remplacer par votre propre configuration.
+
+Vous pouvez spécifier [n'importe quel pilote d'Unstorage](https://unstorage.unjs.io/drivers) ou fournir une configuration personnalisée qui remplacera la valeur par défaut de votre adaptateur.
+
+Consultez [le guide des sessions expérimentales](/fr/reference/experimental-flags/sessions/) pour plus d'informations.
+
+```js title="astro.config.mjs"
+  {
+    session: {
+      // Obligatoire : le nom du pilote Unstorage
+      driver: 'redis',
+      // Les options requises dépendent du pilote
+      options: {
+        url: process.env.REDIS_URL,
+      },
+    }
+  }
+```
 
 ### vite
 

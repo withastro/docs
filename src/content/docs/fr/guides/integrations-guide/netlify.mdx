@@ -4,11 +4,12 @@ title: '@astrojs/netlify'
 description: "Apprenez à utiliser l'adaptateur SSR @astrojs/netlify pour déployer votre projet Astro."
 sidebar:
   label: Netlify
-githubIntegrationURL: 'https://github.com/withastro/adapters/tree/main/packages/netlify/'
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/netlify/'
 category: adapter
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import Since from '~/components/Since.astro';
 
 Cet adaptateur permet à Astro de déployer vos [routes rendues à la demande](/fr/guides/on-demand-rendering/) sur [Netlify](https://www.netlify.com/).
 
@@ -243,6 +244,88 @@ Astro.response.headers.set('CDN-Cache-Control', 'public, max-age=45, must-revali
 Avec [fine-grained cache control](https://www.netlify.com/blog/swr-and-fine-grained-cache-control/), Netlify prend en charge
 les en-têtes de cache standard comme `CDN-Cache-Control` ou `Vary`.
 Reportez-vous à la documentation pour en savoir plus sur la mise en place, par exemple, de la mise en cache TTL (time to live) ou SWR (stale while revalidate) : https://docs.netlify.com/platform/caching
+
+### Inclure ou exclure des fichiers des fonctions Netlify
+
+Lors du déploiement d'un site Astro avec rendu à la demande sur Netlify, les fonctions générées tracent et incluent automatiquement les dépendances du serveur. Cependant, vous devrez peut-être personnaliser les fichiers inclus dans vos fonctions Netlify.
+
+#### `includeFiles`
+
+<p>
+**Type :**  `string[]`<br />
+**Par défaut :** `[]`<br />
+<Since v="5.3.0" />
+</p>
+
+La propriété `includeFiles` vous permet de spécifier explicitement des fichiers supplémentaires qui doivent être regroupés avec votre fonction. Ceci est utile pour les fichiers qui ne sont pas automatiquement détectés comme dépendances, tels que :
+- les fichiers de données chargés à l'aide des opérations `fs`
+- les fichiers de configuration
+- les fichiers de modèles
+
+Fournissez un tableau de fichiers supplémentaires à inclure avec les chemins de fichiers relatifs à la [racine (`root`)](/fr/reference/configuration-reference/#root) de votre projet. Les chemins absolus peuvent ne pas fonctionner comme prévu.
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+  // ...
+  output: 'server',
+  adapter: netlify({
+    includeFiles: ['./my-data.json'], // chemin relatif à `root`
+  }),
+});
+```
+
+#### `excludeFiles`
+
+<p>
+**Type :**  `string[]`<br />
+**Par défaut :** `[]`<br />
+<Since v="5.3.0" />
+</p>
+
+Vous pouvez utiliser la propriété `excludeFiles` pour empêcher le regroupement de fichiers spécifiques qui seraient autrement inclus. Cela est utile pour :
+- Réduire la taille du bundle
+- Exclure des binaires volumineux
+- Empêcher le déploiement de fichiers indésirables
+
+Fournissez un tableau de fichiers spécifiques à exclure avec des chemins de fichiers relatifs à la [racine (`root`)](/fr/reference/configuration-reference/#root) de votre projet. Les chemins absolus peuvent ne pas fonctionner comme prévu.
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+  // ...
+  output: 'server',
+  adapter: netlify({
+    excludeFiles: ['./src/some_big_file.jpg'], // chemin relatif à `root`
+  }),
+});
+```
+
+#### Utilisation des modèles glob
+
+`includeFiles` et `excludeFiles` prennent en charge les [modèles glob](/fr/guides/imports/#patterns-globaux) pour faire correspondre plusieurs fichiers :
+
+```js title="astro.config.mjs" ins={8, 11-12}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+  output: 'server',
+  adapter: netlify({
+    includeFiles: [
+      './data/**/*.json'
+    ],
+    excludeFiles: [
+      './node_modules/package/**/*',
+      './src/**/*.test.js'
+    ]
+  }),
+});
+```
 
 ## Exemples
 

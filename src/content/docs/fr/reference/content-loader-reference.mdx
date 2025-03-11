@@ -14,6 +14,140 @@ Les chargeurs Astro vous permettent de charger des données dans des [collection
 
 Chaque collection a besoin [d'un chargeur défini dans son schéma](/fr/guides/content-collections/#définir-le-loader-de-collection). Vous pouvez définir un chargeur en ligne dans le fichier `src/content.config.ts` de votre projet, partager un chargeur entre plusieurs collections, ou même [publier votre chargeur sur NPM en tant que paquet](/fr/reference/publish-to-npm/) à partager avec d'autres et à inclure dans notre bibliothèque d'intégrations.
 
+## Chargeurs intégrés
+
+Astro propose deux systèmes de chargement intégrés pour vous aider à récupérer vos collections. Les deux offrent des options qui conviennent à un large choix de cas d'utilisation.
+
+### Le chargeur `glob()`
+
+<p>
+
+**Type :** <code>(options: GlobOptions) => <a href="#lobjet-loader">Loader</a></code><br />
+<Since v="5.0.0" />
+</p>
+
+Le chargeur `glob()` crée des entrées à partir de répertoires de fichiers situés n'importe où sur le système de fichiers. Les types de fichiers supportés sont les fichiers Markdown, MDX, Markdoc, JSON et YAML.
+
+Ce chargeur accepte un objet avec les propriétés suivantes : `pattern`, `base` (optionnel), et `generateId` (optionnel).
+
+```ts title="src/content.config.ts" {2,6,11,17-21}
+import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const pages = defineCollection({
+  /* Récupère tous les fichiers Markdown dans votre répertoire de pages. */
+  loader: glob({ pattern: "**/*.md", base: "./src/data/pages" }),
+  schema: /* ... */
+});
+const blog = defineCollection({
+  /* Récupère tous les fichiers Markdown et MDX dans le répertoire de votre blog. */
+  loader: glob({ pattern: "**/*.(md|mdx)", base: "./src/data/blog" }),
+  schema: /* ... */
+});
+const authors = defineCollection({
+  /* Récupère tous les fichiers JSON dans votre 
+  * répertoire d'auteurs en conservant les lettres majuscules dans l'ID. */
+  loader: glob({
+    pattern: '**/*.json',
+    base: "./src/data/authors",
+    generateId: ({ entry }) => entry.replace(/\.json$/, ''),
+  }),
+  schema: /* ... */
+});
+```
+
+#### `pattern`
+
+<p>
+
+**Type :** `string | string[]`
+</p>
+
+La propriété `pattern` accepte une chaîne de caractères ou un tableau de chaînes de caractères utilisant la correspondance globale (par exemple, wildcards, globstars). Les motifs doivent être relatifs au répertoire de base des fichiers d'entrée à comparer.
+
+Pour en savoir plus sur la syntaxe à utiliser, consultez la [documentation micromatch](https://github.com/micromatch/micromatch#matching-features). Vous pouvez également vérifier la validité de votre modèle à l'aide d'un outil en ligne tel que le [DigitalOcean Glob Tool](https://www.digitalocean.com/community/tools/glob).
+
+#### `base`
+
+<p>
+
+**Type :** `string | URL`<br />
+**Par défaut :** `"."`
+</p>
+
+Un chemin relatif ou [URL](https://developer.mozilla.org/fr/docs/Web/API/URL) vers le répertoire à partir duquel résoudre le `pattern`.
+
+#### `generateId()`
+
+<p>
+
+**Type :** `(options: GenerateIdOptions) => string`
+</p>
+
+Une fonction de rappel qui renvoie une chaîne de caractères unique pour chaque entrée d'une collection. Elle accepte un objet comme paramètre avec les propriétés suivantes :
+* `entry` - le chemin d'accès au fichier d'entrée, par rapport au répertoire de base
+* `base` - l'[URL](https://developer.mozilla.org/fr/docs/Web/API/URL) du répertoire de base
+* `data` - les données analysées et non validées de l'entrée
+
+Par défaut, il utilise [`github-slugger`](https://github.com/Flet/github-slugger) pour générer un slug avec des mots au format [kebab-case](https://developer.mozilla.org/en-US/docs/Glossary/Kebab_case).
+
+### Le chargeur `file()`
+
+<p>
+
+**Type :** <code>(fileName: string, options?: FileOptions) => <a href="#lobjet-loader">Loader</a></code><br />
+<Since v="5.0.0" />
+</p>
+
+Le chargeur `file()` crée des entrées à partir d'un seul fichier contenant un tableau d'objets avec un champ `id` unique, ou un objet avec des identifiants comme clés et des entrées comme valeurs. Il supporte JSON ou YAML, et vous pouvez fournir un `parser` personnalisé pour les fichiers de données qu'il ne peut pas analyser par défaut.
+
+Ce chargeur accepte une propriété `fileName` et un objet optionnel comme second argument :
+
+```ts title="src/content.config.ts" {2,6,11-13}
+import { defineCollection } from 'astro:content';
+import { file } from 'astro/loaders';
+
+const authors = defineCollection({
+  /* Récupère toutes les entrées d'un fichier JSON. */
+  loader: file("src/data/authors.json"),
+  schema: /* ... */
+});
+const products = defineCollection({
+  /* Récupère toutes les entrées d'un fichier CSV à l'aide d'un analyseur personnalisé. */
+  loader: file("src/data/products.csv", {
+    parser: (fileContent) => { /* la logique de votre analyseur */ },
+  }),
+  schema: /* ... */
+});
+```
+
+#### `fileName`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Définit le chemin d'accès au fichier à charger, par rapport au répertoire racine.
+
+#### Options
+
+<p>
+
+**Type :** `FileOptions`
+</p>
+
+Un objet optionnel avec les propriétés suivantes :
+
+##### `parser()`
+
+<p>
+
+**Type :** `(text: string) => Record<string, Record<string, unknown>> | Array<Record<string, unknown>>`
+</p>
+
+Une fonction de rappel pour créer une collection à partir du contenu d'un fichier. Utilisez-la lorsque vous avez besoin de traiter des fichiers non supportés par défaut (par exemple `.csv`) ou lorsque vous utilisez des [documents `.json` imbriqués](/fr/guides/content-collections/#documents-json-imbriqués).
+
 ## Types de chargeurs
 
 Les chargeurs peuvent être définis soit comme une simple fonction qui renvoie un tableau d'entrées, soit avec l'API du chargeur de contenu sous forme d'objet plus puissante pour plus de contrôle sur le processus de chargement.
@@ -88,7 +222,7 @@ const blog = defineCollection({
 });  
 ```
 
-## API du chargeur
+## API du chargeur d'objets
 
 L'API pour les [chargeurs en ligne](#chargeurs-en-ligne) est très simple et est présentée ci-dessus. Cette section présente l'API permettant de définir un chargeur sous forme d'objet.
 

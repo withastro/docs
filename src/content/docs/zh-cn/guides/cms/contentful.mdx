@@ -93,7 +93,7 @@ interface ImportMetaEnv {
 接下来，在你的项目的 `src/lib/` 目录中创建一个名为 `contentful.ts` 的新文件。
 
 ```ts title="src/lib/contentful.ts"
-import contentful from "contentful";
+import * as contentful from "contentful";
 
 export const contentfulClient = contentful.createClient({
   space: import.meta.env.CONTENTFUL_SPACE_ID,
@@ -224,8 +224,9 @@ const entries = await contentfulClient.getEntries<BlogPost>({
 
 创建一个名为 `BlogPost` 的新接口，并将其添加到位于 `src/lib/` 下的 `contentful.ts` 文件中。此接口将与你在 Contentful 中的博客文章内容类型的字段相匹配。你将使用它来对博客文章条目的响应进行类型定义。
 
-```ts title="src/lib/contentful.ts" ins=", { EntryFieldTypes }" ins={3-12}
-import contentful, { EntryFieldTypes } from "contentful";
+```ts title="src/lib/contentful.ts" ins="type { EntryFieldTypes }" ins={4-13}
+import * as contentful from "contentful";
+import type { EntryFieldTypes } from "contentful";
 
 export interface BlogPost {
   contentTypeId: "blogPost",
@@ -331,7 +332,7 @@ const posts = entries.items.map((item) => {
 </html>
 ```
 
-#### 生成单独的博客文章页面
+### 生成单独的博客文章页面
 
 使用与上述相同的方法从 Contentful 获取数据，但这次在将为每篇博客文章创建一个唯一的页面路由。
 
@@ -363,6 +364,7 @@ export async function getStaticPaths() {
 ```astro title="src/pages/posts/[slug].astro" ins={3,11-19}
 ---
 import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
 import type { BlogPost } from "../../lib/contentful";
 
 export async function getStaticPaths() {
@@ -387,7 +389,7 @@ export async function getStaticPaths() {
 
 在我们的示例中，`props` 对象将三个属性传递给页面：
 - title（字符串）
-- content（将文档转换为 HTML 的富文本文档）
+- content（用 `documentToHtmlString` 将文档转换为 HTML 的富文本文档）
 - date（使用 `Date` 构造函数进行格式化）
 
 最后，你可以使用页面 `props` 来显示博客文章。
@@ -395,14 +397,14 @@ export async function getStaticPaths() {
 ```astro title="src/pages/posts/[slug].astro" ins={21,23-32}
 ---
 import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
 import type { BlogPost } from "../../lib/contentful";
 
 export async function getStaticPaths() {
-  const entries = await contentfulClient.getEntries<BlogPost>({
+  const { items } = await contentfulClient.getEntries<BlogPost>({
     content_type: "blogPost",
   });
-
-  const pages = entries.items.map((item) => ({
+  const pages = items.map((item) => ({
     params: { slug: item.fields.slug },
     props: {
       title: item.fields.title,
@@ -475,7 +477,9 @@ try {
 
 ```astro title="src/pages/posts/[slug].astro" ins={7,14-19}
 ---
+import Layout from "../../layouts/Layout.astro";
 import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
 import type { BlogPost } from "../../lib/contentful";
 
 let post;

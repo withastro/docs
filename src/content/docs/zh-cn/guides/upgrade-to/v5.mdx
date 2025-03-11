@@ -1,0 +1,1219 @@
+---
+title: 升级到 Astro v5
+description: 如何将你的项目升级到 Astro v5.0。
+sidebar:
+  label: v5.0
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { Steps } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro'
+import SourcePR from '~/components/SourcePR.astro'
+
+本指南将帮助你从 Astro v4 迁移到 Astro v5。
+
+需要将旧项目升级到 v4 吗？请参阅我们的 [旧版本迁移指南](/zh-cn/guides/upgrade-to/v4/)。
+
+需要查阅 v4 的文档？请访问这个[旧版本文档站 (不被维护的 v4.16 快照)](https://v4.docs.astro.build/)。
+
+## 升级 Astro
+
+使用你的包管理器将项目的 Astro 和所有官方集成升级到最新版本。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # 同时升级 Astro 和官方集成
+  npx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # 同时升级 Astro 和官方集成
+  pnpm dlx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # 同时升级 Astro 和官方集成
+  yarn dlx @astrojs/upgrade
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+如果需要的话，你也可以 [手动升级 Astro 集成](/zh-cn/guides/integrations-guide/#手动更新)，你可能还需要升级项目中的其他依赖。
+
+:::note[需要继续吗？]
+升级 Astro 到最新版本后，你可能不需要对你的项目做任何更改！
+
+但是，如果你遇到错误或意外的行为，请检查下面的内容，看看有什么变化可能需要在你的项目中更新。
+:::
+
+Astro v5.0 包含了一些 [潜在的破坏性变更](#破坏性变更)，以及对于功能的一些移除和弃用。
+
+如果你的项目在升级到 v5.0 后的行为不符合预期，请参考本指南，了解所有破坏性变更的概述以及如何修改你的代码的说明。
+
+完整的发行说明请参阅 [Astro changelog](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)。
+
+## 依赖升级
+
+对 Astro 依赖项的任何重大升级都可能导致你的项目发生破坏性变更。
+
+### Vite 6.0
+
+Astro v5.0 已升级到将 Vite v6.0 作为开发服务器和生产打包工具。
+
+#### 我应该做什么？
+
+如果你正在使用 Vite 的插件、配置或 API，请查看 [Vite 迁移指南](https://cn.vite.dev/guide/migration) 中的破坏性变更，并根据需要升级你的项目。
+
+### `@astrojs/mdx`
+
+<SourcePR number="11741" title="Cleanup unused JSX code"/>
+
+在 Astro v4.x 中，Astro 为 `@astrojs/mdx` 集成执行内部 JSX 处理。
+
+Astro v5.0 将这一责任转移到直接处理和渲染 JSX 和 MDX 的 `@astrojs/mdx` 包中。这意味着 Astro 5.0 不再与旧版本的 MDX 集成兼容。
+
+#### 我应该做什么？
+
+如果你的项目中包含 `.mdx` 文件，那么你必须将 `@astrojs/mdx` 升级到最新版本（v4.0.0），以使得你的 JSX 文件可以被集成正确的处理。
+
+如果你正在使用 MDX 服务器端渲染器的实验性功能 [Astro Container API](/zh-cn/reference/container-reference/)，那么你必须要更新导入语句来对应新的位置：
+
+```ts del={1} ins={2}
+import mdxRenderer from "astro/jsx/server.js";
+import mdxRenderer from "@astrojs/mdx/server.js";
+```
+
+<ReadMore>了解有关 [在项目中使用 MDX](/zh-cn/guides/integrations-guide/mdx/) 的更多信息。</ReadMore>
+
+## 旧版
+
+以下的功能现在被认为是旧版功能。它们应该可以正常运行，但不再推荐使用它们，并且它们处于维护模式。它们不会在未来得到改进，也不会更新文档。这些功能最终将被弃用，然后完全删除。
+
+### 旧版：v2.0 内容集合 API
+
+在 Astro 4.x 中，内容集合是使用 [Astro v2.0 中首次介绍的内容集合 API](https://astro.build/blog/introducing-content-collections/) 来实现定义、查询和渲染的。所有的集合条目都是被保存在 `src/content` 文件夹下的本地文件。此外，Astro 的 [排除构建单个页面的文件名约定](/zh-cn/guides/routing/#排除页面) 也内置于内容集合 API 中。
+
+Astro 5.0 引入了一个采用 Content Layer API 的新版内容集合，它带来了多项性能提升和附加功能。虽然旧版本（legacy）和新版本（Content Layer API）的集合可以继续在当前的发布版本同时存在，但是可能仍会对现有的旧版集合产生潜在的破坏性变更。
+
+该发布版本同时也移除了一个选项，该选项可以通过对集合条目文件前添加下划线（`_`）来防止构建路由。
+
+#### 我应该做什么？
+
+我们建议你尽快 [将任何现有集合转换成新的 Content Layer API](#升级现有的集合)，并使用 Content Layer API 来创建任何新集合。
+
+如果你无法转换你的集合，请参考 [旧版集合破坏性变更](#对旧版的-content-和-data-集合的破坏性变更) 来查看你的现有集合是否被影响了或是需要升级。
+
+如果你此时无法对你的集合做出任何改变，你可以 [启用 `legacy.collections` 标志](#启用-legacycollections-标志)，这会允许你在保持你的集合在他们现有的状态下不变，直到旧版标志不再被支持。
+
+<ReadMore>了解有关更新后的 [内容集合](/zh-cn/guides/content-collections/) 的更多信息。</ReadMore>
+
+##### 升级现有的集合
+
+参阅下面的步骤来更新一个现有的内容集合（`type: 'content'` 或是 `type: 'data'`）以使用 Content Layer API。
+
+<details>
+<summary>更新一个集合的步骤说明</summary>
+
+<Steps>
+
+1. **移动内容配置文件**。该文件不再位于 `src/content/` 文件夹中。该文件现在位于 `src/content.config.ts`。
+
+2. **编辑集合定义**。你的更新后的集合需要一个 `loader`，该 loader 同时指明了你集合所在的文件夹（`base`），和定义集合条目文件名和扩展名相匹配的 `pattern`。（你可能需要相应的匹配下面的示例。你可以使用 [globster.xyz](https://globster.xyz/) 来检查你的 glob 模式。）选择集合 `type` 的选项不再可用。
+
+    ```ts ins={3,8} del={7}
+    // src/content.config.ts
+    import { defineCollection, z } from 'astro:content';
+    import { glob } from 'astro/loaders';
+
+    const blog = defineCollection({
+      // 对于 content layer 来说，你不再需要定义一个 `type`
+      type: 'content',
+      loader: glob({ pattern: '**/[^_]*.{md,mdx}', base: "./src/data/blog" }),
+      schema: z.object({
+        title: z.string(),
+        description: z.string(),
+        pubDate: z.coerce.date(),
+        updatedDate: z.coerce.date().optional(),
+      }),
+    });
+    ```
+
+3. **将引用的 `slug` 更改为 `id`**。Content layer 集合不再保留 `slug` 字段。取而代之的是，所有更新后的集合将会有一个 `id`。
+
+    ```astro ins={7} del={6}
+    // src/pages/[slug].astro
+    ---
+    export async function getStaticPaths() {
+      const posts = await getCollection('blog');
+      return posts.map((post) => ({
+        params: { slug: post.slug },
+        params: { slug: post.id },
+        props: post,
+      }));
+    }
+    ---
+    ```
+    你可能还需要更新动态路由的文件名，以匹配更新后的 `getStaticPaths()` 参数的值。
+
+4. **切换到新的 `render()` 函数**。条目不再具有 `render()` 方法，因为他们现在是可序列化的简单对象。相反的，应该从 `astro:content` 导入 `render()` 函数。
+
+    ```astro title="src/pages/index.astro" ins=", render" del={6} ins={7}
+    ---
+    import { getEntry, render } from 'astro:content';
+
+    const post = await getEntry('blog', params.slug);
+
+    const { Content, headings } = await post.render();
+    const { Content, headings } = await render(post);
+    ---
+    <Content />
+    ```
+</Steps>
+
+</details>
+
+##### 对旧版的 `content` 和 `data` 集合的破坏性变更
+
+<SourcePR number="11976" title="Implement legacy collections using glob" />
+
+默认情况下，使用旧的 `type` 属性的集合（可能是 `content` 或 `data`）且没有定义 `loader` 的集合现在都通过使用 Content Layer API 内置的 `glob()` loader（加载器）在后台实现了，并额外具有了向下兼容的处理。
+
+另外，临时的向下兼容性还能用于将配置文件保留在其原来的位置，即 `src/content/config.ts`。
+
+这种向下兼容的实现方式能够模拟大部分旧版集合的功能，并允许多数的旧版集合在不升级代码的前提下得以继续使用。但是，**仍然有一些差异和限制可能会使得现有的集合受到破坏性变更的影响**：
+
+  - 在以往的 Astro 版本中，会为 `src/content/` 中所有的文件夹生成集合，即使它们没有在 `src/content/config.ts` 中被定义。此行为现已弃用，集合应始终在 `src/content.config.ts` 中被定义。对于现有的集合，定义可以是空声明（例如 `const blog = defineCollection({})`），并且 Astro 会以与新的加载行为兼容的方式隐式地为你定义旧版集合。
+  - Markdown 集合条目不支持特殊的 `layout` 字段。此属性仅适用于位于 `src/pages/` 中的独立页面文件，不太可能位于你的集合条目中。但是，如果你之前使用的是此属性，则现在必须创建包含页面样式的动态路由。
+  - 生成的集合的排序顺序是不确定的，并且取决于平台。这意味着，如果你调用 `getCollection()`，现在返回条目的顺序可能与以前不同。如果需要特定顺序，则必须自己对集合条目进行排序。
+  - `image().refine()` 已不被支持。现在如果你想要验证图像的属性，那么你可能需要在运行时于页面或组件中来实现。
+  - `getEntry(collection, key)` 的参数 `key` 是 `string` 类型，而不是每个条目都有类型。
+  - 以前，当使用静态字符串作为键来调用 `getEntry(collection, key)` 时，返回类型不可为空。现在类型包括了 `undefined`，因此你必须在使用结果之前检查条目是否已定义，否则将出现类型错误。
+
+##### 启用 `legacy.collections` 标志
+
+<SourcePR number="11976" title="Implement legacy collections using glob" />
+
+如果你还没准备好去升级你的现有集合的话，你可以启用 [`legacy.collections`](/zh-cn/reference/legacy-flags/)，这样一来你的现有集合就能像之前一样继续使用。
+
+## 弃用
+
+以下弃用的功能已不再被支持，也不会再被文档记录。请相应地更新你的项目。
+
+部分弃用的功能可能暂时地继续工作，直到它们被完全移除。其他的可能会默默地没有任何效果，或者抛出一个错误提示你更新你的代码。
+
+### 弃用：`Astro.glob()`
+
+<SourcePR number="11826" title="Deprecate glob"/>
+
+在 Astro v4.x 中，你可以在 `.astro` 组件中使用 `Astro.glob()` 来查询项目中的多个文件。这有一些限制（在可以使用的地方、性能等），并且使用来自内容集合 API 或 Vite 自己的 `import.meta.glob()` 的查询函数通常会提供更多的功能和灵活性。
+
+Astro 5.0 弃用了 `Astro.glob()` 转而使用 `getCollection()` 来查询你的集合，而用 `import.meta.glob()` 来查询项目中的其他源文件。
+
+#### 我应该做什么？
+
+将所有使用到 `Astro.glob()` 的地方替换为 `import.meta.glob()`。请注意，`import.meta.glob()` 不再返回 `Promise`，因此你可能必须相应地更新你的代码。你无需对 [glob 模式](/zh-cn/guides/imports/#glob-模式) 进行任何更新。
+
+```astro title="src/pages/blog.astro" del={2} ins={3}
+---
+const posts = await Astro.glob('./posts/*.md');
+const posts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));
+---
+
+{posts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+```
+
+在适当的情况下，请考虑使用 [内容集合](/zh-cn/guides/content-collections/) 来组织你的内容，这些内容具有独属于自己的，更新且性能更高的查询功能。
+
+你可能还希望考虑使用 NPM 的 glob 包，例如 [`fast-glob`](https://www.npmjs.com/package/fast-glob)。
+
+<ReadMore>了解有关 [使用 import.meta.glob 导入文件](/zh-cn/guides/imports/#importmetaglob) 的更多信息。</ReadMore>
+ 
+### 弃用：`functionPerRoute`（适配器 API）
+
+<SourcePR number="11714" title="Remove functionPerRoute option"/>
+
+在 Astro v4.x 中，你可以选择性的为项目中定义的每个路由创建一个单独的文件，镜像构建文件夹中的 `src/pages/` 目录。默认情况下，Astro 输出一个 `entry.mjs` 文件，它负责在每个请求中输出渲染的页面。
+
+Astro v5.0 移除了该默认行为中选择性的选项。此行为现​​在是标准且不可配置的。
+
+从 `adapterFeatures` 配置中删除 `functionPerRoute` 属性。它不再可用。
+
+```js title="my-adapter.mjs" del={10}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          adapterFeatures: {
+              functionPerRoute: true
+          }
+        });
+      },
+    },
+  };
+}
+
+```
+
+<ReadMore>了解有关用于构建适配器集成的 [适配器 API](/zh-cn/reference/adapter-reference/) 的更多信息。</ReadMore>
+
+### 弃用：`astro:build:done` 钩子的 `routes` 选项（集成 API）
+
+<SourcePR number="12329" title="feat(next): astro:routes:resolved"/>
+
+在 Astro v4.x 中，集成都是从 `astro:build:done` 钩子来读取路由的。
+
+Astro v5.0 弃用了传递给此钩子的 `routes` 数组。取而代之的是，它暴露了一个新的 `astro:routes:resolved` 钩子，它在 `astro:config:done` 之前运行，并且在开发过程中每当路由发生变化时运行。它具有与已经弃用的 `routes` 列表相同的所有属性，但 `distURL` 除外，它仅在构建期间可用。
+
+#### 我应该做什么？
+
+删除传递给 `astro:build:done` 的任何 `routes` 实例，并将其替换为新的 `astro:routes:resolved` 钩子。在新暴露的 `assets` 映射上读取 `distURL`：
+
+```js title="my-integration.mjs" ins={2,6-8,11,13-18} del={10}
+const integration = () => {
+    let routes
+    return {
+        name: 'my-integration',
+        hooks: {
+            'astro:routes:resolved': (params) => {
+                routes = params.routes
+            },
+            'astro:build:done': ({
+                routes
+                assets
+            }) => {
+                for (const route of routes) {
+                    const distURL = assets.get(route.pattern)
+                    if (distURL) {
+                        Object.assign(route, { distURL })
+                    }
+                }
+                console.log(routes)
+            }
+        }
+    }
+}
+```
+
+<ReadMore>了解有关用于构建集成的 [集成 API `astro:routes:resolved` 钩子](/zh-cn/reference/integrations-reference/#astroroutesresolved) 的更多信息。</ReadMore>
+
+## 移除
+
+以下功能现已从代码库中完全删除，无法再使用。其中一些功能即使在弃用后也可能继续在你的项目中工作。其他的可能默默地没有效果。
+
+现在包含这些已删除功能的项目将无法构建，并且将不再有任何支持文档提示你删除这些功能。
+
+### 移除：Lit 集成
+
+<SourcePR number="11680" title="Remove `@astrojs/lit`"/>
+
+在 Astro v4.x 中，[Lit](https://lit.dev/) 是通过 `@astrojs/lit` 包实现的核心维护框架库。
+
+Astro v5.0 移除了该集成，并且它也不会收到与 5.x 及更高版本兼容的进一步更新。
+
+#### 我应该做什么？
+
+你可以通过添加客户端脚本标签来继续将 Lit 用于客户端组件。例如：
+
+```astro
+<script>
+  import "../components/MyTabs";
+</script>
+
+<my-tabs title="These are my tabs">...</my-tabs>
+```
+
+如果你有兴趣自己维护 Lit 集成，你可能希望使用 [`@astrojs/lit` 最新发布的版本](https://github.com/withastro/astro/tree/astro%404.13.0/packages/integrations/lit) 作为起点并升级相关的包。
+
+<ReadMore>了解有关 [Astro 的官方集成](/zh-cn/guides/integrations-guide/) 的更多信息。</ReadMore>
+
+### `hybrid` 渲染模式
+
+<SourcePR number="11824" title="Merge output:hybrid and output:static" />
+
+在 Astro v4.x 中，Astro 提供了三种 `output` 渲染模式：`'static'`、`'hybrid'` 和 `'server'`。
+
+Astro v5.0 将 `output: 'hybrid'` 与 `output: 'static'` 这两种配置项合并成了一种配置项（现在叫做 `'static'`），其工作方式与之前的 `hybrid` 选项相同。
+
+现在不再需要在 Astro 配置中指定 `output: 'hybrid'` 来使用服务器渲染的页面。新的 `output: 'static'` 已经包含了此功能。
+
+Astro 现在将自动允许你选择退出静态站点中的预渲染，而无需更改输出配置。任何页面路由或端点都可以包含 `export const prerender = false` 以实现服务器端的按需渲染，而你网站的其余部分则是静态生成的。
+
+#### 我应该做什么？
+
+如果你的项目之前使用了混合（hybrid）渲染，你现在必须从 Astro 配置中删除 `output: 'hybrid'` 选项，因为它已经不存在了。但是，不需要对项目进行其他更改，也无需做破坏性变更。只不过以前的 `'hybrid'` 行为现在是默认行为，新名称为 `'static'`。
+
+```js title="astro.config.mjs" del={4}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  output: 'hybrid',
+});
+```
+
+如果你之前用的是 `output: 'static'`（默认）选项，你可以像以前一样继续使用它。默认情况下，你的所有页面都将继续被预渲染，你将拥有一个完全静态的网站。你的项目无需破坏性变更。
+
+无论你的项目使用哪种 `output` 模式，部署包含任何服务器渲染页面的 Astro 项目仍然需要一个适配器。如果不包含适配器，则会导致开发过程中出现警告，并在构建时出现错误。
+
+<ReadMore>了解有关 [Astro 中的按需渲染](/zh-cn/guides/on-demand-rendering/)的更多信息。</ReadMore>
+
+### 移除：Squoosh 图像服务
+
+<SourcePR number="11770" title="remove the squoosh image service"/>
+
+在 Astro 4.x 中，你可以配置 `image.service: squooshImageService()` 以使用 Squoosh 来代替 Sharp 转换你的图像。但是，底层库 `libsquoosh` 不再维护，并且存在内存和性能问题。
+
+Astro 5.0 已将 Squoosh 图像优化服务完全移除。
+
+#### 我应该做什么？
+
+要切换到内置的 Sharp 图像服务，请从 Astro 配置中删除对 `squooshImageService` 的导入。默认情况下，你将对 `astro:assets` 使用 Sharp。
+
+```ts title="astro.config.mjs" del={1, 5-7}
+import { squooshImageService } from "astro/config";
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+ image: {
+   service: squooshImageService()
+ }
+});
+```
+
+如果你正在使用像 `pnpm` 这样的严格包管理器，你可能需要手动安装 `sharp` 包才能使用 Sharp 图像服务，即使它默认内置在 Astro 中。
+
+如果你的适配器不支持 Astro 内置的 Sharp 图像优化，你可以 [配置一个不进行优化的图像服务](/zh-cn/guides/images/#配置-no-op-透传服务) 来允许你使用 `<Image />` 和 `<Picture />` 组件。
+
+或者，如果你无法使用 Sharp 图像服务，你可能会去考虑使用 [社区维护的 Squoosh 图像服务](https://github.com/Princesseuh/astro-image-service-squoosh)。
+
+##### 针对适配器
+
+如果你的适配器之前确认过它与 Squoosh 的兼容性状态，则现在应从适配器配置中删除此信息。
+
+```js title="my-adapter.mjs" del={2-4}
+supportedAstroFeatures: {
+  assets: {
+    isSquooshCompatible: true
+  }
+}
+```
+
+<ReadMore>阅读有关 [配置默认图像服务](/zh-cn/guides/images/#默认图像服务) 的详细信息。</ReadMore>
+
+### 移除：一些公有类型
+
+<SourcePR number="11715" title="Refactor/types"/>
+
+在 Astro v4.x 中，`@types/astro.ts` 向用户公共地暴露了所有类型，无论它们是否仍在积极使用或仅供内部使用。
+
+Astro v5.0 重构了此文件以删除过时的内部类型。此重构将为你的编辑器带来改进（例如，更快的完成速度、更低的内存使用和更相关的完成选项）。但是，此重构可能会导致某些项目出现错误，这些项目一直依赖于不再公有的类型。
+
+#### 我应该做什么？
+
+移除现在导致项目出错的任何类型的信息，因为你无法再读取到它们。这些 API 大多是以前已弃用和移除的 API，但也可能包括现在属于内部的类型。
+
+<ReadMore>请参阅 [暴露以供使用的公有类型](https://github.com/withastro/astro/tree/main/packages/astro/src/types/public)。</ReadMore>
+
+### 实验性标志
+
+以下实验性标志已在 Astro v5.0 中移除，这些功能可以直接使用：
+
+- `env`
+- `serverIslands`
+
+此外，以下实验性标志已被移除，**现在它们是 Astro v5.0 中的默认或推荐行为**。
+
+- `directRenderScript`（有关对 [默认 `<script>` 行为](#script-标签将按照声明直接渲染) 的破坏性变更，请参阅下文。）
+- `globalRoutePriority`（有关对 [默认的路由优先级顺序](#对于注入路由和重定向的路由优先级顺序) 的破坏性变更，请参阅下文。）
+- `contentLayer`（请参阅 [将现有内容集合升级](#旧版v20-内容集合-api) 到新的首选 Content Layer API 的指南。）
+
+以下实验标志已被删除，**它们相应的功能不属于 Astro v5.0 的一部分**。
+
+- `contentCollectionsCache`
+
+如果你之前使用过这些实验性标志，请删除它们，并将你的 `env` 配置移至 Astro 配置的根目录：
+
+```js del={5-12} ins={14-16} title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    directRenderScript: true,
+    globalRoutePriority: true,
+    contentLayer: true,
+    serverIslands: true,
+    contentCollectionsCache: true,
+    env: {
+      schema: {...}
+    }
+  },
+  env: {
+      schema: {...}
+  }
+})
+```
+
+这些功能在 Astro v5.0 中默认可用。
+
+<ReadMore>请阅读 [v5.0 博客文章](https://astro.build/blog/astro-5/)，了解这些激动人心的功能及更多信息。</ReadMore>
+
+## 默认值变更
+
+Astro v5.0 中的一些默认行为已更改，你的项目代码可能需要更新以适应这些更改。
+
+在大多数情况下，唯一需要的操作是审查现有项目的部署并确保它继续按你的预期运行，然后根据需要更新代码。而在某些情况下，可能会有一个配置允许你继续使用以前的默认行为。
+
+### CSRF 保护现已默认开启
+
+<SourcePR number="11788" title="change default value of checkOrigin"/>
+
+在 Astro v4.x 中，`security.checkOrigin` 的默认值为 `false`。以前，你必须显式将此值设置为 `true` 才能启用跨站点请求伪造（CSRF）保护。
+
+Astro v5.0 将此选项的默认值更改为 `true`，并将自动检查 "origin" 标头是否与按需渲染页面中每个请求发送的 URL 匹配。
+
+#### 我应该做什么？
+
+如果你之前配置过 `security.checkOrigin: true`，则 Astro 配置中不再需要此行。现在这是默认值。
+
+要禁用此行为，你必须显式设置 `security.checkOrigin: false`。
+
+```js title="astro.config.mjs" ins={3-5}
+export default defineConfig({
+  output: "server",
+  security: {
+    checkOrigin: false
+  }
+})
+```
+
+<ReadMore>阅读有关 [安全配置选项](/zh-cn/reference/configuration-reference/#security) 的更多信息。</ReadMore>
+
+### 对于注入路由和重定向的路由优先级顺序
+
+<SourcePR number="11798" title="Remove legacy route prioritization"/>
+
+在 Astro v4.x 中，`experimental.globalRoutePriority` 是一个可选标志，它用于确保 [对所有路由使用优先级顺序规则](/zh-cn/guides/routing/#路由优先级顺序)，如注入路由、基于文件的路由和重定向。通过非自动的方法，来确定某些类型的路由的优先级并标准化路由优先级顺序，这可以更好地控制项目中的路由。
+
+Astro v5.0 删除了这个实验性标志，并使其成为 Astro 中新的默认行为：重定向和注入路由现在与基于文件的项目路由同等优先。
+
+请注意，这已经是 Starlight 中的默认行为，并且不应影响更新过的 Starlight 项目。
+
+#### 我应该做什么？
+
+如果你的项目包含注入路由或重定向，请检查你的路由是否按预期构建页面 URL。下面显示了新的预期行为的示例。
+
+在包含以下路由的项目中：
+
+- 基于文件的路由：`/blog/post/[pid]`
+- 基于文件的路由：`/[page]`
+- 注入路由：`/blog/[...slug]`
+- 重定向：`/blog/tags/[tag] -> /[tag]`
+- 重定向：`/posts -> /blog`
+
+将构建以下 URL（而不是遵循 Astro v4.x 的路由优先级顺序）：
+
+- `/blog/tags/astro` 是通过重定向到 `/tags/[tag]` 构建的（而不是注入的路由 `/blog/[...slug]`）
+- `/blog/post/0` 由基于文件的路由 `/blog/post/[pid]` 构建（而不是注入的路由 `/blog/[...slug]`）
+- `/posts` 是通过重定向到 `/blog` 构建的（而不是基于文件的路由 `/[page]`）
+
+如果发生路由冲突的情况，即两条路由优先级相同的路由尝试构建相同的 URL，Astro 将记录一条警告，来标识冲突的路由。
+
+<ReadMore>详细了解 [路由优先顺序规则](/zh-cn/guides/routing/#路由优先级顺序)。</ReadMore>
+
+### `<script>` 标签将按照声明直接渲染
+
+<SourcePR number="11791" title="Make directRenderScript the default"/>
+
+在 Astro v4.x 中，`experimental.directRenderScript` 是一个可选标志，用于直接渲染 `.astro` 文件中声明的 `<scripts>`（包括 TypeScript、导入 `node_modules` 和去重脚本等现有功能）。此策略可防止脚本在未使用的地方执行。另外，以前的条件渲染脚本已被隐式内联，类似于向脚本添加了 `is:inline` 指令。
+
+Astro 5.0 删除了这个实验性标志，并使其成为 Astro 中新的默认行为：脚本不再被提升到 `<head>`，页面上的多个脚本也不再被一起打包，并且 `<script>` 标签可能会干扰 CSS 样式。另外，条件渲染脚本不再被隐式内联了。
+
+#### 我应该做什么？
+
+请检查你的 `<script>` 标签并确保它们的行为符合预期。
+
+如果你之前有条件渲染的 `<script>` 标签，那么现在你需要向其添加 `is:inline` 属性以保留与以前相同的行为：
+
+```astro title="src/components/MyComponent.astro" ins="is:inline"
+---
+type Props = {
+  showAlert: boolean
+}
+
+const { showAlert } = Astro.props;
+---
+{
+  showAlert && <script is:inline>alert("Some very important code!!")</script>
+}
+```
+
+<ReadMore>详细了解 [在 Astro 中使用 `script` 标签](/zh-cn/guides/client-side-scripts/#在-astro-中使用-script)。</ReadMore>
+
+## 破坏性变更
+
+下面的这些变更被认为是 Astro v5.0 中的破坏性变更。破坏性变更可能会提供临时的向下兼容，也有可能不会。如果你正在使用这些功能，你可能必须按照每个条目中的建议来更新你的代码。
+
+{/* 如果你需要参考 v4.x 项目的文档，你可以浏览此 [v5.0 发布之前的文档的（未维护）快照](https://docs-git-v3-docs-unmaintained-astrodotbuild.vercel.app/)。 */}
+
+### 重命名：`<ViewTransitions />` 组件
+
+<SourcePR number="11980" title="Rename the ViewTransitions component to ClientRouter"/>
+
+在 Astro 4.x 中，Astro 的视图过渡 API 包含了一个 `<ViewTransitions />` 路由器组件，用于启用客户端路由、页面转换等。
+
+Astro 5.0 将此组件重命名为 `<ClientRouter />`，以明确该组件在 API 中充当的角色。这更清楚地表明，你从 Astro 的 `<ClientRouter />` 路由组件获得的功能与原生的、基于 CSS 的 MPA 路由器略有不同。
+
+功能没有改变。该组件仅更改了名称。
+
+#### 我应该做什么？
+
+将所有出现的 `ViewTransitions` 导入语句和组件替换为 `ClientRouter`：
+
+```astro title="src/layouts/MyLayout.astro" del={1,7} ins={2,8}
+import { ViewTransitions } from 'astro:transitions';
+import { ClientRouter } from 'astro:transitions';
+
+<html>
+  <head>
+    ...
+   <ViewTransitions />
+   <ClientRouter />
+  </head>
+</html>
+```
+
+<ReadMore>阅读有关 [Astro 中的视图转换和客户端路由](/zh-cn/guides/view-transitions/) 的更多信息。</ReadMore>
+
+### 改动：TypeScript 配置
+
+<SourcePR number="11859" title="better tsconfig"/>
+
+在 Astro v4.x 中，Astro 依赖 `src/env.d.ts` 文件进行类型推断并为依赖于生成类型的功能定义模块。
+
+Astro 5.0 使用 `.astro/types.d.ts` 文件进行类型推断，现在更建议在 `tsconfig.json` 中设置 `include` 和 `exclude`，以从 Astro 类型中受益并避免检查构建文件。
+
+运行 `astrosync` 不再创建或更新 `src/env.d.ts`，因为标准 Astro 项目的类型检查不需要它。
+
+#### 我应该做什么？
+
+要将你的项目更新为 Astro 推荐的 TypeScript 设置，请将以下 `include` 和 `exclude` 属性添加到现有的 `tsconfig.json` 中：
+
+```ts ins={3,4} title="tsconfig.json"
+{
+  "extends": "astro/tsconfigs/base",
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist"]
+}
+```
+
+请注意，仅当你添加了自定义配置，或者不使用 `tsconfig.json` 文件时，才需要 `src/env.d.ts`。
+
+<ReadMore>详细了解 [Astro 中的 TypeScript 配置](/zh-cn/guides/typescript/#设置)。</ReadMore>
+
+### 改动：HTML 表单提交的 action 不再使用 cookie 重定向
+
+<SourcePR number="12373" title="Actions middleware"/>
+
+在 Astro 4.x 中，从 HTML 表单调用的 action 将触发重定向，并使用 cookie 来转发结果。这会导致出现大量的表单错误和返回值超出基于 cookie 存储的 4 KB 限制的问题。
+
+Astro 5.0 现在将 action 的结果渲染为 POST 结果，而无需任何转发。当用户尝试刷新页面时，会弹出对话框提示 "confirm form resubmission?（确认重新提交表单？）"，但它不再对 action 的返回值施加 4 KB 的限制。
+
+#### 我应该做什么？
+
+你应该更新对依赖重定向的 action 结果的处理，并且可以选择用中间件来解决 "确认重新提交表单？" 的问题。
+
+##### 出错时重定向到上一个路由
+
+如果你的 HTML 表单 action 定向到不同的路由（即 `action={"/success-page" + actions.name}`），Astro 将不再在出错时重定向到上一个路由。你可以使用 Astro 组件的重定向来手动实现此行为。相反，此示例在成功时会重定向到新路由，否则处理当前页面上的错误：
+
+```astro title="src/pages/newsletter.astro" ins={4-9} del="'/confirmation' + "
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.newsletter);
+if (!result?.error) {
+  // 如果需要，在 URL 中嵌入相关结果数据
+  // 示例：redirect(`/confirmation?email=${result.data.email}`);
+  return redirect('/confirmation');
+}
+---
+
+<form method="POST" action={'/confirmation' + actions.newsletter}>
+  <label>E-mail <input required type="email" name="email" /></label>
+  <button>Sign up</button>
+</form>
+```
+
+##### （可选）删除刷新时的确认对话框
+
+要解决在刷新时弹出的 "确认重新提交表单？" 的对话框，或者为了实现跨会话保留 action 的结果，你现在可以从中间件 [自定义 action 结果处理](/zh-cn/guides/actions/#高级通过-session-持久化-action-结果)。
+
+我们建议使用会话存储（session storage）的方式，[就如 Netlify Blob 示例中所述](/zh-cn/guides/actions/#高级通过-session-持久化-action-结果)。但是，如果你更喜欢 4.X 中的 cookie 转发行为并接受 4 KB 大小限制，则可以实现此示例片段中所示的模式：
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  // 跳过预渲染页面的请求
+  if (context.isPrerendered) return next();
+
+	const { action, setActionResult, serializeActionResult } = getActionContext(context);
+
+	// 如果 action 结果作为 cookie 转发，则设置结果
+	// 可以从 `Astro.getActionResult()` 访问
+	const payload = context.cookies.get('ACTION_PAYLOAD');
+	if (payload) {
+		const { actionName, actionResult } = payload.json();
+		setActionResult(actionName, actionResult);
+		context.cookies.delete('ACTION_PAYLOAD');
+		return next();
+	}
+
+	// 如果从 HTML 表单 action 调用操作，
+	// 则调用 action handler 并用 cookie 作为结果进行重定向。
+	if (action?.calledFrom === 'form') {
+		const actionResult = await action.handler();
+
+		context.cookies.set('ACTION_PAYLOAD', {
+			actionName: action.name,
+			actionResult: serializeActionResult(actionResult),
+		});
+
+		if (actionResult.error) {
+		// 出错时重定向回上一页
+			const referer = context.request.headers.get('Referer');
+			if (!referer) {
+				throw new Error('Internal: Referer unexpectedly missing from Action POST request.');
+			}
+			return context.redirect(referer);
+		}
+		// 成功则跳转至目标页面
+		return context.redirect(context.originPathname);
+	}
+
+	return next();
+})
+```
+
+### 改动：`compiledContent()` 现在是一个异步函数
+
+<SourcePR number="11782" title="Remove TLA by making compiledContent async"/>
+
+在 Astro 4.x 中，顶层 await 包含在 Markdown 模块中。这导致 Markdown 中的自定义图像服务和图像出现一些问题，导致 Node 在没有错误信息的情况下突然退出。
+
+Astro 5.0 使 Markdown 上的 `compiledContent()` 属性导入了一个异步函数，它需要 `await` 来解析内容。
+
+#### 我应该做什么？
+
+更新你的代码以在调用 `compiledContent()` 时，使用 `await`。
+
+```astro title="src/pages/post.astro" del={4} ins={5}
+---
+import * as myPost from "../blog/post.md";
+
+const content = myPost.compiledContent();
+const content = await myPost.compiledContent();
+---
+
+<Fragment set:html={content} />
+```
+
+<ReadMore>阅读有关用于返回编译后的 Markdown 的 [`compiledContent()` 函数](/zh-cn/guides/markdown-content/#导入-markdown)的更多信息。</ReadMore>
+
+### 改动：`astro:content` 无法再于客户端上使用
+
+<SourcePR number="11827" title="Prevent usage of `astro:content` in the client "/>
+
+在 Astro 4.x 中，可以在客户端读取 `astro:content` 模块。
+
+Astro 5.0 删除了该读取方式，因为它并非是公开给客户端使用。以这种方式使用 `astro:content` 伴随着局限性同时也会导致客户端打包产物的臃肿。
+
+#### 我应该做什么？
+
+如果你当前正在客户端中使用 `astro:content`，请通过 props 将所需的数据传递给你的客户端组件：
+
+```astro title="src/pages/blog.astro"
+---
+import { getCollection } from 'astro:content';
+import ClientComponent from '../components/ClientComponent';
+
+const posts = await getCollection('blog');
+const postsData = posts.map(post => post.data);
+---
+
+<ClientComponent posts={postsData} />
+```
+
+<ReadMore>阅读有关 [`astro:content` API](/zh-cn/reference/modules/astro-content/) 的更多信息。</ReadMore>
+
+### 重命名：Shiki `css-variables` 主题的颜色令牌（token）名称
+
+<SourcePR number="11661" title="Update to new shiki token names"/>
+
+在 Astro v4.x 中，Shiki `css-variables` 主题分别使用 `--astro-code-color-text` 和 `--astro-code-color-background` 令牌来设置代码块的前景色和背景色样式。
+
+Astro v5.0 将它们分别重命名为 `--astro-code-foreground` 和 `--astro-code-background` 以便于更好地与 Shiki v1 默认值保持一致。
+
+#### 我应该做什么？
+
+你可以在项目中执行全局查找和替换以迁移到新的令牌名称。
+
+```css title="src/styles/global.css" del={2,3} ins={4,5}
+:root {
+  --astro-code-color-text: #000;
+  --astro-code-color-background: #fff;
+  --astro-code-foreground: #000;
+  --astro-code-background: #fff;
+}
+```
+
+<ReadMore>阅读有关 [Astro 中的语法高亮](/zh-cn/guides/syntax-highlighting/) 的更多信息。</ReadMore>
+
+### 改动：用于高亮显示代码块的内部 Shiki rehype 插件
+
+<SourcePR number="11825" title="Refactor createShikiHighlighter"/>
+
+在 Astro 4.x 中，Astro 的内部 Shiki rehype 插件将代码块高亮显示为 HTML。
+
+Astro 5.0 升级了该插件，来将代码块高亮显示为 hast。这允许更直接的 Markdown 和 MDX 处理，并提高构建项目时的性能。然而，这可能会导致现有的 Shiki 转换器出现问题。
+
+#### 我应该做什么？
+
+如果你使用传递给 `markdown.shikiConfig.transformers` 的 Shiki 转换器，则必须确保它们不使用 `postprocess` 钩子。此钩子不再在 `.md` 和 `.mdx` 文件中的代码块上运行。（有关更多信息，请参阅 [有关转换器钩子的 Shiki 文档](https://shiki.style/guide/transformers#transformer-hooks)）。
+
+`.mdoc` 文件中的代码块和 Astro 的内置 `<Code />` 组件不使用内部 Shiki rehype 插件，因此不受影响。
+
+<ReadMore>阅读有关 [Astro 中的语法高亮](/zh-cn/guides/syntax-highlighting/) 的更多信息。</ReadMore>
+
+### 改动：Markdown 和 MDX 页面的自动 `charset=utf-8` 行为
+
+<SourcePR number="12231" title="Unset charset=utf-8 content-type for md/mdx pages"/>
+
+在 Astro 4.0 中，Markdown 和 MDX 页面（位于 `src/pages/` 中）自动在 `Content-Type` 标头中以 `charset=utf-8` 进行响应，这允许在页面中渲染非 ASCII 字符。
+
+Astro 5.0 更新了行为以添加 `<meta charset="utf-8">` 标签作为替代，仅适用于不使用 Astro 特殊 frontmatter `layout` 属性的页面。类似地，对于 MDX 页面，如果 MDX 内容未导入包装的 `layout` 组件，则 Astro 只会添加标签。
+
+如果你的 Markdown 或 MDX 页面使用 frontmatter 的 `layout` 属性，或者是在 MDX 页面内容导入了包装的 `layout` 组件，则 HTML 编码将由指定的布局组件处理，并且 `<meta charset="utf-8">` 标签在默认情况下，不会添加到你的页面。
+
+#### 我应该做什么？
+
+如果你需要 `charset=utf-8` 才能正确渲染页面，请确保你的布局组件已经包含了 `<meta charset="utf-8">`​​ 标签。如果你还没有这样做，那么则需要你来添加它。
+
+<ReadMore>阅读有关 [Markdown 布局](/zh-cn/basics/layouts/#markdown-布局) 的更多信息。</ReadMore>
+
+### 改动：向 remark 和 rehype 插件附加了 Astro 特定的元数据
+
+<SourcePR number="11861" title="Clean up Astro metadata in vfile.data"/>
+
+在 Astro 4.x 中，Astro 特定的元数据会被附加到 remark 和 rehype 插件中的 `vfie.data` 之中，但附加于不同的位置，且名称也不一致。
+
+Astro 5 清理了该 API，元数据现重命名如下：
+
+ - `vfile.data.__astroHeadings` -> `vfile.data.astro.headings`
+ - `vfile.data.imagePaths` -> `vfile.data.astro.imagePaths`
+
+`imagePaths` 的类型也从 `Set<string>` 更新为了 `string[]`。 `vfile.data.astro.frontmatter` 元数据保持不变。
+
+#### 我应该做什么？
+
+虽然我们不认为这些 API 是公开的，但可以通过想要复用这些 Astro 元数据的 remark 和 rehype 插件来读取到它们。如果你正在使用这些 API，请确保在新位置访问它们。
+
+<ReadMore>阅读有关 [在 Astro 中使用 Markdown 插件](/zh-cn/guides/markdown-content/#markdown-插件) 的更多信息。</ReadMore>
+
+### 改动：图片端点（entrypoint）配置
+
+<SourcePR number="11908" title="Allow customising the route of the image endpoint"/>
+
+在 Astro 4.x 中，你可以在图像配置中设置端点以用于图像优化。
+
+Astro 5.0 允许你自定义 `image.endpoint` 配置的 `route` 和 `entrypoint`。这在默认路由 `/_image` 与现有路由或本地服务器设置冲突的特殊情况下非常有用。
+
+#### 我应该做什么？
+
+如果你之前自定义了 `image.endpoint`，请将此端点移动到新的 `endpoint.entrypoint` 属性。你也可以选择性的自定义 `route`：
+
+```js title="astro.config.mjs" del={5} ins={6-9}
+import { defineConfig } from "astro/config";
+
+defineConfig({
+  image: {
+    endpoint: './src/image-endpoint.ts',
+    endpoint: {
+      route: "/image",
+      entrypoint: "./src/image_endpoint.ts"
+    }
+  },
+})
+```
+
+<ReadMore>阅读有关 [设置用于图像优化的端点](/zh-cn/reference/configuration-reference/#imageendpoint) 的更多信息。</ReadMore>
+
+### 改动：`build.client` 和 `build.server` 解析行为
+
+<SourcePR number="11916" title="Fix build.client and build.server resolve behaviour" />
+
+在 Astro v4.x 中，`build.client` 和 `build.server` 选项被记录为相对于 `outDir` 选项进行解析，但它并不总是按预期工作。
+
+Astro 5.0 修复了从 `outDir` 选项正确解析的行为。例如，如果 `outDir` 设置为 `./dist/nested/`，则默认情况下：
+
+- `build.client` 将解析为 `<root>/dist/nested/client/`
+- `build.server` 将解析为 `<root>/dist/nested/server/`
+
+之前这些值都被错误的解析了：
+
+- `build.client` 之前被解析为 `<root>/dist/nested/dist/client/`
+- `build.server` 之前被解析为 `<root>/dist/nested/dist/server/`
+
+#### 我应该做什么？
+
+如果你依赖于以前的构建路径，请确保你的项目代码已更新为新的构建路径。
+
+<ReadMore>阅读有关 [Astro 中的 `build` 配置选项](/zh-cn/reference/configuration-reference/#构建选项) 的更多信息。</ReadMore>
+
+### 改动：Vite 不再处理配置文件中的 JS 依赖项
+
+<SourcePR number="11819" title="Set external: true when loading astro config"/>
+
+在 Astro 4.x 中，本地链接的 JS 依赖项（例如 `npm link`、monorepo 等）在由 Astro 配置文件导入时能够使用 `import.meta.glob` 等 Vite 功能。
+
+Astro 5 更新了 Astro 配置加载流程，以忽略使用 Vite 来处理本地链接的 JS 依赖项。导出原始 TypeScript 文件的依赖项不受影响。相反，这些 JS 依赖项通常会由 Node.js 运行时导入，就像其他依赖项从 `node_modules` 导入一样。
+
+之所以做出这样的改动，是因为之前的行为常常导致集成作者感到困惑，在测试时包能在本地运行，但在发布时却不起作用。它还限制使用仅限 CJS 的依赖项，因为 Vite 要求代码遵循 ESM 规范。虽然此更改仅仅只影响 JS 依赖项，但也建议包尽可能导出 JavaScript 而不是原始 TypeScript，以防止意外的 Vite 特定使用，因为它是 Astro 配置加载流程的实现细节。
+
+#### 我应该做什么？
+
+确保在运行 Astro 项目之前构建本地链接的 JS 依赖项。然后，配置加载应该像以前一样工作。
+
+<ReadMore>阅读有关 [Astro 中的 Vite 配置设置](/zh-cn/reference/configuration-reference/#vite) 的更多信息。</ReadMore>
+
+### 改动：`paginate()` 返回的 URL
+
+<SourcePR number="11253" title="Add base to paginate"/>
+
+在 Astro v4.x 中，`paginate()` 返回的 URL（例如 `page.url.next`、`page.url.first` 等）不包含 Astro 配置中为 `base` 设置的值。你必须手动将 `base` 的配置值前置添加到 URL 路径。
+
+Astro 5.0 自动在 `page.url` 中包含 `base` 值。
+
+#### 我应该做什么？
+
+如果你的这些 URL 正在使用 `paginate()` 函数，请删除任何现有的 `base` 值，因为它现在已经为你添加好了：
+
+```astro del={16} ins={17}
+---
+export async function getStaticPaths({ paginate }) {
+  const astronautPages = [{
+    astronaut: 'Neil Armstrong',
+  }, {
+    astronaut: 'Buzz Aldrin',
+  }, {
+    astronaut: 'Sally Ride',
+  }, {
+    astronaut: 'John Glenn',
+  }];
+  return paginate(astronautPages, { pageSize: 1 });
+}
+const { page } = Astro.props;
+// 在 `astro.config.mjs` 中配置的 `base: /'docs'`
+const prev = "/docs" + page.url.prev;
+const prev = page.url.prev;
+---
+<a id="prev" href={prev}>Back</a>
+```
+
+<ReadMore>阅读有关 [Astro 中的分页](/zh-cn/guides/routing/#分页) 的更多信息。</ReadMore>
+
+### 改动：非布尔 HTML 属性值
+
+<SourcePR number="11660" title="Fix attribute rendering for boolean values (take 2)"/>
+
+在 Astro v4.x 中，[非布尔 HTML 属性](https://developer.mozilla.org/zh-CN/docs/Glossary/Boolean/HTML) 在渲染为 HTML 时，可能不包含其值。
+
+Astro v5.0 将值显式渲染为 `="true"` 或 `="false"`，从而与浏览器中正确的属性处理相匹配。
+
+在以下 `.astro` 示例中，只有 `allowedfullscreen` 是布尔属性：
+
+```astro
+<!-- src/pages/index.astro -->
+<!-- `allowfullscreen` 是一个布尔属性 -->
+<p allowfullscreen={true}></p>
+<p allowfullscreen={false}></p>
+<!-- `inherit` **不是** 一个布尔属性 -->
+<p inherit={true}></p>
+<p inherit={false}></p>
+<!-- `data-*` 属性都不是布尔属性 -->
+<p data-light={true}></p>
+<p data-light={false}></p>
+```
+
+Astro v5.0 现在在渲染非布尔属性的 HTML 时保留完整的数据属性及其值：
+
+```astro del={5,8,10} ins={6,9,11}
+<p allowfullscreen></p>
+<p></p>
+
+<p inherit="true"></p>
+<p inherit></p>
+<p inherit="false"></p>
+
+<p data-light></p>
+<p data-light="true"></p>
+<p></p>
+<p data-light="false"></p>
+```
+
+#### 我应该做什么？
+
+例如，如果你依赖属性值来定位元素或实现条件渲染，请更新代码以匹配新的非布尔属性值：
+
+```js del={1,4} ins={2,5}
+el.getAttribute('inherit') === ''
+el.getAttribute('inherit') === 'false'
+
+el.hasAttribute('data-light')
+el.dataset.light === 'true'
+```
+
+<ReadMore>阅读有关 [在 Astro 中使用 HTML 属性](/zh-cn/reference/astro-syntax/#动态属性) 的更多信息。</ReadMore>
+
+### 改动：向 `context.locals` 添加值
+
+<SourcePR number="11987" title="TODOs"/>
+
+在 Astro 4.x 中，添加新值时可以完全替换中间件、API 端点和页面中的整个 `locals` 对象。
+
+Astro 5.0 要求你将值添加到现有的 `locals` 对象而不删除它。中间件、API 端点和页面中的本地变量不能再被完全覆盖。
+
+#### 我应该做什么？
+
+那些之前覆盖对象的地方，现在必须为其赋值：
+
+```js title="src/middleware.js" del={1,5} ins={2,6}
+ctx.locals = {
+Object.assign(ctx.locals, {
+  one: 1,
+  two: 2
+}
+})
+```
+
+<ReadMore>阅读有关 [在 `context.locals` 中存储数据](/zh-cn/guides/middleware/#在-contextlocals-中存储数据) 的更多信息。</ReadMore>
+
+### 改动：`params` 不再被解码
+
+<SourcePR number="12079" title="decode pathname early, don't decode params"/>
+
+在 Astro v4.x 中，传递给 `getStaticPath()` 的 `params` 会使用 `decodeURIComponent` 自动解码。
+
+Astro v5.0 不再将传递给 `getStaticPaths` 的 `params` 解码。如果需要，你必须自己手动解码它们。
+
+#### 我应该做什么？
+
+如果你之前依赖自动解码，请在传递 `params` 时使用 `decodeURI`。
+
+```astro title="src/pages/[id].astro" del={4} ins={5}
+---
+export function getStaticPaths() {
+  return [
+    { params: { id: "%5Bpage%5D" } },
+    { params: { id: decodeURI("%5Bpage%5D") } },
+  ]
+}
+
+const { id } = Astro.params;
+---
+```
+
+请注意，我们不鼓励对 `getStaticPaths` 使用 [`decodeURIComponent`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/decodeURIComponent)，因为它解码的字符比应有的多，例如 `/`、`?`、`#` 等等。
+
+<ReadMore>阅读有关 [使用 `params` 创建动态路由](/zh-cn/guides/routing/#静态-ssg-模式) 的更多信息。</ReadMore>
+ 
+### 改动：`RouteData` 类型替换为 `IntegrationsRouteData`（集成 API）
+
+<SourcePR number="11864" title="send `IntegrationRouteData` to integrations"/>
+
+在 Astro v4.x 中，`astro:build:ssr` 和 `astro:build:done` 钩子内的 `entryPoints` 类型是 `RouteData`。
+
+Astro v5.0 的 `entryPoints` 类型现在是 `IntegrationRouteData`，其中包含 `RouteData` 类型的子集。字段 `isIndex` 和 `fallbackRoutes` 已被移除。
+
+#### 我应该做什么？
+
+更新你的适配器，将 `entryPoints` 的类型从 `RouteData` 更改为 `IntegrationRouteData`。
+
+```js del={1,4} ins={2,5}
+import type {RouteData} from 'astro';
+import type {IntegrationRouteData} from "astro"
+
+function useRoute(route: RouteData) {
+function useRoute(route: IntegrationRouteData) {
+}
+```
+
+<ReadMore>请参阅 [`IntegrationRouteData` 的 API 参考](/zh-cn/reference/integrations-reference/#integrationroutedata-类型参考)。</ReadMore>
+
+### 改动：`distURL` 现在是一个数组（集成 API）
+
+<SourcePR number="11864" title="send `IntegrationRouteData` to integrations"/>
+
+在 Astro v4.x 中，`RouteData.distURL` 是 `undefined` 或 `URL`。
+
+Astro v5.0 将 `IntegrationRouteData.distURL` 更新为 `undefined` 或一个包含 `URL` 的数组。这修复了之前的错误，因为一个路由可以在磁盘上生成多个文件，特别是在使用诸如 `[slug]` 或 `[...slug]` 等动态路由时。
+
+#### 我应该做什么？
+
+更新你的代码以将 `IntegrationRouteData.distURL` 作为数组处理。
+
+```js del={2-4} ins={5-9}
+if (route.distURL) {
+  if (route.distURL.endsWith('index.html')) {
+    // 做些什么
+  }
+  for (const url of route.distURL) {
+    if (url.endsWith('index.html')) {
+      // 做些什么
+    }
+  }
+}
+```
+
+<ReadMore>请参阅 [`IntegrationRouteData` 的 API 参考](/zh-cn/reference/integrations-reference/#integrationroutedata-类型参考)</ReadMore>
+
+### 改动：传递给 `app.render()` 的参数（适配器 API）
+
+<SourcePR number="11987" title="TODOs"/>
+
+在 Astro 4.x 中，适配器 API 方法 `app.render()` 可以接收三个参数：一个强制的 `request`、一个包含选项的对象或者一个 `routeData` 对象以及 `locals`。
+
+Astro 5.0 将最后两个参数组合成一个名为 `renderOptions` 的选项参数。
+
+#### 我应该做什么？
+
+将对象作为第二个参数传递给 `app.render()`，其中可以包含 `routeData` 和 `locals` 作为属性。
+
+```js del={1} ins={2}
+const response = await app.render(request, routeData, locals);
+const response = await app.render(request, {routeData, locals});
+```
+
+<ReadMore>请参阅 [适配器 API 参考中的 `renderOptions`](/zh-cn/reference/adapter-reference/#renderoptions)。</ReadMore>
+
+### 改动：`supportedAstroFeatures` 的属性（适配器 API）
+
+<SourcePR number="11806" title="rework supportedAstroFeatures"/>
+
+在 Astro 4.x 中，`supportedAstroFeatures` 允许适配器作者指定其集成支持哪些功能，其中包含一个 `assets` 属性来指定支持哪些 Astro 图​​像服务。
+
+Astro 5.0 将此属性替换为专用的 `sharpImageService` 属性，用于确定适配器是否与内置的 Sharp 图像服务兼容。
+
+v5.0 还为适配器的 `supportedAstroFeatures` 不同属性添加了新的 `limited` 值，这表明适配器与该功能兼容，但有一些限制。这对于支持某项功能的适配器很有效，但并非在所有情况下或对于所有选项都有效。
+
+此外，适配器的 `supportedAstroFeatures` 上不同属性的值，现在可以是具有 `support` 和 `message` 属性的对象。当适配器与某个功能不兼容时，`message` 属性的内容将在 Astro CLI 中显示提示消息。这对于新的 `limited` 值格外有效，可以向用户解释支持为何受限。
+
+#### 我应该做什么？
+
+如果你正在使用 `assets` 属性，请将其移除，因为它不再可用。要指定你的适配器支持内置的 Sharp 图像服务，请将其替换为 `sharpImageService`。
+
+你还可以考虑使用新的 `limited` 选项来更新支持的功能，并包含有关适配器支持的消息。
+
+```ts title="my-adapter.mjs" del={2-6} ins={7-10}
+supportedAstroFeatures: {
+  assets: {
+    supportKind: "stable",
+    isSharpCompatible: true,
+    isSquooshCompatible: true,
+  },
+  sharpImageService: {
+    support: "limited",
+    message: 'This adapter supports the built-in sharp image service, but with some limitations.'
+  }
+}
+```
+
+<ReadMore>了解有关在 [适配器中指定支持的 Astro 功能](/zh-cn/reference/adapter-reference/#astro-features)的更多信息。</ReadMore>
+
+### 移除：开发工具栏应用程序已弃用的定义结构（开发工具栏 API）
+
+<SourcePR number="11987" title="Remove deprecated dev toolbar app shape"/>
+
+在 Astro 4.x 中，构建开发工具栏应用程序时，仍然可以使用之前已弃用的 `addDevToolbarApp(string);` 签名。然后，通过应用程序 `entrypoint` 的默认导出，可以使用用于定义应用程序的 `id`、`title` 和 `icon` 属性。
+
+Astro 5.0 完全移除了这种选项，转而采用当前的对象结构来定义开发工具栏应用。这种方式更直观，并且可以让 Astro 在工具栏应用加载失败时提供更准确的错误信息。
+
+#### 我应该做什么？
+
+如果你之前使用了已弃用的结构，请将你的开发工具栏应用更新为使用新的结构：
+
+```js title="my-integration.mjs" del={1-2} ins={4-10}
+// 旧结构
+addDevToolbarApp("./my-dev-toolbar-app.mjs");
+
+// 新结构
+addDevToolbarApp({
+  id: "my-app",
+  name: "My App",
+  icon: "<svg>...</svg>",
+  entrypoint: "./my-dev-toolbar-app.mjs",
+});
+```
+
+```js title="my-dev-toolbar-app.mjs" del={2-4}
+export default {
+  id: 'my-dev-toolbar-app',
+  title: 'My Dev Toolbar App',
+  icon: '🚀',
+  init() {
+    // ...
+  }
+}
+```
+
+<ReadMore>阅读有关 [使用开发工具栏 API 为 Astro 开发工具栏应用程序](/zh-cn/reference/dev-toolbar-app-reference/) 的更多信息。</ReadMore>
+
+### `create-astro` 移除：在 `create-astro` 期间配置 Typescript
+
+<SourcePR number="12083" title="create-astro updates"/>
+
+在 Astro v4.x 中，创建新项目时使用 `create astro` 命令可以在 Astro 提供的三种 TypeScript 设置之间进行选择，方式是通过回答问题或传递与所需 TypeScript 设置有关的 `--typescript` 标志。
+
+Astro 5.0 更新了 `create astro` CLI 命令以移除 TypeScript 问题及其关联的 `--typescript` 标志。 "严格（strict）" 预设现在是使用命令行创建所有新项目的默认设置，此时无法再对其进行自定义。但是，仍然可以在 `tsconfig.json` 中手动更改 TypeScript 模板。
+
+#### 我应该做什么？
+
+如果你正在将 `--typescript` 标志与 `create-astro` 一起使用，请将其从命令中删除。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```diff lang=shell
+  -npm create astro@latest -- --template <example-name> --typescript strict
+  +npm create astro@latest -- --template <example-name>
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```diff lang=shell
+  -pnpm create astro@latest --template <example-name> --typescript strict
+  +pnpm create astro@latest --template <example-name>
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```diff lang=shell
+  -yarn create astro --template <example-name> --typescript strict
+  +yarn create astro --template <example-name>
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+<ReadMore>查看 [所有可用的 `create astro` 命令标志](https://github.com/withastro/astro/blob/main/packages/create-astro/README.md)。</ReadMore>
+
+## 社区资源
+
+发现了什么关于 Astro v5.0 的优秀资源吗？[编辑此页面](https://github.com/withastro/docs/edit/main/src/content/docs/zh-cn/guides/upgrade-to/v5.mdx) 并在下面添加链接！
+
+## 已知问题
+
+请查看 [GitHub 上的 Astro 的 issues](https://github.com/withastro/astro/issues/) 以了解任何已报告的问题，或自行提交问题。
