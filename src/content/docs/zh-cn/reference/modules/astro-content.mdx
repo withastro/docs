@@ -24,6 +24,7 @@ import {
   getEntry,
   getEntries,
   reference,
+  render,
  } from 'astro:content';
 ```
 
@@ -88,7 +89,7 @@ export const collections = { blog };
 <Since v="2.5.0" />
 </p>
 
-在内容配置中使用 `reference()` 函数来定义从一个集合到另一个集合的关系或 "引用"。该函数接受一个集合名称，并验证内容前置事项或数据文件中指定的条目标识符。
+在内容配置中使用 `reference()` 函数来定义从一个集合到另一个集合的关系或 "引用"。该函数接受一个集合名称，并在将引用转换为包含集合名称和引用 id 的对象之前，验证内容 `frontmatter` 或数据文件中指定的条目标识符。
 
 此示例定义了从博客作者到 "作者 "集合的引用，以及到同一 "博客 "集合的相关文章数组的引用：
 
@@ -185,7 +186,7 @@ const enterpriseCaptainProfile = await getEntry(enterprisePost.data.captain);
 
 ```astro
 ---
-import { getEntries } from 'astro:content';
+import { getEntries, getEntry } from 'astro:content';
 
 const enterprisePost = await getEntry('blog', 'enterprise');
 
@@ -198,7 +199,7 @@ const enterpriseRelatedPosts = await getEntries(enterprisePost.data.relatedPosts
 
 <p>
 
-**类型：** `() => Promise<RenderedEntry>`
+**类型：** `(entry: CollectionEntry) => Promise<RenderedEntry>`
 <Since v="5.0.0" />
 </p>
 
@@ -279,13 +280,15 @@ import type { CollectionEntry } from 'astro:content';
 
 <p><Since v="3.1.0" /></p>
 
-这是一个在 `src/content.config.*` 文件中定义的所有集合名称的字符串联合类型。当定义一个可以接受任何集合名称的通用函数时，这个类型很有用。
+这是一个在 `src/content.config.*` 文件中定义的所有集合名称的字符串联合类型。当定义一个封装内置 `getCollection()` 的通用函数时，这个类型很有用。
 
 ```ts
 import { type CollectionKey, getCollection } from 'astro:content';
 
-async function getCollection(collection: CollectionKey) {
-  return getCollection(collection);
+async function queryCollection(collection: CollectionKey) {
+  return getCollection(collection, ({ data }) => {
+    return data.draft !== true;
+  });
 }
 ```
 
@@ -298,7 +301,7 @@ async function getCollection(collection: CollectionKey) {
 - `image` - `image()` schema 辅助工具允许你 [在内容集合中使用本地图片](/zh-cn/guides/images/#内容集合中的图像)。
 
 ```ts
-import type { SchemaContext } from 'astro:content';
+import { defineCollection, z, type SchemaContext } from "astro:content";
 
 export const imageSchema = ({ image }: SchemaContext) =>
     z.object({
