@@ -163,7 +163,7 @@ function getCommentProperties(comment) {
 		// JSDoc represents types like objects and arrays using an old Closure-style notation,
 		// e.g. `Array.<string>` or `Record.<string, string>`. This `replace()` removes the `.` to match
 		// the notation used for TypeScript-style generics.
-		?.replace('.<', '<');
+		?.replaceAll('.<', '<');
 
 	const properties = [
 		typesFormatted ? `**Type:** \`${typesFormatted}\`` : undefined,
