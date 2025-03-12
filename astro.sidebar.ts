@@ -136,6 +136,7 @@ export const sidebar = [
 					'reference/experimental-flags/content-intellisense',
 					'reference/experimental-flags/sessions',
 					'reference/experimental-flags/serialized-configuration',
+					'reference/experimental-flags/heading-id-compat',
 				],
 			}),
 			'reference/legacy-flags',
