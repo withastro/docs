@@ -443,10 +443,10 @@ const isProtocolMatch3 = matchProtocol(testURL1);
 console.log(`Does the protocol match (no protocol specified)? ${isProtocolMatch3}`); // Output: true
 ```
 
-### `isESMImportedImage`
+### `isESMImportedImage()`
 
 <p>
-  **Type:** `(src: ImageMetadata | string): src is ImageMetadata`<br />
+  **Type:** `(src: ImageMetadata | string): boolean`<br />
   <Since v="4.0.0" />
 </p>
 
@@ -477,7 +477,7 @@ console.log(`Is filePathExample an ESM imported image? ${isFilePathImage}`); // 
 ### `isRemoteImage()`
 
 <p>
-  **Type:** `(src: ImageMetadata | string): src is string`<br />
+  **Type:** `(src: ImageMetadata | string): boolean`<br />
   <Since v="4.0.0" />
 </p>
 
@@ -511,39 +511,27 @@ console.log(`Is localImageMetadata a remote image? ${isRemote2}`); // Output: fa
   <Since v="4.0.0" />
 </p>
 
-Resolves the source of an image transformation by handling asynchronous or synchronous inputs.
+Returns the image source. This function ensures that if `src` is a Promise (e.g., a dynamic `import()`), it is awaited and the correct `src` is extracted. If `src` is already a resolved value, it is returned as-is.
 
 ```ts
 import {resolveSrc} from 'astro/assets/utils';
+import localImage from "./images/photo.jpg";
 
-// Example usage of resolveSrc with a local image
-const localImage = {
-  src: '/images/photo.jpg',
-  width: 800,
-  height: 600,
-  format: 'jpg',
-};
+const resolvedLocal = await resolveSrc(localImage);
+// will be `{ src: '/images/photo.jpg', width: 800, height: 600, format: 'jpg' }`
 
-const remoteImage = 'https://example.com/images/photo.jpg';
+const resolvedRemote = await resolveSrc("https://example.com/remote-img.jpg");
+// will be `"https://example.com/remote-img.jpg"`
 
-async function exampleResolveSrc() {
-  // Resolve a local image
-  const resolvedLocal = await resolveSrc(localImage);
-  console.log(`Resolved local image source:`, resolvedLocal);
-  
-  // Resolve a remote image URL
-  const resolvedRemote = await resolveSrc(remoteImage);
-  console.log(`Resolved remote image source:`, resolvedRemote);
-  }
-
-await exampleResolveSrc();
+const resolvedDynamic = await resolveSrc(import("./images/dynamic-image.jpg"))
+// will be `{ src: '/images/dynamic-image.jpg', width: 800, height: 600, format: 'jpg' }`
 ```
 
 
 ### `imageMetadata()`
 
 <p>
-  **Type:** `(data: Uint8Array, src?: string): Promise<Omit<ImageMetadata, 'src' | 'fsPath'>`<br />
+  **Type:** `(data: Uint8Array, src?: string): Promise<Omit<ImageMetadata, 'src' | 'fsPath'>>`<br />
   <Since v="4.0.0" />
 </p>
 
@@ -587,7 +575,7 @@ await extractImageMetadata();
 </p>
 
 
-Processes an image file and emits its metadata and optionally its contents. This function supports both build and development modes.
+Processes an image file and emits its metadata and optionally its contents. In build mode, the function uses `fileEmitter` to generate an asset reference. In development mode, it resolves to a local file URL with query parameters for metadata.
 
 ```ts
 
@@ -624,14 +612,12 @@ await processImage();
 ### `getOrigQueryParams()`
 
 <p>
-  **Type:** `(params: URLSearchParams): Pick<ImageMetadata, 'width' | 'height' | 'format'> | undefined>`<br />
+  **Type:** `(params: URLSearchParams): Pick<ImageMetadata, 'width' | 'height' | 'format'> | undefined`<br />
   <Since v="4.0.0" />
 </p>
 
 
-Extracts the original image query parameters (width, height, format) from the given `URLSearchParams` object and returns them as an object. If any of the required parameters are missing or invalid, the function returns undefined.
- 
-The `width` and `height` are parsed to integer values.
+Retrieves the `width`, `height`, and `format` of an image from a [`URLSearchParams` object](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams). If any of these parameters are missing or invalid, the function returns `undefined`.
 
 ```ts
 
@@ -699,7 +685,7 @@ await getRemoteImageSize();
 </p>
 
 
-Converts a file path and transformation properties of the transformation image service, into a formatted filename.
+Generates a formatted filename for an image based on its source path, transformation properties, and a unique hash.
 
 The formatted filename follows this structure:
 
@@ -709,12 +695,6 @@ The formatted filename follows this structure:
 - `baseFilename`: The base name of the file or a hashed short name if the file is a `data:` URI.
 - `hash`: A unique hash string generated to distinguish the transformed file.
 - `outputExtension`: The desired output file extension derived from the `transform.format` or the original file extension.
-
-## Example
-
-- Input: `filePath = '/images/photo.jpg'`, `transform = { format: 'png', src: '/images/photo.jpg' }`, `hash = 'abcd1234'`.
-- Output: `/images/photo_abcd1234.png`
-
 
 ```ts
 import { propsToFilename } from 'astro/assets/utils';
