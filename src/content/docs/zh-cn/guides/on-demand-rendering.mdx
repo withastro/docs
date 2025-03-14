@@ -1,0 +1,288 @@
+---
+title: 按需渲染
+description: 使用适配器按需生成服务端渲染的页面和路由。
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+import RecipeLinks from '~/components/RecipeLinks.astro';
+import IntegrationsNav from '~/components/IntegrationsNav.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+你的 Astro 项目代码必须经过**渲染**生成 HTML 才能在网页上显示。
+
+默认情况下，Astro 的页面、路由和 API 端点会在构建时预先渲染为静态页面。但你可以选择让部分或全部路由在请求时由服务器进行按需渲染。
+
+按需渲染的页面和路由会在每次访问时生成，并可为每个访客定制内容。例如，按需渲染的页面可以向已登录用户显示账户信息或展示实时更新的数据，而无需重新构建整个网站。
+
+在请求时由服务端进行的按需渲染也被称为**服务端渲染 (SSR)**。
+
+## 服务器适配器
+
+要实现页面按需渲染，需要添加**适配器**。每个适配器允许 Astro 输出可在特定**运行时环境**运行的脚本（如 Netlify、Cloudflare），这些环境会在服务器上执行代码以响应请求生成页面。
+
+即使你的站点完全静态且不需要按需渲染任何页面，也建议添加适配器。例如，[Netlify 适配器](/zh-cn/guides/integrations-guide/netlify/)可启用 Netlify 的图片 CDN，而[服务端群岛](/zh-cn/guides/server-islands/)需要安装适配器才能在组件上使用 `server:defer`。
+
+<IntegrationsNav category="adapter"/>
+
+Astro 为 [Node.js](https://nodejs.org/)、[Netlify](https://www.netlify.com/)、[Vercel](https://vercel.com/) 和 [Cloudflare](https://www.cloudflare.com/) 维护官方适配器。你可以在[集成目录](https://astro.build/integrations/?search=&categories%5B%5D=adapters)找到官方和社区适配器，选择与你[部署环境](/zh-cn/guides/deploy/)匹配的适配器。
+
+### 添加适配器
+
+使用以下 `astro add` 命令可添加任何由 Astro 维护的[官方适配器集成](/zh-cn/guides/integrations-guide/#官方集成)。该命令将自动安装适配器并修改 `astro.config.mjs` 文件。
+
+例如，安装 Netlify 适配器可运行：
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add netlify
+  ```
+</Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add netlify
+  ```
+</Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add netlify
+  ```
+</Fragment>
+</PackageManagerTabs>
+
+你也可以[手动安装 NPM 包](/zh-cn/guides/integrations-guide/#安装-npm-包)（如 `@astrojs/netlify`）并自行修改 `astro.config.mjs`。
+
+注意不同适配器可能有不同的配置选项。请阅读各适配器文档，并在 `astro.config.mjs` 中为所选适配器应用必要的配置。
+
+## 启用按需渲染
+
+**默认情况下，整个 Astro 站点将预先生成静态 HTML 页面**。但你可以选择在需要服务端渲染的路由（如需要检查 cookie 显示个性化内容的页面）上禁用预渲染。
+
+首先，[添加适配器集成](#添加适配器)以在 Astro 项目中启用服务端按需渲染。
+
+然后在需要按需渲染的页面或端点顶部添加 `export const prerender = false`，其余页面仍保持静态：
+
+```astro title="src/pages/page-rendered-on-demand.astro" ins={2}
+---
+export const prerender = false
+---
+<html>
+<!--
+此内容将按需服务端渲染！
+只需为服务器运行时添加适配器集成！
+其他所有页面仍会在构建时静态生成！
+-->
+<html>
+```
+
+以下示例通过禁用预渲染，使端点每次被访问时生成随机数：
+
+```js title="src/pages/randomnumber.js" ins={1}
+export const prerender = false;
+
+export async function GET() {
+  let number = Math.random();
+  return new Response(
+    JSON.stringify({
+      number,
+      message: `这是一个随机数：${number}`,
+    }),
+  );
+}
+```
+
+### `'server'` 模式
+
+对于**高度动态(highly dynamic app)的应用**，在添加适配器后，可以[将构建输出配置设为 `output: 'server'`](/zh-cn/reference/configuration-reference/#output) 来**默认按需服务端渲染所有页面**。这等同于在所有页面上禁用预渲染。
+
+然后，你可以选择对不需要服务端执行的页面（如隐私政策、关于页面）启用预渲染：
+
+```astro title="src/pages/about-my-app.astro" ins={2}
+---
+export const prerender = true
+---
+<html>
+<!--
+配置了 `output: 'server'`，但此页面是静态的！
+站点其余部分将按需渲染！
+-->
+<html>
+```
+
+通过向任意页面或路由添加 `export const prerender = true` 可预渲染静态页面或端点：
+
+```js title="src/pages/myendpoint.js" ins={1}
+export const prerender = true;
+
+export async function GET() {
+  return new Response(
+    JSON.stringify({
+      message: `这是静态端点`,
+    }),
+  );
+}
+```
+
+:::tip
+建议从默认的 `'static'` 模式开始，直到确定**大部分或全部**页面需要按需渲染！这能确保站点保持最佳性能，静态内容无需依赖服务端渲染。
+
+`'server'` 输出模式不会带来额外功能，仅切换默认渲染行为。
+:::
+
+<ReadMore>查看配置参考中关于 [`output` 设置](/zh-cn/reference/configuration-reference/#output)的更多信息。</ReadMore>
+
+## 按需渲染特性
+
+### HTML 流式传输
+
+通过 HTML 流式传输，文档会被拆分为多个片段按顺序发送，并在浏览器中按序渲染。Astro 在按需渲染中使用此技术，逐个组件发送到浏览器。这能确保用户尽快看到内容，但网络状况可能导致大文档加载缓慢，数据获取也可能阻塞页面渲染。
+
+<RecipeLinks slugs={["zh-cn/recipes/streaming-improve-page-performance"]}/>
+
+:::caution
+修改[响应标头](https://developer.mozilla.org/zh-CN/docs/Glossary/Response_header)的功能仅能在**页面级别**使用（无法在组件中使用，包括布局组件）。当 Astro 执行你的组件代码时，响应头已经被发送，无法再进行修改。
+:::
+
+### Cookies
+
+按需渲染的页面或 API 端点可以检查、设置、获取和删除 cookie。
+
+以下示例更新页面访问计数器的 cookie 值：
+
+```astro title="src/pages/index.astro" {6,7,12}
+---
+export const prerender = false; // 'server' 模式下无需此设置
+
+let counter = 0
+
+if (Astro.cookies.has('counter')) {
+  const cookie = Astro.cookies.get('counter')
+  const value = cookie?.number()
+  if (value !== undefined && !isNaN(value)) counter = value + 1
+}
+
+Astro.cookies.set('counter', String(counter))
+---
+<html>
+<h1>计数器 = {counter}</h1>
+</html>
+```
+
+更多关于 [`Astro.cookies` 和 `AstroCookie` 类型](/zh-cn/reference/api-reference/#cookies)的细节请参阅 API 参考。
+
+### `Response`
+
+[`Astro.response`](/zh-cn/reference/api-reference/#response) 是标准的 [`ResponseInit`](https://developer.mozilla.org/en-US/docs/Web/API/Response/Response#options) 对象，可用于设置响应状态和标头。
+
+以下示例在产品不存在时为产品页面设置响应状态和状态文本：
+
+```astro title="src/pages/product/[id].astro" {10,11}
+---
+export const prerender = false; // 'server' 模式下无需此设置
+
+import { getProduct } from '../api';
+
+const product = await getProduct(Astro.params.id);
+
+// 未找到产品
+if (!product) {
+  Astro.response.status = 404;
+  Astro.response.statusText = 'Not found';
+}
+---
+<html>
+<!-- 页面内容... -->
+</html>
+```
+
+#### `Astro.response.headers`
+
+可以通过 `Astro.response.headers` 对象设置响应头：
+
+```astro title="src/pages/index.astro" {4}
+---
+export const prerender = false; // 'server' 模式下无需此设置
+
+Astro.response.headers.set('Cache-Control', 'public, max-age=3600');
+---
+<html>
+<!-- 页面内容... -->
+</html>
+```
+
+#### 返回 `Response` 对象
+
+在按需渲染的页面中，可以直接返回 [Response](https://developer.mozilla.org/zh-CN/docs/Web/API/Response) 对象，或使用 [`Astro.redirect`](/zh-cn/reference/api-reference/#redirect) 进行重定向。
+
+以下示例在动态页面中查找数据库中的 ID，如果产品不存在则返回 404，如果产品不再可用则重定向用户到其他页面，或者显示产品信息：
+
+```astro title="src/pages/product/[id].astro" {10-13, 18}
+---
+export const prerender = false; // 'server' 模式下无需此设置
+
+import { getProduct } from '../api';
+
+const product = await getProduct(Astro.params.id);
+
+// 未找到产品
+if (!product) {
+  return new Response(null, {
+  status: 404,
+  statusText: '未找到'
+});
+}
+
+// 产品不再可用
+if (!product.isAvailable) {
+  return Astro.redirect("/products", 301);
+}
+---
+<html>
+<!-- 页面内容... -->
+</html>
+```
+
+### `Request`
+
+`Astro.request` 是标准的 [Request](https://developer.mozilla.org/zh-CN/docs/Web/API/Request) 对象，可用于获取 `url`、`headers`、`method` 甚至请求的 `body`。
+
+在非静态生成的页面中，可以通过该对象获取额外信息。
+
+#### `Astro.request.headers`
+
+请求标头可通过 `Astro.request.headers` 获取，其行为与浏览器的 [`Request.headers`](https://developer.mozilla.org/zh-CN/docs/Web/API/Request/headers) 一致。这是一个 [Headers](https://developer.mozilla.org/zh-CN/docs/Web/API/Headers) 对象，可用来获取 cookie 等标头信息。
+
+```astro title="src/pages/index.astro" {4}
+---
+export const prerender = false; // 'server' 模式下无需此设置
+
+const cookie = Astro.request.headers.get('cookie');
+// ...
+---
+<html>
+<!-- 页面内容... -->
+</html>
+```
+
+#### `Astro.request.method`
+
+请求的 HTTP 方法可通过 `Astro.request.method` 获取，其行为与浏览器的 [`Request.method`](https://developer.mozilla.org/zh-CN/docs/Web/API/Request/method) 一致。它返回请求中使用的 HTTP 方法的字符串表示。
+
+```astro title="src/pages/index.astro" {4}
+---
+export const prerender = false; // 'server' 模式下无需此设置
+
+console.log(Astro.request.method) // GET（浏览器访问时）
+---
+```
+
+更多关于 [`Astro.request`](/zh-cn/reference/api-reference/#request) 的细节请参阅 API 参考。
+
+### 服务器端点
+
+服务器端点（也称 **API 路由**）是位于 `src/pages/` 目录下 `.js` 或 `.ts` 文件中导出的特殊函数。作为服务端按需渲染的强大特性，API 路由能安全地在服务端执行代码。
+
+该函数接收[端点上下文](/zh-cn/reference/api-reference/)并返回 [Response](https://developer.mozilla.org/zh-CN/docs/Web/API/Response) 对象。
+
+更多信息请参阅[端点指南](/zh-cn/guides/endpoints/#服务器端点api-路由)。

@@ -1,0 +1,331 @@
+---
+title: 路由参考
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 4
+---
+import Since from '~/components/Since.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+Astro 中没有单独的路由配置。
+
+每个位于特殊 `src/pages/` 目录中的 [支持的页面文件](/zh-cn/basics/astro-pages/#支持的页面文件) 都会创建一条路由。当文件名包含 [params](#params) 时，路由可以动态创建多个页面，否则创建单个页面。
+
+默认情况下，所有 Astro 页面路由和端点都是在构建时生成和预渲染的。可以为单独的路由设置 [按需服务器渲染](/zh-cn/guides/on-demand-rendering/)，也可以将其设置为默认值。
+
+## `prerender`
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** 静态模式下为 `true`（默认）；配置 `output: 'server'` 后为 `false`<br />
+<Since v="1.0.0" />
+</p>
+
+从每个单独路由导出的值，用以确定它是否被预渲染。
+
+默认情况下，所有页面和端点都是预渲染的，并将在构建时静态生成。你可以选择在一条或多条路由上禁用预渲染，而且你可以在同一项目中同时拥有静态和按需渲染的路由。
+
+### 每页覆盖
+
+你可以通过从该文件中导出 `prerender` 值为 `false` 的方式来覆盖默认值，以启用单个路由的 [按需渲染](/zh-cn/guides/on-demand-rendering/)：
+
+```astro title="src/pages/rendered-on-demand.astro" {2}
+---
+export const prerender = false
+---
+<!-- 服务器渲染的内容 -->
+<!-- 网站的其余部分是静态的 -->
+```
+
+### 切换到 `server` 模式
+
+你可以通过为所有路由配置 [`output: 'server'`](/zh-cn/reference/configuration-reference/#output) 来覆盖默认值。在该输出模式下，所有的页面和端点将默认根据请求在服务器上生成，而不是预渲染。
+
+在 `server` 模式下，可以通过从该文件中将 `prerender` 的值设置为 `true` 导出，来启用对于单个路由的预渲染：
+
+```astro title="src/pages/static-about-page.astro" {3}
+---
+// 配置为 `output: 'server'`
+export const prerender = true
+---
+<!-- 静态的关于页面 -->
+<!-- 所有其他页面均按需呈现 -->
+```
+
+## `partial`
+
+<p>
+
+**类型：** `boolean` <br />
+**默认值：** `false` <br />
+<Since v="3.4.0" />
+</p>
+
+从单个路由导出的值，用于确定是否应将其渲染为完整的 HTML 页面。
+
+默认情况下，位于保留的 `src/pages/` 目录中的所有文件都会自动包含 `<!DOCTYPE html>` 声明和附加的 `<head>` 内容，例如 Astro 的作用域样式和脚本。
+
+你可以通过从该文件中导出 `partial` 的值来覆盖默认值，从而将内容指定为单个路由的 [局部页面](/zh-cn/basics/astro-pages/#局部页面)：
+
+```astro title="src/pages/my-page-partial.astro" {2}
+---
+export const partial = true
+---
+<!-- 生成的 HTML 可通过 URL 获取 -->
+<!-- 可用于渲染中的库 -->
+```
+
+`export const partial` 必须是静态可识别的。它可以具有以下值：
+
+- 布尔值 __`true`__。
+- 使用 import.meta.env 的环境变量，例如 `import.meta.env.USE_PARTIALS`。
+
+## `getStaticPaths()`
+
+<p>
+**类型：** `(options: GetStaticPathsOptions) => Promise<GetStaticPathsResult> | GetStaticPathsResult` <br />
+<Since v="1.0.0" />
+</p>
+
+一个从单个 `.astro` 页面组件生成多个预渲染页面路由的函数，其文件路径中包含一个或多个 [参数](#params)。将其用于将在构建时创建的路由，也称为静态站点构建。
+
+`getStaticPaths()` 函数必须返回一个对象数组，以确定 Astro 将预渲染哪些 URL 路径。每个对象必须包含一个 `params` 对象，以指定路由路径。该对象可以选择包含一个 `props` 对象，其中包含每个页面模板要 [传入到的数据](#通过-props-传递数据)。
+
+```astro title="src/pages/blog/[post].astro" "post"
+---
+// 在 'server' 模式下，选用预渲染：
+// export const prerender = true
+
+export async function getStaticPaths() {
+  return [
+    // { params: { /* 必要项 */ }, props: { /* 可选项 */ } },
+    { params: { post: '1' } }, // [post] 为参数
+    { params: { post: '2' } }, // 必须匹配文件名称
+    // ...
+  ];
+}
+---
+<!-- 你的 HTML 模板在这里。 -->
+```
+
+`getStaticPaths()` 也可以在静态文件端点中用于 [动态路由](/zh-cn/guides/endpoints/#params-和动态路由)。
+
+:::tip
+使用 TypeScript 时，请使用 [`GetStaticPaths`](/zh-cn/guides/typescript/#推断-getstaticpaths-的类型) 类型工具来确保对 `params` 和 `props` 进行类型安全的获取。
+:::
+
+:::caution
+`getStaticPaths()` 函数会在任何页面加载之前，在它自己的隔离范围内执行一次。因此，除了文件导入之外，你不能从它的父作用域中引用任何东西。如果你违反了这个要求，编译器会发出警告。
+:::
+
+### `params`
+
+`getStaticPaths()` 会返回的一个对象数组，每个对象中的 `params` 键都会告诉 Astro 要构建什么路由。
+
+每个 `params` 对象中的键必须与组件文件路径中定义的参数相匹配，而每个 `params` 对象的值必须与页面名称中使用的参数相匹配。`params` 会被编码到 URL 中，因此仅支持字符串作为值。
+
+例如，`src/pages/posts/[id].astro` 在其文件名中包含 `id` 参数。则该 `.astro` 组件中的以下 `getStaticPaths()` 函数就会告诉 Astro 在构建时静态生成 `posts/1`、`posts/2` 和 `posts/3`。
+
+```astro title="src/pages/posts/[id].astro"
+---
+export async function getStaticPaths() {
+  return [
+    { params: { id: '1' } },
+    { params: { id: '2' } },
+    { params: { id: '3' } }
+  ];
+}
+
+const { id } = Astro.params;
+---
+<h1>{id}</h1>
+```
+
+### 通过 `props` 传递数据
+
+要将附加的数据传递到每个生成的页面中，你可以在 `getStaticPaths()` 返回的数组中的每个对象上添加一个 `prop` 值。不同于 `params`，`props` 不会编码到 URL 中，因此不仅限于字符串。
+
+例如，如果你使用从远程 API 获取的数据生成页面，则可以将完整的数据对象传递给 `getStaticPaths()` 内部的页面组件。页面模板可以使用 `Astro.props` 引用每个帖子的数据。
+
+```astro title="src/pages/posts/[id].astro" {8}
+---
+export async function getStaticPaths() {
+  const data = await fetch('...').then(response => response.json());
+
+  return data.map((post) => {
+    return {
+      params: { id: post.id },
+      props: { post },
+    };
+  });
+}
+
+const { id } = Astro.params;
+const { post } = Astro.props;
+---
+<h1>{id}: {post.name}</h1>
+```
+
+### `paginate()`
+
+<p>
+
+<Since v="1.0.0" />
+</p>
+
+一个可以从 [`getStaticPaths()`](#getstaticpaths) 中返回的函数，用于将内容集合项划分为单独的页面。
+
+`paginate()` 将自动生成从 `getStaticPaths()` 返回所需的数组，以便为​​分页集合的每一页创建一个 URL。页码将作为 `param` 传递，页面数据将作为 `page` 属性传递。
+
+以下示例获取 150 个条目并将其传递给 `paginate` 函数，并在构建时创建静态预渲染页面，每页显示 10 个条目：
+
+```astro title="src/pages/pokemon/[page].astro"
+---
+export async function getStaticPaths({ paginate }) {
+  // 使用 fetch()、getCollection() 等加载数据。
+  const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=150`);
+  const result = await response.json();
+  const allPokemon = result.results;
+
+  // 返回所有条目的分页路径集合
+  return paginate(allPokemon, { pageSize: 10 });
+}
+
+const { page } = Astro.props;
+---
+```
+
+`paginate()` 函数具有以下参数：
+- `data` - 数组，包含了传递给 `paginate()` 函数的页面数据的数组
+- `options` - 具有以下属性的可选对象：
+  - `pageSize` - 每页显示的条目数（默认为 `10`）
+  - `params` - 用于创建动态路由的附加参数
+  - `props` - 在每个页面上可用的附加属性
+
+`paginate()` 假定文件名为 `[page].astro` 或 `[...page].astro`。`page` 参数将是链接中的页数。
+
+- `/posts/[page].astro` 会生成 `/posts/1`、`/posts/2`、`/posts/3` 等链接。
+- `/posts/[...page].astro` 会生成 `/posts`、`/posts/2` `/posts/3` 等链接。
+
+#### `page` 分页参数
+
+<p>
+
+**类型：** `Page<TData>`
+</p>
+
+分页会给每个渲染的页面传递 `page` 参数，代表分页集合中的单页数据。这包括你分页的数据（`page.data`）以及该页的元数据（`page.url`、`page.start`、`page.end`、`page.total` 等）。这些元数据对诸如 “下一页” 按钮或 “显示 100 个中的前 10 个” 的信息很有用。
+
+##### `page.data`
+
+<p>
+
+**类型：** `Array<TData>`
+</p>
+
+从 `paginate()` 函数中返回当前页面数据的数组。
+
+##### `page.start`
+
+<p>
+
+**类型：** `number`
+</p>
+
+当前页第一个条目的索引，从 `0` 开始（例如，如果 `pageSize: 25`，第一页该值为 `0`，第二页为 `25`，依此类推）。
+
+##### `page.end`
+
+<p>
+
+**类型：** `number`
+</p>
+
+当前页面最后一个条目的索引。
+
+##### `page.size`
+
+<p>
+
+**类型：** `number`<br />
+**默认值：** `10`
+</p>
+
+每个页面有多少个条目。
+
+##### `page.total`
+
+<p>
+
+**类型：** `number`
+</p>
+
+所有条目的总数量。
+
+##### `page.currentPage`
+
+<p>
+
+**类型：** `number`
+</p>
+
+当前页码，从 `1` 开始。
+
+##### `page.lastPage`
+
+<p>
+
+**类型：** `number`
+</p>
+
+总页数。
+
+##### `page.url.current`
+
+<p>
+
+**类型：** `string`
+</p>
+
+获取当前页面的链接（对规范链接很有用）。如果为 [`base`](/zh-cn/reference/configuration-reference/#base) 设置了值，则 URL 将以该值开头。
+
+##### `page.url.prev`
+
+<p>
+
+**类型：** `string | undefined`
+</p>
+
+获取上一页链接（如果已经在首页，将是 `undefined`）。如果为 [`base`](/zh-cn/reference/configuration-reference/#base) 设置了值，那么需要将 base 路径拼接到链接前面。
+
+##### `page.url.next`
+
+<p>
+
+**类型：** `string | undefined`
+</p>
+
+获取下一页链接（如果已经在最后一页，将是 `undefined`）。如果为 [`base`](/zh-cn/reference/configuration-reference/#base) 设置了值，那么需要将 base 路径拼接到链接前面。
+
+##### `page.url.first`
+
+<p>
+
+**类型：** `string | undefined`<br />
+<Since v="4.12.0" />
+</p>
+
+获取第一页链接（如果已经在首页，将是 `undefined`）。如果为 [`base`](/zh-cn/reference/configuration-reference/#base) 设置了值，那么需要将 base 路径拼接到链接前面。
+
+##### `page.url.last`
+
+<p>
+
+**类型：** `string | undefined`<br />
+<Since v="4.12.0" />
+</p>
+
+获取最后一页链接（如果已经在最后一页，将是 `undefined`）。如果为 [`base`](/zh-cn/reference/configuration-reference/#base) 设置了值，那么需要将 base 路径拼接到链接前面。

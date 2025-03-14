@@ -10,8 +10,8 @@ import ReadMore from '~/components/ReadMore.astro';
 
 <p>
 
-**Type:** `SessionConfig`<br />
-**Default:** `undefined`<br />
+**Type:** `boolean`<br />
+**Default:** `false`<br />
 
 <Since v="5.1.0" />
 </p>
@@ -22,75 +22,147 @@ This experimental feature allows you to store and access items such as login sta
 
 ```astro title="src/components/CartButton.astro" {3}
 ---
-export const prerender = false; // Not needed in 'server' mode
+export const prerender = false; // Not needed with 'server' output
 const cart = await Astro.session.get('cart');
 ---
 
 <a href="/checkout">🛒 {cart?.length ?? 0} items</a>
 ```
 
-Sessions rely on a [configurable session `driver`](#enabling-experimental-sessions) to store data on the `session` object. A [session cookie](#cookies) stores an identifying session ID.
+Sessions rely on a [configurable session `driver`](#enabling-experimental-sessions) to store data on the `session` object. A [session cookie](#sessioncookie) stores an identifying session ID.
 
 The [`session` object](#sessions-api) allows you to interact with the stored user state (e.g. add items to a shopping cart) and the session ID (e.g. delete the session ID cookie when logging out).
 
 ## Enabling experimental sessions
 
-In this early release of `experimental.sessions`, Astro's official server adapters have not yet been updated to provide a default session driver based on the platform's default storage feature. Until these are built in, you will have to specify a `driver` yourself in the `experimental.sessions` configuration object in addition to [adding an adapter](/en/guides/on-demand-rendering/#add-an-adapter).
-
-The following sections show the recommended drivers for each adapter. (These will be automatically configured for you in the stable release of this feature.) Alternatively, you can specify [any supported driver from unstorage](https://unstorage.unjs.io/drivers/). 
-
-### Configuring sessions with the Node adapter
-
-The Node adapter is compatible with the the [filesystem driver](https://unstorage.unjs.io/drivers/fs). Note that this cannot be used in serverless environments as they have no shared filesystem.
+To enable sessions, set the `experimental.session` flag to `true`. Sessions only work on pages with on-demand rendering, so you need to [install an adapter](/en/guides/on-demand-rendering/#add-an-adapter) that supports on-demand rendering, and ensure that any pages that use sessions are set to `prerender: false`, or `output` is set to `server` in the Astro config.
 
 ```js title="astro.config.mjs" ins={6}
-	{
-    adapter: node({ mode: 'standalone' }),
-		experimental: {
-      session: {
-        // Required: the name of the unstorage driver
-        driver: "fs",
-      },
-    },
-	}
-```
-
-### Configuring a session driver for other adapters
-
-Choose the [unstorage `driver` name](https://unstorage.unjs.io/drivers/) that corresponds to the storage feature provided by your hosting platform, such as the [Netlify Blobs driver (`netlify-blobs`)](https://unstorage.unjs.io/drivers/netlify), the [Cloudflare KV driver (`cloudflare-kv-binding`)](https://unstorage.unjs.io/drivers/cloudflare) or the [Deno KV driver (`deno-kv`)](https://unstorage.unjs.io/drivers/deno). You can also use a cross-platform driver such as [Upstash](https://unstorage.unjs.io/drivers/upstash) or [Redis](https://unstorage.unjs.io/drivers/redis).
-
-:::note
-Some drivers may need extra packages to be installed. For example, the `netlify-blobs` driver requires the `@netlify/blobs` package, and Upstash requires the `@upstash/redis` package. Some drivers may also require environment variables or credentials to be set.
-
-<ReadMore>See [the unstorage driver docs](https://unstorage.unjs.io/drivers) for more information.</ReadMore>
-:::
-
-### Driver options
-
-You can also pass any available options to the unstorage driver in a separate `session.options` object. The following example configures the [Netlify Blobs](https://unstorage.unjs.io/drivers/netlify) driver while also providing a `name` and specifying a `consistency` mode:
-
-```js title="astro.config.mjs" ins={7-11}
   {
-    adapter: netlify(),
+    adapter: node({
+      mode: "standalone",
+    }),
     experimental: {
-      session: {
-        // The name of the unstorage driver is kebab-case
-        driver: "netlify-blobs",
-        options: {
-          name: 'astro-sessions',
-          // Sessions need strong consistency
-          consistency: 'strong',
-        }
-      },
+      session: true,
     },
   }
 ```
 
+Sessions require a storage driver to store the session data. The Node and Netlify adapters automatically configure a default driver for you, but other adapters currently require you to [specify a driver manually](#configuring-a-session-driver). You can use [any supported driver from unstorage](https://unstorage.unjs.io/drivers/).
+
+### Configuring a session driver
+
+If you are using an adapter that doesn't have a default driver, or if you want to choose a different driver, you can configure it using the `session` configuration option:
+
+```js title="astro.config.mjs" ins={4}
+  {
+    adapter: vercel(),
+    session: {
+      driver: "upstash",
+    },
+    experimental: {
+      session: true,
+    },
+  }
+```
+
+Configure `session.driver` with the unstorage `driver` name that corresponds to the storage feature provided by your hosting platform, such as the [Cloudflare KV driver](https://unstorage.unjs.io/drivers/cloudflare) or the [Deno KV driver](https://unstorage.unjs.io/drivers/deno). You can also use a cross-platform driver such as [Upstash](https://unstorage.unjs.io/drivers/upstash) or [Redis](https://unstorage.unjs.io/drivers/redis).
+
+:::note
+Some drivers may need extra packages to be installed. For example, Upstash requires the `@upstash/redis` package. Some drivers may also require environment variables or credentials to be set.
+
+<ReadMore>
+  See [the unstorage driver docs](https://unstorage.unjs.io/drivers) for more information about each driver, including its `driver` name, any additional dependencies, and usage.
+</ReadMore>
+
+:::
+
+### Driver options
+
+You can also pass any available options to the unstorage driver in a separate `session.options` object. See your chosen driver's documentation for available options.
+
+The following example sets a `base` prefix (`"sessions"`) to use for all keys in Upstash:
+
+```js title="astro.config.mjs" ins={5-7}
+  {
+    adapter: vercel(),
+    session: {
+      driver: "upstash",
+      options: {
+        base: "sessions",
+      },
+    },
+    experimental: {
+      session: true,
+    },
+  }
+```
+
+### Other session options
+
+You can configure additional options for sessions in the `session` object.
+
+#### `session.cookie`
+
+<p>
+
+**Type:** `string` | `object`<br />
+**Default:** `astro-session`<br />
+
+</p>
+
+Configures the session cookie. This cookie is set in the response when a session is generated. No actual user data is stored in the cookie – just an ID that is used to identify a user's session. The `session.cookie` option can be used to set options for this cookie. You can either provide a `string`, which will be used as the cookie name, or an object which allows additional options:
+
+```js title="astro.config.mjs" {4} ins={6-9}
+  {
+    session: {
+      // If set to a string, this will be used as the cookie name
+      // cookie: "my-session-id",
+      // If set to an object, this will allow advanced options to be set
+      cookie: {
+        name: "my-session-id"
+        sameSite: "Strict",
+      },
+    }
+  }
+```
+
+#### `session.ttl`
+
+<p>
+  
+**Type:** `number`<br />
+**Default:** `undefined`<br />
+
+</p>
+
+An optional default time-to-live expiration period for session values, in seconds.
+
+By default, session values persist until they are deleted or the session is destroyed, and do not automatically expire because a particular amount of time has passed. Set `session.ttl` to add a default expiration period for your session values. Passing a `ttl` option to [`session.set()`](#sessionset) will override the global default for that individual entry.
+
+```js title="astro.config.mjs" {3}
+  {
+    session: {
+      ttl: 60 * 60, // 1 hour
+    }
+  }
+```
+
+:::note
+Setting a value for `ttl` does not automatically delete the value from storage after the time limit has passed.
+
+Values from storage will only be deleted when there is an attempt to access them after the `ttl` period has expired. At this time, the session value will be undefined and only then will the value be deleted.
+
+Individual drivers may also support a `ttl` option that will automatically delete sessions after the specified time. See your chosen driver's documentation for more information.
+:::
+
 ## Using sessions
 
-Once you have configured a driver, you can use the `session` object to interact with the session. This object is accessible as `Astro.session` in your Astro components and pages and on the `context` object in API endpoints, middleware and actions. The API is the same in all cases.
+Once you have configured a driver, you can use the `session` object to interact with the session. The object is accessible as `Astro.session` in your Astro components and pages and on the `context` object in API endpoints, middleware and actions. The API is the same in all cases.
 
-In most cases you will only need to use [`Astro.session.get()`](#sessionget) and [`Astro.session.set()`](#sessionset). For other available methods, see the [API section](#sessions-api).
+The session is generated automatically when it is first used and can be regenerated at any time with [`Astro.session.regenerate()`](#sessionregenerate) or destroyed with [`Astro.session.destroy()`](#sessiondestroy).
+
+In most cases, you will only need to use [`Astro.session.get()`](#sessionget) and [`Astro.session.set()`](#sessionset). For other available methods, see the [API section](#sessions-api).
 
 ### Astro components and pages
 
@@ -98,7 +170,7 @@ In `.astro` components and pages, you can access the session object via the glob
 
 ```astro title="src/components/CartButton.astro" "Astro.session"
 ---
-export const prerender = false; // Not needed in 'server' mode
+export const prerender = false; // Not needed with 'server' output
 const cart = await Astro.session.get('cart');
 ---
 
@@ -110,12 +182,12 @@ const cart = await Astro.session.get('cart');
 In API endpoints, the session object is available on the `context` object. For example, to add an item to a shopping cart:
 
 ```ts title="src/pages/api/addToCart.ts" "context.session"
-import type { APIContext } from "astro";
+import type { APIContext } from 'astro';
 
 export async function POST(req: Request, context: APIContext) {
-  const cart = await context.session.get("cart");
+  const cart = await context.session.get('cart');
   cart.push(req.body.item);
-  await context.session.set("cart", cart);
+  await context.session.set('cart', cart);
   return Response.json(cart);
 }
 ```
@@ -125,16 +197,16 @@ export async function POST(req: Request, context: APIContext) {
 In actions, the session object is available on the `context` object. For example, to add an item to a shopping cart:
 
 ```ts title="src/actions/addToCart.ts" "context.session"
-import { defineAction } from "astro:actions";
-import { z } from "astro:schema";
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
 
 export const server = {
   addToCart: defineAction({
     input: z.object({ productId: z.string() }),
     handler: async (input, context) => {
-      const cart = await context.session.get("cart");
+      const cart = await context.session.get('cart');
       cart.push(input.productId);
-      await context.session.set("cart", cart);
+      await context.session.set('cart', cart);
       return cart;
     },
   }),
@@ -158,49 +230,52 @@ export const onRequest = defineMiddleware(async (context, next) => {
 });
 ```
 
-## Cookies
+### Session data types
 
-Sessions are generated when first accessed, and a session ID cookie is set in the response. No actual user data is stored in the cookie – just an ID that is used to identify a user's session. The session can be regenerated at any time with [`Astro.session.regenerate()`](#sessionregenerate), and destroyed with [`Astro.session.destroy()`](#sessiondestroy).
+By default session data is untyped, and you can store arbitrary data in any key. Values are serialized and deserialized using [devalue](https://github.com/Rich-Harris/devalue), which is the same library used in content collections and actions. This means that supported types are the same, and include strings, numbers, `Date`, `Map`, `Set`, `URL`, arrays, and plain objects.
 
-### `session.cookie`
+You can optionally define TypeScript types for your session data by creating a `src/env.d.ts` file and adding a declaration for the `App.SessionData` type:
 
-<p>
-
-**Type:** `string` | `object`<br />
-**Default:** `undefined`<br />
-
-</p>
-
-An optional property to set cookie options. The `cookie.name` property can be automatically set by providing a string. To configure additional options, provide an object.
-
-```js title="astro.config.mjs" {5} ins={7-10}
-  {
-    experimental: {
-      session: {
-        // If set to a string, this will be used as the cookie name
-        // cookie: "my-session-id",
-        // If set to an object, this will allow advanced options to be set
-        cookie: {
-          name: "my-session-id"
-          sameSite: "Strict",
-        },
-      }
-    }
+```ts title="src/env.d.ts"
+declare namespace App {
+  interface SessionData {
+    user: {
+      id: string;
+      name: string;
+    };
+    cart: string[];
   }
+}
 ```
 
+This will allow you to access the session data with type-checking and auto-completion in your editor:
+
+```ts title="src/components/CartButton.astro"
+---
+const cart = await Astro.session.get('cart');
+// const cart: string[] | undefined
+
+const something = await Astro.session.get('something');
+// const something: any
+
+Astro.session.set('user', { id: 1, name: 'Houston' });
+// Error: Argument of type '{ id: number; name: string }' is not assignable to parameter of type '{ id: string; name: string; }'.
+---
+```
+
+:::caution
+This is only used for type-checking and does not affect the runtime behavior of the session. Take extra care if you change the type when users have stored data in the session, as this could cause runtime errors.
+:::
 ## Sessions API
 
-The session object is available in all Astro contexts, including components, actions, and API endpoints. In components, it is accessed via the global `Astro` object, and in actions and API endpoints it is available on the `context` object. The API is the same in all cases.
+Sessions are automatically created when they are first accessed. The session object is available in all Astro contexts, including components, actions, and API endpoints. In components, it is accessed via the global `Astro` object, and in actions and API endpoints, it is available on the `context` object. The API is the same in all cases.
 
-Values are serialized and deserialized using [devalue](https://github.com/Rich-Harris/devalue), which is the same library used by content layer and actions. This means that supported types are the same, and include strings, numbers, `Date`, `Map`, `Set`, `URL`, arrays and plain objects.
-
-
-### `session.get()` 
+### `session.get()`
 
 <p>
 
 **Type**: `(key: string) => Promise<any>`
+
 </p>
 
 Returns the value of the given key in the session. If the key does not exist, it returns `undefined`.
@@ -210,15 +285,17 @@ Returns the value of the given key in the session. If the key does not exist, it
 <p>
 
 **Type**: `(key: string, value: any, options?: { ttl: number }) => void`
+
 </p>
 
-Sets the value of the given key in the session. The value can be any serializable type.
+Sets the value of the given key in the session. The value can be any serializable type. This method is synchronous and the value is immediately available for retrieval, but it is not saved to the backend until the end of the request.
 
 ### `session.regenerate()`
 
 <p>
 
 **Type**: `() => void`
+
 </p>
 
 Regenerates the session ID. Best practice is to call this when a user logs in or escalates their privileges, to prevent session fixation attacks.
@@ -228,6 +305,7 @@ Regenerates the session ID. Best practice is to call this when a user logs in or
 <p>
 
 **Type**: `() => void`
+
 </p>
 
 Destroys the session, deleting the cookie and the object from the backend. This should be called when a user logs out or their session is otherwise invalidated.

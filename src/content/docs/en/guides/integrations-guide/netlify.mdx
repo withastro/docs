@@ -4,11 +4,12 @@ title: '@astrojs/netlify'
 description: Learn how to use the @astrojs/netlify SSR adapter to deploy your Astro project.
 sidebar:
   label: Netlify
-githubIntegrationURL: 'https://github.com/withastro/adapters/tree/main/packages/netlify/'
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/netlify/'
 category: adapter
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import Since from '~/components/Since.astro';
 
 This adapter allows Astro to deploy your [on-demand rendered routes](/en/guides/on-demand-rendering/) to [Netlify](https://www.netlify.com/).
 
@@ -243,6 +244,88 @@ Astro.response.headers.set('CDN-Cache-Control', 'public, max-age=45, must-revali
 With [fine-grained cache control](https://www.netlify.com/blog/swr-and-fine-grained-cache-control/), Netlify supports
 standard caching headers like `CDN-Cache-Control` or `Vary`.
 Refer to the docs to learn about implementing e.g. time to live (TTL) or stale while revalidate (SWR) caching: https://docs.netlify.com/platform/caching
+
+### Including or excluding files from Netlify Functions
+
+When deploying an Astro site with on-demand rendering to Netlify, the generated functions automatically trace and include server dependencies. However, you may need to customize which files are included in your Netlify Functions.
+
+#### `includeFiles`
+
+<p>
+**Type:**  `string[]`<br />
+**Default:** `[]`<br />
+<Since v="5.3.0" />
+</p>
+
+The `includeFiles` property allows you to explicitly specify additional files that should be bundled with your function. This is useful for files that aren't automatically detected as dependencies, such as:
+- Data files loaded using `fs` operations
+- Configuration files
+- Template files
+
+Provide an array of additional files to include with file paths relative to your project's [`root`](/en/reference/configuration-reference/#root). Absolute paths may not work as expected.
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+  // ...
+  output: 'server',
+  adapter: netlify({
+    includeFiles: ['./my-data.json'], // relative to `root`
+  }),
+});
+```
+
+#### `excludeFiles`
+
+<p>
+**Type:**  `string[]`<br />
+**Default:** `[]`<br />
+<Since v="5.3.0" />
+</p>
+
+You can use the `excludeFiles` property to prevent specific files from being bundled that would otherwise be included. This is helpful for:
+- Reducing bundle size
+- Excluding large binaries
+- Preventing unwanted files from being deployed
+
+Provide an array of specific files to exclude with file paths relative to your project's [`root`](/en/reference/configuration-reference/#root). Absolute paths may not work as expected.
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+  // ...
+  output: 'server',
+  adapter: netlify({
+    excludeFiles: ['./src/some_big_file.jpg'], // relative to `root`
+  }),
+});
+```
+
+#### Using glob patterns
+
+Both `includeFiles` and `excludeFiles` support [glob patterns](/en/guides/imports/#glob-patterns) for matching multiple files:
+
+```js title="astro.config.mjs" ins={8, 11-12}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+  output: 'server',
+  adapter: netlify({
+    includeFiles: [
+      './data/**/*.json'
+    ],
+    excludeFiles: [
+      './node_modules/package/**/*',
+      './src/**/*.test.js'
+    ]
+  }),
+});
+```
 
 ## Examples
 

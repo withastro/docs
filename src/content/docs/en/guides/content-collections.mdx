@@ -83,11 +83,11 @@ The Content Layer API allows you to fetch your content (whether stored locally i
 
 #### Built-in loaders
 
-Astro provides two built-in loader functions (`glob()` and `file()`) for fetching your local content, as well as access to the API to construct your own loader and fetch remote data.
+Astro provides [two built-in loader functions](/en/reference/content-loader-reference/#built-in-loaders) (`glob()` and `file()`) for fetching your local content, as well as access to the API to construct your own loader and fetch remote data.
 
-The `glob()` loader creates entries from directories of Markdown, MDX, Markdoc, or JSON files from anywhere on the filesystem. It accepts a `pattern` of entry files to match using glob patterns supported by [micromatch](https://github.com/micromatch/micromatch#matching-features), and a base file path of where your files are located. Each entry's `id` will be automatically generated from its file name. Use this loader when you have one file per entry.
+The [`glob()` loader](/en/reference/content-loader-reference/#glob-loader) creates entries from directories of Markdown, MDX, Markdoc, JSON, or YAML files from anywhere on the filesystem. It accepts a `pattern` of entry files to match using glob patterns supported by [micromatch](https://github.com/micromatch/micromatch#matching-features), and a base file path of where your files are located. Each entry's `id` will be automatically generated from its file name. Use this loader when you have one file per entry.
 
-The `file()` loader creates multiple entries from a single local file. Each entry in the file must have a unique `id` key property. It accepts a `base` file path to your file and optionally a [`parser` function](#parser-function) for data files it cannot parse automatically. Use this loader when your data file can be parsed as an array of objects.
+The [`file()` loader](/en/reference/content-loader-reference/#file-loader) creates multiple entries from a single local file. Each entry in the file must have a unique `id` key property. It accepts a `base` file path to your file and optionally a [`parser` function](#parser-function) for data files it cannot parse automatically. Use this loader when your data file can be parsed as an array of objects.
 
 ```ts  title="src/content.config.ts" {5,9}
 import { defineCollection, z } from 'astro:content';
@@ -95,12 +95,11 @@ import { glob, file } from 'astro/loaders'; // Not available with legacy API
 
 const blog = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
-  schema: /* ... */ 
+  schema: /* ... */
 });
 const dogs = defineCollection({
   loader: file("src/data/dogs.json"),
-  schema: /* ... */ 
-  }),
+  schema: /* ... */
 });
 
 const probes = defineCollection({
@@ -296,12 +295,13 @@ All [Zod schema methods](https://zod.dev/?id=schema-methods) (e.g. `.parse()`, `
 
 Collection entries can also "reference" other related entries. 
 
-With the `reference()` function from the Collections API, you can define a property in a collection schema as an entry from another collection. For example, you can require that every `space-shuttle` entry includes a `pilot` property which uses the `pilot` collection's own schema for type checking, autocomplete, and validation.
+With the [`reference()` function](/en/reference/modules/astro-content/#reference) from the Collections API, you can define a property in a collection schema as an entry from another collection. For example, you can require that every `space-shuttle` entry includes a `pilot` property which uses the `pilot` collection's own schema for type checking, autocomplete, and validation.
 
 A common example is a blog post that references reusable author profiles stored as JSON, or related post URLs stored in the same collection:
 
 ```ts title="src/content.config.ts"
 import { defineCollection, reference, z } from 'astro:content';
+import { glob } from 'astro/loaders';
 
 const blog = defineCollection({
   loader: glob({ pattern: '**/[^_]*.md', base: "./src/data/blog" }),
@@ -336,6 +336,8 @@ relatedPosts:
 - my-year-in-review # references `src/data/blog/my-year-in-review.md`
 ---
 ```
+
+These references will be transformed into objects containing a `collection` key and an `id` key, allowing you to easily [query them in your templates](/en/guides/content-collections/#accessing-referenced-data).
 
 ### Defining custom IDs
 
@@ -409,6 +411,10 @@ Once queried, you can render Markdown and MDX entries to HTML using the [`render
 import { getEntry, render } from 'astro:content';
 
 const entry = await getEntry('blog', 'post-1');
+if (!entry) {
+  // Handle Error, for example:
+  throw new Error('Could not find blog post 1');
+}
 const { Content, headings } = await render(entry);
 ---
 <p>Published on: {entry.data.published.toDateString()}</p>
@@ -469,7 +475,7 @@ const englishDocsEntries = await getCollection('docs', ({ id }) => {
 
 ### Accessing referenced data
 
-Any [references defined in your schema](/en/guides/content-collections/#defining-collection-references) must be queried separately after first querying your collection entry. You can use the `getEntry()` function to return a single referenced item, or `getEntries()` to retrieve multiple referenced entries from the returned `data` object. 
+Any [references defined in your schema](/en/guides/content-collections/#defining-collection-references) must be queried separately after first querying your collection entry. Since the [`reference()` function](/en/reference/modules/astro-content/#reference) transforms a reference to an object with `collection` and `id` as keys, you can use the `getEntry()` function to return a single referenced item, or `getEntries()` to retrieve multiple referenced entries from the returned `data` object.
 
 ```astro title="src/pages/blog/welcome.astro"
 ---
@@ -477,9 +483,10 @@ import { getEntry, getEntries } from 'astro:content';
 
 const blogPost = await getEntry('blog', 'welcome');
 
-// Resolve a singular reference
+// Resolve a singular reference (e.g. `{collection: "authors", id: "ben-holmes"}`)
 const author = await getEntry(blogPost.data.author);
 // Resolve an array of references
+// (e.g. `[{collection: "blog", id: "about-me"}, {collection: "blog", id: "my-year-in-review"}]`)
 const relatedPosts = await getEntries(blogPost.data.relatedPosts);
 ---
 

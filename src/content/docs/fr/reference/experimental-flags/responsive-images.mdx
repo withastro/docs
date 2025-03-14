@@ -24,9 +24,66 @@ Active la prise en charge des images réactives automatiques dans votre projet.
 }
 ```
 
-Lorsque cette option est activé, vous pouvez passer une propriété `layout` à n'importe quel composant `<Image />` ou `<Picture />` pour créer une image réactive. 
+Avec cette option activée, vous avez accès à des [paramètres de configuration supplémentaires dans `image`](#paramètres-de-configuration-des-images-réactives) pour contrôler le comportement par défaut de toutes les images traitées et optimisées par Astro :
 
-Lorsqu'une mise en page est définie, les images ont des attributs `srcset` et `sizes` générés automatiquement en fonction des dimensions de l'image et du type de mise en page. Les images avec les dispositions `responsive` et `full-width` auront des styles appliqués pour s'assurer qu'elles sont redimensionnées en fonction de leur conteneur.
+- Les images locales et distantes utilisant [la syntaxe Markdown `![]()`](/fr/guides/images/#images-dans-les-fichiers-markdown).
+- Les composants [`<Image />`](/fr/guides/images/#afficher-des-images-optimisées-avec-le-composant-image-) et [`<Picture />`](/fr/guides/images/#créez-des-images-réactives-avec-le-composant-picture-).
+
+De plus, les composants d'image d'Astro peuvent recevoir [des props d'image réactives](#propriétés-des-images-réactives) pour remplacer ces valeurs par défaut pour chaque image.
+
+Les images dans votre dossier `public/` ne sont jamais optimisées et les images réactives ne sont pas prises en charge.
+
+## Paramètres de configuration des images réactives
+
+Définissez [`image.experimentalLayout`](/fr/reference/configuration-reference/#imageexperimentallayout) avec une valeur par défaut (`responsive`, `fixed` ou `full-width`) pour activer les images réactives dans tout votre projet.
+
+Si cette valeur n'est pas configurée, vous pouvez toujours transmettre une propriété `layout` à n'importe quel composant `<Image />` ou `<Picture />` pour créer une image réactive. Cependant, les images Markdown ne seront pas réactives.
+
+En option, vous pouvez configurer [`image.experimentalObjectFit`](/fr/reference/configuration-reference/#imageexperimentalobjectfit) et [`image.experimentalObjectPosition`](/fr/reference/configuration-reference/#imageexperimentalobjectposition) qui s'appliqueront à toutes les images traitées par défaut.
+
+Chacun de ces paramètres peut être remplacé sur n'importe quel composant individuel `<Image />` ou `<Picture />` avec une propriété, mais toutes les images Markdown utiliseront toujours les paramètres par défaut.
+
+```js title="astro.config.mjs"
+{
+  image: {
+    // Utilisé pour toutes les images Markdown ; non configurable par image
+    // Utilisé pour tous les composants `<Image />` et `<Picture />` sauf s'ils sont remplacés par une propriété
+    experimentalLayout: 'responsive',
+  },
+  experimental: {
+    responsiveImages: true,
+  },
+}
+```
+
+## Propriétés des images réactives
+
+Voici les propriétés supplémentaires disponibles pour les composants `<Image />` et `<Picture />` lorsque les images réactives sont activées :
+
+- `layout` : Le type de mise en page de l'image. Il peut s'agir de `responsive`, `fixed`, `full-width` ou `none`. La valeur par défaut est [`image.experimentalLayout`](/fr/reference/configuration-reference/#imageexperimentallayout).
+- `fit` : Définit comment l'image doit être recadrée si le ratio d'aspect est modifié. Les valeurs correspondent à celles de CSS `object-fit`. La valeur par défaut est `cover`, ou la valeur de [`image.experimentalObjectFit`](/fr/reference/configuration-reference/#imageexperimentalobjectfit) si elle est définie.
+- `position` : Définit la position du recadrage de l'image si le rapport hauteur/largeur est modifié. Les valeurs correspondent à celles de CSS `object-position`. La valeur par défaut est `center`, ou la valeur de [`image.experimentalObjectPosition`](/fr/reference/configuration-reference/#imageexperimentalobjectposition) si elle est définie.
+- `priority` : Si elle est définie, l'image est chargée avec empressement. Sinon, les images seront chargées paresseusement. Utilisez cette option pour votre plus grande image. La valeur par défaut est `false`.
+
+Les attributs `widths` et `sizes` sont automatiquement générés en fonction des dimensions de l'image et du type de mise en page, et dans la plupart des cas, ils ne doivent pas être définis manuellement. L'attribut `sizes` généré pour les images `responsive` et `full-width` (pleine largeur) est basé sur l'hypothèse que l'image est affichée à peu près sur toute la largeur de l'écran lorsque la fenêtre de visualisation est plus petite que la largeur de l'image. Si c'est significativement différent (par exemple, s'il s'agit d'une mise en page en plusieurs colonnes sur de petits écrans), vous devrez peut-être ajuster l'attribut `sizes` manuellement pour obtenir les meilleurs résultats.
+
+L'attribut `densities` n'est pas compatible avec les images réactives et sera ignoré s'il est défini.
+
+Par exemple, avec `responsive` défini comme mise en page par défaut, vous pouvez remplacer la propriété `layout` de n’importe quelle image individuelle :
+
+```astro
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image src={myImage} alt="Une mise en page réactive sera utilisée" width={800} height={600} />
+<Image src={myImage} alt="Une mise en page pleine largeur sera utilisée" layout="full-width" />
+<Image src={myImage} alt="Les images réactives seront désactivées" layout="none" />
+```
+
+## Sortie HTML générée pour les images réactives
+
+Lorsqu'une mise en page est définie, soit par défaut, soit sur un composant individuel, les images possèdent des attributs `srcset` et `sizes` automatiquement générés en fonction des dimensions de l'image et du type de mise en page. Les images avec des mises en page `responsive` et `full-width` auront des styles appliqués pour garantir qu'elles se redimensionnent en fonction de leur conteneur.
 
 ```astro title=MyComponent.astro
 ---
@@ -61,7 +118,7 @@ Ce composant `<Image />` générera le code HTML suivant :
 >
 ```
 
-Le style suivant est appliqué pour garantir que les images se redimensionnent correctement :
+Les styles suivants sont appliqués pour garantir que les images sont redimensionnées correctement :
 
 ```css title="Styles des images réactives"
 [data-astro-image] {
@@ -83,46 +140,4 @@ Le style suivant est appliqué pour garantir que les images se redimensionnent c
 }
 ```
 
-## Propriétés des images réactives
-
-Voici les propriétés supplémentaires disponibles pour les composants `<Image />` et `<Picture />` lorsque les images réactives sont activées :
-
-- `layout` : Le type de mise en page de l'image. Il peut s'agir de `responsive`, `fixed`, `full-width` ou `none`. La valeur par défaut est [`image.experimentalLayout`](/fr/reference/configuration-reference/#imageexperimentallayout).
-- `fit` : Définit comment l'image doit être recadrée si le ratio d'aspect est modifié. Les valeurs correspondent à celles de CSS `object-fit`. La valeur par défaut est `cover`, ou la valeur de [`image.experimentalObjectFit`](/fr/reference/configuration-reference/#imageexperimentalobjectfit) si elle est définie.
-- `position` : Définit la position du recadrage de l'image si le rapport hauteur/largeur est modifié. Les valeurs correspondent à celles de CSS `object-position`. La valeur par défaut est `center`, ou la valeur de [`image.experimentalObjectPosition`](/fr/reference/configuration-reference/#imageexperimentalobjectposition) si elle est définie.
-- `priority` : Si elle est définie, l'image est chargée avec empressement. Sinon, les images seront chargées paresseusement. Utilisez cette option pour votre plus grande image. La valeur par défaut est `false`.
-
-Les attributs `widths` et `sizes` sont automatiquement générés en fonction des dimensions de l'image et du type de mise en page, et dans la plupart des cas, ils ne doivent pas être définis manuellement. L'attribut `sizes` généré pour les images `responsive` et `full-width` (pleine largeur)
-est basé sur l'hypothèse que l'image est affichée à peu près sur toute la largeur de l'écran lorsque la fenêtre de visualisation est plus petite que la largeur de l'image. Si c'est significativement différent (par exemple, s'il s'agit d'une mise en page en plusieurs colonnes sur de petits écrans), vous devrez peut-être ajuster l'attribut `sizes` manuellement pour obtenir les meilleurs résultats.
-
-L'attribut `densities` n'est pas compatible avec les images réactives et sera ignoré s'il est défini.
-
-## Paramètres de configuration des images réactives
-
-Vous pouvez activer les images réactives pour tous les composants `<Image />` et `<Picture />` en définissant [`image.experimentalLayout`](/fr/reference/configuration-reference/#imageexperimentallayout) avec une valeur par défaut. Ces paramètres peuvent être remplacés par la propriété `layout` de chaque composant.
-
-```js title="astro.config.mjs"
-{
-  image: {
-    // Utilisé pour tous les composants `<Image />` et `<Picture />` à moins qu'il ne soit surchargé. 
-    experimentalLayout: 'responsive',
-     },
-  experimental: {
-    responsiveImages: true,
-  },
-}
-```
-
-Avec `responsive` comme mise en page par défaut, vous pouvez modifier la propriété `layout` de chaque image :
-
-```astro
----
-import { Image } from 'astro:assets';
-import myImage from '../assets/my_image.png';
----
-<Image src={myImage} alt="Ceci utilisera une mise en page réactive" width={800} height={600} />
-<Image src={myImage} alt="Ceci utilisera la mise en page pleine largeur" layout="full-width" />
-<Image src={myImage} alt="Cela désactivera les images réactives" layout="none" />
-```
-
-Pour une présentation complète et pour donner votre avis sur cette API expérimentale, consultez le [RFC Responsive Images](https://github.com/withastro/roadmap/blob/responsive-images/proposals/0053-responsive-images.md).
+Pour une présentation complète et pour donner votre avis sur cette API expérimentale, consultez la [RFC Responsive Images](https://github.com/withastro/roadmap/blob/responsive-images/proposals/0053-responsive-images.md).
