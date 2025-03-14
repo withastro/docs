@@ -157,9 +157,13 @@ function getCommentProperties(comment) {
 	if (comment.kind !== 'heading' && !comment.type && !typerawFlag) {
 		throw new Error(`Missing @docs JSDoc tag: @type or @typeraw`);
 	}
-	const typesFormatted = typerawFlag
-		? typerawFlag.text.replace(/\{(.*)\}/, '$1')
-		: comment.type?.names.join(' | ');
+	const typesFormatted = (
+		typerawFlag ? typerawFlag.text.replace(/\{(.*)\}/, '$1') : comment.type?.names.join(' | ')
+	)
+		// JSDoc represents types like objects and arrays using an old Closure-style notation,
+		// e.g. `Array.<string>` or `Record.<string, string>`. This `replace()` removes the `.` to match
+		// the notation used for TypeScript-style generics.
+		?.replaceAll('.<', '<');
 
 	const properties = [
 		typesFormatted ? `**Type:** \`${typesFormatted}\`` : undefined,
