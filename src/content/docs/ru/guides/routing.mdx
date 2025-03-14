@@ -80,7 +80,6 @@ export function getStaticPaths () {
 
 const { lang, version } = Astro.params;
 ---
-...
 ```
 
 В результате будут сгенерированы `/en-v1/info` и `/fr-v2/info`.
@@ -152,20 +151,21 @@ export async function getStaticPaths() {
   const pages = [
     {
       slug: undefined,
-      title: "Astro Store",
-      text: "Welcome to the Astro store!",
+      title: "Магазин Astro",
+      text: "Добро пожаловать в магазин Astro!",
     },
     {
       slug: "products",
-      title: "Astro products",
-      text: "We have lots of products for you",
+      title: "Продукты Astro",
+      text: "У нас есть множество продуктов для вас",
     },
     {
       slug: "products/astro-handbook",
-      title: "The ultimate Astro handbook",
-      text: "If you want to learn Astro, you must read this book.",
+      title: "Исчерпывающее руководство по Astro",
+      text: "Если вы хотите изучить Astro, обязательно прочитайте эту книгу.",
     },
   ];
+
   return pages.map(({ slug, title, text }) => {
     return {
       params: { slug },
@@ -188,7 +188,10 @@ const { title, text } = Astro.props;
 ```
 
 ### Режим серверного рендеринга (SSR)
+
 В режиме [SSR](/ru/guides/on-demand-rendering/) динамические маршруты определяются точно так же: включите в имена файлов скобки `[param]` или `[...path]` для соответствия произвольным строкам или путям. Но поскольку маршруты больше не строятся заранее, страница будет обслуживаться по любому подходящему маршруту. Поскольку это не "статические" маршруты, `getStaticPaths` не следует использовать.
+
+Для маршрутов, отображаемых по запросу, в имени файла может использоваться только один параметр rest с использованием spread-нотации (например, `src/pages/[locale]/[...slug].astro` или `src/pages/[...locale]/[slug].astro`, но не `src/pages/[...locale]/[...slug].astro`).
 
 ```astro title="src/pages/resources/[resource]/[id].astro"
 ---
@@ -196,6 +199,7 @@ const { resource, id } = Astro.params;
 ---
 <h1>{resource}: {id}</h1>
 ```
+
 Эта страница будет предоставлена для любого значения `resource` и `id`: `resources/users/1`, `resources/colors/blue` и т. д.
 
 #### Модификация примера `[...slug]` для SSR
@@ -205,21 +209,21 @@ const { resource, id } = Astro.params;
 ```astro title="src/pages/[...slug].astro"
 ---
 const pages = [
-	{
-		slug: undefined,
-		title: 'Astro Store',
-		text: 'Welcome to the Astro store!',
-	},
-	{
-		slug: 'products',
-		title: 'Astro products',
-		text: 'We have lots of products for you',
-	},
-	{
-		slug: 'products/astro-handbook',
-		title: 'The ultimate Astro handbook',
-		text: 'If you want to learn Astro, you must read this book.',
-	}
+  {
+    slug: undefined,
+    title: "Магазин Astro",
+    text: "Добро пожаловать в магазин Astro!",
+  },
+  {
+    slug: "products",
+    title: "Продукты Astro",
+    text: "У нас есть множество продуктов для вас",
+  },
+  {
+    slug: "products/astro-handbook",
+    title: "Исчерпывающее руководство по Astro",
+    text: "Если вы хотите изучить Astro, обязательно прочитайте эту книгу.",
+  }
 ];
 
 const { slug } = Astro.params;
@@ -248,14 +252,17 @@ const { title, text } = page;
 
 <p><Since v="2.9.0" /></p>
 
-Вы можете указать отображение постоянных переадресаций в конфигурации Astro с помощью значения `redirects`. Для большинства переадресаций это сопоставление старого маршрута с новым маршрутом:
+Вы можете указать отображение постоянных переадресаций в конфигурации Astro с помощью значения [`redirects`](/en/reference/configuration-reference/#redirects).
+
+Для внутренних перенаправлений это сопоставление старого пути маршрута с новым. Начиная с Astro v5.2.0, также можно перенаправлять на внешние URL-адреса, начинающиеся с `http` или `https`, которые [могут быть обработаны](https://developer.mozilla.org/en-US/docs/Web/API/URL/canParse_static).
 
 ```js title="astro.config.mjs" {4-6}
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   redirects: {
-    '/old-page': '/new-page'
+    "/old-page": "/new-page",
+    "/blog": "https://example.com/blog"
   }
 });
 ```
@@ -277,9 +284,13 @@ import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   redirects: {
-    '/old-page': {
+    "/old-page": {
       status: 302,
-      destination: '/new-page'
+      destination: "/new-page"
+    },
+    "/news": {
+      status: 302,
+      destination: "https://example.com/news"
     }
   }
 });
@@ -304,9 +315,6 @@ if (!isLoggedIn(cookie)) {
   return Astro.redirect('/login');
 }
 ---
-<html>
-  <!-- Page here... -->
-</html>
 ```
 
 ## Переписывания
@@ -353,8 +361,6 @@ if (!itemExists(item)) {
   return Astro.rewrite("/404")
 }
 ---
-
-<div>...</div>
 ``` 
 
 Вы также можете условно переписывать на основе статуса HTTP-ответа, например, чтобы отобразить определённую страницу на вашем сайте при посещении URL, который не существует:
@@ -426,22 +432,19 @@ Astro поддерживает встроенную пагинацию для б
 ---
 // src/pages/astronauts/[page].astro
 export async function getStaticPaths({ paginate }) {
-  const astronautPages = [{
-    astronaut: 'Neil Armstrong',
-  }, {
-    astronaut: 'Buzz Aldrin',
-  }, {
-    astronaut: 'Sally Ride',
-  }, {
-    astronaut: 'John Glenn',
-  }];
+  const astronautPages = [
+    { astronaut: "Нил Армстронг" },
+    { astronaut: "Базз Олдрин" },
+    { astronaut: "Салли Райд" },
+    { astronaut: "Джон Гленн" },
+  ];
+
   // Генерируем страницы из нашего массива астронавтов, по 2 на страницу
   return paginate(astronautPages, { pageSize: 2 });
 }
 // Все пагинированные данные передаются по пропсу "page"
 const { page } = Astro.props;
 ---
-
 <!--Отображает номер текущей страницы. Также можно использовать Astro.params.page!-->
 <h1>Page {page.currentPage}</h1>
 <ul>
@@ -544,6 +547,7 @@ export async function getStaticPaths({ paginate }) {
     });
   });
 }
+
 const { page } = Astro.props;
 const params = Astro.params;
 ```
