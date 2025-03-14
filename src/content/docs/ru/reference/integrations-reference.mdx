@@ -1,5 +1,7 @@
 ---
 title: API интеграции Astro
+sidebar:
+  label: Integration API
 i18nReady: true
 ---
 import Since from '~/components/Since.astro'
@@ -10,13 +12,13 @@ import Since from '~/components/Since.astro'
 
 ## Примеры
 
-Официальные интеграции Astro могут служить вам в качестве примера при создании собственных интеграций.
+Официальные интеграции Astro могут выступить для вас в качестве примера при создании ваших собственных интеграций.
 
-- **Рендереры:** [`lit`](/ru/guides/integrations-guide/lit/), [`svelte`](/ru/guides/integrations-guide/svelte/), [`react`](/ru/guides/integrations-guide/react/), [`preact`](/ru/guides/integrations-guide/preact/), [`vue`](/ru/guides/integrations-guide/vue/), [`solid`](/ru/guides/integrations-guide/solid-js/)
-- **Библиотеки:** [`tailwind`](/ru/guides/integrations-guide/tailwind/), [`partytown`](/ru/guides/integrations-guide/partytown/)
+- **Рендереры:** [`svelte`](/ru/guides/integrations-guide/svelte/), [`react`](/ru/guides/integrations-guide/react/), [`preact`](/ru/guides/integrations-guide/preact/), [`vue`](/ru/guides/integrations-guide/vue/), [`solid`](/ru/guides/integrations-guide/solid-js/)
+- **Библиотеки:** [`partytown`](/ru/guides/integrations-guide/partytown/)
 - **Функционал:** [`sitemap`](/ru/guides/integrations-guide/sitemap/)
 
-## Быстрая справка по API
+## Краткий справочник по API
 
 ```ts
 interface AstroIntegration {
@@ -24,91 +26,150 @@ interface AstroIntegration {
   hooks: {
     'astro:config:setup'?: (options: {
       config: AstroConfig;
-      command: 'dev' | 'build' | 'preview';
+      command: 'dev' | 'build' | 'preview' | 'sync';
       isRestart: boolean;
       updateConfig: (newConfig: DeepPartial<AstroConfig>) => AstroConfig;
       addRenderer: (renderer: AstroRenderer) => void;
       addWatchFile: (path: URL | string) => void;
       addClientDirective: (directive: ClientDirectiveConfig) => void;
       addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
-      addDevToolbarApp: (pluginEntrypoint: string) => void;
+      addDevToolbarApp: (entrypoint: DevToolbarAppEntry) => void;
       injectScript: (stage: InjectedScriptStage, content: string) => void;
-      injectRoute: ({ pattern: string, entrypoint: string }) => void;
+      injectRoute: (injectedRoute: InjectedRoute) => void;
+      createCodegenDir: () => URL;
       logger: AstroIntegrationLogger;
-    }) => void;
-    'astro:config:done'?: (options: { config: AstroConfig; setAdapter: (adapter: AstroAdapter) => void; logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:server:setup'?: (options: { server: vite.ViteDevServer; logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:server:start'?: (options: { address: AddressInfo; logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:server:done'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
-    'astro:build:start'?: (options: { logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    }) => void | Promise<void>;
+    'astro:route:setup'?: (options: {
+      route: RouteOptions;
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:routes:resolved'?: (options: {
+      routes: IntegrationResolvedRoute[];
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:config:done'?: (options: {
+      config: AstroConfig;
+      setAdapter: (adapter: AstroAdapter) => void;
+      injectTypes: (injectedType: InjectedType) => URL;
+      logger: AstroIntegrationLogger;
+      buildOutput: 'static' | 'server';
+    }) => void | Promise<void>;
+    'astro:server:setup'?: (options: {
+      server: vite.ViteDevServer;
+      logger: AstroIntegrationLogger;
+      toolbar: ReturnType<typeof getToolbarServerCommunicationHelpers>;
+      refreshContent?: (options: RefreshContentOptions) => Promise<void>;
+    }) => void | Promise<void>;
+    'astro:server:start'?: (options: {
+      address: AddressInfo;
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:server:done'?: (options: {
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:build:start'?: (options: {
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
     'astro:build:setup'?: (options: {
-      vite: ViteConfigWithSSR;
+      vite: vite.InlineConfig;
       pages: Map<string, PageBuildData>;
       target: 'client' | 'server';
+      updateConfig: (newConfig: vite.InlineConfig) => void;
       logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
-    'astro:build:generated'?: (options: { dir: URL; logger: AstroIntegrationLogger; }) => void | Promise<void>;
     'astro:build:ssr'?: (options: {
-        manifest: SerializedSSRManifest;
-        entryPoints: Map<RouteData, URL>;
-        logger: AstroIntegrationLogger;
+      manifest: SerializedSSRManifest;
+      entryPoints: Map<IntegrationRouteData, URL>;
+      middlewareEntryPoint: URL | undefined;
+      logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
-    'astro:build:done'?: (options: { dir: URL; routes: RouteData[]; logger: AstroIntegrationLogger; }) => void | Promise<void>;
+    'astro:build:generated'?: (options: {
+      dir: URL;
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:build:done'?: (options: {
+      pages: { pathname: string }[];
+      dir: URL;
+      assets: Map<string, URL[]>;
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+
+    // ... любые кастомные хуки для интеграций
   };
 }
 ```
 
 ## Хуки
 
+Astro предоставляет хуки, которые интеграции могут реализовать для выполнения на определённых этапах жизненного цикла Astro. Хуки Astro определены в интерфейсе `IntegrationHooks`, который является частью глобального пространства имён `Astro`. Каждый хук имеет опцию [`logger`](#astrointegrationlogger), позволяющую использовать логгер Astro для записи логов.
+
+В Astro встроены следующие хуки:
+
 ### `astro:config:setup`
 
-**Следующий хук:** [`astro:config:done`](#astroconfigdone)
+**Следующий хук:** [`astro:route:setup`](#astroroutesetup)
 
-**Когда:** При инициализации, перед тем как [Vite](https://vite.dev/config/) или [конфигурация Astro ](/ru/reference/configuration-reference/) будут разрешены.
+**Когда:** При инициализации, перед тем как [Vite](https://vite.dev/config/) или [конфигурация Astro](/ru/reference/configuration-reference/) будут разрешены.
 
 **Зачем:** Для расширения конфигурации проекта. Это включает обновление [конфигурации Astro](/ru/reference/configuration-reference/), применение [плагинов Vite](https://vite.dev/guide/api-plugin.html), добавление рендеров компонентов и внедрение скриптов на страницу.
+
 ```ts
 'astro:config:setup'?: (options: {
   config: AstroConfig;
-  command: 'dev' | 'build' | 'preview';
+  command: 'dev' | 'build' | 'preview' | 'sync';
   isRestart: boolean;
   updateConfig: (newConfig: DeepPartial<AstroConfig>) => AstroConfig;
   addRenderer: (renderer: AstroRenderer) => void;
   addClientDirective: (directive: ClientDirectiveConfig) => void;
   addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
-  addDevToolbarApp: (pluginEntrypoint: string) => void;
+  addDevToolbarApp: (entrypoint: DevToolbarAppEntry) => void;
   addWatchFile: (path: URL | string) => void;
   injectScript: (stage: InjectedScriptStage, content: string) => void;
-  injectRoute: ({ pattern: string, entrypoint: string }) => void;
+  injectRoute: (injectedRoute: InjectedRoute) => void;
+  createCodegenDir: () => URL;
   logger: AstroIntegrationLogger;
-}) => void;
+}) => void | Promise<void>;
 ```
 
 #### Опция `config`
 
+<p>
+
 **Тип:** `AstroConfig`
+</p>
 
 Доступная только для чтения копия пользовательской [конфигурации Astro](/ru/reference/configuration-reference/). Это разрешается _до_ запуска любых других интеграций. Если вам нужна копия конфигурации после того, как все интеграции завершили обновление своих конфигураций, [см. хук `astro:config:done`](#astroconfigdone).
 
 #### Опция `command`
 
-**Тип:** `'dev' | 'build' | 'preview'`
+<p>
 
-- `dev` —  Проект выполняется с помощью astro dev
-- `build` —  Проект выполняется с помощью `astro build`
-- `preview` —  Проект выполняется с помощью `astro preview`
+**Тип:** `'dev' | 'build' | 'preview' | 'sync'`
+</p>
+
+- `dev` — Проект выполняется с помощью `astro dev`
+- `build` — Проект выполняется с помощью `astro build`
+- `preview` — Проект выполняется с помощью `astro preview`
+- `sync` — Проект выполняется с помощью `astro sync`
 
 #### Опция `isRestart`
 
-**Тип:** `boolean`
+<p>
 
-`false` когда сервер разработки запускается, `true` когда происходит перезагрузка. Полезно для определения, когда эта функция вызывается более одного раза.
+**Тип:** `boolean`<br />
+<Since v="1.5.0" />
+</p>
+
+`false` при запуске сервера разработки, `true` при срабатывании перезагрузки. Полезно для определения, когда эта функция вызывается более одного раза.
 
 #### Опция `updateConfig`
 
-**Тип:** `(newConfig: DeepPartial<AstroConfig>) => AstroConfig;`
+<p>
 
-Функция обратного вызова  для обновления предоставленной пользователем [конфигурации Astro](/ru/reference/configuration-reference/). Любая предоставленная вами конфигурация **будет объединена с пользовательской конфигурацией + обновлениями конфигурации других интеграций,** поэтому вы можете не включать ключи!
+**Тип:** `(newConfig: DeepPartial<AstroConfig>) => AstroConfig;`
+</p>
+
+Функция обратного вызова для обновления предоставленной пользователем [конфигурации Astro](/ru/reference/configuration-reference/). Любая предоставленная вами конфигурация **будет объединена с пользовательской конфигурацией + обновлениями конфигурации других интеграций,** поэтому вы можете не включать ключи!
 
 Например, предположим, что вам нужно добавить в проект пользователя плагин [Vite](https://vite.dev/):
 
@@ -131,17 +192,28 @@ export default {
 
 #### Опция `addRenderer`
 
-**Тип:** `(renderer:` [`AstroRenderer`](https://github.com/withastro/astro/blob/fdd607c5755034edf262e7b275732519328a33b2/packages/astro/src/%40types/astro.ts#L872-L883) `) => void;`
-**Примеры:** [`lit`](https://github.com/withastro/astro/blob/main/packages/integrations/lit/src/index.ts), [`svelte`](https://github.com/withastro/astro/blob/main/packages/integrations/svelte/src/index.ts), [`react`](https://github.com/withastro/astro/blob/main/packages/integrations/react/src/index.ts), [`preact`](https://github.com/withastro/astro/blob/main/packages/integrations/preact/src/index.ts), [`vue`](https://github.com/withastro/astro/blob/main/packages/integrations/vue/src/index.ts), [`solid`](https://github.com/withastro/astro/blob/main/packages/integrations/solid/src/index.ts)
+<p>
+
+**Тип:** `(renderer:` [`AstroRenderer`](https://github.com/withastro/astro/blob/fdd607c5755034edf262e7b275732519328a33b2/packages/astro/src/%40types/astro.ts#L872-L883) `) => void;`<br />
+**Примеры:** [`svelte`](https://github.com/withastro/astro/blob/main/packages/integrations/svelte/src/index.ts), [`react`](https://github.com/withastro/astro/blob/main/packages/integrations/react/src/index.ts), [`preact`](https://github.com/withastro/astro/blob/main/packages/integrations/preact/src/index.ts), [`vue`](https://github.com/withastro/astro/blob/main/packages/integrations/vue/src/index.ts), [`solid`](https://github.com/withastro/astro/blob/main/packages/integrations/solid/src/index.ts)
+</p>
 
 Функция обратного вызова для добавления рендерера фреймворка компонентов (например, React, Vue, Svelte и т. д.). Вы можете просмотреть примеры и определение типа выше для более продвинутых опций, но вот два основных варианта, о которых стоит знать:
 
 - `clientEntrypoint` - путь к файлу, который выполняется на клиенте при каждом использовании вашего компонента. Это в основном для рендеринга или гидратации вашего компонента с помощью JS.
 - `serverEntrypoint` - путь к файлу, который выполняется во время запросов с сервера или статической сборки всякий раз, когда используется ваш компонент. Они должны рендерить компоненты в статическую разметку, с хуками для гидратации, если это применимо. Классическим примером является [обратный вызов `renderToString` от React](https://react.dev/reference/react-dom/server/renderToString).
 
+<p><Since v="5.0.0" /></p>
+
+Функции `clientEntrypoint` и `serverEntrypoint` принимают `URL`.
+
 #### Опция `addWatchFile`
 
-**Тип:** `URL | string`
+<p>
+
+**Тип:** `(path: URL | string) => void`<br />
+<Since v="1.5.0" />
+</p>
 
 Если ваша интеграция зависит от какого-то конфигурационного файла, за которым Vite не следит и/или для вступления в силу которого требуется полный перезапуск сервера разработки, добавьте его с помощью `addWatchFile`. Каждый раз, при изменении этого файла, сервер разработки Astro будет перезагружен (вы можете проверить, когда произойдет перезагрузка с помощью `isRestart`).
 
@@ -155,11 +227,13 @@ addWatchFile(new URL('./tailwind.config.js', config.root));
 
 #### Опция `addClientDirective`
 
-<p><Since v="2.6.0" /></p>
+<p>
 
-**Тип:** `(directive:` [`ClientDirectiveConfig`](https://github.com/withastro/astro/blob/00327c213f74627ac9ca1dec774efa5bf71e9375/packages/astro/src/%40types/astro.ts#L1872-L1875) `) => void;`
+**Тип:** `(directive:` [`ClientDirectiveConfig`](https://github.com/withastro/astro/blob/00327c213f74627ac9ca1dec774efa5bf71e9375/packages/astro/src/%40types/astro.ts#L1872-L1875) `) => void;`<br />
+<Since v="2.6.0" />
+</p>
 
-Добавляет [пользовательскую директиву клиента](/ru/reference/directives-reference/#custom-client-directives), которая будет использоваться в файлах  `.astro`.
+Добавляет [пользовательскую клиентскую директиву](/ru/reference/directives-reference/#custom-client-directives) для использования в файлах `.astro`.
 
 Обратите внимание, что точки входа директив поставляются только через esbuild и должны быть небольшими, чтобы не замедлять гидратацию компонентов.
 
@@ -220,11 +294,13 @@ declare module 'astro' {
 
 #### Опция `addDevToolbarApp`
 
-<p><Since v="3.4.0" /></p>
+<p>
 
-**Тип:** `(pluginEntrypoint: string) => void;`
+**Тип:** `(entrypoint: DevToolbarAppEntry) => void;`<br />
+<Since v="3.4.0" />
+</p>
 
-Добавляет [пользовательское приложение панели инструментов разработчика](/ru/reference/dev-toolbar-app-reference/).
+Добавляет [пользовательское приложение для панели разработчика](/ru/reference/dev-toolbar-app-reference/).
 
 Пример использования:
 
@@ -248,7 +324,11 @@ export default () => ({
   name: "dev-toolbar-app",
   hooks: {
     "astro:config:setup": ({ addDevToolbarApp }) => {
-      addDevToolbarApp("./astro-dev-toolbar-app/plugin.js");
+      addDevToolbarApp({
+        entrypoint: "./astro-dev-toolbar-app/plugin.js",
+        id: "my-plugin",
+        name: "My Plugin"
+      });
     },
   },
 });
@@ -270,11 +350,13 @@ export default {
 ```
 #### Опция `addMiddleware`
 
-<p><Since v="3.5.0" /></p>
+<p>
 
-**Тип:** `(middleware:` [`AstroIntegrationMiddleware`](https://github.com/withastro/astro/blob/852ac0f75dfca1b2602e9cdbfa0447d9998e2449/packages/astro/src/%40types/astro.ts#L2124-L2127) `) => void;`
+**Тип:** `(middleware:` [`AstroIntegrationMiddleware`](https://github.com/withastro/astro/blob/852ac0f75dfca1b2602e9cdbfa0447d9998e2449/packages/astro/src/%40types/astro.ts#L2124-L2127) `) => void;`<br />
+<Since v="3.5.0" />
+</p>
 
-Добавляет [промежуточное ПО,](/ru/guides/middleware/), которое будет запускаться при каждом запросе. Принимает модуль `entrypoint`, содержащий промежуточное ПО, и `order`, указывающий, должно ли оно запускаться до (`pre`) других промежуточных программ или после (`post`).
+Добавляет [мидлвар](/ru/guides/middleware/), который будет выполняться при каждом запросе. Принимает модуль `entrypoint`, содержащий мидлвар, и параметр `order`, чтобы указать, должен ли он выполняться до (`pre`) или после (`post`) других мидлваров.
 
 ```js title="@my-package/integration.js"
 /**
@@ -293,44 +375,73 @@ export default () => ({
 });
 ```
 
-Промежуточное ПО определяется в пакете с функцией `onRequest`, также как и с пользовательским промежуточным ПО.
+Мидлвар определяется в пакете с функцией `onRequest`, как и в случае с пользовательским мидлваром.
 
 ```js title="@my-package/middleware.js"
 import { defineMiddleware } from 'astro:middleware';
 
-export const onRequest = defineMiddleware(async (context, request) => {
+export const onRequest = defineMiddleware(async (context, next) => {
   if(context.url.pathname === '/some-test-path') {
     return Response.json({
       ok: true
     });
   }
+
+  return next();
+});
+```
+
+<p><Since v="5.0.0" /></p>
+
+Функция также принимает `URL` для `entrypoint`:
+
+```js title="@my-package/integration.js" ins={9}
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "my-middleware-package",
+  hooks: {
+    "astro:config:setup": ({ addMiddleware }) => {
+      addMiddleware({
+        entrypoint: new URL('./middleware.js', import.meta.url),
+        order: 'pre'
+      });
+    },
+  },
 });
 ```
 
 #### Опция `injectRoute`
 
-**Тип:** `({ pattern: string, entrypoint: string }) => void;`
+<p>
+
+**Тип:** `({ pattern: string; entrypoint: string | URL; prerender?: boolean }) => void;`
+</p>
 
 Функция обратного вызова для инъекции маршрутов в проект Astro. Инжектируемые маршруты могут быть [страницами `.astro`](/ru/basics/astro-pages/) или [обработчиками маршрутов `.js` и `.ts`](/ru/guides/endpoints/#static-file-endpoints).
 
 `injectRoute` принимает объект с `pattern` и `entrypoint`.
 
-- `pattern` - куда маршрут должен быть выведен в браузере, например `/foo/bar`. Шаблон может использовать синтаксис пути к файлу Astro для обозначения динамических маршрутов, например `/foo/[bar]` или `/foo/[...bar]`. Обратите внимание, что расширение файла **не** требуется в `pattern`.
-- `entrypoint` - обычный модульный указатель, указывающий на страницу `.astro` или обработчик маршрута `.js`/`.ts`, который обрабатывает маршрут, обозначенный в `pattern`.
+- `pattern` — куда маршрут должен быть выведен в браузере, например `/foo/bar`. Шаблон может использовать синтаксис пути к файлу Astro для обозначения динамических маршрутов, например `/foo/[bar]` или `/foo/[...bar]`. Обратите внимание, что расширение файла **не** требуется в `pattern`.
+- `entrypoint` — обычный модульный указатель, указывающий на страницу `.astro` или обработчик маршрута `.js`/`.ts`, который обрабатывает маршрут, обозначенный в `pattern`.
+- `prerender` — булево значение, которое нужно установить, если Astro не может определить ваш экспорт `prerender`.
 
-Пример использования:
+##### Пример использования:
 
 ```js
 injectRoute({
   // Используйте синтаксис шаблонов Astro для динамических маршрутов.
   pattern: '/subfolder/[dynamic]',
   // Используйте синтаксис относительного пути для локального маршрута.
-  entrypoint: './src/dynamic-page.astro'
+  entrypoint: './src/dynamic-page.astro',
+  // Используйте только в том случае, если Astro не может определить ваш экспорт `prerender`
+  prerender: false
 });
 ```
 
-Для интеграции, предназначенной для установки в другие проекты, используйте имя пакета для ссылки на точку входа в маршрут.
-В следующем примере показан пакет, опубликованный в npm под именем `@fancy/dashboard`, инжектирующий маршрут панели инструментов:
+Для интеграции, предназначенной для установки в других проектах, используйте имя её пакета для указания точки входа маршрута.
+Следующий пример показывает пакет, опубликованный в npm как `@fancy/dashboard`, который добавляет маршрут для панели управления:
 
 ```js
 injectRoute({
@@ -349,9 +460,23 @@ injectRoute({
 }
 ```
 
+<p><Since v="5.0.0" /></p>
+
+Функция также принимает `URL` для `entrypoint`:
+
+```js "new URL('./dashboard.astro', import.meta.url)"
+injectRoute({
+  pattern: '/fancy-dashboard',
+  entrypoint: new URL('./dashboard.astro', import.meta.url)
+});
+```
+
 #### Опция `injectScript`
 
+<p>
+
 **Тип:** `(stage: InjectedScriptStage, content: string) => void;`
+</p>
 
 Функция обратного вызова для вставки строки содержимого JavaScript на каждую страницу.
 
@@ -360,32 +485,228 @@ injectRoute({
 - `"head-inline"`:  Вставляется в тег `<script>` в `<head>` каждой страницы. **Не** оптимизирован или разрешен Vite.
 - `"before-hydration"`: Импортируется на стороне клиента, перед запуском скрипта гидратации. Оптимизируется и разрешается Vite.
 - `"page"`: Аналогично `head-inline`, за исключением того, что импортируемый фрагмент обрабатывается Vite и объединяется с любыми другими тегами `<script>`, определенными внутри компонентов Astro на странице. Скрипт будет загружен с помощью `<script type="module">` в конечный вывод страницы, оптимизирован и разрешен Vite.
-- ``page-ssr``: Импортируется как отдельный модуль в frontmatter каждого компонента страницы Astro. Поскольку на этом этапе импортируется ваш скрипт, глобальный `Astro` недоступен, и ваш скрипт будет запущен только один раз при первой оценке `import`.
+- ``page-ssr``: Импортируется как отдельный модуль в метаданных каждого компонента страницы Astro. Поскольку на этом этапе импортируется ваш скрипт, глобальный `Astro` недоступен, и ваш скрипт будет запущен только один раз при первом анализе `import`.
 
-   Основное применение этапа `page-ssr` - это вставка CSS `импорта` на каждую страницу для оптимизации и разрешения Vite:
+   Основное применение этапа `page-ssr` - это вставка CSS `import` на каждую страницу для оптимизации и разрешения Vite:
     ```js
     injectScript('page-ssr', 'import "global-styles.css";');
     ```
 
-### `astro:config:done`
+#### `createCodegenDir`
+
+<p>
+
+**Тип:** `() => URL;`<br />
+<Since v="5.0.0" />
+</p>
+
+Функция, которая создаёт папку `<root>/.astro/integrations/<normalized_integration_name>` и возвращает её путь.
+
+Она позволяет вам иметь выделенную папку, избегая конфликтов с другими интеграциями или самим Astro. Эта директория создаётся при вызове данной функции, поэтому можно безопасно записывать файлы напрямую:
+
+```ts title="my-integration.ts"
+import { writeFileSync } from 'node:fs'
+
+const integration = {
+  name: 'my-integration',
+  hooks: {
+    'astro:config:setup': ({ createCodegenDir }) => {
+      const codegenDir = createCodegenDir()
+      writeFileSync(new URL('cache.json', codegenDir), '{}', 'utf-8')
+    }
+  }
+}
+```
+
+### `astro:route:setup`
+
+<p><Since v="4.14.0" /></p>
 
 **Предыдущий хук:** [`astro:config:setup`](#astroconfigsetup)
 
-**Следующий хук:** [`astro:server:setup`](#astroserversetup) при работе в режиме "dev", или [`astro:build:start`](#astrobuildstart) при "production" сборке.
+**Следующий хук:** [`astro:routes:resolved`](#astroroutesresolved)
+
+**Когда:** В `astro build` — перед началом сборки. В `astro dev` — во время построения графа модулей и при каждом изменении файлового маршрута (добавление/удаление/обновление).
+
+**Зачем:** Чтобы задать параметры для маршрута во время сборки или запроса, например, включить [рендеринг на стороне сервера по запросу](/ru/guides/on-demand-rendering/#enabling-on-demand-rendering).
+
+```js
+'astro:route:setup'?: (options: {
+  route: RouteOptions;
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
+```
+
+#### Опция `route`
+
+<p>
+
+**Тип:** [`RouteOptions`](https://github.com/withastro/astro/blob/3b10b97a4fecd1dfd959b160a07b5b8427fe40a7/packages/astro/src/types/public/integrations.ts#L14-L27)
+</p>
+
+Объект со свойством `component` для идентификации маршрута и следующими дополнительными значениями, позволяющими настроить сгенерированный маршрут: `prerender`.
+
+##### `route.component`
+
+<p>
+**Тип:** `string`<br />
+<Since v="4.14.0" />
+</p>
+
+Свойство `component` указывает точку входа, которая будет отображаться на маршруте. Вы можете получить доступ к этому значению до сборки маршрутов, чтобы настроить рендеринг на стороне сервера по запросу для этой страницы.
+
+##### `route.prerender`
+
+<p>
+**Тип:** `boolean`<br />
+**По умолчанию:** `undefined`<br />
+<Since v="4.14.0" />
+</p>
+
+Свойство `prerender` используется для настройки [рендеринга на стороне сервера по запросу](/ru/guides/on-demand-rendering/#enabling-on-demand-rendering) для маршрута. Если файл маршрута содержит явное значение `export const prerender`, оно будет использоваться по умолчанию вместо `undefined`.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  integrations: [setPrerender()],
+});
+
+function setPrerender() {
+  return {
+    name: 'set-prerender',
+    hooks: {
+      'astro:route:setup': ({ route }) => {
+        if (route.component.endsWith('/blog/[slug].astro')) {
+          route.prerender = true;
+        }
+      },
+    },
+  };
+}
+```
+
+Если окончательное значение после выполнения всех хуков равно `undefined`, маршрут будет использовать значение по умолчанию для предварительного рендеринга на основе опции [`output`](/ru/reference/configuration-reference/#output): предварительный рендеринг для режима `static` и рендеринг по запросу для режима `server`.
+
+### `astro:routes:resolved`
+
+<p>
+
+<Since v="5.0.0" />
+</p>
+
+**Предыдущий хук:** [`astro:route:setup`](#astroroutesetup)
+
+**Следующий хук:** [`astro:config:done`](#astroconfigdone) (только во время настройки)
+
+**Когда:** В `astro dev`, также выполняется при каждом изменении файлового маршрута (добавление/удаление/обновление).
+
+**Зачем:** Для доступа к маршрутам и их метаданным
+
+```js
+'astro:routes:resolved'?: (options: {
+  routes: IntegrationResolvedRoute[];
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
+```
+
+#### Опция `routes`
+
+<p>
+
+**Тип:** [`IntegrationResolvedRoute[]`](#справка-о-типе-integrationresolvedroute)
+</p>
+
+Список всех маршрутов с их связанными метаданными.
+
+Пример использования:
+
+```js title="my-integration.mjs"
+const integration = () => {
+  return {
+    name: 'my-integration',
+    hooks: {
+      'astro:routes:resolved': ({ routes }) => {
+        const projectRoutes = routes.filter(r => r.origin === 'project').map(r => r.pattern)
+        
+        console.log(projectRoutes)
+      },
+    }
+  }
+}
+```
+
+### `astro:config:done`
+
+**Предыдущий хук:** [`astro:routes:resolved`](#astroroutesresolved)
+
+**Следующий хук:** [`astro:server:setup`](#astroserversetup) при работе в режиме «dev», или [`astro:build:start`](#astrobuildstart) при «production» сборке.
 
 **Когда:** После того, как конфигурация Astro была разрешена, и другие интеграции выполнили свои хуки `astro:config:setup`.
 
 **Зачем:** Для получения окончательной конфигурации для использования в других хуках.
 
 ```js
-'astro:config:done'?: (options: { config: AstroConfig }) => void | Promise<void>;
+'astro:config:done'?: (options: {
+  config: AstroConfig;
+  setAdapter: (adapter: AstroAdapter) => void;
+  injectTypes: (injectedType: InjectedType) => URL;
+  logger: AstroIntegrationLogger;
+  buildOutput: 'static' | 'server';
+}) => void | Promise<void>;
 ```
 
 #### Опция `config`
 
+<p>
+
 **Тип:** `AstroConfig`
+</p>
 
 Доступная только для чтения копия предоставленной пользователем [конфигурации Astro](/ru/reference/configuration-reference/). Это разрешается _после_ выполнения других интеграций.
+
+#### Опция `setAdapter()`
+
+<p>
+
+**Тип:** `(adapter: AstroAdapter) => void;`
+</p>
+
+Делает интеграцию адаптером. Подробнее в [справочнике по API адаптеров](/ru/reference/adapter-reference/).
+
+#### Опция `injectTypes()`
+
+<p>
+
+**Тип:** `(injectedType: { filename: string; content: string }) => URL`<br />
+<Since v="4.14.0" />
+</p>
+
+Позволяет внедрять типы в проект пользователя, добавляя новый файл `*.d.ts`.
+
+Свойство `filename` будет использоваться для создания файла по пути `/.astro/integrations/<normalized_integration_name>/<normalized_filename>.d.ts` и должно заканчиваться на `".d.ts"`.
+
+Свойство `content` создаёт содержимое файла и должно быть валидным TypeScript.
+
+Кроме того, `injectTypes()` возвращает URL к нормализованному пути, чтобы вы могли позже перезаписать его содержимое или манипулировать им любым удобным способом.
+
+```js
+const path = injectTypes({
+  filename: "types.d.ts",
+  content: "declare module 'virtual:integration' {}"
+})
+console.log(path) // URL
+```
+
+#### Опция `buildOutput`
+
+<p>
+
+**Тип:** `'static' | 'server'`<br />
+<Since v="5.0.0" />
+</p>
+
+Позволяет адаптировать логику вашей интеграции в зависимости от вывода проекта пользователя.
 
 ### `astro:server:setup`
 
@@ -393,19 +714,30 @@ injectRoute({
 
 **Следующий хук:** [`astro:server:start`](#astroserverstart)
 
-**Когда:**  Сразу после создания сервера Vite в режиме "dev", но перед событием `listen()`. [См. API createServer Vite](https://vite.dev/guide/api-javascript.html#createserver) для получения дополнительной информации.
+**Когда:**  Сразу после создания сервера Vite в режиме «dev», но перед событием `listen()`. [См. API createServer Vite](https://vite.dev/guide/api-javascript.html#createserver) для получения дополнительной информации.
 
-**Зачем:** Для обновления параметров сервера Vite и промежуточного ПО.
+**Зачем:** Для обновления параметров сервера Vite и мидлвара, или включения поддержки обновления слоя контента.
 
 ```js
-'astro:server:setup'?: (options: { server: vite.ViteDevServer }) => void | Promise<void>;
+'astro:server:setup'?: (options: {
+  server: vite.ViteDevServer;
+  logger: AstroIntegrationLogger;
+  toolbar: ReturnType<typeof getToolbarServerCommunicationHelpers>;
+  refreshContent: (options: {
+    loaders?: Array<string>;
+    context?: Record<string, any>;
+  }) => Promise<void>;
+}) => void | Promise<void>;
 ```
 
 #### Опция `server`
 
-**Тип:** [`ViteDevServer`](https://vite.dev/guide/api-javascript.html#vitedevserver)
+<p>
 
-Изменяемый экземпляр сервера Vite, используемый в режиме "dev". Например, это [используется нашей интеграцией Partytown](/ru/guides/integrations-guide/partytown/) для вставки сервера Partytown в качестве промежуточного ПО:
+**Тип:** [`ViteDevServer`](https://vite.dev/guide/api-javascript.html#vitedevserver)
+</p>
+
+Изменяемый экземпляр сервера Vite, используемый в режиме «dev». Например, это [используется нашей интеграцией Partytown](/ru/guides/integrations-guide/partytown/) для вставки сервера Partytown в качестве мидлвара:
 
 ```js
 export default {
@@ -414,13 +746,111 @@ export default {
     'astro:server:setup': ({ server }) => {
       server.middlewares.use(
         function middleware(req, res, next) {
-          // handle requests
+          // обработка запросов
         }
       );
     }
   }
 }
 ```
+
+#### Опция `toolbar`
+
+<p>
+
+**Тип:** `ReturnType<typeof getToolbarServerCommunicationHelpers>`<br />
+<Since v="4.7.0" />
+</p>
+
+Объект, предоставляющий функции обратного вызова для взаимодействия с [панелью разработчика](/ru/reference/dev-toolbar-app-reference/):
+
+##### `on()`
+
+<p>
+
+**Тип:** `<T>(event: string, callback: (data: T) => void) => void`<br />
+</p>
+
+Функция, которая принимает имя события в качестве первого аргумента и функцию обратного вызова в качестве второго аргумента. Это позволяет вам получать сообщения от приложения панели разработчика с данными, связанными с этим событием.
+
+##### `onAppInitialized()`
+
+<p>
+
+**Тип:** `(appId: string, callback: (data: Record<string, never>) => void) => void`<br />
+</p>
+
+Функция, вызываемая при инициализации приложения панели разработчика. Первый аргумент — это идентификатор инициализированного приложения. Второй аргумент — функция обратного вызова, которая выполняется при инициализации приложения.
+
+##### `onAppToggled()`
+
+<p>
+
+**Тип:** `(appId: string, callback: (data: { state: boolean; }) => void) => void`<br />
+</p>
+
+Функция, вызываемая при включении или выключении приложения панели разработчика. Первый аргумент — это идентификатор приложения, которое было переключено. Второй аргумент — функция обратного вызова, предоставляющая состояние для выполнения при переключении приложения.
+
+##### `send()`
+
+<p>
+
+**Тип:** `<T>(event: string, payload: T) => void`<br />
+</p>
+
+Функция, отправляющая сообщение в панель разработчика, которое может прослушиваться приложением. Она принимает имя события в качестве первого аргумента и полезную нагрузку в качестве второго аргумента — это могут быть любые сериализуемые данные.
+
+#### `refreshContent()` option
+
+<p>
+
+**Тип:** `(options: { loaders?: Array<string>; context?: Record<string, any>; }) => Promise<void>`<br />
+<Since v="5.0.0" />
+</p>
+
+Функция, позволяющая интеграциям инициировать обновление слоя контента во время работы `astro dev`. Например, её можно использовать для регистрации конечной точки вебхука в режиме разработки или для открытия сокета к CMS, чтобы отслеживать изменения.
+
+По умолчанию `refreshContent` обновляет все коллекции. Вы можете дополнительно передать свойство `loaders` — массив имён загрузчиков. Если оно указано, обновятся только коллекции, использующие эти загрузчики. Например, интеграция с CMS может использовать это свойство для обновления только своих коллекций.
+
+Также можно передать объект `context` в загрузчики. Это позволяет передавать произвольные данные, такие как тело вебхука или событие из вебсокета.
+
+```ts title=my-integration.ts {19-22}
+{
+  name: 'my-integration',
+  hooks: {
+    'astro:server:setup': async ({ server, refreshContent }) => {
+      // Регистрируем конечную точку вебхука для сервера разработки
+      server.middlewares.use('/_refresh', async (req, res) => {
+        if(req.method !== 'POST') {
+          res.statusCode = 405
+          res.end('Метод не разрешён');
+          return
+        }
+        let body = '';
+        req.on('data', chunk => {
+          body += chunk.toString();
+        });
+        req.on('end', async () => {
+          try {
+            const webhookBody = JSON.parse(body);
+            await refreshContent({
+              context: { webhookBody },
+              loaders: ['my-loader']
+            });
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ message: 'Контент успешно обновлён' }));
+          } catch (error) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Не удалось обновить контент: ' + error.message }));
+          }
+        });
+      });
+    }
+  }
+}
+```
+
+Загрузчик может затем получить доступ к свойству `refreshContextData`, чтобы получить тело вебхука. Подробнее см. в описании свойства [`refreshContextData`](/ru/reference/content-loader-reference/#refreshcontextdata).
 
 ### `astro:server:start`
 
@@ -430,28 +860,36 @@ export default {
 
 **Когда:** Сразу после срабатывания события `listen()` сервера.
 
-**Зачем:** Для перехвата сетевых запросов по указанному адресу. Если вы намерены использовать этот адрес для промежуточного ПО, рассмотрите возможность использования `astro:server:setup` вместо этого.
+**Зачем:** Для перехвата сетевых запросов по указанному адресу. Если вы намерены использовать этот адрес для мидлвара, рассмотрите возможность использования `astro:server:setup` вместо этого.
 
 ```js
-'astro:server:start'?: (options: { address: AddressInfo }) => void | Promise<void>;
+'astro:server:start'?: (options: {
+  address: AddressInfo;
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
 ```
 
 #### Опция `address`
 
+<p>
+
 **Тип:** [`AddressInfo`](https://microsoft.github.io/PowerBI-JavaScript/interfaces/_node_modules__types_node_net_d_._net_.addressinfo.html)
+</p>
 
 Адрес, семейство и номер порта, предоставленные [модулем Net Node.js](https://nodejs.org/api/net.html).
 
 ### `astro:server:done`
 
-**Следующий хук:** [`astro:server:start`](#astroserverstart)
+**Предыдущий хук:** [`astro:server:start`](#astroserverstart)
 
 **Когда:** Сразу после закрытия сервера разработки.
 
 **Зачем:** Для выполнения любых событий очистки, которые могут быть запущены во время хуков `astro:server:setup` или `astro:server:start`.
 
 ```js
-'astro:server:done'?: () => void | Promise<void>;
+'astro:server:done'?: (options: {
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
 ```
 
 ### `astro:build:start`
@@ -460,12 +898,14 @@ export default {
 
 **Следующий хук:** [`astro:build:setup`](#astrobuildsetup)
 
-**Когда:** После события `astro:config:done`, но перед началом производственной сборки.
+**Когда:** После события `astro:config:done`, но перед запуском сборки для продакшена.
 
-**Зачем:** Для настройки любых глобальных объектов или клиентов, необходимых во время производственной сборки. Это также может расширить параметры конфигурации сборки в [API адаптера](/ru/reference/adapter-reference/).
+**Зачем:** Для настройки любых глобальных объектов или клиентов, необходимых во время продакшен-сборки. Это также может расширить параметры конфигурации сборки в [API адаптера](/ru/reference/adapter-reference/).
 
 ```js
-'astro:build:start'?: () => void | Promise<void>;
+'astro:build:start'?: (options: {
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
 ```
 
 ### `astro:build:setup`
@@ -476,64 +916,278 @@ export default {
 
 **Когда:** После хука `astro:build:start`, запускается непосредственно перед сборкой.
 
-**Зачем:** На этом этапе конфигурация Vite для сборки полностью сконструирована, это ваш последний шанс ее изменить. Это может быть полезно, например, для перезаписи некоторых значений по умолчанию. Если вы не уверены, следует ли использовать этот хук или `astro:build:start`, используйте вместо этого `astro:build:start`.
+**Зачем:** На этом этапе конфигурация Vite для сборки полностью сконструирована, это ваш последний шанс её изменить. Это может быть полезно, например, для перезаписи некоторых значений по умолчанию. Если вы не уверены, следует ли использовать этот хук или `astro:build:start`, используйте вместо этого `astro:build:start`.
 
 ```js
 'astro:build:setup'?: (options: {
-  vite: ViteConfigWithSSR;
+  vite: vite.InlineConfig;
   pages: Map<string, PageBuildData>;
   target: 'client' | 'server';
+  updateConfig: (newConfig: vite.InlineConfig) => void;
+  logger: AstroIntegrationLogger;
 }) => void | Promise<void>;
 
 ```
 
-### `astro:build:generated`
+#### Опция `vite`
 
-**Предыдущий хук:** [`astro:build:setup`](#astrobuildsetup)
+<p>
 
-**Когда:** После завершения статической производственной сборки, генерирующей маршруты и ассеты.
+**Тип:** [`InlineConfig`](https://vite.dev/guide/api-javascript.html#inlineconfig)
+</p>
 
-**Зачем:** Для доступа к сгенерированным маршрутам и ресурсам до очистки артефактов сборки. Это очень редкий случай использования. Мы рекомендуем использовать [`astro:build:done`](#astrobuilddone), если вам действительно нужен доступ к сгенерированным файлам перед очисткой.
+Объект, позволяющий получить доступ к конфигурации Vite, используемой при сборке.
+
+Это может быть полезно, если вам нужно получить доступ к параметрам конфигурации в вашей интеграции:
 
 ```js
-'astro:build:generated'?: (options: { dir: URL }) => void | Promise<void>;
+export default {
+  name: 'my-integration',
+  hooks: {
+    'astro:build:setup': ({ vite }) => {
+      const { publicDir, root } = vite;
+    },
+  }
+}
+```
+
+#### Опция `pages`
+
+<p>
+
+**Тип:** <code>Map\<string, <a href="https://github.com/withastro/astro/blob/3b10b97a4fecd1dfd959b160a07b5b8427fe40a7/packages/astro/src/core/build/types.ts#L17-L23">PageBuildData</a>\></code>
+</p>
+
+`Map`, содержащий список страниц в качестве ключей и их данные сборки в качестве значений.
+
+Это можно использовать для выполнения действия, если маршрут соответствует определённому критерию:
+
+```js
+export default {
+  name: 'my-integration',
+  hooks: {
+    'astro:build:setup': ({ pages }) => {
+      pages.forEach((data) => {
+        if (data.route.pattern.test("/blog")) {
+          console.log(data.route.type);
+        }
+      });
+    },
+  }
+}
+```
+
+#### Опция `target`
+
+<p>
+
+**Тип:** `'client' | 'server'`
+</p>
+
+Сборка разделена на две фазы: `client` и `server`. Эта опция позволяет определить текущую фазу сборки.
+
+Её можно использовать для выполнения действия только в определённой фазе:
+
+```js
+export default {
+  name: 'my-integration',
+  hooks: {
+    'astro:build:setup': ({ target }) => {
+      if (target === "server") {
+        // делаем что-нибудь в фазе сервера
+      }
+    },
+  }
+}
+```
+
+#### Опция `updateConfig()`
+
+<p>
+
+**Тип:** <code>(newConfig: <a href="https://vite.dev/guide/api-javascript.html#inlineconfig">InlineConfig</a>) => void</code>
+</p>
+
+Функция обратного вызова для обновления параметров [Vite](https://vite.dev/), используемых при сборке. Любая предоставленная вами конфигурация **будет объединена с конфигурацией пользователя и обновлениями других интеграций**, поэтому вы можете свободно опускать ключи!
+
+Например, это можно использовать для добавления плагина в проект пользователя:
+
+```js
+import awesomeCssPlugin from 'awesome-css-vite-plugin';
+
+export default {
+  name: 'my-integration',
+  hooks: {
+    'astro:build:setup': ({ updateConfig }) => {
+      updateConfig({
+        plugins: [awesomeCssPlugin()],
+      })
+    }
+  }
+}
 ```
 
 ### `astro:build:ssr`
 
 **Предыдущий хук:** [`astro:build:setup`](#astrobuildsetup)
 
-**Когда:** После завершения производственной сборки с SSR.
+**Следующий хук:** [`astro:build:generated`](#astrobuildgenerated)
 
-**Зачем:** Для доступа к манифесту SSR и карте излученных точек входа. Это полезно при создании пользовательских сборок SSR в плагинах или интеграциях.
+**Когда:** После завершения продакшен-сборки с SSR.
+
+**Зачем:** Для доступа к SSR-манифесту и карте созданных точек входа. Это полезно при создании пользовательских SSR-сборок в плагинах или интеграциях.
 - `entryPoints` сопоставляет маршрут страницы с физическим файлом, созданным после сборки;
-- `middlewareEntryPoint` - путь файловой системы к файлу промежуточного ПО;
+- `middlewareEntryPoint` - путь файловой системы к файлу мидлвара;
 
 ```js
 'astro:build:ssr'?: (options: {
-    manifest: SerializedSSRManifest,
-    entryPoints: Map<RouteData, URL>,
-    middlewareEntryPoint: URL
+  manifest: SerializedSSRManifest;
+  entryPoints: Map<IntegrationRouteData, URL>;
+  middlewareEntryPoint: URL | undefined;
+  logger: AstroIntegrationLogger;
 }) => void | Promise<void>;
 ```
 
-### `astro:build:done`
+#### Опция `manifest`
+
+<p>
+
+**Тип:** [`SerializedSSRManifest`](https://github.com/withastro/astro/blob/3b10b97a4fecd1dfd959b160a07b5b8427fe40a7/packages/astro/src/core/app/types.ts#L91-L109)
+</p>
+
+Позволяет создать пользовательскую сборку, получая доступ к SSR-манифесту.
+
+```js
+export default {
+  name: 'my-integration',
+  hooks: {
+    'astro:build:ssr': ({ manifest }) => {
+      const { i18n } = manifest;
+      if (i18n?.strategy === "domains-prefix-always") {
+        // что-то делаем
+      }
+    },
+  },
+}
+```
+
+#### Опция `entryPoints`
+
+<p>
+
+**Тип:** <code>Map\<<a href="#справка-о-типе-integrationroutedata">IntegrationRouteData</a>, URL\></code><br />
+<Since v="2.7.0" />
+</p>
+
+`Map` созданных точек входа, где ключом являются данные `IntegrationRouteData`, а значением — URL физического файла.
+
+```js
+export default {
+  name: 'my-integration',
+  hooks: {
+    'astro:build:ssr': ({ entryPoints }) => {
+      entryPoints.forEach((url) => {
+        console.log(url.href);
+      });
+    },
+  },
+}
+```
+
+#### Опция `middlewareEntryPoint`
+
+<p>
+
+**Тип:** `URL | undefined`<br />
+<Since v="2.8.0" />
+</p>
+
+Предоставляет путь к файлу [мидлвара](/ru/guides/middleware/).
+
+```js
+export default {
+  name: 'my-integration',
+  hooks: {
+    'astro:build:ssr': ({ middlewareEntryPoint }) => {
+      if (middlewareEntryPoint) {
+        // выполняем какие-нибудь операции, если существует мидлвар
+      }
+    },
+  },
+}
+```
+
+### `astro:build:generated`
+
+<p>
+
+<Since v="1.3.0" />
+</p>
 
 **Предыдущий хук:** [`astro:build:ssr`](#astrobuildssr)
 
-**Когда:** После завершения сборки (SSG или SSR).
+**Следующий хук:** [`astro:build:done`](#astrobuilddone)
 
-**Зачем:**  Чтобы получить доступ к сгенерированным маршрутам и ассетам для расширения (например, скопировать содержимое в сгенерированную директорию `/assets`). Если вы планируете преобразовывать сгенерированные ассеты, мы рекомендуем использовать [API плагинов Vite](https://vite.dev/guide/api-plugin.html) и [настройку через `astro:config:setup`](#опция-updateconfig) вместо этого.
+**Когда:** После завершения статической продакшен-сборки, генерирующей маршруты и ресурсы.
+
+**Зачем:** Для доступа к сгенерированным маршрутам и ресурсам **до** очистки артефактов сборки. Это очень редкий случай использования. Мы рекомендуем использовать [`astro:build:done`](#astrobuilddone), если вам действительно нужен доступ к сгенерированным файлам перед очисткой.
 
 ```js
-'astro:build:done'?: (options: { dir: URL; routes: RouteData[], pages: { pathname: string }[] }) => void | Promise<void>;
+'astro:build:generated'?: (options: {
+  dir: URL;
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
 ```
 
 #### Опция `dir`
 
-**Тип:** [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL)
+<p>
 
-URL-путь к выходному каталогу сборки. Обратите внимание, что если вам нужна корректная строка абсолютного пути, вам следует использовать встроенную в Node утилиту [`fileURLToPath`](https://nodejs.org/api/url.html#urlfileurltopathurl).
+**Тип:** [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL)
+</p>
+
+URL-путь к директории вывода сборки. Обратите внимание, что если вам нужна валидная абсолютная строка пути, следует использовать встроенную в Node утилиту [`fileURLToPath`](https://nodejs.org/api/url.html#urlfileurltopathurl-options).
+
+```js
+import { fileURLToPath } from 'node:url';
+
+export default {
+  name: 'my-integration',
+  hooks: {
+    'astro:build:generated': ({ dir }) => {
+      const outFile = fileURLToPath(new URL('./my-integration.json', dir));
+    }
+  }
+}
+```
+
+### `astro:build:done`
+
+**Предыдущий хук:** [`astro:build:generated`](#astrobuildgenerated)
+
+**Когда:** После завершения продакшен-сборки (SSG или SSR).
+
+**Зачем:**  Чтобы получить доступ к сгенерированным маршрутам и ресурсам для расширения (например, скопировать содержимое в сгенерированную директорию `/assets`). Если вы планируете преобразовывать сгенерированные ресурсы, мы рекомендуем использовать [API плагинов Vite](https://vite.dev/guide/api-plugin.html) и [настройку через `astro:config:setup`](#опция-updateconfig) вместо этого.
+
+```js
+'astro:build:done'?: (options: {
+  pages: { pathname: string }[];
+  dir: URL;
+  /** @deprecated Используйте карту `assets`` и новый хук `astro:routes:resolved` */
+  routes: IntegrationRouteData[];
+  assets: Map<string, URL[]>;
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
+```
+
+#### Опция `dir`
+
+<p>
+
+**Тип:** [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL)
+</p>
+
+URL-путь к выходному каталогу сборки. Обратите внимание, что если вам нужна валидная строка абсолютного пути, вам следует использовать встроенную в Node утилиту [`fileURLToPath`](https://nodejs.org/api/url.html#urlfileurltopathurl).
 
 ```js
 import { writeFile } from 'node:fs/promises';
@@ -544,7 +1198,7 @@ export default function myIntegration() {
     hooks: {
       'astro:build:done': async ({ dir }) => {
         const metadata = await getIntegrationMetadata();
-        // Use fileURLToPath to get a valid, cross-platform absolute path string
+        // Используем `fileURLToPath`, чтобы получить валидную абсолютную строку пути, совместимую с разными платформами
         const outFile = fileURLToPath(new URL('./my-integration.json', dir));
         await writeFile(outFile, JSON.stringify(metadata));
       }
@@ -555,62 +1209,434 @@ export default function myIntegration() {
 
 #### Опция `routes`
 
-**Тип:** [`RouteData[]`](#справка-о-типе-routedata)
+:::caution
+Это свойство устарело начиная с v5.0. Ознакомьтесь с [руководством по миграции](/ru/guides/upgrade-to/v5/#устаревшее-routes-в-хуке-astrobuilddone-api-интеграций).
+:::
+
+<p>
+
+**Тип:** [`IntegrationRouteData[]`](#справка-о-типе-integrationroutedata)
+</p>
 
 Список всех сгенерированных маршрутов вместе с их метаданными.
 
-Вы можете ссылаться на полный тип `RouteData` ниже, но наиболее часто используемые свойства:
+Вы можете ссылаться на полный тип `IntegrationRouteData` ниже, но наиболее часто используемые свойства:
 
 - `component` — путь к входному файлу относительно корня проекта
 - `pathname` — URL выходного файла (не определен для маршрутов с параметрами `[dynamic]` и `[...spread]`)
 
-##### Справка о типе `RouteData`
+#### Опция `assets`
 
-```ts
-interface RouteData {
-  /** Определяет, является ли данный маршрут HTML-страницей или конечной точкой без HTML */
-  type: 'page' | 'endpoint';
-  /** URL исходного компонента */
-  component: string;
-  /**
-   * Путь URL-адреса вывода, по которому будет обслуживаться этот маршрут
-   * Примечание: будет неопределен для маршрутов с параметрами `[dynamic]` и `[...spread]`
-   */
-  pathname?: string;
-  /**
-   * Регулярное выражение, используемое для сопоставления входного URL с запрошенным маршрутом
-   * Например, "[fruit]/about.astro" создаст шаблон: /^\/([^/]+?)\/about\/?$/
-   * где pattern.test("banana/about") возвращает "true"
-   */
-  pattern: RegExp;
-  /**
-   * Параметры динамического и развернутого маршрута
-   * Например, "/pages/[lang]/[..slug].astro" выведет параметры ['lang', '...slug']
-   */
-  params: string[];
-  /**
-   * Аналогично полю "params", но с дополнительной связанной метаданными
-   * Например, "/pages/[lang]/index.astro" выведет сегменты
-   * [[ { content: 'lang', dynamic: true, spread: false } ]]
-   */
-  segments: { content: string; dynamic: boolean; spread: boolean; }[][];
-  /**
-   * Функция для рендеринга компонента на месте из набора входных данных.
-   * Обычно используется для внутреннего использования, поэтому вызывайте с осторожностью!
-   */
-  generate: (data?: any) => string;
-}
-```
+<p>
+
+**Тип:** `Map<string, URL[]>`<br />
+<Since v="5.0.0" />
+</p>
+
+Содержит URL-адреса путей к выходным файлам, сгруппированные по свойству `pattern` типа [`IntegrationResolvedRoute`](#справка-о-типе-integrationresolvedroute).
 
 #### Опция `pages`
 
+<p>
+
 **Тип:** `{ pathname: string }[]`
+</p>
 
 Список всех сгенерированных страниц. Это объект с одним свойством.
 
 - `pathname` — окончательный путь страницы.
 
-## Разрешите установку с помощью `astro add`
+### Пользовательские хуки
+
+Пользовательские хуки можно добавлять в интеграции, расширяя интерфейс `IntegrationHooks` с помощью [глобального расширения](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#global-augmentation).
+
+```ts
+declare global {
+  namespace Astro {
+    export interface IntegrationHook {
+      'your:hook': (params: YourHookParameters) => Promise<void>
+    }
+  }
+}
+```
+
+Astro резервирует префикс `astro:` для будущих встроенных хуков. Пожалуйста, выберите другой префикс при именовании вашего пользовательского хука.
+
+## Справочник по типам интеграций
+
+### `AstroIntegrationLogger`
+
+Экземпляр логгера Astro, полезный для записи логов. Этот логгер использует тот же [уровень логирования](/ru/reference/cli-reference/#--verbose), что и настроенный через CLI.
+
+
+**Доступные методы** для записи в терминал:
+- `logger.info("Сообщение")`;
+- `logger.warn("Сообщение")`;
+- `logger.error("Сообщение")`;
+- `logger.debug("Сообщение")`;
+
+Все сообщения предваряются меткой, значение которой совпадает с именем интеграции.
+
+```ts title="integration.ts" {8}
+import type { AstroIntegration } from "astro";
+export function formatIntegration(): AstroIntegration {
+  return {
+    name: "astro-format",
+    hooks: {
+      "astro:build:done": ({ logger }) => {
+        // делаем что-нибудь
+        logger.info("Интеграция готова.");
+      }
+    }
+  }
+}
+```
+
+Пример выше запишет сообщение, включающее предоставленное `info`-сообщение:
+
+```shell
+[astro-format] Integration ready.
+```
+
+Чтобы записать сообщения с другой меткой, используйте метод `.fork`, чтобы указать альтернативу значению по умолчанию `name`:
+
+```ts title="integration.ts" ".fork"
+import type { AstroIntegration } from "astro";
+export function formatIntegration(): AstroIntegration {
+  return {
+    name: "astro-format",
+    hooks: {
+      "astro:config:done": ({ logger }) => {
+        // делаем что-нибудь
+        logger.info("Интеграция готова.");
+      },
+      "astro:build:done": ({ logger }) => {
+        const buildLogger = logger.fork("astro-format/build");
+        // делаем что-нибудь
+        buildLogger.info("Сборка завершена.")
+      }
+    }
+  }
+}
+```
+
+Пример выше будет создавать логи с `[astro-format]` по умолчанию и `[astro-format/build]`, когда это указано:
+
+```shell
+[astro-format] Интеграция готова.
+[astro-format/build] Сборка завершена.
+```
+
+### `HookParameters`
+
+Вы можете получить тип аргументов хука, передав имя хука в утилиту типа `HookParameters`. В следующем примере аргумент `options` функции типизирован в соответствии с параметрами хука `astro:config:setup`:
+
+```ts /HookParameters(?:<.+>)?/
+import type { HookParameters } from 'astro';
+
+function mySetup(options: HookParameters<'astro:config:setup'>) {
+  options.updateConfig({ /* ... */ });
+}
+```
+
+### Справка о типе `IntegrationResolvedRoute`
+
+```ts
+interface IntegrationResolvedRoute {
+  pattern: RouteData['route'];
+  patternRegex: RouteData['pattern'];
+  entrypoint: RouteData['component'];
+  isPrerendered: RouteData['prerender'];
+  redirectRoute?: IntegrationResolvedRoute;
+  generate: (data?: any) => string;
+  params: string[];
+  pathname?: string;
+  segments: RoutePart[][];
+  type: RouteType;
+  redirect?: RedirectConfig;
+  origin: 'internal' | 'external' | 'project';
+}
+```
+
+#### `pattern`
+
+<p>
+
+**Тип:** `string`
+</p>
+
+Позволяет определить тип маршрута на основе его пути. Вот несколько примеров путей, связанных с их шаблоном:
+* `src/pages/index.astro` будет `/`
+* `src/pages/blog/[...slug].astro` будет `/blog/[...slug]`
+* `src/pages/site/[blog]/[...slug].astro` будет `/site/[blog]/[...slug]`
+
+#### `patternRegex`
+
+<p>
+
+**Тип:** `RegExp`
+</p>
+
+Позволяет получить доступ к регулярному выражению, используемому для сопоставления входного URL с запрошенным маршрутом.
+
+Например, для пути `[fruit]/about.astro` регулярное выражение будет `/^\/([^/]+?)\/about\/?$/`. Использование `pattern.test("banana/about")` вернёт `true`.
+
+#### `entrypoint`
+
+<p>
+
+**Тип:** `string`
+</p>
+
+Путь URL исходного компонента.
+
+#### `isPrerendered`
+
+<p>
+
+**Тип:** `boolean`
+</p>
+
+Определяет, использует ли маршрут [рендеринг по запросу](/ru/guides/on-demand-rendering/). Значение будет `true` для проектов, настроенных следующим образом:
+* `output: 'static'`, когда маршрут не экспортирует `const prerender = true`
+* `output: 'server'`, когда маршрут экспортирует `const prerender = false`
+
+#### `redirectRoute`
+
+<p>
+
+**Тип:** `IntegrationResolvedRoute | undefined`
+</p>
+
+Когда значение `IntegrationResolvedRoute.type` равно `redirect`, значение будет `IntegrationResolvedRoute`, на который нужно перенаправить. В противном случае значение будет неопределённым.
+
+#### `generate()`
+
+<p>
+
+**Тип:** `(data?: any) => string`
+</p>
+
+Функция, которая предоставляет необязательные параметры маршрута, интерполирует их с шаблоном маршрута и возвращает имя пути маршрута.
+
+Например, для маршрута, такого как `/blog/[...id].astro`, функция `generate` может вернуть:
+
+```js
+console.log(generate({ id: 'presentation' })) // выведет `/blog/presentation`
+```
+
+#### `params`
+
+<p>
+
+**Тип:** `string[]`
+</p>
+
+Позволяет получить доступ к `params` маршрута. Например, когда проект использует следующие [динамические маршруты](/ru/guides/routing/#динамические-маршруты) `/pages/[lang]/[...slug].astro`, значение будет `['lang', '...slug']`.
+
+#### `pathname`
+
+<p>
+
+**Тип:** `string | undefined`
+</p>
+
+Для обычных маршрутов значение будет представлять собой путь URL, по которому будет обслуживаться этот маршрут. Когда проект использует [динамические маршруты](/ru/guides/routing/#динамические-маршруты) (т. е. `[dynamic]` или `[...spread]`), путь будет неопределённым.
+
+#### `segments`
+
+<p>
+
+**Тип:** <code><a href="https://github.com/withastro/astro/blob/3b10b97a4fecd1dfd959b160a07b5b8427fe40a7/packages/astro/src/types/public/internal.ts#L154-L158">RoutePart</a>[][]</code>
+</p>
+
+Позволяет получить доступ к [`params`](#params) маршрута с дополнительной метаинформацией. Каждый объект содержит следующие свойства:
+* `content`: имя `param`,
+* `dynamic`: является ли маршрут динамическим или нет,
+* `spread`: использует ли динамический маршрут синтаксис распространения или нет.
+
+Например, следующий маршрут `/pages/[blog]/[...slug].astro` выведет сегменты:
+
+```js
+[
+  [ { content: 'pages', dynamic: false, spread: false } ],
+  [ { content: 'blog', dynamic: true, spread: false } ],
+  [ { content: '...slug', dynamic: true, spread: true } ]
+]
+```
+
+#### `type`
+
+<p>
+
+**Тип:** `RouteType`
+</p>
+
+Позволяет определить тип маршрута. Возможные значения:
+* `page`: маршрут, который находится в файловой системе, обычно это компонент Astro
+* `endpoint`: маршрут, который находится в файловой системе, обычно это JS-файл, который предоставляет методы эндпойнтов
+* `redirect`: маршрут, который указывает на другой маршрут, находящийся в файловой системе
+* `fallback`: маршрут, который не существует в файловой системе и который необходимо обрабатывать другими средствами, обычно с помощью мидлваров
+
+#### `redirect`
+
+<p>
+
+**Тип:** <code><a href="https://github.com/withastro/astro/blob/3b10b97a4fecd1dfd959b160a07b5b8427fe40a7/packages/astro/src/types/public/config.ts#L39-L44">RedirectConfig</a> | undefined</code>
+</p>
+
+Позволяет получить доступ к маршруту, на который нужно перенаправить. Это может быть строка или объект, содержащий информацию о статусном коде и его назначении.
+
+#### `origin`
+
+<p>
+
+**Тип:** `'internal' | 'external' | 'project'`
+</p>
+
+Определяет, поступает ли маршрут из ядра Astro (`internal`), интеграции (`external`) или проекта пользователя (`project`).
+
+### Справка о типе `IntegrationRouteData`
+
+:::caution
+Этот тип устарел с версии v5.0. Используйте вместо него [`IntegrationResolvedRoute`](#справка-о-типе-integrationresolvedroute).
+:::
+
+Упрощенная версия `RouteData`, которая используется в интеграциях.
+
+```ts
+interface IntegrationRouteData {
+  type: RouteType;
+  component: string;
+  pathname?: string;
+  pattern: RegExp;
+  params: string[];
+  segments: { content: string; dynamic: boolean; spread: boolean; }[][];
+  generate: (data?: any) => string;
+  prerender: boolean;
+  distURL?: URL[];
+  redirect?: RedirectConfig;
+  redirectRoute?: IntegrationRouteData;
+}
+```
+
+#### `type`
+
+<p>
+
+**Тип:** `RouteType`
+</p>
+
+Позволяет определить тип маршрута. Значение может быть:
+- `page`: маршрут, который находится в файловой системе, обычно это компонент Astro
+- `endpoint`: маршрут, который находится в файловой системе, обычно это JS-файл, который предоставляет методы эндпойнтов
+- `redirect`: маршрут, который указывает на другой маршрут, находящийся в файловой системе
+- `fallback`: маршрут, который не существует в файловой системе и который необходимо обрабатывать другими средствами, обычно с помощью мидлваров
+
+#### `component`
+
+<p>
+
+**Тип:** `string`
+</p>
+
+Позволяет получить доступ к пути URL исходного компонента.
+
+#### `pathname`
+
+<p>
+
+**Тип:** `string | undefined`
+</p>
+
+Для обычных маршрутов значение будет представлять собой путь URL, по которому будет обслуживаться этот маршрут. Когда проект использует [динамические маршруты](/ru/guides/routing/#динамические-маршруты) (т. е. `[dynamic]` или `[...spread]`), путь будет неопределённым.
+
+#### `pattern`
+
+<p>
+
+**Тип:** `RegExp`
+</p>
+
+Позволяет получить доступ к регулярному выражению, используемому для сопоставления входного URL с запрашиваемым маршрутом.
+
+Например, для пути `[fruit]/about.astro` регулярное выражение будет `/^\/([^/]+?)\/about\/?$/`. Использование `pattern.test("banana/about")` вернет `true`.
+
+#### `params`
+
+<p>
+
+**Тип:** `string[]`
+</p>
+
+Позволяет получить доступ к `params` маршрута. Например, когда проект использует следующие [динамические маршруты](/ru/guides/routing/#динамические-маршруты) `/pages/[lang]/[...slug].astro`, значение будет `['lang', '...slug']`.
+
+#### `segments`
+
+<p>
+
+**Тип:** `{ content: string; dynamic: boolean; spread: boolean; }[][]`
+</p>
+
+Позволяет получить доступ к [`params`](#params-1) маршрута с дополнительной метаинформацией. Каждый объект содержит следующие свойства:
+* `content`: `param`,
+* `dynamic`: является ли маршрут динамическим или нет,
+* `spread`: использует ли динамический маршрут синтаксис распространения или нет.
+
+Например, следующий маршрут `/pages/[lang]/index.astro` выведет сегменты `[[ { content: 'lang', dynamic: true, spread: false } ]]`.
+
+#### `generate()`
+
+<p>
+
+**Тип:** `(data?: any) => string`
+</p>
+
+Функция, которая предоставляет необязательные параметры маршрута, интерполирует их с шаблоном маршрута и возвращает имя пути маршрута.
+
+Например, для маршрута, такого как `/blog/[...id].astro`, функция `generate` может вернуть:
+
+```js
+console.log(generate({ id: 'presentation' })) // выведет `/blog/presentation` 
+```
+
+#### `prerender`
+
+<p>
+
+**Тип:** `boolean`
+</p>
+
+Определяет, является ли маршрут предварительно отрендеренным или нет.
+
+#### `distURL`
+
+<p>
+
+**Тип:** `URL[] | undefined`
+</p>
+
+Пути физических файлов, создаваемых этим маршрутом. Когда маршрут **не является** предварительно отрендеренным, значение будет либо `undefined`, либо пустым массивом.
+
+#### `redirect`
+
+<p>
+
+**Тип:** <code><a href="https://github.com/withastro/astro/blob/3b10b97a4fecd1dfd959b160a07b5b8427fe40a7/packages/astro/src/types/public/config.ts#L39-L44">RedirectConfig</a> | undefined</code>
+</p>
+
+Позволяет получить доступ к маршруту, на который нужно перенаправить. Это может быть строка или объект, содержащий информацию о статусном коде и его назначении.
+
+#### `redirectRoute`
+
+<p>
+
+**Тип:** `IntegrationRouteData | undefined`
+</p>
+
+Когда значение `RouteData.type` равно `redirect`, значение будет содержать `IntegrationRouteData` маршрута, на который нужно перенаправить. В противном случае значение будет неопределенным.
+
+## Разрешаем установку с помощью `astro add`
 
 [Команда `astro add`](/ru/reference/cli-reference/#astro-add) позволяет пользователям легко добавлять интеграции и адаптеры в свой проект. Если вы хотите, чтобы _ваша_ интеграция могла быть установлена с помощью этого инструмента, **добавьте `astro-integration` в поле `keywords` в вашем `package.json`**:
 
@@ -621,98 +1647,35 @@ interface RouteData {
 }
 ```
 
-Как только вы [опубликуете свою интеграцию на npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), запуск `astro add example` установит ваш пакет с любыми зависимостями, указанными в вашем `package.json`. Это также применит вашу интеграцию к пользовательскому `astro.config`, как показано ниже:
+После того как вы [опубликуете свою интеграцию в npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), выполнение команды `astro add example` установит ваш пакет с любыми зависимостями, указанными в вашем `package.json`. Это также применит вашу интеграцию к `astro.config.*` пользователя следующим образом:
 
-```diff
+```js ins={3,6}
 // astro.config.mjs
 import { defineConfig } from 'astro/config';
-+ import example from 'example';
+import example from 'example';
 
 export default defineConfig({
-+  integrations: [example()],
+  integrations: [example()],
 })
 ```
 
 :::caution
-Это предполагает, что ваше определение интеграции является 1) экспортом `default` и 2) функцией. Убедитесь, что это так, прежде чем добавлять ключевое слово `astro-integration`!
+Это предполагает, что определение вашей интеграции 1) является `default` экспортом и 2) является функцией. Убедитесь, что это так, прежде чем добавлять ключевое слово `astro-integration`!
 :::
 
-## `AstroIntegrationLogger`
+## Порядок интеграций
 
-Экземпляр логгера Astro, полезный для записи логов. Этот логгер использует тот же [уровень логирования](/ru/reference/cli-reference/#--verbose), настроенный через CLI.
+Все интеграции выполняются в порядке, в котором они настроены. Например, для массива `[react(), svelte()]` в `astro.config.*` пользователя, `react` будет выполняться перед `svelte`.
 
-**Доступные методы** для записи в терминал:
-- `logger.info("Сообщение")`;
-- `logger.warn("Сообщение")`;
-- `logger.error("Сообщение")`;
-- `logger.debug("Сообщение")`;
-
-Все сообщения дополняются меткой, которая имеет то же значение, что и интеграция.
-
-```ts title="integration.ts" {8}
-import type { AstroIntegration } from "astro";
-export function formatIntegration(): AstroIntegration {
-    return {
-        name: "astro-format",
-        hooks: {
-            "astro:build:done": ({ logger }) => {
-                // делаем что-то
-                logger.info("Интеграция готова.");
-            }
-        }
-    }
-}
-```
-
-Приведенный выше пример будет регистрировать сообщение, которое включает предоставленное сообщение `info`:
-
-```shell
-[astro-format] Интеграция готова.
-```
-
-Чтобы записать в журнал несколько сообщений с другой меткой, используйте метод `.fork`, чтобы указать альтернативу стандартному `name`:
-
-```ts title="integration.ts" ".fork"
-import type { AstroIntegration } from "astro";
-export function formatIntegration(): AstroIntegration {
-    return {
-        name: "astro-format",
-        hooks: {
-            "astro:config:done": ({ logger }) => {
-                // делаем что-то
-                logger.info("Интеграция готова.");
-            },
-            "astro:build:done": ({ logger }) => {
-                const buildLogger = logger.fork("astro-format/build");
-                // делаем что-то
-                buildLogger.info("Сборка завершена.")
-            }
-        }
-    }
-}
-```
-
-
-Приведенный выше пример по умолчанию будет создавать логи с `[astro-format]`, и `[astro-format/build]` при указании:
-
-```shell
-[astro-format] Интеграция готова.
-[astro-format/build] Сборка завершена.
-```
-
-## Порядок выполнения интеграций
-
-Все интеграции запускаются в том порядке, в котором они настроены. Например, для массива `[react(), svelte()]` в пользовательском файле `astro.config.*`, `react` будет запущен раньше `svelte`.
-
-В идеале ваша интеграция должна выполняться в любом порядке. Если это невозможно, мы рекомендуем документировать, что ваша интеграция должна быть первой или последней в массиве конфигурации `integrations` пользователя.
+Ваша интеграция должна, в идеале, работать в любом порядке. Если это невозможно, мы рекомендуем задокументировать, что ваша интеграция должна быть первой или последней в массиве конфигурации `integrations` пользователя.
 
 ## Объединение интеграций в пресеты
-	
-Интеграция также может быть написана как набор нескольких более мелких интеграций. Мы называем эти наборы **пресетами.** Вместо создания функции-фабрики, возвращающей единственный объект интеграции, пресет возвращает _массив_ объектов интеграции. Это полезно для создания сложных функций из нескольких интеграций.
+
+Интеграция также может быть написана как коллекция нескольких, более мелких интеграций. Мы называем эти коллекции **пресетами**. Вместо создания фабричной функции, которая возвращает один объект интеграции, пресет возвращает _массив_ объектов интеграции. Это полезно для создания сложных функций из нескольких интеграций.
 
 ```js
 integrations: [
-  // Пример: где examplePreset() возвращает: [integrationOne, integrationTwo, ...etc]
+  // Пример, где examplePreset() возвращает: [integrationOne, integrationTwo, ...etc]
   examplePreset()
 ]
 ```

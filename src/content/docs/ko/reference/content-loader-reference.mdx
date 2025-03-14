@@ -14,6 +14,139 @@ Astro 로더를 사용하면 페이지와 컴포넌트에서 사용할 수 있�
 
 각 컬렉션에는 [스키마에 정의된 로더](/ko/guides/content-collections/#컬렉션-loader-정의)가 필요합니다. 프로젝트의 `src/content.config.ts` 파일에서 로더를 인라인으로 정의하거나, 여러 컬렉션 간에 하나의 로더를 공유하거나, 심지어 [로더를 NPM 패키지로 게시](/ko/reference/publish-to-npm/)하여 다른 사람들과 공유하고 통합 라이브러리에 포함시킬 수도 있습니다.
 
+## 내장 로더
+
+Astro는 컬렉션을 가져오는 데 도움이 되는 두 가지 내장 로더를 제공합니다. 두 로더 모두 다양한 사용 사례에 적합한 옵션을 제공합니다.
+
+### `glob()` 로더
+
+<p>
+
+**타입:** <code>(options: GlobOptions) => <a href="#loader-객체">Loader</a></code><br />
+<Since v="5.0.0" />
+</p>
+
+`glob()` 로더는 파일 시스템의 어디에서나 파일 디렉터리로부터 항목들을 생성합니다. 지원되는 파일 형식은 Markdown, MDX, Markdoc, JSON 및 YAML 파일입니다.
+
+이 로더는 다음과 같은 속성을 가진 객체를 받습니다: `pattern`, `base`(선택사항), 그리고 `generateId`(선택사항).
+
+```ts title="src/content.config.ts" {2,6,11,16-20}
+import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const pages = defineCollection({
+  /* pages 디렉터리에 있는 모든 Markdown 파일을 가져옵니다. */
+  loader: glob({ pattern: "**/*.md", base: "./src/data/pages" }),
+  schema: /* ... */
+});
+const blog = defineCollection({
+  /* blog 디렉터리에 있는 모든 Markdown과 MDX 파일을 가져옵니다. */
+  loader: glob({ pattern: "**/*.(md|mdx)", base: "./src/data/blog" }),
+  schema: /* ... */
+});
+const authors = defineCollection({
+  /* authors 디렉터리에 있는 모든 JSON 파일을 가져오면서 ID의 대문자를 유지합니다. */
+  loader: glob({
+    pattern: '**/*.json',
+    base: "./src/data/authors",
+    generateId: ({ entry }) => entry.replace(/\.json$/, ''),
+  }),
+  schema: /* ... */
+});
+```
+
+#### `pattern`
+
+<p>
+
+**타입:** `string | string[]`
+</p>
+
+`pattern` 속성은 glob 매칭(예: 와일드카드, 글롭스타)을 사용하는 문자열 또는 문자열 배열을 받습니다. 패턴은 매칭할 엔트리 파일들의 기본 디렉터리를 기준으로 상대 경로여야 합니다.
+
+사용할 수 있는 구문에 대해 더 자세히 알아보려면 [micromatch 문서](https://github.com/micromatch/micromatch#matching-features)를 참고하세요. 또한 [DigitalOcean Glob Tool](https://www.digitalocean.com/community/tools/glob)과 같은 온라인 도구를 사용하여 패턴의 유효성을 확인할 수 있습니다.
+
+#### `base`
+
+<p>
+
+**타입:** `string | URL`<br />
+**기본값:** `"."`
+</p>
+
+`pattern`을 해석할 때 기준이 되는 디렉터리의 상대 경로 또는 [URL](https://developer.mozilla.org/ko/docs/Web/API/URL)입니다.
+
+#### `generateId()`
+
+<p>
+
+**타입:** `(options: GenerateIdOptions) => string`
+</p>
+
+컬렉션의 각 항목마다 고유한 문자열을 반환하는 콜백 함수입니다. 이 함수는 다음과 같은 속성들을 가진 객체를 매개변수로 받습니다:
+* `entry` - 기본 디렉터리를 기준으로 한 항목 파일의 경로
+* `base` - 기본 디렉터리 [URL](https://developer.mozilla.org/ko/docs/Web/API/URL)
+* `data` - 파싱된, 검증되지 않은 항목 데이터
+
+기본적으로 [`github-slugger`](https://github.com/Flet/github-slugger)를 사용하여 [케밥-케이스](https://developer.mozilla.org/ko/docs/Glossary/Kebab_case) 형식의 슬러그를 생성합니다.
+
+### `file()` 로더
+
+<p>
+
+**타입:** <code>(fileName: string, options?: FileOptions) => <a href="#loader-객체">Loader</a></code><br />
+<Since v="5.0.0" />
+</p>
+
+`file()` 로더는 고유한 `id` 필드를 가진 객체의 배열을 포함하는 단일 파일 또는 ID를 키로, 항목을 값으로 가지는 객체로부터 항목을 생성합니다. JSON 또는 YAML을 지원하며, 기본적으로 파싱할 수 없는 데이터 파일을 위해 사용자 정의 `parser`를 제공할 수 있습니다.
+
+이 로더는 `fileName` 속성을 받으며, 선택적으로 두 번째 인수로 객체를 받습니다.
+
+```ts title="src/content.config.ts" {2,6,11-13}
+import { defineCollection } from 'astro:content';
+import { file } from 'astro/loaders';
+
+const authors = defineCollection({
+  /* JSON 파일에서 모든 항목을 검색합니다. */
+  loader: file("src/data/authors.json"),
+  schema: /* ... */
+});
+const products = defineCollection({
+  /* 사용자 정의 파서를 사용하여 CSV 파일에서 모든 항목을 검색합니다. */
+  loader: file("src/data/products.csv", {
+    parser: (fileContent) => { /* 파서 로직 */ },
+  }),
+  schema: /* ... */
+});
+```
+
+#### `fileName`
+
+<p>
+
+**타입:** `string`
+</p>
+
+루트 디렉터리를 기준으로 로드할 파일의 경로를 설정합니다.
+
+#### Options
+
+<p>
+
+**타입:** `FileOptions`
+</p>
+
+다음 속성을 가진 선택적 객체입니다:
+
+##### `parser()`
+
+<p>
+
+**타입:** `(text: string) => Record<string, Record<string, unknown>> | Array<Record<string, unknown>>`
+</p>
+
+파일의 콘텐츠에서 컬렉션을 생성하는 콜백 함수입니다. 기본적으로 지원되지 않는 파일(예: `.csv`)을 처리하거나 [중첩된 `.json` 문서](/ko/guides/content-collections/#중첩된-json-문서)를 사용할 때 사용합니다.
+
 ## 로더 타입
 
 로더는 항목 배열을 반환하는 단순한 함수로 정의하거나, 로딩 프로세스를 더 잘 제어할 수 있는 강력한 객체 콘텐츠 로더 API로 정의할 수 있습니다. 
@@ -87,7 +220,7 @@ const blog = defineCollection({
 });  
 ```
 
-## 로더 API
+## 객체 로더 API
 
 [인라인 로더](#인라인-로더)를 위한 API는 매우 간단하며 위에서 보여드렸습니다. 이 섹션에서는 객체 로더를 정의하기 위한 API를 보여줍니다.
 

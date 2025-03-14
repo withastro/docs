@@ -1,0 +1,64 @@
+---
+title: 实验性序列化配置
+sidebar:
+  label: 序列化配置
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+
+<p>
+
+  **类型：** `boolean`<br />
+  **默认值：** `false`<br />
+
+  <Since v="5.2.0" />
+</p>
+
+此功能允许你访问 `astro:config` 虚拟模块，该模块通过两个子模块暴露出非详尽的、可序列化的、类型安全的 Astro 配置版本。
+
+有关此实验性 API 的完整概述和反馈，请参阅 [序列化清单 RFC](https://github.com/withastro/roadmap/blob/feat/serialised-config/proposals/0051-serialized-manifest.md)。
+
+要启用该虚拟模块，请将 `experimental.serializeConfig` 功能标志添加到你的 Astro 配置中：
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from "astro/config"
+
+export default defineConfig({
+  experimental: {
+    serializeConfig: true
+  }
+})
+```
+
+这样，Astro 项目中的任何文件都可以使用配置值：
+
+```js title="src/utils.js" ins={1}
+import { trailingSlash } from "astro:config/client";
+
+function addForwardSlash(path) {
+  if (trailingSlash === "always") {
+    return path.endsWith("/") ? path : path + "/"
+  } else {
+    return path
+  }
+}
+```
+
+## 子模块
+
+虚拟模块暴露出了两个子模块，用于访问配置值的不同子集。这通过仅向客户端提供一些数据来保护你的信息。
+
+所有可用的配置值都可以从 `astro:config/server` 访问到。但是，对于在客户端上执行的代码，只有由 `astro:config/client` 暴露出的那些值才可用。
+
+### `astro:config/client`
+
+客户端子模块允许你访问 `astro:config/server` 中可以安全地暴露给浏览器的配置值的子集，例如 `trailingSlash`、`build.format`、`i18n` 等。将此子模块用于在客户端上执行的客户端代码。
+
+这是一项尚处在开发阶段的功能。有关 `astro:config/client` 中可用的配置值的完整、最新的列表，请参阅 [功能 RFC 中建议的 API](https://github.com/withastro/roadmap/blob/feat/serialised-config/proposals/0051-serialized-manifest.md#astroconfigclient)。
+
+### `astro:config/server`
+
+服务器子模块允许你从 `astro.config.mjs` 访问一组非详尽的配置值。这包括 `astro:config/client` 的值，例如 `trailingSlash` 和 `i18n`，但也包括有关文件系统配置的更敏感信息，这些信息不能安全地暴露给客户端，例如 `srcDir`、`cacheDir`、`outDir`。因此，尝试使用它们也许会引发错误。
+
+这是一项尚处在开发阶段的功能。有关 `astro:config/client` 中可用的配置值的完整、最新的列表，请参阅 [功能 RFC 中建议的 API](https://github.com/withastro/roadmap/blob/feat/serialised-config/proposals/0051-serialized-manifest.md#astroconfigserver)。

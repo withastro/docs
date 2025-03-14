@@ -57,7 +57,7 @@ export default defineConfig({
 
 `import.meta.env.BASE_URL` 的值将由你的 `trailingSlash` 配置所决定，无论你为 `base` 设置了什么值。
 
-如果设置了 `trailingSlash: "always"`，则始终包含尾部斜杠。如果设置了 `trailingSlash: "never"`，即使 `base` 包含斜杠，`BASE_URL` 也不会包含尾部斜杠。
+如果设置了 `trailingSlash: "always"`，则始终包含末尾斜杠。如果设置了 `trailingSlash: "never"`，即使 `base` 包含斜杠，`BASE_URL` 也不会包含末尾斜杠。
 
 此外，Astro 在将 `config.base` 的配置值提供给集成之前会进行内部操作。由集成读取的 `config.base` 值也同样由你的 `trailingSlash` 配置决定。
 
@@ -86,19 +86,19 @@ export default defineConfig({
 **默认值**：`'ignore'`
 </p>
 
-设置开发服务器的路由匹配行为。从以下选项中选择：
+为开发服务器和按需渲染页面的末尾斜杠设置路由匹配行为。从以下选项中选择：
 
-- `'always'` - 只匹配包含尾部斜线的链接（例如：`/foo/`）。
-- `'never'` - 不匹配包含尾部斜线的链接（例如：`/foo`）。
-- `'ignore'`- 匹配链接，不管是否存在尾部的 `/`。
+  - `'ignore'` - 匹配 URL，而不管是否存在末尾的 `/`。对 "/about" 和 "/about/" 的请求将匹配到同样的路由。
+  - `'always'` - 只匹配包含末尾斜杠的 URL（例如："/about/"）。为了方便起见，在生产环境中，对于没有末尾斜杠的按需渲染 URL 的请求，将会重定向到正确的 URL。但是，在开发环境中，将会显示警示页面来提醒你，你已配置为 `always` 选项。
+  - `'never'` - 只匹配不包含末尾斜杠的 URL（例如："/about"）。为了方便起见，在生产环境中，对于包含末尾斜杠的按需渲染 URL 的请求，将会重定向到正确的 URL。但是，在开发环境中，将会显示警示页面来提醒你，你已配置为 `never` 选项。
 
-如果你的生产主机对尾部斜杠的工作或不工作有严格的处理方式，请使用该配置选项。
+当在生产环境中，因为 GET 请求发生重定向时，重定向将是 301（永久）重定向。而对于所有其他请求方法，则会是 308（永久，保留请求方法）重定向。
 
-如果你希望自己更严格一些，那么你也可以设置这个选项，这样在开发过程中，无论是否有尾部斜杠的 URL 都不会工作。
+预渲染页面上的末尾斜杠是由托管平台处理的，他们可能会忽视你选择的配置。有关更多信息，请参阅托管平台的文档。
 
 ```js
 {
-  // 示例：在开发过程中要求有尾部斜线
+  // 示例：在开发过程中要求有末尾斜杠
   trailingSlash: 'always'
 }
 ```
@@ -106,7 +106,6 @@ export default defineConfig({
 **另见**：
 
 - build.format
-
 
 ### redirects
 
@@ -121,14 +120,18 @@ export default defineConfig({
 
 你可以重定向静态和动态路由，但只能重定向到相同类型的路由。例如，你不能有一个 `'/article': '/blog/[...slug]'` 的重定向。
 
-
 ```js
-{
+export default defineConfig({
   redirects: {
-    '/old': '/new',
-    '/blog/[...slug]': '/articles/[...slug]',
-  }
-}
+   '/old': '/new',
+   '/blog/[...slug]': '/articles/[...slug]',
+   '/about': 'https://example.com/about',
+   '/news': {
+     status: 302,
+     destination: 'https://example.com/news'
+ 	}
+	}
+})
 ```
 
 对于未安装适配器的静态生成站点，这将生成一个使用 [`<meta http-equiv="refresh">` 标签](https://developer.mozilla.org/zh-CN/docs/Web/HTML/Element/meta#http-equiv) 的客户端重定向，并且不支持状态码。
@@ -139,18 +142,16 @@ export default defineConfig({
 
 你可以使用重定向配置中的对象自定义 [重定向状态码](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Status#redirection_messages)：
 
-
 ```js
-{
+export default defineConfig({
   redirects: {
     '/other': {
       status: 302,
       destination: '/place',
     },
   }
-}
+})
 ```
-
 
 ### output
 
@@ -212,10 +213,10 @@ import netlify from '@astrojs/netlify';
 
 ```js
 import react from '@astrojs/react';
-import tailwind from '@astrojs/tailwind';
+import mdx from '@astrojs/mdx';
 {
-  // 示例：添加 React + Tailwind 支持
-  integrations: [react(), tailwind()]
+  // 示例：添加 React + MDX 支持
+  integrations: [react(), mdx()]
 }
 ```
 
@@ -400,6 +401,33 @@ export default defineConfig({
 
 如果 "origin" 头与请求的 `pathname` 不匹配，Astro 将返回 403 状态码，并不会渲染该页面。
 
+### session
+
+<p>
+
+**类型：** `SessionConfig`<br />
+<Since v="5.3.0" />
+</p>
+
+通过指定存储的 `driver` 以及任何关联的 `options` 来配置实验性会话（session）支持。必须启用 `experimental.session` 标志才可使用该功能。部分适配器可能会提供一个默认的会话驱动，但你仍可以通过自己的配置来覆盖它。
+
+你可以 [从 Unstorage 上的任意驱动中](https://unstorage.unjs.io/drivers) 指定一个，或者提供一个自定义配置来覆盖你的适配器默认设置。
+
+请参阅 [实验性 session 指南](/zh-cn/reference/experimental-flags/sessions/) 以获取更多信息。
+
+```js title="astro.config.mjs"
+  {
+    session: {
+      // 所需项：Unstorage 上驱动的名字
+      driver: 'redis',
+      // 所需项取决于驱动程序
+      options: {
+        url: process.env.REDIS_URL,
+      },
+    }
+  }
+```
+
 ### vite
 
 <p>
@@ -461,12 +489,12 @@ export default defineConfig({
 
 设置 `build.format` 可以控制 `Astro.url` 在构建过程中被设置成什么。当它是：
 
-- `directory` - `Astro.url.pathname` 将包括一个尾部斜杠，以模仿文件夹行为。（例如 `/foo/`）。
+- `directory` - `Astro.url.pathname` 将包括一个末尾斜杠，以模仿文件夹行为。（例如 `/foo/`）。
 - `file` - `Astro.url.pathname` 将包括 `.html`。（例如 `/foo.html`）。
 
 这意味着当你使用 `new URL('./relative', Astro.url)` 创建相对的连接时，开发和构建会得到一致的行为。
 
-为了避免开发环境中尾部斜杠行为的不一致性，你可以根据构建格式将 [`trailingSlash` 选项](#trailingslash) 限制为 `'always'` 或 `'never'`：
+为了避免开发环境中末尾斜杠行为的不一致性，你可以根据构建格式将 [`trailingSlash` 选项](#trailingslash) 限制为 `'always'` 或 `'never'`：
 
 -  `directory` - 设置 `trailingSlash: 'always'`
 -  `file` - 设置 `trailingSlash: 'never'`

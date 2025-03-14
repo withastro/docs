@@ -4,6 +4,7 @@ description: GitHub Pagesを使ってAstroサイトをウェブにデプロイ�
 type: deploy
 i18nReady: true
 ---
+import { Steps } from '@astrojs/starlight/components';
 
 [GitHub Pages](https://pages.github.com/)を使って、[GitHub.com](https://github.com/)上のリポジトリから直接Astroウェブサイトをホストすることができます。
 
@@ -13,46 +14,87 @@ i18nReady: true
 
 Astroは公式の`withastro/action`を保守しており、ほとんど設定することなくプロジェクトをデプロイすることができます。以下の手順に従って、AstroサイトをGitHubページにデプロイしてください。さらに詳しい情報が必要な場合は、[パッケージのREADME](https://github.com/withastro/action)を参照してください。
 
-1. `astro.config.mjs` に [`site`](/ja/reference/configuration-reference/#site) と、必要に応じて [`base`](/ja/reference/configuration-reference/#base) オプションを設定します。
+## GitHub Pages用Astroの設定
 
-    ```js title="astro.config.mjs" ins={4-5}
-    import { defineConfig } from 'astro/config'
+### `github.io`のURLにデプロイする
 
-    export default defineConfig({
-      site: 'https://astronaut.github.io',
-      base: '/my-repo',
-    })
-    ```
-    - `site` は `https://<YOUR_USERNAME>.github.io` または `https://my-custom-domain.com` である必要があります。
-    - `base` には、`/my-repo` のように、スラッシュで始まるリポジトリ名を指定します。これは、Astro があなたのウェブサイトのルートがデフォルトの `/` ではなく `my-repo` であることを理解するためです。
+`astro.config.mjs`に[`site`](/ja/reference/configuration-reference/#site)と[`base`](/ja/reference/configuration-reference/#base)オプションを設定します。
 
-    :::note
-      以下の場合は、`base`パラメータを設定しないでください。
+```js title="astro.config.mjs" ins={4-5}
+import { defineConfig } from 'astro/config'
 
-    - ページがルートフォルダから配信されている場合。
-    - リポジトリが`https://github.com/<USERNAME>/<USERNAME>.github.io`にある場合。
-    - カスタムドメインを使っている場合。
-    :::
+export default defineConfig({
+  site: 'https://astronaut.github.io',
+  base: 'my-repo',
+})
+```
 
-    :::caution
-        もし `base` の値を設定しておらず、GitHub にデプロイするためだけにこの値を設定している場合は、内部ページのリンクに `base` を含めるように更新する必要があります。
+#### `site`
 
-    ```astro
-    <a href="/my-repo/about">About</a>
-    ```
-    :::
+`site`の値は以下のいずれかでなければなりません。
 
-2. プロジェクトの `.github/workflows/deploy.yml` に新しいファイルを作成し、以下のYAMLを貼り付けます。
+- あなたのユーザー名に基づいた次のようなURL：`https://<username>.github.io`
+- [GitHub Organizationのプライベートページ](https://docs.github.com/ja/enterprise-cloud@latest/pages/getting-started-with-github-pages/changing-the-visibility-of-your-github-pages-site) 向けに自動生成されたランダムなURL：`https://<random-string>.pages.github.io/`
+
+#### `base`
+
+Astroがあなたのリポジトリ名（例：`/my-repo`）をウェブサイトのルートとして扱うように`base`の値が必要な場合があります。
+
+:::note
+以下の場合は`base`パラメータを設定しないでください。
+
+- ページがルートフォルダから配信されている場合。
+- リポジトリが`https://github.com/<USERNAME>/<USERNAME>.github.io`にある場合。
+:::
+
+`base`には、`/my-blog`のように、スラッシュで始まるリポジトリ名を指定します。これは、Astroがあなたのウェブサイトのルートがデフォルトの`/`ではなく、`/my-repo`であることを理解できるようにするためです。
+
+:::caution
+この値が設定されている場合、すべての内部ページリンクの先頭に`base`の値を付与する必要があります。
+
+```astro ins="/my-repo"
+<a href="/my-repo/about">About</a>
+```
+
+詳細はこちら：[`base`値の設定方法](/ja/reference/configuration-reference/#base)
+:::
+
+### カスタムドメインでGitHub pagesを使う
+
+:::tip[カスタムドメインの設定]
+以下の`./public/CNAME`ファイルをプロジェクトに追加することで、カスタムドメインを設定できます。
+
+```js title="public/CNAME"
+sub.mydomain.com
+```
+
+こうすることで、`user.github.io`の代わりにあなたのカスタムドメインにサイトがデプロイされます。[あなたのドメインプロバイダの設定](https://docs.github.com/ja/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-a-subdomain)も忘れずに行ってください。
+:::
+
+カスタムドメインでGitHub pagesを使用するようにAstroを設定するには、`site`の値にドメインを設定します。`base`には値を設定しないでください。
+
+```js title="astro.config.mjs" ins={4}
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  site: 'https://example.com',
+})
+```
+
+## GitHub Actionの設定
+
+<Steps>
+1. プロジェクトの`.github/workflows/deploy.yml`に新しいファイルを作成し、以下のYAMLを貼り付けます。
 
     ```yaml title="deploy.yml"
     name: Deploy to GitHub Pages
 
     on:
-      # `main` ブランチにプッシュするたびにワークフローを実行します
-      # 異なるブランチ名を使用する場合は、`main` をブランチ名に置き換えてください
+      # `main`ブランチにプッシュするたびにワークフローを実行します。
+      # 異なるブランチ名を使用する場合は、`main`をブランチ名に置き換えてください。
       push:
         branches: [ main ]
-      # このワークフローを GitHub の Actions タブから手動で実行できるようにします。
+      # このワークフローをGitHubのActionsタブから手動で実行できるようにします。
       workflow_dispatch:
 
     # このジョブがリポジトリをクローンし、ページデプロイメントを作成することを許可します。
@@ -68,11 +110,11 @@ Astroは公式の`withastro/action`を保守しており、ほとんど設定す
           - name: Checkout your repository using git
             uses: actions/checkout@v4
           - name: Install, build, and upload your site
-            uses: withastro/action@v1
+            uses: withastro/action@v3
             # with:
-              # path: . # リポジトリ内のAstroプロジェクトのルートロケーション。(オプション)
-              # node-version: 18 # サイト構築に使用するNodeのバージョン。デフォルトは18です。（オプション）
-              # package-manager: pnpm@latest # 依存関係のインストールとサイトのビルドに使用する Node パッケージマネージャ。ロックファイルに基づいて自動的に検出されます。(オプション)
+              # path: . # リポジトリ内のAstroプロジェクトのルートロケーション。（オプション）
+              # node-version: 20 # サイト構築に使用するNodeのバージョン。デフォルトは20です。（オプション）
+              # package-manager: pnpm@latest # 依存関係のインストールとサイトのビルドに使用するNodeパッケージマネージャ。ロックファイルに基づいて自動的に検出されます。（オプション）
 
       deploy:
         needs: build
@@ -83,32 +125,26 @@ Astroは公式の`withastro/action`を保守しており、ほとんど設定す
         steps:
           - name: Deploy to GitHub Pages
             id: deployment
-            uses: actions/deploy-pages@v1
+            uses: actions/deploy-pages@v4
     ```
 
     :::note
-    astroアクションはいくつかのオプション入力を受け取ります。これらの入力は `with:` 行と使いたい入力のコメントアウトを外すことで指定できます。
+    astroアクションはいくつかのオプション入力を受け取ります。これらの入力は`with:`行と使いたい入力のコメントアウトを外すことで指定できます。
     :::
 
     :::caution
-    公式の Astro [action](https://github.com/withastro/action) はロックファイルをスキャンして、お好みのパッケージマネージャ (`npm`、`yarn`、`pnpm`、`bun`) を検出します。パッケージマネージャが自動的に生成した `package-lock.json`、`yarn.lock`、`pnpm-lock.yaml`、`bun.lockb` ファイルをリポジトリにコミットしてください。
+    公式のAstro [action](https://github.com/withastro/action)はロックファイルをスキャンして、お好みのパッケージマネージャ (`npm`、`yarn`、`pnpm`、`bun`) を検出します。パッケージマネージャが自動的に生成した`package-lock.json`、`yarn.lock`、`pnpm-lock.yaml`、`bun.lockb`ファイルをリポジトリにコミットしてください。
     :::
 
-3. GitHubで、リポジトリの**Settings**タブに行き、設定の**Pages**セクションを見つけてください。
+2. GitHubで、リポジトリの**Settings**タブに行き、設定の**Pages**セクションを見つけてください。
 
-4. サイトの**Source**として**GitHub Actions**を選択します。
+3. サイトの**Source**として**GitHub Actions**を選択します。
 
-5. 新しいワークフローファイルをコミットし、GitHubにプッシュします。
-
+4. 新しいワークフローファイルをコミットし、GitHubにプッシュします。
+</Steps>
 
 これでサイトが公開されたはずです！Astroプロジェクトのリポジトリに変更をプッシュすると、GitHub Actionが自動的にデプロイしてくれます。
 
-:::tip[カスタムドメインの設定]
-オプションとして、以下の `./public/CNAME` ファイルをプロジェクトに追加することで、カスタムドメインを設定することができます。
+## 例
 
-```js title="public/CNAME"
-sub.mydomain.com
-```
-
-これで `user.github.io` ではなく、あなたのカスタムドメインにサイトがデプロイされます。[ドメインプロバイダのDNS設定](https://docs.github.com/ja/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site)もお忘れなく。
-:::
+- [Github Pages Deployment](https://github.com/hkbertoson/github-pages)
