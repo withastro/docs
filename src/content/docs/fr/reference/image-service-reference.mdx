@@ -259,3 +259,186 @@ export default defineConfig({
   },
 });
 ```
+
+## Utilitaires
+
+Astro propose plusieurs fonctions d'assistance permettant de développer un service d'images personnalisé. Ces utilitaires peuvent être importés depuis `astro/assets/utils` :
+
+```ts
+import { 
+    isRemoteAllowed,
+    matchHostname,
+    matchPathname,
+    matchPattern,
+    matchPort,
+    matchProtocol
+} from "astro/assets/utils";
+```
+
+### `isRemoteAllowed()`
+
+<p>
+**Type :** `(src: string, { domains, remotePatterns }: {domains: string[], remotePatterns: RemotePattern[] }): boolean`<br />
+<Since v="4.0.0" />
+</p>
+
+Détermine si une ressource distante donnée, identifiée par son URL source, est autorisée en fonction de domaines spécifiés et de modèles distants.
+
+
+```ts
+import { isRemoteAllowed } from 'astro/assets/utils';
+
+const testImageURL = 'https://example.com/images/test.jpg';
+const domains = ['example.com', 'anotherdomain.com'];
+const remotePatterns = [
+  { protocol: 'https', hostname: 'images.example.com', pathname: '/**' }, // Autoriser n'importe quel chemin sous ce nom d'hôte
+];
+
+const url = new URL(testImageURL);
+const isAllowed = isRemoteAllowed(url.href, { domains, remotePatterns });
+
+console.log(`L'image distante est-elle autorisée ? ${isAllowed}`);
+```
+
+### `matchHostname()`
+
+<p>
+**Type :** `(url: URL, hostname?: string, allowWildcard = false): boolean`<br />
+<Since v="4.0.0" />
+</p>
+
+Fait correspondre le nom d'hôte d'une URL donnée à un nom d'hôte spécifié, avec prise en charge facultative des modèles génériques.
+
+```ts
+import { matchHostname } from 'astro/assets/utils';
+
+const testURL = new URL('https://sub.example.com/path/to/resource');
+
+// Exemple d'utilisation de matchHostname
+const hostnameToMatch = 'example.com';
+
+// Correspondance sans caractère générique
+const isMatchWithoutWildcard = matchHostname(testURL, hostnameToMatch);
+console.log(`Le nom d'hôte correspond-il sans caractère générique ? ${isMatchWithoutWildcard}`); // Sortie : false
+
+// Correspondance avec un caractère générique
+const isMatchWithWildcard = matchHostname(testURL, hostnameToMatch, true);
+console.log(`Le nom d'hôte correspond-il avec un caractère générique ? ${isMatchWithWildcard}`); // Sortie : true
+```
+
+### `matchPathname()`
+
+<p>
+**Type :** `(url: URL, pathname?: string, allowWildcard = false): boolean`<br />
+<Since v="4.0.0" />
+</p>
+
+Fait correspondre le chemin d'accès d'une URL donnée à un modèle spécifié, avec prise en charge facultative des caractères génériques.
+
+```ts
+import { matchPathname } from 'astro/assets/utils';
+
+const testURL = new URL('https://example.com/images/photo.jpg');
+
+// Exemple de chemin d'accès à faire correspondre
+const pathnameToMatch = '/images/photo.jpg';
+
+// Correspondance sans caractère générique
+const isMatchWithoutWildcard = matchPathname(testURL, pathnameToMatch);
+console.log(`Le nom du chemin correspond-il sans caractère générique ? ${isMatchWithoutWildcard}`); // Sortie : true
+
+// Correspondance avec un caractère générique
+const wildcardPathname = '/images/*';
+const isMatchWithWildcard = matchPathname(testURL, wildcardPathname, true);
+console.log(`Le nom du chemin correspond-il avec un caractère générique ? ${isMatchWithWildcard}`); // Sortie : true
+```
+
+### `matchPattern()`
+
+<p>
+**Type :** `(url: URL, remotePattern: RemotePattern): boolean`<br />
+<Since v="4.0.0" />
+</p>
+
+Évalue si une URL donnée correspond au modèle distant spécifié en fonction du protocole, du nom d'hôte, du port et du chemin d'accès.
+
+```ts
+import { matchPattern } from 'astro/assets/utils';
+
+const testURL = new URL('https://images.example.com/photos/test.jpg');
+
+// Définir un modèle distant pour correspondre à l'URL
+const remotePattern = {
+  protocol: 'https',
+  hostname: 'images.example.com',
+  pathname: '/photos/**', // Caractère générique pour autoriser tous les fichiers sous /photos/
+  port: '', // Facultatif : faites correspondre n'importe quel port ou laissez vide par défaut
+};
+
+// Vérifiez si l'URL correspond au modèle distant
+const isPatternMatched = matchPattern(testURL, remotePattern);
+
+console.log(`L'URL correspond-elle au modèle distant ? ${isPatternMatched}`); // Sortie : true
+```
+
+### `matchPort()`
+
+<p>
+**Type :** `(url: URL, port?: string): boolean`<br />
+<Since v="4.0.0" />
+</p>
+
+Vérifie si le port de l'URL donnée correspond au port spécifié. Si aucun port n'est fourni, renvoie `true`.
+
+```ts
+import { matchPort } from 'astro/assets/utils';
+
+const testURL1 = new URL('https://example.com:8080/resource');
+const testURL2 = new URL('https://example.com/resource');
+
+// Exemple d'utilisation de matchPort
+const portToMatch = '8080';
+
+// Faire correspondre une URL avec un port spécifié
+const isPortMatch1 = matchPort(testURL1, portToMatch);
+console.log(`Le port correspond-il ? ${isPortMatch1}`); // Sortie : true
+
+// Faire correspondre une URL sans port spécifié (le port par défaut sera supposé)
+const isPortMatch2 = matchPort(testURL2, portToMatch);
+console.log(`Le port correspond-il ? ${isPortMatch2}`); // Sortie : false
+
+// Vérifier une URL sans fournir explicitement de port (la valeur par défaut est true si le port n'est pas défini)
+const isPortMatch3 = matchPort(testURL1);
+console.log(`Le port correspond-il (aucun port spécifié) ? ${isPortMatch3}`); // Sortie : true
+```
+
+### `matchProtocol()`
+
+<p>
+**Type :** `(url: URL, protocol?: string): boolean`<br />
+<Since v="4.0.0" />
+</p>
+
+Compare le protocole de l'URL fournie avec un protocole spécifié.
+
+```ts
+import { matchProtocol } from 'astro/assets/utils';
+
+const testURL1 = new URL('https://example.com/resource');
+const testURL2 = new URL('http://example.com/resource');
+
+// Exemple d'utilisation de matchProtocol
+const protocolToMatch = 'https';
+
+// Faire correspondre une URL avec le bon protocole
+const isProtocolMatch1 = matchProtocol(testURL1, protocolToMatch);
+console.log(`Le protocole correspond-il pour testURL1 ? ${isProtocolMatch1}`); // Sortie : true
+
+// Faire correspondre une URL avec un protocole incorrect
+const isProtocolMatch2 = matchProtocol(testURL2, protocolToMatch);
+console.log(`Le protocole correspond-il pour testURL2? ${isProtocolMatch2}`); // Sortie : false
+
+// Faire correspondre une URL sans fournir explicitement de protocole (la valeur par défaut est true si le protocole n'est pas défini)
+const isProtocolMatch3 = matchProtocol(testURL1);
+console.log(`Le protocole correspond-il (aucun protocole spécifié) ? ${isProtocolMatch3}`); // Sortie : true
+```
