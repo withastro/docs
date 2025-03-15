@@ -440,3 +440,303 @@ console.log(`Does the protocol match for testURL2? ${isProtocolMatch2}`); // 출
 const isProtocolMatch3 = matchProtocol(testURL1);
 console.log(`Does the protocol match (no protocol specified)? ${isProtocolMatch3}`); // 출력: true
 ```
+
+### `isESMImportedImage()`
+
+<p>
+  **타입:** `(src: ImageMetadata | string): boolean`<br />
+  <Since v="4.0.0" />
+</p>
+
+주어진 소스가 ECMAScript 모듈 (ESM)로 가져온 이미지인지 판별합니다.
+
+```ts
+import { isESMImportedImage } from 'astro/assets/utils';
+
+// isESMImportedImage의 예시 사용법
+const imageMetadataExample = {
+  src: '/images/photo.jpg',
+  width: 800,
+  height: 600,
+  format: 'jpg',
+};
+
+const filePathExample = '/images/photo.jpg';
+
+// 입력이 ESM으로 가져온 이미지인지 확인합니다.
+const isMetadataImage = isESMImportedImage(imageMetadataExample);
+console.log(`Is imageMetadataExample an ESM imported image? ${isMetadataImage}`); // 출력: true
+
+const isFilePathImage = isESMImportedImage(filePathExample);
+console.log(`Is filePathExample an ESM imported image? ${isFilePathImage}`); // 출력: false
+```
+
+
+### `isRemoteImage()`
+
+<p>
+  **타입:** `(src: ImageMetadata | string): boolean`<br />
+  <Since v="4.0.0" />
+</p>
+
+제공된 소스가 문자열 형태의 원격 이미지 URL인지 판별합니다.
+
+```ts
+import { isRemoteImage } from 'astro/assets/utils';
+
+// isRemoteImage의 예시 사용법
+const remoteImageUrl = 'https://example.com/images/photo.jpg';
+const localImageMetadata = {
+  src: '/images/photo.jpg',
+  width: 800,
+  height: 600,
+  format: 'jpg',
+};
+
+// 입력이 원격 이미지 URL인지 확인합니다.
+const isRemote1 = isRemoteImage(remoteImageUrl);
+console.log(`Is remoteImageUrl a remote image? ${isRemote1}`); // 출력: true
+
+const isRemote2 = isRemoteImage(localImageMetadata);
+console.log(`Is localImageMetadata a remote image? ${isRemote2}`); // 출력: false
+```
+
+### `resolveSrc()`
+
+<p>
+  **타입:** `(src: UnresolvedImageTransform['src']): Promise<string | ImageMetadata>`<br />
+  <Since v="4.0.0" />
+</p>
+
+이미지 소스를 반환합니다. 이 함수는 `src`가 Promise (예: 동적 `import()`)인 경우, 이를 `await`하여 올바른 `src` 값을 추출합니다. `src`가 이미 해석된 값이면 그대로 반환합니다.
+
+```ts
+import { resolveSrc } from 'astro/assets/utils';
+import localImage from "./images/photo.jpg";
+
+const resolvedLocal = await resolveSrc(localImage);
+// `{ src: '/images/photo.jpg', width: 800, height: 600, format: 'jpg' }`가 됩니다.
+
+const resolvedRemote = await resolveSrc("https://example.com/remote-img.jpg");
+// `"https://example.com/remote-img.jpg"`가 됩니다.
+
+const resolvedDynamic = await resolveSrc(import("./images/dynamic-image.jpg"))
+// `{ src: '/images/dynamic-image.jpg', width: 800, height: 600, format: 'jpg' }`가 됩니다.
+```
+
+
+### `imageMetadata()`
+
+<p>
+  **타입:** `(data: Uint8Array, src?: string): Promise<Omit<ImageMetadata, 'src' | 'fsPath'>>`<br />
+  <Since v="4.0.0" />
+</p>
+
+제공된 이미지 데이터에서 크기, 형식, 방향과 같은 이미지 메타데이터를 추출합니다.
+
+```ts
+import { imageMetadata } from 'astro/assets/utils';
+
+async function extractImageMetadata() {
+  // 예시 이미지 데이터 (Uint8Array)
+  const exampleImageData = new Uint8Array([/* ...바이너리 이미지 데이터... */]);
+
+  // 선택적인 소스 경로 (디버깅 또는 추가 메타데이터 컨텍스트에 유용합니다.)
+  const sourcePath = '/images/photo.jpg';
+
+  try {
+    // 이미지 데이터에서 메타데이터를 추출합니다.
+    const metadata = await imageMetadata(exampleImageData, sourcePath);
+
+    console.log('Extracted Image Metadata:', metadata);
+    // 예시 출력:
+    // {
+    //   width: 800,
+    //   height: 600,
+    //   format: 'jpg',
+    //   orientation: undefined
+    // }
+  } catch (error) {
+    console.error('Failed to extract metadata from image:', error);
+  }
+}
+
+await extractImageMetadata();
+```
+
+### `emitESMImage()`
+
+<p>
+  **타입:** `(id: string | undefined, _watchMode: boolean, experimentalSvgEnabled: boolean,  fileEmitter?: FileEmitter): Promise<ImageMetadataWithContents | undefined>`<br />
+  <Since v="4.0.0" />
+</p>
+
+이미지 파일을 처리하여 메타데이터를 추출하고, 선택적으로 파일의 콘텐츠를 추출합니다. 빌드 모드에서는 `fileEmitter`를 사용하여 자산 참조를 생성합니다. 개발 모드에서는 메타데이터를 포함한 쿼리 매개변수가 있는 로컬 파일 URL로 해석합니다.
+
+```ts
+
+import { emitESMImage } from 'astro/assets/utils';
+
+const imageId = '/images/photo.jpg';
+const unusedWatchMode = false; // 사용 중단, 미사용
+const unusedExperimentalSvgEnabled = false; // SVG를 사용 중이고, 파일 데이터를 임베드하려는 경우에만 `true`로 설정합니다.
+
+try {
+  const result = await emitESMImage(imageId, unusedWatchMode, unusedExperimentalSvgEnabled);
+  if (result) {
+    console.log('Image metadata with contents:', result);
+    // 예시 출력:
+    // {
+    //   width: 800,
+    //   height: 600,
+    //   format: 'jpg',
+    //   contents: Uint8Array([...])
+    // }
+  } else {
+    console.log('No metadata was emitted for this image.');
+  }
+} catch (error) {
+  console.error('Failed to emit ESM image:', error);
+}
+
+```
+
+### `getOrigQueryParams()`
+
+<p>
+  **타입:** `(params: URLSearchParams): Pick<ImageMetadata, 'width' | 'height' | 'format'> | undefined`<br />
+  <Since v="4.0.0" />
+</p>
+
+
+[`URLSearchParams` 객체](https://developer.mozilla.org/ko/docs/Web/API/URLSearchParams)에서 이미지의 `width`, `height` 및 `format`을 검색합니다. 이러한 매개변수가 누락되었거나 유효하지 않으면 함수는 `undefined`를 반환합니다.
+
+```ts
+
+import { getOrigQueryParams } from 'astro/assets/utils';
+
+const url = new URL('https://example.com/image.jpg?width=800&height=600&format=jpg');
+const queryParams = url.searchParams;
+
+// 원본 쿼리 매개변수를 추출합니다.
+const origParams = getOrigQueryParams(queryParams);
+
+if (origParams) {
+  console.log('Original query parameters:', origParams);
+  // 예시 출력:
+  // {
+  //   width: 800,
+  //   height: 600,
+  //   format: 'jpg'
+  // }
+} else {
+  console.log('Failed to extract original query parameters.');
+}
+```
+
+### `inferRemoteSize()`
+
+<p>
+  **타입:** `(url: string): Promise<Omit<ImageMetadata, 'src' | 'fsPath'>>`<br />
+  <Since v="4.0.0" />
+</p>
+
+데이터를 스트리밍하고 충분한 메타데이터를 사용할 수 있을 때까지 점진적으로 분석하여 원격 이미지의 크기를 추론합니다.
+
+```ts
+
+import { inferRemoteSize } from 'astro/assets/utils';
+
+async function getRemoteImageSize() {
+  const remoteImageUrl = 'https://example.com/image.jpg';
+
+  try {
+    // URL에서 원격 이미지 크기를 추론합니다.
+    const imageSize = await inferRemoteSize(remoteImageUrl);
+
+    console.log('Inferred remote image size:', imageSize);
+    // 예시 출력:
+    // {
+    //   width: 1920,
+    //   height: 1080,
+    //   format: 'jpg'
+    // }
+  } catch (error) {
+    console.error('Failed to infer the size of the remote image:', error);
+  }
+}
+
+await getRemoteImageSize();
+```
+
+### `propsToFilename()`
+
+<p>
+  **타입:** `(filePath: string, transform: ImageTransform, hash: string): string`<br />
+  <Since v="4.0.0" />
+</p>
+
+소스 경로, 변환 속성 및 고유한 해시를 기반으로 이미지의 포맷팅된 파일 이름을 생성합니다.
+
+포맷팅된 파일 이름은 다음 구조를 따릅니다.
+
+`<prefixDirname>/<baseFilename>_<hash><outputExtension>`
+
+- `prefixDirname`: 이미지가 ESM으로 가져온 이미지인 경우, 원본 파일 경로의 디렉토리 이름입니다. 그렇지 않으면 빈 문자열입니다.
+- `baseFilename`: 파일이 `data:` URI인 경우 파일의 기본 이름 또는 해싱된 짧은 이름입니다.
+- `hash`: 변환된 파일을 구별하기 위해 생성된 고유한 해시 문자열입니다.
+- `outputExtension`: `transform.format` 또는 원본 파일 확장명에서 파생된 원하는 출력 파일 확장명입니다.
+
+```ts
+import { propsToFilename } from 'astro/assets/utils';
+
+function generateTransformedFilename() {
+  const filePath = '/images/photo.jpg';
+  const transform = {
+    format: 'png',
+    src: '/images/photo.jpg'
+  };
+  const hash = 'abcd1234';
+
+  // 파일 경로, 변환 및 해시를 기반으로 변환된 파일 이름을 생성합니다.
+  const filename = propsToFilename(filePath, transform, hash);
+
+  console.log('Generated transformed filename:', filename);
+  // 예시 출력: '/images/photo_abcd1234.png'
+}
+
+generateTransformedFilename();
+```
+
+### `hashTransform()`
+
+<p>
+  **타입:** `(transform: ImageTransform, imageService: string, propertiesToHash: string[]): string`<br />
+  <Since v="4.0.0" />
+</p>
+
+제공된 `transform` 객체를 선택한 속성 및 지정된 `imageService`를 기반으로 해시 문자열로 변환합니다.
+
+```ts
+
+import { hashTransform } from 'astro/assets/utils';
+
+function generateTransformHash() {
+  const transform = {
+    width: 800,
+    height: 600,
+    format: 'jpg',
+  };
+
+  const imageService = 'astroImageService';
+  const propertiesToHash = ['width', 'height', 'format'];
+
+  // 변환, 이미지 서비스 및 속성을 기반으로 해시를 생성합니다.
+  const hash = hashTransform(transform, imageService, propertiesToHash);
+
+  console.log('Generated transform hash:', hash);
+  // 예시 출력: 'd41d8cd98f00b204e9800998ecf8427e'
+}
+
+generateTransformHash();
+```
