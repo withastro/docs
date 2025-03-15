@@ -24,6 +24,7 @@ import {
   getEntry,
   getEntries,
   reference,
+  render
  } from 'astro:content';
 ```
 ### `defineCollection()`
@@ -87,7 +88,7 @@ Un `loader` est soit un objet, soit une fonction qui vous permet de charger des 
 <Since v="2.5.0" />
 </p>
 
-La fonction `reference()` est utilisée dans la configuration du contenu pour définir une relation, ou une « référence », entre une collection et une autre. Elle accepte un nom de collection et valide le ou les identifiants d'entrée spécifiés dans le frontmatter de votre contenu ou dans votre fichier de données.
+La fonction `reference()` est utilisée dans la configuration du contenu pour définir une relation, ou une « référence », entre une collection et une autre. Elle accepte un nom de collection et valide le ou les identifiants d'entrée spécifiés dans le frontmatter de votre contenu ou dans votre fichier de données avant de transformer la référence en un objet contenant le nom de la collection et l'identifiant de référence.
 
 Cet exemple définit les références d'un auteur de blog à la collection `authors` et un tableau d'articles associés à la même collection `blog` :
 
@@ -184,7 +185,7 @@ Consultez le guide Collections de contenu pour des exemples d'[interrogation des
 
 ```astro
 ---
-import { getEntries } from 'astro:content';
+import { getEntries, getEntry } from 'astro:content';
 
 const enterprisePost = await getEntry('blog', 'enterprise');
 
@@ -197,7 +198,7 @@ const enterpriseRelatedPosts = await getEntries(enterprisePost.data.relatedPosts
 
 <p>
 
-**Type :** `() => Promise<RenderedEntry>`
+**Type :** `(entry: CollectionEntry) => Promise<RenderedEntry>`
 <Since v="5.0.0" />
 </p>
 
@@ -275,13 +276,15 @@ Une chaîne de caractères contenant le corps brut et non compilé du document M
 
 <p><Since v="3.1.0" /></p>
 
-Une union de chaînes de caractères de tous les noms de collections définis dans votre fichier `src/content.config.*`. Ce type peut être utile lors de la définition d'une fonction générique qui accepte n'importe quel nom de collection.
+Une union de chaînes de caractères de tous les noms de collections définis dans votre fichier `src/content.config.*`. Ce type peut être utile lors de la définition d'une fonction générique enveloppant la fonction intégrée `getCollection()`.
 
 ```ts
 import { type CollectionKey, getCollection } from 'astro:content';
 
-async function getCollection(collection: CollectionKey) {
-  return getCollection(collection);
+async function queryCollection(collection: CollectionKey) {
+  return getCollection(collection, ({ data }) => {
+    return data.draft !== true;
+  });
 }
 ```
 
@@ -294,7 +297,7 @@ Il inclut la propriété suivante :
 - `image` - L'assistant de schéma `image()` qui vous permet [d'utiliser des images locales dans les collections de contenu](/fr/guides/images/#images-dans-les-collections-de-contenus)
 
 ```ts
-import type { SchemaContext } from 'astro:content';
+import { defineCollection, z, type SchemaContext } from "astro:content";
 
 export const imageSchema = ({ image }: SchemaContext) =>
     z.object({

@@ -97,12 +97,11 @@ import { glob, file } from 'astro/loaders'; // 不适用于旧版 API
 
 const blog = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
-  schema: /* ... */ 
+  schema: /* ... */
 });
 const dogs = defineCollection({
   loader: file("src/data/dogs.json"),
-  schema: /* ... */ 
-  }),
+  schema: /* ... */
 });
 
 const probes = defineCollection({
@@ -298,12 +297,13 @@ defineCollection({
 
 集合条目还可以“引用”其他相关条目。这对于在集合模式中定义属性引用其他集合的条目非常有用。
 
-使用集合 API 中的 `reference()` 函数，你可以将集合模式中的属性定义为来自另一个集合的条目。例如，你可以要求每个 `space-shuttle` 条目都包含一个 `pilot` 属性，该属性使用 `pilot` 集合自己的模式进行类型检查、自动补全和验证。
+使用集合 API 中的 [`reference()` 函数](/zh-cn/reference/modules/astro-content/#reference)，你可以将集合模式中的属性定义为来自另一个集合的条目。例如，你可以要求每个 `space-shuttle` 条目都包含一个 `pilot` 属性，该属性使用 `pilot` 集合自己的模式进行类型检查、自动补全和验证。
 
 一个常见的例子是一个引用存储为 JSON 的可重用作者配置文件的博客文章，或者存储在同一集合中的相关文章 URL：
 
 ```ts title="src/content.config.ts"
 import { defineCollection, reference, z } from 'astro:content';
+import { glob } from 'astro/loaders';
 
 const blog = defineCollection({
   loader: glob({ pattern: '**/[^_]*.md', base: "./src/data/blog" }),
@@ -338,6 +338,8 @@ relatedPosts:
 - my-year-in-review # references `src/data/blog/my-year-in-review.md`
 ---
 ```
+
+这些引用将被转换为包含 `collection` 键和 `id` 键的对象，使你可以轻松地[在模板中查询它们](/zh-cn/guides/content-collections/#访问引用数据)。
 
 ### 定义自定义 ID
 
@@ -474,7 +476,7 @@ const englishDocsEntries = await getCollection('docs', ({ id }) => {
 
 ### 访问引用数据
 
-首次查询集合条目后，必须单独查询 [模式中定义的任何引用](/zh-cn/guides/content-collections/#定义集合引用)。你可以使用 `getEntry()` 函数返回单个引用项，或者使用 `getEntries()` 从返回的 `data` 对象中检索多个引用条目。
+首次查询集合条目后，必须单独查询 [模式中定义的任何引用](/zh-cn/guides/content-collections/#定义集合引用)。由于 [`reference()` 函数](/zh-cn/reference/modules/astro-content/#reference) 将一个引用转换为包含 `collection` 和 `id` 作为键的对象，你可以使用 `getEntry()` 函数返回单个引用项，或者使用 `getEntries()` 从返回的 `data` 对象中检索多个引用条目。
 
 ```astro title="src/pages/blog/welcome.astro"
 ---
@@ -482,9 +484,10 @@ import { getEntry, getEntries } from 'astro:content';
 
 const blogPost = await getEntry('blog', 'welcome');
 
-// 解析单一引用
+// 解析单一引用(例如：`{collection: "authors", id: "ben-holmes"}`)
 const author = await getEntry(blogPost.data.author);
 // 解析引用数组
+// (例如：`[{collection: "blog", id: "about-me"}, {collection: "blog", id: "my-year-in-review"}]`)
 const relatedPosts = await getEntries(blogPost.data.relatedPosts);
 ---
 
