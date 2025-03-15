@@ -1,0 +1,145 @@
+---
+title: GitCMS & Astro
+description: GitCMS を Astro プロジェクトに統合してシームレスなコンテンツ管理を実現
+sidebar:
+  label: GitCMS
+type: cms
+service: GitCMS
+i18nReady: true
+---
+
+[GitCMS](https://gitcms.blog) は、GitHub を強力なヘッドレス CMS に変換する Chrome 拡張機能であり、Astro、Next.js、Hugo、Jekyll などのフレームワークで構築された静的サイトのコンテンツ管理を Notion のような編集体験で提供します。開発者、クライアント、コンテンツライターが GitHub のインターフェース内で直接コンテンツを管理でき、追加のサーバーや複雑な CMS 設定は不要です。
+
+![GitCMS Notion-like editor](https://gitcms.blog/images/gitcms-editor-for-astro.webp)
+
+## 前提条件
+- GitHub リポジトリを持つ既存の Astro プロジェクト。
+- [GitCMS Chrome 拡張機能](https://gitcms.blog) をインストール済み。
+
+## GitCMS のセットアップ
+1. **GitCMS Chrome 拡張機能をインストール**: [GitCMS 拡張機能](https://gitcms.blog) を Chrome に追加します。
+2. **リポジトリで GitCMS を初期化**:
+   - GitHub リポジトリを開きます。
+   - Chrome 拡張機能メニューの GitCMS アイコンをクリック。
+   - 「初期化」をクリック。
+   - `gitcms.md` という新しい GitHub ファイル作成ページにリダイレクトされ、GitCMS の設定エディタが開きます。
+
+## GitCMS の設定
+1. **Web サイト URL**: サイトの URL を入力 (例: `https://yourblog.com`)
+2. **メディアフォルダ**: 画像やメディアファイルを格納するフォルダを指定 (通常は静的サイトジェネレーターが管理)
+
+### コレクションの追加
+コレクションは、ブログ記事、ページ、チームメンバーなど関連するコンテンツをグループ化します。
+
+1. **コレクションを作成**:
+   - 「コレクションを追加」をクリック。
+   - コレクション名を設定 (例: `posts`、`pages`、`authors`)
+   - Markdown ファイルが保存されるフォルダを指定 (例: `src/content/posts`)
+
+2. **Frontmatter スキーマの定義**:
+   メタデータフィールドを設定:
+   - **タイトルフィールド**: 記事タイトル用
+   - **シングルラインフィールド**: 説明などの短いテキスト用
+   - **マルチラインフィールド**: 長いコンテンツ用
+   - **DateTime**: 公開日時用
+   - **マルチセレクト**: カテゴリーやタグ用
+   - **ファイル入力**: メディアアップロード用
+   - **ブールフィールド**: 「下書き」などの ON/OFF 切り替え
+
+   設定例:
+   ```yaml
+   ---
+   media_path: /public
+   repo: YourUsername/your-repo
+   website_url: https://yourwebsite.com
+   
+   collections:
+     - name: posts
+       file_extension: .md
+       filename_pattern: title
+       git_path: /src/content/posts
+       metadata_schema:
+         - name: title
+           required: true
+           type: title
+         - name: description
+           required: false
+           type: multiline
+         - name: date
+           required: true
+           type: datetime
+         - name: image
+           required: false
+           type: file
+         - allowed_values:
+             - Product Updates
+             - Features
+             - Comparison
+           name: categories
+           required: true
+           type: multi_select
+         - allowed_values:
+             - AuthorName
+           name: authors
+           required: true
+           type: multi_select
+         - name: draft
+           required: false
+           type: boolean
+   ---
+   ```
+   GitCMS はこの設定を自動生成するため、手動編集は不要です。
+
+## GitCMS の使用方法
+1. **GitCMS エディタを開く**:
+   - リポジトリ内の Markdown ファイルに移動。
+   - GitCMS アイコンをクリックして、GitHub エディタと GitCMS エディタを切り替え。
+
+2. **編集機能**:
+   - ビジュアル Markdown 編集。
+   - 構造化されたメタデータフォーム。
+   - プレビュー付きのメディアアップロード。
+
+## Astro でのコンテンツのレンダリング
+Astro の Content Collections API を使用してコンテンツを表示。
+
+### コレクションリストの表示
+```tsx
+---
+import { getCollection } from 'astro:content';
+const posts = await getCollection('posts');
+---
+<ul>
+  {posts.map(post => (
+    <li>
+      <a href={`/posts/{post.slug}`}>{post.data.title}</a>
+    </li>
+  ))}
+</ul>
+```
+
+### 単一記事の表示
+```tsx
+---
+import { getEntry } from 'astro:content';
+
+const post = await getEntry('posts', 'my-first-post');
+const { Content } = await post.render();
+---
+<main>
+  <h1>{post.data.title}</h1>
+  <Content />
+</main>
+```
+コンテンツのクエリに関する詳細は、Astro の [Content Collections ドキュメント](https://docs.astro.build/en/guides/content-collections/) を参照。
+
+## Astro でのデプロイ
+Astro の [デプロイガイド](https://docs.astro.build/en/guides/deploy/) を参照してホスティングを設定。GitCMS はコンテンツを GitHub に保存するため、デプロイはシンプル。
+
+## リソース
+- [GitCMS の紹介](https://gitcms.blog/posts/introducing-gitcms/)
+- [GitCMS の設定方法](https://gitcms.blog/posts/how-to-configure-gitcms/)
+- [GitCMS の Frontmatter フィールド](https://gitcms.blog/posts/frontmatter-editor/)
+- [GitCMS Chrome 拡張機能](https://gitcms.blog)
+
+GitCMS を Astro に統合することで、開発者とコンテンツ制作者は、シームレスで効率的かつ使いやすいコンテンツ管理体験を得られます。
