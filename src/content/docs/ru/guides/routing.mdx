@@ -15,7 +15,10 @@ Astro использует **маршрутизацию на основе фай
 Astro использует стандартные HTML-элементы [`<a>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a) для навигации между маршрутами. Нет специфического для фреймворка компонента `<Link>`.
 
 ```astro title="src/pages/index.astro"
-<p>Read more <a href="/about/">about</a> Astro!</p>
+<p>Читайте далее <a href="/about/">об</a> Astro!</p>
+
+<!-- С настроенной опцией `base: "/docs"` -->
+<p>Узнайте больше в нашем <a href="/docs/reference/">справочнике</a>!</p> 
 ```
 
 ## Статические маршруты
@@ -51,9 +54,9 @@ src/pages/posts/1.md         -> mysite.com/posts/1
 ---
 export function getStaticPaths() {
   return [
-    {params: {dog: 'clifford'}},
-    {params: {dog: 'rover'}},
-    {params: {dog: 'spot'}},
+    { params: { dog: "clifford" }},
+    { params: { dog: "rover" }},
+    { params: { dog: "spot" }},
   ];
 }
 
@@ -66,27 +69,38 @@ const { dog } = Astro.params;
 
 Имя файла может включать несколько параметров, которые должны быть включены в объекты `params` в `getStaticPaths()`:
 
-
 ```astro title="src/pages/[lang]-[version]/info.astro"
 ---
 export function getStaticPaths () {
  return [
-    {params: {lang: 'en', version: 'v1'}},
-    {params: {lang: 'fr', version: 'v2'}},
+    { params: { lang: "en", version: "v1" }},
+    { params: { lang: "fr", version: "v2" }},
   ];
 }
 
 const { lang, version } = Astro.params;
 ---
-...
 ```
 
 В результате будут сгенерированы `/en-v1/info` и `/fr-v2/info`.
 
 Параметры могут быть включены в отдельные части пути. Например, файл `src/pages/[lang]/[version]/info.astro` с тем же `getStaticPaths()`, что и выше, сгенерирует маршруты `/en/v1/info` и `/fr/v2/info`.
 
-<ReadMore>Узнайте больше о [`getStaticPaths()`](/ru/reference/api-reference/#getstaticpaths).</ReadMore>
+#### Декодирование `params`
 
+Параметры, переданные функции `getStaticPaths()`, не декодируются. Используйте функцию [`decodeURI`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURI), когда вам нужно декодировать значения параметров.
+
+```astro title="src/pages/[slug].astro"
+--- 
+export function getStaticPaths() {
+  return [
+    { params: { slug: decodeURI("%5Bpage%5D") }}, // декодирует в "[page]"
+  ]
+}
+---
+```
+
+<ReadMore>Узнайте больше о [`getStaticPaths()`](/ru/reference/routing-reference/#getstaticpaths).</ReadMore>
 
 <RecipeLinks slugs={["ru/recipes/i18n"]} />
 
@@ -98,9 +112,9 @@ const { lang, version } = Astro.params;
 ---
 export function getStaticPaths() {
   return [
-    {params: {path: 'one/two/three'}},
-    {params: {path: 'four'}},
-    {params: {path: undefined }}
+    { params: { path: "one/two/three" }},
+    { params: { path: "four" }},
+    { params: { path: undefined }}
   ]
 }
 
@@ -120,38 +134,38 @@ const { path } = Astro.params;
 
 ```js
 {
-	org: 'withastro',
-	repo: 'astro',
-	branch: 'main',
-	file: 'docs/public/favicon.svg'
+  org: "withastro",
+  repo: "astro",
+  branch: "main",
+  file: "docs/public/favicon.svg"
 }
 ```
 
 #### Пример: Динамические страницы на нескольких уровнях
 
-В следующем примере параметр rest (`[...slug]`) и функция [`props`](/ru/reference/api-reference/#передача-данных-с-помощью-props) в `getStaticPaths()` генерируют страницы для слагов разной глубины.
-
+В следующем примере параметр rest (`[...slug]`) и функция [`props`](/ru/reference/routing-reference/#data-passing-with-props) в `getStaticPaths()` генерируют страницы для слагов разной глубины.
 
 ```astro title="src/pages/[...slug].astro"
 ---
-export async function getStaticPaths() {
+export function getStaticPaths() {
   const pages = [
     {
       slug: undefined,
-      title: "Astro Store",
-      text: "Welcome to the Astro store!",
+      title: "Магазин Astro",
+      text: "Добро пожаловать в магазин Astro!",
     },
     {
       slug: "products",
-      title: "Astro products",
-      text: "We have lots of products for you",
+      title: "Продукты Astro",
+      text: "У нас есть множество продуктов для вас",
     },
     {
       slug: "products/astro-handbook",
-      title: "The ultimate Astro handbook",
-      text: "If you want to learn Astro, you must read this book.",
+      title: "Исчерпывающее руководство по Astro",
+      text: "Если вы хотите изучить Astro, обязательно прочитайте эту книгу.",
     },
   ];
+
   return pages.map(({ slug, title, text }) => {
     return {
       params: { slug },
@@ -174,7 +188,10 @@ const { title, text } = Astro.props;
 ```
 
 ### Режим серверного рендеринга (SSR)
+
 В режиме [SSR](/ru/guides/on-demand-rendering/) динамические маршруты определяются точно так же: включите в имена файлов скобки `[param]` или `[...path]` для соответствия произвольным строкам или путям. Но поскольку маршруты больше не строятся заранее, страница будет обслуживаться по любому подходящему маршруту. Поскольку это не "статические" маршруты, `getStaticPaths` не следует использовать.
+
+Для маршрутов, отображаемых по запросу, в имени файла может использоваться только один параметр rest с использованием spread-нотации (например, `src/pages/[locale]/[...slug].astro` или `src/pages/[...locale]/[slug].astro`, но не `src/pages/[...locale]/[...slug].astro`).
 
 ```astro title="src/pages/resources/[resource]/[id].astro"
 ---
@@ -182,7 +199,8 @@ const { resource, id } = Astro.params;
 ---
 <h1>{resource}: {id}</h1>
 ```
-Эта страница будет предоставлена для любого значения `resource` и `id`: `resources/users/1`, `resources/colors/blue` и т.д.
+
+Эта страница будет предоставлена для любого значения `resource` и `id`: `resources/users/1`, `resources/colors/blue` и т. д.
 
 #### Модификация примера `[...slug]` для SSR
 
@@ -191,21 +209,21 @@ const { resource, id } = Astro.params;
 ```astro title="src/pages/[...slug].astro"
 ---
 const pages = [
-	{
-		slug: undefined,
-		title: 'Astro Store',
-		text: 'Welcome to the Astro store!',
-	},
-	{
-		slug: 'products',
-		title: 'Astro products',
-		text: 'We have lots of products for you',
-	},
-	{
-		slug: 'products/astro-handbook',
-		title: 'The ultimate Astro handbook',
-		text: 'If you want to learn Astro, you must read this book.',
-	}
+  {
+    slug: undefined,
+    title: "Магазин Astro",
+    text: "Добро пожаловать в магазин Astro!",
+  },
+  {
+    slug: "products",
+    title: "Продукты Astro",
+    text: "У нас есть множество продуктов для вас",
+  },
+  {
+    slug: "products/astro-handbook",
+    title: "Исчерпывающее руководство по Astro",
+    text: "Если вы хотите изучить Astro, обязательно прочитайте эту книгу.",
+  }
 ];
 
 const { slug } = Astro.params;
@@ -234,20 +252,24 @@ const { title, text } = page;
 
 <p><Since v="2.9.0" /></p>
 
-Вы можете указать отображение постоянных переадресаций в конфигурации Astro с помощью значения `redirects`. Для большинства переадресаций это сопоставление старого маршрута с новым маршрутом:
+Вы можете указать отображение постоянных переадресаций в конфигурации Astro с помощью значения [`redirects`](/ru/reference/configuration-reference/#redirects).
 
-```js title="astro.config.mjs" {4-6}
+Для внутренних перенаправлений это сопоставление старого пути маршрута с новым. Начиная с Astro v5.2.0, также можно перенаправлять на внешние URL-адреса, начинающиеся с `http` или `https`, которые [могут быть обработаны](https://developer.mozilla.org/en-US/docs/Web/API/URL/canParse_static).
+
+```js title="astro.config.mjs" {4-7}
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   redirects: {
-    '/old-page': '/new-page'
+    "/old-page": "/new-page",
+    "/blog": "https://example.com/blog"
   }
 });
 ```
 
-Эти переадресации подчиняются тем же правилам, что и маршруты на основе файлов. Динамические маршруты разрешены, если новый и старый маршруты содержат одинаковые параметры, например:
+Эти перенаправления следуют [тем же правилам приоритета, что и маршруты на основе файлов](#порядок-приоритетов-маршрутов) и всегда будут иметь более низкий приоритет, чем существующий файл страницы с тем же именем в вашем проекте. Например, `/old-page` не будет перенаправлено на `/new-page`, если в вашем проекте содержится файл `src/pages/old-page.astro`.
 
+Динамические маршруты разрешены, при условии, что как новые, так и старые маршруты содержат одни и те же параметры, например:
 
 ```js
 {
@@ -262,9 +284,13 @@ import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   redirects: {
-    '/old-page': {
+    "/old-page": {
       status: 302,
-      destination: '/new-page'
+      destination: "/new-page"
+    },
+    "/news": {
+      status: 302,
+      destination: "https://example.com/news"
     }
   }
 });
@@ -286,17 +312,76 @@ const cookie = Astro.request.headers.get('cookie');
 
 // Если пользователь не вошел в систему, перенаправляем его на страницу входа
 if (!isLoggedIn(cookie)) {
-  return Astro.redirect('/login');
+  return Astro.redirect("/login");
 }
 ---
-<html>
-  <!-- Page here... -->
-</html>
 ```
+
+## Переписывания
+
+<p><Since v="4.13.0" /></p>
+
+Переписывание позволяет вам обслуживать другой маршрут без перенаправления браузера на другую страницу. Браузер будет показывать оригинальный адрес в строке URL, но вместо этого отобразит содержимое URL, предоставленного функции [`Astro.rewrite()`](/ru/reference/api-reference/#rewrite).
+
+:::tip
+Для контента, который был перемещен навсегда, или для перенаправления пользователя на другую страницу с новым URL (например, на панель управления пользователя после входа в систему), используйте [перенаправление](#переадресация).
+:::
+
+Переписывания могут быть полезны для отображения одного и того же контента по нескольким путям (например, `/products/shoes/men/` и `/products/men/shoes/`), не требуя поддерживать два разных исходных файла.
+
+Переписывания также полезны для SEO и пользовательского опыта. Они позволяют отображать контент, который в противном случае потребовал бы перенаправления вашего посетителя на другую страницу или вернул бы статус 404. Одним из распространённых способов использования переписываний является отображение одного и того же локализованного контента для различных вариантов языка.
+
+Следующий пример использует переписывание для отображения версии страницы `/es/`, когда посещается URL-путь `/es-CU/` (кубинский испанский). Когда посетитель переходит по URL-адресу `/es-cu/articles/introduction`, Astro отобразит содержимое, сгенерированное файлом `src/pages/es/articles/introduction.astro`.
+
+```astro title="src/pages/es-cu/articles/introduction.astro"
+---
+return Astro.rewrite("/es/articles/introduction");
+---
+```
+
+Используйте `context.rewrite()` в ваших файлах эндпойнтов, чтобы перенаправить на другую страницу:
+
+```js title="src/pages/api.js"
+export function GET(context) {
+  if (!context.locals.allowed) {
+    return context.rewrite("/");
+  }
+}
+```
+
+Если URL, переданный в `Astro.rewrite()`, вызывает ошибку во время выполнения, Astro покажет ошибку в виде наложения в режиме разработки и вернет код состояния 500 в продакшен-среде. Если URL не существует в вашем проекте, будет возвращен код состояния 404.
+
+Вы можете намеренно создать переписывание для отображения вашей страницы `/404`, например, чтобы указать, что продукт в вашем интернет-магазине больше недоступен:
+
+```astro title="src/pages/[item].astro"
+---
+const { item } = Astro.params;
+
+if (!itemExists(item)) {
+  return Astro.rewrite("/404");
+}
+---
+``` 
+
+Вы также можете условно переписывать на основе статуса HTTP-ответа, например, чтобы отобразить определённую страницу на вашем сайте при посещении URL, который не существует:
+
+```js title="src/middleware.mjs"
+export const onRequest = async (context, next) => {
+  const response = await next();
+  if (response.status === 404) {
+    return context.rewrite("/");
+  }
+  return response;
+}
+``` 
+
+Перед отображением содержимого из указанного пути переписывания функция `Astro.rewrite()` запустит новую полную фазу отрисовки. Это повторно выполнит любой мидлвар для нового маршрута/запроса.
+
+<ReadMore>Смотрите [справочную информацию по API `Astro.rewrite()`](/ru/reference/api-reference/#rewrite) для получения дополнительной информации.</ReadMore>
 
 ## Порядок приоритетов маршрутов
 
-Возможно, что несколько определенных маршрутов будут пытаться построить один и тот же путь URL. Например, все эти маршруты могут построить `/posts/create`:
+Возможно, что несколько определённых маршрутов будут пытаться построить один и тот же путь URL. Например, все эти маршруты могут построить `/posts/create`:
 
 <FileTree>
 - src/pages/
@@ -310,53 +395,60 @@ if (!isLoggedIn(cookie)) {
 
 Astro необходимо знать, какой маршрут должен быть использован для создания страницы. Для этого он сортирует их по порядку в соответствии со следующими правилами:
 
+- [Зарезервированные маршруты](#зарезервированные-маршруты) Astro
 - Маршруты с большим количеством сегментов пути будут иметь приоритет перед менее специфичными маршрутами. В приведенном выше примере все маршруты в разделе `/posts/` имеют приоритет над корневым `/[...slug].astro`.
 - Статические маршруты без параметров пути будут иметь приоритет над динамическими маршрутами. Например, `/posts/create.astro` имеет приоритет над всеми остальными маршрутами в примере.
 - Динамические маршруты с именованными параметрами имеют приоритет над остальными параметрами. Например, `/posts/[page].astro` имеет приоритет над `/posts/[...slug].astro`.
 - Предрендеренные динамические маршруты имеют приоритет над серверными динамическими маршрутами.
 - Эндпоинты имеют приоритет над страницами.
+- Маршруты на основе файлов имеют приоритет над перенаправлениями.
 - Если ни одно из вышеперечисленных правил не определяет порядок, маршруты сортируются в алфавитном порядке на основе локали по умолчанию вашей установки Node.
 
-Учитывая приведенный выше пример, вот несколько примеров того, как правила будут сопоставлять запрашиваемый URL с маршрутом, используемым для построения HTML:
+Учитывая приведённый выше пример, вот несколько примеров того, как правила будут сопоставлять запрашиваемый URL с маршрутом, используемым для построения HTML:
 
 - `pages/posts/create.astro` - Будет построено только `/posts/create`.
-- `pages/posts/[pid].ts` - Будет построено `/posts/abc`, `/posts/xyz` и т.д. Но не `/posts/create`.
-- `pages/posts/[page].astro` - Построит `/posts/1`, `/posts/2` и т.д. Но не `/posts/create`, `/posts/abc` и `/posts/xyz`.
-- `pages/posts/[...slug].astro` - Будет создавать `/posts/1/2`, `/posts/a/b/c` и т.д. Но не `/posts/create`, `/posts/1`, `/posts/abc` и т.д.
-- `pages/[...slug].astro` - Будет создавать `/abc`, `/xyz`, `/abc/xyz` и т.д. Но не `/posts/create`, `/posts/1`, `/posts/abc`, и т.д.
+- `pages/posts/[pid].ts` - Будет построено `/posts/abc`, `/posts/xyz` и т. д. Но не `/posts/create`.
+- `pages/posts/[page].astro` - Построит `/posts/1`, `/posts/2` и т. д. Но не `/posts/create`, `/posts/abc` и `/posts/xyz`.
+- `pages/posts/[...slug].astro` - Будет создавать `/posts/1/2`, `/posts/a/b/c` и т. д. Но не `/posts/create`, `/posts/1`, `/posts/abc` и т. д.
+- `pages/[...slug].astro` - Будет создавать `/abc`, `/xyz`, `/abc/xyz` и т. д. Но не `/posts/create`, `/posts/1`, `/posts/abc`, и т. д.
+
+### Зарезервированные маршруты
+
+Внутренние маршруты имеют приоритет над любыми маршрутами, определёнными пользователем или интеграцией, так как они необходимы для работы функций Astro. Вот зарезервированные маршруты Astro:
+
+- `_astro/`: Обслуживает все статические ресурсы клиенту, включая CSS-документы, упакованные клиентские скрипты, оптимизированные изображения и любые ресурсы Vite.
+- `_server_islands/`: Обслуживает динамические компоненты, отложенные в [серверный остров](/ru/guides/server-islands/).
+- `_actions/`: Обслуживает любые определённые [действия](/ru/guides/actions/).
 
 ## Пагинация
 
-Astro поддерживает встроенную пагинацию для больших коллекций данных, которые необходимо разбить на несколько страниц. Astro генерирует общие свойства пагинации, включая URL предыдущей/следующей страницы, общее количество страниц и т.д.
+Astro поддерживает встроенную пагинацию для больших коллекций данных, которые необходимо разбить на несколько страниц. Astro генерирует общие свойства пагинации, включая URL предыдущей/следующей страницы, общее количество страниц и т. д.
 
 Имена пагинационных маршрутов должны использовать тот же синтаксис `[скобка]`, что и стандартные динамические маршруты. Например, имя файла `/astronauts/[page].astro` будет генерировать маршруты для `/astronauts/1`, `/astronauts/2` и т. д., где `[page]` - это номер генерируемой страницы.
 
 Вы можете использовать функцию `paginate()` для генерации этих страниц для массива значений следующим образом:
 
-```astro /{ (paginate) }/ /paginate\\(.*\\)/ /(?<=const.*)(page)/ /page\\.[a-zA-Z]+/
+```astro /{ (paginate) }/ /paginate\\(.*\\);/ /(?<=const.*)(page)/ /page\\.[a-zA-Z]+/
 ---
 // src/pages/astronauts/[page].astro
-export async function getStaticPaths({ paginate }) {
-  const astronautPages = [{
-    astronaut: 'Neil Armstrong',
-  }, {
-    astronaut: 'Buzz Aldrin',
-  }, {
-    astronaut: 'Sally Ride',
-  }, {
-    astronaut: 'John Glenn',
-  }];
+export function getStaticPaths({ paginate }) {
+  const astronautPages = [
+    { astronaut: "Нил Армстронг" },
+    { astronaut: "Базз Олдрин" },
+    { astronaut: "Салли Райд" },
+    { astronaut: "Джон Гленн" },
+  ];
+
   // Генерируем страницы из нашего массива астронавтов, по 2 на страницу
   return paginate(astronautPages, { pageSize: 2 });
 }
-// Все пагинированные данные передаются по пропсу "page"
+// Все пагинированные данные передаются по пропсу «page»
 const { page } = Astro.props;
 ---
-
-<!--Отображает номер текущей страницы. Также можно использовать Astro.params.page!-->
-<h1>Page {page.currentPage}</h1>
+<!-- Отображаем номер текущей страницы. Также можно использовать `Astro.params.page`! -->
+<h1>Страница {page.currentPage}</h1>
 <ul>
-  <!--Перечисление массива информации об астронавтах-->
+  <!-- Перечисляем массив информации об астронавтах -->
   {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
 </ul>
 ```
@@ -369,32 +461,11 @@ const { page } = Astro.props;
 ### Свойство `page`
 
 Когда вы используете функцию `paginate()`, каждой странице будут переданы данные через пропс `page`. Пропс `page` имеет множество полезных свойств, но вот основные из них:
-- **page.data** - массив, содержащий фрагмент данных страницы, который вы передали функции `paginate()`.
-- **page.url.next** - ссылка на следующую страницу в наборе
-- **page.url.prev** - ссылка на предыдущую страницу в наборе
-
-```astro /(?<=const.*)(page)/ /page\\.[a-zA-Z]+(?:\\.(?:prev|next))?/
----
-// src/pages/astronauts/[page].astro
-// Выводим на страницу тот же список объектов { astronaut }, что и в предыдущем примере
-export async function getStaticPaths({ paginate }) { /* ... */ }
-const { page } = Astro.props;
----
-<h1>Page {page.currentPage}</h1>
-<ul>
-  {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
-</ul>
-{page.url.prev ? <a href={page.url.prev}>Previous</a> : null}
-{page.url.next ? <a href={page.url.next}>Next</a> : null}
-```
-
-
-#### Полная справка по API
 
 ```ts
 interface Page<T = any> {
-	/** результат */
-	данные: T[];
+  /** массив, содержащий часть данных страницы, которую вы передали функции paginate() */
+  data: T[];
 	/** метаданные */
 	/** счетчик первого элемента на странице, начиная с 0 */
 	start: number;
@@ -415,9 +486,34 @@ interface Page<T = any> {
 		prev: string | undefined;
 		/** url следующей страницы (если она есть) */
 		next: string | undefined;
+    /** url первой страницы (если текущая страница не является первой) */
+    first: string | undefined;
+    /** url последней страницы (если текущая страница не является последней) */
+    last: string | undefined;
 	};
 }
 ```
+
+Следующий пример отображает текущую информацию для страницы вместе со ссылками для навигации между страницами:
+
+```astro /(?<=const.*)(page)/ /page\\.[a-zA-Z]+(?:\\.(?:prev|next|first|last))?/
+---
+// src/pages/astronauts/[page].astro
+// Выводим на страницу тот же список объектов { astronaut }, что и в предыдущем примере
+export function getStaticPaths({ paginate }) { /* ... */ }
+const { page } = Astro.props;
+---
+<h1>Страница {page.currentPage}</h1>
+<ul>
+  {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
+</ul>
+{page.url.first ? <a href={page.url.first}>Первая</a> : null}
+{page.url.prev ? <a href={page.url.prev}>Предыдущая</a> : null}
+{page.url.next ? <a href={page.url.next}>Следующая</a> : null}
+{page.url.last ? <a href={page.url.last}>Последняя</a> : null}
+```
+
+<ReadMore>Узнайте больше о [свойстве `page` для пагинации](/ru/reference/routing-reference/#the-pagination-page-prop).</ReadMore>
 
 ### Вложенная пагинация
 
@@ -434,13 +530,13 @@ interface Page<T = any> {
 
 В следующем примере мы реализуем вложенную пагинацию для построения URL-адресов, перечисленных выше:
 
-```astro /(?:[(]|=== )(tag)/ "params: { tag }" /const [{ ]*(page|params)/
+```astro /(?:[(]|=== )(tag)/ "params: { tag }," /const [{ ]*(page|params)/
 ---
 // src/pages/[tag]/[page].astro
-export async function getStaticPaths({ paginate }) {
-  const allTags = ['red', 'blue', 'green'];
-  const allPosts = await Astro.glob('../../posts/*.md');
-   // Для каждого тега возвращаем результат paginate().
+export function getStaticPaths({ paginate }) {
+  const allTags = ["red", "blue", "green"];
+  const allPosts = Object.values(import.meta.glob("../pages/post/*.md", { eager: true }));
+  // Для каждого тега возвращаем результат paginate().
   // Убедитесь, что вы передали `{params: {tag}}` в `paginate()`.
   // чтобы Astro знал, для какой группы тегов получен результат.
   return allTags.flatMap((tag) => {
@@ -451,6 +547,7 @@ export async function getStaticPaths({ paginate }) {
     });
   });
 }
+
 const { page } = Astro.props;
 const params = Astro.params;
 ```
@@ -462,7 +559,6 @@ const params = Astro.params;
 Это можно использовать для временного отключения страниц, а также для размещения тестов, утилит и компонентов в той же папке, что и связанные с ними страницы. 
 
 В этом примере только `src/pages/index.astro` и `src/pages/posts/post1.md` будут построены как маршруты страниц и HTML-файлы.
-
 
 <FileTree>
 - src/pages/
