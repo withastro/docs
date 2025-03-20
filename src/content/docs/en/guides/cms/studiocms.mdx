@@ -1,0 +1,233 @@
+---
+title: StudioCMS
+description: Build and manage content for your Astro project using StudioCMS, a headless CMS designed specifically for Astro.
+sidebar:
+  label: StudioCMS
+type: cms
+service: StudioCMS
+stub: false
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { FileTree } from '@astrojs/starlight/components';
+import { Steps } from '@astrojs/starlight/components';
+
+StudioCMS is a headless CMS designed specifically for Astro that provides a user-friendly dashboard for content management with zero client-side JavaScript.
+
+This guide will show you how to set up StudioCMS in your Astro project, configure authentication, and start managing your content.
+
+## Prerequisites
+
+To get started, you will need to have the following:
+
+* An Astro project - You can use an existing Astro project or create a new one.
+* A libSQL provider or self-hosted libSQL server - StudioCMS uses @astrojs/db to connect to your database.
+* An adapter that supports SSR - StudioCMS requires an adapter that supports SSR Routes.
+
+## Setting up your database
+
+StudioCMS works with any libSQL provider. Turso is recommended and offers a discount with the code STUDIOCMS10 for 10% off for 12 months.
+
+<Steps>
+  1. Install and set up a libSQL provider such as Turso:
+      ```bash
+      curl -sSfL https://get.turso.tech/install.sh | bash
+      turso auth login
+      turso db create studiocms
+      ```
+
+  2. Get your database URL and token:
+      ```bash
+      turso db show studiocms
+      turso db tokens create studiocms
+      ```
+
+  3. Add the database credentials to your environment variables:
+      ```ini title=".env"
+      ASTRODBREMOTE_URL=libsql://studiocms-yourname.turso.io
+      ASTRODBAPP_TOKEN=eyJhbGciOiJF...3ahJpTkKDw
+      ```
+</Steps>
+
+## Installing StudioCMS
+
+<Steps>
+  1. Install the StudioCMS package and its dependencies:
+
+      <PackageManagerTabs>
+        <Fragment slot="npm">
+        ```bash
+        npm install @astrojs/db @astrojs/node studiocms
+        ```
+        </Fragment>
+        <Fragment slot="pnpm">
+        ```bash
+        pnpm add @astrojs/db @astrojs/node studiocms
+        ```
+        </Fragment>
+        <Fragment slot="yarn">
+        ```bash
+        yarn add @astrojs/db @astrojs/node studiocms
+        ```
+        </Fragment>
+      </PackageManagerTabs>
+
+  2. Update your astro.config.mjs file:
+
+      ```js title="astro.config.mjs"
+      import { defineConfig } from 'astro/config';
+      import db from '@astrojs/db';
+      import node from '@astrojs/node';
+      import studioCMS from 'studiocms';
+
+      export default defineConfig({
+          site: 'https://your-site.com/', // Required for StudioCMS
+          output: 'server',
+          adapter: node({ mode: "standalone" }),
+          integrations: [
+              db(),
+              studioCMS(),
+          ],
+      });
+      ```
+</Steps>
+
+Your project should now include these files:
+
+<FileTree title="Project Structure">
+- src/
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## Configuring authentication
+
+StudioCMS requires an encryption key for authentication. You can generate one using OpenSSL:
+
+```bash
+openssl rand --base64 16
+```
+
+Add the key to your .env file:
+
+```ini title=".env"
+# Required for StudioCMS authentication
+CMS_ENCRYPTION_KEY="wqR+w...sRcg=="
+```
+
+Optional: Setting up OAuth providers
+
+StudioCMS supports authentication with GitHub, Discord, Google, and Auth0. To configure:
+
+1. Set up OAuth applications with your chosen providers
+2. Use the callback URL format: `https://your-domain.tld/studiocms_api/auth/<provider>/callback`
+3. Add the credentials to your .env file
+
+## Setting up package.json scripts
+
+Update your package.json to include the necessary scripts:
+
+```json title="package.json"
+{
+    "scripts": {
+        "dev": "astro dev --remote",
+        "build": "astro check & astro build --remote",
+        "astro": "astro"
+    }
+}
+```
+
+## Running your StudioCMS project
+
+<Steps>
+1. Initialize your database schema:
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```bash
+     npx astro db push --remote
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```bash
+     pnpm astro db push --remote
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```bash
+     yarn astro db push --remote
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+2. Start your development server:
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```bash
+     npm run dev
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```bash
+     pnpm run dev
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```bash
+     yarn dev
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+3. Complete the setup by visiting: http://localhost:4321/start
+</Steps>
+
+Your StudioCMS dashboard will be available at http://localhost:4321/dashboard in development and https://your-domain.tld/dashboard in production.
+
+## Adding a frontend to your StudioCMS project
+
+StudioCMS is headless, so you'll need to build your own frontend or use a plugin. To add the blog plugin:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```bash
+  npm install @studiocms/blog
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```bash
+  pnpm add @studiocms/blog
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```bash
+  yarn add @studiocms/blog
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Then configure it in your studiocms.config.mjs file:
+
+```js title="studiocms.config.mjs"
+import { defineStudioCMSConfig } from 'studiocms/config';
+import blog from '@studiocms/blog';
+
+export default defineStudioCMSConfig({
+    dbStartPage: false,
+    plugins: [
+        blog(),
+    ],
+});
+```
+
+## Official resources
+
+- StudioCMS Documentation
+- Environment Variables Reference
+- StudioCMS Configuration Reference
+- Package Catalog
+
+## Community resources
+
+- StudioCMS GitHub Repository
+- StudioCMS Discord Community
