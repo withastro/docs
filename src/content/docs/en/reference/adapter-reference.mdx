@@ -215,10 +215,10 @@ const response = await app.render(request);
 
 <p>
 
-**Type:** `{addCookieHeader?: boolean; clientAddress?: string; locals?: object; routeData?: RouteData;}`
+**Type:** `{addCookieHeader?: boolean; clientAddress?: string; locals?: object; preRenderedFetch: (string: string) => Promise<Response>; routeData?: RouteData;}`
 </p>
 
-The `app.render()` method accepts a mandatory `request` argument, and an optional `RenderOptions` object for [`addCookieHeader`](#addcookieheader), [`clientAddress`](#clientaddress), [`locals`](#locals), and [`routeData`](#routedata).
+The `app.render()` method accepts a mandatory `request` argument, and an optional `RenderOptions` object for [`addCookieHeader`](#addcookieheader), [`clientAddress`](#clientaddress), [`locals`](#locals), [`preRenderedFetch`](#prerenderedfetch), and [`routeData`](#routedata).
 
 ###### `addCookieHeader`
 
@@ -276,6 +276,42 @@ try {
     const response = await app.render(request, { locals });
 }
 ```
+
+###### `preRenderedFetch`
+
+<p>
+
+**Type:** `preRenderedFetch`<br />
+**Default:** `fetch`
+</p>
+
+<p><Since v="5.6.0" /></p>
+
+In some environments, it would be useful to provide a custom implementation for fetching the prerendered error pages, for example if you don't have `fetch` available
+or cannot call the server from itself.
+
+The example bellow reads 500.html and 404.html from disk instead of performing an HTTP call.
+
+```js "preRenderedFetch"
+return app.render(request, {
+  preRenderedFetch: async (url: string): Promise<Response> => {
+    if (url.includes("/500")) {
+        const content = await fs.promises.readFile("500.html", "utf-8");
+        return new Response(content, {
+          status: 500,
+          headers: { "Content-Type": "text/html" },
+        });
+    }
+
+    const content = await fs.promises.readFile("404.html", "utf-8");
+      return new Response(content, {
+        status: 404,
+        headers: { "Content-Type": "text/html" },
+      });
+});
+```
+
+If not provided, Astro will fallback to its default behavior for fetching error pages.
 
 ###### `routeData`
 
