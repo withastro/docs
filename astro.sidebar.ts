@@ -138,6 +138,7 @@ export const sidebar = [
 					'reference/experimental-flags/serialized-configuration',
 					'reference/experimental-flags/preserve-scripts-order',
 					'reference/experimental-flags/heading-id-compat',
+					'reference/experimental-flags/fonts',
 				],
 			}),
 			'reference/legacy-flags',
