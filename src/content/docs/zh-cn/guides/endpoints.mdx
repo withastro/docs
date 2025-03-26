@@ -13,25 +13,28 @@ Astro 允许你创建自定义端点来提供任何类型的数据。你可以�
 
 要想要创建自定义端点，请将 `.js` 或 `.ts` 文件添加到 `/pages` 目录。`.js` 或 `.ts` 这样的扩展名将在构建过程中被删除，因此文件名中应包含你要创建的数据的扩展名。例如，文件 `src/pages/data.json.ts` 将被构建为 API 端点 `/data.json`。
 
-端点导出一个 `GET` 函数（可选的以 `async` 导出），该函数接收具有类似于 `Astro` 全局属性的  [上下文对象](/zh-cn/reference/api-reference/)。在这里，它返回一个带有 `name` 和 `url` 的 Response 对象，Astro 将在构建时调用它并使用 `body` 中的内容来生成文件。
+端点导出一个 `GET` 函数（可选的以 `async` 导出），该函数接收具有类似于 `Astro` 全局属性的[上下文对象](/zh-cn/reference/api-reference/)。在这里，它返回一个带有 `name` 和 `url` 的 [`Response`](https://developer.mozilla.org/zh-CN/docs/Web/API/Response) 对象，Astro 将在构建时调用它并使用 `body` 中的内容来生成文件。
 
-```js
-// 输出: /builtwith.json
-export async function GET({params, request}) {
+```ts title="src/pages/builtwith.json.ts"
+// 输出：/builtwith.json
+export function GET({ params, request }) {
   return new Response(
     JSON.stringify({
-      name: 'Astro',
-      url: 'https://astro.build/'
-    })
-  )
+      name: "Astro",
+      url: "https://astro.build/",
+    }),
+  );
 }
 ```
 
-从 Astro v3.0 开始，返回的 `Response` 对象不再需要包含 `encoding` 属性。例如，生成一个二进制 png 图像：
+从 Astro v3.0 开始，返回的 `Response` 对象不再需要包含 `encoding` 属性。例如，生成一个二进制 `png` 图像：
 
-```ts title="src/pages/astro-logo.png.ts" {3}
+```ts title="src/pages/astro-logo.png.ts" {6}
 export async function GET({ params, request }) {
-  const response = await fetch("https://docs.astro.build/assets/full-logo-light.png");
+  const response = await fetch(
+    "https://docs.astro.build/assets/full-logo-light.png",
+  );
+
   return new Response(await response.arrayBuffer());
 }
 ```
@@ -39,7 +42,7 @@ export async function GET({ params, request }) {
 你还可以使用 `APIRoute` 类型来约束 API 端点函数：
 
 ```js
-import type { APIRoute } from 'astro';
+import type { APIRoute } from "astro";
 
 export const GET: APIRoute = async ({ params, request }) => {...}
 ```
@@ -49,48 +52,51 @@ export const GET: APIRoute = async ({ params, request }) => {...}
 端点支持与页面相同的 [动态路由](/zh-cn/guides/routing/#动态路由) 功能。使用中括号包裹参数作为文件名，并导出 [`getStaticPaths()` 函数](/zh-cn/reference/routing-reference/#getstaticpaths)。然后，你可以使用传递给 API 端点函数的 `params` 属性访问参数：
 
 ```ts title="src/pages/api/[id].json.ts"
-import type { APIRoute } from 'astro';
+import type { APIRoute } from "astro";
 
-const usernames = ["张三", "李四", "王五"]
+const usernames = ["张三", "李四", "王五", "赵六"];
 
 export const GET: APIRoute = ({ params, request }) => {
   const id = params.id;
+
   return new Response(
     JSON.stringify({
-      name: usernames[id]
-    })
-  )
+      name: usernames[id],
+    }),
+  );
 };
 
-export function getStaticPaths () {
-    return [ 
-        { params: { id: "0"} },
-        { params: { id: "1"} },
-        { params: { id: "2"} },
-    ]
+export function getStaticPaths() {
+  return [
+    { params: { id: "0" } },
+    { params: { id: "1" } },
+    { params: { id: "2" } },
+    { params: { id: "3" } },
+  ];
 }
 ```
 
-这将在构建时生成三个 JSON 端点：`/api/0.json`、`/api/1.json` 和 `/api/2.json`。带端点的动态路由与页面的工作方式相同，但由于端点是一个函数而不是组件，因此 [props](/zh-cn/reference/routing-reference/#通过-props-传递数据) 是不被支持的。
+这将在构建时生成四个 JSON 端点：`/api/0.json`、`/api/1.json`、`/api/2.json` 和 `/api/3.json`。带端点的动态路由与页面的工作方式相同，但由于端点是一个函数而不是组件，因此 [props](/zh-cn/reference/routing-reference/#通过-props-传递数据) 是不被支持的。
 
 ### `request`
 
 所有端点都会接收 `request` 属性，但在静态模式下，你只能访问 `request.url`。它将返回当前端点的完整 URL，其工作方式与 [Astro.request.url](/zh-cn/reference/api-reference/#request) 对页面的作用相同。
 
 ```ts title="src/pages/request-path.json.ts"
-import type { APIRoute } from 'astro';
+import type { APIRoute } from "astro";
 
 export const GET: APIRoute = ({ params, request }) => {
-  return new Response(JSON.stringify({
-      path: new URL(request.url).pathname
-    })
-  )
-}
+  return new Response(
+    JSON.stringify({
+      path: new URL(request.url).pathname,
+    }),
+  );
+};
 ```
 
 ## 服务器端点（API 路由）
 
-[静态文件的端点](#静态文件端点) 部分中描述的所有内容均可以在 SSR 模式下使用：文件可以导出一个名为 `GET` 的函数，该函数接收具有类似于 `Astro` 全局属性的 [上下文对象](/zh-cn/reference/api-reference/)。
+[静态文件的端点](#静态文件端点)部分中描述的所有内容均可以在 SSR 模式下使用：文件可以导出一个名为 `GET` 的函数，该函数接收具有类似于 `Astro` 全局属性的[上下文对象](/zh-cn/reference/api-reference/)。
 
 但是，不同于 `static` 模式，当你使用路由的按需渲染模式时，端点将在请求时被构建。这解锁了在构建时不可用的新特性，并允许你构建 API 路由以监听请求，并在服务器上安全地执行代码。
 
@@ -102,10 +108,10 @@ export const GET: APIRoute = ({ params, request }) => {
 在尝试这些示例之前，请务必确认已经 [启用了按需渲染模式](/zh-cn/guides/on-demand-rendering/) 并且避免了 `static` 模式下的预渲染。
 :::
 
-服务器端点可以在不导出 `getStaticPaths` 的情况下访问 `params`。服务器端点可以返回一个 [`Response`](https://developer.mozilla.org/zh-CN/docs/Web/API/Response) 对象，其允许你为返回的数据设置状态码和标头：
+服务器端点可以在不导出 `getStaticPaths` 的情况下访问 `params`。服务器端点可以返回一个 `Response` 对象，其允许你为返回的数据设置状态码和标头：
 
 ```js title="src/pages/[id].json.js"
-import { getProduct } from '../db';
+import { getProduct } from "../db";
 
 export async function GET({ params }) {
   const id = params.id;
@@ -114,29 +120,30 @@ export async function GET({ params }) {
   if (!product) {
     return new Response(null, {
       status: 404,
-      statusText: 'Not found'
+      statusText: "Not found",
     });
   }
 
-  return new Response(
-    JSON.stringify(product), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json"
-      }
-    }
-  );
+  return new Response(JSON.stringify(product), {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 }
 ```
 
-这将响应与动态路由匹配的任何请求。例如，如果我们导航到 `/helmet.json`，`params.id` 将被设置为 `helmet`。如果我们模拟的数据库中存在 `helmet`，端点将使用它创建一个包含 `product` 数据（格式化为 JSON）的 `Response` 对象，并返回成功的 [HTTP状态码](https://developer.mozilla.org/zh-CN/docs/Web/API/Response/status)。如果没有，它将使用一个 `Response` 对象返回 `404` 响应。
+这将响应与动态路由匹配的任何请求。例如，如果我们导航到 `/helmet.json`，`params.id` 将被设置为 `helmet`。如果我们模拟的数据库中存在 `helmet`，端点将会使用 `Response` 对象（JSON 格式）来响应，并返回成功的 [HTTP 状态码](https://developer.mozilla.org/zh-CN/docs/Web/API/Response/status)。如果没有，它将使用一个 `Response` 对象返回 `404` 响应。
 
 在 SSR 模式下，需要提供 `Content-Type` 头来返回图像。在这种情况下，使用 `Response` 对象来指定 `headers` 属性。例如，生成一个二进制 `.png` 图像：
 
 ```ts title="src/pages/astro-logo.png.ts"
 export async function GET({ params, request }) {
-  const response = await fetch("https://docs.astro.build/assets/full-logo-light.png");
+  const response = await fetch(
+    "https://docs.astro.build/assets/full-logo-light.png",
+  );
   const buffer = Buffer.from(await response.arrayBuffer());
+
   return new Response(buffer, {
     headers: { "Content-Type": "image/png" },
   });
@@ -151,32 +158,36 @@ export async function GET({ params, request }) {
 
 ```ts title="src/pages/methods.json.ts"
 export const GET: APIRoute = ({ params, request }) => {
-  return new Response(JSON.stringify({
-      message: "This was a GET!"
-    })
-  )
-}
+  return new Response(
+    JSON.stringify({
+      message: "这是个 GET 请求！",
+    }),
+  );
+};
 
 export const POST: APIRoute = ({ request }) => {
-  return new Response(JSON.stringify({
-      message: "This was a POST!"
-    })
-  )
-}
+  return new Response(
+    JSON.stringify({
+      message: "这是个 POST 请求！",
+    }),
+  );
+};
 
 export const DELETE: APIRoute = ({ request }) => {
-  return new Response(JSON.stringify({
-      message: "This was a DELETE!"
-    })
-  )
-}
+  return new Response(
+    JSON.stringify({
+      message: "这是个 DELETE 请求！",
+    }),
+  );
+};
 
 export const ALL: APIRoute = ({ request }) => {
-  return new Response(JSON.stringify({
-      message: `This was a ${request.method}!`
-    })
-  )
-}
+  return new Response(
+    JSON.stringify({
+      message: `这是个 ${request.method} 请求！`,
+    }),
+  );
+};
 ```
 
 如果你的定义了一个 `GET` 函数，但却没有定义 `HEAD` 函数，Astro 将通过调用 `GET` 函数来自动处理 `HEAD` 请求并从响应中剥离 body 部分。
@@ -192,14 +203,19 @@ export const POST: APIRoute = async ({ request }) => {
   if (request.headers.get("Content-Type") === "application/json") {
     const body = await request.json();
     const name = body.name;
-    return new Response(JSON.stringify({
-      message: "你的名字是：" + name
-    }), {
-      status: 200
-    })
+
+    return new Response(
+      JSON.stringify({
+        message: "Your name was: " + name,
+      }),
+      {
+        status: 200,
+      },
+    );
   }
+
   return new Response(null, { status: 400 });
-}
+};
 ```
 
 ### 重定向
@@ -207,7 +223,7 @@ export const POST: APIRoute = async ({ request }) => {
 端点上下文导出一个类似于 `Astro.redirect` 的 `redirect()` 函数：
 
 ```js title="src/pages/links/[id].js" {14}
-import { getLinkUrl } from '../db';
+import { getLinkUrl } from "../db";
 
 export async function GET({ params }) {
   const { id } = params;
@@ -216,7 +232,7 @@ export async function GET({ params }) {
   if (!link) {
     return new Response(null, {
       status: 404,
-      statusText: 'Not found'
+      statusText: "Not found"
     });
   }
 
