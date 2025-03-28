@@ -271,7 +271,16 @@ import {
     matchPathname,
     matchPattern,
     matchPort,
-    matchProtocol
+    matchProtocol,
+    isESMImportedImage,
+    isRemoteImage,
+    resolveSrc,
+    imageMetadata,
+    emitESMImage,
+    getOrigQueryParams,
+    inferRemoteSize,
+    propsToFilename,
+    hashTransform
 } from "astro/assets/utils";
 ```
 
@@ -286,7 +295,7 @@ Détermine si une ressource distante donnée, identifiée par son URL source, es
 
 
 ```ts
-import {isRemoteAllowed} from 'astro/assets/utils';
+import { isRemoteAllowed } from 'astro/assets/utils';
 
 const testImageURL = 'https://example.com/images/test.jpg';
 const domains = ['example.com', 'anotherdomain.com'];
@@ -310,7 +319,7 @@ console.log(`L'image distante est-elle autorisée ? ${isAllowed}`);
 Fait correspondre le nom d'hôte d'une URL donnée à un nom d'hôte spécifié, avec prise en charge facultative des modèles génériques.
 
 ```ts
-import {matchHostname} from 'astro/assets/utils';
+import { matchHostname } from 'astro/assets/utils';
 
 const testURL = new URL('https://sub.example.com/path/to/resource');
 
@@ -336,7 +345,7 @@ console.log(`Le nom d'hôte correspond-il avec un caractère générique ? ${is
 Fait correspondre le chemin d'accès d'une URL donnée à un modèle spécifié, avec prise en charge facultative des caractères génériques.
 
 ```ts
-import {matchPathname} from 'astro/assets/utils';
+import { matchPathname } from 'astro/assets/utils';
 
 const testURL = new URL('https://example.com/images/photo.jpg');
 
@@ -363,7 +372,7 @@ console.log(`Le nom du chemin correspond-il avec un caractère générique ? ${
 Évalue si une URL donnée correspond au modèle distant spécifié en fonction du protocole, du nom d'hôte, du port et du chemin d'accès.
 
 ```ts
-import {matchPattern} from 'astro/assets/utils';
+import { matchPattern } from 'astro/assets/utils';
 
 const testURL = new URL('https://images.example.com/photos/test.jpg');
 
@@ -391,7 +400,7 @@ console.log(`L'URL correspond-elle au modèle distant ? ${isPatternMatched}`); 
 Vérifie si le port de l'URL donnée correspond au port spécifié. Si aucun port n'est fourni, renvoie `true`.
 
 ```ts
-import {matchPort} from 'astro/assets/utils';
+import { matchPort } from 'astro/assets/utils';
 
 const testURL1 = new URL('https://example.com:8080/resource');
 const testURL2 = new URL('https://example.com/resource');
@@ -422,7 +431,7 @@ console.log(`Le port correspond-il (aucun port spécifié) ? ${isPortMatch3}`); 
 Compare le protocole de l'URL fournie avec un protocole spécifié.
 
 ```ts
-import {matchProtocol} from 'astro/assets/utils';
+import { matchProtocol } from 'astro/assets/utils';
 
 const testURL1 = new URL('https://example.com/resource');
 const testURL2 = new URL('http://example.com/resource');
@@ -441,4 +450,307 @@ console.log(`Le protocole correspond-il pour testURL2? ${isProtocolMatch2}`); //
 // Faire correspondre une URL sans fournir explicitement de protocole (la valeur par défaut est true si le protocole n'est pas défini)
 const isProtocolMatch3 = matchProtocol(testURL1);
 console.log(`Le protocole correspond-il (aucun protocole spécifié) ? ${isProtocolMatch3}`); // Sortie : true
+```
+
+### `isESMImportedImage()`
+
+<p>
+  **Type :** `(src: ImageMetadata | string): boolean`<br />
+  <Since v="4.0.0" />
+</p>
+
+Détermine si la source donnée est une image importée en tant que module ECMAScript (ESM).
+
+```ts
+import { isESMImportedImage } from 'astro/assets/utils';
+
+// Exemple d'utilisation de isESMImportedImage
+const imageMetadataExample = {
+  src: '/images/photo.jpg',
+  width: 800,
+  height: 600,
+  format: 'jpg',
+};
+
+const filePathExample = '/images/photo.jpg';
+
+// Vérifiez si l'entrée est une image importée ESM
+const isMetadataImage = isESMImportedImage(imageMetadataExample);
+console.log(`Est-ce que imageMetadataExample est une image importée ESM ? ${isMetadataImage}`); // Résultat : true
+
+const isFilePathImage = isESMImportedImage(filePathExample);
+console.log(`filePathExample est-il une image importée ESM ? ${isFilePathImage}`); // Résultat : false
+```
+
+
+### `isRemoteImage()`
+
+<p>
+  **Type :** `(src: ImageMetadata | string): boolean`<br />
+  <Since v="4.0.0" />
+</p>
+
+Détermine si la source fournie est une URL d'image distante sous la forme d'une chaîne de caractères.
+
+
+```ts
+import { isRemoteImage } from 'astro/assets/utils';
+
+// Exemple d'utilisation de isRemoteImage
+const remoteImageUrl = 'https://example.com/images/photo.jpg';
+const localImageMetadata = {
+  src: '/images/photo.jpg',
+  width: 800,
+  height: 600,
+  format: 'jpg',
+};
+
+// Vérifiez si l'entrée est une URL d'image distante
+const isRemote1 = isRemoteImage(remoteImageUrl);
+console.log(`remoteImageUrl est-elle une image distante ? ${isRemote1}`); // Résultat : true
+
+const isRemote2 = isRemoteImage(localImageMetadata);
+console.log(`localImageMetadata est-elle une image distante ? ${isRemote2}`); // Résultat : false
+```
+
+### `resolveSrc()`
+
+<p>
+  **Type :** `(src: UnresolvedImageTransform['src']): Promise<string | ImageMetadata>`<br />
+  <Since v="4.0.0" />
+</p>
+
+Renvoie la source de l'image. Cette fonction garantit que si `src` est une promesse (par exemple, un `import()` dynamique), elle est attendue et la bonne `src` est extraite. Si `src` est déjà une valeur résolue, elle est renvoyée telle quelle.
+
+```ts
+import { resolveSrc } from 'astro/assets/utils';
+import imageLocale from "./images/photo.jpg";
+
+const resolvedLocal = await resolveSrc(imageLocale);
+// sera `{ src: '/images/photo.jpg', width: 800, height: 600, format: 'jpg' }`
+
+const resolvedRemote = await resolveSrc("https://example.com/img-distante.jpg");
+// sera `"https://example.com/img-distante.jpg"`
+
+const resolvedDynamic = await resolveSrc(import("./images/image-dynamique.jpg"))
+// sera `{ src: '/images/image-dynamique.jpg', width: 800, height: 600, format: 'jpg' }`
+```
+
+
+### `imageMetadata()`
+
+<p>
+  **Type :** `(data: Uint8Array, src?: string): Promise<Omit<ImageMetadata, 'src' | 'fsPath'>>`<br />
+  <Since v="4.0.0" />
+</p>
+
+Extrait les métadonnées de l'image telles que les dimensions, le format et l'orientation des données d'image fournies.
+
+```ts
+import { imageMetadata } from 'astro/assets/utils';
+
+async function extractImageMetadata() {
+  // Exemple de données d'image (Uint8Array)
+  const exampleImageData = new Uint8Array([/* ...données d'image binaires... */]);
+
+  // Chemin source facultatif (utile pour le débogage ou le contexte de métadonnées supplémentaires)
+  const sourcePath = '/images/photo.jpg';
+
+  try {
+    // Extraire les métadonnées des données d'image
+    const metadata = await imageMetadata(exampleImageData, sourcePath);
+
+    console.log("Métadonnées d'image extraites :", metadata);
+    // Exemple de sortie :
+    // {
+    //   width: 800,
+    //   height: 600,
+    //   format: 'jpg',
+    //   orientation: undefined
+    // }
+  } catch (error) {
+    console.error("Échec de l'extraction des métadonnées de l'image :", error);
+  }
+}
+
+await extractImageMetadata();
+```
+
+### `emitESMImage()`
+
+<p>
+  **Type :** `(id: string | undefined, _watchMode: boolean, experimentalSvgEnabled: boolean,  fileEmitter?: FileEmitter): Promise<ImageMetadataWithContents | undefined>`<br />
+  <Since v="4.0.0" />
+</p>
+
+
+Traite un fichier image et émet ses métadonnées et éventuellement son contenu. En mode construction, la fonction utilise `fileEmitter` pour générer une référence de ressource. En mode développement, elle résout l'URL d'un fichier local avec des paramètres de requête pour les métadonnées.
+
+```ts
+
+import { emitESMImage } from 'astro/assets/utils';
+
+const imageId = '/images/photo.jpg';
+const unusedWatchMode = false; // Obsolète, inutilisé
+const unusedExperimentalSvgEnabled = false; // Définissez sur `true` uniquement si vous utilisez SVG et souhaitez que les données du fichier soient intégrées
+
+try {
+  const result = await emitESMImage(imageId, unusedWatchMode, unusedExperimentalSvgEnabled);
+  if (result) {
+    console.log("Métadonnées d'image avec contenu :", result);
+    // Exemple de sortie :
+    // {
+    //   width: 800,
+    //   height: 600,
+    //   format: 'jpg',
+    //   contents: Uint8Array([...])
+    // }
+  } else {
+    console.log("Aucune métadonnée n'a été émise pour cette image.");
+  }
+} catch (error) {
+  console.error("Échec de l'émission de l'image ESM :", error);
+}
+
+```
+
+### `getOrigQueryParams()`
+
+<p>
+  **Type :** `(params: URLSearchParams): Pick<ImageMetadata, 'width' | 'height' | 'format'> | undefined`<br />
+  <Since v="4.0.0" />
+</p>
+
+
+Récupère la largeur (`width`), la hauteur (`height`) et le `format` d'une image à partir d'un objet [`URLSearchParams`](https://developer.mozilla.org/fr/docs/Web/API/URLSearchParams). Si l'un de ces paramètres est manquant ou non valide, la fonction renvoie `undefined`.
+
+```ts
+
+import { getOrigQueryParams } from 'astro/assets/utils';
+
+const url = new URL('https://example.com/image.jpg?width=800&height=600&format=jpg');
+const queryParams = url.searchParams;
+
+// Extraire les paramètres de requête d'origine
+const origParams = getOrigQueryParams(queryParams);
+
+if (origParams) {
+  console.log("Paramètres de requête d'origine :", origParams);
+  // Exemple de sortie :
+  // {
+  //   width: 800,
+  //   height: 600,
+  //   format: 'jpg'
+  // }
+} else {
+  console.log("Échec de l'extraction des paramètres de requête d'origine.");
+}
+```
+
+### `inferRemoteSize()`
+
+<p>
+  **Type :** `(url: string): Promise<Omit<ImageMetadata, 'src' | 'fsPath'>>`<br />
+  <Since v="4.0.0" />
+</p>
+
+Déduit les dimensions d'une image distante en diffusant ses données et en les analysant progressivement jusqu'à ce que suffisamment de métadonnées soient disponibles.
+
+```ts
+
+import { inferRemoteSize } from 'astro/assets/utils';
+
+async function getRemoteImageSize() {
+  const remoteImageUrl = 'https://example.com/image.jpg';
+
+  try {
+    // Déduire la taille de l'image distante à partir de l'URL
+    const imageSize = await inferRemoteSize(remoteImageUrl);
+
+    console.log("Taille de l'image distante déduite :", imageSize);
+    // Exemple de sortie :
+    // {
+    //   width: 1920,
+    //   height: 1080,
+    //   format: 'jpg'
+    // }
+  } catch (error) {
+    console.error("Impossible de déduire la taille de l'image distante :", error);
+  }
+}
+
+await getRemoteImageSize();
+```
+
+### `propsToFilename()`
+
+<p>
+  **Type :** `(filePath: string, transform: ImageTransform, hash: string): string`<br />
+  <Since v="4.0.0" />
+</p>
+
+
+Génère un nom de fichier formaté pour une image en fonction de son chemin source, de ses propriétés de transformation et d'un hachage unique.
+
+Le nom de fichier formaté suit cette structure :
+
+`<prefixDirname>/<baseFilename>_<hash><outputExtension>`
+
+- `prefixDirname` : Si l'image est une image importée ESM, il s'agit du nom du répertoire du chemin du fichier d'origine ; sinon, ce sera une chaîne de caractères vide.
+- `baseFilename` : Le nom de base du fichier ou un nom court haché si le fichier est un URI `data:`.
+- `hash` : Une chaîne de hachage unique générée pour distinguer le fichier transformé.
+- `outputExtension` : L'extension du fichier de sortie souhaitée dérivée de `transform.format` ou de l'extension du fichier d'origine.
+
+```ts
+import { propsToFilename } from 'astro/assets/utils';
+
+function generateTransformedFilename() {
+  const filePath = '/images/photo.jpg';
+  const transform = {
+    format: 'png',
+    src: '/images/photo.jpg'
+  };
+  const hash = 'abcd1234';
+
+  // Générer le nom de fichier transformé en fonction du chemin du fichier, de la transformation et du hachage
+  const filename = propsToFilename(filePath, transform, hash);
+
+  console.log('Nom de fichier transformé généré :', filename);
+  // Exemple de sortie : '/images/photo_abcd1234.png'
+}
+
+generateTransformedFilename();
+```
+
+### `hashTransform()`
+
+<p>
+  **Type :** `(transform: ImageTransform, imageService: string, propertiesToHash: string[]): string`<br />
+  <Since v="4.0.0" />
+</p>
+
+Transforme l'objet `transform` fourni en une chaîne de hachage basée sur les propriétés sélectionnées et le `imageService` spécifié.
+
+```ts
+
+import { hashTransform } from 'astro/assets/utils';
+
+function generateTransformHash() {
+  const transform = {
+    width: 800,
+    height: 600,
+    format: 'jpg',
+  };
+
+  const imageService = 'astroImageService';
+  const propertiesToHash = ['width', 'height', 'format'];
+
+  // Générer le hachage en fonction de la transformation, du service d'image et des propriétés
+  const hash = hashTransform(transform, imageService, propertiesToHash);
+
+  console.log('Hachage de transformation généré :', hash);
+  // Exemple de sortie : 'd41d8cd98f00b204e9800998ecf8427e'
+}
+
+generateTransformHash();
 ```
