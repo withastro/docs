@@ -144,7 +144,7 @@ export interface DevServer {
 
 <p>
 
-**类型：** `(inlineConfig: AstroInlineConfig) => Promise<void>`
+**类型：** `(inlineConfig: AstroInlineConfig, options?: BuildOptions) => Promise<void>`
 </p>
 
 与 [`astro build`](/zh-cn/reference/cli-reference/#astro-build) 相似，用于构建你的站点以进行部署。
@@ -156,6 +156,39 @@ await build({
   root: "./my-project",
 });
 ```
+
+### `BuildOptions`
+
+```ts
+export interface BuildOptions {
+	devOutput?: boolean;
+	teardownCompiler?: boolean;
+}
+```
+
+#### `devOutput`
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `false`
+<Since v="5.4.0" />
+</p>
+
+输出一个基于开发的构建，与在 `astro dev` 中转换的代码相似。这对于测试仅构建时出现的问题非常有用，同时包含附加的调试信息。
+
+#### `teardownCompiler`
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `true`<br />
+<Since v="5.4.0" />
+</p>
+
+在构建完成后销毁编译器的 WASM 实例。这可以在单次构建时提升性能，但在连续多次构建时可能导致性能下降。
+
+在同一次执行中构建多个项目时（例如测试期间），禁用这个选项可以显著提升性能并降低峰值内存占用，但代价是持续内存占用会升高。
 
 ## `preview()`
 
@@ -246,4 +279,96 @@ import { sync } from "astro";
 await sync({
   root: "./my-project",
 });
+```
+
+## `mergeConfig()`
+
+<p>
+
+**类型：** `<T extends AstroConfig | AstroInlineConfig>(config: T, overrides: DeepPartial<T>) => T`
+<Since v="5.4.0" />
+</p>
+
+从 `astro/config` 导入，用于在现有有效的 Astro 配置基础上合并部分配置。
+
+`mergeConfig()` 接受一个完整的 Astro 配置对象和一个部分配置（任意有效的 Astro 配置选项的集合），返回合并后的有效 Astro 配置。合并规则如下：
+
+- 数组会被连接（包括集成和 remark 插件）。
+- 对象会递归合并。
+- Vite 选项使用 [Vite 自身的 `mergeConfig` 函数](https://cn.vite.dev/guide/api-javascript#mergeconfig) 进行合并，默认启用 `isRoot` 标志。
+- 可以作为函数提供的选项会被包装成新函数，这些新函数递归合并两个配置的返回值，遵循相同的规则。
+- 其他所有选项会覆盖原有配置。
+
+```ts
+import { mergeConfig } from "astro/config";
+
+mergeConfig(
+  {
+    output: 'static',
+    site: 'https://example.com',
+    integrations: [tailwind()],
+    server: ({command}) => ({
+      port: command === 'dev' ? 4321 : 1234,
+    }),
+	  build: {
+		  client: './custom-client',
+	  },
+  },
+  {
+    output: 'server',
+    base: '/astro',
+    integrations: [mdx()],
+    server: ({command}) => ({
+      host: command === 'dev' ? 'localhost' : 'site.localhost',
+    }),
+	  build: {
+		  server: './custom-server',
+	  },
+  }
+);
+
+// 合并后的结果等价于：
+{
+  output: 'server',
+  site: 'https://example.com',
+  base: '/astro',
+  integrations: [tailwind(), mdx()],
+  server: ({command}) => ({
+    port: command === 'dev' ? 4321 : 1234,
+    host: command === 'dev' ? 'localhost' : 'site.localhost',
+  }),
+	build: {
+		client: './custom-client',
+		server: './custom-server',
+	},
+}
+```
+
+## `validateConfig()`
+
+<p>
+
+**类型：** `(userConfig: any, root: string, cmd: string): Promise<AstroConfig>`
+<Since v="5.4.0" />
+</p>
+
+从 `astro/config` 导入，用于验证一个对象，就好像该对象是从 `astro.config.mjs` 导出并由 Astro 导入的一样。
+
+
+接收以下参数：
+- 待验证的配置
+- 项目根目录
+- 正在执行的 Astro 命令（`build`, `dev`, `sync` 等）
+
+返回的 Promise 会解析为验证后的配置，包含适用于给定 Astro 命令的所有默认值。
+
+```ts
+import { validateConfig } from "astro/config";
+
+const config = await validateConfig({
+  integrations: [tailwind()],
+}, "./my-project", "build");
+
+// 已应用默认值
+await rm(config.outDir, { recursive: true, force: true });
 ```

@@ -144,7 +144,7 @@ Returns a `Promise` that resolves once all pending requests have been fulfilled 
 
 <p>
 
-**Type:** `(inlineConfig: AstroInlineConfig) => Promise<void>`
+**Type:** `(inlineConfig: AstroInlineConfig, options?: BuildOptions) => Promise<void>`
 </p>
 
 Similar to [`astro build`](/en/reference/cli-reference/#astro-build), it builds your site for deployment.
@@ -156,6 +156,39 @@ await build({
   root: "./my-project",
 });
 ```
+
+### `BuildOptions`
+
+```ts
+export interface BuildOptions {
+	devOutput?: boolean;
+	teardownCompiler?: boolean;
+}
+```
+
+#### `devOutput`
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `false`
+<Since v="5.4.0" />
+</p>
+
+Output a development-based build similar to code transformed in `astro dev`. This can be useful to test build-only issues with additional debugging information included.
+
+#### `teardownCompiler`
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `true`
+<Since v="5.4.0" />
+</p>
+
+Teardown the compiler WASM instance after build. This can improve performance when building once but may cause a performance hit if building multiple times in a row.
+
+When building multiple projects in the same execution (e.g. during tests), disabling this option can greatly increase performance and reduce peak memory usage at the cost of higher sustained memory usage.
 
 ## `preview()`
 
@@ -246,4 +279,96 @@ import { sync } from "astro";
 await sync({
   root: "./my-project",
 });
+```
+
+## `mergeConfig()`
+
+<p>
+
+**Type:** `<T extends AstroConfig | AstroInlineConfig>(config: T, overrides: DeepPartial<T>) => T`
+<Since v="5.4.0" />
+</p>
+
+Imported from `astro/config`, merges a partial Astro configuration on top of an existing, valid, Astro configuration.
+
+`mergeConfig()` accepts an Astro config object and a partial config (any set of valid Astro config options), and returns a valid Astro config combining both values such that:
+
+- Arrays are concatenated (including integrations and remark plugins).
+- Objects are merged recursively.
+- Vite options are merged using [Vite's own `mergeConfig` function](https://vite.dev/guide/api-javascript#mergeconfig) with the default `isRoot` flag.
+- Options that can be provided as functions are wrapped into new functions that recursively merge the return values from both configurations with these same rules.
+- All other options override the existing config.
+
+```ts
+import { mergeConfig } from "astro/config";
+
+mergeConfig(
+  {
+    output: 'static',
+    site: 'https://example.com',
+    integrations: [tailwind()],
+    server: ({command}) => ({
+      port: command === 'dev' ? 4321 : 1234,
+    }),
+	  build: {
+		  client: './custom-client',
+	  },
+  },
+  {
+    output: 'server',
+    base: '/astro',
+    integrations: [mdx()],
+    server: ({command}) => ({
+      host: command === 'dev' ? 'localhost' : 'site.localhost',
+    }),
+	  build: {
+		  server: './custom-server',
+	  },
+  }
+);
+
+// Result is equivalent to:
+{
+  output: 'server',
+  site: 'https://example.com',
+  base: '/astro',
+  integrations: [tailwind(), mdx()],
+  server: ({command}) => ({
+    port: command === 'dev' ? 4321 : 1234,
+    host: command === 'dev' ? 'localhost' : 'site.localhost',
+  }),
+	build: {
+		client: './custom-client',
+		server: './custom-server',
+	},
+}
+```
+
+## `validateConfig()`
+
+<p>
+
+**Type:** `(userConfig: any, root: string, cmd: string): Promise<AstroConfig>`
+<Since v="5.4.0" />
+</p>
+
+Imported from `astro/config`, validates an object as if it was exported from `astro.config.mjs` and imported by Astro.
+
+
+It takes the following arguments: 
+- The configuration to be validated.
+- The root directory of the project.
+- The Astro command that is being executed (`build`, `dev`, `sync`, etc.)
+
+The returned promise resolves to the validated configuration, filled with all default values appropriate for the given Astro command.
+
+```ts
+import { validateConfig } from "astro/config";
+
+const config = await validateConfig({
+  integrations: [tailwind()],
+}, "./my-project", "build");
+
+// defaults are applied
+await rm(config.outDir, { recursive: true, force: true });
 ```

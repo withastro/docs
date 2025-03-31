@@ -229,11 +229,45 @@ export const onRequest = defineMiddleware(async (context, next) => {
 });
 ```
 
+### 세션 데이터 타입
+
+기본적으로 세션 데이터는 타입이 지정되지 않으며, 모든 키에 임의의 데이터를 저장할 수 있습니다. 값은 콘텐츠 컬렉션 및 액션에서 사용되는 라이브러리와 동일한 [devalue](https://github.com/Rich-Harris/devalue)를 사용하여 직렬화 및 역직렬화됩니다. 이는 지원되는 타입이 동일하며 문자열, 숫자, `Date`, `Map`, `Set`, `URL`, 배열 및 일반 객체를 포함한다는 것을 의미합니다.
+
+선택적으로 `src/env.d.ts` 파일을 생성하고 `App.SessionData` 타입에 대한 선언을 추가하여 세션 데이터에 대한 TypeScript 타입을 정의할 수 있습니다.
+
+```ts title="src/env.d.ts"
+declare namespace App {
+  interface SessionData {
+    user: {
+      id: string;
+      name: string;
+    };
+    cart: string[];
+  }
+}
+```
+
+이렇게 하면 편집기에서 타입 검사 및 자동 완성 기능을 사용하여 세션 데이터에 접근할 수 있습니다.
+
+```ts title="src/components/CartButton.astro"
+---
+const cart = await Astro.session.get('cart');
+// const cart: string[] | undefined
+
+const something = await Astro.session.get('something');
+// const something: any
+
+Astro.session.set('user', { id: 1, name: 'Houston' });
+// Error: Argument of type '{ id: number; name: string }' is not assignable to parameter of type '{ id: string; name: string; }'.
+---
+```
+
+:::caution
+이는 타입 검사에만 사용되며 세션의 런타임 동작에는 영향을 미치지 않습니다. 사용자가 세션에 데이터를 저장한 경우 타입을 변경하면 런타임 오류가 발생할 수 있으므로 각별히 주의하세요.
+:::
 ## 세션 API
 
 세션은 처음 액세스할 때 자동으로 생성됩니다. 세션 객체는 컴포넌트, 액션 및 API 엔드포인트를 포함한 모든 Astro 컨텍스트에서 사용할 수 있습니다. 컴포넌트에서는 전역 `Astro` 객체를 통해 액세스하고, 액션 및 API 엔드포인트에서는 `context` 객체에서 사용할 수 있습니다. API는 모든 경우에 동일합니다.
-
-값은 콘텐츠 컬렉션 및 액션에 사용되는 것과 동일한 라이브러리인 [devalue](https://github.com/Rich-Harris/devalue)를 사용하여 직렬화 및 역직렬화됩니다. 즉, 지원되는 타입은 동일하며 문자열, 숫자, `Date`, `Map`, `Set`, `URL`, 배열 및 일반 객체를 포함합니다.
 
 ### `session.get()`
 
