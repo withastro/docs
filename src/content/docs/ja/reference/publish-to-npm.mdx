@@ -1,0 +1,301 @@
+---
+title: NPMに公開する
+description: AstroコンポーネントをNPMに公開する方法を学びます
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+import { FileTree } from '@astrojs/starlight/components';
+
+新しいAstroコンポーネントを作成していますか？ **[npm](https://npmjs.com/)に公開しましょう！**
+
+Astroコンポーネントを公開することは既存の作業を複数のプロジェクトで再利用し、より広いAstroコミュニティと共有するための素晴らしい方法です。AstroコンポーネントはNPMに直接公開でき、他のJavaScriptパッケージと同じようにインストールできます。
+
+インスピレーションをお探しですか？Astroコミュニティのお気に入りの[テーマ](https://astro.build/themes/)や[コンポーネント](https://astro.build/integrations/)をご覧ください。また、[npmを検索](https://www.npmjs.com/search?q=keywords:astro-component,withastro)して、公開されているカタログ全体を確認することもできます。
+
+:::tip[一人で進めるのは不安ですか？]
+コミュニティがサポートする、すぐに使えるテンプレートとして[Astroコミュニティのコンポーネントテンプレート](https://github.com/astro-community/component-template)をチェックしてください！
+:::
+
+## クイックスタート
+
+すでにセットアップされたテンプレートを使用することでコンポーネントの開発をすぐに始めることができます。
+
+```bash
+# 新しいディレクトリにAstroコンポーネントのテンプレートを初期化する
+npm create astro@latest my-new-component-directory -- --template component
+# yarn
+yarn create astro my-new-component-directory --template component
+# pnpm
+pnpm create astro@latest my-new-component-directory -- --template component
+```
+
+## パッケージの作成
+
+:::note[必要知識]
+この章に入る前に、以下の基本的なことを理解しておくとよいでしょう。
+
+- [Node Modules](https://docs.npmjs.com/creating-node-js-modules)
+- [Package Manifest (`package.json`)](https://docs.npmjs.com/creating-a-package-json-file)
+- [Workspaces](https://docs.npmjs.com/cli/v7/configuring-npm/package-json#workspaces)
+:::
+
+新しいパッケージを作成するには、プロジェクト内で**workspaces**を使用するように開発環境を設定します。これにより、Astroの作業用コピーと一緒にコンポーネントを開発できるようになります。
+
+<FileTree>
+- my-new-component-directory/
+  - demo/
+    - ... テストとデモのためのディレクトリ
+  - package.json
+  - packages/
+    - my-component/
+      - index.js
+      - package.json
+      - ... パッケージで使用される追加のファイル
+</FileTree>
+
+この例では、`my-project`という名前のプロジェクトに、`my-component`という単一のパッケージと、コンポーネントのテストとデモ用の`demo/`ディレクトリを作成します。
+
+これはプロジェクトルートの`package.json`ファイルで設定されます。
+
+```json
+{
+  "name": "my-project",
+  "workspaces": ["demo", "packages/*"]
+}
+```
+この例では、`packages`ディレクトリから複数のパッケージを一緒に開発できます。これらのパッケージは、Astroの作業用コピーをインストールできる`demo`からも参照できます。
+
+```shell
+npm create astro@latest demo -- --template minimal
+# yarn
+yarn create astro demo --template minimal
+# pnpm
+pnpm create astro@latest demo -- --template minimal
+```
+
+個々のパッケージを構成する初期ファイルには、`package.json`と`index.js`の2つがあります。
+
+### `package.json`
+
+パッケージディレクトリの`package.json`には、説明、依存関係、その他のパッケージメタデータなど、パッケージに関連するすべての情報が含まれています。
+
+```json
+{
+  "name": "my-component",
+  "description": "Component description",
+  "version": "1.0.0",
+  "homepage": "https://github.com/owner/project#readme",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./astro": "./MyAstroComponent.astro",
+    "./react": "./MyReactComponent.jsx"
+  },
+  "files": ["index.js", "MyAstroComponent.astro", "MyReactComponent.jsx"],
+  "keywords": ["astro", "withastro", "astro-component", "...", "..."]
+}
+```
+
+#### `description`
+
+コンポーネントの機能を他の人に伝えるための簡単な説明です。
+
+```json
+{
+  "description": "An Astro Element Generator"
+}
+```
+
+#### `type`
+
+Node.jsとAstroが`index.js`ファイルを解釈するために使用するモジュール形式です。
+
+```json
+{
+  "type": "module"
+}
+```
+`index.js`を`import`と`export`を使用したエントリーポイントとして使用できるように、`"type": "module"`を指定してください。
+
+#### `homepage`
+
+プロジェクトのホームページのURLです。
+
+```json
+{
+  "homepage": "https://github.com/owner/project#readme"
+}
+```
+
+これはユーザーをオンラインデモ、ドキュメント、またはプロジェクトのホームページに誘導する素晴らしい方法です。
+
+#### `exports`
+
+名前でインポートされたパッケージのエントリーポイントです。
+
+```json
+{
+  "exports": {
+    ".": "./index.js",
+    "./astro": "./MyAstroComponent.astro",
+    "./react": "./MyReactComponent.jsx"
+  }
+}
+```
+
+この例では、`my-component`をインポートすると`index.js`が使用され、`my-component/astro`や`my-component/react`をインポートするとそれぞれ`MyAstroComponent.astro`や`MyReactComponent.jsx`が使用されます。
+
+#### `files`
+
+npm経由でユーザーに配布されるバンドルから不要なファイルを除外するためのオプションの最適化です。**ここにリストされたファイルのみがパッケージに含まれる**ため、パッケージの動作に必要なファイルを追加または変更する場合は、このリストを適宜更新する必要があります。
+
+```json
+{
+  "files": ["index.js", "MyAstroComponent.astro", "MyReactComponent.jsx"]
+}
+```
+
+#### `keywords`
+
+コンポーネントに関連するキーワードの配列で、他のユーザーが[npmでコンポーネントを見つける](https://www.npmjs.com/search?q=keywords:astro-component,withastro)のに役立ち、その他の検索カタログでも使用されます。
+
+Astroエコシステムでの発見性を最大限に高めるために、特別なキーワードとして`astro-component`または`withastro`を追加してください。
+
+```json
+{
+  "keywords": ["astro-component", "withastro", "... etc", "... etc"]
+}
+```
+
+:::tip
+キーワードは[インテグレーションライブラリ](https://astro.build/integrations/)でも使用されています！NPMで検索するキーワードの一覧は[以下](#インテグレーションライブラリ)をご覧ください。
+:::
+
+---
+
+### `index.js`
+
+パッケージがインポートされるたびに使用されるメインの**パッケージエントリーポイント**です。
+
+```js
+export { default as MyAstroComponent } from './MyAstroComponent.astro';
+
+export { default as MyReactComponent } from './MyReactComponent.jsx';
+```
+
+これにより、複数のコンポーネントを1つのインターフェースにまとめてパッケージ化できます。
+
+#### 例: 名前付きインポートを使用する
+
+```astro
+---
+import { MyAstroComponent } from 'my-component';
+import { MyReactComponent } from 'my-component';
+---
+<MyAstroComponent />
+<MyReactComponent />
+```
+
+#### 例: 名前空間インポートを使用する
+
+```astro
+---
+import * as Example from 'example-astro-component';
+---
+<Example.MyAstroComponent />
+<Example.MyReactComponent />
+```
+
+#### 例: 個別のインポートを使用する
+
+```astro
+---
+import MyAstroComponent from 'example-astro-component/astro';
+import MyReactComponent from 'example-astro-component/react';
+---
+<MyAstroComponent />
+<MyReactComponent />
+```
+
+---
+
+## パッケージの開発
+
+Astroには開発専用の「パッケージモード」はありません。代わりに、プロジェクト内でパッケージを開発およびテストするためのデモプロジェクトを使用する必要があります。これは開発専用のプライベートウェブサイトでも、パッケージのための公開デモ/ドキュメントウェブサイトでも構いません。
+
+既存のプロジェクトからコンポーネントを抽出する場合でも、そのプロジェクトを使用して抽出したコンポーネントの開発を継続することができます。
+
+## コンポーネントのテスト
+
+Astroは現在、テストランナーを提供していません。_(この機能の開発に協力していただける方は、[Discordに参加してください！](https://astro.build/chat))_
+
+当面のテストに関する推奨事項は以下の通りです。
+
+<Steps>
+1. `demo/src/pages`ディレクトリにテスト用の`fixtures`ディレクトリを追加します。
+
+2. 実行したいテストごとに新しいページを追加します。
+
+3. 各ページには、テストしたいコンポーネントの使用例を含めます。
+
+4. `astro build`を実行して`fixtures`をビルドし、`dist/__fixtures__/`ディレクトリの出力を期待する結果と比較します。
+   <FileTree>
+   - my-project/demo/src/pages/\_\_fixtures\_\_/
+     - test-name-01.astro
+     - test-name-02.astro
+     - test-name-03.astro
+   </FileTree>
+</Steps>
+
+
+## コンポーネントの公開
+
+パッケージの準備ができたら、`npm publish`コマンドを使用してnpmに公開できます。失敗した場合は、`npm login`でログインしているか、`package.json`が正しいかを確認してください。成功すれば完了です！
+
+Astroパッケージには`build`ステップが不要であることに注目してください。
+`.astro`、`.ts`、`.jsx`、`.css`などのAstroがネイティブにサポートするファイルタイプは、ビルドステップなしで直接公開できます。
+
+Astroがネイティブにサポートしていない他のファイルタイプが必要な場合は、パッケージにビルドステップを追加してください。この高度な作業については、ご自身で対応していただく必要があります。
+
+## インテグレーションライブラリ
+
+あなたの成果を[インテグレーションライブラリ](https://astro.build/integrations/)に追加して、共有しましょう！
+
+:::tip
+インテグレーションの構築にサポートが必要ですか？あるいは他のインテグレーション開発者と交流したいですか？[Discordサーバー](https://astro.build/chat)に専用の`#integrations`チャンネルがあります。ぜひお越しください！
+:::
+
+### `package.json`データ
+
+ライブラリは毎週自動的に更新され、`astro-component`または`withastro`キーワードを持つNPMに公開されているすべてのパッケージを取り込みます。
+
+インテグレーションライブラリは、`package.json`から`name`、`description`、`repository`、`homepage`のデータを読み取ります。
+
+アバターは、ライブラリ内でブランドをアピールするのに最適です！パッケージを公開したら、アバターを添付して[GitHubのイシューを作成](https://github.com/withastro/astro.build/issues/new/choose)してください。リストに追加します。
+
+:::tip
+NPMから読み取る情報を上書きする必要がありますか？問題ありません！更新後の情報を添えて[イシューを作成](https://github.com/withastro/astro.build/issues/new/choose)してください。カスタムの`name`、`description`、`homepage`が代わりに使われるようになります。
+:::
+
+### カテゴリー
+
+必須の`astro-component`または`withastro`キーワードに加えて、パッケージを自動的に整理するための特別なキーワードも使用されています。以下のキーワードのいずれかを含めると、インテグレーションライブラリの対応するカテゴリーにインテグレーションが追加されます。
+
+| カテゴリー           | キーワード                                         |
+|--------------------|--------------------------------------------------|
+| アクセシビリティ      | `a11y`, `accessibility`                          |
+| アダプター           | `astro-adapter`                                  |
+| アナリティクス        | `analytics`                                      |
+| CSS + UI           | `css`, `ui`, `icon`, `icons`, `renderer`         |
+| フレームワーク        | `renderer`                                       |
+| コンテンツローダー     | `astro-loader`                                   |
+| 画像 + メディア       | `media`, `image`, `images`, `video`, `audio`     |
+| パフォーマンス + SEO  | `performance`, `perf`, `seo`, `optimization`     |
+| 開発ツールバー        | `devtools`, `dev-overlay`, `dev-toolbar`         |
+| ユーティリティ        | `tooling`, `utils`, `utility`                    |
+
+カテゴリーに一致するキーワードを含まないパッケージは、`Uncategorized`として表示されます。
+
+## 共有
+
+あなたの成果を共有することを推奨します。私たちは才能あるAstronautsが作るものを見るのが大好きです。[Discord](https://astro.build/chat)で私たちと共有するか、ツイートで[@astrodotbuild](https://twitter.com/astrodotbuild)にメンションしてください！
