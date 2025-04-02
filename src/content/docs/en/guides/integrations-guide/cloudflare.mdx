@@ -250,6 +250,8 @@ See the [list of all supported bindings](https://developers.cloudflare.com/worke
 
 ### Environment variables and secrets
 
+The Cloudflare runtime treats environment variables as a type of binding.
+
 For example, you can define an [environment variable](https://developers.cloudflare.com/workers/configuration/environment-variables/#add-environment-variables-via-wrangler) in `wrangler.json` as follows:
 
 ```json title="wrangler.json"
@@ -260,27 +262,28 @@ For example, you can define an [environment variable](https://developers.cloudfl
 }
 ```
 
-You can then access this environment variable like this:
-
-```astro title="src/pages/index.astro"
----
-const { env } = Astro.locals.runtime;
-const myVariable = env.MY_VARIABLE;
----
-```
-
-However, to define `secrets`, you should add them through the [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/). 
+Secrets are a special type of environment variable that allow you to attach encrypted text values to your Worker. They need to be defined differently to ensure they are not visible after you set them.
+To define `secrets`, add them through the [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) rather than in your Wrangler config file. 
 
 ```bash
 npx wrangler secret put <KEY>
 ```
 
-To set secrets during local development, you also need to add a `.dev.vars` file to the root of the Astro project:
+To set secrets for local development, you also need to add a `.dev.vars` file to the root of the Astro project:
 
 ```ini title=".dev.vars"
 DB_PASSWORD=myPassword
 ```
-You can access secrets the same way as any other binding.
+
+You can then access environment variables, including secrets, from the `env` object available from `Astro.locals.runtime`:  
+
+```astro title="src/pages/index.astro"
+---
+const { env } = Astro.locals.runtime;
+const myVariable = env.MY_VARIABLE;
+const secret = env.DB_PASSWORD;
+---
+```
 
 ### Typing
 
@@ -338,11 +341,8 @@ This is available on Cloudflare Workers and Pages.
 ### Routes
 #### Routing on Cloudflare Workers
 
-For Cloudflare Workers, you do not need a `_routes.json` file. routing for static assets is based on the file structure in the build directory (e.g. `./dist`). If no match is found, this will fall back to the Worker for SSR.
-
-<ReadMore> Read more about [static asset routing with Cloudflare Workers](https://developers.cloudflare.com/workers/static-assets/routing/).</ReadMore>
-
-
+Routing for static assets is based on the file structure in the build directory (e.g. `./dist`). If no match is found, this will fall back to the Worker for SSR. Read more about [static asset routing with Cloudflare Workers](https://developers.cloudflare.com/workers/static-assets/routing/).
+Unlike [Cloudflare Pages](#routing-on-cloudflare-pages), with Workers, you do not need a `_routes.json` file. 
 
 #### Routing on Cloudflare Pages
 
@@ -431,7 +431,7 @@ For Pages:
 "preview": "wrangler pages dev ./dist"
 ```
 
-[`wrangler`](https://developers.cloudflare.com/workers/wrangler/) gives you access to [Cloudflare bindings](https://developers.cloudflare.com/pages/platform/functions/bindings), [environment variables](https://developers.cloudflare.com/pages/platform/functions/bindings/#environment-variables), and the [cf object](https://developers.cloudflare.com/workers/runtime-apis/request/#incomingrequestcfproperties). Getting hot reloading of the Astro dev server to work with Wrangler might require custom setup. See [community examples](https://github.com/withastro/roadmap/discussions/590).
+Developing with [`wrangler`](https://developers.cloudflare.com/workers/wrangler/) gives you access to [Cloudflare bindings](https://developers.cloudflare.com/pages/platform/functions/bindings), [environment variables](https://developers.cloudflare.com/pages/platform/functions/bindings/#environment-variables), and the [cf object](https://developers.cloudflare.com/workers/runtime-apis/request/#incomingrequestcfproperties). Getting hot reloading of the Astro dev server to work with Wrangler might require custom setup. See [community examples](https://github.com/withastro/roadmap/discussions/590).
 
 ### Meaningful error messages
 
