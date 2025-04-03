@@ -19,6 +19,7 @@ export const logos = LogoCheck({
 	fleek: { file: 'fleek.svg', padding: '0.1000em' },
 	flotiq: { file: 'flotiq.svg', padding: '.05em' },
 	flyio: { file: 'flyio.svg', padding: '.1625em' },
+	gitcms: { file: 'gitcms.svg', padding: '0.20em' },
 	github: { file: 'github.svg', padding: '0.125em 0.125em 0.1375em' },
 	gitlab: { file: 'gitlab.svg', padding: '0' },
 	'google-cloud': { file: 'google-cloud.svg', padding: '.1875em' },
@@ -100,6 +101,7 @@ export const logos = LogoCheck({
 	umbraco: { file: 'umbraco.svg', padding: '.05em' },
 	'clever-cloud': { file: 'clever-cloud.svg', padding: '.09em' },
 	neon: { file: 'neon.svg', padding: '.2em' },
+	studiocms: { file: 'studiocms.svg', padding: '.25em' },
 });
 
 export type LogoKey = keyof typeof logos;
