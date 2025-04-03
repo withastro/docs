@@ -215,10 +215,10 @@ const response = await app.render(request);
 
 <p>
 
-**Type :** `{addCookieHeader?: boolean; clientAddress?: string; locals?: object; routeData?: RouteData;}`
+**Type :** `{addCookieHeader?: boolean; clientAddress?: string; locals?: object; prerenderedErrorPageFetch?: (url: ErrorPagePath) => Promise<Response>; routeData?: RouteData;}`
 </p>
 
-La méthode `app.render()` accepte un argument obligatoire `request`, et un objet optionnel `RenderOptions` pour [`addCookieHeader`](#addcookieheader), [`clientAddress`](#clientaddress), [`locals`](#locals), et [`routeData`](#routedata).
+La méthode `app.render()` accepte un argument obligatoire `request`, et un objet optionnel `RenderOptions` pour [`addCookieHeader`](#addcookieheader), [`clientAddress`](#clientaddress), [`locals`](#locals), [`prerenderedErrorPageFetch`](#prerenderederrorpagefetch) et [`routeData`](#routedata).
 
 ###### `addCookieHeader`
 
@@ -276,6 +276,42 @@ try {
     const response = await app.render(request, { locals });
 }
 ```
+
+###### `prerenderedErrorPageFetch`
+
+<p>
+
+**Type :** `(url: ErrorPagePath) => Promise<Response>`<br />
+**Par défaut :** `fetch`<br />
+<Since v="5.6.0" />
+</p>
+
+Une fonction qui vous permet de fournir des implémentations personnalisées pour récupérer des pages d'erreur pré-rendues.
+
+Ceci est utilisé pour remplacer le comportement par défaut de `fetch()`, par exemple, lorsque `fetch()` n'est pas disponible ou lorsque vous ne pouvez pas appeler le serveur depuis lui-même.
+
+L'exemple suivant lit 500.html et 404.html à partir du disque au lieu d'effectuer un appel HTTP :
+
+```js "prerenderedErrorPageFetch"
+return app.render(request, {
+  prerenderedErrorPageFetch: async (url: string): Promise<Response> => {
+    if (url.includes("/500")) {
+        const content = await fs.promises.readFile("500.html", "utf-8");
+        return new Response(content, {
+          status: 500,
+          headers: { "Content-Type": "text/html" },
+        });
+    }
+
+    const content = await fs.promises.readFile("404.html", "utf-8");
+      return new Response(content, {
+        status: 404,
+        headers: { "Content-Type": "text/html" },
+      });
+});
+```
+
+Si elle n'est pas fournie, Astro reviendra à son comportement par défaut pour récupérer les pages d'erreur.
 
 ###### `routeData`
 
