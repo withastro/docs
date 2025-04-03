@@ -10,16 +10,18 @@ i18nReady: true
 ---
 
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import ReadMore from '~/components/ReadMore.astro';
 
 This adapter allows Astro to deploy your [on-demand rendered routes](/en/guides/on-demand-rendering/) to [Cloudflare](https://www.cloudflare.com/).
 
-If you're using Astro as a static site builder, you don't need an adapter.
+If you're using Astro as a static site builder, you don't need an adapter to deploy to Cloudflare.
 
-Learn how to deploy your Astro site in our [Cloudflare Pages deployment guide](/en/guides/deploy/cloudflare/).
+Learn how to deploy your Astro site in our [Cloudflare deployment guide](/en/guides/deploy/cloudflare/).
 
 ## Why Astro Cloudflare
 
-[Cloudflare](https://www.cloudflare.com/) provides CDNs, web security, and other services. This adapter enhances the Astro build process to prepare your project for deployment through Cloudflare.
+Cloudflare's [Developer Platform](https://developers.cloudflare.com/) lets you develop full-stack applications with access to resources such as storage and AI, all deployed to a global edge network. This adapter builds your Astro project for deployment through Cloudflare.
+
 
 ## Installation
 
@@ -173,7 +175,7 @@ export default defineConfig({
 ```
 ### routes.extend
 
-This option allows you to add or exclude custom patterns (e.g. `/fonts/*`) to the generated [`_routes.json`](#custom-_routesjson) file that determines which routes are generated on-demand. This can be useful if you need to add route patterns which cannot be automatically generated, or exclude prerendered routes.
+This option allows you to add or exclude custom patterns (e.g. `/fonts/*`) to the generated `_routes.json` file that determines which routes are generated on-demand. This can be useful if you need to add route patterns which cannot be automatically generated, or exclude prerendered routes.
 
 More information about the custom route patterns can be found in [Cloudflare's routing docs](https://developers.cloudflare.com/pages/functions/routing/#functions-invocation-routes). Any routes specified are not automatically deduplicated and will be appended to the existing routes as is.
 
@@ -221,32 +223,18 @@ This functionality is enabled by default. If you'd like to disable it, set `clou
 
 ## Cloudflare runtime
 
-The Cloudflare runtime gives you access to environment variables and Cloudflare bindings.
-The Cloudflare runtime uses bindings found in the `wrangler` and `.dev.vars` configuration files.
-
 ### Usage
 
-For example, if you have an [environment variable](https://developers.cloudflare.com/workers/configuration/environment-variables/#add-environment-variables-via-wrangler) configuration set up in `wrangler.toml`:
+The Cloudflare runtime gives you access to environment variables and bindings to Cloudflare resources.
+The Cloudflare runtime uses bindings found in the `wrangler.toml`/`wrangler.json` configuration file. 
 
-```toml title="wrangler.toml"
-[vars]
-MY_VARIABLE = "test"
-```
-
-If you also need to define `secrets` in addition to environment variables, you need to add a `.dev.vars` file to the root of the Astro project:
-
-```ini title=".dev.vars"
-DB_PASSWORD=myPassword
-```
-
-You can access the bindings by using Astro locals like this:
+You can access the bindings from `Astro.locals.runtime`:
 
 ```astro title="src/pages/index.astro"
 ---
 const { env } = Astro.locals.runtime;
 ---
 ```
-
 You can access the runtime from API endpoints through `context.locals`:
 
 ```js title="src/pages/api/someFile.js"
@@ -257,16 +245,48 @@ export function GET(context) {
 }
 ```
 
-To access the value of the `MY_VARIABLE` binding add the following to your code:
+See the [list of all supported bindings](https://developers.cloudflare.com/workers/wrangler/api/#supported-bindings) in the Cloudflare documentation.
+
+
+### Environment variables and secrets
+
+The Cloudflare runtime treats environment variables as a type of binding.
+
+For example, you can define an [environment variable](https://developers.cloudflare.com/workers/configuration/environment-variables/#add-environment-variables-via-wrangler) in `wrangler.json` as follows:
+
+```json title="wrangler.json"
+{
+  "vars" : {
+    "MY_VARIABLE": "test"
+  }
+}
+```
+
+Secrets are a special type of environment variable that allow you to attach encrypted text values to your Worker. They need to be defined differently to ensure they are not visible after you set them.
+
+To define `secrets`, add them through the [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) rather than in your Wrangler config file. 
+
+```bash
+npx wrangler secret put <KEY>
+```
+
+To set secrets for local development, you also need to add a `.dev.vars` file to the root of the Astro project:
+
+```ini title=".dev.vars"
+DB_PASSWORD=myPassword
+```
+
+You can then access environment variables, including secrets, from the `env` object available from `Astro.locals.runtime`:  
 
 ```astro title="src/pages/index.astro"
 ---
 const { env } = Astro.locals.runtime;
 const myVariable = env.MY_VARIABLE;
+const secret = env.DB_PASSWORD;
 ---
 ```
 
-See the [list of all supported bindings](https://developers.cloudflare.com/workers/wrangler/api/#supported-bindings) in the Cloudflare documentation.
+Cloudflare environment variables and secrets are compatible with the [`astro:env` API](/en/guides/environment-variables/#type-safe-environment-variables).
 
 ### Typing
 
@@ -310,27 +330,36 @@ declare namespace App {
 
 You can attach [custom headers](https://developers.cloudflare.com/pages/platform/headers/) to your responses by adding a `_headers` file in your Astro project's `public/` folder. This file will be copied to your build output directory.
 
+This is available on Cloudflare Workers and Pages.
+
 ### Assets
 Assets built by Astro are all named with a hash and therefore can be given long cache headers. By default, Astro on Cloudflare will add such a header for these files.
 
 ### Redirects
 
-You can declare [custom redirects](https://developers.cloudflare.com/pages/platform/redirects/) using Cloudflare Pages. This allows you to redirect requests to a different URL. You can add a `_redirects` file in your Astro project's `public/` folder. This file will be copied to your build output directory.
+You can declare [custom redirects](https://developers.cloudflare.com/pages/platform/redirects/) to redirect requests to a different URL. To do so, add a `_redirects` file in your Astro project's `public/` folder. This file will be copied to your build output directory.
+
+This is available on Cloudflare Workers and Pages.
 
 ### Routes
+#### Routing on Cloudflare Workers
 
-[Cloudflare routing](https://developers.cloudflare.com/pages/platform/functions/routing/#functions-invocation-routes) uses a `_routes.json` file to determine which requests are routed to the SSR function and which are served as static assets. By default, a `_routes.json` file will be automatically generated for your project based on its files and configuration.
+Routing for static assets is based on the file structure in the build directory (e.g. `./dist`). If no match is found, this will fall back to the Worker for SSR. Read more about [static asset routing with Cloudflare Workers](https://developers.cloudflare.com/workers/static-assets/routing/).
+
+Unlike [Cloudflare Pages](#routing-on-cloudflare-pages), with Workers, you do not need a `_routes.json` file. 
+
+#### Routing on Cloudflare Pages
+
+For Cloudflare Pages, [routing](https://developers.cloudflare.com/pages/platform/functions/routing/#functions-invocation-routes) uses a `_routes.json` file to determine which requests are routed to the server function and which are served as static assets. By default, a `_routes.json` file will be automatically generated for your project based on its files and configuration.
 
 You can [specify additional routing patterns to follow](#routesextend) in your adapter config, or create your own custom `_routes.json` file to fully override the automatic generation.
 
-
-#### Custom `_routes.json`
 
 Creating a custom `public/_routes.json` will override the automatic generation. See [Cloudflare's documentation on creating a custom `_routes.json`](https://developers.cloudflare.com/pages/platform/functions/routing/#create-a-_routesjson-file) for more details.
 
 ## Cloudflare Module Imports
 
-The Cloudflare worker runtime supports imports of some [non-standard module types](https://developers.cloudflare.com/pages/functions/module-support/). Most additional file types are also available in astro:
+The Cloudflare `workerd` runtime supports imports of some [non-standard module types](https://developers.cloudflare.com/workers/wrangler/bundling/#including-non-javascript-modules). Most additional file types are also available in Astro:
 
 - `.wasm` or `.wasm?module`: exports a [`WebAssembly.Module`](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Module) that can then be instantiated
 - `.bin`: exports an [`ArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer) of the raw binary contents of the file
@@ -367,7 +396,7 @@ export const prerender = false;
 import { Buffer } from 'node:buffer';
 ```
 
-You'll also need to modify the `vite` configuration in your astro config to allow for the `node:*` import syntax:
+You'll also need to modify the `vite` configuration in your Astro config to allow for the `node:*` import syntax:
 
 ```js title="astro.config.mjs" ins={7-11}
 import {defineConfig} from "astro/config";
@@ -392,13 +421,21 @@ If a project imports a package into the server that uses the Node.js runtime API
 
 ## Preview with Wrangler
 
-To use [`wrangler`](https://developers.cloudflare.com/workers/wrangler/) to run your application locally, update the preview script:
+To use [`wrangler`](https://developers.cloudflare.com/workers/wrangler/) to run your application locally, update the preview script.
+
+For Workers:
+
+```json title="package.json"
+"preview": "wrangler dev ./dist"
+```
+
+For Pages:
 
 ```json title="package.json"
 "preview": "wrangler pages dev ./dist"
 ```
 
-[`wrangler`](https://developers.cloudflare.com/workers/wrangler/) gives you access to [Cloudflare bindings](https://developers.cloudflare.com/pages/platform/functions/bindings), [environment variables](https://developers.cloudflare.com/pages/platform/functions/bindings/#environment-variables), and the [cf object](https://developers.cloudflare.com/workers/runtime-apis/request/#incomingrequestcfproperties). Getting hot reloading of the astro dev server to work with Wrangler might require custom setup. See [community examples](https://github.com/withastro/roadmap/discussions/590).
+Developing with [`wrangler`](https://developers.cloudflare.com/workers/wrangler/) gives you access to [Cloudflare bindings](https://developers.cloudflare.com/pages/platform/functions/bindings), [environment variables](https://developers.cloudflare.com/pages/platform/functions/bindings/#environment-variables), and the [cf object](https://developers.cloudflare.com/workers/runtime-apis/request/#incomingrequestcfproperties). Getting hot reloading of the Astro dev server to work with Wrangler might require custom setup. See [community examples](https://github.com/withastro/roadmap/discussions/590).
 
 ### Meaningful error messages
 
