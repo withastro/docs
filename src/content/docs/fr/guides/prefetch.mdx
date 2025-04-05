@@ -5,6 +5,7 @@ i18nReady: true
 ---
 
 import { Steps } from '@astrojs/starlight/components'
+import Since from '~/components/Since.astro'
 
 Les temps de chargement des pages jouent un rôle important dans la convivialité et l'appréciation générale d'un site. La fonction **opt-in prefetching** d'Astro apporte les avantages d'une navigation quasi instantanée à votre application multi-pages (MPA) au fur et à mesure que vos visiteurs interagissent avec le site.
 
@@ -114,7 +115,58 @@ Pour ignorer la détection de connexion lente, vous pouvez utiliser l'option `ig
 prefetch('/about', { ignoreSlowConnection: true });
 ```
 
-MVeillez à n'importer `prefetch()` que dans les scripts côté client, car il s'appuie sur les API du navigateur.
+### `eagerness`
+
+<p>
+**Type :** `'immediate' | 'eager' | 'moderate' | 'conservative'`<br />
+**Par défaut :** `'immediate'`<br />
+<Since v="5.6.0" />
+</p>
+
+Avec l'option expérimentale [`clientPrerender`](/fr/reference/experimental-flags/client-prerender/) activée, vous pouvez utiliser l'option `eagerness` dans `prefetch()` pour suggérer au navigateur avec quel empressement il doit pré-lire/pré-rendre la cible des liens.
+
+L'API est la même que celle décrite dans [l'API des règles de spéculation](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/speculationrules#eagerness) et la valeur par défaut est `immediate` (l'option la plus rapide). Par ordre décroissant d’empressement, les autres options sont `eager`, `moderate`, et `conservative`.
+
+L'option `eagerness` vous permet d'équilibrer les avantages de la réduction des temps d'attente avec les coûts de bande passante, de mémoire et de processeur pour les visiteurs de votre site. Certains navigateurs, comme Chrome, ont [mis en place des limites pour éviter les spéculations excessives](https://developer.chrome.com/blog/speculation-rules-improvements?hl=fr#chrome-limits)  (pré-rendu/prélecture d'un trop grand nombre de liens).
+
+ ```astro
+---
+---
+<script>
+// Contrôle l'empressement de la prélecture avec `experimental.clientPrerender`
+import { prefetch } from 'astro:prefetch';
+
+// Cette page nécessite beaucoup de ressources
+prefetch('/tableau-de-bord-riche-en-donnees', { eagerness: 'conservative' });
+
+// Cette page est essentielle au parcours du visiteur
+prefetch('/mise-en-route'); // `{ eagerness: 'immediate' }` par défaut
+
+// Cette page pourrait ne pas être consultée
+prefetch('/conditions-utilisation', { eagerness: 'moderate' });
+</script>
+```
+
+Pour utiliser `prefetch()` par programmation avec de grands ensembles de liens, vous pouvez définir `eagerness: 'moderate'` pour profiter des stratégies [Premier Entré, Premier Sorti (PEPS, ou FIFO en anglais)](https://fr.wikipedia.org/wiki/File_(structure_de_donn%C3%A9es)) et des heuristiques du navigateur pour permettre au navigateur de décider quand les pré-rendre/pré-lire et dans quel ordre :
+
+```astro "{eagerness: 'moderate'}"
+<a class="link-moderate" href="/nice-link-1">Un lien sympa 1</a>
+<a class="link-moderate" href="/nice-link-2">Un lien sympa 2</a>
+<a class="link-moderate" href="/nice-link-3">Un lien sympa 3</a>
+<a class="link-moderate" href="/nice-link-4">Un lien sympa 4</a>
+...
+<a class="link-moderate" href="/nice-link-20">Un lien sympa 20</a>
+
+<script>
+  import { prefetch } from 'astro:prefetch';
+
+  const linkModerate = document.getElementsByClassName('link-moderate');
+  linkModerate.forEach((link) => prefetch(link.getAttribute('href'), {eagerness: 'moderate'}));
+  
+</script>
+```
+
+Assurez-vous d'importer `prefetch()` uniquement dans les scripts côté client car il repose sur les API du navigateur.
 
 ## Utilisation avec les transitions de vue
 
@@ -150,7 +202,9 @@ Les navigateurs les plus courants prennent en charge le système de préchargeme
 
 ### Chrome
 
-Chrome supporte `<link rel="prefetch">`. La fonctionnalité "prefetch" fonctionne comme prévu.
+Chrome prend en charge `<link rel="prefetch">`. La prélecture fonctionne comme prévu.
+
+Il prend également entièrement en charge `<script type="speculationrules">` de l'[API des règles de spéculation](https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API), qui permet de décrire plus en détail les [stratégies et règles de prélecture](#eagerness), améliorant ainsi l'expérience utilisateur de vos utilisateurs Chrome. Vous devrez activer la fonctionnalité expérimentale [`clientPrerender`](/fr/reference/experimental-flags/client-prerender/) pour l'utiliser avec `prefetch()`.
 
 ### Firefox
 
