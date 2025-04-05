@@ -213,10 +213,10 @@ const response = await app.render(request);
 
 <p>
 
-**타입:** `{addCookieHeader?: boolean; clientAddress?: string; locals?: object; routeData?: RouteData;}`
+**타입:** `{addCookieHeader?: boolean; clientAddress?: string; locals?: object; prerenderedErrorPageFetch?: (url: ErrorPagePath) => Promise<Response>; routeData?: RouteData;}`
 </p>
 
-`app.render()` 메서드는 필수 `request` 인수와 [`addCookieHeader`](#addcookieheader), [`clientAddress`](#clientaddress), [`locals`](#locals), [`routeData`](#routedata)에 대한 선택적 `RenderOptions` 객체를 허용합니다.
+`app.render()` 메서드는 필수 `request` 인수와 [`addCookieHeader`](#addcookieheader), [`clientAddress`](#clientaddress), [`locals`](#locals), [`prerenderedErrorPageFetch`](#prerenderederrorpagefetch), [`routeData`](#routedata)에 대한 선택적 `RenderOptions` 객체를 허용합니다.
 
 ###### `addCookieHeader`
 
@@ -273,6 +273,42 @@ try {
     const response = await app.render(request, { locals });
 }
 ```
+
+###### `prerenderedErrorPageFetch`
+
+<p>
+
+**타입:** `(url: ErrorPagePath) => Promise<Response>`<br />
+**기본값:** `fetch`<br />
+<Since v="5.6.0" />
+</p>
+
+사전 렌더링된 오류 페이지를 가져오는 사용자 정의 구현을 제공할 수 있는 함수입니다.
+
+이 함수는 기본 `fetch()` 동작을 재정의하는 데 사용됩니다. 예를 들어 `fetch()`를 사용할 수 없거나 서버 자체에서 서버를 호출할 수 없는 경우에 사용됩니다.
+
+다음 예제는 HTTP 호출을 수행하는 대신 디스크에서 500.html과 404.html을 읽습니다.
+
+```js "prerenderedErrorPageFetch"
+return app.render(request, {
+  prerenderedErrorPageFetch: async (url: string): Promise<Response> => {
+    if (url.includes("/500")) {
+        const content = await fs.promises.readFile("500.html", "utf-8");
+        return new Response(content, {
+          status: 500,
+          headers: { "Content-Type": "text/html" },
+        });
+    }
+
+    const content = await fs.promises.readFile("404.html", "utf-8");
+      return new Response(content, {
+        status: 404,
+        headers: { "Content-Type": "text/html" },
+      });
+});
+```
+
+제공되지 않으면 Astro는 오류 페이지를 가져오는 기본 동작으로 대체합니다.
 
 ###### `routeData`
 
