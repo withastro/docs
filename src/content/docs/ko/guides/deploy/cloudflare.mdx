@@ -1,6 +1,6 @@
 ---
-title: Astro 사이트를 Cloudflare Pages에 배포하세요
-description: Cloudflare Pages를 사용하여 Astro 사이트를 웹에 배포하는 방법.
+title: Astro 사이트를 Cloudflare에 배포하세요
+description: Cloudflare를 사용하여 Astro 사이트를 웹에 배포하는 방법
 sidebar:
   label: Cloudflare
 type: deploy
@@ -8,114 +8,156 @@ i18nReady: true
 ---
 import ReadMore from '~/components/ReadMore.astro';
 import { Steps } from '@astrojs/starlight/components';
+import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro';
 
-프런트엔드 개발자가 정적 (JAMstack) 및 SSR 웹사이트를 공동 작업하고 배포할 수 있는 플랫폼인 [Cloudflare Pages](https://pages.cloudflare.com/)에 Astro 프로젝트를 배포할 수 있습니다.
+프런트엔드 정적 자산과 백엔드 API를 포함한 풀스택 애플리케이션뿐만 아니라 SSR 사이트까지 [Cloudflare Workers](https://developers.cloudflare.com/workers/static-assets/)와 [Cloudflare Pages](https://pages.cloudflare.com/) 모두에 배포할 수 있습니다.
 
 이 가이드에는 다음이 포함됩니다.
 
-- [Cloudflare Pages Dashboard를 통해 배포하는 방법](#git으로-사이트를-배포하는-방법)
-- [Wrangler, Cloudflare CLI를 사용하여 배포하는 방법](#wrangler를-사용하여-사이트를-배포하는-방법)
-- [`@astrojs/cloudflare`를 사용하여 SSR 사이트를 배포하는 방법](#ssr-사이트-배포-방법)
+- [Cloudflare Workers에 배포하는 방법](#cloudflare-workers)
+- [Cloudflare Pages에 배포하는 방법](#cloudflare-pages)
 
+Astro 프로젝트에서 [Cloudflare 런타임을 사용하는 방법](/ko/guides/integrations-guide/cloudflare/)에 대해 더 자세히 알아보세요.
 ## 전제 조건
 
 시작하려면 다음이 필요합니다.
 
 - Cloudflare 계정. 아직 계정이 없다면 프로세스 중에 무료 Cloudflare 계정을 만들 수 있습니다.
-- [GitHub](https://github.com/) 또는 [GitLab](https://about.gitlab.com/) 저장소에 푸시된 앱 코드.
 
-## Git으로 사이트를 배포하는 방법
+## Cloudflare Workers
 
-<Steps>
-1. 코드를 Git 저장소 (GitHub, GitLab)에 푸시합니다.
-
-2. Cloudflare Pages에서 새 프로젝트를 설정하세요. 다음 빌드 설정을 사용합니다:
-
-    - **프레임워크 미리 설정**: `Astro`
-    - **빌드 명령:** `npm run build`
-    - **빌드 출력 디렉터리:** `dist`
-
-3. **저장 및 배포** 버튼을 클릭합니다.
-</Steps>
-
-## Wrangler를 사용하여 사이트를 배포하는 방법
+### Wrangler를 사용하여 배포하는 방법
 
 <Steps>
 1. [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/get-started/)를 설치합니다.
+    ```bash
+    npm install wrangler@latest --save-dev
+    ```
 
-2. `wrangler login`을 사용하여 Cloudflare 계정으로 Wrangler를 인증하세요.
+2. 사이트에서 요청 시 렌더링을 사용하는 경우, `@astrojs/cloudflare` 어댑터를 설치합니다.
 
-3. 빌드 명령을 실행합니다.
+    이 명령어는 어댑터를 설치하고 `astro.config.mjs` 파일에 필요한 변경 사항을 한 번에 적용합니다.
+      ```bash
+        npx astro add cloudflare
+      ```
+    <ReadMore>[Astro의 요청 시 렌더링 (SSR이라고도 함)](/ko/guides/on-demand-rendering/)에 대해 더 자세히 알아보세요.</ReadMore>
 
-4. `npx wrangler pages deploy dist`를 사용하여 배포합니다.
+3. [Wrangler 구성 파일](https://developers.cloudflare.com/workers/wrangler/configuration/)을 생성합니다.
+
+    <StaticSsrTabs>
+      <Fragment slot="static">
+        ```jsonc
+        // wrangler.jsonc
+        {
+          "$schema": "node_modules/wrangler/config-schema.json",
+          "name": "my-astro-app",
+          // 오늘 날짜로 업데이트합니다.
+          "compatibility_date": "2025-03-25",
+          "assets": {
+            "directory": "./dist"
+          }
+        }
+        ```
+      </Fragment>
+      <Fragment slot="ssr">
+        ```jsonc
+        // wrangler.jsonc
+          {
+            "$schema": "node_modules/wrangler/config-schema.json",
+            "name": "my-astro-app",
+            "main": "./dist/_worker.js/index.js",
+            // 오늘 날짜로 업데이트합니다.
+            "compatibility_date": "2025-03-25",
+            "compatibility_flags": ["nodejs_compat"],
+            "assets": {
+              "binding": "ASSETS",
+              "directory": "./dist"
+            },
+            "observability": {
+              "enabled": true
+            }
+          }
+    ```
+      </Fragment>
+    </StaticSsrTabs>
+
+
+4. Wrangler를 사용하여 프로젝트를 로컬에서 미리 봅니다.
+    ```bash
+      npx astro build && npx wrangler dev
+    ```
+
+5. `npx wrangler deploy`를 사용하여 배포합니다.
+    ```bash
+      npx astro build && npx wrangler deploy
+    ```
 </Steps>
 
-```bash
-# Wrangler CLI 설치
-npm install -g wrangler
-# CLI에서 Cloudflare 계정에 로그인
-wrangler login
-# Run your build command
-npm run build
-# 새 배포 만들기
-npx wrangler pages deploy dist
-```
+자산이 업로드되면 Wrangler는 사이트를 검사할 수 있는 미리보기 URL을 제공합니다.
 
-자산이 업로드되면 Wrangler는 사이트를 검사할 수 있는 미리보기 URL을 제공합니다. Cloudflare Pages 대시보드에 로그인하면 새 프로젝트가 표시됩니다.
+<ReadMore>바인딩과 같은 [Cloudflare 런타임 API](/ko/guides/integrations-guide/cloudflare/)를 사용하는 방법에 대해 더 자세히 알아보세요.</ReadMore>
 
-### Wrangler를 사용하여 로컬에서 미리보기 활성화
+### CI/CD로 배포하는 방법
 
-미리보기가 작동하려면 `wrangler`를 설치해야 합니다.
+푸시할 때 사이트를 자동으로 빌드하고 배포하기 위해 [Workers Builds (베타)](https://developers.cloudflare.com/workers/ci-cd/builds/)와 같은 CI/CD 시스템을 사용할 수도 있습니다.
 
-```bash
-pnpm add wrangler --save-dev
-```
-
-그런 다음 Astro의 내장 미리보기 명령 대신 `wrangler`를 실행하도록 미리보기 스크립트를 업데이트할 수 있습니다.
-
-```json title="package.json"
-"preview": "wrangler pages dev ./dist"
-```
-
-## SSR 사이트 배포 방법
-
-[`@astrojs/cloudflare` 어댑터](/ko/guides/integrations-guide/cloudflare/)를 사용하여 Cloudflare Pages에 배포할 Astro SSR 사이트를 빌드할 수 있습니다.
-
-아래 단계에 따라 어댑터를 설정하세요. 그런 다음 위에 설명된 접근 방식 중 하나를 사용하여 배포할 수 있습니다.
-
-### 빠른 설치
-
-다음 `astro add` 명령을 사용하여 Astro 프로젝트에서 SSR을 활성화하려면 Cloudflare 어댑터를 추가하세요. 그러면 어댑터가 설치되고 `astro.config.mjs` 파일이 한 번에 적절하게 변경됩니다.
-
-```bash
-npx astro add cloudflare
-```
-
-### 수동 설치
-
-대신 어댑터를 수동으로 설치하려면 다음 두 단계를 완료하세요.
+Workers Builds를 사용하는 경우:
 
 <Steps>
-1. 선호하는 패키지 관리자를 사용하여 프로젝트 종속성에 `@astrojs/cloudflare` 어댑터를 추가하세요. npm을 사용 중이거나 확실하지 않은 경우 터미널에서 다음을 실행하세요.
+1. 위 Wrangler 섹션에서 1-3단계를 따릅니다.
+2.  [Cloudflare 대시보드](https://dash.cloudflare.com/)에 로그인하여 `Workers 및 Pages`로 이동합니다. `생성`을 선택합니다.
+3. `리포지토리 가져오기`에서 Git 계정을 선택한 다음 Astro 프로젝트가 포함된 리포지토리를 선택합니다.
+4. 다음과 같이 프로젝트를 구성합니다.
+    - 빌드 명령: `npx astro build`
+    - 배포 명령: `npx wrangler deploy`
+5. `저장 및 배포`를 클릭합니다. 제공된 `workers.dev` 하위 도메인에서 이제 Worker를 미리 볼 수 있습니다.
+</Steps>
 
+## Cloudflare Pages
+
+### Wrangler를 사용하여 배포하는 방법
+
+<Steps>
+1. [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/get-started/)를 설치합니다.
     ```bash
-    npm install @astrojs/cloudflare
+      npm install wrangler@latest --save-dev
+    ```
+    
+2. 사이트에서 요청 시 렌더링을 사용하는 경우, `@astrojs/cloudflare` 어댑터를 설치합니다.
+    이 명령어는 어댑터를 설치하고 `astro.config.mjs` 파일에 필요한 변경 사항을 한 번에 적용합니다.
+      ```bash
+        npx astro add cloudflare
+      ```
+    <ReadMore>[Astro의 요청 시 렌더링](/ko/guides/on-demand-rendering/)에 대해 더 자세히 알아보세요.</ReadMore>
+
+3. Wrangler를 사용하여 프로젝트를 로컬에서 미리 봅니다.
+    ```bash
+      npx astro build && npx wrangler pages dev ./dist
     ```
 
-2. `astro.config.mjs` 파일에 다음을 추가하세요:
-
-    ```js title="astro.config.mjs" ins={2, 5-6}
-    import { defineConfig } from 'astro/config';
-    import cloudflare from '@astrojs/cloudflare';
-
-    export default defineConfig({
-      output: 'server',
-      adapter: cloudflare()
-    });
+4. `npx wrangler deploy`를 사용하여 배포합니다.
+    ```bash
+      npx astro build && npx wrangler pages deploy ./dist
     ```
 </Steps>
 
-<ReadMore>[Astro의 SSR](/ko/guides/on-demand-rendering/)에 대해 자세히 알아보세요.</ReadMore>
+After your assets are uploaded, Wrangler will give you a preview URL to inspect your site.
+
+자산이 업로드되면 Wrangler는 사이트를 검사할 수 있는 미리보기 URL을 제공합니다.
+
+
+### Git을 사용하여 사이트를 배포하는 방법
+
+<Steps>
+1. 코드를 git 리포지토리 (예: GitHub, GitLab)에 푸시합니다.
+
+2.  [Cloudflare 대시보드](https://dash.cloudflare.com/)에 로그인하여 `Workers 및 Pages`로 이동합니다. `생성`을 선택하고 `Pages` 탭을 선택합니다. 그리고 git 리포지토리를 연결합니다.
+3. 다음과 같이 프로젝트를 구성합니다.
+    - **프레임워크 미리 설정**: `Astro`
+    - **빌드 명령:** `npm run build`
+    - **빌드 출력 디렉터리:** `dist`
+4. **저장 및 배포** 버튼을 클릭합니다.
+</Steps>
 
 ## 문제 해결
 
