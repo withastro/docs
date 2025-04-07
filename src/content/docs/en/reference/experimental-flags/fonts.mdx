@@ -609,9 +609,79 @@ With this component, you have control over what font family is used on which pag
 
 ### Font provider
 
+TODO:
+
+An Astro font provider is made of 2 parts: the config object and the actual implementation.
+
+#### Config object
+
+You can use the `defineFontProvider()` type helper:
+
+```ts title="provider/config.ts"
+import { defineFontProvider } from 'astro/config'
+
+interface Config {
+    // ...
+}
+
+export function myProvider(config: Config) {
+    return defineFontProvider({
+        name: 'my-provider',
+        entrypoint: new URL('./implementation.js', import.meta.url),
+        config
+    })
+}
+```
+
+:::note
+
+1. The `entrypoint` can be a URL, a path relative to the root or a package import
+3. The `config` is optional and must be serializable
+
+:::
+
+#### Implementation
+
+The file linked by the the `entrypoint` must contain a named `provider` export, which is a [unifont](https://github.com/unjs/unifont/) provider:
+
+```ts
+import { defineFontProvider } from "unifont"
+
+export const provider = defineFontProvider("my-provider", async (options, ctx) => {
+    // ...
+})
+```
+
+:::note
+
+We recommend you look at [unifont providers' source](https://github.com/unjs/unifont/blob/main/src/providers/) to learn more about how to create a unifont provider.
+
+:::
+
 ## Caching
 
+In order to avoid downloading files if not needed, caching has been implemented.
+
+### Development
+
+- If a font file is requested, it will first check if it has been downloaded locally and load it. Otherwise it will make a network request
+- Font files are downloaded on demand. We only download them if they're requested by the browser
+- They are not cached in the browser however, to avoid getting stale assets
+- To clear the cache, remove the `.astro/fonts` directory
+
+### Build
+
+- All font files are requested. For each file, it will first check if it has been downloaded locally and load it. Otherwise it will make a network request
+- Font files are copied to the `_astro/fonts` output directory, so they can benefit from HTTP caching of static assets
+- To clear the cache, remove the `node_modules/.astro/font` directory
+
 ## How it works
+
+TODO:
+
+## Further reading
+
+For full details and to give feedback on this experimental API, see [the Fonts RFC](https://github.com/withastro/roadmap/blob/rfc/fonts/proposals/0052-fonts.md).
 
 ---
 
