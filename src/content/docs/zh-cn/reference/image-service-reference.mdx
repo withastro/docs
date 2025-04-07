@@ -270,7 +270,16 @@ import {
     matchPathname,
     matchPattern,
     matchPort,
-    matchProtocol
+    matchProtocol,
+    isESMImportedImage,
+    isRemoteImage,
+    resolveSrc,
+    imageMetadata,
+    emitESMImage,
+    getOrigQueryParams,
+    inferRemoteSize,
+    propsToFilename,
+    hashTransform
 } from "astro/assets/utils";
 ```
 
@@ -444,16 +453,16 @@ console.log(`与该协议匹配吗（无指定协议）？${isProtocolMatch3}`);
 ### `isESMImportedImage()`
 
 <p>
-  **Type:** `(src: ImageMetadata | string): boolean`<br />
-  <Since v="4.0.0" />
+**类型：** `(src: ImageMetadata | string): boolean`<br />
+<Since v="4.0.0" />
 </p>
 
-Determines if the given source is an ECMAScript Module (ESM) imported image.
+判断给定的图像来源是否为通过 ECMAScript 模块（ESM）导入的图像。
 
 ```ts
 import { isESMImportedImage } from 'astro/assets/utils';
 
-// Example usage of isESMImportedImage
+// isESMImportedImage 函数的用法示例
 const imageMetadataExample = {
   src: '/images/photo.jpg',
   width: 800,
@@ -463,29 +472,28 @@ const imageMetadataExample = {
 
 const filePathExample = '/images/photo.jpg';
 
-// Check if the input is an ESM imported image
+// 检查所置入的图像是否为 ESM 导入
 const isMetadataImage = isESMImportedImage(imageMetadataExample);
-console.log(`Is imageMetadataExample an ESM imported image? ${isMetadataImage}`); // Output: true
+console.log(`imageMetadataExample 是否为 ESM 所导入的图片？${isMetadataImage}`); // 输出：true
 
 const isFilePathImage = isESMImportedImage(filePathExample);
-console.log(`Is filePathExample an ESM imported image? ${isFilePathImage}`); // Output: false
+console.log(`isFilePathImage 是否为 ESM 所导入的图片？${isFilePathImage}`); // 输出：false
 ```
 
 
 ### `isRemoteImage()`
 
 <p>
-  **Type:** `(src: ImageMetadata | string): boolean`<br />
-  <Since v="4.0.0" />
+**类型：** `(src: ImageMetadata | string): boolean`<br />
+<Since v="4.0.0" />
 </p>
 
-Determines if the provided source is a remote image URL in the form of a string.
-
+判断给定的图像来源是否为字符串类型的远程图像 URL。
 
 ```ts
 import { isRemoteImage } from 'astro/assets/utils';
 
-// Example usage of isRemoteImage
+// isRemoteImage 函数的用法示例
 const remoteImageUrl = 'https://example.com/images/photo.jpg';
 const localImageMetadata = {
   src: '/images/photo.jpg',
@@ -494,62 +502,62 @@ const localImageMetadata = {
   format: 'jpg',
 };
 
-// Check if the input is a remote image URL
+// 检查是否为远程图像 URL
 const isRemote1 = isRemoteImage(remoteImageUrl);
-console.log(`Is remoteImageUrl a remote image? ${isRemote1}`); // Output: true
+console.log(`remoteImageUrl 是远程图像吗？${isRemote1}`); // 输出：true
 
 const isRemote2 = isRemoteImage(localImageMetadata);
-console.log(`Is localImageMetadata a remote image? ${isRemote2}`); // Output: false
+console.log(`localImageMetadata 是远程图像吗？${isRemote2}`); // 输出：false
 ```
 
 ### `resolveSrc()`
 
 <p>
-  **Type:** `(src: UnresolvedImageTransform['src']): Promise<string | ImageMetadata>`<br />
-  <Since v="4.0.0" />
+**类型：** `(src: UnresolvedImageTransform['src']): Promise<string | ImageMetadata>`<br />
+<Since v="4.0.0" />
 </p>
 
-Returns the image source. This function ensures that if `src` is a Promise (e.g., a dynamic `import()`), it is awaited and the correct `src` is extracted. If `src` is already a resolved value, it is returned as-is.
+返回图像来源。该函数确保：如果 `src` 是 Promise（例如：通过动态 `import()` 导入的模块），则会等待其解析并获取最终的 `src` 值；如果 `src` 已经是已解析的值，则直接返回。
 
 ```ts
 import { resolveSrc } from 'astro/assets/utils';
 import localImage from "./images/photo.jpg";
 
 const resolvedLocal = await resolveSrc(localImage);
-// will be `{ src: '/images/photo.jpg', width: 800, height: 600, format: 'jpg' }`
+// 将会是 `{ src: '/images/photo.jpg', width: 800, height: 600, format: 'jpg' }`
 
 const resolvedRemote = await resolveSrc("https://example.com/remote-img.jpg");
-// will be `"https://example.com/remote-img.jpg"`
+// 将会是 `"https://example.com/remote-img.jpg"`
 
 const resolvedDynamic = await resolveSrc(import("./images/dynamic-image.jpg"))
-// will be `{ src: '/images/dynamic-image.jpg', width: 800, height: 600, format: 'jpg' }`
+// 将会是 `{ src: '/images/dynamic-image.jpg', width: 800, height: 600, format: 'jpg' }`
 ```
 
 ### `imageMetadata()`
 
 <p>
-  **Type:** `(data: Uint8Array, src?: string): Promise<Omit<ImageMetadata, 'src' | 'fsPath'>>`<br />
-  <Since v="4.0.0" />
+**类型：** `(data: Uint8Array, src?: string): Promise<Omit<ImageMetadata, 'src' | 'fsPath'>>`<br />
+<Since v="4.0.0" />
 </p>
 
-Extracts image metadata such as dimensions, format, and orientation from the provided image data.
+从所提供的的图像提取其元数据，诸如尺寸，格式，方向。
 
 ```ts
 import { imageMetadata } from 'astro/assets/utils';
 
 async function extractImageMetadata() {
-  // Example image data (Uint8Array)
-  const exampleImageData = new Uint8Array([/* ...binary image data... */]);
+  // 图像数据示例（Uint8Array）
+  const exampleImageData = new Uint8Array([/* ...二进制图像数据... */]);
 
-  // Optional source path (useful for debugging or additional metadata context)
+  // 可选来源路径（可用于调试或其他元数据上下文）
   const sourcePath = '/images/photo.jpg';
 
   try {
-    // Extract metadata from the image data
+    // 从图像数据提取元数据
     const metadata = await imageMetadata(exampleImageData, sourcePath);
 
-    console.log('Extracted Image Metadata:', metadata);
-    // Example output:
+    console.log('提取图像元数据', metadata);
+    // 输出示例：
     // {
     //   width: 800,
     //   height: 600,
@@ -557,7 +565,7 @@ async function extractImageMetadata() {
     //   orientation: undefined
     // }
   } catch (error) {
-    console.error('Failed to extract metadata from image:', error);
+    console.error('从图像提取其元数据失败：', error);
   }
 }
 
@@ -567,24 +575,24 @@ await extractImageMetadata();
 ### `emitESMImage()`
 
 <p>
-  **Type:** `(id: string | undefined, _watchMode: boolean, experimentalSvgEnabled: boolean,  fileEmitter?: FileEmitter): Promise<ImageMetadataWithContents | undefined>`<br />
-  <Since v="4.0.0" />
+**类型：** `(id: string | undefined, _watchMode: boolean, experimentalSvgEnabled: boolean,  fileEmitter?: FileEmitter): Promise<ImageMetadataWithContents | undefined>`<br />
+<Since v="4.0.0" />
 </p>
 
-Processes an image file and emits its metadata and optionally its contents. In build mode, the function uses `fileEmitter` to generate an asset reference. In development mode, it resolves to a local file URL with query parameters for metadata.
+处理图像文件并生成其元数据及可选内容。在构建模式下，该函数使用 `fileEmitter` 以生成资源引用；在开发模式下，函数解析为本地文件 URL，并在 URL 中添加元数据相关的查询参数。
 
 ```ts
 
 import { emitESMImage } from 'astro/assets/utils';
 
 const imageId = '/images/photo.jpg';
-const unusedWatchMode = false; // Deprecated, unused 
-const unusedExperimentalSvgEnabled = false; // Set to `true` only if you are using SVG and want the file data to be embedded
+const unusedWatchMode = false; // 已弃用, 闲置
+const unusedExperimentalSvgEnabled = false; // 仅在你使用 SVG 并希望将文件数据嵌入时，设置为 `true`
 
 try {
   const result = await emitESMImage(imageId, unusedWatchMode, unusedExperimentalSvgEnabled);
   if (result) {
-    console.log('Image metadata with contents:', result);
+    console.log('图像元数据及其他内容：', result);
     // Example output:
     // {
     //   width: 800,
@@ -593,10 +601,10 @@ try {
     //   contents: Uint8Array([...])
     // }
   } else {
-    console.log('No metadata was emitted for this image.');
+    console.log('该图像未生成元数据。');
   }
 } catch (error) {
-  console.error('Failed to emit ESM image:', error);
+  console.error('生成 ESM 图像失败：', error);
 }
 
 ```
@@ -604,11 +612,11 @@ try {
 ### `getOrigQueryParams()`
 
 <p>
-  **Type:** `(params: URLSearchParams): Pick<ImageMetadata, 'width' | 'height' | 'format'> | undefined`<br />
-  <Since v="4.0.0" />
+**类型：** `(params: URLSearchParams): Pick<ImageMetadata, 'width' | 'height' | 'format'> | undefined`<br />
+<Since v="4.0.0" />
 </p>
 
-Retrieves the `width`, `height`, and `format` of an image from a [`URLSearchParams` object](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams). If any of these parameters are missing or invalid, the function returns `undefined`.
+从 [`URLSearchParams` 对象](https://developer.mozilla.org/zh-CN/docs/Web/API/URLSearchParams) 获取图片的 `width`、`height` 以及 `format`。如果其中任意一个参数缺失或无效，该函数都会返回 `undefined`。
 
 ```ts
 
@@ -617,30 +625,30 @@ import { getOrigQueryParams } from 'astro/assets/utils';
 const url = new URL('https://example.com/image.jpg?width=800&height=600&format=jpg');
 const queryParams = url.searchParams;
 
-// Extract the original query parameters
+// 提取原始查询参数
 const origParams = getOrigQueryParams(queryParams);
 
 if (origParams) {
-  console.log('Original query parameters:', origParams);
-  // Example output:
+  console.log('原始查询参数：', origParams);
+  // 输出示例：
   // {
   //   width: 800,
   //   height: 600,
   //   format: 'jpg'
   // }
 } else {
-  console.log('Failed to extract original query parameters.');
+  console.log('无法提取原始查询参数。');
 }
 ```
 
 ### `inferRemoteSize()`
 
 <p>
-  **Type:** `(url: string): Promise<Omit<ImageMetadata, 'src' | 'fsPath'>>`<br />
-  <Since v="4.0.0" />
+**类型：** `(url: string): Promise<Omit<ImageMetadata, 'src' | 'fsPath'>>`<br />
+<Since v="4.0.0" />
 </p>
 
-Infers the dimensions of a remote image by streaming its data and analyzing it progressively until sufficient metadata is available.
+通过流式传输远程图像数据并逐步分析其内容，以推断出图片的尺寸。此方法会在获取到足够的元数据时停止。
 
 ```ts
 
@@ -650,10 +658,10 @@ async function getRemoteImageSize() {
   const remoteImageUrl = 'https://example.com/image.jpg';
 
   try {
-    // Infer remote image size from the URL
+    // 从 URL 推断出远程图像的尺寸
     const imageSize = await inferRemoteSize(remoteImageUrl);
 
-    console.log('Inferred remote image size:', imageSize);
+    console.log('推断出的远程图像尺寸：', imageSize);
     // Example output:
     // {
     //   width: 1920,
@@ -661,7 +669,7 @@ async function getRemoteImageSize() {
     //   format: 'jpg'
     // }
   } catch (error) {
-    console.error('Failed to infer the size of the remote image:', error);
+    console.error('无法推断出远程图像的尺寸：', error);
   }
 }
 
@@ -671,20 +679,20 @@ await getRemoteImageSize();
 ### `propsToFilename()`
 
 <p>
-  **Type:** `(filePath: string, transform: ImageTransform, hash: string): string`<br />
-  <Since v="4.0.0" />
+**类型：** `(filePath: string, transform: ImageTransform, hash: string): string`<br />
+<Since v="4.0.0" />
 </p>
 
-Generates a formatted filename for an image based on its source path, transformation properties, and a unique hash.
+基于图像的源路径、转换属性和唯一的哈希值，为其生成格式化的文件名。
 
-The formatted filename follows this structure:
+格式化的文件名遵循以下结构：
 
 `<prefixDirname>/<baseFilename>_<hash><outputExtension>`
 
-- `prefixDirname`: If the image is an ESM imported image, this is the directory name of the original file path; otherwise, it will be an empty string.
-- `baseFilename`: The base name of the file or a hashed short name if the file is a `data:` URI.
-- `hash`: A unique hash string generated to distinguish the transformed file.
-- `outputExtension`: The desired output file extension derived from the `transform.format` or the original file extension.
+- `prefixDirname`：如果图像为 ESM 导入图像，则该项为原始文件路径的目录名；其他情况下，为空字符串。
+- `baseFilename`：文件名的基本名称，如果文件为 `data:` 协议的 URI，则为哈希算法转换后的短名称。
+- `hash`：生成的唯一哈希字符串来区分已转换的文件。
+- `outputExtension`：从 `transform.format` 或原始文件扩展名得出的，所需输出文件扩展名。
 
 ```ts
 import { propsToFilename } from 'astro/assets/utils';
@@ -697,11 +705,11 @@ function generateTransformedFilename() {
   };
   const hash = 'abcd1234';
 
-  // Generate the transformed filename based on the file path, transformation, and hash
+  // 根据文件路径、转换属性和哈希算法生成转换的文件名
   const filename = propsToFilename(filePath, transform, hash);
 
-  console.log('Generated transformed filename:', filename);
-  // Example output: '/images/photo_abcd1234.png'
+  console.log('已生成的、转换后的文件名：', filename);
+  // 输出示例：'/images/photo_abcd1234.png'
 }
 
 generateTransformedFilename();
@@ -710,11 +718,11 @@ generateTransformedFilename();
 ### `hashTransform()`
 
 <p>
-  **Type:** `(transform: ImageTransform, imageService: string, propertiesToHash: string[]): string`<br />
-  <Since v="4.0.0" />
+**类型：** `(transform: ImageTransform, imageService: string, propertiesToHash: string[]): string`<br />
+<Since v="4.0.0" />
 </p>
 
-Transforms the provided `transform` object into a hash string based on selected properties and the specified `imageService`.
+基于选定的属性和指定的 `imageService`，将所提供的 `transform` 对象转换为哈希算法后的字符串。
 
 ```ts
 
@@ -730,11 +738,11 @@ function generateTransformHash() {
   const imageService = 'astroImageService';
   const propertiesToHash = ['width', 'height', 'format'];
 
-  // Generate the hash based on the transform, image service, and properties
+  // 根据转换、图像服务和属性以生成哈希
   const hash = hashTransform(transform, imageService, propertiesToHash);
 
-  console.log('Generated transform hash:', hash);
-  // Example output: 'd41d8cd98f00b204e9800998ecf8427e'
+  console.log('生成的转换哈希值：', hash);
+  // 输出示例：'d41d8cd98f00b204e9800998ecf8427e'
 }
 
 generateTransformHash();
