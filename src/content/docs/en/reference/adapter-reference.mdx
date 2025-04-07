@@ -215,10 +215,10 @@ const response = await app.render(request);
 
 <p>
 
-**Type:** `{addCookieHeader?: boolean; clientAddress?: string; locals?: object; routeData?: RouteData;}`
+**Type:** `{addCookieHeader?: boolean; clientAddress?: string; locals?: object; prerenderedErrorPageFetch?: (url: ErrorPagePath) => Promise<Response>; routeData?: RouteData;}`
 </p>
 
-The `app.render()` method accepts a mandatory `request` argument, and an optional `RenderOptions` object for [`addCookieHeader`](#addcookieheader), [`clientAddress`](#clientaddress), [`locals`](#locals), and [`routeData`](#routedata).
+The `app.render()` method accepts a mandatory `request` argument, and an optional `RenderOptions` object for [`addCookieHeader`](#addcookieheader), [`clientAddress`](#clientaddress), [`locals`](#locals), [`prerenderedErrorPageFetch`](#prerenderederrorpagefetch), and [`routeData`](#routedata).
 
 ###### `addCookieHeader`
 
@@ -276,6 +276,42 @@ try {
     const response = await app.render(request, { locals });
 }
 ```
+
+###### `prerenderedErrorPageFetch`
+
+<p>
+
+**Type:** `(url: ErrorPagePath) => Promise<Response>`<br />
+**Default:** `fetch`<br />
+<Since v="5.6.0" />
+</p>
+
+A function that allows you to provide custom implementations for fetching prerendered error pages.
+
+This is used to override the default `fetch()` behavior, for example, when `fetch()` is unavailable or when you cannot call the server from itself.
+
+The following example reads `500.html` and `404.html` from disk instead of performing an HTTP call:
+
+```js "prerenderedErrorPageFetch"
+return app.render(request, {
+  prerenderedErrorPageFetch: async (url: string): Promise<Response> => {
+    if (url.includes("/500")) {
+        const content = await fs.promises.readFile("500.html", "utf-8");
+        return new Response(content, {
+          status: 500,
+          headers: { "Content-Type": "text/html" },
+        });
+    }
+
+    const content = await fs.promises.readFile("404.html", "utf-8");
+      return new Response(content, {
+        status: 404,
+        headers: { "Content-Type": "text/html" },
+      });
+});
+```
+
+If not provided, Astro will fallback to its default behavior for fetching error pages.
 
 ###### `routeData`
 
