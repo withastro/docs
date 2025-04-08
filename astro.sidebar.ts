@@ -131,7 +131,6 @@ export const sidebar = [
 				items: [
 					'reference/experimental-flags',
 					'reference/experimental-flags/responsive-images',
-					'reference/experimental-flags/svg',
 					'reference/experimental-flags/client-prerender',
 					'reference/experimental-flags/content-intellisense',
 					'reference/experimental-flags/sessions',
