@@ -18,7 +18,9 @@ import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 <Since v="5.7.0" />
 </p>
 
-This experimental feature allows you to use fonts from your filesystem and various providers through a unified API. It automatically creates optimized fallbacks and preload links.
+This experimental feature allows you to use fonts from your filesystem and various providers (eg. Google, Fontsource, Bunny...) through a unified API.
+
+Web fonts can impact page performance at both load time and rendering time. We're doing automatic [optimization](https://web.dev/learn/performance/optimize-web-fonts) by creating preload links and optimized fallbacks. We also have opiniated defaults to avoid downloading too many font files.
 
 To enable this feature, configure an `experimental.fonts` object:
 
@@ -43,7 +45,7 @@ Then, add a `<Font />` component and site-wide styling in your `<head>`:
 import { Font } from 'astro:assets'
 ---
 
-<Font family='--font-roboto' preload />
+<Font cssVariable='--font-roboto' preload />
 
 <style>
 body {
@@ -52,19 +54,17 @@ body {
 </style>
 ```
 
-{/* ## Usage guide
-
-To use the experimental fonts API you need to configure your desired font families, add the `<Font />` component to your page `<head>`, and use your defined CSS variable in your site styling. */}
-
-## Configuration
-
-`experimental.fonts` accepts an array of font objects. For each font, you must specify a `provider`, the family `name`, and define a `cssVariable` to refer to your font.
+## Usage
 
 <Steps>
 
-1. Register a provider for your font. You can choose from the list of [built-in remote providers](#available-remote-font-providers), build your own [custom font provider](#custom-font-providers), or use the [local provider](#local-font-properties) to register local font files.
+1. `experimental.fonts` accepts an array of font objects. For each font, you must specify a `provider`, the family `name`, and define a `cssVariable` to refer to your font.
 
-    The following example configures the Google font provider:
+    - `provider`: You can choose from the list of [built-in remote providers](#available-remote-font-providers), build your own [custom font provider](#custom-font-providers), or use the [local provider](#local-font-properties) to register local font files.
+    - `name`: Choose a font family supported by your provider.
+    - `cssVariable`: Must be a valid [ident](https://developer.mozilla.org/en-US/docs/Web/CSS/ident) in the form of a CSS variable.
+
+    The following example configures the ["Roboto" family from Google Fonts](https://fonts.google.com/specimen/Roboto):
 
     ```js title="astro.config.mjs" ins={4-8} ins="fontProviders"
     import { defineConfig, fontProviders } from "astro/config"
@@ -78,120 +78,79 @@ To use the experimental fonts API you need to configure your desired font famili
     })
     ```
 
-2. Choose a font family supported by your provider.
+    More configuration options, such as defining fallback font families, are available and some will depend on your provider. See the full [configuration reference](#font-configuration-reference) to learn more.
 
-    The following example registers ["Roboto" from Google Fonts](https://fonts.google.com/specimen/Roboto):
+2. Apply styles using the `<Font />` component. It must be imported and added to your page `<head>` and `cssVariable` is required.
 
-    ```js title="astro.config.mjs" ins={7}
-    import { defineConfig, fontProviders } from "astro/config"
+    ```astro title="src/components/Head.astro" ins={2, 5}
+    ---
+    import { Font } from 'astro:assets'
+    ---
 
-    export default defineConfig({
-        experimental: {
-            fonts: [{
-                provider: fontProviders.google(),
-                name: "Roboto",
-            }]
-        }
-    })
+    <Font cssVariable="--font-roboto" preload />
     ```
 
-3. Define a CSS variable for referencing the font family registered in your CSS.
+    This is commonly done in a component such as `Head.astro` that is used in a common site layout.
 
-    This name can be anything you want, as long as it is a valid [CSS identifier](https://developer.mozilla.org/en-US/docs/Web/CSS/ident). You may wish to choose an identifier that resembles a CSS variable, but this is not required. 
+    <ReadMore>See the full [`<Font>` component reference](#font--component-reference) for more information.</ReadMore>
 
-    ```js title="astro.config.mjs" ins={8}
-    import { defineConfig, fontProviders } from "astro/config"
+    Since the `<Font />` component generates CSS with font declarations, you can reference the font family using the `cssVariable`:
 
-    export default defineConfig({
-        experimental: {
-            fonts: [{
-                provider: fontProviders.google(),
-                name: "Roboto",
-                cssVariable: "--font-roboto",
-            }]
-        }
-    })
+    <Tabs>
+
+    <TabItem label="CSS">
+
+    ```css
+    <style>
+    body {
+        font-family: var(--font-roboto);
+    }
+    </style>
     ```
+
+    </TabItem>
+
+    <TabItem label="Tailwind CSS 4.0">
+
+    ```css title="src/styles/global.css" ins={4}
+    @import 'tailwindcss';
+
+    @theme {
+        --font-sans: var(--font-roboto);
+    }
+    ```
+
+    </TabItem>
+
+    <TabItem label="Tailwind CSS 3.0">
+
+    ```js title="tailwind.config.mjs" ins={6-8}
+    /** @type {import("tailwindcss").Config} */
+    export default {
+    content: ["./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}"],
+    theme: {
+        extend: {},
+        fontFamily: {
+            sans: ["var(--font-roboto)"]
+        }
+    },
+    plugins: [],
+    };
+    ```
+
+    </TabItem>
+
+    </Tabs>
 
 </Steps>
-
-More configuration options, such as defining fallback font families, are available and some will depend on your provider. See the full [configuration reference](#font-configuration-reference) to learn more.
-
-## Applying fonts
-
-The `<Font />` component outputs style tags and (optionally) preload links for a given font family. 
-
-It must be imported and added to your page `<head>` and `family` is required. Pass the `cssVariable` value from your configuration.
-
-This is commonly done in a component such as `Head.astro` that is used in a common site layout:
-
-```astro title="src/components/Head.astro" ins={2, 5}
----
-import { Font } from 'astro:assets'
----
-
-<Font family="--font-roboto" preload />
-```
-
-<ReadMore>See the full [`<Font>` component reference](#font--component-reference) for more information.</ReadMore>
-
-Since the `<Font />` component generates CSS with font declarations, you can reference the font family using the `cssVariable` defined in your Astro configuration:
-
-```css
-<style>
-body {
-    font-family: var(--font-roboto);
-}
-</style>
-```
-
-If you use Tailwind CSS, you can use the following configuration:
-
-<Tabs>
-
-<TabItem label="Tailwind CSS 4.0">
-
-```css title="src/styles/global.css" ins={4}
-@import 'tailwindcss';
-
-@theme {
-    --font-sans: var(--font-roboto);
-}
-```
-
-</TabItem>
-
-<TabItem label="Tailwind CSS 3.0">
-
-```js title="tailwind.config.mjs" ins={6-8}
-/** @type {import("tailwindcss").Config} */
-export default {
-  content: ["./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}"],
-  theme: {
-    extend: {},
-    fontFamily: {
-        sans: ["var(--font-roboto)"]
-    }
-  },
-  plugins: [],
-};
-```
-
-</TabItem>
-
-</Tabs>
 
 ## `<Font />` component reference
 
 This component outputs style tags and preload links for a given font family.
 
-```astro
----
-import { Font } from 'astro:assets'
----
-```
+It must be imported and added to your page `<head>`. This is commonly done in a component such as `Head.astro` that is used in a common site layout.
 
-### family
+### cssVariable
 
 <p>
 
@@ -200,15 +159,15 @@ import { Font } from 'astro:assets'
 
 The [`cssVariable`](#cssvariable) registered in your Astro configuration:
 
-```astro title="src/components/Head.astro" "family"
+```astro title="src/components/Head.astro" "cssVariable"
 ---
 import { Font } from 'astro:assets'
 ---
 
-<Font family="--font-roboto" />
+<Font cssVariable="--font-roboto" />
 ```
 
-For ease of use, `family` is strongly typed using the values from your Astro configuration.
+For ease of use, `cssVariable` is strongly typed using the values from your Astro configuration.
 
 ### preload
 
@@ -225,7 +184,7 @@ Wether it should output preload links or not:
 import { Font } from 'astro:assets'
 ---
 
-<Font family="--font-roboto" preload />
+<Font cssVariable="--font-roboto" preload />
 ```
 
 ---
@@ -253,7 +212,7 @@ export default defineConfig({
             name: "Roboto",
             cssVariable: "--font-roboto",
             fallbacks: ["sans-serif"], // optional
-            automaticFallback: true, // default
+            optimizedFallbacks: true, // default
         }]
     }
 })
@@ -322,7 +281,7 @@ fallbacks: ["CustomFont", "serif"]
 
 If the last fallback is a [generic family name](https://developer.mozilla.org/en-US/docs/Web/CSS/font-family#generic-name), Astro will try to generate an [optimized fallback](https://developer.chrome.com/blog/font-fallbacks) using font metrics.
 
-#### automaticFallback
+#### optimizedFallbacks
 
 <p>
 
@@ -333,7 +292,7 @@ If the last fallback is a [generic family name](https://developer.mozilla.org/en
 Whether or not to enable automatic fallback font generation:
 
 ```js title="astro.config.mjs"
-automaticFallback: false
+optimizedFallbacks: false
 ```
 
 ### Remote font properties
