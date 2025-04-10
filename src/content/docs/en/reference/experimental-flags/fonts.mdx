@@ -18,7 +18,7 @@ import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 <Since v="5.7.0" />
 </p>
 
-This experimental feature allows you to use fonts from your filesystem and various providers (eg. Google, Fontsource, Bunny...) through a unified API.
+This experimental feature allows you to use fonts from your filesystem and various providers (eg. Google, Fontsource, Bunny...) through a unified, fully customizable and type-safe API.
 
 Web fonts can impact page performance at both load time and rendering time. We're doing automatic [optimization](https://web.dev/learn/performance/optimize-web-fonts) by creating preload links and optimized fallbacks. We also have opiniated defaults to avoid downloading too many font files.
 
@@ -150,6 +150,8 @@ This component outputs style tags and preload links for a given font family.
 
 It must be imported and added to your page `<head>`. This is commonly done in a component such as `Head.astro` that is used in a common site layout.
 
+With this component, you have control over what font family is used on which page, and which one is preloaded.
+
 ### cssVariable
 
 <p>
@@ -167,8 +169,6 @@ import { Font } from 'astro:assets'
 <Font cssVariable="--font-roboto" />
 ```
 
-For ease of use, `cssVariable` is strongly typed using the values from your Astro configuration.
-
 ### preload
 
 <p>
@@ -177,7 +177,7 @@ For ease of use, `cssVariable` is strongly typed using the values from your Astr
 **Default:** `false`
 </p>
 
-Wether it should output preload links or not:
+Wether it should output [preload links](https://web.dev/learn/performance/optimize-web-fonts#preload) or not:
 
 ```astro title="src/components/Head.astro" "preload"
 ---
@@ -191,9 +191,6 @@ import { Font } from 'astro:assets'
 
 You can then [use the CSS variable](#cssvariable).
 
-With this component, you have control over what font family is used on which page, and which one is preloaded.
-
-
 ## Font configuration reference
 
 All properties of your fonts must be configured in the Astro config. Some properties are common to both remote and local fonts, and other properties are available depending on your chosen font provider.
@@ -203,7 +200,7 @@ All properties of your fonts must be configured in the Astro config. Some proper
 The following properties are available for remote and local fonts. `provider`, `name`, and `cssVariable` are required.
 
 ```js title="astro.config.mjs"
-import { defineConfig } from "astro/config"
+import { defineConfig, fontProviders } from "astro/config"
 
 export default defineConfig({
     experimental: {
@@ -211,7 +208,7 @@ export default defineConfig({
             provider: fontProviders.google(),
             name: "Roboto",
             cssVariable: "--font-roboto",
-            fallbacks: ["sans-serif"], // optional
+            fallbacks: ["sans-serif"], // default
             optimizedFallbacks: true, // default
         }]
     }
@@ -222,18 +219,20 @@ export default defineConfig({
 
 <p>
 
-**Type:** `AstroFontProvider` | `"local"`
+**Type:** `AstroFontProvider | "local"`
 </p>
 
 The source of your font files. You can use a [built-in provider](#available-remote-font-providers), write your own [custom provider](#custom-font-providers), or set to `"local"` to use local font files:
 
-```js title="astro.config.mjs"
+```js title="astro.config.mjs" {6}
 import { defineConfig, fontProviders } from "astro/config"
 
 export default defineConfig({
     experimental: {
         fonts: [{
             provider: fontProviders.google(),
+            name: "Roboto",
+            cssVariable: "--font-roboto"
         }]
     }
 })
@@ -259,7 +258,7 @@ name: "Roboto"
 **Type:** `string`
 </p>
 
-An identifier of your choice for your font, conventionally in the form of a CSS variable. It must be a [valid `<ident>`](https://developer.mozilla.org/en-US/docs/Web/CSS/ident):
+A valid [ident](https://developer.mozilla.org/en-US/docs/Web/CSS/ident) in the form of a CSS variable:
 
 ```js title="astro.config.mjs"
 cssVariable: "--font-roboto"
@@ -273,7 +272,7 @@ cssVariable: "--font-roboto"
 **Default:** `["sans-serif"]`
 </p>
 
-An array of fonts to use when your chosen font is unavailable, or loading:
+An array of fonts to use when your chosen font is unavailable, or loading. Fallbacks are applied from left to right:
 
 ```js title="astro.config.mjs"
 fallbacks: ["CustomFont", "serif"]
