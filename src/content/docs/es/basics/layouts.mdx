@@ -1,11 +1,8 @@
 ---
 title: Plantillas
-description: >-
-  Introducción a plantillas, un tipo de componente de Astro que se comparte
-  entre páginas con plantillas comunes.
+description: Una introducción a las plantillas de Astro.
 i18nReady: true
 ---
-
 import ReadMore from '~/components/ReadMore.astro'
 
 **Las plantillas** son [componentes de Astro](/es/basics/astro-components/) para proporcionar una estructura reutilizable, como una plantilla de página.
@@ -16,7 +13,7 @@ Convencionalmente usamos el término "plantilla" para proporcional elementos com
 
 Pero, ¡no hay nada especial acerca de los componentes plantilla! Pueden [aceptar props](/es/basics/astro-components/#props-de-componentes) e [importar y usar otros componentes](/es/basics/astro-components/#estructura-de-un-componente) como cualquier otro componente de Astro. Pueden incluir [componentes de framework](/es/guides/framework-components/) y [scripts de lado del cliente](/es/guides/client-side-scripts/). Ni siquiera tienen que proporcionar un plantilla entera, en su lugar se pueden utilizar como plantillas parciales.
 
-Sin embargo, si un componente de plantilla contiene una página shell, su elemento `<html>` debe ser el padre de todos los demás elementos en el componente. Todos los elementos [`<style>`](/es/guides/styling/#estilando-en-astro) o [`<script>`](/es/guides/client-side-scripts/#usando-script-en-astro) deben estar encerrados por las etiquetas `<html>`.
+Sin embargo, si un componente de plantilla contiene una página shell, su elemento `<html>` debe ser el padre de todos los demás elementos en el componente.
 
 Los componentes de plantilla se colocan comúnmente en la carpeta `src/layouts` en tu proyecto, pero esto no es un requisito; puedes elegir ubicarlos en cualquier lugar de tu proyecto. Incluso puedes colocar las plantillas junto a tus páginas mediante [el uso de un prefijo `_` en los nombres de las plantillas](/es/guides/routing/#excluyendo-páginas).
 
@@ -66,15 +63,50 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 
 <ReadMore>Obtén más información sobre [slots](/es/basics/astro-components/#slots).</ReadMore>
 
+## Usando TypeScript con plantillas
+ 
+Cualquier plantilla de Astro puede ser modificada para introducir seguridad de tipos y autocompletado proporcionando los tipos para sus props:
+ 
+```astro ins={2-7} title="src/components/MyLayout.astro"
+---
+interface Props { 
+  title: string;
+  description: string;
+  publishDate: string;
+  viewCount: number;
+}
+
+const { title, description, publishDate, viewCount } = Astro.props;
+ ---
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="description" content={description}>
+    <title>{title}</title>
+  </head>
+  <body>
+    <header>
+      <p>Publicado el {publishDate}</p>
+      <p>Visto por {viewCount} amigos</p>
+    </header>
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>
+```
+
 ## Plantillas de Markdown
 
-Las plantillas de página son especialmente útiles para [páginas de Markdown y MDX](/es/guides/markdown-content/#páginas-de-markdown-y-mdx) de lo contrario no tendría ningún estilo de página.  
+Las plantillas de página son especialmente útiles para páginas de Markdown de lo contrario no tendría ningún estilo de página.  
 
-Astro proporciona una propiedad frontmatter especial `layout` para especificar cual componente `.astro` usar como plantilla de página.
+Astro proporciona una propiedad especial `layout` del frontmatter destinada a [archivos individuales `.md` ubicados dentro de `src/pages/` utilizando enrutamiento basado en archivos](/es/guides/markdown-content/#páginas-markdown-individuales) para especificar qué componente `.astro` utilizar como diseño de página. Este componente le permite proporcionar contenido `<head>` como metaetiquetas (por ejemplo, `<meta charset="utf-8">`) y estilos para la página Markdown. Por defecto, este componente especificado puede acceder automáticamente a los datos del archivo Markdown.
+ 
+Esto no se reconoce como una propiedad especial cuando se utiliza [colecciones de contenido](/es/guides/content-collections/) para consultar y renderizar su contenido.
 
 ```markdown title="src/pages/page.md" {2} 
 ---
-layout: ../layouts/BaseLayout.astro
+layout: ../layouts/BlogPostLayout.astro
 title: "¡Hola, mundo!"
 author: "Matthew Phillips"
 date: "09 Aug 2022"
@@ -83,22 +115,23 @@ Todas las propiedades frontmatter están disponibles como props en un componente
 
 La propiedad `layout` es la única especial proporcionada por Astro.
 
-Tu puedes usarla tanto en archivos Markdown y MDX localizada dentro de `src/pages/`.
+Puedes usarla en archivos Markdown localizada dentro de `src/pages/`.
 ```
 Una plantilla típica para Markdown o páginas MDX incluye:
 
-1. La prop `frontmatter` para acceder al Markdown o frontmatter de la página MDX y otra información.
-2. Un [`<slot />`](/es/basics/astro-components/#slots) por defecto para indicar el lugar donde el contenido Markdown/MDX de la página será renderizado.
+1. La prop `frontmatter` para acceder al Markdown o frontmatter de la página y otra información.
+2. Un [`<slot />`](/es/basics/astro-components/#slots) por defecto para indicar el lugar donde el contenido Markdown de la página será renderizado.
 
-```astro /(?<!//.*){?frontmatter(?:\\.\w+)?}?/ "<slot />"
+```astro title="src/layouts/BlogPostLayout.astro" /(?<!//.*){?frontmatter(?:\\.\w+)?}?/ "<slot />"
 ---
-// src/layouts/BaseLayout.astro
 // 1. La prop frontmatter da acceso al frontmatter y otros datos
 const { frontmatter } = Astro.props;
 ---
 <html>
   <head>
     <!-- Agrega otro elemento Encabezado aquí, como estilos y etiquetas meta. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
     <title>{frontmatter.title}</title>
   </head>
   <body>
@@ -111,9 +144,9 @@ const { frontmatter } = Astro.props;
 </html>
 ```
 
-Puedes establecer el tipo de una plantilla como [`Props`](/es/guides/typescript/#props-de-componentes) con el ayudante `MarkdownLayoutProps` o `MDXLayoutProps`:
+Puedes establecer el tipo de una plantilla como [`Props`](/es/guides/typescript/#props-de-componentes) con el ayudante `MarkdownLayoutProps`:
 
-```astro title="src/layouts/BaseLayout.astro" ins={2,4-9}
+```astro title="src/layouts/BlogPostLayout.astro" ins={2,4-9}
 ---
 import type { MarkdownLayoutProps } from 'astro';
 
@@ -130,6 +163,7 @@ const { frontmatter, url } = Astro.props;
 ---
 <html>
   <head>
+    <meta charset="utf-8">
     <link rel="canonical" href={new URL(url, Astro.site).pathname}>
     <title>{frontmatter.title}</title>
   </head>
@@ -146,62 +180,28 @@ const { frontmatter, url } = Astro.props;
 Una plantilla Markdown/MDX tendrá acceso a la siguiente información a través de `Astro.props`:
 
 - **`file`** - La ruta absoluta de este archivo (por ejemplo, `/home/user/projects/.../file.md`).
-- **`url`** - Si es una página, la URL de la página (por ejemplo, `/en/guides/markdown-content`).
+- **`url`** - La URL de la página (por ejemplo, `/en/guides/markdown-content`).
 - **`frontmatter`** - Todo el frontmatter del documento Markdown o MDX.
   - **`frontmatter.file`** - La misma que la propiedad de nivel superior `file`.
   - **`frontmatter.url`** - La misma que la propiedad de nivel superior `url`.
 - **`headings`** - Una lista de encabezados (`h1 -> h6`) en el documento Markdown o MDX con metadatos asociados. Esta lista sigue el tipo: `{ depth: number; slug: string; text: string }[]`.
-- **(solo Markdown) `rawContent()`** - Una función que devuelve el documento Markdown en bruto como una cadena.
-- **(solo Markdown) `compiledContent()`** - Una función que devuelve el documento Markdown compilado como un string HTML.
 
-Por ejemplo en un artículo de blog en Markdown puede pasar el siguiente objeto `Astro.props` a su plantilla:
-
-```js
-Astro.props = {
-  file: "/home/user/projects/.../file.md",
-  url: "/en/guides/markdown-content/",
-  frontmatter: {
-    /** Frontmatter desde un artículo de blog */
-    title: "Lanzamiento de Astro 0.18",
-    date: "Martes, 27 de julio de 2021",
-    author: "Matthew Phillips",
-    description: "Astro 0.18 es nuestra mayor versión desde el lanzamiento de Astro.",
-    /** Valores generados */
-    file: "/home/user/projects/.../file.md",
-    url: "/en/guides/markdown-content/"
-  },
-  headings: [
-    {
-      "depth": 1,
-      "text": "Lanzamiento de Astro 0.18",
-      "slug": "astro-018-release"
-    },
-    {
-      "depth": 2,
-      "text": "Hidratación parcial responsiva",
-      "slug": "responsive-partial-hydration"
-    }
-    /* ... */
-  ],
-  /** Disponible solo en Markdown */
-  rawContent: () => "# Lanzamiento de Astro 0.18\nHace poco más de un mes, la primera beta pública [...]",
-  compiledContent: () => "<h1>Lanzamiento de Astro 0.18</h1><p>Hace poco más de un mes, la primera beta pública [...]</p>",
-}
-```
+**`rawContent()`** - Función que devuelve el documento Markdown sin procesar como una cadena.
+**`compiledContent()`** - Función asíncrona que devuelve el documento Markdown compilado a una cadena HTML.
 
 :::note
-Una plantilla Markdown/MDX tendrá acceso a todas sus [propiedades exportadas](/es/guides/markdown-content/#propiedades-exportadas) desde `Astro.props` **con algunas diferencias clave:**
+Una plantilla Markdown tendrá acceso a todas sus [propiedades disponibles](/es/guides/markdown-content/#propiedades-disponibles) del archivo Markdown desde `Astro.props` **con dos diferencias clave:**
 
 *   Información de encabezados (es decir, elementos `h1 -> h6`) están disponibles a través del array `headings`, en lugar de la función `getHeadings()`.
 
 *   `file` y `url` *también* están disponibles como propiedades anidadas de `frontmatter` (es decir, `frontmatter.url` y `frontmatter.file`).
-
-*   Valores definidos fuera del frontmatter (por ejemplo, declaraciones `export` en MDX) no están disponibles. Considera [importar una plantilla](#importando-plantillas-manualmente-mdx) en su lugar.
 :::
 
 ### Importando Plantillas Manualmente (MDX)
 
-Puedes necesitar pasar información a tu plantilla MDX que no (o no puede) existir en tu frontmatter. En este caso, en su lugar, puedes importar y usar un [componente `<Layout />`](/es/basics/layouts/) y pasarle propiedades como cualquier otro componente:
+También puedes utilizar la propiedad especial Markdown layout en el frontmatter de los archivos MDX para pasar los props `frontmatter` y `headings` directamente a un componente layout especificado del mismo modo.
+ 
+Para pasar información a tu diseño MDX que no existe (o no puede existir) en su frontmatter, puede importar y utilizar un componente `<Layout />`. Funciona como cualquier otro componente de Astro, y no recibirá ningún prop automáticamente. Pásale directamente los accesorios que necesites:
 
 ```mdx title="src/pages/posts/first-post.mdx" ins={6} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/
 ---
@@ -222,50 +222,29 @@ export function fancyJsHelper() {
 
 Luego, tus valores estarán disponibles para ti a través de `Astro.props` en tu plantilla, y tu contenido MDX se inyectará en la página donde se escriba tu componente `<slot />`:
 
-```astro /{?title}?/ "fancyJsHelper" "{fancyJsHelper()}"
+```astro title="src/layouts/BaseLayout.astro" /{?title}?/ "fancyJsHelper" "{fancyJsHelper()}"
 ---
 // src/layouts/BaseLayout.astro
 const { title, fancyJsHelper } = Astro.props;
 ---
-<!-- -->
-<h1>{title}</h1>
-<slot /> <!-- tu contenido es inyectado aquí -->
-<p>{fancyJsHelper()}</p>
-<!-- -->
-```
-
-<ReadMore>Aprende más sobre el soporte de Markdown y MDX de Astro en nuestra [guía de Markdown/MDX](/es/guides/markdown-content/).</ReadMore>
-
-### Usando TypeScript con plantillas
-
-Cualquier plantilla de astro puede ser modificada para introducir seguridad de tipos y autocompletado proporcionando los tipos para tus props:
-
-```astro ins={2-7} title="src/components/MyLayout.astro"
----
-interface Props { 
-	title: string;
-  description: string;
-  publishDate: string;
-  viewCount: number;
-}
-const { title, description, publishDate, viewCount } = Astro.props;
----
-<html lang="en">
+<html>
   <head>
-    <meta charset="UTF-8">
-    <meta name="description" content={description}>
-    <title>{title}</title>
+    <!-- -->
+    <meta charset="utf-8">
   </head>
-    <header>
-      <p>Published on {publishDate}</p>
-      <p>Viewed by {viewCount} folks</p>
-    </header>
-    <main>
-      <slot />
-    </main>
+  <body>
+    <!-- -->
+    <h1>{title}</h1>
+    <slot /> <!-- tu contenido es inyectado aquí -->
+    <p>{fancyJsHelper()}</p>
+    <!-- -->
   </body>
-</html>
+ </html>
 ```
+
+Cuando uses cualquier plantilla (ya sea a través de la propiedad `layout` de frontmatter o importando una plantilla), debes incluir la etiqueta `<meta charset="utf-8">` en tu plantilla ya que Astro ya no lo añadirá automáticamente a tu página MDX.
+
+<ReadMore>Más información sobre el soporte Markdown y MDX de Astro en nuestra [Guía Markdown](/es/guides/markdown-content/).</ReadMore>
 
 ## Plantillas anidadas
 
