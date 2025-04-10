@@ -644,54 +644,71 @@ export default defineConfig({
 
 ## Build your own font provider
 
-You can build a custom font provider...
+If none of the [built-in providers](#available-remote-font-providers) suits your needs (eg. you want to use a 3rd-party unifont provider or build something for a private registry), you can build your own!
 
 An Astro font provider is made of 2 parts: the config object and the actual implementation.
 
-### Config object
+<Steps>
 
-You can use the `defineAstroFontProvider()` type helper:
+1. Using the `defineAstroFontProvider()` type helper, create a function that returns a font provider config object:
 
-```ts title="provider/config.ts"
-import { defineAstroFontProvider } from 'astro/config'
+    - `entrypoint`: A URL, a path relative to the root or a package import.
+    - `config`: an optional serializable object passed to the unifont provider.
 
-interface Config {
-    // ...
-}
+    <Tabs>
 
-export function myProvider(config: Config) {
-    return defineAstroFontProvider({
-        name: 'my-provider',
-        entrypoint: new URL('./implementation.js', import.meta.url),
-        config
+    <TabItem label="Without config">
+
+    ```ts title="provider/config.ts"
+    import { defineAstroFontProvider } from 'astro/config'
+
+    export function myProvider() {
+        return defineAstroFontProvider({
+            entrypoint: new URL('./implementation.js', import.meta.url),
+        })
+    }
+    ```
+
+    </TabItem>
+
+    <TabItem label="With config">
+
+    ```ts title="provider/config.ts"
+    import { defineAstroFontProvider } from 'astro/config'
+
+    interface Config {
+        // ...
+    }
+
+    export function myProvider(config: Config) {
+        return defineAstroFontProvider({
+            entrypoint: new URL('./implementation.js', import.meta.url),
+            config
+        })
+    }
+    ```
+
+    </TabItem>
+
+    </Tabs>
+
+2. In another file, export a unifont `provider`:
+
+    ```ts
+    import { defineFontProvider } from "unifont"
+
+    export const provider = defineFontProvider("my-provider", async (options, ctx) => {
+        // ...
     })
-}
-```
+    ```
 
-:::note
+    :::note
 
-1. The `entrypoint` can be a URL, a path relative to the root or a package import
-3. The `config` is optional and must be serializable
+    We recommend you look at [unifont providers' source](https://github.com/unjs/unifont/blob/main/src/providers/) to learn more about how to create a unifont provider.
 
-:::
+    :::
 
-### Implementation
-
-The file linked by the the `entrypoint` must contain a named `provider` export, which is a [unifont](https://github.com/unjs/unifont/) provider:
-
-```ts
-import { defineFontProvider } from "unifont"
-
-export const provider = defineFontProvider("my-provider", async (options, ctx) => {
-    // ...
-})
-```
-
-:::note
-
-We recommend you look at [unifont providers' source](https://github.com/unjs/unifont/blob/main/src/providers/) to learn more about how to create a unifont provider.
-
-:::
+</Steps>
 
 ## Caching
 
