@@ -1,0 +1,80 @@
+---
+title: Preservar el orden de los scripts experimentalmente
+sidebar:
+  label: Preservar el orden de los scripts
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+  **Tipo:** `boolean`<br />
+  **Predeterminado:** `false`<br />
+  <Since v="5.5.0" />
+</p>
+
+Renderiza múltiples etiquetas `<style>` y `<script>` en el mismo orden en que fueron declaradas en el código fuente.
+
+Para habilitar este comportamiento, agrega el flag de característica `experimental.preserveScriptOrder` a tu configuración de Astro:
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from "astro/config"
+
+export default defineConfig({
+  experimental: {
+    preserveScriptOrder: true
+  }
+})
+```
+
+## Uso
+
+Este flag experimental no requiere un uso específico y solo afecta el orden en que Astro renderiza tus estilos y scripts.
+
+Al renderizar múltiples etiquetas `<style>` y `<script>` en la misma página, Astro actualmente invierte su orden en tu salida HTML generada. Esto puede dar resultados inesperados, por ejemplo, los estilos CSS siendo sobrescritos por etiquetas de estilo definidas anteriormente cuando se construye tu sitio. Este flag experimental en su lugar renderiza las etiquetas `<script>` y `<style>` en el orden en que están definidas.
+
+Por ejemplo, el siguiente componente tiene dos etiquetas `<style>` y dos etiquetas `<script>`:
+
+```astro title="src/components/MyComponent.astro"
+<p>Soy un componente</p>
+<style>
+  body {
+    background: red;
+  }
+</style>
+<style>
+  body {
+    background: yellow;
+  }
+</style>
+<script>
+    console.log("hello")
+</script>
+<script>
+    console.log("world!")
+</script>
+```
+
+Después de la compilación, el comportamiento predeterminado de Astro creará un estilo en línea donde `yellow` aparece primero, y luego `red`. Esto significa que se aplica el fondo `red`. De manera similar con los dos scripts, la palabra `world!` se registra primero, y luego `hello` en segundo lugar:
+
+```css
+body {background:#ff0} body {background:red}
+```
+
+```js
+console.log("world!")
+console.log("hello")
+```
+
+Cuando `experimental.preserveScriptOrder` se establece en `true`, el orden de renderizado de las etiquetas `<style>` y `<script>` coincide con el orden en que están escritas. Para el mismo componente de ejemplo, el estilo generado `red` aparece primero, y luego `yellow`; en cuanto a los scripts, `hello` se registra primero, y luego `world!`:
+
+```css
+body {background:red} body {background:#ff0}
+```
+
+```js
+console.log("hello")
+console.log("world!")
+```
+
+En una futura versión principal, Astro preservará el orden de los estilos y scripts de forma predeterminada, pero puedes optar por el comportamiento futuro anticipadamente usando el flag `experimental.preserveScriptOrder`.
