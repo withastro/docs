@@ -18,11 +18,11 @@ import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 <Since v="5.7.0" />
 </p>
 
-This experimental feature allows you to use fonts from your filesystem and various providers (eg. Google, Fontsource, Bunny...) through a unified, fully customizable and type-safe API.
+This experimental feature allows you to use fonts from your filesystem and various font providers (eg. Google, Fontsource, Bunny) through a unified, fully customizable and type-safe API.
 
-Web fonts can impact page performance at both load time and rendering time. We're doing automatic [optimization](https://web.dev/learn/performance/optimize-web-fonts) by creating preload links and optimized fallbacks. We also have opiniated defaults to avoid downloading too many font files.
+Web fonts can impact page performance at both load time and rendering time. This API helps you keep your site performant with automatic [web font optimizations](https://web.dev/learn/performance/optimize-web-fonts) including preload links, optimized fallbacks, and opiniated defaults to avoid common problems such as downloading unnecessary font files.
 
-To enable this feature, configure an `experimental.fonts` object:
+To enable this feature, configure an `experimental.fonts` object with at least one font:
 
 ```js title="astro.config.mjs"
 import { defineConfig, fontProviders } from "astro/config"
@@ -38,7 +38,7 @@ export default defineConfig({
 })
 ```
 
-Then, add a `<Font />` component and site-wide styling in your `<head>`:
+Then, add the `<Font />` component and site-wide styling in your `<head>`:
 
 ```astro title="src/components/Head.astro"
 ---
@@ -60,27 +60,31 @@ body {
 
 1. `experimental.fonts` accepts an array of font objects. For each font, you must specify a `provider`, the family `name`, and define a `cssVariable` to refer to your font.
 
-    - `provider`: You can choose from the list of [built-in remote providers](#available-remote-font-providers), build your own [custom font provider](#build-your-own-font-provider), or use the [local provider](#local-font-properties) to register local font files.
-    - `name`: Choose a font family supported by your provider.
-    - `cssVariable`: Must be a valid [ident](https://developer.mozilla.org/en-US/docs/Web/CSS/ident) in the form of a CSS variable.
+    - [`provider`](#provider): You can choose from the list of [built-in remote providers](#available-remote-font-providers), build your own [custom font provider](#build-your-own-font-provider), or use the [local provider](#local-font-properties) to register local font files.
+    - [`name`](#name): Choose a font family supported by your provider.
+    - [`cssVariable`](#cssvariable-1): Must be a valid [ident](https://developer.mozilla.org/en-US/docs/Web/CSS/ident) in the form of a CSS variable.
 
     The following example configures the ["Roboto" family from Google Fonts](https://fonts.google.com/specimen/Roboto):
 
-    ```js title="astro.config.mjs" ins={4-8} ins="fontProviders"
+    ```js title="astro.config.mjs" ins={4-10} ins="fontProviders"
     import { defineConfig, fontProviders } from "astro/config"
 
     export default defineConfig({
-        experimental: {
-            fonts: [{
-                provider: fontProviders.google(),
-            }]
-        }
+      experimental: {
+        fonts: [{
+          provider: fontProviders.google(),
+          name: "Roboto",
+          cssVariable: "--font-roboto", 
+        }]
+      }
     })
     ```
 
-    More configuration options, such as defining fallback font families, are available and some will depend on your provider. See the full [configuration reference](#font-configuration-reference) to learn more.
+    More configuration options, such as defining [fallback font families](#fallbacks) and which [`weights`](#weights) and [`styles`](#styles) to download, are available and some will depend on your chosen provider.
+    
+    See the full [configuration reference](#font-configuration-reference) to learn more.
 
-2. Apply styles using the `<Font />` component. It must be imported and added to your page `<head>` and `cssVariable` is required.
+2. Apply styles using the `<Font />` component. It must be imported and added to your page `<head>`. Providing the font's [`cssVariable`](#cssvariable) is required, and you can optionally [output preload links](#preload):
 
     ```astro title="src/components/Head.astro" ins={2, 5}
     ---
@@ -146,7 +150,7 @@ body {
 
 ## Available remote font providers
 
-Astro re-exports most [unifont](https://github.com/unjs/unifont/) providers:
+Astro re-exports most [unifont](https://github.com/unjs/unifont/) providers. The following have built-in support:
 
 - [Adobe](https://fonts.adobe.com/)
 - [Bunny](https://fonts.bunny.net/)
@@ -154,18 +158,14 @@ Astro re-exports most [unifont](https://github.com/unjs/unifont/) providers:
 - [Fontsource](https://fontsource.org/)
 - [Google](https://fonts.google.com/)
 
-They can be used like so:
+To use a built-in remote provider, configure `provider` with the appropriate value for your chosen font provider:
 
 <Tabs>
 
 <TabItem label="Adobe">
 
 ```js
-import { fontProviders } from "astro/config"
-
-fontProviders.adobe({
-    id: process.env.ADOBE_ID
-})
+provider: fontProviders.adobe({id: process.env.ADOBE_ID})
 ```
 
 </TabItem>
@@ -173,9 +173,7 @@ fontProviders.adobe({
 <TabItem label="Bunny">
 
 ```js
-import { fontProviders } from "astro/config"
-
-fontProviders.bunny()
+provider: fontProviders.bunny()
 ```
 
 </TabItem>
@@ -183,9 +181,7 @@ fontProviders.bunny()
 <TabItem label="Fontshare">
 
 ```js
-import { fontProviders } from "astro/config"
-
-fontProviders.fontshare()
+provider: fontProviders.fontshare()
 ```
 
 </TabItem>
@@ -193,9 +189,7 @@ fontProviders.fontshare()
 <TabItem label="Fontsource">
 
 ```js
-import { fontProviders } from "astro/config"
-
-fontProviders.fontsource()
+provider: fontProviders.fontsource()
 ```
 
 </TabItem>
@@ -203,16 +197,14 @@ fontProviders.fontsource()
 <TabItem label="Google">
 
 ```js
-import { fontProviders } from "astro/config"
-
-fontProviders.google()
+provider: fontProviders.google()
 ```
 
 </TabItem>
 
 </Tabs>
 
-Any unifont provider can be used to make a [custom Astro font provider](#build-your-own-font-provider).
+You can also [make a custom Astro font provider](#build-your-own-font-provider) for any unifont provider.
 
 ## `<Font />` component reference
 
