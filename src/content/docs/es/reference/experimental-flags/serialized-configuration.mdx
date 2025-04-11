@@ -1,0 +1,62 @@
+---
+title: Configuración serializada experimental
+sidebar:
+  label: Configuración serializada
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+
+<p>
+  **Tipo:** `boolean`<br />
+  **Predeterminado:** `false`<br />
+  <Since v="5.2.0" />
+</p>
+
+Esta función permite el acceso al módulo virtual `astro:config` que expone una versión no exhaustiva, serializable y con seguridad de tipos de la configuración de Astro a través de dos submódulos.
+
+Para obtener una descripción completa y dar comentarios sobre esta API experimental, consulta el [RFC de Manifiesto Serializado](https://github.com/withastro/roadmap/blob/feat/serialised-config/proposals/0051-serialized-manifest.md).
+
+Para habilitar este módulo virtual, agrega el flag de característica `experimental.serializeConfig` a tu configuración de Astro:
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from "astro/config"
+
+export default defineConfig({
+  experimental: {
+    serializeConfig: true
+  }
+})
+```
+
+Luego, los valores de configuración pueden ser utilizados por cualquier archivo en tu proyecto Astro:
+
+```js title="src/utils.js" ins={1}
+import { trailingSlash } from "astro:config/client";
+
+function addForwardSlash(path) {
+  if (trailingSlash === "always") {
+    return path.endsWith("/") ? path : path + "/"
+  } else {
+    return path
+  }
+}
+```
+
+## Submódulos
+
+El módulo virtual expone dos submódulos para acceder a diferentes subconjuntos de tus valores de configuración. Esto protege tu información al hacer que solo algunos datos estén disponibles para el cliente.
+
+Se puede acceder a todos los valores de configuración disponibles desde `astro:config/server`. Sin embargo, para el código ejecutado en el cliente, solo estarán disponibles los valores expuestos por `astro:config/client`.
+
+### `astro:config/client`
+
+El submódulo del cliente te permite acceder a un subconjunto de los valores de configuración en `astro:config/server` que son seguros para exponer al navegador, como `trailingSlash`, `build.format`, `i18n` y más. Utiliza este submódulo para el código del lado del cliente que se ejecuta en el cliente.
+
+Esta es una función en desarrollo. Para obtener una lista completa y actualizada de los valores de configuración disponibles desde `astro:config/client`, consulta [la API propuesta del RFC de la función](https://github.com/withastro/roadmap/blob/feat/serialised-config/proposals/0051-serialized-manifest.md#astroconfigclient).
+
+### `astro:config/server`
+
+El submódulo del servidor te permite acceder a un conjunto no exhaustivo de tus valores de configuración desde `astro.config.mjs`. Esto incluye los valores de `astro:config/client`, como `trailingSlash` e `i18n`, pero también información más sensible sobre la configuración de tu sistema de archivos que no es segura para exponer al cliente, como `srcDir`, `cacheDir`, `outDir`. Intentar utilizarlos en el cliente generará un error.
+
+Esta es una función en desarrollo. Para obtener una lista completa y actualizada de los valores de configuración disponibles desde `astro:config/server`, consulta [la API propuesta del RFC de la función](https://github.com/withastro/roadmap/blob/feat/serialised-config/proposals/0051-serialized-manifest.md#astroconfigserver).
