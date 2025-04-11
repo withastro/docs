@@ -1,0 +1,170 @@
+---
+title: Imágenes responsivas experimentales
+sidebar:
+  label: Imágenes responsivas
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+**Tipo:** `boolean`<br />
+**Predeterminado:** `false`<br />
+<Since v="5.0.0" />
+</p>
+
+Habilita el soporte para imágenes responsivas automáticas en tu proyecto.
+
+```js title="astro.config.mjs"
+{
+  experimental: {
+    responsiveImages: true,
+  },
+}
+```
+
+Con este flag habilitado, tienes acceso a [configuraciones de imagen responsiva](#configuraciones-de-imagen-responsiva) adicionales para controlar el comportamiento predeterminado de todas las imágenes procesadas y optimizadas por Astro:
+
+- Imágenes locales y remotas utilizando [la sintaxis Markdown `![]()`](/es/guides/images/#imagenes-en-archivos-markdown).
+- Los componentes [`<Image />`](/es/guides/images/imagenes-optimizadas-con-el-componente-image) y [`<Picture />`](/es/guides/images/#crear-imagenes-responsivas-con-el-componente--picture).
+
+Además, los componentes de imagen de Astro pueden recibir [props de imagen responsiva](#propiedades-de-imagen-responsiva) para anular estos valores predeterminados por imagen.
+
+Las imágenes en tu carpeta `public/` nunca se optimizan, y las imágenes responsivas no son compatibles.
+
+## Configuraciones de imagen responsiva
+
+Establece [`image.experimentalLayout`](/es/reference/configuration-reference/#imageexperimentallayout) con un valor predeterminado (`responsive`, `fixed` o `full-width`) para habilitar imágenes responsivas en todo tu proyecto.
+
+Si este valor no está configurado, aún puedes pasar una prop `layout` a cualquier componente `<Image />` o `<Picture />` para crear una imagen responsiva. Sin embargo, las imágenes Markdown no serán responsivas.
+
+Opcionalmente, puedes configurar [`image.experimentalObjectFit`](/es/reference/configuration-reference/#imageexperimentalobjectfit) y [`image.experimentalObjectPosition`](/es/reference/configuration-reference/#imageexperimentalobjectposition) que se aplicarán a todas las imágenes procesadas de forma predeterminada.
+
+Cada una de estas configuraciones se puede anular en cualquier componente individual `<Image />` o `<Picture />` con una prop, pero todas las imágenes Markdown siempre usarán las configuraciones predeterminadas.
+
+```js title="astro.config.mjs"
+{
+  image: {
+    // Usado para todas las imágenes Markdown; no configurable por imagen
+    // Usado para todos los componentes `<Image />` y `<Picture />` a menos que se anule con una prop
+    experimentalLayout: 'responsive',
+  },
+  experimental: {
+    responsiveImages: true,
+  },
+}
+```
+
+## Propiedades de imagen responsiva
+
+Estas son propiedades adicionales disponibles para los componentes `<Image />` y `<Picture />` cuando las imágenes responsivas están habilitadas:
+
+- `layout`: El tipo de diseño para la imagen. Puede ser `responsive`, `fixed`, `full-width` o `none`. El valor predeterminado es el valor de [`image.experimentalLayout`](/es/reference/configuration-reference/#imageexperimentallayout).
+- `fit`: Define cómo se debe recortar la imagen si se cambia la relación de aspecto. Los valores coinciden con los de CSS `object-fit`. El valor predeterminado es `cover`, o el valor de [`image.experimentalObjectFit`](/es/reference/configuration-reference/#imageexperimentalobjectfit) si se establece.
+- `position`: Define la posición del recorte de la imagen si se cambia la relación de aspecto. Los valores coinciden con los de CSS `object-position`. El valor predeterminado es `center`, o el valor de [`image.experimentalObjectPosition`](/es/reference/configuration-reference/#imageexperimentalobjectposition) si se establece.
+- `priority`: Si se establece, carga la imagen de forma anticipada. De lo contrario, las imágenes se cargarán de forma diferida. Utiliza esto para tu imagen más grande above-the-fold. El valor predeterminado es `false`.
+
+Los atributos `widths` y `sizes` se generan automáticamente en función de las dimensiones de la imagen y el tipo de diseño, y en la mayoría de los casos no deben establecerse manualmente. El atributo `sizes` generado para imágenes `responsive` y `full-width` se basa en la suposición de que la imagen se muestra cerca del ancho completo de la pantalla cuando el viewport es más pequeño que el ancho de la imagen. Si es significativamente diferente (por ejemplo, si está en un diseño de varias columnas en pantallas pequeñas), es posible que debas ajustar el atributo `sizes` manualmente para obtener los mejores resultados.
+
+El atributo `densities` no es compatible con imágenes responsivas y se ignorará si se establece.
+
+Por ejemplo, con `responsive` establecido como el diseño predeterminado, puedes anular la propiedad `layout` de cualquier imagen individual:
+
+```astro
+---
+import { Image } from "astro:assets";
+import myImage from "../assets/my_image.png";
+---
+
+<Image
+  src={myImage}
+  alt="Esto usará el diseño responsivo"
+  width={800}
+  height={600}
+/>
+<Image
+  src={myImage}
+  alt="Esto usará el diseño de ancho completo"
+  layout="full-width"
+/>
+<Image
+  src={myImage}
+  alt="Esto deshabilitará las imágenes responsivas"
+  layout="none"
+/>
+```
+
+## Salida HTML generada para imágenes responsivas
+
+Cuando se establece un diseño, ya sea de forma predeterminada o en un componente individual, las imágenes tienen atributos `srcset` y `sizes` generados automáticamente en función de las dimensiones de la imagen y el tipo de diseño. Las imágenes con diseños `responsive` y `full-width` tendrán estilos aplicados para garantizar que cambien de tamaño de acuerdo con su contenedor.
+
+```astro title=MyComponent.astro
+---
+import { Image, Picture } from "astro:assets";
+import myImage from "../assets/my_image.png";
+---
+
+<Image
+  src={myImage}
+  alt="Una descripción de mi imagen."
+  layout="responsive"
+  width={800}
+  height={600}
+/>
+<Picture
+  src={myImage}
+  alt="Una descripción de mi imagen."
+  layout="full-width"
+  formats={["avif", "webp", "jpeg"]}
+/>
+```
+
+Este componente `<Image />` generará la siguiente salida HTML:
+
+```html
+<img
+  src="/_astro/my_image.hash3.webp"
+  srcset="
+    /_astro/my_image.hash1.webp  640w,
+    /_astro/my_image.hash2.webp  750w,
+    /_astro/my_image.hash3.webp  800w,
+    /_astro/my_image.hash4.webp  828w,
+    /_astro/my_image.hash5.webp 1080w,
+    /_astro/my_image.hash6.webp 1280w,
+    /_astro/my_image.hash7.webp 1600w
+  "
+  alt="Una descripción de mi imagen"
+  sizes="(min-width: 800px) 800px, 100vw"
+  loading="lazy"
+  decoding="async"
+  fetchpriority="auto"
+  width="800"
+  height="600"
+  style="--w: 800; --h: 600; --fit: cover; --pos: center;"
+  data-astro-image="responsive"
+/>
+```
+
+Se aplican los siguientes estilos para garantizar que las imágenes cambien de tamaño correctamente:
+
+```css title="Estilos de imagen responsiva"
+[data-astro-image] {
+  width: 100%;
+  height: auto;
+  object-fit: var(--fit);
+  object-position: var(--pos);
+  aspect-ratio: var(--w) / var(--h);
+}
+
+[data-astro-image="responsive"] {
+  max-width: calc(var(--w) * 1px);
+  max-height: calc(var(--h) * 1px);
+}
+
+[data-astro-image="fixed"] {
+  width: calc(var(--w) * 1px);
+  height: calc(var(--h) * 1px);
+}
+```
+
+Para una descripción completa y para dar comentarios sobre esta API experimental, consulta el [RFC de Imágenes Responsivas](https://github.com/withastro/roadmap/blob/responsive-images/proposals/0053-responsive-images.md).
