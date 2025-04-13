@@ -5,6 +5,7 @@ i18nReady: true
 ---
 
 import { Steps } from '@astrojs/starlight/components'
+import Since from '~/components/Since.astro'
 
 页面加载时间在网站的可用性和整体体验中扮演着重要角色。当你的访问者与网站进行交互时，Astro 的**可选预获取**功能能在你的多页面应用（MPA）中带来几乎瞬时的页面导航的好处。
 
@@ -114,6 +115,56 @@ export default defineConfig({
 prefetch('/about', { ignoreSlowConnection: true });
 ```
 
+### `eagerness`
+
+<p>
+**类型：** `'immediate' | 'eager' | 'moderate' | 'conservative'`<br />
+**默认值：** `'immediate'`<br />
+<Since v="5.6.0" />
+</p>
+
+当启用实验性的 [`clientPrerender`](/zh-cn/reference/experimental-flags/client-prerender/) 标志时，你可以使用 `prefetch()` 上的 `eagerness` 选项，向浏览器建议应以何种积极程度去预获取/预渲染目标链接。
+
+该选项参照 [推测规则 API](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/speculationrules#eagerness) 中相同的 API 描述，并默认为 `immediate`（最积极的选项）。将积极程度降序排列，依次为 `eager`、`moderate` 和 `conservative`。
+
+`eagerness` 选项允许你在减少用户等待时间的优势与带宽、内存及 CPU 开销之间进行权衡。部分浏览器（如 Chrome）设置了 [针对过度推测的防护性限制](https://developer.chrome.com/blog/speculation-rules-improvements?hl=zh-cn#chrome-limits)，（以防止预渲染/预获取过多的链接）。
+
+ ```astro
+---
+---
+<script>
+// 使用 `experimental.clientPrerender` 以控制预获取的积极程度
+import { prefetch } from 'astro:prefetch';
+
+// 该页面为资源密集型
+prefetch('/data-heavy-dashboard', { eagerness: 'conservative' });
+
+// 该页面关乎用户的浏览体验
+prefetch('/getting-started'); // 默认为 `{ eagerness: 'immediate' }`
+
+// 该页面可能并不会被访问
+prefetch('/terms-of-service', { eagerness: 'moderate' });
+</script>
+```
+
+要对大量的链接使用程序化的 `prefetch()`，你可以设置为 `eagerness: 'moderate'`，从而利用 [先进先出算法（FIFO）](https://zh.wikipedia.org/wiki/先進先出演算法) 和启发式算法，来让浏览器自行决定，以何种顺序、以及在何时去预渲染/预获取这些链接。
+
+```astro "{eagerness: 'moderate'}"
+<a class="link-moderate" href="/nice-link-1">A Nice Link 1</a>
+<a class="link-moderate" href="/nice-link-2">A Nice Link 2</a>
+<a class="link-moderate" href="/nice-link-3">A Nice Link 3</a>
+<a class="link-moderate" href="/nice-link-4">A Nice Link 4</a>
+...
+<a class="link-moderate" href="/nice-link-20">A Nice Link 20</a>
+
+<script>
+  import { prefetch } from 'astro:prefetch';
+  const linkModerate = document.getElementsByClassName('link-moderate');
+  linkModerate.forEach((link) => prefetch(link.getAttribute('href'), {eagerness: 'moderate'}));
+  
+</script>
+```
+
 确保只在客户端脚本中导入 `prefetch()`，因为它依赖于浏览器 API。
 
 ## 与视图过渡动画一起使用
@@ -152,11 +203,13 @@ export default defineConfig({
 
 Chrome 支持 `<link rel="prefetch">`。预获取按预期工作。
 
+同时它也全面支持来自 [推测规则 API](https://developer.mozilla.org/zh-CN/docs/Web/API/Speculation_Rules_API) 的 `<script type="speculationrules">`，此 API 可用于进一步定义 [预获取策略和规则](#eagerness)，从而为 Chrome 用户优化体验。若需在 `prefetch()` 中启用此功能，你需要先启用 [`clientPrerender`](/zh-cn/reference/experimental-flags/client-prerender/) 实验性标志。
+
 ### Firefox
 
 Firefox 支持 `<link rel="prefetch">`，但可能会显示错误或完全失败：
 
- - 如果没有明确的缓存头（例如 [`Cache-Control`](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Cache-Control) 或 [`Expires`](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Expires)），预获取将会因 `NS_BINDING_ABORTED` 错误而失败。
+- 如果没有明确的缓存头（例如 [`Cache-Control`](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Cache-Control) 或 [`Expires`](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Expires)），预获取将会因 `NS_BINDING_ABORTED` 错误而失败。
 - 即使出现错误，如果响应中有正确的 [`ETag`](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/ETag) 头，它将在导航时被重用。
 - 否则，如果没有其他缓存头的错误，预获取将不会工作。
 
