@@ -1,0 +1,103 @@
+---
+title: Despliega tu sitio Astro en Clever Cloud
+description: Cómo desplegar tu sitio Astro en la web en Clever Cloud.
+sidebar:
+  label: Clever Cloud
+type: deploy
+i18nReady: true
+---
+import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
+
+[Clever Cloud](https://clever-cloud.com) es una plataforma de nube europea que proporciona servicios automatizados y escalables.
+
+## Configuración del proyecto
+
+Puedes desplegar proyectos Astro completamente estáticos y renderizados bajo demanda en Clever Cloud. Independientemente de tu modo `output` (pre-renderizado o [bajo demanda](/es/guides/on-demand-rendering/)), puedes elegir desplegar como una **aplicación estática** que se ejecuta utilizando un hook posterior a la construcción, o como una aplicación **Node.js**, que requiere alguna configuración manual en tu `package.json`.
+
+### Scripts
+
+Si estás ejecutando una aplicación Node.js bajo demanda, actualiza tu script `start` para ejecutar el servidor Node. Las aplicaciones en Clever Cloud escuchan en el puerto **8080**.
+
+```json title="package.json"
+"scripts": {
+  "start": "node ./dist/server/entry.mjs --host 0.0.0.0 --port 8080",
+}
+```
+
+## Desplegar Astro desde la consola
+
+Para desplegar tu proyecto Astro en Clever Cloud, necesitarás **crear una nueva aplicación**. El asistente de la aplicación te guiará a través de los pasos de configuración necesarios.
+
+<Steps>
+1. Desde la barra de menú lateral, haz clic en **Crear** > **Una aplicación**
+2. Elige cómo desplegar:
+
+   - **Crear una aplicación completamente nueva**: para desplegar desde un repositorio local con Git
+
+     o
+
+   - **Seleccionar un repositorio de GitHub**: para desplegar desde GitHub
+
+3. Selecciona una aplicación **Node.js** o una **estática**.
+4. Configura el tamaño mínimo para tu instancia y las opciones de escalabilidad. Los sitios Astro generalmente se pueden desplegar usando la instancia **Nano**. Dependiendo de las especificaciones y dependencias de tu proyecto, es posible que necesites ajustarlo mientras observas las métricas desde la página **Vista general**.
+5. Selecciona una **región** para desplegar tu instancia.
+6. Omite [conectar **Add-ons** a tu aplicación Clever](https://developers.clever-cloud.com/doc/addons/) a menos que estés usando una base de datos o Keycloak.
+7. Inyecta **variables de entorno**:
+
+   - Para **Node.js**, no se necesita ninguna variable de entorno específica para desplegar Astro si estás usando **npm**. Si estás usando **yarn** o **pnpm**, configura las siguientes variables de entorno:
+
+     <Tabs>
+       <TabItem label="pnpm">
+         ```shell
+         CC_NODE_BUILD_TOOL="custom"
+         CC_PRE_BUILD_HOOK="npm install -g pnpm && pnpm install"
+         CC_CUSTOM_BUILD_TOOL="pnpm run astro telemetry disable && pnpm build"
+         ```
+       </TabItem>
+       <TabItem label="yarn">
+         ```shell
+         CC_NODE_BUILD_TOOL="yarn"
+         CC_PRE_BUILD_HOOK="yarn && yarn run astro telemetry disable && yarn build"
+         ```
+       </TabItem>
+     </Tabs>
+
+   - Para una aplicación **estática**, agrega estas variables:
+
+     <Tabs>
+       <TabItem label="npm">
+         ```shell
+         CC_POST_BUILD_HOOK="npm run build"
+         CC_PRE_BUILD_HOOK="npm install && npm run astro telemetry disable"
+         CC_WEBROOT="/dist"
+         ```
+       </TabItem>
+       <TabItem label="pnpm">
+         ```shell
+         CC_POST_BUILD_HOOK="pnpm build"
+         CC_PRE_BUILD_HOOK="npm install -g pnpm && pnpm install && pnpm run astro telemetry disable"
+         CC_WEBROOT="/dist"
+         ```
+       </TabItem>
+       <TabItem label="yarn">
+         ```shell
+         CC_POST_BUILD_HOOK="yarn build"
+         CC_PRE_BUILD_HOOK="yarn && yarn run astro telemetry disable"
+         CC_WEBROOT="/dist"
+         ```
+       </TabItem>
+     </Tabs>
+
+8. **¡Despliega!** Si estás desplegando desde **GitHub**, tu despliegue debería comenzar automáticamente. Si estás usando **Git**, copia el remoto y sube a la rama **master**.
+</Steps>
+
+:::tip[Otras ramas]
+Para desplegar desde ramas distintas de `master`, usa `git push clever <rama>:master`.
+
+Por ejemplo, si deseas desplegar tu rama local `main` sin cambiarle el nombre, usa `git push clever main:master`.
+:::
+
+## Recursos oficiales
+
+- [Documentación de Clever Cloud para desplegar una aplicación Node.js](https://developers.clever-cloud.com/doc/applications/javascript/nodejs/)
+- [Documentación de Clever Cloud para desplegar Astro como una aplicación estática](https://developers.clever-cloud.com/guides/astro/)
