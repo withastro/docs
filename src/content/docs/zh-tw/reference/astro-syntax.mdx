@@ -1,12 +1,9 @@
 ---
-title: Astro 語法
-description: .astro 元件語法簡介。
+title: 模板表達式參考
 i18nReady: true
 ---
 
-**如果你知道 HTML，那麼你離撰寫 Astro 元件已經不遠了。**
-
-Astro 元件語法是 HTML 的超集合，[寫過 HTML 或 JSX 的人會感到熟悉](#astro-和-jsx-的差異)，而且它還支援匯入元件與 JavaScript 表達式。
+Astro 元件語法是 HTML 的超集合，寫過 HTML 或 JSX 的人會感到熟悉，而且它還支援匯入元件與 JavaScript 表達式。
 
 
 ## 類 JSX 表達式
@@ -102,7 +99,7 @@ const visible = true;
 
 ### 動態標籤
 
-把變數設為 HTML 標籤名稱或要匯入的元件，便可使用動態標籤：
+把 HTML 標籤名稱指派給變數，或將匯入的元件再次指派，便可使用動態標籤：
 
 ```astro title="src/components/DynamicTags.astro" /Element|(?<!My)Component/
 ---
@@ -120,11 +117,13 @@ const Component = MyComponent;
 
 - **不支援水合作用指令（hydration directive）**。使用 [`client:*` 水合作用指令](/zh-tw/guides/framework-components/#hydrating-interactive-components)時，Astro 需要事先知道哪個元件會被打包進正式版本，因此這種情況下不適用動態標籤。
 
+- **不支援 [define:vars 指令](/zh-tw/reference/directives-reference/#definevars)**。如果不能為子元素包上額外的元素（例如 `<div>`），你可以手動在元素加上 ``style={`--myVar:${value}`}``。
+
 ### Fragment
 
-Astro 支援 `<Fragment> </Fragment>` 或簡寫 `<> </>`。
+Astro 支援 `<> </>` 表示法，也有提供內建的 `<Fragment />` 元件。有了它，在使用 [`set:*` 指令](/zh-tw/reference/directives-reference/#sethtml) 時便不需要額外包一層元素。
 
-有了 Fragment，我們在使用 [`set:*` 指令](/zh-tw/reference/directives-reference/#sethtml) 時便不需要額外包一層元素，如下所示：
+下面的範例用了 `<Fragment />` 元件算繪出一段文字：
 
 ```astro title="src/components/SetHtml.astro" "Fragment"
 ---
@@ -172,3 +171,140 @@ Astro 元件語法是 HTML 的超集合，寫過 HTML 或 JSX 的人會感到熟
 :::caution
 HTML 風格的註解會出現在瀏覽器的 DOM，而 JS 風格的註解則不會。如果需要留下待辦註解或其他開發用的訊息，建議使用 JavaScript 風格的註解。
 :::
+
+
+## 元件工具
+
+### `Astro.slots`
+
+`Astro.slots` 有幾個工具函式可以用來修改 Astro 元件由插槽傳入的子元素。
+
+#### `Astro.slots.has()`
+
+<p>
+
+**型別：**`(slotName: string) => boolean`
+</p>
+
+你可以用 `Astro.slots.has()` 確認特定插槽名稱的內容是否存在。這在你想包裹插槽內容，但只想在插槽被使用時才算繪包裹元素的時候很好用。
+
+```astro  title="src/pages/index.astro"
+---
+---
+<slot />
+
+{Astro.slots.has('more') && (
+  <aside>
+    <h2>更多</h2>
+    <slot name="more" />
+  </aside>
+)}
+```
+
+#### `Astro.slots.render()`
+
+<p>
+
+**型別：**`(slotName: string, args?: any[]) => Promise<string>`
+</p>
+
+你可以用 `Astro.slots.render()` 非同步算繪插槽內容成 HTML 字串。
+
+```astro
+---
+const html = await Astro.slots.render('default');
+---
+<Fragment set:html={html} />
+```
+
+:::note
+這是給進階的使用案例用的！在大多數情況下，用 [`<slot />` 元素](/zh-tw/basics/astro-components/#插槽)算繪插槽內容比較簡單。
+:::
+
+`Astro.slots.render()` 可以接受第二個引數：會轉傳到任何子元素函式的參數陣列。這對於自訂工具元件來說很有用。
+
+舉例來說，這個 `<Shout />` 元件將它的 `message` 參數轉換成大寫，傳遞到預設的插槽：
+
+```astro title="src/components/Shout.astro" "await Astro.slots.render('default', [message])"
+---
+const message = Astro.props.message.toUpperCase();
+let html = '';
+if (Astro.slots.has('default')) {
+  html = await Astro.slots.render('default', [message]);
+}
+---
+<Fragment set:html={html} />
+```
+
+做為 `<Shout />` 的子元素傳遞的回呼函式會收到全部大寫的 `message` 參數：
+
+```astro title="src/pages/index.astro"
+---
+import Shout from "../components/Shout.astro";
+---
+<Shout message="slots!">
+  {(message) => <div>{message}</div>}
+</Shout>
+
+<!-- 會算繪成 <div>SLOTS!</div> -->
+```
+
+回呼函式可以傳遞到被有 `slot` 屬性的 HTML 元素標籤包著的具名插槽。這個元素只用來將回呼函式傳遞到具名插槽，並不會算繪到頁面上。
+
+```astro
+<Shout message="slots!">
+  <fragment slot="message">
+    {(message) => <div>{message}</div>}
+  </fragment>
+</Shout>
+```
+
+請使用標準的 HTML 元素或不會被解釋為元件的任何小寫標籤（例如 `<fragment>` 而不是 `<Fragment />`）來當做包裹標籤。不要用 HTML `<slot>` 元素，因為會被解釋為 Astro 插槽。
+
+### `Astro.self`
+
+`Astro.self` 讓 Astro 元件能被遞迴呼叫。這個行為讓你用元件模板內的 `<Astro.self>` 從 Astro 元件內算繪它自己。這對於遍歷大量資料儲存和巢狀資料結構有幫助。
+
+```astro
+---
+// NestedList.astro
+const { items } = Astro.props;
+---
+<ul class="nested-list">
+  {items.map((item) => (
+    <li>
+      <!-- 如果有巢狀資料結構就算繪 `<Astro.self>` -->
+      <!-- 還可以由遞迴呼叫傳遞參數過去 -->
+      {Array.isArray(item) ? (
+        <Astro.self items={item} />
+      ) : (
+        item
+      )}
+    </li>
+  ))}
+</ul>
+```
+
+可以像這樣使用這個元件：
+
+```astro
+---
+import NestedList from './NestedList.astro';
+---
+<NestedList items={['A', ['B', 'C'], 'D']} />
+```
+
+算繪出的 HTML 會像這樣：
+
+```html
+<ul class="nested-list">
+  <li>A</li>
+  <li>
+    <ul class="nested-list">
+      <li>B</li>
+      <li>C</li>
+    </ul>
+  </li>
+  <li>D</li>
+</ul>
+```

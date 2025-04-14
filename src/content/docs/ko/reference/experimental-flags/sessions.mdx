@@ -10,8 +10,8 @@ import ReadMore from '~/components/ReadMore.astro';
 
 <p>
 
-**타입:** `SessionConfig`<br />
-**기본값:** `undefined`<br />
+**타입:** `boolean`<br />
+**기본값:** `false`<br />
 
 <Since v="5.1.0" />
 </p>
@@ -22,75 +22,147 @@ import ReadMore from '~/components/ReadMore.astro';
 
 ```astro title="src/components/CartButton.astro" {3}
 ---
-export const prerender = false; // 'server' 모드에서는 필요하지 않습니다.
+export const prerender = false; // 'server' 출력에는 필요하지 않습니다.
 const cart = await Astro.session.get('cart');
 ---
 
 <a href="/checkout">🛒 {cart?.length ?? 0} items</a>
 ```
 
-세션은 `session` 객체에 데이터를 저장하기 위해 [구성 가능한 세션 `driver`](#실험적-세션-활성화)에 의존합니다. [세션 쿠키](#쿠키)는 식별 세션 ID를 저장합니다.
+세션은 `session` 객체에 데이터를 저장하기 위해 [구성 가능한 세션 `driver`](#실험적-세션-활성화)에 의존합니다. [세션 쿠키](#sessioncookie)는 식별 세션 ID를 저장합니다.
 
 [`session` 객체](#세션-api)를 사용하면 저장된 사용자 상태(예: 장바구니에 항목 추가) 및 세션 ID(예: 로그아웃 시 세션 ID 쿠키 삭제)와 상호 작용할 수 있습니다.
 
 ## 실험적 세션 활성화
 
-현재 `experimental.sessions`의 초기 릴리스에서는 Astro의 공식 서버 어댑터가 아직 플랫폼의 기본 스토리지 기능을 기반으로 하는 기본 세션 드라이버를 제공하도록 업데이트되지 않았습니다. 이러한 기능이 내장될 때까지 [어댑터를 추가하는 것](/ko/guides/on-demand-rendering/#어댑터-추가) 외에도 `experimental.sessions` 구성 객체에서 직접 `driver`를 지정해야 합니다.
-
-다음 섹션에서는 각 어댑터에 대해 권장되는 드라이버를 보여줍니다. (이 기능의 안정적인 릴리스에서는 자동으로 구성됩니다.) 또는 [unstorage의 지원되는 드라이버](https://unstorage.unjs.io/drivers/) 중 하나를 지정할 수 있습니다.
-
-### Node 어댑터로 세션 구성
-
-Node 어댑터는 [파일시스템 드라이버](https://unstorage.unjs.io/drivers/fs)와 호환됩니다. 공유 파일시스템이 없는 서버리스 환경에서는 사용할 수 없습니다.
+세션을 활성화하려면 `experimental.session` 플래그를 `true`로 설정하세요. 세션은 온디맨드 렌더링 페이지에서만 작동하므로 온디맨드 렌더링을 지원하는 [어댑터](/ko/guides/on-demand-rendering/#어댑터-추가)를 설치하고 세션을 사용하는 모든 페이지가 `prerender: false`로 설정되었는지 또는 Astro 구성에서 `output`이 `server`로 설정되었는지 확인해야 합니다.
 
 ```js title="astro.config.mjs" ins={6}
-	{
-    adapter: node({ mode: 'standalone' }),
-		experimental: {
-      session: {
-        // 필수: unstorage 드라이버의 이름
-        driver: "fs",
-      },
-    },
-	}
-```
-
-### 다른 어댑터의 세션 드라이버 구성
-
-[Netlify Blobs 드라이버(`netlify-blobs`)](https://unstorage.unjs.io/drivers/netlify), [Cloudflare KV 드라이버(`cloudflare-kv-binding`)](https://unstorage.unjs.io/drivers/cloudflare) 또는 [Deno KV 드라이버(`deno-kv`)](https://unstorage.unjs.io/drivers/deno)와 같이 호스팅 플랫폼에서 제공하는 스토리지 기능에 해당하는 [unstorage `driver` 이름](https://unstorage.unjs.io/drivers/)을 선택하세요. [Upstash](https://unstorage.unjs.io/drivers/upstash)나 [Redis](https://unstorage.unjs.io/drivers/redis)와 같은 크로스 플랫폼 드라이버를 사용할 수도 있습니다.
-
-:::note
-일부 드라이버는 추가 패키지를 설치해야 할 수 있습니다. 예를 들어, `netlify-blobs` 드라이버는 `@netlify/blobs` 패키지가 필요하고, Upstash는 `@upstash/redis` 패키지가 필요합니다. 일부 드라이버는 환경 변수나 인증 정보를 설정해야 할 수도 있습니다.
-
-<ReadMore>[unstorage 드라이버 문서](https://unstorage.unjs.io/drivers)에서 자세한 정보를 확인하세요.</ReadMore>
-:::
-
-### 드라이버 옵션
-
-unstorage 드라이버에 사용 가능한 모든 옵션을 별도의 `session.options` 객체로 전달할 수도 있습니다. 다음 예제는 [Netlify Blobs](https://unstorage.unjs.io/drivers/netlify) 드라이버를 구성하면서 `name`을 제공하고 `consistency` 모드를 지정합니다:
-
-```js title="astro.config.mjs" ins={7-11}
   {
-    adapter: netlify(),
+    adapter: node({
+      mode: "standalone",
+    }),
     experimental: {
-      session: {
-        // unstorage 드라이버의 이름은 kebab-case 형식으로 지정합니다.
-        driver: "netlify-blobs",
-        options: {
-          name: 'astro-sessions',
-          // 세션을 사용하기 위해 consistency를 strong으로 지정합니다.
-          consistency: 'strong',
-        }
-      },
+      session: true,
     },
   }
 ```
 
+세션을 사용하기 위해서는 세션 데이터를 저장하기 위한 스토리지 드라이버가 필요합니다. Node 및 Netlify 어댑터는 자동으로 기본 드라이버를 구성하지만 현재 다른 어댑터는 [드라이버를 수동으로 지정](#세션-드라이버-구성)해야 합니다. [unstorage의 지원되는 드라이버](https://unstorage.unjs.io/drivers/)를 사용할 수 있습니다.
+
+### 세션 드라이버 구성
+
+기본 드라이버가 없는 어댑터를 사용하거나 다른 드라이버를 선택하려면 `session` 구성 옵션을 사용하여 드라이버를 구성할 수 있습니다.
+
+```js title="astro.config.mjs" ins={4}
+  {
+    adapter: vercel(),
+    session: {
+      driver: "upstash",
+    },
+    experimental: {
+      session: true,
+    },
+	}
+```
+
+`session.driver`를 호스팅 플랫폼에서 제공하는 스토리지 기능에 해당하는 unstorage `driver` 이름(예: [Cloudflare KV 드라이버](https://unstorage.unjs.io/drivers/cloudflare) 또는 [Deno KV 드라이버](https://unstorage.unjs.io/drivers/deno)로 구성합니다. [Upstash](https://unstorage.unjs.io/drivers/upstash) 또는 [Redis](https://unstorage.unjs.io/drivers/redis)와 같은 크로스 플랫폼 드라이버를 사용할 수도 있습니다.
+
+:::note
+일부 드라이버는 추가 패키지 설치가 필요할 수 있습니다. 예를 들어 Upstash는 `@upstash/redis` 패키지가 필요합니다. 일부 드라이버는 환경 변수 또는 자격 증명을 설정해야 할 수도 있습니다.
+
+<ReadMore>
+  각 드라이버의 `driver` 이름, 추가 종속성 및 사용법을 포함한 자세한 내용은 [unstorage 드라이버 문서](https://unstorage.unjs.io/drivers)를 참조하세요.
+</ReadMore>
+
+:::
+
+### 드라이버 옵션
+
+`session.options` 객체를 통해 unstorage 드라이버에 사용 가능한 모든 옵션을 전달할 수도 있습니다. 사용 가능한 옵션은 선택한 드라이버의 문서를 참조하세요.
+
+다음 예제는 Upstash의 모든 키에 사용할 `"sessions"` 접두사를 `base`로 설정합니다.
+
+```js title="astro.config.mjs" ins={5-7}
+  {
+    adapter: vercel(),
+    session: {
+      driver: "upstash",
+      options: {
+        base: "sessions",
+      },
+    },
+    experimental: {
+      session: true,
+    },
+  }
+```
+
+### 기타 세션 옵션
+
+`session` 객체에서 세션에 대한 추가 옵션을 구성할 수 있습니다.
+
+#### `session.cookie`
+
+<p>
+
+**타입:** `string` | `object`<br />
+**기본값:** `astro-session`<br />
+
+</p>
+
+세션 쿠키를 구성합니다. 이 쿠키는 세션이 생성될 때 응답에 설정됩니다. 실제 사용자 데이터는 쿠키에 저장되지 않고, 사용자 세션을 식별하는 데 사용되는 ID만 저장됩니다. `session.cookie` 옵션을 사용하여 이 쿠키에 대한 옵션을 설정할 수 있습니다. 쿠키 이름으로 사용될 `string`을 제공하거나 추가 옵션을 허용하는 객체를 제공할 수 있습니다.
+
+```js title="astro.config.mjs" {4} ins={6-9}
+  {
+    session: {
+      // 문자열로 설정하면 쿠키 이름으로 사용됩니다.
+      // cookie: "my-session-id",
+      // 객체로 설정하면 고급 옵션을 설정할 수 있습니다.
+      cookie: {
+        name: "my-session-id"
+        sameSite: "Strict",
+      },
+    }
+  }
+```
+
+#### `session.ttl`
+
+<p>
+
+**타입:** `number`<br />
+**기본값:** `undefined`<br />
+
+</p>
+
+세션 값에 대한 선택적 기본 수명(TTL, time-to-live) 만료 기간(초 단위)입니다.
+
+기본적으로 세션 값은 삭제되거나 세션이 파괴될 때까지 유지되며 특정 시간 경과로 인해 자동으로 만료되지 않습니다. `session.ttl`을 설정하여 세션 값에 대한 기본 만료 기간을 추가합니다. [`session.set()`](#sessionset)에 `ttl` 옵션을 전달하면 해당 개별 항목에 대한 전역 기본값을 재정의합니다.
+
+```js title="astro.config.mjs" {3}
+  {
+    session: {
+      ttl: 60 * 60, // 1 시간
+    }
+  }
+```
+
+:::note
+`ttl` 값을 설정해도 제한 시간이 지났을 때 스토리지에서 값이 자동으로 삭제되지는 않습니다.
+
+스토리지의 값은 `ttl` 기간이 만료된 후 액세스하려는 시도가 있을 때만 삭제됩니다. 이때 세션 값은 undefined가 되고, 이제서야 값이 삭제됩니다.
+
+개별 드라이버는 지정된 시간 후에 세션을 자동으로 삭제하는 `ttl` 옵션을 지원할 수도 있습니다. 자세한 내용은 선택한 드라이버의 문서를 참조하세요.
+:::
+
 ## 세션 사용
 
-드라이버를 구성하면 `session` 객체를 사용하여 세션과 상호 작용할 수 있습니다. 이 객체는 Astro 컴포넌트와 페이지에서는 `Astro.session`으로, API 엔드포인트, 미들웨어 및 액션의 `context` 객체에서 접근할 수 있습니다. API는 모든 경우에 동일합니다.
+드라이버를 구성하면 `session` 객체를 사용하여 세션과 상호 작용할 수 있습니다. 객체는 Astro 컴포넌트와 페이지에서는 `Astro.session`으로, API 엔드포인트, 미들웨어 및 액션의 `context` 객체에서 접근할 수 있습니다. API는 모든 경우에 동일합니다.
 
-대부분의 경우 [`Astro.session.get()`](#sessionget)과 [`Astro.session.set()`](#sessionset)만 사용하면 됩니다. 다른 사용 가능한 메서드는 [API 섹션](#세션-api)을 참조하세요.
+세션은 처음 사용될 때 자동으로 생성되며 [`Astro.session.regenerate()`](#sessionregenerate)를 사용하여 언제든지 재생성하거나 [`Astro.session.destroy()`](#sessiondestroy)를 사용하여 파괴할 수 있습니다.
+
+대부분의 경우 [`Astro.session.get()`](#sessionget)과 [`Astro.session.set()`](#sessionset)만 사용하면 됩니다. 사용 가능한 다른 메서드는 [API 섹션](#세션-api)을 참조하세요.
 
 ### Astro 컴포넌트 및 페이지
 
@@ -98,7 +170,7 @@ unstorage 드라이버에 사용 가능한 모든 옵션을 별도의 `session.o
 
 ```astro title="src/components/CartButton.astro" "Astro.session"
 ---
-export const prerender = false; // 'server' 모드에서는 필요하지 않습니다.
+export const prerender = false; // 'server' 출력에는 필요하지 않습니다.
 const cart = await Astro.session.get('cart');
 ---
 
@@ -110,31 +182,30 @@ const cart = await Astro.session.get('cart');
 API 엔드포인트에서는 `context` 객체에서 세션 객체를 사용할 수 있습니다. 예를 들어, 장바구니에 항목을 추가하는 방법은 다음과 같습니다:
 
 ```ts title="src/pages/api/addToCart.ts" "context.session"
-import type { APIContext } from "astro";
+import type { APIContext } from 'astro';
 
 export async function POST(req: Request, context: APIContext) {
-  const cart = await context.session.get("cart");
+  const cart = await context.session.get('cart');
   cart.push(req.body.item);
-  await context.session.set("cart", cart);
+  await context.session.set('cart', cart);
   return Response.json(cart);
 }
 ```
-
 ### 액션
 
 액션에서는 `context` 객체에서 세션 객체를 사용할 수 있습니다. 예를 들어, 장바구니에 항목을 추가하는 방법은 다음과 같습니다:
 
 ```ts title="src/actions/addToCart.ts" "context.session"
-import { defineAction } from "astro:actions";
-import { z } from "astro:schema";
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
 
 export const server = {
   addToCart: defineAction({
     input: z.object({ productId: z.string() }),
     handler: async (input, context) => {
-      const cart = await context.session.get("cart");
+      const cart = await context.session.get('cart');
       cart.push(input.productId);
-      await context.session.set("cart", cart);
+      await context.session.set('cart', cart);
       return cart;
     },
   }),
@@ -158,49 +229,52 @@ export const onRequest = defineMiddleware(async (context, next) => {
 });
 ```
 
-## 쿠키
+### 세션 데이터 타입
 
-세션은 처음 접근할 때 생성되며 응답에 세션 ID 쿠키가 설정됩니다. 쿠키에는 실제 사용자 데이터가 저장되지 않고 사용자의 세션을 식별하는 데 사용되는 ID만 저장됩니다. 세션은 [`Astro.session.regenerate()`](#sessionregenerate)를 사용하여 언제든지 재생성할 수 있으며, [`Astro.session.destroy()`](#sessiondestroy)를 사용하여 삭제할 수 있습니다.
+기본적으로 세션 데이터는 타입이 지정되지 않으며, 모든 키에 임의의 데이터를 저장할 수 있습니다. 값은 콘텐츠 컬렉션 및 액션에서 사용되는 라이브러리와 동일한 [devalue](https://github.com/Rich-Harris/devalue)를 사용하여 직렬화 및 역직렬화됩니다. 이는 지원되는 타입이 동일하며 문자열, 숫자, `Date`, `Map`, `Set`, `URL`, 배열 및 일반 객체를 포함한다는 것을 의미합니다.
 
-### `session.cookie`
+선택적으로 `src/env.d.ts` 파일을 생성하고 `App.SessionData` 타입에 대한 선언을 추가하여 세션 데이터에 대한 TypeScript 타입을 정의할 수 있습니다.
 
-<p>
-
-**타입:** `string` | `object`<br />
-**기본값:** `undefined`<br />
-
-</p>
-
-쿠키 옵션을 설정하기 위한 선택적 속성입니다. `cookie.name` 속성은 문자열을 제공하여 자동으로 설정할 수 있습니다. 추가 옵션을 구성하려면 객체를 제공하세요.
-
-```js title="astro.config.mjs" {5} ins={7-10}
-  {
-    experimental: {
-      session: {
-        // 문자열로 설정하면 쿠키 이름으로 사용됩니다
-        // cookie: "my-session-id",
-        // 객체로 설정하면 고급 옵션을 설정할 수 있습니다
-        cookie: {
-          name: "my-session-id"
-          sameSite: "Strict",
-        },
-      }
-    }
+```ts title="src/env.d.ts"
+declare namespace App {
+  interface SessionData {
+    user: {
+      id: string;
+      name: string;
+    };
+    cart: string[];
   }
+}
 ```
 
+이렇게 하면 편집기에서 타입 검사 및 자동 완성 기능을 사용하여 세션 데이터에 접근할 수 있습니다.
+
+```ts title="src/components/CartButton.astro"
+---
+const cart = await Astro.session.get('cart');
+// const cart: string[] | undefined
+
+const something = await Astro.session.get('something');
+// const something: any
+
+Astro.session.set('user', { id: 1, name: 'Houston' });
+// Error: Argument of type '{ id: number; name: string }' is not assignable to parameter of type '{ id: string; name: string; }'.
+---
+```
+
+:::caution
+이는 타입 검사에만 사용되며 세션의 런타임 동작에는 영향을 미치지 않습니다. 사용자가 세션에 데이터를 저장한 경우 타입을 변경하면 런타임 오류가 발생할 수 있으므로 각별히 주의하세요.
+:::
 ## 세션 API
 
-세션 객체는 컴포넌트, 액션 및 API 엔드포인트를 포함한 모든 Astro 컨텍스트에서 사용할 수 있습니다. 컴포넌트에서는 전역 `Astro` 객체를 통해 접근하고, 액션과 API 엔드포인트에서는 `context` 객체에서 사용할 수 있습니다. API는 모든 경우에 동일합니다.
+세션은 처음 액세스할 때 자동으로 생성됩니다. 세션 객체는 컴포넌트, 액션 및 API 엔드포인트를 포함한 모든 Astro 컨텍스트에서 사용할 수 있습니다. 컴포넌트에서는 전역 `Astro` 객체를 통해 액세스하고, 액션 및 API 엔드포인트에서는 `context` 객체에서 사용할 수 있습니다. API는 모든 경우에 동일합니다.
 
-값은 콘텐츠 레이어와 액션에서 사용되는 것과 같은 라이브러리인 [devalue](https://github.com/Rich-Harris/devalue)를 사용하여 직렬화 및 역직렬화됩니다. 이는 지원되는 타입이 동일하며, 문자열, 숫자, `Date`, `Map`, `Set`, `URL`, 배열 및 일반 객체를 포함한다는 의미입니다.
-
-
-### `session.get()` 
+### `session.get()`
 
 <p>
 
 **타입**: `(key: string) => Promise<any>`
+
 </p>
 
 세션에서 주어진 키의 값을 반환합니다. 키가 존재하지 않으면 `undefined`를 반환합니다.
@@ -210,15 +284,28 @@ export const onRequest = defineMiddleware(async (context, next) => {
 <p>
 
 **타입**: `(key: string, value: any, options?: { ttl: number }) => void`
+
 </p>
 
-세션에서 주어진 키의 값을 설정합니다. 값은 직렬화 가능한 모든 타입이 될 수 있습니다.
+세션에서 주어진 키의 값을 설정합니다. 값은 직렬화 가능한 모든 타입이 될 수 있습니다. 이 메서드는 동기적이며 값을 즉시 검색할 수 있지만, 요청이 끝날 때까지 백엔드에 저장되지 않습니다.
 
+### `session.load()`
+
+<p>
+
+**타입**: `(id: string) => Promise<void>`
+
+<Since v="5.6.0" />
+
+</p>
+
+ID를 기반으로 세션을 로드합니다. 일반적인 사용 시에는 요청 쿠키에서 세션이 자동으로 로드되지만, 이 메서드를 사용하여 다른 ID의 세션을 로드할 수 있습니다. 이는 세션 ID를 직접 처리하거나, 쿠키를 사용하지 않고 세션을 추적하려는 경우에 유용합니다.
 ### `session.regenerate()`
 
 <p>
 
 **타입**: `() => void`
+
 </p>
 
 세션 ID를 재생성합니다. 세션 고정 공격을 방지하기 위해 사용자가 로그인하거나 권한을 높일 때 호출하는 것이 가장 좋습니다.
@@ -228,6 +315,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 <p>
 
 **타입**: `() => void`
+
 </p>
 
 세션을 파괴하고 쿠키와 객체를 백엔드에서 삭제합니다. 사용자가 로그아웃하거나 세션이 무효화될 때 호출해야 합니다.

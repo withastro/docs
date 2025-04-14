@@ -155,7 +155,7 @@ export const LocaleDetails = (
 						</ul>`
 				: ''}
 			${missingFiles.length == 0 && outdatedFiles.length == 0
-				? html`<p>"This translation is complete, amazing job! 🎉"</p>`
+				? html`<p>This translation is complete, amazing job! 🎉</p>`
 				: ''}
 		</details>
 	`;

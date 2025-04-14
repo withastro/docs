@@ -4,14 +4,14 @@ title: '@astrojs/netlify'
 description: '@astrojs/netlify SSR 어댑터를 사용하여 Astro 프로젝트를 배포하는 방법을 알아보세요.'
 sidebar:
   label: Netlify
-githubIntegrationURL: 'https://github.com/withastro/adapters/tree/main/packages/netlify/'
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/netlify/'
 category: adapter
 i18nReady: true
 ---
-
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import Since from '~/components/Since.astro';
 
-이 어댑터를 사용하면 Astro가 [요청 시 렌더링되는 라우트](/ko/guides/on-demand-rendering/)를 [Netlify](https://www.netlify.com/)에 배포할 수 있습니다.
+이 어댑터를 사용하면 Astro가 [온디맨드 렌더링 라우트](/ko/guides/on-demand-rendering/)를 [Netlify](https://www.netlify.com/)에 배포할 수 있습니다.
 
 Astro를 정적 사이트 빌더로 사용하는 경우 어댑터가 필요하지 않습니다.
 
@@ -68,7 +68,7 @@ Astro에는 공식 통합 설정을 자동화하는 `astro add` 명령이 포함
   </Fragment>
 </PackageManagerTabs>
 
-그런 다음 어댑터와 원하는 [요청 시 렌더링 모드](/ko/guides/on-demand-rendering/)를 `astro.config.*` 파일에 추가하세요.
+그런 다음 어댑터와 원하는 [온디맨드 렌더링 모드](/ko/guides/on-demand-rendering/)를 `astro.config.*` 파일에 추가하세요.
 
 ```js title="astro.config.mjs" ins={2, 6-7}
 import { defineConfig } from 'astro/config';
@@ -245,6 +245,88 @@ Astro.response.headers.set('CDN-Cache-Control', 'public, max-age=45, must-revali
 
 [세밀한 캐시 제어](https://www.netlify.com/blog/swr-and-fine-grained-cache-control/)를 통해 Netlify는 `CDN-Cache-Control` 또는 `Vary`와 같은 표준 캐싱 헤더를 지원합니다.
 time to live (TTL) 또는 stale while revalidate (SWR) 캐싱 등의 구현에 대해 알아보기 위해 문서를 참조하세요: https://docs.netlify.com/platform/caching
+
+### Netlify Functions에서 파일 포함 또는 제외하기
+
+온디맨드 렌더링을 사용하는 Astro 사이트를 Netlify에 배포할 때, 생성된 함수는 서버 의존성을 자동으로 추적하고 포함합니다. 하지만 Netlify Functions에 포함할 파일을 사용자 정의해야 할 수 있습니다.
+
+#### `includeFiles`
+
+<p>
+**타입:**  `string[]`<br />
+**기본값:** `[]`<br />
+<Since v="5.3.0" />
+</p>
+
+`includeFiles` 속성을 사용하면 함수와 함께 번들해야 하는 추가 파일을 명시적으로 지정할 수 있습니다. 이는 다음과 같이 종속성으로 자동 감지되지 않는 파일에 유용합니다:
+- `fs` 연산을 사용하여 로드된 데이터 파일
+- 구성 파일
+- 템플릿 파일
+
+프로젝트의 [`root`](/ko/reference/configuration-reference/#root)를 기준으로 하는 파일 경로를 사용하여 포함할 추가 파일 배열을 제공합니다. 절대 경로는 예상대로 작동하지 않을 수 있습니다.
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+  // ...
+  output: 'server',
+  adapter: netlify({
+    includeFiles: ['./my-data.json'], // `root`를 기준으로 합니다.
+  }),
+});
+```
+
+#### `excludeFiles`
+
+<p>
+**타입:**  `string[]`<br />
+**기본값:** `[]`<br />
+<Since v="5.3.0" />
+</p>
+
+`excludeFiles` 속성을 사용하여 특정 파일이 번들에 포함되지 않도록 할 수 있습니다. 이는 다음에 유용합니다:
+- 번들 크기 줄이기
+- 큰 바이너리 제외
+- 원치 않는 파일 배포 방지
+
+프로젝트의 [`root`](/ko/reference/configuration-reference/#root)를 기준으로 하는 파일 경로를 사용하여 제외할 특정 파일의 배열을 제공합니다. 절대 경로는 예상대로 작동하지 않을 수 있습니다.
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+  // ...
+  output: 'server',
+  adapter: netlify({
+    excludeFiles: ['./src/some_big_file.jpg'], // relative to `root`
+  }),
+});
+```
+
+#### glob 패턴 사용
+
+`includeFiles`와 `excludeFiles`는 모두 여러 파일을 매치시키기 위한 [glob 패턴](/ko/guides/imports/#glob-패턴)을 지원합니다.
+
+```js title="astro.config.mjs" ins={8, 11-12}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+  output: 'server',
+  adapter: netlify({
+    includeFiles: [
+      './data/**/*.json'
+    ],
+    excludeFiles: [
+      './node_modules/package/**/*',
+      './src/**/*.test.js'
+    ]
+  }),
+});
+```
 
 ## 예시
 

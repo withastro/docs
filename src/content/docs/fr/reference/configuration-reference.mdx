@@ -84,14 +84,15 @@ Dans l'exemple ci-dessous, les valeurs de `import.meta.env.BASE_URL` et `config.
 **Par défaut :** `'ignore'`
 </p>
 
-Définissez le comportement de correspondance des routes pour le serveur de développement. Choisissez parmi les options suivantes :
-  - `'always'` - Faire correspondre uniquement les URL incluant une barre oblique finale (par exemple : « /foo/ »)
-  - `'never'` - Ne jamais faire correspondre les URL qui incluent une barre oblique finale (par exemple : « /foo »)
-  - `'ignore'` - Faire correspondre les URL, qu'il existe ou non une barre oblique finale (`/`)
+Définissez le comportement de correspondance de route pour les barres obliques finales dans le serveur de développement et les pages rendues à la demande. Choisissez parmi les options suivantes :
+  - `'ignore'` - Faire correspondre les URL, qu'il existe ou non une barre oblique finale (`/`). Les requêtes pour `/about` et `/about/` correspondront toutes deux à la même route.
+  - `'always'` - Faire correspondre uniquement les URL qui incluent une barre oblique finale (par exemple : `/about/`). En production, les requêtes d'URL rendues à la demande sans barre oblique finale seront redirigées vers l'URL correcte pour votre commodité. Cependant, en développement, elles afficheront une page d'avertissement vous rappelant que le paramètre configuré est `always`.
+  - `'never'` - Faire correspondre uniquement les URL qui n'incluent pas de barre oblique finale (par exemple : `/about`). En production, les requêtes d'URL rendues à la demande avec une barre oblique finale seront redirigées vers l'URL correcte pour votre commodité. Cependant, en développement, elles afficheront une page d'avertissement vous rappelant que le paramètre configuré est `never`.
 
-Utilisez cette option de configuration si votre hôte de production gère strictement le fonctionnement ou le non-fonctionnement des barres obliques finales.
+Lorsque des redirections se produisent en production pour les requêtes GET, la redirection sera une redirection 301 (permanente). Pour toutes les autres méthodes de requête, il s'agira d'une redirection 308 (permanente et conservant la méthode de requête).
 
-Vous pouvez également définir cela si vous préférez être plus strict vous-même, afin que les URL avec ou sans barres obliques finales ne fonctionnent pas pendant le développement.
+Les barres obliques finales sur les pages pré-rendues sont gérées par la plate-forme d'hébergement et peuvent ne pas respecter la configuration que vous avez choisie.
+Consultez la documentation de votre plateforme d'hébergement pour plus d'informations. Vous ne pouvez pas utiliser [les redirections](#redirects) Astro pour ce cas d’utilisation à ce stade.
 
 ```js
 {
@@ -106,7 +107,7 @@ Vous pouvez également définir cela si vous préférez être plus strict vous-m
 
 <p>
 
-**Type :** `Record.<string, RedirectConfig>`<br />
+**Type :** `Record<string, RedirectConfig>`<br />
 **Par défaut :** `{}`<br />
 <Since v="2.9.0" />
 </p>
@@ -118,12 +119,18 @@ Par exemple, vous ne pouvez pas avoir de redirection `'/article': '/blog/[...slu
 
 
 ```js
-{
+export default defineConfig({
   redirects: {
-    '/ancien': '/nouveau',
-    '/blog/[...slug]': '/articles/[...slug]',
-  }
-}
+   '/ancien': '/nouveau',
+   '/blog/[...slug]': '/articles/[...slug]',
+   '/a-propos': 'https://example.com/a-propos',
+   '/nouvelles': {
+     status: 302,
+     destination: 'https://example.com/nouvelles'
+ 	},
+   // '/produit1/', '/produit1' // Attention, ceci n'est pas pris en charge
+	}
+})
 ```
 
 
@@ -135,14 +142,16 @@ Astro servira les requêtes GET redirigées avec un statut `301` et utilisera un
 Vous pouvez personnaliser le [code d'état de redirection](https://developer.mozilla.org/fr/docs/Web/HTTP/Status#messages_de_redirection) à l'aide d'un objet dans la configuration de redirection :
 
 ```js
-{
+export default defineConfig({
   redirects: {
     '/autre': {
       status: 302,
       destination: '/endroit',
     },
   }
-}
+})
+
+
 ```
 
 ### output
@@ -202,10 +211,10 @@ Lisez notre [Guide sur les intégrations](/fr/guides/integrations-guide/) pour o
 
 ```js
 import react from '@astrojs/react';
-import tailwind from '@astrojs/tailwind';
+import mdx from '@astrojs/mdx';
 {
-  // Exemple : Ajouter la prise en charge de React et Tailwind dans Astro
-  integrations: [react(), tailwind()]
+  // Exemple : Ajouter la prise en charge de React et de MDX dans Astro
+  integrations: [react(), mdx()]
 }
 ```
 
@@ -350,7 +359,7 @@ L'utilisation d'`'attribut'` est utile lorsque vous manipulez l'attribut `class`
 
 <p>
 
-**Type :** `Record.<"checkOrigin", boolean> | undefined`<br />
+**Type :** `Record<"checkOrigin", boolean> | undefined`<br />
 **Par défaut :** `{checkOrigin: true}`<br />
 <Since v="4.9.0" />
 </p>
@@ -386,6 +395,35 @@ Vérifie que l'en-tête « origin », automatiquement transmis par tous les navi
 La vérification de l'en-tête « origin » est exécutée uniquement pour les pages rendues à la demande, et uniquement pour les requêtes `POST`, `PATCH`, `DELETE` et `PUT` avec l'un des en-têtes `content-type` suivants :`'application/ x-www-form-urlencoded'`, `'multipart/form-data'`, `'text/plain'`.
 
 Si l'en-tête « origin » ne correspond pas au chemin d'accès de la requête (`pathname`), Astro renverra un code d'état 403 et n'affichera pas la page.
+
+### session
+
+<p>
+
+**Type :** `SessionConfig`<br />
+<Since v="5.3.0" />
+</p>
+
+Configure la prise en charge de session expérimentale en spécifiant un pilote de stockage (`driver`) ainsi que toutes les `options` associées.
+Vous devez activer l'option `experimental.session` pour utiliser cette fonctionnalité.
+Certains adaptateurs peuvent fournir un pilote de session par défaut, mais vous pouvez le remplacer par votre propre configuration.
+
+Vous pouvez spécifier [n'importe quel pilote d'Unstorage](https://unstorage.unjs.io/drivers) ou fournir une configuration personnalisée qui remplacera la valeur par défaut de votre adaptateur.
+
+Consultez [le guide des sessions expérimentales](/fr/reference/experimental-flags/sessions/) pour plus d'informations.
+
+```js title="astro.config.mjs"
+  {
+    session: {
+      // Obligatoire : le nom du pilote Unstorage
+      driver: 'redis',
+      // Les options requises dépendent du pilote
+      options: {
+        url: process.env.REDIS_URL,
+      },
+    }
+  }
+```
 
 ### vite
 
@@ -523,7 +561,7 @@ Spécifie le répertoire dans la sortie de construction où doivent résider les
 
 <p>
 
-**Type :** `string | Record.<string, string>`<br />
+**Type :** `string | Record<string, string>`<br />
 **Par défaut :** `undefined`<br />
 <Since v="2.2.0" />
 </p>
@@ -884,8 +922,8 @@ Définissez le paramètre sur `false` pour contourner la limite de taille des im
 
 <p>
 
-**Type :** `Array.<string>`<br />
-**Par défaut :** `{domains: []}`<br />
+**Type :** `Array<string>`<br />
+**Par défaut :** `[]`<br />
 <Since v="2.10.10" />
 </p>
 
@@ -907,8 +945,8 @@ Cette option nécessite un tableau de noms de domaine individuels sous forme de 
 
 <p>
 
-**Type :** `Array.<RemotePattern>`<br />
-**Par défaut :** `{remotePatterns: []}`<br />
+**Type :** `Array<RemotePattern>`<br />
+**Par défaut :** `[]`<br />
 <Since v="2.10.10" />
 </p>
 
@@ -981,7 +1019,7 @@ Nécessite que l'option `experimental.responsiveImages` soit activée.
 
 <p>
 
-**Type :** `Array.<number>`<br />
+**Type :** `Array<number>`<br />
 **Par défaut :** `[640, 750, 828, 1080, 1280, 1668, 2048, 2560] | [640, 750, 828, 960, 1080, 1280, 1668, 1920, 2048, 2560, 3200, 3840, 4480, 5120, 6016]`
 </p>
 
@@ -1043,11 +1081,12 @@ Consultez le [guide de coloration syntaxique du code](/fr/guides/syntax-highligh
 
 <p>
 
-**Type :** `'shiki' | 'prism' | false`<br />
-**Par défaut :** `shiki`
+**Type :** `SyntaxHighlightConfig | SyntaxHighlightConfigType | false`<br />
+**Par défaut :** `{ type: 'shiki', excludeLangs: ['math'] }`
 </p>
 
 Quel surligneur de syntaxe utiliser pour les blocs de code Markdown (\`\`\`), le cas échéant. Cela détermine les classes CSS qu'Astro appliquera à vos blocs de code Markdown.
+
 - `shiki` - utiliser le colorateur [Shiki](https://shiki.style) (thème `github-dark` configuré par défaut)
 - `prism` - utiliser le colorateur [Prism](https://prismjs.com/) et [fournir votre propre feuille de style Prism](/fr/guides/syntax-highlighting/#ajouter-une-feuille-de-style-prism)
 - `false` - n'appliquer aucune coloration syntaxique.
@@ -1059,6 +1098,44 @@ Quel surligneur de syntaxe utiliser pour les blocs de code Markdown (\`\`\`), le
     syntaxHighlight: 'prism',
   }
 }
+```
+
+Pour un meilleur contrôle sur la coloration syntaxique, vous pouvez spécifier un objet de configuration avec les propriétés répertoriées ci-dessous.
+
+#### markdown.syntaxHighlight.type
+
+<p>
+
+**Type :** `'shiki' | 'prism'`<br />
+**Par défaut :** `'shiki'`<br />
+<Since v="5.5.0" />
+</p>
+
+Les classes CSS par défaut à appliquer aux blocs de code Markdown.
+(Si aucune autre configuration de coloration syntaxique n'est nécessaire, vous pouvez définir `markdown.syntaxHighlight` directement sur `shiki`, `prism` ou `false`.)
+
+#### markdown.syntaxHighlight.excludeLangs
+
+<p>
+
+**Type :** `Array<string>`<br />
+**Par défaut :** `['math']`<br />
+<Since v="5.5.0" />
+</p>
+
+Un tableau de langages à exclure de la coloration syntaxique par défaut spécifiée dans `markdown.syntaxHighlight.type`. Cela peut être utile lors de l'utilisation d'outils créant des diagrammes à partir de blocs de code Markdown, tels que Mermaid.js et D2.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  markdown: {
+    syntaxHighlight: {
+      type: 'shiki',
+      excludeLangs: ['mermaid', 'math'],
+    },
+  },
+});
 ```
 
 ### markdown.remarkPlugins
@@ -1195,7 +1272,7 @@ Aucun format de langue ou syntaxe particulière n'est imposé, mais nous vous su
 
 <p>
 
-**Type :** `Record.<string, string>`<br />
+**Type :** `Record<string, string>`<br />
 <Since v="3.5.0" />
 </p>
 
@@ -1224,11 +1301,38 @@ export default defineConfig({
 
 <p>
 
-**Type :** `Routing`<br />
+**Type :** `object | "manual"`<br />
+**Par défaut :** `object`<br />
 <Since v="3.7.0" />
 </p>
 
 Contrôle la stratégie de routage pour déterminer les URL de votre site. Définissez ceci en fonction de la configuration de votre chemin de dossier/URL pour votre langue par défaut.
+
+```js
+export default defineConfig({
+	i18n: {
+		defaultLocale: "en",
+		locales: ["en", "fr"],
+		routing: {
+			prefixDefaultLocale: false,
+			redirectToDefaultLocale: true,
+			fallbackType: "redirect",
+		}
+	}
+})
+```
+
+Depuis la version 4.6.0, cette option peut également être définie sur `manuel`. Lorsque cette stratégie de routage est activée, Astro **désactivera** son middleware i18n et aucune autre option de `routage` (par exemple `prefixDefaultLocale`) ne pourra être configurée. Vous serez responsable de l'écriture de votre propre logique de routage ou de l'exécution manuelle du middleware i18n d'Astro en parallèle de la vôtre.
+
+```js
+export default defineConfig({
+	i18n: {
+		defaultLocale: "en",
+		locales: ["en", "fr"],
+		routing: "manual"
+	}
+})
+```
 
 #### i18n.routing.prefixDefaultLocale
 
@@ -1320,29 +1424,45 @@ export default defineConfig({
 })
 ```
 
-#### i18n.routing.manual
+### i18n.domains
 
 <p>
 
-**Type :** `string`<br />
-<Since v="4.6.0" />
+**Type :** `Record<string, string>`<br />
+**Par défaut :** `{}`<br />
+<Since v="4.3.0" />
 </p>
 
-Lorsque cette option est activée, Astro **désactivera** son middleware i18n afin que vous puissiez implémenter votre propre logique personnalisée. Aucune autre option de routage (`routing`) (par exemple `prefixDefaultLocale`) ne peut être configurée avec `routing: "manual"`.
+Configure le modèle d'URL d'une ou plusieurs langues prises en charge pour utiliser un domaine personnalisé (ou sous-domaine).
 
-Vous serez responsable de l'écriture de votre propre logique de routage ou de l'exécution manuelle du middleware i18n d'Astro aux côtés du vôtre.
+Lorsqu'un paramètre régional est associé à un domaine, un préfixe de chemin `/[locale]/` ne sera pas utilisé.
+Cependant, les dossiers localisés dans `src/pages/` sont toujours nécessaires, y compris pour le paramètre régional par défaut (`defaultLocale`) configuré.
+
+Tout autre paramètre régional non configuré sera par défaut une URL basée sur un chemin localisé selon votre stratégie `prefixDefaultLocale` (par exemple `https://example.com/[locale]/blog`).
 
 ```js
+//astro.config.mjs
 export default defineConfig({
-	i18n: {
-		defaultLocale: "en",
-		locales: ["en", "fr", "pt-br", "es"],
-		routing: {
-			prefixDefaultLocale: true,
-		}
-	}
+	 site: "https://example.com",
+	 output: "server", // requis, sans pages pré-rendues
+	 adapter: node({
+	   mode: 'standalone',
+	 }),
+	 i18n: {
+    defaultLocale: "en",
+    locales: ["en", "fr", "pt-br", "es"],
+    prefixDefaultLocale: false,
+    domains: {
+      fr: "https://fr.example.com",
+      es: "https://example.es"
+    }
+  },
 })
 ```
+
+Les routes de page construites et les URL renvoyées par les fonctions d'assistance [`getAbsoluteLocaleUrl()`](/fr/reference/modules/astro-i18n/#getabsolutelocaleurl) et [`getAbsoluteLocaleUrlList()`](/fr/reference/modules/astro-i18n/#getabsolutelocaleurllist) du module `astro:i18n` utiliseront les options définies dans `i18n.domains`.
+
+Consultez le [Guide d'internationalisation](/fr/guides/internationalization/#domains) pour plus de détails, y compris les limitations de cette fonctionnalité.
 
 ## env
 

@@ -22,7 +22,7 @@ General information about the translation process can by found in our contributi
 - [Korean / 한국어](./한국어.md)
 - Polish / Polski
 - [Brazilian Portuguese / Português do Brasil](./português-do-brasil.md)
-- Russian / Русский
+- [Russian / Русский](./russian.md)
 - [Simplified Chinese / 简体中文](./简体中文.md)
 - [Traditional Chinese / 正體中文](./正體中文.md)
 

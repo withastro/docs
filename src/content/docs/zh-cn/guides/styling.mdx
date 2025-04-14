@@ -1,11 +1,13 @@
 ---
-title: 样式 和 CSS
+title: 样式和 CSS
 description: >-
   学习如何在 Astro 中使用作用域样式、外部 CSS 以及类似 Sass 和 PostCSS 的工具来为组件添加样式。
 ---
 import Since from '~/components/Since.astro';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import ReadMore from '~/components/ReadMore.astro'
+import { Steps } from '@astrojs/starlight/components';
+import RecipeLinks from "~/components/RecipeLinks.astro";
 
 Astro 的设计为了使设计和编写 CSS 变得轻而易举。直接在 Astro 组件中编写你自己的 CSS，或者导入你最喜欢的 CSS 库，如 [Tailwind][tailwind] 外。也支持高级样式设计语言，如 [Sass][sass] 和 [Less][less]。
 
@@ -26,12 +28,12 @@ Astro `<style>` 标签内的 CSS 规则**默认自动限定范围**。作用域�
 现有 CSS：
 ```astro title="src/pages/index.astro"
 <style>
-  h1 { 
-    color: red; 
+  h1 {
+    color: red;
   }
 
-  .text { 
-    color: blue; 
+  .text {
+    color: blue;
   }
 </style>
 ```
@@ -207,7 +209,7 @@ import 'package-name/styles.css';
 <html><!-- 你的页面在这 --></html>
 ```
 
-如果你所用的包**不建议使用文件扩展名**（即 `包名/样式`），那么你就需要先更新 Astro 配置 
+如果你所用的包**不建议使用文件扩展名**（即 `包名/样式`），那么你就需要先更新 Astro 配置！
 
 假设你从 `package-name` 导入名为 `normalize` 的 CSS 文件（省略文件扩展名）。为了确保我们能正确地预渲染你的页面，需要把`package-name` 添加到 [`vite.ssr.noExternal` 数组](https://cn.vite.dev/config/ssr-options.html#ssr-noexternal)中。
 
@@ -293,11 +295,13 @@ Astro 组件有时需要评估多个 CSS 源。例如，你的组件可能会导
 Astro CSS 规则的评估顺序如下：
 - **`<link>` 标签在 head 中**（最低优先级）
 - **导入的样式**
-- **scoped 样式**（最高优先级）
+- **作用域样式**（最高优先级）
 
 ### 作用域样式
 
-使用 [作用域样式](#作用域样式) 不会增加 CSS 的 _特异性_，但它们始终在 _出现顺序_ 中最后。因此，它们将优先于具有相同特异性的其他样式。例如，如果你导入了与 scoped 样式冲突的样式表，scoped 样式的值将被应用：
+在作用域样式中的 [类样式特异性](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_cascade/Specificity#class_column) 会基于你在 [`scopedStyleStrategy`](/zh-cn/reference/configuration-reference/#scopedstylestrategy) 中选定的值，进行增加或不进行增加。
+
+但是，[作用域样式](#作用域样式) 始终是最后才出现的。也因此，它们将优先于其他具有相同特异性的样式。例如，如果你导入了与作用域样式冲突的样式表，作用域样式的值将被应用：
 
 ```css title="src/components/make-it-purple.css"
 h1 {
@@ -318,10 +322,10 @@ import "./make-it-purple.css"
 </div>
 ```
 
-如果你导入的样式更具 _特异性_，那么它将优先于 scoped 样式：
+如果导入的样式更具特异性，则作用域样式仍会被覆盖。具有更高特异性的样式将优先于作用域样式：
 
 ```css title="src/components/make-it-purple.css"
-div > h1 {
+#intro {
   color: purple;
 }
 ```
@@ -333,7 +337,7 @@ import "./make-it-purple.css"
   h1 { color: red }
 </style>
 <div>
-  <h1>
+  <h1 id="intro">
     这个 header 将会是紫色的！
   </h1>
 </div>
@@ -428,7 +432,10 @@ Astro 支持在项目中添加流行的 CSS 库、工具和框架，如 [Tailwin
 
 ### Tailwind
 
-要在项目中使用 Tailwind，请使用包管理器的`astro add` 命令安装官方的 [Astro Tailwind 集成][tailwind]：
+你可以使用 CLI 命令向你的项目添加对 Tailwind 4 的支持，或是通过手动安装旧版依赖，以 [支持旧版 Tailwind 3](#旧版-tailwind-3-支持) 。
+
+在 Astro `>=5.2.0` 版本中，通过在包管理工具中使用 `astro add tailwind` 命令，以安装官方的 Vite Tailwind 插件。该插件提供对 Tailwind `>=4.0.0` 的支持。如果要为更早版本的 Astro 提供对于 Tailwind 4 的支持，可 [参照 Tailwind 文档中的教程][tailwind]，以手动添加该 Vite 插件。
+
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -448,7 +455,93 @@ Astro 支持在项目中添加流行的 CSS 库、工具和框架，如 [Tailwin
   </Fragment>
 </PackageManagerTabs>
 
-<ReadMore>参见 [集成指南](/zh-cn/guides/integrations-guide/)，了解安装、导入和配置这些集成的说明。</ReadMore>
+然后，将 `tailwindcss` 导入到 `src/styles/global.css`（或你选择的其他 CSS 文件）中，使 Tailwind 类对你的 Astro 项目可用。如果你使用 `astro add tailwind` 命令来安装 Vite 插件，那么这个包含导入语句的文件将被默认创建。
+
+```css title="src/styles/global.css"
+@import "tailwindcss";
+```
+
+将此文件导入到你希望 Tailwind 应用的页面中。这一步骤通常是在布局组件中完成的，以便 Tailwind 样式可以在共享该布局的所有页面上使用：
+
+```astro title="src/layouts/Layout.astro"
+---
+import "../styles/global.css";
+---
+```
+
+#### 旧版 Tailwind 3 支持
+
+要添加（或保留）对 Tailwind 3 的支持，你将需要同时安装 `tailwindcss@3` 和官方的 Astro Tailwind 集成 `@astrojs/tailwind`。手动安装这些依赖，仅用于旧版 Tailwind 3 的兼容性，对于 Tailwind 4 并不做如此要求。你还可能会需要 [旧版 Tailwind 配置](https://v3.tailwindcss.com/docs/configuration#creating-your-configuration-file)：
+
+<Steps>
+1. 使用你首选的包管理工具，将 Tailwind 和 Astro Tailwind 集成安装至项目依赖项中：
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm install tailwindcss@3 @astrojs/tailwind
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm add tailwindcss@3 @astrojs/tailwind
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn add tailwindcss@3 @astrojs/tailwind
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+2. 导入集成至 `astro.config.mjs` 文件中，并将其添加到 `integrations[]` 数组中：
+
+    ```js title="astro.config.mjs" ins={2} ins="tailwind()"
+    import { defineConfig } from 'astro/config';
+    import tailwind from '@astrojs/tailwind';
+
+    export default defineConfig({
+      // ...
+      integrations: [tailwind()],
+      // ...
+    });
+    ```
+
+3. 在项目根目录下，创建一个 `tailwind.config.mjs` 文件。你可以使用以下命令，来为自己生成一个基础配置文件：
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npx tailwindcss init
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm dlx tailwindcss init
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn dlx tailwindcss init
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+4. 将以下基础配置添加至你的 `tailwind.config.mjs` 文件中：
+
+    ```ts title="tailwind.config.mjs" ins={3}
+    /** @type {import('tailwindcss').Config} */
+    export default {
+      content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
+      theme: {
+        extend: {},
+      },
+      plugins: [],
+    };
+    ```
+</Steps>
+
+<RecipeLinks slugs={["zh-cn/recipes/tailwind-rendered-markdown"]}/>
 
 ## CSS 预处理器
 
@@ -550,7 +643,7 @@ Astro 中的 Svelte 也完全按照预期工作。[Svelte Styling Docs][svelte-s
 
 你可以通过向包装页面内容的布局中添加 [导入的样式表](#外部样式) 来将全局样式应用于 Markdown 内容。你还可以在布局组件中使用 [`<style is:global>` 标签](#全局样式) 来为你的 Markdown 格式设置样式。请注意，添加的任何样式都会受到 [Astro 的级联顺序](#级联顺序)的影响，因此你应该仔细检查渲染后的页面，确保你的样式能够按照预期生效。
 
-你也可以添加包括 [Tailwind](/zh-cn/guides/integrations-guide/tailwind/) 在内的 [CSS 集成](#css-集成)。如果你使用 Tailwind，[typography 插件](https://tailwindcss.com/docs/typography-plugin) 可以用于样式化 Markdown。
+你也可以添加包括 [Tailwind](/zh-cn/recipes/tailwind-rendered-markdown/) 在内的 [CSS 集成](#css-集成)。如果你使用 Tailwind，[typography 插件](https://tailwindcss.com/docs/typography-plugin) 可以用于样式化 Markdown。
 
 ## 生产
 
@@ -636,7 +729,7 @@ import stylesUrl from '../styles/main.css?url';
 [sass]: https://sass-lang.com/
 [stylus]: https://stylus-lang.com/
 [svelte-style]: https://svelte.dev/docs#component-format-style
-[tailwind]: /zh-cn/guides/integrations-guide/tailwind/
+[tailwind]: https://tailwindcss.com/docs/installation/framework-guides/astro
 [vite-preprocessors]: https://cn.vite.dev/guide/features.html#css-pre-processors
 [vue-css-modules]: https://vue-loader.vuejs.org/guide/css-modules.html
 [vue-scoped]: https://vue-loader.vuejs.org/guide/scoped-css.html
