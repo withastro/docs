@@ -71,7 +71,12 @@ export const sidebar = [
 				],
 			}),
 			group('guides.serverRendering', {
-				items: ['guides/on-demand-rendering', 'guides/server-islands', 'guides/actions'],
+				items: [
+					'guides/on-demand-rendering',
+					'guides/server-islands',
+					'guides/actions',
+					'guides/sessions',
+				],
 			}),
 			group('guides.upgrade', {
 				items: [
@@ -109,6 +114,7 @@ export const sidebar = [
 					'reference/api-reference',
 					'reference/modules/astro-actions',
 					'reference/modules/astro-assets',
+					'reference/modules/astro-config',
 					'reference/modules/astro-content',
 					'reference/modules/astro-env',
 					'reference/modules/astro-i18n',
@@ -134,10 +140,9 @@ export const sidebar = [
 					'reference/experimental-flags/svg',
 					'reference/experimental-flags/client-prerender',
 					'reference/experimental-flags/content-intellisense',
-					'reference/experimental-flags/sessions',
-					'reference/experimental-flags/serialized-configuration',
 					'reference/experimental-flags/preserve-scripts-order',
 					'reference/experimental-flags/heading-id-compat',
+					'reference/experimental-flags/fonts',
 				],
 			}),
 			'reference/legacy-flags',
