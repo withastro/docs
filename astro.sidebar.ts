@@ -137,11 +137,11 @@ export const sidebar = [
 				items: [
 					'reference/experimental-flags',
 					'reference/experimental-flags/responsive-images',
+					'reference/experimental-flags/fonts',
 					'reference/experimental-flags/client-prerender',
 					'reference/experimental-flags/content-intellisense',
 					'reference/experimental-flags/preserve-scripts-order',
 					'reference/experimental-flags/heading-id-compat',
-					'reference/experimental-flags/fonts',
 				],
 			}),
 			'reference/legacy-flags',
