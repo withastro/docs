@@ -1,0 +1,359 @@
+---
+type: tutorial
+title: 'Opcional: Crear una colección de contenido'
+description: |-
+  Tutorial: Construye tu primer blog de Astro —
+  Convierte tu blog del enrutamiento basado en archivos a colecciones de contenido
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+import Option from '~/components/tutorial/Option.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+Ahora que tienes un blog usando el [enrutamiento basado en archivos incorporado de Astro](/es/guides/routing/#static-routes), lo actualizarás para usar una [colección de contenido](/es/guides/content-collections/). Las colecciones de contenido son una forma poderosa de administrar grupos de contenido similar, como publicaciones de blog.
+
+<PreCheck>
+  - Mueve tu carpeta de publicaciones de blog a `src/blog/`
+  - Crea un esquema para definir el frontmatter de tu publicación de blog
+  - Usa `getCollection()` para obtener el contenido y los metadatos de la publicación de blog
+</PreCheck>
+
+## Aprender: Páginas vs. Colecciones
+
+Incluso al usar colecciones de contenido, seguirás utilizando la carpeta `src/pages/` para páginas individuales, como tu página "Sobre mí". Pero, mover tus publicaciones de blog fuera de esta carpeta especial te permitirá usar APIs más poderosas y de mejor rendimiento para generar el índice de tus publicaciones de blog y mostrar tus publicaciones de blog individuales.
+
+Al mismo tiempo, recibirás una mejor guía y autocompletado en tu editor de código porque tendrás un **[esquema](/es/guides/content-collections/#defining-the-collection-schema)** para definir una estructura común para cada publicación que Astro te ayudará a aplicar a través de [Zod](https://zod.dev/), una biblioteca de declaración y validación de esquemas para TypeScript. En tu esquema, puedes especificar cuándo las propiedades del frontmatter son obligatorias, como una descripción o un autor, y qué tipo de datos debe tener cada propiedad, como una cadena o una matriz. Esto lleva a detectar muchos errores antes, con mensajes de error descriptivos que te indican exactamente cuál es el problema.
+
+Lee más sobre las [colecciones de contenido de Astro](/es/guides/content-collections/) en nuestra guía, o comienza con las instrucciones a continuación para convertir un blog básico de `src/pages/posts/` a `src/blog/`.
+
+<Box icon="question-mark">
+### Pon a prueba tus conocimientos
+
+1. ¿Qué tipo de página probablemente mantendrías en `src/pages/`?
+
+  <MultipleChoice>
+    <Option>
+      Publicaciones de blog que contienen la misma estructura básica y metadatos
+    </Option>
+    <Option>
+      Páginas de productos en un sitio de comercio electrónico
+    </Option>
+    <Option isCorrect>
+      Una página de contacto, porque no tienes varias páginas similares de este tipo
+    </Option>
+  </MultipleChoice>
+
+2. ¿Cuál **no** es un beneficio de mover las publicaciones de blog a una colección de contenido?
+
+  <MultipleChoice>
+    <Option isCorrect>
+      Las páginas se crean automáticamente para cada archivo
+    </Option>
+    <Option>
+      Mejores mensajes de error, porque Astro sabe más sobre cada archivo
+    </Option>
+    <Option>
+      Mejor obtención de datos, con una función de mayor rendimiento
+    </Option>
+  </MultipleChoice>
+
+3. Las colecciones de contenido usan TypeScript . . .
+  <MultipleChoice>
+    <Option>
+      Para hacerme sentir mal
+    </Option>
+    <Option isCorrect>
+      Para entender y validar mis colecciones, y para proporcionar herramientas de edición
+    </Option>
+    <Option>
+      Solo si tengo la configuración `strictest` establecida en `tsconfig.json`
+    </Option>
+  </MultipleChoice>
+
+</Box>
+
+Los siguientes pasos te muestran cómo extender el producto final del tutorial "Construye un Blog" creando una colección de contenido para las publicaciones de blog.
+
+## Actualizar dependencias
+
+Actualiza a la última versión de Astro y actualiza todas las integraciones a sus últimas versiones ejecutando los siguientes comandos en tu terminal:
+
+  <PackageManagerTabs>
+    <Fragment slot="npm">
+      ```shell
+      # Actualiza Astro y las integraciones oficiales juntas
+      npx @astrojs/upgrade
+      ```
+    </Fragment>
+    <Fragment slot="pnpm">
+      ```shell
+      # Actualiza Astro y las integraciones oficiales juntas
+      pnpm dlx @astrojs/upgrade
+      ```
+    </Fragment>
+    <Fragment slot="yarn">
+      ```shell
+      # Actualiza Astro y las integraciones oficiales juntas
+      yarn dlx @astrojs/upgrade
+      ```
+    </Fragment>
+  </PackageManagerTabs>
+
+## Crear una colección para tus publicaciones
+
+<Steps>
+1. Crea una nueva **colección** (carpeta) llamada `src/blog/`.
+
+2. Mueve todas tus publicaciones de blog existentes (archivos `.md`) de `src/pages/posts/` a esta nueva colección.
+
+3. Crea un archivo `src/content.config.ts` para [definir un esquema](/es/guides/content-collections/#defining-the-collection-schema) para tu `postsCollection`. Para el código del tutorial de blog existente, agrega el siguiente contenido al archivo para definir todas las propiedades del frontmatter utilizadas en sus publicaciones de blog:
+
+  ```ts title="src/content.config.ts"
+  // Importa el cargador glob
+  import { glob } from "astro/loaders";
+  // Importa utilidades de `astro:content`
+  import { z, defineCollection } from "astro:content";
+  // Define un `loader` y un `schema` para cada colección
+  const blog = defineCollection({
+    loader: glob({ pattern: '**/[^_]*.md', base: "./src/blog" }),
+    schema: z.object({
+      title: z.string(),
+      pubDate: z.date(),
+      description: z.string(),
+      author: z.string(),
+      image: z.object({
+        url: z.string(),
+        alt: z.string()
+      }),
+      tags: z.array(z.string())
+    })
+  });
+  // Exporta un solo objeto `collections` para registrar tus colecciones
+  export const collections = { blog };
+	```
+
+4.  Para que Astro reconozca tu esquema, cierra (`CTRL + C`) y reinicia el servidor de desarrollo para continuar con el tutorial. Esto definirá el módulo `astro:content`.
+
+</Steps>
+
+## Generar páginas desde una colección
+
+<Steps>
+1. Crea un archivo de página llamado `src/pages/posts/[...slug].astro`. Tus archivos Markdown y MDX ya no se convierten automáticamente en páginas usando el enrutamiento basado en archivos de Astro cuando están dentro de una colección, por lo que debes crear una página responsable de generar cada publicación de blog individual.
+
+2.  Agrega el siguiente código para [consultar tu colección](/es/guides/content-collections/#querying-collections) para que el slug de cada publicación de blog y el contenido de la página estén disponibles para cada página que generará:
+
+	```astro title="src/pages/posts/[...slug].astro"
+	---
+	import { getCollection, render } from 'astro:content';
+
+	export async function getStaticPaths() {
+		const posts = await getCollection('blog');
+		return posts.map(post => ({
+			params: { slug: post.id }, props: { post },
+		}));
+	}
+
+	const { post } = Astro.props;
+	const { Content } = await render(post);
+	---
+	```
+
+3.  Renderiza tu publicación `<Content />` dentro del diseño para páginas Markdown. Esto te permite especificar un diseño común para todas tus publicaciones.
+
+	```astro title="src/pages/posts/[...slug].astro" ins={3,15-17}
+	---
+	import { getCollection, render } from 'astro:content';
+	import MarkdownPostLayout from '../../layouts/MarkdownPostLayout.astro';
+
+	export async function getStaticPaths() {
+		const posts = await getCollection('blog');
+		return posts.map(post => ({
+			params: { slug: post.id }, props: { post },
+		}));
+	}
+
+	const { post } = Astro.props;
+	const { Content } = await render(post);
+	---
+	<MarkdownPostLayout frontmatter={post.data}>
+		<Content />
+	</MarkdownPostLayout>
+	```
+
+4.  Elimina la definición de `layout` en el frontmatter de cada publicación individual. Tu contenido ahora está envuelto en un diseño cuando se renderiza, y esta propiedad ya no es necesaria.
+
+	```md title="src/content/posts/post-1.md" del={2}
+	---
+	layout: ../../layouts/MarkdownPostLayout.astro
+	title: 'Mi primera publicación de blog'
+	pubDate: 2022-07-01
+	...
+	---
+	```
+
+</Steps>
+
+## Reemplazar `import.meta.glob()` con `getCollection()`
+
+<Steps>
+5. En cualquier lugar donde tengas una lista de publicaciones de blog, como la página de Blog del tutorial (`src/pages/blog.astro/`), deberás reemplazar `import.meta.glob()` con [`getCollection()`](/es/reference/modules/astro-content/#getcollection) como la forma de obtener contenido y metadatos de tus archivos Markdown.
+
+	```astro title="src/pages/blog.astro" "post.data" "getCollection("blog")" "/posts/${post.id}/" del={7} ins={2,8}
+	---
+	import { getCollection } from "astro:content";
+	import BaseLayout from "../layouts/BaseLayout.astro";
+	import BlogPost from "../components/BlogPost.astro";
+
+	const pageTitle = "Mi Blog de Aprendizaje de Astro";
+	const allPosts = Object.values(import.meta.glob("../pages/posts/*.md", { eager: true }));
+	const allPosts = await getCollection("blog");
+	---
+	```
+
+6.  También deberás actualizar las referencias a los datos devueltos para cada `post`. Ahora encontrarás los valores de tu frontmatter en la propiedad `data` de cada objeto. Además, al usar colecciones, cada objeto `post` tendrá un `slug` de página, no una URL completa.
+
+	```astro title="src/pages/blog.astro" "data" "/posts/${post.id}/" del={14} ins={15}
+	---
+	import { getCollection } from "astro:content";
+	import BaseLayout from "../layouts/BaseLayout.astro";
+	import BlogPost from "../components/BlogPost.astro";
+
+	const pageTitle = "Mi Blog de Aprendizaje de Astro";
+	const allPosts = await getCollection("blog");
+	---
+	<BaseLayout pageTitle={pageTitle}>
+		<p>Aquí es donde publicaré sobre mi viaje aprendiendo Astro.</p>
+		<ul>
+			{
+				allPosts.map((post) => (
+					<BlogPost url={post.url} title={post.frontmatter.title} />)}
+					<BlogPost url={`/posts/${post.id}/`} title={post.data.title} />
+				))
+			}
+		</ul>
+	</BaseLayout>
+	```
+
+7.  El proyecto de blog del tutorial también genera dinámicamente una página para cada etiqueta usando `src/pages/tags/[tag].astro` y muestra una lista de etiquetas en `src/pages/tags/index.astro`.
+
+    Aplica los mismos cambios que arriba a estos dos archivos:
+
+      - obtén datos sobre todas tus publicaciones de blog usando `getCollection("blog")` en lugar de usar `import.meta.glob()`
+      - accede a todos los valores del frontmatter usando `data` en lugar de `frontmatter`
+      - crea una URL de página agregando el `slug` de la publicación a la ruta `/posts/`
+
+    La página que genera páginas de etiquetas individuales ahora se convierte en:
+
+    ```astro title="src/pages/tags/[tag].astro" "post.data.tags" "getCollection("blog")" "post.data.title" ins={2} "/posts/${post.id}/"
+    ---
+    import { getCollection } from "astro:content";
+    import BaseLayout from "../../layouts/BaseLayout.astro";
+    import BlogPost from "../../components/BlogPost.astro";
+
+    export async function getStaticPaths() {
+      const allPosts = await getCollection("blog");
+      const uniqueTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
+
+      return uniqueTags.map((tag) => {
+        const filteredPosts = allPosts.filter((post) =>
+          post.data.tags.includes(tag)
+        );
+        return {
+          params: { tag },
+          props: { posts: filteredPosts },
+        };
+      });
+    }
+
+    const { tag } = Astro.params;
+    const { posts } = Astro.props;
+    ---
+
+    <BaseLayout pageTitle={tag}>
+      <p>Publicaciones etiquetadas con {tag}</p>
+      <ul>
+        { posts.map((post) => <BlogPost url={`/posts/${post.id}/`} title={post.data.title} />) }
+      </ul>
+    </BaseLayout>
+    ```
+
+     <Box icon="puzzle-piece">
+       ### Pruébalo tú mismo - Actualiza la consulta en la página del Índice de Etiquetas
+
+    Importa y usa `getCollection` para obtener las etiquetas utilizadas en las publicaciones de blog en `src/pages/tags/index.astro`, siguiendo los [mismos pasos que arriba](#replace-importmetaglob-with-getcollection).
+
+       <details>
+         <summary>Muéstrame el código.</summary>
+         ```astro title="src/pages/tags/index.astro" "post.data" "getCollection(\"blog\")" ins={2}
+         ---
+         import { getCollection } from "astro:content";
+         import BaseLayout from "../../layouts/BaseLayout.astro";
+         const allPosts = await getCollection("blog");
+         const tags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
+         const pageTitle = "Índice de Etiquetas";
+         ---
+          <!-- ... -->
+         ```
+       </details>
+     </Box>
+</Steps>
+
+## Actualizar cualquier valor de frontmatter para que coincida con tu esquema
+
+Si es necesario, actualiza cualquier valor de frontmatter en todo tu proyecto, como en tu diseño, que no coincida con el esquema de tus colecciones.
+
+En el ejemplo del tutorial del blog, `pubDate` era una cadena. Ahora, según el esquema que define los tipos para el frontmatter de la publicación, `pubDate` será un objeto `Date`. Ahora puedes aprovechar esto para usar los métodos disponibles para cualquier objeto `Date` para formatear la fecha.
+
+Para renderizar la fecha en el diseño de la publicación del blog, conviértela en una cadena usando el método `toLocaleDateString()`:
+
+```astro title="src/layouts/MarkdownPostLayout.astro" ins="toString()"
+<!-- ... -->
+<BaseLayout pageTitle={frontmatter.title}>
+    <p>{frontmatter.pubDate.toLocaleDateString()}</p>
+    <p><em>{frontmatter.description}</em></p>
+    <p>Written by: {frontmatter.author}</p>
+    <img src={frontmatter.image.url} width="300" alt={frontmatter.image.alt} />
+<!-- ... -->
+```
+
+## Actualizar la función RSS
+
+El proyecto de blog del tutorial incluye un feed RSS. Esta función también debe usar `getCollection()` para devolver información de tus publicaciones de blog. Luego, generarás los elementos RSS usando el objeto `data` devuelto.
+
+	```js title="src/pages/rss.xml.js" del={2,11} ins={3,6,12-17}
+	import rss from '@astrojs/rss';
+	import { pagesGlobToRssItems } from '@astrojs/rss';
+	import { getCollection } from 'astro:content';
+
+	export async function GET(context) {
+		const posts = await getCollection("blog");
+		return rss({
+			title: 'Astro Learner | Blog',
+			description: 'Mi viaje aprendiendo Astro',
+			site: context.site,
+			items: await pagesGlobToRssItems(import.meta.glob('./**/*.md')),
+			items: posts.map((post) => ({
+				title: post.data.title,
+				pubDate: post.data.pubDate,
+				description: post.data.description,
+				link: `/posts/${post.id}/`,
+			})),
+			customData: `<language>en-us</language>`,
+		})
+	}
+	```
+
+Para el ejemplo completo del tutorial del blog usando colecciones de contenido, consulta la [rama Content Collections](https://github.com/withastro/blog-tutorial-demo/tree/content-collections) del repositorio del tutorial.
+
+<Box icon="check-list">
+
+## Lista de verificación
+<Checklist>
+- [ ] Puedo usar colecciones de contenido para administrar grupos de contenido similar para un mejor rendimiento y organización.
+</Checklist>
+</Box>
